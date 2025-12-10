@@ -4,6 +4,23 @@ theme:
 
 nav:
   - Home: index.md
+  - Chapter 1:
+      - 1.1 Overview: ch01/index.md
+      - 1.2 BS PDE Derivation:
+          - Delta Hedging: ch01/bs_pde_derivation/delta_hedging.md
+          - Martingale Representation via Infinitesimal Generator: ch01/bs_pde_derivation/martingale.md
+          - Consumption-Based Asset Pricing (Equilibrium Approach): ch01/bs_pde_derivation/equilbrium.md
+          - Change of Numeraire (Genuine Alternative): ch01/bs_pde_derivation/change_of_numeraire.md
+      - 1.3 BS PDE Solution:
+          - Feynman-Kac Formula: ch01/bs_pde_solution/feynman_kac.md
+          - Heat Equation: ch01/bs_pde_solution/heat_equation.md
+          - Green Function: ch01/bs_pde_solution/green_function.md
+          - Fourier, Mellin, and Laplace Transforms: ch01/bs_pde_solution/fourier_mellin_laplace_transforms.md
+          - Change of Numeraire: ch01/bs_pde_solution/change_of_numeraire.md
+          - Viscosity Solutions: ch01/bs_pde_solution/viscosity_solutions.md
+          - Green Function: ch01/bs_pde_solution/green_function.md
+      - 1.3 Mathematical Backups:
+          - Girsanov Theorem: ch01/math_backups/girsanov_theorem.md
 
 plugins:
   - search
