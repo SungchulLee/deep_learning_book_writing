@@ -974,7 +974,7 @@ nav:
   # PART V: PRACTICE
   # =============================================================================
   - Part V Practice & Capstone:
-      - 21 Deployment - 20 Deployment & Production: Production:
+      - 21 Deployment & Production:
           - 21.1 Model Deployment:
               - Deployment Overview: ch20/deployment/overview.md
               - ONNX: ch20/deployment/onnx.md
