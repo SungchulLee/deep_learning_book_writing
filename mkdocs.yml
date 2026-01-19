@@ -476,12 +476,17 @@ nav:
               - Limitations of Linear Methods: ch09/pca/limitations.md
 
           - 9.2 Autoencoders:
+              - Overview: ch09/autoencoders/README.md
               - Encoder-Decoder Architecture: ch09/autoencoders/architecture.md
               - Latent Space and Reconstruction Loss: ch09/autoencoders/latent_reconstruction.md
               - Undercomplete vs Overcomplete: ch09/autoencoders/undercomplete_overcomplete.md
               - Denoising Autoencoders: ch09/autoencoders/denoising.md
               - Sparse Autoencoders: ch09/autoencoders/sparse.md
               - Contractive Autoencoders: ch09/autoencoders/contractive.md
+              - Convolutional Autoencoders: ch09/autoencoders/convolutional.md
+              - Deep (Stacked) Autoencoders: ch09/autoencoders/deep.md
+              - Applications: ch09/autoencoders/applications.md
+              - Analysis and Comparison: ch09/autoencoders/analysis.md
 
           - 9.3 Variational Autoencoders:
               - Latent Variable Models: ch09/vae/latent_variable_models.md
