@@ -1,46 +1,1282 @@
-site_name: Financial Math Book
+site_name: Deep Learning Foundations for Quantitative Finance
 theme:
   name: material
 
-nav:
-  - Home: index.md
-  - Chapter 1:
-      - 1.1 Overview: ch01/index.md
-      - 1.2 BS PDE Derivation:
-          - Delta Hedging: ch01/bs_pde_derivation/delta_hedging.md
-          - Martingale: ch01/bs_pde_derivation/martingale.md
-          - Equilibrium: ch01/bs_pde_derivation/equilbrium.md
-          - Change of Numeraire: ch01/bs_pde_derivation/change_of_numeraire.md
-      - 1.3 BS PDE Solution:
-          - Feynman-Kac Formula: ch01/bs_pde_solution/feynman_kac.md
-          - Heat Equation: ch01/bs_pde_solution/heat_equation.md
-          - Green Function: ch01/bs_pde_solution/green_function.md
-          - Various Transforms: ch01/bs_pde_solution/fourier_mellin_laplace_transforms.md
-          - Change of Numeraire: ch01/bs_pde_solution/change_of_numeraire.md
-          - Viscosity Solutions: ch01/bs_pde_solution/viscosity_solutions.md
-      - 1.3 Mathematical Backups:
-          - Martingale Representation Theorem: ch01/math_backups/martingale_representation_theorem.md
-          - Girsanov Theorem: ch01/math_backups/girsanov_theorem.md
-          - Fundamental Theorem of Asset Pricing: ch01/math_backups/fundamental_theorem_of_asset_pricing.md
-          - Separating Hyperplane Theorem: ch01/math_backups/separating_hyperplane_theorem.md
-
-  - Chapter 2:
-      - 2.1 Overview: ch02/index.md
-
-plugins:
-  - search
-
 markdown_extensions:
-  - pymdownx.arithmatex:
-      generic: true
-  - pymdownx.superfences
   - admonition
   - toc:
       permalink: true
+  - pymdownx.superfences
+  - pymdownx.arithmatex:
+      generic: true
 
 extra_javascript:
+  - javascripts/mathjax.js
+  - https://polyfill.io/v3/polyfill.min.js?features=es6
   - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
+nav:
+  - Home: index.md
 
+  # =============================================================================
+  # PART I: FOUNDATIONS
+  # =============================================================================
+  - Part I Foundations:
+      - 1 Foundations & Basics:
+          - 1.1 Installation:
+              - Environment Setup: ch01/installation/environment_setup.md
+              - Package Management: ch01/installation/package_management.md
+              - GPU Configuration: ch01/installation/gpu_configuration.md
 
+          - 1.2 Tensors:
+              - Tensor Basics: ch01/tensors/tensor_basics.md
+              - Tensor Creation and dtypes: ch01/tensors/tensor_creation_dtypes.md
+              - Memory Layout and Strides: ch01/tensors/memory_layout_strides.md
+              - NumPy Interoperability: ch01/tensors/numpy_interop.md
 
+          - 1.3 Tensor Attributes and Methods:
+              - Shape and Dimensions: ch01/tensor_attrs/shape_dimensions.md
+              - Indexing and Slicing: ch01/tensor_attrs/indexing_slicing.md
+              - Reshaping and View Operations: ch01/tensor_attrs/reshaping_view.md
+              - Broadcasting Rules: ch01/tensor_attrs/broadcasting_rules.md
+              - Linear Algebra Operations: ch01/tensor_attrs/linalg_operations.md
+
+          - 1.4 Gradients:
+              - Autograd Fundamentals: ch01/gradients/autograd_fundamentals.md
+              - Computational Graphs: ch01/gradients/computational_graphs.md
+              - Forward and Reverse Mode AD: ch01/gradients/forward_reverse_ad.md
+              - Gradient Accumulation: ch01/gradients/gradient_accumulation.md
+              - Higher-Order Derivatives: ch01/gradients/higher_order_derivatives.md
+
+          - 1.5 Gradient Descent:
+              - Optimization as Iterative Refinement: ch01/gradient_descent/iterative_refinement.md
+              - Gradient as Steepest Ascent Direction: ch01/gradient_descent/steepest_direction.md
+              - Learning Rate and Step Size: ch01/gradient_descent/learning_rate.md
+              - Batch, Mini-Batch, and Stochastic GD: ch01/gradient_descent/batch_minibatch_sgd.md
+              - Convex vs Non-Convex Optimization: ch01/gradient_descent/convex_nonconvex.md
+              - Local Minima, Saddle Points, Plateaus: ch01/gradient_descent/critical_points.md
+
+          - 1.6 Maximum Likelihood Estimation:
+              - MLE Foundations: ch01/mle/mle_foundations.md
+              - MLE for Common Distributions: ch01/mle/mle_distributions.md
+              - Fisher Information: ch01/mle/fisher_information.md
+              - Asymptotic Properties: ch01/mle/asymptotic_properties.md
+              - Connection to Loss Functions: ch01/mle/mle_loss_connection.md
+
+          - 1.7 Linear Regression:
+              - Model Specification and Assumptions: ch01/linear_regression/model_specification.md
+              - Maximum Likelihood Derivation: ch01/linear_regression/mle_derivation.md
+              - MSE as Negative Log-Likelihood: ch01/linear_regression/mse_nll_connection.md
+              - Normal Equations (Closed-Form Solution): ch01/linear_regression/normal_equations.md
+              - Geometric Interpretation: ch01/linear_regression/geometric_interpretation.md
+              - Gradient Descent Solution: ch01/linear_regression/gradient_descent_solution.md
+              - PyTorch Implementation: ch01/linear_regression/pytorch_impl.md
+
+          - 1.8 Model Evaluation Metrics:
+              - Regression Metrics (MSE, MAE, R²): ch01/evaluation_metrics/regression_metrics.md
+              - Classification Metrics: ch01/evaluation_metrics/classification_metrics.md
+              - Confusion Matrix: ch01/evaluation_metrics/confusion_matrix.md
+              - Precision, Recall, F1-Score: ch01/evaluation_metrics/precision_recall_f1.md
+              - ROC Curve and AUC: ch01/evaluation_metrics/roc_auc.md
+
+          - 1.9 Logistic Regression:
+              - Bernoulli Distribution and GLM Framework: ch01/logistic_regression/bernoulli_glm.md
+              - Sigmoid Function and Odds Ratio: ch01/logistic_regression/sigmoid_odds.md
+              - Log-Likelihood Derivation: ch01/logistic_regression/log_likelihood_derivation.md
+              - BCE as Negative Log-Likelihood: ch01/logistic_regression/bce_nll_connection.md
+              - Gradient Derivation: ch01/logistic_regression/gradient_derivation.md
+              - PyTorch Implementation: ch01/logistic_regression/pytorch_impl.md
+
+          - 1.10 Softmax Regression:
+              - Categorical Distribution and One-Hot Encoding: ch01/softmax_regression/categorical_onehot.md
+              - Softmax Function Derivation and Properties: ch01/softmax_regression/softmax_derivation.md
+              - Cross-Entropy as Negative Log-Likelihood: ch01/softmax_regression/ce_nll_connection.md
+              - Jacobian of Softmax: ch01/softmax_regression/jacobian_softmax.md
+              - Gradient Derivation: ch01/softmax_regression/gradient_derivation.md
+              - PyTorch Implementation: ch01/softmax_regression/pytorch_impl.md
+
+          - 1.11 Overfitting and Bias-Variance:
+              - Bias-Variance Decomposition: ch01/overfitting/bias_variance_decomposition.md
+              - Mathematical Derivation: ch01/overfitting/mathematical_derivation.md
+              - Overfitting Detection: ch01/overfitting/overfitting_detection.md
+              - Train-Validation-Test Split: ch01/overfitting/data_splitting.md
+              - Cross-Validation: ch01/overfitting/cross_validation.md
+
+          - 1.12 Datasets:
+              - PyTorch Dataset Class: ch01/datasets/pytorch_dataset.md
+              - Built-in Datasets: ch01/datasets/builtin_datasets.md
+              - Custom Datasets: ch01/datasets/custom_datasets.md
+              - Data Transforms: ch01/datasets/data_transforms.md
+
+          - 1.13 DataLoaders:
+              - DataLoader Fundamentals: ch01/dataloaders/dataloader_fundamentals.md
+              - Batching and Shuffling: ch01/dataloaders/batching_shuffling.md
+              - Multiprocessing: ch01/dataloaders/multiprocessing.md
+              - Custom Collate Functions: ch01/dataloaders/custom_collate.md
+
+      - 2 Training Mechanics & Optimization:
+          - 2.1 Loss Functions:
+              - Loss Function Overview: ch02/loss/loss_overview.md
+              - Regression Losses: ch02/loss/regression_losses.md
+              - Classification Losses: ch02/loss/classification_losses.md
+              - Custom Loss Functions: ch02/loss/custom_losses.md
+
+          - 2.2 Optimizers:
+              - Optimizer Fundamentals: ch02/optimizers/fundamentals.md
+              - Classical Momentum: ch02/optimizers/classical_momentum.md
+              - Nesterov Accelerated Gradient: ch02/optimizers/nag.md
+              - AdaGrad: ch02/optimizers/adagrad.md
+              - RMSProp: ch02/optimizers/rmsprop.md
+              - Adam: ch02/optimizers/adam.md
+              - AdamW (Decoupled Weight Decay): ch02/optimizers/adamw.md
+              - AMSGrad: ch02/optimizers/amsgrad.md
+              - RAdam: ch02/optimizers/radam.md
+              - Optimizer Comparison and Selection: ch02/optimizers/comparison_selection.md
+
+          - 2.3 Activation Functions:
+              - Why Nonlinearity is Necessary: ch02/activation/why_nonlinearity.md
+              - Sigmoid and Tanh: ch02/activation/sigmoid_tanh.md
+              - ReLU Family (ReLU, Leaky, PReLU, ELU, SELU): ch02/activation/relu_family.md
+              - GELU: ch02/activation/gelu.md
+              - Swish/SiLU: ch02/activation/swish.md
+              - GLU (Gated Linear Unit): ch02/activation/glu.md
+              - Activation Function Selection Guide: ch02/activation/selection_guide.md
+
+          - 2.4 Learning Rate Schedulers:
+              - Step Decay: ch02/lr_schedulers/step_decay.md
+              - Exponential Decay: ch02/lr_schedulers/exponential_decay.md
+              - Cosine Annealing: ch02/lr_schedulers/cosine_annealing.md
+              - OneCycleLR: ch02/lr_schedulers/onecycle.md
+              - Warmup Strategies: ch02/lr_schedulers/warmup.md
+              - ReduceLROnPlateau: ch02/lr_schedulers/reduce_plateau.md
+              - Cyclic Learning Rates: ch02/lr_schedulers/cyclic.md
+
+          - 2.5 Hyperparameter Tuning:
+              - Grid Search: ch02/hyperparameter/grid_search.md
+              - Random Search: ch02/hyperparameter/random_search.md
+              - Bayesian Optimization: ch02/hyperparameter/bayesian_optimization.md
+              - Practical Guidelines: ch02/hyperparameter/practical_guidelines.md
+
+          - 2.6 Save and Load Models:
+              - State Dict: ch02/save_load/state_dict.md
+              - Checkpointing: ch02/save_load/checkpointing.md
+              - Model Serialization: ch02/save_load/serialization.md
+
+          - 2.7 Feedforward Networks:
+              - MLP Architecture: ch02/feedforward/mlp_architecture.md
+              - Universal Approximation Theorem: ch02/feedforward/universal_approximation.md
+              - Forward Propagation: ch02/feedforward/forward_propagation.md
+              - Backpropagation Derivation: ch02/feedforward/backpropagation_derivation.md
+              - Chain Rule and Gradient Flow: ch02/feedforward/chain_rule_gradient_flow.md
+              - Network Depth and Width: ch02/feedforward/depth_width.md
+
+          - 2.8 Regularization Techniques:
+              - L1 Regularization (Lasso): ch02/regularization/l1_lasso.md
+              - L2 Regularization (Ridge): ch02/regularization/l2_ridge.md
+              - Elastic Net: ch02/regularization/elastic_net.md
+              - Dropout: ch02/regularization/dropout.md
+              - Early Stopping: ch02/regularization/early_stopping.md
+              - Data Augmentation: ch02/regularization/data_augmentation.md
+              - Noise Injection: ch02/regularization/noise_injection.md
+
+          - 2.9 Normalization Layers:
+              - Internal Covariate Shift: ch02/normalization/covariate_shift.md
+              - Batch Normalization: ch02/normalization/batch_norm.md
+              - Layer Normalization: ch02/normalization/layer_norm.md
+              - Instance Normalization: ch02/normalization/instance_norm.md
+              - Group Normalization: ch02/normalization/group_norm.md
+              - Weight Normalization: ch02/normalization/weight_norm.md
+              - RMSNorm: ch02/normalization/rmsnorm.md
+              - Normalization Comparison: ch02/normalization/comparison.md
+
+  # =============================================================================
+  # PART II: ARCHITECTURES
+  # =============================================================================
+  - Part II Architectures:
+      - 3 Core Neural Network Architectures:
+          - 3.1 Convolutional Neural Networks:
+              - Discrete Convolution and Cross-Correlation: ch03/cnn/convolution_cross_correlation.md
+              - Padding, Stride, and Dilation: ch03/cnn/padding_stride_dilation.md
+              - Receptive Field: ch03/cnn/receptive_field.md
+              - Convolution as Matrix Multiplication (Toeplitz): ch03/cnn/toeplitz_matrix.md
+              - Pooling Layers: ch03/cnn/pooling_layers.md
+              - Grouped and Depthwise Separable Convolution: ch03/cnn/grouped_depthwise.md
+              - Backpropagation in CNNs: ch03/cnn/backprop_cnn.md
+              - CNN for Image Classification: ch03/cnn/image_classification.md
+
+          - 3.2 Residual Connections:
+              - Skip Connections: ch03/residual/skip_connections.md
+              - ResNet Architecture: ch03/residual/resnet.md
+              - Gradient Flow Analysis: ch03/residual/gradient_flow.md
+              - Pre-Activation ResNet: ch03/residual/pre_activation.md
+              - DenseNet: ch03/residual/densenet.md
+
+          - 3.3 Word Embeddings:
+              - Distributed Representations: ch03/word_embeddings/distributed_representations.md
+              - Word2Vec (Skip-gram, CBOW): ch03/word_embeddings/word2vec.md
+              - Negative Sampling: ch03/word_embeddings/negative_sampling.md
+              - GloVe: ch03/word_embeddings/glove.md
+              - FastText: ch03/word_embeddings/fasttext.md
+              - Embedding Layers in PyTorch: ch03/word_embeddings/pytorch_embeddings.md
+
+          - 3.4 Attention Mechanisms:
+              - Attention Fundamentals: ch03/attention/attention_fundamentals.md
+              - Scaled Dot-Product Attention: ch03/attention/scaled_dot_product.md
+              - Why Scale by sqrt(d_k): ch03/attention/why_scale.md
+              - Multi-Head Attention: ch03/attention/multi_head_attention.md
+              - Self-Attention: ch03/attention/self_attention.md
+              - Cross-Attention: ch03/attention/cross_attention.md
+              - Attention as Soft Dictionary Lookup: ch03/attention/soft_dictionary.md
+
+          - 3.5 Transformers for NLP:
+              - Transformer Architecture Overview: ch03/transformers_nlp/architecture_overview.md
+              - Positional Encoding: ch03/transformers_nlp/positional_encoding.md
+              - Encoder Block: ch03/transformers_nlp/encoder_block.md
+              - Decoder Block: ch03/transformers_nlp/decoder_block.md
+              - Masked Self-Attention: ch03/transformers_nlp/masked_attention.md
+              - BERT: ch03/transformers_nlp/bert.md
+              - GPT: ch03/transformers_nlp/gpt.md
+              - T5: ch03/transformers_nlp/t5.md
+
+          - 3.6 Transformers for Vision:
+              - Vision Transformer (ViT): ch03/transformers_vision/vit.md
+              - Patch Embeddings: ch03/transformers_vision/patch_embeddings.md
+              - Position Embeddings for Images: ch03/transformers_vision/position_embeddings.md
+              - DeiT: ch03/transformers_vision/deit.md
+              - Swin Transformer: ch03/transformers_vision/swin.md
+
+          - 3.7 Recurrent Neural Networks:
+              - RNN Fundamentals: ch03/rnn/rnn_fundamentals.md
+              - Hidden State Dynamics: ch03/rnn/hidden_state_dynamics.md
+              - Backpropagation Through Time (BPTT): ch03/rnn/bptt.md
+              - Vanishing and Exploding Gradients: ch03/rnn/gradient_problems.md
+              - Gradient Clipping: ch03/rnn/gradient_clipping.md
+              - Bidirectional RNNs: ch03/rnn/bidirectional.md
+
+          - 3.8 LSTM and GRU:
+              - LSTM Architecture: ch03/lstm_gru/lstm_architecture.md
+              - LSTM Gates (Forget, Input, Output): ch03/lstm_gru/lstm_gates.md
+              - LSTM Gradient Flow: ch03/lstm_gru/lstm_gradient_flow.md
+              - GRU Architecture: ch03/lstm_gru/gru_architecture.md
+              - GRU Gates: ch03/lstm_gru/gru_gates.md
+              - LSTM vs GRU Comparison: ch03/lstm_gru/comparison.md
+
+          - 3.9 Sequence-to-Sequence Models:
+              - Encoder-Decoder Architecture: ch03/seq2seq/encoder_decoder.md
+              - Attention in Seq2Seq: ch03/seq2seq/attention_seq2seq.md
+              - Teacher Forcing: ch03/seq2seq/teacher_forcing.md
+              - Beam Search: ch03/seq2seq/beam_search.md
+              - Applications: ch03/seq2seq/applications.md
+
+      - 4 Computer Vision:
+          - 4.1 Semantic Segmentation:
+              - Segmentation Fundamentals: ch04/semantic_segmentation/fundamentals.md
+              - Fully Convolutional Networks (FCN): ch04/semantic_segmentation/fcn.md
+              - U-Net: ch04/semantic_segmentation/unet.md
+              - DeepLab: ch04/semantic_segmentation/deeplab.md
+              - Loss Functions for Segmentation: ch04/semantic_segmentation/loss_functions.md
+
+          - 4.2 Object Detection:
+              - Detection Fundamentals: ch04/object_detection/fundamentals.md
+              - IoU and NMS: ch04/object_detection/iou_nms.md
+              - R-CNN Family: ch04/object_detection/rcnn_family.md
+              - YOLO: ch04/object_detection/yolo.md
+              - SSD: ch04/object_detection/ssd.md
+              - Anchor-Free Methods: ch04/object_detection/anchor_free.md
+
+          - 4.3 Advanced Image Classification:
+              - EfficientNet: ch04/image_classification/efficientnet.md
+              - ConvNeXt: ch04/image_classification/convnext.md
+              - Ensemble Methods: ch04/image_classification/ensemble.md
+
+          - 4.4 Video Understanding:
+              - Temporal Modeling: ch04/video_understanding/temporal_modeling.md
+              - 3D Convolutions: ch04/video_understanding/3d_conv.md
+              - Two-Stream Networks: ch04/video_understanding/two_stream.md
+              - Video Transformers: ch04/video_understanding/video_transformers.md
+
+          - 4.5 Multimodal Vision:
+              - Vision-Language Models: ch04/multimodal_vision/vision_language.md
+              - CLIP: ch04/multimodal_vision/clip.md
+              - Image Captioning: ch04/multimodal_vision/image_captioning.md
+              - Visual Question Answering: ch04/multimodal_vision/vqa.md
+
+      - 5 Natural Language Processing:
+          - 5.1 Language Modeling Foundations:
+              - N-gram Models: ch05/language_modeling/ngram.md
+              - Neural Language Models: ch05/language_modeling/neural_lm.md
+              - Perplexity: ch05/language_modeling/perplexity.md
+              - Causal vs Masked Language Modeling: ch05/language_modeling/causal_vs_masked.md
+              - Tokenization (BPE, WordPiece, SentencePiece): ch05/language_modeling/tokenization.md
+
+          - 5.2 Text Classification:
+              - Classification Fundamentals: ch05/text_classification/fundamentals.md
+              - Bag-of-Words and TF-IDF: ch05/text_classification/bow_tfidf.md
+              - CNN for Text: ch05/text_classification/cnn_text.md
+              - RNN for Text: ch05/text_classification/rnn_text.md
+              - Transformer-based Classification: ch05/text_classification/transformer_classification.md
+
+          - 5.3 Sequence Labeling:
+              - NER Fundamentals: ch05/sequence_labeling/ner_fundamentals.md
+              - BIO Tagging: ch05/sequence_labeling/bio_tagging.md
+              - CRF Layer: ch05/sequence_labeling/crf.md
+              - POS Tagging: ch05/sequence_labeling/pos_tagging.md
+
+          - 5.4 Information Extraction:
+              - Relation Extraction: ch05/information_extraction/relation_extraction.md
+              - Event Extraction: ch05/information_extraction/event_extraction.md
+              - Knowledge Graphs: ch05/information_extraction/knowledge_graphs.md
+
+          - 5.5 Machine Translation:
+              - MT Fundamentals: ch05/machine_translation/fundamentals.md
+              - Neural MT: ch05/machine_translation/neural_mt.md
+              - Evaluation Metrics (BLEU, ROUGE): ch05/machine_translation/evaluation_metrics.md
+
+          - 5.6 Question Answering:
+              - Extractive QA: ch05/question_answering/extractive.md
+              - Generative QA: ch05/question_answering/generative.md
+              - Open-domain QA: ch05/question_answering/open_domain.md
+
+          - 5.7 Text Summarization:
+              - Extractive Summarization: ch05/summarization/extractive.md
+              - Abstractive Summarization: ch05/summarization/abstractive.md
+
+      - 6 Large Language Models:
+          - 6.1 LLM Foundations:
+              - Scaling Laws: ch06/llm_foundations/scaling_laws.md
+              - Emergent Abilities: ch06/llm_foundations/emergent_abilities.md
+              - Pretraining Objectives: ch06/llm_foundations/pretraining_objectives.md
+              - Architectural Innovations: ch06/llm_foundations/architectural_innovations.md
+
+          - 6.2 LLM Architectures:
+              - GPT Series: ch06/llm_architectures/gpt_series.md
+              - LLaMA Family: ch06/llm_architectures/llama.md
+              - Mistral and Mixtral: ch06/llm_architectures/mistral.md
+              - Encoder-Decoder LLMs (T5, BART): ch06/llm_architectures/encoder_decoder.md
+
+          - 6.3 Prompting and In-Context Learning:
+              - Prompt Engineering Fundamentals: ch06/prompting/fundamentals.md
+              - Zero-shot and Few-shot Prompting: ch06/prompting/zero_few_shot.md
+              - Chain-of-Thought Prompting: ch06/prompting/chain_of_thought.md
+              - Tree-of-Thought: ch06/prompting/tree_of_thought.md
+              - ReAct and Tool Use: ch06/prompting/react_tool_use.md
+
+          - 6.4 Instruction Tuning:
+              - Instruction Tuning Fundamentals: ch06/instruction_tuning/fundamentals.md
+              - FLAN and T0: ch06/instruction_tuning/flan_t0.md
+              - Self-Instruct: ch06/instruction_tuning/self_instruct.md
+
+          - 6.5 Alignment and RLHF:
+              - Alignment Problem: ch06/alignment/alignment_problem.md
+              - Reward Modeling: ch06/alignment/reward_modeling.md
+              - RLHF: ch06/alignment/rlhf.md
+              - DPO (Direct Preference Optimization): ch06/alignment/dpo.md
+              - Constitutional AI: ch06/alignment/constitutional_ai.md
+
+          - 6.6 Efficient LLM Methods:
+              - LoRA: ch06/efficient_llm/lora.md
+              - QLoRA: ch06/efficient_llm/qlora.md
+              - Prefix Tuning: ch06/efficient_llm/prefix_tuning.md
+              - Adapter Layers: ch06/efficient_llm/adapters.md
+
+          - 6.7 LLM Inference Optimization:
+              - KV Cache: ch06/inference/kv_cache.md
+              - Flash Attention: ch06/inference/flash_attention.md
+              - Speculative Decoding: ch06/inference/speculative_decoding.md
+              - Quantization for LLMs: ch06/inference/quantization.md
+
+          - 6.8 Retrieval-Augmented Generation:
+              - RAG Fundamentals: ch06/rag/fundamentals.md
+              - Dense Retrieval: ch06/rag/dense_retrieval.md
+              - Vector Databases: ch06/rag/vector_databases.md
+              - Chunking Strategies: ch06/rag/chunking.md
+
+          - 6.9 LLM Evaluation:
+              - Benchmark Suites: ch06/evaluation/benchmarks.md
+              - LLM-as-Judge: ch06/evaluation/llm_as_judge.md
+              - Safety Evaluation: ch06/evaluation/safety.md
+
+          - 6.10 LLM Applications in Finance:
+              - Financial Text Analysis: ch06/llm_finance/text_analysis.md
+              - Report Generation: ch06/llm_finance/report_generation.md
+              - Financial QA Systems: ch06/llm_finance/financial_qa.md
+              - Code Generation for Quant: ch06/llm_finance/code_generation.md
+
+      - 7 Graph Neural Networks:
+          - 7.1 Graph Foundations:
+              - Graph Theory Basics: ch07/graph_foundations/graph_theory.md
+              - Graph Representations: ch07/graph_foundations/representations.md
+              - Graph Laplacian: ch07/graph_foundations/laplacian.md
+              - Spectral Graph Theory: ch07/graph_foundations/spectral.md
+
+          - 7.2 Message Passing:
+              - Message Passing Framework: ch07/message_passing/framework.md
+              - Neighborhood Aggregation: ch07/message_passing/aggregation.md
+              - Update Functions: ch07/message_passing/update.md
+
+          - 7.3 GNN Architectures:
+              - Graph Convolutional Networks (GCN): ch07/gnn_architectures/gcn.md
+              - GraphSAGE: ch07/gnn_architectures/graphsage.md
+              - Graph Attention Networks (GAT): ch07/gnn_architectures/gat.md
+              - Graph Isomorphism Network (GIN): ch07/gnn_architectures/gin.md
+
+          - 7.4 Advanced GNN Topics:
+              - Over-smoothing: ch07/advanced_gnn/over_smoothing.md
+              - Deep GNNs: ch07/advanced_gnn/deep_gnn.md
+              - Heterogeneous Graphs: ch07/advanced_gnn/heterogeneous.md
+              - Temporal Graphs: ch07/advanced_gnn/temporal.md
+
+          - 7.5 Graph-level Tasks:
+              - Graph Classification: ch07/graph_tasks/classification.md
+              - Graph Regression: ch07/graph_tasks/regression.md
+              - Graph Pooling: ch07/graph_tasks/pooling.md
+
+          - 7.6 GNNs in Finance:
+              - Transaction Networks: ch07/gnn_finance/transaction_networks.md
+              - Fraud Detection: ch07/gnn_finance/fraud_detection.md
+              - Supply Chain Analysis: ch07/gnn_finance/supply_chain.md
+              - Portfolio Construction with Graphs: ch07/gnn_finance/portfolio.md
+              - Knowledge Graphs for Finance: ch07/gnn_finance/knowledge_graphs.md
+
+      - 8 Transfer & Self-supervised Learning:
+          - 8.1 Transfer Learning:
+              - Transfer Learning Fundamentals: ch08/transfer_learning/fundamentals.md
+              - Feature Extraction: ch08/transfer_learning/feature_extraction.md
+              - Fine-tuning Strategies: ch08/transfer_learning/fine_tuning.md
+              - Domain Adaptation: ch08/transfer_learning/domain_adaptation.md
+
+          - 8.2 Self-supervised Learning:
+              - Pretext Tasks: ch08/self_supervised/pretext_tasks.md
+              - Contrastive Learning: ch08/self_supervised/contrastive.md
+              - SimCLR: ch08/self_supervised/simclr.md
+              - MoCo: ch08/self_supervised/moco.md
+              - BYOL and SimSiam: ch08/self_supervised/byol_simsiam.md
+              - Masked Autoencoders (MAE): ch08/self_supervised/mae.md
+              - DINO: ch08/self_supervised/dino.md
+
+          - 8.3 Few-shot Learning:
+              - Few-shot Fundamentals: ch08/few_shot/fundamentals.md
+              - Metric Learning: ch08/few_shot/metric_learning.md
+              - Siamese Networks: ch08/few_shot/siamese.md
+              - Prototypical Networks: ch08/few_shot/prototypical.md
+              - MAML: ch08/few_shot/maml.md
+
+  # =============================================================================
+  # PART III: GENERATIVE MODELS
+  # =============================================================================
+  - Part III Generative Models:
+      - 9 Representation Learning & Autoencoders:
+          - 9.1 Principal Component Analysis:
+              - Variance Maximization: ch09/pca/variance_maximization.md
+              - Eigendecomposition: ch09/pca/eigendecomposition.md
+              - SVD: ch09/pca/svd.md
+              - Reconstruction Error: ch09/pca/reconstruction_error.md
+              - PCA as Linear Autoencoder: ch09/pca/pca_as_autoencoder.md
+              - Limitations of Linear Methods: ch09/pca/limitations.md
+
+          - 9.2 Autoencoders:
+              - Encoder-Decoder Architecture: ch09/autoencoders/architecture.md
+              - Latent Space and Reconstruction Loss: ch09/autoencoders/latent_reconstruction.md
+              - Undercomplete vs Overcomplete: ch09/autoencoders/undercomplete_overcomplete.md
+              - Denoising Autoencoders: ch09/autoencoders/denoising.md
+              - Sparse Autoencoders: ch09/autoencoders/sparse.md
+              - Contractive Autoencoders: ch09/autoencoders/contractive.md
+
+          - 9.3 Variational Autoencoders:
+              - Latent Variable Models: ch09/vae/latent_variable_models.md
+              - Information Theory Foundations: ch09/vae/information_theory.md
+              - KL Divergence: ch09/vae/kl_divergence.md
+              - Mutual Information: ch09/vae/mutual_information.md
+              - Evidence Lower Bound (ELBO) Derivation: ch09/vae/elbo_derivation.md
+              - Reconstruction Term: ch09/vae/reconstruction_term.md
+              - Reparameterization Trick: ch09/vae/reparameterization.md
+              - VAE Loss Function: ch09/vae/vae_loss.md
+              - β-VAE: ch09/vae/beta_vae.md
+              - VQ-VAE: ch09/vae/vq_vae.md
+              - PyTorch Implementation: ch09/vae/pytorch_impl.md
+
+      - 10 Generative Adversarial Networks:
+          - 10.1 GAN Fundamentals:
+              - Adversarial Training: ch18/gan_fundamentals/adversarial_training.md
+              - Generator and Discriminator: ch18/gan_fundamentals/generator_discriminator.md
+              - Minimax Objective: ch18/gan_fundamentals/minimax_objective.md
+              - Nash Equilibrium: ch18/gan_fundamentals/nash_equilibrium.md
+              - Training Dynamics: ch18/gan_fundamentals/training_dynamics.md
+
+          - 10.2 GAN Losses:
+              - Original GAN Loss: ch18/gan_losses/original_loss.md
+              - Non-Saturating Loss: ch18/gan_losses/non_saturating.md
+              - Wasserstein Loss: ch18/gan_losses/wasserstein.md
+              - Hinge Loss: ch18/gan_losses/hinge.md
+              - Least Squares GAN: ch18/gan_losses/lsgan.md
+
+          - 10.3 GAN Architectures:
+              - DCGAN: ch18/gan_architectures/dcgan.md
+              - Progressive GAN: ch18/gan_architectures/progressive.md
+              - StyleGAN: ch18/gan_architectures/stylegan.md
+              - StyleGAN2: ch18/gan_architectures/stylegan2.md
+              - BigGAN: ch18/gan_architectures/biggan.md
+
+          - 10.4 Conditional GANs:
+              - Conditional GAN (cGAN): ch08/conditional_gan/cgan.md
+              - Pix2Pix: ch08/conditional_gan/pix2pix.md
+              - CycleGAN: ch08/conditional_gan/cyclegan.md
+
+          - 10.5 GAN Training Techniques:
+              - Mode Collapse: ch18/gan_training/mode_collapse.md
+              - Spectral Normalization: ch18/gan_training/spectral_norm.md
+              - Gradient Penalty: ch18/gan_training/gradient_penalty.md
+              - Two-Timescale Update Rule: ch18/gan_training/ttur.md
+
+      - 11 Normalizing Flows:
+          - 11.1 Flow Foundations:
+              - Generative Modeling Overview: ch18/flow_foundations/generative_overview.md
+              - Change of Variables Formula: ch18/flow_foundations/change_of_variables.md
+              - Jacobian Determinant: ch18/flow_foundations/jacobian_determinant.md
+              - Invertible Transformations: ch18/flow_foundations/invertible_transformations.md
+              - Flow Composition: ch18/flow_foundations/flow_composition.md
+
+          - 11.2 Simple Flows:
+              - Linear Flows: ch18/simple_flows/linear_flows.md
+              - Planar Flows: ch18/simple_flows/planar_flows.md
+              - Radial Flows: ch18/simple_flows/radial_flows.md
+              - Sylvester Flows: ch18/simple_flows/sylvester_flows.md
+
+          - 11.3 Autoregressive Flows:
+              - Autoregressive Models: ch15/autoregressive_flows/autoregressive_models.md
+              - MADE: ch15/autoregressive_flows/made.md
+              - Inverse Autoregressive Flow (IAF): ch15/autoregressive_flows/iaf.md
+              - Masked Autoregressive Flow (MAF): ch15/autoregressive_flows/maf.md
+
+          - 11.4 Coupling Layers:
+              - Coupling Transformations: ch18/coupling_layers/coupling_transformations.md
+              - Affine Coupling: ch18/coupling_layers/affine_coupling.md
+              - RealNVP: ch18/coupling_layers/realnvp.md
+              - Glow: ch18/coupling_layers/glow.md
+              - Neural Spline Flows: ch18/coupling_layers/neural_spline.md
+
+          - 11.5 Continuous Normalizing Flows:
+              - Continuous Normalizing Flows (CNF): ch18/continuous_flows/cnf.md
+              - FFJORD: ch18/continuous_flows/ffjord.md
+              - Hutchinson Trace Estimator: ch18/continuous_flows/hutchinson.md
+              - Connection to Neural ODEs: ch18/continuous_flows/neural_ode_connection.md
+
+          - 11.6 Training and Evaluation:
+              - Maximum Likelihood Training: ch18/training_evaluation/mle_training.md
+              - Base Distribution Choice: ch18/training_evaluation/base_distribution.md
+              - Dequantization: ch18/training_evaluation/dequantization.md
+              - Density Estimation: ch18/training_evaluation/density_estimation.md
+
+          - 11.7 Normalizing Flows in Finance:
+              - Probability Distribution Modeling: ch18/flows_finance/distribution_modeling.md
+              - Risk Modeling (VaR, CVaR): ch18/flows_finance/risk_modeling.md
+              - Portfolio Optimization: ch18/flows_finance/portfolio_optimization.md
+              - Option Pricing: ch18/flows_finance/option_pricing.md
+              - Scenario Generation: ch18/flows_finance/scenario_generation.md
+
+      - 12 Bayesian Inference Fundamentals:
+          - 12.1 Bayes' Theorem Basics:
+              - Bayes' Theorem Basics: ch12/bayes_basics/bayes_theorem_basics.md
+
+          - 12.2 Continuous Bayesian Inference:
+              - Continuous Bayesian Inference: ch12/continuous_inference/continuous_bayesian_inference.md
+
+          - 12.3 Conjugate Priors:
+              - Conjugate Priors: ch12/conjugate_priors/conjugate_priors.md
+
+          - 12.4 MAP Estimation:
+              - MAP Estimation: ch12/map_estimation/map_estimation.md
+
+          - 12.5 Credible Intervals:
+              - Credible Intervals: ch12/credible_intervals/credible_intervals.md
+
+          - 12.6 Bayesian Hypothesis Testing:
+              - Bayesian Hypothesis Testing: ch12/hypothesis_testing/hypothesis_testing.md
+
+          - 12.7 Hierarchical Models:
+              - Hierarchical Models: ch12/hierarchical_models/hierarchical_models.md
+
+          - 12.8 Empirical Bayes:
+              - Empirical Bayes: ch12/empirical_bayes/08_empirical_bayes.md
+
+          - 12.9 Bayesian Linear Regression:
+              - Bayesian Linear Regression: ch12/bayesian_regression/bayesian_linear_regression.md
+
+          - 12.10 Advanced Applications:
+              - Advanced Applications: ch12/advanced_applications/10_advanced_applications.md
+
+      - 13 Bayesian Inference & Probabilistic Methods:
+          - 13.1 Bayesian Foundations:
+              - Probability as Degree of Belief: ch18/bayesian_foundations/probability_belief.md
+              - Bayes' Theorem: ch18/bayesian_foundations/bayes_theorem.md
+              - Prior, Likelihood, Posterior: ch18/bayesian_foundations/prior_likelihood_posterior.md
+              - Conjugate Priors: ch18/bayesian_foundations/conjugate_priors.md
+
+          - 13.2 Bayesian Inference for Common Distributions:
+              - Bernoulli with Beta Prior: ch18/bayesian_distributions/bernoulli_beta.md
+              - Gaussian with Known Variance: ch18/bayesian_distributions/gaussian_known_variance.md
+              - Gaussian with Unknown Variance: ch18/bayesian_distributions/gaussian_unknown_variance.md
+              - Bayesian Linear Regression: ch18/bayesian_distributions/bayesian_linear_regression.md
+
+          - 13.3 Grid Approximation:
+              - Grid Approximation Fundamentals: ch13/grid_approximation/grid_approximation_basics.md
+              - 2D Grid Methods: ch13/grid_approximation/grid_approximation_intermediate.md
+              - Adaptive Grids and Convergence: ch13/grid_approximation/grid_approximation_advanced.md
+
+          - 13.4 Expectation-Maximization Algorithm:
+              - EM Foundations: ch18/em/em_foundations.md
+              - Evidence Lower Bound (ELBO) for EM: ch18/em/elbo_for_em.md
+              - E-Step and M-Step: ch18/em/e_step_m_step.md
+              - EM Iteration: ch18/em/em_iteration.md
+              - Convergence Theory: ch18/em/convergence_theory.md
+              - Gaussian Mixture Models: ch18/em/gmm.md
+              - EM Variants: ch18/em/em_variants.md
+
+          - 13.5 Importance Sampling:
+              - Monte Carlo Integration: ch18/importance_sampling/monte_carlo.md
+              - Importance Sampling Fundamentals: ch18/importance_sampling/fundamentals.md
+              - Self-Normalized Importance Sampling: ch18/importance_sampling/self_normalized.md
+              - Proposal Distribution Design: ch18/importance_sampling/proposal_design.md
+              - Effective Sample Size: ch18/importance_sampling/effective_sample_size.md
+
+          - 13.6 Markov Chain Monte Carlo:
+              - MCMC Foundations: ch18/mcmc/mcmc_foundations.md
+              - Detailed Balance: ch18/mcmc/detailed_balance.md
+              - Ergodicity and Mixing: ch18/mcmc/ergodicity_mixing.md
+              - Metropolis-Hastings Algorithm: ch18/mcmc/metropolis_hastings.md
+              - Proposal Design: ch18/mcmc/proposal_design.md
+              - Optimal Acceptance Rates: ch18/mcmc/optimal_acceptance_rates.md
+              - Gibbs Sampling: ch18/mcmc/gibbs_sampling.md
+              - Convergence Diagnostics: ch18/mcmc/convergence_diagnostics.md
+
+          - 13.7 Langevin Dynamics:
+              - Score Function: ch18/langevin/score_function.md
+              - Langevin SDE: ch18/langevin/langevin_sde.md
+              - Unadjusted Langevin Algorithm (ULA): ch18/langevin/ula.md
+              - Metropolis-Adjusted Langevin (MALA): ch18/langevin/mala.md
+              - Connection to Diffusion Models: ch18/langevin/diffusion_connection.md
+
+          - 13.8 Hamiltonian Monte Carlo:
+              - Hamiltonian Dynamics: ch18/hmc/hamiltonian_dynamics.md
+              - Phase Space: ch18/hmc/phase_space.md
+              - Leapfrog Integrator: ch18/hmc/leapfrog_integrator.md
+              - HMC Algorithm: ch18/hmc/hmc_algorithm.md
+              - Mass Matrix: ch18/hmc/mass_matrix.md
+              - NUTS: ch18/hmc/nuts.md
+              - Geometric Interpretation: ch18/hmc/geometric_interpretation.md
+
+          - 13.9 Simulated Annealing:
+              - SA as Non-Stationary MCMC: ch18/simulated_annealing/sa_mcmc.md
+              - Temperature Schedules: ch18/simulated_annealing/temperature_schedules.md
+              - Convergence Theory: ch18/simulated_annealing/convergence.md
+              - Deterministic Annealing for EM: ch18/simulated_annealing/annealed_em.md
+              - Temperature as Unifying Concept: ch18/simulated_annealing/temperature_unifying.md
+
+          - 13.10 MCMC Methods Comparison:
+              - Theoretical Comparison: ch18/mcmc_comparison/theoretical.md
+              - Scaling with Dimension: ch18/mcmc_comparison/scaling.md
+              - Practical Method Selection: ch18/mcmc_comparison/method_selection.md
+
+          - 13.11 Variational Inference:
+              - Variational Inference Framework: ch18/vi/framework.md
+              - Evidence Lower Bound (ELBO): ch18/vi/elbo.md
+              - Mean-Field Variational Inference: ch18/vi/mean_field.md
+              - Coordinate Ascent VI: ch18/vi/coordinate_ascent.md
+              - Black-Box Variational Inference: ch18/vi/black_box.md
+              - Amortized Variational Inference: ch18/vi/amortized.md
+
+          - 13.12 Bayesian Model Comparison:
+              - Model Evidence (Marginal Likelihood): ch18/model_comparison/model_evidence.md
+              - Bayes Factor: ch18/model_comparison/bayes_factor.md
+              - Information Criteria (AIC, BIC, WAIC): ch18/model_comparison/information_criteria.md
+
+          - 13.13 Approximate Bayesian Computation:
+              - Likelihood-Free Inference: ch18/abc/likelihood_free.md
+              - ABC Rejection Sampling: ch18/abc/rejection_sampling.md
+              - ABC-MCMC: ch18/abc/abc_mcmc.md
+              - ABC-SMC: ch18/abc/abc_smc.md
+
+          - 13.14 Bayesian Neural Networks:
+              - Uncertainty in Neural Networks: ch18/bnn/uncertainty.md
+              - Prior over Weights: ch18/bnn/prior_weights.md
+              - Posterior Inference: ch18/bnn/posterior_inference.md
+              - MC Dropout: ch18/bnn/mc_dropout.md
+              - Variational BNNs: ch18/bnn/variational_bnn.md
+
+      - 14 Diffusion & Score-based Models:
+          - 14.1 Score-based Generative Models:
+              - Score Function Definition: ch18/score_based/score_function.md
+              - Score Matching: ch18/score_based/score_matching.md
+              - Denoising Score Matching: ch18/score_based/denoising_score_matching.md
+              - Sliced Score Matching: ch18/score_based/sliced_score_matching.md
+              - Noise Conditional Score Networks: ch18/score_based/ncsn.md
+
+          - 14.2 Diffusion Process:
+              - Forward Diffusion Process: ch18/diffusion_process/forward_diffusion.md
+              - Noise Schedules: ch18/diffusion_process/noise_schedules.md
+              - Variance Exploding vs Preserving: ch18/diffusion_process/ve_vs_vp.md
+              - SDE Formulation: ch18/diffusion_process/sde_formulation.md
+
+          - 14.3 Reverse Process:
+              - Reverse SDE: ch18/reverse_process/reverse_sde.md
+              - Score Function Learning: ch18/reverse_process/score_learning.md
+              - Probability Flow ODE: ch18/reverse_process/probability_flow_ode.md
+              - Connection to Langevin Dynamics: ch18/reverse_process/langevin_connection.md
+
+          - 14.4 Denoising Diffusion Models:
+              - DDPM: ch18/ddpm/ddpm.md
+              - DDPM Loss Function: ch18/ddpm/loss_function.md
+              - DDPM Training: ch18/ddpm/training.md
+              - DDPM Sampling: ch18/ddpm/sampling.md
+
+          - 14.5 Fast Sampling Methods:
+              - DDIM: ch18/fast_sampling/ddim.md
+              - Ancestral Sampling: ch18/fast_sampling/ancestral.md
+              - Progressive Distillation: ch18/fast_sampling/distillation.md
+              - Consistency Models: ch18/fast_sampling/consistency.md
+
+          - 14.6 Conditional Diffusion:
+              - Classifier Guidance: ch18/conditional/classifier_guidance.md
+              - Classifier-Free Guidance: ch18/conditional/classifier_free.md
+              - Text-to-Image: ch18/conditional/text_to_image.md
+
+          - 14.7 Latent Diffusion:
+              - Latent Space Diffusion: ch18/latent_diffusion/latent_space.md
+              - Stable Diffusion Architecture: ch18/latent_diffusion/stable_diffusion.md
+              - VAE Encoder-Decoder: ch18/latent_diffusion/vae_component.md
+              - U-Net Denoiser: ch18/latent_diffusion/unet_denoiser.md
+              - CLIP Text Encoder: ch18/latent_diffusion/clip_encoder.md
+
+      - 15 Autoregressive & Energy-based Models:
+          - 15.1 Autoregressive Models:
+              - Autoregressive Factorization: ch15/autoregressive/factorization.md
+              - PixelCNN: ch15/autoregressive/pixelcnn.md
+              - WaveNet: ch15/autoregressive/wavenet.md
+              - Autoregressive Transformers: ch15/autoregressive/transformers.md
+
+          - 15.2 Probabilistic Graphical Models:
+              - Directed Graphical Models: ch15/pgm/directed.md
+              - Undirected Graphical Models: ch15/pgm/undirected.md
+              - Factor Graphs: ch15/pgm/factor_graphs.md
+              - Inference Algorithms: ch15/pgm/inference.md
+
+          - 15.3 Energy-based Models:
+              - Energy Function Formulation: ch15/ebm/energy_function.md
+              - Boltzmann Distribution: ch15/ebm/boltzmann.md
+              - Contrastive Divergence: ch15/ebm/contrastive_divergence.md
+              - Restricted Boltzmann Machines: ch15/ebm/rbm.md
+              - Modern EBMs: ch15/ebm/modern_ebm.md
+
+          - 15.4 Neural ODE Models:
+              - ODE Fundamentals: ch15/neural_ode/ode_fundamentals.md
+              - Neural ODE: ch15/neural_ode/neural_ode.md
+              - Adjoint Sensitivity Method: ch15/neural_ode/adjoint_method.md
+              - Continuous Normalizing Flows: ch15/neural_ode/cnf.md
+              - Applications: ch15/neural_ode/applications.md
+
+          - 15.5 Generative Model Evaluation:
+              - Inception Score: ch15/evaluation/inception_score.md
+              - FID Score: ch15/evaluation/fid.md
+              - Precision and Recall: ch15/evaluation/precision_recall.md
+              - Likelihood-based Evaluation: ch15/evaluation/likelihood.md
+              - Human Evaluation: ch15/evaluation/human_evaluation.md
+
+      - 16 Graph Generation:
+          - 16.1 Graph Generation Fundamentals:
+              - Graph Generation Problem: ch15/graph_gen_fundamentals/problem.md
+              - Autoregressive Graph Generation: ch15/graph_gen_fundamentals/autoregressive.md
+              - One-shot Graph Generation: ch15/graph_gen_fundamentals/one_shot.md
+
+          - 16.2 VAE for Graphs:
+              - Graph VAE: ch15/graph_vae/graph_vae.md
+              - Junction Tree VAE: ch15/graph_vae/junction_tree.md
+
+          - 16.3 GAN for Graphs:
+              - MolGAN: ch15/graph_gan/molgan.md
+              - GraphGAN: ch15/graph_gan/graphgan.md
+
+          - 16.4 Diffusion for Graphs:
+              - Graph Diffusion Models: ch15/graph_diffusion/graph_diffusion.md
+              - DiGress: ch15/graph_diffusion/digress.md
+
+          - 16.5 Flow for Graphs:
+              - GraphNVP: ch15/graph_flow/graphnvp.md
+              - Graph Normalizing Flows: ch15/graph_flow/graph_flows.md
+
+          - 16.6 Applications:
+              - Molecule Generation: ch15/applications/molecule_generation.md
+              - Drug Discovery: ch15/applications/drug_discovery.md
+              - Materials Design: ch15/applications/materials_design.md
+              - Synthetic Financial Networks: ch15/applications/synthetic_networks.md
+
+  # =============================================================================
+  # PART IV: REINFORCEMENT LEARNING
+  # =============================================================================
+  - Part IV Reinforcement Learning:
+      - 17 RL Foundations:
+          - 17.1 Introduction to RL:
+              - RL Problem Formulation: ch16/intro/problem_formulation.md
+              - Agent-Environment Interface: ch16/intro/agent_environment.md
+              - Rewards and Returns: ch16/intro/rewards_returns.md
+              - Episodic vs Continuing Tasks: ch16/intro/episodic_continuing.md
+
+          - 17.2 Markov Decision Processes:
+              - MDP Definition: ch16/mdp/mdp_definition.md
+              - State and Action Spaces: ch16/mdp/state_action_spaces.md
+              - Transition Dynamics: ch16/mdp/transition_dynamics.md
+              - Reward Functions: ch16/mdp/reward_functions.md
+
+          - 17.3 Value Functions:
+              - State-Value Function: ch16/value_functions/state_value.md
+              - Action-Value Function: ch16/value_functions/action_value.md
+              - Bellman Equations: ch16/value_functions/bellman.md
+              - Bellman Optimality: ch16/value_functions/bellman_optimality.md
+
+          - 17.4 Dynamic Programming:
+              - Policy Evaluation: ch16/dp/policy_evaluation.md
+              - Policy Improvement: ch16/dp/policy_improvement.md
+              - Policy Iteration: ch16/dp/policy_iteration.md
+              - Value Iteration: ch16/dp/value_iteration.md
+
+          - 17.5 Monte Carlo Methods:
+              - MC Prediction: ch16/monte_carlo/mc_prediction.md
+              - MC Control: ch16/monte_carlo/mc_control.md
+              - Importance Sampling: ch16/monte_carlo/importance_sampling.md
+
+          - 17.6 Temporal Difference Learning:
+              - TD Prediction: ch16/td/td_prediction.md
+              - TD(0) and TD(λ): ch16/td/td_lambda.md
+              - SARSA: ch16/td/sarsa.md
+              - Expected SARSA: ch16/td/expected_sarsa.md
+
+      - 18 Value-based Deep RL:
+          - 18.1 Function Approximation:
+              - Linear Function Approximation: ch17/function_approx/linear.md
+              - Neural Network Approximation: ch17/function_approx/neural.md
+              - Feature Engineering: ch17/function_approx/features.md
+
+          - 18.2 Deep Q-Networks:
+              - DQN Architecture: ch17/dqn/architecture.md
+              - Experience Replay: ch17/dqn/experience_replay.md
+              - Target Networks: ch17/dqn/target_networks.md
+              - DQN Training: ch17/dqn/training.md
+
+          - 18.3 DQN Improvements:
+              - Double DQN: ch17/dqn_improvements/double_dqn.md
+              - Dueling DQN: ch17/dqn_improvements/dueling_dqn.md
+              - Prioritized Experience Replay: ch17/dqn_improvements/prioritized_replay.md
+              - Noisy Networks: ch17/dqn_improvements/noisy_nets.md
+              - Rainbow: ch17/dqn_improvements/rainbow.md
+
+          - 18.4 Distributional RL:
+              - Value Distributions: ch17/distributional/value_distributions.md
+              - C51: ch17/distributional/c51.md
+              - QR-DQN: ch17/distributional/qr_dqn.md
+              - IQN: ch17/distributional/iqn.md
+
+      - 19 Policy-based Deep RL:
+          - 19.1 Policy Gradient Foundations:
+              - Policy Parameterization: ch18/policy_gradient/parameterization.md
+              - Policy Gradient Theorem: ch18/policy_gradient/pg_theorem.md
+              - REINFORCE: ch18/policy_gradient/reinforce.md
+              - Baseline Subtraction: ch18/policy_gradient/baseline.md
+
+          - 19.2 Actor-Critic Methods:
+              - Actor-Critic Architecture: ch18/actor_critic/architecture.md
+              - Advantage Function: ch18/actor_critic/advantage.md
+              - A2C: ch18/actor_critic/a2c.md
+              - A3C: ch18/actor_critic/a3c.md
+              - GAE (Generalized Advantage Estimation): ch18/actor_critic/gae.md
+
+          - 19.3 Trust Region Methods:
+              - Trust Region Concept: ch18/trust_region/concept.md
+              - TRPO: ch18/trust_region/trpo.md
+              - PPO: ch18/trust_region/ppo.md
+              - PPO Implementation: ch18/trust_region/ppo_implementation.md
+
+          - 19.4 Off-Policy Actor-Critic:
+              - Off-Policy Correction: ch18/off_policy/correction.md
+              - DDPG: ch18/off_policy/ddpg.md
+              - TD3: ch18/off_policy/td3.md
+              - SAC: ch18/off_policy/sac.md
+
+          - 19.5 Advanced Policy Methods:
+              - Maximum Entropy RL: ch18/advanced/max_entropy.md
+              - Multi-Agent RL: ch18/advanced/marl.md
+              - Hierarchical RL: ch18/advanced/hierarchical.md
+
+      - 20 Quantitative Finance Applications:
+          - 20.1 Financial Time Series:
+              - Time Series Fundamentals: ch19/time_series/fundamentals.md
+              - Stationarity and Differencing: ch19/time_series/stationarity.md
+              - ARIMA and GARCH Models: ch19/time_series/arima_garch.md
+              - Neural Time Series Models: ch19/time_series/neural_models.md
+              - Regime Detection: ch19/time_series/regime_detection.md
+
+          - 20.2 Asset Pricing:
+              - Factor Models: ch19/asset_pricing/factor_models.md
+              - Deep Factor Models: ch19/asset_pricing/deep_factor.md
+              - Pricing Kernels: ch19/asset_pricing/pricing_kernels.md
+              - Anomaly Detection: ch19/asset_pricing/anomaly_detection.md
+
+          - 20.3 Portfolio Optimization:
+              - Mean-Variance Optimization: ch19/portfolio/mean_variance.md
+              - Risk Parity: ch19/portfolio/risk_parity.md
+              - Deep Portfolio Optimization: ch19/portfolio/deep_portfolio.md
+              - RL for Portfolio Management: ch19/portfolio/rl_portfolio.md
+              - Multi-Asset Allocation: ch19/portfolio/multi_asset.md
+
+          - 20.4 Risk Management:
+              - Value at Risk (VaR): ch19/risk/var.md
+              - Expected Shortfall (CVaR): ch19/risk/cvar.md
+              - Stress Testing: ch19/risk/stress_testing.md
+              - Tail Risk Modeling: ch19/risk/tail_risk.md
+
+          - 20.5 Derivatives Pricing & Hedging:
+              - Black-Scholes Review: ch19/derivatives/black_scholes.md
+              - Neural Network Option Pricing: ch19/derivatives/nn_option_pricing.md
+              - Volatility Surface Modeling: ch19/derivatives/volatility_surface.md
+              - Deep Hedging: ch19/derivatives/deep_hedging.md
+              - RL for Hedging: ch19/derivatives/rl_hedging.md
+
+          - 20.6 Optimal Execution:
+              - Execution Problem: ch19/execution/problem.md
+              - Almgren-Chriss Framework: ch19/execution/almgren_chriss.md
+              - Market Impact Modeling: ch19/execution/market_impact.md
+              - RL for Execution: ch19/execution/rl_execution.md
+
+          - 20.7 Market Making:
+              - Market Making Fundamentals: ch19/market_making/fundamentals.md
+              - Order Book Dynamics: ch19/market_making/order_book.md
+              - Inventory Management: ch19/market_making/inventory.md
+              - RL Market Makers: ch19/market_making/rl_market_maker.md
+              - Adverse Selection: ch19/market_making/adverse_selection.md
+
+          - 20.8 Alternative Data:
+              - Text Data (News, Filings): ch19/alternative_data/text_data.md
+              - Sentiment Analysis: ch19/alternative_data/sentiment.md
+              - Satellite and Geospatial Data: ch19/alternative_data/satellite.md
+              - Graph Data (Supply Chains): ch19/alternative_data/graph_data.md
+
+          - 20.9 Scenario Generation:
+              - Monte Carlo Simulation: ch19/scenario_generation/monte_carlo.md
+              - Historical Simulation: ch19/scenario_generation/historical.md
+              - Generative Models for Scenarios: ch19/scenario_generation/generative.md
+              - Stress Scenario Generation: ch19/scenario_generation/stress_scenarios.md
+
+          - 20.10 Practical Considerations:
+              - Non-Stationarity in Markets: ch19/practical/non_stationarity.md
+              - Market Simulators: ch19/practical/simulators.md
+              - Backtesting and Validation: ch19/practical/backtesting.md
+              - Sim-to-Real Transfer: ch19/practical/sim_to_real.md
+
+  # =============================================================================
+  # PART V: PRACTICE
+  # =============================================================================
+  - Part V Practice & Capstone:
+      - 21 Deployment - 20 Deployment & Production: Production:
+          - 21.1 Model Deployment:
+              - Deployment Overview: ch20/deployment/overview.md
+              - ONNX: ch20/deployment/onnx.md
+              - TorchScript: ch20/deployment/torchscript.md
+              - TensorRT: ch20/deployment/tensorrt.md
+              - Serving Frameworks: ch20/deployment/serving.md
+
+          - 21.2 Model Compression:
+              - Pruning: ch20/compression/pruning.md
+              - Quantization: ch20/compression/quantization.md
+              - Knowledge Distillation: ch20/compression/distillation.md
+              - Low-Rank Factorization: ch20/compression/low_rank.md
+
+          - 21.3 Distributed Training:
+              - Data Parallelism: ch20/distributed/data_parallelism.md
+              - Model Parallelism: ch20/distributed/model_parallelism.md
+              - Pipeline Parallelism: ch20/distributed/pipeline_parallelism.md
+              - Mixed Precision Training: ch20/distributed/mixed_precision.md
+              - DeepSpeed and FSDP: ch20/distributed/deepspeed_fsdp.md
+
+          - 21.4 Logging and Monitoring:
+              - TensorBoard: ch20/logging/tensorboard.md
+              - Weights & Biases: ch20/logging/wandb.md
+              - MLflow: ch20/logging/mlflow.md
+              - Experiment Tracking: ch20/logging/experiment_tracking.md
+
+          - 21.5 MLOps for Finance:
+              - Model Governance: ch20/mlops_finance/governance.md
+              - Model Risk Management: ch20/mlops_finance/model_risk.md
+              - Regulatory Compliance: ch20/mlops_finance/compliance.md
+              - Production Monitoring: ch20/mlops_finance/monitoring.md
+
+      - 22 Case Studies:
+          - 22.1 Image Classification Pipeline:
+              - Problem Definition: ch21/image_classification/problem.md
+              - Data Preparation: ch21/image_classification/data_prep.md
+              - Model Selection and Training: ch21/image_classification/training.md
+              - Evaluation and Deployment: ch21/image_classification/evaluation.md
+
+          - 22.2 Sentiment Analysis for Financial News:
+              - Problem Definition: ch21/sentiment_analysis/problem.md
+              - Data Collection and Labeling: ch21/sentiment_analysis/data.md
+              - Fine-tuning LLMs: ch21/sentiment_analysis/fine_tuning.md
+              - Integration with Trading Systems: ch21/sentiment_analysis/integration.md
+
+          - 22.3 Document Intelligence for Financial Reports:
+              - Problem Definition: ch21/document_intelligence/problem.md
+              - PDF Parsing and OCR: ch21/document_intelligence/parsing.md
+              - Information Extraction: ch21/document_intelligence/extraction.md
+              - RAG System Implementation: ch21/document_intelligence/rag.md
+
+          - 22.4 Credit Risk Modeling:
+              - Problem Definition: ch21/credit_risk/problem.md
+              - Data Preparation: ch21/credit_risk/data.md
+              - Model Development: ch21/credit_risk/model.md
+              - Interpretability and Compliance: ch21/credit_risk/interpretability.md
+
+          - 22.5 Volatility Forecasting:
+              - Problem Definition: ch21/volatility/problem.md
+              - GARCH Baselines: ch21/volatility/garch_baseline.md
+              - Neural Volatility Models: ch21/volatility/neural_models.md
+              - Evaluation and Calibration: ch21/volatility/evaluation.md
+
+          - 22.6 Anomaly Detection in Trading:
+              - Problem Definition: ch21/anomaly_detection/problem.md
+              - Unsupervised Approaches: ch21/anomaly_detection/unsupervised.md
+              - Autoencoder Methods: ch21/anomaly_detection/autoencoder.md
+              - Real-time Detection: ch21/anomaly_detection/realtime.md
+
+      - 23 Financial Report Understanding:
+          - 28.1 Project Overview:
+              - Objectives and Scope: ch22/overview/objectives.md
+              - System Architecture: ch22/overview/architecture.md
+              - Document Types: ch22/overview/document_types.md
+
+          - 23.2 Document Processing:
+              - PDF Parsing: ch22/processing/pdf_parsing.md
+              - OCR Pipeline: ch22/processing/ocr.md
+              - Table Extraction: ch22/processing/tables.md
+              - Section Segmentation: ch22/processing/segmentation.md
+
+          - 23.3 Information Extraction:
+              - Named Entity Recognition: ch22/extraction/ner.md
+              - Relation Extraction: ch22/extraction/relations.md
+              - Key Metrics Extraction: ch22/extraction/metrics.md
+              - Risk Factor Identification: ch22/extraction/risk_factors.md
+
+          - 23.4 RAG System:
+              - Document Chunking: ch22/rag/chunking.md
+              - Embedding Strategy: ch22/rag/embeddings.md
+              - Vector Store: ch22/rag/vector_store.md
+              - Retrieval Pipeline: ch22/rag/retrieval.md
+              - Answer Generation: ch22/rag/generation.md
+
+          - 23.5 Analysis Features:
+              - Cross-Document Comparison: ch22/analysis/comparison.md
+              - Change Detection: ch22/analysis/change_detection.md
+              - Summarization: ch22/analysis/summarization.md
+              - Trend Analysis: ch22/analysis/trends.md
+
+          - 23.6 System Integration:
+              - API Development: ch22/integration/api.md
+              - User Interface: ch22/integration/ui.md
+              - Evaluation Metrics: ch22/integration/evaluation.md
+
+      - 24 Risk Model Suite:
+          - 28.1 Project Overview:
+              - Objectives and Scope: ch23/overview/objectives.md
+              - Risk Framework: ch23/overview/framework.md
+              - Regulatory Context: ch23/overview/regulatory.md
+
+          - 24.2 Market Risk Models:
+              - VaR Methods Comparison: ch23/market_risk/var_methods.md
+              - Expected Shortfall: ch23/market_risk/es.md
+              - Neural VaR: ch23/market_risk/neural_var.md
+              - Backtesting VaR: ch23/market_risk/backtesting.md
+
+          - 24.3 Scenario Generation:
+              - Historical Scenarios: ch23/scenarios/historical.md
+              - Parametric Scenarios: ch23/scenarios/parametric.md
+              - Generative Scenarios: ch23/scenarios/generative.md
+              - Extreme Scenarios: ch23/scenarios/extreme.md
+
+          - 24.4 Tail Risk Modeling:
+              - Extreme Value Theory: ch23/tail_risk/evt.md
+              - Neural Tail Estimation: ch23/tail_risk/neural.md
+              - Copula Models: ch23/tail_risk/copula.md
+
+          - 24.5 Model Validation:
+              - Backtesting Framework: ch23/validation/backtesting.md
+              - Benchmark Comparison: ch23/validation/benchmarks.md
+              - Sensitivity Analysis: ch23/validation/sensitivity.md
+              - Model Documentation: ch23/validation/documentation.md
+
+          - 24.6 Reporting and Integration:
+              - Regulatory Reports: ch23/reporting/regulatory.md
+              - Risk Dashboards: ch23/reporting/dashboards.md
+              - Alert Systems: ch23/reporting/alerts.md
+              - API Integration: ch23/reporting/api.md
+
+      - 25 Multi-Asset Trading Agent:
+          - 28.1 Project Overview:
+              - Objectives and Scope: ch24/overview/objectives.md
+              - Problem Formulation: ch24/overview/formulation.md
+              - Baseline Strategies: ch24/overview/baselines.md
+
+          - 25.2 Environment Design:
+              - Multi-Asset MDP: ch24/environment/mdp.md
+              - State Space Design: ch24/environment/state_space.md
+              - Action Space Design: ch24/environment/action_space.md
+              - Reward Engineering: ch24/environment/reward.md
+
+          - 25.3 Agent Architecture:
+              - Network Architecture: ch24/agent/architecture.md
+              - Multi-Asset Attention: ch24/agent/attention.md
+              - Risk-Aware Policy: ch24/agent/risk_aware.md
+
+          - 25.4 Training Pipeline:
+              - Data Preparation: ch24/training/data.md
+              - Training Loop: ch24/training/loop.md
+              - Curriculum Learning: ch24/training/curriculum.md
+              - Regularization Techniques: ch24/training/regularization.md
+
+          - 25.5 Risk Management:
+              - Portfolio Constraints: ch24/risk/constraints.md
+              - Drawdown Control: ch24/risk/drawdown.md
+              - Correlation Handling: ch24/risk/correlation.md
+              - Regime Adaptation: ch24/risk/regime.md
+
+          - 25.6 Evaluation and Deployment:
+              - Backtesting Results: ch24/evaluation/backtesting.md
+              - Out-of-Sample Testing: ch24/evaluation/oos.md
+              - Paper Trading: ch24/evaluation/paper_trading.md
+              - Production Considerations: ch24/evaluation/production.md
+
+      - 26 Multi-Modal Financial Assistant:
+          - 28.1 Project Overview:
+              - Objectives and Scope: ch25/overview/objectives.md
+              - System Architecture: ch25/overview/architecture.md
+              - Modality Integration: ch25/overview/modalities.md
+
+          - 26.2 Text Processing:
+              - News Processing: ch25/text/news.md
+              - Research Report Analysis: ch25/text/research.md
+              - Social Media Analysis: ch25/text/social.md
+              - Earnings Call Transcripts: ch25/text/earnings.md
+
+          - 26.3 Visual Processing:
+              - Chart Analysis: ch25/visual/charts.md
+              - Technical Pattern Recognition: ch25/visual/patterns.md
+              - Document Image Processing: ch25/visual/documents.md
+
+          - 26.4 Tabular Processing:
+              - Fundamental Data: ch25/tabular/fundamentals.md
+              - Time Series Data: ch25/tabular/time_series.md
+              - Cross-Sectional Data: ch25/tabular/cross_sectional.md
+
+          - 26.5 Multi-Modal Fusion:
+              - Early Fusion: ch25/fusion/early.md
+              - Late Fusion: ch25/fusion/late.md
+              - Cross-Modal Attention: ch25/fusion/attention.md
+              - Unified Representation: ch25/fusion/unified.md
+
+          - 26.6 Assistant Interface:
+              - Query Understanding: ch25/interface/query.md
+              - Response Generation: ch25/interface/response.md
+              - Explanation Generation: ch25/interface/explanation.md
+              - Interactive Refinement: ch25/interface/refinement.md
+
+      - 27 Synthetic Market Simulator:
+          - 28.1 Project Overview:
+              - Objectives and Scope: ch26/overview/objectives.md
+              - Simulator Architecture: ch26/overview/architecture.md
+              - Use Cases: ch26/overview/use_cases.md
+
+          - 27.2 Market Microstructure:
+              - Order Book Dynamics: ch26/microstructure/order_book.md
+              - Price Formation: ch26/microstructure/price_formation.md
+              - Stylized Facts: ch26/microstructure/stylized_facts.md
+              - Agent Types: ch26/microstructure/agent_types.md
+
+          - 27.3 Generative Model:
+              - Model Selection (VAE/Diffusion/Flow): ch26/generative/model_selection.md
+              - Order Flow Generation: ch26/generative/order_flow.md
+              - Price Path Generation: ch26/generative/price_paths.md
+              - Conditional Generation: ch26/generative/conditional.md
+
+          - 27.4 Simulator Engine:
+              - Matching Engine: ch26/engine/matching.md
+              - Event Processing: ch26/engine/events.md
+              - State Management: ch26/engine/state.md
+              - Performance Optimization: ch26/engine/performance.md
+
+          - 27.5 Validation:
+              - Statistical Tests: ch26/validation/statistical.md
+              - Stylized Facts Verification: ch26/validation/stylized_facts.md
+              - Adversarial Validation: ch26/validation/adversarial.md
+              - Expert Evaluation: ch26/validation/expert.md
+
+          - 27.6 Applications:
+              - RL Agent Training: ch26/applications/rl_training.md
+              - Strategy Backtesting: ch26/applications/backtesting.md
+              - Stress Testing: ch26/applications/stress_testing.md
+              - Data Augmentation: ch26/applications/augmentation.md
+
+      - 28 Quantitative Research Platform:
+          - 28.1 Project Overview:
+              - Objectives and Scope: ch27/overview/objectives.md
+              - System Architecture: ch27/overview/architecture.md
+              - Technology Stack: ch27/overview/tech_stack.md
+
+          - 28.2 Data Infrastructure:
+              - Market Data Ingestion: ch27/data/market_data.md
+              - Alternative Data Pipeline: ch27/data/alternative_data.md
+              - Data Storage and Retrieval: ch27/data/storage.md
+              - Data Quality and Validation: ch27/data/quality.md
+
+          - 28.3 Feature Engineering:
+              - Feature Store Design: ch27/features/feature_store.md
+              - Technical Indicators: ch27/features/technical.md
+              - Fundamental Features: ch27/features/fundamental.md
+              - Alternative Data Features: ch27/features/alternative.md
+
+          - 28.4 Model Training Infrastructure:
+              - Experiment Management: ch27/training/experiments.md
+              - Hyperparameter Optimization: ch27/training/hyperparameter.md
+              - Model Registry: ch27/training/registry.md
+              - Automated Retraining: ch27/training/retraining.md
+
+          - 28.5 Backtesting Engine:
+              - Backtesting Framework Design: ch27/backtesting/framework.md
+              - Event-Driven Simulation: ch27/backtesting/event_driven.md
+              - Transaction Cost Modeling: ch27/backtesting/transaction_costs.md
+              - Performance Analytics: ch27/backtesting/analytics.md
+
+          - 28.6 Platform Integration:
+              - API Design: ch27/integration/api.md
+              - Dashboard Development: ch27/integration/dashboard.md
+              - Alerting and Notifications: ch27/integration/alerting.md
+
+  # =============================================================================
+  # APPENDIX: REFERENCE IMPLEMENTATIONS
+  # =============================================================================
+  - Appendix Reference Implementations:
+      - A.1 CNN Implementation Walkthroughs:
+          - LeNet Implementation: appendix/cnn_implementations/lenet.md
+          - AlexNet Implementation: appendix/cnn_implementations/alexnet.md
+          - VGGNet Implementation: appendix/cnn_implementations/vggnet.md
+          - ResNet Implementation: appendix/cnn_implementations/resnet.md
+          - EfficientNet Implementation: appendix/cnn_implementations/efficientnet.md
+
+      - A.2 Transformer Implementation Walkthroughs:
+          - Transformer from Scratch: appendix/transformer_implementations/transformer.md
+          - BERT Implementation: appendix/transformer_implementations/bert.md
+          - GPT Implementation: appendix/transformer_implementations/gpt.md
+          - ViT Implementation: appendix/transformer_implementations/vit.md
+
+      - A.3 Generative Model Implementations:
+          - VAE Implementation: appendix/generative_implementations/vae.md
+          - GAN Implementation: appendix/generative_implementations/gan.md
+          - Diffusion Model Implementation: appendix/generative_implementations/diffusion.md
+          - Flow Implementation: appendix/generative_implementations/flow.md
+
+plugins:
+  - search
