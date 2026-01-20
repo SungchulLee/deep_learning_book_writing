@@ -1,17 +1,6 @@
 # PCA as Linear Autoencoder
 
-Understanding the connection between PCA and neural network autoencoders.
-
----
-
-## Overview
-
-**Key Insight:** A linear autoencoder (no activation functions) learns to span the same subspace as PCA.
-
-**Bridge to Deep Learning:** This connection motivates nonlinear autoencoders for capturing complex data structure.
-
-**Time:** ~30 minutes  
-**Level:** Intermediate-Advanced
+The connection between classical PCA and neural network autoencoders.
 
 ---
 
@@ -19,168 +8,157 @@ Understanding the connection between PCA and neural network autoencoders.
 
 ### Architecture
 
-A linear autoencoder with:
-- Input dimension: $d$
-- Latent dimension: $k$ (where $k < d$)
-- No activation functions
-
-**Encoder:** $z = W_e^T x$ where $W_e \in \mathbb{R}^{d \times k}$
-
-**Decoder:** $\hat{x} = W_d z$ where $W_d \in \mathbb{R}^{d \times k}$
-
-**Full mapping:** $\hat{x} = W_d W_e^T x$
+A **linear autoencoder** has:
+- Encoder: $z = W_e^T x$ (linear, no activation)
+- Decoder: $\hat{x} = W_d z$ (linear, no activation)
 
 ### Loss Function
 
-Mean squared reconstruction error:
-
-$$\mathcal{L}(W_e, W_d) = \frac{1}{n} \sum_{i=1}^n \|x_i - W_d W_e^T x_i\|^2$$
+$$\mathcal{L} = \frac{1}{n}\sum_{i=1}^n \|x_i - W_d W_e^T x_i\|^2$$
 
 ---
 
-## Theorem: Linear AE ≈ PCA
+## Equivalence to PCA
 
-### Statement
+### Theorem
 
-**Theorem:** At any local minimum of the linear autoencoder loss:
+For a linear autoencoder trained with MSE loss:
+1. Optimal encoder weights span the PCA subspace
+2. Reconstruction equals PCA reconstruction
+3. Loss equals PCA reconstruction error
 
-1. The columns of $W_e$ span the principal subspace (top $k$ eigenvectors of covariance)
-2. The reconstruction $\hat{X} = XW_eW_e^T$ equals the PCA reconstruction
-3. The reconstruction error equals the PCA reconstruction error
+**Key insight:** $W_d W_e^T$ converges to $W W^T$ where $W$ contains principal components.
 
-### Important Caveat
+### Proof Sketch
 
-The linear autoencoder finds **the same subspace** as PCA, but:
-- May not find the **same basis vectors**
-- Any rotation within the subspace is also optimal
-- Weight tying ($W_d = W_e$) and orthogonality constraints are needed for exact PCA
+At optimum, $W_d = W_e$ (tied weights) and columns of $W_e$ are orthonormal eigenvectors of the covariance matrix.
 
 ---
 
-## PyTorch Implementation
+## Implementation Comparison
+
+### PCA (Analytical)
+
+```python
+def pca_analytical(X, k):
+    """PCA via eigendecomposition."""
+    X_centered = X - X.mean(axis=0)
+    cov = X_centered.T @ X_centered / (X.shape[0] - 1)
+    eigenvalues, eigenvectors = np.linalg.eigh(cov)
+    
+    idx = np.argsort(eigenvalues)[::-1][:k]
+    W = eigenvectors[:, idx]
+    
+    Z = X_centered @ W
+    X_recon = Z @ W.T + X.mean(axis=0)
+    
+    return X_recon, W
+```
+
+### Linear Autoencoder (Learned)
 
 ```python
 import torch
 import torch.nn as nn
-import torch.optim as optim
-import numpy as np
-import matplotlib.pyplot as plt
 
 class LinearAutoencoder(nn.Module):
-    """
-    Linear autoencoder (no activation functions).
-    At convergence, learns to span the PCA subspace.
-    """
-    
-    def __init__(self, input_dim: int, latent_dim: int, tie_weights: bool = False):
+    def __init__(self, input_dim, latent_dim):
         super().__init__()
-        self.input_dim = input_dim
-        self.latent_dim = latent_dim
-        self.tie_weights = tie_weights
-        
         self.encoder = nn.Linear(input_dim, latent_dim, bias=False)
-        
-        if tie_weights:
-            self.decoder = None
-        else:
-            self.decoder = nn.Linear(latent_dim, input_dim, bias=False)
-    
-    def encode(self, x):
-        return self.encoder(x)
-    
-    def decode(self, z):
-        if self.tie_weights:
-            return z @ self.encoder.weight
-        else:
-            return self.decoder(z)
+        self.decoder = nn.Linear(latent_dim, input_dim, bias=False)
     
     def forward(self, x):
-        z = self.encode(x)
-        x_reconstructed = self.decode(z)
-        return x_reconstructed, z
+        z = self.encoder(x)
+        return self.decoder(z)
 
 
-def compare_linear_ae_with_pca(X: torch.Tensor, k: int):
-    """Compare linear autoencoder with PCA."""
-    n, d = X.shape
-    X_centered = X - X.mean(dim=0)
+def train_linear_ae(X, latent_dim, epochs=1000, lr=0.01):
+    """Train linear autoencoder."""
+    X_tensor = torch.tensor(X, dtype=torch.float32)
+    X_centered = X_tensor - X_tensor.mean(dim=0)
     
-    # PCA via eigendecomposition
-    cov = (X_centered.T @ X_centered) / (n - 1)
-    eigenvalues, eigenvectors = torch.linalg.eigh(cov)
-    idx = torch.argsort(eigenvalues, descending=True)
-    pca_components = eigenvectors[:, idx[:k]]
+    model = LinearAutoencoder(X.shape[1], latent_dim)
+    optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     
-    # PCA reconstruction
-    Z_pca = X_centered @ pca_components
-    X_pca_recon = Z_pca @ pca_components.T + X.mean(dim=0)
-    pca_error = torch.mean((X - X_pca_recon) ** 2).item()
-    
-    # Linear autoencoder
-    model = LinearAutoencoder(d, k, tie_weights=True)
-    optimizer = optim.Adam(model.parameters(), lr=0.01)
-    
-    for epoch in range(2000):
+    for epoch in range(epochs):
         optimizer.zero_grad()
-        x_recon, _ = model(X_centered)
-        loss = torch.mean((x_recon - X_centered) ** 2)
+        recon = model(X_centered)
+        loss = ((X_centered - recon) ** 2).mean()
         loss.backward()
         optimizer.step()
     
-    X_ae_recon, _ = model(X_centered)
-    ae_error = torch.mean((X_centered - X_ae_recon) ** 2).item()
-    
-    print(f"PCA reconstruction error: {pca_error:.6f}")
-    print(f"Linear AE reconstruction error: {ae_error:.6f}")
-    print(f"Errors match: {np.isclose(pca_error, ae_error, rtol=0.01)}")
+    return model
 ```
 
 ---
 
-## Why Linear AE Learns PCA Subspace
+## Empirical Verification
 
-### Gradient Analysis
+```python
+# Compare PCA and linear autoencoder
+X = np.random.randn(1000, 50)  # Random data
+k = 10
 
-The gradient of the loss with respect to encoder weights:
+# PCA
+X_pca, W_pca = pca_analytical(X, k)
+error_pca = np.mean((X - X_pca) ** 2)
 
-$$\frac{\partial \mathcal{L}}{\partial W_e} = -\frac{2}{n} X^T (X - XW_e W_d^T) W_d$$
+# Linear autoencoder
+model = train_linear_ae(X, k, epochs=5000)
+X_centered = torch.tensor(X - X.mean(axis=0), dtype=torch.float32)
+X_ae = model(X_centered).detach().numpy() + X.mean(axis=0)
+error_ae = np.mean((X - X_ae) ** 2)
 
-At equilibrium, this equals zero, which implies the solution lies in the principal subspace.
-
-### Subspace vs Basis
-
-| Property | PCA | Linear AE |
-|----------|-----|-----------|
-| Subspace | Top-$k$ principal subspace | Same subspace |
-| Basis | Orthonormal eigenvectors | Any basis for subspace |
-| Ordered | Yes (by variance) | No |
-| Unique | Yes | No (infinitely many) |
-
----
-
-## Key Takeaways
-
-1. **Linear autoencoders converge to PCA subspace** — optimal reconstruction requires principal directions
-
-2. **Nonlinearity is essential for going beyond PCA** — activation functions enable capturing nonlinear structure
-
-3. **This motivates deep autoencoders** — stacking nonlinear layers can learn complex manifolds
+print(f"PCA error: {error_pca:.6f}")
+print(f"Linear AE error: {error_ae:.6f}")
+# Should be approximately equal!
+```
 
 ---
 
-## Exercises
+## Why Use Autoencoders Then?
 
-### Exercise 1: Verify Subspace Equivalence
-Train a linear autoencoder and verify that its encoder weights span the same subspace as PCA components.
+### Advantages of Autoencoders
 
-### Exercise 2: Effect of Nonlinearity
-Add ReLU activations and compare reconstruction error with linear version.
+| Aspect | Linear AE / PCA | Nonlinear AE |
+|--------|-----------------|--------------|
+| **Expressiveness** | Linear subspace only | Arbitrary manifolds |
+| **Complex data** | Poor for curves, clusters | Can capture nonlinear structure |
+| **Flexibility** | Fixed architecture | Arbitrary encoder/decoder |
 
-### Exercise 3: Weight Tying
-Compare tied vs untied weights in terms of convergence and final solution.
+### When PCA Suffices
+
+- Data lies near a linear subspace
+- Interpretability is important
+- Computational efficiency is critical
+- Small datasets
+
+### When Autoencoders Excel
+
+- Nonlinear structure in data
+- Image/audio/text data
+- Deep feature hierarchies
+- Generative modeling (VAEs)
 
 ---
 
-## Next: Limitations of Linear Methods
+## Summary
 
-The next section discusses why linear methods fail on nonlinear data manifolds.
+| Concept | Key Point |
+|---------|-----------|
+| **Linear AE** | Equivalent to PCA |
+| **Loss** | Both minimize MSE reconstruction |
+| **Solution** | Both find principal subspace |
+| **Nonlinear AE** | Generalizes to curved manifolds |
+
+---
+
+## Bridge to Nonlinear Methods
+
+Adding nonlinearities (ReLU, sigmoid) allows autoencoders to:
+
+1. **Capture nonlinear structure** in data
+2. **Learn hierarchical features**
+3. **Model complex distributions** (with VAEs)
+
+This motivates the transition from PCA to autoencoders to VAEs.

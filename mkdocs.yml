@@ -474,7 +474,6 @@ nav:
               - Reconstruction Error: ch09/pca/reconstruction_error.md
               - PCA as Linear Autoencoder: ch09/pca/pca_as_autoencoder.md
               - Limitations of Linear Methods: ch09/pca/limitations.md
-
           - 9.2 Autoencoders:
               - Overview: ch09/autoencoders/README.md
               - Encoder-Decoder Architecture: ch09/autoencoders/architecture.md
@@ -487,7 +486,6 @@ nav:
               - Deep (Stacked) Autoencoders: ch09/autoencoders/deep.md
               - Applications: ch09/autoencoders/applications.md
               - Analysis and Comparison: ch09/autoencoders/analysis.md
-
           - 9.3 Variational Autoencoders:
               - Latent Variable Models: ch09/vae/latent_variable_models.md
               - Information Theory Foundations: ch09/vae/information_theory.md
@@ -603,13 +601,13 @@ nav:
               - Hierarchical Models: ch12/hierarchical_models/hierarchical_models.md
 
           - 12.8 Empirical Bayes:
-              - Empirical Bayes: ch12/empirical_bayes/08_empirical_bayes.md
+              - Empirical Bayes: ch12/empirical_bayes/empirical_bayes.md
 
           - 12.9 Bayesian Linear Regression:
               - Bayesian Linear Regression: ch12/bayesian_regression/bayesian_linear_regression.md
 
           - 12.10 Advanced Applications:
-              - Advanced Applications: ch12/advanced_applications/10_advanced_applications.md
+              - Advanced Applications: ch12/advanced_applications/advanced_applications.md
 
       - 13 Bayesian Inference & Probabilistic Methods:
           - 13.1 Bayesian Foundations:

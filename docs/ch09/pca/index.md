@@ -1,235 +1,106 @@
 # Principal Component Analysis
 
-A comprehensive introduction to PCA as a foundation for understanding autoencoders and dimensionality reduction.
+Linear dimensionality reduction through variance maximization.
 
 ---
 
 ## Overview
 
-**What you'll learn:**
-
-- Theoretical foundations of PCA
-- Multiple derivations (variance maximization, reconstruction error)
-- Relationship between PCA and linear autoencoders
-- Computational methods (eigendecomposition, SVD)
-- Limitations that motivate nonlinear methods
-
-**Prerequisites:**
-
-- Linear algebra (matrices, eigenvalues, eigenvectors)
-- Basic statistics (variance, covariance)
-- Calculus (optimization, Lagrange multipliers)
+**Principal Component Analysis (PCA)** is a fundamental technique for dimensionality reduction that finds orthogonal directions of maximum variance in data. Understanding PCA provides essential background for autoencoders and VAEs.
 
 ---
 
-## Mathematical Foundation
+## Learning Objectives
 
-### The Dimensionality Reduction Problem
+- Understand PCA from multiple perspectives (variance, projection, eigenvectors)
+- Implement PCA using eigendecomposition and SVD
+- Compute and interpret reconstruction error
+- Connect PCA to linear autoencoders
+- Recognize limitations motivating nonlinear methods
 
-Given high-dimensional data $X \in \mathbb{R}^{n \times d}$ with $n$ samples and $d$ features, find a lower-dimensional representation $Z \in \mathbb{R}^{n \times k}$ where $k < d$ that preserves the essential structure of the data.
+---
 
-**Key Question:** What makes a "good" lower-dimensional representation?
+## Why PCA Before Autoencoders?
 
-### PCA Objectives
+| PCA Concept | Autoencoder Connection |
+|-------------|------------------------|
+| Linear compression | Encoder function |
+| Reconstruction | Decoder function |
+| Minimize reconstruction error | Training objective |
+| Principal components | Learned latent directions |
 
-PCA can be derived from two equivalent perspectives:
+PCA is a **linear autoencoder** with an analytical solution.
 
-| Perspective | Objective | Result |
-|-------------|-----------|--------|
-| **Variance Maximization** | Find directions of maximum variance | Principal components ordered by variance |
-| **Reconstruction Error** | Minimize squared reconstruction error | Same principal components |
+---
 
-### Core Result
+## Key Equations
 
-The optimal linear projection is given by the eigenvectors of the covariance matrix:
-
-$$\Sigma = \frac{1}{n-1} X^T X$$
-
-where $X$ is centered (mean-subtracted).
-
-**Eigendecomposition:**
-
-$$\Sigma = V \Lambda V^T$$
-
-- $V = [v_1, v_2, \ldots, v_d]$: orthonormal eigenvectors (principal directions)
-- $\Lambda = \text{diag}(\lambda_1, \lambda_2, \ldots, \lambda_d)$: eigenvalues (variances)
-- Convention: $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_d$
+| Concept | Formula |
+|---------|---------|
+| **Covariance matrix** | $C = \frac{1}{n}X^TX$ |
+| **Eigenproblem** | $Cv = \lambda v$ |
+| **Projection** | $z = W^T x$ |
+| **Reconstruction** | $\hat{x} = Wz = WW^T x$ |
+| **Reconstruction error** | $\sum_{i=k+1}^{d} \lambda_i$ |
 
 ---
 
 ## Section Contents
 
-### 9.1.1 Variance Maximization
-
-Derive PCA by finding directions that maximize projected variance.
-
-**Key concepts:**
-- Lagrange multiplier optimization
-- Rayleigh quotient
-- Sequential extraction of components
-
-### 9.1.2 Eigendecomposition
-
-Computational approach using eigenvalue decomposition of the covariance matrix.
-
-**Key concepts:**
-- Covariance matrix construction
-- Eigenvalue problem solution
-- Component selection criteria
-
-### 9.1.3 Singular Value Decomposition
-
-Alternative computation via SVD, often more numerically stable.
-
-**Key concepts:**
-- SVD formulation: $X = U \Sigma V^T$
-- Relationship to eigendecomposition
-- Computational advantages
-
-### 9.1.4 Reconstruction Error
-
-Derive PCA by minimizing squared reconstruction error.
-
-**Key concepts:**
-- Projection and reconstruction
-- Error decomposition
-- Equivalence to variance maximization
-
-### 9.1.5 PCA as Linear Autoencoder
-
-Connection between PCA and linear autoencoders.
-
-**Key concepts:**
-- Encoder-decoder interpretation
-- Why linear autoencoders learn PCA subspace
-- Weight tying and orthogonality
-
-### 9.1.6 Limitations of Linear Methods
-
-Motivate nonlinear approaches (autoencoders, VAEs).
-
-**Key concepts:**
-- Linearity assumption
-- Failure on nonlinear manifolds
-- Curse of dimensionality
+1. **Variance Maximization** - PCA as finding directions of maximum variance
+2. **Eigendecomposition** - Computing PCA via covariance eigenvectors
+3. **SVD** - Efficient computation via Singular Value Decomposition
+4. **Reconstruction Error** - Quantifying information loss
+5. **PCA as Linear Autoencoder** - Connecting to neural networks
+6. **Limitations** - Why we need nonlinear methods
 
 ---
 
-## Quick Reference
-
-### Notation
-
-| Symbol | Meaning |
-|--------|---------|
-| $X \in \mathbb{R}^{n \times d}$ | Data matrix (centered) |
-| $\Sigma \in \mathbb{R}^{d \times d}$ | Covariance matrix |
-| $v_i \in \mathbb{R}^d$ | $i$-th principal component |
-| $\lambda_i$ | Variance along $i$-th component |
-| $k$ | Number of components retained |
-| $z_i \in \mathbb{R}^k$ | Projected representation of sample $i$ |
-
-### Key Formulas
-
-**Projection to $k$ dimensions:**
-
-$$Z = X V_k$$
-
-where $V_k = [v_1, \ldots, v_k]$ contains the top $k$ eigenvectors.
-
-**Reconstruction:**
-
-$$\hat{X} = Z V_k^T = X V_k V_k^T$$
-
-**Explained variance ratio:**
-
-$$\text{EVR}_k = \frac{\sum_{i=1}^{k} \lambda_i}{\sum_{i=1}^{d} \lambda_i}$$
-
-**Reconstruction error:**
-
-$$\mathcal{L} = \|X - \hat{X}\|_F^2 = \sum_{i=k+1}^{d} \lambda_i$$
-
----
-
-## Learning Path
-
-```
-Variance Maximization (9.1.1)
-        ↓
-Eigendecomposition (9.1.2) ←→ SVD (9.1.3)
-        ↓
-Reconstruction Error (9.1.4)
-        ↓
-PCA as Linear AE (9.1.5)
-        ↓
-Limitations (9.1.6) → Autoencoders (9.2)
-```
-
----
-
-## Connection to Autoencoders
-
-PCA provides the theoretical foundation for understanding autoencoders:
-
-| Aspect | PCA | Autoencoder |
-|--------|-----|-------------|
-| Transformation | Linear | Nonlinear |
-| Optimization | Closed-form | Iterative (gradient descent) |
-| Basis vectors | Orthogonal | Not necessarily |
-| Computation | $O(d^3)$ or $O(nd^2)$ | Flexible (batch training) |
-| Expressivity | Limited to linear subspaces | Can capture nonlinear manifolds |
-
-**Key Insight:** A linear autoencoder (no activation functions) learns to span the same subspace as PCA, though it may not find the same basis vectors unless weights are tied and orthogonality is enforced.
-
----
-
-## PyTorch Preview
+## Quick Implementation
 
 ```python
 import torch
 import numpy as np
-from sklearn.decomposition import PCA
 
-# Using sklearn
-pca = PCA(n_components=k)
-Z = pca.fit_transform(X)
-X_reconstructed = pca.inverse_transform(Z)
-
-# Manual implementation
-X_centered = X - X.mean(axis=0)
-cov = np.cov(X_centered.T)
-eigenvalues, eigenvectors = np.linalg.eigh(cov)
-
-# Sort by descending eigenvalue
-idx = np.argsort(eigenvalues)[::-1]
-eigenvalues = eigenvalues[idx]
-eigenvectors = eigenvectors[:, idx]
-
-# Project
-V_k = eigenvectors[:, :k]
-Z = X_centered @ V_k
-X_reconstructed = Z @ V_k.T + X.mean(axis=0)
+def pca(X, n_components):
+    """
+    PCA via eigendecomposition.
+    
+    Args:
+        X: Data matrix [n_samples, n_features]
+        n_components: Number of principal components
+    
+    Returns:
+        W: Principal components [n_features, n_components]
+        z: Projected data [n_samples, n_components]
+    """
+    # Center data
+    X_centered = X - X.mean(dim=0)
+    
+    # Covariance matrix
+    cov = X_centered.T @ X_centered / (X.shape[0] - 1)
+    
+    # Eigendecomposition
+    eigenvalues, eigenvectors = torch.linalg.eigh(cov)
+    
+    # Sort by descending eigenvalue
+    idx = torch.argsort(eigenvalues, descending=True)
+    W = eigenvectors[:, idx[:n_components]]
+    
+    # Project
+    z = X_centered @ W
+    
+    return W, z
 ```
 
 ---
 
-## References
+## Summary
 
-### Foundational
-
-1. Pearson, K. (1901). "On lines and planes of closest fit to systems of points in space." *Philosophical Magazine*.
-2. Hotelling, H. (1933). "Analysis of a complex of statistical variables into principal components." *Journal of Educational Psychology*.
-
-### Modern Treatment
-
-- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Chapter 12.
-- Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*. Chapter 12.
-- Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. Chapter 5.
+PCA provides the theoretical foundation for understanding autoencoders as nonlinear generalizations of linear dimensionality reduction.
 
 ---
 
-## Next Steps
+## What's Next
 
-After completing this section:
-
-1. **Section 9.2: Autoencoders** — Extend to nonlinear dimensionality reduction
-2. **Section 9.3: Variational Autoencoders** — Add probabilistic structure
+The following sections provide detailed derivations and implementations of each PCA aspect.
