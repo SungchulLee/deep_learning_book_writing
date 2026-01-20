@@ -578,6 +578,25 @@ nav:
               - Option Pricing: ch11/flows_finance/option_pricing.md
               - Scenario Generation: ch11/flows_finance/scenario_generation.md
 
+      - 16B Markov Chains:
+          - Chapter Overview: ch16b/index.md
+          
+          - 16B.1 Fundamentals:
+              - Markov Property and Definitions: ch16b/fundamentals/markov_property.md
+              - Transition Matrices: ch16b/fundamentals/transition_matrices.md
+              - State Classification: ch16b/fundamentals/state_classification.md
+              - Random Walks: ch16b/fundamentals/random_walks.md
+
+          - 16B.2 Analysis Methods:
+              - Stationary Distributions: ch16b/analysis_methods/stationary_distributions.md
+              - Absorbing Chains: ch16b/analysis_methods/absorbing_chains.md
+              - Convergence and Mixing Times: ch16b/analysis_methods/convergence_theorems.md
+
+          - 16B.3 Applications:
+              - Weather Modeling: ch16b/applications/weather_modeling.md
+              - PageRank Algorithm: ch16b/applications/pagerank.md
+              - Finance Applications: ch16b/applications/finance_applications.md
+              
       - 12 Bayesian Inference Fundamentals:
           - 12.1 Bayes' Theorem Basics:
               - Bayes' Theorem Basics: ch12/bayes_basics/bayes_theorem_basics.md
