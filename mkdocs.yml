@@ -796,6 +796,7 @@ nav:
 
       - 15 Autoregressive & Energy-based Models:
           - 15.1 Autoregressive Models:
+              - Overview: ch15/autoregressive/index.md
               - Autoregressive Factorization: ch15/autoregressive/factorization.md
               - PixelCNN: ch15/autoregressive/pixelcnn.md
               - WaveNet: ch15/autoregressive/wavenet.md
@@ -1054,42 +1055,37 @@ nav:
               - Regulatory Compliance: ch21/mlops_finance/compliance.md
               - Production Monitoring: ch21/mlops_finance/monitoring.md
 
-      - 22 Case Studies:
-          - 22.1 Image Classification Pipeline:
-              - Problem Definition: ch22/image_classification/problem.md
-              - Data Preparation: ch22/image_classification/data_prep.md
-              - Model Selection and Training: ch22/image_classification/training.md
-              - Evaluation and Deployment: ch22/image_classification/evaluation.md
+      - 22 Classical Machine Learning with Scikit-learn:
+          - Chapter Overview: ch22/index.md
 
-          - 22.2 Sentiment Analysis for Financial News:
-              - Problem Definition: ch22/sentiment_analysis/problem.md
-              - Data Collection and Labeling: ch22/sentiment_analysis/data.md
-              - Fine-tuning LLMs: ch22/sentiment_analysis/fine_tuning.md
-              - Integration with Trading Systems: ch22/sentiment_analysis/integration.md
+          - 22.1 Preprocessing:
+              - Scaling and Normalization: ch22/preprocessing/scaling.md
+              - Encoding Categorical Variables: ch22/preprocessing/encoding.md
+              - Handling Missing Data: ch22/preprocessing/missing_data.md
 
-          - 22.3 Document Intelligence for Financial Reports:
-              - Problem Definition: ch22/document_intelligence/problem.md
-              - PDF Parsing and OCR: ch22/document_intelligence/parsing.md
-              - Information Extraction: ch22/document_intelligence/extraction.md
-              - RAG System Implementation: ch22/document_intelligence/rag.md
+          - 22.2 Model Selection:
+              - Train-Test Split: ch22/model_selection/train_test_split.md
+              - Cross-Validation: ch22/model_selection/cross_validation.md
+              - Hyperparameter Tuning: ch22/model_selection/hyperparameters.md
 
-          - 22.4 Credit Risk Modeling:
-              - Problem Definition: ch22/credit_risk/problem.md
-              - Data Preparation: ch22/credit_risk/data.md
-              - Model Development: ch22/credit_risk/model.md
-              - Interpretability and Compliance: ch22/credit_risk/interpretability.md
+          - 22.3 Supervised Learning:
+              - Linear Models: ch22/supervised/linear_models.md
+              - Tree-Based Models: ch22/supervised/tree_models.md
+              - Support Vector Machines: ch22/supervised/svm.md
+              - Ensemble Methods: ch22/supervised/ensemble.md
 
-          - 22.5 Volatility Forecasting:
-              - Problem Definition: ch22/volatility/problem.md
-              - GARCH Baselines: ch22/volatility/garch_baseline.md
-              - Neural Volatility Models: ch22/volatility/neural_models.md
-              - Evaluation and Calibration: ch22/volatility/evaluation.md
+          - 22.4 Unsupervised Learning:
+              - Clustering: ch22/unsupervised/clustering.md
+              - Dimensionality Reduction: ch22/unsupervised/dimensionality.md
 
-          - 22.6 Anomaly Detection in Trading:
-              - Problem Definition: ch22/anomaly_detection/problem.md
-              - Unsupervised Approaches: ch22/anomaly_detection/unsupervised.md
-              - Autoencoder Methods: ch22/anomaly_detection/autoencoder.md
-              - Real-time Detection: ch22/anomaly_detection/realtime.md
+          - 22.5 Evaluation:
+              - Regression Metrics: ch22/evaluation/regression_metrics.md
+              - Classification Metrics: ch22/evaluation/classification_metrics.md
+              - Confusion Matrix: ch22/evaluation/confusion_matrix.md
+
+          - 22.6 Pipelines:
+              - Pipeline Basics: ch22/pipelines/pipeline_basics.md
+              - Feature Engineering: ch22/pipelines/feature_engineering.md
 
       - 23 Financial Report Understanding:
           - 23.1 Project Overview:
