@@ -664,15 +664,13 @@ nav:
 
           - 13.6 Markov Chain Monte Carlo:
               - MCMC Foundations: ch13/mcmc/mcmc_foundations.md
-              - Detailed Balance: ch13/mcmc/detailed_balance.md
-              - Ergodicity and Mixing: ch13/mcmc/ergodicity_mixing.md
               - Metropolis-Hastings Algorithm: ch13/mcmc/metropolis_hastings.md
-              - Proposal Design: ch13/mcmc/proposal_design.md
-              - Optimal Acceptance Rates: ch13/mcmc/optimal_acceptance_rates.md
               - Gibbs Sampling: ch13/mcmc/gibbs_sampling.md
               - Convergence Diagnostics: ch13/mcmc/convergence_diagnostics.md
+              - Connections to Modern Methods: ch13/mcmc/connections_to_modern_methods.md
 
           - 13.7 Langevin Dynamics:
+              - Langevin Dynamics: ch13/langevin/langevin_dynamics.md
               - Score Function: ch13/langevin/score_function.md
               - Langevin SDE: ch13/langevin/langevin_sde.md
               - Unadjusted Langevin Algorithm (ULA): ch13/langevin/ula.md
@@ -681,6 +679,7 @@ nav:
 
           - 13.8 Hamiltonian Monte Carlo:
               - Hamiltonian Dynamics: ch13/hmc/hamiltonian_dynamics.md
+              - Hamiltonian Monte Carlo: ch13/hmc/hmc.md
               - Phase Space: ch13/hmc/phase_space.md
               - Leapfrog Integrator: ch13/hmc/leapfrog_integrator.md
               - HMC Algorithm: ch13/hmc/hmc_algorithm.md
@@ -689,6 +688,7 @@ nav:
               - Geometric Interpretation: ch13/hmc/geometric_interpretation.md
 
           - 13.9 Simulated Annealing:
+              - Simulated Annealing: ch13/simulated_annealing/simulated_annealing.md
               - SA as Non-Stationary MCMC: ch13/simulated_annealing/sa_mcmc.md
               - Temperature Schedules: ch13/simulated_annealing/temperature_schedules.md
               - Convergence Theory: ch13/simulated_annealing/convergence.md
@@ -696,6 +696,7 @@ nav:
               - Temperature as Unifying Concept: ch13/simulated_annealing/temperature_unifying.md
 
           - 13.10 MCMC Methods Comparison:
+              - Methods Comparison: ch13/mcmc_comparison/mcmc_methods_comparison.md
               - Theoretical Comparison: ch13/mcmc_comparison/theoretical.md
               - Scaling with Dimension: ch13/mcmc_comparison/scaling.md
               - Practical Method Selection: ch13/mcmc_comparison/method_selection.md
