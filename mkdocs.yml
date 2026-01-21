@@ -23,6 +23,15 @@ nav:
   # =============================================================================
   - Part I Foundations:
       - 1 Foundations & Basics:
+          - 1.0 PyTorch Quickstart:
+              - Tensor Basics: ch01/tensor_basics/basics.md
+              - NumPy to PyTorch: ch01/tensor_basics/numpy_to_pytorch.md 
+              - Autograd Mechanics: ch01/autograd/autograd.md 
+              - Modules and Layers: ch01/nn/modules.md
+              - Loss Functions and Optimizers: ch01/nn/optimizers.md
+              - GPU and Performance: ch01/performance/gpu.md 
+              - Training Loops: ch01/training/training_loops.md 
+
           - 1.1 Installation:
               - Environment Setup: ch01/installation/environment_setup.md
               - Package Management: ch01/installation/package_management.md
@@ -702,12 +711,12 @@ nav:
               - Practical Method Selection: ch13/mcmc_comparison/method_selection.md
 
           - 13.11 Variational Inference:
-              - Variational Inference Framework: ch13/vi/framework.md
-              - Evidence Lower Bound (ELBO): ch13/vi/elbo.md
-              - Mean-Field Variational Inference: ch13/vi/mean_field.md
-              - Coordinate Ascent VI: ch13/vi/coordinate_ascent.md
-              - Black-Box Variational Inference: ch13/vi/black_box.md
-              - Amortized Variational Inference: ch13/vi/amortized.md
+              - Variational Inference Framework: ch13/variational_inference/framework.md
+              - Evidence Lower Bound (ELBO): ch13/variational_inference/elbo.md
+              - Mean-Field Variational Inference: ch13/variational_inference/mean_field.md
+              - Coordinate Ascent VI: ch13/variational_inference/coordinate_ascent.md
+              - Black-Box Variational Inference: ch13/variational_inference/black_box.md
+              - Amortized Variational Inference: ch13/variational_inference/amortized.md
 
           - 13.12 Bayesian Model Comparison:
               - Model Evidence (Marginal Likelihood): ch13/model_comparison/model_evidence.md
