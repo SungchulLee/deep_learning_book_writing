@@ -172,9 +172,11 @@ nav:
               - Practical Guidelines: ch02/hyperparameter/practical_guidelines.md
 
           - 2.6 Save and Load Models:
-              - State Dict: ch02/save_load/state_dict.md
-              - Checkpointing: ch02/save_load/checkpointing.md
+              - State Dict Fundamentals: ch02/save_load/state_dict.md
+              - Training Checkpoints: ch02/save_load/checkpointing.md
               - Model Serialization: ch02/save_load/serialization.md
+              - Transfer Learning Patterns: ch02/save_load/transfer_learning.md
+              - Distributed Training Checkpoints: ch02/save_load/distributed_checkpoints.md
 
           - 2.7 Feedforward Networks:
               - MLP Architecture: ch02/feedforward/mlp_architecture.md
