@@ -154,6 +154,7 @@ nav:
               - Activation Function Selection Guide: ch02/activation/selection_guide.md
 
           - 2.4 Learning Rate Schedulers:
+              - Overview: ch02/lr_schedulers/index.md
               - Step Decay: ch02/lr_schedulers/step_decay.md
               - Exponential Decay: ch02/lr_schedulers/exponential_decay.md
               - Cosine Annealing: ch02/lr_schedulers/cosine_annealing.md
@@ -161,6 +162,8 @@ nav:
               - Warmup Strategies: ch02/lr_schedulers/warmup.md
               - ReduceLROnPlateau: ch02/lr_schedulers/reduce_plateau.md
               - Cyclic Learning Rates: ch02/lr_schedulers/cyclic.md
+              - SGDR (Warm Restarts): ch02/lr_schedulers/sgdr.md
+              - Scheduler Comparison: ch02/lr_schedulers/comparison.md
 
           - 2.5 Hyperparameter Tuning:
               - Grid Search: ch02/hyperparameter/grid_search.md
