@@ -149,6 +149,8 @@ nav:
               - GELU: ch02/activation/gelu.md
               - Swish/SiLU: ch02/activation/swish.md
               - GLU (Gated Linear Unit): ch02/activation/glu.md
+              - Custom Activation Functions: ch02/activation/custom_activations.md
+              - Advanced Techniques: ch02/activation/advanced_techniques.md
               - Activation Function Selection Guide: ch02/activation/selection_guide.md
 
           - 2.4 Learning Rate Schedulers:
