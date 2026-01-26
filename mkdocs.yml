@@ -56,7 +56,8 @@ nav:
               - Linear Algebra Operations: ch01/tensor_attrs/linalg_operations.md
               - Concatenation and Stacking: ch01/tensor_attrs/concat_stack.md
               - Splitting: ch01/tensor_attrs/splitting.md 
-              - Clone, Copy, and In-Place Operations: ch01/tensor_attrs/clone_copy_inplace.md
+              - Clone and Copy: ch01/tensor_attrs/clone_and_copy.md
+              - In-Place Operations: ch01/tensor_attrs/inplace_operations.md
 
           - 1.4 Gradients:
               - Autograd Fundamentals: ch01/gradients/autograd_fundamentals.md
