@@ -65,7 +65,3 @@ Combines VAE compression with diffusion quality:
 - **VAEs**: Fast, learned representations, lower quality
 - **Latent Diffusion**: Combines strengths of both
 
-## Navigation
-
-- **Previous**: [Diffusion vs GANs](diffusion_vs_gans.md)
-- **Next**: [Chapter 15 - Autoregressive Models](../../ch15/index.md)
