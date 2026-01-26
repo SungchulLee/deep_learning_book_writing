@@ -58,6 +58,8 @@ nav:
               - Splitting: ch01/tensor_attrs/splitting.md 
               - Clone and Copy: ch01/tensor_attrs/clone_and_copy.md
               - In-Place Operations: ch01/tensor_attrs/inplace_operations.md
+              - Memory Layout and Strides: ch01/tensor_attrs/memory_layout_strides.md  # NEW
+              - Memory Management: ch01/tensor_attrs/memory_management.md
 
           - 1.4 Gradients:
               - Autograd Fundamentals: ch01/gradients/autograd_fundamentals.md
@@ -842,6 +844,8 @@ nav:
               - Diffusion vs VAEs: ch14/comparisons/diffusion_vs_vaes.md
 
       - 15 Autoregressive & Energy-based Models:
+          - Chapter Overview: ch15/index.md 
+
           - 15.1 Autoregressive Models:
               - Overview: ch15/autoregressive/index.md
               - Autoregressive Factorization: ch15/autoregressive/factorization.md
