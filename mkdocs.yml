@@ -134,8 +134,12 @@ nav:
           - 1.13 DataLoaders:
               - DataLoader Fundamentals: ch01/dataloaders/dataloader_fundamentals.md
               - Batching and Shuffling: ch01/dataloaders/batching_shuffling.md
-              - Multiprocessing: ch01/dataloaders/multiprocessing.md
+              - DataLoader Parameters: ch01/dataloaders/dataloader_parameters.md
+              - Samplers: ch01/dataloaders/samplers.md
               - Custom Collate Functions: ch01/dataloaders/custom_collate.md
+              - Multiprocessing: ch01/dataloaders/multiprocessing.md
+              - Performance Profiling: ch01/dataloaders/performance_profiling.md
+              - Distributed Loading: ch01/dataloaders/distributed_loading.md
 
       - 2 Training Mechanics & Optimization:
           - 2.1 Loss Functions:
