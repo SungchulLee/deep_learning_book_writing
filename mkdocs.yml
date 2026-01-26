@@ -54,8 +54,11 @@ nav:
               - Autograd Fundamentals: ch01/gradients/autograd_fundamentals.md
               - Computational Graphs: ch01/gradients/computational_graphs.md
               - Forward and Reverse Mode AD: ch01/gradients/forward_reverse_ad.md
+              - Vector-Jacobian Products: ch01/gradients/vector_jacobian_products.md
               - Gradient Accumulation: ch01/gradients/gradient_accumulation.md
+              - Gradient Tracking Control: ch01/gradients/gradient_control.md
               - Higher-Order Derivatives: ch01/gradients/higher_order_derivatives.md
+              - Training Loops: ch01/gradients/training_loops.md
 
           - 1.5 Gradient Descent:
               - Optimization as Iterative Refinement: ch01/gradient_descent/iterative_refinement.md
