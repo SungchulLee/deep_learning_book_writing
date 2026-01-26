@@ -330,9 +330,14 @@ nav:
           - 4.1 Semantic Segmentation:
               - Segmentation Fundamentals: ch04/semantic_segmentation/fundamentals.md
               - Fully Convolutional Networks (FCN): ch04/semantic_segmentation/fcn.md
-              - U-Net: ch04/semantic_segmentation/unet.md
-              - DeepLab: ch04/semantic_segmentation/deeplab.md
+              - U-Net Architecture: ch04/semantic_segmentation/unet.md
+              - DeepLab and Atrous Convolutions: ch04/semantic_segmentation/deeplab.md
               - Loss Functions for Segmentation: ch04/semantic_segmentation/loss_functions.md
+              - Attention Mechanisms: ch04/semantic_segmentation/attention_mechanisms.md
+              - Training Techniques and Best Practices: ch04/semantic_segmentation/training_techniques.md
+              - Medical Image Segmentation: ch04/semantic_segmentation/medical_segmentation.md
+              - Instance Segmentation Overview: ch04/semantic_segmentation/instance_segmentation.md
+              - Panoptic Segmentation: ch04/semantic_segmentation/panoptic_segmentation.md
 
           - 4.2 Object Detection:
               - Detection Fundamentals: ch04/object_detection/fundamentals.md
@@ -342,10 +347,18 @@ nav:
               - SSD: ch04/object_detection/ssd.md
               - Anchor-Free Methods: ch04/object_detection/anchor_free.md
 
-          - 4.3 Advanced Image Classification:
-              - EfficientNet: ch04/image_classification/efficientnet.md
-              - ConvNeXt: ch04/image_classification/convnext.md
-              - Ensemble Methods: ch04/image_classification/ensemble.md
+      - 4.3 Advanced Image Classification:
+          - Overview: ch04/image_classification/index.md
+          - ResNet: ch04/image_classification/resnet.md
+          - VGG Networks: ch04/image_classification/vgg.md
+          - Inception/GoogLeNet: ch04/image_classification/inception.md
+          - EfficientNet: ch04/image_classification/efficientnet.md
+          - MobileNet: ch04/image_classification/mobilenet.md
+          - DenseNet: ch04/image_classification/densenet.md
+          - ConvNeXt: ch04/image_classification/convnext.md
+          - Model Comparison: ch04/image_classification/model_comparison.md
+          - Transfer Learning: ch04/image_classification/transfer_learning.md
+          - Ensemble Methods: ch04/image_classification/ensemble.md
 
           - 4.4 Video Understanding:
               - Temporal Modeling: ch04/video_understanding/temporal_modeling.md
