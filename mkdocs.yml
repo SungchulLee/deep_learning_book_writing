@@ -1369,7 +1369,6 @@ nav:
   # APPENDIX: MODEL IMPLEMENTATIONS
   # =============================================================================
   - Appendix Model Implementations:
-      - Overview: appendix/models/index.md
 
       - A.1 Classic CNNs:
           - AlexNet: appendix/models/alex_net.py
