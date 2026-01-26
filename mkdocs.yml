@@ -36,19 +36,27 @@ nav:
               - Environment Setup: ch01/installation/environment_setup.md
               - Package Management: ch01/installation/package_management.md
               - GPU Configuration: ch01/installation/gpu_configuration.md
-
+            
           - 1.2 Tensors:
               - Tensor Basics: ch01/tensors/tensor_basics.md
               - Tensor Creation and dtypes: ch01/tensors/tensor_creation_dtypes.md
               - Memory Layout and Strides: ch01/tensors/memory_layout_strides.md
               - NumPy Interoperability: ch01/tensors/numpy_interop.md
+              - Pandas Interoperability: ch01/tensors/pandas_interop.md
 
           - 1.3 Tensor Attributes and Methods:
               - Shape and Dimensions: ch01/tensor_attrs/shape_dimensions.md
               - Indexing and Slicing: ch01/tensor_attrs/indexing_slicing.md
               - Reshaping and View Operations: ch01/tensor_attrs/reshaping_view.md
               - Broadcasting Rules: ch01/tensor_attrs/broadcasting_rules.md
+              - Arithmetic Operations: ch01/tensor_attrs/arithmetic_operations.md
+              - Reduction Operations: ch01/tensor_attrs/reduction_operations.md
+              - Statistics Operations: ch01/tensor_attrs/statistics_operations.md 
+              - Logical and Comparison Operations: ch01/tensor_attrs/logical_comparison.md
               - Linear Algebra Operations: ch01/tensor_attrs/linalg_operations.md
+              - Concatenation and Stacking: ch01/tensor_attrs/concat_stack.md
+              - Splitting: ch01/tensor_attrs/splitting.md 
+              - Clone, Copy, and In-Place Operations: ch01/tensor_attrs/clone_copy_inplace.md
 
           - 1.4 Gradients:
               - Autograd Fundamentals: ch01/gradients/autograd_fundamentals.md
