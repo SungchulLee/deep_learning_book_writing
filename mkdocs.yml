@@ -1366,27 +1366,84 @@ nav:
               - Alerting and Notifications: ch28/integration/alerting.md
 
   # =============================================================================
-  # APPENDIX: REFERENCE IMPLEMENTATIONS
+  # APPENDIX: MODEL IMPLEMENTATIONS
   # =============================================================================
-  - Appendix Reference Implementations:
-      - A.1 CNN Implementation Walkthroughs:
-          - LeNet Implementation: appendix/cnn_implementations/lenet.md
-          - AlexNet Implementation: appendix/cnn_implementations/alexnet.md
-          - VGGNet Implementation: appendix/cnn_implementations/vggnet.md
-          - ResNet Implementation: appendix/cnn_implementations/resnet.md
-          - EfficientNet Implementation: appendix/cnn_implementations/efficientnet.md
+  - Appendix Model Implementations:
+      - Overview: appendix/models/index.md
 
-      - A.2 Transformer Implementation Walkthroughs:
-          - Transformer from Scratch: appendix/transformer_implementations/transformer.md
-          - BERT Implementation: appendix/transformer_implementations/bert.md
-          - GPT Implementation: appendix/transformer_implementations/gpt.md
-          - ViT Implementation: appendix/transformer_implementations/vit.md
+      - A.1 Classic CNNs:
+          - AlexNet: appendix/models/alex_net.py
+          - VGGNet: appendix/models/vgg_net.py
+          - GoogLeNet/Inception: appendix/models/google_net_inception.py
+          - ResNet: appendix/models/resnet.py
+          - DenseNet: appendix/models/densenet.py
 
-      - A.3 Generative Model Implementations:
-          - VAE Implementation: appendix/generative_implementations/vae.md
-          - GAN Implementation: appendix/generative_implementations/gan.md
-          - Diffusion Model Implementation: appendix/generative_implementations/diffusion.md
-          - Flow Implementation: appendix/generative_implementations/flow.md
+      - A.2 Modern CNNs:
+          - ConvNeXt: appendix/models/convnext.py
+          - EfficientNet: appendix/models/efficientnet.py
+          - MobileNetV2: appendix/models/mobilenet_v2.py
+          - SqueezeNet: appendix/models/squeeze_net.py
+          - ShuffleNet: appendix/models/shuffle_net.py
+
+      - A.3 Advanced CNN Architectures:
+          - Inception V3: appendix/models/inception_v3.py
+          - Xception: appendix/models/xception.py
+          - NASNet: appendix/models/nas_net.py
+          - EfficientNetV2: appendix/models/efficient_net_v2.py
+          - ConvNeXt V2: appendix/models/convnext_v2.py
+
+      - A.4 Specialized CNNs:
+          - RegNet: appendix/models/regnet.py
+          - ResNeXt: appendix/models/res_next.py
+          - SENet: appendix/models/se_net.py
+          - CBAM: appendix/models/cbam.py
+          - ResNeSt: appendix/models/res_nest.py
+          - GhostNet: appendix/models/ghost_net.py
+          - MixNet: appendix/models/mixnet.py
+          - HRNet: appendix/models/hrnet.py
+          - PyramidNet: appendix/models/pyramidnet.py
+          - CoordConv: appendix/models/coordconv.py
+
+      - A.5 Vision Transformers:
+          - Vision Transformer (ViT): appendix/models/vision_transformer_vit.py
+          - Swin Transformer: appendix/models/swin_transformer.py
+
+      - A.6 Semantic Segmentation:
+          - U-Net: appendix/models/u_net.py
+          - FCN: appendix/models/fcn.py
+          - DeepLabV3: appendix/models/deeplabv3.py
+          - PSPNet: appendix/models/pspnet.py
+
+      - A.7 Object Detection:
+          - Mask R-CNN: appendix/models/mask_rcnn.py
+          - YOLOv3: appendix/models/yolo_v3.py
+          - RetinaNet: appendix/models/retinanet.py
+          - Faster R-CNN: appendix/models/faster_rcnn.py
+          - SSD: appendix/models/ssd.py
+
+      - A.8 Sequence Models:
+          - LSTM: appendix/models/lstm.py
+          - GRU: appendix/models/gru.py
+          - Seq2Seq: appendix/models/seq2seq.py
+          - Attention Seq2Seq: appendix/models/attention_seq2seq.py
+
+      - A.9 Transformers:
+          - Transformer: appendix/models/transformer.py
+          - BERT: appendix/models/bert.py
+          - GPT: appendix/models/gpt.py
+
+      - A.10 Audio Models:
+          - Wav2Vec 2.0: appendix/models/wav2vec.py
+
+      - A.11 Generative Models:
+          - GAN: appendix/models/gan.py
+          - DCGAN: appendix/models/dcgan.py
+          - VAE: appendix/models/vae.py
+          - Autoencoder: appendix/models/autoencoder.py
+
+      - A.12 Specialized Architectures:
+          - CapsuleNet: appendix/models/capsule_net.py
+          - Neural ODE: appendix/models/neural_ode.py
 
 plugins:
   - search
