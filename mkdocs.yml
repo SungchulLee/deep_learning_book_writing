@@ -125,6 +125,8 @@ nav:
 
           - 1.12 Datasets:
               - PyTorch Dataset Class: ch01/datasets/pytorch_dataset.md
+              - Map-Style Datasets: ch01/datasets/map_style_datasets.md
+              - Iterable-Style Datasets: ch01/datasets/iterable_style_datasets.md
               - Built-in Datasets: ch01/datasets/builtin_datasets.md
               - Custom Datasets: ch01/datasets/custom_datasets.md
               - Data Transforms: ch01/datasets/data_transforms.md
