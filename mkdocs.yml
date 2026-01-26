@@ -283,26 +283,28 @@ nav:
               - Hidden State Dynamics: ch03/rnn/hidden_state_dynamics.md
               - Backpropagation Through Time (BPTT): ch03/rnn/bptt.md
               - Vanishing and Exploding Gradients: ch03/rnn/gradient_problems.md
-              - Gradient Clipping: ch03/rnn/gradient_clipping.md # missing
+              - Gradient Clipping: ch03/rnn/gradient_clipping.md 
               - Text Preprocessing for RNNs: ch03/rnn/text_preprocessing.md
               - Time Series Preprocessing: ch03/rnn/time_series_preprocessing.md
               - Bidirectional RNNs: ch03/rnn/bidirectional.md
 
           - 3.8 LSTM and GRU:
               - LSTM Architecture: ch03/lstm_gru/lstm_architecture.md
-              - LSTM Gates (Forget, Input, Output): ch03/lstm_gru/lstm_gates.md # missing
-              - LSTM Gradient Flow: ch03/lstm_gru/lstm_gradient_flow.md # missing
+              - LSTM Gates (Forget, Input, Output): ch03/lstm_gru/lstm_gates.md 
+              - LSTM Gradient Flow: ch03/lstm_gru/lstm_gradient_flow.md 
               - GRU Architecture: ch03/lstm_gru/gru_architecture.md
-              - GRU Gates: ch03/lstm_gru/gru_gates.md # missing
-              - LSTM vs GRU Comparison: ch03/lstm_gru/comparison.md # missing
+              - GRU Gates: ch03/lstm_gru/gru_gates.md 
+              - LSTM vs GRU Comparison: ch03/lstm_gru/comparison.md 
+              - Stacked LSTM and GRU: ch03/lstm_gru/stacked.md
+              - PyTorch Implementation: ch03/lstm_gru/pytorch_implementation.md
 
           - 3.9 Sequence-to-Sequence Models:
               - Encoder-Decoder Architecture: ch03/seq2seq/encoder_decoder.md
               - Attention in Seq2Seq: ch03/seq2seq/attention_seq2seq.md
-              - Teacher Forcing: ch03/seq2seq/teacher_forcing.md  # missing
-              - Beam Search: ch03/seq2seq/beam_search.md  # missing
+              - Teacher Forcing: ch03/seq2seq/teacher_forcing.md  
+              - Beam Search: ch03/seq2seq/beam_search.md  
               - Text Generation: ch03/seq2seq/text_generation.md
-              - Applications: ch03/seq2seq/applications.md  # missing
+              - Applications: ch03/seq2seq/applications.md  
 
       - 4 Computer Vision:
           - 4.1 Semantic Segmentation:
