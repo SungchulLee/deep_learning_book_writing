@@ -361,10 +361,15 @@ nav:
           - Ensemble Methods: ch04/image_classification/ensemble.md
 
           - 4.4 Video Understanding:
+              - Video Basics: ch04/video_understanding/video_basics.md
               - Temporal Modeling: ch04/video_understanding/temporal_modeling.md
               - 3D Convolutions: ch04/video_understanding/3d_conv.md
               - Two-Stream Networks: ch04/video_understanding/two_stream.md
+              - Optical Flow: ch04/video_understanding/optical_flow.md
+              - CNN-LSTM for Video: ch04/video_understanding/cnn_lstm.md
+              - SlowFast Networks: ch04/video_understanding/slowfast.md
               - Video Transformers: ch04/video_understanding/video_transformers.md
+              - Action Recognition: ch04/video_understanding/action_recognition.md
 
           - 4.5 Multimodal Vision:
               - Vision-Language Models: ch04/multimodal_vision/vision_language.md
