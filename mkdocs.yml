@@ -258,8 +258,12 @@ nav:
               - Vision Transformer (ViT): ch03/transformers_vision/vit.md
               - Patch Embeddings: ch03/transformers_vision/patch_embeddings.md
               - Position Embeddings for Images: ch03/transformers_vision/position_embeddings.md
-              - DeiT: ch03/transformers_vision/deit.md
+              - DeiT (Data-efficient Image Transformers): ch03/transformers_vision/deit.md
               - Swin Transformer: ch03/transformers_vision/swin.md
+              - CNN vs ViT Comparison: ch03/transformers_vision/cnn_vs_vit.md
+              - Hybrid CNN-Transformer Models: ch03/transformers_vision/hybrid_models.md
+              - Attention Visualization: ch03/transformers_vision/attention_visualization.md
+              - ViT Training Strategies: ch03/transformers_vision/training_strategies.md
 
           - 3.7 Recurrent Neural Networks:
               - RNN Fundamentals: ch03/rnn/rnn_fundamentals.md
