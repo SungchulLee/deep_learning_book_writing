@@ -786,7 +786,6 @@ nav:
               - Variational BNNs: ch13/bnn/variational_bnn.md
 
       - 14 Diffusion & Score-based Models:
-          - Chapter Overview: ch14/index.md
 
           - 14.1 Foundations:
               - Overview: ch14/foundations/overview.md
@@ -844,7 +843,6 @@ nav:
               - Diffusion vs VAEs: ch14/comparisons/diffusion_vs_vaes.md
 
       - 15 Autoregressive & Energy-based Models:
-          - Chapter Overview: ch15/index.md 
 
           - 15.1 Autoregressive Models:
               - Overview: ch15/autoregressive/index.md
