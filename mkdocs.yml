@@ -237,7 +237,7 @@ nav:
 
           - 3.4 Attention Mechanisms:
               - Attention Fundamentals: ch03/attention/attention_fundamentals.md
-              - Scaled Dot-Product Attention: ch03/attention/scaled_dot_product.md
+              - Scaled Dot-Product Attention: ch03/attention/scaled_dot_product_attention.md
               - Why Scale by sqrt(d_k): ch03/attention/why_scale.md
               - Multi-Head Attention: ch03/attention/multi_head_attention.md
               - Self-Attention: ch03/attention/self_attention.md

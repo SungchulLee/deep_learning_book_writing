@@ -44,9 +44,9 @@ $$\mathbf{A}^{(i)} = \text{softmax}\left(\frac{\mathbf{X}\mathbf{W}_Q^{(i)}(\mat
 
 Each head learns a **different notion of relevance**:
 
-$$\text{head}_1: \text{syntactic dependency (animal)}$$
-$$\text{head}_2: \text{semantic predicate (tired)}$$
-$$\text{head}_3: \text{local verb phrase (didn't cross)}$$
+- $\text{head}_1$: syntactic dependency (animal)
+- $\text{head}_2$: semantic predicate (tired)
+- $\text{head}_3$: local verb phrase (didn't cross)
 
 ## Architecture
 
@@ -136,17 +136,181 @@ $$\mathbf{z}_i = \left[\sum_j A_{ij}^{(1)} \mathbf{v}_j^{(1)}; \ldots; \sum_j A_
 
 The concatenation spans a **much richer subspace**, and $\mathbf{W}_O$ can produce **any linear combination** of these $h$ different contextual summaries.
 
+## PyTorch Implementation
+
+### Multi-Head Self-Attention
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math
+from typing import Optional, Tuple
+
+
+class MultiHeadSelfAttention(nn.Module):
+    """
+    Multi-Head Self-Attention
+    
+    Splits the embedding dimension into multiple heads, allowing the model
+    to attend to information from different representation subspaces.
+    """
+    
+    def __init__(
+        self, 
+        d_model: int, 
+        n_heads: int, 
+        dropout: float = 0.0,
+        bias: bool = True
+    ):
+        super().__init__()
+        
+        assert d_model % n_heads == 0, \
+            f"d_model ({d_model}) must be divisible by n_heads ({n_heads})"
+        
+        self.d_model = d_model
+        self.n_heads = n_heads
+        self.d_k = d_model // n_heads
+        self.scale = self.d_k ** -0.5
+        
+        # Linear projections for Q, K, V
+        self.W_q = nn.Linear(d_model, d_model, bias=bias)
+        self.W_k = nn.Linear(d_model, d_model, bias=bias)
+        self.W_v = nn.Linear(d_model, d_model, bias=bias)
+        
+        # Output projection (enables inter-head communication)
+        self.W_o = nn.Linear(d_model, d_model, bias=bias)
+        self.dropout = nn.Dropout(dropout)
+        
+    def forward(
+        self, 
+        x: torch.Tensor, 
+        mask: Optional[torch.Tensor] = None
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        batch_size, seq_len, _ = x.shape
+        
+        # Project and reshape: (batch, seq, d_model) -> (batch, heads, seq, d_k)
+        Q = self.W_q(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
+        K = self.W_k(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
+        V = self.W_v(x).view(batch_size, seq_len, self.n_heads, self.d_k).transpose(1, 2)
+        
+        # Scaled dot-product attention for all heads in parallel
+        scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
+        
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        
+        attn_weights = F.softmax(scores, dim=-1)
+        attn_weights = self.dropout(attn_weights)
+        
+        # Apply attention to values
+        context = torch.matmul(attn_weights, V)
+        
+        # Reshape and project: (batch, heads, seq, d_k) -> (batch, seq, d_model)
+        context = context.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
+        output = self.W_o(context)
+        
+        return output, attn_weights
+
+
+def demonstrate_multi_head():
+    """Demonstrate multi-head self-attention."""
+    batch_size, seq_len, d_model, n_heads = 2, 10, 64, 8
+    
+    x = torch.randn(batch_size, seq_len, d_model)
+    mha = MultiHeadSelfAttention(d_model, n_heads)
+    
+    output, weights = mha(x)
+    
+    print("Multi-Head Attention Demonstration")
+    print("-" * 40)
+    print(f"Input:    {x.shape}")
+    print(f"Output:   {output.shape}")
+    print(f"Weights:  {weights.shape}")
+    print(f"Heads:    {n_heads}")
+    print(f"Head dim: {d_model // n_heads}")
+
+
+if __name__ == "__main__":
+    demonstrate_multi_head()
+```
+
+### General Multi-Head Attention (for Cross-Attention)
+
+```python
+class MultiHeadAttention(nn.Module):
+    """
+    General Multi-Head Attention
+    
+    Can be used for self-attention (Q=K=V=X) or cross-attention (Q from decoder, K/V from encoder).
+    """
+    
+    def __init__(self, d_model: int, n_heads: int, dropout: float = 0.0):
+        super().__init__()
+        assert d_model % n_heads == 0
+        
+        self.d_model = d_model
+        self.n_heads = n_heads
+        self.d_k = d_model // n_heads
+        self.scale = self.d_k ** -0.5
+        
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        self.W_o = nn.Linear(d_model, d_model)
+        self.dropout = nn.Dropout(dropout)
+    
+    def forward(
+        self, 
+        Q: torch.Tensor, 
+        K: torch.Tensor, 
+        V: torch.Tensor, 
+        mask: Optional[torch.Tensor] = None
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Args:
+            Q: Query source (batch, seq_q, d_model)
+            K: Key source (batch, seq_k, d_model)
+            V: Value source (batch, seq_v, d_model), usually seq_k == seq_v
+            mask: Optional attention mask
+        """
+        batch_size = Q.size(0)
+        seq_q, seq_k = Q.size(1), K.size(1)
+        
+        # Project and reshape
+        Q = self.W_q(Q).view(batch_size, seq_q, self.n_heads, self.d_k).transpose(1, 2)
+        K = self.W_k(K).view(batch_size, seq_k, self.n_heads, self.d_k).transpose(1, 2)
+        V = self.W_v(V).view(batch_size, seq_k, self.n_heads, self.d_k).transpose(1, 2)
+        
+        # Attention
+        scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
+        
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        
+        attn_weights = F.softmax(scores, dim=-1)
+        attn_weights = self.dropout(attn_weights)
+        
+        context = torch.matmul(attn_weights, V)
+        
+        # Reshape and output projection
+        context = context.transpose(1, 2).contiguous().view(batch_size, seq_q, self.d_model)
+        output = self.W_o(context)
+        
+        return output, attn_weights
+```
+
 ## Empirical Head Specialization
 
 Research analyzing trained Transformers confirms functional specialization:
 
-| Head Type | Pattern |
-|-----------|---------|
-| Positional heads | Attend to previous/next token |
-| Syntactic heads | Capture subject-verb dependencies |
-| Coreference heads | Track pronoun-antecedent relationships |
-| Copy heads | Focus on rare words, proper nouns |
-| Separator heads | Attend to punctuation, sentence boundaries |
+| Head Type | Pattern | Example |
+|-----------|---------|---------|
+| **Positional heads** | Attend to previous/next token | "The [cat]" → attend to "The" |
+| **Syntactic heads** | Capture subject-verb dependencies | "cats [run]" → attend to "cats" |
+| **Coreference heads** | Track pronoun-antecedent relationships | "[it] was tired" → attend to "animal" |
+| **Copy heads** | Focus on rare words, proper nouns | Names, technical terms |
+| **Separator heads** | Attend to punctuation, sentence boundaries | Periods, [SEP] tokens |
 
 Ablation studies show that removing individual heads degrades specific capabilities while leaving others intact.
 
@@ -160,53 +324,6 @@ A common misconception: multi-head attention is simply parallel computation of t
 
 The expressive power difference is substantial: multi-head attention can represent functions that single-head cannot, regardless of dimensionality.
 
-## PyTorch Implementation
-
-```python
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
-import math
-
-class MultiHeadAttention(nn.Module):
-    def __init__(self, d_model, n_heads):
-        super().__init__()
-        assert d_model % n_heads == 0
-        
-        self.d_model = d_model
-        self.n_heads = n_heads
-        self.d_k = d_model // n_heads
-        
-        # Combined projections for efficiency
-        self.W_q = nn.Linear(d_model, d_model)
-        self.W_k = nn.Linear(d_model, d_model)
-        self.W_v = nn.Linear(d_model, d_model)
-        self.W_o = nn.Linear(d_model, d_model)
-    
-    def forward(self, Q, K, V, mask=None):
-        batch_size = Q.size(0)
-        
-        # Project and reshape: (batch, seq, d_model) -> (batch, heads, seq, d_k)
-        Q = self.W_q(Q).view(batch_size, -1, self.n_heads, self.d_k).transpose(1, 2)
-        K = self.W_k(K).view(batch_size, -1, self.n_heads, self.d_k).transpose(1, 2)
-        V = self.W_v(V).view(batch_size, -1, self.n_heads, self.d_k).transpose(1, 2)
-        
-        # Scaled dot-product attention for all heads in parallel
-        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
-        
-        if mask is not None:
-            scores = scores.masked_fill(mask == 0, float('-inf'))
-        
-        attn_weights = F.softmax(scores, dim=-1)
-        context = torch.matmul(attn_weights, V)
-        
-        # Reshape and project: (batch, heads, seq, d_k) -> (batch, seq, d_model)
-        context = context.transpose(1, 2).contiguous().view(batch_size, -1, self.d_model)
-        output = self.W_o(context)
-        
-        return output, attn_weights
-```
-
 ## Computational Efficiency
 
 Multi-head attention has the same theoretical complexity as single-head:
@@ -217,7 +334,7 @@ Multi-head attention has the same theoretical complexity as single-head:
 | Attention | $n^2 \cdot d$ | $h \cdot n^2 \cdot (d/h) = n^2 \cdot d$ |
 | Output projection | $n \cdot d^2$ | $n \cdot d^2$ |
 
-The parallel structure is highly GPU-friendly—all heads compute simultaneously.
+The parallel structure is highly GPU-friendly—all heads compute simultaneously with a single batched matrix multiplication.
 
 ## Hyperparameter: Number of Heads
 
@@ -229,22 +346,61 @@ Common configurations:
 | BERT-large | 1024 | 16 | 64 |
 | GPT-2 | 768 | 12 | 64 |
 | GPT-3 (175B) | 12288 | 96 | 128 |
+| LLaMA-7B | 4096 | 32 | 128 |
 
-Rule of thumb: $d_k = 64$ is common; adjust heads to match $d_{\text{model}}$.
+**Rule of thumb**: $d_k = 64$ or $d_k = 128$ is common; adjust heads to match $d_{\text{model}}$.
+
+## Variants
+
+### Grouped-Query Attention (GQA)
+
+Used in LLaMA-2 and other efficient models. Multiple query heads share key-value heads:
+
+```python
+class GroupedQueryAttention(nn.Module):
+    """
+    GQA: n_heads query heads share n_kv_heads key-value heads.
+    Reduces KV cache size during inference.
+    """
+    def __init__(self, d_model: int, n_heads: int, n_kv_heads: int):
+        super().__init__()
+        assert n_heads % n_kv_heads == 0
+        
+        self.n_heads = n_heads
+        self.n_kv_heads = n_kv_heads
+        self.n_groups = n_heads // n_kv_heads
+        self.d_k = d_model // n_heads
+        
+        self.W_q = nn.Linear(d_model, d_model)  # Full heads for Q
+        self.W_k = nn.Linear(d_model, n_kv_heads * self.d_k)  # Reduced for K
+        self.W_v = nn.Linear(d_model, n_kv_heads * self.d_k)  # Reduced for V
+        self.W_o = nn.Linear(d_model, d_model)
+```
+
+### Multi-Query Attention (MQA)
+
+Extreme case: all query heads share a single KV head ($n_{kv} = 1$).
 
 ## Summary
 
 Multi-head attention provides:
 
-1. **Multiple attention patterns**: Capture fundamentally different relationships
+1. **Multiple attention patterns**: Capture fundamentally different relationships (syntactic, semantic, positional)
 2. **Subspace decomposition**: Specialized feature extraction per head
-3. **Learned combination**: $\mathbf{W}_O$ integrates diverse perspectives
+3. **Learned combination**: $\mathbf{W}_O$ integrates diverse perspectives via cross-head mixing
 4. **Functional specialization**: Emerges naturally from training
+5. **Same computational cost**: Parameter count equals single large head
 
-A single attention distribution cannot simultaneously represent syntactic, semantic, and positional relationships. Multi-head attention solves this fundamental limitation while maintaining computational efficiency.
+**Key insight**: A single attention distribution cannot simultaneously represent syntactic, semantic, and positional relationships. Multi-head attention solves this fundamental limitation while maintaining computational efficiency.
+
+The output projection $\mathbf{W}_O$ is not just a formality—it's where the model learns to combine the different "views" each head provides into a unified representation.
 
 ## References
 
-- Vaswani et al., "Attention Is All You Need" (2017)
-- Voita et al., "Analyzing Multi-Head Self-Attention" (2019)
-- Clark et al., "What Does BERT Look At?" (2019)
+1. Vaswani, A., et al. (2017). Attention Is All You Need. *NeurIPS*.
+
+2. Voita, E., et al. (2019). Analyzing Multi-Head Self-Attention: Specialized Heads Do the Heavy Lifting, the Rest Can Be Pruned. *ACL*.
+
+3. Clark, K., et al. (2019). What Does BERT Look At? An Analysis of BERT's Attention. *BlackboxNLP*.
+
+4. Shazeer, N. (2019). Fast Transformer Decoding: One Write-Head is All You Need. *arXiv*.
