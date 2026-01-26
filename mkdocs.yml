@@ -253,6 +253,18 @@ nav:
               - BERT: ch03/transformers_nlp/bert.md
               - GPT: ch03/transformers_nlp/gpt.md
               - T5: ch03/transformers_nlp/t5.md
+              - Rotary Position Embedding (RoPE): ch03/transformers_nlp/rope.md
+              - ALiBi (Attention with Linear Biases): ch03/transformers_nlp/alibi.md
+              - Flash Attention: ch03/transformers_nlp/flash_attention.md
+              - Sparse Attention Patterns: ch03/transformers_nlp/sparse_attention.md
+              - KV-Cache and Inference Optimization: ch03/transformers_nlp/kv_cache.md
+              - Pre-training Objectives: ch03/transformers_nlp/pretraining_objectives.md
+              - Fine-tuning Strategies: ch03/transformers_nlp/finetuning.md
+              - Text Classification with BERT: ch03/transformers_nlp/bert_classification.md
+              - Text Generation with GPT: ch03/transformers_nlp/gpt_generation.md
+              - Sampling Strategies: ch03/transformers_nlp/sampling_strategies.md
+              - Encoder vs Decoder vs Encoder-Decoder: ch03/transformers_nlp/architecture_comparison.md
+              - Transformer vs RNN vs CNN: ch03/transformers_nlp/model_comparison.md
 
           - 3.6 Transformers for Vision:
               - Vision Transformer (ViT): ch03/transformers_vision/vit.md
@@ -266,27 +278,31 @@ nav:
               - ViT Training Strategies: ch03/transformers_vision/training_strategies.md
 
           - 3.7 Recurrent Neural Networks:
+              - Understanding Sequence Data: ch03/rnn/sequence_data.md
               - RNN Fundamentals: ch03/rnn/rnn_fundamentals.md
               - Hidden State Dynamics: ch03/rnn/hidden_state_dynamics.md
               - Backpropagation Through Time (BPTT): ch03/rnn/bptt.md
               - Vanishing and Exploding Gradients: ch03/rnn/gradient_problems.md
-              - Gradient Clipping: ch03/rnn/gradient_clipping.md
+              - Gradient Clipping: ch03/rnn/gradient_clipping.md # missing
+              - Text Preprocessing for RNNs: ch03/rnn/text_preprocessing.md
+              - Time Series Preprocessing: ch03/rnn/time_series_preprocessing.md
               - Bidirectional RNNs: ch03/rnn/bidirectional.md
 
           - 3.8 LSTM and GRU:
               - LSTM Architecture: ch03/lstm_gru/lstm_architecture.md
-              - LSTM Gates (Forget, Input, Output): ch03/lstm_gru/lstm_gates.md
-              - LSTM Gradient Flow: ch03/lstm_gru/lstm_gradient_flow.md
+              - LSTM Gates (Forget, Input, Output): ch03/lstm_gru/lstm_gates.md # missing
+              - LSTM Gradient Flow: ch03/lstm_gru/lstm_gradient_flow.md # missing
               - GRU Architecture: ch03/lstm_gru/gru_architecture.md
-              - GRU Gates: ch03/lstm_gru/gru_gates.md
-              - LSTM vs GRU Comparison: ch03/lstm_gru/comparison.md
+              - GRU Gates: ch03/lstm_gru/gru_gates.md # missing
+              - LSTM vs GRU Comparison: ch03/lstm_gru/comparison.md # missing
 
           - 3.9 Sequence-to-Sequence Models:
               - Encoder-Decoder Architecture: ch03/seq2seq/encoder_decoder.md
               - Attention in Seq2Seq: ch03/seq2seq/attention_seq2seq.md
-              - Teacher Forcing: ch03/seq2seq/teacher_forcing.md
-              - Beam Search: ch03/seq2seq/beam_search.md
-              - Applications: ch03/seq2seq/applications.md
+              - Teacher Forcing: ch03/seq2seq/teacher_forcing.md  # missing
+              - Beam Search: ch03/seq2seq/beam_search.md  # missing
+              - Text Generation: ch03/seq2seq/text_generation.md
+              - Applications: ch03/seq2seq/applications.md  # missing
 
       - 4 Computer Vision:
           - 4.1 Semantic Segmentation:
