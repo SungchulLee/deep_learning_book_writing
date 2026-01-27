@@ -1,181 +1,540 @@
 # Score Function Definition
 
-The **score function** is a fundamental concept in score-based generative modeling that provides an alternative approach to density estimation and sampling. It is the mathematical foundation of diffusion models, enabling sampling from complex distributions without computing intractable normalizing constants.
+The **score function** is the mathematical foundation of score-based generative modeling and diffusion models. It provides an alternative approach to density estimation that elegantly sidesteps the intractable normalization constants that plague traditional probabilistic models.
 
-## Definition
+## Learning Objectives
 
-For a probability distribution $p(x)$, the **score function** is defined as the gradient of the log-density:
+By the end of this section, you will be able to:
 
-$$s(x) = \nabla_x \log p(x)$$
+1. Define the score function mathematically and understand its geometric interpretation
+2. Explain why score functions enable tractable generative modeling (normalization-free property)
+3. Compute score functions analytically for common distributions
+4. Implement score computation using both analytical formulas and automatic differentiation
+5. Connect score functions to Langevin dynamics, diffusion models, and energy-based models
 
-This vector field points in the direction of increasing probability density at each point in space.
+## Prerequisites
 
-## Key Properties
+- Multivariate calculus (gradients, Jacobians)
+- Probability theory (density functions, Gaussian distributions)
+- PyTorch fundamentals (tensors, autograd)
 
-### Relationship to Density
+---
 
-The score function encodes the same information as the density $p(x)$ up to a normalization constant. Since:
+## 1. Mathematical Definition
 
-$$\nabla_x \log p(x) = \frac{\nabla_x p(x)}{p(x)}$$
+### 1.1 The Score Function
 
-the score captures the relative rate of change of the density.
+For a probability distribution $p(\mathbf{x})$, the **score function** is defined as the gradient of the log-density:
 
-### Normalization-Free
+$$
+\mathbf{s}(\mathbf{x}) = \nabla_{\mathbf{x}} \log p(\mathbf{x})
+$$
 
-A crucial advantage: the score function **does not depend on the normalization constant** of $p(x)$. If $p(x) = \frac{\tilde{p}(x)}{Z}$ where $Z = \int \tilde{p}(x) dx$, then:
+This vector field points in the direction of **increasing probability density** at each point in space.
 
-$$\nabla_x \log p(x) = \nabla_x \log \tilde{p}(x) - \nabla_x \log Z = \nabla_x \log \tilde{p}(x)$$
+### 1.2 Relationship to Density
 
-Since $Z$ is constant with respect to $x$, it vanishes under differentiation. This property makes score-based methods particularly useful when the normalization constant is intractable.
+The score function encodes the same information as the density $p(\mathbf{x})$ up to a normalization constant. Using the chain rule:
 
-### Integral Constraint
+$$
+\nabla_{\mathbf{x}} \log p(\mathbf{x}) = \frac{\nabla_{\mathbf{x}} p(\mathbf{x})}{p(\mathbf{x})}
+$$
 
-For any valid probability density, the score satisfies:
+The score captures the **relative rate of change** of the density—how quickly probability is changing at each point.
 
-$$\mathbb{E}_{p(x)}[s(x)] = \int p(x) \nabla_x \log p(x) dx = 0$$
+### 1.3 Geometric Interpretation
 
-### Fisher Information
+The score function has an elegant geometric meaning:
 
-The expected squared norm of the score defines the **Fisher information**:
+| Property | Description |
+|----------|-------------|
+| **Direction** | Points toward higher probability regions |
+| **Magnitude** | $\|\mathbf{s}(\mathbf{x})\|$ indicates steepness of log-density |
+| **At modes** | $\mathbf{s}(\mathbf{x}^*) = \mathbf{0}$ (zero gradient at peaks) |
+| **Away from modes** | Larger magnitude, stronger "pull" toward high-density |
 
-$$\mathcal{I}(p) = \mathbb{E}_{p(x)}\left[\|s(x)\|^2\right]$$
+```
+    Low p(x)                    High p(x)
+        ·  →  →  →  →  →  ·  (mode, score ≈ 0)
+              ↗        ↖
+             ↗          ↖
+    Scores point toward the mode from all directions
+```
 
-Fisher information measures how much information the data carries about the underlying distribution.
+---
 
-## Score Function for Common Distributions
+## 2. Why the Score Function Matters
 
-### For Gaussian Distributions
+### 2.1 The Normalization Problem
 
-For $p(x) = \mathcal{N}(x; \mu, \Sigma)$:
+Traditional density estimation requires computing:
 
-$$s(x) = -\Sigma^{-1}(x - \mu)$$
+$$
+p(\mathbf{x}) = \frac{\tilde{p}(\mathbf{x})}{Z}, \quad \text{where } Z = \int \tilde{p}(\mathbf{x}) \, d\mathbf{x}
+$$
 
-The score points toward the mean, with magnitude inversely proportional to variance.
+The normalization constant $Z$ is often **intractable** for complex models (e.g., deep energy-based models).
 
-### For Mixture Models
+### 2.2 The Score Solution
 
-For a mixture $p(x) = \sum_k \pi_k p_k(x)$:
+The score function **does not depend on $Z$**:
 
-$$s(x) = \frac{\sum_k \pi_k p_k(x) s_k(x)}{\sum_k \pi_k p_k(x)}$$
+$$
+\nabla_{\mathbf{x}} \log p(\mathbf{x}) = \nabla_{\mathbf{x}} \log \tilde{p}(\mathbf{x}) - \nabla_{\mathbf{x}} \log Z = \nabla_{\mathbf{x}} \log \tilde{p}(\mathbf{x})
+$$
 
-The mixture score is a weighted average of component scores.
+Since $Z$ is constant with respect to $\mathbf{x}$, it vanishes under differentiation!
 
-## Why Learn the Score?
+!!! success "Key Insight"
+    Score-based models can work with **unnormalized** densities. We only need gradients, which are typically easy to compute via automatic differentiation.
 
-### Langevin Dynamics Sampling
+### 2.3 Connection to Energy-Based Models
 
-Given access to $s(x) = \nabla_x \log p(x)$, we can generate samples via **Langevin dynamics**:
+Energy-based models define:
 
-$$x_{t+1} = x_t + \frac{\epsilon}{2} \nabla_x \log p(x_t) + \sqrt{\epsilon} z_t, \quad z_t \sim \mathcal{N}(0, I)$$
+$$
+p(\mathbf{x}) = \frac{1}{Z} \exp(-E(\mathbf{x}))
+$$
 
-As $\epsilon \to 0$ and $t \to \infty$, samples converge to the target distribution.
+The score is simply the **negative energy gradient**:
 
-### Connection to Diffusion Models
+$$
+\mathbf{s}(\mathbf{x}) = -\nabla_{\mathbf{x}} E(\mathbf{x})
+$$
 
-In diffusion models, the score function at different noise levels guides the reverse (denoising) process. The network $\epsilon_\theta(x_t, t)$ in DDPM is related to the score by:
+This connects score-based methods to the broader class of energy-based models, with the score pointing "downhill" in the energy landscape.
 
-$$s_\theta(x_t, t) = -\frac{\epsilon_\theta(x_t, t)}{\sqrt{1 - \bar{\alpha}_t}}$$
+---
 
-This establishes that diffusion models are fundamentally learning score functions at multiple noise scales.
+## 3. Key Properties
 
-## Score Networks
+### 3.1 Zero Score at Modes
 
-A **score network** $s_\theta(x)$ is a neural network trained to approximate $\nabla_x \log p(x)$. Unlike density estimation networks, score networks:
+At any local maximum (mode) $\mathbf{x}^*$ of the density:
 
-1. Output vectors (same dimension as input)
-2. Do not need to integrate to 1
-3. Can be trained without knowing the normalization constant
+$$
+\mathbf{s}(\mathbf{x}^*) = \nabla_{\mathbf{x}} \log p(\mathbf{x})\big|_{\mathbf{x}=\mathbf{x}^*} = \mathbf{0}
+$$
 
-## PyTorch Implementation
+This follows from the first-order optimality condition—at a peak, there's no direction of ascent.
+
+### 3.2 Zero Expected Score (Integral Constraint)
+
+The expected score under the data distribution is always zero:
+
+$$
+\mathbb{E}_{p(\mathbf{x})}[\mathbf{s}(\mathbf{x})] = \int p(\mathbf{x}) \nabla_{\mathbf{x}} \log p(\mathbf{x}) \, d\mathbf{x} = \int \nabla_{\mathbf{x}} p(\mathbf{x}) \, d\mathbf{x} = \mathbf{0}
+$$
+
+**Proof**: Using $\nabla_{\mathbf{x}} \log p = \frac{\nabla_{\mathbf{x}} p}{p}$:
+
+$$
+\int p(\mathbf{x}) \cdot \frac{\nabla_{\mathbf{x}} p(\mathbf{x})}{p(\mathbf{x})} d\mathbf{x} = \int \nabla_{\mathbf{x}} p(\mathbf{x}) d\mathbf{x} = \nabla_{\mathbf{x}} \int p(\mathbf{x}) d\mathbf{x} = \nabla_{\mathbf{x}} 1 = \mathbf{0}
+$$
+
+!!! note "Intuition"
+    The score "pushes" are balanced—probability flowing toward high-density regions equals probability flowing away.
+
+### 3.3 Fisher Information
+
+The **Fisher Information** measures the expected squared magnitude of the score:
+
+$$
+\mathcal{I}(p) = \mathbb{E}_{p(\mathbf{x})}\left[\|\mathbf{s}(\mathbf{x})\|^2\right]
+$$
+
+| Property | Interpretation |
+|----------|----------------|
+| High Fisher info | Sharp distribution, scores have large magnitudes |
+| Low Fisher info | Flat distribution, scores are small everywhere |
+| For $\mathcal{N}(\mu, \sigma^2)$ | $\mathcal{I} = 1/\sigma^2$ |
+
+Fisher information quantifies how much information the data carries about the underlying distribution.
+
+### 3.4 Temperature Scaling
+
+For a "tempered" distribution $p_T(\mathbf{x}) \propto p(\mathbf{x})^{1/T}$:
+
+$$
+\mathbf{s}_T(\mathbf{x}) = \frac{1}{T} \mathbf{s}(\mathbf{x})
+$$
+
+| Temperature | Effect on Score | Distribution Shape |
+|-------------|-----------------|-------------------|
+| $T < 1$ (cold) | Larger scores | Sharper peaks |
+| $T = 1$ | Original | Original |
+| $T > 1$ (hot) | Smaller scores | Flatter landscape |
+
+---
+
+## 4. Score Functions for Common Distributions
+
+### 4.1 Univariate Gaussian
+
+For $X \sim \mathcal{N}(\mu, \sigma^2)$:
+
+$$
+p(x) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)
+$$
+
+**Derivation:**
+
+$$
+\log p(x) = -\frac{(x-\mu)^2}{2\sigma^2} - \frac{1}{2}\log(2\pi\sigma^2)
+$$
+
+$$
+s(x) = \frac{d}{dx}\log p(x) = -\frac{x - \mu}{\sigma^2}
+$$
+
+**Interpretation:**
+- Linear function of $x$
+- Points toward the mean $\mu$
+- Magnitude proportional to distance from mean
+- Inversely proportional to variance (sharper distributions → larger scores)
+
+### 4.2 Multivariate Gaussian
+
+For $\mathbf{X} \sim \mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\Sigma})$:
+
+$$
+\log p(\mathbf{x}) = -\frac{1}{2}(\mathbf{x} - \boldsymbol{\mu})^\top \boldsymbol{\Sigma}^{-1}(\mathbf{x} - \boldsymbol{\mu}) + \text{const}
+$$
+
+$$
+\boxed{\mathbf{s}(\mathbf{x}) = -\boldsymbol{\Sigma}^{-1}(\mathbf{x} - \boldsymbol{\mu})}
+$$
+
+For isotropic Gaussian with $\boldsymbol{\Sigma} = \sigma^2 \mathbf{I}$:
+
+$$
+\mathbf{s}(\mathbf{x}) = -\frac{\mathbf{x} - \boldsymbol{\mu}}{\sigma^2}
+$$
+
+### 4.3 Gaussian Mixture Model
+
+For a mixture $p(\mathbf{x}) = \sum_{k=1}^K \pi_k \mathcal{N}(\mathbf{x}|\boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)$:
+
+$$
+\mathbf{s}(\mathbf{x}) = \frac{\sum_k \pi_k p_k(\mathbf{x}) \mathbf{s}_k(\mathbf{x})}{\sum_k \pi_k p_k(\mathbf{x})} = \sum_{k=1}^K w_k(\mathbf{x}) \cdot \mathbf{s}_k(\mathbf{x})
+$$
+
+where:
+- $w_k(\mathbf{x}) = p(k|\mathbf{x})$ is the **posterior probability** of component $k$
+- $\mathbf{s}_k(\mathbf{x}) = -\boldsymbol{\Sigma}_k^{-1}(\mathbf{x} - \boldsymbol{\mu}_k)$ is the score of component $k$
+
+The posterior is computed via Bayes' rule:
+
+$$
+w_k(\mathbf{x}) = \frac{\pi_k \mathcal{N}(\mathbf{x}|\boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)}{\sum_{j=1}^K \pi_j \mathcal{N}(\mathbf{x}|\boldsymbol{\mu}_j, \boldsymbol{\Sigma}_j)}
+$$
+
+!!! warning "Nonlinearity in Mixtures"
+    Unlike single Gaussians, mixture scores are **nonlinear** functions. Between modes, the score interpolates between component scores based on proximity—it's a "soft" weighted average.
+
+---
+
+## 5. Connection to Generative Modeling
+
+### 5.1 Langevin Dynamics Sampling
+
+Given access to $\mathbf{s}(\mathbf{x}) = \nabla_{\mathbf{x}} \log p(\mathbf{x})$, we can generate samples via **Langevin dynamics**:
+
+$$
+\mathbf{x}_{t+1} = \mathbf{x}_t + \frac{\epsilon}{2} \mathbf{s}(\mathbf{x}_t) + \sqrt{\epsilon} \, \mathbf{z}_t, \quad \mathbf{z}_t \sim \mathcal{N}(\mathbf{0}, \mathbf{I})
+$$
+
+| Term | Role |
+|------|------|
+| $\frac{\epsilon}{2} \mathbf{s}(\mathbf{x}_t)$ | Gradient ascent toward high probability |
+| $\sqrt{\epsilon} \, \mathbf{z}_t$ | Noise for exploration |
+
+As $\epsilon \to 0$ and $t \to \infty$, samples converge to the target distribution $p(\mathbf{x})$.
+
+### 5.2 Connection to Diffusion Models
+
+In diffusion models, the score of the noisy distribution relates directly to the added noise:
+
+$$
+\mathbf{s}(\mathbf{x}_t, t) = \nabla_{\mathbf{x}_t} \log p_t(\mathbf{x}_t) = -\frac{\boldsymbol{\epsilon}}{\sigma_t}
+$$
+
+where $\boldsymbol{\epsilon}$ is the noise added at time $t$.
+
+**This is the key insight:** The DDPM noise predictor $\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)$ is equivalent to learning the score:
+
+$$
+\mathbf{s}_\theta(\mathbf{x}_t, t) = -\frac{\boldsymbol{\epsilon}_\theta(\mathbf{x}_t, t)}{\sqrt{1 - \bar{\alpha}_t}}
+$$
+
+Predicting noise = Estimating score!
+
+### 5.3 Score Networks
+
+A **score network** $\mathbf{s}_\theta(\mathbf{x})$ is a neural network trained to approximate $\nabla_{\mathbf{x}} \log p(\mathbf{x})$. Unlike density estimation networks:
+
+| Property | Density Network | Score Network |
+|----------|-----------------|---------------|
+| Output | Scalar (log-prob) | Vector (same dim as input) |
+| Constraint | Must integrate to 1 | No normalization needed |
+| Training | Requires $Z$ | Works with unnormalized $\tilde{p}$ |
+
+---
+
+## 6. Practical Challenges
+
+### 6.1 The Low-Density Problem
+
+In low-density regions where $p(\mathbf{x}) \approx 0$:
+- Few training samples exist
+- Score estimates are unreliable
+- Langevin sampling can get stuck
+
+### 6.2 The Manifold Problem
+
+Real data often lies on low-dimensional manifolds where $p(\mathbf{x}) = 0$ off the manifold. The score is **undefined** in these regions.
+
+### 6.3 Solution: Noise Perturbation
+
+The solution is to work with a **noise-perturbed distribution**:
+
+$$
+p_\sigma(\mathbf{x}) = \int p(\mathbf{y}) \mathcal{N}(\mathbf{x}; \mathbf{y}, \sigma^2 \mathbf{I}) \, d\mathbf{y}
+$$
+
+This smoothed distribution:
+- Has **full support** (defined everywhere)
+- Makes the score well-defined in all regions
+- Is the foundation of **denoising score matching** and **diffusion models**
+
+---
+
+## 7. PyTorch Implementation
+
+### 7.1 Analytical Score for Gaussian
 
 ```python
-"""
-Score Function Fundamentals
-===========================
-"""
-
 import torch
 import numpy as np
 
-
 def score_gaussian_1d(x: torch.Tensor, mu: float = 0.0, sigma: float = 1.0) -> torch.Tensor:
-    """Analytical score for 1D Gaussian: s(x) = -(x - μ) / σ²"""
+    """
+    Analytical score for 1D Gaussian: s(x) = -(x - μ) / σ²
+    """
     return -(x - mu) / (sigma ** 2)
 
 
-def score_gaussian_nd(x: torch.Tensor, mu: torch.Tensor, cov: torch.Tensor) -> torch.Tensor:
-    """Analytical score for multivariate Gaussian: s(x) = -Σ⁻¹(x - μ)"""
+def score_gaussian_nd(
+    x: torch.Tensor, 
+    mu: torch.Tensor, 
+    cov: torch.Tensor
+) -> torch.Tensor:
+    """
+    Analytical score for multivariate Gaussian: s(x) = -Σ⁻¹(x - μ)
+    
+    Args:
+        x: Input points, shape (N, D)
+        mu: Mean vector, shape (D,)
+        cov: Covariance matrix, shape (D, D)
+    
+    Returns:
+        Score vectors, shape (N, D)
+    """
     cov_inv = torch.linalg.inv(cov)
     return -torch.matmul(x - mu, cov_inv.T)
 
 
-def score_gmm(x: torch.Tensor, weights: torch.Tensor, means: torch.Tensor, covs: torch.Tensor) -> torch.Tensor:
-    """Analytical score for Gaussian Mixture Model."""
-    batch_size, dim = x.shape
+def score_isotropic_gaussian(
+    x: torch.Tensor, 
+    mu: torch.Tensor, 
+    sigma: float
+) -> torch.Tensor:
+    """
+    Score for isotropic Gaussian N(μ, σ²I): s(x) = -(x - μ) / σ²
+    """
+    return -(x - mu) / (sigma ** 2)
+```
+
+### 7.2 Score via Automatic Differentiation
+
+```python
+def compute_score_autograd(
+    x: torch.Tensor, 
+    log_prob_fn: callable
+) -> torch.Tensor:
+    """
+    Compute score using automatic differentiation.
+    
+    This demonstrates the definition: s(x) = ∇_x log p(x)
+    
+    Args:
+        x: Input points, shape (N, D)
+        log_prob_fn: Function computing log p(x)
+    
+    Returns:
+        Score vectors, shape (N, D)
+    """
+    x = x.clone().requires_grad_(True)
+    log_prob = log_prob_fn(x)
+    score = torch.autograd.grad(
+        log_prob.sum(), 
+        x, 
+        create_graph=True
+    )[0]
+    return score
+
+
+# Example usage
+def gaussian_log_prob(x, mu=0.0, sigma=1.0):
+    return -0.5 * torch.sum((x - mu) ** 2, dim=-1) / (sigma ** 2)
+
+# x = torch.randn(100, 2)
+# score = compute_score_autograd(x, gaussian_log_prob)
+```
+
+### 7.3 Gaussian Mixture Score
+
+```python
+def score_gmm(
+    x: torch.Tensor, 
+    weights: torch.Tensor, 
+    means: torch.Tensor, 
+    covs: torch.Tensor
+) -> torch.Tensor:
+    """
+    Analytical score for Gaussian Mixture Model.
+    
+    s(x) = Σ_k p(k|x) · s_k(x)
+    
+    Args:
+        x: Input points, shape (N, D)
+        weights: Mixture weights, shape (K,)
+        means: Component means, shape (K, D)
+        covs: Component covariances, shape (K, D, D)
+    
+    Returns:
+        Mixture score, shape (N, D)
+    """
+    N, D = x.shape
     K = len(weights)
     
-    log_resps = torch.zeros(batch_size, K)
-    component_scores = torch.zeros(batch_size, K, dim)
+    # Compute log responsibilities and component scores
+    log_resps = torch.zeros(N, K)
+    component_scores = torch.zeros(N, K, D)
     
     for k in range(K):
         diff = x - means[k]
         cov_inv = torch.linalg.inv(covs[k])
         log_det = torch.linalg.slogdet(covs[k])[1]
+        
+        # Mahalanobis distance
         mahal = torch.sum(diff @ cov_inv * diff, dim=1)
-        log_resps[:, k] = torch.log(weights[k]) - 0.5 * dim * np.log(2 * np.pi) - 0.5 * log_det - 0.5 * mahal
+        
+        # Log responsibility (unnormalized)
+        log_resps[:, k] = (
+            torch.log(weights[k]) 
+            - 0.5 * D * np.log(2 * np.pi) 
+            - 0.5 * log_det 
+            - 0.5 * mahal
+        )
+        
+        # Component score
         component_scores[:, k] = -diff @ cov_inv.T
     
+    # Normalize responsibilities
     log_resps = log_resps - torch.logsumexp(log_resps, dim=1, keepdim=True)
     resps = torch.exp(log_resps)
+    
+    # Weighted sum of component scores
     return torch.sum(resps.unsqueeze(-1) * component_scores, dim=1)
-
-
-def compute_score_autograd(x: torch.Tensor, log_prob_fn: callable) -> torch.Tensor:
-    """Compute score using automatic differentiation."""
-    x = x.clone().requires_grad_(True)
-    log_prob = log_prob_fn(x)
-    return torch.autograd.grad(log_prob.sum(), x, create_graph=True)[0]
 ```
 
-## Practical Considerations
+### 7.4 Visualizing Score Fields
 
-### Challenges with Raw Score Estimation
+```python
+import matplotlib.pyplot as plt
 
-In low-density regions, the score function is poorly defined and difficult to estimate. This motivates:
+def plot_score_field(
+    score_fn: callable,
+    xlim: tuple = (-3, 3),
+    ylim: tuple = (-3, 3),
+    n_points: int = 20,
+    title: str = "Score Function Vector Field"
+):
+    """
+    Visualize 2D score function as a vector field.
+    
+    Args:
+        score_fn: Function mapping (N, 2) tensor to (N, 2) scores
+        xlim, ylim: Plot limits
+        n_points: Grid resolution
+    """
+    # Create grid
+    x = torch.linspace(xlim[0], xlim[1], n_points)
+    y = torch.linspace(ylim[0], ylim[1], n_points)
+    X, Y = torch.meshgrid(x, y, indexing='xy')
+    
+    # Compute scores at grid points
+    grid_points = torch.stack([X.flatten(), Y.flatten()], dim=1)
+    with torch.no_grad():
+        scores = score_fn(grid_points)
+    
+    # Reshape for plotting
+    U = scores[:, 0].reshape(n_points, n_points).numpy()
+    V = scores[:, 1].reshape(n_points, n_points).numpy()
+    magnitude = np.sqrt(U**2 + V**2)
+    
+    # Plot
+    plt.figure(figsize=(10, 8))
+    plt.quiver(X.numpy(), Y.numpy(), U, V, magnitude, cmap='viridis', alpha=0.8)
+    plt.colorbar(label='Score Magnitude')
+    plt.xlabel('$x_1$')
+    plt.ylabel('$x_2$')
+    plt.title(title)
+    plt.axis('equal')
+    plt.grid(True, alpha=0.3)
+    
+    return plt.gcf()
+```
 
-1. **Noise Conditional Score Networks (NCSN)**: Train separate scores for different noise levels
-2. **Denoising Score Matching**: Estimate scores of noise-perturbed distributions
-3. **Annealed Langevin Dynamics**: Sample through decreasing noise levels
+---
 
-### The Manifold Problem
+## 8. Summary
 
-Real data often lies on low-dimensional manifolds where $p(x) = 0$ off the manifold. The solution is **noise perturbation**:
+| Concept | Definition | Key Property |
+|---------|------------|--------------|
+| **Score Function** | $\mathbf{s}(\mathbf{x}) = \nabla_{\mathbf{x}} \log p(\mathbf{x})$ | Points toward high probability |
+| **Normalization-free** | $\nabla \log(p/Z) = \nabla \log p$ | No need to compute $Z$ |
+| **Gaussian Score** | $-\boldsymbol{\Sigma}^{-1}(\mathbf{x} - \boldsymbol{\mu})$ | Linear, points toward mean |
+| **Mixture Score** | $\sum_k w_k(\mathbf{x}) \mathbf{s}_k(\mathbf{x})$ | Posterior-weighted average |
+| **Fisher Information** | $\mathbb{E}[\|\mathbf{s}(\mathbf{x})\|^2]$ | Measures distribution "sharpness" |
+| **Zero mean** | $\mathbb{E}_p[\mathbf{s}(\mathbf{x})] = \mathbf{0}$ | Integral constraint |
 
-$$p_\sigma(x) = \int p(y) \mathcal{N}(x; y, \sigma^2 I) dy$$
+!!! tip "Key Takeaways"
+    1. **The score captures gradient structure** without the normalization constant
+    2. **Learning scores enables sampling** via Langevin dynamics
+    3. **Diffusion models are score learners**—predicting noise = estimating score
+    4. **Noise perturbation solves** the low-density and manifold problems
+    5. **Score networks output vectors**, not scalars, matching input dimension
 
-The perturbed distribution has full support, making the score well-defined everywhere.
-
-## Connection to Energy-Based Models
-
-Energy-based models define $p(x) = \frac{1}{Z} \exp(-E(x))$. The score is:
-
-$$s(x) = -\nabla_x E(x)$$
-
-This connects score-based methods to the broader class of energy-based models.
-
-## Summary
-
-The score function $s(x) = \nabla_x \log p(x)$ provides a normalization-free representation of probability distributions. Learning scores enables sampling via Langevin dynamics and forms the theoretical foundation for diffusion models. The key insight is that predicting noise in diffusion models is equivalent to estimating score functions at multiple noise scales.
+---
 
 ## Exercises
 
-1. **Score Derivation**: Derive the score function for the Laplace distribution $p(x) = \frac{1}{2b}\exp(-\frac{|x-\mu|}{b})$.
+1. **Laplace Distribution**: Derive the score function for $p(x) = \frac{1}{2b}\exp(-|x-\mu|/b)$. Note the discontinuity at $x = \mu$.
 
-2. **Fisher Information**: Compute the Fisher information for a 1D Gaussian $\mathcal{N}(\mu, \sigma^2)$.
+2. **Verify Zero Mean**: Numerically verify $\mathbb{E}_{p(\mathbf{x})}[\mathbf{s}(\mathbf{x})] \approx \mathbf{0}$ for a 2D Gaussian mixture by sampling.
 
-3. **GMM Visualization**: Implement score visualization for a mixture of three Gaussians.
+3. **Temperature Effects**: Implement temperature scaling and visualize score fields for $T \in \{0.5, 1.0, 2.0\}$.
+
+4. **Fisher Information**: Compute the Fisher information for a 2D isotropic Gaussian and verify it equals $D/\sigma^2 = 2/\sigma^2$.
+
+5. **GMM Visualization**: Create an animated visualization showing how the score field changes as you move between mixture components.
+
+---
 
 ## References
 
-1. Hyvärinen, A. (2005). Estimation of Non-Normalized Statistical Models by Score Matching. JMLR.
-2. Song, Y., & Ermon, S. (2019). Generative Modeling by Estimating Gradients of the Data Distribution.
+1. Hyvärinen, A. (2005). "Estimation of Non-Normalized Statistical Models by Score Matching." *JMLR*.
+2. Song, Y., & Ermon, S. (2019). "Generative Modeling by Estimating Gradients of the Data Distribution." *NeurIPS*.
+3. Song, Y., et al. (2021). "Score-Based Generative Modeling through Stochastic Differential Equations." *ICLR*.

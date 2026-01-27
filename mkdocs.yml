@@ -347,18 +347,18 @@ nav:
               - SSD: ch04/object_detection/ssd.md
               - Anchor-Free Methods: ch04/object_detection/anchor_free.md
 
-      - 4.3 Advanced Image Classification:
-          - Overview: ch04/image_classification/index.md
-          - ResNet: ch04/image_classification/resnet.md
-          - VGG Networks: ch04/image_classification/vgg.md
-          - Inception/GoogLeNet: ch04/image_classification/inception.md
-          - EfficientNet: ch04/image_classification/efficientnet.md
-          - MobileNet: ch04/image_classification/mobilenet.md
-          - DenseNet: ch04/image_classification/densenet.md
-          - ConvNeXt: ch04/image_classification/convnext.md
-          - Model Comparison: ch04/image_classification/model_comparison.md
-          - Transfer Learning: ch04/image_classification/transfer_learning.md
-          - Ensemble Methods: ch04/image_classification/ensemble.md
+          - 4.3 Advanced Image Classification:
+              - Overview: ch04/image_classification/index.md
+              - ResNet: ch04/image_classification/resnet.md
+              - VGG Networks: ch04/image_classification/vgg.md
+              - Inception/GoogLeNet: ch04/image_classification/inception.md
+              - EfficientNet: ch04/image_classification/efficientnet.md
+              - MobileNet: ch04/image_classification/mobilenet.md
+              - DenseNet: ch04/image_classification/densenet.md
+              - ConvNeXt: ch04/image_classification/convnext.md
+              - Model Comparison: ch04/image_classification/model_comparison.md
+              - Transfer Learning: ch04/image_classification/transfer_learning.md
+              - Ensemble Methods: ch04/image_classification/ensemble.md
 
           - 4.4 Video Understanding:
               - Video Basics: ch04/video_understanding/video_basics.md
@@ -379,41 +379,89 @@ nav:
 
       - 5 Natural Language Processing:
           - 5.1 Language Modeling Foundations:
-              - N-gram Models: ch05/language_modeling/ngram.md
-              - Neural Language Models: ch05/language_modeling/neural_lm.md
+              - Overview: ch05/language_modeling/index.md
+          
+          - 5.2 N-gram Models:
+              - N-gram Fundamentals: ch05/language_modeling/ngram.md
+              - Smoothing Techniques: ch05/language_modeling/ngram_smoothing.md  # Optional expansion
+              - Text Generation with N-grams: ch05/language_modeling/ngram_generation.md  # Optional expansion
+          
+          - 5.3 Neural Language Models:
+              - Neural LM Overview: ch05/language_modeling/neural_lm.md
+              - Feedforward LM: ch05/language_modeling/feedforward_lm.md  # Optional expansion
+              - RNN Language Models: ch05/language_modeling/rnn_lm.md  # Optional expansion
+              - LSTM Language Models: ch05/language_modeling/lstm_lm.md  # Optional expansion
+              - Transformer Language Models: ch05/language_modeling/transformer_lm.md  # Optional expansion
+              - Pretrained Language Models: ch05/language_modeling/pretrained_lm.md  # Optional expansion
+          
+          - 5.4 Evaluation:
               - Perplexity: ch05/language_modeling/perplexity.md
-              - Causal vs Masked Language Modeling: ch05/language_modeling/causal_vs_masked.md
-              - Tokenization (BPE, WordPiece, SentencePiece): ch05/language_modeling/tokenization.md
+              - Diversity Metrics: ch05/language_modeling/diversity_metrics.md  # Optional expansion
+              - Human Evaluation: ch05/language_modeling/human_evaluation.md  # Optional expansion
+          
+          - 5.5 Text Generation:
+              - Generation Strategies: ch05/language_modeling/generation_strategies.md  # Optional expansion
+              - Sampling Methods: ch05/language_modeling/sampling_methods.md  # Optional expansion
+              - Controlled Generation: ch05/language_modeling/controlled_generation.md  # Optional expansion
+          
+          - 5.6 Training Objectives:
+              - Causal vs Masked LM: ch05/language_modeling/causal_vs_masked.md
+          
+          - 5.7 Tokenization:
+              - Tokenization Methods: ch05/language_modeling/tokenization.md
 
-          - 5.2 Text Classification:
+          - 5.8 Sequence Labeling:
+              # Core NER Foundations
+              - NER Fundamentals: ch05/sequence_labeling/ner_fundamentals.md
+              - Entity Types and Taxonomies: ch05/sequence_labeling/entity_types.md
+              - BIO Tagging Schemes: ch05/sequence_labeling/bio_tagging.md
+              # Traditional Approaches
+              - Rule-Based NER: ch05/sequence_labeling/rule_based_ner.md
+              - Dictionary and Gazetteer Methods: ch05/sequence_labeling/dictionary_ner.md
+              - Feature Engineering for NER: ch05/sequence_labeling/feature_engineering.md
+              # Sequence Models
+              - CRF Layer: ch05/sequence_labeling/crf.md
+              - BiLSTM for NER: ch05/sequence_labeling/bilstm_ner.md
+              - BiLSTM-CRF Architecture: ch05/sequence_labeling/bilstm_crf.md
+              # Transformer-Based NER
+              - Transformer NER: ch05/sequence_labeling/transformer_ner.md
+              - BERT for Token Classification: ch05/sequence_labeling/bert_ner.md
+              - Subword Token Alignment: ch05/sequence_labeling/subword_alignment.md
+              # Evaluation and Datasets
+              - NER Evaluation Metrics: ch05/sequence_labeling/ner_evaluation.md
+              - NER Datasets: ch05/sequence_labeling/ner_datasets.md
+              # Advanced Topics
+              - Nested NER: ch05/sequence_labeling/nested_ner.md
+              - Cross-Lingual NER: ch05/sequence_labeling/crosslingual_ner.md
+              - Domain Adaptation for NER: ch05/sequence_labeling/domain_adaptation.md
+              - Few-Shot NER: ch05/sequence_labeling/fewshot_ner.md
+              # Related Sequence Labeling
+              - POS Tagging: ch05/sequence_labeling/pos_tagging.md
+              - Chunking: ch05/sequence_labeling/chunking.md
+
+          - 5.9 Text Classification:
               - Classification Fundamentals: ch05/text_classification/fundamentals.md
               - Bag-of-Words and TF-IDF: ch05/text_classification/bow_tfidf.md
               - CNN for Text: ch05/text_classification/cnn_text.md
               - RNN for Text: ch05/text_classification/rnn_text.md
               - Transformer-based Classification: ch05/text_classification/transformer_classification.md
 
-          - 5.3 Sequence Labeling:
-              - NER Fundamentals: ch05/sequence_labeling/ner_fundamentals.md
-              - BIO Tagging: ch05/sequence_labeling/bio_tagging.md
-              - CRF Layer: ch05/sequence_labeling/crf.md
-              - POS Tagging: ch05/sequence_labeling/pos_tagging.md
-
-          - 5.4 Information Extraction:
+          - 5.10 Information Extraction:
               - Relation Extraction: ch05/information_extraction/relation_extraction.md
               - Event Extraction: ch05/information_extraction/event_extraction.md
               - Knowledge Graphs: ch05/information_extraction/knowledge_graphs.md
 
-          - 5.5 Machine Translation:
+          - 5.11 Machine Translation:
               - MT Fundamentals: ch05/machine_translation/fundamentals.md
               - Neural MT: ch05/machine_translation/neural_mt.md
               - Evaluation Metrics (BLEU, ROUGE): ch05/machine_translation/evaluation_metrics.md
 
-          - 5.6 Question Answering:
+          - 5.12 Question Answering:
               - Extractive QA: ch05/question_answering/extractive.md
               - Generative QA: ch05/question_answering/generative.md
               - Open-domain QA: ch05/question_answering/open_domain.md
 
-          - 5.7 Text Summarization:
+          - 5.13 Text Summarization:
               - Extractive Summarization: ch05/summarization/extractive.md
               - Abstractive Summarization: ch05/summarization/abstractive.md
 
@@ -815,6 +863,7 @@ nav:
               - Denoising Score Matching: ch14/score_based/denoising_score_matching.md
               - Sliced Score Matching: ch14/score_based/sliced_score_matching.md
               - Noise Conditional Score Networks: ch14/score_based/ncsn.md
+              - Score-based SDEs: ch14/score_based/score_sde.md
 
           - 14.3 Diffusion Process:
               - Forward Diffusion Process: ch14/diffusion_process/forward_diffusion.md
@@ -860,6 +909,13 @@ nav:
               - Diffusion vs GANs: ch14/comparisons/diffusion_vs_gans.md
               - Diffusion vs VAEs: ch14/comparisons/diffusion_vs_vaes.md
 
+          - 14.10 Score-Based Applications:
+              - Image Generation Pipeline: ch14/score_applications/image_generation.md
+              - Conditional Generation: ch14/score_applications/conditional_generation.md
+              - Image Inpainting: ch14/score_applications/inpainting.md
+              - Super-Resolution: ch14/score_applications/super_resolution.md
+              - Inverse Problems: ch14/score_applications/inverse_problems.md
+
       - 15 Autoregressive & Energy-based Models:
 
           - 15.1 Autoregressive Models:
@@ -870,10 +926,78 @@ nav:
               - Autoregressive Transformers: ch15/autoregressive/transformers.md
 
           - 15.2 Probabilistic Graphical Models:
-              - Directed Graphical Models: ch15/pgm/directed.md
-              - Undirected Graphical Models: ch15/pgm/undirected.md
-              - Factor Graphs: ch15/pgm/factor_graphs.md
-              - Inference Algorithms: ch15/pgm/inference.md
+              # Overview
+              - Section Overview: ch15/pgm/index.md
+              
+              # 15.2.1 Fundamentals
+              - 15.2.1 PGM Fundamentals:
+                  - Introduction to PGMs: ch15/pgm/fundamentals/introduction.md
+                  - Independence and Conditional Independence: ch15/pgm/fundamentals/independence.md
+                  - D-Separation: ch15/pgm/fundamentals/d_separation.md
+                  - Factorization Theorems: ch15/pgm/fundamentals/factorization.md
+              
+              # 15.2.2 Bayesian Networks
+              - 15.2.2 Bayesian Networks:
+                  - Bayesian Network Basics: ch15/pgm/bayesian_networks/basics.md
+                  - Conditional Probability Tables: ch15/pgm/bayesian_networks/cpts.md
+                  - Classic Networks (Alarm, Student, Asia): ch15/pgm/bayesian_networks/classic_networks.md
+                  - Building Networks from Domain Knowledge: ch15/pgm/bayesian_networks/network_construction.md
+                  - PyTorch Implementation: ch15/pgm/bayesian_networks/pytorch_implementation.md
+              
+              # 15.2.3 Markov Random Fields
+              - 15.2.3 Markov Random Fields:
+                  - Undirected Graphical Models: ch15/pgm/markov_random_fields/undirected_models.md
+                  - Potential Functions and Cliques: ch15/pgm/markov_random_fields/potentials.md
+                  - Gibbs Distribution: ch15/pgm/markov_random_fields/gibbs_distribution.md
+                  - Hammersley-Clifford Theorem: ch15/pgm/markov_random_fields/hammersley_clifford.md
+                  - Ising and Potts Models: ch15/pgm/markov_random_fields/ising_potts.md
+                  - Conditional Random Fields Overview: ch15/pgm/markov_random_fields/crf_overview.md
+              
+              # 15.2.4 Factor Graphs
+              - 15.2.4 Factor Graphs:
+                  - Factor Graph Representation: ch15/pgm/factor_graphs/representation.md
+                  - Converting Between Representations: ch15/pgm/factor_graphs/conversions.md
+                  - Factor Operations: ch15/pgm/factor_graphs/operations.md
+                  - Message Passing Framework: ch15/pgm/factor_graphs/message_passing.md
+              
+              # 15.2.5 Exact Inference
+              - 15.2.5 Exact Inference:
+                  - Inference by Enumeration: ch15/pgm/inference/enumeration.md
+                  - Variable Elimination: ch15/pgm/inference/variable_elimination.md
+                  - Elimination Ordering: ch15/pgm/inference/elimination_ordering.md
+                  - Junction Tree Algorithm: ch15/pgm/inference/junction_tree.md
+                  - Complexity Analysis: ch15/pgm/inference/complexity.md
+              
+              # 15.2.6 Approximate Inference
+              - 15.2.6 Approximate Inference:
+                  - Loopy Belief Propagation: ch15/pgm/approximate_inference/loopy_bp.md
+                  - Rejection Sampling: ch15/pgm/approximate_inference/rejection_sampling.md
+                  - Importance Sampling: ch15/pgm/approximate_inference/importance_sampling.md
+                  - Gibbs Sampling: ch15/pgm/approximate_inference/gibbs_sampling.md
+                  - Variational Inference Basics: ch15/pgm/approximate_inference/variational.md
+              
+              # 15.2.7 Parameter Learning
+              - 15.2.7 Parameter Learning:
+                  - Maximum Likelihood for CPTs: ch15/pgm/learning/mle_cpts.md
+                  - Bayesian Parameter Estimation: ch15/pgm/learning/bayesian_parameters.md
+                  - EM Algorithm for Missing Data: ch15/pgm/learning/em_algorithm.md
+                  - Laplace Smoothing: ch15/pgm/learning/smoothing.md
+              
+              # 15.2.8 Structure Learning
+              - 15.2.8 Structure Learning:
+                  - Structure Learning Overview: ch15/pgm/learning/structure_learning.md
+                  - Constraint-Based Methods (PC Algorithm): ch15/pgm/learning/pc_algorithm.md
+                  - Score-Based Methods (BIC, Hill Climbing): ch15/pgm/learning/score_based.md
+                  - Causal Discovery: ch15/pgm/learning/causal_discovery.md
+                  - Markov Equivalence Classes: ch15/pgm/learning/equivalence_classes.md
+              
+              # 15.2.9 Applications
+              - 15.2.9 Applications:
+                  - Medical Diagnosis Systems: ch15/pgm/applications/medical_diagnosis.md
+                  - Named Entity Recognition with CRFs: ch15/pgm/applications/ner_crf.md
+                  - Image Segmentation: ch15/pgm/applications/image_segmentation.md
+                  - Financial Risk Modeling: ch15/pgm/applications/financial_risk.md
+                  - Sensor Fusion: ch15/pgm/applications/sensor_fusion.md
 
           - 15.3 Energy-based Models:
               - Energy Function Formulation: ch15/ebm/energy_function.md
