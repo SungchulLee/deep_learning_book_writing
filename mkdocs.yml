@@ -1000,11 +1000,49 @@ nav:
                   - Sensor Fusion: ch15/pgm/applications/sensor_fusion.md
 
           - 15.3 Energy-based Models:
-              - Energy Function Formulation: ch15/ebm/energy_function.md
-              - Boltzmann Distribution: ch15/ebm/boltzmann.md
-              - Contrastive Divergence: ch15/ebm/contrastive_divergence.md
-              - Restricted Boltzmann Machines: ch15/ebm/rbm.md
-              - Modern EBMs: ch15/ebm/modern_ebm.md
+              - 15.3.1 EBM Foundations:
+                  - Energy Function Formulation: ch15/ebm/energy_function.md
+                  - Boltzmann Distribution: ch15/ebm/boltzmann.md
+                  - Partition Function: ch15/ebm/partition_function.md
+                  - Temperature and Annealing: ch15/ebm/temperature.md
+              - 15.3.2 Classical Energy-Based Models:
+                  - Hopfield Networks: ch15/ebm/hopfield.md
+                  - Pattern Storage and Retrieval: ch15/ebm/hopfield_storage.md
+                  - Network Capacity: ch15/ebm/hopfield_capacity.md
+                  - Boltzmann Machines: ch15/ebm/boltzmann_machines.md
+                  - Gibbs Sampling: ch15/ebm/gibbs_sampling.md
+                  - Visible and Hidden Units: ch15/ebm/visible_hidden.md
+              - 15.3.3 Restricted Boltzmann Machines:
+                  - RBM Architecture: ch15/ebm/rbm.md
+                  - Tractable Conditionals: ch15/ebm/rbm_conditionals.md
+                  - Free Energy: ch15/ebm/rbm_free_energy.md
+                  - Contrastive Divergence: ch15/ebm/contrastive_divergence.md
+                  - Persistent CD: ch15/ebm/pcd.md
+                  - Training Techniques: ch15/ebm/rbm_training.md
+                  - Deep Belief Networks: ch15/ebm/dbn.md
+              - 15.3.4 EBM Training Methods:
+                  - Maximum Likelihood Gradient: ch15/ebm/ml_gradient.md
+                  - Score Matching: ch15/ebm/score_matching.md
+                  - Denoising Score Matching: ch15/ebm/dsm.md
+                  - Noise Contrastive Estimation: ch15/ebm/nce.md
+                  - Training Comparison: ch15/ebm/training_comparison.md
+              - 15.3.5 Modern Neural EBMs:
+                  - Neural Energy Functions: ch15/ebm/modern_ebm.md
+                  - Langevin Dynamics: ch15/ebm/langevin.md
+                  - Replay Buffers: ch15/ebm/replay_buffer.md
+                  - Short-Run MCMC: ch15/ebm/short_run_mcmc.md
+                  - Spectral Normalization: ch15/ebm/spectral_norm.md
+              - 15.3.6 EBM Applications:
+                  - Out-of-Distribution Detection: ch15/ebm/applications.md
+                  - Image Denoising: ch15/ebm/denoising.md
+                  - Compositional Generation: ch15/ebm/compositional.md
+                  - Adversarial Robustness: ch15/ebm/adversarial.md
+                  - Joint Energy Models: ch15/ebm/jem.md
+              - 15.3.7 Connections to Other Models:
+                  - EBMs and Diffusion Models: ch15/ebm/diffusion_connection.md
+                  - EBMs and Score-Based Models: ch15/ebm/score_connection.md
+                  - EBMs and Flow Models: ch15/ebm/flow_connection.md
+                  - Unified Perspective: ch15/ebm/unified.md
 
           - 15.4 Neural ODE Models:
               - ODE Fundamentals: ch15/neural_ode/ode_fundamentals.md
