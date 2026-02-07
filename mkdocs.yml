@@ -1,4 +1,4 @@
-site_name: Deep Learning Foundations for Quantitative Finance
+site_name: Deep Learning for Quant
 theme:
   name: material
 
@@ -17,7 +17,7 @@ extra_javascript:
 nav:
   - Home: index.md
 
-  - Part I - Foundations:
+  - I - Foundations:
 
     - 1 PyTorch Fundamentals:
         - Chapter Overview: ch01/index.md
@@ -49,7 +49,7 @@ nav:
             - Shape Manipulation: ch01/tensor_attrs/shape_manipulation.md
             - Memory Management: ch01/tensor_attrs/memory_management.md
 
-        - 1.4 Automatic Differentiation:
+        - 1.4 Auto Differentiation:
             - Computational Graphs: ch01/autograd/computational_graphs.md
             - Gradient Computation: ch01/autograd/gradient_computation.md
             - Backward Pass: ch01/autograd/backward_pass.md
@@ -111,10 +111,10 @@ nav:
             - Credit Scoring: ch02/finance/credit.md
             - Time Series CV: ch02/finance/time_series_cv.md
 
-    - 3 Statistical Learning Foundations:
+    - 3 Statistical Learning:
         - Chapter Overview: ch03/index.md
 
-        - 3.1 Maximum Likelihood Estimation:
+        - 3.1 MLE:
             - Maximum Likelihood Estimation: ch03/mle/mle.md
             - MLE for Regression: ch03/mle/mle_regression.md
             - MLE for Classification: ch03/mle/mle_classification.md
@@ -177,7 +177,7 @@ nav:
             - Custom Loss Functions: ch03/loss/custom_loss.md
             - Loss Function Selection: ch03/loss/loss_selection.md
 
-    - 4 Neural Network Building Blocks:
+    - 4 NN Building Blocks:
         - Chapter Overview: ch04/index.md
 
         - 4.1 Activation Functions:
@@ -195,7 +195,7 @@ nav:
             - Softmax: ch04/activations/softmax.md
             - Activation Selection: ch04/activations/selection_guide.md
 
-        - 4.2 Feedforward Networks:
+        - 4.2 Feedforward Nets:
             - MLP Architecture: ch04/feedforward/mlp_architecture.md
             - Universal Approximation: ch04/feedforward/universal_approximation.md
             - Depth vs Width: ch04/feedforward/depth_vs_width.md
@@ -285,7 +285,7 @@ nav:
             - Optimizer Selection Guide: ch05/optimizers/selection_guide.md
             - Practical Examples: ch05/optimizers/optimizer_examples.md
 
-        - 5.5 Learning Rate Schedulers:
+        - 5.5 LR Schedulers:
             - Scheduler Overview: ch05/schedulers/scheduler_overview.md
             - Step LR: ch05/schedulers/step_lr.md
             - Multi-Step LR: ch05/schedulers/multistep_lr.md
@@ -296,7 +296,7 @@ nav:
             - ReduceLROnPlateau: ch05/schedulers/reduce_on_plateau.md
             - Custom Schedulers: ch05/schedulers/custom_schedulers.md
 
-        - 5.6 Overfitting and Generalization:
+        - 5.6 Overfitting & Gen:
             - Overfitting and Underfitting: ch05/overfitting/overfitting_underfitting.md
             - Overfitting Detection: ch05/overfitting/overfitting_detection.md
             - Bias-Variance Tradeoff: ch05/overfitting/bias_variance_tradeoff.md
@@ -315,7 +315,7 @@ nav:
             - Precision-Recall Curves: ch05/evaluation/precision_recall.md
             - Calibration Metrics: ch05/evaluation/calibration.md
 
-        - 5.8 Hyperparameter Tuning:
+        - 5.8 Hyperparam Tuning:
             - Tuning Overview: ch05/hyperparameters/tuning_overview.md
             - Grid Search: ch05/hyperparameters/grid_search.md
             - Random Search: ch05/hyperparameters/random_search.md
@@ -331,12 +331,12 @@ nav:
             - TorchScript: ch05/save_load/torchscript.md
             - "Code: Save Best Model (Hymenoptera)": ch05/save_load/save_best_hymenoptera.md
 
-  - Part II - Core Architectures:
+  - II - Core Architectures:
 
-    - 6 Convolutional Architectures:
+    - 6 CNN:
         - Chapter Overview: ch06/index.md
 
-        - 6.1 Convolutional Neural Networks:
+        - 6.1 CNN:
             - CNN Overview: ch06/cnn/cnn_overview.md
             - Convolution Operation: ch06/cnn/convolution.md
             - Padding and Stride: ch06/cnn/padding_stride.md
@@ -386,12 +386,12 @@ nav:
             - Subword Embeddings: ch07/embeddings/subword.md
             - Contextual Embeddings: ch07/embeddings/contextual.md
             - Embedding Visualization: ch07/embeddings/visualization.md
-            - "Code: Word2Vec (Skip-gram, CBOW)": ch07/embeddings/code/word2vec.py
-            - "Code: N-gram Language Model": ch07/embeddings/code/ngram_lm.py
-            - "Code: GloVe Embedding": ch07/embeddings/code/glove_embedding.py
-            - "Code: GloVe Sentiment Classifier": ch07/embeddings/code/glove_sentiment.py
+            - "Code: Word2Vec (Skip-gram, CBOW)": ch07/embeddings/word2vec.py
+            - "Code: N-gram Language Model": ch07/embeddings/ngram_lm.py
+            - "Code: GloVe Embedding": ch07/embeddings/glove_embedding.py
+            - "Code: GloVe Sentiment Classifier": ch07/embeddings/glove_sentiment.py
 
-        - 7.2 Recurrent Neural Networks:
+        - 7.2 RNN:
             - RNN Fundamentals: ch07/rnn/rnn_fundamentals.md
             - Vanilla RNN: ch07/rnn/vanilla_rnn.md
             - Hidden State Dynamics: ch07/rnn/hidden_state.md
@@ -413,7 +413,7 @@ nav:
             - Peephole Connections: ch07/lstm_gru/peephole.md
             - Stacked LSTM: ch07/lstm_gru/stacked_lstm.md
 
-        - 7.4 Attention Mechanisms:
+        - 7.4 Attention:
             - Attention Fundamentals: ch07/attention/attention_fundamentals.md
             - Bahdanau Attention: ch07/attention/bahdanau_attention.md
             - Luong Attention: ch07/attention/luong_attention.md
@@ -423,7 +423,7 @@ nav:
             - Attention Patterns: ch07/attention/attention_patterns.md
             - Attention Visualization: ch07/attention/attention_visualization.md
 
-        - 7.5 Sequence-to-Sequence:
+        - 7.5 Seq-to-Seq:
             - Seq2Seq Overview: ch07/seq2seq/seq2seq_overview.md
             - Encoder-Decoder Framework: ch07/seq2seq/encoder_decoder.md
             - Context Vector: ch07/seq2seq/context_vector.md
@@ -436,7 +436,7 @@ nav:
     - 8 Transformers:
         - Chapter Overview: ch08/index.md
 
-        - 8.1 Transformer Architecture:
+        - 8.1 Transformer Arch:
             - Transformer Architecture: ch08/transformer_architecture/transformer_architecture.md
             - Positional Encoding: ch08/transformer_architecture/positional_encoding.md
             - Encoder-Decoder Structure: ch08/transformer_architecture/encoder_decoder.md
@@ -449,10 +449,10 @@ nav:
             - T5: ch08/pretrained_models/t5.md
             - Transformer Variants: ch08/pretrained_models/variants.md
 
-        - 8.3 Attention Visualization and Interpretability:
+        - 8.3 Attn Visualization:
             - Attention Map Visualization: ch08/attention_visualization/attention_visualization.md
 
-        - 8.4 Training and Inference:
+        - 8.4 Training & Inference:
             - Training and Inference: ch08/training_and_inference/training_inference.md
             - Training Optimization: ch08/training_and_inference/training_optimization.md
 
@@ -467,7 +467,7 @@ nav:
             - Attention Visualization: ch08/transformers_vision/attention_visualization.md
             - Training Strategies: ch08/transformers_vision/training_strategies.md
 
-  - Part III - Learning Paradigms:
+  - III - Learning Paradigms:
 
     - 9 Transfer Learning:
         - Chapter Overview: ch09/index.md
@@ -489,7 +489,7 @@ nav:
             - Transfer for NLP: ch09/applications/transfer_nlp.md
             - Transfer for CV: ch09/applications/transfer_cv.md
 
-    - 10 Self-Supervised Learning:
+    - 10 Self-Supervised:
         - Chapter Overview: ch10/index.md
 
         - 10.1 Foundations:
@@ -516,7 +516,7 @@ nav:
         - 10.5 Evaluation:
             - SSL Evaluation: ch10/self_supervised_evaluation/evaluation.md
 
-    - 11 Few-Shot and Zero-Shot Learning:
+    - 11 Few-Shot & Zero-Shot:
         - Chapter Overview: ch11/index.md
 
         - 11.1 Few-Shot Learning:
@@ -558,7 +558,7 @@ nav:
             - Class-Incremental: ch12/learning_scenarios/class_incremental.md
             - Online Continual: ch12/learning_scenarios/online_continual.md
 
-        - 12.3 Regularization Methods:
+        - 12.3 Reg Methods:
             - EWC: ch12/regularization_methods/ewc.md
             - Synaptic Intelligence: ch12/regularization_methods/synaptic_intelligence.md
             - MAS: ch12/regularization_methods/mas.md
@@ -568,7 +568,7 @@ nav:
             - Generative Replay: ch12/replay_methods/generative_replay.md
             - GEM: ch12/replay_methods/gem.md
 
-        - 12.5 Architecture Methods:
+        - 12.5 Arch Methods:
             - Progressive Networks: ch12/architecture_methods/progressive_networks.md
             - PackNet: ch12/architecture_methods/packnet.md
             - DEN: ch12/architecture_methods/den.md
@@ -579,12 +579,12 @@ nav:
         - 12.7 Benchmarks:
             - Benchmarks: ch12/benchmarks/benchmarks.md
 
-  - Part IV - Applications:
+  - IV - Applications:
 
     - 13 Computer Vision:
         - Chapter Overview: ch13/index.md
 
-        - 13.1 Image Segmentation:
+        - 13.1 Image Seg:
             - Segmentation Overview: ch13/segmentation/segmentation_overview.md
             - Semantic Segmentation: ch13/segmentation/semantic.md
             - Instance Segmentation: ch13/segmentation/instance.md
@@ -637,7 +637,7 @@ nav:
             - Data Augmentation for Images: ch13/image_classification/augmentation.md
             - Fine-Grained Classification: ch13/image_classification/fine_grained.md
 
-        - 13.4 Video Understanding:
+        - 13.4 Video Underst:
             - Video Overview: ch13/video/video_overview.md
             - Temporal Modeling: ch13/video/temporal_modeling.md
             - 3D Convolutions: ch13/video/conv3d.md
@@ -661,7 +661,7 @@ nav:
             - Cross-Modal Retrieval: ch13/multimodal/cross_modal_retrieval.md
             - Multimodal Fusion: ch13/multimodal/fusion.md
 
-    - 14 Natural Language Processing:
+    - 14 Natural Language Proc:
         - Chapter Overview: ch14/index.md
         - 14.1 Language Modeling:
             - Section Overview: ch14/language_modeling/index.md
@@ -708,7 +708,7 @@ nav:
             - Hierarchical Classification: ch14/text_classification/hierarchical.md
             - "Code: BoW Classifier": ch14/text_classification/bow_classifier.py
             - "Code: IMDB Classifier": ch14/text_classification/imdb_classifier.py
-        - 14.4 Information Extraction:
+        - 14.4 Info Extraction:
             - Section Overview: ch14/information_extraction/index.md
             - IE Overview: ch14/information_extraction/ie_overview.md
             - Relation Extraction: ch14/information_extraction/relation_extraction.md
@@ -773,7 +773,7 @@ nav:
             - Chinchilla Laws: ch15/scaling/chinchilla.md
             - Compute-Optimal Training: ch15/scaling/compute_optimal.md
             - Emergent Abilities: ch15/scaling/emergent_abilities.md
-        - 15.3 Prompting Techniques:
+        - 15.3 Prompting Tech:
             - Overview: ch15/prompting/prompting_overview.md
             - Zero-Shot Prompting: ch15/prompting/zero_shot.md
             - Few-Shot Prompting: ch15/prompting/few_shot.md
@@ -828,7 +828,7 @@ nav:
             - DPO: ch15/alignment/dpo.md
             - Constitutional AI: ch15/alignment/constitutional.md
 
-  - Part V - Probabilistic Methods:
+  - V - Probabilistic Methods:
 
     - 16 Bayesian Foundations:
         - Chapter Overview: ch16/index.md
@@ -856,7 +856,7 @@ nav:
             - Parameter Uncertainty: ch16/finance/parameter_uncertainty.md
             - Regime Detection: ch16/finance/regime.md
 
-    - 17 Probabilistic Graphical Models:
+    - 17 Prob Graphical Models:
         - Chapter Overview: ch17/index.md
         - 17.1 Foundations:
             - PGM Fundamentals: ch17/pgm_foundations/fundamentals.md
@@ -945,9 +945,9 @@ nav:
             - Weight Uncertainty: ch19/bnn/weight_uncertainty.md
             - Bayes by Backprop: ch19/bnn/bayes_by_backprop.md
 
-  - Part VI - Representation & Generative Models:
+  - VI - Rep & Generative Models:
 
-    - 20 Dimensionality Reduction:
+    - 20 Dim Reduction:
         - Chapter Overview: ch20/index.md
         - 20.1 PCA:
             - PCA Fundamentals: ch20/pca/pca_fundamentals.md
@@ -966,7 +966,7 @@ nav:
             - t-SNE: ch20/manifold/tsne.md
             - UMAP: ch20/manifold/umap.md
 
-    - 21 Autoencoders:
+    - 21 AE:
         - Chapter Overview: ch21/index.md
         - 21.1 Autoencoders:
             - Introduction: ch21/ae/introduction.md
@@ -988,7 +988,7 @@ nav:
             - Anomaly Detection: ch21/finance/anomaly_detection.md
             - Portfolio Compression: ch21/finance/portfolio_compression.md
 
-    - 22. Variational Autoencoders: 
+    - 22. VAE: 
         - Chapter Overview: ch22/index.md
         - 22.1 Foundations:
             - 22.1.1 Introduction: ch22/foundations/introduction.md
@@ -1067,7 +1067,7 @@ nav:
         - 24.4 Transformer Autoregressive Models:
             - Transformers: ch24/transformers/transformers.md
 
-    - 25 Generative Adversarial Networks:
+    - 25 GAN:
         - Chapter Overview: ch25/index.md
         - 25.1 GAN Foundations:
             - Introduction: ch25/gan_foundations/introduction.md
@@ -1195,7 +1195,7 @@ nav:
         - 28.3 Finance Applications:
             - Continuous Dynamics: ch28/finance_applications/continuous_dynamics.md
 
-  - Part VII - Graph Methods:
+  - VII - Graph Methods:
 
     - 29 Graph Neural Networks:
         - Chapter Overview: ch29/index.md
@@ -1291,7 +1291,7 @@ nav:
             - Transaction Graphs: ch31/finance/transactions.md
             - Synthetic Market Networks: ch31/finance/market_networks.md
 
-  - Part VIII - Reinforcement Learning:
+  - VIII - Reinforcement Learning:
 
     - 32 RL Foundations:
         - Chapter Overview: ch32/index.md
@@ -1414,7 +1414,7 @@ nav:
             - Continuous Trading: ch34/finance/continuous_trading.md
             - Risk-Sensitive RL: ch34/finance/risk_sensitive.md
 
-    - 35 RL for Quantitative Finance:
+    - 35 RL for Quant Finance:
         - Chapter Overview: ch35/index.md
         - 35.1 Financial Environments:
             - Environment Design: ch35/environments/design.md
@@ -1453,7 +1453,7 @@ nav:
             - Monitoring: ch35/production/monitoring.md
             - Risk Controls: ch35/production/risk_controls.md
 
-  - Part IX - Model Interpretability:
+  - IX - Model Interpretability:
 
     - 36 Model Interpretability:
         - Chapter Overview: ch36/index.md
@@ -1650,7 +1650,7 @@ nav:
             - Regime Detection: ch39/finance/regime.md
             - Practical Applications: ch39/finance/practical_applications.md
 
-  - Part X - Practice & Capstone:
+  - X - Practice & Capstone:
 
     - 40 Model Deployment:
         - Chapter Overview: ch40/index.md
@@ -1696,7 +1696,7 @@ nav:
             - Backtesting Infrastructure: ch40/finance/backtesting.md
             - Production Pipelines: ch40/finance/pipelines.md
 
-    - 41 Capstone Financial Reports:
+    - 41 Financial Reports:
         - Chapter Overview: ch41/index.md
         - 41.1 Project Overview:
             - Objectives: ch41/overview/objectives.md
@@ -1730,7 +1730,7 @@ nav:
             - Human Evaluation: ch41/evaluation/human.md
             - Deployment: ch41/evaluation/deployment.md
 
-    - 42 Capstone Risk Models:
+    - 42 Risk Models:
         - Chapter Overview: ch42/index.md
         - 42.1 Project Overview:
             - Objectives: ch42/overview/objectives.md
@@ -1764,7 +1764,7 @@ nav:
             - Regulatory Reports: ch42/reporting/regulatory.md
             - API: ch42/reporting/api.md
 
-    - 43 Capstone Trading Agent:
+    - 43 Trading Agent:
         - Chapter Overview: ch43/index.md
         - 43.1 Project Overview:
             - Objectives: ch43/overview/objectives.md
@@ -1802,7 +1802,7 @@ nav:
             - Monitoring: ch43/production/monitoring.md
             - Fail-Safes: ch43/production/failsafes.md
 
-    - 44 Capstone Financial Assistant:
+    - 44 Financial Assistant:
         - Chapter Overview: ch44/index.md
         - 44.1 Project Overview:
             - Objectives: ch44/overview/objectives.md
@@ -1838,7 +1838,7 @@ nav:
             - Latency Optimization: ch44/deployment/latency.md
             - Scaling: ch44/deployment/scaling.md
 
-    - 45 Capstone Market Simulator:
+    - 45 Market Simulator:
         - Chapter Overview: ch45/index.md
         - 45.1 Project Overview:
             - Objectives: ch45/overview/objectives.md
@@ -1873,7 +1873,7 @@ nav:
             - Risk Estimation: ch45/applications/risk.md
             - Regulatory Simulation: ch45/applications/regulatory.md
 
-  - Appendix Model Implementations:
+  - Appendix - Model Impl:
 
     - A1 Classic CNNs:
         - Overview: appendix/cnn/index.md
@@ -1941,7 +1941,7 @@ nav:
         - Seq2Seq: appendix/sequence/seq2seq.py
         - Attention Seq2Seq: appendix/sequence/attention_seq2seq.py
 
-    - A6 Transformer Architectures:
+    - A6 Transformers:
         - Overview: appendix/transformers/index.md
         - Original Transformer: appendix/transformers/transformer.py
         - BERT: appendix/transformers/bert.py
