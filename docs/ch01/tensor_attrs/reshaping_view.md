@@ -861,7 +861,8 @@ x = x.to(memory_format=torch.channels_last)
 
 ## See Also
 
-- [Shape and Dimensions](shape_dimensions.md) - Understanding tensor structure
-- [Indexing and Slicing](indexing_slicing.md) - Accessing tensor elements
-- [Broadcasting Rules](broadcasting_rules.md) - Implicit expansion
-- [Memory Layout and Strides](memory_layout_strides.md) - Deep dive into memory
+- [Dtype and Device](dtype_device.md) — Data type and device attributes
+- [Shape Manipulation](shape_manipulation.md) — Indexing, concatenation, and splitting
+- [Broadcasting Rules](broadcasting_rules.md) — Implicit expansion
+- [Memory Layout and Strides](memory_layout_strides.md) — Deep dive into memory
+- [Memory Management](memory_management.md) — Views, copies, and GPU memory

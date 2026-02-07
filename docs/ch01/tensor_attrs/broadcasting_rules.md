@@ -747,6 +747,7 @@ show_broadcast((3, 1, 5), (4, 5))
 
 ## See Also
 
-- [Shape and Dimensions](shape_dimensions.md) — Understanding shapes
-- [Reshaping and View Operations](reshaping_view.md) — Preparing for broadcast
-- [Linear Algebra Operations](linalg_operations.md) — Matrix operations
+- [Dtype and Device](dtype_device.md) — Data type and device attributes
+- [Shape Manipulation](shape_manipulation.md) — Indexing, concatenation, and splitting
+- [Reshaping and Views](reshaping_view.md) — Preparing tensors for broadcast
+- [Memory Layout and Strides](memory_layout_strides.md) — Stride tricks behind broadcasting

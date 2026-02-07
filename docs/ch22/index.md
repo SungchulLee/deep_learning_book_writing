@@ -1,84 +1,159 @@
-# Chapter 22: Classical Machine Learning with Scikit-learn
+# Chapter 22: Variational Autoencoders
 
-This chapter provides comprehensive coverage of scikit-learn fundamentals, serving as a foundation before transitioning to PyTorch implementations. Each topic follows the pedagogical approach of starting with sklearn (high-level, familiar API) and comparing to PyTorch equivalents.
+A rigorous treatment of VAEs: from probabilistic foundations to modern variants and quantitative finance applications.
+
+---
+
+## Chapter Overview
+
+Variational Autoencoders (VAEs) represent a fundamental breakthrough in generative modeling, combining deep learning with Bayesian inference to learn meaningful latent representations of data. Unlike standard autoencoders that learn deterministic point encodings, VAEs learn probabilistic distributions over a latent space, enabling principled generation, interpolation, and uncertainty quantification.
+
+This chapter provides a mathematically rigorous treatment of VAEs, starting from the probabilistic foundations of latent variable models and building up through the ELBO derivation, architectural considerations, modern variants, and practical applications in quantitative finance.
 
 ---
 
 ## Chapter Structure
 
-### 22.1 Preprocessing
-- [Scaling and Normalization](preprocessing/scaling.md) - StandardScaler, MinMaxScaler, RobustScaler
-- [Encoding Categorical Variables](preprocessing/encoding.md) - OneHotEncoder, LabelEncoder, OrdinalEncoder
-- [Handling Missing Data](preprocessing/missing_data.md) - SimpleImputer, KNNImputer, IterativeImputer
+### 22.1 Foundations
 
-### 22.2 Model Selection
-- [Train-Test Split](model_selection/train_test_split.md) - Data splitting strategies
-- [Cross-Validation](model_selection/cross_validation.md) - K-Fold, Stratified, Time Series CV
-- [Hyperparameter Tuning](model_selection/hyperparameters.md) - GridSearchCV, RandomizedSearchCV
+We begin by establishing the probabilistic framework that motivates VAEs, covering latent variable models, the distinction between generative and discriminative approaches, and why exact posterior inference is intractable for deep generative models.
 
-### 22.3 Supervised Learning
-- [Linear Models](supervised/linear_models.md) - LinearRegression, Ridge, Lasso, LogisticRegression
-- [Tree-Based Models](supervised/tree_models.md) - DecisionTree, feature importance, pruning
-- [Support Vector Machines](supervised/svm.md) - SVC, SVR, kernels, regularization
-- [Ensemble Methods](supervised/ensemble.md) - RandomForest, GradientBoosting, Stacking
+### 22.2 VAE Theory
 
-### 22.4 Unsupervised Learning
-- [Clustering](unsupervised/clustering.md) - K-Means, DBSCAN, Hierarchical, GMM
-- [Dimensionality Reduction](unsupervised/dimensionality.md) - PCA, t-SNE, UMAP, LDA
+The theoretical core of the chapter derives the Evidence Lower Bound (ELBO) from first principles, introduces the reparameterization trick that makes stochastic gradient optimization possible, and decomposes the ELBO into its KL divergence and reconstruction components.
 
-### 22.5 Evaluation
-- [Regression Metrics](evaluation/regression_metrics.md) - MSE, RMSE, MAE, R², MAPE
-- [Classification Metrics](evaluation/classification_metrics.md) - Accuracy, Precision, Recall, F1, ROC-AUC
-- [Confusion Matrix](evaluation/confusion_matrix.md) - Visualization, error analysis, thresholds
+### 22.3 VAE Architecture
 
-### 22.6 Pipelines
-- [Pipeline Basics](pipelines/pipeline_basics.md) - Building reproducible ML workflows
-- [Feature Engineering](pipelines/feature_engineering.md) - Polynomial, binning, transforms
+We examine the encoder and decoder networks in detail, discuss the role of the prior distribution, and analyze the posterior collapse problem that commonly arises during training.
 
----
+### 22.4 VAE Variants
 
-## Key Themes
+This section covers the most important VAE extensions: β-VAE for disentanglement, Conditional VAE for controlled generation, VQ-VAE and VQ-VAE-2 for discrete latent spaces, Hierarchical VAEs for multi-scale representations, and NVAE for state-of-the-art image generation.
 
-### sklearn → PyTorch Transition
+### 22.5 Training
 
-Each section includes PyTorch equivalents to help understand:
-- How sklearn abstracts away implementation details
-- When to use sklearn vs PyTorch
-- Converting sklearn workflows to PyTorch
+Practical training considerations including optimization strategies, KL annealing schedules, the free bits technique for preventing posterior collapse, and the effects of batch size on VAE training dynamics.
 
-### Quantitative Finance Focus
+### 22.6 Evaluation
 
-Examples throughout include financial applications:
-- Feature scaling for price data
-- Time series cross-validation
-- Portfolio optimization with clustering
-- Risk metrics evaluation
+Metrics and methods for assessing VAE quality across reconstruction fidelity, generation quality, latent space structure, and disentanglement.
+
+### 22.7 Finance Applications
+
+Quantitative finance applications including synthetic data generation for augmenting limited datasets, missing data imputation for incomplete financial records, and scenario generation for stress testing and risk management.
 
 ---
 
-## File Summary
+## The Big Picture
 
-| Section | Files | Total Lines |
-|---------|-------|-------------|
-| Preprocessing | 3 | ~1,565 |
-| Model Selection | 3 | ~540 |
-| Supervised | 4 | ~2,646 |
-| Unsupervised | 2 | ~985 |
-| Evaluation | 3 | ~1,381 |
-| Pipelines | 2 | ~769 |
-| **Total** | **17** | **~7,886** |
+### From Autoencoders to VAEs
+
+```
+Standard Autoencoder                Variational Autoencoder
+─────────────────────               ───────────────────────
+
+    Input x                             Input x
+       │                                   │
+       ▼                                   ▼
+   [Encoder]                           [Encoder]
+       │                                   │
+       ▼                                   ▼
+   z (point)              →        (μ, σ²) distribution
+       │                                   │
+       ▼                                   ▼
+   [Decoder]                    z ~ N(μ, σ²) [sample]
+       │                                   │
+       ▼                                   ▼
+  Reconstruction x̂                    [Decoder]
+                                           │
+                                           ▼
+                                    Reconstruction x̂
+
+Loss: ||x - x̂||²            Loss: Recon + KL(q||p)
+```
+
+VAEs introduce **stochasticity** and **regularization** into the latent space through three key insights: stochastic encoding maps inputs to distributions rather than points, KL regularization keeps the latent distribution close to a prior $\mathcal{N}(0, I)$, and generation becomes straightforward by sampling from the prior and decoding.
+
+---
+
+## Mathematical Notation
+
+| Symbol | Meaning |
+|--------|---------|
+| $x$ | Observed data (input) |
+| $z$ | Latent variable |
+| $\theta$ | Decoder (generative model) parameters |
+| $\phi$ | Encoder (inference model) parameters |
+| $p_\theta(x\|z)$ | Decoder distribution (likelihood) |
+| $p(z)$ | Prior distribution over latent space |
+| $p_\theta(z\|x)$ | True posterior (intractable) |
+| $q_\phi(z\|x)$ | Approximate posterior (encoder) |
+| $\mathcal{L}$ | Evidence Lower Bound (ELBO) |
+| $D_{KL}$ | Kullback-Leibler divergence |
+
+---
+
+## Key Equations
+
+### The ELBO
+
+$$\mathcal{L}(\theta, \phi; x) = \mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{KL}(q_\phi(z|x) \| p(z))$$
+
+### Gaussian KL Divergence
+
+$$D_{KL}(q_\phi(z|x) \| p(z)) = -\frac{1}{2}\sum_{j=1}^{d}(1 + \log\sigma_j^2 - \mu_j^2 - \sigma_j^2)$$
+
+### Reparameterization Trick
+
+$$z = \mu_\phi(x) + \sigma_\phi(x) \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)$$
+
+### Fundamental Identity
+
+$$\log p_\theta(x) = \mathcal{L}(\theta, \phi; x) + D_{KL}(q_\phi(z|x) \| p_\theta(z|x))$$
+
+---
+
+## Choosing the Right VAE Variant
+
+```
+Do you need...
+│
+├── Controlled generation? → Conditional VAE (22.4.2)
+│
+├── Disentangled representations? → β-VAE (22.4.1)
+│
+├── Sharp reconstructions? → VQ-VAE (22.4.3)
+│
+├── Multi-scale generation? → VQ-VAE-2 (22.4.4) or Hierarchical VAE (22.4.5)
+│
+├── State-of-the-art image quality? → NVAE (22.4.6)
+│
+└── General purpose? → Standard VAE (22.2–22.3)
+```
 
 ---
 
 ## Prerequisites
 
-- Python 3.8+
-- NumPy, Pandas, Matplotlib
-- scikit-learn 1.0+
-- PyTorch (for comparison examples)
+Before starting this chapter, you should be familiar with:
 
-## Next Steps
+- **Probability theory:** Random variables, expectations, Bayes' theorem
+- **Neural networks:** Feedforward networks, backpropagation, PyTorch basics
+- **Autoencoders:** Encoder-decoder architecture, reconstruction loss
+- **Optimization:** Gradient descent, Adam optimizer
 
-After completing this chapter, proceed to:
-- Chapter 1: Deep Learning Foundations (neural network basics)
-- Chapter 2: Optimization (gradient descent, optimizers)
+---
+
+## References
+
+### Foundational Papers
+
+1. Kingma & Welling (2014). "Auto-Encoding Variational Bayes" — The original VAE paper
+2. Rezende et al. (2014). "Stochastic Backpropagation and Approximate Inference in Deep Generative Models"
+3. Higgins et al. (2017). "β-VAE: Learning Basic Visual Concepts with a Constrained Variational Framework"
+4. van den Oord et al. (2017). "Neural Discrete Representation Learning" — VQ-VAE
+
+### Reviews and Tutorials
+
+- Doersch (2016). "Tutorial on Variational Autoencoders"
+- Kingma & Welling (2019). "An Introduction to Variational Autoencoders"
