@@ -527,7 +527,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 | Discriminative LR | 100% | Medium | Preserving low-level features |
 | L2-SP / EWC | 100% | Low | Continual learning |
 
-For parameter-efficient methods (LoRA, QLoRA, Prefix Tuning, Adapters), see [Ch 15.6 Efficient LLM Fine-tuning](../../ch15/efficient_llm/).
+For parameter-efficient methods (LoRA, QLoRA, Prefix Tuning, Adapters), see [Ch 15.6 Efficient LLM Fine-tuning](../../ch15/efficient_llm/efficiency_overview.md).
 
 ## References
 
