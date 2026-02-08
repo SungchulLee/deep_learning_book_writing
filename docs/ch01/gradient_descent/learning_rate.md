@@ -438,7 +438,7 @@ def diagnose_lr(train_losses, val_losses):
 ## Connections to Other Topics
 
 - **Optimizers**: See [Optimizer Fundamentals](../../ch02/optimizers/fundamentals.md)
-- **Schedulers**: Detailed in [Learning Rate Schedulers](../../ch02/lr_schedulers/index.md)
+- **Schedulers**: Detailed in [Learning Rate Schedulers](../index.md)
 - **Adam**: Per-parameter LR in [Adam Optimizer](../../ch02/optimizers/adam.md)
 - **Batch Size**: Related to [Batch, Mini-Batch, and SGD](batch_minibatch_sgd.md)
 
