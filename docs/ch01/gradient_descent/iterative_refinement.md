@@ -254,9 +254,9 @@ In 2D parameter space, the optimization path reveals:
 ## Connections to Other Topics
 
 - **Learning Rate**: Detailed in [Learning Rate and Step Size](learning_rate.md)
-- **Gradient Computation**: See [Autograd Fundamentals](../gradients/autograd_fundamentals.md)
+- **Gradient Computation**: See [Autograd Fundamentals](../autograd/gradient_computation.md)
 - **Convexity**: Explored in [Convex vs Non-Convex Optimization](convex_nonconvex.md)
-- **Advanced Optimizers**: Build on this foundation in [Chapter 2: Optimizers](../../ch02/optimizers/fundamentals.md)
+- **Advanced Optimizers**: Build on this foundation in [Optimizers](../../ch05/optimizers/optimizer_overview.md)
 
 ## Exercises
 

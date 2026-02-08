@@ -288,9 +288,8 @@ This limits the gradient magnitude while preserving direction.
 ## Connections to Other Topics
 
 - **Computational Graphs**: See [Computational Graphs](../autograd/computational_graphs.md)
-- **Vector-Jacobian Products**: Explained in [VJPs](../gradients/vector_jacobian_products.md)
 - **Critical Points**: Detailed in [Local Minima, Saddle Points, Plateaus](critical_points.md)
-- **Momentum**: Modifies steepest descent in [Classical Momentum](../../ch02/optimizers/classical_momentum.md)
+- **Momentum**: Modifies steepest descent in [Classical Momentum](../../ch05/optimizers/momentum.md)
 
 ## Exercises
 

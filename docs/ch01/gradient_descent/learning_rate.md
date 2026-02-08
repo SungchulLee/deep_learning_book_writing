@@ -382,7 +382,7 @@ $$\theta_{j,t+1} = \theta_{j,t} - \frac{\eta}{\sqrt{v_{j,t}} + \epsilon} \cdot m
 - Works well with sparse gradients
 - Less sensitive to initial learning rate choice
 
-**See**: [Adam Optimizer](../../ch02/optimizers/adam.md), [RMSprop](../../ch02/optimizers/rmsprop.md)
+**See**: [Adam Optimizer](../../ch05/optimizers/adam.md), [RMSprop](../../ch05/optimizers/rmsprop.md)
 
 ## Debugging Learning Rate Issues
 
@@ -437,9 +437,9 @@ def diagnose_lr(train_losses, val_losses):
 
 ## Connections to Other Topics
 
-- **Optimizers**: See [Optimizer Fundamentals](../../ch02/optimizers/fundamentals.md)
-- **Schedulers**: Detailed in [Learning Rate Schedulers](../index.md)
-- **Adam**: Per-parameter LR in [Adam Optimizer](../../ch02/optimizers/adam.md)
+- **Optimizers**: See [Optimizer Fundamentals](../../ch05/optimizers/optimizer_overview.md)
+- **Schedulers**: Detailed in [Learning Rate Schedulers](../../ch05/schedulers/scheduler_overview.md)
+- **Adam**: Per-parameter LR in [Adam Optimizer](../../ch05/optimizers/adam.md)
 - **Batch Size**: Related to [Batch, Mini-Batch, and SGD](batch_minibatch_sgd.md)
 
 ## Exercises

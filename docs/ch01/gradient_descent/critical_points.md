@@ -224,8 +224,8 @@ def analyze_critical_point(model, loss_fn, X, y, epsilon=1e-5):
 ## Connections to Other Topics
 
 - **Convexity**: See [Convex vs Non-Convex](convex_nonconvex.md)
-- **Momentum**: Helps escape saddle points, see [Classical Momentum](../../ch02/optimizers/classical_momentum.md)
-- **Batch Normalization**: Prevents saturation, see [Batch Normalization](../../ch02/normalization/batch_norm.md)
+- **Momentum**: Helps escape saddle points, see [Classical Momentum](../../ch05/optimizers/momentum.md)
+- **Batch Normalization**: Prevents saturation, see [Batch Normalization](ch04/normalization/batch_norm.md)
 
 ## Exercises
 
