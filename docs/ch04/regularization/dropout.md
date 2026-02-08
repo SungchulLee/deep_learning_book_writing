@@ -66,10 +66,10 @@ Dropout approximates Bayesian inference in deep learning. Gal & Ghahramani (2016
 !!! info "See Also: Monte Carlo Dropout for Uncertainty Estimation"
     The Bayesian interpretation of dropout enables **Monte Carlo Dropout**, a powerful technique for uncertainty quantification. By keeping dropout active during inference and running multiple forward passes, we can estimate predictive uncertainty. See **Chapter 33.2: Monte Carlo Dropout** for:
     
-    - Full variational inference derivation ([Theory](../ch33/model_uncertainty/mc_dropout/theory.md))
-    - Production implementation patterns ([Implementation](../ch33/model_uncertainty/mc_dropout/implementation.md))
-    - Sample convergence analysis ([Convergence](../ch33/model_uncertainty/mc_dropout/convergence.md))
-    - Dropout rate selection for calibration ([Dropout Rate](../ch33/model_uncertainty/mc_dropout/dropout_rate.md))
+    - Full variational inference derivation ([Theory](../../ch39/mc_dropout/theory.md))
+    - Production implementation patterns ([Implementation](../../ch39/mc_dropout/implementation.md))
+    - Sample convergence analysis ([Convergence](../../ch39/mc_dropout/convergence.md))
+    - Dropout rate selection for calibration ([Dropout Rate](../../ch39/mc_dropout/dropout_rate.md))
 
 ### Noise Injection View
 
