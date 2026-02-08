@@ -1877,7 +1877,7 @@ nav:
 
     - A1 Classic CNNs:
         - Overview: appendix/cnn/index.md
-#         - LeNet: appendix/cnn/lenet.py
+        - LeNet: appendix/cnn/lenet.py
         - AlexNet: appendix/cnn/alex_net.py
         - VGGNet: appendix/cnn/vgg_net.py
         - GoogLeNet: appendix/cnn/google_net_inception.py
