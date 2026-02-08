@@ -498,4 +498,4 @@ c) Compare traversals with MNIST results
 
 ## What's Next
 
-The next section covers [VQ-VAE](vq_vae.md), which uses discrete latent representations through vector quantization.
+The next section covers [VQ-VAE](vqvae.md), which uses discrete latent representations through vector quantization.

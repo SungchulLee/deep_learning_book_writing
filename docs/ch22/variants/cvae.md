@@ -561,4 +561,4 @@ c) Try "style transfer" between categories
 
 ## What's Next
 
-The [PyTorch Implementation](pytorch_impl.md) section provides a complete, production-ready VAE training pipeline with all variants.
+The next section covers [VQ-VAE](vqvae.md), which introduces discrete latent representations via vector quantization.
