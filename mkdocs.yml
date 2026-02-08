@@ -1873,95 +1873,95 @@ nav:
     #         - Risk Estimation: ch45/applications/risk.md
     #         - Regulatory Simulation: ch45/applications/regulatory.md
 
-#   - Appendix - Model Impl:
+  - Appendix - Model Impl:
 
-#     - A1 Classic CNNs:
-#         - Overview: appendix/cnn/index.md
+    - A1 Classic CNNs:
+        - Overview: appendix/cnn/index.md
 #         - LeNet: appendix/cnn/lenet.py
-#         - AlexNet: appendix/cnn/alex_net.py
-#         - VGGNet: appendix/cnn/vgg_net.py
-#         - GoogLeNet: appendix/cnn/google_net_inception.py
-#         - Inception v3: appendix/cnn/inception_v3.py
-#         - ResNet: appendix/cnn/resnet.py
-#         - ResNeXt: appendix/cnn/res_next.py
-#         - DenseNet: appendix/cnn/densenet.py
-#         - SENet: appendix/cnn/se_net.py
-#         - CBAM: appendix/cnn/cbam.py
-#         - EfficientNet: appendix/cnn/efficientnet.py
-#         - EfficientNet v2: appendix/cnn/efficient_net_v2.py
-#         - ConvNeXt: appendix/cnn/convnext.py
-#         - ConvNeXt v2: appendix/cnn/convnext_v2.py
-#         - SqueezeNet: appendix/cnn/squeeze_net.py
-#         - ShuffleNet: appendix/cnn/shuffle_net.py
-#         - MobileNet v2: appendix/cnn/mobilenet_v2.py
-#         - NASNet: appendix/cnn/nas_net.py
-#         - MixNet: appendix/cnn/mixnet.py
-#         - GhostNet: appendix/cnn/ghost_net.py
-#         - RegNet: appendix/cnn/regnet.py
-#         - ResNeSt: appendix/cnn/res_nest.py
-#         - PyramidNet: appendix/cnn/pyramidnet.py
-#         - Xception: appendix/cnn/xception.py
-#         - HRNet: appendix/cnn/hrnet.py
-#         - CoordConv: appendix/cnn/coordconv.py
-#         - CapsuleNet: appendix/cnn/capsule_net.py
+        - AlexNet: appendix/cnn/alex_net.py
+        - VGGNet: appendix/cnn/vgg_net.py
+        - GoogLeNet: appendix/cnn/google_net_inception.py
+        - Inception v3: appendix/cnn/inception_v3.py
+        - ResNet: appendix/cnn/resnet.py
+        - ResNeXt: appendix/cnn/res_next.py
+        - DenseNet: appendix/cnn/densenet.py
+        - SENet: appendix/cnn/se_net.py
+        - CBAM: appendix/cnn/cbam.py
+        - EfficientNet: appendix/cnn/efficientnet.py
+        - EfficientNet v2: appendix/cnn/efficient_net_v2.py
+        - ConvNeXt: appendix/cnn/convnext.py
+        - ConvNeXt v2: appendix/cnn/convnext_v2.py
+        - SqueezeNet: appendix/cnn/squeeze_net.py
+        - ShuffleNet: appendix/cnn/shuffle_net.py
+        - MobileNet v2: appendix/cnn/mobilenet_v2.py
+        - NASNet: appendix/cnn/nas_net.py
+        - MixNet: appendix/cnn/mixnet.py
+        - GhostNet: appendix/cnn/ghost_net.py
+        - RegNet: appendix/cnn/regnet.py
+        - ResNeSt: appendix/cnn/res_nest.py
+        - PyramidNet: appendix/cnn/pyramidnet.py
+        - Xception: appendix/cnn/xception.py
+        - HRNet: appendix/cnn/hrnet.py
+        - CoordConv: appendix/cnn/coordconv.py
+        - CapsuleNet: appendix/cnn/capsule_net.py
 
-#     - A2 Vision Transformers:
-#         - Overview: appendix/vit/index.md
-#         - ViT: appendix/vit/vision_transformer_vit.py
+    - A2 Vision Transformers:
+        - Overview: appendix/vit/index.md
+        - ViT: appendix/vit/vision_transformer_vit.py
 #         - DeiT: appendix/vit/deit.py
-#         - Swin Transformer: appendix/vit/swin_transformer.py
+        - Swin Transformer: appendix/vit/swin_transformer.py
 #         - BEiT: appendix/vit/beit.py
 #         - MAE: appendix/vit/mae.py
 #         - CLIP: appendix/vit/clip.py
 
-#     - A3 Segmentation Models:
-#         - Overview: appendix/segmentation/index.md
-#         - FCN: appendix/segmentation/fcn.py
-#         - U-Net: appendix/segmentation/u_net.py
-#         - DeepLab v3+: appendix/segmentation/deeplabv3.py
-#         - PSPNet: appendix/segmentation/pspnet.py
-#         - Mask R-CNN: appendix/segmentation/mask_rcnn.py
+    - A3 Segmentation Models:
+        - Overview: appendix/segmentation/index.md
+        - FCN: appendix/segmentation/fcn.py
+        - U-Net: appendix/segmentation/u_net.py
+        - DeepLab v3+: appendix/segmentation/deeplabv3.py
+        - PSPNet: appendix/segmentation/pspnet.py
+        - Mask R-CNN: appendix/segmentation/mask_rcnn.py
 #         - SegFormer: appendix/segmentation/segformer.py
 
-#     - A4 Detection Models:
-#         - Overview: appendix/detection/index.md
-#         - Faster R-CNN: appendix/detection/faster_rcnn.py
-#         - YOLO v3: appendix/detection/yolo_v3.py
-#         - SSD: appendix/detection/ssd.py
-#         - RetinaNet: appendix/detection/retinanet.py
+    - A4 Detection Models:
+        - Overview: appendix/detection/index.md
+        - Faster R-CNN: appendix/detection/faster_rcnn.py
+        - YOLO v3: appendix/detection/yolo_v3.py
+        - SSD: appendix/detection/ssd.py
+        - RetinaNet: appendix/detection/retinanet.py
 #         - DETR: appendix/detection/detr.py
 #         - DINO: appendix/detection/dino.py
 
-#     - A5 Sequence Models:
-#         - Overview: appendix/sequence/index.md
+    - A5 Sequence Models:
+        - Overview: appendix/sequence/index.md
 #         - Vanilla RNN: appendix/sequence/rnn.py
-#         - LSTM: appendix/sequence/lstm.py
-#         - GRU: appendix/sequence/gru.py
+        - LSTM: appendix/sequence/lstm.py
+        - GRU: appendix/sequence/gru.py
 #         - Bidirectional: appendix/sequence/bidirectional.py
-#         - Seq2Seq: appendix/sequence/seq2seq.py
-#         - Attention Seq2Seq: appendix/sequence/attention_seq2seq.py
+        - Seq2Seq: appendix/sequence/seq2seq.py
+        - Attention Seq2Seq: appendix/sequence/attention_seq2seq.py
 
-#     - A6 Transformers:
-#         - Overview: appendix/transformers/index.md
-#         - Original Transformer: appendix/transformers/transformer.py
-#         - BERT: appendix/transformers/bert.py
-#         - GPT Family: appendix/transformers/gpt.py
+    - A6 Transformers:
+        - Overview: appendix/transformers/index.md
+        - Original Transformer: appendix/transformers/transformer.py
+        - BERT: appendix/transformers/bert.py
+        - GPT Family: appendix/transformers/gpt.py
 #         - T5: appendix/transformers/t5.py
 #         - RoBERTa: appendix/transformers/roberta.py
 #         - ALBERT: appendix/transformers/albert.py
 #         - DistilBERT: appendix/transformers/distilbert.py
 #         - Longformer: appendix/transformers/longformer.py
 #         - LLaMA: appendix/transformers/llama.py
-#         - Wav2Vec: appendix/transformers/wav2vec.py
+        - Wav2Vec: appendix/transformers/wav2vec.py
 
-#     - A7 Generative Models:
-#         - Overview: appendix/generative/index.md
-#         - Autoencoder: appendix/generative/autoencoder.py
-#         - VAE: appendix/generative/vae.py
+    - A7 Generative Models:
+        - Overview: appendix/generative/index.md
+        - Autoencoder: appendix/generative/autoencoder.py
+        - VAE: appendix/generative/vae.py
 #         - Beta-VAE: appendix/generative/beta_vae.py
 #         - VQ-VAE: appendix/generative/vqvae.py
-#         - GAN: appendix/generative/gan.py
-#         - DCGAN: appendix/generative/dcgan.py
+        - GAN: appendix/generative/gan.py
+        - DCGAN: appendix/generative/dcgan.py
 #         - StyleGAN: appendix/generative/stylegan.py
 #         - Pix2Pix: appendix/generative/pix2pix.py
 #         - CycleGAN: appendix/generative/cyclegan.py
@@ -1969,18 +1969,18 @@ nav:
 #         - Stable Diffusion: appendix/generative/stable_diffusion.py
 #         - RealNVP: appendix/generative/realnvp.py
 #         - Glow: appendix/generative/glow.py
-#         - Neural ODE: appendix/generative/neural_ode.py
+        - Neural ODE: appendix/generative/neural_ode.py
 
-#     - A8 Graph Neural Networks:
-#         - Overview: appendix/gnn/index.md
+    - A8 Graph Neural Networks:
+        - Overview: appendix/gnn/index.md
 #         - GCN: appendix/gnn/gcn.py
 #         - GAT: appendix/gnn/gat.py
 #         - GraphSAGE: appendix/gnn/graphsage.py
 #         - GIN: appendix/gnn/gin.py
 #         - Message Passing: appendix/gnn/mpnn.py
 
-#     - A9 Reinforcement Learning:
-#         - Overview: appendix/rl/index.md
+    - A9 Reinforcement Learning:
+        - Overview: appendix/rl/index.md
 #         - DQN: appendix/rl/dqn.py
 #         - Double DQN: appendix/rl/double_dqn.py
 #         - Dueling DQN: appendix/rl/dueling_dqn.py
@@ -1989,8 +1989,8 @@ nav:
 #         - SAC: appendix/rl/sac.py
 #         - TD3: appendix/rl/td3.py
 
-#     - A10 Utility Modules:
-#         - Overview: appendix/utils/index.md
+    - A10 Utility Modules:
+        - Overview: appendix/utils/index.md
 #         - Attention Mechanisms: appendix/utils/attention.py
 #         - Normalization Layers: appendix/utils/normalization.py
 #         - Activation Functions: appendix/utils/activations.py
