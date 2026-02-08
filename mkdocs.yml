@@ -1201,52 +1201,91 @@ nav:
         - Chapter Overview: ch29/index.md
         - 29.1 Graph Foundations:
             - Graph Basics: ch29/foundations/graph_basics.md
+            - Graph Basics Code: ch29/foundations/graph_basics.py
             - Graph Representations: ch29/foundations/representations.md
+            - Graph Representations Code: ch29/foundations/representations.py
             - Adjacency Matrix: ch29/foundations/adjacency_matrix.md
+            - Adjacency Matrix Code: ch29/foundations/adjacency_matrix.py
             - Node and Edge Features: ch29/foundations/node_edge_features.md
+            - Node and Edge Features Code: ch29/foundations/node_edge_features.py
             - Graph Properties: ch29/foundations/graph_properties.md
+            - Graph Properties Code: ch29/foundations/graph_properties.py
             - PyTorch Geometric Basics: ch29/foundations/pyg_basics.md
+            - PyTorch Geometric Basics Code: ch29/foundations/pyg_basics.py
         - 29.2 Message Passing:
             - Message Passing Framework: ch29/message_passing/framework.md
+            - Message Passing Framework Code: ch29/message_passing/framework.py
             - Aggregation Functions: ch29/message_passing/aggregation.md
+            - Aggregation Functions Code: ch29/message_passing/aggregation.py
             - Update Functions: ch29/message_passing/update.md
+            - Update Functions Code: ch29/message_passing/update.py
             - Message Passing Neural Network: ch29/message_passing/mpnn.md
+            - Message Passing Neural Network Code: ch29/message_passing/mpnn.py
         - 29.3 Graph Convolutions:
             - Spectral Methods:
                 - Spectral Graph Theory: ch29/convolutions/spectral_theory.md
+                - Spectral Graph Theory Code: ch29/convolutions/spectral_theory.py
                 - Graph Fourier Transform: ch29/convolutions/graph_fourier.md
+                - Graph Fourier Transform Code: ch29/convolutions/graph_fourier.py
                 - ChebNet: ch29/convolutions/chebnet.md
+                - ChebNet Code: ch29/convolutions/chebnet.py
             - Spatial Methods:
                 - GCN: ch29/convolutions/gcn.md
+                - GCN Code: ch29/convolutions/gcn.py
                 - GraphSAGE: ch29/convolutions/graphsage.md
+                - GraphSAGE Code: ch29/convolutions/graphsage.py
                 - GAT: ch29/convolutions/gat.md
+                - GAT Code: ch29/convolutions/gat.py
                 - GIN: ch29/convolutions/gin.md
+                - GIN Code: ch29/convolutions/gin.py
         - 29.4 Advanced GNN Methods:
             - Deep GNNs: ch29/advanced/deep_gnns.md
+            - Deep GNNs Code: ch29/advanced/deep_gnns.py
             - Over-Smoothing: ch29/advanced/over_smoothing.md
+            - Over-Smoothing Code: ch29/advanced/over_smoothing.py
             - Jumping Knowledge: ch29/advanced/jumping_knowledge.md
+            - Jumping Knowledge Code: ch29/advanced/jumping_knowledge.py
             - Graph Transformers: ch29/advanced/graph_transformers.md
+            - Graph Transformers Code: ch29/advanced/graph_transformers.py
             - Heterogeneous Graphs: ch29/advanced/heterogeneous.md
+            - Heterogeneous Graphs Code: ch29/advanced/heterogeneous.py
             - Temporal Graphs: ch29/advanced/temporal.md
+            - Temporal Graphs Code: ch29/advanced/temporal.py
             - Hypergraphs: ch29/advanced/hypergraphs.md
+            - Hypergraphs Code: ch29/advanced/hypergraphs.py
         - 29.5 Graph-Level Tasks:
             - Graph Classification: ch29/graph_tasks/graph_classification.md
+            - Graph Classification Code: ch29/graph_tasks/graph_classification.py
             - Graph Regression: ch29/graph_tasks/graph_regression.md
+            - Graph Regression Code: ch29/graph_tasks/graph_regression.py
             - Graph Pooling: ch29/graph_tasks/pooling.md
+            - Graph Pooling Code: ch29/graph_tasks/pooling.py
             - Hierarchical Pooling: ch29/graph_tasks/hierarchical_pooling.md
+            - Hierarchical Pooling Code: ch29/graph_tasks/hierarchical_pooling.py
             - Set2Set: ch29/graph_tasks/set2set.md
+            - Set2Set Code: ch29/graph_tasks/set2set.py
         - 29.6 Node and Link Tasks:
             - Node Classification: ch29/node_link/node_classification.md
+            - Node Classification Code: ch29/node_link/node_classification.py
             - Link Prediction: ch29/node_link/link_prediction.md
+            - Link Prediction Code: ch29/node_link/link_prediction.py
             - Node Embedding: ch29/node_link/node_embedding.md
+            - Node Embedding Code: ch29/node_link/node_embedding.py
             - Community Detection: ch29/node_link/community_detection.md
+            - Community Detection Code: ch29/node_link/community_detection.py
         - 29.7 GNN Applications:
             - Molecular Property Prediction: ch29/applications/molecular.md
+            - Molecular Property Prediction Code: ch29/applications/molecular.py
             - Drug Discovery: ch29/applications/drug_discovery.md
+            - Drug Discovery Code: ch29/applications/drug_discovery.py
             - Social Network Analysis: ch29/applications/social_networks.md
+            - Social Network Analysis Code: ch29/applications/social_networks.py
             - Recommendation Systems: ch29/applications/recommendation.md
+            - Recommendation Systems Code: ch29/applications/recommendation.py
             - Knowledge Graphs: ch29/applications/knowledge_graphs.md
+            - Knowledge Graphs Code: ch29/applications/knowledge_graphs.py
             - Financial Networks: ch29/applications/financial_networks.md
+            - Financial Networks Code: ch29/applications/financial_networks.py
 
     - 30 Recommender Systems:
         - Chapter Overview: ch30/index.md
@@ -1267,29 +1306,48 @@ nav:
         - Chapter Overview: ch31/index.md
         - 31.1 Foundations:
             - Introduction: ch31/foundations/introduction.md
+            - Introduction Code: ch31/foundations/introduction.py
             - Graph Representations: ch31/foundations/representations.md
+            - Graph Representations Code: ch31/foundations/representations.py
             - Evaluation Metrics: ch31/foundations/metrics.md
+            - Evaluation Metrics Code: ch31/foundations/metrics.py
         - 31.2 Autoregressive Methods:
             - Sequential Generation: ch31/autoregressive/sequential.md
+            - Sequential Generation Code: ch31/autoregressive/sequential.py
             - GraphRNN: ch31/autoregressive/graphrnn.md
+            - GraphRNN Code: ch31/autoregressive/graphrnn.py
             - GRAN: ch31/autoregressive/gran.md
+            - GRAN Code: ch31/autoregressive/gran.py
         - 31.3 One-Shot Methods:
             - Adjacency Generation: ch31/one_shot/adjacency.md
+            - Adjacency Generation Code: ch31/one_shot/adjacency.py
             - GraphVAE: ch31/one_shot/graphvae.md
+            - GraphVAE Code: ch31/one_shot/graphvae.py
             - GraphGAN: ch31/one_shot/graphgan.md
+            - GraphGAN Code: ch31/one_shot/graphgan.py
         - 31.4 Diffusion for Graphs:
             - Graph Diffusion: ch31/diffusion/graph_diffusion.md
+            - Graph Diffusion Code: ch31/diffusion/graph_diffusion.py
             - DiGress: ch31/diffusion/digress.md
+            - DiGress Code: ch31/diffusion/digress.py
             - GDSS: ch31/diffusion/gdss.md
+            - GDSS Code: ch31/diffusion/gdss.py
         - 31.5 Molecular Generation:
             - Molecular Graphs: ch31/molecular/graphs.md
+            - Molecular Graphs Code: ch31/molecular/graphs.py
             - SMILES Generation: ch31/molecular/smiles.md
+            - SMILES Generation Code: ch31/molecular/smiles.py
             - 3D Molecule Generation: ch31/molecular/3d_generation.md
+            - 3D Molecule Generation Code: ch31/molecular/3d_generation.py
             - Property Optimization: ch31/molecular/property_optimization.md
+            - Property Optimization Code: ch31/molecular/property_optimization.py
         - 31.6 Finance Applications:
             - Financial Network Generation: ch31/finance/networks.md
+            - Financial Network Generation Code: ch31/finance/networks.py
             - Transaction Graphs: ch31/finance/transactions.md
+            - Transaction Graphs Code: ch31/finance/transactions.py
             - Synthetic Market Networks: ch31/finance/market_networks.md
+            - Synthetic Market Networks Code: ch31/finance/market_networks.py
 
   - VIII - Reinforcement Learning:
 
@@ -1908,11 +1966,11 @@ nav:
     - A2 Vision Transformers:
         - Overview: appendix/vit/index.md
         - ViT: appendix/vit/vision_transformer_vit.py
-#         - DeiT: appendix/vit/deit.py
+        - DeiT: appendix/vit/deit.py
         - Swin Transformer: appendix/vit/swin_transformer.py
-#         - BEiT: appendix/vit/beit.py
-#         - MAE: appendix/vit/mae.py
-#         - CLIP: appendix/vit/clip.py
+        - BEiT: appendix/vit/beit.py
+        - MAE: appendix/vit/mae.py
+        - CLIP: appendix/vit/clip.py
 
     - A3 Segmentation Models:
         - Overview: appendix/segmentation/index.md
@@ -1921,7 +1979,7 @@ nav:
         - DeepLab v3+: appendix/segmentation/deeplabv3.py
         - PSPNet: appendix/segmentation/pspnet.py
         - Mask R-CNN: appendix/segmentation/mask_rcnn.py
-#         - SegFormer: appendix/segmentation/segformer.py
+        - SegFormer: appendix/segmentation/segformer.py
 
     - A4 Detection Models:
         - Overview: appendix/detection/index.md
@@ -1929,15 +1987,15 @@ nav:
         - YOLO v3: appendix/detection/yolo_v3.py
         - SSD: appendix/detection/ssd.py
         - RetinaNet: appendix/detection/retinanet.py
-#         - DETR: appendix/detection/detr.py
-#         - DINO: appendix/detection/dino.py
+        - DETR: appendix/detection/detr.py
+        - DINO: appendix/detection/dino.py
 
     - A5 Sequence Models:
         - Overview: appendix/sequence/index.md
-#         - Vanilla RNN: appendix/sequence/rnn.py
+        - Vanilla RNN: appendix/sequence/rnn.py
         - LSTM: appendix/sequence/lstm.py
         - GRU: appendix/sequence/gru.py
-#         - Bidirectional: appendix/sequence/bidirectional.py
+        - Bidirectional: appendix/sequence/bidirectional.py
         - Seq2Seq: appendix/sequence/seq2seq.py
         - Attention Seq2Seq: appendix/sequence/attention_seq2seq.py
 
@@ -1946,58 +2004,58 @@ nav:
         - Original Transformer: appendix/transformers/transformer.py
         - BERT: appendix/transformers/bert.py
         - GPT Family: appendix/transformers/gpt.py
-#         - T5: appendix/transformers/t5.py
-#         - RoBERTa: appendix/transformers/roberta.py
-#         - ALBERT: appendix/transformers/albert.py
-#         - DistilBERT: appendix/transformers/distilbert.py
-#         - Longformer: appendix/transformers/longformer.py
-#         - LLaMA: appendix/transformers/llama.py
+        - T5: appendix/transformers/t5.py
+        - RoBERTa: appendix/transformers/roberta.py
+        - ALBERT: appendix/transformers/albert.py
+        - DistilBERT: appendix/transformers/distilbert.py
+        - Longformer: appendix/transformers/longformer.py
+        - LLaMA: appendix/transformers/llama.py
         - Wav2Vec: appendix/transformers/wav2vec.py
 
     - A7 Generative Models:
         - Overview: appendix/generative/index.md
         - Autoencoder: appendix/generative/autoencoder.py
         - VAE: appendix/generative/vae.py
-#         - Beta-VAE: appendix/generative/beta_vae.py
-#         - VQ-VAE: appendix/generative/vqvae.py
+        - Beta-VAE: appendix/generative/beta_vae.py
+        - VQ-VAE: appendix/generative/vqvae.py
         - GAN: appendix/generative/gan.py
         - DCGAN: appendix/generative/dcgan.py
-#         - StyleGAN: appendix/generative/stylegan.py
-#         - Pix2Pix: appendix/generative/pix2pix.py
-#         - CycleGAN: appendix/generative/cyclegan.py
-#         - DDPM: appendix/generative/ddpm.py
-#         - Stable Diffusion: appendix/generative/stable_diffusion.py
-#         - RealNVP: appendix/generative/realnvp.py
-#         - Glow: appendix/generative/glow.py
+        - StyleGAN: appendix/generative/stylegan.py
+        - Pix2Pix: appendix/generative/pix2pix.py
+        - CycleGAN: appendix/generative/cyclegan.py
+        - DDPM: appendix/generative/ddpm.py
+        - Stable Diffusion: appendix/generative/stable_diffusion.py
+        - RealNVP: appendix/generative/realnvp.py
+        - Glow: appendix/generative/glow.py
         - Neural ODE: appendix/generative/neural_ode.py
 
     - A8 Graph Neural Networks:
         - Overview: appendix/gnn/index.md
-#         - GCN: appendix/gnn/gcn.py
-#         - GAT: appendix/gnn/gat.py
-#         - GraphSAGE: appendix/gnn/graphsage.py
-#         - GIN: appendix/gnn/gin.py
-#         - Message Passing: appendix/gnn/mpnn.py
+        - GCN: appendix/gnn/gcn.py
+        - GAT: appendix/gnn/gat.py
+        - GraphSAGE: appendix/gnn/graphsage.py
+        - GIN: appendix/gnn/gin.py
+        - Message Passing: appendix/gnn/mpnn.py
 
     - A9 Reinforcement Learning:
         - Overview: appendix/rl/index.md
-#         - DQN: appendix/rl/dqn.py
-#         - Double DQN: appendix/rl/double_dqn.py
-#         - Dueling DQN: appendix/rl/dueling_dqn.py
-#         - A2C/A3C: appendix/rl/a2c_a3c.py
-#         - PPO: appendix/rl/ppo.py
-#         - SAC: appendix/rl/sac.py
-#         - TD3: appendix/rl/td3.py
+        - DQN: appendix/rl/dqn.py
+        - Double DQN: appendix/rl/double_dqn.py
+        - Dueling DQN: appendix/rl/dueling_dqn.py
+        - A2C/A3C: appendix/rl/a2c_a3c.py
+        - PPO: appendix/rl/ppo.py
+        - SAC: appendix/rl/sac.py
+        - TD3: appendix/rl/td3.py
 
     - A10 Utility Modules:
         - Overview: appendix/utils/index.md
-#         - Attention Mechanisms: appendix/utils/attention.py
-#         - Normalization Layers: appendix/utils/normalization.py
-#         - Activation Functions: appendix/utils/activations.py
-#         - Positional Encodings: appendix/utils/positional.py
-#         - Loss Functions: appendix/utils/losses.py
-#         - Learning Rate Schedulers: appendix/utils/schedulers.py
-#         - Data Augmentation: appendix/utils/augmentation.py
+        - Attention Mechanisms: appendix/utils/attention.py
+        - Normalization Layers: appendix/utils/normalization.py
+        - Activation Functions: appendix/utils/activations.py
+        - Positional Encodings: appendix/utils/positional.py
+        - Loss Functions: appendix/utils/losses.py
+        - Learning Rate Schedulers: appendix/utils/schedulers.py
+        - Data Augmentation: appendix/utils/augmentation.py
 
 plugins:
   - search
