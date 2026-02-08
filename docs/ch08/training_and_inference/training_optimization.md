@@ -339,7 +339,7 @@ For long sequences, several alternatives reduce the $O(n^2)$ attention cost:
 | Linear Attention | $O(n)$ | Kernel approximation |
 | Sliding Window | $O(n \cdot w)$ | Local attention window |
 
-See the dedicated pages on [Flash Attention](flash_attention.md) and [Sparse Attention Patterns](sparse_attention.md) for details.
+
 
 ## Complete Optimized Training Pipeline
 
