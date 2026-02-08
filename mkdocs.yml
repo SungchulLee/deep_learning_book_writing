@@ -1478,38 +1478,65 @@ nav:
         - Chapter Overview: ch34/index.md
         - 34.1 Policy Gradient Foundations:
             - Policy Parameterization: ch34/foundations/parameterization.md
+            - Policy Parameterization Code: ch34/foundations/parameterization.py
             - Policy Gradient Theorem: ch34/foundations/pg_theorem.md
+            - Policy Gradient Theorem Code: ch34/foundations/pg_theorem.py
             - REINFORCE: ch34/foundations/reinforce.md
+            - REINFORCE Code: ch34/foundations/reinforce.py
             - Baseline Methods: ch34/foundations/baselines.md
+            - Baseline Methods Code: ch34/foundations/baselines.py
         - 34.2 Actor-Critic:
             - Actor-Critic Fundamentals: ch34/actor_critic/fundamentals.md
+            - Actor-Critic Fundamentals Code: ch34/actor_critic/fundamentals.py
             - A2C: ch34/actor_critic/a2c.md
+            - A2C Code: ch34/actor_critic/a2c.py
             - A3C: ch34/actor_critic/a3c.md
+            - A3C Code: ch34/actor_critic/a3c.py
             - GAE: ch34/actor_critic/gae.md
+            - GAE Code: ch34/actor_critic/gae.py
         - 34.3 Trust Region Methods:
             - TRPO: ch34/trust_region/trpo.md
+            - TRPO Code: ch34/trust_region/trpo.py
             - Natural Policy Gradient: ch34/trust_region/npg.md
+            - Natural Policy Gradient Code: ch34/trust_region/npg.py
             - PPO: ch34/trust_region/ppo.md
+            - PPO Code: ch34/trust_region/ppo.py
             - PPO Implementation: ch34/trust_region/ppo_implementation.md
+            - PPO Implementation Code: ch34/trust_region/ppo_implementation.py
         - 34.4 Off-Policy Actor-Critic:
             - DDPG: ch34/off_policy/ddpg.md
+            - DDPG Code: ch34/off_policy/ddpg.py
             - TD3: ch34/off_policy/td3.md
+            - TD3 Code: ch34/off_policy/td3.py
             - SAC: ch34/off_policy/sac.md
+            - SAC Code: ch34/off_policy/sac.py
             - SAC Implementation: ch34/off_policy/sac_implementation.md
+            - SAC Implementation Code: ch34/off_policy/sac_implementation.py
         - 34.5 Advanced Topics:
             - Maximum Entropy RL: ch34/advanced/max_entropy.md
+            - Maximum Entropy RL Code: ch34/advanced/max_entropy.py
             - Hierarchical RL: ch34/advanced/hierarchical.md
+            - Hierarchical RL Code: ch34/advanced/hierarchical.py
             - Multi-Agent RL: ch34/advanced/multi_agent.md
+            - Multi-Agent RL Code: ch34/advanced/multi_agent.py
             - Model-Based RL: ch34/advanced/model_based.md
+            - Model-Based RL Code: ch34/advanced/model_based.py
         - 34.6 Practical Considerations:
             - Reward Shaping: ch34/practical/reward_shaping.md
+            - Reward Shaping Code: ch34/practical/reward_shaping.py
             - Action Spaces: ch34/practical/action_spaces.md
+            - Action Spaces Code: ch34/practical/action_spaces.py
             - Observation Normalization: ch34/practical/normalization.md
+            - Observation Normalization Code: ch34/practical/normalization.py
             - Debugging RL: ch34/practical/debugging.md
+            - Debugging RL Code: ch34/practical/debugging.py
         - 34.7 Finance Applications:
             - Portfolio Optimization: ch34/finance/portfolio.md
+            - Portfolio Optimization Code: ch34/finance/portfolio.py
             - Continuous Trading: ch34/finance/continuous_trading.md
+            - Continuous Trading Code: ch34/finance/continuous_trading.py
             - Risk-Sensitive RL: ch34/finance/risk_sensitive.md
+            - Risk-Sensitive RL Code: ch34/finance/risk_sensitive.py
 
     - 35 RL for Quant Finance:
         - Chapter Overview: ch35/index.md
