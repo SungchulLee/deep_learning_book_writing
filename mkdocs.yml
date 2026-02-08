@@ -1355,49 +1355,61 @@ nav:
         - Chapter Overview: ch32/index.md
         - 32.1 Introduction:
             - RL Overview: ch32/introduction/overview.md
+            - RL Overview Code: ch32/introduction/overview.py
             - Agent-Environment Interface: ch32/introduction/agent_environment.md
+            - Agent-Environment Interface Code: ch32/introduction/agent_environment.py
             - Reward Hypothesis: ch32/introduction/reward_hypothesis.md
+            - Reward Hypothesis Code: ch32/introduction/reward_hypothesis.py
         - 32.2 Markov Decision Processes:
             - MDP Fundamentals: ch32/mdp/fundamentals.md
+            - MDP Fundamentals Code: ch32/mdp/mdp_fundamentals.py
             - States and Actions: ch32/mdp/states_actions.md
             - Transition Dynamics: ch32/mdp/transitions.md
             - Reward Functions: ch32/mdp/rewards.md
             - Discount Factor: ch32/mdp/discount.md
+            - States Actions and Rewards Code: ch32/mdp/states_actions_rewards.py
         - 32.3 Value Functions:
             - State Value Function: ch32/value_functions/state_value.md
             - Action Value Function: ch32/value_functions/action_value.md
             - Bellman Equations: ch32/value_functions/bellman.md
             - Bellman Optimality: ch32/value_functions/bellman_optimality.md
+            - Value Functions Code: ch32/value_functions/value_functions.py
         - 32.4 Dynamic Programming:
             - Policy Evaluation: ch32/dynamic_programming/policy_evaluation.md
             - Policy Improvement: ch32/dynamic_programming/policy_improvement.md
             - Policy Iteration: ch32/dynamic_programming/policy_iteration.md
             - Value Iteration: ch32/dynamic_programming/value_iteration.md
+            - Dynamic Programming Code: ch32/dynamic_programming/dynamic_programming.py
         - 32.5 Monte Carlo Methods:
             - MC Prediction: ch32/monte_carlo/prediction.md
             - MC Control: ch32/monte_carlo/control.md
             - Off-Policy MC: ch32/monte_carlo/off_policy.md
             - Importance Sampling: ch32/monte_carlo/importance_sampling.md
+            - Monte Carlo Methods Code: ch32/monte_carlo/monte_carlo.py
         - 32.6 Temporal Difference:
             - TD Prediction: ch32/temporal_difference/td_prediction.md
             - TD(0): ch32/temporal_difference/td0.md
             - SARSA: ch32/temporal_difference/sarsa.md
             - Q-Learning: ch32/temporal_difference/q_learning.md
             - Expected SARSA: ch32/temporal_difference/expected_sarsa.md
+            - TD Methods Code: ch32/temporal_difference/td_methods.py
         - 32.7 N-Step Methods:
             - N-Step TD: ch32/n_step/n_step_td.md
             - N-Step SARSA: ch32/n_step/n_step_sarsa.md
-            - "TD(\u03bb)": ch32/n_step/td_lambda.md
+            - "TD(λ)": ch32/n_step/td_lambda.md
             - Eligibility Traces: ch32/n_step/eligibility_traces.md
+            - N-Step Methods Code: ch32/n_step/n_step_methods.py
         - 32.8 Function Approximation:
             - Linear Methods: ch32/function_approx/linear.md
             - Feature Engineering: ch32/function_approx/features.md
             - Convergence Issues: ch32/function_approx/convergence.md
+            - Function Approximation Code: ch32/function_approx/function_approximation.py
         - 32.9 Exploration:
             - Epsilon-Greedy: ch32/exploration/epsilon_greedy.md
             - UCB: ch32/exploration/ucb.md
             - Boltzmann Exploration: ch32/exploration/boltzmann.md
             - Exploration Bonuses: ch32/exploration/bonuses.md
+            - Exploration Code: ch32/exploration/exploration.py
 
     - 33 Value-Based Deep RL:
         - Chapter Overview: ch33/index.md
