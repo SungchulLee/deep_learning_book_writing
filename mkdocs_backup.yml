@@ -1696,308 +1696,308 @@ nav:
             - Backtesting Infrastructure: ch40/finance/backtesting.md
             - Production Pipelines: ch40/finance/pipelines.md
 
-    # - 41 Financial Reports:
-    #     - Chapter Overview: ch41/index.md
-    #     - 41.1 Project Overview:
-    #         - Objectives: ch41/overview/objectives.md
-    #         - Architecture: ch41/overview/architecture.md
-    #         - Data Sources: ch41/overview/data.md
-    #     - 41.2 Document Processing:
-    #         - PDF Extraction: ch41/documents/pdf.md
-    #         - Table Detection: ch41/documents/tables.md
-    #         - Figure Extraction: ch41/documents/figures.md
-    #         - OCR Pipeline: ch41/documents/ocr.md
-    #     - 41.3 NLP Pipeline:
-    #         - Named Entity Recognition: ch41/nlp/ner.md
-    #         - Relation Extraction: ch41/nlp/relations.md
-    #         - Sentiment Analysis: ch41/nlp/sentiment.md
-    #         - Summarization: ch41/nlp/summarization.md
-    #     - 41.4 Financial Extraction:
-    #         - Financial Statements: ch41/extraction/statements.md
-    #         - Key Metrics: ch41/extraction/metrics.md
-    #         - Risk Factors: ch41/extraction/risk.md
-    #         - Management Discussion: ch41/extraction/mda.md
-    #     - 41.5 Knowledge Graph:
-    #         - Entity Linking: ch41/knowledge/entity_linking.md
-    #         - Graph Construction: ch41/knowledge/construction.md
-    #         - Graph Queries: ch41/knowledge/queries.md
-    #     - 41.6 Question Answering:
-    #         - Retrieval: ch41/qa/retrieval.md
-    #         - Reader Model: ch41/qa/reader.md
-    #         - End-to-End: ch41/qa/end_to_end.md
-    #     - 41.7 Evaluation:
-    #         - Benchmarks: ch41/evaluation/benchmarks.md
-    #         - Human Evaluation: ch41/evaluation/human.md
-    #         - Deployment: ch41/evaluation/deployment.md
+    - 41 Financial Reports:
+        - Chapter Overview: ch41/index.md
+        - 41.1 Project Overview:
+            - Objectives: ch41/overview/objectives.md
+            - Architecture: ch41/overview/architecture.md
+            - Data Sources: ch41/overview/data.md
+        - 41.2 Document Processing:
+            - PDF Extraction: ch41/documents/pdf.md
+            - Table Detection: ch41/documents/tables.md
+            - Figure Extraction: ch41/documents/figures.md
+            - OCR Pipeline: ch41/documents/ocr.md
+        - 41.3 NLP Pipeline:
+            - Named Entity Recognition: ch41/nlp/ner.md
+            - Relation Extraction: ch41/nlp/relations.md
+            - Sentiment Analysis: ch41/nlp/sentiment.md
+            - Summarization: ch41/nlp/summarization.md
+        - 41.4 Financial Extraction:
+            - Financial Statements: ch41/extraction/statements.md
+            - Key Metrics: ch41/extraction/metrics.md
+            - Risk Factors: ch41/extraction/risk.md
+            - Management Discussion: ch41/extraction/mda.md
+        - 41.5 Knowledge Graph:
+            - Entity Linking: ch41/knowledge/entity_linking.md
+            - Graph Construction: ch41/knowledge/construction.md
+            - Graph Queries: ch41/knowledge/queries.md
+        - 41.6 Question Answering:
+            - Retrieval: ch41/qa/retrieval.md
+            - Reader Model: ch41/qa/reader.md
+            - End-to-End: ch41/qa/end_to_end.md
+        - 41.7 Evaluation:
+            - Benchmarks: ch41/evaluation/benchmarks.md
+            - Human Evaluation: ch41/evaluation/human.md
+            - Deployment: ch41/evaluation/deployment.md
 
-    # - 42 Risk Models:
-    #     - Chapter Overview: ch42/index.md
-    #     - 42.1 Project Overview:
-    #         - Objectives: ch42/overview/objectives.md
-    #         - Architecture: ch42/overview/architecture.md
-    #         - Risk Types: ch42/overview/risk_types.md
-    #     - 42.2 Market Risk:
-    #         - VaR Models: ch42/market_risk/var.md
-    #         - Expected Shortfall: ch42/market_risk/es.md
-    #         - Factor Models: ch42/market_risk/factors.md
-    #         - Stress Testing: ch42/market_risk/stress.md
-    #     - 42.3 Credit Risk:
-    #         - PD Models: ch42/credit_risk/pd.md
-    #         - LGD Models: ch42/credit_risk/lgd.md
-    #         - EAD Models: ch42/credit_risk/ead.md
-    #         - Portfolio Credit Risk: ch42/credit_risk/portfolio.md
-    #     - 42.4 Operational Risk:
-    #         - Loss Distribution: ch42/operational_risk/loss_dist.md
-    #         - Scenario Analysis: ch42/operational_risk/scenarios.md
-    #         - KRI Prediction: ch42/operational_risk/kri.md
-    #     - 42.5 Deep Learning Models:
-    #         - Neural VaR: ch42/deep_learning/neural_var.md
-    #         - Attention Risk: ch42/deep_learning/attention.md
-    #         - Graph Risk: ch42/deep_learning/graph.md
-    #         - Sequence Risk: ch42/deep_learning/sequence.md
-    #     - 42.6 Validation:
-    #         - Backtesting: ch42/validation/backtesting.md
-    #         - Model Comparison: ch42/validation/comparison.md
-    #         - Regulatory Tests: ch42/validation/regulatory.md
-    #     - 42.7 Reporting:
-    #         - Dashboards: ch42/reporting/dashboards.md
-    #         - Regulatory Reports: ch42/reporting/regulatory.md
-    #         - API: ch42/reporting/api.md
+    - 42 Risk Models:
+        - Chapter Overview: ch42/index.md
+        - 42.1 Project Overview:
+            - Objectives: ch42/overview/objectives.md
+            - Architecture: ch42/overview/architecture.md
+            - Risk Types: ch42/overview/risk_types.md
+        - 42.2 Market Risk:
+            - VaR Models: ch42/market_risk/var.md
+            - Expected Shortfall: ch42/market_risk/es.md
+            - Factor Models: ch42/market_risk/factors.md
+            - Stress Testing: ch42/market_risk/stress.md
+        - 42.3 Credit Risk:
+            - PD Models: ch42/credit_risk/pd.md
+            - LGD Models: ch42/credit_risk/lgd.md
+            - EAD Models: ch42/credit_risk/ead.md
+            - Portfolio Credit Risk: ch42/credit_risk/portfolio.md
+        - 42.4 Operational Risk:
+            - Loss Distribution: ch42/operational_risk/loss_dist.md
+            - Scenario Analysis: ch42/operational_risk/scenarios.md
+            - KRI Prediction: ch42/operational_risk/kri.md
+        - 42.5 Deep Learning Models:
+            - Neural VaR: ch42/deep_learning/neural_var.md
+            - Attention Risk: ch42/deep_learning/attention.md
+            - Graph Risk: ch42/deep_learning/graph.md
+            - Sequence Risk: ch42/deep_learning/sequence.md
+        - 42.6 Validation:
+            - Backtesting: ch42/validation/backtesting.md
+            - Model Comparison: ch42/validation/comparison.md
+            - Regulatory Tests: ch42/validation/regulatory.md
+        - 42.7 Reporting:
+            - Dashboards: ch42/reporting/dashboards.md
+            - Regulatory Reports: ch42/reporting/regulatory.md
+            - API: ch42/reporting/api.md
 
-    # - 43 Trading Agent:
-    #     - Chapter Overview: ch43/index.md
-    #     - 43.1 Project Overview:
-    #         - Objectives: ch43/overview/objectives.md
-    #         - Formulation: ch43/overview/formulation.md
-    #         - Baselines: ch43/overview/baselines.md
-    #     - 43.2 Environment:
-    #         - MDP Design: ch43/environment/mdp.md
-    #         - State Space: ch43/environment/state_space.md
-    #         - Action Space: ch43/environment/action_space.md
-    #         - Reward Design: ch43/environment/reward.md
-    #         - Market Simulator: ch43/environment/simulator.md
-    #     - 43.3 Agent Architecture:
-    #         - Network Design: ch43/agent/architecture.md
-    #         - Attention Mechanisms: ch43/agent/attention.md
-    #         - Risk-Aware Policies: ch43/agent/risk_aware.md
-    #         - Multi-Asset Handling: ch43/agent/multi_asset.md
-    #     - 43.4 Training:
-    #         - Data Pipeline: ch43/training/data.md
-    #         - Training Loop: ch43/training/loop.md
-    #         - Curriculum Learning: ch43/training/curriculum.md
-    #         - Regularization: ch43/training/regularization.md
-    #         - Hyperparameter Tuning: ch43/training/hyperparameters.md
-    #     - 43.5 Risk Management:
-    #         - Position Constraints: ch43/risk/constraints.md
-    #         - Drawdown Control: ch43/risk/drawdown.md
-    #         - Correlation Management: ch43/risk/correlation.md
-    #         - Regime Adaptation: ch43/risk/regime.md
-    #     - 43.6 Evaluation:
-    #         - Backtesting Framework: ch43/evaluation/backtesting.md
-    #         - Out-of-Sample: ch43/evaluation/oos.md
-    #         - Transaction Costs: ch43/evaluation/costs.md
-    #         - Paper Trading: ch43/evaluation/paper.md
-    #     - 43.7 Production:
-    #         - Live Integration: ch43/production/live.md
-    #         - Monitoring: ch43/production/monitoring.md
-    #         - Fail-Safes: ch43/production/failsafes.md
+    - 43 Trading Agent:
+        - Chapter Overview: ch43/index.md
+        - 43.1 Project Overview:
+            - Objectives: ch43/overview/objectives.md
+            - Formulation: ch43/overview/formulation.md
+            - Baselines: ch43/overview/baselines.md
+        - 43.2 Environment:
+            - MDP Design: ch43/environment/mdp.md
+            - State Space: ch43/environment/state_space.md
+            - Action Space: ch43/environment/action_space.md
+            - Reward Design: ch43/environment/reward.md
+            - Market Simulator: ch43/environment/simulator.md
+        - 43.3 Agent Architecture:
+            - Network Design: ch43/agent/architecture.md
+            - Attention Mechanisms: ch43/agent/attention.md
+            - Risk-Aware Policies: ch43/agent/risk_aware.md
+            - Multi-Asset Handling: ch43/agent/multi_asset.md
+        - 43.4 Training:
+            - Data Pipeline: ch43/training/data.md
+            - Training Loop: ch43/training/loop.md
+            - Curriculum Learning: ch43/training/curriculum.md
+            - Regularization: ch43/training/regularization.md
+            - Hyperparameter Tuning: ch43/training/hyperparameters.md
+        - 43.5 Risk Management:
+            - Position Constraints: ch43/risk/constraints.md
+            - Drawdown Control: ch43/risk/drawdown.md
+            - Correlation Management: ch43/risk/correlation.md
+            - Regime Adaptation: ch43/risk/regime.md
+        - 43.6 Evaluation:
+            - Backtesting Framework: ch43/evaluation/backtesting.md
+            - Out-of-Sample: ch43/evaluation/oos.md
+            - Transaction Costs: ch43/evaluation/costs.md
+            - Paper Trading: ch43/evaluation/paper.md
+        - 43.7 Production:
+            - Live Integration: ch43/production/live.md
+            - Monitoring: ch43/production/monitoring.md
+            - Fail-Safes: ch43/production/failsafes.md
 
-    # - 44 Financial Assistant:
-    #     - Chapter Overview: ch44/index.md
-    #     - 44.1 Project Overview:
-    #         - Objectives: ch44/overview/objectives.md
-    #         - Architecture: ch44/overview/architecture.md
-    #         - User Stories: ch44/overview/user_stories.md
-    #     - 44.2 Language Understanding:
-    #         - Intent Classification: ch44/language/intent.md
-    #         - Slot Filling: ch44/language/slots.md
-    #         - Dialogue Management: ch44/language/dialogue.md
-    #         - Context Handling: ch44/language/context.md
-    #     - 44.3 Vision Processing:
-    #         - Chart Understanding: ch44/vision/charts.md
-    #         - Document Analysis: ch44/vision/documents.md
-    #         - Screenshot Parsing: ch44/vision/screenshots.md
-    #     - 44.4 Multi-Modal Fusion:
-    #         - Early Fusion: ch44/fusion/early.md
-    #         - Late Fusion: ch44/fusion/late.md
-    #         - Cross-Attention: ch44/fusion/cross_attention.md
-    #     - 44.5 Knowledge Integration:
-    #         - Financial Knowledge Base: ch44/knowledge/kb.md
-    #         - Retrieval Augmentation: ch44/knowledge/rag.md
-    #         - Real-Time Data: ch44/knowledge/realtime.md
-    #     - 44.6 Response Generation:
-    #         - Template Generation: ch44/generation/templates.md
-    #         - Neural Generation: ch44/generation/neural.md
-    #         - Visualization Generation: ch44/generation/visualization.md
-    #     - 44.7 Evaluation:
-    #         - Task Completion: ch44/evaluation/task.md
-    #         - User Satisfaction: ch44/evaluation/user.md
-    #         - Safety Testing: ch44/evaluation/safety.md
-    #     - 44.8 Deployment:
-    #         - API Design: ch44/deployment/api.md
-    #         - Latency Optimization: ch44/deployment/latency.md
-    #         - Scaling: ch44/deployment/scaling.md
+    - 44 Financial Assistant:
+        - Chapter Overview: ch44/index.md
+        - 44.1 Project Overview:
+            - Objectives: ch44/overview/objectives.md
+            - Architecture: ch44/overview/architecture.md
+            - User Stories: ch44/overview/user_stories.md
+        - 44.2 Language Understanding:
+            - Intent Classification: ch44/language/intent.md
+            - Slot Filling: ch44/language/slots.md
+            - Dialogue Management: ch44/language/dialogue.md
+            - Context Handling: ch44/language/context.md
+        - 44.3 Vision Processing:
+            - Chart Understanding: ch44/vision/charts.md
+            - Document Analysis: ch44/vision/documents.md
+            - Screenshot Parsing: ch44/vision/screenshots.md
+        - 44.4 Multi-Modal Fusion:
+            - Early Fusion: ch44/fusion/early.md
+            - Late Fusion: ch44/fusion/late.md
+            - Cross-Attention: ch44/fusion/cross_attention.md
+        - 44.5 Knowledge Integration:
+            - Financial Knowledge Base: ch44/knowledge/kb.md
+            - Retrieval Augmentation: ch44/knowledge/rag.md
+            - Real-Time Data: ch44/knowledge/realtime.md
+        - 44.6 Response Generation:
+            - Template Generation: ch44/generation/templates.md
+            - Neural Generation: ch44/generation/neural.md
+            - Visualization Generation: ch44/generation/visualization.md
+        - 44.7 Evaluation:
+            - Task Completion: ch44/evaluation/task.md
+            - User Satisfaction: ch44/evaluation/user.md
+            - Safety Testing: ch44/evaluation/safety.md
+        - 44.8 Deployment:
+            - API Design: ch44/deployment/api.md
+            - Latency Optimization: ch44/deployment/latency.md
+            - Scaling: ch44/deployment/scaling.md
 
-    # - 45 Market Simulator:
-    #     - Chapter Overview: ch45/index.md
-    #     - 45.1 Project Overview:
-    #         - Objectives: ch45/overview/objectives.md
-    #         - Architecture: ch45/overview/architecture.md
-    #         - Stylized Facts: ch45/overview/stylized_facts.md
-    #     - 45.2 Market Microstructure:
-    #         - Order Book Dynamics: ch45/microstructure/orderbook.md
-    #         - Price Formation: ch45/microstructure/price.md
-    #         - Liquidity Modeling: ch45/microstructure/liquidity.md
-    #         - Market Impact: ch45/microstructure/impact.md
-    #     - 45.3 Agent-Based Models:
-    #         - Agent Types: ch45/agents/types.md
-    #         - Behavioral Rules: ch45/agents/rules.md
-    #         - Learning Agents: ch45/agents/learning.md
-    #         - Interaction Dynamics: ch45/agents/interaction.md
-    #     - 45.4 Generative Models:
-    #         - GAN Price Generation: ch45/generative/gan.md
-    #         - VAE Market States: ch45/generative/vae.md
-    #         - Diffusion Markets: ch45/generative/diffusion.md
-    #         - Temporal Models: ch45/generative/temporal.md
-    #     - 45.5 Calibration:
-    #         - Moment Matching: ch45/calibration/moments.md
-    #         - Distribution Matching: ch45/calibration/distribution.md
-    #         - Neural Calibration: ch45/calibration/neural.md
-    #     - 45.6 Validation:
-    #         - Statistical Tests: ch45/validation/statistical.md
-    #         - Stylized Fact Verification: ch45/validation/stylized.md
-    #         - Out-of-Sample: ch45/validation/oos.md
-    #     - 45.7 Applications:
-    #         - Strategy Testing: ch45/applications/strategy.md
-    #         - Stress Scenarios: ch45/applications/stress.md
-    #         - Risk Estimation: ch45/applications/risk.md
-    #         - Regulatory Simulation: ch45/applications/regulatory.md
+    - 45 Market Simulator:
+        - Chapter Overview: ch45/index.md
+        - 45.1 Project Overview:
+            - Objectives: ch45/overview/objectives.md
+            - Architecture: ch45/overview/architecture.md
+            - Stylized Facts: ch45/overview/stylized_facts.md
+        - 45.2 Market Microstructure:
+            - Order Book Dynamics: ch45/microstructure/orderbook.md
+            - Price Formation: ch45/microstructure/price.md
+            - Liquidity Modeling: ch45/microstructure/liquidity.md
+            - Market Impact: ch45/microstructure/impact.md
+        - 45.3 Agent-Based Models:
+            - Agent Types: ch45/agents/types.md
+            - Behavioral Rules: ch45/agents/rules.md
+            - Learning Agents: ch45/agents/learning.md
+            - Interaction Dynamics: ch45/agents/interaction.md
+        - 45.4 Generative Models:
+            - GAN Price Generation: ch45/generative/gan.md
+            - VAE Market States: ch45/generative/vae.md
+            - Diffusion Markets: ch45/generative/diffusion.md
+            - Temporal Models: ch45/generative/temporal.md
+        - 45.5 Calibration:
+            - Moment Matching: ch45/calibration/moments.md
+            - Distribution Matching: ch45/calibration/distribution.md
+            - Neural Calibration: ch45/calibration/neural.md
+        - 45.6 Validation:
+            - Statistical Tests: ch45/validation/statistical.md
+            - Stylized Fact Verification: ch45/validation/stylized.md
+            - Out-of-Sample: ch45/validation/oos.md
+        - 45.7 Applications:
+            - Strategy Testing: ch45/applications/strategy.md
+            - Stress Scenarios: ch45/applications/stress.md
+            - Risk Estimation: ch45/applications/risk.md
+            - Regulatory Simulation: ch45/applications/regulatory.md
 
-#   - Appendix - Model Impl:
+  - Appendix - Model Impl:
 
-#     - A1 Classic CNNs:
-#         - Overview: appendix/cnn/index.md
-#         - LeNet: appendix/cnn/lenet.py
-#         - AlexNet: appendix/cnn/alex_net.py
-#         - VGGNet: appendix/cnn/vgg_net.py
-#         - GoogLeNet: appendix/cnn/google_net_inception.py
-#         - Inception v3: appendix/cnn/inception_v3.py
-#         - ResNet: appendix/cnn/resnet.py
-#         - ResNeXt: appendix/cnn/res_next.py
-#         - DenseNet: appendix/cnn/densenet.py
-#         - SENet: appendix/cnn/se_net.py
-#         - CBAM: appendix/cnn/cbam.py
-#         - EfficientNet: appendix/cnn/efficientnet.py
-#         - EfficientNet v2: appendix/cnn/efficient_net_v2.py
-#         - ConvNeXt: appendix/cnn/convnext.py
-#         - ConvNeXt v2: appendix/cnn/convnext_v2.py
-#         - SqueezeNet: appendix/cnn/squeeze_net.py
-#         - ShuffleNet: appendix/cnn/shuffle_net.py
-#         - MobileNet v2: appendix/cnn/mobilenet_v2.py
-#         - NASNet: appendix/cnn/nas_net.py
-#         - MixNet: appendix/cnn/mixnet.py
-#         - GhostNet: appendix/cnn/ghost_net.py
-#         - RegNet: appendix/cnn/regnet.py
-#         - ResNeSt: appendix/cnn/res_nest.py
-#         - PyramidNet: appendix/cnn/pyramidnet.py
-#         - Xception: appendix/cnn/xception.py
-#         - HRNet: appendix/cnn/hrnet.py
-#         - CoordConv: appendix/cnn/coordconv.py
-#         - CapsuleNet: appendix/cnn/capsule_net.py
+    - A1 Classic CNNs:
+        - Overview: appendix/cnn/index.md
+        - LeNet: appendix/cnn/lenet.py
+        - AlexNet: appendix/cnn/alex_net.py
+        - VGGNet: appendix/cnn/vgg_net.py
+        - GoogLeNet: appendix/cnn/google_net_inception.py
+        - Inception v3: appendix/cnn/inception_v3.py
+        - ResNet: appendix/cnn/resnet.py
+        - ResNeXt: appendix/cnn/res_next.py
+        - DenseNet: appendix/cnn/densenet.py
+        - SENet: appendix/cnn/se_net.py
+        - CBAM: appendix/cnn/cbam.py
+        - EfficientNet: appendix/cnn/efficientnet.py
+        - EfficientNet v2: appendix/cnn/efficient_net_v2.py
+        - ConvNeXt: appendix/cnn/convnext.py
+        - ConvNeXt v2: appendix/cnn/convnext_v2.py
+        - SqueezeNet: appendix/cnn/squeeze_net.py
+        - ShuffleNet: appendix/cnn/shuffle_net.py
+        - MobileNet v2: appendix/cnn/mobilenet_v2.py
+        - NASNet: appendix/cnn/nas_net.py
+        - MixNet: appendix/cnn/mixnet.py
+        - GhostNet: appendix/cnn/ghost_net.py
+        - RegNet: appendix/cnn/regnet.py
+        - ResNeSt: appendix/cnn/res_nest.py
+        - PyramidNet: appendix/cnn/pyramidnet.py
+        - Xception: appendix/cnn/xception.py
+        - HRNet: appendix/cnn/hrnet.py
+        - CoordConv: appendix/cnn/coordconv.py
+        - CapsuleNet: appendix/cnn/capsule_net.py
 
-#     - A2 Vision Transformers:
-#         - Overview: appendix/vit/index.md
-#         - ViT: appendix/vit/vision_transformer_vit.py
-#         - DeiT: appendix/vit/deit.py
-#         - Swin Transformer: appendix/vit/swin_transformer.py
-#         - BEiT: appendix/vit/beit.py
-#         - MAE: appendix/vit/mae.py
-#         - CLIP: appendix/vit/clip.py
+    - A2 Vision Transformers:
+        - Overview: appendix/vit/index.md
+        - ViT: appendix/vit/vision_transformer_vit.py
+        - DeiT: appendix/vit/deit.py
+        - Swin Transformer: appendix/vit/swin_transformer.py
+        - BEiT: appendix/vit/beit.py
+        - MAE: appendix/vit/mae.py
+        - CLIP: appendix/vit/clip.py
 
-#     - A3 Segmentation Models:
-#         - Overview: appendix/segmentation/index.md
-#         - FCN: appendix/segmentation/fcn.py
-#         - U-Net: appendix/segmentation/u_net.py
-#         - DeepLab v3+: appendix/segmentation/deeplabv3.py
-#         - PSPNet: appendix/segmentation/pspnet.py
-#         - Mask R-CNN: appendix/segmentation/mask_rcnn.py
-#         - SegFormer: appendix/segmentation/segformer.py
+    - A3 Segmentation Models:
+        - Overview: appendix/segmentation/index.md
+        - FCN: appendix/segmentation/fcn.py
+        - U-Net: appendix/segmentation/u_net.py
+        - DeepLab v3+: appendix/segmentation/deeplabv3.py
+        - PSPNet: appendix/segmentation/pspnet.py
+        - Mask R-CNN: appendix/segmentation/mask_rcnn.py
+        - SegFormer: appendix/segmentation/segformer.py
 
-#     - A4 Detection Models:
-#         - Overview: appendix/detection/index.md
-#         - Faster R-CNN: appendix/detection/faster_rcnn.py
-#         - YOLO v3: appendix/detection/yolo_v3.py
-#         - SSD: appendix/detection/ssd.py
-#         - RetinaNet: appendix/detection/retinanet.py
-#         - DETR: appendix/detection/detr.py
-#         - DINO: appendix/detection/dino.py
+    - A4 Detection Models:
+        - Overview: appendix/detection/index.md
+        - Faster R-CNN: appendix/detection/faster_rcnn.py
+        - YOLO v3: appendix/detection/yolo_v3.py
+        - SSD: appendix/detection/ssd.py
+        - RetinaNet: appendix/detection/retinanet.py
+        - DETR: appendix/detection/detr.py
+        - DINO: appendix/detection/dino.py
 
-#     - A5 Sequence Models:
-#         - Overview: appendix/sequence/index.md
-#         - Vanilla RNN: appendix/sequence/rnn.py
-#         - LSTM: appendix/sequence/lstm.py
-#         - GRU: appendix/sequence/gru.py
-#         - Bidirectional: appendix/sequence/bidirectional.py
-#         - Seq2Seq: appendix/sequence/seq2seq.py
-#         - Attention Seq2Seq: appendix/sequence/attention_seq2seq.py
+    - A5 Sequence Models:
+        - Overview: appendix/sequence/index.md
+        - Vanilla RNN: appendix/sequence/rnn.py
+        - LSTM: appendix/sequence/lstm.py
+        - GRU: appendix/sequence/gru.py
+        - Bidirectional: appendix/sequence/bidirectional.py
+        - Seq2Seq: appendix/sequence/seq2seq.py
+        - Attention Seq2Seq: appendix/sequence/attention_seq2seq.py
 
-#     - A6 Transformers:
-#         - Overview: appendix/transformers/index.md
-#         - Original Transformer: appendix/transformers/transformer.py
-#         - BERT: appendix/transformers/bert.py
-#         - GPT Family: appendix/transformers/gpt.py
-#         - T5: appendix/transformers/t5.py
-#         - RoBERTa: appendix/transformers/roberta.py
-#         - ALBERT: appendix/transformers/albert.py
-#         - DistilBERT: appendix/transformers/distilbert.py
-#         - Longformer: appendix/transformers/longformer.py
-#         - LLaMA: appendix/transformers/llama.py
-#         - Wav2Vec: appendix/transformers/wav2vec.py
+    - A6 Transformers:
+        - Overview: appendix/transformers/index.md
+        - Original Transformer: appendix/transformers/transformer.py
+        - BERT: appendix/transformers/bert.py
+        - GPT Family: appendix/transformers/gpt.py
+        - T5: appendix/transformers/t5.py
+        - RoBERTa: appendix/transformers/roberta.py
+        - ALBERT: appendix/transformers/albert.py
+        - DistilBERT: appendix/transformers/distilbert.py
+        - Longformer: appendix/transformers/longformer.py
+        - LLaMA: appendix/transformers/llama.py
+        - Wav2Vec: appendix/transformers/wav2vec.py
 
-#     - A7 Generative Models:
-#         - Overview: appendix/generative/index.md
-#         - Autoencoder: appendix/generative/autoencoder.py
-#         - VAE: appendix/generative/vae.py
-#         - Beta-VAE: appendix/generative/beta_vae.py
-#         - VQ-VAE: appendix/generative/vqvae.py
-#         - GAN: appendix/generative/gan.py
-#         - DCGAN: appendix/generative/dcgan.py
-#         - StyleGAN: appendix/generative/stylegan.py
-#         - Pix2Pix: appendix/generative/pix2pix.py
-#         - CycleGAN: appendix/generative/cyclegan.py
-#         - DDPM: appendix/generative/ddpm.py
-#         - Stable Diffusion: appendix/generative/stable_diffusion.py
-#         - RealNVP: appendix/generative/realnvp.py
-#         - Glow: appendix/generative/glow.py
-#         - Neural ODE: appendix/generative/neural_ode.py
+    - A7 Generative Models:
+        - Overview: appendix/generative/index.md
+        - Autoencoder: appendix/generative/autoencoder.py
+        - VAE: appendix/generative/vae.py
+        - Beta-VAE: appendix/generative/beta_vae.py
+        - VQ-VAE: appendix/generative/vqvae.py
+        - GAN: appendix/generative/gan.py
+        - DCGAN: appendix/generative/dcgan.py
+        - StyleGAN: appendix/generative/stylegan.py
+        - Pix2Pix: appendix/generative/pix2pix.py
+        - CycleGAN: appendix/generative/cyclegan.py
+        - DDPM: appendix/generative/ddpm.py
+        - Stable Diffusion: appendix/generative/stable_diffusion.py
+        - RealNVP: appendix/generative/realnvp.py
+        - Glow: appendix/generative/glow.py
+        - Neural ODE: appendix/generative/neural_ode.py
 
-#     - A8 Graph Neural Networks:
-#         - Overview: appendix/gnn/index.md
-#         - GCN: appendix/gnn/gcn.py
-#         - GAT: appendix/gnn/gat.py
-#         - GraphSAGE: appendix/gnn/graphsage.py
-#         - GIN: appendix/gnn/gin.py
-#         - Message Passing: appendix/gnn/mpnn.py
+    - A8 Graph Neural Networks:
+        - Overview: appendix/gnn/index.md
+        - GCN: appendix/gnn/gcn.py
+        - GAT: appendix/gnn/gat.py
+        - GraphSAGE: appendix/gnn/graphsage.py
+        - GIN: appendix/gnn/gin.py
+        - Message Passing: appendix/gnn/mpnn.py
 
-#     - A9 Reinforcement Learning:
-#         - Overview: appendix/rl/index.md
-#         - DQN: appendix/rl/dqn.py
-#         - Double DQN: appendix/rl/double_dqn.py
-#         - Dueling DQN: appendix/rl/dueling_dqn.py
-#         - A2C/A3C: appendix/rl/a2c_a3c.py
-#         - PPO: appendix/rl/ppo.py
-#         - SAC: appendix/rl/sac.py
-#         - TD3: appendix/rl/td3.py
+    - A9 Reinforcement Learning:
+        - Overview: appendix/rl/index.md
+        - DQN: appendix/rl/dqn.py
+        - Double DQN: appendix/rl/double_dqn.py
+        - Dueling DQN: appendix/rl/dueling_dqn.py
+        - A2C/A3C: appendix/rl/a2c_a3c.py
+        - PPO: appendix/rl/ppo.py
+        - SAC: appendix/rl/sac.py
+        - TD3: appendix/rl/td3.py
 
-#     - A10 Utility Modules:
-#         - Overview: appendix/utils/index.md
-#         - Attention Mechanisms: appendix/utils/attention.py
-#         - Normalization Layers: appendix/utils/normalization.py
-#         - Activation Functions: appendix/utils/activations.py
-#         - Positional Encodings: appendix/utils/positional.py
-#         - Loss Functions: appendix/utils/losses.py
-#         - Learning Rate Schedulers: appendix/utils/schedulers.py
-#         - Data Augmentation: appendix/utils/augmentation.py
+    - A10 Utility Modules:
+        - Overview: appendix/utils/index.md
+        - Attention Mechanisms: appendix/utils/attention.py
+        - Normalization Layers: appendix/utils/normalization.py
+        - Activation Functions: appendix/utils/activations.py
+        - Positional Encodings: appendix/utils/positional.py
+        - Loss Functions: appendix/utils/losses.py
+        - Learning Rate Schedulers: appendix/utils/schedulers.py
+        - Data Augmentation: appendix/utils/augmentation.py
 
 plugins:
   - search
