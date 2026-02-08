@@ -1413,39 +1413,66 @@ nav:
 
     - 33 Value-Based Deep RL:
         - Chapter Overview: ch33/index.md
+        - Chapter Overview Code: ch33/index.py
         - 33.1 DQN:
             - DQN Fundamentals: ch33/dqn/fundamentals.md
+            - DQN Fundamentals Code: ch33/dqn/fundamentals.py
             - Experience Replay: ch33/dqn/experience_replay.md
+            - Experience Replay Code: ch33/dqn/experience_replay.py
             - Target Networks: ch33/dqn/target_networks.md
+            - Target Networks Code: ch33/dqn/target_networks.py
             - DQN Implementation: ch33/dqn/implementation.md
+            - DQN Implementation Code: ch33/dqn/implementation.py
             - Hyperparameters: ch33/dqn/hyperparameters.md
+            - Hyperparameters Code: ch33/dqn/hyperparameters.py
         - 33.2 DQN Improvements:
             - Double DQN: ch33/improvements/double_dqn.md
+            - Double DQN Code: ch33/improvements/double_dqn.py
             - Dueling DQN: ch33/improvements/dueling_dqn.md
+            - Dueling DQN Code: ch33/improvements/dueling_dqn.py
             - Prioritized Replay: ch33/improvements/prioritized_replay.md
+            - Prioritized Replay Code: ch33/improvements/prioritized_replay.py
             - Noisy Networks: ch33/improvements/noisy_networks.md
+            - Noisy Networks Code: ch33/improvements/noisy_networks.py
             - Distributional RL: ch33/improvements/distributional.md
+            - Distributional RL Code: ch33/improvements/distributional.py
             - Rainbow: ch33/improvements/rainbow.md
+            - Rainbow Code: ch33/improvements/rainbow.py
         - 33.3 Multi-Step Learning:
             - N-Step Returns: ch33/multi_step/n_step_returns.md
+            - N-Step Returns Code: ch33/multi_step/n_step_returns.py
             - Retrace: ch33/multi_step/retrace.md
+            - Retrace Code: ch33/multi_step/retrace.py
             - V-Trace: ch33/multi_step/v_trace.md
+            - V-Trace Code: ch33/multi_step/v_trace.py
         - 33.4 Continuous Actions:
             - NAF: ch33/continuous/naf.md
+            - NAF Code: ch33/continuous/naf.py
             - QT-Opt: ch33/continuous/qt_opt.md
+            - QT-Opt Code: ch33/continuous/qt_opt.py
         - 33.5 Offline RL:
             - Offline RL Fundamentals: ch33/offline/fundamentals.md
+            - Offline RL Fundamentals Code: ch33/offline/fundamentals.py
             - CQL: ch33/offline/cql.md
+            - CQL Code: ch33/offline/cql.py
             - BCQ: ch33/offline/bcq.md
+            - BCQ Code: ch33/offline/bcq.py
             - IQL: ch33/offline/iql.md
+            - IQL Code: ch33/offline/iql.py
         - 33.6 Evaluation:
             - Training Curves: ch33/evaluation/training_curves.md
+            - Training Curves Code: ch33/evaluation/training_curves.py
             - Benchmarks: ch33/evaluation/benchmarks.md
+            - Benchmarks Code: ch33/evaluation/benchmarks.py
             - Statistical Testing: ch33/evaluation/statistical.md
+            - Statistical Testing Code: ch33/evaluation/statistical.py
         - 33.7 Finance Applications:
             - Order Execution: ch33/finance/order_execution.md
+            - Order Execution Code: ch33/finance/order_execution.py
             - Market Making: ch33/finance/market_making.md
+            - Market Making Code: ch33/finance/market_making.py
             - Discrete Trading: ch33/finance/discrete_trading.md
+            - Discrete Trading Code: ch33/finance/discrete_trading.py
 
     - 34 Policy-Based Deep RL:
         - Chapter Overview: ch34/index.md
