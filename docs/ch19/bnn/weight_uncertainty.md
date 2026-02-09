@@ -5,7 +5,7 @@
 The central challenge of Bayesian neural networks is specifying meaningful priors over weights and performing inference over the resulting posterior. This section covers prior specification, the geometry of neural network weight spaces, and the key inference approaches.
 
 !!! note "Complete Coverage"
-    For comprehensive implementations and benchmarks, see **[Ch33: Prior Specification](../../ch33/model_uncertainty/bayesian_methods/prior_weights.md)** and **[Ch33: Posterior Inference](../../ch33/model_uncertainty/bayesian_methods/posterior_inference.md)**.
+    For comprehensive implementations and benchmarks, see **[Ch39: Prior Specification](../../ch39/bayesian_methods/priors.md)** and **[Ch39: Posterior Inference](../../ch39/bayesian_methods/posterior.md)**.
 
 ---
 

@@ -5,7 +5,7 @@
 **Bayes by Backprop** (Blundell et al., 2015) is a practical algorithm for training Bayesian neural networks using variational inference. It learns a distribution over weights by optimizing the Evidence Lower Bound (ELBO) through standard backpropagation, enabled by the **reparameterization trick**.
 
 !!! note "Complete Coverage"
-    For advanced topics including local reparameterization, normalizing flows over weights, and comprehensive benchmarks, see **[Ch33: Bayes by Backprop](../../ch33/model_uncertainty/bayesian_methods/bayes_backprop.md)**.
+    For advanced topics including local reparameterization, normalizing flows over weights, and comprehensive benchmarks, see **[Ch39: Variational BNNs](../../ch39/bayesian_methods/variational_bnn.md)**.
 
 ---
 

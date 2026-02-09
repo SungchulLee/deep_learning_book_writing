@@ -5,7 +5,7 @@
 **Bayesian neural networks (BNNs)** extend standard neural networks by placing probability distributions over weights rather than learning point estimates. This enables principled uncertainty quantification, distinguishing between what the model doesn't know about the data (aleatoric uncertainty) and what the model doesn't know about itself (epistemic uncertainty).
 
 !!! note "Comprehensive Coverage"
-    For full implementation details, benchmarks, and advanced methods (SWAG, Laplace, deep ensembles), see **[Ch33: Model Uncertainty — Bayesian Methods](../../ch33/model_uncertainty/bayesian_methods/overview.md)**.
+    For full implementation details, benchmarks, and advanced methods (SWAG, Laplace, deep ensembles), see **[Ch39: Model Uncertainty — Bayesian Methods](../../ch39/bayesian_methods/fundamentals.md)**.
 
 ---
 
