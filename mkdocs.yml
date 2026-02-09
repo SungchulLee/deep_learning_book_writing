@@ -782,7 +782,7 @@ nav:
             - Self-Consistency: ch15/prompting/self_consistency.md
             - Prompt Engineering: ch15/prompting/prompt_engineering.md
             - Prompt Optimization: ch15/prompting/prompt_optimization.md
-        - 15.4 Retrieval-Augmented Generation:
+        - 15.4 RAG:
             - Overview: ch15/rag/rag_overview.md
             - Dense Retrieval: ch15/rag/dense_retrieval.md
             - Vector Databases: ch15/rag/vector_databases.md

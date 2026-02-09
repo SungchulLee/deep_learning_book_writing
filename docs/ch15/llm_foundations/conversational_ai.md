@@ -1,4 +1,4 @@
-# 6.11.1 Introduction to Conversational AI
+# 15.1.9 Introduction to Conversational AI
 
 ## Definition and Scope
 
@@ -12,7 +12,7 @@ What distinguishes conversational AI from traditional AI systems is its reliance
 - **Natural language generation (NLG)** that produces fluent, contextually appropriate text from internal representations.
 
 !!! note "Relation to Other Chapters"
-    The NLP foundations underlying conversational AI are covered in detail in [Chapter 5: Sequence Models](../../ch05/index.md) (RNNs, LSTMs, attention) and [Chapter 3: Transformer Architecture](../../ch03/index.md). The language modeling objectives are formalized in [Section 6.1: Language Model Fundamentals](../language_models/fundamentals.md).
+    The NLP foundations underlying conversational AI are covered in detail in [Chapter 5: Sequence Models](../../ch05/index.md) (RNNs, LSTMs, attention) and [Chapter 3: Transformer Architecture](../../ch03/index.md). The language modeling objectives are formalized in [Section 15.1: LLM Foundations](../llm_foundations/llm_overview.md).
 
 ## Historical Development
 
@@ -66,6 +66,4 @@ $$
 
 This factorization is the foundation of all GPT-family models and is discussed in full mathematical detail in [Section 6.1](../language_models/fundamentals.md).
 
----
 
-**Next:** [6.11.2 Understanding ChatGPT — Origins and Development](origins_development.md)

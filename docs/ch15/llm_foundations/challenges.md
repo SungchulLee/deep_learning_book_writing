@@ -43,7 +43,7 @@ Types of hallucination include:
 
 Mitigation strategies include:
 
-- **Retrieval augmentation (RAG):** Grounding generation in retrieved documents reduces but does not eliminate hallucination. See [Section 6.8: RAG Fundamentals](../rag/fundamentals.md).
+- **Retrieval augmentation (RAG):** Grounding generation in retrieved documents reduces but does not eliminate hallucination. See [Section 15.4: RAG Overview](../rag/rag_overview.md).
 - **RLHF alignment:** Training the model to express uncertainty ("I'm not sure about this") rather than fabricating answers.
 - **Self-consistency checks:** Generating multiple responses and checking for agreement as a proxy for factual reliability.
 - **Citation generation:** Training the model to produce verifiable citations alongside claims, enabling user verification.
@@ -113,6 +113,4 @@ Users interacting with ChatGPT may not always recognize they are communicating w
 !!! warning "Responsible Deployment"
     Organizations deploying ChatGPT should implement clear AI labeling, content moderation systems, human escalation paths, and regular auditing. The EU AI Act, emerging US regulations, and other governance frameworks are establishing legal requirements for transparency, risk assessment, and accountability in AI deployment.
 
----
 
-**Next:** [6.11.7 Evaluation and Metrics](evaluation.md)
