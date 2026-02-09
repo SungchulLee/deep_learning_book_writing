@@ -48,7 +48,7 @@ Key training details for large GPT models:
 - **Distributed training:** Model parallelism (tensor + pipeline) across hundreds or thousands of GPUs
 
 !!! info "Compute Scale"
-    GPT-3 (175B parameters) required approximately 3,640 petaflop/s-days of compute. At current hardware prices, this represents millions of dollars in training cost — a key reason why only a small number of organizations can train frontier language models from scratch. See [Section 6.1: Scaling Laws](../language_models/fundamentals.md) for the compute-optimal training analysis.
+    GPT-3 (175B parameters) required approximately 3,640 petaflop/s-days of compute. At current hardware prices, this represents millions of dollars in training cost — a key reason why only a small number of organizations can train frontier language models from scratch. See [Section 15.2: Scaling Laws](../scaling/scaling_overview.md) for the compute-optimal training analysis.
 
 ## Phase 2: Alignment
 
@@ -113,6 +113,4 @@ Bias mitigation is an ongoing concern throughout both pre-training and alignment
 !!! note "Cross-Reference"
     For a comprehensive treatment of bias and fairness in machine learning, including formal definitions of fairness criteria (demographic parity, equalized odds, calibration) and debiasing techniques, see [Chapter 30: Bias and Fairness](../../ch30/index.md).
 
----
 
-**Next:** [6.11.5 Applications of ChatGPT](applications.md)

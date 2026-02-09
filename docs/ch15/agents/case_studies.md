@@ -86,6 +86,4 @@ All three deployments required ongoing monitoring and adjustment after launch. U
 !!! tip "Deployment Checklist"
     Before deploying conversational AI in production: (1) implement robust escalation paths, (2) ground the model in domain-specific knowledge sources, (3) conduct domain-specific bias audits, (4) label AI interactions transparently, (5) establish continuous monitoring and retraining pipelines, and (6) define clear accountability frameworks for AI-generated content.
 
----
 
-**Next:** [6.11.10 Hands-On Exercises](exercises.md)
