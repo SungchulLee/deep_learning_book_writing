@@ -86,17 +86,17 @@ After completing this chapter, you will be able to:
 | Section | Topic | Key Concepts |
 |---------|-------|-------------|
 | **29.1** | **Foundations** | |
-| 29.1.1 | [RecSys Overview](recsys_overview.md) | Problem formulation, feedback types, taxonomy, design considerations |
-| 29.1.2 | [Collaborative Filtering](collaborative_filtering.md) | User-based vs item-based CF, neighborhood methods, sparsity |
-| 29.1.3 | [Matrix Factorization](matrix_factorization.md) | Low-rank approximation, SVD connection, bias decomposition, embeddings |
+| 29.1.1 | [RecSys Overview](./foundations/recsys_overview.md) | Problem formulation, feedback types, taxonomy, design considerations |
+| 29.1.2 | [Collaborative Filtering](./foundations/collaborative_filtering.md) | User-based vs item-based CF, neighborhood methods, sparsity |
+| 29.1.3 | [Matrix Factorization](./foundations/matrix_factorization.md) | Low-rank approximation, SVD connection, bias decomposition, embeddings |
 | **29.2** | **Neural Methods** | |
-| 29.2.1 | [Neural Collaborative Filtering](ncf.md) | MLP over embeddings, nonlinear interactions, NeuMF |
-| 29.2.2 | [Content-Based Filtering](content_based.md) | Item features, user profiles, TF-IDF, neural feature extraction |
-| 29.2.3 | [Hybrid Methods](hybrid.md) | Combining CF and content, weighted hybrids, feature augmentation |
-| 29.2.4 | [Sequential Recommendations](sequential.md) | Session-based models, GRU4Rec, SASRec, Transformer recommenders |
-| 29.2.5 | [Embedding-Based RecSys](embedding_recsys.md) | Two-tower models, ANN retrieval, contrastive learning |
+| 29.2.1 | [Neural Collaborative Filtering](./neural_methods/ncf.md) | MLP over embeddings, nonlinear interactions, NeuMF |
+| 29.2.2 | [Content-Based Filtering](./neural_methods/content_based.md) | Item features, user profiles, TF-IDF, neural feature extraction |
+| 29.2.3 | [Hybrid Methods](./neural_methods/hybrid.md) | Combining CF and content, weighted hybrids, feature augmentation |
+| 29.2.4 | [Sequential Recommendations](./neural_methods/sequential.md) | Session-based models, GRU4Rec, SASRec, Transformer recommenders |
+| 29.2.5 | [Embedding-Based RecSys](./neural_methods/embedding_recsys.md) | Two-tower models, ANN retrieval, contrastive learning |
 | **29.3** | **Evaluation** | |
-| 29.3.1 | [Evaluation Metrics](evaluation.md) | MSE, RMSE, ranking metrics, offline evaluation protocols |
+| 29.3.1 | [Evaluation Metrics](./evaluation/evaluation.md) | MSE, RMSE, ranking metrics, offline evaluation protocols |
 
 ## Dataset
 

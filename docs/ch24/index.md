@@ -30,7 +30,7 @@ This factorization is exact—not an approximation—and forms the basis for:
 
 ## Chapter Contents
 
-### 1. [Autoregressive Factorization](factorization.md)
+### 1. [Autoregressive Factorization](./factorization/factorization.md)
 
 **Mathematical foundations and design principles**
 
@@ -46,7 +46,7 @@ This factorization is exact—not an approximation—and forms the basis for:
 - Categorical and Gaussian conditionals
 - Log-likelihood decomposition
 
-### 2. [PixelCNN](pixelcnn.md)
+### 2. [PixelCNN](./pixelcnn/pixelcnn.md)
 
 **Autoregressive image generation**
 
@@ -62,7 +62,7 @@ This factorization is exact—not an approximation—and forms the basis for:
 - Vertical and horizontal stacks
 - Discretized logistic mixture likelihood
 
-### 3. [WaveNet](wavenet.md)
+### 3. [WaveNet](./wavenet/wavenet.md)
 
 **Autoregressive audio synthesis**
 
@@ -78,7 +78,7 @@ This factorization is exact—not an approximation—and forms the basis for:
 - Parallel WaveNet (distillation)
 - WaveRNN, WaveGlow variants
 
-### 4. [Autoregressive Transformers](transformers.md)
+### 4. [Autoregressive Transformers](./transformers/transformers.md)
 
 **Modern sequence modeling with attention**
 
@@ -167,11 +167,11 @@ After completing this chapter, you should be able to:
 
 ## Recommended Study Path
 
-1. **Start with fundamentals**: Read [Autoregressive Factorization](factorization.md) thoroughly
+1. **Start with fundamentals**: Read [Autoregressive Factorization](./factorization/factorization.md) thoroughly
 2. **Pick your modality**:
-   - Images → [PixelCNN](pixelcnn.md)
-   - Audio/Time series → [WaveNet](wavenet.md)
-   - Text/General sequences → [Transformers](transformers.md)
+   - Images → [PixelCNN](./pixelcnn/pixelcnn.md)
+   - Audio/Time series → [WaveNet](./wavenet/wavenet.md)
+   - Text/General sequences → [Transformers](./transformers/transformers.md)
 3. **Implement**: Code along with the PyTorch examples
 4. **Experiment**: Try the exercises at the end of each section
 
