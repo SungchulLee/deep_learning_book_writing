@@ -1,6 +1,6 @@
 # Inception Score (IS) for Diffusion Models
 
-The Inception Score evaluates generated image quality and diversity using a pre-trained Inception-v3 classifier. For the full mathematical derivation, implementation, and limitations analysis, see [IS in §24.6](../../ch24/gan_evaluation/inception_score.md). This page covers diffusion-specific usage.
+The Inception Score evaluates generated image quality and diversity using a pre-trained Inception-v3 classifier. For the full mathematical derivation, implementation, and limitations analysis, see [IS in §25.6](../../ch25/gan_evaluation/inception_score.md). This page covers diffusion-specific usage.
 
 ## Definition Recap
 
@@ -28,7 +28,7 @@ IS is a **secondary metric** for diffusion models. FID is preferred as the prima
 | BigGAN (GAN baseline) | 14.73 |
 
 !!! note "IS Can Exceed Real Data"
-    GANs sometimes achieve IS above real data because mode collapse concentrates predictions on fewer, more confident classes. This is why IS alone can be misleading — always pair with FID and [Precision/Recall](../../ch24/gan_evaluation/precision_recall.md).
+    GANs sometimes achieve IS above real data because mode collapse concentrates predictions on fewer, more confident classes. This is why IS alone can be misleading — always pair with FID and [Precision/Recall](../../ch25/gan_evaluation/precision_recall.md).
 
 ## Guidance Scale Effect on IS
 
@@ -44,7 +44,7 @@ IS monotonically increases with guidance scale because stronger guidance produce
 
 ## Limitations for Diffusion Models
 
-IS has the same fundamental limitations as for GANs (see [§24.6](../../ch24/gan_evaluation/inception_score.md#limitations-and-pitfalls)), with additional diffusion-specific caveats:
+IS has the same fundamental limitations as for GANs (see [§25.6](../../ch25/gan_evaluation/inception_score.md#limitations-and-pitfalls)), with additional diffusion-specific caveats:
 
 - **Text-conditioned models**: IS only measures ImageNet class diversity, not text–image alignment. Use [CLIP Score](clip_score.md) for text-to-image evaluation.
 - **High-resolution generation**: IS was designed for ImageNet-scale images; it may not capture quality differences at 512×512+ resolutions.
@@ -61,7 +61,7 @@ Evaluation Results:
   CLIP Score:       28.5  (text-to-image only)
 ```
 
-See the comprehensive IS treatment in [§24.6](../../ch24/gan_evaluation/inception_score.md) for implementation code, information-theoretic interpretation, and best practices.
+See the comprehensive IS treatment in [§25.6](../../ch25/gan_evaluation/inception_score.md) for implementation code, information-theoretic interpretation, and best practices.
 
 ## References
 

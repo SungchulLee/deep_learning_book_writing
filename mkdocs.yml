@@ -1542,40 +1542,69 @@ nav:
         - Chapter Overview: ch35/index.md
         - 35.1 Financial Environments:
             - Environment Design: ch35/environments/design.md
+            - Environment Design Code: ch35/environments/design.py
             - State Representations: ch35/environments/state.md
+            - State Representations Code: ch35/environments/state.py
             - Action Spaces: ch35/environments/actions.md
+            - Action Spaces Code: ch35/environments/actions.py
             - Reward Engineering: ch35/environments/rewards.md
+            - Reward Engineering Code: ch35/environments/rewards.py
             - Market Simulation: ch35/environments/simulation.md
+            - Market Simulation Code: ch35/environments/simulation.py
         - 35.2 Portfolio Management:
             - Problem Formulation: ch35/portfolio/formulation.md
+            - Problem Formulation Code: ch35/portfolio/formulation.py
             - Multi-Asset Allocation: ch35/portfolio/allocation.md
+            - Multi-Asset Allocation Code: ch35/portfolio/allocation.py
             - Rebalancing Strategies: ch35/portfolio/rebalancing.md
+            - Rebalancing Strategies Code: ch35/portfolio/rebalancing.py
             - Transaction Costs: ch35/portfolio/costs.md
+            - Transaction Costs Code: ch35/portfolio/costs.py
         - 35.3 Trading Strategies:
             - Execution Algorithms: ch35/trading/execution.md
+            - Execution Algorithms Code: ch35/trading/execution.py
             - Market Making: ch35/trading/market_making.md
+            - Market Making Code: ch35/trading/market_making.py
             - Statistical Arbitrage: ch35/trading/stat_arb.md
+            - Statistical Arbitrage Code: ch35/trading/stat_arb.py
             - Momentum Trading: ch35/trading/momentum.md
+            - Momentum Trading Code: ch35/trading/momentum.py
         - 35.4 Risk Management:
             - Risk-Adjusted Rewards: ch35/risk/rewards.md
+            - Risk-Adjusted Rewards Code: ch35/risk/rewards.py
             - Drawdown Control: ch35/risk/drawdown.md
+            - Drawdown Control Code: ch35/risk/drawdown.py
             - VaR Constraints: ch35/risk/var_constraints.md
+            - VaR Constraints Code: ch35/risk/var_constraints.py
             - CVaR Optimization: ch35/risk/cvar.md
+            - CVaR Optimization Code: ch35/risk/cvar.py
         - 35.5 Practical Challenges:
             - Non-Stationarity: ch35/challenges/non_stationarity.md
+            - Non-Stationarity Code: ch35/challenges/non_stationarity.py
             - Regime Changes: ch35/challenges/regimes.md
+            - Regime Changes Code: ch35/challenges/regimes.py
             - Low Signal-to-Noise: ch35/challenges/snr.md
+            - Low Signal-to-Noise Code: ch35/challenges/snr.py
             - Overfitting: ch35/challenges/overfitting.md
+            - Overfitting Code: ch35/challenges/overfitting.py
         - 35.6 Backtesting:
             - Backtesting Framework: ch35/backtesting/framework.md
+            - Backtesting Framework Code: ch35/backtesting/framework.py
             - Walk-Forward Analysis: ch35/backtesting/walk_forward.md
+            - Walk-Forward Analysis Code: ch35/backtesting/walk_forward.py
             - Performance Metrics: ch35/backtesting/metrics.md
+            - Performance Metrics Code: ch35/backtesting/metrics.py
             - Statistical Significance: ch35/backtesting/significance.md
+            - Statistical Significance Code: ch35/backtesting/significance.py
         - 35.7 Production Deployment:
             - Live Trading Systems: ch35/production/live_trading.md
+            - Live Trading Systems Code: ch35/production/live_trading.py
             - Paper Trading: ch35/production/paper_trading.md
+            - Paper Trading Code: ch35/production/paper_trading.py
             - Monitoring: ch35/production/monitoring.md
+            - Monitoring Code: ch35/production/monitoring.py
             - Risk Controls: ch35/production/risk_controls.md
+            - Risk Controls Code: ch35/production/risk_controls.py
 
   - IX - Model Interpretability:
 
