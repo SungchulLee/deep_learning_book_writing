@@ -11,8 +11,8 @@ A comprehensive, progressively challenging collection of Recurrent Neural Networ
 - [Key Concepts](#key-concepts)
 - [Datasets](#datasets)
 - [Usage Examples](#usage-examples)
-- [Common Issues](#common-issues)
-- [Resources](#resources)
+- [Common Issues and Solutions](#common-issues-and-solutions)
+- [Additional Resources](#additional-resources)
 
 ## 🎯 Overview
 

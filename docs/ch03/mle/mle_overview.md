@@ -8,9 +8,9 @@ Welcome to this comprehensive tutorial on Maximum Likelihood Estimation using Py
 1. [Introduction](#introduction)
 2. [What is Maximum Likelihood Estimation?](#what-is-mle)
 3. [Installation](#installation)
-4. [Tutorial Structure](#structure)
-5. [How to Use This Tutorial](#usage)
-6. [Mathematical Background](#math-background)
+4. [Tutorial Structure](#tutorial-structure)
+5. [How to Use This Tutorial](#how-to-use-this-tutorial)
+6. [Mathematical Background](#mathematical-background)
 7. [References](#references)
 
 ---

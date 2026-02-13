@@ -6,11 +6,10 @@ A comprehensive, progressively challenging collection of Convolutional Neural Ne
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [Tutorial Structure](#tutorial-structure)
-- [Quick Start](#quick-start)
 - [Dataset Information](#dataset-information)
 - [Architecture Overview](#architecture-overview)
 - [Usage Examples](#usage-examples)
-- [Common Issues](#common-issues)
+- [Common Issues and Solutions](#common-issues-and-solutions)
 - [Additional Resources](#additional-resources)
 
 ## 🎯 Prerequisites
