@@ -10,9 +10,9 @@ Select your platform and follow the appropriate guide:
 
 | Operating System | Installation Guide | Key Features |
 |------------------|-------------------|--------------|
-| 🍎 **macOS** | [MAC_Installation_Guide.md](MAC_Installation_Guide.md) | Homebrew + Miniforge + VS Code via terminal |
-| 🪟 **Windows** | [WINDOWS_Installation_Guide.md](WINDOWS_Installation_Guide.md) | Chocolatey + Miniconda + VS Code via PowerShell |
-| 🐧 **Linux** | [LINUX_Installation_Guide.md](LINUX_Installation_Guide.md) | Miniforge + VS Code via package managers |
+| 🍎 **macOS** | [Mac Installation Guide](mac_installation_guide.md) | Homebrew + Miniforge + VS Code via terminal |
+| 🪟 **Windows** | [Windows Installation Guide](windows_installation_guide.md) | Chocolatey + Miniconda + VS Code via PowerShell |
+| 🐧 **Linux** | [Linux Installation Guide](linux_installation_guide.md) | Miniforge + VS Code via package managers |
 
 ---
 
@@ -31,9 +31,9 @@ Each guide will help you set up:
 ## 📁 Files in This Package
 
 ### Installation Guides (Choose Your OS)
-- **`MAC_Installation_Guide.md`** — Complete macOS setup (Intel & Apple Silicon)
-- **`WINDOWS_Installation_Guide.md`** — Complete Windows setup
-- **`LINUX_Installation_Guide.md`** — Complete Linux setup (Ubuntu/Debian/Fedora/Arch)
+- **`mac_installation_guide.md`** — Complete macOS setup (Intel & Apple Silicon)
+- **`windows_installation_guide.md`** — Complete Windows setup
+- **`linux_installation_guide.md`** — Complete Linux setup (Ubuntu/Debian/Fedora/Arch)
 
 ### Environment Configuration Files
 - **`01_Installation_03_env.yml`** — Conda environment specification (flexible, works on all platforms)
