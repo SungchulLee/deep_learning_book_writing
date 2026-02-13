@@ -621,7 +621,7 @@ With your environment configured, proceed to:
 
 - [Virtual Environments](virtual_environments.md) — Learn environment isolation in depth
 - [Package Management](package_management.md) — Master conda and pip for managing dependencies
-- [GPU Configuration](gpu_configuration.md) — Set up CUDA for GPU-accelerated training
+- [GPU Configuration](../../ch02/intro/gpu_configuration.md) — Set up CUDA for GPU-accelerated training
 
 ---
 

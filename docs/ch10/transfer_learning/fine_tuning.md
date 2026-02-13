@@ -9,7 +9,7 @@
 
 ## Introduction
 
-Fine-tuning adapts pre-trained models to specific downstream tasks. The key challenge is balancing adaptation to new data while preserving valuable pre-trained knowledge. This document covers general fine-tuning strategies; for parameter-efficient methods like LoRA and adapters, see [Ch 15.6 Efficient LLM Fine-tuning](../../ch15/efficient_llm/efficiency_overview.md).
+Fine-tuning adapts pre-trained models to specific downstream tasks. The key challenge is balancing adaptation to new data while preserving valuable pre-trained knowledge. This document covers general fine-tuning strategies; for parameter-efficient methods like LoRA and adapters, see [Ch 15.6 Efficient LLM Fine-tuning](../../ch19/efficient_llm/efficiency_overview.md).
 
 ## The Fine-tuning Spectrum
 
@@ -484,7 +484,7 @@ class ReplayDataLoader:
 
 #### 4. Architecture-Based
 
-Use parameter-efficient methods (LoRA, adapters) that freeze pretrained weights—see [Ch 15.6](../../ch15/efficient_llm/efficiency_overview.md).
+Use parameter-efficient methods (LoRA, adapters) that freeze pretrained weights—see [Ch 15.6](../../ch19/efficient_llm/efficiency_overview.md).
 
 ## Choosing a Strategy
 
@@ -527,7 +527,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 | Discriminative LR | 100% | Medium | Preserving low-level features |
 | L2-SP / EWC | 100% | Low | Continual learning |
 
-For parameter-efficient methods (LoRA, QLoRA, Prefix Tuning, Adapters), see [Ch 15.6 Efficient LLM Fine-tuning](../../ch15/efficient_llm/efficiency_overview.md).
+For parameter-efficient methods (LoRA, QLoRA, Prefix Tuning, Adapters), see [Ch 15.6 Efficient LLM Fine-tuning](../../ch19/efficient_llm/efficiency_overview.md).
 
 ## References
 

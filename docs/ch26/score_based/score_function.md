@@ -34,7 +34,7 @@ Computing $Z$ is intractable for complex models (energy-based models, Boltzmann 
 
 $$\nabla_{\mathbf{x}} \log p(\mathbf{x}) = \nabla_{\mathbf{x}} \log \tilde{p}(\mathbf{x}) - \underbrace{\nabla_{\mathbf{x}} \log Z}_{=\, \mathbf{0}} = \nabla_{\mathbf{x}} \log \tilde{p}(\mathbf{x})$$
 
-Since $Z$ does not depend on $\mathbf{x}$, it vanishes under differentiation. This is the fundamental reason score-based methods can work with unnormalized densities — and it is the same reason that [MCMC methods](../../ch18/mcmc/metropolis_hastings.md) use acceptance ratios (which also cancel $Z$) and why the DDPM [training objective](../foundations/training_objective.md) avoids computing the marginal likelihood.
+Since $Z$ does not depend on $\mathbf{x}$, it vanishes under differentiation. This is the fundamental reason score-based methods can work with unnormalized densities — and it is the same reason that [MCMC methods](../../ch15/mcmc/metropolis_hastings.md) use acceptance ratios (which also cancel $Z$) and why the DDPM [training objective](../foundations/training_objective.md) avoids computing the marginal likelihood.
 
 ### 2.2 Connection to Energy-Based Models
 

@@ -199,7 +199,7 @@ Key trends in modern architectures:
 - **RMSNorm** has replaced LayerNorm
 - **Bias terms removed** from attention and FFN projections (slight parameter savings, no quality loss)
 
-For detailed comparisons of specific model families, see [Architecture Comparison](architectures.md), [GPT Series](gpt_series.md), and [LLaMA Family](llama.md).
+For detailed comparisons of specific model families, see [Architecture Comparison](../architectures/architectures.md), [GPT Series](../architectures/gpt_series.md), and [LLaMA Family](../architectures/llama.md).
 
 ---
 

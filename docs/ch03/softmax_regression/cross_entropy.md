@@ -101,7 +101,7 @@ For $K = 2$ classes with a single output probability $p$, the cross-entropy cost
 
 $$J = -\frac{1}{m}\sum_{i=1}^m \left[y^{(i)} \log p^{(i)} + (1 - y^{(i)}) \log(1 - p^{(i)})\right]$$
 
-This is the loss used in logistic regression and binary classification. The connection is exact: `nn.BCELoss` implements this formula, while `nn.CrossEntropyLoss` implements the general multi-class version. See [Binary Cross-Entropy](bce.md) for the dedicated treatment.
+This is the loss used in logistic regression and binary classification. The connection is exact: `nn.BCELoss` implements this formula, while `nn.CrossEntropyLoss` implements the general multi-class version. See [Binary Cross-Entropy](../loss/bce.md) for the dedicated treatment.
 
 ## PyTorch Interfaces
 

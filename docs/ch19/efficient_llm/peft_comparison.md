@@ -19,7 +19,7 @@ Parameter-Efficient Fine-Tuning (PEFT) methods adapt large language models while
 | LLaMA-7B | 7B | ~56 GB | ~8 GB |
 | LLaMA-65B | 65B | ~520 GB | ~40 GB |
 
-For general fine-tuning theory (gradual unfreezing, discriminative LR, catastrophic forgetting), see [Ch 9: Transfer Learning](../../ch09/transfer_learning/fundamentals.md).
+For general fine-tuning theory (gradual unfreezing, discriminative LR, catastrophic forgetting), see [Ch 9: Transfer Learning](../../ch10/transfer_learning/fundamentals.md).
 
 ## LoRA (Low-Rank Adaptation)
 

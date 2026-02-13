@@ -37,7 +37,7 @@ Softmax regression generalizes logistic regression to multiclass problems. We de
 
 A comprehensive treatment of loss functions used across deep learning. Beyond the standard MSE and cross-entropy, we cover focal loss for class imbalance, hinge loss for SVMs, Huber loss for robust regression, and KL divergence — including its properties, closed-form expressions for Gaussians, and its connection to Fisher information. We conclude with guidelines for custom loss design and loss function selection.
 
-**Sections**: [Overview](loss/loss_overview.md) · [MSE and MAE](loss/mse_mae.md) · [Cross-Entropy](loss/cross_entropy.md) · [Binary Cross-Entropy](loss/bce.md) · [Focal Loss](loss/focal_loss.md) · [Hinge Loss](loss/hinge_loss.md) · [Huber Loss](loss/huber_loss.md) · [KL Divergence](loss/kl_divergence.md) · [KL Distance Axioms](loss/kl_distance_axioms.md) · [KL for Gaussians](loss/kl_gaussian.md) · [KL and Fisher Information](loss/kl_fisher_information.md) · [Custom Loss Functions](loss/custom_loss.md) · [Loss Function Selection](loss/loss_selection.md)
+**Sections**: [Overview](loss/loss_overview.md) · [MSE and MAE](loss/mse_mae.md) · [Cross-Entropy](loss/cross_entropy.md) · [Binary Cross-Entropy](loss/bce.md) · Focal Loss · Hinge Loss · Huber Loss · [KL Divergence](loss/kl_divergence.md) · [KL Distance Axioms](loss/kl_distance_axioms.md) · [KL for Gaussians](loss/kl_gaussian.md) · [KL and Fisher Information](loss/kl_fisher_information.md) · Custom Loss Functions · Loss Function Selection
 
 ## Prerequisites
 

@@ -206,6 +206,16 @@ nav:
                 - Mixed Precision: ch02/performance/mixed_precision.md
                 - Performance Optimization: ch02/performance/performance_optimization.md
 
+            - 2.7 Finance Applications:
+                - Factor Models: ch02/finance/factor_models.md
+                - Credit Scoring: ch02/finance/credit.md
+                - Time Series CV: ch02/finance/time_series_cv.md
+
+            - 2.8 PyTorch Integration:
+                - Skorch: ch02/pytorch/skorch.md
+                - Custom Estimators: ch02/pytorch/custom_estimator.md
+                - Hybrid Pipelines: ch02/pytorch/hybrid.md
+
         - 3 Statistical Learning:
             - Chapter Overview: ch03/index.md
 
@@ -680,6 +690,14 @@ nav:
                 - Attention in CNNs: ch06/vit/attention_in_cnns.md
                 - Non-Local Networks: ch06/vit/non_local.md
                 - CNN Limitations: ch06/vit/cnn_limitations.md
+                - ViT Overview: ch06/vit/vit_overview.md
+                - ViT Architecture: ch06/vit/vit_architecture.md
+                - Patch Embedding: ch06/vit/patch_embedding.md
+                - CLS Token: ch06/vit/cls_token.md
+                - Position Embeddings: ch06/vit/position_embeddings.md
+                - Hybrid Models: ch06/vit/hybrid.md
+                - DeiT: ch06/vit/deit.md
+                - Swin Transformer: ch06/vit/swin.md
 
         - 7 Sequence Models:
             - Chapter Overview: ch07/index.md
@@ -845,6 +863,7 @@ nav:
                 - Head and Layer Analysis: ch08/attention_visualization/head_layer_analysis.md
                 - Visualization Tools: ch08/attention_visualization/visualization_tools.md
                 - Interpretation Pitfalls: ch08/attention_visualization/interpretation_pitfalls.md
+                - Attention Visualization: ch08/attention_visualization/attention_visualization.md
 
             - 8.4 Training & Inference:
                 - Training Fundamentals: ch08/training_and_inference/training_fundamentals.md
@@ -858,6 +877,8 @@ nav:
                 - "Code: RNN Baseline": ch08/training_and_inference/rnn_baseline.py
                 - "Code: Transformer Model": ch08/training_and_inference/transformer_model.py
                 - "Overview": ch08/training_and_inference/comparison_study_overview.md
+                - Training Inference: ch08/training_and_inference/training_inference.md
+                - Training Optimization: ch08/training_and_inference/training_optimization.md
 
             - 8.5 Vision Transformers:
                 - ViT Overview: ch08/transformers_vision/vit.md
@@ -925,6 +946,7 @@ nav:
                 - Linear Probing: ch09/self_supervised_evaluation/linear_probing.md
                 - Fine-Tuning Evaluation: ch09/self_supervised_evaluation/fine_tuning_eval.md
                 - Transfer Benchmarks: ch09/self_supervised_evaluation/transfer_benchmarks.md
+                - Evaluation: ch09/self_supervised_evaluation/evaluation.md
 
         - 10 Transfer Learning:
             - Chapter Overview: ch10/index.md
@@ -1071,6 +1093,7 @@ nav:
                 - Standard Benchmarks: ch12/benchmarks/standard_benchmarks.md
                 - CORe50 and Stream Benchmarks: ch12/benchmarks/stream_benchmarks.md
                 - Evaluation Protocols: ch12/benchmarks/evaluation_protocols.md
+                - Benchmarks: ch12/benchmarks/benchmarks.md
 
     - IV - Probabilistic Methods:
 
@@ -1171,7 +1194,8 @@ nav:
                     - IS Fundamentals: ch15/monte_carlo/importance_sampling/fundamentals.md
                     - Self-Normalized IS: ch15/monte_carlo/importance_sampling/self_normalized.md
                     - Proposal Design: ch15/monte_carlo/importance_sampling/proposal_design.md
-                - Effective Sample Size: ch15/monte_carlo/ess.md
+                - Effective Sample Size: ch15/monte_carlo/importance_sampling/ess.md
+                - ESS Overview: ch15/monte_carlo/ess.md
                 - "Code: Basic Importance Sampling": ch15/monte_carlo/01_basic_importance_sampling.py
                 - "Code: Self Normalized IS": ch15/monte_carlo/02_self_normalized_is.py
                 - "Code: Bayesian Simple Examples": ch15/monte_carlo/03_bayesian_simple_examples.py
@@ -1777,14 +1801,17 @@ nav:
                 - CNF Fundamentals: ch23/continuous_flows/cnf_fundamentals.md
                 - FFJORD: ch23/continuous_flows/ffjord.md
                 - Hutchinson Trace Estimator: ch23/continuous_flows/hutchinson.md
+                - Continuous Normalizing Flows: ch23/continuous_flows/cnf.md
             - 23.4 Training and Evaluation:
                 - MLE Training: ch23/training/mle_training.md
                 - Density Estimation Metrics: ch23/training/density_metrics.md
                 - Sample Quality Evaluation: ch23/training/sample_quality.md
+                - Training Evaluation: ch23/training/training_evaluation.md
             - 23.5 Finance Applications:
                 - Density Estimation for Risk: ch23/finance_applications/density_risk.md
                 - Tail Risk Modeling: ch23/finance_applications/tail_risk.md
                 - Scenario Generation: ch23/finance_applications/scenario_generation.md
+                - Density Estimation: ch23/finance_applications/density.md
 
         - 24 Autoregressive Models:
             - Chapter Overview: ch24/index.md
@@ -1800,6 +1827,9 @@ nav:
                 - "Code: Model": ch24/foundations/model.py
                 - "Code: Train": ch24/foundations/train_2.py
                 - "Overview": ch24/foundations/autoregressive_models_overview.md
+
+            - 24.2 Factorization:
+                - Factorization: ch24/factorization/factorization.md
             - 24.2 PixelCNN:
                 - PixelCNN Architecture: ch24/pixelcnn/architecture.md
                 - Masked Convolutions: ch24/pixelcnn/masked_convolutions.md
@@ -1807,14 +1837,17 @@ nav:
                 - PixelCNN++: ch24/pixelcnn/pixelcnn_plus.md
                 - "Code: PixelCNN": ch24/pixelcnn/pixelcnn.py
                 - "Code: Train": ch24/pixelcnn/train.py
+                - PixelCNN: ch24/pixelcnn/pixelcnn.md
             - 24.3 WaveNet:
                 - WaveNet Architecture: ch24/wavenet/architecture.md
                 - Dilated Causal Convolutions: ch24/wavenet/dilated_causal.md
                 - Conditioning Mechanisms: ch24/wavenet/conditioning.md
+                - WaveNet: ch24/wavenet/wavenet.md
             - 24.4 Transformer AR Models:
                 - Image GPT: ch24/transformers/image_gpt.md
                 - Autoregressive Image Generation: ch24/transformers/ar_image_generation.md
                 - Connection to LLMs: ch24/transformers/connection_to_llms.md
+                - Transformers: ch24/transformers/transformers.md
             - 24.5 Training:
                 - Teacher Forcing: ch24/training/teacher_forcing.md
                 - Scheduled Sampling: ch24/training/scheduled_sampling.md
@@ -1885,6 +1918,13 @@ nav:
                 - High-Dimensional and Multi-Modal Generation: ch25/advanced_topics/high_dimensional.md
                 - GANs in Reinforcement Learning: ch25/advanced_topics/rl_integration.md
                 - Broader Applications: ch25/advanced_topics/applications.md
+
+            - 25.10 GAN Applications:
+                - Mode Collapse: ch25/gan_applications_training/mode_collapse.md
+
+            - 25.9 Adversarial Robustness:
+                - Attacks: ch25/adversarial_robustness/attacks.md
+                - Defenses: ch25/adversarial_robustness/defenses.md
 
         - 26 Diffusion Models:
             - Chapter Overview: ch26/index.md
@@ -2152,6 +2192,7 @@ nav:
                 - Sequential Recommendations: ch30/neural_methods/sequential.md
                 - Embedding-Based RecSys: ch30/neural_methods/embedding_recsys.md
                 - Attention-Based RecSys: ch30/neural_methods/attention_recsys.md
+                - Content-Based Methods: ch30/neural_methods/content_based.md
             - 30.3 Graph-Based RecSys:
                 - Bipartite Graph Modeling: ch30/graph_recsys/bipartite.md
                 - GNN for Recommendations: ch30/graph_recsys/gnn_recsys.md
@@ -2163,6 +2204,7 @@ nav:
                 - Online vs Offline Evaluation: ch30/evaluation/online_offline.md
                 - A/B Testing for RecSys: ch30/evaluation/ab_testing.md
                 - Beyond Accuracy Metrics: ch30/evaluation/beyond_accuracy.md
+                - Evaluation: ch30/evaluation/evaluation.md
             - 30.5 Finance Applications:
                 - Financial Product Recommendation: ch30/finance/product_recommendation.md
                 - Portfolio Suggestion: ch30/finance/portfolio_suggestion.md

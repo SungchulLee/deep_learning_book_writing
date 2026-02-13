@@ -45,7 +45,7 @@ For continuous parameters:
 
 $$P(D) = \int P(D|\theta) P(\theta) \, d\theta$$
 
-The evidence is often intractable for complex models, motivating approximate inference methods (see [Chapter 18: Monte Carlo Methods](../../ch18/monte_carlo/integration.md) and [Variational Inference](../../ch19/variational_inference/framework.md)).
+The evidence is often intractable for complex models, motivating approximate inference methods (see [Chapter 18: Monte Carlo Methods](../../ch15/monte_carlo/integration.md) and [Variational Inference](../../ch16/variational_inference/framework.md)).
 
 ## PyTorch Implementation
 

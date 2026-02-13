@@ -38,7 +38,7 @@ $$
 P(z_t = k \mid r_{1:t}) \propto p(r_t \mid z_t = k) \sum_j A_{jk} \, P(z_{t-1} = j \mid r_{1:t-1})
 $$
 
-This is the forward pass of the Hidden Markov Model filter (see [Ch18: Hidden Markov Models](../../ch18/markov_chains/hmm.md)).
+This is the forward pass of the Hidden Markov Model filter (see [Ch18: Hidden Markov Models](../../ch15/markov_chains/hmm.md)).
 
 ### Implementation
 

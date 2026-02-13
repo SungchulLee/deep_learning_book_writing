@@ -2,7 +2,7 @@
 
 ## Overview
 
-The large language model paradigm — pretraining a Transformer on massive text corpora via [next-token prediction](next_token_prediction.md), then adapting through fine-tuning, prompting, or [alignment](../alignment/alignment_overview.md) — emerged from a convergence of architectural innovation, scaling insight, and training methodology developed over roughly a decade. This section traces the field from its precursors through the major model families, identifies the key ideas at each stage, and places the GPT series, BERT, LLaMA, and other lineages in their proper context. Detailed treatments of specific architectures appear in [GPT Series](gpt_series.md), [LLaMA Family](llama.md), and [Architecture Comparison](architectures.md).
+The large language model paradigm — pretraining a Transformer on massive text corpora via [next-token prediction](next_token_prediction.md), then adapting through fine-tuning, prompting, or [alignment](../alignment/alignment_overview.md) — emerged from a convergence of architectural innovation, scaling insight, and training methodology developed over roughly a decade. This section traces the field from its precursors through the major model families, identifies the key ideas at each stage, and places the GPT series, BERT, LLaMA, and other lineages in their proper context. Detailed treatments of specific architectures appear in [GPT Series](../architectures/gpt_series.md), [LLaMA Family](../architectures/llama.md), and [Architecture Comparison](../architectures/architectures.md).
 
 ---
 
@@ -55,7 +55,7 @@ The original Transformer used an **encoder-decoder** architecture for machine tr
 
 The decoder-only branch ultimately won for general-purpose LLMs because [next-token prediction](next_token_prediction.md) scales more smoothly and enables open-ended generation. The encoder-only branch remains strong for embeddings and classification tasks.
 
-For detailed architectural analysis, see [Decoder Architecture](decoder_architecture.md) and [Architecture Comparison](architectures.md).
+For detailed architectural analysis, see [Decoder Architecture](decoder_architecture.md) and [Architecture Comparison](../architectures/architectures.md).
 
 ---
 
@@ -101,7 +101,7 @@ GPT-4 introduced **multimodal capabilities** (text + image inputs) and significa
 | GPT-3 | 2020 | 175B | 300B tokens (filtered web + books) | Few-shot in-context learning |
 | GPT-4 | 2023 | Undisclosed | Undisclosed | Multimodal, improved reasoning |
 
-For detailed architectural analysis of the GPT series, see [GPT Series](gpt_series.md).
+For detailed architectural analysis of the GPT series, see [GPT Series](../architectures/gpt_series.md).
 
 ---
 
@@ -161,7 +161,7 @@ LLaMA also incorporated modern architectural refinements over GPT-3:
 | Activation | GELU | SwiGLU |
 | Attention | MHA | MHA (LLaMA-1) / GQA (LLaMA-2+) |
 
-These architectural choices are detailed in [Decoder Architecture](decoder_architecture.md) and [LLaMA Family](llama.md).
+These architectural choices are detailed in [Decoder Architecture](decoder_architecture.md) and [LLaMA Family](../architectures/llama.md).
 
 ### 5.3 The Open Ecosystem
 
