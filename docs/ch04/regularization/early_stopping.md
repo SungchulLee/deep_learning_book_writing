@@ -4,6 +4,9 @@
 
 Early stopping is a regularization technique that halts training when the model's performance on a validation set stops improving. This prevents overfitting by identifying the point where the model has learned generalizable patterns but hasn't yet begun memorizing training noise.
 
+!!! note "See Also"
+    For a concise practical guide to using early stopping in PyTorch training loops, including interaction with learning rate scheduling, see **Section 5.6 Overfitting & Generalization**.
+
 ## Conceptual Foundation
 
 ### The Overfitting Trajectory

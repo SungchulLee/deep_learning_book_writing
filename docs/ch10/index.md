@@ -1,23 +1,26 @@
-# Chapter 10: Self-Supervised Learning
+# Chapter 9: Transfer Learning
 
 ## Overview
 
-Self-supervised learning (SSL) has emerged as the dominant paradigm for learning visual representations without human annotations. By creating supervision signals from the data itself, SSL methods can leverage vast amounts of unlabeled data to learn features that transfer effectively to downstream tasks.
+Transfer learning uses knowledge from models pretrained on large datasets to improve performance on new tasks, especially when training data is limited. This chapter develops the theoretical foundation, surveys strategies from feature extraction to fine-tuning, and examines domain adaptation techniques for handling distribution shift.
 
 ## Chapter Structure
 
-**10.1 Foundations** introduces the SSL framework, motivations, and classical pretext tasks including rotation prediction, jigsaw puzzles, colorization, and inpainting.
+**9.1 Fundamentals** covers the core concepts of transfer learning: why hierarchical features transfer across tasks, mathematical foundations including the domain adaptation bound, and decision frameworks for choosing between feature extraction, fine-tuning, and hybrid strategies.
 
-**10.2 Contrastive Learning** covers methods that learn by contrasting positive and negative pairs: the InfoNCE framework, SimCLR, MoCo, BYOL, SimSiam, and Barlow Twins—tracing the evolution from large-batch contrastive methods to approaches that eliminate negative samples entirely.
+**9.2 Domain Adaptation** addresses the challenge of distribution mismatch between source and target domains. Topics include unsupervised domain adaptation with MMD, adversarial training with DANN, and practical workflows for assessing and bridging domain gaps.
 
-**10.3 Masked Modeling** explores reconstruction-based methods: MAE's masked autoencoder approach, BEiT's discrete token prediction, and Data2Vec's cross-modal framework.
-
-**10.4 Self-Distillation** covers DINO and DINOv2, which learn through a student-teacher framework without labels, producing features with remarkable emergent properties.
-
-**10.5 Evaluation** presents standard evaluation protocols including linear probing, k-NN evaluation, and representation quality metrics.
+**9.3 Applications** demonstrates transfer learning in practice across computer vision and natural language processing, with complete PyTorch implementations for both modalities.
 
 ## Prerequisites
 
-- Convolutional networks and Vision Transformers (Ch 4–5)
-- Loss functions and optimisation (Ch 3)
-- Transfer learning concepts (Ch 9)
+- Neural network fundamentals (Ch 2–3)
+- CNN architectures (Ch 4)
+- Optimization and regularization (Ch 5)
+
+## Key Themes
+
+- **Hierarchical feature reuse**: Early layers learn universal features; later layers specialize
+- **The transfer-adaptation tradeoff**: More adaptation risks forgetting; less risks underfitting
+- **Domain divergence**: Target performance is bounded by source performance plus domain distance
+- **Practical decision-making**: Dataset size and domain similarity determine the optimal strategy

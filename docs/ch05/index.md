@@ -38,6 +38,14 @@ Behind each line lies a rich set of design decisions—how data is batched and s
 
 **Section 5.9 — Model Persistence** covers saving and loading models via state dicts and checkpoints, exporting to ONNX for cross-framework deployment, and TorchScript for production inference.
 
+!!! note "Relationship to Chapter 2 (Scikit-learn)"
+    Several topics in this chapter parallel coverage in **[Chapter 2: Scikit-learn](../ch02/index.md)**—specifically cross-validation (§2.4 vs §5.6), hyperparameter search (§2.4 vs §5.8), and evaluation metrics (§2.5 vs §5.7). The two chapters differ in scope:
+
+    - **Chapter 2** covers these topics through scikit-learn's API (`GridSearchCV`, `cross_val_score`, `classification_report`), suitable for classical ML models and sklearn-wrapped PyTorch models via Skorch.
+    - **Chapter 5** covers the same concepts implemented directly in PyTorch training loops, where you control the training step, handle GPU transfers, and integrate with PyTorch-native tools like `torch.optim.lr_scheduler` and `torch.utils.data`.
+
+    If you are using scikit-learn estimators (including Skorch-wrapped neural networks), Chapter 2's treatment is more directly applicable. If you are writing custom PyTorch training loops, use this chapter.
+
 ## Quantitative Finance Context
 
 Every component of the training pipeline has domain-specific considerations in quantitative finance:

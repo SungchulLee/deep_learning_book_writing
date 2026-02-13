@@ -4,6 +4,9 @@
 
 Model saving is the foundation of deployment—converting trained PyTorch models into persistent formats that can be loaded for inference, fine-tuning, or transfer across environments. PyTorch provides multiple serialization mechanisms, each suited to different deployment scenarios.
 
+!!! note "See Also"
+    The fundamentals of state dicts, checkpointing, ONNX export, and TorchScript are also introduced in **Section 5.9 Model Persistence**, which covers these mechanisms in the context of training workflows—saving/resuming during training, best-model tracking, and experiment reproducibility. This section focuses on production deployment: cross-environment portability, versioning, and serving infrastructure.
+
 ## PyTorch Native Saving
 
 ### Saving the Entire Model

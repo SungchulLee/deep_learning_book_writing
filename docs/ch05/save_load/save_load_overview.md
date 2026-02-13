@@ -4,6 +4,9 @@
 
 Model persistence—saving trained models and loading them later—is essential for deployment, checkpoint recovery, experiment reproducibility, and model sharing. PyTorch provides multiple serialization mechanisms, each with different tradeoffs.
 
+!!! note "See Also"
+    Several topics here (state dicts, checkpointing, ONNX, TorchScript) also appear in **Section 40.1 Serialization**, which covers the same mechanisms from a production deployment perspective—cross-environment portability, versioning strategies, and serving infrastructure. This section focuses on saving and loading during the training workflow.
+
 ## Approaches
 
 | Approach | Saves | Portable | Use Case |

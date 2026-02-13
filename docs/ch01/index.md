@@ -1,341 +1,116 @@
-# Chapter 1: Introduction to Python for Deep Learning
+# Chapter 2: Scikit-learn
 
-This chapter provides the foundational setup and library overview needed before
-diving into tensors, gradients, and model building.  After completing this
-overview you should be able to:
+Scikit-learn provides the standard Python interface for classical machine learning. This chapter covers its API design philosophy, preprocessing utilities, model families, evaluation methodology, and integration patterns with PyTorch—all grounded in quantitative finance applications.
 
-- install and configure a Python environment for deep learning work,
-- perform basic array and tensor operations in **NumPy** and **PyTorch**,
-- understand how the two libraries relate and interoperate.
+## Why Scikit-learn Before Deep Learning?
 
-The detailed treatments—tensor creation, autograd mechanics, training loops,
-etc.—follow in Sections 1.0–1.13.
+Classical ML models remain the **production workhorse** for tabular financial data. Understanding scikit-learn first provides three advantages for the deep learning practitioner:
 
----
+1. **Baseline models** — Tree ensembles and linear models often outperform neural networks on structured data with $n < 10{,}000$ features. Every deep learning project needs a classical baseline.
+2. **Pipeline discipline** — Scikit-learn's `fit`/`transform`/`predict` contract and `Pipeline` abstraction enforce the train-test separation and reproducibility that carry directly into PyTorch workflows.
+3. **Evaluation literacy** — Metrics, cross-validation, and hyperparameter search transfer unchanged to neural network evaluation.
 
-## 1  Setting Up Python
+## Chapter Structure
 
-### 1.1  Choosing a Python Distribution
+### 2.1 Foundations
 
-For data analysis and deep learning, the **Anaconda** distribution is widely
-recommended:
+The API conventions, estimator interface, and pipeline design that unify all of scikit-learn.
 
-| Feature | Benefit |
+- [API Overview](foundations/api.md) — `fit`/`predict`/`transform`, parameter conventions, `get_params`/`set_params`
+- [Estimator Interface](foundations/estimator.md) — `BaseEstimator`, `TransformerMixin`, `ClassifierMixin`, writing custom estimators
+- [Pipeline Design](foundations/pipeline.md) — `Pipeline`, `ColumnTransformer`, `FeatureUnion`, caching, preventing data leakage
+
+### 2.2 Preprocessing
+
+Transforming raw features into model-ready representations.
+
+- [Scalers](preprocessing/scalers.md) — `StandardScaler`, `MinMaxScaler`, `RobustScaler`, `MaxAbsScaler`, power and quantile transforms
+- [Encoders](preprocessing/encoders.md) — `OneHotEncoder`, `OrdinalEncoder`, `LabelEncoder`, target encoding, hashing
+- [Imputers](preprocessing/imputers.md) — `SimpleImputer`, `KNNImputer`, `IterativeImputer`, missing indicators
+- [Feature Selection](preprocessing/feature_selection.md) — Filter, wrapper, and embedded methods; `SelectKBest`, `RFE`, `SelectFromModel`
+- [Transformers](preprocessing/transformers.md) — `PolynomialFeatures`, `KBinsDiscretizer`, `FunctionTransformer`, date/time and text features
+
+### 2.3 Classical Models
+
+Supervised learning algorithms from linear models through ensembles.
+
+- [Linear Models](models/linear.md) — `LinearRegression`, `Ridge`, `Lasso`, `ElasticNet`, `LogisticRegression`
+- [Tree Models](models/trees.md) — `DecisionTreeClassifier`/`Regressor`, splitting criteria, pruning, visualisation
+- [Ensemble Methods](models/ensemble.md) — `RandomForest`, `GradientBoosting`, `AdaBoost`, stacking, voting
+- [SVM](models/svm.md) — `SVC`, `SVR`, kernel trick, regularisation, scaling requirements
+- [Neighbors](models/neighbors.md) — `KNeighborsClassifier`/`Regressor`, distance metrics, `BallTree`, `KDTree`
+- [Naive Bayes](models/naive_bayes.md) — `GaussianNB`, `MultinomialNB`, `BernoulliNB`, conditional independence
+
+### 2.4 Model Selection
+
+Principled approaches to splitting, validation, and hyperparameter search.
+
+- [Cross-Validation](selection/cross_validation.md) — K-Fold, Stratified, LOOCV, `TimeSeriesSplit`, `GroupKFold`, nested CV
+- [Grid Search](selection/grid_search.md) — `GridSearchCV`, parameter grids, multi-metric evaluation
+- [Randomized Search](selection/random_search.md) — `RandomizedSearchCV`, distribution specification, efficiency vs. grid
+- [Bayesian Optimization](selection/bayesian.md) — Surrogate models, acquisition functions, `scikit-optimize`, `Optuna`
+
+### 2.5 Metrics
+
+Quantifying model performance for classification, regression, and clustering.
+
+- [Classification Metrics](metrics/classification.md) — Accuracy, precision, recall, F1, ROC-AUC, PR-AUC, confusion matrix
+- [Regression Metrics](metrics/regression.md) — MSE, RMSE, MAE, $R^2$, MAPE, explained variance
+- [Clustering Metrics](metrics/clustering.md) — Silhouette, Calinski–Harabasz, Davies–Bouldin, adjusted Rand index
+- [Custom Scorers](metrics/custom.md) — `make_scorer`, business-specific loss functions, asymmetric costs
+
+### 2.6 PyTorch Integration
+
+Bridging scikit-learn workflows with deep learning.
+
+- [Skorch](pytorch/skorch.md) — Wrapping PyTorch modules as sklearn estimators, using `NeuralNetClassifier`/`NeuralNetRegressor`
+- [Custom Estimators](pytorch/custom_estimator.md) — Implementing `fit`/`predict`/`score` for PyTorch models
+- [Hybrid Pipelines](pytorch/hybrid.md) — sklearn preprocessing → PyTorch model → sklearn evaluation
+
+### 2.7 Finance Applications
+
+Domain-specific patterns for quantitative finance.
+
+- [Factor Models](finance/factor_models.md) — Cross-sectional regression, Fama–French factors, feature importance as factor loading
+- [Credit Scoring](finance/credit.md) — Imbalanced classification, scorecard development, regulatory constraints
+- [Time Series CV](finance/time_series_cv.md) — Walk-forward validation, purging, embargo, combinatorial purged CV
+
+!!! note "Relationship to Chapter 5 (Training Pipeline)"
+    Several topics in this chapter parallel coverage in **[Chapter 5: Training Pipeline](../ch05/index.md)**—specifically cross-validation (§2.4 vs §5.6), hyperparameter search (§2.4 vs §5.8), and evaluation metrics (§2.5 vs §5.7). The two chapters differ in scope:
+
+    - **Chapter 2** covers these topics through scikit-learn's API (`GridSearchCV`, `cross_val_score`, `classification_report`), suitable for classical ML models and sklearn-wrapped PyTorch models via Skorch.
+    - **Chapter 5** covers the same concepts implemented directly in PyTorch training loops, where you control the training step, handle GPU transfers, and integrate with PyTorch-native tools like `torch.optim.lr_scheduler` and `torch.utils.data`.
+
+    If you are writing custom PyTorch training loops, Chapter 5's treatment is more directly applicable. If you are using scikit-learn estimators (including Skorch-wrapped neural networks), use this chapter.
+
+## Source Material Mapping
+
+This chapter consolidates and restructures content from the original Chapter 22 source files:
+
+| Original Source | Target Section(s) |
 |---|---|
-| **Comprehensive** | Ships with 1 500+ data-science packages (NumPy, Pandas, Matplotlib, SciPy, …) |
-| **User-friendly** | Includes Jupyter Notebook and the Spyder IDE out of the box |
-| **Cross-platform** | Works on Windows, macOS, and Linux |
-
-**Installation steps:**
-
-1. Download the installer from
-   [anaconda.com/products/distribution](https://www.anaconda.com/products/distribution).
-2. Run the installer (optionally add Anaconda to your `PATH`).
-3. Verify with `conda --version` in a terminal.
-
-### 1.2  Installing Python Packages
-
-Anaconda provides two package managers:
-
-```bash
-# conda (preferred for Anaconda-hosted packages)
-conda install numpy
-
-# pip (for packages outside the Anaconda repository)
-pip install seaborn
-```
-
-**Best practice:** use `conda` when the package is available in the Anaconda
-repository; fall back to `pip` otherwise.
-
-### 1.3  Virtual Environments
-
-A virtual environment isolates a project's dependencies so that packages from
-different projects never conflict.
-
-```bash
-# create
-conda create --name myenv
-
-# activate
-conda activate myenv
-
-# install packages inside the environment
-conda install numpy pandas matplotlib
-
-# deactivate
-conda deactivate
-```
-
-### 1.4  Integrated Development Environments (IDEs)
-
-| IDE | Highlights |
-|---|---|
-| **Jupyter Notebook** | Interactive cell-based execution; inline plots; ideal for exploration |
-| **Spyder** | Ships with Anaconda; MATLAB-like variable explorer; integrated debugger |
-| **PyCharm** | Intelligent code completion; project navigation; strong library support |
-
-Launch Jupyter from a terminal:
-
-```bash
-jupyter notebook
-```
-
-### 1.5  Basic Environment Configuration
-
-After installation, a few housekeeping steps make day-to-day work smoother:
-
-- organise notebooks and scripts in a clear directory structure,
-- pre-install the libraries you will use most often,
-- customise Jupyter settings (theme, default font, autosave interval).
-
-```python
-# install the essentials in one go
-!pip install numpy pandas matplotlib seaborn
-```
-
----
-
-## 2  Overview of Key Libraries: NumPy and PyTorch
-
-### 2.1  NumPy — Numerical Python
-
-NumPy is the foundation of almost every scientific-computing stack in Python.
-Its core data structure is the **ndarray**, an $N$-dimensional array that
-supports fast, vectorised arithmetic.
-
-#### 2.1.1  N-dimensional Arrays
-
-```python
-import numpy as np
-
-arr = np.array([1, 2, 3, 4, 5])
-print(arr)           # [1 2 3 4 5]
-print(arr.dtype)     # int64
-```
-
-#### 2.1.2  Element-wise Operations
-
-```python
-arr1 = np.array([1, 2, 3])
-arr2 = np.array([4, 5, 6])
-print(arr1 + arr2)   # [5 7 9]
-```
-
-#### 2.1.3  Broadcasting
-
-NumPy stretches arrays of compatible shapes so that explicit replication is
-unnecessary:
-
-```python
-arr = np.array([1, 2, 3])
-print(arr + 10)      # [11 12 13]
-```
-
-#### 2.1.4  Linear Algebra
-
-```python
-A = np.array([[1, 2], [3, 4]])
-B = np.array([[5, 6], [7, 8]])
-print(np.dot(A, B))  # [[19 22]
-                      #  [43 50]]
-
-# equivalently
-print(A @ B)
-```
-
-#### 2.1.5  Data-Type Promotion
-
-When arrays of different dtypes interact, NumPy promotes to the more general
-type:
-
-```python
-x1 = np.array([1, 2, 3])          # int64
-x2 = np.array([1., 2, 3])         # float64
-x3 = x1 + x2                      # float64
-```
-
-#### 2.1.6  Reshaping
-
-```python
-x1 = np.array([1, 2, 3]).reshape((3, 1))          # (3,) → (3, 1)
-x2 = np.array([1., 2, 3, 4, 5, 6]).reshape((3, 2))  # (6,) → (3, 2)
-x3 = x1 + x2                                       # (3, 2) via broadcasting
-```
-
-#### 2.1.7  Random Number Generation
-
-```python
-random_array = np.random.rand(3, 3)   # uniform on [0, 1)
-print(random_array)
-```
-
-#### 2.1.8  Applications
-
-- **Data pre-processing** — reshape, normalise, and clean data before model
-  training.
-- **Numerical simulation** — run large-scale Monte-Carlo or finite-difference
-  experiments.
-- **Data storage** — save / load arrays efficiently with `np.save` / `np.load`.
-
----
-
-### 2.2  PyTorch — Deep Learning Framework
-
-PyTorch is an open-source library developed by Meta AI Research.  It provides a
-NumPy-like tensor API with two critical additions: **automatic
-differentiation** (autograd) and transparent **GPU acceleration**.
-
-#### 2.2.1  Tensors
-
-```python
-import torch
-
-tensor = torch.tensor([1, 2, 3, 4, 5])
-print(tensor)
-```
-
-Tensors support the same `@` operator for matrix multiplication:
-
-```python
-A = torch.tensor([[1, 2], [3, 4]])
-B = torch.tensor([[2, 3], [0, 1]])
-C = A @ B
-print(C)             # tensor([[ 2,  5],
-                      #         [ 6, 13]])
-```
-
-#### 2.2.2  Data-Type Promotion
-
-PyTorch follows analogous promotion rules, but also allows explicit dtype
-selection:
-
-```python
-x1 = torch.tensor([1, 2, 3])                        # int64
-x2 = torch.tensor([1., 2, 3], dtype=torch.float16)  # float16
-x3 = x1 + x2                                        # float16
-```
-
-#### 2.2.3  Autograd
-
-Autograd records operations on tensors to build a dynamic computational graph.
-Calling `.backward()` then computes gradients via reverse-mode automatic
-differentiation:
-
-```python
-x = torch.tensor(2.0, requires_grad=True)
-y = x ** 2
-y.backward()
-print(x.grad)        # tensor(4.)   ← dy/dx = 2x evaluated at x=2
-```
-
-#### 2.2.4  Dynamic Computational Graph
-
-Unlike static-graph frameworks, PyTorch builds the graph on the fly.  This
-means standard Python control flow (`if`, `for`, `while`) can vary the
-architecture from one forward pass to the next:
-
-```python
-x = torch.randn(3, 3)
-y = torch.randn(3, 3)
-result = x * y       # graph constructed at execution time
-```
-
-#### 2.2.5  Neural Network Module (`torch.nn`)
-
-`torch.nn` provides layers, loss functions, and containers for building models:
-
-```python
-import torch.nn as nn
-
-class SimpleNN(nn.Module):
-    def __init__(self):
-        super().__init__()
-        self.fc = nn.Linear(10, 1)
-
-    def forward(self, x):
-        return self.fc(x)
-```
-
-#### 2.2.6  Optimizers and Loss Functions
-
-```python
-import torch.optim as optim
-
-model = SimpleNN()
-optimizer = optim.SGD(model.parameters(), lr=0.01)
-```
-
-PyTorch ships with a wide selection of optimizers (SGD, Adam, AdamW, …) and
-loss functions (MSE, Cross-Entropy, …).
-
-#### 2.2.7  GPU Acceleration
-
-Moving tensors to a GPU requires a single call:
-
-```python
-device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-tensor = torch.tensor([1.0, 2.0, 3.0], device=device)
-```
-
-#### 2.2.8  Applications
-
-- **Deep learning research** — flexible graph construction encourages rapid
-  prototyping.
-- **Computer vision** — image classification, object detection, segmentation.
-- **Natural language processing** — Hugging Face Transformers, among many
-  libraries, builds on PyTorch.
-- **Production deployment** — TorchServe, ONNX export, TorchScript.
-
----
-
-### 2.3  NumPy ↔ PyTorch Interoperability
-
-PyTorch tensors are designed to interoperate seamlessly with NumPy arrays.
-Conversion is zero-copy when the tensor lives on the CPU and shares the same
-dtype:
-
-```python
-import numpy as np
-import torch
-
-# NumPy → PyTorch
-np_array = np.array([1, 2, 3])
-tensor   = torch.from_numpy(np_array)
-
-# PyTorch → NumPy
-np_back  = tensor.numpy()
-```
-
-!!! note
-    Because the conversion is zero-copy, mutating the NumPy array also mutates
-    the tensor (and vice-versa).  Use `.clone()` when an independent copy is
-    needed.
-
----
-
-### 2.4  Quick Visualisation with Matplotlib
-
-Even a minimal plot can be useful for sanity-checking data before training:
-
-```python
-import matplotlib.pyplot as plt
-
-plt.plot([0, 1, 2], [1, 2, 1])
-plt.title("Sanity-check plot")
-plt.show()
-```
-
----
-
-## What Comes Next
-
-| Section | Topic |
-|---|---|
-| **1.0** | PyTorch quickstart (tensors, autograd, modules, training loops) |
-| **1.1** | Detailed installation and GPU configuration |
-| **1.2** | Tensor creation, dtypes, memory layout |
-| **1.3** | Tensor attributes and methods (indexing, broadcasting, linalg, …) |
-| **1.4** | Gradients and computational graphs |
-| **1.5** | Gradient descent |
-| **1.6–1.13** | MLE, linear / logistic / softmax regression, evaluation, datasets, dataloaders |
+| `ch22/index.md` | Chapter overview (this page) |
+| `ch22/preprocessing/scaling.md` | §2.2 Scalers |
+| `ch22/preprocessing/encoding.md` | §2.2 Encoders |
+| `ch22/preprocessing/missing_data.md` | §2.2 Imputers |
+| `ch22/pipelines/pipeline_basics.md` | §2.1 Foundations (API, Estimator, Pipeline) |
+| `ch22/pipelines/feature_engineering.md` | §2.2 Feature Selection + Transformers |
+| `ch22/supervised/linear_models.md` | §2.3 Linear Models |
+| `ch22/supervised/tree_models.md` | §2.3 Tree Models |
+| `ch22/supervised/ensemble.md` | §2.3 Ensemble Methods |
+| `ch22/supervised/svm.md` | §2.3 SVM |
+| `ch22/unsupervised/clustering.md` | §2.5 Clustering Metrics |
+| `ch22/unsupervised/dimensionality.md` | §2.2 Feature Selection + Transformers |
+| `ch22/model_selection/cross_validation.md` | §2.4 Cross-Validation |
+| `ch22/model_selection/train_test_split.md` | §2.4 Cross-Validation |
+| `ch22/model_selection/hyperparameters.md` | §2.4 Grid Search + Randomized Search + Bayesian |
+| `ch22/evaluation/classification_metrics.md` | §2.5 Classification Metrics |
+| `ch22/evaluation/regression_metrics.md` | §2.5 Regression Metrics |
+| `ch22/evaluation/confusion_matrix.md` | §2.5 Classification Metrics |
+
+## Prerequisites
+
+- Python 3.9+, NumPy, Pandas, Matplotlib
+- scikit-learn ≥ 1.3
+- PyTorch ≥ 2.0 (for §2.6 integration examples)
+- Chapter 1 (deep learning foundations) is helpful but not required—this chapter is self-contained
