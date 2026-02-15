@@ -34,6 +34,31 @@ $$
 - Injecting fraudulent transactions labeled as legitimate into training sets
 - Corrupting alternative data sources (satellite imagery, web scraping)
 
+#### Targeted Poisoning via Feature Collision
+
+A particularly insidious form of data poisoning is **clean-label poisoning**, where the attacker does not need to change any labels. Instead, the attacker crafts poisoned training instances that collide with the target in feature space:
+
+$$
+\mathbf{x}_{\text{poison}} = \arg\min_{\mathbf{x}} \| f(\mathbf{x}) - f(\mathbf{x}_{\text{target}}) \|_2^2 + \beta \| \mathbf{x} - \mathbf{x}_{\text{base}} \|_2^2
+$$
+
+where $f(\cdot)$ extracts the learned feature representation, $\mathbf{x}_{\text{target}}$ is the instance the attacker wants misclassified at test time, and $\mathbf{x}_{\text{base}}$ is a legitimate example from the attacker's chosen class. The first term ensures feature-space collision with the target, while the second keeps the poison visually similar to a legitimate base instance (so its label appears correct).
+
+When the model trains on this poisoned example, it learns features that associate the target's representation with the poison's class — causing misclassification of the target at test time without any label corruption.
+
+**Why this matters for quant**: In financial ML, training data often comes from third-party vendors, alternative data providers, or scraped sources. An adversary could craft synthetic market data points that are statistically consistent with legitimate data (pass all quality checks) yet subtly shift the model's decision boundary to misclassify specific securities or market conditions.
+
+#### Defenses Against Data Poisoning
+
+| Defense | Mechanism | Trade-off |
+|---------|-----------|-----------|
+| Data sanitization | Remove outliers in feature space before training | May discard legitimate rare events |
+| Influence functions | Identify training points with high influence on specific predictions | Computationally expensive for large datasets |
+| Spectral signatures | Detect poisoned samples via spectral analysis of feature covariance | Requires sufficient poison concentration |
+| Differential privacy | Add noise during training to limit any single point's influence | Reduces model accuracy |
+| Ensemble agreement | Compare predictions across models trained on different data subsets | Increases compute cost |
+
+
 ### Backdoor Attacks
 
 A **backdoor** is a hidden trigger pattern that causes targeted misclassification when present:

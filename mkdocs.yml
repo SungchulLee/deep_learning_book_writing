@@ -488,6 +488,7 @@ nav:
                 - Gradient Clipping: ch05/training/gradient_clipping.md
                 - Mixed Precision Training: ch05/training/mixed_precision.md
                 - Reproducibility: ch05/training/reproducibility.md
+                - Training Recipes: ch05/training/training_recipes.md
                 - "Code: Advanced Tensorboard": ch05/training/advanced_tensorboard.py
                 - "Code: Tensorboard MNIST Commented": ch05/training/tensorboard_mnist_commented.py
                 - "Code: Complete MNIST Training": ch05/training/01_complete_mnist_training.py
@@ -2670,6 +2671,7 @@ nav:
                 - "Code: Adversarial Training": ch38/adversarial/04_adversarial_training.py
                 - "Code: Certified Defenses": ch38/adversarial/05_certified_defenses.py
                 - "Overview": ch38/adversarial/adversarial_robustness_overview.md
+                - NLP Adversarial Attacks: ch38/adversarial/nlp_adversarial.md
             - 38.3 Black-Box Attacks:
                 - Transfer Attacks: ch38/black_box/transfer.md
                 - Query-Based: ch38/black_box/query_based.md

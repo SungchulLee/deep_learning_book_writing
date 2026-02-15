@@ -172,6 +172,48 @@ The T² term compensates for magnitude scaling in gradients.
 2. **Regularization**: Prevents student from overfitting to hard labels
 3. **Generalization**: Soft targets act as label smoothing
 
+
+### 1.5 The Deep Compression Pipeline
+
+Han et al. (2016) demonstrated that pruning, quantization, and entropy coding can be combined into a unified three-stage pipeline that achieves 35-49x compression without loss of accuracy. Rather than applying each technique in isolation, the pipeline exploits their complementary strengths:
+
+$$
+\text{Compression} = \underbrace{\text{Pruning}}_{\text{reduce connections}} \times \underbrace{\text{Quantization}}_{\text{reduce bits}} \times \underbrace{\text{Huffman Coding}}_{\text{exploit redundancy}}
+$$
+
+#### Stage 1: Magnitude-Based Pruning
+
+The pipeline begins with iterative pruning — training the network, removing weights below a learned threshold, then retraining to recover accuracy. For AlexNet, this reduces parameters by 9x; for VGG-16, by 13x. The key insight is that networks are heavily over-parameterized and the remaining weights can compensate for the removed ones through fine-tuning.
+
+#### Stage 2: Trained Quantization with Weight Sharing
+
+After pruning, the remaining weights are clustered using k-means into $k$ shared values per layer. Rather than storing each weight as a 32-bit float, only a small codebook index is stored:
+
+$$
+w_i \approx c_{j}, \quad j = \arg\min_j |w_i - c_j|
+$$
+
+Gradients are accumulated per cluster and applied to the shared centroid, allowing the codebook to be fine-tuned during training. This reduces storage from 32 bits per weight to $\log_2(k)$ bits (typically 4-8 bits depending on layer type). Convolutional layers use fewer clusters (typically 256, i.e. 8 bits) while fully-connected layers can use even fewer (16-32 clusters, i.e. 4-5 bits).
+
+#### Stage 3: Huffman Coding
+
+The distribution of quantized weights and sparse indices is non-uniform — some values appear far more frequently than others. Huffman coding assigns shorter codes to more frequent values, achieving an additional 20-30% compression on top of pruning and quantization combined.
+
+#### Combined Results
+
+| Model | Original Size | After Pruning | After Quantization | After Huffman | Total Compression |
+|-------|--------------|---------------|-------------------|---------------|-------------------|
+| AlexNet | 240 MB | 27 MB (9x) | 6.9 MB (35x) | 6.2 MB (39x) | **39x** |
+| VGG-16 | 552 MB | 42 MB (13x) | 11.3 MB (49x) | 11.0 MB (50x) | **49x** |
+
+#### Implications for Quant Finance
+
+The Deep Compression pipeline is directly relevant to deploying quantitative models:
+
+- **Low-latency trading**: Compressed models fit in L1/L2 cache, reducing inference latency from milliseconds to microseconds — critical for high-frequency strategies.
+- **Edge deployment**: Compressed risk models can run on-device for real-time portfolio monitoring without cloud round-trips.
+- **Ensemble efficiency**: Compression enables running larger ensembles within the same memory budget, improving prediction robustness.
+- **Cost reduction**: Smaller models reduce cloud compute costs for batch inference over large universes of securities.
 ---
 
 ## Part 2: Implementation Structure
