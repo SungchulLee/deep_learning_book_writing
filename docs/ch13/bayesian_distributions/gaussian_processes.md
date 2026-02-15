@@ -6,6 +6,21 @@ A **Gaussian Process (GP)** is a nonparametric Bayesian approach to regression a
 
 ---
 
+## Intuition: Reasoning About Functions
+
+Most machine learning methods estimate parameters from data—weights of a neural network, coefficients of a linear model. GPs take a fundamentally different approach: they reason directly about the **high-level properties** of functions that could fit the data. Rather than asking "what are the best weights?", a GP asks "what kinds of functions are consistent with what we've observed?"
+
+Consider a time series of asset returns observed at irregular intervals. Before seeing any data, we might have prior beliefs: the function should be reasonably smooth, perhaps periodic (seasonal patterns), and we expect more uncertainty in regions where we have fewer observations. A GP lets us encode all of these assumptions directly through the choice of kernel function.
+
+!!! note "The GP Workflow"
+    1. **Specify a prior**: Choose a kernel that encodes assumptions about smoothness, periodicity, and scale
+    2. **Condition on data**: Compute the posterior distribution over functions consistent with observations
+    3. **Make predictions**: The posterior mean provides point estimates, while the posterior variance gives calibrated uncertainty
+
+A key property of GPs is that **epistemic uncertainty** (uncertainty due to limited data) naturally grows in regions far from observed data points. This is particularly valuable in quantitative finance, where knowing what we *don't* know is as important as making accurate predictions.
+
+---
+
 ## Definition
 
 A Gaussian process is a collection of random variables, any finite number of which have a joint Gaussian distribution. A GP is fully specified by its **mean function** $m(\mathbf{x})$ and **covariance (kernel) function** $k(\mathbf{x}, \mathbf{x}')$:

@@ -40,3 +40,41 @@ class LuongAttention(nn.Module):
         attention_weights = F.softmax(scores, dim=-1)
         context = torch.bmm(attention_weights, keys).squeeze(1)
         return context, attention_weights
+
+
+# ---------------------------------------------------------------------------
+# Masked Softmax Utility
+# ---------------------------------------------------------------------------
+# In many sequence tasks, inputs have variable lengths. When computing
+# attention scores, positions beyond the actual sequence length must be
+# masked to -inf so that softmax assigns them zero probability.
+# This avoids attending to padding tokens and is essential for both
+# encoder self-attention and cross-attention in Transformers.
+
+def masked_softmax(X, valid_lens):
+    """Perform softmax by masking positions beyond valid lengths.
+
+    Args:
+        X: 3D tensor of shape (batch_size, num_queries, num_keys)
+        valid_lens: 1D tensor (batch_size,) or 2D tensor (batch_size, num_queries)
+            Each element specifies how many keys are valid for that query.
+    Returns:
+        Softmax output with the same shape as X, where masked positions are 0.
+    """
+    if valid_lens is None:
+        return F.softmax(X, dim=-1)
+
+    shape = X.shape
+    if valid_lens.dim() == 1:
+        # Same valid length for all queries in each batch element
+        valid_lens = valid_lens.repeat_interleave(shape[1])
+    else:
+        valid_lens = valid_lens.reshape(-1)
+
+    # Build mask: positions >= valid_len get -1e6 so exp(-1e6) ≈ 0
+    X_flat = X.reshape(-1, shape[-1])
+    maxlen = X_flat.size(1)
+    mask = torch.arange(maxlen, device=X.device)[None, :] < valid_lens[:, None]
+    X_flat[~mask] = -1e6
+
+    return F.softmax(X_flat.reshape(shape), dim=-1)

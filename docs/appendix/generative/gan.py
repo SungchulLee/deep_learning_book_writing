@@ -60,6 +60,64 @@ class GAN(nn.Module):
     def forward(self, z):
         return self.generator(z)
 
+# ---------------------------------------------------------------------------
+# GAN Training Loop
+# ---------------------------------------------------------------------------
+# The minimax game alternates between:
+#   1. Update D: maximize log D(x) + log(1 - D(G(z)))
+#   2. Update G: minimize log(1 - D(G(z)))  [or equivalently maximize log D(G(z))]
+# In practice, step 2 uses the "non-saturating" loss: -log(D(G(z)))
+# because it provides stronger gradients early in training.
+
+def update_D(X, Z, net_D, net_G, loss, trainer_D):
+    """Update discriminator: maximize log D(x) + log(1 - D(G(z)))."""
+    batch_size = X.shape[0]
+    ones = torch.ones(batch_size, 1, device=X.device)
+    zeros = torch.zeros(batch_size, 1, device=X.device)
+    trainer_D.zero_grad()
+    real_Y = net_D(X)
+    fake_X = net_G(Z)
+    fake_Y = net_D(fake_X.detach())  # detach so G is not updated
+    loss_D = loss(real_Y, ones) + loss(fake_Y, zeros)
+    loss_D.backward()
+    trainer_D.step()
+    return float(loss_D)
+
+
+def update_G(Z, net_D, net_G, loss, trainer_G):
+    """Update generator: maximize log D(G(z))  (non-saturating loss)."""
+    batch_size = Z.shape[0]
+    ones = torch.ones(batch_size, 1, device=Z.device)
+    trainer_G.zero_grad()
+    fake_X = net_G(Z)
+    fake_Y = net_D(fake_X)
+    loss_G = loss(fake_Y, ones)  # fool D into classifying fake as real
+    loss_G.backward()
+    trainer_G.step()
+    return float(loss_G)
+
+
+def train_gan(net_G, net_D, data_iter, num_epochs, latent_dim,
+              lr_D=0.0002, lr_G=0.0002, device='cpu'):
+    """Full GAN training loop with loss tracking."""
+    loss = nn.BCELoss()
+    net_G, net_D = net_G.to(device), net_D.to(device)
+    trainer_D = torch.optim.Adam(net_D.parameters(), lr=lr_D, betas=(0.5, 0.999))
+    trainer_G = torch.optim.Adam(net_G.parameters(), lr=lr_G, betas=(0.5, 0.999))
+
+    for epoch in range(num_epochs):
+        d_loss_sum, g_loss_sum, n = 0, 0, 0
+        for X, _ in data_iter:
+            X = X.to(device)
+            batch_size = X.shape[0]
+            Z = torch.randn(batch_size, latent_dim, device=device)
+            d_loss_sum += update_D(X, Z, net_D, net_G, loss, trainer_D)
+            g_loss_sum += update_G(Z, net_D, net_G, loss, trainer_G)
+            n += 1
+        print(f"Epoch {epoch+1}/{num_epochs}, "
+              f"D loss: {d_loss_sum/n:.4f}, G loss: {g_loss_sum/n:.4f}")
+
+
 if __name__ == "__main__":
     model = GAN()
     print(f"Generator Parameters: {sum(p.numel() for p in model.generator.parameters()):,}")

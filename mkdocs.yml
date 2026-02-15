@@ -317,6 +317,7 @@ nav:
                 - KL Distance Axioms: ch03/loss/kl_distance_axioms.md
                 - KL for Gaussians: ch03/loss/kl_gaussian.md
                 - KL and Fisher Information: ch03/loss/kl_fisher_information.md
+                - Information Theory: ch03/loss/information_theory.md
 
         - 4 NN Building Blocks:
             - Chapter Overview: ch04/index.md
@@ -490,6 +491,7 @@ nav:
                 - "Code: Advanced Tensorboard": ch05/training/advanced_tensorboard.py
                 - "Code: Tensorboard MNIST Commented": ch05/training/tensorboard_mnist_commented.py
                 - "Code: Complete MNIST Training": ch05/training/01_complete_mnist_training.py
+                - "Code: Training Animator": ch05/training/02_training_animator.py
                 - "Quick Start Guide": ch05/training/quickstart.md
                 - "Overview": ch05/training/tensorboard_and_logging_overview.md
 
@@ -529,6 +531,7 @@ nav:
                 - "Code: Optimizer Comparison": ch05/optimizers/01_optimizer_comparison.py
                 - "Code: Learning Rate Schedulers": ch05/optimizers/02_learning_rate_schedulers.py
                 - "Code: Gradient Management": ch05/optimizers/03_gradient_management.py
+                - "Code: Optimizer Landscape 2D": ch05/optimizers/04_optimizer_landscape_2d.py
                 - "Code: Adagrad Optimizer": ch05/optimizers/adagrad_optimizer.py
                 - "Code: Adam Optimizer": ch05/optimizers/adam_optimizer.py
                 - "Code: Optimizer Comparison": ch05/optimizers/optimizer_comparison.py
@@ -565,6 +568,8 @@ nav:
                 - Mathematical Derivation: ch05/overfitting/mathematical_derivation.md
                 - Cross-Validation: ch05/overfitting/cross_validation.md
                 - Train-Val-Test Split: ch05/overfitting/train_val_test_split.md
+                - Distribution Shift: ch05/overfitting/distribution_shift.md
+                - Generalization in Deep Learning: ch05/overfitting/generalization_deep_learning.md
                 - "Code: Bias Variance Tradeoff": ch05/overfitting/bias_variance_tradeoff.py
                 - "Code: Learning Curves Demo": ch05/overfitting/learning_curves_demo.py
                 - "Code: Overfitting Underfitting Demo": ch05/overfitting/overfitting_underfitting_demo.py
@@ -579,6 +584,7 @@ nav:
                 - ROC and AUC: ch05/evaluation/roc_auc.md
                 - Precision-Recall Curves: ch05/evaluation/precision_recall.md
                 - Calibration Metrics: ch05/evaluation/calibration.md
+                - Statistical Inference: ch05/evaluation/statistical_inference.md
                 - "Code: Model Evaluation Overview": ch05/evaluation/01_model_evaluation_overview.py
                 - "Code: Classification Metrics": ch05/evaluation/02_classification_metrics.py
                 - "Code: Regression Metrics": ch05/evaluation/03_regression_metrics.py
@@ -600,6 +606,7 @@ nav:
                 - "Code: Bayesian Optimization": ch05/hyperparameters/03_bayesian_optimization.py
                 - "Code: Automl Intro": ch05/hyperparameters/04_automl_intro.py
                 - "Code: Comparison": ch05/hyperparameters/05_comparison.py
+                - "Code: Successive Halving": ch05/hyperparameters/06_successive_halving.py
                 - "Quick Start Guide": ch05/hyperparameters/quickstart.md
                 - "Overview": ch05/hyperparameters/hyperparameter_tuning_overview.md
 
@@ -743,6 +750,7 @@ nav:
                 - Gradient Clipping: ch07/rnn/gradient_clipping.md
                 - Bidirectional RNN: ch07/rnn/bidirectional.md
                 - Deep RNN: ch07/rnn/deep_rnn.md
+                - Language Models: ch07/rnn/language_models.md
                 - "Code: Char-RNN: Name Classification": ch07/rnn/char_rnn_cls.py
                 - "Code: Char-RNN: Name Generation": ch07/rnn/char_rnn_generation.py
                 - "Code: Sequence Basics": ch07/rnn/01_sequence_basics.py
@@ -793,6 +801,7 @@ nav:
                 - "Code: Inference": ch07/seq2seq/inference.py
                 - "Code: Seq2Seq Model": ch07/seq2seq/seq2seq_model.py
                 - "Code: Train": ch07/seq2seq/train.py
+                - "Code: BLEU Score": ch07/seq2seq/bleu_score.py
                 - "Overview": ch07/seq2seq/sequence_to_sequence_models_overview.md
 
             - 7.5 Attention:
@@ -3063,6 +3072,7 @@ nav:
 
         - A7 Generative Models:
             - Overview: appendix/generative/index.md
+            - GAN Fundamentals: appendix/generative/gan_fundamentals.md
             - Autoencoder: appendix/generative/autoencoder.py
             - VAE: appendix/generative/vae.py
             - Beta-VAE: appendix/generative/beta_vae.py
