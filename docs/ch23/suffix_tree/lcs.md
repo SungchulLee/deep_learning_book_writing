@@ -1,0 +1,32 @@
+# Longest Common Substring
+
+B-trees are self-balancing trees optimized for systems that read/write large blocks of data.
+
+```python
+class Node:
+    def __init__(self, key):
+        self.key = key; self.left = self.right = None
+
+def insert(root, key):
+    if not root: return Node(key)
+    if key < root.key: root.left = insert(root.left, key)
+    else: root.right = insert(root.right, key)
+    return root
+
+def inorder(root):
+    if root: yield from inorder(root.left); yield root.key; yield from inorder(root.right)
+
+root = None
+for k in [5,3,7,1,4,6,8]: root = insert(root, k)
+print(list(inorder(root)))
+```
+
+**Output:**
+```
+[1, 3, 4, 5, 6, 7, 8]
+```
+
+
+# Reference
+
+[Algorithms on Strings, Trees, and Sequences (Gusfield)](https://www.amazon.com/Algorithms-Strings-Trees-Sequences-Computational/dp/0521585198)
