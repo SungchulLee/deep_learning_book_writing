@@ -1,9 +1,11 @@
-site_name: Algorithm and Data Structure
+site_name: Quant Finance with Python
 theme:
     name: material
 
 markdown_extensions:
     - admonition
+    - attr_list
+    - md_in_html
     - toc:
         permalink: true
     - pymdownx.superfences
@@ -14,10 +16,13 @@ extra_javascript:
     - javascripts/mathjax.js
     - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
 
+extra_css:
+  - stylesheets/extra.css
+
 nav:
     - Home: index.md
 
-    - I - Foundations:
+    - I Foundations:
 
         - 1 Introduction:
             - Chapter Overview: ch01/index.md
@@ -129,7 +134,7 @@ nav:
                 - Find Path: ch03/classic/find_path.md
                 - Linear Search: ch03/classic/linear_search.md
 
-    - II - Elementary Data Structures:
+    - II Elementary Data Structures:
 
         - 4 Arrays and Linked Lists:
             - Chapter Overview: ch04/index.md
@@ -238,7 +243,7 @@ nav:
                 - Hash Table Class Implementation: ch06/applications/hash_table_impl.md
                 - Rabin-Karp: ch06/applications/rabin_karp.md
 
-    - III - Trees:
+    - III Trees:
 
         - 7 Binary Trees:
             - Chapter Overview: ch07/index.md
@@ -362,7 +367,7 @@ nav:
                 - Nearest Neighbor: ch10/kd/nearest.md
                 - Range Search: ch10/kd/range.md
 
-    - IV - Sorting:
+    - IV Sorting:
 
         - 11 Elementary Sorting:
             - Chapter Overview: ch11/index.md
@@ -445,7 +450,7 @@ nav:
                 - Sorting Networks: ch13/parallel/networks.md
                 - Parallel Quicksort: ch13/parallel/quicksort.md
 
-    - V - Graphs:
+    - V Graphs:
 
         - 14 Graph Fundamentals:
             - Chapter Overview: ch14/index.md
@@ -562,7 +567,7 @@ nav:
                 - Hierholzer's Algorithm: ch17/euler_hamilton/hierholzer.md
                 - Hamiltonian Path and Cycle: ch17/euler_hamilton/hamilton.md
 
-    - VI - Algorithm Design:
+    - VI Algorithm Design:
 
         - 18 Divide and Conquer:
             - Chapter Overview: ch18/index.md
@@ -687,7 +692,7 @@ nav:
                 - 0/1 Knapsack B&B: ch21/branch_bound/knapsack.md
                 - Assignment Problem: ch21/branch_bound/assignment.md
 
-    - VII - String Algorithms:
+    - VII String Algorithms:
 
         - 22 String Matching:
             - Chapter Overview: ch22/index.md
@@ -734,7 +739,7 @@ nav:
                 - Palindromic Tree (Eertree): ch23/other/eertree.md
                 - Rope Data Structure: ch23/other/rope.md
 
-    - VIII - Computational Geometry:
+    - VIII Computational Geometry:
 
         - 24 Geometric Algorithms:
             - Chapter Overview: ch24/index.md
@@ -763,7 +768,7 @@ nav:
                 - Delaunay Triangulation: ch24/voronoi/delaunay.md
                 - Duality: ch24/voronoi/duality.md
 
-    - IX - Advanced Topics:
+    - IX Advanced Topics:
 
         - 25 Randomized Algorithms:
             - Chapter Overview: ch25/index.md
@@ -840,11 +845,11 @@ nav:
                 - Pseudo-Polynomial Time: ch27/coping/pseudo_polynomial.md
             - 27.4 Beyond NP:
                 - PSPACE: ch27/beyond/pspace.md
-                - #P: ch27/beyond/sharp_p.md
+                - "#P": ch27/beyond/sharp_p.md
                 - BPP and RP: ch27/beyond/bpp_rp.md
                 - Complexity Zoo: ch27/beyond/zoo.md
 
-    - X - Specialized Topics:
+    - X Specialized Topics:
 
         - 28 Number Theory Algorithms:
             - Chapter Overview: ch28/index.md
@@ -937,7 +942,7 @@ nav:
                 - External MST: ch31/algorithms/mst.md
                 - External Graph Algorithms: ch31/algorithms/graph.md
 
-    - XI - Practice and Applications:
+    - XI Practice and Applications:
 
         - 32 Algorithm Design Techniques:
             - Chapter Overview: ch32/index.md
@@ -1072,4 +1077,4 @@ nav:
                 - Interview Preparation: ch36/cheatsheet/interview.md
 
 plugins:
-  - search
+    - search

@@ -15,3 +15,7 @@
 .md-nav__item--nested > .md-nav__toggle:checked ~ .md-nav {
     display: block;
 }
+
+figcaption {
+  text-align: right;
+}

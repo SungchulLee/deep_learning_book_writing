@@ -1,7 +1,7 @@
 window.MathJax = {
   tex: {
     inlineMath: [["\\(", "\\)"]],
-    displayMath: [["\\[", "\\]"]],
+    displayMath: [["$$", "$$"], ["\\[", "\\]"]],
     processEscapes: true,
     processEnvironments: true,
     packages: {'[+]': ['ams', 'boldsymbol']}
@@ -18,3 +18,4 @@ window.MathJax = {
 document$.subscribe(() => {
   MathJax.typesetPromise()
 })
+
