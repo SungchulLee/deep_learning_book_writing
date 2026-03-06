@@ -1,6 +1,5 @@
 # Hash Table Class Implementation
 
-
 ```python
 class HashMap:
     def __init__(self):
@@ -95,7 +94,6 @@ if __name__ == "__main__":
 Ming: 333-8233
 [['Mike', '567-2188'], ['Alicia', '632-4123'], ['Aditya', '777-8888'], ['Ming', '333-8233']]
 ```
-
 
 # Reference
 

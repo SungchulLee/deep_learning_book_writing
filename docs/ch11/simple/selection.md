@@ -1,11 +1,8 @@
 # Selection Sort
 
-
 <img src="img/Screen Shot 2022-04-30 at 11.43.25 AM.png" width="70%">
 
-
 <img src="img/Screen Shot 2022-04-30 at 11.46.02 AM.png" width="50%">
-
 
 ```python
 class Selection_Sort:
@@ -65,11 +62,9 @@ if __name__ == "__main__":
 [2, 4, 4, 1, 3] ---> [1, 2, 3, 4, 4]
 ```
 
-
 <div align="center"><img src="https://gmlwjd9405.github.io/images/algorithm-selection-sort/sort-time-complexity.png" width="50%"></div>
 
 [[알고리즘] 선택 정렬(Selection Sort)이란](https://gmlwjd9405.github.io/2018/05/06/algorithm-selection-sort.html)
-
 
 # Reference
 

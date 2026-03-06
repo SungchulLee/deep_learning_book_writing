@@ -2,6 +2,8 @@
 DFS Properties
 """
 
+# ======================================================================
+
 def dfs(node):
     stack = [node] 
     visited = set([node]) 
@@ -12,3 +14,9 @@ def dfs(node):
             if neighbour not in visited:  
                 stack.append(neighbour)
                 visited.add(neighbour)
+
+
+
+# === Main ===
+if __name__ == "__main__":
+    pass

@@ -2,6 +2,8 @@
 Bubble Sort for Dictionary
 """
 
+# ======================================================================
+
 def swap(a, b, key):
     if a[key] < b[key]:
         return a, b, True # last return item is flag that input is already sorted
@@ -28,12 +30,14 @@ def bubble_sort(lst, key):
     return lst
 
 
-lst = [
-        { 'name': 'mona',   'transaction_amount': 1000, 'device': 'iphone-10'},
-        { 'name': 'dhaval', 'transaction_amount': 400,  'device': 'google pixel'},
-        { 'name': 'kathy',  'transaction_amount': 200,  'device': 'vivo'},
-        { 'name': 'aamir',  'transaction_amount': 800,  'device': 'iphone-8'},
-    ]
-#bubble_sort(lst,key='name')
-#bubble_sort(lst,key='transaction_amount')
-bubble_sort(lst,key='device')
+# === Main ===
+if __name__ == "__main__":
+    lst = [
+            { 'name': 'mona',   'transaction_amount': 1000, 'device': 'iphone-10'},
+            { 'name': 'dhaval', 'transaction_amount': 400,  'device': 'google pixel'},
+            { 'name': 'kathy',  'transaction_amount': 200,  'device': 'vivo'},
+            { 'name': 'aamir',  'transaction_amount': 800,  'device': 'iphone-8'},
+        ]
+    #bubble_sort(lst,key='name')
+    #bubble_sort(lst,key='transaction_amount')
+    bubble_sort(lst,key='device')

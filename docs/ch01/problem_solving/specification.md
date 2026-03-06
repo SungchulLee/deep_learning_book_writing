@@ -3,7 +3,9 @@
 A well-defined problem specification includes:
 
 $$
+
 \text{Problem} = (\text{Input}, \text{Output}, \text{Constraints})
+
 $$
 
 ## Components
@@ -32,14 +34,12 @@ def is_valid_sort(original, result):
             return False
     return True
 
-
 def main():
     original = [3, 1, 4, 1, 5, 9]
     result = sorted(original)
     print(f"Original: {original}")
     print(f"Result:   {result}")
     print(f"Valid:    {is_valid_sort(original, result)}")
-
 
 if __name__ == "__main__":
     main()
@@ -51,7 +51,6 @@ Original: [3, 1, 4, 1, 5, 9]
 Result:   [1, 1, 3, 4, 5, 9]
 Valid:    True
 ```
-
 
 # Reference
 

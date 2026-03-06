@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from functools import lru_cache as cache
 
+
+# === Functions ===
 class Maze:
 
     # deterministic maze
@@ -92,5 +94,7 @@ def main():
     #maze.plot_current_state()    
     
 
+
+# === Main ===
 if __name__ == "__main__":
     main()

@@ -7,7 +7,9 @@ Failure links (also called suffix links) are the key augmentation that transform
 For a state $s$ in the trie representing the string $w$, the failure link $f(s)$ points to the state representing the longest proper suffix of $w$ that is also a prefix of some pattern in the trie.
 
 $$
+
 f(s) = \text{state for the longest proper suffix of } \text{str}(s) \text{ that exists in the trie}
+
 $$
 
 If no proper suffix of $w$ exists in the trie, then $f(s)$ points to the root.
@@ -47,7 +49,6 @@ def build_failure_links(goto, fail):
 
     return fail
 
-
 # Example: trie for patterns ["ACC", "ATC", "CAT"]
 goto = [
     {'A': 1, 'C': 7},  # root (0)
@@ -76,7 +77,6 @@ When processing a text character and the current trie state has no transition fo
 
 - **Construction:** $O(m)$ where $m$ is the total length of all patterns. Each state is enqueued once in the BFS, and the failure link chain traversal is amortized $O(1)$ per state.
 - **Space:** $O(1)$ per state for the failure link pointer.
-
 
 # Reference
 

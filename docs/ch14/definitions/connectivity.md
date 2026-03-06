@@ -1,10 +1,8 @@
 # Connectivity
 
-
 ```python
 from functools import lru_cache as cache
 ```
-
 
 ```python
 class Graph:
@@ -50,7 +48,6 @@ class Graph:
         return [start] + shortest_path_segment
 ```
 
-
 ```python
 if __name__ == '__main__':
 
@@ -76,7 +73,6 @@ if __name__ == '__main__':
 All paths between: Mumbai and New York:  [['Mumbai', 'Paris', 'Dubai', 'New York'], ['Mumbai', 'Paris', 'New York'], ['Mumbai', 'Dubai', 'New York']]
 Shortest path between Mumbai and New York:  ['Mumbai', 'Paris', 'New York']
 ```
-
 
 # Reference
 

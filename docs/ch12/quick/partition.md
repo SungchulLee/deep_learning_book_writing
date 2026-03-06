@@ -1,13 +1,10 @@
 # Partition
 
-
 <div align="center"><img src="http://www.codeido.com/wp-content/uploads/2010/12/quicksort-326x270.png" width="50%"></div>
 
 [Recursive Quicksort Algorithm written in C language [with example step-by-step]](http://www.codeido.com/2010/12/recursive-quicksort-algorithm-written-in-c-language-with-example-step-by-step/)
 
-
 Quick Sort는 맨 앞에 있는 데이타(피봇)를 기준으로, 데이타 왼쪽에는 작은 수들을 오른쪽에는 큰수를 배치시키는 빠른 알고리즘을 리커시브하게 사용한다.
-
 
 ```python
 def start_pointer_move(start_pointer, lst):
@@ -35,7 +32,6 @@ def start_pointer_move(start_pointer, lst):
     return start_pointer
 ```
 
-
 ```python
 def end_pointer_move(end_pointer, lst):
     """
@@ -58,7 +54,6 @@ def end_pointer_move(end_pointer, lst):
     return end_pointer
 ```
 
-
 ```python
 def swap_move(start_pointer, end_pointer, lst):
     """
@@ -68,7 +63,6 @@ def swap_move(start_pointer, end_pointer, lst):
     return lst
 ```
 
-
 ```python
 def pivot_move(end_pointer, lst):
     """
@@ -77,7 +71,6 @@ def pivot_move(end_pointer, lst):
     lst[0], lst[end_pointer] = lst[end_pointer], lst[0]
     return lst
 ```
-
 
 ```python
 def partition(lst):
@@ -123,7 +116,6 @@ def partition(lst):
     return left, center, right
 ```
 
-
 ```python
 def quick_sort(lst):
     """
@@ -148,7 +140,6 @@ def quick_sort(lst):
     return left + center + right
 ```
 
-
 ```python
 lst = [-1, 3, 8, -5, 7, 4, 10]
 print(quick_sort(lst))
@@ -159,11 +150,9 @@ print(quick_sort(lst))
 [-5, -1, 3, 4, 7, 8, 10]
 ```
 
-
 <div align="center"><img src="https://gmlwjd9405.github.io/images/algorithm-quick-sort/sort-time-complexity.png" width="50%"></div>
 
 [[알고리즘] 퀵 정렬(quick sort)이란](https://gmlwjd9405.github.io/2018/05/10/algorithm-quick-sort.html)
-
 
 # Reference
 

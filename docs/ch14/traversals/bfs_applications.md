@@ -27,7 +27,6 @@ print(f"BFS from 0: {bfs(graph, 0)}")
 BFS from 0: [0, 1, 2, 3, 4]
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 22](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

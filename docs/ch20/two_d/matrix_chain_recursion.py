@@ -5,6 +5,8 @@ Matrix Chain - Recursion
 import numpy as np
  
 
+# === Functions ===
+
 def MatrixChainMultiplication(p, i, j):
     """
     We are interested in the matrix multiplication $A[i]A[i+1]...A[j]$, not $A[1]A[2]...A[n]$
@@ -31,5 +33,7 @@ def main():
     print(f"Minimum number of multiplications : {MatrixChainMultiplication(p, 1, n-1)}")
 
     
+
+# === Main ===
 if __name__ == "__main__":
     main()

@@ -10,7 +10,9 @@ When comparing the pattern right to left, suppose a mismatch occurs: $T[i+j] \ne
 - If $c$ does not occur in $P[0..j-1]$, shift the entire pattern past the mismatch position. The shift amount is $j + 1$.
 
 $$
+
 \text{bad\_char\_shift}(j, c) = j - \max\{k : k < j \text{ and } P[k] = c\}
+
 $$
 
 If no such $k$ exists, we use $k = -1$, giving a shift of $j + 1$.
@@ -29,7 +31,6 @@ def build_bad_character_table(pattern: str) -> dict[str, int]:
     for i, ch in enumerate(pattern):
         table[ch] = i
     return table
-
 
 def bad_character_search(text: str, pattern: str) -> list[int]:
     """Boyer-Moore using only the bad-character heuristic."""
@@ -54,7 +55,6 @@ def bad_character_search(text: str, pattern: str) -> list[int]:
             i += max(1, shift)
     return occurrences
 
-
 # Example
 text = "ABCABCABABC"
 pattern = "ABABC"
@@ -70,7 +70,6 @@ The simple version only stores the rightmost occurrence of each character. The *
 
 - **Preprocessing:** $O(m + |\Sigma|)$ for the simple table, or $O(m \cdot |\Sigma|)$ for the extended version.
 - **The bad-character rule alone does not guarantee sublinear or linear worst-case performance.** It can degenerate to $O(nm)$. However, combined with the good-suffix rule, Boyer-Moore achieves $O(n+m)$ worst-case.
-
 
 # Reference
 

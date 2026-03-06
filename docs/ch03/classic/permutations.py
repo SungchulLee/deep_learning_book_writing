@@ -28,6 +28,8 @@ def main():
     print_permutation(initial_list, 2)
     
         
+
+# === Main ===
 if __name__ == "__main__":
     main()
 

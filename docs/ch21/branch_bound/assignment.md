@@ -1,7 +1,7 @@
 # Assignment Problem
 
-
 $$
+
 \text{Search}
 \left\{\begin{array}{lll}
 \text{BFS (Queue)}\\
@@ -25,26 +25,30 @@ $$
 \end{array}\right.\\
 \end{array}
 \right.
-$$
 
+$$
 
 # Admissible Heuristic
 
 $$
-H(x,G) \le D(x,G)
-$$
 
+H(x,G) \le D(x,G)
+
+$$
 
 # Consistant Heuristic
 
 $$
+
 H(x,G) \le D(x,G)
+
 $$
 
 $$
+
 \left|H(x,G)-H(y,G)\right| \le D(x,y)
-$$
 
+$$
 
 # Reference
 

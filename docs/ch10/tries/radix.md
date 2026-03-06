@@ -26,7 +26,6 @@ print(radix_sort([170,45,75,90,802,24,2,66]))
 [2, 24, 45, 66, 75, 90, 170, 802]
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 14](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

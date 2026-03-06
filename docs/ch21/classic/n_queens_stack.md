@@ -1,11 +1,9 @@
 # N-Queens (Stack)
 
-
 ```python
 n = 10
 
 queens_locations = [None for i in range(n+1)]
-
 
 def check_feasibility(level):
     for i in range(1, level):
@@ -14,7 +12,6 @@ def check_feasibility(level):
         if abs( queens_locations[i] - queens_locations[level] ) == level - i:
             return False # not feasible
     return True # feasibile
-
 
 def queens(level, verbose):
     # base cases
@@ -35,7 +32,6 @@ def queens(level, verbose):
         if queens(level+1, verbose):
             return True # can place n queens
     return False # cannot place n queens
-
 
 def main():
     
@@ -60,7 +56,6 @@ if __name__ == "__main__":
 True
 [None, 1, 3, 6, 8, 10, 5, 9, 2, 4, 7]
 ```
-
 
 # Reference
 

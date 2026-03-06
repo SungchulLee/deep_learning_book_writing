@@ -1,13 +1,10 @@
 # Shell Sort
 
-
 <div align="center"><img src="http://stoimen.com/wp-content/uploads/2012/02/Shell-Sort.png" width="50%"></div>
 
 [Computer Algorithms: Shell Sort](http://stoimen.com/2012/02/27/computer-algorithms-shell-sort/)
 
-
 Shell Sort는 고정된 쉘 겝에 주어지는 다양한 쉘을 정렬하고, 겝을 점차적으로 1까지 줄이는 알고리즘이다.
-
 
 ```python
 def insert(item, lst):
@@ -25,7 +22,6 @@ def insert(item, lst):
     return start_pointer
 ```
 
-
 ```python
 def end_pointer_move(end_pointer, lst):
     pivot_value = lst[0]
@@ -39,20 +35,17 @@ def end_pointer_move(end_pointer, lst):
     return end_pointer
 ```
 
-
 ```python
 def swap_move(start_pointer, end_pointer, lst):
     lst[end_pointer], lst[start_pointer] = lst[start_pointer], lst[end_pointer]
     return lst
 ```
 
-
 ```python
 def pivot_move(end_pointer, lst):
     lst[0], lst[end_pointer] = lst[end_pointer], lst[0]
     return lst
 ```
-
 
 ```python
 def partition(lst):
@@ -86,7 +79,6 @@ def partition(lst):
     return left, center, right
 ```
 
-
 ```python
 def quick_sort(lst):
     
@@ -105,7 +97,6 @@ def quick_sort(lst):
     return left + center + right
 ```
 
-
 ```python
 lst = [-1, 3, 8, -5, 7, 4, 10]
 print(quick_sort(lst))
@@ -116,11 +107,9 @@ print(quick_sort(lst))
 [-5, -1, 3, 4, 7, 8, 10]
 ```
 
-
 <div align="center"><img src="https://gmlwjd9405.github.io/images/algorithm-shell-sort/sort-time-complexity.png" width="50%"></div>
 
 [[알고리즘] 셸 정렬(shell sort)이란](https://gmlwjd9405.github.io/2018/05/08/algorithm-shell-sort.html)
-
 
 # Reference
 

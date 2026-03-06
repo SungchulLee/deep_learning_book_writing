@@ -1,13 +1,10 @@
 # Insertion Sort - In-Place
 
-
 <div align="center"><img src="https://w.namu.la/s/e2cca975b1e03bd676ae5e11433526429e9cf77953039ca19a2df4b1112eb75c9c45701ca4f75bcb78194f07ec7b60f28040a4bae7ceed58729887ff62fc13f69868eaa547d811e954217aa647befd21da0fdcf9fb1deb7689cd19dde0e9a7f9" width="30%"></div>
 
 [정렬 알고리즘](https://namu.wiki/w/정렬%20알고리즘#s-2.3.1)
 
-
 Insertion Sort는 가장 먼저 생각할 수 있는 정렬 알고리즘이다.
-
 
 ```python
 def insertion_sort(lst):
@@ -23,7 +20,6 @@ def insertion_sort(lst):
     return lst
 ```
 
-
 ```python
 lst = [-1, 3, 8, -5, 7, 4, 10]
 print(insertion_sort(lst))
@@ -34,11 +30,9 @@ print(insertion_sort(lst))
 [-5, -1, 3, 4, 7, 8, 10]
 ```
 
-
 <div align="center"><img src="https://gmlwjd9405.github.io/images/algorithm-insertion-sort/sort-time-complexity.png" width="50%"></div>
 
 [[알고리즘] 삽입 정렬(Insertion Sort)이란](https://gmlwjd9405.github.io/2018/05/06/algorithm-insertion-sort.html)
-
 
 # Reference
 

@@ -178,7 +178,7 @@ nav:
             - Chapter Overview: ch05/index.md
 
             - 5.1 Stacks:
-                - Stack ADT: ch05/stacks/adt.md
+                - Stack Abstract Data Type: ch05/stacks/adt.md
                 - Array-Based Stack: ch05/stacks/array.md
                 - Deque as Stack: ch05/stacks/deque_stack.md
                 - Linked List Stack: ch05/stacks/linked.md
@@ -189,20 +189,20 @@ nav:
                 - Balanced Parentheses: ch05/stacks/parentheses.md
                 - Function Call Simulation: ch05/stacks/call_simulation.md
             - 5.2 Queues:
-                - Queue ADT: ch05/queues/adt.md
+                - Queue Abstract Data Type: ch05/queues/adt.md
                 - Array-Based Queue: ch05/queues/array.md
                 - Deque as Queue: ch05/queues/deque_queue.md
                 - Circular Queue: ch05/queues/circular.md
                 - Linked List Queue: ch05/queues/linked.md
                 - Queue Applications: ch05/queues/applications.md
-                - BFS Preview: ch05/queues/bfs_preview.md
+                - Breadth-First Search Preview: ch05/queues/bfs_preview.md
                 - Task Scheduling: ch05/queues/scheduling.md
             - 5.3 Double-Ended Queues:
-                - Deque ADT: ch05/deque/adt.md
+                - Deque Abstract Data Type: ch05/deque/adt.md
                 - Array-Based Deque: ch05/deque/array.md
                 - Sliding Window Maximum: ch05/deque/sliding_window.md
             - 5.4 Priority Queues:
-                - Priority Queue ADT: ch05/priority/adt.md
+                - Priority Queue Abstract Data Type: ch05/priority/adt.md
                 - Unsorted Array: ch05/priority/unsorted.md
                 - Sorted Array: ch05/priority/sorted.md
                 - Heap Preview: ch05/priority/heap_preview.md
@@ -238,7 +238,7 @@ nav:
                 - Consistent Hashing: ch06/probabilistic/consistent.md
             - 6.5 Applications:
                 - Symbol Tables: ch06/applications/symbol.md
-                - Caches (LRU): ch06/applications/lru.md
+                - Caches (Least Recently Used): ch06/applications/lru.md
                 - Deduplication: ch06/applications/dedup.md
                 - Hash Table Class Implementation: ch06/applications/hash_table_impl.md
                 - Rabin-Karp: ch06/applications/rabin_karp.md
@@ -265,15 +265,15 @@ nav:
                 - Iterative Traversals: ch07/traversals/iterative.md
                 - Euler Tour: ch07/traversals/euler_tour.md
             - 7.3 Binary Search Trees:
-                - BST Property: ch07/bst/property.md
+                - Binary Search Tree Property: ch07/bst/property.md
                 - Search: ch07/bst/search.md
                 - Insertion: ch07/bst/insertion.md
                 - Deletion: ch07/bst/deletion.md
                 - Successor and Predecessor: ch07/bst/successor.md
                 - Min and Max: ch07/bst/min_max.md
                 - Complexity: ch07/bst/complexity.md
-                - Augmented BST: ch07/bst/augmented.md
-                - Randomly Built BSTs: ch07/bst/random.md
+                - Augmented Binary Search Tree: ch07/bst/augmented.md
+                - Randomly Built Binary Search Trees: ch07/bst/random.md
 
         - 8 Balanced Search Trees:
             - Chapter Overview: ch08/index.md
@@ -352,7 +352,7 @@ nav:
                 - Lazy Propagation: ch10/segment/lazy.md
                 - Range Updates: ch10/segment/range_update.md
                 - Persistent Segment Trees: ch10/segment/persistent.md
-            - 10.3 Fenwick Trees (BIT):
+            - 10.3 Fenwick Trees (Binary Indexed Tree):
                 - Binary Indexed Tree: ch10/fenwick/bit.md
                 - Prefix Sum Queries: ch10/fenwick/prefix_sum.md
                 - Point Updates: ch10/fenwick/update.md
@@ -361,7 +361,7 @@ nav:
             - 10.4 Interval Trees:
                 - Structure: ch10/interval/structure.md
                 - Overlap Queries: ch10/interval/overlap.md
-                - Augmented BST: ch10/interval/augmented.md
+                - Augmented Binary Search Tree: ch10/interval/augmented.md
             - 10.5 KD-Trees:
                 - Construction: ch10/kd/construction.md
                 - Nearest Neighbor: ch10/kd/nearest.md
@@ -433,8 +433,8 @@ nav:
             - 13.1 Integer Sorting:
                 - Counting Sort: ch13/integer/counting.md
                 - Radix Sort: ch13/integer/radix.md
-                - LSD Radix Sort: ch13/integer/lsd.md
-                - MSD Radix Sort: ch13/integer/msd.md
+                - Least Significant Digit Radix Sort: ch13/integer/lsd.md
+                - Most Significant Digit Radix Sort: ch13/integer/msd.md
                 - Bucket Sort: ch13/integer/bucket.md
             - 13.2 Selection:
                 - Quickselect: ch13/selection/quickselect.md
@@ -474,14 +474,14 @@ nav:
                 - Implicit Graphs: ch14/representations/implicit.md
                 - Comparison: ch14/representations/comparison.md
             - 14.3 Traversals:
-                - BFS: ch14/traversals/bfs.md
-                - BFS Properties: ch14/traversals/bfs_properties.md
-                - BFS Applications: ch14/traversals/bfs_applications.md
-                - DFS: ch14/traversals/dfs.md
-                - DFS Properties: ch14/traversals/dfs_properties.md
+                - Breadth-First Search: ch14/traversals/bfs.md
+                - Breadth-First Search Properties: ch14/traversals/bfs_properties.md
+                - Breadth-First Search Applications: ch14/traversals/bfs_applications.md
+                - Depth-First Search: ch14/traversals/dfs.md
+                - Depth-First Search Properties: ch14/traversals/dfs_properties.md
                 - Edge Classification: ch14/traversals/edge_classification.md
-                - DFS Applications: ch14/traversals/dfs_applications.md
-                - Iterative Deepening: ch14/traversals/iddfs.md
+                - Depth-First Search Applications: ch14/traversals/dfs_applications.md
+                - Iterative Deepening Search: ch14/traversals/iddfs.md
 
         - 15 Shortest Paths:
             - Chapter Overview: ch15/index.md
@@ -493,18 +493,18 @@ nav:
                 - Dijkstra Correctness: ch15/single/dijkstra_proof.md
                 - Dijkstra with Heap: ch15/single/dijkstra_heap.md
                 - Bellman-Ford: ch15/single/bellman_ford.md
-                - Bellman-Ford via BFS: ch15/single/bellman_ford_bfs.md
+                - Bellman-Ford via Breadth-First Search: ch15/single/bellman_ford_bfs.md
                 - Bellman-Ford Code: ch15/single/bellman_ford_code.md
                 - Negative Cycle Detection: ch15/single/negative_cycle.md
-                - SPFA: ch15/single/spfa.md
-                - DAG Shortest Paths: ch15/single/dag.md
+                - Shortest Path Faster Algorithm: ch15/single/spfa.md
+                - Directed Acyclic Graph Shortest Paths: ch15/single/dag.md
             - 15.2 All-Pairs:
                 - Floyd-Warshall: ch15/all_pairs/floyd_warshall.md
                 - Transitive Closure: ch15/all_pairs/transitive.md
                 - Johnson's Algorithm: ch15/all_pairs/johnson.md
             - 15.3 Variants:
-                - 0-1 BFS: ch15/variants/zero_one.md
-                - A* Search: ch15/variants/a_star.md
+                - 0-1 Breadth-First Search: ch15/variants/zero_one.md
+                - 'A* Search': ch15/variants/a_star.md
                 - Heuristic Functions: ch15/variants/heuristics.md
                 - Bidirectional Search: ch15/variants/bidirectional.md
                 - Uniform Cost Search: ch15/variants/uniform_cost.md
@@ -513,12 +513,12 @@ nav:
         - 16 Minimum Spanning Trees:
             - Chapter Overview: ch16/index.md
 
-            - 16.1 MST Theory:
-                - MST Definition: ch16/theory/definition.md
+            - 16.1 Minimum Spanning Tree Theory:
+                - Minimum Spanning Tree Definition: ch16/theory/definition.md
                 - Cut Property: ch16/theory/cut.md
                 - Cycle Property: ch16/theory/cycle.md
                 - Uniqueness: ch16/theory/uniqueness.md
-            - 16.2 MST Algorithms:
+            - 16.2 Minimum Spanning Tree Algorithms:
                 - Kruskal's Algorithm: ch16/algorithms/kruskal.md
                 - Kruskal with Union-Find: ch16/algorithms/kruskal_uf.md
                 - Prim's Algorithm: ch16/algorithms/prim.md
@@ -526,7 +526,7 @@ nav:
                 - Borůvka's Algorithm: ch16/algorithms/boruvka.md
                 - Comparison: ch16/algorithms/comparison.md
             - 16.3 Union-Find:
-                - Disjoint Set ADT: ch16/union_find/adt.md
+                - Disjoint Set Abstract Data Type: ch16/union_find/adt.md
                 - Quick Find: ch16/union_find/quick_find.md
                 - Quick Union: ch16/union_find/quick_union.md
                 - Union by Rank: ch16/union_find/by_rank.md
@@ -538,16 +538,16 @@ nav:
             - Chapter Overview: ch17/index.md
 
             - 17.1 Topological Sort:
-                - DAG Property: ch17/topological/dag.md
+                - Directed Acyclic Graph Property: ch17/topological/dag.md
                 - Kahn's Algorithm: ch17/topological/kahn.md
-                - DFS-Based: ch17/topological/dfs.md
+                - Depth-First Search Based: ch17/topological/dfs.md
                 - Applications: ch17/topological/applications.md
             - 17.2 Strongly Connected Components:
-                - SCC Definition: ch17/scc/definition.md
+                - Strongly Connected Component Definition: ch17/scc/definition.md
                 - Kosaraju's Algorithm: ch17/scc/kosaraju.md
                 - Tarjan's Algorithm: ch17/scc/tarjan.md
                 - Condensation Graph: ch17/scc/condensation.md
-                - 2-SAT: ch17/scc/two_sat.md
+                - 2-Satisfiability: ch17/scc/two_sat.md
             - 17.3 Articulation Points and Bridges:
                 - Biconnected Components: ch17/biconnected/components.md
                 - Finding Articulation Points: ch17/biconnected/articulation.md
@@ -572,11 +572,11 @@ nav:
         - 18 Divide and Conquer:
             - Chapter Overview: ch18/index.md
 
-            - 18.1 D&C Paradigm:
+            - 18.1 Divide and Conquer Paradigm:
                 - Strategy: ch18/paradigm/strategy.md
                 - Divide, Conquer, Combine: ch18/paradigm/steps.md
                 - Recurrence Analysis: ch18/paradigm/recurrence.md
-            - 18.2 Classic D&C:
+            - 18.2 Classic Divide and Conquer:
                 - Binary Search: ch18/classic/binary_search.md
                 - Maximum Subarray: ch18/classic/max_subarray.md
                 - Closest Pair of Points: ch18/classic/closest_pair.md
@@ -590,8 +590,8 @@ nav:
                 - 2D Peak - Recursion: ch18/classic/peak_2d.md
                 - Bisection: ch18/classic/bisection.md
                 - Karatsuba Multiplication: ch18/classic/karatsuba.md
-                - Convex Hull (D&C): ch18/classic/convex_hull.md
-                - FFT: ch18/classic/fft.md
+                - Convex Hull (Divide and Conquer): ch18/classic/convex_hull.md
+                - Fast Fourier Transform: ch18/classic/fft.md
 
         - 19 Greedy Algorithms:
             - Chapter Overview: ch19/index.md
@@ -619,7 +619,7 @@ nav:
         - 20 Dynamic Programming:
             - Chapter Overview: ch20/index.md
 
-            - 20.1 DP Fundamentals:
+            - 20.1 Dynamic Programming Fundamentals:
                 - Optimal Substructure: ch20/fundamentals/optimal.md
                 - Overlapping Subproblems: ch20/fundamentals/overlapping.md
                 - Memoization (Top-Down): ch20/fundamentals/memoization.md
@@ -630,10 +630,10 @@ nav:
                 - Redundant Computations: ch20/fundamentals/redundant_computations.md
                 - Exponential Computation Time: ch20/fundamentals/exponential_time.md
                 - Cache: ch20/fundamentals/cache.md
-                - LRU Cache: ch20/fundamentals/lru_cache.md
+                - Least Recently Used Cache: ch20/fundamentals/lru_cache.md
                 - Tabulation with Dict: ch20/fundamentals/tabulation_dict.md
                 - Efficient Memory Usage: ch20/fundamentals/efficient_memory.md
-            - 20.2 One-Dimensional DP:
+            - 20.2 One-Dimensional Dynamic Programming:
                 - Fibonacci: ch20/one_d/fibonacci.md
                 - Climbing Stairs: ch20/one_d/stairs.md
                 - Rod Cutting: ch20/one_d/rod_cutting.md
@@ -642,12 +642,12 @@ nav:
                 - Maximum Subarray: ch20/one_d/max_subarray.md
                 - Word Break: ch20/one_d/word_break.md
                 - House Robber: ch20/one_d/house_robber.md
-            - 20.3 Two-Dimensional DP:
+            - 20.3 Two-Dimensional Dynamic Programming:
                 - 0/1 Knapsack: ch20/two_d/knapsack.md
                 - Fractional Knapsack: ch20/two_d/fractional_knapsack.md
                 - Longest Common Subsequence: ch20/two_d/lcs.md
-                - LCS - Memoization: ch20/two_d/lcs_memo.md
-                - LCS - Dynamic Programming: ch20/two_d/lcs_dp.md
+                - Longest Common Subsequence - Memoization: ch20/two_d/lcs_memo.md
+                - Longest Common Subsequence - Tabulation: ch20/two_d/lcs_dp.md
                 - Edit Distance: ch20/two_d/edit_distance.md
                 - Matrix Chain Multiplication: ch20/two_d/matrix_chain.md
                 - Matrix Chain - Recursion: ch20/two_d/matrix_chain_recursion.md
@@ -655,15 +655,15 @@ nav:
                 - Matrix Chain - Tabulation: ch20/two_d/matrix_chain_tab.md
                 - Palindrome Partitioning: ch20/two_d/palindrome.md
                 - Grid Paths: ch20/two_d/grid_paths.md
-            - 20.4 Advanced DP:
-                - DP on Trees: ch20/advanced/trees.md
-                - DP on DAGs: ch20/advanced/dags.md
-                - Bitmask DP: ch20/advanced/bitmask.md
+            - 20.4 Advanced Dynamic Programming:
+                - Dynamic Programming on Trees: ch20/advanced/trees.md
+                - Dynamic Programming on Directed Acyclic Graphs: ch20/advanced/dags.md
+                - Bitmask Dynamic Programming: ch20/advanced/bitmask.md
                 - Traveling Salesman: ch20/advanced/tsp.md
-                - TSP - Recursion: ch20/advanced/tsp_recursion.md
+                - Traveling Salesman - Recursion: ch20/advanced/tsp_recursion.md
                 - Reliability Design: ch20/advanced/reliability.md
-                - Digit DP: ch20/advanced/digit.md
-                - Interval DP: ch20/advanced/interval.md
+                - Digit Dynamic Programming: ch20/advanced/digit.md
+                - Interval Dynamic Programming: ch20/advanced/interval.md
                 - Knuth's Optimization: ch20/advanced/knuth.md
                 - Divide and Conquer Optimization: ch20/advanced/dc_opt.md
 
@@ -688,8 +688,8 @@ nav:
             - 21.3 Branch and Bound:
                 - Bounding Functions: ch21/branch_bound/bounding.md
                 - Best-First Search: ch21/branch_bound/best_first.md
-                - TSP Branch and Bound: ch21/branch_bound/tsp.md
-                - 0/1 Knapsack B&B: ch21/branch_bound/knapsack.md
+                - Traveling Salesman Branch and Bound: ch21/branch_bound/tsp.md
+                - 0/1 Knapsack Branch and Bound: ch21/branch_bound/knapsack.md
                 - Assignment Problem: ch21/branch_bound/assignment.md
 
     - VII String Algorithms:
@@ -713,10 +713,10 @@ nav:
                 - Failure Links: ch22/multiple/failure_links.md
                 - Dictionary Links: ch22/multiple/dictionary.md
             - 22.3 Regular Expressions:
-                - NFA Construction: ch22/regex/nfa.md
+                - Nondeterministic Finite Automaton: ch22/regex/nfa.md
                 - Thompson's Construction: ch22/regex/thompson.md
-                - NFA to DFA: ch22/regex/nfa_dfa.md
-                - DFA Minimization: ch22/regex/minimization.md
+                - Nondeterministic to Deterministic: ch22/regex/nfa_dfa.md
+                - Deterministic Automaton Minimization: ch22/regex/minimization.md
 
         - 23 Advanced String Structures:
             - Chapter Overview: ch23/index.md
@@ -725,7 +725,7 @@ nav:
                 - Definition: ch23/suffix_array/definition.md
                 - O(n log n) Construction: ch23/suffix_array/efficient.md
                 - SA-IS Algorithm: ch23/suffix_array/sais.md
-                - LCP Array: ch23/suffix_array/lcp.md
+                - Longest Common Prefix Array: ch23/suffix_array/lcp.md
                 - Kasai's Algorithm: ch23/suffix_array/kasai.md
                 - Applications: ch23/suffix_array/applications.md
             - 23.2 Suffix Trees:
@@ -798,18 +798,18 @@ nav:
 
             - 26.1 Framework:
                 - Approximation Ratio: ch26/framework/ratio.md
-                - PTAS and FPTAS: ch26/framework/ptas.md
+                - Approximation Schemes (PTAS, FPTAS): ch26/framework/ptas.md
                 - Inapproximability: ch26/framework/inapproximability.md
             - 26.2 Classic Approximations:
                 - Vertex Cover: ch26/classic/vertex_cover.md
                 - Set Cover: ch26/classic/set_cover.md
-                - TSP Christofides: ch26/classic/tsp.md
-                - Metric TSP: ch26/classic/metric_tsp.md
-                - Knapsack FPTAS: ch26/classic/knapsack.md
+                - Traveling Salesman Christofides: ch26/classic/tsp.md
+                - Metric Traveling Salesman: ch26/classic/metric_tsp.md
+                - Knapsack Approximation Scheme: ch26/classic/knapsack.md
                 - Load Balancing: ch26/classic/load_balancing.md
                 - Max-Cut: ch26/classic/max_cut.md
-            - 26.3 LP Relaxation:
-                - LP Relaxation: ch26/lp/relaxation.md
+            - 26.3 Linear Programming Relaxation:
+                - Linear Programming Relaxation: ch26/lp/relaxation.md
                 - Rounding: ch26/lp/rounding.md
                 - Randomized Rounding: ch26/lp/randomized.md
                 - Primal-Dual: ch26/lp/primal_dual.md
@@ -827,16 +827,16 @@ nav:
                 - P vs NP Problem: ch27/classes/p_vs_np.md
             - 27.2 NP-Complete Problems:
                 - Cook-Levin Theorem: ch27/np_complete/cook_levin.md
-                - SAT and 3-SAT: ch27/np_complete/sat.md
+                - Satisfiability and 3-SAT: ch27/np_complete/sat.md
                 - Clique: ch27/np_complete/clique.md
                 - Vertex Cover: ch27/np_complete/vertex_cover.md
                 - Independent Set: ch27/np_complete/independent_set.md
                 - Hamiltonian Cycle: ch27/np_complete/hamiltonian.md
-                - TSP: ch27/np_complete/tsp.md
+                - Traveling Salesman Problem: ch27/np_complete/tsp.md
                 - Graph Coloring: ch27/np_complete/coloring.md
                 - Subset Sum: ch27/np_complete/subset_sum.md
                 - Partition: ch27/np_complete/partition.md
-                - 3D Matching: ch27/np_complete/matching.md
+                - Three-Dimensional Matching: ch27/np_complete/matching.md
             - 27.3 Coping with NP-Hardness:
                 - Approximation: ch27/coping/approximation.md
                 - Heuristics: ch27/coping/heuristics.md
@@ -846,7 +846,7 @@ nav:
             - 27.4 Beyond NP:
                 - PSPACE: ch27/beyond/pspace.md
                 - "#P": ch27/beyond/sharp_p.md
-                - BPP and RP: ch27/beyond/bpp_rp.md
+                - Bounded-Error and Randomized Polynomial: ch27/beyond/bpp_rp.md
                 - Complexity Zoo: ch27/beyond/zoo.md
 
     - X Specialized Topics:
@@ -855,9 +855,9 @@ nav:
             - Chapter Overview: ch28/index.md
 
             - 28.1 Divisibility:
-                - GCD (Euclid's Algorithm): ch28/divisibility/gcd.md
+                - 'Greatest Common Divisor (Euclid''s Algorithm)': ch28/divisibility/gcd.md
                 - Extended Euclidean: ch28/divisibility/extended.md
-                - LCM: ch28/divisibility/lcm.md
+                - Least Common Multiple: ch28/divisibility/lcm.md
                 - Bezout's Identity: ch28/divisibility/bezout.md
             - 28.2 Modular Arithmetic:
                 - Modular Operations: ch28/modular/operations.md
@@ -906,31 +906,31 @@ nav:
             - Chapter Overview: ch30/index.md
 
             - 30.1 Parallel Models:
-                - PRAM Model: ch30/models/pram.md
+                - Parallel Random Access Machine Model: ch30/models/pram.md
                 - Work-Span Model: ch30/models/work_span.md
                 - Amdahl's and Gustafson's Laws: ch30/models/laws.md
                 - NC Class: ch30/models/nc.md
             - 30.2 Parallel Algorithms:
                 - Parallel Prefix Sum: ch30/parallel/prefix_sum.md
                 - Parallel Merge Sort: ch30/parallel/merge_sort.md
-                - Parallel BFS: ch30/parallel/bfs.md
+                - Parallel Breadth-First Search: ch30/parallel/bfs.md
                 - Parallel Matrix Multiply: ch30/parallel/matrix.md
                 - Fork-Join Framework: ch30/parallel/fork_join.md
                 - Work Stealing: ch30/parallel/work_stealing.md
             - 30.3 Distributed Algorithms:
                 - Consensus: ch30/distributed/consensus.md
                 - Leader Election: ch30/distributed/leader.md
-                - Distributed BFS: ch30/distributed/bfs.md
+                - Distributed Breadth-First Search: ch30/distributed/bfs.md
                 - MapReduce: ch30/distributed/mapreduce.md
                 - Distributed Hash Tables: ch30/distributed/dht.md
 
         - 31 External Memory Algorithms:
             - Chapter Overview: ch31/index.md
 
-            - 31.1 I/O Model:
+            - 31.1 Input/Output Model:
                 - External Memory Model: ch31/model/external.md
                 - Block Size: ch31/model/block.md
-                - I/O Complexity: ch31/model/io_complexity.md
+                - Input/Output Complexity: ch31/model/io_complexity.md
             - 31.2 External Data Structures:
                 - B-Trees: ch31/structures/btree.md
                 - Buffer Trees: ch31/structures/buffer.md
@@ -938,8 +938,8 @@ nav:
                 - Cache-Oblivious B-Trees: ch31/structures/cache_oblivious.md
             - 31.3 External Algorithms:
                 - External Sorting: ch31/algorithms/sorting.md
-                - External BFS: ch31/algorithms/bfs.md
-                - External MST: ch31/algorithms/mst.md
+                - External Breadth-First Search: ch31/algorithms/bfs.md
+                - External Minimum Spanning Tree: ch31/algorithms/mst.md
                 - External Graph Algorithms: ch31/algorithms/graph.md
 
     - XI Practice and Applications:
@@ -949,7 +949,7 @@ nav:
 
             - 32.1 Problem Classification:
                 - Recognizing Patterns: ch32/classification/patterns.md
-                - Greedy vs DP: ch32/classification/greedy_dp.md
+                - Greedy vs Dynamic Programming: ch32/classification/greedy_dp.md
                 - When to Use What: ch32/classification/selection.md
                 - Problem Transformation: ch32/classification/transformation.md
             - 32.2 Algorithm Design Process:
@@ -983,10 +983,10 @@ nav:
                 - Heavy-Light Decomposition: ch33/techniques/hld.md
                 - Centroid Decomposition: ch33/techniques/centroid.md
                 - Euler Tour on Trees: ch33/techniques/euler_tour.md
-                - LCA (Lowest Common Ancestor): ch33/techniques/lca.md
+                - Lowest Common Ancestor: ch33/techniques/lca.md
                 - Virtual Tree: ch33/techniques/virtual_tree.md
             - 33.3 Implementation Tips:
-                - I/O Optimization: ch33/implementation/io.md
+                - Input/Output Optimization: ch33/implementation/io.md
                 - Bit Manipulation: ch33/implementation/bits.md
                 - Template Libraries: ch33/implementation/templates.md
                 - Stress Testing: ch33/implementation/stress.md
@@ -995,10 +995,10 @@ nav:
             - Chapter Overview: ch34/index.md
 
             - 34.1 Cache Structures:
-                - LRU Cache: ch34/cache/lru.md
-                - LFU Cache: ch34/cache/lfu.md
-                - ARC Cache: ch34/cache/arc.md
-                - TTL Expiry: ch34/cache/ttl.md
+                - Least Recently Used Cache: ch34/cache/lru.md
+                - Least Frequently Used Cache: ch34/cache/lfu.md
+                - Adaptive Replacement Cache: ch34/cache/arc.md
+                - Time-To-Live Expiry: ch34/cache/ttl.md
             - 34.2 Concurrent Data Structures:
                 - Lock-Free Stack: ch34/concurrent/stack.md
                 - Lock-Free Queue: ch34/concurrent/queue.md
@@ -1009,7 +1009,7 @@ nav:
                 - Fat Nodes: ch34/persistent/fat_nodes.md
                 - Path Copying: ch34/persistent/path_copying.md
                 - Persistent Arrays: ch34/persistent/arrays.md
-                - Persistent BSTs: ch34/persistent/bst.md
+                - Persistent Binary Search Trees: ch34/persistent/bst.md
                 - Functional Data Structures: ch34/persistent/functional.md
             - 34.4 Probabilistic Structures:
                 - Bloom Filters: ch34/probabilistic/bloom.md
@@ -1024,14 +1024,14 @@ nav:
             - 35.1 Database Systems:
                 - B-Tree Indexing: ch35/database/btree.md
                 - Hash Indexing: ch35/database/hash.md
-                - LSM Trees: ch35/database/lsm.md
+                - Log-Structured Merge Trees: ch35/database/lsm.md
                 - Query Optimization: ch35/database/query.md
                 - Join Algorithms: ch35/database/joins.md
                 - External Sort-Merge: ch35/database/sort_merge.md
             - 35.2 Networking:
                 - Routing Algorithms: ch35/networking/routing.md
-                - Dijkstra in OSPF: ch35/networking/ospf.md
-                - Bellman-Ford in RIP: ch35/networking/rip.md
+                - Dijkstra in Open Shortest Path First: ch35/networking/ospf.md
+                - Bellman-Ford in Routing Info Protocol: ch35/networking/rip.md
                 - Packet Scheduling: ch35/networking/scheduling.md
                 - Load Balancing: ch35/networking/load_balancing.md
             - 35.3 Operating Systems:
@@ -1059,7 +1059,7 @@ nav:
                 - Linked List Complexities: ch36/ds_complexity/linked_list.md
                 - Stack and Queue: ch36/ds_complexity/stack_queue.md
                 - Hash Table: ch36/ds_complexity/hash.md
-                - BST Family: ch36/ds_complexity/bst.md
+                - Binary Search Tree Family: ch36/ds_complexity/bst.md
                 - Heap Family: ch36/ds_complexity/heap.md
                 - Trie Complexities: ch36/ds_complexity/trie.md
                 - Comparison Tables: ch36/ds_complexity/comparison.md
@@ -1068,7 +1068,7 @@ nav:
                 - Graph Algorithm Complexities: ch36/algo_complexity/graph.md
                 - String Algorithm Complexities: ch36/algo_complexity/string.md
                 - Search Algorithm Complexities: ch36/algo_complexity/search.md
-                - DP Problem Complexities: ch36/algo_complexity/dp.md
+                - Dynamic Programming Complexities: ch36/algo_complexity/dp.md
                 - Comparison Tables: ch36/algo_complexity/comparison.md
             - 36.3 Problem Solving Cheatsheet:
                 - Pattern Recognition Guide: ch36/cheatsheet/patterns.md

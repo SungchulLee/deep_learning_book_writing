@@ -3,7 +3,9 @@
 The **incremental** approach builds a solution one element at a time, maintaining correctness at each step.
 
 $$
+
 \text{Solution}_i = \text{Extend}(\text{Solution}_{i-1}, \text{element}_i)
+
 $$
 
 ## Insertion Sort as Incremental Algorithm
@@ -25,13 +27,11 @@ def insertion_sort(arr):
         print(f"  Step {i}: {arr}")
     return arr
 
-
 def main():
     arr = [5, 2, 4, 6, 1, 3]
     print(f"Input: {arr}")
     result = insertion_sort(arr)
     print(f"Sorted: {result}")
-
 
 if __name__ == "__main__":
     main()
@@ -47,7 +47,6 @@ Input: [5, 2, 4, 6, 1, 3]
   Step 5: [1, 2, 3, 4, 5, 6]
 Sorted: [1, 2, 3, 4, 5, 6]
 ```
-
 
 # Reference
 

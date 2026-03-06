@@ -1,12 +1,10 @@
 # Search
 
-
 Preorder - root first
 
 Inorder - root middle
 
 Postorder - root last
-
 
 ```python
 class Node:
@@ -125,7 +123,6 @@ InOrder
 10
 20
 ```
-
 
 # Reference
 

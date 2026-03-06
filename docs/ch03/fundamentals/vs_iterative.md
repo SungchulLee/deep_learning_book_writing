@@ -1,8 +1,6 @@
 # Recursive vs Iterative
 
-
 <img src="img/Screen Shot 2022-05-01 at 9.32.20 PM.png">
-
 
 # Reference
 

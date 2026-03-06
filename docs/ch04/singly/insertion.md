@@ -1,8 +1,6 @@
 # Insertion
 
-
 <div align="center"><img src="https://cdn-images-1.medium.com/max/1600/1*rEC8Te27eo5TSYCHMA7Ttw.png" width="100%" height="30%"></div>
-
 
 ```python
 class Node:
@@ -10,7 +8,6 @@ class Node:
         self.data = data
         self.next = next_data
 ```
-
 
 ```python
 class LinkedList:
@@ -76,7 +73,6 @@ class LinkedList:
         print(msg)
 ```
 
-
 ```python
 l = LinkedList()
 l.insert_at_start(2)
@@ -85,7 +81,6 @@ l.insert_at_start(5)
 l.print_linked_list()
 ```
 
-
 ```python
 l = LinkedList()
 l.insert_at_end(2)
@@ -93,7 +88,6 @@ l.insert_at_end(3)
 l.insert_at_end(5)
 l.print_linked_list()
 ```
-
 
 ```python
 l = LinkedList()
@@ -104,19 +98,16 @@ l.remove(1)
 l.print_linked_list()
 ```
 
-
 ```python
 l = LinkedList(["banana","mango","grapes","orange"])
 l.print_linked_list()
 ```
-
 
 ```python
 l = LinkedList(["banana","mango","grapes","orange"])
 l.insert(1,"blueberry")
 l.print_linked_list()
 ```
-
 
 # Reference
 

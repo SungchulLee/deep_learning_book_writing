@@ -3,7 +3,9 @@
 **Brute force** (exhaustive search) tries all possible solutions and picks the best one.
 
 $$
+
 T(n) = |\text{Solution Space}| \times \text{Cost per check}
+
 $$
 
 ## Characteristics
@@ -23,7 +25,6 @@ def two_sum_brute_force(arr, target):
                 return (i, j)
     return None
 
-
 def two_sum_optimized(arr, target):
     """Find two elements that sum to target. O(n)."""
     seen = {}
@@ -34,13 +35,11 @@ def two_sum_optimized(arr, target):
         seen[val] = i
     return None
 
-
 def main():
     arr = [2, 7, 11, 15]
     target = 9
     print(f"Brute force: {two_sum_brute_force(arr, target)}")
     print(f"Optimized:   {two_sum_optimized(arr, target)}")
-
 
 if __name__ == "__main__":
     main()
@@ -51,7 +50,6 @@ if __name__ == "__main__":
 Brute force: (0, 1)
 Optimized:   (0, 1)
 ```
-
 
 # Reference
 

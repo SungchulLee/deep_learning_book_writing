@@ -19,7 +19,6 @@ print(f"Primes up to 50: {sieve(50)}")
 Primes up to 50: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47]
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 31](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

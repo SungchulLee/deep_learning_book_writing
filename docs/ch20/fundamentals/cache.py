@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from functools import cache # 3.9 and above
 
 
+# === Functions ===
+
 @cache
 def a(n):
     
@@ -31,5 +33,7 @@ def main():
     plt.show()
 
     
+
+# === Main ===
 if __name__ == "__main__":
     main()

@@ -1,6 +1,5 @@
 # Heap Property
 
-
 $$\begin{array}{lllllll}
 \text{heappush}&:&\text{Insert}&&O(\log n)\\
 \text{heappop}&:&\text{Delete (Root)}&&O(\log n)\\
@@ -9,18 +8,15 @@ $$\begin{array}{lllllll}
 \text{heapify}&:&\text{Heapify or Create Heap from Right to Left}&&O(n)\\
 \end{array}$$
 
-
 $$\begin{array}{lll}
 \text{Heat Sort - Step 1 : Creat Heap}&&O(n)\\
 \text{Heat Sort - Step 2 : Delete Root}&&O(n\log n)\\
 \text{Heat Sort - Step 1 + Step 2}&&O(n\log n)\\
 \end{array}$$
 
-
 ```python
 from heapq import heapify, heappop, heappush
 ```
-
 
 ```python
 lst = [4,5,1,2,3]
@@ -31,7 +27,6 @@ lst
 ```
 [4, 5, 1, 2, 3]
 ```
-
 
 ```python
 # min heap is default
@@ -45,7 +40,6 @@ lst
 [1, 2, 4, 5, 3]
 ```
 
-
 ```python
 a = heappop(lst) 
 print(a, lst)
@@ -55,7 +49,6 @@ print(a, lst)
 ```
 1 [2, 3, 4, 5]
 ```
-
 
 ```python
 b = heappop(lst) 
@@ -67,7 +60,6 @@ print(b, lst)
 2 [3, 5, 4]
 ```
 
-
 ```python
 heappush(lst,1) 
 print(lst)
@@ -77,7 +69,6 @@ print(lst)
 ```
 [1, 3, 4, 5]
 ```
-
 
 # Reference
 

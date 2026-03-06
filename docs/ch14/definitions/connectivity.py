@@ -5,6 +5,8 @@ Connectivity
 from functools import lru_cache as cache
 
 
+# === Functions ===
+
 class Graph:
     
     def __init__(self, edges):
@@ -48,6 +50,7 @@ class Graph:
         return [start] + shortest_path_segment
 
 
+# === Main ===
 if __name__ == '__main__':
 
     routes = [

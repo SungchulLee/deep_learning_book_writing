@@ -1,15 +1,15 @@
 # Adjacency List
 
-
 $$
+
 \text{Graph Representation}\left\{\begin{array}{l}
 \text{Adjacency Matrix}\\
 \text{Incidence Matrix}\\
 \text{Adjacency List}\\
 \text{Edge List}\\
 \end{array}\right.
-$$
 
+$$
 
 ```python
 # implementation of an undirected graph using Adjacency Lists
@@ -80,7 +80,6 @@ H[('D', 0), ('E', 0), ('I', 0)]
 I[('F', 0), ('H', 0)]
 J[('F', 0), ('G', 0)]
 ```
-
 
 # Reference
 

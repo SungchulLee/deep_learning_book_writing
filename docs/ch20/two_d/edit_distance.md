@@ -25,7 +25,6 @@ print(f"edit_distance({s1},{s2}) = {edit_distance(s1,s2)}")
 edit_distance(kitten,sitting) = 3
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 15](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

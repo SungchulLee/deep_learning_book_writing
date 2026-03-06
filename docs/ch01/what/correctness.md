@@ -3,7 +3,9 @@
 An algorithm is **correct** if, for every input instance, it halts with the correct output.
 
 $$
+
 \forall \text{ valid input } x: \text{Algorithm}(x) = \text{Expected}(x)
+
 $$
 
 ## Loop Invariants
@@ -32,12 +34,10 @@ def insertion_sort(arr):
         arr[j + 1] = key
     return arr
 
-
 def main():
     arr = [5, 2, 4, 6, 1, 3]
     print(f"Input:  {arr}")
     print(f"Sorted: {insertion_sort(arr)}")
-
 
 if __name__ == "__main__":
     main()
@@ -48,7 +48,6 @@ if __name__ == "__main__":
 Input:  [5, 2, 4, 6, 1, 3]
 Sorted: [1, 2, 3, 4, 5, 6]
 ```
-
 
 # Reference
 

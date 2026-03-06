@@ -2,6 +2,8 @@
 1D Peak - Recursion
 """
 
+# ======================================================================
+
 def compare(left, center, right):
     if left > center: # 왼쪽이 중앙보다 크면 왼쪽 영역 (left 포함) 에서 찿는다.
         return 'left'
@@ -40,5 +42,10 @@ def peak(lst):
 
 #lst = [1,2,3,4,5]
 #lst = [5,4,3,2,1]
-lst = [1,2,3,4,5,4,3,2,1]
-peak(lst)
+
+
+
+# === Main ===
+if __name__ == "__main__":
+    lst = [1,2,3,4,5,4,3,2,1]
+    peak(lst)

@@ -1,15 +1,15 @@
 # Adjacency Matrix
 
-
 $$
+
 \text{Graph Representation}\left\{\begin{array}{l}
 \text{Adjacency Matrix}\\
 \text{Incidence Matrix}\\
 \text{Adjacency List}\\
 \text{Edge List}\\
 \end{array}\right.
-$$
 
+$$
 
 ```python
 # implementation of an undirected graph using Adjacency Matrix, 
@@ -84,7 +84,6 @@ H 0001100010
 I 0000010100 
 J 0000011000
 ```
-
 
 # Reference
 

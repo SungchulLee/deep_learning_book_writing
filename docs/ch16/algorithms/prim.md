@@ -1,10 +1,8 @@
 # Prim's Algorithm
 
-
 <div align="center"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9b/PrimAlgDemo.gif" width="40%"></div>
 
 [Prim's algorithm](https://en.wikipedia.org/wiki/Prim%27s_algorithm)
-
 
 # Reference
 

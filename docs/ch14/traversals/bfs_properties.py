@@ -2,6 +2,8 @@
 BFS Properties
 """
 
+# ======================================================================
+
 def bfs(node):
     from collections import deque
     queue = deque([node]) 
@@ -13,3 +15,9 @@ def bfs(node):
             if neighbour not in visited:  
                 queue.append(neighbour)
                 visited.add(neighbour)
+
+
+
+# === Main ===
+if __name__ == "__main__":
+    pass

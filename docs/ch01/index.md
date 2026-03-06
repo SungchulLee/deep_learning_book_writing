@@ -3,7 +3,9 @@
 This chapter introduces the fundamental concepts of algorithms: what they are, why they matter, and the mathematical tools needed to study them.
 
 $$
+
 \text{Algorithm} = \text{Well-defined computational procedure that transforms input to output}
+
 $$
 
 ## Topics

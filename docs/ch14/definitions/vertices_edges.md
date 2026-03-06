@@ -1,21 +1,22 @@
 # Vertices and Edges
 
-
 $$
+
 \text{Graph}\left\{\begin{array}{l}
 \text{Directed}\\
 \text{Undirected}\\
 \end{array}\right.
-$$
-
 
 $$
+
+$$
+
 \text{Graph}\left\{\begin{array}{l}
 \text{Weighted}\\
 \text{Unweighted}\\
 \end{array}\right.
-$$
 
+$$
 
 # Regular Graph
 
@@ -23,17 +24,16 @@ In graph theory, a regular graph is a graph where each vertex has the same numbe
 
 [wiki](https://en.wikipedia.org/wiki/Regular_graph)
 
-
 # Complete Graph
 
 In the mathematical field of graph theory, a complete graph is a simple undirected graph in which every pair of distinct vertices is connected by a unique edge.
 
 [wiki](https://en.wikipedia.org/wiki/Complete_graph)
 
-
 # Connectivity
 
 $$
+
 \text{Graph}\left\{\begin{array}{l}
 \text{Directed}
 \left\{\begin{array}{l}
@@ -49,8 +49,8 @@ $$
 \text{Disconnected}
 \end{array}\right.
 \end{array}\right.
-$$
 
+$$
 
 # Bipartite Graph
 
@@ -58,28 +58,26 @@ In the mathematical field of graph theory, a bipartite graph (or bigraph) is a g
 
 [wiki](https://en.wikipedia.org/wiki/Bipartite_graph)
 
-
 # Planar Graph
 
 In graph theory, a planar graph is a graph that can be embedded in the plane, i.e., it can be drawn on the plane in such a way that its edges intersect only at their endpoints.
 
 [wiki](https://en.wikipedia.org/wiki/Planar_graph)
 
-
 $$
+
 \text{Graph}\left\{\begin{array}{l}
 \text{Cyclic}\\
 \text{Acyclic}\\
 \end{array}\right.
-$$
 
+$$
 
 # Tree
 
 In graph theory, a tree is an undirected graph in which any two vertices are connected by exactly one path, or equivalently a connected acyclic undirected graph. A forest is an undirected graph in which any two vertices are connected by at most one path, or equivalently an acyclic undirected graph, or equivalently a disjoint union of trees.
 
 [wiki](https://en.wikipedia.org/wiki/Tree_(graph_theory))
-
 
 # Reference
 

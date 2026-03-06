@@ -40,6 +40,7 @@ def merge_sort_two_sorted_arrays(left, right, arr):
         k += 1
 
 
+# === Main ===
 if __name__ == '__main__':
     test_cases = (
         [],

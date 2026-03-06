@@ -36,7 +36,6 @@ bat: True
 bad: False
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 14](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

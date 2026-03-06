@@ -2,6 +2,8 @@
 Insertion and Deletion
 """
 
+# ======================================================================
+
 class Node:
     def __init__(self, prev_data=None, data=None, next_data=None):
         self.prev = prev_data
@@ -75,32 +77,34 @@ class DoublyLinkedList:
         print(msg)
 
 
-l = DoublyLinkedList()
-l.insert_at_start(2)
-l.insert_at_start(3)
-l.insert_at_start(5)
-l.print_linked_list()
+# === Main ===
+if __name__ == "__main__":
+    l = DoublyLinkedList()
+    l.insert_at_start(2)
+    l.insert_at_start(3)
+    l.insert_at_start(5)
+    l.print_linked_list()
 
 
-l = DoublyLinkedList()
-l.insert_at_end(2)
-l.insert_at_end(3)
-l.insert_at_end(5)
-l.print_linked_list()
+    l = DoublyLinkedList()
+    l.insert_at_end(2)
+    l.insert_at_end(3)
+    l.insert_at_end(5)
+    l.print_linked_list()
 
 
-l = DoublyLinkedList()
-l.insert_at_end(2)
-l.insert_at_end(3)
-l.insert_at_end(5)
-l.remove(1)
-l.print_linked_list()
+    l = DoublyLinkedList()
+    l.insert_at_end(2)
+    l.insert_at_end(3)
+    l.insert_at_end(5)
+    l.remove(1)
+    l.print_linked_list()
 
 
-l = DoublyLinkedList(["banana","mango","grapes","orange"])
-l.print_linked_list()
+    l = DoublyLinkedList(["banana","mango","grapes","orange"])
+    l.print_linked_list()
 
 
-l = DoublyLinkedList(["banana","mango","grapes","orange"])
-l.insert(1,"blueberry")
-l.print_linked_list()
+    l = DoublyLinkedList(["banana","mango","grapes","orange"])
+    l.insert(1,"blueberry")
+    l.print_linked_list()

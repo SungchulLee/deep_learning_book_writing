@@ -1,9 +1,7 @@
 # Insertion
 
-
 <img src="img/Screen Shot 2022-05-08 at 6.59.52 PM.png" width=60%>
 <img src="img/Screen Shot 2022-05-08 at 7.02.17 PM.png" width=60%>
-
 
 # Reference
 

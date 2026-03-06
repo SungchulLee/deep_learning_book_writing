@@ -12,7 +12,9 @@ Unlike KMP, which scans the pattern left to right, Boyer-Moore compares the patt
 The algorithm takes the maximum of the two shifts, guaranteeing progress.
 
 $$
+
 \text{shift} = \max(\text{bad\_character\_shift}, \text{good\_suffix\_shift})
+
 $$
 
 ## Full Algorithm
@@ -71,7 +73,6 @@ def boyer_moore(text: str, pattern: str) -> list[int]:
             i += max(bc_shift, gs_shift)
     return occurrences
 
-
 # Example
 text = "TRUSTHARDTOOTHBRUSHES"
 pattern = "TOOTH"
@@ -87,7 +88,6 @@ print(boyer_moore(text, pattern))
 - **Average case:** $O(n/m)$ for large alphabets, making it one of the fastest practical algorithms.
 
 Boyer-Moore is the algorithm of choice in many text editors and the Unix `grep` utility.
-
 
 # Reference
 

@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import time
 
 
+# === Functions ===
+
 def fib(n):
     if n <= 1: 
         return n
@@ -22,18 +24,20 @@ def memoize(f):
     return g
 
 
-fib = memoize(fib)
+# === Main ===
+if __name__ == "__main__":
+    fib = memoize(fib)
 
 
-for i in range(1,10):
-    print(fib(i), end='\t')
+    for i in range(1,10):
+        print(fib(i), end='\t')
 
 
-time_record = []
-for i in range(200):
-    tic = time.time()
-    fib(i)
-    toc = time.time()
-    time_record.append(toc-tic)
+    time_record = []
+    for i in range(200):
+        tic = time.time()
+        fib(i)
+        toc = time.time()
+        time_record.append(toc-tic)
     
-plt.plot(time_record);
+    plt.plot(time_record);

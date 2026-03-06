@@ -28,7 +28,6 @@ print(dijkstra(G, 0))
 {0: 0, 1: 3, 2: 1, 3: 4}
 ```
 
-
 # Reference
 
 [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)

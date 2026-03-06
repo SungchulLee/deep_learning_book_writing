@@ -26,7 +26,6 @@ print(prim(G))
 [(0, 2, 1), (2, 1, 3), (1, 3, 2)]
 ```
 
-
 # Reference
 
 [Randomized Algorithms (Motwani & Raghavan)](https://www.cambridge.org/core/books/randomized-algorithms/A4FC934EFD0B68E653CBDB9C2C5B3782)

@@ -1,10 +1,8 @@
 # Matrix Chain - Recursion
 
-
 <img src="img/Screen Shot 2022-06-21 at 1.20.36 AM.png" width=60%>
 
 [[알고리즘] 제18-4강 동적계획법 (Dynamic Programming)](https://www.youtube.com/watch?v=n_3E2-UhLeU&list=PL52K_8WQO5oUuH06MLOrah4h05TZ4n38l&index=55)
-
 
 ```python
 import numpy as np
@@ -29,7 +27,6 @@ def MatrixChainMultiplication(p, i, j):
                    + p[i-1] * p[k] * p[j] ) 
     return _min
 
-
 def main():
     p = [1, 2, 3, 4, 3] # four matrix multiplications
     n = len(p) # 5
@@ -44,7 +41,6 @@ if __name__ == "__main__":
 ```
 Minimum number of multiplications : 30
 ```
-
 
 # Reference
 

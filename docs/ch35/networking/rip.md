@@ -20,7 +20,6 @@ print(bellman_ford(4, edges, 0))
 [0, 3, 1, 4]
 ```
 
-
 # Reference
 
 [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)

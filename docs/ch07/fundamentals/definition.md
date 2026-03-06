@@ -1,6 +1,5 @@
 # Binary Tree Definition
 
-
 ```python
 class TreeNode:
     
@@ -35,7 +34,6 @@ class TreeNode:
             for child in self.children:
                 child.print_tree()
 ```
-
 
 ```python
 root = TreeNode("Electronics")
@@ -85,7 +83,6 @@ Electronics
       |__LG
 ```
 
-
 ```python
 print(root.parent, root.children, root.get_level())
 ```
@@ -94,7 +91,6 @@ print(root.parent, root.children, root.get_level())
 ```
 None [TreeNode(Laptop), TreeNode(Cell Phone), TreeNode(TV)] 0
 ```
-
 
 ```python
 print(laptop.parent, laptop.children, laptop.get_level())
@@ -105,7 +101,6 @@ print(laptop.parent, laptop.children, laptop.get_level())
 Electronics [TreeNode(Mac), TreeNode(Surface), TreeNode(Thinkpad)] 1
 ```
 
-
 ```python
 print(cellphone.parent, cellphone.children, cellphone.get_level())
 ```
@@ -114,7 +109,6 @@ print(cellphone.parent, cellphone.children, cellphone.get_level())
 ```
 Electronics [TreeNode(iPhone), TreeNode(Pixel), TreeNode(Vivo)] 1
 ```
-
 
 ```python
 print(tv.parent, tv.children, tv.get_level())
@@ -125,7 +119,6 @@ print(tv.parent, tv.children, tv.get_level())
 Electronics [TreeNode(Samsung), TreeNode(LG)] 1
 ```
 
-
 ```python
 print(samsung.parent, samsung.children, samsung.get_level())
 ```
@@ -134,7 +127,6 @@ print(samsung.parent, samsung.children, samsung.get_level())
 ```
 TV [] 2
 ```
-
 
 # Reference
 

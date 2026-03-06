@@ -1,8 +1,6 @@
 # Sum of Array
 
-
 <img src="img/Screen Shot 2022-05-01 at 8.42.09 PM.png" width=70%>
-
 
 ```python
 def compute_sum_of_array_using_recursion(lst):
@@ -10,10 +8,8 @@ def compute_sum_of_array_using_recursion(lst):
         return 0    
     return compute_sum_of_array_using_recursion(lst[:-1]) + lst[-1]
 
-
 def compute_sum_of_array_using_python(lst):
     return sum(lst)
-
 
 def main():
     lsts = (
@@ -56,7 +52,6 @@ Sum of list [2, 5, -2, 4] using python    : 9
 Sum of list [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] using recursion : 55
 Sum of list [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] using python    : 55
 ```
-
 
 # Reference
 

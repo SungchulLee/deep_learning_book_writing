@@ -50,5 +50,7 @@ def main():
         print(queens_locations)
     
     
+
+# === Main ===
 if __name__ == "__main__":
     main()

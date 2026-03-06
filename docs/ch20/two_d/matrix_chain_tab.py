@@ -5,6 +5,8 @@ Matrix Chain - Tabulation
 import numpy as np
 
 
+# === Functions ===
+
 def MatrixChainMultiplication(p):
     """
     We are interested in the matrix multiplication $A[i]A[i+1]...A[j]$, not $A[1]A[2]...A[n]$
@@ -28,5 +30,7 @@ def main():
     print(f"Minimum number of multiplications : {MatrixChainMultiplication(p)}")
 
     
+
+# === Main ===
 if __name__ == "__main__":
     main()

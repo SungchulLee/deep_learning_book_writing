@@ -1,12 +1,10 @@
 # Redundant Computations
 
-
 $$\begin{array}{llll}
 \text{Recursion}&&\text{No Dynamic Programming (No Memoization or Tabulation)}\\
 \text{Top Down}&&\text{Dynamic Programming (Memoization)}\\
 \text{Bottom Up}&&\text{Dynamic Programming (Tabulation)}
 \end{array}$$
-
 
 ```python
 count = 0
@@ -26,12 +24,10 @@ def a(n):
     count += 1
     return a(n-1) + a(n-2)
 
-
 def main():
     n = 5
     a(n)
     print(f'Number of Function Calls : {count}')
-
 
 if __name__ == "__main__":
     main()
@@ -142,7 +138,6 @@ a(0) : 0
 a(1) : 1
 Number of Function Calls : 101
 ```
-
 
 # Reference
 

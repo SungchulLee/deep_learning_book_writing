@@ -1,27 +1,29 @@
 # Memoization (Top-Down)
 
-
 $$\begin{array}{llll}
 \text{Recursion}&&\text{No Dynamic Programming (No Memoization or Tabulation)}\\
 \text{Top Down}&&\text{Dynamic Programming (Memoization)}\\
 \text{Bottom Up}&&\text{Dynamic Programming (Tabulation)}
 \end{array}$$
 
-
 $$
+
 a_n=a_{n-1}+a_{n-2}
-$$
-where
-$$
-a_0=0,\quad a_1=1
+
 $$
 
+where
+
+$$
+
+a_0=0,\quad a_1=1
+
+$$
 
 ```python
 import matplotlib.pyplot as plt
 import time
 ```
-
 
 ```python
 def fib(n):
@@ -30,7 +32,6 @@ def fib(n):
     else:
         return fib(n-1) + fib(n-2)
 ```
-
 
 ```python
 def memoize(f):
@@ -42,11 +43,9 @@ def memoize(f):
     return g
 ```
 
-
 ```python
 fib = memoize(fib)
 ```
-
 
 ```python
 for i in range(1,10):
@@ -57,7 +56,6 @@ for i in range(1,10):
 ```
 1	2	3	5	8	13	21	34	55
 ```
-
 
 ```python
 time_record = []
@@ -74,7 +72,6 @@ plt.plot(time_record);
 ```
 <Figure size 432x288 with 1 Axes>
 ```
-
 
 # Reference
 

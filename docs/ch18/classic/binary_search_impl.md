@@ -1,6 +1,5 @@
 # Binary Search - Implementation
 
-
 ```python
 class BinarySearchTreeNode:
     
@@ -144,7 +143,6 @@ class BinarySearchTreeNode:
         return self
 ```
 
-
 ```python
 def build_tree(elements):
     """
@@ -161,7 +159,6 @@ def build_tree(elements):
     return root
 ```
 
-
 ```python
 if __name__ == '__main__':
     data = ["India", "Germany", "USA", "China", "India", "UK", "USA"]
@@ -174,7 +171,6 @@ if __name__ == '__main__':
 ```
 Membership Test :  False
 ```
-
 
 ```python
 if __name__ == '__main__':
@@ -193,7 +189,6 @@ Pre order traversal    :  ['India', 'China', 'Germany', 'UK', 'USA']
 Post order traversal   :  ['China', 'Germany', 'UK', 'USA', 'India']
 ```
 
-
 ```python
 if __name__ == '__main__':
     #data = ["India", "Germany", "USA", "China", "India", "UK", "USA"]
@@ -211,7 +206,6 @@ max :  34
 sum :  126
 ```
 
-
 ```python
 if __name__ == '__main__':
     data = ["India", "Germany", "USA", "China", "India", "UK", "USA"]
@@ -227,7 +221,6 @@ if __name__ == '__main__':
 In order traversal   :  ['China', 'Germany', 'India', 'UK', 'USA']
 In order traversal   :  ['China', 'Germany', 'India', 'UK', 'USA']
 ```
-
 
 # Reference
 

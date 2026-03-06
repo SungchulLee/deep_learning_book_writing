@@ -1,6 +1,5 @@
 # Chaining
 
-
 $$\begin{array}{lll}
 \text{Chaining}&&\\
 \text{Open Addressing}\left\{\begin{array}{l}
@@ -8,7 +7,6 @@ $$\begin{array}{lll}
 \text{Quadratic Probing}
 \end{array}\right.
 \end{array}$$
-
 
 # Reference
 

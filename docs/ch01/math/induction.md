@@ -18,13 +18,14 @@
 - **Prove** $P(k+1)$:
 
 $$
+
 \sum_{i=1}^{k+1} i = \frac{k(k+1)}{2} + (k+1) = \frac{k(k+1) + 2(k+1)}{2} = \frac{(k+1)(k+2)}{2} \quad \square
+
 $$
 
 ```python
 def sum_formula(n):
     return n * (n + 1) // 2
-
 
 def verify_induction(max_n=20):
     # Base case
@@ -36,10 +37,8 @@ def verify_induction(max_n=20):
         assert lhs == rhs, f"Inductive step failed at k={k}"
     print(f"Induction verified for n=1..{max_n}")
 
-
 def main():
     verify_induction()
-
 
 if __name__ == "__main__":
     main()
@@ -49,7 +48,6 @@ if __name__ == "__main__":
 ```
 Induction verified for n=1..20
 ```
-
 
 # Reference
 

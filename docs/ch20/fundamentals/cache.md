@@ -1,19 +1,16 @@
 # Cache
 
-
 $$\begin{array}{llll}
 \text{Recursion}&&\text{No Dynamic Programming (No Memoization or Tabulation)}\\
 \text{Top Down}&&\text{Dynamic Programming (Memoization)}\\
 \text{Bottom Up}&&\text{Dynamic Programming (Tabulation)}
 \end{array}$$
 
-
 ```python
 import numpy as np
 import time
 import matplotlib.pyplot as plt
 from functools import cache # 3.9 and above
-
 
 @cache
 def a(n):
@@ -24,7 +21,6 @@ def a(n):
     
     # Recursive Case
     return a(n-1) + a(n-2)
-
 
 def main():
     time_record = []
@@ -41,7 +37,6 @@ def main():
 if __name__ == "__main__":
     main()
 ```
-
 
 # Reference
 

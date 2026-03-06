@@ -1,6 +1,5 @@
 # BFS Properties
 
-
 ```python
 def bfs(node):
     from collections import deque
@@ -14,7 +13,6 @@ def bfs(node):
                 queue.append(neighbour)
                 visited.add(neighbour)
 ```
-
 
 # Reference
 

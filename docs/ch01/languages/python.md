@@ -11,7 +11,6 @@ from bisect import bisect_left, bisect_right
 from itertools import permutations, combinations
 from functools import lru_cache
 
-
 def demo_collections():
     # defaultdict — automatic default values
     graph = defaultdict(list)
@@ -29,7 +28,6 @@ def demo_collections():
     q.append(4)
     print(f"Deque: {list(q)}")
 
-
 def demo_heap():
     heap = []
     for val in [5, 3, 8, 1, 9]:
@@ -37,18 +35,15 @@ def demo_heap():
     result = [heappop(heap) for _ in range(len(heap))]
     print(f"Heap sort: {result}")
 
-
 def demo_bisect():
     arr = [1, 3, 5, 7, 9]
     pos = bisect_left(arr, 5)
     print(f"bisect_left({arr}, 5) = {pos}")
 
-
 def main():
     demo_collections()
     demo_heap()
     demo_bisect()
-
 
 if __name__ == "__main__":
     main()
@@ -62,7 +57,6 @@ Deque: [0, 1, 2, 3, 4]
 Heap sort: [1, 3, 5, 8, 9]
 bisect_left([1, 3, 5, 7, 9], 5) = 2
 ```
-
 
 # Reference
 

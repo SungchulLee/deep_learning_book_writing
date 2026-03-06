@@ -7,7 +7,9 @@ The naive (brute-force) string matching algorithm is the simplest approach to fi
 For every possible alignment $i = 0, 1, \ldots, n - m$, compare $P[0..m-1]$ with $T[i..i+m-1]$ character by character. If all $m$ characters match, report an occurrence at position $i$. If a mismatch occurs at any position, move to the next alignment $i+1$.
 
 $$
+
 \text{For each shift } s \in \{0, 1, \ldots, n-m\}: \quad \text{check if } T[s+j] = P[j] \;\; \forall \, j \in \{0, \ldots, m-1\}
+
 $$
 
 ```python
@@ -27,7 +29,6 @@ def naive_search(text: str, pattern: str) -> list[int]:
             occurrences.append(i)
     return occurrences
 
-
 # Example
 text = "AABAACAADAABAABA"
 pattern = "AABA"
@@ -43,7 +44,6 @@ print(naive_search(text, pattern))
 - **Space:** $O(1)$ auxiliary space (excluding the output list).
 
 The naive algorithm serves as a baseline. Its simplicity makes it practical for short patterns or small texts, but for large-scale matching, algorithms like KMP or Boyer-Moore are preferred.
-
 
 # Reference
 

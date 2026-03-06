@@ -5,7 +5,9 @@ The failure function (also called the prefix function or partial match table) is
 ## Definition
 
 $$
+
 \pi[i] = \max\{k : 0 \le k < i+1 \;\text{and}\; P[0..k-1] = P[i-k+1..i]\}
+
 $$
 
 In words, $\pi[i]$ is the length of the longest string that is both a proper prefix and a suffix of the substring $P[0..i]$.
@@ -39,7 +41,6 @@ def compute_failure(pattern: str) -> list[int]:
         pi[i] = k
     return pi
 
-
 # Example
 pattern = "ABABAC"
 print(compute_failure(pattern))
@@ -58,7 +59,6 @@ print(compute_failure(pattern2))
 ## Why It Works
 
 The key insight is that when a mismatch occurs during pattern matching at position $j$ in the pattern, the failure function tells us the longest prefix of $P$ that still matches the text. This means we can skip ahead by $j - \pi[j-1]$ positions in the text alignment without missing any potential match, because any shorter shift would require a prefix-suffix overlap longer than $\pi[j-1]$, which contradicts the maximality of $\pi$.
-
 
 # Reference
 

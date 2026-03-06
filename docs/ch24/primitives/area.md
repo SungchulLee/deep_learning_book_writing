@@ -26,7 +26,6 @@ print(prim(G))
 [(0, 2, 1), (2, 1, 3), (1, 3, 2)]
 ```
 
-
 # Reference
 
 [Computational Geometry (de Berg et al.)](https://www.springer.com/gp/book/9783540779735)

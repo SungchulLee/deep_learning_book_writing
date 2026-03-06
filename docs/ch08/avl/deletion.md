@@ -26,7 +26,6 @@ print_list(head)
 1 -> 2 -> 3 -> 4
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapters 13-14](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

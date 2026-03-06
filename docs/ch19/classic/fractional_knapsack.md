@@ -23,7 +23,6 @@ print(f"Max value: {knapsack(50, [10,20,30], [60,100,120])}")
 Max value: 220
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 16](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

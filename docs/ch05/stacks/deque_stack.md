@@ -1,10 +1,8 @@
 # Deque as Stack
 
-
 ```python
 import numpy as np; np.random.seed(0)
 from collections import deque
-
 
 def main():
     s = []
@@ -39,7 +37,6 @@ i = 7, push_item =   1, s = [6, 1]
 i = 8, push_item =   2, s = [6, 1, 2]
 i = 9, push_item =   2, s = [6, 1, 2, 2]
 ```
-
 
 # Reference
 

@@ -1,20 +1,14 @@
 # Find Path From Top To Bottom
 
-
 # Infinity Loop
-
 
 <img src='img/Screen Shot 2022-04-30 at 4.08.01 AM.png' width=50%>
 
-
 # No Infinity Loop
-
 
 <img src='img/Screen Shot 2022-04-30 at 4.09.13 AM.png' width=50%>
 
-
 <img src='img/Screen Shot 2022-04-30 at 4.09.54 AM.png' width=50%>
-
 
 ```python
 import matplotlib.pyplot as plt
@@ -500,7 +494,6 @@ if __name__ == "__main__":
 ```
 We find a path from the top left corner to bottom right.
 ```
-
 
 # Reference
 

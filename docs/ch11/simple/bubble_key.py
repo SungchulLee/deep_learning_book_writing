@@ -2,6 +2,8 @@
 Bubble Sort with Key
 """
 
+# ======================================================================
+
 def swap(a, b, key=lambda x: x):
     if key(a) < key(b):
         return a, b, True # last return item is flag that input is already sorted
@@ -28,5 +30,7 @@ def bubble_sort(lst, key=lambda x: x):
     return lst
 
 
-lst = [3,-5,2,-7,9]
-bubble_sort(lst,key=abs)
+# === Main ===
+if __name__ == "__main__":
+    lst = [3,-5,2,-7,9]
+    bubble_sort(lst,key=abs)

@@ -25,7 +25,6 @@ Sum [1,3]: 9
 Sum [2,5]: 24
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapters 8-9](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

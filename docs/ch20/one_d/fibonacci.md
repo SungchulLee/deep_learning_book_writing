@@ -1,23 +1,21 @@
 # Fibonacci
 
-
 $$\begin{array}{llll}
 \text{Recursion}&&\text{No Dynamic Programming (No Memoization or Tabulation)}\\
 \text{Top Down}&&\text{Dynamic Programming (Memoization)}\\
 \text{Bottom Up}&&\text{Dynamic Programming (Tabulation)}
 \end{array}$$
 
-
 $$
+
 a_n=a_{n-1}+a_{n-2},\quad
 a_0=0,\quad a_1=1
-$$
 
+$$
 
 <div align="center"><img src="https://i.stack.imgur.com/CLwKE.jpg" width="60%"></div>
 
 [Fibonacci Numbers](https://riptutorial.com/algorithm/example/31799/fibonacci-numbers)
-
 
 ```python
 def a(n):
@@ -29,7 +27,6 @@ def a(n):
     # Recursive Case
     return a(n-1) + a(n-2)
 
-
 def main():
     for n in range(1,10):
         print(a(n), end='\t')
@@ -38,7 +35,6 @@ def main():
 if __name__ == "__main__":
     main()
 ```
-
 
 # Reference
 

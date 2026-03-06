@@ -29,7 +29,6 @@ print(ht.get("a"), ht.get("b"), ht.get("c"))
 1 2 None
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

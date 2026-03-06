@@ -6,6 +6,8 @@ import numpy as np
 from copy import deepcopy
 
 
+# === Functions ===
+
 def main():
     A_original = np.array([[6,7,12,5],[5,3,11,18],[7,17,3,3],[8,10,14,9]])
     A = np.full( ( A_original.shape[0] + 1, A_original.shape[1] + 1 ), np.Infinity )   
@@ -41,5 +43,7 @@ def main():
     print_path(4,4)
             
         
+
+# === Main ===
 if __name__ == "__main__":
     main()

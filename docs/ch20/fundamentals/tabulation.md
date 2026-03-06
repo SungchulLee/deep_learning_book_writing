@@ -1,18 +1,15 @@
 # Tabulation (Bottom-Up)
 
-
 $$\begin{array}{llll}
 \text{Recursion}&&\text{No Dynamic Programming (No Memoization or Tabulation)}\\
 \text{Top Down}&&\text{Dynamic Programming (Memoization)}\\
 \text{Bottom Up}&&\text{Dynamic Programming (Tabulation)}
 \end{array}$$
 
-
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-
 
 def fib_bottom_up(n):
     
@@ -27,7 +24,6 @@ def fib_bottom_up(n):
     for i in range(2, n+1):
         bottom_up[i] = bottom_up[i-1] + bottom_up[i-2]
     return bottom_up[n]
-
 
 def main():    
     time_record = []
@@ -49,7 +45,6 @@ if __name__ == "__main__":
 ```
 <Figure size 432x288 with 1 Axes>
 ```
-
 
 # Reference
 

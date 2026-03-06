@@ -25,7 +25,6 @@ Sum [1,3]: 9
 Sum [2,5]: 24
 ```
 
-
 # Reference
 
 [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf)

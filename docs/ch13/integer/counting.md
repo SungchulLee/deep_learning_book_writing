@@ -21,7 +21,6 @@ print(counting_sort([4,2,2,8,3,3,1], 8))
 [1, 2, 2, 3, 3, 4, 8]
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapters 8-9](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

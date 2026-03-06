@@ -1,8 +1,6 @@
 # Recursion with Accumulators
 
-
 <img src="img/Screen Shot 2022-05-01 at 9.53.04 PM.png" width=50%>
-
 
 # Reference
 

@@ -1,8 +1,6 @@
 # Permutations and Combinations
 
-
 # buggy code
-
 
 ```python
 def print_permutation(initial_list, k):
@@ -40,9 +38,7 @@ if __name__ == "__main__":
 [0, 1]
 ```
 
-
 # bug fixed, but too much memory usage
-
 
 ```python
 def print_permutation(initial_list, k):
@@ -87,9 +83,7 @@ if __name__ == "__main__":
 [2, 1]
 ```
 
-
 # use global variable to reduce memory usage (in progress)
-
 
 ```python
 def print_permutation(i, k):
@@ -138,7 +132,6 @@ if __name__ == "__main__":
 [2, 1]
 [2, 0]
 ```
-
 
 # Reference
 

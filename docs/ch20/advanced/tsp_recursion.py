@@ -2,6 +2,8 @@
 TSP - Recursion
 """
 
+# ======================================================================
+
 def min_path_cost(start, mid_points, end, graph):
     """
     paths of interest : start ---> mid_points (set of vertices) ---> end
@@ -34,13 +36,15 @@ def tsp(graph):
     return tsp_cost
 
 
-graph = [
-    [0, 10, 15, 20],
-    [10, 0, 35, 25],
-    [15, 35, 0, 30],
-    [20, 25, 30, 0]
-]
+# === Main ===
+if __name__ == "__main__":
+    graph = [
+        [0, 10, 15, 20],
+        [10, 0, 35, 25],
+        [15, 35, 0, 30],
+        [20, 25, 30, 0]
+    ]
 
 
-tsp_cost = tsp(graph)
-print(f'tsp cost : {tsp_cost}')
+    tsp_cost = tsp(graph)
+    print(f'tsp cost : {tsp_cost}')

@@ -11,10 +11,12 @@ When processing a text position, the current state $s$ may represent a string wh
 The dictionary link $\text{dict}(s)$ points to the nearest ancestor of $s$ on the failure link chain that is an output state (i.e., a state where some pattern ends):
 
 $$
+
 \text{dict}(s) = \begin{cases}
 f(s) & \text{if } f(s) \text{ is an output state}\\
 \text{dict}(f(s)) & \text{otherwise}
 \end{cases}
+
 $$
 
 ## Construction
@@ -57,7 +59,6 @@ def build_with_dict_links(goto, fail, output):
 
     return dict_link
 
-
 def collect_outputs(state, output, dict_link):
     """Collect all matching patterns at a given state."""
     results = list(output[state])
@@ -77,7 +78,6 @@ Without dictionary links, reporting all $z$ matches could take $O(n \cdot m)$ in
 - **Total search time:** $O(n + z)$, achieving optimal output-sensitive complexity.
 
 Dictionary links are essential for the theoretical $O(n + m + z)$ guarantee of Aho-Corasick.
-
 
 # Reference
 

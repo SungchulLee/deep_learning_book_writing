@@ -1,6 +1,5 @@
 # 1D Peak - Naive
 
-
 ```python
 def compare(left, center, right):
     if left > center: # 왼쪽이 중앙보다 크면 왼쪽 영역 (left 포함) 에서 찿는다.
@@ -11,7 +10,6 @@ def compare(left, center, right):
         return 'center'
 ```
 
-
 ```python
 def compare_left_edge(center, right):
     if right > center: # 오른쪽이 중앙보다 크면 오른쪽 영역 (right 포함) 에서 찿는다.
@@ -20,7 +18,6 @@ def compare_left_edge(center, right):
         return 'center'
 ```
 
-
 ```python
 def compare_right_edge(left, center):
     if left > center: # 왼쪽이 중앙보다 크면 왼쪽 영역 (left 포함) 에서 찿는다.
@@ -28,7 +25,6 @@ def compare_right_edge(left, center):
     else: # 왼쪽과 오른쪽 모두 중앙보다 작거나 같으면 center가 찿고자하는 1D Peak 이다.
         return 'center'
 ```
-
 
 ```python
 def peak(lst):
@@ -59,14 +55,12 @@ def peak(lst):
             return center
 ```
 
-
 ```python
 #lst = [1,2,3,4,5]
 #lst = [5,4,3,2,1]
 lst = [1,2,3,4,5,4,3,2,1]
 peak(lst)
 ```
-
 
 # Reference
 

@@ -1,6 +1,5 @@
 # Preorder
 
-
 ```python
 class TreeNode:
     def __init__(self, val=0, left=None, right=None):
@@ -8,7 +7,6 @@ class TreeNode:
         self.left = left
         self.right = right
 ```
-
 
 ```python
 # recursion
@@ -18,7 +16,6 @@ class Solution:
             return []
         return [root.val] + self.preorderTraversal(root.left)  + self.preorderTraversal(root.right)
 ```
-
 
 ```python
 # iteration
@@ -37,7 +34,6 @@ class Solution:
                 stack.append(cur.left)         
         return out
 ```
-
 
 # Reference
 

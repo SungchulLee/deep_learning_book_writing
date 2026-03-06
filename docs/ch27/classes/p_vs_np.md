@@ -1,8 +1,6 @@
 # P vs NP Problem
 
-
 <div align="center"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/P_np_np-complete_np-hard.svg/600px-P_np_np-complete_np-hard.svg.png" width="70%"></div>
-
 
 # Reference
 

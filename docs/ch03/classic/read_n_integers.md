@@ -1,8 +1,6 @@
 # Read N Integers
 
-
 <img src="img/Screen Shot 2022-05-01 at 8.58.12 PM.png" width=50%>
-
 
 ```python
 class Read_N_Integers_Using_Recursion:    
@@ -23,7 +21,6 @@ def range_generator(n):
     for i in range(n):
         yield i
 
-
 def main():
     n = 10
     scanner_in_generator = range_generator(n)
@@ -41,7 +38,6 @@ if __name__ == "__main__":
 ```
 [None, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
-
 
 # Reference
 

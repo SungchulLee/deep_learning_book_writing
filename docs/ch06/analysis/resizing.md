@@ -4,7 +4,6 @@ Resizing doubles the table when the load factor exceeds a threshold, rehashing a
 
 $$h(k) = k \bmod m$$
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

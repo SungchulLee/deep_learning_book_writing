@@ -1,7 +1,7 @@
 # Optimal Substructure
 
-
 $$
+
 \text{Recursion}
 \left\{\begin{array}{lll}
 \text{Recursion}&&\text{Naive Implementation of Recursion}\\
@@ -13,4 +13,5 @@ $$
 \text{Dynamic Programing}&&\text{Bottom Up}
 \end{array}\right.
 \end{array}\right.
+
 $$

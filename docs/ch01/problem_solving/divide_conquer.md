@@ -3,7 +3,9 @@
 **Divide and Conquer** breaks a problem into smaller subproblems, solves them recursively, and combines the results.
 
 $$
+
 T(n) = aT\left(\frac{n}{b}\right) + f(n)
+
 $$
 
 where $a$ = number of subproblems, $n/b$ = subproblem size, $f(n)$ = combine cost.
@@ -24,7 +26,6 @@ def merge_sort(arr):
     right = merge_sort(arr[mid:])
     return merge(left, right)
 
-
 def merge(left, right):
     result = []
     i = j = 0
@@ -39,12 +40,10 @@ def merge(left, right):
     result.extend(right[j:])
     return result
 
-
 def main():
     arr = [38, 27, 43, 3, 9, 82, 10]
     print(f"Input:  {arr}")
     print(f"Sorted: {merge_sort(arr)}")
-
 
 if __name__ == "__main__":
     main()
@@ -55,7 +54,6 @@ if __name__ == "__main__":
 Input:  [38, 27, 43, 3, 9, 82, 10]
 Sorted: [3, 9, 10, 27, 38, 43, 82]
 ```
-
 
 # Reference
 

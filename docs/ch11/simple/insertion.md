@@ -1,12 +1,9 @@
 # Insertion Sort
 
-
 <img src="img/Screen Shot 2022-04-30 at 1.16.53 PM.png" width="50%">
 <img src="img/Screen Shot 2022-04-30 at 1.20.24 PM.png" width="50%">
 
-
 Insertion Sort는 가장 먼저 생각할 수 있는 정렬 알고리즘이다.
-
 
 ```python
 def insert(lst, item):
@@ -27,7 +24,6 @@ def insert(lst, item):
             out = [item] + lst
             return out
 ```
-
 
 ```python
 def insertion_sort(lst):
@@ -53,7 +49,6 @@ def insertion_sort(lst):
     return out
 ```
 
-
 ```python
 lst = [-1, 3, 8, -5, 7, 4, 10]
 print(insertion_sort(lst))
@@ -64,11 +59,9 @@ print(insertion_sort(lst))
 [-5, -1, 3, 4, 7, 8, 10]
 ```
 
-
 <div align="center"><img src="https://gmlwjd9405.github.io/images/algorithm-insertion-sort/sort-time-complexity.png" width="50%"></div>
 
 [[알고리즘] 삽입 정렬(Insertion Sort)이란](https://gmlwjd9405.github.io/2018/05/06/algorithm-insertion-sort.html)
-
 
 # Reference
 

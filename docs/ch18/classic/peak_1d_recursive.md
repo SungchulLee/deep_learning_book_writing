@@ -1,6 +1,5 @@
 # 1D Peak - Recursion
 
-
 ```python
 def compare(left, center, right):
     if left > center: # 왼쪽이 중앙보다 크면 왼쪽 영역 (left 포함) 에서 찿는다.
@@ -10,7 +9,6 @@ def compare(left, center, right):
     else: # 왼쪽과 오른쪽 모두 중앙보다 작거나 같으면 center가 찿고자하는 1D Peak 이다.
         return 'center'
 ```
-
 
 ```python
 def peak(lst):
@@ -40,7 +38,6 @@ def peak(lst):
         return center
 ```
 
-
 ```python
 #lst = [1,2,3,4,5]
 #lst = [5,4,3,2,1]
@@ -52,7 +49,6 @@ peak(lst)
 ```
 5
 ```
-
 
 # Reference
 

@@ -1,6 +1,5 @@
 # Postorder
 
-
 ```python
 class TreeNode:
     def __init__(self, val=0, left=None, right=None):
@@ -8,7 +7,6 @@ class TreeNode:
         self.left = left
         self.right = right
 ```
-
 
 ```python
 # recursion
@@ -18,7 +16,6 @@ class Solution:
             return []
         return self.postorderTraversal(root.left) + self.postorderTraversal(root.right) + [root.val]
 ```
-
 
 ```python
 # iteration
@@ -37,7 +34,6 @@ class Solution:
                 stack.append(cur.right) 
         return out[::-1]
 ```
-
 
 # Reference
 

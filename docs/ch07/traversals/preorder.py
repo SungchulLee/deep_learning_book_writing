@@ -2,6 +2,8 @@
 Preorder
 """
 
+# ======================================================================
+
 class TreeNode:
     def __init__(self, val=0, left=None, right=None):
         self.val = val
@@ -32,3 +34,9 @@ class Solution:
             if cur.left:
                 stack.append(cur.left)         
         return out
+
+
+
+# === Main ===
+if __name__ == "__main__":
+    pass

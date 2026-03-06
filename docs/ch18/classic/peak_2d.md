@@ -1,10 +1,8 @@
 # 2D Peak - Recursion
 
-
 ```python
 import numpy as np
 ```
-
 
 ```python
 def compare(left, center, right):
@@ -15,7 +13,6 @@ def compare(left, center, right):
     else: # 왼쪽과 오른쪽 모두 중앙보다 작거나 같으면 center가 찿고자하는 1D Peak 이다.
         return 'center'
 ```
-
 
 ```python
 def peak_1d_max_peak(np_array_1d):
@@ -34,7 +31,6 @@ def peak_1d_max_peak(np_array_1d):
                 max_value = item
     return max_value, max_index
 ```
-
 
 ```python
 def peak(np_array_2d):
@@ -63,7 +59,6 @@ def peak(np_array_2d):
     else:
         return center
 ```
-
 
 ```python
 if 0: 
@@ -132,7 +127,6 @@ elif 1:
     ]
 ```
 
-
 ```python
 np_array_2d = np.array(lst)
 np_array_2d
@@ -147,7 +141,6 @@ array([[16,  1, 10, 31, 15, 24, 26, 39],
        [33, 38, 23,  4,  5, 13, 18, 30]])
 ```
 
-
 ```python
 peak(np_array_2d)
 ```
@@ -156,7 +149,6 @@ peak(np_array_2d)
 ```
 21
 ```
-
 
 # Reference
 

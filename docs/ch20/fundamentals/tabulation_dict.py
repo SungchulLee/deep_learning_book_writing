@@ -7,6 +7,8 @@ import numpy as np
 import time
 
 
+# === Functions ===
+
 def fib_bottom_up(n):
     memo = {}
     for i in range(n+1):
@@ -29,5 +31,7 @@ def main():
     plt.show()
 
     
+
+# === Main ===
 if __name__ == "__main__":
     main()

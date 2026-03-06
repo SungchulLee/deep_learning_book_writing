@@ -3,7 +3,9 @@
 If $n$ items are placed into $m$ containers and $n > m$, then at least one container has more than one item.
 
 $$
+
 n \text{ pigeons into } m \text{ holes} \Rightarrow \exists \text{ hole with } \geq \lceil n/m \rceil \text{ pigeons}
+
 $$
 
 ## Applications in Algorithms
@@ -31,7 +33,6 @@ def find_duplicate(arr):
         fast = arr[fast]
     return slow
 
-
 def main():
     # 5 elements in range [1, 4] — duplicate guaranteed
     arr = [1, 3, 4, 2, 2]
@@ -41,7 +42,6 @@ def main():
     arr = [3, 1, 3, 4, 2]
     print(f"Array: {arr}")
     print(f"Duplicate: {find_duplicate(arr)}")
-
 
 if __name__ == "__main__":
     main()
@@ -54,7 +54,6 @@ Duplicate: 2
 Array: [3, 1, 3, 4, 2]
 Duplicate: 3
 ```
-
 
 # Reference
 

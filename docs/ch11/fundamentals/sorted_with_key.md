@@ -1,8 +1,6 @@
 # Built-in sorted with key
 
-
 # Sorting Example using Class
-
 
 ```python
 class Employee():
@@ -15,18 +13,15 @@ class Employee():
         return '({}, {}, ${})'.format(self.name, self.age, self.salary)
 ```
 
-
 ```python
 e1 = Employee('Carl', 37, 70000)
 e2 = Employee('Sarah', 29, 80000)
 e3 = Employee('John', 43, 90000)
 ```
 
-
 ```python
 employees = [e1, e2, e3]
 ```
-
 
 ```python
 if 1: 
@@ -43,7 +38,6 @@ elif 1:
         return emp.salary
 ```
 
-
 ```python
 sorted(employees, key=e_sort)
 ```
@@ -52,7 +46,6 @@ sorted(employees, key=e_sort)
 ```
 [(Carl, 37, $70000), (John, 43, $90000), (Sarah, 29, $80000)]
 ```
-
 
 ```python
 sorted(employees, key=e_sort, reverse=True)
@@ -63,7 +56,6 @@ sorted(employees, key=e_sort, reverse=True)
 [(Sarah, 29, $80000), (John, 43, $90000), (Carl, 37, $70000)]
 ```
 
-
 ```python
 sorted(employees, key=lambda e: e.salary)
 ```
@@ -73,7 +65,6 @@ sorted(employees, key=lambda e: e.salary)
 [(Carl, 37, $70000), (Sarah, 29, $80000), (John, 43, $90000)]
 ```
 
-
 ```python
 sorted(employees, key=lambda e: e.salary, reverse=True)
 ```
@@ -82,7 +73,6 @@ sorted(employees, key=lambda e: e.salary, reverse=True)
 ```
 [(John, 43, $90000), (Sarah, 29, $80000), (Carl, 37, $70000)]
 ```
-
 
 # Reference
 

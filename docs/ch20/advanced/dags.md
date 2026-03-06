@@ -1,10 +1,8 @@
 # DP on DAGs
 
-
 <div align="center"><img src="https://media.geeksforgeeks.org/wp-content/uploads/multi-stage-graph.jpg" width="40%"></div>
 
 [Multistage Graph (Shortest Path)](https://www.geeksforgeeks.org/multistage-graph-shortest-path/)
-
 
 $$\begin{array}{lll}
 \text{cost}(\text{edge}(i,j))&=&\text{Cost of travelling from $i$ to $j$}\\
@@ -13,7 +11,6 @@ $$\begin{array}{lll}
 \\
 \text{cost}(i)&=&\min\left\{\text{cost}(\text{edge}(i,j))+\text{cost}(j)\right\}
 \end{array}$$
-
 
 ```python
 # Graph stored in the form of an adjacency Matrix 
@@ -29,7 +26,6 @@ graph = [
     [INF, INF, INF, INF, INF, INF, INF, INF] 
 ]
 ```
-
 
 ```python
 def shortest_path(graph):
@@ -68,7 +64,6 @@ def shortest_path(graph):
     return dist[0]
 ```
 
-
 ```python
 print(shortest_path(graph))
 ```
@@ -77,7 +72,6 @@ print(shortest_path(graph))
 ```
 9
 ```
-
 
 # Reference
 

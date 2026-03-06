@@ -7,6 +7,8 @@ import numpy as np
 import time
 
 
+# === Functions ===
+
 def fib_bottom_up(n):
     
     # Base Case
@@ -34,5 +36,7 @@ def main():
     plt.show()
 
     
+
+# === Main ===
 if __name__ == "__main__":
     main()

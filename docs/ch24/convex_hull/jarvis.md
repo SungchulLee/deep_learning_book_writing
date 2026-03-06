@@ -28,7 +28,6 @@ print(f"Hull: {convex_hull(pts)}")
 Hull: [(0, 0), (1, 0), (2, 0), (2, 2), (0, 2)]
 ```
 
-
 # Reference
 
 [Computational Geometry (de Berg et al.)](https://www.springer.com/gp/book/9783540779735)

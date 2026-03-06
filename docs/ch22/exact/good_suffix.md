@@ -17,11 +17,13 @@ Let the good suffix be $t = P[j+1..m-1]$. The shift is determined by two cases:
 **Case 2:** No such $k$ exists, but a proper suffix of $t$ matches a prefix of $P$. Let $\ell$ be the length of the longest such prefix. We shift by $m - \ell$.
 
 $$
+
 \text{good\_suffix\_shift}(j) = \begin{cases}
 j - k & \text{if Case 1 applies (use rightmost such } k\text{)}\\
 m - \ell & \text{if only Case 2 applies}\\
 m & \text{if neither case applies}
 \end{cases}
+
 $$
 
 ## Preprocessing
@@ -63,7 +65,6 @@ def build_good_suffix_table(pattern: str) -> list[int]:
 
     return shift
 
-
 # Example
 pattern = "ABCBAB"
 table = build_good_suffix_table(pattern)
@@ -83,7 +84,6 @@ For pattern $P = \texttt{ABCBAB}$ ($m=6$):
 
 - **Preprocessing:** $O(m)$ time and space.
 - Combined with the bad-character rule, the good-suffix rule ensures that Boyer-Moore achieves $O(n+m)$ worst-case time (with the Galil rule for the matching phase).
-
 
 # Reference
 

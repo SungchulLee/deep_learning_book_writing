@@ -1,14 +1,11 @@
 # Binary Search - Recursive
 
-
 <img src="img/Screen Shot 2022-05-01 at 11.52.55 AM.png" width="80%">
 <img src="img/Screen Shot 2022-05-01 at 11.49.40 AM.png" width="80%">
-
 
 <div align="center"><img src="https://hackernoon.com/hn-images/1*DOR__3reJYPwGuyytG520g.jpeg" width="50%"></div>
 
 [Binary Search In Detail](https://hackernoon.com/binary-search-in-detail-914944a1434a)
-
 
 # Reference
 

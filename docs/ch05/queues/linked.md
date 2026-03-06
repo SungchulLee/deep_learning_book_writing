@@ -1,10 +1,8 @@
 # Linked List Queue
 
-
 ```python
 import numpy as np; np.random.seed(0)
 from collections import deque
-
 
 class Queue:   
     def __init__(self):
@@ -59,7 +57,6 @@ i = 7, enqueue_item =         1, str(q) = 'deque([1, 1])'
 i = 8, enqueue_item =         2, str(q) = 'deque([1, 1, 2])'
 i = 9, enqueue_item =         2, str(q) = 'deque([1, 1, 2, 2])'
 ```
-
 
 # Reference
 

@@ -5,6 +5,8 @@ Sum
 import numpy as np
 
 
+# === Functions ===
+
 def compute_sum_using_recursion(n):
     if n == 0:
         return 0
@@ -25,5 +27,7 @@ def main():
         print()
         
         
+
+# === Main ===
 if __name__ == "__main__":
     main()

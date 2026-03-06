@@ -27,7 +27,6 @@ print(f"BFS from 0: {bfs(graph, 0)}")
 BFS from 0: [0, 1, 2, 3, 4]
 ```
 
-
 # Reference
 
 [Introduction to Parallel Computing (Grama et al.)](https://www.amazon.com/Introduction-Parallel-Computing-Ananth-Grama/dp/0201648652)

@@ -1,6 +1,5 @@
 # DFS Properties
 
-
 ```python
 def dfs(node):
     stack = [node] 
@@ -13,7 +12,6 @@ def dfs(node):
                 stack.append(neighbour)
                 visited.add(neighbour)
 ```
-
 
 # Reference
 

@@ -3,7 +3,9 @@
 An **algorithm** is a well-defined computational procedure that takes some value, or set of values, as **input** and produces some value, or set of values, as **output** in a finite number of steps.
 
 $$
+
 \text{Algorithm}: \text{Input} \rightarrow \text{Output}
+
 $$
 
 ## Formal Definition
@@ -27,12 +29,10 @@ def find_maximum(arr):
             max_val = val
     return max_val
 
-
 def main():
     arr = [3, 7, 2, 9, 1, 5]
     print(f"Array: {arr}")
     print(f"Maximum: {find_maximum(arr)}")
-
 
 if __name__ == "__main__":
     main()
@@ -43,7 +43,6 @@ if __name__ == "__main__":
 Array: [3, 7, 2, 9, 1, 5]
 Maximum: 9
 ```
-
 
 # Reference
 

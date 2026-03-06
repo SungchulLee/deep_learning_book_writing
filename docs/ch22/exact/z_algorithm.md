@@ -5,7 +5,9 @@ The Z-algorithm computes, for a string $S$ of length $n$, the **Z-array** $Z[0..
 ## Definition
 
 $$
+
 Z[i] = \max\{k \ge 0 : S[0..k-1] = S[i..i+k-1]\}
+
 $$
 
 For the string $S = \texttt{aabxaab}$, the Z-array is:
@@ -36,7 +38,6 @@ def z_function(s: str) -> list[int]:
             l, r = i, i + z[i]
     return z
 
-
 # Example
 print(z_function("aabxaab"))
 # Output: [0, 1, 0, 0, 3, 1, 0]
@@ -60,7 +61,6 @@ def z_search(text: str, pattern: str) -> list[int]:
             occurrences.append(i - m - 1)
     return occurrences
 
-
 # Example
 text = "AABCAABXAAAZ"
 pattern = "AAB"
@@ -77,7 +77,6 @@ print(z_search(text, pattern))
 ## Relationship to KMP
 
 The Z-algorithm and the KMP failure function are closely related. In fact, one can compute the failure function from the Z-array and vice versa in $O(n)$ time. However, the Z-algorithm is often considered simpler to implement and understand.
-
 
 # Reference
 

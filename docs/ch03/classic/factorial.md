@@ -1,22 +1,17 @@
 # Factorial
 
-
 <img src="img/Screen Shot 2022-05-01 at 7.13.46 PM.png" width=50%>
-
 
 ```python
 import math
-
 
 def compute_factorial_using_recursion(n):
     if n == 0:
         return 1
     return n * compute_factorial_using_recursion(n-1)
 
-
 def compute_factorial_using_package(n):
     return math.factorial(n)
-
 
 def main():
     n = 10
@@ -65,9 +60,7 @@ Computation of 9! using recursion : 362880
 Computation of 9! using package   : 362880
 ```
 
-
 <img src="img/Screen Shot 2022-06-08 at 4.22.22 PM.png" width=50%>
-
 
 # Reference
 

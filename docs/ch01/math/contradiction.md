@@ -8,7 +8,7 @@
 2. Derive a contradiction
 3. Conclude $P$ must be true
 
-## Classic Example: Irrationality of $\sqrt{2}$
+## Classic Example: Irrationality of sqrt(2)
 
 **Claim**: $\sqrt{2}$ is irrational.
 
@@ -27,7 +27,6 @@ def is_prime(n):
             return False
     return True
 
-
 def euclid_proof_demonstration(primes):
     """Show Euclid's proof idea: product of known primes + 1."""
     product = 1
@@ -35,7 +34,6 @@ def euclid_proof_demonstration(primes):
         product *= p
     candidate = product + 1
     return candidate, is_prime(candidate)
-
 
 def main():
     primes = [2, 3, 5, 7, 11, 13]
@@ -50,7 +48,6 @@ def main():
                 print(f"Has prime factor {i} not in original list: {i not in primes}")
                 break
 
-
 if __name__ == "__main__":
     main()
 ```
@@ -62,7 +59,6 @@ Product + 1 = 30031
 Is prime: False
 Has prime factor 59 not in original list: True
 ```
-
 
 # Reference
 

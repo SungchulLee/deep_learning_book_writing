@@ -10,7 +10,9 @@ The algorithm works in two phases:
 2. **Search:** Feed the text through the automaton character by character. At each state, report all patterns that end at that position.
 
 $$
+
 \text{Total time} = \underbrace{O(m)}_{\text{build trie + links}} + \underbrace{O(n)}_{\text{scan text}} + \underbrace{O(z)}_{\text{report matches}} = O(n + m + z)
+
 $$
 
 ## Implementation
@@ -66,7 +68,6 @@ class AhoCorasick:
                 results.append((i - len(patterns[pid]) + 1, patterns[pid]))
         return results
 
-
 # Example
 patterns = ["he", "she", "his", "hers"]
 ac = AhoCorasick()
@@ -93,7 +94,6 @@ for pos, pat in sorted(matches):
 | Build failure links | $O(m)$ | included above |
 | Search | $O(n + z)$ | $O(1)$ extra |
 | **Total** | $O(n + m + z)$ | $O(m \cdot |\Sigma|)$ |
-
 
 # Reference
 

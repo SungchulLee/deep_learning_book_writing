@@ -1,8 +1,6 @@
 # Change to Binary
 
-
 <img src="img/Screen Shot 2022-05-01 at 8.26.20 PM.png" width=70%>
-
 
 ```python
 def change_to_binary_and_print_using_recursion(num):
@@ -13,10 +11,8 @@ def change_to_binary_and_print_using_recursion(num):
     change_to_binary_and_print_using_recursion(num//2)
     print(num%2, end='') 
 
-
 def change_to_binary_and_print_using_python(num):
     print(bin(num)[2:])
-
 
 def main():
     nums = (
@@ -57,7 +53,6 @@ Print number as binary using python    : 11001
 Print number as binary using recursion : 10011101000
 Print number as binary using python    : 10011101000
 ```
-
 
 # Reference
 

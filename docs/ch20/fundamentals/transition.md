@@ -1,13 +1,10 @@
 # Transition Function
 
-
 <img src='img/Screen Shot 2022-06-16 at 1.05.37 AM.png' width=50%>
-
 
 ```python
 import numpy as np
 from copy import deepcopy
-
 
 def main():
     A_original = np.array([[6,7,12,5],[5,3,11,18],[7,17,3,3],[8,10,14,9]])
@@ -60,7 +57,6 @@ if __name__ == "__main__":
  ['^' '<' '^' '^']]
 (0,0)--->(1,0)--->(1,1)--->(1,2)--->(2,2)--->(2,3)--->(3,3)--->
 ```
-
 
 # Reference
 

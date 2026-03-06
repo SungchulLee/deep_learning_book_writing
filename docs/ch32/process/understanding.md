@@ -15,6 +15,7 @@ Before writing a single line of code, you must **fully understand the problem**.
 Constraints are the most valuable part of a problem statement. They tell you which algorithms are feasible:
 
 $$n \le 10^5 \implies O(n \log n) \text{ is likely expected}$$
+
 $$n \le 20 \implies O(2^n) \text{ or } O(n \cdot 2^n) \text{ bitmask approach}$$
 
 ## Example: Parsing a Problem

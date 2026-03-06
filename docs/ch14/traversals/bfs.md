@@ -1,7 +1,7 @@
 # BFS
 
-
 $$
+
 \text{Search}
 \left\{\begin{array}{lll}
 \text{BFS (Queue)}\\
@@ -25,8 +25,8 @@ $$
 \end{array}\right.\\
 \end{array}
 \right.
-$$
 
+$$
 
 # Reference
 

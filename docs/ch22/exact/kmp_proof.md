@@ -36,7 +36,6 @@ def kmp_search(text: str, pattern: str) -> list[int]:
             j = pi[j - 1]
     return occurrences
 
-
 # Example
 text = "ABABDABACDABABCABAB"
 pattern = "ABABCABAB"
@@ -73,7 +72,6 @@ print(kmp_search(text, pattern))
 - $\Phi$ is always non-negative and increases by at most 1 per iteration of the for loop.
 
 Over all $n$ iterations, $\Phi$ increases at most $n$ times. Since $\Phi \ge 0$, the total number of decreases (fallback operations) is also at most $n$. Thus the total work in the search phase is $O(n)$. The preprocessing phase takes $O(m)$ by an identical argument. Total: $O(n + m)$. $\square$
-
 
 # Reference
 

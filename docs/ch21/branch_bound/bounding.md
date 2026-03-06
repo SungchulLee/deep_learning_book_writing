@@ -1,7 +1,7 @@
 # Bounding Functions
 
-
 $$
+
 \text{Complete Search}
 \left\{\begin{array}{lll}
 \text{Breadth First Search}\\
@@ -14,8 +14,8 @@ $$
 \text{(Queue, Stack, Cost Priority Queue)}\\
 \end{array}
 \right.
-$$
 
+$$
 
 # Reference
 

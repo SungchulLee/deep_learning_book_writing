@@ -36,7 +36,6 @@ bat: True
 bad: False
 ```
 
-
 # Reference
 
 [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)

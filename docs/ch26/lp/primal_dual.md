@@ -26,7 +26,6 @@ print(prim(G))
 [(0, 2, 1), (2, 1, 3), (1, 3, 2)]
 ```
 
-
 # Reference
 
 [Approximation Algorithms (Vazirani)](https://www.springer.com/gp/book/9783540653677)

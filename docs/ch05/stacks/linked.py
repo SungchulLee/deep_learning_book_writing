@@ -6,6 +6,8 @@ import numpy as np; np.random.seed(0)
 from collections import deque
 
 
+# === Functions ===
+
 class Stack:
     def __init__(self):
         self.stack = deque()   
@@ -42,5 +44,7 @@ def main():
             print(f'{i = }, {str(pop_item) = :>4}, {str(s) = }')
             
             
+
+# === Main ===
 if __name__ == "__main__":
     main()

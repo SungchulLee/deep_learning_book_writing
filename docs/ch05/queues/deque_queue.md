@@ -1,10 +1,8 @@
 # Deque as Queue
 
-
 ```python
 import numpy as np; np.random.seed(0)
 from collections import deque
-
 
 def main():
     q = deque()
@@ -39,7 +37,6 @@ i = 7, enqueue_item =    1, q = deque([1, 1])
 i = 8, enqueue_item =    2, q = deque([1, 1, 2])
 i = 9, enqueue_item =    2, q = deque([1, 1, 2, 2])
 ```
-
 
 # Reference
 

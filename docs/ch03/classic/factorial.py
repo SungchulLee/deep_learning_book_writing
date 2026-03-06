@@ -5,6 +5,8 @@ Factorial
 import math
 
 
+# === Functions ===
+
 def compute_factorial_using_recursion(n):
     if n == 0:
         return 1
@@ -25,5 +27,7 @@ def main():
         print()
         
         
+
+# === Main ===
 if __name__ == "__main__":
     main()

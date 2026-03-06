@@ -5,6 +5,7 @@ Pseudocode provides a language-independent way to describe algorithms. It balanc
 ## Common Conventions
 
 $$
+
 \begin{array}{ll}
 \texttt{for } i = 1 \texttt{ to } n & \text{Loop from 1 to } n \\
 \texttt{while } condition & \text{Loop while condition is true} \\
@@ -13,6 +14,7 @@ $$
 A[i] & \text{Array access at index } i \\
 \lfloor x \rfloor, \lceil x \rceil & \text{Floor and ceiling}
 \end{array}
+
 $$
 
 ## Example: Binary Search
@@ -45,13 +47,11 @@ def binary_search(a, target):
             hi = mid - 1
     return -1
 
-
 def main():
     a = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
     for target in [23, 50]:
         idx = binary_search(a, target)
         print(f"Search for {target}: index = {idx}")
-
 
 if __name__ == "__main__":
     main()
@@ -62,7 +62,6 @@ if __name__ == "__main__":
 Search for 23: index = 5
 Search for 50: index = -1
 ```
-
 
 # Reference
 

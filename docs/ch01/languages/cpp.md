@@ -5,6 +5,7 @@ C++ offers high performance and STL containers, making it popular for competitiv
 ## Key STL Containers
 
 $$
+
 \begin{array}{lll}
 \texttt{vector} & \text{Dynamic array} & O(1) \text{ amortized append} \\
 \texttt{set/map} & \text{Balanced BST} & O(\log n) \text{ operations} \\
@@ -12,6 +13,7 @@ $$
 \texttt{priority\_queue} & \text{Max-heap} & O(\log n) \text{ push/pop} \\
 \texttt{deque} & \text{Double-ended queue} & O(1) \text{ both ends}
 \end{array}
+
 $$
 
 ## Example: Two Sum in C++
@@ -46,7 +48,6 @@ int main() {
 ```
 [0, 1]
 ```
-
 
 # Reference
 

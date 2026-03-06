@@ -2,6 +2,8 @@
 Shell Sort
 """
 
+# ======================================================================
+
 def insert(item, lst):
     pointer = 0
     while True:
@@ -87,5 +89,7 @@ def quick_sort(lst):
     return left + center + right
 
 
-lst = [-1, 3, 8, -5, 7, 4, 10]
-print(quick_sort(lst))
+# === Main ===
+if __name__ == "__main__":
+    lst = [-1, 3, 8, -5, 7, 4, 10]
+    print(quick_sort(lst))

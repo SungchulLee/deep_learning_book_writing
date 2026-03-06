@@ -28,6 +28,8 @@ def main():
     print_power_set(initial_set)
     
         
+
+# === Main ===
 if __name__ == "__main__":
     main()
 

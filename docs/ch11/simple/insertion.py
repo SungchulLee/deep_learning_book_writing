@@ -2,6 +2,8 @@
 Insertion Sort
 """
 
+# ======================================================================
+
 def insert(lst, item):
     """
     input  : lst  : sorted list
@@ -44,5 +46,7 @@ def insertion_sort(lst):
     return out
 
 
-lst = [-1, 3, 8, -5, 7, 4, 10]
-print(insertion_sort(lst))
+# === Main ===
+if __name__ == "__main__":
+    lst = [-1, 3, 8, -5, 7, 4, 10]
+    print(insertion_sort(lst))

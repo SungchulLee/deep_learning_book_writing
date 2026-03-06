@@ -7,13 +7,17 @@ A rolling hash (also called a sliding hash) is a hash function that can be effic
 The most common rolling hash treats a string as a polynomial evaluated modulo a prime $p$. For a string $S[0..m-1]$ over an alphabet of size $d$:
 
 $$
+
 H(S[0..m-1]) = \left(\sum_{i=0}^{m-1} S[i] \cdot d^{m-1-i}\right) \bmod p
+
 $$
 
 When the window slides from $S[i..i+m-1]$ to $S[i+1..i+m]$, the hash is updated in $O(1)$:
 
 $$
+
 H(S[i+1..i+m]) = \left(d \cdot \bigl(H(S[i..i+m-1]) - S[i] \cdot d^{m-1}\bigr) + S[i+m]\right) \bmod p
+
 $$
 
 We precompute $d^{m-1} \bmod p$ once.
@@ -48,7 +52,6 @@ def rabin_karp(text: str, pattern: str, d: int = 256, p: int = 101) -> list[int]
 
     return occurrences
 
-
 # Example
 text = "GEEKS FOR GEEKS"
 pattern = "GEEK"
@@ -66,7 +69,6 @@ print(rabin_karp(text, pattern))
 ## Choosing Good Parameters
 
 To minimize collisions, choose $p$ as a large prime and $d$ equal to the alphabet size. Using two independent hash functions (double hashing) reduces the collision probability to approximately $1/p^2$, making false positives negligible in practice.
-
 
 # Reference
 

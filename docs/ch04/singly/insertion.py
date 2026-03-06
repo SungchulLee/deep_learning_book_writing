@@ -2,6 +2,8 @@
 Insertion
 """
 
+# ======================================================================
+
 class Node:
     def __init__(self, data=None, next_data=None):
         self.data = data
@@ -71,32 +73,34 @@ class LinkedList:
         print(msg)
 
 
-l = LinkedList()
-l.insert_at_start(2)
-l.insert_at_start(3)
-l.insert_at_start(5)
-l.print_linked_list()
+# === Main ===
+if __name__ == "__main__":
+    l = LinkedList()
+    l.insert_at_start(2)
+    l.insert_at_start(3)
+    l.insert_at_start(5)
+    l.print_linked_list()
 
 
-l = LinkedList()
-l.insert_at_end(2)
-l.insert_at_end(3)
-l.insert_at_end(5)
-l.print_linked_list()
+    l = LinkedList()
+    l.insert_at_end(2)
+    l.insert_at_end(3)
+    l.insert_at_end(5)
+    l.print_linked_list()
 
 
-l = LinkedList()
-l.insert_at_end(2)
-l.insert_at_end(3)
-l.insert_at_end(5)
-l.remove(1)
-l.print_linked_list()
+    l = LinkedList()
+    l.insert_at_end(2)
+    l.insert_at_end(3)
+    l.insert_at_end(5)
+    l.remove(1)
+    l.print_linked_list()
 
 
-l = LinkedList(["banana","mango","grapes","orange"])
-l.print_linked_list()
+    l = LinkedList(["banana","mango","grapes","orange"])
+    l.print_linked_list()
 
 
-l = LinkedList(["banana","mango","grapes","orange"])
-l.insert(1,"blueberry")
-l.print_linked_list()
+    l = LinkedList(["banana","mango","grapes","orange"])
+    l.insert(1,"blueberry")
+    l.print_linked_list()

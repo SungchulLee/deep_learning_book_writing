@@ -4,6 +4,8 @@ Array-Based Queue
 
 import numpy as np; np.random.seed(0)
 
+
+# === Functions ===
 def main():
     q = []
     
@@ -20,5 +22,7 @@ def main():
             print(f'{i = }, {dequeue_item = :4}, {q = }')
 
             
+
+# === Main ===
 if __name__ == "__main__":
     main()

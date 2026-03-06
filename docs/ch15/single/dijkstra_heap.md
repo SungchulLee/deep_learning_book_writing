@@ -1,6 +1,5 @@
 # Dijkstra with Heap
 
-
 ```python
 class Graph:
     
@@ -98,7 +97,6 @@ Distance from Source 0
 3		 3
 4		 3
 ```
-
 
 # Reference
 

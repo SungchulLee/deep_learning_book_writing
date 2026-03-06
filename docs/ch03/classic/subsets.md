@@ -1,8 +1,6 @@
 # Subset Generation
 
-
 <img src="img/Screen Shot 2022-05-02 at 6.07.29 PM.png" width=50%>
-
 
 ```python
 def print_power_set(initial_set):
@@ -47,7 +45,6 @@ set()
 {0, 1, 2}
 ```
 
-
 ```python
 def main():
     initial_set = {0,1,2}
@@ -70,7 +67,6 @@ if __name__ == "__main__":
 110
 111
 ```
-
 
 ```python
 def main():
@@ -101,9 +97,7 @@ set()
 {0, 1, 2}
 ```
 
-
 <img src="img/Screen Shot 2022-05-02 at 6.50.43 PM.png" width=50%>
-
 
 # Reference
 

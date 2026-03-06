@@ -28,7 +28,6 @@ print(f"Hull: {convex_hull(pts)}")
 Hull: [(0, 0), (1, 0), (2, 0), (2, 2), (0, 2)]
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 4](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

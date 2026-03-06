@@ -23,7 +23,6 @@ print(f"Max value: {knapsack(50, [10,20,30], [60,100,120])}")
 Max value: 220
 ```
 
-
 # Reference
 
 [Algorithm Design Manual (Skiena), Chapter 9](https://www.algorist.com/)

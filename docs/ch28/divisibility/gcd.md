@@ -24,7 +24,6 @@ gcd(48,18) = 6
 48*-1 + 18*3 = 6
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 31](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

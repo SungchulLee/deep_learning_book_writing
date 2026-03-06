@@ -1,29 +1,23 @@
 # Greatest Common Divisor
 
-
 <img src="img/Screen Shot 2022-05-01 at 7.32.44 PM.png" width=50%>
 <img src="img/Screen Shot 2022-05-01 at 7.33.55 PM.png" width=50%>
 
-
 ```python
 import math
-
 
 def compute_gcd_using_recursion(i, j):
     if j == 0:
         return i
     return compute_gcd_using_recursion(j, i%j)
 
-
 def compute_gcd_using_while_loop(i, j):
     while j:
         i, j = j, i%j
     return i
 
-
 def compute_gcd_using_package(i, j):
     return math.gcd(i, j)
-
 
 def main():
     i_ = (6, 10, 25, 30, 364, 45246, 465344)
@@ -72,7 +66,6 @@ Computation of gcd(465344,413116) using recursion  : 44
 Computation of gcd(465344,413116) using while loop : 44
 Computation of gcd(465344,413116) using package    : 44
 ```
-
 
 # Reference
 

@@ -1,10 +1,8 @@
 # Traveling Salesman
 
-
 ```python
 from itertools import permutations
 ```
-
 
 ```python
 def cycle_cost(cycle, graph):
@@ -15,7 +13,6 @@ def cycle_cost(cycle, graph):
         start = end
     return cost
 ```
-
 
 ```python
 def tsp(graph):
@@ -33,7 +30,6 @@ def tsp(graph):
     return tsp_cost, tsp_cycle
 ```
 
-
 ```python
 graph = [
     [0, 10, 15, 20],
@@ -42,7 +38,6 @@ graph = [
     [20, 25, 30, 0]
 ]
 ```
-
 
 ```python
 tsp_cost, tsp_cycle = tsp(graph)
@@ -55,7 +50,6 @@ print(f'tsp cycle : {tsp_cycle}')
 tsp cost  : 80
 tsp cycle : [0, 1, 3, 2, 0]
 ```
-
 
 # Reference
 

@@ -1,6 +1,5 @@
 # Inorder
 
-
 ```python
 class TreeNode:
     def __init__(self, val=0, left=None, right=None):
@@ -8,7 +7,6 @@ class TreeNode:
         self.left = left
         self.right = right
 ```
-
 
 ```python
 # recursion
@@ -18,7 +16,6 @@ class Solution:
             return []
         return self.inorderTraversal(root.left) + [root.val] + self.inorderTraversal(root.right)
 ```
-
 
 ```python
 # iteration
@@ -39,7 +36,6 @@ class Solution:
                 cur = cur.right 
         return out
 ```
-
 
 # Reference
 

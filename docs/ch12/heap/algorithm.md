@@ -1,6 +1,5 @@
 # Algorithm
 
-
 $$\begin{array}{lllllll}
 \text{heappush}&:&\text{Insert}&&O(\log n)\\
 \text{heappop}&:&\text{Delete (Root)}&&O(\log n)\\
@@ -9,18 +8,15 @@ $$\begin{array}{lllllll}
 \text{heapify}&:&\text{Heapify or Create Heap from Right to Left}&&O(n)\\
 \end{array}$$
 
-
 $$\begin{array}{lll}
 \text{Heat Sort - Step 1 : Creat Heap}&&O(n)\\
 \text{Heat Sort - Step 2 : Delete Root}&&O(n\log n)\\
 \text{Heat Sort - Step 1 + Step 2}&&O(n\log n)\\
 \end{array}$$
 
-
 <div align="center"><img src="https://gmlwjd9405.github.io/images/algorithm-heap-sort/sort-time-complexity.png" width="50%"></div>
 
 [[알고리즘] 힙 정렬(heap sort)이란](https://gmlwjd9405.github.io/2018/05/10/algorithm-heap-sort.html)
-
 
 # Reference
 

@@ -76,7 +76,6 @@ def thompson(postfix):
             stack.append(Fragment(start, accept))
     return stack.pop()
 
-
 def infix_to_postfix(regex):
     """Convert infix regex to postfix with explicit concat operator."""
     output = []
@@ -110,7 +109,6 @@ def infix_to_postfix(regex):
         result.append(ops.pop())
     return ''.join(result)
 
-
 # Example: regex "a(b|c)*d"
 postfix = infix_to_postfix("a(b|c)*d")
 print(f"Postfix: {postfix}")
@@ -126,7 +124,6 @@ print(f"Start state: {nfa.start.id}, Accept state: {nfa.accept.id}")
 2. **Each state has at most two outgoing transitions** (either one character transition, or up to two epsilon transitions).
 3. **The accept state has no outgoing transitions.**
 4. **The construction is linear:** $O(r)$ time and space.
-
 
 # Reference
 

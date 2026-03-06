@@ -31,7 +31,6 @@ print(c.get(3))
 3
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

@@ -1,8 +1,6 @@
 # Insertion and Deletion
 
-
 <div align="center"><img src="https://cdn-images-1.medium.com/max/1600/1*ETR5djgjMV_M2Oeitf4XZQ.png" width="100%" height="30%"></div>
-
 
 ```python
 class Node:
@@ -11,7 +9,6 @@ class Node:
         self.data = data
         self.next = next_data
 ```
-
 
 ```python
 class DoublyLinkedList:
@@ -80,7 +77,6 @@ class DoublyLinkedList:
         print(msg)
 ```
 
-
 ```python
 l = DoublyLinkedList()
 l.insert_at_start(2)
@@ -94,7 +90,6 @@ l.print_linked_list()
 5 <--> 3 <--> 2
 ```
 
-
 ```python
 l = DoublyLinkedList()
 l.insert_at_end(2)
@@ -107,7 +102,6 @@ l.print_linked_list()
 ```
 2 <--> 3 <--> 5
 ```
-
 
 ```python
 l = DoublyLinkedList()
@@ -123,7 +117,6 @@ l.print_linked_list()
 2 <--> 5
 ```
 
-
 ```python
 l = DoublyLinkedList(["banana","mango","grapes","orange"])
 l.print_linked_list()
@@ -133,7 +126,6 @@ l.print_linked_list()
 ```
 banana <--> mango <--> grapes <--> orange
 ```
-
 
 ```python
 l = DoublyLinkedList(["banana","mango","grapes","orange"])
@@ -145,7 +137,6 @@ l.print_linked_list()
 ```
 banana <--> blueberry <--> mango <--> grapes <--> orange
 ```
-
 
 # Reference
 

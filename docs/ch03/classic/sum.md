@@ -1,24 +1,21 @@
 # Sum
 
-
 $$
+
 \sum_{k=1}^n k
-$$
 
+$$
 
 ```python
 import numpy as np
-
 
 def compute_sum_using_recursion(n):
     if n == 0:
         return 0
     return n + compute_sum_using_recursion(n-1)
 
-
 def compute_sum_using_package(n):
     return np.arange(n+1).sum()
-
 
 def main():
     n = 10
@@ -67,9 +64,7 @@ Computation of sum from 0 to 9 using recursion : 45
 Computation of sum from 0 to 9 using package   : 45
 ```
 
-
 <img src="img/Screen Shot 2022-06-16 at 11.11.35 AM.png" width=50%>
-
 
 # Reference
 

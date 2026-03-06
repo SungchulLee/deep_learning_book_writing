@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import time
 
 
+# === Functions ===
+
 def fib(n):
     if n <= 1:
         return n
@@ -17,14 +19,16 @@ def fib(n):
     return c
 
 
-print(fib(10000))
+# === Main ===
+if __name__ == "__main__":
+    print(fib(10000))
 
 
-time_record = []
-for i in range(1000):
-    tic = time.time()
-    fib(i+1)
-    toc = time.time()
-    time_record.append(toc-tic)
+    time_record = []
+    for i in range(1000):
+        tic = time.time()
+        fib(i+1)
+        toc = time.time()
+        time_record.append(toc-tic)
     
-plt.plot(time_record);
+    plt.plot(time_record);

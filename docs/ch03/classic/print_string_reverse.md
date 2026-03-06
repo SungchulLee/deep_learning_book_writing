@@ -1,8 +1,6 @@
 # Print String Reversely
 
-
 <img src="img/Screen Shot 2022-05-01 at 8.22.45 PM.png" width=70%>
-
 
 ```python
 def print_string_reversely_using_recursion(string):
@@ -11,10 +9,8 @@ def print_string_reversely_using_recursion(string):
     print(string[-1], end='')
     print_string_reversely_using_recursion(string[:-1])
 
-
 def print_string_reversely_using_python(string):
     print(string[::-1])
-
 
 def main():
     # https://edition.cnn.com/2022/04/29/asia/kabul-mosque-explosion-intl/index.html
@@ -38,7 +34,6 @@ dias nardaZ dilahK ecilop fo feihc eht rof nosrepsekops nabilaT sreyarp yadirF r
 Print string reversely using python built-in functionality :
 dias nardaZ dilahK ecilop fo feihc eht rof nosrepsekops nabilaT sreyarp yadirF retfa lubaK latipac nahgfA eht ni euqsom a ta noisolpxe na retfa dednuow 03 dna dellik erew elpoep 01 tsael tA
 ```
-
 
 # Reference
 

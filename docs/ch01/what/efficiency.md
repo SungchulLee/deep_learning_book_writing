@@ -3,7 +3,9 @@
 Algorithm efficiency measures how resources (time and space) grow with input size $n$.
 
 $$
+
 \text{Efficiency} = f(n) \text{ where } n = |\text{input}|
+
 $$
 
 ## Why Efficiency Matters
@@ -17,14 +19,12 @@ $$
 ```python
 import time
 
-
 def linear_search(arr, target):
     """O(n) — checks each element."""
     for i, val in enumerate(arr):
         if val == target:
             return i
     return -1
-
 
 def binary_search(arr, target):
     """O(log n) — halves the search space."""
@@ -38,7 +38,6 @@ def binary_search(arr, target):
         else:
             hi = mid - 1
     return -1
-
 
 def main():
     arr = list(range(1_000_000))
@@ -56,11 +55,9 @@ def main():
     print(f"Binary search: {t2:.6f} sec")
     print(f"Speedup: {t1/t2:.0f}x")
 
-
 if __name__ == "__main__":
     main()
 ```
-
 
 # Reference
 

@@ -1,6 +1,5 @@
 # Insert (Sift Up)
 
-
 ```python
 # MaxHeap
 # public functions : push, peek, pop
@@ -73,7 +72,6 @@ if __name__ == "__main__":
 [None, 95, 10, 21, 3]
 [None, 21, 10, 3]
 ```
-
 
 # Reference
 

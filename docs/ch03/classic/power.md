@@ -1,8 +1,6 @@
 # Power Computation
 
-
 <img src="img/Screen Shot 2022-05-01 at 7.18.21 PM.png" width=50%>
-
 
 ```python
 def compute_power_using_recursion(x, n):
@@ -10,10 +8,8 @@ def compute_power_using_recursion(x, n):
         return 1
     return x * compute_power_using_recursion(x, n-1)
 
-
 def compute_power_using_python(x, n):
     return x ** n
-
 
 def main():
     x = 2
@@ -62,7 +58,6 @@ Computation of 2^8 using python    : 256
 Computation of 2^9 using recursion : 512
 Computation of 2^9 using python    : 512
 ```
-
 
 # Reference
 

@@ -27,7 +27,6 @@ print(f"DFS from 0: {dfs(graph, 0)}")
 DFS from 0: [0, 1, 3, 2, 4]
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 22](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

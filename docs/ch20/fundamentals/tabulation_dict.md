@@ -1,18 +1,15 @@
 # Tabulation with Dict
 
-
 $$\begin{array}{llll}
 \text{Recursion}&&\text{No Dynamic Programming (No Memoization or Tabulation)}\\
 \text{Top Down}&&\text{Dynamic Programming (Memoization)}\\
 \text{Bottom Up}&&\text{Dynamic Programming (Tabulation)}
 \end{array}$$
 
-
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
 import time
-
 
 def fib_bottom_up(n):
     memo = {}
@@ -22,7 +19,6 @@ def fib_bottom_up(n):
         else:
             memo[i] = memo[i-1] + memo[i-2]
     return memo[n]
-
 
 def main():    
     time_record = []
@@ -44,7 +40,6 @@ if __name__ == "__main__":
 ```
 <Figure size 432x288 with 1 Axes>
 ```
-
 
 # Reference
 

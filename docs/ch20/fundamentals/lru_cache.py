@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 from functools import lru_cache as cache
 
 
+# === Functions ===
+
 @cache(maxsize=5)
 def a(n):
     
@@ -30,5 +32,7 @@ def main():
     plt.show()
 
     
+
+# === Main ===
 if __name__ == "__main__":
     main()

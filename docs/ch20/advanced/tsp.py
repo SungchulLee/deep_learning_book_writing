@@ -5,6 +5,8 @@ Traveling Salesman
 from itertools import permutations
 
 
+# === Functions ===
+
 def cycle_cost(cycle, graph):
     cost = 0
     start = cycle[0]
@@ -29,14 +31,16 @@ def tsp(graph):
     return tsp_cost, tsp_cycle
 
 
-graph = [
-    [0, 10, 15, 20],
-    [10, 0, 35, 25],
-    [15, 35, 0, 30],
-    [20, 25, 30, 0]
-]
+# === Main ===
+if __name__ == "__main__":
+    graph = [
+        [0, 10, 15, 20],
+        [10, 0, 35, 25],
+        [15, 35, 0, 30],
+        [20, 25, 30, 0]
+    ]
 
 
-tsp_cost, tsp_cycle = tsp(graph)
-print(f'tsp cost  : {tsp_cost}')
-print(f'tsp cycle : {tsp_cycle}')
+    tsp_cost, tsp_cycle = tsp(graph)
+    print(f'tsp cost  : {tsp_cost}')
+    print(f'tsp cycle : {tsp_cycle}')

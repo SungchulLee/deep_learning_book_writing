@@ -1,6 +1,5 @@
 # Array-Based Queue
 
-
 ```python
 import numpy as np; np.random.seed(0)
 
@@ -37,7 +36,6 @@ i = 7, enqueue_item =    1, q = [1, 1]
 i = 8, enqueue_item =    2, q = [1, 1, 2]
 i = 9, enqueue_item =    2, q = [1, 1, 2, 2]
 ```
-
 
 # Reference
 

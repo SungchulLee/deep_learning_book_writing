@@ -26,7 +26,6 @@ print(prim(G))
 [(0, 2, 1), (2, 1, 3), (1, 3, 2)]
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 31](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

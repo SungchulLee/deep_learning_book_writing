@@ -159,6 +159,7 @@ def build_tree(elements):
     return root
 
 
+# === Main ===
 if __name__ == '__main__':
     data = ["India", "Germany", "USA", "China", "India", "UK", "USA"]
     #data = [17, 4, 1, 20, 9, 23, 18, 34, 18, 4]

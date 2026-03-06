@@ -1,10 +1,8 @@
 # Kruskal's Algorithm
 
-
 <div align="center"><img src="https://upload.wikimedia.org/wikipedia/commons/b/bb/KruskalDemo.gif" width="40%"></div>
 
 [Kruskal's algorithm](https://en.wikipedia.org/wiki/Kruskal%27s_algorithm)
-
 
 # Reference
 

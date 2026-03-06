@@ -2,6 +2,8 @@
 Partition
 """
 
+# ======================================================================
+
 def start_pointer_move(start_pointer, lst):
     """
     input  : start_pointer : start를 포인팅하는 포인터(>=1)
@@ -130,5 +132,7 @@ def quick_sort(lst):
     return left + center + right
 
 
-lst = [-1, 3, 8, -5, 7, 4, 10]
-print(quick_sort(lst))
+# === Main ===
+if __name__ == "__main__":
+    lst = [-1, 3, 8, -5, 7, 4, 10]
+    print(quick_sort(lst))

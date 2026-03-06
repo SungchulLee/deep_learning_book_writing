@@ -7,6 +7,7 @@ A nondeterministic finite automaton (NFA) is a foundational model for regular ex
 An NFA is a 5-tuple $(Q, \Sigma, \delta, q_0, F)$ where:
 
 $$
+
 \begin{aligned}
 Q &: \text{finite set of states}\\
 \Sigma &: \text{input alphabet}\\
@@ -14,6 +15,7 @@ Q &: \text{finite set of states}\\
 q_0 &\in Q : \text{start state}\\
 F &\subseteq Q : \text{set of accepting states}
 \end{aligned}
+
 $$
 
 An NFA accepts a string $w$ if there exists at least one path from $q_0$ to some state in $F$ that spells out $w$ (with arbitrary epsilon transitions).
@@ -42,7 +44,6 @@ class State:
 
     def add_epsilon(self, state):
         self.epsilon.append(state)
-
 
 class NFA:
     def __init__(self, start, accept):
@@ -113,7 +114,6 @@ def nfa_accepts(nfa, text):
 
 - **Construction:** $O(r)$ states and transitions for a regular expression of length $r$.
 - **Simulation:** $O(n \cdot r)$ per string of length $n$, since each step may visit $O(r)$ states.
-
 
 # Reference
 

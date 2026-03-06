@@ -17,5 +17,7 @@ def main():
         print(a(n), end='\t')
         
         
+
+# === Main ===
 if __name__ == "__main__":
     main()

@@ -5,6 +5,8 @@ Greatest Common Divisor
 import math
 
 
+# === Functions ===
+
 def compute_gcd_using_recursion(i, j):
     if j == 0:
         return i
@@ -34,5 +36,7 @@ def main():
         print()
 
     
+
+# === Main ===
 if __name__ == "__main__":
     main()

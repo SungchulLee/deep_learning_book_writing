@@ -5,6 +5,7 @@ The choice of programming language depends on the context.
 ## Comparison
 
 $$
+
 \begin{array}{llll}
 & \text{Python} & \text{C++} & \text{Java} \\
 \hline
@@ -14,6 +15,7 @@ $$
 \text{Memory Control} & \text{Auto} & \text{Manual} & \text{Auto (GC)} \\
 \text{Best For} & \text{Learning} & \text{Competition} & \text{Enterprise}
 \end{array}
+
 $$
 
 ## Guidelines
@@ -37,7 +39,6 @@ print(f"GCD(48, 18) = {gcd(48, 18)}")
 ```
 GCD(48, 18) = 6
 ```
-
 
 # Reference
 

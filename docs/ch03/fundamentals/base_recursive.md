@@ -1,8 +1,6 @@
 # Base Case and Recursive Case
 
-
 <img src="img/Screen Shot 2022-05-01 at 9.52.06 PM.png" width=50%>
-
 
 ```python
 def f(n):
@@ -13,7 +11,6 @@ def f(n):
     # Recursion Case
     print(f"{n}    H")
     f(n-1)
-
 
 def main():
     n = 9
@@ -36,7 +33,6 @@ if __name__ == "__main__":
 2    H
 1    H
 ```
-
 
 # Reference
 

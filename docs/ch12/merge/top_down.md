@@ -1,8 +1,6 @@
 # Top-Down
 
-
 Merge Sort는 두 개의 정렬된 데이타를 합병하는 작업을 리커시브하게 진행한다.
-
 
 ```python
 def merge_sort(arr):
@@ -18,7 +16,6 @@ def merge_sort(arr):
 
     merge_sort_two_sorted_arrays(left, right, arr)
 ```
-
 
 ```python
 def merge_sort_two_sorted_arrays(left, right, arr):
@@ -44,7 +41,6 @@ def merge_sort_two_sorted_arrays(left, right, arr):
         j += 1
         k += 1
 ```
-
 
 ```python
 if __name__ == '__main__':
@@ -77,11 +73,9 @@ if __name__ == '__main__':
 [1, 2, 3, 4, 5]
 ```
 
-
 <div align="center"><img src="https://gmlwjd9405.github.io/images/algorithm-merge-sort/sort-time-complexity.png" width="50%"></div>
 
 [[알고리즘] 합병 정렬(merge sort)이란](https://gmlwjd9405.github.io/2018/05/08/algorithm-merge-sort.html)
-
 
 # Reference
 

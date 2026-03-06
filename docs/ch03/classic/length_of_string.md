@@ -1,8 +1,6 @@
 # Length of String
 
-
 <img src="img/Screen Shot 2022-05-01 at 8.01.14 PM.png" width=70%>
-
 
 ```python
 def compute_length_of_string_using_recursion(string):
@@ -10,10 +8,8 @@ def compute_length_of_string_using_recursion(string):
         return 0
     return 1 + compute_length_of_string_using_recursion(string[1:])
 
-
 def compute_length_of_string_using_python(string):
     return len(string)
-
 
 def main():
     # https://edition.cnn.com/2022/04/29/asia/kabul-mosque-explosion-intl/index.html
@@ -131,7 +127,6 @@ Computation of length of string 'Zadran' using python    : 6
 Computation of length of string 'said' using recursion : 4
 Computation of length of string 'said' using python    : 4
 ```
-
 
 # Reference
 

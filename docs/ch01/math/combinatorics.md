@@ -5,27 +5,29 @@ Combinatorics counts the number of ways to arrange or select objects — essenti
 ## Key Formulas
 
 $$
+
 \begin{array}{ll}
 \text{Permutations:} & P(n, k) = \frac{n!}{(n-k)!} \\
 \text{Combinations:} & \binom{n}{k} = \frac{n!}{k!(n-k)!} \\
 \text{Arrangements with repetition:} & n^k \\
 \text{Multiset coefficient:} & \binom{n+k-1}{k}
 \end{array}
+
 $$
 
 ## Binomial Theorem
 
 $$
+
 (x + y)^n = \sum_{k=0}^{n} \binom{n}{k} x^{n-k} y^k
+
 $$
 
 ```python
 from math import factorial, comb
 
-
 def permutations(n, k):
     return factorial(n) // factorial(n - k)
-
 
 def main():
     print("Combinations C(n, k):")
@@ -36,7 +38,6 @@ def main():
     print(f"P(5,3) = {permutations(5, 3)}")
     print(f"C(5,3) = {comb(5, 3)}")
     print(f"5^3 = {5**3}  (arrangements with repetition)")
-
 
 if __name__ == "__main__":
     main()
@@ -56,7 +57,6 @@ P(5,3) = 60
 C(5,3) = 10
 5^3 = 125  (arrangements with repetition)
 ```
-
 
 # Reference
 

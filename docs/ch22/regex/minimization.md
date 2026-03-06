@@ -19,7 +19,9 @@ The simpler Moore's method partitions states iteratively:
 3. Repeat until no group can be split.
 
 $$
+
 \text{States } p, q \text{ are equivalent} \iff \forall a \in \Sigma: \delta(p,a) \text{ and } \delta(q,a) \text{ are in the same group}
+
 $$
 
 ```python
@@ -89,7 +91,6 @@ def minimize_dfa(states, alphabet, transitions, start, accept_states):
 
     return new_states, new_trans, new_start, new_accept
 
-
 # Example
 states = {0, 1, 2, 3, 4}
 alphabet = {'a', 'b'}
@@ -123,11 +124,12 @@ print(f"Minimized states: {len(new_states)}")
 The theoretical foundation for DFA minimization is the **Myhill-Nerode theorem**, which states that the number of states in the minimum DFA for a language $L$ equals the number of equivalence classes of the right-invariant equivalence relation $\equiv_L$ defined by:
 
 $$
+
 x \equiv_L y \iff \forall z \in \Sigma^*: (xz \in L \Leftrightarrow yz \in L)
+
 $$
 
 This guarantees that the minimized DFA is unique.
-
 
 # Reference
 

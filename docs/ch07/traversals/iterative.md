@@ -1,12 +1,10 @@
 # Iterative Traversals
 
-
 Preorder - root first
 
 Inorder - root middle
 
 Postorder - root last
-
 
 # Reference
 

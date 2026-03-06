@@ -1,11 +1,8 @@
 # Bubble Sort - Efficient
 
-
 <img src="img/Screen Shot 2022-04-30 at 11.43.25 AM.png" width="70%">
 
-
 <img src="img/Screen Shot 2022-04-30 at 12.23.04 PM.png" width="50%">
-
 
 ```python
 class Bubble_Sort:
@@ -77,11 +74,9 @@ if __name__ == "__main__":
 [2, 4, 4, 1, 3] ---> [1, 2, 3, 4, 4]
 ```
 
-
 <div align="center"><img src="https://gmlwjd9405.github.io/images/algorithm-bubble-sort/sort-time-complexity.png" width="50%"></div>
 
 [[알고리즘] 버블 정렬(Bubble Sort)이란](https://gmlwjd9405.github.io/2018/05/06/algorithm-bubble-sort.html)
-
 
 # Reference
 

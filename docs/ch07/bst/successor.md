@@ -26,7 +26,6 @@ print(list(inorder(root)))
 [1, 3, 4, 5, 6, 7, 8]
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapter 12](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)

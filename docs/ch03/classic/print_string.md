@@ -1,8 +1,6 @@
 # Print String
 
-
 <img src="img/Screen Shot 2022-05-01 at 8.13.58 PM.png" width=50%>
-
 
 ```python
 def print_string_using_recursion(string):
@@ -11,10 +9,8 @@ def print_string_using_recursion(string):
     print(string[0], end='')
     print_string_using_recursion(string[1:])
 
-
 def print_string_using_using_python(string):
     print(string)
-
 
 def main():
     # https://edition.cnn.com/2022/04/29/asia/kabul-mosque-explosion-intl/index.html
@@ -38,7 +34,6 @@ At least 10 people were killed and 30 wounded after an explosion at a mosque in 
 Print string using python built-in functionality :
 At least 10 people were killed and 30 wounded after an explosion at a mosque in the Afghan capital Kabul after Friday prayers Taliban spokesperson for the chief of police Khalid Zadran said
 ```
-
 
 # Reference
 

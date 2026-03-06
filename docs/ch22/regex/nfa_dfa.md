@@ -7,11 +7,15 @@ The subset construction (also called the powerset construction) converts a nonde
 Each DFA state corresponds to a set of NFA states. The DFA start state is the epsilon closure of the NFA start state. For each DFA state $S$ and input character $a$, the DFA transition goes to the epsilon closure of $\bigcup_{s \in S} \delta(s, a)$.
 
 $$
+
 \text{DFA state } D = \{q_1, q_2, \ldots, q_k\} \subseteq Q_{\text{NFA}}
+
 $$
 
 $$
+
 \delta_{\text{DFA}}(D, a) = \varepsilon\text{-closure}\!\left(\bigcup_{q \in D} \delta_{\text{NFA}}(q, a)\right)
+
 $$
 
 A DFA state $D$ is accepting if $D \cap F_{\text{NFA}} \neq \emptyset$.
@@ -29,7 +33,6 @@ def epsilon_closure(states, nfa_epsilon):
                 closure.add(t)
                 stack.append(t)
     return frozenset(closure)
-
 
 def subset_construction(nfa_start, nfa_accept_states, nfa_transitions, nfa_epsilon, alphabet):
     """Convert NFA to DFA using subset construction."""
@@ -56,7 +59,6 @@ def subset_construction(nfa_start, nfa_accept_states, nfa_transitions, nfa_epsil
 
     return start, dfa_accept, dfa_trans
 
-
 # Example NFA for regex (a|b)*abb
 nfa_transitions = {
     (2, 'a'): {3}, (4, 'b'): {5},
@@ -79,7 +81,6 @@ print(f"Number of DFA states: {len({start} | {v for v in trans.values()})}")
 ## Worst-Case Example
 
 The language $L_k = \{w \in \{a,b\}^* : \text{the } k\text{-th symbol from the end is } a\}$ requires an NFA with $O(k)$ states but a DFA with $2^k$ states. This demonstrates that the exponential blowup is tight.
-
 
 # Reference
 

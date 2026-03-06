@@ -27,7 +27,6 @@ print(f"BFS from 0: {bfs(graph, 0)}")
 BFS from 0: [0, 1, 2, 3, 4]
 ```
 
-
 # Reference
 
 [Algorithms and Data Structures for External Memory (Vitter)](https://www.ittc.ku.edu/~jsv/Papers/Vit.IO_book.pdf)

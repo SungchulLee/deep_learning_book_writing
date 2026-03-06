@@ -6,6 +6,8 @@ import numpy as np; np.random.seed(0)
 from collections import deque
 
 
+# === Functions ===
+
 def main():
     q = deque()
 
@@ -22,5 +24,7 @@ def main():
             print(f'{i = }, {dequeue_item = :4}, {q = }')
             
             
+
+# === Main ===
 if __name__ == "__main__":
     main()

@@ -26,5 +26,6 @@ def main():
     print(f'Number of Function Calls : {count}')
 
 
+# === Main ===
 if __name__ == "__main__":
     main()

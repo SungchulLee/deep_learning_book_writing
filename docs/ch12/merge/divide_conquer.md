@@ -22,7 +22,6 @@ print(merge_sort([38,27,43,3,9,82,10]))
 [3, 9, 10, 27, 38, 43, 82]
 ```
 
-
 # Reference
 
 [Introduction to Algorithms (CLRS), Chapters 2, 7](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
