@@ -85143,64 +85143,64 @@
 <h2 id="serialization">Serialization<a class="headerlink" href="#serialization" title="Permanent link">&para;</a></h2>
 <p>Saving, loading, and exporting trained models for deployment across environments.</p>
 <ul>
-<li><a href="serialization/saving.md">Model Saving</a> -- PyTorch native saving mechanisms and cross-environment portability for production deployment</li>
-<li><a href="serialization/state_dict.md">State Dict</a> -- PyTorch's canonical parameter serialization for model saving, transfer learning, and debugging</li>
-<li><a href="serialization/torchscript.md">TorchScript</a> -- Creating serializable, Python-free models for C++, mobile, and embedded deployment</li>
-<li><a href="serialization/onnx.md">ONNX Export</a> -- Open Neural Network Exchange format for cross-framework and cross-hardware model deployment</li>
-<li><a href="serialization/checkpointing.md">Checkpointing</a> -- Saving complete training state for recovery, analysis, and model selection in long-running jobs</li>
+<li>Model Saving -- PyTorch native saving mechanisms and cross-environment portability for production deployment</li>
+<li>State Dict -- PyTorch's canonical parameter serialization for model saving, transfer learning, and debugging</li>
+<li>TorchScript -- Creating serializable, Python-free models for C++, mobile, and embedded deployment</li>
+<li>ONNX Export -- Open Neural Network Exchange format for cross-framework and cross-hardware model deployment</li>
+<li>Checkpointing -- Saving complete training state for recovery, analysis, and model selection in long-running jobs</li>
 </ul>
 <h2 id="optimization">Optimization<a class="headerlink" href="#optimization" title="Permanent link">&para;</a></h2>
 <p>Compressing and accelerating models for efficient inference.</p>
 <ul>
 <li><a href="optimization/quantization/">Quantization</a> -- Reducing numerical precision from FP32 to INT8/INT4 for smaller footprint and faster inference</li>
-<li><a href="optimization/pruning.md">Model Pruning</a> -- Removing redundant parameters to create sparse models with reduced memory and compute</li>
+<li>Model Pruning -- Removing redundant parameters to create sparse models with reduced memory and compute</li>
 <li><a href="optimization/distillation/">Knowledge Distillation</a> -- Transferring knowledge from large teacher models to smaller, deployable student models</li>
 <li><a href="optimization/nas/">Neural Architecture Search</a> -- Automated architecture design optimizing for accuracy, latency, and model size</li>
 </ul>
 <h2 id="inference-optimization">Inference Optimization<a class="headerlink" href="#inference-optimization" title="Permanent link">&para;</a></h2>
 <p>Maximizing throughput and minimizing latency during model inference.</p>
 <ul>
-<li><a href="inference/cpu.md">CPU Optimization</a> -- Thread configuration, operator fusion, and optimizations for CPU-only deployment scenarios</li>
-<li><a href="inference/gpu.md">GPU Optimization with TensorRT</a> -- NVIDIA TensorRT for kernel auto-tuning, precision optimization, and layer fusion</li>
-<li><a href="inference/batch.md">Batch Inference</a> -- Processing multiple inputs simultaneously for maximum hardware utilization</li>
-<li><a href="inference/memory.md">Memory Management</a> -- GPU and CPU memory optimization to prevent OOM errors and reduce latency</li>
-<li><a href="inference/streaming.md">Streaming Inference</a> -- Real-time processing of continuous data flows for live market data and trading signals</li>
+<li>CPU Optimization -- Thread configuration, operator fusion, and optimizations for CPU-only deployment scenarios</li>
+<li>GPU Optimization with TensorRT -- NVIDIA TensorRT for kernel auto-tuning, precision optimization, and layer fusion</li>
+<li>Batch Inference -- Processing multiple inputs simultaneously for maximum hardware utilization</li>
+<li>Memory Management -- GPU and CPU memory optimization to prevent OOM errors and reduce latency</li>
+<li>Streaming Inference -- Real-time processing of continuous data flows for live market data and trading signals</li>
 </ul>
 <h2 id="serving">Serving<a class="headerlink" href="#serving" title="Permanent link">&para;</a></h2>
 <p>Deploying models as production services with scaling, versioning, and monitoring.</p>
 <ul>
-<li><a href="serving/rest_api.md">REST API Serving</a> -- Model serving frameworks with request batching, versioning, and horizontal scaling</li>
-<li><a href="serving/grpc.md">gRPC Serving</a> -- High-performance, low-latency model serving with Protocol Buffers and HTTP/2</li>
-<li><a href="serving/torchserve.md">TorchServe</a> -- PyTorch's official serving framework with dynamic batching and multi-model management</li>
-<li><a href="serving/triton.md">NVIDIA Triton Inference Server</a> -- Enterprise-grade multi-framework serving with GPU scheduling and model ensembles</li>
-<li><a href="serving/bentoml.md">BentoML</a> -- Python-first framework for building production-ready AI services with containerization support</li>
+<li>REST API Serving -- Model serving frameworks with request batching, versioning, and horizontal scaling</li>
+<li>gRPC Serving -- High-performance, low-latency model serving with Protocol Buffers and HTTP/2</li>
+<li>TorchServe -- PyTorch's official serving framework with dynamic batching and multi-model management</li>
+<li>NVIDIA Triton Inference Server -- Enterprise-grade multi-framework serving with GPU scheduling and model ensembles</li>
+<li>BentoML -- Python-first framework for building production-ready AI services with containerization support</li>
 </ul>
 <h2 id="distributed-computing">Distributed Computing<a class="headerlink" href="#distributed-computing" title="Permanent link">&para;</a></h2>
 <p>Scaling training and inference across multiple GPUs and nodes.</p>
 <ul>
-<li><a href="distributed/data_parallel.md">Data Parallel</a> -- Single-process multi-GPU training with PyTorch DataParallel</li>
-<li><a href="distributed/ddp.md">Distributed Data Parallel (DDP)</a> -- Multi-process training with AllReduce communication scaling to hundreds of GPUs</li>
-<li><a href="distributed/model_parallel.md">Model Parallel</a> -- Splitting large models across devices when they exceed single-GPU memory</li>
-<li><a href="distributed/pipeline.md">Pipeline Parallel</a> -- Overlapping micro-batch computation across GPUs for efficient multi-device training</li>
-<li><a href="distributed/fsdp.md">Fully Sharded Data Parallel (FSDP)</a> -- Sharding parameters, gradients, and optimizer states for memory-efficient distributed training</li>
-<li><a href="distributed/deepspeed.md">DeepSpeed</a> -- Microsoft's ZeRO optimizer for training models with billions to trillions of parameters</li>
+<li>Data Parallel -- Single-process multi-GPU training with PyTorch DataParallel</li>
+<li>Distributed Data Parallel (DDP) -- Multi-process training with AllReduce communication scaling to hundreds of GPUs</li>
+<li>Model Parallel -- Splitting large models across devices when they exceed single-GPU memory</li>
+<li>Pipeline Parallel -- Overlapping micro-batch computation across GPUs for efficient multi-device training</li>
+<li>Fully Sharded Data Parallel (FSDP) -- Sharding parameters, gradients, and optimizer states for memory-efficient distributed training</li>
+<li>DeepSpeed -- Microsoft's ZeRO optimizer for training models with billions to trillions of parameters</li>
 </ul>
 <h2 id="mlops">MLOps<a class="headerlink" href="#mlops" title="Permanent link">&para;</a></h2>
 <p>Operational practices for managing the ML lifecycle in production.</p>
 <ul>
-<li><a href="mlops/tracking.md">Experiment Tracking</a> -- Systematic recording of hyperparameters, metrics, and artifacts for reproducibility</li>
-<li><a href="mlops/registry.md">Model Registry (MLflow)</a> -- Managing model versions, staging, and promotion through deployment environments</li>
-<li><a href="mlops/cicd.md">CI/CD for Machine Learning</a> -- Automated pipelines for testing, training, validating, and deploying model updates</li>
-<li><a href="mlops/monitoring.md">Production Monitoring</a> -- Tracking model performance, health, and data drift in real-world deployment</li>
-<li><a href="mlops/ab_testing.md">A/B Testing for Models</a> -- Comparing model versions in production with statistical analysis of business metrics</li>
+<li>Experiment Tracking -- Systematic recording of hyperparameters, metrics, and artifacts for reproducibility</li>
+<li>Model Registry (MLflow) -- Managing model versions, staging, and promotion through deployment environments</li>
+<li>CI/CD for Machine Learning -- Automated pipelines for testing, training, validating, and deploying model updates</li>
+<li>Production Monitoring -- Tracking model performance, health, and data drift in real-world deployment</li>
+<li>A/B Testing for Models -- Comparing model versions in production with statistical analysis of business metrics</li>
 </ul>
 <h2 id="finance-applications">Finance Applications<a class="headerlink" href="#finance-applications" title="Permanent link">&para;</a></h2>
 <p>Deployment patterns specific to quantitative finance systems.</p>
 <ul>
-<li><a href="finance/pipelines.md">Production Pipelines</a> -- End-to-end ML pipelines handling market calendars, corporate actions, and regulatory requirements</li>
-<li><a href="finance/realtime.md">Real-Time Systems</a> -- Architecture patterns for deterministic-latency model inference in trading systems</li>
-<li><a href="finance/latency.md">Latency Requirements</a> -- Latency budgets, measurement methodology, and optimization strategies for financial applications</li>
-<li><a href="finance/backtesting.md">Backtesting Infrastructure</a> -- Validating model performance on historical data with proper handling of look-ahead and survivorship bias</li>
+<li>Production Pipelines -- End-to-end ML pipelines handling market calendars, corporate actions, and regulatory requirements</li>
+<li>Real-Time Systems -- Architecture patterns for deterministic-latency model inference in trading systems</li>
+<li>Latency Requirements -- Latency budgets, measurement methodology, and optimization strategies for financial applications</li>
+<li>Backtesting Infrastructure -- Validating model performance on historical data with proper handling of look-ahead and survivorship bias</li>
 </ul>
 
 

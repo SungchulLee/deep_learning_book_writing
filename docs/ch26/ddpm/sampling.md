@@ -10,7 +10,7 @@ Sampling from a trained DDPM generates data by iteratively denoising pure Gaussi
 
 ### 1.1 The Reverse Conditional
 
-The [forward process](../foundations/forward_process.md) adds noise according to $q(x_t \mid x_{t-1}) = \mathcal{N}(x_t;\, \sqrt{1-\beta_t}\, x_{t-1},\, \beta_t I)$. To generate samples, we need the reverse:
+The forward process adds noise according to $q(x_t \mid x_{t-1}) = \mathcal{N}(x_t;\, \sqrt{1-\beta_t}\, x_{t-1},\, \beta_t I)$. To generate samples, we need the reverse:
 
 $$q(x_{t-1} \mid x_t) = \int q(x_{t-1} \mid x_t, x_0)\, q(x_0 \mid x_t)\, dx_0$$
 
@@ -28,7 +28,7 @@ Here $\alpha_t = 1 - \beta_t$ and $\bar{\alpha}_t = \prod_{s=1}^{t} \alpha_s$.
 
 ### 1.2 From x_0-Prediction to epsilon-Prediction
 
-Since the [forward process](../foundations/forward_process.md) gives $x_t = \sqrt{\bar{\alpha}_t}\, x_0 + \sqrt{1 - \bar{\alpha}_t}\, \epsilon$, we can express $x_0$ in terms of $x_t$ and $\epsilon$:
+Since the forward process gives $x_t = \sqrt{\bar{\alpha}_t}\, x_0 + \sqrt{1 - \bar{\alpha}_t}\, \epsilon$, we can express $x_0$ in terms of $x_t$ and $\epsilon$:
 
 $$x_0 = \frac{x_t - \sqrt{1 - \bar{\alpha}_t}\, \epsilon}{\sqrt{\bar{\alpha}_t}}$$
 
@@ -74,7 +74,7 @@ Nichol & Dhariwal (2021) parameterize the variance as a learned interpolation in
 
 $$\log \sigma_t^2 = v_t \log \beta_t + (1 - v_t) \log \tilde{\beta}_t$$
 
-where $v_t$ is an additional scalar output of the network for each timestep. This is trained with a hybrid objective combining the standard [training loss](training.md) with a variational bound term:
+where $v_t$ is an additional scalar output of the network for each timestep. This is trained with a hybrid objective combining the standard training loss with a variational bound term:
 
 $$\mathcal{L}_{\text{hybrid}} = \mathcal{L}_{\text{simple}} + \lambda\, \mathcal{L}_{\text{vlb}}$$
 
@@ -113,7 +113,7 @@ The final step ($t = 1 \to t = 0$) is deterministic because adding noise at $t =
 
 ### 3.2 Why Stochasticity Matters
 
-The noise $z$ added at each step (line 8) is not an artifact—it is essential. The reverse process $p_\theta(x_{t-1} \mid x_t)$ is a Gaussian distribution, and sampling from it (rather than just taking the mean) ensures the generated distribution matches the data distribution in the limit of perfect learning. Removing this noise corresponds to [DDIM](../ddim/deterministic.md) deterministic sampling, which trades diversity for consistency.
+The noise $z$ added at each step (line 8) is not an artifact—it is essential. The reverse process $p_\theta(x_{t-1} \mid x_t)$ is a Gaussian distribution, and sampling from it (rather than just taking the mean) ensures the generated distribution matches the data distribution in the limit of perfect learning. Removing this noise corresponds to DDIM deterministic sampling, which trades diversity for consistency.
 
 ---
 
@@ -583,8 +583,8 @@ Standard DDPM requires $T = 1000$ sequential model evaluations per sample. This 
 |--------------------|---------------|---------|---------|
 | **DDPM** (baseline) | 1000 | Best | This page |
 | **DDIM** | 50–100 | Near-DDPM | [DDIM Fundamentals](../ddim/fundamentals.md) |
-| **DDIM (deterministic)** | 20–50 | Good | [Deterministic Sampling](../ddim/deterministic.md) |
-| **Probability Flow ODE** | 20–100 | Good | [Probability Flow](../sde/probability_flow.md) |
+| **DDIM (deterministic)** | 20–50 | Good | Deterministic Sampling |
+| **Probability Flow ODE** | 20–100 | Good | Probability Flow |
 | **Progressive Distillation** | 4–8 | Good | Architecture-dependent |
 | **Consistency Models** | 1–2 | Moderate | Single-step generation |
 
@@ -643,7 +643,7 @@ DDPM sampling extends naturally to financial data generation:
 | Portfolio scenario generation | Conditional sampling | Condition on macro variables for forward-looking scenarios |
 | Missing data imputation | Inpainting-style sampling | Fix observed values, sample missing entries |
 
-For details on financial applications, see [Time Series Generation](../finance/time_series.md) and [Scenario Generation](../finance/scenarios.md).
+For details on financial applications, see Time Series Generation and Scenario Generation.
 
 ---
 

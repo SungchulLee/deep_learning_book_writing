@@ -48,7 +48,7 @@ IS monotonically increases with guidance scale because stronger guidance produce
 
 IS has the same fundamental limitations as for GANs (see [§25.6](../../ch25/gan_evaluation/inception_score.md#limitations-and-pitfalls)), with additional diffusion-specific caveats:
 
-- **Text-conditioned models**: IS only measures ImageNet class diversity, not text–image alignment. Use [CLIP Score](clip_score.md) for text-to-image evaluation.
+- **Text-conditioned models**: IS only measures ImageNet class diversity, not text–image alignment. Use CLIP Score for text-to-image evaluation.
 - **High-resolution generation**: IS was designed for ImageNet-scale images; it may not capture quality differences at 512×512+ resolutions.
 - **Unconditional vs conditional**: IS is more meaningful for class-conditional generation than for unconditional or text-conditional models.
 

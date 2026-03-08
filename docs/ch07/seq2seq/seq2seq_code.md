@@ -230,7 +230,7 @@ class AttnDecoderRNN(nn.Module):
 Key design choices:
 
 - **GRU input dimension is $2H$**: the concatenation of the embedded token ($H$) and the attention context ($H$).
-- **Teacher forcing ratio 0.5**: balances exposure bias (always seeing ground truth) against training instability (always seeing own predictions). See the [Scheduled Sampling](scheduled_sampling.md) section for curriculum-based alternatives.
+- **Teacher forcing ratio 0.5**: balances exposure bias (always seeing ground truth) against training instability (always seeing own predictions). See the Scheduled Sampling section for curriculum-based alternatives.
 - **`detach()` on argmax predictions**: prevents gradients from flowing through the discrete sampling operation during free-running mode.
 
 ## Training
@@ -290,7 +290,7 @@ def evaluate_sentence(encoder, decoder, sentence, input_lang, output_lang):
     return decoded_words, attentions
 ```
 
-This implements greedy search—taking the argmax at each step. For higher-quality translations, beam search (see [Beam Search](beam_search.md)) maintains multiple hypotheses and generally produces better results at the cost of increased computation.
+This implements greedy search—taking the argmax at each step. For higher-quality translations, beam search (see Beam Search) maintains multiple hypotheses and generally produces better results at the cost of increased computation.
 
 ### Attention Visualization
 

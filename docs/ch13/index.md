@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-# Chapter Overview
-
-This chapter covers **Linear-Time Sorting and Selection**.
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Chapters 8-9](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-=======
 # Chapter 13: Bayesian Foundations
 
 This chapter establishes the theoretical foundations of Bayesian inference, from Bayes' theorem and conjugate priors through to hierarchical models, model comparison, and applications in finance. These concepts form the mathematical backbone for the approximate inference methods, sampling algorithms, and Bayesian neural networks covered in subsequent chapters.
@@ -15,9 +6,9 @@ This chapter establishes the theoretical foundations of Bayesian inference, from
 
 ## Bayesian Foundations
 
-- [Course Overview](bayesian_foundations/readme_01_readme.md) -- Comprehensive curriculum overview spanning classical Bayesian inference to modern Bayesian neural networks
-- [Learning Roadmap](bayesian_foundations/readme_02_roadmap.md) -- Conceptual roadmap explaining the natural progression from Bayesian inference to advanced computation
-- [Bayes' Theorem](bayesian_foundations/bayes_theorem.md) -- Derivation from conditional probability, the Bayesian formulation, and discrete examples
+- Course Overview -- Comprehensive curriculum overview spanning classical Bayesian inference to modern Bayesian neural networks
+- Learning Roadmap -- Conceptual roadmap explaining the natural progression from Bayesian inference to advanced computation
+- Bayes' Theorem -- Derivation from conditional probability, the Bayesian formulation, and discrete examples
 - [Prior, Likelihood, and Posterior](bayesian_foundations/prior_likelihood_posterior.md) -- Rigorous treatment of the three fundamental quantities and their interplay through Bayes' theorem
 - [Conjugate Priors](bayesian_foundations/conjugate_priors.md) -- Theory of conjugacy with Beta-Binomial, Gamma-Poisson, and Normal-Normal families for analytical solutions
 - [MAP Estimation](bayesian_foundations/map_estimation.md) -- Maximum a posteriori point estimates, comparison with MLE and posterior mean, and connection to regularization
@@ -47,4 +38,3 @@ This chapter establishes the theoretical foundations of Bayesian inference, from
 - [Bayesian Portfolio Optimization](finance/portfolio.md) -- Incorporating parameter uncertainty into mean-variance optimization for more robust portfolios
 - [Parameter Uncertainty in Finance](finance/parameter_uncertainty.md) -- Quantifying and propagating estimation risk through portfolio construction and risk management
 - [Regime Detection and Strategy Evaluation](finance/regime.md) -- Online Bayesian updating for market regime detection and Bayesian A/B testing for strategy comparison
->>>>>>> 96f31bd (...)

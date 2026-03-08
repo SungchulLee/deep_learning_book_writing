@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-# Chapter Overview
-
-This chapter covers **Shortest Paths**.
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Chapters 24-25](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-=======
 # Chapter 15: Sampling and Inference
 
 This chapter covers the theory and practice of sampling-based inference methods, from foundational Markov chain theory through Monte Carlo integration, MCMC algorithms, Langevin dynamics, and likelihood-free inference. These methods provide the computational machinery for Bayesian inference when analytical solutions are intractable, enabling posterior estimation in complex models with many parameters.
@@ -24,7 +15,7 @@ This chapter covers the theory and practice of sampling-based inference methods,
 
 - [Monte Carlo Integration](monte_carlo/integration.md) -- Using random sampling to approximate intractable integrals, with variance reduction techniques
 - [Effective Sample Size](monte_carlo/ess.md) -- Measuring the information content of weighted or correlated samples as a fundamental diagnostic
-- [Rejection Sampling](monte_carlo/rejection.md) -- Generating samples from a target distribution using a bounding proposal distribution
+- Rejection Sampling -- Generating samples from a target distribution using a bounding proposal distribution
 
 ### Importance Sampling
 
@@ -79,4 +70,3 @@ This chapter covers the theory and practice of sampling-based inference methods,
 - [Theoretical Comparison](mcmc_comparison/theoretical.md) -- Rigorous comparison covering convergence rates, spectral analysis, and optimal scaling theory
 - [Scaling with Dimension](mcmc_comparison/scaling.md) -- How different MCMC methods behave as dimensionality increases and strategies for maintaining efficiency
 - [Practical Method Selection](mcmc_comparison/method_selection.md) -- Decision framework based on differentiability, dimensionality, correlation structure, and computational budget
->>>>>>> 96f31bd (...)

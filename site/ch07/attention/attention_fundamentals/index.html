@@ -86093,7 +86093,7 @@ Weights: 0.1  0.7  0.1  0.0  0.0  0.1  → &quot;chat&quot; (French for cat)
 <h3 id="cross-attention">Cross-Attention<a class="headerlink" href="#cross-attention" title="Permanent link">&para;</a></h3>
 <p>Queries come from one sequence (decoder), keys and values from another (encoder):</p>
 <div class="arithmatex">\[\mathbf{Q} = \mathbf{X}_{\text{dec}}\mathbf{W}^Q, \quad \mathbf{K} = \mathbf{X}_{\text{enc}}\mathbf{W}^K, \quad \mathbf{V} = \mathbf{X}_{\text{enc}}\mathbf{W}^V\]</div>
-<p>This bridges encoder and decoder in seq2seq models. Cross-attention patterns are discussed in <a href="attention_patterns.md">Attention Patterns</a>.</p>
+<p>This bridges encoder and decoder in seq2seq models. Cross-attention patterns are discussed in Attention Patterns.</p>
 <h3 id="causal-masked-attention">Causal (Masked) Attention<a class="headerlink" href="#causal-masked-attention" title="Permanent link">&para;</a></h3>
 <p>Position <span class="arithmatex">\(i\)</span> can only attend to positions <span class="arithmatex">\(j \leq i\)</span>:</p>
 <div class="arithmatex">\[\alpha_{ij} = 0 \quad \text{for } j &gt; i\]</div>

@@ -85779,7 +85779,7 @@
 <hr />
 <h2 id="1-reverse-process-derivation">1. Reverse Process Derivation<a class="headerlink" href="#1-reverse-process-derivation" title="Permanent link">&para;</a></h2>
 <h3 id="11-the-reverse-conditional">1.1 The Reverse Conditional<a class="headerlink" href="#11-the-reverse-conditional" title="Permanent link">&para;</a></h3>
-<p>The <a href="../foundations/forward_process.md">forward process</a> adds noise according to <span class="arithmatex">\(q(x_t \mid x_{t-1}) = \mathcal{N}(x_t;\, \sqrt{1-\beta_t}\, x_{t-1},\, \beta_t I)\)</span>. To generate samples, we need the reverse:</p>
+<p>The forward process adds noise according to <span class="arithmatex">\(q(x_t \mid x_{t-1}) = \mathcal{N}(x_t;\, \sqrt{1-\beta_t}\, x_{t-1},\, \beta_t I)\)</span>. To generate samples, we need the reverse:</p>
 <div class="arithmatex">\[q(x_{t-1} \mid x_t) = \int q(x_{t-1} \mid x_t, x_0)\, q(x_0 \mid x_t)\, dx_0\]</div>
 <p>This is intractable because <span class="arithmatex">\(q(x_0 \mid x_t)\)</span> depends on the unknown data distribution. However, the <strong>posterior conditioned on <span class="arithmatex">\(x_0\)</span></strong> is tractable:</p>
 <div class="arithmatex">\[q(x_{t-1} \mid x_t, x_0) = \mathcal{N}(x_{t-1};\, \tilde{\mu}_t(x_t, x_0),\, \tilde{\beta}_t I)\]</div>
@@ -85788,7 +85788,7 @@
 <div class="arithmatex">\[\tilde{\beta}_t = \frac{(1 - \bar{\alpha}_{t-1})}{(1 - \bar{\alpha}_t)}\, \beta_t\]</div>
 <p>Here <span class="arithmatex">\(\alpha_t = 1 - \beta_t\)</span> and <span class="arithmatex">\(\bar{\alpha}_t = \prod_{s=1}^{t} \alpha_s\)</span>.</p>
 <h3 id="12-from-x_0-prediction-to-epsilon-prediction">1.2 From x_0-Prediction to epsilon-Prediction<a class="headerlink" href="#12-from-x_0-prediction-to-epsilon-prediction" title="Permanent link">&para;</a></h3>
-<p>Since the <a href="../foundations/forward_process.md">forward process</a> gives <span class="arithmatex">\(x_t = \sqrt{\bar{\alpha}_t}\, x_0 + \sqrt{1 - \bar{\alpha}_t}\, \epsilon\)</span>, we can express <span class="arithmatex">\(x_0\)</span> in terms of <span class="arithmatex">\(x_t\)</span> and <span class="arithmatex">\(\epsilon\)</span>:</p>
+<p>Since the forward process gives <span class="arithmatex">\(x_t = \sqrt{\bar{\alpha}_t}\, x_0 + \sqrt{1 - \bar{\alpha}_t}\, \epsilon\)</span>, we can express <span class="arithmatex">\(x_0\)</span> in terms of <span class="arithmatex">\(x_t\)</span> and <span class="arithmatex">\(\epsilon\)</span>:</p>
 <div class="arithmatex">\[x_0 = \frac{x_t - \sqrt{1 - \bar{\alpha}_t}\, \epsilon}{\sqrt{\bar{\alpha}_t}}\]</div>
 <p>Substituting the model's noise prediction <span class="arithmatex">\(\epsilon_\theta(x_t, t)\)</span> for <span class="arithmatex">\(\epsilon\)</span> and inserting into <span class="arithmatex">\(\tilde{\mu}_t\)</span>:</p>
 <div class="arithmatex">\[\mu_\theta(x_t, t) = \frac{1}{\sqrt{\alpha_t}} \left( x_t - \frac{\beta_t}{\sqrt{1 - \bar{\alpha}_t}}\, \epsilon_\theta(x_t, t) \right)\]</div>
@@ -85811,7 +85811,7 @@
 <h3 id="22-learned-variance-improved-ddpm">2.2 Learned Variance (Improved DDPM)<a class="headerlink" href="#22-learned-variance-improved-ddpm" title="Permanent link">&para;</a></h3>
 <p>Nichol &amp; Dhariwal (2021) parameterize the variance as a learned interpolation in log-space:</p>
 <div class="arithmatex">\[\log \sigma_t^2 = v_t \log \beta_t + (1 - v_t) \log \tilde{\beta}_t\]</div>
-<p>where <span class="arithmatex">\(v_t\)</span> is an additional scalar output of the network for each timestep. This is trained with a hybrid objective combining the standard <a href="training.md">training loss</a> with a variational bound term:</p>
+<p>where <span class="arithmatex">\(v_t\)</span> is an additional scalar output of the network for each timestep. This is trained with a hybrid objective combining the standard training loss with a variational bound term:</p>
 <div class="arithmatex">\[\mathcal{L}_{\text{hybrid}} = \mathcal{L}_{\text{simple}} + \lambda\, \mathcal{L}_{\text{vlb}}\]</div>
 <p>with <span class="arithmatex">\(\lambda = 0.001\)</span> to prevent the VLB term from dominating early training.</p>
 <hr />
@@ -85840,7 +85840,7 @@ Output: Generated sample x_0
 </code></pre></div>
 <p>The final step (<span class="arithmatex">\(t = 1 \to t = 0\)</span>) is deterministic because adding noise at <span class="arithmatex">\(t = 0\)</span> would corrupt the generated sample.</p>
 <h3 id="32-why-stochasticity-matters">3.2 Why Stochasticity Matters<a class="headerlink" href="#32-why-stochasticity-matters" title="Permanent link">&para;</a></h3>
-<p>The noise <span class="arithmatex">\(z\)</span> added at each step (line 8) is not an artifact—it is essential. The reverse process <span class="arithmatex">\(p_\theta(x_{t-1} \mid x_t)\)</span> is a Gaussian distribution, and sampling from it (rather than just taking the mean) ensures the generated distribution matches the data distribution in the limit of perfect learning. Removing this noise corresponds to <a href="../ddim/deterministic.md">DDIM</a> deterministic sampling, which trades diversity for consistency.</p>
+<p>The noise <span class="arithmatex">\(z\)</span> added at each step (line 8) is not an artifact—it is essential. The reverse process <span class="arithmatex">\(p_\theta(x_{t-1} \mid x_t)\)</span> is a Gaussian distribution, and sampling from it (rather than just taking the mean) ensures the generated distribution matches the data distribution in the limit of perfect learning. Removing this noise corresponds to DDIM deterministic sampling, which trades diversity for consistency.</p>
 <hr />
 <h2 id="4-implementation">4. Implementation<a class="headerlink" href="#4-implementation" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code><span class="sd">&quot;&quot;&quot;</span>
@@ -86371,13 +86371,13 @@ Output: Generated sample x_0
 <td><strong>DDIM (deterministic)</strong></td>
 <td>20–50</td>
 <td>Good</td>
-<td><a href="../ddim/deterministic.md">Deterministic Sampling</a></td>
+<td>Deterministic Sampling</td>
 </tr>
 <tr>
 <td><strong>Probability Flow ODE</strong></td>
 <td>20–100</td>
 <td>Good</td>
-<td><a href="../sde/probability_flow.md">Probability Flow</a></td>
+<td>Probability Flow</td>
 </tr>
 <tr>
 <td><strong>Progressive Distillation</strong></td>
@@ -86458,7 +86458,7 @@ Output: Generated sample x_0
 </tr>
 </tbody>
 </table>
-<p>For details on financial applications, see <a href="../finance/time_series.md">Time Series Generation</a> and <a href="../finance/scenarios.md">Scenario Generation</a>.</p>
+<p>For details on financial applications, see Time Series Generation and Scenario Generation.</p>
 <hr />
 <h2 id="9-key-takeaways">9. Key Takeaways<a class="headerlink" href="#9-key-takeaways" title="Permanent link">&para;</a></h2>
 <ol>

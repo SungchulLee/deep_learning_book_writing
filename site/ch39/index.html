@@ -85165,81 +85165,81 @@
 <h2 id="fundamentals">Fundamentals<a class="headerlink" href="#fundamentals" title="Permanent link">&para;</a></h2>
 <p>Theoretical foundations and taxonomy of uncertainty in deep learning.</p>
 <ul>
-<li><a href="fundamentals/introduction.md">Introduction to Model Uncertainty</a> -- The overconfidence problem in neural networks and why uncertainty quantification matters</li>
-<li><a href="fundamentals/types.md">Types of Uncertainty</a> -- Taxonomy of parameter, structural, and distributional uncertainty sources</li>
-<li><a href="fundamentals/epistemic_aleatoric.md">Epistemic vs Aleatoric Uncertainty</a> -- Distinguishing model uncertainty (reducible) from data noise (irreducible)</li>
-<li><a href="fundamentals/framework.md">Mathematical Framework</a> -- Bayesian posterior predictive distribution and Monte Carlo approximation methods</li>
-<li><a href="fundamentals/model_uncertainty_overview.md">Model Uncertainty Overview</a> -- Module overview with learning objectives and prerequisites</li>
+<li>Introduction to Model Uncertainty -- The overconfidence problem in neural networks and why uncertainty quantification matters</li>
+<li>Types of Uncertainty -- Taxonomy of parameter, structural, and distributional uncertainty sources</li>
+<li>Epistemic vs Aleatoric Uncertainty -- Distinguishing model uncertainty (reducible) from data noise (irreducible)</li>
+<li>Mathematical Framework -- Bayesian posterior predictive distribution and Monte Carlo approximation methods</li>
+<li>Model Uncertainty Overview -- Module overview with learning objectives and prerequisites</li>
 </ul>
 <h2 id="mc-dropout">MC Dropout<a class="headerlink" href="#mc-dropout" title="Permanent link">&para;</a></h2>
 <p>Monte Carlo Dropout as approximate Bayesian inference for uncertainty estimation.</p>
 <ul>
-<li><a href="mc_dropout/mc_dropout.md">Monte Carlo Dropout</a> -- Core method: keeping dropout active at inference for posterior predictive estimation</li>
+<li>Monte Carlo Dropout -- Core method: keeping dropout active at inference for posterior predictive estimation</li>
 <li><a href="mc_dropout/theory/">Theoretical Foundation</a> -- Rigorous development of dropout as variational inference over neural network weights</li>
-<li><a href="mc_dropout/implementation.md">Implementation Details</a> -- Architecture patterns, inference procedures, and production considerations</li>
+<li>Implementation Details -- Architecture patterns, inference procedures, and production considerations</li>
 <li><a href="mc_dropout/convergence/">Sample Convergence</a> -- Convergence analysis and guidelines for selecting the number of forward passes</li>
 <li><a href="mc_dropout/dropout_rate/">Dropout Rate Selection</a> -- Principled approaches to choosing dropout rates for uncertainty quality</li>
 </ul>
 <h2 id="deep-ensembles">Deep Ensembles<a class="headerlink" href="#deep-ensembles" title="Permanent link">&para;</a></h2>
 <p>Uncertainty estimation through training multiple independent networks.</p>
 <ul>
-<li><a href="ensembles/fundamentals.md">Deep Ensemble Fundamentals</a> -- Why ensembles work: multiple loss landscape modes and the predictive distribution</li>
-<li><a href="ensembles/training.md">Training Strategies</a> -- Independent training with diverse initialization for effective ensemble members</li>
-<li><a href="ensembles/decomposition.md">Uncertainty Decomposition</a> -- Separating epistemic and aleatoric components from ensemble predictions</li>
-<li><a href="ensembles/diversity.md">Diversity Methods</a> -- Random initialization, bootstrapping, and architecture diversity for ensemble quality</li>
-<li><a href="ensembles/efficient.md">Efficient Ensembles</a> -- BatchEnsemble and other techniques reducing compute while retaining uncertainty quality</li>
+<li>Deep Ensemble Fundamentals -- Why ensembles work: multiple loss landscape modes and the predictive distribution</li>
+<li>Training Strategies -- Independent training with diverse initialization for effective ensemble members</li>
+<li>Uncertainty Decomposition -- Separating epistemic and aleatoric components from ensemble predictions</li>
+<li>Diversity Methods -- Random initialization, bootstrapping, and architecture diversity for ensemble quality</li>
+<li>Efficient Ensembles -- BatchEnsemble and other techniques reducing compute while retaining uncertainty quality</li>
 </ul>
 <h2 id="bayesian-methods">Bayesian Methods<a class="headerlink" href="#bayesian-methods" title="Permanent link">&para;</a></h2>
 <p>Principled Bayesian approaches to neural network uncertainty quantification.</p>
 <ul>
-<li><a href="bayesian_methods/fundamentals.md">BNN Fundamentals</a> -- Placing probability distributions over weights for principled uncertainty estimation</li>
+<li>BNN Fundamentals -- Placing probability distributions over weights for principled uncertainty estimation</li>
 <li><a href="bayesian_methods/variational_bnn/">Variational Bayesian Neural Networks</a> -- Scalable approximate posterior inference via ELBO maximization</li>
 <li><a href="bayesian_methods/mcmc_bnn/">MCMC Methods for BNNs</a> -- Hamiltonian Monte Carlo and stochastic gradient variants as gold-standard inference</li>
 <li><a href="bayesian_methods/laplace/">Laplace Approximation</a> -- Post-hoc Gaussian approximation around trained weights for uncertainty without retraining</li>
 <li><a href="bayesian_methods/swag/">SWAG</a> -- Stochastic Weight Averaging Gaussian fitting a posterior from SGD trajectory statistics</li>
 <li><a href="bayesian_methods/posterior/">Posterior Inference</a> -- Central computational challenge of Bayesian neural networks and approximation methods</li>
 <li><a href="bayesian_methods/priors/">Prior Distributions</a> -- Principled approaches to specifying weight priors and their effect on uncertainty</li>
-<li><a href="bayesian_methods/comparison.md">Method Comparison</a> -- Comprehensive comparison guide for selecting the right BNN method</li>
+<li>Method Comparison -- Comprehensive comparison guide for selecting the right BNN method</li>
 <li><a href="bayesian_methods/mc_dropout_connection/">MC Dropout as Bayesian Inference</a> -- The formal connection between dropout regularization and approximate Bayesian inference</li>
 </ul>
 <h2 id="calibration">Calibration<a class="headerlink" href="#calibration" title="Permanent link">&para;</a></h2>
 <p>Ensuring predicted probabilities reflect true outcome frequencies.</p>
 <ul>
-<li><a href="calibration/fundamentals.md">Calibration Fundamentals</a> -- Mathematical definition and importance of calibration in financial applications</li>
-<li><a href="calibration/temperature.md">Temperature Scaling</a> -- Single-parameter post-hoc calibration that preserves model accuracy</li>
-<li><a href="calibration/platt.md">Platt Scaling</a> -- Logistic regression mapping from uncalibrated scores to calibrated probabilities</li>
-<li><a href="calibration/isotonic.md">Isotonic Regression</a> -- Non-parametric monotonic calibration for flexible probability mapping</li>
-<li><a href="calibration/focal_loss.md">Focal Loss</a> -- Training-time calibration improvement by down-weighting well-classified examples</li>
-<li><a href="calibration/metrics.md">Calibration Metrics</a> -- Expected Calibration Error (ECE) and related quantitative calibration measures</li>
+<li>Calibration Fundamentals -- Mathematical definition and importance of calibration in financial applications</li>
+<li>Temperature Scaling -- Single-parameter post-hoc calibration that preserves model accuracy</li>
+<li>Platt Scaling -- Logistic regression mapping from uncalibrated scores to calibrated probabilities</li>
+<li>Isotonic Regression -- Non-parametric monotonic calibration for flexible probability mapping</li>
+<li>Focal Loss -- Training-time calibration improvement by down-weighting well-classified examples</li>
+<li>Calibration Metrics -- Expected Calibration Error (ECE) and related quantitative calibration measures</li>
 </ul>
 <h2 id="evaluation">Evaluation<a class="headerlink" href="#evaluation" title="Permanent link">&para;</a></h2>
 <p>Assessing the quality of uncertainty estimates.</p>
 <ul>
-<li><a href="evaluation/scoring_rules.md">Proper Scoring Rules</a> -- Log score, Brier score, and CRPS for evaluating probabilistic predictions</li>
-<li><a href="evaluation/reliability.md">Reliability Diagrams</a> -- Visualizing calibration by plotting observed frequency against predicted probability</li>
-<li><a href="evaluation/sharpness.md">Sharpness</a> -- Measuring predictive distribution concentration while maintaining calibration</li>
+<li>Proper Scoring Rules -- Log score, Brier score, and CRPS for evaluating probabilistic predictions</li>
+<li>Reliability Diagrams -- Visualizing calibration by plotting observed frequency against predicted probability</li>
+<li>Sharpness -- Measuring predictive distribution concentration while maintaining calibration</li>
 <li><a href="evaluation/uncertainty_quantification/">Uncertainty Quantification</a> -- Comprehensive framework for evaluating epistemic and aleatoric uncertainty estimates</li>
-<li><a href="evaluation/coverage.md">Coverage Analysis</a> -- Measuring whether prediction intervals achieve their nominal confidence levels</li>
+<li>Coverage Analysis -- Measuring whether prediction intervals achieve their nominal confidence levels</li>
 </ul>
 <h2 id="out-of-distribution-detection">Out-of-Distribution Detection<a class="headerlink" href="#out-of-distribution-detection" title="Permanent link">&para;</a></h2>
 <p>Identifying inputs that differ significantly from the training distribution.</p>
 <ul>
-<li><a href="ood/fundamentals.md">OOD Detection Fundamentals</a> -- Problem formulation, types of distribution shift, and detection scoring</li>
-<li><a href="ood/softmax.md">Softmax Baseline (MSP)</a> -- Maximum softmax probability as a simple but effective OOD detection baseline</li>
-<li><a href="ood/odin.md">ODIN</a> -- Temperature scaling with input perturbation for improved OOD detection</li>
-<li><a href="ood/energy.md">Energy-Based Detection</a> -- Log-sum-exp of logits as a theoretically motivated OOD score</li>
-<li><a href="ood/mahalanobis.md">Mahalanobis Distance</a> -- Class-conditional Gaussian distance in feature space for OOD detection</li>
-<li><a href="ood/metrics.md">OOD Detection Metrics</a> -- AUROC, FPR@95TPR, and AUPR for evaluating detection performance</li>
+<li>OOD Detection Fundamentals -- Problem formulation, types of distribution shift, and detection scoring</li>
+<li>Softmax Baseline (MSP) -- Maximum softmax probability as a simple but effective OOD detection baseline</li>
+<li>ODIN -- Temperature scaling with input perturbation for improved OOD detection</li>
+<li>Energy-Based Detection -- Log-sum-exp of logits as a theoretically motivated OOD score</li>
+<li>Mahalanobis Distance -- Class-conditional Gaussian distance in feature space for OOD detection</li>
+<li>OOD Detection Metrics -- AUROC, FPR@95TPR, and AUPR for evaluating detection performance</li>
 </ul>
 <h2 id="finance-applications">Finance Applications<a class="headerlink" href="#finance-applications" title="Permanent link">&para;</a></h2>
 <p>Applying uncertainty quantification to quantitative finance decision-making.</p>
 <ul>
 <li><a href="finance/practical_applications/">Practical Applications</a> -- Active learning, selective prediction, and uncertainty-driven decision systems</li>
-<li><a href="finance/portfolio.md">Portfolio Uncertainty</a> -- Uncertainty-aware portfolio optimization with conservative allocation and Black-Litterman integration</li>
-<li><a href="finance/risk_estimation.md">Risk Estimation</a> -- Uncertainty-aware Value-at-Risk and tail risk assessment</li>
-<li><a href="finance/regime.md">Regime Detection</a> -- Using rising epistemic uncertainty as an early warning signal for regime changes</li>
-<li><a href="finance/confidence.md">Model Confidence Scoring</a> -- Selective trading based on uncertainty thresholds and confidence-based position sizing</li>
-<li><a href="finance/intervals.md">Prediction Intervals</a> -- Well-calibrated prediction intervals for financial time series incorporating model and market noise</li>
+<li>Portfolio Uncertainty -- Uncertainty-aware portfolio optimization with conservative allocation and Black-Litterman integration</li>
+<li>Risk Estimation -- Uncertainty-aware Value-at-Risk and tail risk assessment</li>
+<li>Regime Detection -- Using rising epistemic uncertainty as an early warning signal for regime changes</li>
+<li>Model Confidence Scoring -- Selective trading based on uncertainty thresholds and confidence-based position sizing</li>
+<li>Prediction Intervals -- Well-calibrated prediction intervals for financial time series incorporating model and market noise</li>
 </ul>
 
 

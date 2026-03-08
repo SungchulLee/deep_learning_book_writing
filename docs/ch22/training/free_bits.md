@@ -117,4 +117,4 @@ Compare: (a) annealing only, (b) free bits only, (c) both combined. Which achiev
 
 ## What's Next
 
-The next section examines [Batch Size Effects](batch_size.md) on VAE training dynamics.
+The next section examines Batch Size Effects on VAE training dynamics.

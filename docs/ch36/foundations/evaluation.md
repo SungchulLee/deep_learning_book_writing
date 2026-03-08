@@ -26,7 +26,7 @@ $$
 
 $$
 
-Methods: Insertion/deletion curves, ROAR (RemOve And Retrain), pixel flipping. See [Section 35.7.1](../evaluation/faithfulness.md) for detailed implementations.
+Methods: Insertion/deletion curves, ROAR (RemOve And Retrain), pixel flipping. See Section 35.7.1 for detailed implementations.
 
 ### Stability (Robustness)
 
@@ -68,7 +68,7 @@ where $\mathbf{x}_{\setminus E}$ removes features in explanation $E$ and $\mathb
 
 Ultimately, interpretability exists for human benefit. Human evaluation measures whether explanations help people understand, predict, and appropriately trust model decisions.
 
-Key paradigms: forward simulation (can users predict model output from the explanation?), trust calibration (do explanations improve human-AI team performance?), debugging (can users identify model flaws from explanations?). See [Section 35.7.4](../evaluation/human_studies.md).
+Key paradigms: forward simulation (can users predict model output from the explanation?), trust calibration (do explanations improve human-AI team performance?), debugging (can users identify model flaws from explanations?). See Section 35.7.4.
 
 ## Sanity Checks
 

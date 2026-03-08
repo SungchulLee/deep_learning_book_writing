@@ -31413,6 +31413,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -31429,6 +31447,102 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Foundations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learning-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learning Scenarios
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regularization-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regularization Methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replay-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replay Methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#distillation-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distillation Methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmarks
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -84923,6 +85037,91 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Foundations
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#learning-scenarios" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Learning Scenarios
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#regularization-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Regularization Methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#replay-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Replay Methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#distillation-methods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Distillation Methods
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Benchmarks
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -84939,84 +85138,65 @@
 
 
 <h1 id="chapter-overview">Chapter Overview<a class="headerlink" href="#chapter-overview" title="Permanent link">&para;</a></h1>
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-This chapter covers <strong>Efficient Sorting</strong>.</p>
-<h1 id="reference">Reference<a class="headerlink" href="#reference" title="Permanent link">&para;</a></h1>
-<h1 id="introduction-to-algorithms-clrs-chapters-2-7"><a href="https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition">Introduction to Algorithms (CLRS), Chapters 2, 7</a><a class="headerlink" href="#introduction-to-algorithms-clrs-chapters-2-7" title="Permanent link">&para;</a></h1>
 <p>This chapter covers continual learning (also known as lifelong or incremental learning), which addresses the fundamental challenge of training neural networks on a sequence of tasks without catastrophically forgetting previously learned knowledge. We examine the stability-plasticity dilemma, formalize different learning scenarios, and survey the major families of methods -- regularization, replay, architecture, and distillation -- along with standard benchmarks for evaluation.</p>
 <hr />
 <h2 id="foundations">Foundations<a class="headerlink" href="#foundations" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="continual_learning/continual_learning_overview.md">Continual Learning Overview</a> -- Comprehensive introduction to continual learning concepts, mathematical frameworks, and main approaches</li>
-<li><a href="continual_learning/usage_guide.md">Usage Guide</a> -- Practical quick-start guide with installation instructions and script organization</li>
+<li>Continual Learning Overview -- Comprehensive introduction to continual learning concepts, mathematical frameworks, and main approaches</li>
+<li>Usage Guide -- Practical quick-start guide with installation instructions and script organization</li>
 <li><a href="continual_learning/catastrophic_forgetting/">Catastrophic Forgetting</a> -- Rigorous treatment of the forgetting phenomenon, including mathematical formalization and historical context</li>
 <li><a href="continual_learning/evaluation_metrics/">Evaluation Metrics</a> -- Standard metrics including the accuracy matrix, backward/forward transfer, and forgetting measures</li>
-<li><a href="continual_learning/taxonomy.md">Taxonomy</a> -- Classification of methods by strategy (regularization, replay, architecture, distillation) and information access</li>
-<li><a href="continual_learning/stability_plasticity.md">Stability-Plasticity Dilemma</a> -- The fundamental tension between retaining old knowledge and learning new tasks</li>
+<li>Taxonomy -- Classification of methods by strategy (regularization, replay, architecture, distillation) and information access</li>
+<li>Stability-Plasticity Dilemma -- The fundamental tension between retaining old knowledge and learning new tasks</li>
 </ul>
 <h2 id="learning-scenarios">Learning Scenarios<a class="headerlink" href="#learning-scenarios" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="learning_scenarios/task_incremental.md">Task-Incremental Learning</a> -- Simplest scenario where task identity is provided at both training and test time</li>
-<li><a href="learning_scenarios/class_incremental.md">Class-Incremental Learning</a> -- Most challenging scenario requiring classification among all classes seen so far without task identifiers</li>
-<li><a href="learning_scenarios/online_continual.md">Online Continual Learning</a> -- Most restrictive setting where data arrives as a stream and each sample is seen only once</li>
+<li>Task-Incremental Learning -- Simplest scenario where task identity is provided at both training and test time</li>
+<li>Class-Incremental Learning -- Most challenging scenario requiring classification among all classes seen so far without task identifiers</li>
+<li>Online Continual Learning -- Most restrictive setting where data arrives as a stream and each sample is seen only once</li>
 </ul>
 <h2 id="regularization-methods">Regularization Methods<a class="headerlink" href="#regularization-methods" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="regularization_methods/overview/">Overview</a> -- Introduction to regularization-based continual learning through parameter importance estimation</li>
 <li><a href="regularization_methods/ewc/">Elastic Weight Consolidation (EWC)</a> -- Protecting important parameters using the Fisher information matrix with Bayesian foundations</li>
 <li><a href="regularization_methods/online_ewc/">Online EWC</a> -- Extension of EWC with continuous online updating of parameter importance estimates</li>
-<li><a href="regularization_methods/synaptic_intelligence.md">Synaptic Intelligence (SI)</a> -- Tracking parameter importance during training based on contribution to loss reduction</li>
-<li><a href="regularization_methods/mas.md">Memory Aware Synapses (MAS)</a> -- Task-agnostic importance estimation based on output sensitivity to parameter changes</li>
+<li>Synaptic Intelligence (SI) -- Tracking parameter importance during training based on contribution to loss reduction</li>
+<li>Memory Aware Synapses (MAS) -- Task-agnostic importance estimation based on output sensitivity to parameter changes</li>
 <li><a href="regularization_methods/comparison/">Comparison of Regularization Methods</a> -- Detailed comparison of EWC, SI, and MAS including strengths, weaknesses, and applicability</li>
 </ul>
 <h2 id="replay-methods">Replay Methods<a class="headerlink" href="#replay-methods" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="replay_methods/overview.md">Overview</a> -- Introduction to replay-based continual learning through exemplar storage and rehearsal strategies</li>
+<li>Overview -- Introduction to replay-based continual learning through exemplar storage and rehearsal strategies</li>
 <li><a href="replay_methods/experience_replay/">Experience Replay</a> -- Maintaining and rehearsing a memory buffer of examples from previous tasks</li>
-<li><a href="replay_methods/generative_replay.md">Generative Replay</a> -- Using a generative model to produce pseudo-samples instead of storing raw data</li>
-<li><a href="replay_methods/gem.md">Gradient Episodic Memory (GEM)</a> -- Using stored examples as gradient constraints rather than for direct replay</li>
+<li>Generative Replay -- Using a generative model to produce pseudo-samples instead of storing raw data</li>
+<li>Gradient Episodic Memory (GEM) -- Using stored examples as gradient constraints rather than for direct replay</li>
 <li><a href="replay_methods/agem/">A-GEM</a> -- Averaged GEM with efficient gradient projection using average reference gradients</li>
-<li><a href="replay_methods/dark_er.md">Dark Experience Replay</a> -- Learning task-specific weighting schemes for replayed data with dynamic priority adjustment</li>
+<li>Dark Experience Replay -- Learning task-specific weighting schemes for replayed data with dynamic priority adjustment</li>
 </ul>
 <h2 id="architecture-methods">Architecture Methods<a class="headerlink" href="#architecture-methods" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="architecture_methods/overview.md">Overview</a> -- Introduction to architecture-based methods using task-specific modules and dynamic expansion</li>
-<li><a href="architecture_methods/progressive_networks.md">Progressive Neural Networks</a> -- Preventing forgetting by freezing old columns and adding new capacity with lateral connections</li>
-<li><a href="architecture_methods/packnet.md">PackNet</a> -- Packing multiple tasks into a single network through iterative pruning, retraining, and freezing</li>
-<li><a href="architecture_methods/den.md">Dynamically Expandable Networks (DEN)</a> -- Combining selective retraining, dynamic expansion, and neuron duplication</li>
+<li>Overview -- Introduction to architecture-based methods using task-specific modules and dynamic expansion</li>
+<li>Progressive Neural Networks -- Preventing forgetting by freezing old columns and adding new capacity with lateral connections</li>
+<li>PackNet -- Packing multiple tasks into a single network through iterative pruning, retraining, and freezing</li>
+<li>Dynamically Expandable Networks (DEN) -- Combining selective retraining, dynamic expansion, and neuron duplication</li>
 <li><a href="architecture_methods/expert_gate/">Expert Gate</a> -- Routing data to specialized expert modules via a learned gating network</li>
 <li><a href="architecture_methods/supermask/">Supermask in Superposition</a> -- Binary masks selecting task-specific subnetworks from a single frozen base network</li>
 </ul>
 <h2 id="distillation-methods">Distillation Methods<a class="headerlink" href="#distillation-methods" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="distillation_methods/overview.md">Overview</a> -- Introduction to knowledge distillation for continual learning through soft target constraints</li>
+<li>Overview -- Introduction to knowledge distillation for continual learning through soft target constraints</li>
 <li><a href="distillation_methods/lwf/">Learning Without Forgetting (LwF)</a> -- Preserving old task performance by matching the model's outputs to its own previous predictions</li>
-<li><a href="distillation_methods/lucir.md">LUCIR</a> -- Addressing classifier bias in class-incremental learning through cosine normalization and margin ranking</li>
-<li><a href="distillation_methods/podnet.md">PODNet</a> -- Constraining intermediate features at every layer using pooled distillation loss</li>
+<li>LUCIR -- Addressing classifier bias in class-incremental learning through cosine normalization and margin ranking</li>
+<li>PODNet -- Constraining intermediate features at every layer using pooled distillation loss</li>
 <li><a href="distillation_methods/feature_distillation/">Feature Distillation</a> -- Preserving learned representations by matching intermediate layer features across task sequences</li>
 <li><a href="distillation_methods/comparison/">Comparison of Distillation Methods</a> -- Comparative analysis of response-based, feature-based, attention-based, and relation-based distillation</li>
 </ul>
 <h2 id="benchmarks">Benchmarks<a class="headerlink" href="#benchmarks" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="benchmarks/benchmarks.md">Benchmark Comparison</a> -- Comprehensive comparison of continual learning methods across standard benchmarks</li>
-<li><a href="benchmarks/standard_benchmarks.md">Standard Benchmarks</a> -- Split MNIST, Split CIFAR-100, Split ImageNet, and permutation benchmarks</li>
-<li><a href="benchmarks/stream_benchmarks.md">Stream Benchmarks</a> -- CORe50 and online continual learning benchmarks with gradual distribution shifts</li>
-<li><a href="benchmarks/evaluation_protocols.md">Evaluation Protocols</a> -- Task-incremental vs class-incremental evaluation, metrics, and controlled comparison guidelines<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>96f31bd (...)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</li>
+<li>Benchmark Comparison -- Comprehensive comparison of continual learning methods across standard benchmarks</li>
+<li>Standard Benchmarks -- Split MNIST, Split CIFAR-100, Split ImageNet, and permutation benchmarks</li>
+<li>Stream Benchmarks -- CORe50 and online continual learning benchmarks with gradual distribution shifts</li>
+<li>Evaluation Protocols -- Task-incremental vs class-incremental evaluation, metrics, and controlled comparison guidelines</li>
 </ul>
 
 

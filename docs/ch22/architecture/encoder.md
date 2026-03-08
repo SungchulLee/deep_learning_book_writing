@@ -233,4 +233,4 @@ For a trained VAE, compare the ELBO from the encoder against the ELBO after 100 
 
 ## What's Next
 
-The next section covers the [Decoder Network](decoder.md), which maps latent codes back to data space.
+The next section covers the Decoder Network, which maps latent codes back to data space.

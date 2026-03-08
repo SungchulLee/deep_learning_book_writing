@@ -218,4 +218,4 @@ class ConvNetELU(nn.Module):
 | **Initialization** | He (Kaiming) Normal |
 
 !!! tip "Practical Recommendation"
-    ELU is a good choice when training is unstable with ReLU or when you need smoother gradient flow without switching to more complex activations like GELU. The computational overhead of the exponential is usually negligible compared to the rest of the network. For self-normalizing behavior without BatchNorm, consider [SELU](selu.md) instead.
+    ELU is a good choice when training is unstable with ReLU or when you need smoother gradient flow without switching to more complex activations like GELU. The computational overhead of the exponential is usually negligible compared to the rest of the network. For self-normalizing behavior without BatchNorm, consider SELU instead.

@@ -132,7 +132,7 @@ y = x ** 3
 print(f"dy/dx = 3x² = {grad_y}")  # tensor([12.])
 ```
 
-This is particularly useful for higher-order derivatives (see [Higher-Order Gradients](higher_order_gradients.md)) and when you need gradients for non-leaf tensors without calling `retain_grad()`.
+This is particularly useful for higher-order derivatives (see Higher-Order Gradients) and when you need gradients for non-leaf tensors without calling `retain_grad()`.
 
 ## The Vector-Jacobian Product Framework
 

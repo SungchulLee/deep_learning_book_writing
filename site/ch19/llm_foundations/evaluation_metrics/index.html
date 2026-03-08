@@ -85964,7 +85964,7 @@
 <h1 id="evaluation-metrics">Evaluation Metrics<a class="headerlink" href="#evaluation-metrics" title="Permanent link">&para;</a></h1>
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
 <p>Evaluating large language models is uniquely challenging because LLMs are used for an enormous range of tasks — from factual question answering to creative writing, code generation to multi-turn dialogue — and no single metric captures quality across all of them. This section covers the three pillars of LLM evaluation: <strong>intrinsic metrics</strong> that measure language modeling quality, <strong>task-specific metrics</strong> that assess performance on particular capabilities, and <strong>human evaluation</strong> protocols that capture the nuanced quality dimensions that automatic metrics miss. We also cover the growing role of <strong>LLM-as-judge</strong> evaluation and the major <strong>benchmarks</strong> used to compare models.</p>
-<p>The evaluation methods here apply to base language models (assessed during <a href="../pretraining_objectives/">pretraining</a>), to instruction-tuned models (assessed on <a href="../../prompting/prompting_overview/">prompting</a> tasks), and to aligned assistants (assessed on the <a href="../alignment/alignment_overview.md">alignment</a> objectives of helpfulness, harmlessness, and honesty).</p>
+<p>The evaluation methods here apply to base language models (assessed during <a href="../pretraining_objectives/">pretraining</a>), to instruction-tuned models (assessed on <a href="../../prompting/prompting_overview/">prompting</a> tasks), and to aligned assistants (assessed on the alignment objectives of helpfulness, harmlessness, and honesty).</p>
 <hr />
 <h2 id="1-intrinsic-metrics">1. Intrinsic Metrics<a class="headerlink" href="#1-intrinsic-metrics" title="Permanent link">&para;</a></h2>
 <p>Intrinsic metrics evaluate the language model's core capability: predicting text.</p>
@@ -85976,7 +85976,7 @@
 <p><strong>Relationship to cross-entropy</strong>: Perplexity is <span class="arithmatex">\(2^H\)</span> where <span class="arithmatex">\(H\)</span> is the cross-entropy in bits per token, or equivalently <span class="arithmatex">\(e^{H'}\)</span> where <span class="arithmatex">\(H'\)</span> is cross-entropy in nats. The <a href="../../scaling/scaling_overview/">scaling laws</a> predict that perplexity decreases as a power law with model size and training data.</p>
 <p><strong>Bits per byte (BPB)</strong>: Because perplexity depends on the tokenizer (models with larger vocabularies tend to have lower perplexity per token), <strong>bits per byte</strong> provides a tokenizer-independent comparison:</p>
 <div class="arithmatex">\[\text{BPB} = \frac{\text{total cross-entropy (bits)}}{\text{total bytes in test set}}\]</div>
-<p>This normalizes by the raw data size rather than the number of tokens. BPB is used in the <a href="../scaling/chinchilla.md">Chinchilla</a> scaling analysis for fair comparison across models with different tokenizers (see <a href="tokenization_scale.md">Tokenization and Scale</a>).</p>
+<p>This normalizes by the raw data size rather than the number of tokens. BPB is used in the Chinchilla scaling analysis for fair comparison across models with different tokenizers (see Tokenization and Scale).</p>
 <h3 id="12-limitations-of-perplexity">1.2 Limitations of Perplexity<a class="headerlink" href="#12-limitations-of-perplexity" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -86143,7 +86143,7 @@
 </table>
 <p>The <strong>pass@<span class="arithmatex">\(k\)</span></strong> metric samples <span class="arithmatex">\(k\)</span> completions and checks if any passes the test suite:</p>
 <div class="arithmatex">\[\text{pass@}k = 1 - \frac{\binom{n-c}{k}}{\binom{n}{k}}\]</div>
-<p>where <span class="arithmatex">\(n\)</span> is the total number of samples and <span class="arithmatex">\(c\)</span> is the number that pass. This accounts for the stochastic nature of sampling (see decoding strategies in <a href="decoder_architecture.md">Decoder Architecture</a>).</p>
+<p>where <span class="arithmatex">\(n\)</span> is the total number of samples and <span class="arithmatex">\(c\)</span> is the number that pass. This accounts for the stochastic nature of sampling (see decoding strategies in Decoder Architecture).</p>
 <h3 id="33-instruction-following">3.3 Instruction Following<a class="headerlink" href="#33-instruction-following" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -86204,7 +86204,7 @@
 </tr>
 </tbody>
 </table>
-<p>Safety evaluation is integral to the <a href="../alignment/alignment_overview.md">alignment</a> process. See <a href="../alignment/constitutional.md">Constitutional AI</a> for how safety principles are formalized.</p>
+<p>Safety evaluation is integral to the alignment process. See Constitutional AI for how safety principles are formalized.</p>
 <hr />
 <h2 id="4-human-evaluation">4. Human Evaluation<a class="headerlink" href="#4-human-evaluation" title="Permanent link">&para;</a></h2>
 <h3 id="41-evaluation-dimensions">4.1 Evaluation Dimensions<a class="headerlink" href="#41-evaluation-dimensions" title="Permanent link">&para;</a></h3>
@@ -86245,12 +86245,12 @@
 </tr>
 </tbody>
 </table>
-<p>The "HHH" criteria (helpfulness, harmlessness, honesty) from Askell et al. (2021) are the guiding framework for <a href="../alignment/rlhf.md">RLHF</a> and <a href="../alignment/reward_modeling.md">reward model</a> training.</p>
+<p>The "HHH" criteria (helpfulness, harmlessness, honesty) from Askell et al. (2021) are the guiding framework for RLHF and reward model training.</p>
 <h3 id="42-evaluation-protocols">4.2 Evaluation Protocols<a class="headerlink" href="#42-evaluation-protocols" title="Permanent link">&para;</a></h3>
 <p><strong>Likert scale rating</strong>: Annotators rate each response on a 1–5 scale per dimension. Simple to implement but suffers from inter-annotator variance and scale calibration drift.</p>
 <p><strong>Pairwise comparison</strong>: Annotators see two responses (from different models) side by side and select which is better. More reliable than absolute rating because comparative judgments are cognitively easier. Pairwise preferences are aggregated using the Bradley-Terry model:</p>
 <div class="arithmatex">\[P(y_A \succ y_B \mid x) = \frac{\exp(R_A)}{\exp(R_A) + \exp(R_B)}\]</div>
-<p>which is the same model used to train <a href="../alignment/reward_modeling.md">reward models</a> from human preferences.</p>
+<p>which is the same model used to train reward models from human preferences.</p>
 <p><strong>Elo rating</strong>: Platforms like <strong>Chatbot Arena</strong> (Zheng et al., 2023) use crowdsourced pairwise comparisons to compute Elo ratings:</p>
 <div class="arithmatex">\[E_A = \frac{1}{1 + 10^{(R_B - R_A)/400}}, \quad R_A' = R_A + K(S_A - E_A)\]</div>
 <p>where <span class="arithmatex">\(R_A, R_B\)</span> are current ratings, <span class="arithmatex">\(E_A\)</span> is the expected win probability, <span class="arithmatex">\(S_A \in \{0, 0.5, 1\}\)</span> is the outcome, and <span class="arithmatex">\(K\)</span> is the update step size. As of 2024, Chatbot Arena is widely considered the most reliable public ranking of LLM quality due to its large-scale, blind, user-driven evaluation.</p>
@@ -86363,7 +86363,7 @@
 </ul>
 <hr />
 <h2 id="6-rag-evaluation">6. RAG Evaluation<a class="headerlink" href="#6-rag-evaluation" title="Permanent link">&para;</a></h2>
-<p><a href="../rag/rag_overview.md">Retrieval-augmented generation</a> requires evaluating both the retrieval component and the generation component:</p>
+<p>Retrieval-augmented generation requires evaluating both the retrieval component and the generation component:</p>
 <h3 id="61-retrieval-metrics">6.1 Retrieval Metrics<a class="headerlink" href="#61-retrieval-metrics" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -86414,7 +86414,7 @@
 </tr>
 </tbody>
 </table>
-<p>The RAGAS framework (Shahul et al., 2023) provides automated evaluation of these dimensions using LLM-as-judge. For full treatment, see <a href="../rag/evaluation.md">RAG Evaluation</a>.</p>
+<p>The RAGAS framework (Shahul et al., 2023) provides automated evaluation of these dimensions using LLM-as-judge. For full treatment, see RAG Evaluation.</p>
 <hr />
 <h2 id="7-production-metrics">7. Production Metrics<a class="headerlink" href="#7-production-metrics" title="Permanent link">&para;</a></h2>
 <p>In deployed systems, model quality is ultimately measured by user behavior:</p>
@@ -86488,7 +86488,7 @@
 <h3 id="73-feedback-integration">7.3 Feedback Integration<a class="headerlink" href="#73-feedback-integration" title="Permanent link">&para;</a></h3>
 <p>Production feedback drives model improvement through:</p>
 <ul>
-<li><strong><a href="../alignment/reward_modeling.md">Reward model</a> updates</strong>: Real user preferences supplement annotator data</li>
+<li><strong>Reward model updates</strong>: Real user preferences supplement annotator data</li>
 <li><strong>Active learning</strong>: Prioritize uncertain or low-rated interactions for human review</li>
 <li><strong>Continued fine-tuning</strong>: Retrain on newly collected high-quality interactions</li>
 <li><strong>Failure analysis</strong>: Systematic review of low-rated responses to identify patterns</li>
@@ -86527,25 +86527,25 @@
 <td>Alignment</td>
 <td>Chatbot Arena Elo, human pairwise</td>
 <td>ToxiGen, XSTest, TruthfulQA</td>
-<td><a href="../alignment/alignment_overview.md">Alignment</a></td>
+<td>Alignment</td>
 </tr>
 <tr>
 <td>Code generation</td>
 <td>HumanEval pass@<span class="arithmatex">\(k\)</span>, SWE-bench</td>
 <td>MBPP</td>
-<td><a href="../agents/llm_applications.md">LLM Applications</a></td>
+<td>LLM Applications</td>
 </tr>
 <tr>
 <td>RAG</td>
 <td>RAGAS (faithfulness, relevance), recall@<span class="arithmatex">\(k\)</span></td>
 <td>BERTScore, human eval</td>
-<td><a href="../rag/evaluation.md">RAG Evaluation</a></td>
+<td>RAG Evaluation</td>
 </tr>
 <tr>
 <td>Production deployment</td>
 <td>User satisfaction, task completion</td>
 <td>Regeneration rate, retention</td>
-<td><a href="conversational_ai.md">Conversational AI</a></td>
+<td>Conversational AI</td>
 </tr>
 </tbody>
 </table>

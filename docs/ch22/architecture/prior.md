@@ -202,4 +202,4 @@ Implement VampPrior with 50 pseudo-inputs. Do the learned pseudo-inputs resemble
 
 ## What's Next
 
-The next section covers [Posterior Collapse](posterior_collapse.md), a common training failure where the encoder ignores the input data.
+The next section covers Posterior Collapse, a common training failure where the encoder ignores the input data.

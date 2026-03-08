@@ -598,7 +598,7 @@ $$\text{Grid} \xrightarrow{\text{dimension}} \text{Rejection/IS} \xrightarrow{\t
 - **IS → MCMC**: Addresses weight degeneracy in high dimensions
 - **Random Walk MCMC → HMC/Langevin**: Uses gradient information for efficient exploration
 
-The next sections develop [Rejection Sampling](rejection.md) and [Importance Sampling](importance_sampling/fundamentals.md), which handle sampling from complex distributions without requiring MCMC chains.
+The next sections develop Rejection Sampling and [Importance Sampling](importance_sampling/fundamentals.md), which handle sampling from complex distributions without requiring MCMC chains.
 
 ---
 

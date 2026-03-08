@@ -85516,7 +85516,7 @@
 <li>Choose appropriate fine-tuning strategies based on task requirements</li>
 </ul>
 <h2 id="introduction">Introduction<a class="headerlink" href="#introduction" title="Permanent link">&para;</a></h2>
-<p>Fine-tuning adapts pre-trained models to specific downstream tasks. The key challenge is balancing adaptation to new data while preserving valuable pre-trained knowledge. This document covers general fine-tuning strategies; for parameter-efficient methods like LoRA and adapters, see <a href="../../ch19/efficient_llm/efficiency_overview.md">Ch 15.6 Efficient LLM Fine-tuning</a>.</p>
+<p>Fine-tuning adapts pre-trained models to specific downstream tasks. The key challenge is balancing adaptation to new data while preserving valuable pre-trained knowledge. This document covers general fine-tuning strategies; for parameter-efficient methods like LoRA and adapters, see Ch 15.6 Efficient LLM Fine-tuning.</p>
 <h2 id="the-fine-tuning-spectrum">The Fine-tuning Spectrum<a class="headerlink" href="#the-fine-tuning-spectrum" title="Permanent link">&para;</a></h2>
 <div class="highlight"><pre><span></span><code>Feature Extraction ←――――――――――――――――――→ Full Fine-tuning
 (Frozen encoder)                        (All params trainable)
@@ -86013,7 +86013,7 @@ Lower performance ceiling              Higher performance ceiling
                 <span class="k">yield</span> <span class="n">replay_batch</span>
 </code></pre></div>
 <h4 id="4-architecture-based">4. Architecture-Based<a class="headerlink" href="#4-architecture-based" title="Permanent link">&para;</a></h4>
-<p>Use parameter-efficient methods (LoRA, adapters) that freeze pretrained weights—see <a href="../../ch19/efficient_llm/efficiency_overview.md">Ch 15.6</a>.</p>
+<p>Use parameter-efficient methods (LoRA, adapters) that freeze pretrained weights—see Ch 15.6.</p>
 <h2 id="choosing-a-strategy">Choosing a Strategy<a class="headerlink" href="#choosing-a-strategy" title="Permanent link">&para;</a></h2>
 <h3 id="decision-framework">Decision Framework<a class="headerlink" href="#decision-framework" title="Permanent link">&para;</a></h3>
 <div class="highlight"><pre><span></span><code>                    Dataset Size
@@ -86108,7 +86108,7 @@ Low               LoRA with       Full Fine-tune       Full Fine-tune
 </tr>
 </tbody>
 </table>
-<p>For parameter-efficient methods (LoRA, QLoRA, Prefix Tuning, Adapters), see <a href="../../ch19/efficient_llm/efficiency_overview.md">Ch 15.6 Efficient LLM Fine-tuning</a>.</p>
+<p>For parameter-efficient methods (LoRA, QLoRA, Prefix Tuning, Adapters), see Ch 15.6 Efficient LLM Fine-tuning.</p>
 <h2 id="references">References<a class="headerlink" href="#references" title="Permanent link">&para;</a></h2>
 <ol>
 <li>Howard, J., &amp; Ruder, S. (2018). "Universal Language Model Fine-tuning for Text Classification." ACL.</li>

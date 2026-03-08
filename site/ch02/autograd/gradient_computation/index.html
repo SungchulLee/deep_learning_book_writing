@@ -85738,7 +85738,7 @@ Match: True
 <span class="p">(</span><span class="n">grad_y</span><span class="p">,)</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">autograd</span><span class="o">.</span><span class="n">grad</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;dy/dx = 3x² = </span><span class="si">{</span><span class="n">grad_y</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>  <span class="c1"># tensor([12.])</span>
 </code></pre></div>
-<p>This is particularly useful for higher-order derivatives (see <a href="higher_order_gradients.md">Higher-Order Gradients</a>) and when you need gradients for non-leaf tensors without calling <code>retain_grad()</code>.</p>
+<p>This is particularly useful for higher-order derivatives (see Higher-Order Gradients) and when you need gradients for non-leaf tensors without calling <code>retain_grad()</code>.</p>
 <h2 id="the-vector-jacobian-product-framework">The Vector-Jacobian Product Framework<a class="headerlink" href="#the-vector-jacobian-product-framework" title="Permanent link">&para;</a></h2>
 <h3 id="why-vjps">Why VJPs?<a class="headerlink" href="#why-vjps" title="Permanent link">&para;</a></h3>
 <p>PyTorch's backward pass does <strong>not</strong> compute the full Jacobian matrix — that would be prohibitively expensive for high-dimensional parameter spaces. Instead, it computes <strong>vector-Jacobian products</strong> (VJPs), which is all that's needed for gradient-based optimization.</p>

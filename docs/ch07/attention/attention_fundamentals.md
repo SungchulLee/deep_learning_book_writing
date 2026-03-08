@@ -191,7 +191,7 @@ Queries come from one sequence (decoder), keys and values from another (encoder)
 
 $$\mathbf{Q} = \mathbf{X}_{\text{dec}}\mathbf{W}^Q, \quad \mathbf{K} = \mathbf{X}_{\text{enc}}\mathbf{W}^K, \quad \mathbf{V} = \mathbf{X}_{\text{enc}}\mathbf{W}^V$$
 
-This bridges encoder and decoder in seq2seq models. Cross-attention patterns are discussed in [Attention Patterns](attention_patterns.md).
+This bridges encoder and decoder in seq2seq models. Cross-attention patterns are discussed in Attention Patterns.
 
 ### Causal (Masked) Attention
 

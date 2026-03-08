@@ -1,6 +1,6 @@
 # KL Divergence
 
-Kullback-Leibler divergence measures how one probability distribution diverges from another. It appears throughout deep learning as a regularization term in variational autoencoders, a training objective in knowledge distillation, and a theoretical tool for understanding model behavior. This section introduces the definition, core properties, and PyTorch interfaces, with dedicated sub-pages for [distance axioms](kl_distance_axioms.md), [Gaussian computation](kl_gaussian.md), and [Fisher information](kl_fisher_information.md).
+Kullback-Leibler divergence measures how one probability distribution diverges from another. It appears throughout deep learning as a regularization term in variational autoencoders, a training objective in knowledge distillation, and a theoretical tool for understanding model behavior. This section introduces the definition, core properties, and PyTorch interfaces, with dedicated sub-pages for distance axioms, Gaussian computation, and Fisher information.
 
 ## Definition
 
@@ -98,7 +98,7 @@ This is **mode-seeking**: $q$ concentrates on a single mode of $p$ rather than s
 
 ## Not a Metric
 
-Despite being called a "divergence," KL divergence is not a distance metric. It satisfies non-negativity and identity of indiscernibles but violates symmetry and the triangle inequality. The detailed analysis with proofs and numerical counterexamples is in [KL Divergence and Distance Axioms](kl_distance_axioms.md).
+Despite being called a "divergence," KL divergence is not a distance metric. It satisfies non-negativity and identity of indiscernibles but violates symmetry and the triangle inequality. The detailed analysis with proofs and numerical counterexamples is in KL Divergence and Distance Axioms.
 
 ## Local Behavior: Fisher Information
 
@@ -106,7 +106,7 @@ A Taylor expansion of $D_{\text{KL}}(f_{\theta_0} \| f_\theta)$ around $\theta =
 
 $$D_{\text{KL}}(f_{\theta_0} \| f_\theta) \approx \frac{1}{2}(\theta - \theta_0)^T\, \mathbf{I}(\theta_0)\, (\theta - \theta_0)$$
 
-where $\mathbf{I}(\theta_0)$ is the **Fisher information matrix**. Near the minimum, KL divergence behaves like a Mahalanobis distance, providing a natural Riemannian metric on the space of probability distributions. This underpins natural gradient methods, trust region optimization (TRPO, PPO), and variational inference. The full derivation is in [KL and Fisher Information](kl_fisher_information.md).
+where $\mathbf{I}(\theta_0)$ is the **Fisher information matrix**. Near the minimum, KL divergence behaves like a Mahalanobis distance, providing a natural Riemannian metric on the space of probability distributions. This underpins natural gradient methods, trust region optimization (TRPO, PPO), and variational inference. The full derivation is in KL and Fisher Information.
 
 ## KL Divergence for Gaussians
 
@@ -128,7 +128,7 @@ For encoder $q_\phi(z|x) = \mathcal{N}(\mu, \text{diag}(\sigma_1^2, \ldots, \sig
 
 $$D_{\text{KL}}(q \| p) = -\frac{1}{2}\sum_{j=1}^{d}\!\left(1 + \log\sigma_j^2 - \mu_j^2 - \sigma_j^2\right)$$
 
-The complete derivation with the full-covariance case is in [KL for Gaussians](kl_gaussian.md).
+The complete derivation with the full-covariance case is in KL for Gaussians.
 
 ## Application in VAEs
 

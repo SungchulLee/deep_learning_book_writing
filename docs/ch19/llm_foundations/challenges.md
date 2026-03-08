@@ -45,7 +45,7 @@ Types of hallucination include:
 
 Mitigation strategies include:
 
-- **Retrieval augmentation (RAG):** Grounding generation in retrieved documents reduces but does not eliminate hallucination. See [Section 15.4: RAG Overview](../rag/rag_overview.md).
+- **Retrieval augmentation (RAG):** Grounding generation in retrieved documents reduces but does not eliminate hallucination. See Section 15.4: RAG Overview.
 - **RLHF alignment:** Training the model to express uncertainty ("I'm not sure about this") rather than fabricating answers.
 - **Self-consistency checks:** Generating multiple responses and checking for agreement as a proxy for factual reliability.
 - **Citation generation:** Training the model to produce verifiable citations alongside claims, enabling user verification.

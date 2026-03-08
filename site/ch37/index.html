@@ -85209,77 +85209,77 @@
 <h2 id="foundations">Foundations<a class="headerlink" href="#foundations" title="Permanent link">&para;</a></h2>
 <p>Core concepts, historical context, and sources of bias in ML systems.</p>
 <ul>
-<li><a href="foundations/introduction.md">Introduction to Algorithmic Fairness</a> -- The fairness problem, motivating examples, and why fairness matters in ML</li>
-<li><a href="foundations/sources.md">Sources of Bias in ML Systems</a> -- Taxonomy of bias from historical data, representation, measurement, and deployment</li>
-<li><a href="foundations/history.md">Historical Context and Landmark Cases</a> -- Legal foundations, disparate treatment vs. disparate impact, and the 80% rule</li>
+<li>Introduction to Algorithmic Fairness -- The fairness problem, motivating examples, and why fairness matters in ML</li>
+<li>Sources of Bias in ML Systems -- Taxonomy of bias from historical data, representation, measurement, and deployment</li>
+<li>Historical Context and Landmark Cases -- Legal foundations, disparate treatment vs. disparate impact, and the 80% rule</li>
 </ul>
 <h2 id="fairness-definitions">Fairness Definitions<a class="headerlink" href="#fairness-definitions" title="Permanent link">&para;</a></h2>
 <p>Mathematical formalizations of what it means for a model to be fair.</p>
 <ul>
-<li><a href="definitions/demographic_parity.md">Demographic Parity</a> -- Equal positive prediction rates across protected groups (statistical parity)</li>
-<li><a href="definitions/equal_opportunity.md">Equal Opportunity</a> -- Equal true positive rates ensuring qualified individuals receive equal treatment</li>
-<li><a href="definitions/equalized_odds.md">Equalized Odds</a> -- Equal TPR and FPR across groups via conditional independence of predictions and attributes</li>
-<li><a href="definitions/calibration.md">Calibration</a> -- Predicted probabilities accurately reflecting true outcome rates within each group</li>
-<li><a href="definitions/individual_fairness.md">Individual Fairness</a> -- Similar individuals receiving similar predictions via Lipschitz continuity constraints</li>
-<li><a href="definitions/counterfactual.md">Counterfactual Fairness</a> -- Causal reasoning ensuring predictions are invariant to counterfactual group membership changes</li>
+<li>Demographic Parity -- Equal positive prediction rates across protected groups (statistical parity)</li>
+<li>Equal Opportunity -- Equal true positive rates ensuring qualified individuals receive equal treatment</li>
+<li>Equalized Odds -- Equal TPR and FPR across groups via conditional independence of predictions and attributes</li>
+<li>Calibration -- Predicted probabilities accurately reflecting true outcome rates within each group</li>
+<li>Individual Fairness -- Similar individuals receiving similar predictions via Lipschitz continuity constraints</li>
+<li>Counterfactual Fairness -- Causal reasoning ensuring predictions are invariant to counterfactual group membership changes</li>
 </ul>
 <h2 id="impossibility-theorems">Impossibility Theorems<a class="headerlink" href="#impossibility-theorems" title="Permanent link">&para;</a></h2>
 <p>Mathematical results showing fundamental tradeoffs between fairness criteria.</p>
 <ul>
-<li><a href="impossibility/chouldechova.md">Chouldechova's Theorem</a> -- Proving calibration and equal error rates cannot coexist when base rates differ</li>
-<li><a href="impossibility/kmr.md">KMR Impossibility Theorem</a> -- Kleinberg-Mullainathan-Raghavan result on calibration vs. balance incompatibility</li>
-<li><a href="impossibility/tradeoffs.md">Tradeoff Analysis</a> -- Quantifying the fairness-accuracy Pareto frontier and finding optimal solutions</li>
+<li>Chouldechova's Theorem -- Proving calibration and equal error rates cannot coexist when base rates differ</li>
+<li>KMR Impossibility Theorem -- Kleinberg-Mullainathan-Raghavan result on calibration vs. balance incompatibility</li>
+<li>Tradeoff Analysis -- Quantifying the fairness-accuracy Pareto frontier and finding optimal solutions</li>
 </ul>
 <h2 id="fairness-metrics">Fairness Metrics<a class="headerlink" href="#fairness-metrics" title="Permanent link">&para;</a></h2>
 <p>Quantitative measurement of bias across protected groups.</p>
 <ul>
-<li><a href="metrics/statistical.md">Statistical Fairness Metrics</a> -- Unified PyTorch framework for computing demographic parity, equal opportunity, and equalized odds</li>
-<li><a href="metrics/causal.md">Causal Fairness Metrics</a> -- Total, direct, and indirect causal effects of protected attributes on predictions</li>
-<li><a href="metrics/multi_group.md">Multi-Group Fairness Metrics</a> -- Extending binary fairness measures to handle multiple protected groups</li>
-<li><a href="metrics/intersectionality.md">Intersectionality in Fairness</a> -- Detecting bias in intersectional subgroups that may be hidden in marginal analysis</li>
+<li>Statistical Fairness Metrics -- Unified PyTorch framework for computing demographic parity, equal opportunity, and equalized odds</li>
+<li>Causal Fairness Metrics -- Total, direct, and indirect causal effects of protected attributes on predictions</li>
+<li>Multi-Group Fairness Metrics -- Extending binary fairness measures to handle multiple protected groups</li>
+<li>Intersectionality in Fairness -- Detecting bias in intersectional subgroups that may be hidden in marginal analysis</li>
 </ul>
 <h2 id="pre-processing-methods">Pre-processing Methods<a class="headerlink" href="#pre-processing-methods" title="Permanent link">&para;</a></h2>
 <p>Mitigating bias by transforming training data before model training.</p>
 <ul>
-<li><a href="preprocessing/reweighing.md">Reweighing</a> -- Assigning sample weights to remove correlation between protected attributes and labels</li>
-<li><a href="preprocessing/disparate_impact.md">Disparate Impact Remover</a> -- Transforming feature distributions to be identical across protected groups</li>
-<li><a href="preprocessing/representation.md">Fair Representation Learning</a> -- Learning latent representations that retain predictive signal while removing group information</li>
-<li><a href="preprocessing/augmentation.md">Data Augmentation for Fairness</a> -- Creating synthetic samples to balance the joint distribution of attributes and labels</li>
+<li>Reweighing -- Assigning sample weights to remove correlation between protected attributes and labels</li>
+<li>Disparate Impact Remover -- Transforming feature distributions to be identical across protected groups</li>
+<li>Fair Representation Learning -- Learning latent representations that retain predictive signal while removing group information</li>
+<li>Data Augmentation for Fairness -- Creating synthetic samples to balance the joint distribution of attributes and labels</li>
 </ul>
 <h2 id="in-processing-methods">In-processing Methods<a class="headerlink" href="#in-processing-methods" title="Permanent link">&para;</a></h2>
 <p>Incorporating fairness objectives directly into the model training procedure.</p>
 <ul>
-<li><a href="inprocessing/adversarial.md">Adversarial Debiasing</a> -- Training a predictor to fool an adversary that tries to infer protected attributes</li>
-<li><a href="inprocessing/constraints.md">Fairness Constraints</a> -- Constrained optimization with explicit fairness bounds via Lagrangian relaxation</li>
-<li><a href="inprocessing/regularization.md">Fairness Regularization</a> -- Adding fairness penalty terms to the training loss for soft bias mitigation</li>
-<li><a href="inprocessing/multi_objective.md">Multi-Objective Fairness Optimization</a> -- Pareto-optimal solutions balancing accuracy with multiple fairness criteria</li>
+<li>Adversarial Debiasing -- Training a predictor to fool an adversary that tries to infer protected attributes</li>
+<li>Fairness Constraints -- Constrained optimization with explicit fairness bounds via Lagrangian relaxation</li>
+<li>Fairness Regularization -- Adding fairness penalty terms to the training loss for soft bias mitigation</li>
+<li>Multi-Objective Fairness Optimization -- Pareto-optimal solutions balancing accuracy with multiple fairness criteria</li>
 </ul>
 <h2 id="post-processing-methods">Post-processing Methods<a class="headerlink" href="#post-processing-methods" title="Permanent link">&para;</a></h2>
 <p>Adjusting model outputs after training to satisfy fairness criteria.</p>
 <ul>
-<li><a href="postprocessing/thresholds.md">Threshold Optimization</a> -- Group-specific classification thresholds to achieve fairness while maximizing accuracy</li>
-<li><a href="postprocessing/calibrated_eo.md">Calibrated Equalized Odds</a> -- Achieving approximate equalized odds while preserving calibration via randomized thresholds</li>
-<li><a href="postprocessing/reject_option.md">Reject Option Classification</a> -- Deferring uncertain predictions to improve fairness near the decision boundary</li>
+<li>Threshold Optimization -- Group-specific classification thresholds to achieve fairness while maximizing accuracy</li>
+<li>Calibrated Equalized Odds -- Achieving approximate equalized odds while preserving calibration via randomized thresholds</li>
+<li>Reject Option Classification -- Deferring uncertain predictions to improve fairness near the decision boundary</li>
 </ul>
 <h2 id="evaluation">Evaluation<a class="headerlink" href="#evaluation" title="Permanent link">&para;</a></h2>
 <p>Systematic assessment of fairness in deployed models.</p>
 <ul>
-<li><a href="evaluation/audits.md">Fairness Audits</a> -- Comprehensive five-stage audit framework combining quantitative metrics and qualitative analysis</li>
-<li><a href="evaluation/testing.md">Disparate Impact Testing</a> -- Statistical hypothesis tests for determining whether fairness violations are significant</li>
-<li><a href="evaluation/longitudinal.md">Longitudinal Fairness Analysis</a> -- Monitoring fairness metrics over time to detect drift and emerging biases</li>
+<li>Fairness Audits -- Comprehensive five-stage audit framework combining quantitative metrics and qualitative analysis</li>
+<li>Disparate Impact Testing -- Statistical hypothesis tests for determining whether fairness violations are significant</li>
+<li>Longitudinal Fairness Analysis -- Monitoring fairness metrics over time to detect drift and emerging biases</li>
 </ul>
 <h2 id="finance-applications">Finance Applications<a class="headerlink" href="#finance-applications" title="Permanent link">&para;</a></h2>
 <p>Fairness considerations specific to financial services and regulatory compliance.</p>
 <ul>
-<li><a href="finance/credit_scoring.md">Fair Credit Scoring</a> -- ECOA-compliant credit models with adverse action explanations and disparate impact testing</li>
-<li><a href="finance/insurance.md">Fair Insurance Pricing</a> -- Actuarial fairness under evolving regulations restricting demographic pricing variables</li>
-<li><a href="finance/trading.md">Fairness in Algorithmic Trading</a> -- Equitable execution quality, market access, and information asymmetry across participant types</li>
-<li><a href="finance/regulatory.md">Regulatory Framework</a> -- Mapping ECOA, Fair Housing Act, GDPR, and SR 11-7 requirements to technical fairness implementations</li>
+<li>Fair Credit Scoring -- ECOA-compliant credit models with adverse action explanations and disparate impact testing</li>
+<li>Fair Insurance Pricing -- Actuarial fairness under evolving regulations restricting demographic pricing variables</li>
+<li>Fairness in Algorithmic Trading -- Equitable execution quality, market access, and information asymmetry across participant types</li>
+<li>Regulatory Framework -- Mapping ECOA, Fair Housing Act, GDPR, and SR 11-7 requirements to technical fairness implementations</li>
 </ul>
 <h2 id="code-examples">Code Examples<a class="headerlink" href="#code-examples" title="Permanent link">&para;</a></h2>
 <p>Practical implementations and toolkit overviews.</p>
 <ul>
-<li><a href="fairness_code/bias_and_fairness_overview.md">Bias and Fairness Toolkit Overview</a> -- Python implementations of bias detection, fairness metrics, and mitigation techniques</li>
+<li>Bias and Fairness Toolkit Overview -- Python implementations of bias detection, fairness metrics, and mitigation techniques</li>
 </ul>
 
 

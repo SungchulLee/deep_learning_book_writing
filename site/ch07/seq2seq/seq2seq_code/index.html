@@ -85649,7 +85649,7 @@ Target: &quot;i am a student&quot;
 <p>Key design choices:</p>
 <ul>
 <li><strong>GRU input dimension is <span class="arithmatex">\(2H\)</span></strong>: the concatenation of the embedded token (<span class="arithmatex">\(H\)</span>) and the attention context (<span class="arithmatex">\(H\)</span>).</li>
-<li><strong>Teacher forcing ratio 0.5</strong>: balances exposure bias (always seeing ground truth) against training instability (always seeing own predictions). See the <a href="scheduled_sampling.md">Scheduled Sampling</a> section for curriculum-based alternatives.</li>
+<li><strong>Teacher forcing ratio 0.5</strong>: balances exposure bias (always seeing ground truth) against training instability (always seeing own predictions). See the Scheduled Sampling section for curriculum-based alternatives.</li>
 <li><strong><code>detach()</code> on argmax predictions</strong>: prevents gradients from flowing through the discrete sampling operation during free-running mode.</li>
 </ul>
 <h2 id="training">Training<a class="headerlink" href="#training" title="Permanent link">&para;</a></h2>
@@ -85698,7 +85698,7 @@ Target: &quot;i am a student&quot;
             <span class="n">decoded_words</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">output_lang</span><span class="o">.</span><span class="n">index2word</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="s2">&quot;&lt;UNK&gt;&quot;</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">decoded_words</span><span class="p">,</span> <span class="n">attentions</span>
 </code></pre></div>
-<p>This implements greedy search—taking the argmax at each step. For higher-quality translations, beam search (see <a href="beam_search.md">Beam Search</a>) maintains multiple hypotheses and generally produces better results at the cost of increased computation.</p>
+<p>This implements greedy search—taking the argmax at each step. For higher-quality translations, beam search (see Beam Search) maintains multiple hypotheses and generally produces better results at the cost of increased computation.</p>
 <h3 id="attention-visualization">Attention Visualization<a class="headerlink" href="#attention-visualization" title="Permanent link">&para;</a></h3>
 <p>The attention weight matrix <span class="arithmatex">\(\boldsymbol{\alpha} \in \mathbb{R}^{T' \times T}\)</span> reveals which source tokens the decoder attends to at each generation step. Visualizing this matrix as a heatmap provides interpretable evidence of the model's alignment behavior:</p>
 <div class="highlight"><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">show_attention</span><span class="p">(</span><span class="n">input_sentence</span><span class="p">,</span> <span class="n">output_words</span><span class="p">,</span> <span class="n">attentions</span><span class="p">):</span>

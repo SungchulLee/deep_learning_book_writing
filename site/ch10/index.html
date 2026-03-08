@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#chapter-overview" class="md-skip">
+        <a href="#chapter-10-transfer-learning" class="md-skip">
           Skip to content
         </a>
       
@@ -28045,6 +28045,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -28061,6 +28079,58 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#101-transfer-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 Transfer Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#102-domain-adaptation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2 Domain Adaptation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#103-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3 Applications
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -84923,6 +84993,47 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#101-transfer-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.1 Transfer Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#102-domain-adaptation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.2 Domain Adaptation
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#103-applications" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10.3 Applications
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -84938,63 +85049,43 @@
 
 
 
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</p>
-<h1 id="chapter-overview">Chapter Overview<a class="headerlink" href="#chapter-overview" title="Permanent link">&para;</a></h1>
-<p>This chapter covers <strong>Advanced Trees</strong>.</p>
-<h1 id="reference">Reference<a class="headerlink" href="#reference" title="Permanent link">&para;</a></h1>
-<h1 id="introduction-to-algorithms-clrs-chapter-14"><a href="https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition">Introduction to Algorithms (CLRS), Chapter 14</a><a class="headerlink" href="#introduction-to-algorithms-clrs-chapter-14" title="Permanent link">&para;</a></h1>
 <h1 id="chapter-10-transfer-learning">Chapter 10: Transfer Learning<a class="headerlink" href="#chapter-10-transfer-learning" title="Permanent link">&para;</a></h1>
 <p>Transfer learning leverages knowledge from models pretrained on large datasets to improve performance on new tasks, especially when training data is limited. This chapter covers the theoretical foundations, practical fine-tuning strategies, domain adaptation techniques, and real-world applications across computer vision, NLP, and specialized domains.</p>
 <hr />
 <h2 id="101-transfer-learning">10.1 Transfer Learning<a class="headerlink" href="#101-transfer-learning" title="Permanent link">&para;</a></h2>
 <p>Core concepts, strategies, and hands-on examples for adapting pretrained models to downstream tasks.</p>
 <ul>
-<li><a href="transfer_learning/fundamentals.md">Transfer Learning Overview</a> -- Why transfer learning works, hierarchical feature transferability, and a decision framework for choosing strategies</li>
-<li><a href="transfer_learning/transfer_learning_overview.md">Transfer Learning Tutorial</a> -- PyTorch tutorial package with four progressively challenging transfer learning examples</li>
-<li><a href="transfer_learning/domain_shift.md">Domain Shift</a> -- Types of distribution mismatch between source and target domains and their formal definitions</li>
-<li><a href="transfer_learning/feature_extraction.md">Feature Extraction</a> -- Using pretrained networks as fixed feature extractors with only a new classifier trained on top</li>
+<li>Transfer Learning Overview -- Why transfer learning works, hierarchical feature transferability, and a decision framework for choosing strategies</li>
+<li>Transfer Learning Tutorial -- PyTorch tutorial package with four progressively challenging transfer learning examples</li>
+<li>Domain Shift -- Types of distribution mismatch between source and target domains and their formal definitions</li>
+<li>Feature Extraction -- Using pretrained networks as fixed feature extractors with only a new classifier trained on top</li>
 <li><a href="transfer_learning/fine_tuning/">Fine-Tuning</a> -- The spectrum from frozen feature extraction to full parameter updates with gradual unfreezing</li>
-<li><a href="transfer_learning/layer_freezing.md">Layer Freezing</a> -- Selectively controlling which pretrained parameters are updated during transfer</li>
-<li><a href="transfer_learning/discriminative_lr.md">Discriminative Learning Rates</a> -- Assigning different learning rates to different layers based on feature transferability</li>
-<li><a href="transfer_learning/example_1_basic_overview.md">Example 1: Basic Feature Extraction</a> -- Loading a pretrained ResNet18 and training only the final classification layer on CIFAR-10</li>
-<li><a href="transfer_learning/example_2_fine_tuning_overview.md">Example 2: Fine-Tuning</a> -- Selectively unfreezing layers with different learning rates and early stopping</li>
-<li><a href="transfer_learning/example_3_custom_dataset_overview.md">Example 3: Custom Datasets</a> -- Applying transfer learning to custom image datasets with class imbalance handling</li>
-<li><a href="transfer_learning/example_4_advanced_overview.md">Example 4: Advanced Techniques</a> -- Cosine annealing, mixed precision training, gradient accumulation, and model ensembling</li>
+<li>Layer Freezing -- Selectively controlling which pretrained parameters are updated during transfer</li>
+<li>Discriminative Learning Rates -- Assigning different learning rates to different layers based on feature transferability</li>
+<li>Example 1: Basic Feature Extraction -- Loading a pretrained ResNet18 and training only the final classification layer on CIFAR-10</li>
+<li>Example 2: Fine-Tuning -- Selectively unfreezing layers with different learning rates and early stopping</li>
+<li>Example 3: Custom Datasets -- Applying transfer learning to custom image datasets with class imbalance handling</li>
+<li>Example 4: Advanced Techniques -- Cosine annealing, mixed precision training, gradient accumulation, and model ensembling</li>
 </ul>
 <h2 id="102-domain-adaptation">10.2 Domain Adaptation<a class="headerlink" href="#102-domain-adaptation" title="Permanent link">&para;</a></h2>
 <p>Techniques for bridging the distribution gap between source and target domains.</p>
 <ul>
-<li><a href="domain_adaptation/domain_adaptation.md">Domain Adaptation</a> -- The domain adaptation problem, theoretical foundations, and practical techniques</li>
-<li><a href="domain_adaptation/uda.md">Unsupervised Domain Adaptation</a> -- Adapting models using labeled source data and unlabeled target data</li>
-<li><a href="domain_adaptation/dann.md">DANN</a> -- Domain Adversarial Neural Networks with gradient reversal for domain-invariant features</li>
+<li>Domain Adaptation -- The domain adaptation problem, theoretical foundations, and practical techniques</li>
+<li>Unsupervised Domain Adaptation -- Adapting models using labeled source data and unlabeled target data</li>
+<li>DANN -- Domain Adversarial Neural Networks with gradient reversal for domain-invariant features</li>
 <li><a href="domain_adaptation/mmd/">Maximum Mean Discrepancy</a> -- Kernel-based distribution matching for principled domain alignment</li>
-<li><a href="domain_adaptation/multi_source.md">Multi-Source Domain Adaptation</a> -- Leveraging multiple source domains with automatic source weighting and selective transfer</li>
-<li><a href="domain_adaptation/self_training.md">Self-Training</a> -- Iterative pseudo-labeling of unlabeled target data for progressive domain adaptation</li>
+<li>Multi-Source Domain Adaptation -- Leveraging multiple source domains with automatic source weighting and selective transfer</li>
+<li>Self-Training -- Iterative pseudo-labeling of unlabeled target data for progressive domain adaptation</li>
 </ul>
 <h2 id="103-applications">10.3 Applications<a class="headerlink" href="#103-applications" title="Permanent link">&para;</a></h2>
 <p>Practical applications of transfer learning across computer vision, NLP, finance, and specialized domains.</p>
 <ul>
-<li><a href="applications/transfer_cv.md">Transfer Learning for Computer Vision</a> -- Standard transfer pipeline with ImageNet-pretrained models for diverse visual tasks</li>
-<li><a href="applications/transfer_nlp.md">Transfer Learning for NLP</a> -- Adapting pretrained language models like BERT and GPT to downstream text tasks</li>
-<li><a href="applications/cross_domain.md">Cross-Domain Transfer</a> -- Strategies for transferring knowledge across different domains based on domain distance</li>
-<li><a href="applications/transfer_finance.md">Transfer Learning for Finance</a> -- Text-based and time series transfer for financial applications including FinBERT and temporal adaptation</li>
+<li>Transfer Learning for Computer Vision -- Standard transfer pipeline with ImageNet-pretrained models for diverse visual tasks</li>
+<li>Transfer Learning for NLP -- Adapting pretrained language models like BERT and GPT to downstream text tasks</li>
+<li>Cross-Domain Transfer -- Strategies for transferring knowledge across different domains based on domain distance</li>
+<li>Transfer Learning for Finance -- Text-based and time series transfer for financial applications including FinBERT and temporal adaptation</li>
 <li><a href="applications/transfer_time_series/">Transfer Learning for Time Series</a> -- Specialized transfer strategies addressing temporal dependencies and non-stationarity</li>
-<li><a href="applications/negative_transfer.md">Negative Transfer</a> -- When transfer learning hurts performance and how to diagnose and prevent it<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>96f31bd (...)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</li>
+<li>Negative Transfer -- When transfer learning hurts performance and how to diagnose and prevent it</li>
 </ul>
 
 

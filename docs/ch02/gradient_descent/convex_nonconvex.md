@@ -413,7 +413,7 @@ print(f"Non-convex: mean={np.mean(nonconvex_results):.4f}, std={np.std(nonconvex
 
 ## Connections to Other Topics
 
-- **Critical Points**: See [Local Minima, Saddle Points, Plateaus](critical_points.md)
+- **Critical Points**: See Local Minima, Saddle Points, Plateaus
 - **Initialization**: Explored in [Xavier Initialization](../../ch04/feedforward/depth_vs_width.md)
 - **Regularization**: See [L2 Regularization](../../ch04/regularization/l2_regularization.md)
 - **Adaptive Optimizers**: Help with non-convex, see [Adam](../../ch05/optimizers/adam.md)

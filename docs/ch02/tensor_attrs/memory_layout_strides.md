@@ -569,8 +569,8 @@ The stride mechanism is PyTorch's way of mapping multi-dimensional tensor indice
 
 ## See Also
 
-- [Dtype and Device](dtype_device.md) — Data type and device attributes
-- [Reshaping and Views](reshaping_view.md) — Detailed reshaping operations
-- [Broadcasting Rules](broadcasting_rules.md) — Implicit tensor expansion
-- [Shape Manipulation](shape_manipulation.md) — Indexing, concatenation, and splitting
-- [Memory Management](memory_management.md) — Views, copies, and GPU memory
+- Dtype and Device — Data type and device attributes
+- Reshaping and Views — Detailed reshaping operations
+- Broadcasting Rules — Implicit tensor expansion
+- Shape Manipulation — Indexing, concatenation, and splitting
+- Memory Management — Views, copies, and GPU memory

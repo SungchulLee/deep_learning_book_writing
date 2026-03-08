@@ -87,5 +87,5 @@ Adversarial robustness in financial machine learning systems.
 
 Supplementary materials and code examples.
 
-- [Adversarial Robustness Overview](adversarial/adversarial_robustness_overview.md) -- Module overview covering attacks, defenses, and evaluation techniques
+- Adversarial Robustness Overview -- Module overview covering attacks, defenses, and evaluation techniques
 - [Adversarial Attacks on NLP Models](adversarial/nlp_adversarial.md) -- Character-level, word-level, and sentence-level attacks on text-based financial models

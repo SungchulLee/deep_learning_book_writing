@@ -76,8 +76,8 @@ Standard practice for diffusion model evaluation:
 
 FID captures overall distributional similarity but may not reflect:
 
-- **Text-image alignment** in conditional generation → use [CLIP Score](clip_score.md) instead
-- **Fine-grained perceptual quality** → complement with [human evaluation](human_evaluation.md)
+- **Text-image alignment** in conditional generation → use CLIP Score instead
+- **Fine-grained perceptual quality** → complement with human evaluation
 - **Likelihood fit** → use [BPD/NLL](likelihood.md) for models with tractable ELBO
 
 A complete diffusion model evaluation should report FID alongside complementary metrics. See the comprehensive FID treatment in [§24.6](../../ch25/gan_evaluation/fid.md) for implementation details, sample size analysis, and bootstrap confidence intervals.

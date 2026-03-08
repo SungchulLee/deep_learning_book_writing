@@ -85345,8 +85345,8 @@
 <h2 id="when-fid-falls-short-for-diffusion">When FID Falls Short for Diffusion<a class="headerlink" href="#when-fid-falls-short-for-diffusion" title="Permanent link">&para;</a></h2>
 <p>FID captures overall distributional similarity but may not reflect:</p>
 <ul>
-<li><strong>Text-image alignment</strong> in conditional generation → use <a href="clip_score.md">CLIP Score</a> instead</li>
-<li><strong>Fine-grained perceptual quality</strong> → complement with <a href="human_evaluation.md">human evaluation</a></li>
+<li><strong>Text-image alignment</strong> in conditional generation → use CLIP Score instead</li>
+<li><strong>Fine-grained perceptual quality</strong> → complement with human evaluation</li>
 <li><strong>Likelihood fit</strong> → use <a href="../likelihood/">BPD/NLL</a> for models with tractable ELBO</li>
 </ul>
 <p>A complete diffusion model evaluation should report FID alongside complementary metrics. See the comprehensive FID treatment in <a href="../../../ch25/gan_evaluation/fid/">§24.6</a> for implementation details, sample size analysis, and bootstrap confidence intervals.</p>

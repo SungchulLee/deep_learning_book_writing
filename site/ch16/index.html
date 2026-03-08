@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#chapter-overview" class="md-skip">
+        <a href="#chapter-16-approximate-inference" class="md-skip">
           Skip to content
         </a>
       
@@ -39708,6 +39708,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -39724,6 +39742,58 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#variational-inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variational Inference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expectation-maximization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expectation-Maximization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bayesian-neural-networks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bayesian Neural Networks
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -84923,6 +84993,47 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#variational-inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variational Inference
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#expectation-maximization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Expectation-Maximization
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#bayesian-neural-networks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Bayesian Neural Networks
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -84938,21 +85049,16 @@
 
 
 
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</p>
-<h1 id="chapter-overview">Chapter Overview<a class="headerlink" href="#chapter-overview" title="Permanent link">&para;</a></h1>
-<p>This chapter covers <strong>MST and Union-Find</strong>.</p>
-<h1 id="reference">Reference<a class="headerlink" href="#reference" title="Permanent link">&para;</a></h1>
-<h1 id="introduction-to-algorithms-clrs-chapter-23"><a href="https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition">Introduction to Algorithms (CLRS), Chapter 23</a><a class="headerlink" href="#introduction-to-algorithms-clrs-chapter-23" title="Permanent link">&para;</a></h1>
 <h1 id="chapter-16-approximate-inference">Chapter 16: Approximate Inference<a class="headerlink" href="#chapter-16-approximate-inference" title="Permanent link">&para;</a></h1>
 <p>This chapter covers the major families of approximate inference methods that make Bayesian computation tractable for complex models. Variational inference recasts posterior approximation as an optimization problem, the EM algorithm handles latent variable models through iterative expectation and maximization, and Bayesian neural networks extend these ideas to deep learning with principled uncertainty quantification.</p>
 <hr />
 <h2 id="variational-inference">Variational Inference<a class="headerlink" href="#variational-inference" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="variational_inference/variational_inference_approximating_posterior_overview.md">Overview</a> -- Comprehensive introduction to variational inference and approximate posterior methods</li>
-<li><a href="variational_inference/readme_01_intro.md">Theoretical Background</a> -- Bayesian intractability, KL divergence, and the formulation of VI as optimization</li>
-<li><a href="variational_inference/readme_02_elbo.md">ELBO and KL Derivation</a> -- Detailed derivation of the evidence lower bound and its relationship to KL divergence</li>
-<li><a href="variational_inference/readme_03_elbo_plus_kl.md">ELBO plus KL Identity</a> -- Step-by-step proof of the decomposition of log-evidence into ELBO and KL divergence</li>
-<li><a href="variational_inference/readme_01_variational_inference_approximating_posterior.md">Approximating the Posterior</a> -- Using parametric models to approximate the posterior distribution in deep VI settings</li>
+<li>Overview -- Comprehensive introduction to variational inference and approximate posterior methods</li>
+<li>Theoretical Background -- Bayesian intractability, KL divergence, and the formulation of VI as optimization</li>
+<li>ELBO and KL Derivation -- Detailed derivation of the evidence lower bound and its relationship to KL divergence</li>
+<li>ELBO plus KL Identity -- Step-by-step proof of the decomposition of log-evidence into ELBO and KL divergence</li>
+<li>Approximating the Posterior -- Using parametric models to approximate the posterior distribution in deep VI settings</li>
 <li><a href="variational_inference/framework/">Variational Inference Framework</a> -- Formulating VI as optimization, the relationship to KL divergence, and comparison with other methods</li>
 <li><a href="variational_inference/elbo/">Evidence Lower Bound (ELBO)</a> -- Three complementary derivations, gap analysis, tightness conditions, and connections to EM and VAEs</li>
 <li><a href="variational_inference/mean_field/">Mean-Field Variational Inference</a> -- The fully-factorized approximation, optimal factor derivation, and limitations of ignoring correlations</li>
@@ -84971,24 +85077,9 @@
 <li><a href="bnn/fundamentals/">BNN Fundamentals</a> -- Placing probability distributions over weights for principled uncertainty quantification</li>
 <li><a href="bnn/weight_uncertainty/">Weight Uncertainty</a> -- Prior specification over weights, the geometry of weight spaces, and key inference approaches</li>
 <li><a href="bnn/bayes_by_backprop/">Bayes by Backprop</a> -- Training BNNs via variational inference using ELBO optimization and the reparameterization trick</li>
-<li><a href="bnn/bnn_vs_ensembles.md">BNNs vs Deep Ensembles</a> -- Comparing Bayesian and ensemble approaches to uncertainty quantification in theory and practice</li>
+<li>BNNs vs Deep Ensembles -- Comparing Bayesian and ensemble approaches to uncertainty quantification in theory and practice</li>
 <li><a href="bnn/prior_selection/">Prior Selection</a> -- Gaussian, Laplace, horseshoe, and spike-and-slab priors with hierarchical and empirical Bayes strategies</li>
-<li><a href="bnn/scalability.md">Scalability Challenges</a> -- Computational bottlenecks, approximate inference complexity, and hybrid approaches for large-scale BNNs<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>96f31bd (...)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</li>
+<li>Scalability Challenges -- Computational bottlenecks, approximate inference complexity, and hybrid approaches for large-scale BNNs</li>
 </ul>
 
 

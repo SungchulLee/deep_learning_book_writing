@@ -164,7 +164,7 @@ The reconstruction term $\mathbb{E}_q[\log p_\theta(x|z)]$ corresponds to differ
 
 The $\beta$-VAE objective $\mathcal{L} = \mathbb{E}_q[\log p_\theta(x|z)] - \beta \, D_{\text{KL}}$ interpolates between reconstruction quality ($\beta \to 0$) and latent space regularity ($\beta \to \infty$). The standard VAE corresponds to $\beta = 1$.
 
-For a detailed treatment of KL divergence computation (including the Gaussian closed form), see [KL Divergence](../../ch03/loss/kl_divergence.md). For the reparameterisation trick, see the [Reparameterization](../../ch22/theory/reparameterization.md) page. For a full PyTorch implementation of the VAE objective, see [PyTorch Implementation](../../ch22/architecture/implementation.md).
+For a detailed treatment of KL divergence computation (including the Gaussian closed form), see [KL Divergence](../../ch03/loss/kl_divergence.md). For the reparameterisation trick, see the Reparameterization page. For a full PyTorch implementation of the VAE objective, see PyTorch Implementation.
 
 ## ELBO for a Gaussian Model (Worked Example)
 

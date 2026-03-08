@@ -1,12 +1,3 @@
-<<<<<<< HEAD
-# Chapter Overview
-
-This chapter covers **Graph Fundamentals**.
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Chapter 22](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-=======
 # Chapter 14: Probabilistic Graphical Models
 
 This chapter provides a comprehensive treatment of probabilistic graphical models (PGMs), which use graph structures to compactly represent high-dimensional joint distributions. We cover directed models (Bayesian networks), undirected models (Markov random fields), exact and approximate inference algorithms, and methods for learning both parameters and structure from data.
@@ -15,37 +6,36 @@ This chapter provides a comprehensive treatment of probabilistic graphical model
 
 ## PGM Foundations
 
-- [PGM Overview](pgm_foundations/probabilistic_graphical_models_overview.md) -- Complete educational overview of graphical models from foundational concepts to advanced applications
+- PGM Overview -- Complete educational overview of graphical models from foundational concepts to advanced applications
 - [Fundamentals](pgm_foundations/fundamentals.md) -- The curse of dimensionality in probability and how conditional independence enables tractable factorizations
-- [Conditional Independence](pgm_foundations/conditional_independence.md) -- Formal definition, relation to graphical models, factorization, and statistical testing methods
-- [D-Separation](pgm_foundations/d_separation.md) -- Graphical criterion for determining conditional independence in Bayesian networks without computing probabilities
-- [Plate Notation](pgm_foundations/plate_notation.md) -- Compact graphical representation for models with repeated structure, including nested and crossed plates
+- Conditional Independence -- Formal definition, relation to graphical models, factorization, and statistical testing methods
+- D-Separation -- Graphical criterion for determining conditional independence in Bayesian networks without computing probabilities
+- Plate Notation -- Compact graphical representation for models with repeated structure, including nested and crossed plates
 
 ## Directed Models
 
-- [Bayesian Networks](pgm_directed_models/bayesian_networks.md) -- Directed acyclic graphs representing joint distributions via conditional probability tables
-- [Naive Bayes as a PGM](pgm_directed_models/naive_bayes_pgm.md) -- The naive conditional independence assumption, parameter savings, and why it works despite the assumption
-- [Dynamic Bayesian Networks](pgm_directed_models/dynamic_bayesian.md) -- Temporal extensions of Bayesian networks including the relationship to HMMs and Kalman filters
-- [Causal Inference](pgm_directed_models/causal_inference.md) -- Distinguishing correlation from causation through do-calculus, interventions, and the adjustment formula
+- Bayesian Networks -- Directed acyclic graphs representing joint distributions via conditional probability tables
+- Naive Bayes as a PGM -- The naive conditional independence assumption, parameter savings, and why it works despite the assumption
+- Dynamic Bayesian Networks -- Temporal extensions of Bayesian networks including the relationship to HMMs and Kalman filters
+- Causal Inference -- Distinguishing correlation from causation through do-calculus, interventions, and the adjustment formula
 
 ## Undirected Models
 
-- [Markov Random Fields](pgm_undirected_models/mrf.md) -- Undirected graphical models using potential functions and the Gibbs distribution for symmetric relationships
-- [Factor Graphs](pgm_undirected_models/factor_graphs.md) -- Unified bipartite graph representation subsuming both Bayesian networks and MRFs
-- [Ising Model](pgm_undirected_models/ising_model.md) -- The canonical undirected model from statistical physics with pairwise interactions on a lattice
-- [Conditional Random Fields](pgm_undirected_models/crf.md) -- Discriminative undirected models for sequence labeling that model conditional distributions directly
+- Markov Random Fields -- Undirected graphical models using potential functions and the Gibbs distribution for symmetric relationships
+- Factor Graphs -- Unified bipartite graph representation subsuming both Bayesian networks and MRFs
+- Ising Model -- The canonical undirected model from statistical physics with pairwise interactions on a lattice
+- Conditional Random Fields -- Discriminative undirected models for sequence labeling that model conditional distributions directly
 
 ## Inference
 
-- [Variable Elimination](pgm_inference/variable_elimination.md) -- Exploiting factored structure by pushing sums inside products to eliminate variables one at a time
-- [Belief Propagation](pgm_inference/belief_propagation.md) -- Message passing algorithm for computing exact marginals on tree-structured graphical models
-- [Loopy Belief Propagation](pgm_inference/loopy_bp.md) -- Applying BP message passing to graphs with cycles as an approximate inference method
-- [Junction Tree Algorithm](pgm_inference/junction_tree.md) -- Exact inference on arbitrary graphs by transforming the original graph into a tree of clusters
+- Variable Elimination -- Exploiting factored structure by pushing sums inside products to eliminate variables one at a time
+- Belief Propagation -- Message passing algorithm for computing exact marginals on tree-structured graphical models
+- Loopy Belief Propagation -- Applying BP message passing to graphs with cycles as an approximate inference method
+- Junction Tree Algorithm -- Exact inference on arbitrary graphs by transforming the original graph into a tree of clusters
 
 ## Learning
 
-- [Parameter Learning](pgm_learning/parameter_learning.md) -- MLE and Bayesian estimation of conditional distributions given a fixed graph structure
-- [Structure Learning](pgm_learning/structure_learning.md) -- Discovering graph structure from data through score-based search and constraint-based testing
+- Parameter Learning -- MLE and Bayesian estimation of conditional distributions given a fixed graph structure
+- Structure Learning -- Discovering graph structure from data through score-based search and constraint-based testing
 - [EM for PGMs](pgm_learning/em_for_pgms.md) -- Expectation-Maximization for learning parameters of graphical models with latent variables
-- [Score-Based vs Constraint-Based Learning](pgm_learning/score_vs_constraint.md) -- Comparing the two main paradigms for structure discovery with their respective scoring functions and tests
->>>>>>> 96f31bd (...)
+- Score-Based vs Constraint-Based Learning -- Comparing the two main paradigms for structure discovery with their respective scoring functions and tests

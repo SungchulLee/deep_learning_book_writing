@@ -85586,7 +85586,7 @@
 
 
 <h1 id="kl-divergence">KL Divergence<a class="headerlink" href="#kl-divergence" title="Permanent link">&para;</a></h1>
-<p>Kullback-Leibler divergence measures how one probability distribution diverges from another. It appears throughout deep learning as a regularization term in variational autoencoders, a training objective in knowledge distillation, and a theoretical tool for understanding model behavior. This section introduces the definition, core properties, and PyTorch interfaces, with dedicated sub-pages for <a href="kl_distance_axioms.md">distance axioms</a>, <a href="kl_gaussian.md">Gaussian computation</a>, and <a href="kl_fisher_information.md">Fisher information</a>.</p>
+<p>Kullback-Leibler divergence measures how one probability distribution diverges from another. It appears throughout deep learning as a regularization term in variational autoencoders, a training objective in knowledge distillation, and a theoretical tool for understanding model behavior. This section introduces the definition, core properties, and PyTorch interfaces, with dedicated sub-pages for distance axioms, Gaussian computation, and Fisher information.</p>
 <h2 id="definition">Definition<a class="headerlink" href="#definition" title="Permanent link">&para;</a></h2>
 <p>For discrete distributions <span class="arithmatex">\(p\)</span> and <span class="arithmatex">\(q\)</span> over the same sample space:</p>
 <div class="arithmatex">\[D_{\text{KL}}(p \| q) = \sum_i p_i \log\frac{p_i}{q_i} = \mathbb{E}_{p}\!\left[\log \frac{p_i}{q_i}\right]\]</div>
@@ -85644,11 +85644,11 @@ D_{\text{KL}}(f \| g)
 <p>This is <strong>mode-seeking</strong>: <span class="arithmatex">\(q\)</span> concentrates on a single mode of <span class="arithmatex">\(p\)</span> rather than spreading across all modes. <span class="arithmatex">\(q\)</span> avoids placing mass where <span class="arithmatex">\(p\)</span> is small because those regions incur large <span class="arithmatex">\(\log q(x) - \log p(x)\)</span> penalties.</p>
 <p><strong>Typical use:</strong> Variational inference (we can evaluate <span class="arithmatex">\(\log p\)</span> up to a constant but cannot sample from <span class="arithmatex">\(p\)</span>).</p>
 <h2 id="not-a-metric">Not a Metric<a class="headerlink" href="#not-a-metric" title="Permanent link">&para;</a></h2>
-<p>Despite being called a "divergence," KL divergence is not a distance metric. It satisfies non-negativity and identity of indiscernibles but violates symmetry and the triangle inequality. The detailed analysis with proofs and numerical counterexamples is in <a href="kl_distance_axioms.md">KL Divergence and Distance Axioms</a>.</p>
+<p>Despite being called a "divergence," KL divergence is not a distance metric. It satisfies non-negativity and identity of indiscernibles but violates symmetry and the triangle inequality. The detailed analysis with proofs and numerical counterexamples is in KL Divergence and Distance Axioms.</p>
 <h2 id="local-behavior-fisher-information">Local Behavior: Fisher Information<a class="headerlink" href="#local-behavior-fisher-information" title="Permanent link">&para;</a></h2>
 <p>A Taylor expansion of <span class="arithmatex">\(D_{\text{KL}}(f_{\theta_0} \| f_\theta)\)</span> around <span class="arithmatex">\(\theta = \theta_0\)</span> reveals that locally, KL divergence behaves like a quadratic form:</p>
 <div class="arithmatex">\[D_{\text{KL}}(f_{\theta_0} \| f_\theta) \approx \frac{1}{2}(\theta - \theta_0)^T\, \mathbf{I}(\theta_0)\, (\theta - \theta_0)\]</div>
-<p>where <span class="arithmatex">\(\mathbf{I}(\theta_0)\)</span> is the <strong>Fisher information matrix</strong>. Near the minimum, KL divergence behaves like a Mahalanobis distance, providing a natural Riemannian metric on the space of probability distributions. This underpins natural gradient methods, trust region optimization (TRPO, PPO), and variational inference. The full derivation is in <a href="kl_fisher_information.md">KL and Fisher Information</a>.</p>
+<p>where <span class="arithmatex">\(\mathbf{I}(\theta_0)\)</span> is the <strong>Fisher information matrix</strong>. Near the minimum, KL divergence behaves like a Mahalanobis distance, providing a natural Riemannian metric on the space of probability distributions. This underpins natural gradient methods, trust region optimization (TRPO, PPO), and variational inference. The full derivation is in KL and Fisher Information.</p>
 <h2 id="kl-divergence-for-gaussians">KL Divergence for Gaussians<a class="headerlink" href="#kl-divergence-for-gaussians" title="Permanent link">&para;</a></h2>
 <h3 id="univariate-formula">Univariate Formula<a class="headerlink" href="#univariate-formula" title="Permanent link">&para;</a></h3>
 <p>For <span class="arithmatex">\(p = \mathcal{N}(\mu_1, \sigma_1^2)\)</span> and <span class="arithmatex">\(q = \mathcal{N}(\mu_2, \sigma_2^2)\)</span>:</p>
@@ -85659,7 +85659,7 @@ D_{\text{KL}}(f \| g)
 <h3 id="vae-special-case">VAE Special Case<a class="headerlink" href="#vae-special-case" title="Permanent link">&para;</a></h3>
 <p>For encoder <span class="arithmatex">\(q_\phi(z|x) = \mathcal{N}(\mu, \text{diag}(\sigma_1^2, \ldots, \sigma_d^2))\)</span> and prior <span class="arithmatex">\(p(z) = \mathcal{N}(0, I)\)</span>:</p>
 <div class="arithmatex">\[D_{\text{KL}}(q \| p) = -\frac{1}{2}\sum_{j=1}^{d}\!\left(1 + \log\sigma_j^2 - \mu_j^2 - \sigma_j^2\right)\]</div>
-<p>The complete derivation with the full-covariance case is in <a href="kl_gaussian.md">KL for Gaussians</a>.</p>
+<p>The complete derivation with the full-covariance case is in KL for Gaussians.</p>
 <h2 id="application-in-vaes">Application in VAEs<a class="headerlink" href="#application-in-vaes" title="Permanent link">&para;</a></h2>
 <p>In a Variational Autoencoder, the loss combines reconstruction error with KL regularization. Starting from the ELBO decomposition:</p>
 <div class="arithmatex">\[\log p(x) = \underbrace{\mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{\text{KL}}(q_\phi(z|x) \| p(z))}_{\mathcal{L}_{\text{ELBO}}} + D_{\text{KL}}(q_\phi(z|x) \| p_\theta(z|x))\]</div>

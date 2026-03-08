@@ -66,7 +66,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#chapter-overview" class="md-skip">
+        <a href="#chapter-11-few-shot-zero-shot-learning" class="md-skip">
           Skip to content
         </a>
       
@@ -29517,6 +29517,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -29533,6 +29551,80 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#few-shot-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Few-Shot Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metric-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metric Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#meta-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Meta-Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#few-shot-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Few-Shot Benchmarks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zero-shot-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zero-Shot Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -84923,6 +85015,69 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#few-shot-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Few-Shot Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#metric-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Metric Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#meta-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Meta-Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#few-shot-benchmarks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Few-Shot Benchmarks
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#zero-shot-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Zero-Shot Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -84938,69 +85093,49 @@
 
 
 
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</p>
-<h1 id="chapter-overview">Chapter Overview<a class="headerlink" href="#chapter-overview" title="Permanent link">&para;</a></h1>
-<p>This chapter covers <strong>Sorting Fundamentals</strong>.</p>
-<h1 id="reference">Reference<a class="headerlink" href="#reference" title="Permanent link">&para;</a></h1>
-<h1 id="introduction-to-algorithms-clrs-chapter-8"><a href="https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition">Introduction to Algorithms (CLRS), Chapter 8</a><a class="headerlink" href="#introduction-to-algorithms-clrs-chapter-8" title="Permanent link">&para;</a></h1>
 <h1 id="chapter-11-few-shot-zero-shot-learning">Chapter 11: Few-Shot &amp; Zero-Shot Learning<a class="headerlink" href="#chapter-11-few-shot-zero-shot-learning" title="Permanent link">&para;</a></h1>
 <p>This chapter explores learning paradigms that operate with minimal or no labeled examples per class. Few-shot learning develops algorithms that generalize from just a handful of examples, while zero-shot learning leverages semantic knowledge to recognize classes never seen during training. Together, these approaches address one of deep learning's most significant limitations: the dependence on massive labeled datasets.</p>
 <hr />
 <h2 id="few-shot-learning">Few-Shot Learning<a class="headerlink" href="#few-shot-learning" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="few_shot/few_shot_learning_overview.md">Few-Shot Learning Examples</a> -- Collection of Python implementations covering prototypical networks, matching networks, MAML, and more</li>
+<li>Few-Shot Learning Examples -- Collection of Python implementations covering prototypical networks, matching networks, MAML, and more</li>
 <li><a href="few_shot/few_shot_overview/">Few-Shot Learning Fundamentals</a> -- Problem formulation, formal definitions, and the distinction between training on seen classes and testing on novel classes</li>
-<li><a href="few_shot/nway_kshot.md">N-way K-shot Setup</a> -- The standard evaluation protocol structuring tasks around support and query sets with common configurations</li>
-<li><a href="few_shot/episode_training.md">Episode-Based Training</a> -- Simulating few-shot conditions during training through episodic sampling of support and query sets</li>
-<li><a href="few_shot/augmentation.md">Data Augmentation for Few-Shot</a> -- Feature-space and image-space augmentation strategies tailored to low-data regimes</li>
+<li>N-way K-shot Setup -- The standard evaluation protocol structuring tasks around support and query sets with common configurations</li>
+<li>Episode-Based Training -- Simulating few-shot conditions during training through episodic sampling of support and query sets</li>
+<li>Data Augmentation for Few-Shot -- Feature-space and image-space augmentation strategies tailored to low-data regimes</li>
 </ul>
 <h2 id="metric-learning">Metric Learning<a class="headerlink" href="#metric-learning" title="Permanent link">&para;</a></h2>
 <ul>
 <li><a href="metric_learning/siamese/">Siamese Networks</a> -- Twin-network architecture for one-shot learning through pairwise similarity comparison</li>
 <li><a href="metric_learning/prototypical/">Prototypical Networks</a> -- Classification via nearest class prototypes (centroids) in a learned embedding space</li>
-<li><a href="metric_learning/matching_networks.md">Matching Networks</a> -- Attention-based weighted nearest-neighbour classification with episodic training</li>
-<li><a href="metric_learning/relation_networks.md">Relation Networks</a> -- Replacing fixed distance metrics with a learned neural similarity function</li>
+<li>Matching Networks -- Attention-based weighted nearest-neighbour classification with episodic training</li>
+<li>Relation Networks -- Replacing fixed distance metrics with a learned neural similarity function</li>
 </ul>
 <h2 id="meta-learning">Meta-Learning<a class="headerlink" href="#meta-learning" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="meta_learning/overview.md">Overview of Meta-Learning</a> -- Introduction to "learning to learn" paradigms including optimization-based, metric-based, and model-based approaches</li>
+<li>Overview of Meta-Learning -- Introduction to "learning to learn" paradigms including optimization-based, metric-based, and model-based approaches</li>
 <li><a href="meta_learning/maml/">MAML</a> -- Model-Agnostic Meta-Learning that finds initializations enabling rapid adaptation via a few gradient steps</li>
-<li><a href="meta_learning/reptile.md">Reptile</a> -- A simpler first-order meta-learning alternative to MAML using only standard gradient descent</li>
-<li><a href="meta_learning/meta_sgd.md">Meta-SGD</a> -- Extension of MAML that additionally learns per-parameter learning rates and update directions</li>
+<li>Reptile -- A simpler first-order meta-learning alternative to MAML using only standard gradient descent</li>
+<li>Meta-SGD -- Extension of MAML that additionally learns per-parameter learning rates and update directions</li>
 <li><a href="meta_learning/learned_optimizers/">Learned Optimizers</a> -- Meta-learning the optimization process itself, replacing fixed update rules with learned functions</li>
 <li><a href="meta_learning/task_distribution/">Task Distribution Design</a> -- Principles and strategies for constructing task distributions that ensure meta-learning generalization</li>
 </ul>
 <h2 id="few-shot-benchmarks">Few-Shot Benchmarks<a class="headerlink" href="#few-shot-benchmarks" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="few_shot_benchmarks/benchmarks.md">Benchmark Datasets</a> -- Survey of standard datasets including Omniglot, mini-ImageNet, tiered-ImageNet, and CUB-200</li>
-<li><a href="few_shot_benchmarks/meta_dataset.md">Meta-Dataset</a> -- Large-scale benchmark spanning 10 diverse image domains with variable-way variable-shot episodes</li>
-<li><a href="few_shot_benchmarks/evaluation_protocols.md">Evaluation Protocols</a> -- Standard protocols, backbone impact analysis, and common pitfalls in few-shot evaluation</li>
+<li>Benchmark Datasets -- Survey of standard datasets including Omniglot, mini-ImageNet, tiered-ImageNet, and CUB-200</li>
+<li>Meta-Dataset -- Large-scale benchmark spanning 10 diverse image domains with variable-way variable-shot episodes</li>
+<li>Evaluation Protocols -- Standard protocols, backbone impact analysis, and common pitfalls in few-shot evaluation</li>
 </ul>
 <h2 id="zero-shot-learning">Zero-Shot Learning<a class="headerlink" href="#zero-shot-learning" title="Permanent link">&para;</a></h2>
 <ul>
-<li><a href="zero_shot/zero_shot_learning_overview.md">Zero-Shot Learning Overview</a> -- Comprehensive overview of ZSL theory, semantic relationships, and transfer from seen to unseen classes</li>
+<li>Zero-Shot Learning Overview -- Comprehensive overview of ZSL theory, semantic relationships, and transfer from seen to unseen classes</li>
 <li><a href="zero_shot/zero_shot_overview/">Zero-Shot Fundamentals</a> -- Formal problem definition, training/testing protocols, and mathematical foundations for all ZSL methods</li>
 <li><a href="zero_shot/attribute_based/">Attribute-Based Methods</a> -- Direct and indirect attribute prediction approaches using semantic attribute vectors per class</li>
 <li><a href="zero_shot/embedding_based/">Semantic Embedding Methods</a> -- Replacing manual attributes with continuous word embeddings learned from text corpora</li>
 <li><a href="zero_shot/classification/">Zero-Shot Classification</a> -- Visual-semantic embedding models including DeViSE and bilinear compatibility architectures</li>
 <li><a href="zero_shot/generalized/">Generalized Zero-Shot Learning</a> -- Extended setting where test instances may come from either seen or unseen classes</li>
-<li><a href="zero_shot/clip_zero_shot.md">CLIP for Zero-Shot Learning</a> -- Leveraging contrastive language-image pretraining for open-vocabulary zero-shot classification</li>
-<li><a href="zero_shot/segmentation.md">Zero-Shot Segmentation</a> -- Extending zero-shot learning to dense pixel-level prediction using vision-language models<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>96f31bd (...)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</li>
+<li>CLIP for Zero-Shot Learning -- Leveraging contrastive language-image pretraining for open-vocabulary zero-shot classification</li>
+<li>Zero-Shot Segmentation -- Extending zero-shot learning to dense pixel-level prediction using vision-language models</li>
 </ul>
 
 

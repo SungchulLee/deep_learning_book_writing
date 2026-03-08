@@ -2,11 +2,6 @@
 
 This chapter covers **External Memory**.
 
-<<<<<<< HEAD
-# Reference
-
-[Algorithms and Data Structures for External Memory (Vitter)](https://www.ittc.ku.edu/~jsv/Papers/Vit.IO_book.pdf)
-=======
 Graph generation learns distributions over graph-structured data and produces novel graphs that are statistically indistinguishable from training samples. This chapter covers the fundamental challenges of generating discrete, permutation-invariant structures with variable dimensionality, and explores autoregressive, one-shot, and diffusion-based approaches. Applications span molecular design, financial network synthesis, and transaction graph generation.
 
 ## Contents
@@ -37,14 +32,13 @@ Graph generation learns distributions over graph-structured data and produces no
 
 ### 31.5 Molecular Generation
 
-- [Molecular Graphs](molecular/graphs.md) -- Representing molecules as attributed graphs with atom types, bond types, and chemical valency constraints
-- [SMILES-Based Generation](molecular/smiles.md) -- Reducing molecular generation to sequence modeling using SMILES string representations and language model techniques
-- [3D Molecule Generation](molecular/3d_generation.md) -- Joint generation of molecular graphs and atomic coordinates with SE(3)-equivariant models
-- [Property Optimization](molecular/property_optimization.md) -- Generating molecules optimized for target properties using RL, Bayesian optimization, and latent space search
+- Molecular Graphs -- Representing molecules as attributed graphs with atom types, bond types, and chemical valency constraints
+- SMILES-Based Generation -- Reducing molecular generation to sequence modeling using SMILES string representations and language model techniques
+- 3D Molecule Generation -- Joint generation of molecular graphs and atomic coordinates with SE(3)-equivariant models
+- Property Optimization -- Generating molecules optimized for target properties using RL, Bayesian optimization, and latent space search
 
 ### 31.6 Financial Applications
 
-- [Financial Network Generation](finance/networks.md) -- Synthesizing realistic interbank, correlation, and derivative networks for stress testing and systemic risk assessment
+- Financial Network Generation -- Synthesizing realistic interbank, correlation, and derivative networks for stress testing and systemic risk assessment
 - [Transaction Graph Generation](finance/transactions.md) -- Generating temporal transaction graphs for AML model development and fraud detection training
-- [Synthetic Market Networks](finance/market_networks.md) -- Generating asset correlation and market structure networks for portfolio stress testing and regime analysis
->>>>>>> 96f31bd (...)
+- Synthetic Market Networks -- Generating asset correlation and market structure networks for portfolio stress testing and regime analysis

@@ -4,7 +4,7 @@
 
 Evaluating large language models is uniquely challenging because LLMs are used for an enormous range of tasks — from factual question answering to creative writing, code generation to multi-turn dialogue — and no single metric captures quality across all of them. This section covers the three pillars of LLM evaluation: **intrinsic metrics** that measure language modeling quality, **task-specific metrics** that assess performance on particular capabilities, and **human evaluation** protocols that capture the nuanced quality dimensions that automatic metrics miss. We also cover the growing role of **LLM-as-judge** evaluation and the major **benchmarks** used to compare models.
 
-The evaluation methods here apply to base language models (assessed during [pretraining](pretraining_objectives.md)), to instruction-tuned models (assessed on [prompting](../prompting/prompting_overview.md) tasks), and to aligned assistants (assessed on the [alignment](../alignment/alignment_overview.md) objectives of helpfulness, harmlessness, and honesty).
+The evaluation methods here apply to base language models (assessed during [pretraining](pretraining_objectives.md)), to instruction-tuned models (assessed on [prompting](../prompting/prompting_overview.md) tasks), and to aligned assistants (assessed on the alignment objectives of helpfulness, harmlessness, and honesty).
 
 ---
 
@@ -28,7 +28,7 @@ where $T$ is the total number of tokens in the test set.
 
 $$\text{BPB} = \frac{\text{total cross-entropy (bits)}}{\text{total bytes in test set}}$$
 
-This normalizes by the raw data size rather than the number of tokens. BPB is used in the [Chinchilla](../scaling/chinchilla.md) scaling analysis for fair comparison across models with different tokenizers (see [Tokenization and Scale](tokenization_scale.md)).
+This normalizes by the raw data size rather than the number of tokens. BPB is used in the Chinchilla scaling analysis for fair comparison across models with different tokenizers (see Tokenization and Scale).
 
 ### 1.2 Limitations of Perplexity
 
@@ -116,7 +116,7 @@ The **pass@$k$** metric samples $k$ completions and checks if any passes the tes
 
 $$\text{pass@}k = 1 - \frac{\binom{n-c}{k}}{\binom{n}{k}}$$
 
-where $n$ is the total number of samples and $c$ is the number that pass. This accounts for the stochastic nature of sampling (see decoding strategies in [Decoder Architecture](decoder_architecture.md)).
+where $n$ is the total number of samples and $c$ is the number that pass. This accounts for the stochastic nature of sampling (see decoding strategies in Decoder Architecture).
 
 ### 3.3 Instruction Following
 
@@ -138,7 +138,7 @@ These benchmarks evaluate instruction-tuned and aligned models — the output of
 | **XSTest** | Exaggerated safety refusals (over-refusal) |
 | **HarmBench** | Resistance to adversarial attacks |
 
-Safety evaluation is integral to the [alignment](../alignment/alignment_overview.md) process. See [Constitutional AI](../alignment/constitutional.md) for how safety principles are formalized.
+Safety evaluation is integral to the alignment process. See Constitutional AI for how safety principles are formalized.
 
 ---
 
@@ -156,7 +156,7 @@ Human evaluation captures qualities that automatic metrics miss. The standard di
 | **Coherence** | Is the response logically consistent with the conversation? | Medium — modern LLMs rarely fail here |
 | **Fluency** | Is the response grammatically correct and natural? | Low — modern LLMs almost always succeed |
 
-The "HHH" criteria (helpfulness, harmlessness, honesty) from Askell et al. (2021) are the guiding framework for [RLHF](../alignment/rlhf.md) and [reward model](../alignment/reward_modeling.md) training.
+The "HHH" criteria (helpfulness, harmlessness, honesty) from Askell et al. (2021) are the guiding framework for RLHF and reward model training.
 
 ### 4.2 Evaluation Protocols
 
@@ -166,7 +166,7 @@ The "HHH" criteria (helpfulness, harmlessness, honesty) from Askell et al. (2021
 
 $$P(y_A \succ y_B \mid x) = \frac{\exp(R_A)}{\exp(R_A) + \exp(R_B)}$$
 
-which is the same model used to train [reward models](../alignment/reward_modeling.md) from human preferences.
+which is the same model used to train reward models from human preferences.
 
 **Elo rating**: Platforms like **Chatbot Arena** (Zheng et al., 2023) use crowdsourced pairwise comparisons to compute Elo ratings:
 
@@ -227,7 +227,7 @@ LLM-as-judge correlates well with human evaluation (typically $r > 0.8$ for GPT-
 
 ## 6. RAG Evaluation
 
-[Retrieval-augmented generation](../rag/rag_overview.md) requires evaluating both the retrieval component and the generation component:
+Retrieval-augmented generation requires evaluating both the retrieval component and the generation component:
 
 ### 6.1 Retrieval Metrics
 
@@ -245,7 +245,7 @@ LLM-as-judge correlates well with human evaluation (typically $r > 0.8$ for GPT-
 | **Answer relevance** | Does the answer address the original question? |
 | **Context relevance** | Are the retrieved passages relevant to the question? |
 
-The RAGAS framework (Shahul et al., 2023) provides automated evaluation of these dimensions using LLM-as-judge. For full treatment, see [RAG Evaluation](../rag/evaluation.md).
+The RAGAS framework (Shahul et al., 2023) provides automated evaluation of these dimensions using LLM-as-judge. For full treatment, see RAG Evaluation.
 
 ---
 
@@ -277,7 +277,7 @@ In deployed systems, model quality is ultimately measured by user behavior:
 
 Production feedback drives model improvement through:
 
-- **[Reward model](../alignment/reward_modeling.md) updates**: Real user preferences supplement annotator data
+- **Reward model updates**: Real user preferences supplement annotator data
 - **Active learning**: Prioritize uncertain or low-rated interactions for human review
 - **Continued fine-tuning**: Retrain on newly collected high-quality interactions
 - **Failure analysis**: Systematic review of low-rated responses to identify patterns
@@ -291,10 +291,10 @@ Production feedback drives model improvement through:
 | Pretraining validation | Perplexity, BPB | MMLU (zero-shot), HellaSwag | [Pretraining Objectives](pretraining_objectives.md) |
 | Scaling law analysis | Perplexity, BPB | Downstream benchmarks | [Scaling Laws](../scaling/scaling_overview.md) |
 | Instruction tuning | MT-Bench, AlpacaEval | IFEval, Arena-Hard | [Prompting](../prompting/prompting_overview.md) |
-| Alignment | Chatbot Arena Elo, human pairwise | ToxiGen, XSTest, TruthfulQA | [Alignment](../alignment/alignment_overview.md) |
-| Code generation | HumanEval pass@$k$, SWE-bench | MBPP | [LLM Applications](../agents/llm_applications.md) |
-| RAG | RAGAS (faithfulness, relevance), recall@$k$ | BERTScore, human eval | [RAG Evaluation](../rag/evaluation.md) |
-| Production deployment | User satisfaction, task completion | Regeneration rate, retention | [Conversational AI](conversational_ai.md) |
+| Alignment | Chatbot Arena Elo, human pairwise | ToxiGen, XSTest, TruthfulQA | Alignment |
+| Code generation | HumanEval pass@$k$, SWE-bench | MBPP | LLM Applications |
+| RAG | RAGAS (faithfulness, relevance), recall@$k$ | BERTScore, human eval | RAG Evaluation |
+| Production deployment | User satisfaction, task completion | Regeneration rate, retention | Conversational AI |
 
 ---
 

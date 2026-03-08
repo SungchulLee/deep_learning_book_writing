@@ -52165,6 +52165,24 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Chapter Overview
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -52181,6 +52199,69 @@
   
 
       </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#autoencoder-fundamentals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Autoencoder Fundamentals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#representation-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Representation Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#finance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finance
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -84923,6 +85004,58 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#autoencoder-fundamentals" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Autoencoder Fundamentals
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#variants" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Variants
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#representation-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Representation Learning
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#finance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finance
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -84939,62 +85072,43 @@
 
 
 <h1 id="chapter-overview">Chapter Overview<a class="headerlink" href="#chapter-overview" title="Permanent link">&para;</a></h1>
-<p>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
-This chapter covers <strong>Backtracking</strong>.</p>
-<h1 id="reference">Reference<a class="headerlink" href="#reference" title="Permanent link">&para;</a></h1>
-<h1 id="algorithm-design-manual-skiena-chapter-9"><a href="https://www.algorist.com/">Algorithm Design Manual (Skiena), Chapter 9</a><a class="headerlink" href="#algorithm-design-manual-skiena-chapter-9" title="Permanent link">&para;</a></h1>
 <p>This chapter provides a comprehensive treatment of autoencoders for unsupervised learning and dimensionality reduction. Starting from the basic encoder-decoder framework, it covers architecture design, training procedures, loss functions, and major variants including sparse, denoising, contractive, and convolutional autoencoders. The chapter also explores latent space analysis and applications to quantitative finance.</p>
 <hr />
 <h2 id="autoencoder-fundamentals">Autoencoder Fundamentals<a class="headerlink" href="#autoencoder-fundamentals" title="Permanent link">&para;</a></h2>
 <p>Core concepts, architecture design, and training procedures for standard autoencoders.</p>
 <ul>
-<li><a href="ae/introduction.md">Introduction to Autoencoders</a> -- Unsupervised learning, dimensionality reduction, and the bridge from PCA to VAEs</li>
-<li><a href="ae/architecture.md">Architecture</a> -- Encoder-decoder design from basic to convolutional and deep variants</li>
-<li><a href="ae/training.md">Training</a> -- Training procedures, evaluation methods, and practical applications</li>
+<li>Introduction to Autoencoders -- Unsupervised learning, dimensionality reduction, and the bridge from PCA to VAEs</li>
+<li>Architecture -- Encoder-decoder design from basic to convolutional and deep variants</li>
+<li>Training -- Training procedures, evaluation methods, and practical applications</li>
 <li><a href="ae/loss_functions/">Loss Functions</a> -- Reconstruction losses, regularization objectives, and specialized criteria</li>
-<li><a href="ae/bottleneck.md">Bottleneck Design</a> -- Information compression, dimensionality selection, and capacity trade-offs</li>
+<li>Bottleneck Design -- Information compression, dimensionality selection, and capacity trade-offs</li>
 <li><a href="ae/reconstruction_analysis/">Reconstruction Analysis</a> -- Assessing reconstruction quality with per-sample and feature-wise diagnostics</li>
 </ul>
 <hr />
 <h2 id="variants">Variants<a class="headerlink" href="#variants" title="Permanent link">&para;</a></h2>
 <p>Autoencoder variants with different regularization strategies and architectural designs.</p>
 <ul>
-<li><a href="variants/undercomplete.md">Undercomplete and Overcomplete</a> -- How latent vs input dimensionality shapes learning dynamics</li>
-<li><a href="variants/sparse.md">Sparse Autoencoder</a> -- Penalizing hidden unit activations for interpretable features</li>
-<li><a href="variants/denoising.md">Denoising Autoencoder</a> -- Reconstructing clean data from corrupted inputs for robust representations</li>
+<li>Undercomplete and Overcomplete -- How latent vs input dimensionality shapes learning dynamics</li>
+<li>Sparse Autoencoder -- Penalizing hidden unit activations for interpretable features</li>
+<li>Denoising Autoencoder -- Reconstructing clean data from corrupted inputs for robust representations</li>
 <li><a href="variants/contractive/">Contractive Autoencoder</a> -- Penalizing encoder sensitivity to input perturbations</li>
-<li><a href="variants/convolutional.md">Convolutional Autoencoder</a> -- Preserving spatial structure in image data with convolutional layers</li>
+<li>Convolutional Autoencoder -- Preserving spatial structure in image data with convolutional layers</li>
 </ul>
 <hr />
 <h2 id="representation-learning">Representation Learning<a class="headerlink" href="#representation-learning" title="Permanent link">&para;</a></h2>
 <p>Analyzing and understanding learned latent representations.</p>
 <ul>
-<li><a href="representation/latent_space.md">Latent Space</a> -- Geometry, structure, and information-theoretic properties of latent representations</li>
-<li><a href="representation/disentanglement.md">Disentanglement</a> -- Learning dimensions that correspond to independent factors of variation</li>
-<li><a href="representation/interpolation.md">Interpolation and Latent Arithmetic</a> -- Vector arithmetic, smooth interpolation, and semantic direction discovery</li>
+<li>Latent Space -- Geometry, structure, and information-theoretic properties of latent representations</li>
+<li>Disentanglement -- Learning dimensions that correspond to independent factors of variation</li>
+<li>Interpolation and Latent Arithmetic -- Vector arithmetic, smooth interpolation, and semantic direction discovery</li>
 </ul>
 <hr />
 <h2 id="finance">Finance<a class="headerlink" href="#finance" title="Permanent link">&para;</a></h2>
 <p>Applications of autoencoders to quantitative finance problems.</p>
 <ul>
-<li><a href="finance/anomaly_detection.md">Anomaly Detection</a> -- Using reconstruction error to detect market anomalies and fraudulent activity</li>
-<li><a href="finance/factor_discovery.md">Factor Discovery</a> -- Unsupervised extraction of latent risk factors from market data</li>
-<li><a href="finance/portfolio_compression.md">Portfolio Compression</a> -- Dimensionality reduction for portfolio management and risk decomposition<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<blockquote>
-<p>96f31bd (...)</p>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</blockquote>
-</li>
+<li>Anomaly Detection -- Using reconstruction error to detect market anomalies and fraudulent activity</li>
+<li>Factor Discovery -- Unsupervised extraction of latent risk factors from market data</li>
+<li>Portfolio Compression -- Dimensionality reduction for portfolio management and risk decomposition</li>
 </ul>
 
 

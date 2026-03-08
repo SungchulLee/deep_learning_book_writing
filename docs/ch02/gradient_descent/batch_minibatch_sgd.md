@@ -457,7 +457,7 @@ for epoch in range(n_epochs):
 
 - **Learning Rate**: Interacts with batch size, see [Learning Rate](learning_rate.md)
 - **Momentum**: Reduces effective noise, see [Classical Momentum](../../ch05/optimizers/momentum.md)
-- **Batch Normalization**: Statistics depend on batch size, see [Batch Normalization](../../ch04/normalization/batch_norm.md)
+- **Batch Normalization**: Statistics depend on batch size, see Batch Normalization
 - **Distributed Training**: Requires careful batch size scaling
 
 ## Exercises

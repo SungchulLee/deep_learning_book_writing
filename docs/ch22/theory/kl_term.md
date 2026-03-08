@@ -254,4 +254,4 @@ For a bimodal target $p(x) = 0.5\mathcal{N}(-3, 1) + 0.5\mathcal{N}(3, 1)$ and G
 
 ## What's Next
 
-The next section examines the [Reconstruction Term](reconstruction.md), covering the likelihood component of the ELBO and different decoder distribution choices.
+The next section examines the Reconstruction Term, covering the likelihood component of the ELBO and different decoder distribution choices.
