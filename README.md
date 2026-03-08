@@ -1,4 +1,4 @@
-# Local Setup Guide (Git + MkDocs Material)
+# Local Setup Guide for [Deep Learning](https://sungchullee.github.io/deep_learning_book_writing/)
 
 This document explains how to **set up, run, and preview this documentation locally** using **Git** and **MkDocs Material**, step by step, for beginners.
 
@@ -55,7 +55,6 @@ sudo apt install git
 ## Step 2. Install MkDocs Material
 
 Install MkDocs and the Material theme:
-
 ```bash
 python -m pip install mkdocs-material
 ```
@@ -70,7 +69,6 @@ mkdocs --version
 ## Step 3. Move to the Project Directory
 
 Navigate to the directory where `mkdocs.yml` exists.
-
 ```bash
 cd /path/to/your/project
 ```
@@ -131,7 +129,7 @@ http://127.0.0.1:8000/
 ## Summary
 
 | Step | Purpose |
-|----|----|
+|------|---------|
 | Install Git | Version control |
 | Install MkDocs Material | Documentation tool |
 | Move to project folder | Required to run MkDocs |
