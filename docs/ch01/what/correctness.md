@@ -1,58 +1,62 @@
 # Correctness
 
+Correctness means an algorithm or model produces the right output for every valid input. In deep learning, correctness encompasses both implementation correctness (the code does what you intend) and statistical correctness (the model generalizes beyond training data).
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-An algorithm is **correct** if, for every input instance, it halts with the correct output.
-
-$$
-
-\forall \text{ valid input } x: \text{Algorithm}(x) = \text{Expected}(x)
+An algorithm is correct if for every valid input $x$, it halts and produces the expected output:
 
 $$
+\forall \, x \in \mathcal{X}: \; f(x) = \text{Expected}(x)
+$$
 
-## Loop Invariants
+For deterministic algorithms, correctness is absolute. For neural networks, correctness is statistical: we seek low expected loss $\mathbb{E}[\ell(f(x), y)]$ over the data distribution.
 
-A common technique for proving correctness is using **loop invariants** — properties that hold:
+## Explanation
+
+**Loop invariants** are the classical technique for proving algorithm correctness. A loop invariant is a property that holds before and after every iteration:
 
 1. **Initialization**: True before the first iteration
-2. **Maintenance**: If true before an iteration, remains true after
-3. **Termination**: When the loop ends, the invariant gives a useful property
+2. **Maintenance**: If true before an iteration, it remains true after
+3. **Termination**: When the loop ends, the invariant implies correctness
+
+In deep learning, the analogous concept is the **training invariant**: that the loss monotonically decreases (in expectation) with each gradient step under appropriate learning rate. Verifying correctness in practice means:
+
+- **Gradient checking**: Comparing autograd gradients against numerical finite-difference gradients
+- **Overfitting a single batch**: A correct model should achieve near-zero loss on a single batch, confirming the architecture and loss function work together
+- **Unit testing tensor shapes**: Asserting intermediate tensor shapes at each layer
+
+## Examples
 
 ```python
-def insertion_sort(arr):
-    """
-    Correctness proved via loop invariant:
-    At the start of each iteration of the outer loop,
-    arr[0..i-1] contains the same elements as the original
-    arr[0..i-1] but in sorted order.
-    """
-    arr = arr.copy()
-    for i in range(1, len(arr)):
-        key = arr[i]
-        j = i - 1
-        while j >= 0 and arr[j] > key:
-            arr[j + 1] = arr[j]
-            j -= 1
-        arr[j + 1] = key
-    return arr
+import torch
+import torch.nn as nn
 
-def main():
-    arr = [5, 2, 4, 6, 1, 3]
-    print(f"Input:  {arr}")
-    print(f"Sorted: {insertion_sort(arr)}")
+# Gradient checking: verify autograd correctness
+def numerical_gradient(f, x, eps=1e-5):
+    grad = torch.zeros_like(x)
+    for i in range(x.numel()):
+        x_plus = x.clone(); x_plus.view(-1)[i] += eps
+        x_minus = x.clone(); x_minus.view(-1)[i] -= eps
+        grad.view(-1)[i] = (f(x_plus) - f(x_minus)) / (2 * eps)
+    return grad
 
-if __name__ == "__main__":
-    main()
+x = torch.randn(3, requires_grad=True)
+f = lambda x: (x ** 3).sum()
+f(x).backward()
+
+num_grad = numerical_gradient(f, x.detach())
+print(f"Autograd:   {x.grad.tolist()}")
+print(f"Numerical:  {num_grad.tolist()}")
+print(f"Match: {torch.allclose(x.grad, num_grad, atol=1e-4)}")
+
+# Overfit a single batch (correctness test)
+model = nn.Linear(5, 2)
+x_batch = torch.randn(8, 5)
+y_batch = torch.randint(0, 2, (8,))
+opt = torch.optim.Adam(model.parameters(), lr=0.1)
+for _ in range(200):
+    loss = nn.functional.cross_entropy(model(x_batch), y_batch)
+    opt.zero_grad(); loss.backward(); opt.step()
+print(f"Single-batch loss: {loss.item():.6f} (should be ~0)")
 ```
-
-**Output:**
-```
-Input:  [5, 2, 4, 6, 1, 3]
-Sorted: [1, 2, 3, 4, 5, 6]
-```
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Section 2.1](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
