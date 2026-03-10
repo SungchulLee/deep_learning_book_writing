@@ -1,5 +1,9 @@
 # 34.3.1 Trust Region Policy Optimization (TRPO)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 TRPO (Schulman et al., 2015) addresses a fundamental challenge in policy gradient methods: how large should each update step be? Too large a step can catastrophically degrade the policy; too small a step wastes computation. TRPO solves this by formulating policy optimization as a constrained optimization problem where updates are bounded by a KL divergence trust region.

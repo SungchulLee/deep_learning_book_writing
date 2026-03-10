@@ -1,5 +1,9 @@
 # Early Stopping
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Early stopping is a regularization technique that halts training when the model's performance on a validation set stops improving. This prevents overfitting by identifying the point where the model has learned generalizable patterns but hasn't yet begun memorizing training noise.

@@ -1,5 +1,9 @@
 # Online Elastic Weight Consolidation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Online Elastic Weight Consolidation (Online EWC) extends the foundational Elastic Weight Consolidation approach by updating parameter importance estimates continuously during task learning, rather than only after task completion. This online refinement of importance weights enables more accurate identification of critical parameters and smoother knowledge preservation across long task sequences.

@@ -1,5 +1,9 @@
 # SWAG: Stochastic Weight Averaging Gaussian
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **SWAG (Stochastic Weight Averaging Gaussian)** provides a simple, scalable approach to Bayesian inference in neural networks by fitting a Gaussian distribution to the trajectory of SGD iterates. This post-hoc method captures both the mean and covariance of the weight posterior using statistics collected during standard training.
 
 ---

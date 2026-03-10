@@ -1,5 +1,9 @@
 # Non-Local Neural Networks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Non-local operations generalize the concept of local convolutions by computing responses as weighted averages over all spatial and temporal locations in feature maps. By explicitly capturing long-range dependencies without relying on stacked convolutions, non-local networks address a fundamental limitation of convolutional architectures: their inability to efficiently model global context with reasonable depth.

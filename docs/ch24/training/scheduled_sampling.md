@@ -1,5 +1,9 @@
 # Scheduled Sampling
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Scheduled sampling (Bengio et al., 2015) bridges the gap between teacher forcing and free-running generation by gradually replacing ground-truth inputs with the model's own predictions during training.

@@ -1,5 +1,9 @@
 # GNN Explanation Methods
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Graph Neural Networks (GNNs)** process graph-structured data where both node features and graph topology affect predictions. Explaining GNN predictions requires attributing importance not just to input features but also to **edges** and **subgraph structures**. This section covers GNNExplainer, PGExplainer, and SubgraphX.

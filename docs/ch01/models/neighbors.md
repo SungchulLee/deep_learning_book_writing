@@ -1,5 +1,9 @@
 # Neighbors
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 $k$-Nearest Neighbors ($k$-NN) is a non-parametric method that predicts based on the $k$ closest training examples. It makes no assumptions about the data distribution, naturally handles multi-class problems, and serves as a strong baseline for both classification and regression on small-to-medium datasets.
 
 ## KNeighborsClassifier

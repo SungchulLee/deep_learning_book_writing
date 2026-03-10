@@ -1,5 +1,9 @@
 # 3D Matching
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 NP-complete problems are the hardest in NP: every NP problem reduces to them in poly time.
 
 $$P \subseteq NP \subseteq PSPACE \subseteq EXPTIME$$

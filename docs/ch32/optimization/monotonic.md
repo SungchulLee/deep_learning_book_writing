@@ -1,5 +1,9 @@
 # Monotonic Stack/Queue
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 A **monotonic stack** (or **monotonic queue**) maintains elements in sorted order as they are pushed, enabling efficient solutions to problems involving the **next greater/smaller element** or **sliding window min/max**.
 
 ## Monotonic Stack

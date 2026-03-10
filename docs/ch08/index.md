@@ -1,5 +1,9 @@
 # Chapter Overview
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter provides comprehensive coverage of the Transformer architecture, from its core mechanisms through pretrained language models to vision applications. We develop the mathematical foundations of self-attention, explore how BERT, GPT, and T5 leverage the Transformer for different tasks, and examine the extension of Transformers to computer vision.
 
 ---

@@ -1,5 +1,9 @@
 # Elastic Weight Consolidation (EWC)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Elastic Weight Consolidation (EWC)** is one of the most influential regularization-based methods for continual learning, introduced by Kirkpatrick et al. (2017). The key insight of EWC is that not all neural network parameters are equally important for previously learned tasks—some parameters are critical while others can be freely modified. EWC identifies and protects important parameters using the **Fisher information matrix**.

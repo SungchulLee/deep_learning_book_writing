@@ -1,5 +1,9 @@
 # Aho-Corasick
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The Aho-Corasick algorithm is a multi-pattern string matching algorithm that finds all occurrences of a set of patterns $\{P_1, P_2, \ldots, P_k\}$ simultaneously in a text $T$ of length $n$. Let $m = \sum |P_i|$ be the total length of all patterns and $z$ be the number of matches. The algorithm runs in $O(n + m + z)$ time.
 
 ## Overview

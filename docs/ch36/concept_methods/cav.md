@@ -1,5 +1,9 @@
 # Concept Activation Vectors (CAV)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Concept Activation Vectors (CAVs)** provide a way to test whether a neural network has learned a specific human-understandable concept. Rather than explaining predictions in terms of raw input features (pixels, token embeddings), CAVs explain in terms of high-level concepts like "striped," "furry," "high volatility," or "mean-reverting."

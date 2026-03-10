@@ -1,5 +1,9 @@
 # Dijkstra in OSPF
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 OSPF uses Dijkstra's algorithm to compute shortest paths within an autonomous system.
 
 $$T(V, E) = O((V + E) \log V) \text{ with binary heap}$$

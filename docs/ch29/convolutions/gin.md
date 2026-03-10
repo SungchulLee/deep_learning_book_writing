@@ -1,5 +1,9 @@
 # 29.3.7 Graph Isomorphism Network (GIN)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The **Graph Isomorphism Network (GIN)** by Xu et al. (2019) is designed to be **maximally expressive** among message passing GNNs. It is provably as powerful as the 1-Weisfeiler-Leman (1-WL) graph isomorphism test, making it the most theoretically grounded architecture for graph-level representation learning.

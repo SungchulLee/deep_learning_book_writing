@@ -1,5 +1,9 @@
 # 34.4.3 Soft Actor-Critic (SAC)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 SAC (Haarnoja et al., 2018) combines off-policy actor-critic learning with maximum entropy reinforcement learning. By augmenting the reward with an entropy bonus, SAC encourages exploration while learning near-optimal policies. The stochastic policy, automatic temperature tuning, and twin critics make SAC one of the most robust and sample-efficient continuous control algorithms.

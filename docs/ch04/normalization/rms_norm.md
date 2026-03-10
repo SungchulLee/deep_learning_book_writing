@@ -1,5 +1,9 @@
 # RMSNorm (Root Mean Square Layer Normalization)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 RMSNorm, introduced by Zhang and Sennrich in 2019, is a simplified variant of Layer Normalization that normalizes using only the root mean square (RMS) statistic, eliminating the mean subtraction step. This simplification reduces computational cost while maintaining or even improving performance, making RMSNorm popular in modern large language models like LLaMA, Mistral, and Gemma.

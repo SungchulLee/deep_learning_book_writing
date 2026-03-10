@@ -1,5 +1,9 @@
 # Polygon Area
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Polygon area via the shoelace formula: $A = \frac{1}{2}|\sum(x_i y_{i+1} - x_{i+1} y_i)|$
 
 $$T(V, E) = O((V + E) \log V) \text{ with binary heap}$$

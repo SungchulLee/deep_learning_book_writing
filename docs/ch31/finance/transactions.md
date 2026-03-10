@@ -1,5 +1,9 @@
 # 31.6.2 Transaction Graph Generation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Transaction graphs record the flow of money between entities over time. Unlike static financial networks, transaction graphs are inherently **temporal** and **dynamic**: each edge represents a specific transaction at a specific time, with an amount, currency, and often additional metadata (transaction type, memo, risk flags). Generating realistic synthetic transaction graphs is essential for anti-money laundering (AML) model development, fraud detection training, privacy-preserving data sharing, and stress testing payment systems.

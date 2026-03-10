@@ -1,5 +1,9 @@
 # Chapter 19: Large Language Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter provides a comprehensive treatment of large language models, covering their foundations, architectures, scaling laws, prompting techniques, retrieval-augmented generation, agentic systems, parameter-efficient fine-tuning, inference optimization, and alignment methods. Each section combines mathematical rigor with practical implementation guidance.
 
 ---

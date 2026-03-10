@@ -1,5 +1,9 @@
 # Build Heap O(n) Proof
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Build-heap constructs a heap from an unordered array in $O(n)$ time by calling heapify bottom-up.
 
 ```python

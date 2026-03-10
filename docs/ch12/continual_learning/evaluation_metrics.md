@@ -1,5 +1,9 @@
 # Evaluation Metrics for Continual Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Proper evaluation is critical in continual learning research. Unlike standard machine learning where a single accuracy metric often suffices, continual learning requires multiple metrics to capture different aspects of performance: the ability to learn new tasks, the tendency to forget old ones, and the transfer of knowledge between tasks.

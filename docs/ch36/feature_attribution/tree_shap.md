@@ -1,5 +1,9 @@
 # Tree SHAP
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Tree SHAP** is an exact, polynomial-time algorithm for computing Shapley values on tree-based models (decision trees, random forests, gradient boosted trees). While Kernel SHAP requires $O(TL2^M)$ evaluations for exact computation, Tree SHAP exploits the recursive structure of decision trees to compute exact Shapley values in $O(TLD^2)$ time, where $T$ is the number of trees, $L$ is the maximum number of leaves, and $D$ is the maximum depth.

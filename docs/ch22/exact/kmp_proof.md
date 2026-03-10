@@ -1,5 +1,9 @@
 # KMP Correctness
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The Knuth-Morris-Pratt (KMP) algorithm finds all occurrences of a pattern $P[0..m-1]$ in a text $T[0..n-1]$ in $O(n+m)$ time. This page presents a formal proof of its correctness and running time.
 
 ## Algorithm Recap

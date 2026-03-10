@@ -1,5 +1,9 @@
 # 29.1.5 Graph Properties
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Understanding graph-level properties is essential for selecting appropriate GNN architectures, preprocessing data, and interpreting model behavior. This section covers key topological, structural, and statistical properties of graphs.

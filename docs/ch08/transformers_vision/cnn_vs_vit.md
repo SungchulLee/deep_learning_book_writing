@@ -1,5 +1,9 @@
 # CNN vs Vision Transformer Comparison
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Convolutional Neural Networks (CNNs) and Vision Transformers (ViT) represent two fundamentally different approaches to image understanding. Understanding their differences, strengths, and trade-offs is crucial for selecting the right architecture for a given task.

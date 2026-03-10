@@ -1,5 +1,9 @@
 # Length Normalization
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Length normalization addresses a systematic bias in beam search: raw log-probability scores inherently favor shorter sequences. Without correction, the decoder preferentially generates truncated outputs, undermining the quality of sequence generation. This section examines the problem in detail, presents standard normalization strategies, and explores their interaction with coverage penalties for attention-based models.
 
 ## The Short Sequence Bias Problem

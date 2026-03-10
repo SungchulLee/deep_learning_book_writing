@@ -1,5 +1,9 @@
 # Scaled Dot-Product Attention
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Scaled dot-product attention is the fundamental building block of the Transformer architecture. Introduced by Vaswani et al. (2017) in "Attention Is All You Need," this mechanism provides an efficient and effective way to compute attention weights using matrix operations that can be highly parallelized on modern hardware.

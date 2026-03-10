@@ -1,5 +1,9 @@
 # Divide and Conquer Preview
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Divide and Conquer** breaks a problem into smaller subproblems, solves them recursively, and combines the results.
 
 $$

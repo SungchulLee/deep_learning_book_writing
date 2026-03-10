@@ -1,5 +1,9 @@
 # Convolution Operation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Convolutional Neural Networks (CNNs) derive their name from the **convolution** operation, a mathematical operation that combines two functions to produce a third. In the context of deep learning, convolution enables neural networks to automatically learn spatial hierarchies of features from input data, making them exceptionally powerful for image recognition, computer vision, and signal processing tasks.

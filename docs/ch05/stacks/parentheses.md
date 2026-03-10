@@ -1,5 +1,9 @@
 # Balanced Parentheses
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Balanced parentheses checking is a classic stack application: push opening, pop on closing, verify match.
 
 ```python

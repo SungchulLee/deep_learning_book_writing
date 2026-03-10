@@ -1,5 +1,9 @@
 # Feature Maps
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 A **feature map** is the output of applying a convolutional filter to an input—it is a spatial grid of activation values that represents where and how strongly a particular pattern (feature) is detected. Feature maps are the fundamental intermediate representations in CNNs, encoding progressively more abstract information as data flows through the network.

@@ -1,5 +1,9 @@
 # Transformer Probing
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Probing classifiers** investigate what information is encoded in transformer hidden representations by training simple classifiers (typically linear) on frozen activations. Combined with visualization tools like **BertViz**, probing provides a comprehensive picture of what transformers learn at each layer.

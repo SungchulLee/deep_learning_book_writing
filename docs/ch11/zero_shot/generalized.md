@@ -1,5 +1,9 @@
 # Generalized Zero-Shot Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Generalized Zero-Shot Learning (GZSL) extends conventional ZSL to a more realistic setting where test instances may come from either seen or unseen classes. This section covers the GZSL problem formulation, evaluation metrics, and techniques to address the bias toward seen classes.

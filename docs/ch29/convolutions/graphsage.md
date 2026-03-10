@@ -1,5 +1,9 @@
 # 29.3.5 GraphSAGE
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **GraphSAGE** (SAmple and aggreGatE) by Hamilton et al. (2017) introduces an **inductive** graph learning framework that generates node embeddings by sampling and aggregating features from a node's local neighborhood. Unlike GCN, GraphSAGE can generalize to unseen nodes and graphs.

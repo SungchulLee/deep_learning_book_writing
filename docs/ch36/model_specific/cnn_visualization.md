@@ -1,5 +1,9 @@
 # CNN Visualization and Decomposition Methods
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 CNN-specific interpretability methods exploit the hierarchical, spatial structure of convolutional neural networks to provide insights unavailable to model-agnostic approaches. This section covers **Layer-wise Relevance Propagation (LRP)** and **DeepLIFT**—two decomposition methods that propagate relevance from the output back through the network, satisfying conservation properties that gradient methods lack.

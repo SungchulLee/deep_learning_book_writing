@@ -1,5 +1,9 @@
 # ELU (Exponential Linear Unit)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 **ELU (Exponential Linear Unit)**, proposed by Clevert et al. (2016), combines the non-saturating property of ReLU for positive inputs with a smooth, saturating exponential curve for negative inputs. This design pushes mean activations closer to zero (improving gradient flow), provides a smooth function everywhere (better optimization landscape), and offers noise robustness through soft saturation.

@@ -1,5 +1,9 @@
 # Chapter 25: Generative Adversarial Networks (GAN)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Generative Adversarial Networks leverage a game-theoretic framework where a generator network learns to produce realistic samples by competing against a discriminator network that distinguishes real from fake data. GANs have driven major advances in image synthesis, style transfer, and data augmentation, though their training dynamics present unique challenges. This chapter covers GAN theory, architectures from DCGAN to StyleGAN2, loss functions, training stabilization techniques, conditional generation, evaluation metrics, and applications in finance and beyond.
 
 ---

@@ -1,5 +1,9 @@
 # Sliding Window
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The **sliding window** technique maintains a window (contiguous subarray/substring) that expands or contracts as it slides across the data. It reduces many $O(n^2)$ or $O(nk)$ problems to $O(n)$.
 
 ## Two Types

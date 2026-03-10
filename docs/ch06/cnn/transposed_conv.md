@@ -1,5 +1,9 @@
 # Transposed Convolutions
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Transposed convolution** (also called **fractionally strided convolution** or, informally, **deconvolution**) is the gradient operation of regular convolution with respect to its input. While standard convolution typically reduces spatial dimensions, transposed convolution **increases** them, making it the primary learnable upsampling method in neural networks.

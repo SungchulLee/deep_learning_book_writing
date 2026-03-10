@@ -1,5 +1,9 @@
 # Clustering Metrics
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Evaluating clusters is fundamentally harder than evaluating supervised models because there are no ground-truth labels in most practical settings. Metrics fall into two categories: **internal** (structure-based, no labels needed) and **external** (compare to known labels when available).
 
 ## Internal Metrics (No Ground Truth)

@@ -1,5 +1,9 @@
 # Randomly Built BSTs
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Randomly Built BSTs** is an important concept in algorithm design and analysis.
 
 ```python

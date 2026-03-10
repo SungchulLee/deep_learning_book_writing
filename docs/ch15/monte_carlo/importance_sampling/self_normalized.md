@@ -1,5 +1,9 @@
 # Self-Normalized Importance Sampling
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Self-normalized importance sampling (SNIS) is the workhorse method for Bayesian inference, where the posterior distribution is known only up to a normalizing constant. Unlike standard IS, SNIS handles unnormalized target densities by estimating both numerator and denominator using the same importance samples.

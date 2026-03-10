@@ -1,5 +1,9 @@
 # Chapter 32: RL Foundations
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter covers **algorithm design techniques** -- the meta-skills that allow you to approach unfamiliar problems systematically. Rather than memorizing solutions, we focus on building a toolkit of strategies that transfer across problem domains.
 
 Reinforcement learning (RL) is the study of how agents learn to make sequential decisions by interacting with an environment and receiving reward signals. This chapter builds the mathematical foundations of RL from the ground up, covering Markov decision processes, value functions, dynamic programming, Monte Carlo methods, temporal difference learning, and exploration strategies. These fundamentals provide the essential building blocks for the deep RL methods in subsequent chapters.

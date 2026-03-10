@@ -1,5 +1,9 @@
 # 35.4.3 VaR Constraints
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Learning Objectives
 
 - Implement Value-at-Risk constraints in RL portfolio optimization

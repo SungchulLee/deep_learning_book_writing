@@ -1,5 +1,9 @@
 # PGM Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## The Curse of Dimensionality in Probability
 
 When working with high-dimensional probability distributions, we face a fundamental challenge: the **exponential growth of parameters**. Consider a joint distribution over $n$ discrete random variables, each taking $k$ values. A full specification requires:

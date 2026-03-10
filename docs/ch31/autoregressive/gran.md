@@ -1,5 +1,9 @@
 # GRAN: Graph Recurrent Attention Network
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 GRAN (Liao et al., 2019) addresses the scalability limitations of GraphRNN by generating graphs in **blocks** rather than individual nodes. At each step, GRAN adds a block of $B$ nodes simultaneously, using a GNN-based attention mechanism to model interactions between new and existing nodes. This block-wise generation amortizes the cost of GNN message passing across multiple nodes, achieving $O(n/B)$ generation steps instead of $O(n)$, while maintaining expressiveness through attention-based edge prediction.

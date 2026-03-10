@@ -1,5 +1,9 @@
 # Bayes Factors
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The **Bayes factor** is the ratio of model evidences, providing a principled measure of the relative support the data provide for one model over another. Unlike p-values, Bayes factors quantify evidence in favor of a hypothesis, not just against a null, and they naturally account for model complexity through Bayesian Occam's razor.
 
 ---

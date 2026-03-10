@@ -1,5 +1,9 @@
 # Shortest Path Properties
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <img src='img/Screen Shot 2022-05-09 at 11.04.34 AM.png' width=70%>
 
 <img src='img/Screen Shot 2022-07-02 at 1.34.46 AM.png' width=70%>

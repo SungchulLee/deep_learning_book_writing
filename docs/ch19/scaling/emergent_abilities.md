@@ -1,5 +1,9 @@
 # Emergent Abilities in Large Language Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Learning Objectives
 
 - Define emergence in the context of LLMs and distinguish from smooth scaling

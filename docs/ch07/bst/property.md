@@ -1,5 +1,9 @@
 # BST Property
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 BST property: for every node, all keys in the left subtree are smaller and all in the right are larger.
 
 ```python

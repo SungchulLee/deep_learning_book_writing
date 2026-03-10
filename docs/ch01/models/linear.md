@@ -1,5 +1,9 @@
 # Linear Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Linear models predict outputs as linear combinations of input features. They form the foundation of supervised learning and provide interpretable, fast, and often surprisingly effective solutions for both regression and classification tasks.
 
 ---

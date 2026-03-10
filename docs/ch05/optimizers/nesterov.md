@@ -1,5 +1,9 @@
 # Nesterov Accelerated Gradient
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Nesterov momentum (NAG) improves upon classical momentum by computing the gradient at the "look-ahead" position $\theta_t - \eta \mu v_{t-1}$ rather than the current position. This provides a form of gradient correction that leads to better convergence, especially near optima.

@@ -1,5 +1,9 @@
 # Uncertainty Quantification in Neural Networks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Uncertainty quantification** addresses a critical limitation of standard neural networks: they produce point predictions without any measure of confidence. Bayesian neural networks provide a principled framework for quantifying both what the model doesn't know about the data (aleatoric uncertainty) and what the model doesn't know about itself (epistemic uncertainty).
 
 ---

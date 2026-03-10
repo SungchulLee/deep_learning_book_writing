@@ -1,5 +1,9 @@
 # Feature Interaction Effects
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Most interpretability methods compute **main effects**—the independent contribution of each feature to the prediction. However, many real-world phenomena involve **interactions**: the combined effect of two or more features that cannot be decomposed into individual contributions. Understanding interaction effects is critical in quantitative finance where factor interactions drive portfolio dynamics, risk concentrations, and non-linear market behavior.

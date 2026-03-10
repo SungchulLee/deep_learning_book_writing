@@ -1,5 +1,9 @@
 # KL Divergence
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Kullback-Leibler divergence measures how one probability distribution diverges from another. It appears throughout deep learning as a regularization term in variational autoencoders, a training objective in knowledge distillation, and a theoretical tool for understanding model behavior. This section introduces the definition, core properties, and PyTorch interfaces, with dedicated sub-pages for distance axioms, Gaussian computation, and Fisher information.
 
 ## Definition

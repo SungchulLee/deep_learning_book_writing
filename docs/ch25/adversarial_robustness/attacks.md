@@ -1,5 +1,9 @@
 # Adversarial Attack Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Adversarial attacks manipulate machine learning models by introducing carefully crafted perturbations to input data. These perturbations, often imperceptible to humans, can cause models to make incorrect predictions with high confidence.
 
 ## Introduction to Adversarial Attacks

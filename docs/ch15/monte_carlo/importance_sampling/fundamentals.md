@@ -1,5 +1,9 @@
 # Importance Sampling Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Importance sampling is a variance reduction technique that enables computing expectations under one distribution by sampling from another. This method is fundamental to Bayesian inference, where we often need to integrate with respect to complex posterior distributions that are difficult or impossible to sample from directly.

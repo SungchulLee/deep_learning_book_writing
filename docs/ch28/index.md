@@ -1,5 +1,9 @@
 # Chapter 28: Neural ODEs
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Neural Ordinary Differential Equations treat neural networks as continuous-time dynamical systems, generalizing residual networks to infinite depth by defining transformations through ODEs solved with numerical integrators. This framework enables adaptive computation, memory-efficient training via the adjoint method, and natural handling of irregularly-sampled data. This chapter covers the mathematical foundations, continuous normalizing flows, advanced extensions including Neural SDEs and latent ODEs, evaluation methodology, and applications to quantitative finance.
 
 ---

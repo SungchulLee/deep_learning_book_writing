@@ -1,5 +1,9 @@
 # Likelihood-Free Inference
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Many scientific models can simulate data but cannot evaluate the likelihood of observations. Likelihood-free inference—also called simulation-based inference—provides methods to perform Bayesian inference in these settings. This section introduces the problem, motivates the ABC framework, and surveys the landscape of likelihood-free methods.
 
 ---

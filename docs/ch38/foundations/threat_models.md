@@ -1,5 +1,9 @@
 # Threat Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 A **threat model** formalizes the assumptions about what an adversary knows, can do, and seeks to achieve. Choosing the right threat model is critical: too weak and the evaluation is meaningless; too strong and the defense is impractical. Different threat models lead to qualitatively different attacks and defenses.

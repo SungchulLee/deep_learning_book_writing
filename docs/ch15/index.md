@@ -1,5 +1,9 @@
 # Chapter 15: Sampling and Inference
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter covers the theory and practice of sampling-based inference methods, from foundational Markov chain theory through Monte Carlo integration, MCMC algorithms, Langevin dynamics, and likelihood-free inference. These methods provide the computational machinery for Bayesian inference when analytical solutions are intractable, enabling posterior estimation in complex models with many parameters.
 
 ---

@@ -1,5 +1,9 @@
 # Statistical Inference for Model Evaluation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## 1. Introduction: The Difference Between Signal and Noise
 
 When evaluating a deep learning model for quantitative trading, a seemingly impressive 2% improvement in Sharpe ratio could be genuine alpha or merely statistical noise. Statistical inference provides the rigorous framework to distinguish between real improvements and random fluctuations.

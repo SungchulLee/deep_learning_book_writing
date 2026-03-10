@@ -1,5 +1,9 @@
 # TSP - Recursion
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Number the cities $1,2,\ldots,N$ and assume we start at city $1$, and the distance between city $i$ and city $j$ is $d_{i,j}$
 
 # First Phase

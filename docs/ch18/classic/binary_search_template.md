@@ -1,5 +1,9 @@
 # Binary Search Template
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 # Reference
 
 [[Python/ Clear explanation] Powerful Ultimate Binary Search Template. Solved many problems.](https://leetcode.com/problems/find-k-th-smallest-pair-distance/discuss/769705/Python-Clear-explanation-Powerful-Ultimate-Binary-Search-Template.-Solved-many-problems.)

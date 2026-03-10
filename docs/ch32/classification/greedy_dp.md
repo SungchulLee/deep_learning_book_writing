@@ -1,5 +1,9 @@
 # Greedy vs DP
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Two of the most powerful algorithm design paradigms are **greedy algorithms** and **dynamic programming (DP)**. Choosing between them is one of the most common classification decisions. Both solve optimization problems, but they differ fundamentally in how they make choices.
 
 ## Key Differences

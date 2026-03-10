@@ -1,5 +1,9 @@
 # 32.3.2 Action Value Function
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Definition
 
 The **action value function** (or **Q-function**) $Q_\pi(s, a)$ gives the expected return when starting in state $s$, taking action $a$, and then following policy $\pi$:

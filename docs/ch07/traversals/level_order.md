@@ -1,5 +1,9 @@
 # Level-Order
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Level-order traversal visits nodes level by level using a queue (BFS on a tree).
 
 # Reference

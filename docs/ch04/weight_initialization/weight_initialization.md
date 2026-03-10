@@ -1,5 +1,9 @@
 # Weight Initialization
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Before the first gradient update, a neural network's weights fully determine its forward activations and backward gradients. If the initial weight magnitudes are too large, activations and gradients explode exponentially with depth; if too small, they vanish. In both cases training either diverges or stalls. Weight initialization strategies set the variance of each layer's parameters so that signal magnitude remains approximately constant across layers during the initial forward and backward passes.

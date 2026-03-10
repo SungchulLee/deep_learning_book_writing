@@ -1,5 +1,9 @@
 # Sliced Score Matching
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Sliced Score Matching (SSM)** is an alternative to explicit score matching that avoids computing full Jacobians by using random projections. It provides a scalable, **unbiased** way to train score networks when denoising score matching's noise perturbation is not acceptable.

@@ -1,5 +1,9 @@
 # Code: French→English Translation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 This implementation builds a complete sequence-to-sequence translation system that translates French sentences into English using an encoder-decoder architecture with Bahdanau (additive) attention. The pipeline covers data acquisition, text preprocessing, vocabulary construction, model definition, training with teacher forcing, greedy decoding, and attention visualization.

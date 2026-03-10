@@ -1,5 +1,9 @@
 # Information Criteria
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Information criteria** provide computationally tractable approximations for model comparison without requiring the full Bayesian evidence computation. These criteria balance goodness-of-fit against model complexity, offering principled trade-offs that connect frequentist model selection to Bayesian principles.
 
 ---

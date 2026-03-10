@@ -1,5 +1,9 @@
 # Recognizing Patterns
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The first and most critical step in solving any algorithmic problem is **pattern recognition** -- identifying which category of known problems your current task resembles. Experienced problem solvers maintain a mental catalog of problem archetypes and match new problems against them.
 
 ## Common Problem Archetypes

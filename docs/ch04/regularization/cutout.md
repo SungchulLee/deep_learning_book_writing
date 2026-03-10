@@ -1,5 +1,9 @@
 # Cutout
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Cutout (also known as Random Erasing) is a data augmentation technique that randomly masks out square or rectangular regions of input images during training. By occluding portions of the image, Cutout forces the model to rely on a wider range of spatial features rather than fixating on a single discriminative patch, improving robustness and generalization.

@@ -1,5 +1,9 @@
 # Factor Attribution
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Factor attribution decomposes portfolio returns and risk into contributions from systematic factors. Interpretability methods—particularly SHAP—provide a rigorous framework for understanding how factor exposures drive model predictions, enabling portfolio managers to validate economic intuition and identify hidden dependencies.

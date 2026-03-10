@@ -1,5 +1,9 @@
 # One-Shot Adjacency Generation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 One-shot graph generation produces the entire adjacency matrix $\mathbf{A} \in \{0,1\}^{n \times n}$ and node features $\mathbf{X} \in \mathbb{R}^{n \times d}$ in a single forward pass, avoiding the sequential bottleneck of autoregressive methods. The core challenge is that one-shot generation must handle permutation invariance, discrete structure, and variable graph sizes simultaneously — problems that autoregressive methods sidestep through ordered decomposition.

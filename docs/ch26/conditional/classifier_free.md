@@ -1,5 +1,9 @@
 # Classifier-Free Guidance
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Classifier-Free Guidance (CFG)** is a technique for improving conditional generation quality in diffusion models without requiring a separate classifier.
 
 ## Motivation

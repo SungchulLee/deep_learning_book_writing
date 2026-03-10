@@ -1,5 +1,9 @@
 # Chapter 18: Natural Language Processing
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter covers the core tasks and deep learning architectures in natural language processing, from language modeling and sequence labeling to text classification, information extraction, machine translation, question answering, and summarization. Each section presents the mathematical foundations, traces the evolution from classical to neural approaches, and provides practical implementations.
 
 ---

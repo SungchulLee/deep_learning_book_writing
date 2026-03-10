@@ -1,5 +1,9 @@
 # Evidence Lower Bound (ELBO)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The Evidence Lower Bound is the central quantity in variational inference, the EM algorithm, and VAE training. It provides a tractable optimisation objective that lower-bounds the intractable log marginal likelihood, and its gap from the true likelihood has a precise characterisation in terms of KL divergence. This section presents three complementary derivations, analyses the gap and tightness conditions, develops the key alternative formulations, and connects the ELBO to both the EM algorithm and variational autoencoders.
 
 ## The Problem: Intractable Marginal Likelihood

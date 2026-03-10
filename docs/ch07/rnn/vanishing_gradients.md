@@ -1,5 +1,9 @@
 # Vanishing Gradients
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## The Core Problem
 
 During backpropagation through time, gradients must flow backward through many timesteps. The repeated multiplication through the recurrence relation causes gradients to shrink exponentially, making it impossible for the network to learn dependencies between distant elements in a sequence. This is the **vanishing gradient problem**—the primary limitation of vanilla RNNs.

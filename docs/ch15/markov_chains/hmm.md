@@ -1,5 +1,9 @@
 # Hidden Markov Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 In the Markov chains studied so far, the state $X_n$ is directly observed. In many real-world systems, however, the underlying state is **hidden** (or latent) and we observe only a noisy signal that depends on it. **Hidden Markov Models (HMMs)** formalize this by coupling a latent Markov chain with an observation model.

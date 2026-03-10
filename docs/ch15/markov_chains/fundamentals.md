@@ -1,5 +1,9 @@
 # Markov Chain Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Markov chains are the theoretical backbone of all Markov Chain Monte Carlo (MCMC) methods. Before constructing samplers that converge to target distributions, we must understand the mechanics of how Markov chains evolve, how transition probabilities compose over multiple steps, and how the dynamics are fully encoded in a single matrix. This section establishes the core definitions and computational tools that underpin the rest of Chapter 18.

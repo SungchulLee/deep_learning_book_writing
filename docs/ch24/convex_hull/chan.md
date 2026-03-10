@@ -1,5 +1,9 @@
 # Chan's Algorithm
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Chan's algorithm combines Graham scan and Jarvis march for output-sensitive $O(n \log h)$ convex hull.
 
 ```python

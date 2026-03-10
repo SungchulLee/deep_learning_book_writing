@@ -1,5 +1,9 @@
 # SmoothGrad
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **SmoothGrad** is a simple yet effective technique for reducing the visual noise inherent in gradient-based saliency maps. The core idea is counterintuitive: by **adding noise** to the input and averaging the resulting gradients, we obtain **sharper, cleaner** visualizations.

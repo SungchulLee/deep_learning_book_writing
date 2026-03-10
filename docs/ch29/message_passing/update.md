@@ -1,5 +1,9 @@
 # 29.2.3 Update Functions
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The **update function** combines a node's previous representation with the aggregated messages from its neighbors to produce the new node embedding. This step determines how self-information is preserved and integrated with neighborhood information across layers.

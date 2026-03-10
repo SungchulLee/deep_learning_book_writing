@@ -1,5 +1,9 @@
 # Efficiency
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Algorithm efficiency measures how resources (time and space) grow with input size $n$.
 
 $$

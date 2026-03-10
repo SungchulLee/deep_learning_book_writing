@@ -1,5 +1,9 @@
 # 34.7.3 Risk-Sensitive Reinforcement Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Standard RL maximizes expected cumulative reward, ignoring the distribution of outcomes. In finance, risk management is paramount—a strategy with high expected return but catastrophic tail risk is unacceptable. Risk-sensitive RL incorporates risk measures directly into the optimization objective.

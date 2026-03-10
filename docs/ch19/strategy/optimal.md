@@ -1,5 +1,9 @@
 # Optimal Substructure
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Optimal substructure: an optimal solution contains optimal solutions to subproblems.
 
 ```python

@@ -1,5 +1,9 @@
 # Sparse Table
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 A **sparse table** is a data structure for answering **range minimum/maximum queries** (RMQ) on a static array in $O(1)$ time after $O(n \log n)$ preprocessing.
 
 ## Key Idea

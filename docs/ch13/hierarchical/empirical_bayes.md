@@ -1,5 +1,9 @@
 # Empirical Bayes
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Empirical Bayes methods estimate hyperparameters from the data itself, providing a practical middle ground between fully Bayesian and frequentist approaches. This module develops the methodology, demonstrates the classic baseball batting average example, and connects empirical Bayes to James-Stein estimation and shrinkage.

@@ -1,5 +1,9 @@
 # Few-Shot Learning Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Few-shot learning addresses one of the most significant limitations of traditional deep learning: the requirement for massive labeled datasets. While humans can recognize new objects from just one or two examples, standard neural networks typically require thousands of labeled samples per class. Few-shot learning develops algorithms that can learn from minimal data, mimicking the human ability to generalize from limited experience.

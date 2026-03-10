@@ -1,5 +1,9 @@
 # Leapfrog Integrator
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The leapfrog integrator is the numerical engine of Hamiltonian Monte Carlo. This section develops the integrator from first principles: operator splitting, the Störmer-Verlet scheme, symplectic structure, error analysis, and practical implementation considerations.
 
 ---

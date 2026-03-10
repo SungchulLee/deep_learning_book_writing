@@ -1,5 +1,9 @@
 # MapReduce
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 MapReduce: map phase transforms data in parallel, reduce phase aggregates results.
 
 # Reference

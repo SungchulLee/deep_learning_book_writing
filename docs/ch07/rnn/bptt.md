@@ -1,5 +1,9 @@
 # Backpropagation Through Time
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Training recurrent neural networks requires computing gradients through the unrolled computational graph—a procedure called **Backpropagation Through Time (BPTT)**. Understanding BPTT illuminates both how RNNs learn and why they struggle with long sequences.

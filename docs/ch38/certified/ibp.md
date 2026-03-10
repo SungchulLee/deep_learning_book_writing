@@ -1,5 +1,9 @@
 # Interval Bound Propagation (IBP)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Interval Bound Propagation (IBP)** (Gowal et al., 2019) provides certified $\ell_\infty$ robustness by propagating interval bounds through the network. Unlike randomized smoothing (which certifies $\ell_2$ robustness), IBP directly certifies that no $\ell_\infty$ perturbation within the budget can change the prediction.

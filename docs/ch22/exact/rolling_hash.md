@@ -1,5 +1,9 @@
 # Rolling Hash
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 A rolling hash (also called a sliding hash) is a hash function that can be efficiently updated as a fixed-size window slides over the input. It is the core technique behind the Rabin-Karp string matching algorithm, enabling average-case $O(n+m)$ pattern matching.
 
 ## Polynomial Rolling Hash

@@ -1,5 +1,9 @@
 # Prototypical Networks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Prototypical Networks, introduced by Snell et al. (2017), are among the most elegant and effective approaches to few-shot learning. The key insight is remarkably simple: classes can be represented by the mean (prototype) of their support embeddings, and classification is performed by finding the nearest prototype.

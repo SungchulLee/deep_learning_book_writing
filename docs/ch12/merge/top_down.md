@@ -1,5 +1,9 @@
 # Top-Down
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Merge Sort는 두 개의 정렬된 데이타를 합병하는 작업을 리커시브하게 진행한다.
 
 ```python

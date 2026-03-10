@@ -1,5 +1,9 @@
 # Introduction to Adversarial Robustness
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## The Discovery of Adversarial Examples
 
 The discovery that neural networks are vulnerable to carefully crafted input perturbations has been one of the most consequential findings in modern deep learning. Szegedy et al. (2014) first demonstrated that imperceptible perturbations could cause state-of-the-art image classifiers to fail catastrophically, launching an entire subfield of adversarial machine learning.

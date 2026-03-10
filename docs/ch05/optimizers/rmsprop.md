@@ -1,5 +1,9 @@
 # RMSprop
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 RMSprop (Root Mean Square Propagation) was proposed by Geoffrey Hinton to fix Adagrad's decaying learning rate problem. It uses an exponentially decaying average of squared gradients instead of their cumulative sum.

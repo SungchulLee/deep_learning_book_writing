@@ -1,5 +1,9 @@
 # Swin Transformer
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The Swin Transformer (Shifted Window Transformer), introduced by Liu et al. (2021), addresses ViT's computational limitations by introducing hierarchical feature maps and local window attention. This design enables linear complexity with respect to image size while maintaining the power of self-attention.

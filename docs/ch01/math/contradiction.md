@@ -1,5 +1,9 @@
 # Contradiction
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Proof by contradiction** assumes the negation of the claim and derives a logical impossibility.
 
 ## Structure

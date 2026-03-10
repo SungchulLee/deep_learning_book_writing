@@ -1,5 +1,9 @@
 # He (Kaiming) Initialization
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 He initialization (He et al., 2015) sets weight variance to account for the fact that ReLU and its variants zero out a fraction of their inputs, reducing the effective variance passed to the next layer. By compensating with a factor of 2 (for standard ReLU), He initialization maintains stable activation and gradient magnitudes in deep networks with ReLU-family nonlinearities. It is the standard initialization for modern convolutional and feedforward architectures.
 
 ## Derivation

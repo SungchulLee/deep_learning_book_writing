@@ -1,5 +1,9 @@
 # Orientation Test
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Orientation test: given three points, determine if they make a left turn, right turn, or are collinear.
 
 $$T(V, E) = O((V + E) \log V) \text{ with binary heap}$$

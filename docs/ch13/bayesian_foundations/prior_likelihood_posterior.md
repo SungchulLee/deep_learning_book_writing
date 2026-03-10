@@ -1,5 +1,9 @@
 # Prior, Likelihood, and Posterior
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Bayesian inference revolves around three fundamental quantities: the **prior**, the **likelihood**, and the **posterior**. Understanding their roles, mathematical properties, and interplay is essential for applying Bayesian methods to machine learning. This section provides a rigorous treatment of each component and how they combine through Bayes' theorem.
 
 ---

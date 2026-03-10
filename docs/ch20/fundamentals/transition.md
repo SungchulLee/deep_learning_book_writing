@@ -1,5 +1,9 @@
 # Transition Function
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <img src='img/Screen Shot 2022-06-16 at 1.05.37 AM.png' width=50%>
 
 ```python

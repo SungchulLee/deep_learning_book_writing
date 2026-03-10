@@ -1,5 +1,9 @@
 # EM Algorithm Foundations
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The Expectation-Maximization (EM) algorithm is one of the most elegant and widely-used methods for maximum likelihood estimation in the presence of latent variables. This section develops the foundational concepts that motivate the algorithm.
 
 ---

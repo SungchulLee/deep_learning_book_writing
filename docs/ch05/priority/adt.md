@@ -1,5 +1,9 @@
 # Priority Queue ADT
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 A priority queue serves elements by priority rather than insertion order, typically implemented with a heap.
 
 ```python

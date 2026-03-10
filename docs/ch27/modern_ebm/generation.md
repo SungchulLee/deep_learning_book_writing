@@ -1,5 +1,9 @@
 # Energy-Based Models for Generation Tasks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 While traditionally used for density estimation and anomaly detection, Energy-Based Models can be adapted for generation—producing new samples from learned distributions. Unlike explicit generative models (VAEs, GANs) that directly map from noise to data, EBMs generate by learning energy landscapes and sampling via dynamics (Langevin, Hamiltonian). Though computationally more expensive than alternatives, EBM generation provides unique advantages: principled probabilistic framework, flexible architecture, and ability to combine with discriminative losses for improved mode coverage.

@@ -1,5 +1,9 @@
 # Call Stack
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <img src="img/Screen Shot 2022-05-01 at 9.52.06 PM.png" width=50%>
 
 ```python

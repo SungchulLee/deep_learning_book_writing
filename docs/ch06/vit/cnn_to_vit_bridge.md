@@ -1,5 +1,9 @@
 # Bridge: From CNNs to Vision Transformers
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The transition from convolutional neural networks to Vision Transformers represents a fundamental shift in architectural paradigms for computer vision. Rather than an abrupt discontinuity, this evolution reflects a gradual relaxation of CNN inductive biases, with intermediate architectures serving as conceptual bridges between locality-based and attention-based processing.

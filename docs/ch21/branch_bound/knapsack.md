@@ -1,5 +1,9 @@
 # 0/1 Knapsack B&B
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Branch and bound uses bounds to prune the search space, often with best-first exploration.
 
 $$dp[i][w] = \max(dp[i-1][w],\; dp[i-1][w-w_i] + v_i)$$

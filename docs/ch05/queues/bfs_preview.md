@@ -1,5 +1,9 @@
 # BFS Preview
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 BFS uses a queue to explore nodes level by level, useful for shortest paths in unweighted graphs.
 
 $$T(V, E) = O(V + E)$$

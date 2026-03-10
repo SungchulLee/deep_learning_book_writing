@@ -1,5 +1,9 @@
 # Transformer Training and Inference
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Training and inference follow fundamentally different paradigms in the Transformer architecture. During training, the model receives both source and target sequences and uses **teacher forcing** for efficient parallel computation. During inference, the model generates tokens autoregressively, producing one token at a time and feeding it back as input for the next step.

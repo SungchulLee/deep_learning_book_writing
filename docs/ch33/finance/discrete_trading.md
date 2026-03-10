@@ -1,5 +1,9 @@
 # 33.7.3 Discrete Trading
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Problem Formulation
 
 **Discrete trading** applies DQN to the classic buy/sell/hold decision problem. The agent observes market features and selects from a discrete set of position changes.

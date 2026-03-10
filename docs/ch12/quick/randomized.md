@@ -1,5 +1,9 @@
 # Randomized Quicksort
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Randomized Quicksort** is an important concept in algorithm design and analysis.
 
 $$T(n) = O(n \log n) \text{ average}, \quad O(n^2) \text{ worst case}$$

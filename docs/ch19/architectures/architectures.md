@@ -1,5 +1,9 @@
 # Architectural Innovations in Large Language Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Learning Objectives
 
 - Understand key architectural changes from vanilla Transformer to modern LLMs

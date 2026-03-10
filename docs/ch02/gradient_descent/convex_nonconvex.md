@@ -1,5 +1,9 @@
 # Convex vs Non-Convex Optimization
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The distinction between **convex** and **non-convex** optimization is fundamental to understanding when gradient descent will succeed and what challenges we might face. This chapter explores these concepts, their implications for machine learning, and why non-convex optimization—despite its theoretical challenges—works remarkably well for deep learning.

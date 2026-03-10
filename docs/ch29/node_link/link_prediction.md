@@ -1,5 +1,9 @@
 # 29.6.2 Link Prediction
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 Link prediction predicts whether an edge should exist between two nodes. Essential for recommendation, knowledge graph completion, and financial network analysis.
 

@@ -1,5 +1,9 @@
 # Adaptive Attacks and Gradient Masking
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The history of adversarial robustness is littered with defenses that initially appeared robust but were later broken by **adaptive attacks**—attacks specifically designed to circumvent the defense mechanism. Understanding gradient masking and how to design adaptive attacks is critical for honest robustness evaluation.

@@ -1,5 +1,9 @@
 # 32.7.4 Eligibility Traces
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 **Eligibility traces** are a mechanism that bridges TD and MC methods by maintaining a short-term memory of recently visited states. They provide the backward-view implementation of TD(λ) and enable efficient, online computation of λ-returns.

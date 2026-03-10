@@ -1,5 +1,9 @@
 # Numerical Solvers
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Neural ODEs require numerical integration of $dz/dt = f_\theta(z(t), t)$. The choice of solver directly affects accuracy, computational cost, and memory usage.

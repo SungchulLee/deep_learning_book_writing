@@ -1,5 +1,9 @@
 # Chapter Overview
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter covers **External Memory**.
 
 Graph generation learns distributions over graph-structured data and produces novel graphs that are statistically indistinguishable from training samples. This chapter covers the fundamental challenges of generating discrete, permutation-invariant structures with variable dimensionality, and explores autoregressive, one-shot, and diffusion-based approaches. Applications span molecular design, financial network synthesis, and transaction graph generation.

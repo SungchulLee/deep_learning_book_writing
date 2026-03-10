@@ -1,5 +1,9 @@
 # Weight Uncertainty in Bayesian Neural Networks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 The central challenge of Bayesian neural networks is specifying meaningful priors over weights and performing inference over the resulting posterior. This section covers prior specification, the geometry of neural network weight spaces, and the key inference approaches.

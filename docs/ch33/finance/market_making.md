@@ -1,5 +1,9 @@
 # 33.7.2 Market Making
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Problem Formulation
 
 A **market maker** continuously provides buy and sell quotes (bids and asks) to the market, profiting from the bid-ask spread while managing inventory risk. The RL agent learns optimal quoting strategies.

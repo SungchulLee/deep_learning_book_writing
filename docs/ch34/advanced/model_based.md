@@ -1,5 +1,9 @@
 # 34.5.4 Model-Based Reinforcement Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Model-based RL learns a dynamics model $\hat{P}(s'|s,a)$ of the environment and uses it to improve sample efficiency. By planning or generating synthetic data through the learned model, agents can learn effective policies with far fewer real environment interactions.

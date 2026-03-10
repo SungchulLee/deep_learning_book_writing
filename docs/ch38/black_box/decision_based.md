@@ -1,5 +1,9 @@
 # Decision-Based Attacks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Decision-based attacks** operate in the most restrictive black-box setting: the adversary observes only the model's **hard label** prediction $\hat{y} = \arg\max_y f(\mathbf{x})$, without access to confidence scores or probabilities. Despite this severe information limitation, decision-based attacks can find adversarial examples with competitive perturbation magnitudes, albeit requiring more queries than score-based methods.

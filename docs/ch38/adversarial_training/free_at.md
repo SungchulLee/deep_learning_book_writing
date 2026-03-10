@@ -1,5 +1,9 @@
 # Free Adversarial Training
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Free Adversarial Training** (Shafahi et al., 2019) addresses the primary bottleneck of adversarial training: computational cost. Standard PGD-AT requires $K$ forward-backward passes per batch for the inner maximization, making it 7-10× slower than standard training. Free AT achieves comparable robustness at **nearly the cost of standard training** by recycling gradients.

@@ -1,5 +1,9 @@
 # Gaussian Processes
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 A **Gaussian Process (GP)** is a nonparametric Bayesian approach to regression and classification that defines a prior directly over functions rather than over a finite set of parameters. GPs provide exact posterior inference with closed-form predictive distributions, naturally quantifying uncertainty and adapting model complexity to the data.

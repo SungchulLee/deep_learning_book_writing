@@ -1,5 +1,9 @@
 # Feature Inversion
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Feature inversion** reconstructs inputs from intermediate representations, revealing what information the network preserves at each layer. This complementary approach to attribution shows not just *which* features matter, but *what the model actually sees* at different stages of processing.

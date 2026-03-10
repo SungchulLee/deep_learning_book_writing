@@ -1,5 +1,9 @@
 # Combinatorics
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Combinatorics counts the number of ways to arrange or select objects — essential for analyzing algorithm complexity.
 
 ## Key Formulas

@@ -1,5 +1,9 @@
 # Vanilla RNN
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Architecture Overview
 
 The vanilla (Elman) RNN is the simplest recurrent architecture, defined by a single hidden state updated at each timestep through a linear transformation followed by a $\tanh$ nonlinearity. Despite its simplicity, understanding the vanilla RNN thoroughly is essential—it establishes the computational patterns that all more sophisticated recurrent architectures build upon.

@@ -1,5 +1,9 @@
 # Merge Procedure
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The merge procedure combines two sorted arrays into one sorted array in $O(n)$ time.
 
 ```python

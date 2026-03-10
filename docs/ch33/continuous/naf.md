@@ -1,5 +1,9 @@
 # 33.4.1 Normalized Advantage Functions (NAF)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## The Continuous Action Challenge
 
 Standard DQN requires $\arg\max_a Q(s, a)$ for action selection, which is trivial for discrete actions (enumerate all) but intractable for continuous action spaces. **Normalized Advantage Functions (NAF)** (Gu et al., 2016) solve this by parameterizing Q as a quadratic function of actions, making the argmax analytically computable.

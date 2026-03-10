@@ -1,5 +1,9 @@
 # Experience Replay
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Experience Replay** is one of the most effective and intuitive approaches to continual learning. The core idea is simple: maintain a memory buffer of examples from previous tasks and replay them during training on new tasks. By mixing old and new examples, the model maintains competence on previous tasks while learning new ones.

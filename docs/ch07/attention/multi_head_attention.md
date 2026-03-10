@@ -1,5 +1,9 @@
 # Multi-Head Attention
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Multi-head attention allows the model to jointly attend to information from **different representation subspaces** at different positions. Instead of a single attention function, we compute $h$ parallel attention operations, each with its own learned projections.

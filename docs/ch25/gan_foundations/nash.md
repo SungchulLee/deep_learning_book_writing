@@ -1,5 +1,9 @@
 # Nash Equilibrium
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 GAN training can be understood through the lens of game theory. The concept of **Nash equilibrium** provides the theoretical foundation for understanding when and how GANs converge.
 
 ## Game-Theoretic Framework

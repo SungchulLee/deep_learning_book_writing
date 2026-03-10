@@ -1,5 +1,9 @@
 # Batch, Mini-Batch, and Stochastic Gradient Descent
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 When training on datasets with thousands or millions of samples, computing the gradient over the entire dataset at each iteration becomes computationally expensive. This chapter explores three fundamental variants of gradient descent that differ in **how much data they use to compute each gradient update**.

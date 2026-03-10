@@ -1,5 +1,9 @@
 # Autoregressive Transformers
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The Transformer architecture, introduced by Vaswani et al. (2017), has become the dominant paradigm for autoregressive sequence modeling. Unlike RNNs which process sequences step-by-step, Transformers use **self-attention** to compute representations in parallel during training while maintaining the autoregressive property through **causal masking**. This combination—parallel training with sequential generation—underlies modern large language models (LLMs) like GPT, LLaMA, and their successors.

@@ -1,5 +1,9 @@
 # DP on DAGs
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <div align="center"><img src="https://media.geeksforgeeks.org/wp-content/uploads/multi-stage-graph.jpg" width="40%"></div>
 
 [Multistage Graph (Shortest Path)](https://www.geeksforgeeks.org/multistage-graph-shortest-path/)

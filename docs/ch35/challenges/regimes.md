@@ -1,5 +1,9 @@
 # 35.5.2 Regime Changes
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Learning Objectives
 
 - Detect and characterize market regimes (bull, bear, high-vol, low-vol)

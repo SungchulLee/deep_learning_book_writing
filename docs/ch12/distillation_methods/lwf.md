@@ -1,5 +1,9 @@
 # Learning Without Forgetting (LwF)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Learning Without Forgetting (LwF)** is a knowledge distillation-based approach to continual learning introduced by Li & Hoiem (2017). Unlike experience replay, LwF does not store previous examples. Instead, it uses the current task's data to maintain performance on old tasks by matching the model's outputs to its own previous predictions.

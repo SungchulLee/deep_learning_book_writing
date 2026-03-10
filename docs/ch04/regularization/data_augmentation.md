@@ -1,5 +1,9 @@
 # Data Augmentation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Data augmentation is a regularization technique that artificially expands the training dataset by creating modified versions of existing samples. By exposing the model to transformed data that preserves semantic meaning, augmentation teaches invariance to irrelevant variations and significantly improves generalization.

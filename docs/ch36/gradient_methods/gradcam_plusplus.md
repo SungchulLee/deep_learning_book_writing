@@ -1,5 +1,9 @@
 # Grad-CAM++: Improved Visual Explanations
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Grad-CAM++** is an enhanced version of Grad-CAM that provides better localization, particularly when multiple instances of the same class appear in an image. While Grad-CAM uses global average pooling of gradients to compute importance weights, Grad-CAM++ employs a **weighted combination** that gives higher importance to pixels with larger positive influence on the class score.

@@ -1,5 +1,9 @@
 # Grouped and Depthwise Separable Convolution
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Standard convolution operations have high computational costs due to the dense connections between input and output channels. **Grouped convolution** and **depthwise separable convolution** are architectural innovations that factorize the convolution operation, dramatically reducing parameters and computation while maintaining or even improving performance.

@@ -1,5 +1,9 @@
 # Score Matching, Langevin Dynamics, and Diffusion Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## The Score Function: A Unifying Concept
 
 The **score function** is the gradient of the log-density:

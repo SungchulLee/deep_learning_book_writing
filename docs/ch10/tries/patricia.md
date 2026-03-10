@@ -1,5 +1,9 @@
 # Compressed Tries (Patricia)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Compressed (Patricia) tries merge chains of single-child nodes, reducing space from $O(n|\Sigma|)$ to $O(n)$.
 
 ```python

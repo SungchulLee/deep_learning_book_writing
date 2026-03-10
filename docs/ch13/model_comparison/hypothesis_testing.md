@@ -1,5 +1,9 @@
 # Bayesian Hypothesis Testing and Model Comparison
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Bayesian hypothesis testing uses Bayes factors to compare competing hypotheses, providing a principled framework for quantifying evidence. This module develops the theory of Bayes factors, posterior odds, and the Savage-Dickey density ratio for testing point null hypotheses.

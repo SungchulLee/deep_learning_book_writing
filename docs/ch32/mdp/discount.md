@@ -1,5 +1,9 @@
 # 32.2.5 Discount Factor
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Definition
 
 The **discount factor** $\gamma \in [0, 1]$ determines how much the agent values future rewards relative to immediate ones. The discounted return is:

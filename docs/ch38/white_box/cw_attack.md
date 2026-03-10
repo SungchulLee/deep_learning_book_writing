@@ -1,5 +1,9 @@
 # Carlini-Wagner (C&W) Attack
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The **Carlini-Wagner (C&W) attack** is an optimization-based adversarial attack that reformulates adversarial example generation as an unconstrained optimization problem. Introduced by Carlini and Wagner (2017), it is significantly stronger than gradient-based methods and often finds smaller perturbations that still cause misclassification.

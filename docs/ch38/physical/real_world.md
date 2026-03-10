@@ -1,5 +1,9 @@
 # Real-World Robustness
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Translating adversarial attacks and defenses from digital experiments to the physical world introduces fundamental challenges. Real-world adversarial robustness must account for environmental variability, sensor noise, and the practical constraints of deploying perturbations outside controlled digital settings.

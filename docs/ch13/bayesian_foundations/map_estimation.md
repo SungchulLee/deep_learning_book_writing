@@ -1,5 +1,9 @@
 # Maximum A Posteriori (MAP) Estimation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 MAP estimation finds the mode of the posterior distribution, providing a point estimate that incorporates prior information. This module compares MAP with MLE and posterior mean, develops numerical optimization methods for MAP, and establishes the fundamental connection between MAP estimation and regularization.

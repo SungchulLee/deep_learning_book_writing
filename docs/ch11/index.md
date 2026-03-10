@@ -1,5 +1,9 @@
 # Chapter 11: Few-Shot & Zero-Shot Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter explores learning paradigms that operate with minimal or no labeled examples per class. Few-shot learning develops algorithms that generalize from just a handful of examples, while zero-shot learning leverages semantic knowledge to recognize classes never seen during training. Together, these approaches address one of deep learning's most significant limitations: the dependence on massive labeled datasets.
 
 ---

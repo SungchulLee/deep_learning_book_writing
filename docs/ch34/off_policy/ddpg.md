@@ -1,5 +1,9 @@
 # 34.4.1 Deep Deterministic Policy Gradient (DDPG)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 DDPG (Lillicrap et al., 2016) extends DQN to continuous action spaces by combining a deterministic policy gradient with an off-policy actor-critic framework. It maintains a deterministic actor $\mu_\theta(s)$ and a Q-function critic $Q_\phi(s,a)$, using experience replay and target networks for stable off-policy learning.

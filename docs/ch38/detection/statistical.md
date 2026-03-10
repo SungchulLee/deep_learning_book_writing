@@ -1,5 +1,9 @@
 # Statistical Detection of Adversarial Examples
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Rather than making models robust to adversarial perturbations, an alternative approach is to **detect** adversarial inputs before they reach the classifier. Statistical detection methods analyze properties of inputs and model internals to distinguish clean from adversarial examples.

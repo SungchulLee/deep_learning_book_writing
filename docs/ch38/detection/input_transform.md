@@ -1,5 +1,9 @@
 # Input Transformation Defenses
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Input transformation defenses** preprocess inputs before classification to remove or reduce adversarial perturbations. These methods modify the input using techniques such as denoising, compression, or reconstruction, aiming to "purify" adversarial examples while preserving clean classification accuracy.

@@ -1,5 +1,9 @@
 # Chapter 9: Self-Supervised Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Self-supervised learning (SSL) has emerged as the dominant paradigm for learning representations without human annotations. By creating supervision signals from the data itself, SSL methods leverage vast amounts of unlabeled data to learn features that transfer effectively to downstream tasks. This chapter traces the evolution from classical pretext tasks through contrastive learning and masked modeling to modern self-distillation methods.
 
 ---

@@ -1,5 +1,9 @@
 # Perturbation Types
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The choice of perturbation constraint defines the "budget" an adversary operates within. Different norms capture different notions of imperceptibility and lead to different attack strategies. This section formalizes the standard perturbation types, their geometric properties, and their projection operators used in constrained optimization.

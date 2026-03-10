@@ -1,5 +1,9 @@
 # Integrated Gradients
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Integrated Gradients (IG)** is a principled attribution method that addresses fundamental limitations of vanilla gradient-based approaches. Unlike simple gradients that provide local sensitivity, Integrated Gradients computes attributions by **accumulating gradients along a path from a baseline to the input**.

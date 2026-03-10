@@ -1,5 +1,9 @@
 # Implicit vs Explicit Feedback in Recommender Systems
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Recommender systems learn user preferences from two fundamentally different types of feedback: explicit feedback (users directly rate items on numerical scales or binary like/dislike) and implicit feedback (users reveal preferences through behavior—clicks, purchases, time spent, views). Each modality presents distinct advantages and challenges. Explicit feedback provides interpretable, ground-truth preference signals but requires active user effort, limiting quantity. Implicit feedback emerges naturally from user behavior, providing abundant data, but is noisy and indirect—a long page view could indicate genuine interest or accidental scroll.

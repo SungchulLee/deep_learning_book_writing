@@ -1,5 +1,9 @@
 # Peephole Connections
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Standard LSTM gates compute their activations based on the previous hidden state $h_{t-1}$ and the current input $x_t$. However, this means gates cannot directly observe the cell state $c_{t-1}$—the very memory they are supposed to regulate. **Peephole connections**, introduced by Gers and Schmidhuber (2000), address this limitation by giving gates direct access to the cell state.

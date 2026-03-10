@@ -1,5 +1,9 @@
 # Model Security in Financial Systems
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Deploying machine learning models in production financial systems introduces security considerations that extend beyond adversarial robustness of individual predictions. This section covers the end-to-end security of ML-based financial systems, from model theft and data poisoning to secure deployment practices.

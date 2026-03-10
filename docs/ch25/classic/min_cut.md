@@ -1,5 +1,9 @@
 # Randomized Min-Cut
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Max-Flow Min-Cut Theorem: the maximum flow equals the minimum cut capacity.
 
 # Reference

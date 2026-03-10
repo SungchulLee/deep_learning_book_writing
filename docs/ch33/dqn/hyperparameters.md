@@ -1,5 +1,9 @@
 # 33.1.5 DQN Hyperparameters
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 DQN performance is highly sensitive to hyperparameter choices. This section provides a comprehensive guide to DQN hyperparameters, their typical ranges, interactions, and tuning strategies.

@@ -1,5 +1,9 @@
 # 29.4.5 Heterogeneous Graphs
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Heterogeneous graphs** contain multiple types of nodes and/or edges, reflecting real-world complexity. A heterogeneous graph $G = (V, E, \tau_V, \tau_E)$ has node type mapping $\tau_V: V \to \mathcal{T}_V$ and edge type mapping $\tau_E: E \to \mathcal{T}_E$.

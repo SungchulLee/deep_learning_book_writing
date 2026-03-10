@@ -1,5 +1,9 @@
 # Learning Rate and Step Size
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The **learning rate** (often denoted $\eta$, $\alpha$, or `lr`) is arguably the most important hyperparameter in gradient-based optimization. It controls the magnitude of parameter updates and profoundly affects both the speed of convergence and whether convergence happens at all.

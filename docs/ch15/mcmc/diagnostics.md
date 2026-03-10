@@ -1,5 +1,9 @@
 # MCMC Diagnostics
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Running an MCMC sampler produces a sequence of correlated samples, but there is no automatic guarantee that these samples faithfully represent the target posterior. Diagnostics are essential for assessing convergence, mixing quality, and the reliability of posterior summaries.
 
 ---

@@ -1,5 +1,9 @@
 # Saliency Maps and Vanilla Gradients
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Saliency maps** are visualization techniques that reveal which parts of an input are most important for a neural network's prediction. At their core, saliency methods answer a fundamental question: *"Which input features does the model rely on to make this decision?"*

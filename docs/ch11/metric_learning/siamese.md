@@ -1,5 +1,9 @@
 # Siamese Networks for One-Shot Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Siamese networks were among the first neural network architectures specifically designed for one-shot learning. Introduced by Bromley et al. (1993) for signature verification and popularized for one-shot image recognition by Koch et al. (2015), these networks learn to determine whether two inputs belong to the same class by comparing their learned representations.

@@ -1,5 +1,9 @@
 # Certified Robustness
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Certified robustness** provides mathematical guarantees that a classifier's prediction will not change under any perturbation within a specified radius. Unlike empirical defenses (which are tested against specific attacks), certified defenses offer **provable guarantees** that hold against all possible attacks.

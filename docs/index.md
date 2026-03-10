@@ -1,5 +1,9 @@
 # Algorithms and Data Structures
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Welcome to the comprehensive guide on **Algorithms and Data Structures**.
 
 This book covers fundamental concepts through advanced topics, organized into the following parts:

@@ -1,5 +1,9 @@
 # Theoretical Foundation of Monte Carlo Dropout
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Monte Carlo (MC) Dropout provides a principled Bayesian interpretation of dropout as approximate variational inference. This document develops the theoretical foundations rigorously, establishing the connection between dropout training and posterior inference over neural network weights.

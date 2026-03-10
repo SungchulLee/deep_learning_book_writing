@@ -1,5 +1,9 @@
 # Score-Based Attacks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Score-based attacks** exploit access to the model's output probability distribution $p(y|\mathbf{x})$ or logits to construct adversarial examples without gradient access. These attacks occupy a middle ground between white-box (full gradient access) and decision-based (hard labels only) methods, offering significantly better query efficiency than decision-based approaches.

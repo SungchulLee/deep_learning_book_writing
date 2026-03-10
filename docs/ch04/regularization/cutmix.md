@@ -1,5 +1,9 @@
 # CutMix
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 CutMix is a data augmentation and regularization technique that creates training samples by cutting a rectangular patch from one image and pasting it onto another, with labels mixed proportionally to the area of the patch. CutMix combines the spatial occlusion benefits of Cutout with the label-mixing benefits of Mixup, encouraging the model to attend to the full extent of objects while learning from blended targets.

@@ -1,5 +1,9 @@
 # Catastrophic Forgetting
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Catastrophic forgetting** (also called catastrophic interference) is the fundamental phenomenon that motivates all continual learning research. When neural networks are trained sequentially on multiple tasks, they tend to dramatically forget previously learned information when learning new tasks.

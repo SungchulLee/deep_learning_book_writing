@@ -1,5 +1,9 @@
 # Pigeonhole Principle
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 If $n$ items are placed into $m$ containers and $n > m$, then at least one container has more than one item.
 
 $$

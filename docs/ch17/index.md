@@ -1,5 +1,9 @@
 # Chapter 17: Computer Vision
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter covers the major deep learning tasks and architectures in computer vision, from image classification through object detection, semantic segmentation, video understanding, and multimodal vision-language models. Each section traces the evolution of key architectures, presents the underlying mathematical formulations, and provides practical PyTorch implementations.
 
 ---

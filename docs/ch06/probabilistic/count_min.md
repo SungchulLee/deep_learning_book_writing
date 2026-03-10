@@ -1,5 +1,9 @@
 # Count-Min Sketch
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Longest increasing subsequence in $O(n \log n)$ using patience sorting.
 
 # Reference

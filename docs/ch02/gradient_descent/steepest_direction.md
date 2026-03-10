@@ -1,5 +1,9 @@
 # Gradient as Steepest Ascent Direction
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The gradient is the cornerstone concept that gives "gradient descent" its name. Understanding why the gradient points in the direction of steepest ascent—and conversely, why the negative gradient points toward steepest descent—is essential for developing intuition about optimization algorithms.

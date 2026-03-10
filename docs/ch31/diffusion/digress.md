@@ -1,5 +1,9 @@
 # DiGress: Discrete Denoising Diffusion for Graph Generation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 DiGress (Vignac et al., 2023) is a discrete diffusion model that generates graphs by denoising categorical node and edge types simultaneously. Unlike continuous relaxation approaches, DiGress operates natively on discrete graph structures using a categorical diffusion process. The model employs a graph transformer as the denoising network and introduces a noise model specifically designed for graphs — incorporating absorbing states and marginal distributions that improve generation quality. DiGress achieves state-of-the-art results on molecular and generic graph generation benchmarks.

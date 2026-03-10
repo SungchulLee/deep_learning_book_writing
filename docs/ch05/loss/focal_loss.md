@@ -1,5 +1,9 @@
 # Focal Loss
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Focal Loss addresses a fundamental failure mode of standard cross-entropy: in datasets with severe class imbalance, easy-to-classify examples from the majority class dominate the gradient signal, preventing the model from learning to identify the rare minority class. Introduced by Lin et al. (2017) for dense object detection, Focal Loss down-weights well-classified examples and focuses training on hard, misclassified samples.
 
 ## The Class Imbalance Problem

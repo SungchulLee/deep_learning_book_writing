@@ -1,5 +1,9 @@
 # Chapter 2: PyTorch Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter introduces PyTorch from the ground up, covering tensors, automatic differentiation, gradient descent, and GPU acceleration. By the end of this chapter, you will have a solid command of the core abstractions that underpin every deep learning model built in PyTorch. The chapter also covers integration with scikit-learn and finance applications.
 
 ## Intro

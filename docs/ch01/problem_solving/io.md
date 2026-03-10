@@ -1,5 +1,9 @@
 # Input and Output
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Algorithms transform **input** into **output**. Understanding the input/output relationship is crucial for algorithm design.
 
 $$

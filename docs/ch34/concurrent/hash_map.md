@@ -1,5 +1,9 @@
 # Concurrent Hash Map
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Concurrent hash maps use fine-grained locking or lock-free techniques for thread safety.
 
 $$h(k) = k \bmod m$$

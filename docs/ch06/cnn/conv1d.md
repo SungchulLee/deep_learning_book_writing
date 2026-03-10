@@ -1,5 +1,9 @@
 # 1D Convolutions
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 While 2D convolutions are the workhorse of image processing, **1D convolutions** operate on sequential data—time series, audio signals, text sequences, and financial data. They apply a learnable kernel that slides along a single spatial (temporal) dimension, extracting local patterns at every position.

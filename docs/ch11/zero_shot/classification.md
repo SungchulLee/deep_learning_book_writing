@@ -1,5 +1,9 @@
 # Zero-Shot Classification
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Visual-semantic embedding models learn deep neural network mappings between visual features (from CNNs) and semantic representations (word embeddings). This section covers DeViSE, bilinear compatibility models, and advanced architectures for zero-shot learning.

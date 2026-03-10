@@ -1,5 +1,9 @@
 # Effective Sample Size
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 The Effective Sample Size (ESS) is the fundamental diagnostic for importance sampling quality. It quantifies how many independent samples from the target distribution our weighted samples are equivalent to. ESS provides an objective measure of proposal quality and directly relates to the variance of importance sampling estimators.

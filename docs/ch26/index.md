@@ -1,5 +1,9 @@
 # Chapter 26: Diffusion Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Diffusion models are generative models that learn to create data by reversing a gradual noising process, achieving state-of-the-art results in image generation, audio synthesis, and beyond. By decomposing the difficult generation problem into many small denoising steps, these models produce remarkably high-quality samples with strong mode coverage. This chapter covers the mathematical foundations, score-based methods, DDPM, DDIM, SDE formulations, conditional generation, architectures, evaluation metrics, and finance applications.
 
 ---

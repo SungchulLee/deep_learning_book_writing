@@ -1,5 +1,9 @@
 # Finding Invariants
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 An **invariant** is a property that remains true throughout the execution of an algorithm. Identifying invariants is a powerful technique for both designing correct algorithms and proving their correctness.
 
 ## What Is an Invariant?

@@ -1,5 +1,9 @@
 # DropConnect
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 DropConnect is a generalization of dropout that randomly sets individual *weights* (connections) to zero during training rather than entire neuron activations. Proposed by Wan et al. (2013), DropConnect operates at the weight level, providing a finer-grained form of stochastic regularization. While dropout masks activations — effectively removing entire neurons from the forward pass — DropConnect masks individual elements of the weight matrix, allowing each neuron to participate partially in every forward pass.

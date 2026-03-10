@@ -1,5 +1,9 @@
 # NFA to DFA
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The subset construction (also called the powerset construction) converts a nondeterministic finite automaton (NFA) into an equivalent deterministic finite automaton (DFA). The resulting DFA has at most $2^n$ states for an NFA with $n$ states, though in practice it is usually much smaller.
 
 ## Algorithm: Subset Construction

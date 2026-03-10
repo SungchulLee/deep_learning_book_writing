@@ -1,5 +1,9 @@
 # 29.4.4 Graph Transformers
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Graph Transformers** apply the transformer's self-attention mechanism to graphs, enabling global information exchange in a single layer and avoiding the local message passing bottleneck.

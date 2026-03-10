@@ -1,5 +1,9 @@
 # Laplace Approximation for Neural Networks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The **Laplace approximation** provides a simple, post-hoc approach to Bayesian inference by fitting a Gaussian distribution centered at the MAP (maximum a posteriori) estimate. This classical technique, when applied to neural networks, offers a computationally tractable way to obtain uncertainty estimates without retraining the network.
 
 ---

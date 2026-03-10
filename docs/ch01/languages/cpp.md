@@ -1,5 +1,9 @@
 # C++ for Algorithms
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 C++ offers high performance and STL containers, making it popular for competitive programming and systems algorithms.
 
 ## Key STL Containers

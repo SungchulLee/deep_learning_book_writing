@@ -1,5 +1,9 @@
 # Paging
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Online paging: LRU achieves competitive ratio $k$ (number of cache pages).
 
 # Reference

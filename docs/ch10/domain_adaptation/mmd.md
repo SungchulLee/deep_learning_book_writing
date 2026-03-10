@@ -1,5 +1,9 @@
 # Maximum Mean Discrepancy for Domain Adaptation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Maximum Mean Discrepancy (MMD) provides a principled, theoretically-grounded method for measuring and minimizing distribution differences between source and target domains. By learning representations where source and target distributions exhibit minimal discrepancy, MMD-based domain adaptation enables robust transfer learning without requiring labeled target data.

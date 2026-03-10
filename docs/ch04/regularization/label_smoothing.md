@@ -1,5 +1,9 @@
 # Label Smoothing
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Label smoothing is a regularization technique for classification models that replaces hard one-hot target vectors with soft targets that distribute a small probability mass across all classes. By preventing the model from assigning full probability to the ground-truth class, label smoothing discourages overconfident predictions, improves model calibration, and acts as a form of output regularization that complements weight-based and data-based regularizers.

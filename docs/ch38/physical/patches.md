@@ -1,5 +1,9 @@
 # Adversarial Patches
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Adversarial patches** are localized, physically realizable adversarial perturbations that can be printed and placed in the physical world to fool classifiers. Unlike $\ell_p$-bounded perturbations that modify every pixel imperceptibly, patches modify a small region of the input with unconstrained magnitude. This makes them a practical attack vector for physical-world systems.

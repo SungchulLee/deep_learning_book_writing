@@ -1,5 +1,9 @@
 # Failure Function
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The failure function (also called the prefix function or partial match table) is the key preprocessing step for the KMP algorithm. For a pattern $P[0..m-1]$, the failure function $\pi[i]$ gives the length of the longest proper prefix of $P[0..i]$ that is also a suffix of $P[0..i]$.
 
 ## Definition

@@ -1,5 +1,9 @@
 # GPT: Generative Pre-trained Transformer
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 GPT (Generative Pre-trained Transformer) is a decoder-only Transformer architecture designed for autoregressive language modeling. Unlike BERT's bidirectional approach, GPT uses unidirectional (left-to-right) attention, making it naturally suited for text generation tasks.

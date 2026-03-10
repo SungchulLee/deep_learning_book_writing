@@ -1,5 +1,9 @@
 # RealNVP and Coupling Layers
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Coupling layers are the backbone of modern normalizing flows.  The idea is disarmingly simple: split the input into two parts, pass one part through unchanged, and transform the other using parameters computed from the first.  This guarantees invertibility by construction and yields triangular Jacobians with $O(d)$ determinant computation.  **RealNVP** (Real-valued Non-Volume Preserving flows; Dinh et al., 2017) demonstrated that stacking affine coupling layers with alternating masks produces a practical, scalable architecture for high-dimensional density estimation.
 
 ## The Coupling Principle

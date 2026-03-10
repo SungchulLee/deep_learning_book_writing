@@ -1,5 +1,9 @@
 # Projected Gradient Descent (PGD) Attack
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Projected Gradient Descent (PGD)** extends FGSM to a multi-step iterative attack, making it significantly more powerful. Introduced by Madry et al. (2018), PGD is considered the de facto standard for evaluating adversarial robustness and is the foundation of robust adversarial training.

@@ -1,5 +1,9 @@
 # Phase Space
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Phase space is the mathematical arena where Hamiltonian Monte Carlo operates. This section provides a detailed treatment of phase space geometry, the augmented state space for sampling, and the geometric structures that enable efficient exploration.
 
 ---

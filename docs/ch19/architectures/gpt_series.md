@@ -1,5 +1,9 @@
 # GPT Series: Evolution of Autoregressive Language Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Learning Objectives
 
 - Trace the evolution from GPT-1 through GPT-4

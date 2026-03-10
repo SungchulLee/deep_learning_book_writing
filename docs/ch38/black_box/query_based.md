@@ -1,5 +1,9 @@
 # Query-Based Attacks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Query-based black-box attacks** generate adversarial examples by iteratively querying the target model and using the responses to guide the perturbation search. Unlike transfer attacks (zero-query), these methods directly interact with the target model but require no knowledge of its internals. The key challenge is achieving high attack success rates within a limited **query budget**.

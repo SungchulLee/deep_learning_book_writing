@@ -1,5 +1,9 @@
 # Monte Carlo Dropout Sample Convergence
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 The quality of MC Dropout uncertainty estimates depends critically on the number of forward passes $T$. This document provides rigorous convergence analysis, practical bounds, and guidelines for selecting the number of samples.

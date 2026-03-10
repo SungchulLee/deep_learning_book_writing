@@ -1,5 +1,9 @@
 # Height Analysis
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <div align="center"><img src="https://upload.wikimedia.org/wikipedia/commons/f/fd/AVL_Tree_Example.gif" width="50%"></div>
 
 [AVL tree](https://en.wikipedia.org/wiki/AVL_tree)

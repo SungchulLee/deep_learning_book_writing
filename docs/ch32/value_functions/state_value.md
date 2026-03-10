@@ -1,5 +1,9 @@
 # 32.3.1 State Value Function
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Definition
 
 The **state value function** $V_\pi(s)$ gives the expected return when starting in state $s$ and following policy $\pi$ thereafter:

@@ -1,5 +1,9 @@
 # 0-1 BFS
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 0-1 BFS uses a deque for graphs with edge weights 0 and 1, running in $O(V+E)$.
 
 $$T(V, E) = O(V + E)$$

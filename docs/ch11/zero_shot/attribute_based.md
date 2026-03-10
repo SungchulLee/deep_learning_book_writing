@@ -1,5 +1,9 @@
 # Attribute-Based Zero-Shot Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Attribute-based methods represent the foundational approach to zero-shot learning. Each class is described by a set of semantic attributes, and models learn to predict these attributes from visual features. This section covers the two primary attribute-based approaches: Direct Attribute Prediction (DAP) and Indirect Attribute Prediction (IAP).

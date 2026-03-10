@@ -1,5 +1,9 @@
 # Good Suffix Rule
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The good-suffix rule is the second heuristic in the Boyer-Moore algorithm. While the bad-character rule focuses on the mismatched character, the good-suffix rule exploits the portion of the pattern that has already been matched.
 
 ## Intuition

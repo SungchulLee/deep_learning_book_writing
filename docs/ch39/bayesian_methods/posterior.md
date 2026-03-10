@@ -1,5 +1,9 @@
 # Posterior Inference in Bayesian Neural Networks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Posterior inference** is the central computational challenge in Bayesian neural networks. Given a prior $p(\theta)$ and likelihood $p(\mathcal{D} \mid \theta)$, we seek the posterior distribution $p(\theta \mid \mathcal{D})$. For neural networks, this posterior is intractable, necessitating approximate inference methods ranging from sampling (MCMC) to optimization (variational inference) to implicit approximations (dropout, ensembles).
 
 ---

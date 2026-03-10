@@ -1,5 +1,9 @@
 # Prim's Algorithm
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <div align="center"><img src="https://upload.wikimedia.org/wikipedia/commons/9/9b/PrimAlgDemo.gif" width="40%"></div>
 
 [Prim's algorithm](https://en.wikipedia.org/wiki/Prim%27s_algorithm)

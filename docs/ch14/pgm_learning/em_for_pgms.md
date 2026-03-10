@@ -1,5 +1,9 @@
 # EM for PGMs
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 The Expectation-Maximization (EM) algorithm is the standard approach for learning parameters of PGMs with latent variables. It iteratively computes expected sufficient statistics (E-step) and maximizes the expected log-likelihood (M-step).

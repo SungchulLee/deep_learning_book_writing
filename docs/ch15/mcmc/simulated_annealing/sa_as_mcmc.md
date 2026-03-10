@@ -1,5 +1,9 @@
 # SA as Non-Stationary MCMC
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Simulated annealing can be understood as a non-stationary variant of the Metropolis-Hastings algorithm where the target distribution changes over time. This perspective clarifies the theoretical foundations, explains why convergence guarantees require slow cooling, and reveals the precise relationship to standard MCMC methods.
 
 ---

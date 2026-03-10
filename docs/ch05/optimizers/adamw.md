@@ -1,5 +1,9 @@
 # AdamW
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 AdamW fixes Adam's problematic interaction with weight decay by decoupling the weight decay from the gradient-based update. This seemingly minor change has a significant impact on regularization effectiveness and is now the recommended default optimizer for most deep learning tasks.

@@ -1,5 +1,9 @@
 # Matrix Chain - Recursion
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <img src="img/Screen Shot 2022-06-21 at 1.20.36 AM.png" width=60%>
 
 [[알고리즘] 제18-4강 동적계획법 (Dynamic Programming)](https://www.youtube.com/watch?v=n_3E2-UhLeU&list=PL52K_8WQO5oUuH06MLOrah4h05TZ4n38l&index=55)

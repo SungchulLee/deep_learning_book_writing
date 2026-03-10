@@ -1,5 +1,9 @@
 # Self-Attention
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Self-attention is a special case of attention where queries, keys, and values all derive from the **same input sequence**. Each position in the sequence can attend to all positions (including itself), enabling the model to capture relationships and dependencies within a single sequence without any external context.

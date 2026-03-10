@@ -1,5 +1,9 @@
 # TRADES: Theoretically Principled Trade-off
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **TRADES** (TRadeoff-inspired Adversarial DEfense via Surrogate-loss minimization; Zhang et al., 2019) explicitly decomposes the robust optimization objective to control the trade-off between clean accuracy and adversarial robustness. Unlike standard adversarial training which implicitly balances these goals, TRADES provides a tunable parameter $\beta$ that directly controls this trade-off.

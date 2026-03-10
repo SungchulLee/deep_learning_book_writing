@@ -1,5 +1,9 @@
 # Hierarchical Bayesian Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Hierarchical models allow parameters to vary by group while sharing statistical strength across groups through partial pooling. This module develops the theory of multi-level inference, contrasts pooling strategies, and demonstrates the shrinkage phenomenon that makes hierarchical models powerful.

@@ -1,5 +1,9 @@
 # Leftist Heaps
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Leftist heaps maintain the property that the left subtree is always at least as heavy as the right.
 
 ```python

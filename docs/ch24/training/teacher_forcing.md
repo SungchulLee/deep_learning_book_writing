@@ -1,5 +1,9 @@
 # Teacher Forcing
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Teacher forcing is the standard training strategy for autoregressive models. During training, the model receives the ground-truth previous tokens as input rather than its own predictions, enabling efficient parallel training.

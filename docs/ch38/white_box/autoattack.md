@@ -1,5 +1,9 @@
 # AutoAttack
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **AutoAttack** (Croce & Hein, 2020) is a parameter-free, ensemble-based attack designed for reliable adversarial robustness evaluation. It combines multiple complementary attack strategies to minimize the risk of false robustness claims due to gradient masking or suboptimal attack hyperparameters. AutoAttack has become the de facto standard for reporting robust accuracy in the adversarial robustness literature.

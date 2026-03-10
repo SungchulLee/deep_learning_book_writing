@@ -1,5 +1,9 @@
 # Hoare Partition
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Hoare partition uses two pointers moving inward, producing fewer swaps than Lomuto.
 
 ```python

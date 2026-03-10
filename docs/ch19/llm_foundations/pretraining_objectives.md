@@ -1,5 +1,9 @@
 # Pretraining Objectives for Large Language Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Learning Objectives
 
 - Compare causal language modeling (CLM) vs masked language modeling (MLM)

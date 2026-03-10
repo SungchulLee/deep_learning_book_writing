@@ -1,5 +1,9 @@
 # Fraud Detection Robustness
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Fraud detection systems are inherently adversarial: fraudsters actively attempt to craft transactions that evade detection while maintaining fraudulent intent. This makes adversarial robustness not a theoretical concern but an operational necessity. Unlike image classification where adversarial examples are a research curiosity, fraud detection faces **real adversaries** who continuously adapt their strategies.

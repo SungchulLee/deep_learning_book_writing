@@ -1,5 +1,9 @@
 # Bayesian Neural Network Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 **Bayesian neural networks (BNNs)** extend standard neural networks by placing probability distributions over weights rather than learning point estimates. This enables principled uncertainty quantification, distinguishing between what the model doesn't know about the data (aleatoric uncertainty) and what the model doesn't know about itself (epistemic uncertainty).

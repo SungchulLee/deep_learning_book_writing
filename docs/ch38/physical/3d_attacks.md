@@ -1,5 +1,9 @@
 # 3D Adversarial Attacks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **3D adversarial attacks** extend adversarial perturbations beyond the image plane into three-dimensional space. Instead of perturbing pixel values, these attacks modify the physical properties of objects—their shape, texture, or lighting—to create adversarial objects that fool classifiers from multiple viewpoints.

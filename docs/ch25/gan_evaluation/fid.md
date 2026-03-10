@@ -1,5 +1,9 @@
 # Fréchet Inception Distance (FID)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 The Fréchet Inception Distance (FID) is the most widely adopted metric for evaluating generative models, particularly for image synthesis. Introduced by Heusel et al. (2017), FID measures the distance between the distribution of generated images and real images in the feature space of a pre-trained Inception network.

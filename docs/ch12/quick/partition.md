@@ -1,5 +1,9 @@
 # Partition
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <div align="center"><img src="http://www.codeido.com/wp-content/uploads/2010/12/quicksort-326x270.png" width="50%"></div>
 
 [Recursive Quicksort Algorithm written in C language [with example step-by-step]](http://www.codeido.com/2010/12/recursive-quicksort-algorithm-written-in-c-language-with-example-step-by-step/)

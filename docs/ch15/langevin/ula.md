@@ -1,5 +1,9 @@
 # Unadjusted Langevin Algorithm (ULA)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The Unadjusted Langevin Algorithm discretizes the Langevin SDE without a Metropolis-Hastings correction. This makes it simple and compatible with stochastic gradients, but introduces a persistent bias that depends on the step size.
 
 ---

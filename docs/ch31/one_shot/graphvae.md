@@ -1,5 +1,9 @@
 # GraphVAE
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 GraphVAE (Simonovsky & Komodakis, 2018) applies the variational autoencoder framework to one-shot graph generation. The encoder maps a graph to a latent distribution using a GNN, and the decoder reconstructs the full adjacency matrix and node features from a sampled latent vector. The key innovations are: (1) a graph-matching loss that handles permutation invariance without requiring a canonical ordering, and (2) a probabilistic decoder that generates both the graph topology and node/edge attributes simultaneously.

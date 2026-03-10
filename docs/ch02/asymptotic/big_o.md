@@ -1,5 +1,9 @@
 # Big-O Notation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Big-O Notation** is an important concept in algorithm design and analysis.
 
 $$f(n) = O(g(n)) \iff \exists\, c > 0,\, n_0 > 0 : f(n) \leq c \cdot g(n) \;\forall n \geq n_0$$

@@ -1,5 +1,9 @@
 # Evaluation and Benchmarking
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Proper evaluation of adversarial robustness is critical—many "robust" defenses have been broken due to improper evaluation. This section covers best practices, common pitfalls, and standardized evaluation protocols including **AutoAttack** and **RobustBench**.

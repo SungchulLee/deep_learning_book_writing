@@ -1,5 +1,9 @@
 # 29.1.3 Adjacency Matrix
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The adjacency matrix is the most fundamental matrix representation of a graph and serves as the starting point for spectral graph theory, graph signal processing, and many GNN formulations. This section provides a deep dive into the adjacency matrix and its derived matrices.

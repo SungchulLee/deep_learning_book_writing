@@ -1,5 +1,9 @@
 # Yield Curve Decomposition Using PCA
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The yield curve—the relationship between bond yields and maturity—is one of the most important financial instruments, encoding market expectations about future interest rates, economic growth, and inflation. However, observing yield curve dynamics requires monitoring dozens of maturities (3 months, 6 months, 1 year, 2 years, ..., 30 years), creating a high-dimensional estimation problem.

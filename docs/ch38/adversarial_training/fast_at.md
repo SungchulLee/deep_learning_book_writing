@@ -1,5 +1,9 @@
 # Fast Adversarial Training
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Fast Adversarial Training** (Wong et al., 2020) achieves robust training using **single-step FGSM** with random initialization, approaching PGD-AT robustness at a fraction of the computational cost. The key discovery is that FGSM-based training—previously thought insufficient—works well when combined with proper random initialization and careful hyperparameter selection.

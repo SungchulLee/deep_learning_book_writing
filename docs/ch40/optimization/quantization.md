@@ -1,5 +1,9 @@
 # Quantization
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Quantization reduces the numerical precision of neural network weights and activations from floating-point (typically 32-bit) to lower bit-width representations (8-bit, 4-bit, or even binary). This achieves significant reductions in memory footprint and computational cost, with specialized hardware providing substantial inference speedups.

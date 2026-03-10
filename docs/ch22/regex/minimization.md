@@ -1,5 +1,9 @@
 # DFA Minimization
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 DFA minimization reduces a deterministic finite automaton to its smallest equivalent DFA. Two DFAs are equivalent if they accept the same language. The minimized DFA is unique (up to state renaming) for any given regular language.
 
 ## Hopcroft's Algorithm

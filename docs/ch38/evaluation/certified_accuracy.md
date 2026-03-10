@@ -1,5 +1,9 @@
 # Certified Accuracy
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Certified accuracy** quantifies the fraction of test examples for which a model's prediction is provably correct under any perturbation within a given budget. Unlike empirical robust accuracy (which depends on the attack strength), certified accuracy provides a guaranteed lower bound on true robustness.

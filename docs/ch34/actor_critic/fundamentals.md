@@ -1,5 +1,9 @@
 # 34.2.1 Actor-Critic Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Actor-critic methods combine the strengths of policy-based and value-based approaches. The **actor** maintains a parameterized policy $\pi_\theta(a|s)$ and the **critic** learns a value function $V_\phi(s)$ (or $Q_\phi(s,a)$) that evaluates the actor's performance. This combination enables lower-variance gradient estimates than pure REINFORCE while maintaining the advantages of direct policy optimization.

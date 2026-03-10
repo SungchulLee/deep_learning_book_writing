@@ -1,5 +1,9 @@
 # Matrix Chain Multiplication
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 $$
 
 \text{shape of $A_i$ : ($p_{i-1},p_i$)}

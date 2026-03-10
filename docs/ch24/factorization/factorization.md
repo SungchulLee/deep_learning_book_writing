@@ -1,5 +1,9 @@
 # Autoregressive Factorization
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Autoregressive models represent one of the most fundamental approaches to generative modeling. The core idea is elegantly simple: model a joint probability distribution by decomposing it into a product of conditional distributions, where each variable is predicted based on all previous variables. This chapter establishes the mathematical foundations that underpin all autoregressive generative models, from classical time series models to modern large language models.

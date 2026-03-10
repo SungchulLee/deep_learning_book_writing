@@ -1,5 +1,9 @@
 # GDSS: Score-Based Graph Diffusion via SDEs
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 GDSS (Jo et al., 2022) applies score-based generative modeling through stochastic differential equations (SDEs) to graph generation. Rather than discretizing the diffusion into $T$ steps, GDSS formulates forward and reverse processes as continuous-time SDEs, enabling flexible sampling. The model jointly generates node features and adjacency matrices through coupled SDEs, with score networks estimating the joint score function.

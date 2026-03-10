@@ -1,5 +1,9 @@
 # Read-Copy-Update
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Read-Copy-Update: readers access data lock-free; writers create copies and swap atomically.
 
 # Reference

@@ -1,5 +1,9 @@
 # Noise Schedules
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The **noise schedule** $\{\beta_t\}_{t=1}^T$ controls how quickly noise is added during the forward diffusion process. This seemingly simple choice has profound effects on model performance and generation quality.
 
 ## Why Noise Schedules Matter

@@ -1,5 +1,9 @@
 # Chapter 24: Autoregressive Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Autoregressive models decompose joint probability distributions into products of conditional distributions using the chain rule of probability, enabling exact density evaluation and sequential generation. From PixelCNN for images to WaveNet for audio and GPT-style transformers for text, autoregressive models underpin many of the most successful generative systems in modern deep learning. This chapter covers the theoretical foundations, key architectures, training strategies, evaluation methods, and finance applications.
 
 ---

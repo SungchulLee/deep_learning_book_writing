@@ -1,5 +1,9 @@
 # Model Evidence (Marginal Likelihood)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The **model evidence**, also called the **marginal likelihood**, is the probability of observed data under a model after integrating out all parameters. It serves as the cornerstone of Bayesian model comparison, naturally implementing Occam's razor by penalizing models that are overly complex relative to the data they explain.
 
 ---

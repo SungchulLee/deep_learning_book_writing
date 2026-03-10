@@ -1,5 +1,9 @@
 # Practical Training Recipes
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Individual training techniques — learning rate schedules, data augmentation, regularization, normalization — each provide incremental gains. However, their true power emerges when combined systematically. This section presents practical "recipes" for training deep learning models effectively, drawing from empirical findings that show how combining simple tricks can yield substantial cumulative improvements.

@@ -1,5 +1,9 @@
 # Bayesian Portfolio Optimization
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Classical mean-variance portfolio optimization (Markowitz, 1952) treats estimated parameters as known constants, ignoring estimation uncertainty. Bayesian portfolio methods incorporate parameter uncertainty directly into the optimization, producing more robust and better-diversified portfolios.

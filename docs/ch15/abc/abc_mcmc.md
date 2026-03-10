@@ -1,5 +1,9 @@
 # ABC-MCMC
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ABC-MCMC combines Approximate Bayesian Computation with Markov chain Monte Carlo, enabling more efficient exploration of the parameter space than rejection sampling. This section presents the algorithm, its theoretical justification, and practical implementation guidance.
 
 ---

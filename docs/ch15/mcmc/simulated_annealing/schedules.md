@@ -1,5 +1,9 @@
 # Temperature Schedules
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The cooling schedule is the heart of simulated annealing—it determines the trade-off between exploration and exploitation, and ultimately whether the algorithm finds the global optimum. This section covers the theory and practice of temperature schedule design.
 
 ---

@@ -1,5 +1,9 @@
 # Speculative Decoding
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Speculative decoding is a technique that accelerates autoregressive generation by using a smaller **draft model** to propose multiple tokens, which are then verified in parallel by the larger **target model**. This exploits the fact that verification is cheaper than generation due to parallelization.

@@ -1,5 +1,9 @@
 # Prototype Networks for Interpretability
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Prototype-based explanation** methods make predictions by comparing inputs to learned prototypical examples. Instead of abstract feature attributions, these methods explain: "This input is classified as X because it looks like **this** prototypical case." This provides intuitive, example-based explanations that domain experts find natural to understand.

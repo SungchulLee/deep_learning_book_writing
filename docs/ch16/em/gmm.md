@@ -1,5 +1,9 @@
 # Gaussian Mixture Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Gaussian Mixture Models (GMMs) are the canonical application of the EM algorithm and serve as a foundational model in unsupervised learning. This section provides a complete treatment: model specification, EM derivation, implementation details, and extensions relevant to quantitative finance.
 
 ---

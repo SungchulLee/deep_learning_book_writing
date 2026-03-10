@@ -1,5 +1,9 @@
 # Deterministic Annealing for EM
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Deterministic annealing applies the temperature concept to the Expectation-Maximization algorithm, providing a principled way to escape local optima in likelihood optimization. Unlike stochastic simulated annealing, this approach works with expected values directly, making it suitable for problems where expectations can be computed analytically.
 
 ---

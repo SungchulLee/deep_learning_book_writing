@@ -1,5 +1,9 @@
 # Attention Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Attention mechanisms allow neural networks to dynamically focus on relevant parts of their input, rather than treating all information uniformly. Originally introduced to address limitations in sequence-to-sequence models, attention has become the foundation of modern architectures including Transformers.
 
 ## Core Intuition: Attention as Soft Dictionary Lookup

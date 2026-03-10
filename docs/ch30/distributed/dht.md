@@ -1,5 +1,9 @@
 # Distributed Hash Tables
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Distributed hash tables provide decentralized key-value storage with $O(\log n)$ lookup.
 
 $$h(k) = k \bmod m$$

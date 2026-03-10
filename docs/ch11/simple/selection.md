@@ -1,5 +1,9 @@
 # Selection Sort
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <img src="img/Screen Shot 2022-04-30 at 11.43.25 AM.png" width="70%">
 
 <img src="img/Screen Shot 2022-04-30 at 11.46.02 AM.png" width="50%">

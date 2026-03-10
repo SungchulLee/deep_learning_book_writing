@@ -1,5 +1,9 @@
 # Regime Detection and Bayesian Strategy Evaluation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 This section covers two critical applications of Bayesian methods in quantitative finance: detecting market regime changes through online Bayesian updating, and evaluating trading strategies using Bayesian A/B testing. Both applications leverage the sequential updating property of Bayes' theorem and provide direct probability statements about quantities of interest.

@@ -1,5 +1,9 @@
 # Geometric Interpretation of HMC
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Hamiltonian Monte Carlo admits rich geometric interpretations that illuminate why the algorithm works and suggest directions for improvement. This section explores HMC through the lenses of differential geometry, information geometry, and physical intuition.
 
 ---

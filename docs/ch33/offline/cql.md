@@ -1,5 +1,9 @@
 # 33.5.2 Conservative Q-Learning (CQL)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Core Idea
 
 **CQL** (Kumar et al., 2020) addresses offline RL's extrapolation error by learning a *conservative* Q-function that lower-bounds the true Q-values. The key insight: instead of preventing OOD actions, penalize Q-values for all actions and reward Q-values for actions in the dataset.

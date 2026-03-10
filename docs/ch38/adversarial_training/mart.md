@@ -1,5 +1,9 @@
 # MART: Misclassification-Aware Robust Training
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **MART** (Misclassification-Aware adversarial Robust Training; Wang et al., 2020) improves adversarial training by assigning different weights to training examples based on how difficult they are to classify correctly. The key insight is that not all examples contribute equally to robustness: examples that are already difficult to classify naturally deserve more attention during robust training.

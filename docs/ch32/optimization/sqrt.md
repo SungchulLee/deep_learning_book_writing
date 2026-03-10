@@ -1,5 +1,9 @@
 # Square Root Decomposition
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Square root decomposition** divides an array of $n$ elements into blocks of size $\sqrt{n}$, enabling $O(\sqrt{n})$ queries and updates -- a useful middle ground between brute force $O(n)$ and complex tree structures $O(\log n)$.
 
 ## Key Idea

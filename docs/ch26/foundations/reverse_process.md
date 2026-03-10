@@ -1,5 +1,9 @@
 # Reverse Process
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The **reverse process** is the generative core of diffusion models. It transforms noise into structured data by learning to reverse the forward diffusion, one step at a time.
 
 ## Discrete-Time Formulation

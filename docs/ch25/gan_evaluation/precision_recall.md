@@ -1,5 +1,9 @@
 # Precision and Recall for Generative Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Precision and Recall metrics, adapted from classification to generative modeling, provide a nuanced understanding of generation quality that FID alone cannot capture. These metrics separately measure **fidelity** (are generated samples realistic?) and **diversity** (does the model cover all modes of the data distribution?).

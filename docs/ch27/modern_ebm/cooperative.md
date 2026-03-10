@@ -1,5 +1,9 @@
 # Cooperative Learning Between EBMs and Other Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Energy-Based Models, while powerful for density estimation and anomaly detection, have limitations including computational cost of sampling and difficulty training on high-dimensional data. Modern deep learning advances suggest that EBMs should not be viewed as standalone models but rather as components within larger heterogeneous systems that leverage complementary strengths of other architectures.

@@ -1,5 +1,9 @@
 # Identity Mapping
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Identity mappings in deep residual networks, introduced by He et al. in "Identity Mappings in Deep Residual Networks" (2016), represent a crucial refinement of the original ResNet design. By reordering components within residual blocks—placing batch normalization and ReLU *before* convolutions rather than after—the skip connection becomes a true identity mapping, enabling cleaner gradient flow and training of 1000+ layer networks.

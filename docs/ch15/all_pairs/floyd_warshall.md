@@ -1,5 +1,9 @@
 # Floyd-Warshall
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <img src='img/Screen Shot 2022-07-02 at 2.26.37 AM.png' width=70%>
 <img src='img/Screen Shot 2022-07-02 at 2.27.10 AM.png' width=70%>
 <img src='img/Screen Shot 2022-07-02 at 2.28.36 AM.png' width=70%>

@@ -1,5 +1,9 @@
 # Learned Optimizers: Meta-Learning for Optimization
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 While traditional optimizers (SGD, Adam, RMSprop) use fixed, hand-designed update rules, learned optimizers represent a paradigm where the optimization process itself is learned through meta-learning. By training on a distribution of optimization tasks, learned optimizers develop adaptive, problem-aware update strategies that often surpass fixed optimizers in speed and final performance.

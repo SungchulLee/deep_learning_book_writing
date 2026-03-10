@@ -1,5 +1,9 @@
 # 34.5.1 Maximum Entropy Reinforcement Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Maximum entropy RL augments the standard RL objective with an entropy bonus, encouraging agents to act as randomly as possible while still achieving high reward. This framework provides a principled approach to exploration, robustness, and multi-modal behavior, forming the theoretical foundation for SAC and other entropy-regularized methods.

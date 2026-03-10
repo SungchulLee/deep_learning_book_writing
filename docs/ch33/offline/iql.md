@@ -1,5 +1,9 @@
 # 33.5.4 Implicit Q-Learning (IQL)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Core Idea
 
 **IQL** (Kostrikov et al., 2022) avoids querying out-of-distribution actions entirely by learning Q-values using only actions present in the dataset. It uses **expectile regression** to approximate the maximum over actions without ever evaluating unseen actions.

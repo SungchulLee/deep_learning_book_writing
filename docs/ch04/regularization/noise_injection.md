@@ -1,5 +1,9 @@
 # Noise Injection
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Noise injection is a regularization technique that adds random perturbations to inputs, weights, or activations during training. By exposing the model to noisy data, it learns more robust representations that generalize better to test data, which may contain natural variations or perturbations.

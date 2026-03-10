@@ -1,5 +1,9 @@
 # Simplification
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Simplification** is the technique of solving an easier version of the problem first, then extending the solution to handle the full problem. This is one of the most effective strategies in algorithm design.
 
 ## Simplification Strategies

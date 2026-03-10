@@ -1,5 +1,9 @@
 # Max-Flow Min-Cut
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The max-flow problem finds the maximum amount of flow from source to sink in a network.
 
 # Reference

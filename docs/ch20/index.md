@@ -1,5 +1,9 @@
 # Chapter Overview
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter covers linear and nonlinear dimensionality reduction techniques, from Principal Component Analysis and its variants to manifold learning methods. Each section develops the mathematical foundations rigorously and demonstrates applications to high-dimensional data analysis, with particular emphasis on financial applications including yield curve decomposition, portfolio optimization, and regime visualization.
 
 # Reference

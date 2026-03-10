@@ -1,5 +1,9 @@
 # 34.7.1 Portfolio Optimization with Policy-Based RL
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Portfolio optimization using policy-based deep RL frames asset allocation as a sequential decision problem. The agent learns to dynamically rebalance a portfolio across multiple assets, maximizing risk-adjusted returns while accounting for transaction costs and market constraints.

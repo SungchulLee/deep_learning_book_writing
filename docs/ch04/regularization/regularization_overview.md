@@ -1,5 +1,9 @@
 # Regularization Overview
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Regularization encompasses a broad family of strategies that constrain the learning process to improve generalization. Every supervised learning model must navigate between **underfitting** (too simple to capture genuine patterns) and **overfitting** (memorizing training noise rather than learning generalizable structure). Regularization techniques systematically address overfitting by penalizing model complexity, injecting noise, expanding the effective training set, or limiting the optimization trajectory.

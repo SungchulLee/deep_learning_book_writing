@@ -1,5 +1,9 @@
 # Fréchet Inception Distance (FID) for Diffusion Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 FID is the standard metric for evaluating diffusion model sample quality. For the full mathematical derivation, implementation, and best practices, see [FID in §24.6](../../ch25/gan_evaluation/fid.md). This page focuses on diffusion-specific considerations.
 
 ## Definition Recap

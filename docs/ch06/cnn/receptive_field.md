@@ -1,5 +1,9 @@
 # Receptive Field
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The **receptive field** of a neuron in a convolutional neural network is the region of the input image that influences the neuron's activation. Understanding receptive fields is fundamental to CNN design because it determines:

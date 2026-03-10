@@ -1,5 +1,9 @@
 # Knowledge Distillation Basics: Teacher-Student Framework
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Knowledge distillation (KD) represents a paradigm for transferring knowledge from a complex teacher model to a simpler student model through a carefully designed learning objective. Originally motivated by model compression, distillation has evolved into a fundamental technique for improving model training, enabling transfer of learned representations, and enhancing generalization across diverse machine learning tasks.

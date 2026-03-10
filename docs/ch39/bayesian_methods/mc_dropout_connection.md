@@ -1,5 +1,9 @@
 # MC Dropout: Dropout as Approximate Bayesian Inference
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Monte Carlo Dropout (MC Dropout)** recasts dropout—a regularization technique—as approximate Bayesian inference. By keeping dropout active at test time and running multiple forward passes, we obtain uncertainty estimates from networks that were trained with standard dropout, without any additional cost or architectural changes.
 
 ---

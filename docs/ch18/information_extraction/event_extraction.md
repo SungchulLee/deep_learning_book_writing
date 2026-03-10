@@ -1,5 +1,9 @@
 # Event Extraction
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Learning Objectives
 
 - Understand event trigger detection and argument extraction

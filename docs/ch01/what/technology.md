@@ -1,5 +1,9 @@
 # Algorithms as Technology
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Algorithms are a **technology** — like hardware, networking, or machine learning. The choice of algorithm can make the difference between solving a problem in seconds or not at all.
 
 $$

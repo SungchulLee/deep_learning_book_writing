@@ -1,5 +1,9 @@
 # Ergodicity
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Ergodicity is the property that guarantees a Markov chain converges to its stationary distribution—the single most important condition for MCMC correctness. This section develops the classification machinery (communicating classes, irreducibility, aperiodicity, recurrence) that determines whether a chain is ergodic, then establishes the convergence theorems and mixing time analysis that quantify *how fast* convergence occurs.

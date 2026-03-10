@@ -1,5 +1,9 @@
 # Boyer-Moore
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The Boyer-Moore algorithm is one of the most efficient practical algorithms for exact string matching. It scans the pattern from right to left against the text, and uses two heuristics -- the bad-character rule and the good-suffix rule -- to skip large portions of the text after a mismatch.
 
 ## Key Ideas

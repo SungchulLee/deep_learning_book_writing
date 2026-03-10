@@ -1,5 +1,9 @@
 # GRU Architecture
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The Gated Recurrent Unit (GRU), introduced by Cho et al. in 2014, is a streamlined variant of LSTM that achieves comparable performance with fewer parameters. GRU simplifies the LSTM architecture by merging the cell state and hidden state into a single state vector and reducing the number of gates from three to two.

@@ -1,5 +1,9 @@
 # Feature Squeezing
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Feature squeezing** (Xu et al., 2018) detects adversarial examples by comparing model predictions on the original input versus reduced-complexity ("squeezed") versions. The key insight is that adversarial perturbations rely on precise, often subtle pixel patterns that are disrupted by input compression, while clean images are largely unaffected.

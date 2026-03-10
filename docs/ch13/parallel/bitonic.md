@@ -1,5 +1,9 @@
 # Bitonic Sort
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Bitonic sort is a parallel comparison-based sorting algorithm suitable for hardware implementation.
 
 ```python

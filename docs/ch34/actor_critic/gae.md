@@ -1,5 +1,9 @@
 # 34.2.4 Generalized Advantage Estimation (GAE)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Generalized Advantage Estimation (Schulman et al., 2016) provides a principled framework for trading off bias and variance in advantage estimation. GAE computes an exponentially-weighted average of multi-step advantage estimates, controlled by a single hyperparameter $\lambda \in [0, 1]$. It has become the standard advantage estimator in modern policy gradient algorithms including PPO.

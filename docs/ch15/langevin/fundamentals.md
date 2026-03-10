@@ -1,5 +1,9 @@
 # Langevin Dynamics Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Langevin dynamics provides a continuous-time framework that connects MCMC sampling with gradient-based optimization. The Langevin stochastic differential equation (SDE) describes a particle undergoing gradient-driven drift plus Brownian noise, and its stationary distribution is the target posterior. This connection underpins both practical sampling algorithms and modern score-based generative models.
 
 ---

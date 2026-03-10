@@ -1,5 +1,9 @@
 # TCAV: Testing with Concept Activation Vectors
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Testing with CAVs (TCAV)** extends Concept Activation Vectors to provide a quantitative, statistical test of how important a concept is for a model's predictions. While a CAV defines the direction of a concept in activation space, TCAV measures **what fraction of inputs for a given class are positively influenced by that concept**.

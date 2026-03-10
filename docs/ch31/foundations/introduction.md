@@ -1,5 +1,9 @@
 # Introduction to Graph Generation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## The Generation Problem
 
 Graph generation seeks to learn a distribution $p_\theta(\mathcal{G})$ over graphs from a training set $\{\mathcal{G}_1, \ldots, \mathcal{G}_N\}$ and sample new graphs that are statistically indistinguishable from the training distribution. This problem is fundamentally more challenging than generating images or sequences due to three structural properties unique to graphs.

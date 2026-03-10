@@ -1,5 +1,9 @@
 # Grad-CAM: Gradient-weighted Class Activation Mapping
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Gradient-weighted Class Activation Mapping (Grad-CAM)** is a technique for producing visual explanations of decisions from CNN-based models. Unlike earlier Class Activation Mapping (CAM) methods that require specific architectures, Grad-CAM works with any CNN architecture without requiring architectural modifications or retraining.

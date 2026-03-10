@@ -1,5 +1,9 @@
 # Stability Evaluation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 An explanation method is **stable** if similar inputs produce similar explanations. If adding imperceptible noise completely changes the explanation, practitioners cannot trust it. Stability is essential for regulated environments where explanations must be reproducible.

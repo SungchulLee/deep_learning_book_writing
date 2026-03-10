@@ -1,5 +1,9 @@
 # Temperature as a Unifying Concept
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Temperature appears throughout machine learning under different names and guises—from MCMC sampling to neural network softmax to diffusion models. This section reveals the deep connections between these seemingly disparate techniques, showing how temperature provides a unified framework for understanding exploration-exploitation trade-offs across the field.
 
 ---

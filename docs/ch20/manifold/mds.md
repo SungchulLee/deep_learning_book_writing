@@ -1,5 +1,9 @@
 # Multidimensional Scaling
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Embedding high-dimensional data in low dimensions by preserving pairwise distances.
 
 ---

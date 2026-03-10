@@ -1,5 +1,9 @@
 # Transformer Architecture Overview
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The Transformer architecture, introduced in "Attention Is All You Need" (Vaswani et al., 2017), revolutionized sequence modeling by eliminating recurrence entirely in favor of self-attention mechanisms. This architectural paradigm shift enabled unprecedented parallelization during training and established the foundation for modern large language models.

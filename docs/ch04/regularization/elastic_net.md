@@ -1,5 +1,9 @@
 # Elastic Net Regularization
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Elastic Net combines L1 (Lasso) and L2 (Ridge) regularization, inheriting benefits from both approaches. It encourages sparse models like Lasso while maintaining the stability of Ridge regression, making it particularly effective when dealing with correlated features.

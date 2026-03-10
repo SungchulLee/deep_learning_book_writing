@@ -1,5 +1,9 @@
 # Feature Distillation for Continual Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Feature distillation in continual learning focuses on preserving learned representations across task sequences by matching intermediate layer features between previous and current models. Rather than only matching final outputs as in standard knowledge distillation, feature-level constraints preserve the rich learned feature hierarchies that encode task-relevant patterns across multiple abstraction levels.

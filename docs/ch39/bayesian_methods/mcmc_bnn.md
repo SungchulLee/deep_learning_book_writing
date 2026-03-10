@@ -1,5 +1,9 @@
 # MCMC Methods for Bayesian Neural Networks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Markov Chain Monte Carlo (MCMC) methods provide the most principled approach to posterior inference in Bayesian neural networks, generating samples that asymptotically converge to the true posterior distribution. While computationally expensive, they serve as the gold standard for uncertainty quantification and are essential benchmarks against which approximate methods are evaluated.

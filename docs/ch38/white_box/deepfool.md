@@ -1,5 +1,9 @@
 # DeepFool
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **DeepFool** (Moosavi-Dezfooli et al., 2016) is a geometric adversarial attack that finds the **minimal perturbation** to move an input across the nearest decision boundary. Unlike fixed-budget attacks (FGSM, PGD) that use a predetermined $\varepsilon$, DeepFool iteratively computes the smallest perturbation needed for misclassification, providing insight into the model's local decision geometry.

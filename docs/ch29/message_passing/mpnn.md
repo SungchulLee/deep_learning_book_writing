@@ -1,5 +1,9 @@
 # 29.2.4 Message Passing Neural Network (MPNN)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The **Message Passing Neural Network (MPNN)** framework, proposed by Gilmer et al. (2017) in *"Neural Message Passing for Quantum Chemistry"*, unifies many graph neural network architectures under a single abstract formulation. It provides the theoretical and practical foundation for designing and analyzing GNNs.

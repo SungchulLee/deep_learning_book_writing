@@ -1,5 +1,9 @@
 # Scaling with Dimension
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The behavior of MCMC methods as dimension $d$ increases is crucial for modern applications where $d$ can range from hundreds to millions. This section examines how different methods scale, why some methods break down in high dimensions, and strategies for maintaining efficiency.
 
 ---

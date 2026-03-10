@@ -1,5 +1,9 @@
 # Quantization for LLMs
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Quantization reduces model size and accelerates inference by representing weights and activations with lower-precision data types. For LLMs, this is critical for deployment on consumer hardware and reducing serving costs.

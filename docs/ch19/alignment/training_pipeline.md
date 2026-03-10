@@ -1,5 +1,9 @@
 # 6.11.4 Training Process
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The training of ChatGPT proceeds in two major phases — **pre-training** and **alignment** — each with distinct objectives, data requirements, and optimization strategies.
 
 ## Phase 1: Pre-Training

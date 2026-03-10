@@ -1,5 +1,9 @@
 # Knowledge Distillation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Knowledge distillation transfers knowledge from a large, high-capacity "teacher" model to a smaller, efficient "student" model. The student learns not just from hard labels but from the teacher's soft probability distributions, capturing richer information about class relationships and decision boundaries. This enables deployment of high-performance models in resource-constrained environments.

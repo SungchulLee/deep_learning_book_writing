@@ -1,5 +1,9 @@
 # Bubble Sort with Key
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <div align="center"><img src="https://ww.namu.la/s/ee412a864c3bdcb6cf7077f8ef87e01d4353cf53e66d2a5f6b7def49d257d569a46c810b1b36b9924a495a697c60777bb82d25459c2cbb65e4a700c25351af9b23dd8a07eb23a649358fba3b8cf3403c142f52b3fac839bf3cf1733d70787ee1" width="30%"></div>
 
 [정렬 알고리즘](https://namu.wiki/w/정렬%20알고리즘#s-2.3.1)

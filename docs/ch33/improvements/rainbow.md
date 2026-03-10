@@ -1,5 +1,9 @@
 # 33.2.6 Rainbow
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 **Rainbow** (Hessel et al., 2018) combines six orthogonal improvements to DQN into a single integrated agent:

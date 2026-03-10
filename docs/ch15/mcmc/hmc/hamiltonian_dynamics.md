@@ -1,5 +1,9 @@
 # Hamiltonian Dynamics
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Hamiltonian dynamics is the mathematical framework from classical mechanics that underlies Hamiltonian Monte Carlo. This section develops the physics foundations: the Hamiltonian formulation of mechanics, symplectic structure, conservation laws, and why these properties make HMC possible.
 
 ---

@@ -1,5 +1,9 @@
 # Research Report Recommendation Systems
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Financial research reports—equity research, fixed income analysis, macro commentary, investment theses—represent valuable information assets for investors. However, the proliferation of research creates information overload: typical institutions produce or subscribe to thousands of reports monthly, while individual analysts can only digest a fraction. Research recommendation systems automatically surface relevant reports to analysts and traders based on their interests, expertise, and current market positions, dramatically improving information flow and decision-making efficiency.

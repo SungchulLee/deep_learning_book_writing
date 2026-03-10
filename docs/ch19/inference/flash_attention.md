@@ -1,5 +1,9 @@
 # Flash Attention
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Flash Attention, introduced by Dao et al. (2022), is an IO-aware exact attention algorithm that reduces memory usage from O(N²) to O(N) while also being 2-4x faster than standard attention. It achieves this by carefully orchestrating memory access patterns on GPUs.

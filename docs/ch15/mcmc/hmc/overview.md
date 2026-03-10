@@ -1,5 +1,9 @@
 # Hamiltonian Monte Carlo
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Hamiltonian Monte Carlo (HMC) is one of the most powerful MCMC algorithms for sampling from continuous distributions. By borrowing ideas from classical mechanics, HMC achieves dramatically better exploration than random-walk methods, especially in high dimensions. This section develops the complete theory: Hamiltonian dynamics, phase space geometry, the leapfrog integrator, geometric interpretations, energy conservation, and why HMC can take multiple steps while Langevin cannot.
 
 ---

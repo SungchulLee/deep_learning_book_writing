@@ -1,5 +1,9 @@
 # L2 Regularization (Ridge)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 L2 regularization, also known as Ridge regression or weight decay, adds a penalty proportional to the squared magnitude of model weights to the loss function. Unlike L1 regularization, L2 encourages small but non-zero weights, resulting in smooth weight distributions that prevent any single weight from becoming too large.

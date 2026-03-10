@@ -1,5 +1,9 @@
 # Introduction to Model Interpretability
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 As deep learning models become increasingly deployed in high-stakes domains—quantitative finance, healthcare, autonomous systems—understanding *why* models make specific predictions becomes as important as the predictions themselves. Model interpretability addresses the fundamental question: **What patterns has the model learned, and how does it arrive at its decisions?**

@@ -1,5 +1,9 @@
 # Market Manipulation Detection
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Market manipulation—the deliberate attempt to interfere with free market operation—represents a uniquely adversarial domain for machine learning. Unlike standard adversarial robustness where perturbations are mathematical constructs, market manipulation involves real economic agents who strategically modify observable signals to deceive both human and algorithmic participants.

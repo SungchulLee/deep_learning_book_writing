@@ -1,5 +1,9 @@
 # Incremental Design
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Incremental design** (also called **online** or **streaming** algorithms) builds solutions by processing one element at a time and maintaining a valid solution at every step. This is the foundation of many efficient algorithms.
 
 ## The Incremental Paradigm

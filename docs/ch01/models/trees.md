@@ -1,5 +1,9 @@
 # Tree Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Decision trees recursively partition the feature space into regions that best separate the target variable. They naturally handle non-linear relationships, mixed feature types, and provide interpretable decision rules.
 
 ---

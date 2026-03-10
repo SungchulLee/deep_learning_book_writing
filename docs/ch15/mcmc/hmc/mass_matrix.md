@@ -1,5 +1,9 @@
 # Mass Matrix
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The mass matrix $\mathbf{M}$ is a critical tuning parameter in HMC that controls how momentum translates to velocity. This section covers the role of the mass matrix, its geometric interpretation, estimation strategies, and the connection to preconditioning.
 
 ---

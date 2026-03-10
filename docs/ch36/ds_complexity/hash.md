@@ -1,5 +1,9 @@
 # Hash Table
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Hash Table** is an important concept in algorithm design and analysis.
 
 $$h(k) = k \bmod m$$

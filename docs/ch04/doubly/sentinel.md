@@ -1,5 +1,9 @@
 # Sentinel Nodes
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Sentinel nodes are dummy nodes placed at boundaries to eliminate special-case handling for empty or boundary conditions.
 
 ```python

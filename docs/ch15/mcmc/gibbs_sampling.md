@@ -1,5 +1,9 @@
 # Gibbs Sampling as Metropolis-Hastings with α = 1
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## The Surprising Result
 
 Gibbs sampling can be viewed as a **special case** of Metropolis-Hastings where the **acceptance probability is always 1**—meaning we **never** reject a proposal.

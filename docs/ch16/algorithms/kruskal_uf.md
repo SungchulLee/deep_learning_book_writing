@@ -1,5 +1,9 @@
 # Kruskal with Union-Find
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Kruskal with Union-Find** is an important concept in algorithm design and analysis.
 
 $$T(E, V) = O(E \log E)$$

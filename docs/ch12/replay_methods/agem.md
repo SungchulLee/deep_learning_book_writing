@@ -1,5 +1,9 @@
 # Averaged Gradient Episodic Memory (A-GEM)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Averaged Gradient Episodic Memory (A-GEM) addresses continual learning by storing a small memory buffer of past task exemplars and constraining gradient updates to maintain consistency with previous tasks. By ensuring that gradients on new tasks have non-negative projection onto average gradients on stored exemplars, A-GEM prevents catastrophic forgetting while maintaining computational efficiency and minimal memory requirements.

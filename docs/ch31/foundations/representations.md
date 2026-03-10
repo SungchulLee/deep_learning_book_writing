@@ -1,5 +1,9 @@
 # Graph Representations for Generation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 The choice of graph representation fundamentally determines which generation strategies are feasible. A representation must balance expressiveness (capturing all graph properties), compactness (enabling efficient learning), and compatibility with neural network architectures. This section surveys the primary representations used in graph generation and their implications for model design.

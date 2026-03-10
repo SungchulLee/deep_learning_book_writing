@@ -1,5 +1,9 @@
 # Z-Algorithm
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The Z-algorithm computes, for a string $S$ of length $n$, the **Z-array** $Z[0..n-1]$ where $Z[i]$ is the length of the longest substring starting at position $i$ that matches a prefix of $S$. By convention, $Z[0]$ is defined as 0 (or $n$). This array can be used for exact pattern matching in $O(n+m)$ time.
 
 ## Definition

@@ -1,5 +1,9 @@
 # E-Step and M-Step
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The Expectation-Maximization algorithm derives its name from its two alternating steps. This section provides a detailed examination of each step: the computational mechanics, closed-form derivations for common models, and practical implementation considerations.
 
 ---

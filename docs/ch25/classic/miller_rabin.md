@@ -1,5 +1,9 @@
 # Miller-Rabin Primality
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Miller-Rabin is a probabilistic primality test with error probability $\leq 4^{-k}$ for $k$ rounds.
 
 $$T(V, E) = O((V + E) \log V) \text{ with binary heap}$$

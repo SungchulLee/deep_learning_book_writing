@@ -1,5 +1,9 @@
 # Proposal Distribution Design
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 The choice of proposal distribution is the single most important factor determining the success or failure of importance sampling. A well-designed proposal can achieve orders of magnitude variance reduction, while a poorly chosen proposal can render the estimator useless. This section covers the principles and practical strategies for designing effective proposal distributions.

@@ -1,5 +1,9 @@
 # 34.7.2 Continuous Trading with Policy-Based RL
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Continuous trading applies policy-based RL to real-time execution decisions: position sizing, order timing, and order type selection. Unlike portfolio optimization which operates at daily frequency, continuous trading operates at intraday or tick-level timescales.

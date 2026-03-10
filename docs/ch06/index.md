@@ -1,5 +1,9 @@
 # Chapter 6: Convolutional Neural Networks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter covers the foundational architectures for processing spatially structured data, primarily images but also time series and other grid-like inputs. We progress from classical convolutional neural networks through residual architectures to modern Vision Transformers, tracing the evolution from hand-crafted inductive biases toward learned representations.
 
 ---

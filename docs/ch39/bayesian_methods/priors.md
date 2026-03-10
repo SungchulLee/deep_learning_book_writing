@@ -1,5 +1,9 @@
 # Prior Distributions on Neural Network Weights
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The **prior distribution** over neural network weights encodes our beliefs about plausible parameter values before observing data. In Bayesian neural networks, the choice of prior profoundly affects both the induced function space and the resulting uncertainty estimates. This chapter explores principled approaches to specifying priors that lead to well-behaved posterior inference.
 
 ---

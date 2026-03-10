@@ -1,5 +1,9 @@
 # Dropout
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Dropout is a regularization technique that randomly sets a fraction of neuron activations to zero during training. This prevents co-adaptation of neurons and forces the network to learn more robust features that are useful in conjunction with many different random subsets of other neurons.

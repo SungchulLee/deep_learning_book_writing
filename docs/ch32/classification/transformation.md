@@ -1,5 +1,9 @@
 # Problem Transformation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Problem transformation** (or **reduction**) is the technique of converting an unfamiliar problem into a well-known one. Instead of inventing a new algorithm, you reformulate the problem so that an existing algorithm applies directly.
 
 ## Common Transformations

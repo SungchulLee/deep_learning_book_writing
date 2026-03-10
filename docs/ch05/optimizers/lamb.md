@@ -1,5 +1,9 @@
 # LAMB
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 LAMB (Layer-wise Adaptive Moments optimizer for Batch training) extends Adam with layer-wise learning rate adaptation, enabling stable training with very large batch sizes. It was developed for training BERT in 76 minutes using batch sizes up to 65,536.

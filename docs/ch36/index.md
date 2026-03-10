@@ -1,5 +1,9 @@
 # Chapter 36: Model Interpretability
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter provides a comprehensive treatment of interpretability methods for deep learning models, from foundational gradient-based techniques to advanced concept-level explanations. Understanding why models make specific predictions is essential for regulatory compliance, debugging, and building trust in high-stakes domains such as quantitative finance, healthcare, and autonomous systems. The chapter covers both post-hoc explanation methods and inherently interpretable architectures, with rigorous evaluation frameworks.
 
 ---

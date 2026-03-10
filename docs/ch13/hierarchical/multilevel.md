@@ -1,5 +1,9 @@
 # Multilevel Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Multilevel (mixed-effects) models extend hierarchical Bayesian models by introducing structured random effects that capture group-level variation. These models are essential for analyzing nested data — students within schools, trades within portfolios, or repeated measurements within subjects — where observations share group-level structure.
 
 ---

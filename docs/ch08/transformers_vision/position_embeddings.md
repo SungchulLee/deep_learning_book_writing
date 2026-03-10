@@ -1,5 +1,9 @@
 # Position Embeddings for Images
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Self-attention in transformers is permutation-invariant—it produces the same output regardless of the order of input tokens. While this property is sometimes desirable, for images we need to preserve spatial information. Position embeddings encode where each patch is located in the original image, enabling the model to understand spatial relationships.

@@ -1,5 +1,9 @@
 # Practical Method Selection
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Choosing the right MCMC method for a given problem is part science, part art. This section provides practical guidance for method selection based on problem characteristics, computational constraints, and diagnostic outcomes.
 
 ---

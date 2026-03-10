@@ -1,5 +1,9 @@
 # Stationary Distribution
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The stationary distribution is the central object connecting Markov chain theory to MCMC sampling. It represents the long-run equilibrium of a chain—the distribution to which the chain converges regardless of its starting state. In the MCMC framework, the entire point is to construct a chain whose stationary distribution equals a given target $\pi$, so that running the chain long enough yields approximate samples from $\pi$.

@@ -1,5 +1,9 @@
 # Deletion
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <img src="img/Screen Shot 2022-05-08 at 5.20.47 PM.png" width=60%>
 <img src="img/Screen Shot 2022-05-08 at 5.21.30 PM.png" width=60%>
 <img src="img/Screen Shot 2022-05-08 at 5.22.19 PM.png" width=60%>

@@ -1,5 +1,9 @@
 # Overview of Regularization-Based Continual Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Regularization-based continual learning prevents catastrophic forgetting by constraining updates to important parameters during new task learning. Rather than architectural modifications or explicit replay, these methods identify which parameters were critical to previous tasks, then penalize large changes to those parameters during new task training.

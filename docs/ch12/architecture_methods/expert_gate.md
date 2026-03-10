@@ -1,5 +1,9 @@
 # Expert Gate for Continual Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The Expert Gate mechanism enables continual learning through a collection of specialized expert modules, each trained to excel on specific task distributions, combined with a learned gating network that routes data to appropriate experts. This approach allows models to handle new tasks without catastrophic forgetting by allocating new experts to novel task categories while maintaining previous experts for learned patterns.

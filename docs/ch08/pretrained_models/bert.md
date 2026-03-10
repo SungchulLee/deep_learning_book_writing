@@ -1,5 +1,9 @@
 # BERT: Bidirectional Encoder Representations from Transformers
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 BERT (Bidirectional Encoder Representations from Transformers) revolutionized NLP by introducing deep bidirectional pre-training. Unlike previous models that were either left-to-right or used shallow concatenation of left-to-right and right-to-left models, BERT uses a "masked language model" (MLM) objective to enable true bidirectional representation learning.

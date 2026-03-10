@@ -1,5 +1,9 @@
 # Convergence Theory
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This section develops the mathematical theory of simulated annealing convergence: when and why the algorithm finds the global optimum, the role of energy barriers, and practical implications of the theoretical results.
 
 ---

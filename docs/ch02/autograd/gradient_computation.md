@@ -1,5 +1,9 @@
 # Gradient Computation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 PyTorch's autograd engine is the foundation of automatic differentiation in deep learning. It provides a tape-based system that records operations on tensors and computes gradients through **reverse-mode automatic differentiation** (backpropagation). This section covers the mathematical framework behind gradient computation, the distinction between forward and reverse mode AD, and how PyTorch's vector-Jacobian product (VJP) machinery implements the chain rule efficiently.

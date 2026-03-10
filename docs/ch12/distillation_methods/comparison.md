@@ -1,5 +1,9 @@
 # Comparison of Distillation Methods for Continual Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Distillation-based approaches to continual learning present diverse strategies for preserving knowledge across task sequences through different information transfer mechanisms. Understanding comparative strengths and trade-offs between response-based, feature-based, and attention-based distillation enables practitioners to select appropriate methods for specific continual learning scenarios.

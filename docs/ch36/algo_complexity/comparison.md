@@ -1,5 +1,9 @@
 # Comparison Tables
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Complexity comparison tables summarize time and space for related algorithms and data structures.
 
 # Reference

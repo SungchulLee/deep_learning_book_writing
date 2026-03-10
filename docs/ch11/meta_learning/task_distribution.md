@@ -1,5 +1,9 @@
 # Task Distribution Design for Meta-Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The quality and characteristics of the task distribution fundamentally determine meta-learning success. While meta-learning theory assumes access to an ideal task distribution, practitioners must design task distributions that reflect real-world scenarios, enable efficient meta-training, and ensure generalization to test tasks.

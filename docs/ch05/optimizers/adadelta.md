@@ -1,5 +1,9 @@
 # Adadelta
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Adadelta addresses Adagrad's aggressive learning rate decay by replacing the unbounded accumulation of squared gradients with an exponentially decaying average. Uniquely, Adadelta also eliminates the need for an initial learning rate hyperparameter.

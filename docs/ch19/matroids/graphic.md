@@ -1,5 +1,9 @@
 # Graphic Matroid
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Matroids generalize the structure that makes greedy algorithms optimal.
 
 # Reference

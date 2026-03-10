@@ -1,5 +1,9 @@
 # Parameter Uncertainty in Finance
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Financial models rely on estimated parameters — expected returns, volatilities, correlations, factor loadings — that carry substantial estimation uncertainty. Bayesian methods quantify this uncertainty and propagate it through to decisions, yielding more robust portfolio construction, risk management, and strategy evaluation.

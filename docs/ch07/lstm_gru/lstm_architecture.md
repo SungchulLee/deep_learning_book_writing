@@ -1,5 +1,9 @@
 # LSTM Architecture
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Long Short-Term Memory (LSTM) networks are a specialized form of recurrent neural networks designed to capture long-range dependencies in sequential data. Introduced by Hochreiter and Schmidhuber in 1997, LSTMs address the fundamental limitation of vanilla RNNs: the vanishing gradient problem that prevents learning from distant time steps.

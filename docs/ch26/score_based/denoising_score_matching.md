@@ -1,5 +1,9 @@
 # Denoising Score Matching
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Denoising score matching (Vincent, 2011) replaces the expensive Hessian trace of explicit score matching with a simple regression loss against a known target. By learning the score of a noise-perturbed distribution, it simultaneously solves the computational cost problem and the low-density estimation problem. DSM is the training objective underlying all modern diffusion models.
 
 ## Motivation

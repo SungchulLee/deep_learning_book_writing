@@ -1,5 +1,9 @@
 # Credible Intervals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Credible intervals provide Bayesian uncertainty quantification for parameter estimates. This module develops equal-tailed and Highest Posterior Density (HPD) intervals, and clarifies the fundamental distinction between Bayesian credible intervals and frequentist confidence intervals.

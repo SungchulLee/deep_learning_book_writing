@@ -1,5 +1,9 @@
 # Sampling Strategies for Text Generation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Autoregressive language models define a probability distribution over the next token given previous tokens. At inference time, we must **decode** from this distribution to generate text. The choice of decoding strategy profoundly impacts output quality, diversity, coherence, and computational cost.

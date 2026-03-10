@@ -1,5 +1,9 @@
 # Chernoff Bounds
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Chernoff bounds give exponentially decreasing tail probabilities for sums of independent random variables.
 
 # Reference

@@ -1,5 +1,9 @@
 # Chapter Overview
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter covers **Online and Streaming**.
 
 Graph Neural Networks (GNNs) extend deep learning to non-Euclidean data structures -- graphs -- enabling powerful representation learning on relational data. From social networks and molecular structures to financial transaction networks and knowledge bases, graphs are ubiquitous in real-world applications. This chapter provides a comprehensive treatment of GNN theory, architectures, and applications.

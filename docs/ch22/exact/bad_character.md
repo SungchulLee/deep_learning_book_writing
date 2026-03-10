@@ -1,5 +1,9 @@
 # Bad Character Rule
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The bad-character rule is one of the two heuristics used in the Boyer-Moore algorithm to determine how far to shift the pattern when a mismatch occurs. It examines the character in the text that caused the mismatch and uses it to compute a shift.
 
 ## Intuition

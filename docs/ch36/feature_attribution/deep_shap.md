@@ -1,5 +1,9 @@
 # Deep SHAP
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Deep SHAP** combines DeepLIFT's efficient backpropagation-based attribution with SHAP's game-theoretic framework to compute approximate Shapley values for neural networks. By averaging DeepLIFT attributions over multiple reference points sampled from a background distribution, Deep SHAP inherits the theoretical guarantees of Shapley values while maintaining computational efficiency.

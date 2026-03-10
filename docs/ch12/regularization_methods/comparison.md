@@ -1,5 +1,9 @@
 # Comparison of Regularization Methods (EWC, SI, MAS)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Regularization-based continual learning methods represent diverse approaches to parameter importance estimation, from information-theoretic frameworks to gradient-based and synaptic measures. Understanding comparative strengths, weaknesses, and applicability conditions enables practitioners to select optimal regularization strategies for specific continual learning scenarios.

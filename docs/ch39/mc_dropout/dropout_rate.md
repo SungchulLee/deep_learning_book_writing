@@ -1,5 +1,9 @@
 # Dropout Rate Selection for MC Dropout
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 The dropout rate $p$ (probability of dropping a unit) is a critical hyperparameter that affects both training regularization and the quality of uncertainty estimates. This document provides principled approaches to dropout rate selection for Monte Carlo Dropout applications.

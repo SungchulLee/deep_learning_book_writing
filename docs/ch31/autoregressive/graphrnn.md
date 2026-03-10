@@ -1,5 +1,9 @@
 # GraphRNN
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 GraphRNN (You et al., 2018) is the foundational autoregressive model for graph generation. It introduces a hierarchical RNN architecture that decomposes graph generation into two levels: a **graph-level RNN** that maintains the global generation state and generates one node per step, and an **edge-level RNN** that generates the edges connecting each new node to existing nodes. This two-level decomposition, combined with BFS ordering to exploit graph locality, makes GraphRNN both expressive and computationally tractable.

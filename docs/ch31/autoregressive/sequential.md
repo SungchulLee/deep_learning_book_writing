@@ -1,5 +1,9 @@
 # Sequential Graph Generation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Autoregressive graph generation decomposes the joint distribution $p_\theta(\mathcal{G})$ into a sequence of conditional distributions, generating one element at a time. This paradigm naturally handles variable-sized graphs and avoids the combinatorial challenge of producing an entire adjacency matrix simultaneously. The core idea is to impose an ordering on graph construction actions and factorize the likelihood using the chain rule of probability.

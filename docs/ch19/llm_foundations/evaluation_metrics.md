@@ -1,5 +1,9 @@
 # Evaluation Metrics
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Evaluating large language models is uniquely challenging because LLMs are used for an enormous range of tasks — from factual question answering to creative writing, code generation to multi-turn dialogue — and no single metric captures quality across all of them. This section covers the three pillars of LLM evaluation: **intrinsic metrics** that measure language modeling quality, **task-specific metrics** that assess performance on particular capabilities, and **human evaluation** protocols that capture the nuanced quality dimensions that automatic metrics miss. We also cover the growing role of **LLM-as-judge** evaluation and the major **benchmarks** used to compare models.

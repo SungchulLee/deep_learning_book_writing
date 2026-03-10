@@ -1,5 +1,9 @@
 # 29.5.3 Graph Pooling
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 Graph pooling compresses node embeddings into a fixed-size graph representation. Flat pooling methods: sum, mean, max, and attention-weighted. Choice affects preserved information: sum captures size, mean captures distribution, max captures extremes.
 

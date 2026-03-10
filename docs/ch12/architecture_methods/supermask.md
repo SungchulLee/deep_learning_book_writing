@@ -1,5 +1,9 @@
 # Supermask in Superposition for Continual Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Supermask in Superposition presents an elegant approach to continual learning where binary masks select subnetworks from a single, frozen base network for different tasks. Rather than expanding network capacity or allocating separate modules per task, supermasks enable representing multiple tasks through selective activation of network connections. This approach achieves zero catastrophic forgetting while maintaining remarkable parameter efficiency.

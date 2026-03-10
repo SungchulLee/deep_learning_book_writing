@@ -1,5 +1,9 @@
 # MLE for Classification
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Classification loss functions are negative log-likelihoods of discrete probability distributions. **Binary cross-entropy is the NLL of a Bernoulli model**, and **categorical cross-entropy is the NLL of a categorical model**. This section makes these connections precise and shows how the softmax and sigmoid functions arise naturally from the MLE framework.

@@ -1,5 +1,9 @@
 # Lipschitz-Constrained Networks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Lipschitz-constrained networks** achieve certified robustness by controlling the network's sensitivity to input perturbations through explicit Lipschitz constant constraints. If a network has Lipschitz constant $L$, then the change in output is bounded by $L$ times the change in input, providing an inherent robustness certificate.

@@ -1,5 +1,9 @@
 # L1 Regularization (Lasso)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 L1 regularization, also known as Lasso (Least Absolute Shrinkage and Selection Operator), adds a penalty proportional to the absolute value of model weights to the loss function. This technique promotes sparsity in the learned parameters, effectively performing automatic feature selection by driving irrelevant feature weights to exactly zero.

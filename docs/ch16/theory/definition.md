@@ -1,5 +1,9 @@
 # MST Definition
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **MST Definition** is an important concept in algorithm design and analysis.
 
 $$\text{MST weight} = \min \sum_{(u,v) \in T} w(u,v)$$

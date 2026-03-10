@@ -1,5 +1,9 @@
 # EM Variants
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The classical EM algorithm, while elegant, has limitations: slow convergence, sensitivity to initialization, and inapplicability when the E-step or M-step lack closed-form solutions. This section presents important variants that address these challenges, extending EM's reach to a broader class of problems.
 
 ---

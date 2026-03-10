@@ -1,5 +1,9 @@
 # Johnson's Algorithm
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Johnson's algorithm combines Bellman-Ford reweighting with Dijkstra for all-pairs shortest paths.
 
 # Reference

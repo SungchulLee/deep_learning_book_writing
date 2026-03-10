@@ -1,5 +1,9 @@
 # Fast Gradient Sign Method (FGSM)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The **Fast Gradient Sign Method (FGSM)** is the foundational gradient-based adversarial attack, introduced by Goodfellow et al. (2015). Its simplicity—requiring only a single gradient computation—makes it computationally efficient and serves as the building block for more sophisticated attacks.

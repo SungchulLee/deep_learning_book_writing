@@ -1,5 +1,9 @@
 # Loss Function Selection
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Choosing the right loss function is a modeling decision that encodes assumptions about the data, the task, and the desired optimization behavior. This section provides a systematic framework for loss function selection, connecting theoretical foundations to practical decision criteria.
 
 ## Decision Framework

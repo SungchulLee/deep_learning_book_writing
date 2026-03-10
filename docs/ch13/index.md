@@ -1,5 +1,9 @@
 # Chapter 13: Bayesian Foundations
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter establishes the theoretical foundations of Bayesian inference, from Bayes' theorem and conjugate priors through to hierarchical models, model comparison, and applications in finance. These concepts form the mathematical backbone for the approximate inference methods, sampling algorithms, and Bayesian neural networks covered in subsequent chapters.
 
 ---

@@ -1,5 +1,9 @@
 # Dilated Convolutions
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Standard convolution has a limited receptive field determined by the kernel size. To capture larger spatial context, we can either use larger kernels (more parameters: $O(K^2)$), stack more layers (more computation, deeper gradients), or use **dilated convolution** (same parameters, larger receptive field).

@@ -1,5 +1,9 @@
 # K Shortest Paths
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Finding $k$ shortest paths extends single-source algorithms to produce multiple ranked solutions.
 
 # Reference

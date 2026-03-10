@@ -1,5 +1,9 @@
 # Chapter 38: Adversarial Robustness
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter provides a comprehensive treatment of adversarial robustness in deep learning, covering the discovery and theory of adversarial examples, attack methods ranging from white-box to physical-world scenarios, defense mechanisms including adversarial training and certified robustness, and evaluation best practices. Special emphasis is placed on financial applications where adversarial threats manifest as market manipulation, fraud evasion, and model extraction attacks.
 
 ---

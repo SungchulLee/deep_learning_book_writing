@@ -1,5 +1,9 @@
 # Adversarial Training
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Adversarial training** is the most effective defense against adversarial attacks. It augments the training process with adversarial examples, teaching the model to be robust within an $\varepsilon$-ball around each training point. This section covers standard adversarial training (PGD-AT), TRADES, MART, and practical considerations.

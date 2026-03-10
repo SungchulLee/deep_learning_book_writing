@@ -1,5 +1,9 @@
 # Evaluation of Interpretability Methods
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 How do we know if an explanation is "good"? Evaluating interpretability methods is challenging because we typically lack ground truth for what the correct explanation should be. This section introduces the key evaluation dimensions—faithfulness, stability, comprehensiveness, and human-grounded metrics—providing the conceptual foundation for the detailed evaluation methods in Section 35.7.

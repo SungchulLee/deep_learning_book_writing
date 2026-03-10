@@ -1,5 +1,9 @@
 # Evaluation Metrics for Graph Generation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Evaluating graph generation models requires comparing the distribution of generated graphs $\{G_i^{\text{gen}}\}$ against a reference distribution $\{G_i^{\text{ref}}\}$. Unlike image generation where Fréchet Inception Distance (FID) provides a standardized metric, graph evaluation demands multiple complementary measures capturing structural, statistical, and domain-specific properties. No single metric suffices — a generator may produce graphs with correct degree distributions but wrong clustering patterns, or vice versa.

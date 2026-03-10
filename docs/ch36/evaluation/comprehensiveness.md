@@ -1,5 +1,9 @@
 # Comprehensiveness Evaluation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Comprehensiveness** measures whether an explanation captures all the important features, not just some. Its complement, **sufficiency**, tests whether the identified features alone reproduce the prediction.

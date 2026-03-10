@@ -1,5 +1,9 @@
 # Fibonacci Heaps
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Fibonacci heaps provide $O(1)$ amortized insert and decrease-key, optimal for Dijkstra and Prim.
 
 $$F(n) = F(n-1) + F(n-2), \quad F(0)=0, F(1)=1$$

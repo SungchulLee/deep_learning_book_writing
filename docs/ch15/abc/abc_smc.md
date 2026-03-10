@@ -1,5 +1,9 @@
 # ABC-SMC (Sequential Monte Carlo ABC)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ABC-SMC combines Approximate Bayesian Computation with Sequential Monte Carlo methods, enabling adaptive tolerance selection and efficient sampling from complex posteriors. This section presents the algorithm, its variants, and practical implementation guidance.
 
 ---

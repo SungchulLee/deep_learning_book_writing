@@ -1,5 +1,9 @@
 # MLE for Regression
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Regression loss functions are negative log-likelihoods under specific noise assumptions. This section makes the connection precise: **MSE assumes Gaussian noise**, **MAE assumes Laplace noise**, and **heteroscedastic models learn the noise itself**.

@@ -1,5 +1,9 @@
 # Training Optimization for Transformers
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Training Transformers effectively requires specific optimization strategies that address their unique characteristics: deep residual networks, attention-based computation with quadratic memory scaling, and sensitivity to hyperparameters. This section covers learning rate schedules, regularization techniques, and strategies for managing memory and computational costs.

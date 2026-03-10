@@ -1,5 +1,9 @@
 # DDPM Sampling
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Sampling from a trained DDPM generates data by iteratively denoising pure Gaussian noise through the learned reverse process. Starting from $x_T \sim \mathcal{N}(0, I)$, each step applies the model's noise prediction $\epsilon_\theta(x_t, t)$ to compute a less noisy version $x_{t-1}$, progressively recovering structure until a clean sample $x_0$ emerges after $T$ steps. This section derives the reverse sampling equations from the posterior, details the two standard variance parameterizations, presents a complete PyTorch implementation with classifier and classifier-free guidance, and analyzes the computational cost that motivates the accelerated sampling methods of [DDIM](../ddim/fundamentals.md).

@@ -1,5 +1,9 @@
 # Prior Selection
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Choosing and designing the prior distribution $p(z)$ for the latent space.
 
 ---

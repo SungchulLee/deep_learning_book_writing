@@ -1,5 +1,9 @@
 # GRU vs LSTM Comparison
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 LSTM and GRU are the two dominant gated RNN architectures. While both solve the vanishing gradient problem, they differ in complexity, parameter count, and behavior. This section provides a comprehensive comparison—covering theory, empirical results, and practical decision frameworks—to guide architecture selection.

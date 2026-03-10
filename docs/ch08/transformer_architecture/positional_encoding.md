@@ -1,5 +1,9 @@
 # Positional Encoding
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## The Position Problem
 
 Self-attention is inherently permutation-invariant—it processes tokens as a set rather than a sequence. Given input tokens $\{x_1, x_2, \ldots, x_n\}$, the attention output is identical regardless of input order:

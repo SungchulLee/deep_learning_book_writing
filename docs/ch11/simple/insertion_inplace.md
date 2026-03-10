@@ -1,5 +1,9 @@
 # Insertion Sort - In-Place
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <div align="center"><img src="https://w.namu.la/s/e2cca975b1e03bd676ae5e11433526429e9cf77953039ca19a2df4b1112eb75c9c45701ca4f75bcb78194f07ec7b60f28040a4bae7ceed58729887ff62fc13f69868eaa547d811e954217aa647befd21da0fdcf9fb1deb7689cd19dde0e9a7f9" width="30%"></div>
 
 [정렬 알고리즘](https://namu.wiki/w/정렬%20알고리즘#s-2.3.1)

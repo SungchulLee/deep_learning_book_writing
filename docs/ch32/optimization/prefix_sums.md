@@ -1,5 +1,9 @@
 # Prefix Sums
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 A **prefix sum** array allows answering range sum queries in $O(1)$ after $O(n)$ preprocessing. It is one of the most fundamental optimization techniques.
 
 ## Definition

@@ -1,5 +1,9 @@
 # Metropolis-Adjusted Langevin Algorithm (MALA)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 MALA combines the gradient-informed proposals of Langevin dynamics with a Metropolis-Hastings accept-reject correction, eliminating the discretization bias of ULA while retaining the benefits of gradient-guided exploration.
 
 ---

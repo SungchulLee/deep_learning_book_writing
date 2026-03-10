@@ -1,5 +1,9 @@
 # RNN Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## From Sequences to Recurrence
 
 Sequential data—information where the order of elements carries meaning—pervades real-world applications from natural language to financial time series. Unlike tabular data where rows are independent observations, sequential data exhibits temporal or positional dependencies that fundamentally alter how we must process and model information.

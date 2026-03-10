@@ -1,5 +1,9 @@
 # Robustness Definitions
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Rigorous definitions of robustness are essential for meaningful evaluation and comparison of defense methods. This section formalizes the key metrics, establishes the mathematical framework for measuring adversarial vulnerability, and provides a reusable PyTorch base class for implementing attacks.

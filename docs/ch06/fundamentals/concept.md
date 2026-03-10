@@ -1,5 +1,9 @@
 # Hash Function Concept
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 $$\begin{array}{lll}
 \text{Linear Search}&&O(n)\\
 \text{Binary Search}&&O(\log n)\\

@@ -1,5 +1,9 @@
 # Solver Selection Guide for Neural ODEs
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The choice of ODE solver critically determines Neural ODE performance across multiple dimensions: solution accuracy, computational cost, memory requirements, and numerical stability. Neural ODE practitioners must select from diverse options spanning explicit methods (Runge-Kutta variants), implicit methods, and adaptive schemes—each with different accuracy guarantees and computational profiles. Poor solver selection leads to either unnecessary computational expense (overly accurate solver for imprecise neural network) or poor solutions (solver tolerance too loose).

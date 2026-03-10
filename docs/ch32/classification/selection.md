@@ -1,5 +1,9 @@
 # When to Use What
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Choosing the right algorithmic technique is the most important decision in problem solving. This page provides a systematic guide for selecting the appropriate approach based on problem characteristics.
 
 ## Decision Matrix

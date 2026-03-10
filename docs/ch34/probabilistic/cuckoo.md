@@ -1,5 +1,9 @@
 # Cuckoo Filters
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Cuckoo hashing uses two hash functions and two tables; an insertion may kick out existing elements.
 
 # Reference

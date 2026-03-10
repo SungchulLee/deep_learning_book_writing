@@ -1,5 +1,9 @@
 # Min Stack
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 A min stack supports push, pop, and get-minimum all in $O(1)$ time using an auxiliary stack.
 
 ```python

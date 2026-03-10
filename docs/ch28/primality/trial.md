@@ -1,5 +1,9 @@
 # Trial Division
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Trial division tests divisibility by all primes up to $\sqrt{n}$.
 
 $$T(V, E) = O((V + E) \log V) \text{ with binary heap}$$

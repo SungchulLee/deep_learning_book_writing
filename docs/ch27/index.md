@@ -1,5 +1,9 @@
 # Chapter 27: Energy-Based Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Energy-Based Models (EBMs) define probability distributions through scalar energy functions, where lower energy corresponds to higher probability via the Boltzmann distribution. This flexible framework places essentially no constraints on the energy function architecture, making EBMs a unifying perspective across generative model families. This chapter covers the theoretical foundations from statistical physics, classical architectures like Boltzmann machines and Hopfield networks, training methods that circumvent the intractable partition function, modern neural EBMs, and applications to quantitative finance.
 
 ---

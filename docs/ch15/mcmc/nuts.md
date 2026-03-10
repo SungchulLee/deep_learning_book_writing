@@ -1,5 +1,9 @@
 # No-U-Turn Sampler (NUTS)
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The No-U-Turn Sampler (NUTS) is an adaptive extension of HMC that automatically tunes the trajectory length $L$. By detecting when the trajectory begins to "turn around," NUTS eliminates one of the most difficult tuning parameters while maintaining—and often improving—sampling efficiency.
 
 ---

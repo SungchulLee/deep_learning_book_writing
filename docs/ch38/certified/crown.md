@@ -1,5 +1,9 @@
 # CROWN: Convex Relaxation-Based Certification
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **CROWN** (Zhang et al., 2018) and its variants provide tighter certified bounds than IBP by using **linear relaxations** of nonlinear activation functions. While IBP propagates independent lower and upper bounds, CROWN computes bounds that depend on the input, yielding significantly tighter certificates at moderate computational cost.

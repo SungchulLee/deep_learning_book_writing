@@ -1,5 +1,9 @@
 # Zero-Shot Learning Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Problem Formulation
 
 Zero-shot learning addresses a fundamental limitation of traditional machine learning: the inability to recognize classes not seen during training. This section formalizes the ZSL problem and establishes the mathematical foundations for all ZSL methods.

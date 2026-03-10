@@ -1,5 +1,9 @@
 # Binomial Heaps
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Binomial heaps support merge in $O(\log n)$ time using a forest of binomial trees.
 
 $$\binom{n}{k} = \frac{n!}{k!(n-k)!}$$

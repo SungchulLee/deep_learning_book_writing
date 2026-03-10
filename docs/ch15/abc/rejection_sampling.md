@@ -1,5 +1,9 @@
 # ABC Rejection Sampling
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ABC rejection sampling is the simplest and most intuitive likelihood-free inference algorithm. This section presents the algorithm, its theoretical properties, practical considerations, and limitations that motivate more advanced ABC methods.
 
 ---

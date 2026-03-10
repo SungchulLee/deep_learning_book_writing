@@ -1,5 +1,9 @@
 # Taxonomy of Interpretability Methods
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 The landscape of interpretability methods is vast and rapidly growing. A clear taxonomy helps practitioners select the right tool for their specific needs. This section classifies methods along three orthogonal dimensions: scope (local vs global), model access (agnostic vs specific), and explanation type (feature, example, or concept-based).

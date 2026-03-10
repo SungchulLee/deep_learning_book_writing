@@ -1,5 +1,9 @@
 # Chapter 16: Approximate Inference
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter covers the major families of approximate inference methods that make Bayesian computation tractable for complex models. Variational inference recasts posterior approximation as an optimization problem, the EM algorithm handles latent variable models through iterative expectation and maximization, and Bayesian neural networks extend these ideas to deep learning with principled uncertainty quantification.
 
 ---

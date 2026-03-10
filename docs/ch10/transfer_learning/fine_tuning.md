@@ -1,5 +1,9 @@
 # Fine-tuning Strategies for Transfer Learning
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Learning Objectives
 
 - Understand the spectrum from feature extraction to full fine-tuning

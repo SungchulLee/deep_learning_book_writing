@@ -1,5 +1,9 @@
 # Conjugate Priors
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Conjugate priors enable analytical solutions to Bayesian inference problems, avoiding numerical integration or sampling methods. This module develops the theory of conjugacy and presents three fundamental conjugate families: Beta-Binomial, Gamma-Poisson, and Normal-Normal.

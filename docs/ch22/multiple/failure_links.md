@@ -1,5 +1,9 @@
 # Failure Links
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Failure links (also called suffix links) are the key augmentation that transforms the Aho-Corasick trie into a powerful automaton. They are the multi-pattern generalization of the KMP failure function.
 
 ## Definition

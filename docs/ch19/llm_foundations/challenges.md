@@ -1,5 +1,9 @@
 # 6.11.6 Challenges and Limitations
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Despite its capabilities, ChatGPT faces fundamental challenges related to context management, factual reliability, bias, and ethical deployment. Understanding these limitations is essential for responsible use and for motivating ongoing research.
 
 ## Handling Ambiguity and Context

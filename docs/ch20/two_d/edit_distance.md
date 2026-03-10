@@ -1,5 +1,9 @@
 # Edit Distance
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Edit Distance** is an important concept in algorithm design and analysis.
 
 $$dp[i][j] = \begin{cases} dp[i-1][j-1] & \text{if } s_1[i]=s_2[j] \\ 1+\min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]) & \text{otherwise} \end{cases}$$

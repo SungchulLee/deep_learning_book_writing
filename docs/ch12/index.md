@@ -1,5 +1,9 @@
 # Chapter Overview
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter covers continual learning (also known as lifelong or incremental learning), which addresses the fundamental challenge of training neural networks on a sequence of tasks without catastrophically forgetting previously learned knowledge. We examine the stability-plasticity dilemma, formalize different learning scenarios, and survey the major families of methods -- regularization, replay, architecture, and distillation -- along with standard benchmarks for evaluation.
 
 ---

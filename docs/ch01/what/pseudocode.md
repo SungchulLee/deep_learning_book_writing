@@ -1,5 +1,9 @@
 # Pseudocode Conventions
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Pseudocode provides a language-independent way to describe algorithms. It balances precision with readability.
 
 ## Common Conventions

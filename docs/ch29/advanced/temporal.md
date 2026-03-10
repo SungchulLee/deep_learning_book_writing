@@ -1,5 +1,9 @@
 # 29.4.6 Temporal Graphs
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Temporal graphs** (dynamic graphs) evolve over time with changing nodes, edges, and features. They capture dynamic relationships like evolving financial networks, social interactions, and communication patterns.

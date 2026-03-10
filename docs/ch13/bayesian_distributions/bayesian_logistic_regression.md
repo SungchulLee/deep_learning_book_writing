@@ -1,5 +1,9 @@
 # Bayesian Logistic Regression
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Bayesian logistic regression extends the standard logistic regression model by placing prior distributions over the weight vector, yielding full posterior distributions over parameters and predictions. Unlike Bayesian linear regression, the posterior is **non-conjugate** and requires approximate inference methods — making it a natural bridge between the analytical results of Chapter 16 and the approximate inference techniques of Chapters 18-19.

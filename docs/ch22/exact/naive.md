@@ -1,5 +1,9 @@
 # Naive Algorithm
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The naive (brute-force) string matching algorithm is the simplest approach to finding all occurrences of a pattern $P[0..m-1]$ in a text $T[0..n-1]$. It slides the pattern across the text one position at a time and checks for a match at each position.
 
 ## Algorithm

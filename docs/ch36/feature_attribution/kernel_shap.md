@@ -1,5 +1,9 @@
 # Kernel SHAP
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Kernel SHAP** is a model-agnostic method for approximating SHAP values using weighted linear regression. It bridges the gap between LIME's local surrogate approach and SHAP's game-theoretic foundation by formulating Shapley value computation as a specially weighted regression problem. This makes it applicable to any black-box model while providing the theoretical guarantees of Shapley values.

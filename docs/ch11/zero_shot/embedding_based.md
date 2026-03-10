@@ -1,5 +1,9 @@
 # Semantic Embedding Methods
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Semantic embedding methods replace manually-defined attributes with continuous vector representations learned from text corpora. Class names are embedded in a semantic space where similar concepts are close together, enabling zero-shot transfer through linguistic knowledge.

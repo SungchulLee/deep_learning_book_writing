@@ -1,5 +1,9 @@
 # List Method sort with key
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ```python
 a = [-9, 1, 8, 2, -7, 3, 6, 4, 5]
 a.sort(key=abs)

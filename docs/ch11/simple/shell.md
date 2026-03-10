@@ -1,5 +1,9 @@
 # Shell Sort
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 <div align="center"><img src="http://stoimen.com/wp-content/uploads/2012/02/Shell-Sort.png" width="50%"></div>
 
 [Computer Algorithms: Shell Sort](http://stoimen.com/2012/02/27/computer-algorithms-shell-sort/)

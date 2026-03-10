@@ -1,5 +1,9 @@
 # Prior Selection for Bayesian Neural Networks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Prior selection is a critical design decision in Bayesian Neural Networks that profoundly influences posterior inference, regularization strength, and ultimately model performance. The prior encodes domain knowledge and structural assumptions about the weight distribution, serving simultaneously as regularization and as a mechanism for incorporating expert knowledge into the learning process.

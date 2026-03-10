@@ -1,5 +1,9 @@
 # Monte Carlo Integration
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Monte Carlo integration uses random sampling to approximate integrals that are analytically intractable or computationally prohibitive with deterministic methods. This section develops the mathematical foundations of Monte Carlo estimation—from the law of large numbers guarantee through the central limit theorem for error quantification—and demonstrates why Monte Carlo methods overcome the curse of dimensionality that renders grid-based approaches useless in high dimensions. We also cover variance reduction techniques that can dramatically improve estimation efficiency.

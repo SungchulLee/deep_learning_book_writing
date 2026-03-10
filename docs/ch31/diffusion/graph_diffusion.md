@@ -1,5 +1,9 @@
 # Graph Diffusion Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Diffusion models for graphs extend the denoising diffusion framework to generate graph-structured data. The core idea is to define a forward noising process that gradually corrupts a graph into random noise, then train a neural network to reverse this process step by step. Unlike autoregressive or one-shot methods, diffusion models generate graphs through iterative refinement — starting from pure noise and progressively denoising into a valid graph structure. This paradigm naturally handles permutation invariance and produces high-quality samples, establishing state-of-the-art results on molecular and generic graph generation benchmarks.

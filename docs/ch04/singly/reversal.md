@@ -1,5 +1,9 @@
 # Reversal
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Reversal inverts the order of elements, a common operation in linked lists and arrays.
 
 ```python

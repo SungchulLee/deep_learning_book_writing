@@ -1,5 +1,9 @@
 # Find Path From Top To Bottom
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 # Infinity Loop
 
 <img src='img/Screen Shot 2022-04-30 at 4.08.01 AM.png' width=50%>

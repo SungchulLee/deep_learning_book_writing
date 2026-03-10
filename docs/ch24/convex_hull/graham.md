@@ -1,5 +1,9 @@
 # Graham Scan
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Graham scan builds the convex hull by sorting points by angle and processing with a stack.
 
 ```python

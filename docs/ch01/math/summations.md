@@ -1,5 +1,9 @@
 # Summation Formulas
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Key summation formulas used throughout algorithm analysis:
 
 ## Arithmetic Series

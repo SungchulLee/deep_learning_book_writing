@@ -1,5 +1,9 @@
 # Mo's Algorithm
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Mo's algorithm** answers offline range queries in $O((n + q) \sqrt{n})$ time by processing queries in a clever order that minimizes pointer movement. It is particularly useful when maintaining a data structure over a sliding range.
 
 ## Key Idea

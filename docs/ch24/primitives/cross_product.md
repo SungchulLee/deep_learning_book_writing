@@ -1,5 +1,9 @@
 # Cross Product
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The cross product $\vec{a} \times \vec{b}$ determines orientation and area in 2D.
 
 $$T(V, E) = O((V + E) \log V) \text{ with binary heap}$$

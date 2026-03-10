@@ -1,5 +1,9 @@
 # Adam
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Adam (Adaptive Moment Estimation) combines the benefits of momentum (first moment) and RMSprop (second moment) into a single optimizer with bias correction. It is the most widely used optimizer in deep learning.

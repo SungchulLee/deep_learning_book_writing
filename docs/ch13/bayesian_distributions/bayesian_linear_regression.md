@@ -1,5 +1,9 @@
 # Bayesian Linear Regression
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Bayesian linear regression provides full posterior distributions over parameters and predictions, naturally quantifying uncertainty. This module develops the conjugate Normal-Normal model for regression, derives the posterior and predictive distributions, and demonstrates uncertainty visualization.

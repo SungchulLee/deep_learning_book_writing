@@ -1,5 +1,9 @@
 # Encoder-Decoder Structure
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 The Transformer architecture (Vaswani et al., 2017) has been adapted into three main paradigms. Each makes different choices about attention directionality and information flow, leading to distinct strengths:

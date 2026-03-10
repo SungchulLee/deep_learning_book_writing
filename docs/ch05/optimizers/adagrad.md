@@ -1,5 +1,9 @@
 # Adagrad
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Adagrad (Adaptive Gradient) adapts the learning rate for each parameter individually based on the historical sum of squared gradients. Parameters with large accumulated gradients receive smaller updates, and parameters with small accumulated gradients receive larger updates.

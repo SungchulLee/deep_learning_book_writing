@@ -1,5 +1,9 @@
 # Working Backwards
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 **Working backwards** means starting from the desired result and reasoning toward the initial state. This technique is particularly powerful for construction problems, game theory, and problems where the forward direction has too many choices.
 
 ## When to Work Backwards

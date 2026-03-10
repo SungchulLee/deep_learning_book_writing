@@ -1,5 +1,9 @@
 # Risk-Aware Recommender Systems
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Traditional recommender systems optimize for accuracy—recommending items users will like. In financial contexts, accuracy alone is insufficient; recommendations must also manage risk and comply with regulatory constraints. Risk-aware recommender systems explicitly model downside risk, portfolio concentration, tail dependencies, and market stress scenarios when making recommendations. A recommendation that appears optimal under normal market conditions may be disastrous during stress periods or create excessive portfolio concentration.

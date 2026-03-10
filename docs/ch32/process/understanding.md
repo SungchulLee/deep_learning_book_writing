@@ -1,5 +1,9 @@
 # Understanding the Problem
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Before writing a single line of code, you must **fully understand the problem**. Misunderstanding even one constraint wastes enormous effort. This page describes a disciplined approach to problem comprehension.
 
 ## The Five-Step Understanding Protocol

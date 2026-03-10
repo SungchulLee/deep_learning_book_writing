@@ -1,5 +1,9 @@
 # Simulated Annealing Fundamentals
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Simulated annealing (SA) is a **non-stationary variant of Metropolis-Hastings** designed for **optimization** rather than sampling. While standard MCMC targets a fixed distribution, SA gradually changes its target distribution to concentrate on global optima. The method draws its name and intuition from metallurgical annealing, where controlled cooling of metals produces low-energy crystalline structures.
 
 This section develops the Boltzmann distribution foundation, the core SA algorithm, and the key distinctions from standard MCMC.

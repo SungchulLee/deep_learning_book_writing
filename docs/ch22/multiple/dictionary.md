@@ -1,5 +1,9 @@
 # Dictionary Links
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Dictionary links (also called output links or dictionary suffix links) are an optimization in the Aho-Corasick automaton that enables efficient enumeration of all matching patterns at each text position. They form a secondary chain alongside failure links.
 
 ## Motivation

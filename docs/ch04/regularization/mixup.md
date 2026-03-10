@@ -1,5 +1,9 @@
 # Mixup
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Mixup is a data augmentation and regularization technique that trains neural networks on *convex combinations* of pairs of training examples and their labels. By creating virtual training samples that lie between existing data points, Mixup encourages the model to behave linearly between training examples, leading to smoother decision boundaries, improved generalization, and better calibrated predictions.

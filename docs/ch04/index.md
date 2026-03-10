@@ -1,5 +1,9 @@
 # Chapter 4: NN Building Blocks
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 This chapter covers the fundamental components used to construct neural networks: activation functions, feedforward network architecture, weight initialization, normalization layers, and regularization techniques. Each topic is developed from mathematical first principles with accompanying PyTorch implementations. Together, these building blocks form the vocabulary for assembling and training any deep learning model.
 
 ## Activations

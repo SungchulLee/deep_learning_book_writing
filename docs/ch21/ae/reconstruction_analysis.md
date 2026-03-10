@@ -1,5 +1,9 @@
 # Reconstruction Quality Analysis for Autoencoders
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 Assessing and analyzing reconstruction quality is fundamental to understanding autoencoder performance and identifying when the learned representation adequately captures input structure. Reconstruction error—the difference between input and autoencoder output—provides a primary quality metric, but meaningful evaluation requires multiple perspectives: aggregate error statistics, per-sample error distributions, feature-wise reconstruction patterns, and task-specific performance metrics.

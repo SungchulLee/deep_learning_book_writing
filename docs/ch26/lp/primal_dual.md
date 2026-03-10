@@ -1,5 +1,9 @@
 # Primal-Dual
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The primal-dual method builds feasible solutions for both the primal and dual simultaneously.
 
 $$T(V, E) = O((V + E) \log V) \text{ with binary heap}$$

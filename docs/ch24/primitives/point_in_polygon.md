@@ -1,5 +1,9 @@
 # Point in Polygon
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Point-in-polygon test: cast a ray and count crossings (odd = inside).
 
 $$T(V, E) = O((V + E) \log V) \text{ with binary heap}$$

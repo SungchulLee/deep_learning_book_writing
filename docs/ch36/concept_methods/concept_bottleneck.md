@@ -1,5 +1,9 @@
 # Concept Bottleneck Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 **Concept Bottleneck Models (CBMs)** achieve interpretability by design: the network is forced to first predict a set of human-interpretable concepts, then use only those concepts to make the final prediction. This creates a "bottleneck" of interpretable intermediate representations.

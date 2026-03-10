@@ -1,5 +1,9 @@
 # MCMC Methods Comparison
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 All MCMC methods aim to sample from a target distribution $\pi(x)$, but they employ fundamentally different strategies with distinct trade-offs. This section provides a comprehensive comparison of the four foundational methods—Metropolis-Hastings, Gibbs sampling, Langevin dynamics, and Hamiltonian Monte Carlo—along with practical guidance for method selection.
 
 ## Overview of the Four Methods

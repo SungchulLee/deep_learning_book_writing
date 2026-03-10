@@ -1,5 +1,9 @@
 # Adversarial Attacks on NLP Models
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 While adversarial robustness research began in the image domain (FGSM, PGD, C&W), the rise of NLP-based financial models — sentiment analysis for trading signals, news-driven event detection, earnings call analysis — makes text-domain adversarial attacks directly relevant to quantitative finance. Unlike images where perturbations are continuous, text attacks must operate in a discrete space, replacing words or characters while preserving semantic meaning and grammatical correctness.

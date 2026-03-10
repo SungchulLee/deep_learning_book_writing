@@ -1,5 +1,9 @@
 # Exponential Moving Average Teacher in Self-Distillation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Introduction
 
 The Exponential Moving Average (EMA) teacher mechanism represents a powerful technique for creating stable target models in self-distillation frameworks. By maintaining a time-averaged version of the student network through exponential moving average updates, EMA teachers avoid the need for separate pretraining and provide continuously improving supervision signals.

@@ -1,5 +1,9 @@
 # Symbol Tables
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Symbol tables map identifiers to their attributes; hash tables provide $O(1)$ average lookup.
 
 # Reference

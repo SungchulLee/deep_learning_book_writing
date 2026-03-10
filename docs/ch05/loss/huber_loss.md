@@ -1,5 +1,9 @@
 # Huber Loss
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Huber loss (also called Smooth L1 loss) combines the strengths of MSE and MAE through a piecewise definition: quadratic for small errors, linear for large errors. This hybrid design provides MSE's smooth gradients near the optimum while inheriting MAE's robustness to outliers. Proposed by Peter Huber in 1964 as a cornerstone of robust statistics, it has become the standard regression loss in object detection and a practical default for noisy real-world data.
 
 ## Mathematical Definition

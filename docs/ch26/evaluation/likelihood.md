@@ -1,5 +1,9 @@
 # Likelihood-Based Evaluation
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 ## Overview
 
 Likelihood-based evaluation measures how well a generative model assigns probability to real data. Unlike sample-based metrics (FID, IS), likelihood metrics provide a principled, information-theoretic assessment of model quality. This section covers Negative Log-Likelihood (NLL), Bits Per Dimension (BPD), and Perplexity.

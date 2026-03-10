@@ -1,5 +1,9 @@
 # NFA Construction
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 A nondeterministic finite automaton (NFA) is a foundational model for regular expression matching. An NFA consists of a finite set of states, an alphabet, a transition function that can map a state and symbol to multiple states (including epsilon/empty transitions), a start state, and a set of accepting states.
 
 ## Formal Definition

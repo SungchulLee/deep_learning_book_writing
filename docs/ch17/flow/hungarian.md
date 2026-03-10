@@ -1,5 +1,9 @@
 # Hungarian Algorithm
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 The Hungarian algorithm solves the assignment problem in $O(n^3)$ time.
 
 # Reference

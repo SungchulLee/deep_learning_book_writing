@@ -1,5 +1,9 @@
 # Heap Property
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 $$\begin{array}{lllllll}
 \text{heappush}&:&\text{Insert}&&O(\log n)\\
 \text{heappop}&:&\text{Delete (Root)}&&O(\log n)\\

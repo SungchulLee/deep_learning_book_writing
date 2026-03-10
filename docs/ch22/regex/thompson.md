@@ -1,5 +1,9 @@
 # Thompson's Construction
 
+
+!!! warning "Incomplete page"
+    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+
 Thompson's construction is a systematic algorithm for converting any regular expression into an equivalent nondeterministic finite automaton (NFA). Proposed by Ken Thompson in 1968, it produces an NFA with at most $2r$ states for a regular expression of length $r$, where each state has at most two outgoing transitions.
 
 ## Algorithm
