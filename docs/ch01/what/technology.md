@@ -1,31 +1,57 @@
 # Algorithms as Technology
 
+Algorithms are a technology that often matters more than hardware. In deep learning, algorithmic improvements (attention mechanisms, residual connections, better optimizers) have driven progress far more than raw compute increases alone.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-Algorithms are a **technology** — like hardware, networking, or machine learning. The choice of algorithm can make the difference between solving a problem in seconds or not at all.
+Total system performance is the product of hardware capability and algorithmic efficiency:
 
 $$
-
 \text{Total performance} = \text{Hardware speed} \times \text{Algorithm efficiency}
-
 $$
 
-## Hardware vs Algorithms
+An algorithmic improvement that reduces complexity from $O(n^2)$ to $O(n \log n)$ provides a speedup that grows with $n$, eventually dwarfing any constant-factor hardware advantage.
 
-A faster algorithm on a slower computer often beats a slower algorithm on a faster computer.
+## Explanation
 
-**Example**: Insertion sort ($O(n^2)$) on a supercomputer vs merge sort ($O(n \log n)$) on a laptop:
+The history of deep learning demonstrates the power of algorithmic innovation:
 
-$$
+- **Residual connections** (2015): Enabled training of networks with 100+ layers where previous architectures failed beyond 20 layers. No hardware change was required.
+- **Attention mechanism** (2017): Replaced sequential RNN computation with parallelizable matrix operations, enabling training on much longer sequences with the same hardware.
+- **Mixed-precision training** (2018): Reduced memory and computation by using float16 for most operations while maintaining float32 for critical accumulations. This is a pure algorithmic/software improvement.
+- **Flash Attention** (2022): Achieved 2-4x speedup on attention computation by rearranging memory access patterns -- same hardware, same mathematical result, much faster execution.
 
-\text{For } n = 10^7: \quad \frac{n^2}{n \log n} = \frac{10^{14}}{10^7 \times 23} \approx 4.3 \times 10^5
+The implication for practitioners: before purchasing more compute, check whether a better algorithm, architecture, or training recipe exists. Algorithmic improvements are free and often provide larger gains than hardware upgrades.
 
-$$
+## Examples
 
-The algorithm advantage grows with input size, eventually dominating any constant-factor hardware advantage.
+```python
+import torch
+import time
 
-# Reference
+# Naive attention vs fused attention (algorithmic improvement)
+def naive_attention(Q, K, V):
+    """Materializes full n x n attention matrix."""
+    scores = Q @ K.transpose(-2, -1) / Q.shape[-1] ** 0.5
+    weights = torch.softmax(scores, dim=-1)
+    return weights @ V
 
-[Introduction to Algorithms (CLRS), Section 1.1](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+n, d = 1024, 64
+Q = K = V = torch.randn(1, n, d)
+
+# Naive: allocates O(n^2) intermediate
+start = time.time()
+for _ in range(10):
+    out_naive = naive_attention(Q, K, V)
+naive_time = (time.time() - start) / 10
+
+# PyTorch scaled_dot_product_attention (uses memory-efficient algorithm)
+start = time.time()
+for _ in range(10):
+    out_fused = torch.nn.functional.scaled_dot_product_attention(Q, K, V)
+fused_time = (time.time() - start) / 10
+
+print(f"Naive attention:  {naive_time*1000:.2f} ms")
+print(f"Fused attention:  {fused_time*1000:.2f} ms")
+print(f"Same result: {torch.allclose(out_naive, out_fused, atol=1e-5)}")
+```
