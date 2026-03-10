@@ -1,10 +1,9 @@
 # Chapter 1: Scikit-learn
 
-
 !!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+    This is a chapter landing page and does not follow the five-section structure. It serves as a navigation overview for the sections below.
 
-Scikit-learn provides the standard Python interface for classical machine learning. This chapter covers environment setup, API design philosophy, preprocessing utilities, model families, evaluation methodology, and integration patterns with PyTorch -- all grounded in quantitative finance applications. Understanding scikit-learn first establishes the baseline discipline and pipeline thinking that carries directly into deep learning workflows.
+Scikit-learn provides the standard Python interface for classical machine learning. This chapter covers environment setup, API design philosophy, preprocessing utilities, model families, evaluation methodology, and integration patterns with PyTorch. Understanding scikit-learn first establishes the baseline discipline and pipeline thinking that carries directly into deep learning workflows.
 
 ## Setup
 
