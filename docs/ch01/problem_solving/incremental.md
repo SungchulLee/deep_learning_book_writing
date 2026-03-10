@@ -1,57 +1,66 @@
-# Incremental Improvement
+# Incremental Algorithms
 
+Incremental algorithms build solutions one element at a time, maintaining correctness at each step. This paradigm directly maps to the training loop in deep learning: each gradient step incrementally improves the model parameters.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-The **incremental** approach builds a solution one element at a time, maintaining correctness at each step.
-
-$$
-
-\text{Solution}_i = \text{Extend}(\text{Solution}_{i-1}, \text{element}_i)
+An incremental algorithm constructs a solution by processing elements sequentially, updating the current solution with each new element:
 
 $$
+\text{Solution}_i = \text{Update}(\text{Solution}_{i-1}, \text{element}_i)
+$$
 
-## Insertion Sort as Incremental Algorithm
+The invariant is that $\text{Solution}_i$ is correct for the first $i$ elements.
 
-At each step $i$, we insert $A[i]$ into the already-sorted subarray $A[0..i-1]$.
+## Explanation
+
+The incremental approach appears throughout deep learning:
+
+- **Stochastic gradient descent**: Each mini-batch update incrementally improves the parameters. The invariant is that the loss generally decreases (in expectation) after each step.
+- **Online learning**: Models update with each arriving data point, never revisiting old data. This is incremental by nature.
+- **Running statistics**: Batch normalization tracks running mean and variance incrementally across training batches.
+
+The key advantage is simplicity: the update rule is often easy to derive and implement. The disadvantage is that greedy incremental choices may not yield globally optimal solutions (similar to how SGD finds local rather than global minima).
+
+## Examples
 
 ```python
-def insertion_sort(arr):
-    """Incremental approach: insert each element into sorted prefix."""
-    arr = arr.copy()
-    for i in range(1, len(arr)):
-        key = arr[i]
-        j = i - 1
-        # Shift elements greater than key to the right
-        while j >= 0 and arr[j] > key:
-            arr[j + 1] = arr[j]
-            j -= 1
-        arr[j + 1] = key
-        print(f"  Step {i}: {arr}")
-    return arr
+import torch
 
-def main():
-    arr = [5, 2, 4, 6, 1, 3]
-    print(f"Input: {arr}")
-    result = insertion_sort(arr)
-    print(f"Sorted: {result}")
+# Incremental mean and variance (Welford's algorithm)
+# Used in BatchNorm running statistics
+def incremental_stats(data: torch.Tensor):
+    """Compute mean and variance incrementally."""
+    mean = torch.tensor(0.0)
+    m2 = torch.tensor(0.0)
+    for i, x in enumerate(data, 1):
+        delta = x - mean
+        mean += delta / i
+        delta2 = x - mean
+        m2 += delta * delta2
+    variance = m2 / len(data)
+    return mean, variance
 
-if __name__ == "__main__":
-    main()
+data = torch.randn(1000)
+inc_mean, inc_var = incremental_stats(data)
+print(f"Incremental mean: {inc_mean.item():.6f}")
+print(f"Incremental var:  {inc_var.item():.6f}")
+print(f"Direct mean:      {data.mean().item():.6f}")
+print(f"Direct var:       {data.var(correction=0).item():.6f}")
+
+# SGD as incremental optimization
+torch.manual_seed(42)
+w = torch.randn(1, requires_grad=True)
+x = torch.randn(100)
+y = 3.0 * x + torch.randn(100) * 0.1
+
+for i in range(50):
+    idx = i % len(x)  # one element at a time
+    pred = w * x[idx]
+    loss = (pred - y[idx]) ** 2
+    loss.backward()
+    with torch.no_grad():
+        w -= 0.01 * w.grad
+        w.grad.zero_()
+print(f"Learned w: {w.item():.4f} (true: 3.0)")
 ```
-
-**Output:**
-```
-Input: [5, 2, 4, 6, 1, 3]
-  Step 1: [2, 5, 4, 6, 1, 3]
-  Step 2: [2, 4, 5, 6, 1, 3]
-  Step 3: [2, 4, 5, 6, 1, 3]
-  Step 4: [1, 2, 4, 5, 6, 3]
-  Step 5: [1, 2, 3, 4, 5, 6]
-Sorted: [1, 2, 3, 4, 5, 6]
-```
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Section 2.1](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
