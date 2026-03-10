@@ -1,55 +1,55 @@
 # Input and Output
 
+Every algorithm and neural network defines a mapping from inputs to outputs. Understanding the input-output contract precisely is the first step in designing any model or data pipeline.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-Algorithms transform **input** into **output**. Understanding the input/output relationship is crucial for algorithm design.
-
-$$
-
-f: \mathcal{I} \rightarrow \mathcal{O}
+An algorithm (or model) is a function:
 
 $$
+f: \mathcal{X} \rightarrow \mathcal{Y}
+$$
 
-where $\mathcal{I}$ is the set of valid inputs and $\mathcal{O}$ is the set of valid outputs.
+where $\mathcal{X}$ is the input space and $\mathcal{Y}$ is the output space. In deep learning, $\mathcal{X}$ is typically a tensor space (e.g., $\mathbb{R}^{B \times C \times H \times W}$ for images) and $\mathcal{Y}$ is a probability distribution, a scalar, or another tensor.
 
-## Input Types
+## Explanation
 
-| Type | Example | Typical Representation |
-|---|---|---|
-| Numbers | Find maximum | Array of integers |
-| Strings | Pattern matching | Character array |
-| Graphs | Shortest path | Adjacency list/matrix |
-| Trees | LCA query | Parent array or nodes |
+Specifying the input-output contract precisely prevents bugs and clarifies model design:
+
+- **Input shape and dtype**: A model expecting $(B, 3, 224, 224)$ float32 tensors will fail silently or produce garbage if given $(B, 224, 224, 3)$ (channels-last format). Always document and validate tensor shapes.
+- **Output semantics**: Classification models output logits (unnormalized), probabilities (after softmax), or log-probabilities (after log-softmax). Confusing these corrupts the loss computation.
+- **Preprocessing contract**: The mapping from raw data (text, images, tabular rows) to model-ready tensors is part of the input specification. A model trained on normalized data will fail on unnormalized inputs.
+
+Data loading in PyTorch follows a clear input-output chain: raw files go through a `Dataset` (which defines `__getitem__` returning tensors), then through a `DataLoader` (which batches and shuffles), and finally into the model.
+
+## Examples
 
 ```python
-import sys
-from io import StringIO
+import torch
+import torch.nn as nn
 
-def read_array(input_str):
-    """Read array from string input."""
-    data = input_str.strip().split()
-    n = int(data[0])
-    arr = list(map(int, data[1:n+1]))
-    return arr
+# Define a model with explicit input/output contract
+class Classifier(nn.Module):
+    """Input: (batch, 10) float32. Output: (batch, 3) logits."""
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(10, 32), nn.ReLU(), nn.Linear(32, 3))
 
-def main():
-    test_input = "5\n3 1 4 1 5"
-    arr = read_array(test_input.replace("\\n", "\n"))
-    print(f"Read array: {arr}")
-    print(f"Sum: {sum(arr)}")
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        assert x.ndim == 2 and x.shape[1] == 10, f"Expected (B, 10), got {x.shape}"
+        return self.net(x)
 
-if __name__ == "__main__":
-    main()
+model = Classifier()
+x = torch.randn(4, 10)
+logits = model(x)
+probs = torch.softmax(logits, dim=1)
+print(f"Input shape:  {x.shape}")
+print(f"Logits shape: {logits.shape}")
+print(f"Probs sum:    {probs.sum(dim=1)}")  # should be [1, 1, 1, 1]
+
+# Demonstrate the importance of matching preprocessing
+x_raw = torch.randn(4, 10) * 100  # unscaled
+x_normalized = (x_raw - x_raw.mean(0)) / (x_raw.std(0) + 1e-8)
+print(f"Raw logits range:   [{model(x_raw).min():.1f}, {model(x_raw).max():.1f}]")
+print(f"Norm logits range:  [{model(x_normalized).min():.1f}, {model(x_normalized).max():.1f}]")
 ```
-
-**Output:**
-```
-Read array: [3, 1, 4, 1, 5]
-Sum: 14
-```
-
-# Reference
-
-[Competitive Programmer's Handbook - Chapter 1](https://cses.fi/book/book.pdf)
