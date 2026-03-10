@@ -1,69 +1,54 @@
-# Contradiction
+# Proof by Contradiction
 
+Proof by contradiction is a fundamental reasoning technique used throughout mathematics and theoretical machine learning. It establishes truth by showing that the negation leads to an impossibility.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-**Proof by contradiction** assumes the negation of the claim and derives a logical impossibility.
+A proof by contradiction (reductio ad absurdum) proves a statement $P$ by assuming $\neg P$ and deriving a logical contradiction. Since a consistent system cannot contain contradictions, the assumption $\neg P$ must be false, and therefore $P$ is true.
 
-## Structure
+## Explanation
+
+The structure of a contradiction proof is:
 
 1. Assume $\neg P$ (the claim is false)
-2. Derive a contradiction
+2. Through valid logical steps, derive a statement that contradicts a known fact or the assumption itself
 3. Conclude $P$ must be true
 
-## Classic Example: Irrationality of sqrt(2)
+This technique is especially useful when direct proof is difficult. In machine learning theory, contradiction proofs appear in:
 
-**Claim**: $\sqrt{2}$ is irrational.
+- **No Free Lunch theorems**: Proving that no single algorithm dominates all others by assuming one does and deriving a contradiction
+- **Lower bounds on sample complexity**: Showing that fewer than $n$ samples cannot suffice by constructing indistinguishable distributions
+- **Impossibility results**: Proving certain learning tasks require specific conditions (e.g., that a hypothesis class must be finite for consistent convergence without structural assumptions)
 
-**Proof**: Assume $\sqrt{2} = p/q$ where $p, q$ are integers with no common factors. Then $2q^2 = p^2$, so $p^2$ is even, hence $p$ is even. Write $p = 2k$. Then $2q^2 = 4k^2$, so $q^2 = 2k^2$, meaning $q$ is also even. But this contradicts our assumption that $p, q$ have no common factors. $\square$
+A classic example: proving $\sqrt{2}$ is irrational. Assume $\sqrt{2} = p/q$ with $\gcd(p, q) = 1$. Then $2q^2 = p^2$, so $p$ is even. Write $p = 2k$, giving $q^2 = 2k^2$, so $q$ is also even. This contradicts $\gcd(p, q) = 1$.
 
-## Example in Algorithms: Infinite Primes
-
-**Claim**: There are infinitely many primes.
+## Examples
 
 ```python
-def is_prime(n):
-    if n < 2:
-        return False
-    for i in range(2, int(n**0.5) + 1):
-        if n % i == 0:
-            return False
-    return True
+import torch
 
-def euclid_proof_demonstration(primes):
-    """Show Euclid's proof idea: product of known primes + 1."""
-    product = 1
-    for p in primes:
-        product *= p
-    candidate = product + 1
-    return candidate, is_prime(candidate)
+# Demonstrate contradiction logic numerically:
+# If sqrt(2) were rational p/q, then p^2 = 2*q^2 exactly.
+# We show no small integer pair satisfies this.
 
-def main():
-    primes = [2, 3, 5, 7, 11, 13]
-    candidate, prime = euclid_proof_demonstration(primes)
-    print(f"Known primes: {primes}")
-    print(f"Product + 1 = {candidate}")
-    print(f"Is prime: {prime}")
-    if not prime:
-        # Find a prime factor not in our list
-        for i in range(2, candidate):
-            if candidate % i == 0 and is_prime(i):
-                print(f"Has prime factor {i} not in original list: {i not in primes}")
-                break
+max_val = 1000
+found = False
+for q in range(1, max_val):
+    p_squared = 2 * q * q
+    p = int(p_squared ** 0.5)
+    if p * p == p_squared:
+        found = True
+        break
 
-if __name__ == "__main__":
-    main()
+print(f"Found exact integer p/q with p^2 = 2q^2 for q < {max_val}: {found}")
+
+# Contradiction in optimization: a convex function cannot have
+# two distinct global minima. Verify with a quadratic.
+x = torch.linspace(-5, 5, 1000)
+f = x ** 2 + 1  # strictly convex
+min_val = f.min().item()
+min_indices = (f - min_val).abs() < 1e-6
+num_minima = min_indices.sum().item()
+print(f"Number of global minima of x^2 + 1: {num_minima}")
+print(f"Minimum value: {min_val:.4f}")
 ```
-
-**Output:**
-```
-Known primes: [2, 3, 5, 7, 11, 13]
-Product + 1 = 30031
-Is prime: False
-Has prime factor 59 not in original list: True
-```
-
-# Reference
-
-[How to Prove It (Velleman)](https://www.amazon.com/How-Prove-Structured-Approach-2nd/dp/0521675995)
