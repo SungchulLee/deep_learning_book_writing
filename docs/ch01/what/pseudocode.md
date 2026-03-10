@@ -1,72 +1,71 @@
 # Pseudocode Conventions
 
+Pseudocode describes algorithms in a language-independent way. In deep learning literature, pseudocode communicates training loops, architectures, and optimization procedures without tying them to a specific framework.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-Pseudocode provides a language-independent way to describe algorithms. It balances precision with readability.
-
-## Common Conventions
+Pseudocode is a structured, informal notation for algorithms that uses standard mathematical and programming conventions:
 
 $$
-
 \begin{array}{ll}
-\texttt{for } i = 1 \texttt{ to } n & \text{Loop from 1 to } n \\
-\texttt{while } condition & \text{Loop while condition is true} \\
-\texttt{if } condition & \text{Conditional execution} \\
-\texttt{return } value & \text{Return a value} \\
-A[i] & \text{Array access at index } i \\
-\lfloor x \rfloor, \lceil x \rceil & \text{Floor and ceiling}
+\textbf{for } i = 1 \textbf{ to } n & \text{Iterate over a range} \\
+\textbf{while } \text{condition} & \text{Loop while true} \\
+\textbf{return } \text{value} & \text{Output a result} \\
+x \leftarrow f(x) & \text{Assignment}
 \end{array}
-
 $$
 
-## Example: Binary Search
+## Explanation
+
+Deep learning papers use pseudocode to specify training algorithms precisely. A standard training loop in pseudocode:
 
 ```
-BINARY-SEARCH(A, target)
-  lo = 1
-  hi = A.length
-  while lo <= hi
-    mid = floor((lo + hi) / 2)
-    if A[mid] == target
-      return mid
-    else if A[mid] < target
-      lo = mid + 1
-    else
-      hi = mid - 1
-  return NIL
+TRAIN(model, data, lr, epochs)
+  for epoch = 1 to epochs
+    for (x, y) in data
+      y_hat = model(x)          // forward pass
+      L = loss(y_hat, y)        // compute loss
+      g = gradient(L, params)   // backward pass
+      params = params - lr * g  // parameter update
+  return params
 ```
+
+This pseudocode abstracts away framework details (PyTorch vs TensorFlow, GPU placement, mixed precision) while capturing the essential logic. When reading papers, pseudocode is often the most precise description of the proposed method.
+
+Key conventions in deep learning pseudocode: $\nabla_\theta$ denotes the gradient with respect to parameters, $\leftarrow$ denotes assignment (as opposed to $=$ for equality), and $\sim$ denotes sampling from a distribution.
+
+## Examples
 
 ```python
-def binary_search(a, target):
-    lo, hi = 0, len(a) - 1
-    while lo <= hi:
-        mid = (lo + hi) // 2
-        if a[mid] == target:
-            return mid
-        elif a[mid] < target:
-            lo = mid + 1
-        else:
-            hi = mid - 1
-    return -1
+import torch
+import torch.nn as nn
 
-def main():
-    a = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]
-    for target in [23, 50]:
-        idx = binary_search(a, target)
-        print(f"Search for {target}: index = {idx}")
+# Translating pseudocode to PyTorch
+# Pseudocode: ADAM(params, lr, beta1, beta2, eps)
+#   m = 0, v = 0, t = 0
+#   repeat:
+#     t = t + 1
+#     g = gradient(loss, params)
+#     m = beta1 * m + (1 - beta1) * g
+#     v = beta2 * v + (1 - beta2) * g^2
+#     m_hat = m / (1 - beta1^t)
+#     v_hat = v / (1 - beta2^t)
+#     params = params - lr * m_hat / (sqrt(v_hat) + eps)
 
-if __name__ == "__main__":
-    main()
+# PyTorch implementation of the pseudocode above
+model = nn.Linear(5, 1)
+optimizer = torch.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.999))
+
+x = torch.randn(32, 5)
+y = torch.randn(32, 1)
+
+for step in range(100):
+    y_hat = model(x)                           # forward pass
+    loss = nn.functional.mse_loss(y_hat, y)    # compute loss
+    optimizer.zero_grad()                       # clear gradients
+    loss.backward()                            # backward pass (compute g)
+    optimizer.step()                           # parameter update
+
+print(f"Final loss: {loss.item():.6f}")
+print(f"Parameters: {list(model.parameters())[0].shape}")
 ```
-
-**Output:**
-```
-Search for 23: index = 5
-Search for 50: index = -1
-```
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Section 2.1](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
