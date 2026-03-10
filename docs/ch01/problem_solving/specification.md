@@ -1,61 +1,63 @@
 # Problem Specification
 
+A precise problem specification prevents wasted effort from solving the wrong problem. In deep learning, the specification defines the input domain, output format, loss function, and evaluation metric before any model is designed.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-A well-defined problem specification includes:
-
-$$
-
-\text{Problem} = (\text{Input}, \text{Output}, \text{Constraints})
+A problem specification is the formal triple:
 
 $$
+\text{Problem} = (\mathcal{X},\; \mathcal{Y},\; \text{Objective})
+$$
 
-## Components
+where $\mathcal{X}$ is the input space, $\mathcal{Y}$ is the output space, and the objective defines what constitutes a correct or optimal solution.
 
-1. **Input description**: What data is given
-2. **Output description**: What must be produced
-3. **Constraints**: Bounds on input size, value ranges
-4. **Preconditions**: What can be assumed about the input
-5. **Postconditions**: What must be true about the output
+## Explanation
 
-## Example: Sorting Problem
+In deep learning, a complete specification requires:
 
-- **Input**: A sequence of $n$ numbers $\langle a_1, a_2, \ldots, a_n \rangle$
-- **Output**: A permutation $\langle a_1', a_2', \ldots, a_n' \rangle$ such that $a_1' \leq a_2' \leq \cdots \leq a_n'$
-- **Constraint**: $1 \leq n \leq 10^6$
+- **Input specification**: Tensor shape, dtype, value range, and preprocessing. Example: "RGB images of shape $(3, 224, 224)$, pixel values in $[0, 1]$, normalized by ImageNet statistics."
+- **Output specification**: What the model should produce. Classification logits? Bounding boxes? Generated text? The output format determines the model architecture's final layer.
+- **Loss function**: The differentiable objective that training minimizes. Cross-entropy for classification, MSE for regression, etc.
+- **Evaluation metric**: The non-differentiable metric that matters in practice (accuracy, F1, BLEU). Often differs from the loss.
+- **Constraints**: Latency budget, model size limit, minimum accuracy threshold.
+
+A common failure mode is misalignment between the loss and the evaluation metric. For example, training with MSE loss but evaluating with accuracy on a classification task will produce suboptimal results.
+
+## Examples
 
 ```python
-def is_valid_sort(original, result):
-    """Verify that result is a valid sorted version of original."""
-    # Must be a permutation
-    if sorted(original) != sorted(result):
-        return False
-    # Must be sorted
-    for i in range(len(result) - 1):
-        if result[i] > result[i + 1]:
-            return False
-    return True
+import torch
+import torch.nn as nn
 
-def main():
-    original = [3, 1, 4, 1, 5, 9]
-    result = sorted(original)
-    print(f"Original: {original}")
-    print(f"Result:   {result}")
-    print(f"Valid:    {is_valid_sort(original, result)}")
+# Complete problem specification for binary classification
+spec = {
+    "input": "tensor of shape (batch, 10), float32, standardized",
+    "output": "tensor of shape (batch, 1), logits",
+    "loss": "binary cross-entropy with logits",
+    "metric": "accuracy",
+    "constraint": "model < 10K parameters",
+}
+for k, v in spec.items():
+    print(f"  {k}: {v}")
 
-if __name__ == "__main__":
-    main()
+# Implement according to spec
+model = nn.Sequential(nn.Linear(10, 16), nn.ReLU(), nn.Linear(16, 1))
+n_params = sum(p.numel() for p in model.parameters())
+print(f"\nParameters: {n_params} (limit: 10000)")
+
+# Verify input/output contract
+x = torch.randn(4, 10)
+logits = model(x)
+assert logits.shape == (4, 1), f"Output shape {logits.shape} != (4, 1)"
+
+# Loss matches specification
+y = torch.tensor([1.0, 0.0, 1.0, 0.0]).unsqueeze(1)
+loss = nn.functional.binary_cross_entropy_with_logits(logits, y)
+print(f"Loss: {loss.item():.4f}")
+
+# Metric matches specification
+preds = (torch.sigmoid(logits) > 0.5).float()
+accuracy = (preds == y).float().mean()
+print(f"Accuracy: {accuracy.item():.2f}")
 ```
-
-**Output:**
-```
-Original: [3, 1, 4, 1, 5, 9]
-Result:   [1, 1, 3, 4, 5, 9]
-Valid:    True
-```
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Chapter 1](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
