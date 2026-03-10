@@ -1,60 +1,51 @@
-# Brute Force
+# Brute Force Search
 
+Brute force exhaustively enumerates all candidate solutions. In deep learning, brute force provides the conceptual baseline that motivates smarter approaches like gradient descent, random search over hyperparameter grids, and learned heuristics.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-**Brute force** (exhaustive search) tries all possible solutions and picks the best one.
-
-$$
-
-T(n) = |\text{Solution Space}| \times \text{Cost per check}
+A brute force algorithm evaluates every element of the solution space and selects the best. Its time complexity is:
 
 $$
+T(n) = |\text{Solution Space}| \times \text{Cost per evaluation}
+$$
 
-## Characteristics
+The solution space is often exponential ($2^n$ subsets, $n!$ permutations), making brute force infeasible for large inputs.
 
-- **Simple** to implement and understand
-- **Correct** by construction (checks everything)
-- **Slow** — often exponential time
-- **Baseline** — useful for testing optimized solutions
+## Explanation
+
+Brute force is valuable in three situations:
+
+- **Correctness baseline**: When developing an optimized algorithm, a brute force implementation serves as a reference to verify correctness. In deep learning, a naive forward pass computation verifies that an optimized CUDA kernel produces correct results.
+- **Small search spaces**: Hyperparameter grid search with few parameters is brute force that remains practical because the space is small.
+- **Understanding the problem**: Writing the brute force solution first clarifies the structure of the problem and reveals patterns that suggest optimization.
+
+The transition from brute force to gradient-based optimization is foundational to deep learning: instead of evaluating all possible weight configurations (intractable), we follow the gradient to iteratively improve a single configuration.
+
+## Examples
 
 ```python
-def two_sum_brute_force(arr, target):
-    """Find two elements that sum to target. O(n^2)."""
-    n = len(arr)
-    for i in range(n):
-        for j in range(i + 1, n):
-            if arr[i] + arr[j] == target:
-                return (i, j)
-    return None
+import torch
 
-def two_sum_optimized(arr, target):
-    """Find two elements that sum to target. O(n)."""
-    seen = {}
-    for i, val in enumerate(arr):
-        complement = target - val
-        if complement in seen:
-            return (seen[complement], i)
-        seen[val] = i
-    return None
+# Brute force: find the weight that minimizes loss
+# (intractable for real networks, but illustrative)
+x = torch.tensor([1.0, 2.0, 3.0])
+y = torch.tensor([2.0, 4.0, 6.0])
 
-def main():
-    arr = [2, 7, 11, 15]
-    target = 9
-    print(f"Brute force: {two_sum_brute_force(arr, target)}")
-    print(f"Optimized:   {two_sum_optimized(arr, target)}")
+best_w, best_loss = 0.0, float("inf")
+for w in torch.linspace(-5, 5, 1000):
+    loss = ((w * x - y) ** 2).mean().item()
+    if loss < best_loss:
+        best_w, best_loss = w.item(), loss
+print(f"Brute force: w={best_w:.4f}, loss={best_loss:.6f}")
 
-if __name__ == "__main__":
-    main()
+# Gradient descent: finds the same answer efficiently
+w = torch.tensor(0.0, requires_grad=True)
+optimizer = torch.optim.SGD([w], lr=0.01)
+for _ in range(200):
+    loss = ((w * x - y) ** 2).mean()
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+print(f"Gradient descent: w={w.item():.4f}, loss={loss.item():.6f}")
 ```
-
-**Output:**
-```
-Brute force: (0, 1)
-Optimized:   (0, 1)
-```
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Chapter 2](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
