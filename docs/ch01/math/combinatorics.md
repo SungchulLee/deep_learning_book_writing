@@ -1,67 +1,54 @@
 # Combinatorics
 
+Combinatorics counts the number of ways to arrange or select objects. In deep learning, combinatorial reasoning arises when analyzing search spaces, counting model architectures in neural architecture search, and understanding the capacity of discrete structures.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-Combinatorics counts the number of ways to arrange or select objects — essential for analyzing algorithm complexity.
-
-## Key Formulas
+Combinatorics is the branch of mathematics concerned with counting, arranging, and selecting elements from finite sets. The fundamental quantities are:
 
 $$
-
-\begin{array}{ll}
-\text{Permutations:} & P(n, k) = \frac{n!}{(n-k)!} \\
-\text{Combinations:} & \binom{n}{k} = \frac{n!}{k!(n-k)!} \\
-\text{Arrangements with repetition:} & n^k \\
-\text{Multiset coefficient:} & \binom{n+k-1}{k}
-\end{array}
-
+\text{Permutations: } P(n, k) = \frac{n!}{(n-k)!} \qquad \text{Combinations: } \binom{n}{k} = \frac{n!}{k!(n-k)!}
 $$
 
-## Binomial Theorem
+Permutations count ordered arrangements of $k$ items from $n$, while combinations count unordered selections.
+
+## Explanation
+
+Three counting principles cover most situations in practice:
+
+- **Multiplication principle**: If task A has $m$ outcomes and task B has $n$ outcomes, the pair has $m \cdot n$ outcomes. This gives $n^k$ arrangements when choosing $k$ items from $n$ with repetition allowed.
+- **Combinations**: Selecting $k$ items from $n$ without regard to order yields $\binom{n}{k}$ possibilities. This appears when choosing which neurons to drop in dropout or selecting subsets of features.
+- **Binomial theorem**: Connects combinations to algebra:
 
 $$
-
 (x + y)^n = \sum_{k=0}^{n} \binom{n}{k} x^{n-k} y^k
-
 $$
+
+In deep learning, combinatorial explosion explains why brute-force hyperparameter search is infeasible. A grid search over $p$ hyperparameters with $v$ values each requires $v^p$ evaluations, motivating random search and Bayesian optimization.
+
+## Examples
 
 ```python
-from math import factorial, comb
+import torch
+from math import comb, factorial
 
-def permutations(n, k):
-    return factorial(n) // factorial(n - k)
+# Permutations and combinations
+n, k = 10, 3
+perms = factorial(n) // factorial(n - k)
+combs = comb(n, k)
+print(f"P({n},{k}) = {perms}")
+print(f"C({n},{k}) = {combs}")
 
-def main():
-    print("Combinations C(n, k):")
-    for n in range(6):
-        row = [comb(n, k) for k in range(n + 1)]
-        print(f"  n={n}: {row}")
-    print()
-    print(f"P(5,3) = {permutations(5, 3)}")
-    print(f"C(5,3) = {comb(5, 3)}")
-    print(f"5^3 = {5**3}  (arrangements with repetition)")
+# Hyperparameter search space explosion
+params = 5
+values_per_param = 4
+grid_size = values_per_param ** params
+print(f"Grid search: {params} params x {values_per_param} values = {grid_size} configs")
 
-if __name__ == "__main__":
-    main()
+# Verify binomial theorem with PyTorch
+x, y = torch.tensor(2.0), torch.tensor(3.0)
+n_val = 4
+lhs = (x + y) ** n_val
+rhs = sum(comb(n_val, k) * x ** (n_val - k) * y ** k for k in range(n_val + 1))
+print(f"(x+y)^{n_val} = {lhs.item():.0f}, sum of binomial terms = {rhs.item():.0f}")
 ```
-
-**Output:**
-```
-Combinations C(n, k):
-  n=0: [1]
-  n=1: [1, 1]
-  n=2: [1, 2, 1]
-  n=3: [1, 3, 3, 1]
-  n=4: [1, 4, 6, 4, 1]
-  n=5: [1, 5, 10, 10, 5, 1]
-
-P(5,3) = 60
-C(5,3) = 10
-5^3 = 125  (arrangements with repetition)
-```
-
-# Reference
-
-[Concrete Mathematics (Graham, Knuth, Patashnik)](https://www.amazon.com/Concrete-Mathematics-Foundation-Computer-Science/dp/0201558025)
