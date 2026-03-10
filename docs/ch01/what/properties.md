@@ -1,53 +1,65 @@
 # Properties of Algorithms
 
+Every algorithm possesses fundamental properties that determine its reliability and usefulness. Understanding these properties helps distinguish well-designed deep learning systems from fragile ones.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-Every algorithm should possess these fundamental properties:
+The five essential properties of an algorithm are:
 
 $$
-
 \begin{array}{ll}
 \text{Correctness} & \text{Produces the right output for every valid input} \\
-\text{Efficiency} & \text{Uses resources (time, space) wisely} \\
+\text{Efficiency} & \text{Uses time and space wisely as input grows} \\
 \text{Finiteness} & \text{Terminates after a finite number of steps} \\
 \text{Definiteness} & \text{Each step is precisely defined} \\
 \text{Generality} & \text{Solves a class of problems, not just one instance}
 \end{array}
-
 $$
 
-## Deterministic vs Non-Deterministic
+## Explanation
 
-- **Deterministic**: Same input always produces same output
-- **Non-deterministic**: May produce different outputs (randomized algorithms)
+In deep learning, these properties take specific forms:
+
+- **Correctness**: A training algorithm is correct if it converges to a (local) minimum of the loss. Verification involves gradient checking, loss curve monitoring, and evaluation on held-out data.
+- **Efficiency**: Training and inference must complete within resource budgets. Efficient architectures (e.g., depthwise separable convolutions) trade minimal accuracy for large speedups.
+- **Finiteness**: Training must terminate. This requires explicit stopping criteria: maximum epochs, early stopping on validation loss, or learning rate reaching a minimum threshold.
+- **Definiteness**: Every operation must be unambiguous. Floating-point non-determinism (different GPU results across runs) violates strict definiteness but is acceptable in practice.
+- **Generality**: A good architecture (ResNet, Transformer) generalizes across tasks. A model overfit to one dataset lacks generality.
+
+**Deterministic vs stochastic**: Classical algorithms are deterministic. Neural network training is stochastic (random initialization, mini-batch sampling, dropout). The stochasticity is deliberate -- it provides regularization and enables exploration of the loss landscape.
+
+## Examples
 
 ```python
-def is_sorted(arr):
-    """Check if an array is sorted — demonstrates definiteness."""
-    for i in range(len(arr) - 1):
-        if arr[i] > arr[i + 1]:
-            return False
-    return True
+import torch
+import torch.nn as nn
 
-def main():
-    tests = [[1, 2, 3, 4], [4, 3, 2, 1], [1, 3, 2, 4], []]
-    for arr in tests:
-        print(f"{arr} -> sorted: {is_sorted(arr)}")
+# Demonstrate finiteness: early stopping
+model = nn.Linear(10, 1)
+optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+x, y = torch.randn(50, 10), torch.randn(50, 1)
 
-if __name__ == "__main__":
-    main()
+best_loss, patience, wait = float("inf"), 5, 0
+for epoch in range(1000):  # max epochs ensures finiteness
+    loss = nn.functional.mse_loss(model(x), y)
+    optimizer.zero_grad(); loss.backward(); optimizer.step()
+    if loss.item() < best_loss - 1e-4:
+        best_loss = loss.item()
+        wait = 0
+    else:
+        wait += 1
+    if wait >= patience:
+        print(f"Early stopping at epoch {epoch}, loss={loss.item():.4f}")
+        break
+
+# Demonstrate determinism vs stochasticity
+torch.manual_seed(42)
+a = torch.randn(3)
+torch.manual_seed(42)
+b = torch.randn(3)
+print(f"Same seed -> same output: {torch.equal(a, b)}")
+
+torch.manual_seed(0)
+c = torch.randn(3)
+print(f"Different seed -> different output: {not torch.equal(a, c)}")
 ```
-
-**Output:**
-```
-[1, 2, 3, 4] -> sorted: True
-[4, 3, 2, 1] -> sorted: False
-[1, 3, 2, 4] -> sorted: False
-[] -> sorted: True
-```
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Chapter 1](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
