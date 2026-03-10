@@ -1,55 +1,58 @@
 # Algorithm Definition
 
+An algorithm is a finite, well-defined computational procedure that maps inputs to outputs. Neural networks are parameterized algorithms: the forward pass is a fixed procedure, but the learned weights determine the specific input-output mapping.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-An **algorithm** is a well-defined computational procedure that takes some value, or set of values, as **input** and produces some value, or set of values, as **output** in a finite number of steps.
-
-$$
-
-\text{Algorithm}: \text{Input} \rightarrow \text{Output}
+An algorithm is a procedure satisfying five properties:
 
 $$
-
-## Formal Definition
-
-An algorithm must satisfy:
+\text{Algorithm}: \mathcal{X} \rightarrow \mathcal{Y}
+$$
 
 1. **Input**: Zero or more quantities are externally supplied
 2. **Output**: At least one quantity is produced
 3. **Definiteness**: Each instruction is clear and unambiguous
-4. **Finiteness**: The algorithm terminates after a finite number of steps
-5. **Effectiveness**: Every instruction is basic enough to be carried out
+4. **Finiteness**: The procedure terminates after a finite number of steps
+5. **Effectiveness**: Every instruction can be carried out in finite time
+
+## Explanation
+
+A neural network's forward pass is an algorithm: given input tensor $\mathbf{x}$, it applies a sequence of matrix multiplications, nonlinearities, and normalizations to produce output $\hat{\mathbf{y}}$. Training is also an algorithm: given a dataset and loss function, gradient descent iteratively updates parameters until a stopping criterion is met.
+
+The distinction between an algorithm and a model is that an algorithm has fixed behavior, while a model has learned behavior. However, once training is complete, inference is a deterministic algorithm (assuming no dropout or stochastic components at test time).
+
+Key algorithmic properties of neural networks:
+
+- **Definiteness**: Every operation (matmul, ReLU, softmax) is precisely defined
+- **Finiteness**: A forward pass terminates in $O(L)$ layer computations
+- **Effectiveness**: Each operation is a basic tensor operation executable on hardware
+
+## Examples
 
 ```python
-def find_maximum(arr):
-    """A simple algorithm: find the maximum element in an array."""
-    if not arr:
-        return None
-    max_val = arr[0]
-    for val in arr[1:]:
-        if val > max_val:
-            max_val = val
-    return max_val
+import torch
+import torch.nn as nn
 
-def main():
-    arr = [3, 7, 2, 9, 1, 5]
-    print(f"Array: {arr}")
-    print(f"Maximum: {find_maximum(arr)}")
+# A neural network forward pass is an algorithm
+class SimpleNet(nn.Module):
+    def __init__(self, d_in, d_hidden, d_out):
+        super().__init__()
+        self.layer1 = nn.Linear(d_in, d_hidden)  # step 1: affine transform
+        self.relu = nn.ReLU()                      # step 2: nonlinearity
+        self.layer2 = nn.Linear(d_hidden, d_out)   # step 3: affine transform
 
-if __name__ == "__main__":
-    main()
+    def forward(self, x):
+        # Each step is definite, finite, and effective
+        h = self.layer1(x)
+        h = self.relu(h)
+        return self.layer2(h)
+
+model = SimpleNet(d_in=5, d_hidden=16, d_out=3)
+x = torch.randn(4, 5)
+y = model(x)
+print(f"Input:  {x.shape}")
+print(f"Output: {y.shape}")
+print(f"Steps:  Linear -> ReLU -> Linear (finite, 3 steps)")
+print(f"Deterministic: {torch.equal(model(x), model(x))}")
 ```
-
-**Output:**
-```
-Array: [3, 7, 2, 9, 1, 5]
-Maximum: 9
-```
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Chapter 1](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-
-[What is an Algorithm? - Khan Academy](https://www.khanacademy.org/computing/computer-science/algorithms)
