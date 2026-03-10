@@ -1,68 +1,61 @@
 # Efficiency
 
+Efficiency measures how computational resources (time, memory, energy) scale with problem size. In deep learning, efficiency determines whether a model can be trained in days versus years and whether it can run inference within a latency budget.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-Algorithm efficiency measures how resources (time and space) grow with input size $n$.
-
-$$
-
-\text{Efficiency} = f(n) \text{ where } n = |\text{input}|
+The efficiency of an algorithm is characterized by its time complexity $T(n)$ and space complexity $S(n)$ as functions of input size $n$. For neural networks, the relevant quantities are:
 
 $$
+\text{Training cost} = O(\text{epochs} \times n \times d \times L) \qquad \text{Inference cost} = O(d^2 \times L)
+$$
 
-## Why Efficiency Matters
+where $n$ is the dataset size, $d$ is the hidden dimension, and $L$ is the number of layers.
 
-| Input Size $n$ | $O(n)$ | $O(n \log n)$ | $O(n^2)$ | $O(2^n)$ |
-|---|---|---|---|---|
-| 10 | 10 | 33 | 100 | 1,024 |
-| 100 | 100 | 664 | 10,000 | $\approx 10^{30}$ |
-| 1,000 | 1,000 | 9,966 | 1,000,000 | $\approx 10^{301}$ |
+## Explanation
+
+Efficiency improvements often matter more than algorithmic novelty. The key complexity classes relevant to deep learning:
+
+| Complexity | Example | Feasibility |
+|---|---|---|
+| $O(1)$ | Hash lookup, cached embedding | Instant |
+| $O(n)$ | Linear scan, single forward pass | Fast |
+| $O(n \log n)$ | Sorting, FFT-based convolution | Practical |
+| $O(n^2)$ | Self-attention (standard Transformer) | Limits sequence length |
+| $O(n^3)$ | Matrix inversion, naive attention | Only small $n$ |
+
+The Transformer's $O(n^2)$ attention complexity explains why standard models cap sequence length at a few thousand tokens. Linear attention variants and sparse attention reduce this to $O(n)$ or $O(n \log n)$, enabling much longer sequences.
+
+Memory efficiency is equally critical: training a model that fits in GPU memory requires techniques like gradient checkpointing, mixed-precision training, and gradient accumulation.
+
+## Examples
 
 ```python
+import torch
 import time
 
-def linear_search(arr, target):
-    """O(n) — checks each element."""
-    for i, val in enumerate(arr):
-        if val == target:
-            return i
-    return -1
+# Compare O(n^2) attention vs O(n) linear scan
+def quadratic_attention(Q, K, V):
+    """Standard dot-product attention: O(n^2 d)."""
+    scores = Q @ K.transpose(-2, -1) / Q.shape[-1] ** 0.5
+    weights = torch.softmax(scores, dim=-1)
+    return weights @ V
 
-def binary_search(arr, target):
-    """O(log n) — halves the search space."""
-    lo, hi = 0, len(arr) - 1
-    while lo <= hi:
-        mid = (lo + hi) // 2
-        if arr[mid] == target:
-            return mid
-        elif arr[mid] < target:
-            lo = mid + 1
-        else:
-            hi = mid - 1
-    return -1
-
-def main():
-    arr = list(range(1_000_000))
-    target = 999_999
-
+# Measure scaling
+for n in [128, 512, 2048]:
+    d = 64
+    Q = K = V = torch.randn(1, n, d)
     start = time.time()
-    linear_search(arr, target)
-    t1 = time.time() - start
+    for _ in range(10):
+        _ = quadratic_attention(Q, K, V)
+    elapsed = (time.time() - start) / 10
+    print(f"n={n:>5d}: attention time={elapsed*1000:.2f}ms")
 
-    start = time.time()
-    binary_search(arr, target)
-    t2 = time.time() - start
+# Memory: estimate model size
+def model_memory_mb(params):
+    return params * 4 / (1024 ** 2)  # float32 = 4 bytes
 
-    print(f"Linear search: {t1:.6f} sec")
-    print(f"Binary search: {t2:.6f} sec")
-    print(f"Speedup: {t1/t2:.0f}x")
-
-if __name__ == "__main__":
-    main()
+d, L = 768, 12  # BERT-base dimensions
+params = L * (4 * d * d + 4 * d)  # approximate
+print(f"\nBERT-base-like: ~{params:,} params = {model_memory_mb(params):.1f} MB")
 ```
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Chapter 1](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
