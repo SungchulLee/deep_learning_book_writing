@@ -1,66 +1,65 @@
 # Logarithms
 
+Logarithms are central to deep learning: the natural logarithm defines cross-entropy loss, log-probabilities stabilize numerical computation, and logarithmic scaling appears in learning rate schedules and information-theoretic quantities.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-Logarithms appear frequently in algorithm analysis, especially in divide-and-conquer algorithms.
-
-## Key Properties
+The logarithm base $b$ of $x$ is the exponent to which $b$ must be raised to produce $x$:
 
 $$
+\log_b x = y \iff b^y = x
+$$
 
+The natural logarithm $\ln x = \log_e x$ is the most important variant in deep learning because it is the inverse of the exponential function and arises naturally in maximum likelihood estimation.
+
+## Explanation
+
+Key properties used throughout deep learning:
+
+$$
 \begin{array}{ll}
-\log_b(xy) = \log_b x + \log_b y \\
-\log_b(x/y) = \log_b x - \log_b y \\
-\log_b(x^n) = n \log_b x \\
-\log_b x = \frac{\log_a x}{\log_a b} & \text{(change of base)}
+\ln(xy) = \ln x + \ln y \\
+\ln(x/y) = \ln x - \ln y \\
+\ln(x^n) = n \ln x \\
+\log_b x = \frac{\ln x}{\ln b} & \text{(change of base)}
 \end{array}
-
 $$
 
-## Common Logarithms in CS
+Why logarithms matter in deep learning:
 
-$$
+- **Cross-entropy loss**: The negative log-likelihood $-\ln p(y \mid x)$ is the standard classification loss. The logarithm converts products of probabilities into sums, which are numerically stable and easy to differentiate.
+- **Log-sum-exp trick**: Computing $\ln \sum_i e^{x_i}$ via $\max(x) + \ln \sum_i e^{x_i - \max(x)}$ prevents overflow.
+- **Information theory**: Entropy $H = -\sum p_i \ln p_i$ and KL divergence are defined using logarithms.
+- **Logarithmic scaling**: Learning rates often decay on a log scale (e.g., from $10^{-2}$ to $10^{-5}$).
 
-\begin{array}{ll}
-\lg n = \log_2 n & \text{Binary logarithm (most common in CS)} \\
-\ln n = \log_e n & \text{Natural logarithm} \\
-\lg \lg n = \log_2(\log_2 n) & \text{Iterated logarithm}
-\end{array}
-
-$$
-
-## Why log2(n)?
-
-Halving $n$ repeatedly until reaching 1 takes $\log_2 n$ steps — this is the depth of binary search, balanced BSTs, etc.
-
-$$
-
-n \rightarrow \frac{n}{2} \rightarrow \frac{n}{4} \rightarrow \cdots \rightarrow 1 \quad (\log_2 n \text{ steps})
-
-$$
+## Examples
 
 ```python
-import math
+import torch
+import numpy as np
 
-def main():
-    for n in [2, 8, 64, 1024, 1_000_000]:
-        print(f"n = {n:>10,}  log2 = {math.log2(n):>8.2f}  ln = {math.log(n):>8.2f}  log10 = {math.log10(n):>6.2f}")
+# Cross-entropy loss uses log internally
+logits = torch.tensor([2.0, 1.0, 0.1])
+target = 0  # correct class
+probs = torch.softmax(logits, dim=0)
+loss = -torch.log(probs[target])
+print(f"Softmax probs: {probs.tolist()}")
+print(f"Cross-entropy loss: {loss.item():.4f}")
 
-if __name__ == "__main__":
-    main()
+# Log-sum-exp trick for numerical stability
+x = torch.tensor([1000.0, 1001.0, 1002.0])
+# Naive: overflow
+# stable: subtract max first
+max_x = x.max()
+stable = max_x + torch.log(torch.exp(x - max_x).sum())
+print(f"Log-sum-exp (stable): {stable.item():.4f}")
+
+# PyTorch built-in
+builtin = torch.logsumexp(x, dim=0)
+print(f"Log-sum-exp (builtin): {builtin.item():.4f}")
+
+# Change of base
+val = 1024.0
+print(f"log2({val:.0f}) = {np.log2(val):.2f}")
+print(f"ln({val:.0f}) = {np.log(val):.4f}")
 ```
-
-**Output:**
-```
-n =          2  log2 =     1.00  ln =     0.69  log10 =  0.30
-n =          8  log2 =     3.00  ln =     2.08  log10 =  0.90
-n =         64  log2 =     6.00  ln =     4.16  log10 =  1.81
-n =      1,024  log2 =    10.00  ln =     6.93  log10 =  3.01
-n =  1,000,000  log2 =    19.93  ln =    13.82  log10 =  6.00
-```
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Section 3.2](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
