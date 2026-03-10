@@ -1,69 +1,49 @@
-# Python for Algorithms
+# Python for Deep Learning
 
+Python is the dominant language for deep learning research and development. This page explains why Python became the standard and introduces the core language features that matter most for numerical computing.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-Python is widely used for algorithm study due to its readable syntax and rich standard library.
+Python is a dynamically typed, interpreted language with a rich ecosystem of scientific computing libraries. In deep learning, Python serves as the high-level interface while performance-critical operations execute in compiled backends (C++, CUDA, Fortran). The key libraries are NumPy for array computation, PyTorch and TensorFlow for differentiable programming, and scikit-learn for classical machine learning.
 
-## Key Features for Algorithms
+## Explanation
+
+Python dominates deep learning for three reasons:
+
+- **Minimal boilerplate**: Python's clean syntax lets researchers express complex models in few lines. A fully connected layer, loss function, and training loop fit on a single screen.
+- **Ecosystem depth**: PyTorch, NumPy, pandas, and Hugging Face Transformers provide production-grade implementations of nearly every technique in modern deep learning.
+- **Interactive workflow**: Jupyter notebooks enable the exploratory, iterative style of work that deep learning research demands -- train for a few epochs, inspect gradients, adjust, repeat.
+
+The key Python features for deep learning code are:
+
+- **List comprehensions and generators** for data pipeline transformations
+- **Slicing and broadcasting** via NumPy/PyTorch tensor semantics
+- **Context managers** (`with torch.no_grad():`) for controlling autograd behavior
+- **Decorators** (`@torch.jit.script`, `@torch.compile`) for compilation and optimization
+
+## Examples
 
 ```python
-from collections import defaultdict, deque, Counter
-from heapq import heappush, heappop
-from bisect import bisect_left, bisect_right
-from itertools import permutations, combinations
-from functools import lru_cache
+import torch
+import numpy as np
 
-def demo_collections():
-    # defaultdict — automatic default values
-    graph = defaultdict(list)
-    graph[0].append(1)
-    graph[0].append(2)
-    print(f"Graph: {dict(graph)}")
+# NumPy: foundation of Python's numerical ecosystem
+x_np = np.random.randn(3, 4)
+print(f"NumPy array shape: {x_np.shape}")
 
-    # Counter — frequency counting
-    freq = Counter("abracadabra")
-    print(f"Frequency: {freq.most_common(3)}")
+# PyTorch: NumPy-like API with autograd and GPU support
+x = torch.randn(3, 4, requires_grad=True)
+y = (x ** 2).sum()
+y.backward()
+print(f"Gradient shape: {x.grad.shape}")
+print(f"Gradient (should be 2*x):\n{x.grad}")
 
-    # deque — O(1) append/pop from both ends
-    q = deque([1, 2, 3])
-    q.appendleft(0)
-    q.append(4)
-    print(f"Deque: {list(q)}")
+# List comprehension for batch processing
+batch_sizes = [2 ** i for i in range(4, 8)]
+print(f"Batch sizes: {batch_sizes}")
 
-def demo_heap():
-    heap = []
-    for val in [5, 3, 8, 1, 9]:
-        heappush(heap, val)
-    result = [heappop(heap) for _ in range(len(heap))]
-    print(f"Heap sort: {result}")
-
-def demo_bisect():
-    arr = [1, 3, 5, 7, 9]
-    pos = bisect_left(arr, 5)
-    print(f"bisect_left({arr}, 5) = {pos}")
-
-def main():
-    demo_collections()
-    demo_heap()
-    demo_bisect()
-
-if __name__ == "__main__":
-    main()
+# Context manager to disable gradient tracking during inference
+with torch.no_grad():
+    pred = torch.sigmoid(torch.randn(5))
+    print(f"Predictions: {pred}")
 ```
-
-**Output:**
-```
-Graph: {0: [1, 2]}
-Frequency: [('a', 5), ('b', 2), ('r', 2)]
-Deque: [0, 1, 2, 3, 4]
-Heap sort: [1, 3, 5, 8, 9]
-bisect_left([1, 3, 5, 7, 9], 5) = 2
-```
-
-# Reference
-
-[Python Documentation — Data Structures](https://docs.python.org/3/tutorial/datastructures.html)
-
-[Python Collections Module](https://docs.python.org/3/library/collections.html)
