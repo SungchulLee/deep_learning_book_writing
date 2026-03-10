@@ -1,83 +1,61 @@
 # Summation Formulas
 
+Summation formulas are essential tools for analyzing computational cost in deep learning. They quantify the total operations in nested loops, the cumulative effect of learning rate schedules, and the parameter counts in multi-layer architectures.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Definition
 
-Key summation formulas used throughout algorithm analysis:
-
-## Arithmetic Series
+A summation formula gives a closed-form expression for $\sum_{i=a}^{b} f(i)$. The three most important families are:
 
 $$
-
-\sum_{i=1}^{n} i = \frac{n(n+1)}{2} = \Theta(n^2)
-
+\text{Arithmetic: } \sum_{i=1}^{n} i = \frac{n(n+1)}{2} \qquad \text{Geometric: } \sum_{i=0}^{n} r^i = \frac{r^{n+1}-1}{r-1} \; (r \neq 1)
 $$
 
-## Geometric Series
-
 $$
-
-\sum_{i=0}^{n} r^i = \frac{r^{n+1}-1}{r-1} \quad (r \neq 1)
-
-$$
-
-## Harmonic Series
-
-$$
-
-H_n = \sum_{i=1}^{n} \frac{1}{i} = \ln n + \gamma + O\left(\frac{1}{n}\right) = \Theta(\log n)
-
+\text{Harmonic: } H_n = \sum_{i=1}^{n} \frac{1}{i} = \ln n + \gamma + O\!\left(\frac{1}{n}\right)
 $$
 
 where $\gamma \approx 0.5772$ is the Euler-Mascheroni constant.
 
-## Common Sums in Algorithms
+## Explanation
+
+Each series type appears in different contexts:
+
+- **Arithmetic series**: Counting total parameters in a network with linearly growing layer widths. If layer $i$ has $id$ neurons, total parameters scale as $\sum_{i=1}^{L} i \cdot d^2 = \Theta(L^2 d^2)$.
+- **Geometric series**: Analyzing exponential learning rate decay. If $\eta_t = \eta_0 r^t$ with $r < 1$, the cumulative step size converges to $\eta_0 / (1 - r)$.
+- **Harmonic series**: Appears in the analysis of stochastic gradient descent convergence rates and in the coupon collector problem (relevant to data sampling with replacement).
+
+Additional useful formulas:
 
 $$
-
-\begin{array}{ll}
-\sum_{i=1}^{n} i^2 = \frac{n(n+1)(2n+1)}{6} & = \Theta(n^3) \\
-\sum_{i=0}^{\log n} 2^i = 2n - 1 & = \Theta(n) \\
-\sum_{i=1}^{n} i \cdot 2^i = (n-1) \cdot 2^{n+1} + 2 & = \Theta(n \cdot 2^n)
-\end{array}
-
+\sum_{i=1}^{n} i^2 = \frac{n(n+1)(2n+1)}{6} \qquad \sum_{i=0}^{\log_2 n} 2^i = 2n - 1
 $$
+
+## Examples
 
 ```python
-def verify_arithmetic_sum(n):
-    actual = sum(range(1, n + 1))
-    formula = n * (n + 1) // 2
-    return actual, formula
+import torch
+import numpy as np
 
-def verify_geometric_sum(r, n):
-    actual = sum(r**i for i in range(n + 1))
-    formula = (r**(n + 1) - 1) / (r - 1) if r != 1 else n + 1
-    return actual, formula
+# Parameter count in a network with linearly growing widths
+d = 64
+num_layers = 6
+widths = [i * d for i in range(1, num_layers + 1)]
+total_params = sum(widths[i] * widths[i + 1] for i in range(len(widths) - 1))
+closed_form = d * d * sum(i * (i + 1) for i in range(1, num_layers))
+print(f"Layer widths: {widths}")
+print(f"Total weight params: {total_params}")
 
-def main():
-    for n in [10, 100, 1000]:
-        a, f = verify_arithmetic_sum(n)
-        print(f"Arithmetic sum(1..{n}): {a} = {f}")
-    print()
-    for r in [2, 3]:
-        a, f = verify_geometric_sum(r, 10)
-        print(f"Geometric sum(r={r}, n=10): {a} ≈ {f:.0f}")
+# Geometric series: cumulative learning rate with exponential decay
+eta_0, r, T = 0.01, 0.9, 50
+cumulative = sum(eta_0 * r ** t for t in range(T))
+closed = eta_0 * (1 - r ** T) / (1 - r)
+print(f"\nCumulative LR (sum):    {cumulative:.6f}")
+print(f"Cumulative LR (closed): {closed:.6f}")
+print(f"Limit as T -> inf:      {eta_0 / (1 - r):.6f}")
 
-if __name__ == "__main__":
-    main()
+# Verify arithmetic sum with torch
+n = torch.arange(1, 101, dtype=torch.float32)
+actual = n.sum().item()
+formula = 100 * 101 / 2
+print(f"\nsum(1..100) = {actual:.0f}, formula = {formula:.0f}")
 ```
-
-**Output:**
-```
-Arithmetic sum(1..10): 55 = 55
-Arithmetic sum(1..100): 5050 = 5050
-Arithmetic sum(1..1000): 500500 = 500500
-
-Geometric sum(r=2, n=10): 2047 ≈ 2047
-Geometric sum(r=3, n=10): 88573 ≈ 88573
-```
-
-# Reference
-
-[Introduction to Algorithms (CLRS), Appendix A](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
