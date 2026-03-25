@@ -16,11 +16,11 @@ $$
     ```
            4 (s=2)
           / \
-      8 (s=1) 6 (s=1)
-       /     / \
-    10(s=1) 7(s=1) 9(s=1)
+      8 (s=2) 6 (s=1)
+       / \      |
+    10(s=1) 12(s=1)  7(s=1)
     ```
-    Node 4 has s-value 2 because the shortest path to a null descendant goes right-right (two edges).
+    Node 6 has one child (7, with s=1), so $s(6) = \min(1, 0) + 1 = 1$. Node 8 has two children (10 and 12, both with s=1), so $s(8) = \min(1,1)+1 = 2$. Node 4 has $s(4) = \min(s(8), s(6)) + 1 = \min(2,1) + 1 = 2$. The leftist property holds because every node's left child has s-value greater than or equal to its right child's s-value.
 
 ## The Leftist Property
 
