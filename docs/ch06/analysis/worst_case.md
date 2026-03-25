@@ -85,7 +85,7 @@ The gap between worst-case and expected-case performance highlights a fundamenta
 | Aspect | Expected case | Worst case |
 |---|---|---|
 | Search time | $\Theta(1 + \alpha)$ | $\Theta(n)$ |
-| Assumption | SUHA or universal hashing | Adversarial input |
+| Assumption | Simple Uniform Hashing Assumption (SUHA) or universal hashing | Adversarial input |
 | Probability | Overwhelmingly likely | Requires specific input |
 | Defense | Good hash function | Randomization or perfect hashing |
 
