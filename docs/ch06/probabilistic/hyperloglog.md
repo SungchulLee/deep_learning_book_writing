@@ -19,7 +19,7 @@ Choose a hash function $h : U \to \{0, 1\}^{L}$ (typically $L = 64$ bits).  Fix 
 For each element $x$:
 
 1. Compute $h(x)$.
-2. Use the first $p$ bits of $h(x)$ as the register index $j$.
+2. Use $p$ bits of $h(x)$ as the register index $j$ (the implementation below uses the lowest $p$ bits).
 3. Let $w$ be the remaining $L - p$ bits.
 4. Let $\rho(w)$ be the position of the leftmost 1-bit in $w$ (i.e., $\rho(w) = 1 + \lfloor \log_2(1/w) \rfloor$ for $w > 0$).
 5. Update: $M[j] \leftarrow \max(M[j], \rho(w))$.
@@ -127,7 +127,7 @@ class HyperLogLog:
     def add(self, item: str) -> None:
         """Add an element to the sketch."""
         h = self._hash(item)
-        j = h & (self.m - 1)  # first p bits as register index
+        j = h & (self.m - 1)  # lowest p bits as register index
         w = h >> self.p  # remaining bits
         self.registers[j] = max(self.registers[j], self._rho(w, 64 - self.p))
 
