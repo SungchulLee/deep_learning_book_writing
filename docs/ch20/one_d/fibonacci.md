@@ -1,56 +1,148 @@
 # Fibonacci
 
+The Fibonacci sequence is the simplest and most widely used example for introducing dynamic programming.  Computing Fibonacci numbers with naive recursion leads to exponential time, while memoization and tabulation each reduce this to linear time.  This progression from exponential to linear illustrates the core benefit of dynamic programming and serves as a template for approaching more complex problems.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Recurrence Definition
 
-$$\begin{array}{llll}
-\text{Recursion}&&\text{No Dynamic Programming (No Memoization or Tabulation)}\\
-\text{Top Down}&&\text{Dynamic Programming (Memoization)}\\
-\text{Bottom Up}&&\text{Dynamic Programming (Tabulation)}
-\end{array}$$
+The Fibonacci sequence is defined by the recurrence
 
 $$
-
-a_n=a_{n-1}+a_{n-2},\quad
-a_0=0,\quad a_1=1
-
+F(n) = F(n-1) + F(n-2), \quad F(0) = 0, \quad F(1) = 1
 $$
 
-<div align="center"><img src="https://i.stack.imgur.com/CLwKE.jpg" width="60%"></div>
+The first several values are $0, 1, 1, 2, 3, 5, 8, 13, 21, 34, \ldots$
 
-[Fibonacci Numbers](https://riptutorial.com/algorithm/example/31799/fibonacci-numbers)
+## Approach 1: Naive Recursion
+
+The most direct implementation translates the mathematical recurrence into code.  Each call spawns two recursive calls, producing an exponentially growing recursion tree.
 
 ```python
-def a(n):
-    
-    # Base Case
+"""
+Three approaches to computing Fibonacci numbers: naive recursion,
+memoization (top-down DP), and tabulation (bottom-up DP).
+"""
+
+
+# ===================================================================
+# Approach 1: Naive recursion
+# ===================================================================
+def fib_recursive(n: int) -> int:
+    """Compute F(n) using naive recursion. Time: O(phi^n), Space: O(n)."""
     if n <= 1:
         return n
-    
-    # Recursive Case
-    return a(n-1) + a(n-2)
-
-def main():
-    for n in range(1,10):
-        print(a(n), end='\t')
-        
-        
-if __name__ == "__main__":
-    main()
+    return fib_recursive(n - 1) + fib_recursive(n - 2)
 ```
 
-# Reference
+The recursion tree for $F(5)$ reveals the redundancy:
 
-CS_Dojo [youtube](https://www.youtube.com/watch?v=vYquumk4nWw) [code](https://www.csdojo.io/dpcode)
-[youtube](https://www.youtube.com/watch?v=nqlNzOcnCfs) [code](https://www.csdojo.io/dpcode)
-[youtube](https://www.youtube.com/watch?v=D6xkbGLQesk&list=PLBZBJbE_rGRV8D7XZ08LK6z-4zPoWzu5H&index=7)
+```
+                    F(5)
+                /         \
+            F(4)           F(3)
+           /    \         /    \
+        F(3)   F(2)    F(2)   F(1)
+       /  \    / \     / \
+    F(2) F(1) F(1) F(0) F(1) F(0)
+    / \
+ F(1) F(0)
+```
 
-Telusko
-[youtube](https://www.youtube.com/watch?v=gfhtaP5Wq7M&index=39&list=PLsyeobzWxl7poL9JTVyndKe62ieoN-MZ3)
-[youtube](https://www.youtube.com/watch?v=XkL3SUioNvo&list=PLsyeobzWxl7poL9JTVyndKe62ieoN-MZ3&index=40)
-[youtube](https://www.youtube.com/watch?v=TqqQld6m6A0&list=PLsyeobzWxl7poL9JTVyndKe62ieoN-MZ3&index=41)
+The number of calls $T(n)$ satisfies $T(n) = T(n-1) + T(n-2) + 1$, which grows as $O(\phi^n)$ where $\phi = (1+\sqrt{5})/2 \approx 1.618$.  The space complexity is $O(n)$ due to the maximum depth of the call stack.
 
-Abdul_Bari [youtube](https://www.youtube.com/watch?v=5dRGRueKU3M&list=PLDN4rrl48XKpZkf03iYFl-O29szjTrs_O&index=46)
+## Approach 2: Memoization (Top-Down)
 
-[Fibonacci Numbers](https://riptutorial.com/algorithm/example/31799/fibonacci-numbers)
+Memoization preserves the recursive structure but caches each result so that no subproblem is solved more than once.
+
+```python
+# ===================================================================
+# Approach 2: Memoization (top-down DP)
+# ===================================================================
+def fib_memo(n: int, memo: dict[int, int] | None = None) -> int:
+    """Compute F(n) using memoization. Time: O(n), Space: O(n)."""
+    if memo is None:
+        memo = {}
+    if n in memo:
+        return memo[n]
+    if n <= 1:
+        return n
+    memo[n] = fib_memo(n - 1, memo) + fib_memo(n - 2, memo)
+    return memo[n]
+```
+
+Each of the $n + 1$ distinct subproblems $F(0), F(1), \ldots, F(n)$ is computed exactly once and each computation takes $O(1)$ time, giving total time $O(n)$ and space $O(n)$ for the memoization table plus the call stack.
+
+## Approach 3: Tabulation (Bottom-Up)
+
+Tabulation eliminates recursion entirely by filling a table from the smallest subproblems upward.
+
+```python
+# ===================================================================
+# Approach 3: Tabulation (bottom-up DP)
+# ===================================================================
+def fib_tabulation(n: int) -> int:
+    """Compute F(n) using tabulation. Time: O(n), Space: O(n)."""
+    if n <= 1:
+        return n
+    dp = [0] * (n + 1)
+    dp[1] = 1
+    for i in range(2, n + 1):
+        dp[i] = dp[i - 1] + dp[i - 2]
+    return dp[n]
+```
+
+The table is filled left to right in a single pass, so the time is $O(n)$ and the space is $O(n)$ for the array.
+
+## Space Optimization
+
+Since $F(n)$ depends only on the two preceding values, the table can be replaced by two variables, reducing space to $O(1)$.
+
+```python
+# ===================================================================
+# Space-optimized tabulation
+# ===================================================================
+def fib_optimized(n: int) -> int:
+    """Compute F(n) with O(1) space. Time: O(n), Space: O(1)."""
+    if n <= 1:
+        return n
+    prev2, prev1 = 0, 1
+    for _ in range(2, n + 1):
+        prev2, prev1 = prev1, prev2 + prev1
+    return prev1
+```
+
+## Complexity Comparison
+
+| Approach | Time | Space | Notes |
+|----------|------|-------|-------|
+| Naive recursion | $O(\phi^n)$ | $O(n)$ | Exponential due to overlapping subproblems |
+| Memoization | $O(n)$ | $O(n)$ | Each subproblem solved once; call stack depth $n$ |
+| Tabulation | $O(n)$ | $O(n)$ | No recursion overhead; simple loop |
+| Space-optimized | $O(n)$ | $O(1)$ | Only two variables needed |
+
+```python
+# ===================================================================
+# Main
+# ===================================================================
+if __name__ == "__main__":
+    for n in [5, 10, 20]:
+        r = fib_recursive(n)
+        m = fib_memo(n)
+        t = fib_tabulation(n)
+        o = fib_optimized(n)
+        assert r == m == t == o
+        print(f"F({n}) = {o}")
+```
+
+**Output:**
+```
+F(5) = 5
+F(10) = 55
+F(20) = 6765
+```
+
+!!! tip "Pattern for DP problems"
+    The Fibonacci example establishes a workflow that applies to nearly every DP problem: (1) write the recurrence, (2) identify overlapping subproblems, (3) add memoization or convert to tabulation, and (4) optimize space if only a few previous states are needed.
+
+## Reference
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 14. MIT Press.
