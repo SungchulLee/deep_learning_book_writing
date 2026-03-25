@@ -1,6 +1,6 @@
 # Binomial Heaps
 
-Binary heaps support insert and extract-min in $O(\log n)$ but merging two heaps requires $O(n)$ time because one must rebuild the heap from scratch. **Binomial heaps** solve this by representing a heap as a collection of binomial trees, enabling merge (and therefore insert) in $O(\log n)$ worst-case time and $O(1)$ amortized time for insert. This makes binomial heaps the natural choice when frequent merging is required, such as in parallel algorithms that merge priority queues from different processors, or in graph algorithms like Prim's MST and Dijkstra's shortest paths where efficient decrease-key is needed.
+Binary heaps support insert and extract-min in $O(\log n)$ but merging two heaps requires $O(n)$ time because one must rebuild the heap from scratch. **Binomial heaps** solve this by representing a heap as a collection of binomial trees, enabling merge (and therefore insert) in $O(\log n)$ worst-case time and $O(1)$ amortized time for insert. This makes binomial heaps the natural choice when frequent merging is required, such as in parallel algorithms that merge priority queues from different processors, or in graph algorithms like Prim's MST and Dijkstra's shortest paths where efficient decrease-key is needed. Binomial heaps also serve as the conceptual stepping stone to Fibonacci heaps, which further improve decrease-key to $O(1)$ amortized by relaxing the structural constraints introduced here.
 
 ## Binomial Trees
 
@@ -77,7 +77,7 @@ $$
 
 ## Other Operations via Merge
 
-The elegance of binomial heaps lies in their merge-centric design: every operation either calls merge directly or performs $O(\log n)$ work followed by a merge. This unifying pattern simplifies both the implementation and the complexity analysis.
+With merge in hand, the remaining priority queue operations follow naturally. The elegance of binomial heaps lies in their merge-centric design: every operation either calls merge directly or performs $O(\log n)$ work followed by a merge. This unifying pattern simplifies both the implementation and the complexity analysis.
 
 | Operation | How It Uses Merge | Time |
 |-----------|------------------|------|
