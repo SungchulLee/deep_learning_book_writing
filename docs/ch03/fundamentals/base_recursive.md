@@ -1,43 +1,56 @@
 # Base Case and Recursive Case
 
+Every recursive function has two essential components: a **base case** that stops the recursion, and a **recursive case** that breaks the problem into a smaller instance. Without a base case, the function recurses indefinitely until the system runs out of stack space. Without a recursive case, there is no self-reference and the function is simply iterative.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## The Two Components
 
-<img src="img/Screen Shot 2022-05-01 at 9.52.06 PM.png" width=50%>
+**Base case**: A condition under which the function returns directly without making a recursive call. This is the "ground floor" of the recursion — the simplest version of the problem whose answer is known.
+
+**Recursive case**: The function calls itself with a modified argument that moves closer to the base case. Each recursive call must make progress toward the base case; otherwise, the recursion never terminates.
+
+## Example
+
+The following function prints integers from $n$ down to $1$. The base case is $n = 0$ (nothing to print), and the recursive case prints $n$ then recurses with $n - 1$:
 
 ```python
-def f(n):
-    # Base Case
-    if n==0:
-        return
-    
-    # Recursion Case
-    print(f"{n}    H")
-    f(n-1)
+"""Base case and recursive case demonstration."""
 
-def main():
-    n = 9
-    f(n)
-    
-    
+
+# === Countdown Using Recursion ===
+
+def countdown(n):
+    """Print integers from n down to 1."""
+    if n == 0:        # Base case
+        return
+    print(n)          # Recursive case: process current
+    countdown(n - 1)  # Recurse on smaller problem
+
+
+# === Main ===
+
 if __name__ == "__main__":
-    main()
+    countdown(5)
 ```
 
 **Output:**
 ```
-9    H
-8    H
-7    H
-6    H
-5    H
-4    H
-3    H
-2    H
-1    H
+5
+4
+3
+2
+1
 ```
 
-# Reference
+## Why Both Are Necessary
 
-[[알고리즘] 제1-1강 Recursion의 개념과 기본 예제들 (1/3)](https://www.youtube.com/watch?v=ln7AfppN7mY&list=PL52K_8WQO5oUuH06MLOrah4h05TZ4n38l&index=1)
+| Missing component | Result |
+|---|---|
+| No base case | Infinite recursion → stack overflow |
+| No recursive case | Not recursive — just a regular function |
+| Base case never reached | Infinite recursion (e.g., `f(n)` calls `f(n+1)`) |
+
+A well-designed recursive function guarantees that every chain of recursive calls eventually reaches the base case.
+
+## Reference
+
+[Recursion의 개념과 기본 예제들](https://www.youtube.com/watch?v=ln7AfppN7mY&list=PL52K_8WQO5oUuH06MLOrah4h05TZ4n38l&index=1)
