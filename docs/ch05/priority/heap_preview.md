@@ -4,6 +4,8 @@ The [priority queue ADT](adt.md) requires $O(\log n)$ insertion and extraction o
 
 ## The Heap Property
 
+The central idea is simple: keep the smallest element at the top of the tree so it can be retrieved instantly, and enforce this rule recursively at every subtree.
+
 A **min-heap** is a complete binary tree in which every node's key is less than or equal to the keys of its children.  Formally, for every non-root node $i$ with parent $p(i)$:
 
 $$
