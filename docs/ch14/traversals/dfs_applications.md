@@ -4,9 +4,9 @@ Depth-first search is one of the most versatile graph algorithms. Its ability to
 
 ## Pre-Order and Post-Order Numbering
 
-DFS assigns two timestamps to each vertex: a **discovery time** (pre-order) when the vertex is first visited, and a **finish time** (post-order) when all of its descendants have been fully explored. These timestamps encode the recursive structure of the DFS tree and are the key to most DFS-based algorithms.
+Many graph algorithms need to know which vertices are ancestors or descendants of others. DFS timestamps provide exactly this information. DFS assigns two timestamps to each vertex: a **discovery time** (pre-order) when the vertex is first visited, and a **finish time** (post-order) when all of its descendants have been fully explored. These timestamps encode the recursive structure of the DFS tree and are the key to most DFS-based algorithms.
 
-For a directed graph with $n$ vertices, pre and post numbers range from $1$ to $2n$, and for every pair of vertices $u$ and $v$, their intervals $[\text{pre}(u), \text{post}(u)]$ and $[\text{pre}(v), \text{post}(v)]$ are either disjoint or one contains the other.
+For a directed graph with $n$ vertices, pre and post numbers range from $1$ to $2n$, and for every pair of vertices $u$ and $v$, their intervals $[\text{pre}(u), \text{post}(u)]$ and $[\text{pre}(v), \text{post}(v)]$ are either disjoint or one contains the other. This **nesting property** follows directly from the recursive nature of DFS: if $v$ is a descendant of $u$, then $v$ is discovered after $u$ and finished before $u$.
 
 ```python
 """
@@ -78,6 +78,8 @@ Vertex 0 has the widest interval $[1, 8]$, confirming that all other vertices ar
 
 ## Cycle Detection
 
+Detecting cycles is essential in many contexts: dependency resolution (e.g., build systems, package managers) fails when circular dependencies exist, and many algorithms assume the input is acyclic. DFS provides a natural cycle test through the structure of the edges it encounters.
+
 A directed graph contains a cycle if and only if DFS encounters a **back edge** -- an edge from a vertex to one of its ancestors in the DFS tree. A back edge $(u, v)$ is recognized when $v$ has been discovered (has a pre-number) but has not yet finished (has no post-number). Equivalently, $v$ is currently on the recursion stack.
 
 ```python
@@ -135,7 +137,9 @@ Cyclic graph has cycle? True
 
 ## Topological Sort Preview
 
-In a directed acyclic graph (DAG), a **topological ordering** arranges vertices so that every edge points from an earlier vertex to a later one. DFS produces a topological order by listing vertices in reverse post-order. If vertex $u$ has an edge to $v$, then $u$ finishes after $v$ (since the graph is acyclic), so reversing the finish order places $u$ before $v$.
+When tasks have prerequisite relationships (courses before graduation, compilation steps before linking), we need an ordering that respects all dependencies. DFS provides an elegant solution for directed acyclic graphs.
+
+In a DAG, a **topological ordering** arranges vertices so that every edge points from an earlier vertex to a later one. DFS produces a topological order by listing vertices in reverse post-order. If vertex $u$ has an edge to $v$, then $u$ finishes after $v$ (since the graph is acyclic), so reversing the finish order places $u$ before $v$.
 
 !!! note "Full coverage"
     The complete topological sort algorithm, including Kahn's BFS-based variant, is covered in the topological sorting section of the next chapter.
@@ -196,7 +200,7 @@ Every edge in the DAG points from left to right in this ordering, confirming its
 
 ## Connected Components in Undirected Graphs
 
-Just as with BFS, DFS can enumerate connected components by launching a search from each unvisited vertex. The DFS-based approach runs in the same $O(V + E)$ time but differs in the order vertices are visited within each component.
+Just as with BFS, DFS can enumerate connected components by launching a search from each unvisited vertex. Each DFS call from an unvisited vertex discovers one complete component. The DFS-based approach runs in the same $O(V + E)$ time but differs from BFS in the order vertices are visited within each component: DFS dives deep before exploring siblings, while BFS expands level by level.
 
 ## Summary
 
