@@ -1,6 +1,6 @@
 # Divide and Conquer Optimization
 
-Many dynamic programming problems have the form "partition $n$ elements into $k$ groups to minimize total cost." The naive DP runs in $O(kn^2)$ time because computing each state requires scanning over all possible split points. When the optimal split point is **monotone** -- meaning it never decreases as the range grows -- divide and conquer optimization reduces this to $O(kn \log n)$ by recursively narrowing the search range for each split point. This technique applies to problems where the cost function satisfies the **concave quadrangle inequality** (also called the "opt monotonicity" condition).
+Many dynamic programming problems ask to partition $n$ elements into $k$ groups while minimizing total cost. The straightforward DP runs in $O(kn^2)$ time because each state scans all possible split points. When the optimal split point is **monotone** --- it never decreases as the range endpoint grows --- a divide and conquer strategy narrows the search range at each recursion level, reducing the total time to $O(kn \log n)$.
 
 ## Problem Structure
 
@@ -10,35 +10,35 @@ $$
 dp[i][j] = \min_{k < j} \bigl( dp[i-1][k] + C(k+1, j) \bigr)
 $$
 
-where $dp[i][j]$ is the minimum cost of partitioning the first $j$ elements into $i$ groups, and $C(l, r)$ is the cost of a single group spanning elements $l$ through $r$.
+where $dp[i][j]$ is the minimum cost of partitioning the first $j$ elements into $i$ groups and $C(l, r)$ is the cost of a single group spanning elements $l$ through $r$.
 
 Let $\text{opt}(i, j)$ denote the smallest $k$ achieving the minimum in the recurrence above.
 
 ## Monotonicity Condition
 
-The divide and conquer optimization applies when for each fixed row $i$:
+The optimization applies when, for each fixed row $i$:
 
 $$
 \text{opt}(i, j) \leq \text{opt}(i, j+1) \quad \text{for all } j
 $$
 
-This means the optimal split point for position $j$ is at most the optimal split point for position $j+1$. This monotonicity holds whenever the cost function $C$ satisfies the **quadrangle inequality**:
+This means the optimal split point for position $j$ is at most the optimal split point for position $j+1$. A sufficient condition is the **quadrangle inequality** on the cost function:
 
 $$
 C(a, c) + C(b, d) \leq C(a, d) + C(b, c) \quad \text{for all } a \leq b \leq c \leq d
 $$
 
-Intuitively, the quadrangle inequality says that overlapping intervals cost no more than the non-overlapping alternatives. Many natural cost functions satisfy this property, including sum-of-squares costs and prefix-sum-based costs.
+Intuitively, the quadrangle inequality says that the cost of two overlapping intervals is no more than the cost of the two non-overlapping alternatives formed from the same endpoints. Many natural cost functions satisfy this property, including sum-of-squares costs, prefix-sum-based costs, and variance-based costs.
 
 ## Algorithm
 
-For a fixed row $i$, instead of computing $dp[i][j]$ left to right in $O(n)$ per cell, use divide and conquer:
+The key insight is that monotonicity turns a linear scan into a binary partition. For a fixed row $i$, instead of computing $dp[i][j]$ left to right in $O(n)$ per cell, use divide and conquer:
 
-1. **Solve the middle**: compute $dp[i][\text{mid}]$ by scanning $k$ from $\text{lo}$ to $\text{hi}$, finding $\text{opt}(i, \text{mid})$.
-2. **Recurse left**: solve $dp[i][j]$ for $j < \text{mid}$ with $k$ restricted to $[\text{lo}, \text{opt}(i, \text{mid})]$.
-3. **Recurse right**: solve $dp[i][j]$ for $j > \text{mid}$ with $k$ restricted to $[\text{opt}(i, \text{mid}), \text{hi}]$.
+1. **Solve the middle.** Compute $dp[i][\text{mid}]$ by scanning $k$ from $\text{lo}$ to $\text{hi}$, recording $\text{opt}(i, \text{mid})$.
+2. **Recurse left.** Solve $dp[i][j]$ for $j < \text{mid}$ with $k$ restricted to $[\text{lo},\; \text{opt}(i, \text{mid})]$.
+3. **Recurse right.** Solve $dp[i][j]$ for $j > \text{mid}$ with $k$ restricted to $[\text{opt}(i, \text{mid}),\; \text{hi}]$.
 
-Each level of recursion partitions the range $[1, n]$ and scans at most $O(n)$ values of $k$ in total. With $O(\log n)$ recursion levels, the work per row is $O(n \log n)$.
+Because monotonicity guarantees the split point for any $j < \text{mid}$ is at most $\text{opt}(i, \text{mid})$, and for any $j > \text{mid}$ is at least $\text{opt}(i, \text{mid})$, the search ranges shrink at each level. Each recursion level partitions $[1, n]$ and scans at most $O(n)$ values of $k$ in total. With $O(\log n)$ recursion levels, the work per row is $O(n \log n)$.
 
 ## Complexity
 
@@ -62,7 +62,7 @@ import math
 
 
 # ===================================================================
-# Cost function (example: sum of squares of prefix sums)
+# Cost function (example: sum of elements squared)
 # ===================================================================
 def precompute_prefix(arr: list[int]) -> list[int]:
     """Compute prefix sums for O(1) range sum queries."""
@@ -100,7 +100,7 @@ def solve(arr: list[int], k: int) -> int:
     prefix = precompute_prefix(arr)
     INF = math.inf
 
-    # dp[j] = min cost for first j elements
+    # dp[j] = min cost for first j elements using i groups
     dp_prev = [INF] * (n + 1)
     dp_curr = [INF] * (n + 1)
 
@@ -170,13 +170,13 @@ k=6: min cost = 85
 
 The divide and conquer optimization is useful whenever the cost function satisfies the quadrangle inequality. Common examples include:
 
-- **Partitioning into groups** with sum-of-squares cost
-- **CSES "Elevator Rides"** type problems with subset partitioning
-- **Optimal binary search tree** cost functions
-- **Post office placement** minimizing distance sums
+- **Partitioning into groups** with sum-of-squares or sum-of-cubes cost
+- **Optimal binary search tree** construction
+- **Post office placement** minimizing total distance
+- **Breaking a string** at given positions with length-based cost
 
 !!! tip "Verifying the condition"
-    If you suspect the optimization applies but cannot prove the quadrangle inequality analytically, test empirically by computing $\text{opt}(i, j)$ for small inputs and checking that the sequence is non-decreasing in $j$.
+    If you suspect the optimization applies but cannot prove the quadrangle inequality analytically, test empirically: compute $\text{opt}(i, j)$ for small inputs and check that the values are non-decreasing in $j$ for each fixed $i$.
 
 ## Reference
 
