@@ -4,9 +4,11 @@ Depth-first search has structural properties that go far beyond simply visiting 
 
 ## The DFS Forest
 
-Running DFS on an entire graph (not just a single source) produces a **DFS forest**: a collection of rooted trees, one for each connected component (or one for each group of mutually reachable vertices in a directed graph). Each tree edge $(u, v)$ corresponds to the moment DFS first discovers $v$ from $u$.
+When DFS runs on a graph that is not connected (undirected) or not strongly connected (directed), a single source vertex cannot reach every other vertex. To handle this, DFS iterates over all vertices and launches a new search from each unvisited vertex. The result is a **DFS forest**: a collection of rooted trees, one for each connected component or group of mutually reachable vertices. Each tree edge $(u, v)$ corresponds to the moment DFS first discovers $v$ from $u$.
 
 ## The Parenthesis Theorem
+
+The parenthesis theorem is the fundamental structural result about DFS. It explains why the discovery and finish times encode the entire ancestor-descendant relationship of the DFS tree.
 
 During DFS each vertex $u$ receives a discovery time $\text{pre}(u)$ and a finish time $\text{post}(u)$. The parenthesis theorem states that for any two vertices $u$ and $v$, exactly one of the following holds:
 
@@ -16,12 +18,16 @@ During DFS each vertex $u$ receives a discovery time $\text{pre}(u)$ and a finis
 
 The intervals never partially overlap. This is analogous to matched parentheses in an expression: every open parenthesis has a matching close, and pairs are either nested or disjoint.
 
+**Proof sketch.** Consider vertices $u$ and $v$ with $\text{pre}(u) < \text{pre}(v)$. If $v$ is discovered while $u$ is still being explored (i.e., before $u$ finishes), then $v$ must be a descendant of $u$. DFS will finish $v$ before returning to $u$, so $\text{post}(v) < \text{post}(u)$, giving containment. If instead $v$ is discovered after $u$ finishes, then $\text{post}(u) < \text{pre}(v)$, giving disjointness. No other case is possible. $\square$
+
 !!! tip "Ancestor test in constant time"
     Vertex $u$ is an ancestor of $v$ in the DFS tree if and only if $\text{pre}(u) \leq \text{pre}(v)$ and $\text{post}(v) \leq \text{post}(u)$. This gives an $O(1)$ ancestor check after a single $O(V + E)$ DFS pass.
 
 ## The White-Path Theorem
 
-A vertex $v$ is a descendant of $u$ in the DFS forest if and only if, at the time $u$ is discovered, there exists a path from $u$ to $v$ consisting entirely of **white** (unvisited) vertices. This theorem connects the DFS tree structure to the graph's actual edge structure and is essential for proving correctness of algorithms that rely on DFS ordering.
+The parenthesis theorem describes the timestamp structure; the white-path theorem connects the DFS tree structure to the graph's actual edges. Together they provide a complete characterization of which vertices become descendants of which.
+
+A vertex $v$ is a descendant of $u$ in the DFS forest if and only if, at the time $u$ is discovered, there exists a path from $u$ to $v$ consisting entirely of **white** (unvisited) vertices. This theorem is essential for proving correctness of algorithms that rely on DFS ordering, such as the characterization of back edges for cycle detection.
 
 ## Time and Space Complexity
 
