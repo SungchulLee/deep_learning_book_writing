@@ -24,16 +24,18 @@ $$
 
 !!! example "A 3-ary Min-Heap"
     ```
-    Array: [2, 5, 7, 3, 8, 9, 10, 6, 4, 11]
+    Array: [1, 3, 5, 2, 7, 8, 9, 6, 4, 10]
 
     Tree (d=3):
-                    2
+                    1
                 /   |   \
-              5     7     3
+              3     5     2
             / | \   |   / | \
-           8  9 10  6  4  11
+           7  8  9  6  4  10
     ```
     Each node has at most 3 children. The last level may be partially filled.
+    Node at index 3 (value 2) has parent at index 0 (value 1): 2 > 1, valid.
+    Node at index 7 (value 6) has parent at index 2 (value 5): 6 > 5, valid.
 
 ## Operations
 
