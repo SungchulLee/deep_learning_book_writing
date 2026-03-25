@@ -1,6 +1,6 @@
 # Interval DP
 
-Some optimization problems ask for the best way to process a contiguous range of elements -- merging stones, multiplying matrices, or parsing expressions. In these problems, an optimal solution for range $[i, j]$ decomposes into optimal solutions for sub-ranges $[i, k]$ and $[k+1, j]$ for some split point $k$. Interval DP captures this structure by defining states over all $O(n^2)$ sub-intervals and filling the table in order of increasing interval length. This approach naturally handles problems where the order of operations matters but the elements remain contiguous.
+Some optimization problems ask for the best way to process a contiguous range of elements --- merging stones, multiplying matrices, or bursting balloons. In each case, an optimal solution for range $[i, j]$ decomposes into optimal solutions for sub-ranges $[i, k]$ and $[k+1, j]$ at some split point $k$. Interval DP captures this structure by defining states over all $O(n^2)$ sub-intervals and filling the table in order of increasing interval length.
 
 ## Framework
 
@@ -12,9 +12,9 @@ $$
 
 where $\text{merge}(i, k, j)$ is the cost of combining the results of sub-intervals $[i, k]$ and $[k+1, j]$.
 
-**Base case**: $dp[i][i] = \text{base}(i)$ (cost of a single element, often 0).
+**Base case.** $dp[i][i] = \text{base}(i)$ (cost of a single element, often 0).
 
-**Iteration order**: Fill by increasing interval length $\ell = j - i$:
+**Iteration order.** Fill by increasing interval length $\ell = j - i + 1$:
 
 ```
 for length in range(2, n + 1):        # interval length
@@ -26,7 +26,17 @@ for length in range(2, n + 1):        # interval length
 
 ## Complexity
 
-The three nested loops give $O(n^3)$ time and $O(n^2)$ space. When the cost function satisfies the quadrangle inequality, Knuth's optimization reduces this to $O(n^2)$.
+The three nested loops give $O(n^3)$ time and $O(n^2)$ space. When the cost function satisfies the quadrangle inequality, Knuth's optimization reduces the time to $O(n^2)$.
+
+## Example: Minimum Cost to Merge Stones
+
+Given $n$ piles of stones with sizes $a_0, \ldots, a_{n-1}$, merge adjacent piles. The cost of a single merge equals the total size of the merged piles. Minimize the total cost.
+
+$$
+dp[i][j] = \min_{i \leq k < j} \bigl( dp[i][k] + dp[k+1][j] \bigr) + \sum_{t=i}^{j} a_t
+$$
+
+The merge cost is the sum of all elements in the interval, computable in $O(1)$ with prefix sums.
 
 ## Example: Matrix Chain Multiplication
 
@@ -36,21 +46,23 @@ $$
 dp[i][j] = \min_{i \leq k < j} \bigl( dp[i][k] + dp[k+1][j] + p_{i-1} \cdot p_k \cdot p_j \bigr)
 $$
 
-## Example: Minimum Cost to Merge Stones
+## Example: Burst Balloons
 
-Given $n$ piles of stones with sizes $a_1, \ldots, a_n$, merge adjacent piles. The cost of merging piles $i$ through $j$ is their total size. Minimize the total cost.
+Given balloons with values $a_1, \ldots, a_n$, bursting balloon $k$ earns $a_{k-1} \cdot a_k \cdot a_{k+1}$ coins (with boundary sentinels $a_0 = a_{n+1} = 1$). Maximize total coins.
+
+The key insight is to think of $k$ as the **last** balloon burst in the open interval $(i, j)$. At the moment $k$ is burst, only the boundary sentinels $a_i$ and $a_j$ remain as neighbors:
 
 $$
-dp[i][j] = \min_{i \leq k < j} \bigl( dp[i][k] + dp[k+1][j] \bigr) + \sum_{t=i}^{j} a_t
+dp[i][j] = \max_{i < k < j} \bigl( dp[i][k] + dp[k][j] + a_i \cdot a_k \cdot a_j \bigr)
 $$
 
-The merge cost is the sum of all elements in the interval, computable in $O(1)$ with prefix sums.
+**Base case.** $dp[i][i+1] = 0$ (no balloons to burst in an empty open interval).
 
 ## Implementation
 
 ```python
 """
-Interval DP: minimum cost to merge stones and matrix chain multiplication.
+Interval DP: merge stones, matrix chain multiplication, and burst balloons.
 """
 
 
@@ -124,22 +136,29 @@ def matrix_chain(dims: list[int]) -> int:
             j = i + length - 1
             dp[i][j] = INF
             for k in range(i, j):
-                cost = dp[i][k] + dp[k + 1][j] + dims[i] * dims[k + 1] * dims[j + 1]
+                cost = (
+                    dp[i][k]
+                    + dp[k + 1][j]
+                    + dims[i] * dims[k + 1] * dims[j + 1]
+                )
                 dp[i][j] = min(dp[i][j], cost)
 
     return dp[0][n - 1]
 
 
 # ===================================================================
-# Burst balloons (interval DP variant)
+# Burst balloons (last-to-burst trick)
 # ===================================================================
 def burst_balloons(nums: list[int]) -> int:
     """Maximum coins from bursting all balloons.
 
+    The key trick: think of k as the *last* balloon burst in (i, j),
+    so its neighbors at burst time are the boundary sentinels i and j.
+
     Parameters
     ----------
     nums : list[int]
-        Balloon values. Bursting balloon i earns nums[i-1]*nums[i]*nums[i+1].
+        Balloon values.
 
     Returns
     -------
@@ -192,7 +211,7 @@ Burst balloons max: 167
     - Length 4: $dp[0][3] = 22$, $dp[1][4] = 22$
     - Length 5: $dp[0][4] = 38$
 
-    Optimal merge order: first merge piles 2,3 (cost 3), then merge result with pile 1 (cost 8), then merge with pile 0 (cost 17), finally merge with pile 4 (cost 38 total).
+    Optimal merge order: merge piles 2 and 3 (cost 3), then with pile 1 (cost 8), then with pile 0 (cost 17), finally with pile 4 (total cost 38).
 
 ## Recognizing Interval DP Problems
 
