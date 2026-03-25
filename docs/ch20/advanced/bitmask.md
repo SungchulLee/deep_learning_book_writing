@@ -1,10 +1,10 @@
 # Bitmask DP
 
-Many optimization problems require exploring all subsets of a set of elements. When the number of elements $n$ is small (typically $n \leq 20$), encoding each subset as a binary integer turns subset operations into fast bitwise instructions. Bitmask DP leverages this encoding to solve problems like the Traveling Salesman Problem, task assignment, and set cover by iterating over all $2^n$ subsets systematically. This technique transforms exponential brute-force enumeration into structured dynamic programming with efficient subset transitions.
+When a problem asks to optimize over all subsets of a small set, brute-force enumeration seems unavoidable. Bitmask DP tames the exponential blow-up by encoding each subset as a binary integer and using bitwise operations to transition between states. Because an $n$-bit integer can represent any subset of $\{0, 1, \ldots, n-1\}$, the DP table is simply an array of size $2^n$, and adding or removing an element reduces to flipping a single bit.
 
 ## Subset Representation
 
-A subset $S \subseteq \{0, 1, \ldots, n-1\}$ is represented by an $n$-bit integer (called a **mask**) where bit $i$ is 1 if element $i$ belongs to $S$ and 0 otherwise.
+A subset $S \subseteq \{0, 1, \ldots, n-1\}$ is represented by an $n$-bit integer called a **mask**, where bit $i$ is 1 if and only if $i \in S$.
 
 | Subset | Binary | Mask |
 |--------|--------|------|
@@ -20,12 +20,16 @@ Common bitwise operations for subset manipulation:
 | Check if $i \in S$ | `mask & (1 << i)` | Test bit $i$ |
 | Add $i$ to $S$ | `mask | (1 << i)` | Set bit $i$ |
 | Remove $i$ from $S$ | `mask & ~(1 << i)` | Clear bit $i$ |
+| Toggle $i$ | `mask ^ (1 << i)` | Flip bit $i$ |
 | Full set | `(1 << n) - 1` | All $n$ bits set |
 | Subset size | `bin(mask).count('1')` | Population count |
 
+!!! tip "When to use bitmask DP"
+    Bitmask DP is the right choice when (1) the problem involves subsets of a ground set, (2) the ground set has at most about 20 elements, and (3) the optimal solution for a subset can be built from optimal solutions for smaller subsets.
+
 ## General Framework
 
-A bitmask DP problem defines a state $dp[\text{mask}]$ (or $dp[\text{mask}][i]$) where mask encodes which elements have been processed. The recurrence transitions between states by adding or removing elements from the subset.
+Define a state $dp[\text{mask}]$ (or $dp[\text{mask}][i]$ when the last element chosen matters) where mask encodes which elements have been selected. The key insight is that subset inclusion provides a natural partial order: every mask with $k$ bits set depends only on masks with $k-1$ bits set, so iterating masks in increasing order respects all dependencies.
 
 **Generic recurrence** (minimization variant):
 
@@ -33,50 +37,59 @@ $$
 dp[\text{mask}] = \min_{i \in \text{mask}} \bigl( dp[\text{mask} \setminus \{i\}] + \text{cost}(i, \text{mask}) \bigr)
 $$
 
-**Base case**: $dp[0] = 0$ (empty subset, no cost).
+Here $\text{mask} \setminus \{i\}$ denotes removing element $i$ from the subset, implemented as `mask & ~(1 << i)`.
 
-**Time complexity**: $O(2^n \cdot n)$ for iterating over all masks and all elements in each mask.
+**Base case.** $dp[0] = 0$ (empty subset, zero cost).
 
-**Space complexity**: $O(2^n)$ or $O(2^n \cdot n)$ depending on whether an additional dimension is needed.
+**Time complexity.** $O(2^n \cdot n)$ --- iterate over all $2^n$ masks and check up to $n$ bits in each.
+
+**Space complexity.** $O(2^n)$ or $O(2^n \cdot n)$ if an additional dimension tracks the last element.
 
 ## Example: Traveling Salesman Problem
 
-The TSP asks for the minimum-cost Hamiltonian cycle visiting all $n$ cities exactly once. Define $dp[\text{mask}][i]$ as the minimum cost to visit exactly the cities in mask, ending at city $i$.
+The TSP asks for the minimum-cost Hamiltonian cycle visiting all $n$ cities exactly once. This formulation, due to Held and Karp (1962), works for both symmetric and asymmetric distance matrices.
 
-**Recurrence**: for each city $j \in \text{mask}$ with $j \neq i$:
+**State.** $dp[\text{mask}][i]$ = minimum cost to visit exactly the cities in mask, ending at city $i$.
+
+**Recurrence.** For each city $j \in \text{mask}$ with $j \neq i$:
 
 $$
 dp[\text{mask}][i] = \min_{j \in \text{mask} \setminus \{i\}} \bigl( dp[\text{mask} \setminus \{i\}][j] + \text{dist}(j, i) \bigr)
 $$
 
-**Base case**: $dp[\{0\}][0] = 0$ (start at city 0 with only city 0 visited).
+**Base case.** $dp[\{0\}][0] = 0$ (start at city 0).
 
-**Answer**: $\min_{i} \bigl( dp[(1 \ll n) - 1][i] + \text{dist}(i, 0) \bigr)$ -- complete the cycle back to city 0.
+**Answer.** $\min_{i} \bigl( dp[(1 \ll n) - 1][i] + \text{dist}(i, 0) \bigr)$, completing the cycle back to city 0.
 
 ## Example: Assignment Problem
 
-Given $n$ workers and $n$ tasks with cost matrix $C$, assign each worker to exactly one task to minimize total cost. Define $dp[\text{mask}]$ as the minimum cost to assign tasks in mask to the first $|\text{mask}|$ workers.
+Given $n$ workers and $n$ tasks with cost matrix $C$, assign each worker to exactly one task to minimize total cost.
 
-**Recurrence**: let $k = |\text{mask}|$ (the number of assigned tasks so far):
+**State.** $dp[\text{mask}]$ = minimum cost to assign tasks in mask to the first $|\text{mask}|$ workers.
+
+**Recurrence.** Let $k = |\text{mask}|$ (number of tasks assigned so far):
 
 $$
 dp[\text{mask}] = \min_{j \in \text{mask}} \bigl( dp[\text{mask} \setminus \{j\}] + C[k-1][j] \bigr)
 $$
 
-**Base case**: $dp[0] = 0$.
+**Base case.** $dp[0] = 0$.
 
 ## Implementation
 
 ```python
 """
 Bitmask DP: Traveling Salesman Problem and Assignment Problem.
+
+Demonstrates the Held-Karp algorithm for TSP and a subset-based
+approach for the assignment problem, both using bitmask DP.
 """
 
 import math
 
 
 # ===================================================================
-# TSP via bitmask DP
+# TSP via bitmask DP (Held-Karp algorithm)
 # ===================================================================
 def tsp_bitmask(dist: list[list[int]]) -> int:
     """Solve TSP using bitmask DP.
@@ -85,11 +98,12 @@ def tsp_bitmask(dist: list[list[int]]) -> int:
     ----------
     dist : list[list[int]]
         Distance matrix where dist[i][j] is the cost from city i to j.
+        Need not be symmetric.
 
     Returns
     -------
     int
-        Minimum cost of a Hamiltonian cycle.
+        Minimum cost of a Hamiltonian cycle starting and ending at city 0.
     """
     n = len(dist)
     full = (1 << n) - 1
@@ -193,18 +207,15 @@ Assignment minimum cost: 7
 | General bitmask DP | $O(2^n \cdot n)$ | $O(2^n)$ |
 
 !!! warning "Exponential growth"
-    The $2^n$ factor makes bitmask DP practical only for $n \leq 20$ (about $10^6$ states). For $n = 25$, the state space exceeds $3 \times 10^7$, and memory becomes a bottleneck. For larger instances, approximation algorithms or branch-and-bound are necessary.
+    The $2^n$ factor limits bitmask DP to roughly $n \leq 20$ (about $10^6$ states). At $n = 25$ the state space exceeds $3 \times 10^7$ and memory becomes a bottleneck. For larger instances, approximation algorithms or branch-and-bound are necessary.
 
 ## Enumerating Subsets of a Mask
 
 A common subroutine iterates over all subsets of a given mask. The bit trick `sub = (sub - 1) & mask` generates subsets in decreasing order:
 
 ```python
-# ===================================================================
-# Subset enumeration
-# ===================================================================
 def enumerate_subsets(mask: int) -> list[int]:
-    """Enumerate all subsets of mask (including mask and 0)."""
+    """Enumerate all subsets of mask (including mask and the empty set)."""
     subsets = []
     sub = mask
     while sub > 0:
@@ -214,13 +225,13 @@ def enumerate_subsets(mask: int) -> list[int]:
     return subsets
 ```
 
-This runs in $O(2^{|\text{mask}|})$ time across all subsets. When applied to all masks, the total work over all masks is:
+This runs in $O(2^{|S|})$ time for a single mask $S$. When applied inside a DP that iterates over *all* masks, the total work across all masks of an $n$-element ground set is:
 
 $$
-\sum_{k=0}^{n} \binom{n}{k} 2^k = 3^n
+\sum_{k=0}^{n} \binom{n}{k} 2^k = (1 + 2)^n = 3^n
 $$
 
-This $O(3^n)$ bound arises in problems like the Steiner tree DP and weighted set cover.
+The equality follows from the binomial theorem with $x = 2$. Each element is in one of three states --- in the superset only, in both the superset and the subset, or in neither --- giving $3^n$ total (superset, subset) pairs. This $O(3^n)$ bound arises in problems like Steiner tree DP and weighted set cover.
 
 ## Reference
 
