@@ -1,18 +1,12 @@
 # BFS Applications
 
-Breadth-first search does more than simply visit every vertex. Because BFS explores vertices in order of increasing distance from the source, it naturally solves several fundamental graph problems. This page presents the most important applications: shortest paths in unweighted graphs, bipartiteness testing, and connected-component discovery.
+Breadth-first search does more than simply visit every vertex. Because BFS explores vertices in order of increasing distance from the source, it naturally solves several fundamental graph problems. This page presents the most important applications: shortest paths in unweighted graphs, bipartiteness testing, connected-component discovery, and level-order traversal.
 
 ## Shortest Paths in Unweighted Graphs
 
-In an unweighted graph every edge has the same cost, so the number of edges on a path equals the path length. BFS processes vertices level by level, which means the first time it reaches a vertex $v$ it has used the fewest possible edges. Recording the predecessor of each vertex along the way lets us reconstruct the actual shortest path.
+Many graph problems reduce to finding the fewest edges between two vertices. In a social network, for example, the "degrees of separation" between two people is exactly the shortest unweighted path. BFS solves this problem optimally because it explores vertices level by level: the first time it reaches a vertex $v$, it has used the fewest possible edges.
 
-The time complexity remains the same as plain BFS:
-
-$$
-O(V + E)
-$$
-
-where $V$ is the number of vertices and $E$ is the number of edges.
+In an unweighted graph every edge has the same cost, so the number of edges on a path equals the path length. Recording the predecessor of each vertex along the way lets us reconstruct the actual shortest path. The time complexity remains $O(V + E)$, where $V$ is the number of vertices and $E$ is the number of edges.
 
 ```python
 """
@@ -47,17 +41,24 @@ def bfs_shortest_path(graph, source, target):
         return [source]
 
     visited = {source}
-    queue = deque([(source, [source])])
+    predecessor = {source: None}
+    queue = deque([source])
 
     while queue:
-        node, path = queue.popleft()
+        node = queue.popleft()
         for neighbor in graph[node]:
             if neighbor not in visited:
                 visited.add(neighbor)
-                new_path = path + [neighbor]
+                predecessor[neighbor] = node
                 if neighbor == target:
-                    return new_path
-                queue.append((neighbor, new_path))
+                    # Reconstruct path by following predecessors
+                    path = []
+                    current = target
+                    while current is not None:
+                        path.append(current)
+                        current = predecessor[current]
+                    return path[::-1]
+                queue.append(neighbor)
     return None
 
 
@@ -76,9 +77,13 @@ Shortest path from 0 to 3: [0, 1, 3]
 Distance: 2 edges
 ```
 
+The predecessor-based reconstruction uses $O(V)$ memory rather than storing full paths in the queue, which keeps the overall space complexity at $O(V)$.
+
 ## Bipartiteness Testing
 
-A graph is **bipartite** if its vertex set can be partitioned into two groups such that every edge connects a vertex in one group to a vertex in the other. Equivalently, a graph is bipartite if and only if it contains no odd-length cycle. BFS provides a simple linear-time test: assign alternating colors as you traverse each level. If an edge ever connects two vertices of the same color, the graph is not bipartite.
+Many practical problems require splitting objects into two groups with constraints between them. Job assignment, graph coloring with two colors, and conflict-free scheduling all depend on whether the underlying graph is bipartite. BFS provides a simple linear-time test for this property.
+
+A graph is **bipartite** if its vertex set can be partitioned into two groups such that every edge connects a vertex in one group to a vertex in the other. Equivalently, a graph is bipartite if and only if it contains no odd-length cycle. The BFS-based algorithm assigns alternating colors as it traverses each level. If an edge ever connects two vertices of the same color, the graph is not bipartite.
 
 ```python
 """
@@ -141,6 +146,8 @@ Triangle bipartite? False
 The square cycle (4 vertices forming a cycle) is bipartite because the two color classes are $\{0, 2\}$ and $\{1, 3\}$. The triangle has three vertices all connected to each other, which forces an odd-length cycle, making it non-bipartite.
 
 ## Connected Components
+
+Understanding which vertices can reach each other is often the first step in analyzing a graph. In a network of computers, for instance, connected components correspond to groups of machines that can communicate. BFS provides a direct way to discover these groups.
 
 In an undirected graph, a **connected component** is a maximal set of vertices such that a path exists between every pair. BFS from any unvisited vertex discovers its entire component. By iterating over all vertices and launching BFS from each unvisited one, we enumerate every component in $O(V + E)$ total time.
 
@@ -210,7 +217,7 @@ Component 2: [5]
 
 ## Level-Order Traversal
 
-BFS processes vertices level by level, which makes it the natural choice for any problem that requires grouping vertices by their distance from the source. Level-order traversal explicitly separates vertices into distance classes and is especially useful in tree algorithms where each level corresponds to a depth in the tree.
+Beyond finding paths and components, BFS is the natural choice for any problem that requires grouping vertices by their distance from the source. Level-order traversal explicitly separates vertices into distance classes and is especially useful in tree algorithms where each level corresponds to a depth in the tree.
 
 ```python
 """
