@@ -37,7 +37,9 @@ This mapping is compact (no wasted space) and cache-friendly (elements are store
 
     The array representation is simply `[1, 3, 2, 7, 5, 4, 6]`.  Node at index 0 (key 1) is the root.  Its children are at indices 1 (key 3) and 2 (key 2).  Node at index 1 has children at indices 3 (key 7) and 4 (key 5).
 
-## Key Operations at a Glance
+## Key Operations
+
+With the array layout in place, the heap supports four core operations, each relying on a simple "sift" procedure that walks up or down the tree.
 
 | Operation | Idea | Time |
 |---|---|---|
@@ -46,7 +48,7 @@ This mapping is compact (no wasted space) and cache-friendly (elements are store
 | `find_min()` | Return the root | $O(1)$ |
 | `build_heap(A)` | Apply sift-down from the last internal node to the root | $O(n)$ |
 
-The $O(n)$ build-heap result is a key theoretical result: a heap can be constructed from an unsorted array in linear time, not $O(n \log n)$.
+The $O(n)$ build-heap result is a key theoretical result: a heap can be constructed from an unsorted array in linear time, not $O(n \log n)$.  The intuition is that most nodes live near the bottom of the tree and require only a few swaps during sift-down, while the few nodes near the top that require many swaps are vastly outnumbered.
 
 !!! tip "Sift up and sift down"
     **Sift up** (also called "bubble up" or "percolate up") repeatedly swaps a node with its parent until the heap property is restored.  **Sift down** (also called "heapify down") repeatedly swaps a node with its smaller child.  Each traverses at most the height of the tree, which is $\lfloor \log_2 n \rfloor$ for a complete binary tree.
