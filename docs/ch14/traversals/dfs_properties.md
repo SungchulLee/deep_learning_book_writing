@@ -1,22 +1,146 @@
 # DFS Properties
 
+Depth-first search has structural properties that go far beyond simply visiting every vertex. The recursive nature of DFS imposes a nesting structure on the discovery and finish times that is captured by the **parenthesis theorem**. Combined with the **white-path theorem**, these properties explain why DFS is the engine behind cycle detection, topological sorting, and strongly connected component algorithms.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## The DFS Forest
+
+Running DFS on an entire graph (not just a single source) produces a **DFS forest**: a collection of rooted trees, one for each connected component (or one for each group of mutually reachable vertices in a directed graph). Each tree edge $(u, v)$ corresponds to the moment DFS first discovers $v$ from $u$.
+
+## The Parenthesis Theorem
+
+During DFS each vertex $u$ receives a discovery time $\text{pre}(u)$ and a finish time $\text{post}(u)$. The parenthesis theorem states that for any two vertices $u$ and $v$, exactly one of the following holds:
+
+1. The intervals $[\text{pre}(u), \text{post}(u)]$ and $[\text{pre}(v), \text{post}(v)]$ are **entirely disjoint** -- neither is an ancestor of the other in the DFS tree.
+2. $[\text{pre}(u), \text{post}(u)] \subset [\text{pre}(v), \text{post}(v)]$ -- vertex $u$ is a descendant of $v$.
+3. $[\text{pre}(v), \text{post}(v)] \subset [\text{pre}(u), \text{post}(u)]$ -- vertex $v$ is a descendant of $u$.
+
+The intervals never partially overlap. This is analogous to matched parentheses in an expression: every open parenthesis has a matching close, and pairs are either nested or disjoint.
+
+!!! tip "Ancestor test in constant time"
+    Vertex $u$ is an ancestor of $v$ in the DFS tree if and only if $\text{pre}(u) \leq \text{pre}(v)$ and $\text{post}(v) \leq \text{post}(u)$. This gives an $O(1)$ ancestor check after a single $O(V + E)$ DFS pass.
+
+## The White-Path Theorem
+
+A vertex $v$ is a descendant of $u$ in the DFS forest if and only if, at the time $u$ is discovered, there exists a path from $u$ to $v$ consisting entirely of **white** (unvisited) vertices. This theorem connects the DFS tree structure to the graph's actual edge structure and is essential for proving correctness of algorithms that rely on DFS ordering.
+
+## Time and Space Complexity
+
+DFS visits every vertex once and examines every edge once (in a directed graph) or twice (in an undirected graph). Therefore the time complexity is
+
+$$
+O(V + E)
+$$
+
+The space complexity is $O(V)$ for the visited set. The recursion stack (or explicit stack in the iterative version) can grow to $O(V)$ in the worst case (a path graph), giving $O(V)$ total auxiliary space.
+
+## Recursive vs. Iterative DFS
+
+The recursive implementation mirrors the mathematical definition directly, while the iterative version uses an explicit stack to avoid hitting Python's recursion limit on large graphs. Both produce the same DFS forest, but the iterative version may visit neighbors in a different order depending on how the adjacency list is traversed.
 
 ```python
-def dfs(node):
-    stack = [node] 
-    visited = set([node]) 
-    
+"""
+DFS implementations: recursive and iterative.
+
+Demonstrates the parenthesis theorem through pre/post timestamps
+and shows both recursive and iterative approaches.
+"""
+
+# === Recursive DFS with timestamps ============================================
+
+def dfs_recursive(graph):
+    """Run recursive DFS and return pre/post timestamps.
+
+    Parameters
+    ----------
+    graph : dict[int, list[int]]
+        Adjacency list for a directed graph.
+
+    Returns
+    -------
+    pre : dict[int, int]
+        Discovery times.
+    post : dict[int, int]
+        Finish times.
+    """
+    pre = {}
+    post = {}
+    clock = [0]
+
+    def explore(u):
+        clock[0] += 1
+        pre[u] = clock[0]
+        for v in graph[u]:
+            if v not in pre:
+                explore(v)
+        clock[0] += 1
+        post[u] = clock[0]
+
+    for vertex in graph:
+        if vertex not in pre:
+            explore(vertex)
+
+    return pre, post
+
+
+# === Iterative DFS =============================================================
+
+def dfs_iterative(graph, source):
+    """Iterative DFS traversal from a single source.
+
+    Parameters
+    ----------
+    graph : dict[int, list[int]]
+        Adjacency list.
+    source : int
+        Starting vertex.
+
+    Returns
+    -------
+    list[int]
+        Vertices in DFS visit order.
+    """
+    visited = set()
+    stack = [source]
+    order = []
+
     while stack:
-        cur = stack.pop()
-        for neighbour in cur.neighbours:
-            if neighbour not in visited:  
-                stack.append(neighbour)
-                visited.add(neighbour)
+        node = stack.pop()
+        if node not in visited:
+            visited.add(node)
+            order.append(node)
+            for neighbor in reversed(graph[node]):
+                if neighbor not in visited:
+                    stack.append(neighbor)
+
+    return order
+
+
+# === Main =====================================================================
+
+if __name__ == "__main__":
+    graph = {0: [1, 2], 1: [3], 2: [3], 3: []}
+
+    pre, post = dfs_recursive(graph)
+    print("Parenthesis theorem demonstration:")
+    for v in sorted(pre):
+        print(f"  Vertex {v}: [{pre[v]}, {post[v]}]")
+
+    print(f"\nIterative DFS order: {dfs_iterative(graph, 0)}")
 ```
 
-# Reference
+**Output:**
+```
+Parenthesis theorem demonstration:
+  Vertex 0: [1, 8]
+  Vertex 1: [2, 5]
+  Vertex 2: [6, 7]
+  Vertex 3: [3, 4]
 
-[Depth First Search in Data Structure | Graph Traversal | DFS Algorithm | C++ Java Python](https://www.youtube.com/watch?v=tXSk6POIBJA&list=PL1w8k37X_6L9IfRTVvL-tKnrZ_F-8HJQt&index=4)
+Iterative DFS order: [0, 1, 3, 2]
+```
+
+The intervals confirm the parenthesis theorem: $[2, 5]$ and $[6, 7]$ are disjoint (vertices 1 and 2 are siblings), while $[3, 4] \subset [2, 5]$ (vertex 3 is a descendant of vertex 1), and all intervals nest inside $[1, 8]$ (vertex 0 is the root).
+
+## Reference
+
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 22. MIT Press.
