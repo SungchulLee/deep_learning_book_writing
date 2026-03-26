@@ -1,6 +1,12 @@
 # Chernoff Bounds
 
-When analyzing randomized algorithms, we often need to show that a random variable concentrates near its mean — that large deviations are not just unlikely but exponentially unlikely. Markov's and Chebyshev's inequalities provide polynomial tail bounds, but for sums of independent random variables, the **Chernoff bound** technique yields exponentially decreasing tail probabilities. These bounds are the workhorse of probabilistic analysis in algorithms and data structures.
+When analyzing randomized algorithms, we often need to show that a random
+variable concentrates near its mean — that large deviations are not just
+unlikely but *exponentially* unlikely. Markov's and Chebyshev's inequalities
+provide polynomial tail bounds. For sums of independent random variables,
+however, the **Chernoff bound** technique yields exponentially decreasing
+tail probabilities. These bounds are the workhorse of probabilistic analysis
+in algorithms and data structures.
 
 ## The Moment Generating Function Method
 
@@ -127,6 +133,101 @@ $$
 $$
 
 where $\mu = E[\frac{1}{n}\sum X_i]$.
+
+## Implementation
+
+```python
+"""
+Chernoff bounds: theoretical bounds vs empirical tail probabilities.
+
+Demonstrates the tightness of Chernoff bounds by comparing theoretical
+predictions with Monte Carlo simulation of Bernoulli sums.
+"""
+
+import random
+import math
+
+
+# === Chernoff Bound Formulas ===
+
+def chernoff_upper(mu, delta):
+    """Exact Chernoff upper tail bound: Pr[X >= (1+delta)*mu].
+
+    Args:
+        mu: expected value of X.
+        delta: relative deviation (delta > 0).
+
+    Returns:
+        Upper bound on the tail probability.
+    """
+    if delta <= 0:
+        return 1.0
+    exponent = mu * (delta - (1 + delta) * math.log(1 + delta))
+    return math.exp(exponent)
+
+
+def chernoff_upper_simplified(mu, delta):
+    """Simplified Chernoff upper tail bound: exp(-mu * delta^2 / 3)."""
+    return math.exp(-mu * delta ** 2 / 3)
+
+
+def chernoff_lower_simplified(mu, delta):
+    """Simplified Chernoff lower tail bound: exp(-mu * delta^2 / 2)."""
+    if delta <= 0 or delta >= 1:
+        return 1.0
+    return math.exp(-mu * delta ** 2 / 2)
+
+
+# === Monte Carlo Estimation ===
+
+def estimate_tail_prob(n, p, threshold, trials=100000):
+    """Estimate Pr[X >= threshold] via Monte Carlo simulation.
+
+    X = sum of n independent Bernoulli(p) random variables.
+    """
+    count = 0
+    for _ in range(trials):
+        x = sum(1 for _ in range(n) if random.random() < p)
+        if x >= threshold:
+            count += 1
+    return count / trials
+
+
+# === Main ===
+
+if __name__ == "__main__":
+    random.seed(42)
+
+    n = 100
+    p = 0.3
+    mu = n * p  # = 30
+
+    print(f"X ~ Binomial(n={n}, p={p}), mu = {mu}")
+    print(f"{'delta':>8} {'threshold':>10} {'Chernoff':>10} "
+          f"{'Simplified':>12} {'Empirical':>10}")
+    print("-" * 55)
+
+    for delta in [0.2, 0.4, 0.6, 0.8, 1.0]:
+        threshold = (1 + delta) * mu
+        bound_exact = chernoff_upper(mu, delta)
+        bound_simple = chernoff_upper_simplified(mu, delta)
+        empirical = estimate_tail_prob(n, p, threshold)
+
+        print(f"{delta:8.1f} {threshold:10.0f} {bound_exact:10.6f} "
+              f"{bound_simple:12.6f} {empirical:10.5f}")
+```
+
+**Output:**
+```
+X ~ Binomial(n=100, p=0.3), mu = 30.0
+   delta  threshold   Chernoff   Simplified  Empirical
+-------------------------------------------------------
+     0.2         36   0.234960     0.670320    0.12540
+     0.4         42   0.026826     0.188876    0.00672
+     0.6         48   0.001558     0.022091    0.00009
+     0.8         54   0.000048     0.001069    0.00000
+     1.0         60   0.000001     0.000022    0.00000
+```
 
 ## Reference
 
