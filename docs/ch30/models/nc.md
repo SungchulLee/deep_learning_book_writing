@@ -8,8 +8,12 @@ polylogarithmic time using polynomially many processors.
 
 ## Formal Definition
 
-A decision problem is in **NC** if it can be solved on a PRAM (Parallel
-Random Access Machine) in
+The standard model for defining NC is the **PRAM** (Parallel Random Access
+Machine), which consists of multiple synchronous processors sharing a common
+memory.  Each processor can read from or write to any shared memory cell in
+one step, and all processors execute instructions in lock-step.
+
+A decision problem is in **NC** if it can be solved on a PRAM in
 
 $$
 O(\log^k n) \text{ time using } O(n^c) \text{ processors}
@@ -35,7 +39,9 @@ with polynomially many processors.
 
 ## Relationship to P
 
-Every NC problem is in P (simulate the parallel computation sequentially):
+Every NC problem is in P, because the parallel computation can be simulated
+sequentially: $O(n^c)$ processors running for $O(\log^k n)$ steps perform
+at most $O(n^c \log^k n)$ total operations, which is polynomial.  Therefore:
 
 $$
 \text{NC} \subseteq \text{P}
@@ -47,88 +53,122 @@ time that do not admit efficient parallelization.
 
 ## P-Complete Problems
 
-A problem is **P-complete** (under NC reductions) if every problem in P
-reduces to it in NC.  If any P-complete problem is in NC, then
-$\text{P} = \text{NC}$.
+Just as NP-complete problems represent the hardest problems in NP,
+**P-complete** problems (under NC reductions) represent the hardest
+problems in P to parallelize.  A problem is P-complete if every problem in
+P reduces to it via a reduction computable in NC.  If any P-complete
+problem is in NC, then $\text{P} = \text{NC}$.
 
-P-complete problems are considered **inherently sequential**---they are
-the hardest problems in P to parallelize.
+P-complete problems are therefore considered **inherently sequential**: no
+known polylogarithmic-time parallel algorithm exists for them, and their
+parallelizability would collapse the entire hierarchy.
 
 | P-Complete Problem | Description |
 |---|---|
 | Circuit Value Problem | Evaluate a Boolean circuit on given inputs |
-| Linear Programming | Solve a system of linear inequalities |
+| Horn-SAT | Satisfiability of Horn clauses |
+| Linear Programming (feasibility) | Decide if a system of linear inequalities is feasible |
 | Maximum Flow (general) | Find max flow in a network |
 | Context-Free Grammar Membership | Decide if a string belongs to a CFL |
 
 ## Problems in NC
 
-| Problem | NC Level | Time | Processors |
+The following table lists well-known NC results.  The time and processor
+counts refer to specific PRAM algorithms; circuit-depth classifications may
+differ (for instance, sorting networks achieve $O(\log n)$ depth, placing
+sorting in $\text{NC}^1$ in the circuit model).
+
+| Problem | NC Level | PRAM Time | PRAM Processors |
 |---|---|---|---|
 | Parity | $\text{NC}^1$ | $O(\log n)$ | $O(n)$ |
-| Sorting | $\text{NC}^2$ | $O(\log^2 n)$ | $O(n)$ |
+| Integer addition | $\text{NC}^1$ | $O(\log n)$ | $O(n)$ |
+| Integer multiplication | $\text{NC}^1$ | $O(\log n)$ | $O(n \log n \log \log n)$ |
+| Sorting (Cole's merge sort) | $\text{NC}^2$ | $O(\log^2 n)$ | $O(n)$ |
 | Matrix multiplication | $\text{NC}^2$ | $O(\log^2 n)$ | $O(n^3)$ |
 | Connected components | $\text{NC}^2$ | $O(\log^2 n)$ | $O(n^2)$ |
-| Integer addition | $\text{NC}^1$ | $O(\log n)$ | $O(n)$ |
-| Integer multiplication | $\text{NC}^1$ | $O(\log n)$ | $O(n^2)$ |
 
 ## Example: Parallel Prefix Sum
 
-Computing the prefix sums of an array is a canonical NC problem.
+The prefix sum problem illustrates how a computation achieves $O(\log n)$
+parallel time through a structured sweep pattern, placing it squarely in
+$\text{NC}^1$.  The Blelloch algorithm performs an **up-sweep** (reduce
+phase) followed by a **down-sweep** (distribute phase), each taking
+$O(\log n)$ parallel steps with $O(n)$ total work.
 
 ```python
 """
-Parallel prefix sum (scan) algorithm.
+Parallel prefix sum (scan) via the Blelloch algorithm (simulated).
 
 Parallel time : O(log n)
 Work (total ops): O(n)
+
+Note: this implementation pads the input to the next power of 2
+so that the binary-tree indexing works correctly for all input sizes.
 """
+
+# === Helpers ===
+
+def next_power_of_two(n: int) -> int:
+    """Return the smallest power of 2 that is >= n."""
+    p = 1
+    while p < n:
+        p *= 2
+    return p
 
 
 # === Parallel Prefix Sum (simulated) ===
+
 def parallel_prefix_sum(arr: list[int]) -> list[int]:
-    """Compute prefix sums using the Blelloch algorithm (simulated)."""
+    """Compute inclusive prefix sums using the Blelloch algorithm.
+
+    The input is padded to a power-of-2 length internally so that
+    the up-sweep and down-sweep indexing covers every element.
+
+    Args:
+        arr: List of integers.
+
+    Returns:
+        List of inclusive prefix sums with the same length as arr.
+    """
     n = len(arr)
     if n == 0:
         return []
 
-    # Work array
-    x = list(arr)
+    # Pad to power of 2
+    m = next_power_of_two(n)
+    x = list(arr) + [0] * (m - n)
 
-    # Up-sweep (reduce)
+    # Up-sweep (reduce): build partial sums bottom-up
     step = 1
-    while step < n:
-        for i in range(step - 1, n, 2 * step):
-            right = i + step
-            if right < n:
-                x[right] += x[i]
+    while step < m:
+        for i in range(2 * step - 1, m, 2 * step):
+            x[i] += x[i - step]
         step *= 2
 
-    # Down-sweep
-    x[n - 1] = 0
-    step = n // 2
+    # Down-sweep: distribute partial sums top-down
+    x[m - 1] = 0
+    step = m // 2
     while step >= 1:
-        for i in range(step - 1, n, 2 * step):
-            right = i + step
-            if right < n:
-                temp = x[i]
-                x[i] = x[right]
-                x[right] += temp
+        for i in range(2 * step - 1, m, 2 * step):
+            temp = x[i - step]
+            x[i - step] = x[i]
+            x[i] += temp
         step //= 2
 
-    # Exclusive to inclusive
+    # Convert exclusive prefix sums to inclusive
     result = [x[i] + arr[i] for i in range(n)]
     return result
 
 
-# === Example ===
+# === Demonstration ===
+
 if __name__ == "__main__":
     data = [3, 1, 4, 1, 5, 9, 2, 6]
     prefix = parallel_prefix_sum(data)
     print(f"Input:      {data}")
     print(f"Prefix sum: {prefix}")
 
-    # Verify
+    # Verify against a simple sequential scan
     expected = []
     s = 0
     for v in data:
@@ -136,9 +176,31 @@ if __name__ == "__main__":
         expected.append(s)
     print(f"Expected:   {expected}")
     assert prefix == expected
+
+    # Test non-power-of-2 length
+    data2 = [1, 2, 3, 4, 5]
+    prefix2 = parallel_prefix_sum(data2)
+    print(f"\nInput:      {data2}")
+    print(f"Prefix sum: {prefix2}")
+    assert prefix2 == [1, 3, 6, 10, 15]
+    print("All tests passed.")
 ```
 
-## The Bigger Picture
+**Output:**
+
+```
+Input:      [3, 1, 4, 1, 5, 9, 2, 6]
+Prefix sum: [3, 4, 8, 9, 14, 23, 25, 31]
+Expected:   [3, 4, 8, 9, 14, 23, 25, 31]
+
+Input:      [1, 2, 3, 4, 5]
+Prefix sum: [1, 3, 6, 10, 15]
+All tests passed.
+```
+
+## Complexity Landscape
+
+The position of NC within the broader hierarchy of complexity classes clarifies its significance:
 
 $$
 \text{NC}^1 \subseteq \text{L} \subseteq \text{NL} \subseteq \text{NC}^2 \subseteq \text{P} \subseteq \text{NP}
