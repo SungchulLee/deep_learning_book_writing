@@ -42,18 +42,17 @@ giving O(1) FIND but O(n) UNION.
 class QuickFind:
     """Union-Find with O(1) find and O(n) union."""
 
-    def __init__(self, n):
+    def __init__(self, n: int):
         """Create n singleton sets {0}, {1}, ..., {n-1}."""
         self.id = list(range(n))
         self.count = n  # number of distinct sets
 
-    def find(self, x):
+    def find(self, x: int) -> int:
         """Return the representative of x's set in O(1)."""
         return self.id[x]
 
-    def union(self, a, b):
-        """
-        Merge the sets containing a and b.
+    def union(self, a: int, b: int) -> bool:
+        """Merge the sets containing a and b.
 
         Scans the entire array to update all entries, taking O(n) time.
         Returns True if a and b were in different sets.
@@ -69,12 +68,12 @@ class QuickFind:
         self.count -= 1
         return True
 
-    def connected(self, a, b):
+    def connected(self, a: int, b: int) -> bool:
         """Check whether a and b are in the same set in O(1)."""
         return self.id[a] == self.id[b]
 
 
-# === Example ===
+# === Demonstration ===
 
 if __name__ == "__main__":
     qf = QuickFind(6)
@@ -140,9 +139,9 @@ This quadratic cost makes Quick Find unsuitable for large inputs. Kruskal's algo
 - **No incremental improvement**: unlike the forest-based approaches (Quick Union), repeated operations do not improve the structure.
 - **Poor scalability**: $O(n^2)$ for $n$ merges makes it impractical for graphs with more than a few thousand vertices.
 
-The next page introduces Quick Union, which uses a tree (forest) structure to potentially reduce UNION cost, at the expense of making FIND slower in the worst case.
+Quick Union addresses these limitations by using a tree (forest) structure that can potentially reduce UNION cost, at the expense of making FIND slower in the worst case.
 
 ## Reference
 
-- [Introduction to Algorithms (CLRS), Chapter 21](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-- Sedgewick, R. & Wayne, K. *Algorithms*, 4th ed., Section 1.5.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 19. MIT Press.
+- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.), Section 1.5. Addison-Wesley.
