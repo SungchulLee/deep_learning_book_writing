@@ -1,18 +1,11 @@
 # Chapter 13: Bayesian Foundations
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 This chapter establishes the theoretical foundations of Bayesian inference, from Bayes' theorem and conjugate priors through to hierarchical models, model comparison, and applications in finance. These concepts form the mathematical backbone for the approximate inference methods, sampling algorithms, and Bayesian neural networks covered in subsequent chapters.
 
 ---
 
 ## Bayesian Foundations
 
-- Course Overview -- Comprehensive curriculum overview spanning classical Bayesian inference to modern Bayesian neural networks
-- Learning Roadmap -- Conceptual roadmap explaining the natural progression from Bayesian inference to advanced computation
-- Bayes' Theorem -- Derivation from conditional probability, the Bayesian formulation, and discrete examples
 - [Prior, Likelihood, and Posterior](bayesian_foundations/prior_likelihood_posterior.md) -- Rigorous treatment of the three fundamental quantities and their interplay through Bayes' theorem
 - [Conjugate Priors](bayesian_foundations/conjugate_priors.md) -- Theory of conjugacy with Beta-Binomial, Gamma-Poisson, and Normal-Normal families for analytical solutions
 - [MAP Estimation](bayesian_foundations/map_estimation.md) -- Maximum a posteriori point estimates, comparison with MLE and posterior mean, and connection to regularization
