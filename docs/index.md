@@ -1,18 +1,8 @@
 # Algorithms and Data Structures
 
+This book provides a structured path through algorithms and data structures, combining rigorous analysis with practical Python implementations. Each topic builds toward the tools needed to reason about efficiency, correctness, and design trade-offs in real systems.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Welcome to the comprehensive guide on **Algorithms and Data Structures**.
-
-This book covers fundamental concepts through advanced topics, organized into the following parts:
-
-$$
-
-\text{Part I: Foundations} \rightarrow \text{Part II: Data Structures} \rightarrow \text{Part III: Sorting} \rightarrow \cdots \rightarrow \text{Part XI: Applications}
-
-$$
+The material progresses from foundations and recursion through data structures, sorting, graph algorithms, and advanced topics including dynamic programming and string matching.
 
 ## How to Use This Book
 
@@ -24,7 +14,7 @@ Each chapter builds on previous material. Start with **Part I** for foundational
 - High school mathematics (algebra, basic probability)
 - Curiosity and willingness to think algorithmically
 
-# Reference
+## References
 
 [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 
