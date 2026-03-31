@@ -1,45 +1,43 @@
 # Ternary Search Trees
 
+A **ternary search tree** (TST) combines the time efficiency of a trie with the space efficiency of a binary search tree. Each node in a TST stores a single character and has three children: **left** (characters less than the node's character), **middle** (characters equal, advancing to the next position), and **right** (characters greater). This structure avoids the large per-node arrays of a standard trie while still supporting fast string operations.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Motivation
 
-Search finds a target element by traversing the data structure according to its organizing principle.
+A standard trie with an array-based representation allocates $|\Sigma|$ child pointers per node, most of which are often `null`. For large alphabets (e.g., Unicode), this wastes enormous space. A TST replaces each node's $|\Sigma|$-way branch with a BST over the characters that actually appear, requiring only three pointers per node regardless of alphabet size.
 
-```python
-class TrieNode:
-    def __init__(self):
-        self.children = {}
-        self.end = False
+## Structure
 
-class Trie:
-    def __init__(self): self.root = TrieNode()
-    def insert(self, word):
-        node = self.root
-        for c in word:
-            if c not in node.children: node.children[c] = TrieNode()
-            node = node.children[c]
-        node.end = True
-    def search(self, word):
-        node = self.root
-        for c in word:
-            if c not in node.children: return False
-            node = node.children[c]
-        return node.end
+Each TST node stores:
 
-t = Trie()
-for w in ["apple","app","bat"]: t.insert(w)
-for w in ["app","ap","bat","bad"]: print(f"{w}: {t.search(w)}")
-```
+- A **character** $c$
+- An **end-of-word** flag
+- Three child pointers: **left**, **middle**, **right**
 
-**Output:**
-```
-app: True
-ap: False
-bat: True
-bad: False
-```
+To search for a string, compare the current query character with the node's character. If less, go left; if greater, go right; if equal, go middle and advance to the next query character.
 
-# Reference
+## Complexity
+
+| Operation | Average Time | Worst-Case Time |
+|:---|:---:|:---:|
+| Search | $O(m + \log n)$ | $O(m \cdot n)$ |
+| Insert | $O(m + \log n)$ | $O(m \cdot n)$ |
+| Prefix search | $O(p + \log n + k)$ | -- |
+
+Here $m$ is the string length, $n$ is the number of stored strings, $p$ is the prefix length, and $k$ is the output size. The $\log n$ term comes from the BST structure at each level; with balanced insertion order, it stays logarithmic.
+
+## Comparison with Other Trie Variants
+
+| Property | Standard Trie | Compressed Trie | TST |
+|:---|:---:|:---:|:---:|
+| Space per node | $O(\lvert\Sigma\rvert)$ | $O(\lvert\Sigma\rvert)$ | $O(1)$ |
+| Search time | $O(m)$ | $O(m)$ | $O(m + \log n)$ |
+| Prefix search | Excellent | Excellent | Good |
+| Implementation | Simple | Moderate | Moderate |
+
+!!! tip "When to Use a TST"
+    Ternary search trees are a good choice when the alphabet is large, memory is constrained, and prefix-based operations are still needed. They are commonly used in spell checkers and IP routing engines.
+
+## References
 
 [Introduction to Algorithms (CLRS), Chapter 14](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
