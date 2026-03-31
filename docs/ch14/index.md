@@ -1,10 +1,8 @@
 # Chapter 14: Probabilistic Graphical Models
 
+Many real-world systems involve dozens or hundreds of interacting random variables -- symptoms and diseases, words in a sentence, pixels in an image. Representing their joint distribution directly requires an exponential number of parameters, making both storage and inference intractable. **Probabilistic graphical models** (PGMs) solve this problem by exploiting conditional independence: a graph structure encodes which variables depend on which others, enabling the joint distribution to be factored into a product of smaller, manageable terms.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-This chapter provides a comprehensive treatment of probabilistic graphical models (PGMs), which use graph structures to compactly represent high-dimensional joint distributions. We cover directed models (Bayesian networks), undirected models (Markov random fields), exact and approximate inference algorithms, and methods for learning both parameters and structure from data.
+This chapter covers directed models (Bayesian networks), undirected models (Markov random fields), exact and approximate inference algorithms, and methods for learning both parameters and structure from data.
 
 ---
 
