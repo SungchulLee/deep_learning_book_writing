@@ -1,6 +1,8 @@
 # Chapter 13: Bayesian Foundations
 
-This chapter establishes the theoretical foundations of Bayesian inference, from Bayes' theorem and conjugate priors through to hierarchical models, model comparison, and applications in finance. These concepts form the mathematical backbone for the approximate inference methods, sampling algorithms, and Bayesian neural networks covered in subsequent chapters.
+All statistical inference begins with a question: given observed data, what can we learn about the underlying process that generated it? The **Bayesian framework** answers this by combining prior beliefs with observed evidence through Bayes' theorem to produce a full posterior distribution over the unknown quantities. Unlike point estimates, the posterior captures the complete state of uncertainty -- enabling principled predictions, model comparisons, and decision-making under uncertainty.
+
+This chapter establishes the theoretical foundations of Bayesian inference, progressing from Bayes' theorem and conjugate priors through hierarchical models and model comparison. These concepts form the mathematical backbone for the approximate inference methods, sampling algorithms, and Bayesian neural networks covered in subsequent chapters.
 
 ---
 
