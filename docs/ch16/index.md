@@ -1,6 +1,8 @@
 # Chapter 16: Approximate Inference
 
-This chapter covers the major families of approximate inference methods that make Bayesian computation tractable for complex models. Variational inference recasts posterior approximation as an optimization problem, the EM algorithm handles latent variable models through iterative expectation and maximization, and Bayesian neural networks extend these ideas to deep learning with principled uncertainty quantification.
+Exact Bayesian inference requires computing the posterior distribution $p(\theta \mid \mathcal{D})$, which in turn requires evaluating the marginal likelihood $p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta)\,p(\theta)\,d\theta$. For all but the simplest models, this integral is intractable. Approximate inference methods make Bayesian computation feasible by replacing the exact posterior with a tractable approximation.
+
+This chapter covers three major families of approximate inference. **Variational inference** recasts posterior approximation as an optimization problem -- finding the member of a tractable family that is closest to the true posterior in KL divergence. The **EM algorithm** handles latent variable models through iterative expectation and maximization steps, avoiding the need to compute the full posterior directly. **Bayesian neural networks** extend these ideas to deep learning, placing distributions over weights for principled uncertainty quantification.
 
 ---
 
