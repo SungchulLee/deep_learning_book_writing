@@ -1,45 +1,67 @@
-# List Method sort
+# Python's List sort Method
 
+Python provides a built-in `sort()` method on lists that rearranges elements in place. Understanding its behavior -- including the in-place semantics, the default ordering, and the `reverse` parameter -- is essential before studying sorting algorithms in depth, because `sort()` serves as both a practical tool and a benchmark for comparison.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## Basic Usage
+
+The `sort()` method arranges list elements in ascending order by default:
 
 ```python
+"""Demonstration of Python's list.sort() method.
+
+Shows ascending sort, descending sort, and the in-place return value.
+"""
+
+
+# === Ascending sort ===
 a = [-9, 1, 8, 2, -7, 3, 6, 4, 5]
 a.sort()
-a
+print("Ascending:", a)
+
+# === Descending sort ===
+b = [-9, 1, 8, 2, -7, 3, 6, 4, 5]
+b.sort(reverse=True)
+print("Descending:", b)
 ```
 
 **Output:**
 ```
-[-9, -7, 1, 2, 3, 4, 5, 6, 8]
+Ascending: [-9, -7, 1, 2, 3, 4, 5, 6, 8]
+Descending: [8, 6, 5, 4, 3, 2, 1, -7, -9]
 ```
 
-```python
-a = [-9, 1, 8, 2, -7, 3, 6, 4, 5]
-a.sort(reverse=True)
-a
-```
+## In-Place Semantics
 
-**Output:**
-```
-[8, 6, 5, 4, 3, 2, 1, -7, -9]
-```
-
-List Method sort는 리스트 자체를 inplace로 소트합니다.
-inplace로 소트한다는 표시로 None을 return합니다.
+The `sort()` method modifies the list **in place** and returns `None` -- not the sorted list. This is a deliberate design choice in Python: methods that mutate their object return `None` to signal that the original was changed.
 
 ```python
 a = [9, 1, 8, 2, 7, 3, 6, 4, 5]
-a = a.sort() 
-print(a)
+result = a.sort()
+print(result)  # None
+print(a)       # [1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
 **Output:**
 ```
 None
+[1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
-# Reference
+!!! warning "Common Mistake"
+    Writing `a = a.sort()` replaces the sorted list with `None`. If you need a new sorted list while keeping the original unchanged, use the built-in function `sorted(a)` instead, which returns a new list.
 
-[Corey Schafer](https://www.youtube.com/watch?v=D3JvDWO-BY4&index=20&list=PL-osiE80TeTt2d9bfVyTiXJA-UTHn6WwU)
+## sort() vs sorted()
+
+| Feature | `list.sort()` | `sorted(iterable)` |
+|:---|:---|:---|
+| Returns | `None` | New sorted list |
+| Modifies original | Yes (in place) | No |
+| Works on | Lists only | Any iterable |
+
+## Implementation Details
+
+Python's `sort()` uses **Timsort**, a hybrid algorithm combining merge sort and insertion sort. Timsort runs in $O(n \log n)$ worst-case time and $O(n)$ best-case time (when the input is already partially sorted). It is **stable**, meaning equal elements retain their original relative order.
+
+## References
+
+[Corey Schafer -- Sorting Lists, Tuples, and Objects](https://www.youtube.com/watch?v=D3JvDWO-BY4)
