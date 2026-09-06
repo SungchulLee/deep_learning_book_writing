@@ -165,3 +165,43 @@ Both the centralized Bellman-Ford and the distributed RIP simulation produce ide
 
 - Hedrick, C. "Routing Information Protocol." RFC 1058, 1988
 - Cormen, T.H., Leiserson, C.E., Rivest, R.L., and Stein, C. *Introduction to Algorithms*. MIT Press
+
+## Exercises
+
+**Exercise 1.**
+Trace the Bellman-Ford algorithm in RIP for a 4-router network: A-B(1), B-C(2), A-C(10), C-D(1). Show the distance table at each iteration until convergence.
+
+??? success "Solution to Exercise 1"
+    Iteration 0: A=[A:0, B:$\infty$, C:$\infty$, D:$\infty$], B=[A:$\infty$, B:0, C:$\infty$, D:$\infty$], C similarly, D similarly. Iteration 1 (each router shares with neighbors): A learns B=1, C=10. B learns A=1, C=2. C learns A=10, B=2, D=1. D learns C=1. Iteration 2: A learns C=min(10, 1+2)=3 via B. B learns D=min($\infty$, 2+1)=3 via C. D learns B=min($\infty$, 1+2)=3 via C, A=min($\infty$, 1+3)=4 via C. Iteration 3: A learns D=min($\infty$, 1+3)=4 via B. Converged: A's table: B=1, C=3, D=4. All via shortest paths. $\square$
+
+---
+
+**Exercise 2.**
+Explain the "count to infinity" problem in RIP and describe two techniques used to mitigate it.
+
+??? success "Solution to Exercise 2"
+    When a link fails, routers may slowly increment their distance estimates through circular updates. Example: A-B connected, B-C connected, A-C fails. C's distance to A becomes $\infty$, but B still advertises distance 2 to A. C updates to 3, B updates to 4, and so on until both reach 16 (RIP's infinity). This takes many iterations at 30-second intervals -- potentially minutes. Mitigations: (1) **Split horizon**: a router does not advertise a route back to the neighbor from which it learned the route. This prevents B from telling C about a route to A that goes through C. (2) **Poison reverse**: instead of omitting the route, advertise it with metric $\infty$ (16). This explicitly tells the neighbor the route is unreachable via this path. Together, these techniques prevent two-node loops but may not prevent larger loops. **Triggered updates** (send updates immediately on changes rather than waiting 30 seconds) also speed convergence. $\square$
+
+---
+
+**Exercise 3.**
+RIP uses a maximum hop count of 15 (16 = infinity). Prove that Bellman-Ford converges in at most $|V| - 1$ iterations and explain why the hop limit restricts network diameter.
+
+??? success "Solution to Exercise 3"
+    In a graph with $|V|$ vertices, any shortest path has at most $|V| - 1$ edges (a simple path visits each vertex at most once). Bellman-Ford relaxes all edges in each iteration. After iteration $k$, the algorithm has found all shortest paths using at most $k$ edges. After $|V| - 1$ iterations, all shortest paths (of any length) are found. With RIP's limit of 15, any destination more than 15 hops away is considered unreachable. This restricts the network diameter to 15. For networks with more than 15 routers in a chain, RIP cannot compute correct routes. This is a fundamental limitation of RIP and is the primary reason it was replaced by OSPF for large networks. The limit also serves as a practical safeguard against count-to-infinity: the maximum "counting" is from some value to 16, not to true infinity. $\square$
+
+---
+
+**Exercise 4.**
+Compare the message complexity of RIP and OSPF. How many bytes per second does each protocol consume on a network with 100 routers and 200 links?
+
+??? success "Solution to Exercise 4"
+    **RIP**: each router sends its full routing table (up to 25 entries per UDP packet, 20 bytes per entry) to all neighbors every 30 seconds. With 100 destinations, each router sends $\lceil 100/25 \rceil = 4$ packets ($\sim$2 KB) every 30 seconds. With average degree 4 (200 links / 100 routers $\times$ 2): each router sends to 4 neighbors, totaling $4 \times 2 = 8$ KB per 30 seconds $= 267$ bytes/sec per router. Network-wide: $\sim$26.7 KB/sec. **OSPF**: in steady state, only Hello packets are sent (every 10 seconds, $\sim$48 bytes per link). With 200 links: $200 \times 48 / 10 = 960$ bytes/sec. LSA refreshes occur every 30 minutes (negligible). On topology changes, LSA flooding adds brief bursts. OSPF uses less bandwidth in steady state but more during topology changes. $\square$
+
+---
+
+**Exercise 5.**
+A small office network has 5 routers connected in a ring. Compare how long RIP and OSPF take to converge after the network starts from scratch.
+
+??? success "Solution to Exercise 5"
+    **RIP**: distance vectors propagate one hop per update cycle. With a ring of 5 routers (diameter 2), convergence requires 2 iterations. At 30-second intervals: 60 seconds minimum. In practice, updates are not synchronized, so convergence takes 60--90 seconds. The ring topology has no count-to-infinity issue during initial convergence (only on failures). **OSPF**: each router floods its LSA upon startup. With 5 routers and a ring topology, flooding completes in $\sim$2 hop delays ($\sim$100 ms). Each router then runs Dijkstra on the 5-node, 5-edge graph ($< 1$ ms). Total convergence: $\sim$1 second. OSPF converges 60x faster. For this tiny network, the difference is noticeable but not critical. For larger networks, OSPF's advantage becomes essential (RIP would take minutes while OSPF converges in seconds). $\square$

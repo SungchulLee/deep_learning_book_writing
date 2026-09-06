@@ -1,62 +1,45 @@
-# Subset Sum
+# 부분 모임 합
 
-The subset sum problem asks whether a given set of integers contains a subset whose
-elements sum to a specified target.  It is one of Karp's 21 NP-complete problems
-and appears frequently as a sub-problem in scheduling, cryptography, and resource
-allocation.  Backtracking solves it by making an include-or-exclude decision for
-each element, with two powerful pruning rules that dramatically reduce the search
-space compared to brute-force enumeration of all $2^n$ subsets.
+부분 모임 합 문제는 주어진 정수 모임에 원소의 합이 정해진 목표가 되는 부분 모임이 있는지 묻는다. 카프의 21가지 NP 완전 문제 가운데 하나이며 차례 짜기, 암호, 자원 나누기에서 아래 문제로 자주 나온다. 되짚기는 원소마다 넣거나 빼는 결정을 해서 이를 풀며, 힘 있는 가지치기 규칙 둘이 $2^n$개 부분 모임을 다 세는 막무가내에 견주어 찾기 공간을 크게 줄인다.
 
-## Problem Statement
+## 문제 서술
 
-**Input.** A set of $n$ positive integers $S = \{a_1, a_2, \ldots, a_n\}$ and a
-target value $T > 0$.
+**들임.** 양의 정수 $n$개의 모임 $S = \{a_1, a_2, \ldots, a_n\}$과 목표 값 $T > 0$.
 
-**Output.** A subset $A \subseteq S$ such that $\sum_{a \in A} a = T$, or a report
-that no such subset exists.
+**내놓기.** $\sum_{a \in A} a = T$인 부분 모임 $A \subseteq S$, 또는 그런 부분 모임이 없다는 알림.
 
-!!! info "Positive integers assumption"
+!!! info "양의 정수라는 가정"
 
-    Restricting to positive integers enables the "over-target" pruning rule below.
-    The general problem with arbitrary (possibly negative) integers is also
-    NP-complete, but the pruning analysis changes.
+    양의 정수로 좁히면 아래의 "목표 넘음" 가지치기 규칙을 쓸 수 있다. 아무(음수일 수도 있는) 정수를 다루는 두루 쓰는 문제도 NP 완전이지만 가지치기 분석이 달라진다.
 
-## Backtracking Formulation
+## 되짚기로 세우기
 
-### State Space Tree
+### 상태 공간 나무
 
-- **Decision $i$** ($i = 1, \ldots, n$): include $a_i$ in the subset
-  ($x_i = 1$) or exclude it ($x_i = 0$).
-- **Branching factor**: 2 at every level.
-- **Full tree**: $2^n$ leaves, each corresponding to a distinct subset.
+- **결정 $i$**($i = 1, \ldots, n$): $a_i$을 부분 모임에 넣거나($x_i = 1$) 뺀다($x_i = 0$).
+- **갈래 수**: 층마다 2.
+- **온전한 나무**: 잎이 $2^n$개이며 저마다 서로 다른 부분 모임에 맞닿는다.
 
-### Feasibility Checks (Pruning)
+### 될 수 있는지 살피기(가지치기)
 
-Let $\text{sum}_k = \sum_{i=1}^{k} x_i \, a_i$ be the running sum after the first
-$k$ decisions, and let $\text{remaining}_k = \sum_{i=k+1}^{n} a_i$ be the sum of
-elements not yet decided.
+$\text{sum}_k = \sum_{i=1}^{k} x_i \, a_i$을 앞선 $k$번 결정 뒤의 흐르는 합, $\text{remaining}_k = \sum_{i=k+1}^{n} a_i$을 아직 정하지 않은 원소의 합이라 하자.
 
-Two pruning conditions apply:
+가지치기 조건이 둘 있다:
 
-1. **Over-target**: if $\text{sum}_k > T$, prune.  Adding more positive integers
-   can only increase the sum further.
+1. **목표 넘음**: $\text{sum}_k > T$이면 쳐 낸다. 양의 정수를 더 넣으면 합이 커질 뿐이다.
 
-2. **Under-target**: if $\text{sum}_k + \text{remaining}_k < T$, prune.  Even
-   including all remaining elements cannot reach the target.
+2. **목표에 못 미침**: $\text{sum}_k + \text{remaining}_k < T$이면 쳐 낸다. 남은 원소를 모두 넣어도 목표에 이를 수 없다.
 
-Both conditions are evaluated in $O(1)$ when a precomputed suffix-sum array is
-available.
+뒷합 배열을 미리 셈해 두면 두 조건 모두 $O(1)$에 따진다.
 
-### Sorting Heuristic
+### 정렬 어림짐작
 
-Sorting the elements in **decreasing order** before searching provides two benefits:
+찾기 앞서 원소를 **큰 차례로** 정렬하면 좋은 점이 둘 있다:
 
-1. The over-target prune triggers earlier because large elements push the running
-   sum past $T$ quickly.
-2. The under-target prune also triggers earlier because the suffix sums decrease
-   faster.
+1. 큰 원소가 흐르는 합을 $T$ 너머로 빨리 밀어 목표 넘음 가지치기가 더 일찍 걸린다.
+2. 뒷합이 더 빨리 줄어 목표에 못 미침 가지치기도 더 일찍 걸린다.
 
-## Algorithm
+## 알고리즘
 
 ```
 SUBSET_SUM(i, current_sum, target, suffix_sum):
@@ -84,29 +67,29 @@ SUBSET_SUM(i, current_sum, target, suffix_sum):
     return False
 ```
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Subset sum solver using backtracking with over-target and under-target pruning.
+목표 넘음과 목표에 못 미침 가지치기를 곁들인 되짚기 부분 모임 합 풀개.
 
-Given a set of positive integers and a target, finds a subset that sums
-to the target (or reports that none exists).
+양의 정수 모임과 목표가 주어질 때 합이 목표가 되는 부분 모임을 찾거나
+없다고 알린다.
 """
 
 
-# === Solver ===================================================================
+# === 풀개 ===================================================================
 
 def subset_sum(numbers, target):
-    """Find a subset of *numbers* that sums to *target*.
+    """합이 *target*이 되는 *numbers*의 부분 모임을 찾는다.
 
-    Returns the subset as a list, or None if no solution exists.
-    Elements are assumed to be positive integers.
+    부분 모임을 목록으로 돌려주고, 풀이가 없으면 None을 돌려준다.
+    원소는 양의 정수라고 가정한다.
     """
     nums = sorted(numbers, reverse=True)
     n = len(nums)
 
-    # Precompute suffix sums for the under-target prune
+    # 목표에 못 미침 가지치기를 위해 뒷합을 미리 셈한다
     suffix = [0] * (n + 1)
     for i in range(n - 1, -1, -1):
         suffix[i] = suffix[i + 1] + nums[i]
@@ -118,18 +101,18 @@ def subset_sum(numbers, target):
             return True
         if i == n:
             return False
-        if current > target:                # over-target prune
+        if current > target:                # 목표 넘음 가지치기
             return False
-        if current + suffix[i] < target:    # under-target prune
+        if current + suffix[i] < target:    # 목표에 못 미침 가지치기
             return False
 
-        # Include nums[i]
+        # nums[i]을 넣는다
         result.append(nums[i])
         if backtrack(i + 1, current + nums[i]):
             return True
         result.pop()
 
-        # Exclude nums[i]
+        # nums[i]을 뺀다
         if backtrack(i + 1, current):
             return True
 
@@ -140,10 +123,10 @@ def subset_sum(numbers, target):
     return None
 
 
-# === Find all solutions ======================================================
+# === 풀이를 모두 찾기 ======================================================
 
 def subset_sum_all(numbers, target):
-    """Find all subsets of *numbers* that sum to *target*."""
+    """합이 *target*이 되는 *numbers*의 부분 모임을 모두 찾는다."""
     nums = sorted(numbers, reverse=True)
     n = len(nums)
 
@@ -157,7 +140,7 @@ def subset_sum_all(numbers, target):
     def backtrack(i, current):
         if current == target:
             solutions.append(current_subset[:])
-            return                      # do not return early — find all
+            return                      # 일찍 돌아가지 않는다 — 모두 찾는다
         if i == n:
             return
         if current > target:
@@ -165,19 +148,19 @@ def subset_sum_all(numbers, target):
         if current + suffix[i] < target:
             return
 
-        # Include nums[i]
+        # nums[i]을 넣는다
         current_subset.append(nums[i])
         backtrack(i + 1, current + nums[i])
         current_subset.pop()
 
-        # Exclude nums[i]
+        # nums[i]을 뺀다
         backtrack(i + 1, current)
 
     backtrack(0, 0)
     return solutions
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     numbers = [3, 7, 1, 8, 4, 12, 5]
@@ -198,7 +181,7 @@ if __name__ == "__main__":
         print(f"  {s}  (sum = {sum(s)})")
 ```
 
-**Output:**
+**출력:**
 ```
 Numbers: [3, 7, 1, 8, 4, 12, 5]
 Target:  15
@@ -213,39 +196,65 @@ All solutions (5 total):
   [7, 4, 3, 1]  (sum = 15)
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Time complexity.** In the worst case, both pruning rules fail to eliminate any
-branches, and the algorithm visits all $2^n$ leaves:
+**시간 복잡도.** 최악의 경우 두 가지치기 규칙 모두 어떤 갈래도 없애지 못해 알고리즘이 $2^n$개 잎을 모두 들른다:
 
 $$
 T(n) = O(2^n)
 $$
 
-With the sorting heuristic and both pruning rules active, the practical running
-time is much lower for most instances.  However, no polynomial-time algorithm is
-known (the problem is NP-complete).
+정렬 어림짐작과 두 가지치기 규칙을 함께 쓰면 대개의 경우 실제로 도는 시간이 훨씬 짧다. 다만 다항 시간 알고리즘은 알려져 있지 않다(이 문제는 NP 완전이다).
 
-**Space complexity.** The recursion depth is $n$, and the suffix-sum array uses
-$O(n)$ space.  Total space is $O(n)$.
+**공간 복잡도.** 되돌이 깊이가 $n$이고 뒷합 배열이 $O(n)$ 공간을 쓴다. 전체 공간은 $O(n)$이다.
 
-## Comparison with Dynamic Programming
+## 동적 계획과의 견줌
 
-When the target $T$ is not too large, the subset sum problem admits a
-pseudo-polynomial-time dynamic programming solution with time $O(nT)$ and space
-$O(T)$.  The backtracking approach is preferable when:
+목표 $T$이 그리 크지 않으면 부분 모임 합 문제는 시간 $O(nT)$, 공간 $O(T)$인 유사 다항 시간 동적 짜기 풀이가 있다. 되짚기 방식은 다음일 때 낫다:
 
-- $T$ is very large (the DP table would be too big).
-- Only one solution is needed (backtracking can stop after finding the first).
-- The pruning rules are effective (many branches are cut early).
+- $T$이 아주 클 때(동적 짜기 표가 너무 커진다).
+- 풀이 하나만 필요할 때(되짚기는 처음 하나를 찾고 멈출 수 있다).
+- 가지치기 규칙이 잘 들 때(갈래가 일찍 많이 잘린다).
 
-| Method | Time | Space | Best when |
+| 방법 | 시간 | 공간 | 언제 가장 좋은가 |
 |--------|------|-------|-----------|
-| Backtracking | $O(2^n)$ worst | $O(n)$ | Small $n$, large $T$, strong pruning |
-| DP | $O(nT)$ | $O(T)$ | Moderate $n$ and $T$ |
+| 되짚기 | 최악 $O(2^n)$ | $O(n)$ | $n$이 작고 $T$이 크며 가지치기가 셀 때 |
+| 동적 짜기 | $O(nT)$ | $O(T)$ | $n$과 $T$이 웬만할 때 |
 
-## Reference
+## 참고 문헌
 
 - Karp, "Reducibility among Combinatorial Problems," 1972
-- Skiena, *The Algorithm Design Manual*, Chapter 9: Combinatorial Search,
+- Skiena, *The Algorithm Design Manual*, 9장: Combinatorial Search,
   [algorist.com](https://www.algorist.com/)
+
+## 연습문제
+
+**연습문제 1.**
+부분 모임 합의 고갱이 생각과 그것이 풀이 공간을 어떻게 짜임새 있게 살피는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    부분 모임 합은 풀이 공간을 나무로 보고 살피며 마디마다 어중간한 풀이를 뜻한다. 마디마다 알고리즘은 어중간한 풀이를 넓히고 될 수 있는지 제약을 살핀다. 어중간한 풀이가 제약을 어기거나 (가장 좋거나 옳은 온전한 풀이로 이어질 수 없음이 밝혀지면) 알고리즘은 **가지를 쳐**(되짚어) 그 아래 나무 전체를 살피지 않는다. 가지치기가 찾기 공간의 큰 몫을 없애므로 막무가내보다 효율이 좋다. $\square$
+
+---
+
+**연습문제 2.**
+부분 모임 합의 최악의 경우 시간 복잡도는 무엇인가? 가지치기는 언제 찾기 공간을 크게 줄이는가?
+
+??? success "연습문제 2 풀이"
+    최악의 경우(가지치기가 없으면) 알고리즘이 풀이 공간 전체를 살피며 이는 흔히 지수나 계승이다. 곧 갈래 수가 $b$이고 깊이가 $d$이면 $O(b^d)$, 자리 바꿈 문제이면 $O(n!)$이다. 가지치기는 다음일 때 찾기를 크게 줄인다. (1) 제약이 빡빡해 될 수 없는 갈래가 많을 때, (2) 좋은 묶음이 갈래를 일찍 없앨 때, (3) 차례를 매기는 어림짐작이 그럴듯한 갈래를 먼저 살필 때이다. 실전에서 가지치기는 도는 시간을 자릿수만큼 줄일 수 있다. $\square$
+
+---
+
+**연습문제 3.**
+부분 모임 합의 가지치기 조건을 적어라. 무엇이 좋은 가지치기 잣대를 만드는가?
+
+??? success "연습문제 3 풀이"
+    가지치기 잣대는 어중간한 풀이를 언제 버릴지 정한다. 좋은 잣대는 다음과 같다. (1) **될 수 있음**: 어중간한 풀이가 이미 제약을 어긴다. (2) **묶음**: 어중간한 풀이를 가장 좋게 마무리해도 여태 가장 좋은 풀이보다 나을 수 없다. (3) **누름**: 다른 어중간한 풀이가 적어도 그만큼 좋음이 밝혀진다. 잘 듣는 가지치기 잣대는 따지기 값싸고 큰 아래 나무를 없앤다. $\square$
+
+---
+
+**연습문제 4.**
+작은 경우에 부분 모임 합을 짜고 살핀 마디의 수를 전체 찾기 공간의 크기와 견주어 세어라.
+
+??? success "연습문제 4 풀이"
+    작은 경우(예컨대 N-여왕에서 $n = 8$, 배낭에서 담이 20)에는 전체 찾기 공간에 마디가 수백만 개일 수 있지만 가지치기가 잘 들면 수천 개만 살핀다. (살핀 수 / 전체) 비가 가지치기가 얼마나 잘 드는지 값으로 나타낸다. 제약이 잘 걸린 문제에서는 이 비가 1% 아래일 수 있어 되짚기가 막무가내보다 힘이 셈을 보여 준다. $\square$

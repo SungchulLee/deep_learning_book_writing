@@ -1,36 +1,36 @@
-# Min Stack
+# 최솟값 스택
 
-A standard stack supports push, pop, and peek in $O(1)$ time, but finding the minimum element requires scanning all elements in $O(n)$ time. In many applications --- priority-aware undo systems, sliding window minimum problems, stock price monitoring --- we need to retrieve the current minimum instantly. The **min stack** augments a standard stack so that `get_min` also runs in $O(1)$ time, at the cost of $O(n)$ additional space. This page describes the auxiliary stack technique, proves its correctness, and explores a space-optimized variant.
+보통의 스택은 push, pop, peek을 $O(1)$ 시간에 지원하지만, 최솟값을 찾으려면 모든 원소를 훑어야 하므로 $O(n)$이 든다. 우선순위를 아는 되돌리기 시스템, 미끄럼창 최솟값 문제, 주가 감시 같은 여러 응용에서는 현재의 최솟값을 즉시 알아야 한다. **최솟값 스택**은 보통의 스택을 보강하여 `get_min`도 $O(1)$ 시간에 되게 하되 $O(n)$의 추가 공간을 쓴다. 이 쪽은 보조 스택 기법을 설명하고, 그 올바름을 증명하며, 공간을 아낀 변형도 살펴본다.
 
-## The Problem
+## 문제
 
-Design a stack that supports four operations, each in $O(1)$ time:
+다음 네 연산을 각각 $O(1)$ 시간에 지원하는 스택을 설계하라.
 
-| Operation | Description |
+| 연산 | 설명 |
 |-----------|-------------|
-| `push(x)` | Push element $x$ onto the stack |
-| `pop()` | Remove and return the top element |
-| `peek()` | Return the top element without removing it |
-| `get_min()` | Return the minimum element in the stack |
+| `push(x)` | 원소 $x$을 스택에 넣는다 |
+| `pop()` | 꼭대기 원소를 빼서 돌려준다 |
+| `peek()` | 꼭대기 원소를 빼지 않고 돌려준다 |
+| `get_min()` | 스택의 최솟값을 돌려준다 |
 
-The challenge is `get_min`: in a standard stack, the minimum might be buried anywhere, and there is no $O(1)$ way to locate it without auxiliary information.
+어려운 것은 `get_min`이다. 보통의 스택에서는 최솟값이 어디에 묻혀 있을지 모르고, 보조 정보 없이는 그것을 $O(1)$에 찾을 방법이 없다.
 
-## Auxiliary Stack Approach
+## 보조 스택 방식
 
-The key idea is to maintain a second stack --- the **min stack** --- that tracks the running minimum. The min stack has the same height as the main stack, and its top element is always the current minimum of the main stack.
+핵심 착상은 진행 중인 최솟값을 따라가는 두 번째 스택, 곧 **최솟값 스택**을 함께 두는 것이다. 최솟값 스택은 주 스택과 높이가 같고, 그 꼭대기 원소는 언제나 주 스택의 현재 최솟값이다.
 
-**Push rule**: when pushing $x$, also push $\min(x, \text{min\_stack.top})$ onto the min stack.
+**넣기 규칙**: $x$을 넣을 때 최솟값 스택에는 $\min(x, \text{min\_stack.top})$을 넣는다.
 
-**Pop rule**: when popping from the main stack, also pop from the min stack.
+**빼기 규칙**: 주 스택에서 뺄 때 최솟값 스택에서도 뺀다.
 
-**Get-min rule**: return the top of the min stack.
+**최솟값 얻기 규칙**: 최솟값 스택의 꼭대기를 돌려준다.
 
-This works because the minimum of the first $k$ elements is fully determined by the minimum of the first $k-1$ elements and the $k$-th element. Popping an element removes it from consideration, and the min stack automatically reverts to the previous minimum.
+처음 $k$개 원소의 최솟값이 처음 $k-1$개의 최솟값과 $k$번째 원소만으로 온전히 정해지므로 이 방법이 통한다. 원소를 빼면 그것은 고려에서 빠지고 최솟값 스택은 저절로 이전 최솟값으로 되돌아간다.
 
-??? example "Worked Example"
-    Push sequence: 5, 3, 7, 2, 8
+??? example "풀이 예"
+    넣는 순서: 5, 3, 7, 2, 8
 
-    | Operation | Main Stack | Min Stack | `get_min()` |
+    | 연산 | 주 스택 | 최솟값 스택 | `get_min()` |
     |-----------|-----------|-----------|-------------|
     | `push(5)` | `[5]` | `[5]` | 5 |
     | `push(3)` | `[5, 3]` | `[5, 3]` | 3 |
@@ -40,61 +40,61 @@ This works because the minimum of the first $k$ elements is fully determined by 
     | `pop()` → 8 | `[5, 3, 7, 2]` | `[5, 3, 3, 2]` | 2 |
     | `pop()` → 2 | `[5, 3, 7]` | `[5, 3, 3]` | 3 |
 
-    After popping 2, the minimum correctly reverts to 3.
+    2를 뺀 뒤 최솟값이 올바르게 3으로 되돌아간다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Min stack — a stack that supports O(1) push, pop, peek, and get_min.
+최솟값 스택 — push, pop, peek, get_min을 모두 O(1)에 지원하는 스택.
 
-Uses an auxiliary stack to track the running minimum at each level.
+보조 스택으로 각 층의 진행 중인 최솟값을 따라간다.
 """
 
 
-# === Min Stack with Auxiliary Stack ===========================================
+# === 보조 스택을 쓰는 최솟값 스택 ===========================================
 
 class MinStack:
-    """Stack supporting O(1) minimum queries via an auxiliary min stack."""
+    """보조 최솟값 스택으로 최솟값 질의를 O(1)에 지원하는 스택."""
 
     def __init__(self):
         self._main = []
         self._mins = []
 
     def push(self, x):
-        """Push x and update the running minimum."""
+        """x를 넣고 진행 중인 최솟값을 갱신한다."""
         self._main.append(x)
         current_min = min(x, self._mins[-1]) if self._mins else x
         self._mins.append(current_min)
 
     def pop(self):
-        """Pop and return the top element, updating the minimum."""
+        """꼭대기 원소를 빼서 돌려주고 최솟값을 갱신한다."""
         if not self._main:
             raise IndexError("pop from empty stack")
         self._mins.pop()
         return self._main.pop()
 
     def peek(self):
-        """Return the top element without removing it."""
+        """꼭대기 원소를 빼지 않고 돌려준다."""
         if not self._main:
             raise IndexError("peek from empty stack")
         return self._main[-1]
 
     def get_min(self):
-        """Return the minimum element in O(1) time."""
+        """최솟값을 O(1) 시간에 돌려준다."""
         if not self._mins:
             raise IndexError("get_min from empty stack")
         return self._mins[-1]
 
     def is_empty(self):
-        """Return True if the stack is empty."""
+        """스택이 비어 있으면 True를 돌려준다."""
         return len(self._main) == 0
 
     def __repr__(self):
         return f"MinStack(main={self._main}, mins={self._mins})"
 
 
-# === Demonstration ============================================================
+# === 시연 ============================================================
 
 if __name__ == "__main__":
     ms = MinStack()
@@ -121,7 +121,7 @@ if __name__ == "__main__":
             print(f"{label:<15s} {str(ms._main):<25s} {str(ms._mins):<25s} {'N/A':>5}")
 ```
 
-**Output:**
+**출력:**
 ```
 Operation       Main Stack                Min Stack                   Min
 ------------------------------------------------------------------------
@@ -137,36 +137,69 @@ pop() → 1       [5, 3, 7]                 [5, 3, 3]                     3
 pop() → 7       [5, 3]                    [5, 3]                        3
 ```
 
-The min stack correctly tracks the minimum through all push and pop operations, reverting to the previous minimum whenever the current minimum is removed.
+최솟값 스택은 모든 넣기와 빼기를 거치며 최솟값을 올바르게 따라가고, 현재 최솟값이 빠지면 이전 최솟값으로 되돌아간다.
 
-## Correctness
+## 올바름
 
-!!! info "Invariant"
-    After every operation, `_mins[k]` equals the minimum of `_main[0], _main[1], ..., _main[k]` for all valid indices $k$.
+!!! info "불변식"
+    어떤 연산 뒤에도 유효한 모든 인덱스 $k$에 대해 `_mins[k]`은 `_main[0], _main[1], ..., _main[k]`의 최솟값과 같다.
 
-**Proof by induction on the number of operations.**
+**연산의 횟수에 대한 귀납법으로 증명한다.**
 
-*Base case*: after the first `push(x)`, `_main = [x]` and `_mins = [x]`, so `_mins[0] = min(x) = x`.
+*기저 사례*: 첫 `push(x)` 뒤에 `_main = [x]`, `_mins = [x]`이므로 `_mins[0] = min(x) = x`이다.
 
-*Inductive step (push)*: suppose the invariant holds for a stack of height $k$. When we push $x$, we set `_mins[k] = min(x, _mins[k-1])`. Since `_mins[k-1]` is the minimum of the first $k$ elements (by hypothesis), `_mins[k] = min(x, min of first k) = min of first k+1` elements.
+*귀납 단계 (넣기)*: 높이가 $k$인 스택에서 불변식이 성립한다고 하자. $x$을 넣을 때 `_mins[k] = min(x, _mins[k-1])`으로 둔다. 가정에 의해 `_mins[k-1]`이 처음 $k$개의 최솟값이므로, `_mins[k]`은 $x$과 처음 $k$개의 최솟값 가운데 작은 값, 곧 처음 $k+1$개의 최솟값이 된다.
 
-*Inductive step (pop)*: removing the top element from both `_main` and `_mins` restores both to their state before the last push, where the invariant held.
+*귀납 단계 (빼기)*: `_main`과 `_mins`에서 꼭대기 원소를 없애면 둘 다 마지막 넣기 직전의 상태로 되돌아가는데, 그때 불변식이 성립했다.
 
-## Space-Optimized Variant
+## 공간을 아낀 변형
 
-The auxiliary stack doubles memory usage. A space-optimized approach pushes onto the min stack only when the new element is less than or equal to the current minimum. On pop, the min stack is popped only if the popped element equals `_mins[-1]`. This saves space when there are many elements larger than the current minimum, though worst-case space remains $O(n)$.
+보조 스택은 메모리 사용을 두 배로 늘린다. 공간을 아끼는 방식은 새 원소가 현재 최솟값보다 작거나 같을 때에만 최솟값 스택에 넣는다. 뺄 때에는 뺀 원소가 `_mins[-1]`과 같을 때에만 최솟값 스택에서 뺀다. 현재 최솟값보다 큰 원소가 많을 때 공간을 아끼지만 최악의 경우 공간은 여전히 $O(n)$이다.
 
-## Complexity Summary
+## 복잡도 요약
 
-| Operation | Time | Space (total) |
+| 연산 | 시간 | 공간 (전체) |
 |-----------|------|---------------|
 | `push(x)` | $O(1)$ | $O(n)$ |
 | `pop()` | $O(1)$ | $O(n)$ |
 | `peek()` | $O(1)$ | $O(n)$ |
 | `get_min()` | $O(1)$ | $O(n)$ |
 
-All operations are $O(1)$ time. The $O(n)$ space accounts for both the main stack and the auxiliary min stack.
+모든 연산이 $O(1)$ 시간이다. $O(n)$ 공간은 주 스택과 보조 최솟값 스택을 합한 것이다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+최솟값 스택의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+최솟값 스택을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+최솟값 스택을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+최솟값 스택을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

@@ -1,309 +1,338 @@
-# Attention-Based Recommender Systems
+# 눈길 바탕 추천 시스템
+## 들어가며
 
+눈길 얼개 덕에 신경망 추천 시스템은 추천을 만들 때 쓰는 이의 지난 일, 물건 특징, 맥락 앎 가운데 가장 알맞은 곳에 집중할 수 있다. 지난 주고받음을 모두 같게 다루는 대신, 눈길 바탕 시스템은 지난 물건 가운데 어느 것이 지금 추천에 가장 큰 영향을 주는지 그때그때 무게를 배운다. 덕분에 차례를 이룬 쓰는 이의 움직임에서 멀리 떨어진 매임을 담고 길이가 제각각인 차례도 효율 좋게 다룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+계량 금융에서 눈길 얼개는 한결같지 않은 쓰는 이의 취향과 시장 국면을 담는 데 특히 값지다. 성장주를 좋아하는 마음이 오름장에서는 짙어지고 내림장에서는 옅어질 수 있다. 지난 보유, 최근 거래, 지금 시장 형편에 눈길을 두면 추천 시스템이 바뀌는 맥락에 그때그때 맞춰 갈 수 있다.
 
-## Introduction
+이 마디는 추천을 위한 눈길 얼개를 세우고 눈길과 함께 거르기를 아우른 얼개를 살피며 금융 쓰임새를 보인다.
 
-Attention mechanisms enable neural recommender systems to focus on the most relevant aspects of user history, item features, and contextual information when generating recommendations. Rather than treating all historical interactions equally, attention-based systems learn dynamic weights indicating which past items most influence current recommendations. This enables capturing long-range dependencies in sequential user behavior and handling variable-length sequences efficiently.
+## 핵심 개념
 
-In quantitative finance, attention mechanisms prove particularly valuable for capturing non-stationary user preferences and market regimes: an investor's preference for growth stocks may intensify during bull markets while losing salience during downturns. Attention over historical holdings, recent trades, and current market conditions allows recommendation systems to adapt dynamically to changing contexts.
+### 눈길의 바탕
+- **묻기**: 지금의 추천 맥락(누구에게, 어떤 맥락에서)
+- **열쇠/값**: 지난 앎(지난 삼, 물건 특징)
+- **눈길 무게**: 열쇠마다의 알맞음을 나타내는 배운 점수
+- **내놓기**: 눈길이 이끄는 값의 무게 모으기
 
-This section develops attention mechanisms for recommendation, explores architectures combining attention with collaborative filtering, and demonstrates financial applications.
+### 추천의 눈길 갈래
+- **물건 눈길**: 지난 물건 가운데 어느 것이 지금 취향에 영향을 주는가
+- **차례 눈길**: 차례의 어느 자리가 가장 중요한가
+- **특징 눈길**: 물건의 어느 특징이 가장 알맞은가
+- **엇갈린 눈길**: 쓰는 이와 물건의 주고받음
 
-## Key Concepts
+## 수학적 틀
 
-### Attention Fundamentals
-- **Query**: Current recommendation context (who to recommend to, what context)
-- **Key/Value**: Historical information (past purchases, item features)
-- **Attention Weights**: Learned scores indicating relevance of each key
-- **Output**: Weighted aggregation of values guided by attention
+### 기본 눈길 얼개
 
-### Attention Types for Recommendations
-- **Item Attention**: Which historical items influence current preference
-- **Sequential Attention**: Which position in sequence most important
-- **Feature Attention**: Which item features most relevant
-- **Cross-Attention**: Interaction between users and items
-
-## Mathematical Framework
-
-### Basic Attention Mechanism
-
-For query q, keys K, and values V:
+묻기 q, 열쇠 K, 값 V에 대해:
 
 $$\text{Attention}(q, K, V) = \text{softmax}\left(\frac{q K^T}{\sqrt{d}}\right) V$$
 
-Attention weights:
+눈길 무게:
 
 $$\alpha_i = \frac{\exp(q \cdot k_i / \sqrt{d})}{\sum_j \exp(q \cdot k_j / \sqrt{d})}$$
 
-Output: Weighted combination of values:
+내놓기: 값의 무게 합:
 
 $$\text{Output} = \sum_i \alpha_i v_i$$
 
-### Multi-Head Attention
+### 여러 머리 눈길
 
-Attend to multiple aspects simultaneously:
+여러 면을 한꺼번에 살핀다:
 
 $$\text{MultiHead}(q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h) W^O$$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$\text{head}_i = \text{Attention}(q W_i^Q, K W_i^K, V W_i^V)$$
 
-Each head learns different aspects (e.g., short-term vs long-term preferences).
+머리마다 다른 면을 배운다(보기로 짧은 때 취향과 긴 때 취향).
 
-### Self-Attention for Sequences
+### 차례를 위한 스스로 눈길
 
-Attend within sequence itself:
+차례 안에서 서로를 살핀다:
 
 $$q = K = V = \text{Item embeddings}$$
 
-Enables item-to-item attention, modeling how past items influence each other.
+물건끼리의 눈길을 가능하게 해 지난 물건들이 서로 어떻게 영향을 주는지 나타낸다.
 
-### Cross-Attention for User-Item Matching
+### 쓰는 이와 물건 맞추기를 위한 엇갈린 눈길
 
-User (query) attends to items (keys/values):
+쓰는 이(묻기)가 물건(열쇠/값)을 살핀다:
 
 $$q = \text{user embedding}, K = V = \text{item embeddings}$$
 
-Computes relevance of each item to user.
+물건마다 쓰는 이에게 얼마나 알맞은지 셈한다.
 
-## Attention-Based Recommender Architectures
+## 눈길 바탕 추천 얼개
 
-### Sequential Attention for Purchase History
+### 삼의 지난 일을 위한 차례 눈길
 
-Learn temporal dynamics of user preferences via attention over purchase sequence:
+삼의 차례에 눈길을 두어 쓰는 이 취향의 때 흐름을 배운다:
 
-1. **Embed historical items**: $h_t = \text{embed}(i_t)$ for purchases $i_1, \ldots, i_T$
-2. **Compute attention**: Query (current context) attends to historical embeddings
-3. **Output**: Weighted historical context, combined with item embeddings
+1. **지난 물건 박아 넣기**: 삼 $i_1, \ldots, i_T$에 대해 $h_t = \text{embed}(i_t)$
+2. **눈길 셈하기**: 묻기(지금 맥락)가 지난 박아 넣기를 살핀다
+3. **내놓기**: 무게 매긴 지난 맥락을 물건 박아 넣기와 합친다
 
-Prediction:
+헤아림:
 
 $$\hat{r}_{u,i} = \text{MLP}(\text{attention context}, \text{item embedding})$$
 
-### Transformer-Based Recommendations
+### 트랜스포머 바탕 추천
 
-Stack multi-head self-attention layers:
+여러 머리 스스로 눈길 층을 쌓는다:
 
 ```
-Input: Item embeddings h₀
-Layer 1: MultiHeadAttention(h₀) → h₁
-Layer 2: MultiHeadAttention(h₁) → h₂
+들임: 물건 박아 넣기 h₀
+1층: MultiHeadAttention(h₀) → h₁
+2층: MultiHeadAttention(h₁) → h₂
 ...
 Layer L: MultiHeadAttention(h_{L-1}) → h_L
-Output: Predict user preference from h_L
+내놓기: h_L에서 쓰는 이의 취향을 헤아린다
 ```
 
-Enables capturing complex item dependencies.
+복잡한 물건 매임을 담을 수 있게 한다.
 
-### Attention-Based Collaborative Filtering
+### 눈길 바탕 함께 거르기
 
-Combine user and item attention:
+쓰는 이 눈길과 물건 눈길을 아우른다:
 
-1. **Item Attention**: User attention over items (what items matter to user)
-2. **User Attention**: Item attention over similar users (what users matter for item)
-3. **Joint**: Both attentions interact in prediction
+1. **물건 눈길**: 쓰는 이가 물건을 살핌(어느 물건이 쓰는 이에게 중요한가)
+2. **쓰는 이 눈길**: 물건이 닮은 쓰는 이를 살핌(어느 쓰는 이가 그 물건에 중요한가)
+3. **함께**: 두 눈길이 헤아림에서 서로 작용한다
 
 $$\hat{r}_{u,i} = f(\text{ItemAttention}(u) + \text{UserAttention}(i))$$
 
-## Financial Applications of Attention
+## 눈길의 금융 쓰임새
 
-### Portfolio Recommendation with Attention
+### 눈길을 쓴 꾸러미 추천
 
-For investor with 10-stock portfolio, recommend next addition:
+종목 10개 꾸러미를 가진 투자자에게 다음에 더할 것을 권한다:
 
-1. **Historical Items**: Embed owned stocks
-2. **Item Features**: Sector, dividend yield, risk metrics
-3. **Attention**: Determine which owned stocks most similar to candidate stock
-4. **Prediction**: Recommend stocks similar to heavily-attended portfolio positions
+1. **지난 물건**: 가진 종목을 박아 넣는다
+2. **물건 특징**: 업종, 배당 수익률, 위험 잣대
+3. **눈길**: 가진 종목 가운데 어느 것이 후보 종목과 가장 닮았는지 정한다
+4. **헤아림**: 눈길을 많이 받은 꾸러미 자리와 닮은 종목을 권한다
 
-**Interpretation**: "Recommend Tech Dividend ETF because your portfolio heavily weights dividend tech stocks (Apple, Microsoft)."
+**풀이**: "꾸러미가 배당 기술주(애플, 마이크로소프트)에 크게 쏠려 있으므로 기술 배당 상장 지수 펀드를 권합니다."
 
-### Regime-Aware Attention
+### 국면을 살피는 눈길
 
-Modulate attention based on market regime:
+시장 국면에 따라 눈길을 조절한다:
 
 $$\alpha_i^{\text{regime}} = \text{softmax}(\alpha_i \cdot \text{regime factor})$$
 
-Bullish regime: Upweight stocks performing well recently
-Bear regime: Upweight defensive stocks
+오름 국면: 최근 잘한 종목의 무게를 올린다
+내림 국면: 방어주의 무게를 올린다
 
-### Temporal Attention
+### 때 눈길
 
-Recent trades more relevant than distant past:
+최근 거래가 먼 지난 일보다 알맞다:
 
 $$\alpha_t = \text{softmax}(\alpha_t^{\text{base}} \times \exp(-\lambda(T - t)))$$
 
-Exponential decay ensures recent items weighted more.
+지수 스러짐이 최근 물건에 더 큰 무게를 준다.
 
-## Implementation Details
+## 구현의 세부
 
-### Positional Encoding
+### 자리 부호
 
-Transformers need position information (unlike RNNs with inherent sequence order):
+트랜스포머는 (차례가 본디 있는 되돌이 신경망과 달리) 자리 앎이 필요하다:
 
 $$\text{pos\_encoding}(t, 2d) = \sin(t / 10000^{2d/d_{model}})$$
 
 $$\text{pos\_encoding}(t, 2d+1) = \cos(t / 10000^{2d/d_{model}})$$
 
-Add to embeddings before attention.
+눈길 전에 박아 넣기에 더한다.
 
-### Layer Normalization and Residuals
+### 층 고르게 맞추기와 나머지
 
-Stabilize training:
+익히기를 안정시킨다:
 
 $$\text{Output} = \text{LayerNorm}(x + \text{Attention}(x))$$
 
-Residual connection and normalization improve gradient flow.
+나머지 이음과 고르게 맞추기가 기울기 흐름을 좋게 한다.
 
-### Masking for Causal Attention
+### 인과 눈길을 위한 가리기
 
-For sequential prediction, mask future items (information leakage):
+차례 헤아리기에서는 앞으로의 물건을 가린다(앎 새어 나감):
 
 $$\text{Attention}(q, K, V) = \text{softmax}\left(\frac{qK^T}{\sqrt{d}} + M\right) V$$
 
-where M masks future positions with -∞.
+여기서 M이 앞으로의 자리를 -∞으로 가린다.
 
-## Attention Interpretability
+## 눈길의 풀이 가능함
 
-### Visualization
+### 눈으로 보기
 
-Plot attention weights as heatmap:
-
-```
-              Item 1  Item 2  Item 3  Item 4
-User A        0.5     0.3     0.1     0.1
-User B        0.1     0.1     0.6     0.2
-User C        0.2     0.2     0.2     0.4
-```
-
-Shows which items matter to each user.
-
-### Attention Explanations
-
-Generate explanations from attention weights:
+눈길 무게를 열 지도로 그린다:
 
 ```
-Recommend: Apple Stock
+              물건 1  물건 2  물건 3  물건 4
+쓰는 이 A     0.5     0.3     0.1     0.1
+쓰는 이 B     0.1     0.1     0.6     0.2
+쓰는 이 C     0.2     0.2     0.2     0.4
+```
+
+쓰는 이마다 어느 물건이 중요한지 보여 준다.
+
+### 눈길로 하는 밝힘
+
+눈길 무게에서 밝힘을 만든다:
+
+```
+권함: 애플 주식
 Attention scores:
-- AAPL (currently hold): 0.6 ← highest
-- MSFT (currently hold): 0.3
-- IBM (previously sold): 0.05
+- AAPL(지금 보유): 0.6 ← 가장 높음
+- MSFT(지금 보유): 0.3
+- IBM(앞서 팔았음): 0.05
 
 Explanation: "You're highly engaged with Apple stock 
 in your portfolio. Similar tech companies recommended."
 ```
 
-## Training Considerations
+## 학습할 때 살필 점
 
-### Data Requirements
+### 자료 요구
 
-Attention-based models have many parameters; require substantial training data:
+눈길 바탕 모델은 잡이 많아 익히기 자료가 넉넉해야 한다:
 
-- Minimum: 50-100 interactions per user
-- Preferred: 500+ interactions per user
-- Optimal: 5000+ interactions
+- 최소: 쓰는 이마다 주고받음 50~100개
+- 바람직: 쓰는 이마다 500개 넘게
+- 가장 좋음: 주고받음 5000개 넘게
 
-### Computational Cost
+### 계산 비용
 
-Multi-head attention scales as O(L² × d) where L = sequence length, d = embedding dim.
+여러 머리 눈길은 L = 차례 길이, d = 박아 넣기 차원일 때 O(L² × d)으로 커진다.
 
-For long sequences (L > 1000), becomes expensive. Remedies:
+차례가 길면(L > 1000) 비싸진다. 손질:
 
-1. **Truncation**: Only attend to recent 100-200 items
-2. **Sparse Attention**: Attend to only k nearest items
-3. **Linear Attention**: Approximate softmax with linear operations
+1. **잘라내기**: 최근 100~200개만 살핀다
+2. **성긴 눈길**: 가장 가까운 k개만 살핀다
+3. **선형 눈길**: 소프트맥스를 선형 연산으로 어림한다
 
-### Optimization
+### 가장 좋게 하기
 
-Train with Adam optimizer, learning rate scheduling:
+Adam 가장 좋게 하개와 배움 빠르기 일정으로 익힌다:
 
-- Initial learning rate: 1e-3
-- Decay: Linear or exponential
-- Warmup: Gradual increase first 10% of training
+- 첫 배움 빠르기: 1e-3
+- 스러짐: 선형 또는 지수
+- 몸풀기: 익히기의 첫 10% 동안 차츰 올림
 
-## Evaluation
+## 평가
 
-### Accuracy Metrics
+### 맞음 잣대
 
-Standard NDCG, AUC on hold-out test set. Attention models typically match or exceed RNN baselines.
+남겨 둔 시험 모임에서 여느 NDCG과 AUC을 쓴다. 눈길 모델은 대개 되돌이 신경망 밑그림과 같거나 낫다.
 
-### Attention Quality Evaluation
+### 눈길 품질 따지기
 
-**Ablation Study**: Remove attention mechanism; measure accuracy drop.
+**떼어 보기**: 눈길 얼개를 빼고 맞음이 얼마나 떨어지는지 잰다.
 
-Significant drop (>5%) indicates attention genuinely helps.
+크게 떨어지면(>5%) 눈길이 참으로 도움이 된다는 뜻이다.
 
-**Attention Consistency**: Do similar users have similar attention patterns?
+**눈길의 한결같음**: 닮은 쓰는 이가 닮은 눈길 무늬를 보이는가?
 
-High consistency suggests learned patterns meaningful.
+한결같음이 높으면 배운 무늬가 뜻있다는 것을 시사한다.
 
-### Online Evaluation
+### 온라인 따지기
 
-Deploy attention model with A/B test:
-- Control: Baseline recommender
-- Treatment: Attention-based recommender
-- Metrics: CTR, engagement, conversion
+A/B 시험과 함께 눈길 모델을 펼친다:
 
-## Case Study: Analyst Research Attention
+- 대조: 밑그림 추천기
+- 처치: 눈길 바탕 추천기
+- 잣대: 누름 비율, 눈여겨봄, 바뀜
 
-### Problem
+## 사례 살피기: 살피는 이의 연구 눈길
 
-Recommend research papers to equity analyst with large read history.
+### 문제
 
-### Solution
+읽은 지난 일이 많은 주식 분석가에게 연구 논문을 권한다.
 
-**Attention Model**:
+### 풀이
 
-1. **Embed** papers analyst read (title, abstract, sector, author)
-2. **Sequence**: Organize reads chronologically
-3. **Self-Attention**: Learn which papers influence each other
-4. **Cross-Attention**: Query (analyst profile) attends to papers
-5. **Predict**: Candidate papers scored via cross-attention
+**눈길 모델**:
 
-### Results
+1. 살피는 이가 읽은 논문을 **박아 넣는다**(제목, 초록, 업종, 글쓴이)
+2. **차례**: 읽은 것을 때 차례로 늘어놓는다
+3. **스스로 눈길**: 어느 논문이 서로 영향을 주는지 배운다
+4. **엇갈린 눈길**: 묻기(살피는 이의 됨됨이)가 논문을 살핀다
+5. **헤아림**: 엇갈린 눈길로 후보 논문에 점수를 매긴다
 
-- NDCG@5: 0.68 (vs 0.60 baseline RNN)
-- 12% improvement in engagement (clicks on recommendations)
-- Attention shows analyst focused on tech/healthcare sectors (matches coverage)
+### 결과
 
-### Explanation Example
+- NDCG@5: 0.68(밑그림 되돌이 신경망 0.60)
+- 눈여겨봄 12% 나아짐(추천 누름)
+- 눈길이 살피는 이가 기술과 의료 업종에 집중함을 보인다(맡은 범위와 맞다)
+
+### 밝힘 보기
 
 ```
 Recommended: "Cloud Database Architecture"
 Attention insights:
 - Analyst recently read (0.7 attention): "Serverless Computing Trends"
 - Analyst read frequently (0.5 attention): "Database Benchmarks"
-- Recommendation: Similar technical papers from past interests
+- 추천: 지난 관심에서 나온 닮은 기술 논문
 ```
 
-## Advanced Topics
+## 더 깊은 주제
 
-### Hierarchical Attention
+### 켜진 눈길
 
-Multiple levels of attention:
-- **Document Level**: Attend to chapters within papers
-- **Sentence Level**: Attend to important sentences within chapters
-- **Word Level**: Attend to key terms
+눈길을 여러 켜로 둔다:
 
-Enables hierarchical representation learning.
+- **글 켜**: 논문 안의 장을 살핀다
+- **문장 켜**: 장 안의 중요한 문장을 살핀다
+- **낱말 켜**: 핵심 말을 살핀다
 
-### Cross-Modal Attention
+켜진 나타냄 배움을 할 수 있게 한다.
 
-Attend across different modalities (text, price data, sentiment):
+### 갈래를 넘나드는 주의
+
+서로 다른 갈래(글, 값 자료, 느낌)를 넘나들며 살핀다:
 
 $$\text{Attention}_{\text{cross-modal}}(q_{\text{text}}, K_{\text{price}}, V_{\text{sentiment}})$$
 
-Enables reasoning across data types.
+자료 갈래를 넘나드는 미루어 알기를 할 수 있게 한다.
 
-!!! note "Attention for Recommendations"
-    Attention mechanisms excel at capturing user preference dynamics and providing interpretable recommendations. Particularly valuable when:
-    - Sequential patterns important (user preference evolution)
-    - Explainability critical (finance, healthcare)
-    - Item features complex (multiple attributes)
+!!! note "추천을 위한 눈길"
+    눈길 얼개는 쓰는 이 취향의 흐름을 담고 풀이할 수 있는 추천을 주는 데 뛰어나다. 특히 다음일 때 값지다:
+
+    - 차례 무늬가 중요할 때(쓰는 이 취향의 바뀜)
+    - 밝힐 수 있음이 결정적일 때(금융, 의료)
+    - 물건 특징이 복잡할 때(속성이 여럿)
     
-    Requires substantial data and computational resources; typically worthwhile for large-scale systems.
+    자료와 셈 밑감이 넉넉해야 한다. 보통 큰 규모 시스템에서 값을 한다.
 
+## 연습문제
+
+**연습문제 1.**
+이 길에서 차가운 출발 문제가 새 쓰는 이와 새 물건에 어떻게 다르게 나타나는지 밝혀라. 경우마다 누그러뜨릴 셈속을 하나씩 내놓아라.
+
+??? success "연습문제 1 풀이"
+    새 쓰는 이는 취향을 배울 주고받음 지난 일이 없어 함께 거르기 신호를 쓸 수 없다. 누그러뜨리기: 내용 바탕 특징(인구 특성, 밝힌 취향)으로 쓰는 이 박아 넣기의 첫 값을 잡는다. 새 물건은 아직 주고받은 쓰는 이가 없어 함께 거르기로 매길 수 없다. 누그러뜨리기: 물건 내용 특징(밝힘, 갈래)으로 그 물건을 박아 넣기 자리에서 닮은 물건 곁에 놓는다. 두 셈속 모두 주고받음이 넉넉히 쌓일 때까지 차가운 낱것을 띄워 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 밝힌 잡의 기울기 고침을 이끌어 내어라. 어느 항이 셈하기에 가장 비싼지 가려내고 어림을 내놓아라.
+
+??? success "연습문제 2 풀이"
+    기울기에는 고르게 맞추려 온 물건 목록에 대한 기댓값을 셈하는 일이 든다. 물건 수에 선형으로 늘어나므로 가장 비싼 항이다. 음의 뽑기는 온 목록 대신 음의 물건 가운데 아무 작은 부분 모임만 더해 이를 어림하여, 고침마다 비용을 $O(|\mathcal{I}|)$에서 $O(k)$으로 줄인다. 여기서 $k$은 음의 표본 수(보통 5~20)이다. 중요도 뽑기가 이 어림에 치우치지 않은 어림개를 준다. $\square$
+
+---
+
+**연습문제 3.**
+이 추천 방식이 인기 바탕 밑그림보다 쓰는 이의 눈여겨봄을 높이는지 따질 A/B 시험을 설계하여라. 아무 나누기 단위, 으뜸 잣대, 최소 표본 크기 셈을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    아무 나누기 단위: 쓰는 이(서로 섞이지 않도록 세션이 아님). 으뜸 잣대: 추천의 누름 비율. 밑그림 누름 비율이 5%이고 알아챌 최소 효과가 0.5%포인트(상대 10% 오름)일 때, 뜻 있음 수준 $\alpha = 0.05$과 힘 $1 - \beta = 0.80$에서 무리마다 필요한 표본 크기는 $n = 2(z_{\alpha/2} + z_\beta)^2 \cdot p(1-p) / \delta^2 \approx 15{,}000$명이다. 주마다의 무늬를 담으려 적어도 2주 돌린다. 난간: 벌이와 다양함 잣대를 딸린 결과로 지켜본다. $\square$
+
+---
+
+**연습문제 4.**
+이 추천 방법의 따지기가 오프라인(지난 자료)과 온라인(실제 오감) 자리에서 어떻게 다른지 밝혀라. 오프라인 따지기에서 어떤 치우침이 생길 수 있는가?
+
+??? success "연습문제 4 풀이"
+    오프라인 따지기는 때로 나눈 지난 주고받음을 쓴다(지난 것으로 익히고 앞으로의 것으로 시험). 치우침에는 다음이 있다. (1) 고름 치우침 -- 쓰는 이는 보여 준 물건과만 주고받았으므로 보지 않은 물건이 참으로 음인 것은 아니다. (2) 인기 치우침 -- 인기 물건이 시험 모임을 지배한다. (3) 자리 치우침 -- 위쪽에 놓인 물건이 알맞음과 상관없이 더 눌린다. 온라인 따지기(A/B 시험)는 고름 치우침을 피하지만 비싸고 느리다. 치우치지 않은 오프라인 따지기 방법으로는 보여 줄 확률로 봄에 다시 무게를 주는 거꿀 성향 점수 매기기가 있다. $\square$

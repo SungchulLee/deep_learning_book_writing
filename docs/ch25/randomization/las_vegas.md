@@ -1,25 +1,25 @@
-# Las Vegas Algorithms
+# 라스베이거스 알고리즘
 
-When designing a randomized algorithm, a fundamental design choice is whether to guarantee correctness or running time. **Las Vegas algorithms** always produce the correct answer but have a random running time. This contrasts with Monte Carlo algorithms, which may produce an incorrect answer but run within a deterministic time bound. The Las Vegas guarantee is particularly attractive in settings where an incorrect result is unacceptable, such as sorting or searching.
+마구잡이 알고리즘을 짤 때 바탕이 되는 고르기는 옳음을 보장할지 도는 시간을 보장할지이다. **라스베이거스 알고리즘**은 늘 옳은 답을 내지만 도는 시간이 아무 변수이다. 이는 답이 틀릴 수 있지만 정해진 시간 안에 도는 몬테카를로 알고리즘과 다르다. 정렬이나 찾기처럼 틀린 결과를 받아들일 수 없는 자리에서 라스베이거스의 보장은 특히 끌린다.
 
-## Definition
+## 정의
 
-A randomized algorithm $A$ is a **Las Vegas algorithm** if, for every input $x$:
+마구잡이 알고리즘 $A$이 모든 들임 $x$에 대해 다음을 채우면 **라스베이거스 알고리즘**이다.
 
-1. $A(x)$ always outputs the correct answer, and
-2. the running time $T(x)$ is a random variable (depending on the algorithm's internal coin flips).
+1. $A(x)$이 늘 옳은 답을 내놓고,
+2. 도는 시간 $T(x)$이 (알고리즘 안의 동전 던지기에 따라) 아무 변수이다.
 
-The performance measure for a Las Vegas algorithm is its **expected running time**:
+라스베이거스 알고리즘의 솜씨 잣대는 그 **기댓값 도는 시간**이다.
 
 $$
 T_{\text{LV}}(n) = \max_{|x|=n} E[T(x)]
 $$
 
-The expectation is over the algorithm's random choices, not over the input. For every input, the output is correct with probability 1.
+기댓값은 들임이 아니라 알고리즘의 아무 고르기에 걸친 것이다. 모든 들임에서 내놓기가 확률 1로 옳다.
 
-## Formal Properties
+## 갖추어 적은 성질
 
-A Las Vegas algorithm can be viewed as a distribution over deterministic algorithms, all of which are correct:
+라스베이거스 알고리즘은 모두 옳은 정해진 알고리즘에 대한 분포로 볼 수 있다.
 
 $$
 \Pr[\text{output is correct}] = 1
@@ -29,52 +29,84 @@ $$
 E[T(x)] < \infty \quad \text{for all inputs } x
 $$
 
-The second condition ensures that the algorithm terminates in finite expected time. In practice, Las Vegas algorithms often have small variance around the expectation, so the actual running time rarely deviates far from $E[T]$.
+둘째 조건은 알고리즘이 유한한 기댓값 시간에 멈춤을 보장한다. 실제로 라스베이거스 알고리즘은 기댓값 둘레의 흩어짐이 작을 때가 많아 실제 도는 시간이 $E[T]$에서 크게 벗어나는 일이 드물다.
 
-## Classic Examples
+## 옛부터의 보기
 
-### Randomized Quicksort
+### 마구잡이 빠른 정렬
 
-Randomized quicksort chooses a pivot uniformly at random, then partitions and recurses. It always produces a correctly sorted array, but the number of comparisons depends on pivot choices:
+마구잡이 빠른 정렬은 축을 고르게 아무렇게나 고른 뒤 가르고 되돌이한다. 늘 제대로 정렬한 배열을 내지만 견줌 횟수는 축을 어떻게 고르느냐에 달렸다.
 
 $$
 E[\text{comparisons}] = 2n \ln n + O(n) = O(n \log n)
 $$
 
-The worst case is $O(n^2)$, but this occurs with negligible probability (exponentially small for a random pivot).
+가장 나쁜 경우는 $O(n^2)$이지만 그럴 확률은 무시할 만하다(아무 축에서는 지수만큼 작다).
 
-### Randomized Selection
+### 마구잡이 고르기
 
-The randomized select algorithm finds the $k$-th smallest element by random pivoting. It always returns the correct element, with expected running time $O(n)$ and worst case $O(n^2)$.
+마구잡이 고르기 알고리즘은 아무 축을 잡아 $k$번째로 작은 낱개를 찾는다. 늘 옳은 낱개를 돌려주며 기댓값 도는 시간은 $O(n)$, 가장 나쁜 경우는 $O(n^2)$이다.
 
-### Randomized Search in a Hash Table
+### 흩는 표에서의 마구잡이 찾기
 
-Universal hashing with chaining is a Las Vegas approach to dictionary operations: every lookup returns the correct result, but the time depends on the random hash function chosen.
+사슬을 곁들인 두루 쓰는 흩기는 사전 셈에 대한 라스베이거스 방식이다. 곧 찾기마다 옳은 결과를 돌려주지만 시간은 고른 아무 흩는 함수에 달렸다.
 
-## Las Vegas vs Monte Carlo Conversion
+## 라스베이거스와 몬테카를로 사이 바꾸기
 
-Las Vegas and Monte Carlo algorithms are interconvertible under mild conditions.
+라스베이거스와 몬테카를로 알고리즘은 웬만한 조건에서 서로 바꿀 수 있다.
 
-**Las Vegas to Monte Carlo.** Run the Las Vegas algorithm for a fixed time budget $t$. If it finishes, output the result. Otherwise, output "failure" or a random guess. The resulting algorithm runs in time at most $t$, but may be incorrect.
+**라스베이거스에서 몬테카를로로.** 라스베이거스 알고리즘을 정해진 시간 $t$ 동안 돌린다. 끝나면 결과를 내놓는다. 아니면 "실패"나 아무 짐작을 내놓는다. 그렇게 나온 알고리즘은 많아야 $t$ 시간에 돌지만 틀릴 수 있다.
 
-By Markov's inequality, if the Las Vegas expected time is $E[T]$, then running for $t = c \cdot E[T]$ steps gives a correct answer with probability at least $1 - 1/c$.
+마르코프 부등식에 따라 라스베이거스의 기댓값 시간이 $E[T]$이면 $t = c \cdot E[T]$ 걸음 동안 돌리면 적어도 $1 - 1/c$의 확률로 옳은 답을 얻는다.
 
-**Monte Carlo to Las Vegas.** If the Monte Carlo algorithm's output can be verified in polynomial time (as with NP problems), run the Monte Carlo algorithm repeatedly until verification succeeds. The expected number of repetitions is $1/p$, where $p$ is the Monte Carlo success probability.
+**몬테카를로에서 라스베이거스로.** 몬테카를로 알고리즘의 내놓기를 (NP 문제처럼) 다항식 시간에 확인할 수 있다면 확인이 이룰 때까지 거듭 돌린다. 기댓값 되풀이 횟수는 $1/p$이며 $p$은 몬테카를로의 성공 확률이다.
 
-!!! tip "Choosing Between Paradigms"
-    Prefer a Las Vegas algorithm when correctness is paramount and the expected running time is acceptable. Prefer Monte Carlo when a hard time bound is required and occasional errors are tolerable (e.g., probabilistic primality testing).
+!!! tip "틀 고르기"
+    옳음이 무엇보다 중요하고 기댓값 도는 시간을 받아들일 만하면 라스베이거스를 고르라. 단단한 시간 한계가 필요하고 이따금의 어긋남을 참을 수 있으면(예컨대 확률 소수 판정) 몬테카를로를 고르라.
 
-## Worst-Case Elimination
+## 가장 나쁜 경우 없애기
 
-A useful technique converts a Las Vegas algorithm with bad worst-case behavior into one with controlled running time. Run the algorithm for $2 \cdot E[T]$ steps. If it has not finished, restart with fresh random bits. The expected total time is
+가장 나쁜 경우의 움직임이 나쁜 라스베이거스 알고리즘을 도는 시간이 다스려지는 것으로 바꾸는 쓸모 있는 재주가 있다. 알고리즘을 $2 \cdot E[T]$ 걸음 돌린다. 끝나지 않았으면 새 아무 비트로 다시 시작한다. 기댓값 온 시간은 다음과 같다.
 
 $$
 E[T_{\text{restart}}] \leq 2 \cdot E[T] \cdot \frac{1}{1 - 1/2} = 4 \cdot E[T]
 $$
 
-This restart strategy ensures that the probability of running longer than $c \cdot E[T]$ decreases exponentially in $c$, giving strong tail concentration even when the original algorithm's running time has high variance.
+이 다시 시작 방책은 $c \cdot E[T]$보다 오래 돌 확률이 $c$에 따라 지수로 줄어들게 하여, 본디 알고리즘의 도는 시간이 크게 흩어져 있어도 센 꼬리 모임을 준다.
 
-## Reference
+## 참고 문헌
 
 - Motwani, R. & Raghavan, P. *Randomized Algorithms*. Cambridge University Press, 1995.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L. & Stein, C. *Introduction to Algorithms*. MIT Press, 2022.
+
+## 연습문제
+
+**연습문제 1.**
+라스베이거스 알고리즘의 핵심 마구잡이 재주와 그것이 정해진 방식보다 나은 까닭을 설명하라.
+
+??? success "연습문제 1 풀이"
+    라스베이거스 알고리즘은 마구잡이를 써서 정해진 알고리즘이 마주칠 수 있는 가장 나쁜 들임을 피한다. 아무렇게나 고르므로 알고리즘의 솜씨가 들임의 짜임이 아니라 제 동전 던지기에 달린다. 그래서 모든 들임에 대해 참인 센 기댓값 시간이나 높은 확률의 보장을 흔히 얻으며, 짓궂거나 병리적인 경우를 걱정할 까닭이 없어진다. $\square$
+
+---
+
+**연습문제 2.**
+라스베이거스 알고리즘의 기댓값 시간 복잡도는 얼마인가? 가장 나쁜 경우의 복잡도는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    기댓값 시간 복잡도는 흔히 $O(n)$이나 $O(n \log n)$이며 높은 확률로 이룬다. 가장 나쁜 경우는 다항식만큼 더 나쁠 수 있지만(예컨대 $O(n^2)$) 그럴 확률은 무시할 만큼 작다. 기댓값과 가장 나쁜 경우의 틈이 마구잡이의 값이며, 가장 나쁜 움직임이 일어날 확률은 들임 크기에 따라 지수로 줄어든다. $\square$
+
+---
+
+**연습문제 3.**
+라스베이거스 알고리즘은 라스베이거스 알고리즘인가 몬테카를로 알고리즘인가? 그 차이를 설명하라.
+
+??? success "연습문제 3 풀이"
+    **라스베이거스**: 늘 옳은 결과를 내며 도는 시간이 아무 변수이다(기댓값이 다항식). **몬테카를로**: 늘 다항식 시간에 돌지만 결과가 어떤 가둔 확률로 틀릴 수 있다. 라스베이거스 알고리즘은 옳음을 보장하느냐 도는 시간을 보장하느냐에 따라 이 가운데 하나에 든다. 이 가름이 어긋날 확률을 어떻게 다룰지 정한다. $\square$
+
+---
+
+**연습문제 4.**
+라스베이거스 알고리즘에서 마구잡이를 없애거나 솜씨가 나쁠 확률을 줄이는 법을 설명하라.
+
+??? success "연습문제 4 풀이"
+    방책은 다음과 같다. (1) **거듭 해 보기**: 알고리즘을 여러 번 돌려 가장 좋거나 많은 쪽 결과를 택하면 어긋날 확률이 지수로 줄어든다. (2) **마구잡이 없애기**: 조건부 기댓값이나 흩는 함수 무리로 아무 고르기를 정해진 고르기로 바꾼다. (3) **키우기**: 몬테카를로 알고리즘에서는 $k$번 되풀이해 어긋남을 $2^{-k}$으로 줄인다. (4) **비슷 마구잡이 만들개**: 알고리즘이 보기에 "마구잡이처럼 보이는" 정해진 차례를 쓴다. $\square$

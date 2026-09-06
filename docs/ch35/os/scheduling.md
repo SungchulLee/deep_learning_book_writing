@@ -233,3 +233,43 @@ SJF achieves the lowest average waiting time (2.8), confirming its optimality fo
 
 - Silberschatz, A., Galvin, P.B., and Gagne, G. *Operating System Concepts*. Wiley
 - Arpaci-Dusseau, R.H. and Arpaci-Dusseau, A.C. *Operating Systems: Three Easy Pieces*
+
+## Exercises
+
+**Exercise 1.**
+Three processes arrive at time 0 with burst times 10, 5, and 8 ms. Compute the average turnaround time and average waiting time under FCFS and SJF scheduling.
+
+??? success "Solution to Exercise 1"
+    **FCFS** (order: P1, P2, P3): P1 finishes at 10, P2 at 15, P3 at 23. Turnaround: (10 + 15 + 23)/3 = 16 ms. Waiting: (0 + 10 + 15)/3 = 8.33 ms. **SJF** (order: P2, P3, P1): P2 finishes at 5, P3 at 13, P1 at 23. Turnaround: (5 + 13 + 23)/3 = 13.67 ms. Waiting: (0 + 5 + 13)/3 = 6 ms. SJF is optimal for minimizing average waiting time among non-preemptive schedules. The improvement here is $8.33 - 6 = 2.33$ ms (28% reduction). $\square$
+
+---
+
+**Exercise 2.**
+Prove that Shortest Job First (SJF) minimizes the average waiting time for a set of jobs available at time 0.
+
+??? success "Solution to Exercise 2"
+    Let jobs have burst times $b_1 \le b_2 \le \cdots \le b_n$ (SJF order). The waiting time for job $i$ is $\sum_{j=1}^{i-1} b_j$. Total waiting time: $\sum_{i=1}^{n} \sum_{j=1}^{i-1} b_j = \sum_{j=1}^{n} (n - j) b_j$. To minimize this weighted sum, larger weights $(n - j)$ should multiply smaller burst times $b_j$, which is exactly the SJF order (shortest first). Any swap of two adjacent jobs where a longer job precedes a shorter one increases the total waiting time by the difference in their burst times times the number of jobs between them. By the rearrangement inequality, the sorted order is optimal. $\square$
+
+---
+
+**Exercise 3.**
+Explain the multi-level feedback queue (MLFQ) scheduler. How does it balance responsiveness for interactive processes with throughput for batch processes?
+
+??? success "Solution to Exercise 3"
+    MLFQ maintains multiple priority queues. New processes enter the highest-priority queue. If a process uses its entire time quantum without blocking, it is demoted to a lower-priority queue (presumed CPU-bound). If it blocks early (I/O-bound, interactive), it stays at high priority. Higher-priority queues have shorter time quanta. This automatically classifies processes: interactive processes (short CPU bursts, frequent I/O) stay at high priority with short quanta, ensuring low response time. CPU-bound processes sink to low-priority queues with longer quanta, maximizing throughput without constant context switches. To prevent starvation, a periodic "boost" moves all processes back to the highest queue. This prevents a long-running process from being permanently starved by new interactive processes. $\square$
+
+---
+
+**Exercise 4.**
+The Linux Completely Fair Scheduler (CFS) uses a red-black tree keyed by virtual runtime. Explain how it achieves $O(\log n)$ scheduling and fairness.
+
+??? success "Solution to Exercise 4"
+    CFS tracks each runnable process's "virtual runtime" (vruntime): the total CPU time the process has received, weighted by its priority (nice value). The process with the smallest vruntime runs next -- it has received the least CPU time relative to its fair share. Processes are stored in a red-black tree keyed by vruntime. Selecting the next process: take the leftmost node ($O(1)$ with a cached pointer, or $O(\log n)$ for tree traversal). Inserting a process (wake-up or new): $O(\log n)$ tree insertion. This achieves fairness: over time, all processes' vruntimes converge because the running process's vruntime increases, eventually making another process the minimum. Higher-priority processes have their vruntime scaled down (they "earn" vruntime more slowly), so they receive more CPU time. $\square$
+
+---
+
+**Exercise 5.**
+A real-time system has two periodic tasks: Task A with period 10 ms and execution time 3 ms, and Task B with period 20 ms and execution time 8 ms. Determine whether the system is schedulable under Rate-Monotonic Scheduling (RMS) and Earliest Deadline First (EDF).
+
+??? success "Solution to Exercise 5"
+    CPU utilization: $U = 3/10 + 8/20 = 0.3 + 0.4 = 0.7$. **RMS**: the utilization bound for 2 tasks is $2(2^{1/2} - 1) = 2 \times 0.414 = 0.828$. Since $0.7 < 0.828$, the system is schedulable under RMS. RMS assigns higher priority to Task A (shorter period). Schedule: [0-3] A, [3-11] B, [10-13] A, [13-19] B continues, [20-23] A, etc. Both tasks meet all deadlines. **EDF**: the utilization bound is 1.0 (EDF is optimal for uniprocessor). Since $0.7 < 1.0$, the system is schedulable. EDF always schedules the task with the earliest absolute deadline, adapting dynamically. Both schedulers work here; EDF would still work up to $U = 1.0$, while RMS fails above $U \approx 0.828$ for 2 tasks. $\square$

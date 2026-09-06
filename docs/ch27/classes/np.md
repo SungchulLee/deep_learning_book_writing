@@ -1,103 +1,151 @@
-# The Class NP
+# 갈래 NP
 
-Many computational problems share a striking asymmetry: finding a solution appears to require exhaustive search, yet *checking* a proposed solution is straightforward.  Sorting a list is easy, but factoring a large integer seems hard -- although verifying that two given factors multiply to the original number is trivial.  The complexity class **NP** formalizes this asymmetry by capturing every decision problem for which a "yes" answer comes with a short proof that can be verified quickly.
+많은 셈 문제는 눈에 띄는 맞섬 깨짐을 함께 지닌다. 풀이를 찾으려면 샅샅이 뒤져야 할 듯하지만 내놓은 풀이를 *살피기*는 쉽다. 목록 줄 세우기는 쉽지만 큰 정수의 인수 분해는 어려워 보인다. 주어진 두 인수를 곱해 본디 수가 되는지 살피는 것은 하찮은데도 그렇다. 복잡도 갈래 **NP**은 "예" 답에 빨리 살필 수 있는 짧은 밝힘이 딸린 모든 가름 문제를 담아 이 맞섬 깨짐을 갈라 적어 준다.
 
-## Intuition
+## 직관
 
-Consider the problem of determining whether a Boolean formula is satisfiable.  No one knows how to solve this in polynomial time for arbitrary formulas, yet if someone hands you a satisfying assignment, you can plug in the values and verify correctness in linear time.  NP is precisely the class of problems that admit this kind of efficient verification.
+부울 식이 만족 가능한지 가리는 문제를 살펴보자. 아무 식에 대해 이를 다항 시간에 푸는 법은 아무도 모르지만, 누군가 만족시키는 매김을 건네주면 값을 넣어 선형 시간에 옳음을 살필 수 있다. NP은 바로 이런 효율 좋은 살피기를 허락하는 문제의 갈래이다.
 
-The name "NP" stands for **Nondeterministic Polynomial time**, reflecting an equivalent characterization through nondeterministic Turing machines.  Despite the name, NP is *not* "not polynomial" -- in fact, every problem in P is also in NP.
+"NP"이라는 이름은 **정해지지 않은 다항 시간**을 뜻하며 정해지지 않은 튜링 기계로 하는 같은 뜻의 성격 매김을 비춘다. 이름과 달리 NP은 "다항이 아님"이 *아니다*. 실제로 P의 모든 문제는 NP에도 든다.
 
-## Formal Definition
+## 엄밀한 정의
 
-### Verifier-Based Definition
+### 살피개 바탕 뜻매김
 
-A language $L$ is in **NP** if there exists a deterministic polynomial-time Turing machine $V$ (the **verifier**) and a polynomial $p$ such that:
+다음을 만족하는 정해진 다항 시간 튜링 기계 $V$(**살피개**)과 다항식 $p$이 있으면 말 $L$은 **NP**에 든다:
 
 $$
 x \in L \iff \exists\, c \in \Sigma^*,\; |c| \leq p(|x|),\; V(x, c) = \text{accept}
 $$
 
-The string $c$ is called a **certificate** (or **witness**).  The definition requires:
+글줄 $c$을 **증서**(또는 **증인**)라 부른다. 이 뜻매김은 다음을 요구한다:
 
-1. **Completeness**: every yes-instance has at least one valid certificate.
-2. **Soundness**: no no-instance has any valid certificate.
-3. **Efficiency**: the verifier runs in time polynomial in $|x|$.
+1. **온전함**: 모든 예 사례에는 올바른 증서가 적어도 하나 있다.
+2. **건전함**: 어떤 아니오 사례에도 올바른 증서가 없다.
+3. **효율**: 살피개는 $|x|$에 대해 다항인 시간에 돈다.
 
-### Nondeterministic Turing Machine Definition
+### 정해지지 않은 튜링 기계 뜻매김
 
-Equivalently, $L \in \mathbf{NP}$ if there exists a nondeterministic Turing machine $N$ that decides $L$ in polynomial time:
+같은 말로 $L$을 다항 시간에 가르는 정해지지 않은 튜링 기계 $N$이 있으면 $L \in \mathbf{NP}$이다:
 
 $$
 \mathbf{NP} = \bigcup_{k=0}^{\infty} \text{NTIME}(n^k)
 $$
 
-where $\text{NTIME}(T(n))$ is the class of languages decidable by a nondeterministic TM in $O(T(n))$ steps.  On a yes-instance, *at least one* computation path accepts; on a no-instance, *all* paths reject.
+여기서 $\text{NTIME}(T(n))$은 정해지지 않은 튜링 기계가 $O(T(n))$ 걸음에 가를 수 있는 말의 갈래이다. 예 사례에서는 셈 길 가운데 *적어도 하나*가 받아들이고, 아니오 사례에서는 *모든* 길이 물리친다.
 
-??? info "Equivalence of the two definitions"
-    The two definitions capture the same class.  Given a verifier $V$, construct an NTM that nondeterministically guesses a certificate $c$ and then runs $V(x,c)$.  Conversely, given an NTM $N$, the certificate encodes the sequence of nondeterministic choices along an accepting path, and the verifier simulates $N$ following those choices.
+??? info "두 뜻매김이 같음"
+    두 뜻매김은 같은 갈래를 담는다. 살피개 $V$이 주어지면 증서 $c$을 정해지지 않은 방식으로 어림잡고 $V(x,c)$을 돌리는 정해지지 않은 튜링 기계를 세운다. 거꾸로 정해지지 않은 튜링 기계 $N$이 주어지면 증서는 받아들이는 길을 따라 이루어진 정해지지 않은 고르기의 차례를 적고, 살피개는 그 고르기를 따라 $N$을 흉내 낸다.
 
-## Key Properties
+## 핵심 성질
 
-### P is Contained in NP
+### P은 NP에 담긴다
 
-Every problem in P is also in NP: a polynomial-time algorithm can serve as its own verifier (ignoring the certificate entirely).
+P의 모든 문제는 NP에도 든다. 다항 시간 알고리즘이 (증서를 아예 무시하고) 스스로 살피개 노릇을 할 수 있다.
 
 $$
 \mathbf{P} \subseteq \mathbf{NP}
 $$
 
-### The Inclusion Chain
+### 담김 사슬
 
-NP sits within the standard hierarchy:
+NP은 여느 켜 안에 놓인다:
 
 $$
 \mathbf{P} \subseteq \mathbf{NP} \subseteq \mathbf{PSPACE} \subseteq \mathbf{EXPTIME}
 $$
 
-The inclusion $\mathbf{NP} \subseteq \mathbf{PSPACE}$ holds because a deterministic machine can enumerate all possible certificates using polynomial space (though exponential time).
+담김 $\mathbf{NP} \subseteq \mathbf{PSPACE}$은 정해진 기계가 다항 공간으로(비록 지수 시간이 들더라도) 있을 수 있는 모든 증서를 늘어놓을 수 있기에 성립한다.
 
-### Closure Properties
+### 닫힘 성질
 
-- **Union and Intersection**: if $L_1, L_2 \in \mathbf{NP}$, then $L_1 \cup L_2 \in \mathbf{NP}$ and $L_1 \cap L_2 \in \mathbf{NP}$.
-- **Concatenation and Kleene star**: NP is closed under these operations.
-- **Complement**: it is *unknown* whether NP is closed under complement.  This question is equivalent to asking whether $\mathbf{NP} = \mathbf{co\text{-}NP}$.
+- **합집합과 교집합**: $L_1, L_2 \in \mathbf{NP}$이면 $L_1 \cup L_2 \in \mathbf{NP}$이고 $L_1 \cap L_2 \in \mathbf{NP}$이다.
+- **이어 붙이기와 클레이니 별표**: NP은 이 연산에 닫혀 있다.
+- **여 연산**: NP이 여 연산에 닫혀 있는지는 *알려져 있지 않다*. 이 물음은 $\mathbf{NP} = \mathbf{co\text{-}NP}$인지 묻는 것과 같다.
 
-### Polynomial-Time Reductions
+### 다항 시간 줄임
 
-If $L_1 \leq_p L_2$ (there is a polynomial-time many-one reduction from $L_1$ to $L_2$) and $L_2 \in \mathbf{NP}$, then $L_1 \in \mathbf{NP}$.  This property is fundamental for the theory of NP-completeness.
+$L_1 \leq_p L_2$이고($L_1$에서 $L_2$으로 가는 다항 시간 여럿 대 하나 줄임이 있고) $L_2 \in \mathbf{NP}$이면 $L_1 \in \mathbf{NP}$이다. 이 성질은 NP 완전성 이론의 바탕이다.
 
-## Canonical Examples
+## 대표 보기
 
-| Problem | Certificate | Verification |
+| 문제 | 증서 | 살피기 |
 |---------|------------|--------------|
-| SAT | A satisfying assignment | Evaluate the formula: $O(m)$ |
-| Hamiltonian Cycle | A permutation of vertices | Check edges exist: $O(n)$ |
-| Graph Coloring ($k$-COLOR) | A color assignment | Check adjacencies: $O(m)$ |
-| Clique ($k$-CLIQUE) | A set of $k$ vertices | Check all pairs adjacent: $O(k^2)$ |
-| Subset Sum | A subset of numbers | Sum and compare: $O(n)$ |
-| Integer Factoring | A nontrivial factor | Divide and check: $O(\log^2 n)$ |
+| SAT | 만족시키는 매김 | 식을 매긴다: $O(m)$ |
+| 해밀턴 돌이 | 꼭짓점의 자리바꿈 | 변이 있는지 살핀다: $O(n)$ |
+| 그래프 칠하기($k$-COLOR) | 색 매김 | 이웃함을 살핀다: $O(m)$ |
+| 덩어리($k$-CLIQUE) | 꼭짓점 $k$개의 모임 | 모든 짝이 이웃인지 살핀다: $O(k^2)$ |
+| 부분 모임 합 | 수의 부분 모임 | 더해 견준다: $O(n)$ |
+| 정수 인수 분해 | 하찮지 않은 인수 | 나누어 살핀다: $O(\log^2 n)$ |
 
-!!! tip "Certificate perspective"
-    When proving a problem is in NP, the standard approach is: (1) describe what the certificate looks like, (2) show it has polynomial length, and (3) describe a polynomial-time verification procedure.
+!!! tip "증서 관점"
+    어떤 문제가 NP에 듦을 밝힐 때 여느 방식은 이렇다. (1) 증서가 어떻게 생겼는지 적고, (2) 그 길이가 다항임을 보이고, (3) 다항 시간 살피기 절차를 적는다.
 
-## Problems Believed Not in NP
+## NP에 들지 않는다고 믿어지는 문제
 
-Not all natural problems are in NP.  Problems requiring a *universal* quantifier ("for all" rather than "there exists") may lie outside NP:
+자연스러운 문제가 모두 NP에 드는 것은 아니다. *모든* 한정 기호("어떤 것이 있어"가 아니라 "모든 것에 대해")가 필요한 문제는 NP 밖에 놓일 수 있다:
 
-- **TAUTOLOGY**: Is a Boolean formula true under *every* assignment?  The natural certificate would need to certify that *no* falsifying assignment exists, which is not captured by the existential structure of NP.
-- **Co-problems**: for every NP problem, the complementary problem (swapping yes/no) lies in co-NP, and it is unknown whether $\mathbf{NP} = \mathbf{co\text{-}NP}$.
+- **항진식**: 부울 식이 *모든* 매김에서 참인가? 자연스러운 증서라면 거짓으로 만드는 매김이 *하나도* 없음을 증명해야 하는데 이는 NP의 있음 얼개로 담기지 않는다.
+- **여 문제**: 모든 NP 문제에 대해 예와 아니오를 바꾼 여 문제는 여 NP에 놓이며 $\mathbf{NP} = \mathbf{co\text{-}NP}$인지는 알려져 있지 않다.
 
-## NP in Practice
+## 실제에서의 NP
 
-Understanding NP has direct practical consequences:
+NP을 이해하면 곧바로 실제에 쓸모가 있다:
 
-- **Algorithm design**: when a problem is shown to be in NP but likely not in P (i.e., NP-complete), practitioners turn to approximation, heuristics, or parameterized algorithms rather than seeking exact polynomial-time solutions.
-- **Cryptography**: many cryptographic schemes rely on the assumption that certain NP problems (like factoring or discrete logarithm) are *not* in P.
-- **Verification**: the certificate structure of NP underpins proof systems, interactive proofs, and zero-knowledge proofs.
+- **알고리즘 짜기**: 어떤 문제가 NP에 들지만 P에는 들지 않을 듯할 때(즉 NP 완전일 때) 실무자는 정확한 다항 시간 풀이를 찾기보다 어림, 어림짐작, 매개변수 알고리즘으로 돌아선다.
+- **암호**: 많은 암호 얼개가 어떤 NP 문제(인수 분해나 이산 로그 같은 것)가 P에 들지 *않는다는* 가정에 기댄다.
+- **살피기**: NP의 증서 얼개는 밝힘 얼개, 주고받는 밝힘, 영 앎 밝힘을 떠받친다.
 
-## Reference
+## 참고 문헌
 
 - Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
 - Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
 - Cook, S. "The Complexity of Theorem-Proving Procedures." *STOC*, 1971.
+
+## 연습문제
+
+**연습문제 1.**
+다항 시간 살피개와 증서를 적어 덩어리 문제(그래프 $G$과 정수 $k$이 주어질 때 $G$이 크기 $k$인 완전 부분 그래프를 담는가?)가 NP에 듦을 보여라.
+
+??? success "연습문제 1 풀이"
+    증서는 덩어리를 이룬다고 주장되는 꼭짓점 $k$개의 모임 $S$이다. 살피개는 다음을 살핀다. (1) $|S| = k$인지, (2) $u \neq v$인 모든 짝 $u, v \in S$에 대해 변 $(u,v)$이 $G$에 있는지. $|S| = k$을 살피는 데 $O(k)$ 시간이 걸린다. 이웃 행렬로 $\binom{k}{2}$개 짝을 모두 살피는 데 $O(k^2)$ 시간이 걸린다. $k \leq n$(꼭짓점 개수)이므로 살피기는 $O(n^2)$ 시간에 돌며 이는 $|G|$에 대해 다항이다.
+
+---
+
+**연습문제 2.**
+$\mathbf{NP}$이 합집합과 교집합에 닫혀 있음을 밝혀라. 즉 $A, B \in \mathbf{NP}$이면 $A \cup B \in \mathbf{NP}$이고 $A \cap B \in \mathbf{NP}$이다.
+
+??? success "연습문제 2 풀이"
+    **합집합:** $V_A$과 $V_B$을 증서 한계가 $p_A(n)$과 $p_B(n)$인 $A$과 $B$의 다항 시간 살피개라 하자. $A \cup B$의 살피개는 이렇다. 들임 $x$과 증서 $c = (b, c')$이 주어질 때($b \in \{0,1\}$은 어느 말인지 가리킨다) $b = 0$이면 $V_A(x, c')$이 받아들이는지, $b = 1$이면 $V_B(x, c')$이 받아들이는지 살핀다. $x \in A \cup B$이면 올바른 증서가 있다. $x \notin A \cup B$이면 어떤 증서도 통하지 않는다. 이 살피개는 다항 시간에 돈다.
+
+    **교집합:** $A \cap B$의 살피개는 이렇다. 들임 $x$과 증서 $c = (c_1, c_2)$이 주어질 때 $V_A(x, c_1)$과 $V_B(x, c_2)$이 모두 받아들이는지 살핀다. $x \in A \cap B$이면 둘 다에 올바른 증서가 있다. $x \notin A \cap B$이면 살피개 가운데 적어도 하나가 물리친다. 합친 살피개는 다항 시간에 돈다.
+
+---
+
+**연습문제 3.**
+NP이 여 연산에 닫혀 있는지 알려져 있지 않은 까닭과, 이 물음을 푸는 것이 큰 뜻을 지니는 까닭을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    NP이 여 연산에 닫혀 있을 필요충분조건은 $\mathbf{NP} = \mathbf{co\text{-}NP}$이다. 지금의 재주로는 밝힐 수도 뒤엎을 수도 없어 알려져 있지 않다. $\mathbf{NP} = \mathbf{co\text{-}NP}$이면 모든 NP 문제(SAT 같은 것)의 여 문제도 NP에 든다. 이는 만족 불가능성에 짧은 밝힘이 있다는 뜻이며 살피기와 밝힘 얼개를 뒤바꿀 것이다.
+
+    거꾸로 $\mathbf{NP} \neq \mathbf{co\text{-}NP}$이면 곧바로 $\mathbf{P} \neq \mathbf{NP}$을 뜻한다(P은 여 연산에 닫혀 있기 때문이다). 따라서 NP 대 여 NP 물음을 풀면 P 대 NP을 풀거나 여 NP 글월에 짧은 밝힘이 있음을 뜻하게 된다.
+
+---
+
+**연습문제 4.**
+말 COMPOSITE = $\{n \in \mathbb{N} : n \text{ is not prime}\}$을 살펴보자. COMPOSITE이 NP에 듦을 보여라. PRIMES도 NP에 드는가?
+
+??? success "연습문제 4 풀이"
+    COMPOSITE은 NP에 든다. $n$이 주어질 때 증서는 $1 < d < n$인 하찮지 않은 인수 $d$이다. 살피개는 $d$이 $n$을 나누는지($O(\log^2 n)$ 시간의 나눗셈으로) 그리고 $1 < d < n$인지 살핀다. $n$이 합성수이면 그런 인수가 있고, 소수이면 그런 인수가 없다.
+
+    PRIMES도 프랫 증서로 NP에 든다. 이는 $n-1$의 인수 분해에 바탕한 되돌이 소수 밝힘이다. 증서에는 인수 분해 $n-1 = p_1^{a_1} \cdots p_k^{a_k}$과 $n$을 법으로 하는 원시근 $g$, 그리고 각 $p_i$에 대한 되돌이 프랫 증서가 들어간다. 살피개는 $g^{n-1} \equiv 1 \pmod{n}$이고 각 $p_i$에 대해 $g^{(n-1)/p_i} \not\equiv 1 \pmod{n}$인지 살핀다. 게다가 PRIMES은 AKS 알고리즘(2002)으로 P에 들므로 하찮게도 NP에도 든다.
+
+---
+
+**연습 5.**
+정해지지 않은 튜링 기계 $N$이 말을 다항 시간에 가른다는 것은 모든 들임에서 모든 셈 길이 다항 번의 걸음 안에 멈춘다는 뜻이다. 받아들이는 길뿐 아니라 *모든* 길이 빨리 멈추어야 한다는 요구가 왜 꼭 필요한지 밝혀라.
+
+??? success "연습 5의 풀이"
+    받아들이는 길만 짧으라고 요구하면 갈래가 달라진다. 이런 경우를 보자. 어떤 기계에 다항 길이의 받아들이는 길이 하나 있고 지수 길이의 물리치는 길이 지수 개 있을 수 있다. 이 기계를 (모든 길을 살펴 가며) 정해진 방식으로 흉내 내려면 받아들이는 길이 없음을 가리는 데에도 지수 시간이 든다.
+
+    뜻매김은 모든 길이(받아들이든 물리치든) $p(n)$ 걸음 안에 멈추기를 요구한다. 이는 정해지지 않은 셈 나무의 깊이가 많아야 $p(n)$이고 잎이 많아야 $2^{p(n)}$개임을 보장한다. 아니오 사례에서는 (이중 지수가 아니라) 지수 시간에 샅샅이 뒤져 물리침을 살필 수 있고, 예 사례의 증서는 길이가 많아야 $p(n)$이다(정해지지 않은 고르기마다 1비트). 이 한계가 없으면 증서 길이가 가둬지지 않아 다항 시간 살피기가 불가능해진다.

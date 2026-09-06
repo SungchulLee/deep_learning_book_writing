@@ -1,13 +1,8 @@
-# Bucket Sort
+# 양동이 정렬
 
-Counting sort and radix sort exploit integer structure to beat the $\Omega(n \log n)$
-comparison-based lower bound.  **Bucket sort** takes a different approach: it assumes
-the input is drawn from a *uniform distribution* over a known interval (typically
-$[0, 1)$) and distributes elements into equally spaced buckets.  If the distribution
-is roughly uniform, each bucket contains $O(1)$ elements on average, and sorting every
-bucket with insertion sort takes linear total time.
+세기 정렬과 기수 정렬은 정수의 짜임을 살려 써서 비교 기반의 아래 한계 $\Omega(n \log n)$을 넘어선다. **양동이 정렬**은 다르게 다가간다. 입력이 알려진 구간(대개 $[0, 1)$) 위의 *고른 분포*에서 나왔다고 놓고, 원소를 같은 간격의 양동이에 나누어 담는다. 분포가 대체로 고르면 양동이마다 평균 $O(1)$개의 원소가 들고, 모든 양동이를 끼워넣기 정렬로 정렬해도 전체가 선형 시간이 든다.
 
-## Algorithm Overview
+## 알고리즘 훑어보기
 
 Given $n$ elements uniformly distributed over $[0, 1)$:
 
@@ -16,35 +11,31 @@ Given $n$ elements uniformly distributed over $[0, 1)$:
 3. **Sort** each bucket individually (insertion sort works well since buckets are small).
 4. **Concatenate** all buckets in order to produce the sorted output.
 
-## Complexity
+## 복잡도
 
 ### Expected time (uniform input)
 
-When the $n$ input values are drawn independently and uniformly from $[0, 1)$, the
-expected number of elements per bucket is 1.  Let $n_i$ denote the number of elements
-in bucket $i$.  The expected cost of sorting all buckets with insertion sort is:
+입력값 $n$개를 $[0, 1)$에서 서로 독립으로 고르게 뽑으면 양동이마다의 기대 원소 수는 1이다. 양동이 $i$의 원소 수를 $n_i$이라 하자. 모든 양동이를 끼워넣기 정렬로 정렬하는 기대 비용은 다음과 같다.
 
 $$
 E\!\left[\sum_{i=0}^{n-1} O(n_i^2)\right] = \sum_{i=0}^{n-1} O\!\left(E[n_i^2]\right)
 $$
 
-Each $n_i$ follows a Binomial$(n, 1/n)$ distribution, so $E[n_i] = 1$ and
-$E[n_i^2] = \text{Var}(n_i) + (E[n_i])^2 = (1 - 1/n) + 1 = 2 - 1/n$.
+$n_i$마다 Binomial$(n, 1/n)$ 분포를 따르므로 $E[n_i] = 1$이고 $E[n_i^2] = \text{Var}(n_i) + (E[n_i])^2 = (1 - 1/n) + 1 = 2 - 1/n$이다.
 
 $$
-\text{Expected total cost} = \sum_{i=0}^{n-1} O(2 - 1/n) = O(n)
+\text{기대 전체 비용} = \sum_{i=0}^{n-1} O(2 - 1/n) = O(n)
 $$
 
 Adding $\Theta(n)$ for distribution and concatenation:
 
 $$
-T(n) = \Theta(n) \quad \text{expected, for uniform input}
+T(n) = \Theta(n) \quad \text{(고른 입력에서의 기대값)}
 $$
 
 ### Worst case
 
-If all elements land in a single bucket, the algorithm degenerates to the subroutine
-sort.  With insertion sort this gives $O(n^2)$ worst case.
+원소가 모두 한 양동이에 떨어지면 알고리즘은 부분 절차 정렬로 무너진다. 끼워넣기 정렬이라면 최악의 경우 $O(n^2)$이다.
 
 ### Space
 
@@ -54,10 +45,9 @@ $$
 
 The $n$ buckets collectively store $n$ elements plus the bucket structure overhead.
 
-## Worked Example
+## 풀이 예제
 
-Sort $A = [0.78, 0.17, 0.39, 0.26, 0.72, 0.94, 0.21, 0.12, 0.23, 0.68]$ with
-$n = 10$ buckets.
+양동이 $n = 10$개로 $A = [0.78, 0.17, 0.39, 0.26, 0.72, 0.94, 0.21, 0.12, 0.23, 0.68]$을 정렬해 보자.
 
 | Bucket | Elements | After sort |
 |--------|----------|------------|
@@ -75,28 +65,25 @@ Concatenating: $[0.12, 0.17, 0.21, 0.23, 0.26, 0.39, 0.68, 0.72, 0.78, 0.94]$.
 
 ## Generalizing to Arbitrary Ranges
 
-For inputs in $[a, b)$ rather than $[0, 1)$, map each element $x$ to bucket index
-$\lfloor n \cdot (x - a) / (b - a) \rfloor$, clamping to $n - 1$ if $x = b$.
+입력이 $[0, 1)$이 아니라 $[a, b)$에 있으면 원소 $x$마다 양동이 첨자 $\lfloor n \cdot (x - a) / (b - a) \rfloor$으로 옮기고, $x = b$이면 $n - 1$으로 묶는다.
 
-For integer inputs in $\{0, 1, \dots, k\}$, use $\lfloor n \cdot x / (k + 1) \rfloor$.
-When $k$ is small enough that each bucket holds at most one distinct value, bucket sort
-reduces to counting sort.
+$\{0, 1, \dots, k\}$의 정수 입력이라면 $\lfloor n \cdot x / (k + 1) \rfloor$을 쓴다. $k$이 충분히 작아 양동이마다 서로 다른 값이 많아야 하나만 들면 양동이 정렬은 세기 정렬이 된다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Bucket sort -- expected linear time for uniformly distributed input.
+양동이 정렬 — 고르게 흩어진 입력에서 기대 선형 시간.
 
-Sorts floating-point values in [0, 1).
-Time:  Theta(n) expected (uniform), O(n^2) worst case
-Space: Theta(n)
+[0, 1) 안의 부동소수점 값을 정렬한다.
+시간:  기대 Theta(n)(고른 경우), 최악의 경우 O(n^2)
+공간: Theta(n)
 """
 
-# === Insertion sort for small buckets =======================================
+# === 작은 양동이를 위한 끼워넣기 정렬 =========================================
 
 def _insertion_sort(arr: list[float]) -> None:
-    """Sort *arr* in place using insertion sort."""
+    """끼워넣기 정렬로 *arr*을 제자리에서 정렬한다."""
     for i in range(1, len(arr)):
         key = arr[i]
         j = i - 1
@@ -106,22 +93,22 @@ def _insertion_sort(arr: list[float]) -> None:
         arr[j + 1] = key
 
 
-# === Bucket sort ============================================================
+# === 양동이 정렬 =============================================================
 
 def bucket_sort(arr: list[float], num_buckets: int | None = None) -> list[float]:
-    """Sort values in [0, 1) using bucket sort.
+    """양동이 정렬로 [0, 1) 안의 값을 정렬한다.
 
-    Parameters
+    매개변수
     ----------
     arr : list[float]
-        Input array with values in [0, 1).
-    num_buckets : int or None
-        Number of buckets (defaults to len(arr)).
+        값이 [0, 1)에 있는 입력 배열.
+    num_buckets : int 또는 None
+        양동이의 개수(기본값은 len(arr)).
 
-    Returns
+    반환값
     -------
     list[float]
-        Sorted array.
+        정렬된 배열.
     """
     n = len(arr)
     if n <= 1:
@@ -130,21 +117,21 @@ def bucket_sort(arr: list[float], num_buckets: int | None = None) -> list[float]
     if num_buckets is None:
         num_buckets = n
 
-    # Create empty buckets
+    # 빈 양동이 만들기
     buckets: list[list[float]] = [[] for _ in range(num_buckets)]
 
-    # Distribute elements into buckets
+    # 원소를 양동이에 나눠 담기
     for x in arr:
         idx = int(num_buckets * x)
-        if idx == num_buckets:      # handle x == 1.0 edge case
+        if idx == num_buckets:      # x == 1.0 모서리 경우 다루기
             idx = num_buckets - 1
         buckets[idx].append(x)
 
-    # Sort each bucket
+    # 양동이마다 정렬하기
     for bucket in buckets:
         _insertion_sort(bucket)
 
-    # Concatenate
+    # 이어 붙인다
     result: list[float] = []
     for bucket in buckets:
         result.extend(bucket)
@@ -152,7 +139,7 @@ def bucket_sort(arr: list[float], num_buckets: int | None = None) -> list[float]
     return result
 
 
-# === Demo ===================================================================
+# === 시연 ===================================================================
 
 if __name__ == "__main__":
     data = [0.78, 0.17, 0.39, 0.26, 0.72, 0.94, 0.21, 0.12, 0.23, 0.68]
@@ -161,7 +148,7 @@ if __name__ == "__main__":
     print(f"Sorted: {sorted_data}")
 ```
 
-**Output:**
+**출력:**
 ```
 Input:  [0.78, 0.17, 0.39, 0.26, 0.72, 0.94, 0.21, 0.12, 0.23, 0.68]
 Sorted: [0.12, 0.17, 0.21, 0.23, 0.26, 0.39, 0.68, 0.72, 0.78, 0.94]
@@ -177,7 +164,39 @@ Sorted: [0.12, 0.17, 0.21, 0.23, 0.26, 0.39, 0.68, 0.72, 0.78, 0.94]
 | Integer keys, small range | Counting sort is simpler |
 | Stability required | Stable if the per-bucket sort is stable |
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022).
-  *Introduction to Algorithms* (4th ed.), Chapter 8. MIT Press.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 8장. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+양동이 정렬의 핵심 생각과 그 시간·공간 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 견줌 너머의 성질(정수 열쇠, 바깥 저장 장치, 병렬 하드웨어)을 살려 써서 비교 기반 정렬이 따라올 수 없는 성능을 이룬다. 구체적인 복잡도 한계는 이 쪽에서 뜯어본다.
+
+---
+
+**연습문제 2.**
+작은 입력에서 양동이 정렬을 따라가라. 훑기나 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    원소 6~8개에 알고리즘을 적용하며 훑을 때마다의 상태를 보여라. 이 따라가기가 알고리즘의 얼개를 드러내고 옳음을 눈에 보이게 한다.
+
+---
+
+**연습문제 3.**
+어떤 조건에서 비교 기반 정렬보다 양동이 정렬이 나은가?
+
+??? success "연습문제 3 풀이"
+    다음일 때 낫다. 입력의 정수 범위가 묶여 있을 때(세기 정렬과 기수 정렬), 데이터가 램을 넘칠 때(바깥 정렬), 병렬 하드웨어를 쓸 수 있을 때(병렬 정렬). 이런 조건에서는 알고리즘이 비교 기반의 아래 한계 $\Omega(n\log n)$을 비껴갈 수 있다.
+
+---
+
+**연습문제 4.**
+양동이 정렬이 실전에서 이득을 주는 깊은 학습 응용을 서술하라.
+
+??? success "연습문제 4 풀이"
+    응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.

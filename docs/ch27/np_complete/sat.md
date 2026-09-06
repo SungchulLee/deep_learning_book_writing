@@ -1,124 +1,180 @@
-# SAT and 3-SAT
+# SAT과 3-SAT
 
-The **Boolean satisfiability problem** (SAT) asks whether a Boolean formula can be made true by some assignment of its variables.  SAT holds a unique position in complexity theory: it was the *first* problem proven NP-complete (Cook-Levin theorem, 1971), and it serves as the starting point for virtually all subsequent NP-completeness proofs.  Its restricted variant **3-SAT**, where each clause has at most three literals, remains NP-complete and is the most commonly used source for reductions.
+**부울 만족 가능성 문제**(SAT)는 어떤 변수 매김으로 부울 식을 참으로 만들 수 있는지 묻는다. SAT은 복잡도 이론에서 남다른 자리를 차지한다. NP 완전임이 밝혀진 *첫* 문제이며(쿡-레빈 정리, 1971) 그 뒤의 거의 모든 NP 완전성 밝힘의 출발점 노릇을 한다. 절마다 리터럴이 많아야 셋인 제한된 변형 **3-SAT**도 여전히 NP 완전이며 줄임의 출발점으로 가장 흔히 쓰인다.
 
-## Boolean Formulas
+## 부울 식
 
-A **Boolean formula** over variables $x_1, x_2, \ldots, x_n$ is built from variables, negation ($\neg$), conjunction ($\wedge$), and disjunction ($\vee$).
+변수 $x_1, x_2, \ldots, x_n$ 위의 **부울 식**은 변수, 부정($\neg$), 논리곱($\wedge$), 논리합($\vee$)으로 세운다.
 
-A **literal** is a variable $x_i$ or its negation $\neg x_i$ (also written $\overline{x_i}$).
+**리터럴**은 변수 $x_i$이거나 그 부정 $\neg x_i$($\overline{x_i}$이라고도 적는다)이다.
 
-A **clause** is a disjunction of literals: $(\ell_1 \vee \ell_2 \vee \cdots \vee \ell_k)$.
+**절**은 리터럴의 논리합이다: $(\ell_1 \vee \ell_2 \vee \cdots \vee \ell_k)$.
 
-A formula is in **conjunctive normal form** (CNF) if it is a conjunction of clauses:
+식이 절의 논리곱이면 **논리곱 표준형**(CNF)이라 한다:
 
 $$
 \phi = C_1 \wedge C_2 \wedge \cdots \wedge C_m
 $$
 
-where each $C_j = (\ell_{j,1} \vee \ell_{j,2} \vee \cdots \vee \ell_{j,k_j})$.
+여기서 각 $C_j = (\ell_{j,1} \vee \ell_{j,2} \vee \cdots \vee \ell_{j,k_j})$이다.
 
-An **assignment** $\alpha : \{x_1, \ldots, x_n\} \to \{0, 1\}$ **satisfies** $\phi$ if $\phi$ evaluates to 1 (true) under $\alpha$.
+**매김** $\alpha : \{x_1, \ldots, x_n\} \to \{0, 1\}$ 아래에서 $\phi$이 1(참)이 되면 $\alpha$이 $\phi$을 **만족시킨다**고 한다.
 
-## Problem Definitions
+## 문제 뜻매김
 
 ### SAT
 
-**Input:** A Boolean formula $\phi$.
+**들임:** 부울 식 $\phi$.
 
-**Question:** Does there exist an assignment $\alpha$ that satisfies $\phi$?
+**물음:** $\phi$을 만족시키는 매김 $\alpha$이 있는가?
 
-### CNF-SAT
+### 논리곱 표준형 SAT
 
-**Input:** A Boolean formula $\phi$ in conjunctive normal form.
+**들임:** 논리곱 표준형인 부울 식 $\phi$.
 
-**Question:** Does there exist a satisfying assignment for $\phi$?
+**물음:** $\phi$을 만족시키는 매김이 있는가?
 
 ### k-SAT
 
-**Input:** A CNF formula $\phi$ where every clause has *exactly* $k$ literals.
+**들임:** 모든 절에 리터럴이 *꼭* $k$개인 논리곱 표준형 식 $\phi$.
 
-**Question:** Does there exist a satisfying assignment for $\phi$?
+**물음:** $\phi$을 만족시키는 매김이 있는가?
 
-!!! tip "Why CNF?"
-    Any Boolean formula can be converted to an equisatisfiable CNF formula in polynomial time (using the Tseitin transformation).  Therefore, CNF-SAT and general SAT are polynomial-time equivalent.
+!!! tip "왜 논리곱 표준형인가?"
+    어떤 부울 식도 (체이틴 변환으로) 다항 시간에 만족 가능성이 같은 논리곱 표준형 식으로 바꿀 수 있다. 따라서 논리곱 표준형 SAT과 일반 SAT은 다항 시간에서 서로 같다.
 
-## NP-Completeness of SAT
+## SAT의 NP 완전성
 
-**Theorem (Cook-Levin).** SAT is NP-complete.
+**정리(쿡-레빈).** SAT은 NP 완전이다.
 
-**SAT is in NP.** Given a formula $\phi$ and an assignment $\alpha$, verify that $\phi(\alpha) = 1$ by evaluating the formula in $O(|\phi|)$ time.  The assignment $\alpha$ serves as the certificate.
+**SAT은 NP에 든다.** 식 $\phi$과 매김 $\alpha$이 주어지면 $O(|\phi|)$ 시간에 식을 매겨 $\phi(\alpha) = 1$인지 살핀다. 매김 $\alpha$이 증서 노릇을 한다.
 
-**SAT is NP-hard.** The Cook-Levin theorem shows this by encoding the computation of any nondeterministic Turing machine as a Boolean formula.  The details are covered in the Cook-Levin theorem page.
+**SAT은 NP 어려움이다.** 쿡-레빈 정리는 어떤 정해지지 않은 튜링 기계의 셈도 부울 식으로 적어 이를 보인다. 자세한 것은 쿡-레빈 정리 쪽에서 다룬다.
 
-## The Importance of 3-SAT
+## 3-SAT의 중요함
 
-### 3-SAT is NP-Complete
+### 3-SAT은 NP 완전이다
 
-**Theorem.** 3-SAT is NP-complete.
+**정리.** 3-SAT은 NP 완전이다.
 
-*Proof sketch.* 3-SAT is clearly in NP (same verifier as SAT).  To show NP-hardness, reduce SAT to 3-SAT.  Given a CNF formula, transform each clause with $k > 3$ literals into an equivalent set of 3-literal clauses using auxiliary variables:
+*증명 얼개.* 3-SAT은 분명 NP에 든다(SAT과 같은 살피개). NP 어려움을 보이려면 SAT을 3-SAT으로 줄인다. 논리곱 표준형 식이 주어지면 리터럴이 $k > 3$개인 절마다 도우미 변수를 써서 같은 뜻의 3리터럴 절 모임으로 바꾼다:
 
-Replace $(l_1 \vee l_2 \vee \cdots \vee l_k)$ with:
+$(l_1 \vee l_2 \vee \cdots \vee l_k)$을 다음으로 바꾼다:
 
 $$
 (l_1 \vee l_2 \vee y_1) \wedge (\neg y_1 \vee l_3 \vee y_2) \wedge \cdots \wedge (\neg y_{k-3} \vee l_{k-1} \vee l_k)
 $$
 
-Each new auxiliary variable $y_i$ is fresh.  The resulting formula is satisfiable if and only if the original clause is satisfiable.  Clauses with fewer than 3 literals are padded by repeating a literal. $\square$
+새 도우미 변수 $y_i$은 저마다 새것이다. 그렇게 얻은 식이 만족 가능할 필요충분조건은 본디 절이 만족 가능한 것이다. 리터럴이 3개보다 적은 절은 리터럴을 되풀이해 채운다. $\square$
 
-### 2-SAT is in P
+### 2-SAT은 P에 든다
 
-In contrast to 3-SAT, **2-SAT** (every clause has exactly 2 literals) is solvable in polynomial time using implication graphs and strongly connected components:
+3-SAT과 달리 **2-SAT**(절마다 리터럴이 꼭 2개)은 함의 그래프와 강하게 이어진 조각을 써서 다항 시간에 풀 수 있다:
 
 $$
 \text{2-SAT} \in \mathbf{P}
 $$
 
-This sharp transition from P to NP-complete between $k = 2$ and $k = 3$ is a fundamental phenomenon in complexity theory.
+$k = 2$과 $k = 3$ 사이에서 P에서 NP 완전으로 급히 넘어가는 이 일은 복잡도 이론의 근본 현상이다.
 
-## Structure of SAT Instances
+## SAT 사례의 얼개
 
-### Satisfiable vs. Unsatisfiable
+### 만족 가능함과 만족 불가능함
 
-A random $k$-SAT formula with $n$ variables and $m$ clauses undergoes a **phase transition** at a critical clause-to-variable ratio $r^* = m/n$:
+변수 $n$개와 절 $m$개를 가진 아무 $k$-SAT 식은 임계 절 대 변수 비 $r^* = m/n$에서 **상 바뀜**을 겪는다:
 
-- Below $r^*$: almost all formulas are satisfiable.
-- Above $r^*$: almost all formulas are unsatisfiable.
+- $r^*$ 아래에서는 거의 모든 식이 만족 가능하다.
+- $r^*$ 위에서는 거의 모든 식이 만족 불가능하다.
 
-For 3-SAT, experiments and theoretical results place $r^* \approx 4.267$.
+3-SAT에서 실험과 이론 결과는 $r^* \approx 4.267$으로 본다.
 
-### Horn-SAT
+### 혼 SAT
 
-A **Horn clause** has at most one positive literal.  **Horn-SAT** is solvable in linear time using unit propagation, placing it firmly in P.  This is another example of a structural restriction making SAT tractable.
+**혼 절**은 양의 리터럴이 많아야 하나이다. **혼 SAT**은 단위 퍼뜨리기로 선형 시간에 풀 수 있어 확실히 P에 든다. 이는 얼개 제한이 SAT을 다룰 만하게 만드는 또 다른 보기이다.
 
-## SAT Solvers in Practice
+## 실제의 SAT 풀개
 
-Despite NP-completeness, modern SAT solvers handle industrial instances with millions of variables using:
+NP 완전인데도 요즘 SAT 풀개는 다음을 써서 변수 수백만 개의 산업 사례를 다룬다:
 
-- **Unit propagation**: if a clause has one unassigned literal, assign it to make the clause true.
-- **Conflict-driven clause learning (CDCL)**: when a conflict arises, analyze the cause and add a learned clause to prevent repeating the same mistake.
-- **Backjumping**: instead of chronological backtracking, jump back to the decision that caused the conflict.
-- **Restarts**: periodically restart the search to escape unpromising regions.
+- **단위 퍼뜨리기**: 절에 매겨지지 않은 리터럴이 하나 있으면 그 절이 참이 되도록 매긴다.
+- **부딪힘이 이끄는 절 배우기(CDCL)**: 부딪힘이 생기면 그 까닭을 살펴 같은 잘못을 되풀이하지 않도록 배운 절을 더한다.
+- **되뛰기**: 차례대로 되돌아가는 대신 부딪힘을 낳은 결정으로 되뛰어 간다.
+- **다시 시작**: 가망 없는 자리에서 벗어나려 때때로 찾기를 다시 시작한다.
 
-??? example "Practical SAT solving"
-    A CDCL solver maintains a partial assignment and alternates between **decision** (choose an unassigned variable and value), **propagation** (apply unit propagation), and **conflict analysis** (when a contradiction is found, derive a learned clause and backjump).  On structured industrial instances, this approach often runs in near-linear time despite worst-case exponential complexity.
+??? example "실제의 SAT 풀기"
+    CDCL 풀개는 일부만 매긴 상태를 지니며 **결정**(매겨지지 않은 변수와 값을 고른다), **퍼뜨리기**(단위 퍼뜨리기를 쓴다), **부딪힘 살피기**(어긋남을 찾으면 배운 절을 이끌어 내고 되뛴다)를 번갈아 한다. 얼개를 갖춘 산업 사례에서는 가장 나쁜 경우가 지수인데도 이 방식이 흔히 거의 선형 시간에 돈다.
 
-## Variants and Extensions
+## 변형과 확장
 
-| Variant | Complexity | Notes |
+| 변형 | 복잡도 | 비고 |
 |---------|-----------|-------|
-| 2-SAT | P | Implication graph algorithm |
-| 3-SAT | NP-complete | Standard reduction source |
-| Horn-SAT | P | Unit propagation |
-| MAX-SAT | NP-hard | Maximize satisfied clauses |
-| Weighted MAX-SAT | NP-hard | Weighted objective |
-| #SAT | #P-complete | Count satisfying assignments |
-| UNSAT | co-NP-complete | Complement of SAT |
+| 2-SAT | P | 함의 그래프 알고리즘 |
+| 3-SAT | NP 완전 | 여느 줄임 출발점 |
+| 혼 SAT | P | 단위 퍼뜨리기 |
+| MAX-SAT | NP 어려움 | 만족되는 절을 가장 많게 하기 |
+| 무게 있는 MAX-SAT | NP 어려움 | 무게 있는 목표 |
+| #SAT | #P 완전 | 만족시키는 매김의 개수 세기 |
+| UNSAT | 여 NP 완전 | SAT의 여 문제 |
 
-## Reference
+## 참고 문헌
 
 - Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
 - Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
 - Cook, S. "The Complexity of Theorem-Proving Procedures." *STOC*, 1971.
 - Biere, A. et al. *Handbook of Satisfiability*. IOS Press, 2009.
+
+## 연습문제
+
+**연습문제 1.**
+식 $\phi = (x_1 \vee x_2 \vee \neg x_3) \wedge (\neg x_1 \vee x_3) \wedge (x_2 \vee x_3) \wedge (\neg x_2 \vee \neg x_3)$이 만족 가능한지 가려라.
+
+??? success "연습문제 1 풀이"
+    $x_1 = T, x_2 = T, x_3 = F$을 시험한다:
+
+    - 절 1: $T \vee T \vee T = T$
+    - 절 2: $F \vee F = F$ --- 실패한다.
+
+    $x_1 = T, x_2 = F, x_3 = T$을 시험한다:
+
+    - 절 1: $T \vee F \vee F = T$
+    - 절 2: $F \vee T = T$
+    - 절 3: $F \vee T = T$
+    - 절 4: $T \vee F = T$
+
+    모든 절이 만족된다. 이 식은 $x_1 = T, x_2 = F, x_3 = T$으로 만족 가능하다.
+
+---
+
+**연습문제 2.**
+다항 시간 알고리즘을 적어 2-SAT이 P에 듦을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    2-SAT에서는 절마다 리터럴이 꼭 2개이다. 절 $(\ell_1 \vee \ell_2)$은 함의 $\neg \ell_1 \Rightarrow \ell_2$과 $\neg \ell_2 \Rightarrow \ell_1$과 같다.
+
+    함의 그래프를 세운다. 꼭짓점은 모든 리터럴 $x_i, \neg x_i$이다. 절마다 함의 변 둘을 더한다. 2-SAT 식이 만족 불가능할 필요충분조건은 $x_i$과 $\neg x_i$이 함의 그래프의 같은 강하게 이어진 조각에 드는 변수 $x_i$이 있는 것이다.
+
+    알고리즘: (1) $O(n + m)$에 함의 그래프를 세운다, (2) 타잔이나 코사라주 알고리즘으로 $O(n + m)$에 강하게 이어진 조각을 찾는다, (3) 어떤 변수와 그 부정이 같은 조각에 드는지 살핀다. 그렇다면 만족 불가능하다. 아니라면 조각들의 방향 있고 돌이 없는 그래프의 위상 차례에서 만족시키는 매김을 뽑아낸다. 온 시간: $O(n + m)$.
+
+---
+
+**연습문제 3.**
+아무 3-SAT의 만족 가능성 문턱 추측을 밝혀라. 추측되는 임계 비는 얼마이며 왜 중요한가?
+
+??? success "연습문제 3 풀이"
+    변수 $n$개와 절 $m$개를 (절마다 고르게 골라) 가진 아무 3-SAT에서 절 대 변수 비 $\alpha = m/n$이 만족 가능성을 다스린다. 문턱 추측은 (딩, 슬라이, 순이 2015년에 큰 $k$에 대해 밝혔고 $k=3$에서는 수치로 세워졌다):
+
+    $\alpha^* \approx 4.267$이 있어 $\alpha < \alpha^*$이면 아무 식이 높은 확률로 만족 가능하고 $\alpha > \alpha^*$이면 높은 확률로 만족 불가능하다. $n \to \infty$이면 이 넘어감이 더 날카로워진다.
+
+    중요함: (1) 평균 경우의 어려움 풍경을 성격 짓는다. $\alpha^*$ 언저리의 사례가 알려진 모든 알고리즘에 가장 어렵다. (2) 실제 사례 대부분에서 SAT 풀개가 성공하는 까닭을 설명한다(그 사례들은 문턱에서 멀다). (3) 얽음 가장 좋게 하기를 통계 물리학과 잇는다(그 문턱이 상 바뀜에 해당한다).
+
+---
+
+**연습문제 4.**
+SAT의 DPLL 알고리즘과 그 요즘 넓힘인 CDCL(부딪힘이 이끄는 절 배우기)을 적어라.
+
+??? success "연습문제 4 풀이"
+    **DPLL**(데이비스-퍼트넘-로지먼-러브랜드): 두 핵심 개선을 갖춘 되돌아가기 찾기이다. (1) **단위 퍼뜨리기** --- 절에 매겨지지 않은 리터럴이 하나뿐이면 그 절이 참이 되도록 둔다. (2) **순수 리터럴 없애기** --- 변수가 양으로만(또는 음으로만) 나오면 그에 맞게 둔다. DPLL은 매겨지지 않은 변수에서 가지 쳐 두 값을 모두 시험한다.
+
+    **CDCL**은 DPLL을 다음으로 넓힌다. (1) **부딪힘 살피기** --- 부딪힘이 생기면 함의 그래프를 살펴 실패를 낳은 작은 "부딪힘 절"을 짚어낸다. (2) **절 배우기** --- 같은 부딪힘 무늬를 막으려 그 절을 더한다. (3) **차례를 건너뛰는 되돌아가기** --- 부딪힘을 낳은 결정 켜로 되뛰어 여러 켜를 건너뛸 수 있다. (4) **다시 시작** --- 배운 절은 지닌 채 때때로 찾기를 다시 시작한다.
+
+    CDCL은 SAT이 NP 완전인데도 변수 수백만 개의 산업 사례를 푸는 요즘 SAT 풀개(MiniSat, CaDiCaL)의 바탕이다.

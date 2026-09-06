@@ -1,29 +1,29 @@
-# Breadth-First Search (BFS)
+# 너비 우선 찾기(BFS)
 
-Breadth-first search explores a graph level by level: it visits all neighbors of the starting node before moving to their neighbors, then their neighbors' neighbors, and so on. This systematic exploration guarantees that BFS finds the **shortest path** (in terms of number of edges) from the source to every reachable node, making it the foundation for shortest-path algorithms in unweighted graphs.
+너비 우선 찾기는 그래프를 층층이 살펴본다. 곧 시작 마디의 이웃을 모두 들른 뒤에야 그 이웃의 이웃으로 나아가고, 다시 그 이웃의 이웃으로 나아간다. 이렇게 차근차근 살펴보므로 BFS은 샘에서 닿을 수 있는 모든 마디까지 (변의 개수로 재어) **최단 경로**를 찾음이 보장되며, 무게 없는 그래프의 최단 경로 알고리즘의 바탕이 된다.
 
-## Algorithm
+## 알고리즘
 
-BFS uses a **queue** (FIFO) to manage the frontier of nodes to visit:
+BFS은 들를 마디의 앞자락을 다루는 데 **줄**(FIFO)을 쓴다:
 
-1. Enqueue the source node and mark it as visited
-2. While the queue is not empty:
-    - Dequeue a node $v$
-    - For each unvisited neighbor $u$ of $v$: mark $u$ as visited, record its distance as $d(u) = d(v) + 1$, and enqueue $u$
+1. 샘 마디를 줄에 넣고 다녀갔다고 표시한다
+2. 큐가 비지 않은 동안 다음을 되풀이한다.
+    - 마디 $v$을 줄에서 꺼낸다
+    - $v$의 아직 다녀가지 않은 이웃 $u$마다: $u$을 다녀갔다고 표시하고 거리를 $d(u) = d(v) + 1$으로 적고 $u$을 줄에 넣는다
 
-## Implementation
+## 구현
 
 ```python
-"""Breadth-first search on an adjacency-list graph.
+"""이웃 목록 그래프에서의 너비 우선 찾기.
 
-Computes shortest distances (in edge count) from a source node.
+샘 마디에서의 (변 개수로 잰) 최단 거리를 셈한다.
 """
 from collections import deque
 
 
 # === BFS ===
 def bfs(graph, source):
-    """Return a dict of shortest distances from source to all reachable nodes."""
+    """샘에서 닿을 수 있는 모든 마디까지의 최단 거리 사전을 되돌린다."""
     visited = {source}
     dist = {source: 0}
     queue = deque([source])
@@ -37,7 +37,7 @@ def bfs(graph, source):
     return dist
 
 
-# === Main ===
+# === 메인 ===
 if __name__ == "__main__":
     graph = {
         "A": ["B", "C"],
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         print(f"  A -> {node}: {distances[node]}")
 ```
 
-**Output:**
+**출력:**
 ```
   A -> A: 0
   A -> B: 1
@@ -62,25 +62,57 @@ if __name__ == "__main__":
   A -> F: 2
 ```
 
-## Complexity
+## 복잡도
 
-| Metric | Complexity |
+| 지표 | 복잡도 |
 |:---|:---:|
-| Time | $O(V + E)$ |
-| Space | $O(V)$ |
+| 시간 | $O(V + E)$ |
+| 공간 | $O(V)$ |
 
-BFS visits each vertex and each edge at most once, giving linear time in the size of the graph.
+BFS은 꼭짓점과 변마다 많아야 한 번 들르므로 그래프 크기에 선형인 시간이 든다.
 
-## BFS in the Search Landscape
+## 찾기 갈래 속의 BFS
 
-BFS is one member of a family of graph search strategies that differ in how the frontier is managed:
+BFS은 앞자락을 다루는 방식이 서로 다른 그래프 찾기 전략 집안의 한 갈래이다:
 
-| Strategy | Data Structure | Guarantee |
+| 전략 | 자료 짜임 | 보장 |
 |:---|:---|:---|
-| BFS | Queue (FIFO) | Shortest path (unweighted) |
-| DFS | Stack (LIFO) | Explores deeply first |
-| Best-first / A* | Priority queue | Optimal path (with admissible heuristic) |
+| BFS | 줄(FIFO) | 최단 경로(무게 없음) |
+| DFS | 더미(LIFO) | 깊이 먼저 살펴본다 |
+| 최선 우선 / A* | 우선순위 줄 | 가장 좋은 경로(받아들일 만한 어림짐작이 있을 때) |
 
-## References
+## 참고 문헌
 
 [Introduction to Algorithms (CLRS), Section 22.2](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+## 연습문제
+
+**연습문제 1.**
+꼭짓점 $\{0,1,2,3,4\}$과 변 $\{(0,1),(0,2),(1,3),(2,3),(3,4)\}$인 그래프에서 꼭짓점 0부터 BFS을 따라가라. 찾은 차례와 BFS 나무의 변을 적어라.
+
+??? success "연습문제 1 풀이"
+    줄을 꼭짓점 0으로 첫걸음 잡는다. 찾은 차례: 0, 1, 2, 3, 4. 처리: 0을 꺼내고 이웃 1과 2을 넣는다. 1을 꺼내고 이웃 3을 넣는다(2은 이미 다녀갔다). 2을 꺼내는데 이웃 3은 이미 다녀갔다. 3을 꺼내고 이웃 4을 넣는다. 4을 꺼내는데 다녀가지 않은 이웃이 없다. BFS 나무의 변: $(0,1), (0,2), (1,3), (3,4)$. 샘에서의 거리: $d(0)=0, d(1)=1, d(2)=1, d(3)=2, d(4)=3$. $\square$
+
+---
+
+**연습문제 2.**
+BFS이 이어진 그래프의 모든 꼭짓점을 $O(V + E)$ 시간에 다녀감을 증명하여라.
+
+??? success "연습문제 2 풀이"
+    꼭짓점마다 많아야 한 번 줄에 들어가고(줄에 넣기 전에 다녀갔다고 표시하므로) 많아야 한 번 꺼내진다. 꼭짓점 $u$을 꺼낼 때 $u$에 닿은 변을 모두 살핀다. 변마다 무방향 그래프에서는 많아야 두 번(양끝에서 한 번씩), 방향 그래프에서는 한 번 살핀다. 그러므로 전체 일은 꼭짓점 다루기 $O(V)$과 변 살피기 $O(E)$을 더해 $O(V + E)$이다. $\square$
+
+---
+
+**연습문제 3.**
+샘 꼭짓점 $s$에서 다른 모든 꼭짓점까지 거리뿐 아니라 최단 경로까지 셈하도록 BFS을 고쳐라. 어떤 자료 짜임이 필요한가?
+
+??? success "연습문제 3 풀이"
+    $-1$으로 첫걸음 잡은 어버이 배열 $\pi[v]$을 지킨다. 꼭짓점 $u$에서 꼭짓점 $v$을 찾으면 $\pi[v] = u$으로 놓는다. BFS이 끝난 뒤 어버이 가리개를 거꾸로 따라가며 $s$에서 아무 꼭짓점 $t$까지의 최단 경로를 되살린다. 곧 $t, \pi[t], \pi[\pi[t]], \ldots, s$을 얻고 차례를 뒤집는다. BFS 도중 변마다 $O(1)$의 일이 더 들고 경로 되살리기에 $O(V)$이 든다. $\square$
+
+---
+
+**연습문제 4.**
+무게 있는 그래프에서 최단 경로를 찾는 데 BFS을 쓸 수 있는가? 없다면 왜 그런지, 그리고 무엇을 고쳐야 하는지 밝혀라.
+
+??? success "연습문제 4 풀이"
+    표준 BFS은 무게 없는 그래프(또는 모든 변의 무게가 같은 그래프)에서만 최단 경로를 찾는다. 무게 있는 그래프에서는 변이 더 많은 경로가 변이 적은 경로보다 무게의 합이 작을 수 있다. BFS은 무게의 누적이 아니라 뛴 횟수로 살펴본다. 무게가 음이 아닌 그래프에는 데이크스트라 알고리즘(거리로 차례 매긴 우선순위 줄을 쓴 BFS)이 맞다. 무게가 음인 그래프에는 벨먼-포드가 필요하다. $\square$

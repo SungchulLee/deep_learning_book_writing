@@ -1,20 +1,20 @@
-# Red-Black Tree Deletion
+# 레드-블랙 트리의 삭제
 
-Deletion from a red-black tree begins with the standard BST deletion procedure and then applies a [fixup](delete_fixup.md) to restore the red-black [properties](properties.md).  The challenge is that removing a black node reduces the black-height on one side of the tree, violating the property that every root-to-leaf path has the same number of black nodes.  Understanding when this violation occurs — and when it does not — is the key to the deletion algorithm.
+레드-블랙 트리의 삭제는 표준 이진 탐색 트리 삭제 절차로 시작한 뒤 [손질](delete_fixup.md)을 적용하여 레드-블랙 [성질](properties.md)을 되살린다. 어려운 점은 검은 노드를 없애면 트리 한쪽의 검은 높이가 줄어 뿌리에서 잎까지 모든 경로의 검은 노드 수가 같아야 한다는 성질이 깨진다는 것이다. 이 어긋남이 언제 일어나고 언제 일어나지 않는지를 아는 것이 삭제 알고리즘의 열쇠이다.
 
-## BST Deletion Recap
+## 이진 탐색 트리 삭제 되짚기
 
-Standard BST deletion handles three cases based on the number of children of the node $z$ to be deleted:
+표준 이진 탐색 트리 삭제는 지울 노드 $z$의 자식 수에 따라 세 경우를 다룬다.
 
-1. **$z$ has no children:** remove $z$ directly.
-2. **$z$ has one child:** replace $z$ with its child.
-3. **$z$ has two children:** find $z$'s successor $y$ (the leftmost node in $z$'s right subtree), copy $y$'s key and satellite data into $z$, then delete $y$ (which has at most one child).
+1. **$z$에 자식이 없다:** $z$을 곧바로 없앤다.
+2. **$z$에 자식이 하나 있다:** $z$을 그 자식으로 바꾼다.
+3. **$z$에 자식이 둘 있다:** $z$의 후속자 $y$($z$의 오른쪽 부분 트리에서 가장 왼쪽 노드)을 찾아 $y$의 열쇠와 딸린 데이터를 $z$에 옮겨 적고, (자식이 많아야 하나인) $y$을 지운다.
 
-In the red-black tree version, the algorithm tracks both the **actually removed node** $y$ and the node $x$ that takes $y$'s place.
+레드-블랙 트리 판본에서는 알고리즘이 **실제로 없앤 노드** $y$과 $y$의 자리를 차지하는 노드 $x$을 함께 좇는다.
 
-## The RB-DELETE Procedure
+## RB-DELETE 절차
 
-The algorithm uses a `TRANSPLANT` helper that replaces one subtree with another:
+알고리즘은 한 부분 트리를 다른 부분 트리로 바꾸는 `TRANSPLANT` 도우미를 쓴다.
 
 ```
 RB-TRANSPLANT(T, u, v):
@@ -27,7 +27,7 @@ RB-TRANSPLANT(T, u, v):
     v.parent = u.parent
 ```
 
-The main deletion procedure:
+주된 삭제 절차는 다음과 같다.
 
 ```
 RB-DELETE(T, z):
@@ -40,11 +40,11 @@ RB-DELETE(T, z):
         x = z.left
         RB-TRANSPLANT(T, z, z.left)
     else:
-        y = TREE-MINIMUM(z.right)       # z's successor
+        y = TREE-MINIMUM(z.right)       # z의 후속자
         y-original-color = y.color
         x = y.right
         if y.parent == z:
-            x.parent = y                # needed when x is T.nil
+            x.parent = y                # x가 T.nil일 때 필요하다
         else:
             RB-TRANSPLANT(T, y, y.right)
             y.right = z.right
@@ -57,44 +57,77 @@ RB-DELETE(T, z):
         RB-DELETE-FIXUP(T, x)
 ```
 
-## Key Observations
+## 핵심 관찰
 
-**When is fixup needed?**  Only when `y-original-color` is BLACK.  If the removed/moved node was red, no black-height changes, no red-red violations are introduced, and the tree remains valid.
+**언제 손질이 필요한가?** `y-original-color`이 BLACK일 때만이다. 없애거나 옮긴 노드가 붉었다면 검은 높이가 바뀌지 않고 빨강-빨강 위반도 생기지 않으므로 트리가 그대로 올바르다.
 
-**What is $x$?**  The node $x$ is the child that moved into $y$'s position.  It may be `T.nil` (the sentinel), which is treated as a black node.
+**$x$은 무엇인가?** $x$은 $y$의 자리로 옮겨 온 자식이다. 보초인 `T.nil`일 수도 있으며 그때는 검은 노드로 다룬다.
 
-**Why track the original color of $y$?**  When $z$ has two children, $y$ is $z$'s successor and is physically moved into $z$'s position.  The successor $y$ takes on $z$'s color, so any potential violation comes from $y$'s original color, not its new color.
+**왜 $y$의 원래 색을 좇는가?** $z$에 자식이 둘이면 $y$은 $z$의 후속자이며 실제로 $z$의 자리로 옮겨진다. 후속자 $y$은 $z$의 색을 물려받으므로, 있을 수 있는 위반은 새 색이 아니라 $y$의 원래 색에서 온다.
 
-## Which Properties Can Be Violated
+## 어떤 성질이 깨질 수 있는가
 
-After RB-DELETE (before fixup), at most one property is violated:
+RB-DELETE 뒤(손질 전)에는 많아야 성질 하나가 깨진다.
 
-| Property | Can it be violated? | When? |
+| 성질 | 깨질 수 있는가 | 언제 |
 |----------|-------------------|-------|
-| 1. Every node is red or black | No | Colors are not changed to invalid values |
-| 2. Root is black | Yes | If the root was deleted and replaced by a red node |
-| 3. Leaves (T.nil) are black | No | T.nil is always black |
-| 4. Red node has black children | Yes | If $x$ is red and $x.parent$ is red |
-| 5. Equal black-height | Yes | If $y$ was black, paths through $x$ have one fewer black node |
+| 1. 노드는 붉거나 검다 | 아니다 | 색이 잘못된 값으로 바뀌지 않는다 |
+| 2. 뿌리는 검다 | 그렇다 | 뿌리를 지우고 붉은 노드로 바꾸었을 때 |
+| 3. 잎(T.nil)은 검다 | 아니다 | T.nil은 언제나 검다 |
+| 4. 붉은 노드의 자식은 검다 | 그렇다 | $x$과 $x.parent$이 모두 붉을 때 |
+| 5. 검은 높이가 같다 | 그렇다 | $y$이 검었다면 $x$을 지나는 경로의 검은 노드가 하나 적다 |
 
-The [fixup procedure](delete_fixup.md) resolves these violations using at most three rotations and $O(\log n)$ recolorings.
+[손질 절차](delete_fixup.md)는 회전 세 번과 색 바꾸기 $O(\log n)$번으로 이 어긋남을 푼다.
 
-## Complexity
+## 복잡도
 
-| Operation | Time |
+| 연산 | 시간 |
 |-----------|------|
 | RB-DELETE | $O(\log n)$ |
 | TRANSPLANT | $O(1)$ |
 | TREE-MINIMUM | $O(\log n)$ |
 | RB-DELETE-FIXUP | $O(\log n)$ |
-| **Total** | $O(\log n)$ |
+| **합계** | $O(\log n)$ |
 
-The total deletion cost is $O(\log n)$: $O(\log n)$ to find the successor, $O(1)$ for the transplant, and $O(\log n)$ for the fixup.
+전체 삭제 비용은 $O(\log n)$이다. 후속자를 찾는 데 $O(\log n)$, 이식에 $O(1)$, 손질에 $O(\log n)$이 든다.
 
-!!! tip "Deletion is the hardest RB-tree operation"
-    While [insertion fixup](insert_fixup.md) has three symmetric cases, deletion fixup has four.  The additional complexity arises because deletion can create a black-height deficit that is harder to resolve than the red-red violation produced by insertion.
+!!! tip "삭제는 레드-블랙 트리에서 가장 어려운 연산이다"
+    [삽입 뒤 손질](insert_fixup.md)에는 대칭적인 경우가 셋인 데 반해 삭제 뒤 손질에는 넷이 있다. 삭제가 만들어 내는 검은 높이의 모자람은 삽입이 만드는 빨강-빨강 위반보다 풀기 어려워 더 복잡해진다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Section 13.4. MIT Press.
 - Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.), Section 3.3. Addison-Wesley.
+
+
+## 연습문제
+
+**연습문제 1.**
+레드-블랙 트리의 삭제의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 레드-블랙 트리의 삭제를 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+레드-블랙 트리의 삭제이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 레드-블랙 트리의 삭제를 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

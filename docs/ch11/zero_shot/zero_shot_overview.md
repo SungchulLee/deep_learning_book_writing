@@ -1,197 +1,199 @@
-# Zero-Shot Learning Fundamentals
+# 영 예시 학습의 기초
+## 문제 정식화
 
+영 예시 학습은 여느 기계 학습의 근본 한계, 곧 학습 중에 보지 못한 부류를 알아보지 못한다는 점을 다룬다. 이 절은 ZSL 문제를 정식화하고 모든 ZSL 방법의 수학적 바탕을 세운다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+### 형식적 정의
 
-## Problem Formulation
+$\mathcal{X}$을 입력 공간(이를테면 그림), $\mathcal{Y}$을 이름표 공간이라 하자. ZSL에서 이름표 공간은 다음으로 나뉜다.
 
-Zero-shot learning addresses a fundamental limitation of traditional machine learning: the inability to recognize classes not seen during training. This section formalizes the ZSL problem and establishes the mathematical foundations for all ZSL methods.
+- **본 부류**: $\mathcal{Y}^s = \{y_1^s, y_2^s, \ldots, y_K^s\}$ — 학습 보기가 있는 부류
+- **못 본 부류**: $\mathcal{Y}^u = \{y_1^u, y_2^u, \ldots, y_L^u\}$ — 학습 보기가 없는 부류
 
-### Formal Definition
-
-Let $\mathcal{X}$ denote the input space (e.g., images) and $\mathcal{Y}$ the label space. In ZSL, the label space is partitioned into:
-
-- **Seen classes**: $\mathcal{Y}^s = \{y_1^s, y_2^s, \ldots, y_K^s\}$ — classes with training examples
-- **Unseen classes**: $\mathcal{Y}^u = \{y_1^u, y_2^u, \ldots, y_L^u\}$ — classes without training examples
-
-The fundamental constraint is:
+근본 제약은 다음과 같다.
 
 $$\mathcal{Y}^s \cap \mathcal{Y}^u = \emptyset$$
 
-### Training and Testing Protocols
+### 학습과 시험의 규약
 
-**Training Phase:**
-- Access to labeled data: $\mathcal{D}^{tr} = \{(\mathbf{x}_i, y_i) : y_i \in \mathcal{Y}^s\}_{i=1}^{N}$
-- Access to semantic descriptions for all classes: $\{\mathbf{s}_c\}_{c \in \mathcal{Y}^s \cup \mathcal{Y}^u}$
+**학습 단계:**
 
-**Testing Phase (Conventional ZSL):**
-- Test instances belong only to unseen classes
-- Prediction space: $\mathcal{Y}^u$
+- 이름표 붙은 데이터를 쓸 수 있다: $\mathcal{D}^{tr} = \{(\mathbf{x}_i, y_i) : y_i \in \mathcal{Y}^s\}_{i=1}^{N}$
+- 모든 부류의 뜻 설명을 쓸 수 있다: $\{\mathbf{s}_c\}_{c \in \mathcal{Y}^s \cup \mathcal{Y}^u}$
 
-**Testing Phase (Generalized ZSL):**
-- Test instances may belong to any class
-- Prediction space: $\mathcal{Y}^s \cup \mathcal{Y}^u$
+**시험 단계(여느 ZSL):**
 
-## The Semantic Space
+- 시험 사례는 못 본 부류에만 든다
+- 예측 공간: $\mathcal{Y}^u$
 
-The key to ZSL is the semantic space $\mathcal{S}$ that provides a common representation for both seen and unseen classes.
+**시험 단계(일반화된 ZSL):**
 
-### Attribute-Based Representations
+- 시험 사례는 어느 부류에나 들 수 있다
+- 예측 공간: $\mathcal{Y}^s \cup \mathcal{Y}^u$
 
-Each class $c$ is described by an attribute vector $\mathbf{a}_c \in \mathbb{R}^M$ where $M$ is the number of attributes:
+## 뜻 공간
+
+ZSL의 열쇠는 본 부류와 못 본 부류에 두루 쓰이는 표현을 주는 뜻 공간 $\mathcal{S}$이다.
+
+### 속성 기반 표현
+
+부류 $c$마다 속성 벡터 $\mathbf{a}_c \in \mathbb{R}^M$으로 그려지며 $M$은 속성의 개수이다.
 
 $$\mathbf{a}_c = [a_c^{(1)}, a_c^{(2)}, \ldots, a_c^{(M)}]$$
 
-Attributes can be:
-- **Binary**: $a_c^{(m)} \in \{0, 1\}$ indicating presence/absence
-- **Continuous**: $a_c^{(m)} \in [0, 1]$ indicating strength/relevance
+속성은 다음일 수 있다.
 
-**Example: Animal Attributes**
+- **이진**: 있고 없음을 나타내는 $a_c^{(m)} \in \{0, 1\}$
+- **이어짐**: 세기와 관련도를 나타내는 $a_c^{(m)} \in [0, 1]$
 
-| Animal | has_fur | has_stripes | is_large | has_4_legs | can_fly |
+**보기: 동물의 속성**
+
+| 동물 | has_fur | has_stripes | is_large | has_4_legs | can_fly |
 |--------|---------|-------------|----------|------------|---------|
-| Dog | 1 | 0 | 0.3 | 1 | 0 |
-| Cat | 1 | 0 | 0.1 | 1 | 0 |
-| Zebra | 1 | 1 | 0.9 | 1 | 0 |
-| Eagle | 0 | 0 | 0.6 | 0 | 1 |
+| 개 | 1 | 0 | 0.3 | 1 | 0 |
+| 고양이 | 1 | 0 | 0.1 | 1 | 0 |
+| 얼룩말 | 1 | 1 | 0.9 | 1 | 0 |
+| 독수리 | 0 | 0 | 0.6 | 0 | 1 |
 
-### Word Embedding Representations
+### 낱말 묻힘 표현
 
-Class names are mapped to continuous vector spaces using pre-trained language models:
+부류 이름은 미리 학습된 언어 모델로 이어진 벡터 공간에 옮겨진다.
 
 $$\mathbf{s}_c = \text{Embed}(\text{classname}_c) \in \mathbb{R}^D$$
 
-Common embedding methods:
-- Word2Vec (Skip-gram, CBOW)
-- GloVe (Global Vectors)
-- FastText (subword information)
-- BERT, GPT embeddings
+흔한 묻힘 방법은 다음과 같다.
 
-**Advantages over attributes:**
-1. No manual annotation required
-2. Capture rich semantic relationships automatically
-3. Pre-trained on massive text corpora
-4. Transfer linguistic knowledge to visual domain
+- Word2Vec(Skip-gram, CBOW)
+- GloVe(전역 벡터)
+- FastText(낱말 아래 정보)
+- BERT, GPT 묻힘
 
-### Semantic Similarity
+**속성보다 나은 점:**
 
-The semantic space induces similarity relationships:
+1. 손 표시가 필요 없다
+2. 풍부한 뜻의 관계를 알아서 담는다
+3. 엄청난 글 뭉치로 미리 학습되어 있다
+4. 말에 담긴 앎을 시각 영역으로 옮긴다
+
+### 뜻의 닮음
+
+뜻 공간은 닮음 관계를 자아낸다.
 
 $$\text{sim}(c_1, c_2) = f(\mathbf{s}_{c_1}, \mathbf{s}_{c_2})$$
 
-Common similarity functions:
+흔한 닮음 함수는 다음과 같다.
 
-**Cosine Similarity:**
+**코사인 닮음:**
 
 $$\text{sim}_{\cos}(\mathbf{s}_1, \mathbf{s}_2) = \frac{\mathbf{s}_1 \cdot \mathbf{s}_2}{\|\mathbf{s}_1\| \|\mathbf{s}_2\|}$$
 
-**Euclidean Distance (converted to similarity):**
+**유클리드 거리(닮음으로 바꾼 것):**
 
 $$\text{sim}_{\text{euc}}(\mathbf{s}_1, \mathbf{s}_2) = \exp(-\|\mathbf{s}_1 - \mathbf{s}_2\|^2)$$
 
-**Dot Product:**
+**점곱:**
 
 $$\text{sim}_{\text{dot}}(\mathbf{s}_1, \mathbf{s}_2) = \mathbf{s}_1^\top \mathbf{s}_2$$
 
-## Compatibility Functions
+## 어울림 함수
 
-The compatibility function $F: \mathcal{V} \times \mathcal{S} \rightarrow \mathbb{R}$ measures how well visual features align with semantic representations.
+어울림 함수 $F: \mathcal{V} \times \mathcal{S} \rightarrow \mathbb{R}$은 시각 특징이 뜻 표현과 얼마나 잘 맞는지를 잰다.
 
-### Linear Compatibility
-
-$$F(\mathbf{v}, \mathbf{s}) = \mathbf{v}^\top W \mathbf{s}$$
-
-where $W \in \mathbb{R}^{d_v \times d_s}$ is a learned projection matrix.
-
-### Bilinear Compatibility
-
-For richer interactions:
+### 선형 어울림
 
 $$F(\mathbf{v}, \mathbf{s}) = \mathbf{v}^\top W \mathbf{s}$$
 
-where $W$ captures all pairwise interactions between visual and semantic dimensions.
+여기서 $W \in \mathbb{R}^{d_v \times d_s}$은 배운 쏘아 넣기 행렬이다.
 
-### Neural Compatibility
+### 겹선형 어울림
 
-Using neural networks for non-linear compatibility:
+더 풍부한 어울림을 위한 것이다.
+
+$$F(\mathbf{v}, \mathbf{s}) = \mathbf{v}^\top W \mathbf{s}$$
+
+여기서 $W$은 시각 차원과 뜻 차원 사이의 쌍마다의 어울림을 모두 담는다.
+
+### 신경 어울림
+
+비선형 어울림에 신경망을 쓴다.
 
 $$F(\mathbf{v}, \mathbf{s}) = g_\theta(\mathbf{v}, \mathbf{s})$$
 
-Common architectures:
-- Concatenation followed by MLP
-- Cross-attention mechanisms
-- Residual compatibility networks
+흔한 구조는 다음과 같다.
 
-### Embedding-Based Compatibility
+- 이어 붙인 뒤 MLP
+- 교차 주의 장치
+- 잔차 어울림 망
 
-Project both modalities to a common space:
+### 묻힘 기반 어울림
+
+두 갈래를 모두 함께 쓰는 공간으로 쏘아 넣는다.
 
 $$F(\mathbf{v}, \mathbf{s}) = f_\phi(\mathbf{v})^\top g_\psi(\mathbf{s})$$
 
-Or using cosine similarity:
+또는 코사인 닮음을 쓴다.
 
 $$F(\mathbf{v}, \mathbf{s}) = \frac{f_\phi(\mathbf{v}) \cdot g_\psi(\mathbf{s})}{\|f_\phi(\mathbf{v})\| \|g_\psi(\mathbf{s})\|}$$
 
-## Loss Functions for ZSL
+## ZSL의 손실 함수
 
-### Cross-Entropy Loss
+### 교차 엔트로피 손실
 
-Treat ZSL as classification over seen classes:
+ZSL을 본 부류 위의 가려내기로 다룬다.
 
 $$\mathcal{L}_{CE} = -\sum_{(\mathbf{x}, y) \in \mathcal{D}^{tr}} \log \frac{\exp(F(\phi(\mathbf{x}), \mathbf{s}_y))}{\sum_{c \in \mathcal{Y}^s} \exp(F(\phi(\mathbf{x}), \mathbf{s}_c))}$$
 
-### Ranking Loss (Hinge Loss)
+### 순위 손실(경첩 손실)
 
-Encourage correct class to have higher compatibility than incorrect classes:
+맞는 부류가 틀린 부류보다 더 잘 어울리도록 북돋운다.
 
 $$\mathcal{L}_{rank} = \sum_{(\mathbf{x}, y)} \sum_{c \neq y} \max(0, \Delta + F(\phi(\mathbf{x}), \mathbf{s}_c) - F(\phi(\mathbf{x}), \mathbf{s}_y))$$
 
-where $\Delta$ is a margin parameter.
+여기서 $\Delta$은 여백 매개변수이다.
 
-### Triplet Loss
+### 세쌍 손실
 
-Directly optimize embedding distances:
+묻힘의 거리를 곧바로 최적화한다.
 
 $$\mathcal{L}_{triplet} = \sum_{(\mathbf{x}, y)} \max(0, \|f(\mathbf{x}) - \mathbf{s}_y\|^2 - \|f(\mathbf{x}) - \mathbf{s}_{y^-}\|^2 + \alpha)$$
 
-where $y^-$ is a negative class and $\alpha$ is the margin.
+여기서 $y^-$은 음의 부류이고 $\alpha$은 여백이다.
 
-### Contrastive Loss
+### 대조 손실
 
-For paired similarity learning:
+쌍으로 닮음을 배우기 위한 것이다.
 
 $$\mathcal{L}_{cont} = \sum_{i,j} y_{ij} D_{ij}^2 + (1 - y_{ij}) \max(0, m - D_{ij})^2$$
 
-where $y_{ij} = 1$ if pairs are from the same class, 0 otherwise.
+여기서 쌍이 같은 부류에서 오면 $y_{ij} = 1$이고 그렇지 않으면 0이다.
 
-## Visual Feature Extraction
+## 시각 특징 뽑기
 
-Modern ZSL methods use pre-trained CNN features:
+오늘날의 ZSL 방법은 미리 학습된 CNN 특징을 쓴다.
 
-### CNN Backbones
+### CNN 등뼈
 
-| Model | Output Dim | Pre-training | Common Layer |
+| 모델 | 출력 차원 | 미리 학습 | 흔히 쓰는 층 |
 |-------|------------|--------------|--------------|
 | VGG-19 | 4096 | ImageNet | fc7 |
 | ResNet-101 | 2048 | ImageNet | avg_pool |
 | Inception-v3 | 2048 | ImageNet | pool3 |
-| CLIP | 512/768 | 400M pairs | final |
+| CLIP | 512/768 | 4억 쌍 | 마지막 층 |
 
-### Feature Extraction Pipeline
+### 특징 뽑기 파이프라인
 
 ```python
 import torch
 import torchvision.models as models
 import torchvision.transforms as transforms
 
-# Load pre-trained ResNet
+# 미리 학습된 ResNet을 불러온다
 resnet = models.resnet101(pretrained=True)
-# Remove classification head
+# 가려내기 머리를 없앤다
 feature_extractor = torch.nn.Sequential(*list(resnet.children())[:-1])
 feature_extractor.eval()
 
-# Standard preprocessing
+# 표준 앞손질
 preprocess = transforms.Compose([
     transforms.Resize(256),
     transforms.CenterCrop(224),
@@ -200,32 +202,32 @@ preprocess = transforms.Compose([
                         std=[0.229, 0.224, 0.225])
 ])
 
-# Extract features
+# 특징을 뽑는다
 def extract_features(image):
     with torch.no_grad():
         x = preprocess(image).unsqueeze(0)
         features = feature_extractor(x)
-        return features.squeeze()  # Shape: (2048,)
+        return features.squeeze()  # 꼴: (2048,)
 ```
 
-## Prediction at Test Time
+## 시험 때의 예측
 
-### Nearest Neighbor in Semantic Space
+### 뜻 공간에서의 최근접 이웃
 
-For a test instance $\mathbf{x}$ with visual features $\mathbf{v} = \phi(\mathbf{x})$:
+시각 특징이 $\mathbf{v} = \phi(\mathbf{x})$인 시험 사례 $\mathbf{x}$에 대해 다음과 같다.
 
-1. Compute projected features or compatibility scores
-2. Find the most compatible class
+1. 쏘아 넣은 특징이나 어울림 점수를 셈한다
+2. 가장 잘 어울리는 부류를 찾는다
 
-**Conventional ZSL:**
+**여느 ZSL:**
 
 $$\hat{y} = \arg\max_{c \in \mathcal{Y}^u} F(\mathbf{v}, \mathbf{s}_c)$$
 
-**Generalized ZSL:**
+**일반화된 ZSL:**
 
 $$\hat{y} = \arg\max_{c \in \mathcal{Y}^s \cup \mathcal{Y}^u} F(\mathbf{v}, \mathbf{s}_c)$$
 
-### Implementation
+### 구현
 
 ```python
 import numpy as np
@@ -233,26 +235,26 @@ import numpy as np
 def predict_zsl(visual_features, class_embeddings, class_names, 
                 compatibility_fn='cosine'):
     """
-    Predict class using zero-shot learning.
+    영 예시 학습으로 부류를 맞힌다.
     
-    Args:
-        visual_features: (n_samples, d_v) visual feature matrix
-        class_embeddings: (n_classes, d_s) semantic embedding matrix
-        class_names: list of class names
-        compatibility_fn: 'cosine', 'dot', or 'euclidean'
+    인수:
+        visual_features: (n_samples, d_v) 시각 특징 행렬
+        class_embeddings: (n_classes, d_s) 뜻 묻힘 행렬
+        class_names: 부류 이름 목록
+        compatibility_fn: 'cosine', 'dot' 또는 'euclidean'
     
-    Returns:
-        predictions: list of predicted class names
+    반환값:
+        predictions: 맞힌 부류 이름 목록
     """
     if compatibility_fn == 'cosine':
-        # Normalize for cosine similarity
+        # 코사인 닮음을 위해 고른다
         v_norm = visual_features / np.linalg.norm(visual_features, axis=1, keepdims=True)
         s_norm = class_embeddings / np.linalg.norm(class_embeddings, axis=1, keepdims=True)
         scores = v_norm @ s_norm.T
     elif compatibility_fn == 'dot':
         scores = visual_features @ class_embeddings.T
     elif compatibility_fn == 'euclidean':
-        # Negative distance as score
+        # 거리의 음수를 점수로 쓴다
         scores = -np.sum((visual_features[:, None, :] - class_embeddings[None, :, :]) ** 2, axis=2)
     
     pred_indices = np.argmax(scores, axis=1)
@@ -261,55 +263,88 @@ def predict_zsl(visual_features, class_embeddings, class_names,
     return predictions, scores
 ```
 
-## Key Challenges
+## 핵심 어려움
 
-### Domain Shift
+### 영역 이동
 
-Visual features of seen classes may have different distributions than unseen classes:
+본 부류의 시각 특징은 못 본 부류와 분포가 다를 수 있다.
 
-- **Intra-class variance**: Different instances of the same class look different
-- **Inter-class similarity**: Unseen classes may be more similar to each other than to seen classes
-- **Projection domain shift**: Learned mappings may not generalize well
+- **부류 안 흩어짐**: 같은 부류의 사례끼리도 달라 보인다
+- **부류 사이 닮음**: 못 본 부류끼리가 본 부류와보다 더 닮았을 수 있다
+- **쏘아 넣기 영역 이동**: 배운 옮김이 잘 일반화되지 않을 수 있다
 
-### Hubness Problem
+### 중심 쏠림 문제
 
-In high-dimensional spaces, certain points (hubs) tend to be nearest neighbors of many other points:
+차원이 높은 공간에서는 어떤 점(중심점)이 다른 많은 점의 최근접 이웃이 되기 쉽다.
 
-$$\text{Hubness}(c) = \sum_{\mathbf{x} \in \text{test}} \mathbb{1}[\text{NN}(\mathbf{x}) = c]$$
+$$\text{중심쏠림}(c) = \sum_{\mathbf{x} \in \text{test}} \mathbb{1}[\text{NN}(\mathbf{x}) = c]$$
 
-This causes some classes to be predicted too frequently.
+그래서 어떤 부류가 너무 자주 예측된다.
 
-**Mitigation strategies:**
-- Use local scaling (CSLS)
-- Apply hubness reduction techniques
-- Use regularization in embedding learning
+**누그러뜨리는 전략:**
 
-### Semantic Gap
+- 국소 눈금 조절(CSLS)을 쓴다
+- 중심 쏠림 줄이기 기법을 쓴다
+- 묻힘 학습에 벌주기를 쓴다
 
-The semantic space may not perfectly capture visual distinctions:
+### 뜻의 틈
 
-- Visually similar classes may have different semantic representations
-- Visually different classes may have similar semantic representations
-- Fine-grained distinctions may not be captured by attributes or word embeddings
+뜻 공간이 시각의 갈림을 온전히 담지 못할 수 있다.
 
-### Bias in GZSL
+- 눈으로 닮은 부류가 서로 다른 뜻 표현을 가질 수 있다
+- 눈으로 다른 부류가 닮은 뜻 표현을 가질 수 있다
+- 촘촘한 갈림은 속성이나 낱말 묻힘으로 담기지 않을 수 있다
 
-Models trained only on seen classes exhibit strong bias toward predicting seen classes:
+### GZSL의 치우침
 
-- Seen class features are in-distribution
-- Compatibility scores naturally higher for seen classes
-- Unseen classes rarely predicted
+본 부류로만 익힌 모델은 본 부류를 내놓는 쪽으로 크게 치우친다.
 
-This is addressed through calibration and balancing techniques covered in later sections.
+- 본 부류의 특징은 분포 안에 있다
+- 어울림 점수가 본 부류에서 자연스레 더 높다
+- 못 본 부류는 거의 예측되지 않는다
 
-## Summary
+이는 뒤 절에서 다루는 눈금 맞춤과 균형 잡기 기법으로 다룬다.
 
-The ZSL framework consists of:
+## 요약
 
-1. **Input space** $\mathcal{X}$: Images or other data modalities
-2. **Visual encoder** $\phi$: Maps inputs to visual features
-3. **Semantic space** $\mathcal{S}$: Provides class representations
-4. **Compatibility function** $F$: Measures visual-semantic alignment
-5. **Prediction rule**: Selects class with highest compatibility
+ZSL 틀은 다음으로 이루어진다.
 
-The key insight enabling ZSL is that semantic representations bridge seen and unseen classes, allowing knowledge transfer through shared attributes or embedding similarities.
+1. **입력 공간** $\mathcal{X}$: 그림이나 그 밖의 데이터 갈래
+2. **시각 부호기** $\phi$: 입력을 시각 특징으로 옮긴다
+3. **뜻 공간** $\mathcal{S}$: 부류 표현을 준다
+4. **어울림 함수** $F$: 시각과 뜻이 얼마나 맞는지를 잰다
+5. **예측 규칙**: 가장 잘 어울리는 부류를 고른다
+
+ZSL을 가능하게 하는 핵심 통찰은 뜻 표현이 본 부류와 못 본 부류를 이어 주어, 나누어 쓰는 속성이나 묻힘의 닮음을 거쳐 앎을 옮길 수 있다는 것이다.
+
+## 연습문제
+
+**연습문제 1.**
+영 예시 학습을 정의하고 소수 예시 학습과 어떻게 다른지 설명하라.
+
+??? success "연습문제 1 풀이"
+    영 예시 학습은 학습 중에 한 번도 보지 못한 부류의 사례를, 본 부류와 못 본 부류를 잇는 딸린 정보(속성, 글 설명, 낱말 묻힘)를 써서 가려낸다. 소수 예시 학습은 이름표 붙은 보기를 몇 개 쓴다. 영 예시 학습은 대상 부류의 보기가 아예 없어도 되며 오로지 뜻 표현을 거친 앎의 옮김에 기댄다.
+
+---
+
+**연습문제 2.**
+영 예시 학습의 중심 쏠림 문제와 그 다루는 법을 설명하라.
+
+??? success "연습문제 2 풀이"
+    차원이 높은 공간에서는 어떤 점('중심점')이 참 부류와 상관없이 다른 많은 점의 최근접 이웃이 된다. 그래서 최근접 이웃 기반 영 예시 분류에서 어떤 부류가 너무 자주 예측된다. 해법: 묻힘을 고르거나, 눈금 맞춘 점수 매기기를 쓰거나, 전용 거리 재기를 배운다.
+
+---
+
+**연습문제 3.**
+영 예시 학습의 속성 기반 접근법과 묻힘 기반 접근법을 견주어라.
+
+??? success "연습문제 3 풀이"
+    속성 기반: 부류마다 이진이나 이어진 속성 벡터로 그려진다(이를테면 '줄무늬가 있다', '털이 있다'). 모델은 속성을 맞히는 법을 배운 다음 부류 원형과 맞춘다. 묻힘 기반: 시각 특징과 부류 설명(이를테면 부류 이름의 word2vec)을 함께 쓰는 공간으로 옮긴다. 묻힘 방법이 규모를 키우기 쉽고 손 표시가 덜 든다.
+
+---
+
+**연습문제 4.**
+일반화된 영 예시 학습(GZSL)의 치우침 문제란 무엇인가?
+
+??? success "연습문제 4 풀이"
+    GZSL에서는 시험 때 본 부류와 못 본 부류가 함께 나온다. 모델은 본 부류로 익혔으므로 그쪽으로 치우친다. 해법: 눈금 맞춘 쌓기(본 부류 점수에서 치우침을 빼기), 본 부류와 못 본 부류를 가르는 분포 밖 알아채기, 또는 못 본 부류의 특징을 지어내는 생성 접근법.

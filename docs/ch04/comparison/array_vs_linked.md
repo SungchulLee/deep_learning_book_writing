@@ -1,105 +1,108 @@
-# Array vs Linked List
+# 배열과 연결 리스트
 
-Arrays and linked lists are the two most fundamental ways to store a
-sequence of elements. Every more complex data structure -- stacks, queues,
-hash tables, trees -- is ultimately built on one of these two primitives.
-Choosing between them requires understanding their structural differences and
-how those differences affect the cost of common operations. This page
-provides a systematic comparison to guide that choice.
+배열과 연결 리스트는 원소의 열을 저장하는 가장 기본적인 두 가지 방법이다. 스택, 큐, 해시 테이블, 트리 등 더 복잡한 자료구조는 결국 이 두 원시 구조 중 하나 위에 세워진다. 둘 중 무엇을 고를지 정하려면 구조상의 차이와 그 차이가 흔한 연산의 비용에 어떤 영향을 주는지 이해해야 한다. 이 페이지는 그 선택을 이끌어 줄 체계적인 비교를 제시한다.
 
-## Memory Layout
+## 메모리 배치
 
-The key structural difference is how elements are stored in memory:
+구조상의 핵심 차이는 원소를 메모리에 어떻게 저장하느냐이다.
 
-- **Array**: Elements occupy a contiguous block of memory. Element $i$ sits
-  at address $\text{base} + i \times \text{element\_size}$. This formula
-  enables $O(1)$ random access.
-- **Linked list**: Each element is stored in a separate node allocated
-  independently. Nodes may be scattered anywhere in memory. Each node
-  carries a pointer to the next node (and possibly the previous node).
+- **배열**: 원소들이 연속된 메모리 덩어리를 차지한다. 원소 $i$은 주소 $\text{base} + i \times \text{element\_size}$에 놓인다. 이 공식 덕분에 $O(1)$ 임의 접근이 가능하다.
+- **연결 리스트**: 각 원소가 따로 할당된 별개의 노드에 저장된다. 노드는 메모리 어디에든 흩어져 있을 수 있다. 각 노드는 다음 노드를 가리키는 포인터를(경우에 따라 이전 노드를 가리키는 포인터도) 지닌다.
 
-This difference in layout drives nearly every performance trade-off between
-the two structures.
+이 배치의 차이가 두 구조 사이의 거의 모든 성능 절충을 만들어 낸다.
 
-## Operation Complexity Comparison
+## 연산 복잡도 비교
 
-| Operation | Array | Singly linked list | Doubly linked list |
+| 연산 | 배열 | 단일 연결 리스트 | 이중 연결 리스트 |
 |---|---|---|---|
-| Access by index | $O(1)$ | $O(n)$ | $O(n)$ |
-| Search (unsorted) | $O(n)$ | $O(n)$ | $O(n)$ |
-| Search (sorted) | $O(\log n)$ (binary search) | $O(n)$ | $O(n)$ |
-| Insert at front | $O(n)$ (shift elements) | $O(1)$ | $O(1)$ |
-| Insert at back | $O(1)$ amortized (dynamic) | $O(n)$ or $O(1)$ with tail | $O(1)$ with tail |
-| Insert at position $i$ | $O(n)$ (shift elements) | $O(n)$ (traversal) | $O(n)$ (traversal) |
-| Delete at front | $O(n)$ (shift elements) | $O(1)$ | $O(1)$ |
-| Delete at back | $O(1)$ | $O(n)$ (need predecessor) | $O(1)$ with tail |
-| Delete given node | $O(n)$ (shift + find) | $O(n)$ (need predecessor) | $O(1)$ |
+| 인덱스로 접근 | $O(1)$ | $O(n)$ | $O(n)$ |
+| 탐색 (정렬 안 됨) | $O(n)$ | $O(n)$ | $O(n)$ |
+| 탐색 (정렬됨) | $O(\log n)$ (이진 탐색) | $O(n)$ | $O(n)$ |
+| 앞에 삽입 | $O(n)$ (원소를 민다) | $O(1)$ | $O(1)$ |
+| 뒤에 삽입 | 상각 $O(1)$ (동적) | $O(n)$, 꼬리가 있으면 $O(1)$ | 꼬리가 있으면 $O(1)$ |
+| 위치 $i$에 삽입 | $O(n)$ (원소를 민다) | $O(n)$ (순회) | $O(n)$ (순회) |
+| 앞에서 삭제 | $O(n)$ (원소를 민다) | $O(1)$ | $O(1)$ |
+| 뒤에서 삭제 | $O(1)$ | $O(n)$ (앞 노드가 필요하다) | 꼬리가 있으면 $O(1)$ |
+| 주어진 노드 삭제 | $O(n)$ (밀기 + 찾기) | $O(n)$ (앞 노드가 필요하다) | $O(1)$ |
 
-The table reveals a pattern: arrays excel at **random access**, while
-linked lists excel at **insertion and deletion** when the position is
-already known.
+표에서 한 가지 형태가 드러난다. 배열은 **임의 접근**에 강하고, 연결 리스트는 위치를 이미 알고 있을 때의 **삽입과 삭제**에 강하다.
 
-## Memory Overhead
+## 메모리 부담
 
-Each structure carries different overhead per element:
+각 구조는 원소당 서로 다른 부담을 진다.
 
-| Structure | Storage per element |
+| 구조 | 원소당 저장 공간 |
 |---|---|
-| Array (static) | Data only |
-| Dynamic array | Data + unused capacity (amortized) |
-| Singly linked list | Data + 1 pointer |
-| Doubly linked list | Data + 2 pointers |
+| 배열 (정적) | 데이터만 |
+| 동적 배열 | 데이터 + 쓰지 않는 용량 (상각) |
+| 단일 연결 리스트 | 데이터 + 포인터 1개 |
+| 이중 연결 리스트 | 데이터 + 포인터 2개 |
 
-For small data types (integers, characters), the pointer overhead in linked
-lists can exceed the data size itself. A doubly linked list of 32-bit
-integers on a 64-bit system uses 20 bytes per element (4 for data + 16 for
-two pointers), compared to 4 bytes per element in an array -- a $5\times$
-overhead.
+작은 자료형(정수, 문자)에서는 연결 리스트의 포인터 부담이 데이터 크기 자체를 넘어설 수 있다. 64비트 시스템에서 32비트 정수를 담은 이중 연결 리스트는 원소당 20바이트를 쓴다(데이터 4바이트 + 포인터 둘 16바이트). 배열의 원소당 4바이트와 견주면 $5\times$의 부담이다.
 
-Dynamic arrays also waste memory through over-allocation. A typical
-growth factor of 2 means that, on average, 25% of the allocated capacity
-is unused. However, this overhead is per-array rather than per-element,
-making it far more efficient for large collections.
+동적 배열도 넉넉히 할당하느라 메모리를 낭비한다. 흔히 쓰는 성장 인수 2에서는 평균적으로 할당된 용량의 25%가 쓰이지 않는다. 다만 이 부담은 원소당이 아니라 배열당이므로 큰 모음에서는 훨씬 효율적이다.
 
-## Structural Flexibility
+## 구조적 유연성
 
-Linked lists offer structural operations that arrays cannot efficiently
-support:
+연결 리스트는 배열이 효율적으로 지원하지 못하는 구조적 연산을 제공한다.
 
-- **Splitting**: A linked list can be split at any node in $O(1)$ time by
-  redirecting one pointer. Splitting an array requires copying half the
-  elements, taking $O(n)$.
-- **Merging**: Two linked lists can be merged in $O(1)$ time by connecting
-  one tail to the other head. Merging arrays requires allocating a new
-  array and copying all elements, taking $O(n + m)$.
-- **Persistent modification**: In a linked list, old versions of the
-  structure can share nodes with new versions (structural sharing). Arrays
-  must be fully copied to create a snapshot.
+- **쪼개기**: 연결 리스트는 포인터 하나만 돌려놓으면 어느 노드에서든 $O(1)$에 쪼갤 수 있다. 배열을 쪼개려면 원소의 절반을 복사해야 하므로 $O(n)$이 든다.
+- **합치기**: 연결 리스트 둘은 한쪽 꼬리를 다른 쪽 머리에 이으면 $O(1)$에 합쳐진다. 배열을 합치려면 새 배열을 할당하고 모든 원소를 복사해야 하므로 $O(n + m)$이 든다.
+- **영속적 수정**: 연결 리스트에서는 옛 버전이 새 버전과 노드를 공유할 수 있다(구조 공유). 배열은 스냅숏을 만들려면 전부 복사해야 한다.
 
-## When to Choose Each
+## 무엇을 언제 고를 것인가
 
-**Choose arrays when:**
+**다음일 때 배열을 고른다.**
 
-- Random access by index is frequent.
-- The collection size is known in advance or changes rarely.
-- Elements are small (minimizing the benefit of per-element allocation).
-- Cache performance matters (see [Cache Performance](cache.md)).
-- Binary search on sorted data is needed.
+- 인덱스로 임의 접근하는 일이 잦을 때.
+- 모음의 크기를 미리 알고 있거나 거의 바뀌지 않을 때.
+- 원소가 작을 때(원소마다 따로 할당하는 이점이 작아진다).
+- 캐시 성능이 중요할 때([캐시 성능](cache.md) 참고).
+- 정렬된 데이터에서 이진 탐색이 필요할 때.
 
-**Choose linked lists when:**
+**다음일 때 연결 리스트를 고른다.**
 
-- Insertions and deletions at arbitrary positions dominate the workload.
-- The collection size fluctuates unpredictably and large contiguous
-  allocations are impractical.
-- $O(1)$ splitting and merging are required.
-- Elements are large, making pointer overhead negligible relative to data
-  size.
+- 임의의 위치에서의 삽입과 삭제가 작업의 대부분일 때.
+- 모음의 크기가 예측하기 어렵게 오르내리고 큰 연속 할당이 비현실적일 때.
+- $O(1)$의 쪼개기와 합치기가 필요할 때.
+- 원소가 커서 데이터 크기에 비해 포인터 부담이 무시할 만할 때.
 
-In practice, arrays and dynamic arrays are the default choice for most
-applications. Linked lists are reserved for specialized scenarios where
-their structural advantages justify the pointer overhead and cache penalty.
+실무에서는 대부분의 응용에서 배열과 동적 배열이 기본 선택이다. 연결 리스트는 구조적 이점이 포인터 부담과 캐시 손해를 정당화하는 특수한 상황을 위해 남겨 둔다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C.
   *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+배열과 연결 리스트에 대해 삽입, 삭제, 탐색, 접근 연산의 시간 복잡도를 진술하라.
+
+??? success "연습문제 1 풀이"
+    복잡도는 구체적인 구현(배열 기반이냐 연결 기반이냐)에 달려 있다. 배열 기반은 접근이 $O(1)$이고 임의의 위치에서의 삽입·삭제가 $O(n)$이다. 연결 기반은 이미 아는 위치에서의 삽입·삭제가 $O(1)$이고 탐색·접근이 $O(n)$이다. 어떤 연산이 주를 이루느냐에 따라 선택이 갈린다.
+
+---
+
+**연습문제 2.**
+원소 6개로 배열과 연결 리스트을(를) 따라가며 각 연산 후의 자료구조 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    구조에 삽입, 접근, 삭제를 차례로 수행하라. 각 단계마다 (연결 구조라면) 포인터를, (배열 기반이라면) 배열의 내용을 보이며 구조가 불변식을 어떻게 유지하는지 나타내라.
+
+---
+
+**연습문제 3.**
+배열과 연결 리스트이(가) PyTorch의 텐서 저장과 어떻게 관련되는지 설명하라. 자료구조의 선택이 메모리 배치와 캐시 성능에 어떤 영향을 주는가?
+
+??? success "연습문제 3 풀이"
+    PyTorch 텐서는 캐시에 효율적으로 접근할 수 있도록 연속된 배열로 저장된다. 연결 구조는 autograd 그래프를 훑는 데 내부적으로 쓰인다. 이 선택은 메모리 사용량(배열에는 포인터 부담이 없다)과 접근 양상(캐시 지역성 덕분에 순차적인 배열 접근이 연결 리스트 순회보다 10~100배 빠르다)에 모두 영향을 준다.
+
+---
+
+**연습문제 4.**
+반복문 불변식을 사용하여 배열과 연결 리스트의 주요 연산의 시간 복잡도를 증명하라.
+
+??? success "연습문제 4 풀이"
+    알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$

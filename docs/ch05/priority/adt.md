@@ -1,72 +1,105 @@
-# Priority Queue ADT
+# 우선순위 큐 추상 자료형
 
-A regular queue serves elements in the order they arrive.  Many algorithms, however, need to process the most urgent or smallest element first, regardless of arrival time.  Dijkstra's shortest-path algorithm extracts the vertex with the smallest tentative distance; an operating system scheduler picks the highest-priority task; and a Huffman encoder repeatedly merges the two least-frequent symbols.  A **priority queue** is the abstract data type that supports this pattern: it allows inserting elements with associated priorities and efficiently retrieving the element with the extreme (minimum or maximum) priority.
+보통의 큐는 원소를 도착한 순서대로 처리한다. 그러나 많은 알고리즘은 도착 시각과 무관하게 가장 급하거나 가장 작은 원소를 먼저 처리해야 한다. 데이크스트라의 최단 경로 알고리즘은 잠정 거리가 가장 작은 꼭짓점을 꺼내고, 운영체제의 스케줄러는 우선순위가 가장 높은 작업을 고르며, 허프만 부호기는 빈도가 가장 낮은 기호 둘을 되풀이해 합친다. **우선순위 큐**는 이러한 방식을 지원하는 추상 자료형이다. 원소에 우선순위를 붙여 넣을 수 있고, 우선순위가 극단(최소 또는 최대)인 원소를 효율적으로 꺼낼 수 있다.
 
-## Definition
+## 정의
 
-A **priority queue** is a collection $S$ of elements, each associated with a **key** (priority).  The ADT comes in two flavors:
+**우선순위 큐**는 저마다 **키**(우선순위)가 붙은 원소의 모음 $S$이다. 이 추상 자료형에는 두 가지가 있다.
 
-- **Min-priority queue**: the element with the *smallest* key is served first.
-- **Max-priority queue**: the element with the *largest* key is served first.
+- **최소 우선순위 큐**: 키가 *가장 작은* 원소를 먼저 내준다.
+- **최대 우선순위 큐**: 키가 *가장 큰* 원소를 먼저 내준다.
 
-The two variants are symmetric.  We present the min-priority queue below; the max variant simply reverses the comparisons.
+두 변형은 대칭이다. 아래에서는 최소 우선순위 큐를 다룬다. 최대 쪽은 비교를 뒤집기만 하면 된다.
 
-## Operations
+## 연산
 
-A min-priority queue must support the following operations:
+최소 우선순위 큐는 다음 연산을 지원해야 한다.
 
-| Operation | Description | Typical complexity |
+| 연산 | 설명 | 대표적인 복잡도 |
 |---|---|---|
-| `insert(x, k)` | Add element $x$ with key $k$ to the queue | $O(\log n)$ |
-| `extract_min()` | Remove and return the element with the smallest key | $O(\log n)$ |
-| `find_min()` | Return (without removing) the element with the smallest key | $O(1)$ |
-| `decrease_key(x, k')` | Reduce the key of element $x$ to $k' \le k$ | $O(\log n)$ |
-| `is_empty()` | Return `True` if the queue is empty | $O(1)$ |
-| `size()` | Return the number of elements | $O(1)$ |
+| `insert(x, k)` | 키가 $k$인 원소 $x$을 큐에 넣는다 | $O(\log n)$ |
+| `extract_min()` | 키가 가장 작은 원소를 빼서 돌려준다 | $O(\log n)$ |
+| `find_min()` | 키가 가장 작은 원소를 빼지 않고 돌려준다 | $O(1)$ |
+| `decrease_key(x, k')` | 원소 $x$의 키를 $k' \le k$으로 줄인다 | $O(\log n)$ |
+| `is_empty()` | 큐가 비어 있으면 `True`을 돌려준다 | $O(1)$ |
+| `size()` | 원소의 개수를 돌려준다 | $O(1)$ |
 
-!!! note "Complexity depends on implementation"
-    The complexities listed above are for the standard binary heap implementation.  Other implementations (Fibonacci heaps, sorted/unsorted arrays) offer different trade-offs.  See the [sorted](sorted.md) and [unsorted](unsorted.md) implementation pages, as well as the [heap preview](heap_preview.md) for details.
+!!! note "복잡도는 구현에 달렸다"
+    위에 적은 복잡도는 표준적인 이진 힙 구현의 것이다. 다른 구현(피보나치 힙, 정렬된/정렬되지 않은 배열)은 절충이 다르다. 자세한 내용은 [정렬된 배열](sorted.md)과 [정렬되지 않은 배열](unsorted.md) 구현 쪽, 그리고 [힙 맛보기](heap_preview.md)를 보라.
 
-!!! warning "Preconditions"
-    `extract_min()` and `find_min()` require the queue to be non-empty.  `decrease_key(x, k')` requires $k' \le k$; increasing a key is not supported by this operation.
+!!! warning "사전 조건"
+    `extract_min()`과 `find_min()`은 큐가 비어 있지 않아야 한다. `decrease_key(x, k')`은 $k' \le k$이어야 하며, 키를 올리는 것은 이 연산으로 지원하지 않는다.
 
-## Min vs Max Priority Queue
+## 최소 우선순위 큐와 최대 우선순위 큐
 
-The only difference between a min-priority queue and a max-priority queue is the direction of comparison.  A max-priority queue replaces `extract_min` with `extract_max` and `decrease_key` with `increase_key`.  Any min-priority queue can emulate a max-priority queue by negating all keys on insertion and negating the result on extraction.
+최소 우선순위 큐와 최대 우선순위 큐의 차이는 비교의 방향뿐이다. 최대 우선순위 큐는 `extract_min` 대신 `extract_max`을, `decrease_key` 대신 `increase_key`을 쓴다. 넣을 때 모든 키의 부호를 뒤집고 꺼낼 때 결과의 부호를 다시 뒤집으면 어떤 최소 우선순위 큐로도 최대 우선순위 큐를 흉내 낼 수 있다.
 
-## Comparison with Other ADTs
+## 다른 추상 자료형과의 비교
 
-| Feature | Stack | Queue | Priority Queue |
+| 특징 | 스택 | 큐 | 우선순위 큐 |
 |---|---|---|---|
-| Access order | LIFO | FIFO | By priority |
-| Insertion | $O(1)$ | $O(1)$ | $O(\log n)$ typical |
-| Deletion | $O(1)$ | $O(1)$ | $O(\log n)$ typical |
-| Find extreme | $O(n)$ | $O(n)$ | $O(1)$ |
+| 접근 순서 | 후입선출 | 선입선출 | 우선순위 순 |
+| 넣기 | $O(1)$ | $O(1)$ | 보통 $O(\log n)$ |
+| 빼기 | $O(1)$ | $O(1)$ | 보통 $O(\log n)$ |
+| 극단값 찾기 | $O(n)$ | $O(n)$ | $O(1)$ |
 
-The trade-off is clear: a priority queue pays more for insertion and deletion but gains constant-time access to the extreme element.
+절충은 뚜렷하다. 우선순위 큐는 넣기와 빼기에 더 많은 비용을 치르는 대신 극단값에 상수 시간으로 접근한다.
 
-??? example "Priority queue operations trace"
-    Consider a min-priority queue with the following operations:
+??? example "우선순위 큐 연산 따라가기"
+    다음 연산을 수행하는 최소 우선순위 큐를 보자.
 
-    | Step | Operation | Queue contents (key) | Returned |
+    | 단계 | 연산 | 큐의 내용 (키) | 반환값 |
     |------|-----------|---------------------|----------|
     | 1 | `insert(A, 4)` | {A:4} | — |
     | 2 | `insert(B, 1)` | {A:4, B:1} | — |
     | 3 | `insert(C, 3)` | {A:4, B:1, C:3} | — |
-    | 4 | `find_min()` | {A:4, B:1, C:3} | B (key 1) |
-    | 5 | `extract_min()` | {A:4, C:3} | B (key 1) |
+    | 4 | `find_min()` | {A:4, B:1, C:3} | B (키 1) |
+    | 5 | `extract_min()` | {A:4, C:3} | B (키 1) |
     | 6 | `decrease_key(A, 2)` | {A:2, C:3} | — |
-    | 7 | `extract_min()` | {C:3} | A (key 2) |
+    | 7 | `extract_min()` | {C:3} | A (키 2) |
 
-    Elements are served in order of their keys, not their insertion order.  After decreasing A's key from 4 to 2, A becomes the new minimum.
+    원소는 넣은 순서가 아니라 키의 순서대로 나온다. A의 키를 4에서 2로 줄이면 A가 새 최솟값이 된다.
 
-## Common Applications
+## 흔한 응용
 
-- **Graph algorithms**: Dijkstra's algorithm uses a min-priority queue to select the nearest unvisited vertex.  Prim's MST algorithm uses one to pick the lightest crossing edge.
-- **Event-driven simulation**: events are scheduled with timestamps as keys; the next event to process has the smallest timestamp.
-- **Huffman encoding**: repeatedly extract the two symbols with the lowest frequencies and merge them.
-- **Task scheduling**: an OS scheduler may use a max-priority queue to run the highest-priority process first.
+- **그래프 알고리즘**: 데이크스트라 알고리즘은 아직 방문하지 않은 가장 가까운 꼭짓점을 고르는 데 최소 우선순위 큐를 쓴다. 프림의 최소 신장 나무 알고리즘은 가장 가벼운 가로지르는 변을 고르는 데 쓴다.
+- **사건 기반 모의실험**: 사건을 시각을 키로 하여 예약한다. 다음에 처리할 사건은 시각이 가장 작은 것이다.
+- **허프만 부호화**: 빈도가 가장 낮은 기호 둘을 되풀이해 꺼내어 합친다.
+- **작업 스케줄링**: 운영체제의 스케줄러는 우선순위가 가장 높은 프로세스를 먼저 돌리려고 최대 우선순위 큐를 쓰기도 한다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 6. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+우선순위 큐 추상 자료형의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+우선순위 큐 추상 자료형을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+우선순위 큐 추상 자료형을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+우선순위 큐 추상 자료형을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

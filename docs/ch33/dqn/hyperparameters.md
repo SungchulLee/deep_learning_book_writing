@@ -1,149 +1,178 @@
-# 33.1.5 DQN Hyperparameters
+# 33.1.5 DQN의 웃잡
+## 개요
 
+DQN의 성능은 웃잡을 어떻게 고르느냐에 몹시 민감하다. 이 마디는 DQN의 웃잡, 흔한 범위, 서로의 얽힘, 손보는 셈속을 두루 안내한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 핵심 웃잡
 
-## Overview
+### 배움 빠르기(알파)
 
-DQN performance is highly sensitive to hyperparameter choices. This section provides a comprehensive guide to DQN hyperparameters, their typical ranges, interactions, and tuning strategies.
-
-## Core Hyperparameters
-
-### Learning Rate (alpha)
-
-| Setting | Value | Notes |
+| 자리 | 값 | 메모 |
 |---------|-------|-------|
-| Atari (original DQN) | $2.5 \times 10^{-4}$ | With RMSProp |
-| Simple environments | $10^{-3}$ | With Adam |
-| Complex / large networks | $10^{-4}$ to $3 \times 10^{-4}$ | With Adam |
+| 아타리(본디 DQN) | $2.5 \times 10^{-4}$ | RMSProp과 함께 |
+| 단순한 둘레 | $10^{-3}$ | Adam과 함께 |
+| 복잡하거나 큰 그물 | $10^{-4}$~$3 \times 10^{-4}$ | Adam과 함께 |
 
-The learning rate interacts strongly with batch size, target update frequency, and network size. Larger batches may tolerate higher LR, while more frequent target updates require smaller LR to maintain stability.
+배움 빠르기는 묶음 크기, 과녁 고침 잦음, 그물 크기와 세게 얽힌다. 묶음이 크면 배움 빠르기를 높여도 견딜 수 있고, 과녁을 자주 고치면 안정을 지키려 배움 빠르기를 낮춰야 한다.
 
-### Discount Factor (gamma)
+### 깎기 인수(감마)
 
-| $\gamma$ | Effective horizon | Use case |
+| $\gamma$ | 실제 지평 | 쓰임새 |
 |-----------|------------------|----------|
-| 0.95 | ~20 steps | Short-horizon tasks |
-| 0.99 | ~100 steps | Standard RL tasks |
-| 0.999 | ~1000 steps | Long-horizon planning |
+| 0.95 | 20걸음쯤 | 지평이 짧은 일 |
+| 0.99 | 100걸음쯤 | 여느 힘 북돋우는 배움 일 |
+| 0.999 | 1000걸음쯤 | 지평이 긴 짜기 |
 
-The effective horizon is approximately $\frac{1}{1 - \gamma}$. For daily trading with annual objectives, $\gamma = 0.999$ corresponds to roughly 1000 trading days (~4 years), while $\gamma = 0.99$ captures ~100 days (~5 months).
+실제 지평은 대략 $\frac{1}{1 - \gamma}$이다. 해마다의 목표를 가진 날마다 거래에서 $\gamma = 0.999$은 거래일 1000일(4년쯤)에 해당하고 $\gamma = 0.99$은 100일(5달쯤)을 담는다.
 
-### Batch Size (B)
+### 묶음 크기(B)
 
-| Value | Trade-off |
+| 값 | 맞바꿈 |
 |-------|-----------|
-| 32 | Low compute, higher variance |
-| 64 | Good default |
-| 128–256 | Lower variance, more GPU utilization |
-| 512+ | Diminishing returns, may hurt exploration |
+| 32 | 셈이 적고 흩어짐이 크다 |
+| 64 | 좋은 기본값 |
+| 128~256 | 흩어짐이 작고 GPU을 더 쓴다 |
+| 512 넘게 | 수확이 줄고 살펴보기를 해칠 수 있다 |
 
-### Replay Buffer Capacity (N)
+### 되돌려 보기 버퍼가 담는 양(N)
 
-| Environment | Typical $N$ |
+| 둘레 | 흔한 $N$ |
 |-------------|-------------|
-| CartPole / simple | $10^4$ – $5 \times 10^4$ |
-| Atari | $10^5$ – $10^6$ |
-| Robotics / complex | $10^6$ |
-| Financial trading | $10^5$ – $5 \times 10^5$ |
+| CartPole 등 단순한 것 | $10^4$~$5 \times 10^4$ |
+| 아타리 | $10^5$~$10^6$ |
+| 로봇 등 복잡한 것 | $10^6$ |
+| 금융 거래 | $10^5$~$5 \times 10^5$ |
 
-Buffer too small leads to correlated samples and forgetting; too large wastes memory and includes stale data.
+버퍼가 너무 작으면 표본이 얽히고 잊어버린다. 너무 크면 기억을 낭비하고 묵은 자료가 섞인다.
 
-### Target Network Update Frequency (C)
+### 과녁 그물 고침 잦음(C)
 
-| Environment | Hard update $C$ | Soft update $\tau$ |
+| 둘레 | 굳은 고침 $C$ | 부드러운 고침 $\tau$ |
 |-------------|----------------|-------------------|
-| Simple | 100–500 | 0.005–0.01 |
-| Atari | 1,000–10,000 | 0.001–0.005 |
-| Complex | 5,000–10,000 | 0.001 |
+| 단순 | 100~500 | 0.005~0.01 |
+| 아타리 | 1,000~10,000 | 0.001~0.005 |
+| 복잡 | 5,000~10,000 | 0.001 |
 
-## Exploration Hyperparameters
+## 살펴보기 웃잡
 
-### Epsilon Schedule
+### 엡실론 일정
 
-The standard linear annealing schedule:
+여느 선형 식히기 일정:
 
 $$\epsilon(t) = \max\left(\epsilon_\text{end},\; \epsilon_\text{start} - \frac{\epsilon_\text{start} - \epsilon_\text{end}}{\text{decay\_steps}} \cdot t\right)$$
 
-| Parameter | Typical value |
+| 잡 | 흔한 값 |
 |-----------|--------------|
 | $\epsilon_\text{start}$ | 1.0 |
-| $\epsilon_\text{end}$ | 0.01 – 0.1 |
-| decay_steps | 10K – 1M |
+| $\epsilon_\text{end}$ | 0.01~0.1 |
+| decay_steps | 1만~100만 |
 
-### Minimum Buffer Size Before Training
+### 익히기 전 최소 버퍼 크기
 
-Collect random transitions before starting gradient updates:
-- **Too small**: Initial updates are on non-diverse data
-- **Too large**: Wastes time on random exploration
-- **Typical**: 1,000 – 50,000 (10% of buffer capacity is a reasonable rule of thumb)
+기울기 고침을 시작하기 전에 아무 옮김을 모은다:
 
-## Network Architecture Hyperparameters
+- **너무 작음**: 첫 고침이 다양하지 않은 자료에서 이루어진다
+- **너무 큼**: 아무 살펴보기에 때를 낭비한다
+- **흔한 값**: 1,000~50,000(버퍼가 담는 양의 10%가 알맞은 어림 규칙이다)
 
-### Hidden Layer Dimensions
+## 그물 얼개 웃잡
 
-| Problem complexity | Architecture |
+### 숨은 층 차원
+
+| 문제의 복잡함 | 얼개 |
 |-------------------|-------------|
-| Low-dimensional state (< 10) | 2 layers, 64–128 units |
-| Medium (10–100) | 2–3 layers, 128–256 units |
-| High-dimensional / image | CNN backbone + 512 FC |
+| 차원이 낮은 상태(10 미만) | 2층, 낱덩이 64~128개 |
+| 가운데(10~100) | 2~3층, 낱덩이 128~256개 |
+| 차원이 높거나 그림 | 겹말기 신경망 등뼈 + 온전히 이어진 512 |
 
-### Activation Functions
+### 깨움 함수
 
-- **ReLU**: Standard default, works well in most cases
-- **LeakyReLU**: Can help with dying neuron problems
-- **ELU/GELU**: Marginal improvements in some settings
+- **ReLU**: 여느 기본값이며 대부분 잘 듣는다
+- **LeakyReLU**: 죽는 신경 말썽에 도움이 될 수 있다
+- **ELU/GELU**: 어떤 자리에서는 조금 나아진다
 
-## Hyperparameter Interactions
+## 웃잡끼리의 얽힘
 
-Several hyperparameters interact in non-obvious ways:
+여러 웃잡이 뻔하지 않게 얽힌다:
 
-1. **LR × Batch Size**: Larger batches produce lower-variance gradients; LR can be scaled proportionally (linear scaling rule)
-2. **LR × Target Update Freq**: Fast target updates + high LR → instability; slow updates + low LR → slow convergence
-3. **Buffer Size × $\gamma$**: High $\gamma$ (long horizon) benefits from larger buffers containing diverse long-term outcomes
-4. **$\epsilon$ decay × Buffer size**: Slow $\epsilon$ decay fills the buffer with more diverse experiences
+1. **배움 빠르기 × 묶음 크기**: 묶음이 크면 기울기의 흩어짐이 작아지므로 배움 빠르기를 비례해 키울 수 있다(선형 잣수 규칙)
+2. **배움 빠르기 × 과녁 고침 잦음**: 과녁을 빨리 고치며 배움 빠르기가 높으면 불안정하고, 느리게 고치며 낮으면 느리게 모인다
+3. **버퍼 크기 × $\gamma$**: $\gamma$이 크면(지평이 길면) 긴 때의 다양한 결과를 담은 큰 버퍼가 이롭다
+4. **$\epsilon$ 스러짐 × 버퍼 크기**: $\epsilon$이 느리게 스러지면 버퍼가 더 다양한 겪음으로 찬다
 
-## Tuning Strategy
+## 손보는 셈속
 
-### Phase 1: Sanity Check
-1. Verify environment setup with random agent
-2. Start with known-good defaults (see table below)
-3. Train for enough episodes to see learning signal
+### 1마당: 온전성 살피기
+1. 아무 부림꾼으로 둘레 짜임을 확인한다
+2. 잘 알려진 좋은 기본값으로 시작한다(아래 표 참고)
+3. 배움 신호가 보일 만큼 판을 돌려 익힌다
 
-### Phase 2: Coarse Search
-1. Sweep learning rate: $\{3 \times 10^{-4}, 10^{-3}, 3 \times 10^{-3}\}$
-2. Sweep target update freq: $\{100, 500, 1000\}$
-3. Fix other hyperparameters at defaults
+### 2마당: 거친 찾기
+1. 배움 빠르기를 훑는다: $\{3 \times 10^{-4}, 10^{-3}, 3 \times 10^{-3}\}$
+2. 과녁 고침 잦음을 훑는다: $\{100, 500, 1000\}$
+3. 다른 웃잡은 기본값으로 붙박는다
 
-### Phase 3: Fine-Tuning
-1. Fix best LR and target update
-2. Tune $\epsilon$ schedule and buffer size
-3. Try Huber loss vs MSE
-4. Adjust network architecture
+### 3마당: 곱게 다듬기
+1. 가장 좋은 배움 빠르기와 과녁 고침을 붙박는다
+2. $\epsilon$ 일정과 버퍼 크기를 손본다
+3. 후버 손실과 평균 제곱 어긋남을 견주어 본다
+4. 그물 얼개를 손본다
 
-### Recommended Defaults
+### 권하는 기본값
 
-| Hyperparameter | CartPole | Atari | Finance |
+| 웃잡 | CartPole | 아타리 | 금융 |
 |---------------|----------|-------|---------|
-| Learning rate | $10^{-3}$ | $2.5 \times 10^{-4}$ | $10^{-4}$ |
+| 배움 빠르기 | $10^{-3}$ | $2.5 \times 10^{-4}$ | $10^{-4}$ |
 | $\gamma$ | 0.99 | 0.99 | 0.999 |
-| Batch size | 64 | 32 | 128 |
-| Buffer capacity | 50,000 | 1,000,000 | 200,000 |
-| Target update $C$ | 200 | 10,000 | 1,000 |
+| 묶음 크기 | 64 | 32 | 128 |
+| 버퍼가 담는 양 | 50,000 | 1,000,000 | 200,000 |
+| 과녁 고침 $C$ | 200 | 10,000 | 1,000 |
 | $\epsilon_\text{end}$ | 0.01 | 0.01 | 0.05 |
-| $\epsilon$ decay steps | 5,000 | 1,000,000 | 50,000 |
-| Loss function | Huber | Huber | MSE |
-| Optimizer | Adam | RMSProp | Adam |
-| Gradient clip | 10.0 | 10.0 | 1.0 |
+| $\epsilon$ 스러짐 걸음 | 5,000 | 1,000,000 | 50,000 |
+| 손실 함수 | 후버 | 후버 | 평균 제곱 어긋남 |
+| 가장 좋게 하개 | Adam | RMSProp | Adam |
+| 기울기 자르기 | 10.0 | 10.0 | 1.0 |
 
-## Sensitivity Analysis
+## 민감함 살피기
 
-The most sensitive hyperparameters (ranked by impact):
-1. **Learning rate** — Most impactful; wrong by 10× often means no learning
-2. **Target update frequency** — Too fast → divergence; too slow → stale targets
-3. **Epsilon schedule** — Insufficient exploration → suboptimal policy
-4. **Discount factor** — Mismatched horizon → myopic or unstable behavior
-5. **Network size** — Underfitting or overfitting
-6. **Batch size** — Moderate impact on stability and speed
-7. **Buffer size** — Least sensitive if within reasonable range
+가장 민감한 웃잡(영향 순):
+
+1. **배움 빠르기** — 영향이 가장 크다. 10배 어긋나면 흔히 아예 배우지 못한다
+2. **과녁 고침 잦음** — 너무 빠르면 발산하고 너무 느리면 과녁이 묵는다
+3. **엡실론 일정** — 살펴보기가 모자라면 방침이 못 미친다
+4. **깎기 인수** — 지평이 안 맞으면 눈앞만 보거나 움직임이 불안정하다
+5. **그물 크기** — 모자란 맞춤이나 지나친 맞춤
+6. **묶음 크기** — 안정과 빠르기에 웬만큼 영향을 준다
+7. **버퍼 크기** — 알맞은 범위 안이면 가장 덜 민감하다
+
+## 연습문제
+
+**연습문제 1.**
+Q 값 어림에 신경망을 쓰는 어려움을 이 방법이 어떻게 다루는지 밝혀라. 이 길이 없으면 어떤 불안정이 생기는가?
+
+??? success "연습문제 1 풀이"
+    신경망 Q 값 어림은 차례 자료의 얽힘과 움직이는 과녁 문제(과녁이 지금 잡에 매인다) 때문에 불안정하다. 이 방법은 특정 얼개나 알고리즘 고름으로 이 말썽을 다룬다. 이것이 없으면 기울기 고침이 한결같지 않은 과녁을 좇아 익히기가 발산하고 재앙 같은 지나친 어림이나 흔들림이 생긴다. 이 길은 얽힘을 끊거나 얼마 동안 과녁을 붙박아 익히기를 안정시킨다. $\square$
+
+---
+
+**연습문제 2.**
+CartPole-v1 둘레에서 이 방법을 짜라. 둘레를 푸는 데(100판 평균 보상 > 475) 필요한 판수를 알리고 배움 굽은 줄을 그려라.
+
+??? success "연습문제 2 풀이"
+    숨은 낱덩이 64개의 2층 여러 층 신경망, 배움 빠르기 $3 \times 10^{-4}$의 Adam, 이 마디의 재주를 쓰면 부림꾼이 보통 200~500판에 CartPole을 푼다. 배움 굽은 줄은 처음의 아무 성능(보상 $\approx 20$), 빠르게 좋아지는 마당, 거의 가장 좋은 성능으로의 모임을 보인다. 핵심 짜기 세부: 되돌려 보기 버퍼 크기 10000, 묶음 크기 64, 100걸음마다 과녁 그물 고침, 300판에 걸쳐 1.0에서 0.01로 선형으로 스러지는 $\epsilon$ 욕심쟁이. $\square$
+
+---
+
+**연습문제 3.**
+맨 DQN에 견주어 이 방법이 더하는 셈과 기억 덧짐을 살펴라. 금융 쓰임새에서 그 맞바꿈이 값을 하는가?
+
+??? success "연습문제 3 풀이"
+    덧짐은 방법마다 다르지만 보통 앞으로 가기를 더 하거나(두 겹 DQN은 2배), 그물 잡을 더 두거나(맞겨루기 갈래), 기억을 더 쓴다(앞섬 되돌려 보기). 자료가 비싸고 실수가 값비싼 금융 쓰임새에서는 표본 효율과 안정이 좋아지므로 덧짐이 값을 한다. 금융 상태 자리는 흔히 차원이 웬만하므로(특징 10~100개) 걸음마다 늘어나는 비용이 더 나은 결정의 값어치에 견주면 크지 않다. $\square$
+
+---
+
+**연습문제 4.**
+보상 신호가 성기고(거래를 마칠 때만 실현되고) 늦는 금융 거래 쓰임새에 이 방법을 어떻게 맞출지 다루어라.
+
+??? success "연습문제 4 풀이"
+    성긴 보상은 공 돌리기를 어렵게 한다. 부림꾼은 여러 걸음 전의 움직임을 끝내 생긴 이익이나 손실에 이어야 한다. 맞추는 길: (1) 가장 좋은 방침을 지키면서 더 빽빽한 되먹임을 주는 중간 신호(실현되지 않은 손익, 위험 잣대)로 보상 다듬기, (2) 성긴 보상을 더 효율 좋게 뒤로 퍼뜨리는 여러 걸음 돌아옴, (3) 지난 겪음에 이룬 결과로 새 이름표를 붙이는 뒤늦은 겪음 되돌려 보기. 이 마디의 방법은 드문 보상 신호에서 배우는 안정을 높여 이바지한다. $\square$

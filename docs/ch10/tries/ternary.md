@@ -1,43 +1,76 @@
-# Ternary Search Trees
+# 삼진 탐색 트리
 
-A **ternary search tree** (TST) combines the time efficiency of a trie with the space efficiency of a binary search tree. Each node in a TST stores a single character and has three children: **left** (characters less than the node's character), **middle** (characters equal, advancing to the next position), and **right** (characters greater). This structure avoids the large per-node arrays of a standard trie while still supporting fast string operations.
+**삼진 탐색 트리**(TST)는 트라이의 시간 효율과 이진 탐색 트리의 공간 효율을 아우른다. TST의 노드마다 글자 하나를 담고 자식을 셋 가진다. **왼쪽**(노드의 글자보다 작은 글자), **가운데**(같은 글자로, 다음 자리로 나아간다), **오른쪽**(더 큰 글자)이다. 이 짜임은 빠른 문자열 연산을 받쳐 주면서도 표준 트라이의 노드마다 큰 배열을 피한다.
 
-## Motivation
+## 왜 필요한가
 
-A standard trie with an array-based representation allocates $|\Sigma|$ child pointers per node, most of which are often `null`. For large alphabets (e.g., Unicode), this wastes enormous space. A TST replaces each node's $|\Sigma|$-way branch with a BST over the characters that actually appear, requiring only three pointers per node regardless of alphabet size.
+배열에 바탕한 표준 트라이는 노드마다 자식 포인터를 $|\Sigma|$개 잡는데 대부분 `null`인 경우가 많다. (유니코드처럼) 낱자 집합이 크면 공간을 엄청나게 버린다. TST는 노드마다의 $|\Sigma|$갈래 가지를 실제로 나타나는 글자에 대한 이진 탐색 트리로 바꾸어, 낱자 집합의 크기와 무관하게 노드마다 포인터를 셋만 쓴다.
 
-## Structure
+## 구조
 
-Each TST node stores:
+TST의 노드마다 다음을 담는다.
 
-- A **character** $c$
-- An **end-of-word** flag
-- Three child pointers: **left**, **middle**, **right**
+- **글자** $c$
+- **낱말 끝** 깃발
+- 자식 포인터 셋: **왼쪽**, **가운데**, **오른쪽**
 
-To search for a string, compare the current query character with the node's character. If less, go left; if greater, go right; if equal, go middle and advance to the next query character.
+문자열을 찾으려면 지금 질의 글자를 노드의 글자와 견준다. 작으면 왼쪽으로, 크면 오른쪽으로, 같으면 가운데로 가서 다음 질의 글자로 나아간다.
 
-## Complexity
+## 복잡도
 
-| Operation | Average Time | Worst-Case Time |
+| 연산 | 평균 시간 | 최악 시간 |
 |:---|:---:|:---:|
-| Search | $O(m + \log n)$ | $O(m \cdot n)$ |
-| Insert | $O(m + \log n)$ | $O(m \cdot n)$ |
-| Prefix search | $O(p + \log n + k)$ | -- |
+| 찾기 | $O(m + \log n)$ | $O(m \cdot n)$ |
+| 삽입 | $O(m + \log n)$ | $O(m \cdot n)$ |
+| 접두사 찾기 | $O(p + \log n + k)$ | — |
 
-Here $m$ is the string length, $n$ is the number of stored strings, $p$ is the prefix length, and $k$ is the output size. The $\log n$ term comes from the BST structure at each level; with balanced insertion order, it stays logarithmic.
+여기서 $m$은 문자열의 길이, $n$은 담긴 문자열의 수, $p$은 접두사의 길이, $k$은 출력의 크기이다. $\log n$ 항은 층마다의 이진 탐색 트리 짜임에서 오며 넣는 순서가 균형 잡히면 로그로 남는다.
 
-## Comparison with Other Trie Variants
+## 다른 트라이 변형과 견주기
 
-| Property | Standard Trie | Compressed Trie | TST |
+| 성질 | 표준 트라이 | 눌러 담은 트라이 | TST |
 |:---|:---:|:---:|:---:|
-| Space per node | $O(\lvert\Sigma\rvert)$ | $O(\lvert\Sigma\rvert)$ | $O(1)$ |
-| Search time | $O(m)$ | $O(m)$ | $O(m + \log n)$ |
-| Prefix search | Excellent | Excellent | Good |
-| Implementation | Simple | Moderate | Moderate |
+| 노드당 공간 | $O(\lvert\Sigma\rvert)$ | $O(\lvert\Sigma\rvert)$ | $O(1)$ |
+| 찾기 시간 | $O(m)$ | $O(m)$ | $O(m + \log n)$ |
+| 접두사 찾기 | 아주 좋음 | 아주 좋음 | 좋음 |
+| 구현 | 간단 | 보통 | 보통 |
 
-!!! tip "When to Use a TST"
-    Ternary search trees are a good choice when the alphabet is large, memory is constrained, and prefix-based operations are still needed. They are commonly used in spell checkers and IP routing engines.
+!!! tip "언제 TST를 쓰는가"
+    삼진 탐색 트리는 낱자 집합이 크고 기억이 빠듯하면서도 접두사 기반 연산이 필요할 때 좋은 선택이다. 맞춤법 검사기와 IP 경로 엔진에 흔히 쓰인다.
 
-## References
+## 참고 문헌
 
 [Introduction to Algorithms (CLRS), Chapter 14](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+삼진 탐색 트리의 짜임을 설명하고 질의와 갱신의 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 짜임은 위계적 분해를 이용해 일차보다 빠른 질의 시간을 이룬다. 대개 질의와 갱신이 모두 $O(\log n)$이고 세우는 데 $O(n)$이나 $O(n\log n)$이 든다.
+
+---
+
+**연습문제 2.**
+입력 $[3, 1, 4, 1, 5, 9, 2, 6]$으로 삼진 탐색 트리를 세워라. 마지막 짜임을 보여라.
+
+??? success "연습문제 2 풀이"
+    세우기 알고리즘을 적용하며 중간 상태를 보여라. 트리 짜임이면 트리를 그려라. 배열에 바탕한 짜임이면 부모-자식 관계를 덧붙여 배열의 내용을 보여라.
+
+---
+
+**연습문제 3.**
+질의 연산이 올바른 어떤 질의 범위에 대해서도 옳은 결과를 돌려줌을 증명하라.
+
+??? success "연습문제 3 풀이"
+    증명에는 대개 트리의 높이에 대한 귀납법을 쓴다. 노드마다 질의가 한 부분 트리 안에 온전히 들거나(재귀한다) 두 부분 트리에 걸친다(부분 결과를 모은다). 모으는 함수(합, 최솟값, 최댓값)가 결합적이므로 올바로 모아진다. $\square$
+
+---
+
+**연습문제 4.**
+삼진 탐색 트리가 질의마다의 계산을 $O(n)$에서 $O(\log n)$으로 빠르게 하는 딥러닝 응용을 설명하라.
+
+??? success "연습문제 4 풀이"
+    응용으로는 누적 어텐션 가중치를 위한 접두사 합 질의, 길이가 제각각인 수열에서 효율적인 풀링을 위한 범위 질의, 검색 증강 생성을 위한 최근접 이웃 찾기, 3차원 딥러닝의 점 구름 처리를 위한 공간 색인이 있다.

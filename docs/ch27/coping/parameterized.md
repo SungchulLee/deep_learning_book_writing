@@ -1,114 +1,168 @@
-# Parameterized Algorithms
+# 매개변수 알고리즘
 
-Some NP-hard problems become tractable when a natural **parameter** $k$ is small. A problem is **fixed-parameter tractable (FPT)** if it can be solved in time $f(k) \cdot n^{O(1)}$, confining the exponential blowup to $k$ alone. When $k$ is much smaller than $n$, FPT algorithms are practical even for large inputs. This page introduces parameterized complexity, the FPT class, kernelization, and the W-hierarchy.
+어떤 NP 어려움 문제는 자연스러운 **매개변수** $k$이 작으면 다룰 만해진다. 시간 $f(k) \cdot n^{O(1)}$에 풀 수 있어 지수의 터짐을 $k$에만 가둘 수 있으면 그 문제는 **붙박이 매개변수 다룰 수 있음(FPT)**이다. $k$이 $n$보다 훨씬 작으면 붙박이 매개변수 알고리즘은 들임이 커도 쓸 만하다. 이 쪽은 매개변수 복잡도, FPT 갈래, 알맹이 만들기, W 켜를 소개한다.
 
-## Fixed-Parameter Tractability
+## 붙박이 매개변수 다룰 수 있음
 
-!!! tip "Definition: FPT"
-    A parameterized problem $(L, k)$ is **fixed-parameter tractable** if there exists an algorithm solving it in time $f(k) \cdot n^{O(1)}$, where $f$ is a computable function depending only on $k$ and $n$ is the input size.
+!!! tip "뜻매김: FPT"
+    매개변수 문제 $(L, k)$을 시간 $f(k) \cdot n^{O(1)}$에 푸는 알고리즘이 있으면 그 문제는 **붙박이 매개변수 다룰 수 있음**이다. 여기서 $f$은 $k$에만 매인 셈할 수 있는 함수이고 $n$은 들임 크기이다.
 
-The key distinction from polynomial time is that $f(k)$ may be exponential or worse in $k$, but the dependence on $n$ is polynomial. For small $k$, this is dramatically faster than $O(n^k)$.
+다항 시간과의 핵심 차이는 $f(k)$이 $k$에 대해 지수이거나 더 나쁠 수 있지만 $n$에 대한 매임은 다항이라는 것이다. $k$이 작으면 이는 $O(n^k)$보다 엄청나게 빠르다.
 
-**Example:** Vertex Cover parameterized by solution size $k$.
+**보기:** 풀이 크기 $k$을 매개변수로 삼은 꼭짓점 덮기.
 
-- Brute force: $O(\binom{n}{k} \cdot m) = O(n^k \cdot m)$, not FPT.
-- FPT algorithm: $O(2^k \cdot n)$ via bounded search tree.
+- 막무가내: $O(\binom{n}{k} \cdot m) = O(n^k \cdot m)$으로 FPT이 아니다.
+- FPT 알고리즘: 가둬진 찾기 나무로 $O(2^k \cdot n)$이다.
 
-At $k = 20$ and $n = 10^6$: the FPT algorithm does $\approx 10^{12}$ operations, while brute force does $\approx 10^{126}$.
+$k = 20$이고 $n = 10^6$일 때 FPT 알고리즘은 약 $10^{12}$번 셈하지만 막무가내는 약 $10^{126}$번 셈한다.
 
-## Bounded Search Tree
+## 가둬진 찾기 나무
 
-The simplest FPT technique for vertex cover:
+꼭짓점 덮기의 가장 단순한 FPT 재주:
 
-1. Pick any edge $(u, v)$. At least one of $u, v$ must be in any vertex cover of size $\leq k$.
-2. **Branch:** Either include $u$ (and recurse with $k - 1$) or include $v$ (and recurse with $k - 1$).
-3. **Base case:** If $k = 0$ and edges remain, return "no." If no edges remain, return "yes."
+1. 아무 변 $(u, v)$을 고른다. 크기 $\leq k$인 어떤 꼭짓점 덮기에도 $u, v$ 가운데 적어도 하나가 들어야 한다.
+2. **가지 치기:** $u$을 넣거나($k - 1$으로 되돌이) $v$을 넣는다($k - 1$으로 되돌이).
+3. **바탕 경우:** $k = 0$인데 변이 남았으면 "아니오"를 돌려준다. 변이 남지 않았으면 "예"를 돌려준다.
 
-The recursion tree has depth $k$ and branching factor 2, giving $2^k$ leaves. Each node does $O(n)$ work.
+되돌이 나무는 깊이가 $k$이고 가지 수가 2이므로 잎이 $2^k$개이다. 마디마다 $O(n)$만큼 일한다.
 
-**Time:** $O(2^k \cdot n)$.
+**시간:** $O(2^k \cdot n)$.
 
-## Kernelization
+## 알맹이 만들기
 
-**Kernelization** is a polynomial-time preprocessing step that reduces the instance to a smaller **kernel** whose size depends only on $k$.
+**알맹이 만들기**는 사례를 크기가 $k$에만 매인 더 작은 **알맹이**로 줄이는 다항 시간의 앞손질 걸음이다.
 
-!!! tip "Definition: Kernel"
-    A kernelization for parameterized problem $(I, k)$ is a polynomial-time algorithm that produces an equivalent instance $(I', k')$ with $|I'| \leq g(k)$ and $k' \leq k$, for some computable $g$.
+!!! tip "뜻매김: 알맹이"
+    매개변수 문제 $(I, k)$의 알맹이 만들기는 어떤 셈할 수 있는 $g$에 대해 $|I'| \leq g(k)$이고 $k' \leq k$인 같은 뜻의 사례 $(I', k')$을 내놓는 다항 시간 알고리즘이다.
 
-A problem is FPT if and only if it has a kernelization (possibly with exponential kernel size).
+어떤 문제가 FPT일 필요충분조건은 (알맹이 크기가 지수일 수도 있는) 알맹이 만들기가 있는 것이다.
 
-### Vertex Cover Kernel
+### 꼭짓점 덮기 알맹이
 
-**Crown reduction** and **Buss's rule** reduce $k$-Vertex Cover to a kernel of size $O(k^2)$:
+**왕관 줄임**과 **버스 규칙**은 $k$ 꼭짓점 덮기를 크기 $O(k^2)$인 알맹이로 줄인다:
 
-1. **Remove isolated vertices** (they cannot be in a minimum cover).
-2. **Buss's rule:** If any vertex $v$ has degree $> k$, it must be in the cover (otherwise $> k$ of its neighbors are needed). Include $v$, reduce $k$ by 1, remove $v$ and its edges.
-3. **Crown reduction:** If more than $k^2$ edges remain after applying rule 2, the answer is "no" (a vertex cover of size $k$ can cover at most $k \cdot k = k^2$ edges via its endpoints).
+1. **외딴 꼭짓점을 지운다**(최소 덮기에 들 수 없다).
+2. **버스 규칙:** 어떤 꼭짓점 $v$의 차수가 $> k$이면 그것은 덮기에 들어야 한다(그렇지 않으면 이웃이 $> k$개 필요하다). $v$을 넣고 $k$을 1 줄이고 $v$과 그 변을 지운다.
+3. **왕관 줄임:** 규칙 2을 쓴 뒤 변이 $k^2$개를 넘게 남으면 답은 "아니오"이다(크기 $k$인 꼭짓점 덮기는 끝점으로 많아야 변 $k \cdot k = k^2$개를 덮는다).
 
-The resulting kernel has at most $k^2$ edges and $2k^2$ vertices.
+그렇게 얻은 알맹이는 변이 많아야 $k^2$개, 꼭짓점이 많아야 $2k^2$개이다.
 
-## The W-Hierarchy
+## W 켜
 
-Not all parameterized problems are FPT. The **W-hierarchy** classifies parameterized intractability:
+모든 매개변수 문제가 FPT인 것은 아니다. **W 켜**는 매개변수로 다룰 수 없음을 갈래 짓는다:
 
 $$
 \text{FPT} \subseteq \text{W}[1] \subseteq \text{W}[2] \subseteq \cdots \subseteq \text{XP}
 $$
 
-where **XP** is the class solvable in $O(n^{f(k)})$ time (polynomial for each fixed $k$, but the degree depends on $k$).
+여기서 **XP**은 $O(n^{f(k)})$ 시간에 풀 수 있는 갈래이다(붙박이 $k$마다 다항이지만 차수가 $k$에 매인다).
 
-### W[1]-Hard Problems
+### W[1] 어려움 문제
 
-A problem is **W[1]-hard** if it is at least as hard as $k$-Clique under parameterized reductions. W[1]-hard problems are believed not to be FPT.
+매개변수 줄임에서 $k$ 덩어리보다 적어도 어려우면 그 문제는 **W[1] 어려움**이다. W[1] 어려움 문제는 FPT이 아니라고 믿어진다.
 
-| Problem | Parameter | Complexity |
+| 문제 | 매개변수 | 복잡도 |
 |---------|-----------|-----------|
-| Vertex Cover | $k$ (cover size) | FPT |
-| $k$-Path | $k$ (path length) | FPT (color-coding) |
-| $k$-Clique | $k$ (clique size) | W[1]-complete |
-| Independent Set | $k$ (set size) | W[1]-complete |
-| Dominating Set | $k$ (set size) | W[2]-complete |
-| Set Cover | $k$ (number of sets) | W[2]-complete |
+| 꼭짓점 덮기 | $k$(덮기 크기) | FPT |
+| $k$ 길 | $k$(길 길이) | FPT(색 매기기) |
+| $k$ 덩어리 | $k$(덩어리 크기) | W[1] 완전 |
+| 독립 모임 | $k$(모임 크기) | W[1] 완전 |
+| 지배 모임 | $k$(모임 크기) | W[2] 완전 |
+| 모임 덮기 | $k$(모임 개수) | W[2] 완전 |
 
-### Parameterized Reductions
+### 매개변수 줄임
 
-An FPT reduction from $(L_1, k_1)$ to $(L_2, k_2)$ maps instances in FPT time such that $k_2 = g(k_1)$. If $L_2$ is FPT, then $L_1$ is FPT. Contrapositive: if $L_1$ is W[1]-hard and reduces to $L_2$, then $L_2$ is W[1]-hard.
+$(L_1, k_1)$에서 $(L_2, k_2)$으로 가는 FPT 줄임은 $k_2 = g(k_1)$이 되도록 사례를 FPT 시간에 옮긴다. $L_2$이 FPT이면 $L_1$도 FPT이다. 대우로, $L_1$이 W[1] 어려움이고 $L_2$으로 줄여지면 $L_2$도 W[1] 어려움이다.
 
-## Color-Coding
+## 색 매기기
 
-The **color-coding** technique (Alon, Yuster, Zwick, 1995) solves $k$-Path in $O(2^k \cdot m)$ expected time:
+**색 매기기** 재주(알론, 유스터, 즈윅, 1995)는 $k$ 길을 기댓값 $O(2^k \cdot m)$ 시간에 푼다:
 
-1. Randomly color each vertex with one of $k$ colors.
-2. Use DP to find a path of length $k$ using all $k$ colors (**colorful** path).
-3. Repeat $O(e^k)$ times to boost success probability.
+1. 꼭짓점마다 $k$가지 색 가운데 하나를 아무렇게나 칠한다.
+2. 짜 넣기로 $k$가지 색을 모두 쓰는 길이 $k$인 길(**알록달록한** 길)을 찾는다.
+3. 성공 확률을 높이려 $O(e^k)$번 되풀이한다.
 
-A colorful path exists if and only if a $k$-path exists and the random coloring assigns distinct colors. The probability of a correct coloring is $k!/k^k \geq e^{-k}$.
+알록달록한 길이 있을 필요충분조건은 $k$ 길이 있고 아무 칠하기가 서로 다른 색을 매기는 것이다. 옳게 칠할 확률은 $k!/k^k \geq e^{-k}$이다.
 
-## Important FPT Results
+## 중요한 FPT 결과
 
-| Problem | Parameter | FPT Time | Technique |
+| 문제 | 매개변수 | FPT 시간 | 재주 |
 |---------|-----------|----------|-----------|
-| Vertex Cover | $k$ | $O(1.2738^k + kn)$ | Branching + reduction rules |
-| Feedback Vertex Set | $k$ | $O(3.619^k \cdot n)$ | Iterative compression |
-| $k$-Path | $k$ | $O(1.657^k \cdot m)$ | Narrow sieves |
-| Treewidth | $k$ | $O(2^{O(k^3)} \cdot n)$ | FPT algorithm exists |
-| Planar Dominating Set | $k$ | $O(2^{O(\sqrt{k})} \cdot n^{O(1)})$ | Bidimensionality |
+| 꼭짓점 덮기 | $k$ | $O(1.2738^k + kn)$ | 가지 치기 + 줄임 규칙 |
+| 되먹임 꼭짓점 모임 | $k$ | $O(3.619^k \cdot n)$ | 되풀이 눌러 담기 |
+| $k$ 길 | $k$ | $O(1.657^k \cdot m)$ | 좁은 체 |
+| 나무 너비 | $k$ | $O(2^{O(k^3)} \cdot n)$ | FPT 알고리즘이 있다 |
+| 평면 지배 모임 | $k$ | $O(2^{O(\sqrt{k})} \cdot n^{O(1)})$ | 두 차원 성질 |
 
-??? example "Example: Bounded Search Tree for Vertex Cover"
-    **Graph:** Edges $\{(a,b), (b,c), (c,d), (a,d)\}$, parameter $k = 2$.
+??? example "보기: 꼭짓점 덮기의 가둬진 찾기 나무"
+    **그래프:** 변 $\{(a,b), (b,c), (c,d), (a,d)\}$, 매개변수 $k = 2$.
 
-    **Step 1:** Pick edge $(a,b)$. Branch:
+    **걸음 1:** 변 $(a,b)$을 고른다. 가지 치기:
 
-    - **Include $a$:** Remove $a$ and edges $(a,b), (a,d)$. Remaining: $(b,c), (c,d)$. $k = 1$.
-        - Pick edge $(b,c)$. Branch on $b$ or $c$ with $k = 0$.
-        - Include $c$: removes $(b,c), (c,d)$. No edges left. **Success:** $\{a, c\}$.
-    - **Include $b$:** Remove $b$ and edges $(a,b), (b,c)$. Remaining: $(c,d), (a,d)$. $k = 1$.
-        - Pick $(c,d)$. Include $d$: removes $(c,d), (a,d)$. No edges left. **Success:** $\{b, d\}$.
+    - **$a$을 넣는다:** $a$과 변 $(a,b), (a,d)$을 지운다. 남은 것: $(b,c), (c,d)$. $k = 1$.
+        - 변 $(b,c)$을 고른다. $k = 0$으로 $b$이나 $c$에서 가지 친다.
+        - $c$을 넣는다: $(b,c), (c,d)$이 지워진다. 변이 남지 않는다. **성공:** $\{a, c\}$.
+    - **$b$을 넣는다:** $b$과 변 $(a,b), (b,c)$을 지운다. 남은 것: $(c,d), (a,d)$. $k = 1$.
+        - $(c,d)$을 고른다. $d$을 넣는다: $(c,d), (a,d)$이 지워진다. 변이 남지 않는다. **성공:** $\{b, d\}$.
 
-    Both branches find valid covers of size 2.
+    두 가지 모두 크기 2인 올바른 덮기를 찾는다.
 
-## Reference
+## 참고 문헌
 
 - Cygan, M., et al. (2015). *Parameterized Algorithms*. Springer.
 - Downey, R. G., & Fellows, M. R. (2013). *Fundamentals of Parameterized Complexity*. Springer.
 - Flum, J., & Grohe, M. (2006). *Parameterized Complexity Theory*. Springer.
+
+## 연습문제
+
+**연습문제 1.**
+갈래 FPT(붙박이 매개변수 다룰 수 있음)을 뜻매김하라. 풀이 크기 $k$을 매개변수로 삼은 꼭짓점 덮기가 FPT에 드는 까닭을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    매개변수 $k$을 가진 문제를 어떤 셈할 수 있는 함수 $f$에 대해 시간 $f(k) \cdot \text{poly}(n)$에 풀 수 있으면 FPT에 든다. 여기서 $n$은 들임 크기이다. 지수의 터짐은 $n$이 아니라 $k$에만 매인다.
+
+    $k$을 매개변수로 삼은 꼭짓점 덮기: 그래프 $G$과 정수 $k$이 주어질 때 $G$에 크기 $\leq k$인 꼭짓점 덮기가 있는가? 가둬진 찾기 나무 알고리즘은 이렇다. 아무 변 $(u,v)$을 고른다. $u, v$ 가운데 적어도 하나가 덮기에 들어야 한다. 가지 치기: $u$을 넣거나($u$과 그 변을 지우고 $k-1$으로 되돌이) $v$을 넣는다($v$과 그 변을 지우고 $k-1$으로 되돌이). 나무는 깊이가 $k$이고 가지 수가 2이므로 잎이 $2^k$개이다. 마디마다 $O(n)$만큼 일한다. 온 시간: $O(2^k \cdot n)$으로 FPT이다.
+
+---
+
+**연습문제 2.**
+$k$ 덩어리를 막무가내로 $O(n^k)$ 시간에 풀 수 있음을 보여라. 이것이 FPT인가? FPT과 갈래 XP의 차이를 밝혀라.
+
+??? success "연습문제 2 풀이"
+    $k$ 덩어리의 막무가내: 꼭짓점 $k$개의 부분 모임 $\binom{n}{k}$가지를 모두 늘어놓고 각각이 완전한지 $O(k^2)$ 시간에 살핀다. 온 시간: $O(n^k \cdot k^2)$. 이는 붙박이 $k$마다 다항이지만 지수가 $k$에 매인다.
+
+    이는 FPT이 아니다. FPT은 $c$이 $k$에 매이지 않는 상수인 시간 $f(k) \cdot n^c$을 요구한다. $O(n^k)$ 알고리즘은 매개변수 $k$이 $n$의 지수에 있다.
+
+    갈래 XP은 시간 $O(n^{f(k)})$에 풀 수 있는 문제를 담는다. 붙박이 $k$마다 다항이지만 지수가 $k$에 매인다. 따라서 $k$ 덩어리는 XP에 들지만 FPT에 든다고는 알려져 있지 않다. 사실 $k$ 덩어리는 W[1] 완전이며 이는 FPT일 법하지 않다는 뜻이다(W[1] $\neq$ FPT은 P $\neq$ NP의 매개변수 판이다).
+
+---
+
+**연습문제 3.**
+알론, 유스터, 즈윅의 색 매기기 재주를 적어라. 그것이 $k$ 길의 FPT 알고리즘을 어떻게 주는가?
+
+??? success "연습문제 3 풀이"
+    $k$ 길 문제는 그래프에 길이 $k$인 단순한 길이 있는지 묻는다. 색 매기기는 다음과 같이 돈다:
+
+    1. 꼭짓점마다 $k$가지 색 가운데 하나를 고르게 서로 얽매이지 않게 아무렇게나 칠한다.
+    2. 짜 넣기로 "알록달록한" 길, 곧 꼭짓점 $k$개가 모두 다른 색인 길이 $k$의 길을 찾는다. 이 짜 넣기는 부분 모임 상태를 써서 $O(2^k \cdot m)$ 시간에 돈다.
+    3. $k$ 길이 있으면 그것이 알록달록할 확률은 $k!/k^k \geq e^{-k}$이다.
+    4. 성공 확률을 상수로 높이려 $e^k$번 되풀이한다.
+
+    온 시간: $O(e^k \cdot 2^k \cdot m) = O((2e)^k \cdot m)$으로 $k$에 대해 FPT이다. 이 재주는 두루 쓰는 해시 무리로 마구잡이를 없앨 수 있어 정해진 FPT 시간 $O(2^{O(k)} \cdot m)$을 준다.
+
+---
+
+**연습문제 4.**
+매개변수 복잡도에서 문제 알맹이 개념을 밝혀라. 꼭짓점 덮기의 알맹이 만들기 보기를 들어라.
+
+??? success "연습문제 4 풀이"
+    알맹이 만들기는 사례 $(x, k)$을 어떤 셈할 수 있는 함수 $g$에 대해 $|x'| \leq g(k)$이고 $k' \leq k$인 같은 뜻의 사례 $(x', k')$으로 줄이는 다항 시간 앞손질 알고리즘이다. 줄인 사례 $x'$이 "알맹이"이다. 어떤 문제가 FPT일 필요충분조건은 알맹이 만들기가 있는 것이다(이는 정리이다).
+
+    매개변수 $k$인 꼭짓점 덮기에는 다음 줄임 규칙을 쓴다:
+
+    1. **차수 0인 꼭짓점:** 지운다(덮을 필요가 없다).
+    2. **차수 1인 꼭짓점:** 그 이웃을 덮기에 넣고(가장 좋다) 둘 다 지우고 $k$을 1 줄인다.
+    3. **차수가 큰 꼭짓점:** 꼭짓점 $v$의 차수가 $> k$이면 그것이 덮기에 들어야 한다(그렇지 않으면 $> k$개의 이웃이 모두 들어야 해 $k$을 넘는다). $v$을 넣고 그것과 그 변을 지우고 $k$을 1 줄인다.
+    4. **나아가지 못함:** $k < 0$이면 물리친다. 변이 남지 않으면 받아들인다.
+
+    끝까지 적용한 뒤 남은 꼭짓점은 모두 차수가 2과 $k$ 사이이다. 덮기에 꼭짓점이 많아야 $k$개이고 저마다 많아야 변 $k$개를 덮으므로 변은 많아야 $k^2$개, 꼭짓점은 많아야 $2k^2$개이다. 알맹이의 크기는 $O(k^2)$이다.

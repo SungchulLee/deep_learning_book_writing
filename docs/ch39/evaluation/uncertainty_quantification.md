@@ -1,9 +1,4 @@
 # Uncertainty Quantification in Neural Networks
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 **Uncertainty quantification** addresses a critical limitation of standard neural networks: they produce point predictions without any measure of confidence. Bayesian neural networks provide a principled framework for quantifying both what the model doesn't know about the data (aleatoric uncertainty) and what the model doesn't know about itself (epistemic uncertainty).
 
 ---
@@ -15,9 +10,7 @@
 Standard neural networks trained with maximum likelihood produce point estimates:
 
 $$
-
 \hat{y} = f_{\hat{\theta}}(x)
-
 $$
 
 **Critical issues**:
@@ -33,6 +26,7 @@ $$
 ### Real-World Consequences
 
 **Medical diagnosis**: A model predicts "95% probability of benign tumor" — but is this because:
+
 - The model has seen many similar cases (low uncertainty)?
 - The model is extrapolating wildly (high uncertainty)?
 
@@ -45,12 +39,11 @@ $$
 The Bayesian approach maintains a **posterior distribution** over model parameters:
 
 $$
-
 p(\theta \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{p(\mathcal{D})}
-
 $$
 
 This enables:
+
 1. **Predictive distributions** instead of point predictions
 2. **Decomposition** into aleatoric and epistemic components
 3. **Principled propagation** of uncertainty through the model
@@ -63,9 +56,7 @@ This enables:
 ### Taxonomy Overview
 
 $$
-
 \boxed{\text{Total Uncertainty} = \text{Aleatoric Uncertainty} + \text{Epistemic Uncertainty}}
-
 $$
 
 | Type | Also Called | Source | Reducible? |
@@ -78,6 +69,7 @@ $$
 **Definition**: Uncertainty inherent in the data-generating process that cannot be reduced by collecting more data.
 
 **Sources**:
+
 - Measurement noise
 - Stochastic processes
 - Incomplete observations (hidden variables)
@@ -86,16 +78,16 @@ $$
 **Mathematical formulation** (regression):
 
 $$
-
 y = f(x) + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2(x))
-
 $$
 
 The noise variance $\sigma^2(x)$ can be:
+
 - **Homoscedastic**: Constant across input space
 - **Heteroscedastic**: Varies with input $x$
 
 **Example**: Predicting stock prices
+
 - Even with perfect knowledge of all relevant factors, prices have inherent randomness
 - More data won't eliminate this fundamental unpredictability
 
@@ -104,6 +96,7 @@ The noise variance $\sigma^2(x)$ can be:
 **Definition**: Uncertainty arising from limited knowledge about the model, which can be reduced by collecting more data.
 
 **Sources**:
+
 - Limited training data
 - Model misspecification
 - Parameter uncertainty
@@ -112,10 +105,12 @@ The noise variance $\sigma^2(x)$ can be:
 **Mathematical formulation**:
 
 Epistemic uncertainty is captured by the posterior distribution $p(\theta \mid \mathcal{D})$:
+
 - Narrow posterior → Low epistemic uncertainty (confident about parameters)
 - Wide posterior → High epistemic uncertainty (uncertain about parameters)
 
 **Example**: Predicting house prices in a new neighborhood
+
 - With few observations, we're uncertain about the price-feature relationship
 - More data from this neighborhood would reduce our uncertainty
 
@@ -124,9 +119,7 @@ Epistemic uncertainty is captured by the posterior distribution $p(\theta \mid \
 **Homoscedastic** (constant noise):
 
 $$
-
 p(y \mid x, \theta) = \mathcal{N}(y \mid f_\theta(x), \sigma^2)
-
 $$
 
 - Single noise parameter $\sigma^2$ for all inputs
@@ -136,9 +129,7 @@ $$
 **Heteroscedastic** (input-dependent noise):
 
 $$
-
 p(y \mid x, \theta) = \mathcal{N}(y \mid f_\theta(x), \sigma^2_\theta(x))
-
 $$
 
 - Network predicts both mean and variance
@@ -154,12 +145,11 @@ $$
 The **posterior predictive distribution** integrates over parameter uncertainty:
 
 $$
-
 \boxed{p(y^* \mid x^*, \mathcal{D}) = \int p(y^* \mid x^*, \theta) \, p(\theta \mid \mathcal{D}) \, d\theta}
-
 $$
 
 where:
+
 - $x^*$ is the test input
 - $y^*$ is the predicted output
 - $p(y^* \mid x^*, \theta)$ is the likelihood (model prediction given parameters)
@@ -170,31 +160,23 @@ where:
 Since the integral is intractable, approximate using samples $\{\theta^{(s)}\}_{s=1}^S$ from the posterior:
 
 $$
-
 p(y^* \mid x^*, \mathcal{D}) \approx \frac{1}{S} \sum_{s=1}^S p(y^* \mid x^*, \theta^{(s)})
-
 $$
 
 **For regression** (Gaussian likelihood):
 
 $$
-
 \hat{\mu}(x^*) = \frac{1}{S} \sum_{s=1}^S f_{\theta^{(s)}}(x^*)
-
 $$
 
 $$
-
 \hat{\sigma}^2(x^*) = \frac{1}{S} \sum_{s=1}^S \left[ f_{\theta^{(s)}}(x^*) - \hat{\mu}(x^*) \right]^2 + \frac{1}{S} \sum_{s=1}^S \sigma^2_{\theta^{(s)}}(x^*)
-
 $$
 
 **For classification**:
 
 $$
-
 p(y^* = c \mid x^*, \mathcal{D}) \approx \frac{1}{S} \sum_{s=1}^S \text{softmax}(f_{\theta^{(s)}}(x^*))_c
-
 $$
 
 ### Predictive Mean and Variance
@@ -204,17 +186,13 @@ For regression with heteroscedastic noise, the predictive distribution has:
 **Predictive mean**:
 
 $$
-
 \mathbb{E}[y^* \mid x^*, \mathcal{D}] = \mathbb{E}_{\theta \mid \mathcal{D}}[\mu_\theta(x^*)]
-
 $$
 
 **Predictive variance** (law of total variance):
 
 $$
-
 \text{Var}[y^* \mid x^*, \mathcal{D}] = \underbrace{\mathbb{E}_{\theta \mid \mathcal{D}}[\sigma^2_\theta(x^*)]}_{\text{Aleatoric}} + \underbrace{\text{Var}_{\theta \mid \mathcal{D}}[\mu_\theta(x^*)]}_{\text{Epistemic}}
-
 $$
 
 This decomposition is fundamental for understanding the sources of uncertainty.
@@ -228,25 +206,19 @@ This decomposition is fundamental for understanding the sources of uncertainty.
 The decomposition follows from the **law of total variance**:
 
 $$
-
 \text{Var}[Y] = \mathbb{E}[\text{Var}[Y \mid X]] + \text{Var}[\mathbb{E}[Y \mid X]]
-
 $$
 
 Applied to our setting with $Y = y^*$ and $X = \theta$:
 
 $$
-
 \text{Var}[y^* \mid x^*, \mathcal{D}] = \mathbb{E}_\theta[\text{Var}[y^* \mid x^*, \theta]] + \text{Var}_\theta[\mathbb{E}[y^* \mid x^*, \theta]]
-
 $$
 
 ### Aleatoric Uncertainty
 
 $$
-
 \boxed{\text{Aleatoric}(x^*) = \mathbb{E}_{\theta \mid \mathcal{D}}[\sigma^2_\theta(x^*)]}
-
 $$
 
 **Interpretation**: Expected observation noise, averaged over parameter uncertainty
@@ -254,12 +226,11 @@ $$
 **Estimation**:
 
 $$
-
 \widehat{\text{Aleatoric}}(x^*) = \frac{1}{S} \sum_{s=1}^S \sigma^2_{\theta^{(s)}}(x^*)
-
 $$
 
 **Properties**:
+
 - Irreducible: doesn't decrease with more data
 - Data-dependent: varies across input space
 - Captures inherent noise in the problem
@@ -267,9 +238,7 @@ $$
 ### Epistemic Uncertainty
 
 $$
-
 \boxed{\text{Epistemic}(x^*) = \text{Var}_{\theta \mid \mathcal{D}}[\mu_\theta(x^*)]}
-
 $$
 
 **Interpretation**: Variance in predictions due to parameter uncertainty
@@ -277,14 +246,13 @@ $$
 **Estimation**:
 
 $$
-
 \widehat{\text{Epistemic}}(x^*) = \frac{1}{S} \sum_{s=1}^S \left[\mu_{\theta^{(s)}}(x^*) - \bar{\mu}(x^*)\right]^2
-
 $$
 
 where $\bar{\mu}(x^*) = \frac{1}{S} \sum_s \mu_{\theta^{(s)}}(x^*)$.
 
 **Properties**:
+
 - Reducible: decreases with more data
 - High in regions far from training data
 - Captures model ignorance
@@ -292,17 +260,13 @@ where $\bar{\mu}(x^*) = \frac{1}{S} \sum_s \mu_{\theta^{(s)}}(x^*)$.
 ### Total Predictive Uncertainty
 
 $$
-
 \boxed{\text{Total}(x^*) = \text{Aleatoric}(x^*) + \text{Epistemic}(x^*)}
-
 $$
 
 **Estimation**:
 
 $$
-
 \widehat{\text{Total}}(x^*) = \frac{1}{S} \sum_{s=1}^S \sigma^2_{\theta^{(s)}}(x^*) + \frac{1}{S} \sum_{s=1}^S \left[\mu_{\theta^{(s)}}(x^*) - \bar{\mu}(x^*)\right]^2
-
 $$
 
 ---
@@ -314,17 +278,13 @@ $$
 For classification, the predictive distribution is categorical:
 
 $$
-
 p(y^* = c \mid x^*, \mathcal{D}) = \bar{p}_c = \frac{1}{S} \sum_{s=1}^S p(y^* = c \mid x^*, \theta^{(s)})
-
 $$
 
 **Total uncertainty** via entropy:
 
 $$
-
 \boxed{\mathbb{H}[y^* \mid x^*, \mathcal{D}] = -\sum_{c=1}^C \bar{p}_c \log \bar{p}_c}
-
 $$
 
 ### Mutual Information Decomposition
@@ -332,17 +292,13 @@ $$
 The total entropy decomposes into:
 
 $$
-
 \underbrace{\mathbb{H}[y^* \mid x^*, \mathcal{D}]}_{\text{Total}} = \underbrace{\mathbb{I}[y^*; \theta \mid x^*, \mathcal{D}]}_{\text{Epistemic (MI)}} + \underbrace{\mathbb{E}_{\theta \mid \mathcal{D}}[\mathbb{H}[y^* \mid x^*, \theta]]}_{\text{Aleatoric}}
-
 $$
 
 **Aleatoric uncertainty** (expected entropy):
 
 $$
-
 \text{Aleatoric}(x^*) = \mathbb{E}_{\theta \mid \mathcal{D}}[\mathbb{H}[y^* \mid x^*, \theta]] = -\frac{1}{S} \sum_{s=1}^S \sum_{c=1}^C p_{c,s} \log p_{c,s}
-
 $$
 
 where $p_{c,s} = p(y^* = c \mid x^*, \theta^{(s)})$.
@@ -350,9 +306,7 @@ where $p_{c,s} = p(y^* = c \mid x^*, \theta^{(s)})$.
 **Epistemic uncertainty** (mutual information):
 
 $$
-
 \text{Epistemic}(x^*) = \mathbb{H}[y^* \mid x^*, \mathcal{D}] - \mathbb{E}_{\theta \mid \mathcal{D}}[\mathbb{H}[y^* \mid x^*, \theta]]
-
 $$
 
 ### BALD: Bayesian Active Learning by Disagreement
@@ -360,21 +314,18 @@ $$
 The mutual information (epistemic uncertainty) is used in **BALD** for active learning:
 
 $$
-
 \text{BALD}(x^*) = \mathbb{I}[y^*; \theta \mid x^*, \mathcal{D}] = \mathbb{H}[\bar{p}] - \frac{1}{S} \sum_{s=1}^S \mathbb{H}[p_s]
-
 $$
 
 **Interpretation**: 
+
 - High when different parameter samples disagree
 - Points with high BALD are informative for learning
 
 **Selection criterion**:
 
 $$
-
 x^*_{\text{next}} = \arg\max_{x \in \mathcal{X}_{\text{pool}}} \text{BALD}(x)
-
 $$
 
 ---
@@ -386,9 +337,7 @@ $$
 A model is **well-calibrated** if predicted probabilities match empirical frequencies:
 
 $$
-
 P(y = 1 \mid p(y = 1 \mid x) = q) = q \quad \forall q \in [0, 1]
-
 $$
 
 **Example**: Among all predictions with 80% confidence, 80% should be correct.
@@ -398,12 +347,11 @@ $$
 Partition predictions into $M$ bins by confidence:
 
 $$
-
 \text{ECE} = \sum_{m=1}^M \frac{|B_m|}{n} \left| \text{acc}(B_m) - \text{conf}(B_m) \right|
-
 $$
 
 where:
+
 - $B_m$ is the set of samples in bin $m$
 - $\text{acc}(B_m)$ is the accuracy in bin $m$
 - $\text{conf}(B_m)$ is the average confidence in bin $m$
@@ -411,6 +359,7 @@ where:
 ### Reliability Diagrams
 
 Plot accuracy vs. confidence for each bin:
+
 - **Perfect calibration**: Points on the diagonal
 - **Overconfident**: Points below the diagonal
 - **Underconfident**: Points above the diagonal
@@ -420,6 +369,7 @@ Plot accuracy vs. confidence for each bin:
 Modern neural networks are typically **overconfident**:
 
 **Causes**:
+
 1. **Cross-entropy training** encourages confident predictions
 2. **ReLU activations** produce unbounded logits
 3. **Batch normalization** changes calibration
@@ -436,9 +386,7 @@ Modern neural networks are typically **overconfident**:
 Standard neural networks cannot reliably detect inputs from outside the training distribution:
 
 $$
-
 x_{\text{OOD}} \notin \text{support}(p_{\text{train}}(x))
-
 $$
 
 **Desired behavior**: High uncertainty on OOD inputs
@@ -450,22 +398,19 @@ $$
 **Detection score**:
 
 $$
-
 s(x) = \text{Epistemic}(x) \quad \text{or} \quad s(x) = \text{Total}(x)
-
 $$
 
 **Decision rule**:
 
 $$
-
 \text{OOD if } s(x) > \tau
-
 $$
 
 ### Evaluation Metrics
 
 **AUROC**: Area under ROC curve for OOD detection
+
 - In-distribution samples: negative class
 - OOD samples: positive class
 
@@ -488,12 +433,11 @@ $$
 A heteroscedastic network predicts both mean and variance:
 
 $$
-
 f_\theta(x) = [\mu_\theta(x), \log \sigma^2_\theta(x)]
-
 $$
 
 **Why log variance?**
+
 - Ensures $\sigma^2 > 0$
 - Numerically stable
 - Easier optimization
@@ -503,23 +447,24 @@ $$
 **Negative log-likelihood** for Gaussian observations:
 
 $$
-
 \mathcal{L}(\theta) = \frac{1}{N} \sum_{i=1}^N \left[ \frac{(y_i - \mu_\theta(x_i))^2}{2\sigma^2_\theta(x_i)} + \frac{1}{2}\log \sigma^2_\theta(x_i) \right]
-
 $$
 
 **Interpretation**:
+
 - First term: Prediction error weighted by inverse variance
 - Second term: Regularizes variance (prevents infinite variance)
 
 ### Practical Considerations
 
 **Training stability**:
+
 - Initialize variance predictions conservatively
 - Use separate learning rates for mean and variance heads
 - Clip variance to prevent numerical issues
 
 **Architecture choices**:
+
 - Shared backbone with two output heads
 - Separate networks (more flexible but more parameters)
 - Variance can depend on features or just input
@@ -1464,17 +1409,13 @@ if __name__ == "__main__":
 **Regression** (law of total variance):
 
 $$
-
 \text{Var}[y^* \mid x^*, \mathcal{D}] = \underbrace{\mathbb{E}_\theta[\sigma^2_\theta(x^*)]}_{\text{Aleatoric}} + \underbrace{\text{Var}_\theta[\mu_\theta(x^*)]}_{\text{Epistemic}}
-
 $$
 
 **Classification** (mutual information):
 
 $$
-
 \underbrace{\mathbb{H}[\bar{p}]}_{\text{Total}} = \underbrace{\mathbb{I}[y; \theta]}_{\text{Epistemic}} + \underbrace{\mathbb{E}_\theta[\mathbb{H}[p_\theta]]}_{\text{Aleatoric}}
-
 $$
 
 ### Estimation from Posterior Samples
@@ -1520,3 +1461,35 @@ $$
 - Guo, C., et al. (2017). On calibration of modern neural networks. *ICML*.
 - Lakshminarayanan, B., et al. (2017). Simple and scalable predictive uncertainty estimation using deep ensembles. *NeurIPS*.
 - Houlsby, N., et al. (2011). Bayesian active learning for classification and preference learning. *arXiv*.
+
+## Exercises
+
+**Exercise 1.**
+For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+
+??? success "Solution to Exercise 1"
+    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
+
+---
+
+**Exercise 2.**
+Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
+
+??? success "Solution to Exercise 2"
+    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+
+---
+
+**Exercise 3.**
+Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+
+??? success "Solution to Exercise 3"
+    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+
+---
+
+**Exercise 4.**
+Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+
+??? success "Solution to Exercise 4"
+    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$

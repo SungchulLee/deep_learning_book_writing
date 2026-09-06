@@ -1,84 +1,76 @@
-# LoRA: Low-Rank Adaptation
+# LoRA: 낮은 계수 맞추기
+## 학습 목표
 
+- 낮은 계수 맞추기의 수학 바탕을 이해한다
+- LoRA를 맨바닥부터 짜고 변환기 모델에 쓴다
+- LoRA의 웃매개변수(계수, 알파, 목표 단원)를 정한다
+- 덧짐 없는 미룸을 위해 LoRA 무게를 어울린다
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 들어가며
 
-## Learning Objectives
+LoRA(낮은 계수 맞추기)는 미리 익힌 모델 무게를 얼리고 층마다 익힐 수 있는 낮은 계수 쪼갬 행렬을 끼워 넣는, 매개변수를 아끼는 곱게 다듬기 방법이다. 익힐 매개변수를 1만분의 1로 줄이면서 온전한 곱게 다듬기에 맞먹는 성능을 낸다.
 
-- Understand the mathematical foundation of low-rank adaptation
-- Implement LoRA from scratch and apply it to transformer models
-- Configure LoRA hyperparameters (rank, alpha, target modules)
-- Merge LoRA weights for zero-overhead inference
+## 수학적 바탕
 
-## Introduction
-
-LoRA (Low-Rank Adaptation) is a parameter-efficient fine-tuning method that freezes pre-trained model weights and injects trainable low-rank decomposition matrices into each layer. This reduces trainable parameters by 10,000x while achieving comparable performance to full fine-tuning.
-
-## Mathematical Foundation
-
-### The Core Idea
+### 핵심 생각
 
 Instead of updating a weight matrix $W_0 \in \mathbb{R}^{d_{out} \times d_{in}}$ directly, LoRA constrains the update to a low-rank decomposition:
 
 $$
-
 W = W_0 + \Delta W = W_0 + BA
-
 $$
 
-Where:
+여기서:
+
 - $B \in \mathbb{R}^{d_{out} \times r}$ (down-projection)
 - $A \in \mathbb{R}^{r \times d_{in}}$ (up-projection)  
 - $r \ll \min(d_{in}, d_{out})$ is the rank
 
-### Why Low-Rank Works
+### 낮은 계수가 통하는 까닭
 
-Research shows that the weight updates during fine-tuning have low "intrinsic rank"—the effective dimensionality of the update is much smaller than the full parameter space. LoRA exploits this by explicitly parameterizing updates as low-rank matrices.
+연구에 따르면 곱게 다듬는 동안의 무게 고침은 "본디 계수"가 낮다. 곧 고침의 실효 차원이 온 매개변수 공간보다 훨씬 작다. LoRA는 고침을 낮은 계수 행렬로 드러내어 매개변수로 나타냄으로써 이를 써먹는다.
 
-### Forward Pass
+### 순전파
 
-For input $x$:
+들임 $x$에 대해:
 
 $$
-
 h = W_0 x + \Delta W x = W_0 x + BAx
-
 $$
 
-The original weights $W_0$ are frozen; only $A$ and $B$ are trained.
+본디 무게 $W_0$은 얼리고 $A$과 $B$만 익힌다.
 
-### Scaling Factor
+### 잣수 인자
 
-LoRA uses a scaling factor to control update magnitude:
+LoRA는 고침의 크기를 다스리려 잣수 인자를 쓴다:
 
 $$
-
 h = W_0 x + \frac{\alpha}{r} BAx
-
 $$
 
 Where $\alpha$ is a constant (typically $\alpha = 2r$ or $\alpha = r$). This scaling ensures:
+
 - The magnitude of $\Delta W$ is independent of rank choice
 - Hyperparameter transfer: same $\alpha$ works across different ranks
-- Stable training dynamics
+- 든든한 익히기 흐름
 
-### Parameter Efficiency
+### 매개변수 아끼기
 
 For a linear layer with dimensions $d_{in} \times d_{out}$:
 
-| Method | Parameters |
+| 방법 | 매개변수 |
 |--------|------------|
 | Full fine-tuning | $d_{in} \times d_{out}$ |
 | LoRA (rank $r$) | $r \times (d_{in} + d_{out})$ |
 
 **Example**: For $d_{in} = d_{out} = 4096$, $r = 8$:
-- Full: 16,777,216 parameters
-- LoRA: 65,536 parameters (0.39%)
 
-## Implementation
+- 온전히: 매개변수 16,777,216개
+- LoRA: 매개변수 65,536개(0.39%)
 
-### Core LoRA Layer
+## 구현
+
+### 고갱이 LoRA 층
 
 ```python
 import torch
@@ -90,15 +82,15 @@ from typing import Optional, List, Dict, Any
 
 class LoRALayer(nn.Module):
     """
-    LoRA layer that wraps an existing linear layer.
+    이미 있는 선형 층을 감싸는 LoRA 층.
     
-    Implements: h = W₀x + (α/r)BAx
+    짜기: h = W₀x + (α/r)BAx
     
-    Args:
-        original_layer: The linear layer to adapt
-        rank: Rank of the low-rank decomposition
-        alpha: Scaling factor (typically alpha = 2*rank)
-        dropout: Dropout probability on LoRA path
+    인수:
+        original_layer: 맞출 선형 층
+        rank: 낮은 계수 쪼개기의 계수
+        alpha: 잣수(보통 alpha = 2*rank)
+        dropout: LoRA 길에서의 떨구기 확률
     """
     
     def __init__(
@@ -118,73 +110,73 @@ class LoRALayer(nn.Module):
         in_features = original_layer.in_features
         out_features = original_layer.out_features
         
-        # Freeze original weights
+        # 본디 무게를 얼린다
         self.original.weight.requires_grad = False
         if self.original.bias is not None:
             self.original.bias.requires_grad = False
         
-        # LoRA matrices
-        # A: in_features -> rank (down projection)
+        # LoRA 행렬
+        # A: 들임 특징 -> 계수(내림 쏘기)
         self.lora_A = nn.Parameter(torch.empty(in_features, rank))
-        # B: rank -> out_features (up projection)
+        # B: 계수 -> 내놓기 특징(올림 쏘기)
         self.lora_B = nn.Parameter(torch.empty(rank, out_features))
         
-        # Initialize
+        # 초기화한다
         self._init_weights()
         
-        # Optional dropout
+        # 고를 수 있는 떨구기
         self.dropout = nn.Dropout(dropout) if dropout > 0 else nn.Identity()
         
-        # For tracking
+        # 좇기 위해
         self.merged = False
     
     def _init_weights(self):
         """
-        Initialize LoRA weights.
+        LoRA 무게를 첫자리매김한다.
         
-        A: Kaiming uniform (same as nn.Linear default)
-        B: Zero (so initial ΔW = BA = 0)
+        A: 카이밍 고른 분포(nn.Linear 붙박이와 같다)
+        B: 0(그래서 처음 ΔW = BA = 0)
         """
         nn.init.kaiming_uniform_(self.lora_A, a=math.sqrt(5))
         nn.init.zeros_(self.lora_B)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Forward pass: W₀x + (α/r)BAx
+        앞먹임: W₀x + (α/r)BAx
         """
         if self.merged:
-            # If weights are merged, just use original layer
+            # 무게를 합쳤으면 본디 층만 쓴다
             return self.original(x)
         
-        # Original path (frozen)
+        # 본디 길(얼림)
         original_output = self.original(x)
         
-        # LoRA path: x @ A @ B * scaling
+        # LoRA 길: x @ A @ B * 잣수
         lora_output = self.dropout(x) @ self.lora_A @ self.lora_B * self.scaling
         
         return original_output + lora_output
     
     def merge_weights(self):
         """
-        Merge LoRA weights into original layer for inference.
+        미룸을 위해 LoRA 무게를 본디 층에 합친다.
         
         W' = W₀ + (α/r)BA^T
         
-        After merging, forward pass has zero overhead.
+        합친 뒤에는 앞먹임에 군더더기가 없다.
         """
         if self.merged:
             return
         
-        # Compute ΔW = (α/r) * A @ B, then transpose for weight format
+        # ΔW = (α/r) * A @ B를 셈한 뒤 무게 꼴에 맞게 옮겨 놓는다
         delta_w = (self.lora_A @ self.lora_B * self.scaling).T
         self.original.weight.data += delta_w
         self.merged = True
     
     def unmerge_weights(self):
         """
-        Unmerge LoRA weights (reverse of merge).
+        LoRA 무게 합치기를 되돌린다.
         
-        Useful for continued training or switching adapters.
+        익히기를 이어 가거나 맞춤개를 바꿀 때 쓸모 있다.
         """
         if not self.merged:
             return
@@ -194,20 +186,20 @@ class LoRALayer(nn.Module):
         self.merged = False
     
     def get_delta_weight(self) -> torch.Tensor:
-        """Return the LoRA weight update ΔW."""
+        """LoRA 무게 바뀜 ΔW를 돌려준다."""
         return (self.lora_A @ self.lora_B * self.scaling).T
     
     @property
     def num_parameters(self) -> int:
-        """Number of trainable LoRA parameters."""
+        """익힐 수 있는 LoRA 매개변수의 수."""
         return self.lora_A.numel() + self.lora_B.numel()
 
 
 class LoRALinear(nn.Module):
     """
-    Standalone LoRA linear layer (not wrapping existing layer).
+    홀로 서는 LoRA 선형 층(이미 있는 층을 감싸지 않는다).
     
-    Useful for creating new models with LoRA built-in.
+    LoRA를 처음부터 품은 새 모델을 만들 때 쓸모 있다.
     """
     
     def __init__(
@@ -226,11 +218,11 @@ class LoRALinear(nn.Module):
         self.rank = rank
         self.scaling = alpha / rank
         
-        # Frozen base weight
+        # 얼린 바탕 무게
         self.weight = nn.Parameter(torch.empty(out_features, in_features), requires_grad=False)
         self.bias = nn.Parameter(torch.zeros(out_features), requires_grad=False) if bias else None
         
-        # Trainable LoRA
+        # 익힐 수 있는 LoRA
         self.lora_A = nn.Parameter(torch.empty(in_features, rank))
         self.lora_B = nn.Parameter(torch.empty(rank, out_features))
         
@@ -249,7 +241,7 @@ class LoRALinear(nn.Module):
         return base + lora
 ```
 
-### Applying LoRA to a Model
+### 모델에 LoRA 쓰기
 
 ```python
 from dataclasses import dataclass, field
@@ -258,13 +250,13 @@ from typing import Set
 
 @dataclass
 class LoRAConfig:
-    """Configuration for LoRA adaptation."""
+    """LoRA 맞추기의 자리매김."""
     rank: int = 8
     alpha: float = 16.0
     dropout: float = 0.0
-    # Which module names to apply LoRA to
+    # LoRA를 적용할 모듈 이름
     target_modules: Set[str] = field(default_factory=lambda: {'q_proj', 'v_proj'})
-    # Modules to exclude even if they match target_modules
+    # target_modules에 맞더라도 빼는 모듈
     exclude_modules: Set[str] = field(default_factory=set)
 
 
@@ -273,20 +265,20 @@ def apply_lora_to_model(
     config: LoRAConfig
 ) -> nn.Module:
     """
-    Apply LoRA to all matching modules in a model.
+    모델에서 맞는 모듈 모두에 LoRA를 적용한다.
     
-    Args:
-        model: The model to adapt
-        config: LoRA configuration
+    인수:
+        model: 맞출 모델
+        config: LoRA 자리매김
         
-    Returns:
-        Model with LoRA layers (original weights frozen)
+    반환값:
+        LoRA 층을 갖춘 모델(본디 무게는 얼림)
     """
-    # Collect modules to replace (can't modify during iteration)
+    # 바꿀 모듈을 모은다(되풀이 도중에 고칠 수 없다)
     replacements = []
     
     for name, module in model.named_modules():
-        # Check if this module should get LoRA
+        # 이 모듈에 LoRA를 붙일지 살핀다
         should_apply = (
             isinstance(module, nn.Linear) and
             any(target in name for target in config.target_modules) and
@@ -296,9 +288,9 @@ def apply_lora_to_model(
         if should_apply:
             replacements.append((name, module))
     
-    # Apply replacements
+    # 바꾸기를 적용한다
     for name, module in replacements:
-        # Navigate to parent module
+        # 어버이 모듈로 찾아간다
         parts = name.rsplit('.', 1)
         if len(parts) == 2:
             parent_name, child_name = parts
@@ -307,7 +299,7 @@ def apply_lora_to_model(
             parent = model
             child_name = name
         
-        # Create and set LoRA layer
+        # LoRA 층을 만들어 앉힌다
         lora_layer = LoRALayer(
             module,
             rank=config.rank,
@@ -324,9 +316,9 @@ def apply_lora_to_model(
 
 def get_lora_state_dict(model: nn.Module) -> Dict[str, torch.Tensor]:
     """
-    Extract only LoRA parameters from model state dict.
+    모델 상태 사전에서 LoRA 매개변수만 뽑는다.
     
-    Useful for saving/loading just the adapter weights.
+    맞춤개 무게만 갈무리하거나 불러올 때 쓸모 있다.
     """
     return {
         name: param for name, param in model.state_dict().items()
@@ -335,7 +327,7 @@ def get_lora_state_dict(model: nn.Module) -> Dict[str, torch.Tensor]:
 
 
 def load_lora_state_dict(model: nn.Module, state_dict: Dict[str, torch.Tensor]):
-    """Load LoRA parameters into model."""
+    """LoRA 매개변수를 모델에 불러온다."""
     model_state = model.state_dict()
     
     for name, param in state_dict.items():
@@ -347,11 +339,11 @@ def load_lora_state_dict(model: nn.Module, state_dict: Dict[str, torch.Tensor]):
     model.load_state_dict(model_state, strict=False)
 ```
 
-### Training Utilities
+### 익히기 도구
 
 ```python
 def get_lora_parameters(model: nn.Module) -> List[nn.Parameter]:
-    """Get only LoRA parameters for optimizer."""
+    """가장 좋게 하개에 쓸 LoRA 매개변수만 얻는다."""
     params = []
     for name, param in model.named_parameters():
         if 'lora_' in name:
@@ -360,7 +352,7 @@ def get_lora_parameters(model: nn.Module) -> List[nn.Parameter]:
 
 
 def count_parameters(model: nn.Module) -> Dict[str, int]:
-    """Count trainable vs total parameters."""
+    """익힐 수 있는 매개변수와 전체 매개변수를 센다."""
     trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total = sum(p.numel() for p in model.parameters())
     lora = sum(p.numel() for n, p in model.named_parameters() if 'lora_' in n)
@@ -375,63 +367,64 @@ def count_parameters(model: nn.Module) -> Dict[str, int]:
 
 
 def freeze_non_lora(model: nn.Module):
-    """Freeze all parameters except LoRA."""
+    """LoRA만 빼고 모든 매개변수를 얼린다."""
     for name, param in model.named_parameters():
         if 'lora_' not in name:
             param.requires_grad = False
 
 
 def merge_lora_weights(model: nn.Module):
-    """Merge all LoRA weights in model for inference."""
+    """미룸을 위해 모델의 모든 LoRA 무게를 합친다."""
     for module in model.modules():
         if isinstance(module, LoRALayer):
             module.merge_weights()
 
 
 def unmerge_lora_weights(model: nn.Module):
-    """Unmerge all LoRA weights in model."""
+    """모델의 모든 LoRA 무게 합치기를 되돌린다."""
     for module in model.modules():
         if isinstance(module, LoRALayer):
             module.unmerge_weights()
 ```
 
-## Hyperparameter Guide
+## 웃매개변수 길잡이
 
-### Rank Selection
+### 계수 고르기
 
-| Rank | Parameters | Quality | Use Case |
+| 계수 | 매개변수 | 좋음 | 쓰임새 |
 |------|------------|---------|----------|
-| 1-4 | Minimal | Lower | Very simple tasks, extreme compression |
-| 8 | Low | Good | **Default**, most tasks |
-| 16 | Medium | Better | Complex tasks, larger datasets |
-| 32-64 | Higher | Near full FT | Tasks requiring high capacity |
-| 128+ | High | ~Full FT | When approaching full fine-tuning |
+| 1~4 | 아주 적음 | 낮음 | 아주 단순한 일, 극단적인 눌러 담기 |
+| 8 | 적음 | 좋음 | **붙박이**, 대부분의 일 |
+| 16 | 가운데 | 더 좋음 | 복잡한 일, 큰 자료 뭉치 |
+| 32~64 | 많음 | 온전한 곱게 다듬기에 가까움 | 담는 힘이 많이 필요한 일 |
+| 128 이상 | 높음 | 온전한 곱게 다듬기와 비슷 | 온전한 곱게 다듬기에 다가갈 때 |
 
-**Rule of thumb**: Start with rank 8, increase if underfitting, decrease if overfitting or memory-constrained.
+**어림 규칙**: 계수 8로 시작하고 덜 맞으면 늘리고, 지나치게 맞거나 기억 공간이 빠듯하면 줄인다.
 
-### Alpha Selection
+### 알파 고르기
 
-Common strategies:
+흔한 전략:
+
 - $\alpha = r$: Conservative scaling
 - $\alpha = 2r$: **Default**, balanced
 - $\alpha = 4r$: Aggressive updates
 
 The ratio $\alpha/r$ determines the effective learning rate for LoRA parameters. Higher ratio = larger updates.
 
-### Target Module Selection
+### 목표 단원 고르기
 
-For transformer models:
+변환기 모델에서는:
 
-| Target | Modules | Quality | Efficiency |
+| 목표 | 단원 | 좋음 | 효율 |
 |--------|---------|---------|------------|
-| Minimal | q_proj | Baseline | Highest |
-| **Standard** | q_proj, v_proj | Good | High |
-| Extended | q_proj, k_proj, v_proj, o_proj | Better | Medium |
-| Full attention | All attention + output | Best | Lower |
-| Everything | Attention + MLP | Marginal gain | Lowest |
+| 가장 적게 | q_proj | 바탕 | 가장 높음 |
+| **보통** | q_proj, v_proj | 좋음 | 높음 |
+| 넓힘 | q_proj, k_proj, v_proj, o_proj | 더 좋음 | 가운데 |
+| 온 눈길 | 모든 눈길 + 내놓음 | 가장 좋음 | 낮음 |
+| 전부 | 눈길 + 다층 퍼셉트론 | 이득이 미미 | 가장 낮음 |
 
 ```python
-# Common configurations
+# 흔한 자리매김
 LORA_CONFIGS = {
     'minimal': LoRAConfig(rank=8, target_modules={'q_proj'}),
     'standard': LoRAConfig(rank=8, target_modules={'q_proj', 'v_proj'}),
@@ -440,24 +433,24 @@ LORA_CONFIGS = {
 }
 ```
 
-### Learning Rate
+### 배움 비율
 
-LoRA typically uses higher learning rates than full fine-tuning:
+LoRA는 온전한 곱게 다듬기보다 큰 배움 비율을 쓰는 것이 보통이다:
 
-| Method | Typical LR |
+| 방법 | 흔한 배움 비율 |
 |--------|------------|
-| Full fine-tuning | 1e-5 to 5e-5 |
-| LoRA | 1e-4 to 3e-4 |
+| 온전한 곱게 다듬기 | 1e-5 ~ 5e-5 |
+| LoRA | 1e-4 ~ 3e-4 |
 
-## Advanced Topics
+## 더 깊은 주제
 
-### LoRA for Multiple Tasks
+### 여러 일에 쓰는 LoRA
 
-Save and load different adapters:
+서로 다른 어댑터를 갈무리하고 불러온다:
 
 ```python
 class LoRAManager:
-    """Manage multiple LoRA adapters for a single base model."""
+    """바탕 모델 하나에 붙은 여러 LoRA 맞춤개를 다스린다."""
     
     def __init__(self, model: nn.Module):
         self.model = model
@@ -465,37 +458,37 @@ class LoRAManager:
         self.current_adapter: Optional[str] = None
     
     def save_adapter(self, name: str):
-        """Save current LoRA weights as named adapter."""
+        """지금 LoRA 무게를 이름 붙인 맞춤개로 갈무리한다."""
         self.adapters[name] = get_lora_state_dict(self.model)
     
     def load_adapter(self, name: str):
-        """Load a saved adapter."""
+        """갈무리한 맞춤개를 불러온다."""
         if name not in self.adapters:
             raise ValueError(f"Adapter '{name}' not found")
         
-        # Unmerge current if merged
+        # 합쳐 있으면 지금 것을 되돌린다
         unmerge_lora_weights(self.model)
         
-        # Load new adapter
+        # 새 맞춤개를 불러온다
         load_lora_state_dict(self.model, self.adapters[name])
         self.current_adapter = name
     
     def delete_adapter(self, name: str):
-        """Delete a saved adapter."""
+        """갈무리한 맞춤개를 지운다."""
         if name in self.adapters:
             del self.adapters[name]
 ```
 
-### LoRA+ (Improved Learning Rates)
+### LoRA+(나아진 배움 비율)
 
-LoRA+ uses different learning rates for A and B matrices:
+LoRA+는 행렬 A와 B에 서로 다른 배움 비율을 쓴다:
 
 ```python
 def get_lora_plus_params(model: nn.Module, lr: float, lr_ratio: float = 16.0):
     """
-    LoRA+ parameter groups with different LRs for A and B.
+    A와 B에 다른 배움 빠르기를 주는 LoRA+ 매개변수 무리.
     
-    B gets higher LR since it's initialized to zero.
+    B는 0으로 시작하므로 배움 빠르기를 더 크게 준다.
     """
     params_A = []
     params_B = []
@@ -512,27 +505,25 @@ def get_lora_plus_params(model: nn.Module, lr: float, lr_ratio: float = 16.0):
     ]
 ```
 
-### Rank-Stabilized LoRA (rsLoRA)
+### 계수를 든든히 한 LoRA(rsLoRA)
 
-Adjusts scaling for better stability at high ranks:
+높은 계수에서 더 든든하도록 잣수를 맞춘다:
 
 $$
-
 h = W_0 x + \frac{\alpha}{\sqrt{r}} BAx
-
 $$
 
 ```python
 class rsLoRALayer(LoRALayer):
-    """Rank-stabilized LoRA with sqrt scaling."""
+    """제곱근 잣수를 쓴 계수 안정 LoRA."""
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Use sqrt(r) instead of r for scaling
+        # 잣수에 r 대신 sqrt(r)을 쓴다
         self.scaling = self.alpha / math.sqrt(self.rank)
 ```
 
-## Complete Training Example
+## 완전한 학습 예제
 
 ```python
 import torch
@@ -549,23 +540,23 @@ def train_lora(
     learning_rate: float = 2e-4,
     device: str = 'cuda'
 ):
-    """Complete LoRA training pipeline."""
+    """온전한 LoRA 익히기 물길."""
     
-    # Load model
+    # 모델을 불러온다
     model = AutoModelForCausalLM.from_pretrained(model_name)
     model = apply_lora_to_model(model, config)
     model = model.to(device)
     
-    # Setup optimizer (only LoRA params)
+    # 가장 좋게 하개를 마련한다(LoRA 매개변수만)
     lora_params = get_lora_parameters(model)
     optimizer = torch.optim.AdamW(lora_params, lr=learning_rate)
     
-    # Count parameters
+    # 매개변수 개수 세기
     param_counts = count_parameters(model)
     print(f"Trainable: {param_counts['trainable']:,} ({param_counts['trainable_percent']:.2f}%)")
     print(f"LoRA: {param_counts['lora']:,} ({param_counts['lora_percent']:.2f}%)")
     
-    # Training loop
+    # 학습 루프
     model.train()
     for epoch in range(num_epochs):
         total_loss = 0
@@ -584,7 +575,7 @@ def train_lora(
         avg_loss = total_loss / len(train_dataloader)
         print(f"Epoch {epoch+1}/{num_epochs}, Loss: {avg_loss:.4f}")
         
-        # Evaluation
+        # 평가
         model.eval()
         eval_loss = 0
         with torch.no_grad():
@@ -596,17 +587,17 @@ def train_lora(
         print(f"  Eval Loss: {eval_loss / len(eval_dataloader):.4f}")
         model.train()
     
-    # Save LoRA weights
+    # LoRA 무게를 갈무리한다
     lora_state = get_lora_state_dict(model)
     torch.save(lora_state, 'lora_weights.pt')
     
-    # Merge for inference
+    # 미룸을 위해 합친다
     merge_lora_weights(model)
     
     return model
 
 
-# Example usage
+# 사용 예
 if __name__ == "__main__":
     config = LoRAConfig(
         rank=8,
@@ -618,19 +609,57 @@ if __name__ == "__main__":
     # model = train_lora("meta-llama/Llama-2-7b-hf", train_dl, eval_dl, config)
 ```
 
-## Summary
+## 요약
 
-| Aspect | Recommendation |
+| 살필 점 | 권하는 바 |
 |--------|----------------|
-| **Rank** | Start with 8, adjust based on task complexity |
-| **Alpha** | Use 2× rank as default |
-| **Targets** | q_proj + v_proj for most tasks |
-| **Learning rate** | 1e-4 to 3e-4 (higher than full FT) |
-| **Dropout** | 0.05-0.1 for regularization |
+| **계수** | 8로 시작해 일의 복잡도에 따라 맞춘다 |
+| **알파** | 붙박이로 계수의 2배를 쓴다 |
+| **목표** | 대부분의 일에 q_proj + v_proj |
+| **배움 비율** | 1e-4 ~ 3e-4(온전한 곱게 다듬기보다 크다) |
+| **떨구기** | 벌주기로 0.05~0.1 |
 
-## References
+## 참고 문헌
 
 1. Hu, E., et al. (2021). "LoRA: Low-Rank Adaptation of Large Language Models." ICLR 2022.
 2. Dettmers, T., et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs."
 3. Hayou, S., et al. (2024). "LoRA+: Efficient Low Rank Adaptation of Large Models."
 4. Kalajdzievski, D. (2023). "Rank-Stabilized LoRA: Unlocking the Potential of LoRA Fine-Tuning."
+
+## 연습문제
+
+**연습문제 1.**
+LoRA의 고갱이 생각을 밝혀라. 모델의 좋음을 지키면서 익힐 매개변수를 어떻게 줄이는가?
+
+??? success "연습문제 1 풀이"
+    LoRA (Low-Rank Adaptation) freezes the pretrained weight matrix $W_0 \in \mathbb{R}^{d \times k}$ and adds a low-rank update $\Delta W = BA$ where $B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$, and $r \ll \min(d, k)$. The forward pass becomes $h = (W_0 + BA)x$. Only $A$ and $B$ are trained, reducing trainable parameters from $dk$ to $r(d+k)$. For a typical layer with $d = k = 4096$ and $r = 8$, this is a $256\times$ reduction. The key insight: the weight updates during fine-tuning have low intrinsic rank, so a low-rank decomposition captures the essential adaptation.
+
+---
+
+**연습문제 2.**
+LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 빠르기, 일의 성능에서 맞바꿈은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    | 방법 | 익힐 매개변수 | 미룸 덧짐 | 기억 공간 | 여러 일 |
+    |--------|-----------------|-------------------|--------|------------|
+    | **LoRA** | $\sim$0.1-1% | None (merge weights) | Low | Swap $A, B$ matrices |
+    | **Prefix Tuning** | $\sim$0.1% | Slight (extra tokens) | Low | Swap prefix vectors |
+    | **Adapters** | $\sim$1-5% | Moderate (extra layers) | Medium | Swap adapter modules |
+
+    $BA$을 $W_0$에 어울릴 수 있으므로 LoRA는 미룸 덧짐이 0이다. 앞가지 다듬기는 맥락 창을 먹는 가상 토막을 더한다. 어댑터는 늦음을 늘리는 병목 층을 더한다. 셋 다 대부분의 일에서 온전한 곱게 다듬기에 가까운 성능을 내며, 단순하고 효율적이어서 LoRA가 가장 널리 쓰인다.
+
+---
+
+**연습문제 3.**
+매개변수 700억 모델을 온전히 곱게 다듬는 것이 대부분의 조직에 왜 실전에 맞지 않는가? 기억 공간 요구량을 수로 나타내어라.
+
+??? success "연습문제 3 풀이"
+    A 70B model in fp16 requires $70 \times 10^9 \times 2$ bytes = 140 GB just for weights. Fine-tuning additionally requires: optimizer states (Adam stores 2 states per parameter: 280 GB in fp32), gradients (140 GB in fp16), and activations for backpropagation. Total: $\sim$700+ GB of GPU memory. Even with gradient checkpointing and mixed precision, this requires 8+ A100 80GB GPUs. LoRA reduces trainable parameters to $\sim$70M, cutting optimizer states and gradient memory by $1000\times$, making fine-tuning feasible on 1-2 GPUs.
+
+---
+
+**연습문제 4.**
+양자화를 헤아린 LoRA(QLoRA)란 무엇이며 큰 말 모델 곱게 다듬기를 누구나 하게 만드는 데 왜 뜻깊은가?
+
+??? success "연습문제 4 풀이"
+    QLoRA combines 4-bit quantization of the base model with LoRA adapters in fp16/bf16. The base weights $W_0$ are stored in 4-bit NormalFloat format ($\sim$0.5 bytes per parameter), reducing memory for a 70B model from 140 GB to $\sim$35 GB. LoRA adapters remain in higher precision for stable training. Additional innovations: double quantization (quantizing the quantization constants) and paged optimizers (using CPU memory for optimizer state spikes). This enables fine-tuning a 65B model on a single 48GB GPU (A6000), making LLM adaptation accessible to researchers and small organizations without expensive multi-GPU clusters.

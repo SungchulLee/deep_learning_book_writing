@@ -1,39 +1,37 @@
-# Cooperative Learning Between EBMs and Other Models
+# 에너지 바탕 모델과 다른 모델의 함께 배우기
 
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
 
-## Introduction
+## 들어가며
 
-Energy-Based Models, while powerful for density estimation and anomaly detection, have limitations including computational cost of sampling and difficulty training on high-dimensional data. Modern deep learning advances suggest that EBMs should not be viewed as standalone models but rather as components within larger heterogeneous systems that leverage complementary strengths of other architectures.
+에너지 바탕 모델은 밀도 어림과 이상 찾기에 힘세지만 뽑기의 셈 비용과 차원 높은 자료에서 익히기 어려움 같은 한계가 있다. 요즘의 깊은 배움 발전은 에너지 바탕 모델을 홀로 선 모델이 아니라, 다른 얼개의 보완하는 힘을 살리는 더 큰 뒤섞인 계의 한 조각으로 보아야 함을 알려 준다.
 
-Cooperative learning frameworks combine EBMs with autoencoders, VAEs, generative adversarial networks, and discriminative models, enabling each component to address the other's limitations. EBMs can provide principled density modeling to regularize generative models; autoencoders can provide efficient dimensionality reduction before EBM training; VAEs can provide fast approximate sampling to initialize expensive EBM sampling procedures; discriminative models can focus EBM training on decision boundaries.
+함께 배우기 틀은 에너지 바탕 모델을 자기 부호기, 변분 자기 부호기, 맞겨루기 만들개, 가름 모델과 합쳐 서로의 한계를 메우게 한다. 에너지 바탕 모델은 만들어 내는 모델에 규칙을 세우는 원리 있는 밀도 나타내기를 줄 수 있고, 자기 부호기는 에너지 바탕 모델을 익히기 전에 효율 좋게 차원을 줄여 줄 수 있으며, 변분 자기 부호기는 비싼 에너지 바탕 모델 뽑기를 첫자리매김할 빠른 어림 뽑기를 줄 수 있고, 가름 모델은 에너지 바탕 모델 익히기를 가름 경계에 모이게 할 수 있다.
 
-This section explores cooperative learning paradigms, develops joint training procedures, and demonstrates how hybrid systems achieve improved performance compared to individual methods.
+이 마디는 함께 배우기 방식을 살피고 함께 익히기 절차를 세우며 뒤섞인 계가 낱낱의 방법보다 나은 성능을 이루는 모습을 보인다.
 
-## Key Concepts
+## 핵심 개념
 
-### Cooperative Learning Paradigm
-- **Complementary Objectives**: Different models optimize different loss functions
-- **Knowledge Transfer**: Information flows between models through shared representations
-- **Ensemble Robustness**: Hybrid systems more robust than individual components
-- **Improved Efficiency**: Each model compensates for others' computational limitations
+### 함께 배우기 방식
+- **보완하는 목표**: 모델마다 다른 손실 함수를 가장 좋게 한다
+- **앎 옮기기**: 함께 쓰는 나타냄을 거쳐 모델 사이에 앎이 흐른다
+- **모듬의 튼튼함**: 뒤섞인 계가 낱낱의 조각보다 튼튼하다
+- **나아진 효율**: 모델마다 다른 모델의 셈 한계를 메운다
 
-### Integration Patterns
-- **Sequential**: Train models sequentially; output of one feeds into next
-- **Parallel**: Train models simultaneously on shared data with interaction loss
-- **Hierarchical**: Cascade of models from high-dimensional to low-dimensional space
+### 합치는 무늬
+- **차례대로**: 모델을 차례로 익히고 하나의 내놓기가 다음으로 들어간다
+- **나란히**: 주고받음 손실과 함께 같은 자료로 모델을 한꺼번에 익힌다
+- **켜지어**: 차원 높은 공간에서 낮은 공간으로 이어지는 모델의 사슬
 
-## Mathematical Framework
+## 수학적 틀
 
-### Joint Training Objective
+### 함께 익히기 목표
 
-Train EBM with auxiliary model jointly on data D:
+자료 D으로 에너지 바탕 모델과 도우미 모델을 함께 익힌다:
 
 $$\mathcal{L}_{\text{joint}} = \mathcal{L}_{\text{EBM}} + \mathcal{L}_{\text{aux}} + \lambda \mathcal{L}_{\text{interaction}}$$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$\mathcal{L}_{\text{EBM}} = -\mathbb{E}_{r \sim p_{\text{data}}}[\log p(r; \theta_e)]$$
 
@@ -41,9 +39,9 @@ $$\mathcal{L}_{\text{aux}} = \text{Task-specific loss for auxiliary model}$$
 
 $$\mathcal{L}_{\text{interaction}} = \text{Coupling loss encouraging coherence}$$
 
-### Shared Representation Learning
+### 함께 쓰는 나타냄 배우기
 
-Both models operate on shared latent representation z:
+두 모델이 함께 쓰는 숨은 나타냄 z 위에서 돈다:
 
 $$z = f_{\text{enc}}(x)$$
 
@@ -51,82 +49,82 @@ $$\mathcal{L}_{\text{EBM}} = -\log p(z; \theta_e)$$
 
 $$\mathcal{L}_{\text{aux}} = \text{Reconstruction or classification on } z$$
 
-Shared representation enables efficient joint training and prevents divergence.
+함께 쓰는 나타냄이 효율 좋은 함께 익히기를 가능하게 하고 갈라짐을 막는다.
 
-### Interaction Loss for Coherence
+### 어울림을 위한 주고받음 손실
 
-Encourage models to agree on important aspects:
+중요한 면에서 모델들이 뜻을 같이하도록 이끈다:
 
 $$\mathcal{L}_{\text{interaction}} = \text{KL}(p_{\text{EBM}}(z) \| p_{\text{aux}}(z))$$
 
-forces EBM density to match auxiliary model's implicit density estimate, ensuring consistency.
+이는 에너지 바탕 모델의 밀도가 도우미 모델의 은근한 밀도 어림과 맞도록 하여 어긋나지 않게 한다.
 
-## EBM + Autoencoder Cooperation
+## 에너지 바탕 모델 + 자기 부호기의 함께 하기
 
-### Architecture
+### 구조
 
-1. **Autoencoder**: Compresses high-dimensional observations to lower-dimensional latent space
-2. **EBM**: Trained on latent representation; models p(z; θ_e)
-3. **Joint Training**: AE reconstruction loss + EBM likelihood loss + KL regularization
+1. **자기 부호기**: 차원 높은 관측을 차원 낮은 숨은 공간으로 눌러 담는다
+2. **에너지 바탕 모델**: 숨은 나타냄으로 익히며 p(z; θ_e)을 나타낸다
+3. **함께 익히기**: 자기 부호기 되짓기 손실 + 에너지 바탕 모델 가능도 손실 + 쿨백-라이블러 규칙 세우기
 
-### Joint Loss Function
+### 함께 쓰는 손실 함수
 
 $$\mathcal{L} = \|x - \text{AE}_{\text{dec}}(\text{AE}_{\text{enc}}(x))\|^2 + \lambda_1 (-\log p(z; \theta_e)) + \lambda_2 \text{KL}(q_\phi(z|x) \| p(z; \theta_e))$$
 
-### Benefits
+### 좋은 점
 
-- **Scalability**: AE reduces dimensionality before EBM training (avoids curse of dimensionality)
-- **Efficiency**: AE provides fast reconstruction; EBM provides density modeling
-- **Regularization**: EBM density acts as prior on AE latent space
-- **Generation**: Sample from EBM in latent space; decode via AE
+- **키울 수 있음**: 자기 부호기가 에너지 바탕 모델 익히기 전에 차원을 줄인다(차원의 저주를 피한다)
+- **효율**: 자기 부호기가 빠른 되짓기를 주고 에너지 바탕 모델이 밀도 나타내기를 준다
+- **규칙 세우기**: 에너지 바탕 모델의 밀도가 자기 부호기 숨은 공간의 사전 분포 노릇을 한다
+- **만들어 내기**: 숨은 공간에서 에너지 바탕 모델로 뽑고 자기 부호기로 푼다
 
-### Application: Financial Data
+### 쓰임새: 금융 자료
 
-For high-dimensional market microstructure data:
+차원 높은 시장 미시 얼개 자료에서:
 
-1. **Train AE**: Compress 100+ order book features to 10-20 latent dimensions
-2. **Train EBM**: Learn density of latent representation
-3. **Hybrid Generation**: Sample from EBM; decode to synthetic order books
-4. **Anomaly Detection**: High latent energy indicates unusual microstructure
+1. **자기 부호기 익히기**: 호가창 특징 100개 넘는 것을 숨은 차원 10~20개로 눌러 담는다
+2. **에너지 바탕 모델 익히기**: 숨은 나타냄의 밀도를 배운다
+3. **뒤섞인 만들어 내기**: 에너지 바탕 모델에서 뽑아 만든 호가창으로 푼다
+4. **이상 찾기**: 숨은 에너지가 높으면 미시 얼개가 예사롭지 않음을 가리킨다
 
-## EBM + VAE Cooperation
+## 에너지 바탕 모델 + 변분 자기 부호기의 함께 하기
 
-### Cooperative Architecture
+### 함께 하는 얼개
 
-1. **VAE**: Provides probabilistic latent space with tractable p(z)
-2. **EBM**: Refines latent density; models p(z; θ_e) to capture non-Gaussian aspects
-3. **Shared Decoder**: Both use same decoder; compete/cooperate on latent representation
+1. **변분 자기 부호기**: 다룰 만한 p(z)을 가진 확률 숨은 공간을 준다
+2. **에너지 바탕 모델**: 숨은 밀도를 다듬어 정규가 아닌 면을 담도록 p(z; θ_e)을 나타낸다
+3. **함께 쓰는 풀개**: 둘이 같은 풀개를 쓰며 숨은 나타냄을 두고 겨루거나 함께한다
 
-### Joint Training Objective
+### 함께 익히기 목표
 
 $$\mathcal{L} = \mathbb{E}_{q_\phi}[\log p_\psi(x|z)] - \beta \text{KL}(q_\phi(z|x) \| p(z))$$
 
 $$+ \lambda_1 \log p_{\text{EBM}}(z; \theta_e) + \lambda_2 \text{correlation\_regularization}$$
 
-### Benefits
+### 좋은 점
 
-- **Flexible Latent Density**: VAE provides baseline; EBM refines for non-Gaussianity
-- **Stable Training**: VAE provides stable gradient flow; EBM focuses on tail behavior
-- **Improved Sampling**: Combine fast VAE sampling with EBM refinement
-- **Better Likelihood**: Joint model achieves higher likelihood than individual components
+- **너그러운 숨은 밀도**: 변분 자기 부호기가 바탕선을 주고 에너지 바탕 모델이 정규가 아님을 다듬는다
+- **안정된 익히기**: 변분 자기 부호기가 안정된 기울기 흐름을 주고 에너지 바탕 모델이 꼬리 움직임에 집중한다
+- **나아진 뽑기**: 빠른 변분 자기 부호기 뽑기와 에너지 바탕 모델의 다듬기를 합친다
+- **더 나은 가능도**: 합친 모델이 낱낱의 조각보다 높은 가능도를 이룬다
 
-### Information Flow
+### 정보의 흐름
 
-- **VAE → EBM**: VAE learns efficient latent representation; EBM models refined density
-- **EBM → VAE**: EBM gradients flow back to improve VAE latent space
-- **Mutual Benefit**: Neither component dominates; both contribute to joint objective
+- **변분 자기 부호기 → 에너지 바탕 모델**: 변분 자기 부호기가 효율 좋은 숨은 나타냄을 배우고 에너지 바탕 모델이 다듬은 밀도를 나타낸다
+- **에너지 바탕 모델 → 변분 자기 부호기**: 에너지 바탕 모델의 기울기가 되돌아 흘러 변분 자기 부호기의 숨은 공간을 낫게 한다
+- **서로 이로움**: 어느 조각도 홀로 앞서지 않고 둘 다 합친 목표에 보탠다
 
-## EBM + GAN Cooperation
+## 에너지 바탕 모델 + 맞겨루기 만들개의 함께 하기
 
-### Adversarial Cooperation
+### 맞겨루며 함께 하기
 
-Traditional setup: Discriminator (D) learns p(real vs generated). Cooperative setup:
+여느 얼개: 가름개(D)가 실제와 만들어 낸 것의 확률을 배운다. 함께 하는 얼개:
 
-1. **Generator (G)**: Produces samples
-2. **EBM**: Models p_data; provides density estimation
-3. **Discriminator**: Assists both G and EBM through adversarial training
+1. **만들개(G)**: 표본을 만든다
+2. **에너지 바탕 모델**: p_data을 나타내고 밀도 어림을 준다
+3. **가름개**: 맞겨루기 익히기로 만들개와 에너지 바탕 모델을 모두 돕는다
 
-### Joint Training
+### 함께 익히기
 
 $$\mathcal{L}_G = -\mathbb{E}_{z \sim p_z}[\log p(E(G(z)))]$$
 
@@ -134,109 +132,152 @@ $$\mathcal{L}_D = -\mathbb{E}_{x \sim p_{\text{data}}}[\log p(E(x))] - \mathbb{E
 
 $$\mathcal{L}_E = \mathcal{L}_{\text{CD}}(E)$$
 
-where E is EBM energy, D is discriminator.
+여기서 E은 에너지 바탕 모델의 에너지이고 D은 가름개이다.
 
-### Benefits
+### 좋은 점
 
-- **Implicit and Explicit Models**: GAN provides implicit generation; EBM provides explicit density
-- **Stabilized Training**: EBM provides likelihood signal to guide generation
-- **Improved Diversity**: EBM prevents mode collapse through density modeling
-- **Multiple Objectives**: GAN loss and likelihood loss prevent overfit to single objective
+- **은근한 모델과 드러난 모델**: 맞겨루기 만들개가 은근한 만들어 내기를, 에너지 바탕 모델이 드러난 밀도를 준다
+- **안정된 익히기**: 에너지 바탕 모델이 만들어 내기를 이끄는 가능도 신호를 준다
+- **나아진 다양함**: 에너지 바탕 모델이 밀도 나타내기로 봉우리 무너짐을 막는다
+- **여러 목표**: 맞겨루기 손실과 가능도 손실이 목표 하나에 지나치게 맞는 것을 막는다
 
-## EBM + Discriminative Model Cooperation
+## 에너지 바탕 모델 + 가름 모델의 함께 하기
 
-### Decision Boundary Focusing
+### 가름 경계에 집중하기
 
-Train discriminative classifier (e.g., neural network) to distinguish normal vs anomalous:
+보통과 이상을 가르도록 가름개(보기로 신경망)를 익힌다:
 
-1. **Discriminative Model**: Learns p(y|x) via supervised learning on labeled data
-2. **EBM**: Models p(x | y=normal) unsupervised on normal data
-3. **Cooperation**: EBM focuses on regions near decision boundary; discriminator provides labels
+1. **가름 모델**: 이름표 붙은 자료로 스승 있는 배움을 하여 p(y|x)을 배운다
+2. **에너지 바탕 모델**: 보통 자료로 스승 없이 p(x | y=normal)을 나타낸다
+3. **함께 하기**: 에너지 바탕 모델이 가름 경계 가까운 자리에 집중하고 가름개가 이름표를 준다
 
-### Joint Objective
+### 함께 쓰는 목표
 
 $$\mathcal{L} = -\sum_n \log p(y_n | x_n; \theta_d) + \lambda_1 \log p(x_n | y_n=\text{normal}; \theta_e)$$
 
-where first term is supervised classification loss; second term regularizes with EBM density.
+여기서 첫 항은 스승 있는 가름 손실이고 둘째 항은 에너지 바탕 모델의 밀도로 규칙을 세운다.
 
-### Benefits
+### 좋은 점
 
-- **Semi-Supervised Learning**: Leverage both labeled (discriminative) and unlabeled (EBM) data
-- **Interpretability**: Discriminative decision boundary + EBM density reveals normal manifold
-- **Robustness**: Classification regularized by density model; misclassified points have high EBM energy
-- **Few-Shot Learning**: EBM density enables reliable predictions with few labels
+- **반쯤 스승 있는 배움**: 이름표 붙은 자료(가름)와 이름표 없는 자료(에너지 바탕 모델)를 모두 쓴다
+- **풀이하기 좋음**: 가름 경계와 에너지 바탕 모델의 밀도가 함께 보통의 다양체를 드러낸다
+- **튼튼함**: 밀도 모델이 가름에 규칙을 세우며 잘못 가른 점은 에너지 바탕 모델의 에너지가 높다
+- **적은 보기 배움**: 에너지 바탕 모델의 밀도가 이름표가 적어도 믿을 만한 헤아림을 가능하게 한다
 
-## Practical Cooperative Implementations
+## 실제의 함께 하기 짜기
 
-### Training Procedure
+### 학습 절차
 
-1. **Initialize Models**: Train individual models separately (faster convergence)
-2. **Joint Fine-Tuning**: Lock component weights; train coupling loss
-3. **Simultaneous Training**: Enable all parameters; continue joint training
-4. **Convergence Check**: Monitor separate and joint objectives; stop when both plateau
+1. **모델 첫자리매김**: 낱낱의 모델을 따로 익힌다(더 빨리 모인다)
+2. **함께 미세 조정**: 조각의 무게를 잠그고 이음 손실을 익힌다
+3. **한꺼번에 익히기**: 모든 매개변수를 풀고 함께 익히기를 이어 간다
+4. **모임 살피기**: 따로 목표와 함께 목표를 살피고 둘 다 평평해지면 멈춘다
 
-### Hyperparameter Coordination
+### 윗매개변수 맞추기
 
-Balance component losses through weighting:
+무게를 주어 조각별 손실의 균형을 잡는다:
 
 $$\mathcal{L}_{\text{total}} = w_1 \mathcal{L}_1 + w_2 \mathcal{L}_2 + w_3 \mathcal{L}_3$$
 
-Typical weights:
-- $w_1 = 1.0$ (primary loss)
-- $w_2 = 0.5-1.0$ (auxiliary loss)
-- $w_3 = 0.1-0.5$ (interaction loss)
+흔한 무게:
 
-### Computational Efficiency
+- $w_1 = 1.0$(으뜸 손실)
+- $w_2 = 0.5-1.0$(도우미 손실)
+- $w_3 = 0.1-0.5$(주고받음 손실)
 
-Cooperative systems balance computational cost:
+### 계산 효율
 
-| Component | Time | Output |
+함께 하는 계는 셈 비용의 균형을 잡는다:
+
+| 조각 | 시간 | 내놓기 |
 |-----------|------|--------|
-| AE Encode | Fast | Latent z |
-| EBM Forward | Slow | Energy E(z) |
-| AE Decode | Fast | Reconstruction |
+| 자기 부호기 부호화 | 빠름 | 숨은 z |
+| 에너지 바탕 모델 앞먹임 | 느림 | 에너지 E(z) |
+| 자기 부호기 풀기 | 빠름 | 되짓기 |
 
-Total: ~2x single model (dominated by EBM sampling).
+온 비용: 모델 하나의 약 2배(에너지 바탕 모델 뽑기가 가장 크다).
 
-## Hybrid Model Evaluation
+## 뒤섞인 모델 따지기
 
-### Unified Evaluation Metrics
+### 아우르는 따짐 잣대
 
-Compare cooperative system to individual components:
+함께 하는 계를 낱낱의 조각과 견준다:
 
-1. **Likelihood on Test Data**: EBM log-likelihood
-2. **Reconstruction Error**: AE reconstruction MSE
-3. **Classification Accuracy**: Anomaly detection performance
-4. **Computational Cost**: Wallclock time for inference
+1. **시험 자료의 가능도**: 에너지 바탕 모델의 로그 가능도
+2. **되짓기 어긋남**: 자기 부호기 되짓기의 평균 제곱 어긋남
+3. **가름 정확도**: 이상 찾기 성능
+4. **셈 비용**: 추론에 걸린 실제 시간
 
-### Component Contribution Analysis
+### 조각별 보탬 살피기
 
-Ablate individual components to measure contribution:
+조각을 하나씩 떼어 내어 보탬을 잰다:
 
 $$\Delta_{\text{performance}} = \text{Performance}_{\text{full}} - \text{Performance}_{\text{without component}}$$
 
-Positive Δ indicates component improves performance.
+Δ이 양수이면 그 조각이 성능을 낫게 한다는 뜻이다.
 
-## Applications to Finance
+## 금융에서의 쓰임새
 
-### Cooperative Anomaly Detection System
+### 함께 하는 이상 찾기 계
 
-Combine:
-1. **AE**: Compress market microstructure to latent factors
-2. **EBM**: Model normal latent distribution
-3. **LSTM**: Track temporal dependencies
+아우르기:
 
-Anomaly = high EBM energy OR high LSTM error OR AE reconstruction error.
+1. **자기 부호기**: 시장 미시 얼개를 숨은 요인으로 눌러 담는다
+2. **에너지 바탕 모델**: 보통의 숨은 분포를 나타낸다
+3. **장단기 기억망**: 때에 따른 매임을 좇는다
 
-### Cooperative Risk Forecasting
+이상 = 에너지 바탕 모델의 에너지가 높거나, 장단기 기억망의 어긋남이 크거나, 자기 부호기의 되짓기 어긋남이 큰 것.
 
-Combine:
-1. **VAE**: Learn return distribution
-2. **EBM**: Refine tail behavior
-3. **GARCH**: Model conditional volatility
+### 함께 하는 위험 내다보기
 
-Predictive density: $p(r_{t+1} | r_t) = w_1 p_{\text{VAE}} + w_2 p_{\text{EBM}} + w_3 p_{\text{GARCH}}$
+아우르기:
 
-!!! note "Cooperative Design Principles"
-    Successful cooperative systems pair models that excel at different aspects: one efficient but approximate (VAE, GAN); one principled but expensive (EBM). Coupling losses encourage coherent representations. Start with sequential training; upgrade to joint training if needed.
+1. **변분 자기 부호기**: 수익률 분포를 배운다
+2. **에너지 바탕 모델**: 꼬리 움직임을 다듬는다
+3. **GARCH**: 조건 변동성을 나타낸다
+
+헤아림 밀도: $p(r_{t+1} | r_t) = w_1 p_{\text{VAE}} + w_2 p_{\text{EBM}} + w_3 p_{\text{GARCH}}$
+
+!!! note "함께 하기 짜기 원리"
+    성공한 함께 하기 계는 서로 다른 면에서 뛰어난 모델을 짝짓는다. 하나는 효율 좋지만 어림이고(변분 자기 부호기, 맞겨루기 만들개) 하나는 원리 있지만 비싸다(에너지 바탕 모델). 이음 손실이 어울리는 나타냄을 이끈다. 차례대로 익히기로 시작하고 필요하면 함께 익히기로 올린다.
+
+## 연습문제
+
+**연습문제 1.**
+함께 쓰는 부호기 매개변수 $\phi$에 대한 합친 손실 $\mathcal{L}_{\text{joint}} = \mathcal{L}_{\text{EBM}} + \mathcal{L}_{\text{AE}} + \lambda \mathcal{L}_{\text{interaction}}$의 기울기를 이끌어 내라. 각 항이 부호기 고침에 어떻게 보태는지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    $z = f_{\text{enc}}(x; \phi)$이라 하자. $\phi$에 대한 기울기는 다음과 같다:
+
+    $$\nabla_\phi \mathcal{L}_{\text{joint}} = \nabla_\phi \mathcal{L}_{\text{AE}} + \nabla_\phi \mathcal{L}_{\text{EBM}} + \lambda \nabla_\phi \mathcal{L}_{\text{interaction}}$$
+
+    자기 부호기 항 $\nabla_\phi \|x - \text{dec}(f_{\text{enc}}(x; \phi))\|^2$은 부호기를 되지을 수 있는 나타냄 쪽으로 민다. 에너지 바탕 모델 항 $\nabla_\phi (-\log p_{\text{EBM}}(z; \theta_e)) = \frac{1}{T}\nabla_z E(z; \theta_e) \cdot \nabla_\phi z$은 $z$을 에너지가 낮은(밀도가 높은) 자리로 민다. 주고받음 항 $\nabla_\phi \text{KL}(p_{\text{EBM}} \| p_{\text{aux}})$은 두 모델이 뜻을 같이하는 나타냄을 만들도록 부호기를 이끈다. 부호기는 되짓기 품질, 밀도 나타내기, 모델 사이 어울림의 균형을 잡아야 한다. $\square$
+
+---
+
+**연습문제 2.**
+만든 자료 묶음에서 차례대로 익히기(자기 부호기를 먼저 익히고 얼린 숨은 공간에서 에너지 바탕 모델을 익히기)와 함께 익히기를 견주어라. 어떤 조건에서 함께 익히기가 크게 이로운가?
+
+??? success "연습문제 2 풀이"
+    차례대로 익히기는 더 단순하고 흔들림을 피하지만, 자기 부호기의 숨은 공간이 되짓기만을 위해 가장 좋게 되어 에너지 바탕 모델의 밀도 나타내기에 알맞은 나타냄이 되지 않을 수 있다. 함께 익히기는 자기 부호기가 숨은 공간을 "에너지 바탕 모델에 친한" 쪽으로도 맞추게 한다. 함께 익히기의 이로움은 다음일 때 가장 크다. (1) 되짓기 목표만으로는 에너지 바탕 모델이 나타내기 어려운 복잡하고 봉우리 여럿인 기하를 가진 숨은 공간이 생길 때, (2) 숨은 공간에 비쳐야 할 강한 제약이 있을 때, (3) 뒤따르는 일이 되짓기가 아니라 정확한 밀도 어림에 매일 때. 자기 부호기가 이미 잘 짜인(보기로 대략 정규인) 숨은 공간을 만들 때는 함께 익히기의 이로움이 작다. $\square$
+
+---
+
+**연습문제 3.**
+금융 때 차례에서 이상을 찾는 함께 하는 에너지 바탕 모델 + 장단기 기억망 계를 짜라. 얼개, 익히기 절차, 두 모델이 마지막 이상 점수에 어떻게 보태는지 밝혀라.
+
+??? success "연습문제 3 풀이"
+    얼개: 장단기 기억망이 차례로 이어진 수익률 $r_{t-L}, \ldots, r_t$을 다루어 헤아림 $\hat{r}_{t+1}$과 숨은 상태 $h_t$을 내놓는다. 에너지 바탕 모델은 장단기 기억망의 숨은 상태 $h_t$을 들임으로 받아 $p(h_t; \theta_e)$을 나타낸다. 익히기: 먼저 평균 제곱 어긋남 손실로 수익률 헤아리기에 장단기 기억망을 익힌다. 그다음 보통 시기 자료의 장단기 기억망 숨은 상태로 맞댐 벌어짐을 써서 에너지 바탕 모델을 익힌다. 끝으로 $\mathcal{L} = \mathcal{L}_{\text{LSTM}} + \lambda(-\log p_{\text{EBM}}(h_t))$으로 함께 미세 조정한다. 이상 점수: $A_t = \alpha \cdot E(h_t; \theta_e) + (1 - \alpha) \cdot |r_{t+1} - \hat{r}_{t+1}|$. 장단기 기억망은 때에 따른 이상(예사롭지 않은 차례)을 담고 에너지 바탕 모델은 분포의 이상(살펴보지 않은 자리의 숨은 상태)을 담는다. 둘을 합치면 두 갈래를 모두 찾는다. $\square$
+
+---
+
+**연습문제 4.**
+정규 분포에서 주고받음 손실 $\text{KL}(p_{\text{EBM}} \| p_{\text{aux}})$이 닫힌 꼴로 적힘을 밝혀라. 평균과 함께 흩어짐이 다른 다변량 정규 분포 둘일 때 이를 셈하라.
+
+??? success "연습문제 4 풀이"
+    $p = \mathcal{N}(\mu_1, \Sigma_1)$이고 $q = \mathcal{N}(\mu_2, \Sigma_2)$이라 하자. 쿨백-라이블러 벌어짐은 다음과 같다:
+
+    $$\text{KL}(p \| q) = \frac{1}{2}\left[\log\frac{|\Sigma_2|}{|\Sigma_1|} - d + \text{tr}(\Sigma_2^{-1}\Sigma_1) + (\mu_2 - \mu_1)^T \Sigma_2^{-1} (\mu_2 - \mu_1)\right]$$
+
+    여기서 $d$은 차원이다. 이는 다룰 만하고 미분할 수 있어 두 모델이 정규 밀도 어림을 낼 때 함께 익히기의 주고받음 손실로 알맞다. 에너지 바탕 모델과 도우미 모델이 완전히 뜻을 같이하면($\mu_1 = \mu_2$, $\Sigma_1 = \Sigma_2$) 쿨백-라이블러 벌어짐은 0이다. $\square$
 

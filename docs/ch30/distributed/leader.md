@@ -1,111 +1,111 @@
-# Leader Election
+# 우두머리 뽑기
 
-Many distributed algorithms require a single coordinator: a process that
-initiates BFS, collects results, or breaks symmetry.  Leader election
-designates exactly one process as the **leader** without centralized
-control.  It is a fundamental building block in distributed computing, and
-its message complexity depends heavily on the network topology.
+많은 나눠 하는 알고리즘은 조율자 하나를 필요로 한다. 너비 우선 찾기를 시작하고
+결과를 모으거나 맞섬을 깨는 일꾼이다. 우두머리 뽑기는 가운데 다스림 없이
+꼭 한 일꾼을 **우두머리**로 정한다. 나눠 하는 셈의 근본 벽돌이며
+그 쪽지 복잡도는 그물 위상에 크게
+매인다.
 
-## Problem Definition
+## 문제의 정의
 
-Given $n$ processes, each with a unique identifier, the goal is to reach a
-state where exactly one process outputs "leader" and all others output
-"non-leader."
+저마다 하나뿐인 번호를 가진 일꾼 $n$개가 주어질 때, 목표는 꼭 한 일꾼이
+"우두머리"를 내놓고 나머지 모두가 "우두머리 아님"을 내놓는 상태에
+이르는 것이다.
 
-**Requirements:**
+**요구:**
 
-1. **Safety.**  At most one process is elected leader.
-2. **Liveness.**  Eventually, exactly one process is elected.
-3. **Symmetry breaking.**  Processes use their unique IDs to break
-   symmetry (anonymous leader election is impossible in many models).
+1. **안전함.** 많아야 한 일꾼이 우두머리로 뽑힌다.
+2. **살아 있음.** 끝내 꼭 한 일꾼이 뽑힌다.
+3. **맞섬 깨기.** 일꾼은 하나뿐인 번호로 맞섬을 깬다(많은 모형에서
+   이름 없는 우두머리 뽑기는 불가능하다).
 
-## Ring Topology
+## 고리 위상
 
-### LCR Algorithm (Le Lann, Chang, Roberts)
+### LCR 알고리즘(Le Lann, Chang, Roberts)
 
-The simplest leader election algorithm operates on a **unidirectional ring**
-of $n$ processes.
+가장 단순한 우두머리 뽑기 알고리즘은 일꾼 $n$개의 **한 방향 고리**에서
+돈다.
 
-1. Each process sends its ID clockwise.
-2. When a process receives an ID:
-    - If the received ID is **greater** than its own, forward it.
-    - If the received ID **equals** its own, declare itself leader.
-    - If the received ID is **smaller**, discard it.
+1. 일꾼마다 자기 번호를 시계 방향으로 보낸다.
+2. 일꾼이 번호를 받으면:
+    - 받은 번호가 자기 것보다 **크면** 넘긴다.
+    - 받은 번호가 자기 것과 **같으면** 스스로 우두머리라 밝힌다.
+    - 받은 번호가 **작으면** 버린다.
 
-The process with the maximum ID receives its own message after $n$ hops
-and becomes the leader.
+번호가 가장 큰 일꾼이 $n$번 건넌 뒤 자기 쪽지를 받아
+우두머리가 된다.
 
-**Complexity:**
+**복잡도:**
 
-| Metric | Bound |
+| 지표 | 한계 |
 |---|---|
-| Rounds | $n$ |
-| Messages (worst case) | $O(n^2)$ |
-| Messages (best case) | $O(n)$ |
+| 바퀴 | $n$ |
+| 쪽지(가장 나쁜 경우) | $O(n^2)$ |
+| 쪽지(가장 좋은 경우) | $O(n)$ |
 
-The worst case occurs when IDs are arranged in decreasing clockwise order:
-each of the $n$ messages travels up to $n$ hops.
+가장 나쁜 경우는 번호가 시계 방향 내림차순으로 놓일 때이다.
+쪽지 $n$개가 저마다 $n$번까지 건넌다.
 
-### Hirschberg-Sinclair Algorithm
+### 허슈버그-싱클레어 알고리즘
 
-This algorithm improves LCR to $O(n \log n)$ messages on a
-**bidirectional ring** by using a doubling technique.
+이 알고리즘은 두 배 늘리기 재주로 **양 방향 고리**에서 LCR을 쪽지
+$O(n \log n)$개로 좋게 한다.
 
-**Phase $i$:** Each surviving candidate sends its ID both clockwise and
-counterclockwise for $2^i$ hops.
+**마당 $i$:** 살아남은 후보마다 자기 번호를 시계와 반시계 양쪽으로
+$2^i$번 건너도록 보낸다.
 
-- If the ID reaches $2^i$ hops without encountering a larger ID, it
-  "bounces back."
-- If the candidate receives its own bounce-back from both directions, it
-  survives to phase $i + 1$.
-- Otherwise, it becomes a relay (non-candidate).
+- 더 큰 번호를 만나지 않고 $2^i$번 건너면 그 번호는
+  "되튄다."
+- 후보가 양쪽에서 자기 되튐을 받으면 마당 $i + 1$까지
+  살아남는다.
+- 그렇지 않으면 넘김이(후보 아님)가 된다.
 
-In each phase, at most half the candidates survive (any two surviving
-candidates must be at least $2^i$ apart), so the number of phases is
-$O(\log n)$.
+마당마다 많아야 후보의 절반이 살아남으므로(살아남은 두 후보는 적어도
+$2^i$만큼 떨어져 있어야 한다) 마당 수는
+$O(\log n)$이다.
 
-**Complexity:**
+**복잡도:**
 
-| Metric | Bound |
+| 지표 | 한계 |
 |---|---|
-| Phases | $O(\log n)$ |
-| Messages per phase | $O(n)$ |
-| Total messages | $O(n \log n)$ |
+| 마당 | $O(\log n)$ |
+| 마당마다 쪽지 | $O(n)$ |
+| 온 쪽지 | $O(n \log n)$ |
 
-!!! note "Lower Bound"
-    Any comparison-based leader election algorithm on a ring requires
-    $\Omega(n \log n)$ messages, so Hirschberg-Sinclair is asymptotically
-    optimal.
+!!! note "아래 가둠"
+    고리 위의 어떤 견줌 바탕 우두머리 뽑기 알고리즘도 쪽지 $\Omega(n \log n)$개가
+    들므로 허슈버그-싱클레어는 점근으로 가장
+    좋다.
 
-## General Network Topology
+## 일반 그물 위상
 
-### Flood-Max Algorithm
+### 물 대기 최대 알고리즘
 
-On an arbitrary connected graph with diameter $D$:
+지름이 $D$인 아무 이어진 그래프에서:
 
-1. Each process floods its ID to all neighbors for $D$ rounds.
-2. After $D$ rounds, each process knows the maximum ID in the network.
-3. The process with that ID declares itself leader.
+1. 일꾼마다 $D$바퀴 동안 모든 이웃에 자기 번호를 흘려보낸다.
+2. $D$바퀴 뒤에 일꾼마다 그물의 가장 큰 번호를 안다.
+3. 그 번호를 가진 일꾼이 스스로 우두머리라 밝힌다.
 
-**Complexity:** $O(D)$ rounds, $O(D \cdot m)$ messages where $m = |E|$.
+**복잡도:** $m = |E|$일 때 $O(D)$바퀴, 쪽지 $O(D \cdot m)$개.
 
-## Simulation
+## 흉내 내기
 
 ```python
 """
-Simulation of LCR leader election on a unidirectional ring.
+한 방향 고리에서의 LCR 우두머리 뽑기 흉내내기.
 
-Time : O(n) rounds
-Messages: O(n^2) worst case
+때 : O(n)바퀴
+쪽지: 가장 나쁜 경우 O(n^2)
 """
 
 
-# === LCR Leader Election ===
+# === LCR 우두머리 뽑기 ===
 def lcr_leader_election(ids: list[int]) -> int:
-    """Simulate LCR on a ring with the given process IDs. Return leader ID."""
+    """주어진 일꾼 번호로 고리에서 LCR을 흉내 낸다. 우두머리 번호를 돌려준다."""
     n = len(ids)
-    # Each process has an outgoing message buffer
-    messages = list(ids)  # Initially, each sends its own ID
+    # 일꾼마다 보낼 쪽지 버퍼를 가진다
+    messages = list(ids)  # 처음에 저마다 자기 번호를 보낸다
     leader = -1
 
     for _ in range(n):
@@ -115,18 +115,18 @@ def lcr_leader_election(ids: list[int]) -> int:
             next_proc = (i + 1) % n
 
             if msg > ids[next_proc]:
-                new_messages[next_proc] = msg  # forward
+                new_messages[next_proc] = msg  # 앞으로
             elif msg == ids[next_proc]:
-                leader = msg  # found leader
-            # else: discard (smaller ID)
+                leader = msg  # 우두머리를 찾았다
+            # 아니면 버린다(번호가 작음)
         messages = new_messages
 
     return leader
 
 
-# === Hirschberg-Sinclair Simulation ===
+# === 허슈버그-싱클레어 흉내내기 ===
 def hs_leader_election(ids: list[int]) -> int:
-    """Simulate Hirschberg-Sinclair on a bidirectional ring."""
+    """양 방향 고리에서 허슈버그-싱클레어를 흉내 낸다."""
     n = len(ids)
     active = [True] * n
     phase = 0
@@ -137,7 +137,7 @@ def hs_leader_election(ids: list[int]) -> int:
         for i in range(n):
             if not active[i]:
                 continue
-            # Check if this candidate's ID is max within distance dist
+            # 이 후보의 번호가 거리 dist 안에서 최대인지 살핀다
             is_max = True
             for d in range(1, min(dist + 1, n)):
                 left = (i - d) % n
@@ -160,7 +160,7 @@ def hs_leader_election(ids: list[int]) -> int:
     return -1
 
 
-# === Example ===
+# === 보기 ===
 if __name__ == "__main__":
     process_ids = [5, 3, 8, 1, 7, 2]
     print(f"Process IDs: {process_ids}")
@@ -168,16 +168,49 @@ if __name__ == "__main__":
     print(f"H-S leader: {hs_leader_election(process_ids)}")
 ```
 
-## Comparison
+## 비교
 
-| Algorithm | Topology | Messages | Rounds |
+| 알고리즘 | 위상 | 쪽지 | 바퀴 |
 |---|---|---|---|
-| LCR | Unidirectional ring | $O(n^2)$ | $n$ |
-| Hirschberg-Sinclair | Bidirectional ring | $O(n \log n)$ | $O(\log n)$ |
-| Flood-Max | General graph | $O(D \cdot m)$ | $D$ |
+| LCR | 한 방향 고리 | $O(n^2)$ | $n$ |
+| 허슈버그-싱클레어 | 양 방향 고리 | $O(n \log n)$ | $O(\log n)$ |
+| 물 대기 최대 | 일반 그래프 | $O(D \cdot m)$ | $D$ |
 
-## Reference
+## 참고 문헌
 
 - Lynch, N. *Distributed Algorithms*. Morgan Kaufmann, 1996, Chapters 3--4.
 - Peleg, D. *Distributed Computing: A Locality-Sensitive Approach*.
   SIAM, 2000.
+
+
+## 연습문제
+
+**연습문제 1.**
+나눠 하는 셈의 우두머리 뽑기 문제를 뜻매김하여라.
+
+??? success "연습문제 1 풀이"
+    우두머리 뽑기: 그물로 이어진 일꾼 $n$개 가운데 꼭 하나가 우두머리로 정해져야 하고 모든 일꾼이 누구인지 알아야 한다. 요구: (1) 꼭 한 일꾼이 우두머리가 된다, (2) 모든 일꾼이 우두머리가 누구인지 안다, (3) 알고리즘이 끝난다. 이는 근본이 되는 원소다. 우두머리는 뜻 모으기를 조율하고 밑감을 다루며 널리 알리기를 시작한다. 우두머리 뽑기는 이름 없는 그물에서 맞섬 깨기와 같다.
+
+---
+
+**연습문제 2.**
+고리 위 우두머리 뽑기의 창-로버츠 알고리즘을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    일꾼들이 한 방향 고리에 놓이고 저마다 하나뿐인 번호를 가진다. 일꾼마다 자기 번호를 시계 방향으로 보낸다. 번호를 받으면 자기 것보다 크면 넘기고, 작으면 버리고, 같으면 스스로 우두머리라 밝힌다. 번호가 가장 큰 일꾼의 쪽지가 고리를 한 바퀴 돈다. 쪽지 복잡도: 가장 나쁜 경우 $O(n^2)$(쪽지 $n$개가 저마다 $n$번까지 건널 수 있다), 평균은 $O(n \log n)$이다. 뽑힌 우두머리는 번호가 가장 큰 일꾼이다.
+
+---
+
+**연습문제 3.**
+허슈버그-싱클레어 알고리즘은 무엇이며 창-로버츠보다 어떻게 나은가?
+
+??? success "연습문제 3 풀이"
+    허슈버그-싱클레어는 지수로 커지는 이웃 자리에서 양 방향으로 주고받는다. 마당 $k$에서 후보마다 자기 번호를 양쪽으로 거리 $2^k$까지 보낸다. 일꾼은 번호가 자기 것보다 클 때만 쪽지를 넘긴다. 쪽지가 보낸 이에게 돌아오면($2^{k+1}$번의 견줌을 이겨 내면) 보낸 이는 마당 $k+1$으로 나아간다. $O(\log n)$마당 뒤에는 우두머리만 남는다. 쪽지 복잡도: 마당마다 쪽지 $O(n)$개이고 마당이 $O(\log n)$개이므로 $O(n \log n)$이다.
+
+---
+
+**연습문제 4.**
+우두머리 뽑기는 나눠 하는 깊은 배움의 잡 일꾼 얼개에 어떻게 쓰이는가?
+
+??? success "연습문제 4 풀이"
+    잡 일꾼 얼개에서 우두머리(조율자)가 온 자리 상태를 다룬다. 모델 잡, 일꾼 맡기기, 맞추기가 그것이다. 우두머리 뽑기는 고장을 견디게 한다. 조율자가 고장 나면 예비가 우두머리 뽑기로 넘겨받는다(보기로 ZooKeeper의 덧없는 마디를 쓴다). 늘었다 줄었다 하는 익히기에서는 일꾼이 들어오거나 나갈 때 우두머리 뽑기로 새 조율자를 고른다. 우두머리는 되짚기 표시, 배움 빠르기 일정, 기울기 눌러 담기 셈속도 조율한다.

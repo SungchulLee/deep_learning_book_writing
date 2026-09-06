@@ -152,3 +152,43 @@ These weaknesses motivate alternatives like [LFU](lfu.md) (frequency-based) and 
 
 - Tanenbaum, A. S. *Modern Operating Systems*, Chapter on Memory Management.
 - LeetCode Problem 146: LRU Cache.
+
+## Exercises
+
+**Exercise 1.**
+Design an LRU cache that supports `get(key)` and `put(key, value)` in $O(1)$ time. Describe the data structures and how they interact.
+
+??? success "Solution to Exercise 1"
+    Use a **hash map** mapping keys to nodes in a **doubly-linked list**. The list maintains access order: the most recently used item is at the head, and the least recently used is at the tail. `get(key)`: look up the node in the hash map ($O(1)$), move it to the head of the list ($O(1)$ pointer operations), return the value. `put(key, value)`: if key exists, update its value and move to head. If key does not exist, create a new node at the head, insert into the hash map. If capacity is exceeded, remove the tail node from the list and delete its entry from the hash map. All operations are $O(1)$. $\square$
+
+---
+
+**Exercise 2.**
+Trace through an LRU cache of capacity 2 on the sequence: put(1,A), put(2,B), get(1), put(3,C). Show the cache state after each operation.
+
+??? success "Solution to Exercise 2"
+    After put(1,A): list = [1:A], map = {1}. After put(2,B): list = [2:B, 1:A], map = {1, 2}. After get(1): move 1 to head; list = [1:A, 2:B], map = {1, 2}, returns A. After put(3,C): cache full, evict tail (2:B); list = [3:C, 1:A], map = {1, 3}. Key 2 is evicted because it was the least recently used -- even though it was inserted more recently than key 1, key 1 was accessed via get after key 2's insertion. $\square$
+
+---
+
+**Exercise 3.**
+Prove that LRU achieves the optimal hit rate for any workload where the access sequence exhibits temporal locality (the probability of accessing an item decreases monotonically with time since last access).
+
+??? success "Solution to Exercise 3"
+    Under the Independent Reference Model with a monotonically decreasing reuse probability, an item accessed $t$ steps ago has probability $p(t)$ of being accessed next, where $p$ is decreasing. A cache of size $k$ should store the $k$ items with the highest probability of near-term access. Since $p$ is decreasing in $t$, these are exactly the $k$ most recently accessed items -- which is precisely the set LRU maintains. Any other eviction policy would sometimes retain an item last accessed at time $t_1$ while evicting one last accessed at $t_2 < t_1$, accepting probability $p(t_1) \le p(t_2)$ instead of $p(t_2)$, yielding a weakly lower hit rate. Therefore LRU is optimal under this model. $\square$
+
+---
+
+**Exercise 4.**
+Describe a workload pattern where LRU performs poorly compared to the optimal offline algorithm (Belady's). Quantify the gap in hit rates.
+
+??? success "Solution to Exercise 4"
+    Consider a cache of size $k$ and a cyclic workload accessing items $1, 2, \ldots, k+1, 1, 2, \ldots, k+1, \ldots$ LRU always evicts the item needed soonest: when accessing item $i$, item $i - 1$ (mod $k+1$) was just accessed and item $i - k$ (mod $k+1$) is evicted, but item $i + 1$ is the next request and is guaranteed to be the one just evicted. Hit rate: $0\%$ (every access is a miss). Belady's optimal algorithm, which evicts the item accessed furthest in the future, achieves hit rate $(k-1)/(k+1)$ by keeping the next $k$ items. For $k = 99$, LRU gets 0% while optimal gets $\approx 98\%$. This pathological case shows LRU's competitive ratio is $k$ against the offline optimum. $\square$
+
+---
+
+**Exercise 5.**
+Explain how an LRU cache can be approximated without a doubly-linked list using the "clock algorithm" (also called second-chance). What is the tradeoff?
+
+??? success "Solution to Exercise 5"
+    The clock algorithm arranges cache entries in a circular buffer with a "hand" pointer. Each entry has a reference bit, set to 1 on access. On eviction: advance the hand; if the current entry's bit is 1, clear it and advance; if 0, evict that entry. This approximates LRU because frequently accessed items have their bits repeatedly set, surviving multiple passes of the hand, while inactive items are evicted. The tradeoff: the clock algorithm uses only 1 bit per entry (vs. a full linked list with pointers), making it much cheaper in memory and implementation complexity. However, it only approximates recency -- two items accessed 1 step and 100 steps ago are treated identically if both have their bit set. This coarse approximation reduces hit rates compared to true LRU, particularly on workloads with moderate temporal locality. $\square$

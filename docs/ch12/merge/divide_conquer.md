@@ -1,68 +1,68 @@
-# Merge Sort as Divide and Conquer
+# 나누어 정복하기로서의 병합 정렬
 
-Merge sort is the textbook example of the **divide-and-conquer** paradigm.  Many sorting algorithms process the input incrementally (insertion sort) or by selection (selection sort), but merge sort takes a fundamentally different approach: it splits the problem in half, solves each half recursively, and combines the solutions.  Understanding this structure is essential because the same paradigm underlies algorithms far beyond sorting -- from Strassen's matrix multiplication to the closest-pair problem.
+병합 정렬은 **나누어 정복하기** 틀의 교과서 같은 보기이다. 많은 정렬 알고리즘이 입력을 조금씩 다루거나(끼워넣기 정렬) 골라내며 다루지만(고르기 정렬), 병합 정렬은 근본부터 다르게 다가간다. 문제를 반으로 쪼개고, 반쪽마다 되돌이로 풀고, 그 해를 합친다. 이 짜임을 이해하는 것은 매우 중요한데, 슈트라센의 행렬 곱셈에서 가장 가까운 쌍 문제까지 정렬을 훌쩍 넘어선 알고리즘들이 같은 틀에 기대기 때문이다.
 
-## The Three Steps
+## 세 걸음
 
-Every divide-and-conquer algorithm follows three steps:
+나누어 정복하는 알고리즘은 모두 세 걸음을 따른다.
 
-1. **Divide**: split the input into smaller subproblems of the same type.
-2. **Conquer**: solve each subproblem recursively (or directly if small enough).
-3. **Combine**: merge the subproblem solutions into a solution for the original problem.
+1. **나누기**: 입력을 같은 종류의 더 작은 부분 문제로 쪼갠다.
+2. **정복하기**: 부분 문제마다 되돌이로 푼다(충분히 작으면 곧바로 푼다).
+3. **합치기**: 부분 문제의 해를 본디 문제의 해로 병합한다.
 
-For merge sort on an array $A[0..n-1]$:
+배열 $A[0..n-1]$에 대한 병합 정렬에서는 다음과 같다.
 
-| Step     | Merge sort action                           | Cost      |
+| 걸음 | 병합 정렬이 하는 일 | 비용 |
 |----------|---------------------------------------------|-----------|
-| Divide   | Compute $\text{mid} = \lfloor n/2 \rfloor$ | $O(1)$    |
-| Conquer  | Recursively sort $A[0..\text{mid}-1]$ and $A[\text{mid}..n-1]$ | $2T(n/2)$ |
-| Combine  | Merge the two sorted halves                 | $O(n)$    |
+| 나누기 | $\text{mid} = \lfloor n/2 \rfloor$을 셈한다 | $O(1)$ |
+| 정복하기 | $A[0..\text{mid}-1]$과 $A[\text{mid}..n-1]$을 되돌이로 정렬한다 | $2T(n/2)$ |
+| 합치기 | 정렬된 반쪽 둘을 병합한다 | $O(n)$ |
 
-The divide step is trivial (just an index computation), and the combine step is where the real work happens via the merge procedure.
+나누는 걸음은 (첨자 셈뿐이라) 시시하고, 합치는 걸음에서 병합 절차를 거쳐 진짜 일이 일어난다.
 
-## Recurrence Relation
+## 점화식
 
-The three-step structure leads directly to a recurrence for the running time $T(n)$:
+세 걸음의 짜임에서 도는 시간 $T(n)$의 점화식이 곧바로 나온다.
 
 $$
 T(n) = \begin{cases} O(1) & \text{if } n \leq 1 \\ 2T(n/2) + O(n) & \text{if } n > 1 \end{cases}
 $$
 
-This recurrence captures the fact that we make two recursive calls on problems of half the size, plus linear work to merge.
+이 점화식은 크기가 반인 문제를 두 번 되돌이로 부르고 여기에 병합하는 선형 일이 더해진다는 사실을 담는다.
 
-### Solving by the Master Theorem
+### 마스터 정리로 풀기
 
-The recurrence has the form $T(n) = aT(n/b) + f(n)$ with $a = 2$, $b = 2$, and $f(n) = O(n)$.  The critical exponent is:
+이 점화식은 $a = 2$, $b = 2$, $f(n) = O(n)$인 $T(n) = aT(n/b) + f(n)$ 꼴이다. 결정적인 지수는 다음과 같다.
 
 $$
 \log_b a = \log_2 2 = 1
 $$
 
-Since $f(n) = \Theta(n^1)$, we are in **Case 2** of the Master Theorem ($f(n) = \Theta(n^{\log_b a})$), giving:
+$f(n) = \Theta(n^1)$이므로 마스터 정리의 **경우 2**($f(n) = \Theta(n^{\log_b a})$)에 들고, 다음이 나온다.
 
 $$
 T(n) = \Theta(n \log n)
 $$
 
-### Solving by Recursion Tree
+### 되돌이 트리로 풀기
 
-An alternative derivation unfolds the recursion into a tree:
+되돌이를 트리로 펼쳐 끌어내는 길도 있다.
 
-- **Level 0**: one problem of size $n$, total merge work $= cn$.
-- **Level 1**: two problems of size $n/2$, total merge work $= 2 \cdot c(n/2) = cn$.
-- **Level 2**: four problems of size $n/4$, total merge work $= 4 \cdot c(n/4) = cn$.
-- **Level $k$**: $2^k$ problems of size $n/2^k$, total merge work $= cn$.
+- **층 0**: 크기 $n$인 문제 하나, 병합 일의 합 $= cn$.
+- **층 1**: 크기 $n/2$인 문제 둘, 병합 일의 합 $= 2 \cdot c(n/2) = cn$.
+- **층 2**: 크기 $n/4$인 문제 넷, 병합 일의 합 $= 4 \cdot c(n/4) = cn$.
+- **층 $k$**: 크기 $n/2^k$인 문제 $2^k$개, 병합 일의 합 $= cn$.
 
-The tree has $\log_2 n$ levels, each contributing $cn$ work:
+트리에는 층이 $\log_2 n$개 있고 층마다 $cn$의 일을 낸다.
 
 $$
 T(n) = cn \cdot \log_2 n = \Theta(n \log n)
 $$
 
-??? note "Why each level costs exactly cn"
-    At level $k$, the $2^k$ subproblems collectively contain all $n$ elements (partitioned among them).  The merge at each node touches every element in that subproblem exactly once.  Since the subproblems at any level are disjoint and cover the entire array, the total merge work per level is $cn$.
+??? note "층마다 비용이 꼭 cn인 까닭"
+    층 $k$에서 부분 문제 $2^k$개는 다 합쳐 원소 $n$개를 모두 담는다(그들 사이에 나뉘어 있다). 마디마다의 병합은 그 부분 문제의 원소마다를 꼭 한 번 건드린다. 어느 층에서든 부분 문제들이 서로 겹치지 않고 배열 전체를 덮으므로 층마다 병합 일의 합은 $cn$이다.
 
-## Top-Down Merge Sort Algorithm
+## 하향식 병합 정렬 알고리즘
 
 ```
 MERGE-SORT(A, left, right):
@@ -73,11 +73,11 @@ MERGE-SORT(A, left, right):
         MERGE(A, left, mid, right)     // combine
 ```
 
-The recursion bottoms out when a subarray has zero or one elements (already sorted by definition).
+부분 배열의 원소가 0개나 1개이면(정의상 이미 정렬되어 있다) 되돌이가 바닥에 닿는다.
 
-## Recursion Tree Visualization
+## 되돌이 트리 그려 보기
 
-Consider sorting $[38, 27, 43, 3, 9, 82, 10]$:
+$[38, 27, 43, 3, 9, 82, 10]$을 정렬한다고 하자.
 
 ```
 Level 0:  [38, 27, 43, 3, 9, 82, 10]
@@ -95,24 +95,24 @@ Level 2:  [3, 27, 38, 43]   [9, 10, 82]
 Level 1:  [3, 9, 10, 27, 38, 43, 82]
 ```
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Merge sort as divide and conquer.
+나누어 정복하기로서의 병합 정렬.
 
-Implements top-down merge sort, illustrating the divide-conquer-combine
-structure with clear separation of the three phases.
+하향식 병합 정렬을 구현하며, 나누기-정복하기-합치기 짜임을
+세 단계로 또렷이 갈라 보여 준다.
 """
 
 
-# === Merge (combine step) =====================================================
+# === 병합(합치는 걸음) ========================================================
 
 def merge(arr: list, left: int, mid: int, right: int) -> None:
-    """Merge two sorted subarrays arr[left..mid] and arr[mid+1..right] in place.
+    """정렬된 부분 배열 arr[left..mid]과 arr[mid+1..right]을 제자리에서 병합한다.
 
-    Uses O(n) auxiliary space for temporary copies of both halves.
-    The <= comparison ensures stability.
+    두 반쪽의 임시 사본에 O(n) 도움 공간을 쓴다.
+    <=으로 견주므로 안정성이 지켜진다.
     """
     left_half = arr[left:mid + 1]
     right_half = arr[mid + 1:right + 1]
@@ -139,31 +139,31 @@ def merge(arr: list, left: int, mid: int, right: int) -> None:
         k += 1
 
 
-# === Merge sort (divide and conquer) ==========================================
+# === 병합 정렬(나누어 정복하기) ===============================================
 
 def merge_sort(arr: list, left: int = 0, right: int = None) -> None:
-    """Sort arr[left..right] using top-down merge sort.
+    """하향식 병합 정렬로 arr[left..right]을 정렬한다.
 
-    Parameters
+    매개변수
     ----------
     arr : list
-        The array to sort (modified in place).
+        정렬할 배열(제자리에서 바뀐다).
     left : int
-        Start index of the subarray.
-    right : int or None
-        End index (inclusive).  Defaults to len(arr) - 1.
+        부분 배열의 시작 첨자.
+    right : int 또는 None
+        끝 첨자(그 자리를 넣는다). 기본값은 len(arr) - 1이다.
     """
     if right is None:
         right = len(arr) - 1
 
     if left < right:
-        mid = (left + right) // 2       # Divide
-        merge_sort(arr, left, mid)       # Conquer left
-        merge_sort(arr, mid + 1, right)  # Conquer right
-        merge(arr, left, mid, right)     # Combine
+        mid = (left + right) // 2       # 나누기
+        merge_sort(arr, left, mid)       # 왼쪽 정복하기
+        merge_sort(arr, mid + 1, right)  # 오른쪽 정복하기
+        merge(arr, left, mid, right)     # 합치기
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     data = [38, 27, 43, 3, 9, 82, 10]
@@ -171,13 +171,13 @@ if __name__ == "__main__":
     merge_sort(data)
     print(f"After:  {data}")
 
-    # Verify stability: sort by first element of tuples
+    # 안정성 확인: 짝의 첫 성분으로 정렬한다
     records = [(3, "b"), (1, "a"), (3, "d"), (1, "c"), (2, "e")]
-    records.sort(key=lambda x: x[0])  # Python's stable sort for reference
+    records.sort(key=lambda x: x[0])  # 견주어 볼 파이썬의 안정 정렬
     print(f"\nPython stable sort: {records}")
 ```
 
-**Output:**
+**출력:**
 ```
 Before: [38, 27, 43, 3, 9, 82, 10]
 After:  [3, 9, 10, 27, 38, 43, 82]
@@ -185,13 +185,46 @@ After:  [3, 9, 10, 27, 38, 43, 82]
 Python stable sort: [(1, 'a'), (1, 'c'), (2, 'e'), (3, 'b'), (3, 'd')]
 ```
 
-## Why Divide and Conquer Achieves n log n
+## 나누어 정복하기가 n log n을 이루는 까닭
 
-The insight is that dividing the problem in half at each level creates $\log n$ levels of recursion, and each level performs $O(n)$ total merge work across all subproblems at that level.  The product $O(n) \times O(\log n) = O(n \log n)$ is the hallmark of efficient divide-and-conquer algorithms.
+핵심은 층마다 문제를 반으로 나누면 되돌이 층이 $\log n$개 생기고, 층마다 그 층의 모든 부분 문제에 걸쳐 병합 일이 모두 $O(n)$이라는 것이다. 그 곱 $O(n) \times O(\log n) = O(n \log n)$이 효율적인 나누어 정복하기 알고리즘의 표식이다.
 
-This is a strict improvement over the $O(n^2)$ algorithms (insertion sort, selection sort, bubble sort), which effectively reduce the problem size by only one element at each step, requiring $n$ levels of $O(n)$ work each.
+이는 걸음마다 문제 크기를 사실상 원소 하나씩만 줄여 $O(n)$짜리 층이 $n$개 필요한 $O(n^2)$ 알고리즘(끼워넣기 정렬, 고르기 정렬, 거품 정렬)보다 확실히 낫다.
 
-## References
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Section 2.3.
-- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, Section 2.2.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 2.3절.
+- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, 2.2절.
+
+
+## 연습문제
+
+**연습문제 1.**
+$[38, 27, 43, 3, 9, 82, 10]$에서 나누어 정복하기로서의 병합 정렬을 따라가며 큰 걸음마다의 상태를 보여라.
+
+??? success "연습문제 1 풀이"
+    알고리즘을 한 걸음씩 밟아라. 나누어 정복하는 정렬이라면 되돌이 나눔과 병합을 하나씩 보이고, 나눔 기반 정렬이라면 나눔마다와 축이 놓이는 자리를 보여라. 걸음마다 배열 전체의 상태를 내보여라.
+
+---
+
+**연습문제 2.**
+나누어 정복하기로서의 병합 정렬의 최선, 최악, 평균의 경우 시간 복잡도를 끌어내라.
+
+??? success "연습문제 2 풀이"
+    경우마다 점화식을 써라. 최선의 경우는 가장 좋은 나눔이거나 미리 정렬된 입력이다. 최악의 경우는 일을 가장 크게 만드는 적수 입력이다. 평균의 경우는 무작위 순열에 대한 기대 성능이다. 점화식을 각각 풀어라.
+
+---
+
+**연습문제 3.**
+나누어 정복하기로서의 병합 정렬은 안정적인가? 증명하거나 반례를 들어라.
+
+??? success "연습문제 3 풀이"
+    같은 원소가 본디 상대 차례를 지키면 그 정렬은 안정적이다. 모든 입력에서 이것이 성립함을 증명하거나, 정렬 도중 같은 원소 둘의 자리가 뒤바뀌는 구체적인 입력을 들어라.
+
+---
+
+**연습문제 4.**
+float32 학습 손실 값 1000만 개를 정렬할 때 나누어 정복하기로서의 병합 정렬을 다른 두 방법과 견주어라. 시간, 공간, 캐시 거동, GPU 어울림을 살펴라.
+
+??? success "연습문제 4 풀이"
+    $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.

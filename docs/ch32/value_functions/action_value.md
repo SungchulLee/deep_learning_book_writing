@@ -1,87 +1,116 @@
-# 32.3.2 Action Value Function
+# 32.3.2 움직임 값 함수
+## 정의
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Definition
-
-The **action value function** (or **Q-function**) $Q_\pi(s, a)$ gives the expected return when starting in state $s$, taking action $a$, and then following policy $\pi$:
+**움직임 값 함수**(또는 **Q 함수**) $Q_\pi(s, a)$은 상태 $s$에서 시작해 움직임 $a$을 하고 그 뒤 방침 $\pi$을 따를 때의 기대 돌아옴을 준다:
 
 $$Q_\pi(s, a) = \mathbb{E}_\pi[G_t \mid S_t = s, A_t = a] = \mathbb{E}_\pi\left[\sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \mid S_t = s, A_t = a\right]$$
 
-This answers: "How good is it to take action $a$ in state $s$ under policy $\pi$?"
+이는 "방침 $\pi$ 아래 상태 $s$에서 움직임 $a$을 하는 것이 얼마나 좋은가?"에 답한다.
 
-## Relationship to State Value Function
+## 상태 값 함수와의 관계
 
-The state value function is the expected Q-value under the policy:
+상태 값 함수는 방침 아래의 기대 Q 값이다:
 
 $$V_\pi(s) = \sum_a \pi(a|s) Q_\pi(s, a) = \mathbb{E}_{a \sim \pi}[Q_\pi(s, a)]$$
 
-Conversely, the Q-function can be expressed in terms of $V_\pi$:
+거꾸로 Q 함수는 $V_\pi$으로 적을 수 있다:
 
 $$Q_\pi(s, a) = R(s, a) + \gamma \sum_{s'} P(s'|s,a) V_\pi(s')$$
 
-This relationship is key: the Q-function looks one step ahead (immediate reward + discounted value of next state).
+이 관계가 핵심이다. Q 함수는 한 걸음 앞을 본다(즉시 보상 + 다음 상태의 깎은 값).
 
-## Advantage Function
+## 이점 함수
 
-The **advantage function** measures how much better action $a$ is compared to the average action under $\pi$:
+**이점 함수**는 $\pi$ 아래 평균 움직임에 견주어 움직임 $a$이 얼마나 더 좋은지 잰다:
 
 $$A_\pi(s, a) = Q_\pi(s, a) - V_\pi(s)$$
 
-Properties:
-- $\sum_a \pi(a|s) A_\pi(s, a) = 0$ (advantages average to zero under $\pi$)
-- $A_\pi(s, a) > 0$ means action $a$ is better than average in state $s$
-- Used extensively in actor-critic methods (e.g., A2C, GAE)
+성질:
 
-## Optimal Action Value Function
+- $\sum_a \pi(a|s) A_\pi(s, a) = 0$($\pi$ 아래 이점의 평균은 0이다)
+- $A_\pi(s, a) > 0$이면 상태 $s$에서 움직임 $a$이 평균보다 좋다는 뜻이다
+- 배우-비평가 방법(보기로 A2C, GAE)에 널리 쓰인다
+
+## 가장 좋은 움직임 값 함수
 
 $$Q^*(s, a) = \max_\pi Q_\pi(s, a)$$
 
-The optimal Q-function directly determines the optimal policy without needing a model:
+가장 좋은 Q 함수는 모델 없이도 가장 좋은 방침을 곧바로 정한다:
 
 $$\pi^*(s) = \arg\max_a Q^*(s, a)$$
 
-This is why Q-learning and DQN are so popular — they learn $Q^*$ directly, and the optimal policy follows immediately.
+Q 배우기와 DQN이 널리 쓰이는 까닭이 이것이다. $Q^*$을 곧바로 배우면 가장 좋은 방침이 바로 따라 나온다.
 
-## Computing Q_pi
+## Q_pi 셈하기
 
-### From V_pi (one-step lookahead)
+### V_pi에서(한 걸음 앞보기)
 
 $$Q_\pi(s, a) = R(s, a) + \gamma \sum_{s'} P(s'|s,a) V_\pi(s')$$
 
-### Direct Matrix Form
+### 곧바른 행렬 꼴
 
-For finite MDPs, the Q-function can be represented as a matrix $\mathbf{Q} \in \mathbb{R}^{|\mathcal{S}| \times |\mathcal{A}|}$:
+유한 마르코프 결정 과정에서 Q 함수를 행렬 $\mathbf{Q} \in \mathbb{R}^{|\mathcal{S}| \times |\mathcal{A}|}$으로 나타낼 수 있다:
 
 $$Q_\pi(s, a) = R(s, a) + \gamma \sum_{s'} P(s'|s,a) \sum_{a'} \pi(a'|s') Q_\pi(s', a')$$
 
-### Monte Carlo Estimation
+### 몬테카를로 어림
 
 $$Q_\pi(s, a) \approx \frac{1}{N(s,a)} \sum_{i=1}^{N(s,a)} G_t^{(i)}$$
 
-where $G_t^{(i)}$ is the return following the $i$-th visit to $(s, a)$.
+여기서 $G_t^{(i)}$은 $(s, a)$에 $i$번째로 들른 뒤의 돌아옴이다.
 
-## Why Q-Functions Are Central to RL
+## Q 함수가 힘 북돋우는 배움의 한가운데인 까닭
 
-| Feature | V-function | Q-function |
+| 갈래 | V 함수 | Q 함수 |
 |---------|-----------|-----------|
-| **Inputs** | State only | State + action |
-| **Policy extraction** | Needs model $P(s'|s,a)$ | Model-free: $\arg\max_a Q(s,a)$ |
-| **Table size** | $|\mathcal{S}|$ | $|\mathcal{S}| \times |\mathcal{A}|$ |
-| **Used in** | Policy evaluation, TD(0) | Q-learning, SARSA, DQN |
+| **들임** | 상태만 | 상태 + 움직임 |
+| **방침 뽑아내기** | 모델 $P(s'|s,a)$이 필요 | 모델 없이: $\arg\max_a Q(s,a)$ |
+| **표 크기** | $|\mathcal{S}|$ | $|\mathcal{S}| \times |\mathcal{A}|$ |
+| **쓰이는 곳** | 방침 따지기, TD(0) | Q 배우기, SARSA, DQN |
 
-The Q-function is preferred for **model-free** control because it allows policy improvement without knowing the transition dynamics.
+Q 함수는 옮김 흐름을 모르고도 방침을 좋게 할 수 있어 **모델 없는** 다스리기에 즐겨 쓰인다.
 
-## Financial Interpretation
+## 금융으로 풀이하기
 
-In a trading context:
-- $Q_\pi(s, \text{buy})$: Expected future return from buying in market state $s$ under strategy $\pi$
-- $Q_\pi(s, \text{sell})$: Expected future return from selling in state $s$
-- $A_\pi(s, \text{buy}) > 0$: Buying is better than the strategy's average action in state $s$
-- $Q^*(s, a)$: Best possible expected return for each action, enabling optimal decisions
+거래 맥락에서:
 
-## Summary
+- $Q_\pi(s, \text{buy})$: 셈속 $\pi$ 아래 시장 상태 $s$에서 살 때의 기대 앞날 벌이
+- $Q_\pi(s, \text{sell})$: 상태 $s$에서 팔 때의 기대 앞날 벌이
+- $A_\pi(s, \text{buy}) > 0$: 상태 $s$에서 사는 것이 그 셈속의 평균 움직임보다 낫다
+- $Q^*(s, a)$: 움직임마다 이룰 수 있는 가장 좋은 기대 벌이로, 가장 좋은 결정을 하게 해 준다
 
-The action value function $Q_\pi(s,a)$ extends the state value function to incorporate action choices, making it the workhorse of model-free RL. The advantage function $A_\pi$ decomposes Q-values into state value and action-specific benefit. The optimal Q-function $Q^*$ directly yields the optimal policy without requiring environment dynamics.
+## 요약
+
+움직임 값 함수 $Q_\pi(s,a)$은 상태 값 함수를 넓혀 움직임 고름을 담아, 모델 없는 힘 북돋우는 배움의 일꾼이 된다. 이점 함수 $A_\pi$은 Q 값을 상태 값과 움직임마다의 이득으로 쪼갠다. 가장 좋은 Q 함수 $Q^*$은 둘레의 흐름 없이도 가장 좋은 방침을 곧바로 내놓는다.
+
+## 연습문제
+
+**연습문제 1.**
+이 마디의 주제와 딸린 단순한 마르코프 결정 과정을 생각하여라. 상태 3개와 움직임 2개의 작은 보기에서 관련 양을 손으로 셈하여라.
+
+??? success "연습문제 1 풀이"
+    상태 $S = \{s_1, s_2, s_3\}$과 움직임 $A = \{a_1, a_2\}$을 뜻매김한다. 옮김 확률과 보상을 매긴다. 상태-움직임 짝마다 기대 즉시 보상과 옮김 분포를 셈한다. 이 마디의 뜻매김과 식으로 바라는 양을 셈한다. 상태 자리가 작아 정확히 셈할 수 있어 추상 적기가 구체 숫자로 어떻게 옮겨지는지 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 다룬 핵심 성질이나 모임 결과를 밝혀라. 여김을 또렷이 적고 어느 것이 꼭 필요한지 가려내어라.
+
+??? success "연습문제 2 풀이"
+    밝힘은 그 연산자에 오므리는 옮김 정리를 써서 따라온다. 깎기 인수가 $\gamma < 1$인 유한 마르코프 결정 과정을 여기면 그 연산자는 상한 노름에서 $\gamma$오므리기다. 바나흐 고정점 정리에 따라 되풀이해 쓰면 $k$이 되풀이 횟수일 때 빠르기 $O(\gamma^k)$으로 하나뿐인 고정점에 모인다. 유한하다는 여김이 보상이 가둬짐을 보장하고 깎기 인수 $\gamma < 1$이 오므리기 성질에 꼭 필요하다. $\square$
+
+---
+
+**연습문제 3.**
+이 마디에서 밝힌 알고리즘이나 셈을 단순한 격자 세상에 대해 파이썬으로 짜라. $\epsilon = 0.01$ 안으로 모이는 데 필요한 되풀이 횟수를 알려라.
+
+??? success "연습문제 3 풀이"
+    모서리에 마침 상태가 있고 고른 아무 방침을 쓰는 $4 \times 4$ 격자 세상이 여느 시험 사례가 된다. 짜기는 모든 상태의 가장 큰 바뀜이 $\epsilon$ 아래로 떨어질 때까지 고침 규칙을 되풀이한다. 깎기 인수에 따라 보통 50~200번 되풀이하면 모인다. 핵심 짜기 세부는 맞춘 고침보다 빨리 모이도록 제자리 고침(가우스-자이델 방식)을 쓰는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+이 마디에서 밝힌 길에 본디 있는 근본 한계나 맞바꿈을 다루어라. 뒤 장의 더 나아간 방법이 이 한계를 어떻게 넘는가?
+
+??? success "연습문제 4 풀이"
+    표로 하는 길은 모든 상태(어쩌면 움직임까지)를 늘어놓아야 하는데 이어지거나 차원이 높은 상태 자리에서는 될 일이 아니다. 차원의 저주는 상태 변수의 수에 따라 상태 수가 지수로 늘어남을 뜻한다. 함수 어림(33~34장)은 그 함수를 신경망으로 잡을 두어 나타내고 닮은 상태에 걸쳐 넓혀 이를 넘는다. 다만 새 어려움이 생긴다. 모임이 더는 보장되지 않으며 함수 어림, 띄워 올리기, 벗어난 방침 익히기의 죽음의 삼각이 발산을 일으킬 수 있다. $\square$

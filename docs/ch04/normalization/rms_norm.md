@@ -1,48 +1,44 @@
-# RMSNorm (Root Mean Square Layer Normalization)
+# RMSNorm (제곱평균제곱근 층 정규화)
+## 개요
 
+2019년 Zhang과 Sennrich가 소개한 RMSNorm은 제곱평균제곱근(RMS) 통계량만으로 정규화하여 평균을 빼는 단계를 없앤, 층 정규화의 간소화된 변형이다. 이 단순화는 성능을 유지하거나 오히려 높이면서 계산 비용을 줄여 주어, RMSNorm은 LLaMA, Mistral, Gemma 같은 현대의 대형 언어 모델에서 널리 쓰인다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 수학적 정식화
 
-## Overview
+### 표준 층 정규화 (되짚어 보기)
 
-RMSNorm, introduced by Zhang and Sennrich in 2019, is a simplified variant of Layer Normalization that normalizes using only the root mean square (RMS) statistic, eliminating the mean subtraction step. This simplification reduces computational cost while maintaining or even improving performance, making RMSNorm popular in modern large language models like LLaMA, Mistral, and Gemma.
-
-## Mathematical Formulation
-
-### Standard Layer Normalization (Recap)
-
-For input $\mathbf{x} \in \mathbb{R}^n$:
+입력 $\mathbf{x} \in \mathbb{R}^n$에 대해 다음과 같다.
 
 $$\text{LayerNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x} - \mu}{\sqrt{\sigma^2 + \epsilon}} + \beta$$
 
-where $\mu = \frac{1}{n}\sum_{i=1}^n x_i$ and $\sigma^2 = \frac{1}{n}\sum_{i=1}^n (x_i - \mu)^2$.
+여기서 $\mu = \frac{1}{n}\sum_{i=1}^n x_i$이고 $\sigma^2 = \frac{1}{n}\sum_{i=1}^n (x_i - \mu)^2$이다.
 
 ### RMSNorm
 
-RMSNorm simplifies this by removing mean centering:
+RMSNorm은 평균 중심화를 없애 이를 간소화한다.
 
 $$\text{RMS}(\mathbf{x}) = \sqrt{\frac{1}{n}\sum_{i=1}^n x_i^2}$$
 
 $$\text{RMSNorm}(\mathbf{x}) = \gamma \odot \frac{\mathbf{x}}{\text{RMS}(\mathbf{x}) + \epsilon}$$
 
-Where:
-- $\gamma \in \mathbb{R}^n$ is a learnable scale parameter
-- $\epsilon$ is a small constant for numerical stability
-- No bias term $\beta$ (by design) and no mean subtraction
+여기서 각 기호는 다음과 같다.
 
-### Key Difference
+- $\gamma \in \mathbb{R}^n$은 학습 가능한 배율 매개변수이다
+- $\epsilon$은 수치적 안정성을 위한 작은 상수이다
+- (설계상) 편향 항 $\beta$이 없고 평균을 빼지도 않는다
 
-| Operation | LayerNorm | RMSNorm |
+### 핵심 차이
+
+| 연산 | LayerNorm | RMSNorm |
 |-----------|-----------|---------|
-| Mean subtraction | Yes | **No** |
-| Variance normalization | Yes | Uses RMS instead |
-| Learnable bias | Yes ($\beta$) | **No** |
-| Computational complexity | $O(2n)$ for stats | $O(n)$ for stats |
+| 평균 빼기 | 있음 | **없음** |
+| 분산 정규화 | 있음 | 대신 RMS를 쓴다 |
+| 학습 가능한 편향 | 있음 ($\beta$) | **없음** |
+| 계산 복잡도 | 통계량에 $O(2n)$ | 통계량에 $O(n)$ |
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### From Scratch
+### 바닥부터 만들기
 
 ```python
 import torch
@@ -50,17 +46,17 @@ import torch.nn as nn
 
 class RMSNorm(nn.Module):
     """
-    Root Mean Square Layer Normalization.
+    제곱평균제곱근 층 정규화.
     
-    Normalizes input by its RMS value without mean centering.
-    Used in LLaMA, Mistral, Gemma, and other modern LLMs.
+    평균을 빼지 않고 RMS 값으로 입력을 정규화한다.
+    LLaMA, Mistral, Gemma를 비롯한 최신 대규모 언어 모델에서 쓰인다.
     """
     
     def __init__(self, dim, eps=1e-6):
         """
-        Args:
-            dim: Dimension to normalize over (typically hidden_size)
-            eps: Small constant for numerical stability
+        인수:
+            dim: 정규화할 차원 (보통 hidden_size)
+            eps: 수치 안정성을 위한 작은 상수
         """
         super().__init__()
         
@@ -68,27 +64,26 @@ class RMSNorm(nn.Module):
         self.weight = nn.Parameter(torch.ones(dim))
     
     def _norm(self, x):
-        """Compute RMS normalization."""
-        # Compute RMS: sqrt(mean(x^2))
+        """RMS 정규화를 계산한다."""
+        # RMS 계산: sqrt(mean(x^2))
         rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + self.eps)
         return x / rms
     
     def forward(self, x):
         """
-        Args:
-            x: Input tensor of shape (..., dim)
+        인수:
+            x: 모양이 (..., dim)인 입력 텐서
         
-        Returns:
-            Normalized tensor of same shape
+        반환값:
+            같은 모양의 정규화된 텐서
         """
-        # Normalize and scale
+        # 정규화하고 배율 조정
         output = self._norm(x.float()).type_as(x)
         return output * self.weight
 
-
 class RMSNormOptimized(nn.Module):
     """
-    Optimized RMSNorm with fused operations.
+    연산을 융합하여 최적화한 RMSNorm.
     """
     
     def __init__(self, dim, eps=1e-6):
@@ -97,17 +92,17 @@ class RMSNormOptimized(nn.Module):
         self.weight = nn.Parameter(torch.ones(dim))
     
     def forward(self, x):
-        # Fused computation for efficiency
-        # rsqrt is faster than sqrt + division
+        # 효율을 위한 융합 계산
+        # rsqrt가 sqrt + 나눗셈보다 빠르다
         norm_x = x * torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + self.eps)
         return norm_x * self.weight
 ```
 
-### Comparison with LayerNorm
+### LayerNorm과의 비교
 
 ```python
 class LayerNormBaseline(nn.Module):
-    """Standard LayerNorm for comparison."""
+    """비교를 위한 표준 LayerNorm."""
     
     def __init__(self, dim, eps=1e-6):
         super().__init__()
@@ -121,23 +116,23 @@ class LayerNormBaseline(nn.Module):
         return self.weight * (x - mean) / torch.sqrt(var + self.eps) + self.bias
 ```
 
-## Why RMSNorm Works
+## RMSNorm이 통하는 이유
 
-### Hypothesis: Re-centering is Unnecessary
+### 가설: 다시 중심을 맞추는 일은 필요 없다
 
-The original paper hypothesizes that the success of LayerNorm comes primarily from the **re-scaling invariance** property, not from the re-centering (mean subtraction).
+원 논문은 LayerNorm의 성공이 (평균을 빼는) 재중심화가 아니라 주로 **재배율 불변성**이라는 성질에서 온다고 가정한다.
 
-**Re-scaling invariance**: For any scalar $a$:
+**재배율 불변성**: 임의의 스칼라 $a$에 대해 다음이 성립한다.
 
 $$\text{RMSNorm}(a \cdot \mathbf{x}) = \text{sign}(a) \cdot \text{RMSNorm}(\mathbf{x})$$
 
-This property stabilizes gradient flow regardless of the input scale.
+이 성질은 입력의 규모와 무관하게 경사의 흐름을 안정시킨다.
 
-### Empirical Evidence
+### 실험적 증거
 
 ```python
 def compare_normalization_effects():
-    """Compare how LayerNorm and RMSNorm affect activations."""
+    """LayerNorm과 RMSNorm이 활성화에 미치는 영향을 비교한다."""
     
     torch.manual_seed(42)
     
@@ -145,7 +140,7 @@ def compare_normalization_effects():
     ln = nn.LayerNorm(dim)
     rms = RMSNorm(dim)
     
-    # Test with different input distributions
+    # 서로 다른 입력 분포로 시험
     test_cases = [
         ("Normal", torch.randn(32, dim)),
         ("Shifted", torch.randn(32, dim) + 5.0),
@@ -167,7 +162,7 @@ def compare_normalization_effects():
 compare_normalization_effects()
 ```
 
-**Output:**
+**출력:**
 ```
 Comparison of LayerNorm vs RMSNorm:
 ============================================================
@@ -189,25 +184,25 @@ Skewed input (mean=1.64, std=2.14):
   RMSNorm:   mean=0.5673, std=0.7407
 ```
 
-Note: RMSNorm doesn't center the output to mean=0, but this doesn't hurt performance in practice.
+참고: RMSNorm은 출력의 평균을 0으로 맞추지 않지만, 실무에서 이것이 성능을 해치지는 않는다.
 
-## Gradient Analysis
+## 경사 분석
 
-### Gradient w.r.t. Input
+### 입력에 대한 경사
 
-For RMSNorm with input $\mathbf{x}$ and output $\mathbf{y}$:
+입력이 $\mathbf{x}$이고 출력이 $\mathbf{y}$인 RMSNorm에 대해 다음이 성립한다.
 
 $$\frac{\partial \mathcal{L}}{\partial x_i} = \frac{\gamma_i}{\text{RMS}(\mathbf{x})} \left( \frac{\partial \mathcal{L}}{\partial y_i} - \frac{y_i}{n \cdot \text{RMS}(\mathbf{x})^2} \sum_{j=1}^n x_j \frac{\partial \mathcal{L}}{\partial y_j} \right)$$
 
-### Simplified Gradient Flow
+### 간소화된 경사의 흐름
 
 ```python
 class RMSNormWithGradientAnalysis(torch.autograd.Function):
-    """RMSNorm with explicit gradient computation for analysis."""
+    """분석을 위해 기울기를 명시적으로 계산하는 RMSNorm."""
     
     @staticmethod
     def forward(ctx, x, weight, eps):
-        # Compute RMS
+        # RMS 계산
         rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + eps)
         x_norm = x / rms
         
@@ -222,39 +217,39 @@ class RMSNormWithGradientAnalysis(torch.autograd.Function):
         
         n = x.shape[-1]
         
-        # Gradient w.r.t. weight
+        # 가중치에 대한 기울기
         x_norm = x / rms
         grad_weight = (grad_output * x_norm).sum(dim=tuple(range(grad_output.dim()-1)))
         
-        # Gradient w.r.t. x
+        # x에 대한 기울기
         grad_x_norm = grad_output * weight
         
-        # RMSNorm gradient (simpler than LayerNorm)
+        # RMSNorm의 기울기 (LayerNorm보다 간단하다)
         grad_x = grad_x_norm / rms
         grad_x = grad_x - x_norm * (grad_x_norm * x_norm).mean(dim=-1, keepdim=True)
         
         return grad_x, grad_weight, None
 ```
 
-## Computational Efficiency
+## 계산 효율
 
-### Complexity Comparison
+### 복잡도 비교
 
-| Operation | LayerNorm | RMSNorm |
+| 연산 | LayerNorm | RMSNorm |
 |-----------|-----------|---------|
-| Mean computation | O(n) | **0** |
-| Variance/RMS computation | O(n) | O(n) |
-| Mean subtraction | O(n) | **0** |
-| Division | O(n) | O(n) |
-| **Total stats ops** | **2n reductions** | **1n reduction** |
+| 평균 계산 | O(n) | **0** |
+| 분산/RMS 계산 | O(n) | O(n) |
+| 평균 빼기 | O(n) | **0** |
+| 나눗셈 | O(n) | O(n) |
+| **통계량 연산 합계** | **축약 2n번** | **축약 1n번** |
 
-### Benchmarking
+### 성능 측정
 
 ```python
 import time
 
 def benchmark_normalization(batch_size=32, seq_len=512, dim=4096, num_iterations=1000):
-    """Benchmark LayerNorm vs RMSNorm."""
+    """LayerNorm과 RMSNorm의 성능을 견주어 잰다."""
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
@@ -263,7 +258,7 @@ def benchmark_normalization(batch_size=32, seq_len=512, dim=4096, num_iterations
     ln = nn.LayerNorm(dim).to(device)
     rms = RMSNorm(dim).to(device)
     
-    # Warmup
+    # 워밍업
     for _ in range(100):
         _ = ln(x)
         _ = rms(x)
@@ -271,7 +266,7 @@ def benchmark_normalization(batch_size=32, seq_len=512, dim=4096, num_iterations
     if device.type == 'cuda':
         torch.cuda.synchronize()
     
-    # Benchmark LayerNorm
+    # LayerNorm 성능 측정
     start = time.time()
     for _ in range(num_iterations):
         _ = ln(x)
@@ -279,7 +274,7 @@ def benchmark_normalization(batch_size=32, seq_len=512, dim=4096, num_iterations
         torch.cuda.synchronize()
     ln_time = time.time() - start
     
-    # Benchmark RMSNorm
+    # RMSNorm 성능 측정
     start = time.time()
     for _ in range(num_iterations):
         _ = rms(x)
@@ -295,31 +290,31 @@ def benchmark_normalization(batch_size=32, seq_len=512, dim=4096, num_iterations
 # benchmark_normalization()
 ```
 
-Typical speedup: **1.1-1.3x** on GPU, more significant on CPU.
+대표적인 속도 향상은 GPU에서 **1.1~1.3배**이며, CPU에서는 더 크다.
 
-## Usage in Modern LLMs
+## 현대 대형 언어 모델에서의 쓰임
 
-### LLaMA-style Architecture
+### LLaMA 방식의 구조
 
 ```python
 class LLaMABlock(nn.Module):
-    """LLaMA transformer block using RMSNorm."""
+    """RMSNorm을 쓰는 LLaMA 트랜스포머 블록."""
     
     def __init__(self, dim, n_heads, n_kv_heads, ffn_dim, norm_eps=1e-5):
         super().__init__()
         
-        # Pre-normalization with RMSNorm
+        # RMSNorm을 쓰는 사전 정규화
         self.attention_norm = RMSNorm(dim, eps=norm_eps)
         self.ffn_norm = RMSNorm(dim, eps=norm_eps)
         
-        # Attention (grouped query attention)
+        # 어텐션 (그룹 질의 어텐션)
         self.attention = GroupedQueryAttention(dim, n_heads, n_kv_heads)
         
-        # Feed-forward (SwiGLU)
+        # 순방향 신경망 (SwiGLU)
         self.feed_forward = SwiGLU(dim, ffn_dim)
     
     def forward(self, x, freqs_cis=None, mask=None):
-        # Pre-norm architecture
+        # 사전 정규화 구조
         h = x + self.attention(
             self.attention_norm(x),
             freqs_cis=freqs_cis,
@@ -328,9 +323,8 @@ class LLaMABlock(nn.Module):
         out = h + self.feed_forward(self.ffn_norm(h))
         return out
 
-
 class SwiGLU(nn.Module):
-    """SwiGLU feed-forward as used in LLaMA."""
+    """LLaMA에서 쓰는 SwiGLU 순방향 신경망."""
     
     def __init__(self, dim, hidden_dim):
         super().__init__()
@@ -342,9 +336,8 @@ class SwiGLU(nn.Module):
     def forward(self, x):
         return self.w2(nn.functional.silu(self.w1(x)) * self.w3(x))
 
-
 class GroupedQueryAttention(nn.Module):
-    """Grouped Query Attention as used in LLaMA 2."""
+    """LLaMA 2에서 쓰는 그룹 질의 어텐션."""
     
     def __init__(self, dim, n_heads, n_kv_heads):
         super().__init__()
@@ -365,16 +358,16 @@ class GroupedQueryAttention(nn.Module):
         k = self.wk(x).view(B, L, self.n_kv_heads, self.head_dim)
         v = self.wv(x).view(B, L, self.n_kv_heads, self.head_dim)
         
-        # Apply rotary embeddings if provided
+        # 주어졌으면 회전 임베딩 적용
         if freqs_cis is not None:
             q, k = apply_rotary_emb(q, k, freqs_cis)
         
-        # Expand KV heads for grouped query attention
+        # 그룹 질의 어텐션을 위해 KV 머리 늘리기
         n_rep = self.n_heads // self.n_kv_heads
         k = k.repeat_interleave(n_rep, dim=2)
         v = v.repeat_interleave(n_rep, dim=2)
         
-        # Attention
+        # 어텐션
         q, k, v = [t.transpose(1, 2) for t in (q, k, v)]
         scores = torch.matmul(q, k.transpose(-2, -1)) / (self.head_dim ** 0.5)
         
@@ -388,11 +381,11 @@ class GroupedQueryAttention(nn.Module):
         return self.wo(out)
 ```
 
-### Full LLaMA Model
+### 완전한 LLaMA 모델
 
 ```python
 class LLaMA(nn.Module):
-    """Simplified LLaMA model architecture."""
+    """간략한 LLaMA 모델 구조."""
     
     def __init__(self, vocab_size, dim, n_layers, n_heads, n_kv_heads, 
                  ffn_dim, norm_eps=1e-5, max_seq_len=2048):
@@ -405,11 +398,11 @@ class LLaMA(nn.Module):
             for _ in range(n_layers)
         ])
         
-        # Final RMSNorm before output projection
+        # 출력 사영 앞의 마지막 RMSNorm
         self.norm = RMSNorm(dim, eps=norm_eps)
         self.output = nn.Linear(dim, vocab_size, bias=False)
         
-        # Precompute rotary embeddings
+        # 회전 임베딩 미리 계산
         self.freqs_cis = precompute_freqs_cis(dim // n_heads, max_seq_len)
     
     def forward(self, tokens):
@@ -422,11 +415,11 @@ class LLaMA(nn.Module):
         return self.output(h)
 ```
 
-## Comparison with Other Normalizations
+## 다른 정규화 기법과의 비교
 
 ```python
 def comprehensive_comparison():
-    """Compare all relevant normalizations for transformers."""
+    """트랜스포머와 관련된 모든 정규화 방법을 비교한다."""
     
     torch.manual_seed(42)
     
@@ -436,7 +429,7 @@ def comprehensive_comparison():
     
     x = torch.randn(batch_size, seq_len, dim)
     
-    # Different normalizations
+    # 서로 다른 정규화 방식
     ln = nn.LayerNorm(dim)
     rms = RMSNorm(dim)
     
@@ -458,7 +451,7 @@ def comprehensive_comparison():
     print(f"  Output std:  {rms_out.std():.4f}")
     print(f"  Per-token mean std: {rms_out.mean(dim=-1).std():.6f}")
     
-    # Parameter count
+    # 매개변수 개수
     print(f"\nParameter count:")
     print(f"  LayerNorm: {sum(p.numel() for p in ln.parameters())}")
     print(f"  RMSNorm:   {sum(p.numel() for p in rms.parameters())}")
@@ -466,41 +459,83 @@ def comprehensive_comparison():
 comprehensive_comparison()
 ```
 
-## When to Use RMSNorm
+## RMSNorm을 언제 쓸 것인가
 
-### Good Use Cases
+### 알맞은 쓰임새
 
-✅ **Large Language Models** (LLaMA, Mistral, Gemma)  
-✅ **When computational efficiency matters**  
-✅ **Very deep networks** (many normalization layers)  
-✅ **Pre-normalization architectures**  
-✅ **When mean centering isn't critical**
+✅ **대형 언어 모델** (LLaMA, Mistral, Gemma)  
+✅ **계산 효율이 중요할 때**  
+✅ **아주 깊은 신경망** (정규화 층이 많을 때)  
+✅ **선정규화 구조**  
+✅ **평균 중심화가 결정적이지 않을 때**
 
-### When LayerNorm Might Be Preferred
+### LayerNorm이 나을 수 있는 경우
 
-❌ When model is small (savings negligible)  
-❌ When mean centering has known benefits for the task  
-❌ When compatibility with existing pretrained models matters
+❌ 모델이 작을 때 (절감이 미미하다)  
+❌ 그 과제에서 평균 중심화의 이점이 알려져 있을 때  
+❌ 기존 사전학습 모델과의 호환이 중요할 때
 
-## Summary
+## 요약
 
-RMSNorm is a simplified normalization technique that:
+RMSNorm은 다음과 같은 간소화된 정규화 기법이다.
 
-1. **Removes mean centering** from Layer Normalization
-2. **Uses RMS** instead of variance for normalization
-3. **Reduces computational cost** by ~10-30%
-4. **Maintains comparable performance** in practice
+1. 층 정규화에서 **평균 중심화를 없앤다**
+2. 정규화에 분산 대신 **RMS를 쓴다**
+3. **계산 비용을** 약 10~30% **줄인다**
+4. 실무에서 **비슷한 성능을 유지한다**
 
-Key properties:
-- **No mean subtraction** - only RMS scaling
-- **No bias parameter** $\beta$
-- **Faster computation** - one less reduction operation
-- **Standard in modern LLMs** - LLaMA, Mistral, Gemma, etc.
+핵심 성질은 다음과 같다.
 
-## References
+- **평균을 빼지 않는다** — RMS로 배율만 조정한다
+- **편향 매개변수** $\beta$ **가 없다**
+- **계산이 더 빠르다** — 축약 연산이 하나 적다
+- **현대 대형 언어 모델의 표준** — LLaMA, Mistral, Gemma 등
+
+## 참고 문헌
 
 1. Zhang, B., & Sennrich, R. (2019). Root Mean Square Layer Normalization. *NeurIPS*.
 
 2. Touvron, H., et al. (2023). LLaMA: Open and Efficient Foundation Language Models. *arXiv preprint arXiv:2302.13971*.
 
 3. Jiang, A. Q., et al. (2023). Mistral 7B. *arXiv preprint arXiv:2310.06825*.
+
+## 연습문제
+
+**연습문제 1.**
+RMSNorm 공식 $\text{RMSNorm}(x) = \frac{x}{\text{RMS}(x)} \cdot \gamma$을 유도하라. 여기서 $\text{RMS}(x) = \sqrt{\frac{1}{d}\sum_{i=1}^d x_i^2}$이다.
+
+??? success "연습문제 1 풀이"
+    RMSNorm은 중심을 맞추지 않고(평균을 빼지 않고) 입력의 제곱평균제곱근으로 정규화한다. 이로써 LayerNorm의 재중심화 단계가 사라져 계산이 약 7~10% 줄어든다. 학습 가능한 이득 $\gamma$이 정규화된 출력의 배율을 다시 조정한다.
+
+---
+
+**연습문제 2.**
+RMSNorm과 LayerNorm의 계산 비용을 비교하라.
+
+??? success "연습문제 2 풀이"
+    LayerNorm은 평균 계산($O(d)$), 분산 계산($O(d)$), 정규화, 배율 조정, 이동으로 원소 $d$개에 걸쳐 5개의 연산을 한다. RMSNorm은 RMS 계산($O(d)$), 정규화, 배율 조정으로 3개의 연산을 한다. RMSNorm은 평균 계산과 편향 매개변수를 건너뛰어 계산을 약 30% 아낀다.
+
+---
+
+**연습문제 3.**
+RMSNorm을 PyTorch로 구현하고 공식과 일치하는지 확인하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    class RMSNorm(torch.nn.Module):
+        def __init__(self, d, eps=1e-8):
+            super().__init__()
+            self.gamma = torch.nn.Parameter(torch.ones(d))
+            self.eps = eps
+        def forward(self, x):
+            rms = torch.sqrt((x**2).mean(-1, keepdim=True) + self.eps)
+            return x / rms * self.gamma
+    ```
+
+---
+
+**연습문제 4.**
+현대의 대형 언어 모델(예: LLaMA)에서 LayerNorm 대신 RMSNorm이 기본이 된 이유는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    경험적으로 LayerNorm의 평균 중심화는 큰 트랜스포머에서 이득이 미미한 반면 계산은 늘린다. RMSNorm은 같은 수준의 학습 안정성과 최종 성능을 더 낮은 지연으로 이루는데, 규모가 커질수록(매개변수 수십억 개, 토큰 수조 개) 이것이 크게 중요해진다.

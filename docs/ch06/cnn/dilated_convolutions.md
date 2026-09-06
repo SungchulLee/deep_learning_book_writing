@@ -1,52 +1,48 @@
-# Dilated Convolutions
+# 팽창 합성곱
+## 들어가며
 
+표준 합성곱은 핵 크기가 정하는 좁은 수용 영역을 갖는다. 더 넓은 공간 맥락을 붙잡으려면 더 큰 핵을 쓰거나(매개변수가 $O(K^2)$으로 늘어난다), 층을 더 쌓거나(계산이 늘고 기울기가 깊어진다), **팽창 합성곱**을 쓰면 된다(매개변수는 그대로이고 수용 영역이 넓어진다).
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Introduction
-
-Standard convolution has a limited receptive field determined by the kernel size. To capture larger spatial context, we can either use larger kernels (more parameters: $O(K^2)$), stack more layers (more computation, deeper gradients), or use **dilated convolution** (same parameters, larger receptive field).
-
-**Dilated convolution** (also called **atrous convolution**, from the French *à trous* meaning "with holes") inserts gaps between kernel elements, effectively expanding the kernel's spatial coverage without increasing the number of parameters. This technique is foundational to modern architectures for semantic segmentation, audio generation, and any task requiring large receptive fields at high resolution.
+**팽창 합성곱**("구멍을 낸"이라는 뜻의 프랑스어 *à trous*에서 온 **아트루스 합성곱**이라고도 한다)은 핵의 원소 사이에 틈을 넣어 매개변수를 늘리지 않고도 핵이 덮는 공간을 넓힌다. 이 기법은 의미 분할, 음향 생성처럼 높은 해상도에서 넓은 수용 영역이 필요한 과제의 요즘 구조에서 바탕이 된다.
 
 ---
 
-## Mathematical Definition
+## 수학적 정의
 
-### Effective Kernel Size
+### 실효 핵 크기
 
-Dilation inserts "holes" (zeros) between kernel elements. With dilation rate $d$, the **effective kernel size** becomes:
+팽창은 핵의 원소 사이에 "구멍"(0)을 넣는다. 팽창률이 $d$일 때 **실효 핵 크기**는 다음과 같다.
 
 $$K_{eff} = K + (K - 1)(d - 1) = d(K - 1) + 1$$
 
-For $K=3$:
-- $d=1$: $K_{eff} = 3$ (standard convolution)
+$K=3$일 때는 다음과 같다.
+
+- $d=1$: $K_{eff} = 3$ (표준 합성곱)
 - $d=2$: $K_{eff} = 5$
 - $d=4$: $K_{eff} = 9$
 - $d=8$: $K_{eff} = 17$
 
-### Formal Definition
+### 형식적 정의
 
-For a 2D input $X$ and kernel $W$ with dilation $d$:
+2차원 입력 $X$과 핵 $W$에 팽창률 $d$을 쓰면 다음과 같다.
 
 $$Y[i, j] = \sum_{m=0}^{K-1} \sum_{n=0}^{K-1} X[i + d \cdot m, j + d \cdot n] \cdot W[m, n]$$
 
-The kernel weights are the same as standard convolution—dilation only changes *which input positions* are sampled.
+핵의 가중치는 표준 합성곱과 같다. 팽창은 *어느 입력 자리*를 표본으로 삼을지만 바꾼다.
 
-### Output Size Formula
+### 출력 크기 공식
 
 $$H_{out} = \left\lfloor \frac{H_{in} + 2p - d(K - 1) - 1}{s} \right\rfloor + 1$$
 
-To maintain the same output size as input (with stride 1), set padding to:
+(보폭이 1일 때) 출력 크기를 입력과 같게 하려면 덧대기를 다음과 같이 둔다.
 
 $$p = \frac{d(K-1)}{2}$$
 
-For $K=3$, $d=2$: $p = 2$. For $K=3$, $d=4$: $p = 4$.
+$K=3$, $d=2$이면 $p = 2$이고, $K=3$, $d=4$이면 $p = 4$이다.
 
 ---
 
-## Visual Representation
+## 그림으로 보기
 
 ```
 Standard (d=1)      Dilated (d=2)       Dilated (d=3)
@@ -66,19 +62,19 @@ K=3, K_eff=3        K=3, K_eff=5        K=3, K_eff=7
 
 ---
 
-## Receptive Field Growth
+## 수용 영역의 증가
 
-### Comparison of Approaches
+### 방법 견주기
 
-| Method | Receptive Field Growth | Parameter Growth |
+| 방법 | 수용 영역의 증가 | 매개변수의 증가 |
 |--------|------------------------|------------------|
-| Larger kernels | Linear with K | Quadratic: $O(K^2)$ |
-| Deeper networks | Linear with depth | Linear with depth |
-| Dilated convolutions | Exponential with dilation stack | Constant |
+| 더 큰 핵 | K에 선형 | 제곱: $O(K^2)$ |
+| 더 깊은 신경망 | 깊이에 선형 | 깊이에 선형 |
+| 팽창 합성곱 | 팽창을 쌓은 수에 지수적 | 일정 |
 
-### Exponential Growth with Stacked Dilations
+### 팽창을 쌓을 때의 지수적 증가
 
-Stack dilated convolutions with rates 1, 2, 4, 8:
+팽창률 1, 2, 4, 8인 팽창 합성곱을 쌓아 보자.
 
 ```
 Layer 1 (d=1): RF = 3
@@ -87,15 +83,15 @@ Layer 3 (d=4): RF = 7 + 2×4 = 15
 Layer 4 (d=8): RF = 15 + 2×8 = 31
 ```
 
-With just 4 layers and 9 parameters each (36 total), we achieve a 31×31 receptive field. A single standard conv would need a 31×31 kernel with 961 parameters!
+층 4개에 층마다 매개변수 9개(모두 36개)만으로 31×31 수용 영역을 얻는다. 표준 합성곱 하나로 하려면 매개변수가 961개인 31×31 핵이 필요하다!
 
-### Efficiency Comparison
+### 효율 견주기
 
 ```python
 import torch.nn as nn
 
 def compute_receptive_field(layers):
-    """Compute receptive field for a sequence of conv/pool layers."""
+    """합성곱과 풀링 층의 나열에 대해 수용 영역을 계산한다."""
     rf, jump = 1, 1
     for layer in layers:
         k = layer.get('kernel', 1)
@@ -106,10 +102,10 @@ def compute_receptive_field(layers):
         jump = jump * s
     return rf
 
-# Standard 3×3 convolutions (5 layers)
+# 표준 3×3 합성곱 (5층)
 standard = [{'kernel': 3, 'stride': 1} for _ in range(5)]
 
-# Dilated convolutions with increasing dilation
+# 팽창률을 키워 가는 팽창 합성곱
 dilated = [
     {'kernel': 3, 'stride': 1, 'dilation': 1},
     {'kernel': 3, 'stride': 1, 'dilation': 2},
@@ -128,44 +124,44 @@ print(f"Ratio: {rf_dilated / rf_standard:.1f}× larger with same parameters!")
 
 ---
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### Basic Dilated Convolution
+### 기본 팽창 합성곱
 
 ```python
 import torch
 import torch.nn as nn
 
-# Standard 3×3 convolution
+# 표준 3×3 합성곱
 conv_standard = nn.Conv2d(64, 128, kernel_size=3, dilation=1, padding=1)
 
-# Dilated 3×3 convolution (d=2): 5×5 effective receptive field
+# 팽창 3×3 합성곱 (d=2): 실효 수용 영역 5×5
 conv_d2 = nn.Conv2d(64, 128, kernel_size=3, dilation=2, padding=2)
 
-# Dilated 3×3 convolution (d=4): 9×9 effective receptive field
+# 팽창 3×3 합성곱 (d=4): 실효 수용 영역 9×9
 conv_d4 = nn.Conv2d(64, 128, kernel_size=3, dilation=4, padding=4)
 
 x = torch.randn(1, 64, 56, 56)
 
-# All produce the same output size (with appropriate padding)
+# 알맞게 덧대면 모두 같은 출력 크기를 낸다
 print(f"Standard: {conv_standard(x).shape}")  # [1, 128, 56, 56]
 print(f"Dilation 2: {conv_d2(x).shape}")      # [1, 128, 56, 56]
 print(f"Dilation 4: {conv_d4(x).shape}")      # [1, 128, 56, 56]
 
-# Same number of parameters!
+# 매개변수 수가 같다!
 for name, conv in [("Standard", conv_standard), ("d=2", conv_d2), ("d=4", conv_d4)]:
     params = sum(p.numel() for p in conv.parameters())
     k_eff = conv.dilation[0] * (conv.kernel_size[0] - 1) + 1
     print(f"{name}: params={params:,}, effective RF={k_eff}×{k_eff}")
 ```
 
-**Key observation**: Dilated 3×3 achieves the same 5×5 receptive field as standard 5×5 with **64% fewer parameters**!
+**핵심 관찰**: 팽창을 준 3×3은 표준 5×5과 같은 5×5 수용 영역을 **매개변수 64%를 덜 쓰고** 이룬다!
 
-### Complete Comparison
+### 온전한 비교
 
 ```python
 def analyze_conv(name, conv, input_shape):
-    """Analyze convolution layer properties."""
+    """합성곱 층의 성질을 분석한다."""
     x = torch.randn(*input_shape)
     y = conv(x)
     params = sum(p.numel() for p in conv.parameters())
@@ -182,16 +178,16 @@ def analyze_conv(name, conv, input_shape):
 
 input_shape = (1, 64, 56, 56)
 
-# Dilated 3×3 conv
+# 팽창 3×3 합성곱
 conv3 = nn.Conv2d(64, 128, kernel_size=3, padding=2, stride=1, dilation=2)
 analyze_conv("Dilated 3×3 (d=2)", conv3, input_shape)
 
-# Standard 5×5 conv (same receptive field as dilated 3×3 d=2)
+# 표준 5×5 합성곱 (팽창 3×3 d=2와 수용 영역이 같다)
 conv4 = nn.Conv2d(64, 128, kernel_size=5, padding=2, stride=1, dilation=1)
 analyze_conv("Standard 5×5", conv4, input_shape)
 ```
 
-**Output:**
+**출력:**
 ```
 Dilated 3×3 (d=2):
   Parameters:   73,856
@@ -204,11 +200,11 @@ Standard 5×5:
 
 ---
 
-## The Gridding Problem
+## 격자 무늬 문제
 
-### The Issue
+### 무엇이 문제인가
 
-Stacking dilated convolutions with the **same rate** causes a "gridding" artifact where some input positions are never sampled:
+**같은 팽창률**의 합성곱을 쌓으면 어떤 입력 자리는 아예 표본이 되지 않는 "격자 무늬" 흠이 생긴다.
 
 ```
 Dilation=2, two layers:
@@ -223,33 +219,35 @@ Layer 1 samples:    Layer 2 samples:    Combined coverage:
 Problem: The [ ] positions are NEVER sampled!
 ```
 
-### Solutions
+### 해결책
 
-**Use dilations that are not multiples of each other**, or use a "sawtooth" pattern:
+**서로 배수가 아닌 팽창률을 쓰거나** "톱니" 방식을 쓴다.
 
-- ✅ Good: \$1, 2, 5, 1, 2, 5$ (HDC pattern from "Understanding Convolution for Semantic Segmentation")
-- ✅ Good: \$1, 2, 4, 8$ then repeat
-- ❌ Bad: \$2, 2, 2, 2$ (gridding)
+- ✅ 좋음: \$1, 2, 5, 1, 2, 5$ ("Understanding Convolution for Semantic Segmentation"의 HDC 방식)
+- ✅ 좋음: \$1, 2, 4, 8$ 뒤에 되풀이
+- ❌ 나쁨: \$2, 2, 2, 2$ (격자 무늬)
 
-The key insight is that consecutive dilation rates should not share a common factor greater than 1. The HDC (Hybrid Dilated Convolution) pattern ensures all input positions are covered.
+핵심은 잇따른 팽창률이 1보다 큰 공약수를 가지면 안 된다는 것이다. HDC(혼합 팽창 합성곱) 방식은 모든 입력 자리가 덮이도록 해 준다.
 
 ---
 
-## Dilation for Dense Prediction
+## 조밀 예측을 위한 팽창
 
-### The Segmentation Challenge
+### 분할의 어려움
 
-For semantic segmentation, we need:
-1. **Large receptive field**: To understand context (is this pixel part of a cat or a dog?)
-2. **High resolution output**: To preserve fine boundaries
+의미 분할에는 다음이 필요하다.
 
-Standard CNNs face a dilemma:
-- Downsampling (stride/pool) increases receptive field but loses resolution
-- Upsampling recovers resolution but information is already lost
+1. **넓은 수용 영역**: 맥락을 알기 위해 (이 화소는 고양이의 일부인가 개의 일부인가?)
+2. **높은 해상도의 출력**: 섬세한 경계를 지키기 위해
 
-### The Dilated Convolution Solution
+표준 CNN은 딜레마에 놓인다.
 
-Dilated convolutions provide **large receptive field without downsampling**:
+- (보폭이나 풀링으로) 하향 표본화하면 수용 영역은 넓어지지만 해상도를 잃는다
+- 상향 표본화로 해상도는 되찾지만 정보는 이미 사라졌다
+
+### 팽창 합성곱이라는 해법
+
+팽창 합성곱은 **하향 표본화 없이 넓은 수용 영역**을 준다.
 
 ```
 Standard CNN path:
@@ -267,9 +265,9 @@ Input (224×224) → Conv d=1 → (224×224) → Conv d=2 → (224×224) → Con
                                                         [Full resolution preserved!]
 ```
 
-### Multi-Scale Feature Extraction: ASPP
+### 여러 규모의 특징 추출: ASPP
 
-The Atrous Spatial Pyramid Pooling (ASPP) module captures multi-scale context by applying parallel dilated convolutions at different rates:
+아트루스 공간 피라미드 풀링(ASPP) 모듈은 서로 다른 팽창률의 합성곱을 나란히 적용하여 여러 규모의 맥락을 붙잡는다.
 
 ```python
 import torch
@@ -278,20 +276,20 @@ import torch.nn.functional as F
 
 class AtrousSpatialPyramidPooling(nn.Module):
     """
-    ASPP module from DeepLab for multi-scale feature extraction.
-    Uses parallel dilated convolutions with different rates.
+    여러 규모의 특징을 뽑는 DeepLab의 ASPP 모듈.
+    팽창률이 서로 다른 합성곱을 나란히 쓴다.
     """
     def __init__(self, in_channels, out_channels, rates=[6, 12, 18]):
         super().__init__()
         
-        # 1x1 convolution (global features)
+        # 1x1 합성곱 (전역 특징)
         self.conv1x1 = nn.Sequential(
             nn.Conv2d(in_channels, out_channels, 1, bias=False),
             nn.BatchNorm2d(out_channels),
             nn.ReLU(inplace=True)
         )
         
-        # Dilated convolutions at different rates
+        # 팽창률이 서로 다른 팽창 합성곱들
         self.dilated_convs = nn.ModuleList([
             nn.Sequential(
                 nn.Conv2d(in_channels, out_channels, 3, 
@@ -302,7 +300,7 @@ class AtrousSpatialPyramidPooling(nn.Module):
             for rate in rates
         ])
         
-        # Global average pooling (image-level features)
+        # 전역 평균 풀링 (이미지 수준 특징)
         self.global_pool = nn.Sequential(
             nn.AdaptiveAvgPool2d(1),
             nn.Conv2d(in_channels, out_channels, 1, bias=False),
@@ -310,8 +308,8 @@ class AtrousSpatialPyramidPooling(nn.Module):
             nn.ReLU(inplace=True)
         )
         
-        # Final 1x1 convolution to combine features
-        num_features = 1 + len(rates) + 1  # 1x1 + dilated convs + global pool
+        # 특징을 엮는 마지막 1x1 합성곱
+        num_features = 1 + len(rates) + 1  # 1x1과 팽창 합성곱들과 전역 풀링
         self.project = nn.Sequential(
             nn.Conv2d(out_channels * num_features, out_channels, 1, bias=False),
             nn.BatchNorm2d(out_channels),
@@ -321,48 +319,47 @@ class AtrousSpatialPyramidPooling(nn.Module):
     def forward(self, x):
         size = x.shape[2:]
         
-        # Apply all branches
+        # 모든 가지 적용
         features = [self.conv1x1(x)]
         features += [conv(x) for conv in self.dilated_convs]
         
-        # Global pooling branch (upsampled to match size)
+        # 전역 풀링 가지 (크기를 맞추려고 상향 표본화)
         global_feat = self.global_pool(x)
         global_feat = F.interpolate(global_feat, size=size, mode='bilinear', 
                                    align_corners=False)
         features.append(global_feat)
         
-        # Concatenate and project
+        # 이어 붙인 뒤 사영
         x = torch.cat(features, dim=1)
         x = self.project(x)
         
         return x
 
-
-# Test ASPP module
+# ASPP 모듈 시험
 aspp = AtrousSpatialPyramidPooling(256, 256, rates=[6, 12, 18])
 x = torch.randn(2, 256, 28, 28)
 out = aspp(x)
-print(f"ASPP: {x.shape} → {out.shape}")  # Same spatial dimensions
+print(f"ASPP: {x.shape} → {out.shape}")  # 공간 차원이 같다
 print(f"Parameters: {sum(p.numel() for p in aspp.parameters()):,}")
 ```
 
 ---
 
-## WaveNet and Temporal Dilation
+## WaveNet과 시간 방향 팽창
 
-### The Audio Challenge
+### 음향의 어려움
 
-Audio signals require extremely long receptive fields (seconds of audio at 16kHz = tens of thousands of samples). Standard convolutions would need either impractically large kernels or hundreds of stacked layers.
+음향 신호에는 아주 긴 수용 영역이 필요하다(16kHz에서 몇 초의 음향은 표본 수만 개이다). 표준 합성곱으로 하려면 쓸 수 없을 만큼 큰 핵이나 수백 개의 층이 필요하다.
 
-### Exponential Dilation for Temporal Data
+### 시계열 데이터를 위한 지수 팽창
 
-WaveNet uses **exponentially increasing dilation** for causal 1D convolutions:
+WaveNet은 인과적인 1차원 합성곱에 **지수적으로 커지는 팽창률**을 쓴다.
 
 ```python
 import torch.nn as nn
 
 class DilatedCausalConv1d(nn.Module):
-    """Dilated causal convolution for sequence modeling."""
+    """순차열 모형을 위한 팽창 인과 합성곱."""
     def __init__(self, in_channels, out_channels, kernel_size, dilation):
         super().__init__()
         self.padding = (kernel_size - 1) * dilation
@@ -373,10 +370,10 @@ class DilatedCausalConv1d(nn.Module):
     
     def forward(self, x):
         out = self.conv(x)
-        # Remove right padding to maintain causality
+        # 인과성을 지키려고 오른쪽 덧대기 제거
         return out[:, :, :-self.padding] if self.padding > 0 else out
 
-# Stack with exponentially increasing dilation
+# 팽창률을 지수적으로 키우며 쌓기
 def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
     layers = []
     for i in range(num_layers):
@@ -384,85 +381,86 @@ def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
         layers.append(DilatedCausalConv1d(channels, channels, kernel_size, dilation))
     return nn.Sequential(*layers)
 
-# Receptive field calculation:
-# With K=2 and dilations [1, 2, 4, ..., 512]:
-# RF = 1 + sum(d * (K-1)) = 1 + (1+2+4+...+512) = 1024 samples
+# 수용 영역 계산:
+# K=2이고 팽창률이 [1, 2, 4, ..., 512]일 때:
+# RF = 1 + sum(d * (K-1)) = 1 + (1+2+4+...+512) = 표본 1024개
 ```
 
-This achieves a receptive field of 1024 samples with only 10 layers and constant parameter count per layer. See [1D Convolutions](conv1d.md) for more on temporal convolution architectures.
+이렇게 하면 층 10개와 층마다 일정한 매개변수만으로 표본 1024개의 수용 영역을 얻는다. 시간 방향 합성곱 구조는 [1차원 합성곱](conv1d.md)을 보라.
 
 ---
 
-## Practical Guidelines
+## 실무 지침
 
-### Dilation Selection
+### 팽창률 고르기
 
-| Goal | Dilation | Notes |
+| 목표 | 팽창률 | 참고 |
 |------|----------|-------|
-| Standard convolution | 1 | Default for most layers |
-| Larger receptive field | 2, 4, 8, ... | Use exponentially increasing |
-| Multi-scale features | Multiple rates (ASPP) | For segmentation |
+| 표준 합성곱 | 1 | 대부분의 층에서 기본값 |
+| 더 넓은 수용 영역 | 2, 4, 8, … | 지수적으로 키운다 |
+| 여러 규모의 특징 | 여러 팽창률 (ASPP) | 분할용 |
 
-### Common Dilation Patterns
+### 흔히 쓰는 팽창 방식
 
 ```python
-# Pattern 1: Exponentially increasing (WaveNet-style)
-# Dilation rates: 1, 2, 4, 8, 16
-# Best for: temporal data, large receptive fields
+# 방식 1: 지수적으로 키우기 (WaveNet 방식)
+# 팽창률: 1, 2, 4, 8, 16
+# 알맞은 곳: 시계열 데이터, 넓은 수용 영역
 
-# Pattern 2: ASPP parallel rates
-# Dilation rates: 6, 12, 18 (applied in parallel)
-# Best for: multi-scale segmentation context
+# 방식 2: ASPP의 나란한 팽창률
+# 팽창률: 6, 12, 18 (나란히 적용)
+# 알맞은 곳: 여러 규모의 분할 맥락
 
-# Pattern 3: HDC (no gridding)
-# Dilation rates: 1, 2, 5, 1, 2, 5, ...
-# Best for: dense prediction without artifacts
+# 방식 3: HDC (격자 무늬 없음)
+# 팽창률: 1, 2, 5, 1, 2, 5, …
+# 알맞은 곳: 흠 없는 조밀 예측
 
-# Pattern 4: Sawtooth reset
-# Dilation rates: 1, 2, 4, 8, 1, 2, 4, 8
-# Best for: repeated blocks with fresh coverage
+# 방식 4: 톱니처럼 되돌리기
+# 팽창률: 1, 2, 4, 8, 1, 2, 4, 8
+# 알맞은 곳: 되풀이되는 블록에서 매번 새로 덮기
 ```
 
-### Architecture Design for Dense Prediction
+### 조밀 예측을 위한 구조 설계
 
-For segmentation, the standard approach is to take a classification backbone (e.g., ResNet) and modify it:
-- Remove the last two downsampling stages
-- Replace with dilated convolutions to maintain resolution
-- Add ASPP for multi-scale context
+분할에서는 (ResNet 같은) 분류용 뼈대를 가져와 다음과 같이 고치는 것이 표준적인 방법이다.
+
+- 마지막 두 하향 표본화 단계를 없앤다
+- 해상도를 지키려고 팽창 합성곱으로 갈아 끼운다
+- 여러 규모의 맥락을 위해 ASPP를 더한다
 
 ```python
-# ResNet backbone modification for segmentation
-# Original:  stride=2 at stage 4, stride=2 at stage 5
-# Modified:  dilation=2 at stage 4, dilation=4 at stage 5
+# 분할을 위한 ResNet 뼈대 수정
+# 원래:  4단계에서 stride=2, 5단계에서 stride=2
+# 수정:  4단계에서 dilation=2, 5단계에서 dilation=4
 
-# This preserves 1/8 resolution instead of 1/32:
-# Original:  224 → 112 → 56 → 28 → 14 → 7    (stride 32)
-# Modified:  224 → 112 → 56 → 28 → 28 → 28    (stride 8)
+# 이렇게 하면 해상도가 1/32이 아니라 1/8로 남는다:
+# 원래:  224 → 112 → 56 → 28 → 14 → 7    (보폭 32)
+# 수정:  224 → 112 → 56 → 28 → 28 → 28    (보폭 8)
 ```
 
 ---
 
-## Summary
+## 요약
 
-| Aspect | Description |
+| 항목 | 설명 |
 |--------|-------------|
-| **Operation** | Standard convolution with gaps between kernel elements |
-| **Effective kernel** | $K_{eff} = d(K-1) + 1$ |
-| **Parameters** | Same as standard (dilation is free!) |
-| **Key benefit** | Exponential receptive field growth with constant parameters |
-| **Main pitfall** | Gridding artifacts from repeated same-rate dilation |
-| **Primary use** | Semantic segmentation, audio, any task needing large RF at full resolution |
+| **연산** | 핵의 원소 사이에 틈을 둔 표준 합성곱 |
+| **실효 핵** | $K_{eff} = d(K-1) + 1$ |
+| **매개변수** | 표준과 같음 (팽창은 공짜다!) |
+| **핵심 이점** | 매개변수는 그대로 두고 수용 영역이 지수적으로 넓어진다 |
+| **주된 함정** | 같은 팽창률을 되풀이할 때 생기는 격자 무늬 흠 |
+| **주된 쓰임** | 의미 분할, 음향, 온전한 해상도에서 넓은 수용 영역이 필요한 과제 |
 
-## Key Takeaways
+## 핵심 정리
 
-1. **Dilation expands the receptive field** by inserting gaps between kernel elements—no additional parameters
-2. **Exponential stacking** ($d = 1, 2, 4, 8, ...$) achieves massive receptive fields with very few layers
-3. **The gridding problem** occurs when stacking same-rate dilations—use varying rates to ensure full coverage
-4. **ASPP** captures multi-scale context by applying parallel dilated convolutions at different rates
-5. **For dense prediction**, replacing downsampling with dilation preserves spatial resolution while maintaining large receptive fields
-6. **WaveNet-style architectures** use dilated causal convolutions for efficient temporal modeling
+1. **팽창은 핵의 원소 사이에 틈을 넣어 수용 영역을 넓힌다.** 매개변수는 더 들지 않는다
+2. **지수적으로 쌓으면**($d = 1, 2, 4, 8, \dots$) 아주 적은 층으로 거대한 수용 영역을 얻는다
+3. **격자 무늬 문제**는 같은 팽창률을 쌓을 때 생긴다. 팽창률을 바꾸어 가며 써서 빠짐없이 덮어라
+4. **ASPP**는 서로 다른 팽창률의 합성곱을 나란히 적용하여 여러 규모의 맥락을 붙잡는다
+5. **조밀 예측에서는** 하향 표본화를 팽창으로 갈아 끼우면 넓은 수용 영역을 지키면서 공간 해상도도 지킬 수 있다
+6. **WaveNet 방식의 구조**는 인과적인 팽창 합성곱으로 시간 방향을 효율적으로 다룬다
 
-## References
+## 참고 문헌
 
 1. Yu, F., & Koltun, V. (2016). Multi-scale context aggregation by dilated convolutions. *ICLR 2016*.
 
@@ -473,3 +471,39 @@ For segmentation, the standard approach is to take a classification backbone (e.
 4. Wang, P., et al. (2018). Understanding convolution for semantic segmentation. *WACV 2018*.
 
 5. Dumoulin, V., & Visin, F. (2016). A guide to convolution arithmetic for deep learning. *arXiv preprint arXiv:1603.07285*.
+
+## 연습문제
+
+**연습문제 1.**
+핵 크기가 3이고 팽창률이 1, 2, 4인 팽창 합성곱 세 층의 수용 영역을 계산하라.
+
+??? success "연습문제 1 풀이"
+    RF $= 1 + \sum_{l} (k-1) \cdot d_l = 1 + 2(1) + 2(2) + 2(4) = 1 + 2 + 4 + 8 = 15$이다. 팽창 층 세 개는 수용 영역 15를 이루지만 표준 층 세 개는 7에 그친다.
+
+---
+
+**연습문제 2.**
+팽창 합성곱의 '격자 무늬 흠' 문제와 그것을 누그러뜨리는 방법을 설명하라.
+
+??? success "연습문제 2 풀이"
+    팽창률이 크면 핵이 멀찍이 떨어진 자리에서만 표본을 얻어 지역 정보를 놓친다(바둑판 무늬). 누그러뜨리는 방법: (1) 1,2,5,1,2,5처럼 고르지 않은 팽창률을 쓰는 혼합 팽창 합성곱(HDC)을 쓴다, (2) 팽창 층 사이에 표준 합성곱을 넣는다, (3) 변형 가능 합성곱을 쓴다.
+
+---
+
+**연습문제 3.**
+팽창 합성곱을 PyTorch로 구현하고 출력마다 어느 입력 자리가 이바지하는지 그려 보라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    conv = nn.Conv2d(1, 1, kernel_size=3, dilation=2, padding=2)
+    # dilation=2이면 3x3 핵이 5x5 넓이를 걸친다
+    # (한 칸 걸러 표본을 얻는다)
+    ```
+
+---
+
+**연습문제 4.**
+수용 영역을 넓히는 방법으로 팽창 합성곱과 풀링을 견주어라. 팽창의 이점은 무엇인가?
+
+??? success "연습문제 4 풀이"
+    풀링은 하향 표본화로 수용 영역을 넓히지만 공간 해상도를 잃는다. 팽창은 하향 표본화 없이 수용 영역을 넓혀 온전한 해상도를 지킨다. 출력이 입력 해상도와 같아야 하는 조밀 예측 과제(분할, 깊이 추정)에는 팽창이 꼭 필요하다.

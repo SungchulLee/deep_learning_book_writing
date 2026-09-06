@@ -1,70 +1,60 @@
-# Sudoku Solver
+# 스도쿠 풀개
 
-Sudoku is a constraint-satisfaction puzzle that maps naturally onto the backtracking
-framework.  Every cell must satisfy three independent constraints simultaneously —
-row, column, and box uniqueness — making it an ideal testbed for techniques like
-incremental feasibility checking, constraint propagation, and variable-ordering
-heuristics.  Understanding how backtracking solves Sudoku reveals patterns that
-generalize to any constraint-satisfaction problem.
+스도쿠는 되짚기 얼거리에 자연스럽게 맞닿는 제약 채우기 퍼즐이다. 칸마다 서로 얽히지 않은 제약 셋, 곧 가로줄, 세로줄, 상자의 유일함을 한꺼번에 채워야 하므로 조금씩 될 수 있는지 살피기, 제약 퍼뜨리기, 변수 차례 어림짐작 같은 재주를 시험하기에 안성맞춤이다. 되짚기가 스도쿠를 어떻게 푸는지 알면 어떤 제약 채우기 문제에나 통하는 결이 드러난다.
 
-## Problem Statement
+## 문제 서술
 
-**Input.** A $9 \times 9$ grid partially filled with digits from 1 to 9.
+**들임.** 1부터 9까지 숫자로 일부만 채운 $9 \times 9$ 격자.
 
-**Output.** A completed grid such that every row, every column, and every
-$3 \times 3$ box contains each digit from 1 to 9 exactly once.
+**내놓기.** 가로줄, 세로줄, $3 \times 3$ 상자마다 1부터 9까지 숫자가 꼭 한 번씩 들어간 다 채운 격자.
 
-A well-posed Sudoku puzzle has exactly one solution.  The constraint structure can
-be stated formally: let $x_{r,c} \in \{1, \ldots, 9\}$ denote the value in row $r$,
-column $c$.  The three constraint families are:
+제대로 낸 스도쿠 퍼즐에는 풀이가 꼭 하나 있다. 제약의 짜임은 엄밀히 이렇게 적을 수 있다. $x_{r,c} \in \{1, \ldots, 9\}$을 가로줄 $r$, 세로줄 $c$의 값이라 하자. 제약 집안 셋은 다음과 같다:
 
-- **Row**: $x_{r,c_1} \neq x_{r,c_2}$ for all $c_1 \neq c_2$.
-- **Column**: $x_{r_1,c} \neq x_{r_2,c}$ for all $r_1 \neq r_2$.
-- **Box**: within each $3 \times 3$ sub-grid, all nine values are distinct.
+- **가로줄**: 모든 $c_1 \neq c_2$에 대해 $x_{r,c_1} \neq x_{r,c_2}$.
+- **세로줄**: 모든 $r_1 \neq r_2$에 대해 $x_{r_1,c} \neq x_{r_2,c}$.
+- **상자**: $3 \times 3$ 아래 격자마다 아홉 값이 모두 다르다.
 
-## Backtracking Formulation
+## 되짚기로 세우기
 
-### State Space Tree
+### 상태 공간 나무
 
-- **Decisions**: fill the empty cells one by one, left-to-right, top-to-bottom
-  (or in any fixed order).
-- **Branching factor**: up to 9 at each empty cell (before pruning).
-- **Full tree size**: up to $9^{k}$ leaves, where $k$ is the number of empty cells
-  (typically $k \approx 50$–60 for a standard puzzle).
+- **결정**: 빈 칸을 왼쪽에서 오른쪽, 위에서 아래로(또는 정해진 아무 차례로) 하나씩 채운다.
+- **갈래 수**: 빈 칸마다 최대 9(가지치기 앞).
+- **온전한 나무 크기**: 잎이 최대 $9^{k}$개이며 $k$은 빈 칸의 수이다(여느 퍼즐에서 흔히 $k \approx 50$~60).
 
-### Feasibility Check
+### 될 수 있는지 살피기
 
-After placing digit $d$ in cell $(r, c)$, check:
+칸 $(r, c)$에 숫자 $d$을 놓은 뒤 다음을 살핀다:
 
-1. Is $d$ already in row $r$?
-2. Is $d$ already in column $c$?
-3. Is $d$ already in the $3 \times 3$ box containing $(r, c)$?
+1. $d$이 이미 가로줄 $r$에 있는가?
+2. $d$이 이미 세로줄 $c$에 있는가?
+3. $d$이 이미 $(r, c)$이 든 $3 \times 3$ 상자에 있는가?
 
-The box index for cell $(r, c)$ is
+칸 $(r, c)$의 상자 번호는 다음과 같다
 
 $$
 b = 3 \left\lfloor \frac{r}{3} \right\rfloor + \left\lfloor \frac{c}{3} \right\rfloor
 $$
 
-### Constant-Time Checks with Bitmasks
+### 비트 가림막으로 하는 상수 시간 살피기
 
-Maintain three arrays of bitmasks:
+비트 가림막 배열 셋을 둔다:
 
-| Array | Size | Bit $d$ is set when |
+| 배열 | 크기 | 비트 $d$이 서는 때 |
 |-------|------|---------------------|
-| `row_used[r]` | 9 | Digit $d$ appears in row $r$ |
-| `col_used[c]` | 9 | Digit $d$ appears in column $c$ |
-| `box_used[b]` | 9 | Digit $d$ appears in box $b$ |
+| `row_used[r]` | 9 | 숫자 $d$이 가로줄 $r$에 나온다 |
+| `col_used[c]` | 9 | 숫자 $d$이 세로줄 $c$에 나온다 |
+| `box_used[b]` | 9 | 숫자 $d$이 상자 $b$에 나온다 |
 
-Placing digit $d$ in cell $(r, c)$ is feasible if and only if
+칸 $(r, c)$에 숫자 $d$을 놓을 수 있을 필요충분조건은 다음이다
 
 $$
 \text{row\_used}[r] \;\mathbin{\&}\; (1 \ll d) = 0 \quad\text{and}\quad \text{col\_used}[c] \;\mathbin{\&}\; (1 \ll d) = 0 \quad\text{and}\quad \text{box\_used}[b] \;\mathbin{\&}\; (1 \ll d) = 0
 $$
 
-Each check is a single bitwise AND — $O(1)$ per check.
+살피기마다 비트 AND 한 번이므로 $O(1)$이다.
 
-## Algorithm
+## 알고리즘
 
 ```
 SOLVE_SUDOKU(grid):
@@ -85,26 +75,26 @@ SOLVE_SUDOKU(grid):
     return False                        // no digit works — backtrack
 ```
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Sudoku solver using backtracking with bitmask feasibility checks.
+비트 가림막으로 될 수 있는지 살피는 되짚기 스도쿠 풀개.
 
-Fills empty cells (marked as 0) one by one, backtracking whenever
-no valid digit can be placed.
+빈 칸(0으로 표시)을 하나씩 채우며 놓을 수 있는 숫자가 없으면
+되짚는다.
 """
 
 
-# === Solver ===================================================================
+# === 풀개 ===================================================================
 
 def solve_sudoku(board):
-    """Solve the puzzle in place.  Return True if a solution exists."""
+    """퍼즐을 제자리에서 푼다. 풀이가 있으면 True을 돌려준다."""
     row_used = [0] * 9
     col_used = [0] * 9
     box_used = [0] * 9
 
-    # Initialize bitmasks from the given clues
+    # 주어진 실마리로 비트 가림막을 첫자리매김한다
     for r in range(9):
         for c in range(9):
             d = board[r][c]
@@ -116,7 +106,7 @@ def solve_sudoku(board):
                 box_used[b] |= bit
 
     def backtrack():
-        # Find the next empty cell
+        # 다음 빈 칸을 찾는다
         for r in range(9):
             for c in range(9):
                 if board[r][c] == 0:
@@ -139,16 +129,16 @@ def solve_sudoku(board):
                             col_used[c] ^= bit
                             box_used[b] ^= bit
 
-                    return False  # no digit works — backtrack
-        return True  # no empty cell — solved
+                    return False  # 쓸 수 있는 숫자가 없다 — 되짚는다
+        return True  # 빈 칸이 없다 — 풀렸다
 
     return backtrack()
 
 
-# === Display ==================================================================
+# === 보이기 ==================================================================
 
 def print_board(board):
-    """Pretty-print a 9x9 Sudoku board."""
+    """9x9 스도쿠 판을 보기 좋게 찍는다."""
     for r in range(9):
         if r > 0 and r % 3 == 0:
             print("------+-------+------")
@@ -161,7 +151,7 @@ def print_board(board):
     print()
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     puzzle = [
@@ -186,7 +176,7 @@ if __name__ == "__main__":
         print("No solution exists.")
 ```
 
-**Output:**
+**출력:**
 ```
 Puzzle:
 5 3 0 | 0 7 0 | 0 0 0
@@ -215,57 +205,73 @@ Solution:
 3 4 5 | 2 8 6 | 1 7 9
 ```
 
-## Optimization: Variable Ordering
+## 가장 좋게 하기: 변수 차례 매기기
 
-The basic algorithm fills cells left-to-right, top-to-bottom.  A significant
-improvement is the **most-constrained variable** (MCV) heuristic: always fill the
-empty cell that has the fewest remaining legal digits.
+기본 알고리즘은 칸을 왼쪽에서 오른쪽, 위에서 아래로 채운다. 크게 나아지는 길은 **제약이 가장 많은 변수**(MCV) 어림짐작이다. 곧 쓸 수 있는 숫자가 가장 적게 남은 빈 칸을 늘 먼저 채운다.
 
-The MCV heuristic works because:
+이 어림짐작이 통하는 까닭은 다음과 같다:
 
-- A cell with only one legal digit has **no branching** — the digit is forced.
-- A cell with two legal digits has branching factor 2 instead of up to 9.
-- Choosing the most constrained cell first maximizes the chance of early failure,
-  which prunes larger subtrees higher in the search tree.
+- 쓸 수 있는 숫자가 하나뿐인 칸은 **가지가 뻗지 않는다**. 숫자가 정해져 있다.
+- 쓸 수 있는 숫자가 둘인 칸은 갈래 수가 최대 9가 아니라 2이다.
+- 제약이 가장 많은 칸을 먼저 고르면 일찍 어긋날 가능성이 커져 찾기 나무의 위쪽에서 더 큰 아래 나무를 쳐 낸다.
 
-With MCV ordering, most well-posed Sudoku puzzles are solved with zero or very few
-backtracks.
+제약이 가장 많은 변수 차례를 쓰면 제대로 낸 스도쿠 퍼즐 대부분이 되짚기 없이 또는 아주 적은 되짚기로 풀린다.
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Time complexity.** In the worst case, the algorithm explores up to $9^k$ nodes,
-where $k$ is the number of empty cells.  With bitmask feasibility checks each node
-costs $O(1)$, giving
+**시간 복잡도.** 최악의 경우 알고리즘이 마디를 최대 $9^k$개 살피며 $k$은 빈 칸의 수이다. 비트 가림막으로 될 수 있는지 살피면 마디마다 $O(1)$이 들어 다음을 얻는다
 
 $$
 T = O(9^k)
 $$
 
-In practice, pruning and constraint propagation reduce the search to a tiny fraction
-of this bound.  Hard puzzles typically require exploring a few thousand nodes;
-most standard puzzles require fewer than one hundred.
+실전에서는 가지치기와 제약 퍼뜨리기가 찾기를 이 한계의 아주 작은 몫으로 줄인다. 어려운 퍼즐은 흔히 마디 수천 개를, 여느 퍼즐은 백 개도 안 되게 살핀다.
 
-**Space complexity.** The recursion depth is at most $k \leq 81$, and the auxiliary
-bitmask arrays use $O(1)$ space (fixed at 27 integers).  Total space is $O(1)$
-beyond the board itself.
+**공간 복잡도.** 되돌이 깊이는 많아야 $k \leq 81$이고 딸림 비트 가림막 배열은 $O(1)$ 공간(정수 27개로 고정)을 쓴다. 판 자체를 빼면 전체 공간은 $O(1)$이다.
 
-## Constraint Propagation
+## 제약 퍼뜨리기
 
-Pure backtracking can be enhanced with **constraint propagation**, which deduces
-forced values without branching:
+수수한 되짚기에 **제약 퍼뜨리기**를 더할 수 있다. 이는 가지를 뻗지 않고 정해진 값을 이끌어 낸다:
 
-1. **Naked singles**: if a cell has only one legal digit, assign it immediately.
-2. **Hidden singles**: if a digit can appear in only one cell within a row, column,
-   or box, assign it to that cell.
+1. **드러난 홑값**: 칸에 쓸 수 있는 숫자가 하나뿐이면 곧바로 매긴다.
+2. **숨은 홑값**: 어떤 숫자가 가로줄, 세로줄, 상자 안에서 오직 한 칸에만 들어갈 수 있으면 그 칸에 매긴다.
 
-After each assignment, propagate constraints to neighboring cells.  If any cell's
-legal-digit set becomes empty, backtrack immediately.  This combination of
-backtracking and propagation is the basis of efficient Sudoku solvers like
-Peter Norvig's well-known Python solver, which handles even the hardest known
-puzzles in milliseconds.
+매길 때마다 이웃 칸으로 제약을 퍼뜨린다. 어떤 칸의 쓸 수 있는 숫자 모임이 비면 곧바로 되짚는다. 되짚기와 퍼뜨리기를 아우른 이 방식이 피터 노빅의 널리 알려진 파이썬 풀개 같은 효율 좋은 스도쿠 풀개의 바탕이며, 가장 어려운 퍼즐도 밀리초 만에 다룬다.
 
-## Reference
+## 참고 문헌
 
-- Skiena, *The Algorithm Design Manual*, Chapter 9: Combinatorial Search,
+- Skiena, *The Algorithm Design Manual*, 9장: Combinatorial Search,
   [algorist.com](https://www.algorist.com/)
 - Norvig, "Solving Every Sudoku Puzzle," [norvig.com](https://norvig.com/sudoku.html)
+
+## 연습문제
+
+**연습문제 1.**
+스도쿠 풀개의 고갱이 생각과 그것이 풀이 공간을 어떻게 짜임새 있게 살피는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    스도쿠 풀개은 풀이 공간을 나무로 보고 살피며 마디마다 어중간한 풀이를 뜻한다. 마디마다 알고리즘은 어중간한 풀이를 넓히고 될 수 있는지 제약을 살핀다. 어중간한 풀이가 제약을 어기거나 (가장 좋거나 옳은 온전한 풀이로 이어질 수 없음이 밝혀지면) 알고리즘은 **가지를 쳐**(되짚어) 그 아래 나무 전체를 살피지 않는다. 가지치기가 찾기 공간의 큰 몫을 없애므로 막무가내보다 효율이 좋다. $\square$
+
+---
+
+**연습문제 2.**
+스도쿠 풀개의 최악의 경우 시간 복잡도는 무엇인가? 가지치기는 언제 찾기 공간을 크게 줄이는가?
+
+??? success "연습문제 2 풀이"
+    최악의 경우(가지치기가 없으면) 알고리즘이 풀이 공간 전체를 살피며 이는 흔히 지수나 계승이다. 곧 갈래 수가 $b$이고 깊이가 $d$이면 $O(b^d)$, 자리 바꿈 문제이면 $O(n!)$이다. 가지치기는 다음일 때 찾기를 크게 줄인다. (1) 제약이 빡빡해 될 수 없는 갈래가 많을 때, (2) 좋은 묶음이 갈래를 일찍 없앨 때, (3) 차례를 매기는 어림짐작이 그럴듯한 갈래를 먼저 살필 때이다. 실전에서 가지치기는 도는 시간을 자릿수만큼 줄일 수 있다. $\square$
+
+---
+
+**연습문제 3.**
+스도쿠 풀개의 가지치기 조건을 적어라. 무엇이 좋은 가지치기 잣대를 만드는가?
+
+??? success "연습문제 3 풀이"
+    가지치기 잣대는 어중간한 풀이를 언제 버릴지 정한다. 좋은 잣대는 다음과 같다. (1) **될 수 있음**: 어중간한 풀이가 이미 제약을 어긴다. (2) **묶음**: 어중간한 풀이를 가장 좋게 마무리해도 여태 가장 좋은 풀이보다 나을 수 없다. (3) **누름**: 다른 어중간한 풀이가 적어도 그만큼 좋음이 밝혀진다. 잘 듣는 가지치기 잣대는 따지기 값싸고 큰 아래 나무를 없앤다. $\square$
+
+---
+
+**연습문제 4.**
+작은 경우에 스도쿠 풀개을 짜고 살핀 마디의 수를 전체 찾기 공간의 크기와 견주어 세어라.
+
+??? success "연습문제 4 풀이"
+    작은 경우(예컨대 N-여왕에서 $n = 8$, 배낭에서 담이 20)에는 전체 찾기 공간에 마디가 수백만 개일 수 있지만 가지치기가 잘 들면 수천 개만 살핀다. (살핀 수 / 전체) 비가 가지치기가 얼마나 잘 드는지 값으로 나타낸다. 제약이 잘 걸린 문제에서는 이 비가 1% 아래일 수 있어 되짚기가 막무가내보다 힘이 셈을 보여 준다. $\square$

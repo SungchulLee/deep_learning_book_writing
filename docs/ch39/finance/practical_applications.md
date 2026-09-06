@@ -1,9 +1,4 @@
 # Practical Applications of Model Uncertainty
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Introduction
 
 Uncertainty quantification transforms predictions from point estimates into probability distributions, enabling a range of practical applications. This section covers the most impactful uses of uncertainty in production systems.
@@ -294,6 +289,7 @@ def compare_acquisition_functions():
 ### The Concept
 
 Instead of predicting on all inputs, reject predictions when uncertainty is high:
+
 - **Accept**: uncertainty < threshold → make prediction
 - **Reject**: uncertainty ≥ threshold → abstain (request human review)
 
@@ -647,6 +643,7 @@ def ood_detection_example():
 ## Key Takeaways
 
 !!! success "Summary"
+
     1. **Active Learning**: Use uncertainty to select most informative samples (50-70% label savings)
     2. **Selective Prediction**: Reject uncertain predictions for human review
     3. **OOD Detection**: High uncertainty indicates out-of-distribution inputs
@@ -661,6 +658,12 @@ def ood_detection_example():
 | OOD Detection | Combine uncertainty with other signals (e.g., reconstruction error) |
 | Production | Log uncertainty distributions, alert on drift |
 
+## References
+
+- Gal, Y., et al. (2017). "Deep Bayesian Active Learning with Image Data"
+- Geifman, Y., & El-Yaniv, R. (2017). "Selective Classification for Deep Neural Networks"
+- Hendrycks, D., & Gimpel, K. (2017). "A Baseline for Detecting Misclassified and Out-of-Distribution Examples"
+
 ## Exercises
 
 1. **Active Learning Comparison**: Compare random, entropy, and BALD acquisition on CIFAR-10. Plot learning curves.
@@ -668,9 +671,3 @@ def ood_detection_example():
 2. **Selective Prediction**: Find the threshold that achieves 99% accuracy on MNIST. What coverage do you get?
 
 3. **OOD Detection**: Train on CIFAR-10, test on SVHN. How well does uncertainty distinguish them?
-
-## References
-
-- Gal, Y., et al. (2017). "Deep Bayesian Active Learning with Image Data"
-- Geifman, Y., & El-Yaniv, R. (2017). "Selective Classification for Deep Neural Networks"
-- Hendrycks, D., & Gimpel, K. (2017). "A Baseline for Detecting Misclassified and Out-of-Distribution Examples"

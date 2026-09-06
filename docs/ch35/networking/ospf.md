@@ -149,3 +149,43 @@ The routing table shows that Router 0 reaches Router 1 via Router 2 (cost 3) rat
 
 - Moy, J. "OSPF Version 2." RFC 2328, 1998
 - Cormen, T.H., Leiserson, C.E., Rivest, R.L., and Stein, C. *Introduction to Algorithms*. MIT Press
+
+## Exercises
+
+**Exercise 1.**
+Explain how OSPF routers build the link-state database and why Dijkstra's algorithm is applied locally rather than globally.
+
+??? success "Solution to Exercise 1"
+    Each OSPF router creates a Link-State Advertisement (LSA) describing its directly connected links and their costs. LSAs are flooded to all routers in the area using reliable flooding (each router forwards received LSAs to all neighbors except the sender). After flooding converges, every router has an identical link-state database containing all LSAs -- a complete graph description. Each router then independently runs Dijkstra's algorithm on this database to compute shortest paths from itself to all destinations. The algorithm is applied locally because each router needs shortest paths from its own perspective (as the source). The global topology is the same everywhere, but the shortest-path tree differs for each source. This local computation avoids centralized coordination and is robust to individual router failures. $\square$
+
+---
+
+**Exercise 2.**
+A network has 5 routers (A-E) with links: A-B(1), A-C(4), B-C(2), B-D(5), C-D(1), C-E(6), D-E(2). Compute the shortest-path tree from router A using Dijkstra's algorithm.
+
+??? success "Solution to Exercise 2"
+    Initialize: dist[A]=0, all others $\infty$. Step 1: process A. Update: dist[B]=1, dist[C]=4. Step 2: process B (dist=1). Update: dist[C]=min(4, 1+2)=3, dist[D]=min($\infty$, 1+5)=6. Step 3: process C (dist=3). Update: dist[D]=min(6, 3+1)=4, dist[E]=min($\infty$, 3+6)=9. Step 4: process D (dist=4). Update: dist[E]=min(9, 4+2)=6. Step 5: process E (dist=6). Shortest-path tree from A: A$\to$B (cost 1), A$\to$B$\to$C (cost 3), A$\to$B$\to$C$\to$D (cost 4), A$\to$B$\to$C$\to$D$\to$E (cost 6). Router A installs these as its routing table entries. $\square$
+
+---
+
+**Exercise 3.**
+OSPF uses areas to scale to large networks. Explain how area partitioning reduces the computational cost of Dijkstra's algorithm.
+
+??? success "Solution to Exercise 3"
+    Without areas, every router runs Dijkstra on the full network graph with $V$ vertices and $E$ edges, costing $O(V \log V + E)$ per router. With $V = 10{,}000$, this is expensive and must be repeated whenever any link changes. OSPF divides the network into areas. Each router only maintains the full topology of its own area and summary routes from other areas (advertised by area border routers). If the network is divided into $k$ areas of $\sim V/k$ routers each, Dijkstra runs on a graph of size $V/k + k$ (local nodes plus inter-area summaries). For $k = 100$ and $V = 10{,}000$: each router processes $\sim 200$ nodes instead of 10,000 -- a 50x reduction. Link changes in one area trigger Dijkstra only in that area, not network-wide. $\square$
+
+---
+
+**Exercise 4.**
+Compare OSPF (Dijkstra-based) with RIP (Bellman-Ford-based) in terms of convergence speed, message overhead, and suitability for large networks.
+
+??? success "Solution to Exercise 4"
+    **Convergence speed**: OSPF converges in seconds (LSA flooding + one Dijkstra run). RIP converges slowly (distance vectors propagate hop-by-hop, with $O(\text{diameter})$ iterations, each separated by 30-second update intervals). The "count to infinity" problem further delays RIP convergence on link failures. **Message overhead**: OSPF floods LSAs to all routers (high initial cost but triggered only by changes). RIP sends full routing tables to neighbors every 30 seconds regardless of changes (steady overhead). **Scalability**: OSPF scales to large networks via area hierarchies. RIP is limited to 15 hops (infinity = 16) and does not support hierarchical routing. OSPF is the standard for enterprise and ISP networks; RIP is suitable only for small networks. $\square$
+
+---
+
+**Exercise 5.**
+A network link between routers B and C fails. Describe the sequence of events in OSPF from failure detection to routing table convergence.
+
+??? success "Solution to Exercise 5"
+    (1) **Detection**: routers B and C stop receiving Hello packets from each other (default dead interval: 40 seconds, or faster with BFD at $\sim$50 ms). Each declares the link down. (2) **LSA generation**: B and C each generate new LSAs omitting the B-C link and increment their sequence numbers. (3) **Flooding**: the new LSAs are flooded throughout the area. Each router receiving a newer LSA forwards it to all neighbors, ensuring all routers update within $\sim$1 second. (4) **SPF computation**: each router detects the LSA change, schedules a Dijkstra recomputation (with a throttle delay of $\sim$200 ms to batch changes), and runs Dijkstra on the updated link-state database. (5) **Routing table update**: new shortest paths that avoid the B-C link are installed. Traffic is rerouted. Total convergence time: $\sim$1--2 seconds with tuned timers, or $\sim$40 seconds with default Hello timers. $\square$

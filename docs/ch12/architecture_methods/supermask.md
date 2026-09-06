@@ -1,105 +1,101 @@
-# Supermask in Superposition for Continual Learning
+# 이어 배우기를 위한 겹쳐 놓은 초가리개
+## 들어가며
 
+겹쳐 놓은 초가리개는 이어 배우기에 우아하게 다가가는 방법으로, 얼려 둔 바탕 망 하나에서 이진 가리개가 과제마다 부분 망을 골라낸다. 망의 용량을 늘리거나 과제마다 따로 모듈을 붙이는 대신, 초가리개는 망의 이음을 가려 켜는 것만으로 여러 과제를 나타낸다. 이 접근법은 파국적 잊음을 아예 없애면서도 매개변수를 놀랍도록 아낀다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+핵심 통찰은 넉넉히 큰 무작위 망 안에 서로 다른 과제를 풀 수 있는 부분 망이 여럿 들어 있다는 것이다. 밑바탕 가중치를 건드리지 않고 과제마다의 부분 망을 골라내는 이진 가리개를 배우면, 모델은 앞서 배운 과제를 하나도 잃지 않으면서 새 과제를 더할 수 있다.
 
-## Introduction
+## 핵심 개념
 
-Supermask in Superposition presents an elegant approach to continual learning where binary masks select subnetworks from a single, frozen base network for different tasks. Rather than expanding network capacity or allocating separate modules per task, supermasks enable representing multiple tasks through selective activation of network connections. This approach achieves zero catastrophic forgetting while maintaining remarkable parameter efficiency.
+- **이진 가리개**: 살아 있는 매개변수를 골라내는 성분마다의 이진 표시
+- **얼린 바탕 망**: 아무렇게나 초기화한 뒤 고정한 망의 알맹이
+- **부분 망 배우기**: 과제마다의 부분 망을 찾도록 가리개를 최적화한다
+- **겹쳐 놓기**: 가리개 여럿을 같은 바탕 망 위에 포갠다
+- **매개변수 아끼기**: 새 망을 만드는 것에 견주어 과제마다 드는 매개변수가 아주 적다
+- **잊음 없음**: 앞선 과제의 가리개는 새 과제에도 그대로이다
 
-The core insight is that a sufficiently large random network contains many different subnetworks, each capable of solving different tasks. By learning binary masks that select task-specific subnetworks without modifying underlying weights, models maintain all previously learned tasks perfectly while adding new ones.
+## 수학적 틀
 
-## Key Concepts
+### 초가리개의 정의
 
-- **Binary Masks**: Element-wise binary indicators selecting active parameters
-- **Frozen Base Network**: Fixed, randomly-initialized network core
-- **Subnetwork Learning**: Optimize masks to find task-specific subnetworks
-- **Superposition**: Multiple masks overlay on same base network
-- **Parameter Efficiency**: Minimal parameters per task compared to new networks
-- **Zero Forgetting**: Previous task masks remain unchanged for new tasks
-
-## Mathematical Framework
-
-### Supermask Definition
-
-For task $t$, mask $m^{(t)} \in \{0,1\}^{n}$ selects subnetwork:
+과제 $t$에서 가리개 $m^{(t)} \in \{0,1\}^{n}$이 부분 망을 골라낸다.
 
 $$f_t(\mathbf{x}) = \text{Net}_{\text{frozen}}(\mathbf{x}; m^{(t)} \odot W)$$
 
-where:
-- $W$ are frozen base network weights
-- $m^{(t)} \odot W$ denotes element-wise masking
-- $\odot$ is Hadamard product
+여기서 각 기호는 다음과 같다.
 
-### Learning Masks
+- $W$은 얼린 바탕 망의 가중치이다
+- $m^{(t)} \odot W$은 성분마다 가리는 것을 뜻한다
+- $\odot$은 아다마르 곱이다
 
-Rather than learning discrete masks directly (non-differentiable), learn mask parameters:
+### 가리개 배우기
+
+(미분할 수 없는) 낱낱의 가리개를 곧바로 배우는 대신 가리개 매개변수를 배운다.
 
 $$m^{(t)} = \text{Bernoulli}(p^{(t)})$$
 
-where $p^{(t)} \in [0,1]^n$ are learned probabilities, and $\text{Bernoulli}(\cdot)$ samples binary masks at test time.
+여기서 $p^{(t)} \in [0,1]^n$은 배운 확률이고, $\text{Bernoulli}(\cdot)$은 시험 때 이진 가리개를 뽑는다.
 
-### Training Objective
+### 학습 목표
 
-For task $t$, optimize mask parameters $p^{(t)}$ while keeping base weights $W$ frozen:
+과제 $t$에서는 바탕 가중치 $W$을 얼려 둔 채 가리개 매개변수 $p^{(t)}$을 최적화한다.
 
 $$p^{(t)*} = \arg\min_{p^{(t)}} \mathbb{E}_{m^{(t)} \sim \text{Bernoulli}(p^{(t)})} [\mathcal{L}_t(\text{Net}_{\text{frozen}}(\mathbf{x}; m^{(t)} \odot W))]$$
 
-## Mask Learning Strategy
+## 가리개 배우기 전략
 
-### Hard Mask Learning
+### 딱딱한 가리개 배우기
 
-!!! tip "Gumbel-Softmax Relaxation"
-    Since binary masks are non-differentiable, use continuous relaxation:
+!!! tip "검벨 소프트맥스 느슨하게 하기"
+    이진 가리개는 미분할 수 없으므로 이어진 느슨한 판을 쓴다.
 
 $$m_i^{(t)} \approx \sigma\left(\frac{\log(p_i^{(t)}) - \log(1-p_i^{(t)}) + g_i}{T}\right)$$
 
-where $g_i \sim \text{Gumbel}(0,1)$ and $T$ is temperature.
+여기서 $g_i \sim \text{Gumbel}(0,1)$이고 $T$은 온도이다.
 
-This enables gradient-based optimization while maintaining mask sparsity.
+이러면 가리개의 성김을 지키면서도 기울기 기반 최적화를 할 수 있다.
 
-### L0 Regularization
+### L0 벌주기
 
-Encourage sparse masks (use few parameters) through L0 penalty:
+L0 벌로 성긴 가리개(매개변수를 적게 쓰는 가리개)를 북돋운다.
 
 $$\mathcal{L}_t^{\text{total}} = \mathcal{L}_t + \lambda \sum_i p_i^{(t)}$$
 
-Directly penalizes expected number of nonzero mask entries.
+0이 아닌 가리개 성분의 기대 개수에 곧바로 벌을 준다.
 
-### Probabilistic Interpretation
+### 확률로 풀이하기
 
-Mask parameters represent channel/neuron importance:
+가리개 매개변수는 채널과 뉴런의 중요도를 나타낸다.
 
-- $p_i^{(t)} \approx 1$: Parameter important for task $t$
-- $p_i^{(t)} \approx 0$: Parameter unused for task $t$
-- $p_i^{(t)} \approx 0.5$: Parameter importance uncertain
+- $p_i^{(t)} \approx 1$: 과제 $t$에 중요한 매개변수
+- $p_i^{(t)} \approx 0$: 과제 $t$에 쓰이지 않는 매개변수
+- $p_i^{(t)} \approx 0.5$: 중요도가 아리송한 매개변수
 
-## Base Network Design
+## 바탕 망 설계
 
-### Random Initialization
+### 무작위 초기화
 
-The frozen base network is typically randomly initialized:
+얼린 바탕 망은 대개 아무렇게나 초기화한다.
 
 $$W_{ij} \sim \mathcal{N}(0, \sigma^2)$$
 
-Despite randomness, sufficiently large networks contain subnetworks capable of learning diverse tasks.
+아무렇게나 두었어도 넉넉히 큰 망 안에는 여러 과제를 배울 수 있는 부분 망이 들어 있다.
 
-### Width Requirements
+### 너비 요구
 
-Empirically, finding good supermasks requires over-parameterization:
+실험으로 보면 좋은 초가리개를 찾으려면 매개변수가 남아돌아야 한다.
 
 $$n_{\text{base}} \gg n_{\text{task}}$$
 
-Networks 2-3× larger than single-task networks generally suffice.
+한 과제짜리 망보다 2~3배 큰 망이면 대체로 넉넉하다.
 
-### Lottery Ticket Hypothesis Connection
+### 복권 가설과의 이음
 
-Supermasks relate to lottery ticket hypothesis: finding subnetworks that learn effectively without weight changes.
+초가리개는 복권 가설과 이어진다. 곧 가중치를 바꾸지 않고도 잘 배우는 부분 망을 찾는 일이다.
 
-## Continual Learning with Supermasks
+## 초가리개를 쓰는 이어 배우기
 
-### Task t Learning
+### 과제 t 배우기
 
 ```
 Input: Frozen network W, previous masks m^(1:t-1)
@@ -113,108 +109,141 @@ for each epoch:
 Output: Learned mask p^(t)
 ```
 
-### Zero Forgetting Guarantee
+### 잊음 없음의 보장
 
-Previous task performance preserved perfectly:
+앞선 과제의 성능이 온전히 지켜진다.
 
 $$f_t(\mathbf{x}; m^{(t)}) = \text{unaffected by} \text{ masks } m^{(1:t-1)}$$
 
-Since base weights $W$ frozen, previous tasks maintain identical subnetworks.
+바탕 가중치 $W$이 얼려 있으므로 앞선 과제는 똑같은 부분 망을 그대로 지닌다.
 
-## Practical Considerations
+## 실용적인 고려
 
-### Mask Sparsity
+### 가리개의 성김
 
-Balance between sparsity and expressiveness:
+성김과 나타내는 힘 사이에서 균형을 잡는다.
 
-**Very Sparse** ($\lambda$ large): Uses few parameters, but limits expressiveness
+**매우 성김**($\lambda$이 큼): 매개변수를 적게 쓰지만 나타내는 힘이 줄어든다
 
-**Dense Masks** ($\lambda$ small): More powerful, but uses more base network capacity
+**빽빽한 가리개**($\lambda$이 작음): 더 힘이 세지만 바탕 망의 용량을 더 쓴다
 
-Typical target: 10-50% of base network active per task.
+흔한 목표: 과제마다 바탕 망의 10~50%를 켠다.
 
-### Mask Overlap Analysis
+### 가리개 겹침 분석
 
-Tasks may share parameters in learned supermasks:
+배운 초가리개에서 과제끼리 매개변수를 나누어 쓸 수 있다.
 
 $$\text{Overlap}(t, t') = \frac{|m^{(t)} \cap m^{(t')}|}{|m^{(t)} \cup m^{(t')}|}$$
 
-High overlap indicates related tasks; zero overlap means completely specialized.
+많이 겹치면 서로 이어진 과제이고, 하나도 겹치지 않으면 온전히 전문화된 것이다.
 
-### Test-Time Inference
+### 시험 때의 추론
 
-At test, two strategies for mask usage:
+시험 때 가리개를 쓰는 전략은 두 가지이다.
 
-**Deterministic**: Use expected mask $E[m^{(t)}] = p^{(t)}$
+**정해진 방식**: 기대 가리개 $E[m^{(t)}] = p^{(t)}$을 쓴다
 
-**Stochastic**: Sample masks, average predictions over samples
+**확률 방식**: 가리개를 뽑아 그 표본들의 예측을 평균 낸다
 
-Stochastic approach may provide better calibration.
+확률 방식이 눈금을 더 잘 맞출 수 있다.
 
-## Comparison with Other Methods
+## 다른 방법과의 견줌
 
-| Method | Parameters | Forgetting | Mask Overhead | Scalability |
+| 방법 | 매개변수 | 잊음 | 가리개 짐 | 규모 확장성 |
 |--------|-----------|-----------|----------------|------------|
-| **Supermask** | Fixed | Zero | O(Tn) | Excellent |
-| **Multi-Head** | Growing | Moderate | 0 | Good |
-| **Progressive** | O(Tn) | Zero | 0 | Poor |
-| **Adapters** | O(Tn) | Zero | Small | Good |
-| **Expert Gates** | O(TEn) | Zero | 0 | Good |
+| **초가리개** | 고정 | 없음 | O(Tn) | 매우 좋음 |
+| **여러 머리** | 커짐 | 보통 | 0 | 좋음 |
+| **점진 확장** | O(Tn) | 없음 | 0 | 나쁨 |
+| **어댑터** | O(Tn) | 없음 | 작음 | 좋음 |
+| **전문가 문** | O(TEn) | 없음 | 0 | 좋음 |
 
-## Advantages
+## 이점
 
-**Parameter Efficiency**: Fixed base network size regardless of number of tasks
+**매개변수 아끼기**: 과제 개수와 상관없이 바탕 망의 크기가 그대로이다
 
-**Zero Forgetting**: Guaranteed to preserve previous task performance
+**잊음 없음**: 앞선 과제의 성능을 지킴이 보장된다
 
-**Fast Learning**: Only mask parameters need optimization
+**빠른 배움**: 가리개 매개변수만 최적화하면 된다
 
-**Interpretability**: Masks reveal task-specific subnetwork structure
+**풀이 가능성**: 가리개가 과제마다의 부분 망 짜임을 드러낸다
 
-## Limitations
+## 한계
 
-!!! warning "Supermask Challenges"
+!!! warning "초가리개의 어려움"
     
-    - **Base Network Size**: Requires over-parameterized base network
-    - **Mask Learning**: Finding good masks can be unstable
-    - **Task Similarity**: Similar tasks may require similar masks, causing interference
-    - **Compounding**: Mask quality may degrade with many tasks
+    - **바탕 망의 크기**: 매개변수가 남아도는 바탕 망이 있어야 한다
+    - **가리개 배우기**: 좋은 가리개를 찾는 일이 흔들릴 수 있다
+    - **과제의 닮음**: 닮은 과제는 닮은 가리개를 요구하여 서로 방해할 수 있다
+    - **쌓임**: 과제가 많아지면 가리개의 질이 떨어질 수 있다
 
-## Financial Applications
+## 금융에서의 쓰임
 
-!!! warning "Multi-Market Supermasks"
+!!! warning "여러 시장 초가리개"
     
-    Use frozen base network to represent all market knowledge:
-    - **Task 1 Mask**: Selects US equity subnetwork
-    - **Task 2 Mask**: Selects EM equity subnetwork
-    - **Task 3 Mask**: Selects FX trading subnetwork
-    - **Task 4 Mask**: Selects Bond trading subnetwork
+    얼린 바탕 망 하나로 모든 시장 앎을 나타낸다.
+
+    - **과제 1 가리개**: 미국 주식 부분 망을 골라낸다
+    - **과제 2 가리개**: 신흥국 주식 부분 망을 골라낸다
+    - **과제 3 가리개**: 외환 거래 부분 망을 골라낸다
+    - **과제 4 가리개**: 채권 거래 부분 망을 골라낸다
     
-    All tasks share same frozen weights; masks select task-specific features.
+    모든 과제가 같은 얼린 가중치를 나누어 쓰고, 가리개가 과제마다의 특징을 골라낸다.
 
-### Regime-Specific Supermasks
+### 국면마다의 초가리개
 
-Create regime-specific masks:
+국면마다 가리개를 만든다.
 
-**Bull Market Mask**: Selects bullish pattern features
+**오름장 가리개**: 오름세 본새의 특징을 골라낸다
 
-**Bear Market Mask**: Selects risk factors, downside predictors
+**내림장 가리개**: 위험 요인과 내림세 예측자를 골라낸다
 
-**Sideways Market Mask**: Selects mean-reversion features
+**옆걸음장 가리개**: 평균 회귀 특징을 골라낸다
 
-Gating mechanism selects appropriate mask for current regime.
+문 장치가 지금 국면에 맞는 가리개를 고른다.
 
-## Research Directions
+## 연구의 방향
 
-- Theoretical analysis of subnetwork learnability in random networks
-- Optimal base network initialization and size selection
-- Hierarchical mask structures for better task organization
-- Combining supermasks with learning-based weight updates
-- Application to sequential decision-making
+- 무작위 망에서 부분 망이 배울 수 있는지에 대한 이론적 분석
+- 가장 좋은 바탕 망 초기화와 크기 고르기
+- 과제를 더 잘 정리하는 층층 가리개 짜임
+- 초가리개와 학습 기반 가중치 갱신 섞기
+- 잇단 의사 결정에 쓰기
 
-## Related Topics
+## 관련 주제
 
-- Architecture-Based Continual Learning Overview (Chapter 12.1.1)
-- Expert Gate Methods (Chapter 12.1.2)
-- Lottery Ticket Hypothesis
-- Network Pruning and Sparsity
+- 구조 기반 이어 배우기 훑어보기(12.1.1절)
+- 전문가 문 방법(12.1.2절)
+- 복권 가설
+- 망 가지치기와 성김
+
+## 연습문제
+
+**연습문제 1.**
+이 방법의 핵심 생각과 그것이 파국적 잊음을 어떻게 다루는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 방법은 새 과제를 배울 때 모델의 매개변수나 표현이 바뀌는 방식을 옥죄어 파국적 잊음을 누그러뜨린다. (벌주기, 되살리기, 증류, 구조 갈라두기로) 배운 함수의 중요한 대목을 지켜 냄으로써, 앞선 과제의 성능을 지키면서도 새 과제에 맞추어 갈 수 있게 한다.
+
+---
+
+**연습문제 2.**
+이 접근법의 셈과 기억 요구는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    요구는 변형마다 다르지만 대체로 (a) 매개변수의 중요도 무게, (b) 학습 보기의 일부, (c) 스승 모델의 출력, (d) 과제마다의 망 모듈 가운데 하나를 담아 두어야 한다. 기억 비용과 잊음 막기의 효과 사이에서 맞바꿈이 일어난다.
+
+---
+
+**연습문제 3.**
+이 방법을 효과와 셈 비용 면에서 EWC와 견주어라.
+
+??? success "연습문제 3 풀이"
+    EWC은 대각 피셔 정보로 중요한 가중치를 짚어낸다. 이 방법은 다른 맞바꿈을 준다. 옛 과제의 성능을 더 잘 지킬 수 있고, 기억 요구가 다르며, 과제 짜임에 대한 가정도 다르다. 실험으로 견주어 보면 잣대에 따라 서로 보완되는 강점을 보일 때가 많다.
+
+---
+
+**연습문제 4.**
+이 방법을 간추린 판으로 파이토치에 구현하라.
+
+??? success "연습문제 4 풀이"
+    구현은 대개 새 과제를 익히는 동안 보통의 교차 엔트로피 손실에 벌주기 항을 더한다. 핵심 부품은 (1) 앞선 과제 학습에서 제약을 셈하기, (2) 필요한 정보(가중치, 본보기, 스승 출력)를 담아 두기, (3) 새 과제 학습 중에 그 제약을 씌우기이다.

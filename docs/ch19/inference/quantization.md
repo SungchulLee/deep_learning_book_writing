@@ -1,101 +1,85 @@
-# Quantization for LLMs
+# 큰 말 모델의 양자화
+## 들어가며
 
+양자화는 무게와 깨어남을 정밀도가 낮은 자료 갈래로 나타내어 모델 크기를 줄이고 미룸을 빠르게 한다. 큰 말 모델에서는 일반 하드웨어에 펼치고 내놓기 값을 줄이는 데 결정적이다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 근본
 
-## Introduction
+### 정밀도 꼴
 
-Quantization reduces model size and accelerates inference by representing weights and activations with lower-precision data types. For LLMs, this is critical for deployment on consumer hardware and reducing serving costs.
-
-## Fundamentals
-
-### Precision Formats
-
-| Format | Bits | Range | Use Case |
+| 꼴 | 비트 | 범위 | 쓰임새 |
 |--------|------|-------|----------|
-| FP32 | 32 | ±3.4e38 | Training (baseline) |
-| FP16 | 16 | ±65504 | Mixed precision training |
-| BF16 | 16 | ±3.4e38 | Training (better range) |
-| INT8 | 8 | -128 to 127 | Inference |
-| INT4 | 4 | -8 to 7 | LLM inference |
-| FP8 | 8 | Various | Emerging standard |
+| FP32 | 32 | ±3.4e38 | 익히기(바탕) |
+| FP16 | 16 | ±65504 | 섞인 정밀도 익히기 |
+| BF16 | 16 | ±3.4e38 | 익히기(범위가 더 넓음) |
+| INT8 | 8 | -128 ~ 127 | 미룸 |
+| INT4 | 4 | -8 ~ 7 | 큰 말 모델 미룸 |
+| FP8 | 8 | 여러 가지 | 떠오르는 표준 |
 
-### Memory Savings
+### 기억 공간 아끼기
 
-For a 7B parameter model:
+매개변수 70억 모델에서:
 
-| Precision | Size | Memory |
+| 정밀도 | 크기 | 기억 공간 |
 |-----------|------|--------|
-| FP32 | 28 GB | ~32 GB |
-| FP16/BF16 | 14 GB | ~16 GB |
-| INT8 | 7 GB | ~8 GB |
-| INT4 | 3.5 GB | ~4 GB |
+| FP32 | 28 GB | 약 32 GB |
+| FP16/BF16 | 14 GB | 약 16 GB |
+| INT8 | 7 GB | 약 8 GB |
+| INT4 | 3.5 GB | 약 4 GB |
 
-## Quantization Theory
+## 양자화 이론
 
-### Linear Quantization
+### 선형 양자화
 
-Map floating-point values to integers:
+뜬소수점 값을 정수에 대응시킨다:
 
 $$
-
 x_q = \text{round}\left(\frac{x}{\Delta}\right) + z
-
 $$
 
 $$
-
 \hat{x} = \Delta(x_q - z)
-
 $$
 
-Where:
+여기서:
+
 - $\Delta$ = scale factor
-- $z$ = zero point
-- $x_q$ = quantized value
+- $z$ = 영점
+- $x_q$ = 양자화한 값
 
-### Scale and Zero Point Computation
+### 잣수와 영점 셈하기
 
-**Symmetric quantization** ($z = 0$):
+**대칭 양자화**($z = 0$):
 
 $$
-
 \Delta = \frac{\max(|x|)}{2^{b-1} - 1}
-
 $$
 
-**Asymmetric quantization**:
+**대칭이 아닌 양자화**:
 
 $$
-
 \Delta = \frac{x_{max} - x_{min}}{2^b - 1}, \quad z = \text{round}\left(-\frac{x_{min}}{\Delta}\right)
-
 $$
 
-### Quantization Error
+### 양자화 어긋남
 
-The error from quantization:
+양자화에서 오는 어긋남:
 
 $$
-
 \epsilon = x - \hat{x} = x - \Delta \cdot \text{round}\left(\frac{x}{\Delta}\right)
-
 $$
 
-For uniform distribution of values within a bin:
+칸 안의 값이 고르게 퍼져 있을 때:
 
 $$
-
 \mathbb{E}[\epsilon^2] = \frac{\Delta^2}{12}
-
 $$
 
-## Weight Quantization Methods
+## 무게 양자화 방법
 
-### Post-Training Quantization (PTQ)
+### 익힌 뒤 양자화(PTQ)
 
-Quantize pre-trained model without retraining.
+다시 익히지 않고 미리 익힌 모델을 양자화한다.
 
 ```python
 import torch
@@ -109,7 +93,7 @@ def compute_scale_zero(
     symmetric: bool = True
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
-    Compute quantization parameters.
+    양자화 매개변수를 셈한다.
     """
     if symmetric:
         max_val = tensor.abs().max()
@@ -130,7 +114,7 @@ def quantize_tensor(
     bits: int = 8
 ) -> torch.Tensor:
     """
-    Quantize a tensor to fixed-point representation.
+    텐서를 붙박이 소수점 표현으로 양자화한다.
     """
     q_min = -(2 ** (bits - 1))
     q_max = 2 ** (bits - 1) - 1
@@ -147,14 +131,14 @@ def dequantize_tensor(
     zero_point: torch.Tensor
 ) -> torch.Tensor:
     """
-    Dequantize back to floating point.
+    다시 뜬소수점으로 되돌린다.
     """
     return scale * (quantized.float() - zero_point)
 
 
 class QuantizedLinear(nn.Module):
     """
-    Linear layer with quantized weights.
+    무게를 양자화한 선형 층.
     """
     
     def __init__(
@@ -170,28 +154,28 @@ class QuantizedLinear(nn.Module):
         self.bits = bits
         self.group_size = group_size or in_features
         
-        # Number of groups for group-wise quantization
+        # 묶음별 양자화의 묶음 수
         self.num_groups = in_features // self.group_size
         
-        # Quantized weights (stored as int8)
+        # 양자화한 무게(int8로 담음)
         self.register_buffer(
             'weight_quantized',
             torch.zeros(out_features, in_features, dtype=torch.int8)
         )
         
-        # Scale per group
+        # 묶음마다의 잣수
         self.register_buffer(
             'scale',
             torch.ones(out_features, self.num_groups)
         )
         
-        # Zero point per group
+        # 묶음마다의 영점
         self.register_buffer(
             'zero_point',
             torch.zeros(out_features, self.num_groups)
         )
         
-        # Optional bias
+        # 고를 수 있는 치우침
         self.bias = nn.Parameter(torch.zeros(out_features))
     
     @classmethod
@@ -202,7 +186,7 @@ class QuantizedLinear(nn.Module):
         group_size: Optional[int] = None
     ) -> 'QuantizedLinear':
         """
-        Create quantized layer from floating-point layer.
+        뜬소수점 층으로 양자화 층을 만든다.
         """
         quant_linear = cls(
             linear.in_features,
@@ -214,7 +198,7 @@ class QuantizedLinear(nn.Module):
         weight = linear.weight.data
         group_size = quant_linear.group_size
         
-        # Quantize each group
+        # 묶음마다 양자화한다
         for i in range(quant_linear.num_groups):
             start = i * group_size
             end = (i + 1) * group_size
@@ -234,7 +218,7 @@ class QuantizedLinear(nn.Module):
         return quant_linear
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Dequantize weights
+        # 무게의 양자화를 되돌린다
         weight = torch.zeros(
             self.out_features, self.in_features,
             device=x.device, dtype=x.dtype
@@ -253,17 +237,15 @@ class QuantizedLinear(nn.Module):
         return nn.functional.linear(x, weight, self.bias)
 ```
 
-### GPTQ (Accurate Post-Training Quantization)
+### GPTQ(정확한 익힌 뒤 양자화)
 
-GPTQ uses second-order information to minimize quantization error:
+GPTQ는 2차 앎을 써서 양자화 어긋남을 가장 작게 한다:
 
 $$
-
 \arg\min_{W_q} \|WX - W_q X\|_2^2
-
 $$
 
-Key insight: Quantize one weight at a time, adjusting remaining weights to compensate.
+핵심 눈썰미: 한 번에 무게 하나씩 양자화하고 남은 무게를 맞춰 메운다.
 
 ```python
 import torch
@@ -273,10 +255,10 @@ from typing import List
 
 class GPTQ:
     """
-    GPTQ quantization algorithm.
+    GPTQ 양자화 알고리즘.
     
-    Quantizes weights column by column, using Hessian information
-    to minimize output error.
+    헤세 앎을 써서 내놓기 어긋남을 가장 작게 하며 무게를
+    세로줄마다 양자화한다.
     """
     
     def __init__(
@@ -294,15 +276,15 @@ class GPTQ:
         self.rows = layer.weight.shape[0]
         self.cols = layer.weight.shape[1]
         
-        # Hessian accumulator
+        # 헤세 쌓개
         self.H = torch.zeros(self.cols, self.cols, device=layer.weight.device)
         self.nsamples = 0
     
     def add_batch(self, inp: torch.Tensor):
         """
-        Accumulate Hessian from input batch.
+        들임 묶음에서 헤세를 쌓는다.
         
-        H = X^T X (input outer product)
+        H = X^T X(들임의 바깥 곱)
         """
         if len(inp.shape) == 3:
             inp = inp.reshape(-1, inp.shape[-1])
@@ -312,25 +294,25 @@ class GPTQ:
     
     def quantize(self) -> torch.Tensor:
         """
-        Perform GPTQ quantization.
+        GPTQ 양자화를 한다.
         """
         W = self.layer.weight.data.clone()
         
-        # Finalize Hessian
+        # 헤세를 마무리한다
         H = self.H / self.nsamples
         
-        # Add damping for numerical stability
+        # 수치가 안정되도록 잦아듦을 더한다
         damp = 0.01 * torch.diag(H).mean()
         H += damp * torch.eye(self.cols, device=H.device)
         
-        # Cholesky decomposition
+        # 촐레스키 쪼개기
         H_inv = torch.linalg.cholesky(H)
         H_inv = torch.cholesky_inverse(H_inv)
         
-        # Quantized weights
+        # 양자화한 무게
         Q = torch.zeros_like(W)
         
-        # Process in blocks
+        # 덩이 단위로 처리한다
         for i1 in range(0, self.cols, self.block_size):
             i2 = min(i1 + self.block_size, self.cols)
             
@@ -343,26 +325,26 @@ class GPTQ:
                 w = W_block[:, i]
                 d = H_inv_block[i, i]
                 
-                # Determine group for this column
+                # 이 세로줄의 묶음을 정한다
                 group_idx = (i1 + i) // self.group_size
                 
-                # Compute scale for group
+                # 묶음의 잣수를 셈한다
                 group_start = (group_idx * self.group_size) - i1
                 group_end = min(group_start + self.group_size, i2 - i1)
                 
                 if i == max(0, group_start):
-                    # Compute scale at start of group
+                    # 묶음이 시작할 때 잣수를 셈한다
                     group_weights = W_block[:, max(0, group_start):group_end]
                     scale, zp = compute_scale_zero(group_weights, self.bits)
                 
-                # Quantize
+                # 양자화한다
                 q = quantize_tensor(w, scale, zp, self.bits)
                 Q_block[:, i] = q.float()
                 
-                # Compute error
+                # 어긋남을 셈한다
                 err = (w - dequantize_tensor(q, scale, zp)) / d
                 
-                # Update remaining weights in block
+                # 덩이에 남은 무게를 새로 고친다
                 W_block[:, i:] -= err.unsqueeze(1) * H_inv_block[i, i:].unsqueeze(0)
             
             Q[:, i1:i2] = Q_block
@@ -370,17 +352,15 @@ class GPTQ:
         return Q
 ```
 
-### AWQ (Activation-aware Weight Quantization)
+### AWQ(깨어남을 헤아린 무게 양자화)
 
-AWQ identifies and protects salient weights based on activation magnitudes:
+AWQ는 깨어남의 크기로 두드러진 무게를 가려내어 지킨다:
 
 $$
-
 \text{saliency}_j = \|X_j\|_2
-
 $$
 
-Weights with high corresponding activation magnitudes are scaled up before quantization, then scaled back during inference.
+딸린 깨어남의 크기가 큰 무게는 양자화 앞에서 키우고 미룸 때 되돌린다.
 
 ```python
 def compute_awq_scales(
@@ -389,44 +369,44 @@ def compute_awq_scales(
     bits: int = 4
 ) -> torch.Tensor:
     """
-    Compute AWQ scaling factors.
+    AWQ 잣수를 셈한다.
     
-    Scale = activation_magnitude^alpha where alpha balances
-    weight and activation quantization error.
+    잣수 = 깨어남 크기^alpha. 여기서 alpha가 무게 양자화 어긋남과
+    깨어남 양자화 어긋남을 저울질한다.
     """
-    # Compute activation magnitudes
+    # 깨어남의 크기를 셈한다
     act_scales = activations.abs().mean(dim=0)
     
-    # Compute weight magnitudes
+    # 무게의 크기를 셈한다
     weight_scales = weight.abs().mean(dim=0)
     
-    # Optimal scale (balances weight and activation error)
-    # Higher activation = protect more
-    alpha = 0.5  # Tunable hyperparameter
+    # 가장 좋은 잣수(무게 어긋남과 깨어남 어긋남을 저울질한다)
+    # 깨어남이 클수록 더 지킨다
+    alpha = 0.5  # 다듬을 수 있는 웃매개변수
     scales = act_scales.pow(alpha) / weight_scales.pow(1 - alpha)
     
-    # Clip scales
+    # 잣수를 잘라 낸다
     scales = torch.clamp(scales, min=1e-5, max=1e5)
     
     return scales
 ```
 
-## Activation Quantization
+## 깨어남 양자화
 
-### Dynamic Quantization
+### 그때그때 하는 양자화
 
-Compute scales at runtime for each input:
+들임마다 돌아가는 도중에 잣수를 셈한다:
 
 ```python
 class DynamicQuantizedLinear(nn.Module):
     """
-    Linear with dynamically quantized activations.
+    깨어남을 그때그때 양자화하는 선형 층.
     """
     
     def __init__(self, in_features: int, out_features: int, bits: int = 8):
         super().__init__()
         self.bits = bits
-        # Pre-quantized weights
+        # 미리 양자화한 무게
         self.weight_scale = nn.Parameter(torch.ones(1))
         self.register_buffer(
             'weight_q', 
@@ -435,28 +415,28 @@ class DynamicQuantizedLinear(nn.Module):
         self.bias = nn.Parameter(torch.zeros(out_features))
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Dynamically quantize input
+        # 들임을 그때그때 양자화한다
         x_scale, x_zp = compute_scale_zero(x, self.bits)
         x_q = quantize_tensor(x, x_scale, x_zp, self.bits)
         
-        # Integer matrix multiply (simulated)
-        # In practice, use specialized int8 kernels
+        # 정수 행렬 곱하기(흉내)
+        # 실전에서는 전용 int8 알맹이를 쓴다
         out_q = torch.matmul(x_q.float(), self.weight_q.T.float())
         
-        # Dequantize output
+        # 내놓기의 양자화를 되돌린다
         out = out_q * (x_scale * self.weight_scale)
         
         return out + self.bias
 ```
 
-### Static Quantization
+### 붙박이 양자화
 
-Calibrate scales offline using representative data:
+대표 자료로 미리 잣수의 눈금을 맞춘다:
 
 ```python
 class CalibrationCollector:
     """
-    Collect activation statistics for static quantization.
+    붙박이 양자화를 위해 깨어남 통계를 모은다.
     """
     
     def __init__(self, method: str = 'minmax'):
@@ -466,23 +446,23 @@ class CalibrationCollector:
         self.histograms = []
     
     def collect(self, tensor: torch.Tensor):
-        """Record statistics from a tensor."""
+        """텐서에서 통계를 적는다."""
         self.min_vals.append(tensor.min().item())
         self.max_vals.append(tensor.max().item())
         
         if self.method == 'entropy':
-            # Histogram for entropy calibration
+            # 엔트로피 눈금 맞추기를 위한 도수 그림
             hist = torch.histc(tensor, bins=2048)
             self.histograms.append(hist)
     
     def compute_scale(self, bits: int = 8) -> Tuple[float, float]:
-        """Compute final scale and zero point."""
+        """마지막 잣수와 영점을 셈한다."""
         if self.method == 'minmax':
             min_val = min(self.min_vals)
             max_val = max(self.max_vals)
             
         elif self.method == 'percentile':
-            # Use 99.9th percentile
+            # 99.9번째 백분위수를 쓴다
             all_mins = torch.tensor(self.min_vals)
             all_maxs = torch.tensor(self.max_vals)
             min_val = torch.quantile(all_mins, 0.001).item()
@@ -494,16 +474,16 @@ class CalibrationCollector:
         return scale, zero_point
 ```
 
-## LLM-Specific Techniques
+## 큰 말 모델에 맞춘 재주
 
-### KV Cache Quantization
+### 열쇠-값 곳간 양자화
 
-Quantize cached keys and values to reduce memory:
+기억 공간을 줄이려 갈무리한 열쇠와 값을 양자화한다:
 
 ```python
 class QuantizedKVCache:
     """
-    KV cache with quantized storage.
+    양자화해 담는 열쇠-값 곳간.
     """
     
     def __init__(self, bits: int = 8):
@@ -518,15 +498,15 @@ class QuantizedKVCache:
         new_keys: torch.Tensor,
         new_values: torch.Tensor
     ):
-        """Add new keys/values to cache."""
-        # Quantize new entries
+        """새 열쇠와 값을 곳간에 더한다."""
+        # 새 항목을 양자화한다
         k_scale, k_zp = compute_scale_zero(new_keys, self.bits)
         v_scale, v_zp = compute_scale_zero(new_values, self.bits)
         
         new_k_q = quantize_tensor(new_keys, k_scale, k_zp, self.bits)
         new_v_q = quantize_tensor(new_values, v_scale, v_zp, self.bits)
         
-        # Append to cache
+        # 곳간에 덧붙인다
         if self.keys_q is None:
             self.keys_q = new_k_q
             self.values_q = new_v_q
@@ -538,9 +518,9 @@ class QuantizedKVCache:
         self.value_scales.append((v_scale, v_zp))
     
     def get_keys_values(self) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Retrieve dequantized keys and values."""
-        # For simplicity, use most recent scale
-        # In practice, use per-token or grouped scales
+        """양자화를 되돌린 열쇠와 값을 가져온다."""
+        # 간단히 하려고 가장 최근 잣수를 쓴다
+        # 실전에서는 토막마다나 묶음마다의 잣수를 쓴다
         k_scale, k_zp = self.key_scales[-1]
         v_scale, v_zp = self.value_scales[-1]
         
@@ -550,20 +530,20 @@ class QuantizedKVCache:
         return keys, values
 ```
 
-### Mixed-Precision Quantization
+### 섞인 정밀도 양자화
 
-Different bits for different components:
+조각마다 다른 자릿수를 쓴다:
 
 ```python
 MIXED_PRECISION_CONFIG = {
-    'embedding': 8,      # Embeddings: 8-bit
-    'attention.qkv': 4,  # QKV projections: 4-bit
-    'attention.out': 4,  # Output projection: 4-bit
-    'mlp.gate': 4,       # MLP layers: 4-bit
+    'embedding': 8,      # 묻힘: 8비트
+    'attention.qkv': 4,  # QKV 쏘기: 4비트
+    'attention.out': 4,  # 내놓기 쏘기: 4비트
+    'mlp.gate': 4,       # 여러 층 인식개 층: 4비트
     'mlp.up': 4,
     'mlp.down': 4,
-    'lm_head': 8,        # Output head: 8-bit (sensitive)
-    'layernorm': 32,     # Keep full precision
+    'lm_head': 8,        # 내놓는 머리: 8비트(민감함)
+    'layernorm': 32,     # 온전한 정밀도를 지킨다
 }
 
 
@@ -572,13 +552,13 @@ def quantize_model_mixed(
     config: dict
 ) -> nn.Module:
     """
-    Apply mixed-precision quantization.
+    섞인 정밀도 양자화를 적용한다.
     """
     for name, module in model.named_modules():
         for pattern, bits in config.items():
             if pattern in name:
                 if isinstance(module, nn.Linear) and bits < 32:
-                    # Replace with quantized version
+                    # 양자화한 판으로 바꾼다
                     parent_name = '.'.join(name.split('.')[:-1])
                     child_name = name.split('.')[-1]
                     parent = model.get_submodule(parent_name)
@@ -590,22 +570,20 @@ def quantize_model_mixed(
     return model
 ```
 
-## Quantization-Aware Training (QAT)
+## 양자화를 헤아린 익히기(QAT)
 
-### Straight-Through Estimator (STE)
+### 곧바로 지나가기 어림개(STE)
 
-Gradient through quantization:
+양자화를 지나는 기울기:
 
 $$
-
 \frac{\partial L}{\partial w} = \frac{\partial L}{\partial \hat{w}} \cdot \mathbf{1}_{|w| \leq \text{clip}}
-
 $$
 
 ```python
 class STEQuantize(torch.autograd.Function):
     """
-    Straight-Through Estimator for quantization.
+    양자화를 위한 곧바로 지나가기 어림개.
     """
     
     @staticmethod
@@ -613,24 +591,24 @@ class STEQuantize(torch.autograd.Function):
         q_min = -(2 ** (bits - 1))
         q_max = 2 ** (bits - 1) - 1
         
-        # Quantize
+        # 양자화한다
         x_q = torch.round(x / scale)
         x_q = torch.clamp(x_q, q_min, q_max)
         
-        # Dequantize
+        # 양자화를 되돌린다
         x_dq = x_q * scale
         
         return x_dq
     
     @staticmethod
     def backward(ctx, grad_output):
-        # Straight-through: pass gradients unchanged
+        # 곧바로 지나가기: 기울기를 그대로 넘긴다
         return grad_output, None, None
 
 
 class QATLinear(nn.Module):
     """
-    Linear layer with quantization-aware training.
+    양자화를 헤아린 익히기를 하는 선형 층.
     """
     
     def __init__(self, in_features: int, out_features: int, bits: int = 4):
@@ -639,76 +617,108 @@ class QATLinear(nn.Module):
         self.weight = nn.Parameter(torch.randn(out_features, in_features) * 0.01)
         self.bias = nn.Parameter(torch.zeros(out_features))
         
-        # Learnable scale
+        # 배울 수 있는 잣수
         self.weight_scale = nn.Parameter(torch.ones(1))
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # Fake quantize weights during training
+        # 익히는 동안 무게를 흉내 양자화한다
         w_q = STEQuantize.apply(self.weight, self.weight_scale, self.bits)
         
         return nn.functional.linear(x, w_q, self.bias)
 ```
 
-## Evaluation and Comparison
+## 값매김과 견줌
 
-### Perplexity Impact
+### 헷갈림도에 미치는 영향
 
-Typical perplexity increase on WikiText-2:
+WikiText-2에서 헷갈림도가 늘어나는 흔한 정도:
 
-| Method | Bits | PPL Increase |
+| 방법 | 비트 | 헷갈림도 늘어남 |
 |--------|------|--------------|
-| Round-to-nearest | 8 | +0.1 |
-| Round-to-nearest | 4 | +0.5-2.0 |
-| GPTQ | 4 | +0.1-0.3 |
-| AWQ | 4 | +0.1-0.3 |
-| GPTQ | 3 | +0.3-1.0 |
+| 가장 가까운 값으로 반올림 | 8 | +0.1 |
+| 가장 가까운 값으로 반올림 | 4 | +0.5~2.0 |
+| GPTQ | 4 | +0.1~0.3 |
+| AWQ | 4 | +0.1~0.3 |
+| GPTQ | 3 | +0.3~1.0 |
 
-### Speed Comparison
+### 빠르기 견줌
 
-Inference speedup on A100 (LLaMA-7B):
+A100에서의 미룸 빨라짐(LLaMA-7B):
 
-| Precision | Tokens/sec | Memory |
+| 정밀도 | 초당 토막 | 기억 공간 |
 |-----------|------------|--------|
 | FP16 | 100 | 14 GB |
 | INT8 | 150 | 7 GB |
-| INT4 (GPTQ) | 180 | 4 GB |
-| INT4 (AWQ) | 200 | 4 GB |
+| INT4(GPTQ) | 180 | 4 GB |
+| INT4(AWQ) | 200 | 4 GB |
 
-## Practical Guidelines
+## 실무 지침
 
-### Recommended Configurations
+### 권하는 자리매김
 
-| Use Case | Method | Bits | Notes |
+| 쓰임새 | 방법 | 비트 | 비고 |
 |----------|--------|------|-------|
-| Server (quality) | FP16/BF16 | 16 | Best quality |
-| Server (balanced) | GPTQ/AWQ | 4 | Good trade-off |
-| Consumer GPU | GPTQ | 4 | Fits 7B in 8GB |
-| Edge device | AWQ | 4 | With group size 128 |
-| Extreme compression | GPTQ | 3 | Noticeable quality loss |
+| 서버(품질) | FP16/BF16 | 16 | 가장 좋은 품질 |
+| 서버(균형) | GPTQ/AWQ | 4 | 좋은 맞바꿈 |
+| 일반 GPU | GPTQ | 4 | 70억을 8GB에 담는다 |
+| 가장자리 기기 | AWQ | 4 | 묶음 크기 128 |
+| 극단적 눌러 담기 | GPTQ | 3 | 품질 떨어짐이 눈에 띈다 |
 
-### Best Practices
+### 좋은 관행
 
-1. **Calibration data**: Use 128-512 samples representative of target domain
-2. **Group size**: 128 provides good balance (vs per-tensor or per-channel)
-3. **Sensitive layers**: Keep embeddings and output head at higher precision
-4. **Validation**: Always evaluate perplexity and downstream tasks
-5. **Combine techniques**: Quantization + KV cache + Flash Attention
+1. **눈금 맞추기 자료**: 목표 분야를 대표하는 표본 128~512개를 쓴다
+2. **묶음 크기**: 128이 좋은 균형을 준다(텐서마다나 채널마다와 견주어)
+3. **민감한 층**: 묻힘과 내놓는 머리는 정밀도를 높게 둔다
+4. **검증**: 늘 헷갈림도와 뒤따르는 일을 값매김한다
+5. **재주 아우르기**: 양자화 + 열쇠-값 곳간 + 플래시 눈길
 
-## Summary
+## 요약
 
-Quantization is essential for LLM deployment:
+양자화는 큰 말 모델 펼치기에 꼭 필요하다:
 
-1. **4-bit weights**: Near-lossless with GPTQ/AWQ
-2. **Memory reduction**: 4-8x smaller models
-3. **Speed improvement**: 1.5-2x faster inference
-4. **Accessibility**: Run 7B models on consumer GPUs
+1. **4비트 무게**: GPTQ/AWQ로 거의 잃음 없이
+2. **기억 공간 줄이기**: 모델이 4~8배 작아진다
+3. **빠르기 나아짐**: 미룸이 1.5~2배 빠르다
+4. **누구나 쓰기**: 일반 GPU에서 70억 모델을 돌린다
 
-Key trade-off: **Quality vs. Memory vs. Speed**
+핵심 맞바꿈: **품질과 기억 공간과 빠르기**
 
-## References
+## 참고 문헌
 
 1. Frantar, E., et al. (2023). "GPTQ: Accurate Post-Training Quantization for Generative Pre-trained Transformers."
 2. Lin, J., et al. (2023). "AWQ: Activation-aware Weight Quantization for LLM Compression and Acceleration."
 3. Dettmers, T., et al. (2022). "LLM.int8(): 8-bit Matrix Multiplication for Transformers at Scale."
 4. Dettmers, T., et al. (2023). "QLoRA: Efficient Finetuning of Quantized LLMs."
 5. Xiao, G., et al. (2023). "SmoothQuant: Accurate and Efficient Post-Training Quantization for Large Language Models."
+
+## 연습문제
+
+**연습문제 1.**
+열쇠-값 곳간이 자기되돌리기 풀기를 어떻게 빠르게 하는지 밝혀라. 기억 공간의 맞바꿈은 무엇인가?
+
+??? success "연습문제 1 풀이"
+    During autoregressive generation, each new token attends to all previous tokens. Without caching, generating token $t$ recomputes the key and value projections for all $t-1$ previous tokens, giving $O(t^2)$ total computation for a sequence of length $T$. With KV-caching, keys and values from previous steps are stored and reused, so only the new token's K/V are computed at each step, reducing computation to $O(T)$ total. The trade-off: KV-cache memory grows as $O(T \cdot L \cdot d)$ where $L$ is the number of layers and $d$ is the hidden dimension. For long sequences with large models, this can consume significant GPU memory.
+
+---
+
+**연습문제 2.**
+플래시 눈길의 고갱이 생각을 설명하여라. 수학으로는 같은 셈을 하는데 왜 빨라지는가?
+
+??? success "연습문제 2 풀이"
+    Flash Attention exploits the GPU memory hierarchy. Standard attention materializes the $N \times N$ attention matrix in HBM (slow GPU memory), causing memory-bound computation. Flash Attention tiles the computation into blocks that fit in SRAM (fast on-chip memory), computing attention block-by-block without ever materializing the full attention matrix. It uses online softmax (tracking running max and sum) to compute exact attention incrementally. The speedup comes from reduced HBM reads/writes (IO complexity drops from $O(N^2 d)$ to $O(N^2 d^2 / M)$ where $M$ is SRAM size), not from fewer FLOPs. This provides 2-4x wall-clock speedup and $O(N)$ memory.
+
+---
+
+**연습문제 3.**
+미리 짚어 풀기란 무엇이며 내놓는 분포를 바꾸지 않고 어떻게 미룸을 빠르게 하는가?
+
+??? success "연습문제 3 풀이"
+    미리 짚어 풀기는 작고 빠른 "밑그림" 모델로 후보 토막 $K$개를 만든 뒤 큰 "목표" 모델로 그 $K$개를 나란히 확인한다. 목표 모델이 밑그림의 어림에 동의하면 목표 모델 앞먹임 한 번으로 $K$개를 모두 받아들인다(차례차례 $K$번 대신). 어긋나면 물리치기 표집으로 다룬다. 곧 처음 물리친 토막을 맞춘 분포에서 다시 뽑아 내놓는 분포가 목표 모델의 것과 같게 한다. 빨라짐은 밑그림 모델의 받아들임 비율에 달렸고, 좋은 밑그림 모델이면 2~3배가 보통이다. 핵심 눈썰미는 확인은 나란히 되지만 만들어 내기는 차례차례라는 것이다.
+
+---
+
+**연습문제 4.**
+익힌 뒤 양자화(PTQ)와 양자화를 헤아린 익히기(QAT)를 견주어라. 저마다 언제 쓰는 것이 좋은가?
+
+??? success "연습문제 4 풀이"
+    **익힌 뒤 양자화**는 더 익히지 않고 눈금 맞추기 자료로 잣수 인자를 정해 미리 익힌 모델의 무게(그리고 원하면 깨어남)를 양자화한다. 빠르고 단순하지만 특히 8비트 아래에서는 정확도가 떨어질 수 있다. **양자화를 헤아린 익히기**는 기울기에 곧바로 지나가기 어림개를 써서 익히는 동안 양자화를 흉내내어 모델이 낮은 정밀도에 맞춰지게 한다. 낮은 자릿수(4비트, 2비트)에서 정확도가 더 낫지만 온전한 익히기를 한 번 더 돌려야 한다. 빠르기가 중요하고 8비트면 넉넉한 (펼치기) 장면에서는 **익힌 뒤 양자화가 낫다**. 4비트처럼 세게 양자화해야 하고 익힐 자원이 있으면 **양자화를 헤아린 익히기가 낫다**.

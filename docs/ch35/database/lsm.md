@@ -183,3 +183,43 @@ GET(z) = None
 
 - [The Log-Structured Merge-Tree (O'Neil et al., 1996)](https://www.cs.umb.edu/~poneil/lsmtree.pdf)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
+
+## Exercises
+
+**Exercise 1.**
+Describe the write path in an LSM tree: from the client's insert to the data reaching the lowest level on disk.
+
+??? success "Solution to Exercise 1"
+    (1) The insert is written to a write-ahead log (WAL) for durability. (2) The key-value pair is added to the in-memory **memtable** (typically a balanced BST or skip list). (3) When the memtable exceeds a size threshold, it is frozen (becomes immutable) and a new empty memtable is created. (4) The frozen memtable is flushed to disk as a sorted SSTable (Sorted String Table) at **level 0**. (5) When level 0 accumulates too many SSTables, **compaction** merges overlapping SSTables into larger, non-overlapping SSTables at level 1. (6) When level 1 exceeds its size limit, its SSTables are merged into level 2, and so on. Each level is typically 10x larger than the previous. Data eventually reaches the lowest level after multiple compaction rounds. All disk writes are sequential (append or bulk-write new SSTables), which is the key to LSM's write performance. $\square$
+
+---
+
+**Exercise 2.**
+Explain read amplification, write amplification, and space amplification in LSM trees. How does the leveled compaction strategy affect each?
+
+??? success "Solution to Exercise 2"
+    **Read amplification**: the number of SSTables checked per read. In the worst case, a key might not exist and the reader checks one SSTable per level plus Bloom filters. With $L$ levels: up to $L$ reads (reduced by Bloom filters to $\approx 1$--$2$ actual I/Os). **Write amplification**: the total bytes written to disk per byte of user data. Each compaction rewrites data. With a size ratio of 10 between levels and $L$ levels, data is rewritten $\sim 10$ times per level, giving write amplification $\approx 10 \times L$ (e.g., $\approx 30$--$50$ for typical configurations). **Space amplification**: the ratio of total disk space used to the logical data size. During compaction, old and new SSTables coexist temporarily. Leveled compaction keeps space amplification near 1.1x (each level has non-overlapping SSTables). Size-tiered compaction can have $2$x space amplification during major compaction but has lower write amplification. $\square$
+
+---
+
+**Exercise 3.**
+A Bloom filter is attached to each SSTable. With a false positive rate of $1\%$ and 5 levels, what is the expected number of unnecessary disk reads per point query?
+
+??? success "Solution to Exercise 3"
+    For a point query on a key that exists: the Bloom filter at the correct SSTable always returns true (no false negatives). Bloom filters at other SSTables return false positive with probability $0.01$. Expected unnecessary reads: $(5 - 1) \times 0.01 = 0.04$. For a key that does not exist: all 5 Bloom filters are checked. Expected false positives: $5 \times 0.01 = 0.05$ unnecessary reads. With optimized per-level Bloom filter sizing (higher accuracy for deeper levels, which are larger), this can be reduced further. In practice, point queries on existing keys require $\approx 1.04$ disk reads, making LSM trees competitive with B-trees for read-heavy workloads when Bloom filters are well-tuned. $\square$
+
+---
+
+**Exercise 4.**
+Compare leveled compaction and size-tiered compaction. Which is better for write-heavy workloads and which for read-heavy workloads?
+
+??? success "Solution to Exercise 4"
+    **Size-tiered compaction**: SSTables at each level are not required to be non-overlapping. When enough similar-sized SSTables accumulate, they are merged into one larger SSTable. Write amplification is lower ($\approx L$ vs. $10L$ for leveled) because data is merged less frequently. Read amplification is higher because multiple overlapping SSTables per level must be checked. Space amplification can be $2$x during compaction. Better for write-heavy workloads (e.g., time-series ingestion). **Leveled compaction**: each level has non-overlapping SSTables. Compaction picks one SSTable from level $i$ and merges it with overlapping SSTables in level $i+1$. Read amplification is lower (one SSTable per level to check). Write amplification is higher. Space amplification is lower ($\sim$1.1x). Better for read-heavy and balanced workloads. $\square$
+
+---
+
+**Exercise 5.**
+RocksDB supports a feature called "prefix Bloom filters." Explain how this differs from a standard Bloom filter and why it is useful for scan queries with a known key prefix.
+
+??? success "Solution to Exercise 5"
+    A standard Bloom filter tests membership of exact keys. A prefix Bloom filter hashes only a prefix of the key (e.g., the first 8 bytes) and tests whether any key with that prefix exists in the SSTable. For a scan query like "find all keys starting with 'user:123:'," the prefix Bloom filter can quickly determine whether an SSTable contains any relevant keys. If the filter returns negative, the entire SSTable is skipped. Without prefix Bloom filters, the reader would need to check the SSTable's min/max key range (which is coarse) or perform a seek (which requires reading index blocks). Prefix Bloom filters provide fine-grained filtering for scan queries at the cost of higher false positive rates (multiple keys share a prefix) and inability to skip within a prefix. They are especially useful in key-value stores where keys are hierarchically structured (e.g., `tenant:table:row:column`). $\square$

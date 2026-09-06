@@ -1,71 +1,109 @@
-# Failure Function
+# 어긋남 함수
+어긋남 함수(앞가지 함수나 부분 맞음 표라고도 한다)는 KMP 알고리즘의 핵심 미리 다듬기 걸음이다. 본 $P[0..m-1]$에 대해 어긋남 함수 $\pi[i]$은 $P[0..i]$의 진앞가지이면서 $P[0..i]$의 뒷가지이기도 한 가장 긴 것의 길이를 준다.
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-The failure function (also called the prefix function or partial match table) is the key preprocessing step for the KMP algorithm. For a pattern $P[0..m-1]$, the failure function $\pi[i]$ gives the length of the longest proper prefix of $P[0..i]$ that is also a suffix of $P[0..i]$.
-
-## Definition
+## 정의
 
 $$
-
 \pi[i] = \max\{k : 0 \le k < i+1 \;\text{and}\; P[0..k-1] = P[i-k+1..i]\}
-
 $$
 
-In words, $\pi[i]$ is the length of the longest string that is both a proper prefix and a suffix of the substring $P[0..i]$.
+말로 하면 $\pi[i]$은 부분 글줄 $P[0..i]$의 진앞가지이면서 뒷가지인 가장 긴 글줄의 길이이다.
 
-## Example
+## 예
 
-For pattern $P = \texttt{ABABAC}$:
+본 $P = \texttt{ABABAC}$에 대해:
 
 | $i$     | 0 | 1 | 2 | 3 | 4 | 5 |
 |---------|---|---|---|---|---|---|
 | $P[i]$  | A | B | A | B | A | C |
 | $\pi[i]$| 0 | 0 | 1 | 2 | 3 | 0 |
 
-At $i=4$, the prefix $\texttt{ABA}$ (length 3) equals the suffix $P[2..4]=\texttt{ABA}$, so $\pi[4]=3$.
+$i=4$에서 앞가지 $\texttt{ABA}$(길이 3)이 뒷가지 $P[2..4]=\texttt{ABA}$과 같으므로 $\pi[4]=3$이다.
 
-## Algorithm
+## 알고리즘
 
-The failure function is computed in $O(m)$ time using the observation that $\pi[i]$ can be found by extending $\pi[i-1]$. If $P[\pi[i-1]] = P[i]$, then $\pi[i] = \pi[i-1]+1$. Otherwise, we follow the chain $\pi[\pi[i-1]-1], \pi[\pi[\pi[i-1]-1]-1], \ldots$ until we find a match or reach 0.
+$\pi[i]$을 $\pi[i-1]$을 넓혀 찾을 수 있다는 눈썰미로 어긋남 함수를 $O(m)$ 시간에 셈한다. $P[\pi[i-1]] = P[i]$이면 $\pi[i] = \pi[i-1]+1$이다. 아니면 맞는 것을 찾거나 0에 이를 때까지 사슬 $\pi[\pi[i-1]-1], \pi[\pi[\pi[i-1]-1]-1], \ldots$을 따라간다.
 
 ```python
 def compute_failure(pattern: str) -> list[int]:
-    """Compute the failure (prefix) function for a pattern."""
+    """본의 어긋남(앞가지) 함수를 셈한다."""
     m = len(pattern)
     pi = [0] * m
-    k = 0  # length of current longest prefix-suffix
+    k = 0  # 지금 가장 긴 앞가지-뒷가지의 길이
     for i in range(1, m):
         while k > 0 and pattern[k] != pattern[i]:
-            k = pi[k - 1]  # fall back
+            k = pi[k - 1]  # 물러난다
         if pattern[k] == pattern[i]:
             k += 1
         pi[i] = k
     return pi
 
-# Example
+# 예
 pattern = "ABABAC"
 print(compute_failure(pattern))
-# Output: [0, 0, 1, 2, 3, 0]
+# 내놓기: [0, 0, 1, 2, 3, 0]
 
 pattern2 = "AABAAAB"
 print(compute_failure(pattern2))
-# Output: [0, 1, 0, 1, 2, 2, 3]
+# 내놓기: [0, 1, 0, 1, 2, 2, 3]
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
-- **Time:** $O(m)$. Although there is a while loop inside the for loop, the total number of times $k$ is decremented across the entire computation is at most $m-1$, since each increment of $k$ happens at most once per iteration.
-- **Space:** $O(m)$ for the $\pi$ array.
+- **시간:** $O(m)$. for 되풀이 안에 while 되풀이가 있지만 $k$이 되풀이마다 많아야 한 번 늘므로 셈 전체에서 $k$이 줄어드는 횟수는 많아야 $m-1$이다.
+- **공간:** $\pi$ 배열에 $O(m)$.
 
-## Why It Works
+## 왜 통하는가
 
-The key insight is that when a mismatch occurs during pattern matching at position $j$ in the pattern, the failure function tells us the longest prefix of $P$ that still matches the text. This means we can skip ahead by $j - \pi[j-1]$ positions in the text alignment without missing any potential match, because any shorter shift would require a prefix-suffix overlap longer than $\pi[j-1]$, which contradicts the maximality of $\pi$.
+핵심 눈썰미는 본 찾기 도중 본의 자리 $j$에서 맞지 않을 때 어긋남 함수가 여전히 글월과 맞는 $P$의 가장 긴 앞가지를 알려 준다는 것이다. 그러면 있을 법한 맞음을 놓치지 않고 글월 맞춤을 $j - \pi[j-1]$만큼 앞으로 건너뛸 수 있다. 더 적게 밀려면 앞가지와 뒷가지가 $\pi[j-1]$보다 길게 겹쳐야 하는데 그것은 $\pi$의 최대성에 어긋나기 때문이다.
 
-# Reference
+# 참고 문헌
 
 [Introduction to Algorithms (CLRS), Section 32.4 - The Knuth-Morris-Pratt algorithm](https://mitpress.mit.edu/books/introduction-to-algorithms-fourth-edition/)
 
 [Prefix function - CP-Algorithms](https://cp-algorithms.com/string/prefix-function.html)
+
+## 연습문제
+
+**연습문제 1.**
+막무가내 글자열 짝짓기 알고리즘, KMP, 보이어-무어의 가장 나쁜 경우 시간 복잡도를 견주어라.
+
+??? success "연습문제 1 풀이"
+    | 알고리즘 | 가장 나쁜 경우 | 가장 좋은 경우 | 공간 |
+    |-----------|-----------|-----------|-------|
+    | 막무가내 | $O(nm)$ | $O(n)$ | $O(1)$ |
+    | KMP | $O(n + m)$ | $O(n)$ | 어그러짐 함수에 $O(m)$ |
+    | 보이어-무어 | $O(nm)$(병적인 경우) | $O(n/m)$(선형 아래!) | $O(m + |\Sigma|)$ |
+
+    KMP는 한 줄 시간을 보장한다. 보이어-무어는 (글자를 건너뛰므로) 실전에서 대개 더 빠르지만 갈릴 다듬기를 쓰지 않으면 가장 나쁜 경우 $O(nm)$이다.
+
+---
+
+**연습문제 2.**
+글 $T$ = "ABABCABABD"과 무늬 $P$ = "ABABD"에 대해 알고리즘이 도는 과정을 견줌마다 보이며 좇아라.
+
+??? success "연습문제 2 풀이"
+    자리 0에서 시작: P[0]='A'와 T[0]='A' 견줌(맞음), P[1]='B'와 T[1]='B'(맞음), P[2]='A'와 T[2]='A'(맞음), P[3]='B'와 T[3]='B'(맞음), P[4]='D'와 T[4]='C'(어긋남). 어그러짐 함수 또는 밀기 규칙으로 무늬를 민다. 자리 2에서 시작(KMP는 어그러짐 함수로 다시 견주지 않는다). 끝내 자리 5에서 맞는 곳을 찾는다. 이 알고리즘은 모두 많아야 $2n$번 견준다.
+
+---
+
+**연습문제 3.**
+KMP의 어그러짐 함수란 무엇인가? 무늬 "ABABCAB"에 대해 셈하여라.
+
+??? success "연습문제 3 풀이"
+    어긋남 함수 $\pi[i]$은 $P[0..i]$의 앞가지이면서 뒷가지이기도 한 가장 긴 진앞가지의 길이를 준다. "ABABCAB"에 대해:
+
+    | $i$ | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+    |-----|---|---|---|---|---|---|---|
+    | $P[i]$ | A | B | A | B | C | A | B |
+    | $\pi[i]$ | 0 | 0 | 1 | 2 | 0 | 1 | 2 |
+
+    예컨대 "AB"이 "ABAB"의 앞가지이자 뒷가지이므로 $\pi[3] = 2$이다.
+
+---
+
+**연습문제 4.**
+라빈-카프에 쓰이는 굴리는 해시 재주를 설명하여라. 헛맞음이 일어날 확률은 얼마인가?
+
+??? success "연습문제 4 풀이"
+    라빈-카프는 본의 흩는 값을 셈하고 글월 위로 흩는 창을 미끄러뜨린다. **구르는 흩는 값**은 $O(1)$에 새로 고친다. 곧 $d$이 밑이고 $q$이 소수일 때 $h(T[i+1..i+m]) = (h(T[i..i+m-1]) - T[i] \cdot d^{m-1}) \cdot d + T[i+m] \pmod{q}$이다. 흩는 값은 맞는데 글줄이 다르면 헛맞음이 난다. 아무 소수 $q$에 대해 헛맞음 한 번의 확률은 $O(1/q)$이고 자리 $n-m+1$개에 대한 헛맞음의 기댓값은 $O(n/q)$이다. $q \approx n^2$을 고르면 헛맞음이 기대상 $O(1)$이다.

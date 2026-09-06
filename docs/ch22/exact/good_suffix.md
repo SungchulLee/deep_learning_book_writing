@@ -1,42 +1,35 @@
-# Good Suffix Rule
+# 좋은 뒷가지 규칙
+좋은 뒷가지 규칙은 보이어-무어 알고리즘의 둘째 어림짐작이다. 나쁜 글자 규칙이 맞지 않은 글자에 힘을 쏟는 반면 좋은 뒷가지 규칙은 이미 맞은 본의 몫을 써먹는다.
 
+## 직관
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+본을 오른쪽에서 왼쪽으로 견주다가 본의 자리 $j$에서 맞지 않았다고 하자. 뒷가지 $P[j+1..m-1]$은 이미 그에 맞는 글월과 맞았다. 이를 "좋은 뒷가지" $t = P[j+1..m-1]$이라 하자.
 
-The good-suffix rule is the second heuristic in the Boyer-Moore algorithm. While the bad-character rule focuses on the mismatched character, the good-suffix rule exploits the portion of the pattern that has already been matched.
+좋은 뒷가지 규칙은 $P$ 안에서 앞 글자가 $P[j]$과 다른 $t$의 다음 나옴에 맞도록 본을 민다. 그런 나옴이 없으면 $P$의 앞가지와 맞는 $t$의 가장 긴 진뒷가지에 맞도록 민다.
 
-## Intuition
+## 엄밀한 정의
 
-Suppose we are comparing the pattern from right to left and a mismatch occurs at position $j$ in the pattern. The suffix $P[j+1..m-1]$ has already matched the corresponding text. Call this the "good suffix" $t = P[j+1..m-1]$.
+좋은 뒷가지를 $t = P[j+1..m-1]$이라 하자. 밀 거리는 두 경우로 정해진다:
 
-The good-suffix rule shifts the pattern to align with the next occurrence of $t$ inside $P$ that is preceded by a character different from $P[j]$. If no such occurrence exists, the rule shifts to align the longest proper suffix of $t$ that matches a prefix of $P$.
+**경우 1:** $P[k+1..k+m-1-j] = t$이고 $P[k] \neq P[j]$인 자리 $k < j$이 있다. 본을 $j - k$만큼 민다.
 
-## Formal Definition
-
-Let the good suffix be $t = P[j+1..m-1]$. The shift is determined by two cases:
-
-**Case 1:** There exists a position $k < j$ such that $P[k+1..k+m-1-j] = t$ and $P[k] \neq P[j]$. We shift the pattern by $j - k$ positions.
-
-**Case 2:** No such $k$ exists, but a proper suffix of $t$ matches a prefix of $P$. Let $\ell$ be the length of the longest such prefix. We shift by $m - \ell$.
+**경우 2:** 그런 $k$은 없으나 $t$의 진뒷가지가 $P$의 앞가지와 맞는다. 그런 앞가지 가운데 가장 긴 것의 길이를 $\ell$이라 하자. $m - \ell$만큼 민다.
 
 $$
-
 \text{good\_suffix\_shift}(j) = \begin{cases}
-j - k & \text{if Case 1 applies (use rightmost such } k\text{)}\\
-m - \ell & \text{if only Case 2 applies}\\
-m & \text{if neither case applies}
+j - k & \text{경우 1이면(가장 오른쪽 } k\text{ 를 쓴다)}\\
+m - \ell & \text{경우 2만 성립하면}\\
+m & \text{어느 경우도 아니면}
 \end{cases}
-
 $$
 
-## Preprocessing
+## 미리 다듬기
 
-The good-suffix table is computed using an auxiliary array $\text{suffix}[i]$, which stores the length of the longest suffix of $P$ that matches a suffix of $P[0..i]$.
+좋은 뒷가지 표는 $P[0..i]$의 뒷가지와 맞는 $P$의 가장 긴 뒷가지 길이를 담는 딸림 배열 $\text{suffix}[i]$으로 셈한다.
 
 ```python
 def build_good_suffix_table(pattern: str) -> list[int]:
-    """Build the good suffix shift table for Boyer-Moore."""
+    """보이어-무어의 좋은 뒷가지 밀기 표를 세운다."""
     m = len(pattern)
     if m == 0:
         return []
@@ -69,28 +62,73 @@ def build_good_suffix_table(pattern: str) -> list[int]:
 
     return shift
 
-# Example
+# 예
 pattern = "ABCBAB"
 table = build_good_suffix_table(pattern)
 print(f"Pattern: {pattern}")
 print(f"Good suffix shift table: {table}")
-# Output: Good suffix shift table: [4, 4, 4, 4, 2, 1]
+# 내놓기: 좋은 뒷가지 밀기 표: [4, 4, 4, 4, 2, 1]
 ```
 
-## Example Walkthrough
+## 보기 따라가기
 
-For pattern $P = \texttt{ABCBAB}$ ($m=6$):
+본 $P = \texttt{ABCBAB}$($m=6$)에 대해:
 
-- If mismatch at $j=4$, good suffix = `"B"`. `"B"` re-occurs at $P[3]$ preceded by `C` $\neq$ `A`=$P[4]$. Shift by 2.
-- If mismatch at $j=3$, good suffix = `"AB"`. `"AB"` occurs as prefix $P[0..1]$. Shift by 4.
+- $j=4$에서 맞지 않으면 좋은 뒷가지는 `"B"`이다. `"B"`이 $P[3]$에 다시 나오고 그 앞이 `C` $\neq$ `A`=$P[4]$이다. 2만큼 민다.
+- $j=3$에서 맞지 않으면 좋은 뒷가지는 `"AB"`이다. `"AB"`이 앞가지 $P[0..1]$으로 나온다. 4만큼 민다.
 
-## Complexity
+## 복잡도
 
-- **Preprocessing:** $O(m)$ time and space.
-- Combined with the bad-character rule, the good-suffix rule ensures that Boyer-Moore achieves $O(n+m)$ worst-case time (with the Galil rule for the matching phase).
+- **미리 다듬기:** 시간과 공간이 $O(m)$.
+- 나쁜 글자 규칙과 아우르면 좋은 뒷가지 규칙 덕분에 보이어-무어가 (맞추는 마디에 갈릴 규칙을 쓰면) 최악의 경우 $O(n+m)$ 시간을 이룬다.
 
-# Reference
+# 참고 문헌
 
 [Boyer, Moore - A Fast String Searching Algorithm (1977)](https://doi.org/10.1145/359842.359859)
 
 [Good Suffix Heuristic - Lecroq](http://www-igm.univ-mlv.fr/~lecroq/string/node14.html)
+
+## 연습문제
+
+**연습문제 1.**
+막무가내 글자열 짝짓기 알고리즘, KMP, 보이어-무어의 가장 나쁜 경우 시간 복잡도를 견주어라.
+
+??? success "연습문제 1 풀이"
+    | 알고리즘 | 가장 나쁜 경우 | 가장 좋은 경우 | 공간 |
+    |-----------|-----------|-----------|-------|
+    | 막무가내 | $O(nm)$ | $O(n)$ | $O(1)$ |
+    | KMP | $O(n + m)$ | $O(n)$ | 어그러짐 함수에 $O(m)$ |
+    | 보이어-무어 | $O(nm)$(병적인 경우) | $O(n/m)$(선형 아래!) | $O(m + |\Sigma|)$ |
+
+    KMP는 한 줄 시간을 보장한다. 보이어-무어는 (글자를 건너뛰므로) 실전에서 대개 더 빠르지만 갈릴 다듬기를 쓰지 않으면 가장 나쁜 경우 $O(nm)$이다.
+
+---
+
+**연습문제 2.**
+글 $T$ = "ABABCABABD"과 무늬 $P$ = "ABABD"에 대해 알고리즘이 도는 과정을 견줌마다 보이며 좇아라.
+
+??? success "연습문제 2 풀이"
+    자리 0에서 시작: P[0]='A'와 T[0]='A' 견줌(맞음), P[1]='B'와 T[1]='B'(맞음), P[2]='A'와 T[2]='A'(맞음), P[3]='B'와 T[3]='B'(맞음), P[4]='D'와 T[4]='C'(어긋남). 어그러짐 함수 또는 밀기 규칙으로 무늬를 민다. 자리 2에서 시작(KMP는 어그러짐 함수로 다시 견주지 않는다). 끝내 자리 5에서 맞는 곳을 찾는다. 이 알고리즘은 모두 많아야 $2n$번 견준다.
+
+---
+
+**연습문제 3.**
+KMP의 어그러짐 함수란 무엇인가? 무늬 "ABABCAB"에 대해 셈하여라.
+
+??? success "연습문제 3 풀이"
+    어긋남 함수 $\pi[i]$은 $P[0..i]$의 앞가지이면서 뒷가지이기도 한 가장 긴 진앞가지의 길이를 준다. "ABABCAB"에 대해:
+
+    | $i$ | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+    |-----|---|---|---|---|---|---|---|
+    | $P[i]$ | A | B | A | B | C | A | B |
+    | $\pi[i]$ | 0 | 0 | 1 | 2 | 0 | 1 | 2 |
+
+    예컨대 "AB"이 "ABAB"의 앞가지이자 뒷가지이므로 $\pi[3] = 2$이다.
+
+---
+
+**연습문제 4.**
+라빈-카프에 쓰이는 굴리는 해시 재주를 설명하여라. 헛맞음이 일어날 확률은 얼마인가?
+
+??? success "연습문제 4 풀이"
+    라빈-카프는 본의 흩는 값을 셈하고 글월 위로 흩는 창을 미끄러뜨린다. **구르는 흩는 값**은 $O(1)$에 새로 고친다. 곧 $d$이 밑이고 $q$이 소수일 때 $h(T[i+1..i+m]) = (h(T[i..i+m-1]) - T[i] \cdot d^{m-1}) \cdot d + T[i+m] \pmod{q}$이다. 흩는 값은 맞는데 글줄이 다르면 헛맞음이 난다. 아무 소수 $q$에 대해 헛맞음 한 번의 확률은 $O(1/q)$이고 자리 $n-m+1$개에 대한 헛맞음의 기댓값은 $O(n/q)$이다. $q \approx n^2$을 고르면 헛맞음이 기대상 $O(1)$이다.

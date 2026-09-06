@@ -1,23 +1,23 @@
-# Interval Scheduling
+# 구간 일정 짜기
 
-Given a set of activities (or jobs), each with a start and finish time, the **interval scheduling** problem asks for the maximum number of non-overlapping activities. The greedy strategy of always selecting the activity that finishes earliest is optimal, and its correctness can be proved by an "exchange argument" showing that no other strategy can do better.
+시작 시각과 마침 시각을 갖는 활동(또는 일) 모음이 주어질 때 **구간 일정 짜기** 문제는 겹치지 않는 활동의 최대 개수를 묻는다. 늘 가장 일찍 끝나는 활동을 고르는 욕심쟁이 전략이 가장 좋으며, 그 옳음은 다른 어떤 전략도 더 낫지 못함을 보이는 "맞바꿈 논증"으로 증명할 수 있다.
 
-## Problem Statement
+## 문제 서술
 
 Given $n$ activities $\{a_1, a_2, \dots, a_n\}$ where activity $a_i$ has start time $s_i$ and finish time $f_i$, find the largest subset $S$ of mutually compatible activities. Two activities $a_i$ and $a_j$ are **compatible** if their intervals do not overlap: $f_i \le s_j$ or $f_j \le s_i$.
 
-## Greedy Algorithm
+## 욕심쟁이 알고리즘
 
-**Strategy.** Sort activities by finish time. Greedily select each activity whose start time is at or after the finish time of the last selected activity.
+**전략.** 활동을 마침 시각으로 정렬한다. 마지막으로 고른 활동의 마침 시각 이후에 시작하는 활동을 욕심껏 고른다.
 
-**Why earliest finish time?** By finishing as early as possible, we leave the most room for subsequent activities. Alternative strategies (earliest start time, shortest duration) can be shown to fail with simple counterexamples.
+**왜 가장 이른 마침 시각인가?** 될 수 있는 한 일찍 끝냄으로써 뒤이을 활동에 자리를 가장 많이 남긴다. 다른 전략(가장 이른 시작 시각, 가장 짧은 길이)은 간단한 반례로 어그러짐을 보일 수 있다.
 
-## Correctness Proof
+## 옳음의 증명
 
-!!! note "Theorem"
-    The earliest-finish-time greedy algorithm produces a maximum-size set of mutually compatible activities.
+!!! note "정리"
+    가장 이른 마침 시각 욕심쟁이 알고리즘은 서로 어울리는 활동의 가장 큰 모음을 낸다.
 
-??? example "Proof (Exchange Argument)"
+??? example "증명(맞바꿈 논증)"
     Let $G = \{g_1, g_2, \dots, g_k\}$ be the greedy solution (sorted by finish time) and $O = \{o_1, o_2, \dots, o_m\}$ be an optimal solution with $m \ge k$. We show $k = m$.
 
     **Claim.** For each $i \le k$, $f(g_i) \le f(o_i)$ (greedy finishes at least as early at every step).
@@ -28,30 +28,30 @@ Given $n$ activities $\{a_1, a_2, \dots, a_n\}$ where activity $a_i$ has start t
 
     Since the greedy solution stays ahead at every step, if $m > k$, then $o_{k+1}$ would be compatible with $g_k$ (because $s(o_{k+1}) \ge f(o_k) \ge f(g_k)$), contradicting the fact that greedy stopped. Therefore $m = k$. $\square$
 
-## Implementation
+## 구현
 
 ```python
 """
-Interval scheduling via the earliest-finish-time greedy algorithm.
+가장 일찍 마치는 것을 고르는 욕심쟁이 알고리즘으로 하는 구간 차례 짜기.
 
-Selects the maximum number of non-overlapping intervals by always
-choosing the activity that finishes earliest.
+늘 가장 일찍 마치는 일을 골라 겹치지 않는 구간을
+가장 많이 고른다.
 """
 
-# === Greedy Interval Scheduling ===
+# === 욕심쟁이 구간 차례 짜기 ===
 
 def interval_scheduling(
     activities: list[tuple[int, int]]
 ) -> list[tuple[int, int]]:
-    """Find maximum set of non-overlapping activities.
+    """겹치지 않는 일의 가장 큰 모임을 찾는다.
 
-    Args:
-        activities: List of (start, finish) tuples.
+    인수:
+        activities: (시작, 마침) 짝의 목록.
 
-    Returns:
-        Maximum-size subset of mutually compatible activities.
+    반환값:
+        서로 어울리는 일의 가장 큰 부분 모임.
     """
-    # Sort by finish time
+    # 마치는 때로 정렬한다
     sorted_acts = sorted(activities, key=lambda x: x[1])
 
     selected = []
@@ -65,7 +65,7 @@ def interval_scheduling(
     return selected
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     activities = [
@@ -80,7 +80,7 @@ if __name__ == "__main__":
         print(f"  [{s}, {f})")
 ```
 
-**Output:**
+**출력:**
 
 ```
 Total activities: 11
@@ -91,36 +91,68 @@ Maximum compatible set: 4 activities
   [12, 16)
 ```
 
-Out of 11 activities, the greedy algorithm selects 4 non-overlapping ones. Each selected activity starts at or after the previous one finishes.
+활동 11개 가운데 욕심쟁이 알고리즘은 겹치지 않는 4개를 고른다. 고른 활동마다 앞 것이 끝난 뒤에 시작한다.
 
-## Why Other Strategies Fail
+## 다른 전략이 어그러지는 까닭
 
-| Strategy | Counterexample |
+| 전략 | 반례 |
 |----------|---------------|
-| Earliest start time | A long activity starting early blocks many short ones |
-| Shortest duration | A short activity in the middle overlaps two non-overlapping ones |
-| Fewest conflicts | An activity with few conflicts may still block optimal choices |
+| 가장 이른 시작 시각 | 일찍 시작하는 긴 활동이 짧은 활동 여럿을 막는다 |
+| 가장 짧은 길이 | 가운데의 짧은 활동이 겹치지 않는 둘과 겹친다 |
+| 부딪힘이 가장 적은 것 | 부딪힘이 적은 활동도 가장 좋은 고름을 막을 수 있다 |
 
-## Complexity
+## 복잡도
 
-| Aspect | Cost |
+| 항목 | 비용 |
 |--------|:----:|
 | Time   | $O(n \log n)$ |
-| Space  | $O(n)$ |
+| 공간 | $O(n)$ |
 
 Sorting dominates at $O(n \log n)$. The selection pass is a single $O(n)$ scan.
 
-## Weighted Variant
+## 무게 있는 변종
 
-When each activity has a weight (profit) $w_i$, the goal becomes maximizing total weight rather than count. The greedy approach no longer works, and dynamic programming is needed:
+활동마다 무게(이익) $w_i$이 있으면 목표가 개수가 아니라 전체 무게를 가장 크게 하는 것이 된다. 욕심쟁이 방식은 더는 통하지 않고 동적 계획이 필요하다:
 
 $$
 \text{dp}[j] = \max\bigl(w_j + \text{dp}[p(j)],\; \text{dp}[j-1]\bigr)
 $$
 
-where $p(j)$ is the latest activity compatible with $j$ (found via binary search after sorting by finish time).
+여기서 $p(j)$은 $j$과 어울리는 가장 늦은 활동이다(마침 시각으로 정렬한 뒤 이분 찾기로 찾는다).
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 16: Greedy Algorithms.
-- Kleinberg, J., & Tardos, E. (2006). *Algorithm Design*. Pearson. Chapter 4: Greedy Algorithms.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 16장: Greedy Algorithms.
+- Kleinberg, J., & Tardos, E. (2006). *Algorithm Design*. Pearson. 4장: Greedy Algorithms.
+
+## 연습문제
+
+**연습문제 1.**
+구간 일정 짜기에서 욕심쟁이 고름이 무엇인지 가려내고 왜 가장 좋은 풀이로 이어지는지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    The greedy choice selects the locally optimal option at each step. For Interval Scheduling, this choice satisfies the greedy choice property: there exists an optimal solution that includes this greedy selection. Combined with optimal substructure (the remaining subproblem after the greedy choice is also optimally solvable by the same strategy), the greedy algorithm produces a globally optimal solution. $\square$
+
+---
+
+**연습문제 2.**
+구간 일정 짜기이 가장 좋은 아래 짜임을 갖는지 증명하거나 반증하여라.
+
+??? success "연습문제 2 풀이"
+    Optimal substructure means that an optimal solution to the problem contains optimal solutions to its subproblems. For Interval Scheduling, after making the greedy choice, the remaining problem is a smaller instance of the same type. If the subproblem solution were not optimal, we could improve the overall solution by replacing it — contradicting overall optimality. Therefore optimal substructure holds. $\square$
+
+---
+
+**연습문제 3.**
+구간 일정 짜기의 시간 복잡도는 무엇인가? 가장 값비싼 단계를 가려내어라.
+
+??? success "연습문제 3 풀이"
+    The time complexity depends on the sorting step (if required) and the greedy selection loop. Sorting typically dominates at $O(n \log n)$. The greedy loop processes each element once in $O(n)$. Total: $O(n \log n)$. If the input is pre-sorted, the algorithm runs in $O(n)$. $\square$
+
+---
+
+**연습문제 4.**
+(구간 일정 짜기에서 쓴 것이 아닌) 다른 욕심쟁이 전략은 가장 좋은 풀이를 내지 못함을 보이는 반례를 들어라.
+
+??? success "연습문제 4 풀이"
+    Consider an alternative greedy criterion that does not align with the problem's structure. This alternative may select an element that blocks better future choices. The counterexample demonstrates that the wrong greedy criterion can produce a suboptimal result, highlighting why the specific greedy choice property must be proven for each problem. $\square$

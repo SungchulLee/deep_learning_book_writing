@@ -1,25 +1,14 @@
-# Shortest Path Faster Algorithm
+# 더 빠른 최단 경로 알고리즘
 
-The standard Bellman-Ford algorithm relaxes *every* edge in each of its
-$|V| - 1$ passes, even edges whose source vertex has not changed since the
-last pass.  The **Shortest Path Faster Algorithm** (SPFA) avoids this waste by
-maintaining a queue of vertices whose distances have recently decreased.  Only
-edges leaving these vertices need to be relaxed, which often reduces the
-practical running time significantly while retaining the ability to handle
-negative-weight edges.
+표준 벨먼-포드 알고리즘은 $|V| - 1$번 훑을 때마다 *모든* 변을 늦춘다. 지난 훑기 이후 꼬리 꼭짓점이 바뀌지 않은 변까지 늦춘다. **더 빠른 최단 경로 알고리즘**(SPFA)은 거리가 최근에 줄어든 꼭짓점의 줄을 지켜 이 낭비를 피한다. 그 꼭짓점에서 나가는 변만 늦추면 되므로, 무게가 음인 변을 다루는 힘은 그대로 두면서 실전에서 도는 시간이 크게 줄곤 한다.
 
-## Key Idea
+## 핵심 생각
 
-SPFA is a queue-based optimization of Bellman-Ford.  Instead of iterating over
-all edges in each pass, it keeps a FIFO queue of "active" vertices — those
-whose distance estimates have just improved.  When a vertex $u$ is dequeued,
-its outgoing edges are relaxed.  If relaxing edge $(u, v)$ reduces $d[v]$ and
-$v$ is not already in the queue, $v$ is enqueued for future processing.
+SPFA은 벨먼-포드를 줄로 다듬은 것이다. 훑을 때마다 모든 변을 훑는 대신 "살아 있는" 꼭짓점, 곧 거리 어림값이 방금 나아진 꼭짓점을 담은 FIFO 줄을 지킨다. 꼭짓점 $u$을 꺼내면 그 나가는 변을 늦춘다. 변 $(u, v)$을 늦춰 $d[v]$이 줄고 $v$이 아직 줄에 없으면 나중에 다루려고 $v$을 줄에 넣는다.
 
-This approach avoids relaxing edges from vertices whose estimates have not
-changed, which is the main source of redundant work in standard Bellman-Ford.
+이 길은 어림값이 바뀌지 않은 꼭짓점에서 나가는 변을 늦추지 않는데, 그것이 표준 벨먼-포드에서 군더더기 일의 주된 원천이다.
 
-## Algorithm
+## 알고리즘
 
 ```
 SPFA(G, w, s):
@@ -38,49 +27,38 @@ SPFA(G, w, s):
                     in_queue[v] = TRUE
 ```
 
-The `in_queue` flag prevents duplicate entries, ensuring each vertex appears in
-the queue at most once at any given time.
+`in_queue` 깃발이 겹치는 항목을 막아 언제든 꼭짓점마다 줄에 많아야 한 번 나타나게 한다.
 
-## Complexity
+## 복잡도
 
-- **Worst case:** $O(VE)$, the same as Bellman-Ford.  Adversarial graphs can
-  force each vertex to be enqueued $O(V)$ times.
-- **Average case:** Empirically much faster — often close to $O(E)$ on random
-  graphs.  However, no tighter worst-case bound is known.
+- **최악의 경우:** 벨먼-포드와 같은 $O(VE)$이다. 적수가 짠 그래프는 꼭짓점마다 $O(V)$번 줄에 들게 만들 수 있다.
+- **평균의 경우:** 겪어 보면 훨씬 빠르며 무작위 그래프에서는 흔히 $O(E)$에 가깝다. 그러나 더 빈틈없는 최악의 경우 한계는 알려져 있지 않다.
 - **Space:** $O(V)$ for the queue and auxiliary arrays.
 
-!!! warning "Worst-case performance"
-    Despite good average-case behavior, SPFA can degrade to $O(VE)$ on
-    carefully constructed graphs.  For this reason, Dijkstra's algorithm
-    (with non-negative weights) or standard Bellman-Ford (with guaranteed
-    $O(VE)$) are often preferred in competitive settings where adversarial
-    inputs are possible.
+!!! warning "최악의 경우 성능"
+    평균으로는 잘 굴러가지만 SPFA은 잘 짜인 그래프에서 $O(VE)$으로 무너질 수 있다. 그래서 적수 입력이 있을 수 있는 겨루기 자리에서는 (무게가 음이 아닐 때) 데이크스트라 알고리즘이나 ($O(VE)$이 보장된) 표준 벨먼-포드를 흔히 더 낫게 여긴다.
 
-## Negative Cycle Detection
+## 음의 고리 알아내기
 
-SPFA can detect negative cycles by counting how many times each vertex is
-enqueued.  If a vertex is enqueued more than $|V| - 1$ times, it lies on or
-is reachable from a negative cycle.
+SPFA은 꼭짓점마다 줄에 몇 번 들어갔는지 세어 음의 고리를 알아낼 수 있다. 어떤 꼭짓점이 $|V| - 1$번을 넘게 줄에 들면 그것은 음의 고리 위에 있거나 그것에서 닿을 수 있다.
 
-This works because in a graph without negative cycles, each vertex's distance
-can decrease at most $|V| - 1$ times (once for each possible shortest-path
-length).
+음의 고리가 없는 그래프에서는 꼭짓점마다 거리가 많아야 $|V| - 1$번 줄 수 있으므로(있을 수 있는 최단 경로 길이마다 한 번) 이렇게 된다.
 
-## Comparison with Bellman-Ford
+## 벨먼-포드와의 견줌
 
-| Aspect | Bellman-Ford | SPFA |
+| 결 | 벨먼-포드 | SPFA |
 |---|---|---|
-| Edge processing | All edges, $\lvert V\rvert - 1$ times | Only edges from recently improved vertices |
-| Worst-case time | $O(VE)$ | $O(VE)$ |
-| Practical performance | Consistent | Often much faster, but variable |
-| Implementation | Simpler | Slightly more complex (queue management) |
-| Negative cycle detection | Extra pass after $\lvert V\rvert - 1$ | Count enqueue operations |
+| 변 다루기 | 모든 변을 $\lvert V\rvert - 1$번 | 최근에 나아진 꼭짓점에서 나가는 변만 |
+| 최악의 경우 시간 | $O(VE)$ | $O(VE)$ |
+| 실전 성능 | 한결같음 | 흔히 훨씬 빠르나 들쭉날쭉함 |
+| 구현 | 더 단순함 | 살짝 더 복잡함(줄 다루기) |
+| 음의 고리 알아내기 | $\lvert V\rvert - 1$ 뒤 덧훑기 | 줄에 넣은 횟수 세기 |
 
-## Worked Example
+## 풀이 예제
 
 Consider vertices $\{s, a, b, c, d\}$ with edges:
 
-| Edge | Weight |
+| 변 | 무게 |
 |---|---|
 | $(s, a)$ | 1 |
 | $(s, b)$ | 4 |
@@ -92,63 +70,59 @@ Consider vertices $\{s, a, b, c, d\}$ with edges:
 
 **Step 1:** Initialize $d[s]=0$, all others $\infty$.  Enqueue $s$.
 
-**Step 2:** Dequeue $s$.  Relax $(s,a)$: $d[a]=1$, enqueue $a$.
-Relax $(s,b)$: $d[b]=4$, enqueue $b$.  Queue: $[a, b]$.
+**걸음 2:** $s$을 꺼낸다. $(s,a)$ 늦추기: $d[a]=1$, $a$을 줄에 넣는다. $(s,b)$ 늦추기: $d[b]=4$, $b$을 줄에 넣는다. 줄: $[a, b]$.
 
-**Step 3:** Dequeue $a$.  Relax $(a,b)$: $d[b]=\min(4, 1+2)=3$, $b$ already
-in queue.  Relax $(a,c)$: $d[c]=7$, enqueue $c$.  Queue: $[b, c]$.
+**걸음 3:** $a$을 꺼낸다. $(a,b)$ 늦추기: $d[b]=\min(4, 1+2)=3$, $b$은 이미 줄에 있다. $(a,c)$ 늦추기: $d[c]=7$, $c$을 줄에 넣는다. 줄: $[b, c]$.
 
-**Step 4:** Dequeue $b$.  Relax $(b,c)$: $d[c]=\min(7, 3+3)=6$, $c$ already
-in queue.  Relax $(b,d)$: $d[d]=4$, enqueue $d$.  Queue: $[c, d]$.
+**걸음 4:** $b$을 꺼낸다. $(b,c)$ 늦추기: $d[c]=\min(7, 3+3)=6$, $c$은 이미 줄에 있다. $(b,d)$ 늦추기: $d[d]=4$, $d$을 줄에 넣는다. 줄: $[c, d]$.
 
-**Step 5:** Dequeue $c$.  Relax $(c,d)$: $d[d]=\min(4, 6-2)=4$ (no change).
-Queue: $[d]$.
+**걸음 5:** $c$을 꺼낸다. $(c,d)$ 늦추기: $d[d]=\min(4, 6-2)=4$(바뀜 없음). 줄: $[d]$.
 
 **Step 6:** Dequeue $d$.  No outgoing edges.  Queue empty.
 
 **Final distances:** $d[s]=0, d[a]=1, d[b]=3, d[c]=6, d[d]=4$.
 
-## Implementation
+## 구현
 
 ```python
 """
-Shortest Path Faster Algorithm (SPFA).
+더 빠른 최단 경로 알고리즘(SPFA).
 
-A queue-based optimization of Bellman-Ford that avoids redundant
-edge relaxations by processing only recently improved vertices.
+벨먼-포드를 줄 기반으로 최적화하여 쓸데없는
+변 늦추기를 피하려고 최근에 나아진 꼭짓점만 다룬다.
 """
 
 from collections import deque
 from math import inf
 
 
-# === SPFA algorithm ==========================================================
+# === SPFA 알고리즘 ===========================================================
 
 def spfa(graph: dict, source) -> tuple[dict, dict, bool]:
-    """Run SPFA from the given source vertex.
+    """주어진 근원 꼭짓점에서 SPFA 돌리기.
 
-    Parameters
+    매개변수
     ----------
     graph : dict
-        Adjacency list mapping vertex -> list of (neighbor, weight).
+        꼭짓점 -> (이웃, 무게) 목록으로 잇는 이웃 목록.
     source : hashable
-        The source vertex.
+        근원 꼭짓점.
 
-    Returns
+    반환값
     -------
     dist : dict
-        Shortest distances from source.
+        근원에서의 최단 거리.
     pred : dict
-        Predecessor pointers for path reconstruction.
+        경로를 되짚기 위한 앞선 꼭짓점 가리개.
     no_negative_cycle : bool
-        True if no negative cycle is reachable from source.
+        근원에서 음의 순환에 닿을 수 없으면 True.
     """
     n = len(graph)
     dist = {v: inf for v in graph}
     dist[source] = 0
     pred = {v: None for v in graph}
     in_queue = {v: False for v in graph}
-    count = {v: 0 for v in graph}  # enqueue count for cycle detection
+    count = {v: 0 for v in graph}  # 순환을 알아내려는 줄 넣기 횟수
 
     queue = deque([source])
     in_queue[source] = True
@@ -167,15 +141,15 @@ def spfa(graph: dict, source) -> tuple[dict, dict, bool]:
                     in_queue[v] = True
                     count[v] += 1
                     if count[v] >= n:
-                        return dist, pred, False  # negative cycle
+                        return dist, pred, False  # 음의 순환
 
     return dist, pred, True
 
 
-# === Path reconstruction =====================================================
+# === 경로 되짚기 =============================================================
 
 def get_path(pred: dict, source, target) -> list:
-    """Reconstruct the shortest path from source to target."""
+    """근원에서 과녁까지의 최단 경로 되짚기."""
     path = []
     v = target
     while v is not None:
@@ -185,7 +159,7 @@ def get_path(pred: dict, source, target) -> list:
     return path if path and path[0] == source else []
 
 
-# === Demo ====================================================================
+# === 보임 ====================================================================
 
 if __name__ == "__main__":
     graph = {
@@ -202,19 +176,19 @@ if __name__ == "__main__":
     print(f"Path s->d: {get_path(pred, 's', 'd')}")
     print(f"Path s->c: {get_path(pred, 's', 'c')}")
 
-    # Graph with negative cycle
+    # 음의 순환이 있는 그래프
     print("\n--- Graph with negative cycle ---")
     graph_neg = {
         "s": [("a", 1)],
         "a": [("b", -3)],
         "b": [("c", 1)],
-        "c": [("a", -1)],  # cycle: a->b->c->a = -3+1+(-1) = -3
+        "c": [("a", -1)],  # 순환: a->b->c->a = -3+1+(-1) = -3
     }
     dist2, pred2, ok2 = spfa(graph_neg, "s")
     print(f"No negative cycle: {ok2}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 No negative cycle: True
@@ -226,9 +200,44 @@ Path s->c: ['s', 'a', 'b', 'c']
 No negative cycle: False
 ```
 
-## Reference
+## 참고 문헌
 
-- Duan, F. (1994). About the Shortest Path Faster Algorithm. *Journal of
-  Southwest Jiaotong University*, 29(2), 207-212.
+- Duan, F. (1994). About the Shortest Path Faster Algorithm. *Journal of Southwest Jiaotong University*, 29(2), 207-212.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
   Algorithms* (4th ed.), Chapter 24: Single-Source Shortest Paths.
+
+## 연습문제
+
+**연습문제 1.**
+SPFA(더 빠른 최단 경로 알고리즘)를 밝히고 벨먼-포드보다 어떻게 나은지 설명하여라.
+
+??? success "연습문제 1 풀이"
+    SPFA은 거리가 최근에 줄어든 꼭짓점의 줄을 지킨다. 처음에는 샘만 줄에 있다. 꼭짓점 $u$을 꺼내면 변 $(u, v)$을 모두 늦춘다. $d[v]$이 줄고 $v$이 아직 줄에 없으면 $v$을 줄에 넣는다. 그러면 (바퀴마다 모든 변을 늦추는 벨먼-포드와 달리) 거리가 바뀌지 않은 꼭짓점에서 나가는 변을 늦추지 않는다. 평균의 경우 복잡도는 $O(E)$이지만 최악의 경우는 여전히 $O(VE)$이다. $\square$
+
+---
+
+**연습문제 2.**
+SPFA이 음의 고리를 어떻게 알아낼 수 있는가?
+
+??? success "연습문제 2 풀이"
+    꼭짓점마다 줄에 들어간 횟수를 좇는다. 어떤 꼭짓점이 $V$번 이상 줄에 들면 음의 고리가 있다. 음의 고리가 없는 그래프에서는 꼭짓점마다 많아야 $V - 1$번 늦춰지므로(있을 수 있는 최단 경로 길이마다 한 번) 이렇게 된다. 아니면 늦추기의 총 횟수를 세어 $V \cdot E$을 넘으면 음의 고리가 있는 것이다. $\square$
+
+---
+
+**연습문제 3.**
+우선순위 줄을 쓴 데이크스트라 알고리즘과 SPFA을 견주어라. 어느 것을 언제 고르겠는가?
+
+??? success "연습문제 3 풀이"
+    **SPFA**: 음의 무게를 다루며 평균은 $O(E)$이지만 최악의 경우는 $O(VE)$이다. 단순한 FIFO 줄을 쓴다. 음의 고리를 알아낼 수 있다. 평균 성능으로 넉넉하다면 음의 무게가 있는 그래프에 가장 알맞다.
+
+    **데이크스트라**: 무게가 음이 아니어야 하며 이진 힙으로 $O((V+E)\log V)$이 보장된다. 우선순위 줄을 쓴다. 음의 고리를 알아내지 못한다. 최악의 경우 보장이 필요한, 무게가 음이 아닌 그래프에 가장 알맞다.
+
+    음의 무게가 있는 성긴 그래프에서는 SPFA이 더 단순하고 평균으로 더 빠르다. 데이크스트라는 더 미리 알 수 있어, 적수 입력이 SPFA의 최악의 경우를 끌어낼 수 있는 겨루기 자리에서 더 낫다. $\square$
+
+---
+
+**연습문제 4.**
+SPFA의 SLF(가장 짧은 이름표 먼저) 다듬기는 꼭짓점의 거리가 줄 맨 앞 원소의 거리보다 작으면 그 꼭짓점을 줄의 앞에 넣는다. 이것이 왜 성능을 낫게 할 수 있는지 설명하여라.
+
+??? success "연습문제 4 풀이"
+    SLF prioritizes vertices with smaller tentative distances, making SPFA behave more like Dijkstra. Processing low-distance vertices first tends to produce more effective relaxations (reaching the true shortest distance faster) and reduces the number of times vertices re-enter the queue. This does not change the worst-case complexity but often significantly improves average performance, especially on graphs with a mix of positive and negative edge weights. $\square$

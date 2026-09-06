@@ -1,150 +1,123 @@
-# Effective Sample Size
+# 실효 표본 크기
+## 개요
 
+실효 표본 크기(ESS)는 중요도 표집의 질을 재는 근본 진단이다. 우리가 가진 무게 준 표본이 과녁 분포의 독립 표본 몇 개에 맞먹는지를 잰다. ESS은 제안의 질을 객관적으로 재어 주며 중요도 표집 어림자의 흩어짐과 곧바로 이어진다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 수학적 정의
 
-## Overview
+### 고르게 한 무게에 대한 정의
 
-The Effective Sample Size (ESS) is the fundamental diagnostic for importance sampling quality. It quantifies how many independent samples from the target distribution our weighted samples are equivalent to. ESS provides an objective measure of proposal quality and directly relates to the variance of importance sampling estimators.
-
-## Mathematical Definition
-
-### Definition for Normalized Weights
-
-Given normalized importance weights $\bar{w}_1, \ldots, \bar{w}_n$ with $\sum_i \bar{w}_i = 1$:
+$\sum_i \bar{w}_i = 1$인 고르게 한 중요도 무게 $\bar{w}_1, \ldots, \bar{w}_n$이 주어졌을 때:
 
 $$
-
 \text{ESS} = \frac{1}{\sum_{i=1}^n \bar{w}_i^2}
-
 $$
 
-### Definition for Unnormalized Weights
+### 고르게 하지 않은 무게에 대한 정의
 
-For unnormalized weights $\tilde{w}_1, \ldots, \tilde{w}_n$:
+고르게 하지 않은 무게 $\tilde{w}_1, \ldots, \tilde{w}_n$에 대해:
 
 $$
-
 \text{ESS} = \frac{\left(\sum_{i=1}^n \tilde{w}_i\right)^2}{\sum_{i=1}^n \tilde{w}_i^2}
-
 $$
 
-Both definitions are equivalent: $\bar{w}_i = \tilde{w}_i / \sum_j \tilde{w}_j$.
+두 정의는 같다. 곧 $\bar{w}_i = \tilde{w}_i / \sum_j \tilde{w}_j$이다.
 
-### Properties
+### 성질
 
-**Bounds:**
+**한계:**
 
 $$
-
 1 \leq \text{ESS} \leq n
-
 $$
 
-**Extreme Cases:**
+**극단적인 경우:**
 
-- **Maximum**: ESS $= n$ when all weights are equal: $\bar{w}_i = 1/n$
-- **Minimum**: ESS $= 1$ when one weight equals 1 and rest equal 0
+- **최댓값**: 무게가 모두 같을 때 ESS $= n$이다. 곧 $\bar{w}_i = 1/n$이다
+- **최솟값**: 무게 하나가 1이고 나머지가 0일 때 ESS $= 1$이다
 
-## Interpretation
+## 해석
 
-### Intuitive Understanding
+### 직관적인 이해
 
-ESS answers: "How many independent samples from $\pi$ are our $n$ weighted samples equivalent to?"
+ESS은 이렇게 답한다. "우리가 가진 무게 준 표본 $n$개는 $\pi$의 독립 표본 몇 개에 맞먹는가?"
 
-| ESS | Interpretation | Implication |
+| ESS | 풀이 | 뜻하는 바 |
 |-----|----------------|-------------|
-| $\text{ESS} = n$ | Perfect sampling | Weights are uniform, as if sampling from $\pi$ |
-| $\text{ESS} = n/2$ | 50% efficiency | Half the samples are "wasted" |
-| $\text{ESS} = n/10$ | 10% efficiency | Need 10x samples for same precision |
-| $\text{ESS} \ll n$ | Severe degeneracy | Few samples dominate, estimates unreliable |
-| $\text{ESS} \approx 1$ | Complete failure | Essentially one sample, useless |
+| $\text{ESS} = n$ | 완벽한 표집 | 무게가 고르며 $\pi$에서 표집한 것과 같다 |
+| $\text{ESS} = n/2$ | 효율 50% | 표본의 절반이 "버려진다" |
+| $\text{ESS} = n/10$ | 효율 10% | 같은 정밀도에 표본이 10배 필요하다 |
+| $\text{ESS} \ll n$ | 심한 주저앉음 | 몇몇 표본이 좌우하며 어림값이 미덥지 않다 |
+| $\text{ESS} \approx 1$ | 온통 무너짐 | 사실상 표본 하나라 쓸모없다 |
 
-### Connection to Variance
+### 흩어짐과의 이음
 
-The variance of a self-normalized IS estimator is approximately:
+스스로 고르게 하는 중요도 표집 어림자의 흩어짐은 대략 다음과 같다:
 
 $$
-
 \text{Var}(\hat{I}_{\text{SNIS}}) \approx \frac{\text{Var}_\pi(h(\theta))}{\text{ESS}}
-
 $$
 
-Compare to standard MC with $n$ independent samples:
+독립 표본 $n$개를 쓴 표준 몬테카를로와 견주어 보자:
 
 $$
-
 \text{Var}(\hat{I}_{\text{MC}}) = \frac{\text{Var}_\pi(h(\theta))}{n}
-
 $$
 
-**Variance Inflation Factor:**
+**흩어짐 부풀림 인자:**
 
 $$
-
 \text{Variance Inflation} = \frac{n}{\text{ESS}}
-
 $$
 
-If ESS $= n/10$, the variance is inflated by 10x compared to perfect sampling.
+ESS $= n/10$이면 흩어짐이 완벽한 표집에 견주어 10배로 부푼다.
 
-## Derivation of ESS
+## ESS 이끌어 내기
 
-### From Weight Variance
+### 무게의 흩어짐에서
 
-Start with the coefficient of variation of weights:
+무게의 변동 계수에서 시작하자:
 
 $$
-
 \text{CV}^2(\tilde{w}) = \frac{\text{Var}(\tilde{w})}{[\mathbb{E}(\tilde{w})]^2}
-
 $$
 
-The ESS can be written as:
+ESS은 다음과 같이 쓸 수 있다:
 
 $$
-
 \text{ESS} = \frac{n}{1 + \text{CV}^2(\tilde{w})}
-
 $$
 
-**Proof:**
+**증명:**
 
 $$
-
 \text{ESS} = \frac{(\sum_i \tilde{w}_i)^2}{\sum_i \tilde{w}_i^2} = \frac{n^2 \bar{\tilde{w}}^2}{n \cdot (\text{Var}(\tilde{w}) + \bar{\tilde{w}}^2)}
-
 $$
 
-where $\bar{\tilde{w}} = \frac{1}{n}\sum_i \tilde{w}_i$. Simplifying:
+여기서 $\bar{\tilde{w}} = \frac{1}{n}\sum_i \tilde{w}_i$이다. 간단히 하면 다음과 같다:
 
 $$
-
 \text{ESS} = \frac{n}{1 + \text{Var}(\tilde{w})/\bar{\tilde{w}}^2} = \frac{n}{1 + \text{CV}^2}
-
 $$
 
-### From Entropy
+### 엔트로피에서
 
-The ESS is related to the **perplexity** (exponential of entropy) of the weight distribution:
+ESS은 무게 분포의 **혼란도**(엔트로피의 지수)와 이어져 있다:
 
 $$
-
 \text{Perplexity} = \exp(H(\bar{w})) = \exp\left(-\sum_i \bar{w}_i \log \bar{w}_i\right)
-
 $$
 
-For a uniform distribution: $H = \log n$, Perplexity $= n$.
+고른 분포에서는 $H = \log n$, 혼란도 $= n$이다.
 
-ESS and perplexity are related but not identical:
+ESS과 혼란도는 이어져 있지만 같지는 않다:
 
-- ESS uses the $L_2$ norm: $1/\|\bar{w}\|_2^2$
-- Perplexity uses entropy (related to $L_1$ of log weights)
+- ESS은 $L_2$ 노름을 쓴다. 곧 $1/\|\bar{w}\|_2^2$이다
+- 혼란도는 엔트로피를 쓴다(로그 무게의 $L_1$과 이어져 있다)
 
-Both measure weight concentration but with different emphases.
+둘 다 무게가 몰린 정도를 재지만 강조하는 바가 다르다.
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
@@ -153,30 +126,30 @@ import matplotlib.pyplot as plt
 
 def compute_ess_normalized(weights):
     """
-    Compute ESS from normalized weights.
+    고르게 한 무게로 ESS 셈하기.
     
     ESS = 1 / sum_i w_i^2
     
-    Parameters
+    매개변수
     ----------
     weights : torch.Tensor
-        Normalized weights (sum to 1)
+        고르게 한 무게(합이 1)
         
-    Returns
+    반환값
     -------
     ess : float
-        Effective sample size
+        실효 표본 크기
     """
     return 1.0 / torch.sum(weights**2)
 
 
 def compute_ess_unnormalized(unnorm_weights):
     """
-    Compute ESS from unnormalized weights.
+    고르게 하지 않은 무게로 ESS 셈하기.
     
     ESS = (sum_i w_i)^2 / sum_i w_i^2
     
-    More numerically stable than normalizing first.
+    먼저 고르게 하는 것보다 수치로 더 안정하다.
     """
     sum_w = torch.sum(unnorm_weights)
     sum_w_sq = torch.sum(unnorm_weights**2)
@@ -185,11 +158,11 @@ def compute_ess_unnormalized(unnorm_weights):
 
 def compute_ess_log_weights(log_weights):
     """
-    Compute ESS from log weights (most numerically stable).
+    로그 무게로 ESS 셈하기(수치로 가장 안정하다).
     
-    Useful when weights span many orders of magnitude.
+    무게가 여러 자릿수에 걸쳐 있을 때 쓸모 있다.
     """
-    # Normalize in log space
+    # 로그 공간에서 고르게 하기
     log_sum = torch.logsumexp(log_weights, dim=0)
     log_norm_weights = log_weights - log_sum
     
@@ -202,26 +175,26 @@ def compute_ess_log_weights(log_weights):
 
 def weight_diagnostics(weights, n_samples=None, name=""):
     """
-    Comprehensive weight and ESS diagnostics.
+    무게와 ESS 두루 진단하기.
     
-    Parameters
+    매개변수
     ----------
     weights : torch.Tensor
-        Importance weights (normalized or unnormalized)
+        중요도 무게(고르게 했거나 안 했거나)
     n_samples : int, optional
-        Total number of samples (if None, inferred from weights)
+        표본의 전체 개수(None이면 무게에서 미루어 안다)
     name : str
-        Label for printing
+        찍기 위한 이름표
         
-    Returns
+    반환값
     -------
     dict
-        Dictionary of diagnostic statistics
+        진단 통계량의 사전
     """
     if n_samples is None:
         n_samples = len(weights)
     
-    # Normalize if needed
+    # 필요하면 고르게 하기
     if not torch.isclose(weights.sum(), torch.tensor(1.0), atol=1e-6):
         norm_weights = weights / weights.sum()
     else:
@@ -231,15 +204,15 @@ def weight_diagnostics(weights, n_samples=None, name=""):
     ess = compute_ess_normalized(norm_weights)
     ess_ratio = ess / n_samples
     
-    # Weight statistics
+    # 무게 통계량
     max_weight = norm_weights.max()
     min_weight = norm_weights.min()
     uniform_weight = 1.0 / n_samples
     
-    # Coefficient of variation
+    # 변이 계수
     cv = norm_weights.std() / norm_weights.mean()
     
-    # Weight concentration
+    # 무게 몰림
     sorted_weights = torch.sort(norm_weights, descending=True)[0]
     cumsum = torch.cumsum(sorted_weights, dim=0)
     
@@ -247,12 +220,12 @@ def weight_diagnostics(weights, n_samples=None, name=""):
     n_for_50 = (cumsum < 0.5).sum().item() + 1
     n_for_90 = (cumsum < 0.9).sum().item() + 1
     
-    # Entropy and perplexity
+    # 엔트로피와 헷갈림도
     entropy = -torch.sum(norm_weights * torch.log(norm_weights + 1e-10))
     max_entropy = torch.log(torch.tensor(float(n_samples)))
     perplexity = torch.exp(entropy)
     
-    # Variance inflation
+    # 흩어짐 부풂
     variance_inflation = n_samples / ess
     
     diagnostics = {
@@ -292,7 +265,7 @@ def weight_diagnostics(weights, n_samples=None, name=""):
               f"(normalized: {diagnostics['normalized_entropy']:.3f})")
         print(f"  Perplexity: {perplexity.item():.1f}")
         
-        # Quality assessment
+        # 질 살피기
         if ess_ratio.item() > 0.5:
             quality = "EXCELLENT"
         elif ess_ratio.item() > 0.2:
@@ -309,20 +282,20 @@ def weight_diagnostics(weights, n_samples=None, name=""):
     return diagnostics
 
 
-# Example: ESS for different proposal qualities
+# 보기: 제안의 질에 따른 ESS
 torch.manual_seed(42)
 
-# Target: N(5, 1)
+# 과녁: N(5, 1)
 target = dist.Normal(5.0, 1.0)
 
-# Various proposals
+# 여러 가지 제안
 proposals = {
     'Perfect: N(5, 1)': dist.Normal(5.0, 1.0),
     'Good: N(5, 1.2)': dist.Normal(5.0, 1.2),
     'Decent: N(4.5, 1.5)': dist.Normal(4.5, 1.5),
     'Poor: N(3, 2)': dist.Normal(3.0, 2.0),
-    'Bad: N(5, 0.5)': dist.Normal(5.0, 0.5),  # Too narrow
-    'Terrible: N(0, 1)': dist.Normal(0.0, 1.0),  # Wrong location
+    'Bad: N(5, 0.5)': dist.Normal(5.0, 0.5),  # 너무 좁음
+    'Terrible: N(0, 1)': dist.Normal(0.0, 1.0),  # 틀린 자리
 }
 
 n_samples = 5000
@@ -336,12 +309,12 @@ print("-" * 70)
 
 results = {}
 for name, proposal in proposals.items():
-    # Sample and compute weights
+    # 표집하고 무게 셈하기
     samples = proposal.sample((n_samples,))
     log_weights = target.log_prob(samples) - proposal.log_prob(samples)
     weights = torch.exp(log_weights - torch.logsumexp(log_weights, 0))
     
-    # Diagnostics
+    # 진단
     diag = weight_diagnostics(weights, n_samples)
     results[name] = diag
     
@@ -349,39 +322,35 @@ for name, proposal in proposals.items():
           f"{diag['cv']:10.2f} {diag['max_weight_ratio']:12.1f}x")
 ```
 
-## ESS and Sample Size Scaling
+## ESS과 표본 크기 늘리기
 
-### Does ESS Scale with n?
+### ESS은 n에 따라 커지는가?
 
-**Question**: If we double $n$, does ESS double?
+**물음**: $n$을 두 배로 하면 ESS도 두 배가 되는가?
 
-**Answer**: Yes, approximately. The ESS ratio (ESS/n) remains roughly constant for a fixed proposal-target pair.
+**답**: 대체로 그렇다. 제안과 과녁의 짝이 붙박이면 ESS 비(ESS/n)가 대략 상수로 남는다.
 
-**Proof sketch:**
+**증명 얼개:**
 
 $$
-
 \text{ESS} = \frac{n}{1 + \text{CV}^2(\tilde{w})}
-
 $$
 
-For large $n$, $\text{CV}^2(\tilde{w})$ converges to a constant (by LLN), so:
+$n$이 크면 (큰 수의 법칙에 따라) $\text{CV}^2(\tilde{w})$이 상수로 모이므로 다음과 같다:
 
 $$
-
 \frac{\text{ESS}}{n} \to \frac{1}{1 + \text{CV}^2_\infty}
-
 $$
 
-**Implication**: You cannot "fix" a bad proposal by simply increasing $n$. The efficiency (ESS/n) is determined by the proposal-target match.
+**뜻하는 바**: $n$을 늘리는 것만으로 나쁜 제안을 "고칠" 수는 없다. 효율(ESS/n)은 제안과 과녁이 얼마나 맞는지가 정한다.
 
 ```python
-# Demonstrate ESS scaling with n
+# n에 따른 ESS 변화 보이기
 sample_sizes = [100, 500, 1000, 2000, 5000, 10000]
 
-# Fixed proposal-target pair
+# 붙박인 제안-과녁 짝
 target = dist.Normal(5.0, 1.0)
-proposal = dist.Normal(3.0, 2.0)  # Intentionally mismatched
+proposal = dist.Normal(3.0, 2.0)  # 일부러 어긋나게 함
 
 print("\nESS Scaling with Sample Size")
 print(f"Target: N(5, 1), Proposal: N(3, 2)")
@@ -405,9 +374,9 @@ print(f"\nESS/n converges to approximately "
       f"{sum(ess_ratios[-3:])/3:.3f}")
 ```
 
-## Variance-ESS Relationship
+## 흩어짐과 ESS의 관계
 
-### Empirical Verification
+### 겪어 보고 확인하기
 
 ```python
 def verify_variance_ess_relationship(
@@ -415,7 +384,7 @@ def verify_variance_ess_relationship(
     true_value, n_samples=5000, n_reps=500
 ):
     """
-    Empirically verify that Var(estimator) ~ Var_pi(h)/ESS
+    Var(어림꼴) ~ Var_pi(h)/ESS임을 경험으로 확인하기
     """
     estimates = []
     ess_values = []
@@ -442,7 +411,7 @@ def verify_variance_ess_relationship(
     mse = ((estimates - true_value)**2).mean().item()
     bias = (estimates.mean() - true_value).item()
     
-    # Theoretical prediction
+    # 이론의 미리봄
     good_proposal = dist.Normal(5.0, 1.1)
     samples = good_proposal.sample((50000,))
     log_w = (target_log_prob(samples)
@@ -465,60 +434,60 @@ def verify_variance_ess_relationship(
     print(f"  Bias: {bias:.6f}")
     print(f"  RMSE: {mse**0.5:.6f}")
 
-# Verify
+# 확인
 target_log_prob = lambda x: dist.Normal(5.0, 1.0).log_prob(x)
 proposal = dist.Normal(3.0, 2.0)
 h = lambda x: x**2
-true_value = 5**2 + 1**2  # E[X^2] for N(5,1)
+true_value = 5**2 + 1**2  # N(5,1)의 E[X^2]
 
 verify_variance_ess_relationship(
     target_log_prob, proposal, h, true_value
 )
 ```
 
-## ESS in Practice
+## 실전에서의 ESS
 
-### Minimum ESS Requirements
+### 최소 ESS 요구
 
-| Application | Minimum ESS | Rationale |
+| 쓰임새 | 최소 ESS | 까닭 |
 |-------------|-------------|-----------|
-| Point estimates | 100-500 | Basic CLT applicability |
-| Posterior quantiles | 500-1000 | Need density in tails |
-| Credible intervals | 1000+ | Require accurate tail coverage |
-| Model comparison | 1000+ | Sensitive to weight distribution |
-| Publication quality | 5000+ | Low Monte Carlo error |
+| 점 어림값 | 100-500 | 기본 중심 극한 정리를 쓸 수 있음 |
+| 뒤확률 분위수 | 500-1000 | 꼬리에도 밀도가 필요함 |
+| 믿음 구간 | 1000 이상 | 꼬리를 정확히 덮어야 함 |
+| 모형 견줌 | 1000 이상 | 무게 분포에 민감함 |
+| 논문 수준 | 5000 이상 | 몬테카를로 오차가 작아야 함 |
 
-### When ESS is Low
+### ESS이 낮을 때
 
-**Symptoms:**
+**증상:**
 
-- Large variance in estimates
-- Unstable results across runs
-- Extreme weight values
-- Few samples carrying most weight
+- 어림값의 흩어짐이 크다
+- 돌릴 때마다 결과가 흔들린다
+- 무게 값이 극단적이다
+- 몇몇 표본이 무게 대부분을 진다
 
-**Solutions:**
+**풀이:**
 
-1. **Improve proposal**: Better location, scale, or family
-2. **Use adaptive methods**: Let the algorithm find good proposal
-3. **Switch to MCMC**: May be more appropriate for the problem
-4. **Increase $n$**: Only helps if ESS/n is reasonable
+1. **제안 낫게 하기**: 더 나은 자리, 눈금, 또는 갈래
+2. **알아서 맞추는 방법 쓰기**: 알고리즘이 좋은 제안을 찾게 한다
+3. **MCMC으로 바꾸기**: 그 문제에 더 알맞을 수 있다
+4. **$n$ 늘리기**: ESS/n이 그럭저럭일 때만 도움이 된다
 
-**When NOT to just increase n:**
+**그냥 n을 늘리면 안 될 때:**
 
-- If ESS/n < 0.01, doubling $n$ only doubles ESS
-- Better to improve proposal and get ESS/n > 0.1
+- ESS/n < 0.01이면 $n$을 두 배로 해도 ESS만 두 배가 된다
+- 제안을 낫게 해 ESS/n > 0.1을 얻는 편이 낫다
 
-### Monitoring ESS Over Time
+### 시간에 따라 ESS 지켜보기
 
-For sequential or adaptive algorithms, track ESS evolution:
+잇단 알고리즘이나 알아서 맞추는 알고리즘에서는 ESS의 흐름을 좇아라:
 
 ```python
 def track_ess_over_iterations(
     log_target, initial_proposal, n_per_iter, n_iters
 ):
     """
-    Track ESS as we accumulate samples or adapt proposal.
+    표본을 쌓거나 제안을 맞춰 가며 ESS 기록하기.
     """
     ess_history = []
     cumulative_ess_history = []
@@ -529,7 +498,7 @@ def track_ess_over_iterations(
     current_proposal = initial_proposal
     
     for t in range(n_iters):
-        # Draw samples
+        # 표본 뽑기
         samples = current_proposal.sample((n_per_iter,))
         log_weights = (log_target(samples)
                        - current_proposal.log_prob(samples))
@@ -537,14 +506,14 @@ def track_ess_over_iterations(
         all_samples.append(samples)
         all_log_weights.append(log_weights)
         
-        # ESS for this iteration
+        # 이번 되풀이의 ESS
         weights = torch.exp(
             log_weights - torch.logsumexp(log_weights, 0)
         )
         ess_iter = compute_ess_normalized(weights)
         ess_history.append(ess_iter.item())
         
-        # Cumulative ESS (all samples so far)
+        # 쌓인 ESS(지금까지의 모든 표본)
         all_log_w = torch.cat(all_log_weights)
         all_w = torch.exp(
             all_log_w - torch.logsumexp(all_log_w, 0)
@@ -552,7 +521,7 @@ def track_ess_over_iterations(
         cumulative_ess = compute_ess_normalized(all_w)
         cumulative_ess_history.append(cumulative_ess.item())
         
-        # Simple adaptation: fit Gaussian to weighted samples
+        # 단순한 맞춰 가기: 무게 표본에 가우스 맞추기
         if t > 0 and t % 5 == 0:
             all_s = torch.cat(all_samples)
             weighted_mean = torch.sum(
@@ -571,20 +540,20 @@ def track_ess_over_iterations(
     return ess_history, cumulative_ess_history
 ```
 
-## ESS in Quantitative Finance
+## 계량 금융에서의 ESS
 
-### ESS for Risk Measure Estimation
+### 위험 잣대 어림을 위한 ESS
 
-In quantitative finance, ESS has direct implications for the reliability of risk measure estimates. The relationship between ESS and the precision of VaR and Expected Shortfall estimates guides the computational budget for Monte Carlo simulations:
+계량 금융에서 ESS은 위험 잣대 어림값이 얼마나 미더운지에 곧바로 이어진다. ESS과 VaR 및 기대 부족액 어림값의 정밀도 사이의 관계가 몬테카를로 흉내내기의 셈 예산을 이끈다:
 
-| Risk Measure | Minimum ESS | Regulatory Context |
+| 위험 잣대 | 최소 ESS | 규제 자리 |
 |-------------|-------------|-------------------|
-| VaR (99%) | 1,000+ | Basel III internal models |
-| ES (97.5%) | 2,000+ | FRTB standardized approach |
-| Credit VaR (99.9%) | 5,000+ | Economic capital models |
-| Stress testing | 500+ | CCAR/DFAST scenarios |
+| VaR(99%) | 1,000 이상 | 바젤 III 내부 모형 |
+| ES(97.5%) | 2,000 이상 | FRTB 표준 방식 |
+| 신용 VaR(99.9%) | 5,000 이상 | 경제적 자본 모형 |
+| 스트레스 시험 | 500 이상 | CCAR/DFAST 상황 |
 
-**ESS and Convergence Monitoring for Production Systems:**
+**실제 제품 얼개를 위한 ESS과 모임 지켜보기:**
 
 ```python
 def risk_estimation_with_ess_monitoring(
@@ -592,25 +561,25 @@ def risk_estimation_with_ess_monitoring(
     ess_threshold=1000, max_batches=10, batch_size=10000
 ):
     """
-    Adaptive risk estimation that monitors ESS and stops
-    when sufficient effective samples are collected.
+    ESS을 지켜보다가 멈추는 맞춰 가는 위험 어림
+    실효 표본이 넉넉히 모이면 멈춘다.
     
-    Parameters
+    매개변수
     ----------
     loss_simulator : callable
-        Maps risk factor samples to portfolio losses
+        위험 인자 표본을 포트폴리오 손실로 잇는다
     proposal_dist : distribution
-        Importance sampling proposal
+        중요도 표집 제안
     target_dist : distribution
-        Target (real-world) distribution of risk factors
+        위험 인자의 과녁(실제) 분포
     ess_threshold : float
-        Minimum ESS required for reliable estimates
+        미더운 어림값에 필요한 최소 ESS
     """
     all_samples = []
     all_log_weights = []
     
     for batch in range(max_batches):
-        # Draw batch of samples
+        # 표본 묶음 뽑기
         samples = proposal_dist.sample((batch_size,))
         log_w = (target_dist.log_prob(samples)
                  - proposal_dist.log_prob(samples))
@@ -618,7 +587,7 @@ def risk_estimation_with_ess_monitoring(
         all_samples.append(samples)
         all_log_weights.append(log_w)
         
-        # Compute cumulative ESS
+        # 쌓인 ESS 셈하기
         combined_log_w = torch.cat(all_log_weights)
         combined_w = torch.exp(
             combined_log_w
@@ -635,19 +604,19 @@ def risk_estimation_with_ess_monitoring(
             print(f"ESS threshold {ess_threshold} reached.")
             break
     
-    # Compute risk measures from final weighted samples
+    # 마지막 무게 표본으로 위험 잣대 셈하기
     combined_samples = torch.cat(all_samples)
     losses = loss_simulator(combined_samples)
     
     return losses, combined_w, ess.item()
 ```
 
-## Visualization
+## 시각화
 
 ```python
 def plot_ess_diagnostics(weights, samples, name=""):
     """
-    Comprehensive ESS visualization.
+    ESS을 두루 그려 보기.
     """
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     n = len(weights)
@@ -659,7 +628,7 @@ def plot_ess_diagnostics(weights, samples, name=""):
     
     ess = compute_ess_normalized(weights)
     
-    # Panel 1: Weight histogram
+    # 칸 1: 무게 막대그림
     ax = axes[0, 0]
     ax.hist(weights.numpy() * n, bins=50, density=True, 
             alpha=0.7, color='steelblue', edgecolor='black')
@@ -675,7 +644,7 @@ def plot_ess_diagnostics(weights, samples, name=""):
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Panel 2: Cumulative weight curve
+    # 칸 2: 쌓인 무게 곡선
     sorted_w = torch.sort(weights, descending=True)[0]
     cumsum = torch.cumsum(sorted_w, dim=0)
     
@@ -698,7 +667,7 @@ def plot_ess_diagnostics(weights, samples, name=""):
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3)
     
-    # Panel 3: Log weights histogram
+    # 칸 3: 로그 무게 막대그림
     log_weights = torch.log(weights * n)
     
     ax = axes[1, 0]
@@ -713,7 +682,7 @@ def plot_ess_diagnostics(weights, samples, name=""):
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Panel 4: ESS vs n simulation
+    # 칸 4: n에 따른 ESS 흉내내기
     ns = [100, 200, 500, 1000, 2000, 5000]
     ratios = []
     
@@ -748,51 +717,54 @@ def plot_ess_diagnostics(weights, samples, name=""):
     return fig
 ```
 
-## Key Takeaways
+## 핵심 정리
 
-!!! success "What ESS Tells You"
-    - **ESS ~ n**: Excellent proposal, weights nearly uniform
-    - **ESS/n > 0.2**: Good efficiency, results reliable
-    - **ESS/n < 0.05**: Poor efficiency, consider improving proposal
-    - **ESS/n < 0.01**: Estimates unreliable, must fix proposal
+!!! success "ESS이 알려 주는 것"
 
-!!! warning "What ESS Doesn't Tell You"
-    - Whether the proposal covers all modes (can have high ESS but miss modes)
-    - Whether samples explore the full support
-    - Bias from support mismatch (only variance-related)
+    - **ESS ~ n**: 아주 좋은 제안이며 무게가 거의 고르다
+    - **ESS/n > 0.2**: 효율이 좋고 결과가 미덥다
+    - **ESS/n < 0.05**: 효율이 나쁘니 제안을 낫게 하는 것을 생각해 보아라
+    - **ESS/n < 0.01**: 어림값이 미덥지 않으니 제안을 반드시 고쳐야 한다
 
-!!! info "ESS Best Practices"
-    1. Always compute and report ESS with IS estimates
-    2. ESS/n is more interpretable than raw ESS
-    3. If ESS is low, improve proposal rather than increase n
-    4. Use ESS to compare proposals objectively
-    5. Monitor ESS over iterations in adaptive methods
+!!! warning "ESS이 알려 주지 않는 것"
 
-## Exercises
+    - 제안이 봉우리를 모두 덮는지(ESS이 높아도 봉우리를 놓칠 수 있다)
+    - 표본이 받침 전체를 살펴보는지
+    - 받침이 어긋나 생기는 치우침(흩어짐만 알려 준다)
 
-### Exercise 1: ESS Bounds
-Prove that $1 \leq \text{ESS} \leq n$. Under what conditions are the bounds achieved?
+!!! info "ESS을 쓰는 좋은 버릇"
 
-### Exercise 2: ESS vs Perplexity
-Compare ESS and perplexity for the same weight distributions. When do they give different rankings of proposal quality?
+    1. 중요도 표집 어림값과 함께 늘 ESS을 셈해 알려라
+    2. 날 ESS보다 ESS/n이 알아보기 쉽다
+    3. ESS이 낮으면 n을 늘리기보다 제안을 낫게 하여라
+    4. 제안을 객관적으로 견주는 데 ESS을 써라
+    5. 알아서 맞추는 방법에서는 되풀이마다 ESS을 지켜보아라
 
-### Exercise 3: ESS Estimation Variance
-The ESS itself is estimated from samples. How variable is ESS across runs? Compute standard error of ESS estimates.
-
-### Exercise 4: Multimodal ESS
-Can ESS be high when missing a mode? Construct an example and discuss implications.
-
-### Exercise 5: ESS Budget for Risk Models
-A risk model requires ESS of at least 2000 for regulatory compliance. You observe ESS/n of approximately 0.15 with your current proposal. How many total samples $n$ are needed? If you improve the proposal to ESS/n of approximately 0.4, how does the required $n$ change? Discuss the computational cost implications for a portfolio with 500 risk factors.
-
-## References
+## 참고 문헌
 
 1. Kong, A. (1992). "A note on importance sampling using standardized weights." University of Chicago Department of Statistics Technical Report 348.
 
-2. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. Section 2.5.
+2. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. 2.5절.
 
 3. Doucet, A., & Johansen, A. M. (2009). "A tutorial on particle filtering and smoothing: Fifteen years later." *Handbook of Nonlinear Filtering*, 12, 656-704.
 
 4. Elvira, V., Martino, L., & Robert, C. P. (2019). "Rethinking the effective sample size." *International Statistical Review*, 87(3), 591-616.
 
 5. Vehtari, A., Gelman, A., & Gabry, J. (2017). "Pareto smoothed importance sampling." *arXiv preprint arXiv:1507.02646*.
+
+## 연습문제
+
+### 연습 1: ESS의 한계
+$1 \leq \text{ESS} \leq n$임을 증명하여라. 어떤 조건에서 그 한계에 이르는가?
+
+### 연습 2: ESS과 혼란도
+같은 무게 분포에 대해 ESS과 혼란도를 견주어라. 언제 제안의 질에 서로 다른 차례를 매기는가?
+
+### 연습 3: ESS 어림의 흩어짐
+ESS 자체도 표본에서 어림한 값이다. 돌릴 때마다 ESS이 얼마나 흔들리는가? ESS 어림값의 표준 오차를 셈하여라.
+
+### 연습 4: 봉우리가 여럿일 때의 ESS
+봉우리를 놓쳤는데도 ESS이 높을 수 있는가? 보기를 짓고 그것이 뜻하는 바를 이야기하여라.
+
+### 연습 5: 위험 모형의 ESS 예산
+어떤 위험 모형이 규제를 지키려면 ESS이 적어도 2000이어야 한다. 지금 제안에서 ESS/n이 대략 0.15로 관측된다. 표본이 모두 몇 개($n$) 필요한가? 제안을 낫게 해 ESS/n이 대략 0.4가 되면 필요한 $n$은 어떻게 바뀌는가? 위험 인자가 500개인 포트폴리오에서 셈 값이 어떻게 되는지 이야기하여라.

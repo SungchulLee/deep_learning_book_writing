@@ -1,121 +1,102 @@
 # GraphRNN
+## 개요
 
+GraphRNN(You et al., 2018)은 그래프 만들기의 바탕이 되는 자기 되돌이 모델이다. 그래프 만들기를 두 켜로 쪼개는 켜진 되돌이 신경망 얼개를 내놓는다. 온 자리 만들기 상태를 지니며 걸음마다 마디 하나를 만드는 **그래프 켜 되돌이 신경망**과, 새 마디를 기존 마디에 잇는 변을 만드는 **변 켜 되돌이 신경망**이다. 이 두 켜 쪼개기에 그래프의 가까움을 살리는 너비 우선 차례를 더해 GraphRNN은 나타냄 힘도 세고 셈도 다룰 만하다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 구조
 
-## Overview
+GraphRNN은 되돌이 신경망 둘을 켜지게 늘어놓아 쓴다:
 
-GraphRNN (You et al., 2018) is the foundational autoregressive model for graph generation. It introduces a hierarchical RNN architecture that decomposes graph generation into two levels: a **graph-level RNN** that maintains the global generation state and generates one node per step, and an **edge-level RNN** that generates the edges connecting each new node to existing nodes. This two-level decomposition, combined with BFS ordering to exploit graph locality, makes GraphRNN both expressive and computationally tractable.
-
-## Architecture
-
-GraphRNN uses two recurrent neural networks in a hierarchical arrangement:
-
-**Graph-level RNN ($f_{\text{graph}}$).** Maintains a hidden state $\mathbf{h}_t^G$ summarizing the graph constructed through step $t$. At each step, it receives the edge vector from the previous step and outputs an initial hidden state for the edge-level RNN:
+**그래프 켜 되돌이 신경망($f_{\text{graph}}$).** 걸음 $t$까지 지은 그래프를 간추린 숨은 상태 $\mathbf{h}_t^G$을 지닌다. 걸음마다 앞 걸음의 변 벡터를 받아 변 켜 되돌이 신경망의 첫 숨은 상태를 내놓는다:
 
 $$
-
 \mathbf{h}_t^G = f_{\text{graph}}(\mathbf{h}_{t-1}^G, \mathbf{a}_{t-1})
-
 $$
 
-where $\mathbf{a}_{t-1} \in \{0,1\}^{M}$ is the (possibly truncated) edge vector from step $t-1$, and $M$ is the BFS bandwidth.
+여기서 $\mathbf{a}_{t-1} \in \{0,1\}^{M}$은 걸음 $t-1$의 (잘렸을 수도 있는) 변 벡터이고 $M$은 너비 우선 띠너비다.
 
-**Edge-level RNN ($f_{\text{edge}}$).** Initialized with a state derived from $\mathbf{h}_t^G$, it sequentially predicts each edge in the vector $\mathbf{a}_t$:
+**변 켜 되돌이 신경망($f_{\text{edge}}$).** $\mathbf{h}_t^G$에서 얻은 상태로 시작해 벡터 $\mathbf{a}_t$의 변을 차례로 헤아린다:
 
 $$
-
 \mathbf{h}_{t,s}^E = f_{\text{edge}}(\mathbf{h}_{t,s-1}^E, a_{t,s-1})
-
 $$
 
 $$
-
 p(a_{t,s} = 1) = \sigma(\text{MLP}(\mathbf{h}_{t,s}^E))
-
 $$
 
-where $a_{t,s}$ indicates the edge between node $t$ and node $t - s$ (in BFS order), and $\sigma$ is the sigmoid function.
+여기서 $a_{t,s}$은 (너비 우선 차례에서) 마디 $t$과 마디 $t - s$ 사이의 변을 가리키고 $\sigma$은 시그모이드 함수다.
 
-## BFS Truncation
+## 너비 우선 잘라내기
 
-The key computational insight is that under BFS ordering, edges from a new node only reach back within the BFS bandwidth $M$. Instead of predicting connections to all $t-1$ previous nodes, GraphRNN only predicts $\min(t-1, M)$ edge decisions per step. This reduces the total number of edge predictions from $O(n^2)$ to $O(n \cdot M)$, where $M$ is typically much smaller than $n$ for sparse graphs.
+셈에서의 핵심 통찰은 너비 우선 차례에서 새 마디의 변이 너비 우선 띠너비 $M$ 안으로만 되돌아간다는 것이다. 앞선 $t-1$개 마디 모두와의 이음을 헤아리는 대신 GraphRNN은 걸음마다 변 결정을 $\min(t-1, M)$개만 헤아린다. 이는 온 변 헤아림 수를 $O(n^2)$에서 $O(n \cdot M)$으로 줄이며, 성긴 그래프에서 $M$은 보통 $n$보다 훨씬 작다.
 
-The BFS bandwidth for a graph is:
+그래프의 너비 우선 띠너비는 다음과 같다:
 
 $$
-
 M = \max_{(u,v) \in \mathcal{E}} |\pi^{-1}(u) - \pi^{-1}(v)|
-
 $$
 
-where $\pi$ is the BFS ordering. For many graph families (community graphs, molecular graphs, social networks), $M \ll n$, making the truncation an effective approximation with minimal information loss.
+여기서 $\pi$은 너비 우선 차례다. 많은 그래프 무리(무리 그래프, 분자 그래프, 사회 그물)에서 $M \ll n$이어서 잘라내기가 앎을 거의 잃지 않는 쓸 만한 어림이 된다.
 
-## Training
+## 학습
 
-GraphRNN is trained via maximum likelihood with teacher forcing at both levels. Given a graph with BFS ordering $\pi$ and bandwidth $M$:
+GraphRNN은 두 켜 모두에서 스승 밀어 넣기와 함께 최대 가능도로 익힌다. 너비 우선 차례가 $\pi$이고 띠너비가 $M$인 그래프가 주어질 때:
 
 $$
-
 \mathcal{L} = -\sum_{t=2}^{n} \sum_{s=1}^{\min(t-1, M)} \left[ a_{t,s}^* \log p_\theta(a_{t,s} = 1 \mid \mathbf{h}_{t,s-1}^E) + (1 - a_{t,s}^*) \log p_\theta(a_{t,s} = 0 \mid \mathbf{h}_{t,s-1}^E) \right]
-
 $$
 
-During training, the ground-truth edge values $a_{t,s}^*$ are fed as inputs to the edge-level RNN (teacher forcing). The edge-level RNN is initialized at each step $t$ with a learned transformation of the graph-level state:
+익히는 동안 참 변 값 $a_{t,s}^*$을 변 켜 되돌이 신경망의 들임으로 넣는다(스승 밀어 넣기). 변 켜 되돌이 신경망은 걸음 $t$마다 그래프 켜 상태를 배운 바꿈으로 옮겨 첫 값을 잡는다:
 
 $$
-
 \mathbf{h}_{t,0}^E = \text{MLP}_{\text{init}}(\mathbf{h}_t^G)
-
 $$
 
-## Simplified Variant: GraphRNN-S
+## 간단히 한 변형: GraphRNN-S
 
-For computational efficiency, GraphRNN-S replaces the edge-level RNN with a single MLP that predicts the entire edge vector at once:
+셈 효율을 위해 GraphRNN-S은 변 켜 되돌이 신경망을 변 벡터 전체를 한꺼번에 헤아리는 여러 층 신경망 하나로 바꾼다:
 
 $$
-
 \hat{\mathbf{a}}_t = \sigma(\text{MLP}(\mathbf{h}_t^G)) \in [0,1]^{M}
-
 $$
 
-This removes sequential dependencies between edge decisions within a single step, trading expressiveness for parallelism. GraphRNN-S is significantly faster to train but may produce lower-quality graphs for datasets where intra-step edge correlations are important.
+이는 한 걸음 안의 변 결정 사이의 차례 매임을 없애 나타냄 힘과 나란함을 맞바꾼다. GraphRNN-S은 익히기가 훨씬 빠르지만 걸음 안의 변 얽힘이 중요한 자료 뭉치에서는 품질이 떨어지는 그래프를 낼 수 있다.
 
-## Generation Procedure
+## 만들기 절차
 
-Generation proceeds node by node until the model outputs a termination signal:
+모델이 끝냄 신호를 낼 때까지 마디를 하나씩 만들어 간다:
 
-1. Initialize $\mathbf{h}_0^G$ as a learned or zero vector
-2. For $t = 1, 2, \ldots, n_{\max}$:
-    - Compute $\mathbf{h}_t^G = f_{\text{graph}}(\mathbf{h}_{t-1}^G, \mathbf{a}_{t-1})$
-    - Initialize $\mathbf{h}_{t,0}^E = \text{MLP}_{\text{init}}(\mathbf{h}_t^G)$
-    - For $s = 1, \ldots, M$:
-        - Compute $p_{t,s} = \sigma(\text{MLP}(\mathbf{h}_{t,s}^E))$
-        - Sample $a_{t,s} \sim \text{Bernoulli}(p_{t,s})$
-        - If $a_{t,s} = 0$ for all $s$ (EOS pattern), stop generating
-        - Update $\mathbf{h}_{t,s}^E = f_{\text{edge}}(\mathbf{h}_{t,s-1}^E, a_{t,s})$
-3. Reconstruct adjacency matrix from edge sequences
+1. $\mathbf{h}_0^G$을 배운 벡터나 0 벡터로 둔다
+2. $t = 1, 2, \ldots, n_{\max}$에 대해:
+    - $\mathbf{h}_t^G = f_{\text{graph}}(\mathbf{h}_{t-1}^G, \mathbf{a}_{t-1})$을 셈한다
+    - $\mathbf{h}_{t,0}^E = \text{MLP}_{\text{init}}(\mathbf{h}_t^G)$으로 첫 값을 잡는다
+    - $s = 1, \ldots, M$에 대해:
+        - $p_{t,s} = \sigma(\text{MLP}(\mathbf{h}_{t,s}^E))$을 셈한다
+        - $a_{t,s} \sim \text{Bernoulli}(p_{t,s})$을 뽑는다
+        - 모든 $s$에 대해 $a_{t,s} = 0$이면(끝 무늬) 만들기를 멈춘다
+        - $\mathbf{h}_{t,s}^E = f_{\text{edge}}(\mathbf{h}_{t,s-1}^E, a_{t,s})$으로 고친다
+3. 변 차례에서 이웃 행렬을 되짓는다
 
-The termination condition uses a special end-of-sequence (EOS) pattern: if the entire edge vector $\mathbf{a}_t$ is zero (no connections to any previous node), generation stops. This naturally produces graphs of variable size.
+끝냄 조건은 특별한 차례 끝 무늬를 쓴다. 변 벡터 $\mathbf{a}_t$이 통째로 0이면(앞선 어느 마디와도 잇지 않으면) 만들기를 멈춘다. 이는 자연스럽게 크기가 제각각인 그래프를 낸다.
 
-## Limitations
+## 한계
 
-**Ordering sensitivity.** Different BFS traversals of the same graph yield different training sequences. While data augmentation with multiple orderings helps, the model still implicitly learns an ordering-dependent distribution. The gap between $p_\theta(\mathcal{G} \mid \pi)$ and the true $p(\mathcal{G})$ depends on how well the chosen ordering class captures structural regularities.
+**차례 민감도.** 같은 그래프를 너비 우선으로 다르게 밟으면 익히기 차례가 달라진다. 여러 차례로 자료를 늘리면 도움이 되지만 모델은 여전히 차례에 매인 분포를 숨은 채로 배운다. $p_\theta(\mathcal{G} \mid \pi)$과 참 $p(\mathcal{G})$의 틈은 고른 차례 갈래가 얼개의 규칙성을 얼마나 잘 담느냐에 매인다.
 
-**Long-range dependencies.** The graph-level RNN must propagate information across potentially many steps. For large graphs, the hidden state may fail to capture early structural decisions that affect later generation choices.
+**멀리 떨어진 매임.** 그래프 켜 되돌이 신경망은 걸음이 많을 수 있는데도 앎을 죽 퍼뜨려야 한다. 큰 그래프에서는 뒤의 만들기 고름에 영향을 주는 이른 얼개 결정을 숨은 상태가 담지 못할 수 있다.
 
-**Scalability.** Training and generation are inherently sequential across nodes, limiting parallelism. For graphs with hundreds of nodes, training can be slow despite the BFS truncation.
+**커지기.** 익히기와 만들기가 마디를 가로질러 본디 차례여서 나란함이 가둬진다. 마디가 수백 개인 그래프에서는 너비 우선 잘라내기를 해도 익히기가 느릴 수 있다.
 
-## Finance Application: Interbank Network Generation
+## 금융 쓰임새: 은행 사이 그물 만들기
 
-GraphRNN is well-suited for generating synthetic interbank lending networks, where the sequential construction mirrors temporal network formation. Banks join the interbank market and establish lending relationships incrementally. The BFS ordering naturally captures the hierarchical structure of financial networks — core banks (high degree) appear first, with peripheral institutions connecting primarily to nearby core nodes.
+GraphRNN은 차례로 짓는 방식이 때에 따른 그물 생김을 그대로 비추므로 지어낸 은행 사이 빌려주기 그물을 만드는 데 잘 맞는다. 은행은 은행 사이 시장에 들어와 빌려주기 관계를 차츰 맺는다. 너비 우선 차례는 금융 그물의 켜진 얼개를 자연스럽게 담는다. 속 은행(차수가 높음)이 먼저 나오고 바깥 기관이 주로 가까운 속 마디에 이어진다.
 
-## Implementation: GraphRNN with BFS Truncation
+## 짜기: 너비 우선 잘라내기를 쓴 GraphRNN
 
 ```python
 """
-GraphRNN: hierarchical RNN for graph generation with BFS truncation.
+GraphRNN: 너비 우선 잘라내기를 쓰는 그래프 만들기의 켜진 되돌이 신경망.
 """
 import torch
 import torch.nn as nn
@@ -125,7 +106,7 @@ from typing import Optional
 
 
 class EdgeRNN(nn.Module):
-    """Edge-level RNN: generates edge vector sequentially."""
+    """변 켜 되돌이 신경망: 변 벡터를 차례로 만든다."""
 
     def __init__(self, hidden_dim: int, edge_dim: int = 1):
         super().__init__()
@@ -148,25 +129,25 @@ class EdgeRNN(nn.Module):
         lengths: torch.Tensor,
     ) -> torch.Tensor:
         """
-        Teacher-forced forward pass.
+        스승 밀어 넣기 앞으로 가기.
         
-        Args:
-            h_init: (B, hidden_dim) initial hidden state from graph RNN
-            edge_targets: (B, M) ground-truth edge vectors
-            lengths: (B,) valid length for each sample
+        인수:
+            h_init: (B, hidden_dim) 그래프 되돌이 신경망에서 온 첫 숨은 상태
+            edge_targets: (B, M) 참 변 벡터
+            lengths: (B,) 표본마다 올바른 길이
             
-        Returns:
-            logits: (B, M) edge logits
+        반환값:
+            logits: (B, M) 변 로짓
         """
         batch_size, M = edge_targets.shape
         device = edge_targets.device
 
-        # Prepare input: shifted targets with SOS token (zero)
+        # 들임 채비: 시작 토막(0)과 함께 밀린 과녁
         sos = torch.zeros(batch_size, 1, 1, device=device)
         inputs = edge_targets[:, :-1].unsqueeze(-1)  # (B, M-1, 1)
         inputs = torch.cat([sos, inputs], dim=1)  # (B, M, 1)
 
-        # Run edge RNN
+        # 변 되돌이 신경망을 돌린다
         h = h_init.unsqueeze(0)  # (1, B, hidden_dim)
         output, _ = self.rnn(inputs, h)  # (B, M, hidden_dim)
         logits = self.output(output).squeeze(-1)  # (B, M)
@@ -181,15 +162,15 @@ class EdgeRNN(nn.Module):
         temperature: float = 1.0,
     ) -> torch.Tensor:
         """
-        Generate edge vector autoregressively.
+        변 벡터를 자기 되돌이로 만든다.
         
-        Args:
-            h_init: (1, hidden_dim) initial hidden state
-            max_edges: maximum number of edges to generate
-            temperature: sampling temperature
+        인수:
+            h_init: (1, hidden_dim) 첫 숨은 상태
+            max_edges: 만들 변의 최대 개수
+            temperature: 뽑기 온도
             
-        Returns:
-            edges: (max_edges,) sampled binary edge vector
+        반환값:
+            edges: (max_edges,) 뽑은 두 값 변 벡터
         """
         device = h_init.device
         h = h_init.unsqueeze(0)  # (1, 1, hidden_dim)
@@ -209,10 +190,10 @@ class EdgeRNN(nn.Module):
 
 class GraphRNN(nn.Module):
     """
-    GraphRNN: two-level hierarchical RNN for graph generation.
+    GraphRNN: 그래프 만들기의 두 켜 켜진 되돌이 신경망.
     
     Graph-level RNN tracks global state; edge-level RNN generates
-    connections for each new node.
+    새 마디마다의 이음.
     """
 
     def __init__(
@@ -225,11 +206,11 @@ class GraphRNN(nn.Module):
     ):
         super().__init__()
         self.max_nodes = max_nodes
-        self.M = bfs_bandwidth  # BFS bandwidth (truncation window)
+        self.M = bfs_bandwidth  # 너비 우선 띠너비(잘라내기 창)
         self.graph_hidden_dim = graph_hidden_dim
         self.use_edge_rnn = use_edge_rnn
 
-        # Graph-level RNN
+        # 그래프 켜 되돌이 신경망
         self.graph_rnn = nn.GRU(
             input_size=bfs_bandwidth,
             hidden_size=graph_hidden_dim,
@@ -238,11 +219,11 @@ class GraphRNN(nn.Module):
         self.h0 = nn.Parameter(torch.zeros(1, 1, graph_hidden_dim))
 
         if use_edge_rnn:
-            # Full GraphRNN with edge-level RNN
+            # 변 켜 되돌이 신경망을 갖춘 온전한 GraphRNN
             self.edge_rnn = EdgeRNN(edge_hidden_dim)
             self.edge_init = nn.Linear(graph_hidden_dim, edge_hidden_dim)
         else:
-            # GraphRNN-S: MLP for entire edge vector
+            # GraphRNN-S: 변 벡터 전체를 위한 여러 층 신경망
             self.edge_mlp = nn.Sequential(
                 nn.Linear(graph_hidden_dim, graph_hidden_dim),
                 nn.ReLU(),
@@ -258,11 +239,11 @@ class GraphRNN(nn.Module):
         lengths: torch.Tensor,
     ) -> dict[str, torch.Tensor]:
         """
-        Training forward pass.
+        익히기 앞으로 가기.
         
-        Args:
-            edge_sequences: (B, max_nodes, M) BFS-truncated edge vectors
-            lengths: (B,) number of nodes per graph
+        인수:
+            edge_sequences: (B, max_nodes, M) 너비 우선으로 자른 변 벡터
+            lengths: (B,) 그래프마다 마디 개수
         """
         B, T, M = edge_sequences.shape
         device = edge_sequences.device
@@ -272,7 +253,7 @@ class GraphRNN(nn.Module):
         num_preds = 0
 
         for t in range(1, T):
-            # Graph RNN input: edge vector from previous step
+            # 그래프 되돌이 신경망 들임: 앞 걸음의 변 벡터
             if t == 1:
                 x_t = torch.zeros(B, 1, M, device=device)
             else:
@@ -281,12 +262,12 @@ class GraphRNN(nn.Module):
             out, h_graph = self.graph_rnn(x_t, h_graph)
             graph_state = out.squeeze(1)  # (B, graph_hidden_dim)
 
-            # Which samples are active (have node t)
+            # 어느 표본이 살아 있는가(마디 t을 가짐)
             active = (lengths > t).float()
             if active.sum() == 0:
                 break
 
-            # Edge predictions
+            # 변 헤아림
             targets = edge_sequences[:, t, :]  # (B, M)
             valid_len = min(t, M)
 
@@ -297,7 +278,7 @@ class GraphRNN(nn.Module):
             else:
                 logits = self.edge_mlp(graph_state)
 
-            # Mask for valid edge positions
+            # 올바른 변 자리의 가리개
             mask = torch.zeros(B, M, device=device)
             mask[:, :valid_len] = 1.0
             mask = mask * active.unsqueeze(1)
@@ -319,7 +300,7 @@ class GraphRNN(nn.Module):
         temperature: float = 1.0,
         device: str = "cpu",
     ) -> list[torch.Tensor]:
-        """Generate graphs using ancestral sampling."""
+        """조상 뽑기로 그래프를 만든다."""
         self.eval()
         graphs = []
 
@@ -339,23 +320,23 @@ class GraphRNN(nn.Module):
                     edges = self.edge_rnn.generate(
                         h_edge.unsqueeze(0), valid_len, temperature
                     )
-                    # Pad to M
+                    # M까지 채운다
                     edge_vec = torch.zeros(self.M, device=device)
                     edge_vec[:valid_len] = edges[:valid_len]
                 else:
                     logits = self.edge_mlp(graph_state)[0]
                     probs = torch.sigmoid(logits / temperature)
                     edge_vec = torch.bernoulli(probs)
-                    edge_vec[valid_len:] = 0  # Mask invalid positions
+                    edge_vec[valid_len:] = 0  # 올바르지 않은 자리를 가린다
 
-                # Check EOS: all zeros in valid region
+                # 끝 살피기: 올바른 자리가 모두 0
                 if edge_vec[:valid_len].sum() == 0 and t > 1:
                     break
 
                 edge_vectors.append(edge_vec[:valid_len].clone())
                 x_t = edge_vec.unsqueeze(0).unsqueeze(0)
 
-            # Reconstruct adjacency
+            # 이웃 행렬을 되짓는다
             n = len(edge_vectors) + 1
             adj = torch.zeros(n, n, device=device)
             for t, ev in enumerate(edge_vectors):
@@ -377,15 +358,15 @@ def bfs_edge_sequences(
     bandwidth: int,
 ) -> tuple[torch.Tensor, int]:
     """
-    Convert adjacency matrix to BFS-truncated edge sequences.
+    이웃 행렬을 너비 우선으로 자른 변 차례로 바꾼다.
     
-    Returns:
-        sequences: (max_nodes, bandwidth) edge vectors
-        n: number of nodes
+    반환값:
+        sequences: (max_nodes, bandwidth) 변 벡터
+        n: 마디 개수
     """
     n = adj.size(0)
 
-    # BFS ordering from highest-degree node
+    # 차수가 가장 높은 마디에서 너비 우선 차례
     start = adj.sum(1).argmax().item()
     visited = {start}
     order = [start]
@@ -405,11 +386,11 @@ def bfs_edge_sequences(
         if i not in visited:
             order.append(i)
 
-    # Reorder adjacency
+    # 이웃 행렬을 다시 늘어놓는다
     perm = torch.tensor(order)
     adj_bfs = adj[perm][:, perm]
 
-    # Build edge sequences with BFS truncation
+    # 너비 우선 잘라내기로 변 차례를 짓는다
     seq = torch.zeros(max_nodes, bandwidth)
     for t in range(1, min(n, max_nodes)):
         for s in range(min(t, bandwidth)):
@@ -422,18 +403,18 @@ if __name__ == "__main__":
     torch.manual_seed(42)
 
     max_n = 20
-    bw = 8  # BFS bandwidth
+    bw = 8  # 너비 우선 띠너비
 
-    # Create training data: community-structured graphs
+    # 익히기 자료 만들기: 무리 얼개 그래프
     print("=== Preparing Training Data ===")
     graphs = []
     for _ in range(200):
         n = torch.randint(8, max_n, (1,)).item()
-        # Two-community structure
+        # 무리 둘의 얼개
         n1 = n // 2
         n2 = n - n1
         adj = torch.zeros(n, n)
-        # Intra-community edges (dense)
+        # 무리 안의 변(빽빽함)
         for i in range(n1):
             for j in range(i + 1, n1):
                 if torch.rand(1) < 0.4:
@@ -442,14 +423,14 @@ if __name__ == "__main__":
             for j in range(i + 1, n):
                 if torch.rand(1) < 0.4:
                     adj[i, j] = adj[j, i] = 1
-        # Inter-community edges (sparse)
+        # 무리 사이의 변(성김)
         for i in range(n1):
             for j in range(n1, n):
                 if torch.rand(1) < 0.05:
                     adj[i, j] = adj[j, i] = 1
         graphs.append(adj)
 
-    # Prepare sequences
+    # 차례를 채비한다
     sequences = []
     lengths = []
     for adj in graphs:
@@ -461,7 +442,7 @@ if __name__ == "__main__":
     all_lens = torch.tensor(lengths)
     print(f"Data shape: {all_seqs.shape}, avg nodes: {all_lens.float().mean():.1f}")
 
-    # Train GraphRNN
+    # GraphRNN 익히기
     print("\n=== Training GraphRNN (full) ===")
     model = GraphRNN(
         max_nodes=max_n,
@@ -485,7 +466,7 @@ if __name__ == "__main__":
         if (epoch + 1) % 10 == 0:
             print(f"Epoch {epoch+1}: loss={loss.item():.4f}")
 
-    # Train GraphRNN-S
+    # GraphRNN-S 익히기
     print("\n=== Training GraphRNN-S (simplified) ===")
     model_s = GraphRNN(
         max_nodes=max_n,
@@ -508,7 +489,7 @@ if __name__ == "__main__":
         if (epoch + 1) % 10 == 0:
             print(f"Epoch {epoch+1}: loss={loss.item():.4f}")
 
-    # Generate and compare
+    # 만들어 견준다
     print("\n=== Generation Results ===")
     for name, m in [("GraphRNN", model), ("GraphRNN-S", model_s)]:
         gen = m.generate(num_graphs=10)
@@ -521,3 +502,35 @@ if __name__ == "__main__":
         print(f"  Avg edges: {sum(edges)/len(edges):.1f}")
         print(f"  Avg density: {sum(densities)/len(densities):.3f}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+자리바꿈에 안 바뀜 문제 때문에 그래프 만들기가 그림 만들기보다 왜 근본에서 더 어려운지 밝혀라. 이름표가 붙은 마디 $n$개의 그래프에는 같은 뜻의 이웃 행렬 나타냄이 몇 개 있는가?
+
+??? success "연습문제 1 풀이"
+    마디 $n$개의 그래프는 서로 다른 이웃 행렬 $n!$개로 나타낼 수 있다(마디 이름표의 자리바꿈마다 하나). $n = 10$이면 같은 뜻의 나타냄이 $10! = 3{,}628{,}800$개다. 짓는 모델은 다음 가운데 하나를 해야 한다. (1) 이 겹침을 줄이려 표준 차례를 배운다, (2) 자리바꿈에 안 바뀌는 손실 함수를 쓴다(보기로 그래프 짝짓기), (3) 본디 안 바뀌는 나타냄에서 돈다(보기로 스펙트럼 특징). 그림 만들기는 픽셀에 붙박인 자리 차례가 있어 이 문제를 겪지 않는다. $\square$
+
+---
+
+**연습문제 2.**
+커지기, 품질, 올바름 매임을 지킬 수 있음의 면에서 그래프 만들기의 자기 되돌이 길과 한 번에 만들기 길을 견주어라.
+
+??? success "연습문제 2 풀이"
+    자기 되돌이 방법은 마디와 변을 차례로 만들어 걸음마다 그 자리 매임(보기로 원자가)을 자연스럽게 지키지만, 이웃 결정이 늘어나 $O(n^2)$으로 커진다. 한 번에 만들기 방법은 이웃 행렬 전체를 한꺼번에 만들어 나란한 셈에는 더 잘 커지지만 띄엄띄엄한 얼개와 온 자리 매임에 애를 먹는다. 자기 되돌이 방법은 작은 크기($n < 100$)에서 대개 더 좋은 그래프를 내지만 큰 그래프에서는 느려진다. 자리바꿈에 안 바뀌는 손실을 쓰는 한 번에 만들기 방법은 더 빠르지만 짝짓기 문제를 조심스레 다루어야 한다. $\square$
+
+---
+
+**연습문제 3.**
+자기 되돌이 인수 분해 $p(G) = \prod_{i=1}^n p(\text{node}_i | \text{nodes}_{<i}) \prod_{j<i} p(e_{ij} | \text{node}_i, \text{nodes}_{<i})$ 아래에서 그래프의 가능도를 이끌어 내어라.
+
+??? success "연습문제 3 풀이"
+    붙박인 마디 차례 $\pi$ 아래에서 함께 확률은 $p(G | \pi) = \prod_{i=1}^n p(v_{\pi(i)} | G_{\pi(<i)}) \prod_{j < i} p(e_{\pi(i),\pi(j)} | v_{\pi(i)}, G_{\pi(<i)})$으로 인수 분해된다. 여기서 $G_{\pi(<i)}$은 앞서 만든 마디의 부분 그래프다. 주변 가능도 $p(G) = \frac{1}{n!}\sum_\pi p(G | \pi)$은 모든 차례를 더하지만 다룰 수 없다. 실제로는 표준 차례(보기로 너비 우선)를 써서 가능도를 그 차례에 매인 것으로 만든다. 차례의 품질이 만들기 품질에 영향을 준다. $\square$
+
+---
+
+**연습문제 4.**
+분포 잣대를 넘어 화학의 올바름과 약다움을 재는, 만들어 낸 분자 그래프의 따지기 규약을 내놓아라.
+
+??? success "연습문제 4 풀이"
+    분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 익히기 모임에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 가장 좋게 하기 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$

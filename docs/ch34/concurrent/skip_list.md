@@ -229,3 +229,43 @@ All present: True
 
 - Pugh, W. (1990). "Concurrent maintenance of skip lists." *TR CS-2222, University of Maryland*.
 - Herlihy, M. et al. (2006). "A provably correct scalable concurrent skip list." *OPODIS*.
+
+## Exercises
+
+**Exercise 1.**
+Explain why skip lists are more amenable to concurrent access than balanced BSTs. What structural property makes the difference?
+
+??? success "Solution to Exercise 1"
+    Balanced BSTs (AVL, red-black) require rotations during insertions and deletions to maintain balance. A single rotation modifies the parent, child, and grandchild pointers -- three nodes that may be spread across the tree. Concurrent access to these nodes requires locking a variable-size region of the tree, and the locking order is hard to predict (rotations may propagate upward). Skip lists avoid this entirely: their balance is probabilistic (random level assignment at insertion), requiring no structural adjustments after insertion or deletion. An insertion affects only the immediate predecessor at each level, and these predecessors can be locked independently (fine-grained locking) or updated via CAS (lock-free). The locality of modifications -- each operation touches $O(\log n)$ adjacent nodes in a predictable order -- makes skip lists naturally suited for fine-grained and lock-free concurrency. $\square$
+
+---
+
+**Exercise 2.**
+Describe the lock-free skip list insertion algorithm. How does it handle the case where a concurrent deletion removes a predecessor node during insertion?
+
+??? success "Solution to Exercise 2"
+    Lock-free insertion: (1) search from the top level, recording the predecessor and successor at each level. (2) Allocate a new node with a randomly chosen height. (3) Starting from level 0 (bottom), CAS the predecessor's `next` pointer from the successor to the new node. If CAS fails (predecessor changed), re-search at that level and retry. (4) Repeat for each higher level. For concurrent deletion: deleted nodes are first logically marked (a flag in the `next` pointer) before being physically unlinked. During insertion, if a search encounters a marked (logically deleted) predecessor, the inserting thread helps unlink it (physically removes the marked node) and retries the search. This "helping" mechanism ensures progress and prevents inserting into a chain that includes deleted nodes. $\square$
+
+---
+
+**Exercise 3.**
+Analyze the expected time complexity of a concurrent skip list search operation. Does contention from concurrent writes affect the asymptotic search time?
+
+??? success "Solution to Exercise 3"
+    A sequential skip list search takes $O(\log n)$ expected time: at each level, it traverses an expected $O(1)$ nodes before dropping down, and there are $O(\log n)$ levels. In a concurrent setting, search is read-only and does not modify any pointers, so it does not perform any CAS operations. Multiple searches proceed in parallel without interference. Concurrent writes (insertions/deletions) may modify the list structure during a search, but the search remains correct because: (1) atomically published new nodes are visible and safe to traverse, (2) deleted nodes are logically marked before unlinking, and a search encountering a marked node simply skips to the next. The expected number of nodes traversed per level remains $O(1)$ because writes change at most a constant number of pointers per level. Therefore, the asymptotic expected search time is $O(\log n)$, unaffected by concurrent writes. $\square$
+
+---
+
+**Exercise 4.**
+Java's `ConcurrentSkipListMap` is used as a concurrent sorted map. Compare its performance characteristics with a `ConcurrentHashMap` for different access patterns: point lookups, range queries, and ordered iteration.
+
+??? success "Solution to Exercise 4"
+    **Point lookups**: `ConcurrentHashMap` provides $O(1)$ expected time (hash + bucket access), while `ConcurrentSkipListMap` provides $O(\log n)$. For pure point lookups, the hash map is 3--10x faster. **Range queries** (find all keys in $[a, b]$): `ConcurrentSkipListMap` supports this in $O(\log n + k)$ where $k$ is the number of keys in the range, by searching for $a$ and traversing the bottom-level linked list. `ConcurrentHashMap` has no efficient range query -- it requires scanning all buckets in $O(n)$. **Ordered iteration**: `ConcurrentSkipListMap` provides keys in sorted order by traversing the bottom-level list. `ConcurrentHashMap` provides no ordering guarantees. Recommendation: use `ConcurrentHashMap` for unordered key-value stores; use `ConcurrentSkipListMap` when sorted order, range queries, or operations like `ceilingKey`/`floorKey` are needed. $\square$
+
+---
+
+**Exercise 5.**
+Prove that a skip list with $n$ elements and promotion probability $p = 1/2$ has expected height $O(\log n)$ and expected total space $O(n)$.
+
+??? success "Solution to Exercise 5"
+    **Height**: a node is promoted to level $k$ with probability $(1/2)^k$. The maximum level of any node is the height. The probability that at least one node reaches level $c \log_2 n$ is at most $n \cdot (1/2)^{c \log_2 n} = n \cdot n^{-c} = n^{1-c}$. For $c = 2$, this is $1/n$, so with high probability the height is at most $2 \log_2 n = O(\log n)$. **Space**: each node at level 0 is promoted to level 1 with probability $1/2$, to level 2 with probability $1/4$, etc. The expected number of pointers for one node is $\sum_{k=0}^{\infty} (1/2)^k = 2$. Over $n$ nodes, the expected total number of pointers is $2n = O(n)$. $\square$

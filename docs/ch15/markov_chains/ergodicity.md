@@ -1,208 +1,203 @@
-# Ergodicity
+# 에르고드성
+## 들어가며
 
+에르고드성은 마르코프 사슬이 멈춘 분포로 모임을 보장하는 성질이며, MCMC이 맞기 위한 가장 중요한 조건 하나이다. 이 마당은 사슬이 에르고드인지 가리는 갈래 나누기 장치(통하는 갈래, 쪼갤 수 없음, 주기 없음, 되돌아옴)를 세우고, 이어서 모임이 *얼마나 빠른지*를 재는 모임 정리와 섞임 시간 분석을 다룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+에르고드성을 이해하는 일은 MCMC을 쓰는 사람에게 꼭 필요하다. 곧 표집기가 언제 올바른지(맞음), 태우기 기간을 얼마나 돌려야 하는지(모임 속도), 섞임이 나쁜 사슬을 어떻게 진단하는지(짜임의 병목)를 알려 준다.
 
-## Introduction
+## 상태 갈래 나누기
 
-Ergodicity is the property that guarantees a Markov chain converges to its stationary distribution—the single most important condition for MCMC correctness. This section develops the classification machinery (communicating classes, irreducibility, aperiodicity, recurrence) that determines whether a chain is ergodic, then establishes the convergence theorems and mixing time analysis that quantify *how fast* convergence occurs.
+### 닿음과 통함
 
-Understanding ergodicity is essential for MCMC practitioners: it tells us when our sampler is valid (correctness), how long to run the burn-in period (convergence speed), and how to diagnose poorly mixing chains (structural bottlenecks).
-
-## State Classification
-
-### Accessibility and Communication
-
-State $j$ is **accessible** from state $i$ (written $i \to j$) if there exists $n \geq 0$ such that:
+$n \geq 0$인 어떤 $n$에 대해 다음이 성립하면 상태 $i$에서 상태 $j$에 **닿을 수 있다**($i \to j$으로 쓴다):
 
 $$P^{(n)}_{ij} > 0$$
 
-States $i$ and $j$ **communicate** (written $i \leftrightarrow j$) if $i \to j$ and $j \to i$.
+$i \to j$이고 $j \to i$이면 상태 $i$과 $j$이 **통한다**($i \leftrightarrow j$으로 쓴다).
 
-**Theorem.** Communication is an equivalence relation:
+**정리.** 통함은 같음 관계이다:
 
-1. **Reflexive**: $i \leftrightarrow i$ (since $P^{(0)}_{ii} = 1$)
-2. **Symmetric**: $i \leftrightarrow j$ implies $j \leftrightarrow i$ (by definition)
-3. **Transitive**: $i \leftrightarrow j$ and $j \leftrightarrow k$ implies $i \leftrightarrow k$ (compose paths)
+1. **되돌이성**: $i \leftrightarrow i$($P^{(0)}_{ii} = 1$이므로)
+2. **대칭성**: $i \leftrightarrow j$이면 $j \leftrightarrow i$이다(정의에 따라)
+3. **이행성**: $i \leftrightarrow j$이고 $j \leftrightarrow k$이면 $i \leftrightarrow k$이다(길을 이어 붙인다)
 
-### Communicating Classes
+### 통하는 갈래
 
-The equivalence relation of communication partitions the state space $S$ into **communicating classes**. States in the same class can reach each other; states in different classes may have only one-way accessibility or no connection at all.
+통함이라는 같음 관계는 상태 공간 $S$을 **통하는 갈래**로 나눈다. 같은 갈래의 상태끼리는 서로 닿을 수 있다. 다른 갈래의 상태 사이에는 한쪽으로만 닿거나 아예 이음이 없을 수 있다.
 
-### Irreducibility
+### 쪼갤 수 없음
 
-A Markov chain is **irreducible** if all states communicate:
+모든 상태가 통하면 마르코프 사슬을 **쪼갤 수 없다**고 한다:
 
 $$i \leftrightarrow j \quad \text{for all } i, j \in S$$
 
-Equivalently, the entire state space forms a single communicating class.
+마찬가지로 상태 공간 전체가 통하는 갈래 하나를 이룬다.
 
-**Practical test.** A finite chain with $N$ states is irreducible if and only if $\sum_{k=1}^{N-1} P^k$ has all positive entries.
+**실전 검정.** 상태가 $N$개인 끝이 있는 사슬을 쪼갤 수 없을 때 그리고 그때만 $\sum_{k=1}^{N-1} P^k$의 항목이 모두 양이다.
 
-**MCMC implication.** If the MCMC chain is irreducible, the sampler can eventually reach every region of the state space from any starting point. A reducible chain would leave some states permanently unvisited.
+**MCMC에서 뜻하는 바.** MCMC 사슬을 쪼갤 수 없으면 표집기가 어느 시작점에서든 언젠가 상태 공간의 모든 구역에 닿을 수 있다. 쪼갤 수 있는 사슬은 어떤 상태를 영영 들르지 않은 채 남긴다.
 
-## Periodicity
+## 주기성
 
-### Definition
+### 정의
 
-The **period** of state $i$ is:
+상태 $i$의 **주기**는 다음과 같다:
 
 $$d(i) = \gcd\{n \geq 1 : P^{(n)}_{ii} > 0\}$$
 
-A state is **aperiodic** if $d(i) = 1$ and **periodic** if $d(i) > 1$.
+$d(i) = 1$이면 그 상태는 **주기가 없고** $d(i) > 1$이면 **주기가 있다**.
 
-### Interpretation
+### 해석
 
-A period of $d$ means the chain can only return to state $i$ at times that are multiples of $d$. Aperiodic states can return at "irregular" intervals, unconstrained to any fixed cycle.
+주기가 $d$이라는 것은 사슬이 $d$의 배수인 때에만 상태 $i$으로 돌아올 수 있다는 뜻이다. 주기가 없는 상태는 어떤 붙박이 고리에도 매이지 않고 "들쭉날쭉한" 사이를 두고 돌아올 수 있다.
 
-**Key result.** In an irreducible chain, all states have the same period. This allows us to speak of the period of the chain itself.
+**핵심 결과.** 쪼갤 수 없는 사슬에서는 모든 상태의 주기가 같다. 그래서 사슬 자체의 주기를 말할 수 있다.
 
-### Sufficient Condition for Aperiodicity
+### 주기 없음의 충분조건
 
-If any state $i$ has a positive self-loop probability ($P_{ii} > 0$), then $d(i) = 1$, and since the chain is irreducible, all states are aperiodic. This is the most common way aperiodicity arises in practice—and it explains why many MCMC algorithms include a "stay" probability.
+어떤 상태 $i$의 제 고리 확률이 양이면($P_{ii} > 0$) $d(i) = 1$이고, 사슬을 쪼갤 수 없으므로 모든 상태의 주기가 없다. 실전에서 주기 없음이 생기는 가장 흔한 길이며, 많은 MCMC 알고리즘이 "머무름" 확률을 두는 까닭이기도 하다.
 
-### Examples
+### 보기
 
-**Periodic (period 2):**
+**주기 있음(주기 2):**
 
 $$P = \begin{pmatrix} 0 & 1 \\ 1 & 0 \end{pmatrix} \quad \Rightarrow \quad 0 \to 1 \to 0 \to 1 \to \cdots$$
 
-Returns to state 0 only at even times. Period $= \gcd\{2, 4, 6, \ldots\} = 2$.
+짝수인 때에만 상태 0으로 돌아온다. 주기 $= \gcd\{2, 4, 6, \ldots\} = 2$이다.
 
-**Aperiodic (self-loop):**
+**주기 없음(제 고리):**
 
 $$P = \begin{pmatrix} 0.5 & 0.5 \\ 1.0 & 0.0 \end{pmatrix}$$
 
-State 0 can return at time 1 (self-loop) or time 2. Period $= \gcd\{1, 2, 3, \ldots\} = 1$.
+상태 0은 때 1(제 고리)이나 때 2에 돌아올 수 있다. 주기 $= \gcd\{1, 2, 3, \ldots\} = 1$이다.
 
-## Recurrence and Transience
+## 되돌아옴과 스쳐 지나감
 
-### First Return Time
+### 첫 돌아옴 때
 
-The **first return time** to state $i$ is:
+상태 $i$으로의 **첫 돌아옴 때**는 다음과 같다:
 
 $$T_i = \min\{n \geq 1 : X_n = i \mid X_0 = i\}$$
 
-### Classification
+### 갈래 나누기
 
-A state $i$ is:
+상태 $i$은 다음과 같다:
 
-- **Recurrent** if $P(T_i < \infty \mid X_0 = i) = 1$ (certain to return)
-- **Transient** if $P(T_i < \infty \mid X_0 = i) < 1$ (may never return)
+- $P(T_i < \infty \mid X_0 = i) = 1$이면 **되돌아옴**이다(반드시 돌아온다)
+- $P(T_i < \infty \mid X_0 = i) < 1$이면 **스쳐 지나감**이다(영영 돌아오지 않을 수 있다)
 
-### Equivalent Characterizations
+### 같은 뜻의 성격 밝힘
 
-State $i$ is recurrent if and only if $\sum_{n=0}^{\infty} P^{(n)}_{ii} = \infty$ (expected visits is infinite), and transient if and only if this sum is finite.
+상태 $i$이 되돌아옴일 때 그리고 그때만 $\sum_{n=0}^{\infty} P^{(n)}_{ii} = \infty$이고(기대 들름 횟수가 끝없고), 이 합이 끝이 있을 때 그리고 그때만 스쳐 지나감이다.
 
-### Positive vs. Null Recurrence
+### 양의 되돌아옴과 영의 되돌아옴
 
-Recurrent states are further classified:
+되돌아옴 상태는 다시 다음으로 갈린다:
 
-- **Positive recurrent**: $\mathbb{E}[T_i \mid X_0 = i] < \infty$ (finite mean return time)
-- **Null recurrent**: $\mathbb{E}[T_i \mid X_0 = i] = \infty$ (infinite mean return time)
+- **양의 되돌아옴**: $\mathbb{E}[T_i \mid X_0 = i] < \infty$(평균 돌아옴 때가 끝이 있다)
+- **영의 되돌아옴**: $\mathbb{E}[T_i \mid X_0 = i] = \infty$(평균 돌아옴 때가 끝없다)
 
-For **finite** state spaces, all recurrent states are positive recurrent. Null recurrence only arises in countably infinite chains (e.g., the symmetric random walk on $\mathbb{Z}$).
+**끝이 있는** 상태 공간에서는 되돌아옴 상태가 모두 양의 되돌아옴이다. 영의 되돌아옴은 셀 수 있게 끝없는 사슬(이를테면 $\mathbb{Z}$ 위의 대칭 무작위 걸음)에서만 나타난다.
 
-## Ergodicity: The Complete Picture
+## 에르고드성: 온전한 그림
 
-### Definition
+### 정의
 
-A Markov chain is **ergodic** if it is:
+마르코프 사슬이 다음을 만족하면 **에르고드**이다:
 
-1. **Irreducible**: all states communicate
-2. **Aperiodic**: the period equals 1
-3. **Positive recurrent**: all states have finite expected return time
+1. **쪼갤 수 없음**: 모든 상태가 통한다
+2. **주기 없음**: 주기가 1이다
+3. **양의 되돌아옴**: 모든 상태의 기대 돌아옴 때가 끝이 있다
 
-For finite state spaces, conditions 1 and 2 imply condition 3.
+끝이 있는 상태 공간에서는 조건 1과 2가 조건 3을 뜻한다.
 
-### Fundamental Convergence Theorem
+### 근본 모임 정리
 
-**Theorem (Ergodic Theorem).** For an ergodic Markov chain with transition matrix $P$ and stationary distribution $\pi$:
+**정리(에르고드 정리).** 옮김 행렬 $P$과 멈춘 분포 $\pi$을 갖는 에르고드 마르코프 사슬에 대해:
 
-1. A **unique** stationary distribution $\pi$ exists
-2. For any initial distribution: $\displaystyle\lim_{n \to \infty} P^n_{ij} = \pi_j$ for all $i, j$
-3. $\pi_i = 1/\mathbb{E}[T_i]$, where $T_i$ is the first return time to state $i$
+1. **하나뿐인** 멈춘 분포 $\pi$이 있다
+2. 어떤 첫 분포에서든 모든 $i, j$에 대해 $\displaystyle\lim_{n \to \infty} P^n_{ij} = \pi_j$이다
+3. $\pi_i = 1/\mathbb{E}[T_i]$이며, 여기서 $T_i$은 상태 $i$으로의 첫 돌아옴 때이다
 
-Moreover, the convergence is **exponential**:
+게다가 모임은 **지수**이다:
 
 $$|P^n_{ij} - \pi_j| \leq C \cdot \rho^n$$
 
-where $\rho = |\lambda_2| < 1$ is the magnitude of the second-largest eigenvalue.
+여기서 $\rho = |\lambda_2| < 1$은 둘째로 큰 고유값의 크기이다.
 
-### Implications for MCMC
+### MCMC에서 뜻하는 바
 
-This theorem is the mathematical foundation of MCMC:
+이 정리가 MCMC의 수학 바탕이다:
 
-| Property | Guarantee |
+| 성질 | 보장 |
 |----------|-----------|
-| Irreducibility | The sampler explores the full state space |
-| Aperiodicity | The sampler doesn't cycle deterministically |
-| Positive recurrence | The sampler revisits every region infinitely often |
-| Convergence theorem | After sufficient burn-in, samples approximate $\pi$ |
-| Exponential rate | Convergence happens in $O(1/\gamma)$ steps where $\gamma$ is the spectral gap |
+| 쪼갤 수 없음 | 표집기가 상태 공간 전체를 살펴본다 |
+| 주기 없음 | 표집기가 정해진 대로 맴돌지 않는다 |
+| 양의 되돌아옴 | 표집기가 모든 구역을 끝없이 다시 들른다 |
+| 모임 정리 | 태우기를 넉넉히 하면 표본이 $\pi$을 어림한다 |
+| 지수 속도 | $\gamma$이 스펙트럼 틈일 때 $O(1/\gamma)$ 걸음에 모인다 |
 
-## Spectral Gap and Convergence Rate
+## 스펙트럼 틈과 모임 속도
 
-### The Spectral Gap
+### 스펙트럼 틈
 
-The **spectral gap** of transition matrix $P$ is:
+옮김 행렬 $P$의 **스펙트럼 틈**은 다음과 같다:
 
 $$\gamma = 1 - |\lambda_2|$$
 
-where $\lambda_2$ is the second-largest eigenvalue in absolute value (the largest is always $\lambda_1 = 1$).
+여기서 $\lambda_2$은 절댓값으로 둘째로 큰 고유값이다(가장 큰 것은 늘 $\lambda_1 = 1$이다).
 
-The spectral gap directly controls the convergence rate:
+스펙트럼 틈이 모임 속도를 곧바로 다스린다:
 
-- **Large $\gamma$** (close to 1): fast convergence, good mixing
-- **Small $\gamma$** (close to 0): slow convergence, poor mixing
-- $\gamma = 0$: the chain does not converge
+- **큰 $\gamma$**(1에 가까움): 빠른 모임, 좋은 섞임
+- **작은 $\gamma$**(0에 가까움): 느린 모임, 나쁜 섞임
+- $\gamma = 0$: 사슬이 모이지 않는다
 
-### Structural Interpretation
+### 짜임으로 풀이하기
 
-| Chain Structure | Spectral Gap | Mixing |
+| 사슬의 짜임 | 스펙트럼 틈 | 섞임 |
 |----------------|:---:|--------|
-| Well-connected (all states easily reachable) | Large | Fast |
-| Bottleneck (weak links between clusters) | Small | Slow |
-| Nearly periodic | Very small | Very slow |
+| 잘 이어짐(모든 상태에 쉽게 닿음) | 큼 | 빠름 |
+| 병목(뭉치 사이의 이음이 약함) | 작음 | 느림 |
+| 거의 주기적임 | 아주 작음 | 아주 느림 |
 
-For MCMC, a small spectral gap signals a poorly designed proposal distribution: the chain gets "stuck" in local regions and takes a long time to traverse the full state space.
+MCMC에서 스펙트럼 틈이 작다는 것은 제안 분포를 잘못 짰다는 신호이다. 곧 사슬이 국소 구역에 "갇혀" 상태 공간 전체를 훑는 데 오래 걸린다.
 
-## Mixing Time
+## 섞임 시간
 
-### Definition
+### 정의
 
-The **mixing time** quantifies how many steps until the chain is "close" to its stationary distribution.
+**섞임 시간**은 사슬이 멈춘 분포에 "가까워지기"까지 몇 걸음이 드는지를 잰다.
 
-**Total variation distance:**
+**총 변동 거리:**
 
 $$\|P^n(x, \cdot) - \pi\|_{TV} = \frac{1}{2} \sum_{y \in S} |P^n_{xy} - \pi_y|$$
 
-**$\epsilon$-mixing time:**
+**$\epsilon$-섞임 시간:**
 
 $$\tau_{\text{mix}}(\epsilon) = \min\{n : \max_x \|P^n(x, \cdot) - \pi\|_{TV} \leq \epsilon\}$$
 
-The standard choice is $\epsilon = 1/4$, written simply as $\tau_{\text{mix}}$.
+표준으로는 $\epsilon = 1/4$을 고르며 그냥 $\tau_{\text{mix}}$으로 쓴다.
 
-### Mixing Time Bounds
+### 섞임 시간의 한계
 
-The mixing time is bounded by the spectral gap:
+섞임 시간은 스펙트럼 틈으로 묶인다:
 
 $$\frac{1}{\gamma} \leq \tau_{\text{mix}} \leq \frac{\log(1/\epsilon \cdot \pi_{\min})}{\gamma}$$
 
-where $\pi_{\min} = \min_i \pi_i$.
+여기서 $\pi_{\min} = \min_i \pi_i$이다.
 
-### Why Mixing Time Matters for MCMC
+### MCMC에서 섞임 시간이 왜 중요한가
 
-In MCMC practice:
+MCMC 실전에서는:
 
-- **Burn-in period**: discard the first $\sim \tau_{\text{mix}}$ samples before collecting
-- **Thinning interval**: keep every $k$-th sample where $k \sim \tau_{\text{mix}}$ to reduce autocorrelation
-- **Efficiency**: faster mixing $=$ more effectively independent samples per unit computation
+- **태우기 기간**: 모으기 전에 처음 $\sim \tau_{\text{mix}}$개 표본을 버린다
+- **솎아내기 사이**: 자기상관을 줄이려고 $k \sim \tau_{\text{mix}}$일 때 $k$번째마다 표본을 남긴다
+- **효율**: 섞임이 빠를수록 셈 한 단위마다 실효 독립 표본이 많아진다
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### State Classifier
+### 상태 갈래 나누개
 
 ```python
 import torch
@@ -211,8 +206,8 @@ from math import gcd
 
 class StateClassifier:
     """
-    Classify states of a Markov chain: communicating classes,
-    irreducibility, periodicity, and ergodicity.
+    마르코프 사슬의 상태 가르기: 서로 통하는 무리,
+    줄일 수 없음, 주기, 에르고드성.
     """
 
     def __init__(self, transition_matrix: torch.Tensor):
@@ -222,7 +217,7 @@ class StateClassifier:
     def is_accessible(
         self, i: int, j: int, max_steps: int = None
     ) -> bool:
-        """Check if state j is accessible from state i."""
+        """상태 i에서 상태 j에 닿을 수 있는지 살피기."""
         if max_steps is None:
             max_steps = self.n_states
 
@@ -235,11 +230,11 @@ class StateClassifier:
         return P_sum[i, j].item() > 0
 
     def communicates(self, i: int, j: int) -> bool:
-        """Check if states i and j communicate (i ↔ j)."""
+        """상태 i과 j이 서로 통하는지 살피기(i ↔ j)."""
         return self.is_accessible(i, j) and self.is_accessible(j, i)
 
     def find_communicating_classes(self) -> List[Set[int]]:
-        """Partition state space into communicating classes."""
+        """상태 공간을 서로 통하는 무리로 나누기."""
         visited = [False] * self.n_states
         classes = []
 
@@ -259,12 +254,12 @@ class StateClassifier:
         return classes
 
     def is_irreducible(self) -> bool:
-        """Check if the chain has a single communicating class."""
+        """사슬에 서로 통하는 무리가 하나뿐인지 살피기."""
         return len(self.find_communicating_classes()) == 1
 
     def compute_period(self, state: int) -> int:
         """
-        Compute period d(i) = gcd{n ≥ 1 : P^{(n)}_{ii} > 0}.
+        주기 d(i) = gcd{n ≥ 1 : P^{(n)}_{ii} > 0} 셈하기.
         """
         return_times = []
         P_n = self.P.clone()
@@ -286,15 +281,15 @@ class StateClassifier:
         return period
 
     def is_aperiodic(self) -> bool:
-        """Check aperiodicity (sufficient: any self-loop)."""
+        """주기 없음 살피기(넉넉한 조건: 자기 고리가 하나라도 있음)."""
         if torch.any(torch.diag(self.P) > 0):
             return True
         return self.compute_period(0) == 1
 
     def is_ergodic(self) -> Dict[str, bool]:
         """
-        Check ergodicity = irreducible + aperiodic.
-        For finite chains, this implies positive recurrence.
+        에르고드성 살피기 = 줄일 수 없음 + 주기 없음.
+        끝이 있는 사슬에서는 이것이 양의 되돌아옴을 뜻한다.
         """
         is_irr = self.is_irreducible()
         is_aper = self.is_aperiodic()
@@ -305,7 +300,7 @@ class StateClassifier:
         }
 
     def classify_all_states(self) -> Dict[int, Dict]:
-        """Full classification of every state."""
+        """모든 상태의 온전한 가르기."""
         classes = self.find_communicating_classes()
         state_to_class = {}
         for idx, cls in enumerate(classes):
@@ -323,13 +318,13 @@ class StateClassifier:
         return results
 ```
 
-### Mixing Time Analyzer
+### 섞임 시간 분석기
 
 ```python
 class MixingTimeAnalyzer:
     """
-    Analyze convergence and mixing properties: spectral gap,
-    mixing time, total variation distance evolution.
+    모임과 섞임의 성질 살피기: 스펙트럼 틈,
+    섞임 시간, 총변동 거리의 흘러감.
     """
 
     def __init__(
@@ -346,7 +341,7 @@ class MixingTimeAnalyzer:
         self._compute_stationary()
 
     def _compute_spectrum(self):
-        """Compute eigenvalues sorted by absolute value."""
+        """절댓값으로 정렬한 고윳값 셈하기."""
         eigenvalues, eigenvectors = torch.linalg.eig(self.P)
         abs_vals = torch.abs(eigenvalues.real)
         sorted_idx = torch.argsort(abs_vals, descending=True)
@@ -354,13 +349,13 @@ class MixingTimeAnalyzer:
         self.eigenvectors = eigenvectors[:, sorted_idx]
 
     def _compute_stationary(self):
-        """Extract stationary distribution from eigenvector."""
+        """고유벡터에서 멈춘 분포 뽑아내기."""
         idx = torch.argmin(torch.abs(self.eigenvalues.real - 1.0))
         pi = self.eigenvectors[:, idx].real
         self.pi = torch.abs(pi) / torch.abs(pi).sum()
 
     def spectral_gap(self) -> float:
-        """Spectral gap γ = 1 - |λ₂|."""
+        """스펙트럼 틈 γ = 1 - |λ₂|."""
         lambda_2 = self.eigenvalues[1]
         return (1 - torch.abs(lambda_2)).item()
 
@@ -376,7 +371,7 @@ class MixingTimeAnalyzer:
         max_steps: int = 10000
     ) -> Dict:
         """
-        Compute τ_mix(ε): first n such that max_x TV(P^n(x,·), π) ≤ ε.
+        τ_mix(ε) 셈하기: max_x TV(P^n(x,·), π) ≤ ε이 되는 첫 n.
         """
         results = {
             'epsilon': epsilon,
@@ -400,7 +395,7 @@ class MixingTimeAnalyzer:
         return results
 
     def convergence_rate(self, max_steps: int = 100) -> Dict:
-        """TV distance evolution from each starting state."""
+        """시작 상태마다의 TV 거리 흘러감."""
         results = {
             'spectral_gap': self.spectral_gap(),
             'second_eigenvalue': self.eigenvalues[1].item(),
@@ -425,15 +420,15 @@ class MixingTimeAnalyzer:
         return results
 ```
 
-### Demonstration: Fast vs. Slow Mixing
+### 보여 주기: 빠른 섞임과 느린 섞임
 
 ```python
 def demonstrate_mixing_analysis():
-    """Compare mixing behavior of well-connected vs. bottleneck chains."""
+    """잘 이어진 사슬과 병목이 있는 사슬의 섞임 굶 견주기."""
     print("Mixing Time Analysis")
     print("=" * 70)
 
-    # Fast mixing: well-connected
+    # 빠른 섞임: 잘 이어짐
     print("\n1. Fast Mixing Chain (Well-Connected)")
     print("-" * 50)
 
@@ -450,7 +445,7 @@ def demonstrate_mixing_analysis():
     mixing_fast = analyzer_fast.mixing_time(epsilon=0.01)
     print(f"Mixing time (ε=0.01): {mixing_fast['mixing_time']} steps")
 
-    # Slow mixing: bottleneck
+    # 느린 섞임: 병목
     print("\n2. Slow Mixing Chain (Bottleneck)")
     print("-" * 50)
 
@@ -468,7 +463,7 @@ def demonstrate_mixing_analysis():
     mixing_slow = analyzer_slow.mixing_time(epsilon=0.01, max_steps=500)
     print(f"Mixing time (ε=0.01): {mixing_slow['mixing_time']} steps")
 
-    # Comparison
+    # 비교
     print(f"\nSpectral gap ratio: "
           f"{analyzer_fast.spectral_gap() / analyzer_slow.spectral_gap():.1f}x")
 
@@ -476,9 +471,9 @@ def demonstrate_mixing_analysis():
 demonstrate_mixing_analysis()
 ```
 
-## Visualization
+## 시각화
 
-### Chain Structure Graph
+### 사슬 짜임 그래프
 
 ```python
 import matplotlib.pyplot as plt
@@ -489,7 +484,7 @@ def visualize_chain_structure(
     state_names: List[str] = None,
     title: str = "Markov Chain Structure"
 ):
-    """Visualize chain as directed graph colored by communicating class."""
+    """서로 통하는 무리로 색칠한 방향 그래프로 사슬 그려 보기."""
     n_states = P.shape[0]
     if state_names is None:
         state_names = [f"S{i}" for i in range(n_states)]
@@ -542,12 +537,12 @@ def visualize_convergence(
     state_names: list = None,
     max_steps: int = 50
 ):
-    """Four-panel convergence visualization."""
+    """네 칸짜리 모임 그림."""
     analyzer = MixingTimeAnalyzer(P, state_names)
 
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-    # (0,0) TV distance over time
+    # (0,0) 시간에 따른 TV 거리
     ax = axes[0, 0]
     conv_data = analyzer.convergence_rate(max_steps)
     for state, distances in conv_data['distances'].items():
@@ -563,7 +558,7 @@ def visualize_convergence(
     ax.legend()
     ax.grid(True, alpha=0.3)
 
-    # (0,1) Eigenvalue spectrum
+    # (0,1) 고윳값 스펙트럼
     ax = axes[0, 1]
     eigenvalues = analyzer.eigenvalues
     ax.scatter(eigenvalues.real.numpy(), eigenvalues.imag.numpy(),
@@ -582,7 +577,7 @@ def visualize_convergence(
     ax.grid(True, alpha=0.3)
     ax.axis('equal')
 
-    # (1,0) State distribution evolution
+    # (1,0) 상태 분포의 흘러감
     ax = axes[1, 0]
     n_states = P.shape[0]
     sn = state_names or [f'S{i}' for i in range(n_states)]
@@ -606,7 +601,7 @@ def visualize_convergence(
     ax.legend()
     ax.grid(True, alpha=0.3)
 
-    # (1,1) Mixing time
+    # (1,1) 섞임 시간
     ax = axes[1, 1]
     mixing_data = analyzer.mixing_time(epsilon=0.25, max_steps=max_steps)
     ax.semilogy(mixing_data['max_tv_over_time'], 'b-', linewidth=2,
@@ -627,10 +622,10 @@ def visualize_convergence(
     return fig
 ```
 
-## Examples: Ergodic, Periodic, and Reducible Chains
+## 보기: 에르고드 사슬, 주기 사슬, 쪼갤 수 있는 사슬
 
 ```python
-# Example 1: Ergodic chain
+# 보기 1: 에르고드 사슬
 print("Example 1: Ergodic Chain")
 print("=" * 50)
 
@@ -645,10 +640,10 @@ result = classifier.is_ergodic()
 print(f"Irreducible: {result['irreducible']}")
 print(f"Aperiodic: {result['aperiodic']}")
 print(f"Ergodic: {result['ergodic']}")
-# → Ergodic: True. Unique π exists and P^n converges.
+# → 에르고드적: 참. π이 오직 하나 있고 P^n이 모인다.
 
 
-# Example 2: Periodic chain (period 3)
+# 보기 2: 주기 사슬(주기 3)
 print("\nExample 2: Periodic Chain")
 print("=" * 50)
 
@@ -663,10 +658,10 @@ print(f"This chain cycles: 0 → 1 → 2 → 0 → ...")
 print(f"Period of state 0: {classifier_periodic.compute_period(0)}")
 result = classifier_periodic.is_ergodic()
 print(f"Ergodic: {result['ergodic']} (irreducible but periodic)")
-# → Not ergodic. π exists and is unique (irreducible), but P^n oscillates.
+# → 에르고드적이 아니다. (줄일 수 없어) π이 오직 하나 있지만 P^n이 흔들린다.
 
 
-# Example 3: Reducible chain
+# 보기 3: 줄일 수 있는 사슬
 print("\nExample 3: Reducible Chain")
 print("=" * 50)
 
@@ -681,130 +676,124 @@ classifier_reducible = StateClassifier(P_reducible)
 classes = classifier_reducible.find_communicating_classes()
 print(f"Communicating classes: {classes}")
 print(f"Irreducible: {classifier_reducible.is_irreducible()}")
-# → Not irreducible. Multiple stationary distributions exist.
+# → 줄일 수 있다. 멈춘 분포가 여럿 있다.
 ```
 
-## Key Theorems Summary
+## 핵심 정리 간추림
 
-| Theorem | Statement | MCMC Relevance |
+| 정리 | 진술 | MCMC과의 관련 |
 |---------|-----------|----------------|
-| **Existence** | Every finite chain has $\geq 1$ stationary distribution | Baseline guarantee |
-| **Uniqueness** | Irreducible $\Rightarrow$ exactly one $\pi$ | MCMC converges to the right target |
-| **Convergence** | Ergodic $\Rightarrow$ $P^n_{ij} \to \pi_j$ for all $i,j$ | Samples approximate $\pi$ after burn-in |
-| **Exponential Rate** | $\|P^n(x,\cdot) - \pi\|_{TV} \leq C \cdot |\lambda_2|^n$ | Quantifies burn-in length |
-| **Mixing Time Bound** | $\tau_{\text{mix}} \sim 1/\gamma$ | Spectral gap determines efficiency |
+| **있음** | 끝이 있는 사슬마다 멈춘 분포가 $\geq 1$개 있다 | 기본 보장 |
+| **하나뿐임** | 쪼갤 수 없음 $\Rightarrow$ $\pi$이 꼭 하나 | MCMC이 알맞은 과녁으로 모인다 |
+| **모임** | 에르고드 $\Rightarrow$ 모든 $i,j$에 대해 $P^n_{ij} \to \pi_j$ | 태우기 뒤 표본이 $\pi$을 어림한다 |
+| **지수 속도** | $\|P^n(x,\cdot) - \pi\|_{TV} \leq C \cdot |\lambda_2|^n$ | 태우기 길이를 재어 준다 |
+| **섞임 시간 한계** | $\tau_{\text{mix}} \sim 1/\gamma$ | 스펙트럼 틈이 효율을 정한다 |
 
-## Summary
+## 요약
 
-| Property | Definition | Implication |
+| 성질 | 정의 | 뜻하는 바 |
 |----------|------------|-------------|
-| **Accessible** | $i \to j$: $\exists n,\, P^{(n)}_{ij} > 0$ | Can reach $j$ from $i$ |
-| **Communicate** | $i \leftrightarrow j$ | Can reach each other |
-| **Irreducible** | Single communicating class | Full state space exploration |
-| **Aperiodic** | Period $= 1$ | No deterministic cycles |
-| **Recurrent** | $P(\text{return}) = 1$ | Certain to revisit |
-| **Transient** | $P(\text{return}) < 1$ | May never revisit |
-| **Ergodic** | Irreducible + Aperiodic | Unique $\pi$, guaranteed convergence |
-| **Spectral Gap** | $\gamma = 1 - |\lambda_2|$ | Controls convergence speed |
-| **Mixing Time** | Steps until TV $\leq \epsilon$ | Practical burn-in measure |
+| **닿음** | $i \to j$: $\exists n,\, P^{(n)}_{ij} > 0$ | $i$에서 $j$에 닿을 수 있다 |
+| **통함** | $i \leftrightarrow j$ | 서로 닿을 수 있다 |
+| **쪼갤 수 없음** | 통하는 갈래가 하나 | 상태 공간 전체를 살펴본다 |
+| **주기 없음** | 주기 $= 1$ | 정해진 고리가 없다 |
+| **되돌아옴** | $P(\text{돌아옴}) = 1$ | 반드시 다시 들른다 |
+| **스쳐 지나감** | $P(\text{돌아옴}) < 1$ | 영영 다시 들르지 않을 수 있다 |
+| **에르고드** | 쪼갤 수 없음 + 주기 없음 | 하나뿐인 $\pi$, 모임 보장 |
+| **스펙트럼 틈** | $\gamma = 1 - |\lambda_2|$ | 모임 속도를 다스린다 |
+| **섞임 시간** | 총 변동이 $\leq \epsilon$이 될 때까지의 걸음 | 실전 태우기 잣대 |
 
-## Exercises
-
-1. **Periodicity Detection.** Show that if any state has a positive self-loop probability ($P_{ii} > 0$) in an irreducible chain, all states are aperiodic.
-
-2. **Finite Recurrence.** Prove that in a finite irreducible chain, all states are positive recurrent. (*Hint*: use the pigeonhole principle.)
-
-3. **Bottleneck Effect.** Construct a chain with two clusters of 3 states each. Vary the inter-cluster transition probability $\alpha \in \{0.01, 0.05, 0.1, 0.3\}$ and plot the mixing time as a function of $\alpha$.
-
-4. **Spectral Gap Computation.** For a 3×3 transition matrix of your choice, compute the spectral gap analytically and verify that the empirical convergence rate matches $|\lambda_2|^n$.
-
-5. **MCMC Preview.** Given target distribution $\pi = (0.2, 0.3, 0.5)$, construct a transition matrix $P$ that has $\pi$ as its stationary distribution and satisfies detailed balance. Verify ergodicity and compute the mixing time.
-
-## References
+## 참고 문헌
 
 1. Levin, D.A., Peres, Y., & Wilmer, E.L. *Markov Chains and Mixing Times* (2nd ed.). AMS, 2017.
-2. Norris, J.R. *Markov Chains*, Chapters 1–2. Cambridge University Press, 1997.
+2. Norris, J.R. *Markov Chains*, 1-2장. Cambridge University Press, 1997.
 3. Montenegro, R. & Tetali, P. "Mathematical Aspects of Mixing Times in Markov Chains." *Foundations and Trends in TCS*, 2006.
 4. Diaconis, P. & Stroock, D. "Geometric Bounds for Eigenvalues of Markov Chains." *Annals of Applied Probability*, 1991.
-5. Durrett, R. *Essentials of Stochastic Processes*, Chapter 1. Springer, 2016.
+5. Durrett, R. *Essentials of Stochastic Processes*, 1장. Springer, 2016.
 
 ---
 
-## Mixing Time
+## 섞임 시간
 
-**Definition**: Time for chain to get "close" to stationary distribution.
+**정의**: 사슬이 멈춘 분포에 "가까워지는" 데 걸리는 시간.
 
-**Formal**: Total variation mixing time
+**엄밀하게**: 총 변동 섞임 시간
 
 $$
-
 \tau_{\text{mix}}(\epsilon) = \min\{t : \sup_x \|P^t(x, \cdot) - \pi\|_{\text{TV}} \leq \epsilon\}
-
 $$
 
-### What Affects Mixing Time?
+### 무엇이 섞임 시간에 영향을 주나?
 
-1. **Dimension**: Higher dimension → longer mixing
-2. **Correlation**: Strong correlations → slower mixing
-3. **Multimodality**: Separated modes → much longer mixing
-4. **Curvature**: Flat regions vs steep → affects exploration
+1. **차원**: 차원이 높을수록 → 섞임이 길어진다
+2. **상관**: 상관이 셀수록 → 섞임이 느려진다
+3. **봉우리 여럿**: 봉우리가 갈라져 있을수록 → 섞임이 훨씬 길어진다
+4. **굽음**: 평평한 구역과 가파른 구역 → 살펴보기에 영향을 준다
 
-### Typical Scaling
+### 흔한 커짐새
 
-| Method | Mixing Time |
+| 방법 | 섞임 시간 |
 |--------|-------------|
-| Random walk MH | $\sim d^2$ |
-| Langevin (MALA) | $\sim d^{5/3}$ |
-| HMC | $\sim d^{5/4}$ or better |
+| 무작위 걸음 MH | $\sim d^2$ |
+| 랑주뱅(MALA) | $\sim d^{5/3}$ |
+| HMC | $\sim d^{5/4}$ 또는 더 좋음 |
 
-This scaling is why HMC dominates in high dimensions.
+이 커짐새 때문에 높은 차원에서 HMC이 앞선다.
 
 ---
 
-## The Monte Carlo Error
+## 몬테카를로 오차
 
-Even with perfect convergence, Monte Carlo has **statistical error**.
+완벽히 모여도 몬테카를로에는 **통계 오차**가 있다.
 
-### Variance of Estimator
+### 어림자의 흩어짐
 
 $$
-
 \text{Var}\left[\frac{1}{N}\sum_{t=1}^N f(X^{(t)})\right] = \frac{\sigma_f^2}{N_{\text{eff}}}
-
 $$
 
-where $\sigma_f^2 = \text{Var}_\pi[f]$ and $N_{\text{eff}}$ is the **effective sample size**:
+여기서 $\sigma_f^2 = \text{Var}_\pi[f]$이고 $N_{\text{eff}}$은 **실효 표본 크기**이다:
 
 $$
-
 N_{\text{eff}} = \frac{N}{1 + 2\sum_{k=1}^\infty \rho_k}
-
 $$
 
-where $\rho_k$ is the autocorrelation at lag $k$.
+여기서 $\rho_k$은 뒤짐 $k$에서의 자기상관이다.
 
 ---
 
-## Practical Guidelines
+## 실무 지침
 
-### Starting the Chain
+### 사슬 시작하기
 
-- **Random initialization**: Often works, but may require long burn-in
-- **Informed initialization**: Use MAP estimate, prior mode, or previous fit
-- **Multiple chains**: Start from different points to check convergence
+- **무작위 첫걸음**: 흔히 잘 되지만 태우기가 길어질 수 있다
+- **아는 것을 쓴 첫걸음**: MAP 어림값, 앞확률 최빈값, 또는 앞서 맞춘 값을 쓴다
+- **여러 사슬**: 서로 다른 곳에서 시작해 모임을 살핀다
 
-### Running the Chain
+### 사슬 돌리기
 
-- **Burn-in**: Discard initial 50% (conservative) or use diagnostics
-- **Thinning**: Keep every $k$-th sample (debated — usually unnecessary)
-- **Monitoring**: Use $\hat{R}$, ESS, trace plots
+- **태우기**: 처음 50%을 버리거나(깐깐하게) 진단을 쓴다
+- **솎아내기**: $k$번째마다 표본을 남긴다(말이 갈리며 대개 필요 없다)
+- **지켜보기**: $\hat{R}$, ESS, 자취 그림을 쓴다
 
-### Stopping the Chain
+### 사슬 멈추기
 
-- **Minimum**: Until $\hat{R} < 1.01$ and ESS $> 100$
-- **Preferred**: ESS $> 1000$ for reliable inference
-- **Critical**: Even more samples for tails, quantiles
+- **최소**: $\hat{R} < 1.01$이고 ESS $> 100$이 될 때까지
+- **바람직함**: 미더운 추론에는 ESS $> 1000$
+- **아주 중요함**: 꼬리와 분위수에는 표본이 더 필요하다
 
-### The Art of MCMC
+### MCMC의 기예
 
-Using MCMC well requires understanding the target distribution, choosing the appropriate algorithm, monitoring convergence carefully, and interpreting results with suitable skepticism. The beauty of MCMC is that we can sample from arbitrarily complex distributions using only the ability to evaluate $\tilde{\pi}(x)$ (unnormalized), a clever transition kernel, and patience.
+MCMC을 잘 쓰려면 과녁 분포를 이해하고, 알맞은 알고리즘을 고르고, 모임을 꼼꼼히 지켜보고, 결과를 알맞게 의심하며 풀이해야 한다. MCMC의 아름다움은 (고르게 하지 않은) $\tilde{\pi}(x)$의 값을 매길 수 있는 힘과 영리한 옮김 알맹이, 그리고 끈기만으로 아무리 복잡한 분포에서도 표집할 수 있다는 데 있다.
+
+## 연습문제
+
+1. **주기 알아내기.** 쪼갤 수 없는 사슬에서 어떤 상태의 제 고리 확률이 양이면($P_{ii} > 0$) 모든 상태의 주기가 없음을 보여라.
+
+2. **끝이 있는 되돌아옴.** 끝이 있고 쪼갤 수 없는 사슬에서 모든 상태가 양의 되돌아옴임을 증명하여라. (*힌트*: 비둘기집 원리를 써라.)
+
+3. **병목 효과.** 상태 3개씩의 뭉치 둘을 갖는 사슬을 지어라. 뭉치 사이 옮김 확률 $\alpha \in \{0.01, 0.05, 0.1, 0.3\}$을 바꿔 가며 섞임 시간을 $\alpha$의 함수로 그려라.
+
+4. **스펙트럼 틈 셈하기.** 마음대로 고른 3×3 옮김 행렬에서 스펙트럼 틈을 해석으로 셈하고, 겪어 본 모임 속도가 $|\lambda_2|^n$과 맞는지 확인하여라.
+
+5. **MCMC 맛보기.** 과녁 분포 $\pi = (0.2, 0.3, 0.5)$이 주어졌을 때, $\pi$을 멈춘 분포로 갖고 자세한 균형을 만족하는 옮김 행렬 $P$을 지어라. 에르고드성을 확인하고 섞임 시간을 셈하여라.

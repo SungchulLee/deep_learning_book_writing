@@ -1,36 +1,31 @@
-# Reconstruction Quality Analysis for Autoencoders
+# 자기 부호기의 다시 세우기 품질 살피기
+## 들어가며
 
+다시 세우기 품질을 가늠하고 살피는 것은 자기 부호기의 성능을 이해하고 배운 나타냄이 들임의 짜임을 넉넉히 잡았는지 알아내는 바탕이다. 들임과 자기 부호기가 내놓은 것의 차인 다시 세우기 어긋남이 으뜸 품질 잣대이지만, 뜻 있게 값매김하려면 여러 관점이 필요하다. 곧 모은 어긋남 통계, 표본마다의 어긋남 분포, 특징마다의 다시 세우기 결, 일마다의 성능 잣대이다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+금융 쓰임새에서 다시 세우기 품질 살피기는 자기 부호기가 시장 미시 짜임(고빈도 거래)을 제대로 눌러 담았는지, 체계 위험 요인(주식 수익률)을 잡았는지, 이상 알아내기나 자산 꾸러미 가장 좋게 하기 같은 뒤따르는 일에 요긴한 앎을 지켰는지 드러낸다. 다시 세우기가 나쁘면 병목의 담이가 모자라거나 얼개가 알맞지 않거나 자기 부호기의 두루 통함을 시험하는 정상성 없는 결이 있다는 뜻일 수 있다.
 
-## Introduction
+이 절은 다시 세우기 품질 살피기의 두루 쓰는 얼거리를 세우고, 바탕 견줌을 마련하며, 어긋남을 자세히 파헤쳐 자기 부호기의 모자람을 진단하는 법을 보인다.
 
-Assessing and analyzing reconstruction quality is fundamental to understanding autoencoder performance and identifying when the learned representation adequately captures input structure. Reconstruction error—the difference between input and autoencoder output—provides a primary quality metric, but meaningful evaluation requires multiple perspectives: aggregate error statistics, per-sample error distributions, feature-wise reconstruction patterns, and task-specific performance metrics.
+## 핵심 개념
 
-In financial applications, reconstruction quality analysis reveals whether autoencoders successfully compress market microstructure (high-frequency trading), capture systematic risk factors (equity returns), or preserve essential information for downstream tasks like anomaly detection or portfolio optimization. Poor reconstruction may indicate inadequate bottleneck capacity, inappropriate architecture, or presence of non-stationary patterns that challenge the autoencoder's generalization capability.
+### 다시 세우기 잣대
+- **평균 제곱 어긋남(MSE)**: 들임과 내놓기의 제곱 차의 평균
+- **평균 절대 어긋남(MAE)**: 절대 차의 평균
+- **상대 어긋남**: 들임의 흩어짐이나 크기로 고른 것
+- **상관**: 다시 세운 것에서 통계 관계가 지켜지는 정도
 
-This section develops comprehensive frameworks for reconstruction quality analysis, establishes baseline comparisons, and demonstrates how to diagnose autoencoder deficiencies through detailed error investigation.
+### 어긋남을 살피는 갈래
+- **때에 따른 결**: 다시 세우기 어긋남이 때에 따라 어떻게 바뀌는지
+- **특징 살피기**: 어느 들임과 특징의 다시 세우기 어긋남이 가장 큰지
+- **분포의 성질**: 어긋남 분포의 꼴(정규인지 꼬리가 두꺼운지)
+- **안정**: 자료 국면에 따라 어긋남이 어떻게 바뀌는지
 
-## Key Concepts
+## 수학적 틀
 
-### Reconstruction Metrics
-- **Mean Squared Error (MSE)**: Average squared difference between input and output
-- **Mean Absolute Error (MAE)**: Average absolute difference
-- **Relative Error**: Normalized by input variance or magnitude
-- **Correlation**: Preservation of statistical relationships in reconstruction
+### 다시 세우기 어긋남 잣대
 
-### Error Analysis Dimensions
-- **Temporal Patterns**: How reconstruction error varies over time
-- **Feature Analysis**: Which inputs/features have largest reconstruction errors
-- **Distributional Properties**: Shape of error distribution (normal vs heavy-tailed)
-- **Stability**: How error varies across different data regimes
-
-## Mathematical Framework
-
-### Reconstruction Error Metrics
-
-For input $x \in \mathbb{R}^d$ and reconstruction $\hat{x} = f_{\text{dec}}(f_{\text{enc}}(x))$:
+들임 $x \in \mathbb{R}^d$과 다시 세운 $\hat{x} = f_{\text{dec}}(f_{\text{enc}}(x))$에 대해:
 
 $$\text{MSE} = \frac{1}{d}\sum_{i=1}^{d} (x_i - \hat{x}_i)^2$$
 
@@ -38,33 +33,33 @@ $$\text{MAE} = \frac{1}{d}\sum_{i=1}^{d} |x_i - \hat{x}_i|$$
 
 $$\text{MAPE} = \frac{1}{d}\sum_{i=1}^{d} \frac{|x_i - \hat{x}_i|}{|x_i| + \epsilon}$$
 
-For non-negative inputs, MAPE provides scale-invariant error independent of magnitude.
+음이 아닌 들임에서는 평균 절대 백분율 어긋남이 크기와 무관하게 잣수가 변해도 그대로인 어긋남을 준다.
 
-### Relative Error Normalization
+### 상대 어긋남 고르게 하기
 
-Normalize reconstruction error by input variance:
+다시 세우기 어긋남을 들임의 흩어짐으로 고른다:
 
 $$\text{RelError} = \frac{\text{MSE}}{\text{Var}(x)}$$
 
-Interpretation: error as percentage of input variability. Value < 0.1 indicates excellent reconstruction (10% of variance unexplained).
+풀이: 어긋남을 들임이 들쭉날쭉한 정도의 백분율로 본다. 0.1 미만이면 아주 좋은 다시 세우기이다(흩어짐의 10%만 설명되지 않음).
 
-### Correlation-Based Quality
+### 상관 바탕 품질
 
-Measure preservation of statistical relationships:
+통계 관계가 지켜지는 정도를 잰다:
 
 $$\rho = \text{Corr}(x, \hat{x}) = \frac{\text{Cov}(x, \hat{x})}{\sqrt{\text{Var}(x)\text{Var}(\hat{x})}}$$
 
-High correlation (ρ > 0.95) indicates structure preservation despite some noise.
+상관이 높으면(ρ > 0.95) 잡음이 조금 있어도 짜임이 지켜졌다는 뜻이다.
 
-## Per-Sample Error Analysis
+## 표본마다의 어긋남 살피기
 
-### Error Distribution Characterization
+### 어긋남 분포의 성질 밝히기
 
-Examine empirical distribution of reconstruction errors:
+다시 세우기 어긋남의 실제 분포를 살핀다:
 
 $$\mathcal{E} = \{e_n : e_n = \|x_n - \hat{x}_n\|^2, n = 1,\ldots,N\}$$
 
-Compute quantiles and moments:
+분위수와 적률을 셈한다:
 
 $$\text{Mean Error} = \mathbb{E}[e_n]$$
 
@@ -72,172 +67,203 @@ $$\text{Std Error} = \sqrt{\text{Var}(e_n)}$$
 
 $$\text{Skewness} = \frac{\mathbb{E}[(e_n - \mu)^3]}{\sigma^3}$$
 
-Heavy right tail (positive skewness) indicates occasional large errors.
+오른쪽 꼬리가 두꺼우면(치우침이 양수) 이따금 큰 어긋남이 난다는 뜻이다.
 
-### Percentile Analysis
+### 백분위수 살피기
 
-Examine error concentration:
+어긋남이 몰린 정도를 살핀다:
 
-| Metric | Threshold | Meaning |
+| 잣대 | 문턱 | 뜻 |
 |--------|-----------|---------|
-| Error_{90\%} | 90th percentile | 90% of samples below this error |
-| Error_{99\%} | 99th percentile | Worst 1% of samples |
-| Error_{max} | Maximum error | Largest individual reconstruction error |
+| Error_{90\%} | 90번째 백분위수 | 표본의 90%가 이 어긋남 아래 |
+| Error_{99\%} | 99번째 백분위수 | 가장 나쁜 1% 표본 |
+| Error_{max} | 최대 어긋남 | 낱낱의 다시 세우기 어긋남 가운데 가장 큰 것 |
 
-Financial data often exhibits high 99th percentile errors during market stress.
+금융 자료는 시장이 어지러울 때 99번째 백분위수 어긋남이 흔히 크다.
 
-### Anomalous Sample Identification
+### 별난 표본 가려내기
 
-Samples with reconstruction error beyond threshold indicate either:
+다시 세우기 어긋남이 문턱을 넘는 표본은 다음 가운데 하나를 뜻한다:
 
-1. **Outliers/Anomalies**: Unusual market conditions not well represented in training
-2. **Capacity Deficiency**: Autoencoder architecture insufficient for full data complexity
-3. **Non-Stationarity**: Temporal shift in data distribution since training
+1. **동떨어진 값이나 이상**: 익히기에 잘 담기지 않은 별난 시장 상태
+2. **담이 모자람**: 자기 부호기 얼개가 자료의 복잡함을 다 담기에 모자람
+3. **정상성 없음**: 익힌 뒤 자료 분포가 때에 따라 옮겨 감
 
-Investigate high-error samples separately; they often coincide with market events, regime changes, or data quality issues.
+어긋남이 큰 표본은 따로 파헤쳐라. 흔히 시장 사건, 국면 바뀜, 자료 품질 문제와 겹친다.
 
-## Feature-Wise Reconstruction Analysis
+## 특징마다의 다시 세우기 살피기
 
-### Per-Feature Error Breakdown
+### 특징마다의 어긋남 나누기
 
-For multivariate input with d features:
+특징이 d개인 여러 변수 들임에 대해:
 
 $$\text{MSE}_j = \frac{1}{n}\sum_{i=1}^{n} (x_{ij} - \hat{x}_{ij})^2$$
 
-Identify features with consistently high reconstruction error:
+다시 세우기 어긋남이 한결같이 큰 특징을 가려낸다:
 
-- **Easy Features**: Low error, well captured by bottleneck
-- **Hard Features**: High error, potentially noisy or nonlinear
-- **Asymmetric Error**: Bias toward over/under estimation
+- **쉬운 특징**: 어긋남이 작고 병목이 잘 잡는다
+- **어려운 특징**: 어긋남이 크고 잡음이 끼었거나 비선형일 수 있다
+- **한쪽으로 쏠린 어긋남**: 지나치게 크거나 작게 어림하는 쏠림
 
-### Correlation-Adjusted Error
+### 상관을 헤아린 어긋남
 
-For feature j with variance $\sigma_j^2$:
+흩어짐이 $\sigma_j^2$인 특징 j에 대해:
 
 $$\text{RelError}_j = \frac{\text{MSE}_j}{\sigma_j^2}$$
 
-Reveals which features lose most information (relative to their inherent variability).
+어느 특징이 (제 들쭉날쭉함에 견주어) 앎을 가장 많이 잃는지 드러낸다.
 
-### Reconstruction Bias
+### 다시 세우기 쏠림
 
-Check for systematic bias (not random noise):
+(아무 잡음이 아닌) 체계적 쏠림이 있는지 살핀다:
 
 $$\text{Bias}_j = \frac{1}{n}\sum_{i=1}^{n} (\hat{x}_{ij} - x_{ij})$$
 
-Non-zero bias indicates autoencoder systematically over/under estimates feature.
+쏠림이 0이 아니면 자기 부호기가 그 특징을 늘 크게 또는 작게 어림한다는 뜻이다.
 
-## Temporal Analysis of Reconstruction Error
+## 다시 세우기 어긋남의 때에 따른 살피기
 
-### Time-Series Error Patterns
+### 시계열 어긋남 결
 
-For financial time series with T observations:
+관측이 T개인 금융 시계열에 대해:
 
 $$\text{Error}_t = \|x_t - \hat{x}_t\|^2$$
 
-Track error evolution to identify regime-dependent reconstruction quality:
+어긋남이 어떻게 나아가는지 좇아 국면마다의 다시 세우기 품질을 가려낸다:
 
-- **Stable Periods**: Error remains low and constant
-- **Transition Periods**: Error spikes during regime changes
-- **Stress Events**: Error elevated during market anomalies
+- **안정된 때**: 어긋남이 낮고 일정하다
+- **옮아가는 때**: 국면이 바뀔 때 어긋남이 치솟는다
+- **어지러운 사건**: 시장이 별날 때 어긋남이 높다
 
-### Rolling Window Error Statistics
+### 굴리는 창의 어긋남 통계
 
-Compute error statistics in sliding windows:
+미끄러지는 창에서 어긋남 통계를 셈한다:
 
 $$\text{Error}_{[t-W, t]} = \text{Mean}(\text{Error}_\tau), \quad \tau \in [t-W, t]$$
 
-Reveals whether autoencoder reconstruction degrades over time (non-stationarity) or maintains consistent quality.
+자기 부호기의 다시 세우기가 때에 따라 나빠지는지(정상성 없음) 한결같은 품질을 지키는지 드러낸다.
 
-### Autocorrelation of Error
+### 어긋남의 자기 상관
 
-High autocorrelation in reconstruction error suggests:
+다시 세우기 어긋남의 자기 상관이 높으면 다음을 뜻한다:
 
 $$\rho_k = \text{Corr}(\text{Error}_t, \text{Error}_{t+k})$$
 
-- **ρ_k > 0.5**: Strong temporal clustering of errors
-- **Interpretation**: Some types of price movements harder to reconstruct than others
+- **ρ_k > 0.5**: 어긋남이 때에 따라 강하게 뭉친다
+- **풀이**: 어떤 값 움직임은 다른 것보다 다시 세우기 어렵다
 
-## Task-Specific Reconstruction Quality
+## 일마다의 다시 세우기 품질
 
-### Anomaly Detection Metrics
+### 이상 알아내기 잣대
 
-For anomaly detection application, evaluate reconstruction error's discrimination:
+이상 알아내기 쓰임새에서는 다시 세우기 어긋남의 가르는 힘을 값매김한다:
 
-$$\text{AUC} = \frac{\# \text{(normal samples with error < threshold)}}{N_{\text{normal}}}$$
+$$\text{AUC} = \frac{\# \text{(어긋남이 문턱보다 작은 보통 표본)}}{N_{\text{normal}}}$$
 
-Threshold chosen such that false positive rate acceptable for application.
+쓰임새가 받아들일 만한 거짓 양성 비율이 되도록 문턱을 고른다.
 
-### Dimensionality Reduction Quality
+### 차원 줄이기 품질
 
-For downstream clustering/classification, assess preservation of distances:
+뒤따르는 무리 짓기나 가르기를 위해 거리가 지켜지는 정도를 가늠한다:
 
 $$\text{Correlation of Distances} = \text{Corr}(\|x_i - x_j\|, \|\hat{x}_i - \hat{x}_j\|)$$
 
-High correlation indicates reconstruction preserves neighborhood structure.
+상관이 높으면 다시 세우기가 이웃 짜임을 지킨다는 뜻이다.
 
-### Factor Extraction Fidelity
+### 요인 뽑기의 충실함
 
-For learning market factors via autoencoder, analyze whether factor structure preserved:
+자기 부호기로 시장 요인을 배울 때 요인 짜임이 지켜졌는지 살핀다:
 
 $$\text{PCA Alignment} = \text{Corr}(\text{PC}_{\text{original}}, \text{PC}_{\text{reconstructed}})$$
 
-Measures whether principal modes of variation reconstructed accurately.
+흔들림의 으뜸 결이 정확히 다시 세워졌는지 잰다.
 
-## Diagnostic Tools
+## 진단 연장
 
-### Residual Analysis
+### 남은 것 살피기
 
-Examine residuals $r = x - \hat{x}$:
+남은 것 $r = x - \hat{x}$을 살핀다:
 
-1. **Residual Mean**: Should be near zero (indicates unbiased reconstruction)
-2. **Residual Variance**: Should be white noise (unpredictable from inputs)
-3. **Residual Autocorrelation**: Should decay quickly (temporal independence)
-4. **Residual Q-Q Plot**: Compare to standard normal distribution
+1. **남은 것의 평균**: 0에 가까워야 한다(쏠림 없는 다시 세우기)
+2. **남은 것의 흩어짐**: 흰 잡음이어야 한다(들임으로 어림할 수 없음)
+3. **남은 것의 자기 상관**: 빨리 잦아들어야 한다(때에 대한 홀로서기)
+4. **남은 것의 Q-Q 그림**: 표준 정규 분포와 견준다
 
-Systematic residual patterns indicate missing structure in learned representation.
+남은 것에 체계적인 결이 있으면 배운 나타냄에 빠진 짜임이 있다는 뜻이다.
 
-### Error Visualization
+### 어긋남 그려 보기
 
-Create heatmaps of reconstruction error:
+다시 세우기 어긋남의 열지도를 만든다:
 
-1. **Feature × Sample Matrix**: Shows error patterns across inputs and samples
-2. **Error by Time and Feature**: Temporal dynamics of per-feature error
-3. **Error Distribution Histogram**: Empirical error distribution with fitted model
+1. **특징 × 표본 행렬**: 들임과 표본에 걸친 어긋남 결을 보인다
+2. **때와 특징별 어긋남**: 특징마다 어긋남의 때에 따른 움직임
+3. **어긋남 분포 도수 그림**: 맞춘 모델을 곁들인 실제 어긋남 분포
 
-Visual inspection often reveals error patterns missed by summary statistics.
+눈으로 살피면 간추린 통계가 놓친 어긋남 결이 흔히 드러난다.
 
-### Comparison to Baselines
+### 바탕과의 견줌
 
-Compare reconstruction error to baseline methods:
+다시 세우기 어긋남을 바탕 방법과 견준다:
 
-| Method | MSE | RelError | Advantages |
+| 방법 | 평균 제곱 어긋남 | 상대 어긋남 | 좋은 점 |
 |--------|-----|----------|------------|
-| Mean Imputation | σ² | 1.0 | Simplest baseline |
-| PCA (K factors) | 0.3σ² | 0.3 | Linear compression |
-| Autoencoder | 0.15σ² | 0.15 | **Nonlinear + optimal |
+| 평균으로 채우기 | σ² | 1.0 | 가장 단순한 바탕 |
+| 주성분 분석(요인 K개) | 0.3σ² | 0.3 | 선형 눌러 담기 |
+| 자기 부호기 | 0.15σ² | 0.15 | **비선형 + 가장 좋음 |
 
-Autoencoder should outperform baselines; if not, investigate architecture or training.
+자기 부호기가 바탕보다 나아야 한다. 그렇지 않으면 얼개나 익히기를 파헤쳐라.
 
-## Practical Recommendations
+## 실전 권고
 
-### Reconstruction Quality Targets
+### 다시 세우기 품질 목표
 
-For financial applications:
+금융 쓰임새에서:
 
-- **MSE < 0.1 × Var(x)**: Excellent reconstruction
-- **MSE ∈ [0.1, 0.3] × Var(x)**: Good reconstruction, acceptable for most tasks
-- **MSE > 0.3 × Var(x)**: Poor reconstruction, review architecture
+- **MSE < 0.1 × Var(x)**: 아주 좋은 다시 세우기
+- **MSE ∈ [0.1, 0.3] × Var(x)**: 좋은 다시 세우기, 거의 모든 일에 받아들일 만함
+- **MSE > 0.3 × Var(x)**: 나쁜 다시 세우기, 얼개를 다시 보라
 
-### Diagnostic Procedure
+### 진단 절차
 
-When reconstruction quality inadequate:
+다시 세우기 품질이 모자랄 때:
 
-1. **Check Data Quality**: Verify training data contains expected variation
-2. **Validate Train/Test Split**: Ensure test error not inflated by distribution mismatch
-3. **Increase Bottleneck**: Expand latent dimension to improve capacity
-4. **Deepen Network**: Add layers to capture nonlinear relationships
-5. **Regularization Tuning**: Reduce weight decay if overly constraining
+1. **자료 품질 살피기**: 익히기 자료에 바라는 흔들림이 있는지 확인한다
+2. **익히기/시험 나눔 확인**: 분포가 어긋나 시험 어긋남이 부풀지 않았는지 확인한다
+3. **병목 넓히기**: 담이를 키우려 숨은 차원을 늘린다
+4. **그물 깊게 하기**: 비선형 관계를 잡으려 층을 더한다
+5. **벌주기 다듬기**: 지나치게 옭아매면 무게 잦아듦을 줄인다
 
-!!! warning "Overfitting Considerations"
-    Autoencoders can overfit to training data, achieving perfect reconstruction while failing to generalize. Always evaluate on held-out test set; large train-test gap indicates overfitting requiring regularization increase.
+!!! warning "지나치게 맞춰짐에 대해 헤아릴 점"
+    자기 부호기는 익히기 자료에 지나치게 맞춰져 다시 세우기는 완벽하나 두루 통하지 못할 수 있다. 늘 남겨 둔 시험 묶음으로 값매김하라. 익히기와 시험의 벌어짐이 크면 지나치게 맞춰진 것이니 벌주기를 늘려야 한다.
 
+## 연습문제
+
+**연습문제 1.**
+자기 부호기의 숨은 공간이 만드는 앎 병목을 설명하고 그것이 나타냄 배우기에 왜 쓸모 있는지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    자기 부호기는 들임 $x$을 부호기로 더 낮은 차원의 숨은 부호 $z = f(x)$에 옮긴 뒤 풀개로 $\hat{x} = g(z)$을 다시 세운다. 병목($\dim(z) \ll \dim(x)$) 때문에 그물이 다시 세우는 데 필요한 가장 두드러진 특징만 남긴 눌러 담은 나타냄을 배우게 된다. 쓸모 있는 까닭은 이렇다. (1) 숨은 공간이 자료의 속 차원을 잡는다. (2) 잡음(다시 세우는 데 도움이 안 되는 특징)을 걸러 낸다. (3) 배운 나타냄이 뒤따르는 일로 옮겨 간다. (4) 숨은 공간을 무리 짓기, 이상 알아내기, 그려 보기에 쓸 수 있다.
+
+---
+
+**연습문제 2.**
+자기 부호기 익히기에서 평균 제곱 어긋남 손실과 두 값 엇갈린 엔트로피 손실을 견주어라. 저마다 언제 알맞은가?
+
+??? success "연습문제 2 풀이"
+    **평균 제곱 어긋남 손실** $L = \|x - \hat{x}\|^2$은 풀개가 내놓는 것을 흩어짐이 고정된 정규 분포의 평균으로 본다. 이어진 값 자료($[0,1]$으로 고른 그림이나 표준화한 특징)에 알맞다. **두 값 엇갈린 엔트로피 손실** $L = -\sum_i [x_i \log \hat{x}_i + (1-x_i)\log(1-\hat{x}_i)]$은 내놓는 값마다 베르누이 확률로 본다. 두 값 자료나, 내놓는 것을 확률로 보아야 하는 $[0,1]$ 자료(예컨대 에스자 깨어남을 쓴 MNIST 화소 밝기)에 알맞다. 두 값 엇갈린 엔트로피는 확신에 찬 틀린 어림에 평균 제곱 어긋남보다 더 무겁게 벌을 준다.
+
+---
+
+**연습문제 3.**
+주성분 분석과 선형 자기 부호기의 관계는 무엇인가? 가장 좋은 선형 자기 부호기가 주성분 아래 공간을 되찾음을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    부호기가 $z = Wx + b$이고 풀개가 $\hat{x} = W'z + b'$인 선형 자기 부호기는 (치우침을 가운데 맞춘 자료에 흡수시켜) $\|x - W'Wx\|^2$을 가장 작게 한다. 가장 좋은 $W$은 자료 공분산 행렬의 으뜸 $k$개 고유벡터와 같은 아래 공간을 뻗으며 이는 바로 주성분 아래 공간이다. 증명: 다시 세우기 어긋남 $\sum_i \|x_i - W'Wx_i\|^2$은 $W'W$이 흩어짐이 가장 큰 $k$차원 아래 공간으로 하는 쏘기일 때 가장 작아지며, 에카르트-영 정리에 따라 이것이 주성분 분석 풀이이다. $\square$
+
+---
+
+**연습문제 4.**
+잡음 없애는 자기 부호기가 여느 자기 부호기에 견주어 배운 나타냄의 품질을 어떻게 높이는지 설명하라.
+
+??? success "연습문제 4 풀이"
+    잡음 없애는 자기 부호기는 들임을 $\tilde{x} = x + \epsilon$으로 망가뜨리고(예컨대 정규 잡음, 가리기, 소금과 후추) 깨끗한 들임을 다시 세우도록 익힌다. 곧 $\min \|x - g(f(\tilde{x}))\|^2$이다. 그러면 자기 부호기가 항등 함수를 배우는 것을 막는다(담이가 넉넉한 여느 자기 부호기에서는 항등 함수가 손실 0을 낸다). 그물은 망가뜨림을 "되돌리려" 자료 다양체 짜임을 잡는 튼튼한 특징을 배워야 한다. 이것이 넌지시 벌주기 노릇을 해, 여느 자기 부호기보다 더 튼튼하고 앎이 풍부하며 뒤따르는 일에 더 알맞은 나타냄을 낸다.

@@ -1,103 +1,136 @@
-# Streaming Model
+# 흐름 모형
 
-Modern data systems routinely process volumes far too large to store in memory: network traffic logs generating terabytes per day, social media feeds producing millions of events per second, and sensor networks streaming continuous measurements. The **streaming model** of computation formalizes algorithm design for this setting, requiring that data elements are processed in a single pass (or a small number of passes) using memory that is sublinear in the input size. This model fundamentally changes what is computable, forcing the use of approximate answers and randomized data structures.
+요즘 자료 시스템은 기억에 담을 수 없을 만큼 큰 양을 늘 다룬다. 하루 수 테라바이트를 내는 그물 오감 기록, 초당 수백만 사건을 내는 사회 매체 흐름, 이어진 재기를 흘려보내는 센서 그물이 그러하다. 셈의 **흐름 모형**은 이런 자리의 알고리즘 설계를 엄밀히 적으며, 들임 크기보다 작은 기억으로 자료 원소를 한 번(또는 몇 번) 지나며 다루기를 요구한다. 이 모형은 무엇을 셈할 수 있는지를 근본에서 바꾸어 어림 답과 아무 자료 얼개를 쓰게 만든다.
 
-## Formal Definition
+## 엄밀한 정의
 
-A **data stream** is a sequence $\sigma = a_1, a_2, \ldots, a_n$ of elements drawn from a universe $[U] = \{1, 2, \ldots, U\}$. A streaming algorithm processes elements one at a time in order, maintaining a **summary** (or **sketch**) $S$ in working memory of size:
+**자료 흐름**은 온 모임 $[U] = \{1, 2, \ldots, U\}$에서 뽑은 원소의 열 $\sigma = a_1, a_2, \ldots, a_n$이다. 흐름 알고리즘은 원소를 차례대로 하나씩 다루며 크기가 다음인 일하는 기억에 **간추림**(또는 **스케치**) $S$을 지닌다:
 
 $$
 \text{Space}(S) = O(\text{polylog}(n, U)) \quad \text{or} \quad O(n^\epsilon) \text{ for some } \epsilon < 1
 $$
 
-The algorithm cannot revisit past elements. After processing the entire stream, it must answer queries about the stream using only the summary $S$.
+알고리즘은 지난 원소를 다시 볼 수 없다. 흐름을 다 다룬 뒤 간추림 $S$만으로 흐름에 대한 묻기에 답해야 한다.
 
-!!! note "Why Sublinear Memory?"
-    If the algorithm could store the entire stream, any query could be answered exactly. The streaming model's constraint of sublinear memory forces algorithms to make tradeoffs between space, accuracy, and the number of passes over the data.
+!!! note "왜 선형보다 작은 기억인가"
+    알고리즘이 흐름 전체를 담을 수 있다면 어떤 묻기에도 정확히 답할 수 있다. 흐름 모형의 선형보다 작은 기억이라는 매임이 알고리즘으로 하여금 공간, 맞음, 지나기 횟수 사이에서 맞바꾸게 한다.
 
-## Stream Types
+## 흐름의 갈래
 
-### Cash Register Model
+### 금전 등록기 모형
 
-Each element $a_i$ represents an **insertion**: the frequency $f_j$ of item $j$ increases by 1 (or by a positive weight $w_i$). All frequencies are non-negative:
+원소 $a_i$마다 **넣기**를 나타낸다. 것 $j$의 잦음 $f_j$이 1(또는 양의 무게 $w_i$)만큼 는다. 모든 잦음이 음이 아니다:
 
 $$
 f_j = \sum_{i : a_i = j} w_i \geq 0
 $$
 
-This models counting occurrences of events (e.g., packet counts, word frequencies).
+이는 일어난 일의 횟수 세기를 나타낸다(보기로 꾸러미 셈, 낱말 잦음).
 
-### Turnstile Model
+### 회전문 모형
 
-Each element $a_i = (j, \Delta)$ represents an **update**: item $j$'s frequency changes by $\Delta \in \mathbb{Z}$ (which can be negative). The frequency vector is:
+원소 $a_i = (j, \Delta)$마다 **고침**을 나타낸다. 것 $j$의 잦음이 $\Delta \in \mathbb{Z}$(음일 수도 있다)만큼 바뀐다. 잦음 벡터는 다음과 같다:
 
 $$
 f_j = \sum_{i : a_i = (j, \Delta_i)} \Delta_i
 $$
 
-In the **strict turnstile model**, $f_j \geq 0$ at all times. In the **general turnstile model**, $f_j$ can be negative. The turnstile model captures settings where deletions occur (e.g., items leaving a window, corrections to counts).
+**엄격한 회전문 모형**에서는 늘 $f_j \geq 0$이다. **일반 회전문 모형**에서는 $f_j$이 음일 수 있다. 회전문 모형은 지우기가 일어나는 자리를 담는다(보기로 창을 벗어나는 것, 셈 바로잡기).
 
-### Sliding Window Model
+### 미끄러지는 창 모형
 
-Only the most recent $W$ elements matter. The algorithm must answer queries about the substream $a_{n-W+1}, \ldots, a_n$. This models time-decaying data where old observations become irrelevant.
+가장 최근 $W$개 원소만 중요하다. 알고리즘은 부분 흐름 $a_{n-W+1}, \ldots, a_n$에 대한 묻기에 답해야 한다. 이는 오래된 봄이 쓸모없어지는, 때에 따라 스러지는 자료를 나타낸다.
 
-## Fundamental Limitations
+## 근본 한계
 
-The streaming model imposes inherent limitations on what can be computed exactly.
+흐름 모형은 무엇을 정확히 셈할 수 있는지에 본디 한계를 둔다.
 
-### Communication Complexity Lower Bounds
+### 주고받기 복잡도의 아래 가둠
 
-Lower bounds on streaming space come from **communication complexity**. If computing a function $f$ on a stream requires distinguishing between many possible frequency vectors, the algorithm needs enough memory to encode these distinctions.
+흐름 공간의 아래 가둠은 **주고받기 복잡도**에서 온다. 흐름에서 함수 $f$을 셈하려면 가능한 여러 잦음 벡터를 가려내야 하므로 알고리즘은 그 다름을 담을 만큼의 기억이 있어야 한다.
 
-**Theorem.** Any deterministic algorithm that computes the number of distinct elements in a stream exactly requires $\Omega(n)$ space.
+**정리.** 흐름 속 서로 다른 원소의 개수를 정확히 셈하는 어떤 정해진 알고리즘도 공간 $\Omega(n)$이 든다.
 
-*Proof sketch.* Consider a stream where each element is distinct. After processing $k$ elements, the algorithm must distinguish $\binom{U}{k}$ possible sets to determine whether the next element is new. This requires $\Omega(k \log U)$ bits of state. $\square$
+*밝힘 밑그림.* 원소가 모두 서로 다른 흐름을 보자. 원소 $k$개를 다룬 뒤 알고리즘은 다음 원소가 새것인지 알려면 가능한 모임 $\binom{U}{k}$개를 가려내야 한다. 이는 상태 $\Omega(k \log U)$비트를 요구한다. $\square$
 
-This impossibility result motivates approximate solutions like HyperLogLog, which estimates the distinct count using only $O(\log \log U + \log(1/\delta))$ space.
+이 불가능 결과가 공간 $O(\log \log U + \log(1/\delta))$만으로 서로 다른 개수를 어림하는 HyperLogLog 같은 어림 풀이의 까닭이 된다.
 
-### The Space-Accuracy Tradeoff
+### 공간과 맞음의 맞바꿈
 
-For most streaming problems, an $(\epsilon, \delta)$-approximation (multiplicative error $\epsilon$ with failure probability $\delta$) can be achieved with space:
+대부분의 흐름 문제에서 $(\epsilon, \delta)$어림(어긋날 확률 $\delta$과 함께 곱셈 어긋남 $\epsilon$)은 다음 공간으로 이룰 수 있다:
 
 $$
 O\left(\frac{1}{\epsilon^2} \log \frac{1}{\delta}\right)
 $$
 
-This tradeoff is often tight: halving the error requires quadrupling the space.
+이 맞바꿈은 빈틈없을 때가 많다. 어긋남을 반으로 줄이려면 공간을 네 배로 늘려야 한다.
 
-## Query Types
+## 묻기의 갈래
 
-Common queries answered by streaming algorithms:
+흐름 알고리즘이 답하는 흔한 묻기:
 
-| Query | Example Algorithm | Space |
+| 묻기 | 보기 알고리즘 | 공간 |
 |---|---|---|
-| Point query: $f_j$ | Count-Min Sketch | $O(\frac{1}{\epsilon} \log \frac{1}{\delta})$ |
-| Distinct count: $|\{j : f_j > 0\}|$ | HyperLogLog | $O(\frac{1}{\epsilon^2} + \log U)$ |
-| Frequency moments: $F_k = \sum_j f_j^k$ | AMS Sketch | $O(\frac{1}{\epsilon^2} \log U)$ |
-| Heavy hitters: $\{j : f_j > \epsilon n\}$ | Misra-Gries | $O(\frac{1}{\epsilon})$ |
-| Quantiles | Greenwald-Khanna | $O(\frac{1}{\epsilon} \log(\epsilon n))$ |
-| Random sample | Reservoir Sampling | $O(k)$ for $k$ samples |
+| 점 묻기: $f_j$ | Count-Min 스케치 | $O(\frac{1}{\epsilon} \log \frac{1}{\delta})$ |
+| 서로 다른 개수: $|\{j : f_j > 0\}|$ | HyperLogLog | $O(\frac{1}{\epsilon^2} + \log U)$ |
+| 잦음 적률: $F_k = \sum_j f_j^k$ | AMS 스케치 | $O(\frac{1}{\epsilon^2} \log U)$ |
+| 큰손: $\{j : f_j > \epsilon n\}$ | 미스라-그리스 | $O(\frac{1}{\epsilon})$ |
+| 분위 | 그린월드-칸나 | $O(\frac{1}{\epsilon} \log(\epsilon n))$ |
+| 아무 표본 | 저수지 뽑기 | 표본 $k$개에 $O(k)$ |
 
-## Multi-Pass Streaming
+## 여러 번 지나는 흐름
 
-Some algorithms make a small number of passes over the data, using the sketch from one pass to guide the next:
+어떤 알고리즘은 자료를 몇 번 지나며 한 번의 스케치로 다음 지나기를 이끈다:
 
-- **2-pass algorithms**: can achieve exact answers for some problems where single-pass requires approximation.
-- **Semi-streaming**: allows $O(n \cdot \text{polylog}(n))$ space, useful for graph problems where the stream consists of edges.
+- **두 번 지나는 알고리즘**: 한 번 지나기로는 어림해야 하는 어떤 문제에서 정확한 답을 얻을 수 있다.
+- **반 흐름**: 공간 $O(n \cdot \text{polylog}(n))$을 허락하며 흐름이 변으로 이루어진 그래프 문제에 쓸모 있다.
 
-## Connection to Deep Learning
+## 딥러닝과의 관계
 
-The streaming model connects to deep learning in several ways:
+흐름 모형은 깊은 배움과 여러 갈래로 이어진다:
 
-- **Online training**: stochastic gradient descent processes training examples in a streaming fashion, maintaining model parameters (the "sketch") in memory far smaller than the full dataset.
-- **Feature hashing**: the hashing trick maps high-dimensional feature spaces to fixed-size representations, analogous to streaming sketches.
-- **Monitoring training metrics**: tracking running statistics (loss, gradient norms, activation distributions) over millions of training steps uses streaming algorithms to maintain summaries without storing all historical values.
+- **온라인 익히기**: 확률 기울기 내려가기는 익히기 보기를 흐름처럼 다루며 온 자료 뭉치보다 훨씬 작은 기억에 모델 잡("스케치")을 지닌다.
+- **특징 흩기**: 흩기 재주가 높은 차원의 특징 공간을 붙박인 크기의 나타냄으로 옮기며 흐름 스케치와 닮았다.
+- **익히기 잣대 지켜보기**: 수백만 익히기 걸음에 걸쳐 이어지는 통계(손실, 기울기 크기, 깨움 분포)를 좇는 데 흐름 알고리즘을 써서 지난 값을 모두 담지 않고 간추림을 지닌다.
 
-## Summary
+## 요약
 
-The streaming model formalizes computation under severe memory constraints, processing data in one or few passes using sublinear space. The cash register, turnstile, and sliding window models capture different update semantics. Communication complexity lower bounds establish fundamental space requirements, while randomized sketching algorithms achieve near-optimal space-accuracy tradeoffs for a wide range of queries.
+흐름 모형은 기억이 몹시 빠듯한 자리의 셈을 엄밀히 적으며, 선형보다 작은 공간으로 자료를 한 번이나 몇 번 지나며 다룬다. 금전 등록기, 회전문, 미끄러지는 창 모형이 서로 다른 고침 뜻을 담는다. 주고받기 복잡도의 아래 가둠이 근본 공간 요구를 세우고, 아무 스케치 알고리즘이 여러 묻기에서 거의 가장 좋은 공간-맞음 맞바꿈을 이룬다.
 
-## References
+## 참고 문헌
 
 - [Data Streams: Algorithms and Applications (Muthukrishnan)](https://www.cs.rutgers.edu/~muthu/stream-1-1.ps)
 - [Sketch Techniques for Approximate Query Processing (Cormode)](https://doi.org/10.1561/0400000060)
+
+
+## 연습문제
+
+**연습문제 1.**
+흐름 셈 모형과 그 핵심 매임을 뜻매김하여라.
+
+??? success "연습문제 1 풀이"
+    흐름 모형에서 들임은 온 모임 $[m]$의 원소 열 $a_1, a_2, \ldots, a_n$으로 온다. 알고리즘은 기억 $s \ll n$을 쓰며 자료를 한 번(또는 작은 상수 번) 지난다. 원소마다 다루는 때는 작아야 한다(로그의 다항식). 목표는 선형보다 작은 공간으로 흐름의 함수(보기로 서로 다른 개수, 잦음 적률, 분위)를 셈하거나 어림하는 것이다. 이 모형은 자료가 너무 커서 담을 수 없는 상황을 담는다. 그물 오감, 센서 읽기, 자료 바탕 훑기가 그러하다.
+
+---
+
+**연습문제 2.**
+넣기만 하는 모형, 회전문 모형, 미끄러지는 창 모형의 차이를 밝혀라.
+
+??? success "연습문제 2 풀이"
+    넣기만 하기: 원소가 하나씩 들어오며 더하기를 나타낸다. 잦음 벡터 $f$은 $f_i \geq 0$이다. 대부분의 스케치(Count-Min, HyperLogLog)가 여기서 돈다. 회전문: 원소가 넣기(+1)일 수도 지우기(-1)일 수도 있어 $f_i$이 줄 수 있다(엄격한 모형에서는 $\geq 0$을 지켜야 한다). Count 스케치는 이를 다루지만 Count-Min은 그러지 못한다. 미끄러지는 창: 마지막 $W$개 원소만 중요하다. 오래된 원소를 '잊으려면' 특별한 재주(지수 막대 그림, 매끄러운 막대 그림)가 필요하다. 뒤로 갈수록 엄밀히 더 어렵다.
+
+---
+
+**연습문제 3.**
+흐름 속 서로 다른 원소의 정확한 개수를 셈하려면 공간 $\Omega(n)$이 듦을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    주고받기 복잡도의 색인 문제로 줄인다. 앨리스는 비트 문자열 $x \in \{0,1\}^m$을, 밥은 번호 $j$을 가진다. 앨리스는 자기 들임을 흐름으로 담는다($x_i = 1$일 때 그리고 그때만 원소 $i$을 넣는다). 밥은 앨리스의 기억 상태(스케치)를 받아 원소 $j$이 흐름에 있었는지(곧 $x_j$) 알아내야 한다. 밥이 물은 뒤의 정확한 서로 다른 개수가 $j$이 있었는지를 드러낸다. 색인 문제의 주고받기 복잡도는 $\Omega(m)$이므로 스케치는 $\Omega(m)$비트여야 한다. 흐름 원소가 $n \geq m$개면 공간 $\Omega(n)$이 된다.
+
+---
+
+**연습문제 4.**
+흐름 모형은 깊은 배움의 작은 묶음 익히기와 어떻게 이어지는가?
+
+??? success "연습문제 4 풀이"
+    작은 묶음 익히기는 흐름과 비슷하게 자료를 한 번(한 판)이나 몇 번 지나며 다룬다. 익히는 동안 셈하는 흐름 통계에는 다음이 있다. (1) 묶음 고르게 맞추기용 이어지는 평균과 흩어짐(지수 이동 평균), (2) 맞춰 가는 가장 좋게 하개용 기울기 통계(Adam은 1차와 2차 적률의 이어지는 어림을 지닌다), (3) 손실 지켜보기(익히기 손실의 지수 이동 평균). 모두 통계마다 공간 $O(1)$을 쓰며 작은 묶음마다 고치는 흐름 셈이다.

@@ -1,78 +1,105 @@
-# 29.3.1 Spectral Graph Theory
+# 29.3.1 스펙트럼 그래프 이론
+## 들어가며
 
+**스펙트럼 그래프 이론**은 그래프에 딸린 행렬, 특히 그래프 라플라스의 고윳값과 고유 벡터로 그래프를 살핀다. 이 스펙트럼 성질은 그래프 얼개에 대한 깊은 통찰을 주며 스펙트럼 그래프 겹말기의 수학 바탕을 이룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 그래프 라플라스 되짚기
 
-## Introduction
-
-**Spectral graph theory** studies graphs through the eigenvalues and eigenvectors of matrices associated with graphs, particularly the graph Laplacian. These spectral properties provide deep insights into graph structure and form the mathematical foundation for spectral graph convolutions.
-
-## Graph Laplacian Recap
-
-The **unnormalized Laplacian** $L = D - A$ has eigendecomposition:
+**고르게 맞추지 않은 라플라스** $L = D - A$의 고유 분해는 다음과 같다:
 
 $$L = U \Lambda U^T$$
 
-where $U = [\mathbf{u}_0, \mathbf{u}_1, \ldots, \mathbf{u}_{n-1}]$ are orthonormal eigenvectors and $\Lambda = \text{diag}(\lambda_0, \lambda_1, \ldots, \lambda_{n-1})$ with $0 = \lambda_0 \leq \lambda_1 \leq \cdots \leq \lambda_{n-1}$.
+여기서 $U = [\mathbf{u}_0, \mathbf{u}_1, \ldots, \mathbf{u}_{n-1}]$은 정규 직교 고유 벡터이고 $\Lambda = \text{diag}(\lambda_0, \lambda_1, \ldots, \lambda_{n-1})$이며 $0 = \lambda_0 \leq \lambda_1 \leq \cdots \leq \lambda_{n-1}$이다.
 
-The **normalized Laplacian** $\hat{L} = I - D^{-1/2}AD^{-1/2}$ has eigenvalues in $[0, 2]$.
+**고르게 맞춘 라플라스** $\hat{L} = I - D^{-1/2}AD^{-1/2}$의 고윳값은 $[0, 2]$에 있다.
 
-## Graph Signals
+## 그래프 신호
 
-A **graph signal** is a function $f: V \rightarrow \mathbb{R}$ assigning a real value to each node. It can be represented as a vector $\mathbf{f} \in \mathbb{R}^n$.
+**그래프 신호**는 마디마다 실수를 매기는 함수 $f: V \rightarrow \mathbb{R}$이다. 벡터 $\mathbf{f} \in \mathbb{R}^n$으로 나타낼 수 있다.
 
-The **smoothness** of a signal on the graph is measured by:
+그래프 위 신호의 **매끄러움**은 다음으로 잰다:
 
 $$\mathbf{f}^T L \mathbf{f} = \frac{1}{2} \sum_{(i,j) \in E} w_{ij}(f_i - f_j)^2$$
 
-Signals aligned with low-frequency eigenvectors (small $\lambda$) are smooth; those aligned with high-frequency eigenvectors (large $\lambda$) vary rapidly across edges.
+낮은 진동수 고유 벡터($\lambda$이 작음)에 나란한 신호는 매끄럽고, 높은 진동수 고유 벡터($\lambda$이 큼)에 나란한 신호는 변을 건널 때마다 빠르게 바뀐다.
 
-## Graph Fourier Transform
+## 그래프 푸리에 변환
 
-The **Graph Fourier Transform (GFT)** decomposes a signal into its frequency components:
+**그래프 푸리에 변환(GFT)**은 신호를 진동수 성분으로 쪼갠다:
 
 $$\hat{\mathbf{f}} = U^T \mathbf{f}$$
 
-The **inverse GFT** reconstructs the signal:
+**거꾸로 그래프 푸리에 변환**이 신호를 되짓는다:
 
 $$\mathbf{f} = U \hat{\mathbf{f}}$$
 
-The eigenvalues $\lambda_k$ correspond to frequencies: $\lambda_0 = 0$ is the DC component, and larger $\lambda_k$ represent higher frequencies.
+고윳값 $\lambda_k$이 진동수에 해당한다. $\lambda_0 = 0$은 직류 성분이고 $\lambda_k$이 클수록 높은 진동수를 나타낸다.
 
-## Spectral Filtering
+## 스펙트럼 거르기
 
-A **spectral filter** $g(\Lambda)$ operates on the graph signal in the spectral domain:
+**스펙트럼 거르개** $g(\Lambda)$은 스펙트럼 자리에서 그래프 신호에 작용한다:
 
 $$\mathbf{f}_{out} = U g(\Lambda) U^T \mathbf{f}_{in}$$
 
-where $g(\Lambda) = \text{diag}(g(\lambda_0), g(\lambda_1), \ldots, g(\lambda_{n-1}))$.
+여기서 $g(\Lambda) = \text{diag}(g(\lambda_0), g(\lambda_1), \ldots, g(\lambda_{n-1}))$이다.
 
-This is the graph analog of convolution in the spectral domain. A low-pass filter ($g$ attenuates high $\lambda$) smooths the signal; a high-pass filter amplifies differences.
+이는 스펙트럼 자리 겹말기의 그래프 판이다. 낮은 진동수만 통과시키는 거르개($g$이 큰 $\lambda$을 누른다)는 신호를 매끄럽게 하고, 높은 진동수를 통과시키는 거르개는 차이를 키운다.
 
-## Key Spectral Properties
+## 핵심 스펙트럼 성질
 
-### Cheeger Inequality
-Relates the algebraic connectivity $\lambda_1$ to graph partitioning:
+### 치거 부등식
+대수 이어짐 $\lambda_1$을 그래프 가르기와 잇는다:
 
 $$\frac{h^2}{2d_{max}} \leq \lambda_1 \leq 2h$$
 
-where $h$ is the Cheeger constant (conductance).
+여기서 $h$은 치거 상수(전도도)이다.
 
-### Expander Graphs
-Graphs with large spectral gap have good expansion and mixing properties.
+### 넓히개 그래프
+스펙트럼 틈이 큰 그래프는 넓힘과 섞임 성질이 좋다.
 
-### Fiedler Vector
-The eigenvector corresponding to $\lambda_1$ (the **Fiedler vector**) can be used for graph bisection—its sign partitions the graph into two well-connected halves.
+### 피들러 벡터
+$\lambda_1$에 해당하는 고유 벡터(**피들러 벡터**)는 그래프를 둘로 가르는 데 쓸 수 있다. 그 부호가 그래프를 잘 이어진 반 둘로 가른다.
 
-## Limitations of Spectral Methods
+## 스펙트럼 방법의 한계
 
-1. **Computational cost**: Eigendecomposition is $O(n^3)$, prohibitive for large graphs
-2. **Non-transferable**: Spectral filters depend on the specific graph's eigenvectors
-3. **Not localized**: Spectral filters are generally not localized in the spatial domain
+1. **셈 비용**: 고유 분해가 $O(n^3)$이어서 큰 그래프에는 쓸 수 없다
+2. **옮길 수 없음**: 스펙트럼 거르개가 그 그래프의 고유 벡터에 매인다
+3. **그 자리에 모이지 않음**: 스펙트럼 거르개는 보통 자리 영역에서 한곳에 모이지 않는다
 
-These limitations motivate polynomial approximations (ChebNet) and spatial methods (GCN, GAT).
+이 한계가 다항식 어림(ChebNet)과 자리 방법(GCN, GAT)의 까닭이 된다.
 
-## Summary
+## 요약
 
-Spectral graph theory provides the mathematical foundation for understanding graph convolutions. While direct spectral methods are computationally expensive, they motivate efficient approximations that form the basis of practical GNN architectures.
+스펙트럼 그래프 이론은 그래프 겹말기를 이해하는 수학 바탕을 준다. 곧바른 스펙트럼 방법은 셈이 비싸지만 실제 그래프 신경망 얼개의 바탕이 되는 효율 좋은 어림의 까닭이 된다.
+
+## 연습문제
+
+**연습문제 1.**
+마디 5개와 돌이의 이웃 얼개를 가진 그래프를 살펴보자. 2차원 특징 벡터에서 이 마디에 적은 쪽지 건네기 고침 한 걸음을 손으로 셈하라.
+
+??? success "연습문제 1 풀이"
+    마디 $1, \ldots, 5$에 특징 벡터 $\mathbf{h}_i \in \mathbb{R}^2$을 붙인다. 돌이에서 마디마다 이웃이 꼭 둘이다. 마디마다 모으기(보기로 이웃의 평균)와 고침(보기로 선형 바꿈과 깨움)을 쓴다. 한 걸음 뒤 마디마다의 나타냄이 바로 옆 이웃의 영향을 받는다. 이 드러난 셈은 받아들이는 자리가 층마다 한 뜀씩 넓어짐을 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+평균 모으기와 합 모으기가 여럿 모임을 가르는 나타냄 힘에서 다름을 밝혀라. 평균 모으기로는 가릴 수 없지만 합 모으기로는 가릴 수 있는 여럿 모임 둘의 구체적인 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    $S_1 = \{1, 1, 1\}$과 $S_2 = \{1\}$을 살펴보자. 평균 모으기는 $\text{mean}(S_1) = 1 = \text{mean}(S_2)$을 주어 둘을 가르지 못한다. 합 모으기는 $\text{sum}(S_1) = 3 \neq 1 = \text{sum}(S_2)$을 준다. 더 넓게는 평균 모으기가 여럿 모임의 겹침 수에 대해 불변이므로 서로 낱값 배인 여럿 모임을 가를 수 없다. 그래서 그래프 동형 신경망은 1차 바이스파일러-레만 시험에 맞먹는 최대 나타냄 힘을 얻으려 합 모으기를 쓴다. $\square$
+
+---
+
+**연습문제 3.**
+최단 길 거리가 $k$일 때 마디 $u$의 앎이 마디 $v$에 닿으려면 쪽지 건네기 층이 몇 개 필요한가? $k$이 커지면 실제로 어떤 문제가 생기는가?
+
+??? success "연습문제 3 풀이"
+    층마다 앎을 한 뜀씩 퍼뜨리므로 꼭 $k$개가 필요하다. $k$이 커지면 받아들이는 자리가 지수로 넓어진다(마디마다 $k$뜀 안의 모든 마디에서 모은다). 이는 지나친 매끄러워짐을 낳는다. 층이 많아지면 마디마다 거의 온 그래프의 앎을 모았기에 모든 마디 나타냄이 가릴 수 없는 벡터로 모인다. 누그러뜨리는 셈속으로는 남은 이음, 건너뛰는 앎, 그래프 변환기가 있다. $\square$
+
+---
+
+**연습문제 4.**
+그래프 겹말기의 자리 방식과 스펙트럼 방식의 맞바꿈을 따져라. 각각은 어떤 조건에서 더 나은가?
+
+??? success "연습문제 4 풀이"
+    스펙트럼 방법(보기로 ChebNet)은 그래프 라플라스의 고유 분해로 겹말기를 뜻매김해 원리 있는 신호 다루기 틀을 주지만 고유 분해($O(n^3)$)가 필요하고 그래프 위상이 붙박여 있어야 한다. 자리 방법(보기로 GraphSAGE, 그래프 눈길 신경망)은 이웃 모으기로 겹말기를 뜻매김해 달라지는 그래프 얼개를 자연스럽게 다루고 작은 묶음으로 큰 그래프에도 키울 수 있다. 정확한 진동수 거르기가 중요한 작고 위상이 붙박인 그래프에는 스펙트럼 방법이, 귀납 배움이 필요한 크거나 바뀌거나 뒤섞인 그래프에는 자리 방법이 낫다. $\square$

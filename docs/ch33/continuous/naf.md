@@ -1,77 +1,106 @@
-# 33.4.1 Normalized Advantage Functions (NAF)
+# 33.4.1 고르게 맞춘 이점 함수(NAF)
+## 이어진 움직임의 어려움
 
+여느 DQN은 움직임을 고르려 $\arg\max_a Q(s, a)$이 필요한데, 띄엄띄엄한 움직임에서는 (모두 늘어놓으면 되니) 쉽지만 이어진 움직임 자리에서는 다룰 수 없다. **고르게 맞춘 이점 함수(NAF)**(Gu et al., 2016)는 Q을 움직임의 이차 함수로 적어 argmax을 손으로 셈할 수 있게 하여 이를 푼다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## NAF 쪼개기
 
-## The Continuous Action Challenge
-
-Standard DQN requires $\arg\max_a Q(s, a)$ for action selection, which is trivial for discrete actions (enumerate all) but intractable for continuous action spaces. **Normalized Advantage Functions (NAF)** (Gu et al., 2016) solve this by parameterizing Q as a quadratic function of actions, making the argmax analytically computable.
-
-## NAF Decomposition
-
-NAF decomposes Q into value and a quadratic advantage:
+NAF은 Q을 값과 이차 이점으로 쪼갠다:
 
 $$Q(s, a) = V(s) + A(s, a)$$
 
-where the advantage is a negative-definite quadratic:
+여기서 이점은 음정부호 이차식이다:
 
 $$A(s, a) = -\frac{1}{2}(a - \mu(s))^T P(s) (a - \mu(s))$$
 
-Here:
-- $V(s)$: State-value function (scalar)
-- $\mu(s)$: Optimal action for state $s$ (vector, same dimension as action space)
-- $P(s) = L(s) L(s)^T$: State-dependent positive-definite matrix
-- $L(s)$: Lower-triangular matrix with positive diagonal (from network output)
+여기서:
 
-## Key Properties
+- $V(s)$: 상태 값 함수(낱값)
+- $\mu(s)$: 상태 $s$의 가장 좋은 움직임(움직임 자리와 차원이 같은 벡터)
+- $P(s) = L(s) L(s)^T$: 상태에 매인 양정부호 행렬
+- $L(s)$: 대각이 양인 아래쪽 삼각 행렬(그물 내놓기에서)
 
-1. **Closed-form argmax**: Since $A(s, a) \leq 0$ with equality at $a = \mu(s)$:
+## 핵심 성질
+
+1. **닫힌 꼴 argmax**: $A(s, a) \leq 0$이고 $a = \mu(s)$에서 같으므로:
 
    $$\arg\max_a Q(s, a) = \mu(s)$$
 
-   No optimization required—the network directly outputs the optimal action.
+   가장 좋게 하기가 필요 없다. 그물이 가장 좋은 움직임을 곧바로 내놓는다.
 
-2. **Closed-form max**: $\max_a Q(s, a) = V(s)$
+2. **닫힌 꼴 최대**: $\max_a Q(s, a) = V(s)$
 
-3. **Exploration**: Add Gaussian noise to $\mu(s)$ during training:
+3. **살펴보기**: 익히는 동안 $\mu(s)$에 가우스 잡소리를 더한다:
 
    $$a = \mu(s) + \mathcal{N}(0, \sigma^2 I)$$
 
-## Architecture
+## 구조
 
 ```
-Input: state s
-  → Shared hidden layers
+들임: 상태 s
+  → 함께 쓰는 숨은 켜
   → Three output heads:
       V(s):  Linear → scalar
       μ(s):  Linear → action_dim (optimal action)
       L(s):  Linear → action_dim * (action_dim + 1) / 2
-             → Reshape to lower-triangular
-             → exp(diagonal) to ensure positive definiteness
+             → 아래 세모꼴로 꼴 바꾸기
+             → 양의 정부호를 다지려 exp(대각선)
   → P = L @ L^T
   → A(s,a) = -0.5 * (a-μ)^T P (a-μ)
   → Q(s,a) = V + A
 ```
 
-## Training
+## 학습
 
-NAF uses the same DQN training loop with experience replay and target networks:
+NAF은 겪음 되돌려 보기와 과녁 그물을 쓰는 같은 DQN 익히기 고리를 쓴다:
 
 $$\mathcal{L}(\theta) = \mathbb{E}\left[\left(r + \gamma V_{\theta^-}(s') - Q_\theta(s, a)\right)^2\right]$$
 
-Note: the target simplifies to $r + \gamma V_{\theta^-}(s')$ since $\max_a Q(s', a) = V(s')$.
+유의: $\max_a Q(s', a) = V(s')$이므로 과녁이 $r + \gamma V_{\theta^-}(s')$으로 단순해진다.
 
-## Limitations
+## 한계
 
-- **Unimodal**: The quadratic form assumes a single optimal action per state. Cannot represent multi-modal action distributions
-- **Limited expressiveness**: Quadratic advantage may not capture complex action-value landscapes
-- **Scaling**: The $P$ matrix grows as $O(d^2)$ with action dimension $d$
-- **Modern alternatives**: DDPG, TD3, and SAC have largely superseded NAF for continuous control
+- **봉우리 하나**: 이차 꼴은 상태마다 가장 좋은 움직임이 하나라고 여긴다. 봉우리가 여럿인 움직임 분포를 나타내지 못한다
+- **나타냄 힘의 한계**: 이차 이점은 복잡한 움직임 값 풍경을 담지 못할 수 있다
+- **커지기**: 행렬 $P$이 움직임 차원 $d$에 따라 $O(d^2)$으로 커진다
+- **요즘의 다른 길**: 이어진 다스리기에서 DDPG, TD3, SAC이 NAF을 거의 대신했다
 
-## Finance Relevance
+## 금융과의 이음
 
-NAF is useful for continuous portfolio allocation where:
-- Action = portfolio weights (continuous)
-- The quadratic form naturally captures the mean-variance structure of portfolio optimization
-- The positive-definite $P$ matrix can be interpreted as a state-dependent risk penalty
+NAF은 다음과 같은 이어진 꾸러미 나누기에 쓸모 있다:
+
+- 움직임 = 꾸러미 무게(이어짐)
+- 이차 꼴이 꾸러미 가장 좋게 하기의 평균-흩어짐 얼개를 자연스럽게 담는다
+- 양정부호 행렬 $P$을 상태에 매인 위험 벌로 풀이할 수 있다
+
+## 연습문제
+
+**연습문제 1.**
+Q 값 어림에 신경망을 쓰는 어려움을 이 방법이 어떻게 다루는지 밝혀라. 이 길이 없으면 어떤 불안정이 생기는가?
+
+??? success "연습문제 1 풀이"
+    신경망 Q 값 어림은 차례 자료의 얽힘과 움직이는 과녁 문제(과녁이 지금 잡에 매인다) 때문에 불안정하다. 이 방법은 특정 얼개나 알고리즘 고름으로 이 말썽을 다룬다. 이것이 없으면 기울기 고침이 한결같지 않은 과녁을 좇아 익히기가 발산하고 재앙 같은 지나친 어림이나 흔들림이 생긴다. 이 길은 얽힘을 끊거나 얼마 동안 과녁을 붙박아 익히기를 안정시킨다. $\square$
+
+---
+
+**연습문제 2.**
+CartPole-v1 둘레에서 이 방법을 짜라. 둘레를 푸는 데(100판 평균 보상 > 475) 필요한 판수를 알리고 배움 굽은 줄을 그려라.
+
+??? success "연습문제 2 풀이"
+    숨은 낱덩이 64개의 2층 여러 층 신경망, 배움 빠르기 $3 \times 10^{-4}$의 Adam, 이 마디의 재주를 쓰면 부림꾼이 보통 200~500판에 CartPole을 푼다. 배움 굽은 줄은 처음의 아무 성능(보상 $\approx 20$), 빠르게 좋아지는 마당, 거의 가장 좋은 성능으로의 모임을 보인다. 핵심 짜기 세부: 되돌려 보기 버퍼 크기 10000, 묶음 크기 64, 100걸음마다 과녁 그물 고침, 300판에 걸쳐 1.0에서 0.01로 선형으로 스러지는 $\epsilon$ 욕심쟁이. $\square$
+
+---
+
+**연습문제 3.**
+맨 DQN에 견주어 이 방법이 더하는 셈과 기억 덧짐을 살펴라. 금융 쓰임새에서 그 맞바꿈이 값을 하는가?
+
+??? success "연습문제 3 풀이"
+    덧짐은 방법마다 다르지만 보통 앞으로 가기를 더 하거나(두 겹 DQN은 2배), 그물 잡을 더 두거나(맞겨루기 갈래), 기억을 더 쓴다(앞섬 되돌려 보기). 자료가 비싸고 실수가 값비싼 금융 쓰임새에서는 표본 효율과 안정이 좋아지므로 덧짐이 값을 한다. 금융 상태 자리는 흔히 차원이 웬만하므로(특징 10~100개) 걸음마다 늘어나는 비용이 더 나은 결정의 값어치에 견주면 크지 않다. $\square$
+
+---
+
+**연습문제 4.**
+보상 신호가 성기고(거래를 마칠 때만 실현되고) 늦는 금융 거래 쓰임새에 이 방법을 어떻게 맞출지 다루어라.
+
+??? success "연습문제 4 풀이"
+    성긴 보상은 공 돌리기를 어렵게 한다. 부림꾼은 여러 걸음 전의 움직임을 끝내 생긴 이익이나 손실에 이어야 한다. 맞추는 길: (1) 가장 좋은 방침을 지키면서 더 빽빽한 되먹임을 주는 중간 신호(실현되지 않은 손익, 위험 잣대)로 보상 다듬기, (2) 성긴 보상을 더 효율 좋게 뒤로 퍼뜨리는 여러 걸음 돌아옴, (3) 지난 겪음에 이룬 결과로 새 이름표를 붙이는 뒤늦은 겪음 되돌려 보기. 이 마디의 방법은 드문 보상 신호에서 배우는 안정을 높여 이바지한다. $\square$

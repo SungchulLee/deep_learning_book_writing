@@ -119,3 +119,43 @@ cases but fail large ones.
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - McDowell, G. *Cracking the Coding Interview*. 6th ed. CareerCup, 2015.
+
+## Exercises
+
+**Exercise 1.**
+Identify the bug in this code for finding the maximum subarray sum: `max_sum = 0; for i in range(n): curr += a[i]; max_sum = max(max_sum, curr); if curr < 0: curr = 0`. When does it fail?
+
+??? success "Solution to Exercise 1"
+    The bug is initializing `max_sum = 0`. If all elements are negative (e.g., `[-3, -2, -1]`), the maximum subarray sum is $-1$, but the code returns 0 (no subarray is selected). Fix: initialize `max_sum = a[0]` and `curr = a[0]`, then loop from index 1. Alternatively, initialize `max_sum = float('-inf')`. This is one of the most common mistakes in Kadane's algorithm implementations: assuming the answer is non-negative when the problem may require selecting at least one element. $\square$
+
+---
+
+**Exercise 2.**
+A solution uses `int mid = (lo + hi) / 2` in binary search. Explain the overflow bug and provide the correct expression.
+
+??? success "Solution to Exercise 2"
+    If `lo` and `hi` are both large positive integers (e.g., near $2^{31} - 1$), their sum `lo + hi` overflows the 32-bit integer range, producing a negative value. The subsequent division gives a negative `mid`, causing array-out-of-bounds access. Correct expression: `int mid = lo + (hi - lo) / 2`. This computes the same result but never exceeds `hi` in the intermediate computation. In Python, integers have arbitrary precision, so overflow does not occur, but the fix is still good practice for portability. $\square$
+
+---
+
+**Exercise 3.**
+A graph algorithm uses a visited array initialized inside the loop `for each component: visited = [False]*n; dfs(...)`. Explain why this causes $O(n^2)$ time instead of $O(n + m)$.
+
+??? success "Solution to Exercise 3"
+    Reinitializing `visited = [False]*n` inside the loop costs $O(n)$ per component. If there are $k$ components, total initialization cost is $O(kn)$. For $k = n$ (each node is its own component, e.g., a graph with no edges), this is $O(n^2)$. Fix: initialize `visited` once before the loop. The DFS across all components already visits each node once, so total DFS time is $O(n + m)$. The reinitialization is unnecessary because visited nodes are never revisited. This mistake is common when adapting single-source DFS code to multi-source traversal. $\square$
+
+---
+
+**Exercise 4.**
+Explain why using floating-point comparison `if a == b` is unreliable. Provide a robust comparison method with a tolerance parameter.
+
+??? success "Solution to Exercise 4"
+    Floating-point arithmetic introduces rounding errors. For example, `0.1 + 0.2` evaluates to `0.30000000000000004` in IEEE 754, not `0.3`. Direct equality comparison fails because two mathematically equal values may differ in their floating-point representations. Robust comparison: `abs(a - b) < eps` for absolute tolerance, or `abs(a - b) < eps * max(abs(a), abs(b))` for relative tolerance. Choose `eps` based on the problem: for geometry problems, `eps = 1e-9` is common. For financial calculations, use fixed-point arithmetic (integers representing cents) to avoid the issue entirely. When comparing with zero, use absolute tolerance only (relative tolerance divides by zero). $\square$
+
+---
+
+**Exercise 5.**
+A recursive function has no base case for empty input. Describe the failure mode and explain why defensive base cases are essential.
+
+??? success "Solution to Exercise 5"
+    Without a base case for empty input (e.g., `n = 0`, empty array, null node), the recursive function either: (1) accesses an out-of-bounds index (e.g., `arr[0]` on an empty array), causing a runtime error; or (2) recurses infinitely (if the recursive call does not reduce the problem size when input is empty), causing a stack overflow. Example: `def sum(arr, i): return arr[i] + sum(arr, i+1)` with no check for `i >= len(arr)`. Fix: add `if i >= len(arr): return 0` at the start. Defensive base cases are essential because: (1) real inputs include edge cases (empty collections, single elements); (2) recursive decomposition often produces empty subproblems (e.g., an empty left subtree in a BST); (3) contest judges and interviewers deliberately test edge cases. $\square$

@@ -1,9 +1,4 @@
 # Integrated Gradients
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Introduction
 
 **Integrated Gradients (IG)** is a principled attribution method that addresses fundamental limitations of vanilla gradient-based approaches. Unlike simple gradients that provide local sensitivity, Integrated Gradients computes attributions by **accumulating gradients along a path from a baseline to the input**.
@@ -39,9 +34,7 @@ Neural networks with ReLU, sigmoid, or tanh activations have regions where gradi
 Integrated Gradients solves this by integrating gradients along the **entire path** from baseline to input:
 
 $$
-
 \text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{\alpha=0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
-
 $$
 
 This accumulates all gradient information along the interpolation path, capturing contributions even through saturated regions.
@@ -53,9 +46,7 @@ This accumulates all gradient information along the interpolation path, capturin
 For an input $\mathbf{x} \in \mathbb{R}^n$, a baseline $\mathbf{x}' \in \mathbb{R}^n$, and a model $f: \mathbb{R}^n \rightarrow \mathbb{R}$, the Integrated Gradients attribution for feature $i$ is:
 
 $$
-
 \text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{\alpha=0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
-
 $$
 
 where:
@@ -70,9 +61,7 @@ where:
 The path from baseline to input is:
 
 $$
-
 \gamma(\alpha) = \mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'), \quad \alpha \in [0, 1]
-
 $$
 
 - At $\alpha = 0$: $\gamma(0) = \mathbf{x}'$ (baseline)
@@ -85,9 +74,7 @@ At each point along this path, we compute gradients. The integral accumulates th
 In practice, the integral is approximated using a Riemann sum with $m$ steps:
 
 $$
-
 \text{IG}_i(\mathbf{x}) \approx (x_i - x'_i) \times \frac{1}{m} \sum_{k=1}^{m} \frac{\partial f\left(\mathbf{x}' + \frac{k}{m}(\mathbf{x} - \mathbf{x}')\right)}{\partial x_i}
-
 $$
 
 This requires $m$ forward-backward passes through the network (though these can be batched for efficiency).
@@ -121,9 +108,7 @@ Integrated Gradients satisfies fundamental axioms that Sundararajan et al. argue
 An important consequence of the definition is the **Completeness** (or **Efficiency**) property:
 
 $$
-
 \sum_{i=1}^{n} \text{IG}_i(\mathbf{x}) = f(\mathbf{x}) - f(\mathbf{x}')
-
 $$
 
 The attributions **exactly account for** the difference between the model's output on the input versus the baseline. No importance is "lost" or artificially created.
@@ -133,9 +118,7 @@ The attributions **exactly account for** the difference between the model's outp
 Using the fundamental theorem of calculus and chain rule:
 
 $$
-
 \sum_i \text{IG}_i = \sum_i (x_i - x'_i) \int_0^1 \frac{\partial f}{\partial x_i} d\alpha = \int_0^1 \nabla f \cdot (\mathbf{x} - \mathbf{x}') \, d\alpha = \int_0^1 \frac{d}{d\alpha} f(\gamma(\alpha)) \, d\alpha = f(\mathbf{x}) - f(\mathbf{x}')
-
 $$
 
 This property is extremely valuable for interpretability—it means attributions have a **concrete meaning**: they partition the prediction difference.
@@ -842,6 +825,7 @@ smooth_ig = ig.attribute_with_noise(input_tensor, n_samples=10, noise_level=0.1)
 Attributions depend on baseline choice. Different baselines can produce meaningfully different attributions for the same input-output pair.
 
 **Mitigation:**
+
 - Use multiple baselines and average (Expected Gradients / SHAP)
 - Use domain-appropriate baselines
 - Report baseline choice in publications
@@ -851,6 +835,7 @@ Attributions depend on baseline choice. Different baselines can produce meaningf
 Requires $m$ forward-backward passes (typically 50-200), much slower than vanilla gradients.
 
 **Mitigation:**
+
 - Use batched computation
 - Start with fewer steps for exploration
 - Use early stopping based on convergence
@@ -860,9 +845,7 @@ Requires $m$ forward-backward passes (typically 50-200), much slower than vanill
 The straight-line path is a specific choice. Other paths could also satisfy the axioms:
 
 $$
-
 \gamma: [0, 1] \rightarrow \mathbb{R}^n, \quad \gamma(0) = \mathbf{x}', \gamma(1) = \mathbf{x}
-
 $$
 
 **Note:** Straight line is the most natural, commonly used, and uniquely satisfies a symmetry preservation property.
@@ -894,9 +877,7 @@ Integrated Gradients provides **principled, axiomatically-grounded attributions*
 ### Key Equation
 
 $$
-
 \text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
-
 $$
 
 ### Key Properties
@@ -926,3 +907,35 @@ $$
 4. Mudrakarta, P. K., et al. (2018). "Did the Model Understand the Question?" *ACL 2018*.
 
 5. Erion, G., et al. (2021). "Improving Performance of Deep Learning Models with Axiomatic Attribution Priors and Expected Gradients." *Nature Machine Intelligence*.
+
+## Exercises
+
+**Exercise 1.**
+Apply the interpretability method described in this section to a 2-layer neural network with ReLU activations classifying XOR inputs. Compute the explanation for the input $x = [1, 1]$.
+
+??? success "Solution to Exercise 1"
+    For a trained XOR network with weights $W_1, b_1, W_2, b_2$, the output is $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$. The explanation method produces attributions for each input feature. For $x = [1, 1]$ (class 0), both features contribute to the negative classification. The specific attribution values depend on the method: gradient-based methods compute $\partial f / \partial x_i$; perturbation-based methods measure output change when features are masked. The XOR problem demonstrates that linear explanation methods can mislead because the decision boundary is non-linear. $\square$
+
+---
+
+**Exercise 2.**
+Prove or disprove that the explanation method in this section satisfies the completeness axiom: the sum of all feature attributions equals $f(x) - f(x_0)$ for some baseline $x_0$.
+
+??? success "Solution to Exercise 2"
+    The completeness axiom (also called efficiency in Shapley value theory) states that attributions sum to the difference between the model output at the input and at the baseline. Whether this method satisfies completeness depends on its formulation. Gradient methods do not satisfy completeness (gradients are local, not path-integrated). Integrated Gradients satisfies completeness by construction (fundamental theorem of calculus along the path). SHAP values satisfy efficiency by the Shapley axiom. Methods that violate completeness may over- or under-attribute, making the total attribution unreliable as a global explanation. $\square$
+
+---
+
+**Exercise 3.**
+Design an experiment to evaluate the faithfulness of the explanations produced by this method. Use insertion and deletion curves to measure whether highlighted features are truly important to the model.
+
+??? success "Solution to Exercise 3"
+    Protocol: (1) Compute feature attributions for each test image. (2) Deletion: progressively mask features in order of decreasing attribution, recording the model confidence drop. Faithful explanations cause rapid confidence decrease. (3) Insertion: progressively reveal features in order of decreasing attribution from a blank baseline, recording confidence increase. Faithful explanations cause rapid confidence increase. (4) Compute AUC for both curves. (5) Compare against random ordering (baseline) and other methods. A faithful method should have low deletion AUC and high insertion AUC. Repeat over 1000+ test samples for statistical reliability. $\square$
+
+---
+
+**Exercise 4.**
+Discuss how this interpretability method could be applied to a financial model predicting credit default. What regulatory requirements must the explanations satisfy?
+
+??? success "Solution to Exercise 4"
+    For credit models, regulations (ECOA, GDPR Article 22) require individualized explanations for adverse decisions. The method must produce: (1) the top factors contributing to the denial (adverse action reasons); (2) explanations that are consistent (similar applicants get similar explanations); (3) explanations that are actionable (the applicant understands what to change). The interpretability method from this section can identify feature importances, but must be validated for stability (small input changes should not drastically alter the explanation) and correctness (removing important features should change the prediction). Protected attributes must be handled carefully to avoid revealing proxy discrimination. $\square$

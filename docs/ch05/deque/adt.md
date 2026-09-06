@@ -1,48 +1,48 @@
-# Deque ADT
+# 덱 추상 자료형
 
-Stacks restrict access to one end, and queues restrict insertion and deletion to opposite ends.  Many algorithms, however, need the flexibility to add or remove elements at *both* ends efficiently.  A **deque** (double-ended queue, pronounced "deck") generalizes both data structures by allowing constant-time insertion and deletion at the front and the back.  This page defines the deque as an abstract data type, specifies its operations, and establishes the time-complexity contract that every concrete implementation must satisfy.
+스택은 한쪽 끝에서만 손대게 하고, 큐는 넣기와 빼기를 서로 반대쪽 끝으로 제한한다. 그러나 많은 알고리즘은 *양쪽* 끝에서 효율적으로 넣고 뺄 수 있는 유연함을 필요로 한다. **덱**(양방향 큐, "덱"이라고 읽는다)은 앞과 뒤 모두에서 상수 시간에 넣고 뺄 수 있게 하여 두 자료 구조를 일반화한다. 이 쪽은 덱을 추상 자료형으로 정의하고, 그 연산을 규정하며, 모든 구체적인 구현이 지켜야 할 시간 복잡도 계약을 세운다.
 
-## Definition
+## 정의
 
-A **deque** is a linear collection of elements that supports insertion and removal at both the front and the back.  Formally, a deque $D$ maintains an ordered sequence of elements
+**덱**은 앞과 뒤 모두에서 넣기와 빼기를 지원하는 원소의 선형 모음이다. 형식적으로 덱 $D$은 원소의 순서 있는 열을 관리한다.
 
 $$
 D = \langle d_0, d_1, \dots, d_{n-1} \rangle
 $$
 
-where $d_0$ is the **front** element and $d_{n-1}$ is the **back** element.  The integer $n = |D|$ is the **size** of the deque.
+여기서 $d_0$은 **앞** 원소이고 $d_{n-1}$은 **뒤** 원소이다. 정수 $n = |D|$은 덱의 **크기**이다.
 
-## Operations
+## 연산
 
-Every deque implementation must provide the following operations with the stated worst-case or amortized time complexities.
+모든 덱 구현은 다음 연산을 제시된 최악의 경우 또는 상각 시간 복잡도로 제공해야 한다.
 
-| Operation | Description | Time |
+| 연산 | 설명 | 시간 |
 |---|---|---|
-| `push_front(x)` | Insert element $x$ at the front | $O(1)$ |
-| `push_back(x)` | Insert element $x$ at the back | $O(1)$ |
-| `pop_front()` | Remove and return the front element | $O(1)$ |
-| `pop_back()` | Remove and return the back element | $O(1)$ |
-| `front()` | Return the front element without removing it | $O(1)$ |
-| `back()` | Return the back element without removing it | $O(1)$ |
-| `is_empty()` | Return `True` if the deque has no elements | $O(1)$ |
-| `size()` | Return the number of elements | $O(1)$ |
+| `push_front(x)` | 원소 $x$을 앞에 넣는다 | $O(1)$ |
+| `push_back(x)` | 원소 $x$을 뒤에 넣는다 | $O(1)$ |
+| `pop_front()` | 앞 원소를 빼서 돌려준다 | $O(1)$ |
+| `pop_back()` | 뒤 원소를 빼서 돌려준다 | $O(1)$ |
+| `front()` | 앞 원소를 빼지 않고 돌려준다 | $O(1)$ |
+| `back()` | 뒤 원소를 빼지 않고 돌려준다 | $O(1)$ |
+| `is_empty()` | 덱에 원소가 없으면 `True`을 돌려준다 | $O(1)$ |
+| `size()` | 원소의 개수를 돌려준다 | $O(1)$ |
 
-!!! warning "Preconditions"
-    `pop_front()`, `pop_back()`, `front()`, and `back()` require the deque to be non-empty.  Calling these on an empty deque is undefined behavior (or raises an exception, depending on the implementation).
+!!! warning "사전 조건"
+    `pop_front()`, `pop_back()`, `front()`, `back()`은 덱이 비어 있지 않아야 한다. 빈 덱에 이들을 부르는 것은 정의되지 않은 동작이다(구현에 따라 예외를 일으킨다).
 
-## Relationship to Stacks and Queues
+## 스택 및 큐와의 관계
 
-A deque subsumes both the stack ADT and the queue ADT:
+덱은 스택 추상 자료형과 큐 추상 자료형을 모두 포함한다.
 
-- **Stack behavior** (LIFO): use only `push_back` and `pop_back` (or only `push_front` and `pop_front`).
-- **Queue behavior** (FIFO): use `push_back` for enqueue and `pop_front` for dequeue (or vice versa).
+- **스택처럼 쓰기** (후입선출): `push_back`과 `pop_back`만 쓴다(또는 `push_front`과 `pop_front`만 쓴다).
+- **큐처럼 쓰기** (선입선출): 넣기에 `push_back`을, 빼기에 `pop_front`을 쓴다(또는 그 반대로 한다).
 
-Because every stack operation and every queue operation can be expressed as a deque operation with the same $O(1)$ cost, any deque implementation automatically provides a correct and efficient stack and queue.
+모든 스택 연산과 큐 연산을 같은 $O(1)$ 비용의 덱 연산으로 나타낼 수 있으므로, 어떤 덱 구현이든 올바르고 효율적인 스택과 큐를 저절로 제공한다.
 
-??? example "Deque as a stack and as a queue"
-    Consider the sequence of operations on an initially empty deque $D$:
+??? example "스택으로서의 덱, 큐로서의 덱"
+    처음에 비어 있는 덱 $D$에 대한 다음 연산의 열을 보자.
 
-    | Step | Operation | Deque state | Returned |
+    | 단계 | 연산 | 덱의 상태 | 반환값 |
     |------|-----------|-------------|----------|
     | 1 | `push_back(10)` | $\langle 10 \rangle$ | — |
     | 2 | `push_back(20)` | $\langle 10, 20 \rangle$ | — |
@@ -50,17 +50,50 @@ Because every stack operation and every queue operation can be expressed as a de
     | 4 | `pop_back()` | $\langle 10, 20 \rangle$ | 30 |
     | 5 | `pop_front()` | $\langle 20 \rangle$ | 10 |
 
-    Steps 1--4 behave like a stack (LIFO on the back).  Step 5 demonstrates the extra power of a deque: removing from the front, which a plain stack cannot do.
+    1~4단계는 (뒤에서 후입선출로) 스택처럼 움직인다. 5단계는 덱의 추가된 힘을 보여 준다. 보통의 스택으로는 할 수 없는, 앞에서 빼기이다.
 
-## Common Use Cases
+## 흔한 쓰임새
 
-Deques appear naturally in algorithms that process elements from both ends:
+덱은 양쪽 끝에서 원소를 처리하는 알고리즘에 자연스럽게 나타난다.
 
-- **Sliding window maximum/minimum**: maintaining candidates that may leave from the front (expired) or the back (dominated).  See the [sliding window page](sliding_window.md) for a detailed treatment.
-- **Work-stealing schedulers**: idle threads steal tasks from the opposite end of a busy thread's deque.
-- **Palindrome checking**: compare characters removed from the front and back simultaneously.
-- **BFS variants**: algorithms like 0-1 BFS push to the front or back depending on edge weight.
+- **미끄럼창 최댓값/최솟값**: 앞에서 (기간이 지나) 빠지거나 뒤에서 (더 큰 값에 눌려) 빠질 수 있는 후보를 관리한다. 자세한 내용은 [미끄럼창 쪽](sliding_window.md)을 보라.
+- **작업 훔치기 스케줄러**: 놀고 있는 스레드가 바쁜 스레드의 덱 반대편 끝에서 작업을 훔친다.
+- **회문 확인**: 앞과 뒤에서 동시에 뺀 문자를 견준다.
+- **너비 우선 탐색의 변형**: 0-1 BFS 같은 알고리즘은 변의 가중치에 따라 앞이나 뒤에 넣는다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+덱 추상 자료형의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+덱 추상 자료형을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+덱 추상 자료형을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+덱 추상 자료형을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

@@ -1,27 +1,16 @@
-# Counting Sort
+# 세기 정렬
 
-Comparison-based sorting algorithms such as merge sort and quicksort achieve at best
-$O(n \log n)$ time because every comparison eliminates at most half of the remaining
-orderings.  When the input consists of integers drawn from a known, bounded range
-$\{0, 1, \dots, k\}$, we can bypass comparisons entirely.  **Counting sort** counts
-how many times each value appears and uses those counts to place every element directly
-into its correct output position, achieving linear time.
+병합 정렬이나 빠른 정렬 같은 비교 기반 정렬 알고리즘은 잘해야 $O(n \log n)$ 시간을 이룬다. 견줌 한 번이 남은 차례의 많아야 절반만 걸러 내기 때문이다. 입력이 알려진 유한 범위 $\{0, 1, \dots, k\}$의 정수라면 견줌을 아예 비껴갈 수 있다. **세기 정렬**은 값마다 몇 번 나오는지 세고, 그 세기로 원소마다 곧바로 제자리에 놓아 선형 시간을 이룬다.
 
-## Algorithm Overview
+## 알고리즘 훑어보기
 
 Counting sort operates in three phases:
 
-1. **Count.**  Scan the input array $A[0 \dots n-1]$ and build a frequency array
-   $C[0 \dots k]$ where $C[j]$ equals the number of elements equal to $j$.
-2. **Cumulate.**  Transform $C$ into a prefix-sum array so that $C[j]$ now stores the
-   number of elements that are *at most* $j$.  After this step, $C[j]$ tells us the
-   last index (one-based) in the output that should hold a copy of value $j$.
-3. **Place.**  Traverse the input array from right to left.  For each element
-   $A[i]$, place it at output position $C[A[i]] - 1$ and decrement $C[A[i]]$.
-   The right-to-left traversal guarantees **stability**: equal elements appear in
-   the output in the same relative order as in the input.
+1. **세기.** 입력 배열 $A[0 \dots n-1]$을 훑어 도수 배열 $C[0 \dots k]$을 만든다. 여기서 $C[j]$은 값이 $j$인 원소의 개수이다.
+2. **쌓기.** $C$을 앞부분 합 배열로 바꾸어 $C[j]$이 $j$ *이하*인 원소의 개수를 담게 한다. 이 걸음 뒤 $C[j]$은 출력에서 값 $j$을 담아야 할 마지막 첨자(1부터 세는)를 알려 준다.
+3. **놓기.** 입력 배열을 오른쪽에서 왼쪽으로 훑는다. 원소 $A[i]$마다 출력 자리 $C[A[i]] - 1$에 놓고 $C[A[i]]$을 하나 줄인다. 오른쪽에서 왼쪽으로 훑기 때문에 **안정성**이 보장된다. 곧 같은 원소가 입력에서와 같은 상대 차례로 출력에 놓인다.
 
-## Complexity
+## 복잡도
 
 Let $n$ denote the number of elements and $k$ the range of values.
 
@@ -29,14 +18,11 @@ $$
 T(n, k) = \Theta(n + k), \qquad S(n, k) = \Theta(n + k)
 $$
 
-The time splits into $\Theta(n)$ for scanning the input and populating the output,
-plus $\Theta(k)$ for initializing and cumulating the count array.  The space accounts
-for the count array of size $k + 1$ and the output array of size $n$.
+시간은 입력을 훑고 출력을 채우는 $\Theta(n)$과, 세기 배열을 초기화하고 쌓는 $\Theta(k)$으로 나뉜다. 공간은 크기 $k + 1$인 세기 배열과 크기 $n$인 출력 배열을 셈에 넣는다.
 
-Counting sort is efficient when $k = O(n)$.  If $k$ is much larger than $n$, the
-$\Theta(k)$ terms dominate and the algorithm becomes impractical.
+세기 정렬은 $k = O(n)$일 때 효율적이다. $k$이 $n$보다 훨씬 크면 $\Theta(k)$ 항이 우세해져 실제로 쓰기 어려워진다.
 
-## Worked Example
+## 풀이 예제
 
 Consider the input array $A = [4, 2, 2, 8, 3, 3, 1]$ with $k = 8$.
 
@@ -47,61 +33,55 @@ Consider the input array $A = [4, 2, 2, 8, 3, 3, 1]$ with $k = 8$.
 | Cumulate | $C = [0, 1, 3, 5, 6, 6, 6, 6, 7]$ |
 | Place (right-to-left) | Output: $[1, 2, 2, 3, 3, 4, 8]$ |
 
-After cumulation, $C[3] = 5$ means there are five elements with value at most 3.
-When we encounter $A[5] = 3$, we place it at index $C[3] - 1 = 4$, then decrement
-$C[3]$ to 4 so the next occurrence of 3 lands at index 3.
+쌓은 뒤 $C[3] = 5$은 값이 3 이하인 원소가 다섯 개라는 뜻이다. $A[5] = 3$을 만나면 첨자 $C[3] - 1 = 4$에 놓고 $C[3]$을 4로 줄여, 다음에 나오는 3이 첨자 3에 떨어지게 한다.
 
-## Stability
+## 안정성
 
-Counting sort is **stable**: elements with equal keys retain their original relative
-order.  Stability is essential when counting sort serves as the inner sorting routine
-for radix sort, where each pass sorts by one digit and must not disturb the order
-established by previous passes.
+세기 정렬은 **안정적**이다. 열쇠가 같은 원소가 본디 상대 차례를 지킨다. 세기 정렬이 기수 정렬의 안쪽 정렬 절차로 쓰일 때 안정성은 꼭 필요한데, 훑을 때마다 한 자리로 정렬하며 앞선 훑기가 세운 차례를 흐트러뜨리지 않아야 하기 때문이다.
 
-The right-to-left traversal in the placement phase is what preserves stability.
-Traversing left-to-right would place equal elements in reverse order.
+놓기 단계에서 오른쪽에서 왼쪽으로 훑는 것이 안정성을 지킨다. 왼쪽에서 오른쪽으로 훑으면 같은 원소가 거꾸로 놓인다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Counting sort -- stable, linear-time integer sort.
+세기 정렬 — 안정한 선형 시간 정수 정렬.
 
-Sorts an array of non-negative integers whose values lie in [0, k].
-Time:  Theta(n + k)
-Space: Theta(n + k)
+값이 [0, k]에 있는 음이 아닌 정수 배열을 정렬한다.
+시간:  Theta(n + k)
+공간: Theta(n + k)
 """
 
-# === Counting sort (stable) ================================================
+# === 세기 정렬(안정) ========================================================
 
 def counting_sort(arr: list[int], k: int) -> list[int]:
-    """Return a new list containing the elements of *arr* in sorted order.
+    """*arr*의 원소를 정렬한 차례로 담은 새 목록을 되돌린다.
 
-    Parameters
+    매개변수
     ----------
     arr : list[int]
-        Input array with values in the range [0, k].
+        값이 [0, k] 범위에 있는 입력 배열.
     k : int
-        Maximum value in *arr*.
+        *arr* 안의 가장 큰 값.
 
-    Returns
+    반환값
     -------
     list[int]
-        Sorted array (stable).
+        정렬된 배열(안정).
     """
     n = len(arr)
     count = [0] * (k + 1)
     output = [0] * n
 
-    # Phase 1 -- count occurrences
+    # 단계 1 — 나타난 횟수 세기
     for x in arr:
         count[x] += 1
 
-    # Phase 2 -- cumulative counts (prefix sums)
+    # 단계 2 — 누적 세기(앞자리 합)
     for j in range(1, k + 1):
         count[j] += count[j - 1]
 
-    # Phase 3 -- place elements (right-to-left for stability)
+    # 단계 3 — 원소 놓기(안정을 위해 오른쪽에서 왼쪽으로)
     for i in range(n - 1, -1, -1):
         val = arr[i]
         count[val] -= 1
@@ -110,7 +90,7 @@ def counting_sort(arr: list[int], k: int) -> list[int]:
     return output
 
 
-# === Demo ===================================================================
+# === 시연 ===================================================================
 
 if __name__ == "__main__":
     data = [4, 2, 2, 8, 3, 3, 1]
@@ -120,7 +100,7 @@ if __name__ == "__main__":
     print(f"Sorted: {sorted_data}")
 ```
 
-**Output:**
+**출력:**
 ```
 Input:  [4, 2, 2, 8, 3, 3, 1]
 Sorted: [1, 2, 2, 3, 3, 4, 8]
@@ -136,7 +116,39 @@ Sorted: [1, 2, 2, 3, 3, 4, 8]
 | Subroutine for radix sort | Standard choice |
 | Floating-point or string keys | Not applicable -- integer keys only |
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022).
-  *Introduction to Algorithms* (4th ed.), Chapter 8. MIT Press.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 8장. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+세기 정렬의 핵심 생각과 그 시간·공간 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 견줌 너머의 성질(정수 열쇠, 바깥 저장 장치, 병렬 하드웨어)을 살려 써서 비교 기반 정렬이 따라올 수 없는 성능을 이룬다. 구체적인 복잡도 한계는 이 쪽에서 뜯어본다.
+
+---
+
+**연습문제 2.**
+작은 입력에서 세기 정렬을 따라가라. 훑기나 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    원소 6~8개에 알고리즘을 적용하며 훑을 때마다의 상태를 보여라. 이 따라가기가 알고리즘의 얼개를 드러내고 옳음을 눈에 보이게 한다.
+
+---
+
+**연습문제 3.**
+어떤 조건에서 비교 기반 정렬보다 세기 정렬이 나은가?
+
+??? success "연습문제 3 풀이"
+    다음일 때 낫다. 입력의 정수 범위가 묶여 있을 때(세기 정렬과 기수 정렬), 데이터가 램을 넘칠 때(바깥 정렬), 병렬 하드웨어를 쓸 수 있을 때(병렬 정렬). 이런 조건에서는 알고리즘이 비교 기반의 아래 한계 $\Omega(n\log n)$을 비껴갈 수 있다.
+
+---
+
+**연습문제 4.**
+세기 정렬이 실전에서 이득을 주는 깊은 학습 응용을 서술하라.
+
+??? success "연습문제 4 풀이"
+    응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.

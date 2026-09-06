@@ -1,16 +1,10 @@
-# Polygon Area via the Shoelace Formula
+# 신발끈 공식으로 구한 다각형 넓이
 
-Computing the area of a polygon is one of the most basic operations in
-computational geometry. Given the vertices of a simple polygon in order,
-the shoelace formula (also called the surveyor's formula) computes its
-signed area in $O(n)$ time using only additions and multiplications — no
-trigonometry or square roots required.
+다각형의 넓이 셈하기는 셈 기하에서 가장 바탕이 되는 셈 가운데 하나이다. 단순 다각형의 꼭짓점이 차례대로 주어지면 신발끈 공식(측량사 공식이라고도 한다)이 덧셈과 곱셈만으로 부호 있는 넓이를 $O(n)$ 시간에 셈한다. 삼각 함수나 제곱근은 필요 없다.
 
-## Signed Area of a Triangle
+## 삼각형의 부호 있는 넓이
 
-Before tackling general polygons, consider a triangle with vertices
-$P_0 = (x_0, y_0)$, $P_1 = (x_1, y_1)$, and $P_2 = (x_2, y_2)$.
-Its signed area equals half the cross product of two edge vectors:
+일반 다각형에 들어가기 앞서 꼭짓점이 $P_0 = (x_0, y_0)$, $P_1 = (x_1, y_1)$, $P_2 = (x_2, y_2)$인 삼각형을 보자. 그 부호 있는 넓이는 두 모서리 벡터의 어긋 곱의 반이다.
 
 $$
 A_{\text{signed}} = \frac{1}{2}
@@ -21,51 +15,42 @@ y_1 - y_0 & y_2 - y_0
 = \frac{1}{2}\bigl((x_1 - x_0)(y_2 - y_0) - (x_2 - x_0)(y_1 - y_0)\bigr)
 $$
 
-The sign encodes orientation: positive when $P_0, P_1, P_2$ are in
-counterclockwise order, negative when clockwise, and zero when collinear.
+부호는 방향을 담는다. $P_0, P_1, P_2$이 반시계 차례이면 양수, 시계이면 음수, 한 줄에 놓이면 0이다.
 
-## The Shoelace Formula
+## 신발끈 공식
 
-For a simple polygon with $n$ vertices $P_0, P_1, \ldots, P_{n-1}$ listed
-in order (either clockwise or counterclockwise), the signed area is:
+꼭짓점 $P_0, P_1, \ldots, P_{n-1}$이 차례대로(시계나 반시계) 놓인 $n$각 단순 다각형의 부호 있는 넓이는 다음과 같다.
 
 $$
 A_{\text{signed}} = \frac{1}{2} \sum_{i=0}^{n-1}
 (x_i \, y_{i+1} - x_{i+1} \, y_i)
 $$
 
-where indices are taken modulo $n$, so $P_n = P_0$. The absolute area is
-$|A_{\text{signed}}|$.
+여기서 어깨수는 $n$으로 나눈 나머지로 보므로 $P_n = P_0$이다. 절대 넓이는 $|A_{\text{signed}}|$이다.
 
-!!! tip "Why 'Shoelace'?"
-    Writing the $x$- and $y$-coordinates in two columns and cross-multiplying
-    diagonally produces a pattern that resembles lacing a shoe.
+!!! tip "왜 '신발끈'인가?"
+    $x$자리값과 $y$자리값을 두 세로줄로 적고 대각으로 어긋 곱하면 신발끈을 꿰는 것 같은 결이 나온다.
 
-## Derivation
+## 유도
 
-The formula follows from triangulating the polygon with respect to the origin.
-Decompose the polygon into $n$ signed triangles $\triangle(O, P_i, P_{i+1})$
-where $O$ is the origin. Each triangle has signed area:
+이 공식은 다각형을 원점에 대해 삼각으로 나누는 데서 나온다. 다각형을 부호 있는 삼각형 $\triangle(O, P_i, P_{i+1})$ $n$개로 나눈다. 여기서 $O$은 원점이다. 삼각형마다 부호 있는 넓이는 다음과 같다.
 
 $$
 A_i = \frac{1}{2}(x_i \, y_{i+1} - x_{i+1} \, y_i)
 $$
 
-Summing over all $n$ triangles, the contributions outside the polygon cancel
-in pairs (by the telescoping property of signed areas), leaving exactly the
-signed area of the polygon:
+삼각형 $n$개를 모두 더하면 다각형 바깥의 몫이 짝을 이루어 사라지고(부호 있는 넓이의 망원경 성질에 따라) 다각형의 부호 있는 넓이만 남는다.
 
 $$
 A_{\text{signed}} = \sum_{i=0}^{n-1} A_i
 = \frac{1}{2} \sum_{i=0}^{n-1} (x_i \, y_{i+1} - x_{i+1} \, y_i)
 $$
 
-## Worked Example
+## 풀이 예제
 
-Consider a quadrilateral with vertices (in counterclockwise order):
-$P_0 = (1, 1)$, $P_1 = (4, 1)$, $P_2 = (4, 3)$, $P_3 = (1, 3)$.
+꼭짓점이 (반시계 차례로) $P_0 = (1, 1)$, $P_1 = (4, 1)$, $P_2 = (4, 3)$, $P_3 = (1, 3)$인 사각형을 보자.
 
-This is a $3 \times 2$ rectangle, so the expected area is $6$.
+이는 $3 \times 2$ 직사각형이므로 넓이는 $6$이어야 한다.
 
 | $i$ | $(x_i, y_i)$ | $(x_{i+1}, y_{i+1})$ | $x_i y_{i+1} - x_{i+1} y_i$ |
 |-----|---------------|-----------------------|-------------------------------|
@@ -78,29 +63,29 @@ $$
 A_{\text{signed}} = \frac{1}{2}(-3 + 8 + 9 + (-2)) = \frac{12}{2} = 6
 $$
 
-The positive sign confirms counterclockwise orientation.
+양의 부호는 반시계 방향임을 굳혀 준다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Polygon area via the shoelace formula.
+신발끈 공식으로 구한 다각형 넓이.
 
-Computes the signed and absolute area of a simple polygon given its
-vertices in order. Time complexity: O(n).
+꼭짓점이 차례대로 주어진 단순 다각형의 부호 있는 넓이와 절대 넓이를
+셈한다. 시간 복잡도: O(n).
 """
 
 
-# === Shoelace Formula ===
+# === 신발끈 공식 ===
 
 def signed_area(polygon):
-    """Compute the signed area of a simple polygon.
+    """단순 다각형의 부호 있는 넓이를 셈한다.
 
-    Args:
-        polygon: list of (x, y) tuples in order (CW or CCW).
+    인수:
+        polygon: 차례대로(시계나 반시계) 놓인 (x, y) 짝의 목록.
 
-    Returns:
-        Signed area. Positive for CCW, negative for CW.
+    반환값:
+        부호 있는 넓이. 반시계이면 양수, 시계이면 음수.
     """
     n = len(polygon)
     area = 0.0
@@ -112,44 +97,44 @@ def signed_area(polygon):
 
 
 def polygon_area(polygon):
-    """Compute the absolute area of a simple polygon.
+    """단순 다각형의 절대 넓이를 셈한다.
 
-    Args:
-        polygon: list of (x, y) tuples in order.
+    인수:
+        polygon: 차례대로 놓인 (x, y) 짝의 목록.
 
-    Returns:
-        Non-negative area.
+    반환값:
+        음이 아닌 넓이.
     """
     return abs(signed_area(polygon))
 
 
-# === Triangle Area ===
+# === 삼각형 넓이 ===
 
 def triangle_area(p0, p1, p2):
-    """Compute the absolute area of a triangle given three vertices."""
+    """꼭짓점 셋이 주어진 삼각형의 절대 넓이를 셈한다."""
     return abs(
         (p1[0] - p0[0]) * (p2[1] - p0[1])
         - (p2[0] - p0[0]) * (p1[1] - p0[1])
     ) / 2.0
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Rectangle example
+    # 직사각형 보기
     rect = [(1, 1), (4, 1), (4, 3), (1, 3)]
     print(f"Rectangle vertices: {rect}")
     print(f"Signed area: {signed_area(rect)}")
     print(f"Absolute area: {polygon_area(rect)}")
 
-    # Triangle example
+    # 삼각형 보기
     tri = [(0, 0), (4, 0), (2, 3)]
     print(f"\nTriangle vertices: {tri}")
     print(f"Triangle area: {triangle_area(*tri)}")
     print(f"Shoelace area: {polygon_area(tri)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Rectangle vertices: [(1, 1), (4, 1), (4, 3), (1, 3)]
 Signed area: 6.0
@@ -160,31 +145,56 @@ Triangle area: 6.0
 Shoelace area: 6.0
 ```
 
-## Complexity
+## 복잡도
 
-| Operation | Time | Space |
+| 연산 | 시간 | 공간 |
 |---|---|---|
-| Shoelace formula | $O(n)$ | $O(1)$ |
-| Triangle area | $O(1)$ | $O(1)$ |
+| 신발끈 공식 | $O(n)$ | $O(1)$ |
+| 삼각형 넓이 | $O(1)$ | $O(1)$ |
 
-The shoelace formula processes each vertex exactly once and uses only a
-running accumulator, making it both time- and space-optimal.
+신발끈 공식은 꼭짓점마다 꼭 한 번씩 다루고 흐르는 쌓개 하나만 쓰므로 시간과 자리 모두 가장 좋다.
 
-## Practical Considerations
+## 실용적인 고려
 
-!!! warning "Simple Polygons Only"
-    The shoelace formula assumes a *simple* polygon (no self-intersections).
-    For a self-intersecting polygon, the formula computes a signed area where
-    overlapping regions may cancel, giving an incorrect result.
+!!! warning "단순 다각형만"
+    신발끈 공식은 *단순* 다각형(스스로 만나지 않는)을 가정한다. 스스로 만나는 다각형에서는 겹치는 자리가 서로 지워지는 부호 있는 넓이를 셈하므로 틀린 결과가 나온다.
 
-- **Numerical precision.** For integer coordinates, the formula involves
-  only integer arithmetic (multiply and add), so it is exact. For
-  floating-point coordinates, accumulation errors grow with $n$; use
-  compensated summation (Kahan) for large polygons.
-- **Orientation detection.** The sign of the shoelace result tells whether
-  the vertices are listed counterclockwise (positive) or clockwise (negative).
+- **수치의 정밀도.** 정수 자리값에서는 공식이 정수 셈(곱하기와 더하기)만 쓰므로 정확하다. 뜬 소수점 자리값에서는 쌓이는 어긋남이 $n$에 따라 커지므로 큰 다각형에는 메우는 합(카한)을 쓰라.
+- **방향 알아내기.** 신발끈 결과의 부호는 꼭짓점이 반시계(양수)로 적혔는지 시계(음수)로 적혔는지 알려 준다.
 
-## Reference
+## 참고 문헌
 
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.
 - O'Rourke, J. *Computational Geometry in C*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+신발끈 공식으로 구한 다각형 넓이의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    신발끈 공식으로 구한 다각형 넓이은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 신발끈 공식으로 구한 다각형 넓이을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+신발끈 공식으로 구한 다각형 넓이은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+신발끈 공식으로 구한 다각형 넓이을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 신발끈 공식으로 구한 다각형 넓이은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

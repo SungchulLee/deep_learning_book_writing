@@ -1,262 +1,305 @@
-# Comparison of Distillation Methods for Continual Learning
+# 이어 배우기를 위한 증류 방법의 견줌
+## 들어가며
 
+증류에 바탕을 둔 이어 배우기는 서로 다른 정보 옮김 장치로 잇단 과제에 걸쳐 앎을 지키는 여러 전략을 내놓는다. 반응 기반, 특징 기반, 주의 기반 증류의 강점과 맞바꿈을 견주어 이해하면 상황에 맞는 방법을 고를 수 있다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 견줌의 틀
 
-## Introduction
+### 증류 장치의 갈래
 
-Distillation-based approaches to continual learning present diverse strategies for preserving knowledge across task sequences through different information transfer mechanisms. Understanding comparative strengths and trade-offs between response-based, feature-based, and attention-based distillation enables practitioners to select appropriate methods for specific continual learning scenarios.
+증류 방법마다 배운 앎의 서로 다른 결을 지킨다.
 
-## Comparative Framework
+**반응 기반**: 마지막 출력 분포의 본새를 지킨다
 
-### Distillation Mechanism Taxonomy
+**특징 기반**: 중간 층의 표현을 지킨다
 
-Different distillation methods preserve different aspects of learned knowledge:
+**주의 기반**: 공간과 채널의 중요도 본새를 지킨다
 
-**Response-Based**: Preserve final output distribution patterns
+**관계 기반**: 쌍마다의 관계 짜임을 지킨다
 
-**Feature-Based**: Preserve intermediate layer representations
+## 자세히 견주기
 
-**Attention-Based**: Preserve spatial/channel importance patterns
-
-**Relation-Based**: Preserve pairwise relationship structure
-
-## Detailed Comparison
-
-### Response-Based Distillation
+### 반응 기반 증류
 
 $$\mathcal{L}_{\text{response}} = \text{KL}(p_{t-1}(\mathbf{x}), p_t(\mathbf{x}))$$
 
-**Advantages**:
-- Model-agnostic (works with any architecture)
-- Simple implementation
-- Computationally efficient
-- Interpretable as soft label matching
+**좋은 점**:
 
-**Disadvantages**:
-- Only constrains final decisions
-- Loses intermediate feature information
-- May be insufficient for complex task relationships
-- Information bottleneck at output
+- 모델을 가리지 않는다(어떤 구조에서도 굴러간다)
+- 구현이 단순하다
+- 셈이 효율적이다
+- 부드러운 이름표 맞추기로 풀이할 수 있다
 
-**Best For**: Classification tasks with clear decision boundaries, simple task sequences
+**나쁜 점**:
 
-### Feature-Based Distillation
+- 마지막 판단만 옥죈다
+- 중간 특징의 정보를 잃는다
+- 복잡한 과제 관계에는 모자랄 수 있다
+- 출력에서 정보가 병목을 이룬다
+
+**가장 알맞은 곳**: 판단 경계가 또렷한 분류 과제, 단순한 과제 차례
+
+### 특징 기반 증류
 
 $$\mathcal{L}_{\text{feature}} = \sum_{\ell} \alpha_{\ell} \|f_t^{(\ell)} - f_{t-1}^{(\ell)}\|_2^2$$
 
-**Advantages**:
-- Preserves learned feature hierarchies
-- Rich supervision signal across network depth
-- Better forward transfer to related tasks
-- Captures intermediate abstractions
+**좋은 점**:
 
-**Disadvantages**:
-- Requires architectural compatibility
-- Higher computational cost
-- More hyperparameters (layer selection, weighting)
-- Potentially over-constrains learning
+- 배운 특징의 층층 짜임을 지킨다
+- 망의 깊이에 걸쳐 풍부한 지도 신호를 준다
+- 이어진 과제로의 앞 옮김이 더 좋다
+- 중간의 추상을 담아낸다
 
-**Best For**: Tasks with related intermediate patterns, feature reuse across tasks, complex hierarchical learning
+**나쁜 점**:
 
-### Attention Transfer
+- 구조가 서로 맞아야 한다
+- 셈 비용이 더 크다
+- 초매개변수가 더 많다(층 고르기, 무게 주기)
+- 배움을 지나치게 옥죌 수 있다
+
+**가장 알맞은 곳**: 중간 본새가 서로 이어진 과제, 과제를 넘나드는 특징 재사용, 복잡한 층층 학습
+
+### 주의 옮기기
 
 $$\mathcal{L}_{\text{attention}} = \sum_{\ell} \|A_t^{(\ell)} - A_{t-1}^{(\ell)}\|_F^2$$
 
-where $A = \text{softmax}(|f|)$ are attention maps.
+여기서 $A = \text{softmax}(|f|)$은 주의 지도이다.
 
-**Advantages**:
-- Compact representation (attention maps < raw features)
-- Captures importance structure
-- Computationally efficient
-- Dimension-robust
+**좋은 점**:
 
-**Disadvantages**:
-- Information loss relative to full feature matching
-- Limited to architectures with interpretable activations
-- May miss fine-grained feature details
+- 표현이 야무지다(주의 지도가 날 특징보다 작다)
+- 중요도의 짜임을 담아낸다
+- 셈이 효율적이다
+- 차원이 달라도 튼튼하다
 
-**Best For**: Vision tasks with spatial attention, computational budget constraints
+**나쁜 점**:
 
-### Relation-Based Distillation
+- 특징 전체를 맞추는 것보다 정보를 잃는다
+- 활성값을 풀이할 수 있는 구조에만 쓸 수 있다
+- 촘촘한 특징의 세부를 놓칠 수 있다
+
+**가장 알맞은 곳**: 공간 주의를 쓰는 시각 과제, 셈 예산이 빠듯할 때
+
+### 관계 기반 증류
 
 $$\mathcal{L}_{\text{relation}} = \|R_t - R_{t-1}\|_F^2$$
 
-where $R_{ij} = f_i \cdot f_j$ are feature relationships.
+여기서 $R_{ij} = f_i \cdot f_j$은 특징 사이의 관계이다.
 
-**Advantages**:
-- Preserves sample relationships
-- Invariant to individual feature scale
-- Captures semantic structure
-- Robust to feature dimension differences
+**좋은 점**:
 
-**Disadvantages**:
-- Quadratic complexity in feature dimension
-- More abstract supervision signal
-- Harder to interpret
+- 표본 사이의 관계를 지킨다
+- 낱낱 특징의 크기에 흔들리지 않는다
+- 뜻의 짜임을 담아낸다
+- 특징 차원이 달라도 튼튼하다
 
-**Best For**: Meta-learning scenarios, few-shot adaptation, preserving task structure
+**나쁜 점**:
 
-## Comparative Performance Analysis
+- 특징 차원에 대해 이차 복잡도이다
+- 지도 신호가 더 추상적이다
+- 풀이하기가 더 어렵다
 
-### Synthetic Benchmark Comparison
+**가장 알맞은 곳**: 메타 학습 상황, 소수 예시 맞춤, 과제 짜임 지키기
 
-| Method | Task 1 → 2 | Task 2 → 3 | Sequence (5 tasks) | Memory |
+## 성능 견줌 분석
+
+### 인공 잣대 견줌
+
+| 방법 | 과제 1 → 2 | 과제 2 → 3 | 차례(과제 5개) | 기억 |
 |--------|-----------|-----------|-------------------|--------|
-| **Response** | 85% | 78% | 72% | Low |
-| **Feature** | 88% | 83% | 79% | Medium |
-| **Attention** | 87% | 81% | 76% | Low |
-| **Relation** | 86% | 80% | 75% | Medium |
+| **반응** | 85% | 78% | 72% | 낮음 |
+| **특징** | 88% | 83% | 79% | 보통 |
+| **주의** | 87% | 81% | 76% | 낮음 |
+| **관계** | 86% | 80% | 75% | 보통 |
 
-Performance measured as retention of Task 1 accuracy throughout sequence.
+성능은 차례가 이어지는 동안 과제 1의 정확도를 얼마나 지키는지로 쟀다.
 
-### Computational Cost Comparison
+### 셈 비용 견줌
 
-| Method | Forward Pass | Backward Pass | Memory | Storage |
+| 방법 | 앞먹임 | 되돌림 | 기억 | 저장 |
 |--------|-------------|--------------|--------|---------|
-| **Response** | 1x | 1x | 1x | Logits only |
-| **Feature** | 1x | 2x | 2-3x | Activations |
-| **Attention** | 1x | 1.5x | 1.5x | Attention maps |
-| **Relation** | 1x | 1.5x | 2x | Relation matrix |
+| **반응** | 1배 | 1배 | 1배 | 로짓만 |
+| **특징** | 1배 | 2배 | 2~3배 | 활성값 |
+| **주의** | 1배 | 1.5배 | 1.5배 | 주의 지도 |
+| **관계** | 1배 | 1.5배 | 2배 | 관계 행렬 |
 
-Relative to baseline task loss computation.
+밑금이 되는 과제 손실 셈에 견준 값이다.
 
-## Selection Criteria
+## 고르는 잣대
 
-### Task Sequence Characteristics
+### 과제 차례의 성격
 
-| Characteristic | Recommended Method | Reasoning |
+| 성격 | 권하는 방법 | 까닭 |
 |---|---|---|
-| **Simple Classification** | Response | Task decisions straightforward |
-| **Related Tasks** | Feature | Share intermediate patterns |
-| **Large Models** | Attention | Reduce memory burden |
-| **Few-Shot Transfer** | Relation | Structure-preserving |
-| **Long Sequences** | Response + Curriculum | Reduced cumulative drift |
+| **단순한 분류** | 반응 | 과제의 판단이 단순하다 |
+| **이어진 과제** | 특징 | 중간 본새를 나누어 쓴다 |
+| **큰 모델** | 주의 | 기억의 짐을 던다 |
+| **소수 예시 옮김** | 관계 | 짜임을 지킨다 |
+| **긴 차례** | 반응 + 차례 밟기 | 쌓이는 흘러남을 줄인다 |
 
-### Data Regime Considerations
+### 데이터 상황에 대한 고려
 
-**Small Data Regime** (< 1000 samples):
-- Use stronger distillation (higher $\lambda$)
-- Response-based sufficient (less constraint)
-- Avoid memorization of features
+**데이터가 적을 때**(표본 1000개 미만):
 
-**Medium Data Regime** (1000-100k samples):
-- Feature-based distillation effective
-- Balance task learning with knowledge preservation
-- Multiple-layer matching recommended
+- 증류를 세게 하라($\lambda$을 크게)
+- 반응 기반이면 넉넉하다(덜 옥죈다)
+- 특징을 외우는 것을 피하라
 
-**Large Data Regime** (> 100k samples):
-- Response-based adequate
-- Feature distillation less necessary
-- Computational efficiency matters
+**데이터가 보통일 때**(표본 1000~10만 개):
 
-### Computational Budget
+- 특징 기반 증류가 쓸모 있다
+- 과제 배우기와 앎 지키기의 균형을 잡으라
+- 여러 층을 맞추기를 권한다
 
-**Limited Budget** (< 10% overhead):
-- Response-based distillation
-- Selective attention transfer
-- Single-layer feature matching
+**데이터가 많을 때**(표본 10만 개 넘음):
 
-**Medium Budget** (10-50% overhead):
-- Feature-based distillation (2-3 layers)
-- Full attention transfer
-- Weighted relation matching
+- 반응 기반이면 넉넉하다
+- 특징 증류가 덜 필요하다
+- 셈 효율이 중요하다
 
-**High Budget** (> 50% overhead):
-- Multi-layer feature distillation
-- Full relation-based distillation
-- Ensemble distillation methods
+### 셈 예산
 
-## Hybrid and Combined Approaches
+**예산이 빠듯할 때**(짐 10% 미만):
 
-### Multi-Objective Distillation
+- 반응 기반 증류
+- 가려 쓰는 주의 옮기기
+- 한 층만 특징 맞추기
 
-Combine multiple distillation types:
+**예산이 보통일 때**(짐 10~50%):
+
+- 특징 기반 증류(층 2~3개)
+- 온전한 주의 옮기기
+- 무게 준 관계 맞추기
+
+**예산이 넉넉할 때**(짐 50% 넘음):
+
+- 여러 층 특징 증류
+- 온전한 관계 기반 증류
+- 증류 방법의 앙상블
+
+## 섞고 합친 접근법
+
+### 여러 목표 증류
+
+여러 증류 방식을 합친다.
 
 $$\mathcal{L}_{\text{total}} = \lambda_1 \mathcal{L}_{\text{response}} + \lambda_2 \mathcal{L}_{\text{feature}} + \lambda_3 \mathcal{L}_{\text{attention}}$$
 
-**Advantages**:
-- Comprehensive knowledge preservation
-- Robustness to different task types
-- Better generalization
+**좋은 점**:
 
-**Disadvantages**:
-- Increased hyperparameter tuning
-- Computational overhead
-- Potential objective conflicts
+- 앎을 두루 지킨다
+- 과제 종류가 달라도 튼튼하다
+- 일반화가 더 낫다
 
-!!! tip "Automated Weighting"
-    Learn weight coefficients through meta-learning or gradient normalization to prevent objective conflicts.
+**나쁜 점**:
 
-### Progressive Distillation
+- 초매개변수 손질이 늘어난다
+- 셈의 짐이 는다
+- 목표끼리 부딪칠 수 있다
 
-Use stronger distillation early, reduce over time:
+!!! tip "무게를 알아서 주기"
+    목표끼리 부딪치지 않도록 메타 학습이나 기울기 고르기로 무게 계수를 배운다.
+
+### 점점 줄이는 증류
+
+처음에는 증류를 세게 하고 때가 갈수록 줄인다.
 
 $$\lambda(t) = \lambda_0 \cdot \exp(-t/\tau)$$
 
-Transitions from knowledge preservation (early tasks) to new learning (later tasks).
+앎 지키기(이른 과제)에서 새로 배우기(늦은 과제)로 옮겨 간다.
 
-### Task-Conditional Distillation
+### 과제에 조건 지은 증류
 
-Weight distillation by task similarity:
+과제의 닮음으로 증류에 무게를 준다.
 
 $$\lambda_t = w(\text{Similarity}(T_{t}, T_{t-1}))$$
 
-where $w(\cdot)$ is learned weighting function.
+여기서 $w(\cdot)$은 배운 무게 함수이다.
 
-**Similar tasks**: Strong distillation
-**Dissimilar tasks**: Weak or no distillation
+**닮은 과제**: 센 증류
+**닮지 않은 과제**: 약한 증류 또는 증류 없음
 
-## Financial Applications
+## 금융에서의 쓰임
 
-!!! warning "Cross-Market Distillation Selection"
+!!! warning "시장을 넘나드는 증류 고르기"
     
-    **Equity → Bond**: Feature-based (capture shared microstructure)
-    **US → EM**: Response-based (decision boundaries may differ)
-    **Liquid → Illiquid**: Relation-based (preserve relative patterns)
+    **주식 → 채권**: 특징 기반(나누어 쓰는 미시구조를 담는다)
+    **미국 → 신흥국**: 반응 기반(판단 경계가 다를 수 있다)
+    **유동 자산 → 비유동 자산**: 관계 기반(상대 본새를 지킨다)
 
-### Multi-Frequency Trading
+### 여러 주기 거래
 
-**Distillation Strategy**:
+**증류 전략**:
 
-1. Train intraday model (1-minute bars)
-2. Train daily model with response distillation from intraday
-3. Train weekly with feature distillation from daily
-4. Use hierarchical distillation across timeframes
+1. 장중 모델을 익힌다(1분봉)
+2. 장중 모델에서 반응 증류를 받아 일별 모델을 익힌다
+3. 일별 모델에서 특징 증류를 받아 주별 모델을 익힌다
+4. 시간 틀을 가로질러 층층 증류를 쓴다
 
-Features naturally transfer from higher to lower frequencies.
+특징은 높은 주기에서 낮은 주기로 자연스럽게 옮겨 간다.
 
-## Empirical Tuning Guide
+## 실험으로 손질하기 길잡이
 
-### Hyperparameter Sensitivity
+### 초매개변수 민감도
 
-| Parameter | Effect | Tuning Guide |
+| 매개변수 | 효과 | 손질 길잡이 |
 |-----------|--------|--------------|
-| **$\lambda$** | Distillation weight | Start 0.5, adjust based on forgetting |
-| **Temperature** | Output softness | 2-5 for response, not applicable for feature |
-| **Layer Selection** | Feature richness | Pick 2-4 middle-to-late layers |
-| **Projection Dim** | Efficiency | 1/2 to 1/4 of original dimension |
+| **$\lambda$** | 증류 무게 | 0.5에서 시작해 잊음을 보고 손보라 |
+| **온도** | 출력의 부드러움 | 반응 기반은 2~5, 특징 기반에는 해당 없음 |
+| **층 고르기** | 특징의 풍부함 | 중간에서 뒤쪽 층 2~4개를 고르라 |
+| **쏘아 넣기 차원** | 효율 | 본디 차원의 1/2에서 1/4 |
 
-### Validation Protocol
+### 검증 규약
 
-1. Train on Task $t$
-2. Evaluate on Task $t$ (should improve)
-3. Evaluate on Tasks $1, \ldots, t-1$ (should not degrade)
-4. Tune $\lambda$ to maximize weighted score:
+1. 과제 $t$로 익힌다
+2. 과제 $t$에서 평가한다(좋아져야 한다)
+3. 과제 $1, \ldots, t-1$에서 평가한다(나빠지지 않아야 한다)
+4. 무게 준 점수가 가장 커지도록 $\lambda$을 손본다.
 
    $$\text{Score} = \text{Acc}_t + \text{AvgAcc}_{1:t-1}$$
 
-## Research Frontiers
+## 연구의 앞머리
 
-- Automatic selection of distillation method from task characteristics
-- Theoretical bounds on knowledge preservation via distillation
-- Combining multiple distillation targets optimally
-- Distillation without access to previous task data
+- 과제의 성격에서 증류 방법을 알아서 고르기
+- 증류로 앎을 지키는 일의 이론적 한계
+- 여러 증류 목표를 가장 좋게 합치기
+- 앞선 과제 데이터 없이 증류하기
 
-## Related Topics
+## 관련 주제
 
-- Distillation Methods Overview (Chapter 12.2)
-- Feature Distillation (Chapter 12.2.2)
-- Knowledge Distillation Basics (Chapter 9.2.1)
-- Continual Learning Theory
+- 증류 방법 훑어보기(12.2절)
+- 특징 증류(12.2.2절)
+- 지식 증류의 기초 (9.2.1절)
+- 이어 배우기 이론
+
+## 연습문제
+
+**연습문제 1.**
+이 방법의 핵심 생각과 그것이 파국적 잊음을 어떻게 다루는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 방법은 새 과제를 배울 때 모델의 매개변수나 표현이 바뀌는 방식을 옥죄어 파국적 잊음을 누그러뜨린다. (벌주기, 되살리기, 증류, 구조 갈라두기로) 배운 함수의 중요한 대목을 지켜 냄으로써, 앞선 과제의 성능을 지키면서도 새 과제에 맞추어 갈 수 있게 한다.
+
+---
+
+**연습문제 2.**
+이 접근법의 셈과 기억 요구는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    요구는 변형마다 다르지만 대체로 (a) 매개변수의 중요도 무게, (b) 학습 보기의 일부, (c) 스승 모델의 출력, (d) 과제마다의 망 모듈 가운데 하나를 담아 두어야 한다. 기억 비용과 잊음 막기의 효과 사이에서 맞바꿈이 일어난다.
+
+---
+
+**연습문제 3.**
+이 방법을 효과와 셈 비용 면에서 EWC와 견주어라.
+
+??? success "연습문제 3 풀이"
+    EWC은 대각 피셔 정보로 중요한 가중치를 짚어낸다. 이 방법은 다른 맞바꿈을 준다. 옛 과제의 성능을 더 잘 지킬 수 있고, 기억 요구가 다르며, 과제 짜임에 대한 가정도 다르다. 실험으로 견주어 보면 잣대에 따라 서로 보완되는 강점을 보일 때가 많다.
+
+---
+
+**연습문제 4.**
+이 방법을 간추린 판으로 파이토치에 구현하라.
+
+??? success "연습문제 4 풀이"
+    구현은 대개 새 과제를 익히는 동안 보통의 교차 엔트로피 손실에 벌주기 항을 더한다. 핵심 부품은 (1) 앞선 과제 학습에서 제약을 셈하기, (2) 필요한 정보(가중치, 본보기, 스승 출력)를 담아 두기, (3) 새 과제 학습 중에 그 제약을 씌우기이다.

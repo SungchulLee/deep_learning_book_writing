@@ -1,49 +1,49 @@
-# House Robber
+# 집털이
 
-The house robber problem is a classic one-dimensional dynamic programming exercise that introduces the idea of **exclusion constraints**.  A robber wants to maximize the total value stolen from a row of houses, but cannot rob two adjacent houses without triggering an alarm.  This constraint creates an interesting decision at each house: rob it and skip the neighbor, or skip it and keep the option of robbing the neighbor.
+집털이 문제는 **제외 제약**이라는 생각을 들여오는 고전 1차원 동적 짜기 연습이다. 도둑은 한 줄로 늘어선 집에서 훔친 값어치의 합을 가장 크게 하려 하지만 이웃한 두 집을 털면 경보가 울린다. 이 제약이 집마다 흥미로운 결정을 만든다. 곧 이 집을 털고 이웃을 건너뛸지, 아니면 건너뛰고 이웃을 털 여지를 남길지이다.
 
-## Problem Statement
+## 문제 서술
 
-Given an array $\text{nums}[0..n-1]$ where $\text{nums}[i]$ represents the value in house $i$, find the maximum total value that can be robbed without selecting two adjacent houses.
+$\text{nums}[i]$이 집 $i$의 값어치를 뜻하는 배열 $\text{nums}[0..n-1]$이 주어질 때 이웃한 두 집을 고르지 않고 털 수 있는 값어치의 최대 합을 찾아라.
 
-**Example:** For $\text{nums} = [2, 7, 9, 3, 1]$, the optimal choice is houses 0, 2, and 4 with total $2 + 9 + 1 = 12$.
+**보기:** $\text{nums} = [2, 7, 9, 3, 1]$이면 가장 좋은 고름은 집 0, 2, 4이며 합은 $2 + 9 + 1 = 12$이다.
 
-## Recurrence Derivation
+## 되돌이 관계식 이끌어 내기
 
-Let $dp[i]$ denote the maximum value obtainable from houses $0$ through $i$.  At house $i$, there are two choices:
+$dp[i]$을 집 $0$부터 $i$까지에서 얻을 수 있는 최대 값어치라 하자. 집 $i$에서는 고름이 둘이다:
 
-1. **Rob house $i$**: gain $\text{nums}[i]$ but cannot use house $i-1$, so the best from the remaining is $dp[i-2]$.
-2. **Skip house $i$**: the best remains $dp[i-1]$.
+1. **집 $i$을 턴다**: $\text{nums}[i]$을 얻지만 집 $i-1$을 쓸 수 없으므로 나머지에서 가장 좋은 것은 $dp[i-2]$이다.
+2. **집 $i$을 건너뛴다**: 가장 좋은 것은 그대로 $dp[i-1]$이다.
 
-Taking the better option gives the recurrence
+더 나은 쪽을 취하면 다음 되돌이 관계식을 얻는다
 
 $$
 dp[i] = \max\bigl(dp[i-1],\; dp[i-2] + \text{nums}[i]\bigr) \quad \text{for } i \ge 2
 $$
 
-with base cases
+바탕 경우는 다음과 같다
 
 $$
 dp[0] = \text{nums}[0], \quad dp[1] = \max(\text{nums}[0],\; \text{nums}[1])
 $$
 
-## Optimal Substructure
+## 가장 좋은 밑짜임
 
-The problem exhibits optimal substructure because the optimal solution for houses $0..i$ is built from the optimal solution for either houses $0..i-1$ (skip) or houses $0..i-2$ (rob).  A cut-and-paste argument confirms this: if the sub-solution were not optimal, replacing it with a better one would improve the overall solution, contradicting optimality.
+집 $0..i$의 가장 좋은 풀이가 집 $0..i-1$(건너뜀)이나 집 $0..i-2$(털기)의 가장 좋은 풀이로 세워지므로 이 문제는 가장 좋은 아래 짜임을 갖춘다. 잘라 붙이기 논증이 이를 확인해 준다. 곧 아래 풀이가 가장 좋지 않다면 더 나은 것으로 갈음해 전체 풀이가 나아져 가장 좋음에 어긋난다.
 
-## Tabulation
+## 표 채우기
 
 ```python
 """
-House robber: maximize total value from non-adjacent houses.
+집털이: 이웃하지 않은 집에서 얻는 전체 값어치를 가장 크게 한다.
 """
 
 
 # ===================================================================
-# Approach 1: Tabulation (bottom-up)
+# 방식 1: 표 채우기(아래에서 위로)
 # ===================================================================
 def rob_tabulation(nums: list[int]) -> int:
-    """Maximum robbery value with tabulation. Time: O(n), Space: O(n)."""
+    """표 채우기로 얻는 최대 값어치. 시간: O(n), 공간: O(n)."""
     n = len(nums)
     if n == 0:
         return 0
@@ -58,16 +58,16 @@ def rob_tabulation(nums: list[int]) -> int:
     return dp[n - 1]
 ```
 
-## Space Optimization
+## 공간 줄이기
 
-Each state depends only on the two previous values, so space reduces to $O(1)$:
+상태마다 앞선 두 값에만 기대므로 공간이 $O(1)$으로 준다:
 
 ```python
 # ===================================================================
-# Approach 2: Space-optimized
+# 방식 2: 공간 줄임
 # ===================================================================
 def rob_optimized(nums: list[int]) -> int:
-    """Maximum robbery value with O(1) space. Time: O(n), Space: O(1)."""
+    """O(1) 공간으로 얻는 최대 값어치. 시간: O(n), 공간: O(1)."""
     if not nums:
         return 0
     prev2, prev1 = 0, 0
@@ -76,18 +76,18 @@ def rob_optimized(nums: list[int]) -> int:
     return prev1
 ```
 
-In this formulation, `prev1` tracks $dp[i-1]$ and `prev2` tracks $dp[i-2]$.  At each step, the new `prev1` is $\max(dp[i-1], dp[i-2] + \text{nums}[i])$.
+이 꼴에서 `prev1`은 $dp[i-1]$을, `prev2`은 $dp[i-2]$을 좇는다. 걸음마다 새 `prev1`은 $\max(dp[i-1], dp[i-2] + \text{nums}[i])$이다.
 
-## Reconstructing the Solution
+## 풀이 다시 세우기
 
-To find which houses are actually robbed, trace back through the DP table:
+실제로 어느 집을 털었는지 알려면 동적 짜기 표를 거슬러 좇는다:
 
 ```python
 # ===================================================================
-# Reconstruction
+# 다시 세우기
 # ===================================================================
 def rob_with_reconstruction(nums: list[int]) -> tuple[int, list[int]]:
-    """Return maximum value and list of robbed house indices."""
+    """최대 값어치와 턴 집 번호의 목록을 돌려준다."""
     n = len(nums)
     if n == 0:
         return 0, []
@@ -100,7 +100,7 @@ def rob_with_reconstruction(nums: list[int]) -> tuple[int, list[int]]:
     for i in range(2, n):
         dp[i] = max(dp[i - 1], dp[i - 2] + nums[i])
 
-    # Backtrack to find chosen houses
+    # 되짚어 고른 집을 찾는다
     chosen = []
     i = n - 1
     while i >= 0:
@@ -113,17 +113,17 @@ def rob_with_reconstruction(nums: list[int]) -> tuple[int, list[int]]:
     return dp[n - 1], list(reversed(chosen))
 ```
 
-## Complexity
+## 복잡도
 
-| Approach | Time | Space |
+| 방법 | 시간 | 공간 |
 |----------|------|-------|
-| Tabulation | $O(n)$ | $O(n)$ |
-| Space-optimized | $O(n)$ | $O(1)$ |
-| With reconstruction | $O(n)$ | $O(n)$ |
+| 표 채우기 | $O(n)$ | $O(n)$ |
+| 공간 줄임 | $O(n)$ | $O(1)$ |
+| 다시 세우기 곁들임 | $O(n)$ | $O(n)$ |
 
 ```python
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 if __name__ == "__main__":
     test_cases = [
@@ -136,16 +136,48 @@ if __name__ == "__main__":
         print(f"nums={nums}  max={value}  houses={houses}")
 ```
 
-**Output:**
+**출력:**
 ```
 nums=[1, 2, 3, 1]  max=4  houses=[0, 2]
 nums=[2, 7, 9, 3, 1]  max=12  houses=[0, 2, 4]
 nums=[2, 1, 1, 2]  max=4  houses=[0, 3]
 ```
 
-!!! note "Circular variant"
-    In the **House Robber II** variant, houses are arranged in a circle, so house 0 and house $n-1$ are adjacent.  This is solved by running the linear algorithm twice: once on houses $0..n-2$ and once on houses $1..n-1$, then taking the maximum.
+!!! note "둥근 변형"
+    **집털이 II** 변형에서는 집이 둥글게 놓여 집 0과 집 $n-1$이 이웃한다. 선형 알고리즘을 두 번, 곧 집 $0..n-2$에 한 번, 집 $1..n-1$에 한 번 돌린 뒤 큰 쪽을 취해 푼다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 14. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+집털이의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+집털이의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+집털이의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+집털이의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

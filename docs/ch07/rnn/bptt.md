@@ -1,22 +1,17 @@
-# Backpropagation Through Time
+# 시간을 거슬러 가는 역전파
+## 들어가며
 
+순환 신경망을 학습시키려면 펼친 계산 그래프를 지나 기울기를 계산해야 하는데, 이 절차를 **시간을 거슬러 가는 역전파(BPTT)**라 한다. BPTT를 이해하면 RNN이 어떻게 배우는지, 그리고 왜 긴 순차열에서 애를 먹는지 알 수 있다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 펼친 계산 그래프
 
-## Introduction
-
-Training recurrent neural networks requires computing gradients through the unrolled computational graph—a procedure called **Backpropagation Through Time (BPTT)**. Understanding BPTT illuminates both how RNNs learn and why they struggle with long sequences.
-
-## The Unrolled Computational Graph
-
-Consider an RNN processing a sequence of length $T$:
+길이가 $T$인 순차열을 처리하는 RNN을 생각해 보자.
 
 $$h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b)$$
 
 $$y_t = W_{hy} h_t$$
 
-Unrolling creates a deep feedforward network where depth equals the sequence length $T$, weights are shared across all layers, and each "layer" corresponds to one timestep:
+펼치면 깊이가 순차열의 길이 $T$과 같고 모든 층이 가중치를 나누어 쓰며 "층" 하나가 시각 하나에 대응하는 깊은 순방향 신경망이 된다.
 
 ```
 Loss = L₁ + L₂ + L₃ + L₄
@@ -28,106 +23,106 @@ h₀ → h₁ → h₂ → h₃ → h₄
      x₁   x₂   x₃   x₄
 ```
 
-## Loss Computation
+## 손실 계산
 
-The total loss sums contributions from each timestep:
+전체 손실은 시각마다의 몫을 더한 것이다.
 
 $$\mathcal{L} = \sum_{t=1}^{T} L_t(y_t, \hat{y}_t)$$
 
-For per-step classification with cross-entropy:
+시각마다 교차 엔트로피로 분류할 때는 다음과 같다.
 
 $$L_t = -\sum_{c} \hat{y}_{t,c} \log(y_{t,c})$$
 
-For sequence classification using only the final output:
+마지막 출력만 써서 순차열을 분류할 때는 다음과 같다.
 
 $$\mathcal{L} = L_T(y_T, \hat{y})$$
 
-## Gradient Derivation
+## 기울기 유도
 
-### Output Weights
+### 출력 가중치
 
-The gradient $\frac{\partial \mathcal{L}}{\partial W_{hy}}$ accumulates contributions from all timesteps:
+기울기 $\frac{\partial \mathcal{L}}{\partial W_{hy}}$은 모든 시각의 몫을 모은 것이다.
 
 $$\frac{\partial \mathcal{L}}{\partial W_{hy}} = \sum_{t=1}^{T} \frac{\partial L_t}{\partial y_t} \cdot \frac{\partial y_t}{\partial W_{hy}} = \sum_{t=1}^{T} \frac{\partial L_t}{\partial y_t} \cdot h_t^T$$
 
-Since $y_t = W_{hy} h_t$, the derivative is straightforward—no temporal chain rule is needed because $W_{hy}$ acts locally at each timestep.
+$y_t = W_{hy} h_t$이므로 미분이 간단하다. $W_{hy}$은 시각마다 국소적으로 작용하므로 시간에 걸친 연쇄 법칙이 필요 없다.
 
-### Hidden State Gradients
+### 숨은 상태의 기울기
 
-The gradient at hidden state $h_t$ receives contributions from two sources: the local loss at time $t$, and the gradient flowing back from future timesteps through $h_{t+1}$:
+숨은 상태 $h_t$의 기울기는 두 곳에서 온다. 하나는 시각 $t$의 지역 손실이고, 다른 하나는 $h_{t+1}$을 지나 미래 시각에서 거슬러 오는 기울기이다.
 
 $$\frac{\partial \mathcal{L}}{\partial h_t} = \frac{\partial L_t}{\partial h_t} + \frac{\partial \mathcal{L}}{\partial h_{t+1}} \cdot \frac{\partial h_{t+1}}{\partial h_t}$$
 
-This recursive formula is the heart of BPTT—it propagates gradients backward through time.
+이 재귀식이 BPTT의 핵심이다. 기울기를 시간을 거슬러 전파한다.
 
-### Recurrent Weights
+### 순환 가중치
 
-The gradient $\frac{\partial \mathcal{L}}{\partial W_{hh}}$ requires the full chain rule through time because $h_t$ depends on $W_{hh}$ both directly and through all previous hidden states:
+$h_t$이 $W_{hh}$에 곧바로도 기대고 이전의 모든 숨은 상태를 통해서도 기대므로, 기울기 $\frac{\partial \mathcal{L}}{\partial W_{hh}}$을 구하려면 시간에 걸친 온전한 연쇄 법칙이 필요하다.
 
 $$\frac{\partial L_T}{\partial W_{hh}} = \sum_{t=1}^{T} \frac{\partial L_T}{\partial h_T} \cdot \frac{\partial h_T}{\partial h_t} \cdot \frac{\partial^+ h_t}{\partial W_{hh}}$$
 
-where $\frac{\partial^+ h_t}{\partial W_{hh}}$ denotes the immediate (non-recursive) partial derivative—the contribution from the direct use of $W_{hh}$ at timestep $t$ only.
+여기서 $\frac{\partial^+ h_t}{\partial W_{hh}}$은 직접적인(재귀가 아닌) 편미분, 곧 시각 $t$에서 $W_{hh}$을 바로 쓴 몫만을 뜻한다.
 
-## The Jacobian Product
+## 야코비 행렬의 곱
 
-The key term $\frac{\partial h_T}{\partial h_t}$ expands as a product of Jacobians:
+핵심 항 $\frac{\partial h_T}{\partial h_t}$은 야코비 행렬의 곱으로 펼쳐진다.
 
 $$\frac{\partial h_T}{\partial h_t} = \prod_{k=t}^{T-1} \frac{\partial h_{k+1}}{\partial h_k}$$
 
-Each Jacobian is:
+야코비 행렬 하나하나는 다음과 같다.
 
 $$\frac{\partial h_{k+1}}{\partial h_k} = \text{diag}(1 - h_{k+1}^2) \cdot W_{hh}$$
 
-where $\text{diag}(1 - h_{k+1}^2)$ is the derivative of $\tanh$ evaluated at the pre-activation. This product of matrices over $T - t$ timesteps is what makes or breaks gradient flow: when $T - t$ is large, the product tends to either vanish or explode.
+여기서 $\text{diag}(1 - h_{k+1}^2)$은 활성화 전 값에서 잰 $\tanh$의 도함수이다. 시각 $T - t$개에 걸친 이 행렬 곱이 기울기의 흐름을 살리기도 하고 죽이기도 한다. $T - t$이 크면 이 곱이 사라지거나 폭발하기 쉽다.
 
-## PyTorch Automatic BPTT
+## PyTorch의 자동 BPTT
 
-PyTorch handles BPTT automatically through its autograd engine. The forward pass builds the computational graph, and `.backward()` performs BPTT:
+PyTorch는 자동 미분 엔진으로 BPTT를 알아서 처리한다. 순전파가 계산 그래프를 세우고 `.backward()`이 BPTT를 수행한다.
 
 ```python
 import torch
 import torch.nn as nn
 
-# Model
+# 모델
 rnn = nn.RNN(input_size=10, hidden_size=20, batch_first=True)
 fc = nn.Linear(20, 5)
 
-# Data
+# 데이터
 x = torch.randn(32, 15, 10, requires_grad=True)
 targets = torch.randint(0, 5, (32,))
 
-# Forward pass (builds computational graph)
+# 순전파 (계산 그래프를 세운다)
 outputs, h_n = rnn(x)
 logits = fc(h_n.squeeze(0))
 
-# Loss and backward pass (BPTT happens automatically)
+# 손실과 역전파 (BPTT가 저절로 일어난다)
 criterion = nn.CrossEntropyLoss()
 loss = criterion(logits, targets)
 loss.backward()
 
-# Gradients are now available
+# 이제 기울기를 쓸 수 있다
 print(f"Input grad shape: {x.grad.shape}")
 print(f"RNN weight grad: {rnn.weight_ih_l0.grad.shape}")
 ```
 
-## Manual BPTT Implementation
+## 손으로 하는 BPTT 구현
 
-For pedagogical clarity, here is an explicit BPTT computation:
+이해를 돕기 위해 BPTT를 명시적으로 계산해 보자.
 
 ```python
 def bptt_manual(xs, hs, ys, targets, W_xh, W_hh, W_hy):
     """
-    Manual BPTT computation.
+    손으로 하는 BPTT 계산.
     
-    Args:
-        xs: List of inputs [x_1, ..., x_T]
-        hs: List of hidden states [h_0, h_1, ..., h_T]
-        ys: List of outputs [y_1, ..., y_T]
-        targets: List of targets
-        W_xh, W_hh, W_hy: Weight matrices
+    인수:
+        xs: 입력의 목록 [x_1, …, x_T]
+        hs: 숨은 상태의 목록 [h_0, h_1, …, h_T]
+        ys: 출력의 목록 [y_1, …, y_T]
+        targets: 표적의 목록
+        W_xh, W_hh, W_hy: 가중치 행렬
     
-    Returns:
-        Gradients for all parameters
+    반환값:
+        모든 매개변수의 기울기
     """
     T = len(xs)
     
@@ -135,43 +130,43 @@ def bptt_manual(xs, hs, ys, targets, W_xh, W_hh, W_hy):
     dW_hh = torch.zeros_like(W_hh)
     dW_hy = torch.zeros_like(W_hy)
     
-    # Backward pass through time
+    # 시간을 거슬러 가는 역전파
     dh_next = torch.zeros_like(hs[0])
     
     for t in reversed(range(T)):
-        # Gradient from output loss
-        dy = ys[t] - targets[t]  # Softmax + cross-entropy derivative
+        # 출력 손실에서 오는 기울기
+        dy = ys[t] - targets[t]  # 소프트맥스와 교차 엔트로피의 도함수
         
-        # Output weight gradient
+        # 출력 가중치의 기울기
         dW_hy += torch.outer(dy, hs[t + 1])
         
-        # Gradient flowing into hidden state
+        # 숨은 상태로 흘러드는 기울기
         dh = W_hy.T @ dy + dh_next
         
-        # Gradient through tanh nonlinearity
+        # tanh 비선형을 지나는 기울기
         dh_raw = dh * (1 - hs[t + 1] ** 2)
         
-        # Input and recurrent weight gradients
+        # 입력 가중치와 순환 가중치의 기울기
         dW_xh += torch.outer(dh_raw, xs[t])
         dW_hh += torch.outer(dh_raw, hs[t])
         
-        # Propagate to previous timestep
+        # 이전 시각으로 전파
         dh_next = W_hh.T @ dh_raw
     
     return dW_xh, dW_hh, dW_hy
 ```
 
-The loop proceeds in reverse time order. At each step, the gradient `dh_next` carries information from all future timesteps back through the recurrence—this is the temporal gradient flow that suffers from vanishing and exploding problems.
+반복문은 시간을 거슬러 나아간다. 단계마다 기울기 `dh_next`이 미래 모든 시각의 정보를 순환을 타고 거슬러 나른다. 이것이 소실과 폭발 문제를 겪는 시간 방향 기울기 흐름이다.
 
-## Truncated BPTT
+## 잘라 낸 BPTT
 
-For very long sequences, full BPTT becomes computationally prohibitive because memory scales linearly with sequence length (all hidden states must be stored). **Truncated BPTT** limits backpropagation to $k$ timesteps:
+아주 긴 순차열에서는 (숨은 상태를 모두 저장해야 하므로) 메모리가 순차열 길이에 비례해 늘어 온전한 BPTT를 감당할 수 없다. **잘라 낸 BPTT**는 역전파를 시각 $k$개로 제한한다.
 
 ```python
 def truncated_bptt(model, sequence, chunk_size, optimizer, criterion):
     """
-    Truncated BPTT: process sequence in chunks, backpropagate
-    only within each chunk.
+    잘라 낸 BPTT: 순차열을 덩이로 나누어 처리하고 덩이 안에서만
+    역전파한다.
     """
     hidden = None
     total_loss = 0
@@ -180,15 +175,15 @@ def truncated_bptt(model, sequence, chunk_size, optimizer, criterion):
         inputs = sequence[i:i + chunk_size]
         targets = sequence[i + 1:i + chunk_size + 1]
         
-        # Detach hidden state to truncate gradient flow
+        # 기울기의 흐름을 자르려고 숨은 상태를 떼어 냄
         if hidden is not None:
             hidden = hidden.detach()
         
-        # Forward pass through chunk
+        # 덩이를 지나는 순전파
         outputs, hidden = model(inputs.unsqueeze(0), hidden)
         loss = criterion(outputs.squeeze(0), targets)
         
-        # Backward pass (only through this chunk)
+        # 역전파 (이 덩이 안에서만)
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
@@ -198,29 +193,28 @@ def truncated_bptt(model, sequence, chunk_size, optimizer, criterion):
     return total_loss
 ```
 
-The `.detach()` call is the mechanism that truncates gradient flow: while the hidden state value carries forward from chunk to chunk, gradients cannot propagate back through the detachment point. This trades gradient accuracy for computational efficiency—dependencies longer than $k$ steps cannot be learned.
+`.detach()` 호출이 기울기의 흐름을 자르는 장치이다. 숨은 상태 값은 덩이에서 덩이로 이어지지만 기울기는 떼어 낸 지점을 거슬러 가지 못한다. 기울기의 정확도를 계산 효율과 맞바꾸는 셈이며, $k$단계보다 긴 의존은 배울 수 없다.
 
-## Computational Complexity
+## 계산 복잡도
 
-For a sequence of length $T$ with hidden size $H$:
+길이가 $T$이고 숨은 차원이 $H$인 순차열에 대해 다음과 같다.
 
-| Operation | Time | Space |
+| 연산 | 시간 | 공간 |
 |-----------|------|-------|
-| Forward pass | $O(T \cdot H^2)$ | $O(T \cdot H)$ |
-| Backward pass | $O(T \cdot H^2)$ | $O(T \cdot H)$ |
-| Truncated BPTT (chunk $k$) | $O(T \cdot H^2)$ | $O(k \cdot H)$ |
+| 순전파 | $O(T \cdot H^2)$ | $O(T \cdot H)$ |
+| 역전파 | $O(T \cdot H^2)$ | $O(T \cdot H)$ |
+| 잘라 낸 BPTT (덩이 $k$) | $O(T \cdot H^2)$ | $O(k \cdot H)$ |
 
-Space complexity is dominated by storing hidden states at every timestep for gradient computation. Truncated BPTT reduces the space requirement from $O(T \cdot H)$ to $O(k \cdot H)$.
+공간 복잡도는 기울기 계산을 위해 시각마다 숨은 상태를 저장하는 데서 대부분 나온다. 잘라 낸 BPTT는 필요한 공간을 $O(T \cdot H)$에서 $O(k \cdot H)$으로 줄인다.
 
-## Gradient Flow Visualization
+## 기울기 흐름 시각화
 
 ```python
 import matplotlib.pyplot as plt
 
-
 def visualize_gradient_flow(model, x):
     """
-    Visualize gradient magnitudes from final output to each input position.
+    마지막 출력에서 입력 자리마다의 기울기 크기를 그려 본다.
     """
     model.train()
     x = x.requires_grad_(True)
@@ -240,6 +234,44 @@ def visualize_gradient_flow(model, x):
     plt.show()
 ```
 
-## Summary
+## 요약
 
-BPTT extends backpropagation to recurrent networks by unrolling the RNN into a deep feedforward network, computing gradients through the chain rule across timesteps, and accumulating gradients for shared weights. The critical insight is that gradients must traverse $T$ timesteps to reach early inputs, with each step multiplying by $W_{hh}$ and $\tanh'$. This multiplication chain creates the vanishing and exploding gradient problems examined in the next sections.
+BPTT는 RNN을 깊은 순방향 신경망으로 펼치고, 시각에 걸친 연쇄 법칙으로 기울기를 계산하고, 공유된 가중치의 기울기를 모아서 역전파를 순환 신경망으로 넓힌다. 핵심은 기울기가 앞쪽 입력에 닿으려면 시각 $T$개를 거슬러야 하고 단계마다 $W_{hh}$과 $\tanh'$을 곱하게 된다는 것이다. 이 곱셈의 사슬이 다음 절에서 살펴볼 기울기 소실과 폭발 문제를 낳는다.
+
+## 연습문제
+
+**연습문제 1.**
+온전한 BPTT와 잘라 낸 BPTT의 차이를 설명하라.
+
+??? success "연습문제 1 풀이"
+    온전한 BPTT는 순차열 전체를 펼쳐 모든 시각을 거슬러 역전파한다. 잘라 낸 BPTT는 순차열을 길이 $k$의 덩이로 나누어 덩이 안에서만 역전파한다. 잘라 낸 BPTT는 먼 거리 기울기의 정확도를 메모리 효율($O(T)$ 대신 $O(k)$)과 맞바꾼다.
+
+---
+
+**연습문제 2.**
+기본 RNN에서 $W_h$에 대한 BPTT 기울기를 유도하라.
+
+??? success "연습문제 2 풀이"
+    $\frac{\partial L}{\partial W_h} = \sum_{t=1}^T \frac{\partial L}{\partial h_t} \frac{\partial h_t}{\partial W_h} = \sum_{t=1}^T \delta_t h_{t-1}^\top$이며, 여기서 $\delta_t = \frac{\partial L}{\partial h_t} \odot \tanh'(z_t)$이고 연쇄 법칙이 $\delta_T$을 시간을 거슬러 전파한다.
+
+---
+
+**연습문제 3.**
+순차열 길이가 $T$일 때 BPTT의 메모리 복잡도는 얼마인가?
+
+??? success "연습문제 3 풀이"
+    역전파를 위해 숨은 상태를 모두 저장하는 데 $O(T \cdot d_h)$이 든다. 긴 순차열에서는 감당하기 어렵다. 해법으로는 잘라 낸 BPTT($T$을 줄인다), 기울기 검사점 두기(저장 대신 다시 계산한다), 되돌릴 수 있는 RNN이 있다.
+
+---
+
+**연습문제 4.**
+`torch.autograd`으로 간단한 RNN의 BPTT를 구현하고 기울기를 수치적으로 확인하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    # PyTorch는 동적 그래프로 BPTT를 알아서 처리한다
+    rnn = nn.RNN(input_size, hidden_size, batch_first=True)
+    loss = criterion(rnn(x)[0], targets)
+    loss.backward()  # 모든 시각을 지나는 온전한 BPTT
+    # 잘라 낸 BPTT: k걸음마다 숨은 상태를 떼어 낸다
+    ```

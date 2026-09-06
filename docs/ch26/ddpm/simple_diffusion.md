@@ -1,0 +1,728 @@
+# 단순한 퍼짐
+
+이 단원은 요즘 만들어 내는 모델의 핵심 부품인 단순한 퍼짐을 짠다. 여기서 보이는 개념과 재주를 알면 퍼짐 모델과 점수 바탕 만들어 내는 방법을 다루는 데 꼭 필요한 앎을 얻는다. 이 짜기는 또렷함과 실제 쓸모의 균형을 맞추어 배우기에도 실험하기에도 알맞다.
+
+## 코드
+
+```python
+"""단순한 퍼짐."""
+# ============================================================================
+# simple_diffusion.py - 2차원 퍼짐 모델(가르치기 위한 짜기)
+# ============================================================================
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch
+import torch.nn as nn
+from diffusion_utils import (
+    cosine_beta_schedule,
+    get_diffusion_parameters,
+    forward_diffusion,
+    get_loss
+)
+from tqdm import tqdm
+
+# ============================================================================
+# 핵심 개념: 퍼짐 모델
+# ============================================================================
+
+"""
+퍼짐 모델이란 무엇인가?
+===========================
+
+Diffusion models learn to generate data by reversing a gradual noising process:
+
+1. FORWARD PROCESS (Easy, no learning needed):
+   실제 자료 → 차츰 잡음 더하기 → 순수 아무 잡음
+   
+2. REVERSE PROCESS (Hard, requires training):
+   아무 잡음 → 차츰 잡음 없애기 → 그럴듯한 자료
+
+핵심 통찰: 어떤 잡음 수준에서든 잡음 없애는 법을 배우면 순수 잡음에서 시작해
+잡음을 없애 가며 그럴듯한 자료로 돌아갈 수 있다!
+
+왜 2차원 장난감 자료인가?
+================
+Before tackling high-dimensional images (256×256×3 = 196,608 dims), we use
+또렷한 그림과 직관 쌓기를 위해 2차원 자료(x, y뿐)를 쓴다.
+"""
+
+# ============================================================================
+# 수학의 바탕: 닫힌 꼴 앞 퍼짐
+# ============================================================================
+
+"""
+THE FORWARD DIFFUSION EQUATION (Full Derivation)
+=================================================
+
+ITERATIVE FORM (one step at a time):
+    x_t = √α_t · x_{t-1} + √β_t · ε_t,  where ε_t ~ N(0, I)
+    
+    α_t = 1 - β_t (signal retention)
+    β_t = noise variance at step t
+
+THE MAGIC: CLOSED-FORM (jump to any step directly!)
+====================================================
+
+After t steps of recursion, all the noise terms combine into:
+
+    ╔══════════════════════════════════════════════════════════╗
+    ║  x_t = √ᾱ_t · x_0 + √(1 - ᾱ_t) · ε,  where ε ~ N(0, I)   ║
+    ╚══════════════════════════════════════════════════════════╝
+
+여기서 각 기호는 다음과 같다.
+    ᾱ_t = ∏_{i=1}^t α_i  (cumulative product of all alphas)
+
+INTUITION:
+----------
+    √ᾱ_t: How much original signal remains (decreases as t increases)
+    √(1-ᾱ_t): How much noise is present (increases as t increases)
+    
+    At t=0:   ᾱ_0 = 1    → x_0 = 1·x_0 + 0·ε = x_0 (no noise)
+    At t=100: ᾱ_100 ≈ 0.37 → x_100 = 0.6·x_0 + 0.8·ε (mostly noise)
+    At t=∞:   ᾱ_∞ → 0    → x_∞ ≈ 0·x_0 + 1·ε = ε (pure noise)
+
+WHY THIS IS AMAZING:
+--------------------
+1. 효율: O(t) 대신 O(1) - 아무 때 걸음으로 곧바로 뛴다
+2. 나란한 익히기: 묶음마다 서로 매이지 않게 다른 때 걸음을 뽑는다
+3. 수학의 아름다움: 복잡한 되풀이가 단순한 무게 합으로 줄어든다
+
+QUICK REFERENCE:
+----------------
+Symbol  | Meaning                              | Typical Range
+--------|--------------------------------------|---------------
+β_t     | Noise added at step t                | 0.0001 to 0.02
+α_t     | Signal retained (= 1 - β_t)          | 0.98 to 0.9999
+ᾱ_t     | Cumulative signal (= ∏ α_i)          | 1.0 → 0 (decay)
+√ᾱ_t    | Data coefficient in forward process  | 1.0 → 0
+√(1-ᾱ_t)| Noise coefficient in forward process | 0 → 1.0
+"""
+
+# ============================================================================
+# 수학으로 이끌어 내기: 뒤 퍼짐 공식
+# ============================================================================
+
+"""
+밝힘: 뒤 퍼짐 평균 공식
+======================================
+
+We want to prove:
+
+    μ_θ(x_t, t) = 1/√α_t · (x_t - β_t/√(1-ᾱ_t) · ε_θ(x_t, t))
+
+This formula tells us how to compute the mean for denoising: x_t → x_{t-1}
+
+============================================================================
+PART 1: THE TRUE POSTERIOR (If We Knew x_0)
+============================================================================
+
+By Bayes' rule, the true reverse distribution is:
+
+    q(x_{t-1} | x_t, x_0) = q(x_t | x_{t-1}, x_0) · q(x_{t-1} | x_0) / q(x_t | x_0)
+
+By Markov property: q(x_t | x_{t-1}, x_0) = q(x_t | x_{t-1})
+
+So:
+    q(x_{t-1} | x_t, x_0) ∝ q(x_t | x_{t-1}) · q(x_{t-1} | x_0)
+
+이는 정규 분포의 곱이므로 → 역시 정규 분포이다!
+
+============================================================================
+걸음 1: 앞 퍼짐 식을 떠올린다
+============================================================================
+
+From forward diffusion, we have:
+
+(A) One-step forward:
+    q(x_t | x_{t-1}) = N(x_t; √α_t · x_{t-1}, β_t · I)
+    
+    Density:
+        p(x_t | x_{t-1}) ∝ exp(-1/(2β_t) ||x_t - √α_t · x_{t-1}||²)
+
+(B) Multi-step to x_t from x_0:
+    q(x_t | x_0) = N(x_t; √ᾱ_t · x_0, (1-ᾱ_t) · I)
+    
+    Density:
+        p(x_t | x_0) ∝ exp(-1/(2(1-ᾱ_t)) ||x_t - √ᾱ_t · x_0||²)
+
+(C) Multi-step to x_{t-1} from x_0:
+    q(x_{t-1} | x_0) = N(x_{t-1}; √ᾱ_{t-1} · x_0, (1-ᾱ_{t-1}) · I)
+    
+    Density:
+        p(x_{t-1} | x_0) ∝ exp(-1/(2(1-ᾱ_{t-1})) ||x_{t-1} - √ᾱ_{t-1} · x_0||²)
+
+============================================================================
+STEP 2: Compute the Posterior q(x_{t-1} | x_t, x_0)
+============================================================================
+
+Combine the densities:
+
+    q(x_{t-1} | x_t, x_0) ∝ q(x_t | x_{t-1}) · q(x_{t-1} | x_0)
+
+    ∝ exp(-1/(2β_t) ||x_t - √α_t·x_{t-1}||²) 
+      · exp(-1/(2(1-ᾱ_{t-1})) ||x_{t-1} - √ᾱ_{t-1}·x_0||²)
+
+Expand the quadratics:
+
+    ||x_t - √α_t·x_{t-1}||² = ||x_t||² - 2√α_t·⟨x_t, x_{t-1}⟩ + α_t||x_{t-1}||²
+
+    ||x_{t-1} - √ᾱ_{t-1}·x_0||² = ||x_{t-1}||² - 2√ᾱ_{t-1}·⟨x_{t-1}, x_0⟩ + ᾱ_{t-1}||x_0||²
+
+The exponent is quadratic in x_{t-1}:
+
+    E(x_{t-1}) = A||x_{t-1}||² - 2⟨B, x_{t-1}⟩ + C
+
+여기서 각 기호는 다음과 같다.
+    A = α_t/(2β_t) + 1/(2(1-ᾱ_{t-1}))
+    B = √α_t·x_t/β_t + √ᾱ_{t-1}·x_0/(1-ᾱ_{t-1})
+    C = (constant terms not involving x_{t-1})
+
+Complete the square:
+    E(x_{t-1}) = A||x_{t-1} - B/A||² + (constant)
+
+So: q(x_{t-1} | x_t, x_0) = N(x_{t-1}; B/A, 1/(2A)·I)
+
+The mean is: μ̃_t(x_t, x_0) = B/A
+
+============================================================================
+걸음 3: 평균을 얻으려 B/A을 단순하게 한다
+============================================================================
+
+COMPUTE A:
+    A = α_t/(2β_t) + 1/(2(1-ᾱ_{t-1}))
+    
+    = [α_t(1-ᾱ_{t-1}) + β_t] / [2β_t(1-ᾱ_{t-1})]
+
+Simplify numerator:
+    α_t(1-ᾱ_{t-1}) + β_t = (1-β_t)(1-ᾱ_{t-1}) + β_t
+                          = 1 - ᾱ_{t-1} - β_t + β_t·ᾱ_{t-1} + β_t
+                          = 1 - ᾱ_{t-1} + β_t·ᾱ_{t-1}
+
+Note: ᾱ_t = ᾱ_{t-1}·α_t = ᾱ_{t-1}·(1-β_t)
+
+So: 1 - ᾱ_{t-1} + β_t·ᾱ_{t-1} = 1 - ᾱ_{t-1}(1-β_t)
+                                = 1 - ᾱ_{t-1}·α_t
+                                = 1 - ᾱ_t
+
+따라서 다음이 성립한다.
+    A = (1-ᾱ_t) / [2β_t(1-ᾱ_{t-1})]
+
+COMPUTE B:
+    B = √α_t·x_t/β_t + √ᾱ_{t-1}·x_0/(1-ᾱ_{t-1})
+
+COMPUTE μ̃_t = B/A:
+    μ̃_t(x_t, x_0) = [√α_t·x_t/β_t + √ᾱ_{t-1}·x_0/(1-ᾱ_{t-1})] / [(1-ᾱ_t)/(2β_t(1-ᾱ_{t-1}))]
+    
+    = [√α_t·x_t/β_t + √ᾱ_{t-1}·x_0/(1-ᾱ_{t-1})] · [2β_t(1-ᾱ_{t-1})/(1-ᾱ_t)]
+
+Distribute:
+    = 2β_t(1-ᾱ_{t-1})/(1-ᾱ_t) · √α_t·x_t/β_t 
+      + 2β_t(1-ᾱ_{t-1})/(1-ᾱ_t) · √ᾱ_{t-1}·x_0/(1-ᾱ_{t-1})
+    
+    = 2(1-ᾱ_{t-1})/(1-ᾱ_t) · √α_t·x_t 
+      + 2β_t/(1-ᾱ_t) · √ᾱ_{t-1}·x_0
+
+정리하면 다음과 같다.
+    μ̃_t(x_t, x_0) = √ᾱ_{t-1}·β_t/(1-ᾱ_t)·x_0 + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)·x_t
+
+이것이 (x_0을 안다면) 참 사후 평균이다.
+
+============================================================================
+STEP 4: Estimate x_0 from x_t (THE KEY TRICK!)
+============================================================================
+
+THE PROBLEM: During generation, we don't know x_0!
+
+풀이: 앞 퍼짐으로 x_0을 어림한다.
+
+From: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
+
+Solve for x_0:
+    √ᾱ_t·x_0 = x_t - √(1-ᾱ_t)·ε
+    
+    x_0 = (x_t - √(1-ᾱ_t)·ε) / √ᾱ_t    ... (★)
+
+Use model's prediction ε_θ(x_t, t):
+
+    x̂_0 = (x_t - √(1-ᾱ_t)·ε_θ(x_t,t)) / √ᾱ_t    ... (★★)
+
+============================================================================
+걸음 5: 사후 평균에 x̂_0을 넣는다
+============================================================================
+
+Replace x_0 with x̂_0 in:
+    μ̃_t(x_t, x_0) = √ᾱ_{t-1}·β_t/(1-ᾱ_t)·x_0 + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)·x_t
+
+Becomes:
+    μ_θ(x_t,t) = √ᾱ_{t-1}·β_t/(1-ᾱ_t)·x̂_0 + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)·x_t
+
+Plug in x̂_0:
+    μ_θ = √ᾱ_{t-1}·β_t/(1-ᾱ_t) · [(x_t - √(1-ᾱ_t)·ε_θ)/√ᾱ_t] 
+          + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)·x_t
+
+Expand first term:
+    = [√ᾱ_{t-1}/(√ᾱ_t)] · [β_t/(1-ᾱ_t)] · [x_t - √(1-ᾱ_t)·ε_θ]
+    + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)·x_t
+
+Note: ᾱ_t = ᾱ_{t-1}·α_t, so √ᾱ_{t-1}/√ᾱ_t = 1/√α_t
+
+    = [1/√α_t] · [β_t/(1-ᾱ_t)] · [x_t - √(1-ᾱ_t)·ε_θ]
+    + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)·x_t
+
+    = [β_t/((1-ᾱ_t)√α_t)]·x_t - [β_t/(√α_t·√(1-ᾱ_t))]·ε_θ
+    + [√α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)]·x_t
+
+Combine x_t terms:
+    x_t coefficient = β_t/((1-ᾱ_t)√α_t) + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)
+                    = [1/((1-ᾱ_t)√α_t)] · [β_t + α_t(1-ᾱ_{t-1})]
+
+Key identity: 1 - ᾱ_t = 1 - α_t·ᾱ_{t-1} = (1-α_t) + α_t(1-ᾱ_{t-1})
+                       = β_t + α_t(1-ᾱ_{t-1})
+
+So: x_t coefficient = [1/((1-ᾱ_t)√α_t)] · (1-ᾱ_t) = 1/√α_t
+
+Final result:
+    μ_θ(x_t,t) = x_t/√α_t - [β_t/(√α_t·√(1-ᾱ_t))]·ε_θ(x_t,t)
+
+Factor out 1/√α_t:
+
+    ╔═══════════════════════════════════════════════════════════╗
+    ║  μ_θ(x_t,t) = 1/√α_t · (x_t - β_t/√(1-ᾱ_t)·ε_θ(x_t,t))    ║
+    ╚═══════════════════════════════════════════════════════════╝
+
+✓✓✓ Q.E.D. ✓✓✓
+
+이것이 뒤 퍼짐에 쓰는 공식이다!
+
+============================================================================
+직관의 풀이
+============================================================================
+
+μ_θ(x_t,t) = 1/√α_t · (x_t - β_t/√(1-ᾱ_t)·ε_θ(x_t,t))
+             └──┬──┘   └─────────┬─────────┘
+              잣수    헤아린 잡음 없애기
+
+1. Model predicts noise: ε_θ(x_t,t)
+2. 잡음의 잣수를 맞춘다: β_t/√(1-ᾱ_t)·ε_θ
+3. Remove from x_t: x_t - (scaled noise)
+4. 결과의 잣수를 다시 맞춘다: 1/√α_t을 곱한다
+
+Result: Our best estimate of x_{t-1}!
+
+============================================================================
+"""
+
+# ============================================================================
+# 모델: 잡음 없애는 신경망
+# ============================================================================
+
+class Simple2DModel(nn.Module):
+    """
+    어떤 때 걸음에서든 자료의 잡음을 헤아리는 핵심 잡음 없애기 신경망.
+    
+    구조:
+    -------------
+    Input: [noisy_data (2D), timestep_embedding (64D)]
+    Output: predicted_noise (2D)
+    
+    모델이 배우는 것: ε_θ(x_t, t) ≈ ε
+    
+    왜 (깨끗한 자료가 아니라) 잡음을 헤아리는가?
+    -----------------------------------
+    1. 잡음이 자료 갈래에 걸쳐 더 고르다
+    2. 모든 때 걸음에서 목표가 한결같다
+    3. 겪어 보니 표본 품질이 낫다
+    
+    CONDITIONING ON TIME:
+    ---------------------
+    Different timesteps need different strategies:
+    - 앞머리(t이 작음): 자료에 잡음이 거의 없다 → 작은 고침
+    - 뒷머리(t이 큼): 자료에 잡음이 많다 → 과감한 잡음 없애기
+    
+    신경망이 때에 따른 잡음 없애기 결을 배울 수 있도록
+    때 걸음을 64차원 벡터로 박아 넣는다.
+    """
+    
+    def __init__(self, hidden_dim: int = 128):
+        super().__init__()
+        
+        # 때 박아 넣기: 낱값 때 걸음 → 64차원 나타냄
+        self.time_embed = nn.Sequential(
+            nn.Linear(1, 64),
+            nn.SiLU(),  # SiLU(x) = x * 시그모이드(x)
+            nn.Linear(64, 64),
+        )
+        
+        # 으뜸 잡음 없애기 신경망: [2차원 자료 + 64차원 때] → 2차원 잡음
+        self.network = nn.Sequential(
+            nn.Linear(2 + 64, hidden_dim),  # 66 → 128
+            nn.SiLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.SiLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.SiLU(),
+            nn.Linear(hidden_dim, 2),  # 128 → 2(잡음 벡터)
+        )
+    
+    def forward(self, x: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
+        """
+        주어진 때 걸음에서 자료의 잡음을 헤아린다.
+        
+        인수:
+            x: Noisy 2D points, shape (batch_size, 2)
+            t: Timestep indices, shape (batch_size,)
+        
+        반환값:
+            predicted_noise: shape (batch_size, 2)
+        """
+        # 더 잘 배우도록 때 걸음을 [0, 1] 범위로 고르게 맞춘다
+        t_normalized = t.float().unsqueeze(-1) / 1000.0
+        
+        # 때 걸음을 풍부한 나타냄으로 박아 넣는다
+        t_emb = self.time_embed(t_normalized)  # (묶음, 1) → (묶음, 64)
+        
+        # 자료와 때 박아 넣기를 이어 붙인다
+        h = torch.cat([x, t_emb], dim=-1)  # (묶음, 66)
+        
+        # 잡음을 헤아린다
+        return self.network(h)  # (묶음, 2)
+
+# ============================================================================
+# 장난감 자료 묶음
+# ============================================================================
+
+def generate_swiss_roll(n_samples: int = 1000) -> torch.Tensor:
+    """
+    2차원 스위스 롤 나선 자료 묶음을 만든다.
+    
+    A spiral-shaped point cloud perfect for testing:
+    - Simple enough to visualize (2D)
+    - Complex enough to be interesting (non-linear)
+    - 모델이 굽은 다양체를 배울 수 있는지 시험한다
+    
+    Math: x = θ·cos(θ), y = θ·sin(θ), θ ∈ [0, 4π]
+    """
+    t = torch.linspace(0, 4 * np.pi, n_samples)
+    x = t * torch.cos(t)
+    y = t * torch.sin(t)
+    data = torch.stack([x, y], dim=1)
+    return data + torch.randn_like(data) * 0.1  # 작은 잡음을 더한다
+
+def generate_moons(n_samples: int = 1000) -> torch.Tensor:
+    """
+    서로 끼워진 초승달 모양 둘을 만든다.
+    시험하는 것: 여러 봉우리, 굽은 모양, 가깝지만 떨어진 짜임.
+    """
+    from sklearn.datasets import make_moons
+    data, _ = make_moons(n_samples=n_samples, noise=0.05)
+    return torch.tensor(data, dtype=torch.float32)
+
+# ============================================================================
+# 그려 보기
+# ============================================================================
+
+def visualize_2d_diffusion(data, timesteps, diffusion_params, num_steps=10):
+    """
+    자료가 어떻게 차츰 잡음이 되는지 그려 본다(앞 퍼짐).
+    
+    장면 10개를 보인다: 깨끗한 자료 → 일부 잡음 → 순수 잡음
+    직관을 쌓는 데 도움이 된다. 곧 이것이 우리가 거꾸로 돌리는 법을 배워야 할 것이다!
+    """
+    sqrt_alphas_cumprod = diffusion_params['sqrt_alphas_cumprod']
+    sqrt_one_minus_alphas_cumprod = diffusion_params['sqrt_one_minus_alphas_cumprod']
+    
+    time_steps = np.linspace(0, timesteps - 1, num_steps, dtype=int)
+    fig, axes = plt.subplots(2, 5, figsize=(15, 6))
+    axes = axes.flatten()
+
+    for idx, t in enumerate(time_steps):
+        # 닫힌 꼴 앞 퍼짐을 쓴다: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
+        noise = torch.randn_like(data)
+        t_tensor = torch.full((data.shape[0],), t)
+        x_t = forward_diffusion(data, t_tensor, noise, 
+                               sqrt_alphas_cumprod, 
+                               sqrt_one_minus_alphas_cumprod)
+        
+        axes[idx].scatter(x_t[:, 0].numpy(), x_t[:, 1].numpy(), 
+                         alpha=0.5, s=1)
+        axes[idx].set_title(f't = {t}')
+        axes[idx].set_xlim(-15, 15)
+        axes[idx].set_ylim(-15, 15)
+        axes[idx].set_aspect('equal')
+
+    plt.tight_layout()
+    plt.savefig('2d_forward_diffusion.png', dpi=150)
+    plt.close()
+    print("✓ Saved forward diffusion visualization")
+
+# ============================================================================
+# 익히기
+# ============================================================================
+
+def train_2d_diffusion(data, timesteps=100, epochs=1000, batch_size=128):
+    """
+    어떤 때 걸음에서든 잡음을 헤아리도록 모델을 익힌다.
+    
+    TRAINING OBJECTIVE:
+    -------------------
+    For each iteration:
+    1. 깨끗한 자료 x_0의 묶음을 뽑는다
+    2. 아무 때 걸음 t을 뽑는다
+    3. Add noise: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
+    4. Predict noise: ε_pred = model(x_t, t)
+    5. Loss: MSE(ε_pred, ε)
+    6. 뒤먹임 퍼뜨리고 고친다
+    
+    모든 때 걸음에서 잡음 헤아리는 법을 배우면 모델은 은근히
+    잡음 없애는 법을 배운다. 만들어 낼 때 이를 거듭 써서
+    잡음 → 자료로 바꾼다.
+    """
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    print(f"Training on {device}")
+
+    # 퍼짐 매개변수를 채비한다
+    betas = cosine_beta_schedule(timesteps)
+    diffusion_params = get_diffusion_parameters(betas)
+    for key in diffusion_params:
+        diffusion_params[key] = diffusion_params[key].to(device)
+    data = data.to(device)
+
+    # 모델과 가장 좋게 하개를 첫자리매김한다
+    model = Simple2DModel().to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+    losses = []
+    pbar = tqdm(range(epochs))
+
+    for epoch in pbar:
+        # 아무 묶음을 뽑는다
+        indices = torch.randint(0, len(data), (batch_size,))
+        x_0 = data[indices]
+        
+        # 아무 때 걸음을 뽑는다
+        t = torch.randint(0, timesteps, (batch_size,), device=device)
+        
+        # 손실을 셈한다(앞 퍼짐 + 잡음 헤아리기를 다룬다)
+        loss = get_loss(model, x_0, t, diffusion_params)
+        
+        # 최적화
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        
+        losses.append(loss.item())
+        pbar.set_description(f"Loss: {loss.item():.4f}")
+
+    # 익히기 나아감을 그린다
+    plt.figure(figsize=(10, 4))
+    plt.plot(losses)
+    plt.xlabel('Epoch')
+    plt.ylabel('Loss')
+    plt.title('Training Loss')
+    plt.savefig('2d_training_loss.png', dpi=150)
+    plt.close()
+    print("✓ Saved training loss plot")
+
+    return model, diffusion_params
+
+# ============================================================================
+# 뽑기(뒤 퍼짐)
+# ============================================================================
+
+@torch.no_grad()
+def sample_2d(model, n_samples, timesteps, diffusion_params, device="cpu"):
+    """
+    뒤 퍼짐으로 새 표본을 만든다(잡음 → 자료).
+    
+    알고리즘:
+    ----------
+    1. Start: x_T ~ N(0, I) [pure random noise]
+    2. For t = T, T-1, ..., 1:
+           ε_pred = model(x_t, t)                      # 잡음을 헤아린다
+           μ_θ = 1/√α_t · (x_t - β_t/√(1-ᾱ_t)·ε_pred)  # 평균을 셈한다
+           x_{t-1} = μ_θ + σ_t·z  (z ~ N(0,I))         # 작은 잡음을 더한다
+    3. End: x_0 [clean generated sample]
+    
+    THE REVERSE DIFFUSION FORMULA:
+    -------------------------------
+        x_{t-1} = 1/√α_t · (x_t - β_t/√(1-ᾱ_t)·ε_θ(x_t,t)) + σ_t·z
+                  └─────────────── μ_θ(x_t,t) ───────────┘  └─noise─┘
+    
+    BREAKDOWN:
+    ----------
+    1. ε_θ(x_t,t): 모델이 x_t의 잡음을 헤아린다
+    2. β_t/√(1-ᾱ_t)·ε_θ: 없앨 잡음의 잣수를 맞춘 것
+    3. x_t - [noise]: Remove estimated noise
+    4. 1/√α_t · [...]: Rescale for proper variance
+    5. σ_t·z: 다양함을 위해 다스린 작은 잡음을 더한다
+    
+    왜 잡음을 없애면서 잡음을 더하는가?
+    ------------------------------
+    - 없으면: 정해진 길, 다양함 없음, 봉우리 무너짐
+    - 있으면: 확률 길, 다양한 표본, 온전한 분포
+    - Key: noise added < noise removed, so net progress toward clean data!
+    
+    SPECIAL CASE:
+    -------------
+    At t=0 (final step), NO noise added: x_0 = μ_θ(x_1, 0)
+    이것이 마지막 깨끗한 만든 표본을 준다.
+    
+    EXAMPLE (one step):
+    -------------------
+    x_100 = [0.5, -0.3] (noisy)
+    ε_pred = [0.4, -0.2] (model's prediction)
+    μ_θ = [0.489, -0.295] (denoised mean)
+    z = [0.01, 0.02] (random noise)
+    x_99 = μ_θ + 0.05·z = [0.4905, -0.294] (slightly cleaner!)
+    """
+    model.eval()
+    
+    # 순수 잡음에서 시작한다
+    x_t = torch.randn(n_samples, 2, device=device)
+    
+    # 거듭 잡음을 없앤다: T → T-1 → ... → 1 → 0
+    for t in reversed(range(timesteps)):
+        t_tensor = torch.full((n_samples,), t, device=device, dtype=torch.long)
+        
+        # 잡음을 헤아린다
+        predicted_noise = model(x_t, t_tensor)
+        
+        # 이 때 걸음의 매개변수를 얻는다
+        beta_t = diffusion_params['betas'][t]
+        sqrt_recip_alpha_t = diffusion_params['sqrt_recip_alphas'][t]
+        sqrt_one_minus_alpha_cumprod_t = diffusion_params['sqrt_one_minus_alphas_cumprod'][t]
+        
+        # 잡음 없앤 평균을 셈한다: μ_θ = 1/√α_t·(x_t - β_t/√(1-ᾱ_t)·ε_θ)
+        mean = sqrt_recip_alpha_t * (
+            x_t - (beta_t / sqrt_one_minus_alpha_cumprod_t) * predicted_noise
+        )
+        
+        if t > 0:
+            # 다양함을 위해 다스린 잡음을 더한다
+            noise = torch.randn_like(x_t)
+            sigma = torch.sqrt(diffusion_params['posterior_variance'][t])
+            x_t = mean + sigma * noise
+        else:
+            # 마지막 걸음: 잡음을 더하지 않는다
+            x_t = mean
+    
+    return x_t  # x_0: 깨끗한 만든 표본
+
+def visualize_results(original_data, generated_data):
+    """본디 익히기 자료와 만든 표본을 견준다."""
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    
+    axes[0].scatter(original_data[:, 0].cpu().numpy(), 
+                   original_data[:, 1].cpu().numpy(), 
+                   alpha=0.5, s=10)
+    axes[0].set_title('Original Data')
+    axes[0].set_aspect('equal')
+    
+    axes[1].scatter(generated_data[:, 0].cpu().numpy(), 
+                   generated_data[:, 1].cpu().numpy(), 
+                   alpha=0.5, s=10, color='red')
+    axes[1].set_title('Generated Data')
+    axes[1].set_aspect('equal')
+    
+    plt.tight_layout()
+    plt.savefig('2d_comparison.png', dpi=150)
+    plt.close()
+    print("✓ Saved comparison plot")
+
+# ============================================================================
+# 으뜸 흐름
+# ============================================================================
+
+def main():
+    """
+    온전한 2차원 퍼짐 보여 주기.
+    
+    PIPELINE:
+    ---------
+    1. Generate toy 2D dataset (Swiss roll)
+    2. Visualize forward diffusion (data → noise)
+    3. 잡음을 헤아리도록 모델을 익힌다
+    4. Generate new samples (noise → data)
+    5. 본디 것과 만든 것을 견준다
+    """
+    print("=" * 50)
+    print("Simple 2D Diffusion Model Demo")
+    print("=" * 50)
+
+    # 1. 자료를 만든다
+    print("\n1. Generating Swiss roll data...")
+    data = generate_swiss_roll(n_samples=2000)
+    print(f"   ✓ Generated {len(data)} points")
+
+    # 2. 앞 퍼짐을 그려 본다
+    print("\n2. Visualizing forward diffusion...")
+    timesteps = 100
+    betas = cosine_beta_schedule(timesteps)
+    diffusion_params = get_diffusion_parameters(betas)
+    visualize_2d_diffusion(data, timesteps, diffusion_params)
+
+    # 3. 모델을 익힌다
+    print("\n3. Training diffusion model...")
+    model, diffusion_params = train_2d_diffusion(
+        data, timesteps=timesteps, epochs=2000, batch_size=256
+    )
+    print("   ✓ Training complete")
+
+    # 4. 표본을 만든다
+    print("\n4. Generating samples...")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    generated = sample_2d(model, 2000, timesteps, diffusion_params, device)
+    print(f"   ✓ Generated {len(generated)} samples")
+
+    # 5. 결과를 견준다
+    print("\n5. Comparing results...")
+    visualize_results(data, generated)
+
+    print("\n" + "=" * 50)
+    print("✓ Demo complete! Check generated images:")
+    print("  • 2d_forward_diffusion.png - Data dissolving into noise")
+    print("  • 2d_training_loss.png - Training progress")
+    print("  • 2d_comparison.png - Original vs Generated")
+    print("=" * 50)
+    
+    print("\nKEY TAKEAWAYS:")
+    print("  ✓ Forward: Add noise progressively (no learning)")
+    print("  ✓ Reverse: Remove noise progressively (learned)")
+    print("  ✓ Model predicts noise at any timestep")
+    print("  ✓ Generation: Noise → iterative denoising → data")
+    print("=" * 50)
+
+if __name__ == "__main__":
+    main()```
+
+## 논의
+
+단순한 퍼짐의 짜기는 이 마당에 자리 잡은 방식을 따른다. 코드 짜임이 모델 뜻매김과 익히기 논리를 갈라 놓아 부품을 하나씩 고치기 쉽다. 얼개 고르기는 만들어 내는 모델 무리가 많은 실험에서 얻은 배움을 담고 있다.
+
+이 짜기의 핵심에는 수치의 안정을 꼼꼼히 다루기, 고르게 맞추기 재주를 제대로 쓰기, 효율 좋은 셈 결이 든다. 익히기 절차에는 잡음 차례표, 기울기 다루기, 이따금의 따지기가 들며 모두 품질 높은 결과를 내는 데 결정적이다.
+
+이 단원은 이론의 개념이 실제 짜기로 어떻게 옮겨지는지 보이며 만들어 내는 모델의 더 넓은 틀과 이어진다. 여기서 보이는 재주는 만들어 내는 모델이 이룰 수 있는 것의 가장자리를 넓히는 더 앞선 변형과 넓힘을 이해하는 바탕이 된다.
+
+## 연습문제
+
+**연습문제 1.**
+구체적인 자료 묶음으로 이 단원의 으뜸 셈을 좇아라. 큰 걸음마다 텐서 꼴을 적고 모든 차원이 서로 맞는지 확인하라.
+
+??? success "연습문제 1 풀이"
+    모델에 알맞은 꼴의 들임 묶음에서 시작한다. 층이나 함수 부르기마다 셈을 따라가며 바뀜 뒤 텐서 꼴을 적는다. 겹말기 층에서는 내놓기 차원 공식을 쓴다. 눈길 얼개에서는 물음, 열쇠, 값의 차원이 맞는지 확인한다. 마지막 내놓기 꼴이 바라던 목표 차원과 맞는지 굳힌다. 이 익힘은 자료가 얼개를 어떻게 흐르는지에 대한 직관을 쌓아 준다.
+
+---
+
+**연습문제 2.**
+이 단원에 쓰인 손실 함수를 가려내고 모델 매개변수에 대한 기울기를 이끌어 내라. 왜 이 손실 함수가 이 일에 알맞은지 설명하라.
+
+??? success "연습문제 2 풀이"
+    손실 함수는 모델이 헤아린 값과 목표 사이의 어긋남을 잰다. 잡음 헤아리기에서는 평균 제곱 어긋남 손실 $\|\epsilon - \epsilon_\theta(x_t, t)\|^2$을 쓰는데, 이것이 로그 가능도의 변분 아래 한계에 맞물리기 때문이다. 매개변수 $\theta$에 대한 기울기는 $-2(\epsilon - \epsilon_\theta) \nabla_\theta \epsilon_\theta$이며 헤아림 어긋남을 줄이는 방향을 가리킨다. 이 손실을 가장 작게 하는 것이 퍼짐 모델에서 자료 로그 가능도의 아래 한계를 가장 크게 하는 것과 같으므로 알맞다.
+
+---
+
+**연습문제 3.**
+다른 잡음 차례표를 받쳐 주도록 이 짜기를 고쳐라(예컨대 선형에서 코사인으로, 또는 그 반대로). 두 차례표의 익히기 움직임과 표본 품질을 견주어라.
+
+??? success "연습문제 3 풀이"
+    두 차례표를 모두 짜고 각각으로 모델을 익힌다. $\bar{\alpha}_t = \cos^2\left(\frac{t/T + s}{1 + s} \cdot \frac{\pi}{2}\right)$으로 뜻매김한 코사인 차례표는 선형 차례표 $\beta_t = \beta_{\min} + t(\beta_{\max} - \beta_{\min})/T$에 견주어 잡음이 더 매끄럽게 늘어난다. 손실 곡선을 좇고 일정한 사이마다 표본을 만든다. 코사인 차례표는 신호 대 잡음비가 더 완만하게 줄어 때 걸음에 걸쳐 배움 신호가 더 고르므로 흔히 더 좋은 결과를 낸다.

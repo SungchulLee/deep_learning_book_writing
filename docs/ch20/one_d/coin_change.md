@@ -1,46 +1,46 @@
-# Coin Change
+# 동전 거스름
 
-The coin change problem asks for the minimum number of coins needed to make a given amount, drawn from a set of denominations.  Unlike greedy approaches that always pick the largest coin first (which can fail for arbitrary denominations), dynamic programming considers all possible choices and guarantees an optimal solution.  This problem illustrates how DP handles minimization with an unbounded number of choices per state.
+동전 거스름 문제는 주어진 액면가 모임에서 어떤 금액을 만드는 데 드는 가장 적은 동전 수를 묻는다. 늘 가장 큰 동전을 먼저 고르는 욕심쟁이 방식은 아무 액면가에서나 어긋날 수 있지만, 동적 짜기는 가능한 모든 고름을 살펴 가장 좋은 풀이를 보장한다. 이 문제는 상태마다 고름이 한정 없이 많을 때 동적 짜기가 가장 작게 하기를 어떻게 다루는지 보여 준다.
 
-## Problem Statement
+## 문제 서술
 
-Given an array $\text{coins}[0..k-1]$ of coin denominations and a target amount $n$, find the minimum number of coins that sum to $n$.  Each coin denomination can be used unlimited times.  If no combination sums to $n$, return $-1$.
+액면가 배열 $\text{coins}[0..k-1]$과 목표 금액 $n$이 주어질 때 합이 $n$이 되는 가장 적은 동전 수를 찾아라. 액면가마다 얼마든지 쓸 수 있다. 합이 $n$이 되는 조합이 없으면 $-1$을 돌려준다.
 
-**Example:** With $\text{coins} = [1, 3, 4]$ and $n = 6$, the answer is 2 (using two coins of value 3).
+**보기:** $\text{coins} = [1, 3, 4]$이고 $n = 6$이면 답은 2이다(값 3짜리 동전 둘).
 
-## Recurrence Derivation
+## 되돌이 관계식 이끌어 내기
 
-Let $dp[i]$ denote the minimum number of coins needed to make amount $i$.  To form amount $i$, we can use any coin $c$ with $c \le i$.  Using coin $c$ reduces the problem to making amount $i - c$, which requires $dp[i-c]$ coins.  Taking the minimum over all valid coins gives
+$dp[i]$을 금액 $i$을 만드는 데 드는 가장 적은 동전 수라 하자. 금액 $i$을 만들려면 $c \le i$인 아무 동전 $c$이나 쓸 수 있다. 동전 $c$을 쓰면 문제가 금액 $i - c$을 만드는 것으로 줄고 거기에는 $dp[i-c]$개가 든다. 쓸 수 있는 모든 동전에 걸쳐 가장 작은 것을 취하면 다음을 얻는다
 
 $$
 dp[i] = \min_{c \in \text{coins},\; c \le i} \bigl(dp[i - c] + 1\bigr) \quad \text{for } i \ge 1
 $$
 
-with base case
+바탕 경우는 다음과 같다
 
 $$
 dp[0] = 0
 $$
 
-since zero coins are needed to make amount 0.  If no coin fits (i.e., every coin exceeds $i$ or every $dp[i-c]$ is infinity), then $dp[i] = \infty$, indicating the amount is unreachable.
+금액 0을 만드는 데는 동전이 하나도 필요 없기 때문이다. 맞는 동전이 없으면(곧 모든 동전이 $i$을 넘거나 모든 $dp[i-c]$이 무한이면) $dp[i] = \infty$이며 그 금액에는 닿을 수 없다는 뜻이다.
 
-## Optimal Substructure
+## 가장 좋은 밑짜임
 
-Suppose an optimal solution uses coin $c$ as one of its coins, leaving amount $i - c$ to be covered.  The coins covering $i - c$ must themselves be an optimal solution for amount $i - c$.  Otherwise, substituting a better solution for $i - c$ would reduce the total coin count, contradicting optimality.
+가장 좋은 풀이가 동전 $c$을 하나로 쓰고 금액 $i - c$을 남긴다고 하자. $i - c$을 덮는 동전은 그 자체로 금액 $i - c$의 가장 좋은 풀이여야 한다. 그렇지 않다면 $i - c$의 더 나은 풀이로 갈음해 전체 동전 수를 줄일 수 있어 가장 좋음에 어긋난다.
 
-## Tabulation
+## 표 채우기
 
 ```python
 """
-Coin change: minimum number of coins to make a target amount.
+동전 거스름: 목표 금액을 만드는 가장 적은 동전 수.
 """
 
 
 # ===================================================================
-# Approach 1: Tabulation (bottom-up)
+# 방식 1: 표 채우기(아래에서 위로)
 # ===================================================================
 def coin_change(coins: list[int], amount: int) -> int:
-    """Minimum coins for amount. Time: O(amount * k), Space: O(amount)."""
+    """금액에 드는 가장 적은 동전 수. 시간: O(amount * k), 공간: O(amount)."""
     dp = [float("inf")] * (amount + 1)
     dp[0] = 0
 
@@ -52,18 +52,18 @@ def coin_change(coins: list[int], amount: int) -> int:
     return dp[amount] if dp[amount] != float("inf") else -1
 ```
 
-The outer loop runs $n$ times and the inner loop runs $k$ times (number of denominations), giving time complexity $O(nk)$ and space complexity $O(n)$.
+바깥 되풀이가 $n$번, 안쪽 되풀이가 $k$번(액면가의 수) 돌아 시간 복잡도는 $O(nk)$, 공간 복잡도는 $O(n)$이다.
 
-## Reconstructing the Solution
+## 풀이 다시 세우기
 
-To find which coins are used, track the coin chosen at each amount:
+어떤 동전을 썼는지 알려면 금액마다 고른 동전을 좇는다:
 
 ```python
 # ===================================================================
-# Approach 2: With reconstruction
+# 방식 2: 다시 세우기 곁들임
 # ===================================================================
 def coin_change_with_coins(coins: list[int], amount: int) -> tuple[int, list[int]]:
-    """Return minimum count and the actual coins used."""
+    """가장 적은 수와 실제로 쓴 동전을 돌려준다."""
     dp = [float("inf")] * (amount + 1)
     choice = [-1] * (amount + 1)
     dp[0] = 0
@@ -77,7 +77,7 @@ def coin_change_with_coins(coins: list[int], amount: int) -> tuple[int, list[int
     if dp[amount] == float("inf"):
         return -1, []
 
-    # Backtrack
+    # 되짚기
     result = []
     remaining = amount
     while remaining > 0:
@@ -86,29 +86,29 @@ def coin_change_with_coins(coins: list[int], amount: int) -> tuple[int, list[int
     return dp[amount], result
 ```
 
-## Why Greedy Fails
+## 욕심쟁이가 어긋나는 까닭
 
-For some denomination sets, a greedy algorithm (always choosing the largest coin that fits) does not produce the minimum number of coins.
+어떤 액면가 모임에서는 욕심쟁이 알고리즘(늘 들어맞는 가장 큰 동전을 고르는 것)이 가장 적은 동전 수를 내지 못한다.
 
-**Example:** With $\text{coins} = [1, 3, 4]$ and $n = 6$:
+**보기:** $\text{coins} = [1, 3, 4]$이고 $n = 6$일 때:
 
-- Greedy: pick 4, then 1, then 1 — total 3 coins.
-- Optimal: pick 3, then 3 — total 2 coins.
+- 욕심쟁이: 4, 1, 1을 골라 모두 3개.
+- 가장 좋음: 3, 3을 골라 모두 2개.
 
-The greedy approach fails because picking the largest coin first may preclude a better combination.  Dynamic programming avoids this by evaluating all choices.
+가장 큰 동전을 먼저 고르면 더 나은 조합이 막힐 수 있어 욕심쟁이가 어긋난다. 동적 짜기는 모든 고름을 따져 이를 피한다.
 
-## Complexity
+## 복잡도
 
-| Aspect | Value |
+| 갈래 | 값 |
 |--------|-------|
-| Time | $O(nk)$ where $k = |\text{coins}|$ |
-| Space | $O(n)$ |
-| Subproblems | $n + 1$ |
-| Choices per subproblem | $k$ |
+| 시간 | $k = |\text{coins}|$일 때 $O(nk)$ |
+| 공간 | $O(n)$ |
+| 아래 문제 | $n + 1$ |
+| 아래 문제마다의 고름 | $k$ |
 
 ```python
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 if __name__ == "__main__":
     test_cases = [
@@ -121,16 +121,48 @@ if __name__ == "__main__":
         print(f"coins={coins}, amount={amount} -> {count} coins: {used}")
 ```
 
-**Output:**
+**출력:**
 ```
 coins=[1, 3, 4], amount=6 -> 2 coins: [3, 3]
 coins=[1, 5, 10, 25], amount=30 -> 2 coins: [5, 25]
 coins=[2], amount=3 -> -1 coins: []
 ```
 
-!!! tip "Counting combinations vs minimum coins"
-    A related problem asks for the **number of ways** to make amount $n$ (not the minimum coins).  That variant uses a different recurrence — additive rather than min — and requires care to avoid counting permutations of the same combination.
+!!! tip "조합 세기와 가장 적은 동전 수"
+    이와 닮은 문제는 금액 $n$을 만드는 **가짓수**를 묻는다(가장 적은 동전 수가 아니라). 그 변형은 최솟값이 아니라 덧셈을 쓰는 다른 되돌이 관계식을 쓰며, 같은 조합의 자리 바꿈을 겹쳐 세지 않도록 조심해야 한다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 14. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+동전 거스름의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+동전 거스름의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+동전 거스름의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+동전 거스름의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

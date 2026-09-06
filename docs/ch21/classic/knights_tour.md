@@ -1,59 +1,59 @@
-# Knight's Tour
+# 기사의 여행
 
-A chess knight moves in an "L" shape: two squares in one direction and one square perpendicular. The **knight's tour** problem asks whether a knight can visit every square on an $n \times n$ chessboard exactly once. This classical problem provides an elegant application of backtracking with a powerful heuristic — Warnsdorff's rule — that transforms an exponential search into a near-linear one for practical board sizes.
+체스의 기사는 "L" 꼴로 움직인다. 곧 한 방향으로 두 칸, 그에 직각으로 한 칸이다. **기사의 여행** 문제는 기사가 $n \times n$ 체스판의 모든 칸을 꼭 한 번씩 들를 수 있는지 묻는다. 이 고전 문제는 되짚기에 바른스도르프 규칙이라는 힘 있는 어림짐작을 곁들여, 실제 판 크기에서 지수 찾기를 거의 선형으로 바꾸는 산뜻한 쓰임새를 보여 준다.
 
-## Problem Statement
+## 문제 서술
 
-Given an $n \times n$ board and a starting position $(r_0, c_0)$, find a sequence of knight moves that visits all $n^2$ squares exactly once. A **closed tour** returns to the starting square; an **open tour** ends on any square.
+$n \times n$ 판과 출발 자리 $(r_0, c_0)$이 주어질 때 $n^2$개 칸을 꼭 한 번씩 들르는 기사의 움직임 차례를 찾아라. **닫힌 여행**은 출발 칸으로 돌아오고 **열린 여행**은 아무 칸에서나 끝난다.
 
-The eight possible knight moves from position $(r, c)$ are:
+자리 $(r, c)$에서 기사가 갈 수 있는 여덟 자리는 다음과 같다:
 
 $$
 (r \pm 1, c \pm 2) \quad \text{and} \quad (r \pm 2, c \pm 1)
 $$
 
-## Backtracking Solution
+## 되짚기 풀이
 
-The brute-force approach tries all valid moves from the current position:
+막무가내 방식은 지금 자리에서 갈 수 있는 모든 곳을 시험한다:
 
-1. Mark the current square as visited.
-2. For each of the (up to) 8 possible next squares:
-    - If the square is on the board and unvisited, recurse.
-3. If all $n^2$ squares are visited, the tour is complete.
-4. If no move leads to a solution, **backtrack**: unmark the current square and return.
+1. 지금 칸을 들른 것으로 표시한다.
+2. 다음에 갈 수 있는 (최대) 8개 칸마다:
+    - 그 칸이 판 안에 있고 아직 들르지 않았으면 되돌이한다.
+3. $n^2$개 칸을 모두 들렀으면 여행이 끝난 것이다.
+4. 어떤 움직임도 풀이로 이어지지 않으면 **되짚는다**. 곧 지금 칸의 표시를 지우고 돌아간다.
 
-The search tree has branching factor up to 8 and depth $n^2$, giving worst-case $O(8^{n^2})$ — impractical without pruning.
+찾기 나무의 갈래 수는 최대 8, 깊이는 $n^2$이라 최악의 경우 $O(8^{n^2})$이며 가지치기 없이는 쓸 수 없다.
 
-## Warnsdorff's Rule
+## 바른스도르프 규칙
 
-Warnsdorff's rule is a greedy heuristic that dramatically reduces the search space:
+바른스도르프 규칙은 찾기 공간을 크게 줄이는 욕심쟁이 어림짐작이다:
 
-!!! tip "Warnsdorff's Rule"
-    At each step, move to the neighboring square with the **fewest onward moves** (i.e., the smallest degree in the remaining graph). Ties are broken arbitrarily.
+!!! tip "바른스도르프 규칙"
+    걸음마다 **앞으로 갈 곳이 가장 적은** 이웃 칸으로 옮긴다(곧 남은 그래프에서 차수가 가장 작은 칸). 같으면 아무렇게나 고른다.
 
-This "most constrained first" heuristic works because visiting constrained squares early avoids dead ends later. For boards up to about $76 \times 76$, Warnsdorff's rule almost always finds a tour without backtracking.
+이 "제약이 많은 것 먼저" 어림짐작이 통하는 까닭은 제약이 많은 칸을 일찍 들러야 나중에 막다른 길을 피하기 때문이다. 대략 $76 \times 76$까지의 판에서는 바른스도르프 규칙이 되짚기 없이 거의 언제나 여행길을 찾는다.
 
-## Complexity
+## 복잡도
 
-| Aspect | Value |
+| 갈래 | 값 |
 |---|---|
-| Brute force | $O(8^{n^2})$ worst case |
-| With Warnsdorff's | Near $O(n^2)$ in practice |
-| Space | $O(n^2)$ for the board |
-| Existence | Tours exist for all $n \ge 5$ |
+| 막무가내 | 최악의 경우 $O(8^{n^2})$ |
+| 바른스도르프를 쓰면 | 실전에서 $O(n^2)$에 가깝다 |
+| 공간 | 판에 $O(n^2)$ |
+| 있음 | $n \ge 5$이면 늘 여행길이 있다 |
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Knight's Tour — Backtracking with Warnsdorff's Heuristic.
+기사의 여행 — 바른스도르프 어림짐작을 곁들인 되짚기.
 
-Finds a knight's tour on an n x n board using backtracking,
-optionally accelerated by Warnsdorff's rule.
+되짚기로 n x n 판의 기사 여행길을 찾으며,
+바른스도르프 규칙으로 빠르게 할 수도 있다.
 """
 
 
-# === Knight Moves ===
+# === 기사의 움직임 ===
 
 MOVES = [
     (-2, -1), (-2, 1), (-1, -2), (-1, 2),
@@ -61,15 +61,15 @@ MOVES = [
 ]
 
 
-# === Utility Functions ===
+# === 도움 함수 ===
 
 def is_valid(r: int, c: int, n: int, board: list[list[int]]) -> bool:
-    """Check if position (r, c) is on the board and unvisited."""
+    """자리 (r, c)이 판 안에 있고 아직 들르지 않았는지 살핀다."""
     return 0 <= r < n and 0 <= c < n and board[r][c] == -1
 
 
 def count_onward_moves(r: int, c: int, n: int, board: list[list[int]]) -> int:
-    """Count valid onward moves from position (r, c)."""
+    """자리 (r, c)에서 앞으로 갈 수 있는 곳의 수를 센다."""
     count = 0
     for dr, dc in MOVES:
         if is_valid(r + dr, c + dc, n, board):
@@ -77,17 +77,17 @@ def count_onward_moves(r: int, c: int, n: int, board: list[list[int]]) -> int:
     return count
 
 
-# === Backtracking with Warnsdorff's Rule ===
+# === 바른스도르프 규칙을 곁들인 되짚기 ===
 
 def knights_tour(n: int, start_r: int = 0, start_c: int = 0) -> list[list[int]] | None:
-    """Find a knight's tour on an n x n board.
+    """n x n 판의 기사 여행길을 찾는다.
 
-    Args:
-        n: Board size.
-        start_r, start_c: Starting position.
+    인수:
+        n: 판의 크기.
+        start_r, start_c: 출발 자리.
 
-    Returns:
-        Board with move numbers (0 to n^2-1), or None if no tour exists.
+    반환값:
+        움직임 번호(0부터 n^2-1까지)가 든 판, 여행길이 없으면 None.
     """
     board = [[-1] * n for _ in range(n)]
     board[start_r][start_c] = 0
@@ -96,7 +96,7 @@ def knights_tour(n: int, start_r: int = 0, start_c: int = 0) -> list[list[int]] 
         if move_num == n * n:
             return True
 
-        # Get valid next moves, sorted by Warnsdorff's rule
+        # 갈 수 있는 다음 자리를 바른스도르프 규칙으로 정렬해 얻는다
         next_moves = []
         for dr, dc in MOVES:
             nr, nc = r + dr, c + dc
@@ -104,7 +104,7 @@ def knights_tour(n: int, start_r: int = 0, start_c: int = 0) -> list[list[int]] 
                 onward = count_onward_moves(nr, nc, n, board)
                 next_moves.append((onward, nr, nc))
 
-        next_moves.sort()  # fewest onward moves first
+        next_moves.sort()  # 앞으로 갈 곳이 가장 적은 것 먼저
 
         for _, nr, nc in next_moves:
             board[nr][nc] = move_num
@@ -119,17 +119,17 @@ def knights_tour(n: int, start_r: int = 0, start_c: int = 0) -> list[list[int]] 
     return None
 
 
-# === Display Board ===
+# === 판 보이기 ===
 
 def print_board(board: list[list[int]]) -> None:
-    """Print the board with move numbers."""
+    """움직임 번호와 함께 판을 찍는다."""
     n = len(board)
     width = len(str(n * n - 1))
     for row in board:
         print(" ".join(str(cell).rjust(width) for cell in row))
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     n = 6
@@ -141,9 +141,9 @@ if __name__ == "__main__":
         print(f"No tour found for {n}x{n} board")
 ```
 
-## Worked Example
+## 풀이 예제
 
-On a $5 \times 5$ board starting at $(0, 0)$, one valid tour (move numbers):
+$(0, 0)$에서 시작하는 $5 \times 5$ 판에서 옳은 여행길 하나(움직임 번호):
 
 ```
  0 11  8 19 16
@@ -153,9 +153,41 @@ On a $5 \times 5$ board starting at $(0, 0)$, one valid tour (move numbers):
 24 13  4 21 14
 ```
 
-The knight starts at the top-left (move 0), visits all 25 squares, and ends at $(4, 0)$ (move 24). This is an open tour since move 24 is not a knight's move away from move 0.
+기사는 왼쪽 위(움직임 0)에서 시작해 25개 칸을 모두 들르고 $(4, 0)$(움직임 24)에서 끝난다. 움직임 24가 움직임 0에서 기사의 한 걸음이 아니므로 열린 여행이다.
 
-## Reference
+## 참고 문헌
 
 - Skiena, S. S. (2020). *The Algorithm Design Manual* (3rd ed.), Chapter 9. Springer.
 - Warnsdorff, H. C. (1823). *Des Rosselsprunges einfachste und allgemeinste Losung*.
+
+## 연습문제
+
+**연습문제 1.**
+기사의 여행의 고갱이 생각과 그것이 풀이 공간을 어떻게 짜임새 있게 살피는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    기사의 여행은 풀이 공간을 나무로 보고 살피며 마디마다 어중간한 풀이를 뜻한다. 마디마다 알고리즘은 어중간한 풀이를 넓히고 될 수 있는지 제약을 살핀다. 어중간한 풀이가 제약을 어기거나 (가장 좋거나 옳은 온전한 풀이로 이어질 수 없음이 밝혀지면) 알고리즘은 **가지를 쳐**(되짚어) 그 아래 나무 전체를 살피지 않는다. 가지치기가 찾기 공간의 큰 몫을 없애므로 막무가내보다 효율이 좋다. $\square$
+
+---
+
+**연습문제 2.**
+기사의 여행의 최악의 경우 시간 복잡도는 무엇인가? 가지치기는 언제 찾기 공간을 크게 줄이는가?
+
+??? success "연습문제 2 풀이"
+    최악의 경우(가지치기가 없으면) 알고리즘이 풀이 공간 전체를 살피며 이는 흔히 지수나 계승이다. 곧 갈래 수가 $b$이고 깊이가 $d$이면 $O(b^d)$, 자리 바꿈 문제이면 $O(n!)$이다. 가지치기는 다음일 때 찾기를 크게 줄인다. (1) 제약이 빡빡해 될 수 없는 갈래가 많을 때, (2) 좋은 묶음이 갈래를 일찍 없앨 때, (3) 차례를 매기는 어림짐작이 그럴듯한 갈래를 먼저 살필 때이다. 실전에서 가지치기는 도는 시간을 자릿수만큼 줄일 수 있다. $\square$
+
+---
+
+**연습문제 3.**
+기사의 여행의 가지치기 조건을 적어라. 무엇이 좋은 가지치기 잣대를 만드는가?
+
+??? success "연습문제 3 풀이"
+    가지치기 잣대는 어중간한 풀이를 언제 버릴지 정한다. 좋은 잣대는 다음과 같다. (1) **될 수 있음**: 어중간한 풀이가 이미 제약을 어긴다. (2) **묶음**: 어중간한 풀이를 가장 좋게 마무리해도 여태 가장 좋은 풀이보다 나을 수 없다. (3) **누름**: 다른 어중간한 풀이가 적어도 그만큼 좋음이 밝혀진다. 잘 듣는 가지치기 잣대는 따지기 값싸고 큰 아래 나무를 없앤다. $\square$
+
+---
+
+**연습문제 4.**
+작은 경우에 기사의 여행을 짜고 살핀 마디의 수를 전체 찾기 공간의 크기와 견주어 세어라.
+
+??? success "연습문제 4 풀이"
+    작은 경우(예컨대 N-여왕에서 $n = 8$, 배낭에서 담이 20)에는 전체 찾기 공간에 마디가 수백만 개일 수 있지만 가지치기가 잘 들면 수천 개만 살핀다. (살핀 수 / 전체) 비가 가지치기가 얼마나 잘 드는지 값으로 나타낸다. 제약이 잘 걸린 문제에서는 이 비가 1% 아래일 수 있어 되짚기가 막무가내보다 힘이 셈을 보여 준다. $\square$

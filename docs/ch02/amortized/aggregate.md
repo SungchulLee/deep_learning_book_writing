@@ -1,88 +1,88 @@
-# Aggregate Method
+# 총계 방법
 
-When analyzing algorithms, worst-case analysis of individual operations can be overly pessimistic. A single expensive operation does not mean every operation is expensive. The aggregate method is the simplest form of amortized analysis: it computes the total cost of an entire sequence of $n$ operations and divides by $n$ to obtain a per-operation average. This average, called the amortized cost, provides a tighter bound on performance than naive worst-case analysis.
+알고리즘을 분석할 때 개별 연산에 대한 최악의 경우 분석은 지나치게 비관적일 수 있다. 비싼 연산이 하나 있다고 해서 모든 연산이 비싼 것은 아니다. 총계 방법(aggregate method)은 분할 상환 분석의 가장 단순한 형태이다. $n$개 연산으로 이루어진 수열 전체의 비용을 계산한 뒤 $n$으로 나누어 연산당 평균을 얻는다. 분할 상환 비용이라 불리는 이 평균은 소박한 최악의 경우 분석보다 성능에 대해 더 조인 경계를 제공한다.
 
-## Definition
+## 정의
 
-Given a sequence of $n$ operations with individual actual costs $c_1, c_2, \ldots, c_n$, the **amortized cost per operation** under the aggregate method is:
+개별 실제 비용이 $c_1, c_2, \ldots, c_n$인 $n$개 연산의 수열이 주어졌을 때, 총계 방법에 따른 **연산당 분할 상환 비용** 은 다음과 같다.
 
 $$
 \hat{c} = \frac{1}{n} \sum_{i=1}^{n} c_i
 $$
 
-The aggregate method assigns the same amortized cost $\hat{c}$ to every operation, regardless of whether a particular operation is cheap or expensive. This distinguishes it from the accounting and potential methods, which can assign different amortized costs to different operations.
+총계 방법은 특정 연산이 싸든 비싸든 관계없이 모든 연산에 같은 분할 상환 비용 $\hat{c}$를 배정한다. 이 점이 서로 다른 연산에 서로 다른 분할 상환 비용을 배정할 수 있는 회계 방법이나 퍼텐셜 방법과 다른 점이다.
 
-## When to Use It
+## 언제 쓰는가
 
-The aggregate method works best when:
+총계 방법은 다음 경우에 가장 잘 맞는다.
 
-- All operations are of the same type (so a uniform cost makes sense).
-- The total cost over $n$ operations has a clean closed-form expression.
-- You need a quick upper bound without tracking per-element credit or defining a potential function.
+- 모든 연산이 같은 종류여서 균일한 비용을 매기는 것이 말이 될 때.
+- $n$개 연산의 전체 비용이 깔끔한 닫힌 형태로 표현될 때.
+- 원소별 신용을 추적하거나 퍼텐셜 함수를 정의하지 않고 빠르게 상계를 얻고 싶을 때.
 
-Its main limitation is the uniform assignment: if different operation types have genuinely different average costs, the accounting or potential methods provide a more precise analysis.
+주된 한계는 균일한 배정이다. 서로 다른 종류의 연산이 진짜로 다른 평균 비용을 가진다면 회계 방법이나 퍼텐셜 방법이 더 정밀한 분석을 제공한다.
 
-## Example: Stack with Multipop
+## 예: Multipop이 있는 스택
 
-Consider a stack that supports `PUSH`, `POP`, and `MULTIPOP(k)`. The `MULTIPOP(k)` operation pops $\min(k, s)$ elements from a stack of size $s$, costing $\min(k, s)$ time.
+`PUSH`, `POP`, `MULTIPOP(k)`를 지원하는 스택을 생각하자. `MULTIPOP(k)` 연산은 크기 $s$인 스택에서 $\min(k, s)$개의 원소를 꺼내며 $\min(k, s)$의 시간이 든다.
 
-**Naive worst-case analysis:** A single `MULTIPOP` can cost $O(n)$, so $n$ operations could cost $O(n^2)$.
+**소박한 최악의 경우 분석:** `MULTIPOP` 한 번이 $O(n)$이 될 수 있으므로 $n$개 연산은 $O(n^2)$이 될 수 있다.
 
-**Aggregate analysis:** Observe that each element can be popped at most once for each time it is pushed. Over $n$ operations, the total number of pushes is at most $n$, so the total number of pops (across all `POP` and `MULTIPOP` calls) is also at most $n$. Therefore:
+**총계 분석:** 각 원소는 밀어 넣어진 횟수마다 많아야 한 번 꺼내진다는 점에 주목하자. $n$개 연산 동안 밀어 넣기의 총 횟수는 많아야 $n$이므로, (모든 `POP`과 `MULTIPOP` 호출을 통틀어) 꺼내기의 총 횟수도 많아야 $n$이다. 따라서
 
 $$
 \sum_{i=1}^{n} c_i \leq 2n
 $$
 
-The amortized cost per operation is:
+연산당 분할 상환 비용은
 
 $$
 \hat{c} = \frac{2n}{n} = 2 = O(1)
 $$
 
-Even though a single `MULTIPOP` can cost $O(n)$, the amortized cost per operation is $O(1)$.
+`MULTIPOP` 한 번이 $O(n)$이 될 수 있음에도 연산당 분할 상환 비용은 $O(1)$이다.
 
-## Example: Binary Counter
+## 예: 이진 계수기
 
-Consider a $k$-bit binary counter that supports only the `INCREMENT` operation. Each increment flips some bits from 0 to 1 and from 1 to 0.
+`INCREMENT` 연산만 지원하는 $k$비트 이진 계수기를 생각하자. 매번 증가할 때마다 어떤 비트들이 0에서 1로, 또 1에서 0으로 뒤집힌다.
 
-**Naive worst-case analysis:** A single increment can flip up to $k$ bits (e.g., incrementing $0111\ldots1$ to $1000\ldots0$), so $n$ increments could cost $O(nk)$.
+**소박한 최악의 경우 분석:** 한 번의 증가가 최대 $k$개의 비트를 뒤집을 수 있으므로($0111\ldots1$을 $1000\ldots0$으로 증가시키는 경우) $n$번의 증가는 $O(nk)$가 될 수 있다.
 
-**Aggregate analysis:** Count how many times each bit position flips over $n$ increments:
+**총계 분석:** $n$번의 증가 동안 각 비트 자리가 몇 번 뒤집히는지 세어 보자.
 
-- Bit 0 (least significant) flips every increment: $n$ times
-- Bit 1 flips every 2nd increment: $\lfloor n/2 \rfloor$ times
-- Bit 2 flips every 4th increment: $\lfloor n/4 \rfloor$ times
-- Bit $j$ flips every $2^j$-th increment: $\lfloor n / 2^j \rfloor$ times
+- 0번 비트(최하위)는 매번 뒤집힌다: $n$번
+- 1번 비트는 두 번마다 뒤집힌다: $\lfloor n/2 \rfloor$번
+- 2번 비트는 네 번마다 뒤집힌다: $\lfloor n/4 \rfloor$번
+- $j$번 비트는 $2^j$번마다 뒤집힌다: $\lfloor n / 2^j \rfloor$번
 
-The total number of bit flips is:
+전체 비트 뒤집기 횟수는
 
 $$
 \sum_{j=0}^{k-1} \left\lfloor \frac{n}{2^j} \right\rfloor < n \sum_{j=0}^{\infty} \frac{1}{2^j} = 2n
 $$
 
-The amortized cost per increment is:
+증가당 분할 상환 비용은
 
 $$
 \hat{c} = \frac{2n}{n} = 2 = O(1)
 $$
 
-## Python Example
+## 파이썬 예제
 
 ```python
 """
-Aggregate method demonstration for a binary counter.
+이진 계수기에 대한 총계 방법 시연.
 
-Counts the total number of bit flips across n increments
-and verifies that the amortized cost per increment is O(1).
+n번의 증가 동안 전체 비트 뒤집기 횟수를 세어
+증가당 분할 상환 비용이 O(1)임을 확인한다.
 """
 
 
 # ===================================================================
-# Binary Counter with Cost Tracking
+# 비용을 추적하는 이진 계수기
 # ===================================================================
 class BinaryCounter:
-    """Binary counter that tracks total bit-flip cost."""
+    """전체 비트 뒤집기 비용을 추적하는 이진 계수기."""
 
     def __init__(self, num_bits):
         self.bits = [0] * num_bits
@@ -90,30 +90,30 @@ class BinaryCounter:
         self.total_flips = 0
 
     def increment(self):
-        """Increment the counter by 1, tracking bit flips."""
+        """계수기를 1 증가시키며 비트 뒤집기를 추적한다."""
         flips = 0
         i = 0
         while i < self.num_bits and self.bits[i] == 1:
-            self.bits[i] = 0  # flip 1 -> 0
+            self.bits[i] = 0  # 1 -> 0 뒤집기
             flips += 1
             i += 1
         if i < self.num_bits:
-            self.bits[i] = 1  # flip 0 -> 1
+            self.bits[i] = 1  # 0 -> 1 뒤집기
             flips += 1
         self.total_flips += flips
         return flips
 
     def value(self):
-        """Return the current counter value."""
+        """현재 계수기 값을 반환한다."""
         return sum(b * (2 ** i) for i, b in enumerate(self.bits))
 
 
 # ===================================================================
-# Demonstration
+# 시연
 # ===================================================================
 if __name__ == "__main__":
-    k = 8  # number of bits
-    n = 100  # number of increments
+    k = 8  # 비트 수
+    n = 100  # 증가 횟수
     counter = BinaryCounter(k)
 
     print(f"{'Step':>5} {'Value':>6} {'Flips':>6} {'Total':>6} {'Amortized':>10}")
@@ -133,19 +133,52 @@ if __name__ == "__main__":
     print(f"Upper bound (2n):     {2 * n}")
 ```
 
-## Comparison with Other Methods
+## 다른 방법과의 비교
 
-The aggregate method is the simplest of the three amortized analysis techniques:
+총계 방법은 세 가지 분할 상환 분석 기법 중 가장 단순하다.
 
-| Aspect | Aggregate | Accounting | Potential |
+| 측면 | 총계 | 회계 | 퍼텐셜 |
 |--------|-----------|------------|-----------|
-| Cost assignment | Uniform $\hat{c}$ for all operations | Different $\hat{c}_i$ per operation type | Derived from $\Phi$ changes |
-| Main tool | Total cost formula | Per-element credit | Potential function |
-| Flexibility | Low | Medium | High |
-| Typical use case | Single operation type | Credit on elements | Complex state changes |
+| 비용 배정 | 모든 연산에 균일한 $\hat{c}$ | 연산 종류마다 다른 $\hat{c}_i$ | $\Phi$의 변화로부터 유도 |
+| 주된 도구 | 전체 비용 공식 | 원소별 신용 | 퍼텐셜 함수 |
+| 유연성 | 낮음 | 중간 | 높음 |
+| 전형적인 용도 | 연산 종류가 하나 | 원소에 신용 부여 | 복잡한 상태 변화 |
 
-For problems where different operations need different amortized costs, the accounting method or potential method provides a more refined analysis.
+서로 다른 연산에 서로 다른 분할 상환 비용이 필요한 문제에서는 회계 방법이나 퍼텐셜 방법이 더 정교한 분석을 제공한다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 16: Amortized Analysis. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+총계 방법에서 설명한 방법을 사용하여 $n$개 연산의 수열을 분석하고 연산당 분할 상환 비용을 구하라.
+
+??? success "연습문제 1 풀이"
+    이 절의 구체적인 기법(총계, 회계, 퍼텐셜)을 적용하여 $n$개 연산의 전체 비용에 상계를 준다. 이를 $n$으로 나누면 연산당 분할 상환 비용을 얻는다. 핵심 통찰은 비싼 연산이 충분히 드물어서 그 비용이 수많은 싼 연산에 흩어진다는 것이다.
+
+---
+
+**연습문제 2.**
+총계 방법의 분할 상환 패턴, 즉 싼 연산들이 이따금 비싼 연산 하나를 촉발하는 패턴에 대응하는 딥러닝 상황을 찾아라.
+
+??? success "연습문제 2 풀이"
+    예로는 경사 누적(싼 마이크로배치 순전파, 비싼 매개변수 갱신), 모델 체크포인팅(싼 학습 단계, 비싼 저장), 동적 배치에서의 해시 테이블 크기 조정(싼 삽입, 비싼 재해싱)이 있다. 이따금 비싼 연산이 있어도 단계당 분할 상환 비용은 일정하게 유지된다.
+
+---
+
+**연습문제 3.**
+총계 방법으로 유도한 분할 상환 경계가 꽉 조여 있음을, 그 경계를 달성하는 연산 수열을 구성하여 증명하라.
+
+??? success "연습문제 3 풀이"
+    전체 실제 비용을 연산 횟수로 나눈 비를 최대화하는 수열을 구성한다. 보통 퍼텐셜을 쌓는 연산과 그것을 방출하는 연산을 번갈아 수행하는 형태가 된다. 이 구성으로 분할 상환 경계를 더 개선할 수 없음이 확인된다. $\square$
+
+---
+
+**연습문제 4.**
+총계 방법의 분할 상환 분석을 최악의 경우 분석과 비교하라. 분할 상환 경계는 최악의 경우보다 몇 배나 개선되는가?
+
+??? success "연습문제 4 풀이"
+    최악의 경우 분석은 비싼 연산 앞에 싼 연산이 많이 온다는 사실을 무시하고 각 연산에 가능한 최대 비용을 부과한다. 개선 배수는 최악의 경우 비용을 분할 상환 비용으로 나눈 값이다. 전형적인 자료구조에서는 $O(n)$ 대 $O(1)$로 $n$배 개선된다.

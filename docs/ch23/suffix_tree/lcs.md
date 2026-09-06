@@ -1,52 +1,52 @@
 # Longest Common Substring
 
-Finding the longest string that appears as a contiguous substring of two or more given strings is a fundamental problem with applications in bioinformatics (comparing DNA sequences), plagiarism detection, and data deduplication. The naive approach of checking all pairs of substrings takes $O(n^2 m)$ time for two strings of lengths $n$ and $m$. Using suffix trees or suffix arrays, the problem can be solved in $O(n + m)$ time. This section presents both the suffix tree approach and the suffix array approach.
+주어진 글줄 둘 이상에 잇닿은 부분 글줄로 나오는 가장 긴 글줄을 찾는 것은 생물정보학(DNA 차례 견주기), 표절 알아내기, 자료 겹침 없애기에 쓰이는 바탕 문제이다. 부분 글줄 짝을 모두 살피는 막무가내 방식은 길이 $n$과 $m$인 글줄 둘에 $O(n^2 m)$이 든다. 뒷가지 나무나 뒷가지 배열을 쓰면 $O(n + m)$ 시간에 풀 수 있다. 이 절은 두 방식을 모두 보인다.
 
-## Problem Statement
+## 문제 서술
 
-Given two strings $S_1$ of length $n$ and $S_2$ of length $m$, find the longest string $w$ such that $w$ is a contiguous substring of both $S_1$ and $S_2$.
+길이 $n$인 글줄 $S_1$과 길이 $m$인 글줄 $S_2$이 주어질 때 $w$이 $S_1$과 $S_2$ 모두의 잇닿은 부분 글줄인 가장 긴 글줄 $w$을 찾아라.
 
-Formally:
+형식적으로 다음과 같다.
 
 $$
-\text{LCS}(S_1, S_2) = \arg\max_{w} |w| \quad \text{such that } w \text{ is a substring of both } S_1 \text{ and } S_2
+\text{LCS}(S_1, S_2) = \arg\max_{w} |w| \quad \text{단, } w \text{ 는 } S_1 \text{ 과 } S_2 \text{ 모두의 부분 글줄}
 $$
 
-The **length** of the LCS is often denoted $\text{lcstr}(S_1, S_2)$.
+최장 공통 부분 글줄의 **길이**를 흔히 $\text{lcstr}(S_1, S_2)$으로 적는다.
 
 !!! warning "LCS vs LCS"
-    Do not confuse **Longest Common Substring** (contiguous) with **Longest Common Subsequence** (not necessarily contiguous). The subsequence problem is solved by dynamic programming in $O(nm)$ time, while the substring problem is solved in $O(n + m)$ using suffix structures.
+    (잇닿은) **최장 공통 부분 글줄**과 (꼭 잇닿지 않아도 되는) **최장 공통 부분 차례**를 헷갈리지 마라. 부분 차례 문제는 동적 짜기로 $O(nm)$ 시간에 풀고, 부분 글줄 문제는 뒷가지 짜임으로 $O(n + m)$에 푼다.
 
 ## Suffix Tree Approach
 
 ### Generalized Suffix Tree
 
-Build a **generalized suffix tree** for both strings by concatenating them with distinct sentinels:
+서로 다른 파수로 두 글줄을 이어 붙여 **넓힌 뒷가지 나무**를 세운다:
 
 $$
 T = S_1 \cdot \texttt{\#} \cdot S_2 \cdot \texttt{\$}
 $$
 
-where $\texttt{\#}$ and $\texttt{\$}$ are distinct characters not appearing in either string. The generalized suffix tree of $T$ contains all suffixes of both $S_1$ and $S_2$.
+여기서 $\texttt{\#}$과 $\texttt{\$}$은 어느 글줄에도 없는 서로 다른 글자이다. $T$의 넓힌 뒷가지 나무는 $S_1$과 $S_2$의 뒷가지를 모두 담는다.
 
 ### Marking Internal Nodes
 
-After building the tree, label each leaf based on which string its suffix belongs to:
+나무를 세운 뒤 잎마다 그 뒷가지가 어느 글줄에 드는지로 이름표를 붙인다:
 
-- A leaf is an **$S_1$-leaf** if its suffix starts at a position $i < n$ (within $S_1$)
-- A leaf is an **$S_2$-leaf** if its suffix starts at a position $i > n$ (within $S_2$)
+- 뒷가지가 자리 $i < n$($S_1$ 안)에서 시작하면 그 잎은 **$S_1$ 잎**이다
+- 뒷가지가 자리 $i > n$($S_2$ 안)에서 시작하면 그 잎은 **$S_2$ 잎**이다
 
-An internal node $v$ is **shared** if its subtree contains at least one $S_1$-leaf and at least one $S_2$-leaf. This marking can be computed in $O(n + m)$ time by a bottom-up traversal.
+아래 나무에 $S_1$ 잎과 $S_2$ 잎이 적어도 하나씩 있으면 안쪽 마디 $v$은 **함께 쓰는** 마디이다. 이 표시는 아래에서 위로 돌아보며 $O(n + m)$ 시간에 셈할 수 있다.
 
-### Finding the LCS
+### 최장 공통 부분 글줄 찾기
 
-The LCS corresponds to the **deepest shared internal node** -- the shared node with the longest path label:
+최장 공통 부분 글줄은 **가장 깊은 함께 쓰는 안쪽 마디**, 곧 길 이름표가 가장 긴 함께 쓰는 마디에 맞닿는다:
 
 $$
 \text{LCS} = \text{path}(v^*) \quad \text{where } v^* = \arg\max_{\substack{v \text{ shared} \\ v \text{ internal}}} \text{depth}(v)
 $$
 
-**Time complexity**: Building the generalized suffix tree takes $O(n + m)$ time (using Ukkonen's algorithm), and the bottom-up marking and maximum-depth search take $O(n + m)$ time. The total is:
+**시간 복잡도**: (우코넨 알고리즘으로) 넓힌 뒷가지 나무를 세우는 데 $O(n + m)$, 아래에서 위로 표시하고 최대 깊이를 찾는 데 $O(n + m)$이 든다. 모두 합하면:
 
 $$
 T(n, m) = O(n + m)
@@ -54,53 +54,53 @@ $$
 
 ## Suffix Array Approach
 
-### Concatenation and Construction
+### 이어 붙이기와 세우기
 
-Concatenate the strings as $T = S_1 \cdot \texttt{\#} \cdot S_2 \cdot \texttt{\$}$ and build the suffix array and LCP array of $T$.
+글줄을 $T = S_1 \cdot \texttt{\#} \cdot S_2 \cdot \texttt{\$}$으로 이어 붙이고 $T$의 뒷가지 배열과 최장 공통 앞가지 배열을 세운다.
 
-### Scanning for the LCS
+### 최장 공통 부분 글줄 훑어 찾기
 
-The LCS length equals the maximum LCP value between adjacent suffixes in the suffix array that originate from **different strings**:
+최장 공통 부분 글줄의 길이는 뒷가지 배열에서 **서로 다른 글줄**에서 온 이웃한 뒷가지 사이의 최장 공통 앞가지 최댓값과 같다:
 
 $$
-\text{lcstr}(S_1, S_2) = \max_{\substack{1 \leq k \leq |T| \\ \text{SA}[k] \text{ and } \text{SA}[k-1] \\ \text{from different strings}}} \text{LCP}[k]
+\text{lcstr}(S_1, S_2) = \max_{\substack{1 \leq k \leq |T| \\ \text{SA}[k] \text{ 와 } \text{SA}[k-1] \text{ 가} \\ \text{서로 다른 글줄에서 옴}}} \text{LCP}[k]
 $$
 
-A suffix starting at position $i$ belongs to $S_1$ if $i \leq n - 1$ and to $S_2$ if $i \geq n + 1$ (position $n$ is the separator $\texttt{\#}$).
+자리 $i$에서 시작하는 뒷가지는 $i \leq n - 1$이면 $S_1$에, $i \geq n + 1$이면 $S_2$에 든다(자리 $n$은 가르개 $\texttt{\#}$이다).
 
 ??? example "LCS of 'abcde' and 'bcdef'"
     Concatenate: $T = \texttt{abcde\#bcdef\$}$
 
-    Build SA and LCP arrays, then scan for the maximum LCP between suffixes from different strings.
+    뒷가지 배열과 최장 공통 앞가지 배열을 세운 뒤 서로 다른 글줄의 뒷가지 사이 최장 공통 앞가지 최댓값을 훑어 찾는다.
 
-    The suffixes `bcde#bcdef$` (from $S_1$, position 1) and `bcdef$` (from $S_2$, position 6) share the prefix `bcde`, giving $\text{LCP} = 4$.
+    뒷가지 `bcde#bcdef$`($S_1$, 자리 1)과 `bcdef$`($S_2$, 자리 6)이 앞가지 `bcde`을 나눠 가져 $\text{LCP} = 4$이다.
 
-    Therefore, $\text{LCS} = \texttt{bcde}$ with length 4.
+    따라서 $\text{LCS} = \texttt{bcde}$이고 길이는 4이다.
 
 ## Extension to Multiple Strings
 
-The LCS problem extends naturally to $k$ strings $S_1, S_2, \ldots, S_k$. Concatenate all strings with distinct separators:
+최장 공통 부분 글줄 문제는 글줄 $k$개 $S_1, S_2, \ldots, S_k$으로 자연스레 넓어진다. 서로 다른 가르개로 글줄을 모두 이어 붙인다:
 
 $$
 T = S_1 \cdot \texttt{c}_1 \cdot S_2 \cdot \texttt{c}_2 \cdots S_k \cdot \texttt{c}_k
 $$
 
-Build the suffix tree or suffix array of $T$. For the suffix tree, find the deepest internal node whose subtree contains leaves from all $k$ strings. For the suffix array, use a sliding window on the LCP array to find the maximum LCP value across a range that contains suffixes from all $k$ strings.
+$T$의 뒷가지 나무나 뒷가지 배열을 세운다. 뒷가지 나무에서는 아래 나무에 $k$개 글줄의 잎이 모두 든 가장 깊은 안쪽 마디를 찾는다. 뒷가지 배열에서는 최장 공통 앞가지 배열에 미끄러지는 창을 써서 $k$개 글줄의 뒷가지가 모두 든 범위의 최장 공통 앞가지 최댓값을 찾는다.
 
-**Time complexity**: $O(n_1 + n_2 + \cdots + n_k)$ for the suffix tree approach.
+**시간 복잡도**: 뒷가지 나무 방식은 $O(n_1 + n_2 + \cdots + n_k)$.
 
-## Implementation
+## 구현
 
 ```python
 """
-Longest Common Substring using suffix array and LCP array.
+뒷가지 배열과 최장 공통 앞가지 배열로 찾는 최장 공통 부분 글줄.
 """
 
 
-# === Suffix Array Construction ===
+# === 뒷가지 배열 세우기 ===
 
 def build_suffix_array(text: str) -> list[int]:
-    """Build suffix array using prefix doubling."""
+    """앞가지 곱절 늘리기로 뒷가지 배열을 세운다."""
     n = len(text)
     rank = [ord(c) for c in text]
     sa = list(range(n))
@@ -123,10 +123,10 @@ def build_suffix_array(text: str) -> list[int]:
     return sa
 
 
-# === Kasai's Algorithm ===
+# === 가사이 알고리즘 ===
 
 def build_lcp(text: str, sa: list[int]) -> list[int]:
-    """Compute LCP array using Kasai's algorithm."""
+    """가사이 알고리즘으로 최장 공통 앞가지 배열을 셈한다."""
     n = len(sa)
     rank = [0] * n
     for k in range(n):
@@ -146,22 +146,22 @@ def build_lcp(text: str, sa: list[int]) -> list[int]:
     return lcp
 
 
-# === Longest Common Substring ===
+# === 최장 공통 부분 글줄 ===
 
 def longest_common_substring(s1: str, s2: str) -> str:
-    """Find the longest common substring of s1 and s2.
+    """s1과 s2의 최장 공통 부분 글줄을 찾는다.
 
-    Parameters
+    매개변수
     ----------
     s1 : str
-        First input string.
+        첫 들임 글줄.
     s2 : str
-        Second input string.
+        둘째 들임 글줄.
 
-    Returns
+    반환값
     -------
     str
-        The longest common substring.
+        최장 공통 부분 글줄.
     """
     separator = "#"
     sentinel = "$"
@@ -178,7 +178,7 @@ def longest_common_substring(s1: str, s2: str) -> str:
         pos_prev = sa[k - 1]
         pos_curr = sa[k]
 
-        # Check that suffixes come from different strings
+        # 뒷가지가 서로 다른 글줄에서 왔는지 살핀다
         from_s1_prev = pos_prev < n1
         from_s1_curr = pos_curr < n1
 
@@ -189,7 +189,7 @@ def longest_common_substring(s1: str, s2: str) -> str:
     return text[best_pos:best_pos + best_len]
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     s1 = "abcdefg"
@@ -207,18 +207,50 @@ if __name__ == "__main__":
     print(f"LCS: '{result}' (length {len(result)})")
 ```
 
-## Complexity Comparison
+## 복잡도 비교
 
-| Method | Time | Space |
+| 방법 | 시간 | 공간 |
 |--------|------|-------|
-| Naive (all substring pairs) | $O(n^2 m)$ | $O(1)$ |
-| Dynamic programming | $O(nm)$ | $O(nm)$ or $O(\min(n,m))$ |
-| Suffix tree | $O(n + m)$ | $O(n + m)$ |
-| Suffix array + LCP | $O(n + m)$ | $O(n + m)$ |
+| 막무가내(모든 부분 글줄 짝) | $O(n^2 m)$ | $O(1)$ |
+| 동적 짜기 | $O(nm)$ | $O(nm)$ 또는 $O(\min(n,m))$ |
+| 뒷가지 나무 | $O(n + m)$ | $O(n + m)$ |
+| 뒷가지 배열 + 최장 공통 앞가지 | $O(n + m)$ | $O(n + m)$ |
 
-The suffix-based approaches achieve optimal linear time and are preferred for large inputs.
+뒷가지 바탕 방식은 가장 좋은 선형 시간을 이루며 큰 들임에 낫다.
 
-## Reference
+## 참고 문헌
 
 - Gusfield, D. (1997). *Algorithms on Strings, Trees, and Sequences*. Cambridge University Press, Chapter 7.
 - Hui, L. C. K. (1992). *Color set size problem with applications to string matching*. CPM 1992, LNCS 644, pp. 230-243.
+
+## 연습문제
+
+**연습문제 1.**
+최장 공통 부분 글줄의 핵심 자료 짜임이나 개념과 그 으뜸 쓰임새를 설명하라.
+
+??? success "연습문제 1 풀이"
+    최장 공통 부분 글줄은 글줄이나 차례 자료를 미리 다듬고 묻는 효율 좋은 길을 준다. 으뜸 쓰임새는 부분 글줄, 본, 들임의 짜임 성질에 대한 되풀이되는 물음에 답하는 것이다. 미리 다듬기가 다룰 만한 시간에 자료 짜임을 세우고 나면 맨바닥에서 다시 다듬는 것보다 훨씬 빠르게 물음에 답할 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+최장 공통 부분 글줄을 세우는 시간 복잡도는 무엇인가? 으뜸 연산의 묻기 시간은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    세우는 시간은 쓰는 알고리즘에 달렸다. 흔한 한계는 $n$이 들임 크기일 때 $O(n)$에서 $O(n \log n)$ 사이이다. 묻기는 흔히 본 찾기에 $O(m)$($m$은 물음 길이), 미리 셈한 성질에 $O(1)$이 든다. 공간 복잡도는 흔히 $O(n)$이거나 $\sigma$이 글자 모임의 크기일 때 $O(n\sigma)$이다. $\square$
+
+---
+
+**연습문제 3.**
+최장 공통 부분 글줄을 더 단순한 다른 방식과 견주어라. 더 정교한 짜임은 언제 값어치가 있는가?
+
+??? success "연습문제 3 풀이"
+    더 단순한 방식(예컨대 막무가내 훑기나 정렬)은 묻기 시간이 더 길지만 세우는 군더더기가 적다. 정교한 짜임은 다음일 때 값어치가 있다. (1) 같은 자료에 물음을 많이 던져 세우는 값이 고르게 나뉠 때, (2) 묻기 시간이 결정적일 때(실시간 쓰임새), (3) 자료가 커서 점근 나아짐이 실전에서 중요할 때이다. 작은 자료에 물음을 한 번 던지는 경우에는 상수 인수가 작은 단순한 방식이 더 빠를 수 있다. $\square$
+
+---
+
+**연습문제 4.**
+들임 글줄 "banana"에 대해 최장 공통 부분 글줄을 세우는 것을 좇아라. 중간 걸음을 보여라.
+
+??? success "연습문제 4 풀이"
+    "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$

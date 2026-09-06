@@ -1,43 +1,38 @@
-# Neural Language Models
+# 신경 말 모델
+## 학습 목표
 
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Learning Objectives
-
-By the end of this section, you will be able to:
-
-- Understand the evolution from count-based to neural language models
-- Implement feedforward neural language models in PyTorch
-- Build RNN-based language models with variable-length context
-- Implement LSTM language models to handle long-range dependencies
-- Design Transformer-based language models with self-attention
-- Compare and select appropriate architectures for different tasks
+- 셈 바탕에서 신경 말 모델로의 흐름을 이해한다
+- PyTorch로 앞먹임 신경 말 모델을 짠다
+- 맥락 길이가 바뀌는 되돌이 그물 바탕 말 모델을 세운다
+- 멀리 떨어진 얽힘을 다루는 LSTM 말 모델을 짠다
+- 스스로 눈길을 쓰는 변환기 바탕 말 모델을 꾸민다
+- 일에 따라 알맞은 얼개를 견주고 고른다
 
 ---
 
-## From N-grams to Neural Models
+## n-그램에서 신경 모델로
 
-N-gram models suffer from fundamental limitations: fixed context windows, data sparsity, and no semantic generalization. Neural language models address these by learning **distributed representations** where words are embedded in continuous vector spaces.
+n-그램 모델에는 근본 한계가 있다. 곧 붙박이 맥락 창, 자료의 성김, 뜻으로 두루 통하지 못함이다. 신경 말 모델은 낱말을 이어진 벡터 공간에 묻는 **흩뿌린 나타냄**을 배워 이를 다룬다.
 
-### Key Advantages of Neural Language Models
+### 신경 말 모델의 핵심 이점
 
-| Aspect | N-gram | Neural |
+| 갈래 | n-그램 | 신경 |
 |--------|--------|--------|
-| Context | Fixed, limited | Variable or unlimited |
-| Representations | Discrete counts | Continuous embeddings |
-| Generalization | None | Semantic similarity |
-| Memory | Explicit counts | Learned parameters |
-| Smoothing | Explicit techniques | Implicit via embeddings |
+| 맥락 | 붙박이, 제한됨 | 바뀌거나 제한 없음 |
+| 나타냄 | 띄엄띄엄한 셈 | 이어진 묻힘 |
+| 두루 통함 | 없음 | 뜻의 닮음 |
+| 기억 | 드러난 셈 | 배운 매개변수 |
+| 부드럽게 하기 | 드러난 재주 | 묻힘으로 넌지시 |
 
 ---
 
-## Feedforward Neural Language Model
+## 앞먹임 신경 말 모델
 
-The seminal work of Bengio et al. (2003) introduced neural language models with the following architecture:
+Bengio 외(2003)의 선구적인 연구는 다음 얼개로 신경 말 모델을 들여왔다:
 
-### Architecture Overview
+### 구조 훑어보기
 
 ```
 Input: [w_{t-n+1}, ..., w_{t-1}]  (context words)
@@ -55,7 +50,7 @@ Input: [w_{t-n+1}, ..., w_{t-1}]  (context words)
 Output: P(w_t | context)
 ```
 
-### Mathematical Formulation
+### 수식으로 나타내기
 
 Given context words $w_{t-n+1}, \ldots, w_{t-1}$:
 
@@ -65,7 +60,7 @@ Given context words $w_{t-n+1}, \ldots, w_{t-1}$:
 4. **Output**: $\mathbf{s} = \mathbf{U}\mathbf{h} + \mathbf{c}$
 5. **Softmax**: $P(w_t = v | \text{context}) = \frac{\exp(s_v)}{\sum_{v'} \exp(s_{v'})}$
 
-### PyTorch Implementation
+### PyTorch 구현
 
 ```python
 import torch
@@ -76,7 +71,7 @@ from typing import List, Tuple
 
 
 class Vocabulary:
-    """Vocabulary management for neural language models."""
+    """신경 말 모델의 낱말 곳간 다스리기."""
     
     def __init__(self):
         self.word2idx = {}
@@ -86,7 +81,7 @@ class Vocabulary:
         self.START = "<s>"
         self.END = "</s>"
         
-        # Add special tokens
+        # 특수 토큰 더하기
         for token in [self.PAD, self.UNK, self.START, self.END]:
             self._add(token)
     
@@ -98,7 +93,7 @@ class Vocabulary:
         return self.word2idx[word]
     
     def build(self, corpus: List[str], min_freq: int = 1):
-        """Build vocabulary from corpus."""
+        """말뭉치에서 낱말 곳간 세우기."""
         from collections import Counter
         counts = Counter()
         for sentence in corpus:
@@ -121,7 +116,7 @@ class Vocabulary:
 
 
 class FeedforwardLMDataset(Dataset):
-    """Dataset for feedforward language model training."""
+    """앞먹임 말 모델 익히기용 자료 뭉치."""
     
     def __init__(self, corpus: List[str], vocab: Vocabulary, context_size: int):
         self.vocab = vocab
@@ -130,11 +125,11 @@ class FeedforwardLMDataset(Dataset):
         
         for sentence in corpus:
             words = sentence.lower().split()
-            # Pad with start tokens
+            # 시작 토막으로 덧대기
             words = [vocab.START] * context_size + words + [vocab.END]
             indices = [vocab.encode(w) for w in words]
             
-            # Create (context, target) pairs
+            # (맥락, 목표) 짝 만들기
             for i in range(context_size, len(indices)):
                 context = indices[i - context_size:i]
                 target = indices[i]
@@ -150,16 +145,16 @@ class FeedforwardLMDataset(Dataset):
 
 class FeedforwardLM(nn.Module):
     """
-    Feedforward Neural Language Model (Bengio et al., 2003).
+    앞먹임 신경 말 모델(Bengio 외, 2003).
     
-    Architecture:
+    구조:
         Embedding → Concatenate → Hidden → Output → Softmax
     
-    Args:
-        vocab_size: Size of vocabulary
-        embedding_dim: Dimension of word embeddings
-        context_size: Number of context words
-        hidden_dim: Dimension of hidden layer
+    인수:
+        vocab_size: 낱말 곳간의 크기
+        embedding_dim: 낱말 임베딩의 차원
+        context_size: 맥락 낱말의 개수
+        hidden_dim: 숨은 층의 차원
     """
     
     def __init__(self, vocab_size: int, embedding_dim: int,
@@ -173,7 +168,7 @@ class FeedforwardLM(nn.Module):
         self._init_weights()
     
     def _init_weights(self):
-        """Xavier initialization for better training."""
+        """익히기를 낫게 하는 자비에 첫자리매김."""
         nn.init.xavier_uniform_(self.embedding.weight)
         nn.init.xavier_uniform_(self.fc1.weight)
         nn.init.xavier_uniform_(self.fc2.weight)
@@ -181,30 +176,30 @@ class FeedforwardLM(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Forward pass.
+        앞먹임.
         
-        Args:
-            x: (batch_size, context_size) context word indices
+        인수:
+            x: (batch_size, context_size) 맥락 낱말 번호
             
-        Returns:
+        반환값:
             (batch_size, vocab_size) logits
         """
-        # Embedding: (batch, context_size) → (batch, context_size, embed_dim)
+        # 묻힘: (batch, context_size) → (batch, context_size, embed_dim)
         embeds = self.embedding(x)
         
-        # Flatten: (batch, context_size * embed_dim)
+        # 펴기: (batch, context_size * embed_dim)
         embeds = embeds.view(x.size(0), -1)
         
-        # Hidden layer with tanh activation
+        # tanh 깨어남을 갖춘 숨은 층
         hidden = torch.tanh(self.fc1(embeds))
         
-        # Output logits
+        # 내놓는 로짓
         logits = self.fc2(hidden)
         
         return logits
     
     def get_next_word_probs(self, context: List[int]) -> torch.Tensor:
-        """Get probability distribution over next word."""
+        """다음 낱말에 대한 확률 분포 얻기."""
         self.eval()
         with torch.no_grad():
             x = torch.tensor([context])
@@ -217,17 +212,17 @@ def train_feedforward_lm(corpus: List[str], context_size: int = 3,
                          embedding_dim: int = 64, hidden_dim: int = 128,
                          epochs: int = 20, batch_size: int = 32,
                          learning_rate: float = 0.001):
-    """Train feedforward language model."""
+    """앞먹임 말 모델 익히기."""
     
-    # Build vocabulary
+    # 어휘 만들기
     vocab = Vocabulary()
     vocab.build(corpus)
     
-    # Create dataset
+    # 데이터셋 생성
     dataset = FeedforwardLMDataset(corpus, vocab, context_size)
     loader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     
-    # Initialize model
+    # 모형을 시작한다
     model = FeedforwardLM(
         vocab_size=len(vocab),
         embedding_dim=embedding_dim,
@@ -238,7 +233,7 @@ def train_feedforward_lm(corpus: List[str], context_size: int = 3,
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     
-    # Training loop
+    # 학습 루프
     for epoch in range(epochs):
         model.train()
         total_loss = 0
@@ -263,19 +258,19 @@ def train_feedforward_lm(corpus: List[str], context_size: int = 3,
     return model, vocab
 ```
 
-### Limitations of Feedforward Models
+### 앞먹임 모델의 한계
 
-1. **Fixed context window**: Cannot handle arbitrarily long dependencies
-2. **No parameter sharing**: Each position has separate weights
-3. **Computational cost**: $O(V)$ for output softmax
+1. **붙박이 맥락 창**: 아무리 먼 얽힘도 다루지 못한다
+2. **매개변수를 나눠 쓰지 않음**: 자리마다 무게가 따로 있다
+3. **셈 값**: 내놓는 소프트맥스에 $O(V)$
 
 ---
 
-## RNN Language Models
+## 되돌이 그물 말 모델
 
-Recurrent Neural Networks address the fixed context limitation by maintaining a **hidden state** that carries information across time steps.
+되돌이 신경망은 때 걸음을 가로질러 앎을 나르는 **숨은 상태**를 지녀 붙박이 맥락의 한계를 다룬다.
 
-### Architecture
+### 구조
 
 ```
 For each time step t:
@@ -286,21 +281,21 @@ For each time step t:
 
 The hidden state $\mathbf{h}_t$ summarizes the entire history $w_1, \ldots, w_{t-1}$.
 
-### Implementation
+### 구현
 
 ```python
 class RNNLanguageModel(nn.Module):
     """
-    RNN Language Model with variable-length context.
+    맥락 길이가 바뀌는 되돌이 그물 말 모델.
     
-    The hidden state carries information from arbitrary history.
+    숨은 상태가 아무리 먼 지난 이야기의 앎도 나른다.
     
-    Args:
-        vocab_size: Size of vocabulary
-        embedding_dim: Dimension of word embeddings
-        hidden_dim: Dimension of RNN hidden state
-        num_layers: Number of stacked RNN layers
-        dropout: Dropout probability
+    인수:
+        vocab_size: 낱말 곳간의 크기
+        embedding_dim: 낱말 임베딩의 차원
+        hidden_dim: 되돌이 그물 숨은 상태의 차원
+        num_layers: 쌓은 되돌이 그물 층의 개수
+        dropout: 드롭아웃 확률
     """
     
     def __init__(self, vocab_size: int, embedding_dim: int, hidden_dim: int,
@@ -333,35 +328,35 @@ class RNNLanguageModel(nn.Module):
     
     def forward(self, x: torch.Tensor, hidden: torch.Tensor = None):
         """
-        Forward pass through RNN.
+        되돌이 그물을 지나는 앞먹임.
         
-        Args:
-            x: (batch, seq_len) input token indices
-            hidden: Optional initial hidden state
+        인수:
+            x: (batch, seq_len) 들임 토막 번호
+            hidden: 처음 숨은 상태(없어도 됨)
             
-        Returns:
+        반환값:
             logits: (batch, seq_len, vocab_size)
-            hidden: Final hidden state
+            hidden: 마지막 숨은 상태
         """
-        # Embedding: (batch, seq_len, embed_dim)
+        # 묻힘: (batch, seq_len, embed_dim)
         embeds = self.dropout(self.embedding(x))
         
-        # RNN: (batch, seq_len, hidden_dim)
+        # 되돌이 그물: (batch, seq_len, hidden_dim)
         output, hidden = self.rnn(embeds, hidden)
         output = self.dropout(output)
         
-        # Project to vocabulary
+        # 어휘로 사영한다
         logits = self.fc(output)
         
         return logits, hidden
     
     def init_hidden(self, batch_size: int) -> torch.Tensor:
-        """Initialize hidden state with zeros."""
+        """숨은 상태를 0으로 첫자리매김."""
         return torch.zeros(self.num_layers, batch_size, self.hidden_dim)
 
 
 class RNNLMDataset(Dataset):
-    """Dataset for RNN language model (sequence-to-sequence)."""
+    """되돌이 그물 말 모델용 자료 뭉치(차례에서 차례로)."""
     
     def __init__(self, corpus: List[str], vocab: Vocabulary, max_len: int = 35):
         self.sequences = []
@@ -371,7 +366,7 @@ class RNNLMDataset(Dataset):
             words = [vocab.START] + words + [vocab.END]
             indices = [vocab.encode(w) for w in words]
             
-            # Split into chunks for training
+            # 익히기를 위해 덩이로 쪼개기
             for i in range(0, len(indices) - 1, max_len):
                 seq = indices[i:i + max_len + 1]
                 if len(seq) > 1:
@@ -382,15 +377,15 @@ class RNNLMDataset(Dataset):
     
     def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         seq = self.sequences[idx]
-        # Input: all but last token; Target: all but first token
+        # 들임: 마지막 토막을 뺀 전부, 목표: 첫 토막을 뺀 전부
         return torch.tensor(seq[:-1]), torch.tensor(seq[1:])
 
 
 def collate_sequences(batch):
-    """Collate variable-length sequences with padding."""
+    """길이가 들쭉날쭉한 차례를 덧대어 모으기."""
     inputs, targets = zip(*batch)
     
-    # Pad to max length in batch
+    # 묶음 안 최대 길이까지 덧대기
     max_len = max(len(x) for x in inputs)
     
     padded_inputs = []
@@ -407,33 +402,33 @@ def collate_sequences(batch):
     return torch.stack(padded_inputs), torch.stack(padded_targets)
 ```
 
-### Backpropagation Through Time (BPTT)
+### 때를 거슬러 뒤로 퍼뜨리기(BPTT)
 
-RNNs are trained by unrolling the computation graph through time and applying backpropagation. For a sequence of length $T$:
+되돌이 그물은 셈 그래프를 때에 걸쳐 펼쳐 놓고 뒤로 퍼뜨리기를 써서 익힌다. 길이 $T$인 차례에 대해:
 
 $$\frac{\partial L}{\partial W} = \sum_{t=1}^{T} \frac{\partial L_t}{\partial W}$$
 
-Each gradient term involves products of Jacobians that can lead to **vanishing** or **exploding** gradients.
+기울기 항마다 야코비 행렬의 곱이 들어 있어 기울기가 **사라지거나 터질** 수 있다.
 
-### Truncated BPTT
+### 잘라 낸 때 거슬러 퍼뜨리기
 
-For long sequences, we truncate backpropagation to a fixed window while maintaining the forward pass hidden state:
+긴 차례에서는 앞먹임의 숨은 상태는 그대로 두고 뒤로 퍼뜨리기만 붙박이 창으로 잘라 낸다:
 
 ```python
 def train_rnn_truncated_bptt(model, data, hidden, seq_len=35):
-    """Training with truncated BPTT."""
+    """잘라 낸 때 거슬러 퍼뜨리기로 익히기."""
     model.train()
     
     for i in range(0, data.size(1) - 1, seq_len):
-        # Get batch
+        # 묶음 얻기
         seqlen = min(seq_len, data.size(1) - 1 - i)
         inputs = data[:, i:i+seqlen]
         targets = data[:, i+1:i+1+seqlen]
         
-        # Detach hidden state from history
+        # 숨은 상태를 발자취에서 떼어 내기
         hidden = hidden.detach()
         
-        # Forward and backward
+        # 앞먹임과 되돌림
         logits, hidden = model(inputs, hidden)
         loss = criterion(logits.view(-1, vocab_size), targets.view(-1))
         
@@ -447,11 +442,11 @@ def train_rnn_truncated_bptt(model, data, hidden, seq_len=35):
 
 ---
 
-## LSTM Language Models
+## LSTM 말 모델
 
-Long Short-Term Memory networks address the vanishing gradient problem through **gating mechanisms** that control information flow.
+긴 짧은 기억 그물은 앎의 흐름을 다스리는 **문 얼개**로 기울기 사라짐 문제를 다룬다.
 
-### LSTM Equations
+### LSTM 식
 
 $$\mathbf{f}_t = \sigma(\mathbf{W}_f[\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b}_f) \quad \text{(Forget gate)}$$
 
@@ -465,22 +460,22 @@ $$\mathbf{o}_t = \sigma(\mathbf{W}_o[\mathbf{h}_{t-1}, \mathbf{x}_t] + \mathbf{b
 
 $$\mathbf{h}_t = \mathbf{o}_t \odot \tanh(\mathbf{c}_t) \quad \text{(Hidden state)}$$
 
-### Implementation
+### 구현
 
 ```python
 class LSTMLanguageModel(nn.Module):
     """
-    LSTM Language Model with gating for long-range dependencies.
+    먼 거리 얽힘을 위해 문을 둔 LSTM 말 모델.
     
-    The cell state provides a "highway" for gradient flow.
+    칸 상태가 기울기 흐름의 "고속도로"가 된다.
     
-    Args:
-        vocab_size: Size of vocabulary
-        embedding_dim: Dimension of word embeddings
-        hidden_dim: Dimension of LSTM hidden state
-        num_layers: Number of stacked LSTM layers
-        dropout: Dropout probability
-        tie_weights: Whether to tie embedding and output weights
+    인수:
+        vocab_size: 낱말 곳간의 크기
+        embedding_dim: 낱말 임베딩의 차원
+        hidden_dim: LSTM 숨은 상태의 차원
+        num_layers: 쌓은 LSTM 층의 개수
+        dropout: 드롭아웃 확률
+        tie_weights: 묻힘 무게와 내놓는 무게를 묶을지 여부
     """
     
     def __init__(self, vocab_size: int, embedding_dim: int, hidden_dim: int,
@@ -504,7 +499,7 @@ class LSTMLanguageModel(nn.Module):
         
         self.fc = nn.Linear(hidden_dim, vocab_size)
         
-        # Weight tying: embedding and output share weights
+        # 무게 묶기: 묻힘과 내놓음이 무게를 나눠 쓴다
         if tie_weights and embedding_dim == hidden_dim:
             self.fc.weight = self.embedding.weight
         
@@ -519,15 +514,15 @@ class LSTMLanguageModel(nn.Module):
     
     def forward(self, x: torch.Tensor, hidden: Tuple = None):
         """
-        Forward pass through LSTM.
+        LSTM을 지나는 앞먹임.
         
-        Args:
-            x: (batch, seq_len) input tokens
-            hidden: Tuple of (h_0, c_0) initial states
+        인수:
+            x: (batch, seq_len) 들임 토막
+            hidden: 처음 상태 (h_0, c_0) 튜플
             
-        Returns:
+        반환값:
             logits: (batch, seq_len, vocab_size)
-            hidden: Tuple of (h_n, c_n) final states
+            hidden: 마지막 상태 (h_n, c_n) 튜플
         """
         embeds = self.dropout(self.embedding(x))
         output, hidden = self.lstm(embeds, hidden)
@@ -537,7 +532,7 @@ class LSTMLanguageModel(nn.Module):
         return logits, hidden
     
     def init_hidden(self, batch_size: int):
-        """Initialize hidden and cell states."""
+        """숨은 상태와 칸 상태 첫자리매김."""
         device = next(self.parameters()).device
         h = torch.zeros(self.num_layers, batch_size, self.hidden_dim, device=device)
         c = torch.zeros(self.num_layers, batch_size, self.hidden_dim, device=device)
@@ -548,7 +543,7 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
                   hidden_dim: int = 512, num_layers: int = 2,
                   epochs: int = 30, batch_size: int = 32,
                   learning_rate: float = 0.001):
-    """Train LSTM language model."""
+    """LSTM 말 모델 익히기."""
     
     vocab = Vocabulary()
     vocab.build(corpus)
@@ -564,7 +559,7 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
         num_layers=num_layers
     )
     
-    criterion = nn.CrossEntropyLoss(ignore_index=0)  # Ignore padding
+    criterion = nn.CrossEntropyLoss(ignore_index=0)  # 채움을 무시한다
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     
     for epoch in range(epochs):
@@ -577,7 +572,7 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
             
             logits, _ = model(inputs, hidden)
             
-            # Reshape for loss: (batch * seq_len, vocab_size)
+            # 손실을 위해 꼴 바꾸기: (batch * seq_len, vocab_size)
             logits = logits.view(-1, logits.size(-1))
             targets = targets.view(-1)
             
@@ -599,49 +594,50 @@ def train_lstm_lm(corpus: List[str], embedding_dim: int = 256,
     return model, vocab
 ```
 
-### AWD-LSTM: Regularized LSTMs
+### AWD-LSTM: 벌준 LSTM
 
-State-of-the-art LSTM language models use aggressive regularization:
+가장 앞선 LSTM 말 모델은 벌주기를 세게 쓴다:
 
-1. **Weight dropout**: Dropout on recurrent weights
-2. **Embedding dropout**: Dropout on embedding matrix
-3. **Locked dropout**: Same dropout mask across time steps
-4. **Weight tying**: Share embedding and output weights
-5. **Variable-length BPTT**: Randomly sample sequence lengths
+1. **무게 떨구기**: 되돌이 무게에 떨구기
+2. **묻힘 떨구기**: 묻힘 행렬에 떨구기
+3. **잠근 떨구기**: 때 걸음마다 같은 떨구기 마스크
+4. **무게 묶기**: 묻힘 무게와 내놓는 무게를 나눠 쓰기
+5. **길이가 바뀌는 때 거슬러 퍼뜨리기**: 차례 길이를 마구잡이로 뽑기
 
 ---
 
-## Transformer Language Models
+## 변환기 말 모델
 
-Transformers replace recurrence with **self-attention**, enabling parallel training and better long-range modeling.
+변환기는 되돌이를 **스스로 눈길**로 갈음해 나란히 익히기와 더 나은 먼 거리 나타내기를 가능하게 한다.
 
-### Self-Attention Mechanism
+### 스스로 눈길 얼개
 
 Given a sequence of representations $\mathbf{X} = [\mathbf{x}_1, \ldots, \mathbf{x}_n]$:
 
 $$\text{Attention}(\mathbf{Q}, \mathbf{K}, \mathbf{V}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}\right)\mathbf{V}$$
 
-where:
+여기서 각 기호는 다음과 같다.
+
 - $\mathbf{Q} = \mathbf{X}\mathbf{W}^Q$ (queries)
 - $\mathbf{K} = \mathbf{X}\mathbf{W}^K$ (keys)
 - $\mathbf{V} = \mathbf{X}\mathbf{W}^V$ (values)
 
-### Causal Masking
+### 인과 가리기
 
-For language modeling, we must prevent attending to future tokens:
+말 나타내기에서는 앞으로 올 토막에 눈길을 주지 못하게 막아야 한다:
 
 $$\text{mask}_{ij} = \begin{cases} 0 & \text{if } j \leq i \\ -\infty & \text{otherwise} \end{cases}$$
 
 This ensures $P(w_t | w_1, \ldots, w_{t-1})$ only depends on past words.
 
-### Implementation
+### 구현
 
 ```python
 import math
 
 
 class PositionalEncoding(nn.Module):
-    """Sinusoidal positional encoding from 'Attention Is All You Need'."""
+    """'Attention Is All You Need'의 사인파 위치 인코딩."""
     
     def __init__(self, d_model: int, max_len: int = 5000):
         super().__init__()
@@ -657,28 +653,28 @@ class PositionalEncoding(nn.Module):
         pe[:, 0::2] = torch.sin(position * div_term)
         pe[:, 1::2] = torch.cos(position * div_term)
         
-        # Register as buffer (not a parameter)
+        # 버퍼로 등록(매개변수 아님)
         self.register_buffer('pe', pe.unsqueeze(0))
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Add positional encoding to input."""
+        """들임에 자리 부호 더하기."""
         return x + self.pe[:, :x.size(1)]
 
 
 class TransformerLM(nn.Module):
     """
-    GPT-style Transformer Language Model.
+    GPT 방식 변환기 말 모델.
     
-    Uses causal (autoregressive) masking for language modeling.
+    말 나타내기를 위해 인과(자기되돌리기) 가리기를 쓴다.
     
-    Args:
-        vocab_size: Size of vocabulary
-        d_model: Model dimension
-        nhead: Number of attention heads
-        num_layers: Number of transformer layers
-        dim_feedforward: FFN inner dimension
-        dropout: Dropout probability
-        max_len: Maximum sequence length
+    인수:
+        vocab_size: 낱말 곳간의 크기
+        d_model: 모형 차원
+        nhead: 눈길 머리의 개수
+        num_layers: 변환기 층의 개수
+        dim_feedforward: 앞먹임 그물의 안쪽 차원
+        dropout: 드롭아웃 확률
+        max_len: 순차열의 최대 길이
     """
     
     def __init__(self, vocab_size: int, d_model: int = 512, nhead: int = 8,
@@ -688,13 +684,13 @@ class TransformerLM(nn.Module):
         
         self.d_model = d_model
         
-        # Token embedding
+        # 토큰 임베딩
         self.embedding = nn.Embedding(vocab_size, d_model)
         
-        # Positional encoding
+        # 위치 인코딩
         self.pos_encoder = PositionalEncoding(d_model, max_len)
         
-        # Transformer decoder layers
+        # 변환기 풀개 층
         decoder_layer = nn.TransformerDecoderLayer(
             d_model=d_model,
             nhead=nhead,
@@ -704,7 +700,7 @@ class TransformerLM(nn.Module):
         )
         self.transformer = nn.TransformerDecoder(decoder_layer, num_layers)
         
-        # Output projection
+        # 출력 사영
         self.fc = nn.Linear(d_model, vocab_size)
         
         self.dropout = nn.Dropout(dropout)
@@ -717,34 +713,34 @@ class TransformerLM(nn.Module):
         self.fc.bias.data.zero_()
     
     def generate_causal_mask(self, size: int) -> torch.Tensor:
-        """Generate causal attention mask."""
+        """인과 눈길 마스크 만들기."""
         mask = torch.triu(torch.ones(size, size), diagonal=1).bool()
         return mask
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Forward pass with causal masking.
+        인과 가림을 쓰는 앞먹임.
         
-        Args:
-            x: (batch, seq_len) input tokens
+        인수:
+            x: (batch, seq_len) 들임 토막
             
-        Returns:
+        반환값:
             (batch, seq_len, vocab_size) logits
         """
         seq_len = x.size(1)
         
-        # Embedding with scaling
+        # 잣수를 맞춘 묻힘
         x = self.embedding(x) * math.sqrt(self.d_model)
         x = self.pos_encoder(x)
         x = self.dropout(x)
         
-        # Causal mask
+        # 인과 가림
         mask = self.generate_causal_mask(seq_len).to(x.device)
         
-        # Transformer forward (self-attention only)
+        # 변환기 앞먹임(스스로 눈길만)
         output = self.transformer(x, x, tgt_mask=mask)
         
-        # Project to vocabulary
+        # 어휘로 사영한다
         logits = self.fc(output)
         
         return logits
@@ -753,7 +749,7 @@ class TransformerLM(nn.Module):
 def train_transformer_lm(corpus: List[str], d_model: int = 256,
                          nhead: int = 4, num_layers: int = 4,
                          epochs: int = 30, batch_size: int = 32):
-    """Train Transformer language model."""
+    """변환기 말 모델 익히기."""
     
     vocab = Vocabulary()
     vocab.build(corpus)
@@ -802,55 +798,55 @@ def train_transformer_lm(corpus: List[str], d_model: int = 256,
 
 ---
 
-## Text Generation
+## 글 만들어 내기
 
-Neural language models support various generation strategies:
+신경 말 모델은 여러 만들어 내기 전략을 받쳐 준다:
 
 ```python
 def generate_text(model, vocab, max_length: int = 50,
                   temperature: float = 1.0, top_k: int = None,
                   top_p: float = None) -> str:
     """
-    Generate text from a trained language model.
+    익힌 말 모델로 글 만들어 내기.
     
-    Args:
-        model: Trained LM (supports LSTM or Transformer)
-        vocab: Vocabulary object
-        max_length: Maximum tokens to generate
-        temperature: Sampling temperature
-        top_k: Top-k filtering (optional)
-        top_p: Nucleus sampling threshold (optional)
+    인수:
+        model: 익힌 말 모델(LSTM 또는 변환기)
+        vocab: 낱말 곳간 개체
+        max_length: 만들어 낼 최대 토막 수
+        temperature: 표집 온도
+        top_k: 상위 k 거르기(없어도 됨)
+        top_p: 알갱이 표집 문턱값(없어도 됨)
     """
     model.eval()
     
-    # Start with START token
+    # START 토막으로 시작하기
     generated = [vocab.encode(vocab.START)]
     
-    # Handle LSTM hidden state
+    # LSTM 숨은 상태 다루기
     hidden = None
     if hasattr(model, 'init_hidden'):
         hidden = model.init_hidden(1)
     
     with torch.no_grad():
         for _ in range(max_length):
-            # Prepare input
-            x = torch.tensor([generated[-50:]])  # Use last 50 tokens
+            # 들임 갖추기
+            x = torch.tensor([generated[-50:]])  # 마지막 토막 50개 쓰기
             
-            # Forward pass
+            # 순전파
             if hasattr(model, 'lstm'):
                 logits, hidden = model(x, hidden)
             else:
                 logits = model(x)
             
-            # Get logits for last position
+            # 마지막 자리의 로짓을 얻는다
             logits = logits[0, -1, :] / temperature
             
-            # Apply top-k filtering
+            # 상위 k 거르기를 적용한다
             if top_k is not None:
                 indices_to_remove = logits < torch.topk(logits, top_k)[0][-1]
                 logits[indices_to_remove] = float('-inf')
             
-            # Apply nucleus (top-p) filtering
+            # 알갱이(상위 p) 거르기 쓰기
             if top_p is not None:
                 sorted_logits, sorted_indices = torch.sort(logits, descending=True)
                 cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
@@ -864,57 +860,57 @@ def generate_text(model, vocab, max_length: int = 50,
                 )
                 logits[indices_to_remove] = float('-inf')
             
-            # Sample
+            # 뽑기
             probs = F.softmax(logits, dim=-1)
             next_token = torch.multinomial(probs, 1).item()
             
-            # Check for END token
+            # END 토막인지 살피기
             if next_token == vocab.encode(vocab.END):
                 break
             
             generated.append(next_token)
     
-    # Decode tokens
-    words = [vocab.decode(idx) for idx in generated[1:]]  # Skip START
+    # 토막 풀어내기
+    words = [vocab.decode(idx) for idx in generated[1:]]  # START 건너뛰기
     return ' '.join(words)
 ```
 
 ---
 
-## Model Comparison
+## 모형 견줌
 
-| Aspect | Feedforward | RNN | LSTM | Transformer |
+| 갈래 | 앞먹임 | 되돌이 그물 | LSTM | 변환기 |
 |--------|-------------|-----|------|-------------|
-| Context | Fixed window | Unbounded | Unbounded | Full sequence |
-| Training | Parallel | Sequential | Sequential | Parallel |
-| Long-range deps | Poor | Poor | Good | Excellent |
-| Memory | O(window) | O(hidden) | O(hidden) | O(seq²) |
-| Modern usage | Rare | Rare | Moderate | Dominant |
+| 맥락 | 붙박이 창 | 제한 없음 | 제한 없음 | 온 차례 |
+| 익히기 | 나란히 | 차례대로 | 차례대로 | 나란히 |
+| 먼 거리 얽힘 | 나쁨 | 나쁨 | 좋음 | 아주 좋음 |
+| 기억 | O(창) | O(숨은 층) | O(숨은 층) | O(차례²) |
+| 요즘 쓰임 | 드묾 | 드묾 | 보통 | 판을 잡음 |
 
-### Typical Perplexities (Penn Treebank)
+### 흔한 헷갈림도(Penn Treebank)
 
-| Model | Parameters | Perplexity |
+| 모델 | 매개변수 | 헷갈림도 |
 |-------|------------|------------|
-| Feedforward (Bengio) | ~10M | ~140 |
-| LSTM (2-layer) | ~20M | ~80-100 |
-| AWD-LSTM | ~24M | ~57 |
-| Transformer (6-layer) | ~40M | ~60-70 |
-| GPT-2 (small) | 117M | ~35 |
+| 앞먹임(Bengio) | 약 1000만 | 약 140 |
+| LSTM(2층) | 약 2000만 | 약 80~100 |
+| AWD-LSTM | 약 2400만 | 약 57 |
+| 변환기(6층) | 약 4000만 | 약 60~70 |
+| GPT-2(소형) | 1억 1700만 | 약 35 |
 
 ---
 
-## Pretrained Language Models
+## 미리 익힌 말 모델
 
-Modern practice leverages pretrained models fine-tuned for specific tasks:
+요즘은 미리 익힌 모델을 특정 일에 곱게 다듬어 써먹는다:
 
 ```python
 from transformers import GPT2LMHeadModel, GPT2Tokenizer
 
-# Load pretrained GPT-2
+# 미리 익힌 GPT-2 읽어 들이기
 model = GPT2LMHeadModel.from_pretrained('gpt2')
 tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
 
-# Generate text
+# 글 만들어 내기
 input_text = "The quick brown fox"
 input_ids = tokenizer.encode(input_text, return_tensors='pt')
 
@@ -931,37 +927,37 @@ print(tokenizer.decode(output[0]))
 
 ---
 
-## Summary
+## 요약
 
-Neural language models have evolved from simple feedforward networks to sophisticated Transformer architectures:
+신경 말 모델은 단순한 앞먹임 그물에서 정교한 변환기 얼개로 나아왔다:
 
-1. **Feedforward LMs** introduced continuous word representations but have fixed context
-2. **RNN LMs** handle variable-length sequences but suffer from gradient issues
-3. **LSTM LMs** address vanishing gradients with gating mechanisms
-4. **Transformer LMs** enable parallel training and capture long-range dependencies
+1. **앞먹임 말 모델**은 이어진 낱말 나타냄을 들여왔지만 맥락이 붙박이이다
+2. **되돌이 그물 말 모델**은 길이가 바뀌는 차례를 다루지만 기울기 탈이 있다
+3. **LSTM 말 모델**은 문 얼개로 기울기 사라짐을 다룬다
+4. **변환기 말 모델**은 나란히 익히기를 가능하게 하고 먼 거리 얽힘을 담아낸다
 
-Modern large language models (GPT-4, Claude, LLaMA) are scaled-up Transformer language models with billions of parameters.
-
----
-
-## Exercises
-
-1. **Embedding Visualization**: Train a feedforward LM and visualize word embeddings using t-SNE. Do similar words cluster together?
-
-2. **LSTM vs GRU**: Implement a GRU language model and compare perplexity with LSTM on the same data.
-
-3. **Attention Visualization**: For a Transformer LM, visualize attention patterns. What patterns emerge for different input types?
-
-4. **Generation Quality**: Compare text generated by n-gram, LSTM, and Transformer models on the same prompt.
-
-5. **Fine-tuning**: Fine-tune GPT-2 on a domain-specific corpus (e.g., financial news) and evaluate domain adaptation.
+요즘의 큰 말 모델(GPT-4, Claude, LLaMA)은 매개변수가 수십억 개인, 크게 키운 변환기 말 모델이다.
 
 ---
 
-## References
+## 참고 문헌
 
 1. Bengio, Y., et al. (2003). A neural probabilistic language model. *JMLR*.
 2. Mikolov, T., et al. (2010). Recurrent neural network based language model. *INTERSPEECH*.
 3. Hochreiter, S., & Schmidhuber, J. (1997). Long short-term memory. *Neural Computation*.
 4. Vaswani, A., et al. (2017). Attention is all you need. *NeurIPS*.
 5. Merity, S., et al. (2017). Regularizing and optimizing LSTM language models. *ICLR*.
+
+## 연습문제
+
+1. **묻힘 그려 보기**: 앞먹임 말 모델을 익히고 t-SNE로 낱말 묻힘을 그려 보라. 비슷한 낱말이 함께 뭉치는가?
+
+2. **LSTM과 GRU**: GRU 말 모델을 짜고 같은 자료에서 LSTM과 헷갈림도를 견주어라.
+
+3. **눈길 그려 보기**: 변환기 말 모델의 눈길 무늬를 그려 보라. 들임 갈래에 따라 어떤 무늬가 나타나는가?
+
+4. **만들어 낸 글의 좋음**: 같은 시킴말에 대해 n-그램, LSTM, 변환기 모델이 만든 글을 견주어라.
+
+5. **곱게 다듬기**: 분야별 말뭉치(보기로 금융 뉴스)로 GPT-2를 곱게 다듬고 분야 맞추기를 값매김하여라.
+
+---

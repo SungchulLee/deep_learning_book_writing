@@ -1,470 +1,429 @@
-# Likelihood-Free Inference
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Many scientific models can simulate data but cannot evaluate the likelihood of observations. Likelihood-free inference—also called simulation-based inference—provides methods to perform Bayesian inference in these settings. This section introduces the problem, motivates the ABC framework, and surveys the landscape of likelihood-free methods.
+# 가능도 없는 추론
+과학 모형 가운데 많은 것이 자료를 흉내 낼 수는 있어도 관측의 가능도를 셈하지는 못한다. 흉내 기반 추론이라고도 하는 가능도 없는 추론은 그런 자리에서 베이즈 추론을 하는 방법을 준다. 이 마당은 문제를 들여오고, ABC 얼개가 나온 까닭을 밝히며, 가능도 없는 방법의 갈래를 훑는다.
 
 ---
 
-## The Intractable Likelihood Problem
+## 다룰 수 없는 가능도 문제
 
-### When Likelihoods Are Unavailable
+### 가능도를 쓸 수 없을 때
 
-Standard Bayesian inference requires evaluating the likelihood $p(\mathbf{y} | \theta)$:
+표준 베이즈 추론은 가능도 $p(\mathbf{y} | \theta)$의 값을 매겨야 한다:
 
 $$
-
 p(\theta | \mathbf{y}) = \frac{p(\mathbf{y} | \theta) p(\theta)}{p(\mathbf{y})}
-
 $$
 
-But many models are defined as **simulators**: given parameters $\theta$, we can generate synthetic data $\mathbf{x} \sim p(\cdot | \theta)$, but we cannot evaluate $p(\mathbf{y} | \theta)$ for observed data $\mathbf{y}$.
+그러나 많은 모형이 **흉내내기 장치**로 정해진다. 곧 매개변수 $\theta$이 주어지면 흉내 낸 자료 $\mathbf{x} \sim p(\cdot | \theta)$을 만들 수 있지만, 관측 자료 $\mathbf{y}$에 대해 $p(\mathbf{y} | \theta)$의 값을 매기지는 못한다.
 
-### Examples of Simulator Models
+### 흉내내기 모형의 보기
 
-**Population genetics**: Coalescent models simulate genealogies and genetic variation, but the likelihood integrates over all possible genealogies—computationally intractable.
+**집단 유전학**: 합쳐짐 모형은 계보와 유전 변이를 흉내 내지만, 가능도는 있을 수 있는 모든 계보에 걸쳐 적분해야 해서 셈으로 다룰 수 없다.
 
-**Epidemiology**: Agent-based disease models simulate individual infections and contacts. The likelihood requires summing over all possible transmission histories.
+**역학**: 행위자 기반 질병 모형은 낱낱의 감염과 접촉을 흉내 낸다. 가능도는 있을 수 있는 모든 옮김 내력에 걸쳐 합해야 한다.
 
-**Ecology**: Individual-based models simulate animal movement, births, deaths, and interactions. No closed-form likelihood exists.
+**생태학**: 개체 기반 모형은 동물의 움직임, 태어남, 죽음, 서로 오감을 흉내 낸다. 닫힌 꼴 가능도가 없다.
 
-**Cosmology**: N-body simulations generate matter distributions. The likelihood of observed galaxy positions is intractable.
+**우주론**: N체 흉내내기는 물질 분포를 만든다. 관측한 은하 자리의 가능도는 다룰 수 없다.
 
-**Neuroscience**: Biophysical neuron models simulate spike trains. The likelihood involves integrating over unobserved internal states.
+**신경과학**: 생물물리 뉴런 모형은 스파이크 열을 흉내 낸다. 가능도는 관측하지 못한 속 상태에 걸쳐 적분해야 한다.
 
-**Economics**: Agent-based market models simulate trader behavior. The likelihood of price time series is unavailable.
+**경제학**: 행위자 기반 시장 모형은 거래자의 굴러감을 흉내 낸다. 가격 시계열의 가능도는 쓸 수 없다.
 
-### The Simulator Abstraction
+### 흉내내기 장치라는 추상
 
-A **simulator** (or generative model) is a stochastic function:
+**흉내내기 장치**(낳는 모형)는 확률 함수이다:
 
 $$
-
 \mathbf{x} = f(\theta, \mathbf{u})
-
 $$
 
-where:
-- $\theta$ are the parameters of interest
-- $\mathbf{u}$ is random noise (often many random numbers)
-- $\mathbf{x}$ is the simulated output
+여기서 각 기호는 다음과 같다.
 
-We can sample $\mathbf{x} | \theta$ by drawing $\mathbf{u}$ and computing $f$, but we cannot compute $p(\mathbf{x} | \theta)$.
+- $\theta$은 우리가 궁금해하는 매개변수이다
+- $\mathbf{u}$은 무작위 잡음이다(흔히 무작위 수가 많다)
+- $\mathbf{x}$은 흉내 내어 나온 것이다
+
+$\mathbf{u}$을 뽑고 $f$을 셈해 $\mathbf{x} | \theta$을 표집할 수 있지만 $p(\mathbf{x} | \theta)$은 셈할 수 없다.
 
 ---
 
-## Why Standard Methods Fail
+## 표준 방법이 왜 무너지나
 
-### MCMC Requires Likelihood Evaluation
+### MCMC은 가능도 값 매기기가 필요하다
 
-Metropolis-Hastings needs to compute:
+메트로폴리스-헤이스팅스는 다음을 셈해야 한다:
 
 $$
-
 \alpha = \min\left(1, \frac{p(\mathbf{y} | \theta') p(\theta')}{p(\mathbf{y} | \theta) p(\theta)} \cdot \frac{q(\theta | \theta')}{q(\theta' | \theta)}\right)
-
 $$
 
-Without $p(\mathbf{y} | \theta)$, we cannot compute $\alpha$.
+$p(\mathbf{y} | \theta)$이 없으면 $\alpha$을 셈할 수 없다.
 
-### Importance Sampling Requires Likelihood
+### 중요도 표집은 가능도가 필요하다
 
-Importance sampling weights are:
+중요도 표집의 무게는 다음과 같다:
 
 $$
-
 w(\theta) = \frac{p(\mathbf{y} | \theta) p(\theta)}{q(\theta)}
-
 $$
 
-Again, we need $p(\mathbf{y} | \theta)$.
+여기서도 $p(\mathbf{y} | \theta)$이 필요하다.
 
-### Variational Inference Requires Likelihood
+### 변분 추론은 가능도가 필요하다
 
-The ELBO involves:
+ELBO에는 다음이 들어간다:
 
 $$
-
 \mathcal{L}(q) = \mathbb{E}_q[\log p(\mathbf{y} | \theta)] - D_{KL}(q(\theta) \| p(\theta))
-
 $$
 
-The first term requires the likelihood.
+첫 항이 가능도를 필요로 한다.
 
 ---
 
-## The ABC Idea
+## ABC의 생각
 
-### Core Insight
+### 핵심 통찰
 
-If we can't compute $p(\mathbf{y} | \theta)$, we can **simulate** from it. The ABC approach:
+$p(\mathbf{y} | \theta)$을 셈할 수 없으면 거기서 **흉내 낼** 수는 있다. ABC의 길은 이렇다:
 
-1. Propose $\theta$ from prior (or proposal)
-2. Simulate $\mathbf{x} \sim p(\cdot | \theta)$
-3. Compare $\mathbf{x}$ to observed $\mathbf{y}$
-4. Accept $\theta$ if $\mathbf{x} \approx \mathbf{y}$
+1. 앞확률(또는 제안)에서 $\theta$을 내놓는다
+2. $\mathbf{x} \sim p(\cdot | \theta)$을 흉내 낸다
+3. $\mathbf{x}$을 관측 $\mathbf{y}$과 견준다
+4. $\mathbf{x} \approx \mathbf{y}$이면 $\theta$을 받아들인다
 
-The accepted $\theta$ values form an approximate posterior sample.
+받아들인 $\theta$ 값이 어림 뒤확률 표본을 이룬다.
 
-### The Exact (Impractical) Version
+### 정확한 (실전에서는 못 쓰는) 판
 
-If we accept only when $\mathbf{x} = \mathbf{y}$ exactly:
+$\mathbf{x} = \mathbf{y}$이 딱 맞을 때만 받아들이면:
 
 $$
-
 p(\theta | \mathbf{x} = \mathbf{y}) = p(\theta | \mathbf{y})
-
 $$
 
-This gives the exact posterior! But for continuous data, $P(\mathbf{x} = \mathbf{y}) = 0$.
+정확한 뒤확률이 나온다! 그러나 이어진 자료에서는 $P(\mathbf{x} = \mathbf{y}) = 0$이다.
 
-### The Approximate Version
+### 어림 판
 
-Accept when $\mathbf{x}$ is "close enough" to $\mathbf{y}$:
+$\mathbf{x}$이 $\mathbf{y}$에 "넉넉히 가까우면" 받아들인다:
 
 $$
-
 \rho(\mathbf{x}, \mathbf{y}) < \epsilon
-
 $$
 
-where $\rho$ is a distance metric and $\epsilon$ is a tolerance.
+여기서 $\rho$은 거리 잣대이고 $\epsilon$은 너그러움이다.
 
-This targets the **ABC posterior**:
+이는 **ABC 뒤확률**을 겨냥한다:
 
 $$
-
 p_{ABC}(\theta | \mathbf{y}) \propto p(\theta) \int p(\mathbf{x} | \theta) \mathbf{1}[\rho(\mathbf{x}, \mathbf{y}) < \epsilon] \, d\mathbf{x}
-
 $$
 
 ---
 
-## The ABC Posterior
+## ABC 뒤확률
 
-### Interpretation
+### 해석
 
-The ABC posterior is the posterior given that the simulated data is within $\epsilon$ of the observed data:
+ABC 뒤확률은 흉내 낸 자료가 관측 자료에서 $\epsilon$ 안에 있다는 조건 아래의 뒤확률이다:
 
 $$
-
 p_{ABC}(\theta | \mathbf{y}) = p(\theta | \rho(\mathbf{X}, \mathbf{y}) < \epsilon)
-
 $$
 
-where $\mathbf{X} \sim p(\cdot | \theta)$.
+여기서 $\mathbf{X} \sim p(\cdot | \theta)$이다.
 
-### Relationship to True Posterior
+### 참 뒤확률과의 관계
 
-As $\epsilon \to 0$:
+$\epsilon \to 0$이면:
 
 $$
-
 p_{ABC}(\theta | \mathbf{y}) \to p(\theta | \mathbf{y})
-
 $$
 
-For finite $\epsilon$, the ABC posterior is a smoothed/broadened version of the true posterior.
+$\epsilon$이 끝이 있으면 ABC 뒤확률은 참 뒤확률을 매끄럽게 하고 넓힌 판이다.
 
-### The Bias-Variance Trade-off
+### 치우침과 흩어짐의 주고받음
 
-| Small $\epsilon$ | Large $\epsilon$ |
+| 작은 $\epsilon$ | 큰 $\epsilon$ |
 |------------------|------------------|
-| Less bias | More bias |
-| Higher variance (rare accepts) | Lower variance (many accepts) |
-| Closer to true posterior | Farther from true posterior |
-| Computationally expensive | Computationally cheap |
+| 치우침이 작다 | 치우침이 크다 |
+| 흩어짐이 크다(드물게 받아들인다) | 흩어짐이 작다(많이 받아들인다) |
+| 참 뒤확률에 더 가깝다 | 참 뒤확률에서 더 멀다 |
+| 셈이 비싸다 | 셈이 싸다 |
 
 ---
 
-## Summary Statistics
+## 간추린 통계량
 
-### The Curse of Dimensionality
+### 차원의 저주
 
-Directly comparing high-dimensional $\mathbf{x}$ and $\mathbf{y}$ is problematic:
-- Random $\mathbf{x}$ is almost never close to $\mathbf{y}$
-- Acceptance rate becomes vanishingly small
-- Need exponentially many simulations
+차원이 높은 $\mathbf{x}$과 $\mathbf{y}$을 곧바로 견주는 것은 말썽이다:
 
-### Dimension Reduction via Summary Statistics
+- 무작위 $\mathbf{x}$이 $\mathbf{y}$에 가까운 일은 거의 없다
+- 받아들임 비율이 사라질 만큼 작아진다
+- 흉내내기가 지수만큼 많이 필요하다
 
-Replace raw data with **summary statistics** $S(\mathbf{x})$:
+### 간추린 통계량으로 차원 줄이기
+
+날 자료를 **간추린 통계량** $S(\mathbf{x})$으로 바꾼다:
 
 $$
-
 \rho(S(\mathbf{x}), S(\mathbf{y})) < \epsilon
-
 $$
 
-Now we compare lower-dimensional summaries.
+이제 차원이 낮은 간추림끼리 견준다.
 
-### The Sufficiency Question
+### 충분함의 물음
 
-**Sufficient statistics**: $S$ is sufficient for $\theta$ if $p(\mathbf{y} | \theta) = p(\mathbf{y} | S(\mathbf{y}), \theta) p(S(\mathbf{y}) | \theta)$.
+**충분 통계량**: $p(\mathbf{y} | \theta) = p(\mathbf{y} | S(\mathbf{y}), \theta) p(S(\mathbf{y}) | \theta)$이면 $S$은 $\theta$에 충분하다.
 
-If $S$ is sufficient:
+$S$이 충분하면:
 
 $$
-
 p_{ABC}(\theta | S(\mathbf{y})) = p(\theta | S(\mathbf{y})) = p(\theta | \mathbf{y})
-
 $$
 
-ABC with sufficient statistics (and $\epsilon \to 0$) gives the exact posterior.
+충분 통계량을 쓴 ABC은($\epsilon \to 0$과 함께) 정확한 뒤확률을 준다.
 
-### The Problem: Sufficient Statistics Rarely Exist
+### 문제: 충분 통계량은 드물다
 
-For most complex models:
-- No finite-dimensional sufficient statistics exist
-- Must use approximately sufficient or heuristic summaries
-- Information loss is inevitable
+복잡한 모형 대부분에서는:
 
-### Choosing Summary Statistics
+- 차원이 끝이 있는 충분 통계량이 없다
+- 대충 충분하거나 어림짐작으로 만든 간추림을 써야 한다
+- 정보를 잃는 일을 피할 수 없다
 
-**Domain knowledge**: Statistics that capture relevant features.
+### 간추린 통계량 고르기
 
-**Automatic methods**:
-- Semi-automatic ABC (Fearnhead & Prangle, 2012)
-- Neural network embeddings
-- Information-theoretic selection
+**분야 지식**: 관련 있는 특징을 담는 통계량.
+
+**저절로 되는 방법**:
+
+- 반자동 ABC(Fearnhead & Prangle, 2012)
+- 신경망 묻힘
+- 정보 이론으로 고르기
 
 ---
 
-## The Distance Function
+## 거리 함수
 
-### Common Choices
+### 흔히 고르는 것
 
-**Euclidean distance**:
+**유클리드 거리**:
 
 $$
-
 \rho(\mathbf{x}, \mathbf{y}) = \|S(\mathbf{x}) - S(\mathbf{y})\|_2
-
 $$
 
-**Weighted Euclidean**:
+**무게 준 유클리드**:
 
 $$
-
 \rho(\mathbf{x}, \mathbf{y}) = \sqrt{(S(\mathbf{x}) - S(\mathbf{y}))^T W (S(\mathbf{x}) - S(\mathbf{y}))}
-
 $$
 
-where $W$ accounts for different scales.
+여기서 $W$은 눈금이 다른 것을 헤아린다.
 
-**Mahalanobis distance**:
+**마할라노비스 거리**:
 
 $$
-
 \rho(\mathbf{x}, \mathbf{y}) = \sqrt{(S(\mathbf{x}) - S(\mathbf{y}))^T \Sigma^{-1} (S(\mathbf{x}) - S(\mathbf{y}))}
-
 $$
 
-where $\Sigma$ is the covariance of $S(\mathbf{X})$ under the prior predictive.
+여기서 $\Sigma$은 앞확률 예측 아래 $S(\mathbf{X})$의 공분산이다.
 
-### Kernel ABC
+### 알맹이 ABC
 
-Replace hard threshold with soft kernel:
+딱딱한 문턱값을 부드러운 알맹이로 바꾼다:
 
 $$
-
 K_\epsilon(\mathbf{x}, \mathbf{y}) = K\left(\frac{\rho(\mathbf{x}, \mathbf{y})}{\epsilon}\right)
-
 $$
 
-Common kernels:
-- Uniform: $K(u) = \mathbf{1}[u < 1]$
-- Gaussian: $K(u) = \exp(-u^2/2)$
-- Epanechnikov: $K(u) = (1 - u^2)\mathbf{1}[u < 1]$
+흔한 알맹이:
+
+- 고름: $K(u) = \mathbf{1}[u < 1]$
+- 가우스: $K(u) = \exp(-u^2/2)$
+- 에파네치니코프: $K(u) = (1 - u^2)\mathbf{1}[u < 1]$
 
 ---
 
-## Theoretical Foundations
+## 이론의 바탕
 
-### Consistency
+### 일치성
 
-Under regularity conditions, ABC is **consistent**: as $n \to \infty$ (data size) and $\epsilon \to 0$ (appropriately):
+규칙 조건 아래 ABC은 **일관적**이다. 곧 (자료 크기) $n \to \infty$이고 (알맞게) $\epsilon \to 0$이면:
 
 $$
-
 p_{ABC}(\theta | \mathbf{y}_n) \to \delta_{\theta_0}
-
 $$
 
-where $\theta_0$ is the true parameter.
+여기서 $\theta_0$은 참 매개변수이다.
 
-### Convergence Rate
+### 수렴 속도
 
-The convergence rate depends on:
-- Dimension of summary statistics
-- Smoothness of the model
-- Choice of $\epsilon$ schedule
+모임 속도는 다음에 기댄다:
 
-For $d$-dimensional sufficient statistics:
+- 간추린 통계량의 차원
+- 모형의 매끄러움
+- $\epsilon$ 일정을 고르는 법
+
+차원이 $d$인 충분 통계량에서는:
 
 $$
-
 \epsilon_n \sim n^{-1/(d+4)}
-
 $$
 
-gives optimal mean squared error.
+이 평균 제곱 오차를 가장 작게 한다.
 
-### Asymptotic Normality
+### 점근 정규성
 
-Under conditions, the ABC posterior is asymptotically normal:
+어떤 조건 아래 ABC 뒤확률은 점근으로 정규이다:
 
 $$
-
 p_{ABC}(\theta | \mathbf{y}_n) \approx \mathcal{N}(\hat{\theta}_n, V_n)
-
 $$
 
-where $\hat{\theta}_n$ is a consistent estimator and $V_n \to 0$.
+여기서 $\hat{\theta}_n$은 일관 어림자이고 $V_n \to 0$이다.
 
 ---
 
-## Beyond Basic ABC
+## 기본 ABC 너머
 
-### The Landscape of Likelihood-Free Methods
+### 가능도 없는 방법의 갈래
 
-ABC is one approach. The broader landscape includes:
+ABC은 한 갈래일 뿐이다. 더 넓게 보면 다음이 있다:
 
-**ABC variants**:
-- ABC rejection sampling
+**ABC의 여러 판**:
+
+- ABC 물리치기 표집
 - ABC-MCMC
-- ABC-SMC (Sequential Monte Carlo)
-- Regression adjustment
+- ABC-SMC(잇단 몬테카를로)
+- 회귀 조정
 
-**Neural likelihood-free methods**:
-- Neural posterior estimation (NPE)
-- Neural likelihood estimation (NLE)
-- Neural ratio estimation (NRE)
+**신경망 기반 가능도 없는 방법**:
 
-**Other approaches**:
-- Synthetic likelihood
-- Indirect inference
-- Bayesian optimization for likelihood-free inference
+- 신경망 뒤확률 어림(NPE)
+- 신경망 가능도 어림(NLE)
+- 신경망 비 어림(NRE)
 
-### Neural Density Estimation
+**다른 길**:
 
-Train a neural network to approximate:
+- 흉내 가능도
+- 에두른 추론
+- 가능도 없는 추론을 위한 베이즈 최적화
 
-**The posterior** (NPE):
+### 신경망 밀도 어림
+
+다음을 어림하도록 신경망을 가르친다:
+
+**뒤확률**(NPE):
 
 $$
-
 q_\phi(\theta | \mathbf{y}) \approx p(\theta | \mathbf{y})
-
 $$
 
-**The likelihood** (NLE):
+**가능도**(NLE):
 
 $$
-
 q_\phi(\mathbf{y} | \theta) \approx p(\mathbf{y} | \theta)
-
 $$
 
-**The likelihood ratio** (NRE):
+**가능도 비**(NRE):
 
 $$
-
 r_\phi(\theta, \mathbf{y}) \approx \frac{p(\mathbf{y} | \theta)}{p(\mathbf{y})}
-
 $$
 
-These methods amortize inference: once trained, posterior samples for new observations are cheap.
+이 방법들은 추론 비용을 나눠 문다. 곧 한번 가르치고 나면 새 관측의 뒤확률 표본을 싸게 얻는다.
 
-### Synthetic Likelihood
+### 흉내 가능도
 
-Assume summary statistics are approximately Gaussian:
+간추린 통계량이 대략 가우스라고 놓는다:
 
 $$
-
 S(\mathbf{X}) | \theta \approx \mathcal{N}(\mu(\theta), \Sigma(\theta))
-
 $$
 
-Estimate $\mu(\theta)$, $\Sigma(\theta)$ from simulations, then use this Gaussian likelihood in standard MCMC.
+흉내내기에서 $\mu(\theta)$과 $\Sigma(\theta)$을 어림한 뒤 이 가우스 가능도를 표준 MCMC에 쓴다.
 
 ---
 
-## When to Use Likelihood-Free Methods
+## 가능도 없는 방법을 언제 쓰나
 
-### Good Candidates
+### 잘 맞는 경우
 
-✓ Model is a simulator (can generate, can't evaluate)
-✓ Model is scientifically motivated (not just for fitting)
-✓ Simulation is reasonably fast
-✓ Informative summary statistics exist
-✓ Prior is proper and not too diffuse
+✓ 모형이 흉내내기 장치이다(만들 수는 있고 값은 못 매긴다)
+✓ 모형이 과학적으로 뒷받침된다(그저 맞추기용이 아니다)
+✓ 흉내내기가 그럭저럭 빠르다
+✓ 알려 주는 바 있는 간추린 통계량이 있다
+✓ 앞확률이 제대로 되어 있고 지나치게 퍼져 있지 않다
 
-### Poor Candidates
+### 잘 맞지 않는 경우
 
-✗ Likelihood is tractable (use standard methods!)
-✗ Simulation is extremely slow
-✗ No good summary statistics known
-✗ Very high-dimensional parameter space
-✗ Model is misspecified (garbage in, garbage out)
+✗ 가능도를 다룰 수 있다(표준 방법을 써라!)
+✗ 흉내내기가 몹시 느리다
+✗ 좋은 간추린 통계량이 알려져 있지 않다
+✗ 매개변수 공간의 차원이 아주 높다
+✗ 모형을 잘못 잡았다(쓰레기를 넣으면 쓰레기가 나온다)
 
-### Computational Considerations
+### 셈에서 살필 점
 
-| Factor | Impact |
+| 요인 | 영향 |
 |--------|--------|
-| Simulation cost | Dominates runtime |
-| Parameter dimension | Affects acceptance rate |
-| Summary dimension | Trade-off: information vs. acceptance |
-| Data size | More data → need smaller $\epsilon$ |
+| 흉내내기 값 | 도는 시간을 좌우한다 |
+| 매개변수 차원 | 받아들임 비율에 영향을 준다 |
+| 간추림의 차원 | 주고받음: 정보와 받아들임 |
+| 자료 크기 | 자료가 많을수록 → $\epsilon$이 더 작아야 한다 |
 
 ---
 
-## Practical Workflow
+## 실전 일머리
 
-### Step 1: Model Validation
+### 걸음 1: 모형 확인하기
 
-Before inference, validate the simulator:
-- Can it produce data resembling observations?
-- Is the prior reasonable?
-- Are there bugs in the simulation code?
+추론에 앞서 흉내내기 장치를 확인하여라:
+
+- 관측을 닮은 자료를 낼 수 있는가?
+- 앞확률이 그럭저럭한가?
+- 흉내내기 코드에 벌레가 있는가?
 
 ```python
 def prior_predictive_check(simulator, prior, n_sims=100):
-    """Generate prior predictive samples."""
+    """앞확률 미리봄 표본 만들기."""
     samples = []
     for _ in range(n_sims):
         theta = prior.sample()
         x = simulator(theta)
         samples.append({'theta': theta, 'x': x})
     
-    # Visualize: do any samples look like real data?
+    # 그려 보기: 참 자료처럼 보이는 표본이 있는가?
     return samples
 ```
 
-### Step 2: Choose Summary Statistics
+### 걸음 2: 간추린 통계량 고르기
 
-Start with domain-motivated summaries:
+분야에서 뒷받침되는 간추림에서 시작하여라:
 
 ```python
 def summary_statistics(x):
-    """Example: time series summaries."""
+    """보기: 시계열의 간추린 통계량."""
     return np.array([
         np.mean(x),
         np.std(x),
-        np.corrcoef(x[:-1], x[1:])[0, 1],  # Lag-1 autocorrelation
+        np.corrcoef(x[:-1], x[1:])[0, 1],  # 뒤짐 1의 자기상관
         np.percentile(x, [25, 50, 75]),
     ]).flatten()
 ```
 
-### Step 3: Calibrate Tolerance
+### 걸음 3: 너그러움 맞추기
 
-Run pilot simulations to understand the distance distribution:
+거리 분포를 알아보려고 미리 흉내내기를 돌려라:
 
 ```python
 def calibrate_epsilon(simulator, prior, summary_fn, y_obs, n_pilot=1000):
-    """Determine reasonable epsilon range."""
+    """그럴듯한 엡실론 범위 정하기."""
     distances = []
     
     s_obs = summary_fn(y_obs)
@@ -475,7 +434,7 @@ def calibrate_epsilon(simulator, prior, summary_fn, y_obs, n_pilot=1000):
         s_x = summary_fn(x)
         distances.append(np.linalg.norm(s_x - s_obs))
     
-    # Epsilon as quantile of prior predictive distances
+    # 앞확률 미리봄 거리의 분위수로 잡은 엡실론
     return {
         'q01': np.percentile(distances, 1),
         'q05': np.percentile(distances, 5),
@@ -483,60 +442,60 @@ def calibrate_epsilon(simulator, prior, summary_fn, y_obs, n_pilot=1000):
     }
 ```
 
-### Step 4: Run ABC
+### 걸음 4: ABC 돌리기
 
-Start with rejection sampling, move to MCMC or SMC if needed.
+물리치기 표집에서 시작하고 필요하면 MCMC이나 SMC으로 옮겨라.
 
-### Step 5: Validate Results
+### 걸음 5: 결과 확인하기
 
-Check posterior predictive:
+뒤확률 예측을 살펴라:
 
 ```python
 def posterior_predictive_check(simulator, posterior_samples, summary_fn, y_obs):
-    """Check if posterior can reproduce observations."""
+    """뒤확률이 관측을 되살릴 수 있는지 살피기."""
     s_obs = summary_fn(y_obs)
     
     for theta in posterior_samples:
         x = simulator(theta)
         s_x = summary_fn(x)
-        # Compare s_x to s_obs
+        # s_x과 s_obs 견주기
 ```
 
 ---
 
-## Summary
+## 요약
 
-| Concept | Description |
+| 개념 | 설명 |
 |---------|-------------|
-| **Likelihood-free** | Can simulate, cannot evaluate likelihood |
-| **ABC idea** | Accept parameters that produce similar data |
-| **Summary statistics** | Reduce dimension for tractable comparison |
-| **Tolerance $\epsilon$** | Trade-off: bias vs. variance |
-| **ABC posterior** | Approximation to true posterior |
-| **Consistency** | Exact as $\epsilon \to 0$, $n \to \infty$ |
+| **가능도 없음** | 흉내 낼 수는 있으나 가능도의 값은 못 매긴다 |
+| **ABC의 생각** | 비슷한 자료를 내는 매개변수를 받아들인다 |
+| **간추린 통계량** | 견줄 만하도록 차원을 줄인다 |
+| **너그러움 $\epsilon$** | 주고받음: 치우침과 흩어짐 |
+| **ABC 뒤확률** | 참 뒤확률의 어림 |
+| **일관성** | $\epsilon \to 0$, $n \to \infty$이면 정확해진다 |
 
-Likelihood-free inference enables Bayesian analysis for complex simulator models where traditional methods fail. ABC provides a simple, widely applicable framework, while modern neural approaches offer improved efficiency for repeated inference tasks.
-
----
-
-## Exercises
-
-1. **Simulator example**. Implement a simple ecological model (e.g., Lotka-Volterra) as a simulator. Verify you can generate data but cannot evaluate the likelihood.
-
-2. **ABC by hand**. For a normal mean inference problem (where likelihood is available), implement ABC rejection sampling. Compare the ABC posterior to the true posterior for various $\epsilon$.
-
-3. **Summary statistic impact**. For a model of your choice, compare ABC with (a) sufficient statistics, (b) insufficient but informative statistics, (c) random statistics. How does the posterior change?
-
-4. **Tolerance calibration**. Implement the calibration procedure above. How does the acceptance rate depend on $\epsilon$? What is a reasonable choice?
-
-5. **Comparison to exact**. For a model where both ABC and exact inference are possible, quantify the ABC approximation error as a function of $\epsilon$.
+가능도 없는 추론은 전통적인 방법이 무너지는 복잡한 흉내내기 모형에서도 베이즈 분석을 가능하게 한다. ABC은 단순하고 널리 쓸 수 있는 얼개를 주고, 요즘의 신경망 방식은 추론을 되풀이하는 일감에서 효율을 끌어올린다.
 
 ---
 
-## References
+## 참고 문헌
 
 1. Beaumont, M. A., Zhang, W., & Balding, D. J. (2002). "Approximate Bayesian Computation in Population Genetics." *Genetics*.
 2. Marin, J.-M., Pudlo, P., Robert, C. P., & Ryder, R. J. (2012). "Approximate Bayesian Computational Methods." *Statistics and Computing*.
 3. Sisson, S. A., Fan, Y., & Beaumont, M. A. (2018). *Handbook of Approximate Bayesian Computation*. CRC Press.
 4. Cranmer, K., Brehmer, J., & Louppe, G. (2020). "The Frontier of Simulation-Based Inference." *PNAS*.
 5. Fearnhead, P., & Prangle, D. (2012). "Constructing Summary Statistics for Approximate Bayesian Computation: Semi-Automatic Approximate Bayesian Computation." *JRSS-B*.
+
+## 연습문제
+
+1. **흉내내기 보기.** 단순한 생태 모형(이를테면 로트카-볼테라)을 흉내내기 장치로 구현하여라. 자료는 만들 수 있으나 가능도의 값은 매길 수 없음을 확인하여라.
+
+2. **손으로 하는 ABC.** (가능도를 쓸 수 있는) 정규 평균 추론 문제에 ABC 물리치기 표집을 구현하여라. 여러 $\epsilon$에서 ABC 뒤확률을 참 뒤확률과 견주어라.
+
+3. **간추린 통계량의 영향.** 마음대로 고른 모형에서 (a) 충분 통계량, (b) 충분하지는 않으나 알려 주는 바 있는 통계량, (c) 무작위 통계량을 쓴 ABC을 견주어라. 뒤확률이 어떻게 바뀌는가?
+
+4. **너그러움 맞추기.** 위의 맞추기 절차를 구현하여라. 받아들임 비율이 $\epsilon$에 어떻게 기대는가? 그럭저럭한 고름은 무엇인가?
+
+5. **정확한 것과 견주기.** ABC과 정확한 추론이 모두 가능한 모형에서 ABC 어림의 오차를 $\epsilon$의 함수로 재어라.
+
+---

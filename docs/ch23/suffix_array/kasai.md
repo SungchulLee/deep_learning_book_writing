@@ -1,23 +1,23 @@
-# Kasai's Algorithm
+# 가사이 알고리즘
 
-Computing the LCP array by naively comparing each pair of adjacent suffixes in the suffix array takes $O(n^2)$ time in the worst case, since each comparison may need to scan up to $n$ characters. Kasai, Lee, Arimura, Arikawa, and Park (2001) discovered a remarkably simple algorithm that computes the LCP array in $O(n)$ time by exploiting a key observation: if we know that two adjacent suffixes share a long common prefix, then removing the first character from each suffix reduces the common prefix by at most one. This section presents the algorithm, proves its linear-time guarantee, and traces through a complete example.
+뒷가지 배열에서 이웃한 뒷가지 짝마다 막무가내로 견주어 최장 공통 앞가지 배열을 셈하면 견줌마다 글자를 최대 $n$개 훑을 수 있어 최악의 경우 $O(n^2)$이 든다. Kasai, Lee, Arimura, Arikawa, Park(2001)은 핵심 관찰을 써먹어 최장 공통 앞가지 배열을 $O(n)$ 시간에 셈하는 놀랄 만큼 단순한 알고리즘을 찾아냈다. 곧 이웃한 두 뒷가지가 긴 공통 앞가지를 나눠 갖는다면 뒷가지마다 첫 글자를 떼어도 공통 앞가지가 많아야 하나 줄어든다. 이 절은 그 알고리즘을 보이고 선형 시간 보장을 밝히며 온전한 보기를 좇는다.
 
-## The Key Lemma
+## 핵심 보조 정리
 
-The efficiency of Kasai's algorithm rests on a single lemma about how LCP values change when we step through suffixes in text order rather than sorted order.
+가사이 알고리즘의 효율은 뒷가지를 정렬 차례가 아니라 글월 차례로 밟아 갈 때 최장 공통 앞가지 값이 어떻게 바뀌는지에 대한 보조 정리 하나에 달렸다.
 
-!!! note "Lemma (LCP decrease bound)"
-    Let $\text{SA}$ be the suffix array and $\text{SA}^{-1}$ its inverse. If suffix($i$) has rank $r = \text{SA}^{-1}[i]$ and the LCP between suffix($i$) and its predecessor in sorted order is $h$, then the LCP between suffix($i+1$) and its predecessor in sorted order is at least $h - 1$.
+!!! note "보조 정리(최장 공통 앞가지 줄어듦의 한계)"
+    $\text{SA}$을 뒷가지 배열, $\text{SA}^{-1}$을 그 역이라 하자. suffix($i$)의 순위가 $r = \text{SA}^{-1}[i]$이고 suffix($i$)과 정렬 차례에서 앞선 것의 최장 공통 앞가지가 $h$이면, suffix($i+1$)과 정렬 차례에서 앞선 것의 최장 공통 앞가지는 적어도 $h - 1$이다.
 
-    Formally: if $\text{LCP}[\text{SA}^{-1}[i]] = h \geq 1$, then $\text{LCP}[\text{SA}^{-1}[i+1]] \geq h - 1$.
+    엄밀히: $\text{LCP}[\text{SA}^{-1}[i]] = h \geq 1$이면 $\text{LCP}[\text{SA}^{-1}[i+1]] \geq h - 1$이다.
 
-**Intuition**: Suffix($i$) and its sorted predecessor share a common prefix of length $h$. Removing the first character from both gives suffix($i+1$) and some suffix that must appear near suffix($i+1$) in sorted order, sharing at least $h-1$ characters.
+**직관**: suffix($i$)과 정렬 차례에서 앞선 것이 길이 $h$인 공통 앞가지를 나눠 갖는다. 둘 다에서 첫 글자를 떼면 suffix($i+1$)과, 정렬 차례에서 suffix($i+1$) 가까이 있을 어떤 뒷가지가 나오며 적어도 $h-1$개 글자를 나눠 갖는다.
 
-**Proof sketch**: Let suffix($i$) have sorted predecessor suffix($j$), so $\text{lcp}(\text{suffix}(i), \text{suffix}(j)) = h$. This means $T[i..i+h-1] = T[j..j+h-1]$, which implies $T[i+1..i+h-1] = T[j+1..j+h-1]$. So suffix($i+1$) and suffix($j+1$) share at least $h-1$ characters. Since the LCP of suffix($i+1$) with its sorted predecessor is at least as large as its LCP with any other suffix that precedes it in sorted order, we get $\text{LCP}[\text{SA}^{-1}[i+1]] \geq h - 1$. $\square$
+**증명 얼개**: suffix($i$)의 정렬 차례 앞선 것을 suffix($j$)이라 하면 $\text{lcp}(\text{suffix}(i), \text{suffix}(j)) = h$이다. 곧 $T[i..i+h-1] = T[j..j+h-1]$이며 따라서 $T[i+1..i+h-1] = T[j+1..j+h-1]$이다. 그러므로 suffix($i+1$)과 suffix($j+1$)은 적어도 $h-1$개 글자를 나눠 갖는다. suffix($i+1$)과 정렬 차례 앞선 것의 최장 공통 앞가지는 정렬 차례에서 앞서는 다른 어떤 뒷가지와의 것 이상이므로 $\text{LCP}[\text{SA}^{-1}[i+1]] \geq h - 1$을 얻는다. $\square$
 
-## Algorithm
+## 알고리즘
 
-Kasai's algorithm processes suffixes in **text order** ($i = 0, 1, 2, \ldots, n$) rather than sorted order. It maintains a variable $h$ that tracks the current LCP value. By the lemma, $h$ decreases by at most 1 between consecutive iterations, so the total work is bounded.
+가사이 알고리즘은 뒷가지를 정렬 차례가 아니라 **글월 차례**($i = 0, 1, 2, \ldots, n$)로 처리한다. 지금 최장 공통 앞가지 값을 좇는 변수 $h$을 둔다. 보조 정리에 따라 $h$은 이어지는 되풀이 사이에 많아야 1 줄어들므로 전체 일감에 한계가 있다.
 
 ```
 KASAI(T, SA):
@@ -39,13 +39,13 @@ KASAI(T, SA):
     return LCP
 ```
 
-The critical insight is in the line `h = max(h - 1, 0)`: rather than resetting $h$ to zero for each suffix, we start the comparison from position $h - 1$, skipping characters we already know match.
+결정적인 눈썰미는 `h = max(h - 1, 0)` 줄에 있다. 곧 뒷가지마다 $h$을 0으로 되돌리는 대신 이미 맞는 줄 아는 글자를 건너뛰고 자리 $h - 1$에서 견줌을 시작한다.
 
-## Worked Example
+## 풀이 예제
 
-For $T = \texttt{banana\$}$ with $\text{SA} = [6, 5, 3, 1, 0, 4, 2]$:
+$T = \texttt{banana\$}$이고 $\text{SA} = [6, 5, 3, 1, 0, 4, 2]$일 때:
 
-First compute the inverse: $\text{SA}^{-1} = [4, 3, 6, 2, 5, 1, 0]$.
+먼저 역을 셈한다: $\text{SA}^{-1} = [4, 3, 6, 2, 5, 1, 0]$.
 
 | Step | $i$ | $r = \text{SA}^{-1}[i]$ | $j = \text{SA}[r-1]$ | Start $h$ | Compare | $\text{LCP}[r]$ | End $h$ |
 |------|-----|--------------------------|----------------------|-----------|---------|------------------|---------|
@@ -57,58 +57,58 @@ First compute the inverse: $\text{SA}^{-1} = [4, 3, 6, 2, 5, 1, 0]$.
 | 6 | 5 | 1 | 6 | 0 | `a` vs `$` | 0 | 0 |
 | 7 | 6 | 0 | — | 0 | (first in order) | 0 | 0 |
 
-Result: $\text{LCP} = [0, 0, 1, 3, 0, 0, 2]$, matching the expected values.
+결과: $\text{LCP} = [0, 0, 1, 3, 0, 0, 2]$이며 기대한 값과 맞는다.
 
-## Amortized Analysis
+## 고르게 나눈 분석
 
-**Claim**: Kasai's algorithm runs in $O(n)$ time.
+**주장**: 가사이 알고리즘은 $O(n)$ 시간에 돈다.
 
-**Proof**: The variable $h$ acts as a potential function. Observe two facts:
+**증명**: 변수 $h$이 위치 에너지 함수 노릇을 한다. 사실 둘을 살피자:
 
-1. In each iteration, $h$ can **increase** by some amount $\delta_i \geq 0$ during the while-loop comparisons.
-2. Between iterations, $h$ **decreases** by at most 1 (the `h = max(h - 1, 0)` line).
+1. 되풀이마다 while 되풀이의 견줌에서 $h$이 어떤 양 $\delta_i \geq 0$만큼 **늘** 수 있다.
+2. 되풀이 사이에 $h$이 많아야 1 **준다**(`h = max(h - 1, 0)` 줄).
 
-The total number of character comparisons across all iterations equals the total increase in $h$:
+모든 되풀이에 걸친 글자 견줌의 총수는 $h$이 는 총량과 같다:
 
 $$
-\text{Total comparisons} = \sum_{i=0}^{n} \delta_i
+\text{전체 견줌 수} = \sum_{i=0}^{n} \delta_i
 $$
 
-Since $h$ starts at 0, ends at some value $\geq 0$, and decreases by at most 1 per iteration (at most $n+1$ decreases total), the total increase is bounded by:
+$h$이 0에서 시작해 $\geq 0$인 어떤 값으로 끝나고 되풀이마다 많아야 1 줄므로(모두 합해 많아야 $n+1$번 줄어듦) 는 총량은 다음 이하이다:
 
 $$
 \sum_{i=0}^{n} \delta_i \leq (n+1) + h_{\text{final}} \leq 2(n+1)
 $$
 
-because $h$ can never exceed $n$ and each decrease of 1 must have been preceded by an increase of at least 1. Therefore the total work is $O(n)$. $\square$
+$h$이 결코 $n$을 넘을 수 없고 1만큼 줄어들기 앞에는 적어도 1만큼 늘었어야 하기 때문이다. 그러므로 전체 일감은 $O(n)$이다. $\square$
 
-**Space complexity**: The algorithm uses $O(n)$ space for the rank array and the LCP array.
+**공간 복잡도**: 알고리즘은 순위 배열과 최장 공통 앞가지 배열에 $O(n)$ 공간을 쓴다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Kasai's algorithm for O(n) LCP array construction.
+O(n)에 최장 공통 앞가지 배열을 세우는 가사이 알고리즘.
 """
 
 
-# === Kasai's Algorithm ===
+# === 가사이 알고리즘 ===
 
 def kasai(text: str, sa: list[int]) -> list[int]:
-    """Compute the LCP array in O(n) time using Kasai's algorithm.
+    """가사이 알고리즘으로 최장 공통 앞가지 배열을 O(n) 시간에 셈한다.
 
-    Parameters
+    매개변수
     ----------
     text : str
-        The input string (with sentinel).
+        들임 글줄(파수 포함).
     sa : list[int]
-        The suffix array of text.
+        글월의 뒷가지 배열.
 
-    Returns
+    반환값
     -------
     list[int]
-        The LCP array where lcp[k] is the length of the longest
-        common prefix between suffix(sa[k-1]) and suffix(sa[k]).
+        lcp[k]이 suffix(sa[k-1])과 suffix(sa[k])의 최장 공통
+        앞가지 길이인 최장 공통 앞가지 배열.
     """
     n = len(sa)
     rank = [0] * n
@@ -132,7 +132,7 @@ def kasai(text: str, sa: list[int]) -> list[int]:
     return lcp
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     text = "banana$"
@@ -148,6 +148,38 @@ if __name__ == "__main__":
         print(f"  LCP[{k}] = {lcp[k]:2d}  suffix: {suffix}")
 ```
 
-## Reference
+## 참고 문헌
 
 - Kasai, T., Lee, G., Arimura, H., Arikawa, S., and Park, K. (2001). *Linear-time longest-common-prefix computation in suffix arrays and its applications*. CPM 2001, LNCS 2089, pp. 181-192.
+
+## 연습문제
+
+**연습문제 1.**
+가사이 알고리즘의 핵심 자료 짜임이나 개념과 그 으뜸 쓰임새를 설명하라.
+
+??? success "연습문제 1 풀이"
+    가사이 알고리즘은 글줄이나 차례 자료를 미리 다듬고 묻는 효율 좋은 길을 준다. 으뜸 쓰임새는 부분 글줄, 본, 들임의 짜임 성질에 대한 되풀이되는 물음에 답하는 것이다. 미리 다듬기가 다룰 만한 시간에 자료 짜임을 세우고 나면 맨바닥에서 다시 다듬는 것보다 훨씬 빠르게 물음에 답할 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+가사이 알고리즘을 세우는 시간 복잡도는 무엇인가? 으뜸 연산의 묻기 시간은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    세우는 시간은 쓰는 알고리즘에 달렸다. 흔한 한계는 $n$이 들임 크기일 때 $O(n)$에서 $O(n \log n)$ 사이이다. 묻기는 흔히 본 찾기에 $O(m)$($m$은 물음 길이), 미리 셈한 성질에 $O(1)$이 든다. 공간 복잡도는 흔히 $O(n)$이거나 $\sigma$이 글자 모임의 크기일 때 $O(n\sigma)$이다. $\square$
+
+---
+
+**연습문제 3.**
+가사이 알고리즘을 더 단순한 다른 방식과 견주어라. 더 정교한 짜임은 언제 값어치가 있는가?
+
+??? success "연습문제 3 풀이"
+    더 단순한 방식(예컨대 막무가내 훑기나 정렬)은 묻기 시간이 더 길지만 세우는 군더더기가 적다. 정교한 짜임은 다음일 때 값어치가 있다. (1) 같은 자료에 물음을 많이 던져 세우는 값이 고르게 나뉠 때, (2) 묻기 시간이 결정적일 때(실시간 쓰임새), (3) 자료가 커서 점근 나아짐이 실전에서 중요할 때이다. 작은 자료에 물음을 한 번 던지는 경우에는 상수 인수가 작은 단순한 방식이 더 빠를 수 있다. $\square$
+
+---
+
+**연습문제 4.**
+들임 글줄 "banana"에 대해 가사이 알고리즘을 세우는 것을 좇아라. 중간 걸음을 보여라.
+
+??? success "연습문제 4 풀이"
+    "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$

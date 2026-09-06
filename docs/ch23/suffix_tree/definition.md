@@ -1,45 +1,45 @@
-# Suffix Tree Definition
+# 뒷가지 나무의 정의
 
-Many string algorithms need to answer queries about all substrings of a text simultaneously: finding the longest repeated substring, locating all occurrences of a pattern, or computing the longest common substring of two strings. A data structure that indexes every suffix of a text provides immediate access to every substring, since every substring is a prefix of some suffix. The **suffix tree** is a compressed trie of all suffixes that achieves this indexing in $O(n)$ space and enables $O(m)$-time pattern matching, where $m$ is the pattern length. This section defines the suffix tree formally and examines its structural properties.
+많은 글줄 알고리즘이 글월의 모든 부분 글줄에 대한 물음에 한꺼번에 답해야 한다. 곧 가장 긴 되풀이 부분 글줄 찾기, 본이 나오는 곳 모두 찾기, 두 글줄의 최장 공통 부분 글줄 셈하기이다. 모든 부분 글줄이 어떤 뒷가지의 앞가지이므로, 글월의 뒷가지를 모두 목록으로 만드는 자료 짜임은 모든 부분 글줄에 곧바로 닿게 해 준다. **뒷가지 나무**는 뒷가지를 모두 담은 눌러 담은 트라이로, 이 목록 만들기를 $O(n)$ 공간에 이루고 본의 길이가 $m$일 때 $O(m)$ 시간에 본 찾기를 되게 한다. 이 절은 뒷가지 나무를 엄밀히 정의하고 그 짜임 성질을 살핀다.
 
-## From Suffix Trie to Suffix Tree
+## 뒷가지 트라이에서 뒷가지 나무로
 
-The **suffix trie** of a string $T[0..n]$ is an ordinary trie containing all $n+1$ suffixes of $T$. Each edge is labeled with a single character, and each suffix corresponds to a path from the root to a leaf. While conceptually simple, the suffix trie has $O(n^2)$ nodes in the worst case because every substring of $T$ corresponds to a distinct node.
+글줄 $T[0..n]$의 **뒷가지 트라이**는 $T$의 뒷가지 $n+1$개를 모두 담은 여느 트라이이다. 변마다 글자 하나가 이름표로 붙고 뒷가지마다 뿌리에서 잎까지의 길에 맞닿는다. 생각은 단순하지만 $T$의 부분 글줄마다 서로 다른 마디에 맞닿으므로 최악의 경우 마디가 $O(n^2)$개이다.
 
-The **suffix tree** compresses the suffix trie by merging every chain of nodes with exactly one child into a single edge. Each edge in the suffix tree is labeled with a **substring** of $T$ rather than a single character. This compression ensures that the suffix tree has at most $n + 1$ leaves (one per suffix) and at most $n$ internal nodes, for a total of $O(n)$ nodes.
+**뒷가지 나무**는 자식이 꼭 하나인 마디의 사슬을 변 하나로 합쳐 뒷가지 트라이를 눌러 담는다. 뒷가지 나무의 변마다 글자 하나가 아니라 $T$의 **부분 글줄**이 이름표로 붙는다. 이렇게 눌러 담으면 잎이 많아야 $n + 1$개(뒷가지마다 하나), 안쪽 마디가 많아야 $n$개라 마디가 모두 $O(n)$개가 된다.
 
-!!! note "Sentinel character"
-    To ensure that no suffix is a prefix of another (which would cause some suffixes to end at internal nodes rather than leaves), we append a unique sentinel character $\$$ that does not appear elsewhere in $T$. With the sentinel, every suffix ends at a distinct leaf.
+!!! note "파수 글자"
+    어떤 뒷가지도 다른 뒷가지의 앞가지가 되지 않도록(그러면 어떤 뒷가지는 잎이 아니라 안쪽 마디에서 끝난다) $T$의 다른 데 없는 하나뿐인 파수 글자 $\$$을 붙인다. 파수가 있으면 뒷가지마다 서로 다른 잎에서 끝난다.
 
-## Formal Definition
+## 엄밀한 정의
 
-The **suffix tree** $\mathcal{T}$ of a string $T[0..n]$ (with sentinel $T[n] = \$$) is a rooted tree satisfying the following properties:
+(파수 $T[n] = \$$을 가진) 글줄 $T[0..n]$의 **뒷가지 나무** $\mathcal{T}$은 다음 성질을 채우는 뿌리 있는 나무이다:
 
-1. **Exactly $n+1$ leaves**, labeled $0, 1, \ldots, n$. Leaf $i$ represents suffix($i$) = $T[i..n]$.
+1. **잎이 꼭 $n+1$개**이며 $0, 1, \ldots, n$으로 이름 붙는다. 잎 $i$은 suffix($i$) = $T[i..n]$을 뜻한다.
 
-2. **Every internal node** (except possibly the root) has **at least two children**.
+2. **안쪽 마디마다**(뿌리는 빼고) **자식이 적어도 둘**이다.
 
-3. **Each edge** is labeled with a non-empty substring of $T$. The labels of edges from any node to its children begin with **distinct characters** (this is the branching property that makes the trie compressed).
+3. **변마다** $T$의 비지 않은 부분 글줄이 이름표로 붙는다. 어떤 마디에서 자식으로 가는 변의 이름표는 **서로 다른 글자**로 시작한다(이것이 트라이를 눌러 담는 갈래 성질이다).
 
-4. **Path label**: The concatenation of edge labels on the path from the root to leaf $i$ equals suffix($i$) = $T[i..n]$.
+4. **길 이름표**: 뿌리에서 잎 $i$까지의 길에 놓인 변 이름표를 이어 붙인 것이 suffix($i$) = $T[i..n]$과 같다.
 
-5. **Edge representation**: Each edge label is stored as a pair of indices $(l, r)$ representing the substring $T[l..r]$, rather than copying the characters. This ensures $O(n)$ total space.
+5. **변 나타내기**: 변 이름표마다 글자를 베끼는 대신 부분 글줄 $T[l..r]$을 뜻하는 번호 짝 $(l, r)$으로 담는다. 그래야 전체 공간이 $O(n)$이 된다.
 
-## Node Properties
+## 마디의 성질
 
-Each node $v$ in the suffix tree has an associated **path label** $\text{path}(v)$, which is the concatenation of all edge labels from the root to $v$. The **string depth** of $v$ is the length of its path label: $\text{depth}(v) = |\text{path}(v)|$.
+뒷가지 나무의 마디 $v$마다 뿌리에서 $v$까지의 변 이름표를 모두 이어 붙인 **길 이름표** $\text{path}(v)$이 딸려 있다. $v$의 **글줄 깊이**는 그 길 이름표의 길이 $\text{depth}(v) = |\text{path}(v)|$이다.
 
-For leaf $i$, the path label is the full suffix: $\text{path}(\text{leaf}_i) = T[i..n]$.
+잎 $i$의 길 이름표는 온전한 뒷가지 $\text{path}(\text{leaf}_i) = T[i..n]$이다.
 
-For an internal node $v$, the path label $\text{path}(v)$ is a **repeated substring** of $T$ -- it appears in $T$ starting at every position corresponding to a leaf in the subtree rooted at $v$.
+안쪽 마디 $v$의 길 이름표 $\text{path}(v)$은 $T$의 **되풀이 부분 글줄**이다. 곧 $v$을 뿌리로 하는 아래 나무의 잎에 맞닿는 자리마다 $T$에 나온다.
 
-## Worked Example
+## 풀이 예제
 
-Consider $T = \texttt{banana\$}$ (length 7). The suffix tree has 7 leaves (one for each suffix) and internal nodes corresponding to repeated substrings.
+$T = \texttt{banana\$}$(길이 7)을 보자. 뒷가지 나무에는 잎이 7개(뒷가지마다 하나) 있고 안쪽 마디가 되풀이 부분 글줄에 맞닿는다.
 
-The suffixes are:
+뒷가지는 다음과 같다:
 
-| Leaf | Suffix |
+| 잎 | 뒷가지 |
 |------|--------|
 | 0 | `banana$` |
 | 1 | `anana$` |
@@ -49,7 +49,7 @@ The suffixes are:
 | 5 | `a$` |
 | 6 | `$` |
 
-The suffix tree structure (edges shown as substring labels):
+뒷가지 나무의 짜임(변을 부분 글줄 이름표로 보임):
 
 ```
 Root
@@ -65,64 +65,96 @@ Root
     └── "na$" → Leaf 2
 ```
 
-Internal nodes and their path labels:
+안쪽 마디와 그 길 이름표:
 
-- **Node A**: path = `a` (the substring `a` repeats at positions 1, 3, 5)
-- **Node B**: path = `ana` (the substring `ana` repeats at positions 1, 3)
-- **Node C**: path = `na` (the substring `na` repeats at positions 2, 4)
+- **마디 A**: 길 = `a`(부분 글줄 `a`이 자리 1, 3, 5에서 되풀이된다)
+- **마디 B**: 길 = `ana`(부분 글줄 `ana`이 자리 1, 3에서 되풀이된다)
+- **마디 C**: 길 = `na`(부분 글줄 `na`이 자리 2, 4에서 되풀이된다)
 
-## Size and Space Complexity
+## 크기와 공간 복잡도
 
-The suffix tree of a string of length $n+1$ (with sentinel) has:
+(파수를 가진) 길이 $n+1$인 글줄의 뒷가지 나무는 다음을 갖는다:
 
-- Exactly $n + 1$ **leaves**
-- At most $n$ **internal nodes** (since every internal node has at least 2 children, and a tree with $n+1$ leaves and minimum branching factor 2 has at most $n$ internal nodes)
-- At most $2n + 1$ **total nodes**
-- At most $2n$ **edges**
+- **잎**이 꼭 $n + 1$개
+- **안쪽 마디**가 많아야 $n$개(안쪽 마디마다 자식이 적어도 둘이고, 잎이 $n+1$개이며 갈래 수가 최소 2인 나무의 안쪽 마디는 많아야 $n$개이다)
+- **마디**가 모두 많아야 $2n + 1$개
+- **변**이 많아야 $2n$개
 
-Each edge stores two integers $(l, r)$, and each node stores a pointer to its parent and children. The total space is:
+변마다 정수 둘 $(l, r)$을, 마디마다 어버이와 자식으로 가는 가리개를 담는다. 전체 공간은 다음과 같다:
 
 $$
 S(n) = O(n)
 $$
 
-However, the constant factor matters: in practice, a suffix tree uses approximately 10-20 times the space of the text itself, which is why suffix arrays (using about 4 times the text size) are often preferred for large texts.
+다만 상수 인수가 중요하다. 실전에서 뒷가지 나무는 글월 자체의 대략 10~20배 공간을 쓰며, 그래서 큰 글월에는 (글월 크기의 4배쯤을 쓰는) 뒷가지 배열을 흔히 더 낫게 여긴다.
 
-## Pattern Matching
+## 본 찾기
 
-To search for a pattern $P[0..m-1]$ in $T$, start at the root and follow edges whose labels match the characters of $P$:
+$T$에서 본 $P[0..m-1]$을 찾으려면 뿌리에서 시작해 이름표가 $P$의 글자와 맞는 변을 따라간다:
 
-1. At each node, find the outgoing edge whose label begins with the next character of $P$
-2. Compare the remaining characters of $P$ against the edge label
-3. If all $m$ characters match, $P$ occurs in $T$. The leaves in the subtree below the match point give all occurrence positions.
-4. If a mismatch occurs, $P$ does not appear in $T$.
+1. 마디마다 이름표가 $P$의 다음 글자로 시작하는 나가는 변을 찾는다
+2. $P$의 남은 글자를 변 이름표와 견준다
+3. 글자 $m$개가 모두 맞으면 $P$이 $T$에 나온다. 맞은 지점 아래 아래 나무의 잎이 나온 자리를 모두 준다.
+4. 맞지 않으면 $P$은 $T$에 나오지 않는다.
 
-**Time complexity**: $O(m)$ for determining whether $P$ occurs, since each character of $P$ is compared exactly once. Reporting all $k$ occurrences takes an additional $O(k)$ time by traversing the subtree.
+**시간 복잡도**: $P$의 글자마다 꼭 한 번 견주므로 $P$이 나오는지 정하는 데 $O(m)$이 든다. 나온 곳 $k$개를 모두 알리려면 아래 나무를 돌아보는 데 $O(k)$이 더 든다.
 
-## Relationship to Suffix Arrays
+## 뒷가지 배열과의 관계
 
-The suffix tree and suffix array encode the same information in different forms. The leaves of the suffix tree, read left to right, give the suffix array. Conversely, a suffix tree can be constructed from a suffix array and LCP array in $O(n)$ time.
+뒷가지 나무와 뒷가지 배열은 같은 앎을 다른 꼴로 담는다. 뒷가지 나무의 잎을 왼쪽에서 오른쪽으로 읽으면 뒷가지 배열이 된다. 거꾸로 뒷가지 배열과 최장 공통 앞가지 배열로 뒷가지 나무를 $O(n)$ 시간에 세울 수 있다.
 
-| Feature | Suffix Tree | Suffix Array + LCP |
+| 갈래 | 뒷가지 나무 | 뒷가지 배열 + 최장 공통 앞가지 |
 |---------|------------|-------------------|
-| Construction | $O(n)$ | $O(n)$ |
-| Pattern search | $O(m)$ | $O(m + \log n)$ |
-| Space (practical) | ~20$n$ bytes | ~8$n$ bytes |
-| Substring queries | Direct | Via LCP intervals |
+| 세우기 | $O(n)$ | $O(n)$ |
+| 본 찾기 | $O(m)$ | $O(m + \log n)$ |
+| 공간(실전) | 약 20$n$ 바이트 | 약 8$n$ 바이트 |
+| 부분 글줄 묻기 | 곧바로 | 최장 공통 앞가지 구간으로 |
 
-The suffix tree is more flexible for complex queries but less memory-efficient. The enhanced suffix array (with LCP) can simulate almost all suffix tree operations.
+뒷가지 나무는 복잡한 물음에 더 융통성 있지만 기억 공간 효율이 낮다. (최장 공통 앞가지를 곁들인) 강화된 뒷가지 배열은 거의 모든 뒷가지 나무 연산을 흉내낼 수 있다.
 
-## Key Properties
+## 핵심 성질
 
-1. **Every substring corresponds to a path**: Any substring $T[i..j]$ labels a path starting from the root. This path may end at a node or in the middle of an edge.
+1. **모든 부분 글줄이 길에 맞닿는다**: 어떤 부분 글줄 $T[i..j]$이든 뿌리에서 시작하는 길의 이름표가 된다. 이 길은 마디에서 끝날 수도 변 가운데에서 끝날 수도 있다.
 
-2. **Internal nodes are branching points**: An internal node with path label $w$ indicates that $w$ is followed by at least two distinct characters in $T$. The number of leaves in the subtree equals the number of occurrences of $w$ in $T$.
+2. **안쪽 마디는 갈림점이다**: 길 이름표가 $w$인 안쪽 마디는 $T$에서 $w$ 뒤에 서로 다른 글자가 적어도 둘 온다는 뜻이다. 그 아래 나무의 잎 수가 $T$에서 $w$이 나온 횟수와 같다.
 
-3. **Deepest internal node gives the LRS**: The internal node with the longest path label corresponds to the longest repeated substring of $T$.
+3. **가장 깊은 안쪽 마디가 가장 긴 되풀이 부분 글줄을 준다**: 길 이름표가 가장 긴 안쪽 마디가 $T$의 가장 긴 되풀이 부분 글줄에 맞닿는다.
 
-4. **Leaf count gives occurrence count**: The number of leaves in the subtree rooted at any node $v$ equals the number of times $\text{path}(v)$ occurs as a substring of $T$.
+4. **잎 수가 나온 횟수를 준다**: 어떤 마디 $v$을 뿌리로 하는 아래 나무의 잎 수가 $\text{path}(v)$이 $T$의 부분 글줄로 나온 횟수와 같다.
 
-## Reference
+## 참고 문헌
 
 - Weiner, P. (1973). *Linear pattern matching algorithms*. IEEE Symposium on Switching and Automata Theory, pp. 1-11.
 - Gusfield, D. (1997). *Algorithms on Strings, Trees, and Sequences*. Cambridge University Press, Chapter 5.
+
+## 연습문제
+
+**연습문제 1.**
+뒷가지 나무의 정의의 핵심 자료 짜임이나 개념과 그 으뜸 쓰임새를 설명하라.
+
+??? success "연습문제 1 풀이"
+    뒷가지 나무의 정의은 글줄이나 차례 자료를 미리 다듬고 묻는 효율 좋은 길을 준다. 으뜸 쓰임새는 부분 글줄, 본, 들임의 짜임 성질에 대한 되풀이되는 물음에 답하는 것이다. 미리 다듬기가 다룰 만한 시간에 자료 짜임을 세우고 나면 맨바닥에서 다시 다듬는 것보다 훨씬 빠르게 물음에 답할 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+뒷가지 나무의 정의을 세우는 시간 복잡도는 무엇인가? 으뜸 연산의 묻기 시간은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    세우는 시간은 쓰는 알고리즘에 달렸다. 흔한 한계는 $n$이 들임 크기일 때 $O(n)$에서 $O(n \log n)$ 사이이다. 묻기는 흔히 본 찾기에 $O(m)$($m$은 물음 길이), 미리 셈한 성질에 $O(1)$이 든다. 공간 복잡도는 흔히 $O(n)$이거나 $\sigma$이 글자 모임의 크기일 때 $O(n\sigma)$이다. $\square$
+
+---
+
+**연습문제 3.**
+뒷가지 나무의 정의을 더 단순한 다른 방식과 견주어라. 더 정교한 짜임은 언제 값어치가 있는가?
+
+??? success "연습문제 3 풀이"
+    더 단순한 방식(예컨대 막무가내 훑기나 정렬)은 묻기 시간이 더 길지만 세우는 군더더기가 적다. 정교한 짜임은 다음일 때 값어치가 있다. (1) 같은 자료에 물음을 많이 던져 세우는 값이 고르게 나뉠 때, (2) 묻기 시간이 결정적일 때(실시간 쓰임새), (3) 자료가 커서 점근 나아짐이 실전에서 중요할 때이다. 작은 자료에 물음을 한 번 던지는 경우에는 상수 인수가 작은 단순한 방식이 더 빠를 수 있다. $\square$
+
+---
+
+**연습문제 4.**
+들임 글줄 "banana"에 대해 뒷가지 나무의 정의을 세우는 것을 좇아라. 중간 걸음을 보여라.
+
+??? success "연습문제 4 풀이"
+    "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$

@@ -1,140 +1,179 @@
-# Squeeze-and-Excitation Networks
+# 압축-여기 신경망
+## 들어가며
 
+압축-여기(SE) 신경망은 채널 사이의 상호 의존을 명시적으로 다루어 특징 반응을 적응적으로 재보정하는 채널 어텐션 장치를 들여온다. SE 블록의 바탕에 있는 통찰은 특징 채널들이 서로 얽혀 있고, 입력 내용에 따라 채널마다의 중요도가 크게 달라진다는 것이다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+정보가 적은 채널은 누르고 쓸모 있는 채널은 키우는 법을 배움으로써, SE 신경망은 계산 부담을 거의 늘리지 않고 표현력을 높인다. 이 채널 수준의 문 달기는 요즘 CNN 구조에 널리 퍼졌으며, 간단한 어텐션 장치라도 설계에 잘 녹이면 성능을 크게 끌어올릴 수 있음을 보여 준다.
 
-## Introduction
+## 핵심 개념
 
-Squeeze-and-Excitation (SE) networks introduce channel attention mechanisms that adaptively recalibrate feature responses by explicitly modeling interdependencies between channels. The key insight underlying SE blocks is that feature channels are interdependent, and the importance of different channels varies substantially depending on input content.
+- **채널 어텐션**: 전역 맥락에 따라 특징 채널의 가중치를 다시 매기기
+- **압축 연산**: 공간 정보를 채널 통계량으로 모으기
+- **여기 연산**: 완전 연결 신경망으로 채널의 중요도를 배우기
+- **적응형 재보정**: 입력에 따라 특징 맵을 그때그때 고치기
+- **미미한 부담**: 합성곱 층에 견주면 무시할 만한 계산 비용
 
-By learning to suppress less informative channels and amplify relevant ones, SE networks achieve improved representational capacity with minimal computational overhead. This channel-level gating has become ubiquitous in modern CNN architectures, demonstrating that simple attention mechanisms can provide significant performance improvements when properly integrated into network design.
+## SE 블록의 구조
 
-## Key Concepts
+### 핵심 설계
 
-- **Channel Attention**: Reweighting feature channels based on global context
-- **Squeeze Operation**: Aggregating spatial information into channel statistics
-- **Excitation Operation**: Learning channel importance through fully connected networks
-- **Adaptive Recalibration**: Dynamic feature map modification based on input
-- **Minimal Overhead**: Negligible computational cost relative to convolutional layers
-
-## SE Block Architecture
-
-### Core Design
-
-The SE block operates in two stages:
+SE 블록은 두 단계로 움직인다.
 
 $$\text{SE}(\mathbf{X}) = \mathbf{X} \odot \sigma(W_1 \delta(W_0 \mathbf{z}))$$
 
-where:
-- $\mathbf{X} \in \mathbb{R}^{C \times H \times W}$ is the input feature map
-- $\mathbf{z}$ is the squeezed channel descriptor
-- $\delta$ is ReLU activation
-- $\sigma$ is sigmoid gating
-- $\odot$ denotes element-wise channel-wise multiplication
+여기서 각 기호는 다음과 같다.
 
-### Squeeze Operation
+- $\mathbf{X} \in \mathbb{R}^{C \times H \times W}$은 입력 특징 맵이다
+- $\mathbf{z}$은 압축된 채널 기술자이다
+- $\delta$은 ReLU 활성화이다
+- $\sigma$은 시그모이드 문이다
+- $\odot$은 채널별 성분곱을 뜻한다
 
-The squeeze operation compresses spatial dimensions through global average pooling:
+### 압축 연산
+
+압축 연산은 전역 평균 풀링으로 공간 차원을 눌러 담는다.
 
 $$z_c = \frac{1}{HW} \sum_{i=1}^{H} \sum_{j=1}^{W} X_{c,i,j}$$
 
-This produces a channel descriptor $\mathbf{z} \in \mathbb{R}^{C}$ encoding global channel statistics.
+이렇게 전역 채널 통계량을 담은 채널 기술자 $\mathbf{z} \in \mathbb{R}^{C}$이 나온다.
 
-### Excitation Operation
+### 여기 연산
 
-The excitation mechanism learns per-channel importance weights:
+여기 장치는 채널마다의 중요도 가중치를 배운다.
 
 $$s_c = \sigma(W_1 \delta(W_0 \mathbf{z}))_c$$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$\delta(W_0 \mathbf{z}) = \max(0, W_0 \mathbf{z})$$
 
-**Dimensionality Reduction**: Typically, the intermediate dimension is $\frac{C}{r}$ where $r$ is the reduction ratio (commonly 16):
+**차원 축소**: 중간 차원은 보통 $\frac{C}{r}$이며 여기서 $r$은 축소 비율(흔히 16)이다.
 
 $$\text{Excitation}: \mathbb{R}^{C} \xrightarrow{W_0} \mathbb{R}^{C/r} \xrightarrow{\delta} \mathbb{R}^{C/r} \xrightarrow{W_1} \mathbb{R}^{C} \xrightarrow{\sigma} \mathbb{R}^{C}$$
 
-This bottleneck design ensures computational efficiency while maintaining expressive capacity.
+이 병목 설계는 표현력을 지키면서 계산 효율을 보장한다.
 
-## Mathematical Properties
+## 수학적 성질
 
-### Gating Mechanism
+### 문 장치
 
-The SE block implements a gating mechanism with learned gate values:
+SE 블록은 학습된 문 값으로 문 장치를 구현한다.
 
 $$\text{Gate}_c = \sigma(s_c)$$
 
-producing values in the interval $(0, 1)$, enabling soft channel selection.
+값이 구간 $(0, 1)$에 놓이므로 채널을 부드럽게 고를 수 있다.
 
-### Gradient Flow
+### 기울기의 흐름
 
-During backpropagation, SE blocks preserve gradient information:
+역전파에서 SE 블록은 기울기 정보를 지킨다.
 
 $$\frac{\partial \mathcal{L}}{\partial X_{c,i,j}} = \frac{\partial \mathcal{L}}{\partial Y_{c,i,j}} \cdot s_c + X_{c,i,j} \cdot \frac{\partial \mathcal{L}}{\partial s_c} \cdot \frac{1}{HW}$$
 
-This identity connection ensures stable gradient flow even through the bottleneck.
+이 항등 연결이 병목을 지나면서도 기울기가 안정되게 흐르도록 보장한다.
 
-## Computational Analysis
+## 계산량 분석
 
-### Complexity
+### 복잡도
 
-For a SE block applied to feature maps with $C$ channels, $H \times W$ spatial dimensions:
+채널이 $C$개이고 공간 차원이 $H \times W$인 특징 맵에 SE 블록을 적용할 때는 다음과 같다.
 
-**Squeeze**: $O(CHW)$ (global average pooling)
+**압축**: $O(CHW)$ (전역 평균 풀링)
 
-**Excitation**: $O(2 \times C \times \frac{C}{r}) = O(\frac{2C^2}{r})$ (two fully connected layers)
+**여기**: $O(2 \times C \times \frac{C}{r}) = O(\frac{2C^2}{r})$ (완전 연결층 두 개)
 
-**Gating**: $O(CHW)$ (element-wise multiplication)
+**문 달기**: $O(CHW)$ (성분별 곱)
 
-**Total**: $O(CHW + \frac{2C^2}{r})$
+**합계**: $O(CHW + \frac{2C^2}{r})$
 
-With typical values ($r=16$), the excitation dominates, but remains negligible compared to convolutional layers.
+흔한 값($r=16$)에서는 여기 부분이 가장 크지만, 합성곱 층에 견주면 여전히 무시할 만하다.
 
-### Reduction Ratio Trade-offs
+### 축소 비율의 맞바꿈
 
-| $r$ | Parameters | Expressiveness | Speed |
+| $r$ | 매개변수 | 표현력 | 속도 |
 |-----|-----------|-----------------|-------|
-| 2 | $C^2$ | High | Slower |
-| 8 | $C^2/4$ | High | Moderate |
-| 16 | $C^2/8$ | Good | Fast |
-| 32 | $C^2/16$ | Adequate | Fastest |
+| 2 | $C^2$ | 높음 | 느림 |
+| 8 | $C^2/4$ | 높음 | 보통 |
+| 16 | $C^2/8$ | 좋음 | 빠름 |
+| 32 | $C^2/16$ | 그런대로 | 가장 빠름 |
 
-!!! note "Typical Configuration"
-    Reduction ratio of 16 provides good balance between expressiveness and efficiency in most applications.
+!!! note "흔한 설정"
+    축소 비율 16이 대부분의 응용에서 표현력과 효율 사이의 균형을 잘 잡아 준다.
 
-## Integration into CNN Architectures
+## CNN 구조에 넣기
 
-SE blocks can be inserted into any CNN architecture:
+SE 블록은 어떤 CNN 구조에도 끼워 넣을 수 있다.
 
-**ResNet-SE**: Place SE block after skip connection:
+**ResNet-SE**: 건너뛰기 연결 뒤에 SE 블록을 둔다.
 
 $$\mathbf{y} = \mathbf{x} + F_3(\text{SE}(F_2(F_1(\mathbf{x}))))$$
 
-**DenseNet-SE**: Apply to dense block outputs before concatenation.
+**DenseNet-SE**: 이어 붙이기 전에 조밀 블록의 출력에 적용한다.
 
-**EfficientNet-SE**: Integral component of the base architecture design.
+**EfficientNet-SE**: 기본 구조 설계에 아예 들어 있는 부품이다.
 
-## Empirical Properties
+## 실험으로 드러난 성질
 
-!!! tip "Performance Gains"
-    SE blocks typically improve ImageNet accuracy by 1-2% with minimal computational cost, making them highly cost-effective improvements.
+!!! tip "성능 향상"
+    SE 블록은 계산 비용을 거의 늘리지 않고도 ImageNet 정확도를 보통 1~2%p 올려 주어 매우 값싼 개선이다.
 
-**Interpretability**: Channel importance weights can be visualized to understand model focus.
+**해석 가능성**: 채널 중요도 가중치를 그려 보면 모델이 어디에 주목하는지 알 수 있다.
 
-**Transferability**: SE-enhanced networks show improved transfer learning performance across domains.
+**전이 가능성**: SE로 보강한 신경망은 여러 분야에 걸쳐 전이 학습 성능이 더 좋다.
 
-## Variants and Extensions
+## 변형과 확장
 
-**Concurrent Spatial and Channel Squeeze & Excitation (scSE)**: Combines SE with spatial attention.
+**공간과 채널을 함께 쓰는 압축-여기 (scSE)**: SE에 공간 어텐션을 결합한다.
 
-**Effective Squeeze-and-Excitation (ESE)**: Simplified SE variant with improved efficiency.
+**효과적인 압축-여기 (ESE)**: 효율을 높인 간소한 SE 변형이다.
 
-**Coordinate Attention**: Encodes spatial location information in attention mechanism.
+**좌표 어텐션**: 어텐션 장치에 공간 위치 정보를 담는다.
 
-## Related Topics
+## 관련 주제
 
-- Attention Mechanisms in CNNs (Chapter 6.1.1)
-- Convolutional Block Attention Module (CBAM)
-- Global Average Pooling (Chapter 6.1.4)
-- CNN Architecture Design (Chapter 5)
+- CNN의 어텐션 장치 (6.1.1절)
+- 합성곱 블록 어텐션 모듈 (CBAM)
+- 전역 평균 풀링 (6.1.4절)
+- CNN 구조 설계 (5장)
+
+## 연습문제
+
+**연습문제 1.**
+SE 블록을 유도하라: 전역 평균 풀링, 축소 비율이 $r$인 완전 연결층 두 개, 시그모이드 문.
+
+??? success "연습문제 1 풀이"
+    입력은 특징 맵 $X \in \mathbb{R}^{C \times H \times W}$이다. (1) 압축: $z_c = \frac{1}{HW}\sum_{i,j} X_{c,i,j}$ (채널마다 전역 평균 풀링). (2) 여기: $s = \sigma(W_2 \cdot \text{ReLU}(W_1 z))$이며 $W_1 \in \mathbb{R}^{C/r \times C}$, $W_2 \in \mathbb{R}^{C \times C/r}$이다. (3) 배율 적용: $\tilde{X}_c = s_c \cdot X_c$. 비율이 $r$(보통 16)인 병목이 매개변수의 부담을 억누른다.
+
+---
+
+**연습문제 2.**
+채널이 $C = 256$개이고 축소 비율이 $r = 16$인 SE 블록의 매개변수 부담을 계산하라.
+
+??? success "연습문제 2 풀이"
+    매개변수는 $W_1$이 $C/r \times C = 16 \times 256 = 4096$개, $W_2$이 $C \times C/r = 256 \times 16 = 4096$개로 모두 8192개이다. 매개변수가 $256 \times 256 \times 3 \times 3 = 589{,}824$개인 합성곱 층에 견주면 SE의 부담은 1.4%에 지나지 않는다.
+
+---
+
+**연습문제 3.**
+SE 블록을 PyTorch로 구현하고 ResNet 병목에 넣어라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    class SE(nn.Module):
+        def __init__(self, c, r=16):
+            super().__init__()
+            self.fc = nn.Sequential(
+                nn.AdaptiveAvgPool2d(1), nn.Flatten(),
+                nn.Linear(c, c//r), nn.ReLU(),
+                nn.Linear(c//r, c), nn.Sigmoid()
+            )
+        def forward(self, x):
+            return x * self.fc(x).view(-1, x.size(1), 1, 1)
+    ```
+
+---
+
+**연습문제 4.**
+SE 블록은 어텐션 장치와 어떤 관계인가? 어떤 종류의 어텐션을 구현하는가?
+
+??? success "연습문제 4 풀이"
+    SE는 채널 어텐션을 구현한다. 전역 맥락에 따라 특징 맵의 채널마다 중요도를 매기는 법을 배운다. 공간 어텐션(어디를 볼지)이나 자기 어텐션(쌍의 관계)과 달리 채널 어텐션은 '이 입력에는 어떤 특징이 중요한가'에 답한다. 트랜스포머의 온전한 어텐션에 앞선 가벼운 선구자이다.

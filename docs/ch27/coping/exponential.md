@@ -1,117 +1,177 @@
-# Exponential-Time Algorithms
+# 지수 시간 알고리즘
 
-When facing NP-hard problems where approximation is insufficient and an exact answer is required, we turn to **exponential-time algorithms**. While all brute-force approaches run in exponential time, clever techniques can significantly reduce the base of the exponential. An $O(1.2^n)$ algorithm is dramatically faster than $O(2^n)$ for moderate $n$: at $n = 100$, the ratio is about $10^{10}$. This page surveys the main techniques for designing faster exact algorithms.
+어림으로는 모자라고 정확한 답이 필요한 NP 어려움 문제를 마주하면 **지수 시간 알고리즘**으로 돌아선다. 모든 막무가내 방식이 지수 시간에 돌지만 영리한 재주로 지수의 밑을 크게 줄일 수 있다. $n$이 어지간할 때 $O(1.2^n)$ 알고리즘은 $O(2^n)$보다 엄청나게 빠르다. $n = 100$에서 그 비는 약 $10^{10}$이다. 이 쪽은 더 빠른 정확한 알고리즘을 짜는 주요 재주를 살핀다.
 
-## Brute Force Baseline
+## 막무가내 바탕선
 
-The naive approach to NP-hard problems enumerates all possible solutions:
+NP 어려움 문제의 순진한 방식은 있을 수 있는 모든 풀이를 늘어놓는다:
 
-| Problem | Brute Force | Search Space |
+| 문제 | 막무가내 | 찾기 공간 |
 |---------|------------|-------------|
-| SAT ($n$ variables) | $O(2^n \cdot m)$ | All truth assignments |
-| TSP ($n$ cities) | $O(n! \cdot n)$ | All permutations |
-| Vertex Cover | $O(2^n \cdot m)$ | All vertex subsets |
-| Graph Coloring ($k$ colors) | $O(k^n \cdot m)$ | All colorings |
+| SAT(변수 $n$개) | $O(2^n \cdot m)$ | 모든 참 값 매김 |
+| 떠돌이 장수 문제(도시 $n$개) | $O(n! \cdot n)$ | 모든 자리바꿈 |
+| 꼭짓점 덮기 | $O(2^n \cdot m)$ | 모든 꼭짓점 부분 모임 |
+| 그래프 칠하기(색 $k$개) | $O(k^n \cdot m)$ | 모든 칠하기 |
 
-The goal is to beat these baselines, often by exploiting problem structure.
+목표는 흔히 문제의 얼개를 써서 이 바탕선을 이기는 것이다.
 
-## Meet in the Middle
+## 가운데서 만나기
 
-**Idea:** Split the problem into two halves of size $n/2$, solve each independently, then combine. This reduces $O(2^n)$ to $O(2^{n/2})$ at the cost of additional space.
+**생각:** 문제를 크기 $n/2$인 반 둘로 나누어 각각 따로 푼 뒤 합친다. 이는 공간을 더 쓰는 대신 $O(2^n)$을 $O(2^{n/2})$으로 줄인다.
 
-### Application: Subset Sum
+### 쓰임새: 부분 모임 합
 
-Given $n$ integers and a target $t$, determine if a subset sums to $t$.
+정수 $n$개와 목표 $t$이 주어질 때 합이 $t$인 부분 모임이 있는지 가려라.
 
-1. Split the integers into sets $A$ (first $n/2$) and $B$ (last $n/2$).
-2. Enumerate all $2^{n/2}$ subset sums of $A$; store in a hash table.
-3. For each subset sum $s_B$ of $B$, check if $t - s_B$ exists in the hash table.
+1. 정수를 모임 $A$(앞의 $n/2$개)과 $B$(뒤의 $n/2$개)으로 나눈다.
+2. $A$의 부분 모임 합 $2^{n/2}$가지를 모두 늘어놓아 해시 표에 담는다.
+3. $B$의 부분 모임 합 $s_B$마다 $t - s_B$이 해시 표에 있는지 살핀다.
 
-**Time:** $O(2^{n/2})$. **Space:** $O(2^{n/2})$.
+**시간:** $O(2^{n/2})$. **공간:** $O(2^{n/2})$.
 
-This is a quadratic improvement in the exponent: $2^{n/2} = \sqrt{2^n}$.
+이는 지수에서 제곱만큼의 나아짐이다: $2^{n/2} = \sqrt{2^n}$.
 
-## Inclusion-Exclusion
+## 넣고 빼기
 
-The **inclusion-exclusion principle** converts counting over combinatorial objects into an alternating sum, often yielding faster algorithms.
+**넣고 빼기 원리**는 얽음 대상을 세는 일을 부호가 번갈아 바뀌는 합으로 바꾸어 흔히 더 빠른 알고리즘을 준다.
 
-### Application: Hamiltonian Path
+### 쓰임새: 해밀턴 길
 
-Count the number of Hamiltonian paths in a graph $G = (V, E)$ with $|V| = n$:
+$|V| = n$인 그래프 $G = (V, E)$의 해밀턴 길 개수를 세어라:
 
 $$
 \text{ham}(G) = \sum_{S \subseteq V} (-1)^{|V| - |S|} \cdot w(S)
 $$
 
-where $w(S)$ counts the number of walks of length $|V| - 1$ using only vertices in $S$. Each $w(S)$ is computed via matrix exponentiation on the adjacency matrix restricted to $S$.
+여기서 $w(S)$은 $S$의 꼭짓점만 쓰는 길이 $|V| - 1$인 걸음의 개수를 센다. 각 $w(S)$은 $S$으로 제한한 이웃 행렬의 거듭제곱으로 셈한다.
 
-**Time:** $O(2^n \cdot n^2)$. This matches the brute-force complexity in theory but the constant is much smaller in practice. More importantly, it uses only polynomial space (unlike the DP approach).
+**시간:** $O(2^n \cdot n^2)$이다. 이론으로는 막무가내와 같은 복잡도이지만 실제로 상수가 훨씬 작다. 더 중요하게는 (짜 넣기 방식과 달리) 다항 공간만 쓴다.
 
-## Dynamic Programming over Subsets
+## 부분 모임 위의 짜 넣기
 
-The **Held-Karp algorithm** for TSP uses bitmask DP:
+떠돌이 장수 문제의 **헬드-카프 알고리즘**은 비트 가림막 짜 넣기를 쓴다:
 
-Let $\text{dp}[S][v]$ = minimum cost of a path starting at vertex 0, visiting all vertices in subset $S$, and ending at $v$.
+$\text{dp}[S][v]$을 꼭짓점 0에서 시작해 부분 모임 $S$의 모든 꼭짓점을 들르고 $v$에서 끝나는 길의 최소 비용이라 하자.
 
-**Recurrence:**
+**되돌이 식:**
 
 $$
 \text{dp}[S][v] = \min_{u \in S \setminus \{v\}} \left(\text{dp}[S \setminus \{v\}][u] + w(u, v)\right)
 $$
 
-**Base case:** $\text{dp}[\{0\}][0] = 0$.
+**바탕 경우:** $\text{dp}[\{0\}][0] = 0$.
 
-**Answer:** $\min_v (\text{dp}[V][v] + w(v, 0))$.
+**답:** $\min_v (\text{dp}[V][v] + w(v, 0))$.
 
-**Time:** $O(2^n \cdot n^2)$. **Space:** $O(2^n \cdot n)$.
+**시간:** $O(2^n \cdot n^2)$. **공간:** $O(2^n \cdot n)$.
 
-This is much better than the $O(n!)$ brute force for TSP.
+이는 떠돌이 장수 문제의 $O(n!)$ 막무가내보다 훨씬 낫다.
 
-## Branch and Bound
+## 가지 치고 가두기
 
-**Branch and bound** systematically explores the solution space while pruning branches that provably cannot contain the optimum.
+**가지 치고 가두기**는 가장 좋은 풀이를 담을 수 없음을 밝힐 수 있는 가지를 쳐 내면서 풀이 공간을 차근히 살핀다.
 
-**Components:**
+**구성 요소:**
 
-1. **Branching:** Split the problem into smaller subproblems (e.g., include/exclude a vertex).
-2. **Bounding:** Compute a lower bound (for minimization) on each subproblem.
-3. **Pruning:** Discard subproblems whose bound exceeds the best known solution.
+1. **가지 치기:** 문제를 더 작은 아래 문제로 나눈다(보기로 꼭짓점을 넣거나 뺀다).
+2. **가두기:** 아래 문제마다 (가장 작게 하기의) 아래 한계를 셈한다.
+3. **쳐 내기:** 한계가 알려진 가장 좋은 풀이를 넘는 아래 문제를 버린다.
 
-The worst-case is still exponential, but pruning often eliminates most branches in practice.
+가장 나쁜 경우는 여전히 지수이지만 실제로는 쳐 내기가 가지 대부분을 없앤다.
 
-## Faster Exact Algorithms
+## 더 빠른 정확한 알고리즘
 
-| Problem | Brute Force | Best Known | Technique |
+| 문제 | 막무가내 | 알려진 가장 좋은 것 | 재주 |
 |---------|------------|-----------|-----------|
-| 3-SAT | $O(2^n)$ | $O(1.3070^n)$ | PPSZ algorithm |
-| 3-Coloring | $O(3^n)$ | $O(1.3289^n)$ | Inclusion-exclusion |
-| TSP | $O(n!)$ | $O(2^n \cdot n^2)$ | Held-Karp DP |
-| Independent Set | $O(2^n)$ | $O(1.1996^n)$ | Measure and conquer |
-| Subset Sum | $O(2^n)$ | $O(2^{n/2})$ | Meet in the middle |
+| 3-SAT | $O(2^n)$ | $O(1.3070^n)$ | PPSZ 알고리즘 |
+| 3색 칠하기 | $O(3^n)$ | $O(1.3289^n)$ | 넣고 빼기 |
+| 떠돌이 장수 문제 | $O(n!)$ | $O(2^n \cdot n^2)$ | 헬드-카프 짜 넣기 |
+| 독립 모임 | $O(2^n)$ | $O(1.1996^n)$ | 재고 나누기 |
+| 부분 모임 합 | $O(2^n)$ | $O(2^{n/2})$ | 가운데서 만나기 |
 
-## The Exponential Time Hypothesis
+## 지수 시간 가설
 
-!!! warning "ETH (Impagliazzo-Paturi, 2001)"
-    There exists a constant $\delta > 0$ such that 3-SAT cannot be solved in $O(2^{\delta n})$ time.
+!!! warning "지수 시간 가설(임파글리아초-파투리, 2001)"
+    3-SAT을 $O(2^{\delta n})$ 시간에 풀 수 없게 하는 상수 $\delta > 0$이 있다.
 
-The **Strong ETH (SETH)** strengthens this: for every $\epsilon > 0$, there exists $k$ such that $k$-SAT cannot be solved in $O(2^{(1-\epsilon)n})$ time. SETH has implications for fine-grained complexity, ruling out certain polynomial improvements for problems like edit distance and longest common subsequence.
+**강한 지수 시간 가설(SETH)**은 이를 더 세게 만든다. 모든 $\epsilon > 0$에 대해 $k$-SAT을 $O(2^{(1-\epsilon)n})$ 시간에 풀 수 없게 하는 $k$이 있다. 강한 지수 시간 가설은 잘게 나눈 복잡도에 뜻이 있으며 고침 거리나 가장 긴 공통 부분 차례 같은 문제의 어떤 다항 나아짐을 걸러 낸다.
 
-??? example "Example: Meet in the Middle for Subset Sum"
-    **Instance:** $\{3, 7, 1, 8, 4, 2\}$, target $t = 14$.
+??? example "보기: 부분 모임 합의 가운데서 만나기"
+    **사례:** $\{3, 7, 1, 8, 4, 2\}$, 목표 $t = 14$.
 
-    **Split:** $A = \{3, 7, 1\}$, $B = \{8, 4, 2\}$.
+    **나눔:** $A = \{3, 7, 1\}$, $B = \{8, 4, 2\}$.
 
-    **Subset sums of $A$:** $\{0, 3, 7, 1, 10, 4, 8, 11\}$.
+    **$A$의 부분 모임 합:** $\{0, 3, 7, 1, 10, 4, 8, 11\}$.
 
-    **Subset sums of $B$:** $\{0, 8, 4, 2, 12, 10, 6, 14\}$.
+    **$B$의 부분 모임 합:** $\{0, 8, 4, 2, 12, 10, 6, 14\}$.
 
-    **Lookup:** For $s_B = 4$, check $t - s_B = 10 \in A$-sums? Yes ($3 + 7 = 10$).
+    **찾아보기:** $s_B = 4$에 대해 $t - s_B = 10$이 $A$의 합에 있는가? 있다($3 + 7 = 10$).
 
-    **Solution:** $\{3, 7, 4\}$ sums to 14.
+    **풀이:** $\{3, 7, 4\}$의 합이 14이다.
 
-    **Savings:** Enumerated $2 \times 2^3 = 16$ subsets instead of $2^6 = 64$.
+    **아낌:** $2^6 = 64$가지 대신 $2 \times 2^3 = 16$가지 부분 모임만 늘어놓았다.
 
-## Reference
+## 참고 문헌
 
 - Fomin, F. V., & Kratsch, D. (2010). *Exact Exponential Algorithms*. Springer.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+떠돌이 장수 문제의 순진한 막무가내 알고리즘은 $O(n!)$ 시간에 돈다. 헬드-카프 짜 넣기 알고리즘을 적고 그것이 $O(n^2 \cdot 2^n)$ 시간에 돎을 보여라.
+
+??? success "연습문제 1 풀이"
+    $dp[S][v]$을 꼭짓점 1에서 시작해 부분 모임 $S$의 꼭짓점만 꼭 들르고 꼭짓점 $v \in S$에서 끝나는 최소 비용이라 뜻매김한다. 바탕 경우: $dp[\{1\}, 1] = 0$.
+
+    되돌이 식: $dp[S][v] = \min_{u \in S \setminus \{v\}} (dp[S \setminus \{v\}][u] + w(u,v))$.
+
+    답: $\min_{v \neq 1} (dp[V][v] + w(v, 1))$.
+
+    부분 모임 $S$이 $2^n$가지이고 $v$의 고르기가 $n$가지이므로 상태가 $O(n \cdot 2^n)$개이다. 상태마다 앞선 것을 $O(n)$개 살핀다. 온 시간: $O(n^2 \cdot 2^n)$. 공간: $O(n \cdot 2^n)$. 이는 지수이지만 $O(n!)$보다 훨씬 낫다. $n = 25$에서 $n^2 \cdot 2^n \approx 2 \times 10^{10}$인 데 견주어 $25! \approx 1.5 \times 10^{25}$이다.
+
+---
+
+**연습문제 2.**
+부분 모임 합의 가운데서 만나기 재주를 밝히고 그 시간 복잡도를 살펴라.
+
+??? success "연습문제 2 풀이"
+    정수 $n$개와 목표 $T$이 주어지면 물건을 각각 크기 $n/2$인 반 둘 $A$과 $B$으로 나눈다. $A$의 부분 모임 합 $2^{n/2}$가지를 모두 늘어놓아 줄 세운 목록(또는 해시 모임)에 담는다. $B$의 부분 모임 합 $2^{n/2}$가지를 늘어놓는다. $B$의 합 $s_B$마다 $T - s_B$이 $A$의 목록에 있는지 살핀다.
+
+    시간: 반쪽마다 늘어놓기에 $O(2^{n/2})$, 줄 세우기에 $O(2^{n/2} \log(2^{n/2})) = O(n \cdot 2^{n/2})$, 찾아보기에 $O(2^{n/2} \cdot n)$이 든다. 온 시간: $O(n \cdot 2^{n/2})$. 공간: $O(2^{n/2})$.
+
+    막무가내 $O(2^n)$에 견주면 이는 지수에서 제곱만큼의 나아짐이다: $2^{n/2} = \sqrt{2^n}$.
+
+---
+
+**연습문제 3.**
+3색 칠하기에서 막무가내 방식은 $3^n$가지 칠하기를 모두 시험한다. 넣고 빼기가 이를 $O(2^n \cdot \text{poly}(n))$으로 낫게 하는 법을 적어라.
+
+??? success "연습문제 3 풀이"
+    제대로 된 3색 칠하기의 개수는 색칠 다항식 $P(G, 3)$과 같다. 독립 모임에 넣고 빼기를 쓰면:
+
+    $$
+    P(G, 3) = \sum_{S \subseteq V} (-1)^{|S|} \cdot 3^{c(G[V \setminus S])}
+    $$
+
+    여기서 $c(H)$은 $H$의 이어진 조각의 개수이다. 그런데 더 효율 좋은 방식은 제대로 된 $k$색 칠하기의 개수가 $\sum_{i=0}^{n} (-1)^i \binom{n}{i} (k-i)^n$과 같다는 사실을 쓴다 ... 사실 여느 방법은 다음과 같다:
+
+    $P(G,k) = \sum_{S \subseteq V} (-2)^{|E(G[S])|} \cdot ... $
+
+    효율 좋은 방식: $V$의 부분 모임 $2^n$가지를 모두 늘어놓는다. 각각에 대해 $S$이 독립 모임인지 살핀다. 독립 모임의 개수를 센다. 그다음 넣고 빼기로 독립 모임과 색칠 다항식을 잇는 항등식을 쓴다. 이는 $O(2^n \cdot \text{poly}(n))$ 시간에 돌며 $2^n \ll 3^n$이므로 $3^n$보다 낫다.
+
+---
+
+**연습문제 4.**
+$n = 20, 30, 40$에서 $O^*(2^n)$, $O^*(3^n)$, $O^*(n!)$ 알고리즘의 실제 성능을 견주어라. 초당 $10^9$번 셈한다고 할 때 각각 $n$이 얼마부터 쓸 수 없게 되는가?
+
+??? success "연습문제 4 풀이"
+    | $n$ | $2^n$ | $3^n$ | $n!$ |
+    |-----|-------|-------|------|
+    | 20 | $\approx 10^6$ | $\approx 3.5 \times 10^9$ | $\approx 2.4 \times 10^{18}$ |
+    | 30 | $\approx 10^9$ | $\approx 2 \times 10^{14}$ | $\approx 2.7 \times 10^{32}$ |
+    | 40 | $\approx 10^{12}$ | $\approx 10^{19}$ | $\approx 8.2 \times 10^{47}$ |
+
+    초당 $10^9$번 셈할 때: $O^*(2^n)$은 $n \approx 50$~$60$ 언저리에서 쓸 수 없게 된다(몇 분에서 몇 시간). $O^*(3^n)$은 $n \approx 30$ 언저리에서 쓸 수 없게 된다($3^{30} \approx 2 \times 10^{14}$으로 $\sim 2 \times 10^5$초, 곧 약 2일이 걸린다). $O^*(n!)$은 이미 $n = 20$에서 쓸 수 없다($\sim 2.4 \times 10^9$초, 곧 약 77년).
+
+    핵심은 이것이다. 모두 지수이지만 실제로는 지수의 밑이 엄청나게 중요하다.

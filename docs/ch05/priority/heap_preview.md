@@ -1,33 +1,33 @@
-# Heap Preview
+# 힙 맛보기
 
-The [priority queue ADT](adt.md) requires $O(\log n)$ insertion and extraction of the minimum (or maximum) element.  An [unsorted list](unsorted.md) achieves $O(1)$ insertion but $O(n)$ extraction; a [sorted list](sorted.md) achieves $O(1)$ extraction but $O(n)$ insertion.  A **binary heap** is the data structure that balances both operations at $O(\log n)$ each, making it the standard priority queue implementation.  This page previews the key ideas behind binary heaps; the full treatment appears in the [heap chapter](../../ch09/binary/property.md).
+[우선순위 큐 추상 자료형](adt.md)은 최솟값(또는 최댓값)의 넣기와 꺼내기를 $O(\log n)$에 요구한다. [정렬되지 않은 리스트](unsorted.md)는 넣기가 $O(1)$이지만 꺼내기가 $O(n)$이고, [정렬된 리스트](sorted.md)는 꺼내기가 $O(1)$이지만 넣기가 $O(n)$이다. **이진 힙**은 두 연산을 각각 $O(\log n)$으로 균형 잡는 자료 구조여서 우선순위 큐의 표준 구현이 된다. 이 쪽은 이진 힙의 핵심 착상을 맛보기로 소개한다. 온전한 다룸은 [힙 장](../../ch09/binary/property.md)에 있다.
 
-## The Heap Property
+## 힙 성질
 
-The central idea is simple: keep the smallest element at the top of the tree so it can be retrieved instantly, and enforce this rule recursively at every subtree.
+핵심 착상은 간단하다. 가장 작은 원소를 나무의 꼭대기에 두어 즉시 꺼낼 수 있게 하고, 이 규칙을 모든 부분 나무에 재귀적으로 강제하는 것이다.
 
-A **min-heap** is a complete binary tree in which every node's key is less than or equal to the keys of its children.  Formally, for every non-root node $i$ with parent $p(i)$:
+**최소 힙**은 모든 마디의 키가 그 자식의 키보다 작거나 같은 완전 이진 나무이다. 형식적으로, 부모가 $p(i)$인 뿌리가 아닌 모든 마디 $i$에 대해 다음이 성립한다.
 
 $$
 \text{key}(p(i)) \le \text{key}(i)
 $$
 
-A **max-heap** reverses the inequality: every parent's key is greater than or equal to its children's keys.
+**최대 힙**은 부등호를 뒤집는다. 모든 부모의 키가 자식의 키보다 크거나 같다.
 
-The heap property ensures that the root always holds the minimum (in a min-heap) or maximum (in a max-heap) element, so `find_min()` or `find_max()` runs in $O(1)$.
+힙 성질 덕분에 뿌리가 언제나 (최소 힙에서는) 최솟값 또는 (최대 힙에서는) 최댓값을 담으므로 `find_min()`이나 `find_max()`이 $O(1)$에 돌아간다.
 
-## Array Representation
+## 배열 표현
 
-A complete binary tree of $n$ nodes can be stored in a flat array $A[0 \ldots n-1]$ without explicit pointers.  For a node at index $i$:
+마디가 $n$개인 완전 이진 나무는 포인터 없이 평평한 배열 $A[0 \ldots n-1]$에 담을 수 있다. 인덱스 $i$의 마디에 대해 다음과 같다.
 
-- **Parent**: $\lfloor (i - 1) / 2 \rfloor$
-- **Left child**: $2i + 1$
-- **Right child**: $2i + 2$
+- **부모**: $\lfloor (i - 1) / 2 \rfloor$
+- **왼쪽 자식**: $2i + 1$
+- **오른쪽 자식**: $2i + 2$
 
-This mapping is compact (no wasted space) and cache-friendly (elements are stored contiguously in memory).
+이 대응은 공간을 낭비하지 않아 조밀하고, 원소가 메모리에 이어져 있어 캐시에 친화적이다.
 
-??? example "Array layout of a min-heap"
-    Consider the min-heap with keys $[1, 3, 2, 7, 5, 4, 6]$:
+??? example "최소 힙의 배열 배치"
+    키가 $[1, 3, 2, 7, 5, 4, 6]$인 최소 힙을 보자.
 
     ```
              1
@@ -37,47 +37,47 @@ This mapping is compact (no wasted space) and cache-friendly (elements are store
         7   5 4   6
     ```
 
-    The array representation is simply `[1, 3, 2, 7, 5, 4, 6]`.  Node at index 0 (key 1) is the root.  Its children are at indices 1 (key 3) and 2 (key 2).  Node at index 1 has children at indices 3 (key 7) and 4 (key 5).
+    배열 표현은 그대로 `[1, 3, 2, 7, 5, 4, 6]`이다. 인덱스 0의 마디(키 1)가 뿌리이다. 그 자식은 인덱스 1(키 3)과 2(키 2)에 있다. 인덱스 1의 마디는 인덱스 3(키 7)과 4(키 5)에 자식을 갖는다.
 
-## Key Operations
+## 핵심 연산
 
-With the array layout in place, the heap supports four core operations, each relying on a simple "sift" procedure that walks up or down the tree.
+배열 배치가 갖추어지면 힙은 네 가지 핵심 연산을 지원하며, 각각은 나무를 위나 아래로 걸어가는 간단한 "체질" 절차에 기댄다.
 
-| Operation | Idea | Time |
+| 연산 | 착상 | 시간 |
 |---|---|---|
-| `insert(x)` | Place $x$ at the end; **sift up** to restore the heap property | $O(\log n)$ |
-| `extract_min()` | Swap root with last element; remove last; **sift down** the new root | $O(\log n)$ |
-| `find_min()` | Return the root | $O(1)$ |
-| `build_heap(A)` | Apply sift-down from the last internal node to the root | $O(n)$ |
+| `insert(x)` | $x$을 끝에 놓고 **위로 체질**하여 힙 성질을 되찾는다 | $O(\log n)$ |
+| `extract_min()` | 뿌리와 마지막 원소를 맞바꾸고 마지막을 없앤 뒤 새 뿌리를 **아래로 체질**한다 | $O(\log n)$ |
+| `find_min()` | 뿌리를 돌려준다 | $O(1)$ |
+| `build_heap(A)` | 마지막 내부 마디에서 뿌리까지 아래로 체질한다 | $O(n)$ |
 
-The $O(n)$ build-heap result is a key theoretical result: a heap can be constructed from an unsorted array in linear time, not $O(n \log n)$.  The intuition is that most nodes live near the bottom of the tree and require only a few swaps during sift-down, while the few nodes near the top that require many swaps are vastly outnumbered.
+힙 만들기가 $O(n)$이라는 것은 중요한 이론적 결과이다. 정렬되지 않은 배열에서 힙을 $O(n \log n)$이 아니라 선형 시간에 만들 수 있다. 직관은 이렇다. 대부분의 마디는 나무의 아래쪽에 있어 아래로 체질할 때 몇 번만 맞바꾸면 되고, 많이 맞바꾸어야 하는 위쪽 마디는 수가 훨씬 적다.
 
-!!! tip "Sift up and sift down"
-    **Sift up** (also called "bubble up" or "percolate up") repeatedly swaps a node with its parent until the heap property is restored.  **Sift down** (also called "heapify down") repeatedly swaps a node with its smaller child.  Each traverses at most the height of the tree, which is $\lfloor \log_2 n \rfloor$ for a complete binary tree.
+!!! tip "위로 체질하기와 아래로 체질하기"
+    **위로 체질하기**("떠올리기"라고도 한다)는 힙 성질이 되찾아질 때까지 마디를 부모와 되풀이해 맞바꾼다. **아래로 체질하기**("아래로 힙 만들기"라고도 한다)는 마디를 더 작은 자식과 되풀이해 맞바꾼다. 각각은 많아야 나무의 높이만큼 지나가며, 완전 이진 나무에서 그 높이는 $\lfloor \log_2 n \rfloor$이다.
 
-## Python's heapq Module
+## 파이썬의 heapq 모듈
 
-Python's standard library provides a min-heap through the `heapq` module.  It operates directly on a regular list:
+파이썬 표준 라이브러리는 `heapq` 모듈로 최소 힙을 제공한다. 보통의 리스트에 바로 작용한다.
 
 ```python
-"""Demonstration of Python's heapq module for priority queue operations."""
+"""우선순위 큐 연산을 위한 파이썬 heapq 모듈 시연."""
 
 import heapq
 
 
-# === Priority Queue with heapq ===
+# === heapq으로 만드는 우선순위 큐 ===
 
 if __name__ == "__main__":
-    # Build a heap from an unsorted list
+    # 정렬되지 않은 리스트로 힙 만들기
     data = [5, 3, 8, 1, 9, 2]
-    heapq.heapify(data)  # O(n) in-place
+    heapq.heapify(data)  # 제자리에서 O(n)
     print(f"Heapified: {data}")  # [1, 3, 2, 5, 9, 8]
 
-    # Insert a new element
+    # 새 원소 넣기
     heapq.heappush(data, 4)
     print(f"After push(4): {data}")
 
-    # Extract elements in sorted order
+    # 정렬된 차례로 원소 꺼내기
     sorted_output = []
     while data:
         sorted_output.append(heapq.heappop(data))
@@ -85,19 +85,52 @@ if __name__ == "__main__":
     # Output: [1, 2, 3, 4, 5, 8, 9]
 ```
 
-!!! note "Min-heap only"
-    Python's `heapq` provides only a min-heap.  To emulate a max-heap, negate the keys on insertion and negate the result on extraction.
+!!! note "최소 힙만 제공한다"
+    파이썬의 `heapq`은 최소 힙만 제공한다. 최대 힙을 흉내 내려면 넣을 때 키의 부호를 뒤집고 꺼낼 때 결과의 부호를 다시 뒤집는다.
 
-## Complexity Summary
+## 복잡도 요약
 
-| Implementation | `insert` | `extract_min` | `find_min` | `build` |
+| 구현 | `insert` | `extract_min` | `find_min` | `build` |
 |---|---|---|---|---|
-| Unsorted array | $O(1)$ | $O(n)$ | $O(n)$ | $O(n)$ |
-| Sorted array | $O(n)$ | $O(1)$ | $O(1)$ | $O(n \log n)$ |
-| **Binary heap** | $O(\log n)$ | $O(\log n)$ | $O(1)$ | $O(n)$ |
+| 정렬되지 않은 배열 | $O(1)$ | $O(n)$ | $O(n)$ | $O(n)$ |
+| 정렬된 배열 | $O(n)$ | $O(1)$ | $O(1)$ | $O(n \log n)$ |
+| **이진 힙** | $O(\log n)$ | $O(\log n)$ | $O(1)$ | $O(n)$ |
 
-The binary heap provides the best balance across all operations, which is why it is the default choice for priority queues.
+이진 힙은 모든 연산에 걸쳐 가장 좋은 균형을 주므로 우선순위 큐의 기본 선택이 된다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 6. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+힙 맛보기의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+힙 맛보기을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+힙 맛보기을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+힙 맛보기을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

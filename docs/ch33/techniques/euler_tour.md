@@ -1,66 +1,66 @@
-# Euler Tour on Trees
+# 나무 위의 오일러 돌기
 
-The Euler tour technique flattens a rooted tree into a linear array so that every
-subtree corresponds to a contiguous range. This reduction lets us answer subtree
-queries, path queries, and LCA queries with standard range data structures.
+오일러 돌기 재주는 뿌리 있는 나무를 선형 배열로 펴서 모든
+밑나무가 이어진 범위에 맞도록 한다. 이 줄이기로 밑나무 물음, 길 물음, LCA 물음을
+흔한 범위 자료 얼개로 답할 수 있다.
 
-## Intuition
+## 직관
 
-A DFS traversal visits every node twice — once on entry and once on exit. Recording
-these events produces a sequence of length $2n$ in which the entire subtree of any
-node $v$ sits inside a contiguous segment. That segment can then be fed to a
-Fenwick tree, segment tree, or sparse table.
+깊이 먼저 훑기는 마디마다 두 번, 곧 들어갈 때와 나올 때 들른다. 이 사건을 적으면
+길이 $2n$의 열이 나오고, 그 안에서 아무 마디 $v$의 밑나무 전체가
+이어진 토막 안에 놓인다. 그 토막을 펜윅 나무, 토막 나무, 성긴 표에
+넣을 수 있다.
 
-## Definitions
+## 정의
 
-Given a rooted tree $T$ with $n$ nodes, an **Euler tour** is constructed by a DFS
-that records each node at entry and exit:
+마디 $n$개의 뿌리 있는 나무 $T$가 주어질 때 **오일러 돌기**는 마디마다 들어갈 때와
+나올 때를 적는 깊이 먼저 훑기로 지어진다:
 
-- $\text{tin}[v]$: the time when $v$ is first visited (entry).
-- $\text{tout}[v]$: the time when $v$'s subtree is fully explored (exit).
+- $\text{tin}[v]$: $v$를 처음 들른 때(들어감).
+- $\text{tout}[v]$: $v$의 밑나무를 다 뒤진 때(나옴).
 
-The tour array $E$ of length $2n$ stores node labels in visitation order.
+길이 $2n$의 돌기 배열 $E$는 마디 이름을 들른 차례로 갈무리한다.
 
-### Subtree Property
+### 밑나무 성질
 
-**Lemma.** Node $u$ is in the subtree of $v$ if and only if
+**보조 정리.** 마디 $u$가 $v$의 밑나무에 있을 필요충분조건은
 
 $$
 \text{tin}[v] \le \text{tin}[u] \le \text{tout}[u] \le \text{tout}[v]
 $$
 
-This means the subtree of $v$ maps to the range $[\text{tin}[v], \text{tout}[v]]$ in
-the tour array.
+이는 $v$의 밑나무가 돌기 배열의 범위 $[\text{tin}[v], \text{tout}[v]]$에
+맞대응함을 뜻한다.
 
-### Flat Array Variant
+### 납작 배열 변형
 
-For subtree-aggregate queries (sum, min, etc.), a common variant uses a **flat
-array** $A$ of length $n$ where $A[\text{tin}[v]] = \text{value}(v)$. Then:
+밑나무 모음 물음(합, 최소 등)에는 $A[\text{tin}[v]] = \text{value}(v)$인 길이 $n$의
+**납작 배열** $A$를 쓰는 변형이 흔하다. 그러면:
 
 $$
 \text{subtree\_sum}(v) = \sum_{i=\text{tin}[v]}^{\text{tout}[v]} A[i]
 $$
 
-computable in $O(\log n)$ with a Fenwick tree after $O(n)$ preprocessing.
+을 $O(n)$ 미리 다듬기 뒤 펜윅 나무로 $O(\log n)$에 셈할 수 있다.
 
-## Euler Tour for LCA
+## LCA를 위한 오일러 돌기
 
-A second variant records the node at every edge traversal (both down and up),
-yielding a sequence of length $2n - 1$. The **depth array** $D$ stores the depth
-of each entry.
+둘째 변형은 변을 지날 때마다(내려갈 때와 올라갈 때 모두) 마디를 적어
+길이 $2n - 1$의 열을 낸다. **깊이 배열** $D$는 칸마다의 깊이를
+갈무리한다.
 
-**Theorem.** The LCA of nodes $u$ and $v$ is the node with minimum depth in
+**정리.** 마디 $u$와 $v$의 LCA는 다음에서 깊이가 가장 작은 마디다
 
 $$
 D[\min(\text{tin}[u], \text{tin}[v]) \,..\, \max(\text{tin}[u], \text{tin}[v])]
 $$
 
-This reduces LCA to a **Range Minimum Query** (RMQ), solvable in
-$O(n)$ preprocessing and $O(1)$ per query with a sparse table.
+이는 LCA를 **범위 최소 물음**(RMQ)으로 줄이며, 성긴 표로 미리 다듬기 $O(n)$,
+물음마다 $O(1)$에 풀린다.
 
-## Worked Example
+## 풀이 예제
 
-Consider the tree rooted at $1$:
+$1$을 뿌리로 하는 나무를 보자:
 
 ```
         1
@@ -70,60 +70,60 @@ Consider the tree rooted at $1$:
     4   5
 ```
 
-DFS order (entry/exit):
+깊이 먼저 훑기 차례(들어감/나옴):
 
-| Event | Time | Node | Depth |
+| 사건 | 때 | 마디 | 깊이 |
 |-------|------|------|-------|
-| Enter | 0 | 1 | 0 |
-| Enter | 1 | 2 | 1 |
-| Enter | 2 | 4 | 2 |
-| Exit  | 3 | 4 | 2 |
-| Enter | 4 | 5 | 2 |
-| Exit  | 5 | 5 | 2 |
-| Exit  | 6 | 2 | 1 |
-| Enter | 7 | 3 | 1 |
-| Exit  | 8 | 3 | 1 |
-| Exit  | 9 | 1 | 0 |
+| 들어감 | 0 | 1 | 0 |
+| 들어감 | 1 | 2 | 1 |
+| 들어감 | 2 | 4 | 2 |
+| 나옴  | 3 | 4 | 2 |
+| 들어감 | 4 | 5 | 2 |
+| 나옴  | 5 | 5 | 2 |
+| 나옴  | 6 | 2 | 1 |
+| 들어감 | 7 | 3 | 1 |
+| 나옴  | 8 | 3 | 1 |
+| 나옴  | 9 | 1 | 0 |
 
-- $\text{tin} = [0, 1, 7, 2, 4]$ and $\text{tout} = [9, 6, 8, 3, 5]$ (0-indexed nodes $1$-$5$).
-- Subtree of node $2$: range $[1, 6]$, which covers nodes $2, 4, 5$.
-- LCA of $4$ and $5$: minimum depth in tour positions $[2, 5]$ gives node $2$.
+- $\text{tin} = [0, 1, 7, 2, 4]$이고 $\text{tout} = [9, 6, 8, 3, 5]$이다(마디 $1$-$5$을 0부터 셈).
+- 마디 $2$의 밑나무: 범위 $[1, 6]$이며 마디 $2, 4, 5$를 덮는다.
+- $4$와 $5$의 LCA: 돌기 자리 $[2, 5]$에서 깊이가 가장 작은 것은 마디 $2$다.
 
-## Implementation
+## 구현
 
 ```python
-"""Euler tour on a rooted tree with subtree and LCA support."""
+"""밑나무와 LCA를 받치는 뿌리 있는 나무의 오일러 돌기."""
 
 import sys
 from collections import defaultdict
 
-# === Constants ===
+# === 상수 ===
 sys.setrecursionlimit(300_000)
 
 
-# === Build Euler tour ===
+# === 오일러 돌기 짓기 ===
 def euler_tour(adj, root, n):
-    """Compute tin, tout, and the tour array via iterative DFS.
+    """되풀이 깊이 먼저 훑기로 tin, tout, 돌기 배열을 셈한다.
 
-    Parameters
+    매개변수
     ----------
     adj : dict[int, list[int]]
-        Adjacency list (undirected tree).
+        이웃 목록(방향 없는 나무).
     root : int
-        Root node.
+        뿌리 마디.
     n : int
-        Number of nodes.
+        마디의 수.
 
-    Returns
+    반환값
     -------
     tin : list[int]
-        Entry times.
+        들어감 때.
     tout : list[int]
-        Exit times.
+        나옴 때.
     tour : list[int]
-        Euler tour sequence.
+        오일러 돌기 열.
     depth : list[int]
-        Depth of each node.
+        마디마다의 깊이.
     """
     tin = [0] * n
     tout = [0] * n
@@ -131,7 +131,7 @@ def euler_tour(adj, root, n):
     tour = []
     timer = 0
 
-    # Iterative DFS using (node, parent, entered) triples
+    # (마디, 어버이, 들어감) 세값을 쓰는 되풀이 깊이 먼저 훑기
     stack = [(root, -1, False)]
     while stack:
         v, par, entered = stack.pop()
@@ -152,13 +152,13 @@ def euler_tour(adj, root, n):
     return tin, tout, tour, depth
 
 
-# === Subtree query helper ===
+# === 밑나무 물음 도우미 ===
 def subtree_range(tin, tout, v):
     """Return the range [l, r] in the flat array for the subtree of v."""
     return tin[v], tout[v]
 
 
-# === Demo ===
+# === 시연 ===
 if __name__ == "__main__":
     n = 5
     adj = defaultdict(list)
@@ -173,21 +173,61 @@ if __name__ == "__main__":
     print("tour:", tour)
     print("depth:", depth)
 
-    # Subtree of node 1
+    # 마디 1의 밑나무
     l, r = subtree_range(tin, tout, 1)
     subtree_nodes = [nd for nd in range(n) if l <= tin[nd] <= r]
     print(f"Subtree of node 1: {subtree_nodes}")
 ```
 
-## Complexity Summary
+## 복잡도 요약
 
-| Operation | Time | Space |
+| 연산 | 시간 | 공간 |
 |-----------|------|-------|
-| Build Euler tour | $O(n)$ | $O(n)$ |
-| Subtree query (with Fenwick) | $O(\log n)$ | $O(n)$ |
-| LCA query (with sparse table) | $O(1)$ after $O(n)$ preprocessing | $O(n)$ |
+| 오일러 돌기 짓기 | $O(n)$ | $O(n)$ |
+| 밑나무 물음(펜윅 나무) | $O(\log n)$ | $O(n)$ |
+| LCA 물음(성긴 표) | $O(n)$ 미리 다듬기 뒤 $O(1)$ | $O(n)$ |
 
-## Reference
+## 참고 문헌
 
-- [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf)
+음이 아닌 정수 $x$가 주어질 때 비트 셈만 써서 $x$의 가장 낮은 켜진 비트만 남기는 식을 적어라(곧 그 비트만 켜진 값을 만들어라). $x = 0$일 때 그 식은 무엇을 돌려주는가?
 - Bender, M. A. & Farach-Colton, M. (2000). *The LCA Problem Revisited*
+
+## 연습문제
+
+**연습문제 1.**
+마디 $n = 7$개의 뿌리 있는 나무(뿌리 = 1, 변: 1-2, 1-3, 2-4, 2-5, 3-6, 3-7)가 주어질 때 들어감과 나옴 때를 적는 오일러 돌기를 셈하여라. 그 결과 배열 `tin[]`과 `tout[]`을 적어라.
+
+??? success "연습문제 1 풀이"
+    마디 1에서 깊이 먼저 훑기를 하며 아이를 2, 3 차례(왼쪽에서 오른쪽)로 들른다. 훑기는 이렇게 들른다. 1 들어감(때 0), 2 들어감(때 1), 4 들어감(때 2), 4 나옴(때 3), 5 들어감(때 4), 5 나옴(때 5), 2 나옴(때 6), 3 들어감(때 7), 6 들어감(때 8), 6 나옴(때 9), 7 들어감(때 10), 7 나옴(때 11), 3 나옴(때 12), 1 나옴(때 13). 들어감과 나옴 때는(들어감 셈틀만 쓰고 0부터 셈) 마디 1~7에 대해 `tin = [0, 1, 4, 2, 3, 5, 6]`, `tout = [6, 3, 6, 2, 3, 5, 6]`이다(0부터 셈: 마디 $i$가 번호 $i-1$에 맞는다). 마디 2의 밑나무는 범위 `[tin[2], tout[2]] = [1, 3]`에 맞으며 마디 2, 4, 5를 담는다. $\square$
+
+---
+
+**연습문제 2.**
+오일러 돌기에서 아무 마디 $v$의 밑나무가 돌기 배열의 이어진 범위 $[\text{tin}(v), \text{tout}(v)]$에 맞대응함을 증명하여라.
+
+??? success "연습문제 2 풀이"
+    깊이 먼저 훑기에서 때 $\text{tin}(v)$에 마디 $v$에 들어가면 때 $\text{tout}(v)$에 $v$를 나오기 전에 $v$의 모든 자손을 되돌이로 들른다. 깊이 먼저 훑기는 되짚어 가기 전에 밑나무를 다 뒤지므로 이 두 때 사이에 $v$의 밑나무 밖의 마디는 들르지 않는다. 거꾸로 $v$의 모든 자손 $u$는 이 사이에 들르므로 $\text{tin}(v) \le \text{tin}(u) \le \text{tout}(u) \le \text{tout}(v)$이다. 따라서 $\text{tin}(v) \le \text{tin}(u) \le \text{tout}(v)$인 마디 $u$의 모임은 바로 $v$의 밑나무이며, 이는 오일러 돌기 배열에서 이어진 번호 범위다. $\square$
+
+---
+
+**연습문제 3.**
+오일러 돌기를 써서 뿌리 있는 나무에서 다음 셈을 받치는 $O(n \log n)$ 알고리즘을 설계하여라. (가) 마디의 값을 고치기, (나) 마디의 밑나무에 든 모든 값의 합을 묻기.
+
+??? success "연습문제 3 풀이"
+    오일러 돌기를 셈해 마디마다 $\text{tin}(v)$과 $\text{tout}(v)$을 얻는다. 마디 값을 들어감 때 자리에 맞춰 펜윅 나무(또는 토막 나무)에 넣는다: `fenwick[tin[v]] = val[v]`. (가)는 새 값과 옛 값의 차이를 더해 `fenwick[tin[v]]`을 고친다. (나)는 밑나무 합을 `fenwick.query(tin[v], tout[v])`로 묻는다. 곧 범위 $[\text{tin}(v), \text{tout}(v)]$의 모든 자리의 합이다. 펜윅 나무의 셈마다 $O(\log n)$이 들고 미리 다듬기(깊이 먼저 훑기와 첫 펜윅 짓기)에 $O(n)$이 드므로 셈 $q$번의 모든 때는 $O(n + q \log n)$이다. $\square$
+
+---
+
+**연습문제 4.**
+오일러 돌기로 LCA 물음을 범위 최소 물음(RMQ)으로 줄이는 길을 밝혀라. 이 길의 미리 다듬기 때와 물음 때는 얼마인가?
+
+??? success "연습문제 4 풀이"
+    오일러 돌기를 마디를 들른 열(되짚어 갈 때 다시 들어가는 것을 넣어)로 적고 들른 마디마다의 깊이도 함께 적는다. 돌기의 길이는 $2n - 1$이다. 마디 $v$마다 돌기에서 처음 나타난 자리 $\text{first}(v)$를 적는다. 마디 $u$와 $v$의 LCA는 돌기에서 자리 $\text{first}(u)$와 $\text{first}(v)$ 사이에 깊이가 가장 작은 마디다. 이는 깊이 배열의 범위 최소 물음이다. 성긴 표를 쓰면 미리 다듬기에 때 $O(n \log n)$과 자리 $O(n \log n)$이 들고 물음마다 $O(1)$이다. 그렇지 않고 $\pm 1$ RMQ 얼개를 쓰면(잇닿은 깊이가 꼭 1씩 다르므로) 미리 다듬기를 $O(n)$ 때에 하고 물음을 $O(1)$에 할 수 있다(벤더와 파라크콜턴의 방법). $\square$
+
+---
+
+**연습 5.**
+마디가 $n = 10^5$개인 나무가 있다. "$v$의 밑나무에서 값이 $k$보다 큰 마디는 몇 개인가?" 꼴의 물음 $10^5$개에 답해야 한다. 오일러 돌기와 합치기 줄 세우기 나무를 쓰는 묶음 처리 길을 밝히고 복잡도를 살펴라.
+
+??? success "연습 5의 풀이"
+    오일러 돌기를 셈해 $v$의 밑나무가 범위 $[\text{tin}(v), \text{tout}(v)]$에 맞도록 한다. 마디 값의 오일러 돌기 배열 위에 합치기 줄 세우기 나무(마디마다 그 범위 값을 줄 세운 배열로 갈무리하는 토막 나무)를 짓는다. "$v$의 밑나무에서 값이 $> k$인 것을 세어라"는 물음은 합치기 줄 세우기 나무에 범위 $[\text{tin}(v), \text{tout}(v)]$을 묻는다. 그 범위를 덮는 $O(\log n)$개의 토막 나무 마디마다 줄 세운 배열에서 $k$를 두 갈래로 찾아 값이 $> k$인 것의 수를 $O(\log n)$에 얻는다. 물음마다 모두 $O(\log^2 n)$이다. 미리 다듬기는 오일러 돌기에 $O(n \log n)$, 합치기 줄 세우기 나무 짓기에 $O(n \log n)$이다. 물음 $q$개에 대해 모두 $O((n + q) \log^2 n)$이다. $n = q = 10^5$이면 대략 $10^5 \times 17^2 \approx 3 \times 10^7$번으로 때 한도 안에 넉넉하다. $\square$

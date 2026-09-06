@@ -1,28 +1,28 @@
-# Tower of Hanoi
+# 하노이의 탑
 
-The Tower of Hanoi is a classic problem that demonstrates the power of recursive thinking. Given three pegs and $n$ disks of decreasing size stacked on the first peg, the goal is to move all disks to the third peg, obeying two rules: move only one disk at a time, and never place a larger disk on top of a smaller one. Despite the simple rules, the solution reveals an elegant recursive structure.
+하노이의 탑은 재귀적 사고의 힘을 보여주는 고전적인 문제이다. 기둥 세 개와 첫 번째 기둥에 크기가 작아지는 순서로 쌓인 원반 $n$개가 주어졌을 때, 목표는 모든 원반을 세 번째 기둥으로 옮기는 것이다. 규칙은 두 가지이다. 한 번에 원반 하나만 옮기고, 더 큰 원반을 더 작은 원반 위에 올리지 않는다. 규칙은 단순하지만 그 해법은 우아한 재귀 구조를 드러낸다.
 
-## Problem Statement
+## 문제 서술
 
-Given $n$ disks on peg A, move all disks to peg C using peg B as auxiliary:
+기둥 A에 원반 $n$개가 있을 때 기둥 B를 보조로 사용하여 모든 원반을 기둥 C로 옮긴다.
 
-1. Only one disk may be moved at a time
-2. Each move takes the top disk from one peg and places it on another
-3. No disk may be placed on top of a smaller disk
+1. 한 번에 원반 하나만 옮길 수 있다
+2. 각 이동은 한 기둥의 맨 위 원반을 다른 기둥으로 옮기는 것이다
+3. 더 작은 원반 위에 원반을 올릴 수 없다
 
-## Recursive Solution
+## 재귀적 해법
 
-The key insight is that moving $n$ disks reduces to three subproblems:
+핵심 통찰은 원반 $n$개를 옮기는 문제가 세 개의 부분문제로 줄어든다는 것이다.
 
-1. Move the top $n - 1$ disks from A to B (using C as auxiliary)
-2. Move the largest disk from A to C
-3. Move the $n - 1$ disks from B to C (using A as auxiliary)
+1. 위쪽 $n - 1$개 원반을 A에서 B로 옮긴다(C를 보조로 사용)
+2. 가장 큰 원반을 A에서 C로 옮긴다
+3. $n - 1$개 원반을 B에서 C로 옮긴다(A를 보조로 사용)
 
 ```python
 """Tower of Hanoi — recursive solution with move counting."""
 
 
-# === Recursive Algorithm ===
+# === 재귀 알고리즘 ===
 
 def hanoi(n, source, auxiliary, target):
     """Move n disks from source to target using auxiliary peg."""
@@ -37,7 +37,7 @@ def hanoi(n, source, auxiliary, target):
     return moves
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     n = 3
@@ -46,7 +46,7 @@ if __name__ == "__main__":
     print(f"\nTotal moves: {total}")
 ```
 
-**Output:**
+**출력:**
 ```
 Tower of Hanoi with 3 disks:
 
@@ -61,28 +61,61 @@ Move disk 1 from A to C
 Total moves: 7
 ```
 
-## Recurrence Relation
+## 점화식
 
-Let $T(n)$ denote the number of moves required for $n$ disks. The recursive structure gives:
+원반 $n$개에 필요한 이동 횟수를 $T(n)$이라 하자. 재귀 구조는 다음을 준다.
 
 $$
 T(n) = 2\,T(n - 1) + 1, \quad T(1) = 1
 $$
 
-## Closed-Form Solution
+## 닫힌 형태의 해
 
-Expanding the recurrence:
+점화식을 펼치면 다음과 같다.
 
 $$
 T(n) = 2^n - 1
 $$
 
-This can be verified by induction. For $n = 1$, $T(1) = 2^1 - 1 = 1$. Assuming $T(k) = 2^k - 1$, then $T(k+1) = 2(2^k - 1) + 1 = 2^{k+1} - 1$. $\square$
+이는 귀납법으로 확인할 수 있다. $n = 1$이면 $T(1) = 2^1 - 1 = 1$이다. $T(k) = 2^k - 1$을 가정하면 $T(k+1) = 2(2^k - 1) + 1 = 2^{k+1} - 1$이다. $\square$
 
-## Complexity
+## 복잡도
 
-The Tower of Hanoi requires exactly $2^n - 1$ moves, giving $\Theta(2^n)$ time complexity. No algorithm can solve the problem in fewer moves — this is the optimal solution.
+하노이의 탑은 정확히 $2^n - 1$번의 이동을 필요로 하며 $\Theta(2^n)$의 시간 복잡도를 가진다. 어떤 알고리즘도 이보다 적은 이동으로 문제를 풀 수 없다. 이것이 최적해이다.
 
-## Reference
+## 참고 자료
 
 [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+원반 $n$개인 하노이의 탑이 정확히 $2^n - 1$번의 이동을 필요로 함을 귀납법으로 증명하라.
+
+??? success "연습문제 1 풀이"
+    **기저 단계**: $n = 1$일 때 이동 1번 = $2^1 - 1$. $\checkmark$ **귀납 단계**: $T(n) = 2T(n-1) + 1 = 2(2^{n-1} - 1) + 1 = 2^n - 1$. $\square$
+
+---
+
+**연습문제 2.**
+이동 한 번에 1마이크로초가 걸린다면 $n = 64$에는 얼마나 걸리는가? 연 단위로 표현하라.
+
+??? success "연습문제 2 풀이"
+    $2^{64} - 1 \approx 1.84 \times 10^{19}$마이크로초 $= 1.84 \times 10^{13}$초 $\approx 584{,}000$년이다. 지수 알고리즘이 다루기 어려운 이유를 잘 보여준다.
+
+---
+
+**연습문제 3.**
+하노이의 탑의 해법이 최적임을 증명하라. 즉 어떤 알고리즘도 $2^n - 1$번보다 적은 이동으로 풀 수 없음을 보여라.
+
+??? success "연습문제 3 풀이"
+    가장 큰 원반은 적어도 한 번 옮겨져야 한다. 그것을 옮기기 전과 후에 더 작은 $n-1$개의 원반은 한 기둥에 모여 있어야 한다(그렇지 않으면 가장 큰 원반이 움직일 수 없다). 이는 $(n-1)$개 원반 문제를 두 번 풀어야 함을 뜻하며 $T(n) \geq 2T(n-1) + 1$을 준다. 귀납법에 의해 $T(n) \geq 2^n - 1$이다. 우리 알고리즘이 정확히 $2^n - 1$을 달성하므로 최적이다. $\square$
+
+---
+
+**연습문제 4.**
+하노이의 탑은 하나씩 줄어드는 점화식 $T(n) = 2T(n-1) + 1$을 가진다. 이를 표준적인 분할 정복 형태 $T(n) = aT(n/b) + f(n)$과 비교하라. 하나씩 줄어드는 형태가 다항이 아니라 지수 복잡도로 이어지는 이유는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    분할 정복에서는 문제 크기가 층마다 $b$배로 줄어들어 층이 $O(\log_b n)$개가 된다. 하나씩 줄어드는 형태에서는 문제 크기가 1씩 줄어 층이 $n$개가 된다. 분기 계수가 $a = 2$이면 트리의 잎이 $2^n$개(지수적)가 된다. 마스터 정리는 하나씩 줄어드는 점화식에 적용되지 않는다. 대신 펼쳐 보면 $T(n) = \sum_{i=0}^{n-1} 2^i = 2^n - 1$을 얻는다.

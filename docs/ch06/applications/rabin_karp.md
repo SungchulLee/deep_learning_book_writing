@@ -1,116 +1,116 @@
-# Rabin-Karp
+# 라빈-카프
 
-Naive string matching compares a pattern of length $m$ against every position in a text of length $n$, taking $O(nm)$ time in the worst case. The Rabin-Karp algorithm replaces most character-by-character comparisons with hash comparisons, achieving $O(n + m)$ expected time by using a **rolling hash** that updates in $O(1)$ as the window slides across the text.
+소박한 문자열 맞추기는 길이 $m$의 패턴을 길이 $n$의 텍스트의 모든 자리와 견주어 최악의 경우 $O(nm)$이 든다. 라빈-카프 알고리즘은 문자 하나하나의 비교를 대부분 해시 비교로 바꾸고, 창이 텍스트를 미끄러질 때 $O(1)$에 갱신되는 **구르는 해시**를 써서 기대 $O(n + m)$ 시간을 이룬다.
 
-## Rolling Hash Concept
+## 구르는 해시의 착상
 
-The idea is to compute a hash of each length-$m$ substring of the text and compare it to the hash of the pattern. If the hashes differ, the substring cannot match and no character comparison is needed. If the hashes agree, a character-by-character verification confirms or rejects the match (to handle hash collisions).
+착상은 텍스트의 길이 $m$인 부분문자열마다 해시를 계산하여 패턴의 해시와 견주는 것이다. 해시가 다르면 그 부분문자열은 맞을 수 없으므로 문자를 비교할 필요가 없다. 해시가 같으면 (해시 충돌을 다루려고) 문자 하나하나를 견주어 확인하거나 물리친다.
 
-The critical insight is that when the window slides one position to the right, the new hash can be computed from the old hash in $O(1)$ time rather than recomputing from scratch in $O(m)$ time.
+핵심은 창이 오른쪽으로 한 칸 미끄러질 때 새 해시를 처음부터 $O(m)$에 다시 계산하지 않고 옛 해시에서 $O(1)$에 구할 수 있다는 것이다.
 
-## Polynomial Rolling Hash
+## 다항 구르는 해시
 
-Treat each character as a digit in base $d$ (where $d = |\Sigma|$ is the alphabet size). The hash of the substring $T[s \ldots s+m-1]$ is
+알파벳의 크기를 $d = |\Sigma|$이라 할 때 각 문자를 밑이 $d$인 자릿수로 본다. 부분문자열 $T[s \ldots s+m-1]$의 해시는 다음과 같다.
 
 $$
 H(s) = \left(\sum_{j=0}^{m-1} T[s+j] \cdot d^{m-1-j}\right) \bmod q
 $$
 
-where $q$ is a large prime chosen to reduce collisions.
+여기서 $q$은 충돌을 줄이려고 고른 큰 소수이다.
 
-When the window shifts from position $s$ to $s+1$, the new hash is computed by removing the leading character and adding the trailing character:
+창이 자리 $s$에서 $s+1$으로 옮겨 가면 앞 문자를 빼고 뒤 문자를 더해 새 해시를 구한다.
 
 $$
 H(s+1) = \bigl(d \cdot (H(s) - T[s] \cdot d^{m-1}) + T[s+m]\bigr) \bmod q
 $$
 
-The value $d^{m-1} \bmod q$ is precomputed once at the start, making each update $O(1)$.
+$d^{m-1} \bmod q$은 처음에 한 번 미리 계산해 두므로 갱신마다 $O(1)$이 된다.
 
-## Algorithm
+## 알고리즘
 
-1. Compute the hash of the pattern: $H_P = H(\text{pattern})$.
-2. Compute the hash of the first window: $H(0)$.
-3. For each position $s = 0, 1, \ldots, n - m$:
-    - If $H(s) = H_P$, verify by comparing characters $T[s \ldots s+m-1]$ with the pattern.
-    - If $s < n - m$, compute $H(s+1)$ from $H(s)$ using the rolling update.
+1. 패턴의 해시를 계산한다. $H_P = H(\text{pattern})$이다.
+2. 첫 창의 해시 $H(0)$을 계산한다.
+3. 각 자리 $s = 0, 1, \ldots, n - m$에 대해 다음과 같이 한다.
+    - $H(s) = H_P$이면 문자 $T[s \ldots s+m-1]$을 패턴과 견주어 확인한다.
+    - $s < n - m$이면 구르는 갱신으로 $H(s)$에서 $H(s+1)$을 구한다.
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Preprocessing**: computing $H_P$ and $H(0)$ takes $O(m)$ time.
+**전처리**: $H_P$과 $H(0)$을 계산하는 데 $O(m)$이 든다.
 
-**Matching phase**: computing each rolling hash update takes $O(1)$. There are $n - m + 1$ positions to check. If a hash match occurs, verification takes $O(m)$.
+**맞추기 단계**: 구르는 해시의 갱신마다 $O(1)$이 든다. 확인할 자리는 $n - m + 1$개이다. 해시가 맞으면 확인에 $O(m)$이 든다.
 
-**Expected time** (with a good choice of $q$): the probability of a spurious hit (hash match without character match) is approximately $1/q$. The expected number of spurious hits is $(n - m + 1)/q$, each costing $O(m)$ for verification. With $q$ chosen to be at least $m$, the expected total time is
+**기대 시간** ($q$을 잘 고른 경우): 헛맞음(해시는 같은데 문자는 다른 경우)의 확률은 약 $1/q$이다. 헛맞음의 기대 횟수는 $(n - m + 1)/q$이고 확인마다 $O(m)$이 든다. $q$을 적어도 $m$ 이상으로 고르면 기대 전체 시간은 다음과 같다.
 
 $$
 O(n + m)
 $$
 
-**Worst-case time**: if every position produces a hash match (e.g., text = "aaa...a" and pattern = "aaa"), every position requires $O(m)$ verification, giving
+**최악의 경우 시간**: 모든 자리에서 해시가 맞으면(예: 텍스트가 "aaa...a"이고 패턴이 "aaa"인 경우) 자리마다 $O(m)$의 확인이 필요하므로 다음과 같다.
 
 $$
 O(nm)
 $$
 
-This worst case can be mitigated by using multiple hash functions or choosing $q$ to be very large.
+해시 함수를 여럿 쓰거나 $q$을 아주 크게 잡으면 이 최악의 경우를 누그러뜨릴 수 있다.
 
-## Multi-Pattern Search
+## 여러 패턴 찾기
 
-Rabin-Karp extends naturally to searching for multiple patterns simultaneously. Given $k$ patterns of the same length $m$, store all pattern hashes in a hash set. For each text window, check if the window hash appears in the set. The expected time is
+라빈-카프는 여러 패턴을 동시에 찾는 데로 자연스럽게 넓혀진다. 길이가 모두 $m$인 패턴 $k$개가 주어지면 패턴의 해시를 모두 해시 집합에 담는다. 텍스트의 창마다 그 해시가 집합에 있는지 확인한다. 기대 시간은 다음과 같다.
 
 $$
 O(n + km)
 $$
 
-since the hash set lookup is $O(1)$ and preprocessing all patterns takes $O(km)$.
+해시 집합의 조회가 $O(1)$이고 모든 패턴의 전처리에 $O(km)$이 들기 때문이다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Rabin-Karp string matching algorithm.
+라빈-카프 문자열 대조 알고리즘.
 
-Uses a polynomial rolling hash to achieve O(n + m) expected time
-for single-pattern matching.
+다항식 구르는 해시로 무늬 하나를 대조하는 데
+기대 시간 O(n + m)을 이룬다.
 """
 
 
-# === Rolling Hash Parameters ===
+# === 구르는 해시의 매개변수 ===
 
-BASE = 256       # alphabet size (extended ASCII)
-MOD = 101        # prime modulus
+BASE = 256       # 알파벳 크기 (확장 ASCII)
+MOD = 101        # 소수 법
 
 
-# === Rabin-Karp Algorithm ===
+# === 라빈-카프 알고리즘 ===
 
 def rabin_karp(text, pattern):
-    """Find all occurrences of pattern in text using Rabin-Karp.
+    """라빈-카프로 본문에서 무늬가 나타나는 곳을 모두 찾는다.
 
-    Returns a list of starting indices where pattern occurs.
+    무늬가 나타나는 시작 색인들의 리스트를 돌려준다.
     """
     n, m = len(text), len(pattern)
     if m > n:
         return []
 
-    # Precompute d^(m-1) mod q
+    # d^(m-1) mod q를 미리 계산
     h = pow(BASE, m - 1, MOD)
 
-    # Compute initial hashes
-    p_hash = 0  # pattern hash
-    t_hash = 0  # text window hash
+    # 처음 해시값 계산
+    p_hash = 0  # 무늬의 해시
+    t_hash = 0  # 본문 창의 해시
     for i in range(m):
         p_hash = (BASE * p_hash + ord(pattern[i])) % MOD
         t_hash = (BASE * t_hash + ord(text[i])) % MOD
 
     matches = []
     for s in range(n - m + 1):
-        # Check hash match
+        # 해시가 같은지 확인
         if t_hash == p_hash:
-            # Verify character by character
+            # 글자 하나하나 확인
             if text[s:s + m] == pattern:
                 matches.append(s)
 
-        # Compute rolling hash for next window
+        # 다음 창의 구르는 해시 계산
         if s < n - m:
             t_hash = (BASE * (t_hash - ord(text[s]) * h)
                        + ord(text[s + m])) % MOD
@@ -120,7 +120,7 @@ def rabin_karp(text, pattern):
     return matches
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     text = "AABAACAADAABAABA"
@@ -130,7 +130,7 @@ if __name__ == "__main__":
     print(f"Pattern: '{pattern}'")
     print(f"Found at indices: {result}")
 
-    # Multiple occurrences
+    # 여러 번 나타나는 경우
     text2 = "abcabcabc"
     pattern2 = "abc"
     result2 = rabin_karp(text2, pattern2)
@@ -139,7 +139,7 @@ if __name__ == "__main__":
     print(f"Found at indices: {result2}")
 ```
 
-**Output:**
+**출력:**
 ```
 Text:    'AABAACAADAABAABA'
 Pattern: 'AABA'
@@ -150,7 +150,40 @@ Pattern: 'abc'
 Found at indices: [0, 3, 6]
 ```
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 32](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Karp, R. M. and Rabin, M. O. "Efficient Randomized Pattern-Matching Algorithms." *IBM Journal of Research and Development*, 31(2), 1987.
+
+
+## 연습문제
+
+**연습문제 1.**
+라빈-카프에 대해, 적재율이 $\alpha = 0.75$일 때 삽입과 조회의 기대 시간과 최악의 경우 시간을 계산하라.
+
+??? success "연습문제 1 풀이"
+    기대 시간은 충돌 해결 전략에 달렸으며 균등 해싱을 가정한다. 체이닝에서는 기대 시간이 $O(1 + \alpha) = O(1.75)$이다. 개방 주소법에서는 탐색에 실패할 때 기대 탐사 횟수가 $\approx 1/(1-\alpha) = 4$이다. 최악의 경우는 모든 키가 같은 칸으로 해시될 때의 $O(n)$이다.
+
+---
+
+**연습문제 2.**
+라빈-카프을(를) 써서 키 10, 22, 31, 4, 15, 28, 17을 크기가 7인 해시 테이블에 넣어라. 최종 테이블의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    해시 함수 $h(k) = k \bmod 7$을 적용하고 이 쪽의 방법으로 충돌을 처리한다. 키마다 해시를 계산하고 충돌을 해결한 뒤 키를 놓는다. 최종 테이블의 내용을 보인다.
+
+---
+
+**연습문제 3.**
+라빈-카프은(는) 딥러닝의 임베딩 테이블에서 어떻게 쓰이는가? 토큰 $V = 50{,}000$개의 어휘를 $m = 30{,}000$개의 버킷에 대응시킬 때 충돌의 양상을 분석하라.
+
+??? success "연습문제 3 풀이"
+    $V/m \approx 1.67$이므로 비둘기집 원리에 의해 충돌이 반드시 생긴다. 버킷마다 평균 1.67개의 토큰이 같은 임베딩을 나누어 쓴다. 충돌률과 그것이 모델의 품질에 미치는 영향은 해시 함수의 품질과 임베딩의 차원에 달렸다(차원이 높을수록 충돌을 더 잘 견딘다).
+
+---
+
+**연습문제 4.**
+$\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 상각 비용이 $O(1)$으로 유지됨을 증명하라.
+
+??? success "연습문제 4 풀이"
+    크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$

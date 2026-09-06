@@ -1,46 +1,41 @@
-# Chapter Overview
+# 장 개요
+이 장은 주성분 분석과 그 변형부터 다양체 배움 방법까지 선형과 비선형 차원 줄이기 재주를 다룬다. 절마다 수학의 바탕을 엄밀히 세우고 차원 높은 자료 살피기에 어떻게 쓰는지 보이며, 특히 수익률 곡선 쪼개기, 자산 꾸러미 가장 좋게 하기, 국면 그려 보기 같은 금융 쓰임새에 무게를 둔다.
 
+# 참고 문헌
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 주성분 분석
 
-This chapter covers linear and nonlinear dimensionality reduction techniques, from Principal Component Analysis and its variants to manifold learning methods. Each section develops the mathematical foundations rigorously and demonstrates applications to high-dimensional data analysis, with particular emphasis on financial applications including yield curve decomposition, portfolio optimization, and regime visualization.
+선형 차원 줄이기를 위한 주성분 분석과 그 넓힘.
 
-# Reference
-
-## PCA
-
-Principal Component Analysis and its extensions for linear dimensionality reduction.
-
-- [PCA Fundamentals](pca/pca_fundamentals.md) -- Variance maximization, orthogonal projections, and optimal linear compression
-- [PCA Derivation](pca/pca_derivation.md) -- Rigorous derivation from variance-maximization and minimum-error perspectives
-- Eigendecomposition -- Computing principal components via spectral decomposition of the covariance matrix
-- SVD for PCA -- Efficient and numerically stable PCA computation via Singular Value Decomposition
-- [Kernel PCA](pca/kernel_pca.md) -- Nonlinear dimensionality reduction via the kernel trick
-- Probabilistic PCA -- Generative latent variable formulation connecting PCA to VAEs
-- PCA Applications -- Practical implementations for projection, compression, denoising, and feature extraction
-- PCA as Linear Autoencoder -- Mathematical equivalence between PCA and linear autoencoders
+- [주성분 분석의 바탕](pca/pca_fundamentals.md) -- 흩어짐 가장 크게 하기, 직교 쏘기, 가장 좋은 선형 눌러 담기
+- [주성분 분석 이끌어 내기](pca/pca_derivation.md) -- 흩어짐 가장 크게 하기와 어긋남 가장 작게 하기 관점에서의 엄밀한 이끌어 내기
+- 고윳값 쪼개기 -- 공분산 행렬의 스펙트럼 쪼개기로 주성분 셈하기
+- 주성분 분석을 위한 특잇값 쪼개기 -- 특잇값 쪼개기로 효율 좋고 수치가 안정된 주성분 분석 셈하기
+- [알맹이 주성분 분석](pca/kernel_pca.md) -- 알맹이 재주로 하는 비선형 차원 줄이기
+- 확률 주성분 분석 -- 주성분 분석과 변분 자기 부호기를 잇는 만들어 내는 숨은 변수 꼴
+- 주성분 분석 쓰임새 -- 쏘기, 눌러 담기, 잡음 없애기, 특징 뽑기의 실전 짜기
+- 선형 자기 부호기로 본 주성분 분석 -- 주성분 분석과 선형 자기 부호기의 수학적 같음
 
 ---
 
-## Manifold Learning
+## 다양체 배움
 
-Nonlinear dimensionality reduction methods that recover intrinsic low-dimensional structure.
+속에 든 낮은 차원 짜임을 되찾는 비선형 차원 줄이기 방법.
 
-- Manifold Learning Introduction -- The manifold hypothesis, neighborhood preservation, and method taxonomy
-- t-SNE -- Probabilistic neighbor embedding with heavy-tailed distributions for visualization
-- UMAP -- Topological data analysis and SGD for scalable dimensionality reduction
-- Isomap -- Geodesic distance preservation for nonlinear manifold unfolding
-- LLE -- Locally Linear Embedding preserving local reconstruction weights
-- [MDS](manifold/mds.md) -- Multidimensional Scaling by preserving pairwise distances
+- 다양체 배움 들어가기 -- 다양체 가설, 이웃 지키기, 방법의 갈래 나누기
+- t-SNE -- 그려 보기를 위해 꼬리가 두꺼운 분포를 쓰는 확률 이웃 묻힘
+- UMAP -- 규모를 키울 수 있는 차원 줄이기를 위한 위상 자료 살피기와 확률 기울기 내려가기
+- Isomap -- 비선형 다양체를 펴려고 측지 거리를 지키기
+- LLE -- 그때그때의 다시 세우기 무게를 지키는 국소 선형 묻힘
+- [MDS](manifold/mds.md) -- 둘씩의 거리를 지키는 여러 차원 잣수 맞추기
 
 ---
 
-## Finance
+## 금융
 
-Applications of dimensionality reduction to quantitative finance problems.
+계량 금융 문제에 차원 줄이기를 쓰기.
 
-- PCA for Factor Models -- Extracting systematic risk factors from high-dimensional financial data
-- [Yield Curve Decomposition](finance/yield_curve.md) -- PCA decomposition into level, slope, and curvature components
-- Portfolio Dimensionality Reduction -- Improving portfolio optimization through factor-based compression
-- Regime Visualization -- Visualizing market regimes using PCA, t-SNE, and manifold learning
+- 요인 모델을 위한 주성분 분석 -- 차원 높은 금융 자료에서 체계 위험 요인 뽑기
+- [수익률 곡선 쪼개기](finance/yield_curve.md) -- 높이, 기울기, 굽음 성분으로 주성분 쪼개기
+- 자산 꾸러미 차원 줄이기 -- 요인 바탕 눌러 담기로 자산 꾸러미 가장 좋게 하기를 낫게 하기
+- 국면 그려 보기 -- 주성분 분석, t-SNE, 다양체 배움으로 시장 국면 그려 보기

@@ -1,39 +1,39 @@
-# B-Tree Deletion
+# B-트리의 삭제
 
-[Insertion](insertion.md) into a B-tree splits full nodes to maintain the B-tree properties.  Deletion is the inverse operation: it removes a key and may need to **merge** or **borrow** from sibling nodes when a node falls below the minimum number of keys ($t - 1$, where $t$ is the [minimum degree](definition.md)).  The deletion algorithm handles three distinct cases depending on where the target key resides and whether surrounding nodes have keys to spare.
+B-트리의 [삽입](insertion.md)은 B-트리 성질을 지키려고 꽉 찬 노드를 쪼갠다. 삭제는 그 반대이다. 열쇠를 없애고, 노드의 열쇠가 최솟값($t - 1$, 여기서 $t$은 [최소 차수](definition.md))보다 적어지면 형제 노드와 **합치거나** 형제에게서 **빌려야** 할 수 있다. 삭제 알고리즘은 표적 열쇠가 어디에 있는지와 둘레 노드에 여유 열쇠가 있는지에 따라 서로 다른 세 경우를 다룬다.
 
-## Precondition: Ensuring Minimum Keys
+## 미리 갖출 것: 최소 열쇠 보장하기
 
-Before descending into a child during deletion, the algorithm ensures that the child contains at least $t$ keys (one more than the minimum $t - 1$).  This guarantee means that when a key is eventually removed from a leaf, the leaf still satisfies the B-tree property without needing to backtrack.  The technique is analogous to the single-pass approach used in [B-tree insertion](insertion.md), where full nodes are split proactively during descent.
+삭제 중에 자식으로 내려가기 전에 알고리즘은 그 자식에 열쇠가 적어도 $t$개(최솟값 $t - 1$보다 하나 많게) 있도록 한다. 이 보장 덕분에 결국 잎에서 열쇠를 없앨 때 되짚어 올라가지 않고도 잎이 B-트리 성질을 지킨다. 내려가면서 꽉 찬 노드를 미리 쪼개는 [B-트리 삽입](insertion.md)의 한 번 훑기 방식과 비슷한 기법이다.
 
-## Case 1: Key in a Leaf Node
+## 경우 1: 열쇠가 잎 노드에 있다
 
-If the key $k$ is found in a leaf node $x$ and $x$ has at least $t$ keys, simply remove $k$ from $x$.
+열쇠 $k$을 잎 노드 $x$에서 찾았고 $x$에 열쇠가 적어도 $t$개 있으면 그냥 $x$에서 $k$을 없앤다.
 
-This is the simplest case — no structural changes are needed.
+가장 간단한 경우이다. 구조를 바꿀 필요가 없다.
 
-## Case 2: Key in an Internal Node
+## 경우 2: 열쇠가 내부 노드에 있다
 
-If $k$ is found in an internal node $x$, the key cannot simply be removed because it serves as a separator between two child subtrees.  Three sub-cases arise:
+$k$을 내부 노드 $x$에서 찾았다면 그 열쇠가 두 자식 부분 트리의 구분자 노릇을 하므로 그냥 없앨 수 없다. 작은 경우가 셋 생긴다.
 
-**Case 2a.** The child $y$ that precedes $k$ has at least $t$ keys.  Find the **predecessor** $k'$ of $k$ in the subtree rooted at $y$ (the rightmost key in $y$'s subtree).  Replace $k$ with $k'$ in $x$, then recursively delete $k'$ from $y$'s subtree.
+**경우 2a.** $k$ 앞의 자식 $y$에 열쇠가 적어도 $t$개 있다. $y$을 뿌리로 하는 부분 트리에서 $k$의 **선행자** $k'$($y$의 부분 트리에서 가장 오른쪽 열쇠)을 찾는다. $x$에서 $k$을 $k'$으로 바꾼 뒤 $y$의 부분 트리에서 $k'$을 재귀적으로 지운다.
 
-**Case 2b.** The child $z$ that follows $k$ has at least $t$ keys.  Find the **successor** $k'$ of $k$ in the subtree rooted at $z$ (the leftmost key in $z$'s subtree).  Replace $k$ with $k'$ in $x$, then recursively delete $k'$ from $z$'s subtree.
+**경우 2b.** $k$ 뒤의 자식 $z$에 열쇠가 적어도 $t$개 있다. $z$을 뿌리로 하는 부분 트리에서 $k$의 **후속자** $k'$($z$의 부분 트리에서 가장 왼쪽 열쇠)을 찾는다. $x$에서 $k$을 $k'$으로 바꾼 뒤 $z$의 부분 트리에서 $k'$을 재귀적으로 지운다.
 
-**Case 2c.** Both $y$ and $z$ have exactly $t - 1$ keys.  **Merge** $k$ and all keys of $z$ into $y$, so that $y$ now contains $2t - 1$ keys.  Remove the child pointer to $z$ from $x$.  Then recursively delete $k$ from $y$.
+**경우 2c.** $y$과 $z$ 모두 열쇠가 꼭 $t - 1$개이다. $k$과 $z$의 모든 열쇠를 $y$에 **합쳐** $y$의 열쇠가 $2t - 1$개가 되게 한다. $x$에서 $z$을 가리키는 자식 포인터를 없앤다. 그다음 $y$에서 $k$을 재귀적으로 지운다.
 
-## Case 3: Key Not in Current Node (Descending)
+## 경우 3: 열쇠가 지금 노드에 없다 (내려가기)
 
-If $k$ is not in the current internal node $x$, determine the child $c_i$ whose subtree must contain $k$.  Before descending into $c_i$, ensure it has at least $t$ keys:
+$k$이 지금 내부 노드 $x$에 없으면 그 부분 트리가 $k$을 품어야 하는 자식 $c_i$을 가린다. $c_i$으로 내려가기 전에 열쇠가 적어도 $t$개 있게 한다.
 
-**Case 3a.** If $c_i$ has only $t - 1$ keys but an immediate sibling has at least $t$ keys, perform a **rotation**: move a separator key from $x$ down into $c_i$, and move a key from the sibling up into $x$.  If borrowing from the left sibling, the sibling's largest key moves up and $x$'s separator moves down.
+**경우 3a.** $c_i$의 열쇠가 $t - 1$개뿐인데 바로 옆 형제에 열쇠가 적어도 $t$개 있으면 **회전**을 한다. $x$의 구분 열쇠를 $c_i$으로 내리고 형제의 열쇠를 $x$으로 올린다. 왼쪽 형제에게서 빌린다면 형제의 가장 큰 열쇠가 올라가고 $x$의 구분 열쇠가 내려간다.
 
-**Case 3b.** If $c_i$ and both its immediate siblings have exactly $t - 1$ keys, **merge** $c_i$ with one sibling: move the separator key from $x$ down into the merged node, which now has $2t - 1$ keys.
+**경우 3b.** $c_i$과 바로 옆 두 형제 모두 열쇠가 꼭 $t - 1$개이면 $c_i$을 한 형제와 **합친다**. $x$의 구분 열쇠를 합친 노드로 내리면 그 노드의 열쇠가 $2t - 1$개가 된다.
 
-After ensuring $c_i$ has at least $t$ keys, recurse into $c_i$.
+$c_i$에 열쇠가 적어도 $t$개 있게 한 뒤 $c_i$으로 재귀한다.
 
-??? example "Deleting from a B-tree of minimum degree t = 3"
-    Consider a B-tree with $t = 3$ (each non-root node holds 2–5 keys):
+??? example "최소 차수가 t = 3인 B-트리에서 지우기"
+    $t = 3$인 B-트리를 생각해 보자(뿌리가 아닌 노드마다 열쇠를 2~5개 담는다).
 
     ```
               [G, M, P, X]
@@ -41,34 +41,67 @@ After ensuring $c_i$ has at least $t$ keys, recurse into $c_i$.
        [A,C] [D,E] [J,K] [N,O] [R,S,T,U,V]
     ```
 
-    **Delete G (Case 2a):** G is in the root (internal node). The left child `[D,E]` has only 2 keys ($= t - 1$), but the predecessor of G in the left subtree is E. Since `[D,E]` has $t - 1$ keys, check the right child `[J,K]` (Case 2b): the successor is J. Replace G with J in the root, delete J from `[J,K]`, yielding `[K]`.
+    **G 지우기 (경우 2a):** G는 뿌리(내부 노드)에 있다. 왼쪽 자식 `[D,E]`의 열쇠는 2개($= t - 1$)뿐이지만 왼쪽 부분 트리에서 G의 선행자는 E이다. `[D,E]`의 열쇠가 $t - 1$개이므로 오른쪽 자식 `[J,K]`을 살펴본다(경우 2b). 후속자는 J이다. 뿌리에서 G를 J로 바꾸고 `[J,K]`에서 J를 지워 `[K]`을 얻는다.
 
-    **Delete D (Case 1):** D is in a leaf. After removing it, the leaf `[E]` has only 1 key, which is still $\ge t - 1 = 2$... wait, $t - 1 = 2$ and `[E]` has 1 key. This triggers Case 3 on the next deletion that descends through this node, requiring a borrow or merge.
+    **D 지우기 (경우 1):** D는 잎에 있다. 없앤 뒤 잎 `[E]`의 열쇠는 1개뿐이고 이는 아직 $\ge t - 1 = 2$이다… 잠깐, $t - 1 = 2$인데 `[E]`의 열쇠는 1개이다. 그러면 이 노드를 지나 내려가는 다음 삭제에서 경우 3이 일어나 빌리기나 합치기가 필요해진다.
 
-## Single-Pass Deletion
+## 한 번 훑는 삭제
 
-The CLRS algorithm performs deletion in a **single downward pass** by proactively fixing nodes that have only $t - 1$ keys before descending into them.  This avoids the need to backtrack up the tree after removing a key.
+CLRS의 알고리즘은 열쇠가 $t - 1$개뿐인 노드를 내려가기 전에 미리 고쳐 삭제를 **한 번 내려가는 것으로** 끝낸다. 그러면 열쇠를 없앤 뒤 트리를 거슬러 올라갈 필요가 없다.
 
-The invariant maintained during descent is:
+내려가면서 지키는 불변식은 다음과 같다.
 
 $$
 \text{Every node visited (except possibly the root) has at least } t \text{ keys}
 $$
 
-This ensures that when the key is finally found and removed, the node still satisfies the minimum-key requirement.
+그러면 마침내 열쇠를 찾아 없앨 때에도 그 노드가 최소 열쇠 조건을 지킨다.
 
-## Complexity
+## 복잡도
 
-| Operation | Time | Disk accesses |
+| 연산 | 시간 | 디스크 접근 |
 |-----------|------|---------------|
-| Delete | $O(t \log_t n)$ | $O(\log_t n)$ |
+| 삭제 | $O(t \log_t n)$ | $O(\log_t n)$ |
 
-Each level of the tree requires $O(t)$ work to shift keys within a node, and the height is $O(\log_t n)$.  The number of disk accesses matches the height because each merge or rotation involves at most a constant number of neighboring nodes.
+트리의 층마다 노드 안에서 열쇠를 밀어 옮기는 데 $O(t)$의 일이 들고 높이는 $O(\log_t n)$이다. 합치기나 회전마다 이웃 노드가 많아야 일정한 개수만 얽히므로 디스크 접근 횟수가 높이와 같다.
 
-!!! warning "Shrinking the tree"
-    The tree height decreases only when the root has a single key and both its children are merged.  The merged node becomes the new root.  This is the only operation that reduces the height of a B-tree.
+!!! warning "트리가 줄어들 때"
+    트리의 높이는 뿌리에 열쇠가 하나뿐이고 두 자식이 합쳐질 때만 줄어든다. 합쳐진 노드가 새 뿌리가 된다. B-트리의 높이를 줄이는 연산은 이것뿐이다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Section 18.3. MIT Press.
 - Bayer, R., & McCreight, E. (1972). Organization and maintenance of large ordered indexes. *Acta Informatica*, 1(3), 173–189.
+
+
+## 연습문제
+
+**연습문제 1.**
+B-트리의 삭제의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 B-트리의 삭제를 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+B-트리의 삭제이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 B-트리의 삭제를 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

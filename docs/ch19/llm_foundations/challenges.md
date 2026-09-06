@@ -1,126 +1,145 @@
-# 6.11.6 Challenges and Limitations
+# 6.11.6 어려움과 한계
+할 수 있는 것이 많지만 ChatGPT는 맥락 다스리기, 사실의 믿음성, 치우침, 윤리에 맞는 펼치기와 얽힌 근본 어려움을 안고 있다. 이 한계를 아는 것이 책임 있게 쓰고 이어지는 연구를 이끄는 데 꼭 필요하다.
 
+## 아리송함과 맥락 다루기
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+### 맥락 창의 한계
 
-Despite its capabilities, ChatGPT faces fundamental challenges related to context management, factual reliability, bias, and ethical deployment. Understanding these limitations is essential for responsible use and for motivating ongoing research.
+변환기 얼개는 붙박이 길이의 맥락 창을 다룬다. 대화가 이 창을 넘어서면 앞선 차례를 잘라 내야 하고 그러면 **맥락을 잃는다**. 창 안에서도 모델에는 중요한 앎과 곁가지 세부를 가리는 드러난 얼개가 없다. 곧 눈길 얼개가 모든 토막을 똑같이 다룬다.
 
-## Handling Ambiguity and Context
+여러 차례 대화에서는 이것이 다음으로 나타난다:
 
-### Context Window Limitations
+- **주제 흘러감.** 새 차례가 앞선 맥락을 실효 눈길 범위 밖으로 밀어내면서 모델의 초점이 본디 주제에서 차츰 벗어날 수 있다.
+- **사실 잊기.** 긴 대화의 앞부분에서 말한 구체적인 세부가 "잊힐" 수 있다. 모델의 힘이 모자라서가 아니라 눈길 무게가 수많은 토막에 걸쳐 옅어지기 때문이다.
+- **시킴 흘려듣기.** 대화가 길어질수록 체계 수준의 시킴에 가는 눈길이 줄어들 수 있다.
 
-The Transformer architecture processes a fixed-length context window. When a conversation exceeds this window, earlier turns must be truncated, leading to **context loss**. Even within the window, the model has no explicit mechanism for distinguishing important information from incidental details — all tokens are processed equally by the attention mechanism.
+### 아리송함 풀기
 
-For multi-turn dialogues, this manifests as:
-
-- **Topic drift.** The model may gradually shift focus away from the original topic as new turns push earlier context out of the effective attention range.
-- **Fact forgetting.** Specific details mentioned early in a long conversation may be "forgotten" — not because the model lacks the capacity, but because attention weights dilute over many tokens.
-- **Instruction neglect.** System-level instructions may receive diminishing attention as the conversation grows longer.
-
-### Ambiguity Resolution
-
-When user input is ambiguous (multiple valid interpretations), the model typically selects the most probable interpretation based on its training distribution rather than seeking clarification. This can produce confident responses to the *wrong* interpretation of an ambiguous query.
+쓰는 이의 들임이 아리송하면(올바른 풀이가 여럿이면) 모델은 되물어 밝히기보다 익힘 분포에 바탕해 가장 그럴듯한 풀이를 고르는 것이 보통이다. 그러면 아리송한 물음의 *틀린* 풀이에 자신 있게 답할 수 있다.
 
 **Dialogue state tracking (DST)** is an active research direction aimed at maintaining explicit representations of the conversation state — user goals, mentioned entities, resolved and unresolved slots — to improve contextual accuracy. Formally, a DST system maintains a belief state $\mathbf{b}_t$ at each turn:
 
 $$
-
 \mathbf{b}_t = f_{\text{DST}}(\mathbf{b}_{t-1}, u_t, r_{t-1})
-
 $$
 
 where $\mathbf{b}_t$ encodes the system's understanding of user intent, mentioned entities, and dialogue progress. Current ChatGPT models do not use explicit DST; contextual understanding is handled implicitly through attention over the full conversation history.
 
-!!! info "Research Direction: Memory-Augmented Models"
-    External memory mechanisms — such as retrieval-augmented architectures that store and recall conversation summaries — are being explored to extend effective context beyond the fixed window. These approaches supplement the model's parametric memory with an explicit, searchable memory store.
+!!! info "연구 방향: 기억을 덧붙인 모델"
+    대화 간추림을 담아 두고 불러오는 찾아 붙이는 얼개 같은 바깥 기억 얼개가, 붙박이 창을 넘어 실효 맥락을 넓히려 연구되고 있다. 이 방식은 모델의 매개변수 기억을 드러나고 찾을 수 있는 기억 곳간으로 채워 준다.
 
-## Hallucination
+## 헛것 지어내기
 
-**Hallucination** refers to the model generating text that is fluent and plausible but factually incorrect. This is arguably the most critical limitation of current language models, as it undermines user trust and can cause real harm when deployed in high-stakes domains.
+**헛것 지어내기**란 모델이 매끄럽고 그럴듯하지만 사실과 다른 글을 만들어 내는 것을 말한다. 쓰는 이의 믿음을 무너뜨리고 걸린 것이 큰 분야에 펼쳤을 때 실제 해를 끼칠 수 있어, 요즘 말 모델의 가장 결정적인 한계라 할 만하다.
 
 Hallucination arises from the fundamental training objective: the model is trained to produce *probable* text, not *true* text. The probability of a token sequence under the model $p_\theta(y \mid x)$ reflects statistical patterns in the training data, not verified factual knowledge.
 
-Types of hallucination include:
+헛것 지어내기의 갈래는 다음과 같다:
 
-- **Fabricated facts.** Generating plausible but false statements (e.g., inventing citations, attributing incorrect dates or statistics).
-- **Inconsistent claims.** Contradicting earlier statements within the same conversation.
-- **Confident uncertainty.** Presenting uncertain or speculative information with high confidence, without appropriate hedging.
+- **지어낸 사실.** 그럴듯하지만 거짓인 진술을 만들어 낸다(보기로 인용을 지어내거나 날짜와 통계를 잘못 붙인다).
+- **어긋나는 주장.** 같은 대화 안에서 앞서 한 말과 어긋난다.
+- **자신 있는 흔들림.** 확실하지 않거나 짐작에 지나지 않는 앎을 알맞게 조심하지 않고 자신 있게 내놓는다.
 
-Mitigation strategies include:
+덜어 내는 전략은 다음과 같다:
 
-- **Retrieval augmentation (RAG):** Grounding generation in retrieved documents reduces but does not eliminate hallucination. See Section 15.4: RAG Overview.
-- **RLHF alignment:** Training the model to express uncertainty ("I'm not sure about this") rather than fabricating answers.
-- **Self-consistency checks:** Generating multiple responses and checking for agreement as a proxy for factual reliability.
-- **Citation generation:** Training the model to produce verifiable citations alongside claims, enabling user verification.
+- **찾아 붙이기(RAG):** 찾아온 글월에 만들어 내기를 뿌리내리게 하면 헛것 지어내기가 줄지만 없어지지는 않는다. 15.4절 찾아 붙여 만들어 내기 개요를 보라.
+- **사람 되먹임 북돋움 배움으로 결 맞추기:** 답을 지어내는 대신 흔들림을 드러내도록("이건 잘 모르겠다") 모델을 익힌다.
+- **스스로 한결같은지 살피기:** 답을 여럿 만들어 서로 맞는지 살펴 사실의 믿음성을 가늠한다.
+- **인용 만들어 내기:** 주장과 함께 확인할 수 있는 인용을 내도록 익혀 쓰는 이가 확인할 수 있게 한다.
 
-## Bias and Fairness
+## 치우침과 공정함
 
-### Sources of Bias
+### 치우침의 뿌리
 
-ChatGPT can inherit and amplify biases present in its training data. Since the model is trained on large-scale web data, it may reflect societal biases including gender stereotypes, racial biases, cultural assumptions, and political leanings.
+ChatGPT는 익힘 자료에 있는 치우침을 물려받고 키울 수 있다. 큰 규모의 웹 자료로 익히므로 성별 고정관념, 인종 치우침, 문화적 가정, 정치적 기울기 같은 사회의 치우침을 비출 수 있다.
 
 Formally, bias can be characterized as a systematic deviation in model outputs across protected groups. For a prompt $x$ and demographic attribute $a \in \{a_1, a_2\}$, bias exists when:
 
 $$
-
 p_\theta(y \mid x, a = a_1) \neq p_\theta(y \mid x, a = a_2)
-
 $$
 
-in ways that are not justified by genuine differences relevant to the query. For example, if the model systematically associates certain professions with specific genders (e.g., "nurse" → female, "engineer" → male), this reflects training data bias rather than objective reality.
+물음과 맞닿은 참된 차이로는 뒷받침되지 않는 방식으로 그렇게 한다. 보기로 모델이 어떤 직업을 특정 성별과 줄곧 얽는다면(보기로 "간호사" → 여성, "공학자" → 남성) 이는 객관적인 현실이 아니라 익힘 자료의 치우침을 비추는 것이다.
 
-### Bias Measurement
+### 치우침 재기
 
-Common approaches to measuring bias in language models include:
+말 모델의 치우침을 재는 흔한 방식은 다음과 같다:
 
-**Embedding-level metrics** that measure geometric relationships between word representations. For example, the Word Embedding Association Test (WEAT) computes the differential association between target concepts and attribute concepts in the embedding space:
+낱말 나타냄 사이의 기하 관계를 재는 **묻힘 수준 잣대**. 보기로 낱말 묻힘 얽힘 시험(WEAT)은 묻힘 공간에서 목표 개념과 속성 개념 사이의 얽힘 차이를 셈한다:
 
 $$
-
 s(w, A, B) = \frac{1}{|A|} \sum_{a \in A} \cos(\mathbf{w}, \mathbf{a}) - \frac{1}{|B|} \sum_{b \in B} \cos(\mathbf{w}, \mathbf{b})
-
 $$
 
-where $A$ and $B$ are sets of attribute words (e.g., career vs. family terms).
+여기서 $A$과 $B$은 속성 낱말의 모음이다(보기로 일 관련 낱말과 가족 관련 낱말).
 
-**Generation-level metrics** that analyze the distribution of model outputs across demographic variations of the same prompt. For example, comparing how the model completes "The [male name] worked as a..." versus "The [female name] worked as a..." and measuring the divergence in predicted occupations.
+같은 시킴말의 인구 특성을 바꿔 가며 모델 내놓음의 분포를 살피는 **만들어 내기 수준 잣대**. 보기로 "The [남자 이름] worked as a..."와 "The [여자 이름] worked as a..."를 모델이 어떻게 이어 쓰는지 견주고 어림한 직업의 벌어짐을 잰다.
 
-### Mitigation Approaches
+### 덜어 내는 방식
 
-Bias mitigation operates at multiple stages:
+치우침 덜어 내기는 여러 단계에서 이루어진다:
 
-- **Data curation:** Filtering, reweighting, or augmenting training data to reduce representational imbalances.
-- **Training-time interventions:** Modifying the loss function to penalize biased outputs, or using contrastive objectives that encourage equitable treatment across groups.
-- **RLHF-based alignment:** Training annotators to identify and penalize biased responses, and incorporating fairness criteria into the reward model.
-- **Post-deployment monitoring:** Continuously auditing model outputs across diverse user populations and prompt categories.
+- **자료 고르기:** 나타냄의 치우침을 줄이려 익힘 자료를 거르고, 무게를 다시 주고, 불린다.
+- **익히는 동안의 손질:** 치우친 내놓음에 벌을 주도록 손실 함수를 고치거나, 무리를 고르게 다루도록 북돋우는 맞대어 배우기 목표를 쓴다.
+- **사람 되먹임 북돋움 배움 바탕 결 맞추기:** 표시하는 사람이 치우친 답을 가려내고 벌주도록 익히고, 공정함 잣대를 갚음 모델에 넣는다.
+- **펼친 뒤 지켜보기:** 여러 쓰는 이 무리와 시킴말 갈래에 걸쳐 모델의 내놓음을 끊임없이 살핀다.
 
-!!! note "Cross-Reference"
-    For formal definitions of fairness criteria (demographic parity, equalized odds, predictive parity, calibration) and their mathematical formulations, see [Chapter 30: Bias and Fairness](../../ch30/index.md).
+!!! note "엇갈린 참고"
+    공정함 잣대(인구 특성 균형, 고른 승산, 어림 균형, 눈금 맞추기)의 엄밀한 정의와 수학 세우기는 [30장: 치우침과 공정함](../../ch30/index.md)을 보라.
 
-## Ethical Concerns
+## 윤리의 걱정거리
 
-### Misinformation and Deepfakes
+### 거짓 앎과 딥페이크
 
-ChatGPT's ability to generate fluent, plausible text at scale creates risks of **misinformation generation** — producing convincing but false narratives, fake news articles, or fraudulent content. Combined with other generative AI tools (image, audio, video), this contributes to the broader challenge of AI-generated deepfakes.
+ChatGPT가 매끄럽고 그럴듯한 글을 대량으로 만들어 내는 힘은 **거짓 앎 만들기**의 위험을 낳는다. 곧 그럴듯하지만 거짓인 이야기, 가짜 뉴스 기사, 속임수 내용을 낸다. 다른 지어내는 인공지능 연장(그림, 소리, 영상)과 어우러지면 인공지능이 만든 딥페이크라는 더 넓은 어려움에 보태진다.
 
-### Privacy
+### 사생활
 
-Although ChatGPT does not retain personal data across sessions by default, interactions may inadvertently contain sensitive information. Privacy concerns include:
+ChatGPT는 기본으로 대화 사이에 개인 자료를 지니지 않지만, 주고받는 말에 뜻하지 않게 민감한 앎이 들 수 있다. 사생활의 걱정거리는 다음과 같다:
 
-- **Training data memorization:** Large language models can memorize and regurgitate verbatim passages from their training data, potentially including personally identifiable information (PII).
-- **User input handling:** Data submitted in conversations may be used for model improvement unless users opt out, raising questions about informed consent and data governance.
-- **Inference attacks:** Adversarial queries may extract information about the training data or about other users' interactions.
+- **익힘 자료 외우기:** 큰 말 모델은 익힘 자료의 글월을 그대로 외워 다시 뱉을 수 있으며, 여기에 개인을 알아볼 수 있는 앎이 들 수 있다.
+- **쓰는 이의 들임 다루기:** 대화에서 낸 자료가 쓰는 이가 빼지 않는 한 모델을 낫게 하는 데 쓰일 수 있어, 알고 하는 동의와 자료 다스림에 대한 물음을 낳는다.
+- **미룸 공격:** 맞서는 물음으로 익힘 자료나 다른 쓰는 이의 대화에 대한 앎을 뽑아낼 수 있다.
 
-### Transparency and Accountability
+### 투명함과 책임
 
-Users interacting with ChatGPT may not always recognize they are communicating with an AI system, particularly when the model is embedded in customer-facing applications without clear labeling. This raises questions about:
+ChatGPT와 주고받는 이가 자신이 인공지능 체계와 이야기하고 있음을 늘 알아채지는 못한다. 또렷한 표시 없이 고객을 마주하는 쓰임새에 모델이 끼워져 있을 때 더욱 그렇다. 이는 다음 물음을 낳는다:
 
-- **Disclosure obligations:** When and how users should be informed they are interacting with AI.
-- **Accountability frameworks:** Who is responsible when AI-generated content causes harm — the model developer, the deployer, or the user?
-- **Explainability:** The model's decision-making process is opaque (the "black box" problem), making it difficult to explain *why* a particular response was generated.
+- **알릴 의무:** 쓰는 이에게 인공지능과 주고받는 중임을 언제 어떻게 알려야 하는가.
+- **책임의 얼거리:** 인공지능이 만든 내용이 해를 끼쳤을 때 누가 책임지는가. 모델을 만든 이인가, 펼친 이인가, 쓰는 이인가?
+- **풀이할 수 있음:** 모델의 결정 과정이 들여다보이지 않아("깜깜이 상자" 문제) 어떤 답이 *왜* 나왔는지 밝히기 어렵다.
 
-!!! warning "Responsible Deployment"
-    Organizations deploying ChatGPT should implement clear AI labeling, content moderation systems, human escalation paths, and regular auditing. The EU AI Act, emerging US regulations, and other governance frameworks are establishing legal requirements for transparency, risk assessment, and accountability in AI deployment.
+!!! warning "책임 있는 펼치기"
+    ChatGPT를 펼치는 조직은 또렷한 인공지능 표시, 내용 다듬기 체계, 사람에게 넘기는 길, 정기 감사를 갖춰야 한다. EU 인공지능법, 새로 나오는 미국 규정 등 여러 다스림 얼거리가 인공지능 펼치기의 투명함, 위험 재기, 책임에 대한 법의 요건을 세우고 있다.
 
+## 연습문제
 
+**연습문제 1.**
+큰 규모로 큰 말 모델을 익힐 때의 핵심 어려움을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    주된 어려움: (1) **셈 값**: 1750억 매개변수 모델을 익히려면 GPU 수천 대를 몇 주 돌려야 하고 수백만 달러가 든다. (2) **자료의 좋음**: 웹에서 긁은 자료에는 잡음, 치우침, 겹침, 해로운 내용이 들어 있어 대대적인 거르기가 필요하다. (3) **익히기의 흔들림**: 규모가 커지면 손실이 튀거나 흩어지거나 기울기에 탈이 나는 일이 잦아져 배움 비율 일정 짜기와 기울기 자르기를 조심스레 해야 한다. (4) **흩뿌린 익히기**: GPU 수백 대에 걸친 모델 나란히 하기와 자료 나란히 하기는 주고받기 덧짐과 맞추기의 어려움을 낳는다. (5) **값매김**: 표준 잣대가 떠오르는 능력이나 어그러지는 방식을 담아내지 못할 수 있다.
+
+---
+
+**연습문제 2.**
+미리 익히기 목표로서 인과 말 나타내기, 가린 말 나타내기, 앞가지 말 나타내기를 견주어라.
+
+??? success "연습문제 2 풀이"
+    **인과 말 모델**(GPT): 왼쪽 맥락으로 다음 토막을 어림한다. 자연스럽게 만들어 낼 수 있지만 오른쪽 맥락에 조건을 걸 수 없다. **가린 말 모델**(BERT): 두 방향 온 맥락으로 가린 토막을 어림한다. 이해에 아주 좋지만 자기되돌리기로 만들어 내지 못한다. **앞가지 말 모델**(T5의 부호기 + 인과 풀개): 부호기가 "앞가지"(들임)의 두 방향 온 맥락을 보고 풀개가 자기되돌리기로 만들어 낸다. 이해와 만들어 내기를 아우른다. 만들어 내기에 초점을 둔 모델에서는 인과 말 모델이 판을 잡는데, 자기되돌리기 만들어 내기 과정과 결이 맞고 규모를 키우기 좋기 때문이다.
+
+---
+
+**연습문제 3.**
+큰 말 모델의 떠오르는 능력이란 무엇인가? 보기를 들고 그것이 참으로 떠오르는 것인지 논하여라.
+
+??? success "연습문제 3 풀이"
+    떠오르는 능력이란 큰 모델에는 나타나지만 작은 모델에는 없는 능력으로, 규모에 따른 상 바뀜을 시사한다. 보기: 생각의 사슬 따지기, 맥락 안에서 배우기, 코드 만들기, 여러 말을 따로 익히지 않고도 하는 옮김. 논쟁은 이렇다. 어떤 연구자는 떠오름이 매끄럽게 나아지는 로그 확률에 비선형 값매김 잣대(정확도)를 씌워 생긴 찌꺼기라고 본다. 이어진 잣대(로그 가능도)로 값매김하면 나아짐이 차츰차츰 보인다. 다른 이들은 여러 걸음 시킴을 따르는 능력 같은 질적인 능력 바뀜은 참으로 떠오르는 현상이라고 본다.
+
+---
+
+**연습문제 4.**
+큰 말 모델을 값매김하는 흔한 잣대와 그 한계를 설명하여라.
+
+??? success "연습문제 4 풀이"
+    흔한 잣대: **MMLU**(57개 과목에 걸친 여러 일 객관식), **HellaSwag**(상식 따지기), **GSM8K**(초등 수학), **HumanEval**(코드 만들기), **TruthfulQA**(사실 정확도). **한계**: (1) 자료 오염 — 잣대 자료가 익힘 말뭉치에 들어 있어 점수가 부풀 수 있다. (2) 좁은 값매김 — 객관식은 만들어 낸 글의 좋음을 시험하지 못한다. (3) 잣대 맞추기 — 모델을 특정 잣대에 맞춰 다듬을 수 있다. (4) 포화 — 으뜸 모델이 어떤 잣대에서 100%에 가까워 가르는 힘이 줄어든다. (5) 빠진 갈래 — 창의, 안전, 실제 쓸모는 표준 잣대로 잘 재지 못한다.

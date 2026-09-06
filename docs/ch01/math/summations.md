@@ -1,42 +1,42 @@
-# Summation Formulas
+# 합 공식
 
-Summation formulas are essential tools for analyzing computational cost in deep learning. They quantify the total operations in nested loops, the cumulative effect of learning rate schedules, and the parameter counts in multi-layer architectures.
+합 공식은 딥러닝에서 계산 비용을 분석하는 데 필수적인 도구이다. 중첩 반복문의 전체 연산 횟수, 학습률 스케줄의 누적 효과, 다층 구조의 매개변수 개수를 정량화해 준다.
 
-## Definition
+## 정의
 
-A summation formula gives a closed-form expression for $\sum_{i=a}^{b} f(i)$. The three most important families are:
-
-$$
-\text{Arithmetic: } \sum_{i=1}^{n} i = \frac{n(n+1)}{2} \qquad \text{Geometric: } \sum_{i=0}^{n} r^i = \frac{r^{n+1}-1}{r-1} \; (r \neq 1)
-$$
+합 공식은 $\sum_{i=a}^{b} f(i)$의 닫힌 형태를 제공한다. 가장 중요한 세 가지 계열은 다음과 같다.
 
 $$
-\text{Harmonic: } H_n = \sum_{i=1}^{n} \frac{1}{i} = \ln n + \gamma + O\!\left(\frac{1}{n}\right)
+\text{등차: } \sum_{i=1}^{n} i = \frac{n(n+1)}{2} \qquad \text{등비: } \sum_{i=0}^{n} r^i = \frac{r^{n+1}-1}{r-1} \; (r \neq 1)
 $$
 
-where $\gamma \approx 0.5772$ is the Euler-Mascheroni constant.
+$$
+\text{조화: } H_n = \sum_{i=1}^{n} \frac{1}{i} = \ln n + \gamma + O\!\left(\frac{1}{n}\right)
+$$
 
-## Explanation
+여기서 $\gamma \approx 0.5772$는 오일러-마스케로니 상수이다.
 
-Each series type appears in different contexts:
+## 설명
 
-- **Arithmetic series**: Counting total parameters in a network with linearly growing layer widths. If layer $i$ has $id$ neurons, total parameters scale as $\sum_{i=1}^{L} i \cdot d^2 = \Theta(L^2 d^2)$.
-- **Geometric series**: Analyzing exponential learning rate decay. If $\eta_t = \eta_0 r^t$ with $r < 1$, the cumulative step size converges to $\eta_0 / (1 - r)$.
-- **Harmonic series**: Appears in the analysis of stochastic gradient descent convergence rates and in the coupon collector problem (relevant to data sampling with replacement).
+각 급수는 서로 다른 맥락에서 나타난다.
 
-Additional useful formulas:
+- **등차급수**: 층 너비가 선형으로 커지는 신경망의 전체 매개변수 세기. 층 $i$에 뉴런이 $id$개 있다면 전체 매개변수는 $\sum_{i=1}^{L} i \cdot d^2 = \Theta(L^2 d^2)$로 증가한다.
+- **등비급수**: 지수적 학습률 감쇠 분석. $r < 1$일 때 $\eta_t = \eta_0 r^t$이면 누적 이동 크기는 $\eta_0 / (1 - r)$로 수렴한다.
+- **조화급수**: 확률적 경사 하강법의 수렴 속도 분석과 쿠폰 수집가 문제(복원 추출 데이터 표본 추출과 관련)에 나타난다.
+
+그 밖에 유용한 공식은 다음과 같다.
 
 $$
 \sum_{i=1}^{n} i^2 = \frac{n(n+1)(2n+1)}{6} \qquad \sum_{i=0}^{\log_2 n} 2^i = 2n - 1
 $$
 
-## Examples
+## 예제
 
 ```python
 import torch
 import numpy as np
 
-# Parameter count in a network with linearly growing widths
+# 너비가 선형으로 커지는 신경망의 매개변수 개수
 d = 64
 num_layers = 6
 widths = [i * d for i in range(1, num_layers + 1)]
@@ -45,7 +45,7 @@ closed_form = d * d * sum(i * (i + 1) for i in range(1, num_layers))
 print(f"Layer widths: {widths}")
 print(f"Total weight params: {total_params}")
 
-# Geometric series: cumulative learning rate with exponential decay
+# 등비급수: 지수적 감쇠에서의 누적 학습률
 eta_0, r, T = 0.01, 0.9, 50
 cumulative = sum(eta_0 * r ** t for t in range(T))
 closed = eta_0 * (1 - r ** T) / (1 - r)
@@ -53,9 +53,49 @@ print(f"\nCumulative LR (sum):    {cumulative:.6f}")
 print(f"Cumulative LR (closed): {closed:.6f}")
 print(f"Limit as T -> inf:      {eta_0 / (1 - r):.6f}")
 
-# Verify arithmetic sum with torch
+# torch로 등차급수 합 확인
 n = torch.arange(1, 101, dtype=torch.float32)
 actual = n.sum().item()
 formula = 100 * 101 / 2
 print(f"\nsum(1..100) = {actual:.0f}, formula = {formula:.0f}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+$L$개 층을 가진 트랜스포머 인코더는 층마다 $O(n^2 d)$의 셀프 어텐션 비용을 가진다. 여기서 $n$은 시퀀스 길이, $d$는 은닉 차원이다. $L$개 층 전체의 총비용을 계산하라. $L = 12$, $n = 512$, $d = 768$일 때 전체 곱셈-덧셈 연산 횟수를 추정하라.
+
+??? success "연습문제 1 풀이"
+    총비용은 $\sum_{l=1}^{L} O(n^2 d) = L \cdot O(n^2 d) = O(Ln^2 d)$이다. $L = 12$, $n = 512$, $d = 768$일 때 총합 $= 12 \times 512^2 \times 768 = 12 \times 262{,}144 \times 768 = 2{,}415{,}919{,}104 \approx 2.4 \times 10^9$번의 곱셈-덧셈 연산이다. 이것은 층마다 비용이 일정한 단순 등차합(사실상 상수합)이며 증가하는 급수가 아니다.
+
+---
+
+**연습문제 2.**
+어떤 학습률 스케줄이 $t = 0, 1, \ldots, T-1$에 대해 $\eta_t = \eta_0 \cdot r^t$로 지수적으로 감쇠한다. 등비급수 공식을 사용해 전체 갱신 크기 $\sum_{t=0}^{T-1} \eta_t$의 닫힌 형태를 유도하라.
+
+??? success "연습문제 2 풀이"
+    $r \neq 1$에 대해 $\sum_{t=0}^{T-1} \eta_0 r^t = \eta_0 \sum_{t=0}^{T-1} r^t = \eta_0 \cdot \frac{1 - r^T}{1 - r}$이다. $r < 1$일 때 $T \to \infty$이면 이 합은 $\eta_0 / (1 - r)$로 수렴한다. 예를 들어 $\eta_0 = 0.01$이고 $r = 0.95$이면 극한합은 $0.01 / 0.05 = 0.2$이며, 이는 학습을 아무리 오래 해도 전체 매개변수 변위가 유계임을 뜻한다.
+
+---
+
+**연습문제 3.**
+$\sum_{i=1}^{n} i^2 = \frac{n(n+1)(2n+1)}{6}$을 증명하라. 이 공식은 층 $i$에 뉴런이 $i$개 있는 삼각형 모양 신경망의 전체 FLOPs를 계산할 때 나타난다.
+
+??? success "연습문제 3 풀이"
+    **기저 단계**: $n = 1$일 때 $1^2 = 1 = \frac{1 \cdot 2 \cdot 3}{6}$. $\checkmark$ **귀납 단계**: $\sum_{i=1}^{k} i^2 = \frac{k(k+1)(2k+1)}{6}$을 가정한다. 그러면 $\sum_{i=1}^{k+1} i^2 = \frac{k(k+1)(2k+1)}{6} + (k+1)^2 = \frac{k(k+1)(2k+1) + 6(k+1)^2}{6} = \frac{(k+1)[k(2k+1) + 6(k+1)]}{6} = \frac{(k+1)(2k^2 + 7k + 6)}{6} = \frac{(k+1)(k+2)(2k+3)}{6}$이다. 이는 $n = k + 1$인 공식과 일치한다. $\square$
+
+---
+
+**연습문제 4.**
+학습률이 $1/t$인 SGD($\eta_t = c/t$)를 분석할 때 누적 이동 크기에는 조화합 $\sum_{t=1}^{T} 1/t$가 등장한다. $T = 10^6$에 대해 이 합을 계산하고, 조화급수의 발산이 SGD가 임의의 유한 근방을 벗어날 수 있음을 보장하는 이유를 설명하라.
+
+??? success "연습문제 4 풀이"
+    $H_{10^6} = \sum_{t=1}^{10^6} 1/t \approx \ln(10^6) + \gamma \approx 13.816 + 0.577 = 14.393$이다. 조화급수는 발산하므로($H_n \to \infty$) $\sum_{t=1}^{\infty} \eta_t = \infty$이다. 이는 SGD 수렴을 위한 로빈스-먼로 조건 중 하나이다. 시작 위치와 무관하게 반복열이 매개변수 공간의 어느 점에도 도달할 수 있으려면 전체 이동 크기가 무한이어야 한다. 여기에 $\sum \eta_t^2 < \infty$($c^2/t^2$이 이를 만족한다)가 더해지면 SGD는 정류점으로 수렴한다.
+
+---
+
+**연습문제 5.**
+층 너비가 $d_0, d_1, \ldots, d_L$인 신경망의 전체 매개변수 개수를 합 $\sum_{l=1}^{L} d_{l-1} d_l + d_l$로 계산하라. 너비가 $(784, 256, 128, 64, 10)$인 신경망에 대해 값을 구하라.
+
+??? success "연습문제 5 풀이"
+    전체 매개변수 $= \sum_{l=1}^{L}(d_{l-1} d_l + d_l) = \sum_{l=1}^{L} d_l(d_{l-1} + 1)$이다. 너비가 $(784, 256, 128, 64, 10)$일 때, 1층: $256 \times (784 + 1) = 200{,}960$. 2층: $128 \times (256 + 1) = 32{,}896$. 3층: $64 \times (128 + 1) = 8{,}256$. 4층: $10 \times (64 + 1) = 650$. 총합: $200{,}960 + 32{,}896 + 8{,}256 + 650 = 242{,}762$개의 매개변수이다. 첫 층의 입력 차원(784)이 나머지보다 훨씬 크기 때문에 첫 층이 지배적이다.

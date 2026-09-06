@@ -1,126 +1,113 @@
-# Proposal Distribution Design
+# 제안 분포 설계
+## 개요
 
+제안 분포를 어떻게 고르느냐가 중요도 표집의 성패를 가르는 가장 중요한 한 가지이다. 잘 짠 제안은 흩어짐을 자릿수 단위로 줄일 수 있고, 잘못 고른 제안은 어림자를 쓸모없게 만든다. 이 마당은 좋은 제안 분포를 짜는 원칙과 실전 전략을 다룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 가장 좋은 제안
 
-## Overview
+### 이론 결과
 
-The choice of proposal distribution is the single most important factor determining the success or failure of importance sampling. A well-designed proposal can achieve orders of magnitude variance reduction, while a poorly chosen proposal can render the estimator useless. This section covers the principles and practical strategies for designing effective proposal distributions.
-
-## The Optimal Proposal
-
-### Theoretical Result
-
-For estimating $\mathbb{E}_\pi[h(\theta)]$, the variance-minimizing proposal is:
+$\mathbb{E}_\pi[h(\theta)]$을 어림할 때 흩어짐을 가장 작게 하는 제안은 다음과 같다:
 
 $$
-
 q^*(\theta) = \frac{|h(\theta)| \pi(\theta)}{\int |h(\theta')| \pi(\theta') d\theta'}
-
 $$
 
-### Why This is Optimal
+### 왜 이것이 가장 좋은가
 
-With $q^*$, the importance weight becomes:
+$q^*$을 쓰면 중요도 무게가 다음처럼 된다:
 
 $$
-
 w(\theta) = \frac{\pi(\theta)}{q^*(\theta)} = \frac{\int |h(\theta')| \pi(\theta') d\theta'}{|h(\theta)|} \cdot \text{sign}(h(\theta))
-
 $$
 
-The product $h(\theta) w(\theta)$ has reduced variability because:
+곱 $h(\theta) w(\theta)$은 다음 까닭으로 들쭉날쭉함이 줄어든다:
 
-- Where $|h(\theta)|$ is large, $w(\theta)$ is small (compensating)
-- Where $|h(\theta)|$ is small, $w(\theta)$ is large (but contribution is small anyway)
+- $|h(\theta)|$이 큰 곳에서는 $w(\theta)$이 작다(서로 메운다)
+- $|h(\theta)|$이 작은 곳에서는 $w(\theta)$이 크다(그래도 보태는 바는 작다)
 
-### The Impossibility Paradox
+### 할 수 없다는 역설
 
-**Problem**: The optimal $q^*$ requires knowing $\int |h(\theta)| \pi(\theta) d\theta$ — the very quantity we're trying to estimate!
+**문제**: 가장 좋은 $q^*$은 $\int |h(\theta)| \pi(\theta) d\theta$을 알아야 하는데, 그것이 바로 우리가 어림하려는 양이다!
 
-**Solution**: Use $q^*$ as a **guide** for what good proposals should look like:
+**풀이**: $q^*$을 좋은 제안이 어떤 모습이어야 하는지에 대한 **길잡이**로 써라:
 
-1. Similar shape to $|h(\theta)| \pi(\theta)$
-2. Heavier tails than $\pi(\theta)$
-3. Cover the full support of $\pi(\theta)$
+1. $|h(\theta)| \pi(\theta)$과 비슷한 모양
+2. $\pi(\theta)$보다 무거운 꼬리
+3. $\pi(\theta)$의 받침 전체를 덮기
 
-## Design Principles
+## 설계 원칙
 
-### Principle 1: Support Coverage
+### 원칙 1: 받침 덮기
 
-!!! danger "Critical Requirement"
+!!! danger "꼭 지켜야 할 조건"
 
     $$\pi(\theta) > 0 \implies q(\theta) > 0$$
     
-    Violation leads to **infinite bias**, not just high variance.
+    이를 어기면 흩어짐이 큰 정도가 아니라 **끝없는 치우침**이 생긴다.
 
-**Example of Failure:**
+**무너지는 보기:**
 
-- Target: $\pi = \mathcal{N}(0, 1)$
-- Proposal: $q = \text{Uniform}(-2, 2)$
-- Problem: $q(\theta) = 0$ for $|\theta| > 2$, missing $\approx 5\%$ of $\pi$'s mass
+- 과녁: $\pi = \mathcal{N}(0, 1)$
+- 제안: $q = \text{Uniform}(-2, 2)$
+- 문제: $|\theta| > 2$이면 $q(\theta) = 0$이라 $\pi$의 질량 가운데 $\approx 5\%$을 놓친다
 
-### Principle 2: Tail Dominance
+### 원칙 2: 꼬리로 덮기
 
-The proposal should have **heavier tails** than the target:
+제안의 꼬리가 과녁보다 **무거워야** 한다:
 
 $$
-
 \lim_{|\theta| \to \infty} \frac{q(\theta)}{\pi(\theta)} > 0
-
 $$
 
-**Why?** Lighter-tailed proposals can produce extreme weights in the tails, causing variance explosion.
+**왜?** 꼬리가 가벼운 제안은 꼬리에서 극단적인 무게를 내어 흩어짐을 터뜨릴 수 있다.
 
-**Practical Rule:**
+**실전 규칙:**
 
-- If $\pi$ is Gaussian, use $t$-distribution or wider Gaussian
-- If $\pi$ is $t$-distributed, use $t$ with fewer degrees of freedom
-- When in doubt, use heavier tails
+- $\pi$이 가우스면 $t$분포나 더 넓은 가우스를 써라
+- $\pi$이 $t$분포면 자유도가 더 작은 $t$을 써라
+- 망설여지면 더 무거운 꼬리를 써라
 
-### Principle 3: Shape Matching
+### 원칙 3: 모양 맞추기
 
-The proposal should approximate the shape of the integrand:
+제안은 피적분 함수의 모양을 어림해야 한다:
 
 $$
-
 q(\theta) \approx c \cdot |h(\theta)| \pi(\theta)
-
 $$
 
-for some constant $c$.
+여기서 $c$은 어떤 상수이다.
 
-**Strategies:**
+**전략:**
 
-1. Match location (mean) and scale (variance) to $\pi$
-2. For tail probabilities, shift proposal toward the tail
-3. For multimodal $\pi$, use mixture proposals
+1. 자리(평균)와 눈금(흩어짐)을 $\pi$에 맞춘다
+2. 꼬리 확률이라면 제안을 꼬리 쪽으로 옮긴다
+3. $\pi$의 봉우리가 여럿이면 섞음 제안을 쓴다
 
-### Principle 4: Computational Feasibility
+### 원칙 4: 셈으로 할 만하기
 
-The proposal must be:
+제안은 다음을 만족해야 한다:
 
-1. **Easy to sample from**: Efficient random number generation
-2. **Easy to evaluate**: $q(\theta)$ computable in closed form
-3. **Ideally, both**: Many standard distributions satisfy this
+1. **표집하기 쉬움**: 무작위 수를 효율적으로 만들 수 있음
+2. **값 매기기 쉬움**: $q(\theta)$을 닫힌 꼴로 셈할 수 있음
+3. **되도록 둘 다**: 여러 표준 분포가 이를 만족한다
 
-## Common Proposal Families
+## 흔한 제안 갈래
 
-### Gaussian Proposals
+### 가우스 제안
 
-**Form:** $q(\theta) = \mathcal{N}(\mu_q, \Sigma_q)$
+**꼴:** $q(\theta) = \mathcal{N}(\mu_q, \Sigma_q)$
 
-**Advantages:**
+**장점:**
 
-- Simple to sample and evaluate
-- Well-understood properties
-- Works well for unimodal targets
+- 표집과 값 매기기가 단순하다
+- 성질이 잘 알려져 있다
+- 봉우리가 하나인 과녁에 잘 듣는다
 
-**Parameter Selection:**
+**매개변수 고르기:**
 
-- $\mu_q$: Posterior mean estimate (or prior mean)
-- $\Sigma_q$: Slightly inflated posterior covariance
+- $\mu_q$: 뒤확률 평균 어림값(또는 앞확률 평균)
+- $\Sigma_q$: 살짝 부풀린 뒤확률 공분산
 
 ```python
 import torch
@@ -128,26 +115,26 @@ import torch.distributions as dist
 
 def gaussian_proposal_from_laplace(theta_map, hessian_at_map, inflation=1.2):
     """
-    Create Gaussian proposal from Laplace approximation.
+    라플라스 어림으로 가우스 제안 만들기.
     
-    Parameters
+    매개변수
     ----------
     theta_map : torch.Tensor
-        Maximum a posteriori estimate
+        최대 뒤확률 어림값
     hessian_at_map : torch.Tensor
-        Hessian of negative log-posterior at MAP
+        MAP에서 로그 뒤확률의 음수의 헤세 행렬
     inflation : float
-        Factor to inflate covariance for robustness
+        튼튼함을 위해 공분산을 부풀리는 배수
         
-    Returns
+    반환값
     -------
     proposal : torch.distributions.Normal or MultivariateNormal
-        Gaussian proposal centered at MAP
+        MAP에 가운데를 맞춘 가우스 제안
     """
-    # Covariance = inverse of Hessian of negative log-posterior
+    # 공분산 = 로그 뒤확률의 음수의 헤세 행렬의 역행렬
     cov = torch.inverse(hessian_at_map)
     
-    # Inflate covariance for robustness
+    # 튼튼함을 위해 공분산 부풀리기
     cov = inflation * cov
     
     if theta_map.dim() == 0 or theta_map.numel() == 1:
@@ -156,77 +143,77 @@ def gaussian_proposal_from_laplace(theta_map, hessian_at_map, inflation=1.2):
         return dist.MultivariateNormal(theta_map, cov)
 ```
 
-### Student-t Proposals
+### 스튜던트 t 제안
 
-**Form:** $q(\theta) = t_\nu(\mu_q, \Sigma_q)$
+**꼴:** $q(\theta) = t_\nu(\mu_q, \Sigma_q)$
 
-**Advantages:**
+**장점:**
 
-- Heavier tails than Gaussian
-- Controlled via degrees of freedom $\nu$
-- Reduces risk of weight explosion
+- 가우스보다 꼬리가 무겁다
+- 자유도 $\nu$으로 다스린다
+- 무게가 터질 위험을 줄인다
 
-**Parameter Selection:**
+**매개변수 고르기:**
 
-- $\nu = 3$ to $5$: Heavy tails
-- $\nu > 30$: Approximately Gaussian
-- $\mu_q, \Sigma_q$: Same as Gaussian proposals
+- $\nu = 3$에서 $5$: 무거운 꼬리
+- $\nu > 30$: 거의 가우스
+- $\mu_q, \Sigma_q$: 가우스 제안과 같다
 
 ```python
 def student_t_proposal(location, scale, df=4):
     """
-    Student-t proposal with specified degrees of freedom.
+    자유도를 정한 스튜던트 t 제안.
     
-    Note: PyTorch has univariate StudentT.
-    For multivariate, use scale mixture representation.
+    메모: PyTorch에는 일변량 StudentT이 있다.
+    다변량에서는 크기 섞음 표현을 쓴다.
     """
     return dist.StudentT(df=df, loc=location, scale=scale)
 ```
 
-### Mixture Proposals
+### 섞음 제안
 
-**Form:** $q(\theta) = \sum_{k=1}^K \alpha_k q_k(\theta)$
+**꼴:** $q(\theta) = \sum_{k=1}^K \alpha_k q_k(\theta)$
 
-**Advantages:**
+**장점:**
 
-- Handles multimodal targets
-- Flexible shape approximation
-- Each component can be simple
+- 봉우리가 여럿인 과녁을 다룬다
+- 모양을 유연하게 어림한다
+- 성분마다 단순해도 된다
 
-**Sampling:**
+**표집:**
 
-1. Sample component $k$ with probability $\alpha_k$
-2. Sample $\theta \sim q_k(\theta)$
+1. 확률 $\alpha_k$으로 성분 $k$을 뽑는다
+2. $\theta \sim q_k(\theta)$을 뽑는다
 
-**Density Evaluation:**
+**밀도 값 매기기:**
 
 $$q(\theta) = \sum_{k=1}^K \alpha_k q_k(\theta)$$
 
 ```python
 class MixtureProposal:
     """
-    Mixture of distributions as importance sampling proposal.
+    중요도 표집 제안으로서의 분포 섞음.
     """
     
     def __init__(self, components, weights):
         """
-        Parameters
+        매개변수
         ----------
         components : list of distributions
-            Component distributions q_k
+            성분 분포 q_k
         weights : torch.Tensor
-            Mixture weights α_k (will be normalized)
+            섞음 무게 α_k(고르게 될 것이다)
         """
         self.components = components
         self.weights = weights / weights.sum()
         self.n_components = len(components)
         
     def sample(self, n_samples):
-        """Sample from mixture."""
-        # Sample component indices
+        """섞음에서 표집하기."""
+        # 성분 번호 표집
         indices = torch.multinomial(self.weights, n_samples, replacement=True)
         
-        # Sample from selected components
+        # 고른 성분에서 표집
         samples = []
         for k in range(self.n_components):
             n_k = (indices == k).sum().item()
@@ -234,13 +221,13 @@ class MixtureProposal:
                 samples_k = self.components[k].sample((n_k,))
                 samples.append(samples_k)
         
-        # Combine and shuffle
+        # 합치고 섞기
         samples = torch.cat(samples, dim=0)
         perm = torch.randperm(n_samples)
         return samples[perm]
     
     def log_prob(self, theta):
-        """Evaluate log mixture density."""
+        """섞음의 로그 밀도 값 매기기."""
         log_probs = []
         for k, (comp, alpha) in enumerate(zip(self.components, self.weights)):
             log_probs.append(torch.log(alpha) + comp.log_prob(theta))
@@ -249,58 +236,58 @@ class MixtureProposal:
         return torch.logsumexp(log_probs, dim=-1)
 
 
-# Example: Bimodal target
-# Create mixture proposal matching modes
+# 보기: 봉우리 둘인 과녁
+# 봉우리에 맞춘 섞음 제안 만들기
 mixture_proposal = MixtureProposal(
     components=[
-        dist.Normal(-3.0, 1.2),  # Component at first mode
-        dist.Normal(3.0, 1.2)   # Component at second mode
+        dist.Normal(-3.0, 1.2),  # 첫 봉우리의 성분
+        dist.Normal(3.0, 1.2)   # 둘째 봉우리의 성분
     ],
     weights=torch.tensor([0.5, 0.5])
 )
 ```
 
-### Prior as Proposal
+### 앞확률을 제안으로
 
-**Form:** $q(\theta) = p(\theta)$
+**꼴:** $q(\theta) = p(\theta)$
 
-**Advantages:**
+**장점:**
 
-- No tuning required
-- Always covers support
-- Natural baseline
+- 맞출 것이 없다
+- 늘 받침을 덮는다
+- 자연스러운 잣대
 
-**Limitations:**
+**한계:**
 
-- Inefficient when likelihood is informative
-- ESS can be very low with large datasets
+- 가능도가 많은 것을 알려 줄 때는 비효율적이다
+- 자료가 크면 ESS이 아주 낮을 수 있다
 
-**When to Use:**
+**언제 쓰나:**
 
-- Quick sanity checks
-- Small datasets (weak likelihood)
-- Non-informative priors
+- 빠른 온전성 살피기
+- 작은 자료 묶음(약한 가능도)
+- 알려 주는 바 없는 앞확률
 
 ```python
 def prior_as_proposal_is(h_function, log_likelihood, prior, n_samples):
     """
-    Importance sampling using prior as proposal.
+    앞확률을 제안으로 쓰는 중요도 표집.
     
-    Target: π(θ) ∝ p(y|θ) p(θ)
-    Proposal: q(θ) = p(θ)
-    Weight: w(θ) = p(y|θ)
+    과녁: π(θ) ∝ p(y|θ) p(θ)
+    제안: q(θ) = p(θ)
+    무게: w(θ) = p(y|θ)
     """
-    # Sample from prior
+    # 앞확률에서 표집
     samples = prior.sample((n_samples,))
     
-    # Weights are just the likelihood values
+    # 무게는 가능도 값 그대로이다
     log_weights = log_likelihood(samples)
     
-    # Normalize weights
+    # 무게 고르게 하기
     log_sum = torch.logsumexp(log_weights, dim=0)
     weights = torch.exp(log_weights - log_sum)
     
-    # SNIS estimate
+    # SNIS 어림값
     h_values = h_function(samples)
     estimate = torch.sum(weights * h_values)
     
@@ -310,38 +297,36 @@ def prior_as_proposal_is(h_function, log_likelihood, prior, n_samples):
     return estimate, ess, samples, weights
 ```
 
-## Advanced Strategies
+## 나아간 전략
 
-### Laplace Approximation
+### 라플라스 어림
 
-Approximate the posterior with a Gaussian at the mode:
+최빈값에서 가우스로 뒤확률을 어림한다:
 
 $$
-
 q(\theta) = \mathcal{N}(\hat{\theta}_{\text{MAP}}, H^{-1})
-
 $$
 
-where $H$ is the Hessian of the negative log-posterior at the MAP.
+여기서 $H$은 MAP에서 음의 로그 뒤확률의 헤세 행렬이다.
 
 ```python
 import torch.autograd.functional as F
 
 def laplace_approximation(log_posterior, init_theta, lr=0.1, n_steps=1000):
     """
-    Compute Laplace approximation to posterior.
+    뒤확률의 라플라스 어림 셈하기.
     
-    Returns
+    반환값
     -------
     theta_map : torch.Tensor
-        MAP estimate
+        MAP 어림값
     cov : torch.Tensor
-        Approximate posterior covariance
+        어림한 뒤확률 공분산
     """
     theta = init_theta.clone().requires_grad_(True)
     optimizer = torch.optim.Adam([theta], lr=lr)
     
-    # Find MAP via gradient ascent
+    # 기울기 오르기로 MAP 찾기
     for _ in range(n_steps):
         optimizer.zero_grad()
         loss = -log_posterior(theta)
@@ -350,13 +335,13 @@ def laplace_approximation(log_posterior, init_theta, lr=0.1, n_steps=1000):
     
     theta_map = theta.detach()
     
-    # Compute Hessian of negative log-posterior
+    # 로그 뒤확률의 음수의 헤세 행렬 셈하기
     def neg_log_post(t):
         return -log_posterior(t)
     
     hessian = F.hessian(neg_log_post, theta_map)
     
-    # Covariance is inverse Hessian
+    # 공분산은 헤세 행렬의 역행렬이다
     cov = torch.inverse(hessian)
     
     return theta_map, cov
@@ -364,7 +349,7 @@ def laplace_approximation(log_posterior, init_theta, lr=0.1, n_steps=1000):
 
 def create_laplace_proposal(theta_map, cov, inflation=1.5):
     """
-    Create proposal from Laplace approximation.
+    라플라스 어림으로 제안 만들기.
     """
     inflated_cov = inflation * cov
     
@@ -374,23 +359,23 @@ def create_laplace_proposal(theta_map, cov, inflation=1.5):
         return dist.MultivariateNormal(theta_map, inflated_cov)
 ```
 
-### Adaptive Importance Sampling
+### 알아서 맞추는 중요도 표집
 
-Iteratively improve the proposal based on samples:
+표본에 기대어 제안을 되풀이해 낫게 한다:
 
-**Algorithm (Population Monte Carlo):**
+**알고리즘(모집단 몬테카를로):**
 
-1. Initialize proposal $q_0$
-2. For $t = 1, 2, \ldots, T$:
-   a. Sample $\theta_i^t \sim q_{t-1}$
-   b. Compute weights $w_i^t$
-   c. Update proposal $q_t$ based on weighted samples
-3. Return final weighted samples
+1. 제안 $q_0$의 첫걸음을 잡는다
+2. $t = 1, 2, \ldots, T$에 대해:
+   a. $\theta_i^t \sim q_{t-1}$을 뽑는다
+   b. 무게 $w_i^t$을 셈한다
+   c. 무게 준 표본에 기대어 제안 $q_t$을 새로 고친다
+3. 마지막 무게 준 표본을 되돌린다
 
 ```python
 class AdaptiveImportanceSampler:
     """
-    Adaptive importance sampling with Gaussian mixture proposal.
+    가우스 섞음 제안을 쓰는 맞춰 가는 중요도 표집.
     """
     
     def __init__(self, log_target, dim, n_components=5):
@@ -398,21 +383,21 @@ class AdaptiveImportanceSampler:
         self.dim = dim
         self.n_components = n_components
         
-        # Initialize with broad Gaussian
+        # 넓은 가우스로 첫값 잡기
         self.means = [torch.zeros(dim)]
         self.covs = [4.0 * torch.eye(dim)]
         self.mixture_weights = torch.tensor([1.0])
         
     def run(self, n_samples_per_iter, n_iterations):
-        """Run adaptive IS."""
+        """맞춰 가는 중요도 표집 돌리기."""
         all_samples = []
         all_weights = []
         
         for t in range(n_iterations):
-            # Sample from current proposal
+            # 지금 제안에서 표집
             samples = self._sample_mixture(n_samples_per_iter)
             
-            # Compute weights
+            # 무게 셈하기
             log_target_vals = self.log_target(samples)
             log_proposal_vals = self._log_mixture_density(samples)
             log_weights = log_target_vals - log_proposal_vals
@@ -421,10 +406,10 @@ class AdaptiveImportanceSampler:
             all_samples.append(samples)
             all_weights.append(weights)
             
-            # Update proposal
+            # 제안 새로 고치기
             self._update_proposal(samples, weights)
             
-            # Report
+            # 알리기
             ess = 1.0 / torch.sum(weights**2)
             print(f"Iteration {t+1}: ESS = {ess.item():.1f} "
                   f"({ess.item()/n_samples_per_iter:.1%})")
@@ -432,7 +417,7 @@ class AdaptiveImportanceSampler:
         return torch.cat(all_samples), torch.cat(all_weights)
     
     def _sample_mixture(self, n):
-        """Sample from current mixture proposal."""
+        """지금 섞음 제안에서 표집하기."""
         weights = self.mixture_weights / self.mixture_weights.sum()
         
         samples = []
@@ -446,7 +431,7 @@ class AdaptiveImportanceSampler:
         return torch.stack(samples)
     
     def _log_mixture_density(self, samples):
-        """Evaluate log mixture density."""
+        """섞음의 로그 밀도 값 매기기."""
         log_probs = []
         weights = self.mixture_weights / self.mixture_weights.sum()
         
@@ -457,58 +442,58 @@ class AdaptiveImportanceSampler:
         return torch.logsumexp(torch.stack(log_probs), dim=0)
     
     def _update_proposal(self, samples, weights):
-        """Update mixture proposal based on weighted samples."""
-        # Resample according to weights
+        """무게 표본에 따라 섞음 제안 새로 고치기."""
+        # 무게에 따라 다시 표집하기
         indices = torch.multinomial(weights, self.n_components, replacement=True)
         
-        # New component means
+        # 새 성분 평균
         new_means = [samples[i] for i in indices]
         
-        # Estimate global covariance
+        # 전체 공분산 어림하기
         weighted_mean = torch.sum(weights.unsqueeze(-1) * samples, dim=0)
         weighted_cov = torch.zeros(self.dim, self.dim)
         for s, w in zip(samples, weights):
             diff = s - weighted_mean
             weighted_cov += w * torch.outer(diff, diff)
         
-        # Add regularization
+        # 벌주기 더하기
         weighted_cov += 0.01 * torch.eye(self.dim)
         
-        # Update
+        # 갱신
         self.means = new_means
         self.covs = [weighted_cov for _ in range(self.n_components)]
         self.mixture_weights = torch.ones(self.n_components) / self.n_components
 ```
 
-## Diagnostics for Proposal Quality
+## 제안의 질 진단
 
-### Weight-Based Diagnostics
+### 무게 기반 진단
 
 ```python
 def proposal_diagnostics(weights, name=""):
     """
-    Comprehensive proposal quality assessment.
+    제안의 질 두루 살피기.
     """
     n = len(weights)
     
-    # Normalize weights if needed
+    # 필요하면 무게 고르게 하기
     if not torch.isclose(weights.sum(), torch.tensor(1.0)):
         weights = weights / weights.sum()
     
     # ESS
     ess = 1.0 / torch.sum(weights**2)
     
-    # Coefficient of variation
+    # 변이 계수
     cv = weights.std() / weights.mean()
     
-    # Kurtosis of weights
+    # 무게의 첨도
     mean_w = weights.mean()
     kurtosis = ((weights - mean_w)**4).mean() / ((weights - mean_w)**2).mean()**2
     
-    # Maximum weight ratio
+    # 최대 무게 비
     max_ratio = weights.max() * n
     
-    # Weight concentration
+    # 무게 몰림
     sorted_w = torch.sort(weights, descending=True)[0]
     cumsum = torch.cumsum(sorted_w, dim=0)
     n_for_50 = (cumsum < 0.5).sum().item() + 1
@@ -523,7 +508,7 @@ def proposal_diagnostics(weights, name=""):
     print(f"  Samples for 50% weight: {n_for_50} ({n_for_50/n:.1%})")
     print(f"  Samples for 90% weight: {n_for_90} ({n_for_90/n:.1%})")
     
-    # Quality assessment
+    # 질 살피기
     if ess.item() / n > 0.5:
         quality = "Excellent"
     elif ess.item() / n > 0.2:
@@ -538,11 +523,11 @@ def proposal_diagnostics(weights, name=""):
     return {'ess': ess.item(), 'ess_ratio': ess.item()/n, 'quality': quality}
 ```
 
-For a deeper treatment of ESS-based diagnostics and their interpretation, see [Effective Sample Size](ess.md).
+ESS 기반 진단과 그 풀이를 더 깊이 다룬 것은 [실효 표본 크기](ess.md)를 보아라.
 
-## Practical Recommendations
+## 실전 권고
 
-### Decision Tree for Proposal Selection
+### 제안 고르기 결정 나무
 
 ```
 Is the posterior approximately Gaussian?
@@ -554,58 +539,56 @@ Is the posterior approximately Gaussian?
         └── No → Start with inflated Gaussian, check ESS
 ```
 
-### Rules of Thumb
+### 어림 규칙
 
-| Situation | Recommended Proposal |
+| 상황 | 권하는 제안 |
 |-----------|---------------------|
-| Quick baseline | Prior |
-| Unimodal, well-behaved | Laplace approximation |
-| Heavy tails suspected | Student-t ($\nu = 3-5$) |
-| Multimodal | Mixture of Gaussians |
-| High-dimensional | Variational approximation |
-| No good initial guess | Adaptive IS |
+| 빠른 잣대 | 앞확률 |
+| 봉우리 하나, 얌전함 | 라플라스 어림 |
+| 꼬리가 무거울 듯함 | 스튜던트 t($\nu = 3-5$) |
+| 봉우리 여럿 | 가우스 섞음 |
+| 차원 높음 | 변분 어림 |
+| 좋은 첫 짐작이 없음 | 알아서 맞추는 중요도 표집 |
 
-### ESS Targets
+### ESS 목표
 
-| ESS/n | Quality | Action |
+| ESS/n | 질 | 할 일 |
 |-------|---------|--------|
-| > 0.5 | Excellent | None needed |
-| 0.2-0.5 | Good | Acceptable for most uses |
-| 0.05-0.2 | Marginal | Consider improvement |
-| < 0.05 | Poor | Must improve proposal |
-| < 0.01 | Failure | Results unreliable |
+| > 0.5 | 아주 좋음 | 할 일 없음 |
+| 0.2-0.5 | 좋음 | 대부분의 쓰임새에 넉넉함 |
+| 0.05-0.2 | 아슬아슬함 | 낫게 할 것을 생각해 보아라 |
+| < 0.05 | 나쁨 | 제안을 반드시 낫게 해야 함 |
+| < 0.01 | 무너짐 | 결과가 미덥지 않음 |
 
-## Application to Quantitative Finance
+## 계량 금융에서의 쓰임새
 
-### Proposal Design for Tail Risk
+### 꼬리 위험을 위한 제안 설계
 
-In quantitative finance, importance sampling proposals must be carefully designed for the specific risk measure being estimated. The optimal proposal depends heavily on the function $h(\theta)$:
+계량 금융에서는 어림하려는 위험 잣대에 맞춰 중요도 표집 제안을 꼼꼼히 짜야 한다. 가장 좋은 제안은 함수 $h(\theta)$에 크게 기댄다:
 
-| Risk Measure | $h(\theta)$ | Proposal Strategy |
+| 위험 잣대 | $h(\theta)$ | 제안 전략 |
 |-------------|------------|-------------------|
-| VaR at level $\alpha$ | $\mathbb{1}(L > \text{VaR}_\alpha)$ | Shift proposal beyond VaR threshold |
-| Expected Shortfall | $L \cdot \mathbb{1}(L > \text{VaR}_\alpha)$ | Center proposal in conditional tail |
-| Credit loss (rare default) | $\mathbb{1}(\text{default})$ | Exponential tilting toward default boundary |
-| Option pricing (deep OTM) | $(S_T - K)^+$ | Drift adjustment toward strike |
+| 수준 $\alpha$의 VaR | $\mathbb{1}(L > \text{VaR}_\alpha)$ | 제안을 VaR 문턱값 너머로 옮긴다 |
+| 기대 부족액 | $L \cdot \mathbb{1}(L > \text{VaR}_\alpha)$ | 제안의 가운데를 조건부 꼬리에 둔다 |
+| 신용 손실(드문 부도) | $\mathbb{1}(\text{부도})$ | 부도 경계 쪽으로 지수 기울이기 |
+| 옵션 값 매기기(깊은 외가격) | $(S_T - K)^+$ | 행사가 쪽으로 흐름 조정 |
 
-**Exponential Tilting for Finance:**
+**금융을 위한 지수 기울이기:**
 
-A particularly effective strategy for financial applications is exponential tilting (also known as Esscher transform), which shifts the distribution of risk factors toward the loss region:
+금융 쓰임새에 특히 잘 듣는 전략은 지수 기울이기(에셔 변환이라고도 한다)로, 위험 인자의 분포를 손실 구역 쪽으로 옮긴다:
 
 $$
-
 q(\theta) = \frac{e^{\lambda \cdot \theta} \pi(\theta)}{\mathbb{E}_\pi[e^{\lambda \cdot \theta}]}
-
 $$
 
-The tilting parameter $\lambda$ is chosen to place the mean of $q$ at or near the loss threshold. For Gaussian risk factors, this amounts to a mean shift — the proposal remains Gaussian with the same variance but a shifted mean.
+기울이기 매개변수 $\lambda$은 $q$의 평균을 손실 문턱값에 두거나 그 가까이에 두도록 고른다. 가우스 위험 인자에서는 평균을 옮기는 것과 같다. 곧 제안은 흩어짐이 같고 평균만 옮겨진 가우스로 남는다.
 
 ```python
 def exponential_tilting_proposal(target_dist, tilt_parameter):
     """
-    Exponential tilting for Gaussian targets.
+    가우스 과녁을 위한 지수 기울이기.
     
-    For N(μ, σ²), tilting by λ gives N(μ + λσ², σ²).
+    N(μ, σ²)을 λ만큼 기울이면 N(μ + λσ², σ²)이 된다.
     """
     if isinstance(target_dist, dist.Normal):
         new_mean = target_dist.loc + tilt_parameter * target_dist.scale**2
@@ -613,49 +596,38 @@ def exponential_tilting_proposal(target_dist, tilt_parameter):
     else:
         raise NotImplementedError("Tilting implemented for Normal only")
 
-# Example: Tilt standard normal toward 3σ tail
+# 보기: 표준 정규를 3σ 꼬리 쪽으로 기울이기
 target = dist.Normal(0.0, 1.0)
 tilted = exponential_tilting_proposal(target, tilt_parameter=3.0)
 print(f"Original mean: {target.loc}, Tilted mean: {tilted.loc}")
 ```
 
-## Key Takeaways
+## 핵심 정리
 
-!!! success "Good Proposal Characteristics"
-    - Covers full support of target
-    - Heavier tails than target
-    - Shape matches $|h(\theta)|\pi(\theta)$
-    - Easy to sample and evaluate
+!!! success "좋은 제안의 성격"
 
-!!! warning "Common Pitfalls"
-    - Proposal tails lighter than target → weight explosion
-    - Missing modes → infinite bias for multimodal targets
-    - Too narrow proposal → poor coverage
-    - Too broad proposal → low ESS (but safe)
+    - 과녁의 받침 전체를 덮는다
+    - 과녁보다 꼬리가 무겁다
+    - 모양이 $|h(\theta)|\pi(\theta)$과 맞는다
+    - 표집과 값 매기기가 쉽다
 
-!!! tip "Practical Workflow"
-    1. Start with simple proposal (prior or Laplace)
-    2. Check ESS and weight diagnostics
-    3. If ESS too low, improve proposal
-    4. Consider adaptive methods for complex targets
+!!! warning "흔히 빠지는 함정"
 
-## Exercises
+    - 제안의 꼬리가 과녁보다 가볍다 → 무게가 터진다
+    - 봉우리를 놓친다 → 봉우리가 여럿인 과녁에서 끝없는 치우침
+    - 제안이 너무 좁다 → 잘 덮지 못한다
+    - 제안이 너무 넓다 → ESS이 낮다(그래도 안전하다)
 
-### Exercise 1: Tail Mismatch
-Compare ESS for $\pi = t_3(0, 1)$ (Student-t with 3 df) using proposals: (a) $\mathcal{N}(0, 1.5)$, (b) $t_3(0, 1.5)$, (c) $t_5(0, 1.5)$. Explain the results.
+!!! tip "실전 일머리"
 
-### Exercise 2: Mode Discovery
-Design a mixture proposal for $\pi = 0.3 \mathcal{N}(-5, 1) + 0.7 \mathcal{N}(3, 0.5)$. Compare ESS against a single Gaussian proposal.
+    1. 단순한 제안(앞확률이나 라플라스)에서 시작한다
+    2. ESS과 무게 진단을 살핀다
+    3. ESS이 너무 낮으면 제안을 낫게 한다
+    4. 복잡한 과녁에는 알아서 맞추는 방법을 생각해 보아라
 
-### Exercise 3: Adaptive Refinement
-Implement a simple adaptive scheme: (1) run IS with initial proposal, (2) fit Gaussian to weighted samples, (3) repeat. Track ESS improvement over iterations.
+## 참고 문헌
 
-### Exercise 4: Exponential Tilting for Option Pricing
-For a European call option with $S_0 = 100$, $K = 130$, $\sigma = 0.2$, $T = 0.25$ under Black-Scholes, design an exponentially tilted proposal that shifts the log-return distribution toward the strike. Compare the variance reduction to naive Monte Carlo and to a simple mean-shifted Gaussian proposal.
-
-## References
-
-1. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. Chapter 9.5: Proposal Distributions.
+1. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 9.5절: 제안 분포.
 
 2. Cappé, O., Guillin, A., Marin, J. M., & Robert, C. P. (2004). "Population Monte Carlo." *Journal of Computational and Graphical Statistics*, 13(4), 907-929.
 
@@ -664,3 +636,17 @@ For a European call option with $S_0 = 100$, $K = 130$, $\sigma = 0.2$, $T = 0.2
 4. Bugallo, M. F., Elvira, V., Martino, L., Luengo, D., Miguez, J., & Djuric, P. M. (2017). "Adaptive importance sampling: The past, the present, and the future." *IEEE Signal Processing Magazine*, 34(4), 60-79.
 
 5. Glasserman, P., Heidelberger, P., & Shahabuddin, P. (1999). "Asymptotically optimal importance sampling and stratification for pricing path-dependent options." *Mathematical Finance*, 9(2), 117-152.
+
+## 연습문제
+
+### 연습 1: 꼬리 어긋남
+$\pi = t_3(0, 1)$(자유도 3의 스튜던트 t)에서 제안 (a) $\mathcal{N}(0, 1.5)$, (b) $t_3(0, 1.5)$, (c) $t_5(0, 1.5)$의 ESS을 견주어라. 결과를 설명하여라.
+
+### 연습 2: 봉우리 찾기
+$\pi = 0.3 \mathcal{N}(-5, 1) + 0.7 \mathcal{N}(3, 0.5)$의 섞음 제안을 짜라. 가우스 하나짜리 제안과 ESS을 견주어라.
+
+### 연습 3: 알아서 다듬기
+단순한 알아서 맞추는 방식을 구현하여라. (1) 첫 제안으로 중요도 표집을 돌리고, (2) 무게 준 표본에 가우스를 맞추고, (3) 되풀이한다. 되풀이마다 ESS이 나아지는 것을 좇아라.
+
+### 연습 4: 옵션 값 매기기를 위한 지수 기울이기
+블랙-숄즈 아래 $S_0 = 100$, $K = 130$, $\sigma = 0.2$, $T = 0.25$인 유럽식 콜 옵션에서, 로그 수익률 분포를 행사가 쪽으로 옮기는 지수 기울인 제안을 짜라. 소박한 몬테카를로 및 평균만 옮긴 단순 가우스 제안과 흩어짐 줄임을 견주어라.

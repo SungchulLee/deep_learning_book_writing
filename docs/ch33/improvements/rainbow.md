@@ -1,100 +1,129 @@
-# 33.2.6 Rainbow
+# 33.2.6 무지개
+## 개요
 
+**무지개**(Hessel et al., 2018)는 DQN의 서로 어긋나지 않는 좋게 하기 여섯을 하나로 아우른 부림꾼이다:
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+1. **두 겹 DQN** — 지나친 어림 치우침을 줄인다
+2. **맞겨루기 얼개** — 값과 이점 갈래를 나눈다
+3. **앞섬 겪음 되돌려 보기** — 앎이 많은 옮김에 집중한다
+4. **여러 걸음 돌아옴**(n걸음) — 공 돌리기가 낫다
+5. **분포 힘 북돋우는 배움**(C51) — 돌아옴의 온 분포를 나타낸다
+6. **잡소리 그물** — 배우는 살펴보기(ε 욕심쟁이를 대신한다)
 
-## Overview
+## 구조
 
-**Rainbow** (Hessel et al., 2018) combines six orthogonal improvements to DQN into a single integrated agent:
-
-1. **Double DQN** — Reduces overestimation bias
-2. **Dueling Architecture** — Separate value and advantage streams
-3. **Prioritized Experience Replay** — Focus on informative transitions
-4. **Multi-step Returns** (N-step) — Better credit assignment
-5. **Distributional RL** (C51) — Model full return distribution
-6. **Noisy Networks** — Learned exploration (replaces ε-greedy)
-
-## Architecture
-
-Rainbow uses a **Dueling** network with **NoisyLinear** layers that outputs a **categorical distribution** (C51) over returns:
+무지개는 **NoisyLinear** 층을 가진 **맞겨루기** 그물을 써서 돌아옴에 대한 **갈래 분포**(C51)를 내놓는다:
 
 ```
-Input: state
-  → Shared feature layers
-  → Split into Value and Advantage streams
-  → Each stream uses NoisyLinear layers
+들임: 상태
+  → 함께 쓰는 낌새 켜
+  → 값 갈래와 이점 갈래로 가름
+  → 갈래마다 NoisyLinear 켜를 씀
   → Value stream: (n_atoms,) — distribution of V(s)
   → Advantage stream: (action_dim × n_atoms) — distribution of A(s, a)
   → Combine: Z(s, a) = V(s) + A(s, a) - mean(A)  [distributional]
-  → Softmax over atoms
+  → 알갱이 위의 소프트맥스
 ```
 
-## Training Algorithm
+## 익히기 알고리즘
 
 ```
 For each training step:
   1. Sample prioritized batch from replay buffer (PER)
   2. Compute n-step distributional targets (C51 + n-step)
-  3. Use Double DQN for action selection in target
+  3. 과녁의 움직임 고르기에 겹 DQN을 씀
   4. Compute distributional cross-entropy loss with IS weights (PER)
-  5. Update priorities based on loss
+  5. 손실을 바탕으로 우선순위를 고침
   6. No ε-greedy needed (NoisyNets handle exploration)
 ```
 
-## N-step Target Integration
+## n걸음 과녁 아우르기
 
-Rainbow uses n-step returns with C51:
+무지개는 C51과 함께 n걸음 돌아옴을 쓴다:
 
 $$R^{(n)}_t = \sum_{k=0}^{n-1} \gamma^k r_{t+k}$$
 
 $$y_t = R^{(n)}_t + \gamma^n Z_{\theta^-}(s_{t+n}, a^*)$$
 
-This requires storing $n$ consecutive transitions and computing truncated returns.
+이는 잇단 옮김 $n$개를 담고 잘라 낸 돌아옴을 셈해야 한다.
 
-## Ablation Results
+## 떼어 보기 결과
 
-Hessel et al. (2018) performed a comprehensive ablation study. Removing each component individually:
+Hessel 등(2018)이 두루 떼어 보기를 했다. 조각을 하나씩 뺐을 때:
 
-| Removed Component | Median Score Drop |
+| 뺀 조각 | 가운뎃값 점수 떨어짐 |
 |-------------------|------------------|
-| Prioritized Replay | Largest drop |
-| Multi-step Returns | Large drop |
-| Distributional (C51) | Moderate drop |
-| Noisy Networks | Moderate drop |
-| Dueling | Small drop |
-| Double DQN | Small drop |
+| 앞섬 되돌려 보기 | 가장 크게 떨어짐 |
+| 여러 걸음 돌아옴 | 크게 떨어짐 |
+| 분포(C51) | 웬만큼 떨어짐 |
+| 잡소리 그물 | 웬만큼 떨어짐 |
+| 맞겨루기 | 조금 떨어짐 |
+| 두 겹 DQN | 조금 떨어짐 |
 
-**Key finding**: Prioritized replay and multi-step returns contributed most to Rainbow's performance.
+**핵심 발견**: 앞섬 되돌려 보기와 여러 걸음 돌아옴이 무지개의 성능에 가장 크게 이바지했다.
 
-## Practical Considerations
+## 실용적인 고려
 
-### Hyperparameters
+### 웃잡
 
-| Parameter | Rainbow Value |
+| 잡 | 무지개 값 |
 |-----------|--------------|
-| N-step | 3 |
-| Atoms (C51) | 51 |
+| n걸음 | 3 |
+| 원자(C51) | 51 |
 | $V_\text{min}, V_\text{max}$ | -10, 10 |
-| PER $\alpha$ | 0.5 |
-| PER $\beta$ | 0.4 → 1.0 |
-| NoisyNet $\sigma_0$ | 0.5 |
-| Learning rate | 6.25 × 10⁻⁵ |
-| Batch size | 32 |
-| Target update freq | 8000 |
+| 앞섬 되돌려 보기 $\alpha$ | 0.5 |
+| 앞섬 되돌려 보기 $\beta$ | 0.4 → 1.0 |
+| 잡소리 그물 $\sigma_0$ | 0.5 |
+| 배움 빠르기 | 6.25 × 10⁻⁵ |
+| 묶음 크기 | 32 |
+| 과녁 고침 잦음 | 8000 |
 
-### Computational Cost
+### 계산 비용
 
-Rainbow is approximately 2× the compute of DQN per training step due to:
-- Distributional output (51 atoms × actions vs. 1 × actions)
-- Sum tree operations for PER
-- NoisyLinear forward passes
+무지개는 다음 때문에 익히기 걸음마다 DQN의 2배쯤 셈이 든다:
 
-However, the improved sample efficiency often more than compensates.
+- 분포 내놓기(원자 51개 × 움직임 대 1 × 움직임)
+- 앞섬 되돌려 보기의 합 나무 연산
+- NoisyLinear의 앞으로 가기
 
-## Simplified Rainbow
+그래도 표본 효율이 좋아져 흔히 그 이상을 메운다.
 
-For practical applications, a simplified version combining the 3 most impactful components often suffices:
-- **Prioritized Replay** + **Multi-step Returns** + **Double DQN**
+## 간단히 한 무지개
 
-This captures ~80% of Rainbow's gains with significantly less implementation complexity.
+실제 쓰임새에서는 영향이 가장 큰 조각 셋을 아우른 간단한 판으로 흔히 넉넉하다:
+
+- **앞섬 되돌려 보기** + **여러 걸음 돌아옴** + **두 겹 DQN**
+
+이는 짜기가 훨씬 단순하면서도 무지개가 얻는 것의 80%쯤을 담는다.
+
+## 연습문제
+
+**연습문제 1.**
+Q 값 어림에 신경망을 쓰는 어려움을 이 방법이 어떻게 다루는지 밝혀라. 이 길이 없으면 어떤 불안정이 생기는가?
+
+??? success "연습문제 1 풀이"
+    신경망 Q 값 어림은 차례 자료의 얽힘과 움직이는 과녁 문제(과녁이 지금 잡에 매인다) 때문에 불안정하다. 이 방법은 특정 얼개나 알고리즘 고름으로 이 말썽을 다룬다. 이것이 없으면 기울기 고침이 한결같지 않은 과녁을 좇아 익히기가 발산하고 재앙 같은 지나친 어림이나 흔들림이 생긴다. 이 길은 얽힘을 끊거나 얼마 동안 과녁을 붙박아 익히기를 안정시킨다. $\square$
+
+---
+
+**연습문제 2.**
+CartPole-v1 둘레에서 이 방법을 짜라. 둘레를 푸는 데(100판 평균 보상 > 475) 필요한 판수를 알리고 배움 굽은 줄을 그려라.
+
+??? success "연습문제 2 풀이"
+    숨은 낱덩이 64개의 2층 여러 층 신경망, 배움 빠르기 $3 \times 10^{-4}$의 Adam, 이 마디의 재주를 쓰면 부림꾼이 보통 200~500판에 CartPole을 푼다. 배움 굽은 줄은 처음의 아무 성능(보상 $\approx 20$), 빠르게 좋아지는 마당, 거의 가장 좋은 성능으로의 모임을 보인다. 핵심 짜기 세부: 되돌려 보기 버퍼 크기 10000, 묶음 크기 64, 100걸음마다 과녁 그물 고침, 300판에 걸쳐 1.0에서 0.01로 선형으로 스러지는 $\epsilon$ 욕심쟁이. $\square$
+
+---
+
+**연습문제 3.**
+맨 DQN에 견주어 이 방법이 더하는 셈과 기억 덧짐을 살펴라. 금융 쓰임새에서 그 맞바꿈이 값을 하는가?
+
+??? success "연습문제 3 풀이"
+    덧짐은 방법마다 다르지만 보통 앞으로 가기를 더 하거나(두 겹 DQN은 2배), 그물 잡을 더 두거나(맞겨루기 갈래), 기억을 더 쓴다(앞섬 되돌려 보기). 자료가 비싸고 실수가 값비싼 금융 쓰임새에서는 표본 효율과 안정이 좋아지므로 덧짐이 값을 한다. 금융 상태 자리는 흔히 차원이 웬만하므로(특징 10~100개) 걸음마다 늘어나는 비용이 더 나은 결정의 값어치에 견주면 크지 않다. $\square$
+
+---
+
+**연습문제 4.**
+보상 신호가 성기고(거래를 마칠 때만 실현되고) 늦는 금융 거래 쓰임새에 이 방법을 어떻게 맞출지 다루어라.
+
+??? success "연습문제 4 풀이"
+    성긴 보상은 공 돌리기를 어렵게 한다. 부림꾼은 여러 걸음 전의 움직임을 끝내 생긴 이익이나 손실에 이어야 한다. 맞추는 길: (1) 가장 좋은 방침을 지키면서 더 빽빽한 되먹임을 주는 중간 신호(실현되지 않은 손익, 위험 잣대)로 보상 다듬기, (2) 성긴 보상을 더 효율 좋게 뒤로 퍼뜨리는 여러 걸음 돌아옴, (3) 지난 겪음에 이룬 결과로 새 이름표를 붙이는 뒤늦은 겪음 되돌려 보기. 이 마디의 방법은 드문 보상 신호에서 배우는 안정을 높여 이바지한다. $\square$

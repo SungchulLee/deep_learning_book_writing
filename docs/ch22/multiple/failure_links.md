@@ -1,45 +1,38 @@
-# Failure Links
+# 어긋남 이음
+어긋남 이음(뒷가지 이음이라고도 한다)은 아호-코라식 트라이를 힘 있는 자동 기계로 바꾸는 핵심 덧붙임이다. KMP 어긋남 함수를 여러 본으로 넓힌 것이다.
 
+## 정의
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Failure links (also called suffix links) are the key augmentation that transforms the Aho-Corasick trie into a powerful automaton. They are the multi-pattern generalization of the KMP failure function.
-
-## Definition
-
-For a state $s$ in the trie representing the string $w$, the failure link $f(s)$ points to the state representing the longest proper suffix of $w$ that is also a prefix of some pattern in the trie.
+글줄 $w$을 뜻하는 트라이의 상태 $s$에서 어긋남 이음 $f(s)$은 $w$의 진뒷가지이면서 트라이 속 어떤 본의 앞가지이기도 한 가장 긴 것을 뜻하는 상태를 가리킨다.
 
 $$
-
-f(s) = \text{state for the longest proper suffix of } \text{str}(s) \text{ that exists in the trie}
-
+f(s) = \text{트라이에 있는 } \text{str}(s) \text{ 의 가장 긴 진뒷가지를 뜻하는 상태}
 $$
 
-If no proper suffix of $w$ exists in the trie, then $f(s)$ points to the root.
+$w$의 어떤 진뒷가지도 트라이에 없으면 $f(s)$이 뿌리를 가리킨다.
 
-## Construction via BFS
+## 너비 먼저 돌아보기로 세우기
 
-Failure links are computed using a BFS traversal of the trie. States at depth 1 always have their failure link pointing to the root. For deeper states, we follow the parent's failure link chain until we find a state with a matching transition.
+어긋남 이음은 트라이를 너비 먼저 돌아보며 셈한다. 깊이 1의 상태는 늘 어긋남 이음이 뿌리를 가리킨다. 더 깊은 상태에서는 맞는 옮아감이 있는 상태를 찾을 때까지 어버이의 어긋남 이음 사슬을 따라간다.
 
 ```python
 from collections import deque
 
 def build_failure_links(goto, fail):
     """
-    Build failure links for the Aho-Corasick automaton.
+    아호-코라식 자동 기계의 어긋남 이음을 세운다.
 
-    goto: list of dicts, goto[state][char] = next_state
-    fail: list of ints, fail[state] will be filled in
+    goto: 사전의 목록. goto[state][char] = 다음 상태
+    fail: 정수의 목록. fail[state]을 채운다
     """
     queue = deque()
 
-    # Depth-1 states: failure link -> root (0)
+    # 깊이 1 상태: 어긋남 이음 -> 뿌리(0)
     for ch, s in goto[0].items():
         fail[s] = 0
         queue.append(s)
 
-    # BFS for deeper states
+    # 더 깊은 상태는 너비 먼저 돌아보기로
     while queue:
         r = queue.popleft()
         for ch, s in goto[r].items():
@@ -53,37 +46,82 @@ def build_failure_links(goto, fail):
 
     return fail
 
-# Example: trie for patterns ["ACC", "ATC", "CAT"]
+# 보기: 본 ["ACC", "ATC", "CAT"]의 트라이
 goto = [
-    {'A': 1, 'C': 7},  # root (0)
-    {'C': 2, 'T': 4},  # state 1: "A"
-    {'C': 3},           # state 2: "AC"
-    {},                 # state 3: "ACC" (match)
-    {'C': 5},           # state 4: "AT"
-    {},                 # state 5: "ATC" (match)
-    {},                 # (unused)
-    {'A': 8},           # state 7: "C"
-    {'T': 9},           # state 8: "CA"
-    {},                 # state 9: "CAT" (match)
+    {'A': 1, 'C': 7},  # 뿌리(0)
+    {'C': 2, 'T': 4},  # 상태 1: "A"
+    {'C': 3},           # 상태 2: "AC"
+    {},                 # 상태 3: "ACC"(맞음)
+    {'C': 5},           # 상태 4: "AT"
+    {},                 # 상태 5: "ATC"(맞음)
+    {},                 # (쓰지 않음)
+    {'A': 8},           # 상태 7: "C"
+    {'T': 9},           # 상태 8: "CA"
+    {},                 # 상태 9: "CAT"(맞음)
 ]
 fail = [0] * len(goto)
 build_failure_links(goto, fail)
 print("Failure links:", fail)
-# fail[2] -> 7 (suffix "C" of "AC" matches state for "C")
-# fail[8] -> 1 (suffix "A" of "CA" matches state for "A")
+# fail[2] -> 7("AC"의 뒷가지 "C"이 "C" 상태와 맞는다)
+# fail[8] -> 1("CA"의 뒷가지 "A"이 "A" 상태와 맞는다)
 ```
 
-## Why Failure Links Work
+## 어긋남 이음이 통하는 까닭
 
-When processing a text character and the current trie state has no transition for it, following the failure link is equivalent to considering the next longest suffix that could still match. This is analogous to how the KMP failure function avoids re-examining characters. The chain of failure links from any state $s$ back to the root represents all suffixes of $\text{str}(s)$ that are prefixes of some pattern.
+글월 글자를 처리할 때 지금 트라이 상태에 그 글자의 옮아감이 없으면 어긋남 이음을 따라가는 것은 아직 맞을 수 있는 다음으로 긴 뒷가지를 살피는 것과 같다. 이는 KMP 어긋남 함수가 글자를 다시 살피지 않는 것과 닮았다. 어떤 상태 $s$에서 뿌리까지의 어긋남 이음 사슬은 $\text{str}(s)$의 뒷가지 가운데 어떤 본의 앞가지인 것을 모두 뜻한다.
 
-## Complexity
+## 복잡도
 
-- **Construction:** $O(m)$ where $m$ is the total length of all patterns. Each state is enqueued once in the BFS, and the failure link chain traversal is amortized $O(1)$ per state.
-- **Space:** $O(1)$ per state for the failure link pointer.
+- **세우기:** $m$이 본 전체의 길이일 때 $O(m)$. 상태마다 너비 먼저 돌아보기의 줄에 한 번 들어가고 어긋남 이음 사슬 돌아보기는 상태마다 고르게 나누어 $O(1)$이다.
+- **공간:** 어긋남 이음 가리개에 상태마다 $O(1)$.
 
-# Reference
+# 참고 문헌
 
 [Aho, Corasick - Efficient String Matching (1975)](https://doi.org/10.1145/360825.360855)
 
 [Aho-Corasick - CP-Algorithms](https://cp-algorithms.com/string/aho_corasick.html)
+
+## 연습문제
+
+**연습문제 1.**
+막무가내 글자열 짝짓기 알고리즘, KMP, 보이어-무어의 가장 나쁜 경우 시간 복잡도를 견주어라.
+
+??? success "연습문제 1 풀이"
+    | 알고리즘 | 가장 나쁜 경우 | 가장 좋은 경우 | 공간 |
+    |-----------|-----------|-----------|-------|
+    | 막무가내 | $O(nm)$ | $O(n)$ | $O(1)$ |
+    | KMP | $O(n + m)$ | $O(n)$ | 어그러짐 함수에 $O(m)$ |
+    | 보이어-무어 | $O(nm)$(병적인 경우) | $O(n/m)$(선형 아래!) | $O(m + |\Sigma|)$ |
+
+    KMP는 한 줄 시간을 보장한다. 보이어-무어는 (글자를 건너뛰므로) 실전에서 대개 더 빠르지만 갈릴 다듬기를 쓰지 않으면 가장 나쁜 경우 $O(nm)$이다.
+
+---
+
+**연습문제 2.**
+글 $T$ = "ABABCABABD"과 무늬 $P$ = "ABABD"에 대해 알고리즘이 도는 과정을 견줌마다 보이며 좇아라.
+
+??? success "연습문제 2 풀이"
+    자리 0에서 시작: P[0]='A'와 T[0]='A' 견줌(맞음), P[1]='B'와 T[1]='B'(맞음), P[2]='A'와 T[2]='A'(맞음), P[3]='B'와 T[3]='B'(맞음), P[4]='D'와 T[4]='C'(어긋남). 어그러짐 함수 또는 밀기 규칙으로 무늬를 민다. 자리 2에서 시작(KMP는 어그러짐 함수로 다시 견주지 않는다). 끝내 자리 5에서 맞는 곳을 찾는다. 이 알고리즘은 모두 많아야 $2n$번 견준다.
+
+---
+
+**연습문제 3.**
+KMP의 어그러짐 함수란 무엇인가? 무늬 "ABABCAB"에 대해 셈하여라.
+
+??? success "연습문제 3 풀이"
+    어긋남 함수 $\pi[i]$은 $P[0..i]$의 앞가지이면서 뒷가지이기도 한 가장 긴 진앞가지의 길이를 준다. "ABABCAB"에 대해:
+
+    | $i$ | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+    |-----|---|---|---|---|---|---|---|
+    | $P[i]$ | A | B | A | B | C | A | B |
+    | $\pi[i]$ | 0 | 0 | 1 | 2 | 0 | 1 | 2 |
+
+    예컨대 "AB"이 "ABAB"의 앞가지이자 뒷가지이므로 $\pi[3] = 2$이다.
+
+---
+
+**연습문제 4.**
+라빈-카프에 쓰이는 굴리는 해시 재주를 설명하여라. 헛맞음이 일어날 확률은 얼마인가?
+
+??? success "연습문제 4 풀이"
+    라빈-카프는 본의 흩는 값을 셈하고 글월 위로 흩는 창을 미끄러뜨린다. **구르는 흩는 값**은 $O(1)$에 새로 고친다. 곧 $d$이 밑이고 $q$이 소수일 때 $h(T[i+1..i+m]) = (h(T[i..i+m-1]) - T[i] \cdot d^{m-1}) \cdot d + T[i+m] \pmod{q}$이다. 흩는 값은 맞는데 글줄이 다르면 헛맞음이 난다. 아무 소수 $q$에 대해 헛맞음 한 번의 확률은 $O(1/q)$이고 자리 $n-m+1$개에 대한 헛맞음의 기댓값은 $O(n/q)$이다. $q \approx n^2$을 고르면 헛맞음이 기대상 $O(1)$이다.

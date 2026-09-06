@@ -1,77 +1,66 @@
-# Temperature as a Unifying Concept
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Temperature appears throughout machine learning under different names and guises—from MCMC sampling to neural network softmax to diffusion models. This section reveals the deep connections between these seemingly disparate techniques, showing how temperature provides a unified framework for understanding exploration-exploitation trade-offs across the field.
+# 하나로 꿰는 개념으로서의 온도
+온도는 MCMC 표집에서 신경망 소프트맥스, 퍼짐 모형에 이르기까지 기계 학습 곳곳에 이름과 모습을 달리하며 나타난다. 이 절에서는 겉으로 동떨어져 보이는 이 기법들 사이의 깊은 이음을 드러내어, 온도가 이 분야 전체의 살펴보기-써먹기 주고받음을 이해하는 하나의 얼개가 됨을 보인다.
 
 ---
 
-## The Universal Role of Temperature
+## 온도가 두루 하는 일
 
-### The Boltzmann Principle
+### 볼츠만 원리
 
-The foundation is the **Boltzmann distribution** from statistical mechanics:
+그 바탕은 통계 역학의 **볼츠만 분포**이다:
 
 $$
-
 p_T(x) = \frac{1}{Z_T} \exp\left(-\frac{E(x)}{T}\right)
-
 $$
 
-This single equation, with temperature $T$ as the control parameter, underlies MCMC sampling, simulated annealing, softmax in neural networks, Langevin dynamics, diffusion models, energy-based models, and reinforcement learning policies.
+온도 $T$을 다스림 매개변수로 삼는 이 식 하나가 MCMC 표집, 흉내낸 담금질, 신경망의 소프트맥스, 랑주뱅 움직임, 퍼짐 모형, 에너지 바탕 모형, 강화 학습 방책의 밑바탕이 된다.
 
-### The Energy-Entropy Trade-off
+### 에너지-엔트로피 주고받음
 
-Temperature controls the fundamental trade-off between **energy** (preference for low-cost states) and **entropy** (preference for diversity):
+온도는 **에너지**(값이 낮은 상태를 좋아함)와 **엔트로피**(다양함을 좋아함) 사이의 근본적인 주고받음을 다스린다:
 
 $$
-
 F = \langle E \rangle - T \cdot S
-
 $$
 
-| Temperature | Behavior |
+| 온도 | 하는 짓 |
 |-------------|----------|
-| $T \to 0$ | Pure energy minimization (exploitation) |
-| $T = 1$ | Balanced trade-off |
-| $T \to \infty$ | Pure entropy maximization (exploration) |
+| $T \to 0$ | 순전한 에너지 최소화(써먹기) |
+| $T = 1$ | 저울질된 주고받음 |
+| $T \to \infty$ | 순전한 엔트로피 최대화(살펴보기) |
 
-This trade-off appears everywhere decisions must balance quality versus diversity.
+질과 다양함을 저울질해야 하는 곳이라면 어디서나 이 주고받음이 나타난다.
 
 ---
 
-## Temperature in MCMC
+## MCMC에서의 온도
 
-### Fixed-Temperature Sampling
+### 온도가 붙박인 표집
 
-Standard MCMC samples from $\pi(x) \propto \exp(-E(x))$, implicitly at $T = 1$:
+표준 MCMC은 $\pi(x) \propto \exp(-E(x))$에서 표집하며, 이는 넌지시 $T = 1$인 경우이다:
 
 $$
-
 \pi_T(x) = \frac{1}{Z_T} \exp\left(-\frac{E(x)}{T}\right) = \frac{1}{Z_T} \pi(x)^{1/T}
-
 $$
 
-**Hot chains** ($T > 1$): Flattened distribution, easier exploration, faster mixing between modes, but poor approximation to target.
+**뜨거운 사슬**($T > 1$): 분포가 평평해져 살펴보기가 쉽고 봉우리 사이의 섞임이 빠르지만 과녁을 나쁘게 어림한다.
 
-**Cold chains** ($T < 1$): Sharpened distribution, concentrated on modes, slow mixing, but better local approximation.
+**차가운 사슬**($T < 1$): 분포가 날카로워져 봉우리에 몰리고 섞임이 느리지만 그 자리 어림이 낫다.
 
-### Parallel Tempering
+### 병렬 온도 다루기
 
-Parallel tempering exploits multiple temperatures simultaneously:
+병렬 온도 다루기는 여러 온도를 한꺼번에 써먹는다:
 
 ```python
 def parallel_tempering_step(chains, temperatures, E):
-    """One step of parallel tempering."""
+    """병렬 온도 다루기의 한 걸음."""
     n_chains = len(chains)
     
-    # Local moves at each temperature
+    # 온도마다의 가까운 움직임
     for i in range(n_chains):
         chains[i] = metropolis_step(chains[i], E, temperatures[i])
     
-    # Attempt swaps between adjacent temperatures
+    # 이웃한 온도 사이의 맞바꿈 시도
     for i in range(n_chains - 1):
         delta = (1/temperatures[i] - 1/temperatures[i+1]) * \
                 (E(chains[i+1]) - E(chains[i]))
@@ -82,316 +71,324 @@ def parallel_tempering_step(chains, temperatures, E):
     return chains
 ```
 
-Hot chains explore globally; cold chains refine locally; swaps transfer information between temperature levels.
+뜨거운 사슬은 전체를 살펴보고, 차가운 사슬은 그 자리를 다듬으며, 맞바꿈이 온도 층 사이로 정보를 나른다.
 
-### Annealed Importance Sampling
+### 담금질한 중요도 표집
 
-Use a temperature path for importance sampling:
+중요도 표집에 온도 길을 쓴다:
 
 $$
-
 w = \prod_{t=1}^{T} \frac{p_{t}(x_{t-1})}{p_{t-1}(x_{t-1})}
-
 $$
 
-where $p_t$ interpolates from an easy distribution to the target via temperature. This reduces variance compared to direct importance sampling from $\pi$.
+여기서 $p_t$은 온도를 거쳐 쉬운 분포에서 과녁까지 사이를 메운다. 이는 $\pi$에서 곧바로 중요도 표집을 하는 것보다 흩어짐을 줄인다.
 
 ---
 
-## Temperature in Langevin Dynamics
+## 랑주뱅 움직임에서의 온도
 
-### The Langevin SDE
+### 랑주뱅 확률 미분방정식
 
-The temperature-scaled Langevin equation:
+온도로 크기를 잡은 랑주뱅 방정식은 다음과 같다:
 
 $$
-
 d\mathbf{x}_t = -\nabla E(\mathbf{x}_t) \, dt + \sqrt{2T} \, d\mathbf{W}_t
-
 $$
 
-**Critical insight**: Temperature scales the **noise**, not the drift.
+**결정적인 통찰**: 온도는 쏠림이 아니라 **잡음**의 크기를 잡는다.
 
-| Component | Role |
+| 부품 | 하는 일 |
 |-----------|------|
-| $-\nabla E(\mathbf{x}_t) \, dt$ | Deterministic drift toward low energy |
-| $\sqrt{2T} \, d\mathbf{W}_t$ | Stochastic exploration |
+| $-\nabla E(\mathbf{x}_t) \, dt$ | 낮은 에너지 쪽으로 정해진 쏠림 |
+| $\sqrt{2T} \, d\mathbf{W}_t$ | 확률로 살펴보기 |
 
-### Temperature Limits
+### 온도의 끝
 
-**$T \to 0$**: Gradient descent (pure optimization), $d\mathbf{x}_t = -\nabla E(\mathbf{x}_t) \, dt$.
+**$T \to 0$**: 기울기 내리기(순전한 최적화), $d\mathbf{x}_t = -\nabla E(\mathbf{x}_t) \, dt$.
 
-**$T \to \infty$**: Brownian motion (pure diffusion), $d\mathbf{x}_t = \sqrt{2T} \, d\mathbf{W}_t$.
+**$T \to \infty$**: 브라운 운동(순전한 퍼짐), $d\mathbf{x}_t = \sqrt{2T} \, d\mathbf{W}_t$.
 
-**$T = 1$**: Balanced dynamics sampling from $\pi(\mathbf{x}) \propto e^{-E(\mathbf{x})}$.
+**$T = 1$**: $\pi(\mathbf{x}) \propto e^{-E(\mathbf{x})}$에서 표집하는 저울질된 움직임.
 
-### Discretization
+### 띄엄띄엄 나누기
 
-The Euler-Maruyama discretization with step size $\epsilon$:
+걸음 크기가 $\epsilon$인 오일러-마루야마 나눔은 다음과 같다:
 
 $$
-
 \mathbf{x}_{t+1} = \mathbf{x}_t - \epsilon \nabla E(\mathbf{x}_t) + \sqrt{2\epsilon T} \, \boldsymbol{\eta}_t, \quad \boldsymbol{\eta}_t \sim \mathcal{N}(\mathbf{0}, \mathbf{I})
-
 $$
 
-This is the **Unadjusted Langevin Algorithm (ULA)** at temperature $T$, connecting the continuous SDE framework to the discrete algorithms covered in the [Langevin Dynamics](../../langevin/fundamentals.md) section.
+이것이 온도 $T$에서의 **다듬지 않은 랑주뱅 알고리즘(ULA)**이며, 이어진 확률 미분방정식 얼개와 [랑주뱅 움직임](../../langevin/fundamentals.md) 절에서 다룬 띄엄띄엄한 알고리즘을 이어 준다.
 
 ---
 
-## Temperature in Diffusion Models
+## 퍼짐 모형에서의 온도
 
-### The Forward Process
+### 앞으로 가는 과정
 
-Diffusion models add noise progressively:
+퍼짐 모형은 잡음을 차츰 더한다:
 
 $$
-
 d\mathbf{x}_t = -\frac{1}{2}\beta(t) \mathbf{x}_t \, dt + \sqrt{\beta(t)} \, d\mathbf{W}_t
-
 $$
 
-The noise schedule $\beta(t)$ plays the role of (inverse) temperature: early times have low noise (low temperature) preserving data structure, while late times have high noise (high temperature) approaching pure noise.
+잡음 일정 $\beta(t)$이 (거꿀) 온도 노릇을 한다. 곧 이른 때에는 잡음이 적어(온도가 낮아) 자료의 짜임이 남고, 늦은 때에는 잡음이 많아(온도가 높아) 순전한 잡음에 다가간다.
 
-### The Reverse Process
+### 거꾸로 가는 과정
 
-Generation reverses the diffusion:
+만들어 내기는 퍼짐을 거꾸로 돌린다:
 
 $$
-
 d\mathbf{x}_t = \left[-\frac{1}{2}\beta(t) \mathbf{x}_t - \beta(t) \nabla_\mathbf{x} \log p_t(\mathbf{x})\right] dt + \sqrt{\beta(t)} \, d\bar{\mathbf{W}}_t
-
 $$
 
-This is precisely **Langevin dynamics** with time-varying temperature.
+이것이 바로 온도가 시간에 따라 달라지는 **랑주뱅 움직임**이다.
 
-### The Annealing Analogy
+### 담금질과의 견줌
 
-| Simulated Annealing | Diffusion Models |
+| 흉내낸 담금질 | 퍼짐 모형 |
 |---------------------|------------------|
-| Start: high $T$ (uniform-like) | Start: high noise (Gaussian) |
-| End: low $T$ (concentrated) | End: low noise (data distribution) |
-| Decrease $T$ over iterations | Decrease noise over steps |
-| Goal: find optimum | Goal: generate sample |
-| Energy function $E(x)$ | Score function $\nabla \log p(x)$ |
+| 시작: 높은 $T$(고른 분포에 가까움) | 시작: 큰 잡음(가우스) |
+| 끝: 낮은 $T$(몰림) | 끝: 작은 잡음(자료 분포) |
+| 되풀이하며 $T$을 낮춤 | 걸음을 밟으며 잡음을 줄임 |
+| 목표: 최적점 찾기 | 목표: 표본 만들기 |
+| 에너지 함수 $E(x)$ | 점수 함수 $\nabla \log p(x)$ |
 
-Both methods use temperature/noise schedules to interpolate between easy and hard problems.
+두 방법 모두 온도나 잡음 일정을 써서 쉬운 문제와 어려운 문제 사이를 메운다.
 
-### Temperature Scaling at Inference
+### 추론에서 온도로 크기 잡기
 
-At inference time, we can modify the noise scale:
+추론할 때 잡음의 크기를 바꿀 수 있다:
 
 $$
-
 \mathbf{x}_{t-1} = \mu_\theta(\mathbf{x}_t, t) + \sigma_t^{1/T} \boldsymbol{\epsilon}
-
 $$
 
-$T > 1$ gives more stochastic, diverse samples; $T < 1$ gives more deterministic, higher quality samples; $T = 0$ yields deterministic (DDIM-style) generation.
+$T > 1$이면 더 흔들리고 다양한 표본이, $T < 1$이면 더 정해지고 질 높은 표본이 나오며, $T = 0$이면 (DDIM 방식의) 정해진 만들어 내기가 된다.
 
 ---
 
-## Temperature in Neural Networks
+## 신경망에서의 온도
 
-### Softmax Temperature
+### 소프트맥스 온도
 
-The temperature-scaled softmax:
+온도로 크기를 잡은 소프트맥스는 다음과 같다:
 
 $$
-
 \text{softmax}_T(z_i) = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}
-
 $$
 
-**Low temperature** ($T \to 0$): $\text{softmax}_T(z) \to \text{one-hot}(\arg\max z)$—sharp, deterministic selection.
+**낮은 온도**($T \to 0$): $\text{softmax}_T(z) \to \text{one-hot}(\arg\max z)$이 되어 날카롭고 정해진 고름이 된다.
 
-**High temperature** ($T \to \infty$): $\text{softmax}_T(z) \to \text{uniform}$—soft, uniform distribution.
+**높은 온도**($T \to \infty$): $\text{softmax}_T(z) \to \text{uniform}$이 되어 부드럽고 고른 분포가 된다.
 
-### Applications in Deep Learning
+### 깊은 배움에서의 쓰임새
 
-**Knowledge distillation** (Hinton et al., 2015): Teacher produces soft targets at high $T$, student learns from softened distribution, transferring "dark knowledge" about class relationships.
+**앎 내리기**(힌턴 외, 2015): 스승이 높은 $T$에서 부드러운 과녁을 내놓고 제자가 그 부드러워진 분포에서 배우며, 갈래 사이의 관계에 대한 "어두운 앎"이 옮겨 간다.
 
 ```python
 def distillation_loss(student_logits, teacher_logits, labels, T=4.0, alpha=0.5):
-    """Knowledge distillation with temperature."""
+    """온도를 쓴 앎 내리기."""
     soft_targets = F.softmax(teacher_logits / T, dim=1)
     soft_student = F.log_softmax(student_logits / T, dim=1)
     
-    # Distillation loss (scaled by T^2 as per Hinton)
+    # 앎 내리기 손실(힌턴을 따라 T^2으로 크기 맞춤)
     distill_loss = F.kl_div(soft_student, soft_targets, 
                             reduction='batchmean') * T * T
     
-    # Hard label loss
+    # 딱 잘라 붙인 이름표의 손실
     hard_loss = F.cross_entropy(student_logits, labels)
     
     return alpha * distill_loss + (1 - alpha) * hard_loss
 ```
 
-**Temperature in attention**: The $\sqrt{d_k}$ factor in scaled dot-product attention is a temperature that prevents saturation as dimension grows:
+**주목에서의 온도**: 크기를 잡은 점곱 주목의 $\sqrt{d_k}$ 인수는 차원이 커질 때 포화를 막는 온도이다:
 
 $$
-
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right) V
-
 $$
 
-**Calibration via temperature scaling**: Post-hoc calibration by fitting $T$ on validation data: $p(y | x) = \text{softmax}(f(x) / T)$.
+**온도로 크기를 잡아 눈금 맞추기**: 검증 자료에 $T$을 맞추어 나중에 눈금을 맞춘다. 곧 $p(y | x) = \text{softmax}(f(x) / T)$이다.
 
 ---
 
-## Temperature in Reinforcement Learning
+## 강화 학습에서의 온도
 
-### Entropy-Regularized RL
+### 엔트로피로 벌준 강화 학습
 
-The soft Bellman equation:
+부드러운 벨만 방정식은 다음과 같다:
 
 $$
-
 V^*(s) = \max_a \left[ Q^*(s, a) - T \log \pi(a|s) \right]
-
 $$
 
-Temperature controls exploration: high $T$ encourages exploring diverse actions, low $T$ exploits best-known actions.
+온도가 살펴보기를 다스린다. 곧 $T$이 높으면 다양한 몸짓을 살펴보게 하고, 낮으면 가장 좋다고 아는 몸짓을 써먹는다.
 
-### Soft Actor-Critic (SAC)
+### 부드러운 배우-비평가(SAC)
 
-The maximum entropy objective:
+최대 엔트로피 목표는 다음과 같다:
 
 $$
-
 J(\pi) = \sum_t \mathbb{E}\left[ r(s_t, a_t) + T \cdot H[\pi(\cdot | s_t)] \right]
-
 $$
 
-Temperature $T$ (often called $\alpha$ in SAC) is the entropy coefficient, and can be automatically tuned to maintain a target entropy level.
+온도 $T$(SAC에서는 흔히 $\alpha$이라 부른다)은 엔트로피 계수이며, 목표 엔트로피 층을 지키도록 저절로 맞출 수 있다.
 
 ---
 
-## Temperature in Optimization
+## 최적화에서의 온도
 
-### Entropic Regularization
+### 엔트로피 벌주기
 
-Add entropy to the objective:
+목표에 엔트로피를 더한다:
 
 $$
-
 \min_\mathbf{x} \left[ E(\mathbf{x}) - T \cdot H[\mathbf{x}] \right]
-
 $$
 
-For probability vectors, this gives $\mathbf{x}^* \propto \exp(-E(\mathbf{x}) / T)$.
+확률 벡터에서는 $\mathbf{x}^* \propto \exp(-E(\mathbf{x}) / T)$이 된다.
 
-### Optimal Transport
+### 최적 나르기
 
-Entropic optimal transport with regularization $\epsilon$:
+벌주기 세기가 $\epsilon$인 엔트로피 최적 나르기는 다음과 같다:
 
 $$
-
 \min_{\gamma} \langle C, \gamma \rangle - \epsilon H(\gamma)
-
 $$
 
-The regularization $\epsilon$ is temperature—larger $\epsilon$ gives smoother transport plans, enabling the efficient Sinkhorn algorithm.
+벌주기 세기 $\epsilon$이 곧 온도이다. $\epsilon$이 클수록 나르기 계획이 매끄러워지며 효율적인 싱크혼 알고리즘을 쓸 수 있게 된다.
 
 ---
 
-## The Unified View
+## 하나로 꿴 눈
 
-### Common Mathematical Structure
+### 공통된 수학 짜임
 
-All temperature-based methods share:
+온도를 쓰는 방법은 모두 다음을 함께 지닌다:
 
 $$
-
 p_T(x) \propto f(x)^{1/T}
-
 $$
 
-where $f(x)$ is a "fitness" or "unnormalized probability" function. Equivalently, with energy $E(x) = -\log f(x)$:
+여기서 $f(x)$은 "적합도"나 "고르게 하지 않은 확률" 함수이다. 같은 말로 에너지 $E(x) = -\log f(x)$을 쓰면:
 
 $$
-
 p_T(x) \propto \exp(-E(x)/T)
-
 $$
 
-### Cross-Domain Correspondences
+### 분야를 넘나드는 맞대응
 
-| Domain | "Temperature" | "Energy" | High-T Behavior |
+| 분야 | "온도" | "에너지" | 높은 T에서의 굶 |
 |--------|--------------|----------|-----------------|
-| Statistical Mechanics | $T$ | $E(x)$ | Disorder |
-| MCMC | $1/\beta$ | $-\log \pi(x)$ | Flat chain |
-| Simulated Annealing | $T(t) \to 0$ | Cost function | Exploration |
-| Langevin | Noise scale | $-\log p(x)$ | Diffusion |
-| Diffusion Models | $\sigma(t)$ | Score function | Gaussian |
-| Softmax | $T$ | $-z_i$ | Uniform |
-| RL | $T$ in SAC | $-Q(s,a)$ | Random policy |
-| Optimal Transport | $\epsilon$ | Cost matrix | Smooth plan |
+| 통계 역학 | $T$ | $E(x)$ | 어지러움 |
+| MCMC | $1/\beta$ | $-\log \pi(x)$ | 평평한 사슬 |
+| 흉내낸 담금질 | $T(t) \to 0$ | 값 함수 | 살펴보기 |
+| 랑주뱅 | 잡음 크기 | $-\log p(x)$ | 퍼짐 |
+| 퍼짐 모형 | $\sigma(t)$ | 점수 함수 | 가우스 |
+| 소프트맥스 | $T$ | $-z_i$ | 고름 |
+| 강화 학습 | SAC의 $T$ | $-Q(s,a)$ | 무작위 방책 |
+| 최적 나르기 | $\epsilon$ | 값 행렬 | 매끄러운 계획 |
 
-### Temperature Tuning Heuristics
+### 온도 맞추는 어림짐작
 
-| Goal | Temperature Strategy |
+| 목표 | 온도 전략 |
 |------|---------------------|
-| Find global optimum | Anneal: high → low |
-| Sample accurately | Fixed $T = 1$ |
-| Increase diversity | Raise $T$ |
-| Increase quality | Lower $T$ |
-| Transfer knowledge | Use elevated $T$ |
-| Calibrate predictions | Fit $T$ on held-out data |
+| 전체 최적점 찾기 | 담금질: 높음 → 낮음 |
+| 정확히 표집하기 | $T = 1$으로 붙박기 |
+| 다양함 늘리기 | $T$ 올리기 |
+| 질 높이기 | $T$ 내리기 |
+| 앎 옮기기 | $T$을 높여 쓰기 |
+| 미리봄 눈금 맞추기 | 남겨 둔 자료에 $T$ 맞추기 |
 
-### Common Pitfalls
+### 흔히 빠지는 함정
 
-**Confusing temperature effects**: Temperature affects the *distribution*, not the *dynamics* directly. In Langevin, $T$ scales noise, not gradient. In softmax, $T$ scales logits, not probabilities.
+**온도의 효과를 헷갈림**: 온도는 *움직임*이 아니라 *분포*에 곧바로 영향을 준다. 랑주뱅에서 $T$은 기울기가 아니라 잡음의 크기를 잡고, 소프트맥스에서 $T$은 확률이 아니라 로짓의 크기를 잡는다.
 
-**Wrong scaling**:
+**크기를 잘못 잡음**:
 
 ```python
-# WRONG: Temperature on probability
+# 틀림: 확률에 온도 쓰기
 p_wrong = softmax(z) ** (1/T)
 
-# RIGHT: Temperature on logits
+# 옳음: 로짓에 온도 쓰기
 p_right = softmax(z / T)
 ```
 
-**Ignoring normalization**: Temperature changes the partition function and may need to be accounted for in comparisons across temperatures.
+**고르게 하기를 잊음**: 온도는 나눔 함수를 바꾸므로 온도를 넘나들며 견줄 때 이를 헤아려야 할 수 있다.
 
 ---
 
-## Quantitative Finance Perspective
+## 계량 금융의 눈으로
 
-Temperature-based methods appear naturally in finance:
+온도를 쓰는 방법은 금융에서도 자연스럽게 나타난다:
 
-- **Portfolio optimization**: Entropic regularization smooths the efficient frontier, and simulated annealing handles discrete constraints (cardinality, integer lots)
-- **Option pricing**: Importance sampling with temperature-tilted measures reduces variance in Monte Carlo pricing of deep out-of-the-money options
-- **Risk management**: Parallel tempering improves exploration of tail risk scenarios in complex portfolio models
-- **Model calibration**: SA navigates the multimodal likelihood surfaces common in stochastic volatility and jump-diffusion models
+- **포트폴리오 최적화**: 엔트로피 벌주기가 효율 곡선을 매끄럽게 하고, 흉내낸 담금질이 띄엄띄엄한 제약(개수, 정수 단위)을 다룬다
+- **옵션 값매김**: 온도로 기울인 측도를 쓴 중요도 표집이 깊은 외가격 옵션의 몬테카를로 값매김에서 흩어짐을 줄인다
+- **위험 다루기**: 병렬 온도 다루기가 복잡한 포트폴리오 모형에서 꼬리 위험 시나리오를 더 잘 살펴보게 한다
+- **모형 맞추기**: SA이 확률 변동성과 뜀 퍼짐 모형에 흔한, 봉우리가 여럿인 가능도 면을 헤쳐 나간다
 
 ---
 
-## Historical Perspective
+## 역사의 눈으로
 
-| Year | Development |
+| 해 | 이룬 일 |
 |------|-------------|
-| 1870s | Boltzmann distribution in physics |
-| 1953 | Metropolis algorithm (sampling at $T$) |
-| 1983 | Simulated annealing (optimization) |
-| 1986 | Boltzmann machines |
-| 1990s | Parallel tempering |
-| 2010s | Temperature in deep learning (distillation, SAC) |
-| 2020s | Diffusion models as annealing |
+| 1870년대 | 물리에서 볼츠만 분포 |
+| 1953 | 메트로폴리스 알고리즘($T$에서의 표집) |
+| 1983 | 흉내낸 담금질(최적화) |
+| 1986 | 볼츠만 기계 |
+| 1990년대 | 병렬 온도 다루기 |
+| 2010년대 | 깊은 배움에서의 온도(앎 내리기, SAC) |
+| 2020년대 | 담금질로 본 퍼짐 모형 |
 
 ---
 
-## Summary
+## 요약
 
-| Method | Temperature Role | Key Insight |
+| 방법 | 온도가 하는 일 | 핵심 통찰 |
 |--------|-----------------|-------------|
-| **MCMC** | Flattens/sharpens target | Parallel tempering exploits multiple $T$ |
-| **Simulated Annealing** | Annealing schedule | Guarantees global optimum (if slow enough) |
-| **Langevin** | Noise scale | $T$ controls diffusion strength |
-| **Diffusion Models** | Noise schedule | Generation is reverse annealing |
-| **Softmax** | Sharpness control | Distillation, calibration, attention |
-| **RL** | Exploration bonus | Entropy regularization |
-| **EBMs** | Training/sampling | Score matching at multiple $T$ |
+| **MCMC** | 과녁을 평평하게 하거나 날카롭게 함 | 병렬 온도 다루기가 여러 $T$을 써먹는다 |
+| **흉내낸 담금질** | 담금질 일정 | (넉넉히 느리면) 전체 최적점을 보장한다 |
+| **랑주뱅** | 잡음 크기 | $T$이 퍼짐의 세기를 다스린다 |
+| **퍼짐 모형** | 잡음 일정 | 만들어 내기는 거꾸로 하는 담금질이다 |
+| **소프트맥스** | 날카로움 다스리기 | 앎 내리기, 눈금 맞추기, 주목 |
+| **강화 학습** | 살펴보기 덤 | 엔트로피 벌주기 |
+| **에너지 바탕 모형** | 익힘과 표집 | 여러 $T$에서의 점수 맞추기 |
 
-**The unifying principle**: Temperature controls the trade-off between energy minimization (quality, exploitation) and entropy maximization (diversity, exploration). This fundamental trade-off appears throughout machine learning, and temperature provides the mathematical knob to control it.
+**하나로 꿰는 원리**: 온도는 에너지 최소화(질, 써먹기)와 엔트로피 최대화(다양함, 살펴보기) 사이의 주고받음을 다스린다. 이 근본적인 주고받음은 기계 학습 곳곳에 나타나며, 온도가 그것을 다스리는 수학의 손잡이가 된다.
+
+## 연습문제
+
+**연습문제 1.**
+마르코프 사슬이 올바른 과녁 분포로 모이게 하는 데 받아들임 확률이 하는 몫을 설명하여라.
+
+??? success "연습문제 1 풀이"
+    받아들임 확률이 **자세한 균형** $\pi(x) T(x \to x') \alpha(x \to x') = \pi(x') T(x' \to x) \alpha(x' \to x)$을 보장한다. 여기서 $\pi$은 과녁 분포, $T$은 제안 분포, $\alpha$은 받아들임 확률이다. 자세한 균형은 $\pi$이 사슬의 멈춘 분포임을 뜻한다. 쪼갤 수 없음과 주기 없음까지 합치면 $\pi$으로의 에르고드 모임이 보장된다.
+
+---
+
+**연습문제 2.**
+제안 분포가 너무 좁은 상황과 너무 넓은 상황을 밝혀라. 저마다 표집 효율에 어떤 영향을 주는가?
+
+??? success "연습문제 2 풀이"
+    **너무 좁을 때:** 제안이 거의 늘 받아들여지지만(받아들임 비율이 높지만) 사슬이 아주 작은 걸음을 떼어 과녁 분포를 느리게 살펴본다. 그러면 자기상관이 높고 실효 표본 크기가 작아진다. **너무 넓을 때:** 제안이 확률이 낮은 구역에 자주 떨어져 물리쳐지므로(받아들임 비율이 낮으므로) 사슬이 여러 되풀이 동안 지금 상태에 갇혀 있게 된다. 두 극단 모두 효율을 떨어뜨린다. 높은 차원에서 무작위 걸음 메트로폴리스의 가장 좋은 받아들임 비율은 대략 0.234이다(Roberts 외, 1997).
+
+---
+
+**연습문제 3.**
+메트로폴리스-헤이스팅스 받아들임 비 $\alpha = \min\left(1, \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}\right)$이 $\pi$에 대해 자세한 균형을 만족함을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    일반성을 잃지 않고 $\pi(x') q(x|x') \leq \pi(x) q(x'|x)$이라 하자. 그러면 $\alpha(x \to x') = \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}$이고 $\alpha(x' \to x) = 1$이다. 자세한 균형 조건은 다음을 요구한다:
+
+    $$\pi(x) q(x'|x) \alpha(x \to x') = \pi(x) q(x'|x) \cdot \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)} = \pi(x') q(x|x')$$
+
+    그리고 $\pi(x') q(x|x') \alpha(x' \to x) = \pi(x') q(x|x') \cdot 1 = \pi(x') q(x|x')$이다. 양변이 같다. $\square$
+
+---
+
+**연습문제 4.**
+MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴지 어떻게 정하는가?
+
+??? success "연습문제 4 풀이"
+    태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.

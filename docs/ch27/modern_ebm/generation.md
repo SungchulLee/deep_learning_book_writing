@@ -1,193 +1,192 @@
-# Energy-Based Models for Generation Tasks
+# 만들어 내기 일을 위한 에너지 바탕 모델
 
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
 
-## Introduction
+## 들어가며
 
-While traditionally used for density estimation and anomaly detection, Energy-Based Models can be adapted for generation—producing new samples from learned distributions. Unlike explicit generative models (VAEs, GANs) that directly map from noise to data, EBMs generate by learning energy landscapes and sampling via dynamics (Langevin, Hamiltonian). Though computationally more expensive than alternatives, EBM generation provides unique advantages: principled probabilistic framework, flexible architecture, and ability to combine with discriminative losses for improved mode coverage.
+에너지 바탕 모델은 예로부터 밀도 어림과 이상 찾기에 쓰였지만 만들어 내기, 곧 배운 분포에서 새 표본을 만드는 데에도 맞출 수 있다. 잡음에서 자료로 곧바로 옮기는 드러난 만들어 내는 모델(변분 자기 부호기, 맞겨루기 만들개)과 달리, 에너지 바탕 모델은 에너지 풍경을 배우고 움직임(랑주뱅, 해밀턴)으로 뽑아 만들어 낸다. 다른 방법보다 셈이 비싸지만 에너지 바탕 모델의 만들어 내기에는 남다른 이점이 있다. 원리 있는 확률 틀, 너그러운 얼개, 봉우리를 더 잘 덮도록 가름 손실과 합칠 수 있는 힘이다.
 
-In quantitative finance, EBM generation enables synthetic data augmentation for training robust models, stress-testing portfolios through generated market scenarios, and creating realistic market microstructure data for algorithm backtesting. The flexibility of energy functions allows incorporation of financial constraints (no negative prices, bid-ask spread bounds) directly into generation process.
+계량 금융에서 에너지 바탕 모델의 만들어 내기는 튼튼한 모델을 익히기 위한 만든 자료 늘리기, 만들어 낸 시장 시나리오로 꾸러미 버팀 시험하기, 알고리즘 되짚어 시험할 그럴듯한 시장 미시 얼개 자료 만들기를 가능하게 한다. 에너지 함수의 너그러움 덕에 금융의 제약(값이 음수가 되지 않기, 매수-매도 벌어짐 한계)을 만들어 내는 과정에 곧바로 넣을 수 있다.
 
-This section develops EBM-based generation methods, explores sampling algorithms, addresses computational challenges, and demonstrates financial applications.
+이 마디는 에너지 바탕 만들어 내기 방법을 세우고 뽑기 알고리즘을 살피며 셈의 어려움을 다루고 금융 쓰임새를 보인다.
 
-## Key Concepts
+## 핵심 개념
 
-### Generation via Sampling
-- **Energy Landscape**: E(x) defines probability p(x) ∝ exp(-E(x))
-- **Sampling Algorithms**: Langevin, Hamiltonian, tempering methods
-- **Mode Coverage**: Ability to generate from all probability modes
-- **Computational Cost**: Expensive compared to feedforward generation
+### 뽑기로 만들어 내기
+- **에너지 풍경**: E(x)이 확률 p(x) ∝ exp(-E(x))을 뜻매김한다
+- **뽑기 알고리즘**: 랑주뱅, 해밀턴, 온도 바꾸기 방법
+- **봉우리 덮기**: 모든 확률 봉우리에서 만들어 낼 수 있는 힘
+- **셈 비용**: 앞먹임 만들어 내기에 견주어 비싸다
 
-### Generation Objectives
-- **Data Augmentation**: Generate realistic synthetic samples for training
-- **Scenario Analysis**: Generate plausible market scenarios for risk testing
-- **Missing Data**: Generate conditional samples given partial observations
-- **Controlled Generation**: Generate samples satisfying specified constraints
+### 만들어 내기의 목표
+- **자료 늘리기**: 익히기에 쓸 그럴듯한 만든 표본을 만든다
+- **시나리오 살피기**: 위험 시험에 쓸 그럴듯한 시장 시나리오를 만든다
+- **빠진 자료**: 일부만 본 관측이 주어질 때 조건 표본을 만든다
+- **다스린 만들어 내기**: 정해진 제약을 만족하는 표본을 만든다
 
-## Mathematical Framework
+## 수학적 틀
 
-### Langevin Sampling Algorithm
+### 랑주뱅 뽑기 알고리즘
 
-Generate samples from energy landscape via stochastic gradient descent:
+확률 기울기 내려가기로 에너지 풍경에서 표본을 만든다:
 
 $$x^{(t+1)} = x^{(t)} - \frac{\eta}{2}\nabla_x E(x^{(t)}; \theta) + \sqrt{\eta} \xi_t$$
 
-where ξ_t ~ N(0, I) is injected noise. As t→∞, x^{(t)} converges to sample from:
+여기서 ξ_t ~ N(0, I)은 넣어 준 잡음이다. t→∞이면 x^{(t)}은 다음에서 뽑은 표본으로 모인다:
 
 $$p(x) = \frac{\exp(-E(x; \theta))}{Z}$$
 
-### Hamiltonian Monte Carlo (HMC)
+### 해밀턴 몬테카를로(HMC)
 
-For faster mixing, use auxiliary momentum variable p:
+더 빨리 섞으려면 도우미 운동량 변수 p을 쓴다:
 
 $$x^{(t+1)} = x^{(t)} + \eta p^{(t)}$$
 
 $$p^{(t+1)} = p^{(t)} - \frac{\eta}{2}\nabla_x E(x^{(t)}) - \frac{\eta}{2}\nabla_x E(x^{(t+1)}) + \eta \xi_t$$
 
-HMC provides better exploration of energy landscape through momentum, reducing random walk behavior.
+해밀턴 몬테카를로는 운동량으로 에너지 풍경을 더 잘 살펴 아무 걸음 같은 움직임을 줄인다.
 
-### Parallel Tempering
+### 병렬 온도 다루기
 
-Improve mode coverage via ensemble of chains at different temperatures:
+온도가 다른 사슬의 모듬으로 봉우리 덮기를 낫게 한다:
 
 $$p_\beta(x) = \frac{\exp(-\beta E(x))}{Z_\beta}$$
 
-with β ∈ [β_min, β_max]. High temperature (low β) chains explore freely; cold chains (high β) concentrate near modes. Periodically swap between chains to propagate information.
+β ∈ [β_min, β_max]이다. 온도가 높은(β이 낮은) 사슬은 자유롭게 살피고 차가운(β이 높은) 사슬은 봉우리 가까이에 몰린다. 때때로 사슬끼리 바꾸어 앎을 퍼뜨린다.
 
-## Conditional Generation
+## 조건 만들어 내기
 
-### Conditional Energy Function
+### 조건 에너지 함수
 
-Generate samples x satisfying condition c via conditional energy:
+조건 에너지로 조건 c을 만족하는 표본 x을 만든다:
 
 $$E(x | c) = E(x) + E_{\text{constraint}}(x | c)$$
 
-### Examples for Finance
+### 금융의 보기
 
-**VaR-Constrained Generation**: Generate returns within VaR bounds:
+**위험 값 제약 만들어 내기**: 위험 값 한계 안의 수익률을 만든다:
 
 $$E_{\text{constraint}}(r) = \lambda \cdot \text{Indicator}(r < -\text{VaR}_{95\%})$$
 
-**Positive Price Generation**: Ensure generated prices positive:
+**양의 값 만들어 내기**: 만들어 낸 값이 양수가 되게 한다:
 
 $$E_{\text{constraint}}(p) = \lambda \cdot (p - p_{\text{min}})_-^2$$
 
-where $(·)_-$ denotes negative part.
+여기서 $(·)_-$은 음의 부분을 뜻한다.
 
-**Correlation-Matching Generation**: Generate portfolio returns preserving historical correlations:
+**얽힘 맞추기 만들어 내기**: 지난 얽힘을 지키는 꾸러미 수익률을 만든다:
 
 $$E_{\text{constraint}}(r) = \gamma \|\text{Corr}(r_{\text{gen}}) - \text{Corr}(r_{\text{hist}})\|_F^2$$
 
-### Guidance Through Score
+### 점수로 이끌기
 
-Incorporate constraints via score function:
+점수 함수로 제약을 넣는다:
 
 $$s_{\text{guided}}(x|c) = s(x) + \nabla_x E_{\text{constraint}}(x|c)$$
 
-Langevin with guided score automatically moves toward constraint satisfaction.
+이끈 점수를 쓴 랑주뱅은 저절로 제약을 만족하는 쪽으로 옮겨 간다.
 
-## Comparison with Alternative Generation Methods
+## 다른 만들어 내기 방법과 견주기
 
-### EBM vs VAE Generation
+### 에너지 바탕 모델과 변분 자기 부호기의 만들어 내기
 
-| Aspect | EBM | VAE |
+| 면 | 에너지 바탕 모델 | 변분 자기 부호기 |
 |--------|-----|-----|
-| **Framework** | Unnormalized density | Normalized distribution |
-| **Generation** | Iterative sampling | Single feedforward pass |
-| **Speed** | Slow (100s-1000s steps) | Fast (one pass) |
-| **Flexibility** | Very flexible (any energy) | Limited by architecture |
-| **Constraints** | Easy to add | Difficult to incorporate |
-| **Mode Coverage** | Good with tempering | May miss modes (posterior collapse) |
+| **틀** | 고르게 맞추지 않은 밀도 | 고르게 맞춘 분포 |
+| **만들어 내기** | 되풀이 뽑기 | 앞먹임 한 번 |
+| **빠르기** | 느림(수백~수천 걸음) | 빠름(한 번) |
+| **너그러움** | 매우 너그러움(어떤 에너지든) | 얼개에 제한됨 |
+| **제약** | 넣기 쉬움 | 넣기 어려움 |
+| **봉우리 덮기** | 온도 바꾸기와 함께라면 좋음 | 봉우리를 놓칠 수 있음(사후 무너짐) |
 
-EBMs excel at constrained generation; VAEs excel at speed.
+에너지 바탕 모델은 제약 있는 만들어 내기에, 변분 자기 부호기는 빠르기에 뛰어나다.
 
-### EBM vs GAN Generation
+### 에너지 바탕 모델과 맞겨루기 만들개의 만들어 내기
 
-| Aspect | EBM | GAN |
+| 면 | 에너지 바탕 모델 | 맞겨루기 만들개 |
 |--------|-----|-----|
-| **Objective** | Density matching | Adversarial game |
-| **Stability** | Stable training | Mode collapse risk |
-| **Theory** | Principled | Less rigorous |
-| **Sampling** | Iterative | Single pass |
-| **Metrics** | Likelihood available | No likelihood |
+| **목표** | 밀도 맞추기 | 맞겨루기 놀이 |
+| **안정성** | 안정된 익히기 | 봉우리 무너짐 위험 |
+| **이론** | 원리 있음 | 덜 엄밀함 |
+| **뽑기** | 되풀이 | 한 번 |
+| **잣대** | 가능도를 쓸 수 있음 | 가능도 없음 |
 
-EBMs more theoretically justified; GANs produce samples faster.
+에너지 바탕 모델이 이론으로 더 정당하고 맞겨루기 만들개가 표본을 더 빨리 만든다.
 
-## Financial Applications
+## 금융에서의 쓰임
 
-### Synthetic Market Data Generation
+### 만든 시장 자료 만들어 내기
 
-For testing trading algorithms without risking real capital:
+실제 밑천을 걸지 않고 거래 알고리즘을 시험하려면:
 
-1. **Train EBM** on historical OHLCV (Open, High, Low, Close, Volume) data
-2. **Sample Paths** using Langevin dynamics
-3. **Validation**: Ensure generated data preserves volatility clustering, skewness, kurtosis
+1. 지난 시가·고가·저가·종가·거래량 자료로 **에너지 바탕 모델을 익힌다**
+2. 랑주뱅 움직임으로 **길을 뽑는다**
+3. **살피기**: 만든 자료가 변동성 뭉침, 비대칭도, 첨도를 지키는지 확인한다
 
-Advantages:
-- Realistic price dynamics
-- Easy to add constraints (no negative prices)
-- Conditional generation: "Generate paths given market regime X"
+이점:
 
-### Scenario-Based Risk Analysis
+- 그럴듯한 값 움직임
+- 제약을 넣기 쉬움(값이 음수가 되지 않게)
+- 조건 만들어 내기: "시장 국면 X이 주어질 때 길을 만들어라"
 
-Generate plausible stress scenarios for portfolio testing:
+### 시나리오 바탕 위험 살피기
+
+꾸러미를 시험할 그럴듯한 버팀 시나리오를 만든다:
 
 $$E(r_{\text{portfolio}}) = E_{\text{normal}}(r) + E_{\text{regime}}(\text{high volatility})$$
 
-Sample portfolio returns in stress regime; evaluate losses.
+버팀 국면에서 꾸러미 수익률을 뽑아 손실을 따진다.
 
-### Order Book Microstructure Synthesis
+### 호가창 미시 얼개 짓기
 
-Generate synthetic order book snapshots preserving empirical characteristics:
+경험으로 본 성질을 지키는 만든 호가창 스냅숏을 만든다:
 
-1. **Features**: Spreads, depths, mid-price, volatility
-2. **Energy**: Learned from real order book data
-3. **Constraints**: No negative spreads, depth/price relationships
-4. **Output**: Realistic synthetic order books for algorithm testing
+1. **특징**: 벌어짐, 깊이, 가운데 값, 변동성
+2. **에너지**: 실제 호가창 자료에서 배운다
+3. **제약**: 벌어짐이 음수가 되지 않기, 깊이와 값의 관계
+4. **내놓기**: 알고리즘 시험에 쓸 그럴듯한 만든 호가창
 
-### Missing Data Imputation
+### 빠진 자료 메우기
 
-For portfolios with missing prices (infrequently traded assets):
+값이 빠진 꾸러미(드물게 거래되는 자산)에서:
 
 $$p(x_{\text{missing}} | x_{\text{observed}}) = \frac{\exp(-E(x_{\text{missing}}, x_{\text{observed}}))}{\int \exp(-E(x', x_{\text{observed}})) dx'}$$
 
-Langevin sampling fills missing values while preserving correlation structure.
+랑주뱅 뽑기가 얽힘 얼개를 지키면서 빠진 값을 채운다.
 
-## Practical Implementation
+## 실전 구현
 
-### Sampling Hyperparameters
+### 뽑기 윗매개변수
 
-Critical choices for Langevin dynamics:
+랑주뱅 움직임에서 결정적인 고르기:
 
-1. **Step Size η**: Larger steps explore faster but lower acceptance. Typical: η ∈ [0.001, 0.01]
-2. **Burn-In Iterations**: Discard early samples before mixing. Typical: 100-500 steps
-3. **Sampling Iterations**: Number of samples needed for convergence. Typical: 500-5000
-4. **Noise Schedule**: Start high noise → decrease for refinement
+1. **걸음 크기 η**: 걸음이 클수록 빨리 살피지만 받아들임이 줄어든다. 흔한 값: η ∈ [0.001, 0.01]
+2. **버림 되풀이**: 섞이기 전의 이른 표본을 버린다. 흔한 값: 100~500걸음
+3. **뽑기 되풀이**: 모이는 데 필요한 표본 수. 흔한 값: 500~5000
+4. **잡음 차례표**: 큰 잡음에서 시작해 다듬기를 위해 줄인다
 
-### Convergence Diagnostics
+### 모임 진단
 
-Assess sampling convergence via:
+다음으로 뽑기의 모임을 따진다:
 
 $$\text{Variance Ratio} = \frac{\text{Var}_{\text{between-chain}}(x^{(t)})}{\text{Var}_{\text{within-chain}}(x^{(t)})}$$
 
-Ratio < 1.1 indicates convergence (Gelman-Rubin statistic).
+비가 1.1보다 작으면 모였다는 뜻이다(겔먼-루빈 통계량).
 
-### Computational Acceleration
+### 셈 빠르게 하기
 
-Reduce sampling cost through:
+다음으로 뽑기 비용을 줄인다:
 
-1. **GPU Parallelization**: Run multiple chains in parallel
-2. **Low-Rank Energy**: Approximate energy with smaller network
-3. **Score-Based Initialization**: Use diffusion model to initialize chains
-4. **Importance Weighting**: Weight samples; discard low-likelihood samples
+1. **GPU 나란히 하기**: 여러 사슬을 나란히 돌린다
+2. **낮은 계수 에너지**: 더 작은 신경망으로 에너지를 어림한다
+3. **점수 바탕 첫자리매김**: 퍼짐 모델로 사슬을 첫자리매김한다
+4. **중요도 무게 주기**: 표본에 무게를 주고 가능도가 낮은 표본을 버린다
 
-## Assessing Generated Sample Quality
+## 만든 표본의 품질 따지기
 
-### Distributional Matching
+### 분포 맞음
 
-Compare generated samples to real data on summary statistics:
+만든 표본을 요약 통계에서 실제 자료와 견준다:
 
 $$\text{Error}_\mu = |\mu_{\text{gen}} - \mu_{\text{real}}|$$
 
@@ -195,54 +194,101 @@ $$\text{Error}_\sigma = |\sigma_{\text{gen}} - \sigma_{\text{real}}|$$
 
 $$\text{Error}_\rho = \|\text{Corr}_{\text{gen}} - \text{Corr}_{\text{real}}\|_F$$
 
-Generation successful if errors within acceptable bounds (typically < 5%).
+어긋남이 받아들일 만한 한계(보통 5% 미만) 안이면 만들어 내기가 성공한 것이다.
 
-### Likelihood Evaluation
+### 가능도 따지기
 
-If exact likelihood computable (rare), evaluate on generated samples:
+정확한 가능도를 셈할 수 있으면(드물다) 만든 표본에서 따진다:
 
 $$\text{Likelihood} = \frac{1}{N_{\text{gen}}}\sum_n \log p(x_n^{\text{gen}})$$
 
-Should be close to data likelihood, indicating faithful distribution.
+자료의 가능도에 가까워야 하며 이는 분포를 충실히 따랐다는 뜻이다.
 
-### Domain-Specific Validation
+### 마당에 맞춘 살피기
 
-For financial applications:
+금융 쓰임새에서:
 
-1. **Volatility Clustering**: Generated returns exhibit GARCH-like clustering
-2. **Drawdown Statistics**: Drawdown distribution matches historical
-3. **Trading Metrics**: Strategy performance on generated data similar to backtests
-4. **Correlation Stability**: Portfolio-level correlations preserved
+1. **변동성 뭉침**: 만든 수익률이 GARCH 같은 뭉침을 보인다
+2. **낙폭 통계**: 낙폭 분포가 지난 것과 맞는다
+3. **거래 잣대**: 만든 자료에서의 셈속 성능이 되짚어 시험한 것과 비슷하다
+4. **얽힘 안정**: 꾸러미 수준의 얽힘이 지켜진다
 
-## Limitations and Mitigation
+## 한계와 누그러뜨리기
 
-### Computational Cost
+### 계산 비용
 
-Langevin sampling expensive (requires 1000s of energy evaluations per sample).
+랑주뱅 뽑기는 비싸다(표본마다 에너지를 수천 번 매겨야 한다).
 
-**Mitigations**:
-- Use tempering for better exploration
-- Parallelize across GPUs
-- Combine with fast generation methods (distillation into VAE)
+**누그러뜨리기**:
 
-### Mode Coverage
+- 더 잘 살피려 온도 바꾸기를 쓴다
+- 여러 GPU에 나란히 돌린다
+- 빠른 만들어 내기 방법과 합친다(변분 자기 부호기로 우려내기)
 
-May miss low-probability modes not visited during sampling.
+### 봉우리 덮기
 
-**Mitigations**:
-- Parallel tempering to explore high-temperature modes
-- Combination with explicit mode specification
-- Hybrid: VAE for mode identification + EBM for refinement
+뽑는 동안 들르지 않은 확률 낮은 봉우리를 놓칠 수 있다.
 
-### Non-Stationarity
+**누그러뜨리기**:
 
-Financial distributions change over time; EBM trained on historical data may fail on future data.
+- 온도 높은 봉우리를 살피려 나란한 온도 바꾸기를 쓴다
+- 봉우리를 드러내 밝히는 방식과 합친다
+- 뒤섞기: 봉우리 찾기에 변분 자기 부호기, 다듬기에 에너지 바탕 모델
 
-**Mitigations**:
-- Regular retraining on recent data
-- Regime-conditioned energy functions
-- Ensemble of EBMs from different time periods
+### 정상이 아님
 
-!!! warning "Generation Practicality"
-    EBM generation powerful but computationally expensive. For most applications, hybrid approaches work best: use fast methods (VAE, GAN) for bulk generation; use EBM for controlled refinement or constrained generation. Pure EBM generation most appropriate when constraints essential or modes must be exhaustively explored.
+금융 분포는 때에 따라 바뀐다. 지난 자료로 익힌 에너지 바탕 모델은 앞으로의 자료에서 통하지 않을 수 있다.
+
+**누그러뜨리기**:
+
+- 최근 자료로 꾸준히 다시 익히기
+- 국면을 조건으로 삼은 에너지 함수
+- 여러 시기의 에너지 바탕 모델 모듬
+
+!!! warning "만들어 내기의 실용성"
+    에너지 바탕 모델의 만들어 내기는 힘세지만 셈이 비싸다. 대부분의 쓰임새에서는 뒤섞은 방식이 가장 잘 듣는다. 큰 덩어리는 빠른 방법(변분 자기 부호기, 맞겨루기 만들개)으로 만들고 다스린 다듬기나 제약 있는 만들어 내기에 에너지 바탕 모델을 쓴다. 순수한 에너지 바탕 만들어 내기는 제약이 꼭 필요하거나 봉우리를 샅샅이 살펴야 할 때 가장 알맞다.
+
+## 연습문제
+
+**연습문제 1.**
+$\xi_t \sim \mathcal{N}(0, I)$인 랑주뱅 움직임 $x^{(t+1)} = x^{(t)} - \frac{\eta}{2}\nabla_x E(x^{(t)}) + \sqrt{\eta}\,\xi_t$이 $\eta \to 0$의 끝에서 $p(x) \propto \exp(-E(x))$에 대해 자세한 균형을 만족함을 보여라.
+
+??? success "연습문제 1 풀이"
+    랑주뱅 움직임의 옮김 알맹이는 $q(x' | x) = \mathcal{N}(x' ; x - \frac{\eta}{2}\nabla E(x), \eta I)$이다. 자세한 균형은 $p(x)q(x'|x) = p(x')q(x|x')$을 요구한다. 로그 비를 잡으면:
+
+    $$\log\frac{p(x)q(x'|x)}{p(x')q(x|x')} = -(E(x) - E(x')) + \frac{1}{2\eta}\left[-\|x' - x + \frac{\eta}{2}\nabla E(x)\|^2 + \|x - x' + \frac{\eta}{2}\nabla E(x')\|^2\right]$$
+
+    펼쳐서 항을 모으면 $O(1)$ 항이 지워지고 남은 것은 $O(\eta)$이다. $\eta \to 0$의 끝에서 자세한 균형 조건이 정확히 만족된다. $\eta$이 유한하면 메트로폴리스-헤이스팅스 받아들임 걸음으로 띄엄띄엄하게 만든 어긋남을 고칠 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+(가) 하루 수익률의 크기가 20%을 넘지 않고 (나) 만든 수익률 꾸러미의 연 환산 변동성이 목표인 15%이 되도록 하는 제약 에너지 함수를 짜라. 온전한 에너지를 적어라.
+
+??? success "연습문제 2 풀이"
+    하루 수익률 벡터 $\mathbf{r} = (r_1, \ldots, r_T)$의 온 에너지는 다음과 같다:
+
+    $$E(\mathbf{r}) = E_{\text{data}}(\mathbf{r}) + \lambda_1 \sum_{t=1}^{T} \max(|r_t| - 0.20, 0)^2 + \lambda_2 \left(\hat{\sigma}_{\text{ann}} - 0.15\right)^2$$
+
+    여기서 $E_{\text{data}}$은 지난 자료에서 배운 에너지이고, $\hat{\sigma}_{\text{ann}} = \sqrt{252} \cdot \text{std}(\mathbf{r})$은 연 환산 변동성 어림이며, $\lambda_1$은 20% 한계를 넘는 수익률을 벌하고 $\lambda_2$은 목표 변동성에서 벗어남을 벌한다. 랑주뱅 뽑기 동안 기울기 $\nabla_{\mathbf{r}} E$이 만든 수익률을 두 제약을 만족하는 그럴듯한 길로 이끈다. $\square$
+
+---
+
+**연습문제 3.**
+봉우리 둘인 에너지 풍경 $E(x) = \frac{1}{4}(x^2 - 4)^2$에서 랑주뱅 움직임과 해밀턴 몬테카를로의 섞임 시간을 견주어라. 해밀턴 몬테카를로가 에너지 담을 넘는 데 왜 더 효율 좋은지 밝혀라.
+
+??? success "연습문제 3 풀이"
+    이 에너지는 $x = \pm 2$에 봉우리 둘이 있고 높이 $E(0) = 4$인 담으로 갈려 있다. 랑주뱅 움직임은 담을 넘는 데 아무 잡음에 기대며 그 확률은 대략 $\exp(-\Delta E / T)$이다. $T = 1$이고 $\Delta E = 4$이면 약 $e^{-4} \approx 0.018$이어서 섞임 시간이 길어진다. 해밀턴 몬테카를로는 운동량 변수 $p$을 들여와 온 에너지 $H(x, p) = E(x) + p^2/2$의 해밀턴 움직임을 흉내 낸다. $x = -2$에서 넉넉한 운동량 $|p| > \sqrt{2 \cdot 4} \approx 2.83$으로 출발한 알갱이는 정해진 방식으로 담을 넘을 수 있다. 운동량을 $\mathcal{N}(0, 1)$에서 다시 뽑으므로 넉넉한 운동량을 얻을 확률은 $P(|p| > 2.83) \approx 0.005$으로 여전히 작지만, 그 자취가 아무 걸음을 여러 번 밟는 대신 도약 자취 하나로 웅덩이 전체를 훑는다. 차원이 높고 봉우리가 여럿인 분포에서는 랑주뱅의 아무 걸음 같은 움직임을 피하므로 해밀턴 몬테카를로의 이점이 더욱 뚜렷해진다. $\square$
+
+---
+
+**연습문제 4.**
+2차원 에너지 함수에 온도 $T \in \{0.5, 1.0, 2.0, 5.0\}$의 나란한 온도 바꾸기를 짜라. 바꿈을 받아들이는 잣대를 적고 바꿈 비율이 온도 간격에 어떻게 매이는지 살펴라.
+
+??? success "연습문제 4 풀이"
+    나란한 온도 바꾸기는 온도가 다른 마르코프 사슬 $K$개를 돌린다. 걸음마다 이웃한 사슬 $(i, i+1)$이 다음 확률로 자리 얽이를 바꾸자고 내놓는다:
+
+    $$A = \min\!\left(1, \exp\!\left[(\beta_i - \beta_{i+1})(E(x_i) - E(x_{i+1}))\right]\right)$$
+
+    여기서 $\beta_k = 1/T_k$이다. 차가운 사슬의 에너지가 더 높고(온도가 높은 쪽으로 옮기면 이롭다) 뜨거운 사슬의 에너지가 더 낮을 때(온도가 낮은 쪽으로 옮기면 이롭다) 바꿈이 받아들여진다. 바꿈 비율은 이웃한 사슬의 에너지 분포가 얼마나 겹치느냐에 매인다. 온도가 너무 멀면 에너지 분포가 거의 겹치지 않아 바꿈이 잘 받아들여지지 않는다. 등비 간격 $T_{k+1}/T_k = \text{const}$은 모든 짝의 바꿈 비율을 고르게 하는 편이다. 주어진 비가 약 2인 온도에서는 바꿈 받아들임 비율이 보통 20~40%이다. $\square$
 

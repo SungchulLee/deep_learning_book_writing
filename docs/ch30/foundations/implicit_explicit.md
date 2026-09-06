@@ -1,87 +1,82 @@
-# Implicit vs Explicit Feedback in Recommender Systems
+# 추천 시스템의 숨은 되먹임과 드러난 되먹임
+## 들어가며
 
+추천 시스템은 근본이 다른 두 갈래의 되먹임에서 쓰는 이의 취향을 배운다. 드러난 되먹임(쓰는 이가 숫자 잣대나 좋아요/싫어요로 곧바로 매김)과 숨은 되먹임(누름, 삼, 머문 때, 봄 같은 움직임으로 취향이 드러남)이다. 저마다 뚜렷한 이점과 어려움이 있다. 드러난 되먹임은 풀이할 수 있는 참 취향 신호를 주지만 쓰는 이의 품이 들어 양이 적다. 숨은 되먹임은 움직임에서 자연스레 나와 자료가 넉넉하지만 잡소리가 섞이고 에두른다. 쪽을 오래 본 것이 참으로 관심 있어서일 수도, 그저 잘못 굴린 것일 수도 있다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+금융 시스템에서는 둘 다 결정적이다. 드러난 되먹임은 설문과 곧바른 취향 밝힘에서, 숨은 되먹임은 거래 활동, 꾸러미 바꿈, 물건 쓰임에서 온다. 언제 무엇을 쓸지, 어떻게 아우를지, 저마다의 어려움을 어떻게 다룰지 아는 것이 쓸모 있는 금융 추천 시스템을 세우는 데 꼭 필요하다.
 
-## Introduction
+이 마디는 두 되먹임 갈래의 틀을 세우고 아우르는 길을 살피며 실제 짜기를 보여 준다.
 
-Recommender systems learn user preferences from two fundamentally different types of feedback: explicit feedback (users directly rate items on numerical scales or binary like/dislike) and implicit feedback (users reveal preferences through behavior—clicks, purchases, time spent, views). Each modality presents distinct advantages and challenges. Explicit feedback provides interpretable, ground-truth preference signals but requires active user effort, limiting quantity. Implicit feedback emerges naturally from user behavior, providing abundant data, but is noisy and indirect—a long page view could indicate genuine interest or accidental scroll.
+## 핵심 개념
 
-In financial systems, both modalities are critical: explicit feedback comes from surveys and direct preference statements; implicit feedback from trading activity, portfolio changes, and product usage. Understanding when to use each, how to combine them, and how to address their respective challenges is essential for building effective financial recommendation systems.
+### 드러난 되먹임
+- **곧바른 취향 신호**: 쓰는 이가 뜻을 두고 취향을 밝힌다
+- **보기**: 별 다섯 매김, 좋아요/싫어요 단추, 취향 설문
+- **성질**: 품질이 높고 풀이할 수 있으나 성기다
+- **치우침**: 최근 겪음이 비칠 수 있고 남 눈치를 보는 치우침이 있다
 
-This section develops frameworks for both feedback types, explores approaches to combine them, and demonstrates practical implementations.
+### 숨은 되먹임
+- **움직임 신호**: 하는 짓에서 쓰는 이의 취향을 미루어 안다
+- **보기**: 누름, 삼, 보는 때, 꾸러미에 더함
+- **성질**: 넉넉하고 잡소리가 있으나 남 눈치에 치우치지 않는다
+- **어려움**: 아리송한 신호를 풀이하기
 
-## Key Concepts
+## 수학적 틀
 
-### Explicit Feedback
-- **Direct Preference Signal**: Users consciously state preferences
-- **Examples**: 5-star ratings, like/dislike buttons, preference surveys
-- **Characteristics**: High quality, interpretable, sparse
-- **Bias**: May reflect recent experience; social desirability bias
+### 드러난 되먹임 모형
 
-### Implicit Feedback
-- **Behavioral Signal**: User preferences inferred from actions
-- **Examples**: Clicks, purchases, viewing time, portfolio additions
-- **Characteristics**: Abundant, noisy, unbiased by social considerations
-- **Challenge**: Interpreting ambiguous signals
-
-## Mathematical Framework
-
-### Explicit Feedback Model
-
-User u explicitly rates item i with score r_{ui} ∈ {1, 2, 3, 4, 5}:
+쓰는 이 u이 물건 i에 점수 r_{ui} ∈ {1, 2, 3, 4, 5}을 드러나게 매긴다:
 
 $$p(\text{rating} | u, i) = \text{Categorical}([p_1, p_2, p_3, p_4, p_5])$$
 
-Matrix factorization learns embeddings minimizing:
+행렬 인수 분해가 다음을 가장 작게 하는 박아 넣기를 배운다:
 
 $$\mathcal{L}_{\text{explicit}} = \sum_{(u,i): \text{rated}(u,i)} (r_{ui} - \langle u_\theta, i_\theta \rangle)^2 + \lambda \|u_\theta\|^2 + \lambda \|i_\theta\|^2$$
 
-Only observed entries contribute to loss (unobserved ratings not modeled).
+본 칸만 손실에 이바지한다(보지 않은 매김은 나타내지 않는다).
 
-### Implicit Feedback Model
+### 숨은 되먹임 모형
 
-Binary feedback: y_{ui} = 1 if interaction occurred (click, purchase), 0 otherwise:
+두 값 되먹임: 주고받음(누름, 삼)이 있으면 y_{ui} = 1, 아니면 0:
 
 $$p(y_{ui} = 1 | u, i) = \sigma(\langle u_\theta, i_\theta \rangle)$$
 
-Logistic loss minimizes:
+로지스틱 손실이 다음을 가장 작게 한다:
 
 $$\mathcal{L}_{\text{implicit}} = -\sum_u \sum_i [y_{ui} \log(\sigma(s_{ui})) + (1-y_{ui}) \log(1-\sigma(s_{ui}))]$$
 
-where $s_{ui} = \langle u_\theta, i_\theta \rangle$ is score.
+여기서 $s_{ui} = \langle u_\theta, i_\theta \rangle$은 점수이다.
 
-### Weighted Implicit Feedback
+### 무게 매긴 숨은 되먹임
 
-Weight positive feedback more heavily than negative (missing interactions):
+양의 되먹임에 음의 것(없는 주고받음)보다 무게를 더 준다:
 
 $$\mathcal{L}_{\text{weighted}} = \sum_u \sum_i c_{ui} [y_{ui} - \sigma(s_{ui})]^2$$
 
-where confidence:
+여기서 믿음 정도는:
 
 $$c_{ui} = 1 + \alpha \cdot (\text{interaction count or duration})_{ui}$$
 
-Accounts for strength of signal—frequent interactions more informative than single click.
+신호의 세기를 셈에 넣는다. 잦은 주고받음이 한 번의 누름보다 앎이 많다.
 
-## Explicit Feedback Systems
+## 드러난 되먹임 시스템
 
-### Rating-Based Recommendations
+### 매김 바탕 추천
 
-Users rate items; recommend items similar users rated highly:
+쓰는 이가 물건을 매기고, 닮은 쓰는 이가 높이 매긴 물건을 권한다:
 
-**5-Star Ratings** (e.g., movie reviews):
+**별 다섯 매김**(보기로 영화 평):
 ```
-User A: Movie 1 → 5 stars, Movie 2 → 3 stars
-User B: Movie 1 → 4 stars, Movie 3 → 5 stars
+쓰는 이 A: 영화 1 → 별 5개, 영화 2 → 별 3개
+쓰는 이 B: 영화 1 → 별 4개, 영화 3 → 별 5개
 → Recommend Movie 3 to User A (similar taste)
 ```
 
-### Preference Surveys
+### 취향 설문
 
-Collect explicit preferences through structured questionnaires:
+짜임 있는 물음지로 드러난 취향을 모은다:
 
-**Financial Products Example**:
+**금융 물건 보기**:
 ```
 Rate your interest (1=Not Interested, 5=Very Interested):
 - Large-cap US stocks: [3]
@@ -92,59 +87,59 @@ Rate your interest (1=Not Interested, 5=Very Interested):
 - Emerging markets: [1]
 ```
 
-### Binary Feedback (Like/Dislike)
+### 두 값 되먹임(좋아요/싫어요)
 
-Simplified explicit feedback:
+단순하게 만든 드러난 되먹임:
 
 $$y_{ui} \in \{0, 1\}$$
 
-Easier for users to provide; less information per signal (binary vs 5-valued).
+쓰는 이가 주기 쉽지만 신호마다 앎이 적다(두 값과 다섯 값의 차이).
 
-## Implicit Feedback Systems
+## 숨은 되먹임 시스템
 
-### Engagement Signals
+### 눈여겨봄 신호
 
-Infer preferences from user actions:
+쓰는 이가 하는 짓에서 취향을 미루어 안다:
 
-**Click-Through Rate**:
+**누름 비율**:
 
 $$\text{CTR}_{ui} = \mathbb{1}[\text{user } u \text{ clicked item } i]$$
 
-**Time Spent**:
+**머문 때**:
 
 $$t_{ui} = \text{seconds spent viewing item } i \text{ by user } u$$
 
-**Purchase**:
+**삼**:
 
 $$p_{ui} = \mathbb{1}[\text{user } u \text{ purchased item } i]$$
 
-Purchases strongest signal; clicks weaker signal.
+사는 것이 가장 센 신호이고 누름은 약한 신호이다.
 
-### Financial-Specific Implicit Signals
+### 금융 특유의 숨은 신호
 
-**Portfolio Additions**: When investor adds product to portfolio
+**꾸러미에 더함**: 투자자가 물건을 꾸러미에 더할 때
 
-**Trading Activity**: Frequency and volume of trades in security
+**거래 활동**: 그 증권 거래의 잦음과 양
 
-**Information Seeking**: Document reads, research views, analyst reports opened
+**앎 찾기**: 글 읽기, 연구 보기, 살피는 이의 보고서 열기
 
-**Engagement Duration**: Time spent on product pages, alerts subscribed to
+**눈여겨본 길이**: 물건 쪽에 머문 때, 받아 보기로 한 알림
 
-### Implicit Signal Strength
+### 숨은 신호의 세기
 
-Different signals carry different information:
+신호마다 담은 앎이 다르다:
 
-| Signal | Strength | Interpretation |
+| 신호 | 세기 | 풀이 |
 |--------|----------|-----------------|
-| Page view | Weak | May be accidental |
-| Click | Weak-Medium | User interested enough to click |
-| Time spent (>30s) | Medium | Genuine engagement |
-| Add to favorites | Strong | Explicit interest signal |
-| Purchase | Very Strong | Demonstrated preference through action |
+| 쪽 보기 | 약함 | 우연일 수 있다 |
+| 누름 | 약함~보통 | 누를 만큼은 관심이 있다 |
+| 머문 때(>30초) | 보통 | 참으로 눈여겨봄 |
+| 즐겨찾기에 더함 | 셈 | 드러난 관심 신호 |
+| 삼 | 매우 셈 | 행동으로 보인 취향 |
 
-### Confidence-Weighted Implicit Feedback
+### 믿음 무게를 준 숨은 되먹임
 
-Assign confidence to implicit signals:
+숨은 신호에 믿음 정도를 매긴다:
 
 $$c_{ui} = \begin{cases}
 0.5 & \text{if view} \\
@@ -153,115 +148,122 @@ $$c_{ui} = \begin{cases}
 10.0 & \text{if purchase}
 \end{cases}$$
 
-Learning uses weighted loss: important signals influence embeddings more.
+배움에 무게 손실을 쓴다. 중요한 신호가 박아 넣기에 더 큰 영향을 준다.
 
-## Hybrid Explicit + Implicit Approaches
+## 드러난 것과 숨은 것을 섞는 길
 
-### Combined Loss Function
+### 합친 손실 함수
 
-Learn from both explicit ratings and implicit behavior:
+드러난 매김과 숨은 움직임 둘 다에서 배운다:
 
 $$\mathcal{L}_{\text{hybrid}} = w_e \cdot \mathcal{L}_{\text{explicit}} + w_i \cdot \mathcal{L}_{\text{implicit}}$$
 
-Weights balance:
-- w_e = 0.7 if explicit feedback scarce
-- w_i = 0.7 if implicit feedback abundant and reliable
+무게가 균형을 잡는다:
 
-### Preference Models Combining Feedback
+- 드러난 되먹임이 드물면 w_e = 0.7
+- 숨은 되먹임이 넉넉하고 믿을 만하면 w_i = 0.7
 
-Assume underlying true preference z_{ui}; both explicit and implicit observations:
+### 되먹임을 아우른 취향 모형
 
-**Explicit rating**: $r_{ui} \sim \mathcal{N}(z_{ui}, \sigma_e^2)$ (observation noise)
+바탕에 참 취향 z_{ui}이 있다고 여기고 드러난 봄과 숨은 봄을 함께 쓴다:
 
-**Implicit engagement**: $c_{ui} = \text{count}(z_{ui})$ (Poisson model)
+**드러난 매김**: $r_{ui} \sim \mathcal{N}(z_{ui}, \sigma_e^2)$(봄의 잡소리)
 
-Combined inference updates belief about z_{ui}.
+**숨은 눈여겨봄**: $c_{ui} = \text{count}(z_{ui})$(푸아송 모형)
 
-## Modeling Implicit Feedback Bias
+아울러 미루어 알면 z_{ui}에 대한 믿음이 고쳐진다.
 
-### False Negatives in Implicit Feedback
+## 숨은 되먹임의 치우침 나타내기
 
-Missing interaction doesn't mean dislike—may indicate unaware of item:
+### 숨은 되먹임의 거짓 음성
+
+주고받음이 없다고 싫어한다는 뜻은 아니다. 그 물건을 몰랐을 수도 있다:
 
 $$p(y_{ui} = 0 | z_{ui}) = \mathbb{1}[z_{ui} < \text{threshold}] + (1-\text{awareness}_{ui})$$
 
-Items with low awareness appear unrated despite high actual preference.
+알려짐이 낮은 물건은 실제 취향이 높아도 매김이 없어 보인다.
 
-### Position Bias
+### 자리 치우침
 
-Items in prominent positions clicked more frequently regardless of quality:
+눈에 띄는 자리의 물건이 품질과 상관없이 더 자주 눌린다:
 
 $$p(\text{click}_{ui} | z_{ui}) = p(\text{position}_{ui}) \times p(\text{click} | \text{relevance})$$
 
-Need to adjust for position bias in implicit feedback.
+숨은 되먹임에서 자리 치우침을 바로잡아야 한다.
 
-### Selection Bias
+### 고름 치우침
 
-Users actively choose what to view/rate; not random sample:
+쓰는 이가 무엇을 보고 매길지 스스로 고른다. 아무 표본이 아니다:
 
 $$p(\text{view}_{ui}) \neq \text{uniform}$$
 
-Users watch movies they think they'll like (positive selection bias).
+쓰는 이는 좋아할 것 같은 영화를 본다(양의 고름 치우침).
 
-## Learning from Sparse Explicit vs Abundant Implicit
+## 성긴 드러남과 넉넉한 숨음에서 배우기
 
-### Data Scarcity Strategies
+### 자료가 드물 때의 셈속
 
-**Explicit Feedback Scarcity**: 
-- User rates 1 in 1000 items
-- Matrix sparsity: 99.9%
+**드러난 되먹임의 드묾**:
 
-**Strategies**:
-1. Use implicit feedback to fill gaps
-2. Active learning: request ratings for informative items
-3. Regularization: assumptions about unrated items
+- 쓰는 이가 물건 1000개 가운데 1개를 매긴다
+- 행렬의 성김: 99.9%
 
-### Data Abundance Strategies
+**셈속**:
 
-**Implicit Feedback Abundance**:
-- Millions of user-item interactions available
-- Noise and bias prevalent
+1. 숨은 되먹임으로 빈틈을 채운다
+2. 골라 배우기: 앎이 많은 물건의 매김을 청한다
+3. 다잡기: 매기지 않은 물건에 대한 여김
 
-**Strategies**:
-1. Confidence weighting to emphasize strong signals
-2. Negative sampling to avoid learning from noise
-3. Bias correction models
+### 자료가 넉넉할 때의 셈속
 
-## Practical Implementation
+**숨은 되먹임의 넉넉함**:
 
-### Financial Recommendation System with Hybrid Feedback
+- 쓰는 이와 물건의 주고받음이 수백만 개 있다
+- 잡소리와 치우침이 흔하다
 
-**Explicit Feedback**:
-- Investor satisfaction surveys: "How satisfied with this recommendation?" (1-5 scale)
-- Preference questionnaires: "Interest in this product?" (Yes/No)
-- Goal alignment: "Does this help your investment goal?" (Yes/No/Somewhat)
+**셈속**:
 
-**Implicit Feedback**:
-- Add to portfolio: Binary signal (1 if added, 0 otherwise)
-- View time: Duration on product details page
-- Search frequency: How often investor searches for this product
-- Recommendation acceptance rate: % of recommendations adopted
+1. 센 신호를 도드라지게 하는 믿음 무게 주기
+2. 잡소리에서 배우지 않도록 음의 뽑기
+3. 치우침 바로잡기 모형
 
-**Combined Learning**:
+## 실전 구현
 
-1. **User Embedding** learned from both signals:
-   - Explicit: Directly observed preferences
-   - Implicit: Behavior patterns
+### 섞은 되먹임을 쓰는 금융 추천 시스템
 
-2. **Product Embedding** learned from both signals:
-   - Explicit: Users who rate it
-   - Implicit: Users who interact with it
+**드러난 되먹임**:
 
-3. **Joint Scoring**:
+- 투자자 만족 설문: "이 추천에 얼마나 만족하십니까?"(1~5 잣대)
+- 취향 물음지: "이 물건에 관심이 있습니까?"(예/아니오)
+- 목표 맞음: "이것이 투자 목표에 도움이 됩니까?"(예/아니오/조금)
+
+**숨은 되먹임**:
+
+- 꾸러미에 더함: 두 값 신호(더하면 1, 아니면 0)
+- 보는 때: 물건 자세히 보기 쪽에 머문 길이
+- 찾기 잦음: 투자자가 이 물건을 얼마나 자주 찾는가
+- 추천 받아들임 비율: 받아들여진 추천의 %
+
+**아우른 배움**:
+
+1. 두 신호에서 배우는 **쓰는 이 박아 넣기**:
+   - 드러남: 곧바로 본 취향
+   - 숨음: 움직임 무늬
+
+2. 두 신호에서 배우는 **물건 박아 넣기**:
+   - 드러남: 그것을 매긴 쓰는 이
+   - 숨음: 그것과 주고받은 쓰는 이
+
+3. **함께 점수 매기기**:
 
 $$\text{Score}(u, p) = w_e \cdot f_e(u, p) + w_i \cdot f_i(u, p)$$
 
-### Explanation to Users
+### 쓰는 이에게 밝히기
 
-Recommendations may come from different feedback:
+추천은 서로 다른 되먹임에서 나올 수 있다:
 
 ```
-Recommended: Growth Fund X
+권함: 성장 펀드 X
 
 Why recommended:
 - You viewed similar funds 5 times (implicit signal)
@@ -269,56 +271,88 @@ Why recommended:
 - Matches 90% of investor like you (collaborative pattern)
 ```
 
-Transparency about feedback source builds trust.
+되먹임이 어디서 왔는지 훤히 밝히면 믿음이 쌓인다.
 
-## Evaluation with Mixed Feedback
+## 섞인 되먹임으로 따지기
 
-### Explicit Feedback Accuracy
+### 드러난 되먹임의 맞음
 
-Test explicit ratings prediction on hold-out ratings:
+남겨 둔 매김으로 드러난 매김 헤아리기를 시험한다:
 
 $$\text{RMSE}_{\text{explicit}} = \sqrt{\frac{1}{N_{\text{test}}}\sum_{(u,i) \in \text{test}} (r_{ui} - \hat{r}_{ui})^2}$$
 
-### Implicit Feedback Accuracy
+### 숨은 되먹임의 맞음
 
-Test engagement prediction (binary classification):
+눈여겨봄 헤아리기를 시험한다(두 값 가름):
 
 $$\text{AUC}_{\text{implicit}} = \frac{\# \text{correct rankings}}{\# \text{total rankings}}$$
 
-### Cross-Modal Transfer
+### 갈래를 넘나드는 옮김
 
-Can explicit feedback improve implicit predictions?
+드러난 되먹임이 숨은 헤아림을 좋게 할 수 있는가?
 
 $$\Delta \text{AUC}_{\text{implicit}} = \text{AUC}_{\text{implicit+explicit}} - \text{AUC}_{\text{implicit only}}$$
 
-Positive value indicates explicit feedback helps (transfer learning).
+값이 양이면 드러난 되먹임이 도움이 된다는 뜻이다(옮겨 배우기).
 
-## Best Practices
+## 모범 사례
 
-### Explicit Feedback Collection
+### 드러난 되먹임 모으기
 
-- Keep questionnaires short (3-5 questions) to ensure completion
-- Use clear rating scales (1-5 stars better than complex ordinal)
-- Incentivize participation if needed
-- Collect in natural moments (after transaction)
+- 끝까지 답하도록 물음지를 짧게(3~5개) 한다
+- 또렷한 매김 잣대를 쓴다(복잡한 차례 잣대보다 별 1~5개가 낫다)
+- 필요하면 참여에 보상을 준다
+- 자연스러운 때에 모은다(거래 뒤)
 
-### Implicit Feedback Interpretation
+### 숨은 되먹임 풀이하기
 
-- Assign confidence weights based on signal strength
-- Account for selection and position bias
-- Monitor signal quality over time
-- Cross-validate implicit signals against explicit when available
+- 신호 세기에 따라 믿음 무게를 매긴다
+- 고름 치우침과 자리 치우침을 셈에 넣는다
+- 신호 품질을 때에 따라 지켜본다
+- 드러난 것이 있을 때 숨은 신호를 그것과 맞대어 살핀다
 
-### Hybrid Recommendation Strategy
+### 섞은 추천 셈속
 
-- Start with content-based methods + explicit user profiling
-- Add implicit feedback as data accumulates
-- Weight explicit heavily in early stages; increase implicit weight over time
-- Validate hybrid approach against single-modality baselines
+- 내용 바탕 방법과 드러난 쓰는 이 됨됨이 그리기로 시작한다
+- 자료가 쌓이면 숨은 되먹임을 더한다
+- 처음에는 드러난 것에 무게를 크게 주고 때가 지나며 숨은 것의 무게를 늘린다
+- 섞은 길을 한 갈래만 쓰는 밑그림과 맞대어 살핀다
 
-!!! note "Feedback Selection"
-    Choose feedback types matching your situation:
-    - Explicit only: High-interaction products (financial advice, insurance), where users naturally provide feedback
-    - Implicit only: High-volume platforms (social media, e-commerce), where explicit feedback scarce
-    - Hybrid: Best approach when both available; leverages strengths of each
+!!! note "되먹임 고르기"
+    형편에 맞는 되먹임 갈래를 고른다:
 
+    - 드러난 것만: 주고받음이 많은 물건(금융 상담, 보험)으로 쓰는 이가 자연스레 되먹임을 준다
+    - 숨은 것만: 양이 많은 마당(사회 매체, 온라인 장터)으로 드러난 되먹임이 드물다
+    - 섞음: 둘 다 있을 때 가장 좋다. 저마다의 강점을 살린다
+
+## 연습문제
+
+**연습문제 1.**
+이 길에서 차가운 출발 문제가 새 쓰는 이와 새 물건에 어떻게 다르게 나타나는지 밝혀라. 경우마다 누그러뜨릴 셈속을 하나씩 내놓아라.
+
+??? success "연습문제 1 풀이"
+    새 쓰는 이는 취향을 배울 주고받음 지난 일이 없어 함께 거르기 신호를 쓸 수 없다. 누그러뜨리기: 내용 바탕 특징(인구 특성, 밝힌 취향)으로 쓰는 이 박아 넣기의 첫 값을 잡는다. 새 물건은 아직 주고받은 쓰는 이가 없어 함께 거르기로 매길 수 없다. 누그러뜨리기: 물건 내용 특징(밝힘, 갈래)으로 그 물건을 박아 넣기 자리에서 닮은 물건 곁에 놓는다. 두 셈속 모두 주고받음이 넉넉히 쌓일 때까지 차가운 낱것을 띄워 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 밝힌 잡의 기울기 고침을 이끌어 내어라. 어느 항이 셈하기에 가장 비싼지 가려내고 어림을 내놓아라.
+
+??? success "연습문제 2 풀이"
+    기울기에는 고르게 맞추려 온 물건 목록에 대한 기댓값을 셈하는 일이 든다. 물건 수에 선형으로 늘어나므로 가장 비싼 항이다. 음의 뽑기는 온 목록 대신 음의 물건 가운데 아무 작은 부분 모임만 더해 이를 어림하여, 고침마다 비용을 $O(|\mathcal{I}|)$에서 $O(k)$으로 줄인다. 여기서 $k$은 음의 표본 수(보통 5~20)이다. 중요도 뽑기가 이 어림에 치우치지 않은 어림개를 준다. $\square$
+
+---
+
+**연습문제 3.**
+이 추천 방식이 인기 바탕 밑그림보다 쓰는 이의 눈여겨봄을 높이는지 따질 A/B 시험을 설계하여라. 아무 나누기 단위, 으뜸 잣대, 최소 표본 크기 셈을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    아무 나누기 단위: 쓰는 이(서로 섞이지 않도록 세션이 아님). 으뜸 잣대: 추천의 누름 비율. 밑그림 누름 비율이 5%이고 알아챌 최소 효과가 0.5%포인트(상대 10% 오름)일 때, 뜻 있음 수준 $\alpha = 0.05$과 힘 $1 - \beta = 0.80$에서 무리마다 필요한 표본 크기는 $n = 2(z_{\alpha/2} + z_\beta)^2 \cdot p(1-p) / \delta^2 \approx 15{,}000$명이다. 주마다의 무늬를 담으려 적어도 2주 돌린다. 난간: 벌이와 다양함 잣대를 딸린 결과로 지켜본다. $\square$
+
+---
+
+**연습문제 4.**
+이 추천 방법의 따지기가 오프라인(지난 자료)과 온라인(실제 오감) 자리에서 어떻게 다른지 밝혀라. 오프라인 따지기에서 어떤 치우침이 생길 수 있는가?
+
+??? success "연습문제 4 풀이"
+    오프라인 따지기는 때로 나눈 지난 주고받음을 쓴다(지난 것으로 익히고 앞으로의 것으로 시험). 치우침에는 다음이 있다. (1) 고름 치우침 -- 쓰는 이는 보여 준 물건과만 주고받았으므로 보지 않은 물건이 참으로 음인 것은 아니다. (2) 인기 치우침 -- 인기 물건이 시험 모임을 지배한다. (3) 자리 치우침 -- 위쪽에 놓인 물건이 알맞음과 상관없이 더 눌린다. 온라인 따지기(A/B 시험)는 고름 치우침을 피하지만 비싸고 느리다. 치우치지 않은 오프라인 따지기 방법으로는 보여 줄 확률로 봄에 다시 무게를 주는 거꿀 성향 점수 매기기가 있다. $\square$

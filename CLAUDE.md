@@ -1,28 +1,26 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with code in this repository.
 
 ## Project Overview
 
-MkDocs Material documentation site for a book. Content is mathematical with LaTeX (MathJax) and includes Python example scripts.
+MkDocs Material documentation site for a mathematical textbook. Content uses LaTeX (MathJax)
+and includes Python example scripts. Three specialized review/write agents live in `agents/`;
+their full instructions are in `agents/SKILL.md`.
 
 ## Build Commands
 
 ```bash
-# Local development server with live reload
-mkdocs serve
-
-# Build static site (used in CI with --strict)
-mkdocs build
-mkdocs build --strict
-
-# Install dependencies
+mkdocs serve          # local dev with live reload
+mkdocs build          # build static site
+mkdocs build --strict # used in CI — all warnings are errors
 pip install -r requirements.txt
 ```
 
 ## Deployment
 
-GitHub Actions (`.github/workflows/deploy-mkdocs.yml`) auto-deploys to GitHub Pages on push to `main`. Build uses `--strict` mode, so all warnings are errors.
+GitHub Actions (`.github/workflows/deploy-mkdocs.yml`) auto-deploys to GitHub Pages on push
+to `main`. Build uses `--strict` mode.
 
 ## Repository Structure
 
@@ -32,35 +30,68 @@ book_name/
 ├── README.md
 ├── mkdocs.yml
 ├── requirements.txt
-├── .github/
-│   └── workflows/
-│       └── deploy-mkdocs.yml
+├── agents/
+│   ├── SKILL.md            ← agent orchestration hub (read this first)
+│   ├── MATH_REVIEWER.md
+│   ├── WRITING_REVIEWER.md
+│   └── WRITER.md
+├── .github/workflows/deploy-mkdocs.yml
 └── docs/
     ├── index.md
-    ├── assets/
-    │   └── favicon.ico
-    ├── stylesheets/
-    │   └── extra.css
-    ├── javascripts/
-    │   └── mathjax.js
+    ├── assets/favicon.ico
+    ├── stylesheets/extra.css
+    ├── javascripts/mathjax.js
     └── chapter_name/
         ├── index.md
         └── section_name/
             ├── topic.md
             ├── topic.py
-            ├── module/        
-            │   ├── __init__.py
-            │   └── module.py
+            ├── module/__init__.py
             └── figures/
-                ├── fig_name.png
-                └── another_fig_name.svg
 ```
 
-## Navigation Structure in mkdocs.yml
+## Agent Commands (Quick Reference)
 
-The nav is organized as: **Parts → Chapters → Sections → Pages**. Each chapter typically has numbered subsections. Nav entries must point to `.md` files and `.py` files only.
+> Full command semantics, file conventions, and agent prompts: **read `agents/SKILL.md` first**.
 
-Example nav entry:
+| Command | What it does |
+|---|---|
+| `review <file\|folder\|all>` | Freeze vN snapshot, run both reviewers, print to stdout. No writes. |
+| `write <file\|folder\|all> [if score < N]` | Requires prior `review`. Runs reviewers in-memory, writes improved file, updates score. |
+| `update <file\|folder\|all> [if score < N]` | `review` + `write` in one step. |
+
+**Path convention**: paths are relative to `docs/` — omit the `docs/` prefix.
+
+**Execution rules**: sequential only · batch size = 1 · commit after each file.
+
+## File Management
+
+| File | Git | GitHub Pages |
+|---|---|---|
+| `<name>.md` | ✅ committed | ✅ published |
+| `<name>_score.md` | ✅ committed | ❌ excluded via `mkdocs.yml` |
+| `<name>_v[0-9]*.md` | ❌ gitignored | ❌ never built |
+
+`.gitignore` entry: `docs/**/*_v[0-9]*.md`
+
+`mkdocs.yml` exclusion:
+```yaml
+exclude_docs: |
+  *_score.md
+  *_v[0-9]*.md
+```
+
+Commit after `update` — stage only `<name>.md` and `<name>_score.md`:
+```bash
+git add docs/path/to/<name>.md docs/path/to/<name>_score.md
+git commit -m "update: <name>"
+```
+
+## Navigation Structure
+
+Nav hierarchy: **Parts → Chapters → Sections → Pages**. Nav entries point to `.md` and `.py`
+files only.
+
 ```yaml
 nav:
   - I Part Title:
@@ -68,61 +99,32 @@ nav:
       - Chapter Overview: ch01/index.md
       - 1.1 Section Title:
         - Topic Title: ch01/section_title/topic_title.md
-        - Another Topic Title: ch01/section_title/another_topic_title.py
 ```
 
-YAML quoting rules for nav titles:
-- Quote any title containing `:`, `#`, `*`, `&`, or other special characters
-- Example: `'Black-Scholes Model #1'` not `Black-Scholes Model #1`
-- Hash symbols in titles must always be quoted: `'Greeks: Δ, Γ, #'`
-- Use full words without abbreviations, and keep titles to no more than two lines when displayed
+YAML quoting: quote any title containing `:`, `#`, `*`, `&`.
 
-## Content Conventions
+## Content Conventions (Summary)
 
-- **Math**: Use MathJax with `$...$` (inline) and `$$...$$` (display). Display math blocks must be surrounded by empty lines (blank line, then `$$...$$`, then blank line) for proper rendering
-- **Python files**: Educational style with docstrings, section dividers (`# ===`), and `if __name__ == "__main__":` pattern
-- **Markdown extensions available**: admonition, details, attr_list, md_in_html, superfences, arithmatex
+Full MathJax/admonition rules are in `agents/SKILL.md`. Key points:
 
-## MathJax Conventions and Pitfalls
-
-- **Currency vs math**: Use `\$` for literal dollar signs (e.g. `\$100` not `$100`), use `$...$` for math. Never use bare `$` for currency inside markdown.
-- **`\boldsymbol`**: Requires the AMS extension. If rendering fails, use `\mathbf` for roman letters or ensure the MathJax config loads `boldsymbol`.
-- **LaTeX in headings**: Avoid `$...$` in `#` headings — MathJax in headings breaks the auto-generated TOC anchor links. Use plain text or Unicode symbols in headings instead.
-- **Display math**: Always wrap `$$...$$` blocks with blank lines above and below. Missing blank lines cause MathJax to fail silently.
-- **Escaping in MkDocs**: Backslashes in MathJax sometimes need doubling (`\\alpha`) inside certain admonition or HTML blocks — test when in doubt.
-
-## Admonitions and Details
-
-Using `pymdownx.details` for collapsible blocks (non-obvious syntax):
-
-```markdown
-??? note "Title"
-    Collapsed by default.
-
-!!! note "Title"
-    Always expanded.
-
-??? example "Click to expand"
-    Hidden content here.
-```
-
-Standard admonition types: `note`, `tip`, `warning`, `danger`, `info`, `example`, `quote`.
+- `$...$` inline math, `$$...$$` display — always blank lines above and below display math
+- No blank lines *inside* `$$...$$` blocks
+- No LaTeX in `#` headings (breaks TOC)
+- `\$` for currency, never bare `$`
+- QED: `$\square$`
+- Every content page ends with `## Exercises` (interleaved solutions, collapsible)
+- Python: module docstring · `# ===` dividers · `if __name__ == "__main__":` guard
 
 ## Common Tasks
 
-### Adding a new section to an existing chapter
-1. Create a new `section_name/` directory under `docs/chapter_name/`
-2. Add `.md` or `.py` files for each topic inside the section directory
-3. Add entries to `mkdocs.yml` nav under the correct chapter, pointing to `.md` or `.py` files only
-4. Ensure display math has blank lines above and below, and no LaTeX in headings
+### Add a new section
+1. Create `docs/chapter_name/section_name/` with `.md`/`.py` files
+2. Add nav entries to `mkdocs.yml` (`.md` and `.py` only)
 
-### Adding a new chapter
-1. Create `docs/chapter_name/` directory with an `index.md`
-2. Create section subdirectories with `.md` and `.py` files
-3. Add the full chapter block to `mkdocs.yml` nav under the correct Part
-4. Follow the Parts → Chapters → Sections → Pages hierarchy
+### Add a new chapter
+1. Create `docs/chapter_name/` with `index.md` and section subdirectories
+2. Add chapter block to `mkdocs.yml` under the correct Part
 
-### Adding a Python example
-1. Create the `.py` script inside the relevant `section_name/` directory
-2. Use the educational style: module docstring, `# ===` section dividers, `if __name__ == "__main__":` guard
-3. If the script is a reusable module, create a proper package with `__init__.py`
+### Add a Python example
+1. Create `.py` in the relevant section directory
+2. Educational style: module docstring, `# ===` dividers, `if __name__ == "__main__":` guard

@@ -1,10 +1,10 @@
-# Dinic's Algorithm
+# 디닉 알고리즘
 
 While the Edmonds-Karp algorithm improves Ford-Fulkerson by always choosing shortest augmenting paths, it still sends flow along only one path per iteration. Dinic's algorithm (also spelled Dinitz) pushes this idea further: it builds a **level graph** capturing all shortest paths from source to sink, then sends as much flow as possible through that structure in a single phase. This yields a worst-case complexity of $O(V^2 E)$, and the algorithm performs especially well on unit-capacity networks where it runs in $O(E\sqrt{V})$ time.
 
-## Level Graph
+## 켜 그래프
 
-A **level graph** (or **layered graph**) organizes the residual graph into layers by distance from the source.
+**켜 그래프**(또는 **층 그래프**)는 근원에서의 거리에 따라 남은 그래프를 켜로 갈라 놓는다.
 
 Given a flow network $G = (V, E)$ with source $s$ and sink $t$, and the current residual graph $G_f$, define the **level** of each vertex $v$ as $\text{level}(v) = d(s, v)$, the shortest-path distance (in number of edges) from $s$ to $v$ in $G_f$.
 
@@ -12,21 +12,21 @@ The level graph $G_L = (V_L, E_L)$ contains only edges $(u, v)$ from $G_f$ that 
 
 **Construction via BFS.** Run BFS from $s$ in $G_f$, recording the level of each reachable vertex. Then filter edges: keep $(u, v) \in G_f$ only if $\text{level}(v) = \text{level}(u) + 1$ and $v$ is reachable. This takes $O(V + E)$ time.
 
-If $t$ is not reachable in the BFS, no augmenting path exists and the algorithm terminates. The current flow is maximum.
+너비 우선 돌아보기로 $t$에 닿지 못하면 늘림 경로가 없으므로 알고리즘이 끝난다. 지금 흐름이 최대이다.
 
-## Blocking Flow
+## 막는 흐름
 
-A **blocking flow** in the level graph $G_L$ is a flow $f'$ such that every path from $s$ to $t$ in $G_L$ contains at least one saturated edge (an edge whose flow equals its residual capacity). In other words, after adding a blocking flow, no $s$-$t$ path remains in $G_L$.
+켜 그래프 $G_L$의 **막는 흐름**은 $G_L$에서 $s$에서 $t$으로 가는 모든 경로가 꽉 찬 변(흐름이 남은 담이와 같은 변)을 적어도 하나 갖게 하는 흐름 $f'$이다. 다시 말해 막는 흐름을 더하고 나면 $G_L$에 $s$-$t$ 경로가 남지 않는다.
 
-A blocking flow is not necessarily a maximum flow in $G_L$ — it merely blocks all $s$-$t$ paths. Finding a blocking flow is cheaper than finding a maximum flow, and this is the key insight that makes Dinic's algorithm efficient.
+막는 흐름이 $G_L$에서 꼭 최대 흐름인 것은 아니다. 그저 모든 $s$-$t$ 경로를 막을 뿐이다. 막는 흐름 찾기는 최대 흐름 찾기보다 값이 싸며, 이것이 디닉 알고리즘을 효율적으로 만드는 핵심 눈썰미이다.
 
-**Finding a blocking flow via DFS.** Use depth-first search from $s$ in $G_L$. When a path to $t$ is found, push the minimum residual capacity along that path (saturating at least one edge). Remove saturated edges. If the DFS from a vertex reaches a dead end (no outgoing edges in $G_L$), delete the vertex and backtrack. Continue until no path from $s$ to $t$ exists.
+**깊이 우선 돌아보기로 막는 흐름 찾기.** $G_L$에서 $s$부터 깊이 우선 돌아보기를 한다. $t$으로 가는 경로를 찾으면 그 경로를 따라 남은 담이의 최솟값만큼 흘려 보낸다(적어도 변 하나가 꽉 찬다). 꽉 찬 변을 없앤다. 어떤 꼭짓점에서의 돌아보기가 막다른 곳($G_L$에 나가는 변이 없음)에 이르면 그 꼭짓점을 지우고 되돌아간다. $s$에서 $t$으로 가는 경로가 없어질 때까지 이어 간다.
 
-With careful pointer management (advancing pointers rather than restarting), the total work for finding a blocking flow is $O(VE)$.
+가리개를 잘 다루면(다시 시작하지 않고 가리개를 앞으로 밀면) 막는 흐름을 찾는 전체 품은 $O(VE)$이다.
 
-## Algorithm
+## 알고리즘
 
-Dinic's algorithm repeats two steps — building a level graph and finding a blocking flow — until no augmenting path exists.
+디닉 알고리즘은 켜 그래프 세우기와 막는 흐름 찾기, 이 두 단계를 늘림 경로가 없어질 때까지 되풀이한다.
 
 ```
 DINIC(G, s, t):
@@ -40,9 +40,9 @@ DINIC(G, s, t):
         Update residual graph G_f
 ```
 
-Each iteration of the while loop is called a **phase**. In each phase, the distance from $s$ to $t$ in the residual graph strictly increases by at least 1. Since this distance is bounded by $|V| - 1$, there are at most $|V| - 1$ phases.
+바깥 되풀이의 한 바퀴를 **단계**라 한다. 단계마다 남은 그래프에서 $s$부터 $t$까지의 거리가 적어도 1 늘어난다. 이 거리가 $|V| - 1$ 아래로 묶이므로 단계는 많아야 $|V| - 1$개이다.
 
-## Complexity Analysis
+## 복잡도 분석
 
 **Lemma (distance increase).** Let $d_f(s, t)$ denote the shortest-path distance from $s$ to $t$ in $G_f$. After adding a blocking flow to the level graph, $d_{f'}(s, t) > d_f(s, t)$.
 
@@ -50,14 +50,14 @@ Each iteration of the while loop is called a **phase**. In each phase, the dista
 
 **Theorem.** Dinic's algorithm runs in $O(V^2 E)$ time.
 
-*Proof.* There are at most $O(V)$ phases (since the distance increases by at least 1 each phase and is bounded by $|V| - 1$). Each phase consists of:
+*증명.* 단계는 많아야 $O(V)$개이다(단계마다 거리가 적어도 1 늘고 $|V| - 1$ 아래로 묶이기 때문이다). 각 단계는 다음으로 이루어진다:
 
-- Building the level graph via BFS: $O(E)$
-- Finding a blocking flow: $O(VE)$
+- 너비 우선 돌아보기로 켜 그래프 세우기: $O(E)$
+- 막는 흐름 찾기: $O(VE)$
 
 The total time is $O(V) \cdot O(VE) = O(V^2 E)$. $\square$
 
-## Unit-Capacity Networks
+## 담이가 1인 그물
 
 On networks where every edge has capacity 1, Dinic's algorithm achieves $O(E\sqrt{V})$ time.
 
@@ -67,11 +67,11 @@ Total: $O(\sqrt{V}) \cdot O(E) = O(E\sqrt{V})$.
 
 This makes Dinic's algorithm the method of choice for bipartite matching, where the underlying network is unit-capacity and $O(E\sqrt{V})$ matches the best known bound for maximum bipartite matching.
 
-## Worked Example
+## 풀이 예제
 
 Consider a network with vertices $\{s, a, b, c, t\}$ and edges:
 
-| Edge | Capacity |
+| 변 | 담이 |
 |------|----------|
 | $(s, a)$ | 10 |
 | $(s, b)$ | 10 |
@@ -83,53 +83,53 @@ Consider a network with vertices $\{s, a, b, c, t\}$ and edges:
 
 **Phase 1.** BFS from $s$ gives levels: $\text{level}(s) = 0$, $\text{level}(a) = 1$, $\text{level}(b) = 1$, $\text{level}(c) = 2$, $\text{level}(t) = 2$. The level graph keeps edges $(s,a)$, $(s,b)$, $(a,c)$, $(a,t)$, $(b,c)$, $(c,t)$ (edge $(a,b)$ is excluded since both are at level 1).
 
-The blocking flow finds paths and pushes flow until all $s$-$t$ paths in $G_L$ are blocked. For instance:
+막는 흐름은 $G_L$의 모든 $s$-$t$ 경로가 막힐 때까지 경로를 찾아 흐름을 흘려 보낸다. 보기로:
 
 - Path $s \to a \to t$: push 4 (saturates $(a,t)$)
 - Path $s \to a \to c \to t$: push 6 (saturates remaining capacity on $(a,c)$ after considering available flow)
 - Path $s \to b \to c \to t$: push 4 (limited by remaining capacity on $(c,t)$)
 
-Total flow after Phase 1: 14.
+1단계 뒤 전체 흐름: 14.
 
-**Phase 2.** Rebuild the level graph on the updated residual graph. The distance from $s$ to $t$ has increased. Continue until BFS cannot reach $t$, at which point the flow is maximum.
+**2단계.** 고쳐진 남은 그래프 위에 켜 그래프를 다시 세운다. $s$에서 $t$까지의 거리가 늘었다. 너비 우선 돌아보기가 $t$에 닿지 못할 때까지 이어 가며, 그때 흐름이 최대이다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Dinic's algorithm for maximum flow.
+최대 흐름을 위한 디닉 알고리즘.
 
-Builds level graphs via BFS and finds blocking flows via DFS
-to compute max flow in O(V^2 E) time.
+너비 우선 돌아보기로 켜 그래프를 세우고 깊이 우선 돌아보기로 막는 흐름을 찾아
+최대 흐름을 O(V^2 E) 시간에 셈한다.
 """
 
 from collections import deque
 
-# === Edge representation ===
+# === 변 나타내기 ===
 
 class Edge:
-    """Directed edge with capacity and flow tracking."""
+    """담이와 흐름을 좇는 방향 변."""
 
     __slots__ = ['to', 'cap', 'rev']
 
     def __init__(self, to: int, cap: int, rev: int):
         self.to = to
         self.cap = cap
-        self.rev = rev  # index of reverse edge in graph[to]
+        self.rev = rev  # graph[to]에 있는 거꿀 변의 번호
 
 
-# === Graph construction ===
+# === 그래프 세우기 ===
 
 def add_edge(graph: list, u: int, v: int, cap: int) -> None:
-    """Add edge u -> v with given capacity, and reverse edge with 0 capacity."""
+    """담이가 주어진 변 u -> v과 담이 0인 거꿀 변을 더한다."""
     graph[u].append(Edge(v, cap, len(graph[v])))
     graph[v].append(Edge(u, 0, len(graph[u]) - 1))
 
 
-# === BFS for level graph ===
+# === 켜 그래프를 위한 너비 우선 돌아보기 ===
 
 def bfs(graph: list, s: int, t: int, level: list) -> bool:
-    """Build level graph via BFS. Return True if t is reachable."""
+    """너비 우선 돌아보기로 켜 그래프를 세운다. t에 닿을 수 있으면 True를 돌려준다."""
     for i in range(len(level)):
         level[i] = -1
     level[s] = 0
@@ -143,11 +143,11 @@ def bfs(graph: list, s: int, t: int, level: list) -> bool:
     return level[t] >= 0
 
 
-# === DFS for blocking flow ===
+# === 막는 흐름을 위한 깊이 우선 돌아보기 ===
 
 def dfs(graph: list, u: int, t: int, f: int,
         level: list, iter_: list) -> int:
-    """Find blocking flow using DFS with pointer advancement."""
+    """가리개를 앞으로 미는 깊이 우선 돌아보기로 막는 흐름을 찾는다."""
     if u == t:
         return f
     while iter_[u] < len(graph[u]):
@@ -162,27 +162,27 @@ def dfs(graph: list, u: int, t: int, f: int,
     return 0
 
 
-# === Main algorithm ===
+# === 주된 알고리즘 ===
 
 def dinic(n: int, edges: list, s: int, t: int) -> int:
     """
-    Compute maximum flow using Dinic's algorithm.
+    디닉 알고리즘으로 최대 흐름을 셈한다.
 
-    Parameters
+    매개변수
     ----------
     n : int
-        Number of vertices (labeled 0 to n-1).
-    edges : list of (u, v, cap) tuples
-        Directed edges with capacities.
+        꼭짓점의 개수(0부터 n-1까지 이름 붙임).
+    edges : (u, v, cap) 튜플의 목록
+        담이를 갖는 방향 변.
     s : int
-        Source vertex.
+        근원 꼭짓점.
     t : int
-        Sink vertex.
+        바닥 꼭짓점.
 
-    Returns
+    반환값
     -------
     int
-        Maximum flow value from s to t.
+        s에서 t까지의 최대 흐름 값.
     """
     graph = [[] for _ in range(n)]
     for u, v, cap in edges:
@@ -202,7 +202,7 @@ def dinic(n: int, edges: list, s: int, t: int) -> int:
     return flow
 
 
-# === Example ===
+# === 보기 ===
 
 if __name__ == "__main__":
     # s=0, a=1, b=2, c=3, t=4
@@ -219,18 +219,56 @@ if __name__ == "__main__":
     print(f"Maximum flow: {result}")
 ```
 
-## Comparison with Edmonds-Karp
+## 에드먼즈-카프와의 견줌
 
-| Property | Edmonds-Karp | Dinic's |
+| 성질 | 에드먼즈-카프 | 디닉 |
 |----------|-------------|---------|
-| Path strategy | Single shortest path | All shortest paths (blocking flow) |
+| 경로 전략 | 최단 경로 하나 | 모든 최단 경로(막는 흐름) |
 | Time complexity | $O(VE^2)$ | $O(V^2 E)$ |
 | Unit-capacity networks | $O(E \cdot \min(E^{1/2}, V^{2/3}))$ | $O(E\sqrt{V})$ |
-| Implementation | Simpler (BFS only) | More involved (BFS + DFS) |
+| 짜기 | 더 단순하다(너비 우선만) | 더 손이 간다(너비 우선 + 깊이 우선) |
 
 Dinic's algorithm dominates Edmonds-Karp when $V < E$, which is the common case in dense networks. For sparse graphs where $E = O(V)$, both yield $O(V^3)$.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapters 24, 26.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 24, 26장.
 - Dinitz, Y. (1970). Algorithm for solution of a problem of maximum flow in networks with power estimation. *Doklady Akademii Nauk SSSR*, 194(4).
+
+## 연습문제
+
+**연습문제 1.**
+디닉 알고리즘을 설명하고 담이가 1인 그물에서 왜 에드먼즈-카프보다 빠른지 설명하여라.
+
+??? success "연습문제 1 풀이"
+    Dinic's algorithm builds a level graph using BFS, then finds blocking flows using DFS. A blocking flow saturates at least one edge on every $s$-$t$ path in the level graph. After each blocking flow, the shortest $s$-$t$ path length increases by at least 1, so at most $O(V)$ phases are needed. Each phase takes $O(VE)$ for general graphs, giving $O(V^2 E)$ total. For unit-capacity networks, each phase takes $O(E)$ and there are $O(\sqrt{E})$ phases, giving $O(E\sqrt{E}) = O(E^{1.5})$, faster than Edmonds-Karp's $O(VE^2)$. $\square$
+
+---
+
+**연습문제 2.**
+막는 흐름이란 무엇인가? 최대 흐름과 어떻게 다른가?
+
+??? success "연습문제 2 풀이"
+    A **blocking flow** saturates at least one edge on every path from $s$ to $t$ in the level graph, meaning no more flow can be pushed along shortest paths. A **maximum flow** has no augmenting path at all (in the full residual graph, not just the level graph). A blocking flow may not be maximum because augmenting paths of greater length may still exist. Dinic's algorithm finds the maximum flow by iterating: each blocking flow eliminates shortest paths, and the overall process converges when no $s$-$t$ path remains. $\square$
+
+---
+
+**연습문제 3.**
+디닉 알고리즘이 많아야 $V - 1$단계 뒤에 끝남을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    Each phase computes a blocking flow in the level graph. After a blocking flow, the shortest $s$-$t$ path in the residual graph is strictly longer than before (every shortest path in the current level graph has been blocked). The shortest path length starts at $\geq 1$ and can be at most $V - 1$ (a simple path visits at most $V$ vertices). After $V - 1$ phases, the shortest path would need $\geq V$ edges, which is impossible for simple paths. Therefore no augmenting path exists, and the algorithm terminates with the maximum flow. $\square$
+
+---
+
+**연습문제 4.**
+포드-풀커슨, 에드먼즈-카프, 디닉 알고리즘의 시간 복잡도를 견주어라.
+
+??? success "연습문제 4 풀이"
+    | 알고리즘 | 시간 복잡도 | 비고 |
+    |---|---|---|
+    | Ford-Fulkerson | $O(E \cdot f^*)$ | $f^*$ = max flow value; may not terminate with irrational capacities |
+    | Edmonds-Karp | $O(VE^2)$ | BFS for shortest augmenting path; always terminates |
+    | Dinic | $O(V^2 E)$ | Level graph + blocking flow; $O(E\sqrt{V})$ for unit capacity |
+
+    Dinic is fastest for most practical cases, especially sparse graphs and unit-capacity networks. $\square$

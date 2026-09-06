@@ -1,87 +1,87 @@
-# SA-IS Algorithm
+# SA-IS 알고리즘
 
-While prefix doubling constructs the suffix array in $O(n \log n)$ time, the theoretical optimal is $O(n)$. The **SA-IS** (Suffix Array by Induced Sorting) algorithm, introduced by Nong, Zhang, and Chan (2009), achieves this optimal bound. SA-IS is notable not only for its theoretical efficiency but also for its practical speed and elegant design. The algorithm classifies each suffix as either S-type or L-type, identifies special **LMS (Leftmost S-type)** positions, recursively sorts the LMS suffixes on a reduced problem of half the size, and then induces the full sorted order in two linear scans. This section explains each step in detail.
+앞가지 곱절 늘리기는 뒷가지 배열을 $O(n \log n)$ 시간에 세우지만 이론상 가장 좋은 것은 $O(n)$이다. Nong, Zhang, Chan(2009)이 내놓은 **SA-IS**(이끌린 정렬로 세우는 뒷가지 배열) 알고리즘이 이 한계를 이룬다. SA-IS는 이론 효율뿐 아니라 실전 빠르기와 산뜻한 설계로도 눈에 띈다. 이 알고리즘은 뒷가지마다 S 갈래인지 L 갈래인지 가르고, 특별한 **LMS(가장 왼쪽 S 갈래)** 자리를 가려내며, 크기가 절반인 줄인 문제에서 LMS 뒷가지를 되돌이로 정렬한 뒤 선형 훑기 두 번으로 온전한 정렬 차례를 이끌어 낸다. 이 절은 걸음마다 자세히 설명한다.
 
-## S-Type and L-Type Classification
+## S 갈래와 L 갈래 가르기
 
-The first step of SA-IS classifies each position $i$ in the string $T[0..n]$ (where $T[n] = \$$ is the sentinel) based on how suffix($i$) compares to suffix($i+1$).
+SA-IS의 첫 걸음은 ($T[n] = \$$이 파수인) 글줄 $T[0..n]$의 자리 $i$마다 suffix($i$)이 suffix($i+1$)과 어떻게 견주어지는지로 가른다.
 
-A position $i$ is **S-type** (smaller) if suffix($i$) is lexicographically smaller than suffix($i+1$):
+suffix($i$)이 suffix($i+1$)보다 사전 차례로 앞서면 자리 $i$은 **S 갈래**(작다)이다:
 
 $$
 \text{suffix}(i) < \text{suffix}(i+1)
 $$
 
-A position $i$ is **L-type** (larger) if suffix($i$) is lexicographically larger than suffix($i+1$):
+suffix($i$)이 suffix($i+1$)보다 사전 차례로 뒤서면 자리 $i$은 **L 갈래**(크다)이다:
 
 $$
 \text{suffix}(i) > \text{suffix}(i+1)
 $$
 
-The sentinel position $n$ is always S-type by convention (it is the lexicographically smallest suffix).
+파수 자리 $n$은 관례상 늘 S 갈래이다(사전 차례로 가장 앞선 뒷가지이다).
 
-!!! tip "Efficient classification"
-    The type of each position can be determined in a single right-to-left scan:
+!!! tip "효율 좋은 가르기"
+    자리마다의 갈래는 오른쪽에서 왼쪽으로 한 번 훑어 정할 수 있다:
 
-    - $T[n]$ is S-type
-    - If $T[i] < T[i+1]$, then position $i$ is S-type
-    - If $T[i] > T[i+1]$, then position $i$ is L-type
-    - If $T[i] = T[i+1]$, then position $i$ has the same type as position $i+1$
+    - $T[n]$은 S 갈래이다
+    - $T[i] < T[i+1]$이면 자리 $i$은 S 갈래이다
+    - $T[i] > T[i+1]$이면 자리 $i$은 L 갈래이다
+    - $T[i] = T[i+1]$이면 자리 $i$은 자리 $i+1$과 같은 갈래이다
 
-## LMS Positions
+## LMS 자리
 
-A position $i$ is a **Leftmost S-type (LMS)** position if $i$ is S-type and $i - 1$ is L-type (or $i = n$ for the sentinel). LMS positions mark the boundaries of critical substrings that the algorithm processes recursively.
+$i$이 S 갈래이고 $i - 1$이 L 갈래이면(또는 파수인 $i = n$이면) 자리 $i$은 **가장 왼쪽 S 갈래(LMS)** 자리이다. LMS 자리가 알고리즘이 되돌이로 처리하는 요긴한 부분 글줄의 가장자리를 표시한다.
 
-An **LMS substring** is the substring $T[i..j]$ where $i$ and $j$ are consecutive LMS positions (including the sentinel). The key insight of SA-IS is that there are at most $n/2$ LMS positions, enabling a recursive reduction by half.
+**LMS 부분 글줄**은 $i$과 $j$이 (파수까지 넣어) 이어진 LMS 자리일 때의 부분 글줄 $T[i..j]$이다. SA-IS의 핵심 눈썰미는 LMS 자리가 많아야 $n/2$개라 되돌이로 절반씩 줄일 수 있다는 것이다.
 
-??? example "Classification for 'mmiissiissiippii$'"
-    For $T = \texttt{mmiissiissiippii\$}$ (length 17):
+??? example "'mmiissiissiippii$'의 갈래 가르기"
+    $T = \texttt{mmiissiissiippii\$}$(길이 17)에 대해:
 
-    | Position | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 |
+    | 자리 | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 |
     |----------|---|---|---|---|---|---|---|---|---|---|----|----|----|----|----|----|-----|
-    | Char | m | m | i | i | s | s | i | i | s | s | i  | i  | p  | p  | i  | i  | $   |
-    | Type | L | L | S | S | L | L | S | S | L | L | S  | S  | L  | L  | S  | S  | S   |
+    | 글자 | m | m | i | i | s | s | i | i | s | s | i  | i  | p  | p  | i  | i  | $   |
+    | 갈래 | L | L | S | S | L | L | S | S | L | L | S  | S  | L  | L  | S  | S  | S   |
     | LMS? |   |   | * |   |   |   | * |   |   |   | *  |    |    |    | *  |    | *   |
 
-    LMS positions: 2, 6, 10, 14, 16
+    LMS 자리: 2, 6, 10, 14, 16
 
-## Bucket Sorting
+## 통 정렬
 
-SA-IS uses **bucket sorting** based on the first character of each suffix. All suffixes starting with the same character $c$ go into the bucket for $c$. Within each bucket, L-type suffixes come before S-type suffixes (because an L-type suffix starting with $c$ is larger than $c$'s S-type successors, and the second character determines the rest).
+SA-IS는 뒷가지마다 첫 글자를 바탕으로 **통 정렬**을 쓴다. 같은 글자 $c$으로 시작하는 뒷가지는 모두 $c$의 통에 들어간다. 통마다 L 갈래 뒷가지가 S 갈래 뒷가지보다 앞선다($c$으로 시작하는 L 갈래 뒷가지가 $c$의 S 갈래 뒤따르는 것보다 크고 둘째 글자가 나머지를 정하기 때문이다).
 
-Each bucket has a defined range $[\text{bkt\_start}(c), \text{bkt\_end}(c)]$ in the suffix array. L-type suffixes are placed from the **left** (head) of the bucket, and S-type suffixes are placed from the **right** (tail).
+통마다 뒷가지 배열에서 정해진 범위 $[\text{bkt\_start}(c), \text{bkt\_end}(c)]$을 갖는다. L 갈래 뒷가지는 통의 **왼쪽**(머리)부터, S 갈래 뒷가지는 **오른쪽**(꼬리)부터 놓는다.
 
-## The Induced Sorting Procedure
+## 이끌린 정렬 절차
 
-The core of SA-IS is **induced sorting**: given the sorted order of LMS suffixes, the algorithm deduces the sorted order of all suffixes in two linear scans.
+SA-IS의 고갱이는 **이끌린 정렬**이다. 곧 LMS 뒷가지의 정렬 차례가 주어지면 선형 훑기 두 번으로 모든 뒷가지의 정렬 차례를 이끌어 낸다.
 
-**Step 1: Place LMS suffixes.** Insert the LMS suffixes into their correct buckets (at the tail of each bucket) in their sorted order.
+**걸음 1: LMS 뒷가지 놓기.** LMS 뒷가지를 정렬 차례대로 알맞은 통(통마다의 꼬리)에 끼운다.
 
-**Step 2: Induce L-type suffixes (left-to-right scan).** Scan the suffix array from left to right. For each filled position $\text{SA}[k] = i$, if position $i - 1$ is L-type, place suffix($i - 1$) at the head of its bucket. Since L-type suffixes are larger than the following character, this scan correctly orders them.
+**걸음 2: L 갈래 뒷가지 이끌어 내기(왼쪽에서 오른쪽으로 훑기).** 뒷가지 배열을 왼쪽에서 오른쪽으로 훑는다. 채워진 자리 $\text{SA}[k] = i$마다 자리 $i - 1$이 L 갈래이면 suffix($i - 1$)을 그 통의 머리에 놓는다. L 갈래 뒷가지가 뒤따르는 글자보다 크므로 이 훑기가 그것들을 옳게 늘어놓는다.
 
-**Step 3: Induce S-type suffixes (right-to-left scan).** Scan the suffix array from right to left. For each filled position $\text{SA}[k] = i$, if position $i - 1$ is S-type, place suffix($i - 1$) at the tail of its bucket.
+**걸음 3: S 갈래 뒷가지 이끌어 내기(오른쪽에서 왼쪽으로 훑기).** 뒷가지 배열을 오른쪽에서 왼쪽으로 훑는다. 채워진 자리 $\text{SA}[k] = i$마다 자리 $i - 1$이 S 갈래이면 suffix($i - 1$)을 그 통의 꼬리에 놓는다.
 
-After these two scans, the entire suffix array is correctly sorted.
+이 두 번의 훑기 뒤에 뒷가지 배열 전체가 옳게 정렬된다.
 
-## Recursive Reduction
+## 되돌이로 줄이기
 
-The LMS suffixes themselves must be sorted before the induced sorting procedure can begin. SA-IS achieves this recursively:
+이끌린 정렬 절차를 시작하려면 LMS 뒷가지 자체가 먼저 정렬되어야 한다. SA-IS는 이를 되돌이로 이룬다:
 
-1. **Name LMS substrings**: Perform a preliminary induced sort to determine the relative order of LMS substrings. Assign integer names based on this order.
+1. **LMS 부분 글줄에 이름 붙이기**: 미리 이끌린 정렬을 해 LMS 부분 글줄의 상대 차례를 정한다. 그 차례로 정수 이름을 매긴다.
 
-2. **Create reduced string**: Build a new string $T_1$ of length at most $n/2$, where each character is the name of an LMS substring.
+2. **줄인 글줄 만들기**: 글자마다 LMS 부분 글줄의 이름인, 길이가 많아야 $n/2$인 새 글줄 $T_1$을 세운다.
 
-3. **Recurse or direct sort**: If all names in $T_1$ are distinct, the suffix array of $T_1$ is determined directly. Otherwise, recursively apply SA-IS to $T_1$.
+3. **되돌이하거나 곧바로 정렬하기**: $T_1$의 이름이 모두 다르면 $T_1$의 뒷가지 배열이 곧바로 정해진다. 아니면 $T_1$에 SA-IS를 되돌이로 쓴다.
 
-4. **Map back**: Convert the suffix array of $T_1$ back to the sorted order of LMS suffixes in the original string.
+4. **되돌리기**: $T_1$의 뒷가지 배열을 본디 글줄의 LMS 뒷가지 정렬 차례로 되돌린다.
 
-The recursion depth is $O(\log n)$ in the worst case, but the total work across all levels is $O(n)$ because the problem size halves at each level:
+되돌이 깊이는 최악의 경우 $O(\log n)$이지만 층마다 문제 크기가 절반이 되므로 모든 층에 걸친 전체 일감은 $O(n)$이다:
 
 $$
 T(n) = T(n/2) + O(n) = O(n)
 $$
 
-## Complete Algorithm Summary
+## 온전한 알고리즘 간추리기
 
 ```
 SA-IS(T[0..n]):
@@ -104,32 +104,64 @@ SA-IS(T[0..n]):
    13. Return SA
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Time complexity**: Each level of recursion processes a string of at most half the previous length and does $O(n)$ work (classification, bucket sorting, and two linear scans). The total time satisfies:
+**시간 복잡도**: 되돌이 층마다 앞선 길이의 많아야 절반인 글줄을 처리하며 $O(n)$ 일감(갈래 가르기, 통 정렬, 선형 훑기 두 번)을 한다. 전체 시간은 다음을 채운다:
 
 $$
 T(n) \leq T(n/2) + cn
 $$
 
-By the master theorem (or by telescoping), $T(n) = O(n)$.
+으뜸 정리로(또는 망원경 합으로) $T(n) = O(n)$이다.
 
-**Space complexity**: The algorithm requires $O(n)$ auxiliary space for the type array, bucket pointers, and the reduced string. With careful implementation, the constant factor can be made small (approximately $6n$ bytes for byte-alphabet strings).
+**공간 복잡도**: 갈래 배열, 통 가리개, 줄인 글줄에 $O(n)$ 딸림 공간이 든다. 꼼꼼히 짜면 상수 인수를 작게 할 수 있다(바이트 글자 모임 글줄에서 대략 $6n$ 바이트).
 
-!!! note "Practical performance"
-    Despite its theoretical optimality, SA-IS is also one of the fastest suffix array construction algorithms in practice. Its cache-friendly linear scans and small constant factors make it competitive with or faster than many $O(n \log n)$ alternatives on real-world data.
+!!! note "실전 성능"
+    이론상 가장 좋을 뿐 아니라 SA-IS는 실전에서도 가장 빠른 뒷가지 배열 세우기 알고리즘 가운데 하나이다. 곳간에 잘 맞는 선형 훑기와 작은 상수 인수 덕분에 실제 자료에서 여러 $O(n \log n)$ 대안과 겨루거나 더 빠르다.
 
-## Comparison with Other Linear-Time Algorithms
+## 다른 선형 시간 알고리즘과의 견줌
 
-| Algorithm | Year | Time | Space | Practical Speed |
+| 알고리즘 | 해 | 시간 | 공간 | 실전 빠르기 |
 |-----------|------|------|-------|-----------------|
-| DC3/Skew | 2003 | $O(n)$ | $O(n)$ | Moderate |
-| KA (Ko-Aluru) | 2005 | $O(n)$ | $O(n)$ | Moderate |
-| SA-IS | 2009 | $O(n)$ | $O(n)$ | Fast |
+| DC3/스큐 | 2003 | $O(n)$ | $O(n)$ | 웬만함 |
+| KA(고-알루루) | 2005 | $O(n)$ | $O(n)$ | 웬만함 |
+| SA-IS | 2009 | $O(n)$ | $O(n)$ | 빠름 |
 
-SA-IS is generally preferred because it has the smallest constant factor and the simplest implementation among linear-time algorithms.
+SA-IS는 선형 시간 알고리즘 가운데 상수 인수가 가장 작고 짜기가 가장 단순해 대체로 낫다.
 
-## Reference
+## 참고 문헌
 
 - Nong, G., Zhang, S., and Chan, W. H. (2009). *Two efficient algorithms for linear time suffix array construction*. IEEE Transactions on Computers, 60(10), 1471-1484.
 - Karkkainen, J., Sanders, P., and Burkhardt, S. (2006). *Linear work suffix array construction*. Journal of the ACM, 53(6), 918-936.
+
+## 연습문제
+
+**연습문제 1.**
+SA-IS 알고리즘의 핵심 자료 짜임이나 개념과 그 으뜸 쓰임새를 설명하라.
+
+??? success "연습문제 1 풀이"
+    SA-IS 알고리즘은 글줄이나 차례 자료를 미리 다듬고 묻는 효율 좋은 길을 준다. 으뜸 쓰임새는 부분 글줄, 본, 들임의 짜임 성질에 대한 되풀이되는 물음에 답하는 것이다. 미리 다듬기가 다룰 만한 시간에 자료 짜임을 세우고 나면 맨바닥에서 다시 다듬는 것보다 훨씬 빠르게 물음에 답할 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+SA-IS 알고리즘을 세우는 시간 복잡도는 무엇인가? 으뜸 연산의 묻기 시간은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    세우는 시간은 쓰는 알고리즘에 달렸다. 흔한 한계는 $n$이 들임 크기일 때 $O(n)$에서 $O(n \log n)$ 사이이다. 묻기는 흔히 본 찾기에 $O(m)$($m$은 물음 길이), 미리 셈한 성질에 $O(1)$이 든다. 공간 복잡도는 흔히 $O(n)$이거나 $\sigma$이 글자 모임의 크기일 때 $O(n\sigma)$이다. $\square$
+
+---
+
+**연습문제 3.**
+SA-IS 알고리즘을 더 단순한 다른 방식과 견주어라. 더 정교한 짜임은 언제 값어치가 있는가?
+
+??? success "연습문제 3 풀이"
+    더 단순한 방식(예컨대 막무가내 훑기나 정렬)은 묻기 시간이 더 길지만 세우는 군더더기가 적다. 정교한 짜임은 다음일 때 값어치가 있다. (1) 같은 자료에 물음을 많이 던져 세우는 값이 고르게 나뉠 때, (2) 묻기 시간이 결정적일 때(실시간 쓰임새), (3) 자료가 커서 점근 나아짐이 실전에서 중요할 때이다. 작은 자료에 물음을 한 번 던지는 경우에는 상수 인수가 작은 단순한 방식이 더 빠를 수 있다. $\square$
+
+---
+
+**연습문제 4.**
+들임 글줄 "banana"에 대해 SA-IS 알고리즘을 세우는 것을 좇아라. 중간 걸음을 보여라.
+
+??? success "연습문제 4 풀이"
+    "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$

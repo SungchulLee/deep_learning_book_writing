@@ -1,33 +1,25 @@
-# Orientation Test
+# 방향 살피기
 
-When walking from point $P$ through $Q$ toward $R$, do we turn left,
-turn right, or continue straight? This simple question — the *orientation
-test* — is the most frequently called subroutine in computational geometry.
-Convex hull construction, segment intersection, polygon triangulation,
-and point-in-polygon testing all depend on it. The test reduces to
-computing a single 2D cross product and checking its sign.
+점 $P$에서 $Q$을 거쳐 $R$으로 걸을 때 왼쪽으로 도는가, 오른쪽으로 도는가, 곧게 가는가? 이 단순한 물음, 곧 *방향 살피기*는 셈 기하에서 가장 자주 불리는 곁 절차이다. 볼록 껍질 세우기, 도막 만남, 다각형 삼각 나누기, 다각형 안 점 살피기가 모두 여기에 기댄다. 이 살피기는 2차원 어긋 곱 하나를 셈하고 그 부호를 보는 것으로 줄어든다.
 
-## Definition
+## 정의
 
-Given three ordered points $P = (p_x, p_y)$, $Q = (q_x, q_y)$, and
-$R = (r_x, r_y)$, the **orientation** of the triplet $(P, Q, R)$ is
-determined by the sign of the cross product of vectors
-$\overrightarrow{PQ}$ and $\overrightarrow{PR}$:
+차례가 정해진 세 점 $P = (p_x, p_y)$, $Q = (q_x, q_y)$, $R = (r_x, r_y)$이 주어질 때 세 점 $(P, Q, R)$의 **방향**은 벡터 $\overrightarrow{PQ}$과 $\overrightarrow{PR}$의 어긋 곱 부호로 정해진다.
 
 $$
 \text{orient}(P, Q, R)
 = (q_x - p_x)(r_y - p_y) - (q_y - p_y)(r_x - p_x)
 $$
 
-| Sign | Orientation | Geometric Meaning |
+| 부호 | 방향 | 기하의 뜻 |
 |---|---|---|
-| $> 0$ | Counterclockwise (CCW) | Left turn at $Q$ |
-| $= 0$ | Collinear | $P$, $Q$, $R$ are on one line |
-| $< 0$ | Clockwise (CW) | Right turn at $Q$ |
+| $> 0$ | 반시계 | $Q$에서 왼쪽 돌기 |
+| $= 0$ | 한 줄에 놓임 | $P$, $Q$, $R$이 한 선 위에 있다 |
+| $< 0$ | 시계 | $Q$에서 오른쪽 돌기 |
 
-## Determinant Interpretation
+## 행렬식 풀이
 
-The orientation predicate can be expressed as a $3 \times 3$ determinant:
+방향 판정은 $3 \times 3$ 행렬식으로 적을 수 있다.
 
 $$
 \text{orient}(P, Q, R) =
@@ -42,87 +34,78 @@ q_y - p_y & r_y - p_y
 \end{vmatrix}
 $$
 
-This is twice the signed area of triangle $\triangle PQR$. The triangle has
-positive signed area when the vertices are in counterclockwise order.
+이는 삼각형 $\triangle PQR$의 부호 있는 넓이의 두 배이다. 꼭짓점이 반시계 차례이면 삼각형의 부호 있는 넓이는 양수이다.
 
-## Connection to the Cross Product
+## 어긋 곱과의 이음
 
-The orientation value is exactly the 2D cross product
-$\overrightarrow{PQ} \times \overrightarrow{PR}$. This connects orientation
-testing to area computation: the signed area of $\triangle PQR$ is
+방향 값은 바로 2차원 어긋 곱 $\overrightarrow{PQ} \times \overrightarrow{PR}$이다. 이는 방향 살피기를 넓이 셈하기와 잇는다. 곧 $\triangle PQR$의 부호 있는 넓이는 다음과 같다.
 
 $$
 A_{\triangle} = \frac{1}{2}\,\text{orient}(P, Q, R)
 $$
 
-## Worked Example
+## 풀이 예제
 
-Consider three points: $P = (0, 0)$, $Q = (4, 0)$, $R = (2, 3)$.
+세 점 $P = (0, 0)$, $Q = (4, 0)$, $R = (2, 3)$을 보자.
 
 $$
 \text{orient}(P, Q, R) = (4 - 0)(3 - 0) - (0 - 0)(2 - 0) = 12 - 0 = 12
 $$
 
-Since $12 > 0$, the triplet is counterclockwise — we make a left turn at $Q$.
+$12 > 0$이므로 세 점은 반시계이며 $Q$에서 왼쪽으로 돈다.
 
-Now swap $Q$ and $R$: $P = (0, 0)$, $Q = (2, 3)$, $R = (4, 0)$.
+이제 $Q$과 $R$을 바꾸자: $P = (0, 0)$, $Q = (2, 3)$, $R = (4, 0)$.
 
 $$
 \text{orient}(P, Q, R) = (2 - 0)(0 - 0) - (3 - 0)(4 - 0) = 0 - 12 = -12
 $$
 
-Since $-12 < 0$, the triplet is clockwise — we make a right turn.
+$-12 < 0$이므로 세 점은 시계이며 오른쪽으로 돈다.
 
-Finally, collinear points: $P = (0, 0)$, $Q = (2, 2)$, $R = (4, 4)$.
+끝으로 한 줄에 놓인 점: $P = (0, 0)$, $Q = (2, 2)$, $R = (4, 4)$.
 
 $$
 \text{orient}(P, Q, R) = (2)(4) - (2)(4) = 8 - 8 = 0
 $$
 
-Zero means the three points lie on the same line.
+0은 세 점이 같은 선 위에 있음을 뜻한다.
 
-## Robustness Considerations
+## 튼튼함에 대한 살핌
 
-!!! warning "Floating-Point Pitfalls"
-    With floating-point arithmetic, the orientation test can give wrong
-    results when points are nearly collinear. A value close to zero may
-    have the wrong sign due to rounding. Robust implementations use either
-    exact arithmetic (e.g., adaptive precision as in Shewchuk's predicates)
-    or a tolerance-based approach with an epsilon threshold.
+!!! warning "뜬 소수점의 함정"
+    뜬 소수점 셈에서는 점이 거의 한 줄에 놓일 때 방향 살피기가 틀린 결과를 낼 수 있다. 0에 가까운 값은 반올림 때문에 부호가 틀릴 수 있다. 튼튼한 짜기는 정확한 셈(예컨대 셰척의 판정처럼 맞추어 가는 정밀도)이나 엡실론 문턱을 둔 너그러움 방식을 쓴다.
 
-For integer coordinates, the test is exact as long as the intermediate
-products do not overflow. With 32-bit integer coordinates, the cross
-product fits in a 64-bit integer.
+정수 자리값에서는 중간 곱이 넘치지 않는 한 이 살피기가 정확하다. 32비트 정수 자리값이면 어긋 곱은 64비트 정수에 들어간다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Orientation test for three points in the plane.
+평면 위 세 점의 방향 살피기.
 
-Determines whether a triplet of points makes a left turn (CCW),
-right turn (CW), or is collinear. This is the fundamental predicate
-in computational geometry.
+세 점이 왼쪽으로 도는지(반시계),
+오른쪽으로 도는지(시계), 한 줄에 놓이는지 가린다.
+이는 셈 기하의 바탕 판정이다.
 """
 
 
-# === Orientation Predicate ===
+# === 방향 판정 ===
 
 def orient(p, q, r):
-    """Compute the orientation value for points p, q, r.
+    """점 p, q, r의 방향 값을 셈한다.
 
-    Returns:
-        Positive for CCW (left turn), negative for CW (right turn),
-        zero for collinear.
+    반환값:
+        반시계(왼쪽 돌기)이면 양수, 시계(오른쪽 돌기)이면 음수,
+        한 줄에 놓이면 0이다.
     """
     return (q[0] - p[0]) * (r[1] - p[1]) - (q[1] - p[1]) * (r[0] - p[0])
 
 
 def orientation(p, q, r):
-    """Classify the orientation of triplet (p, q, r).
+    """세 점 (p, q, r)의 방향을 가른다.
 
-    Returns:
-        1 for CCW, -1 for CW, 0 for collinear.
+    반환값:
+        반시계는 1, 시계는 -1, 한 줄에 놓이면 0.
     """
     val = orient(p, q, r)
     if val > 0:
@@ -132,34 +115,34 @@ def orientation(p, q, r):
     return 0
 
 
-# === Helper: human-readable label ===
+# === 도우미: 사람이 읽을 수 있는 이름표 ===
 
 def orient_label(p, q, r):
-    """Return a human-readable orientation label."""
+    """사람이 읽을 수 있는 방향 이름표를 돌려준다."""
     labels = {1: "CCW (left turn)", -1: "CW (right turn)", 0: "Collinear"}
     return labels[orientation(p, q, r)]
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Left turn
+    # 왼쪽 돌기
     P, Q, R = (0, 0), (4, 0), (2, 3)
     print(f"P={P}, Q={Q}, R={R}")
     print(f"  orient = {orient(P, Q, R)}, {orient_label(P, Q, R)}")
 
-    # Right turn
+    # 오른쪽 돌기
     P, Q, R = (0, 0), (2, 3), (4, 0)
     print(f"P={P}, Q={Q}, R={R}")
     print(f"  orient = {orient(P, Q, R)}, {orient_label(P, Q, R)}")
 
-    # Collinear
+    # 한 줄에 놓임
     P, Q, R = (0, 0), (2, 2), (4, 4)
     print(f"P={P}, Q={Q}, R={R}")
     print(f"  orient = {orient(P, Q, R)}, {orient_label(P, Q, R)}")
 ```
 
-**Output:**
+**출력:**
 ```
 P=(0, 0), Q=(4, 0), R=(2, 3)
   orient = 12, CCW (left turn)
@@ -169,17 +152,49 @@ P=(0, 0), Q=(2, 2), R=(4, 4)
   orient = 0, Collinear
 ```
 
-## Applications
+## 응용
 
-| Algorithm | Role of Orientation Test |
+| 알고리즘 | 방향 살피기의 몫 |
 |---|---|
-| Graham scan | Detect and eliminate right turns on the hull |
-| Segment intersection | Check if endpoints straddle a line |
-| Point-in-polygon | Determine winding number |
-| Polygon triangulation | Identify ear tips |
-| Delaunay triangulation | In-circle test (extended orientation) |
+| 그레이엄 훑기 | 껍질 위의 오른쪽 돌기를 알아내 없앤다 |
+| 도막 만남 | 끝점이 선을 걸터타는지 살핀다 |
+| 다각형 안 점 | 감김 수를 가린다 |
+| 다각형 삼각 나누기 | 귀끝을 가려낸다 |
+| 들로네 삼각 나누기 | 동그라미 안 살피기(넓힌 방향) |
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms*. MIT Press, Chapter 33.
 - Shewchuk, J. R. "Adaptive Precision Floating-Point Arithmetic and Fast Robust Geometric Predicates." *Discrete & Computational Geometry*, 1997.
+
+## 연습문제
+
+**연습문제 1.**
+방향 살피기의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    방향 살피기은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 방향 살피기을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+방향 살피기은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+방향 살피기을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 방향 살피기은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

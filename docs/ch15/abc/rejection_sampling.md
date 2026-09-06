@@ -1,20 +1,15 @@
-# ABC Rejection Sampling
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-ABC rejection sampling is the simplest and most intuitive likelihood-free inference algorithm. This section presents the algorithm, its theoretical properties, practical considerations, and limitations that motivate more advanced ABC methods.
+# ABC 물리치기 표집
+ABC 물리치기 표집은 가장 단순하고 알아보기 쉬운 가능도 없는 추론 알고리즘이다. 이 마당은 그 알고리즘, 이론적 성질, 실전에서 살필 점, 그리고 더 나아간 ABC 방법이 나오게 된 한계를 보인다.
 
 ---
 
-## The Algorithm
+## 알고리즘
 
-### Basic ABC Rejection Sampling
+### 기본 ABC 물리치기 표집
 
-**Input**: Prior $p(\theta)$, simulator $p(\mathbf{x}|\theta)$, observed data $\mathbf{y}$, summary statistics $S(\cdot)$, distance $\rho(\cdot, \cdot)$, tolerance $\epsilon$, number of samples $N$
+**입력**: 앞확률 $p(\theta)$, 흉내내기 장치 $p(\mathbf{x}|\theta)$, 관측 자료 $\mathbf{y}$, 간추린 통계량 $S(\cdot)$, 거리 $\rho(\cdot, \cdot)$, 너그러움 $\epsilon$, 표본의 개수 $N$
 
-**Output**: Samples $\{\theta_1, \ldots, \theta_N\}$ from approximate posterior
+**날 것**: 어림 뒤확률에서 뽑은 표본 $\{\theta_1, \ldots, \theta_N\}$
 
 ```
 for i = 1 to N:
@@ -29,7 +24,7 @@ for i = 1 to N:
 return {θ₁, ..., θₙ}
 ```
 
-### Python Implementation
+### 파이썬 구현
 
 ```python
 import numpy as np
@@ -37,19 +32,19 @@ import numpy as np
 def abc_rejection(prior_sampler, simulator, summary_fn, y_obs, 
                   distance_fn, epsilon, n_samples):
     """
-    ABC rejection sampling.
+    ABC 물리치기 표집.
     
-    Args:
-        prior_sampler: Function that returns a sample from the prior
-        simulator: Function theta -> x that simulates data
-        summary_fn: Function x -> s that computes summary statistics
-        y_obs: Observed data
-        distance_fn: Function (s1, s2) -> distance
-        epsilon: Acceptance tolerance
-        n_samples: Number of posterior samples desired
+    인수:
+        prior_sampler: 앞확률에서 표본 하나를 돌려주는 함수
+        simulator: 자료를 흉내내는 함수 theta -> x
+        summary_fn: 간추린 통계량을 셈하는 함수 x -> s
+        y_obs: 관측한 자료
+        distance_fn: 함수 (s1, s2) -> 거리
+        epsilon: 받아들임 너그러움
+        n_samples: 바라는 뒤확률 표본의 개수
     
-    Returns:
-        samples: Array of accepted parameter values
+    반환값:
+        samples: 받아들인 매개변수 값의 배열
         acceptance_rate: Fraction of proposals accepted
     """
     s_obs = summary_fn(y_obs)
@@ -58,14 +53,14 @@ def abc_rejection(prior_sampler, simulator, summary_fn, y_obs,
     n_attempts = 0
     
     while len(samples) < n_samples:
-        # Sample from prior
+        # 앞확률에서 표집
         theta = prior_sampler()
         
-        # Simulate
+        # 흉내내기
         x = simulator(theta)
         s_x = summary_fn(x)
         
-        # Accept/reject
+        # 받아들이거나 물리치기
         n_attempts += 1
         if distance_fn(s_x, s_obs) < epsilon:
             samples.append(theta)
@@ -76,99 +71,88 @@ def abc_rejection(prior_sampler, simulator, summary_fn, y_obs,
 
 ---
 
-## Theoretical Properties
+## 이론적 성질
 
-### Target Distribution
+### 과녁 분포
 
-ABC rejection sampling targets the ABC posterior:
+ABC 물리치기 표집은 ABC 뒤확률을 겨냥한다:
 
 $$
-
 p_\epsilon(\theta | \mathbf{y}) = \frac{p(\theta) \int p(\mathbf{x}|\theta) K_\epsilon(S(\mathbf{x}), S(\mathbf{y})) d\mathbf{x}}{\int p(\theta') \int p(\mathbf{x}|\theta') K_\epsilon(S(\mathbf{x}), S(\mathbf{y})) d\mathbf{x} d\theta'}
-
 $$
 
-where $K_\epsilon(s, s') = \mathbf{1}[\rho(s, s') < \epsilon]$ for hard threshold.
+딱딱한 문턱값에서는 $K_\epsilon(s, s') = \mathbf{1}[\rho(s, s') < \epsilon]$이다.
 
-### Exactness Result
+### 정확함 결과
 
-**Proposition**: If $S$ is a sufficient statistic and $\epsilon \to 0$, then:
+**명제**: $S$이 충분 통계량이고 $\epsilon \to 0$이면 다음이 성립한다:
 
 $$
-
 p_\epsilon(\theta | \mathbf{y}) \to p(\theta | \mathbf{y})
-
 $$
 
-The ABC posterior converges to the true posterior.
+ABC 뒤확률이 참 뒤확률로 모인다.
 
-### Acceptance Probability
+### 받아들임 확률
 
-The probability of accepting a proposed $\theta$ is:
+내놓은 $\theta$을 받아들일 확률은 다음과 같다:
 
 $$
-
 \alpha(\theta) = P(\rho(S(\mathbf{X}), S(\mathbf{y})) < \epsilon | \theta) = \int_{\{s: \rho(s, S(\mathbf{y})) < \epsilon\}} p(s|\theta) ds
-
 $$
 
-The overall acceptance rate is:
+전체 받아들임 비율은 다음과 같다:
 
 $$
-
 \bar{\alpha} = \int \alpha(\theta) p(\theta) d\theta
-
 $$
 
-### Relationship to Importance Sampling
+### 중요도 표집과의 관계
 
-ABC rejection can be viewed as importance sampling with:
-- Proposal: $q(\theta) = p(\theta)$ (the prior)
-- Weights: $w(\theta) \propto \alpha(\theta)$
+ABC 물리치기는 다음과 같은 중요도 표집으로 볼 수 있다:
 
-The self-normalized importance sampling estimator is:
+- 제안: $q(\theta) = p(\theta)$(앞확률)
+- 무게: $w(\theta) \propto \alpha(\theta)$
+
+스스로 고르게 하는 중요도 표집 어림자는 다음과 같다:
 
 $$
-
 \mathbb{E}_{p(\theta|\mathbf{y})}[f(\theta)] \approx \frac{\sum_{i=1}^N w_i f(\theta_i)}{\sum_{i=1}^N w_i}
-
 $$
 
-With rejection sampling, all accepted samples have equal weight.
+물리치기 표집에서는 받아들인 표본의 무게가 모두 같다.
 
 ---
 
-## Acceptance Rate Analysis
+## 받아들임 비율 분석
 
-### Factors Affecting Acceptance Rate
+### 받아들임 비율에 영향을 주는 것
 
-| Factor | Effect on Acceptance Rate |
+| 요소 | 받아들임 비율에 주는 영향 |
 |--------|--------------------------|
-| Larger $\epsilon$ | Higher acceptance |
-| Lower summary dimension | Higher acceptance |
-| Informative prior | Higher acceptance |
-| Complex model | Lower acceptance |
+| $\epsilon$이 크다 | 받아들임이 높아진다 |
+| 간추림의 차원이 낮다 | 받아들임이 높아진다 |
+| 알려 주는 바 있는 앞확률 | 받아들임이 높아진다 |
+| 복잡한 모형 | 받아들임이 낮아진다 |
 
-### Acceptance Rate vs. Tolerance
+### 받아들임 비율과 너그러움
 
-For a $d$-dimensional summary statistic with roughly spherical distribution:
+분포가 거의 공 모양인 차원 $d$의 간추린 통계량에서는:
 
 $$
-
 \bar{\alpha} \approx V_d \cdot \epsilon^d \cdot C
-
 $$
 
-where $V_d$ is the volume of a unit $d$-ball and $C$ depends on the model.
+여기서 $V_d$은 단위 $d$차원 공의 부피이고 $C$은 모형에 기댄다.
 
-**Implication**: Acceptance rate decreases exponentially with summary dimension.
+**뜻하는 바**: 받아들임 비율은 간추림의 차원에 따라 지수로 줄어든다.
 
-### Empirical Acceptance Rate Estimation
+### 겪어 보고 받아들임 비율 어림하기
 
 ```python
 def estimate_acceptance_rate(prior_sampler, simulator, summary_fn, 
                              y_obs, distance_fn, epsilon, n_trials=10000):
-    """Estimate acceptance rate for given epsilon."""
+    """주어진 엡실론의 받아들임 비율 어림하기."""
     s_obs = summary_fn(y_obs)
     
     n_accepted = 0
@@ -183,19 +167,19 @@ def estimate_acceptance_rate(prior_sampler, simulator, summary_fn,
     return n_accepted / n_trials
 ```
 
-### Choosing Tolerance
+### 너그러움 고르기
 
-**Rule of thumb**: Set $\epsilon$ to achieve 0.1%–1% acceptance rate.
+**어림 규칙**: 받아들임 비율이 0.1%-1%가 되도록 $\epsilon$을 잡아라.
 
-**Adaptive approach**: Start with large $\epsilon$, decrease until acceptance rate is acceptable.
+**알아서 맞추는 길**: 큰 $\epsilon$에서 시작해 받아들임 비율이 그럭저럭해질 때까지 줄여라.
 
 ```python
 def find_epsilon(prior_sampler, simulator, summary_fn, y_obs, 
                  distance_fn, target_rate=0.01, n_pilot=10000):
-    """Find epsilon for target acceptance rate."""
+    """목표 받아들임 비율에 맞는 엡실론 찾기."""
     s_obs = summary_fn(y_obs)
     
-    # Collect distances from pilot run
+    # 예비 실행에서 거리 모으기
     distances = []
     for _ in range(n_pilot):
         theta = prior_sampler()
@@ -203,118 +187,116 @@ def find_epsilon(prior_sampler, simulator, summary_fn, y_obs,
         s_x = summary_fn(x)
         distances.append(distance_fn(s_x, s_obs))
     
-    # Epsilon as quantile
+    # 분위수로 잡은 엡실론
     epsilon = np.percentile(distances, target_rate * 100)
     return epsilon
 ```
 
 ---
 
-## Summary Statistics
+## 간추린 통계량
 
-### Requirements for Good Summaries
+### 좋은 간추림의 조건
 
-1. **Informative**: Capture information about $\theta$
-2. **Low-dimensional**: Keep acceptance rate tractable
-3. **Computable**: Can be calculated from simulated data
-4. **Robust**: Not overly sensitive to noise
+1. **알려 주는 바 있음**: $\theta$에 대한 정보를 담는다
+2. **차원이 낮음**: 받아들임 비율을 감당할 만하게 지킨다
+3. **셈할 수 있음**: 흉내 낸 자료에서 셈할 수 있다
+4. **튼튼함**: 잡음에 지나치게 민감하지 않다
 
-### Common Summary Statistics
+### 흔한 간추린 통계량
 
-**Location/scale**:
-- Mean, median, mode
-- Variance, standard deviation, IQR
-- Quantiles
+**자리/눈금**:
 
-**Dependence**:
-- Correlations, covariances
-- Autocorrelations (for time series)
-- Cross-correlations
+- 평균, 중앙값, 최빈값
+- 흩어짐, 표준편차, 사분위 범위
+- 분위수
 
-**Shape**:
-- Skewness, kurtosis
-- Histogram bin counts
-- Empirical CDF values
+**기댐**:
 
-**Domain-specific**:
-- Population genetics: allele frequencies, heterozygosity, $F_{ST}$
-- Epidemiology: final size, peak time, growth rate
-- Time series: spectral density, periodogram
+- 상관, 공분산
+- 자기상관(시계열에서)
+- 엇상관
 
-### Example: Normal Model
+**모양**:
 
-For $y_1, \ldots, y_n \sim \mathcal{N}(\mu, \sigma^2)$ with unknown $(\mu, \sigma^2)$:
+- 치우침도, 뾰족함도
+- 막대그림 칸의 세기
+- 경험 누적분포함수 값
 
-**Sufficient statistics**: $S(\mathbf{y}) = (\bar{y}, s^2)$ where $\bar{y} = \frac{1}{n}\sum y_i$ and $s^2 = \frac{1}{n-1}\sum(y_i - \bar{y})^2$.
+**분야에 따른 것**:
 
-ABC with these summaries and $\epsilon \to 0$ gives the exact posterior.
+- 집단 유전학: 대립유전자 빈도, 이형접합도, $F_{ST}$
+- 역학: 마지막 규모, 정점 시각, 자람 비율
+- 시계열: 스펙트럼 밀도, 주기도
 
-### Example: Time Series
+### 보기: 정규 모형
 
-For an AR(1) process $y_t = \phi y_{t-1} + \epsilon_t$:
+$(\mu, \sigma^2)$을 모르는 $y_1, \ldots, y_n \sim \mathcal{N}(\mu, \sigma^2)$에서:
+
+**충분 통계량**: $S(\mathbf{y}) = (\bar{y}, s^2)$이며 여기서 $\bar{y} = \frac{1}{n}\sum y_i$이고 $s^2 = \frac{1}{n-1}\sum(y_i - \bar{y})^2$이다.
+
+이 간추림과 $\epsilon \to 0$을 쓴 ABC은 정확한 뒤확률을 준다.
+
+### 보기: 시계열
+
+AR(1) 과정 $y_t = \phi y_{t-1} + \epsilon_t$에서:
 
 ```python
 def ar1_summaries(y):
-    """Summary statistics for AR(1) model."""
+    """AR(1) 모형의 간추린 통계량."""
     return np.array([
         np.mean(y),
         np.var(y),
-        np.corrcoef(y[:-1], y[1:])[0, 1],  # Lag-1 autocorrelation
+        np.corrcoef(y[:-1], y[1:])[0, 1],  # 뒤짐 1의 자기상관
     ])
 ```
 
 ---
 
-## Distance Functions
+## 거리 함수
 
-### Euclidean Distance
+### 유클리드 거리
 
 $$
-
 \rho(\mathbf{s}_1, \mathbf{s}_2) = \|\mathbf{s}_1 - \mathbf{s}_2\|_2 = \sqrt{\sum_j (s_{1j} - s_{2j})^2}
-
 $$
 
-Simple but treats all summaries equally.
+단순하지만 모든 간추림을 똑같이 다룬다.
 
-### Normalized Euclidean
+### 고르게 한 유클리드
 
 $$
-
 \rho(\mathbf{s}_1, \mathbf{s}_2) = \sqrt{\sum_j \frac{(s_{1j} - s_{2j})^2}{\hat{\sigma}_j^2}}
-
 $$
 
-where $\hat{\sigma}_j^2$ is the variance of the $j$-th summary under the prior predictive.
+여기서 $\hat{\sigma}_j^2$은 앞확률 예측 아래 $j$번째 간추림의 흩어짐이다.
 
 ```python
 def normalized_euclidean(s1, s2, sigma):
-    """Normalized Euclidean distance."""
+    """고르게 한 유클리드 거리."""
     return np.sqrt(np.sum(((s1 - s2) / sigma)**2))
 ```
 
-### Mahalanobis Distance
+### 마할라노비스 거리
 
 $$
-
 \rho(\mathbf{s}_1, \mathbf{s}_2) = \sqrt{(\mathbf{s}_1 - \mathbf{s}_2)^T \Sigma^{-1} (\mathbf{s}_1 - \mathbf{s}_2)}
-
 $$
 
-Accounts for correlations between summaries.
+간추림 사이의 상관을 헤아린다.
 
 ```python
 def mahalanobis_distance(s1, s2, Sigma_inv):
-    """Mahalanobis distance."""
+    """마할라노비스 거리."""
     diff = s1 - s2
     return np.sqrt(diff @ Sigma_inv @ diff)
 ```
 
-### Estimating the Scaling Matrix
+### 눈금 행렬 어림하기
 
 ```python
 def estimate_summary_covariance(prior_sampler, simulator, summary_fn, n_sims=1000):
-    """Estimate covariance of summaries under prior predictive."""
+    """앞확률 미리봄에서 간추린 통계량의 공분산 어림하기."""
     summaries = []
     for _ in range(n_sims):
         theta = prior_sampler()
@@ -326,39 +308,39 @@ def estimate_summary_covariance(prior_sampler, simulator, summary_fn, n_sims=100
 
 ---
 
-## Practical Implementation
+## 실전 구현
 
-### Complete Example: Inference for Normal Distribution
+### 온전한 보기: 정규 분포의 추론
 
 ```python
 import numpy as np
 from scipy import stats
 
-# True parameters and observed data
+# 참 매개변수와 관측한 자료
 mu_true, sigma_true = 5.0, 2.0
 n_obs = 100
 y_obs = np.random.normal(mu_true, sigma_true, n_obs)
 
-# Prior
+# 앞확률
 def prior_sampler():
     mu = np.random.uniform(-10, 10)
     sigma = np.random.uniform(0.1, 10)
     return np.array([mu, sigma])
 
-# Simulator
+# 흉내내기 장치
 def simulator(theta):
     mu, sigma = theta
     return np.random.normal(mu, sigma, n_obs)
 
-# Summary statistics (sufficient for this model)
+# 간추린 통계량(이 모형에 넉넉함)
 def summary_fn(x):
     return np.array([np.mean(x), np.std(x, ddof=1)])
 
-# Distance
+# 거리
 def distance_fn(s1, s2):
     return np.linalg.norm(s1 - s2)
 
-# Calibrate epsilon
+# 엡실론 눈금 맞추기
 s_obs = summary_fn(y_obs)
 pilot_distances = []
 for _ in range(10000):
@@ -366,10 +348,10 @@ for _ in range(10000):
     x = simulator(theta)
     pilot_distances.append(distance_fn(summary_fn(x), s_obs))
 
-epsilon = np.percentile(pilot_distances, 1)  # 1% acceptance
+epsilon = np.percentile(pilot_distances, 1)  # 받아들임 1%
 print(f"Epsilon: {epsilon:.4f}")
 
-# Run ABC
+# ABC 돌리기
 samples, acc_rate = abc_rejection(
     prior_sampler, simulator, summary_fn, y_obs,
     distance_fn, epsilon, n_samples=1000
@@ -380,16 +362,16 @@ print(f"Posterior mean: mu={samples[:, 0].mean():.2f}, sigma={samples[:, 1].mean
 print(f"True values: mu={mu_true}, sigma={sigma_true}")
 ```
 
-### Parallelization
+### 병렬로 돌리기
 
-ABC rejection is embarrassingly parallel:
+ABC 물리치기는 민망할 만큼 병렬로 잘 돌아간다:
 
 ```python
 from multiprocessing import Pool
 
 def abc_rejection_parallel(prior_sampler, simulator, summary_fn, y_obs,
                           distance_fn, epsilon, n_samples, n_workers=4):
-    """Parallel ABC rejection sampling."""
+    """나란한 ABC 물리치기 표집."""
     s_obs = summary_fn(y_obs)
     
     def try_sample(_):
@@ -405,12 +387,12 @@ def abc_rejection_parallel(prior_sampler, simulator, summary_fn, y_obs,
     return np.array(samples)
 ```
 
-### Progress Monitoring
+### 나아감 지켜보기
 
 ```python
 def abc_rejection_with_progress(prior_sampler, simulator, summary_fn, y_obs,
                                 distance_fn, epsilon, n_samples, report_every=100):
-    """ABC with progress reporting."""
+    """나아감을 알려 주는 ABC."""
     s_obs = summary_fn(y_obs)
     samples = []
     n_attempts = 0
@@ -434,89 +416,92 @@ def abc_rejection_with_progress(prior_sampler, simulator, summary_fn, y_obs,
 
 ---
 
-## Limitations
+## 한계
 
-### Low Acceptance Rate
+### 낮은 받아들임 비율
 
-For complex models or small $\epsilon$:
-- Acceptance rate can be $< 10^{-6}$
-- Millions of simulations needed
-- Computationally prohibitive
+복잡한 모형이나 작은 $\epsilon$에서는:
 
-### Prior Dependence
+- 받아들임 비율이 $< 10^{-6}$일 수 있다
+- 흉내내기가 수백만 번 필요하다
+- 셈으로 감당할 수 없다
 
-Sampling from the prior is inefficient when:
-- Prior is diffuse
-- Posterior is concentrated
-- Prior and posterior have little overlap
+### 앞확률에 기댐
 
-### Summary Statistic Choice
+다음일 때 앞확률에서 표집하는 것이 비효율적이다:
 
-Results depend critically on summaries:
-- Insufficient summaries → biased posterior
-- Too many summaries → low acceptance
-- No systematic way to choose
+- 앞확률이 퍼져 있다
+- 뒤확률이 좁게 몰려 있다
+- 앞확률과 뒤확률이 거의 겹치지 않는다
 
-### No Likelihood Approximation
+### 간추린 통계량 고르기
 
-ABC rejection doesn't provide a likelihood approximation—useful for model comparison but not available here.
+결과가 간추림에 결정적으로 기댄다:
 
----
+- 충분하지 않은 간추림 → 치우친 뒤확률
+- 간추림이 너무 많다 → 낮은 받아들임
+- 체계적으로 고르는 길이 없다
 
-## When to Use ABC Rejection
+### 가능도 어림이 없다
 
-### Good Candidates
-
-✓ Simulator is fast (< 1 second)
-✓ Parameter dimension is low (< 5)
-✓ Prior is informative
-✓ Good summary statistics are available
-✓ Moderate accuracy is sufficient
-
-### Move to Advanced Methods When
-
-✗ Acceptance rate is too low (< 0.01%)
-✗ Prior is uninformative
-✗ Need many posterior samples
-✗ Higher accuracy required
-✗ Simulator is expensive
-
-**Next steps**: ABC-MCMC for better exploration, ABC-SMC for adaptive tolerance.
+ABC 물리치기는 가능도 어림을 주지 않는다. 모형 견줌에 쓸모 있겠지만 여기서는 얻을 수 없다.
 
 ---
 
-## Summary
+## ABC 물리치기를 언제 쓰나
 
-| Aspect | Description |
+### 잘 맞는 경우
+
+✓ 흉내내기 장치가 빠르다(1초 미만)
+✓ 매개변수 차원이 낮다(5 미만)
+✓ 앞확률이 알려 주는 바가 있다
+✓ 좋은 간추린 통계량을 쓸 수 있다
+✓ 보통 정확도로 넉넉하다
+
+### 나아간 방법으로 옮겨야 할 때
+
+✗ 받아들임 비율이 너무 낮다(0.01% 미만)
+✗ 앞확률이 알려 주는 바가 없다
+✗ 뒤확률 표본이 많이 필요하다
+✗ 더 높은 정확도가 필요하다
+✗ 흉내내기 장치가 비싸다
+
+**다음 걸음**: 더 잘 살펴보려면 ABC-MCMC, 너그러움을 알아서 맞추려면 ABC-SMC.
+
+---
+
+## 요약
+
+| 항목 | 설명 |
 |--------|-------------|
-| **Algorithm** | Sample prior, simulate, accept if close |
-| **Target** | ABC posterior $p_\epsilon(\theta \| \mathbf{y})$ |
-| **Acceptance rate** | Decreases with $\epsilon$, summary dimension |
-| **Advantages** | Simple, parallel, exact samples from ABC posterior |
-| **Limitations** | Inefficient for small $\epsilon$, prior-dependent |
-| **Key choices** | Summary statistics, distance function, tolerance |
+| **알고리즘** | 앞확률에서 뽑고, 흉내 내고, 가까우면 받아들인다 |
+| **과녁** | ABC 뒤확률 $p_\epsilon(\theta \| \mathbf{y})$ |
+| **받아들임 비율** | $\epsilon$과 간추림의 차원에 따라 줄어든다 |
+| **좋은 점** | 단순하고, 병렬로 돌고, ABC 뒤확률의 정확한 표본을 준다 |
+| **한계** | $\epsilon$이 작으면 비효율적이고 앞확률에 기댄다 |
+| **핵심 고름** | 간추린 통계량, 거리 함수, 너그러움 |
 
-ABC rejection sampling is the foundation of likelihood-free inference. While simple, it establishes the core ideas that more sophisticated methods build upon.
-
----
-
-## Exercises
-
-1. **Implementation**. Implement ABC rejection for inferring the rate parameter $\lambda$ of a Poisson distribution. Compare to the exact posterior.
-
-2. **Tolerance sensitivity**. For the normal model example, run ABC with $\epsilon$ at the 0.1%, 1%, and 10% quantiles of prior predictive distances. Plot the resulting posteriors and compare.
-
-3. **Summary statistic comparison**. For inferring normal parameters, compare ABC using (a) mean and variance, (b) median and IQR, (c) first four moments. Which gives the best posterior approximation?
-
-4. **Scaling experiment**. Measure how acceptance rate scales with summary statistic dimension (1, 2, 5, 10 summaries) for fixed $\epsilon$.
-
-5. **Parallelization benchmark**. Compare runtime of sequential vs. parallel ABC rejection with 1, 2, 4, 8 workers.
+ABC 물리치기 표집은 가능도 없는 추론의 바탕이다. 단순하지만 더 정교한 방법이 딛고 서는 핵심 생각을 세운다.
 
 ---
 
-## References
+## 참고 문헌
 
 1. Pritchard, J. K., Seielstad, M. T., Perez-Lezaun, A., & Feldman, M. W. (1999). "Population Growth of Human Y Chromosomes: A Study of Y Chromosome Microsatellites." *Molecular Biology and Evolution*.
 2. Beaumont, M. A., Zhang, W., & Balding, D. J. (2002). "Approximate Bayesian Computation in Population Genetics." *Genetics*.
 3. Sisson, S. A., Fan, Y., & Tanaka, M. M. (2007). "Sequential Monte Carlo Without Likelihoods." *PNAS*.
 4. Marin, J.-M., et al. (2012). "Approximate Bayesian Computational Methods." *Statistics and Computing*.
+
+## 연습문제
+
+1. **구현.** 푸아송 분포의 비율 매개변수 $\lambda$을 추론하는 ABC 물리치기를 구현하여라. 정확한 뒤확률과 견주어라.
+
+2. **너그러움에 대한 민감함.** 정규 모형 보기에서 앞확률 예측 거리의 0.1%, 1%, 10% 분위수를 $\epsilon$으로 두고 ABC을 돌려라. 나온 뒤확률을 그려 견주어라.
+
+3. **간추린 통계량 견주기.** 정규 매개변수를 추론할 때 (a) 평균과 흩어짐, (b) 중앙값과 사분위 범위, (c) 처음 네 적률을 쓴 ABC을 견주어라. 어느 것이 뒤확률을 가장 잘 어림하는가?
+
+4. **커짐새 실험.** $\epsilon$을 붙박아 두고 간추린 통계량의 차원(간추림 1, 2, 5, 10개)에 따라 받아들임 비율이 어떻게 바뀌는지 재어라.
+
+5. **병렬 잣대.** 일꾼 1, 2, 4, 8개로 차례대로 도는 ABC 물리치기와 병렬로 도는 것의 시간을 견주어라.
+
+---

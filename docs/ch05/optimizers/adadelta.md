@@ -1,65 +1,65 @@
 # Adadelta
 
-[Adagrad](adagrad.md) adapts the learning rate per parameter by dividing by the square root of all past squared gradients.  While effective for sparse problems, this accumulation grows without bound, causing the effective learning rate to shrink to zero over time.  Adadelta (Zeiler, 2012) addresses this problem by replacing the unbounded sum with an **exponentially decaying average** of squared gradients.  It also introduces a novel "unit correction" mechanism that eliminates the need for an initial learning rate hyperparameter altogether.
+[Adagrad](adagrad.md)는 지난 기울기 제곱의 합의 제곱근으로 나누어 매개변수마다 학습률을 맞춘다. 희소한 문제에는 효과적이지만 이 누적이 한없이 커져 실효 학습률이 시간이 갈수록 0으로 줄어든다. Adadelta(Zeiler, 2012)는 유계가 아닌 합을 기울기 제곱의 **지수 감쇠 평균**으로 바꾸어 이 문제를 다룬다. 또한 처음 학습률이라는 초매개변수를 아예 없애는 새로운 "단위 보정" 장치를 들여온다.
 
-## Motivation: The Unit Mismatch Problem
+## 동기: 단위가 맞지 않는 문제
 
-In standard SGD, the parameter update $\Delta\theta = -\eta \, g$ has units proportional to the gradient, not to the parameter itself.  If $\theta$ represents a weight in kilograms and $g = \partial L / \partial \theta$ has units of loss per kilogram, then $\eta \, g$ has units that depend on the arbitrary choice of $\eta$.  Adadelta resolves this by scaling the update so that $\Delta\theta$ has the same "units" as $\theta$.
+표준 SGD에서 매개변수의 갱신 $\Delta\theta = -\eta \, g$은 매개변수 자체가 아니라 기울기에 비례하는 단위를 갖는다. $\theta$이 킬로그램 단위의 무게이고 $g = \partial L / \partial \theta$의 단위가 킬로그램당 손실이라면, $\eta \, g$의 단위는 임의로 고른 $\eta$에 달려 있게 된다. Adadelta는 $\Delta\theta$이 $\theta$과 같은 "단위"를 갖도록 갱신의 배율을 조정하여 이를 해결한다.
 
-## Update Rule
+## 갱신 규칙
 
-At each time step $t$, let $g_t = \nabla_\theta L(\theta_t)$ denote the gradient of the loss with respect to the parameters.  All squaring, square roots, and divisions below are **element-wise** operations.
+각 시각 $t$에서 매개변수에 대한 손실의 기울기를 $g_t = \nabla_\theta L(\theta_t)$이라 하자. 아래의 제곱, 제곱근, 나눗셈은 모두 **원소별** 연산이다.
 
-**Step 1.** Update the exponentially decaying average of squared gradients, denoted $s_t$:
+**1단계.** 기울기 제곱의 지수 감쇠 평균 $s_t$을 갱신한다.
 
 $$
 s_t = \rho \, s_{t-1} + (1 - \rho) \, g_t^2
 $$
 
-**Step 2.** Compute the parameter update $\Delta\theta_t$ using the ratio of the RMS of past parameter updates to the RMS of the current gradient accumulator:
+**2단계.** 지난 매개변수 갱신의 RMS와 현재 기울기 누적값의 RMS의 비를 써서 매개변수의 갱신량 $\Delta\theta_t$을 계산한다.
 
 $$
 \Delta\theta_t = -\frac{\sqrt{\delta_{t-1} + \epsilon}}{\sqrt{s_t + \epsilon}} \, g_t
 $$
 
-**Step 3.** Update the exponentially decaying average of squared parameter updates, denoted $\delta_t$:
+**3단계.** 매개변수 갱신량 제곱의 지수 감쇠 평균 $\delta_t$을 갱신한다.
 
 $$
 \delta_t = \rho \, \delta_{t-1} + (1 - \rho) \, (\Delta\theta_t)^2
 $$
 
-**Step 4.** Apply the update:
+**4단계.** 갱신을 적용한다.
 
 $$
 \theta_{t+1} = \theta_t + \Delta\theta_t
 $$
 
-Here $\rho \in [0, 1)$ is the **decay rate** (typically $0.9$), and $\epsilon$ is a small constant (e.g., $10^{-6}$) that prevents division by zero.
+여기서 $\rho \in [0, 1)$은 **감쇠율**(보통 $0.9$)이고, $\epsilon$은 0으로 나누는 것을 막는 작은 상수(예: $10^{-6}$)이다.
 
-## Key Insight: Unit Correction
+## 핵심 착상: 단위 보정
 
-The denominator $\sqrt{s_t + \epsilon}$ is the RMS of recent gradients, and the numerator $\sqrt{\delta_{t-1} + \epsilon}$ is the RMS of recent parameter updates.  Their ratio cancels the "gradient units," so the update $\Delta\theta_t$ ends up with the same units as $\theta$ itself.  This is the reason Adadelta can function without an explicit learning rate.
+분모 $\sqrt{s_t + \epsilon}$은 최근 기울기의 RMS이고 분자 $\sqrt{\delta_{t-1} + \epsilon}$은 최근 매개변수 갱신량의 RMS이다. 그 비가 "기울기의 단위"를 없애므로 갱신량 $\Delta\theta_t$이 $\theta$과 같은 단위를 갖게 된다. Adadelta가 명시적인 학습률 없이도 작동하는 까닭이 여기에 있다.
 
-!!! note "Comparison with RMSProp"
-    RMSProp (developed independently and concurrently) shares the exponentially decaying average of squared gradients (the denominator), but uses a fixed learning rate $\eta$ in the numerator instead of the RMS of past updates.  Adadelta's unit correction makes it the more principled formulation, though in practice both have been superseded by [Adam](adam.md).
+!!! note "RMSProp과의 비교"
+    (따로, 그리고 같은 무렵에 나온) RMSProp도 분모에 기울기 제곱의 지수 감쇠 평균을 쓰지만, 분자에는 지난 갱신량의 RMS 대신 고정된 학습률 $\eta$을 쓴다. Adadelta의 단위 보정이 더 원칙 있는 정식화이지만, 실무에서는 둘 다 [Adam](adam.md)에 자리를 내주었다.
 
-## PyTorch Example
+## PyTorch 예제
 
 ```python
-"""Adadelta optimizer demonstration on a simple regression task."""
+"""간단한 회귀 과제에서 Adadelta 최적화기 시연."""
 
 import torch
 import torch.nn as nn
 
 
-# === Model and Optimizer Setup ===
+# === 모델과 최적화기 준비 ===
 
 if __name__ == "__main__":
-    # Simple linear regression
+    # 간단한 선형 회귀
     model = nn.Linear(10, 1)
     optimizer = torch.optim.Adadelta(model.parameters(), rho=0.9, eps=1e-6)
 
-    # Training loop (illustrative)
+    # 학습 루프 (예시)
     for step in range(100):
         x = torch.randn(32, 10)
         y = torch.randn(32, 1)
@@ -71,17 +71,50 @@ if __name__ == "__main__":
     print(f"Final loss: {loss.item():.4f}")
 ```
 
-!!! warning "Learning rate in PyTorch"
-    Although Adadelta was designed to be learning-rate-free, PyTorch's implementation includes a `lr` parameter (default `1.0`) that multiplies the update.  Setting `lr=1.0` recovers the original algorithm.  Tuning `lr` away from 1.0 can sometimes improve convergence but defeats the purpose of the unit correction.
+!!! warning "PyTorch에서의 학습률"
+    Adadelta는 학습률 없이 쓰도록 설계되었지만, PyTorch의 구현에는 갱신량에 곱해지는 `lr` 매개변수(기본값 `1.0`)가 있다. `lr=1.0`으로 두면 원래 알고리즘이 된다. `lr`을 1.0에서 벗어나게 조율하면 수렴이 나아질 때도 있지만 단위 보정의 취지를 무너뜨린다.
 
-## Properties
+## 성질
 
-- **No learning rate required** (in the original formulation): the RMS ratio provides automatic scaling.
-- **Bounded accumulation**: the exponential decay in $s_t$ prevents the runaway accumulation that plagues Adagrad.
-- **Unit-correct updates**: the parameter update has the same dimensional units as the parameters.
-- **Historical significance**: Adadelta and RMSProp were developed at nearly the same time and share the same key insight (exponential moving average of squared gradients).
-- **Modern usage**: rarely used in current practice; [Adam](adam.md) and [AdamW](adamw.md) are preferred for most applications.
+- **학습률이 필요 없다**(원래 정식화에서는): RMS의 비가 배율을 저절로 맞춰 준다.
+- **유계인 누적**: $s_t$의 지수 감쇠가 Adagrad를 괴롭히는 걷잡을 수 없는 누적을 막는다.
+- **단위가 맞는 갱신**: 매개변수의 갱신량이 매개변수와 같은 차원의 단위를 갖는다.
+- **역사적 의의**: Adadelta와 RMSProp은 거의 같은 무렵에 나왔고 기울기 제곱의 지수 이동 평균이라는 같은 핵심 착상을 공유한다.
+- **요즘의 쓰임**: 지금은 거의 쓰이지 않는다. 대부분의 응용에서 [Adam](adam.md)과 [AdamW](adamw.md)를 선호한다.
 
-## Reference
+## 참고 문헌
 
 - Zeiler, M. D. (2012). ADADELTA: An Adaptive Learning Rate Method. *arXiv:1212.5701*.
+
+
+## 연습문제
+
+**연습문제 1.**
+Adadelta의 갱신 규칙 전체를 쓰라. 각 항(기울기, 모멘텀, 적응형 학습률, 편향 보정)이 하는 구실을 밝히라.
+
+??? success "연습문제 1 풀이"
+    이 쪽의 갱신 규칙은 여러 부분으로 이루어진다. 기울기는 하강 방향을 주고, 모멘텀 항은 단계에 걸쳐 잡음이 섞인 기울기를 매끄럽게 하며, 적응 항은 매개변수마다 학습률의 배율을 조정하고, (있다면) 편향 보정은 모멘트 추정값을 0으로 초기화한 데서 오는 치우침을 바로잡는다.
+
+---
+
+**연습문제 2.**
+Adadelta을(를) 기본 SGD와 비교하라. 어떤 손실 지형에서 Adadelta이(가) 가장 유리한가?
+
+??? success "연습문제 2 풀이"
+    Adadelta은(는) 다음과 같은 손실 지형에서 유리하다. (1) 차원마다 곡률이 다를 때(적응형 학습률이 도움이 된다), (2) 기울기에 잡음이 많을 때(모멘텀의 평활화가 도움이 된다), (3) 기울기가 희소할 때(누적된 이차 모멘트가 드물게 갱신되는 매개변수에도 뜻있는 학습률을 준다). 잘 조율된 대규모 과제에서는 SGD가 더 잘 일반화할 수 있다.
+
+---
+
+**연습문제 3.**
+Adadelta으로 4단계 동안 기울기 $[0.1, 0.2, 0.1, 0.3]$을 받은 매개변수의 실효 학습률을 유도하라. 명목 학습률과 어떻게 다른가?
+
+??? success "연습문제 3 풀이"
+    이 쪽의 갱신 규칙을 적용하여 4단계 뒤에 누적된 상태를 계산하라. 실효 학습률은 명목 학습률을 누적된 이차 모멘트 항(에 엡실론을 더한 값)으로 나눈 것이다. 기울기가 꾸준히 큰 매개변수는 실효 학습률이 작아지고, 기울기가 작은 매개변수는 실효 학습률이 커진다.
+
+---
+
+**연습문제 4.**
+Adadelta이(가) 어떤 학습률 선택에서 발산할 수 있는 이유를 설명하라. 안정 조건을 유도하라.
+
+??? success "연습문제 4 풀이"
+    실효 걸음 크기가 곡률의 한계를 넘으면 발산한다. 매개변수가 극소점을 지나쳐 진폭이 커지며 진동한다. 안정 조건은 학습률, 손실의 곡률(헤세 행렬의 고윳값), 최적화기의 적응 배율 사이의 관계에 달렸다. 볼록 이차 함수에서는 매끄러움 상수를 $L$이라 할 때 조건이 $\eta < 2/L$이다.

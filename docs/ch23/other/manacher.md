@@ -1,70 +1,70 @@
-# Manacher's Algorithm
+# 마나커 알고리즘
 
-Finding the longest palindromic substring by brute force takes $O(n^2)$ time (expand around each center). **Manacher's algorithm** achieves $O(n)$ by exploiting the symmetric structure of palindromes: when processing a position within a known palindrome, previously computed radii can be reused, avoiding redundant character comparisons.
+가장 긴 뒤집어도 같은 부분 글줄을 막무가내로 찾으면 $O(n^2)$ 시간이 든다(가운데마다 밖으로 넓힌다). **마나커 알고리즘**은 뒤집어도 같은 글의 대칭 짜임을 써먹어 $O(n)$을 이룬다. 곧 이미 아는 뒤집어도 같은 글 안의 자리를 처리할 때 앞서 셈한 반지름을 다시 써서 겹치는 글자 견줌을 피한다.
 
-## Key Idea
+## 핵심 생각
 
-Manacher's algorithm maintains the rightmost palindrome found so far, defined by its center $C$ and right boundary $R$. For a new center $i$:
+마나커 알고리즘은 가운데 $C$과 오른쪽 가장자리 $R$으로 정해지는, 여태 찾은 가장 오른쪽 뒤집어도 같은 글을 지닌다. 새 가운데 $i$에 대해:
 
-- If $i < R$, the mirror position $i' = 2C - i$ has already been processed. The palindrome radius at $i$ is at least $\min(p[i'], R - i)$.
-- Expand outward from this initial radius. Any expansion beyond $R$ discovers new territory.
+- $i < R$이면 거울 자리 $i' = 2C - i$을 이미 처리했다. $i$에서 뒤집어도 같은 글의 반지름은 적어도 $\min(p[i'], R - i)$이다.
+- 이 첫 반지름에서 밖으로 넓힌다. $R$ 너머로 넓히면 새 땅을 찾는다.
 
-This ensures that each character is examined as part of an expansion at most $O(1)$ times amortized.
+그러면 글자마다 넓히기의 일부로 살펴지는 횟수가 고르게 나누어 많아야 $O(1)$이 된다.
 
-## Handling Even-Length Palindromes
+## 짝수 길이 뒤집어도 같은 글 다루기
 
-The classic trick inserts a separator character (e.g., `#`) between every pair of characters and at both ends:
+고전 재주는 글자 짝마다 사이와 양 끝에 가르개 글자(예컨대 `#`)를 끼운다:
 
 $$
 \text{``abba''} \rightarrow \text{``\#a\#b\#b\#a\#''}
 $$
 
-This transforms every palindrome (odd or even length) into an odd-length palindrome in the transformed string, unifying both cases.
+그러면 (홀수든 짝수든) 모든 뒤집어도 같은 글이 바뀐 글줄에서 홀수 길이가 되어 두 경우가 하나로 아우러진다.
 
-## Algorithm
+## 알고리즘
 
-Let $T$ be the transformed string of length $2n + 1$. Compute an array $p$ where $p[i]$ is the radius of the longest palindrome centered at $i$ in $T$.
+$T$을 길이 $2n + 1$인 바뀐 글줄이라 하자. $p[i]$이 $T$에서 $i$을 가운데로 하는 가장 긴 뒤집어도 같은 글의 반지름인 배열 $p$을 셈한다.
 
-1. Initialize $C = 0$, $R = 0$ (center and right boundary of the rightmost palindrome).
-2. For each position $i$ from 0 to $|T| - 1$:
-    - Set the mirror $i' = 2C - i$.
-    - Initialize $p[i] = \min(p[i'], R - i)$ if $i < R$, else $p[i] = 0$.
-    - Expand: while $T[i + p[i] + 1] = T[i - p[i] - 1]$, increment $p[i]$.
-    - If $i + p[i] > R$, update $C = i$ and $R = i + p[i]$.
-3. The longest palindromic substring has length $\max(p)$, centered at $\text{argmax}(p)$.
+1. $C = 0$, $R = 0$으로 첫자리매김한다(가장 오른쪽 뒤집어도 같은 글의 가운데와 오른쪽 가장자리).
+2. 자리 $i$을 0부터 $|T| - 1$까지:
+    - 거울 $i' = 2C - i$을 정한다.
+    - $i < R$이면 $p[i] = \min(p[i'], R - i)$으로, 아니면 $p[i] = 0$으로 첫자리매김한다.
+    - 넓힌다: $T[i + p[i] + 1] = T[i - p[i] - 1]$인 동안 $p[i]$을 하나 늘린다.
+    - $i + p[i] > R$이면 $C = i$, $R = i + p[i]$으로 새로 고친다.
+3. 가장 긴 뒤집어도 같은 부분 글줄의 길이는 $\max(p)$이고 가운데는 $\text{argmax}(p)$이다.
 
-## Complexity
+## 복잡도
 
-| Aspect | Value |
+| 갈래 | 값 |
 |---|---|
-| Time | $O(n)$ |
-| Space | $O(n)$ |
+| 시간 | $O(n)$ |
+| 공간 | $O(n)$ |
 
-!!! tip "Why O(n)?"
-    Each expansion step advances $R$ to the right, and $R$ never decreases. Since $R$ can advance at most $O(n)$ times total, the total number of expansion steps across all positions is $O(n)$.
+!!! tip "왜 O(n)인가?"
+    넓히는 걸음마다 $R$이 오른쪽으로 나아가고 $R$은 결코 줄지 않는다. $R$이 모두 합해 많아야 $O(n)$번 나아갈 수 있으므로 모든 자리에 걸친 넓히기 걸음의 총수는 $O(n)$이다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Manacher's Algorithm — Longest Palindromic Substring in O(n).
+마나커 알고리즘 — O(n)에 찾는 가장 긴 뒤집어도 같은 부분 글줄.
 
-Uses the separator trick to handle both odd and even length palindromes
-uniformly, then computes palindrome radii in linear time.
+가르개 재주로 홀수와 짝수 길이 뒤집어도 같은 글을 한결같이 다룬 뒤
+선형 시간에 뒤집어도 같은 글의 반지름을 셈한다.
 """
 
 
-# === Manacher's Algorithm ===
+# === 마나커 알고리즘 ===
 
 def manacher(s: str) -> tuple[str, int, int]:
-    """Find the longest palindromic substring.
+    """가장 긴 뒤집어도 같은 부분 글줄을 찾는다.
 
-    Returns (palindrome, start_in_original, length).
+    (뒤집어도 같은 글, 본디 글줄에서의 시작, 길이)를 돌려준다.
     """
     if not s:
         return "", 0, 0
 
-    # Transform: "abc" -> "^#a#b#c#$"
+    # 바꿈: "abc" -> "^#a#b#c#$"
     t = "^#" + "#".join(s) + "#$"
     n = len(t)
     p = [0] * n
@@ -77,30 +77,30 @@ def manacher(s: str) -> tuple[str, int, int]:
         if i < right:
             p[i] = min(p[mirror], right - i)
 
-        # Expand around center i
+        # 가운데 i에서 밖으로 넓힌다
         while t[i + p[i] + 1] == t[i - p[i] - 1]:
             p[i] += 1
 
-        # Update rightmost palindrome
+        # 가장 오른쪽 뒤집어도 같은 글을 새로 고친다
         if i + p[i] > right:
             center = i
             right = i + p[i]
 
-    # Find the maximum radius
+    # 최대 반지름을 찾는다
     max_radius = max(p)
     max_center = p.index(max_radius)
 
-    # Map back to original string
+    # 본디 글줄로 되돌린다
     start = (max_center - max_radius) // 2
     return s[start:start + max_radius], start, max_radius
 
 
-# === All Palindromic Substrings ===
+# === 뒤집어도 같은 부분 글줄 모두 ===
 
 def all_palindrome_radii(s: str) -> list[int]:
-    """Return the palindrome radius for each center in the original string.
+    """본디 글줄의 가운데마다 뒤집어도 같은 글의 반지름을 돌려준다.
 
-    Odd-length palindromes only (for simplicity).
+    간단히 하려고 홀수 길이만 다룬다.
     """
     n = len(s)
     p = [0] * n
@@ -123,33 +123,65 @@ def all_palindrome_radii(s: str) -> list[int]:
     return p
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     test_cases = ["babad", "cbbd", "abaaba", "abacaba"]
     for s in test_cases:
         palindrome, start, length = manacher(s)
         print(f"'{s}' -> '{palindrome}' (start={start}, length={length})")
-    # Output:
-    # 'babad' -> 'bab' (start=0, length=3)
-    # 'cbbd' -> 'bb' (start=1, length=2)
-    # 'abaaba' -> 'abaaba' (start=0, length=6)
-    # 'abacaba' -> 'abacaba' (start=0, length=7)
+    # 내임:
+    # 'babad' -> 'bab'(시작=0, 길이=3)
+    # 'cbbd' -> 'bb'(시작=1, 길이=2)
+    # 'abaaba' -> 'abaaba'(시작=0, 길이=6)
+    # 'abacaba' -> 'abacaba'(시작=0, 길이=7)
 ```
 
-## Worked Example
+## 풀이 예제
 
-For $s = \text{``abacaba''}$:
+$s = \text{``abacaba''}$일 때:
 
-Transformed: `^#a#b#a#c#a#b#a#$`
+바꾼 것: `^#a#b#a#c#a#b#a#$`
 
-| Position | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 |
+| 자리 | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
 | $T$ | ^ | # | a | # | b | # | a | # | c | # | a | # | b | # | a | # | $ |
 | $p$ | 0 | 0 | 1 | 0 | 3 | 0 | 1 | 0 | 7 | 0 | 1 | 0 | 3 | 0 | 1 | 0 | 0 |
 
-The maximum radius is 7 at position 8 (character 'c'). Mapping back: start = $(8 - 7) / 2 = 0$, length = 7. The longest palindrome is "abacaba".
+최대 반지름은 자리 8(글자 'c')에서 7이다. 되돌리면 시작 = $(8 - 7) / 2 = 0$, 길이 = 7이다. 가장 긴 뒤집어도 같은 글은 "abacaba"이다.
 
-## Reference
+## 참고 문헌
 
 - Manacher, G. (1975). A new linear-time "on-line" algorithm for finding the smallest initial palindrome of a string. *Journal of the ACM*, 22(3), 346-351.
+
+## 연습문제
+
+**연습문제 1.**
+마나커 알고리즘의 핵심 자료 짜임이나 개념과 그 으뜸 쓰임새를 설명하라.
+
+??? success "연습문제 1 풀이"
+    마나커 알고리즘은 글줄이나 차례 자료를 미리 다듬고 묻는 효율 좋은 길을 준다. 으뜸 쓰임새는 부분 글줄, 본, 들임의 짜임 성질에 대한 되풀이되는 물음에 답하는 것이다. 미리 다듬기가 다룰 만한 시간에 자료 짜임을 세우고 나면 맨바닥에서 다시 다듬는 것보다 훨씬 빠르게 물음에 답할 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+마나커 알고리즘을 세우는 시간 복잡도는 무엇인가? 으뜸 연산의 묻기 시간은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    세우는 시간은 쓰는 알고리즘에 달렸다. 흔한 한계는 $n$이 들임 크기일 때 $O(n)$에서 $O(n \log n)$ 사이이다. 묻기는 흔히 본 찾기에 $O(m)$($m$은 물음 길이), 미리 셈한 성질에 $O(1)$이 든다. 공간 복잡도는 흔히 $O(n)$이거나 $\sigma$이 글자 모임의 크기일 때 $O(n\sigma)$이다. $\square$
+
+---
+
+**연습문제 3.**
+마나커 알고리즘을 더 단순한 다른 방식과 견주어라. 더 정교한 짜임은 언제 값어치가 있는가?
+
+??? success "연습문제 3 풀이"
+    더 단순한 방식(예컨대 막무가내 훑기나 정렬)은 묻기 시간이 더 길지만 세우는 군더더기가 적다. 정교한 짜임은 다음일 때 값어치가 있다. (1) 같은 자료에 물음을 많이 던져 세우는 값이 고르게 나뉠 때, (2) 묻기 시간이 결정적일 때(실시간 쓰임새), (3) 자료가 커서 점근 나아짐이 실전에서 중요할 때이다. 작은 자료에 물음을 한 번 던지는 경우에는 상수 인수가 작은 단순한 방식이 더 빠를 수 있다. $\square$
+
+---
+
+**연습문제 4.**
+들임 글줄 "banana"에 대해 마나커 알고리즘을 세우는 것을 좇아라. 중간 걸음을 보여라.
+
+??? success "연습문제 4 풀이"
+    "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$

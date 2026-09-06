@@ -1,213 +1,213 @@
-# Akra-Bazzi Method
+# Akra-Bazzi 방법
 
-The Master theorem provides a clean recipe for recurrences of the form $T(n) = aT(n/b) + f(n)$, but it requires the subproblems to be exactly equal in size and the division ratio to be a constant. Many practical divide-and-conquer algorithms, such as median-of-medians selection or hybrid sorting routines, split the input into subproblems of *unequal* sizes. The Akra-Bazzi method generalizes the Master theorem to handle these asymmetric recurrences, making it one of the most powerful tools for solving divide-and-conquer recurrences.
+마스터 정리는 $T(n) = aT(n/b) + f(n)$ 형태의 점화식에 대해 깔끔한 처방을 제공하지만, 부분문제의 크기가 정확히 같고 분할 비가 상수일 것을 요구한다. 중앙값의 중앙값 선택이나 혼합 정렬 루틴 같은 많은 실용적인 분할 정복 알고리즘은 입력을 크기가 *서로 다른* 부분문제로 나눈다. Akra-Bazzi 방법은 마스터 정리를 일반화하여 이러한 비대칭 점화식을 다루며, 분할 정복 점화식을 푸는 가장 강력한 도구 중 하나이다.
 
-## General Form
+## 일반적인 형태
 
-The Akra-Bazzi method applies to recurrences of the form:
+Akra-Bazzi 방법은 다음 형태의 점화식에 적용된다.
 
 $$
 T(n) = \sum_{i=1}^{k} a_i \, T(b_i \, n) + g(n)
 $$
 
-where:
+여기서
 
-- $k \geq 1$ is the number of recursive subproblems
-- $a_i > 0$ are the subproblem multipliers
-- $0 < b_i < 1$ are the subproblem size ratios (each subproblem is a constant fraction of $n$)
-- $g(n)$ is the non-recursive cost, which must satisfy a polynomial growth condition (described below)
+- $k \geq 1$은 재귀적 부분문제의 개수
+- $a_i > 0$은 부분문제 배수
+- $0 < b_i < 1$은 부분문제 크기 비(각 부분문제가 $n$의 일정 비율)
+- $g(n)$은 재귀가 아닌 비용이며 (아래에 설명하는) 다항 증가 조건을 만족해야 한다
 
-Unlike the Master theorem, the $b_i$ values need not all be equal. This allows the method to handle recurrences where the input is split into parts of different sizes.
+마스터 정리와 달리 $b_i$ 값들이 모두 같을 필요가 없다. 덕분에 입력이 크기가 다른 부분으로 나뉘는 점화식도 다룰 수 있다.
 
-## Conditions on the Toll Function
+## 통행료 함수에 대한 조건
 
-The non-recursive cost $g(n)$ must satisfy the following **polynomial growth condition**: there exist constants $c_1, c_2 > 0$ such that for all $n$ sufficiently large,
+재귀가 아닌 비용 $g(n)$은 다음 **다항 증가 조건** 을 만족해야 한다. 충분히 큰 모든 $n$에 대해 다음을 만족하는 상수 $c_1, c_2 > 0$이 존재해야 한다.
 
 $$
 |g'(n)| \leq c_1 \, n^{c_2}
 $$
 
-In practice, this condition is satisfied by essentially every toll function encountered in algorithm analysis, including polynomials, polylogarithmic functions, and products of polynomials with logarithms.
+실무에서는 다항식, 폴리로그 함수, 다항식과 로그의 곱을 포함해 알고리즘 분석에서 마주치는 사실상 모든 통행료 함수가 이 조건을 만족한다.
 
-## The Critical Exponent
+## 임계 지수
 
-The first step in applying the Akra-Bazzi method is to find the unique real number $p$ satisfying:
+Akra-Bazzi 방법을 적용하는 첫 단계는 다음을 만족하는 유일한 실수 $p$를 찾는 것이다.
 
 $$
 \sum_{i=1}^{k} a_i \, b_i^{\,p} = 1
 $$
 
-This value $p$ is called the **critical exponent**. It always exists and is unique because the left-hand side is a strictly decreasing continuous function of $p$: when $p \to -\infty$ it tends to $+\infty$, and when $p \to +\infty$ it tends to $0$. By the intermediate value theorem, there is exactly one $p$ where the sum equals $1$.
+이 값 $p$를 **임계 지수** 라 한다. 좌변이 $p$에 대해 순감소하는 연속함수이므로 $p$는 언제나 존재하고 유일하다. $p \to -\infty$일 때 좌변은 $+\infty$로 가고 $p \to +\infty$일 때는 $0$으로 간다. 중간값 정리에 의해 합이 $1$이 되는 $p$가 정확히 하나 있다.
 
-For the special case $k = 1$ with $a_1 = a$ and $b_1 = 1/b$, the equation becomes $a \cdot (1/b)^p = 1$, which gives $p = \log_b a$. This recovers the critical exponent from the Master theorem.
+$a_1 = a$, $b_1 = 1/b$인 $k = 1$의 특수한 경우에는 식이 $a \cdot (1/b)^p = 1$이 되어 $p = \log_b a$를 준다. 이것이 마스터 정리의 임계 지수를 되찾아 준다.
 
-## The Akra-Bazzi Theorem
+## Akra-Bazzi 정리
 
-!!! note "Akra-Bazzi Theorem"
-    Given a recurrence $T(n) = \sum_{i=1}^{k} a_i \, T(b_i \, n) + g(n)$ where $a_i > 0$, $0 < b_i < 1$, and $g(n)$ satisfies the polynomial growth condition, the solution is:
+!!! note "Akra-Bazzi 정리"
+    $a_i > 0$, $0 < b_i < 1$이고 $g(n)$이 다항 증가 조건을 만족하는 점화식 $T(n) = \sum_{i=1}^{k} a_i \, T(b_i \, n) + g(n)$이 주어지면 해는 다음과 같다.
 
     $$
     T(n) = \Theta\!\left( n^p \left( 1 + \int_1^n \frac{g(u)}{u^{p+1}} \, du \right) \right)
     $$
 
-    where $p$ is the unique solution to $\sum_{i=1}^{k} a_i \, b_i^{\,p} = 1$.
+    여기서 $p$는 $\sum_{i=1}^{k} a_i \, b_i^{\,p} = 1$의 유일한 해이다.
 
-The integral absorbs the contribution of the non-recursive work across all levels of the recursion. When $g(n)$ is a polynomial times a logarithm, this integral can be evaluated in closed form.
+이 적분이 재귀의 모든 층에 걸친 재귀가 아닌 일의 기여를 흡수한다. $g(n)$이 다항식 곱하기 로그일 때 이 적분은 닫힌 형태로 계산할 수 있다.
 
-## Evaluating the Integral
+## 적분 계산하기
 
-The power of the Akra-Bazzi method lies in reducing the recurrence to a calculus problem. Here are common cases for the integral.
+Akra-Bazzi 방법의 힘은 점화식을 미적분 문제로 환원한다는 데 있다. 적분의 흔한 경우들은 다음과 같다.
 
-### Case 1: Polynomial Toll Function
+### 경우 1: 다항 통행료 함수
 
-If $g(n) = n^c$ for some constant $c$:
+어떤 상수 $c$에 대해 $g(n) = n^c$이면
 
 $$
 \int_1^n \frac{u^c}{u^{p+1}} \, du = \int_1^n u^{c - p - 1} \, du = \begin{cases} \dfrac{n^{c-p} - 1}{c - p} & \text{if } c \neq p \\[6pt] \ln n & \text{if } c = p \end{cases}
 $$
 
-When $c > p$, the integral is $\Theta(n^{c-p})$, so $T(n) = \Theta(n^c)$. When $c < p$, the integral is $\Theta(1)$, so $T(n) = \Theta(n^p)$. When $c = p$, the integral is $\Theta(\ln n)$, so $T(n) = \Theta(n^p \log n)$.
+$c > p$이면 적분이 $\Theta(n^{c-p})$이므로 $T(n) = \Theta(n^c)$이다. $c < p$이면 적분이 $\Theta(1)$이므로 $T(n) = \Theta(n^p)$이다. $c = p$이면 적분이 $\Theta(\ln n)$이므로 $T(n) = \Theta(n^p \log n)$이다.
 
-### Case 2: Polynomial Times Logarithm
+### 경우 2: 다항식 곱하기 로그
 
-If $g(n) = n^c \log^d n$ for constants $c$ and $d \geq 0$:
+상수 $c$와 $d \geq 0$에 대해 $g(n) = n^c \log^d n$이면
 
 $$
 \int_1^n \frac{u^c \log^d u}{u^{p+1}} \, du = \int_1^n u^{c-p-1} \log^d u \, du
 $$
 
-- When $c > p$: the integral is $\Theta(n^{c-p} \log^d n)$, giving $T(n) = \Theta(n^c \log^d n)$
-- When $c = p$: the integral is $\Theta(\log^{d+1} n)$, giving $T(n) = \Theta(n^p \log^{d+1} n)$
-- When $c < p$: the integral is $\Theta(1)$, giving $T(n) = \Theta(n^p)$
+- $c > p$이면 적분이 $\Theta(n^{c-p} \log^d n)$이므로 $T(n) = \Theta(n^c \log^d n)$이다
+- $c = p$이면 적분이 $\Theta(\log^{d+1} n)$이므로 $T(n) = \Theta(n^p \log^{d+1} n)$이다
+- $c < p$이면 적분이 $\Theta(1)$이므로 $T(n) = \Theta(n^p)$이다
 
-## Worked Examples
+## 풀이 예제
 
-### Example 1: Equal-Size Split (Recovering the Master Theorem)
+### 예제 1: 같은 크기 분할(마스터 정리 되찾기)
 
-Consider the merge sort recurrence:
+병합 정렬의 점화식을 생각하자.
 
 $$
 T(n) = 2T(n/2) + n
 $$
 
-This fits the Akra-Bazzi form with $k = 1$, $a_1 = 2$, $b_1 = 1/2$, and $g(n) = n$.
+이는 $k = 1$, $a_1 = 2$, $b_1 = 1/2$, $g(n) = n$인 Akra-Bazzi 형태에 들어맞는다.
 
-**Step 1**: Find $p$ from $2 \cdot (1/2)^p = 1$, which gives $p = 1$.
+**1단계**: $2 \cdot (1/2)^p = 1$로부터 $p = 1$을 얻는다.
 
-**Step 2**: Evaluate the integral:
+**2단계**: 적분을 계산한다.
 
 $$
 \int_1^n \frac{u}{u^{1+1}} \, du = \int_1^n \frac{1}{u} \, du = \ln n
 $$
 
-**Step 3**: Apply the theorem:
+**3단계**: 정리를 적용한다.
 
 $$
 T(n) = \Theta\!\left( n^1 \left(1 + \ln n\right) \right) = \Theta(n \log n)
 $$
 
-This matches the well-known merge sort complexity.
+이는 잘 알려진 병합 정렬의 복잡도와 일치한다.
 
-### Example 2: Unequal Split
+### 예제 2: 크기가 다른 분할
 
-Consider the recurrence arising in the median-of-medians algorithm:
+중앙값의 중앙값 알고리즘에서 나오는 점화식을 생각하자.
 
 $$
 T(n) = T(n/5) + T(7n/10) + n
 $$
 
-Here $k = 2$, $a_1 = 1$, $b_1 = 1/5$, $a_2 = 1$, $b_2 = 7/10$, and $g(n) = n$.
+여기서 $k = 2$, $a_1 = 1$, $b_1 = 1/5$, $a_2 = 1$, $b_2 = 7/10$, $g(n) = n$이다.
 
-**Step 1**: Find $p$ from $(1/5)^p + (7/10)^p = 1$.
+**1단계**: $(1/5)^p + (7/10)^p = 1$로부터 $p$를 찾는다.
 
-Testing $p = 0$: $(1/5)^0 + (7/10)^0 = 1 + 1 = 2 > 1$.
+$p = 0$을 넣어 보면 $(1/5)^0 + (7/10)^0 = 1 + 1 = 2 > 1$이다.
 
-Testing $p = 1$: $1/5 + 7/10 = 9/10 < 1$.
+$p = 1$을 넣어 보면 $1/5 + 7/10 = 9/10 < 1$이다.
 
-Since the left-hand side is continuous and strictly decreasing in $p$, the solution lies between $0$ and $1$. Numerically, $p \approx 0.8396$.
+좌변이 $p$에 대해 연속이고 순감소하므로 해는 $0$과 $1$ 사이에 있다. 수치적으로 $p \approx 0.8396$이다.
 
-**Step 2**: Since $g(n) = n = n^1$ and $1 > p \approx 0.84$, the integral evaluates to $\Theta(n^{1-p})$.
+**2단계**: $g(n) = n = n^1$이고 $1 > p \approx 0.84$이므로 적분은 $\Theta(n^{1-p})$이 된다.
 
-**Step 3**: Apply the theorem:
+**3단계**: 정리를 적용한다.
 
 $$
 T(n) = \Theta\!\left( n^p \cdot n^{1-p} \right) = \Theta(n)
 $$
 
-This confirms that the median-of-medians algorithm runs in linear time.
+이로써 중앙값의 중앙값 알고리즘이 선형 시간에 실행됨이 확인된다.
 
-### Example 3: Multiple Unequal Subproblems
+### 예제 3: 크기가 다른 부분문제가 여럿인 경우
 
-Consider:
+다음을 생각하자.
 
 $$
 T(n) = 3T(n/4) + 2T(n/3) + n^2
 $$
 
-Here $k = 2$, $a_1 = 3$, $b_1 = 1/4$, $a_2 = 2$, $b_2 = 1/3$, and $g(n) = n^2$.
+여기서 $k = 2$, $a_1 = 3$, $b_1 = 1/4$, $a_2 = 2$, $b_2 = 1/3$, $g(n) = n^2$이다.
 
-**Step 1**: Find $p$ from $3 \cdot (1/4)^p + 2 \cdot (1/3)^p = 1$.
+**1단계**: $3 \cdot (1/4)^p + 2 \cdot (1/3)^p = 1$로부터 $p$를 찾는다.
 
-Testing $p = 1$: $3/4 + 2/3 = 17/12 > 1$.
+$p = 1$을 넣어 보면 $3/4 + 2/3 = 17/12 > 1$이다.
 
-Testing $p = 2$: $3/16 + 2/9 \approx 0.410 < 1$.
+$p = 2$를 넣어 보면 $3/16 + 2/9 \approx 0.410 < 1$이다.
 
-So $p$ lies between $1$ and $2$. Numerically, $p \approx 1.296$.
+따라서 $p$는 $1$과 $2$ 사이에 있다. 수치적으로 $p \approx 1.296$이다.
 
-**Step 2**: Since $g(n) = n^2$ and $2 > p \approx 1.296$, the integral gives $\Theta(n^{2-p})$.
+**2단계**: $g(n) = n^2$이고 $2 > p \approx 1.296$이므로 적분은 $\Theta(n^{2-p})$을 준다.
 
-**Step 3**: Apply the theorem:
+**3단계**: 정리를 적용한다.
 
 $$
 T(n) = \Theta\!\left( n^p \cdot n^{2-p} \right) = \Theta(n^2)
 $$
 
-The quadratic toll function dominates the recursive work.
+이차 통행료 함수가 재귀적 일을 지배한다.
 
-## Comparison with the Master Theorem
+## 마스터 정리와의 비교
 
-| Feature | Master Theorem | Akra-Bazzi Method |
+| 특징 | 마스터 정리 | Akra-Bazzi 방법 |
 |---------|---------------|-------------------|
-| Subproblem sizes | Must be equal ($n/b$) | Can be unequal ($b_i n$) |
-| Number of distinct sizes | One | Any finite number |
-| Toll function restrictions | Polynomial regularity condition | Polynomial growth on derivative |
-| Solution method | Case comparison | Integral evaluation |
-| Scope | Subset of Akra-Bazzi | Most general for divide-and-conquer |
+| 부분문제 크기 | 같아야 함($n/b$) | 달라도 됨($b_i n$) |
+| 서로 다른 크기의 개수 | 하나 | 임의의 유한 개수 |
+| 통행료 함수 제약 | 다항 정칙 조건 | 도함수의 다항 증가 |
+| 풀이 방법 | 경우 비교 | 적분 계산 |
+| 적용 범위 | Akra-Bazzi의 부분집합 | 분할 정복에 대해 가장 일반적 |
 
-The Master theorem is simpler to apply when it applies, but the Akra-Bazzi method covers strictly more recurrences.
+마스터 정리는 적용 가능할 때는 쓰기가 더 간단하지만, Akra-Bazzi 방법은 엄격히 더 많은 점화식을 덮는다.
 
-## Finding the Critical Exponent Numerically
+## 임계 지수를 수치적으로 찾기
 
-When the equation $\sum a_i b_i^p = 1$ cannot be solved analytically, numerical root-finding methods such as bisection or Newton's method work well. The function $h(p) = \sum a_i b_i^p - 1$ is smooth and strictly decreasing, so convergence is reliable.
+$\sum a_i b_i^p = 1$을 해석적으로 풀 수 없을 때는 이분법이나 뉴턴 방법 같은 수치적 근 찾기 방법이 잘 동작한다. 함수 $h(p) = \sum a_i b_i^p - 1$은 매끄럽고 순감소하므로 수렴이 안정적이다.
 
 ```python
-"""Numerical computation of the Akra-Bazzi critical exponent."""
+"""Akra-Bazzi 임계 지수의 수치적 계산."""
 
 
 # ============================================================
-# Critical exponent solver
+# 임계 지수 풀이기
 # ============================================================
 def find_critical_exponent(a_list, b_list, tol=1e-10):
-    """Find p such that sum(a_i * b_i^p) = 1 using bisection.
+    """이분법으로 sum(a_i * b_i^p) = 1을 만족하는 p를 찾는다.
 
     Parameters
     ----------
     a_list : list of float
-        Subproblem multipliers (each > 0).
+        부분문제 배수(각각 > 0).
     b_list : list of float
-        Subproblem size ratios (each in (0, 1)).
+        부분문제 크기 비(각각 (0, 1) 구간).
     tol : float
-        Convergence tolerance.
+        수렴 허용 오차.
 
     Returns
     -------
     float
-        The critical exponent p.
+        임계 지수 p.
     """
     def h(p):
         return sum(a * b ** p for a, b in zip(a_list, b_list)) - 1.0
 
-    # Bracket the root
+    # 근을 구간에 가둔다
     lo, hi = -50.0, 50.0
     assert h(lo) > 0 and h(hi) < 0, "Root not bracketed"
 
@@ -221,39 +221,72 @@ def find_critical_exponent(a_list, b_list, tol=1e-10):
 
 
 # ============================================================
-# Examples
+# 예제
 # ============================================================
 if __name__ == "__main__":
-    # Example 1: Merge sort  T(n) = 2T(n/2) + n
+    # 예제 1: 병합 정렬  T(n) = 2T(n/2) + n
     p = find_critical_exponent([2], [0.5])
-    print(f"Merge sort: p = {p:.6f}")  # Expected: 1.0
+    print(f"Merge sort: p = {p:.6f}")  # 기댓값: 1.0
 
-    # Example 2: Median of medians  T(n) = T(n/5) + T(7n/10) + n
+    # 예제 2: 중앙값의 중앙값  T(n) = T(n/5) + T(7n/10) + n
     p = find_critical_exponent([1, 1], [0.2, 0.7])
-    print(f"Median of medians: p = {p:.6f}")  # Expected: ~0.8396
+    print(f"Median of medians: p = {p:.6f}")  # 기댓값: ~0.8396
 
-    # Example 3: T(n) = 3T(n/4) + 2T(n/3) + n^2
+    # 예제 3: T(n) = 3T(n/4) + 2T(n/3) + n^2
     p = find_critical_exponent([3, 2], [0.25, 1 / 3])
-    print(f"Example 3: p = {p:.6f}")  # Expected: ~1.296
+    print(f"Example 3: p = {p:.6f}")  # 기댓값: ~1.296
 ```
 
-## Limitations
+## 한계
 
-The Akra-Bazzi method is powerful but has boundaries:
+Akra-Bazzi 방법은 강력하지만 경계가 있다.
 
-- **Subproblem sizes must be constant fractions of $n$**: Recurrences like $T(n) = T(n - 1) + n$ (linear reduction) do not fit the framework.
-- **The growth condition on $g$**: While broad, it excludes pathological toll functions like $g(n) = 2^n$.
-- **Floor and ceiling effects**: The original theorem accounts for floors and ceilings in the arguments (e.g., $T(\lfloor n/5 \rfloor)$), but the integral formula applies to the continuous relaxation. This is valid because the error introduced by rounding is absorbed into the $\Theta$ notation.
+- **부분문제 크기가 $n$의 일정 비율이어야 한다**: $T(n) = T(n - 1) + n$ 같은 (선형 감소) 점화식은 이 틀에 들어맞지 않는다.
+- **$g$에 대한 증가 조건**: 폭넓기는 하지만 $g(n) = 2^n$ 같은 병적인 통행료 함수는 배제된다.
+- **바닥과 천장의 효과**: 원래 정리는 인수에 있는 바닥과 천장(예: $T(\lfloor n/5 \rfloor)$)을 반영하지만, 적분 공식은 연속 완화에 적용된다. 반올림으로 생기는 오차가 $\Theta$ 표기법에 흡수되므로 이는 타당하다.
 
-## Connections to Other Topics
+## 다른 주제와의 연결
 
-- **[Master Theorem](master.md)**: The special case where all subproblems have equal size
-- **[Extended Master Theorem](extended_master.md)**: Handles logarithmic factors in the toll function within the Master theorem framework
-- **[Recursion Tree Method](recursion_tree.md)**: Provides geometric intuition that the Akra-Bazzi integral formalizes
-- **[Substitution Method](substitution.md)**: Can verify Akra-Bazzi results for specific recurrences
+- **[마스터 정리](master.md)**: 모든 부분문제의 크기가 같은 특수한 경우
+- **[확장 마스터 정리](extended_master.md)**: 마스터 정리의 틀 안에서 통행료 함수의 로그 인자를 다룬다
+- **[재귀 트리 방법](recursion_tree.md)**: Akra-Bazzi 적분이 형식화하는 기하학적 직관을 제공한다
+- **[치환 방법](substitution.md)**: 특정 점화식에 대해 Akra-Bazzi의 결과를 검증할 수 있다
 
-## References
+## 참고 문헌
 
 - Akra, M., & Bazzi, L. (1998). On the solution of linear recurrence equations. *Computational Optimization and Applications*, 10(2), 195-210.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 4. MIT Press.
 - Leighton, T. (1996). Notes on better master theorems for divide-and-conquer recurrences. MIT CSAIL.
+
+
+## 연습문제
+
+**연습문제 1.**
+Akra-Bazzi 방법에서 다룬 점화식 풀이 기법을 점화식 $T(n) = 2T(n/2) + n$에 적용하라.
+
+??? success "연습문제 1 풀이"
+    이 절에서 설명한 방법을 사용한다. 핵심 매개변수를 찾고 기법을 적용하면 $T(n) = \Theta(n \log n)$을 얻는다. 이것이 병합 정렬의 점화식이며, 일이 층마다 고르게 분포되는 균형 잡힌 경우를 나타낸다.
+
+---
+
+**연습문제 2.**
+Akra-Bazzi 방법을 사용하여 $T(n) = 4T(n/2) + n$을 풀어라. 어느 경우에 해당하는가?
+
+??? success "연습문제 2 풀이"
+    $a = 4, b = 2, \log_b a = 2$이다. $f(n) = n = O(n^{2-1})$이다. 재귀 비용이 지배하므로 $T(n) = \Theta(n^2)$이다.
+
+---
+
+**연습문제 3.**
+길이 $n$인 시퀀스를 두 절반으로 나누어 각각을 재귀적으로 처리한 뒤 $O(n)$의 교차 어텐션으로 결합하는 트랜스포머 층의 점화식을 쓰고 풀어라.
+
+??? success "연습문제 3 풀이"
+    $T(n) = 2T(n/2) + O(n)$이다. 이는 $T(n) = \Theta(n \log n)$을 주며 병합 정렬과 같다. 실제로 트랜스포머는 이런 재귀 구조를 쓰지 않지만, (Longformer 같은) 계층적 어텐션 기법이 이를 근사한다.
+
+---
+
+**연습문제 4.**
+Akra-Bazzi 방법에 나오는 점화식의 해를 치환 방법으로 검증하라. 귀납 가정을 서술하고 증명을 수행하라.
+
+??? success "연습문제 4 풀이"
+    이 절의 기법으로 닫힌 형태를 추측한다. 모든 $k < n$에 대해 $T(k) \leq ck^p$(또는 적절한 형태)를 가정한다. 이를 점화식에 대입하여 $T(n) \leq cn^p$임을 검증한다. 기저 사례는 따로 처리한다. $\square$

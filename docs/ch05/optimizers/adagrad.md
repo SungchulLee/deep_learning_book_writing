@@ -1,59 +1,59 @@
 # Adagrad
 
-Standard SGD applies the same learning rate $\eta$ to every parameter, but different parameters often need different step sizes.  A weight connected to a frequently activated feature receives many gradient updates and may need a smaller step to avoid oscillation, while a weight connected to a rare feature receives few updates and benefits from a larger step.  **Adagrad** (Adaptive Gradient, Duchi et al., 2011) addresses this by maintaining a per-parameter accumulation of past squared gradients and using it to scale the learning rate individually for each parameter.
+표준 SGD는 모든 매개변수에 같은 학습률 $\eta$을 쓰지만, 매개변수마다 필요한 걸음의 크기가 다를 때가 많다. 자주 활성화되는 특징에 이어진 가중치는 기울기 갱신을 많이 받으므로 진동을 피하려면 걸음이 작아야 하고, 드문 특징에 이어진 가중치는 갱신이 적으므로 걸음이 클수록 이롭다. **Adagrad**(적응형 기울기, Duchi 등, 2011)는 매개변수마다 지난 기울기 제곱을 누적해 두고 그것으로 학습률의 배율을 따로 맞추어 이를 다룬다.
 
-## Update Rule
+## 갱신 규칙
 
-At each time step $t$, let $g_t = \nabla_\theta L(\theta_t)$ denote the gradient of the loss with respect to the parameters.  All squaring, square roots, and divisions below are **element-wise** operations.
+각 시각 $t$에서 매개변수에 대한 손실의 기울기를 $g_t = \nabla_\theta L(\theta_t)$이라 하자. 아래의 제곱, 제곱근, 나눗셈은 모두 **원소별** 연산이다.
 
-**Step 1.** Accumulate the sum of squared gradients in the state variable $s_t$:
+**1단계.** 상태 변수 $s_t$에 기울기 제곱의 합을 누적한다.
 
 $$
 s_t = s_{t-1} + g_t^2
 $$
 
-**Step 2.** Update the parameters using the per-parameter effective learning rate $\eta / \sqrt{s_t + \epsilon}$:
+**2단계.** 매개변수별 실효 학습률 $\eta / \sqrt{s_t + \epsilon}$으로 매개변수를 갱신한다.
 
 $$
 \theta_{t+1} = \theta_t - \frac{\eta}{\sqrt{s_t + \epsilon}} \, g_t
 $$
 
-Here $\eta > 0$ is the global learning rate, and $\epsilon$ is a small constant (typically $10^{-8}$) that prevents division by zero.  The state $s_0$ is initialized to zero.
+여기서 $\eta > 0$은 전역 학습률이고 $\epsilon$은 0으로 나누는 것을 막는 작은 상수(보통 $10^{-8}$)이다. 상태 $s_0$은 0으로 초기화한다.
 
-## Sparse Feature Handling
+## 희소한 특징 다루기
 
-Adagrad's per-parameter scaling is particularly effective for sparse data.  Parameters associated with infrequent features (e.g., rare words in NLP, uncommon user--item interactions in recommendation systems) accumulate small $s_t$ values, so they receive a relatively large effective learning rate $\eta / \sqrt{s_t + \epsilon}$.  Conversely, parameters tied to frequent features accumulate large $s_t$ and receive smaller updates.  This automatic balancing means Adagrad can make meaningful progress on rare features without overshooting on common ones.
+Adagrad의 매개변수별 배율 조정은 희소한 데이터에 특히 효과적이다. 드문 특징(예: 자연어 처리의 희귀 낱말, 추천 시스템의 드문 사용자-항목 상호작용)에 딸린 매개변수는 $s_t$이 작게 쌓이므로 실효 학습률 $\eta / \sqrt{s_t + \epsilon}$을 비교적 크게 받는다. 반대로 잦은 특징에 딸린 매개변수는 $s_t$이 크게 쌓여 갱신이 작아진다. 이러한 자동 균형 덕분에 Adagrad는 흔한 특징에서 지나치지 않으면서도 드문 특징에서 뜻있는 진전을 이룬다.
 
-??? example "Intuition with two parameters"
-    Suppose parameter $\theta_1$ receives gradients of magnitude $\approx 10$ at every step, while parameter $\theta_2$ receives gradients of magnitude $\approx 0.1$ (it corresponds to a rare feature).  After $T$ steps:
+??? example "매개변수 두 개로 보는 직관"
+    매개변수 $\theta_1$은 매 단계 크기가 $\approx 10$인 기울기를 받고, 매개변수 $\theta_2$은 (드문 특징에 해당하여) 크기가 $\approx 0.1$인 기울기를 받는다고 하자. $T$ 단계 뒤에는 다음과 같다.
 
-    - $s_{T,1} \approx 100T$, so the effective LR for $\theta_1$ is $\eta / \sqrt{100T} = \eta / (10\sqrt{T})$.
-    - $s_{T,2} \approx 0.01T$, so the effective LR for $\theta_2$ is $\eta / \sqrt{0.01T} = 10\eta / \sqrt{T}$.
+    - $s_{T,1} \approx 100T$이므로 $\theta_1$의 실효 학습률은 $\eta / \sqrt{100T} = \eta / (10\sqrt{T})$이다.
+    - $s_{T,2} \approx 0.01T$이므로 $\theta_2$의 실효 학습률은 $\eta / \sqrt{0.01T} = 10\eta / \sqrt{T}$이다.
 
-    Parameter $\theta_2$ gets an effective learning rate that is $100\times$ larger than $\theta_1$'s, compensating for the rarity of its gradient signal.
+    매개변수 $\theta_2$은 $\theta_1$보다 $100$배 큰 실효 학습률을 받아 기울기 신호가 드문 것을 메운다.
 
-## The Decay Problem
+## 감쇠 문제
 
-Because $s_t$ is a sum of non-negative terms, it grows monotonically.  The effective learning rate $\eta / \sqrt{s_t + \epsilon}$ therefore **decreases monotonically** over time.  For convex problems with short training horizons, this automatic annealing is a feature.  For deep learning, however, training may run for millions of steps, and the effective learning rate can shrink so aggressively that the model effectively stops learning long before convergence.
+$s_t$은 음이 아닌 항의 합이므로 단조 증가한다. 따라서 실효 학습률 $\eta / \sqrt{s_t + \epsilon}$은 시간이 갈수록 **단조 감소**한다. 학습 기간이 짧은 볼록 문제에서는 이 자동 어닐링이 장점이다. 그러나 딥러닝에서는 학습이 수백만 단계에 이를 수 있고, 실효 학습률이 너무 세게 줄어들어 수렴하기 훨씬 전에 모델이 사실상 학습을 멈출 수 있다.
 
-This fundamental limitation motivated the development of [RMSProp](rmsprop.md), [Adadelta](adadelta.md), and eventually [Adam](adam.md), all of which replace the unbounded sum with an exponentially decaying average.
+이 근본적인 한계가 [RMSProp](rmsprop.md), [Adadelta](adadelta.md), 그리고 마침내 [Adam](adam.md)이 나오게 된 계기였다. 이들은 모두 유계가 아닌 합을 지수 감쇠 평균으로 바꾼다.
 
-## PyTorch Example
+## PyTorch 예제
 
 ```python
-"""Adagrad optimizer demonstration on a simple regression task."""
+"""간단한 회귀 과제에서 Adagrad 최적화기 시연."""
 
 import torch
 import torch.nn as nn
 
 
-# === Model and Optimizer Setup ===
+# === 모델과 최적화기 준비 ===
 
 if __name__ == "__main__":
     model = nn.Linear(10, 1)
     optimizer = torch.optim.Adagrad(model.parameters(), lr=0.01, eps=1e-10)
 
-    # Training loop (illustrative)
+    # 학습 루프 (예시)
     for step in range(100):
         x = torch.randn(32, 10)
         y = torch.randn(32, 1)
@@ -65,16 +65,49 @@ if __name__ == "__main__":
     print(f"Final loss: {loss.item():.4f}")
 ```
 
-## When to Use Adagrad
+## Adagrad를 쓸 때
 
-Adagrad is well-suited for:
+Adagrad는 다음에 알맞다.
 
-- **Sparse features**: NLP tasks with large vocabularies, recommendation systems with many items, and any setting where most features are inactive in a given sample.
-- **Short training runs**: the decay is less harmful when training terminates early.
-- **Convex objectives**: the monotonic decay provably aids convergence for convex problems.
+- **희소한 특징**: 어휘가 큰 자연어 처리 과제, 항목이 많은 추천 시스템, 그리고 표본마다 대부분의 특징이 꺼져 있는 모든 상황.
+- **짧은 학습**: 학습을 일찍 끝내면 감쇠의 해가 적다.
+- **볼록 목적 함수**: 단조 감쇠가 볼록 문제의 수렴에 도움이 됨이 증명되어 있다.
 
-For long training on non-convex deep learning objectives, prefer [Adam](adam.md) or [AdamW](adamw.md).
+비볼록한 딥러닝 목적 함수를 오래 학습시킬 때에는 [Adam](adam.md)이나 [AdamW](adamw.md)를 쓰라.
 
-## Reference
+## 참고 문헌
 
 - Duchi, J., Hazan, E., & Singer, Y. (2011). Adaptive Subgradient Methods for Online Learning and Stochastic Optimization. *Journal of Machine Learning Research*, 12, 2121--2159.
+
+
+## 연습문제
+
+**연습문제 1.**
+Adagrad의 갱신 규칙 전체를 쓰라. 각 항(기울기, 모멘텀, 적응형 학습률, 편향 보정)이 하는 구실을 밝히라.
+
+??? success "연습문제 1 풀이"
+    이 쪽의 갱신 규칙은 여러 부분으로 이루어진다. 기울기는 하강 방향을 주고, 모멘텀 항은 단계에 걸쳐 잡음이 섞인 기울기를 매끄럽게 하며, 적응 항은 매개변수마다 학습률의 배율을 조정하고, (있다면) 편향 보정은 모멘트 추정값을 0으로 초기화한 데서 오는 치우침을 바로잡는다.
+
+---
+
+**연습문제 2.**
+Adagrad을(를) 기본 SGD와 비교하라. 어떤 손실 지형에서 Adagrad이(가) 가장 유리한가?
+
+??? success "연습문제 2 풀이"
+    Adagrad은(는) 다음과 같은 손실 지형에서 유리하다. (1) 차원마다 곡률이 다를 때(적응형 학습률이 도움이 된다), (2) 기울기에 잡음이 많을 때(모멘텀의 평활화가 도움이 된다), (3) 기울기가 희소할 때(누적된 이차 모멘트가 드물게 갱신되는 매개변수에도 뜻있는 학습률을 준다). 잘 조율된 대규모 과제에서는 SGD가 더 잘 일반화할 수 있다.
+
+---
+
+**연습문제 3.**
+Adagrad으로 4단계 동안 기울기 $[0.1, 0.2, 0.1, 0.3]$을 받은 매개변수의 실효 학습률을 유도하라. 명목 학습률과 어떻게 다른가?
+
+??? success "연습문제 3 풀이"
+    이 쪽의 갱신 규칙을 적용하여 4단계 뒤에 누적된 상태를 계산하라. 실효 학습률은 명목 학습률을 누적된 이차 모멘트 항(에 엡실론을 더한 값)으로 나눈 것이다. 기울기가 꾸준히 큰 매개변수는 실효 학습률이 작아지고, 기울기가 작은 매개변수는 실효 학습률이 커진다.
+
+---
+
+**연습문제 4.**
+Adagrad이(가) 어떤 학습률 선택에서 발산할 수 있는 이유를 설명하라. 안정 조건을 유도하라.
+
+??? success "연습문제 4 풀이"
+    실효 걸음 크기가 곡률의 한계를 넘으면 발산한다. 매개변수가 극소점을 지나쳐 진폭이 커지며 진동한다. 안정 조건은 학습률, 손실의 곡률(헤세 행렬의 고윳값), 최적화기의 적응 배율 사이의 관계에 달렸다. 볼록 이차 함수에서는 매끄러움 상수를 $L$이라 할 때 조건이 $\eta < 2/L$이다.

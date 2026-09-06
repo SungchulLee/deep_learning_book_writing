@@ -1,81 +1,81 @@
-# Work-Span Model
+# 일-뻗음 모형
 
-When analyzing parallel algorithms, we need a model that captures both the total amount of computation and the inherent sequential bottleneck. The **work-span model** (also called the work-depth model) provides exactly this: it measures the total number of operations (work) and the length of the longest chain of dependencies (span), yielding a clean upper bound on parallel running time through Brent's theorem.
+나란한 알고리즘을 살필 때는 온 셈의 양과 본디 있는 차례 병목을 함께 담는 모형이 필요하다. **일-뻗음 모형**(일-깊이 모형이라고도 한다)이 바로 그것을 준다. 온 연산 개수(일)와 가장 긴 매임 사슬의 길이(뻗음)를 재어 브렌트 정리로 나란한 돌림 때의 깔끔한 위 가둠을 낸다.
 
-## Definitions
+## 정의
 
-Let $T_p$ denote the running time of a parallel algorithm on $p$ processors.
+$T_p$을 셈틀 $p$개에서 나란한 알고리즘이 도는 때라 하자.
 
-**Work** $T_1$ is the total number of operations executed when the algorithm runs on a single processor. It equals the sequential running time.
+**일** $T_1$은 셈틀 하나에서 돌 때 하는 온 연산 개수이다. 차례 돌림 때와 같다.
 
-**Span** $T_\infty$ (also called *depth* or *critical-path length*) is the running time on an unbounded number of processors. It measures the longest chain of sequentially dependent operations in the computation DAG.
+**뻗음** $T_\infty$(*깊이* 또는 *핵심 길 길이*라고도 한다)은 셈틀 수에 제한이 없을 때의 돌림 때이다. 셈 그래프에서 차례로 매인 연산의 가장 긴 사슬을 잰다.
 
-**Parallelism** is the ratio of work to span:
+**나란함**은 일과 뻗음의 비이다:
 
 $$
 P = \frac{T_1}{T_\infty}
 $$
 
-Parallelism represents the maximum useful number of processors: adding processors beyond $P$ yields no further speedup.
+나란함은 쓸모 있는 셈틀의 최대 개수를 나타낸다. $P$을 넘겨 셈틀을 더해도 더 빨라지지 않는다.
 
-## Computation DAG
+## 셈 그래프
 
-A parallel computation can be modeled as a directed acyclic graph (DAG) where each node represents a constant-time operation and each edge represents a dependency. In this model:
+나란한 셈은 마디마다 상수 때 연산을, 변마다 매임을 나타내는 방향 있고 돌이 없는 그래프로 나타낼 수 있다. 이 모형에서:
 
-- **Work** $T_1$ equals the total number of nodes in the DAG.
-- **Span** $T_\infty$ equals the length of the longest path (the critical path) in the DAG.
+- **일** $T_1$은 그래프의 온 마디 개수와 같다.
+- **뻗음** $T_\infty$은 그래프의 가장 긴 길(핵심 길)의 길이와 같다.
 
-## Brent's Theorem
+## 브렌트 정리
 
-Brent's theorem provides an upper bound on the parallel execution time given a fixed number of processors.
+브렌트 정리는 셈틀 수가 붙박였을 때 나란한 돌림 때의 위 가둠을 준다.
 
-**Theorem (Brent, 1974).** For any computation with work $T_1$ and span $T_\infty$, the running time on $p$ processors satisfies:
+**정리(브렌트, 1974).** 일이 $T_1$이고 뻗음이 $T_\infty$인 어떤 셈에서도 셈틀 $p$개의 돌림 때는 다음을 만족한다:
 
 $$
 T_p \le \frac{T_1}{p} + T_\infty
 $$
 
-??? note "Proof sketch"
-    Partition the computation DAG into $T_\infty$ levels, where level $i$ contains all nodes whose longest incoming path has length $i$. Let $m_i$ be the number of nodes at level $i$. With $p$ processors, level $i$ takes $\lceil m_i / p \rceil$ time steps. Summing over all levels:
+??? note "증명 개요"
+    셈 그래프를 켜 $T_\infty$개로 가르되 켜 $i$은 들어오는 가장 긴 길의 길이가 $i$인 마디를 모두 담는다. $m_i$을 켜 $i$의 마디 개수라 하자. 셈틀 $p$개로 켜 $i$은 때 걸음 $\lceil m_i / p \rceil$번이 든다. 모든 켜를 더하면:
 
     $$
     T_p \le \sum_{i=1}^{T_\infty} \left\lceil \frac{m_i}{p} \right\rceil \le \sum_{i=1}^{T_\infty} \left( \frac{m_i}{p} + 1 \right) = \frac{T_1}{p} + T_\infty
     $$
 
-    since $\sum_i m_i = T_1$. $\square$
+    $\sum_i m_i = T_1$이기 때문이다. $\square$
 
-Two important corollaries follow from Brent's theorem:
+브렌트 정리에서 중요한 따름 정리 둘이 나온다:
 
-1. **Linear speedup region**: When $p \le T_1 / T_\infty$, the term $T_1 / p$ dominates, and $T_p \approx T_1 / p$, giving near-linear speedup.
-2. **Diminishing returns**: When $p > T_1 / T_\infty$, the span $T_\infty$ dominates, and adding more processors provides little benefit.
+1. **선형 빨라짐 구간**: $p \le T_1 / T_\infty$이면 항 $T_1 / p$이 판을 쳐 $T_p \approx T_1 / p$이고 거의 선형으로 빨라진다.
+2. **수확 체감**: $p > T_1 / T_\infty$이면 뻗음 $T_\infty$이 판을 쳐 셈틀을 더해도 얻는 것이 적다.
 
-## Speedup and Efficiency
+## 빨라짐과 효율
 
-**Speedup** on $p$ processors is the ratio of sequential to parallel running time:
+셈틀 $p$개의 **빨라짐**은 차례 돌림 때와 나란한 돌림 때의 비이다:
 
 $$
 S_p = \frac{T_1}{T_p}
 $$
 
-**Efficiency** measures how well the processors are utilized:
+**효율**은 셈틀을 얼마나 잘 쓰는지 잰다:
 
 $$
 E_p = \frac{S_p}{p} = \frac{T_1}{p \cdot T_p}
 $$
 
-An algorithm achieves **perfect linear speedup** when $S_p = p$ and $E_p = 1$.
+$S_p = p$이고 $E_p = 1$이면 알고리즘이 **완벽한 선형 빨라짐**을 이룬다.
 
-## Example: Parallel Reduction
+## 보기: 나란한 줄임
 
-Consider summing an array of $n$ elements. Sequential summation performs $n - 1$ additions. A parallel tree-based reduction pairs elements at each level, halving the problem size.
+원소 $n$개의 배열을 더하는 일을 보자. 차례로 더하면 더하기를 $n - 1$번 한다. 나란한 나무 바탕 줄임은 켜마다 원소를 짝지어 문제 크기를 반으로 줄인다.
 
-- **Work**: $T_1 = n - 1$ (every element must be added).
-- **Span**: $T_\infty = \lceil \log_2 n \rceil$ (the depth of the reduction tree).
-- **Parallelism**: $P = (n - 1) / \lceil \log_2 n \rceil \in \Theta(n / \log n)$.
+- **일**: $T_1 = n - 1$(원소를 모두 더해야 한다).
+- **뻗음**: $T_\infty = \lceil \log_2 n \rceil$(줄임 나무의 깊이).
+- **나란함**: $P = (n - 1) / \lceil \log_2 n \rceil \in \Theta(n / \log n)$.
 
 ```python
 """
-Work-span analysis: parallel tree reduction for array summation.
+일-뻗음 살피기: 배열 더하기를 위한 나란한 나무 줄임.
 
 Demonstrates computing work and span for a parallel reduction,
 then applies Brent's theorem to estimate parallel running time.
@@ -84,16 +84,16 @@ then applies Brent's theorem to estimate parallel running time.
 import math
 
 # ===================================================================
-# Work and Span Computation
+# 일과 뻗음 셈하기
 # ===================================================================
 
 def compute_work_span_reduction(n):
-    """Compute work and span for parallel reduction on n elements.
+    """원소 n개의 나란한 줄임에 대한 일과 뻗음을 셈한다.
 
-    Args:
-        n: number of elements to sum
+    인수:
+        n: 더할 원소의 개수
 
-    Returns:
+    반환값:
         Tuple of (work, span, parallelism)
     """
     work = n - 1
@@ -105,19 +105,19 @@ def compute_work_span_reduction(n):
 def brent_bound(work, span, p):
     """Compute Brent's upper bound on T_p.
 
-    Args:
-        work: total operations T_1
-        span: critical path length T_∞
-        p: number of processors
+    인수:
+        work: 온 연산 T_1
+        span: 핵심 길 길이 T_∞
+        p: 셈틀 수
 
-    Returns:
-        Upper bound on parallel running time
+    반환값:
+        나란한 돌림 때의 위 가둠
     """
     return work / p + span
 
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
@@ -139,12 +139,12 @@ if __name__ == "__main__":
               f"efficiency = {efficiency:.3f}")
 ```
 
-**Output:**
+**출력:**
 ```
 Array size:   n = 1024
-Work T_1:     1023
-Span T_inf:   10
-Parallelism:  102.3
+일 T_1:     1023
+뻗음 T_inf:   10
+나란함:  102.3
 
 p=  1: T_p <=   1033.0, speedup =   0.99, efficiency = 0.990
 p=  4: T_p <=    265.8, speedup =   3.85, efficiency = 0.962
@@ -153,19 +153,52 @@ p= 64: T_p <=     26.0, speedup =  39.37, efficiency = 0.615
 p=256: T_p <=     14.0, speedup =  73.07, efficiency = 0.285
 ```
 
-!!! tip "Reading the output"
-    As the number of processors increases, speedup grows but efficiency drops. Beyond the parallelism threshold ($p \approx 102$), adding processors yields diminishing returns because the span dominates.
+!!! tip "내놓기 읽기"
+    셈틀이 늘면 빨라짐은 커지지만 효율은 떨어진다. 나란함 문턱($p \approx 102$)을 넘으면 뻗음이 판을 쳐 셈틀을 더해도 얻는 것이 준다.
 
-## Common Work-Span Results
+## 흔한 일-뻗음 결과
 
-| Algorithm | Work $T_1$ | Span $T_\infty$ | Parallelism |
+| 알고리즘 | 일 $T_1$ | 뻗음 $T_\infty$ | 나란함 |
 |---|---|---|---|
-| Parallel reduction | $O(n)$ | $O(\log n)$ | $O(n / \log n)$ |
-| Parallel prefix sum | $O(n)$ | $O(\log n)$ | $O(n / \log n)$ |
-| Parallel merge sort | $O(n \log n)$ | $O(\log^2 n)$ | $O(n / \log n)$ |
-| Matrix multiply (naive) | $O(n^3)$ | $O(\log n)$ | $O(n^3 / \log n)$ |
+| 나란한 줄임 | $O(n)$ | $O(\log n)$ | $O(n / \log n)$ |
+| 나란한 앞자락 합 | $O(n)$ | $O(\log n)$ | $O(n / \log n)$ |
+| 나란한 합침 정렬 | $O(n \log n)$ | $O(\log^2 n)$ | $O(n / \log n)$ |
+| 행렬 곱하기(어수룩한 판) | $O(n^3)$ | $O(\log n)$ | $O(n^3 / \log n)$ |
 
-## Reference
+## 참고 문헌
 
 - Brent, R. P. (1974). "The parallel evaluation of general arithmetic expressions." *Journal of the ACM*, 21(2), 201--206.
-- Cormen, T. H. et al. *Introduction to Algorithms*, Chapter 27 (Multithreaded Algorithms).
+- Cormen, T. H. et al. *Introduction to Algorithms*, 27장(여러 실 알고리즘).
+
+
+## 연습문제
+
+**연습문제 1.**
+일-뻗음 모형에서 일과 뻗음을 뜻매김하여라. 그것이 나란한 효율을 어떻게 정하는가?
+
+??? success "연습문제 1 풀이"
+    일 $W$ = 온 연산 개수(차례로 돌린 셈 치고). 뻗음 $D$(깊이) = 차례로 매인 연산의 가장 긴 사슬(핵심 길). 나란함 = $W/D$, 곧 쓸모 있는 셈틀의 최대 개수. 셈틀 $p$개에서 때 $T_p$은 $T_p \geq \max(W/p, D)$을 만족한다. 일 효율이 좋은 알고리즘은 $W = O(T_1)$이다(가장 좋은 차례 알고리즘과 같은 일). 나란함이 큰($W/D \gg 1$) 알고리즘은 셈틀이 많아도 잘 커진다.
+
+---
+
+**연습문제 2.**
+원소 $n$개의 나란한 합침 정렬의 일과 뻗음을 셈하여라.
+
+??? success "연습문제 2 풀이"
+    합침 정렬: 배열을 반으로 (되돌이로) 가르고 반씩 줄 세운 뒤 합친다. 일: $W(n) = 2W(n/2) + O(n) = O(n \log n)$(차례와 같다). 뻗음: 두 되돌이 부름이 서로 독립(나란함)이므로 $D(n) = D(n/2) + O(\log n)$이다(줄 세운 배열 둘의 합침은 두 갈래 찾기와 나란한 베끼기로 깊이 $O(\log n)$에 된다). 풀이: $D(n) = O(\log^2 n)$. 나란함: $W/D = n \log n / \log^2 n = n / \log n$.
+
+---
+
+**연습문제 3.**
+일 효율이란 무엇이며 실제 나란한 알고리즘에 왜 중요한가?
+
+??? success "연습문제 3 풀이"
+    온 일 $W$이 상수배 안에서 가장 좋은 차례 알고리즘과 맞으면 그 알고리즘은 일 효율이 좋다. 일 효율이 나쁜 알고리즘은 셈을 낭비한다. 보기로 차례로 $O(n \log n)$에 풀리는 문제에 $W = O(n^2)$을 쓴다. 셈틀에 제한이 없어도 $p < W/W_{\text{seq}}$이면 일 효율이 나쁜 알고리즘이 더 느리다. 실제로는 대부분 셈틀이 한정되어 있으므로 일 효율이 나란히 하기가 이득이 되는 갈림점을 정한다.
+
+---
+
+**연습문제 4.**
+트랜스포머 층을 지나는 앞으로 가기의 일과 뻗음을 살펴라.
+
+??? success "연습문제 4 풀이"
+    차례 길이가 $n$, 모델 차원이 $d$, 머리가 $h$개인 트랜스포머 층에서: 스스로 눈길: $Q, K, V$ 쏘기는 행렬 곱하기다($W = O(n d^2), D = O(\log d)$). 눈길 점수: $QK^T$은 일 $O(n^2 d)$, 깊이 $O(\log n)$. 소프트맥스: 일 $O(n^2)$, 깊이 $O(\log n)$. 값 모으기: 일 $O(n^2 d)$, 깊이 $O(\log n)$. 앞먹임: 일 $O(n d^2)$, 깊이 $O(\log d)$. 온 일: $O(n^2 d + n d^2)$. 온 뻗음: $O(\log n + \log d)$. 나란함: $O(n^2 d / \log n)$으로 엄청나며 트랜스포머가 GPU에 친한 까닭이 된다.

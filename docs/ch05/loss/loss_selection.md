@@ -1,16 +1,11 @@
-# Loss Function Selection
+# 손실 함수의 선택
+알맞은 손실 함수를 고르는 것은 데이터, 과제, 바라는 최적화 거동에 대한 가정을 담는 모형화의 결정이다. 이 절은 손실 함수를 고르는 체계적인 틀을 제시하며 이론적 바탕과 실용적인 판단 기준을 이어 준다.
 
+## 판단의 틀
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+### 1단계: 과제의 종류
 
-Choosing the right loss function is a modeling decision that encodes assumptions about the data, the task, and the desired optimization behavior. This section provides a systematic framework for loss function selection, connecting theoretical foundations to practical decision criteria.
-
-## Decision Framework
-
-### Step 1: Task Type
-
-The first branch separates regression from classification:
+첫 갈래는 회귀와 분류를 가른다.
 
 ```
 Task Type?
@@ -26,45 +21,45 @@ Task Type?
     → KL Divergence
 ```
 
-### Step 2: Data Characteristics
+### 2단계: 데이터의 성격
 
-Within each task type, data properties determine the optimal choice:
+과제의 종류 안에서는 데이터의 성질이 최적의 선택을 정한다.
 
-**For Regression:**
+**회귀의 경우:**
 
-| Characteristic | Recommended Loss | Reason |
+| 특성 | 권장 손실 | 이유 |
 |---------------|-----------------|--------|
-| Clean data, Gaussian noise | MSE | Statistically optimal (Cramér-Rao) |
-| Outliers present | MAE or Huber | Bounded influence of extreme values |
-| Occasional outliers, mostly clean | Huber | MSE precision near optimum, MAE robustness far away |
-| Heavy-tailed noise | MAE | Laplace MLE; median-based estimation |
-| Unknown noise distribution | Huber (start) | Safest default; tune $\delta$ |
+| 깨끗한 데이터, 정규 잡음 | MSE | 통계적으로 최적 (크라메르-라오) |
+| 이상점이 있을 때 | MAE 또는 후버 | 극단값의 영향이 유계 |
+| 대체로 깨끗하고 이따금 이상점 | 후버 | 최적점 근처는 MSE의 정밀함, 멀리서는 MAE의 견고함 |
+| 두꺼운 꼬리 잡음 | MAE | 라플라스 최대가능도. 중앙값 기반 추정 |
+| 잡음의 분포를 모를 때 | 후버 (출발점) | 가장 안전한 기본값. $\delta$을 조율한다 |
 
-**For Classification:**
+**분류의 경우:**
 
-| Characteristic | Recommended Loss | Reason |
+| 특성 | 권장 손실 | 이유 |
 |---------------|-----------------|--------|
-| Balanced classes | Cross-Entropy / BCE | Standard MLE |
-| Moderate imbalance | Weighted Cross-Entropy | Class rebalancing |
-| Severe imbalance ($>\$10:1) | Focal Loss | Down-weights easy majority examples |
-| Need calibrated probabilities | Cross-Entropy / BCE | Probabilistic output |
-| Need maximum margin | Hinge Loss | SVM-like decision boundary |
+| 균형 잡힌 클래스 | 교차 엔트로피 / BCE | 표준 최대가능도 |
+| 보통의 불균형 | 가중 교차 엔트로피 | 클래스 균형 맞추기 |
+| 심한 불균형 ($>\$10:1) | 초점 손실 | 쉬운 다수 클래스 예의 비중을 낮춘다 |
+| 보정된 확률이 필요할 때 | 교차 엔트로피 / BCE | 확률적 출력 |
+| 최대 여백이 필요할 때 | 힌지 손실 | SVM 같은 결정 경계 |
 
-### Step 3: Application-Specific Considerations
+### 3단계: 응용에 따른 고려
 
-| Domain | Common Loss | Rationale |
+| 분야 | 흔히 쓰는 손실 | 근거 |
 |--------|------------|-----------|
-| Object detection (boxes) | Smooth L1 / GIoU | Bounding box regression with outlier robustness |
-| Semantic segmentation | Dice + BCE | Overlap optimization for imbalanced regions |
-| Knowledge distillation | KL Divergence | Match teacher distribution |
-| VAE training | Reconstruction + KL | ELBO maximization |
-| GAN training | BCE / Wasserstein | Discriminator/generator objectives |
-| Ranking tasks | Margin-based losses | Pairwise ordering |
-| Language modeling | Cross-Entropy | Next-token prediction |
+| 물체 검출 (상자) | Smooth L1 / GIoU | 이상점에 견디는 경계 상자 회귀 |
+| 의미 분할 | 다이스 + BCE | 불균형한 영역의 겹침 최적화 |
+| 지식 증류 | KL 발산 | 교사의 분포에 맞추기 |
+| VAE 학습 | 복원 + KL | ELBO 최대화 |
+| GAN 학습 | BCE / 바서슈타인 | 판별기와 생성기의 목적 함수 |
+| 순위 매기기 | 여백 기반 손실 | 쌍별 순서 |
+| 언어 모형화 | 교차 엔트로피 | 다음 토큰 예측 |
 
-## PyTorch Quick Reference
+## PyTorch 빠른 참조
 
-### Regression Losses
+### 회귀 손실
 
 ```python
 import torch
@@ -74,170 +69,202 @@ import torch.nn.functional as F
 predictions = torch.randn(32, 1)
 targets = torch.randn(32, 1)
 
-# MSE: default for clean regression
+# MSE: 깨끗한 회귀의 기본값
 mse = nn.MSELoss()(predictions, targets)
 
-# MAE: robust to outliers
+# MAE: 이상점에 견고하다
 mae = nn.L1Loss()(predictions, targets)
 
-# Huber: hybrid MSE/MAE
+# 후버: MSE와 MAE의 혼합
 huber = nn.HuberLoss(delta=1.0)(predictions, targets)
 
-# Smooth L1: object detection convention
+# Smooth L1: 물체 검출의 관례
 smooth_l1 = nn.SmoothL1Loss(beta=1.0)(predictions, targets)
 ```
 
-### Classification Losses
+### 분류 손실
 
 ```python
-logits_binary = torch.randn(32)           # Binary: single logit
+logits_binary = torch.randn(32)           # 이진: 로짓 하나
 labels_binary = torch.randint(0, 2, (32,)).float()
 
-logits_multi = torch.randn(32, 10)        # Multi-class: K logits
+logits_multi = torch.randn(32, 10)        # 다중 클래스: 로짓 K개
 labels_multi = torch.randint(0, 10, (32,))
 
-# Binary classification
+# 이진 분류
 bce = nn.BCEWithLogitsLoss()(logits_binary, labels_binary)
 
-# Multi-class classification
+# 다중 클래스 분류
 ce = nn.CrossEntropyLoss()(logits_multi, labels_multi)
 
-# With class weights (for imbalance)
+# 클래스 가중치와 함께 (불균형을 위해)
 weights = torch.ones(10)
-weights[0] = 5.0  # upweight rare class 0
+weights[0] = 5.0  # 드문 클래스 0의 비중 올리기
 ce_weighted = nn.CrossEntropyLoss(weight=weights)(logits_multi, labels_multi)
 ```
 
-### Distributional Losses
+### 분포에 대한 손실
 
 ```python
-# KL divergence for discrete distributions
+# 이산 분포에 대한 KL 발산
 log_probs = F.log_softmax(logits_multi, dim=1)
 target_probs = F.softmax(torch.randn(32, 10), dim=1)
 kl = nn.KLDivLoss(reduction='batchmean')(log_probs, target_probs)
 
-# KL divergence for VAE (Gaussian)
+# VAE를 위한 KL 발산 (정규분포)
 mu = torch.randn(32, 20)
 logvar = torch.randn(32, 20)
 kl_vae = -0.5 * (1 + logvar - mu.pow(2) - logvar.exp()).sum()
 ```
 
-## Probabilistic Interpretation Guide
+## 확률적 해석 안내
 
-Every loss function implies a probabilistic model. Choosing a loss is choosing a noise distribution:
+모든 손실 함수는 확률 모형을 함의한다. 손실을 고르는 것은 잡음의 분포를 고르는 것이다.
 
-| Loss | Implied Model | $p(y \mid x, \theta)$ |
+| 손실 | 함의된 모형 | $p(y \mid x, \theta)$ |
 |------|--------------|----------------------|
-| MSE | Gaussian noise | $\mathcal{N}(f_\theta(x), \sigma^2)$ |
-| MAE | Laplace noise | $\text{Laplace}(f_\theta(x), b)$ |
-| Huber | Gaussian core + Laplace tails | Huber distribution |
-| BCE | Bernoulli | $\text{Bern}(\sigma(f_\theta(x)))$ |
-| Cross-Entropy | Categorical | $\text{Cat}(\text{softmax}(f_\theta(x)))$ |
-| Hinge | — | No probabilistic interpretation (geometric) |
+| MSE | 정규 잡음 | $\mathcal{N}(f_\theta(x), \sigma^2)$ |
+| MAE | 라플라스 잡음 | $\text{Laplace}(f_\theta(x), b)$ |
+| 후버 | 가운데는 정규, 꼬리는 라플라스 | 후버 분포 |
+| BCE | 베르누이 | $\text{Bern}(\sigma(f_\theta(x)))$ |
+| 교차 엔트로피 | 범주형 | $\text{Cat}(\text{softmax}(f_\theta(x)))$ |
+| 힌지 | — | 확률적 해석이 없다 (기하적이다) |
 
-If you can specify your beliefs about the data-generating process, the loss function follows from MLE:
+데이터를 만들어 낸 과정에 대한 믿음을 정할 수 있다면 손실 함수는 최대가능도 추정에서 따라 나온다.
 
 $$\mathcal{L}(\theta) = -\frac{1}{m}\sum_{i=1}^m \log p(y^{(i)} \mid x^{(i)}, \theta)$$
 
-## Common Mistakes
+## 흔한 실수
 
-### Mistake 1: Applying Activation Before Loss
+### 실수 1: 손실 앞에 활성화를 적용하기
 
 ```python
-# WRONG: double sigmoid
+# 틀림: 시그모이드가 두 번
 probs = torch.sigmoid(logits)
-loss = nn.BCEWithLogitsLoss()(probs, targets)  # sigmoid applied twice!
+loss = nn.BCEWithLogitsLoss()(probs, targets)  # 시그모이드가 두 번 적용된다!
 
-# CORRECT: raw logits
+# 올바름: 날 로짓
 loss = nn.BCEWithLogitsLoss()(logits, targets)
 ```
 
 ```python
-# WRONG: softmax before CrossEntropyLoss
+# 틀림: CrossEntropyLoss 앞의 소프트맥스
 probs = F.softmax(logits, dim=1)
-loss = nn.CrossEntropyLoss()(probs, targets)  # internal log_softmax + NLL on probs!
+loss = nn.CrossEntropyLoss()(probs, targets)  # 확률에 내부 log_softmax + NLL이 적용된다!
 
-# CORRECT: raw logits
+# 올바름: 날 로짓
 loss = nn.CrossEntropyLoss()(logits, targets)
 ```
 
-### Mistake 2: Wrong Label Format
+### 실수 2: 레이블의 형식이 틀림
 
 ```python
-# WRONG: one-hot labels with CrossEntropyLoss
+# 틀림: CrossEntropyLoss에 원-핫 레이블
 one_hot = F.one_hot(targets, num_classes=10).float()
-loss = nn.CrossEntropyLoss()(logits, one_hot)  # expects integer indices!
+loss = nn.CrossEntropyLoss()(logits, one_hot)  # 정수 인덱스를 받는다!
 
-# CORRECT: integer class indices
+# 올바름: 정수 클래스 인덱스
 loss = nn.CrossEntropyLoss()(logits, targets)
 ```
 
-### Mistake 3: Wrong Argument Order
+### 실수 3: 인수의 순서가 틀림
 
 ```python
-# PyTorch convention: (prediction, target)
+# PyTorch의 관례: (예측, 목푯값)
 loss = nn.MSELoss()(predictions, targets)  # ✓
 
-# Some frameworks use (target, prediction) — be careful
+# 어떤 프레임워크는 (목푯값, 예측)을 쓴다 — 조심하라
 ```
 
-### Mistake 4: Using MSE for Classification
+### 실수 4: 분류에 MSE를 쓰기
 
 ```python
-# WRONG: MSE for classification
+# 틀림: 분류에 MSE
 probs = F.softmax(logits, dim=1)
-loss = nn.MSELoss()(probs, one_hot_targets)  # poor gradients, slow convergence
+loss = nn.MSELoss()(probs, one_hot_targets)  # 기울기가 나빠 수렴이 느리다
 
-# CORRECT: Cross-entropy for classification
+# 올바름: 분류에 교차 엔트로피
 loss = nn.CrossEntropyLoss()(logits, targets)
 ```
 
-MSE gradients for classification vanish when $p \approx 0$ or $p \approx 1$ (the sigmoid/softmax saturation regions), making learning extremely slow. Cross-entropy's gradient $p - y$ does not have this problem.
+분류에서 MSE의 기울기는 $p \approx 0$이나 $p \approx 1$일 때(시그모이드/소프트맥스의 포화 구간에서) 사라져 학습이 몹시 느려진다. 교차 엔트로피의 기울기 $p - y$에는 이런 문제가 없다.
 
-## Diagnostic Criteria
+## 진단 기준
 
-If training is not progressing as expected, the loss function may be the cause. Consider these diagnostic checks:
+학습이 기대대로 나아가지 않으면 손실 함수가 원인일 수 있다. 다음을 점검해 보라.
 
-**Loss not decreasing:**
+**손실이 줄지 않을 때:**
 
-- For classification: ensure you are not applying softmax/sigmoid before the loss
-- For regression with outliers: switch from MSE to Huber
-- Check that labels and predictions have matching shapes and types
+- 분류라면 손실 앞에 소프트맥스나 시그모이드를 적용하고 있지 않은지 확인하라
+- 이상점이 있는 회귀라면 MSE에서 후버로 바꾸라
+- 레이블과 예측의 모양과 자료형이 맞는지 확인하라
 
-**Training unstable (loss oscillating or NaN):**
+**학습이 불안정할 때 (손실이 진동하거나 NaN):**
 
-- Switch from MAE to Huber (smooth gradients near optimum)
-- Add gradient clipping
-- For custom losses: add epsilon to log arguments
+- MAE에서 후버로 바꾸라 (최적점 근처에서 기울기가 매끄럽다)
+- 기울기 자르기를 넣으라
+- 사용자 정의 손실이라면 로그의 인수에 엡실론을 더하라
 
-**Model converges but performs poorly:**
+**수렴은 하는데 성능이 나쁠 때:**
 
-- Classification with imbalance: use Focal Loss or class weights
-- Segmentation: add Dice Loss to BCE
-- Regression with heteroscedastic noise: consider learned variance (negative log-likelihood with $\sigma$ output)
+- 불균형한 분류라면 초점 손실이나 클래스 가중치를 쓰라
+- 분할이라면 BCE에 다이스 손실을 더하라
+- 이분산 잡음이 있는 회귀라면 분산을 학습하는 방법을 고려하라($\sigma$을 출력하는 음의 로그가능도)
 
-**Model overfits to outliers:**
+**모델이 이상점에 과적합할 때:**
 
-- Switch from MSE to MAE or Huber
-- Add regularization (weight decay)
-- Consider robust losses (trimmed mean, Winsorized loss)
+- MSE에서 MAE나 후버로 바꾸라
+- 정칙화(가중치 감쇠)를 넣으라
+- 로버스트 손실(절사평균, 윈저화 손실)을 고려하라
 
-## Summary Table
+## 요약표
 
-| Loss Function | PyTorch Class | Task | Key Property |
+| 손실 함수 | PyTorch 클래스 | 과제 | 주요 성질 |
 |--------------|---------------|------|-------------|
-| MSE | `nn.MSELoss` | Regression | Smooth gradients, Gaussian MLE |
-| MAE | `nn.L1Loss` | Regression | Outlier robust, Laplace MLE |
-| Huber | `nn.HuberLoss` | Regression | Hybrid MSE/MAE |
-| Smooth L1 | `nn.SmoothL1Loss` | Regression | Object detection standard |
-| BCE | `nn.BCEWithLogitsLoss` | Binary classification | Bernoulli MLE |
-| Cross-Entropy | `nn.CrossEntropyLoss` | Multi-class classification | Categorical MLE |
-| NLL | `nn.NLLLoss` | Multi-class (with log-probs) | For beam search/custom softmax |
-| Focal | Custom | Imbalanced classification | Down-weights easy examples |
-| Hinge | `nn.MultiMarginLoss` | Maximum-margin classification | Sparse gradients |
-| KL Div | `nn.KLDivLoss` | Distribution matching | Knowledge distillation |
-| Dice | Custom | Segmentation | Overlap optimization |
+| MSE | `nn.MSELoss` | 회귀 | 매끄러운 기울기, 정규 최대가능도 |
+| MAE | `nn.L1Loss` | 회귀 | 이상점에 견고, 라플라스 최대가능도 |
+| 후버 | `nn.HuberLoss` | 회귀 | MSE와 MAE의 혼합 |
+| Smooth L1 | `nn.SmoothL1Loss` | 회귀 | 물체 검출의 표준 |
+| BCE | `nn.BCEWithLogitsLoss` | 이진 분류 | 베르누이 최대가능도 |
+| 교차 엔트로피 | `nn.CrossEntropyLoss` | 다중 클래스 분류 | 범주형 최대가능도 |
+| NLL | `nn.NLLLoss` | 다중 클래스 (로그 확률 입력) | 빔 탐색이나 사용자 정의 소프트맥스에 |
+| 초점 | 직접 구현 | 불균형 분류 | 쉬운 예의 비중을 낮춘다 |
+| 힌지 | `nn.MultiMarginLoss` | 최대 여백 분류 | 희소한 기울기 |
+| KL 발산 | `nn.KLDivLoss` | 분포 맞추기 | 지식 증류 |
+| 다이스 | 직접 구현 | 분할 | 겹침 최적화 |
 
-## Key Takeaways
+## 핵심 정리
 
-Loss function selection is a modeling decision, not merely a technical one. The probabilistic interpretation provides the clearest guidance: choose the loss whose implied noise distribution matches your beliefs about the data. For regression, start with Huber as a safe default, then specialize to MSE (clean data) or MAE (heavy outliers). For classification, use `CrossEntropyLoss` for multi-class and `BCEWithLogitsLoss` for binary, adding Focal Loss if class imbalance is severe. Always feed raw logits (not probabilities) to PyTorch's classification losses, and always verify that labels have the expected format. When standard losses are insufficient, custom losses built as `nn.Module` subclasses provide unlimited flexibility while maintaining compatibility with PyTorch's training ecosystem.
+손실 함수의 선택은 단순한 기술적 선택이 아니라 모형화의 결정이다. 확률적 해석이 가장 뚜렷한 길잡이가 된다. 함의된 잡음의 분포가 데이터에 대한 믿음과 맞는 손실을 고르라. 회귀에서는 안전한 기본값인 후버에서 시작한 뒤 (깨끗한 데이터라면) MSE나 (이상점이 많다면) MAE로 특화하라. 분류에서는 다중 클래스에 `CrossEntropyLoss`을, 이진에 `BCEWithLogitsLoss`을 쓰고 클래스 불균형이 심하면 초점 손실을 더하라. PyTorch의 분류 손실에는 언제나 (확률이 아니라) 날 로짓을 넣고, 레이블의 형식이 맞는지 언제나 확인하라. 표준 손실로 모자랄 때에는 `nn.Module`을 상속한 사용자 정의 손실이 PyTorch 학습 생태계와의 호환을 지키면서 얼마든지 유연함을 준다.
+
+## 연습문제
+
+**연습문제 1.**
+과제의 종류에 따라 알맞은 손실 함수를 고르는 판단 나무를 만들라.
+
+??? success "연습문제 1 풀이"
+    회귀는 MSE(정규 잡음), MAE(라플라스 잡음이나 이상점), 후버(섞인 경우)를 쓴다. 이진 분류는 BCE를, 다중 클래스는 교차 엔트로피를, 불균형에는 초점 손실을 쓴다. 순서형에는 누적 연결 함수를, 순위 매기기에는 삼중항/대조 손실을 쓴다. 핵심 원리는 손실이 가정한 잡음 모형과 맞아야 한다는 것이다.
+
+---
+
+**연습문제 2.**
+최대가능도 추정을 통해 손실 함수마다 어떤 잡음 가정에 대응하는지 설명하라.
+
+??? success "연습문제 2 풀이"
+    MSE는 정규 잡음 아래의 최대가능도, MAE는 라플라스 잡음 아래의 최대가능도, 교차 엔트로피는 범주형 분포 아래의 최대가능도, 후버는 정규-라플라스 혼합 아래의 최대가능도이다. 모든 손실 함수는 확률 모형을 암묵적으로 가정하며, 알맞은 손실을 고르는 것은 알맞은 잡음 모형을 고르는 것이다.
+
+---
+
+**연습문제 3.**
+사용자 정의 손실 함수는 언제 설계해야 하는가? 예를 들라.
+
+??? success "연습문제 3 풀이"
+    표준 손실이 과제에 특유한 비용 구조를 담지 못할 때이다. 예를 들어 의료 진단에서는 거짓 음성(질병을 놓치는 것)이 거짓 양성보다 훨씬 나쁘다. `pos_weight >> 1`인 가중 BCE나 사용자 정의 비대칭 손실이 이를 다룬다.
+
+---
+
+**연습문제 4.**
+잔차가 클 때 MSE, MAE, 후버 손실의 기울기 거동을 견주고 학습 안정성에 어떤 뜻을 갖는지 설명하라.
+
+??? success "연습문제 4 풀이"
+    MSE의 기울기는 $r$이다(잔차와 함께 커지므로 이상점에서 불안정할 수 있다). MAE의 기울기는 $\text{sign}(r)$이다(상수라 안정적이지만 0 근처에서 요동친다). 후버의 기울기는 잔차가 작으면 $r$, 크면 $\delta\cdot\text{sign}(r)$이다(유계라 안정적이다). 후버가 두 세계의 좋은 점을 준다.

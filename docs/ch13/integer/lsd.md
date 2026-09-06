@@ -1,67 +1,46 @@
-# LSD Radix Sort
+# LSD 기수 정렬
 
-The general radix sort page introduces the idea of sorting integers digit by digit.
-This page examines the **Least Significant Digit (LSD)** variant in detail:
-its correctness invariant, why stability is essential, and practical optimizations
-that make LSD radix sort the most widely used non-comparison sort for fixed-width
-integer keys.
+일반 기수 정렬 쪽은 정수를 한 자리씩 정렬한다는 생각을 들여온다. 이 쪽은 **최하위 자리(LSD)** 변형을 자세히 살핀다. 곧 그 옳음의 불변식, 안정성이 왜 꼭 필요한지, 그리고 LSD 기수 정렬을 폭 고정 정수 열쇠에 가장 널리 쓰이는 비교 아닌 정렬로 만드는 실전 손질들이다.
 
-## Core Idea
+## 핵심 생각
 
-LSD radix sort processes digits from the *rightmost* (least significant) to the
-*leftmost* (most significant).  At first glance this seems backwards -- we usually
-compare numbers starting from the most significant digit.  The insight is that a
-**stable** subroutine sort preserves the ordering established by previous passes,
-so by the time we finish the last (most significant) digit, the array is fully sorted.
+LSD 기수 정렬은 *가장 오른쪽*(최하위) 자리에서 *가장 왼쪽*(최상위) 자리로 나아간다. 얼핏 거꾸로 보인다. 우리는 보통 최상위 자리부터 수를 견주기 때문이다. 통찰은 **안정한** 부분 절차 정렬이 앞선 훑기가 세운 차례를 지켜 준다는 것이다. 그래서 마지막(최상위) 자리를 마칠 즈음이면 배열이 온전히 정렬된다.
 
-## Correctness Invariant
+## 옳음의 불변식
 
-**Claim:** After the $i$-th pass of LSD radix sort (processing digit position $i$
-counting from 1 at the least significant), the array is sorted with respect to the
-$i$ least significant digits.
+**주장:** LSD 기수 정렬의 $i$번째 훑기(최하위에서 1부터 세어 자리 $i$을 다룸) 뒤에 배열은 아래쪽 $i$자리에 대해 정렬되어 있다.
 
-*Proof by induction.*
+*귀납으로 증명한다.*
 
-- **Base case ($i = 1$).** After sorting by the least significant digit, elements are
-  trivially ordered by that single digit.
-- **Inductive step.** Assume the array is sorted by the $i$ least significant digits.
-  Pass $i + 1$ sorts by digit position $i + 1$ using a stable sort.  Consider two
-  elements $a$ and $b$:
-    - If digit $i+1$ of $a$ is less than digit $i+1$ of $b$, then $a$ precedes $b$
-      after this pass.
-    - If digit $i+1$ of $a$ equals digit $i+1$ of $b$, stability preserves their
-      relative order, which by the inductive hypothesis is correct for the $i$ least
-      significant digits.
+- **바닥 경우($i = 1$).** 최하위 자리로 정렬하고 나면 원소는 그 한 자리로 시시하게 차례가 잡힌다.
+- **귀납 걸음.** 배열이 아래쪽 $i$자리로 정렬되어 있다고 놓자. 훑기 $i + 1$은 안정한 정렬로 자리 $i + 1$에 따라 정렬한다. 원소 $a$과 $b$을 생각해 보자.
 
-  In both cases, $a$ and $b$ are correctly ordered with respect to the $i+1$ least
-  significant digits. $\square$
+    - $a$의 $i+1$자리가 $b$의 $i+1$자리보다 작으면 이 훑기 뒤에 $a$이 $b$보다 앞선다.
+    - $a$의 $i+1$자리가 $b$의 $i+1$자리와 같으면 안정성이 둘의 상대 차례를 지키며, 귀납 가정에 따라 그 차례는 아래쪽 $i$자리에 대해 옳다.
 
-## Why Stability is Essential
+  두 경우 모두 $a$과 $b$이 아래쪽 $i+1$자리에 대해 옳게 놓인다. $\square$
 
-If the digit-level subroutine is **not** stable, the inductive step fails.  Equal
-elements in pass $i+1$ may be reordered arbitrarily, destroying the ordering
-established by passes $1$ through $i$.  Counting sort -- which is stable -- is the
-standard choice for the subroutine.
+## 안정성이 꼭 필요한 까닭
 
-## Complexity
+자리 수준의 부분 절차가 안정하지 **않으면** 귀납 걸음이 무너진다. 훑기 $i+1$에서 같은 원소가 제멋대로 뒤섞여, 훑기 $1$부터 $i$까지가 세운 차례가 무너질 수 있다. 안정한 세기 정렬이 이 부분 절차의 표준 선택이다.
 
-Let $n$ be the number of elements, $d$ the number of digit positions, and $r$ the
-radix (base).
+## 복잡도
+
+원소 수를 $n$, 자리의 개수를 $d$, 기수(밑)를 $r$이라 하자.
 
 $$
 T(n, d, r) = \Theta\bigl(d\,(n + r)\bigr), \qquad S(n, r) = \Theta(n + r)
 $$
 
-Each of the $d$ passes runs a stable counting sort over a digit alphabet of size $r$,
-costing $\Theta(n + r)$ per pass.
+$d$번의 훑기마다 크기 $r$인 자리 글자판 위에서 안정한 세기 정렬을 돌리며, 훑기마다 $\Theta(n + r)$이 든다.
 
-## Worked Example
+## 풀이 예제
 
-Sort $A = [329, 457, 657, 839, 436, 720, 355]$ using LSD with radix $r = 10$.
+기수 $r = 10$의 LSD으로 $A = [329, 457, 657, 839, 436, 720, 355]$을 정렬해 보자.
 
-**Pass 1 -- ones digit:**
+**훑기 1 -- 일의 자리:**
 
-| Element | Digit | Sorted |
+| 원소 | 자리 | 정렬 |
 |---------|-------|--------|
 | 720 | 0 | 720 |
 | 355 | 5 | 355 |
@@ -71,11 +50,11 @@ Sort $A = [329, 457, 657, 839, 436, 720, 355]$ using LSD with radix $r = 10$.
 | 329 | 9 | 329 |
 | 839 | 9 | 839 |
 
-Result: $[720, 355, 436, 457, 657, 329, 839]$
+결과: $[720, 355, 436, 457, 657, 329, 839]$
 
-**Pass 2 -- tens digit:**
+**훑기 2 -- 십의 자리:**
 
-| Element | Digit | Sorted |
+| 원소 | 자리 | 정렬 |
 |---------|-------|--------|
 | 720 | 2 | 720 |
 | 329 | 2 | 329 |
@@ -85,41 +64,39 @@ Result: $[720, 355, 436, 457, 657, 329, 839]$
 | 457 | 5 | 457 |
 | 657 | 5 | 657 |
 
-Result: $[720, 329, 436, 839, 355, 457, 657]$
+결과: $[720, 329, 436, 839, 355, 457, 657]$
 
-Note: $720$ and $329$ both have tens digit 2.  Stability preserves their pass-1 order.
+참고: $720$과 $329$은 십의 자리가 모두 2이다. 안정성이 훑기 1에서의 차례를 지켜 준다.
 
-**Pass 3 -- hundreds digit:**
+**훑기 3 -- 백의 자리:**
 
-Result: $[329, 355, 436, 457, 657, 720, 839]$
+결과: $[329, 355, 436, 457, 657, 720, 839]$
 
-## Byte-Level Optimization
+## 바이트 단위 손질
 
-For 32-bit integers, choosing radix $r = 256$ (one byte) reduces the number of passes
-to exactly 4.  Each pass extracts one byte using bit shifts and masking:
+32비트 정수라면 기수를 $r = 256$(1바이트)으로 고르면 훑기가 꼭 4번으로 줄어든다. 훑을 때마다 비트 밀기와 가리기로 1바이트를 뽑아낸다.
 
 $$
 \text{digit}_i(x) = (x \gg 8i) \;\&\; \texttt{0xFF}
 $$
 
-This approach is cache-friendly because the count array has only 256 entries, and 4
-passes suffice regardless of the magnitude of the values.
+세기 배열의 자리가 256개뿐이라 캐시에 친화적이고, 값의 크기와 상관없이 훑기 4번이면 넉넉하다.
 
-## Implementation
+## 구현
 
 ```python
 """
-LSD radix sort -- processes digits from least to most significant.
+LSD 기수 정렬 — 자릿수를 낮은 자리부터 높은 자리로 다룬다.
 
-Uses counting sort as the stable subroutine.
-Time:  Theta(d * (n + r))
-Space: Theta(n + r)
+안정한 하위 절차로 세기 정렬을 쓴다.
+시간:  Theta(d * (n + r))
+공간: Theta(n + r)
 """
 
-# === Stable counting sort by digit ==========================================
+# === 자릿수별 안정 세기 정렬 =================================================
 
 def _counting_sort_by_digit(arr: list[int], exp: int, radix: int) -> list[int]:
-    """Sort *arr* stably by the digit at position *exp*."""
+    """자리 *exp*의 자릿수로 *arr*을 안정하게 정렬한다."""
     n = len(arr)
     output = [0] * n
     count = [0] * radix
@@ -139,22 +116,22 @@ def _counting_sort_by_digit(arr: list[int], exp: int, radix: int) -> list[int]:
     return output
 
 
-# === LSD radix sort =========================================================
+# === LSD 기수 정렬 ==========================================================
 
 def lsd_radix_sort(arr: list[int], radix: int = 10) -> list[int]:
-    """Sort non-negative integers using LSD radix sort.
+    """LSD 기수 정렬로 음이 아닌 정수를 정렬한다.
 
-    Parameters
+    매개변수
     ----------
     arr : list[int]
-        Input array of non-negative integers.
+        음이 아닌 정수의 입력 배열.
     radix : int
-        Base for digit extraction (default 10).
+        자릿수를 뽑을 밑(기본값 10).
 
-    Returns
+    반환값
     -------
     list[int]
-        Sorted array.
+        정렬된 배열.
     """
     if not arr:
         return arr
@@ -168,7 +145,7 @@ def lsd_radix_sort(arr: list[int], radix: int = 10) -> list[int]:
     return arr
 
 
-# === Demo ===================================================================
+# === 시연 ===================================================================
 
 if __name__ == "__main__":
     data = [329, 457, 657, 839, 436, 720, 355]
@@ -176,7 +153,7 @@ if __name__ == "__main__":
     print(f"Input:  {data}")
     print(f"Sorted: {sorted_data}")
 
-    # Byte-level radix (r=256) for 32-bit integers
+    # 32비트 정수를 위한 바이트 단위 기수(r=256)
     large = [170, 45, 75, 90, 802, 24, 2, 66]
     sorted_large = lsd_radix_sort(large, radix=256)
     print(f"\nByte-level radix sort:")
@@ -184,7 +161,7 @@ if __name__ == "__main__":
     print(f"Sorted: {sorted_large}")
 ```
 
-**Output:**
+**출력:**
 ```
 Input:  [329, 457, 657, 839, 436, 720, 355]
 Sorted: [329, 355, 436, 457, 657, 720, 839]
@@ -194,18 +171,50 @@ Input:  [170, 45, 75, 90, 802, 24, 2, 66]
 Sorted: [2, 24, 45, 66, 75, 90, 170, 802]
 ```
 
-## LSD vs MSD Summary
+## LSD과 MSD 간추림
 
-| Property | LSD | MSD |
+| 성질 | LSD | MSD |
 |----------|-----|-----|
-| Processing order | Right to left | Left to right |
-| Stability required | Yes (essential) | No (per-bucket recursion) |
-| Implementation | Iterative | Recursive |
-| Early termination | No | Yes (single-element buckets) |
-| Variable-length keys | Awkward | Natural |
-| Fixed-width integers | Preferred | Less common |
+| 다루는 차례 | 오른쪽에서 왼쪽 | 왼쪽에서 오른쪽 |
+| 안정성 필요 | 예(꼭 필요) | 아니오(양동이마다 되돌이) |
+| 구현 | 되풀이 | 되돌이 |
+| 일찍 끝내기 | 아니오 | 예(원소 하나짜리 양동이) |
+| 길이가 들쭉날쭉한 열쇠 | 어색함 | 자연스러움 |
+| 폭 고정 정수 | 낫다 | 덜 쓰인다 |
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022).
-  *Introduction to Algorithms* (4th ed.), Chapter 8. MIT Press.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 8장. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+LSD 기수 정렬의 핵심 생각과 그 시간·공간 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 견줌 너머의 성질(정수 열쇠, 바깥 저장 장치, 병렬 하드웨어)을 살려 써서 비교 기반 정렬이 따라올 수 없는 성능을 이룬다. 구체적인 복잡도 한계는 이 쪽에서 뜯어본다.
+
+---
+
+**연습문제 2.**
+작은 입력에서 LSD 기수 정렬을 따라가라. 훑기나 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    원소 6~8개에 알고리즘을 적용하며 훑을 때마다의 상태를 보여라. 이 따라가기가 알고리즘의 얼개를 드러내고 옳음을 눈에 보이게 한다.
+
+---
+
+**연습문제 3.**
+어떤 조건에서 비교 기반 정렬보다 LSD 기수 정렬이 나은가?
+
+??? success "연습문제 3 풀이"
+    다음일 때 낫다. 입력의 정수 범위가 묶여 있을 때(세기 정렬과 기수 정렬), 데이터가 램을 넘칠 때(바깥 정렬), 병렬 하드웨어를 쓸 수 있을 때(병렬 정렬). 이런 조건에서는 알고리즘이 비교 기반의 아래 한계 $\Omega(n\log n)$을 비껴갈 수 있다.
+
+---
+
+**연습문제 4.**
+LSD 기수 정렬이 실전에서 이득을 주는 깊은 학습 응용을 서술하라.
+
+??? success "연습문제 4 풀이"
+    응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.

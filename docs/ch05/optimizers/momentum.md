@@ -1,40 +1,35 @@
-# SGD with Momentum
+# 모멘텀을 쓰는 SGD
+## 개요
 
+모멘텀은 지난 기울기의 지수 감쇠 이동 평균을 쌓아, 기울기가 한결같은 방향으로는 수렴을 빠르게 하고 곡률이 큰 방향의 진동은 누그러뜨린다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-Momentum accumulates an exponentially decaying moving average of past gradients, accelerating convergence along consistent gradient directions and dampening oscillations in directions with high curvature.
-
-## Update Rule
+## 갱신 규칙
 
 $$v_t = \mu \, v_{t-1} + g_t$$
 
 $$\theta_{t+1} = \theta_t - \eta \, v_t$$
 
-where $\mu \in [0, 1)$ is the momentum coefficient (typically 0.9) and $v_t$ is the velocity (accumulated gradient).
+여기서 $\mu \in [0, 1)$은 모멘텀 계수(보통 0.9)이고 $v_t$은 속도(누적된 기울기)이다.
 
-## Intuition
+## 직관
 
-Consider a loss landscape shaped like an elongated valley. Vanilla SGD oscillates across the narrow dimension while making slow progress along the long dimension. Momentum accumulates velocity along the consistent (long) direction and cancels out oscillations across the narrow direction—analogous to a ball rolling downhill with inertia.
+길쭉한 골짜기 모양의 손실 지형을 생각해 보자. 기본 SGD는 좁은 방향으로 진동하면서 긴 방향으로는 더디게 나아간다. 모멘텀은 한결같은(긴) 방향으로 속도를 쌓고 좁은 방향의 진동은 서로 상쇄시킨다. 관성을 지닌 공이 비탈을 굴러 내려가는 것과 같다.
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01, momentum=0.9)
 ```
 
-## Effect of Momentum Coefficient
+## 모멘텀 계수의 효과
 
-- $\mu = 0$: Reduces to vanilla SGD.
-- $\mu = 0.9$: Standard choice. The effective step size is amplified by up to $1/(1-\mu) = 10\times$ in consistent gradient directions.
-- $\mu = 0.99$: More aggressive smoothing, useful when gradients are very noisy.
+- $\mu = 0$: 기본 SGD가 된다.
+- $\mu = 0.9$: 표준적인 선택. 기울기가 한결같은 방향에서 실효 걸음의 크기가 최대 $1/(1-\mu) = 10$배로 커진다.
+- $\mu = 0.99$: 더 강한 평활화. 기울기의 잡음이 아주 클 때 쓸모 있다.
 
-## Dampening
+## 감쇠(dampening)
 
-PyTorch supports dampening, which reduces the contribution of the current gradient:
+PyTorch는 현재 기울기의 몫을 줄이는 dampening을 지원한다.
 
 $$v_t = \mu \, v_{t-1} + (1 - d) \, g_t$$
 
@@ -43,8 +38,45 @@ optimizer = torch.optim.SGD(model.parameters(), lr=0.01,
                             momentum=0.9, dampening=0.1)
 ```
 
-## Key Takeaways
+## 핵심 정리
 
-- Momentum accelerates convergence by accumulating gradient history.
-- The standard momentum coefficient is 0.9.
-- SGD with momentum is the default optimizer for many computer vision tasks and often matches or outperforms adaptive methods in final generalization when properly tuned.
+- 모멘텀은 기울기의 이력을 쌓아 수렴을 빠르게 한다.
+- 표준 모멘텀 계수는 0.9이다.
+- 모멘텀을 쓰는 SGD는 여러 컴퓨터 비전 과제의 기본 최적화기이며, 잘 조율하면 최종 일반화에서 적응형 방법과 맞먹거나 그보다 나을 때가 많다.
+
+## 연습문제
+
+**연습문제 1.**
+모멘텀의 갱신 규칙을 유도하고 그것이 좁은 골짜기에서 수렴을 어떻게 빠르게 하는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    모멘텀은 $v_t = \beta v_{t-1} + \nabla L(\theta_t)$, $\theta_{t+1} = \theta_t - \eta v_t$이다. 좁은 골짜기에서는 기울기가 좁은 방향으로는 진동하지만 골짜기를 따라서는 한결같다. 모멘텀은 (서로 반대인 기울기가 상쇄되어) 진동을 누그러뜨리고 (한결같은 기울기가 쌓여) 골짜기를 따라 가속하여, 조건수를 $\kappa$이라 할 때 수렴을 $\sqrt{\kappa}$배 빠르게 한다.
+
+---
+
+**연습문제 2.**
+모멘텀 SGD의 실효 걸음 크기는 기본 SGD에 견주어 얼마인가?
+
+??? success "연습문제 2 풀이"
+    극한에서 속도는 $v = \nabla L / (1 - \beta)$으로 쌓이므로 실효 걸음은 $\eta / (1 - \beta)$이다. $\beta = 0.9$이면 실효 학습률이 명목 학습률의 $10$배가 된다.
+
+---
+
+**연습문제 3.**
+고전적인 모멘텀과 네스테로프 모멘텀을 비교하라.
+
+??? success "연습문제 3 풀이"
+    고전적인 모멘텀은 현재 위치에서 기울기를 계산한 뒤 움직인다. 네스테로프는 먼저 모멘텀 방향으로 잠정적인 걸음을 옮긴 뒤 그 미리 본 위치에서 기울기를 계산한다. 기울기를 더 많은 정보를 지닌 위치에서 재므로 네스테로프가 더 나은 수렴 보장(볼록 문제에서 $O(1/t)$ 대신 $O(1/t^2)$)을 준다.
+
+---
+
+**연습문제 4.**
+모멘텀 SGD를 바닥부터 구현하고 `torch.optim.SGD(momentum=0.9)`과 맞는지 확인하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    v = {p: torch.zeros_like(p) for p in model.parameters()}
+    for p in model.parameters():
+        v[p] = 0.9 * v[p] + p.grad
+        p.data -= lr * v[p]
+    ```

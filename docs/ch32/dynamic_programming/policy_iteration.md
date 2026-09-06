@@ -1,27 +1,22 @@
-# 32.4.3 Policy Iteration
+# 32.4.3 방침 되풀이
+## 개요
 
+**방침 되풀이**는 방침 따지기와 방침 좋게 하기를 번갈아 하여 가장 좋은 방침을 찾는다. 마르코프 결정 과정의 고전 동적 짜기 알고리즘 둘 가운데 하나다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-**Policy iteration** alternates between policy evaluation and policy improvement to find the optimal policy. It is one of the two classical dynamic programming algorithms for MDPs.
-
-## Algorithm
+## 알고리즘
 
 $$\pi_0 \xrightarrow{\text{evaluate}} V_{\pi_0} \xrightarrow{\text{improve}} \pi_1 \xrightarrow{\text{evaluate}} V_{\pi_1} \xrightarrow{\text{improve}} \pi_2 \to \cdots \to \pi^*$$
 
-### Pseudocode
+### 의사 코드
 
 ```
-Initialize π(s) arbitrarily for all s ∈ S
+모든 s ∈ S에 대해 π(s)을 아무렇게나 첫 값으로 둔다
 
 Repeat:
-    # Policy Evaluation
+    # 방침 따지기
     Compute V_π (solve V = r_π + γ P_π V)
 
-    # Policy Improvement
+    # 방침 좋게 하기
     policy_stable = True
     For each s ∈ S:
         old_action = π(s)
@@ -33,55 +28,87 @@ Repeat:
         Return π, V_π  (optimal)
 ```
 
-## Convergence
+## 모임
 
-1. Each policy evaluation produces the exact $V_\pi$
-2. Each policy improvement produces a strictly better policy (or the same if optimal)
-3. There are at most $|\mathcal{A}|^{|\mathcal{S}|}$ deterministic policies
-4. Therefore, policy iteration terminates in a finite number of steps
+1. 방침 따지기마다 정확한 $V_\pi$을 낸다
+2. 방침 좋게 하기마다 엄밀히 더 좋은 방침을 낸다(가장 좋으면 그대로)
+3. 정해진 방침은 많아야 $|\mathcal{A}|^{|\mathcal{S}|}$개다
+4. 그러므로 방침 되풀이는 유한한 걸음에 끝난다
 
-In practice, policy iteration typically converges in very few iterations (often 5-10 for moderate MDPs), because each step makes a big improvement.
+실제로 방침 되풀이는 걸음마다 크게 좋아지므로 아주 적은 되풀이에 모인다(웬만한 마르코프 결정 과정에서 흔히 5~10번).
 
-## Computational Cost
+## 셈 비용
 
-| Component | Cost |
+| 조각 | 비용 |
 |-----------|------|
-| Policy Evaluation (exact) | $O(\|\mathcal{S}\|^3)$ per iteration |
-| Policy Evaluation (iterative) | $O(\|\mathcal{S}\|^2 \|\mathcal{A}\| \cdot k)$ for $k$ sweeps |
-| Policy Improvement | $O(\|\mathcal{S}\|^2 \|\mathcal{A}\|)$ per iteration |
-| Total iterations | Typically $O(\|\mathcal{S}\| \|\mathcal{A}\|)$ in the worst case |
+| 방침 따지기(정확) | 되풀이마다 $O(\|\mathcal{S}\|^3)$ |
+| 방침 따지기(되풀이) | 쓸기 $k$번에 $O(\|\mathcal{S}\|^2 \|\mathcal{A}\| \cdot k)$ |
+| 방침 좋게 하기 | 되풀이마다 $O(\|\mathcal{S}\|^2 \|\mathcal{A}\|)$ |
+| 온 되풀이 | 가장 나쁜 경우 보통 $O(\|\mathcal{S}\| \|\mathcal{A}\|)$ |
 
-## Variants
+## 변형
 
-### Modified Policy Iteration
+### 고친 방침 되풀이
 
-Don't run policy evaluation to full convergence — use only $k$ sweeps before improving:
+방침 따지기를 끝까지 모을 때까지 돌리지 않는다. 좋게 하기 전에 쓸기를 $k$번만 한다:
 
 $$V^{(k)} \approx V_\pi \quad \text{(approximate evaluation)}$$
 
 $$\pi' \leftarrow \text{greedy}(V^{(k)})$$
 
-This interpolates between policy iteration ($k = \infty$) and value iteration ($k = 1$).
+이는 방침 되풀이($k = \infty$)와 값 되풀이($k = 1$) 사이를 잇는다.
 
-### Generalized Policy Iteration (GPI)
+### 넓힌 방침 되풀이(GPI)
 
-The concept of alternating evaluation and improvement, not necessarily to completion, is called **Generalized Policy Iteration**. Most RL algorithms can be viewed as instances of GPI:
+따지기와 좋게 하기를 반드시 끝까지 하지는 않으면서 번갈아 하는 생각을 **넓힌 방침 되풀이**라 부른다. 대부분의 힘 북돋우는 배움 알고리즘을 GPI의 보기로 볼 수 있다:
 
-- **Policy evaluation**: Any process that makes $V$ more accurate for the current $\pi$
-- **Policy improvement**: Any process that makes $\pi$ greedier with respect to the current $V$
+- **방침 따지기**: 지금 $\pi$에 대해 $V$을 더 맞게 만드는 어떤 과정이든
+- **방침 좋게 하기**: 지금 $V$에 대해 $\pi$을 더 욕심내게 만드는 어떤 과정이든
 
-GPI drives both $V$ and $\pi$ toward their optimal values, even with partial updates.
+GPI은 일부만 고쳐도 $V$과 $\pi$을 모두 가장 좋은 값 쪽으로 몰아간다.
 
-## Policy Iteration vs. Value Iteration
+## 방침 되풀이와 값 되풀이
 
-| Feature | Policy Iteration | Value Iteration |
+| 갈래 | 방침 되풀이 | 값 되풀이 |
 |---------|-----------------|-----------------|
-| Evaluation | Full (exact $V_\pi$) | None (1 sweep = 1 Bellman optimality backup) |
-| Per-iteration cost | Higher (full eval) | Lower (single sweep) |
-| Number of iterations | Fewer (big steps) | More (small steps) |
-| Overall efficiency | Often faster for small MDPs | Often faster for large MDPs |
-| Convergence | Finite steps (exact) | Asymptotic ($\epsilon$-optimal) |
+| 따지기 | 온전함(정확한 $V_\pi$) | 없음(쓸기 1번 = 벨먼 최적 되짚기 1번) |
+| 되풀이마다 비용 | 높음(온전한 따지기) | 낮음(쓸기 한 번) |
+| 되풀이 횟수 | 적음(큰 걸음) | 많음(작은 걸음) |
+| 전체 효율 | 작은 마르코프 결정 과정에서 흔히 빠름 | 큰 마르코프 결정 과정에서 흔히 빠름 |
+| 모임 | 유한 걸음(정확) | 점근($\epsilon$최적) |
 
-## Summary
+## 요약
 
-Policy iteration is a powerful algorithm that finds the exact optimal policy by alternating between evaluating the current policy and improving it. Its strength is rapid convergence in few iterations, though each iteration can be expensive due to full policy evaluation. The GPI framework generalizes this alternation to encompass most RL algorithms.
+방침 되풀이는 지금 방침을 따지고 좋게 하기를 번갈아 하여 정확히 가장 좋은 방침을 찾는 힘센 알고리즘이다. 강점은 적은 되풀이에 빨리 모이는 것이지만 온전한 방침 따지기 때문에 되풀이마다 비쌀 수 있다. GPI 틀은 이 번갈아 하기를 넓혀 대부분의 힘 북돋우는 배움 알고리즘을 아우른다.
+
+## 연습문제
+
+**연습문제 1.**
+이 마디의 주제와 딸린 단순한 마르코프 결정 과정을 생각하여라. 상태 3개와 움직임 2개의 작은 보기에서 관련 양을 손으로 셈하여라.
+
+??? success "연습문제 1 풀이"
+    상태 $S = \{s_1, s_2, s_3\}$과 움직임 $A = \{a_1, a_2\}$을 뜻매김한다. 옮김 확률과 보상을 매긴다. 상태-움직임 짝마다 기대 즉시 보상과 옮김 분포를 셈한다. 이 마디의 뜻매김과 식으로 바라는 양을 셈한다. 상태 자리가 작아 정확히 셈할 수 있어 추상 적기가 구체 숫자로 어떻게 옮겨지는지 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 다룬 핵심 성질이나 모임 결과를 밝혀라. 여김을 또렷이 적고 어느 것이 꼭 필요한지 가려내어라.
+
+??? success "연습문제 2 풀이"
+    밝힘은 그 연산자에 오므리는 옮김 정리를 써서 따라온다. 깎기 인수가 $\gamma < 1$인 유한 마르코프 결정 과정을 여기면 그 연산자는 상한 노름에서 $\gamma$오므리기다. 바나흐 고정점 정리에 따라 되풀이해 쓰면 $k$이 되풀이 횟수일 때 빠르기 $O(\gamma^k)$으로 하나뿐인 고정점에 모인다. 유한하다는 여김이 보상이 가둬짐을 보장하고 깎기 인수 $\gamma < 1$이 오므리기 성질에 꼭 필요하다. $\square$
+
+---
+
+**연습문제 3.**
+이 마디에서 밝힌 알고리즘이나 셈을 단순한 격자 세상에 대해 파이썬으로 짜라. $\epsilon = 0.01$ 안으로 모이는 데 필요한 되풀이 횟수를 알려라.
+
+??? success "연습문제 3 풀이"
+    모서리에 마침 상태가 있고 고른 아무 방침을 쓰는 $4 \times 4$ 격자 세상이 여느 시험 사례가 된다. 짜기는 모든 상태의 가장 큰 바뀜이 $\epsilon$ 아래로 떨어질 때까지 고침 규칙을 되풀이한다. 깎기 인수에 따라 보통 50~200번 되풀이하면 모인다. 핵심 짜기 세부는 맞춘 고침보다 빨리 모이도록 제자리 고침(가우스-자이델 방식)을 쓰는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+이 마디에서 밝힌 길에 본디 있는 근본 한계나 맞바꿈을 다루어라. 뒤 장의 더 나아간 방법이 이 한계를 어떻게 넘는가?
+
+??? success "연습문제 4 풀이"
+    표로 하는 길은 모든 상태(어쩌면 움직임까지)를 늘어놓아야 하는데 이어지거나 차원이 높은 상태 자리에서는 될 일이 아니다. 차원의 저주는 상태 변수의 수에 따라 상태 수가 지수로 늘어남을 뜻한다. 함수 어림(33~34장)은 그 함수를 신경망으로 잡을 두어 나타내고 닮은 상태에 걸쳐 넓혀 이를 넘는다. 다만 새 어려움이 생긴다. 모임이 더는 보장되지 않으며 함수 어림, 띄워 올리기, 벗어난 방침 익히기의 죽음의 삼각이 발산을 일으킬 수 있다. $\square$

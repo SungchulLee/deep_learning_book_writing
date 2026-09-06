@@ -1,26 +1,16 @@
-# Pollard's Rho Algorithm
+# 폴러드 로 알고리즘
 
-Trial division finds small factors quickly, but its $O(\sqrt{n})$ worst case
-becomes impractical for large composites.  Pollard's rho algorithm exploits
-the birthday paradox to find a non-trivial factor of $n$ in expected
-$O(n^{1/4})$ arithmetic operations, making it one of the most efficient
-methods for factoring numbers with moderate-sized factors.
+시험 나눗셈은 작은 인수를 빨리 찾지만 가장 나쁜 경우가 $O(\sqrt{n})$이어서 큰 합성수에는 쓸 수 없다. 폴러드 로 알고리즘은 생일 역설을 써서 기댓값 $O(n^{1/4})$번의 셈으로 $n$의 하찮지 않은 인수를 찾으며, 인수 크기가 어지간한 수를 인수 분해하는 가장 효율 좋은 방법 가운데 하나이다.
 
-## Core Idea
+## 핵심 생각
 
-Let $p$ be an unknown prime factor of $n$.  If we generate a pseudo-random
-sequence $x_0, x_1, x_2, \dots$ modulo $n$, the values modulo $p$ cycle much
-sooner than the values modulo $n$.  By the birthday paradox, a collision
-$x_i \equiv x_j \pmod{p}$ is expected after roughly $O(\sqrt{p})$ steps.
-When this happens, $\gcd(x_i - x_j, n)$ reveals the factor $p$.
+$p$을 $n$의 알려지지 않은 소인수라 하자. $n$을 법으로 거짓 마구잡이 차례 $x_0, x_1, x_2, \dots$을 만들면 $p$을 법으로 한 값이 $n$을 법으로 한 값보다 훨씬 빨리 돌이를 이룬다. 생일 역설에 따라 부딪힘 $x_i \equiv x_j \pmod{p}$이 대략 $O(\sqrt{p})$걸음 뒤에 생긴다. 그때 $\gcd(x_i - x_j, n)$이 인수 $p$을 드러낸다.
 
-The name "rho" comes from the shape of the sequence when drawn as a graph:
-a tail leading into a cycle, resembling the Greek letter $\rho$.
+"로"라는 이름은 이 차례를 그림으로 그렸을 때의 모양에서 왔다. 꼬리가 돌이로 이어져 그리스 글자 $\rho$을 닮았다.
 
-## The Iteration Function
+## 되풀이 함수
 
-We use a polynomial map $f(x) = x^2 + c \pmod{n}$ for a fixed constant
-$c \notin \{0, -2\}$.  Starting from $x_0$, define
+붙박이 상수 $c \notin \{0, -2\}$에 대해 다항식 옮김 $f(x) = x^2 + c \pmod{n}$을 쓴다. $x_0$에서 시작해 다음을 뜻매김한다
 
 $$
 x_{i+1} = f(x_i) = x_i^2 + c \pmod{n}
@@ -29,18 +19,16 @@ $$
 The sequence is deterministic but behaves pseudo-randomly modulo any fixed
 prime factor $p$ of $n$.
 
-## Floyd's Cycle Detection
+## 플로이드 돌이 찾기
 
-Rather than storing all previous values, Floyd's tortoise-and-hare method
-uses two pointers:
+앞의 값을 모두 담아 두는 대신 플로이드의 거북과 토끼 방법은 가리개 둘을 쓴다:
 
-- **Tortoise**: advances one step at a time, $x_i$.
-- **Hare**: advances two steps at a time, $x_{2i}$.
+- **거북**: 한 번에 한 걸음씩 나아간다, $x_i$.
+- **토끼**: 한 번에 두 걸음씩 나아간다, $x_{2i}$.
 
-At each step, compute $d = \gcd(|x_i - x_{2i}|, n)$.  If $1 < d < n$,
-then $d$ is a non-trivial factor.
+걸음마다 $d = \gcd(|x_i - x_{2i}|, n)$을 셈한다. $1 < d < n$이면 $d$이 하찮지 않은 인수이다.
 
-## Algorithm
+## 알고리즘
 
 ```python
 """
@@ -53,9 +41,9 @@ import math
 import random
 
 
-# === Pollard's Rho ===
+# === 폴러드 로 ===
 def pollard_rho(n: int) -> int:
-    """Return a non-trivial factor of n, or n if n is prime."""
+    """n의 하찮지 않은 인수를 돌려준다. n이 소수이면 n을 돌려준다."""
     if n % 2 == 0:
         return 2
     while True:
@@ -70,12 +58,12 @@ def pollard_rho(n: int) -> int:
             d = math.gcd(abs(x - y), n)
         if d != n:
             return d
-        # d == n means cycle without finding factor; retry
+        # d == n이면 인수를 못 찾고 돌이가 생긴 것이다. 다시 한다
 
 
-# === Full Factorization ===
+# === 온전한 인수 분해 ===
 def factorize(n: int) -> list[int]:
-    """Return the complete prime factorization of n."""
+    """n의 온전한 소인수 분해를 돌려준다."""
     if n <= 1:
         return []
     factors = []
@@ -94,7 +82,7 @@ def factorize(n: int) -> list[int]:
 
 
 def is_prime_miller_rabin(n: int, rounds: int = 20) -> bool:
-    """Miller-Rabin primality test."""
+    """밀러-라빈 소수 시험."""
     if n < 2:
         return False
     if n in (2, 3):
@@ -119,7 +107,7 @@ def is_prime_miller_rabin(n: int, rounds: int = 20) -> bool:
     return True
 
 
-# === Example ===
+# === 보기 ===
 if __name__ == "__main__":
     n = 8051
     print(f"n = {n}")
@@ -128,48 +116,69 @@ if __name__ == "__main__":
     print(f"Full factorization: {factorize(n)}")
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
-Let $p$ be the smallest prime factor of $n$.
+$p$을 $n$의 가장 작은 소인수라 하자.
 
-- **Expected collisions.**  By the birthday paradox, a collision modulo $p$
-  occurs after $O(\sqrt{p})$ iterations.
-- **Since $p \le \sqrt{n}$,** the expected number of iterations is
-  $O(n^{1/4})$.
-- **Each iteration** performs a constant number of modular multiplications
-  and one GCD computation, each costing $O(\log^2 n)$ with standard
-  arithmetic.
+- **기대 부딪힘.** 생일 역설에 따라 $p$을 법으로 하는 부딪힘이 $O(\sqrt{p})$번 되풀이 뒤에 생긴다.
+- **$p \le \sqrt{n}$이므로** 되풀이 횟수의 기댓값은 $O(n^{1/4})$이다.
+- **되풀이마다** 법 곱셈을 상수 번 하고 최대 공약수를 한 번 셈하며 여느 셈에서 저마다 $O(\log^2 n)$이 든다.
 
-Total expected time: $O(n^{1/4} \log^2 n)$ bit operations.
+기댓값으로 온 시간: 비트 연산 $O(n^{1/4} \log^2 n)$번.
 
-!!! tip "Brent's Improvement"
-    Brent's variant replaces Floyd's cycle detection with a different
-    advancement schedule.  It finds factors about 24% faster in practice
-    by reducing the number of GCD computations.
+!!! tip "브렌트의 개선"
+    브렌트의 변형은 플로이드의 돌이 찾기를 다른 나아감 차례표로 바꾼다. 최대 공약수 셈하기 횟수를 줄여 실제로 인수를 약 24% 빨리 찾는다.
 
-## Failure and Retry
+## 실패와 다시 하기
 
-When $d = \gcd(|x_i - x_{2i}|, n) = n$, the tortoise and hare have
-collided modulo $n$ itself, yielding a trivial factor.  The fix is simple:
-restart with a different random $c$ or $x_0$.  The probability of needing
-many restarts is low.
+$d = \gcd(|x_i - x_{2i}|, n) = n$이면 거북과 토끼가 $n$ 자체를 법으로 부딪혀 하찮은 인수만 나온 것이다. 고치기는 간단하다. 다른 아무 $c$이나 $x_0$으로 다시 시작한다. 여러 번 다시 시작해야 할 확률은 낮다.
 
-## Practical Considerations
+## 실용적인 고려
 
-| Aspect | Detail |
+| 항목 | 내용 |
 |---|---|
-| Best for | Numbers up to ~60 digits with factors up to ~30 digits |
-| Combines with | Miller-Rabin (test primality before factoring) |
-| Not suitable for | Semiprimes with two large factors (use GNFS instead) |
-| Parallelizable | Yes --- run independent instances with different $c$ values |
+| 알맞은 곳 | 인수가 약 30자리까지인 약 60자리까지의 수 |
+| 함께 쓰는 것 | 밀러-라빈(인수 분해 전에 소수인지 시험한다) |
+| 알맞지 않은 곳 | 큰 인수 둘의 반소수(대신 일반 수체 체를 쓴다) |
+| 나란히 할 수 있음 | 그렇다 --- $c$ 값을 달리해 서로 얽매이지 않은 사례를 돌린다 |
 
-!!! warning "Choice of c"
-    Avoid $c = 0$ (sequence degenerates to $x^{2^k}$) and $c = -2$ (the
-    iteration has algebraic structure that prevents finding factors).
+!!! warning "c 고르기"
+    $c = 0$(차례가 $x^{2^k}$으로 무너진다)과 $c = -2$(되풀이에 인수 찾기를 막는 대수 얼개가 있다)은 피하라.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction
-  to Algorithms* (CLRS), Chapter 31.
-- Pollard, J. M. "A Monte Carlo method for factorization." *BIT Numerical
-  Mathematics*, 15(3), 1975.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.
+- Pollard, J. M. "A Monte Carlo method for factorization." *BIT Numerical Mathematics*, 15(3), 1975.
+
+
+## 연습문제
+
+**연습문제 1.**
+$f(x) = x^2 + 1 \bmod 91$과 $x_0 = 2$으로 $n = 91$에서 폴러드 로 알고리즘을 좇아라.
+
+??? success "연습문제 1 풀이"
+    차례를 셈한다: $x_1 = 5, x_2 = 26, x_3 = 677 \bmod 91 = 40, x_4 = 1601 \bmod 91 = 53, x_5 = 2810 \bmod 91 = 79, x_6 = 6242 \bmod 91 = 53$. 돌이를 찾았다: $x_6 = x_4 = 53$. 플로이드 방법(거북과 토끼)으로 걸음마다 $\gcd(|x_i - x_{2i}|, 91)$을 셈한다. 어느 순간 $\gcd(|26 - 40|, 91) = \gcd(14, 91) = 7$이 된다. 인수를 찾았다: $91 = 7 \times 13$.
+
+---
+
+**연습문제 2.**
+폴러드 로의 기대 도는 시간이 $O(n^{1/4})$인 까닭과 생일 역설이 어떻게 쓰이는지 밝혀라.
+
+??? success "연습문제 2 풀이"
+    $p$을 $n$의 가장 작은 소인수라 하면 $p \leq \sqrt{n}$이다. 차례 $x_i \bmod p$은 $\{0, \ldots, p-1\}$에서 거짓 마구잡이이다. 생일 역설에 따라 부딪힘 $x_i \equiv x_j \pmod{p}$이 평균 $O(\sqrt{p})$걸음 뒤에 일어난다. $x_i \equiv x_j \pmod{p}$이면 $\gcd(|x_i - x_j|, n)$이 $p$(또는 그 배수)을 드러낸다. $p \leq n^{1/2}$이므로 기대 걸음 수는 $O(n^{1/4})$이다. 걸음마다 법 셈에 $O(\log^2 n)$이 들어 온 시간은 $O(n^{1/4} \log^2 n)$이다.
+
+---
+
+**연습문제 3.**
+폴러드 로가 $\gcd(|x_i - x_j|, n) = n$을 찾으면 어떻게 되는가? 알고리즘은 이를 어떻게 다루어야 하는가?
+
+??? success "연습문제 3 풀이"
+    $\gcd = n$이면 제대로 된 인수를 드러내지 못한 채 $n$을 법으로 하는 돌이가 생긴 것이다(두 차례가 모든 소인수를 법으로 하여 한꺼번에 부딪혔다). 알고리즘은 다른 다항식으로 다시 시작해야 한다. 보기로 새 아무 $c \neq 0, -2$을 쓴 $f(x) = x^2 + c$이다. 또는 (돌이를 더 빨리 찾는) 브렌트의 개선을 쓰거나, 최대 공약수를 더 자주 셈해 그것이 처음 1을 넘은 걸음으로 되돌아간다.
+
+---
+
+**연습문제 4.**
+$n$자리 수를 인수 분해할 때 시험 나눗셈, 폴러드 로, 이차 체의 도는 시간을 견주어라.
+
+??? success "연습문제 4 풀이"
+    $N$이 십진 $d$자리라 하면 $N \approx 10^d$이다. 시험 나눗셈: $O(\sqrt{N}) = O(10^{d/2})$으로 $d$에 대해 지수이다. 폴러드 로: $O(N^{1/4}) = O(10^{d/4})$으로 여전히 지수이지만 밑이 더 작다. 이차 체: $O(\exp(c\sqrt{d \ln d}))$으로 $d$에 대해 준지수이다. $d = 50$에서 시험 나눗셈은 약 $10^{25}$(쓸 수 없다), 폴러드 로는 약 $10^{12.5}$(아슬아슬하다), 이차 체는 약 $10^{9}$(쓸 만하다)이다. $d = 100$에서는 이차 체(또는 일반 수체 체)만 쓸 만하다.

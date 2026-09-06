@@ -1,90 +1,118 @@
-# 31.6.2 Transaction Graph Generation
+# 31.6.2 거래 그래프 만들기
+## 개요
 
+거래 그래프는 때에 따라 낱것 사이를 오가는 돈의 흐름을 적는다. 붙박인 금융 그물과 달리 거래 그래프는 본디 **때에 매이고** **바뀐다**. 변마다 특정 때의 특정 거래를 나타내며 금액, 돈 종류, 흔히 곁 자료(거래 갈래, 메모, 위험 표시)를 지닌다. 그럴듯한 지어낸 거래 그래프를 만드는 일은 자금 세탁 막기 모델 개발, 속임수 찾기 익히기, 사생활을 지키는 자료 나눔, 지급 시스템 버거움 시험에 꼭 필요하다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 거래 그래프의 얼개
 
-## Overview
+거래 그래프 $\mathcal{G} = (V, E, T)$은 다음으로 이루어진다:
 
-Transaction graphs record the flow of money between entities over time. Unlike static financial networks, transaction graphs are inherently **temporal** and **dynamic**: each edge represents a specific transaction at a specific time, with an amount, currency, and often additional metadata (transaction type, memo, risk flags). Generating realistic synthetic transaction graphs is essential for anti-money laundering (AML) model development, fraud detection training, privacy-preserving data sharing, and stress testing payment systems.
+- **마디** $V$: 낱것(계좌, 사람, 사업체)
+  - 마디 특징: 낱것 갈래(개인/법인), 관할, 계좌 나이, 위험 등급, 평균 잔고
+- **변** $E$: 보내는 이에서 받는 이로 가는 방향 거래
+  - 변 특징: 금액, 때 도장, 돈 종류, 거래 갈래(전신 송금, 자동 이체, 카드), 통로
+- **때 차례** $T$: 거래가 때 차례로 놓이며 때 무늬(잦음, 주기, 몰림)가 결정적인 앎을 담는다
 
-## Transaction Graph Structure
+만들개가 담아야 할 핵심 얼개 무늬:
 
-A transaction graph $\mathcal{G} = (V, E, T)$ consists of:
+**모여듦 / 퍼져 나감**: 올바른 사업 계좌는 작은 지급을 많이 받거나(모여듦) 여럿에게 지급을 나눈다(퍼져 나감). 자금 세탁에는 흔히 **켜 쌓기**(출처를 흐리려는 복잡한 퍼져 나감 무늬)가 든다.
 
-- **Nodes** $V$: entities (accounts, individuals, businesses)
-  - Node features: entity type (individual/corporate), jurisdiction, account age, risk rating, average balance
-- **Edges** $E$: directed transactions from sender to receiver
-  - Edge features: amount, timestamp, currency, transaction type (wire, ACH, card), channel
-- **Temporal ordering** $T$: transactions are ordered in time, and temporal patterns (frequency, periodicity, bursts) carry critical information
+**돌이 무늬**: 월급, 집세, 구독이 규칙 있는 때 무늬를 만든다. 별난 돌이는 되돌아오기(중간 사람을 거쳐 돈이 출처로 돌아옴)를 가리킬 수 있다.
 
-Key structural patterns that generators must capture:
+**금액 분포**: 거래 금액은 꼬리가 두꺼운 분포를 따르며 어림수(\$100, \$500, 쪼개기 문턱)에서 치솟는다. 현금 거래 보고는 \$10,000을 넘으면 걸리며, 이 때문에 세탁하는 이가 문턱 아래로 거래를 쪼개는 "쪼개기"가 생긴다.
 
-**Fan-in / Fan-out**: Legitimate business accounts receive many small payments (fan-in) or distribute payments to many recipients (fan-out). Money laundering often involves **layering** (complex fan-out patterns to obscure origin).
+**때의 몰림**: 거래가 때에 몰린다. 월급날, 월말, 명절 철이 그렇다. 올바른 계좌는 헤아릴 수 있는 주기를 보이고 속이는 계좌는 별난 몰림 무늬를 보일 수 있다.
 
-**Cyclical patterns**: Salary payments, rent, subscriptions create regular temporal patterns. Anomalous cycles may indicate round-tripping (money returning to its origin through intermediaries).
+## 지어낸 거래 만들기의 길
 
-**Amount distributions**: Transaction amounts follow heavy-tailed distributions with spikes at round numbers (\$100, \$500, structuring thresholds). Currency transaction reports (CTRs) are triggered above \$10,000, leading to "structuring" where launderers split transactions to stay below the threshold.
+### 규칙 바탕 만들기
 
-**Temporal burstiness**: Transactions cluster in time—paydays, month-ends, holiday seasons. Legitimate accounts show predictable periodicity; fraudulent accounts may show unusual burst patterns.
+낱것 갈래와 움직임 규칙을 뜻매김한 뒤 흉내 낸다:
 
-## Synthetic Transaction Generation Approaches
+1. **낱것 됨됨이**: 계좌마다 갈래(개인, 소상공인, 대기업)와 그에 딸린 움직임 잡(거래 잦음, 흔한 금액, 거래 상대의 다양함)을 가진다.
 
-### Rule-Based Generation
+2. **거래 본새**: 월급 입금, 요금 납부, 기업 간 청구서 같은 본보기 거래 무늬를 때와 금액에 잡을 두어 뜻매김한다.
 
-Define entity types and behavioral rules, then simulate:
+3. **별난 것 넣기**: 여느 활동의 밑금을 만든 뒤 특정 자금 세탁 유형(쪼개기, 켜 쌓기, 되돌아오기)을 다스려진 비율로 넣는다.
 
-1. **Entity profiles**: Each account has a type (individual, small business, large corporate) with associated behavioral parameters (transaction frequency, typical amounts, counterparty diversity).
+이 길은 별난 것의 비율과 갈래를 온전히 다스릴 수 있게 하지만 "여느" 거래가 실제 자료의 복잡함과 얽힘을 갖추지 못할 수 있다.
 
-2. **Transaction templates**: Define prototypical transaction patterns—salary deposits, bill payments, B2B invoices—with parameterized timing and amounts.
+### 깊은 짓기의 길
 
-3. **Anomaly injection**: After generating a baseline of normal activity, inject specific money laundering typologies (structuring, layering, round-tripping) at controlled rates.
-
-This approach gives full control over the anomaly rate and types, but the "normal" transactions may lack the complexity and correlations of real data.
-
-### Deep Generative Approaches
-
-**Temporal Point Process Models**: Model transactions as events in continuous time using a conditional intensity function:
+**때 점 과정 모형**: 매인 세기 함수로 거래를 이어진 때의 사건으로 나타낸다:
 
 $$\lambda(t \mid \mathcal{H}_t) = f_\theta(t, \mathcal{H}_t)$$
 
-where $\mathcal{H}_t$ is the history of transactions up to time $t$. Neural Hawkes processes and Transformer-based point processes can capture complex temporal dependencies.
+여기서 $\mathcal{H}_t$은 때 $t$까지의 거래 지난 일이다. 신경 호크스 과정과 트랜스포머 바탕 점 과정이 복잡한 때 매임을 담을 수 있다.
 
-**Graph-Level Temporal Generation**: Combine graph generation (for topology) with temporal modeling (for transaction timing and amounts). At each time step, decide which pairs of nodes transact, what amount, and what type—conditioned on the network history.
+**그래프 켜의 때 만들기**: (위상을 위한) 그래프 만들기와 (거래 때와 금액을 위한) 때 나타내기를 아우른다. 때 걸음마다 그물의 지난 일에 매어 어느 마디 짝이 거래하는지, 금액과 갈래가 무엇인지 정한다.
 
-**GAN-Based Transaction Generation**: Train a GAN where the generator produces sequences of transactions and the discriminator distinguishes real from synthetic transaction histories. The key challenge is preserving the relational structure (transactions link specific entities) while maintaining realistic temporal patterns.
+**GAN 바탕 거래 만들기**: 만들개가 거래 차례를 내고 가름개가 참 거래 지난 일과 지어낸 것을 가려내는 GAN을 익힌다. 핵심 어려움은 그럴듯한 때 무늬를 지키면서 관계 얼개(거래가 특정 낱것을 잇는다)를 지키는 것이다.
 
-## Privacy-Preserving Synthetic Data
+## 사생활을 지키는 지어낸 자료
 
-A major motivation for transaction graph generation is creating **privacy-preserving synthetic data** that preserves statistical properties of real transaction data without exposing individual transactions:
+거래 그래프 만들기의 큰 까닭 하나는 거래 하나하나를 드러내지 않으면서 실제 거래 자료의 통계 성질을 지키는 **사생활을 지키는 지어낸 자료**를 만드는 것이다:
 
-**Differential privacy**: Add calibrated noise to the generation process to provide formal privacy guarantees. The challenge is maintaining data utility (realistic patterns) under privacy constraints.
+**차등 사생활 보호**: 만들기 과정에 눈금 맞춘 잡소리를 더해 엄밀한 사생활 보장을 준다. 어려움은 사생활 매임 아래에서 자료의 쓸모(그럴듯한 무늬)를 지키는 것이다.
 
-**Synthetic data validation**: Evaluate synthetic transaction data on three axes:
-1. **Fidelity**: Do aggregate statistics (amount distributions, temporal patterns, degree distributions) match the real data?
-2. **Utility**: Do ML models trained on synthetic data perform comparably to those trained on real data (e.g., for fraud detection)?
-3. **Privacy**: Can an adversary re-identify individuals or infer sensitive attributes from the synthetic data?
+**지어낸 자료 확인**: 지어낸 거래 자료를 세 축으로 따진다:
 
-## AML Typology Injection
+1. **충실함**: 모은 통계(금액 분포, 때 무늬, 차수 분포)가 실제 자료와 맞는가?
+2. **쓸모**: 지어낸 자료로 익힌 기계 배움 모델이 실제 자료로 익힌 것과 비슷하게 잘하는가(보기로 속임수 찾기에서)?
+3. **사생활**: 맞수가 지어낸 자료에서 사람을 다시 알아보거나 민감한 속성을 미루어 알 수 있는가?
 
-For training AML detection models, synthetic data must include realistic money laundering patterns:
+## 자금 세탁 유형 넣기
 
-**Structuring (Smurfing)**: Splitting large transactions into amounts below reporting thresholds (\$10,000 in the US). Multiple deposits of \$9,500 across different branches within a short window.
+자금 세탁 찾기 모델을 익히려면 지어낸 자료에 그럴듯한 자금 세탁 무늬가 들어 있어야 한다:
 
-**Layering**: Moving funds through a complex chain of intermediary accounts to obscure the origin. The transaction graph shows a path from source to destination through multiple hops.
+**쪼개기**: 큰 거래를 보고 문턱(미국은 \$10,000) 아래 금액으로 쪼갠다. 짧은 동안 여러 지점에서 \$9,500을 여러 번 입금한다.
 
-**Round-tripping**: Funds leave an account and return to the same account (or a related account) through a circuitous path. Detected as cycles in the transaction graph.
+**켜 쌓기**: 출처를 흐리려 중간 계좌의 복잡한 사슬로 돈을 옮긴다. 거래 그래프에 여러 번 건너 출발지에서 도착지까지 가는 길이 보인다.
 
-**Trade-based laundering**: Over- or under-invoicing in trade transactions to move value across borders. Appears as transactions with amounts inconsistent with the goods described.
+**되돌아오기**: 돈이 계좌를 떠났다가 에두른 길로 같은 계좌(또는 딸린 계좌)로 돌아온다. 거래 그래프의 돌이로 찾아낸다.
 
-## Evaluation Metrics
+**무역 바탕 세탁**: 국경을 넘어 값어치를 옮기려 무역 거래에서 청구서를 부풀리거나 줄인다. 적힌 물건과 금액이 어긋나는 거래로 나타난다.
 
-Beyond general graph statistics, transaction graph quality is measured by:
+## 평가 지표
 
-**Temporal fidelity**: Compare inter-arrival time distributions, daily/weekly volume patterns, and autocorrelation functions between real and synthetic data.
+일반 그래프 통계를 넘어 거래 그래프의 품질은 다음으로 잰다:
 
-**Amount fidelity**: Compare transaction amount distributions (mean, variance, quantiles, round-number spikes).
+**때의 충실함**: 참 자료와 지어낸 자료의 도착 사이 때 분포, 날마다와 주마다의 양 무늬, 스스로 얽힘 함수를 견준다.
 
-**Downstream utility**: Train a fraud/AML detection model on synthetic data and evaluate on real data. The closer the performance to a model trained on real data, the higher the synthetic data quality.
+**금액의 충실함**: 거래 금액 분포(평균, 흩어짐, 분위, 어림수 치솟음)를 견준다.
 
-**Graph structure**: Compare degree distributions, clustering coefficients, connected component sizes, and community structure.
+**뒤따르는 쓸모**: 지어낸 자료로 속임수와 자금 세탁 찾기 모델을 익히고 실제 자료에서 따진다. 실제 자료로 익힌 모델의 성능에 가까울수록 지어낸 자료의 품질이 높다.
+
+**그래프 얼개**: 차수 분포, 뭉침 계수, 이어진 조각의 크기, 무리 얼개를 견준다.
+
+## 연습문제
+
+**연습문제 1.**
+자리바꿈에 안 바뀜 문제 때문에 그래프 만들기가 그림 만들기보다 왜 근본에서 더 어려운지 밝혀라. 이름표가 붙은 마디 $n$개의 그래프에는 같은 뜻의 이웃 행렬 나타냄이 몇 개 있는가?
+
+??? success "연습문제 1 풀이"
+    마디 $n$개의 그래프는 서로 다른 이웃 행렬 $n!$개로 나타낼 수 있다(마디 이름표의 자리바꿈마다 하나). $n = 10$이면 같은 뜻의 나타냄이 $10! = 3{,}628{,}800$개다. 짓는 모델은 다음 가운데 하나를 해야 한다. (1) 이 겹침을 줄이려 표준 차례를 배운다, (2) 자리바꿈에 안 바뀌는 손실 함수를 쓴다(보기로 그래프 짝짓기), (3) 본디 안 바뀌는 나타냄에서 돈다(보기로 스펙트럼 특징). 그림 만들기는 픽셀에 붙박인 자리 차례가 있어 이 문제를 겪지 않는다. $\square$
+
+---
+
+**연습문제 2.**
+커지기, 품질, 올바름 매임을 지킬 수 있음의 면에서 그래프 만들기의 자기 되돌이 길과 한 번에 만들기 길을 견주어라.
+
+??? success "연습문제 2 풀이"
+    자기 되돌이 방법은 마디와 변을 차례로 만들어 걸음마다 그 자리 매임(보기로 원자가)을 자연스럽게 지키지만, 이웃 결정이 늘어나 $O(n^2)$으로 커진다. 한 번에 만들기 방법은 이웃 행렬 전체를 한꺼번에 만들어 나란한 셈에는 더 잘 커지지만 띄엄띄엄한 얼개와 온 자리 매임에 애를 먹는다. 자기 되돌이 방법은 작은 크기($n < 100$)에서 대개 더 좋은 그래프를 내지만 큰 그래프에서는 느려진다. 자리바꿈에 안 바뀌는 손실을 쓰는 한 번에 만들기 방법은 더 빠르지만 짝짓기 문제를 조심스레 다루어야 한다. $\square$
+
+---
+
+**연습문제 3.**
+자기 되돌이 인수 분해 $p(G) = \prod_{i=1}^n p(\text{node}_i | \text{nodes}_{<i}) \prod_{j<i} p(e_{ij} | \text{node}_i, \text{nodes}_{<i})$ 아래에서 그래프의 가능도를 이끌어 내어라.
+
+??? success "연습문제 3 풀이"
+    붙박인 마디 차례 $\pi$ 아래에서 함께 확률은 $p(G | \pi) = \prod_{i=1}^n p(v_{\pi(i)} | G_{\pi(<i)}) \prod_{j < i} p(e_{\pi(i),\pi(j)} | v_{\pi(i)}, G_{\pi(<i)})$으로 인수 분해된다. 여기서 $G_{\pi(<i)}$은 앞서 만든 마디의 부분 그래프다. 주변 가능도 $p(G) = \frac{1}{n!}\sum_\pi p(G | \pi)$은 모든 차례를 더하지만 다룰 수 없다. 실제로는 표준 차례(보기로 너비 우선)를 써서 가능도를 그 차례에 매인 것으로 만든다. 차례의 품질이 만들기 품질에 영향을 준다. $\square$
+
+---
+
+**연습문제 4.**
+분포 잣대를 넘어 화학의 올바름과 약다움을 재는, 만들어 낸 분자 그래프의 따지기 규약을 내놓아라.
+
+??? success "연습문제 4 풀이"
+    분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 익히기 모임에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 가장 좋게 하기 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$

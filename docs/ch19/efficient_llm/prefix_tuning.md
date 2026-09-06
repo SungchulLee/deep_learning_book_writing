@@ -1,98 +1,82 @@
-# Prefix Tuning
+# 앞가지 다듬기
+## 학습 목표
 
+- 앞가지 다듬기가 무게를 고치지 않고 모델을 맞추는 법을 이해한다
+- 부호기와 풀개 모델 모두에 앞가지 다듬기를 짠다
+- 앞가지 다듬기를 시킴말 다듬기와 다른 부드러운 시킴말 방법과 견준다
+- 앞가지 길이와 매개변수 다시 매기기 전략을 정한다
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 들어가며
 
-## Learning Objectives
+앞가지 다듬기(Li & Liang, 2021)는 변환기 층마다 열쇠와 값 앞에 익힐 수 있는 이어진 벡터("앞가지")를 붙이는, 매개변수를 아끼는 곱게 다듬기 방법이다. 띄엄띄엄한 시킴말과 달리 이 앞가지는 배운 묻힘이어서 일에 맞춘 앎을 더 효율적으로 담을 수 있다.
 
-- Understand how prefix tuning adapts models without modifying weights
-- Implement prefix tuning for both encoder and decoder models
-- Compare prefix tuning with prompt tuning and other soft prompt methods
-- Configure prefix length and reparameterization strategies
+## 핵심 개념
 
-## Introduction
+### 띄엄띄엄한 시킴말과 이어진 시킴말
 
-Prefix Tuning (Li & Liang, 2021) is a parameter-efficient fine-tuning method that prepends trainable continuous vectors (the "prefix") to the keys and values at every transformer layer. Unlike discrete prompts, these prefixes are learned embeddings that can encode task-specific information more efficiently.
-
-## Core Concept
-
-### Discrete vs Continuous Prompts
-
-**Discrete prompts** (traditional):
+**띄엄띄엄한 시킴말**(예로부터의 것):
 ```
 "Translate English to French: The cat sat on the mat"
 ```
-Limited to tokens in vocabulary, requires manual engineering.
+낱말 곳간의 토막에 갇히고 손수 빚어야 한다.
 
-**Continuous prompts** (prefix tuning):
+**이어진 시킴말**(앞가지 다듬기):
 ```
 [P1][P2][P3]...[Pn] "The cat sat on the mat"
 ```
-Learned embeddings in continuous space, optimized end-to-end.
+이어진 공간에서 배운 묻힘이며 끝에서 끝까지 가장 좋게 한다.
 
-### How It Works
+### 어떻게 되는가
 
-Instead of modifying attention weights, prefix tuning modifies what the attention sees:
+앞가지 다듬기는 눈길 무게를 고치는 대신 눈길이 보는 것을 고친다:
 
 $$
-
 \text{Attention}(Q, [P_K; K], [P_V; V])
-
 $$
 
-Where $P_K, P_V$ are learnable prefix embeddings prepended to keys and values.
+여기서 $P_K, P_V$은 열쇠와 값 앞에 붙이는 배울 수 있는 앞가지 묻힘이다.
 
-## Mathematical Foundation
+## 수학적 바탕
 
-### Standard Attention
+### 보통의 눈길
 
 $$
-
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-
 $$
 
-### Attention with Prefix
+### 앞가지를 붙인 눈길
 
-For prefix of length $l$:
+길이 $l$인 앞가지에서:
 
 $$
-
 K' = [P_K; K] \in \mathbb{R}^{(l+n) \times d_k}
-
 $$
 
 $$
-
 V' = [P_V; V] \in \mathbb{R}^{(l+n) \times d_v}
-
 $$
 
 $$
-
 \text{Attention}(Q, K', V') = \text{softmax}\left(\frac{QK'^T}{\sqrt{d_k}}\right)V'
-
 $$
 
-The prefix entries effectively become "virtual tokens" that all real tokens can attend to.
+앞가지 항목은 실제 토막이 모두 눈길을 줄 수 있는 "가상 토막"이 되는 셈이다.
 
-### Parameter Count
+### 매개변수의 수
 
-For a model with $L$ layers, $H$ attention heads, and head dimension $d_h$:
+층이 $L$개, 눈길 머리가 $H$개, 머리 차원이 $d_h$인 모델에서:
 
 $$
-
 \text{Prefix params} = l \times L \times 2 \times H \times d_h = 2 \times l \times L \times d_{model}
-
 $$
 
 **Example**: GPT-2 Medium ($L=24$, $d_{model}=1024$) with prefix length 10:
+
 - Prefix parameters: $2 \times 10 \times 24 \times 1024 = 491,520$ (0.14% of 345M)
 
-## Implementation
+## 구현
 
-### Basic Prefix Module
+### 기본 앞가지 단원
 
 ```python
 import torch
@@ -102,10 +86,10 @@ from typing import Tuple, Optional, List
 
 class PrefixEncoder(nn.Module):
     """
-    Encodes the prefix for all layers.
+    모든 층의 앞가지를 부호로 만든다.
     
-    Uses a small MLP to generate prefix embeddings from learnable
-    input embeddings. This reparameterization improves training stability.
+    작은 여러 층 인식개로 배울 수 있는 들임 묻힘에서 앞가지 묻힘을
+    만든다. 이렇게 다시 매개변수화하면 익히기가 더 안정된다.
     """
     
     def __init__(
@@ -124,13 +108,13 @@ class PrefixEncoder(nn.Module):
         self.head_dim = head_dim
         self.prefix_length = prefix_length
         
-        # Total dimension: layers * 2 (K and V) * heads * head_dim
+        # 전체 차원: 층 수 * 2(K와 V) * 머리 수 * 머리 차원
         self.total_dim = num_layers * 2 * num_heads * head_dim
         
-        # Learnable prefix embeddings
+        # 배울 수 있는 앞가지 묻힘
         self.prefix_tokens = nn.Embedding(prefix_length, hidden_dim)
         
-        # MLP for reparameterization (improves training)
+        # 다시 매개변수화하는 여러 층 인식개(익히기가 나아진다)
         self.mlp = nn.Sequential(
             nn.Linear(hidden_dim, hidden_dim),
             nn.Tanh(),
@@ -141,24 +125,24 @@ class PrefixEncoder(nn.Module):
     
     def forward(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Generate prefix key-value pairs for all layers.
+        모든 층의 앞가지 열쇠-값 짝을 만든다.
         
-        Returns:
-            prefix_keys: [batch, num_layers, num_heads, prefix_len, head_dim]
-            prefix_values: [batch, num_layers, num_heads, prefix_len, head_dim]
+        반환값:
+            prefix_keys: [묶음, 층 수, 머리 수, 앞가지 길이, 머리 차원]
+            prefix_values: [묶음, 층 수, 머리 수, 앞가지 길이, 머리 차원]
         """
         device = self.prefix_tokens.weight.device
         
-        # Get prefix token indices
+        # 앞가지 토막 번호를 얻는다
         prefix_ids = torch.arange(self.prefix_length, device=device)
         prefix_ids = prefix_ids.unsqueeze(0).expand(batch_size, -1)
         
-        # Embed and transform
-        prefix_emb = self.prefix_tokens(prefix_ids)  # [batch, prefix_len, hidden]
-        prefix = self.mlp(prefix_emb)  # [batch, prefix_len, total_dim]
+        # 묻고 바꾼다
+        prefix_emb = self.prefix_tokens(prefix_ids)  # [묶음, 앞가지 길이, 숨은]
+        prefix = self.mlp(prefix_emb)  # [묶음, 앞가지 길이, 전체 차원]
         prefix = self.dropout(prefix)
         
-        # Reshape: [batch, prefix_len, layers, 2, heads, head_dim]
+        # 꼴 바꾸기: [묶음, 앞가지 길이, 층, 2, 머리, 머리 차원]
         prefix = prefix.view(
             batch_size,
             self.prefix_length,
@@ -168,10 +152,10 @@ class PrefixEncoder(nn.Module):
             self.head_dim
         )
         
-        # Permute to [batch, layers, heads, prefix_len, head_dim, 2]
+        # [묶음, 층, 머리, 앞가지 길이, 머리 차원, 2]로 자리를 바꾼다
         prefix = prefix.permute(0, 2, 4, 1, 5, 3)
         
-        # Split into keys and values
+        # 열쇠와 값으로 쪼갠다
         prefix_keys = prefix[..., 0].contiguous()
         prefix_values = prefix[..., 1].contiguous()
         
@@ -180,9 +164,9 @@ class PrefixEncoder(nn.Module):
 
 class PrefixTuningModel(nn.Module):
     """
-    Wrapper that adds prefix tuning to a pre-trained model.
+    미리 익힌 모델에 앞가지 다듬기를 더하는 감개.
     
-    Freezes base model and only trains prefix parameters.
+    바탕 모델을 얼리고 앞가지 매개변수만 익힌다.
     """
     
     def __init__(
@@ -199,11 +183,11 @@ class PrefixTuningModel(nn.Module):
         self.base_model = base_model
         self.prefix_length = prefix_length
         
-        # Freeze base model
+        # 바탕 모델을 얼린다
         for param in base_model.parameters():
             param.requires_grad = False
         
-        # Create prefix encoder
+        # 앞가지 부호기를 만든다
         self.prefix_encoder = PrefixEncoder(
             num_layers=num_layers,
             num_heads=num_heads,
@@ -213,16 +197,16 @@ class PrefixTuningModel(nn.Module):
         )
     
     def get_prefix(self, batch_size: int):
-        """Get prefix key-value pairs."""
+        """앞가지 열쇠-값 짝을 얻는다."""
         return self.prefix_encoder(batch_size)
     
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor = None, **kwargs):
         batch_size = input_ids.size(0)
         
-        # Generate prefix
+        # 앞가지를 만든다
         prefix_keys, prefix_values = self.get_prefix(batch_size)
         
-        # Extend attention mask for prefix
+        # 앞가지에 맞춰 눈길 가림막을 넓힌다
         if attention_mask is not None:
             prefix_mask = torch.ones(
                 batch_size, self.prefix_length,
@@ -231,9 +215,9 @@ class PrefixTuningModel(nn.Module):
             )
             attention_mask = torch.cat([prefix_mask, attention_mask], dim=1)
         
-        # Forward with prefix (implementation depends on base model)
-        # This is a simplified interface; actual implementation needs
-        # to inject prefix_keys, prefix_values into each attention layer
+        # 앞가지를 곁들여 앞먹임한다(짜기는 바탕 모델에 따라 다르다)
+        # 이는 간추린 겉면이며, 실제 짜기는
+        # 눈길 층마다 prefix_keys, prefix_values를 넣어야 한다
         return self.base_model(
             input_ids,
             attention_mask=attention_mask,
@@ -242,24 +226,24 @@ class PrefixTuningModel(nn.Module):
         )
     
     def _format_prefix(self, prefix_keys, prefix_values):
-        """Format prefix for HuggingFace-style past_key_values."""
-        # Returns list of (key, value) tuples, one per layer
+        """허깅페이스 꼴 past_key_values에 맞게 앞가지를 꾸민다."""
+        # 층마다 하나씩 (열쇠, 값) 짝의 목록을 돌려준다
         past_key_values = []
         for layer_idx in range(prefix_keys.size(1)):
-            layer_key = prefix_keys[:, layer_idx]  # [batch, heads, prefix_len, head_dim]
+            layer_key = prefix_keys[:, layer_idx]  # [묶음, 머리, 앞가지 길이, 머리 차원]
             layer_value = prefix_values[:, layer_idx]
             past_key_values.append((layer_key, layer_value))
         return tuple(past_key_values)
 ```
 
-### Integrating with Attention Layers
+### 눈길 층과 아우르기
 
 ```python
 class PrefixAttention(nn.Module):
     """
-    Multi-head attention with prefix support.
+    앞가지를 받치는 여러 머리 눈길.
     
-    Prepends prefix to keys and values before computing attention.
+    눈길을 셈하기 앞서 열쇠와 값 앞에 앞가지를 붙인다.
     """
     
     def __init__(
@@ -290,41 +274,41 @@ class PrefixAttention(nn.Module):
         prefix_value: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
         """
-        Forward with optional prefix.
+        앞가지를 곁들일 수도 있는 앞먹임.
         
-        Args:
-            hidden_states: [batch, seq_len, d_model]
-            attention_mask: [batch, seq_len] or [batch, 1, seq_len, total_len]
-            prefix_key: [batch, num_heads, prefix_len, head_dim]
-            prefix_value: [batch, num_heads, prefix_len, head_dim]
+        인수:
+            hidden_states: [묶음, 차례 길이, d_model]
+            attention_mask: [묶음, 차례 길이] 또는 [묶음, 1, 차례 길이, 전체 길이]
+            prefix_key: [묶음, 머리 수, 앞가지 길이, 머리 차원]
+            prefix_value: [묶음, 머리 수, 앞가지 길이, 머리 차원]
         """
         batch_size, seq_len, _ = hidden_states.shape
         
-        # Compute Q, K, V
+        # Q, K, V를 셈한다
         q = self.q_proj(hidden_states)
         k = self.k_proj(hidden_states)
         v = self.v_proj(hidden_states)
         
-        # Reshape to [batch, heads, seq_len, head_dim]
+        # [묶음, 머리, 차례 길이, 머리 차원] 꼴로 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         
-        # Prepend prefix to K and V
+        # K와 V 앞에 앞가지를 붙인다
         if prefix_key is not None and prefix_value is not None:
-            k = torch.cat([prefix_key, k], dim=2)  # [batch, heads, prefix+seq, head_dim]
+            k = torch.cat([prefix_key, k], dim=2)  # [묶음, 머리, 앞가지+차례, 머리 차원]
             v = torch.cat([prefix_value, v], dim=2)
         
-        # Compute attention
+        # 어텐션 계산
         attn_weights = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # Apply attention mask
+        # 주의 가림을 적용한다
         if attention_mask is not None:
-            # Extend mask for prefix (always attend to prefix)
+            # 앞가지에 맞춰 가림막을 넓힌다(앞가지는 늘 본다)
             if prefix_key is not None:
                 prefix_len = prefix_key.size(2)
                 if attention_mask.dim() == 2:
-                    # [batch, seq] -> [batch, 1, 1, prefix+seq]
+                    # [묶음, 차례] -> [묶음, 1, 1, 앞가지+차례]
                     prefix_mask = torch.ones(batch_size, prefix_len, device=attention_mask.device)
                     attention_mask = torch.cat([prefix_mask, attention_mask], dim=1)
                     attention_mask = attention_mask.unsqueeze(1).unsqueeze(2)
@@ -334,10 +318,10 @@ class PrefixAttention(nn.Module):
         attn_weights = torch.softmax(attn_weights, dim=-1)
         attn_weights = self.dropout(attn_weights)
         
-        # Apply attention to values
+        # 값에 어텐션 적용
         attn_output = torch.matmul(attn_weights, v)
         
-        # Reshape and project
+        # 꼴을 바꾸고 사영한다
         attn_output = attn_output.transpose(1, 2).contiguous()
         attn_output = attn_output.view(batch_size, seq_len, self.d_model)
         attn_output = self.o_proj(attn_output)
@@ -345,20 +329,20 @@ class PrefixAttention(nn.Module):
         return attn_output
 ```
 
-## Why Reparameterization?
+## 왜 매개변수를 다시 매기는가?
 
-Direct optimization of prefix embeddings can be unstable. The MLP reparameterization:
+앞가지 묻힘을 곧바로 가장 좋게 하면 흔들릴 수 있다. 다층 퍼셉트론으로 다시 매기면:
 
-1. **Provides a better optimization landscape** - The MLP maps from a smaller space
-2. **Enables weight sharing** - Single set of MLP weights generates all prefixes
-3. **Improves training stability** - Gradients flow through MLP's nonlinearity
+1. **가장 좋게 하기의 지형이 나아진다** — 다층 퍼셉트론이 더 작은 공간에서 대응시킨다
+2. **무게를 나눠 쓸 수 있다** — 다층 퍼셉트론 무게 한 벌이 모든 앞가지를 만든다
+3. **익히기가 든든해진다** — 기울기가 다층 퍼셉트론의 비선형을 지나 흐른다
 
 ```python
 class DirectPrefixEncoder(nn.Module):
     """
-    Direct prefix parameterization (without MLP).
+    곧바른 앞가지 매개변수화(여러 층 인식개 없이).
     
-    Simpler but may be less stable during training.
+    더 단순하나 익히는 동안 덜 안정될 수 있다.
     """
     
     def __init__(
@@ -375,40 +359,40 @@ class DirectPrefixEncoder(nn.Module):
         self.head_dim = head_dim
         self.prefix_length = prefix_length
         
-        # Direct learnable parameters
-        # Shape: [prefix_len, layers, 2, heads, head_dim]
+        # 곧바로 배우는 매개변수
+        # 꼴: [앞가지 길이, 층, 2, 머리, 머리 차원]
         self.prefix = nn.Parameter(
             torch.randn(prefix_length, num_layers, 2, num_heads, head_dim) * 0.01
         )
     
     def forward(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        # Expand for batch
+        # 묶음에 맞춰 넓힌다
         prefix = self.prefix.unsqueeze(0).expand(batch_size, -1, -1, -1, -1, -1)
         
-        # Permute to [batch, layers, heads, prefix_len, head_dim, 2]
+        # [묶음, 층, 머리, 앞가지 길이, 머리 차원, 2]로 자리를 바꾼다
         prefix = prefix.permute(0, 2, 4, 1, 5, 3)
         
         return prefix[..., 0].contiguous(), prefix[..., 1].contiguous()
 ```
 
-## Comparison: Prefix Tuning vs Prompt Tuning
+## 견줌: 앞가지 다듬기와 시킴말 다듬기
 
-| Aspect | Prefix Tuning | Prompt Tuning |
+| 갈래 | 앞가지 다듬기 | 시킴말 다듬기 |
 |--------|---------------|---------------|
-| Where applied | Every layer (K, V) | Input embeddings only |
+| 쓰이는 곳 | 층마다(K, V) | 들임 묻힘만 |
 | Parameters | $2 \times l \times L \times d$ | $l \times d$ |
-| Expressiveness | Higher | Lower |
-| Performance | Better (especially small data) | Good for large data |
-| Complexity | Higher | Simpler |
+| 나타내는 힘 | 높음 | 낮음 |
+| 성능 | 더 좋음(특히 자료가 적을 때) | 자료가 많을 때 좋음 |
+| 복잡도 | 높음 | 더 단순 |
 
-### Prompt Tuning Implementation
+### 시킴말 다듬기 짜기
 
 ```python
 class PromptTuning(nn.Module):
     """
-    Prompt Tuning: Learnable embeddings prepended to input only.
+    시킴말 다듬기: 들임 앞에만 붙는 배울 수 있는 묻힘.
     
-    Simpler than prefix tuning but less expressive.
+    앞가지 다듬기보다 단순하나 나타내는 힘이 약하다.
     """
     
     def __init__(
@@ -424,46 +408,46 @@ class PromptTuning(nn.Module):
         self.base_model = base_model
         self.num_virtual_tokens = num_virtual_tokens
         
-        # Freeze base model
+        # 바탕 모델을 얼린다
         for param in base_model.parameters():
             param.requires_grad = False
         
-        # Learnable prompt embeddings
+        # 배울 수 있는 시킴말 묻힘
         self.prompt_embeddings = nn.Embedding(num_virtual_tokens, embedding_dim)
         
-        # Optional: initialize from vocabulary
+        # 고를 수 있음: 낱말 곳간에서 첫자리매김한다
         if init_from_vocab and init_text is not None:
             self._init_from_text(init_text)
     
     def _init_from_text(self, text: str):
-        """Initialize prompt from text tokens (requires tokenizer)."""
-        # Implementation would tokenize text and copy embeddings
+        """글 토막으로 시킴말을 첫자리매김한다(토막내개가 필요하다)."""
+        # 짜기에서는 글을 토막내고 묻힘을 베낄 것이다
         pass
     
     def forward(self, input_ids: torch.Tensor, attention_mask: torch.Tensor = None, **kwargs):
         batch_size = input_ids.size(0)
         device = input_ids.device
         
-        # Get input embeddings from base model
+        # 바탕 모델에서 들임 묻힘을 얻는다
         if hasattr(self.base_model, 'get_input_embeddings'):
             input_embeds = self.base_model.get_input_embeddings()(input_ids)
         else:
             input_embeds = self.base_model.embed_tokens(input_ids)
         
-        # Get prompt embeddings
+        # 시킴말 묻힘을 얻는다
         prompt_ids = torch.arange(self.num_virtual_tokens, device=device)
         prompt_embeds = self.prompt_embeddings(prompt_ids)
         prompt_embeds = prompt_embeds.unsqueeze(0).expand(batch_size, -1, -1)
         
-        # Concatenate prompt with input
+        # 시킴말을 들임에 잇는다
         inputs_embeds = torch.cat([prompt_embeds, input_embeds], dim=1)
         
-        # Extend attention mask
+        # 눈길 가림막을 넓힌다
         if attention_mask is not None:
             prompt_mask = torch.ones(batch_size, self.num_virtual_tokens, device=device)
             attention_mask = torch.cat([prompt_mask, attention_mask], dim=1)
         
-        # Forward through model
+        # 모델을 지나 앞먹임한다
         return self.base_model(
             inputs_embeds=inputs_embeds,
             attention_mask=attention_mask,
@@ -471,48 +455,50 @@ class PromptTuning(nn.Module):
         )
 ```
 
-## Hyperparameter Guide
+## 웃매개변수 길잡이
 
-### Prefix Length
+### 앞가지 길이
 
-| Prefix Length | Parameters (GPT-2 Medium) | Use Case |
+| 앞가지 길이 | 매개변수(GPT-2 Medium) | 쓰임새 |
 |---------------|---------------------------|----------|
-| 5 | ~250K | Simple tasks |
-| 10 | ~500K | Default |
-| 20 | ~1M | Complex tasks |
-| 50 | ~2.5M | High capacity |
-| 100 | ~5M | Near fine-tuning |
+| 5 | 약 25만 | 단순한 일 |
+| 10 | 약 50만 | 붙박이 |
+| 20 | 약 100만 | 복잡한 일 |
+| 50 | 약 250만 | 담는 힘이 클 때 |
+| 100 | 약 500만 | 곱게 다듬기에 가까움 |
 
-**Rule of thumb**: Start with 10-20, increase if underfitting.
+**어림 규칙**: 10~20으로 시작하고 덜 맞으면 늘린다.
 
-### Hidden Dimension
+### 숨은 차원
 
-For the MLP reparameterization:
-- Smaller hidden dim (256-512): Fewer parameters, may underfit
-- Larger hidden dim (768-1024): More expressive, risk of overfitting
+다층 퍼셉트론으로 다시 매길 때:
 
-### Learning Rate
+- 숨은 차원이 작으면(256~512): 매개변수가 적고 덜 맞을 수 있다
+- 숨은 차원이 크면(768~1024): 더 잘 나타내지만 지나치게 맞을 위험이 있다
 
-Typically higher than full fine-tuning:
-- Prefix tuning: 1e-3 to 5e-3
-- Full fine-tuning: 1e-5 to 5e-5
+### 배움 비율
 
-## Use Cases
+온전한 곱게 다듬기보다 큰 것이 보통이다:
 
-### Best For
+- 앞가지 다듬기: 1e-3 ~ 5e-3
+- 온전한 곱게 다듬기: 1e-5 ~ 5e-5
 
-1. **Generation tasks** - Summarization, translation, dialogue
-2. **Few-shot learning** - When training data is limited
-3. **Multi-task learning** - Different prefix per task
-4. **Preserving pretrained knowledge** - Frozen base model
+## 쓰임새
 
-### Less Suitable For
+### 알맞은 곳
 
-1. **Classification with many labels** - LoRA often better
-2. **Very long sequences** - Prefix adds to sequence length
-3. **Encoder-only tasks** - Originally designed for generation
+1. **만들어 내기 일** — 간추리기, 옮김, 대화
+2. **몇 발 배우기** — 익힘 자료가 적을 때
+3. **여러 일 배우기** — 일마다 다른 앞가지
+4. **미리 익힌 앎 지키기** — 얼린 바탕 모델
 
-## Complete Training Example
+### 덜 알맞은 곳
+
+1. **이름표가 많은 갈래 매기기** — 흔히 LoRA가 낫다
+2. **아주 긴 차례** — 앞가지가 차례 길이를 늘린다
+3. **부호기만의 일** — 본디 만들어 내기를 위해 꾸며졌다
+
+## 완전한 학습 예제
 
 ```python
 def train_prefix_tuning(
@@ -527,9 +513,9 @@ def train_prefix_tuning(
     learning_rate: float = 3e-3,
     device: str = 'cuda'
 ):
-    """Train a model with prefix tuning."""
+    """앞가지 다듬기로 모델을 익힌다."""
     
-    # Create prefix-tuned model
+    # 앞가지를 다듬은 모델을 만든다
     model = PrefixTuningModel(
         base_model=base_model,
         num_layers=num_layers,
@@ -538,19 +524,19 @@ def train_prefix_tuning(
         prefix_length=prefix_length
     ).to(device)
     
-    # Only prefix parameters are trainable
+    # 앞가지 매개변수만 익힐 수 있다
     trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
     total_params = sum(p.numel() for p in model.parameters())
     print(f"Trainable: {trainable_params:,} / {total_params:,} ({100*trainable_params/total_params:.2f}%)")
     
-    # Optimizer (only prefix parameters)
+    # 가장 좋게 하개(앞가지 매개변수만)
     optimizer = torch.optim.AdamW(
         model.prefix_encoder.parameters(),
         lr=learning_rate,
         weight_decay=0.01
     )
     
-    # Training loop
+    # 학습 루프
     for epoch in range(num_epochs):
         model.train()
         total_loss = 0
@@ -573,18 +559,56 @@ def train_prefix_tuning(
     return model
 ```
 
-## Summary
+## 요약
 
-| Aspect | Details |
+| 갈래 | 자세히 |
 |--------|---------|
-| **Mechanism** | Prepend learnable K, V to every layer |
-| **Parameters** | ~0.1-1% of model |
-| **Best for** | Generation, few-shot, multi-task |
-| **Key hyperparameter** | Prefix length (10-50) |
-| **Training** | Higher LR than fine-tuning |
+| **얼개** | 층마다 배울 수 있는 K, V를 앞에 붙인다 |
+| **매개변수** | 모델의 약 0.1~1% |
+| **알맞은 곳** | 만들어 내기, 몇 발, 여러 일 |
+| **핵심 웃매개변수** | 앞가지 길이(10~50) |
+| **익히기** | 곱게 다듬기보다 큰 배움 비율 |
 
-## References
+## 참고 문헌
 
 1. Li, X. L., & Liang, P. (2021). "Prefix-Tuning: Optimizing Continuous Prompts for Generation." ACL.
 2. Lester, B., Al-Rfou, R., & Constant, N. (2021). "The Power of Scale for Parameter-Efficient Prompt Tuning." EMNLP.
 3. Liu, X., et al. (2022). "P-Tuning v2: Prompt Tuning Can Be Comparable to Fine-tuning Universally Across Scales and Tasks."
+
+## 연습문제
+
+**연습문제 1.**
+LoRA의 고갱이 생각을 밝혀라. 모델의 좋음을 지키면서 익힐 매개변수를 어떻게 줄이는가?
+
+??? success "연습문제 1 풀이"
+    LoRA (Low-Rank Adaptation) freezes the pretrained weight matrix $W_0 \in \mathbb{R}^{d \times k}$ and adds a low-rank update $\Delta W = BA$ where $B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$, and $r \ll \min(d, k)$. The forward pass becomes $h = (W_0 + BA)x$. Only $A$ and $B$ are trained, reducing trainable parameters from $dk$ to $r(d+k)$. For a typical layer with $d = k = 4096$ and $r = 8$, this is a $256\times$ reduction. The key insight: the weight updates during fine-tuning have low intrinsic rank, so a low-rank decomposition captures the essential adaptation.
+
+---
+
+**연습문제 2.**
+LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 빠르기, 일의 성능에서 맞바꿈은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    | 방법 | 익힐 매개변수 | 미룸 덧짐 | 기억 공간 | 여러 일 |
+    |--------|-----------------|-------------------|--------|------------|
+    | **LoRA** | $\sim$0.1-1% | None (merge weights) | Low | Swap $A, B$ matrices |
+    | **Prefix Tuning** | $\sim$0.1% | Slight (extra tokens) | Low | Swap prefix vectors |
+    | **Adapters** | $\sim$1-5% | Moderate (extra layers) | Medium | Swap adapter modules |
+
+    $BA$을 $W_0$에 어울릴 수 있으므로 LoRA는 미룸 덧짐이 0이다. 앞가지 다듬기는 맥락 창을 먹는 가상 토막을 더한다. 어댑터는 늦음을 늘리는 병목 층을 더한다. 셋 다 대부분의 일에서 온전한 곱게 다듬기에 가까운 성능을 내며, 단순하고 효율적이어서 LoRA가 가장 널리 쓰인다.
+
+---
+
+**연습문제 3.**
+매개변수 700억 모델을 온전히 곱게 다듬는 것이 대부분의 조직에 왜 실전에 맞지 않는가? 기억 공간 요구량을 수로 나타내어라.
+
+??? success "연습문제 3 풀이"
+    A 70B model in fp16 requires $70 \times 10^9 \times 2$ bytes = 140 GB just for weights. Fine-tuning additionally requires: optimizer states (Adam stores 2 states per parameter: 280 GB in fp32), gradients (140 GB in fp16), and activations for backpropagation. Total: $\sim$700+ GB of GPU memory. Even with gradient checkpointing and mixed precision, this requires 8+ A100 80GB GPUs. LoRA reduces trainable parameters to $\sim$70M, cutting optimizer states and gradient memory by $1000\times$, making fine-tuning feasible on 1-2 GPUs.
+
+---
+
+**연습문제 4.**
+양자화를 헤아린 LoRA(QLoRA)란 무엇이며 큰 말 모델 곱게 다듬기를 누구나 하게 만드는 데 왜 뜻깊은가?
+
+??? success "연습문제 4 풀이"
+    QLoRA combines 4-bit quantization of the base model with LoRA adapters in fp16/bf16. The base weights $W_0$ are stored in 4-bit NormalFloat format ($\sim$0.5 bytes per parameter), reducing memory for a 70B model from 140 GB to $\sim$35 GB. LoRA adapters remain in higher precision for stable training. Additional innovations: double quantization (quantizing the quantization constants) and paged optimizers (using CPU memory for optimizer state spikes). This enables fine-tuning a 65B model on a single 48GB GPU (A6000), making LLM adaptation accessible to researchers and small organizations without expensive multi-GPU clusters.

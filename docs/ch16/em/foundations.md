@@ -1,529 +1,476 @@
-# EM Algorithm Foundations
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-The Expectation-Maximization (EM) algorithm is one of the most elegant and widely-used methods for maximum likelihood estimation in the presence of latent variables. This section develops the foundational concepts that motivate the algorithm.
+# EM 알고리즘의 바탕
+기댓값-최대화(EM) 알고리즘은 숨은 변수가 있을 때 최대 가능도를 어림하는, 가장 우아하고 널리 쓰이는 방법 가운데 하나이다. 이 절에서는 이 알고리즘이 필요해지는 바탕 개념을 펼친다.
 
 ---
 
-## Latent Variable Models
+## 숨은 변수 모형
 
-### The Role of Latent Variables
+### 숨은 변수가 하는 일
 
-Many probabilistic models posit the existence of **latent (hidden) variables** $\mathbf{Z}$ that are not directly observed but help explain the structure of the observed data $\mathbf{X}$. These latent variables serve several purposes:
+많은 확률 모형은 곧바로 관측되지는 않지만 관측 자료 $\mathbf{X}$의 짜임을 설명해 주는 **숨은 변수** $\mathbf{Z}$이 있다고 놓는다. 이 숨은 변수는 여러 일을 한다:
 
-1. **Dimensionality reduction**: Capturing low-dimensional structure in high-dimensional data
-2. **Clustering**: Representing discrete group memberships
-3. **Missing data**: Modeling unobserved portions of the data
-4. **Hierarchical structure**: Encoding dependencies at multiple levels
+1. **차원 줄이기**: 차원 높은 자료 속의 차원 낮은 짜임을 담아낸다
+2. **무리짓기**: 띄엄띄엄한 무리 소속을 나타낸다
+3. **빠진 자료**: 관측되지 않은 부분을 본뜬다
+4. **층 짜임**: 여러 층위의 달림을 담는다
 
-### Formal Definition
+### 형식적 정의
 
-A **latent variable model** specifies a joint distribution over observed variables $\mathbf{X}$ and latent variables $\mathbf{Z}$:
+**숨은 변수 모형**은 관측 변수 $\mathbf{X}$과 숨은 변수 $\mathbf{Z}$에 대한 결합 분포를 적어 준다:
 
 $$
-
 p(\mathbf{X}, \mathbf{Z} | \theta)
-
 $$
 
-where $\theta$ represents the model parameters. The joint distribution factorizes as:
+여기서 $\theta$은 모형의 매개변수를 나타낸다. 결합 분포는 다음처럼 인수로 나뉜다:
 
 $$
-
 p(\mathbf{X}, \mathbf{Z} | \theta) = p(\mathbf{X} | \mathbf{Z}, \theta) \, p(\mathbf{Z} | \theta)
-
 $$
 
-Here:
+여기서:
 
-- $p(\mathbf{Z} | \theta)$ is the **prior** over latent variables
-- $p(\mathbf{X} | \mathbf{Z}, \theta)$ is the **likelihood** of observations given latents
+- $p(\mathbf{Z} | \theta)$은 숨은 변수에 대한 **앞확률**이다
+- $p(\mathbf{X} | \mathbf{Z}, \theta)$은 숨은 변수가 주어졌을 때 관측의 **가능도**이다
 
-### Canonical Examples
+### 대표 보기
 
-**Gaussian Mixture Models (GMM)**: The latent variable $z_i \in \{1, \ldots, K\}$ indicates which of $K$ Gaussian components generated observation $\mathbf{x}_i$:
+**가우스 섞음 모형(GMM)**: 숨은 변수 $z_i \in \{1, \ldots, K\}$은 가우스 성분 $K$개 가운데 어느 것이 관측 $\mathbf{x}_i$을 낳았는지를 가리킨다:
 
 $$
-
 p(z_i = k) = \pi_k, \quad p(\mathbf{x}_i | z_i = k) = \mathcal{N}(\mathbf{x}_i | \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)
-
 $$
 
-**Hidden Markov Models (HMM)**: The latent variables $\{z_1, \ldots, z_T\}$ form a Markov chain representing hidden states that generate the observed sequence $\{x_1, \ldots, x_T\}$.
+**숨은 마르코프 모형(HMM)**: 숨은 변수 $\{z_1, \ldots, z_T\}$이 마르코프 사슬을 이루어 관측 늘어놓음 $\{x_1, \ldots, x_T\}$을 낳는 숨은 상태를 나타낸다.
 
-**Factor Analysis**: Latent factors $\mathbf{z} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ generate observations through a linear transformation plus noise:
+**인자 분석**: 숨은 인자 $\mathbf{z} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$이 선형 바꿈에 잡음을 더해 관측을 낳는다:
 
 $$
-
 \mathbf{x} = \mathbf{W}\mathbf{z} + \boldsymbol{\mu} + \boldsymbol{\epsilon}, \quad \boldsymbol{\epsilon} \sim \mathcal{N}(\mathbf{0}, \boldsymbol{\Psi})
-
 $$
 
-### The Inference Problem
+### 추론 문제
 
-Given observed data, we face two fundamental tasks:
+관측 자료가 주어지면 근본 과제 둘을 마주한다:
 
-1. **Parameter estimation**: Find $\theta$ that maximizes the likelihood of observed data
-2. **Posterior inference**: Compute $p(\mathbf{Z} | \mathbf{X}, \theta)$ for interpreting latent structure
+1. **매개변수 어림**: 관측 자료의 가능도를 가장 크게 하는 $\theta$ 찾기
+2. **뒤확률 추론**: 숨은 짜임을 풀이하려고 $p(\mathbf{Z} | \mathbf{X}, \theta)$ 셈하기
 
-These two tasks are intimately connected, and the EM algorithm elegantly addresses both.
+이 두 과제는 깊이 이어져 있으며 EM 알고리즘이 둘 다 우아하게 다룬다.
 
 ---
 
-## Marginal Log-Likelihood Intractability
+## 주변 로그 가능도를 다룰 수 없음
 
-### The Marginal Likelihood
+### 주변 가능도
 
-Since latent variables are unobserved, we must work with the **marginal likelihood** obtained by integrating (or summing) over all possible values of $\mathbf{Z}$:
+숨은 변수는 관측되지 않으므로 $\mathbf{Z}$이 가질 수 있는 값 모두에 걸쳐 적분(또는 합)해서 얻는 **주변 가능도**를 다뤄야 한다:
 
 $$
-
 p(\mathbf{X} | \theta) = \int p(\mathbf{X}, \mathbf{Z} | \theta) \, d\mathbf{Z}
-
 $$
 
-For discrete latent variables, the integral becomes a sum:
+숨은 변수가 띄엄띄엄하면 적분이 합이 된다:
 
 $$
-
 p(\mathbf{X} | \theta) = \sum_{\mathbf{Z}} p(\mathbf{X}, \mathbf{Z} | \theta)
-
 $$
 
-The **marginal log-likelihood** (also called the **incomplete data log-likelihood**) is:
+**주변 로그 가능도**(**불완전 자료 로그 가능도**라고도 한다)는 다음과 같다:
 
 $$
-
 \ell(\theta) = \log p(\mathbf{X} | \theta) = \log \int p(\mathbf{X}, \mathbf{Z} | \theta) \, d\mathbf{Z}
-
 $$
 
-### Why Direct Maximization Fails
+### 곧바로 최대화하는 것이 왜 무너지나
 
-Direct optimization of $\ell(\theta)$ is generally intractable for several reasons:
+$\ell(\theta)$을 곧바로 최적화하는 일은 여러 까닭으로 대체로 다룰 수 없다:
 
-**1. The Log-Sum Problem**
+**1. 로그-합 문제**
 
-The logarithm of an integral (or sum) does not simplify:
+적분(또는 합)의 로그는 단순해지지 않는다:
 
 $$
-
 \log \int p(\mathbf{X}, \mathbf{Z} | \theta) \, d\mathbf{Z} \neq \int \log p(\mathbf{X}, \mathbf{Z} | \theta) \, d\mathbf{Z}
-
 $$
 
-This prevents us from pushing the log inside and working with the simpler **complete data log-likelihood** $\log p(\mathbf{X}, \mathbf{Z} | \theta)$.
+그래서 로그를 안으로 밀어 넣어 더 단순한 **완전 자료 로그 가능도** $\log p(\mathbf{X}, \mathbf{Z} | \theta)$을 다룰 수 없다.
 
-**2. High-Dimensional Integration**
+**2. 차원 높은 적분**
 
-The latent space may be enormous:
+숨은 공간이 어마어마하게 클 수 있다:
 
-- In a GMM with $N$ data points and $K$ components, there are $K^N$ possible assignments
-- In continuous latent variable models, the integral may be over millions of dimensions
-- Even Monte Carlo approximations become prohibitively expensive
+- 자료 점이 $N$개, 성분이 $K$개인 가우스 섞음 모형에서는 배정이 $K^N$가지다
+- 이어진 숨은 변수 모형에서는 적분이 수백만 차원에 걸칠 수 있다
+- 몬테카를로 어림조차 감당할 수 없이 비싸진다
 
-**3. No Closed-Form Solution**
+**3. 닫힌 꼴 풀이가 없음**
 
-For most models, the marginalization integral has no analytical solution. Even when it does (e.g., linear Gaussian models), the resulting expression may be complex.
+대부분의 모형에서 주변으로 만드는 적분에는 손으로 구한 풀이가 없다. (이를테면 선형 가우스 모형처럼) 있더라도 그 식이 복잡할 수 있다.
 
-**4. Coupled Parameters**
+**4. 얽힌 매개변수**
 
-The parameters $\theta$ appear inside the integral in a complex way, making gradient computation difficult:
+매개변수 $\theta$이 적분 안에 복잡하게 들어 있어 기울기를 셈하기 어렵다:
 
 $$
-
 \nabla_\theta \ell(\theta) = \nabla_\theta \log \int p(\mathbf{X}, \mathbf{Z} | \theta) \, d\mathbf{Z}
-
 $$
 
-This requires computing expectations under $p(\mathbf{Z} | \mathbf{X}, \theta)$, which itself depends on $\theta$.
+이는 $p(\mathbf{Z} | \mathbf{X}, \theta)$ 아래에서의 기댓값을 셈해야 하는데, 그것 자체가 $\theta$에 달려 있다.
 
-### Contrast with Complete Data
+### 완전 자료와의 견줌
 
-If we observed both $\mathbf{X}$ and $\mathbf{Z}$, we could work with the **complete data log-likelihood**:
+$\mathbf{X}$과 $\mathbf{Z}$을 모두 관측했다면 **완전 자료 로그 가능도**를 다룰 수 있다:
 
 $$
-
 \ell_c(\theta) = \log p(\mathbf{X}, \mathbf{Z} | \theta)
-
 $$
 
-This is typically much easier to optimize because:
+이는 다음 까닭으로 보통 최적화하기가 훨씬 쉽다:
 
-- The log applies directly to the joint probability
-- For exponential family distributions, it often yields closed-form updates
-- There is no integration over latent variables
+- 로그가 결합 확률에 곧바로 붙는다
+- 지수 집안 분포에서는 흔히 닫힌 꼴 새로 고침이 나온다
+- 숨은 변수에 걸친 적분이 없다
 
-The EM algorithm cleverly uses the tractability of complete data likelihood while acknowledging that $\mathbf{Z}$ is unobserved.
+EM 알고리즘은 $\mathbf{Z}$이 관측되지 않음을 인정하면서도 완전 자료 가능도를 다룰 수 있다는 점을 슬기롭게 써먹는다.
 
 ---
 
-## The Optimization Problem
+## 최적화 문제
 
-### Problem Statement
+### 문제 서술
 
-We observe data $\mathbf{X}$ and posit latent variables $\mathbf{Z}$. Our goal is to find the maximum likelihood estimate:
+자료 $\mathbf{X}$을 관측하고 숨은 변수 $\mathbf{Z}$이 있다고 놓는다. 목표는 최대 가능도 어림값을 찾는 것이다:
 
 $$
-
 \theta^* = \arg\max_\theta \ell(\theta) = \arg\max_\theta \log p(\mathbf{X} | \theta)
-
 $$
 
-Given the intractability of direct optimization, we need an alternative approach.
+곧바로 최적화하는 것을 다룰 수 없으므로 다른 길이 필요하다.
 
-### Why Direct Optimization Fails
+### 곧바로 최적화하는 것이 왜 무너지나
 
-The integral (or sum) over the latent space makes direct optimization intractable for several interconnected reasons:
+숨은 공간에 걸친 적분(또는 합) 때문에 서로 얽힌 여러 까닭으로 곧바로 최적화할 수 없게 된다:
 
-1. **High-dimensional integration**: The latent space may have exponentially many configurations or continuous dimensions
-2. **No closed form**: The integral rarely has an analytical solution
-3. **Coupling**: Parameters $\theta$ are entangled inside the integral, making gradients expensive
+1. **차원 높은 적분**: 숨은 공간의 꼴이 지수만큼 많거나 이어진 차원일 수 있다
+2. **닫힌 꼴이 없음**: 그 적분에 손으로 구한 풀이가 있는 일이 드물다
+3. **얽힘**: 매개변수 $\theta$이 적분 안에 엉켜 있어 기울기가 비싸다
 
-### The EM Strategy: Lower Bound Optimization
+### EM의 전략: 아래 경계 최적화
 
-Instead of optimizing $\ell(\theta)$ directly, the EM algorithm constructs a **sequence of lower bounds** that are easier to optimize.
+$\ell(\theta)$을 곧바로 최적화하는 대신 EM 알고리즘은 최적화하기 더 쉬운 **아래 경계의 늘어놓음**을 세운다.
 
-**Key Insight**: For any distribution $q(\mathbf{Z})$ over the latent variables, we can establish:
+**핵심 통찰**: 숨은 변수에 대한 아무 분포 $q(\mathbf{Z})$에 대해 다음을 세울 수 있다:
 
 $$
-
 \ell(\theta) \geq \mathcal{L}(q, \theta)
-
 $$
 
-where $\mathcal{L}(q, \theta)$ is the **Evidence Lower Bound (ELBO)**:
+여기서 $\mathcal{L}(q, \theta)$은 **증거 아래 경계(ELBO)**이다:
 
 $$
-
 \mathcal{L}(q, \theta) = \mathbb{E}_{q(\mathbf{Z})}[\log p(\mathbf{X}, \mathbf{Z} | \theta)] - \mathbb{E}_{q(\mathbf{Z})}[\log q(\mathbf{Z})]
-
 $$
 
-This can be rewritten as:
+이는 다음처럼 다시 쓸 수 있다:
 
 $$
-
 \mathcal{L}(q, \theta) = \mathbb{E}_{q(\mathbf{Z})}[\log p(\mathbf{X}, \mathbf{Z} | \theta)] + H[q]
-
 $$
 
-where $H[q] = -\mathbb{E}_q[\log q(\mathbf{Z})]$ is the **entropy** of $q$.
+여기서 $H[q] = -\mathbb{E}_q[\log q(\mathbf{Z})]$은 $q$의 **엔트로피**이다.
 
-### Iterative Optimization
+### 되풀이 최적화
 
-The EM algorithm alternates between two steps. Given current parameters $\theta^{(t)}$:
+EM 알고리즘은 두 걸음을 번갈아 밟는다. 지금의 매개변수가 $\theta^{(t)}$일 때:
 
-**E-step (Expectation)**: Find the distribution $q$ that makes the bound tight at $\theta^{(t)}$
+**E 걸음(기댓값)**: $\theta^{(t)}$에서 경계를 팽팽하게 만드는 분포 $q$을 찾는다
 
 $$
-
 q^{(t+1)}(\mathbf{Z}) = p(\mathbf{Z} | \mathbf{X}, \theta^{(t)})
-
 $$
 
-**M-step (Maximization)**: Optimize the bound with respect to $\theta$
+**M 걸음(최대화)**: $\theta$에 대해 그 경계를 최적화한다
 
 $$
-
 \theta^{(t+1)} = \arg\max_\theta \mathcal{L}(q^{(t+1)}, \theta)
-
 $$
 
-**Repeat** until convergence.
+모일 때까지 **되풀이한다**.
 
-### Monotonic Improvement Guarantee
+### 단조롭게 나아짐의 보장
 
-This iterative approach guarantees that the log-likelihood never decreases:
+이 되풀이 방식은 로그 가능도가 결코 줄지 않음을 보장한다:
 
 $$
-
 \ell(\theta^{(t+1)}) \geq \ell(\theta^{(t)})
-
 $$
 
-**Proof sketch**:
+**증명 얼개**:
 
-1. After the E-step, $\mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \ell(\theta^{(t)})$ (the bound is tight)
-2. The M-step ensures $\mathcal{L}(q^{(t+1)}, \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)})$
-3. Since $\mathcal{L}$ is always a lower bound: $\ell(\theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)})$
-4. Combining: $\ell(\theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \ell(\theta^{(t)})$
+1. E 걸음 뒤에 $\mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \ell(\theta^{(t)})$이다(경계가 팽팽하다)
+2. M 걸음이 $\mathcal{L}(q^{(t+1)}, \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)})$을 보장한다
+3. $\mathcal{L}$이 늘 아래 경계이므로 $\ell(\theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)})$이다
+4. 합치면 $\ell(\theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \ell(\theta^{(t)})$이다
 
-### Connection to Coordinate Ascent
+### 좌표 오르기와의 이음
 
-The EM algorithm can be viewed as **coordinate ascent** on the functional $\mathcal{L}(q, \theta)$:
+EM 알고리즘은 범함수 $\mathcal{L}(q, \theta)$에 대한 **좌표 오르기**로 볼 수 있다:
 
-- **E-step**: Maximize over $q$ (holding $\theta$ fixed) — this is a functional optimization
-- **M-step**: Maximize over $\theta$ (holding $q$ fixed) — this is a parameter optimization
+- **E 걸음**: ($\theta$을 붙박아 둔 채) $q$에 대해 가장 크게 한다. 이는 범함수 최적화이다
+- **M 걸음**: ($q$을 붙박아 둔 채) $\theta$에 대해 가장 크게 한다. 이는 매개변수 최적화이다
 
-Each step increases (or maintains) the ELBO, which in turn provides a non-decreasing sequence of log-likelihood values. This coordinate ascent perspective:
+걸음마다 ELBO이 커지거나 그대로이며, 그 덕분에 로그 가능도 값의 늘어놓음이 줄지 않는다. 이 좌표 오르기의 눈은 다음을 해 준다:
 
-1. Explains why EM converges to a local optimum
-2. Motivates generalized EM variants that only partially optimize each step
-3. Connects EM to variational inference methods
+1. EM이 왜 그 자리 최적점으로 모이는지 설명한다
+2. 걸음마다 일부만 최적화하는 넓힌 EM 갈래가 필요한 까닭이 된다
+3. EM을 변분 추론 방법과 이어 준다
 
-### Geometric Interpretation
+### 기하학적 해석
 
-Geometrically, the EM algorithm can be understood as:
+기하로 보면 EM 알고리즘은 다음처럼 이해할 수 있다:
 
-1. **E-step**: At current $\theta^{(t)}$, find the tangent plane to $\ell(\theta)$ that touches at $\theta^{(t)}$
-2. **M-step**: Move to the maximum of this tangent plane
+1. **E 걸음**: 지금의 $\theta^{(t)}$에서 $\ell(\theta)$에 $\theta^{(t)}$에서 닿는 접평면을 찾는다
+2. **M 걸음**: 이 접평면의 최댓값으로 옮겨 간다
 
-Since the ELBO is a lower bound that touches $\ell(\theta)$ at $\theta^{(t)}$, optimizing the ELBO guarantees improvement in the true objective.
-
----
-
-## Summary
-
-The EM algorithm addresses a fundamental challenge in statistical learning: maximizing likelihood when some variables are unobserved. The key insights are:
-
-1. **Latent variable models** provide powerful representations but create optimization challenges
-2. **Marginal likelihood** is intractable due to integration over latent space
-3. **Lower bound optimization** via ELBO provides a tractable alternative
-4. **Coordinate ascent** on $(q, \theta)$ guarantees monotonic improvement
-
-These foundations set the stage for deriving the ELBO, understanding the E-step and M-step in detail, and analyzing convergence properties.
+ELBO이 $\theta^{(t)}$에서 $\ell(\theta)$에 닿는 아래 경계이므로 ELBO을 최적화하면 참 목표가 나아짐이 보장된다.
 
 ---
 
-# Appendix: Convergence Theory
+## 요약
 
-# Convergence Theory
+EM 알고리즘은 통계 배움의 근본 어려움, 곧 어떤 변수가 관측되지 않을 때 가능도를 가장 크게 하는 문제를 다룬다. 핵심 통찰은 다음과 같다:
 
-Understanding when and how fast the EM algorithm converges is essential for practitioners. This section presents Wu's classical convergence theorem, conditions for global optimality, the role of exponential family structure, and a detailed analysis of convergence rates via the missing information principle.
+1. **숨은 변수 모형**은 힘센 나타냄을 주지만 최적화의 어려움을 낳는다
+2. **주변 가능도**는 숨은 공간에 걸친 적분 때문에 다룰 수 없다
+3. ELBO을 쓴 **아래 경계 최적화**가 다룰 수 있는 다른 길을 준다
+4. $(q, \theta)$에 대한 **좌표 오르기**가 단조롭게 나아짐을 보장한다
+
+이 바탕 위에서 ELBO을 이끌어 내고, E 걸음과 M 걸음을 자세히 이해하며, 모임의 성질을 살피게 된다.
 
 ---
 
-## Wu's Convergence Theorem
+# 덧붙임: 모임 이론
 
-### The Classical Result
+# 모임 이론
 
-Wu (1983) provided rigorous sufficient conditions for EM convergence. These conditions form the theoretical foundation for understanding when EM works and remain the standard reference for EM convergence analysis.
+EM 알고리즘이 언제 얼마나 빨리 모이는지 이해하는 것은 쓰는 사람에게 꼭 필요하다. 이 절에서는 우의 고전 모임 정리, 전체 최적이 되는 조건, 지수 집안 짜임이 하는 일, 그리고 빠진 정보 원리로 본 모이는 빠르기의 자세한 살피기를 보인다.
 
-### Sufficient Conditions
+---
 
-**Condition A (Continuity)**: The mappings $\theta \mapsto Q(\theta | \theta')$ and $\theta' \mapsto Q(\theta | \theta')$ are continuous, where:
+## 우의 모임 정리
+
+### 고전 결과
+
+우(1983)는 EM이 모이기에 넉넉한 조건을 엄밀히 제시했다. 이 조건은 EM이 언제 통하는지 이해하는 이론의 바탕을 이루며 지금도 EM 모임 살피기의 표준 기준이다.
+
+### 넉넉한 조건
+
+**조건 A(이어짐)**: 사상 $\theta \mapsto Q(\theta | \theta')$과 $\theta' \mapsto Q(\theta | \theta')$이 이어져 있다. 여기서:
 
 $$
-
 Q(\theta | \theta') = \mathbb{E}_{p(\mathbf{Z}|\mathbf{X}, \theta')}[\log p(\mathbf{X}, \mathbf{Z} | \theta)]
-
 $$
 
-This ensures the Q-function behaves smoothly as we vary either argument.
+이러면 어느 쪽 인자를 바꾸어도 Q 함수가 매끄럽게 움직인다.
 
-**Condition B (M-step Well-Defined)**: For each $\theta^{(t)}$, the M-step yields a unique solution:
+**조건 B(M 걸음이 잘 정해짐)**: $\theta^{(t)}$마다 M 걸음이 오직 하나뿐인 풀이를 낸다:
 
 $$
-
 \theta^{(t+1)} = M(\theta^{(t)}) = \arg\max_{\theta} Q(\theta | \theta^{(t)})
-
 $$
 
-and the mapping $M: \Theta \to \Theta$ is continuous. This requires the M-step optimization problem to have a unique, continuously-varying solution.
+그리고 사상 $M: \Theta \to \Theta$이 이어져 있다. 이는 M 걸음의 최적화 문제가 오직 하나뿐이고 이어지게 달라지는 풀이를 가져야 함을 뜻한다.
 
-**Condition C (Compactness)**: The sequence $\{\theta^{(t)}\}$ remains in a compact subset of the parameter space $\Theta$. This prevents parameters from diverging to infinity.
+**조건 C(옹골짐)**: 늘어놓음 $\{\theta^{(t)}\}$이 매개변수 공간 $\Theta$의 옹골찬 부분 모음 안에 머문다. 이러면 매개변수가 무한으로 달아나는 것을 막는다.
 
-### Main Theorem
+### 주요 정리
 
-**Theorem (Wu, 1983)**: Under Conditions A, B, and C:
+**정리(우, 1983)**: 조건 A, B, C 아래에서:
 
-1. The sequence $\{\ell(\theta^{(t)})\}$ converges monotonically
-2. **Every limit point** of $\{\theta^{(t)}\}$ is a **stationary point** of $\ell(\theta)$
+1. 늘어놓음 $\{\ell(\theta^{(t)})\}$이 단조롭게 모인다
+2. $\{\theta^{(t)}\}$의 **모든 극한점**이 $\ell(\theta)$의 **멈춘 점**이다
 
-### What Wu's Theorem Guarantees
+### 우의 정리가 보장하는 것
 
-- The algorithm terminates (in the limit) at a stationary point
-- No oscillation or divergence occurs
-- The likelihood improves at every step
+- 알고리즘이 (끝에서는) 멈춘 점에서 끝난다
+- 흔들리거나 갈라져 흩어지지 않는다
+- 걸음마다 가능도가 나아진다
 
-### What Wu's Theorem Does NOT Guarantee
+### 우의 정리가 보장하지 않는 것
 
-- Convergence to a **global** maximum
-- Convergence to even a **local** maximum (could be a saddle point)
-- A unique limit point (the sequence might have multiple accumulation points)
+- **전체** 최댓값으로의 모임
+- **그 자리** 최댓값으로의 모임조차(안장점일 수도 있다)
+- 극한점이 하나뿐임(늘어놓음에 쌓임점이 여럿일 수 있다)
 
-### Practical Verification
+### 실전에서 확인하기
 
-| Condition | Typically Verified By |
+| 조건 | 보통 어떻게 확인하나 |
 |-----------|----------------------|
-| Continuity | Smooth likelihood (most exponential families) |
-| Compactness | Bounded parameter space or regularization |
-| Unique M-step | Strictly concave $Q$-function in $\theta$ |
+| 이어짐 | 매끄러운 가능도(대부분의 지수 집안) |
+| 옹골짐 | 묶인 매개변수 공간이나 벌주기 |
+| M 걸음이 하나뿐임 | $\theta$에 대해 엄격히 오목한 $Q$ 함수 |
 
-For most well-specified models (Gaussian mixtures, HMMs with proper priors), Wu's conditions hold, ensuring convergence to *some* stationary point—though not necessarily the global optimum.
+제대로 적은 대부분의 모형(가우스 섞음, 제대로 된 앞확률을 쓴 숨은 마르코프 모형)에서는 우의 조건이 성립하여 *어떤* 멈춘 점으로의 모임이 보장된다. 다만 그것이 전체 최적점이라는 보장은 없다.
 
 ---
 
-## Sufficient Conditions for Global Optimum
+## 전체 최적점이 되기에 넉넉한 조건
 
-### The Challenge
+### 어려움
 
-Wu's theorem guarantees convergence to a **stationary point**, but practitioners need the **global** maximum. Under what conditions does EM find it?
+우의 정리는 **멈춘 점**으로의 모임을 보장하지만 쓰는 사람은 **전체** 최댓값을 바란다. 어떤 조건에서 EM이 그것을 찾는가?
 
-### Condition 1: Strictly Concave Log-Likelihood
+### 조건 1: 엄격히 오목한 로그 가능도
 
-If $\ell(\theta) = \log p(\mathbf{X} | \theta)$ is **strictly concave** in $\theta$:
+$\ell(\theta) = \log p(\mathbf{X} | \theta)$이 $\theta$에 대해 **엄격히 오목**하면:
 
-- There exists a unique global maximum $\theta^*$
-- Any stationary point is the global maximum
-- EM's monotonic improvement guarantees convergence to $\theta^*$
+- 전체 최댓점 $\theta^*$이 오직 하나 있다
+- 아무 멈춘 점이나 전체 최댓점이다
+- EM이 단조롭게 나아지므로 $\theta^*$으로의 모임이 보장된다
 
-**Reality check**: Strict concavity of the marginal log-likelihood is rare in latent variable models. The marginalization over $\mathbf{Z}$ typically destroys concavity even when the complete-data log-likelihood is well-behaved.
+**현실 확인**: 숨은 변수 모형에서 주변 로그 가능도가 엄격히 오목한 일은 드물다. 완전 자료 로그 가능도가 얌전해도 $\mathbf{Z}$에 걸쳐 주변으로 만들면 보통 오목함이 깨진다.
 
-### Condition 2: Unimodality
+### 조건 2: 봉우리가 하나임
 
-If $\ell(\theta)$ has a **unique stationary point** (which must then be the global maximum):
+$\ell(\theta)$의 **멈춘 점이 오직 하나**이면(그러면 그것이 전체 최댓점이어야 한다):
 
 $$
-
 \nabla_\theta \ell(\theta) = 0 \implies \theta = \theta^*
-
 $$
 
-Combined with Wu's conditions, EM converges to the global optimum.
+우의 조건과 함께 보면 EM이 전체 최적점으로 모인다.
 
-### Condition 3: Contraction Mapping
+### 조건 3: 오그림 사상
 
-Define the EM mapping $M: \theta^{(t)} \mapsto \theta^{(t+1)}$. If:
+EM 사상 $M: \theta^{(t)} \mapsto \theta^{(t+1)}$을 정한다. 다음이면:
 
-1. $\theta^*$ is the unique fixed point: $M(\theta^*) = \theta^*$
-2. $M$ is a **contraction**: $\|M(\theta) - M(\theta')\| \leq \rho \|\theta - \theta'\|$ for some $\rho < 1$
+1. $\theta^*$이 오직 하나뿐인 붙박이 점이다. 곧 $M(\theta^*) = \theta^*$이다
+2. $M$이 **오그림**이다. 곧 어떤 $\rho < 1$에 대해 $\|M(\theta) - M(\theta')\| \leq \rho \|\theta - \theta'\|$이다
 
-Then by **Banach's fixed-point theorem**:
+그러면 **바나흐 붙박이 점 정리**에 따라:
 
-- EM converges globally to $\theta^*$ from **any** initialization
-- Convergence is geometric with rate $\rho$
+- EM이 **아무** 첫값에서든 전체적으로 $\theta^*$으로 모인다
+- 빠르기가 $\rho$인 등비로 모인다
 
-**Verifying Contraction**: Near a fixed point $\theta^*$, linearize:
+**오그림 확인하기**: 붙박이 점 $\theta^*$ 가까이에서 선형으로 만든다:
 
 $$
-
 M(\theta) \approx M(\theta^*) + J_M(\theta^*)(\theta - \theta^*)
-
 $$
 
-where $J_M$ is the Jacobian of $M$. The algorithm is a local contraction if:
+여기서 $J_M$은 $M$의 야코비 행렬이다. 다음이면 그 알고리즘은 그 자리에서 오그림이다:
 
 $$
-
 \rho(J_M(\theta^*)) < 1
-
 $$
 
-where $\rho(\cdot)$ denotes spectral radius.
+여기서 $\rho(\cdot)$은 스펙트럼 반지름을 뜻한다.
 
-### Condition 4: Q-Function Concavity + Likelihood Unimodality
+### 조건 4: Q 함수의 오목함 + 가능도의 봉우리가 하나임
 
-**Theorem (Dempster, Laird, Rubin, 1977)**: If for all $\theta'$:
+**정리(뎀스터, 레어드, 루빈, 1977)**: 모든 $\theta'$에 대해 다음이면:
 
-1. The function $Q(\theta | \theta')$ is **strictly concave** in $\theta$
-2. The marginal log-likelihood $\ell(\theta)$ is **unimodal**
+1. 함수 $Q(\theta | \theta')$이 $\theta$에 대해 **엄격히 오목**하다
+2. 주변 로그 가능도 $\ell(\theta)$의 **봉우리가 하나**이다
 
-Then EM converges to the global maximum.
+그러면 EM이 전체 최댓점으로 모인다.
 
-This is the most practically useful condition for models like single-component Gaussian with missing data and some simple exponential family models.
+이는 자료가 빠진 홑성분 가우스나 몇몇 단순한 지수 집안 모형에서 실전으로 가장 쓸모 있는 조건이다.
 
-### Summary of Global Convergence Conditions
+### 전체 모임 조건 간추리기
 
-| Condition | Guarantees |
+| 조건 | 보장하는 것 |
 |-----------|------------|
-| Wu's conditions (continuity, compactness) | Convergence to stationary point |
-| $\ell(\theta)$ strictly concave | Global optimum |
-| $\ell(\theta)$ unimodal | Global optimum |
-| $M$ is a contraction | Global optimum + geometric rate |
-| $Q$ strictly concave + $\ell$ unimodal | Global optimum |
+| 우의 조건(이어짐, 옹골짐) | 멈춘 점으로의 모임 |
+| $\ell(\theta)$이 엄격히 오목함 | 전체 최적점 |
+| $\ell(\theta)$의 봉우리가 하나임 | 전체 최적점 |
+| $M$이 오그림임 | 전체 최적점과 등비 빠르기 |
+| $Q$이 엄격히 오목하고 $\ell$의 봉우리가 하나임 | 전체 최적점 |
 
 ---
 
-## Exponential Family Structure
+## 지수 집안의 짜임
 
-### Complete-Data Exponential Family
+### 완전 자료 지수 집안
 
-When the complete-data likelihood belongs to an **exponential family**:
+완전 자료 가능도가 **지수 집안**에 들 때:
 
 $$
-
 p(\mathbf{X}, \mathbf{Z} | \theta) = h(\mathbf{X}, \mathbf{Z}) \exp\bigl(\eta(\theta)^\top T(\mathbf{X}, \mathbf{Z}) - A(\theta)\bigr)
-
 $$
 
-where:
+여기서 각 기호는 다음과 같다.
 
-- $\eta(\theta)$ is the natural parameter
-- $T(\mathbf{X}, \mathbf{Z})$ is the sufficient statistic
-- $A(\theta)$ is the log-partition function
-- $h(\mathbf{X}, \mathbf{Z})$ is the base measure
+- $\eta(\theta)$은 자연 매개변수이다
+- $T(\mathbf{X}, \mathbf{Z})$은 충분 통계량이다
+- $A(\theta)$은 로그 나눔 함수이다
+- $h(\mathbf{X}, \mathbf{Z})$은 바탕 측도이다
 
-### Q-Function Simplification
+### Q 함수 단순해지기
 
-The Q-function becomes:
+Q 함수는 다음이 된다:
 
 $$
-
 Q(\theta | \theta^{(t)}) = \eta(\theta)^\top \mathbb{E}_{p(\mathbf{Z} | \mathbf{X}, \theta^{(t)})}[T(\mathbf{X}, \mathbf{Z})] - A(\theta) + \text{const}
-
 $$
 
-**Key insight**: The E-step only needs to compute $\mathbb{E}[T(\mathbf{X}, \mathbf{Z})]$—the expected sufficient statistics. This is often tractable even when the full posterior is complex.
+**핵심 통찰**: E 걸음은 $\mathbb{E}[T(\mathbf{X}, \mathbf{Z})]$, 곧 기댓값 충분 통계량만 셈하면 된다. 온전한 뒤확률이 복잡해도 이는 흔히 다룰 수 있다.
 
-### Concavity of Q-Function
+### Q 함수의 오목함
 
-Since $A(\theta)$ is **convex** (a fundamental property of exponential families), the Q-function is **concave** in $\theta$. This ensures:
+$A(\theta)$이 (지수 집안의 근본 성질로) **볼록**하므로 Q 함수는 $\theta$에 대해 **오목**하다. 이는 다음을 보장한다:
 
-- The M-step has a unique solution
-- The M-step often has a closed-form solution
-- But does **not** guarantee global optimality of EM overall
+- M 걸음의 풀이가 오직 하나이다
+- M 걸음에 흔히 닫힌 꼴 풀이가 있다
+- 그러나 EM 전체가 전체 최적임을 보장하지는 **않는다**
 
-### Why Exponential Family Structure Helps
+### 지수 집안의 짜임이 왜 도움이 되나
 
-1. **E-step simplification**: Only expected sufficient statistics needed
-2. **M-step tractability**: Concave optimization with often closed-form solutions
-3. **Natural parameterization**: Well-understood optimization landscape
-4. **Conjugate priors**: Bayesian extensions are straightforward
+1. **E 걸음이 단순해짐**: 기댓값 충분 통계량만 있으면 된다
+2. **M 걸음을 다룰 수 있음**: 오목한 최적화이며 흔히 닫힌 꼴 풀이가 있다
+3. **자연 매개변수화**: 최적화 지형이 잘 알려져 있다
+4. **켤레 앞확률**: 베이즈로 넓히기가 어렵지 않다
 
-### Canonical Examples
+### 대표 보기
 
-| Model | Sufficient Statistics | M-step Updates |
+| 모형 | 충분 통계량 | M 걸음의 새로 고침 |
 |-------|----------------------|----------------|
-| GMM | $\sum_i \gamma_{ik}$, $\sum_i \gamma_{ik} x_i$, $\sum_i \gamma_{ik} x_i x_i^\top$ | Weighted MLEs |
-| HMM | Expected transition counts, expected emission counts | Normalized counts |
-| Factor Analysis | $\mathbb{E}[\mathbf{z}]$, $\mathbb{E}[\mathbf{z}\mathbf{z}^\top]$ | Linear algebra |
+| 가우스 섞음 모형 | $\sum_i \gamma_{ik}$, $\sum_i \gamma_{ik} x_i$, $\sum_i \gamma_{ik} x_i x_i^\top$ | 무게 붙인 최대 가능도 어림값 |
+| 숨은 마르코프 모형 | 기댓값 옮김 횟수, 기댓값 내보냄 횟수 | 고르게 한 횟수 |
+| 인자 분석 | $\mathbb{E}[\mathbf{z}]$, $\mathbb{E}[\mathbf{z}\mathbf{z}^\top]$ | 선형 대수 |
 
 ---
 
-## Local vs Global Convergence
+## 그 자리 모임과 전체 모임
 
-### The Multimodality Problem
+### 봉우리가 여럿인 문제
 
-In mixture models (the canonical EM application), $\ell(\theta)$ is typically **multimodal** due to:
+(EM의 대표 쓰임새인) 섞음 모형에서 $\ell(\theta)$은 보통 다음 까닭으로 **봉우리가 여럿**이다:
 
-**1. Label Switching Symmetry**: Permuting component labels gives identical likelihood. A $K$-component mixture has at least $K!$ equivalent global maxima.
+**1. 이름표 바뀜 대칭**: 성분의 이름표를 바꿔 놓아도 가능도가 같다. 성분이 $K$개인 섞음에는 같은 값의 전체 최댓점이 적어도 $K!$개 있다.
 
-For a GMM with $K=3$ components, the solutions $(\mu_1, \mu_2, \mu_3)$, $(\mu_2, \mu_1, \mu_3)$, $(\mu_3, \mu_2, \mu_1)$, etc., all achieve the same likelihood.
+성분이 $K=3$개인 가우스 섞음 모형에서 풀이 $(\mu_1, \mu_2, \mu_3)$, $(\mu_2, \mu_1, \mu_3)$, $(\mu_3, \mu_2, \mu_1)$ 따위가 모두 같은 가능도를 이룬다.
 
-**2. Spurious Local Maxima**: Components can collapse or spread pathologically, creating local maxima that are not permutations of the global solution:
+**2. 가짜 그 자리 최댓점**: 성분이 찌부러지거나 병들게 퍼져서 전체 풀이의 자리바꿈이 아닌 그 자리 최댓점을 만들 수 있다:
 
-- **Component collapse**: A component shrinks to fit a single point ($\Sigma_k \to 0$)
-- **Component absorption**: One component absorbs another
-- **Suboptimal splits**: Data is partitioned suboptimally
+- **성분 찌부러짐**: 성분이 오그라들어 점 하나에 맞춰진다($\Sigma_k \to 0$)
+- **성분 삼킴**: 한 성분이 다른 성분을 삼킨다
+- **어설픈 쪼갬**: 자료가 어설프게 나뉜다
 
-### Landscape Characterization
+### 지형의 특징
 
-Near the global maximum, the likelihood surface typically has:
+전체 최댓점 가까이에서 가능도 면은 보통 다음을 갖는다:
 
-- A **basin of attraction** around each equivalent global maximum
-- **Saddle points** separating different basins
-- **Local maxima** corresponding to suboptimal solutions
+- 같은 값의 전체 최댓점마다 그 둘레의 **끌림 웅덩이**
+- 서로 다른 웅덩이를 가르는 **안장점**
+- 어설픈 풀이에 해당하는 **그 자리 최댓점**
 
-### Strategies for Finding Global Optimum
+### 전체 최적점을 찾는 전략
 
-**1. Multiple Random Initializations**
+**1. 여러 무작위 첫값**
 
-Run EM from many starting points and select the solution with highest likelihood:
+여러 시작점에서 EM을 돌리고 가능도가 가장 높은 풀이를 고른다:
 
 ```
 best_likelihood = -∞
@@ -536,243 +483,253 @@ for i = 1 to num_restarts:
 return best_θ
 ```
 
-**2. Smart Initialization**
+**2. 똑똑한 첫값 잡기**
 
-- **K-means++**: Initialize GMM means using k-means++ algorithm
-- **Hierarchical**: Start with fewer components and split
-- **Spectral methods**: Use eigendecomposition for initialization
+- **k 평균++**: k 평균++ 알고리즘으로 가우스 섞음 모형의 평균 첫값을 잡는다
+- **층으로**: 성분을 적게 시작해 쪼개 나간다
+- **스펙트럼 방법**: 고유 분해로 첫값을 잡는다
 
-**3. Deterministic Annealing**
+**3. 정해진 담금질**
 
-Introduce a temperature parameter and anneal from high to low temperature:
+온도 매개변수를 들여와 높은 온도에서 낮은 온도로 담금질한다:
 
 $$
-
 Q_T(\theta | \theta^{(t)}) = \frac{1}{T} \mathbb{E}_{p(\mathbf{Z} | \mathbf{X}, \theta^{(t)})}[\log p(\mathbf{X}, \mathbf{Z} | \theta)]
-
 $$
 
-At high $T$, the landscape is smoothed; as $T \to 1$, we recover standard EM.
+$T$이 높으면 지형이 매끄러워지고, $T \to 1$이면 표준 EM으로 돌아온다.
 
-**4. Hybrid Methods**
+**4. 섞은 방법**
 
-Combine EM with global optimization:
+EM을 전체 최적화와 어우른다:
 
-- Start with simulated annealing or genetic algorithms
-- Refine with EM once near a good solution
+- 흉내낸 담금질이나 유전 알고리즘으로 시작한다
+- 좋은 풀이 가까이에 오면 EM으로 다듬는다
 
-### Practical Recommendations
+### 실무적인 권고
 
-| Scenario | Recommendation |
+| 상황 | 권고 |
 |----------|----------------|
-| Few components ($K \leq 5$) | 10-50 random restarts |
-| Many components ($K > 10$) | Smart initialization + few restarts |
-| High dimensions | Dimensionality reduction first |
-| Time-constrained | Single smart initialization |
+| 성분이 적음($K \leq 5$) | 무작위로 10에서 50번 다시 시작 |
+| 성분이 많음($K > 10$) | 똑똑한 첫값 잡기에 몇 번의 다시 시작 |
+| 차원이 높음 | 먼저 차원 줄이기 |
+| 시간이 빠듯함 | 똑똑한 첫값 잡기 한 번 |
 
 ---
 
-## Rate of Convergence
+## 모이는 빠르기
 
-### The Missing Information Principle
+### 빠진 정보 원리
 
-The rate of EM convergence is governed by how much information the latent variables carry relative to the complete data. This elegant principle, due to Dempster, Laird, and Rubin (1977) and formalized by Louis (1982), provides deep insight into when EM is fast or slow.
+EM이 모이는 빠르기는 완전 자료에 견주어 숨은 변수가 얼마나 많은 정보를 지고 있는지가 다스린다. 뎀스터, 레어드, 루빈(1977)에서 나와 루이스(1982)가 엄밀히 다듬은 이 우아한 원리는 EM이 언제 빠르고 언제 느린지에 대한 깊은 통찰을 준다.
 
-### Information Matrices
+### 정보 행렬
 
-Define three key quantities at a stationary point $\theta^*$:
+멈춘 점 $\theta^*$에서 핵심 양 셋을 정한다:
 
-**Observed Information**:
+**관측 정보**:
 
 $$
-
 I_{\text{obs}}(\theta) = -\nabla^2_\theta \ell(\theta) = -\frac{\partial^2 \log p(\mathbf{X}|\theta)}{\partial \theta \partial \theta^\top}
-
 $$
 
-This is the curvature of the marginal log-likelihood—what we can learn from observed data alone.
+이는 주변 로그 가능도의 굽음이며 관측 자료만으로 배울 수 있는 것이다.
 
-**Complete Information**:
+**완전 정보**:
 
 $$
-
 I_{\text{comp}}(\theta) = -\mathbb{E}_{p(\mathbf{Z}|\mathbf{X}, \theta)}[\nabla^2_\theta \log p(\mathbf{X}, \mathbf{Z} | \theta)]
-
 $$
 
-This is the expected curvature of the complete-data log-likelihood—what we could learn if we observed both $\mathbf{X}$ and $\mathbf{Z}$.
+이는 완전 자료 로그 가능도의 기댓값 굽음이며 $\mathbf{X}$과 $\mathbf{Z}$을 모두 관측했다면 배울 수 있었을 것이다.
 
-**Missing Information**:
+**빠진 정보**:
 
 $$
-
 I_{\text{miss}}(\theta) = I_{\text{comp}}(\theta) - I_{\text{obs}}(\theta)
-
 $$
 
-This is the information "lost" by not observing the latent variables.
+이는 숨은 변수를 관측하지 못해 "잃은" 정보이다.
 
-### The Fundamental Identity
+### 근본 항등식
 
-Louis (1982) established:
+루이스(1982)는 다음을 세웠다:
 
 $$
-
 \boxed{I_{\text{obs}}(\theta) = I_{\text{comp}}(\theta) - I_{\text{miss}}(\theta)}
-
 $$
 
-This is not merely a definition but a deep identity. It can be derived by differentiating the log-likelihood and using properties of the posterior distribution.
+이는 그저 정의가 아니라 깊은 항등식이다. 로그 가능도를 미분하고 뒤확률 분포의 성질을 써서 이끌어 낼 수 있다.
 
-### Convergence Rate Matrix
+### 모이는 빠르기 행렬
 
-Near a local maximum $\theta^*$, the EM iteration satisfies:
+그 자리 최댓점 $\theta^*$ 가까이에서 EM의 되풀이는 다음을 만족한다:
 
 $$
-
 \theta^{(t+1)} - \theta^* \approx J(\theta^*)(\theta^{(t)} - \theta^*)
-
 $$
 
-where the **rate matrix** is:
+여기서 **빠르기 행렬**은 다음과 같다:
 
 $$
-
 J = I_{\text{comp}}(\theta^*)^{-1} I_{\text{miss}}(\theta^*)
-
 $$
 
-This matrix governs how quickly the error $\theta^{(t)} - \theta^*$ shrinks.
+이 행렬이 오차 $\theta^{(t)} - \theta^*$이 얼마나 빨리 오그라드는지를 다스린다.
 
-### Spectral Analysis
+### 스펙트럼으로 살피기
 
-The **convergence rate** is determined by the spectral radius:
+**모이는 빠르기**는 스펙트럼 반지름이 정한다:
 
 $$
-
 \rho = \rho(J) = \max_i |\lambda_i(J)|
-
 $$
 
-where $\lambda_i$ are eigenvalues of $J$.
+여기서 $\lambda_i$은 $J$의 고윳값이다.
 
-**Geometric Convergence**: Near the optimum:
+**등비로 모임**: 최적점 가까이에서:
 
 $$
-
 \|\theta^{(t)} - \theta^*\| \sim \rho^t \|\theta^{(0)} - \theta^*\|
-
 $$
 
-### Fast vs Slow Convergence
+### 빠른 모임과 느린 모임
 
-**Fast Convergence ($\rho \ll 1$)**:
+**빠른 모임($\rho \ll 1$)**:
 
-When $I_{\text{miss}}$ is small relative to $I_{\text{comp}}$:
+$I_{\text{comp}}$에 견주어 $I_{\text{miss}}$이 작을 때:
 
-- The latent variables carry little additional information
-- EM behaves almost like direct optimization
-- Few iterations needed
+- 숨은 변수가 지고 있는 덧정보가 적다
+- EM이 거의 곧바른 최적화처럼 군다
+- 되풀이가 몇 번이면 된다
 
-**Slow Convergence ($\rho \approx 1$)**:
+**느린 모임($\rho \approx 1$)**:
 
-When $I_{\text{miss}} \approx I_{\text{comp}}$:
+$I_{\text{miss}} \approx I_{\text{comp}}$일 때:
 
-- The latent variables dominate the information content
-- EM can be painfully slow
-- Many iterations needed for small improvements
+- 숨은 변수가 정보의 대부분을 차지한다
+- EM이 애가 탈 만큼 느릴 수 있다
+- 조금 나아지는 데도 되풀이가 많이 필요하다
 
-### Intuitive Interpretation
+### 직관적인 해석
 
-Consider the **fraction of observed information**:
+**관측 정보의 몫**을 보자:
 
 $$
-
 r = \frac{I_{\text{obs}}}{I_{\text{comp}}} = I - J
-
 $$
 
-| Observed Fraction | Rate Matrix Eigenvalues | Convergence |
+| 관측한 몫 | 빠르기 행렬의 고윳값 | 모임 |
 |-------------------|------------------------|-------------|
-| $r = 0.9$ (90% observed) | $\rho \approx 0.1$ | Fast |
-| $r = 0.5$ (50% observed) | $\rho \approx 0.5$ | Moderate |
-| $r = 0.1$ (10% observed) | $\rho \approx 0.9$ | Slow |
+| $r = 0.9$(90% 관측) | $\rho \approx 0.1$ | 빠름 |
+| $r = 0.5$(50% 관측) | $\rho \approx 0.5$ | 보통 |
+| $r = 0.1$(10% 관측) | $\rho \approx 0.9$ | 느림 |
 
-### Practical Implications
+### 실전에서 뜻하는 바
 
-**High Missing Information (Slow EM)**:
+**빠진 정보가 많음(느린 EM)**:
 
-- Many mixture components with overlapping distributions
-- High noise levels
-- Many latent dimensions relative to observed
-- Weak signal-to-noise ratio
+- 분포가 겹치는 섞음 성분이 많음
+- 잡음이 큼
+- 관측한 것에 견주어 숨은 차원이 많음
+- 신호 대 잡음 비가 약함
 
-**Low Missing Information (Fast EM)**:
+**빠진 정보가 적음(빠른 EM)**:
 
-- Well-separated clusters
-- Low noise
-- Informative observations
-- Strong signal
+- 잘 떨어진 무리
+- 적은 잡음
+- 정보가 많은 관측
+- 강한 신호
 
-### Example: Gaussian Mixture
+### 보기: 가우스 섞음
 
-For a two-component Gaussian mixture with separation $\delta$ (distance between means in units of standard deviation):
+떨어진 정도가 $\delta$인(표준편차를 단위로 잰 평균 사이 거리인) 두 성분 가우스 섞음에서:
 
-- **Large $\delta$** (well-separated): Responsibilities are nearly 0 or 1, $I_{\text{miss}}$ is small, fast convergence
-- **Small $\delta$** (overlapping): Responsibilities are uncertain, $I_{\text{miss}}$ is large, slow convergence
+- **$\delta$이 큼**(잘 떨어짐): 맡음 몫이 거의 0이나 1이고 $I_{\text{miss}}$이 작아 빨리 모인다
+- **$\delta$이 작음**(겹침): 맡음 몫이 아리송하고 $I_{\text{miss}}$이 커서 느리게 모인다
 
-Quantitatively, for equal-variance components:
+흩어짐이 같은 성분에서 수로 보면:
 
 $$
-
 \rho \approx 1 - \Phi(\delta/2)
-
 $$
 
-where $\Phi$ is the standard normal CDF. At $\delta = 4$, $\rho \approx 0.02$ (fast); at $\delta = 1$, $\rho \approx 0.69$ (slow).
+여기서 $\Phi$은 표준 정규 누적분포함수이다. $\delta = 4$이면 $\rho \approx 0.02$(빠름), $\delta = 1$이면 $\rho \approx 0.69$(느림)이다.
 
-### Acceleration Strategies
+### 빠르게 하는 전략
 
-When EM is slow ($\rho$ near 1), consider:
+EM이 느리면($\rho$이 1에 가까우면) 다음을 생각해 보라:
 
-**1. Aitken Acceleration**: Extrapolate the limit from observed convergence rate:
+**1. 에이킨 가속**: 지켜본 모이는 빠르기로 끝값을 밖으로 미루어 잡는다:
 
 $$
-
 \theta^* \approx \theta^{(t)} + \frac{\theta^{(t+1)} - \theta^{(t)}}{1 - \rho}
-
 $$
 
-**2. SQUAREM**: Squared iterative methods that effectively square the EM mapping, reducing $\rho$ to $\rho^2$.
+**2. SQUAREM**: EM 사상을 사실상 제곱하는 제곱 되풀이 방법으로 $\rho$을 $\rho^2$으로 줄인다.
 
-**3. Quasi-Newton Methods**: Use approximate Hessian information to accelerate:
+**3. 유사 뉴턴 방법**: 어림한 헤세 행렬 정보로 빠르게 한다:
 
 $$
-
 \theta^{(t+1)} = \theta^{(t)} - H^{-1} \nabla \ell(\theta^{(t)})
-
 $$
 
-**4. Parameter Expansion (PX-EM)**: Artificially expand parameter space to improve conditioning, then project back.
+**4. 매개변수 넓히기(PX-EM)**: 조건을 낫게 하려고 매개변수 공간을 일부러 넓혔다가 다시 쏘아 내린다.
 
-**5. ECME (Expectation/Conditional Maximization Either)**: Replace some M-steps with direct likelihood maximization.
+**5. ECME(기댓값/조건부 최대화 택일)**: 어떤 M 걸음을 곧바른 가능도 최대화로 바꾼다.
 
 ---
 
-## Summary
+## 요약
 
-| Aspect | Key Result |
+| 살필 점 | 핵심 결과 |
 |--------|------------|
-| **Wu's Theorem** | Continuity + compactness → convergence to stationary point |
-| **Global Convergence** | Requires concavity, unimodality, or contraction |
-| **Exponential Family** | Q-function is concave; M-step often closed-form |
-| **Local vs Global** | Multimodality requires multiple restarts |
-| **Convergence Rate** | $\rho = \rho(I_{\text{comp}}^{-1} I_{\text{miss}})$ |
-| **Missing Information** | High → slow; Low → fast |
+| **우의 정리** | 이어짐과 옹골짐 → 멈춘 점으로의 모임 |
+| **전체 모임** | 오목함, 봉우리가 하나임, 또는 오그림이 필요하다 |
+| **지수 집안** | Q 함수가 오목하고 M 걸음이 흔히 닫힌 꼴이다 |
+| **그 자리와 전체** | 봉우리가 여럿이면 여러 번 다시 시작해야 한다 |
+| **모이는 빠르기** | $\rho = \rho(I_{\text{comp}}^{-1} I_{\text{miss}})$ |
+| **빠진 정보** | 많으면 → 느림, 적으면 → 빠름 |
 
-### Key References
+### 주요 참고 문헌
 
 - Wu, C. F. J. (1983). On the convergence properties of the EM algorithm. *The Annals of Statistics*, 11(1), 95-103.
 - Louis, T. A. (1982). Finding the observed information matrix when using the EM algorithm. *JRSS-B*, 44(2), 226-233.
 - Dempster, A. P., Laird, N. M., & Rubin, D. B. (1977). Maximum likelihood from incomplete data via the EM algorithm. *JRSS-B*, 39(1), 1-38.
 - Meng, X. L., & Rubin, D. B. (1993). Maximum likelihood estimation via the ECM algorithm. *Biometrika*, 80(2), 267-278.
+
+## 연습문제
+
+**연습문제 1.**
+EM 알고리즘의 되풀이마다 로그 가능도 $\log p(X \mid \theta)$이 단조롭게 커짐을 보여라.
+
+??? success "연습문제 1 풀이"
+    근본 항등식에서 $\log p(X \mid \theta) = \mathcal{L}(q, \theta) + D_{\text{KL}}(q \| p(Z|X,\theta))$이다. E 걸음에서 $q = p(Z|X,\theta^{(t)})$으로 두면 $D_{\text{KL}} = 0$이 되어 $\mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \log p(X|\theta^{(t)})$이다. M 걸음에서는 $\theta^{(t+1)} = \arg\max_\theta \mathcal{L}(q^{(t+1)}, \theta) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)})$이다. 그러므로 $\log p(X|\theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \log p(X|\theta^{(t)})$이다. $\square$
+
+---
+
+**연습문제 2.**
+성분이 $K$개인 가우스 섞음 모형의 온전한 E 걸음과 M 걸음 새로 고침을 이끌어 내어라.
+
+??? success "연습문제 2 풀이"
+    **E 걸음:** 맡음 몫 $r_{nk} = \frac{\pi_k \mathcal{N}(x_n | \mu_k, \Sigma_k)}{\sum_{j=1}^K \pi_j \mathcal{N}(x_n | \mu_j, \Sigma_j)}$을 셈한다.
+
+    **M 걸음:** $N_k = \sum_n r_{nk}$이라 하고 다음처럼 새로 고친다:
+
+    $$\mu_k = \frac{1}{N_k} \sum_n r_{nk} x_n, \quad \Sigma_k = \frac{1}{N_k} \sum_n r_{nk} (x_n - \mu_k)(x_n - \mu_k)^\top, \quad \pi_k = \frac{N_k}{N}$$
+
+---
+
+**연습문제 3.**
+딱 잘라 하는 EM과 부드러운 EM의 차이를 설명하여라. 딱 잘라 하는 EM은 언제 나을 수 있는가?
+
+??? success "연습문제 3 풀이"
+    **부드러운 EM**에서는 E 걸음이 몫으로 나뉜 맡음 몫(뒤확률) $r_{nk} \in [0, 1]$을 셈한다. **딱 잘라 하는 EM**에서는 자료 점마다 무리 하나에 배정된다. 곧 $k^* = \arg\max_k r_{nk}$이면 $r_{nk} = 1$, 아니면 $r_{nk} = 0$이다. 딱 잘라 하는 EM은 공분산이 같은 구면 가우스에서 k 평균 알고리즘과 같다. 딱 잘라 하는 EM은 (1) 띄엄띄엄한 무리짓기가 필요할 때, (2) 셈 자원이 빠듯할 때(새로 고침이 더 단순하다), (3) 무리가 잘 떨어져 있어 부드러운 배정이 별 값어치가 없을 때 낫다.
+
+---
+
+**연습문제 4.**
+EM 도중에 가우스 성분이 자료 점 하나로 찌부러지면 어떤 말썽이 생길 수 있는가? 어떻게 막을 수 있는가?
+
+??? success "연습문제 4 풀이"
+    가우스 성분의 평균이 자료 점 하나와 겹치고 그 흩어짐이 0으로 오그라들면 가능도가 묶이지 않는다(그 점에서 밀도가 무한으로 간다). 이것이 가우스 섞음 모형의 **특이점 문제**이다. 막는 방법으로는 (1) 공분산에 작은 벌주기 항 더하기($\Sigma_k + \epsilon I$), (2) $N_k$이 문턱값 아래로 떨어진 성분 되돌리기, (3) 베이즈 앞확률 쓰기(이를테면 $\Sigma_k$에 역위샤트), (4) 공분산 행렬의 고윳값에 최솟값 제약 두기가 있다.

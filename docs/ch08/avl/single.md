@@ -1,10 +1,10 @@
-# Single Rotation
+# 단일 회전
 
-When a node in an AVL tree becomes unbalanced and the heavy subtree leans in the **same direction** as the imbalance --- left child of the left subtree (Left-Left) or right child of the right subtree (Right-Right) --- a single rotation restores balance. Single rotations are the simplest rebalancing tool in AVL trees: one pointer reassignment raises the heavy child to take the place of its unbalanced parent, reducing the subtree height by exactly one.
+AVL 트리의 노드에서 균형이 깨졌는데 무거운 부분 트리가 불균형과 **같은 쪽**으로 기울어 있으면, 곧 왼쪽 부분 트리의 왼쪽 자식(왼쪽-왼쪽)이거나 오른쪽 부분 트리의 오른쪽 자식(오른쪽-오른쪽)이면, 단일 회전으로 균형이 되살아난다. 단일 회전은 AVL 트리에서 가장 간단한 재균형 도구이다. 포인터를 한 번 고쳐 무거운 자식을 균형이 깨진 부모의 자리로 올리면 부분 트리의 높이가 꼭 1만큼 줄어든다.
 
-## Right Rotation (for Left-Left imbalance)
+## 오른쪽 회전 (왼쪽-왼쪽 불균형용)
 
-When node $z$ has $\text{BF}(z) = +2$ and its left child $y$ has $\text{BF}(y) \geq 0$, the heavy path runs straight down the left side. A **right rotation** at $z$ makes $y$ the new root:
+노드 $z$의 $\text{BF}(z) = +2$이고 왼쪽 자식 $y$의 $\text{BF}(y) \geq 0$이면 무거운 경로가 왼쪽으로 곧게 내려간다. $z$에서 **오른쪽 회전**을 하면 $y$이 새 뿌리가 된다.
 
 ```
 Before:           After:
@@ -15,29 +15,29 @@ Before:           After:
 A   B                B   C
 ```
 
-The operation reassigns three pointers:
+이 연산은 포인터 세 개를 고친다.
 
-1. $z.\text{left} \leftarrow y.\text{right}$ (subtree $B$ moves to become $z$'s left child)
-2. $y.\text{right} \leftarrow z$ (old root $z$ becomes $y$'s right child)
-3. Update the parent of $z$ to point to $y$ instead
+1. $z.\text{left} \leftarrow y.\text{right}$ (부분 트리 $B$이 $z$의 왼쪽 자식이 된다)
+2. $y.\text{right} \leftarrow z$ (옛 뿌리 $z$이 $y$의 오른쪽 자식이 된다)
+3. $z$의 부모가 대신 $y$을 가리키도록 고친다
 
-### Correctness
+### 올바름
 
-The BST property is preserved because:
+이진 탐색 트리의 성질이 지켜지는 까닭은 다음과 같다.
 
-- All keys in $A$ are less than $y.\text{key}$ (unchanged).
-- $y.\text{key} < z.\text{key}$ (BST property of the original tree).
-- All keys in $B$ satisfy $y.\text{key} < B.\text{key} < z.\text{key}$ (BST property). Moving $B$ from $y$'s right to $z$'s left preserves this.
-- All keys in $C$ are greater than $z.\text{key}$ (unchanged).
+- $A$의 모든 열쇠가 $y.\text{key}$보다 작다 (그대로이다).
+- $y.\text{key} < z.\text{key}$이다 (원래 트리의 이진 탐색 트리 성질).
+- $B$의 모든 열쇠가 $y.\text{key} < B.\text{key} < z.\text{key}$을 만족한다. $B$을 $y$의 오른쪽에서 $z$의 왼쪽으로 옮겨도 이것이 지켜진다.
+- $C$의 모든 열쇠가 $z.\text{key}$보다 크다 (그대로이다).
 
-### Height Analysis
+### 높이 분석
 
-Let $h(A) = a$, $h(B) = b$, $h(C) = c$. Before the rotation:
+$h(A) = a$, $h(B) = b$, $h(C) = c$이라 하자. 회전 전에는 다음과 같다.
 
 - $h(y) = 1 + \max(a, b)$
-- $h(z) = 1 + \max(h(y), c) = 1 + h(y)$ since $\text{BF}(z) = +2$
+- $\text{BF}(z) = +2$이므로 $h(z) = 1 + \max(h(y), c) = 1 + h(y)$
 
-After the rotation:
+회전 뒤에는 다음과 같다.
 
 $$
 h(z_{\text{new}}) = 1 + \max(b, c)
@@ -47,11 +47,11 @@ $$
 h(y_{\text{new}}) = 1 + \max(a, h(z_{\text{new}})) = 1 + \max(a, 1 + \max(b, c))
 $$
 
-When $\text{BF}(y) = +1$ (the insertion case), we have $a = b + 1$ and $c = a - 1 = b$. Then $h(z_{\text{new}}) = 1 + b$ and $h(y_{\text{new}}) = 1 + a = 2 + b$, giving $\text{BF}(y_{\text{new}}) = 0$.
+$\text{BF}(y) = +1$일 때(삽입의 경우) $a = b + 1$이고 $c = a - 1 = b$이다. 그러면 $h(z_{\text{new}}) = 1 + b$이고 $h(y_{\text{new}}) = 1 + a = 2 + b$이므로 $\text{BF}(y_{\text{new}}) = 0$이다.
 
-## Left Rotation (for Right-Right imbalance)
+## 왼쪽 회전 (오른쪽-오른쪽 불균형용)
 
-When node $z$ has $\text{BF}(z) = -2$ and its right child $y$ has $\text{BF}(y) \leq 0$, a **left rotation** at $z$ is the mirror:
+노드 $z$의 $\text{BF}(z) = -2$이고 오른쪽 자식 $y$의 $\text{BF}(y) \leq 0$이면 $z$에서의 **왼쪽 회전**이 거울상이 된다.
 
 ```
 Before:           After:
@@ -62,27 +62,27 @@ A   y      →       z   C
   B   C          A   B
 ```
 
-The pointer reassignments mirror the right rotation:
+포인터를 고치는 일도 오른쪽 회전의 거울상이다.
 
-1. $z.\text{right} \leftarrow y.\text{left}$ (subtree $B$ moves to $z$'s right child)
-2. $y.\text{left} \leftarrow z$ ($z$ becomes $y$'s left child)
-3. Update $z$'s parent to point to $y$
+1. $z.\text{right} \leftarrow y.\text{left}$ (부분 트리 $B$이 $z$의 오른쪽 자식이 된다)
+2. $y.\text{left} \leftarrow z$ ($z$이 $y$의 왼쪽 자식이 된다)
+3. $z$의 부모가 $y$을 가리키도록 고친다
 
-## Implementation
+## 구현
 
 ```python
 """
-AVL single rotations: left and right.
+AVL의 한 번 회전: 왼쪽과 오른쪽.
 
-Demonstrates the fundamental pointer operations that fix
-Left-Left and Right-Right imbalances in O(1) time.
+왼쪽-왼쪽과 오른쪽-오른쪽 불균형을 O(1) 시간에 바로잡는
+근본 되는 포인터 연산을 보인다.
 """
 
 
-# === AVL Node ===
+# === AVL 노드 ===
 
 class AVLNode:
-    """AVL tree node with key, children, and cached height."""
+    """열쇠와 자식과 담아 둔 높이를 지닌 AVL 트리 노드."""
 
     def __init__(self, key):
         self.key = key
@@ -91,27 +91,27 @@ class AVLNode:
         self.height = 0
 
 
-# === Height and Balance Utilities ===
+# === 높이와 균형 도구 ===
 
 def height(node):
-    """Return height of node, or -1 for null."""
+    """노드의 높이를 돌려준다. 널이면 -1이다."""
     return node.height if node else -1
 
 
 def update_height(node):
-    """Recompute height from children."""
+    """자식에서 높이를 다시 셈한다."""
     node.height = 1 + max(height(node.left), height(node.right))
 
 
 def balance_factor(node):
-    """Compute BF = h(left) - h(right)."""
+    """균형 인수 = h(왼쪽) - h(오른쪽)을 셈한다."""
     return height(node.left) - height(node.right)
 
 
-# === Single Rotations ===
+# === 한 번 회전 ===
 
 def rotate_right(z):
-    """Right rotation at z (fixes Left-Left imbalance).
+    """z에서 오른쪽으로 회전(왼쪽-왼쪽 불균형을 바로잡는다).
 
     Before:     z          After:     y
                / \\                  / \\
@@ -122,19 +122,19 @@ def rotate_right(z):
     y = z.left
     b = y.right
 
-    # Perform rotation
+    # 회전을 한다
     y.right = z
     z.left = b
 
-    # Update heights (z first, since y depends on z)
+    # 높이를 고친다 (y가 z에 매이므로 z를 먼저)
     update_height(z)
     update_height(y)
 
-    return y  # new root
+    return y  # 새 뿌리
 
 
 def rotate_left(z):
-    """Left rotation at z (fixes Right-Right imbalance).
+    """z에서 왼쪽으로 회전(오른쪽-오른쪽 불균형을 바로잡는다).
 
     Before:   z            After:     y
              / \\                    / \\
@@ -145,21 +145,21 @@ def rotate_left(z):
     y = z.right
     b = y.left
 
-    # Perform rotation
+    # 회전을 한다
     y.left = z
     z.right = b
 
-    # Update heights (z first, since y depends on z)
+    # 높이를 고친다 (y가 z에 매이므로 z를 먼저)
     update_height(z)
     update_height(y)
 
-    return y  # new root
+    return y  # 새 뿌리
 
 
-# === Insert with single-rotation rebalancing ===
+# === 한 번 회전으로 균형을 되잡는 삽입 ===
 
 def insert(node, key):
-    """Insert key, applying single rotations for LL/RR cases."""
+    """열쇠를 넣고 LL/RR 경우에 한 번 회전을 적용한다."""
     if node is None:
         return AVLNode(key)
 
@@ -173,16 +173,16 @@ def insert(node, key):
     update_height(node)
     bf = balance_factor(node)
 
-    # Left-Left case: single right rotation
+    # 왼쪽-왼쪽 경우: 오른쪽으로 한 번 회전
     if bf > 1 and balance_factor(node.left) >= 0:
         return rotate_right(node)
 
-    # Right-Right case: single left rotation
+    # 오른쪽-오른쪽 경우: 왼쪽으로 한 번 회전
     if bf < -1 and balance_factor(node.right) <= 0:
         return rotate_left(node)
 
-    # Left-Right and Right-Left cases handled by double rotation
-    # (covered in the Double Rotation page)
+    # 왼쪽-오른쪽과 오른쪽-왼쪽 경우는 두 번 회전으로 다룬다
+    # (두 번 회전 쪽에서 다룬다)
     if bf > 1 and balance_factor(node.left) < 0:
         node.left = rotate_left(node.left)
         return rotate_right(node)
@@ -193,10 +193,10 @@ def insert(node, key):
     return node
 
 
-# === Display ===
+# === 보이기 ===
 
 def print_tree(node, level=0):
-    """Print tree sideways with balance factors."""
+    """균형 인수와 함께 트리를 옆으로 찍는다."""
     if node is None:
         return
     print_tree(node.right, level + 1)
@@ -206,7 +206,7 @@ def print_tree(node, level=0):
 
 
 if __name__ == "__main__":
-    # Left-Left case: inserting 30, 20, 10
+    # 왼쪽-왼쪽 경우: 30, 20, 10을 넣는다
     print("=== Left-Left Case (Right Rotation) ===")
     print("Inserting 30, 20, 10:")
     root = None
@@ -215,7 +215,7 @@ if __name__ == "__main__":
     print_tree(root)
     print()
 
-    # Right-Right case: inserting 10, 20, 30
+    # 오른쪽-오른쪽 경우: 10, 20, 30을 넣는다
     print("=== Right-Right Case (Left Rotation) ===")
     print("Inserting 10, 20, 30:")
     root = None
@@ -224,7 +224,7 @@ if __name__ == "__main__":
     print_tree(root)
     print()
 
-    # A longer sequence showing multiple single rotations
+    # 한 번 회전이 여러 번 일어나는 더 긴 차례
     print("=== Sorted Insertion (multiple rotations) ===")
     print("Inserting 1, 2, 3, 4, 5, 6, 7:")
     root = None
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     print_tree(root)
 ```
 
-**Output:**
+**출력:**
 ```
 === Left-Left Case (Right Rotation) ===
 Inserting 30, 20, 10:
@@ -258,20 +258,53 @@ Inserting 1, 2, 3, 4, 5, 6, 7:
         1 [BF=+0]
 ```
 
-Inserting keys in sorted order would create a degenerate chain in a plain BST. The AVL tree applies left rotations at each step, producing a perfectly balanced tree of height 2.
+열쇠를 정렬된 순서로 넣으면 보통의 이진 탐색 트리에서는 치우친 사슬이 된다. AVL 트리는 걸음마다 왼쪽 회전을 하여 높이가 2인 완벽하게 균형 잡힌 트리를 만든다.
 
-## Complexity
+## 복잡도
 
-Each single rotation performs a constant number of pointer reassignments and two height updates:
+단일 회전은 일정한 횟수의 포인터 고치기와 높이 갱신 두 번을 한다.
 
-| Operation | Cost |
+| 연산 | 비용 |
 |:--|:-:|
-| Pointer reassignments | $O(1)$ |
-| Height updates | $O(1)$ |
-| **Total per rotation** | $O(1)$ |
+| 포인터 고치기 | $O(1)$ |
+| 높이 갱신 | $O(1)$ |
+| **회전당 합계** | $O(1)$ |
 
-The rotation itself is $O(1)$. The overall insertion cost is $O(\log n)$ due to the BST walk and the fix-up path, not the rotation.
+회전 자체는 $O(1)$이다. 전체 삽입 비용이 $O(\log n)$인 것은 회전 때문이 아니라 이진 탐색 트리를 내려가는 걸음과 손질 경로 때문이다.
 
-## Reference
+## 참고 문헌
 
-- [Introduction to Algorithms (CLRS), Chapters 13-14](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- [Introduction to Algorithms (CLRS), 13~14장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+단일 회전의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 단일 회전을 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+단일 회전이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 단일 회전을 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

@@ -1,112 +1,112 @@
-# Block Size
+# 덩이 크기
 
-Modern storage devices -- hard drives and SSDs alike -- do not read or write individual bytes. Instead, every transfer moves a fixed-size chunk of data called a **block**. This fundamental hardware constraint shapes the entire field of external memory algorithms: the cost of an algorithm is measured not in comparisons or arithmetic operations, but in the number of block transfers between disk and main memory.
+요즘 저장 장치는 굳은 원반이든 SSD이든 바이트 하나씩 읽거나 적지 않는다. 옮길 때마다 **덩이**라 부르는 크기가 붙박인 자료 토막을 나른다. 이 근본 기계 매임이 바깥 기억 알고리즘이라는 마당 전체를 빚는다. 알고리즘의 비용은 견줌이나 셈 연산이 아니라 원반과 으뜸 기억 사이의 덩이 옮김 횟수로 잰다.
 
-## Definition
+## 정의
 
-In the external memory (or disk-access) model, the **block size** $B$ denotes the number of contiguous data elements transferred in a single I/O operation. The model assumes two levels of storage:
+바깥 기억(또는 원반 닿기) 모형에서 **덩이 크기** $B$은 들고남 하나에 옮기는 이어진 자료 원소의 개수를 뜻한다. 이 모형은 저장 켜 둘을 여긴다:
 
-- **Main memory (internal):** holds at most $M$ elements.
-- **Disk (external):** holds the full dataset of $N$ elements.
+- **으뜸 기억(안쪽):** 많아야 원소 $M$개를 담는다.
+- **원반(바깥):** 원소 $N$개의 온 자료 뭉치를 담는다.
 
-A single I/O operation reads or writes one block of $B$ consecutive elements between disk and memory. The fundamental constraint is:
+들고남 하나가 원반과 기억 사이에서 잇단 원소 $B$개의 덩이 하나를 읽거나 적는다. 근본 매임은 다음과 같다:
 
 $$
 1 \le B \le M \le N
 $$
 
-The ratio $M / B$ gives the number of blocks that fit in memory simultaneously, which determines how many sorted runs can be merged at once during external sorting.
+비 $M / B$은 기억에 한꺼번에 들어가는 덩이 수를 주며, 바깥 줄 세우기에서 줄 세운 줄기를 한 번에 몇 개 합칠 수 있는지 정한다.
 
-## Why Block Size Matters
+## 덩이 크기가 중요한 까닭
 
-Block size controls the granularity of data movement. Transferring $N$ elements requires at least $\lceil N / B \rceil$ I/O operations, since each operation moves exactly $B$ elements. This quantity, called the **scanning bound**, is the baseline cost:
+덩이 크기가 자료 옮김의 알갱이 크기를 다스린다. 연산마다 꼭 원소 $B$개를 나르므로 원소 $N$개를 옮기려면 적어도 들고남 $\lceil N / B \rceil$번이 든다. **훑기 가둠**이라 부르는 이 양이 밑금 비용이다:
 
 $$
 \text{scan}(N) = \Theta\!\left(\frac{N}{B}\right)
 $$
 
-A larger block size $B$ reduces the number of I/O operations for sequential access patterns. However, random access to individual elements still costs one I/O per access regardless of $B$, because the entire block must be transferred even when only one element is needed.
+덩이 크기 $B$이 크면 차례 닿기 무늬의 들고남 횟수가 준다. 그러나 원소 하나에 아무렇게 닿는 것은 $B$과 상관없이 닿을 때마다 들고남 한 번이 든다. 원소 하나만 필요해도 덩이 전체를 옮겨야 하기 때문이다.
 
-## Block Size in I/O Complexity Bounds
+## 들고남 복잡도 가둠 속의 덩이 크기
 
-The three canonical I/O bounds reference $B$ directly:
+본보기가 되는 들고남 가둠 셋이 $B$을 곧바로 가리킨다:
 
-| Operation | I/O Complexity |
+| 연산 | 들고남 복잡도 |
 |---|---|
-| Scanning $N$ elements | $\Theta(N/B)$ |
-| Sorting $N$ elements | $\Theta\!\left(\frac{N}{B}\log_{M/B}\frac{N}{B}\right)$ |
-| Searching (B-tree) | $\Theta(\log_B N)$ |
+| 원소 $N$개 훑기 | $\Theta(N/B)$ |
+| 원소 $N$개 줄 세우기 | $\Theta\!\left(\frac{N}{B}\log_{M/B}\frac{N}{B}\right)$ |
+| 찾기(B 나무) | $\Theta(\log_B N)$ |
 
-Each bound improves as $B$ grows, reflecting the advantage of amortizing I/O cost over larger transfers. The sorting bound shows a particularly rich dependence: both the number of passes and the merge fan-out depend on $B$ through the ratio $M/B$.
+$B$이 커질수록 가둠이 나아지며 이는 더 큰 옮김에 들고남 비용을 고루 나누는 이점을 비춘다. 줄 세우기 가둠은 특히 풍부하게 매여 있다. 지나기 횟수와 합침 퍼짐이 모두 비 $M/B$을 거쳐 $B$에 매인다.
 
-## Typical Block Sizes
+## 흔한 덩이 크기
 
-In practice, block sizes range from 4 KB (a standard OS page) to 256 KB or larger for database systems. The optimal block size depends on the hardware:
+실제로 덩이 크기는 4KB(여느 운영 체제 쪽)에서 자료 바탕 시스템의 256KB 넘는 값까지 걸친다. 가장 좋은 덩이 크기는 기계에 매인다:
 
-| Device | Typical Block Size | Reason |
+| 장치 | 흔한 덩이 크기 | 까닭 |
 |---|---|---|
-| HDD | 4 KB -- 64 KB | Amortizes rotational latency |
-| SSD | 4 KB -- 16 KB | Matches flash page size |
-| Database systems | 8 KB -- 256 KB | Tuned for B-tree fan-out |
+| 굳은 원반 | 4KB~64KB | 도는 지체를 고루 나눈다 |
+| SSD | 4KB~16KB | 플래시 쪽 크기에 맞는다 |
+| 자료 바탕 시스템 | 8KB~256KB | B 나무 퍼짐에 맞춘다 |
 
-## Example: Counting Block Transfers
+## 보기: 덩이 옮김 세기
 
-The following example computes the number of block transfers required for scanning and sorting, illustrating how $B$ affects I/O cost.
+다음 보기는 훑기와 줄 세우기에 드는 덩이 옮김 횟수를 셈해 $B$이 들고남 비용에 어떻게 영향을 주는지 보여 준다.
 
 ```python
 """
-Block transfer calculations for external memory operations.
+바깥 기억 연산의 덩이 옮김 셈하기.
 
-Demonstrates how block size B affects the number of I/O operations
-for scanning and sorting in the external memory model.
+바깥 기억 모형에서 덩이 크기 B이 훑기와 줄 세우기의 들고남 횟수에
+어떻게 영향을 주는지 보여 준다.
 """
 
 import math
 
 # ===================================================================
-# Block transfer calculations
+# 덩이 옮김 셈하기
 # ===================================================================
 
 def scan_ios(n: int, b: int) -> int:
-    """Number of I/O operations to scan N elements with block size B."""
+    """덩이 크기 B으로 원소 N개를 훑는 들고남 횟수."""
     return math.ceil(n / b)
 
 
 def sort_ios(n: int, m: int, b: int) -> int:
     """
-    Number of I/O operations to sort N elements in external memory.
+    바깥 기억에서 원소 N개를 줄 세우는 들고남 횟수.
 
     Uses the standard bound: (N/B) * log_{M/B}(N/B).
 
-    Parameters
+    매개변수
     ----------
     n : int
-        Number of elements.
+        원소의 수.
     m : int
-        Memory capacity (in elements).
+        기억이 담는 양(원소 수).
     b : int
-        Block size (in elements).
+        덩이 크기(원소 수).
     """
     blocks = math.ceil(n / b)
     fan_out = m // b
     if fan_out <= 1:
-        return float('inf')  # Cannot merge with fan-out <= 1
+        return float('inf')  # 퍼짐이 1 이하면 합칠 수 없다
     passes = math.ceil(math.log(blocks) / math.log(fan_out))
     return blocks * passes
 
 
 def search_ios(n: int, b: int) -> int:
-    """Number of I/O operations for a B-tree search on N elements."""
+    """원소 N개에 대한 B 나무 찾기의 들고남 횟수."""
     return math.ceil(math.log(n) / math.log(b)) if b > 1 else n
 
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
-    N = 10**8          # 100 million elements
-    M = 10**6          # 1 million elements fit in memory
+    N = 10**8          # 원소 1억 개
+    M = 10**6          # 원소 100만 개가 기억에 들어간다
     block_sizes = [256, 1024, 4096, 16384]
 
     print(f"N = {N:,}, M = {M:,}\n")
@@ -119,12 +119,12 @@ if __name__ == "__main__":
         print(f"{B:>8}  {s:>12,}  {t:>12,}  {r:>12}")
 ```
 
-??? example "Sample Output"
+??? example "보기 내놓기"
 
     ```
     N = 100,000,000, M = 1,000,000
 
-           B      Scan I/Os     Sort I/Os    Search I/Os
+           B      훑기 들고남     줄 세우기 들고남    찾기 들고남
     ----------------------------------------------------
          256       390,625     1,562,500              4
         1024        97,657       390,628              3
@@ -132,13 +132,46 @@ if __name__ == "__main__":
        16384         6,104        24,416              2
     ```
 
-    As $B$ increases by a factor of 4, the scan cost drops by the same factor. Sort cost also decreases because both the number of blocks and the number of passes shrink.
+    $B$이 4배가 되면 훑기 비용도 같은 배수로 떨어진다. 덩이 수와 지나기 횟수가 모두 줄어 줄 세우기 비용도 준다.
 
-## Connection to the External Memory Model
+## 바깥 기억 모형과의 이음
 
-Block size is one of three parameters that fully specify the external memory model. The other two -- memory size $M$ and problem size $N$ -- are covered on the [External Memory Model](external.md) page. The interplay among $N$, $M$, and $B$ determines I/O complexity bounds, which are analyzed in detail on the [I/O Complexity](io_complexity.md) page.
+덩이 크기는 바깥 기억 모형을 온전히 밝히는 잡 셋 가운데 하나다. 나머지 둘인 기억 크기 $M$과 문제 크기 $N$은 [바깥 기억 모형](external.md) 쪽에서 다룬다. $N$, $M$, $B$이 맞물려 들고남 복잡도 가둠을 정하며 이는 [들고남 복잡도](io_complexity.md) 쪽에서 자세히 살핀다.
 
-## Reference
+## 참고 문헌
 
 - Aggarwal, A. & Vitter, J. S. "The Input/Output Complexity of Sorting and Related Problems," *Communications of the ACM*, 31(9), 1988.
 - Vitter, J. S. *Algorithms and Data Structures for External Memory*, Foundations and Trends in Theoretical Computer Science, 2008.
+
+
+## 연습문제
+
+**연습문제 1.**
+바깥 기억 모형의 덩이 크기 $B$을 뜻매김하고 그 뜻을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    덩이 크기 $B$은 원반과 기억 사이의 들고남 하나에 옮기는 원소의 개수다. 덩이 속 원소 하나에 닿는 값이 덩이 전체에 닿는 값과 같다. 그래서 차례 닿기(훑기)가 아무 닿기보다 훨씬 싸다. 원소 $N$개 훑기는 들고남 $O(N/B)$번이고 아무 닿기는 $O(N)$번이다. 흔한 값: 굳은 원반 $B \sim 4$~$64$KB, SSD $B \sim 4$KB(쪽 크기). 알고리즘은 차례 닿기를 늘리고 아무 들고남을 줄여야 한다.
+
+---
+
+**연습문제 2.**
+덩이 크기가 가장 좋은 줄 세우기 알고리즘에 어떤 영향을 주는가?
+
+??? success "연습문제 2 풀이"
+    바깥 기억 합침 정렬의 들고남 복잡도는 $O(N/B \cdot \log_{M/B}(N/B))$이다. $B$이 크면 밑금 비용($N/B$이 줄어듦)과 합침 퍼짐($M/B$이 늘어 지나기 횟수가 줆)이 모두 나아진다. $B$을 두 배로 하면 들고남 횟수가 대략 반이 된다. 다만 $B$이 아주 크면 덩이의 일부만 쓸모 있을 때 기억이 낭비된다. 가장 좋은 덩이 크기는 옮김 효율과 기억 쓰임의 균형을 잡는다. 실제로 $B$은 기계와 운영 체제의 쪽 크기가 정한다.
+
+---
+
+**연습문제 3.**
+요즘 저장 시스템에서 덩이 크기와 쪽 크기의 차이를 밝혀라.
+
+??? success "연습문제 3 풀이"
+    바깥 기억 모형의 덩이 크기는 추상이다. 실제로 굳은 원반의 구역 크기는 512바이트나 4KB이지만 차례로 미리 가져오기(운영 체제가 64~256KB를 읽음) 때문에 실제 덩이 크기는 더 크다. SSD 쪽 크기는 4~16KB이지만 읽기는 흔히 4KB 쪽 단위다. 운영 체제 파일 시스템의 덩이 크기는 보통 4KB다. 자료 바탕 쪽은 8~16KB다. 알고리즘 설계에서 실제 $B$은 효율 좋은 들고남의 낱덩이에 맞춰야 하며 이는 닿기 무늬와 저장 장치에 매인다.
+
+---
+
+**연습문제 4.**
+덩이 크기를 생각해 깊은 배움 자료 꼴(TFRecord, Parquet 등)을 어떻게 설계해야 하는가?
+
+??? success "연습문제 4 풀이"
+    익히기 자료는 덩이 크기에 맞도록 크고 차례를 이룬 기록으로 담아야 한다. (1) TFRecord은 파일마다 보기를 여럿 적어 큰 덩이를 차례로 읽게 한다, (2) Parquet의 줄 무리 크기는 들고남 덩이 크기(보통 64~256MB)에 맞춰야 한다, (3) 자료 조각내기: 조각마다 $B$의 배수여야 들고남 낭비를 피한다, (4) 특징 줄 맞추기: 특징을 덩이 경계까지 채우면 덩이를 걸치는 일을 막는다. 자료를 잘못 놓으면(작은 파일이 많고 파일 안에서 아무렇게 닿기) 들고남 효율이 나빠 익히기 처리량이 10배까지 떨어질 수 있다.

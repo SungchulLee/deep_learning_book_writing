@@ -1,126 +1,185 @@
-# Partition Problem
+# 나누기 문제
 
-The **Partition** problem asks a deceptively simple question: given a set of integers, can they be split into two subsets with equal sums? Despite its simplicity, Partition is NP-complete. It is the canonical example of a **weakly NP-hard** problem --- one that admits a pseudo-polynomial time algorithm and an FPTAS, distinguishing it from strongly NP-hard problems like 3-Partition.
+**나누기** 문제는 속아 넘어가기 쉬울 만큼 단순한 물음을 던진다. 정수 모임이 주어질 때 합이 같은 두 부분 모임으로 나눌 수 있는가? 단순해 보여도 나누기는 NP 완전이다. 이는 **약한 NP 어려움** 문제의 으뜸 보기로, 거짓 다항 시간 알고리즘과 FPTAS을 가지며 3 나누기 같은 강한 NP 어려움 문제와 갈린다.
 
-## Problem Definition
+## 문제의 정의
 
-!!! tip "Definition: Partition"
-    Given a multiset $S = \{a_1, a_2, \ldots, a_n\}$ of positive integers with total sum $\Sigma = \sum_{i=1}^n a_i$, determine whether there exists a subset $A \subseteq S$ such that:
+!!! tip "뜻매김: 나누기"
+    온 합이 $\Sigma = \sum_{i=1}^n a_i$인 양의 정수 여럿 모임 $S = \{a_1, a_2, \ldots, a_n\}$이 주어질 때 다음을 만족하는 부분 모임 $A \subseteq S$이 있는지 가려라:
 
     $$
     \sum_{i \in A} a_i = \frac{\Sigma}{2}
     $$
 
-If $\Sigma$ is odd, the answer is immediately "no."
+$\Sigma$이 홀수이면 답은 곧바로 "아니오"이다.
 
-## NP-Completeness
+## NP 완전성
 
-!!! tip "Theorem"
-    Partition is NP-complete.
+!!! tip "정리"
+    나누기는 NP 완전이다.
 
-**Membership in NP.** The subset $A$ is a certificate. Verifying that its sum equals $\Sigma/2$ takes $O(n)$ time.
+**NP에 듦.** 부분 모임 $A$이 증서이다. 그 합이 $\Sigma/2$인지 살피는 데 $O(n)$ 시간이 든다.
 
-**NP-Hardness: Reduction from Subset Sum.** Given a Subset Sum instance $(S', t)$ asking whether a subset of $S'$ sums to $t$:
+**NP 어려움: 부분 모임 합에서 줄이기.** $S'$의 부분 모임의 합이 $t$인지 묻는 부분 모임 합 사례 $(S', t)$이 주어질 때:
 
-1. Let $\Sigma' = \sum_{a \in S'} a$.
-2. If $t > \Sigma'$, return "no."
-3. Add a new element $b = \Sigma' - 2t$ to create $S = S' \cup \{|b|\}$ (with appropriate sign handling):
-    - If $\Sigma' - 2t \geq 0$: add element $b = \Sigma' - 2t$. New total = $2(\Sigma' - t)$.
-    - If $\Sigma' - 2t < 0$: add element $b = 2t - \Sigma'$. New total = $2t$.
+1. $\Sigma' = \sum_{a \in S'} a$이라 하자.
+2. $t > \Sigma'$이면 "아니오"를 돌려준다.
+3. 새 원소 $b = \Sigma' - 2t$을 더해 $S = S' \cup \{|b|\}$을 만든다(부호를 알맞게 다룬다):
+    - $\Sigma' - 2t \geq 0$이면 원소 $b = \Sigma' - 2t$을 더한다. 새 온 합 = $2(\Sigma' - t)$.
+    - $\Sigma' - 2t < 0$이면 원소 $b = 2t - \Sigma'$을 더한다. 새 온 합 = $2t$.
 
-A subset of $S'$ summing to $t$ exists if and only if $S$ can be partitioned into two equal-sum halves. $\square$
+$S'$에 합이 $t$인 부분 모임이 있을 필요충분조건은 $S$을 합이 같은 반 둘로 나눌 수 있는 것이다. $\square$
 
-## Pseudo-Polynomial Algorithm
+## 거짓 다항 알고리즘
 
-Partition reduces to Subset Sum with target $\Sigma/2$, solvable by dynamic programming.
+나누기는 목표가 $\Sigma/2$인 부분 모임 합으로 줄여지며 짜 넣기로 풀 수 있다.
 
-**DP formulation.** Let $\text{dp}[j]$ = true if some subset of $\{a_1, \ldots, a_i\}$ sums to $j$.
+**짜 넣기 적기.** $\{a_1, \ldots, a_i\}$의 어떤 부분 모임의 합이 $j$이면 $\text{dp}[j]$을 참이라 하자.
 
-**Recurrence:**
+**되돌이 식:**
 
 $$
 \text{dp}[j] = \text{dp}[j] \lor \text{dp}[j - a_i] \quad \text{for } i = 1, \ldots, n, \; j = \Sigma/2, \ldots, a_i
 $$
 
-**Base case:** $\text{dp}[0] = \text{true}$.
+**바탕 경우:** $\text{dp}[0] = \text{true}$.
 
-**Time:** $O(n \cdot \Sigma/2)$. **Space:** $O(\Sigma/2)$.
+**시간:** $O(n \cdot \Sigma/2)$. **공간:** $O(\Sigma/2)$.
 
-This is pseudo-polynomial: polynomial in the numeric value $\Sigma$ but exponential in the encoding size $\log \Sigma$.
+이는 거짓 다항이다. 수 값 $\Sigma$에 대해서는 다항이지만 적는 크기 $\log \Sigma$에 대해서는 지수이다.
 
-## Weak vs Strong NP-Hardness
+## 약한 NP 어려움과 강한 NP 어려움
 
-Partition is the textbook example distinguishing these categories:
+나누기는 이 갈래들을 가르는 교과서 보기이다:
 
-| Property | Partition | 3-Partition |
+| 성질 | 나누기 | 3 나누기 |
 |----------|-----------|-------------|
-| NP-hard | Yes | Yes |
-| Pseudo-polynomial algorithm | Yes ($O(n\Sigma)$) | No (unless P = NP) |
-| FPTAS | Yes (via knapsack FPTAS) | No (unless P = NP) |
-| NP-hard with poly-bounded numbers | No (becomes easy) | Yes (strongly NP-hard) |
+| NP 어려움 | 예 | 예 |
+| 거짓 다항 알고리즘 | 예($O(n\Sigma)$) | 아니오(P = NP이 아닌 한) |
+| FPTAS | 예(배낭 FPTAS으로) | 아니오(P = NP이 아닌 한) |
+| 수가 다항으로 가둬져도 NP 어려움 | 아니오(쉬워진다) | 예(강한 NP 어려움) |
 
-**3-Partition** is a different, harder problem: given $3n$ integers with sum $nB$, can they be partitioned into $n$ triples each summing to $B$? This is strongly NP-complete.
+**3 나누기**는 다르고 더 어려운 문제이다. 합이 $nB$인 정수 $3n$개가 주어질 때 저마다 합이 $B$인 세 쌍 $n$개로 나눌 수 있는가? 이는 강한 NP 완전이다.
 
-## Approximation
+## 어림
 
-### Differencing Heuristic (Karmarkar-Karp)
+### 차 내기 어림짐작(카마르카르-카프)
 
-The **largest differencing method** repeatedly replaces the two largest numbers with their difference. This greedily reduces the discrepancy between the two partition halves.
+**가장 큰 차 내기 방법**은 가장 큰 두 수를 그 차로 되풀이해 바꾼다. 이는 나뉜 두 쪽의 어긋남을 욕심껏 줄인다.
 
-1. Insert all numbers into a max-heap.
-2. While the heap has more than one element:
-    - Extract the two largest, $a$ and $b$.
-    - Insert $|a - b|$ back into the heap.
-3. The final value is the minimum achievable difference.
+1. 모든 수를 최대 더미에 넣는다.
+2. 더미에 원소가 하나보다 많은 동안:
+    - 가장 큰 둘 $a$과 $b$을 꺼낸다.
+    - $|a - b|$을 더미에 다시 넣는다.
+3. 마지막 값이 이룰 수 있는 최소 차이다.
 
-This heuristic runs in $O(n \log n)$ and often produces near-optimal partitions.
+이 어림짐작은 $O(n \log n)$에 돌며 흔히 거의 가장 좋은 나눔을 만든다.
 
 ### FPTAS
 
-Since Partition is equivalent to Subset Sum (with target $\Sigma/2$), the knapsack FPTAS applies. Scaling values by $K = \epsilon \cdot a_{\max} / n$ yields an algorithm running in $O(n^2 / \epsilon)$ that finds a partition with discrepancy at most $\epsilon \cdot \Sigma/2$.
+나누기는 (목표가 $\Sigma/2$인) 부분 모임 합과 같으므로 배낭 FPTAS을 쓸 수 있다. 값을 $K = \epsilon \cdot a_{\max} / n$으로 잣수 맞추면 어긋남이 많아야 $\epsilon \cdot \Sigma/2$인 나눔을 $O(n^2 / \epsilon)$에 찾는 알고리즘을 얻는다.
 
-## Variants
+## 변형
 
-### Multi-Way Partition
+### 여러 갈래 나누기
 
-Partition into $k$ subsets of equal sum. For $k \geq 3$, this is strongly NP-hard (reduces from 3-Partition), so no pseudo-polynomial algorithm exists unless P = NP.
+합이 같은 부분 모임 $k$개로 나눈다. $k \geq 3$이면 이는 강한 NP 어려움이며(3 나누기에서 줄여진다) P = NP이 아닌 한 거짓 다항 알고리즘이 없다.
 
-### Balanced Partition
+### 고른 나누기
 
-Require $|A| = |B| = n/2$ in addition to equal sums. This additional constraint preserves NP-completeness.
+합이 같은 것에 더해 $|A| = |B| = n/2$을 요구한다. 이 제약을 더해도 NP 완전성은 그대로이다.
 
-### Minimum Discrepancy
+### 최소 어긋남
 
-Minimize $|\sum_{i \in A} a_i - \sum_{i \notin A} a_i|$ rather than requiring exact equality. This optimization version is also NP-hard but admits good approximation.
+정확히 같기를 요구하는 대신 $|\sum_{i \in A} a_i - \sum_{i \notin A} a_i|$을 가장 작게 한다. 이 가장 좋게 하기 판도 NP 어려움이지만 좋은 어림을 허락한다.
 
-## Connection to Other Problems
+## 다른 문제와의 이음
 
-Partition occupies a central position in the NP-completeness reduction landscape:
+나누기는 NP 완전성 줄임 풍경에서 한가운데 자리를 차지한다:
 
 $$
 \text{3-SAT} \to \text{3DM} \to \text{Partition} \to \text{Subset Sum} \to \text{Knapsack}
 $$
 
-Each reduction preserves NP-hardness while moving to a more "numerical" problem structure.
+줄임마다 NP 어려움을 지키면서 더 "수치스러운" 문제 얼개로 옮겨 간다.
 
-??? example "Example: Partition with DP"
-    **Instance:** $S = \{3, 1, 1, 2, 2, 1\}$, $\Sigma = 10$, target $= 5$.
+??? example "보기: 짜 넣기로 나누기"
+    **사례:** $S = \{3, 1, 1, 2, 2, 1\}$, $\Sigma = 10$, 목표 $= 5$.
 
-    **DP table** (reachable sums after adding each element):
+    **짜 넣기 표**(원소를 더할 때마다 닿을 수 있는 합):
 
-    | Element | Reachable sums |
+    | 원소 | 닿을 수 있는 합 |
     |---------|---------------|
-    | Start | $\{0\}$ |
+    | 시작 | $\{0\}$ |
     | 3 | $\{0, 3\}$ |
     | 1 | $\{0, 1, 3, 4\}$ |
     | 1 | $\{0, 1, 2, 3, 4, 5\}$ |
 
-    Sum 5 is reachable after processing the third element. **Answer: Yes.**
+    셋째 원소를 다룬 뒤 합 5에 닿는다. **답: 그렇다.**
 
-    **Partition:** $A = \{3, 1, 1\}$ (sum 5), $B = \{2, 2, 1\}$ (sum 5).
+    **나눔:** $A = \{3, 1, 1\}$(합 5), $B = \{2, 2, 1\}$(합 5).
 
-## Reference
+## 참고 문헌
 
 - Garey, M. R., & Johnson, D. S. (1979). *Computers and Intractability*. W. H. Freeman.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
 - Karmarkar, N., & Karp, R. M. (1982). The differencing method of set partitioning. Technical Report UCB/CSD-82-113, UC Berkeley.
+
+## 연습문제
+
+**연습문제 1.**
+짜 넣기로 나누기 사례 $\{3, 1, 1, 2, 2, 1\}$을 풀어라. 짜 넣기 표를 보여라.
+
+??? success "연습문제 1 풀이"
+    합 $S = 3 + 1 + 1 + 2 + 2 + 1 = 10$이다. 목표는 $T = S/2 = 5$이다. 합이 5인 부분 모임이 필요하다.
+
+    짜 넣기 표 $dp[j]$ = 물건을 다룰 때마다 이룰 수 있는 합:
+
+    - 시작: $\{0\}$
+    - 3 뒤: $\{0, 3\}$
+    - 1 뒤: $\{0, 1, 3, 4\}$
+    - 1 뒤: $\{0, 1, 2, 3, 4, 5\}$ --- 목표 5에 닿는다.
+
+    합이 5인 부분 모임: $\{3, 1, 1\}$. 다른 부분 모임 $\{2, 2, 1\}$의 합도 5이다. 올바른 나눔을 찾았다.
+
+---
+
+**연습문제 2.**
+부분 모임 합에서 줄여 나누기가 NP 완전임을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    나누기는 NP에 든다. 나눔 $(A, B)$이 주어지면 $\sum_{a \in A} a = \sum_{b \in B} b$인지 $O(n)$ 시간에 살핀다.
+
+    부분 모임 합에서 줄이기: 정수 $a_1, \ldots, a_n$과 목표 $T$이 주어지면 나누기 사례를 만든다. $S = \sum a_i$이라 하자. 모임에 원소 $e = |2T - S|$ 하나를 더한다. 새 합은 $S' = S + e$이다.
+
+    $2T \geq S$이면 $e = 2T - S$, $S' = 2T$이다. 나눔에서 양쪽의 합이 $T$이다. 한쪽은 본디 부분 모임 합 사례에서 합이 $T$인 부분 모임을 담고 때로는 $e$도 담는다. 이는 본디 사례에 합이 $T$인 부분 모임이 있을 때에만 통한다.
+
+    $2T < S$이면 $e = S - 2T$, $S' = 2(S-T)$이다. 양쪽의 합이 $S - T$이다. $e$을 담지 않은 쪽의 합이 $S - T$이므로 남은 본디 원소의 합은 $S - (S-T) = T$이다. 다시 부분 모임 합으로 줄어든다.
+
+    이 줄임은 다항이다. 부분 모임 합이 NP 완전이므로 나누기도 그렇다.
+
+---
+
+**연습문제 3.**
+나누기가 약한 NP 완전이지만 강한 NP 완전은 아닌 까닭을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    나누기에는 $S = \sum a_i$일 때 $O(nS)$에 도는 거짓 다항 짜 넣기 알고리즘이 있다. 모든 수가 $\text{poly}(n)$으로 가둬지면 $S = O(n \cdot \text{poly}(n)) = \text{poly}(n)$이 되어 짜 넣기가 참으로 다항이 된다.
+
+    강한 NP 완전 문제는 수가 다항으로 가둬져도 여전히 NP 완전이다. 나누기는 그렇지 않다. 그 경우 다항이 된다. 따라서 나누기는 약한 NP 완전이다.
+
+    이 가름은 실제로 쓸모 있다. 수 값이 어지간한 들임(보기로 비용이 정수로 1000까지인 일감을 일꾼 $n = 100$명에게 나누기)에서는 짜 넣기가 나누기를 효율 좋게 푼다. NP 어려움은 수가 $n$에 대해 지수만큼 클 때(보기로 $a_i \sim 2^n$)에만 드러난다.
+
+---
+
+**연습문제 4.**
+나누기의 카마르카르-카프 차 내기 어림짐작을 적고 왜 흔히 거의 가장 좋은 풀이를 찾는지 밝혀라.
+
+??? success "연습문제 4 풀이"
+    카마르카르-카프(KK) 어림짐작은 가장 큰 두 수 $a$과 $b$($a \geq b$)을 그 차 $a - b$으로 되풀이해 바꾼다. 이는 $a$과 $b$을 서로 다른 부분 모임에 두기로 정하는 것이다. 수가 하나 남을 때까지 이어 간다. 그것이 나눔의 차이다.
+
+    짜기: 최대 더미를 쓴다. 가장 큰 둘을 꺼내 그 차를 넣는다. $n - 1$번 되풀이한다. 시간: $O(n \log n)$.
+
+    KK이 잘 듣는 까닭은 이렇다. (1) 남은 값 가운데 가장 큰 것끼리 늘 짝지어 두 부분 모임의 균형을 욕심껏 잡는다. (2) 차 내기가 값의 실제 범위를 지수만큼 빠르게 줄인다. (3) 수를 $[0, N]$에서 고르게 뽑은 아무 사례에서 KK 뒤의 기대 차이는 $O(n^{-\Theta(\log n)})$으로 아무렇게나 나누는 것보다 훨씬 낫다.
+
+    차 내기 고르기에서 되돌아가 다른 짝짓기를 살피면 KK을 온전한 알고리즘(온전한 카마르카르-카프)으로 넓힐 수 있다.

@@ -1,89 +1,122 @@
-# In-Place vs Out-of-Place
+# 제자리 정렬과 제자리 아닌 정렬
 
-When choosing a sorting algorithm, time complexity often dominates the discussion, but **space complexity** can be equally important. On embedded systems with limited memory, in server environments processing millions of records, or on GPUs where memory is expensive, the amount of extra space an algorithm requires may determine whether it is feasible at all. This section formalizes the distinction between in-place and out-of-place sorting and examines the trade-offs involved.
+정렬 알고리즘을 고를 때 시간 복잡도가 이야기를 지배하는 일이 많지만 **공간 복잡도**도 그만큼 중요할 수 있다. 기억이 빠듯한 내장 시스템, 레코드 수백만 개를 처리하는 서버, 기억이 비싼 GPU에서는 알고리즘이 요구하는 여분 공간이 그것을 아예 쓸 수 있는지를 정하기도 한다. 이 절은 제자리 정렬과 제자리 아닌 정렬의 구분을 정식으로 세우고 그 맞바꿈을 살핀다.
 
-## Auxiliary Space
+## 보조 공간
 
-The **auxiliary space** of an algorithm is the extra memory it uses beyond the input itself. This excludes the space occupied by the input array and counts only additional allocations such as temporary arrays, recursion stack frames, and helper data structures.
+알고리즘의 **보조 공간**은 입력 자체를 넘어 쓰는 여분의 기억이다. 입력 배열이 차지하는 공간은 빼고, 임시 배열이나 재귀 스택 틀이나 도우미 자료 구조 같은 추가 할당만 센다.
 
-Auxiliary space differs from **total space**, which includes both the input and any additional memory:
+보조 공간은 입력과 추가 기억을 모두 담는 **전체 공간**과 다르다.
 
 $$
-\text{Total space} = \text{Input space} + \text{Auxiliary space}
+\text{전체 공간} = \text{입력 공간} + \text{도움 공간}
 $$
 
-For sorting $n$ elements, the input space is $\Theta(n)$. The interesting question is how much *additional* space the algorithm requires.
+원소 $n$개를 정렬할 때 입력 공간은 $\Theta(n)$이다. 흥미로운 물음은 알고리즘이 *추가로* 얼마나 많은 공간을 쓰는가이다.
 
-## In-Place Sorting
+## 제자리 정렬
 
-A sorting algorithm is **in-place** if it uses only $O(1)$ auxiliary space — that is, a constant amount of extra memory regardless of the input size. The algorithm rearranges elements within the original array using swaps and local variables, without allocating a second array.
+정렬 알고리즘이 보조 공간을 $O(1)$만, 곧 입력 크기와 무관하게 일정한 여분 기억만 쓰면 **제자리**이다. 그 알고리즘은 둘째 배열을 잡지 않고 자리바꿈과 지역 변수로 본디 배열 안에서 원소를 다시 늘어놓는다.
 
-!!! note "Relaxed Definition"
-    Some authors use a relaxed definition that allows $O(\log n)$ auxiliary space, which accounts for the recursion stack in algorithms like quicksort. Under the strict $O(1)$ definition, only iterative algorithms qualify. Throughout this book, we use the relaxed $O(\log n)$ convention unless stated otherwise.
+!!! note "느슨한 정의"
+    어떤 이들은 퀵 정렬 같은 알고리즘의 재귀 스택을 셈에 넣어 보조 공간 $O(\log n)$을 허락하는 느슨한 정의를 쓴다. 엄격한 $O(1)$ 정의에서는 되풀이 알고리즘만 해당된다. 이 책에서는 따로 밝히지 않는 한 느슨한 $O(\log n)$ 관례를 쓴다.
 
-### Examples of In-Place Algorithms
+### 제자리 알고리즘의 보기
 
-**Insertion sort** maintains a sorted prefix of the array and inserts each new element into its correct position by shifting elements one position to the right. The only extra storage needed is a single temporary variable to hold the element being inserted.
+**삽입 정렬**은 배열의 정렬된 앞부분을 지키고 원소를 한 자리씩 오른쪽으로 밀어 새 원소를 제자리에 넣는다. 필요한 여분 저장은 넣는 원소를 담을 임시 변수 하나뿐이다.
 
-**Heapsort** builds a max-heap in the original array and repeatedly extracts the maximum. The heap structure is maintained using array indices alone, requiring $O(1)$ auxiliary space.
+**힙 정렬**은 본디 배열 안에 최대 힙을 세우고 최댓값을 되풀이해 꺼낸다. 힙의 짜임을 배열 색인만으로 지키므로 보조 공간이 $O(1)$이다.
 
-**Quicksort** partitions the array around a pivot element and recursively sorts the two halves. The partitioning is done in place, but the recursion stack requires $O(\log n)$ space in the best and average cases. In the worst case (already sorted input with naive pivot selection), the stack depth grows to $O(n)$.
+**퀵 정렬**은 축 원소를 중심으로 배열을 나누고 두 절반을 재귀적으로 정렬한다. 나누기는 제자리에서 하지만 재귀 스택이 최선과 평균의 경우 $O(\log n)$ 공간을 쓴다. 최악의 경우(순진하게 축을 고른 이미 정렬된 입력) 스택 깊이가 $O(n)$까지 자란다.
 
-## Out-of-Place Sorting
+## 제자리 아닌 정렬
 
-A sorting algorithm is **out-of-place** if it requires $\Theta(n)$ or more auxiliary space. Typically, this means allocating a second array of the same size as the input.
+정렬 알고리즘이 보조 공간을 $\Theta(n)$ 이상 쓰면 **제자리가 아니다**. 대개 입력과 같은 크기의 둘째 배열을 잡는다는 뜻이다.
 
-### Examples of Out-of-Place Algorithms
+### 제자리 아닌 알고리즘의 보기
 
-**Merge sort** divides the array in half, recursively sorts each half, and merges the two sorted halves into a temporary array. The merge step requires $\Theta(n)$ auxiliary space for the temporary array. Although in-place merge algorithms exist, they are significantly more complex and have worse constant factors.
+**병합 정렬**은 배열을 반으로 나누고 각 절반을 재귀적으로 정렬한 뒤 정렬된 두 절반을 임시 배열로 합친다. 합치는 단계에 임시 배열을 위한 보조 공간 $\Theta(n)$이 든다. 제자리 병합 알고리즘도 있지만 훨씬 까다롭고 상수 배가 나쁘다.
 
-**Counting sort** allocates a count array of size $k$ (the range of key values) and an output array of size $n$, requiring $\Theta(n + k)$ auxiliary space.
+**계수 정렬**은 (열쇠 값의 범위인) 크기 $k$의 세기 배열과 크기 $n$의 출력 배열을 잡아 보조 공간이 $\Theta(n + k)$이다.
 
-**Radix sort** uses counting sort as a subroutine and inherits its $\Theta(n + k)$ space requirement for each digit pass.
+**기수 정렬**은 계수 정렬을 부프로그램으로 쓰므로 자릿수마다 그 $\Theta(n + k)$의 공간 요구를 물려받는다.
 
-## Space Complexity Classification
+## 공간 복잡도로 나누기
 
-The following table classifies common sorting algorithms by their auxiliary space usage.
+다음 표는 흔한 정렬 알고리즘을 보조 공간 사용량으로 나눈다.
 
-| Algorithm | Auxiliary Space | Classification |
+| 알고리즘 | 보조 공간 | 갈래 |
 |-----------|----------------|----------------|
-| Bubble sort | $O(1)$ | In-place |
-| Selection sort | $O(1)$ | In-place |
-| Insertion sort | $O(1)$ | In-place |
-| Heapsort | $O(1)$ | In-place |
-| Shell sort | $O(1)$ | In-place |
-| Quicksort | $O(\log n)$ average | In-place (relaxed) |
-| Merge sort | $\Theta(n)$ | Out-of-place |
-| Counting sort | $\Theta(n + k)$ | Out-of-place |
-| Radix sort | $\Theta(n + k)$ | Out-of-place |
-| Bucket sort | $\Theta(n + k)$ | Out-of-place |
-| Timsort | $\Theta(n)$ | Out-of-place |
+| 거품 정렬 | $O(1)$ | 제자리 |
+| 선택 정렬 | $O(1)$ | 제자리 |
+| 삽입 정렬 | $O(1)$ | 제자리 |
+| 힙 정렬 | $O(1)$ | 제자리 |
+| 셸 정렬 | $O(1)$ | 제자리 |
+| 퀵 정렬 | 평균 $O(\log n)$ | 제자리 (느슨한 뜻으로) |
+| 병합 정렬 | $\Theta(n)$ | 제자리 아님 |
+| 계수 정렬 | $\Theta(n + k)$ | 제자리 아님 |
+| 기수 정렬 | $\Theta(n + k)$ | 제자리 아님 |
+| 양동이 정렬 | $\Theta(n + k)$ | 제자리 아님 |
+| 팀 정렬 | $\Theta(n)$ | 제자리 아님 |
 
-## Trade-Offs
+## 맞바꿈
 
-The choice between in-place and out-of-place sorting involves several trade-offs.
+제자리 정렬과 제자리 아닌 정렬 사이의 선택에는 맞바꿈이 여럿 있다.
 
-### Speed vs Space
+### 속도와 공간
 
-Out-of-place algorithms can be faster in practice. Merge sort's $O(n \log n)$ worst-case guarantee is attractive, but it pays for that guarantee with $\Theta(n)$ extra space. Quicksort matches merge sort's average-case performance while using only $O(\log n)$ auxiliary space, but its worst case degrades to $O(n^2)$.
+제자리 아닌 알고리즘이 실제로 더 빠를 수 있다. 병합 정렬의 최악 $O(n \log n)$ 보장은 매력적이지만 그 대가로 여분 공간 $\Theta(n)$을 치른다. 퀵 정렬은 보조 공간을 $O(\log n)$만 쓰면서 병합 정렬의 평균 성능과 맞먹지만 최악의 경우 $O(n^2)$으로 나빠진다.
 
-### Stability vs In-Place
+### 안정성과 제자리
 
-Achieving both stability and in-place operation simultaneously is difficult. Among the common $O(n \log n)$ algorithms:
+안정성과 제자리 동작을 함께 이루기는 어렵다. 흔한 $O(n \log n)$ 알고리즘 가운데 다음과 같다.
 
-- **Merge sort** is stable but not in-place.
-- **Heapsort** is in-place but not stable.
-- **Quicksort** is in-place (relaxed) but not stable.
+- **병합 정렬**은 안정적이지만 제자리가 아니다.
+- **힙 정렬**은 제자리이지만 안정적이지 않다.
+- **퀵 정렬**은 (느슨한 뜻으로) 제자리이지만 안정적이지 않다.
 
-This is one reason Python's Timsort accepts $\Theta(n)$ auxiliary space: it provides both $O(n \log n)$ worst-case time and stability, which are more valuable for a general-purpose library sort than minimizing memory usage.
+파이썬의 팀 정렬이 보조 공간 $\Theta(n)$을 받아들이는 한 까닭이 이것이다. 최악 $O(n \log n)$ 시간과 안정성을 함께 주는데, 두루 쓰이는 라이브러리 정렬에는 기억을 아끼는 것보다 그 둘이 더 값지다.
 
-### Cache Performance
+### 캐시 성능
 
-In-place algorithms often have better **cache performance** because they operate on the original array without jumping between separate memory regions. However, this is not always the case: merge sort's sequential access pattern can be cache-friendly despite its out-of-place nature, while heapsort's heap operations exhibit poor locality.
+제자리 알고리즘은 서로 떨어진 기억 영역 사이를 오가지 않고 본디 배열에서 도므로 **캐시 성능**이 나은 경우가 많다. 그러나 늘 그렇지는 않다. 병합 정렬은 제자리가 아니어도 차례로 접근하는 방식이라 캐시에 잘 맞을 수 있고, 힙 정렬의 힙 연산은 국소성이 나쁘다.
 
-!!! warning "Destructive In-Place Sorting"
-    In-place sorting modifies the input array. If the original order must be preserved (e.g., for later use or rollback), the caller must make a copy before sorting. This hidden cost can negate the space savings of an in-place algorithm.
+!!! warning "본디 것을 망가뜨리는 제자리 정렬"
+    제자리 정렬은 입력 배열을 고친다. (나중에 쓰거나 되돌리려고) 본디 순서를 지켜야 하면 부르는 쪽에서 정렬 전에 사본을 만들어야 한다. 이 숨은 비용이 제자리 알고리즘의 공간 절약을 없앨 수 있다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 8.
+
+
+## 연습문제
+
+**연습문제 1.**
+제자리 정렬과 제자리 아닌 정렬을 정식으로 정의하고 비교 기반 정렬에서의 뜻을 설명하라.
+
+??? success "연습문제 1 풀이"
+    정식 정의는 정렬 알고리즘 설계를 옥죄는 이론적 바탕을 세운다. 이 바탕을 이해하면 알고리즘을 고르는 데 길잡이가 되고 $\Omega(n\log n)$ 벽이 언제 적용되는지 드러난다.
+
+---
+
+**연습문제 2.**
+배열 $[38, 27, 43, 3, 9, 82, 10]$으로 제자리 정렬과 제자리 아닌 정렬을 보여라.
+
+??? success "연습문제 2 풀이"
+    그 개념을 주어진 배열에 적용하며 관련된 단계를 하나씩 보여라. 이 보기는 추상적인 정의를 손에 잡히게 하고 모서리 경우를 짚어야 한다.
+
+---
+
+**연습문제 3.**
+이 쪽에서 밝힌 주된 결과를 증명하라.
+
+??? success "연습문제 3 풀이"
+    설명한 증명 기법(결정 트리, 적수, 세기)을 쓰라. 주장을 밝히고 논증을 세운 뒤 빈틈없이 밀고 나가라. $\square$
+
+---
+
+**연습문제 4.**
+제자리 정렬과 제자리 아닌 정렬을 `torch.sort`의 구현에 어떤 실마리를 주는가?
+
+??? success "연습문제 4 풀이"
+    파이토치의 정렬 연산은 이 쪽의 이론적 제약을 지켜야 한다. GPU 정렬에서는 병렬성 요구가 알고리즘 선택을 더 옥죈다. 이론적 한계를 이해하면 데이터의 크기와 종류에 맞는 알고리즘을 고르는 데 도움이 된다.

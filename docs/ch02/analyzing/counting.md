@@ -1,124 +1,152 @@
-# Counting Operations
+# 연산 세기
 
-To determine an algorithm's running time, we count the number of **primitive
-operations** it executes as a function of the input size $n$. Each primitive
-operation — an assignment, a comparison, an arithmetic operation, or an array
-access — takes constant time, so the total running time is proportional to the
-total count. This line-by-line accounting is the foundation on which all asymptotic
-analysis rests.
+알고리즘의 실행 시간을 알아내려면 입력 크기 $n$의 함수로서 수행되는 **기본 연산** 의
+횟수를 세어야 한다. 대입, 비교, 산술 연산, 배열 접근 같은 각각의 기본 연산은
+상수 시간이 걸리므로 전체 실행 시간은 전체 횟수에 비례한다. 이 줄 단위 계산이 모든
+점근적 분석이 딛고 서 있는 토대이다.
 
-## Primitive Operations
+## 기본 연산
 
-A **primitive operation** (or elementary operation) is any instruction that the
-machine executes in $O(1)$ time, regardless of input size. Common primitive
-operations include:
+**기본 연산**(또는 초등 연산)은 입력 크기와 무관하게 기계가 $O(1)$ 시간에 수행하는
+명령이다. 흔한 기본 연산은 다음과 같다.
 
-| Operation | Examples |
+| 연산 | 예 |
 |---|---|
-| Assignment | `x = 5`, `temp = A[i]` |
-| Comparison | `x < y`, `A[i] == target` |
-| Arithmetic | `x + y`, `i * 2`, `n / 2` |
-| Array access | `A[i]`, `A[i] = v` |
-| Return | `return x` |
+| 대입 | `x = 5`, `temp = A[i]` |
+| 비교 | `x < y`, `A[i] == target` |
+| 산술 | `x + y`, `i * 2`, `n / 2` |
+| 배열 접근 | `A[i]`, `A[i] = v` |
+| 반환 | `return x` |
 
-We assign a cost of 1 to each primitive operation. The total cost $T(n)$ of an
-algorithm is the sum of costs over all executed operations.
+각 기본 연산에 비용 1을 부여한다. 알고리즘의 전체 비용 $T(n)$은 수행되는 모든
+연산의 비용을 더한 값이다.
 
-## Line-by-Line Counting
+## 줄 단위로 세기
 
-The standard method is to annotate each line with its cost and the number of times it
-executes, then sum the products.
+표준적인 방법은 각 줄에 비용과 수행 횟수를 적어 넣은 뒤 그 곱들을 더하는 것이다.
 
-??? example "Sum of Array Elements"
+??? example "배열 원소의 합"
 
     ```
     Sum(A, n):
-    1.  total = 0                  cost c1,  runs 1 time
-    2.  for i = 0 to n - 1:       cost c2,  runs n + 1 times (including final test)
-    3.      total = total + A[i]   cost c3,  runs n times
-    4.  return total               cost c4,  runs 1 time
+    1.  total = 0                  비용 c1,  1번 수행
+    2.  for i = 0 to n - 1:       비용 c2,  n + 1번 수행(마지막 판정 포함)
+    3.      total = total + A[i]   비용 c3,  n번 수행
+    4.  return total               비용 c4,  1번 수행
     ```
 
-    The total operation count is:
+    전체 연산 횟수는 다음과 같다.
 
     $$
     T(n) = c_1 \cdot 1 + c_2 \cdot (n + 1) + c_3 \cdot n + c_4 \cdot 1
     $$
 
-    Expanding:
+    전개하면
 
     $$
     T(n) = (c_2 + c_3) \cdot n + (c_1 + c_2 + c_4)
     $$
 
-    This is a linear function of $n$, so $T(n) = \Theta(n)$.
+    이는 $n$의 일차 함수이므로 $T(n) = \Theta(n)$이다.
 
-## Simplifying the Count
+## 세는 과정 단순화하기
 
-In practice, we do not track individual constants $c_1, c_2, \ldots$ because
-asymptotic notation absorbs them. The simplified approach:
+실무에서는 점근 표기법이 상수들을 흡수하므로 개별 상수 $c_1, c_2, \ldots$를
+따로 추적하지 않는다. 단순화된 접근은 다음과 같다.
 
-1. **Identify the dominant term.** Find which operation executes the most times.
-2. **Count executions, not cost.** Since each primitive costs $O(1)$, we only need the
-   execution count.
-3. **Express as a function of $n$.** The dominant term's execution count gives the
-   growth rate.
+1. **지배항을 찾는다.** 어느 연산이 가장 많이 수행되는지 찾는다.
+2. **비용이 아니라 수행 횟수를 센다.** 각 기본 연산이 $O(1)$이므로 수행 횟수만
+   있으면 된다.
+3. **$n$의 함수로 표현한다.** 지배항의 수행 횟수가 증가 속도를 준다.
 
-!!! tip "Constant Factors Do Not Matter"
+!!! tip "상수 인자는 중요하지 않다"
 
-    Whether an assignment takes 1 nanosecond or 5 nanoseconds does not change the
-    asymptotic class. We care about *how many times* each line runs, not *how long*
-    each execution takes.
+    대입이 1나노초 걸리든 5나노초 걸리든 점근적 부류는 바뀌지 않는다. 우리가
+    관심 있는 것은 각 줄이 *몇 번 수행되는가* 이지 한 번 수행에 *얼마나 걸리는가* 가
+    아니다.
 
-## Counting in Detail: Insertion Sort
+## 자세히 세어 보기: 삽입 정렬
 
-A more involved example shows how counting handles input-dependent behavior.
+좀 더 복잡한 예를 통해 입력에 의존하는 동작을 어떻게 세는지 살펴보자.
 
 ```
 InsertionSort(A, n):
-1.  for j = 1 to n - 1:              runs n times (loop test)
-2.      key = A[j]                    runs n - 1 times
-3.      i = j - 1                     runs n - 1 times
-4.      while i >= 0 and A[i] > key:  runs t_j times for each j
-5.          A[i + 1] = A[i]           runs t_j - 1 times for each j
-6.          i = i - 1                 runs t_j - 1 times for each j
-7.      A[i + 1] = key                runs n - 1 times
+1.  for j = 1 to n - 1:              n번 수행(반복 판정)
+2.      key = A[j]                    n - 1번 수행
+3.      i = j - 1                     n - 1번 수행
+4.      while i >= 0 and A[i] > key:  각 j에 대해 t_j번 수행
+5.          A[i + 1] = A[i]           각 j에 대해 t_j - 1번 수행
+6.          i = i - 1                 각 j에 대해 t_j - 1번 수행
+7.      A[i + 1] = key                n - 1번 수행
 ```
 
-Here $t_j$ denotes the number of times the `while` loop test on line 4 executes for
-a given value of $j$. The total cost is:
+여기서 $t_j$는 주어진 $j$ 값에 대해 4번 줄의 `while` 판정이 수행되는 횟수를
+나타낸다. 전체 비용은 다음과 같다.
 
 $$
 T(n) = c_1 n + c_2(n-1) + c_3(n-1) + c_4 \sum_{j=1}^{n-1} t_j + c_5 \sum_{j=1}^{n-1}(t_j - 1) + c_6 \sum_{j=1}^{n-1}(t_j - 1) + c_7(n-1)
 $$
 
-The values of $t_j$ depend on the input:
+$t_j$의 값은 입력에 따라 달라진다.
 
-- **Best case** (sorted array): $t_j = 1$ for all $j$, so $\sum t_j = n - 1$ and
-  $T(n) = \Theta(n)$.
-- **Worst case** (reverse-sorted): $t_j = j$ for all $j$, so
-  $\sum t_j = \frac{n(n-1)}{2}$ and $T(n) = \Theta(n^2)$.
+- **최선의 경우**(정렬된 배열): 모든 $j$에 대해 $t_j = 1$이므로 $\sum t_j = n - 1$이고
+  $T(n) = \Theta(n)$이다.
+- **최악의 경우**(역순으로 정렬된 배열): 모든 $j$에 대해 $t_j = j$이므로
+  $\sum t_j = \frac{n(n-1)}{2}$이고 $T(n) = \Theta(n^2)$이다.
 
-## Counting Rules Summary
+## 세는 규칙 요약
 
-| Construct | Operation Count |
+| 구문 | 연산 횟수 |
 |---|---|
-| Single statement | $O(1)$ |
-| Sequence of statements | Sum of individual costs |
-| `if-else` | Cost of condition $+$ max of branches (worst case) |
-| `for` loop ($n$ iterations) | $n \times$ (cost per iteration) |
-| Nested loops | Product of iteration counts $\times$ cost of innermost body |
-| Function call | Cost of executing the function body |
+| 단일 문장 | $O(1)$ |
+| 문장의 나열 | 각 비용의 합 |
+| `if-else` | 조건의 비용 $+$ 분기들의 최댓값(최악의 경우) |
+| `for` 반복문($n$번 반복) | $n \times$ (반복당 비용) |
+| 중첩 반복문 | 반복 횟수들의 곱 $\times$ 가장 안쪽 몸체의 비용 |
+| 함수 호출 | 함수 몸체를 수행하는 비용 |
 
-These rules compose: a loop containing a conditional containing another loop
-contributes the product of all iteration counts, adjusted for which branch executes.
+이 규칙들은 합성된다. 조건문을 담고 그 안에 또 반복문을 담은 반복문은 모든 반복
+횟수의 곱만큼 기여하되 어느 분기가 수행되는지에 따라 조정된다.
 
-!!! warning "Do Not Double-Count"
+!!! warning "이중으로 세지 말 것"
 
-    When a loop header includes a comparison (e.g., `i < n`), that comparison executes
-    one more time than the loop body — the final failing test. For asymptotic analysis
-    this difference is absorbed, but for exact counts it matters.
+    반복문 머리에 비교가 포함되어 있으면(예: `i < n`) 그 비교는 반복문 몸체보다
+    한 번 더 수행된다. 마지막에 실패하는 판정 때문이다. 점근적 분석에서는 이
+    차이가 흡수되지만 정확한 횟수를 셀 때는 중요하다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapters 2-4](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+연산 세기에서 다룬 분석 기법을 너비 $d$인 층 $L$개로 이루어진 신경망의 순전파에 적용하라.
+
+??? success "연습문제 1 풀이"
+    각 층은 행렬 곱($O(d^2)$)과 활성화($O(d)$)를 수행한다. 이 절의 기법을 사용하여 층당 비용을 $L$개 층에 걸쳐 결합하면 전체 순전파 복잡도를 얻는다.
+
+---
+
+**연습문제 2.**
+연산 세기의 분석 방법을 적용하여 작은 예제($n = 6$)를 따라가 보라. 정확한 연산 횟수를 세어라.
+
+??? success "연습문제 2 풀이"
+    $n = 6$에 대해 알고리즘이 수행하는 각 연산을 열거한다. 곱셈, 덧셈, 비교, 대입을 각각 따로 센다. 이를 합해 총합을 구한 뒤 빅오 표기법으로 표현한다.
+
+---
+
+**연습문제 3.**
+연산 세기의 분석을 사용하여 학습 루프의 어느 단계(순전파, 역전파, 최적화기 갱신)가 전체 실행 시간을 지배하는지 판단하라.
+
+??? success "연습문제 3 풀이"
+    각 단계에 분석을 따로 적용한다. 순전파 $O(BPL)$, 역전파 $O(BPL)$, 최적화기 갱신 $O(P)$. 복잡도가 가장 큰 단계가 지배한다. 배치 크기가 크고 층이 많으면 순전파와 역전파(각각 $O(BPL)$)가 최적화기 갱신($O(P)$)을 지배한다.
+
+---
+
+**연습문제 4.**
+연산 세기의 분석 기법이 논의된 알고리즘에 대해 꽉 조인 경계(상계와 하계가 일치)를 준다는 것을 증명하라.
+
+??? success "연습문제 4 풀이"
+    최악의 경우를 분석하여 상계를 보인다. 알고리즘이 최대 횟수의 연산을 수행하도록 강제하는 입력을 구성하여 하계를 보인다. 두 경계가 일치하면 분석이 꽉 조인 것이다($\Theta$ 표기법). $\square$

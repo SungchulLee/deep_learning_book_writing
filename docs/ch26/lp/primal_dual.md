@@ -1,135 +1,167 @@
-# Primal-Dual Method
+# 원문제-쌍대 방법
 
-The **primal-dual method** is a powerful framework for designing approximation algorithms. Rather than solving an LP and rounding, it constructs a feasible integer solution and a feasible dual solution simultaneously, using complementary slackness conditions to guide the construction. The dual solution provides a lower bound on OPT, enabling us to prove approximation guarantees without actually solving an LP.
+**원문제-쌍대 방법**은 어림 알고리즘을 짜는 힘 있는 틀이다. 선형 계획을 풀고 반올림하는 대신 올바른 정수 풀이와 올바른 쌍대 풀이를 함께 세우며, 서로 메우는 느슨함 조건이 그 세우기를 이끈다. 쌍대 풀이가 OPT의 아래 한계를 주므로 선형 계획을 실제로 풀지 않고도 어림 보장을 밝힐 수 있다.
 
-## LP Duality Background
+## 선형 계획 쌍대성의 바탕
 
-Consider a minimization problem formulated as an integer program, relaxed to an LP:
+정수 계획으로 적은 뒤 선형 계획으로 느슨하게 한 가장 작게 하기 문제를 보자.
 
-**Primal LP:**
+**원문제 선형 계획:**
 
 $$
 \min \sum_{j} c_j x_j \quad \text{s.t.} \quad \sum_{j} a_{ij} x_j \geq b_i \;\; \forall i, \quad x_j \geq 0
 $$
 
-**Dual LP:**
+**쌍대 선형 계획:**
 
 $$
 \max \sum_{i} b_i y_i \quad \text{s.t.} \quad \sum_{i} a_{ij} y_i \leq c_j \;\; \forall j, \quad y_i \geq 0
 $$
 
-By weak duality, any feasible dual solution provides a lower bound on the primal optimum (and hence on the integer optimum):
+약한 쌍대성에 따라 올바른 쌍대 풀이는 원문제의 가장 좋은 값(따라서 정수 가장 좋은 값)의 아래 한계를 준다.
 
 $$
 \sum_{i} b_i y_i \leq \text{OPT}_{\text{LP}} \leq \text{OPT}_{\text{IP}}
 $$
 
-## Complementary Slackness
+## 서로 메우는 느슨함
 
-At optimality, the primal and dual LP solutions satisfy **complementary slackness**:
+가장 좋은 자리에서 원문제와 쌍대 선형 계획 풀이는 **서로 메우는 느슨함**을 채운다.
 
-- **Primal CS:** If $x_j > 0$, then $\sum_{i} a_{ij} y_i = c_j$ (the dual constraint for $j$ is tight).
-- **Dual CS:** If $y_i > 0$, then $\sum_{j} a_{ij} x_j = b_i$ (the primal constraint for $i$ is tight).
+- **원문제 조건:** $x_j > 0$이면 $\sum_{i} a_{ij} y_i = c_j$이다($j$의 쌍대 조건이 빡빡하다).
+- **쌍대 조건:** $y_i > 0$이면 $\sum_{j} a_{ij} x_j = b_i$이다($i$의 원문제 조건이 빡빡하다).
 
-The primal-dual method relaxes these conditions, allowing a bounded violation:
+원문제-쌍대 방법은 이 조건을 느슨하게 하여 가둔 만큼의 어김을 허락한다.
 
-- **Relaxed Primal CS:** If $x_j > 0$, then $\frac{c_j}{\rho} \leq \sum_{i} a_{ij} y_i \leq c_j$.
+- **느슨하게 한 원문제 조건:** $x_j > 0$이면 $\frac{c_j}{\rho} \leq \sum_{i} a_{ij} y_i \leq c_j$이다.
 
-If we can construct an integer primal solution $x$ and a feasible dual $y$ satisfying this relaxed condition, then:
+이 느슨한 조건을 채우는 정수 원문제 풀이 $x$과 올바른 쌍대 풀이 $y$을 세울 수 있으면:
 
 $$
 \sum_j c_j x_j \leq \rho \sum_i b_i y_i \leq \rho \cdot \text{OPT}
 $$
 
-giving a $\rho$-approximation.
+$\rho$ 어림이 된다.
 
-## Generic Primal-Dual Schema
+## 일반 원문제-쌍대 얼개
 
-**Input:** An LP relaxation of a covering/packing problem.
+**들임:** 덮기나 담기 문제의 선형 계획 느슨하게 하기.
 
-1. Initialize: set all dual variables $y_i = 0$, primal $x_j = 0$.
-2. While some primal constraint is violated (the solution is infeasible):
-    - Select a violated constraint $i$.
-    - Raise $y_i$ until some dual constraint $j$ becomes tight.
-    - Set $x_j = 1$ (add element $j$ to the solution).
-    - Update: mark constraints newly satisfied by $x_j$.
-3. Return the primal solution $x$ and dual solution $y$.
+1. 첫자리매김: 모든 쌍대 변수 $y_i = 0$, 원문제 $x_j = 0$으로 둔다.
+2. 어떤 원문제 조건이 어겨지는 동안(풀이가 올바르지 않은 동안):
+    - 어겨진 조건 $i$을 고른다.
+    - 어떤 쌍대 조건 $j$이 빡빡해질 때까지 $y_i$을 올린다.
+    - $x_j = 1$으로 둔다(낱개 $j$을 풀이에 더한다).
+    - 고치기: $x_j$으로 새로 채워진 조건을 표시한다.
+3. 원문제 풀이 $x$과 쌍대 풀이 $y$을 돌려준다.
 
-## Application: Weighted Vertex Cover
+## 쓰임새: 무게 붙인 꼭짓점 덮기
 
-### LP Formulation
+### 선형 계획으로 적기
 
-For a graph $G = (V, E)$ with vertex weights $w_v$:
+꼭짓점 무게가 $w_v$인 그래프 $G = (V, E)$에 대해:
 
-**Primal:**
+**원문제:**
 
 $$
 \min \sum_{v \in V} w_v x_v \quad \text{s.t.} \quad x_u + x_v \geq 1 \;\; \forall (u,v) \in E, \quad x_v \geq 0
 $$
 
-**Dual:**
+**쌍대:**
 
 $$
 \max \sum_{(u,v) \in E} y_{uv} \quad \text{s.t.} \quad \sum_{(u,v) \in E} y_{uv} \leq w_v \;\; \forall v \in V, \quad y_{uv} \geq 0
 $$
 
-### Primal-Dual Algorithm
+### 원문제-쌍대 알고리즘
 
-1. Set all $y_{uv} = 0$.
-2. For each uncovered edge $(u, v)$:
-    - Raise $y_{uv}$ until the dual constraint for $u$ or $v$ becomes tight: $\sum_{e \ni v} y_e = w_v$.
-    - Add the tight vertex to the cover $C$.
-3. Return $C$.
+1. 모든 $y_{uv} = 0$으로 둔다.
+2. 덮이지 않은 모서리 $(u, v)$마다:
+    - $u$이나 $v$의 쌍대 조건이 빡빡해질 때까지 $y_{uv}$을 올린다: $\sum_{e \ni v} y_e = w_v$.
+    - 빡빡해진 꼭짓점을 덮기 $C$에 더한다.
+3. $C$을 돌려준다.
 
-### Analysis
+### 살피기
 
-!!! tip "Theorem: 2-Approximation for Weighted Vertex Cover"
-    The primal-dual algorithm produces a vertex cover $C$ with $w(C) \leq 2 \cdot \text{OPT}$.
+!!! tip "정리: 무게 붙인 꼭짓점 덮기의 2 어림"
+    원문제-쌍대 알고리즘은 $w(C) \leq 2 \cdot \text{OPT}$인 꼭짓점 덮기 $C$을 낸다.
 
-**Proof.** The dual solution $y$ is feasible by construction (we stop raising when a constraint becomes tight). Each vertex $v \in C$ has its dual constraint tight:
+**밝힘.** 세우는 방식 덕분에 쌍대 풀이 $y$은 올바르다(조건이 빡빡해지면 올리기를 멈춘다). 꼭짓점 $v \in C$마다 쌍대 조건이 빡빡하다.
 
 $$
 w(C) = \sum_{v \in C} w_v = \sum_{v \in C} \sum_{e \ni v} y_e \leq 2 \sum_{e \in E} y_e
 $$
 
-The factor 2 arises because each edge contributes to at most two vertex constraints. By weak duality:
+모서리마다 많아야 꼭짓점 조건 둘에 보태므로 갑절 2이 나온다. 약한 쌍대성에 따라:
 
 $$
 \sum_{e \in E} y_e \leq \text{OPT}
 $$
 
-Therefore $w(C) \leq 2 \cdot \text{OPT}$. $\square$
+따라서 $w(C) \leq 2 \cdot \text{OPT}$이다. $\square$
 
-## Application: Set Cover
+## 쓰임새: 모임 덮기
 
-For universe $U$ and sets $S_1, \ldots, S_m$ with costs $c_j$, the primal-dual method yields an $f$-approximation where $f = \max_i |\{j : i \in S_j\}|$ is the maximum frequency of any element.
+온 모임 $U$과 비용이 $c_j$인 모임 $S_1, \ldots, S_m$에서 원문제-쌍대 방법은 $f$ 어림을 준다. 여기서 $f = \max_i |\{j : i \in S_j\}|$은 낱개가 나타나는 최대 잦기이다.
 
-The dual has a variable $y_i$ for each element $i \in U$:
+쌍대는 낱개 $i \in U$마다 변수 $y_i$을 가진다.
 
 $$
 \max \sum_{i \in U} y_i \quad \text{s.t.} \quad \sum_{i \in S_j} y_i \leq c_j \;\; \forall j, \quad y_i \geq 0
 $$
 
-The algorithm raises dual variables for uncovered elements until some set becomes tight, then adds that set.
+알고리즘은 어떤 모임이 빡빡해질 때까지 덮이지 않은 낱개의 쌍대 변수를 올린 뒤 그 모임을 더한다.
 
-## Advantages of the Primal-Dual Method
+## 원문제-쌍대 방법의 장점
 
-1. **No LP solver needed.** The algorithm is combinatorial --- it never solves the LP explicitly.
-2. **Strong guarantees.** The dual provides a certificate of near-optimality.
-3. **Efficiency.** Typically runs in nearly linear time in the problem size.
+1. **선형 계획 풀개가 필요 없다.** 이 알고리즘은 조합적이며 선형 계획을 드러내어 풀지 않는다.
+2. **센 보장.** 쌍대가 가장 좋은 값에 가깝다는 증서를 준다.
+3. **효율.** 흔히 문제 크기에 거의 선형인 시간에 돈다.
 
-??? example "Worked Example: Weighted Vertex Cover"
-    **Graph:** $V = \{a, b, c, d\}$, edges $\{(a,b), (b,c), (c,d)\}$, weights $w_a = 3, w_b = 2, w_c = 4, w_d = 1$.
+??? example "풀어 본 보기: 무게 붙인 꼭짓점 덮기"
+    **그래프:** $V = \{a, b, c, d\}$, 모서리 $\{(a,b), (b,c), (c,d)\}$, 무게 $w_a = 3, w_b = 2, w_c = 4, w_d = 1$.
 
-    **Step 1:** Edge $(a,b)$ uncovered. Raise $y_{ab}$ until tight. $w_b = 2$ is smaller, so $y_{ab} = 2$, vertex $b$ becomes tight. Add $b$ to $C$.
+    **걸음 1:** 모서리 $(a,b)$이 덮이지 않았다. 빡빡해질 때까지 $y_{ab}$을 올린다. $w_b = 2$이 더 작으므로 $y_{ab} = 2$이고 꼭짓점 $b$이 빡빡해진다. $b$을 $C$에 더한다.
 
-    **Step 2:** Edge $(b,c)$ is now covered by $b$. Edge $(c,d)$ uncovered. Raise $y_{cd}$ until tight. $w_d = 1$ is smaller, so $y_{cd} = 1$, vertex $d$ becomes tight. Add $d$ to $C$.
+    **걸음 2:** 이제 모서리 $(b,c)$은 $b$으로 덮였다. 모서리 $(c,d)$이 덮이지 않았다. 빡빡해질 때까지 $y_{cd}$을 올린다. $w_d = 1$이 더 작으므로 $y_{cd} = 1$이고 꼭짓점 $d$이 빡빡해진다. $d$을 $C$에 더한다.
 
-    **Result:** $C = \{b, d\}$, cost $= 2 + 1 = 3$. Dual value $= y_{ab} + y_{cd} = 2 + 1 = 3$.
+    **결과:** $C = \{b, d\}$, 비용 $= 2 + 1 = 3$. 쌍대 값 $= y_{ab} + y_{cd} = 2 + 1 = 3$.
 
-    **OPT** $\geq 3$ (dual bound). Ratio: $3/3 = 1 \leq 2$.
+    **OPT** $\geq 3$(쌍대 한계). 비율: $3/3 = 1 \leq 2$.
 
-## Reference
+## 참고 문헌
 
 - Vazirani, V. V. (2001). *Approximation Algorithms*. Springer, Chapters 12--15.
 - Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press, Chapter 7.
+
+## 연습문제
+
+**연습문제 1.**
+원문제-쌍대 방법의 어림 알고리즘을 설명하고 그 어림 보장을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 다항식 시간에 돌며 가장 좋은 값의 밝힐 수 있는 갑절 안에 드는 풀이를 낸다. 어림 비율은 알고리즘이 내놓은 것을 가장 좋은 값의 아래 한계(가장 작게 하기)나 위 한계(가장 크게 하기), 곧 선형 계획 느슨하게 하기 값이나 조합 한계, 문제의 짜임 성질과 이어 밝힌다. $\square$
+
+---
+
+**연습문제 2.**
+원문제-쌍대 방법의 어림 비율을 밝히는 데 어떤 아래 한계 재주를 쓰는가?
+
+??? success "연습문제 2 풀이"
+    밝힘은 흔히 알고리즘의 풀이를 느슨하게 한 한계(선형 계획 느슨하게 하기, 분수 풀이, 조합 아래 한계)와 견준다. 가장 작게 하기에서는 $ALG \leq \rho \cdot LP^* \leq \rho \cdot OPT$이다. 가장 크게 하기에서는 $ALG \geq OPT / \rho$이다. 아래 한계는 효율 좋게 셈할 수 있고 쓸모 있는 비율을 줄 만큼 빡빡해야 한다. $\square$
+
+---
+
+**연습문제 3.**
+원문제-쌍대 방법의 어림 비율을 더 좋게 할 수 있는가? 알려진 어려움 결과는 무엇인가?
+
+??? success "연습문제 3 풀이"
+    어림 비율이 얼마나 빡빡한지는 복잡도 이론의 가정(P $\neq$ NP, 하나뿐인 놀이 추측 등)에 달렸다. 어떤 문제에서는 단순한 욕심쟁이나 반올림 알고리즘이 여느 가정 아래 이미 가장 좋다. 다른 문제에서는 가장 좋은 알고리즘과 가장 센 어려움 결과 사이에 틈이 있어 아직 풀리지 않은 연구 문제로 남아 있다. $\square$
+
+---
+
+**연습문제 4.**
+원문제-쌍대 방법을 구체적인 보기에 써서 어림 비율이 참임을 확인하라.
+
+??? success "연습문제 4 풀이"
+    작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$

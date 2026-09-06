@@ -1,203 +1,198 @@
-# PCA Fundamentals
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Linear dimensionality reduction through variance maximization.
+# 주성분 분석의 바탕
+흩어짐 가장 크게 하기로 하는 선형 차원 줄이기.
 
 ---
 
-## Overview
+## 개요
 
-**Principal Component Analysis (PCA)** is the most widely used technique for linear dimensionality reduction. Given data in $\mathbb{R}^d$, PCA finds an orthogonal set of $k < d$ directions along which the data exhibits maximum variance, then projects onto this lower-dimensional subspace. The result is an optimal linear compression in the sense of minimizing mean squared reconstruction error.
+**주성분 분석(PCA)**은 선형 차원 줄이기에 가장 널리 쓰이는 재주이다. $\mathbb{R}^d$의 자료가 주어질 때 주성분 분석은 자료의 흩어짐이 가장 큰 서로 직교하는 방향 $k < d$개를 찾아 그 낮은 차원 아래 공간에 쏜다. 그 결과는 평균 제곱 다시 세우기 어긋남을 가장 작게 한다는 뜻에서 가장 좋은 선형 눌러 담기이다.
 
-Understanding PCA is essential background for autoencoders and variational autoencoders, which generalize PCA to nonlinear settings.
-
----
-
-## Learning Objectives
-
-After completing this section, you will be able to:
-
-- Formulate PCA as a constrained variance-maximization problem and derive the eigenvector solution
-- Implement PCA via eigendecomposition and SVD, understanding the trade-offs of each approach
-- Quantify information loss through reconstruction error and explained variance ratios
-- Interpret loadings (principal directions) and scores (projected coordinates) in applied settings
-- Connect PCA to linear autoencoders and understand why nonlinear extensions are necessary
-- Apply PCA to practical problems including image compression, denoising, and feature extraction
+주성분 분석을 알아 두는 것은 이를 비선형으로 넓힌 자기 부호기와 변분 자기 부호기의 바탕으로 꼭 필요하다.
 
 ---
 
-## Geometric Intuition
+## 학습 목표
 
-PCA answers a simple geometric question: given a cloud of points in high-dimensional space, what is the best low-dimensional "flat" (affine subspace) to project them onto?
+이 절을 마치면 다음을 할 수 있다:
 
-"Best" here means preserving as much of the data's spread as possible. The first principal component captures the direction of greatest variance; the second captures the most variance orthogonal to the first; and so on. Each successive direction explains progressively less variance.
+- 주성분 분석을 제약 있는 흩어짐 가장 크게 하기 문제로 세우고 고유벡터 풀이를 이끌어 내기
+- 고윳값 쪼개기와 특잇값 쪼개기로 주성분 분석을 짜고 저마다의 맞바꿈 이해하기
+- 다시 세우기 어긋남과 설명하는 흩어짐 비로 잃은 앎을 값으로 재기
+- 실제 상황에서 실림(주방향)과 점수(쏜 좌표) 풀이하기
+- 주성분 분석을 선형 자기 부호기와 잇고 왜 비선형으로 넓혀야 하는지 이해하기
+- 그림 눌러 담기, 잡음 없애기, 특징 뽑기 같은 실제 문제에 주성분 분석 쓰기
 
-For centered data $\mathbf{X} \in \mathbb{R}^{n \times d}$ with covariance $\boldsymbol{\Sigma} = \frac{1}{n}\mathbf{X}^T\mathbf{X}$, the variance of projections onto a unit vector $\mathbf{v}$ is:
+---
+
+## 기하학적 직관
+
+주성분 분석은 단순한 기하 물음에 답한다. 차원 높은 공간에 점 구름이 있을 때 그것을 쏘아 넣을 가장 좋은 낮은 차원 "평평한 것"(아핀 아래 공간)은 무엇인가?
+
+여기서 "가장 좋다"는 자료가 퍼진 정도를 되도록 많이 지킨다는 뜻이다. 첫 주성분은 흩어짐이 가장 큰 방향을, 둘째는 첫째와 직교하는 방향 가운데 흩어짐이 가장 큰 방향을 잡고, 그렇게 이어진다. 뒤로 갈수록 방향마다 설명하는 흩어짐이 줄어든다.
+
+공분산이 $\boldsymbol{\Sigma} = \frac{1}{n}\mathbf{X}^T\mathbf{X}$인 가운데 맞춘 자료 $\mathbf{X} \in \mathbb{R}^{n \times d}$에서 단위 벡터 $\mathbf{v}$에 쏜 것의 흩어짐은 다음과 같다:
 
 $$\operatorname{Var}(\mathbf{X}\mathbf{v}) = \mathbf{v}^T \boldsymbol{\Sigma} \mathbf{v}$$
 
-Maximizing this subject to $\|\mathbf{v}\| = 1$ yields the eigenvector of $\boldsymbol{\Sigma}$ with the largest eigenvalue. The full PCA solution consists of the top-$k$ eigenvectors.
+$\|\mathbf{v}\| = 1$ 아래에서 이를 가장 크게 하면 가장 큰 고윳값에 딸린 $\boldsymbol{\Sigma}$의 고유벡터를 얻는다. 온전한 주성분 분석 풀이는 으뜸 $k$개 고유벡터로 이루어진다.
 
 ---
 
-## Key Equations at a Glance
+## 핵심 식 한눈에 보기
 
-| Concept | Formula |
+| 개념 | 식 |
 |---------|---------|
-| **Covariance matrix** | $\boldsymbol{\Sigma} = \frac{1}{n}\mathbf{X}^T\mathbf{X}$ |
-| **Eigenproblem** | $\boldsymbol{\Sigma}\mathbf{v} = \lambda \mathbf{v}$ |
-| **Projection (scores)** | $\mathbf{z} = \mathbf{W}^T \mathbf{x}$ |
-| **Loadings** | $\mathbf{W} = [\mathbf{v}_1, \ldots, \mathbf{v}_k]$ |
-| **Reconstruction** | $\hat{\mathbf{x}} = \mathbf{W}\mathbf{W}^T \mathbf{x}$ |
-| **Reconstruction error** | $\sum_{i=k+1}^{d} \lambda_i$ |
-| **SVD decomposition** | $\mathbf{X} = \mathbf{U}\mathbf{S}\mathbf{V}^T$ |
-| **Explained variance ratio** | $\text{EVR}_k = \lambda_k / \sum_{i=1}^d \lambda_i$ |
+| **공분산 행렬** | $\boldsymbol{\Sigma} = \frac{1}{n}\mathbf{X}^T\mathbf{X}$ |
+| **고윳값 문제** | $\boldsymbol{\Sigma}\mathbf{v} = \lambda \mathbf{v}$ |
+| **쏘기(점수)** | $\mathbf{z} = \mathbf{W}^T \mathbf{x}$ |
+| **실림** | $\mathbf{W} = [\mathbf{v}_1, \ldots, \mathbf{v}_k]$ |
+| **다시 세우기** | $\hat{\mathbf{x}} = \mathbf{W}\mathbf{W}^T \mathbf{x}$ |
+| **다시 세우기 어긋남** | $\sum_{i=k+1}^{d} \lambda_i$ |
+| **특잇값 쪼개기** | $\mathbf{X} = \mathbf{U}\mathbf{S}\mathbf{V}^T$ |
+| **설명하는 흩어짐 비** | $\text{EVR}_k = \lambda_k / \sum_{i=1}^d \lambda_i$ |
 
 ---
 
-## Preprocessing
+## 미리 다듬기
 
-Before computing principal components, data must be preprocessed. The covariance matrix depends on the scale and location of features, so failing to preprocess can produce misleading results.
+주성분을 셈하기 앞서 자료를 미리 다듬어야 한다. 공분산 행렬은 특징의 잣수와 자리에 기대므로 다듬지 않으면 잘못된 결과가 나올 수 있다.
 
-### Mean Centering (Required)
+### 평균으로 가운데 맞추기(꼭 필요)
 
-Subtract the sample mean from each observation:
+관측마다 표본 평균을 뺀다:
 
 $$\boldsymbol{\mu} = \frac{1}{n}\sum_{i=1}^n \mathbf{x}^{(i)}, \qquad \mathbf{x}^{(i)} \leftarrow \mathbf{x}^{(i)} - \boldsymbol{\mu}$$
 
-Mean centering ensures that the covariance matrix captures variance rather than the location of the data cloud. Without centering, the first principal component would simply point toward the data centroid.
+평균으로 가운데를 맞추면 공분산 행렬이 자료 구름의 자리가 아니라 흩어짐을 잡는다. 가운데를 맞추지 않으면 첫 주성분이 그저 자료의 무게 중심 쪽을 가리킬 뿐이다.
 
-### Feature Scaling (Recommended)
+### 특징 잣수 맞추기(권함)
 
-When features have different units or vastly different magnitudes, standardize each feature to unit variance:
+특징마다 단위가 다르거나 크기가 크게 다르면 특징마다 단위 흩어짐으로 표준화한다:
 
 $$\sigma_j^2 = \frac{1}{n}\sum_{i=1}^n \left(x_j^{(i)}\right)^2, \qquad x_j^{(i)} \leftarrow x_j^{(i)} / \sigma_j$$
 
-Without scaling, PCA on a dataset with features measured in meters and kilometers would be dominated by the kilometer-scale features. Standardization makes PCA equivalent to eigendecomposition of the **correlation matrix** rather than the covariance matrix.
+잣수를 맞추지 않으면 미터와 킬로미터로 잰 특징이 섞인 자료 묶음에서 주성분 분석이 킬로미터 잣수의 특징에 지배된다. 표준화하면 주성분 분석이 공분산 행렬이 아니라 **상관 행렬**의 고윳값 쪼개기와 같아진다.
 
-**Exception:** When all features share the same units and scale (e.g., pixel intensities in images), scaling may not be necessary and can even be counterproductive.
+**예외:** 모든 특징이 같은 단위와 잣수를 가질 때(예컨대 그림의 화소 밝기)는 잣수 맞추기가 필요 없고 오히려 해로울 수 있다.
 
 ```python
 def preprocess(X):
-    """Center and scale data for PCA."""
+    """주성분 분석을 위해 자료의 가운데를 맞추고 잣수를 맞춘다."""
     mu = X.mean(axis=0)
     X_centered = X - mu
 
     sigma = X_centered.std(axis=0)
-    X_scaled = X_centered / (sigma + 1e-10)  # Avoid division by zero
+    X_scaled = X_centered / (sigma + 1e-10)  # 0으로 나누는 것을 피한다
 
     return X_scaled, mu, sigma
 ```
 
 ---
 
-## Loadings and Scores
+## 실림과 점수
 
-PCA produces two fundamental outputs with specific names in the statistical literature.
+주성분 분석은 통계 문헌에서 특정한 이름을 가진 바탕 결과 둘을 낸다.
 
-### Loadings (Principal Directions)
+### 실림(주방향)
 
-**Loadings** are the coefficients that define each principal component as a linear combination of original features. For the $k$-th principal component:
+**실림**은 주성분마다를 본디 특징의 선형 아우름으로 정하는 계수이다. $k$번째 주성분에 대해:
 
 $$\text{Loading}_k = \mathbf{v}_k = [v_{k1}, v_{k2}, \ldots, v_{kd}]^T$$
 
-Each loading coefficient $v_{kj}$ represents the contribution of feature $j$ to component $k$. Large absolute values indicate strong influence; the sign indicates the direction of contribution. Since eigenvectors are unit vectors, we have $\|\mathbf{v}_k\| = 1$.
+실림 계수 $v_{kj}$은 특징 $j$이 성분 $k$에 보태는 몫을 뜻한다. 절댓값이 크면 영향이 세고 부호는 보태는 방향을 뜻한다. 고유벡터가 단위 벡터이므로 $\|\mathbf{v}_k\| = 1$이다.
 
-The full loading matrix $\mathbf{W} = [\mathbf{v}_1, \ldots, \mathbf{v}_k] \in \mathbb{R}^{d \times k}$ has principal components as columns.
+온전한 실림 행렬 $\mathbf{W} = [\mathbf{v}_1, \ldots, \mathbf{v}_k] \in \mathbb{R}^{d \times k}$은 주성분을 세로줄로 갖는다.
 
-### Scores (Projected Coordinates)
+### 점수(쏜 좌표)
 
-**Scores** are the coordinates of data points in the principal component space. For sample $\mathbf{x}^{(i)}$ and component $k$:
+**점수**는 주성분 공간에서 자료 점의 좌표이다. 표본 $\mathbf{x}^{(i)}$과 성분 $k$에 대해:
 
 $$z_{ik} = {\mathbf{x}^{(i)}}^T \mathbf{v}_k = \sum_{j=1}^d x_j^{(i)} v_{kj}$$
 
-The full score matrix is:
+온전한 점수 행렬은 다음과 같다:
 
 $$\mathbf{Z} = \mathbf{X} \mathbf{W} \in \mathbb{R}^{n \times k}$$
 
-Scores have two important properties: they are **uncorrelated** ($\operatorname{Cov}(z_i, z_j) = 0$ for $i \neq j$), and the variance of the $k$-th score equals the $k$-th eigenvalue ($\operatorname{Var}(z_k) = \lambda_k$).
+점수에는 중요한 성질 둘이 있다. 곧 서로 **상관이 없고**($i \neq j$이면 $\operatorname{Cov}(z_i, z_j) = 0$), $k$번째 점수의 흩어짐이 $k$번째 고윳값과 같다($\operatorname{Var}(z_k) = \lambda_k$).
 
-### Projection and Reconstruction
+### 쏘기와 다시 세우기
 
-The relationship between loadings and scores gives us both projection (encoding) and reconstruction (decoding):
+실림과 점수의 관계가 쏘기(부호화)와 다시 세우기(풀기)를 모두 준다:
 
 $$\text{Projection:} \quad \mathbf{Z} = \mathbf{X}\mathbf{W}$$
 
 $$\text{Reconstruction:} \quad \hat{\mathbf{X}} = \mathbf{Z}\mathbf{W}^T = \mathbf{X}\mathbf{W}\mathbf{W}^T$$
 
-Each reconstructed sample is a sum of weighted principal directions:
+다시 세운 표본마다 무게 붙은 주방향의 합이다:
 
 $$\hat{\mathbf{x}}^{(i)} = \sum_{k=1}^{K} z_{ik} \, \mathbf{v}_k = \sum_{k=1}^{K} \left({\mathbf{x}^{(i)}}^T \mathbf{v}_k\right) \mathbf{v}_k$$
 
-### Scaled Loadings (Correlation Loadings)
+### 잣수 맞춘 실림(상관 실림)
 
-In some applications, loadings are scaled by the square root of the corresponding eigenvalue:
+어떤 쓰임새에서는 실림에 그에 딸린 고윳값의 제곱근을 곱한다:
 
 $$\text{Scaled Loading}_{kj} = v_{kj} \cdot \sqrt{\lambda_k}$$
 
-Scaled loadings represent the **correlation** between original features and principal components. They are useful for interpretation because the sum of squared scaled loadings for each feature equals the communality (proportion of variance explained by the retained components).
+잣수 맞춘 실림은 본디 특징과 주성분 사이의 **상관**을 뜻한다. 특징마다 잣수 맞춘 실림의 제곱합이 공통성(남긴 성분이 설명하는 흩어짐의 몫)과 같아 풀이에 쓸모 있다.
 
 ```python
 def correlation_loadings(loadings, eigenvalues):
-    """Scale loadings to represent correlations with PCs."""
+    """주성분과의 상관을 나타내도록 실림의 잣수를 맞춘다."""
     return loadings * np.sqrt(eigenvalues)[:, np.newaxis]
 ```
 
 ---
 
-## Reconstruction Error and Choosing k
+## 다시 세우기 어긋남과 k 고르기
 
-### Quantifying Information Loss
+### 잃은 앎을 값으로 재기
 
-When we keep only $k$ out of $d$ principal components, we lose information. The reconstruction error quantifies this loss:
+주성분 $d$개 가운데 $k$개만 남기면 앎을 잃는다. 다시 세우기 어긋남이 이 잃음을 값으로 잰다:
 
 $$\mathcal{E}_k = \frac{1}{n}\sum_{i=1}^n \left\|\mathbf{x}^{(i)} - \hat{\mathbf{x}}^{(i)}\right\|^2 = \sum_{j=k+1}^{d} \lambda_j$$
 
-**The total reconstruction error equals the sum of discarded eigenvalues.** This elegant result follows directly from the fact that eigenvectors form an orthonormal basis: the error decomposes neatly into the variance along each discarded direction.
+**전체 다시 세우기 어긋남은 버린 고윳값의 합과 같다.** 이 산뜻한 결과는 고유벡터가 정규 직교 바탕을 이룬다는 사실에서 곧바로 따라 나온다. 곧 어긋남이 버린 방향마다의 흩어짐으로 말끔히 쪼개진다.
 
-### Optimality
+### 가장 좋음
 
-PCA minimizes reconstruction error among **all** rank-$k$ linear projections:
+주성분 분석은 계수 $k$짜리 **모든** 선형 쏘기 가운데 다시 세우기 어긋남을 가장 작게 한다:
 
 $$\mathbf{W}^* = \arg\min_{\mathbf{W}} \sum_{i=1}^n \left\|\mathbf{x}^{(i)} - \mathbf{W}\mathbf{W}^T \mathbf{x}^{(i)}\right\|^2 \quad \text{s.t.} \quad \mathbf{W}^T \mathbf{W} = \mathbf{I}$$
 
-No other linear projection of the same rank can achieve lower error.
+같은 계수의 다른 어떤 선형 쏘기도 더 낮은 어긋남을 내지 못한다.
 
-### Explained Variance Ratio
+### 설명하는 흩어짐 비
 
-The fraction of total variance captured by component $k$:
+성분 $k$이 잡는 전체 흩어짐의 몫:
 
 $$\text{EVR}_k = \frac{\lambda_k}{\sum_{i=1}^d \lambda_i}$$
 
-The cumulative explained variance by the first $k$ components:
+앞선 $k$개 성분이 쌓아 설명하는 흩어짐:
 
 $$\text{Cumulative EVR}_k = \frac{\sum_{i=1}^k \lambda_i}{\sum_{i=1}^d \lambda_i}$$
 
-### Choosing the Number of Components
+### 성분의 개수 고르기
 
-Three common strategies for selecting $k$:
+$k$을 고르는 흔한 전략 셋:
 
-**Variance threshold.** Choose the smallest $k$ such that cumulative EVR exceeds a desired threshold (commonly 90% or 95%):
+**흩어짐 문턱.** 쌓아 올린 설명 흩어짐 비가 바라는 문턱(흔히 90%나 95%)을 넘는 가장 작은 $k$을 고른다:
 
 ```python
 def choose_n_components(eigenvalues, threshold=0.95):
-    """Find minimum k for desired explained variance."""
+    """바라는 설명 흩어짐을 얻는 가장 작은 k을 찾는다."""
     total = eigenvalues.sum()
     cumsum = np.cumsum(eigenvalues)
     k = np.searchsorted(cumsum / total, threshold) + 1
     return k
 ```
 
-**Scree plot.** Plot eigenvalues versus component index and look for an "elbow" — a sharp drop-off after which eigenvalues are approximately flat. Components before the elbow capture signal; those after capture noise.
+**스크리 그림.** 성분 번호에 대한 고윳값을 그리고 "팔꿈치", 곧 뚝 떨어진 뒤 고윳값이 거의 평평해지는 곳을 찾는다. 팔꿈치 앞의 성분은 신호를, 뒤의 성분은 잡음을 잡는다.
 
-**Reconstruction error budget.** Set a maximum acceptable per-sample MSE and choose the smallest $k$ that stays under this budget:
+**다시 세우기 어긋남 예산.** 표본마다 받아들일 수 있는 최대 평균 제곱 어긋남을 정하고 그 예산 아래에 머무는 가장 작은 $k$을 고른다:
 
 ```python
 def choose_by_error(eigenvalues, max_error):
-    """Find minimum k for acceptable reconstruction error."""
+    """받아들일 만한 다시 세우기 어긋남을 얻는 가장 작은 k을 찾는다."""
     cumsum_discarded = eigenvalues.sum() - np.cumsum(eigenvalues)
     k = np.searchsorted(-cumsum_discarded, -max_error) + 1
     return k
@@ -205,7 +200,7 @@ def choose_by_error(eigenvalues, max_error):
 
 ```python
 def plot_scree(eigenvalues):
-    """Plot eigenvalues and cumulative explained variance."""
+    """고윳값과 쌓아 올린 설명 흩어짐을 그린다."""
     import matplotlib.pyplot as plt
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
@@ -228,41 +223,41 @@ def plot_scree(eigenvalues):
 
 ---
 
-## Connection to Linear Autoencoders
+## 선형 자기 부호기와의 이음
 
-PCA has a precise equivalence to a linear autoencoder trained with MSE loss.
+주성분 분석은 평균 제곱 어긋남 손실로 익힌 선형 자기 부호기와 정확히 같다.
 
-### Architecture
+### 구조
 
-A linear autoencoder consists of:
+선형 자기 부호기는 다음으로 이루어진다:
 
-- **Encoder:** $\mathbf{z} = \mathbf{W}_e^T \mathbf{x}$ (no bias, no activation)
-- **Decoder:** $\hat{\mathbf{x}} = \mathbf{W}_d \mathbf{z}$ (no bias, no activation)
+- **부호기:** $\mathbf{z} = \mathbf{W}_e^T \mathbf{x}$(치우침 없음, 깨어남 없음)
+- **풀개:** $\hat{\mathbf{x}} = \mathbf{W}_d \mathbf{z}$(치우침 없음, 깨어남 없음)
 
-The training objective is:
+익히기 목표는 다음과 같다:
 
 $$\mathcal{L} = \frac{1}{n}\sum_{i=1}^n \left\|\mathbf{x}^{(i)} - \mathbf{W}_d \mathbf{W}_e^T \mathbf{x}^{(i)}\right\|^2$$
 
-### Equivalence Theorem
+### 같음 정리
 
-At convergence, a linear autoencoder trained with MSE loss satisfies:
+평균 제곱 어긋남 손실로 익힌 선형 자기 부호기는 모였을 때 다음을 채운다:
 
-1. The encoder weights span the same subspace as the top-$k$ eigenvectors of $\boldsymbol{\Sigma}$
-2. The optimal solution has tied weights: $\mathbf{W}_d = \mathbf{W}_e$
-3. The reconstruction equals the PCA reconstruction
-4. The loss equals the PCA reconstruction error
+1. 부호기 무게가 $\boldsymbol{\Sigma}$의 으뜸 $k$개 고유벡터와 같은 아래 공간을 뻗는다
+2. 가장 좋은 풀이는 무게가 묶여 있다: $\mathbf{W}_d = \mathbf{W}_e$
+3. 다시 세운 것이 주성분 분석의 다시 세운 것과 같다
+4. 손실이 주성분 분석의 다시 세우기 어긋남과 같다
 
-The matrix $\mathbf{W}_d \mathbf{W}_e^T$ converges to $\mathbf{W}\mathbf{W}^T$ where $\mathbf{W}$ contains the principal components.
+행렬 $\mathbf{W}_d \mathbf{W}_e^T$은 $\mathbf{W}$이 주성분을 담을 때 $\mathbf{W}\mathbf{W}^T$으로 모인다.
 
 ```python
 import torch
 import torch.nn as nn
 
 class LinearAutoencoder(nn.Module):
-    """Linear autoencoder equivalent to PCA.
+    """주성분 분석과 같은 선형 자기 부호기.
 
-    With MSE loss, no activations, and no bias, training
-    converges to the PCA solution.
+    평균 제곱 어긋남 손실을 쓰고 깨어남도 치우침도 없으면 익히기가
+    주성분 분석 풀이로 모인다.
     """
     def __init__(self, input_dim, latent_dim):
         super().__init__()
@@ -274,49 +269,49 @@ class LinearAutoencoder(nn.Module):
         return self.decoder(z)
 ```
 
-| Aspect | PCA (Analytical) | Linear Autoencoder |
+| 갈래 | 주성분 분석(닫힌 꼴) | 선형 자기 부호기 |
 |--------|------------------|--------------------|
-| **Method** | Eigendecomposition / SVD | Gradient descent |
-| **Speed** | One-shot (fast) | Iterative (slower) |
-| **Exactness** | Exact solution | Converges to PCA |
-| **GPU support** | Limited | Native |
-| **Extensibility** | Fixed linear form | Easy to add nonlinearity |
+| **방법** | 고윳값 쪼개기 / 특잇값 쪼개기 | 기울기 내려가기 |
+| **빠르기** | 한 번에(빠름) | 되풀이(느림) |
+| **정확함** | 정확한 풀이 | 주성분 분석으로 모인다 |
+| **GPU 받침** | 제한됨 | 본디 받침 |
+| **넓힐 수 있음** | 선형 꼴로 붙박이 | 비선형을 붙이기 쉽다 |
 
 ---
 
-## Limitations of PCA
+## 주성분 분석의 한계
 
-PCA finds **linear subspaces**. Real data often lies on **nonlinear manifolds**, and this mismatch represents PCA's fundamental limitation.
+주성분 분석은 **선형 아래 공간**을 찾는다. 실제 자료는 흔히 **비선형 다양체** 위에 있으며 이 어긋남이 주성분 분석의 근본 한계이다.
 
-### Failure on Nonlinear Structure
+### 비선형 짜임에서의 어긋남
 
-Consider the Swiss roll: a 2D surface embedded in 3D space. PCA projects onto a flat 2D plane, causing points that are far apart on the manifold to overlap in the projection:
+스위스 롤을 보자. 3차원 공간에 묻힌 2차원 면이다. 주성분 분석은 평평한 2차원 면에 쏘므로 다양체 위에서 멀리 떨어진 점들이 쏜 그림에서 겹친다:
 
 ```python
 from sklearn.datasets import make_swiss_roll
 
 X, color = make_swiss_roll(n_samples=1000, noise=0.1)
-# Intrinsic dimensionality is 2, but PCA cannot "unroll" it
+# 속 차원은 2이지만 주성분 분석은 그것을 "펴지" 못한다
 ```
 
-### Types of Structure PCA Misses
+### 주성분 분석이 놓치는 짜임의 갈래
 
-**Curved manifolds** (Swiss roll, S-curve): PCA projects to flat subspaces, collapsing the manifold structure. **Clusters on manifolds**: PCA may merge distinct clusters that lie on a curved surface. **Hierarchical features** (edges → textures → objects in images): PCA applies a single linear transformation, capturing no hierarchy.
+**굽은 다양체**(스위스 롤, S자 곡선): 주성분 분석이 평평한 아래 공간에 쏘아 다양체 짜임을 무너뜨린다. **다양체 위의 무리**: 굽은 면에 놓인 서로 다른 무리를 주성분 분석이 합쳐 버릴 수 있다. **층층 특징**(그림에서 모서리 → 결 → 물체): 주성분 분석은 선형 바꿈 하나만 쓰므로 층층 짜임을 잡지 못한다.
 
-### When PCA Still Works
+### 그래도 주성분 분석이 통할 때
 
-Despite these limitations, PCA is appropriate when: the data is approximately linear; interpretability of components is important; the dataset is small (autoencoders may overfit); computation must be fast; or a baseline is needed for comparison with nonlinear methods.
+이런 한계에도 주성분 분석은 다음일 때 알맞다. 곧 자료가 거의 선형일 때, 성분을 풀이할 수 있어야 할 때, 자료 묶음이 작을 때(자기 부호기는 지나치게 맞춰질 수 있다), 셈이 빨라야 할 때, 비선형 방법과 견줄 바탕이 필요할 때이다.
 
-### Transition to Nonlinear Methods
+### 비선형 방법으로 넘어가기
 
-Adding nonlinear activation functions transforms a linear autoencoder into a nonlinear one capable of learning curved manifolds:
+비선형 깨어남 함수를 붙이면 선형 자기 부호기가 굽은 다양체를 배울 수 있는 비선형 자기 부호기가 된다:
 
 ```python
-# Linear (≈ PCA)
+# 선형(≈ 주성분 분석)
 encoder = nn.Linear(784, 32)
 decoder = nn.Linear(32, 784)
 
-# Nonlinear (can learn manifolds)
+# 비선형(다양체를 배울 수 있다)
 encoder = nn.Sequential(
     nn.Linear(784, 256), nn.ReLU(),
     nn.Linear(256, 32)
@@ -327,20 +322,20 @@ decoder = nn.Sequential(
 )
 ```
 
-| Aspect | PCA | Nonlinear Autoencoder |
+| 갈래 | 주성분 분석 | 비선형 자기 부호기 |
 |--------|-----|-----------------------|
-| **Manifolds** | Flat subspaces only | Curved manifolds |
-| **Features** | Linear combinations | Nonlinear features |
-| **Hierarchy** | None | Multiple layers |
-| **Solution** | Analytical (exact) | Learned (approximate) |
+| **다양체** | 평평한 아래 공간만 | 굽은 다양체 |
+| **특징** | 선형 아우름 | 비선형 특징 |
+| **층층 짜임** | 없음 | 여러 층 |
+| **풀이** | 닫힌 꼴(정확) | 배움(어림) |
 
 ---
 
-## Practical Applications
+## 실전 응용
 
-### Application 1: Dimensionality Reduction (2D → 1D)
+### 쓰임새 1: 차원 줄이기(2차원 → 1차원)
 
-A minimal example showing how PCA projects correlated 2D data onto a 1D line:
+주성분 분석이 상관 있는 2차원 자료를 1차원 선에 어떻게 쏘는지 보이는 가장 작은 보기이다:
 
 ```python
 import matplotlib.pyplot as plt
@@ -349,12 +344,12 @@ from sklearn.decomposition import PCA
 
 np.random.seed(0)
 
-# Generate correlated 2D data
+# 상관 있는 2차원 자료를 만든다
 x = np.random.normal(size=(200,))
 y = 0.5 * x + 2 + 0.1 * np.random.normal(size=(200,))
 X = np.column_stack([x, y])
 
-# Reduce to 1D and reconstruct
+# 1차원으로 줄이고 다시 세운다
 pca = PCA(n_components=1).fit(X)
 X_pca = pca.transform(X)
 X_reconstructed = pca.inverse_transform(X_pca)
@@ -363,7 +358,7 @@ print(f"Original shape:      {X.shape}")           # (200, 2)
 print(f"Projected shape:     {X_pca.shape}")        # (200, 1)
 print(f"Reconstructed shape: {X_reconstructed.shape}")  # (200, 2)
 
-# Plot original vs. projected data
+# 본디 자료와 쏜 자료를 그린다
 fig, ax = plt.subplots(figsize=(10, 5))
 ax.scatter(X[:, 0], X[:, 1], alpha=0.3, label="Original")
 ax.scatter(X_reconstructed[:, 0], X_reconstructed[:, 1],
@@ -372,9 +367,9 @@ ax.legend()
 plt.show()
 ```
 
-### Application 2: MNIST Compression
+### 쓰임새 2: MNIST 눌러 담기
 
-Compress 784-dimensional handwritten digit images while retaining 95% of the variance:
+흩어짐의 95%를 남긴 채 784차원 손글씨 숫자 그림을 눌러 담는다:
 
 ```python
 import numpy as np
@@ -386,7 +381,7 @@ from tensorflow.keras.datasets import mnist
 X_train = X_train.reshape(-1, 784).astype(np.float32)
 X_test = X_test.reshape(-1, 784).astype(np.float32)
 
-# PCA with 95% variance retention
+# 흩어짐을 95% 남기는 주성분 분석
 pca = PCA(n_components=0.95, svd_solver='full').fit(X_train)
 X_reduced = pca.transform(X_test)
 X_recovered = pca.inverse_transform(X_reduced)
@@ -396,50 +391,50 @@ print(f"Reduced dim:     {X_reduced.shape[1]}")     # ~150
 print(f"Compression:     {784 / X_reduced.shape[1]:.1f}x")
 ```
 
-### Application 3: Noise Filtering
+### 쓰임새 3: 잡음 거르기
 
-PCA denoises data by projecting onto the high-variance subspace, discarding low-variance components that capture mostly noise:
+주성분 분석은 흩어짐이 큰 아래 공간에 쏘고 거의 잡음만 잡는 흩어짐 작은 성분을 버려 자료의 잡음을 없앤다:
 
 ```python
-# Add Gaussian noise to MNIST
+# MNIST에 정규 잡음을 더한다
 X_noisy = X_train + 10.0 * np.random.normal(size=X_train.shape)
 
-# Fit PCA on noisy data, keeping 90% variance
+# 잡음 낀 자료에 흩어짐을 90% 남겨 주성분 분석을 맞춘다
 pca = PCA(n_components=0.9, svd_solver='full').fit(X_noisy)
 X_filtered = pca.inverse_transform(pca.transform(X_noisy))
 
 print(f"Components used for denoising: {pca.n_components_}")
 ```
 
-The key insight is that signal variance concentrates in the top components while noise variance spreads evenly across all components. Truncating removes disproportionately more noise than signal.
+핵심 눈썰미는 신호의 흩어짐은 으뜸 성분에 몰리고 잡음의 흩어짐은 모든 성분에 고루 퍼진다는 것이다. 잘라 내면 신호보다 잡음이 훨씬 많이 걷힌다.
 
-### Application 4: EigenFaces
+### 쓰임새 4: 고유 얼굴
 
-PCA applied to face images produces **eigenfaces** — the principal component directions in face space:
+얼굴 그림에 주성분 분석을 쓰면 **고유 얼굴**, 곧 얼굴 공간의 주성분 방향이 나온다:
 
 ```python
 from sklearn.datasets import fetch_lfw_people
 from sklearn.decomposition import PCA
 
 faces = fetch_lfw_people(min_faces_per_person=60)
-print(f"Dataset: {faces.data.shape}")  # (n_people, 62*47)
+print(f"Dataset: {faces.data.shape}")  # (사람 수, 62*47)
 
-# Fit PCA with 150 components
+# 성분 150개로 주성분 분석을 맞춘다
 pca = PCA(n_components=150, svd_solver='randomized').fit(faces.data)
 
-# Each component is an "eigenface"
+# 성분마다 "고유 얼굴"이다
 eigenface_0 = pca.components_[0].reshape(62, 47)
 
-# Reconstruct faces from 150 components
+# 성분 150개로 얼굴을 다시 세운다
 components = pca.transform(faces.data)
 reconstructed = pca.inverse_transform(components)
 ```
 
-Each eigenface captures a mode of variation across the face dataset (lighting direction, head pose, expression). Any face can be approximately represented as a weighted sum of eigenfaces.
+고유 얼굴마다 얼굴 자료 묶음에 걸친 흔들림의 한 결(빛의 방향, 머리 자세, 표정)을 잡는다. 어떤 얼굴이든 고유 얼굴의 무게 붙은 합으로 어림해 나타낼 수 있다.
 
-### Application 5: PCA as Linear Autoencoder in PyTorch
+### 쓰임새 5: PyTorch에서 선형 자기 부호기로 본 주성분 분석
 
-Training a linear autoencoder with MSE loss converges to the PCA solution:
+선형 자기 부호기를 평균 제곱 어긋남 손실로 익히면 주성분 분석 풀이로 모인다:
 
 ```python
 import torch
@@ -449,7 +444,7 @@ from torchvision import datasets, transforms
 torch.manual_seed(0)
 
 class PCAAutoencoder(nn.Module):
-    """Linear autoencoder (no activation, no bias) ≡ PCA."""
+    """선형 자기 부호기(깨어남 없음, 치우침 없음) ≡ 주성분 분석."""
     def __init__(self, input_dim=784, latent_dim=20):
         super().__init__()
         self.encoder = nn.Linear(input_dim, latent_dim, bias=False)
@@ -460,7 +455,7 @@ class PCAAutoencoder(nn.Module):
         out = self.decoder(self.encoder(out))
         return out.view(x.size())
 
-# Training
+# 학습
 transform = transforms.ToTensor()
 train_data = datasets.MNIST('./data', train=True, transform=transform,
                              download=True)
@@ -487,17 +482,17 @@ for epoch in range(100):
 
 ---
 
-## Interpreting PCA Results
+## 주성분 분석 결과 풀이하기
 
-### Biplot
+### 겹그림
 
-A biplot overlays scores (sample positions) and loadings (feature arrows) on the same axes, enabling simultaneous interpretation:
+겹그림은 점수(표본의 자리)와 실림(특징 화살표)을 같은 축에 겹쳐 놓아 한꺼번에 풀이할 수 있게 한다:
 
 ```python
 import matplotlib.pyplot as plt
 
 def biplot(scores, loadings, feature_names, labels=None):
-    """PCA biplot: scores as scatter, loadings as arrows."""
+    """주성분 겹그림: 점수는 흩뿌림으로, 실림은 화살표로."""
     fig, ax = plt.subplots(figsize=(10, 8))
 
     scatter = ax.scatter(scores[:, 0], scores[:, 1],
@@ -519,13 +514,13 @@ def biplot(scores, loadings, feature_names, labels=None):
     plt.show()
 ```
 
-### Interpreting Loadings
+### 실림 풀이하기
 
-Inspect which features contribute most to each component:
+성분마다 어느 특징이 가장 많이 보태는지 살핀다:
 
 ```python
 def interpret_loadings(loadings, feature_names, n_top=5):
-    """Show top contributing features per component."""
+    """성분마다 가장 많이 보태는 특징을 보인다."""
     for k in range(loadings.shape[0]):
         abs_load = np.abs(loadings[k])
         top_idx = np.argsort(abs_load)[::-1][:n_top]
@@ -536,7 +531,7 @@ def interpret_loadings(loadings, feature_names, n_top=5):
 
 ---
 
-## Quick Reference Implementation
+## 빠른 참고 짜기
 
 ```python
 import torch
@@ -544,32 +539,32 @@ import numpy as np
 
 def pca(X, n_components):
     """
-    PCA via eigendecomposition.
+    고윳값 쪼개기로 하는 주성분 분석.
 
-    Args:
-        X: Data matrix [n_samples, n_features]
-        n_components: Number of principal components
+    인수:
+        X: 자료 행렬 [표본 수, 특징 수]
+        n_components: 주성분의 수
 
-    Returns:
-        W: Principal components (loadings) [n_features, n_components]
-        Z: Projected data (scores) [n_samples, n_components]
-        eigenvalues: Variance explained per component
+    반환값:
+        W: 주성분(실림) [특징 수, 성분 수]
+        Z: 쏜 자료(점수) [표본 수, 성분 수]
+        eigenvalues: 성분마다 설명하는 흩어짐
     """
-    # Center data
+    # 자료의 가운데를 맞춘다
     X_centered = X - X.mean(dim=0)
 
-    # Covariance matrix
+    # 공분산 행렬
     cov = X_centered.T @ X_centered / (X.shape[0] - 1)
 
-    # Eigendecomposition (eigh for symmetric matrices)
+    # 고윳값 쪼개기(대칭 행렬에는 eigh)
     eigenvalues, eigenvectors = torch.linalg.eigh(cov)
 
-    # Sort by descending eigenvalue
+    # 고윳값 내림차순으로 정렬한다
     idx = torch.argsort(eigenvalues, descending=True)
     eigenvalues = eigenvalues[idx[:n_components]]
     W = eigenvectors[:, idx[:n_components]]
 
-    # Project (compute scores)
+    # 쏜다(점수를 셈한다)
     Z = X_centered @ W
 
     return W, Z, eigenvalues
@@ -577,8 +572,40 @@ def pca(X, n_components):
 
 ---
 
-## Summary
+## 요약
 
-PCA provides the foundational framework for linear dimensionality reduction. Its key properties — variance maximization, minimum reconstruction error, and analytical solvability — make it both a practical tool and a theoretical baseline. The equivalence between PCA and linear autoencoders establishes the bridge to deep generative models: autoencoders and VAEs can be understood as nonlinear generalizations of PCA.
+주성분 분석은 선형 차원 줄이기의 바탕 얼거리를 준다. 흩어짐 가장 크게 하기, 다시 세우기 어긋남 가장 작게 하기, 닫힌 꼴로 풀 수 있음이라는 핵심 성질 덕분에 실전의 연장이면서 이론의 바탕이 된다. 주성분 분석과 선형 자기 부호기가 같다는 점이 깊은 만들어 내는 모델로 가는 다리를 놓는다. 곧 자기 부호기와 변분 자기 부호기는 주성분 분석을 비선형으로 넓힌 것으로 볼 수 있다.
 
-The subsequent sections derive PCA rigorously from the variance-maximization perspective, detail the eigendecomposition and SVD computational approaches, and extend to probabilistic and kernel formulations.
+뒤이은 절들은 흩어짐 가장 크게 하기 관점에서 주성분 분석을 엄밀히 이끌어 내고, 고윳값 쪼개기와 특잇값 쪼개기 셈법을 자세히 다루며, 확률 꼴과 알맹이 꼴로 넓힌다.
+
+## 연습문제
+
+**연습문제 1.**
+쏜 자료의 흩어짐을 가장 크게 해서 첫 주성분을 이끌어 내어라.
+
+??? success "연습문제 1 풀이"
+    $X$을 가운데 맞춘 자료 행렬($n \times d$)이라 하자. 쏜 흩어짐을 가장 크게 하는 단위 벡터 $w_1$을 찾는다. 곧 $S = \frac{1}{n} X^\top X$이 공분산 행렬일 때 $\max_{\|w\|=1} w^\top S w$이다. 제약 $w^\top w = 1$ 아래 라그랑주 곱수를 쓰면 $\nabla_w [w^\top S w - \lambda(w^\top w - 1)] = 2Sw - 2\lambda w = 0$이라 $Sw = \lambda w$을 얻는다. 풀이는 가장 큰 고윳값 $\lambda_1$에 딸린 $S$의 고유벡터이다. 쏜 흩어짐은 $w_1^\top S w_1 = \lambda_1$과 같다. $\square$
+
+---
+
+**연습문제 2.**
+주성분 분석과 특잇값 쪼개기의 관계를 설명하라. 특잇값 쪼개기로 주성분 분석을 어떻게 효율 좋게 셈하는가?
+
+??? success "연습문제 2 풀이"
+    가운데 맞춘 자료 행렬의 특잇값 쪼개기가 $X = U \Sigma V^\top$이므로 공분산 행렬은 $S = \frac{1}{n} X^\top X = \frac{1}{n} V \Sigma^2 V^\top$이다. $V$의 세로줄이 $S$의 고유벡터(주성분)이고 $\sigma_i^2 / n$이 그에 딸린 고윳값(흩어짐)이다. 쏜 자료는 $XV = U\Sigma$이다. 특잇값 쪼개기는 $S$의 고윳값 쪼개기보다 수치가 안정되고 $n < d$일 때 $d \times d$ 행렬을 만들지 않아도 된다.
+
+---
+
+**연습문제 3.**
+알맹이 주성분 분석은 언제 선형 주성분 분석보다 나은가? 보기를 들어라.
+
+??? success "연습문제 3 풀이"
+    알맹이 주성분 분석은 알맹이 함수 $k(x_i, x_j) = \langle \phi(x_i), \phi(x_j) \rangle$이 이끄는 특징 공간에서 주성분 분석을 해 비선형 짜임을 잡는다. 보기: 겹동그라미로 놓인 자료는 선형 주성분 분석으로 가를 수 없지만(두 동그라미가 겹치는 구간에 쏘인다) 방사 바탕 함수 알맹이를 쓰면 동그라미가 선형으로 갈라지는 공간에 옮겨져 알맹이 주성분 분석이 그 짜임을 뽑아낸다. 선형 쏘기로는 잡을 수 없는 비선형 다양체 짜임이 자료에 있을 때 알맹이 주성분 분석이 이롭다.
+
+---
+
+**연습문제 4.**
+남길 주성분의 수를 어떻게 고르는가? 설명하는 흩어짐을 쓰는 방식을 적어라.
+
+??? success "연습문제 4 풀이"
+    앞선 $k$개 성분이 설명하는 흩어짐의 몫은 $\sum_{i=1}^k \lambda_i / \sum_{i=1}^d \lambda_i$이다. **팔꿈치 방법**은 $k$에 대한 쌓아 올린 설명 흩어짐을 그려, 성분을 더 넣어도 얻는 것이 줄어드는 "팔꿈치"에서 $k$을 고른다. 전체 흩어짐의 90~95%를 설명할 만큼 성분을 남기는 것이 흔한 문턱이다. 예컨대 100차원 자료 묶음에서 성분 3개가 흩어짐의 95%를 설명하면 3차원으로 줄여도 앎을 5%만 잃고 차원을 $33\times$ 줄인다.

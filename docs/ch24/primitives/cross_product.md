@@ -1,169 +1,156 @@
-# Cross Product in 2D
+# 2차원 어긋 곱
 
-The cross product is the most fundamental primitive in computational geometry.
-In two dimensions, it answers three questions at once: which way do we turn
-at a point, what is the signed area of a triangle, and on which side of a
-line does a point lie? Nearly every geometric algorithm — convex hull,
-polygon triangulation, line segment intersection — relies on the 2D cross
-product as its core building block.
+어긋 곱은 셈 기하에서 가장 바탕이 되는 밑감이다. 두 차원에서는 한꺼번에 세 물음에 답한다. 어느 점에서 어느 쪽으로 도는가, 삼각형의 부호 있는 넓이는 얼마인가, 점이 선의 어느 쪽에 있는가? 볼록 껍질, 다각형 삼각 나누기, 도막 만남 등 거의 모든 기하 알고리즘이 2차원 어긋 곱을 핵심 벽돌로 삼는다.
 
-## Definition
+## 정의
 
-Given two 2D vectors $\mathbf{a} = (a_x, a_y)$ and $\mathbf{b} = (b_x, b_y)$,
-their **2D cross product** (also called the *perp dot product*) is the scalar:
+두 2차원 벡터 $\mathbf{a} = (a_x, a_y)$과 $\mathbf{b} = (b_x, b_y)$이 주어질 때 **2차원 어긋 곱**(*직각 점곱*이라고도 한다)은 다음 낱값이다.
 
 $$
 \mathbf{a} \times \mathbf{b} = a_x \, b_y - a_y \, b_x
 $$
 
-Geometrically, this equals the signed area of the parallelogram spanned by
-$\mathbf{a}$ and $\mathbf{b}$.
+기하로 보면 이는 $\mathbf{a}$과 $\mathbf{b}$이 펼치는 평행사변형의 부호 있는 넓이와 같다.
 
-!!! note "2D vs 3D Cross Product"
-    In 3D, the cross product produces a vector. The 2D cross product is the
-    $z$-component of the 3D cross product when both vectors lie in the
-    $xy$-plane: $(a_x, a_y, 0) \times (b_x, b_y, 0) = (0, 0, a_x b_y - a_y b_x)$.
+!!! note "2차원 어긋 곱과 3차원 어긋 곱"
+    3차원에서 어긋 곱은 벡터를 낸다. 2차원 어긋 곱은 두 벡터가 모두 $xy$평면에 있을 때 3차원 어긋 곱의 $z$성분이다. 곧 $(a_x, a_y, 0) \times (b_x, b_y, 0) = (0, 0, a_x b_y - a_y b_x)$이다.
 
-## Sign Interpretation
+## 부호 풀이
 
-The sign of $\mathbf{a} \times \mathbf{b}$ encodes the relative orientation:
+$\mathbf{a} \times \mathbf{b}$의 부호는 서로의 방향을 담는다.
 
-| Value | Meaning |
+| 값 | 뜻 |
 |---|---|
-| $> 0$ | $\mathbf{b}$ is counterclockwise from $\mathbf{a}$ (left turn) |
-| $= 0$ | $\mathbf{a}$ and $\mathbf{b}$ are collinear |
-| $< 0$ | $\mathbf{b}$ is clockwise from $\mathbf{a}$ (right turn) |
+| $> 0$ | $\mathbf{b}$이 $\mathbf{a}$에서 반시계이다(왼쪽 돌기) |
+| $= 0$ | $\mathbf{a}$과 $\mathbf{b}$이 한 줄에 놓인다 |
+| $< 0$ | $\mathbf{b}$이 $\mathbf{a}$에서 시계이다(오른쪽 돌기) |
 
-## Cross Product of Three Points
+## 세 점의 어긋 곱
 
-In practice, we often work with three points $O$, $A$, $B$ and compute the
-cross product of vectors $\overrightarrow{OA}$ and $\overrightarrow{OB}$:
+실제로는 세 점 $O$, $A$, $B$을 두고 벡터 $\overrightarrow{OA}$과 $\overrightarrow{OB}$의 어긋 곱을 자주 셈한다.
 
 $$
 \text{cross}(O, A, B) = (A_x - O_x)(B_y - O_y) - (A_y - O_y)(B_x - O_x)
 $$
 
-This tells us the turn direction at $O$ when traveling from $A$ to $B$:
+이는 $A$에서 $B$으로 갈 때 $O$에서 도는 방향을 알려 준다.
 
-- **Positive**: left turn (counterclockwise)
-- **Zero**: straight (collinear)
-- **Negative**: right turn (clockwise)
+- **양수**: 왼쪽 돌기(반시계)
+- **0**: 곧게(한 줄에 놓임)
+- **음수**: 오른쪽 돌기(시계)
 
-## Relationship to Area
+## 넓이와의 관계
 
-The signed area of the triangle $\triangle OAB$ is exactly half the cross
-product:
+삼각형 $\triangle OAB$의 부호 있는 넓이는 어긋 곱의 정확히 반이다.
 
 $$
 A_{\triangle} = \frac{1}{2}\,\text{cross}(O, A, B)
 $$
 
-The shoelace formula for polygon area is a direct consequence: it sums
-these signed triangle areas over consecutive edges.
+다각형 넓이의 신발끈 공식은 여기서 곧바로 따라 나온다. 잇닿은 모서리에 걸쳐 이 부호 있는 삼각형 넓이를 더한 것이다.
 
-## Worked Example
+## 풀이 예제
 
-Consider points $O = (1, 1)$, $A = (4, 1)$, $B = (2, 3)$.
+점 $O = (1, 1)$, $A = (4, 1)$, $B = (2, 3)$을 보자.
 
 $$
 \text{cross}(O, A, B) = (4 - 1)(3 - 1) - (1 - 1)(2 - 1) = 3 \cdot 2 - 0 \cdot 1 = 6
 $$
 
-Since $6 > 0$, the turn from $\overrightarrow{OA}$ to $\overrightarrow{OB}$
-is counterclockwise. The triangle area is $6 / 2 = 3$.
+$6 > 0$이므로 $\overrightarrow{OA}$에서 $\overrightarrow{OB}$으로 도는 방향은 반시계이다. 삼각형 넓이는 $6 / 2 = 3$이다.
 
-Now consider $O = (1, 1)$, $A = (4, 1)$, $B = (3, 0)$:
+이제 $O = (1, 1)$, $A = (4, 1)$, $B = (3, 0)$을 보자.
 
 $$
 \text{cross}(O, A, B) = (4 - 1)(0 - 1) - (1 - 1)(3 - 1) = 3 \cdot (-1) - 0 \cdot 2 = -3
 $$
 
-Since $-3 < 0$, this is a clockwise (right) turn.
+$-3 < 0$이므로 이는 시계(오른쪽) 돌기이다.
 
-## Implementation
+## 구현
 
 ```python
 """
-2D cross product: the fundamental primitive for computational geometry.
+2차원 어긋 곱: 셈 기하의 바탕 밑감.
 
-Provides cross product computation for vectors and point triples,
-with applications to orientation testing and area calculation.
+벡터와 세 점의 어긋 곱 셈하기를 주며
+방향 살피기와 넓이 셈하기에 쓴다.
 """
 
 
-# === Vector Cross Product ===
+# === 벡터 어긋 곱 ===
 
 def cross2d(ax, ay, bx, by):
-    """Compute the 2D cross product of vectors (ax, ay) and (bx, by).
+    """벡터 (ax, ay)과 (bx, by)의 2차원 어긋 곱을 셈한다.
 
-    Returns:
-        Positive if b is CCW from a, negative if CW, zero if collinear.
+    반환값:
+        b이 a에서 반시계이면 양수, 시계이면 음수, 한 줄에 놓이면 0.
     """
     return ax * by - ay * bx
 
 
-# === Three-Point Cross Product ===
+# === 세 점 어긋 곱 ===
 
 def cross(o, a, b):
-    """Compute the cross product of vectors OA and OB.
+    """벡터 OA와 OB의 벡터곱 셈하기.
 
-    Args:
-        o, a, b: points as (x, y) tuples.
+    인수:
+        o, a, b: (x, y) 짝으로 된 점.
 
-    Returns:
-        Positive for left turn, negative for right turn, zero for collinear.
+    반환값:
+        왼쪽 돌기이면 양수, 오른쪽 돌기이면 음수, 한 줄에 놓이면 0.
     """
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
 
-# === Orientation Test ===
+# === 방향 살피기 ===
 
 def orientation(o, a, b):
-    """Determine the orientation of the triplet (o, a, b).
+    """세 점 (o, a, b)의 방향을 가린다.
 
-    Returns:
-        1 for counterclockwise, -1 for clockwise, 0 for collinear.
+    반환값:
+        반시계는 1, 시계는 -1, 한 줄에 놓이면 0.
     """
     cp = cross(o, a, b)
     if cp > 0:
-        return 1   # CCW
+        return 1   # 반시계
     elif cp < 0:
-        return -1  # CW
+        return -1  # 시계
     else:
-        return 0   # Collinear
+        return 0   # 한 줄에 놓임
 
 
-# === Triangle Area ===
+# === 삼각형 넓이 ===
 
 def triangle_area(o, a, b):
-    """Compute the absolute area of triangle OAB."""
+    """삼각형 OAB의 절대 넓이를 셈한다."""
     return abs(cross(o, a, b)) / 2.0
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Example 1: left turn
+    # 보기 1: 왼쪽 돌기
     O, A, B = (1, 1), (4, 1), (2, 3)
     print(f"Points: O={O}, A={A}, B={B}")
     print(f"Cross product: {cross(O, A, B)}")
     print(f"Orientation: {'CCW' if orientation(O, A, B) == 1 else 'CW'}")
     print(f"Triangle area: {triangle_area(O, A, B)}")
 
-    # Example 2: right turn
+    # 보기 2: 오른쪽 돌기
     B2 = (3, 0)
     print(f"\nPoints: O={O}, A={A}, B={B2}")
     print(f"Cross product: {cross(O, A, B2)}")
     print(f"Orientation: {'CW' if orientation(O, A, B2) == -1 else 'CCW'}")
 
-    # Example 3: collinear
+    # 보기 3: 한 줄에 놓임
     B3 = (7, 1)
     print(f"\nPoints: O={O}, A={A}, B={B3}")
     print(f"Cross product: {cross(O, A, B3)}")
     print(f"Orientation: collinear" if orientation(O, A, B3) == 0 else "")
 ```
 
-**Output:**
+**출력:**
 ```
 Points: O=(1, 1), A=(4, 1), B=(2, 3)
 Cross product: 6
@@ -179,17 +166,49 @@ Cross product: 0
 Orientation: collinear
 ```
 
-## Applications in Computational Geometry
+## 셈 기하에서의 쓰임새
 
-| Algorithm | How It Uses the Cross Product |
+| 알고리즘 | 어긋 곱을 쓰는 법 |
 |---|---|
-| Convex hull (Graham scan) | Sort by polar angle; detect left/right turns |
-| Line segment intersection | Test whether endpoints lie on opposite sides |
-| Polygon area (shoelace) | Sum signed triangle areas |
-| Point-in-polygon | Count signed crossings of a ray |
-| Triangulation | Determine ear tips via orientation |
+| 볼록 껍질(그레이엄 훑기) | 극각으로 정렬하고 왼쪽/오른쪽 돌기를 알아낸다 |
+| 도막 만남 | 끝점이 반대쪽에 있는지 살핀다 |
+| 다각형 넓이(신발끈) | 부호 있는 삼각형 넓이를 더한다 |
+| 다각형 안 점 | 빛살의 부호 있는 가로지름을 센다 |
+| 삼각 나누기 | 방향으로 귀끝을 가린다 |
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms*. MIT Press.
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.
+
+## 연습문제
+
+**연습문제 1.**
+2차원 어긋 곱의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    2차원 어긋 곱은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 2차원 어긋 곱을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+2차원 어긋 곱은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+2차원 어긋 곱을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 2차원 어긋 곱은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

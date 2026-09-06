@@ -1,121 +1,102 @@
-# Importance Sampling Fundamentals
+# 중요도 표집의 바탕
+## 개요
 
+중요도 표집은 어떤 분포 아래의 기댓값을 다른 분포에서 표집해 셈하게 해 주는 흩어짐 줄이기 기법이다. 이 방법은 베이즈 추론에 근본이 되는데, 베이즈 추론에서는 곧바로 표집하기 어렵거나 불가능한 복잡한 뒤확률 분포에 대해 적분해야 할 때가 많기 때문이다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 지난 이야기
 
-## Overview
+중요도 표집은 1940년대 후반 로스앨러모스의 몬테카를로 연구에서 나왔다. "중요도 표집"이라는 말과 그 현대적인 꼴은 1950년 무렵 중성자 이동 문제를 연구하던 허먼 칸, T. E. 해리스와 동료들의 일에서 나타났다. 이 방법은 해머슬리와 핸즈콤(1964)이 체계로 세웠고, 나중에 클록과 판데이크(1978)의 일을 거쳐 베이즈 통계에 받아들여졌다.
 
-Importance sampling is a variance reduction technique that enables computing expectations under one distribution by sampling from another. This method is fundamental to Bayesian inference, where we often need to integrate with respect to complex posterior distributions that are difficult or impossible to sample from directly.
+## 근본 문제
 
-## Historical Context
+### 판 벌이기
 
-The importance sampling method emerged from Monte Carlo research at Los Alamos in the late 1940s. The term "importance sampling" and its modern formulation appeared around 1950 in work by Herman Kahn, T. E. Harris, and colleagues studying neutron transport problems. The method was systematized by Hammersley and Handscomb (1964) and later adopted in Bayesian statistics through work by Kloek and van Dijk (1978).
-
-## The Fundamental Problem
-
-### Setting
-
-We want to compute an expectation under a target distribution $\pi(\theta)$:
+우리는 과녁 분포 $\pi(\theta)$ 아래의 기댓값을 셈하려 한다:
 
 $$
-
 I = \mathbb{E}_{\pi}[h(\theta)] = \int h(\theta) \, \pi(\theta) \, d\theta
-
 $$
 
-**Challenge**: Direct sampling from $\pi(\theta)$ may be difficult or impossible.
+**어려움**: $\pi(\theta)$에서 곧바로 표집하기가 어렵거나 불가능할 수 있다.
 
-### Common Scenarios
+### 흔한 상황
 
-1. **Bayesian inference**: $\pi(\theta) = p(\theta|y)$ is the posterior, known only up to proportionality
-2. **Rare event estimation**: Events with probability $< 10^{-6}$ under $\pi$
-3. **Complex densities**: No standard sampling algorithm exists
+1. **베이즈 추론**: $\pi(\theta) = p(\theta|y)$은 뒤확률이며 비례 상수까지만 알려져 있다
+2. **드문 일 어림하기**: $\pi$ 아래에서 확률이 $< 10^{-6}$인 일
+3. **복잡한 밀도**: 표준 표집 알고리즘이 없다
 
-## The Change of Measure
+## 측도 바꾸기
 
-### Key Identity
+### 핵심 항등식
 
-Introduce a proposal distribution $q(\theta)$ and multiply by $1 = \frac{q(\theta)}{q(\theta)}$:
+제안 분포 $q(\theta)$을 들여와 $1 = \frac{q(\theta)}{q(\theta)}$을 곱한다:
 
 $$
-
 I = \int h(\theta) \, \pi(\theta) \, d\theta = \int h(\theta) \frac{\pi(\theta)}{q(\theta)} \, q(\theta) \, d\theta
-
 $$
 
-Define the **importance weight**:
+**중요도 무게**를 다음과 같이 정한다:
 
 $$
-
 w(\theta) = \frac{\pi(\theta)}{q(\theta)}
-
 $$
 
-Then:
+그러면 다음과 같다.
 
 $$
-
 I = \int h(\theta) \, w(\theta) \, q(\theta) \, d\theta = \mathbb{E}_q[h(\theta) \cdot w(\theta)]
-
 $$
 
-### Support Condition
+### 받침 조건
 
-!!! danger "Critical Requirement"
-    The proposal $q$ must dominate the target $\pi$:
+!!! danger "꼭 지켜야 할 조건"
+    제안 $q$은 과녁 $\pi$을 덮어야 한다:
     
     $$\pi(\theta) > 0 \implies q(\theta) > 0$$
     
-    If $q(\theta) = 0$ where $\pi(\theta) > 0$, the weight $w(\theta)$ is undefined, leading to **infinite bias**.
+    $\pi(\theta) > 0$인 곳에서 $q(\theta) = 0$이면 무게 $w(\theta)$이 정해지지 않아 **끝없는 치우침**이 생긴다.
 
-## The Importance Sampling Estimator
+## 중요도 표집 어림자
 
-### Monte Carlo Approximation
+### 몬테카를로 어림
 
-Draw samples $\theta_1, \ldots, \theta_n \stackrel{\text{i.i.d.}}{\sim} q(\theta)$ and estimate:
+표본 $\theta_1, \ldots, \theta_n \stackrel{\text{i.i.d.}}{\sim} q(\theta)$을 뽑아 다음과 같이 어림한다:
 
 $$
-
 \hat{I}_{\text{IS}} = \frac{1}{n} \sum_{i=1}^n h(\theta_i) \, w(\theta_i) = \frac{1}{n} \sum_{i=1}^n h(\theta_i) \frac{\pi(\theta_i)}{q(\theta_i)}
-
 $$
 
-### Properties
+### 성질
 
-**Unbiasedness:**
+**치우침 없음:**
 
 $$
-
 \mathbb{E}_q[\hat{I}_{\text{IS}}] = \mathbb{E}_q\left[\frac{1}{n} \sum_{i=1}^n h(\theta_i) w(\theta_i)\right] = \mathbb{E}_q[h(\theta) w(\theta)] = I
-
 $$
 
-**Variance:**
+**흩어짐:**
 
 $$
-
 \text{Var}_q(\hat{I}_{\text{IS}}) = \frac{1}{n} \text{Var}_q(h(\theta) w(\theta)) = \frac{1}{n}\left(\mathbb{E}_q[h^2(\theta) w^2(\theta)] - I^2\right)
-
 $$
 
-## Intuition: Sample Where It Matters
+## 직관: 중요한 곳에서 표집하라
 
-### The Core Idea
+### 핵심 생각
 
-Under naive Monte Carlo from $\pi$:
+$\pi$에서 소박하게 몬테카를로를 하면:
 
-- Many samples fall in regions where $|h(\theta)|$ is small → contribute little
-- Few samples land where $|h(\theta)|$ is large → high variance
+- 많은 표본이 $|h(\theta)|$이 작은 구역에 떨어져 보태는 바가 적다
+- $|h(\theta)|$이 큰 곳에는 표본이 적게 떨어져 흩어짐이 크다
 
-Under importance sampling from $q$:
+$q$에서 중요도 표집을 하면:
 
-- **Oversample** important regions where $|h(\theta)\pi(\theta)|$ is large
-- **Correct** for oversampling with weights $w(\theta) = \pi(\theta)/q(\theta)$
+- $|h(\theta)\pi(\theta)|$이 큰 중요한 구역을 **넘치게 표집**한다
+- 무게 $w(\theta) = \pi(\theta)/q(\theta)$으로 넘치게 표집한 것을 **바로잡는다**
 
-The slogan: **"Sample where it matters, correct with weights."**
+표어로 하면 **"중요한 곳에서 표집하고 무게로 바로잡아라."**
 
-### Visual Intuition
+### 그림으로 보는 직관
 
 ```
 Target π(θ):        [.....|XXXXXX|.....]
@@ -130,114 +111,98 @@ Good proposal q:    [.....|..XXXX|.....]
                     puts extra mass where it matters
 ```
 
-## Variance Analysis
+## 흩어짐 분석
 
-### General Variance Formula
+### 일반 흩어짐 공식
 
 $$
-
 \text{Var}_q(h(\theta) w(\theta)) = \int h^2(\theta) \frac{\pi^2(\theta)}{q(\theta)} d\theta - I^2
-
 $$
 
-### The Second Moment
+### 이차 적률
 
-Define:
+다음과 같이 정한다:
 
 $$
-
 J(q) = \mathbb{E}_q[h^2(\theta) w^2(\theta)] = \int h^2(\theta) \frac{\pi^2(\theta)}{q(\theta)} d\theta
-
 $$
 
-Then: $\text{Var}_q(\hat{I}_{\text{IS}}) = \frac{1}{n}(J(q) - I^2)$
+그러면 $\text{Var}_q(\hat{I}_{\text{IS}}) = \frac{1}{n}(J(q) - I^2)$이다
 
-### When IS Reduces Variance
+### 중요도 표집이 흩어짐을 줄일 때
 
-IS reduces variance when:
+다음일 때 중요도 표집이 흩어짐을 줄인다:
 
 $$
-
 \mathbb{E}_q[h^2(\theta) w^2(\theta)] < \mathbb{E}_\pi[h^2(\theta)]
-
 $$
 
-This happens when $q$ concentrates samples where $|h(\theta)\pi(\theta)|$ is large.
+$q$이 $|h(\theta)\pi(\theta)|$이 큰 곳에 표본을 모을 때 이렇게 된다.
 
-### When IS Increases Variance
+### 중요도 표집이 흩어짐을 키울 때
 
-IS *increases* variance when $q$ is poorly chosen:
+$q$을 잘못 고르면 중요도 표집이 흩어짐을 *키운다*:
 
-- $q$ too narrow: misses important regions → some weights explode
-- $q$ shifted away from $\pi$: most weights near zero, few very large
+- $q$이 너무 좁다: 중요한 구역을 놓쳐 어떤 무게가 터진다
+- $q$이 $\pi$에서 비켜 있다: 무게 대부분이 0에 가깝고 몇몇만 아주 크다
 
-!!! warning "Weight Degeneracy"
-    If $q$ is badly matched to $\pi$:
+!!! warning "무게 주저앉음"
+    $q$이 $\pi$과 잘 맞지 않으면:
     
-    - A few samples have enormous weights
-    - Most samples have negligible weights
-    - Effective sample size collapses
-    - Variance explodes
+    - 몇몇 표본의 무게가 엄청나게 크다
+    - 표본 대부분의 무게가 하찮다
+    - 실효 표본 크기가 주저앉는다
+    - 흩어짐이 터진다
 
-## Optimal Proposal Distribution
+## 가장 좋은 제안 분포
 
-### Derivation via Calculus of Variations
+### 변분법으로 이끌어 내기
 
-We minimize $J(q) = \int h^2(\theta) \frac{\pi^2(\theta)}{q(\theta)} d\theta$ subject to $\int q(\theta) d\theta = 1$.
+제약 $\int q(\theta) d\theta = 1$ 아래 $J(q) = \int h^2(\theta) \frac{\pi^2(\theta)}{q(\theta)} d\theta$을 가장 작게 한다.
 
-Using Lagrange multipliers, the optimal $q^*$ satisfies:
+라그랑주 곱수를 쓰면 가장 좋은 $q^*$은 다음을 만족한다:
 
 $$
-
 \frac{\partial}{\partial q}\left[h^2(\theta) \frac{\pi^2(\theta)}{q(\theta)} + \lambda q(\theta)\right] = 0
-
 $$
 
 $$
-
 -h^2(\theta) \frac{\pi^2(\theta)}{q^2(\theta)} + \lambda = 0 \implies q(\theta) \propto |h(\theta)| \pi(\theta)
-
 $$
 
-### The Optimal Proposal
+### 가장 좋은 제안
 
 $$
-
 \boxed{q^*(\theta) = \frac{|h(\theta)| \pi(\theta)}{\int |h(\theta')| \pi(\theta') d\theta'}}
-
 $$
 
-**Why absolute value?** The proposal must be non-negative. If $h$ can be negative, we sample proportional to $|h| \pi$ and the sign is carried by $h$ in the estimator.
+**왜 절댓값인가?** 제안은 음이 아니어야 한다. $h$이 음일 수 있으면 $|h| \pi$에 비례해 표집하고 부호는 어림자 안의 $h$이 진다.
 
-### Variance at Optimum
+### 가장 좋을 때의 흩어짐
 
-For $h(\theta) \geq 0$:
+$h(\theta) \geq 0$일 때:
 
 $$
-
 q^*(\theta) = \frac{h(\theta) \pi(\theta)}{I}
-
 $$
 
-Then:
+그러면 다음과 같다.
 
 $$
-
 \text{Var}_{q^*}(\hat{I}_{\text{IS}}) = \frac{1}{n}(I^2 - I^2) = 0
-
 $$
 
-**The optimal proposal achieves zero variance** — we're sampling from the integrand itself!
+**가장 좋은 제안은 흩어짐 0을 이룬다.** 곧 피적분 함수 자체에서 표집하는 셈이다!
 
-### Practical Implications
+### 실전에서 뜻하는 바
 
-The optimal $q^*$ depends on the unknown $I$, so we can't use it directly. However, this derivation reveals what a good proposal should look like:
+가장 좋은 $q^*$은 모르는 값 $I$에 기대므로 곧바로 쓸 수 없다. 그러나 이 이끌어 내기는 좋은 제안이 어떤 모습이어야 하는지를 드러낸다:
 
-1. **Shape**: Follow $|h(\theta)|\pi(\theta)$
-2. **Support**: Cover everywhere $\pi(\theta) > 0$
-3. **Tails**: Should be at least as heavy as $\pi$
+1. **모양**: $|h(\theta)|\pi(\theta)$을 따른다
+2. **받침**: $\pi(\theta) > 0$인 곳을 모두 덮는다
+3. **꼬리**: 적어도 $\pi$만큼은 무거워야 한다
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
@@ -247,56 +212,56 @@ import matplotlib.pyplot as plt
 def importance_sampling(h_function, target_log_pdf, proposal_dist, 
                         n_samples, return_diagnostics=False):
     """
-    Standard importance sampling with known normalizing constant.
+    고르게 하는 상수를 아는 표준 중요도 표집.
     
-    Parameters
+    매개변수
     ----------
     h_function : callable
-        Function h(θ) whose expectation we want to compute
+        기댓값을 셈하려는 함수 h(θ)
     target_log_pdf : callable  
-        Log density of target π(θ)
+        과녁 π(θ)의 로그 밀도
     proposal_dist : torch.distributions.Distribution
-        Proposal distribution q(θ)
+        제안 분포 q(θ)
     n_samples : int
-        Number of samples to draw
+        뽑을 표본의 개수
     return_diagnostics : bool
-        Whether to return diagnostic information
+        진단 정보를 돌려줄지 여부
         
-    Returns
+    반환값
     -------
     estimate : torch.Tensor
-        Importance sampling estimate of E_π[h(θ)]
+        E_π[h(θ)]의 중요도 표집 어림값
     se : torch.Tensor
-        Estimated standard error
+        어림한 표준 오차
     diagnostics : dict, optional
-        Samples, weights, and other diagnostics
+        표본, 무게, 그 밖의 진단
     
-    Mathematical Foundation
+    수학의 바탕
     -----------------------
     Î_IS = (1/n) Σᵢ h(θᵢ) w(θᵢ)
     
-    where w(θ) = π(θ)/q(θ) and θᵢ ~ q(θ)
+    여기서 w(θ) = π(θ)/q(θ)이고 θᵢ ~ q(θ)이다
     """
-    # Step 1: Draw samples from proposal q(θ)
+    # 걸음 1: 제안 q(θ)에서 표본 뽑기
     samples = proposal_dist.sample((n_samples,))
     
-    # Step 2: Evaluate log densities
+    # 걸음 2: 로그 밀도 값 매기기
     log_target = target_log_pdf(samples)
     log_proposal = proposal_dist.log_prob(samples)
     
-    # Step 3: Compute importance weights (in log space for stability)
+    # 걸음 3: 중요도 무게 셈하기(안정을 위해 로그 공간에서)
     # w(θ) = π(θ)/q(θ)  →  log w(θ) = log π(θ) - log q(θ)
     log_weights = log_target - log_proposal
     weights = torch.exp(log_weights)
     
-    # Step 4: Evaluate function h at sample points
+    # 걸음 4: 표본 점에서 함수 h 값 매기기
     h_values = h_function(samples)
     
-    # Step 5: Compute IS estimate: (1/n) Σᵢ h(θᵢ) w(θᵢ)
+    # 걸음 5: 중요도 표집 어림값 셈하기: (1/n) Σᵢ h(θᵢ) w(θᵢ)
     weighted_h = h_values * weights
     estimate = torch.mean(weighted_h)
     
-    # Step 6: Estimate standard error
+    # 걸음 6: 표준 오차 어림하기
     variance = torch.var(weighted_h, unbiased=True)
     se = torch.sqrt(variance / n_samples)
     
@@ -314,27 +279,27 @@ def importance_sampling(h_function, target_log_pdf, proposal_dist,
     return estimate, se
 
 
-# Example: Compute E_π[θ²] where π = N(3, 1)
-# Using proposal q = N(0, 2)
+# 보기: π = N(3, 1)일 때 E_π[θ²] 셈하기
+# 제안 q = N(0, 2) 사용
 
-# True value: E[θ²] = μ² + σ² = 9 + 1 = 10
+# 참값: E[θ²] = μ² + σ² = 9 + 1 = 10
 true_value = 10.0
 
-# Define target and proposal
+# 과녁과 제안 정하기
 target_mean, target_std = 3.0, 1.0
 proposal_mean, proposal_std = 0.0, 2.0
 
-# Target log-density (normalized)
+# 과녁의 로그 밀도(고르게 함)
 def target_log_pdf(theta):
     return dist.Normal(target_mean, target_std).log_prob(theta)
 
-# Proposal distribution
+# 제안 분포
 proposal = dist.Normal(proposal_mean, proposal_std)
 
-# Function of interest
+# 관심 있는 함수
 h = lambda theta: theta**2
 
-# Run importance sampling
+# 중요도 표집 돌리기
 estimate, se, diagnostics = importance_sampling(
     h, target_log_pdf, proposal, 
     n_samples=10000, return_diagnostics=True
@@ -347,7 +312,7 @@ print(f"IS estimate: {estimate.item():.6f}")
 print(f"Standard error: {se.item():.6f}")
 print(f"Error: {abs(estimate.item() - true_value):.6f}")
 
-# Weight diagnostics
+# 무게 진단
 weights = diagnostics['weights']
 print(f"\nWeight Statistics:")
 print(f"  Mean: {weights.mean().item():.4f}")
@@ -355,10 +320,10 @@ print(f"  Std: {weights.std().item():.4f}")
 print(f"  Max: {weights.max().item():.4f}")
 print(f"  Min: {weights.min().item():.4f}")
 
-# Visualization
+# 시각화
 fig, axes = plt.subplots(2, 2, figsize=(14, 10))
 
-# Panel 1: Target and proposal distributions
+# 칸 1: 과녁 분포와 제안 분포
 x = torch.linspace(-5, 8, 500)
 ax = axes[0, 0]
 ax.plot(x.numpy(), torch.exp(target_log_pdf(x)).numpy(), 
@@ -371,7 +336,7 @@ ax.set_title('Target vs Proposal Distributions', fontsize=13, fontweight='bold')
 ax.legend(fontsize=11)
 ax.grid(True, alpha=0.3)
 
-# Panel 2: Weight distribution
+# 칸 2: 무게 분포
 ax = axes[0, 1]
 ax.hist(weights.numpy(), bins=50, density=True, alpha=0.7, 
         color='purple', edgecolor='black')
@@ -383,7 +348,7 @@ ax.set_title('Distribution of Importance Weights', fontsize=13, fontweight='bold
 ax.legend(fontsize=11)
 ax.grid(True, alpha=0.3)
 
-# Panel 3: Samples colored by weight
+# 칸 3: 무게로 색칠한 표본
 samples = diagnostics['samples']
 ax = axes[1, 0]
 scatter = ax.scatter(samples.numpy(), h(samples).numpy(), 
@@ -395,7 +360,7 @@ ax.set_title('Samples Colored by Importance Weight', fontsize=13, fontweight='bo
 plt.colorbar(scatter, ax=ax, label='Weight')
 ax.grid(True, alpha=0.3)
 
-# Panel 4: Convergence
+# 칸 4: 모임
 n_values = torch.arange(100, 10001, 100)
 estimates = []
 for n in n_values:
@@ -419,15 +384,15 @@ plt.savefig('importance_sampling_fundamentals.png', dpi=150, bbox_inches='tight'
 plt.show()
 ```
 
-## Comparing Proposal Distributions
+## 제안 분포 견주기
 
-### Effect of Proposal Choice
+### 제안을 고르는 것의 효과
 
 ```python
 def compare_proposals(h_function, target_log_pdf, proposals, 
                       n_samples=5000, n_replications=100):
     """
-    Compare multiple proposal distributions.
+    여러 제안 분포 견주기.
     """
     results = []
     
@@ -442,7 +407,7 @@ def compare_proposals(h_function, target_log_pdf, proposals,
             )
             estimates.append(est.item())
             
-            # Compute ESS
+            # ESS 셈하기
             w = diag['weights']
             w_normalized = w / w.sum()
             ess = 1.0 / (w_normalized**2).sum()
@@ -458,12 +423,12 @@ def compare_proposals(h_function, target_log_pdf, proposals,
     
     return results
 
-# Define proposals with varying quality
+# 질이 다른 제안들 정하기
 proposals = {
     'Good: N(3, 1.2)': dist.Normal(3.0, 1.2),
     'Okay: N(2, 1.5)': dist.Normal(2.0, 1.5),
     'Poor: N(0, 2)': dist.Normal(0.0, 2.0),
-    'Bad: N(3, 0.5)': dist.Normal(3.0, 0.5),  # Too narrow
+    'Bad: N(3, 0.5)': dist.Normal(3.0, 0.5),  # 너무 좁음
 }
 
 results = compare_proposals(h, target_log_pdf, proposals)
@@ -477,25 +442,25 @@ for r in results:
           f"{r['mean_ess']:12.1f} {r['ess_ratio']:12.2%}")
 ```
 
-## Variance Reduction Example: Tail Probabilities
+## 흩어짐 줄이기 보기: 꼬리 확률
 
-### The Rare Event Problem
+### 드문 일 문제
 
-Estimate $\mathbb{P}_\pi(X > 4)$ where $X \sim \mathcal{N}(0, 1)$.
+$X \sim \mathcal{N}(0, 1)$일 때 $\mathbb{P}_\pi(X > 4)$을 어림하여라.
 
 ```python
-# True probability
+# 참 확률
 true_prob = 1 - dist.Normal(0, 1).cdf(torch.tensor(4.0))
 print(f"True P(X > 4): {true_prob.item():.2e}")
 
-# Indicator function
+# 지시 함수
 h_indicator = lambda x: (x > 4).float()
 
-# Naive Monte Carlo from target
+# 과녁에서 뽑는 어수룩한 몬테카를로
 target = dist.Normal(0, 1)
 n_samples = 100000
 
-# Naive MC
+# 어수룩한 몬테카를로
 samples_naive = target.sample((n_samples,))
 naive_estimate = h_indicator(samples_naive).mean()
 naive_se = h_indicator(samples_naive).std() / (n_samples**0.5)
@@ -504,8 +469,8 @@ print(f"\nNaive MC (n={n_samples}):")
 print(f"  Estimate: {naive_estimate.item():.6f}")
 print(f"  SE: {naive_se.item():.6f}")
 
-# Importance sampling with shifted proposal
-shifted_proposal = dist.Normal(4.0, 1.5)  # Centered in tail
+# 옮긴 제안을 쓴 중요도 표집
+shifted_proposal = dist.Normal(4.0, 1.5)  # 꼬리에 가운데를 맞춤
 
 def target_log_pdf_std(x):
     return dist.Normal(0, 1).log_prob(x)
@@ -519,16 +484,16 @@ print(f"\nImportance Sampling (n=10000):")
 print(f"  Estimate: {is_estimate.item():.6f}")
 print(f"  SE: {is_se.item():.6f}")
 
-# Variance reduction factor
+# 흩어짐 줄임 배수
 variance_reduction = (naive_se / is_se)**2
 print(f"\nVariance reduction factor: {variance_reduction.item():.1f}x")
 ```
 
-## Application to Quantitative Finance
+## 계량 금융에서의 쓰임새
 
-### Rare Event Risk Estimation
+### 드문 일 위험 어림하기
 
-Importance sampling is widely used in quantitative finance for estimating tail risk measures. Computing Value-at-Risk (VaR) and Expected Shortfall (ES) at extreme quantiles (e.g., 99.9%) requires efficient estimation of rare loss events — a natural application of the IS framework developed above.
+중요도 표집은 계량 금융에서 꼬리 위험 잣대를 어림하는 데 널리 쓰인다. 극단 분위수(이를테면 99.9%)에서 위험 값(VaR)과 기대 부족액(ES)을 셈하려면 드문 손실 일을 효율적으로 어림해야 하는데, 이는 위에서 세운 중요도 표집 얼개의 자연스러운 쓰임새이다.
 
 ```python
 def estimate_var_es_importance_sampling(
@@ -536,42 +501,42 @@ def estimate_var_es_importance_sampling(
     alpha=0.999, n_samples=10000
 ):
     """
-    Estimate VaR and Expected Shortfall using importance sampling.
+    중요도 표집으로 VaR과 기댓값 모자람 어림하기.
     
-    Parameters
+    매개변수
     ----------
     loss_function : callable
-        Maps risk factors to portfolio loss
+        위험 인자를 포트폴리오 손실로 잇는다
     target_dist : torch.distributions.Distribution
-        Distribution of risk factors under P
+        P 아래에서 위험 인자의 분포
     proposal_dist : torch.distributions.Distribution
-        Proposal biased toward tail
+        꼬리 쪽으로 치우친 제안
     alpha : float
-        Confidence level (e.g., 0.999)
+        믿음 수준(이를테면 0.999)
     n_samples : int
-        Number of IS samples
+        중요도 표집 표본의 개수
     """
-    # Sample from proposal
+    # 제안에서 표집
     samples = proposal_dist.sample((n_samples,))
     
-    # Compute importance weights
+    # 중요도 무게 셈하기
     log_weights = target_dist.log_prob(samples) - proposal_dist.log_prob(samples)
     weights = torch.exp(log_weights - torch.logsumexp(log_weights, dim=0))
     
-    # Compute losses
+    # 손실 셈하기
     losses = loss_function(samples)
     
-    # Sort by loss for weighted quantile estimation
+    # 무게 분위수를 어림하려고 손실로 정렬
     sorted_indices = torch.argsort(losses)
     sorted_losses = losses[sorted_indices]
     sorted_weights = weights[sorted_indices]
     
-    # Weighted CDF for VaR
+    # VaR을 위한 무게 누적분포함수
     cumulative_weights = torch.cumsum(sorted_weights, dim=0)
     var_idx = (cumulative_weights >= alpha).nonzero(as_tuple=True)[0][0]
     var_estimate = sorted_losses[var_idx]
     
-    # Expected Shortfall: E[L | L > VaR]
+    # 기댓값 모자람: E[L | L > VaR]
     tail_mask = losses > var_estimate
     if tail_mask.sum() > 0:
         tail_weights = weights[tail_mask]
@@ -580,7 +545,7 @@ def estimate_var_es_importance_sampling(
     else:
         es_estimate = var_estimate
     
-    # ESS diagnostic
+    # ESS 진단
     ess = 1.0 / torch.sum(weights**2)
     
     return {
@@ -590,16 +555,16 @@ def estimate_var_es_importance_sampling(
         'ess_ratio': (ess / n_samples).item()
     }
 
-# Example: Heavy-tailed portfolio loss
+# 보기: 꼬리 두꺼운 포트폴리오 손실
 torch.manual_seed(42)
 
-# Risk factor distribution (normal market conditions)
+# 위험 인자 분포(보통 시장 상황)
 target = dist.Normal(0.0, 1.0)
 
-# Proposal shifted toward loss tail
+# 손실 꼬리 쪽으로 옮긴 제안
 proposal = dist.Normal(3.0, 1.5)
 
-# Simple loss function: L = exp(0.5 * X) - 1
+# 단순한 손실 함수: L = exp(0.5 * X) - 1
 loss_fn = lambda x: torch.exp(0.5 * x) - 1.0
 
 results = estimate_var_es_importance_sampling(
@@ -613,86 +578,83 @@ print(f"  ES(99.9%):  {results['es']:.4f}")
 print(f"  ESS:        {results['ess']:.1f} ({results['ess_ratio']:.1%})")
 ```
 
-## Application to Bayesian Inference
+## 베이즈 추론에서의 쓰임새
 
-### Posterior Expectations
+### 뒤확률 기댓값
 
-In Bayesian inference, we want expectations under the posterior:
+베이즈 추론에서 우리는 뒤확률 아래의 기댓값을 구하려 한다:
 
 $$
-
 \mathbb{E}[h(\theta)|y] = \int h(\theta) \, p(\theta|y) \, d\theta
-
 $$
 
-where $p(\theta|y) \propto p(y|\theta) p(\theta)$.
+여기서 $p(\theta|y) \propto p(y|\theta) p(\theta)$이다.
 
-The posterior is typically known only up to proportionality, which motivates **self-normalized importance sampling** (covered in [Self-Normalized IS](self_normalized.md)).
+뒤확률은 보통 비례 상수까지만 알려져 있으며, 그래서 **스스로 고르게 하는 중요도 표집**이 나온다([스스로 고르게 하는 중요도 표집](self_normalized.md)에서 다룬다).
 
-### Connection to Model Evidence
+### 모형 증거와의 이음
 
-Importance sampling can also estimate the marginal likelihood:
+중요도 표집으로 주변 가능도도 어림할 수 있다:
 
 $$
-
 p(y) = \int p(y|\theta) p(\theta) d\theta
-
 $$
 
-Using the prior as proposal: $q(\theta) = p(\theta)$
+앞확률을 제안으로 쓰면 $q(\theta) = p(\theta)$이다
 
 $$
-
 \hat{p}(y) = \frac{1}{n} \sum_{i=1}^n p(y|\theta_i), \quad \theta_i \sim p(\theta)
-
 $$
 
-This is the harmonic mean estimator (though it can have infinite variance—see advanced topics).
+이것이 조화 평균 어림자이다(다만 흩어짐이 끝없을 수 있다. 나아간 주제를 보아라).
 
-## Key Takeaways
+## 핵심 정리
 
-!!! success "When to Use Importance Sampling"
-    - Target distribution is difficult to sample from
-    - A good proposal distribution is available
-    - Variance reduction is needed for rare events
-    - Reusing samples for multiple expectations
+!!! success "중요도 표집을 언제 쓰나"
 
-!!! warning "When IS May Fail"
-    - High dimensions without careful proposal design
-    - Target has heavier tails than proposal
-    - Multimodal targets with single-component proposals
-    - Very large mismatch between target and proposal
+    - 과녁 분포에서 표집하기 어려울 때
+    - 좋은 제안 분포를 쓸 수 있을 때
+    - 드문 일에서 흩어짐을 줄여야 할 때
+    - 여러 기댓값에 표본을 다시 쓸 때
 
-!!! info "Best Practices"
-    1. Always check weight diagnostics (variance, max weight, ESS)
-    2. Proposal should have heavier tails than target
-    3. Cover the full support of the target
-    4. Consider adaptive methods for complex targets
+!!! warning "중요도 표집이 무너질 수 있을 때"
 
-## Exercises
+    - 제안을 꼼꼼히 짜지 않은 채 차원이 높을 때
+    - 과녁의 꼬리가 제안보다 무거울 때
+    - 봉우리가 여럿인 과녁에 성분이 하나뿐인 제안을 쓸 때
+    - 과녁과 제안이 아주 크게 어긋날 때
 
-### Exercise 1: Variance Comparison
-Compare the variance of naive MC and IS for estimating $\mathbb{E}[e^{2X}]$ where $X \sim \mathcal{N}(0,1)$. Use proposals $q = \mathcal{N}(0,1)$, $q = \mathcal{N}(1,1)$, and $q = \mathcal{N}(2,1)$. Which achieves the lowest variance and why?
+!!! info "좋은 버릇"
 
-### Exercise 2: Support Coverage
-Demonstrate what happens when the proposal doesn't cover the target's support. Let $\pi = \mathcal{N}(0,1)$ and $q = \text{Uniform}(-2, 2)$. Estimate $\mathbb{E}[X^2]$ and explain the bias.
+    1. 무게 진단(흩어짐, 최대 무게, ESS)을 늘 살펴라
+    2. 제안의 꼬리가 과녁보다 무거워야 한다
+    3. 과녁의 받침 전체를 덮어라
+    4. 복잡한 과녁에는 알아서 맞추는 방법을 생각해 보아라
 
-### Exercise 3: Optimal Proposal Approximation
-For $h(\theta) = \theta^2$ and $\pi = \mathcal{N}(3,1)$, the optimal proposal is $q^* \propto \theta^2 \cdot \mathcal{N}(3,1)$. Approximate this by fitting a Gaussian to $|\theta| \cdot \mathcal{N}(3,1)$ and compare the variance to using the prior as proposal.
-
-### Exercise 4: Option Pricing via IS
-Use importance sampling to price a deep out-of-the-money European call option under the Black-Scholes model. Compare the variance of naive MC (sampling paths under the risk-neutral measure) versus IS with the proposal shifted toward the strike price. Compute the variance reduction factor.
-
-## References
+## 참고 문헌
 
 1. Kahn, H., & Harris, T. E. (1951). "Estimation of particle transmission by random sampling." *National Bureau of Standards Applied Mathematics Series*, 12, 27-30.
 
 2. Hammersley, J. M., & Handscomb, D. C. (1964). *Monte Carlo Methods*. Methuen.
 
-3. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. Chapter 9: Importance Sampling.
+3. Owen, A. B. (2013). *Monte Carlo theory, methods and examples*. 9장: 중요도 표집.
 
-4. Robert, C. P., & Casella, G. (2004). *Monte Carlo Statistical Methods*. Springer. Chapter 3.
+4. Robert, C. P., & Casella, G. (2004). *Monte Carlo Statistical Methods*. Springer. 3장.
 
-5. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. Chapter 2.
+5. Liu, J. S. (2001). *Monte Carlo Strategies in Scientific Computing*. Springer. 2장.
 
-6. Glasserman, P. (2003). *Monte Carlo Methods in Financial Engineering*. Springer. Chapters 4-5.
+6. Glasserman, P. (2003). *Monte Carlo Methods in Financial Engineering*. Springer. 4-5장.
+
+## 연습문제
+
+### 연습 1: 흩어짐 견주기
+$X \sim \mathcal{N}(0,1)$일 때 $\mathbb{E}[e^{2X}]$을 어림하는 소박한 몬테카를로와 중요도 표집의 흩어짐을 견주어라. 제안으로 $q = \mathcal{N}(0,1)$, $q = \mathcal{N}(1,1)$, $q = \mathcal{N}(2,1)$을 써라. 어느 것이 흩어짐이 가장 작으며 왜 그런가?
+
+### 연습 2: 받침 덮기
+제안이 과녁의 받침을 덮지 않으면 어떻게 되는지 보여라. $\pi = \mathcal{N}(0,1)$, $q = \text{Uniform}(-2, 2)$이라 하자. $\mathbb{E}[X^2]$을 어림하고 치우침을 설명하여라.
+
+### 연습 3: 가장 좋은 제안 어림하기
+$h(\theta) = \theta^2$이고 $\pi = \mathcal{N}(3,1)$일 때 가장 좋은 제안은 $q^* \propto \theta^2 \cdot \mathcal{N}(3,1)$이다. $|\theta| \cdot \mathcal{N}(3,1)$에 가우스를 맞춰 이를 어림하고, 앞확률을 제안으로 쓸 때와 흩어짐을 견주어라.
+
+### 연습 4: 중요도 표집으로 옵션 값 매기기
+블랙-숄즈 모형 아래에서 깊은 외가격 유럽식 콜 옵션의 값을 중요도 표집으로 매겨라. 소박한 몬테카를로(위험 중립 측도 아래에서 경로를 표집)와 제안을 행사가 쪽으로 옮긴 중요도 표집의 흩어짐을 견주어라. 흩어짐이 줄어든 배수를 셈하여라.

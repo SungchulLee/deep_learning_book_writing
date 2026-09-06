@@ -1,10 +1,10 @@
-# Common Growth Rates
+# 흔한 증가 속도
 
-Recognizing an algorithm's growth class is one of the most practical skills in algorithm analysis.  When you see that a loop runs $n^2$ times or that a recursive call halves the input, you can immediately classify the running time and compare it against alternatives.  This page catalogues the standard growth classes from fastest (smallest) to slowest (largest), with example algorithms and concrete numbers that build intuition for how these functions scale.
+알고리즘의 증가 부류를 알아보는 것은 알고리즘 분석에서 가장 실용적인 기술 중 하나이다. 어떤 반복문이 $n^2$번 돈다거나 재귀 호출이 입력을 반으로 줄인다는 것을 보면, 실행 시간을 곧바로 분류하고 다른 방법과 비교할 수 있다. 이 절에서는 표준적인 증가 부류를 가장 빠른(작은) 것부터 가장 느린(큰) 것까지 정리하고, 예시 알고리즘과 구체적인 수치를 통해 이 함수들이 어떻게 커지는지에 대한 직관을 기른다.
 
-## Numerical Perspective
+## 수치로 보기
 
-The table below shows function values for selected input sizes.  Even modest differences in growth class produce enormous differences at scale.
+아래 표는 선택한 입력 크기에 대한 함수 값을 보여준다. 증가 부류의 차이가 크지 않아 보여도 규모가 커지면 엄청난 차이를 만든다.
 
 | $n$ | $\log_2 n$ | $\sqrt{n}$ | $n$ | $n \log_2 n$ | $n^2$ | $2^n$ |
 |---|---|---|---|---|---|---|
@@ -13,101 +13,134 @@ The table below shows function values for selected input sizes.  Even modest dif
 | 1,000 | 10 | 31.6 | 1,000 | 9,966 | $10^6$ | $\gg 10^{300}$ |
 | $10^6$ | 20 | 1,000 | $10^6$ | $2 \times 10^7$ | $10^{12}$ | -- |
 
-The exponential column grows so fast that $2^{1000}$ already exceeds the number of atoms in the observable universe (roughly $10^{80}$).
+지수 열은 너무 빠르게 커져서 $2^{1000}$은 이미 관측 가능한 우주의 원자 개수(대략 $10^{80}$)를 넘어선다.
 
-## Constant -- $O(1)$
+## 상수 -- O(1)
 
-A constant-time operation takes the same number of steps regardless of input size.
+상수 시간 연산은 입력 크기와 무관하게 같은 수의 단계를 밟는다.
 
-- **Definition:** $T(n) = c$ for some constant $c > 0$.
-- **Examples:** Array access by index, hash table lookup (amortized), pushing onto a stack.
-- **Intuition:** Doubling the input size has no effect on running time.
+- **정의:** 어떤 상수 $c > 0$에 대해 $T(n) = c$이다.
+- **예:** 인덱스에 의한 배열 접근, 해시 테이블 조회(분할 상환), 스택에 밀어 넣기.
+- **직관:** 입력 크기를 두 배로 해도 실행 시간에 영향이 없다.
 
-## Logarithmic -- $O(\log n)$
+## 로그 -- O(log n)
 
-Logarithmic time arises when each step eliminates a constant fraction of the remaining input.
+로그 시간은 매 단계마다 남은 입력의 일정 비율이 제거될 때 나타난다.
 
-- **Definition:** $T(n) = c \log_b n$ for some base $b > 1$.  The base does not affect the asymptotic class because $\log_b n = \Theta(\log n)$ for any fixed $b$.
-- **Examples:** Binary search, balanced BST lookup, exponentiation by squaring.
-- **Intuition:** Doubling the input adds only one extra step.
+- **정의:** 어떤 밑 $b > 1$에 대해 $T(n) = c \log_b n$이다. 고정된 임의의 $b$에 대해 $\log_b n = \Theta(\log n)$이므로 밑은 점근적 부류에 영향을 주지 않는다.
+- **예:** 이진 탐색, 균형 이진 탐색 트리 조회, 제곱을 이용한 거듭제곱.
+- **직관:** 입력을 두 배로 해도 단계가 하나만 더 늘어난다.
 
-!!! tip "Base does not matter"
+!!! tip "밑은 중요하지 않다"
 
-    Since $\log_2 n = \log_{10} n / \log_{10} 2$, changing the logarithm base only introduces a constant factor.  All logarithmic bases belong to the same $\Theta(\log n)$ class.
+    $\log_2 n = \log_{10} n / \log_{10} 2$이므로 로그의 밑을 바꾸는 것은 상수 인자만 들여올 뿐이다. 모든 로그는 밑과 무관하게 같은 $\Theta(\log n)$ 부류에 속한다.
 
-## Square Root -- $O(\sqrt{n})$
+## 제곱근 -- O(sqrt(n))
 
-Some algorithms achieve sub-linear time by processing a number of elements proportional to $\sqrt{n}$.
+어떤 알고리즘들은 $\sqrt{n}$에 비례하는 개수의 원소만 처리하여 선형보다 빠른 시간을 달성한다.
 
-- **Examples:** Trial division for primality testing (up to $\sqrt{n}$), Mo's algorithm for range queries.
-- **Intuition:** Growing $n$ by a factor of 4 only doubles the running time.
+- **예:** 소수 판정을 위한 시행 나눗셈($\sqrt{n}$까지), 구간 질의를 위한 Mo의 알고리즘.
+- **직관:** $n$을 4배로 늘려도 실행 시간은 두 배가 될 뿐이다.
 
-## Linear -- $O(n)$
+## 선형 -- O(n)
 
-Linear time means the running time is directly proportional to the input size.
+선형 시간은 실행 시간이 입력 크기에 정비례한다는 뜻이다.
 
-- **Definition:** $T(n) = cn$ for some constant $c$.
-- **Examples:** Linear scan, counting sort (when range is $O(n)$), single-pass streaming algorithms.
-- **Intuition:** Doubling the input exactly doubles the running time.  Every element is processed at most a constant number of times.
+- **정의:** 어떤 상수 $c$에 대해 $T(n) = cn$이다.
+- **예:** 선형 탐색, 계수 정렬(값의 범위가 $O(n)$일 때), 단일 통과 스트리밍 알고리즘.
+- **직관:** 입력을 두 배로 하면 실행 시간이 정확히 두 배가 된다. 모든 원소가 많아야 상수 번 처리된다.
 
-## Linearithmic -- $O(n \log n)$
+## 선형로그 -- O(n log n)
 
-The linearithmic class sits just above linear and appears in many optimal sorting and divide-and-conquer algorithms.
+선형로그 부류는 선형 바로 위에 자리하며, 최적 정렬 알고리즘과 분할 정복 알고리즘에 많이 나타난다.
 
-- **Definition:** $T(n) = cn \log n$.
-- **Examples:** Merge sort, heapsort, FFT.
-- **Intuition:** Each of the $n$ elements is processed $O(\log n)$ times, often once per level of a recursion tree with $\log n$ levels.
+- **정의:** $T(n) = cn \log n$이다.
+- **예:** 병합 정렬, 힙 정렬, FFT.
+- **직관:** $n$개 원소 각각이 $O(\log n)$번 처리되며, 흔히 $\log n$개 층을 가진 재귀 트리의 층마다 한 번씩 처리된다.
 
-## Quadratic -- $O(n^2)$
+## 이차 -- O(n²)
 
-Quadratic time typically arises from nested loops where each loop iterates over the entire input.
+이차 시간은 보통 각각이 입력 전체를 도는 중첩 반복문에서 생긴다.
 
-- **Definition:** $T(n) = cn^2$.
-- **Examples:** Insertion sort (worst case), bubble sort, naive string matching.
-- **Intuition:** Doubling the input quadruples the running time.  Feasible for $n$ up to roughly $10^4$.
+- **정의:** $T(n) = cn^2$이다.
+- **예:** 삽입 정렬(최악의 경우), 버블 정렬, 소박한 문자열 매칭.
+- **직관:** 입력을 두 배로 하면 실행 시간이 네 배가 된다. $n$이 대략 $10^4$까지는 실행 가능하다.
 
-## Cubic -- $O(n^3)$
+## 삼차 -- O(n³)
 
-Cubic time appears in algorithms with three nested loops or in naive matrix operations.
+삼차 시간은 세 겹 중첩 반복문이 있는 알고리즘이나 소박한 행렬 연산에서 나타난다.
 
-- **Definition:** $T(n) = cn^3$.
-- **Examples:** Naive matrix multiplication, Floyd-Warshall shortest paths.
-- **Intuition:** Doubling the input increases running time by a factor of 8.  Feasible for $n$ up to roughly $10^3$.
+- **정의:** $T(n) = cn^3$이다.
+- **예:** 소박한 행렬 곱, 플로이드-워셜 최단 경로.
+- **직관:** 입력을 두 배로 하면 실행 시간이 8배가 된다. $n$이 대략 $10^3$까지는 실행 가능하다.
 
-## Polynomial -- $O(n^k)$
+## 다항 -- O(nᵏ)
 
-Any algorithm with running time bounded by $n^k$ for a fixed constant $k$ is considered polynomial-time.  Polynomial algorithms are generally regarded as **efficient** in complexity theory (the class P).
+고정된 상수 $k$에 대해 실행 시간이 $n^k$으로 유계인 알고리즘은 다항 시간 알고리즘으로 간주된다. 복잡도 이론에서 다항 시간 알고리즘은 일반적으로 **효율적** 이라고 여겨진다(부류 P).
 
-!!! info "Practical note"
+!!! info "실무적 참고"
 
-    While $O(n^{100})$ is technically polynomial, in practice only small exponents ($k \leq 3$ or so) yield feasible algorithms.  The theoretical distinction matters most when separating polynomial from exponential.
+    $O(n^{100})$은 기술적으로는 다항이지만, 실제로는 작은 지수($k \leq 3$ 정도)만이 실행 가능한 알고리즘을 준다. 이론적 구분은 다항과 지수를 가를 때 가장 중요하다.
 
-## Exponential -- $O(2^n)$
+## 지수 -- O(2ⁿ)
 
-Exponential time grows so rapidly that even moderate input sizes become intractable.
+지수 시간은 너무 빠르게 커져서 입력 크기가 조금만 커져도 다룰 수 없게 된다.
 
-- **Definition:** $T(n) = c \cdot 2^n$ (or more generally $c \cdot b^n$ for $b > 1$).
-- **Examples:** Brute-force subset enumeration, naive recursive Fibonacci, exhaustive search over all binary strings.
-- **Intuition:** Adding a single element to the input doubles the running time.
+- **정의:** $T(n) = c \cdot 2^n$이다(더 일반적으로는 $b > 1$에 대해 $c \cdot b^n$).
+- **예:** 완전 탐색 부분집합 열거, 소박한 재귀 피보나치, 모든 이진 문자열에 대한 전수 탐색.
+- **직관:** 입력에 원소 하나를 더하면 실행 시간이 두 배가 된다.
 
-## Factorial -- $O(n!)$
+## 계승 -- O(n!)
 
-Factorial growth arises from generating all permutations of the input.
+계승 증가는 입력의 모든 순열을 생성할 때 나타난다.
 
-- **Definition:** $T(n) = c \cdot n!$.
-- **Examples:** Brute-force traveling salesman, generating all permutations.
-- **Intuition:** $20! \approx 2.4 \times 10^{18}$, which already exceeds what any modern computer can enumerate in reasonable time.
+- **정의:** $T(n) = c \cdot n!$이다.
+- **예:** 완전 탐색 외판원 문제, 모든 순열 생성.
+- **직관:** $20! \approx 2.4 \times 10^{18}$로, 이미 어떤 현대 컴퓨터도 합리적인 시간 안에 열거할 수 없는 규모이다.
 
-## The Complete Hierarchy
+## 전체 계층
 
-Combining all classes into a single ordering:
+모든 부류를 하나의 순서로 합치면 다음과 같다.
 
 $$
 O(1) \subset O(\log n) \subset O(\sqrt{n}) \subset O(n) \subset O(n \log n) \subset O(n^2) \subset O(n^3) \subset O(2^n) \subset O(n!) \subset O(n^n)
 $$
 
-Each strict inclusion means there exist functions that belong to the larger class but not the smaller one.  For techniques to prove these relationships and compare arbitrary functions, see [Growth Rate Comparison](comparison.md).
+각각의 진부분집합 관계는 큰 부류에는 속하지만 작은 부류에는 속하지 않는 함수가 존재한다는 뜻이다. 이 관계들을 증명하고 임의의 함수를 비교하는 기법은 [증가 속도 비교](comparison.md)를 참고하라.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 3. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+흔한 증가 속도에서 다룬 점근 표기법을 적용하여 셀프 어텐션($n^2 d$번 연산)과 순방향 층($n d^2$번 연산)의 복잡도를 분류하라.
+
+??? success "연습문제 1 풀이"
+    셀프 어텐션: $O(n^2 d)$로 시퀀스 길이에 대해 이차이다. FFN: $O(nd^2)$로 시퀀스 길이에 대해서는 선형이지만 은닉 차원에 대해서는 이차이다. $n > d$이면 어텐션이 지배한다. $d > n$이면 FFN이 지배한다. 교차점은 $n = d$이다.
+
+---
+
+**연습문제 2.**
+흔한 증가 속도에서 서술한 형식적 정의를 구체적인 상수 $c$와 $n_0$을 사용하여 증명하라.
+
+??? success "연습문제 2 풀이"
+    정의를 만족하는 $c$와 $n_0$의 구체적인 값을 고른다. 대수적 조작으로, 또는 각 항의 상계를 잡아서, 모든 $n \geq n_0$에 대해 부등식이 성립함을 검증한다.
+
+---
+
+**연습문제 3.**
+극한 판정법을 사용하여 흔한 증가 속도와 관련된 두 함수 사이의 점근적 관계를 결정하라.
+
+??? success "연습문제 3 풀이"
+    $\lim_{n \to \infty} f(n)/g(n)$을 계산한다. 극한이 0이면 $f = o(g)$이다. 극한이 $\infty$이면 $f = \omega(g)$이다. 극한이 양의 상수이면 $f = \Theta(g)$이다.
+
+---
+
+**연습문제 4.**
+다음 함수들을 증가 속도 순으로 나열하라: $n$, $n \log n$, $n^2$, $2^n$, $\log n$. 인접한 각 쌍의 순서를 증명하라.
+
+??? success "연습문제 4 풀이"
+    $\log n \prec n \prec n\log n \prec n^2 \prec 2^n$. 증명: $\lim \log n / n = 0$(로피탈 정리), $\lim n/(n\log n) = 1/\log n \to 0$, $\lim n\log n / n^2 = \log n / n \to 0$, $\lim n^2/2^n = 0$(지수가 다항식을 지배한다). $\square$

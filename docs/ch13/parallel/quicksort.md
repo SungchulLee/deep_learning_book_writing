@@ -1,21 +1,15 @@
-# Parallel Quicksort
+# 병렬 빠른 정렬
 
-Quicksort is naturally suited to parallelism: once the array is partitioned around a
-pivot, the left and right sub-arrays are independent and can be sorted concurrently.
-However, the partition step itself is sequential in the naive implementation, and
-unbalanced partitions lead to poor load balancing.  **Parallel quicksort** addresses
-both challenges, achieving $O(n \log n)$ total work with low parallel depth.
+빠른 정렬은 병렬에 자연스럽게 어울린다. 배열을 축을 기준으로 나누고 나면 왼쪽과 오른쪽 부분 배열이 서로 독립이라 함께 정렬할 수 있다. 그러나 소박한 구현에서는 나누는 걸음 자체가 차례대로 굴러가고, 치우친 나눔은 짐을 고르게 나누지 못하게 한다. **병렬 빠른 정렬**은 두 어려움을 모두 다루어 낮은 병렬 깊이로 전체 일 $O(n \log n)$을 이룬다.
 
-## Sources of Parallelism
+## 병렬성이 나오는 곳
 
 Quicksort has two potential parallelism sites:
 
-1. **Recursive sub-problems.** After partitioning, the sub-arrays on each side of the
-   pivot are independent.  Sorting them in parallel is straightforward.
-2. **The partition step itself.** The standard Lomuto or Hoare partition scans the
-   array sequentially.  A parallel partition distributes the scan across processors.
+1. **되돌이 부분 문제.** 나눈 뒤 축 양쪽의 부분 배열은 서로 독립이다. 그것들을 나란히 정렬하기는 쉽다.
+2. **나누는 걸음 자체.** 보통의 로무토나 호어 나눔은 배열을 차례대로 훑는다. 병렬 나눔은 그 훑기를 프로세서들에 나눈다.
 
-## Naive Parallel Quicksort
+## 소박한 병렬 빠른 정렬
 
 The simplest parallel quicksort spawns a new task for each recursive call:
 
@@ -23,7 +17,7 @@ The simplest parallel quicksort spawns a new task for each recursive call:
 2. Spawn two parallel tasks for the left and right sub-arrays.
 3. Wait for both tasks to complete.
 
-### Complexity (naive)
+### 복잡도(소박한 판)
 
 Let $W(n)$ and $S(n)$ denote work and span (critical path length).
 
@@ -35,22 +29,20 @@ $$
 S(n) = O(n) \quad \text{expected (dominated by partition)}
 $$
 
-The span is $O(n)$ because the partition step is sequential.  Even with perfect
-$n/2$ splits, the first partition takes $\Theta(n)$ time.
+나누는 걸음이 차례대로 굴러가므로 뻗침이 $O(n)$이다. $n/2$으로 완벽히 쪼개더라도 첫 나눔에 $\Theta(n)$ 시간이 든다.
 
-## Parallel Partition
+## 병렬 나눔
 
 To reduce the span, we can parallelize the partition step using a **prefix sum**:
 
 1. Divide the array into $p$ blocks, one per processor.
 2. Each processor counts how many elements in its block are $\le$ pivot and $>$ pivot.
-3. Compute a prefix sum over these counts to determine the final position of each
-   block's elements.
+3. 이 세기들의 앞부분 합을 셈해 블록마다 원소가 놓일 마지막 자리를 정한다.
 4. Each processor moves its elements to their final positions.
 
 **Partition span:** $O(n/p + \log p)$ with $p$ processors.
 
-### Improved Complexity
+### 나아진 복잡도
 
 With parallel partition and $p = n / \log n$ processors:
 
@@ -60,23 +52,22 @@ $$
 
 The span comes from $O(\log n)$ recursion levels, each with $O(\log n)$ partition span.
 
-## Load Balancing Challenges
+## 짐 고르게 나누기의 어려움
 
-The quality of the pivot determines load balance.  With a poor pivot, one sub-array
-may contain most of the elements, leaving processors idle.
+축의 질이 짐의 균형을 정한다. 축이 나쁘면 한쪽 부분 배열에 원소 대부분이 몰려 프로세서가 놀게 된다.
 
 **Strategies for better pivots:**
 
-| Strategy | Description | Overhead |
+| 전략 | 설명 | 짐 |
 |----------|-------------|----------|
-| Random pivot | Choose uniformly at random | $O(1)$ |
-| Median-of-three | Median of first, middle, last | $O(1)$ |
-| Sampling | Random sample of $O(\sqrt{n})$ elements, take median | $O(\sqrt{n})$ |
-| Exact median | Use median-of-medians | $O(n)$ -- defeats purpose |
+| 무작위 축 | 고르게 아무렇게나 고른다 | $O(1)$ |
+| 셋의 중앙값 | 첫째, 가운데, 마지막의 중앙값 | $O(1)$ |
+| 표본 뽑기 | 원소 $O(\sqrt{n})$개를 무작위로 뽑아 중앙값을 쓴다 | $O(\sqrt{n})$ |
+| 정확한 중앙값 | 중앙값의 중앙값을 쓴다 | $O(n)$ — 취지를 무너뜨린다 |
 
 In practice, random pivots provide expected $O(\log n)$ depth with high probability.
 
-## Sample Sort (Parallel Generalization)
+## 표본 정렬(병렬로 일반화하기)
 
 For $p$ processors, **sample sort** generalizes quicksort:
 
@@ -91,24 +82,24 @@ $$
 W(n) = O(n \log n), \qquad S(n) = O\!\left(\frac{n}{p} \log \frac{n}{p}\right)
 $$
 
-## Implementation
+## 구현
 
 ```python
 """
-Parallel quicksort -- demonstrates task-based parallel sorting.
+병렬 빠른 정렬 — 일감 기반 병렬 정렬을 보인다.
 
-Uses Python's concurrent.futures for thread-based parallelism.
-Work:  O(n log n)
-Span:  O(n) naive, O(log^2 n) with parallel partition
+실 기반 병렬성을 위해 파이썬의 concurrent.futures을 쓴다.
+일의 양:  O(n log n)
+뻗침:  소박한 판은 O(n), 병렬 나눔을 쓰면 O(log^2 n)
 """
 
 from concurrent.futures import ThreadPoolExecutor, Future
 
 
-# === Sequential Partition ===
+# === 차례대로 나눔 ===
 
 def _partition(arr: list, lo: int, hi: int) -> int:
-    """Lomuto partition: returns pivot index after partitioning arr[lo..hi]."""
+    """로무토 나눔: arr[lo..hi]을 나눈 뒤 축의 첨자를 되돌린다."""
     pivot = arr[hi]
     i = lo
     for j in range(lo, hi):
@@ -119,7 +110,7 @@ def _partition(arr: list, lo: int, hi: int) -> int:
     return i
 
 
-# === Parallel Quicksort ===
+# === 병렬 빠른 정렬 ===
 
 def _parallel_quicksort(
     arr: list,
@@ -128,10 +119,10 @@ def _parallel_quicksort(
     executor: ThreadPoolExecutor,
     depth_limit: int,
 ) -> None:
-    """Sort arr[lo..hi] using parallel quicksort.
+    """병렬 빠른 정렬로 arr[lo..hi]을 정렬한다.
 
-    Falls back to sequential sort when depth_limit is reached
-    to avoid excessive task overhead.
+    일감 짐이 너무 커지지 않도록 depth_limit에 이르면
+    차례대로 하는 정렬로 물러선다.
     """
     if lo >= hi:
         return
@@ -139,7 +130,7 @@ def _parallel_quicksort(
     pivot_idx = _partition(arr, lo, hi)
 
     if depth_limit > 0:
-        # Spawn parallel tasks for left and right sub-arrays
+        # 왼쪽과 오른쪽 부분 배열에 병렬 일감 띄우기
         left_future = executor.submit(
             _parallel_quicksort, arr, lo, pivot_idx - 1,
             executor, depth_limit - 1,
@@ -147,15 +138,15 @@ def _parallel_quicksort(
         _parallel_quicksort(
             arr, pivot_idx + 1, hi, executor, depth_limit - 1,
         )
-        left_future.result()  # wait for left side
+        left_future.result()  # 왼쪽을 기다린다
     else:
-        # Sequential fallback
+        # 차례대로 물러서기
         _sequential_quicksort(arr, lo, pivot_idx - 1)
         _sequential_quicksort(arr, pivot_idx + 1, hi)
 
 
 def _sequential_quicksort(arr: list, lo: int, hi: int) -> None:
-    """Standard sequential quicksort for small sub-problems."""
+    """작은 부분 문제를 위한 표준 차례대로 빠른 정렬."""
     if lo >= hi:
         return
     pivot_idx = _partition(arr, lo, hi)
@@ -166,21 +157,21 @@ def _sequential_quicksort(arr: list, lo: int, hi: int) -> None:
 def parallel_quicksort(
     arr: list, max_workers: int = 4, parallel_depth: int = 3
 ) -> list:
-    """Sort *arr* using parallel quicksort.
+    """병렬 빠른 정렬로 *arr*을 정렬한다.
 
-    Parameters
+    매개변수
     ----------
     arr : list[int]
-        Input array.
+        입력 배열.
     max_workers : int
-        Number of threads in the pool.
+        풀 안의 실 개수.
     parallel_depth : int
-        Maximum recursion depth for spawning parallel tasks.
+        병렬 일감을 띄울 최대 되돌이 깊이.
 
-    Returns
+    반환값
     -------
     list[int]
-        Sorted array.
+        정렬된 배열.
     """
     result = list(arr)
     if len(result) <= 1:
@@ -192,7 +183,7 @@ def parallel_quicksort(
     return result
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     import random
@@ -201,22 +192,22 @@ if __name__ == "__main__":
     random.seed(42)
     data = [random.randint(0, 99999) for _ in range(10000)]
 
-    # Parallel quicksort
+    # 병렬 빠른 정렬
     start = time.perf_counter()
     sorted_parallel = parallel_quicksort(data, max_workers=4, parallel_depth=3)
     t_parallel = time.perf_counter() - start
 
-    # Verify correctness
+    # 맞는지 확인하기
     print(f"Correctly sorted: {sorted_parallel == sorted(data)}")
     print(f"Parallel time:    {t_parallel:.4f}s")
 
-    # Small example for demonstration
+    # 보여 주기용 작은 보기
     small = [3, 6, 8, 10, 1, 2, 1]
     print(f"\nInput:  {small}")
     print(f"Sorted: {parallel_quicksort(small)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Correctly sorted: True
 Parallel time:    0.0312s  (varies by hardware)
@@ -225,30 +216,57 @@ Input:  [3, 6, 8, 10, 1, 2, 1]
 Sorted: [1, 1, 2, 3, 6, 8, 10]
 ```
 
-## Comparison with Other Parallel Sorts
+## 다른 병렬 정렬과의 견줌
 
-| Algorithm | Work | Span | In-place | Practical |
+| 알고리즘 | 일의 양 | 뻗침 | 제자리 | 실전성 |
 |-----------|------|------|----------|----------|
-| Parallel quicksort (naive) | $O(n \log n)$ | $O(n)$ | Yes | Yes |
-| Parallel quicksort (parallel partition) | $O(n \log n)$ | $O(\log^2 n)$ | No | Yes |
-| Parallel merge sort | $O(n \log n)$ | $O(\log^3 n)$ | No | Yes |
-| Bitonic sort | $O(n \log^2 n)$ | $O(\log^2 n)$ | Yes | GPU |
-| Sample sort | $O(n \log n)$ | $O(n/p \cdot \log(n/p))$ | No | Yes |
+| 병렬 빠른 정렬(소박한 판) | $O(n \log n)$ | $O(n)$ | 예 | 예 |
+| 병렬 빠른 정렬(병렬 나눔) | $O(n \log n)$ | $O(\log^2 n)$ | 아니오 | 예 |
+| 병렬 병합 정렬 | $O(n \log n)$ | $O(\log^3 n)$ | 아니오 | 예 |
+| 바이토닉 정렬 | $O(n \log^2 n)$ | $O(\log^2 n)$ | 예 | GPU |
+| 표본 정렬 | $O(n \log n)$ | $O(n/p \cdot \log(n/p))$ | 아니오 | 예 |
 
-## Practical Considerations
+## 실용적인 고려
 
-- **Depth limit.** Spawning a thread for every recursive call creates excessive
-  overhead.  Limit parallel spawning to the top few levels of recursion (typically
-  $\log_2 p$ levels for $p$ processors), then switch to sequential sort.
-- **GIL in Python.** Python's Global Interpreter Lock limits true thread parallelism.
-  For CPU-bound sorting, use `multiprocessing` or C extensions.  The thread-based
-  implementation above demonstrates the concept.
-- **Cache effects.** Quicksort's sequential partition has good locality; splitting it
-  across processors may reduce cache efficiency.
+- **깊이 한계.** 되돌이 부름마다 실을 띄우면 짐이 지나치게 커진다. 병렬로 띄우는 것을 되돌이의 위쪽 몇 층으로(프로세서가 $p$개면 대개 $\log_2 p$층으로) 묶고 그 아래로는 차례대로 정렬로 갈아타라.
+- **파이썬의 GIL.** 파이썬의 전역 인터프리터 잠금이 참된 실 병렬성을 막는다. CPU에 매인 정렬이라면 `multiprocessing`이나 C 확장을 쓰라. 위의 실 기반 구현은 개념을 보여 줄 뿐이다.
+- **캐시 효과.** 빠른 정렬의 차례대로 하는 나눔은 지역성이 좋다. 그것을 프로세서들에 쪼개면 캐시 효율이 떨어질 수 있다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022).
-  *Introduction to Algorithms* (4th ed.), Chapters 26-27. MIT Press.
-- Blelloch, G. E. (1996). Programming parallel algorithms. *Communications
-  of the ACM*, 39(3), 85-97.
+  *Introduction to Algorithms* (4th ed.), 26-27장. MIT Press.
+- Blelloch, G. E. (1996). Programming parallel algorithms. *Communications of the ACM*, 39(3), 85-97.
+
+
+## 연습문제
+
+**연습문제 1.**
+병렬 빠른 정렬의 핵심 생각과 그 시간·공간 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 견줌 너머의 성질(정수 열쇠, 바깥 저장 장치, 병렬 하드웨어)을 살려 써서 비교 기반 정렬이 따라올 수 없는 성능을 이룬다. 구체적인 복잡도 한계는 이 쪽에서 뜯어본다.
+
+---
+
+**연습문제 2.**
+작은 입력에서 병렬 빠른 정렬을 따라가라. 훑기나 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    원소 6~8개에 알고리즘을 적용하며 훑을 때마다의 상태를 보여라. 이 따라가기가 알고리즘의 얼개를 드러내고 옳음을 눈에 보이게 한다.
+
+---
+
+**연습문제 3.**
+어떤 조건에서 비교 기반 정렬보다 병렬 빠른 정렬이 나은가?
+
+??? success "연습문제 3 풀이"
+    다음일 때 낫다. 입력의 정수 범위가 묶여 있을 때(세기 정렬과 기수 정렬), 데이터가 램을 넘칠 때(바깥 정렬), 병렬 하드웨어를 쓸 수 있을 때(병렬 정렬). 이런 조건에서는 알고리즘이 비교 기반의 아래 한계 $\Omega(n\log n)$을 비껴갈 수 있다.
+
+---
+
+**연습문제 4.**
+병렬 빠른 정렬이 실전에서 이득을 주는 깊은 학습 응용을 서술하라.
+
+??? success "연습문제 4 풀이"
+    응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.

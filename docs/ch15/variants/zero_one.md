@@ -1,66 +1,66 @@
 # 0-1 BFS
 
-Dijkstra's algorithm runs in $O((|V| + |E|) \log |V|)$ with a binary heap. When every edge weight is either 0 or 1, we can do much better. **0-1 BFS** exploits this restricted weight structure by using a **deque** (double-ended queue) instead of a priority queue, achieving $O(|V| + |E|)$ time -- the same as unweighted BFS. This technique appears frequently in grid-based problems where some transitions are free (weight 0) and others cost 1.
+데이크스트라 알고리즘은 이진 힙을 쓰면 $O((|V| + |E|) \log |V|)$에 돈다. 변의 무게가 모두 0이거나 1이면 훨씬 잘할 수 있다. **0-1 BFS**은 이 좁혀진 무게 짜임을 써먹어 우선순위 줄 대신 **덱**(양끝 줄)을 쓰며, 무게 없는 BFS과 같은 $O(|V| + |E|)$ 시간을 이룬다. 이 기법은 어떤 옮김은 공짜(무게 0)이고 다른 옮김은 값이 1인 격자 문제에 자주 나온다.
 
-## Key Insight
+## 핵심 통찰
 
-In a graph with weights 0 and 1, the shortest-path distances form at most two "layers" at any time: the current distance $d$ and $d + 1$. A deque naturally maintains this two-level structure:
+무게가 0과 1인 그래프에서 최단 경로 거리는 언제든 많아야 두 "켜"를 이룬다. 곧 지금 거리 $d$과 $d + 1$이다. 덱은 이 두 층 짜임을 자연스럽게 지킨다:
 
-- When relaxing an edge with weight **0**, the neighbor gets the same distance as the current vertex. Push it to the **front** of the deque (it should be processed at the same priority level).
-- When relaxing an edge with weight **1**, the neighbor gets distance $d + 1$. Push it to the **back** of the deque (it should be processed after all vertices at distance $d$).
+- 무게 **0**인 변을 늦출 때 이웃은 지금 꼭짓점과 같은 거리를 얻는다. 그것을 덱의 **앞**에 밀어 넣는다(같은 우선순위 층에서 다뤄야 하므로).
+- 무게 **1**인 변을 늦출 때 이웃은 거리 $d + 1$을 얻는다. 그것을 덱의 **뒤**에 밀어 넣는다(거리 $d$의 꼭짓점을 모두 다룬 뒤에 다뤄야 하므로).
 
-This maintains the invariant that the deque is sorted by distance, with at most two distinct distance values at any time.
+그러면 덱이 거리로 정렬되어 있고 언제든 서로 다른 거리 값이 많아야 둘이라는 불변량이 지켜진다.
 
-## Algorithm
+## 알고리즘
 
-1. Initialize $\text{dist}[s] = 0$ and $\text{dist}[v] = \infty$ for all $v \neq s$.
-2. Push $s$ onto a deque.
-3. While the deque is not empty:
-    - Pop the front vertex $u$.
-    - For each neighbor $v$ with edge weight $w \in \{0, 1\}$:
-        - If $\text{dist}[u] + w < \text{dist}[v]$:
-            - Set $\text{dist}[v] = \text{dist}[u] + w$.
-            - If $w = 0$: push $v$ to the **front** of the deque.
-            - If $w = 1$: push $v$ to the **back** of the deque.
+1. $\text{dist}[s] = 0$으로, 그리고 $v \neq s$인 모든 $v$에 대해 $\text{dist}[v] = \infty$으로 첫걸음 잡는다.
+2. $s$을 덱에 밀어 넣는다.
+3. 덱이 비지 않은 동안:
+    - 앞의 꼭짓점 $u$을 꺼낸다.
+    - 변 무게가 $w \in \{0, 1\}$인 이웃 $v$마다:
+        - $\text{dist}[u] + w < \text{dist}[v]$이면:
+            - $\text{dist}[v] = \text{dist}[u] + w$으로 놓는다.
+            - $w = 0$이면 $v$을 덱의 **앞**에 밀어 넣는다.
+            - $w = 1$이면 $v$을 덱의 **뒤**에 밀어 넣는다.
 
-## Correctness
+## 올바름
 
-The algorithm maintains the deque in non-decreasing order of distance. When a vertex is popped from the front, it has the smallest distance among all vertices in the deque, so its distance is final (same argument as Dijkstra). The weight-0 edges preserve this ordering because they do not increase the distance.
+이 알고리즘은 덱을 거리가 줄지 않는 차례로 지킨다. 앞에서 꼭짓점을 꺼내면 그것이 덱 안 모든 꼭짓점 가운데 거리가 가장 작으므로 그 거리가 확정이다(데이크스트라와 같은 따짐). 무게 0인 변은 거리를 늘리지 않으므로 이 차례를 지켜 준다.
 
-## Complexity
+## 복잡도
 
 $$
 \text{Time: } O(|V| + |E|), \qquad \text{Space: } O(|V|)
 $$
 
-Each vertex enters and leaves the deque at most twice (once at distance $d$, possibly once at distance $d$ via a weight-0 edge). Each edge is examined at most once.
+꼭짓점마다 덱에 많아야 두 번 들고 난다(거리 $d$에서 한 번, 무게 0인 변을 거쳐 거리 $d$에서 한 번 더 있을 수 있다). 변마다 많아야 한 번 살핀다.
 
-## Implementation
+## 구현
 
 ```python
 """
-0-1 BFS: shortest paths in graphs with edge weights 0 and 1.
+0-1 너비 우선 찾기: 변의 무게가 0과 1인 그래프의 최단 경로.
 
-Uses a deque instead of a priority queue to achieve O(V + E) time.
-Weight-0 edges push to the front; weight-1 edges push to the back.
+우선순위 줄 대신 덱을 써서 O(V + E) 시간을 이룬다.
+무게 0인 변은 앞으로, 무게 1인 변은 뒤로 넣는다.
 """
 
 from collections import deque
 
 
-# === 0-1 BFS ===
+# === 0-1 너비 우선 찾기 ===
 
 def zero_one_bfs(graph: dict, source: int, n: int) -> list:
-    """Compute shortest distances from source in a 0-1 weighted graph.
+    """무게가 0과 1인 그래프에서 근원으로부터의 최단 거리 셈하기.
 
-    Args:
-        graph: Adjacency list {u: [(v, w), ...]} where w in {0, 1}.
-        source: Starting vertex.
-        n: Number of vertices (0-indexed).
+    인수:
+        graph: w가 {0, 1}인 이웃 목록 {u: [(v, w), ...]}.
+        source: 시작 꼭짓점.
+        n: 꼭짓점의 개수(0부터 셈).
 
-    Returns:
-        List of distances from source. dist[v] = float('inf') if
-        v is unreachable.
+    반환값:
+        근원에서의 거리 목록. 다음이면 dist[v] = float('inf')이다:
+        v에 닿을 수 없을 때.
     """
     dist = [float('inf')] * n
     dist[source] = 0
@@ -74,17 +74,17 @@ def zero_one_bfs(graph: dict, source: int, n: int) -> list:
             if new_dist < dist[v]:
                 dist[v] = new_dist
                 if w == 0:
-                    dq.appendleft(v)  # front
+                    dq.appendleft(v)  # 앞
                 else:
-                    dq.append(v)      # back
+                    dq.append(v)      # 뒤
 
     return dist
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
-    # Graph where some edges are free (0) and others cost 1
+    # 어떤 변은 공짜(0)이고 다른 변은 값이 1인 그래프
     #   0 --1-- 1 --0-- 2
     #   |               |
     #   0               1
@@ -106,8 +106,8 @@ if __name__ == "__main__":
 
     print()
 
-    # Grid example: reach goal with minimum wall-breaks
-    # 0 = open (weight 0), 1 = wall (weight 1)
+    # 격자 보기: 벽 부수기를 가장 적게 하며 목표에 닿기
+    # 0 = 열림(무게 0), 1 = 벽(무게 1)
     grid = [
         [0, 0, 1, 0],
         [1, 0, 1, 0],
@@ -131,7 +131,7 @@ if __name__ == "__main__":
     print(f"  Minimum wall-breaks: {dist[goal]}")
 ```
 
-**Output:**
+**출력:**
 ```
 0-1 BFS from vertex 0:
   dist[0] = 0
@@ -145,9 +145,41 @@ Grid shortest path (0,0) to (2,3):
   Minimum wall-breaks: 0
 ```
 
-!!! tip "When to Use 0-1 BFS"
-    Use 0-1 BFS whenever edge weights are restricted to $\{0, 1\}$. Common examples include: navigating grids where some cells are obstacles (breaking a wall costs 1, moving through open space costs 0), toggling switches, and problems where transformations are either free or have unit cost.
+!!! tip "0-1 BFS을 언제 쓰나"
+    변의 무게가 $\{0, 1\}$으로 좁혀질 때는 언제나 0-1 BFS을 써라. 흔한 보기로는 어떤 칸이 걸림돌인 격자 지나기(벽을 부수면 값 1, 트인 곳을 지나면 값 0), 스위치 켜고 끄기, 그리고 바꿈이 공짜이거나 값이 1인 문제가 있다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 24. MIT Press.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 24장. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+0-1 BFS 알고리즘을 설명하고 왜 우선순위 줄 대신 덱을 쓰는지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    0-1 BFS은 변의 무게가 모두 0이거나 1인 그래프를 다룬다. 온전한 우선순위 줄(연산마다 $O(\log V)$) 대신 덱을 쓴다. 곧 변 $(u, v)$을 늦출 때 $w(u,v) = 0$이면 $v$을 덱의 앞에, $w(u,v) = 1$이면 뒤에 밀어 넣는다. 그러면 덱이 거리가 줄지 않는 차례로 지켜진다(두 층 BFS처럼). 연산마다 $O(1)$이라 전체 시간이 $O(V + E)$이며 데이크스트라의 $O((V+E)\log V)$보다 낫다. $\square$
+
+---
+
+**연습문제 2.**
+0-1 BFS이 올바른 최단 경로 거리를 낸다는 것을 증명하여라. 덱이 왜 알맞은 다루는 차례를 지키는가?
+
+??? success "연습문제 2 풀이"
+    언제든 덱에는 서로 다른 거리 값이 많아야 둘인 꼭짓점이 들어 있다. 곧 $d$과 $d + 1$이다. 거리 $d$인 꼭짓점은 모두 앞에, $d + 1$인 것은 뒤에 있다. 무게 0인 변을 늦추면 새 꼭짓점이 지금 꼭짓점과 거리가 같으므로 앞으로 간다. 무게 1인 변은 거리 $d + 1$을 주므로 뒤로 간다. 그러면 꼭짓점이 거리가 줄지 않는 차례로 다뤄지며 이는 데이크스트라의 성질과 같다. 거리 차례로 다루면 맞다는 사실에 따라 최단 경로가 맞게 셈해진다. $\square$
+
+---
+
+**연습문제 3.**
+0-1 BFS을 쓸 수 있는 실전 보기를 들어라.
+
+??? success "연습문제 3 풀이"
+    **걸림돌이 있는 격자 지나기**: 격자에서 빈 칸으로 옮기면 값 0, 벽을 뚫으면 값 1이다. 벽을 가장 적게 부수는 길을 찾는 것이 0-1 BFS 문제이다. 다른 보기로 **망 라우팅**이 있는데 어떤 이음은 공짜(무게 0)이고 다른 이음은 한 번 뛰는 값이 든다. **문자열 바꾸기**: 글자를 맞추려고 바꾸면 값 1, 안 바꾸면 값 0이다. 바꾸는 횟수의 최솟값을 찾는 데 상태 그래프 위에서 0-1 BFS을 쓴다. $\square$
+
+---
+
+**연습문제 4.**
+0-1 무게 그래프에서 맞음과 효율의 결로 0-1 BFS을 표준 BFS 및 데이크스트라와 견주어라.
+
+??? success "연습문제 4 풀이"
+    표준 BFS은 무게를 아예 무시하고 변마다 무게 1로 다루므로, 무게가 가장 작은 길이 아니라 뛴 횟수가 가장 적은 길을 찾는다. 0-1 무게 그래프에서는 (무게 0인 변을 무게 1인 변과 똑같이 다뤄) 틀린 결과를 낸다. 이진 힙을 쓴 데이크스트라는 $O((V+E)\log V)$에 올바른 결과를 낸다. 0-1 BFS은 $O(V + E)$에 올바른 결과를 내므로 반드시 더 낫다. 0-1 무게 그래프에서는 0-1 BFS이 늘 가장 좋은 고름이다. 맞기도 하고 효율도 가장 좋다. $\square$

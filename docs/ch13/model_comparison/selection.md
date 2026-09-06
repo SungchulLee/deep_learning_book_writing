@@ -1,482 +1,417 @@
-# Model Evidence (Marginal Likelihood)
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-The **model evidence**, also called the **marginal likelihood**, is the probability of observed data under a model after integrating out all parameters. It serves as the cornerstone of Bayesian model comparison, naturally implementing Occam's razor by penalizing models that are overly complex relative to the data they explain.
+# 모형 증거(주변 가능도)
+**모형 증거**는 **주변 가능도**라고도 하며, 매개변수를 모두 적분해 없앤 뒤 어떤 모형 아래에서 관찰한 데이터가 나올 확률이다. 이는 베이즈 모형 견줌의 주춧돌이며, 설명하려는 데이터에 견주어 지나치게 복잡한 모형에 벌을 주어 오컴의 면도날을 자연스럽게 구현한다.
 
 ---
 
-## Motivation: Why Model Evidence?
+## 왜 필요한가: 왜 모형 증거인가?
 
-### The Model Comparison Problem
+### 모형 견줌 문제
 
-Given data $\mathcal{D}$ and competing models $\mathcal{M}_1, \mathcal{M}_2, \ldots$, how do we decide which model best explains the data?
+데이터 $\mathcal{D}$과 겨루는 모형 $\mathcal{M}_1, \mathcal{M}_2, \ldots$이 주어졌을 때 어느 모형이 데이터를 가장 잘 설명하는지 어떻게 정하는가?
 
-**Frequentist approaches**:
-- Likelihood ratio tests (nested models only)
-- Cross-validation (computationally expensive)
-- Information criteria (AIC, BIC) — approximations
+**빈도주의의 길**:
 
-**Bayesian approach**:
-- Compute the probability of each model given the data
-- Use Bayes' theorem at the model level
+- 가능도비 검정(겹친 모형에서만)
+- 교차 검증(셈이 값비싸다)
+- 정보 기준(AIC, BIC) — 어림값이다
 
-### From Parameter Inference to Model Inference
+**베이즈의 길**:
 
-Standard Bayesian inference fixes the model and infers parameters:
+- 데이터가 주어졌을 때 모형마다의 확률을 셈한다
+- 모형 수준에서 베이즈 정리를 쓴다
+
+### 매개변수 추론에서 모형 추론으로
+
+보통의 베이즈 추론은 모형을 붙박아 두고 매개변수를 미루어 안다.
 
 $$
-
 p(\theta \mid \mathcal{D}, \mathcal{M}) = \frac{p(\mathcal{D} \mid \theta, \mathcal{M}) \, p(\theta \mid \mathcal{M})}{p(\mathcal{D} \mid \mathcal{M})}
-
 $$
 
-Model comparison requires the denominator — the **model evidence**:
+모형 견줌에는 그 분모, 곧 **모형 증거**가 필요하다.
 
 $$
-
 p(\mathcal{D} \mid \mathcal{M}) = \int p(\mathcal{D} \mid \theta, \mathcal{M}) \, p(\theta \mid \mathcal{M}) \, d\theta
-
 $$
 
-This integral averages the likelihood over all possible parameter values, weighted by their prior probability.
+이 적분은 앞확률로 무게를 주어 가능한 모든 매개변수 값에 걸쳐 가능도를 평균 낸다.
 
 ---
 
-## Definition and Interpretation
+## 정의와 풀이
 
-### Formal Definition
+### 형식적 정의
 
-The **model evidence** (marginal likelihood) for model $\mathcal{M}$ with parameters $\theta$ is:
+매개변수가 $\theta$인 모형 $\mathcal{M}$의 **모형 증거**(주변 가능도)는 다음과 같다.
 
 $$
-
 \boxed{p(\mathcal{D} \mid \mathcal{M}) = \int p(\mathcal{D} \mid \theta, \mathcal{M}) \, p(\theta \mid \mathcal{M}) \, d\theta}
-
 $$
 
-**Components**:
-- $p(\mathcal{D} \mid \theta, \mathcal{M})$: Likelihood function
-- $p(\theta \mid \mathcal{M})$: Prior distribution
-- Integration: Over entire parameter space
+**부품**:
 
-### Multiple Interpretations
+- $p(\mathcal{D} \mid \theta, \mathcal{M})$: 가능도 함수
+- $p(\theta \mid \mathcal{M})$: 앞확률 분포
+- 적분: 매개변수 공간 전체에 걸쳐
 
-**1. Average likelihood**: The expected likelihood under the prior
+### 여러 가지 풀이
+
+**1. 평균 가능도**: 앞확률 아래의 기대 가능도
 
 $$
-
 p(\mathcal{D} \mid \mathcal{M}) = \mathbb{E}_{\theta \sim p(\theta \mid \mathcal{M})}[p(\mathcal{D} \mid \theta, \mathcal{M})]
-
 $$
 
-**2. Predictive probability**: How well the model predicted the data before seeing it
+**2. 예측 확률**: 모형이 데이터를 보기 전에 그것을 얼마나 잘 맞혔는가
 
-**3. Normalizing constant**: The denominator in Bayes' theorem
+**3. 고르는 상수**: 베이즈 정리의 분모
 
 $$
-
 p(\theta \mid \mathcal{D}, \mathcal{M}) = \frac{p(\mathcal{D} \mid \theta, \mathcal{M}) \, p(\theta \mid \mathcal{M})}{p(\mathcal{D} \mid \mathcal{M})}
-
 $$
 
-**4. Prior predictive**: The probability assigned to $\mathcal{D}$ by the prior predictive distribution
+**4. 앞확률 예측**: 앞확률 예측 분포가 $\mathcal{D}$에 주는 확률
 
-### Why "Marginal" Likelihood?
+### 왜 "주변" 가능도인가?
 
-The term "marginal" refers to marginalizing (integrating) over parameters:
+"주변"이라는 말은 매개변수 위에서 주변화(적분)한다는 뜻이다.
 
 $$
-
 p(\mathcal{D} \mid \mathcal{M}) = \int p(\mathcal{D}, \theta \mid \mathcal{M}) \, d\theta = \int p(\mathcal{D} \mid \theta, \mathcal{M}) \, p(\theta \mid \mathcal{M}) \, d\theta
-
 $$
 
-This contrasts with the **conditional likelihood** $p(\mathcal{D} \mid \hat{\theta}, \mathcal{M})$ evaluated at a specific parameter value.
+이는 특정 매개변수 값에서 잰 **조건부 가능도** $p(\mathcal{D} \mid \hat{\theta}, \mathcal{M})$과 대비된다.
 
 ---
 
-## Bayesian Model Comparison
+## 베이즈 모형 견줌
 
-### Posterior Model Probabilities
+### 모형의 뒤확률
 
-Given prior probabilities $p(\mathcal{M}_k)$ over models:
+모형 위의 앞확률 $p(\mathcal{M}_k)$이 주어지면 다음과 같다.
 
 $$
-
 p(\mathcal{M}_k \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \mathcal{M}_k) \, p(\mathcal{M}_k)}{\sum_j p(\mathcal{D} \mid \mathcal{M}_j) \, p(\mathcal{M}_j)}
-
 $$
 
-The model evidence directly determines how much the data updates our model beliefs.
+모형 증거가 데이터가 우리의 모형 믿음을 얼마나 고치는지를 곧바로 정한다.
 
-### Posterior Odds
+### 뒤확률 승산
 
-For two models $\mathcal{M}_1$ and $\mathcal{M}_2$:
+두 모형 $\mathcal{M}_1$과 $\mathcal{M}_2$에 대해 다음과 같다.
 
 $$
-
 \underbrace{\frac{p(\mathcal{M}_1 \mid \mathcal{D})}{p(\mathcal{M}_2 \mid \mathcal{D})}}_{\text{Posterior odds}} = \underbrace{\frac{p(\mathcal{D} \mid \mathcal{M}_1)}{p(\mathcal{D} \mid \mathcal{M}_2)}}_{\text{Bayes factor}} \times \underbrace{\frac{p(\mathcal{M}_1)}{p(\mathcal{M}_2)}}_{\text{Prior odds}}
-
 $$
 
-With equal prior odds, the Bayes factor equals the posterior odds.
+앞선 승산이 같으면 베이즈 인자가 뒤확률 승산과 같다.
 
-### Model Averaging
+### 모형 평균 내기
 
-Instead of selecting a single model, we can average predictions:
+모형 하나를 고르는 대신 예측을 평균 낼 수 있다.
 
 $$
-
 p(y^* \mid x^*, \mathcal{D}) = \sum_k p(y^* \mid x^*, \mathcal{D}, \mathcal{M}_k) \, p(\mathcal{M}_k \mid \mathcal{D})
-
 $$
 
-This accounts for model uncertainty and often improves predictive performance.
+이는 모형의 아리송함을 셈에 넣으며 예측 성능을 좋게 할 때가 많다.
 
 ---
 
-## Occam's Razor: Automatic Complexity Penalty
+## 오컴의 면도날: 저절로 주어지는 복잡도 벌
 
-### The Bayesian Occam's Razor
+### 베이즈판 오컴의 면도날
 
-Model evidence naturally penalizes complexity. Consider the integral:
+모형 증거는 복잡함에 자연스럽게 벌을 준다. 다음 적분을 보자.
 
 $$
-
 p(\mathcal{D} \mid \mathcal{M}) = \int p(\mathcal{D} \mid \theta) \, p(\theta) \, d\theta
-
 $$
 
-**Simple model**: Prior concentrated; if data matches, high evidence
-**Complex model**: Prior spread thin; must "pay" for flexibility
+**단순한 모형**: 앞확률이 몰려 있어 데이터가 맞으면 증거가 높다
+**복잡한 모형**: 앞확률이 얇게 퍼져 있어 자유로움의 "값을 치러야" 한다
 
-### Geometric Intuition
+### 기하학적 직관
 
-Think of the prior as a "probability budget" that must cover the parameter space:
+앞확률을 매개변수 공간을 덮어야 하는 "확률 예산"이라고 생각해 보라.
 
 $$
-
 \int p(\theta) \, d\theta = 1
-
 $$
 
-A complex model spreads this budget over a larger space, so each region gets less probability mass. Unless the extra flexibility is needed to explain the data, the complex model wastes its budget.
+복잡한 모형은 이 예산을 더 넓은 공간에 퍼뜨리므로 자리마다 확률 질량을 적게 받는다. 그 여분의 자유로움이 데이터를 설명하는 데 꼭 필요하지 않다면 복잡한 모형은 예산을 헛되이 쓰는 셈이다.
 
-### Illustrative Example
+### 보기 예
 
-Consider fitting a polynomial to data:
+데이터에 다항식을 맞춘다고 해 보자.
 
-| Model | Parameters | Prior Volume | Typical Likelihood | Evidence |
+| 모형 | 매개변수 | 앞확률 부피 | 흔한 가능도 | 증거 |
 |-------|------------|--------------|-------------------|----------|
-| Linear | 2 | Small | Moderate | High (if linear trend) |
-| Cubic | 4 | Medium | Higher | Medium |
-| Degree-10 | 11 | Large | Highest | Low (overfitting) |
+| 선형 | 2 | 작음 | 보통 | 높음(선형 추세라면) |
+| 삼차 | 4 | 보통 | 더 높음 | 보통 |
+| 10차 | 11 | 큼 | 가장 높음 | 낮음(지나친 맞춤) |
 
-The degree-10 polynomial achieves the highest likelihood but lowest evidence because its prior is spread too thin.
+10차 다항식은 가능도가 가장 높지만 앞확률이 너무 얇게 퍼져 증거는 가장 낮다.
 
-### Mathematical Decomposition
+### 수학적 쪼갬
 
-The log evidence can be decomposed as:
+로그 증거는 다음과 같이 쪼갤 수 있다.
 
 $$
-
 \log p(\mathcal{D} \mid \mathcal{M}) = \underbrace{\log p(\mathcal{D} \mid \hat{\theta})}_{\text{Best fit}} - \underbrace{D_{KL}(p(\theta \mid \mathcal{D}) \| p(\theta))}_{\text{Complexity penalty}}
-
 $$
 
-where $\hat{\theta}$ is the MAP estimate and $D_{KL}$ measures how much the posterior differs from the prior.
+여기서 $\hat{\theta}$은 최대 뒤확률 어림값이고 $D_{KL}$은 뒤확률이 앞확률과 얼마나 다른지를 잰다.
 
-**Interpretation**:
-- First term: How well the model can fit the data (goodness of fit)
-- Second term: How much the model had to "learn" from data (complexity)
+**풀이**:
+
+- 첫 항: 모형이 데이터에 얼마나 잘 맞을 수 있는가(잘 맞음)
+- 둘째 항: 모형이 데이터에서 얼마나 많이 "배워야" 했는가(복잡도)
 
 ---
 
-## Analytical Solutions for Conjugate Models
+## 켤레 모형의 해석적 해
 
-### General Principle
+### 일반 원리
 
-For conjugate models, the evidence is available in closed form because:
+켤레 모형에서는 다음 덕분에 증거를 닫힌 꼴로 얻을 수 있다.
 
 $$
-
 p(\mathcal{D} \mid \mathcal{M}) = \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{p(\theta \mid \mathcal{D})}
-
 $$
 
-Since we know all three distributions analytically, we can compute the ratio.
+세 분포를 모두 해석적으로 아니 그 비를 셈할 수 있다.
 
-### Beta-Bernoulli Model
+### 베타-베르누이 모형
 
-**Setup**: $x_i \sim \text{Bernoulli}(\theta)$, $\theta \sim \text{Beta}(\alpha_0, \beta_0)$
+**얼개**: $x_i \sim \text{Bernoulli}(\theta)$, $\theta \sim \text{Beta}(\alpha_0, \beta_0)$
 
-**Evidence**:
+**증거**:
 
 $$
-
 p(\mathcal{D}) = \frac{B(\alpha_0 + s, \beta_0 + f)}{B(\alpha_0, \beta_0)}
-
 $$
 
-where $s = \sum x_i$ (successes), $f = n - s$ (failures), and $B(\cdot, \cdot)$ is the Beta function.
+여기서 $s = \sum x_i$(성공), $f = n - s$(실패)이고 $B(\cdot, \cdot)$은 베타 함수이다.
 
-**Log evidence**:
+**로그 증거**:
 
 $$
-
 \log p(\mathcal{D}) = \log B(\alpha_n, \beta_n) - \log B(\alpha_0, \beta_0)
-
 $$
 
 $$
-
 = \log\Gamma(\alpha_n) + \log\Gamma(\beta_n) - \log\Gamma(\alpha_n + \beta_n) - \log\Gamma(\alpha_0) - \log\Gamma(\beta_0) + \log\Gamma(\alpha_0 + \beta_0)
-
 $$
 
-### Gaussian with Known Variance
+### 흩어짐을 아는 가우스
 
-**Setup**: $x_i \sim \mathcal{N}(\mu, \sigma^2)$ (known $\sigma^2$), $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$
+**얼개**: $x_i \sim \mathcal{N}(\mu, \sigma^2)$($\sigma^2$을 앎), $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$
 
-**Evidence**:
+**증거**:
 
 $$
-
 p(\mathcal{D}) = (2\pi\sigma^2)^{-n/2} \cdot \sqrt{\frac{\sigma_0^2}{\sigma_n^2}} \cdot \exp\left(-\frac{1}{2\sigma^2}\sum_i(x_i - \bar{x})^2 - \frac{(\bar{x} - \mu_0)^2}{2(\sigma^2/n + \sigma_0^2)}\right)
-
 $$
 
-**Log evidence**:
+**로그 증거**:
 
 $$
-
 \log p(\mathcal{D}) = -\frac{n}{2}\log(2\pi\sigma^2) + \frac{1}{2}\log\frac{\tau_0}{\tau_n} - \frac{1}{2\sigma^2}\sum_i(x_i - \bar{x})^2 - \frac{\tau_0 n \tau}{2\tau_n}(\bar{x} - \mu_0)^2
-
 $$
 
-where $\tau = 1/\sigma^2$, $\tau_0 = 1/\sigma_0^2$, $\tau_n = \tau_0 + n\tau$.
+여기서 $\tau = 1/\sigma^2$, $\tau_0 = 1/\sigma_0^2$, $\tau_n = \tau_0 + n\tau$이다.
 
-### Gaussian with Unknown Variance (NIG Prior)
+### 흩어짐을 모르는 가우스(NIG 앞확률)
 
-**Setup**: $x_i \sim \mathcal{N}(\mu, \sigma^2)$, $(\mu, \sigma^2) \sim \text{NIG}(\mu_0, \kappa_0, \alpha_0, \beta_0)$
+**얼개**: $x_i \sim \mathcal{N}(\mu, \sigma^2)$, $(\mu, \sigma^2) \sim \text{NIG}(\mu_0, \kappa_0, \alpha_0, \beta_0)$
 
-**Log evidence**:
+**로그 증거**:
 
 $$
-
 \log p(\mathcal{D}) = \log\Gamma(\alpha_n) - \log\Gamma(\alpha_0) + \alpha_0\log\beta_0 - \alpha_n\log\beta_n + \frac{1}{2}\log\frac{\kappa_0}{\kappa_n} - \frac{n}{2}\log(2\pi)
-
 $$
 
-where $\kappa_n = \kappa_0 + n$, $\alpha_n = \alpha_0 + n/2$, and $\beta_n$ follows the NIG update formula.
+여기서 $\kappa_n = \kappa_0 + n$, $\alpha_n = \alpha_0 + n/2$이고 $\beta_n$은 NIG 갱신 식을 따른다.
 
 ---
 
-## Approximation Methods
+## 어림 방법
 
-For non-conjugate models, exact computation is often intractable. Several approximations exist:
+켤레가 아닌 모형에서는 정확한 셈을 다룰 수 없을 때가 많다. 여러 어림이 있다.
 
-### Laplace Approximation
+### 라플라스 어림
 
-Approximate the posterior as Gaussian around the MAP estimate $\hat{\theta}$:
+최대 뒤확률 어림값 $\hat{\theta}$ 둘레에서 뒤확률을 가우스로 어림한다.
 
 $$
-
 \log p(\mathcal{D} \mid \mathcal{M}) \approx \log p(\mathcal{D} \mid \hat{\theta}) + \log p(\hat{\theta}) + \frac{d}{2}\log(2\pi) - \frac{1}{2}\log|H|
-
 $$
 
-where $d$ is the parameter dimension and $H$ is the Hessian of the negative log posterior at $\hat{\theta}$.
+여기서 $d$은 매개변수의 차원이고 $H$은 $\hat{\theta}$에서 음의 로그 뒤확률의 헤세 행렬이다.
 
-**Pros**: Fast, only requires optimization
-**Cons**: Assumes posterior is approximately Gaussian
+**좋은 점**: 빠르고 최적화만 하면 된다
+**나쁜 점**: 뒤확률이 거의 가우스라고 놓는다
 
-### BIC Approximation
+### BIC 어림
 
-The Bayesian Information Criterion approximates log evidence:
+베이즈 정보 기준은 로그 증거를 어림한다.
 
 $$
-
 \log p(\mathcal{D} \mid \mathcal{M}) \approx \log p(\mathcal{D} \mid \hat{\theta}) - \frac{d}{2}\log n
-
 $$
 
-where $d$ is the number of parameters and $n$ is sample size.
+여기서 $d$은 매개변수의 개수이고 $n$은 표본 크기이다.
 
-**Derivation**: From Laplace approximation, assuming unit information prior.
+**끌어내기**: 단위 정보 앞확률을 놓고 라플라스 어림에서 얻는다.
 
-### Harmonic Mean Estimator
+### 조화 평균 어림기
 
-Given posterior samples $\theta^{(1)}, \ldots, \theta^{(S)}$:
+뒤확률 표본 $\theta^{(1)}, \ldots, \theta^{(S)}$이 주어지면 다음과 같다.
 
 $$
-
 p(\mathcal{D})^{-1} = \mathbb{E}_{p(\theta \mid \mathcal{D})}\left[\frac{1}{p(\mathcal{D} \mid \theta)}\right] \approx \frac{1}{S}\sum_{s=1}^S \frac{1}{p(\mathcal{D} \mid \theta^{(s)})}
-
 $$
 
-**Warning**: This estimator has infinite variance and is notoriously unreliable!
+**주의**: 이 어림기는 흩어짐이 무한하며 못 미덥기로 이름났다!
 
-### Importance Sampling
+### 중요도 표집
 
-Choose a proposal distribution $q(\theta)$:
+제안 분포 $q(\theta)$을 고른다.
 
 $$
-
 p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta) \, p(\theta) \, d\theta = \int \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{q(\theta)} \, q(\theta) \, d\theta
-
 $$
 
 $$
-
 \approx \frac{1}{S}\sum_{s=1}^S \frac{p(\mathcal{D} \mid \theta^{(s)}) \, p(\theta^{(s)})}{q(\theta^{(s)})}, \quad \theta^{(s)} \sim q
-
 $$
 
-**Good proposal**: Approximate posterior (e.g., from Laplace approximation)
+**좋은 제안 분포**: 어림한 뒤확률(이를테면 라플라스 어림에서 얻은 것)
 
-### Annealed Importance Sampling (AIS)
+### 담금질 중요도 표집(AIS)
 
-Create a sequence of distributions interpolating from prior to posterior:
+앞확률에서 뒤확률까지 사이를 메우는 분포의 열을 만든다.
 
 $$
-
 p_t(\theta) \propto p(\theta) \, p(\mathcal{D} \mid \theta)^{\beta_t}, \quad 0 = \beta_0 < \beta_1 < \cdots < \beta_T = 1
-
 $$
 
-The evidence is estimated via the product of intermediate normalizing constants.
+증거는 중간의 고르는 상수들의 곱으로 어림한다.
 
-### Nested Sampling
+### 겹 표집
 
-Transform the evidence integral into a one-dimensional integral over the prior mass:
+증거 적분을 앞확률 질량 위의 1차원 적분으로 바꾼다.
 
 $$
-
 p(\mathcal{D}) = \int_0^1 L(X) \, dX
-
 $$
 
-where $X(\lambda) = \int_{p(\mathcal{D} \mid \theta) > \lambda} p(\theta) \, d\theta$ is the prior mass with likelihood above $\lambda$.
+여기서 $X(\lambda) = \int_{p(\mathcal{D} \mid \theta) > \lambda} p(\theta) \, d\theta$은 가능도가 $\lambda$을 넘는 앞확률 질량이다.
 
-**Popular implementation**: MultiNest, dynesty
+**널리 쓰이는 구현**: MultiNest, dynesty
 
 ---
 
-## Evidence in Sequential Data
+## 잇단 데이터에서의 증거
 
-### Online Evidence Computation
+### 온라인 증거 셈하기
 
-For sequential observations $x_1, x_2, \ldots, x_n$:
+잇단 관찰 $x_1, x_2, \ldots, x_n$에 대해 다음과 같다.
 
 $$
-
 p(x_1, \ldots, x_n \mid \mathcal{M}) = \prod_{t=1}^n p(x_t \mid x_1, \ldots, x_{t-1}, \mathcal{M})
-
 $$
 
-Each factor is the **one-step-ahead predictive**:
+인수마다 **한 걸음 앞 예측**이다.
 
 $$
-
 p(x_t \mid x_{1:t-1}) = \int p(x_t \mid \theta) \, p(\theta \mid x_{1:t-1}) \, d\theta
-
 $$
 
-**Log evidence**:
+**로그 증거**:
 
 $$
-
 \log p(\mathcal{D} \mid \mathcal{M}) = \sum_{t=1}^n \log p(x_t \mid x_{1:t-1})
-
 $$
 
-This decomposition is useful for:
-- Online model comparison
-- Detecting model failure (when predictive probability drops)
-- Prequential (predictive sequential) validation
+이 쪼갬은 다음에 쓸모 있다.
 
-### Prequential Interpretation
+- 온라인 모형 견줌
+- 모형이 무너지는 것 알아채기(예측 확률이 떨어질 때)
+- 예측 차례 검증
 
-The log evidence equals the sum of log predictive scores:
+### 예측 차례로 풀이하기
+
+로그 증거는 로그 예측 점수의 합과 같다.
 
 $$
-
 \log p(\mathcal{D}) = \sum_{t=1}^n \text{LogScore}_t
-
 $$
 
-This connects evidence to predictive performance — models with higher evidence made better predictions on average.
+이는 증거를 예측 성능과 잇는다. 증거가 높은 모형이 평균으로 더 잘 맞혔다는 뜻이다.
 
 ---
 
-## Sensitivity to Prior Specification
+## 앞확률을 어떻게 정하느냐에 대한 민감도
 
-### The Prior's Role in Evidence
+### 증거에서 앞확률이 하는 몫
 
-Unlike posterior inference (which is often robust to prior choice with enough data), evidence is **highly sensitive** to the prior:
+(데이터가 넉넉하면 앞확률 선택에 흔들리지 않을 때가 많은) 뒤확률 추론과 달리, 증거는 앞확률에 **몹시 민감하다**.
 
 $$
-
 p(\mathcal{D} \mid \mathcal{M}) = \int p(\mathcal{D} \mid \theta) \, p(\theta) \, d\theta
-
 $$
 
-Changing the prior directly changes the evidence, even asymptotically.
+앞확률을 바꾸면 증거가 곧바로 바뀌며 점근적으로도 그렇다.
 
-### Improper Priors
+### 제대로 되지 않은 앞확률
 
-**Critical issue**: Improper priors yield undefined evidence!
+**결정적인 문제**: 제대로 되지 않은 앞확률에서는 증거가 정의되지 않는다!
 
-If $\int p(\theta) \, d\theta = \infty$, then $p(\mathcal{D} \mid \mathcal{M})$ is only defined up to an arbitrary constant.
+$\int p(\theta) \, d\theta = \infty$이면 $p(\mathcal{D} \mid \mathcal{M})$은 제멋대로인 상수 배까지만 정의된다.
 
-**Consequence**: Cannot compare models using improper priors (Bayes factors are meaningless).
+**결과**: 제대로 되지 않은 앞확률로는 모형을 견줄 수 없다(베이즈 인자에 뜻이 없다).
 
-### Vague Proper Priors
+### 흐릿하지만 제대로 된 앞확률
 
-Even proper but very diffuse priors cause problems:
+제대로 되었더라도 아주 퍼진 앞확률은 말썽을 일으킨다.
 
 $$
-
 p(\theta) = \mathcal{N}(0, 10^6) \quad \text{(variance } 10^6 \text{)}
-
 $$
 
-This prior assigns negligible probability to any reasonable parameter region, artificially penalizing the model.
+이 앞확률은 그럴듯한 매개변수 자리에 하찮은 확률만 주어 모형에 억지로 벌을 준다.
 
-### Prior Sensitivity Analysis
+### 앞확률 민감도 분석
 
-Always check how evidence changes with prior:
-1. Compute evidence under several reasonable priors
-2. If conclusions are robust, proceed with confidence
-3. If sensitive, report the range of conclusions
+앞확률에 따라 증거가 어떻게 바뀌는지 늘 살펴라.
 
-### Fractional Bayes Factors
+1. 그럴듯한 앞확률 여럿에서 증거를 셈한다
+2. 결론이 흔들리지 않으면 자신 있게 나아간다
+3. 민감하다면 결론의 범위를 알린다
 
-One solution: Use part of the data to define a "training" posterior, then compute evidence on the rest:
+### 분수 베이즈 인자
+
+한 가지 해법은 데이터의 일부로 "학습" 뒤확률을 정한 다음 나머지에서 증거를 셈하는 것이다.
 
 $$
-
 \text{FBF}_{12} = \frac{p(\mathcal{D}^{\text{test}} \mid \mathcal{D}^{\text{train}}, \mathcal{M}_1)}{p(\mathcal{D}^{\text{test}} \mid \mathcal{D}^{\text{train}}, \mathcal{M}_2)}
-
 $$
 
-This reduces prior sensitivity but requires data splitting.
+이는 앞확률 민감도를 줄이지만 데이터를 쪼개야 한다.
 
 ---
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Model Evidence (Marginal Likelihood): Complete Implementation
+모형 증거(주변 가능도): 온전한 구현
 
-This module provides computation of model evidence for various Bayesian
-models, demonstrating exact solutions for conjugate cases and approximations
-for general models.
+이 모듈은 여러 베이즈 모형의 모형 증거 셈하기를 주며, 켤레인 경우의 정확한
+풀이와 일반적인 모형의 어림을
+보여 준다.
 """
 
 import numpy as np
@@ -488,64 +423,62 @@ from typing import Tuple, List, Optional, Callable, Dict
 from dataclasses import dataclass
 from abc import ABC, abstractmethod
 
-
 # =============================================================================
-# Abstract Base Class for Bayesian Models
+# 베이즈 모형의 추상 바탕 클래스
 # =============================================================================
 
 class BayesianModel(ABC):
-    """Abstract base class for models with evidence computation."""
+    """증거 셈하기를 갖춘 모형의 추상 바탕 클래스."""
     
     @abstractmethod
     def log_evidence(self, data: np.ndarray) -> float:
-        """Compute log marginal likelihood."""
+        """로그 주변 가능도를 셈한다."""
         pass
     
     @abstractmethod
     def log_likelihood(self, data: np.ndarray, params: np.ndarray) -> float:
-        """Compute log likelihood at given parameters."""
+        """주어진 매개변수에서 로그 가능도를 셈한다."""
         pass
     
     @abstractmethod
     def log_prior(self, params: np.ndarray) -> float:
-        """Compute log prior density."""
+        """로그 앞확률 밀도를 셈한다."""
         pass
     
     def log_posterior_unnorm(self, data: np.ndarray, params: np.ndarray) -> float:
-        """Compute unnormalized log posterior."""
+        """고르게 하지 않은 로그 뒤확률을 셈한다."""
         return self.log_likelihood(data, params) + self.log_prior(params)
 
-
 # =============================================================================
-# Conjugate Models with Exact Evidence
+# 정확한 증거를 갖는 켤레 모형
 # =============================================================================
 
 @dataclass
 class BetaBernoulliModel(BayesianModel):
     """
-    Beta-Bernoulli model with exact evidence computation.
+    정확한 증거 셈하기를 갖춘 베타-베르누이 모형.
     
-    Model: x_i | θ ~ Bernoulli(θ), θ ~ Beta(α₀, β₀)
+    모형: x_i | θ ~ 베르누이(θ), θ ~ Beta(α₀, β₀)
     
-    Parameters
+    매개변수
     ----------
     alpha0 : float
-        Prior alpha parameter
+        앞확률 alpha 매개변수
     beta0 : float
-        Prior beta parameter
+        앞확률 beta 매개변수
     """
     alpha0: float = 1.0
     beta0: float = 1.0
     
     def log_evidence(self, data: np.ndarray) -> float:
         """
-        Compute log evidence analytically.
+        로그 증거를 해석적으로 셈한다.
         
         log p(D) = log B(α_n, β_n) - log B(α₀, β₀)
         """
         data = np.atleast_1d(data)
-        s = data.sum()  # successes
-        f = len(data) - s  # failures
+        s = data.sum()  # 성공
+        f = len(data) - s  # 실패
         
         alpha_n = self.alpha0 + s
         beta_n = self.beta0 + f
@@ -557,7 +490,7 @@ class BetaBernoulliModel(BayesianModel):
         return log_B_post - log_B_prior
     
     def log_likelihood(self, data: np.ndarray, params: np.ndarray) -> float:
-        """Compute Bernoulli log likelihood."""
+        """베르누이 로그 가능도를 셈한다."""
         theta = params[0]
         if theta <= 0 or theta >= 1:
             return -np.inf
@@ -566,29 +499,29 @@ class BetaBernoulliModel(BayesianModel):
         return s * np.log(theta) + f * np.log(1 - theta)
     
     def log_prior(self, params: np.ndarray) -> float:
-        """Compute Beta log prior."""
+        """베타 로그 앞확률을 셈한다."""
         theta = params[0]
         return stats.beta.logpdf(theta, self.alpha0, self.beta0)
     
     def sequential_log_evidence(self, data: np.ndarray) -> Tuple[float, List[float]]:
         """
-        Compute evidence sequentially via predictive probabilities.
+        예측 확률로 증거를 차례대로 셈한다.
         
-        Returns total log evidence and list of predictive log probabilities.
+        전체 로그 증거와 예측 로그 확률의 목록을 되돌린다.
         """
         data = np.atleast_1d(data)
         alpha, beta = self.alpha0, self.beta0
         log_probs = []
         
         for x in data:
-            # Predictive probability
+            # 예측 확률
             if x == 1:
                 p = alpha / (alpha + beta)
             else:
                 p = beta / (alpha + beta)
             log_probs.append(np.log(p))
             
-            # Update
+            # 갱신
             if x == 1:
                 alpha += 1
             else:
@@ -596,29 +529,28 @@ class BetaBernoulliModel(BayesianModel):
         
         return sum(log_probs), log_probs
 
-
 @dataclass
 class GaussianKnownVarianceModel(BayesianModel):
     """
-    Gaussian model with known variance and exact evidence.
+    흩어짐을 알고 증거를 정확히 셈하는 가우스 모형.
     
-    Model: x_i | μ ~ N(μ, σ²), μ ~ N(μ₀, σ₀²)
+    모형: x_i | μ ~ N(μ, σ²), μ ~ N(μ₀, σ₀²)
     
-    Parameters
+    매개변수
     ----------
     mu0 : float
-        Prior mean
+        앞확률 평균
     sigma0_sq : float
-        Prior variance
+        앞확률 흩어짐
     sigma_sq : float
-        Known data variance
+        아는 자료 흩어짐
     """
     mu0: float = 0.0
     sigma0_sq: float = 1.0
     sigma_sq: float = 1.0
     
     def log_evidence(self, data: np.ndarray) -> float:
-        """Compute log evidence analytically."""
+        """로그 증거를 해석적으로 셈한다."""
         data = np.atleast_1d(data)
         n = len(data)
         x_bar = data.mean()
@@ -627,31 +559,31 @@ class GaussianKnownVarianceModel(BayesianModel):
         tau0 = 1 / self.sigma0_sq
         tau_n = tau0 + n * tau
         
-        # Sum of squared deviations from sample mean
+        # 표본 평균에서의 제곱 어긋남의 합
         ss = ((data - x_bar) ** 2).sum()
         
-        # Log evidence
+        # 로그 증거
         log_ev = (
-            -0.5 * n * np.log(2 * np.pi * self.sigma_sq)  # Likelihood normalization
-            + 0.5 * np.log(tau0 / tau_n)  # Prior/posterior precision ratio
-            - 0.5 * tau * ss  # Data variability
-            - 0.5 * tau0 * n * tau / tau_n * (x_bar - self.mu0) ** 2  # Prior-data discrepancy
+            -0.5 * n * np.log(2 * np.pi * self.sigma_sq)  # 가능도 고르게 하기
+            + 0.5 * np.log(tau0 / tau_n)  # 앞확률/뒤확률 정밀도 비
+            - 0.5 * tau * ss  # 자료의 들쭉날쭉함
+            - 0.5 * tau0 * n * tau / tau_n * (x_bar - self.mu0) ** 2  # 앞확률과 자료의 어긋남
         )
         
         return log_ev
     
     def log_likelihood(self, data: np.ndarray, params: np.ndarray) -> float:
-        """Compute Gaussian log likelihood."""
+        """가우스 로그 가능도를 셈한다."""
         mu = params[0]
         return stats.norm.logpdf(data, mu, np.sqrt(self.sigma_sq)).sum()
     
     def log_prior(self, params: np.ndarray) -> float:
-        """Compute Gaussian log prior."""
+        """가우스 로그 앞확률을 셈한다."""
         mu = params[0]
         return stats.norm.logpdf(mu, self.mu0, np.sqrt(self.sigma0_sq))
     
     def sequential_log_evidence(self, data: np.ndarray) -> Tuple[float, List[float]]:
-        """Compute evidence sequentially."""
+        """증거를 차례대로 셈한다."""
         data = np.atleast_1d(data)
         
         mu_t = self.mu0
@@ -661,25 +593,24 @@ class GaussianKnownVarianceModel(BayesianModel):
         log_probs = []
         
         for x in data:
-            # Predictive distribution: N(μ_t, σ² + 1/τ_t)
+            # 예측 분포: N(μ_t, σ² + 1/τ_t)
             pred_var = self.sigma_sq + 1 / tau_t
             log_p = stats.norm.logpdf(x, mu_t, np.sqrt(pred_var))
             log_probs.append(log_p)
             
-            # Update
+            # 갱신
             tau_new = tau_t + tau
             mu_t = (tau_t * mu_t + tau * x) / tau_new
             tau_t = tau_new
         
         return sum(log_probs), log_probs
 
-
 @dataclass
 class NormalInverseGammaModel(BayesianModel):
     """
-    Gaussian model with unknown mean and variance.
+    평균과 흩어짐을 모르는 가우스 모형.
     
-    Model: x_i | μ, σ² ~ N(μ, σ²)
+    모형: x_i | μ, σ² ~ N(μ, σ²)
            (μ, σ²) ~ NIG(μ₀, κ₀, α₀, β₀)
     """
     mu0: float = 0.0
@@ -688,7 +619,7 @@ class NormalInverseGammaModel(BayesianModel):
     beta0: float = 1.0
     
     def log_evidence(self, data: np.ndarray) -> float:
-        """Compute log evidence analytically."""
+        """로그 증거를 해석적으로 셈한다."""
         data = np.atleast_1d(data)
         n = len(data)
         
@@ -698,13 +629,13 @@ class NormalInverseGammaModel(BayesianModel):
         x_bar = data.mean()
         ss = ((data - x_bar) ** 2).sum()
         
-        # Posterior parameters
+        # 뒤확률 매개변수
         kappa_n = self.kappa0 + n
         alpha_n = self.alpha0 + n / 2
         beta_n = (self.beta0 + 0.5 * ss + 
                   0.5 * self.kappa0 * n / kappa_n * (x_bar - self.mu0) ** 2)
         
-        # Log evidence
+        # 로그 증거
         log_ev = (
             gammaln(alpha_n) - gammaln(self.alpha0)
             + self.alpha0 * np.log(self.beta0) - alpha_n * np.log(beta_n)
@@ -715,19 +646,19 @@ class NormalInverseGammaModel(BayesianModel):
         return log_ev
     
     def log_likelihood(self, data: np.ndarray, params: np.ndarray) -> float:
-        """Compute Gaussian log likelihood."""
+        """가우스 로그 가능도를 셈한다."""
         mu, sigma_sq = params
         if sigma_sq <= 0:
             return -np.inf
         return stats.norm.logpdf(data, mu, np.sqrt(sigma_sq)).sum()
     
     def log_prior(self, params: np.ndarray) -> float:
-        """Compute NIG log prior."""
+        """NIG 로그 앞확률을 셈한다."""
         mu, sigma_sq = params
         if sigma_sq <= 0:
             return -np.inf
         
-        # p(σ²) = Inv-Gamma(α₀, β₀)
+        # p(σ²) = 역감마(α₀, β₀)
         log_p_sigma = stats.invgamma.logpdf(sigma_sq, self.alpha0, scale=self.beta0)
         
         # p(μ | σ²) = N(μ₀, σ²/κ₀)
@@ -735,9 +666,8 @@ class NormalInverseGammaModel(BayesianModel):
         
         return log_p_sigma + log_p_mu
 
-
 # =============================================================================
-# Evidence Approximation Methods
+# 증거 어림 방법
 # =============================================================================
 
 def laplace_approximation(
@@ -747,34 +677,34 @@ def laplace_approximation(
     param_bounds: Optional[List[Tuple]] = None
 ) -> Tuple[float, np.ndarray, np.ndarray]:
     """
-    Compute log evidence via Laplace approximation.
+    라플라스 어림으로 로그 증거를 셈한다.
     
     log p(D) ≈ log p(D|θ̂) + log p(θ̂) + (d/2)log(2π) - (1/2)log|H|
     
-    Parameters
+    매개변수
     ----------
     model : BayesianModel
-        Model with log_likelihood and log_prior methods
+        log_likelihood과 log_prior 메서드를 갖춘 모형
     data : array
-        Observed data
+        관측 자료
     init_params : array
-        Initial parameter values for optimization
-    param_bounds : list of tuples, optional
-        Bounds for each parameter
+        최적화의 첫 매개변수 값
+    param_bounds : 튜플의 list, 있어도 되고 없어도 됨
+        매개변수마다의 경계
     
-    Returns
+    반환값
     -------
     log_evidence : float
-        Laplace approximation to log evidence
+        로그 증거의 라플라스 어림
     map_params : array
-        MAP parameter estimates
+        MAP 매개변수 어림값
     hessian : array
-        Hessian of negative log posterior at MAP
+        MAP에서 음의 로그 뒤확률의 헤세 행렬
     """
     def neg_log_posterior(params):
         return -model.log_posterior_unnorm(data, params)
     
-    # Find MAP estimate
+    # MAP 어림값 찾기
     result = minimize(
         neg_log_posterior,
         init_params,
@@ -784,7 +714,7 @@ def laplace_approximation(
     
     map_params = result.x
     
-    # Compute Hessian numerically
+    # 헤세 행렬을 수치로 셈하기
     d = len(map_params)
     eps = 1e-5
     hessian = np.zeros((d, d))
@@ -810,12 +740,12 @@ def laplace_approximation(
                 - neg_log_posterior(params_mp) + neg_log_posterior(params_mm)
             ) / (4 * eps ** 2)
     
-    # Laplace approximation
+    # 라플라스 어림
     log_posterior_at_map = model.log_posterior_unnorm(data, map_params)
     sign, log_det_H = np.linalg.slogdet(hessian)
     
     if sign <= 0:
-        # Hessian not positive definite; approximation may be poor
+        # 헤세 행렬이 양의 정부호가 아니다. 어림이 나쁠 수 있다
         log_det_H = np.log(np.abs(np.linalg.det(hessian)) + 1e-10)
     
     log_evidence = (
@@ -826,7 +756,6 @@ def laplace_approximation(
     
     return log_evidence, map_params, hessian
 
-
 def importance_sampling_evidence(
     model: BayesianModel,
     data: np.ndarray,
@@ -834,25 +763,25 @@ def importance_sampling_evidence(
     proposal_log_pdf: Callable[[np.ndarray], float]
 ) -> Tuple[float, float]:
     """
-    Estimate log evidence via importance sampling.
+    중요도 표집으로 로그 증거를 어림한다.
     
-    Parameters
+    매개변수
     ----------
     model : BayesianModel
-        Model with log_likelihood and log_prior methods
+        log_likelihood과 log_prior 메서드를 갖춘 모형
     data : array
-        Observed data
+        관측 자료
     proposal_samples : array
-        Samples from proposal distribution, shape (n_samples, d)
+        제안 분포에서 뽑은 표본, 꼴 (n_samples, d)
     proposal_log_pdf : callable
-        Function computing log density of proposal
+        제안의 로그 밀도를 셈하는 함수
     
-    Returns
+    반환값
     -------
     log_evidence : float
-        Estimated log evidence
+        어림한 로그 증거
     log_evidence_std : float
-        Estimated standard error (in log scale)
+        어림한 표준 오차(로그 눈금에서)
     """
     n_samples = len(proposal_samples)
     log_weights = np.zeros(n_samples)
@@ -862,18 +791,17 @@ def importance_sampling_evidence(
         log_denom = proposal_log_pdf(params)
         log_weights[i] = log_num - log_denom
     
-    # Log-sum-exp for numerical stability
+    # 수치 안정을 위한 로그-합-지수
     log_evidence = logsumexp(log_weights) - np.log(n_samples)
     
-    # Estimate variance
+    # 흩어짐 어림하기
     weights = np.exp(log_weights - log_weights.max())
-    ess = weights.sum() ** 2 / (weights ** 2).sum()  # Effective sample size
+    ess = weights.sum() ** 2 / (weights ** 2).sum()  # 실효 표본 크기
     
-    # Approximate standard error
+    # 어림 표준 오차
     log_evidence_std = np.std(log_weights) / np.sqrt(ess)
     
     return log_evidence, log_evidence_std
-
 
 def bic_approximation(
     log_likelihood_at_mle: float,
@@ -881,29 +809,28 @@ def bic_approximation(
     n_samples: int
 ) -> float:
     """
-    Compute BIC approximation to log evidence.
+    로그 증거의 BIC 어림을 셈한다.
     
     log p(D) ≈ log p(D|θ̂_MLE) - (d/2) log(n)
     
-    Parameters
+    매개변수
     ----------
     log_likelihood_at_mle : float
-        Log likelihood at MLE
+        MLE에서의 로그 가능도
     n_params : int
-        Number of model parameters
+        모형 매개변수의 개수
     n_samples : int
-        Number of data points
+        자료점의 개수
     
-    Returns
+    반환값
     -------
     float
-        BIC approximation to log evidence
+        로그 증거의 BIC 어림
     """
     return log_likelihood_at_mle - 0.5 * n_params * np.log(n_samples)
 
-
 # =============================================================================
-# Model Comparison Utilities
+# 모형 견줌 도구
 # =============================================================================
 
 def compute_model_probabilities(
@@ -911,19 +838,19 @@ def compute_model_probabilities(
     prior_probs: Optional[List[float]] = None
 ) -> np.ndarray:
     """
-    Compute posterior model probabilities from log evidences.
+    로그 증거에서 뒤확률 모형 확률을 셈한다.
     
-    Parameters
+    매개변수
     ----------
     log_evidences : list
-        Log evidence for each model
-    prior_probs : list, optional
-        Prior probability for each model (uniform if None)
+        모형마다의 로그 증거
+    prior_probs : list, 있어도 되고 없어도 됨
+        모형마다의 앞확률(None이면 고름)
     
-    Returns
+    반환값
     -------
     array
-        Posterior model probabilities
+        뒤확률 모형 확률
     """
     log_evidences = np.array(log_evidences)
     n_models = len(log_evidences)
@@ -938,29 +865,27 @@ def compute_model_probabilities(
     
     return np.exp(log_posteriors)
 
-
 def bayes_factor(log_evidence_1: float, log_evidence_2: float) -> float:
     """
-    Compute Bayes factor BF₁₂ = p(D|M₁) / p(D|M₂).
+    베이즈 인자 BF₁₂ = p(D|M₁) / p(D|M₂)을 셈한다.
     
-    Returns the Bayes factor on log scale for numerical stability.
+    수치 안정을 위해 베이즈 인자를 로그 눈금으로 되돌린다.
     """
     return log_evidence_1 - log_evidence_2
 
-
 def interpret_bayes_factor(log_bf: float) -> str:
     """
-    Interpret Bayes factor using Kass & Raftery (1995) scale.
+    캐스와 래프터리(1995)의 눈금으로 베이즈 인자를 풀이한다.
     
-    Parameters
+    매개변수
     ----------
     log_bf : float
-        Log Bayes factor (natural log)
+        로그 베이즈 인자(자연로그)
     
-    Returns
+    반환값
     -------
     str
-        Interpretation of evidence strength
+        증거 세기의 풀이
     """
     bf = np.exp(log_bf)
     
@@ -971,7 +896,7 @@ def interpret_bayes_factor(log_bf: float) -> str:
         model = "Model 2"
         abs_log_bf = -log_bf
     
-    # Convert to log base 10 for Kass & Raftery scale
+    # 캐스와 래프터리 눈금을 위해 밑 10 로그로 바꾸기
     log10_bf = abs_log_bf / np.log(10)
     
     if log10_bf < 0.5:
@@ -985,9 +910,8 @@ def interpret_bayes_factor(log_bf: float) -> str:
     
     return f"{strength} evidence for {model} (log₁₀ BF = {log10_bf:.2f})"
 
-
 # =============================================================================
-# Visualization Functions
+# 그려 보기 함수
 # =============================================================================
 
 def plot_evidence_comparison(
@@ -995,7 +919,7 @@ def plot_evidence_comparison(
     data: np.ndarray,
     prior_probs: Optional[Dict[str, float]] = None
 ) -> plt.Figure:
-    """Visualize model comparison via evidence."""
+    """증거로 모형 견줌을 그려 본다."""
     
     model_names = list(models.keys())
     log_evidences = [models[name].log_evidence(data) for name in model_names]
@@ -1009,7 +933,7 @@ def plot_evidence_comparison(
     
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
     
-    # Log evidences
+    # 로그 증거
     ax = axes[0]
     colors = plt.cm.Set2(np.linspace(0, 1, len(model_names)))
     bars = ax.bar(model_names, log_evidences, color=colors)
@@ -1021,7 +945,7 @@ def plot_evidence_comparison(
         ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5,
                 f'{val:.1f}', ha='center', fontsize=10)
     
-    # Posterior probabilities
+    # 뒤확률
     ax = axes[1]
     bars = ax.bar(model_names, posteriors, color=colors)
     ax.set_ylabel('Posterior Probability', fontsize=12)
@@ -1033,7 +957,7 @@ def plot_evidence_comparison(
         ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.02,
                 f'{val:.3f}', ha='center', fontsize=10)
     
-    # Bayes factors relative to best model
+    # 가장 좋은 모형에 견준 베이즈 인자
     ax = axes[2]
     best_idx = np.argmax(log_evidences)
     log_bfs = [log_evidences[best_idx] - le for le in log_evidences]
@@ -1049,19 +973,18 @@ def plot_evidence_comparison(
     plt.tight_layout()
     return fig
 
-
 def plot_sequential_evidence(
     models: Dict[str, BayesianModel],
     data: np.ndarray
 ) -> plt.Figure:
-    """Visualize how evidence accumulates sequentially."""
+    """증거가 차례대로 어떻게 쌓이는지 그려 본다."""
     
     fig, axes = plt.subplots(2, 1, figsize=(12, 8))
     
     model_names = list(models.keys())
     colors = plt.cm.Set2(np.linspace(0, 1, len(model_names)))
     
-    # Compute sequential evidence for each model
+    # 모형마다 잇단 증거 셈하기
     sequential_log_probs = {}
     cumulative_log_evidence = {}
     
@@ -1074,7 +997,7 @@ def plot_sequential_evidence(
     n = len(data)
     x = np.arange(1, n + 1)
     
-    # Top: Cumulative log evidence
+    # 위: 누적 로그 증거
     ax = axes[0]
     for i, (name, cum_ev) in enumerate(cumulative_log_evidence.items()):
         ax.plot(x, cum_ev, label=name, color=colors[i], linewidth=2)
@@ -1085,7 +1008,7 @@ def plot_sequential_evidence(
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3)
     
-    # Bottom: Sequential log Bayes factor
+    # 아래: 잇단 로그 베이즈 인자
     ax = axes[1]
     if len(model_names) >= 2:
         name1, name2 = model_names[0], model_names[1]
@@ -1110,17 +1033,16 @@ def plot_sequential_evidence(
     plt.tight_layout()
     return fig
 
-
 def plot_occam_razor_demo(sample_sizes: List[int] = [10, 50, 200]) -> plt.Figure:
-    """Demonstrate Occam's razor via polynomial model comparison."""
+    """다항 모형 견줌으로 오컴의 면도날을 보인다."""
     
     np.random.seed(42)
     
-    # True model: quadratic
+    # 참 모형: 이차
     def true_func(x):
         return 2 + 1.5 * x - 0.5 * x**2
     
-    # Generate data
+    # 데이터를 생성한다
     x_full = np.linspace(-2, 2, 200)
     
     fig, axes = plt.subplots(len(sample_sizes), 2, figsize=(14, 4*len(sample_sizes)))
@@ -1130,28 +1052,28 @@ def plot_occam_razor_demo(sample_sizes: List[int] = [10, 50, 200]) -> plt.Figure
         x = np.random.uniform(-2, 2, n)
         y = true_func(x) + np.random.normal(0, 0.5, n)
         
-        # Fit polynomials of different degrees
+        # 차수가 다른 다항식 맞추기
         degrees = [1, 2, 3, 5, 8]
         log_evidences = []
         
         for deg in degrees:
-            # Use BIC as evidence approximation
+            # 증거 어림으로 BIC 쓰기
             X = np.vander(x, deg + 1, increasing=True)
             coeffs = np.linalg.lstsq(X, y, rcond=None)[0]
             y_pred = X @ coeffs
             residuals = y - y_pred
             
-            # MLE variance estimate
+            # MLE 흩어짐 어림값
             sigma2_mle = (residuals ** 2).mean()
             
-            # Log likelihood at MLE
+            # MLE에서의 로그 가능도
             log_lik = -0.5 * n * np.log(2 * np.pi * sigma2_mle) - 0.5 * n
             
-            # BIC approximation
+            # BIC 어림
             log_ev = bic_approximation(log_lik, deg + 1, n)
             log_evidences.append(log_ev)
         
-        # Left: Data and fits
+        # 왼쪽: 자료와 맞춤
         ax = axes[row, 0] if len(sample_sizes) > 1 else axes[0]
         ax.scatter(x, y, alpha=0.5, s=30, label='Data')
         
@@ -1169,10 +1091,10 @@ def plot_occam_razor_demo(sample_sizes: List[int] = [10, 50, 200]) -> plt.Figure
         ax.legend(fontsize=9)
         ax.grid(True, alpha=0.3)
         
-        # Right: Evidence comparison
+        # 오른쪽: 증거 견줌
         ax = axes[row, 1] if len(sample_sizes) > 1 else axes[1]
         
-        # Normalize to posterior probabilities
+        # 뒤확률로 고르게 하기
         probs = compute_model_probabilities(log_evidences)
         
         colors = ['red' if d != 2 else 'green' for d in degrees]
@@ -1189,19 +1111,18 @@ def plot_occam_razor_demo(sample_sizes: List[int] = [10, 50, 200]) -> plt.Figure
     plt.tight_layout()
     return fig
 
-
 # =============================================================================
-# Demonstrations
+# 보여 주기
 # =============================================================================
 
 def demo_conjugate_evidence():
-    """Demonstrate exact evidence for conjugate models."""
+    """켤레 모형의 정확한 증거를 보인다."""
     
     print("=" * 70)
     print("MODEL EVIDENCE: CONJUGATE MODELS")
     print("=" * 70)
     
-    # Beta-Bernoulli
+    # 베타-베르누이
     print("\n--- Beta-Bernoulli Model ---")
     np.random.seed(42)
     true_theta = 0.7
@@ -1222,7 +1143,7 @@ def demo_conjugate_evidence():
         print(f"  Log evidence: {log_ev:.4f}")
         print(f"  Sequential check: {sum(seq_probs):.4f}")
     
-    # Gaussian models
+    # 가우스 모형
     print("\n\n--- Gaussian Models ---")
     np.random.seed(123)
     true_mu, true_sigma = 5.0, 2.0
@@ -1231,21 +1152,20 @@ def demo_conjugate_evidence():
     print(f"Data: n={len(data)}, mean={data.mean():.2f}, std={data.std():.2f}")
     print(f"True: μ={true_mu}, σ={true_sigma}")
     
-    # Known variance model
+    # 흩어짐을 아는 모형
     model_known = GaussianKnownVarianceModel(mu0=0, sigma0_sq=10, sigma_sq=true_sigma**2)
     log_ev_known = model_known.log_evidence(data)
     print(f"\nKnown variance (σ²={true_sigma**2}):")
     print(f"  Log evidence: {log_ev_known:.4f}")
     
-    # Unknown variance model
+    # 흩어짐을 모르는 모형
     model_unknown = NormalInverseGammaModel(mu0=0, kappa0=0.1, alpha0=1, beta0=1)
     log_ev_unknown = model_unknown.log_evidence(data)
     print(f"\nUnknown variance (NIG prior):")
     print(f"  Log evidence: {log_ev_unknown:.4f}")
 
-
 def demo_laplace_approximation():
-    """Demonstrate Laplace approximation for evidence."""
+    """증거의 라플라스 어림을 보인다."""
     
     print("\n" + "=" * 70)
     print("LAPLACE APPROXIMATION")
@@ -1254,13 +1174,13 @@ def demo_laplace_approximation():
     np.random.seed(42)
     data = np.random.normal(5.0, 2.0, 30)
     
-    # Use NIG model
+    # NIG 모형 쓰기
     model = NormalInverseGammaModel(mu0=0, kappa0=0.1, alpha0=1, beta0=1)
     
-    # Exact evidence
+    # 정확한 증거
     exact_log_ev = model.log_evidence(data)
     
-    # Laplace approximation
+    # 라플라스 어림
     init_params = np.array([data.mean(), data.var()])
     laplace_log_ev, map_params, hess = laplace_approximation(
         model, data, init_params,
@@ -1272,9 +1192,8 @@ def demo_laplace_approximation():
     print(f"Difference: {abs(exact_log_ev - laplace_log_ev):.4f}")
     print(f"\nMAP estimates: μ = {map_params[0]:.3f}, σ² = {map_params[1]:.3f}")
 
-
 def demo_model_comparison():
-    """Demonstrate model comparison via evidence."""
+    """증거로 모형을 견주어 보인다."""
     
     print("\n" + "=" * 70)
     print("MODEL COMPARISON")
@@ -1282,14 +1201,14 @@ def demo_model_comparison():
     
     np.random.seed(42)
     
-    # Generate data from biased coin
+    # 치우친 동전에서 자료 만들기
     true_theta = 0.65
     n = 100
     data = np.random.binomial(1, true_theta, n)
     
     print(f"Data: {data.sum()} successes in {n} trials")
     
-    # Compare different priors
+    # 서로 다른 앞확률 견주기
     models = {
         'Fair coin (α=50, β=50)': BetaBernoulliModel(50, 50),
         'Slight bias allowed (α=5, β=5)': BetaBernoulliModel(5, 5),
@@ -1304,7 +1223,7 @@ def demo_model_comparison():
         print(f"\n{name}:")
         print(f"  Log evidence: {log_ev:.4f}")
     
-    # Compute model probabilities
+    # 모형 확률 셈하기
     names = list(log_evidences.keys())
     log_evs = list(log_evidences.values())
     probs = compute_model_probabilities(log_evs)
@@ -1313,7 +1232,7 @@ def demo_model_comparison():
     for name, prob in zip(names, probs):
         print(f"  {name}: {prob:.4f}")
     
-    # Bayes factor interpretation
+    # 베이즈 인자 풀이
     best_idx = np.argmax(log_evs)
     print(f"\n--- Bayes Factors vs Best Model ({names[best_idx]}) ---")
     for i, name in enumerate(names):
@@ -1322,9 +1241,8 @@ def demo_model_comparison():
             interp = interpret_bayes_factor(log_bf)
             print(f"  vs {name}: {interp}")
 
-
 def demo_occam_razor():
-    """Demonstrate Occam's razor in polynomial regression."""
+    """다항 회귀에서 오컴의 면도날을 보인다."""
     
     print("\n" + "=" * 70)
     print("OCCAM'S RAZOR DEMONSTRATION")
@@ -1336,7 +1254,6 @@ def demo_occam_razor():
     print("\nSaved: occam_razor_demo.png")
     print("\nAs sample size increases, evidence concentrates on true model (degree 2)")
 
-
 if __name__ == "__main__":
     demo_conjugate_evidence()
     demo_laplace_approximation()
@@ -1346,48 +1263,86 @@ if __name__ == "__main__":
 
 ---
 
-## Summary
+## 요약
 
-| Aspect | Description |
+| 항목 | 설명 |
 |--------|-------------|
-| **Definition** | $p(\mathcal{D} \mid \mathcal{M}) = \int p(\mathcal{D} \mid \theta) \, p(\theta) \, d\theta$ |
-| **Interpretation** | Average likelihood under prior; predictive probability of data |
-| **Role** | Normalizing constant in Bayes' theorem; basis for model comparison |
-| **Occam's Razor** | Automatically penalizes unnecessary complexity |
-| **Decomposition** | $\log p(\mathcal{D}) = \text{Fit} - \text{Complexity}$ |
+| **정의** | $p(\mathcal{D} \mid \mathcal{M}) = \int p(\mathcal{D} \mid \theta) \, p(\theta) \, d\theta$ |
+| **풀이** | 앞확률 아래의 평균 가능도이자 데이터의 예측 확률 |
+| **몫** | 베이즈 정리의 고르는 상수이자 모형 견줌의 바탕 |
+| **오컴의 면도날** | 쓸데없는 복잡함에 저절로 벌을 준다 |
+| **쪼갬** | $\log p(\mathcal{D}) = \text{잘 맞음} - \text{복잡도}$ |
 
-### Computation Methods
+### 셈하는 방법
 
-| Method | Applicability | Accuracy | Cost |
+| 방법 | 쓸 수 있는 곳 | 정확도 | 비용 |
 |--------|--------------|----------|------|
-| Exact (conjugate) | Exponential family | Exact | Low |
-| Laplace approximation | Smooth posteriors | Good for large $n$ | Medium |
-| BIC | Large samples | Asymptotically correct | Low |
-| Importance sampling | General | Depends on proposal | Medium-High |
-| Nested sampling | General | High | High |
+| 정확한 셈(켤레) | 지수족 | 정확함 | 낮음 |
+| 라플라스 어림 | 매끄러운 뒤확률 | $n$이 크면 좋음 | 보통 |
+| BIC | 큰 표본 | 점근적으로 옳음 | 낮음 |
+| 중요도 표집 | 두루 쓰임 | 제안 분포에 달림 | 보통에서 높음 |
+| 겹 표집 | 두루 쓰임 | 높음 | 높음 |
 
-### Key Insights
+### 핵심 통찰
 
-1. **Marginal over parameters**: Evidence integrates out all parameters
-2. **Occam's razor**: Complex models are penalized automatically
-3. **Prior sensitivity**: Evidence depends strongly on prior (unlike posterior)
-4. **Sequential decomposition**: $\log p(\mathcal{D}) = \sum_t \log p(x_t \mid x_{1:t-1})$
-5. **Model averaging**: Use evidence weights for prediction
-6. **Improper priors**: Cannot be used for model comparison
+1. **매개변수에 대한 주변화**: 증거는 매개변수를 모두 적분해 없앤다
+2. **오컴의 면도날**: 복잡한 모형에 저절로 벌이 주어진다
+3. **앞확률 민감도**: (뒤확률과 달리) 증거는 앞확률에 크게 기댄다
+4. **차례로 쪼개기**: $\log p(\mathcal{D}) = \sum_t \log p(x_t \mid x_{1:t-1})$
+5. **모형 평균 내기**: 예측에 증거 무게를 쓴다
+6. **제대로 되지 않은 앞확률**: 모형 견줌에 쓸 수 없다
 
-### Connections to Other Chapters
+### 다른 장과의 이음
 
-| Topic | Chapter | Connection |
+| 주제 | 장 | 이음 |
 |-------|---------|------------|
-| Bayes factors | Ch13: Bayes Factor | Ratio of evidences |
-| Information criteria | Ch13: Information Criteria | BIC approximates evidence |
-| Conjugate models | Ch13: Distributions | Exact evidence available |
-| BNN model selection | Ch13: BNN | Selecting architectures |
-| Cross-validation | Ch7: Model Selection | Alternative to evidence |
+| 베이즈 인자 | 13장: 베이즈 인자 | 증거의 비 |
+| 정보 기준 | 13장: 정보 기준 | BIC이 증거를 어림한다 |
+| 켤레 모형 | 13장: 분포 | 정확한 증거를 얻을 수 있다 |
+| BNN 모형 고르기 | 13장: BNN | 구조 고르기 |
+| 교차 검증 | 7장: 모형 고르기 | 증거의 대안 |
 
-### Key References
+### 주요 참고 문헌
 
-- MacKay, D. J. C. (2003). *Information Theory, Inference, and Learning Algorithms*. Chapter 28.
+- MacKay, D. J. C. (2003). *Information Theory, Inference, and Learning Algorithms*. 28장.
 - Kass, R. E., & Raftery, A. E. (1995). Bayes factors. *JASA*, 90(430), 773-795.
-- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). Chapter 7.
-- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Section 3.4.
+- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). 7장.
+- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. 3.4절.
+
+## 연습문제
+
+**연습문제 1.**
+이 쪽이 다루는 핵심 개념과 그것이 베이즈 통계에서 하는 몫을 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 쪽은 베이즈 추론의 근본 부품인 모형 고르기을(를) 다룬다. 이는 데이터로 믿음을 고치고, 불확실성을 수로 나타내며, 불확실함 속에서 결정을 내리는 더 넓은 틀과 이어진다. 베이즈의 눈은 앞선 앎을 아우르고 불확실성을 분석 전체로 퍼뜨리는 원칙 있는 길을 준다.
+
+---
+
+**연습문제 2.**
+주된 수학적 결과를 끌어내거나 밝히고 그 뜻을 설명하라.
+
+??? success "연습문제 2 풀이"
+    핵심 결과는 앞선 정보가 베이즈 정리를 거쳐 관찰한 데이터와 어우러져 고쳐진 추론을 낳는 모습을 보여 준다. 이 결과가 뜻깊은 까닭은, 매개변수의 불확실성을 아랑곳하지 않는 점 어림 방법과 달리 불확실성을 셈에 넣으면서 데이터에서 배우는 앞뒤 맞는 틀을 주기 때문이다.
+
+---
+
+**연습문제 3.**
+이 주제에서 베이즈 방법과 빈도주의 대안을 견주어라.
+
+??? success "연습문제 3 풀이"
+    베이즈 방법은 온전한 뒤확률 분포, 자연스러운 불확실성 재기, 앞선 앎을 아우르는 원칙 있는 길을 준다. 빈도주의 대안은 표집 분포에 기대고, 큰 표본 어림이 필요할 수 있으며, 매개변수를 붙박인 미지수로 다룬다. 표본이 작을 때는 앞확률의 벌주기 효과 덕분에 베이즈 방법이 더 나을 때가 많다.
+
+---
+
+**연습문제 4.**
+이 개념의 간단한 보기를 파이토치나 넘파이로 파이썬에 구현하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    import numpy as np
+    # 구현은 주제에 따라 달라진다.
+    # 켤레 모형: 닫힌 꼴 뒤확률 새로 고치기.
+    # 켤레가 아닌 모형: MCMC 또는 변분 추론.
+    # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
+    ```

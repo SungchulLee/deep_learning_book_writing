@@ -1,9 +1,4 @@
 # Laplace Approximation for Neural Networks
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 The **Laplace approximation** provides a simple, post-hoc approach to Bayesian inference by fitting a Gaussian distribution centered at the MAP (maximum a posteriori) estimate. This classical technique, when applied to neural networks, offers a computationally tractable way to obtain uncertainty estimates without retraining the network.
 
 ---
@@ -26,12 +21,11 @@ The Laplace approximation is **post-hoc**: it takes an already-trained network a
 Approximate the posterior with a Gaussian centered at the mode (MAP estimate):
 
 $$
-
 \boxed{p(\theta \mid \mathcal{D}) \approx q(\theta) = \mathcal{N}(\theta \mid \hat{\theta}_{\text{MAP}}, \Sigma)}
-
 $$
 
 where:
+
 - $\hat{\theta}_{\text{MAP}}$ is your trained network's weights
 - $\Sigma = H^{-1}$ is the inverse Hessian of the loss at the MAP
 
@@ -44,25 +38,19 @@ where:
 Start with the unnormalized log posterior:
 
 $$
-
 \log p(\theta \mid \mathcal{D}) = \log p(\mathcal{D} \mid \theta) + \log p(\theta) - \log p(\mathcal{D})
-
 $$
 
 Taylor expand around the MAP estimate $\hat{\theta}$:
 
 $$
-
 \log p(\theta \mid \mathcal{D}) \approx \log p(\hat{\theta} \mid \mathcal{D}) + \underbrace{\nabla \log p(\hat{\theta} \mid \mathcal{D})}_{= 0 \text{ at MAP}} (\theta - \hat{\theta}) - \frac{1}{2}(\theta - \hat{\theta})^\top H (\theta - \hat{\theta})
-
 $$
 
 where:
 
 $$
-
 H = -\nabla^2_\theta \log p(\theta \mid \mathcal{D})\big|_{\hat{\theta}}
-
 $$
 
 is the Hessian of the negative log posterior (positive definite at a local minimum).
@@ -70,9 +58,7 @@ is the Hessian of the negative log posterior (positive definite at a local minim
 Exponentiating gives:
 
 $$
-
 p(\theta \mid \mathcal{D}) \propto \exp\left(-\frac{1}{2}(\theta - \hat{\theta})^\top H (\theta - \hat{\theta})\right)
-
 $$
 
 This is a Gaussian with covariance $\Sigma = H^{-1}$.
@@ -82,12 +68,11 @@ This is a Gaussian with covariance $\Sigma = H^{-1}$.
 For a neural network with negative log-likelihood loss $\mathcal{L}(\theta) = -\log p(\mathcal{D} \mid \theta)$ and Gaussian prior:
 
 $$
-
 H = \nabla^2 \mathcal{L}(\theta)\big|_{\hat{\theta}} + \frac{1}{\sigma_0^2} I
-
 $$
 
 **Components**:
+
 - **Likelihood Hessian**: Curvature of the loss surface
 - **Prior contribution**: Regularization (corresponds to weight decay $\lambda = 1/\sigma_0^2$)
 
@@ -96,12 +81,11 @@ $$
 The exact Hessian is expensive and may not be positive definite. The **GGN approximation** is commonly used:
 
 $$
-
 H_{\text{GGN}} = J^\top \nabla^2 \mathcal{L}_{\text{out}} J + \frac{1}{\sigma_0^2} I
-
 $$
 
 where:
+
 - $J = \nabla_\theta f_\theta(X)$ is the Jacobian of network outputs w.r.t. parameters
 - $\nabla^2 \mathcal{L}_{\text{out}}$ is the Hessian of the loss w.r.t. network outputs
 
@@ -116,6 +100,7 @@ where:
 ### The Scalability Challenge
 
 For a network with $d$ parameters:
+
 - **Full Hessian**: $O(d^2)$ storage, $O(d^3)$ inversion
 - Modern networks: $d = 10^6$ to $10^9$
 
@@ -126,9 +111,7 @@ For a network with $d$ parameters:
 Assume independence between parameters:
 
 $$
-
 \Sigma = \text{diag}(\sigma_1^2, \ldots, \sigma_d^2) \quad \text{where} \quad \sigma_i^2 = 1/H_{ii}
-
 $$
 
 **Computation**: Only need diagonal of Hessian — can be estimated efficiently.
@@ -140,21 +123,18 @@ $$
 For layer $l$ with weight matrix $W^{(l)} \in \mathbb{R}^{n_{l-1} \times n_l}$:
 
 $$
-
 \boxed{H^{(l)} \approx A^{(l)} \otimes G^{(l)}}
-
 $$
 
 where:
+
 - $A^{(l)} = \frac{1}{N}\sum_{n=1}^N a_n^{(l-1)} (a_n^{(l-1)})^\top$ — input activation covariance
 - $G^{(l)} = \frac{1}{N}\sum_{n=1}^N g_n^{(l)} (g_n^{(l)})^\top$ — output gradient covariance
 
 **Key property**: Kronecker product inversion is efficient:
 
 $$
-
 (A \otimes G)^{-1} = A^{-1} \otimes G^{-1}
-
 $$
 
 **Complexity**: $O(n_l^3 + n_{l-1}^3)$ per layer instead of $O((n_l \cdot n_{l-1})^3)$.
@@ -164,9 +144,7 @@ $$
 Keep only top eigencomponents of the Hessian:
 
 $$
-
 H \approx V \Lambda V^\top
-
 $$
 
 where $V \in \mathbb{R}^{d \times r}$ contains top $r$ eigenvectors.
@@ -174,9 +152,7 @@ where $V \in \mathbb{R}^{d \times r}$ contains top $r$ eigenvectors.
 **Inversion**:
 
 $$
-
 \Sigma = V \Lambda^{-1} V^\top + \frac{1}{\lambda_{\min}} (I - VV^\top)
-
 $$
 
 ### Comparison of Approximations
@@ -197,12 +173,11 @@ $$
 A practical simplification: apply Laplace only to the last layer:
 
 $$
-
 p(\theta_L \mid \mathcal{D}, \theta_{1:L-1}) \approx \mathcal{N}(\theta_L \mid \hat{\theta}_L, \Sigma_L)
-
 $$
 
 **Rationale**:
+
 - Earlier layers learn features (representation)
 - Last layer does final classification/regression
 - Most prediction uncertainty comes from last layer
@@ -221,25 +196,19 @@ For the last layer $f_\theta(x) = W^\top \phi(x) + b$ where $\phi(x)$ is the fea
 **Linearization**:
 
 $$
-
 f_\theta(x) \approx f_{\hat{\theta}}(x) + \phi(x)^\top (\theta - \hat{\theta})
-
 $$
 
 **Predictive mean**:
 
 $$
-
 \mathbb{E}[f(x^*)] = f_{\hat{\theta}}(x^*)
-
 $$
 
 **Predictive variance**:
 
 $$
-
 \text{Var}[f(x^*)] = \phi(x^*)^\top \Sigma_L \phi(x^*)
-
 $$
 
 ---
@@ -253,25 +222,19 @@ With Gaussian likelihood $p(y \mid f, \sigma^2)$:
 **Predictive distribution**:
 
 $$
-
 p(y^* \mid x^*, \mathcal{D}) = \mathcal{N}(y^* \mid \mu(x^*), \sigma^2(x^*))
-
 $$
 
 **Mean**:
 
 $$
-
 \mu(x^*) = f_{\hat{\theta}}(x^*)
-
 $$
 
 **Variance** (with linearization):
 
 $$
-
 \sigma^2(x^*) = \underbrace{J(x^*)^\top \Sigma \, J(x^*)}_{\text{epistemic}} + \underbrace{\sigma^2_{\text{noise}}}_{\text{aleatoric}}
-
 $$
 
 where $J(x^*) = \nabla_\theta f_\theta(x^*)|_{\hat{\theta}}$ is the Jacobian.
@@ -283,9 +246,7 @@ where $J(x^*) = \nabla_\theta f_\theta(x^*)|_{\hat{\theta}}$ is the Jacobian.
 For binary classification with sigmoid output:
 
 $$
-
 p(y=1 \mid x^*) \approx \sigma\left(\frac{\mu(x^*)}{\sqrt{1 + \pi \sigma^2(x^*)/8}}\right)
-
 $$
 
 **Approach 2: Monte Carlo sampling**
@@ -293,9 +254,7 @@ $$
 Sample $\theta^{(s)} \sim \mathcal{N}(\hat{\theta}, \Sigma)$ and average:
 
 $$
-
 p(y = c \mid x^*) \approx \frac{1}{S} \sum_{s=1}^S \text{softmax}(f_{\theta^{(s)}}(x^*))_c
-
 $$
 
 ---
@@ -856,6 +815,7 @@ if __name__ == "__main__":
 ### Hyperparameter Tuning
 
 **Prior precision** ($\lambda = 1/\sigma_0^2$):
+
 - Corresponds to weight decay used in training
 - Higher → more regularization, tighter posterior
 - Cross-validate on held-out data
@@ -864,9 +824,7 @@ if __name__ == "__main__":
 If uncertainty is miscalibrated, scale the covariance:
 
 $$
-
 \Sigma_{\text{scaled}} = T \cdot \Sigma
-
 $$
 
 where $T > 1$ increases uncertainty, $T < 1$ decreases it.
@@ -887,25 +845,19 @@ where $T > 1$ increases uncertainty, $T < 1$ decreases it.
 **Laplace posterior**:
 
 $$
-
 q(\theta) = \mathcal{N}(\hat{\theta}_{\text{MAP}}, H^{-1})
-
 $$
 
 **Predictive variance** (linearized):
 
 $$
-
 \text{Var}[f(x^*)] = J(x^*)^\top \Sigma J(x^*)
-
 $$
 
 **GGN approximation**:
 
 $$
-
 H_{\text{GGN}} = J^\top \nabla^2 \mathcal{L}_{\text{out}} J + \lambda I
-
 $$
 
 ### Advantages and Limitations
@@ -932,3 +884,35 @@ $$
 - Ritter, H., et al. (2018). A scalable Laplace approximation for neural networks. *ICLR*.
 - Daxberger, E., et al. (2021). Laplace redux — Effortless Bayesian deep learning. *NeurIPS*.
 - Martens, J., & Grosse, R. (2015). Optimizing neural networks with Kronecker-factored approximate curvature. *ICML*.
+
+## Exercises
+
+**Exercise 1.**
+For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+
+??? success "Solution to Exercise 1"
+    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
+
+---
+
+**Exercise 2.**
+Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
+
+??? success "Solution to Exercise 2"
+    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+
+---
+
+**Exercise 3.**
+Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+
+??? success "Solution to Exercise 3"
+    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+
+---
+
+**Exercise 4.**
+Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+
+??? success "Solution to Exercise 4"
+    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$

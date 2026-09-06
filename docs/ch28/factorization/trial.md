@@ -1,50 +1,45 @@
-# Trial Division
+# 시험 나눗셈
 
-The simplest approach to factoring an integer is to test each candidate
-divisor one by one.  Trial division is the natural starting point for any
-factoring routine: it is easy to implement, requires no advanced number
-theory, and efficiently handles numbers with small prime factors.
+정수를 인수 분해하는 가장 단순한 방식은 후보 약수를 하나씩 시험하는 것이다. 시험 나눗셈은 어떤 인수 분해 루틴에서도 자연스러운 출발점이다. 짜기 쉽고 나아간 수론이 필요 없으며 작은 소인수를 가진 수를 효율 좋게 다룬다.
 
-## Core Idea
+## 핵심 생각
 
-Every composite integer $n > 1$ has a prime factor $p \le \sqrt{n}$.
+모든 합성수 $n > 1$에는 $p \le \sqrt{n}$인 소인수 $p$이 있다.
 
-**Proof.**  If $n = ab$ with $1 < a \le b < n$, then $a \le \sqrt{n}$
-(otherwise $ab > n$).  Therefore the smallest prime factor of $n$ is at
-most $\sqrt{n}$.  $\square$
+**증명.** $1 < a \le b < n$인 $n = ab$이면 $a \le \sqrt{n}$이다(그렇지 않으면 $ab > n$이다). 따라서 $n$의 가장 작은 소인수는 많아야 $\sqrt{n}$이다. $\square$
 
-This means we only need to test divisors up to $\sqrt{n}$.
+곧 약수를 $\sqrt{n}$까지만 시험하면 된다.
 
-## Algorithm
+## 알고리즘
 
-To find the complete prime factorization of $n$:
+$n$의 온전한 소인수 분해를 찾으려면:
 
-1. For each candidate $d = 2, 3, 5, 7, 11, \dots$ up to $\sqrt{n}$:
-      - While $d \mid n$, record $d$ as a factor and replace $n \leftarrow n / d$.
-2. If $n > 1$ after the loop, then $n$ itself is prime---record it.
+1. $\sqrt{n}$까지 후보 $d = 2, 3, 5, 7, 11, \dots$마다:
+      - $d \mid n$인 동안 $d$을 인수로 적고 $n \leftarrow n / d$으로 바꾼다.
+2. 되풀이가 끝난 뒤 $n > 1$이면 $n$ 자체가 소수이므로 적는다.
 
 ```python
 """
-Trial division for integer factorization.
+정수 인수 분해를 위한 시험 나눗셈.
 
 Time : O(sqrt(n))
-Space: O(log n) for the list of factors
+공간: 인수 목록에 O(log n)
 """
 
 
-# === Trial Division ===
+# === 시험 나눗셈 ===
 def trial_division(n: int) -> list[int]:
-    """Return the complete prime factorization of n as a sorted list."""
+    """n의 온전한 소인수 분해를 줄 세운 목록으로 돌려준다."""
     if n <= 1:
         return []
     factors = []
 
-    # Handle factor of 2
+    # 2의 인수를 다룬다
     while n % 2 == 0:
         factors.append(2)
         n //= 2
 
-    # Test odd divisors from 3 to sqrt(n)
+    # 3부터 sqrt(n)까지 홀수 약수를 시험한다
     d = 3
     while d * d <= n:
         while n % d == 0:
@@ -52,21 +47,21 @@ def trial_division(n: int) -> list[int]:
             n //= d
         d += 2
 
-    # Remaining n is prime
+    # 남은 n은 소수이다
     if n > 1:
         factors.append(n)
 
     return factors
 
 
-# === Example ===
+# === 보기 ===
 if __name__ == "__main__":
     for num in [84, 97, 3600, 1000003]:
         factors = trial_division(num)
         print(f"{num} = {' x '.join(map(str, factors))}")
 ```
 
-**Expected output:**
+**바라는 내놓기:**
 
 ```
 84 = 2 x 2 x 3 x 7
@@ -75,45 +70,42 @@ if __name__ == "__main__":
 1000003 = 1000003
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
-- **Worst case.**  When $n$ is prime, the loop runs through all odd
-  integers up to $\sqrt{n}$, giving $O(\sqrt{n})$ divisions.
-- **Best case.**  When $n$ is a power of $2$, factoring takes $O(\log n)$
-  divisions.
+- **가장 나쁜 경우.** $n$이 소수이면 되풀이가 $\sqrt{n}$까지 모든 홀수를 훑어 나눗셈이 $O(\sqrt{n})$번이다.
+- **가장 좋은 경우.** $n$이 $2$의 거듭제곱이면 인수 분해에 나눗셈이 $O(\log n)$번 든다.
 - **Space.**  The output list has at most $\lfloor \log_2 n \rfloor$ entries.
 
-Each division costs $O(\log^2 n)$ bit operations, so the total bit
-complexity is $O(\sqrt{n} \cdot \log^2 n)$.
+나눗셈마다 비트 연산이 $O(\log^2 n)$번 들므로 온 비트 복잡도는 $O(\sqrt{n} \cdot \log^2 n)$이다.
 
-## Optimizations
+## 최적화
 
-### Skip Even Numbers
+### 짝수 건너뛰기
 
-After checking $d = 2$, increment by $2$ (test only odd candidates).
-This halves the number of iterations.
+$d = 2$을 살핀 뒤 $2$씩 늘린다(홀수 후보만 시험한다).
+이는 되풀이 횟수를 절반으로 줄인다.
 
-### Wheel Factorization
+### 바퀴 인수 분해
 
-Extend the idea beyond $2$: after removing factors of $2$, $3$, and $5$,
-only test $d$ values coprime to $30$.  The increments follow a repeating
-pattern of length 8:
+생각을 $2$ 너머로 넓힌다. $2$, $3$, $5$의 인수를 없앤 뒤
+$30$과 서로 소인 $d$만 시험한다. 늘림은 길이 8의 되풀이되는
+무늬를 따른다:
 
 $$
 \Delta = [1, 7, 11, 13, 17, 19, 23, 29] + 30k
 $$
 
-This skips $73\%$ of candidates instead of $50\%$ with odd-only testing.
+이는 홀수만 시험할 때의 $50\%$ 대신 후보의 $73\%$을 건너뛴다.
 
 ```python
 """
-Trial division with 2-3-5 wheel factorization.
+2-3-5 바퀴 인수 분해를 쓴 시험 나눗셈.
 """
 
 
-# === Wheel Trial Division ===
+# === 바퀴 시험 나눗셈 ===
 def trial_division_wheel(n: int) -> list[int]:
-    """Factor n using 2-3-5 wheel to skip non-coprime candidates."""
+    """서로 소가 아닌 후보를 건너뛰려 2-3-5 바퀴로 n을 인수 분해한다."""
     factors = []
     for p in (2, 3, 5):
         while n % p == 0:
@@ -133,33 +125,62 @@ def trial_division_wheel(n: int) -> list[int]:
     return factors
 
 
-# === Example ===
+# === 보기 ===
 if __name__ == "__main__":
     print(trial_division_wheel(2 * 3 * 5 * 7 * 11 * 13))  # [2, 3, 5, 7, 11, 13]
 ```
 
-### Precomputed Small Primes
+### 미리 셈한 작은 소수
 
-Use a sieve to generate all primes up to $\sqrt{n}$ first, then only test
-prime divisors.  This reduces the iteration count by a factor of
-$\ln \sqrt{n}$ (by the prime number theorem).
+먼저 체로 $\sqrt{n}$까지의 소수를 모두 만든 뒤 소수인 약수만
+시험한다. 이는 (소수 정리에 따라) 되풀이 횟수를
+$\ln \sqrt{n}$배만큼 줄인다.
 
-## When to Use Trial Division
+## 시험 나눗셈을 언제 쓰는가
 
-| Scenario | Recommendation |
+| 상황 | 권고 |
 |---|---|
-| $n < 10^{12}$ | Trial division alone suffices |
-| $n$ up to $10^{18}$ | Trial division for small factors, then Pollard's rho |
-| $n > 10^{20}$ | Trial division only as a first pass |
+| $n < 10^{12}$ | 시험 나눗셈만으로 넉넉하다 |
+| $n$이 $10^{18}$까지 | 작은 인수는 시험 나눗셈으로, 그다음 폴러드 로 |
+| $n > 10^{20}$ | 시험 나눗셈은 첫 훑기로만 |
 
-!!! tip "Combining Methods"
-    In practice, factoring routines start with trial division up to a small
-    bound (e.g., $10^6$), then switch to Pollard's rho or the Quadratic
-    Sieve for the remaining cofactor.
+!!! tip "방법 합치기"
+    실제로 인수 분해 루틴은 작은 한계(보기로 $10^6$)까지 시험 나눗셈으로 시작한 뒤 남은 몫에는 폴러드 로나 이차 체로 바꾼다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction
-  to Algorithms* (CLRS), Chapter 31.
-- Crandall, R. & Pomerance, C. *Prime Numbers: A Computational Perspective*.
-  Springer, 2005.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.
+- Crandall, R. & Pomerance, C. *Prime Numbers: A Computational Perspective*. Springer, 2005.
+
+
+## 연습문제
+
+**연습문제 1.**
+시험 나눗셈으로 $n = 2310$을 인수 분해하라. 찾은 인수를 늘어놓아라.
+
+??? success "연습문제 1 풀이"
+    $2310 / 2 = 1155$. $1155 / 3 = 385$. $385 / 5 = 77$. $77 / 7 = 11$. $11 / 11 = 1$. 인수 분해: $2310 = 2 \times 3 \times 5 \times 7 \times 11$.
+
+---
+
+**연습문제 2.**
+시험 나눗셈에서 약수를 $\sqrt{n}$까지만 시험해도 되는 까닭은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    $a \leq b$인 $n = ab$이면 $a \leq \sqrt{n}$이다($a^2 \leq ab = n$이므로). 따라서 $n$에 $\leq \sqrt{n}$인 인수가 없으면 소수여야 한다. 이는 찾기를 $O(n)$번에서 $O(\sqrt{n})$번의 시험 나눗셈으로 줄인다.
+
+---
+
+**연습문제 3.**
+소수만 시험하여 시험 나눗셈을 낫게 하라. 이것이 상수 배를 얼마나 나아지게 하는가?
+
+??? success "연습문제 3 풀이"
+    소수 정리에 따라 $\sqrt{n}$까지의 소수는 대략 $\sqrt{n}/\ln(\sqrt{n}) = 2\sqrt{n}/\ln n$개이다. 기본 시험 나눗셈은 $\sqrt{n}$까지 홀수를 모두 시험해 약 $\sqrt{n}/2$번 시험한다. 소수만 시험하면 이를 $\ln(\sqrt{n})/2 \approx (\ln n)/4$배만큼 줄인다. $n = 10^{18}$에서는 약 10배이다. 흔한 실제 개선: 2, 3을 시험한 뒤 $6k \pm 1$ 꼴의 수를 모두 시험하면 2과 3의 배수를 건너뛰어 후보가 $\sqrt{n}/3$개가 된다.
+
+---
+
+**연습문제 4.**
+시험 나눗셈으로 수 $n$을 온전히 인수 분해하는 시간 복잡도는 얼마인가? 시험 나눗셈이 더 정교한 방법보다 나은 때는 언제인가?
+
+??? success "연습문제 4 풀이"
+    시험 나눗셈으로 온전히 인수 분해하면 나눗셈이 많아야 $O(\sqrt{n})$번이고 여러 자리 셈에서 저마다 $O(\log^2 n)$이 든다. 온 시간: $O(\sqrt{n} \cdot \log^2 n)$. 시험 나눗셈이 나은 때는 (1) $n$이 작을 때(약 $10^{12}$까지는 넉넉히 빠르다), (2) $n$에 작은 인수가 있을 때(빨리 찾는다), (3) 폴러드 로나 이차 체를 쓰기 전에 작은 인수를 없애는 첫 걸음으로 쓸 때이다. 작은 인수가 없는 $n > 10^{20}$에는 특화된 알고리즘이 필요하다.

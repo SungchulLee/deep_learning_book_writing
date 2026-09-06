@@ -1,81 +1,81 @@
-# Build Heap O(n) Proof
+# 힙 세우기의 O(n) 증명
 
-At first glance, Build-Heap appears to cost $O(n \log n)$: it calls sift-down on $O(n)$ nodes, and each sift-down can take up to $O(\log n)$ time. The surprising result is that the total work is only $O(n)$. The proof exploits the fact that most nodes reside near the bottom of the tree where their subtree heights are small, so the expensive sift-down operations are rare.
+얼핏 보면 힙 세우기에 $O(n \log n)$이 드는 듯하다. 노드 $O(n)$개에 아래로 내리기를 부르고 아래로 내리기마다 $O(\log n)$까지 들 수 있기 때문이다. 놀랍게도 전체 일은 $O(n)$뿐이다. 증명은 노드 대부분이 부분 트리의 높이가 작은 트리 아래쪽에 있어 비싼 아래로 내리기가 드물다는 사실을 이용한다.
 
-## Setup
+## 설정
 
-Consider a complete binary tree with $n$ nodes. The height of the tree is $h = \lfloor \log_2 n \rfloor$. A node at height $k$ (measured from the leaves, where leaves have height 0) can require at most $k$ swaps during sift-down.
+노드가 $n$개인 완전 이진 트리를 생각하자. 트리의 높이는 $h = \lfloor \log_2 n \rfloor$이다. (잎을 높이 0으로 하여 잎에서 잰) 높이 $k$의 노드는 아래로 내릴 때 자리바꿈이 많아야 $k$번 든다.
 
-**Key observation**: the number of nodes at height $k$ in a heap of size $n$ is at most
+**핵심 관찰**: 크기 $n$인 힙에서 높이 $k$의 노드 수는 많아야 다음과 같다.
 
 $$
 \left\lceil \frac{n}{2^{k+1}} \right\rceil
 $$
 
-This bound follows because at height $k$, the nodes are the roots of subtrees of size $2^{k+1} - 1$, and these subtrees partition the heap.
+높이 $k$에서 노드가 크기 $2^{k+1} - 1$인 부분 트리의 뿌리이고 이 부분 트리가 힙을 나누므로 이 한계가 따라 나온다.
 
-## Theorem
+## 정리
 
-**Build-Heap runs in $O(n)$ time.**
+**힙 세우기는 $O(n)$ 시간에 돈다.**
 
-*Proof.* The total cost $T(n)$ of Build-Heap is the sum over all non-leaf nodes of the sift-down cost at each node. A node at height $k$ incurs at most $O(k)$ work for sift-down. Summing over all heights:
+*증명.* 힙 세우기의 전체 비용 $T(n)$은 잎 아닌 노드마다의 아래로 내리기 비용을 모두 더한 것이다. 높이 $k$의 노드는 아래로 내리는 데 많아야 $O(k)$의 일이 든다. 모든 높이에 걸쳐 더하면 다음과 같다.
 
 $$
 T(n) = \sum_{k=0}^{\lfloor \log_2 n \rfloor} \left\lceil \frac{n}{2^{k+1}} \right\rceil \cdot O(k)
 $$
 
-Dropping the ceiling and constant factors, it suffices to show that the following sum is $O(n)$:
+천장 함수와 상수 배를 떼면 다음 합이 $O(n)$임을 보이면 넉넉하다.
 
 $$
 T(n) \le c \cdot n \sum_{k=0}^{\lfloor \log_2 n \rfloor} \frac{k}{2^k}
 $$
 
-for some constant $c > 0$. We need to evaluate the series $\sum_{k=0}^{\infty} k / 2^k$.
+어떤 상수 $c > 0$에 대해서이다. 급수 $\sum_{k=0}^{\infty} k / 2^k$을 셈해야 한다.
 
-## Evaluating the Series
+## 급수 셈하기
 
-We use the identity for the sum of $k x^k$. Start with the geometric series:
+$k x^k$의 합에 대한 항등식을 쓴다. 등비급수에서 시작한다.
 
 $$
 \sum_{k=0}^{\infty} x^k = \frac{1}{1-x} \quad \text{for } |x| < 1
 $$
 
-Differentiate both sides with respect to $x$:
+양변을 $x$에 대해 미분한다.
 
 $$
 \sum_{k=1}^{\infty} k x^{k-1} = \frac{1}{(1-x)^2}
 $$
 
-Multiply both sides by $x$:
+양변에 $x$을 곱한다.
 
 $$
 \sum_{k=1}^{\infty} k x^{k} = \frac{x}{(1-x)^2}
 $$
 
-Substituting $x = 1/2$:
+$x = 1/2$을 넣으면 다음과 같다.
 
 $$
 \sum_{k=0}^{\infty} \frac{k}{2^k} = \sum_{k=1}^{\infty} k \left(\frac{1}{2}\right)^k = \frac{1/2}{(1 - 1/2)^2} = \frac{1/2}{1/4} = 2
 $$
 
-## Completing the Proof
+## 증명 마무리하기
 
-Since the series converges to the constant 2:
+급수가 상수 2로 수렴하므로 다음과 같다.
 
 $$
 T(n) \le c \cdot n \sum_{k=0}^{\infty} \frac{k}{2^k} = c \cdot n \cdot 2 = 2cn = O(n)
 $$
 
-Therefore Build-Heap runs in $\Theta(n)$ time. $\square$
+따라서 힙 세우기는 $\Theta(n)$ 시간에 돈다. $\square$
 
-!!! note "Tight Bound"
-    The bound is not only $O(n)$ but $\Theta(n)$. Build-Heap must examine at least $\lfloor n/2 \rfloor$ nodes (all non-leaves), so the lower bound is $\Omega(n)$. Combined with the $O(n)$ upper bound, the complexity is $\Theta(n)$.
+!!! note "빡빡한 한계"
+    이 한계는 $O(n)$일 뿐 아니라 $\Theta(n)$이다. 힙 세우기는 (잎이 아닌) 노드를 적어도 $\lfloor n/2 \rfloor$개 살펴야 하므로 아래 한계가 $\Omega(n)$이다. $O(n)$의 위 한계와 합치면 복잡도는 $\Theta(n)$이다.
 
-## Intuition
+## 직관
 
-The proof works because the "heavy" operations (sift-down over many levels) happen at nodes near the root, but there are very few such nodes. The following table illustrates the distribution:
+이 증명이 통하는 것은 "무거운" 연산(여러 층에 걸친 아래로 내리기)이 뿌리 가까운 노드에서 일어나지만 그런 노드가 아주 적기 때문이다. 다음 표가 그 분포를 보여 준다.
 
-| Height $k$ | Nodes at height $k$ (approx.) | Work per node | Total work at height $k$ |
+| 높이 $k$ | 높이 $k$의 노드 수 (어림) | 노드당 일 | 높이 $k$의 전체 일 |
 |:-----------:|:-----------------------------:|:-------------:|:------------------------:|
 | 0 | $n/2$ | 0 | 0 |
 | 1 | $n/4$ | 1 | $n/4$ |
@@ -84,27 +84,27 @@ The proof works because the "heavy" operations (sift-down over many levels) happ
 | $\vdots$ | $\vdots$ | $\vdots$ | $\vdots$ |
 | $\log n$ | 1 | $\log n$ | $\log n$ |
 
-The total work column decreases geometrically. Half the nodes are leaves doing zero work, a quarter do one swap each, an eighth do two swaps each, and so on. The root is the only node that might traverse the full height $\log n$, but a single $\log n$ contribution is negligible relative to $n$.
+전체 일 칸이 등비로 줄어든다. 노드의 절반은 일이 없는 잎이고, 4분의 1은 저마다 자리바꿈 한 번, 8분의 1은 두 번, 이런 식이다. 높이 $\log n$을 온전히 훑을 수 있는 노드는 뿌리뿐인데, $\log n$ 하나의 몫은 $n$에 견주면 무시할 만하다.
 
-## Empirical Validation
+## 실험적 확인
 
-The following code counts the total number of comparisons made during Build-Heap and confirms the linear relationship.
+다음 코드는 힙 세우기 중의 전체 비교 횟수를 세어 일차 관계를 확인한다.
 
 ```python
 """
-Empirical validation of Build-Heap O(n) complexity.
+힙 세우기의 O(n) 복잡도를 실험으로 확인하기.
 
-Counts the exact number of comparisons made during Build-Heap
-for arrays of increasing size and verifies the linear bound.
+크기를 키워 가며 힙 세우기 중의 정확한 비교 횟수를 세어
+일차 한계를 확인한다.
 """
 
 import random
 
 
-# === Instrumented Sift-Down ===
+# === 계측을 붙인 아래로 내리기 ===
 
 def sift_down_count(arr, i, n):
-    """Sift down with comparison counting. Returns number of comparisons."""
+    """비교를 세며 아래로 내린다. 비교 횟수를 돌려준다."""
     comparisons = 0
     while True:
         largest = i
@@ -129,10 +129,10 @@ def sift_down_count(arr, i, n):
     return comparisons
 
 
-# === Instrumented Build-Heap ===
+# === 계측을 붙인 힙 세우기 ===
 
 def build_heap_count(arr):
-    """Build a max-heap and return total comparisons."""
+    """최대 힙을 세우고 전체 비교 횟수를 돌려준다."""
     n = len(arr)
     total = 0
     for i in range(n // 2 - 1, -1, -1):
@@ -140,14 +140,14 @@ def build_heap_count(arr):
     return total
 
 
-# === Experiment ===
+# === 실험 ===
 
 if __name__ == "__main__":
     print(f"{'n':>10}  {'comparisons':>12}  {'ratio c/n':>10}")
     print("-" * 36)
 
     for n in [100, 500, 1000, 5000, 10000, 50000, 100000]:
-        # Average over multiple trials
+        # 여러 번 해서 평균 낸다
         total_comps = 0
         trials = 10
         for _ in range(trials):
@@ -158,7 +158,7 @@ if __name__ == "__main__":
         print(f"{n:>10}  {avg_comps:>12.1f}  {avg_comps / n:>10.4f}")
 ```
 
-**Output (approximate):**
+**출력 (어림값):**
 ```
          n   comparisons    ratio c/n
 ------------------------------------
@@ -171,8 +171,41 @@ if __name__ == "__main__":
     100000      169998.1      1.6999
 ```
 
-The ratio of comparisons to $n$ converges to approximately 1.7, confirming that Build-Heap uses $\Theta(n)$ comparisons. The constant approaches $2$ from below, consistent with the theoretical bound derived from $\sum k/2^k = 2$.
+비교 횟수와 $n$의 비가 대략 1.7으로 수렴하여 힙 세우기가 $\Theta(n)$번 비교함을 확인해 준다. 상수가 아래에서 $2$에 다가가는데, $\sum k/2^k = 2$에서 이끌어 낸 이론적 한계와 들어맞는다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 6.3: Building a heap. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+힙 세우기의 O(n) 증명의 힙 성질을 밝히고 최솟값·최댓값 원소가 언제나 뿌리에 있음을 증명하라.
+
+??? success "연습문제 1 풀이"
+    힙 성질은 노드마다 열쇠가 자식보다 작거나 같거나(최소 힙) 크거나 같다(최대 힙)는 것이다. 뿌리에서 잎까지의 어떤 경로에서도 추이성이 성립하므로 뿌리가 모든 원소의 최솟값(또는 최댓값)이다.
+
+---
+
+**연습문제 2.**
+배열 $[4, 7, 2, 9, 1, 5, 3]$에서 힙 세우기의 O(n) 증명을 따라가라. 단계마다와 그 결과로 나오는 힙을 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽의 연산을 주어진 배열에 적용하라. 단계마다 배열과 그것이 나타내는 트리를 보여라. 비교와 자리바꿈을 짚어라.
+
+---
+
+**연습문제 3.**
+힙 세우기의 O(n) 증명의 시간 복잡도를 증명하라. 그 한계는 빡빡한가?
+
+??? success "연습문제 3 풀이"
+    이 연산은 뿌리에서 잎까지 또는 잎에서 뿌리까지의 경로를 훑으며 층마다 $O(1)$의 일을 한다. 완전 이진 트리의 높이는 $\lfloor\log_2 n\rfloor$이므로 모두 $O(\log n)$이다. 이 한계는 빡빡하다. 높이 전체를 훑도록 강요하는 입력이 있다. $\square$
+
+---
+
+**연습문제 4.**
+$k = 5$이고 어휘가 $n = 32{,}000$인 빔 탐색에서 힙으로 뽑기(원소 $n$개에서 상위 $k$개)와 정렬을 견주어라.
+
+??? success "연습문제 4 풀이"
+    정렬은 $O(n\log n) = O(32000 \times 15) \approx 48만$번의 연산이 든다. 힙(크기 $k$인 최소 힙)은 $O(n\log k) = O(32000 \times 2.3) \approx 7만 4천$번이다. 힙이 약 $6.5$배 빠르다. 아니면 `torch.topk`가 GPU에 맞추어 다듬은 부분 정렬 알고리즘을 쓴다.

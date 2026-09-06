@@ -1,139 +1,134 @@
-# Chapter 19: Large Language Models
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-This chapter provides a comprehensive treatment of large language models, covering their foundations, architectures, scaling laws, prompting techniques, retrieval-augmented generation, agentic systems, parameter-efficient fine-tuning, inference optimization, and alignment methods. Each section combines mathematical rigor with practical implementation guidance.
+# 19장: 큰 말 모델
+이 장은 큰 말 모델을 두루 다룬다. 곧 그 바탕, 얼개, 규모 법칙, 시킴말 재주, 찾아 붙여 만들어 내기, 스스로 움직이는 체계, 매개변수를 아끼는 곱게 다듬기, 미룸 다듬기, 결 맞추기 방법을 살펴본다. 절마다 수학의 엄밀함과 실전 짜기 길잡이를 아우른다.
 
 ---
 
-## LLM Foundations
+## 큰 말 모델의 바탕
 
-Core concepts underlying large language models, from pretraining objectives to evaluation and conversational AI.
+미리 익히기 목표에서 값매김과 대화 인공지능까지, 큰 말 모델을 떠받치는 고갱이 개념.
 
-- LLM Overview -- Definition, capabilities, and limitations of large language models
-- Origins and Development -- Historical evolution from n-grams to modern LLM families
-- Decoder Architecture -- Decoder-only Transformer with causal self-attention
-- Next-Token Prediction -- Autoregressive language modeling objective and decoding strategies
-- [Pretraining Objectives](llm_foundations/pretraining_objectives.md) -- CLM vs MLM, denoising objectives, and modern strategies like UL2
-- Tokenization and Scale -- BPE, WordPiece, SentencePiece, and vocabulary size trade-offs
-- Training Data at Scale -- Data curation, filtering, deduplication, and contamination risks
-- [Evaluation Metrics](llm_foundations/evaluation_metrics.md) -- Intrinsic, task-specific, and human evaluation of LLMs
-- Conversational AI -- Multi-turn dialogue systems from rule-based chatbots to LLM assistants
-- [Challenges and Limitations](llm_foundations/challenges.md) -- Context management, factual reliability, bias, and ethical deployment
-- Future Directions -- Architectural efficiency, reasoning, multimodal integration, and agentic behavior
-- Exercises -- Hands-on exercises for building and evaluating conversational AI systems
-
----
-
-## Architectures
-
-Key architectural innovations and model families in large language models.
-
-- [Architectural Innovations](architectures/architectures.md) -- RMSNorm, SwiGLU, Rotary Embeddings, and Grouped-Query Attention
-- [GPT Series](architectures/gpt_series.md) -- Evolution from GPT-1 through GPT-4 with emergent capabilities
-- LLaMA Family -- Open foundation models prioritizing inference efficiency
+- 큰 말 모델 개요 — 큰 말 모델의 정의, 할 수 있는 것, 한계
+- 뿌리와 발전 — n-그램에서 요즘 큰 말 모델 갈래까지의 흐름
+- 풀개 얼개 — 인과 스스로 눈길을 쓰는 풀개만의 변환기
+- 다음 토막 어림하기 — 자기되돌리기 말 나타내기 목표와 풀기 전략
+- [미리 익히기 목표](llm_foundations/pretraining_objectives.md) — 인과 말 나타내기와 가린 말 나타내기, 잡음 없애기 목표, UL2 같은 요즘 전략
+- 토막내기와 규모 — BPE, WordPiece, SentencePiece와 낱말 곳간 크기의 맞바꿈
+- 큰 규모의 익힘 자료 — 자료 고르기, 거르기, 겹침 없애기, 오염 위험
+- [값매김 잣대](llm_foundations/evaluation_metrics.md) — 큰 말 모델의 내재 값매김, 일별 값매김, 사람의 값매김
+- 대화 인공지능 — 규칙 바탕 대화 로봇에서 큰 말 모델 도우미까지의 여러 차례 대화 체계
+- [어려움과 한계](llm_foundations/challenges.md) — 맥락 다스리기, 사실의 믿음성, 치우침, 윤리에 맞는 펼치기
+- 앞으로의 방향 — 얼개의 효율, 따짐, 여러 갈래 아우르기, 스스로 움직이는 몸짓
+- 익힘 문제 — 대화 인공지능 체계를 세우고 값매김하는 손수 하기 익힘
 
 ---
 
-## Scaling
+## 얼개
 
-Empirical scaling laws governing LLM performance and compute-optimal training.
+큰 말 모델의 핵심 얼개 새로움과 모델 갈래.
 
-- [Scaling Laws](scaling/scaling_overview.md) -- Empirical laws governing model performance vs compute
-- Compute-Optimal Training -- Optimal allocation between parameters and training tokens
-- Chinchilla Scaling -- Chinchilla loss parametrization and predictions
-- [Model Size vs Data Trade-offs](scaling/model_vs_data.md) -- Three scaling regimes and data repetition effects
-- [Emergent Abilities](scaling/emergent_abilities.md) -- Capabilities that appear abruptly at scale
+- [얼개의 새로움](architectures/architectures.md) — RMSNorm, SwiGLU, 돌림 묻힘, 묶은 물음 눈길
+- [GPT 계열](architectures/gpt_series.md) — GPT-1에서 GPT-4까지의 흐름과 떠오르는 능력
+- LLaMA 갈래 — 미룸 효율을 앞세운 열린 바탕 모델
 
 ---
 
-## Prompting
+## 규모 키우기
 
-Techniques for eliciting desired behavior from LLMs through prompt design.
+큰 말 모델의 성능과 셈에 가장 알맞은 익히기를 다스리는 실증 규모 법칙.
 
-- [Prompting Overview](prompting/prompting_overview.md) -- The paradigm shift from fine-tuning to prompting
-- Prompt Engineering -- Core principles and structural patterns for effective prompts
-- Zero-Shot Prompting -- Task completion without demonstration examples
-- Few-Shot Prompting -- In-context learning with example selection and ordering
-- [Chain-of-Thought](prompting/chain_of_thought.md) -- Step-by-step reasoning for improved performance
-- Self-Consistency -- Majority voting over multiple reasoning paths
-- Tree-of-Thought -- Branching exploration of reasoning strategies
-- Prompt Optimization -- Automated discrete and continuous prompt search
+- [규모 법칙](scaling/scaling_overview.md) — 모델 성능과 셈의 관계를 다스리는 실증 법칙
+- 셈에 가장 알맞은 익히기 — 매개변수와 익힘 토막 사이의 가장 좋은 나눔
+- 친칠라 규모 키우기 — 친칠라 손실의 매개변수 나타내기와 어림
+- [모델 크기와 자료의 맞바꿈](scaling/model_vs_data.md) — 규모 키우기의 세 갈래와 자료 되풀이의 효과
+- [떠오르는 능력](scaling/emergent_abilities.md) — 규모가 커질 때 갑자기 나타나는 능력
 
 ---
 
-## RAG
+## 시킴말
 
-Retrieval-Augmented Generation for grounding LLM outputs in external knowledge.
+시킴말을 꾸며 큰 말 모델에서 바라는 몸짓을 이끌어 내는 재주.
 
-- RAG Overview -- Architecture, motivation, and when RAG beats fine-tuning
-- [Dense Retrieval](rag/dense_retrieval.md) -- Bi-encoder architecture and contrastive training
-- Vector Databases -- FAISS and vector DB technologies for similarity search
-- Document Chunking -- Chunking strategies and trade-offs for financial documents
-- Retriever-Reader Architecture -- Complete RAG pipeline with naive, iterative, and adaptive variants
-- Reranking -- Two-stage retrieval with cross-encoder reranking
-- RAG Evaluation -- Retrieval and generation quality metrics for RAG systems
-
----
-
-## Agents
-
-LLM-powered autonomous systems with planning, tool use, and multi-agent collaboration.
-
-- Agents Overview -- LLM agent architecture with planning, memory, and tool use
-- Tool Use -- Defining tool schemas and building execution frameworks
-- Function Calling -- API-level structured function calling mechanisms
-- [ReAct](agents/react.md) -- Reasoning + Acting with Thought-Action-Observation loops
-- Planning -- Task decomposition and plan-and-execute architectures
-- Multi-Agent Systems -- Supervisor, debate, and assembly line patterns
-- [Case Studies](agents/case_studies.md) -- Real-world conversational AI deployments across industries
-- LLM Applications -- Practical applications of ChatGPT across domains
+- [시킴말 개요](prompting/prompting_overview.md) — 곱게 다듬기에서 시킴말로의 틀 바뀜
+- 시킴말 빚기 — 잘 듣는 시킴말의 고갱이 원리와 짜임 무늬
+- 영 발 시킴말 — 보기 없이 일을 해내기
+- 몇 발 시킴말 — 보기를 고르고 늘어놓아 맥락 안에서 배우기
+- [생각의 사슬](prompting/chain_of_thought.md) — 성능을 낫게 하는 한 걸음씩 따지기
+- 스스로 한결같기 — 여러 따짐 길에 대한 다수결
+- 생각의 나무 — 따짐 전략을 가지 쳐 살펴보기
+- 시킴말 가장 좋게 하기 — 띄엄띄엄한 시킴말과 이어진 시킴말을 저절로 찾기
 
 ---
 
-## Efficient LLM
+## 찾아 붙여 만들어 내기
 
-Parameter-efficient fine-tuning methods for adapting LLMs with minimal trainable parameters.
+큰 말 모델의 내놓음을 바깥 앎에 뿌리내리게 하는 찾아 붙여 만들어 내기.
 
-- Efficiency Overview -- Why PEFT is necessary and classification of methods
-- [LoRA](efficient_llm/lora.md) -- Low-Rank Adaptation with mathematical foundations and implementation
-- QLoRA -- Quantized LoRA enabling fine-tuning on consumer hardware
-- [Adapter Layers](efficient_llm/adapters.md) -- Serial, parallel, and AdapterFusion bottleneck modules
-- [Prefix Tuning](efficient_llm/prefix_tuning.md) -- Soft prefixes for adapting models without weight modification
-- Prompt Tuning -- Continuous soft prompt optimization for task adaptation
-- BitFit -- Bias-only fine-tuning for minimal parameter updates
-- [PEFT Comparison](efficient_llm/peft_comparison.md) -- Comparative analysis of LoRA, QLoRA, adapters, and prefix tuning
-
----
-
-## Inference
-
-Optimizing LLM serving for throughput, latency, and memory efficiency.
-
-- Inference Overview -- Memory-bandwidth bottleneck, prefill vs decode phases
-- [KV-Cache](inference/kv_cache.md) -- Caching key-value tensors to eliminate redundant computation
-- [Flash Attention](inference/flash_attention.md) -- IO-aware exact attention with O(N) memory
-- [Quantization](inference/quantization.md) -- Weight and activation quantization for deployment
-- [Speculative Decoding](inference/speculative_decoding.md) -- Draft-then-verify acceleration with smaller models
-- Paged Attention -- Virtual memory concepts for KV cache management (vLLM)
-- Continuous Batching -- Iteration-level scheduling for improved throughput
-- Model Sharding -- Distributing model weights across multiple devices
-- Tensor Parallelism -- Column and row parallelism for linear and attention layers
-- Pipeline Parallelism -- Layer-wise distribution with pipeline bubble analysis
-- [Model Compression](inference/model_compression_overview.md) -- Pruning, quantization, and distillation for deployment
+- 찾아 붙여 만들어 내기 개요 — 얼개, 왜 하는가, 언제 곱게 다듬기를 앞서는가
+- [빽빽한 찾기](rag/dense_retrieval.md) — 두 부호기 얼개와 맞대어 익히기
+- 벡터 데이터베이스 — 닮음 찾기를 위한 FAISS와 벡터 데이터베이스 기술
+- 글월 덩이 짓기 — 금융 글월의 덩이 짓기 전략과 맞바꿈
+- 찾개-읽개 얼개 — 막무가내, 되풀이, 알맞게 맞추는 변종을 담은 온전한 물길
+- 다시 매기기 — 엇갈린 부호기로 다시 매기는 두 단계 찾기
+- 찾아 붙여 만들어 내기 값매김 — 찾기와 만들어 내기의 좋음을 재는 잣대
 
 ---
 
-## Alignment
+## 몸소 움직이개
 
-Aligning LLM behavior with human preferences through RLHF and alternative methods.
+계획, 연장 쓰기, 여럿이 어울리기를 갖춘 큰 말 모델 바탕 스스로 움직이는 체계.
 
-- Alignment Overview -- Why alignment is needed and the three-stage pipeline
-- RLHF -- Three-stage Reinforcement Learning from Human Feedback pipeline
-- Reward Modeling -- Bradley-Terry preference model and reward architecture
-- PPO for LLMs -- Proximal Policy Optimization adapted for language model training
-- DPO -- Direct Preference Optimization without explicit reward models
-- Constitutional AI -- Self-supervised alignment with constitutional principles
-- [Training Pipeline](alignment/training_pipeline.md) -- Pre-training and alignment phases with optimization strategies
+- 몸소 움직이개 개요 — 계획, 기억, 연장 쓰기를 갖춘 큰 말 모델 몸소 움직이개 얼개
+- 연장 쓰기 — 연장의 틀을 정하고 실행 얼거리 세우기
+- 함수 부르기 — API 수준의 짜임 있는 함수 부르기 얼개
+- [ReAct](agents/react.md) — 생각-행동-살핌 되풀이로 따지고 움직이기
+- 계획 — 일 쪼개기와 계획하고 실행하는 얼개
+- 여럿이 움직이는 체계 — 감독, 토론, 조립선 무늬
+- [사례 살피기](agents/case_studies.md) — 여러 업계의 실제 대화 인공지능 펼치기
+- 큰 말 모델 쓰임새 — 여러 분야에서의 ChatGPT 실전 쓰임새
+
+---
+
+## 효율적인 큰 말 모델
+
+익힐 매개변수를 아주 적게 쓰고 큰 말 모델을 맞추는 곱게 다듬기 방법.
+
+- 효율 개요 — 매개변수를 아끼는 곱게 다듬기가 왜 필요한가와 방법의 갈래
+- [LoRA](efficient_llm/lora.md) — 낮은 계수 맞추기의 수학 바탕과 짜기
+- QLoRA — 일반 하드웨어에서 곱게 다듬기를 가능하게 하는 양자화된 LoRA
+- [어댑터 층](efficient_llm/adapters.md) — 이어진, 나란한, AdapterFusion 병목 단원
+- [앞가지 다듬기](efficient_llm/prefix_tuning.md) — 무게를 고치지 않고 모델을 맞추는 부드러운 앞가지
+- 시킴말 다듬기 — 일에 맞추려 이어진 부드러운 시킴말을 가장 좋게 하기
+- BitFit — 매개변수를 가장 적게 고치는 치우침만 곱게 다듬기
+- [매개변수 아끼는 곱게 다듬기 견줌](efficient_llm/peft_comparison.md) — LoRA, QLoRA, 어댑터, 앞가지 다듬기 견주어 살피기
+
+---
+
+## 추론
+
+처리량, 늦음, 기억 공간 효율을 위해 큰 말 모델 내놓기 다듬기.
+
+- 미룸 개요 — 기억 공간 대역폭 병목, 미리 채우기와 풀기 단계
+- [열쇠-값 곳간](inference/kv_cache.md) — 열쇠-값 텐서를 갈무리해 겹치는 셈 없애기
+- [플래시 눈길](inference/flash_attention.md) — 들고남을 헤아리는 정확한 눈길, 기억 공간 O(N)
+- [양자화](inference/quantization.md) — 펼치기를 위한 무게와 깨어남의 양자화
+- [미리 짚어 풀기](inference/speculative_decoding.md) — 작은 모델로 밑그림을 그리고 확인해 빠르게 하기
+- 쪽 나눈 눈길 — 열쇠-값 곳간을 다스리는 가상 기억 공간 생각(vLLM)
+- 이어지는 묶음 짓기 — 처리량을 낫게 하는 바퀴 단위 일정 짜기
+- 모델 나눠 담기 — 모델 무게를 여러 기기에 흩뿌리기
+- 텐서 나란히 하기 — 선형 층과 눈길 층의 칸 나란히 하기와 줄 나란히 하기
+- 물길 나란히 하기 — 층별 흩뿌리기와 물길 거품 살피기
+- [모델 눌러 담기](inference/model_compression_overview.md) — 펼치기를 위한 가지치기, 양자화, 앎 내리기
+
+---
+
+## 결 맞추기
+
+사람 되먹임 북돋움 배움과 그 대안으로 큰 말 모델의 몸짓을 사람의 뜻에 맞추기.
+
+- 결 맞추기 개요 — 왜 필요한가와 세 단계 물길
+- 사람 되먹임 북돋움 배움 — 세 단계 물길
+- 갚음 나타내기 — 브래들리-테리 뜻 모델과 갚음 얼개
+- 큰 말 모델을 위한 PPO — 말 모델 익히기에 맞춘 가까운 방침 가장 좋게 하기
+- DPO — 드러난 갚음 모델 없이 뜻을 곧바로 가장 좋게 하기
+- 헌법 인공지능 — 헌법 원리로 스스로 살피며 결 맞추기
+- [익히기 물길](alignment/training_pipeline.md) — 미리 익히기와 결 맞추기 단계, 그리고 가장 좋게 하기 전략

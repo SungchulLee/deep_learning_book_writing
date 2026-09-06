@@ -1,103 +1,104 @@
-# Paths and Cycles
+# 길과 고리
 
-Nearly every graph algorithm -- from shortest-path computations to connectivity testing -- relies on the notions of paths and cycles. A path describes how to travel between two vertices through a sequence of edges, while a cycle is a path that returns to its starting point. Distinguishing between the various types (walks, trails, paths, cycles) is critical for precise algorithmic reasoning.
+최단 경로 셈하기부터 이어짐 살피기까지 거의 모든 그래프 알고리즘이 길과 고리라는 개념에 기댄다. 길은 변의 늘어놓음을 거쳐 꼭짓점 둘 사이를 오가는 법을 밝히고, 고리는 처음 자리로 돌아오는 길이다. 여러 갈래(걸음, 자취, 길, 고리)를 갈라내는 일이 알고리즘을 엄밀하게 따지는 데 아주 중요하다.
 
-## Walks, Trails, and Paths
+## 걸음, 자취, 길
 
-These three terms form a hierarchy from most general to most restrictive.
+이 세 낱말은 가장 넓은 것에서 가장 좁은 것으로 층을 이룬다.
 
-### Walk
+### 걸음
 
-A **walk** in a graph $G = (V, E)$ is a sequence of vertices $v_0, v_1, \ldots, v_k$ such that each consecutive pair $(v_{i}, v_{i+1})$ is connected by an edge. The **length** of the walk is $k$ (the number of edges traversed). Vertices and edges may repeat.
+그래프 $G = (V, E)$의 **걸음**은 잇달은 짝 $(v_{i}, v_{i+1})$마다 변으로 이어진 꼭짓점의 늘어놓음 $v_0, v_1, \ldots, v_k$이다. 걸음의 **길이**는 $k$이다(지나간 변의 개수). 꼭짓점과 변이 되풀이될 수 있다.
 
-### Trail
+### 자취
 
-A **trail** is a walk in which no edge is repeated (though vertices may repeat). A **closed trail** starts and ends at the same vertex.
+**자취**는 변이 되풀이되지 않는 걸음이다(꼭짓점은 되풀이될 수 있다). **닫힌 자취**는 같은 꼭짓점에서 시작해 끝난다.
 
-### Path
+### 길
 
-A **path** (or **simple path**) is a walk in which no vertex is repeated. The length of a path is the number of edges it contains.
+**길**(또는 **단순 길**)은 꼭짓점이 되풀이되지 않는 걸음이다. 길의 길이는 그 안의 변 개수이다.
 
 $$
 \text{Walk} \supseteq \text{Trail} \supseteq \text{Path}
 $$
 
-!!! example "Walk vs Trail vs Path"
-    In a graph with edges $\{a,b\}, \{b,c\}, \{c,a\}, \{c,d\}$:
+!!! example "걸음과 자취와 길"
+    변이 $\{a,b\}, \{b,c\}, \{c,a\}, \{c,d\}$인 그래프에서:
 
-    - $a, b, c, a, b$ is a **walk** (length 4) — vertices and edges repeat.
-    - $a, b, c, a$ is a **trail** (length 3) — no edge repeats, but vertex $a$ appears twice.
-    - $a, b, c, d$ is a **path** (length 3) — no vertex repeats.
+    - $a, b, c, a, b$은 **걸음**이다(길이 4) — 꼭짓점과 변이 되풀이된다.
+    - $a, b, c, a$은 **자취**이다(길이 3) — 변은 되풀이되지 않지만 꼭짓점 $a$이 두 번 나온다.
+    - $a, b, c, d$은 **길**이다(길이 3) — 꼭짓점이 되풀이되지 않는다.
 
-### Shortest Path Distance
+### 최단 경로 거리
 
-The **distance** $d(u, v)$ between vertices $u$ and $v$ is the length of the shortest path from $u$ to $v$. If no path exists, $d(u, v) = \infty$. In unweighted graphs, [BFS](../traversals/bfs.md) computes shortest-path distances in $O(V + E)$ time.
+꼭짓점 $u$과 $v$ 사이의 **거리** $d(u, v)$은 $u$에서 $v$까지 최단 경로의 길이이다. 길이 없으면 $d(u, v) = \infty$이다. 무게 없는 그래프에서는 [BFS](../traversals/bfs.md)이 최단 경로 거리를 $O(V + E)$ 시간에 셈한다.
 
-## Cycles
+## 고리
 
-A **cycle** (or **simple cycle**) is a closed walk $v_0, v_1, \ldots, v_k = v_0$ with $k \geq 3$ where all vertices $v_0, v_1, \ldots, v_{k-1}$ are distinct. The length of the cycle is $k$.
+**고리**(또는 **단순 고리**)는 $k \geq 3$이고 꼭짓점 $v_0, v_1, \ldots, v_{k-1}$이 모두 서로 다른 닫힌 걸음 $v_0, v_1, \ldots, v_k = v_0$이다. 고리의 길이는 $k$이다.
 
-In a directed graph, a **directed cycle** follows edge directions: each $(v_i, v_{i+1 \bmod k})$ must be a directed edge.
+방향 그래프에서 **방향 고리**는 변의 방향을 따른다. 곧 $(v_i, v_{i+1 \bmod k})$마다 방향 변이어야 한다.
 
-!!! example "Cycles of Different Lengths"
-    - A **triangle** is a cycle of length 3: $a, b, c, a$.
-    - A **square** (4-cycle): $a, b, c, d, a$.
-    - The shortest possible cycle in a simple undirected graph has length 3.
+!!! example "길이가 다른 고리"
 
-### Girth
+    - **세모**는 길이 3인 고리이다: $a, b, c, a$.
+    - **네모**(4-고리): $a, b, c, d, a$.
+    - 단순 무방향 그래프에서 있을 수 있는 가장 짧은 고리는 길이가 3이다.
 
-The **girth** of a graph $G$ is the length of the shortest cycle in $G$. If $G$ is acyclic (a forest), the girth is defined as $\infty$.
+### 둘레
 
-## Connectivity via Paths
+그래프 $G$의 **둘레**는 $G$에서 가장 짧은 고리의 길이이다. $G$에 고리가 없으면(숲이면) 둘레를 $\infty$으로 정한다.
 
-Paths and connectivity are intimately linked:
+## 길로 본 이어짐
 
-- An undirected graph is **connected** if there is a path between every pair of vertices.
-- A directed graph is **strongly connected** if there is a directed path from $u$ to $v$ and from $v$ to $u$ for every pair $u, v$.
-- A directed graph is **weakly connected** if replacing all directed edges with undirected edges yields a connected graph.
+길과 이어짐은 아주 가깝게 얽혀 있다:
 
-!!! tip "Theorem: Path Existence and Connectivity"
-    An undirected graph $G$ is connected if and only if for every pair of vertices $u, v \in V$, there exists a path from $u$ to $v$.
+- 꼭짓점 짝마다 길이 있으면 무방향 그래프는 **이어짐**이다.
+- 짝 $u, v$마다 $u$에서 $v$으로, 그리고 $v$에서 $u$으로 가는 방향 길이 있으면 방향 그래프는 **강하게 이어짐**이다.
+- 방향 변을 모두 무방향 변으로 바꾸었을 때 이어진 그래프가 되면 그 방향 그래프는 **약하게 이어짐**이다.
 
-## Special Path and Cycle Types
+!!! tip "정리: 길의 있음과 이어짐"
+    무방향 그래프 $G$이 이어져 있을 때 그리고 그때만 꼭짓점 짝 $u, v \in V$마다 $u$에서 $v$까지 길이 있다.
 
-### Hamiltonian Path and Cycle
+## 특별한 길과 고리 갈래
 
-A **Hamiltonian path** visits every vertex exactly once. A **Hamiltonian cycle** is a Hamiltonian path that returns to the starting vertex. Determining whether a Hamiltonian path exists is NP-complete.
+### 해밀턴 길과 고리
 
-### Eulerian Trail and Circuit
+**해밀턴 길**은 꼭짓점마다 꼭 한 번 들른다. **해밀턴 고리**는 처음 꼭짓점으로 돌아오는 해밀턴 길이다. 해밀턴 길이 있는지 가려내는 일은 NP-완전이다.
 
-An **Eulerian trail** traverses every edge exactly once. An **Eulerian circuit** is a closed Eulerian trail. By Euler's theorem, a connected undirected graph has an Eulerian circuit if and only if every vertex has even degree.
+### 오일러 자취와 회로
 
-### Comparison
+**오일러 자취**는 변마다 꼭 한 번 지난다. **오일러 회로**는 닫힌 오일러 자취이다. 오일러 정리에 따라 이어진 무방향 그래프에 오일러 회로가 있을 때 그리고 그때만 꼭짓점마다 차수가 짝수이다.
 
-| Property | Hamiltonian | Eulerian |
+### 견줌
+
+| 성질 | 해밀턴 | 오일러 |
 |---|---|---|
-| Visits every | vertex once | edge once |
-| Existence check | NP-complete | Polynomial (degree check) |
-| Condition (circuit) | No simple characterization | All degrees even |
+| 한 번씩 들르는 대상 | 꼭짓점 | 변 |
+| 있음 살피기 | NP-완전 | 다항 시간(차수 살피기) |
+| 조건(회로) | 단순한 성격 밝힘 없음 | 차수가 모두 짝수 |
 
-## Path and Cycle Detection
+## 길과 고리 알아내기
 
 ```python
 """
-Path finding and cycle detection in graphs.
+그래프에서 길 찾기와 고리 알아내기.
 
-Demonstrates path existence checking via BFS and simple cycle
-detection via DFS in undirected graphs.
+BFS으로 길이 있는지 살피기와, 무방향 그래프에서 DFS으로
+고리를 알아내기를 보인다.
 """
 
 from collections import deque
 
 
-# === Path Finding (BFS) ===
+# === 길 찾기(BFS) ===
 
 def find_path(adj, n, start, end):
     """
-    Find a path from start to end using BFS.
+    BFS으로 start에서 end까지의 길을 찾는다.
 
-    Returns the path as a list of vertices, or an empty list
-    if no path exists.
+    길을 꼭짓점 목록으로 되돌리고, 길이 없으면
+    빈 목록을 되돌린다.
     """
     if start == end:
         return [start]
@@ -113,7 +114,7 @@ def find_path(adj, n, start, end):
                 visited[v] = True
                 parent[v] = u
                 if v == end:
-                    # Reconstruct path
+                    # 길 되살리기
                     path = []
                     cur = end
                     while cur != -1:
@@ -124,14 +125,14 @@ def find_path(adj, n, start, end):
     return []
 
 
-# === Cycle Detection (Undirected) ===
+# === 고리 알아내기(무방향) ===
 
 def has_cycle_undirected(adj, n):
     """
-    Detect whether an undirected graph contains a cycle using DFS.
+    DFS으로 무방향 그래프에 고리가 있는지 알아낸다.
 
-    An edge to an already-visited vertex that is not the parent
-    indicates a cycle.
+    어버이가 아닌, 이미 다녀간 꼭짓점으로 가는 변은
+    고리가 있음을 알린다.
     """
     visited = [False] * n
 
@@ -152,10 +153,10 @@ def has_cycle_undirected(adj, n):
     return False
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Graph: 0-1-2-3, with extra edge 0-2 creating a cycle
+    # 그래프: 0-1-2-3, 변 0-2을 더해 고리를 만든다
     adj = [[1, 2], [0, 2], [0, 1, 3], [2]]
 
     path = find_path(adj, 4, 0, 3)
@@ -166,12 +167,12 @@ if __name__ == "__main__":
 
     print(f"Has cycle: {has_cycle_undirected(adj, 4)}")
 
-    # Tree (no cycle): 0-1, 0-2, 2-3
+    # 나무(고리 없음): 0-1, 0-2, 2-3
     adj_tree = [[1, 2], [0], [0, 3], [2]]
     print(f"Tree has cycle: {has_cycle_undirected(adj_tree, 4)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Path from 0 to 3: [0, 2, 3]
 Path from 0 to 3 (disconnected): []
@@ -179,7 +180,50 @@ Has cycle: True
 Tree has cycle: False
 ```
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 22.
-- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. Section 1.2.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
+- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. 1.2절.
+
+## 연습문제
+
+**연습문제 1.**
+걸음과 자취와 길을 갈라 설명하여라. 꼭짓점 4개의 그래프에서 자취이지만 길은 아닌 길이 5인 걸음의 보기를 들어라.
+
+??? success "연습문제 1 풀이"
+    **걸음**은 잇달은 꼭짓점이 이웃한 아무 꼭짓점 늘어놓음이다. **자취**는 변이 되풀이되지 않는 걸음이다. **길**은 꼭짓점이 되풀이되지 않는(따라서 변도 되풀이되지 않는) 걸음이다. 꼭짓점 $\{0, 1, 2, 3\}$의 $K_4$을 생각하자. 걸음 $0, 1, 2, 3, 0, 2$은 길이가 5이고 변 $\{0,1\}, \{1,2\}, \{2,3\}, \{3,0\}, \{0,2\}$을 쓰는데 모두 서로 다르므로 자취이다. 그러나 꼭짓점 0이 두 번, 꼭짓점 2이 두 번 나오므로 길은 아니다. $\square$
+
+---
+
+**연습문제 2.**
+그래프에서 $u$에서 $v$까지의 걸음마다 $u$에서 $v$까지의 길을 부분 늘어놓음으로 담고 있음을 증명하여라.
+
+??? success "연습문제 2 풀이"
+    $W = w_0, w_1, \ldots, w_k$을 $u = w_0$에서 $v = w_k$까지의 걸음이라 하자. $W$에 되풀이되는 꼭짓점이 없으면 이미 길이다. 아니면 어떤 $i < j$에 대해 $w_i = w_j$이라 하자. 부분 걸음 $w_i, w_{i+1}, \ldots, w_j$을 지우고 꼭짓점 $w_i$ 하나로 바꾼다. 그 결과도 여전히 $u$에서 $v$까지의 걸음이며 꼭짓점이 더 적다. 꼭짓점이 되풀이되지 않을 때까지 이 지름길 내기를 되풀이한다. 그 결과가 $u$에서 $v$까지의 길이며 그 꼭짓점은 $W$의 부분 늘어놓음을 이룬다. $\square$
+
+---
+
+**연습문제 3.**
+그래프 $G$에 꼭짓점 $n$개가 있고 이어져 있다. 아무 두 꼭짓점 사이 최단 경로의 길이는 최소 얼마이고 최대 얼마일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    서로 다른 두 꼭짓점 사이 최단 경로의 최소 길이는 1이다(변으로 곧바로 이어져 있다). 최대 길이는 $n - 1$이며, 양끝이 거리 $n - 1$인 길 그래프 $P_n$에서 이에 이른다. 이 최댓값이 그래프의 지름이다. $\square$
+
+---
+
+**연습문제 4.**
+꼭짓점 $n$개에 변이 $\binom{n-1}{2}$개보다 많은 그래프가 이어져 있음을 증명하여라. 힌트: 대우를 생각하여라.
+
+??? success "연습문제 4 풀이"
+    대우를 증명한다. 곧 $G$이 끊어져 있으면 $|E| \leq \binom{n-1}{2}$임을 보인다. $G$에 꼭짓점 $k$개의 이어진 덩이 $C$이 있고 $1 \leq k \leq n-1$이라 하자. 남은 꼭짓점 $n - k$개가 나머지를 이룬다. 조각마다 완전 그래프일 때 변이 가장 많아 $\binom{k}{2} + \binom{n-k}{2}$이다. 이는 $k = 1$(또는 $k = n - 1$)일 때 가장 커서 $0 + \binom{n-1}{2} = \binom{n-1}{2}$이다. 그러므로 변이 $\binom{n-1}{2}$개보다 많은 그래프는 반드시 이어져 있다. $\square$
+
+---
+
+**연습 5.**
+그래프의 **둘레**는 가장 짧은 고리의 길이이다(고리가 없으면 $\infty$). $K_5$, 피터슨 그래프, 꼭짓점 10개의 나무의 둘레를 구하여라.
+
+??? success "연습 5의 풀이"
+
+    - **$K_5$**: 꼭짓점 셋마다 세모를 이루므로 가장 짧은 고리의 길이가 3이다. 둘레 = 3.
+    - **피터슨 그래프**: 피터슨 그래프에는 세모도 4-고리도 없고 5-고리가 있다. 둘레 = 5.
+    - **꼭짓점 10개의 나무**: 나무에는 고리가 없다. 둘레 = $\infty$. $\square$

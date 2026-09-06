@@ -169,3 +169,43 @@ This combination achieves compression ratios competitive with PPM and LZMA on ma
 
 - [A Block-sorting Lossless Data Compression Algorithm (Burrows & Wheeler, 1994)](https://www.hpl.hp.com/techreports/Compaq-DEC/SRC-RR-124.html)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
+
+## Exercises
+
+**Exercise 1.**
+Compute the BWT of the string "banana\$". List all rotations, sort them lexicographically, and extract the last column.
+
+??? success "Solution to Exercise 1"
+    The 7 rotations of "banana\$" are: banana\$, anana\$b, nana\$ba, ana\$ban, na\$bana, a\$banan, \$banana. Sorted lexicographically: \$banana, a\$banan, ana\$ban, anana\$b, banana\$, na\$bana, nana\$ba. The last column (BWT output) is: a, n, b, \$, a, a, n, giving "annb\$aa". The original string index is 3 (position of \$ in the last column, 0-indexed). The BWT clusters the characters by context: the three 'a's and two 'n's appear together, creating runs that compress well with RLE. $\square$
+
+---
+
+**Exercise 2.**
+Explain why the BWT tends to group identical characters together. What property of the rotation sort causes this clustering?
+
+??? success "Solution to Exercise 2"
+    The BWT's last column character at row $i$ is the character immediately preceding the first column character in the original string. Rows that sort adjacently have similar prefixes (since they are sorted lexicographically). Similar prefixes in the rotations correspond to similar right-contexts in the original string. Characters that appear before the same context (e.g., 'a' frequently precedes 'n' in English) cluster together in the last column. Formally, if two rotations share a long common prefix, they are adjacent in sorted order, and their last-column characters come from similar positions in the original string -- positions that share a right-context. This context-clustering is the key insight: BWT groups characters by their right-context, and in natural language, context determines character distribution strongly. $\square$
+
+---
+
+**Exercise 3.**
+Describe the inverse BWT algorithm. Given only the last column and the index of the original string's row, how do you recover the original string in $O(n)$ time?
+
+??? success "Solution to Exercise 3"
+    Given the last column $L$ and the row index $r$ of the original string: (1) Sort $L$ to get the first column $F$ (since $F$ contains the same characters in sorted order). (2) Build the LF-mapping: for each occurrence of character $c$ in $L$, the $j$-th occurrence of $c$ in $L$ corresponds to the $j$-th occurrence of $c$ in $F$. (3) Starting at row $r$, repeatedly apply the LF-mapping: the character at position $r$ in $L$ is prepended to the output, and $r$ is updated to $\text{LF}(r)$. After $n$ steps, the original string is recovered (in reverse). Constructing $F$ takes $O(n)$ (counting sort). Building the LF-mapping takes $O(n)$ with a rank array. Each step of the traversal is $O(1)$, so the total is $O(n)$. $\square$
+
+---
+
+**Exercise 4.**
+The BWT is used as a preprocessing step before move-to-front (MTF) encoding and then Huffman coding. Explain the role of each stage in the bzip2 pipeline and why the order matters.
+
+??? success "Solution to Exercise 4"
+    (1) **BWT**: rearranges the input so that characters from similar contexts are adjacent, creating long runs of identical or similar characters. It does not compress -- the output is the same size. (2) **MTF encoding**: replaces each character with its position in a recently-used list. Since the BWT output has long runs, consecutive characters are often the same, producing many 0s in the MTF output. Characters that are not the same but share a context produce small numbers. The MTF output is heavily skewed toward small values. (3) **Huffman (or arithmetic) coding**: assigns shorter codes to frequent symbols. The MTF output has many 0s and small values, so Huffman coding achieves high compression. The order matters: without BWT, the input has no special structure for MTF to exploit. Without MTF, the BWT output has runs but not the frequency skew that Huffman needs. Each stage prepares the data for the next. $\square$
+
+---
+
+**Exercise 5.**
+Prove that the BWT is a reversible transformation: the last column plus the row index uniquely determines the original string.
+
+??? success "Solution to Exercise 5"
+    The last column $L$ and first column $F$ together define a permutation of the rotation matrix rows via the LF-mapping. The key property is: the $j$-th occurrence of character $c$ in $L$ and the $j$-th occurrence of $c$ in $F$ correspond to the same rotation. This holds because sorting the rotations preserves the relative order of rotations starting with the same character, and the last column character of row $i$ is the first column character of some row $\sigma(i)$ -- the LF-mapping. Starting from row $r$ (the original string), each application of $\text{LF}$ produces the next character of the original string. Since the rotation matrix is a permutation, the LF-mapping is a bijection on $\{0, \ldots, n-1\}$, and iterating it for $n$ steps cycles back to $r$, recovering all $n$ characters. Therefore, $(L, r)$ uniquely determines the original string. $\square$

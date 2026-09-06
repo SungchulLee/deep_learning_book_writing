@@ -1,97 +1,97 @@
-# Binary Counter
+# 이진 계수기
 
-The binary counter is one of the most instructive examples in amortized analysis. At first glance, incrementing a binary counter seems potentially expensive because a single increment can flip many bits (for instance, $0111\ldots1 \to 1000\ldots0$ flips all $k$ bits). A naive analysis of $n$ increments gives $O(nk)$. Amortized analysis reveals the true cost: only $O(n)$ total bit flips, or $O(1)$ amortized per increment.
+이진 계수기는 분할 상환 분석에서 가장 유익한 예 중 하나이다. 언뜻 보기에 이진 계수기를 증가시키는 것은 비쌀 수 있어 보인다. 한 번의 증가가 많은 비트를 뒤집을 수 있기 때문이다(예를 들어 $0111\ldots1 \to 1000\ldots0$은 $k$개 비트를 모두 뒤집는다). $n$번의 증가를 소박하게 분석하면 $O(nk)$가 나온다. 분할 상환 분석은 진짜 비용을 드러낸다. 전체 비트 뒤집기가 $O(n)$번, 즉 증가당 $O(1)$이다.
 
-## Problem Setup
+## 문제 설정
 
-A $k$-bit binary counter is stored as an array $A[0..k-1]$ where $A[0]$ is the least significant bit. The single supported operation is `INCREMENT`:
+$k$비트 이진 계수기는 배열 $A[0..k-1]$로 저장되며 $A[0]$이 최하위 비트이다. 지원되는 유일한 연산은 `INCREMENT`이다.
 
 ```
 INCREMENT(A):
     i = 0
     while i < k and A[i] == 1:
-        A[i] = 0      # reset bit (flip 1 → 0)
+        A[i] = 0      # 비트 되돌리기(1 → 0 뒤집기)
         i = i + 1
     if i < k:
-        A[i] = 1      # set bit (flip 0 → 1)
+        A[i] = 1      # 비트 세우기(0 → 1 뒤집기)
 ```
 
-The cost of an increment is the number of bits flipped. In the worst case, a single increment flips all $k$ bits, so the worst-case cost per operation is $O(k)$.
+증가의 비용은 뒤집힌 비트의 개수이다. 최악의 경우 한 번의 증가가 $k$개 비트를 모두 뒤집으므로 연산당 최악의 경우 비용은 $O(k)$이다.
 
-## Aggregate Analysis
+## 총계 분석
 
-The aggregate method counts total bit flips across all $n$ increments.
+총계 방법은 $n$번의 증가 전체에 걸친 비트 뒤집기 횟수를 센다.
 
-**Observation:** Bit $j$ flips only when the counter value is a multiple of $2^j$. Over $n$ increments starting from 0:
+**관찰:** 비트 $j$는 계수기 값이 $2^j$의 배수일 때에만 뒤집힌다. 0에서 시작해 $n$번 증가하는 동안 다음과 같다.
 
-- Bit 0 flips every increment: $n$ times
-- Bit 1 flips every 2nd increment: $\lfloor n/2 \rfloor$ times
-- Bit 2 flips every 4th increment: $\lfloor n/4 \rfloor$ times
-- Bit $j$ flips $\lfloor n/2^j \rfloor$ times
+- 비트 0은 매번 뒤집힌다: $n$번
+- 비트 1은 두 번마다 뒤집힌다: $\lfloor n/2 \rfloor$번
+- 비트 2는 네 번마다 뒤집힌다: $\lfloor n/4 \rfloor$번
+- 비트 $j$는 $\lfloor n/2^j \rfloor$번 뒤집힌다
 
-The total number of bit flips is:
+전체 비트 뒤집기 횟수는 다음과 같다.
 
 $$
 T(n) = \sum_{j=0}^{k-1} \left\lfloor \frac{n}{2^j} \right\rfloor < n \sum_{j=0}^{\infty} \frac{1}{2^j} = 2n
 $$
 
-Therefore the amortized cost per increment is:
+따라서 증가당 분할 상환 비용은 다음과 같다.
 
 $$
 \hat{c} = \frac{T(n)}{n} < 2 = O(1)
 $$
 
-## Accounting Analysis
+## 회계 분석
 
-The accounting method assigns an amortized cost of $\hat{c} = 2$ to each increment:
+회계 방법은 각 증가에 분할 상환 비용 $\hat{c} = 2$를 배정한다.
 
-- **1 unit** pays for setting one bit from 0 to 1 (every increment sets exactly one bit).
-- **1 unit** is stored as credit on the bit that was just set.
+- **1단위** 는 비트 하나를 0에서 1로 세우는 비용을 지불한다(매 증가가 정확히 한 비트를 세운다).
+- **1단위** 는 방금 세운 비트에 신용으로 저장한다.
 
-When a bit is later reset from 1 to 0, the credit stored on that bit pays for the reset. Since each bit that gets reset was previously set (and received 1 unit of credit at that time), every reset is prepaid.
+나중에 그 비트가 1에서 0으로 되돌려질 때 그 비트에 저장된 신용이 되돌리는 비용을 지불한다. 되돌려지는 각 비트는 이전에 세워졌으므로(그때 1단위의 신용을 받았으므로) 모든 되돌리기가 미리 지불되어 있다.
 
-**Credit invariant:** The total credit equals the number of 1-bits in the counter, which is always non-negative. This confirms that the amortized cost of 2 per increment is valid.
+**신용 불변식:** 전체 신용은 계수기의 1비트 개수와 같으며 언제나 음이 아니다. 이로써 증가당 분할 상환 비용 2가 타당함이 확인된다.
 
-## Potential Analysis
+## 퍼텐셜 분석
 
-Define the potential function $\Phi$ as the number of 1-bits in the counter:
+퍼텐셜 함수 $\Phi$를 계수기의 1비트 개수로 정의한다.
 
 $$
 \Phi(D_i) = \text{number of 1-bits after operation } i
 $$
 
-This potential satisfies $\Phi(D_0) = 0$ and $\Phi(D_i) \geq 0$ for all $i$.
+이 퍼텐셜은 $\Phi(D_0) = 0$을 만족하고 모든 $i$에 대해 $\Phi(D_i) \geq 0$이다.
 
-Suppose the $i$-th increment resets $t_i$ bits from 1 to 0 and then sets at most one bit from 0 to 1. The actual cost is $c_i = t_i + 1$ (assuming the counter does not overflow). The change in potential is:
+$i$번째 증가가 $t_i$개의 비트를 1에서 0으로 되돌리고 많아야 한 비트를 0에서 1로 세운다고 하자. 실제 비용은 (계수기가 넘치지 않는다고 가정하면) $c_i = t_i + 1$이다. 퍼텐셜의 변화는 다음과 같다.
 
 $$
 \Phi(D_i) - \Phi(D_{i-1}) = (1 - t_i)
 $$
 
-because the increment removes $t_i$ ones and adds 1 one. The amortized cost is:
+증가가 1을 $t_i$개 없애고 1을 하나 더하기 때문이다. 분할 상환 비용은 다음과 같다.
 
 $$
 \hat{c}_i = c_i + \Phi(D_i) - \Phi(D_{i-1}) = (t_i + 1) + (1 - t_i) = 2
 $$
 
-The $t_i$ terms cancel, giving a constant amortized cost of 2 per increment regardless of how many bits are flipped.
+$t_i$ 항이 상쇄되어, 비트가 몇 개 뒤집히든 증가당 상수 분할 상환 비용 2가 나온다.
 
-## Python Example
+## 파이썬 예제
 
 ```python
 """
-Binary counter amortized analysis demonstration.
+이진 계수기의 분할 상환 분석 시연.
 
-Implements a binary counter and tracks bit flips per increment,
-verifying that the total cost grows linearly (not quadratically).
+이진 계수기를 구현하고 증가마다 비트 뒤집기를 추적하여
+전체 비용이 (이차가 아니라) 선형으로 증가함을 확인한다.
 """
 
 
 # ===================================================================
-# Binary Counter Implementation
+# 이진 계수기 구현
 # ===================================================================
 class BinaryCounter:
-    """k-bit binary counter with bit-flip cost tracking."""
+    """비트 뒤집기 비용을 추적하는 k비트 이진 계수기."""
 
     def __init__(self, num_bits):
         self.bits = [0] * num_bits
@@ -100,15 +100,15 @@ class BinaryCounter:
         self.num_increments = 0
 
     def increment(self):
-        """Increment by 1 and return the number of bit flips."""
+        """1 증가시키고 비트 뒤집기 횟수를 반환한다."""
         flips = 0
         i = 0
-        # Reset consecutive trailing 1-bits
+        # 뒤에 연속된 1비트를 되돌린다
         while i < self.k and self.bits[i] == 1:
             self.bits[i] = 0
             flips += 1
             i += 1
-        # Set the next 0-bit (if counter hasn't overflowed)
+        # 다음 0비트를 세운다(계수기가 넘치지 않았다면)
         if i < self.k:
             self.bits[i] = 1
             flips += 1
@@ -117,19 +117,19 @@ class BinaryCounter:
         return flips
 
     def value(self):
-        """Return the current decimal value."""
+        """현재 십진 값을 반환한다."""
         return sum(b * (2 ** i) for i, b in enumerate(self.bits))
 
     def ones_count(self):
-        """Return the number of 1-bits (potential function)."""
+        """1비트의 개수(퍼텐셜 함수)를 반환한다."""
         return sum(self.bits)
 
 
 # ===================================================================
-# Aggregate Analysis Verification
+# 총계 분석 검증
 # ===================================================================
 def verify_aggregate(n, k=16):
-    """Verify that total flips < 2n for n increments."""
+    """n번 증가의 전체 뒤집기가 2n 미만임을 확인한다."""
     counter = BinaryCounter(k)
     for _ in range(n):
         counter.increment()
@@ -140,10 +140,10 @@ def verify_aggregate(n, k=16):
 
 
 # ===================================================================
-# Per-Bit Flip Frequency Verification
+# 비트별 뒤집기 빈도 검증
 # ===================================================================
 def verify_bit_frequencies(n, k=8):
-    """Verify that bit j flips floor(n / 2^j) times."""
+    """비트 j가 floor(n / 2^j)번 뒤집힘을 확인한다."""
     flip_count = [0] * k
     bits = [0] * k
     for _ in range(n):
@@ -161,14 +161,14 @@ def verify_bit_frequencies(n, k=8):
     print("-" * 22)
     for j in range(k):
         expected = n // (2 ** j)
-        # Each bit j flips when set (floor(n/2^j) times when it goes 0->1)
-        # and when reset, total flips = floor(n/2^j) for set + floor(n/2^j)
-        # Actually bit j changes state every 2^j increments
+        # 비트 j는 세워질 때(0->1로 갈 때 floor(n/2^j)번)와
+        # 되돌려질 때 뒤집힌다.
+        # 즉 비트 j는 2^j번의 증가마다 상태가 바뀐다
         print(f"{j:>4} {flip_count[j]:>8} {expected:>8}")
 
 
 # ===================================================================
-# Demonstration
+# 시연
 # ===================================================================
 if __name__ == "__main__":
     print("=== Aggregate Analysis ===")
@@ -193,10 +193,43 @@ if __name__ == "__main__":
         )
 ```
 
-## Decrement Operation
+## 감소 연산
 
-If the counter also supports `DECREMENT`, the amortized analysis changes significantly. A sequence of alternating increments and decrements on the value $2^{k-1} - 1$ (binary $0111\ldots1$) would flip $k$ bits every operation, making the amortized cost $\Theta(k)$ per operation. The potential function approach fails because decrementing can increase the number of 1-bits, so the potential no longer absorbs the cost. This shows that amortized analysis results depend on the set of allowed operations.
+계수기가 `DECREMENT`도 지원한다면 분할 상환 분석이 크게 달라진다. 값 $2^{k-1} - 1$(이진수 $0111\ldots1$)에서 증가와 감소를 번갈아 수행하면 매 연산마다 $k$개의 비트가 뒤집혀 연산당 분할 상환 비용이 $\Theta(k)$가 된다. 감소가 1비트의 개수를 늘릴 수 있어 퍼텐셜이 더 이상 비용을 흡수하지 못하므로 퍼텐셜 함수 접근이 실패한다. 이는 분할 상환 분석의 결과가 허용되는 연산의 집합에 의존함을 보여준다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 16: Amortized Analysis. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+이진 계수기에서 설명한 방법을 사용하여 $n$개 연산의 수열을 분석하고 연산당 분할 상환 비용을 구하라.
+
+??? success "연습문제 1 풀이"
+    이 절의 구체적인 기법(총계, 회계, 퍼텐셜)을 적용하여 $n$개 연산의 전체 비용에 상계를 준다. 이를 $n$으로 나누면 연산당 분할 상환 비용을 얻는다. 핵심 통찰은 비싼 연산이 충분히 드물어서 그 비용이 수많은 싼 연산에 흩어진다는 것이다.
+
+---
+
+**연습문제 2.**
+이진 계수기의 분할 상환 패턴, 즉 싼 연산들이 이따금 비싼 연산 하나를 촉발하는 패턴에 대응하는 딥러닝 상황을 찾아라.
+
+??? success "연습문제 2 풀이"
+    예로는 경사 누적(싼 마이크로배치 순전파, 비싼 매개변수 갱신), 모델 체크포인팅(싼 학습 단계, 비싼 저장), 동적 배치에서의 해시 테이블 크기 조정(싼 삽입, 비싼 재해싱)이 있다. 이따금 비싼 연산이 있어도 단계당 분할 상환 비용은 일정하게 유지된다.
+
+---
+
+**연습문제 3.**
+이진 계수기로 유도한 분할 상환 경계가 꽉 조여 있음을, 그 경계를 달성하는 연산 수열을 구성하여 증명하라.
+
+??? success "연습문제 3 풀이"
+    전체 실제 비용을 연산 횟수로 나눈 비를 최대화하는 수열을 구성한다. 보통 퍼텐셜을 쌓는 연산과 그것을 방출하는 연산을 번갈아 수행하는 형태가 된다. 이 구성으로 분할 상환 경계를 더 개선할 수 없음이 확인된다. $\square$
+
+---
+
+**연습문제 4.**
+이진 계수기의 분할 상환 분석을 최악의 경우 분석과 비교하라. 분할 상환 경계는 최악의 경우보다 몇 배나 개선되는가?
+
+??? success "연습문제 4 풀이"
+    최악의 경우 분석은 비싼 연산 앞에 싼 연산이 많이 온다는 사실을 무시하고 각 연산에 가능한 최대 비용을 부과한다. 개선 배수는 최악의 경우 비용을 분할 상환 비용으로 나눈 값이다. 전형적인 자료구조에서는 $O(n)$ 대 $O(1)$로 $n$배 개선된다.

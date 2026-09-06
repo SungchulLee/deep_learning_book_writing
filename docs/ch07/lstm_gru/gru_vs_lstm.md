@@ -1,28 +1,23 @@
-# GRU vs LSTM Comparison
+# GRU와 LSTM 비교
+## 들어가며
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Introduction
-
-LSTM and GRU are the two dominant gated RNN architectures. While both solve the vanishing gradient problem, they differ in complexity, parameter count, and behavior. This section provides a comprehensive comparison—covering theory, empirical results, and practical decision frameworks—to guide architecture selection.
+LSTM과 GRU는 문 달린 순환 신경망의 두 주역이다. 둘 다 기울기 소실 문제를 풀지만 복잡함과 매개변수 수, 거동이 다르다. 이 절은 이론과 실험 결과, 실무에서의 판단 기준을 두루 견주어 구조를 고르는 데 길잡이가 되어 준다.
 
 ---
 
-## Architectural Comparison
+## 구조 비교
 
-### Structure Overview
+### 짜임 개관
 
-| Aspect | LSTM | GRU |
+| 항목 | LSTM | GRU |
 |--------|------|-----|
-| States | 2 (hidden $h$, cell $c$) | 1 (hidden $h$) |
-| Gates | 3 (forget, input, output) | 2 (update, reset) |
-| Gate coupling | Independent | Coupled (update = 1 − forget) |
-| Output filtering | Yes (output gate) | No |
-| Year introduced | 1997 | 2014 |
+| 상태 | 2개 (숨은 상태 $h$, 세포 상태 $c$) | 1개 (숨은 상태 $h$) |
+| 문 | 3개 (망각, 입력, 출력) | 2개 (갱신, 재설정) |
+| 문의 결합 | 서로 독립 | 묶임 (갱신 = 1 − 망각) |
+| 출력 거르기 | 있음 (출력 문) | 없음 |
+| 나온 해 | 1997 | 2014 |
 
-### Mathematical Formulations Side-by-Side
+### 수식 나란히 놓기
 
 **LSTM:**
 
@@ -48,76 +43,76 @@ $$\tilde{h}_t = \tanh(W_h[r_t \odot h_{t-1}, x_t] + b_h) \quad \text{(candidate)
 
 $$h_t = (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t \quad \text{(state update)}$$
 
-### The Fundamental Design Difference
+### 근본적인 설계의 차이
 
-The key philosophical difference lies in how memory is managed:
+핵심적인 철학의 차이는 기억을 다루는 방식에 있다.
 
-**LSTM: Separation of Concerns**
+**LSTM: 역할을 나누기**
 
-- Cell state $c_t$: Long-term memory storage
-- Hidden state $h_t$: Working memory / output
-- Output gate: Controls what to expose
-- This separation allows storing information without immediately using it
+- 세포 상태 $c_t$: 장기 기억 저장소
+- 숨은 상태 $h_t$: 작업 기억이자 출력
+- 출력 문: 무엇을 드러낼지 다스린다
+- 이렇게 나누면 정보를 곧바로 쓰지 않고도 담아 둘 수 있다
 
-**GRU: Unified State**
+**GRU: 하나로 합친 상태**
 
-- Single hidden state serves both purposes
-- Simpler but less flexible
-- What you store is what you expose
+- 숨은 상태 하나가 두 구실을 모두 한다
+- 더 간단하지만 덜 유연하다
+- 담아 둔 것이 곧 드러나는 것이다
 
 ---
 
-## Gate Mapping Between Architectures
+## 두 구조의 문 대응시키기
 
-### Structural Mapping
+### 구조적 대응
 
-| GRU | LSTM | Notes |
+| GRU | LSTM | 참고 |
 |-----|------|-------|
-| Update gate $z$ | Forget $f$ + Input $i$ | GRU couples them: $i = z$, $f = 1-z$ |
-| Reset gate $r$ | (partial) Output gate | Both filter state before use |
-| — | Output gate $o$ | GRU has no explicit output gating |
-| — | Cell state $C$ | GRU uses only hidden state |
+| 갱신 문 $z$ | 망각 $f$ + 입력 $i$ | GRU는 둘을 묶는다: $i = z$, $f = 1-z$ |
+| 재설정 문 $r$ | (부분적으로) 출력 문 | 둘 다 쓰기 전에 상태를 거른다 |
+| — | 출력 문 $o$ | GRU에는 명시적인 출력 문이 없다 |
+| — | 세포 상태 $C$ | GRU는 숨은 상태만 쓴다 |
 
-### Expressiveness Trade-off
+### 표현력의 맞바꿈
 
-**LSTM's uncoupled gates allow:**
+**LSTM의 묶이지 않은 문은 다음을 허용한다.**
 
-- Retain much, add little: $f = 0.9, i = 0.1$ → retains 90%, adds 10%
-- Retain much, add much: $f = 0.9, i = 0.9$ → retains 90%, adds 90%
-- Retain little, add much: $f = 0.1, i = 0.9$ → retains 10%, adds 90%
-- Total weight on states: $f + i$ (can be < 1, = 1, or > 1)
+- 많이 지키고 조금 더하기: $f = 0.9, i = 0.1$ → 90%를 지키고 10%를 더한다
+- 많이 지키고 많이 더하기: $f = 0.9, i = 0.9$ → 90%를 지키고 90%를 더한다
+- 조금 지키고 많이 더하기: $f = 0.1, i = 0.9$ → 10%를 지키고 90%를 더한다
+- 상태에 걸리는 전체 가중치는 $f + i$이며 1보다 작거나 같거나 클 수 있다
 
-**GRU's coupled gates enforce:**
+**GRU의 묶인 문은 다음을 강제한다.**
 
-- $z = 0.1$ → retains 90%, adds 10%
-- $z = 0.5$ → retains 50%, adds 50%
-- $z = 0.9$ → retains 10%, adds 90%
-- Total weight on states: $(1-z) + z = 1$ always
+- $z = 0.1$ → 90%를 지키고 10%를 더한다
+- $z = 0.5$ → 50%를 지키고 50%를 더한다
+- $z = 0.9$ → 10%를 지키고 90%를 더한다
+- 상태에 걸리는 전체 가중치는 언제나 $(1-z) + z = 1$이다
 
-This convex combination constraint in GRU provides implicit regularization but limits flexibility.
+GRU의 이 볼록 결합 제약은 암묵적인 규제가 되지만 유연함을 제한한다.
 
 ---
 
-## Parameter Count Analysis
+## 매개변수 수 분석
 
-### Theoretical Calculation
+### 이론적인 계산
 
-For an LSTM or GRU with input dimension $d$ and hidden dimension $n$:
+입력 차원이 $d$이고 숨은 차원이 $n$인 LSTM이나 GRU에 대해 다음과 같다.
 
-| Architecture | Parameters | Relative |
+| 구조 | 매개변수 | 상대적 크기 |
 |--------------|------------|----------|
-| Vanilla RNN | $n^2 + nd + n$ | 1× |
-| GRU | $3(n^2 + nd + n)$ | 3× |
-| LSTM | $4(n^2 + nd + n)$ | 4× |
+| 기본 RNN | $n^2 + nd + n$ | 1배 |
+| GRU | $3(n^2 + nd + n)$ | 3배 |
+| LSTM | $4(n^2 + nd + n)$ | 4배 |
 
-GRU consistently has **25% fewer parameters** than LSTM (3/4 ratio), because it has 3 gate/component matrices versus LSTM's 4.
+GRU는 문·부품 행렬이 3개이고 LSTM은 4개이므로, GRU의 매개변수는 늘 LSTM보다 **25% 적다**(3/4).
 
 ```python
 import torch
 import torch.nn as nn
 
 def parameter_scaling_analysis():
-    """Analyze how parameter counts scale with model size."""
+    """모델의 크기에 따라 매개변수 수가 어떻게 늘어나는지 분석한다."""
     configs = [
         (64, 128), (128, 256), (256, 512), (512, 1024), (1024, 2048),
     ]
@@ -137,18 +132,18 @@ def parameter_scaling_analysis():
 # parameter_scaling_analysis()
 ```
 
-### Memory Footprint
+### 메모리 사용량
 
-Beyond parameters, consider activation memory during training:
+매개변수 말고도 학습 중의 활성값 메모리를 살펴야 한다.
 
 ```python
 def memory_footprint_analysis(batch_size, seq_length, hidden_size):
-    """Compare memory footprint during forward/backward pass."""
-    # LSTM stores: h_t, c_t, and all gate activations for each timestep
+    """순전파와 역전파 중의 메모리 사용량을 견준다."""
+    # LSTM이 담는 것: 시각마다 h_t, c_t, 그리고 모든 문의 활성값
     lstm_per_step = 6 * hidden_size  # h, c, f, i, o, c_tilde
     lstm_total = batch_size * seq_length * lstm_per_step * 4  # float32
     
-    # GRU stores: h_t and gate activations
+    # GRU가 담는 것: h_t와 문의 활성값
     gru_per_step = 4 * hidden_size  # h, z, r, h_tilde
     gru_total = batch_size * seq_length * gru_per_step * 4
     
@@ -162,25 +157,25 @@ def memory_footprint_analysis(batch_size, seq_length, hidden_size):
 
 ---
 
-## Gradient Flow Comparison
+## 기울기 흐름 견주기
 
-### Theoretical Analysis
+### 이론적 분석
 
-Both LSTM and GRU solve vanishing gradients, but through slightly different mechanisms:
+LSTM과 GRU 모두 기울기 소실을 풀지만 장치가 조금 다르다.
 
-**LSTM Gradient Path:**
+**LSTM의 기울기 경로:**
 
 $$\frac{\partial c_t}{\partial c_{t-1}} = f_t \quad \text{(direct path through cell state)}$$
 
-**GRU Gradient Path:**
+**GRU의 기울기 경로:**
 
 $$\frac{\partial h_t}{\partial h_{t-1}} = (1 - z_t) + z_t \cdot \frac{\partial \tilde{h}_t}{\partial h_{t-1}}$$
 
-The $(1 - z_t)$ term in GRU plays a similar role to $f_t$ in LSTM.
+GRU의 $(1 - z_t)$ 항은 LSTM의 $f_t$과 비슷한 구실을 한다.
 
 ```python
 def compare_gradient_flow(seq_lengths=[50, 100, 200, 500, 1000]):
-    """Empirically compare gradient flow between LSTM and GRU."""
+    """LSTM과 GRU의 기울기 흐름을 실험으로 견준다."""
     import numpy as np
     
     input_size = 64
@@ -223,66 +218,66 @@ def compare_gradient_flow(seq_lengths=[50, 100, 200, 500, 1000]):
 
 ---
 
-## Memory Capacity: The Output Gate Advantage
+## 기억 용량: 출력 문의 이점
 
-LSTM's output gate provides a unique capability: **storing information without exposing it**.
+LSTM의 출력 문은 특별한 능력을 준다. **드러내지 않고 정보를 담아 두는 것**이다.
 
-**LSTM Strategy for delayed recall:**
+**늦은 회상을 위한 LSTM의 전략:**
 
-- Step 0: $i_t = 1, f_t = 0$ → store in cell
-- Steps 1–99: $f_t = 1, o_t = 0$ → preserve but hide
-- Step 100: $o_t = 1$ → reveal stored information
+- 0걸음: $i_t = 1, f_t = 0$ → 세포에 담는다
+- 1~99걸음: $f_t = 1, o_t = 0$ → 지키되 감춘다
+- 100걸음: $o_t = 1$ → 담아 둔 정보를 드러낸다
 
-**GRU Challenge:**
+**GRU의 어려움:**
 
-- No way to hide stored information
-- Must balance $h_t$ between storage and output
-- Earlier stored info gets mixed with new computations
+- 담아 둔 정보를 감출 길이 없다
+- $h_t$을 저장과 출력 사이에서 저울질해야 한다
+- 앞서 담아 둔 정보가 새 계산과 섞인다
 
-This is why LSTM can sometimes handle complex memory patterns that require selective read/write access.
+그래서 골라서 읽고 쓰는 접근이 필요한 복잡한 기억 방식을 LSTM이 다룰 수 있을 때가 있다.
 
-### Information Bottleneck
+### 정보 병목
 
-| Aspect | LSTM | GRU |
+| 항목 | LSTM | GRU |
 |--------|------|-----|
-| State capacity | $2n$ values ($c_t + h_t$) | $n$ values ($h_t$ only) |
-| Storage-output separation | Yes (cell ≠ hidden) | No (single state) |
-| Independent memory slots | More | Fewer |
+| 상태의 용량 | 값 $2n$개 ($c_t$과 $h_t$) | 값 $n$개 ($h_t$만) |
+| 저장과 출력의 분리 | 있음 (세포 ≠ 숨은 상태) | 없음 (상태 하나) |
+| 독립적인 기억 칸 | 더 많다 | 더 적다 |
 
 ---
 
-## Task-Specific Performance
+## 과제별 성능
 
-### Comprehensive Task Comparison
+### 과제별 종합 비교
 
-| Task Category | Best Choice | Reasoning |
+| 과제의 갈래 | 나은 선택 | 근거 |
 |---------------|-------------|-----------|
-| **Language Modeling** | LSTM ≈ GRU | Both effective; slight LSTM edge on perplexity |
-| **Machine Translation** | LSTM | Long dependencies, complex alignments |
-| **Speech Recognition** | LSTM | Continuous signals, precise timing |
-| **Sentiment Analysis** | GRU ≈ LSTM | Simpler task, efficiency matters |
-| **Time Series Forecasting** | GRU | Often shorter dependencies, speed |
-| **Named Entity Recognition** | GRU | Local context usually sufficient |
-| **Music Generation** | LSTM | Long-range structure, polyphony |
-| **Video Captioning** | LSTM | Multi-modal, complex memory |
-| **Dialogue Systems** | GRU | Faster inference, good enough quality |
-| **Copy/Recall Tasks** | LSTM | Explicit memory requirements |
+| **언어 모형** | LSTM ≈ GRU | 둘 다 효과적이며 혼란도에서 LSTM이 조금 낫다 |
+| **기계 번역** | LSTM | 먼 의존과 복잡한 정렬 |
+| **음성 인식** | LSTM | 연속 신호와 정확한 타이밍 |
+| **감성 분석** | GRU ≈ LSTM | 과제가 단순하여 효율이 중요하다 |
+| **시계열 예측** | GRU | 의존이 짧을 때가 많고 속도가 중요하다 |
+| **개체명 인식** | GRU | 대개 지역 문맥으로 충분하다 |
+| **음악 생성** | LSTM | 먼 거리 구조와 다성 |
+| **영상 설명 달기** | LSTM | 여러 양식과 복잡한 기억 |
+| **대화 시스템** | GRU | 추론이 빠르고 품질도 충분하다 |
+| **베끼기·회상 과제** | LSTM | 명시적인 기억이 필요하다 |
 
-### Research Findings Summary
+### 연구 결과 요약
 
-Key papers comparing LSTM and GRU:
+LSTM과 GRU를 견준 주요 논문은 다음과 같다.
 
-1. **Chung et al. (2014)**: GRU comparable to LSTM on music and speech; faster convergence in some cases.
+1. **Chung 등 (2014)**: 음악과 음성에서 GRU가 LSTM에 견줄 만하며, 어떤 경우에는 더 빨리 수렴한다.
 
-2. **Jozefowicz et al. (2015)**: Tested 10,000+ architectures; no clear winner across all tasks; performance is task-dependent.
+2. **Jozefowicz 등 (2015)**: 구조 1만 개 이상을 시험했는데, 모든 과제에서 이기는 쪽은 없고 성능은 과제에 달려 있다.
 
-3. **Greff et al. (2017)**: Forget gate and output activation are the most critical LSTM components; simplified variants often work well.
+3. **Greff 등 (2017)**: 망각 문과 출력 활성화가 LSTM에서 가장 중요한 부품이며, 간소한 변형도 잘 통할 때가 많다.
 
 ---
 
-## Practical Decision Framework
+## 실무에서의 판단 기준
 
-### Decision Flowchart
+### 판단 흐름도
 
 ```
                                 START
@@ -319,12 +314,12 @@ Key papers comparing LSTM and GRU:
                                     (less overfitting)    on validation metrics
 ```
 
-### Configuration Recommendations
+### 설정 권장값
 
 ```python
 def get_recommended_config(task_type, seq_length, dataset_size, 
                            inference_speed_critical=False):
-    """Get recommended architecture based on task characteristics."""
+    """과제의 성격에 따라 권장 구조를 얻는다."""
     recommendations = {
         'arch': None, 'hidden_size': None,
         'num_layers': None, 'dropout': None, 'reasoning': []
@@ -357,18 +352,18 @@ def get_recommended_config(task_type, seq_length, dataset_size,
 
 ---
 
-## Hybrid Approaches
+## 혼합형 접근
 
-### Stacked Hybrid Architecture
+### 쌓아 만든 혼합 구조
 
 ```python
 class HybridStackedRNN(nn.Module):
     """
-    Hybrid architecture: GRU for feature extraction, LSTM for memory.
+    혼합 구조: 특징 추출에는 GRU, 기억에는 LSTM.
     
-    Rationale:
-    - Lower layers extract local features (GRU sufficient, faster)
-    - Upper layer handles long-range dependencies (LSTM advantage)
+    근거:
+    - 아래 층은 지역 특징을 뽑는다 (GRU로 충분하고 더 빠르다)
+    - 위 층은 먼 거리 의존을 다룬다 (LSTM이 유리하다)
     """
     
     def __init__(self, input_size, hidden_size, num_gru_layers=2, dropout=0.3):
@@ -386,15 +381,15 @@ class HybridStackedRNN(nn.Module):
         return lstm_out, h_n
 ```
 
-### Bidirectional Hybrid
+### 양방향 혼합
 
 ```python
 class BidirectionalHybrid(nn.Module):
     """
-    Bidirectional GRU for context, unidirectional LSTM for generation.
+    문맥에는 양방향 GRU, 생성에는 단방향 LSTM.
     
-    Use case: Encoder-decoder architectures where encoder needs
-    bidirectional context but decoder must be causal.
+    쓰임새: 부호기는 양방향 문맥이 필요하고 복호기는 인과적이어야 하는
+    부호기-복호기 구조.
     """
     
     def __init__(self, input_size, hidden_size):
@@ -413,31 +408,31 @@ class BidirectionalHybrid(nn.Module):
 
 ---
 
-## Summary
+## 요약
 
-### Quick Reference Table
+### 빠른 참고표
 
-| Factor | LSTM | GRU | Winner |
+| 요인 | LSTM | GRU | 우세 |
 |--------|------|-----|--------|
-| Parameters | $4n^2 + 4nm$ | $3n^2 + 3nm$ | **GRU** (25% fewer) |
-| Speed | Baseline | 15–25% faster | **GRU** |
-| Memory capacity | 2 × hidden | 1 × hidden | **LSTM** |
-| Long sequences (>500) | Better | Good | **LSTM** |
-| Small datasets (<10k) | Overfits more | More robust | **GRU** |
-| Interpretability | 3 gates, complex | 2 gates, simpler | **GRU** |
-| Research maturity | 1997, extensive | 2014, growing | **LSTM** |
-| Default recommendation | For benchmarks | For production | **GRU** |
+| 매개변수 | $4n^2 + 4nm$ | $3n^2 + 3nm$ | **GRU** (25% 적음) |
+| 속도 | 기준 | 15~25% 빠름 | **GRU** |
+| 기억 용량 | 숨은 차원의 2배 | 숨은 차원의 1배 | **LSTM** |
+| 긴 순차열 (500 초과) | 더 낫다 | 좋다 | **LSTM** |
+| 작은 데이터셋 (1만 미만) | 과적합이 더 잦다 | 더 튼튼하다 | **GRU** |
+| 해석 가능성 | 문 3개로 복잡 | 문 2개로 간단 | **GRU** |
+| 연구의 축적 | 1997년 이후로 방대 | 2014년 이후로 늘어남 | **LSTM** |
+| 기본 권장 | 표준 자료용 | 실전용 | **GRU** |
 
-### Final Recommendations
+### 마지막 권고
 
-1. **Start with GRU** for most applications — faster prototyping, often equivalent performance, easier to tune
-2. **Switch to LSTM** when working with very long sequences, GRU performance plateaus, or task requires complex memory patterns
-3. **Consider both** for production — run controlled experiments; the 2–3% difference might matter at scale
-4. **Don't overthink it** — architecture choice is often less important than data quality, regularization, and hyperparameter tuning
+1. 대부분의 응용에서 **GRU로 시작하라**. 시제품을 빨리 만들 수 있고, 성능도 대체로 비슷하며, 맞추기 쉽다
+2. 아주 긴 순차열을 다루거나 GRU의 성능이 정체되거나 과제에 복잡한 기억 방식이 필요하면 **LSTM으로 바꾸라**
+3. 실전에서는 **둘 다 살펴보라**. 통제된 실험을 해 보라. 2~3%의 차이가 규모가 커지면 중요할 수 있다
+4. **너무 고민하지 마라.** 구조의 선택은 데이터의 품질, 규제, 초매개변수 조정보다 덜 중요할 때가 많다
 
 ---
 
-## References
+## 참고 문헌
 
 1. Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation*, 9(8), 1735-1780.
 
@@ -448,3 +443,41 @@ class BidirectionalHybrid(nn.Module):
 4. Jozefowicz, R., Zaremba, W., & Sutskever, I. (2015). An Empirical Exploration of Recurrent Network Architectures. *ICML*.
 
 5. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.
+
+## 연습문제
+
+**연습문제 1.**
+다섯 가지 항목으로 GRU와 LSTM의 비교표를 만들어라.
+
+??? success "연습문제 1 풀이"
+    | 항목 | GRU | LSTM |
+    |---|---|---|
+    | 문 | 2개 (재설정, 갱신) | 3개 (망각, 입력, 출력) |
+    | 매개변수 | $3(d_x+d_h)d_h$ | $4(d_x+d_h)d_h$ |
+    | 세포 상태 | 없음 ($h$만 쓴다) | 있음 ($c$과 $h$이 따로) |
+    | 학습 속도 | 더 빠름 (약 25%) | 더 느림 |
+    | 먼 거리 | 좋음 | 조금 나음 |
+
+---
+
+**연습문제 2.**
+어떤 과제에서 GRU가 대체로 LSTM과 맞먹거나 앞서는가?
+
+??? success "연습문제 2 풀이"
+    음성 인식, 음악 모형화, 짧은 텍스트 분류, 그리고 많은 순차열 대 순차열 과제에서 GRU가 LSTM과 맞먹는다. 작은 데이터셋에서는 (과적합이 덜하여) GRU가 앞설 수 있다. 아주 긴 순차열, 언어 모형, 문 조절이 정밀해야 하는 과제에서는 LSTM이 나은 편이다.
+
+---
+
+**연습문제 3.**
+'최소 문 달린 단위'가 무엇이며 GRU를 어떻게 더 간소화하는지 설명하라.
+
+??? success "연습문제 3 풀이"
+    최소 문 달린 단위(Zhou 등, 2016)는 문 하나만 쓴다. $z_t = \sigma(W_z x_t + U_z h_{t-1})$일 때 $h_t = (1-z_t)h_{t-1} + z_t \tanh(Wx_t + U(h_{t-1}))$이다. 매개변수가 GRU의 3분의 2이면서 많은 과제에서 비슷한 성능을 내는데, GRU조차 매개변수가 지나칠 수 있음을 시사한다.
+
+---
+
+**연습문제 4.**
+감성 분석 과제에서 GRU와 LSTM을 실제로 견주어 정확도와 학습 시간을 보고하라.
+
+??? success "연습문제 4 풀이"
+    IMDB 감성 분석의 흔한 결과는 GRU 정확도 약 87%, LSTM 정확도 약 88%이며 GRU가 20~30% 빨리 학습한다. 정확도 차이는 신뢰 구간 안일 때가 많다. 결론은 이렇다. 빠르게 되풀이하려면 GRU를 먼저 해 보고, 성능이 중요하면 LSTM으로 바꾸라.

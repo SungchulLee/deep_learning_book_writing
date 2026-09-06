@@ -147,3 +147,43 @@ The output confirms that writes create new versions without destroying previous 
 
 - Driscoll, J.R., Sarnak, N., Sleator, D.D., and Tarjan, R.E. "Making Data Structures Persistent." *JCSS*, 1989
 - [Advanced Data Structures (Brass)](https://www.cambridge.org/core/books/advanced-data-structures/D56E2269D7CEE969A3B8105D3541F601)
+
+## Exercises
+
+**Exercise 1.**
+Explain the tradeoff between full copying and path copying for making arrays persistent. What are the time and space complexities of each approach?
+
+??? success "Solution to Exercise 1"
+    **Full copying**: on each write, copy the entire array of size $n$. Read any version in $O(1)$, write creates a new version in $O(n)$ time and $O(n)$ space. After $m$ writes, total space is $O(nm)$. **Path copying via a balanced binary tree over the array indices**: represent the array as a complete binary tree of height $\lceil \log_2 n \rceil$ with values at the leaves. A write copies only the $O(\log n)$ nodes on the root-to-leaf path, sharing the rest. Read requires traversing $O(\log n)$ nodes. After $m$ writes, total space is $O(n + m \log n)$. The tradeoff: full copying has $O(1)$ read but $O(n)$ write; path copying has $O(\log n)$ read and write. Path copying is preferable when $m$ is large relative to $n$. $\square$
+
+---
+
+**Exercise 2.**
+Describe how to implement a persistent array using a segment tree. What are the complexities for point read, point write, and range query across versions?
+
+??? success "Solution to Exercise 2"
+    Build a segment tree over the $n$ array positions. For a point write at index $i$ in version $v$: create a new root for version $v+1$, copy only the $O(\log n)$ nodes on the path from root to leaf $i$, pointing to shared children from version $v$ for unchanged subtrees. Point read at version $v$: traverse the segment tree root for version $v$ down to the leaf in $O(\log n)$. Range query $[l, r]$ at version $v$: traverse the version-$v$ tree in $O(\log n)$, combining results from at most $O(\log n)$ nodes. Each new version creates $O(\log n)$ new nodes. After $m$ updates, total space is $O(n + m \log n)$. $\square$
+
+---
+
+**Exercise 3.**
+A persistent array stores stock prices over time. Version $t$ represents the price array at time $t$. Design a query that, given two time points $t_1$ and $t_2$ and a stock index $i$, returns the price change. What is the time complexity?
+
+??? success "Solution to Exercise 3"
+    Store the price array as a persistent segment tree. Each write (price update) creates a new version. To compute the price change for stock $i$ between times $t_1$ and $t_2$: perform a point read on version $t_1$ at index $i$ to get $p_1$, and a point read on version $t_2$ at index $i$ to get $p_2$. Return $p_2 - p_1$. Time: $O(\log n)$ per read, so $O(\log n)$ total (two reads, each $O(\log n)$). Space: $O(n + T \log n)$ where $T$ is the total number of updates across all time steps. This approach naturally supports historical queries without maintaining separate snapshots. $\square$
+
+---
+
+**Exercise 4.**
+Prove that a persistent array implemented via path copying on a balanced binary tree has amortized $O(\log n)$ space per update.
+
+??? success "Solution to Exercise 4"
+    Each update modifies one leaf and copies the $O(\log n)$ nodes on the path from that leaf to the root. All other nodes are shared with the previous version via pointers. Therefore, each update creates exactly $\lceil \log_2 n \rceil + 1$ new nodes (one per tree level). The initial version requires $O(n)$ nodes (the full tree). After $m$ updates, the total number of nodes is $O(n + m \log n)$. The space per update is $O(\log n)$ (not amortized -- it is worst-case per update). This is optimal for tree-based approaches because any path from root to leaf has length $\Theta(\log n)$, and a single-position update must modify at least the nodes on this path to create a new root distinguishable from the old root. $\square$
+
+---
+
+**Exercise 5.**
+Compare persistent arrays with the "copy-on-write" technique used in modern operating systems for process forking. What structural similarity and what practical difference exist?
+
+??? success "Solution to Exercise 5"
+    **Structural similarity**: both share unchanged data between versions and copy only what is modified. In copy-on-write (CoW) forking, the parent and child process share all memory pages, and a page is duplicated only when either process writes to it. In a persistent array via path copying, old and new versions share all unmodified subtrees, and only the path to the modified element is duplicated. Both achieve $O(\text{changes})$ space per version rather than $O(n)$. **Practical difference**: CoW operates at the page granularity (typically 4 KB), while persistent arrays operate at the element granularity. CoW is managed by the OS/hardware MMU transparently, while persistent arrays are an explicit data structure. CoW is not fully persistent -- after a page is copied and modified, the original page in the child is lost unless explicitly preserved. Persistent arrays retain all versions permanently by design. $\square$

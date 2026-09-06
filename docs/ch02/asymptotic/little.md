@@ -1,107 +1,140 @@
-# Little-o and Little-omega
+# 리틀오와 리틀오메가
 
-Big-O and Big-Omega provide upper and lower bounds that may or may not be tight: $n = O(n)$ and $n = O(n^2)$ are both true.  Sometimes we need to express that one function grows **strictly slower** (or **strictly faster**) than another, ruling out the possibility that they grow at the same rate.  Little-o and little-omega fill this role, providing the asymptotic analogues of strict inequality.
+빅오와 빅오메가는 꽉 조여 있을 수도 있고 아닐 수도 있는 상계와 하계를 제공한다. $n = O(n)$과 $n = O(n^2)$은 둘 다 참이다. 때로는 한 함수가 다른 함수보다 **엄격히 느리게**(또는 **엄격히 빠르게**) 증가한다는 것을, 즉 같은 속도로 증가할 가능성을 배제하고 표현해야 한다. 리틀오와 리틀오메가가 이 역할을 하며, 엄격한 부등호에 해당하는 점근적 표기를 제공한다.
 
-## Little-o -- Strictly Slower Growth
+## 리틀오 -- 엄격히 느린 증가
 
-### Definition
+### 정의
 
-!!! info "Definition -- Little-o"
+!!! info "정의 -- 리틀오"
 
-    $f(n) = o(g(n))$ if for **every** constant $c > 0$, there exists $n_0 > 0$ such that
+    **모든** 상수 $c > 0$에 대해 다음을 만족하는 $n_0 > 0$이 존재하면 $f(n) = o(g(n))$이다.
 
     $$
     0 \leq f(n) < c \cdot g(n) \quad \text{for all } n \geq n_0
     $$
 
-The key difference from Big-O is the quantifier: Big-O requires the inequality to hold for *some* $c > 0$, whereas little-o requires it for *every* $c > 0$.  No matter how small a positive constant you choose, $f$ is eventually dominated by $c \cdot g$.
+빅오와의 핵심적인 차이는 한정사에 있다. 빅오는 *어떤* $c > 0$에 대해 부등식이 성립하기를 요구하지만, 리틀오는 *모든* $c > 0$에 대해 성립하기를 요구한다. 양의 상수를 아무리 작게 골라도 $f$는 결국 $c \cdot g$에 압도당한다.
 
-### Limit Characterization
+### 극한을 이용한 특징짓기
 
-The limit form is often easier to work with.
+극한 형태가 다루기 더 쉬운 경우가 많다.
 
-!!! info "Theorem -- Limit characterization of little-o"
+!!! info "정리 -- 리틀오의 극한 특징짓기"
 
     $$
     f(n) = o(g(n)) \iff \lim_{n \to \infty} \frac{f(n)}{g(n)} = 0
     $$
 
-    provided $g(n) > 0$ for sufficiently large $n$.
+    단, 충분히 큰 $n$에 대해 $g(n) > 0$이라고 하자.
 
-This says that $f$ becomes negligible compared to $g$ as $n$ grows.
+이는 $n$이 커질수록 $f$가 $g$에 비해 무시할 만해진다는 뜻이다.
 
-### Examples
+### 예제
 
-**Example 1:** $n = o(n^2)$ because $\lim_{n \to \infty} n / n^2 = \lim_{n \to \infty} 1/n = 0$.
+**예제 1:** $\lim_{n \to \infty} n / n^2 = \lim_{n \to \infty} 1/n = 0$이므로 $n = o(n^2)$이다.
 
-**Example 2:** $5n^2 + 3n = o(n^3)$ because $\lim_{n \to \infty} (5n^2 + 3n)/n^3 = \lim_{n \to \infty} (5/n + 3/n^2) = 0$.
+**예제 2:** $\lim_{n \to \infty} (5n^2 + 3n)/n^3 = \lim_{n \to \infty} (5/n + 3/n^2) = 0$이므로 $5n^2 + 3n = o(n^3)$이다.
 
-**Example 3:** $n^2 \neq o(n^2)$ because $\lim_{n \to \infty} n^2/n^2 = 1 \neq 0$.  This illustrates the "strict" nature of little-o: a function cannot be little-o of itself.
+**예제 3:** $\lim_{n \to \infty} n^2/n^2 = 1 \neq 0$이므로 $n^2 \neq o(n^2)$이다. 이는 리틀오의 "엄격한" 성격을 보여준다. 어떤 함수도 자기 자신의 리틀오가 될 수 없다.
 
-## Little-omega -- Strictly Faster Growth
+## 리틀오메가 -- 엄격히 빠른 증가
 
-### Definition
+### 정의
 
-!!! info "Definition -- Little-omega"
+!!! info "정의 -- 리틀오메가"
 
-    $f(n) = \omega(g(n))$ if for **every** constant $c > 0$, there exists $n_0 > 0$ such that
+    **모든** 상수 $c > 0$에 대해 다음을 만족하는 $n_0 > 0$이 존재하면 $f(n) = \omega(g(n))$이다.
 
     $$
     0 \leq c \cdot g(n) < f(n) \quad \text{for all } n \geq n_0
     $$
 
-Little-omega is the mirror image of little-o, just as Big-Omega mirrors Big-O.
+빅오메가가 빅오의 거울상이듯이, 리틀오메가는 리틀오의 거울상이다.
 
-### Limit Characterization
+### 극한을 이용한 특징짓기
 
-!!! info "Theorem -- Limit characterization of little-omega"
+!!! info "정리 -- 리틀오메가의 극한 특징짓기"
 
     $$
     f(n) = \omega(g(n)) \iff \lim_{n \to \infty} \frac{f(n)}{g(n)} = \infty
     $$
 
-    provided $g(n) > 0$ for sufficiently large $n$.
+    단, 충분히 큰 $n$에 대해 $g(n) > 0$이라고 하자.
 
-### Examples
+### 예제
 
-**Example 1:** $n^2 = \omega(n)$ because $\lim_{n \to \infty} n^2 / n = \lim_{n \to \infty} n = \infty$.
+**예제 1:** $\lim_{n \to \infty} n^2 / n = \lim_{n \to \infty} n = \infty$이므로 $n^2 = \omega(n)$이다.
 
-**Example 2:** $2^n = \omega(n^k)$ for any fixed $k$, because exponentials grow strictly faster than any polynomial.
+**예제 2:** 지수함수는 어떤 다항식보다도 엄격히 빠르게 증가하므로, 고정된 임의의 $k$에 대해 $2^n = \omega(n^k)$이다.
 
-**Example 3:** $n \neq \omega(n)$ because the limit is $1$, not $\infty$.
+**예제 3:** 극한이 $\infty$가 아니라 $1$이므로 $n \neq \omega(n)$이다.
 
-## Duality
+## 쌍대성
 
-Little-o and little-omega are dual to each other, just like Big-O and Big-Omega.
+빅오와 빅오메가가 그렇듯이 리틀오와 리틀오메가도 서로 쌍대이다.
 
 $$
 f(n) = o(g(n)) \iff g(n) = \omega(f(n))
 $$
 
-This follows directly from the limit characterizations: if $f/g \to 0$, then $g/f \to \infty$.
+이는 극한 특징짓기에서 곧바로 따라 나온다. $f/g \to 0$이면 $g/f \to \infty$이다.
 
-## Relationship to Big-O and Big-Omega
+## 빅오 및 빅오메가와의 관계
 
-Little-o is a **stronger** statement than Big-O, and little-omega is stronger than Big-Omega.
+리틀오는 빅오보다 **강한** 서술이고, 리틀오메가는 빅오메가보다 강한 서술이다.
 
-| Statement | Implies | Does not imply |
+| 서술 | 함의한다 | 함의하지 않는다 |
 |---|---|---|
 | $f = o(g)$ | $f = O(g)$ | $f = \Theta(g)$ |
 | $f = \omega(g)$ | $f = \Omega(g)$ | $f = \Theta(g)$ |
-| $f = \Theta(g)$ | $f = O(g)$ and $f = \Omega(g)$ | $f = o(g)$ or $f = \omega(g)$ |
+| $f = \Theta(g)$ | $f = O(g)$이고 $f = \Omega(g)$ | $f = o(g)$ 또는 $f = \omega(g)$ |
 
-In other words, $o(g) \subset O(g)$ and $\omega(g) \subset \Omega(g)$, with strict containment.  If $f = \Theta(g)$, then $f$ is neither $o(g)$ nor $\omega(g)$, because the functions grow at the same asymptotic rate.
+다시 말해 $o(g) \subset O(g)$이고 $\omega(g) \subset \Omega(g)$이며, 포함 관계는 진부분집합이다. $f = \Theta(g)$이면 두 함수가 같은 점근적 속도로 증가하므로 $f$는 $o(g)$도 $\omega(g)$도 아니다.
 
-## When to Use Little-o and Little-omega
+## 리틀오와 리틀오메가를 쓰는 경우
 
-These notations appear most often in three contexts:
+이 표기법들은 주로 세 가지 맥락에서 등장한다.
 
-1. **Error terms.** When approximating a function, little-o describes the remainder: for example, $\ln(1+x) = x + o(x)$ as $x \to 0$.
-2. **Strict separations.** To state that one algorithm is strictly faster than another: "Algorithm A runs in $o(n^2)$" means it is *better than quadratic*, not merely *at most quadratic*.
-3. **Lower-bound arguments.** To prove that a problem *requires* strictly more than a certain number of operations: "every comparison-based sorting algorithm uses $\omega(n)$ comparisons."
+1. **오차항.** 함수를 근사할 때 리틀오가 나머지를 기술한다. 예를 들어 $x \to 0$일 때 $\ln(1+x) = x + o(x)$이다.
+2. **엄격한 분리.** 한 알고리즘이 다른 알고리즘보다 엄격히 빠르다고 말할 때 쓴다. "알고리즘 A는 $o(n^2)$에 실행된다"는 단순히 *많아야 이차* 가 아니라 *이차보다 낫다* 는 뜻이다.
+3. **하계 논증.** 어떤 문제가 특정 연산 횟수보다 엄격히 더 많이 *필요로 함* 을 증명할 때 쓴다. "모든 비교 기반 정렬 알고리즘은 $\omega(n)$번의 비교를 사용한다."
 
-For the complete set of all five asymptotic definitions and their interrelationships, see [Formal Definitions](formal.md).
+다섯 가지 점근 표기법의 정의 전체와 그 상호 관계는 [형식적 정의](formal.md)를 참고하라.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 3. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+리틀오와 리틀오메가에서 다룬 점근 표기법을 적용하여 셀프 어텐션($n^2 d$번 연산)과 순방향 층($n d^2$번 연산)의 복잡도를 분류하라.
+
+??? success "연습문제 1 풀이"
+    셀프 어텐션: $O(n^2 d)$로 시퀀스 길이에 대해 이차이다. FFN: $O(nd^2)$로 시퀀스 길이에 대해서는 선형이지만 은닉 차원에 대해서는 이차이다. $n > d$이면 어텐션이 지배한다. $d > n$이면 FFN이 지배한다. 교차점은 $n = d$이다.
+
+---
+
+**연습문제 2.**
+리틀오와 리틀오메가에서 서술한 형식적 정의를 구체적인 상수 $c$와 $n_0$을 사용하여 증명하라.
+
+??? success "연습문제 2 풀이"
+    정의를 만족하는 $c$와 $n_0$의 구체적인 값을 고른다. 대수적 조작으로, 또는 각 항의 상계를 잡아서, 모든 $n \geq n_0$에 대해 부등식이 성립함을 검증한다.
+
+---
+
+**연습문제 3.**
+극한 판정법을 사용하여 리틀오와 리틀오메가에 관련된 두 함수 사이의 점근적 관계를 결정하라.
+
+??? success "연습문제 3 풀이"
+    $\lim_{n \to \infty} f(n)/g(n)$을 계산한다. 극한이 0이면 $f = o(g)$이다. 극한이 $\infty$이면 $f = \omega(g)$이다. 극한이 양의 상수이면 $f = \Theta(g)$이다.
+
+---
+
+**연습문제 4.**
+다음 함수들을 증가 속도 순으로 나열하라: $n$, $n \log n$, $n^2$, $2^n$, $\log n$. 인접한 각 쌍의 순서를 증명하라.
+
+??? success "연습문제 4 풀이"
+    $\log n \prec n \prec n\log n \prec n^2 \prec 2^n$. 증명: $\lim \log n / n = 0$(로피탈 정리), $\lim n/(n\log n) = 1/\log n \to 0$, $\lim n\log n / n^2 = \log n / n \to 0$, $\lim n^2/2^n = 0$(지수가 다항식을 지배한다). $\square$

@@ -1,105 +1,138 @@
-# B+ Trees
+# B+ 트리
 
-A [B-tree](definition.md) stores keys and data in every node — both internal nodes and leaves.  This design works well for point lookups, but range queries suffer because consecutive keys may live in nodes scattered across different subtrees.  The **B+ tree** solves this problem by pushing all data records to the leaves and linking the leaves into a sorted linked list.  Internal nodes store only keys that serve as routing guides, and a sequential scan of any key range reduces to a simple linked-list traversal at the leaf level.  This structure makes B+ trees the dominant index in virtually all relational database systems.
+[B-트리](definition.md)는 내부 노드든 잎이든 모든 노드에 열쇠와 데이터를 담는다. 이 설계는 한 점을 찾는 데는 잘 통하지만, 잇따른 열쇠가 서로 다른 부분 트리에 흩어져 있을 수 있어 범위 질의에서는 손해를 본다. **B+ 트리**는 모든 데이터 레코드를 잎으로 밀어 내리고 잎들을 정렬된 연결 리스트로 이어 이 문제를 푼다. 내부 노드는 길잡이 노릇을 하는 열쇠만 담으므로, 어떤 열쇠 범위를 차례로 훑는 일이 잎 층의 간단한 연결 리스트 순회가 된다. 이 짜임 덕분에 B+ 트리가 사실상 모든 관계형 데이터베이스의 주된 색인이 되었다.
 
-## Structure
+## 구조
 
-A B+ tree of order $m$ satisfies the following properties:
+차수가 $m$인 B+ 트리는 다음 성질을 만족한다.
 
-1. **Internal nodes** contain between $\lceil m/2 \rceil$ and $m$ children, with $k - 1$ keys guiding the search among $k$ children.  The root may have as few as 2 children (unless it is also a leaf).
-2. **Leaf nodes** contain between $\lceil (m-1)/2 \rceil$ and $m - 1$ key–value pairs.  Every data record resides in a leaf.
-3. **All leaves are at the same depth**, ensuring $O(\log n)$ search in the worst case.
-4. **Leaf linked list:** every leaf stores a pointer to the next leaf in key order, enabling efficient range scans.
+1. **내부 노드**는 자식을 $\lceil m/2 \rceil$개에서 $m$개까지 가지며, 자식이 $k$개일 때 열쇠 $k - 1$개가 찾기를 이끈다. 뿌리는 (잎이기도 하지 않다면) 자식이 2개뿐일 수도 있다.
+2. **잎 노드**는 열쇠-값 쌍을 $\lceil (m-1)/2 \rceil$개에서 $m - 1$개까지 가진다. 모든 데이터 레코드가 잎에 있다.
+3. **모든 잎이 같은 깊이에 있어** 최악의 경우에도 찾기가 $O(\log n)$이다.
+4. **잎의 연결 리스트:** 잎마다 열쇠 순서로 다음 잎을 가리키는 포인터를 담아 범위 훑기를 효율적으로 만든다.
 
-The key difference from a standard B-tree is that internal nodes do **not** store data — they store only separator keys that direct searches toward the correct leaf.
+표준 B-트리와의 핵심 차이는 내부 노드가 데이터를 담지 **않는다**는 것이다. 찾기를 알맞은 잎으로 이끄는 구분 열쇠만 담는다.
 
-??? example "B+ tree of order 4"
+??? example "차수가 4인 B+ 트리"
     ```
     Internal:       [  17  |  35  ]
                    /        |       \
     Leaves:   [3,5,12] → [17,20,30] → [35,42,50]
     ```
 
-    - Internal node holds separator keys 17 and 35.
-    - All data resides in the three leaf nodes.
-    - Arrows (`→`) represent the leaf-level linked list.
+    - 내부 노드가 구분 열쇠 17과 35를 담는다.
+    - 모든 데이터가 잎 노드 세 개에 있다.
+    - 화살표(`→`)는 잎 층의 연결 리스트를 나타낸다.
 
-## Search
+## 찾기
 
-Searching for a key $k$ starts at the root and descends through internal nodes using the separator keys.  At each internal node with keys $k_1, k_2, \ldots, k_{j}$, the search follows child pointer $c_i$ where $k_{i-1} \le k < k_i$ (with appropriate boundary handling).  The search always reaches a leaf, where a linear or binary scan determines whether $k$ is present.
+열쇠 $k$을 찾는 일은 뿌리에서 시작하여 구분 열쇠를 써서 내부 노드를 내려간다. 열쇠가 $k_1, k_2, \ldots, k_{j}$인 내부 노드마다 $k_{i-1} \le k < k_i$인 자식 포인터 $c_i$을 따라간다(경계는 알맞게 다룬다). 찾기는 언제나 잎에 닿고, 거기서 차례로 또는 이진 탐색으로 훑어 $k$이 있는지 가린다.
 
 $$
 \text{Search cost} = O(\log_m n) \cdot O(\log m) = O(\log n)
 $$
 
-The first factor counts the levels, and the second accounts for binary search within each node.
+첫 인수는 층의 수를, 둘째 인수는 노드 안의 이진 탐색을 나타낸다.
 
-## Insertion
+## 삽입
 
-Inserting a key–value pair follows these steps:
+열쇠-값 쌍을 넣는 일은 다음 단계를 따른다.
 
-1. **Search** for the correct leaf node $L$.
-2. **Insert** the key–value pair into $L$ in sorted order.
-3. If $L$ has fewer than $m$ entries, insertion is complete.
-4. If $L$ **overflows** (reaches $m$ entries), **split** $L$ into two leaves $L_1$ and $L_2$:
-      - $L_1$ keeps the first $\lceil m/2 \rceil$ entries.
-      - $L_2$ gets the remaining entries.
-      - The smallest key of $L_2$ is **copied up** to the parent as a new separator.
-5. If the parent overflows, split it recursively.  When an internal node splits, the middle key is **pushed up** (not copied), since internal nodes hold only routing keys.
+1. 알맞은 잎 노드 $L$을 **찾는다**.
+2. 열쇠-값 쌍을 정렬된 자리에 맞게 $L$에 **넣는다**.
+3. $L$의 항목이 $m$개보다 적으면 삽입이 끝난다.
+4. $L$이 **넘치면**(항목이 $m$개에 이르면) $L$을 잎 둘 $L_1$과 $L_2$으로 **쪼갠다**.
+      - $L_1$은 앞의 $\lceil m/2 \rceil$개 항목을 지킨다.
+      - $L_2$은 남은 항목을 받는다.
+      - $L_2$의 가장 작은 열쇠를 새 구분 열쇠로 부모에 **베껴 올린다**.
+5. 부모가 넘치면 재귀적으로 쪼갠다. 내부 노드가 쪼개질 때는 내부 노드가 길잡이 열쇠만 담으므로 가운데 열쇠를 (베끼지 않고) **밀어 올린다**.
 
-!!! warning "Copy up vs push up"
-    In B+ trees, leaf splits **copy** the separator up to the parent (the key remains in the leaf because all data must stay at the leaf level).  Internal node splits **push** the middle key up (removing it from the splitting node).  This differs from standard B-trees, where splits always push the middle key up.
+!!! warning "베껴 올리기와 밀어 올리기"
+    B+ 트리에서 잎을 쪼갤 때는 구분 열쇠를 부모로 **베껴** 올린다(모든 데이터가 잎 층에 있어야 하므로 그 열쇠는 잎에 남는다). 내부 노드를 쪼갤 때는 가운데 열쇠를 **밀어** 올린다(쪼개지는 노드에서 없앤다). 쪼갤 때 언제나 가운데 열쇠를 밀어 올리는 표준 B-트리와 다르다.
 
-## Deletion
+## 삭제
 
-Deleting a key from a B+ tree:
+B+ 트리에서 열쇠를 지우는 일은 다음과 같다.
 
-1. **Search** for the leaf $L$ containing the key and remove it.
-2. If $L$ still has at least $\lceil (m-1)/2 \rceil$ entries, deletion is complete.
-3. If $L$ **underflows**, try to **borrow** an entry from an adjacent sibling.
-4. If borrowing is not possible (sibling is at minimum occupancy), **merge** $L$ with its sibling and remove the corresponding separator from the parent.
-5. If the parent underflows, apply the same borrow-or-merge logic recursively.
+1. 그 열쇠를 담은 잎 $L$을 **찾아** 없앤다.
+2. $L$에 항목이 아직 $\lceil (m-1)/2 \rceil$개 이상 있으면 삭제가 끝난다.
+3. $L$이 **모자라면** 옆 형제에게서 항목을 **빌리려** 해 본다.
+4. 빌릴 수 없으면(형제도 최소한만 차 있으면) $L$을 형제와 **합치고** 부모에서 해당 구분 열쇠를 없앤다.
+5. 부모가 모자라면 같은 빌리기-합치기 논리를 재귀적으로 적용한다.
 
-A subtle point: if the deleted key also appears as a separator in an internal node, the separator must be updated to reflect the new smallest key of the right subtree.
+미묘한 점이 있다. 지운 열쇠가 내부 노드의 구분 열쇠로도 나타난다면, 오른쪽 부분 트리의 새로 가장 작은 열쇠에 맞추어 그 구분 열쇠를 고쳐야 한다.
 
-## Range Queries
+## 범위 질의
 
-Range queries are the primary motivation for B+ trees.  To find all keys in the range $[a, b]$:
+범위 질의가 B+ 트리를 만든 가장 큰 이유이다. 범위 $[a, b]$의 모든 열쇠를 찾으려면 다음과 같이 한다.
 
-1. Search for key $a$ to locate the starting leaf.
-2. Scan forward through the leaf linked list, collecting all keys $\le b$.
+1. 열쇠 $a$을 찾아 시작 잎을 짚는다.
+2. 잎의 연결 리스트를 앞으로 훑으며 $b$ 이하인 열쇠를 모두 모은다.
 
 $$
 \text{Range query cost} = O(\log_m n + k)
 $$
 
-where $k$ is the number of keys in the range.  The $O(\log_m n)$ term locates the starting leaf, and the $O(k)$ term covers the sequential scan.  Because leaves are stored contiguously on disk (or in cache-friendly blocks), this scan is extremely efficient in practice.
+여기서 $k$은 그 범위의 열쇠 수이다. $O(\log_m n)$ 항이 시작 잎을 짚고 $O(k)$ 항이 차례로 훑는 몫이다. 잎이 디스크에 (또는 캐시에 잘 맞는 블록에) 이어져 담기므로 실제로 이 훑기가 매우 효율적이다.
 
-## Complexity
+## 복잡도
 
-| Operation | Time complexity |
+| 연산 | 시간 복잡도 |
 |-----------|----------------|
-| Search | $O(\log n)$ |
-| Insert | $O(\log n)$ |
-| Delete | $O(\log n)$ |
-| Range query | $O(\log n + k)$ |
+| 찾기 | $O(\log n)$ |
+| 삽입 | $O(\log n)$ |
+| 삭제 | $O(\log n)$ |
+| 범위 질의 | $O(\log n + k)$ |
 
-All operations have the same asymptotic cost as a standard B-tree.  The practical advantage of B+ trees lies in the constant factors: higher fanout (since internal nodes carry no data) and sequential leaf access for range queries.
+모든 연산의 점근 비용은 표준 B-트리와 같다. B+ 트리의 실용적인 이점은 상수 배에 있다. (내부 노드가 데이터를 지지 않으므로) 갈래가 더 많고, 범위 질의에서 잎을 차례로 훑을 수 있다.
 
-## B+ Tree vs B-Tree
+## B+ 트리와 B-트리
 
-| Property | B-tree | B+ tree |
+| 성질 | B-트리 | B+ 트리 |
 |----------|--------|---------|
-| Data location | All nodes | Leaves only |
-| Internal node content | Keys + data + child pointers | Keys + child pointers |
-| Leaf linked list | No | Yes |
-| Range query | $O(\log n + k \log n)$ | $O(\log n + k)$ |
-| Fanout | Lower (data occupies space) | Higher (more keys per node) |
+| 데이터의 자리 | 모든 노드 | 잎에만 |
+| 내부 노드의 내용 | 열쇠와 데이터와 자식 포인터 | 열쇠와 자식 포인터 |
+| 잎의 연결 리스트 | 없음 | 있음 |
+| 범위 질의 | $O(\log n + k \log n)$ | $O(\log n + k)$ |
+| 갈래 수 | 적음 (데이터가 자리를 차지) | 많음 (노드마다 열쇠가 더 많다) |
 
-The higher fanout of B+ trees translates directly to fewer levels in the tree, which means fewer disk seeks per operation.
+B+ 트리의 갈래가 많다는 것은 곧 트리의 층이 적다는 뜻이고, 연산마다 디스크를 찾는 횟수가 줄어든다는 뜻이다.
 
-## Reference
+## 참고 문헌
 
 - Comer, D. (1979). The ubiquitous B-tree. *ACM Computing Surveys*, 11(2), 121–137.
 - Ramakrishnan, R., & Gehrke, J. (2003). *Database Management Systems* (3rd ed.), Chapter 10. McGraw-Hill.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 18. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+B+ 트리의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 B+ 트리를 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+B+ 트리이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 B+ 트리를 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

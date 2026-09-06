@@ -1,53 +1,49 @@
-# Chapter 30: Recommender Systems
+# 30장: 추천 시스템
 
+이 장은 **추천 시스템**을 다룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+추천 시스템은 쓰는 이의 취향을 헤아려 큰 목록에서 알맞은 물건을 내민다. 이 장은 고전 함께 거르기와 행렬 인수 분해에서 요즘 신경망 방법, 그래프 바탕 추천, 엄밀한 따지기 틀에 이르기까지 추천의 길을 두루 다룬다. 꾸러미 권하기, 물건 추천, 위험을 살피는 시스템 같은 금융 쓰임새를 곳곳에서 살핀다.
 
-This chapter covers **Parallel and Distributed**.
+## 차례
 
-Recommender systems predict user preferences and surface relevant items from large catalogs. This chapter covers the full spectrum of recommendation approaches, from classical collaborative filtering and matrix factorization to modern neural methods, graph-based recommenders, and rigorous evaluation frameworks. Financial applications including portfolio suggestion, product recommendation, and risk-aware systems are explored throughout.
+### 30.1 바탕
 
-## Contents
+- 추천 시스템 살펴보기 -- 추천 문제의 엄밀한 뜻매김, 매김 행렬, 추천 시스템 얼개의 갈래
+- 함께 거르기 -- 쓰는 이와 물건의 닮음 잣대를 쓰는 기억 바탕과 모델 바탕 함께 거르기
+- 내용 바탕 거르기 -- TF-IDF과 신경망 뽑개로 앞서 좋아한 물건과의 특징 닮음에 바탕해 물건 권하기
+- [행렬 인수 분해](foundations/matrix_factorization.md) -- 특잇값 분해 바탕 박아 넣기로 매김 행렬을 낮은 계수로 어림하기와 PyTorch의 치우침 있는 판
+- [숨은 되먹임과 드러난 되먹임](foundations/implicit_explicit.md) -- 드러난 매김과 숨은 움직임 신호의 틀, 둘을 아우르는 길
+- 차가운 출발 문제 -- 주고받음 자료가 적은 새 쓰는 이, 새 물건, 새 시스템을 다루는 셈속
 
-### 30.1 Foundations
+### 30.2 신경망 방법
 
-- RecSys Overview -- Formal definition of the recommendation problem, rating matrices, and taxonomy of recommender system architectures
-- Collaborative Filtering -- Memory-based and model-based collaborative filtering using user and item similarity measures
-- Content-Based Filtering -- Recommending items based on feature similarity to previously liked items using TF-IDF and neural extractors
-- [Matrix Factorization](foundations/matrix_factorization.md) -- Low-rank approximation of the rating matrix with SVD-based embeddings and biased MF in PyTorch
-- [Implicit vs Explicit Feedback](foundations/implicit_explicit.md) -- Frameworks for explicit ratings and implicit behavioral signals with approaches to combine both modalities
-- Cold Start Problem -- Strategies for handling new users, new items, and new systems with limited interaction data
+- 신경망 함께 거르기 -- 나타냄 힘이 센 쓰는 이-물건 주고받음을 위해 안쪽 곱을 신경망으로 바꾸기
+- [스스로 담개 바탕 추천 시스템](neural_methods/autoencoder_recsys.md) -- 매김 됨됨이에서 숨은 쓰는 이 나타냄을 배우는 변분 및 여느 스스로 담개
+- 차례 추천 -- GRU4Rec과 스스로 눈길 모델(SASRec)을 쓰는 때를 살피는 추천
+- 신경망 내용 바탕 거르기 -- 신경망 특징 뽑기를 쓰는 내용 바탕 추천의 깊은 배움 길
+- 박아 넣기 바탕 추천 시스템 -- 키울 수 있는 추천을 위한 두 탑 얼개와 어림 가장 가까운 이웃 찾기
+- [눈길 바탕 추천 시스템](neural_methods/attention_recsys.md) -- 쓰는 이의 지난 일과 맥락 앎에 그때그때 무게를 주는 눈길 얼개
+- 섞은 방법 -- 저마다의 한계를 넘으려 함께 거르기와 내용 바탕 신호를 아우르기
 
-### 30.2 Neural Methods
+### 30.3 그래프 바탕 추천 시스템
 
-- Neural Collaborative Filtering -- Replacing the dot product with neural networks for more expressive user-item interaction modeling
-- [Autoencoder-Based RecSys](neural_methods/autoencoder_recsys.md) -- Variational and standard autoencoders for learning latent user representations from rating profiles
-- Sequential Recommendations -- Temporal-aware recommendations using GRU4Rec and self-attentive models (SASRec)
-- Neural Content-Based Filtering -- Deep learning approaches to content-based recommendation with neural feature extraction
-- Embedding-Based RecSys -- Two-tower architectures and approximate nearest neighbor retrieval for scalable recommendation
-- [Attention-Based RecSys](neural_methods/attention_recsys.md) -- Attention mechanisms for dynamically weighting user history and contextual information
-- Hybrid Methods -- Combining collaborative and content-based signals to overcome individual method limitations
+- 두 쪽 그래프로 나타내기 -- 아무 걸음과 스펙트럼 방법으로 쓰는 이-물건 주고받음을 두 쪽 그래프로 나타내기
+- 그래프 신경망 바탕 추천 시스템 -- 주고받음 그래프 위 쪽지 건네기로 끝에서 끝까지 추천하는 그래프 신경망
+- 앎 그래프 추천 시스템 -- 밝힐 수 있고 미루어 아는 추천을 위해 짜임 있는 뜻 앎을 살리기
+- 사회 그래프 추천 시스템 -- 사회 그물 얼개를 쓰는 믿음을 살피고 영향에 바탕한 추천
 
-### 30.3 Graph-Based Recommender Systems
+### 30.4 따지기
 
-- Bipartite Graph Modeling -- Representing user-item interactions as bipartite graphs with random walks and spectral methods
-- GNN-Based RecSys -- End-to-end graph neural networks for recommendation with message passing on interaction graphs
-- Knowledge Graph RecSys -- Leveraging structured semantic knowledge for explainable, reasoning-based recommendations
-- Social Graph RecSys -- Trust-aware and influence-based recommendations using social network structure
+- 추천 시스템 따지기 -- 평균 제곱 어긋남, 그 제곱근, 평균 절대 어긋남 잣대로 보는 매김 헤아리기와 매김 따지기의 틀
+- 매김 잣대 -- 추천 목록의 품질을 따지는 Precision@K, Recall@K, NDCG, MAP
+- 온라인 따지기와 오프라인 따지기 -- 때로 나누기, 하나 빼기 규약, 오프라인 잣대와 실제 성과의 틈
+- 덮음과 다양함 -- 목록 덮음과 목록 안 다양함 재기, 인기 치우침 다루기
+- 추천 시스템의 A/B 시험 -- 실제 시험을 위한 실험 설계, 아무 나누기, 표본 크기 셈, 통계 뜻 있음
+- 맞음 잣대를 넘어 -- 두루 살피는 여러 차원 따지기 틀: 새로움, 뜻밖의 반가움, 공정함
 
-### 30.4 Evaluation
+### 30.5 금융 쓰임새
 
-- Evaluating Recommender Systems -- Rating prediction vs ranking evaluation paradigms with MSE, RMSE, and MAE metrics
-- Ranking Metrics -- Precision@K, Recall@K, NDCG, and MAP for evaluating recommendation list quality
-- Online vs Offline Evaluation -- Temporal splits, leave-one-out protocols, and the gap between offline metrics and live performance
-- Coverage and Diversity -- Measuring catalog coverage, intra-list diversity, and addressing popularity bias
-- A/B Testing for RecSys -- Experimental design, randomization, sample size calculation, and statistical significance for production tests
-- Beyond Accuracy Metrics -- Novelty, serendipity, fairness, and multi-dimensional evaluation frameworks for comprehensive assessment
-
-### 30.5 Financial Applications
-
-- [Portfolio Suggestion](finance/portfolio_suggestion.md) -- Personalized portfolio recommendations balancing returns, risk suitability, diversification, and regulatory compliance
-- Financial Product Recommendation -- Recommending funds, ETFs, and banking products with suitability requirements and fiduciary constraints
-- [Research Report Recommendation](finance/research_recommendation.md) -- Surfacing relevant equity research and macro commentary using NLP content understanding and collaborative filtering
-- [Risk-Aware RecSys](finance/risk_aware.md) -- Incorporating downside risk, portfolio concentration, and stress scenarios into recommendation algorithms
+- [꾸러미 권하기](finance/portfolio_suggestion.md) -- 벌이, 위험 알맞음, 갈라 담기, 규제 지킴을 저울질하는 사람마다 맞춘 꾸러미 추천
+- 금융 물건 추천 -- 알맞음 요구와 신의 성실 매임 아래 펀드, 상장 지수 펀드, 은행 물건 권하기
+- [연구 보고서 추천](finance/research_recommendation.md) -- 자연어 다루기의 내용 이해와 함께 거르기로 알맞은 주식 연구와 거시 논평을 내밀기
+- [위험을 살피는 추천 시스템](finance/risk_aware.md) -- 내림 위험, 꾸러미 쏠림, 버거움 상황을 추천 알고리즘에 담기

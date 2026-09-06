@@ -1,24 +1,24 @@
-# Stack Applications
+# 스택의 응용
 
-The LIFO property of stacks makes them uniquely suited for any problem where the most recent piece of information is the most relevant. Compilers use stacks to match parentheses and evaluate expressions. Operating systems use them to manage function calls. Graph algorithms use them for depth-first traversal. This page surveys the most important algorithmic applications of stacks, providing concrete examples and complexity analyses for each.
+스택의 후입선출 성질은 가장 최근의 정보가 가장 중요한 문제라면 어디에나 딱 들어맞는다. 컴파일러는 괄호를 맞추고 식을 계산하는 데 스택을 쓴다. 운영체제는 함수 호출을 관리하는 데 쓴다. 그래프 알고리즘은 깊이 우선 순회에 쓴다. 이 쪽은 스택의 중요한 알고리즘적 응용을 훑어보며 각각에 대해 구체적인 예와 복잡도 분석을 제시한다.
 
-## String Reversal
+## 문자열 뒤집기
 
-Because a stack outputs elements in reverse insertion order, pushing every character of a string onto a stack and then popping them all produces the reversed string. This runs in $O(n)$ time and $O(n)$ space, where $n$ is the length of the string.
+스택은 넣은 순서의 역순으로 원소를 내놓으므로, 문자열의 모든 문자를 스택에 넣었다가 모두 빼면 뒤집힌 문자열을 얻는다. 문자열의 길이를 $n$이라 할 때 시간은 $O(n)$, 공간은 $O(n)$이다.
 
 ```python
 """
-Stack applications — common algorithmic uses of the stack data structure.
+스택의 응용 — 스택 자료 구조의 흔한 알고리즘적 쓰임.
 
-Demonstrates string reversal, undo mechanism, depth-first search,
-and next-greater-element problems, all powered by the LIFO property.
+후입선출 성질에 기댄 문자열 뒤집기, 되돌리기 장치, 깊이 우선 탐색,
+다음 큰 원소 문제를 보인다.
 """
 
 
-# === Stack Implementation =====================================================
+# === 스택 구현 =====================================================
 
 class Stack:
-    """Minimal stack for demonstration purposes."""
+    """시연을 위한 최소한의 스택."""
 
     def __init__(self):
         self._items = []
@@ -43,13 +43,13 @@ class Stack:
         return len(self._items)
 
 
-# === Application 1: String Reversal ==========================================
+# === 응용 1: 문자열 뒤집기 ==========================================
 
 def reverse_string(text):
     """Reverse a string using a stack.
 
-    Push each character, then pop all — LIFO ordering produces the reversal.
-    Time: O(n), Space: O(n).
+    문자를 모두 넣었다가 모두 빼면 후입선출 순서가 뒤집힌 문자열을 만든다.
+    시간: O(n), 공간: O(n).
     """
     stack = Stack()
     for ch in text:
@@ -61,13 +61,13 @@ def reverse_string(text):
     return "".join(result)
 
 
-# === Application 2: Undo Mechanism ===========================================
+# === 응용 2: 되돌리기 장치 ===========================================
 
 def simulate_undo(actions):
     """Simulate an undo mechanism using a stack.
 
-    Each action is pushed. Undo pops the most recent action.
-    Returns the list of undone actions in reverse chronological order.
+    동작을 하나씩 넣는다. 되돌리기는 가장 최근 동작을 뺀다.
+    되돌린 동작을 시간 역순의 목록으로 돌려준다.
     """
     stack = Stack()
     for action in actions:
@@ -82,14 +82,14 @@ def simulate_undo(actions):
     return undone
 
 
-# === Application 3: Depth-First Search =======================================
+# === 응용 3: 깊이 우선 탐색 =======================================
 
 def dfs_iterative(graph, start):
     """Iterative depth-first search using an explicit stack.
 
-    Replaces the implicit call stack of recursive DFS with a user-managed
-    stack, making the LIFO traversal order explicit.
-    Time: O(V + E), Space: O(V).
+    재귀적 깊이 우선 탐색의 암묵적인 호출 스택을 사용자가 관리하는 스택으로
+    바꾸어 후입선출 순회 순서를 눈에 보이게 한다.
+    시간: O(V + E), 공간: O(V).
     """
     visited = set()
     stack = Stack()
@@ -101,25 +101,25 @@ def dfs_iterative(graph, start):
         if node not in visited:
             visited.add(node)
             order.append(node)
-            # Push neighbors in reverse order for consistent left-to-right traversal
+            # 왼쪽에서 오른쪽으로 한결같이 순회하려고 이웃을 역순으로 넣는다
             for neighbor in reversed(graph[node]):
                 if neighbor not in visited:
                     stack.push(neighbor)
     return order
 
 
-# === Application 4: Next Greater Element =====================================
+# === 응용 4: 다음 큰 원소 =====================================
 
 def next_greater_element(arr):
     """Find the next greater element for each position using a monotonic stack.
 
-    For each element, the next greater element is the first element to its
-    right that is strictly larger. Uses a stack to achieve O(n) time
-    instead of the naive O(n^2) approach.
+    원소마다 다음 큰 원소는 그 오른쪽에서 처음으로 엄격히 더 큰 원소이다.
+    스택을 써서 소박한 O(n^2) 대신 O(n) 시간에 해낸다.
+    
     """
     n = len(arr)
     result = [-1] * n
-    stack = Stack()  # stores indices
+    stack = Stack()  # 인덱스를 담는다
 
     for i in range(n):
         while not stack.is_empty() and arr[stack.peek()] < arr[i]:
@@ -129,21 +129,21 @@ def next_greater_element(arr):
     return result
 
 
-# === Demonstration ============================================================
+# === 시연 ============================================================
 
 if __name__ == "__main__":
-    # String reversal
+    # 문자열 뒤집기
     original = "stack"
     print(f"Original: '{original}' → Reversed: '{reverse_string(original)}'")
     print()
 
-    # Undo mechanism
+    # 되돌리기 장치
     print("Undo mechanism:")
     actions = ["type 'H'", "type 'i'", "bold text", "insert image"]
     simulate_undo(actions)
     print()
 
-    # Iterative DFS
+    # 반복적 깊이 우선 탐색
     graph = {
         "A": ["B", "C"],
         "B": ["D", "E"],
@@ -155,13 +155,13 @@ if __name__ == "__main__":
     print(f"DFS from 'A': {dfs_iterative(graph, 'A')}")
     print()
 
-    # Next greater element
+    # 다음 큰 원소
     arr = [4, 5, 2, 10, 8]
     print(f"Array:                {arr}")
     print(f"Next greater element: {next_greater_element(arr)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Original: 'stack' → Reversed: 'kcats'
 
@@ -181,37 +181,70 @@ Array:                [4, 5, 2, 10, 8]
 Next greater element: [5, 10, 10, -1, -1]
 ```
 
-## Undo and History
+## 되돌리기와 이력
 
-Text editors, drawing programs, and version control systems all maintain a history of actions. Pushing each action onto a stack and popping on "undo" naturally reverses actions in the correct order. The time complexity is $O(1)$ per undo or redo operation. Many systems extend this with a second stack for redo: when the user undoes an action, it is popped from the undo stack and pushed onto the redo stack.
+편집기, 그림판, 버전 관리 시스템은 모두 동작의 이력을 남긴다. 동작을 스택에 하나씩 넣고 "되돌리기" 때 빼면 자연스럽게 올바른 순서로 되돌려진다. 되돌리기나 다시 하기 한 번에 $O(1)$이 든다. 많은 시스템은 다시 하기를 위해 두 번째 스택을 더 둔다. 사용자가 동작을 되돌리면 그 동작을 되돌리기 스택에서 빼서 다시 하기 스택에 넣는다.
 
-## Depth-First Search
+## 깊이 우선 탐색
 
-Recursive DFS implicitly uses the call stack. An iterative implementation replaces this with an explicit stack, making the memory usage controllable and avoiding stack overflow on deep graphs. The LIFO property ensures that the most recently discovered node is explored first, which is exactly the depth-first strategy. The complexity is $O(V + E)$ time and $O(V)$ space.
+재귀적인 깊이 우선 탐색은 호출 스택을 암묵적으로 쓴다. 반복적인 구현은 이를 눈에 보이는 스택으로 바꾸어 메모리 사용을 제어할 수 있게 하고 깊은 그래프에서 스택 넘침을 피한다. 후입선출 성질 덕분에 가장 최근에 찾은 마디를 먼저 살피게 되는데, 이것이 바로 깊이 우선 전략이다. 시간은 $O(V + E)$, 공간은 $O(V)$이다.
 
-## Monotonic Stack Problems
+## 단조 스택 문제
 
-A **monotonic stack** maintains elements in sorted order (either increasing or decreasing). This pattern solves several problems in $O(n)$ time that would otherwise require $O(n^2)$:
+**단조 스택**은 원소를 (증가 또는 감소하는) 정렬된 차례로 유지한다. 이 방식은 그러지 않으면 $O(n^2)$이 걸릴 여러 문제를 $O(n)$ 시간에 푼다.
 
-- **Next greater element**: for each element, find the first larger element to its right
-- **Largest rectangle in histogram**: find the maximum area rectangle formed by consecutive bars
-- **Stock span problem**: for each day, count consecutive preceding days with lower or equal prices
+- **다음 큰 원소**: 원소마다 오른쪽에서 처음으로 더 큰 원소를 찾는다
+- **히스토그램에서 가장 큰 직사각형**: 이어진 막대들이 이루는 넓이가 최대인 직사각형을 찾는다
+- **주가 스팬 문제**: 날마다 그 앞에서 값이 같거나 낮았던 연속된 날의 수를 센다
 
-The key insight is that each element is pushed and popped at most once, giving $O(n)$ total operations regardless of the input.
+핵심은 각 원소가 많아야 한 번 들어가고 한 번 나온다는 점이며, 그래서 입력과 무관하게 전체 연산이 $O(n)$이 된다.
 
-## Summary of Applications
+## 응용 요약
 
-| Application | Stack Role | Time | Space |
+| 응용 | 스택의 구실 | 시간 | 공간 |
 |---|---|---|---|
-| String reversal | Reverse character order | $O(n)$ | $O(n)$ |
-| Undo mechanism | Track action history | $O(1)$ per op | $O(n)$ |
-| Depth-first search | Track unexplored nodes | $O(V + E)$ | $O(V)$ |
-| Next greater element | Maintain monotonic order | $O(n)$ | $O(n)$ |
-| Balanced parentheses | Match openers with closers | $O(n)$ | $O(n)$ |
-| Expression evaluation | Handle operands and operators | $O(n)$ | $O(n)$ |
+| 문자열 뒤집기 | 문자의 순서를 뒤집는다 | $O(n)$ | $O(n)$ |
+| 되돌리기 장치 | 동작의 이력을 남긴다 | 연산당 $O(1)$ | $O(n)$ |
+| 깊이 우선 탐색 | 아직 살피지 않은 마디를 기록한다 | $O(V + E)$ | $O(V)$ |
+| 다음 큰 원소 | 단조로운 차례를 유지한다 | $O(n)$ | $O(n)$ |
+| 균형 잡힌 괄호 | 여는 괄호와 닫는 괄호를 맞춘다 | $O(n)$ | $O(n)$ |
+| 식의 계산 | 피연산자와 연산자를 다룬다 | $O(n)$ | $O(n)$ |
 
-Detailed treatments of expression evaluation, infix-to-postfix conversion, balanced parentheses checking, and function call simulation appear on their respective sibling pages.
+식의 계산, 중위에서 후위로의 변환, 괄호 균형 확인, 함수 호출 흉내 내기는 각각의 이웃 쪽에서 자세히 다룬다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+스택의 응용의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+스택의 응용을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+스택의 응용을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+스택의 응용을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

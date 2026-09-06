@@ -1,79 +1,68 @@
-# Early Stopping
+# 조기 종료
+## 개요
 
+조기 종료는 검증 집합에서의 모델 성능이 더 나아지지 않을 때 학습을 멈추는 정칙화 기법이다. 모델이 일반화되는 양상은 배웠지만 아직 학습 데이터의 잡음을 외우기 시작하지는 않은 지점을 찾아내어 과적합을 막는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+!!! note "함께 볼 것"
+    학습률 스케줄링과의 상호작용을 포함하여 PyTorch 학습 루프에서 조기 종료를 쓰는 간결한 실용 안내는 **5.6절 과적합과 일반화**를 보라.
 
-## Overview
+## 개념적 토대
 
-Early stopping is a regularization technique that halts training when the model's performance on a validation set stops improving. This prevents overfitting by identifying the point where the model has learned generalizable patterns but hasn't yet begun memorizing training noise.
+### 과적합의 진행 경로
 
-!!! note "See Also"
-    For a concise practical guide to using early stopping in PyTorch training loops, including interaction with learning rate scheduling, see **Section 5.6 Overfitting & Generalization**.
+학습 중에 모델은 대체로 예측 가능한 경로를 따른다.
 
-## Conceptual Foundation
+1. **초기 단계**: 학습 손실과 검증 손실이 모두 빠르게 줄어든다
+2. **학습 단계**: 학습 손실은 계속 줄지만 검증 손실은 더 느리게 준다
+3. **과적합 단계**: 학습 손실은 줄지만 검증 손실은 늘어난다
 
-### The Overfitting Trajectory
+조기 종료는 2단계와 3단계 사이의 전환점을 찾아낸다.
 
-During training, models typically follow a predictable trajectory:
+### 암묵적 정칙화
 
-1. **Initial phase**: Both training and validation loss decrease rapidly
-2. **Learning phase**: Training loss continues decreasing; validation loss decreases more slowly
-3. **Overfitting phase**: Training loss decreases; validation loss increases
+조기 종료는 다음을 통해 암묵적 정칙화 장치로 작동한다.
 
-Early stopping identifies the transition point between phases 2 and 3.
+- 최적화 반복 횟수를 제한하여 모델의 복잡도를 제한한다
+- 가중치가 극단적인 값에 이르는 것을 막는다
+- 모델을 초기화에 더 가까운 매개변수 공간의 영역에 머무르게 한다
 
-### Implicit Regularization
+선형 모델에서 경사 하강법과 함께 쓰는 조기 종료는 수학적으로 L2 정칙화와 동등하며, 실효 정칙화 강도는 반복 횟수에 반비례한다.
 
-Early stopping acts as an implicit regularizer by:
+## 수학적 정식화
 
-- Limiting model complexity through restricted optimization iterations
-- Preventing weights from reaching extreme values
-- Keeping the model in a region of parameter space closer to initialization
+### 검증에 기반한 종료 기준
 
-For linear models, early stopping with gradient descent is mathematically equivalent to L2 regularization, where the effective regularization strength is inversely proportional to the number of iterations.
-
-## Mathematical Formulation
-
-### Validation-Based Stopping Criterion
-
-Let $\mathcal{L}_{\text{val}}^{(t)}$ denote the validation loss at epoch $t$. The basic stopping criterion:
+에포크 $t$에서의 검증 손실을 $\mathcal{L}_{\text{val}}^{(t)}$이라 하자. 기본 종료 기준은 다음과 같다.
 
 $$
-
 \text{Stop if } \mathcal{L}_{\text{val}}^{(t)} > \mathcal{L}_{\text{val}}^{(t-1)} \text{ for } k \text{ consecutive epochs}
-
 $$
 
-where $k$ is the **patience** parameter.
+여기서 $k$은 **인내(patience)** 매개변수이다.
 
-### Best Model Selection
+### 최적 모델의 선택
 
-Track the best validation performance:
+가장 좋은 검증 성능을 기록해 둔다.
 
 $$
-
 t^* = \arg\min_{t \leq T} \mathcal{L}_{\text{val}}^{(t)}
-
 $$
 
-Return the model parameters $\theta^{(t^*)}$ rather than the final parameters $\theta^{(T)}$.
+마지막 매개변수 $\theta^{(T)}$이 아니라 매개변수 $\theta^{(t^*)}$을 돌려준다.
 
-### Generalization Bound Perspective
+### 일반화 한계의 관점
 
-Early stopping provides implicit regularization. For linear regression with gradient descent, stopping at iteration $t$ is equivalent to Ridge regression with:
+조기 종료는 암묵적 정칙화를 제공한다. 경사 하강법을 쓰는 선형 회귀에서 반복 $t$에서 멈추는 것은 다음을 쓰는 능선 회귀와 동등하다.
 
 $$
-
 \lambda_{\text{eff}} \approx \frac{1}{\eta t}
-
 $$
 
-where $\eta$ is the learning rate.
+여기서 $\eta$은 학습률이다.
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### Basic Early Stopping
+### 기본적인 조기 종료
 
 ```python
 import torch
@@ -83,13 +72,13 @@ import copy
 
 class EarlyStopping:
     """
-    Early stopping to halt training when validation loss stops improving.
+    검증 손실이 더 나아지지 않으면 학습을 멈추는 조기 종료.
     
-    Args:
-        patience: Number of epochs to wait after last improvement
-        min_delta: Minimum change to qualify as improvement
-        mode: 'min' for loss (lower is better), 'max' for accuracy
-        restore_best_weights: Whether to restore best model weights
+    인수:
+        patience: 마지막 개선 뒤 기다릴 에포크 수
+        min_delta: 개선으로 볼 최소 변화량
+        mode: 손실이면 'min'(작을수록 좋다), 정확도면 'max'
+        restore_best_weights: 가장 좋았던 가중치로 되돌릴지 여부
     """
     
     def __init__(
@@ -117,15 +106,15 @@ class EarlyStopping:
     
     def __call__(self, score: float, model: torch.nn.Module, epoch: int) -> bool:
         """
-        Check if training should stop.
+        학습을 멈춰야 하는지 확인한다.
         
-        Args:
-            score: Current validation score
-            model: Model to potentially save
-            epoch: Current epoch number
+        인수:
+            score: 현재 검증 점수
+            model: 저장할 수도 있는 모델
+            epoch: 현재 에포크 번호
             
-        Returns:
-            True if training should stop
+        반환값:
+            학습을 멈춰야 하면 True
         """
         if self.best_score is None:
             self.best_score = score
@@ -157,7 +146,7 @@ class EarlyStopping:
         return self.best_epoch
 ```
 
-### Training Loop with Early Stopping
+### 조기 종료를 쓰는 학습 루프
 
 ```python
 import torch.nn as nn
@@ -176,21 +165,21 @@ def train_with_early_stopping(
     verbose: bool = True
 ) -> dict:
     """
-    Train model with early stopping.
+    조기 종료와 함께 모델을 학습시킨다.
     
-    Args:
-        model: Neural network
-        train_loader: Training data loader
-        val_loader: Validation data loader  
-        criterion: Loss function
-        optimizer: Optimizer
-        max_epochs: Maximum training epochs
-        patience: Early stopping patience
-        min_delta: Minimum improvement threshold
-        verbose: Print progress
+    인수:
+        model: 신경망
+        train_loader: 학습 데이터 로더
+        val_loader: 검증 데이터 로더
+        criterion: 손실 함수
+        optimizer: 최적화기
+        max_epochs: 최대 학습 에포크 수
+        patience: 조기 종료의 인내
+        min_delta: 개선으로 볼 최소 문턱값
+        verbose: 진행 상황 출력 여부
         
-    Returns:
-        Training history
+    반환값:
+        학습 이력
     """
     early_stopping = EarlyStopping(
         patience=patience,
@@ -205,7 +194,7 @@ def train_with_early_stopping(
     }
     
     for epoch in range(max_epochs):
-        # Training phase
+        # 학습 단계
         model.train()
         train_loss, train_correct, train_total = 0, 0, 0
         
@@ -224,7 +213,7 @@ def train_with_early_stopping(
         train_loss /= train_total
         train_acc = train_correct / train_total
         
-        # Validation phase
+        # 검증 단계
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
         
@@ -241,7 +230,7 @@ def train_with_early_stopping(
         val_loss /= val_total
         val_acc = val_correct / val_total
         
-        # Record history
+        # 이력 기록
         history['train_loss'].append(train_loss)
         history['val_loss'].append(val_loss)
         history['train_acc'].append(train_acc)
@@ -251,7 +240,7 @@ def train_with_early_stopping(
             print(f"Epoch {epoch+1}: Train Loss={train_loss:.4f}, "
                   f"Val Loss={val_loss:.4f}, Val Acc={val_acc:.4f}")
         
-        # Check early stopping
+        # 조기 종료 여부를 확인한다
         if early_stopping(val_loss, model, epoch):
             if verbose:
                 print(f"Early stopping at epoch {epoch+1}")
@@ -262,14 +251,14 @@ def train_with_early_stopping(
     return history
 ```
 
-### Advanced Early Stopping with Multiple Criteria
+### 여러 기준을 쓰는 고급 조기 종료
 
 ```python
 class MultiMetricEarlyStopping:
     """
-    Early stopping based on multiple metrics.
+    여러 지표에 기반한 조기 종료.
     
-    Stops when ALL monitored metrics stop improving.
+    감시하는 모든 지표가 더 나아지지 않으면 멈춘다.
     """
     
     def __init__(
@@ -279,11 +268,11 @@ class MultiMetricEarlyStopping:
         restore_best_weights: bool = True
     ):
         """
-        Args:
-            metrics_config: Dict mapping metric names to 'min' or 'max'
-                           e.g., {'val_loss': 'min', 'val_acc': 'max'}
-            patience: Patience for each metric
-            restore_best_weights: Whether to restore best weights
+        인수:
+            metrics_config: 지표 이름을 'min' 또는 'max'에 대응시키는 사전
+                           예: {'val_loss': 'min', 'val_acc': 'max'}
+            patience: 지표마다의 인내
+            restore_best_weights: 가장 좋았던 가중치로 되돌릴지 여부
         """
         self.patience = patience
         self.restore_best_weights = restore_best_weights
@@ -302,15 +291,15 @@ class MultiMetricEarlyStopping:
     
     def __call__(self, metrics: dict, model: nn.Module, epoch: int) -> bool:
         """
-        Check if training should stop.
+        학습을 멈춰야 하는지 확인한다.
         
-        Args:
-            metrics: Dict of current metric values
-            model: Model to save
-            epoch: Current epoch
+        인수:
+            metrics: 현재 지표 값의 사전
+            model: 저장할 모델
+            epoch: 현재 에포크
             
-        Returns:
-            True if should stop
+        반환값:
+            멈춰야 하면 True
         """
         any_improved = False
         
@@ -330,7 +319,7 @@ class MultiMetricEarlyStopping:
             if self.restore_best_weights:
                 self.best_weights = copy.deepcopy(model.state_dict())
         
-        # Stop if ALL metrics exceeded patience
+        # 모든 지표가 인내를 넘겼으면 멈춘다
         all_exceeded = all(c >= self.patience for c in self.counters.values())
         
         if all_exceeded and self.restore_best_weights:
@@ -339,12 +328,12 @@ class MultiMetricEarlyStopping:
         return all_exceeded
 ```
 
-### Early Stopping with Learning Rate Scheduling
+### 학습률 스케줄링과 함께 쓰는 조기 종료
 
 ```python
 class EarlyStoppingWithLRScheduler:
     """
-    Combines early stopping with learning rate reduction on plateau.
+    조기 종료와 정체 시 학습률 감소를 결합한다.
     """
     
     def __init__(
@@ -384,7 +373,7 @@ class EarlyStoppingWithLRScheduler:
             self.counter += 1
             self.lr_counter += 1
             
-            # Reduce LR if plateau
+            # 정체되면 학습률을 줄인다
             if self.lr_counter >= self.lr_patience:
                 current_lr = self.optimizer.param_groups[0]['lr']
                 new_lr = max(current_lr * self.lr_factor, self.min_lr)
@@ -397,7 +386,7 @@ class EarlyStoppingWithLRScheduler:
                 
                 self.lr_counter = 0
         
-        # Stop if patience exceeded
+        # 인내를 넘겼으면 멈춘다
         if self.counter >= self.patience:
             model.load_state_dict(self.best_weights)
             return True
@@ -405,31 +394,32 @@ class EarlyStoppingWithLRScheduler:
         return False
 ```
 
-## Hyperparameter Considerations
+## 초매개변수에 대한 고려
 
-### Choosing Patience
+### 인내 값 고르기
 
-The patience parameter controls the trade-off between:
+인내 매개변수는 다음 사이의 절충을 조절한다.
 
-- **Too low**: May stop prematurely during temporary fluctuations
-- **Too high**: May waste computation and risk overfitting
+- **너무 작으면**: 일시적인 요동 중에 너무 일찍 멈출 수 있다
+- **너무 크면**: 계산을 낭비하고 과적합의 위험을 안는다
 
-Guidelines:
-- Start with patience = 10-20 epochs
-- Increase for noisy validation metrics
-- Decrease for smooth, predictable learning curves
+지침은 다음과 같다.
+
+- 인내 = 10~20 에포크에서 시작한다
+- 검증 지표가 잡음이 많으면 늘린다
+- 학습 곡선이 매끄럽고 예측 가능하면 줄인다
 
 ```python
 def analyze_optimal_patience(history: dict, test_patience_values: list):
     """
-    Analyze what stopping point different patience values would yield.
+    인내 값에 따라 어느 지점에서 멈추게 되는지 분석한다.
     
-    Args:
-        history: Training history with 'val_loss'
-        test_patience_values: List of patience values to test
+    인수:
+        history: 'val_loss'를 담은 학습 이력
+        test_patience_values: 시험해 볼 인내 값의 목록
         
-    Returns:
-        Dict mapping patience to stopping epoch and best val_loss
+    반환값:
+        인내를 종료 에포크와 최적 val_loss에 대응시키는 사전
     """
     val_losses = history['val_loss']
     results = {}
@@ -459,108 +449,102 @@ def analyze_optimal_patience(history: dict, test_patience_values: list):
     return results
 ```
 
-### Choosing the Monitored Metric
+### 감시할 지표 고르기
 
-| Metric | When to Use |
+| 지표 | 쓸 때 |
 |--------|-------------|
-| Validation loss | Default choice; directly measures generalization |
-| Validation accuracy | When accuracy is the primary goal |
-| F1 score | For imbalanced classification |
-| Custom metric | Domain-specific requirements |
+| 검증 손실 | 기본 선택. 일반화를 직접 잰다 |
+| 검증 정확도 | 정확도가 주된 목표일 때 |
+| F1 점수 | 불균형 분류일 때 |
+| 사용자 정의 지표 | 분야에 특화된 요구가 있을 때 |
 
-### Minimum Delta Selection
+### 최소 개선폭 고르기
 
-The `min_delta` parameter defines what counts as improvement:
+`min_delta` 매개변수는 무엇을 개선으로 볼지 정한다.
 
 ```python
-# For typical loss values around 0.1-1.0
-min_delta = 1e-4  # Default
+# 손실값이 대략 0.1~1.0인 보통의 경우
+min_delta = 1e-4  # 기본값
 
-# For very small loss values (< 0.01)
+# 손실값이 아주 작은 경우 (< 0.01)
 min_delta = 1e-5
 
-# For noisy validation metrics
-min_delta = 1e-3  # More tolerant
+# 검증 지표에 잡음이 많은 경우
+min_delta = 1e-3  # 더 너그럽게
 ```
 
-## Theoretical Analysis
+## 이론적 분석
 
-### Connection to L2 Regularization
+### L2 정칙화와의 관계
 
-For gradient descent on linear regression, stopping at iteration $t$ gives:
+선형 회귀에 경사 하강법을 쓸 때 반복 $t$에서 멈추면 다음을 얻는다.
 
 $$
-
 \hat{w}_t = \sum_{i=1}^{t} (I - \eta X^T X)^{i-1} \eta X^T y
-
 $$
 
-This converges to the Ridge solution as $t \to \infty$:
+$t \to \infty$일 때 이는 능선 회귀의 해로 수렴한다.
 
 $$
-
 \hat{w}_\infty = (X^T X)^{-1} X^T y
-
 $$
 
-The effective regularization is approximately:
+실효 정칙화는 대략 다음과 같다.
 
 $$
-
 \hat{w}_t \approx (X^T X + \frac{1}{\eta t} I)^{-1} X^T y
-
 $$
 
-### Bias-Variance Trade-off
+### 편향-분산 절충
 
-Early stopping affects the bias-variance decomposition:
+조기 종료는 편향-분산 분해에 영향을 준다.
 
-- **Early stopping (small $t$)**: Higher bias, lower variance
-- **Late stopping (large $t$)**: Lower bias, higher variance
+- **일찍 멈추면($t$이 작으면)**: 편향이 크고 분산이 작다
+- **늦게 멈추면($t$이 크면)**: 편향이 작고 분산이 크다
 
-The optimal stopping point minimizes total generalization error.
+최적의 종료 지점은 전체 일반화 오차를 최소화한다.
 
-## Practical Guidelines
+## 실무 지침
 
-### When to Use Early Stopping
+### 조기 종료를 쓸 때
 
-1. **Always**: It's essentially free and often helps
-2. **Limited compute**: Saves unnecessary training time
-3. **Unclear training length**: When you don't know optimal epochs
-4. **Overfitting observed**: Gap between train and validation performance
+1. **언제나**: 사실상 공짜이고 도움이 될 때가 많다
+2. **계산 자원이 적을 때**: 불필요한 학습 시간을 아낀다
+3. **적절한 학습 길이를 모를 때**: 최적 에포크 수를 모를 때
+4. **과적합이 보일 때**: 학습 성능과 검증 성능에 차이가 있을 때
 
-### Best Practices
+### 좋은 관행
 
 ```python
 def recommended_training_setup(model, train_loader, val_loader):
     """
-    Recommended setup combining early stopping with other techniques.
+    조기 종료를 다른 기법과 결합한 권장 설정.
     """
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
     
-    # Learning rate scheduler
+    # 학습률 스케줄러
     scheduler = optim.lr_scheduler.ReduceLROnPlateau(
         optimizer, mode='min', factor=0.5, patience=5, verbose=True
     )
     
-    # Early stopping
+    # 조기 종료
     early_stopping = EarlyStopping(
         patience=20,
         min_delta=1e-4,
         restore_best_weights=True
     )
     
-    max_epochs = 500  # Upper bound
+    max_epochs = 500  # 상계
     
     for epoch in range(max_epochs):
         train_loss = train_one_epoch(model, train_loader, criterion, optimizer)
         val_loss = validate(model, val_loader, criterion)
         
-        # Update scheduler
+        # 스케줄러 갱신
         scheduler.step(val_loss)
         
-        # Check early stopping
+        # 조기 종료 여부를 확인한다
         if early_stopping(val_loss, model, epoch):
             print(f"Stopped at epoch {epoch+1}")
             break
@@ -568,13 +552,13 @@ def recommended_training_setup(model, train_loader, val_loader):
     return model
 ```
 
-### Checkpointing
+### 검사점 저장
 
-Always save checkpoints alongside early stopping:
+조기 종료와 함께 언제나 검사점을 저장하라.
 
 ```python
 class CheckpointingEarlyStopping(EarlyStopping):
-    """Early stopping with periodic checkpointing."""
+    """주기적인 검사점 저장과 함께 쓰는 조기 종료."""
     
     def __init__(self, checkpoint_dir: str = './checkpoints', 
                  checkpoint_freq: int = 10, **kwargs):
@@ -585,7 +569,7 @@ class CheckpointingEarlyStopping(EarlyStopping):
         os.makedirs(checkpoint_dir, exist_ok=True)
     
     def __call__(self, score, model, epoch):
-        # Save periodic checkpoint
+        # 주기적인 검사점 저장
         if (epoch + 1) % self.checkpoint_freq == 0:
             path = f"{self.checkpoint_dir}/checkpoint_epoch_{epoch+1}.pt"
             torch.save({
@@ -594,7 +578,7 @@ class CheckpointingEarlyStopping(EarlyStopping):
                 'score': score
             }, path)
         
-        # Save best model
+        # 가장 좋은 모델 저장
         should_stop = super().__call__(score, model, epoch)
         
         if self.best_weights is not None:
@@ -608,20 +592,20 @@ class CheckpointingEarlyStopping(EarlyStopping):
         return should_stop
 ```
 
-## Visualization
+## 시각화
 
 ```python
 import matplotlib.pyplot as plt
 
 def plot_training_with_early_stopping(history: dict, best_epoch: int):
     """
-    Visualize training progress with early stopping point.
+    조기 종료 지점과 함께 학습 진행을 시각화한다.
     """
     fig, axes = plt.subplots(1, 2, figsize=(12, 4))
     
     epochs = range(1, len(history['train_loss']) + 1)
     
-    # Loss plot
+    # 손실 그래프
     axes[0].plot(epochs, history['train_loss'], label='Train Loss')
     axes[0].plot(epochs, history['val_loss'], label='Val Loss')
     axes[0].axvline(best_epoch + 1, color='r', linestyle='--', 
@@ -632,7 +616,7 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
     axes[0].legend()
     axes[0].grid(True, alpha=0.3)
     
-    # Accuracy plot (if available)
+    # 정확도 그래프 (있으면)
     if 'train_acc' in history:
         axes[1].plot(epochs, history['train_acc'], label='Train Acc')
         axes[1].plot(epochs, history['val_acc'], label='Val Acc')
@@ -648,16 +632,61 @@ def plot_training_with_early_stopping(history: dict, best_epoch: int):
     return fig
 ```
 
-## Common Pitfalls
+## 흔히 빠지는 함정
 
-1. **Not using validation set**: Early stopping requires held-out data
-2. **Patience too low**: Stopping during normal fluctuations
-3. **Not restoring best weights**: Using final weights instead of best
-4. **Ignoring the metric**: Using wrong metric for the task
-5. **Data leakage**: Validation set contaminated by training data
+1. **검증 집합을 쓰지 않기**: 조기 종료에는 따로 떼어 둔 데이터가 필요하다
+2. **인내가 너무 작음**: 정상적인 요동 중에 멈춘다
+3. **최적 가중치를 되돌리지 않기**: 최적 가중치 대신 마지막 가중치를 쓴다
+4. **지표를 무시하기**: 과제에 맞지 않는 지표를 쓴다
+5. **데이터 유출**: 검증 집합이 학습 데이터에 오염된다
 
-## References
+## 참고 문헌
 
 1. Prechelt, L. (1998). Early Stopping - But When? *Neural Networks: Tricks of the Trade*, 55-69.
 2. Yao, Y., Rosasco, L., & Caponnetto, A. (2007). On Early Stopping in Gradient Descent Learning. *Constructive Approximation*, 26(2), 289-315.
 3. Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*. MIT Press. Chapter 7.
+
+## 연습문제
+
+**연습문제 1.**
+조기 종료가 정칙화의 한 형태로 작동하는 이유를 설명하라.
+
+??? success "연습문제 1 풀이"
+    조기 종료는 경사 하강 단계의 실효 횟수를 제한하고, 이는 가중치가 초기화에서 얼마나 멀리 움직일 수 있는지를 제한한다. 초기화는 보통 영에 가까우므로(L2 공) 이는 가중치의 L2 노름을 암묵적으로 제약한다. 형식적으로, 이차 손실에서 $t$ 단계 뒤의 조기 종료는 $\lambda \approx 1/(\eta t)$인 L2 정칙화와 동등하다.
+
+---
+
+**연습문제 2.**
+PyTorch 학습 루프에서 인내 매개변수를 갖는 조기 종료를 구현하라.
+
+??? success "연습문제 2 풀이"
+    ```python
+    best_loss, patience_counter = float('inf'), 0
+    for epoch in range(max_epochs):
+        val_loss = evaluate(model, val_loader)
+        if val_loss < best_loss:
+            best_loss = val_loss
+            patience_counter = 0
+            torch.save(model.state_dict(), 'best.pt')
+        else:
+            patience_counter += 1
+            if patience_counter >= patience:
+                break
+    model.load_state_dict(torch.load('best.pt'))
+    ```
+
+---
+
+**연습문제 3.**
+조기 종료와 편향-분산 절충의 관계는 무엇인가?
+
+??? success "연습문제 3 풀이"
+    학습 에포크가 많아지면 편향은 줄지만(모델이 학습 데이터에 더 잘 맞는다) 분산은 커진다(모델이 학습 데이터의 잡음에 더 민감해진다). 조기 종료는 편향과 분산의 합이 최소가 되는 에포크를 찾으며, 이는 보통 검증 손실이 늘기 시작하는 지점이다.
+
+---
+
+**연습문제 4.**
+회귀 과제에서 조기 종료와 L2 정칙화를 비교하라. 둘은 비슷한 시험 성능을 내는가?
+
+??? success "연습문제 4 풀이"
+    이차 손실을 쓰는 선형 모델에서는 동등함이 증명되어 있다(Bishop, 1995). 심층 신경망에서는 근사적으로 비슷하지만 같지는 않다. 조기 종료는 L2와 달리 학습률 스케줄이나 적응형 최적화기와 상호작용한다. 실무에서는 둘을 함께 쓰는 것이 가장 잘 통할 때가 많다.

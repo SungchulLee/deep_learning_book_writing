@@ -1,43 +1,43 @@
 # Longest Repeated Substring
 
-Given a string, finding the longest substring that occurs at least twice is a classic problem in string algorithms. This problem appears in data compression (identifying repeated patterns), bioinformatics (finding repeated motifs in DNA), and music analysis (detecting repeated musical phrases). While a brute-force approach that checks all pairs of substrings takes $O(n^3)$ time, suffix trees and suffix arrays solve this in $O(n)$ time. This section presents both approaches and their relationship.
+글줄이 주어질 때 적어도 두 번 나오는 가장 긴 부분 글줄을 찾는 것은 글줄 알고리즘의 고전 문제이다. 자료 눌러 담기(되풀이되는 결 찾기), 생물정보학(DNA의 되풀이 무늬 찾기), 음악 살피기(되풀이되는 악구 알아내기)에 나온다. 부분 글줄 짝을 모두 살피는 막무가내 방식은 $O(n^3)$이 들지만 뒷가지 나무와 뒷가지 배열은 이를 $O(n)$ 시간에 푼다. 이 절은 두 방식과 그 관계를 보인다.
 
-## Problem Statement
+## 문제 서술
 
-Given a string $T[0..n-1]$ of length $n$, the **Longest Repeated Substring (LRS)** is the longest string $w$ that occurs at least twice as a contiguous substring of $T$. The two occurrences may overlap.
+길이 $n$인 글줄 $T[0..n-1]$에서 **가장 긴 되풀이 부분 글줄(LRS)**은 $T$의 잇닿은 부분 글줄로 적어도 두 번 나오는 가장 긴 글줄 $w$이다. 두 번 나온 것이 겹쳐도 된다.
 
 $$
-\text{LRS}(T) = \arg\max_{w} |w| \quad \text{such that } w = T[i..i+|w|-1] = T[j..j+|w|-1] \text{ for some } i \neq j
+\text{LRS}(T) = \arg\max_{w} |w| \quad \text{단, 어떤 } i \neq j \text{ 에 대해 } w = T[i..i+|w|-1] = T[j..j+|w|-1]
 $$
 
 ## Suffix Tree Solution
 
-In the suffix tree of $T\$$, every internal node represents a repeated substring (since an internal node has at least two children, its path label occurs at least twice). The LRS is the path label of the **deepest internal node** — the one with the greatest string depth.
+$T\$$의 뒷가지 나무에서 안쪽 마디마다 되풀이 부분 글줄을 뜻한다(안쪽 마디의 자식이 적어도 둘이므로 그 길 이름표가 적어도 두 번 나온다). 가장 긴 되풀이 부분 글줄은 **가장 깊은 안쪽 마디**, 곧 글줄 깊이가 가장 큰 마디의 길 이름표이다.
 
-### Algorithm
+### 알고리즘
 
-1. Build the suffix tree of $T\$$ in $O(n)$ time
-2. Traverse all internal nodes and find the one with maximum string depth
-3. The path label of that node is the LRS
+1. $T\$$의 뒷가지 나무를 $O(n)$ 시간에 세운다
+2. 안쪽 마디를 모두 돌아보며 글줄 깊이가 가장 큰 것을 찾는다
+3. 그 마디의 길 이름표가 가장 긴 되풀이 부분 글줄이다
 
 $$
 \text{LRS} = \text{path}(v^*) \quad \text{where } v^* = \arg\max_{v \text{ internal}} \text{depth}(v)
 $$
 
-**Time complexity**: $O(n)$ for construction and $O(n)$ for the traversal.
+**시간 복잡도**: 세우기에 $O(n)$, 돌아보기에 $O(n)$.
 
-??? example "LRS of 'banana'"
-    The suffix tree of `banana$` has internal nodes with path labels:
+??? example "'banana'의 가장 긴 되풀이 부분 글줄"
+    `banana$`의 뒷가지 나무에는 다음 길 이름표를 가진 안쪽 마디가 있다:
 
     - `a` (depth 1): appears at positions 1, 3, 5
     - `ana` (depth 3): appears at positions 1, 3
     - `na` (depth 2): appears at positions 2, 4
 
-    The deepest internal node has path label `ana` with depth 3, so $\text{LRS} = \texttt{ana}$.
+    가장 깊은 안쪽 마디의 길 이름표는 깊이 3인 `ana`이므로 $\text{LRS} = \texttt{ana}$이다.
 
 ## Suffix Array Solution
 
-With the suffix array and LCP array, the LRS is found by taking the maximum value in the LCP array:
+뒷가지 배열과 최장 공통 앞가지 배열이 있으면 최장 공통 앞가지 배열의 최댓값을 취해 가장 긴 되풀이 부분 글줄을 찾는다:
 
 $$
 \text{LRS length} = \max_{1 \leq k \leq n} \text{LCP}[k]
@@ -45,11 +45,11 @@ $$
 
 The LRS itself is $T[\text{SA}[k^*] .. \text{SA}[k^*] + \text{LCP}[k^*] - 1]$, where $k^* = \arg\max_k \text{LCP}[k]$.
 
-### Why This Works
+### 이것이 왜 되나
 
-Two adjacent suffixes in the sorted suffix array with LCP value $\ell$ share a common prefix of length $\ell$. This prefix appears at (at least) two positions in $T$: $\text{SA}[k-1]$ and $\text{SA}[k]$. The maximum such $\ell$ gives the LRS.
+정렬한 뒷가지 배열에서 최장 공통 앞가지 값이 $\ell$인 이웃한 두 뒷가지는 길이 $\ell$인 공통 앞가지를 나눠 갖는다. 이 앞가지는 $T$의 (적어도) 두 자리 $\text{SA}[k-1]$과 $\text{SA}[k]$에 나온다. 그런 $\ell$의 최댓값이 가장 긴 되풀이 부분 글줄을 준다.
 
-??? example "LRS of 'banana' via suffix array"
+??? example "뒷가지 배열로 찾는 'banana'의 가장 긴 되풀이 부분 글줄"
     For $T = \texttt{banana\$}$:
 
     | Rank | SA | Suffix | LCP |
@@ -68,36 +68,36 @@ Two adjacent suffixes in the sorted suffix array with LCP value $\ell$ share a c
 
 ### Longest Substring Occurring at Least k Times
 
-Generalize the problem to finding the longest substring that occurs at least $k$ times. With the suffix tree, find the deepest internal node with at least $k$ leaves in its subtree.
+적어도 $k$번 나오는 가장 긴 부분 글줄을 찾는 것으로 문제를 넓힌다. 뒷가지 나무에서는 아래 나무에 잎이 적어도 $k$개인 가장 깊은 안쪽 마디를 찾는다.
 
-With the suffix array, use a sliding window of size $k$ on the LCP array. The answer is:
+뒷가지 배열에서는 최장 공통 앞가지 배열에 크기 $k$인 미끄러지는 창을 쓴다. 답은 다음과 같다:
 
 $$
 \text{LRS}_k = \max_{1 \leq i \leq n - k + 1} \min_{i \leq j < i + k - 1} \text{LCP}[j + 1]
 $$
 
-This can be computed in $O(n)$ time using a deque-based sliding window minimum.
+양끝 줄 바탕 미끄러지는 창 최솟값으로 $O(n)$ 시간에 셈할 수 있다.
 
 ### Non-Overlapping Longest Repeated Substring
 
-In some applications, overlapping occurrences are not useful. The **non-overlapping LRS** requires $|i - j| \geq |w|$.
+어떤 쓰임새에서는 겹쳐 나온 것이 쓸모없다. **겹치지 않는 가장 긴 되풀이 부분 글줄**은 $|i - j| \geq |w|$을 요구한다.
 
-With the suffix tree, for each internal node $v$ with depth $d$, check whether the leftmost and rightmost leaf positions differ by at least $d$. The deepest such node gives the non-overlapping LRS.
+뒷가지 나무에서는 깊이 $d$인 안쪽 마디 $v$마다 가장 왼쪽과 가장 오른쪽 잎 자리의 차가 적어도 $d$인지 살핀다. 그런 마디 가운데 가장 깊은 것이 겹치지 않는 가장 긴 되풀이 부분 글줄을 준다.
 
-With the suffix array, for each LCP value $\text{LCP}[k]$, check whether $|\text{SA}[k] - \text{SA}[k-1]| \geq \text{LCP}[k]$.
+뒷가지 배열에서는 최장 공통 앞가지 값 $\text{LCP}[k]$마다 $|\text{SA}[k] - \text{SA}[k-1]| \geq \text{LCP}[k]$인지 살핀다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Longest Repeated Substring using suffix array and LCP array.
+뒷가지 배열과 최장 공통 앞가지 배열로 찾는 가장 긴 되풀이 부분 글줄.
 """
 
 
-# === Suffix Array Construction ===
+# === 뒷가지 배열 세우기 ===
 
 def build_suffix_array(text: str) -> list[int]:
-    """Build suffix array using prefix doubling."""
+    """앞가지 곱절 늘리기로 뒷가지 배열을 세운다."""
     n = len(text)
     rank = [ord(c) for c in text]
     sa = list(range(n))
@@ -120,10 +120,10 @@ def build_suffix_array(text: str) -> list[int]:
     return sa
 
 
-# === Kasai's Algorithm ===
+# === 가사이 알고리즘 ===
 
 def build_lcp(text: str, sa: list[int]) -> list[int]:
-    """Compute LCP array using Kasai's algorithm."""
+    """가사이 알고리즘으로 최장 공통 앞가지 배열을 셈한다."""
     n = len(sa)
     rank = [0] * n
     for k in range(n):
@@ -143,20 +143,20 @@ def build_lcp(text: str, sa: list[int]) -> list[int]:
     return lcp
 
 
-# === Longest Repeated Substring ===
+# === 가장 긴 되풀이 부분 글줄 ===
 
 def longest_repeated_substring(text: str) -> str:
-    """Find the longest repeated substring.
+    """가장 긴 되풀이 부분 글줄을 찾는다.
 
-    Parameters
+    매개변수
     ----------
     text : str
-        Input string (sentinel is appended if not present).
+        들임 글줄(파수가 없으면 붙인다).
 
-    Returns
+    반환값
     -------
     str
-        The longest repeated substring, or empty string if none exists.
+        가장 긴 되풀이 부분 글줄, 없으면 빈 글줄.
     """
     if not text.endswith("$"):
         text += "$"
@@ -177,7 +177,7 @@ def longest_repeated_substring(text: str) -> str:
     return text[sa[max_idx]:sa[max_idx] + max_lcp]
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     test_cases = [
@@ -190,23 +190,55 @@ if __name__ == "__main__":
     for s in test_cases:
         lrs = longest_repeated_substring(s)
         print(f"LRS of '{s}': '{lrs}' (length {len(lrs)})")
-    # Output:
-    # LRS of 'banana': 'ana' (length 3)
-    # LRS of 'abcabc': 'abc' (length 3)
-    # LRS of 'aabaaab': 'aab' (length 3)
-    # LRS of 'abcd': '' (length 0)
+    # 내임:
+    # 'banana'의 가장 긴 되풀이 부분 글줄: 'ana'(길이 3)
+    # 'abcabc'의 가장 긴 되풀이 부분 글줄: 'abc'(길이 3)
+    # 'aabaaab'의 가장 긴 되풀이 부분 글줄: 'aab'(길이 3)
+    # 'abcd'의 가장 긴 되풀이 부분 글줄: ''(길이 0)
 ```
 
-## Complexity Comparison
+## 복잡도 비교
 
-| Method | Time | Space |
+| 방법 | 시간 | 공간 |
 |--------|------|-------|
-| Brute force (all pairs) | $O(n^3)$ | $O(1)$ |
-| Suffix tree | $O(n)$ | $O(n)$ (large constant) |
-| Suffix array + LCP | $O(n)$ | $O(n)$ (small constant) |
+| 막무가내(모든 짝) | $O(n^3)$ | $O(1)$ |
+| 뒷가지 나무 | $O(n)$ | $O(n)$(상수가 크다) |
+| 뒷가지 배열 + 최장 공통 앞가지 | $O(n)$ | $O(n)$(상수가 작다) |
 
-Both suffix-based approaches achieve optimal linear time. The suffix array approach is generally preferred in practice due to its lower memory usage.
+두 뒷가지 바탕 방식 모두 가장 좋은 선형 시간을 이룬다. 기억 공간을 덜 쓰므로 실전에서는 대체로 뒷가지 배열 방식이 낫다.
 
-## Reference
+## 참고 문헌
 
 - Gusfield, D. (1997). *Algorithms on Strings, Trees, and Sequences*. Cambridge University Press, Section 7.12.
+
+## 연습문제
+
+**연습문제 1.**
+가장 긴 되풀이 부분 글줄의 핵심 자료 짜임이나 개념과 그 으뜸 쓰임새를 설명하라.
+
+??? success "연습문제 1 풀이"
+    가장 긴 되풀이 부분 글줄은 글줄이나 차례 자료를 미리 다듬고 묻는 효율 좋은 길을 준다. 으뜸 쓰임새는 부분 글줄, 본, 들임의 짜임 성질에 대한 되풀이되는 물음에 답하는 것이다. 미리 다듬기가 다룰 만한 시간에 자료 짜임을 세우고 나면 맨바닥에서 다시 다듬는 것보다 훨씬 빠르게 물음에 답할 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+가장 긴 되풀이 부분 글줄을 세우는 시간 복잡도는 무엇인가? 으뜸 연산의 묻기 시간은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    세우는 시간은 쓰는 알고리즘에 달렸다. 흔한 한계는 $n$이 들임 크기일 때 $O(n)$에서 $O(n \log n)$ 사이이다. 묻기는 흔히 본 찾기에 $O(m)$($m$은 물음 길이), 미리 셈한 성질에 $O(1)$이 든다. 공간 복잡도는 흔히 $O(n)$이거나 $\sigma$이 글자 모임의 크기일 때 $O(n\sigma)$이다. $\square$
+
+---
+
+**연습문제 3.**
+가장 긴 되풀이 부분 글줄을 더 단순한 다른 방식과 견주어라. 더 정교한 짜임은 언제 값어치가 있는가?
+
+??? success "연습문제 3 풀이"
+    더 단순한 방식(예컨대 막무가내 훑기나 정렬)은 묻기 시간이 더 길지만 세우는 군더더기가 적다. 정교한 짜임은 다음일 때 값어치가 있다. (1) 같은 자료에 물음을 많이 던져 세우는 값이 고르게 나뉠 때, (2) 묻기 시간이 결정적일 때(실시간 쓰임새), (3) 자료가 커서 점근 나아짐이 실전에서 중요할 때이다. 작은 자료에 물음을 한 번 던지는 경우에는 상수 인수가 작은 단순한 방식이 더 빠를 수 있다. $\square$
+
+---
+
+**연습문제 4.**
+들임 글줄 "banana"에 대해 가장 긴 되풀이 부분 글줄을 세우는 것을 좇아라. 중간 걸음을 보여라.
+
+??? success "연습문제 4 풀이"
+    "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$

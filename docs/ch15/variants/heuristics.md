@@ -1,109 +1,109 @@
-# Heuristic Functions
+# 어림짐작 함수
 
-Informed search algorithms like A* depend on a **heuristic function** $h(n)$ that estimates the cost from vertex $n$ to the goal. The quality of this estimate determines how efficiently the search proceeds: a perfect heuristic leads A* straight to the goal, while a trivial heuristic ($h = 0$) reduces A* to Dijkstra's algorithm. This page formalizes the key properties of heuristic functions and presents the most common heuristics used in practice.
+A* 같은 아는 것을 쓰는 찾기 알고리즘은 꼭짓점 $n$에서 목표까지의 값을 어림하는 **어림짐작 함수** $h(n)$에 기댄다. 이 어림의 질이 찾기가 얼마나 효율적으로 나아가는지를 정한다. 완벽한 어림짐작은 A*을 목표로 곧장 이끌고, 시시한 어림짐작($h = 0$)은 A*을 데이크스트라 알고리즘으로 주저앉힌다. 이 쪽은 어림짐작 함수의 핵심 성질을 엄밀히 밝히고 실전에서 가장 흔한 어림짐작을 보인다.
 
-## Admissibility
+## 받아들일 만함
 
-A heuristic $h$ is **admissible** if it never overestimates the true cost to reach the goal:
+어림짐작 $h$이 목표에 닿는 참값을 결코 넘겨 어림하지 않으면 **받아들일 만하다**고 한다:
 
 $$
 0 \leq h(n) \leq h^*(n) \quad \text{for all vertices } n
 $$
 
-where $h^*(n)$ is the actual shortest-path cost from $n$ to the goal. Admissibility is the minimum requirement for A* to guarantee an optimal solution.
+여기서 $h^*(n)$은 $n$에서 목표까지의 실제 최단 경로 값이다. 받아들일 만함은 A*이 가장 좋은 풀이를 보장하는 데 필요한 최소 조건이다.
 
-!!! tip "Why admissibility matters"
-    If $h$ overestimates for some vertex $n$, A* might avoid paths through $n$ in favor of seemingly cheaper alternatives, potentially missing the true shortest path.
+!!! tip "왜 받아들일 만함이 중요한가"
+    $h$이 어떤 꼭짓점 $n$에서 넘겨 어림하면 A*이 싸 보이는 다른 길을 좇아 $n$을 지나는 길을 피할 수 있고, 참된 최단 경로를 놓칠 수 있다.
 
-## Consistency (Monotonicity)
+## 한결같음(단조성)
 
-A heuristic $h$ is **consistent** if for every edge $(u, v)$ with cost $w(u, v)$:
+값이 $w(u, v)$인 변 $(u, v)$마다 다음이 성립하면 어림짐작 $h$이 **한결같다**고 한다:
 
 $$
 h(u) \leq w(u, v) + h(v)
 $$
 
-and $h(\text{goal}) = 0$. This is the triangle inequality applied to the heuristic. Consistency implies admissibility, but the converse is not always true.
+그리고 $h(\text{goal}) = 0$이다. 이는 어림짐작에 쓴 삼각 부등식이다. 한결같으면 받아들일 만하지만 거꾸로가 늘 참은 아니다.
 
-With a consistent heuristic, the $f$ values along any optimal path are non-decreasing. This means that once A* expands a vertex, it has found the optimal cost to that vertex, so the vertex never needs to be re-opened. Consistency therefore makes A* more efficient and simpler to implement.
+한결같은 어림짐작을 쓰면 가장 좋은 길 위의 $f$ 값이 줄지 않는다. 곧 A*이 꼭짓점을 한번 넓히면 그 꼭짓점까지의 가장 좋은 값을 이미 찾은 것이므로 그 꼭짓점을 다시 열 필요가 없다. 그래서 한결같음은 A*을 더 효율적이고 구현하기 쉽게 만든다.
 
-## Dominance
+## 누름
 
-Given two admissible heuristics $h_1$ and $h_2$, we say $h_2$ **dominates** $h_1$ if
+받아들일 만한 어림짐작 $h_1$과 $h_2$이 있을 때 다음이면 $h_2$이 $h_1$을 **누른다**고 한다
 
 $$
 h_1(n) \leq h_2(n) \leq h^*(n) \quad \text{for all } n
 $$
 
-A dominating heuristic is always preferable because it provides tighter lower bounds, causing A* to expand fewer vertices. When multiple admissible heuristics are available, using $h(n) = \max(h_1(n), h_2(n))$ produces a new admissible heuristic that dominates both.
+누르는 어림짐작이 늘 낫다. 더 빈틈없는 아래 한계를 주어 A*이 꼭짓점을 덜 넓히기 때문이다. 받아들일 만한 어림짐작이 여럿 있으면 $h(n) = \max(h_1(n), h_2(n))$을 쓰면 둘 다 누르는 새로운 받아들일 만한 어림짐작이 나온다.
 
-## Common Heuristics for Grid Graphs
+## 격자 그래프의 흔한 어림짐작
 
-In grid-based pathfinding (games, robotics), the following heuristics are widely used.
+격자 기반 길 찾기(놀이, 로봇)에서는 다음 어림짐작을 널리 쓴다.
 
-**Manhattan distance** (4-directional movement). For positions $(x_1, y_1)$ and $(x_2, y_2)$:
+**맨해튼 거리**(네 방향 움직임). 자리 $(x_1, y_1)$과 $(x_2, y_2)$에 대해:
 
 $$
 h_{\text{Manhattan}} = |x_1 - x_2| + |y_1 - y_2|
 $$
 
-This is admissible and consistent when movement is restricted to horizontal and vertical steps of uniform cost.
+값이 고른 가로세로 걸음으로만 움직인다면 이는 받아들일 만하고 한결같다.
 
-**Euclidean distance** (any-angle movement):
+**유클리드 거리**(아무 각도로 움직임):
 
 $$
 h_{\text{Euclidean}} = \sqrt{(x_1 - x_2)^2 + (y_1 - y_2)^2}
 $$
 
-Admissible for any movement model where diagonal moves are allowed, since the straight-line distance is the shortest possible path.
+곧은 선 거리가 있을 수 있는 가장 짧은 길이므로, 대각선 움직임이 허락되는 어떤 움직임 모형에서도 받아들일 만하다.
 
-**Chebyshev distance** (8-directional with uniform cost):
+**체비쇼프 거리**(값이 고른 여덟 방향):
 
 $$
 h_{\text{Chebyshev}} = \max(|x_1 - x_2|, |y_1 - y_2|)
 $$
 
-Admissible and consistent when diagonal and cardinal moves have the same cost.
+대각선 움직임과 동서남북 움직임의 값이 같으면 받아들일 만하고 한결같다.
 
-## Heuristic Quality and Search Performance
+## 어림짐작의 질과 찾기 성능
 
-| Heuristic Quality | A* Behavior | Vertices Expanded |
+| 어림짐작의 질 | A*의 굴러감 | 넓힌 꼭짓점 |
 |---|---|---|
-| $h = 0$ | Reduces to Dijkstra | All reachable vertices |
-| $h = h^*$ (perfect) | Expands only optimal path | Minimal |
-| $0 < h < h^*$ (informative) | Guided toward goal | Between the two extremes |
-| $h > h^*$ (inadmissible) | No optimality guarantee | May find suboptimal path |
+| $h = 0$ | 데이크스트라로 주저앉는다 | 닿을 수 있는 모든 꼭짓점 |
+| $h = h^*$(완벽) | 가장 좋은 길만 넓힌다 | 가장 적다 |
+| $0 < h < h^*$(알려 주는 바 있음) | 목표 쪽으로 이끌린다 | 두 극단 사이 |
+| $h > h^*$(받아들일 수 없음) | 가장 좋음이 보장되지 않는다 | 덜 좋은 길을 찾을 수 있다 |
 
-## Implementation
+## 구현
 
 ```python
 """
-Common heuristic functions for grid-based pathfinding.
+격자에서 길 찾기에 쓰는 흔한 어림짐작 함수.
 
-Demonstrates Manhattan, Euclidean, and Chebyshev distances
-and their use with A* search.
+맨해튼, 유클리드, 체비쇼프 거리와
+그것을 A* 찾기에 쓰는 법을 보인다.
 """
 
 import math
 
-# === Heuristic Functions ===
+# === 어림짐작 함수 ===
 
 def manhattan(a: tuple, b: tuple) -> int:
-    """Manhattan distance between two grid positions."""
+    """격자 위 두 자리 사이의 맨해튼 거리."""
     return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
 
 def euclidean(a: tuple, b: tuple) -> float:
-    """Euclidean distance between two grid positions."""
+    """격자 위 두 자리 사이의 유클리드 거리."""
     return math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2)
 
 
 def chebyshev(a: tuple, b: tuple) -> int:
-    """Chebyshev distance between two grid positions."""
+    """격자 위 두 자리 사이의 체비쇼프 거리."""
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     start = (0, 0)
@@ -117,7 +117,7 @@ if __name__ == "__main__":
     print(f"  {manhattan(start, goal)} >= {euclidean(start, goal):.2f} >= {chebyshev(start, goal)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Start: (0, 0), Goal: (3, 4)
 Manhattan distance:  7
@@ -128,9 +128,41 @@ Manhattan >= Euclidean >= Chebyshev:
   7 >= 5.00 >= 4
 ```
 
-For this example, Manhattan distance gives the tightest estimate (assuming 4-directional movement), so it would cause A* to expand the fewest vertices in a 4-connected grid.
+이 보기에서는 (네 방향 움직임을 놓고) 맨해튼 거리가 가장 빈틈없는 어림을 주므로, 네 방향으로 이어진 격자에서 A*이 꼭짓점을 가장 적게 넓히게 한다.
 
-## Reference
+## 참고 문헌
 
-- Russell, S., & Norvig, P. (2020). *Artificial Intelligence: A Modern Approach* (4th ed.), Chapter 3. Pearson.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapters 24-25. MIT Press.
+- Russell, S., & Norvig, P. (2020). *Artificial Intelligence: A Modern Approach* (4th ed.), 3장. Pearson.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 24-25장. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+네 방향 움직임을 허락하는 격자 기반 길 찾기 문제에서 맨해튼 거리 어림짐작이 한결같음을 증명하여라.
+
+??? success "연습문제 1 풀이"
+    맨해튼 거리는 $h(u) = |x_u - x_t| + |y_u - y_t|$이며 여기서 $t$은 목표이다. 이웃한 칸 $v$(한 걸음 떨어진 칸)마다 $w(u,v) = 1$이고 $|h(u) - h(v)| \leq 1$이다(한 걸음 움직이면 맨해튼 거리가 많아야 1만큼 바뀐다). 그러므로 $h(u) \leq w(u,v) + h(v) = 1 + h(v)$이다. 또 $h(t) = 0$이다. 한결같음의 두 조건이 모두 만족된다. $\square$
+
+---
+
+**연습문제 2.**
+대각선 값이 $\sqrt{2}$인 여덟 방향 움직임(대각선을 아우름)이 허락되면 맨해튼 거리가 그래도 받아들일 만한가? 대신 어떤 어림짐작을 써야 하는가?
+
+??? success "연습문제 2 풀이"
+    이 경우 맨해튼 거리는 넘겨 어림한다. 대각선 움직임은 $x$과 $y$ 이동을 모두 값 $\sqrt{2} < 2$에 해내지만 맨해튼은 이를 2으로 센다. 그래서 맨해튼 거리는 받아들일 수 없다. 올바른 어림짐작은 팔각 거리이다. 곧 $h(u) = \max(|dx|, |dy|) + (\sqrt{2} - 1) \cdot \min(|dx|, |dy|)$이며 여기서 $dx = |x_u - x_t|, dy = |y_u - y_t|$이다. 이는 대각선 움직임을 되도록 많이 쓰는 것을 헤아린다. $\square$
+
+---
+
+**연습문제 3.**
+어림짐작의 질과 A* 성능의 관계를 설명하여라. $h = 0$이면 어떻게 되는가?
+
+??? success "연습문제 3 풀이"
+    $h = 0$이면 A*은 데이크스트라 알고리즘(또는 고른 값 찾기)으로 주저앉아 $g(v)$만의 차례로 마디를 넓힌다. $h$이 참된 거리 $\delta(v, t)$에 가까워질수록 어림짐작이 더 많이 이끌어 주므로 A*이 마디를 덜 넓힌다. 완벽한 어림짐작($h = \delta$)은 A*이 가장 좋은 길 위의 마디만 넓히게 하여 쓸데없는 살펴보기가 없다. 이 두 극단 사이에서는 더 좋은(더 높으면서도 받아들일 만한) 어림짐작이 늘 마디를 같거나 더 적게 넓히게 한다. 누름 관계로 말하면, 모든 $v$에 대해 $h_1(v) \geq h_2(v)$이고 둘 다 받아들일 만하면 $h_1$을 쓴 A*이 넓히는 마디는 $h_2$을 쓴 A*이 넓히는 마디의 부분집합이다. $\square$
+
+---
+
+**연습문제 4.**
+8-퍼즐의 받아들일 만한 어림짐작을 짜라. 그것이 한결같은가?
+
+??? success "연습문제 4 풀이"
+    흔한 어림짐작은 타일마다 목표 자리까지의 맨해튼 거리를 합한 것이다. 곧 $h = \sum_{i=1}^{8} (|x_i - x_i^*| + |y_i - y_i^*|)$이다. 타일마다 적어도 제 맨해튼 거리만큼 움직여야 하고, 한 번의 움직임이 여러 타일의 거리를 한꺼번에 줄일 수 없으므로(한 번에 타일 하나만 움직인다) 이는 받아들일 만하다. 또 한결같다. 곧 타일 하나를 움직이면 그 맨해튼 거리가 꼭 $\pm 1$만큼 바뀌고 값은 1이므로 $|h(u) - h(v)| \leq 1 = w(u,v)$이다. $\square$

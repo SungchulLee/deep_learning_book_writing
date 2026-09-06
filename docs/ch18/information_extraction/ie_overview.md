@@ -1,22 +1,17 @@
-# Information Extraction Overview
+# 앎 뽑기 개요
+## 학습 목표
 
+- 앎 뽑기 물길과 조각들이 어떻게 어울리는지 이해한다
+- 닫힌 앎 뽑기와 열린 앎 뽑기를 가린다
+- 짜임 있는 앎 뽑기의 금융 쓰임새를 가려낸다
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 앎 뽑기란 무엇인가?
 
-## Learning Objectives
+앎 뽑기는 짜임 없는 글을, 기계가 묻고 따질 수 있는 짜임 있는 나타냄, 곧 표·그래프·데이터베이스로 바꾼다. 갈래 매기기 같은 자연어 일이 글월 전체에 이름표를 붙이는 데 견주어, 앎 뽑기는 더 고운 결에서 글 속의 특정한 것, 관계, 사건을 가려낸다.
 
-- Understand the IE pipeline and how components interact
-- Distinguish between closed and open information extraction
-- Identify financial applications of structured knowledge extraction
+### 앎 뽑기 물길
 
-## What Is Information Extraction?
-
-Information Extraction (IE) transforms unstructured text into structured representations — tables, graphs, and databases that machines can query and reason over. While NLP tasks like classification assign labels to entire documents, IE operates at a finer granularity, identifying specific entities, relationships, and events within text.
-
-### The IE Pipeline
-
-A typical IE system chains several components:
+흔한 앎 뽑기 체계는 조각 여럿을 사슬처럼 잇는다:
 
 ```
 Raw Text
@@ -27,64 +22,96 @@ Raw Text
           → Knowledge Graph Construction
 ```
 
-Each stage builds on the previous:
+단계마다 앞 단계 위에 쌓는다:
 
 1. **NER** identifies entity mentions: "Apple", "Tim Cook", "\$3 billion"
-2. **Coreference Resolution** links mentions to the same entity: "Apple" = "the company" = "it"
-3. **Relation Extraction** identifies semantic relationships: (Tim Cook, CEO-of, Apple)
+2. **같은 것 가리키기 풀기**는 언급을 같은 것에 잇는다. 곧 "Apple" = "the company" = "it"
+3. **관계 뽑기**는 뜻의 관계를 가려낸다. 곧 (Tim Cook, CEO-of, Apple)
 4. **Event Extraction** identifies structured events: Acquisition(buyer=Apple, target=Beats, price=\$3B)
-5. **Knowledge Graph Construction** aggregates triples into a queryable graph
+5. **앎 그래프 세우기**는 세 쌍을 모아 물을 수 있는 그래프로 만든다
 
-### Closed vs. Open IE
+### 닫힌 앎 뽑기와 열린 앎 뽑기
 
-| Aspect | Closed IE | Open IE |
+| 갈래 | 닫힌 앎 뽑기 | 열린 앎 뽑기 |
 |--------|-----------|---------|
-| Schema | Predefined relation types | No fixed schema |
-| Training | Supervised on labeled data | Self-supervised patterns |
-| Precision | Higher | Lower |
-| Coverage | Limited to known relations | Discovers novel relations |
-| Example | "headquartered-in" relation | Any verb phrase as relation |
+| 틀 | 미리 정한 관계 갈래 | 붙박이 틀 없음 |
+| 익히기 | 이름표 붙인 자료로 살펴 배움 | 스스로 살피는 무늬 |
+| 정밀도 | 더 높음 | 더 낮음 |
+| 덮음 | 아는 관계로 제한 | 새 관계를 찾아냄 |
+| 보기 | "headquartered-in" 관계 | 아무 움직씨 마디나 관계로 |
 
-### Joint vs. Pipeline Models
+### 함께 푸는 모델과 물길 모델
 
-Pipeline approaches suffer from **error propagation** — NER mistakes cascade into relation extraction errors. Joint models address this by simultaneously predicting entities and relations:
+물길 방식은 **어긋남 퍼짐**에 시달린다. 곧 이름 알아보기의 잘못이 관계 뽑기의 잘못으로 줄줄이 이어진다. 함께 푸는 모델은 것과 관계를 한꺼번에 어림해 이를 다룬다:
 
 $$\mathcal{L}_{\text{joint}} = \mathcal{L}_{\text{NER}} + \lambda \mathcal{L}_{\text{RE}}$$
 
-## Financial Applications
+## 금융에서의 쓰임
 
-IE is critical in quantitative finance for:
+앎 뽑기는 계량 금융에서 다음에 결정적이다:
 
-- **Earnings call analysis**: Extract revenue figures, guidance changes, management sentiment
-- **News-driven trading signals**: Identify M&A announcements, executive changes, regulatory actions
-- **Supply chain mapping**: Build company relationship graphs from SEC filings
-- **Risk monitoring**: Track litigation events, sanctions, credit downgrades
+- **실적 발표 살피기**: 매출 수치, 전망 바뀜, 경영진의 마음결 뽑기
+- **뉴스 바탕 거래 신호**: 인수·합병 발표, 임원 바뀜, 규제 조치 가려내기
+- **공급망 그리기**: SEC 보고서에서 회사 관계 그래프 세우기
+- **위험 지켜보기**: 소송 사건, 제재, 신용 등급 하락 좇기
 
-### Example: Financial News IE
+### 보기: 금융 뉴스 앎 뽑기
 
 Input: *"Goldman Sachs announced Thursday it will acquire GreenSky for approximately \$2.24 billion in an all-stock deal."*
 
-Extracted structure:
+뽑아낸 짜임:
 
-| Component | Value |
+| 조각 | 값 |
 |-----------|-------|
-| Event Type | Acquisition |
-| Buyer | Goldman Sachs |
-| Target | GreenSky |
+| 사건 갈래 | 인수 |
+| 사는 쪽 | Goldman Sachs |
+| 대상 | GreenSky |
 | Price | \$2.24 billion |
-| Deal Type | All-stock |
-| Date | Thursday |
+| 거래 갈래 | 전액 주식 |
+| 날짜 | 목요일 |
 
-## Evaluation Paradigms
+## 값매김의 틀
 
-IE evaluation varies by subtask but generally uses:
+앎 뽑기 값매김은 아래 일마다 다르지만 대개 다음을 쓴다:
 
-- **Exact match F1**: Strict boundary and type matching
-- **Partial match**: Credit for overlapping spans
-- **Slot filling**: Precision/recall on extracted attribute values
+- **딱 맞음 F1**: 경계와 갈래를 빡빡하게 맞춤
+- **일부 맞음**: 구간이 겹치면 점수를 줌
+- **칸 채우기**: 뽑아낸 속성 값의 정밀도/재현율
 
-## References
+## 참고 문헌
 
-1. Jurafsky, D., & Martin, J. H. (2024). *Speech and Language Processing* (3rd ed.). Chapters 17, 21.
+1. Jurafsky, D., & Martin, J. H. (2024). *Speech and Language Processing* (3rd ed.). 17, 21장.
 2. Sarawagi, S. (2008). Information Extraction. *Foundations and Trends in Databases*, 1(3).
 3. Li, J., et al. (2020). A Survey on Deep Learning for Named Entity Recognition. *IEEE TKDE*.
+
+## 연습문제
+
+**연습문제 1.**
+닫힌 앎 뽑기와 열린 앎 뽑기의 차이를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    **닫힌 앎 뽑기**는 이름표 붙인 자료로 익힌 살펴 배운 모델을 써서 미리 정해 둔 틀(보기로 "born-in", "works-for")의 관계를 뽑는다. 아는 관계 갈래에서는 정밀도가 높지만 새 관계는 찾아내지 못한다. **열린 앎 뽑기**는 미리 정한 틀 없이 월의 짜임 무늬나 배운 뽑개로 아무 (주어, 관계, 목적어) 세 쌍이나 뽑는다. 새 관계를 찾아낼 수 있지만 잡음이 섞이거나 겹치거나 다듬어지지 않은 것이 나올 수 있다. 닫힌 앎 뽑기는 앎 곳간 채우기에, 열린 앎 뽑기는 큰 말뭉치를 캐어 보는 데 알맞다.
+
+---
+
+**연습문제 2.**
+같은 것 가리키기 풀기란 무엇이며 뒤따르는 자연어 일에 왜 중요한가?
+
+??? success "연습문제 2 풀이"
+    같은 것 가리키기 풀기는 글에서 같은 것을 가리키는 모든 표현(언급)을 가려내 무리로 묶는다. 보기로 "Alice went to the store. She bought milk"에서 "Alice"와 "She"는 같은 것을 가리킨다. 이는 다음에 결정적이다. (1) 앎 뽑기(월을 넘나들며 같은 것에 대한 사실 잇기), (2) 물음 답하기(물음과 글월의 대이름씨 풀기), (3) 간추리기(겹침 피하기), (4) 대화 체계(차례를 넘나들며 것 좇기).
+
+---
+
+**연습문제 3.**
+사건 뽑기 체계의 핵심 조각을 설명하여라. 사건 뽑기가 관계 뽑기보다 어려운 까닭은 무엇인가?
+
+??? success "연습문제 3 풀이"
+    사건 뽑기는 다음을 가려낸다. (1) **사건 방아쇠**(사건을 가리키는 낱말, 보기로 "attacked"), (2) **사건 갈래** 매기기, (3) **딸린 것의 몫**(누가 누구에게 무엇을 어디서 언제 했는가). 관계 뽑기보다 어려운 까닭은 이렇다. 곧 사건마다 딸린 것의 수가 다르고 그 몫이 복잡하며, 방아쇠가 아리송할 수 있고(같은 낱말이 맥락에 따라 다른 사건 갈래를 일으킨다), 딸린 것이 여러 월에 걸칠 수 있으며, 월 하나에 겹치는 사건이 여럿 들어 있을 수 있다.
+
+---
+
+**연습문제 4.**
+달림 뜯어 읽기를 써서 단순한 규칙 바탕 열린 앎 뽑기 체계를 꾸며라. 그 한계는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    규칙 바탕 열린 앎 뽑기 체계는 달림 나무에서 주어-움직씨-목적어 무늬를 가려내 세 쌍을 뽑는다. (1) 주된 움직씨(뿌리)를 찾고, (2) 이름씨 주어(nsubj)를 주어로 뽑고, (3) 직접 목적어(dobj)를 목적어로 뽑고, (4) (주어, 움직씨, 목적어) 세 쌍을 만든다. **한계**: (1) 이름씨로 바꾼 표현("Obama's visit to China")의 관계를 놓친다. (2) 마디가 여럿인 복잡한 월을 다루지 못한다. (3) 특별한 규칙 없이는 입음꼴에서 어그러진다. (4) 앞가지가 붙은 월에서는 질 낮은 세 쌍을 낸다. (5) 같은 관계의 서로 다른 겉모습을 하나로 다듬지 못한다.

@@ -95,3 +95,43 @@ Some search problems require algorithms beyond simple comparison or hashing.
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Knuth, D. *The Art of Computer Programming, Vol. 3: Sorting and Searching*. 2nd ed. Addison-Wesley, 1998.
+
+## Exercises
+
+**Exercise 1.**
+Compare linear search $O(n)$, binary search $O(\log n)$, and hash lookup $O(1)$. What preprocessing does each require?
+
+??? success "Solution to Exercise 1"
+    **Linear search**: no preprocessing. Works on unsorted data. Scans each element sequentially. Best for small collections or one-time searches. **Binary search**: requires sorted data ($O(n \log n)$ preprocessing for sorting). Halves the search space at each step. Best for repeated searches on static sorted data. **Hash lookup**: requires building a hash table ($O(n)$ preprocessing). Provides $O(1)$ expected-time lookups. Best for repeated exact-match queries. Binary search is preferable over hashing when: (1) range queries are needed (find all elements in $[a, b]$); (2) the data is already sorted; (3) worst-case $O(\log n)$ is needed (hashing has $O(n)$ worst case). Hashing is preferable for point queries on large unsorted datasets. $\square$
+
+---
+
+**Exercise 2.**
+Prove that any comparison-based search algorithm on a sorted array of $n$ elements requires $\Omega(\log n)$ comparisons in the worst case.
+
+??? success "Solution to Exercise 2"
+    A comparison-based algorithm can be modeled as a binary decision tree: each internal node represents a comparison with two outcomes (less/greater or equal/not equal). Each leaf represents a possible answer (one of $n$ elements or "not found": $n + 1$ outcomes). A binary tree with $L$ leaves has height $\ge \lceil \log_2 L \rceil$. With $L = n + 1$ leaves: height $\ge \lceil \log_2(n + 1) \rceil = \Omega(\log n)$. The worst-case number of comparisons equals the height of the decision tree, so any comparison-based search requires $\Omega(\log n)$ comparisons. Binary search achieves this bound with exactly $\lceil \log_2(n + 1) \rceil$ comparisons, making it optimal. $\square$
+
+---
+
+**Exercise 3.**
+Interpolation search achieves $O(\log \log n)$ expected time on uniformly distributed data. Explain the algorithm and why it degrades to $O(n)$ on adversarial data.
+
+??? success "Solution to Exercise 3"
+    Interpolation search estimates the position of the target $x$ in sorted array $A[lo..hi]$ by linear interpolation: $\text{mid} = lo + \lfloor (x - A[lo]) / (A[hi] - A[lo]) \times (hi - lo) \rfloor$. For uniformly distributed data, this estimate is close to the true position, so each step reduces the search space by a square-root factor: $n \to \sqrt{n} \to n^{1/4} \to \ldots$, giving $O(\log \log n)$ steps. On adversarial data (e.g., $A = [1, 2, 3, \ldots, 999, 10^9]$ searching for 999): interpolation estimates mid $\approx 0$ (999 is tiny relative to $10^9$), so the algorithm scans nearly linearly from the start, taking $O(n)$ steps. The algorithm has no worst-case guarantee better than $O(n)$ because the interpolation can be arbitrarily misleading. $\square$
+
+---
+
+**Exercise 4.**
+Describe exponential search and analyze its time complexity. When is it preferable to standard binary search?
+
+??? success "Solution to Exercise 4"
+    Exponential search finds the range containing the target, then binary searches within it. Steps: (1) Starting from position 1, double the index: 1, 2, 4, 8, 16, ... until $A[2^k] \ge x$ or $2^k > n$. (2) Binary search in the range $[2^{k-1}, \min(2^k, n)]$. Phase 1 takes $O(\log i)$ steps where $i$ is the target's position. Phase 2 takes $O(\log(2^k - 2^{k-1})) = O(k) = O(\log i)$. Total: $O(\log i)$. Exponential search is preferable when: (1) the target is near the beginning of a large array -- $O(\log i)$ is much better than binary search's $O(\log n)$; (2) the array size is unknown (infinite or streaming); (3) the data structure supports efficient sequential access but not random access (e.g., a linked list with skip pointers). $\square$
+
+---
+
+**Exercise 5.**
+A sorted array supports binary search in $O(\log n)$. If the array is modified (insertions/deletions), maintaining sorted order costs $O(n)$ per modification. Describe a data structure that supports both searches and modifications in $O(\log n)$.
+
+??? success "Solution to Exercise 5"
+    A **balanced BST** (AVL tree, red-black tree) stores elements in sorted order with $O(\log n)$ search, insert, and delete. Alternatively, a **skip list** provides $O(\log n)$ expected time for all operations. For the specific case of an array that needs both binary search and insertions, an **order-statistic tree** (balanced BST augmented with subtree sizes) supports: find the $k$-th element in $O(\log n)$, insert in $O(\log n)$, delete in $O(\log n)$, and rank query (position of an element) in $O(\log n)$. This replaces the sorted array + binary search combination when modifications are frequent. The tradeoff: BSTs have higher constant factors than arrays (pointer overhead, cache misses) but avoid the $O(n)$ shift cost of array insertions. $\square$

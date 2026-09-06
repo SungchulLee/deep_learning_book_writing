@@ -1,71 +1,71 @@
-# Bipartite Graphs
+# 이분 그래프
 
-Many real-world relationships are naturally two-sided: students enroll in courses, workers are assigned to tasks, and applicants are matched to positions. In each case, the entities fall into two distinct groups, and connections only run between groups, never within them. Bipartite graphs formalize this structure, and their characterization through odd cycles provides one of the most elegant results in graph theory.
+실제 세상의 관계 가운데 많은 것이 본디 두 쪽으로 나뉜다. 학생은 과목을 듣고, 일꾼은 일감을 맡고, 지원자는 자리에 짝지어진다. 어느 경우든 대상이 뚜렷이 두 무리로 갈리고 이음은 무리 사이에만 있고 무리 안에는 결코 없다. 이분 그래프가 이 짜임을 엄밀하게 담으며, 홀수 고리로 그 성격을 밝히는 일은 그래프 이론에서 가장 우아한 결과 가운데 하나이다.
 
-## Definition
+## 정의
 
-A graph $G = (V, E)$ is **bipartite** if its vertex set $V$ can be partitioned into two disjoint, non-empty sets $L$ and $R$ such that every edge $e \in E$ connects a vertex in $L$ to a vertex in $R$. Formally,
+그래프 $G = (V, E)$의 꼭짓점 묶음 $V$을 서로 겹치지 않는 빈 곳 없는 두 묶음 $L$과 $R$으로 나누어 변 $e \in E$마다 $L$의 꼭짓점과 $R$의 꼭짓점을 잇게 할 수 있으면 그 그래프는 **이분**이다. 엄밀하게는 다음과 같다.
 
 $$
 V = L \cup R, \quad L \cap R = \emptyset, \quad \text{and} \quad \forall (u, v) \in E: \; u \in L \Leftrightarrow v \in R
 $$
 
-No edge connects two vertices within the same partition. The pair $(L, R)$ is called a **bipartition** of $G$.
+같은 조각 안의 꼭짓점 둘을 잇는 변은 없다. 짝 $(L, R)$을 $G$의 **이분 나눔**이라 한다.
 
-!!! example "A Simple Bipartite Graph"
-    Consider $V = \{1, 2, 3, 4, 5, 6\}$ with edges $\{(1,4), (1,5), (2,5), (2,6), (3,6)\}$. Setting $L = \{1, 2, 3\}$ and $R = \{4, 5, 6\}$, every edge crosses between $L$ and $R$, so the graph is bipartite.
+!!! example "단순한 이분 그래프"
+    $V = \{1, 2, 3, 4, 5, 6\}$과 변 $\{(1,4), (1,5), (2,5), (2,6), (3,6)\}$을 생각하자. $L = \{1, 2, 3\}$, $R = \{4, 5, 6\}$으로 두면 변마다 $L$과 $R$을 가로지르므로 이 그래프는 이분이다.
 
-## Complete Bipartite Graphs
+## 완전 이분 그래프
 
-The **complete bipartite graph** $K_{m,n}$ has partition sizes $|L| = m$ and $|R| = n$, with every vertex in $L$ adjacent to every vertex in $R$. The total number of edges is
+**완전 이분 그래프** $K_{m,n}$은 조각 크기가 $|L| = m$, $|R| = n$이고 $L$의 꼭짓점마다 $R$의 모든 꼭짓점에 이웃한다. 변의 총 개수는 다음과 같다
 
 $$
 |E(K_{m,n})| = m \cdot n
 $$
 
-The graph $K_{1,n}$ is called a **star graph** because one central vertex connects to all $n$ others.
+그래프 $K_{1,n}$은 가운데 꼭짓점 하나가 나머지 $n$개에 모두 이어지므로 **별 그래프**라 한다.
 
-## Odd-Cycle Characterization
+## 홀수 고리로 성격 밝히기
 
-The following theorem provides the fundamental characterization of bipartite graphs and connects the concept to cycle structure.
+다음 정리는 이분 그래프의 근본 성격을 밝히고 이 개념을 고리 짜임과 잇는다.
 
-!!! tip "Theorem: Bipartite Characterization"
-    A graph $G$ is bipartite if and only if $G$ contains no odd-length cycle.
+!!! tip "정리: 이분 그래프의 성격"
+    그래프 $G$이 이분일 때 그리고 그때만 $G$에 길이가 홀수인 고리가 없다.
 
-**Proof sketch.**
+**증명 얼개.**
 
-$(\Rightarrow)$ Suppose $G$ is bipartite with partition $(L, R)$. Consider any cycle $v_0, v_1, \ldots, v_k = v_0$. Since adjacent vertices alternate between $L$ and $R$, the cycle must return to its starting partition after an even number of steps. Therefore $k$ is even, and no odd-length cycle exists.
+$(\Rightarrow)$ $G$이 조각 $(L, R)$을 갖는 이분 그래프라 하자. 아무 고리 $v_0, v_1, \ldots, v_k = v_0$을 생각하자. 이웃한 꼭짓점이 $L$과 $R$을 번갈아 오가므로 고리는 짝수 걸음 뒤에 처음 조각으로 돌아와야 한다. 그러므로 $k$은 짝수이고 길이가 홀수인 고리는 없다.
 
-$(\Leftarrow)$ Suppose $G$ has no odd-length cycle. Without loss of generality, assume $G$ is connected (otherwise, apply the argument to each connected component). Pick any vertex $s$ and run BFS from $s$. Define
+$(\Leftarrow)$ $G$에 길이가 홀수인 고리가 없다고 하자. 일반성을 잃지 않고 $G$이 이어져 있다고 놓자(아니면 이어진 덩이마다 이 따짐을 쓰면 된다). 아무 꼭짓점 $s$을 잡아 $s$에서 BFS을 돌린다. 다음과 같이 정의하자
 
 $$
 L = \{v \in V : d(s, v) \text{ is even}\}, \quad R = \{v \in V : d(s, v) \text{ is odd}\}
 $$
 
-where $d(s, v)$ is the shortest-path distance from $s$ to $v$. If some edge $(u, v)$ has both endpoints in $L$ (or both in $R$), then the BFS tree paths from $s$ to $u$ and $s$ to $v$, together with edge $(u, v)$, form an odd-length cycle -- contradicting the hypothesis. Therefore $(L, R)$ is a valid bipartition. $\square$
+여기서 $d(s, v)$은 $s$에서 $v$까지의 최단 경로 거리이다. 어떤 변 $(u, v)$의 양끝이 모두 $L$에 있으면(또는 모두 $R$에 있으면) $s$에서 $u$까지와 $s$에서 $v$까지의 BFS 나무 길에 변 $(u, v)$을 이으면 길이가 홀수인 고리가 되어 가정과 어긋난다. 그러므로 $(L, R)$은 올바른 이분 나눔이다. $\square$
 
-## Testing Bipartiteness with 2-Coloring
+## 두 빛깔 칠하기로 이분성 살피기
 
-The proof above immediately yields a practical algorithm: assign colors based on BFS distance parity. If no edge connects two same-colored vertices, the graph is bipartite; otherwise, an odd cycle exists.
+위 증명은 곧바로 실전 알고리즘을 준다. 곧 BFS 거리의 짝홀에 따라 빛깔을 준다. 같은 빛깔의 꼭짓점 둘을 잇는 변이 없으면 그 그래프는 이분이고, 있으면 홀수 고리가 있다.
 
-The algorithm runs in $O(V + E)$ time, the same cost as BFS.
+이 알고리즘은 BFS과 같은 값인 $O(V + E)$ 시간에 돈다.
 
 ```python
 """
-Bipartite graph testing using BFS-based 2-coloring.
+BFS 기반 두 빛깔 칠하기로 이분 그래프 검정하기.
 
-Determines whether an undirected graph is bipartite by attempting
-to assign one of two colors to each vertex such that no adjacent
-vertices share the same color.
+이웃한 꼭짓점이 같은 빛깔을 갖지 않도록 꼭짓점마다 두 빛깔 가운데
+하나를 주어 보아 무방향 그래프가 이분인지
+가려낸다.
 """
 
 from collections import deque
 
 
-# === Graph Representation ===
+# === 그래프 표현 ===
 
 def build_adjacency_list(n, edges):
-    """Build an adjacency list from a list of undirected edges."""
+    """무방향 변의 목록에서 이웃 목록을 쌓는다."""
     adj = [[] for _ in range(n)]
     for u, v in edges:
         adj[u].append(v)
@@ -73,22 +73,22 @@ def build_adjacency_list(n, edges):
     return adj
 
 
-# === Bipartiteness Test ===
+# === 이분성 검정 ===
 
 def is_bipartite(adj, n):
     """
-    Test whether the graph is bipartite using BFS 2-coloring.
+    BFS 두 빛깔 칠하기로 그래프가 이분인지 검정한다.
 
-    Returns (True, color) if bipartite, where color[v] in {0, 1}
-    gives the partition assignment. Returns (False, color) if an
-    odd cycle is detected.
+    이분이면 (True, color)을 되돌리며 color[v]은 {0, 1} 가운데
+    하나로 조각을 나타낸다. 홀수 고리를 찾으면
+    (False, color)을 되돌린다.
     """
     color = [-1] * n
 
     for start in range(n):
         if color[start] != -1:
             continue
-        # BFS from each unvisited component
+        # 다녀가지 않은 덩이마다 BFS
         color[start] = 0
         queue = deque([start])
 
@@ -104,10 +104,10 @@ def is_bipartite(adj, n):
     return True, color
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Example 1: bipartite graph
+    # 보기 1: 이분 그래프
     edges1 = [(0, 3), (0, 4), (1, 4), (1, 5), (2, 5)]
     adj1 = build_adjacency_list(6, edges1)
     result1, colors1 = is_bipartite(adj1, 6)
@@ -117,42 +117,84 @@ if __name__ == "__main__":
         R = [v for v in range(6) if colors1[v] == 1]
         print(f"  Partition L: {L}, R: {R}")
 
-    # Example 2: triangle (odd cycle) -> not bipartite
+    # 보기 2: 세모(홀수 고리) -> 이분이 아님
     edges2 = [(0, 1), (1, 2), (2, 0)]
     adj2 = build_adjacency_list(3, edges2)
     result2, _ = is_bipartite(adj2, 3)
     print(f"Graph 2 (triangle) bipartite: {result2}")
 ```
 
-**Output:**
+**출력:**
 ```
 Graph 1 bipartite: True
   Partition L: [0, 1, 2], R: [3, 4, 5]
 Graph 2 (triangle) bipartite: False
 ```
 
-## Properties of Bipartite Graphs
+## 이분 그래프의 성질
 
-Several useful properties follow directly from the definition and characterization theorem.
+쓸모 있는 성질 몇 가지가 정의와 성격 정리에서 곧바로 따라 나온다.
 
-- **Maximum edges.** A bipartite graph on $n$ vertices has at most $\lfloor n^2 / 4 \rfloor$ edges, achieved by $K_{\lfloor n/2 \rfloor, \lceil n/2 \rceil}$.
-- **Every tree is bipartite.** Trees are connected and acyclic, so they trivially contain no odd cycle.
-- **Independent sets.** Each partition $L$ and $R$ is an independent set (no internal edges), so the independence number satisfies $\alpha(G) \geq \max(|L|, |R|)$.
-- **Chromatic number.** A non-empty bipartite graph has chromatic number exactly 2, meaning it is 2-colorable.
+- **가장 많은 변.** 꼭짓점 $n$개의 이분 그래프는 변을 많아야 $\lfloor n^2 / 4 \rfloor$개 가지며 $K_{\lfloor n/2 \rfloor, \lceil n/2 \rceil}$이 이에 이른다.
+- **나무는 모두 이분이다.** 나무는 이어져 있고 고리가 없으므로 시시하게 홀수 고리를 갖지 않는다.
+- **홀로 선 묶음.** 조각 $L$과 $R$은 저마다 홀로 선 묶음이므로(안쪽 변이 없다) 홀로 섬 수는 $\alpha(G) \geq \max(|L|, |R|)$을 만족한다.
+- **빛깔 수.** 비어 있지 않은 이분 그래프의 빛깔 수는 꼭 2이며, 곧 두 빛깔로 칠할 수 있다는 뜻이다.
 
-!!! warning "Common Pitfall"
-    A graph can be bipartite even if it is disconnected. The bipartition is applied independently to each connected component. The algorithm above handles this by iterating over all unvisited starting vertices.
+!!! warning "흔히 빠지는 함정"
+    그래프가 이어져 있지 않아도 이분일 수 있다. 이분 나눔은 이어진 덩이마다 따로 쓴다. 위 알고리즘은 다녀가지 않은 시작 꼭짓점을 모두 훑어 이를 다룬다.
 
-## Applications
+## 응용
 
-Bipartite graphs appear throughout computer science and operations research:
+이분 그래프는 컴퓨터 과학과 경영 과학 곳곳에 나타난다:
 
-- **Matching problems.** The Hungarian algorithm and Hopcroft-Karp algorithm find maximum matchings in bipartite graphs, with applications to job assignment and resource allocation.
-- **Network flow.** Many maximum-flow problems reduce to bipartite matching through the construction of flow networks.
-- **Scheduling.** Tasks assigned to time slots or machines naturally form bipartite structures.
-- **Recommendation systems.** User-item interaction graphs are bipartite, forming the basis for collaborative filtering.
+- **짝짓기 문제.** 헝가리 알고리즘과 홉크로프트-카프 알고리즘은 이분 그래프에서 가장 큰 짝짓기를 찾으며, 일 나눠 주기와 밑천 배분에 쓰인다.
+- **망 흐름.** 흐름 망을 쌓으면 여러 최대 흐름 문제가 이분 짝짓기로 줄어든다.
+- **일정 짜기.** 일감을 시간 칸이나 기계에 나눠 주면 자연스럽게 이분 짜임이 된다.
+- **추천 얼개.** 이용자-물건 오감 그래프는 이분이며 협업 거르기의 바탕이 된다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 22.
-- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. Section 1.2.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
+- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. 1.2절.
+
+## 연습문제
+
+**연습문제 1.**
+꼭짓점이 $n \geq 2$개인 나무가 모두 이분임을 증명하여라. 뿌리 있는 나무로 따져 이분 나눔 $(L, R)$을 드러내 지어라.
+
+??? success "연습문제 1 풀이"
+    아무 꼭짓점 $r$을 나무의 뿌리로 삼자. 깊이가 짝수인 꼭짓점의 묶음을 $L$, 홀수인 것을 $R$이라 하자. 나무에는 고리가 없으므로 변마다 어버이와 자식을 잇고, 어버이와 자식의 깊이는 늘 꼭 1만큼 다르다. 그러므로 변마다 $L$의 꼭짓점과 $R$의 꼭짓점을 이어 이 그래프가 이분임이 확인된다. $\square$
+
+---
+
+**연습문제 2.**
+$G$을 꼭짓점 $n$개의 이분 그래프라 하자. $G$의 변이 많아야 $\lfloor n^2 / 4 \rfloor$개임을 보이고 등호가 언제 성립하는지 밝혀라.
+
+??? success "연습문제 2 풀이"
+    이분 나눔을 $(L, R)$이라 하고 $|L| = a$, $|R| = n - a$이라 하자. $L$의 꼭짓점마다 $R$의 모든 꼭짓점에 이웃할 때 변이 가장 많아 $a(n - a)$개이다. 산술-기하 평균 부등식에 따라 $a(n - a) \leq (n/2)^2 = n^2/4$이고 $a = n/2$일 때 등호가 성립한다. $n$이 홀수면 최댓값은 $\lfloor n/2 \rfloor \cdot \lceil n/2 \rceil = \lfloor n^2/4 \rfloor$이다. 등호는 완전 이분 그래프 $K_{\lfloor n/2 \rfloor, \lceil n/2 \rceil}$에서 성립한다. $\square$
+
+---
+
+**연습문제 3.**
+이웃 목록으로 나타낸, 꼭짓점 $n$개와 변 $m$개인 무방향 그래프 $G$이 주어졌을 때, 올바른 두 빛깔 칠하기나 홀수 고리를 되돌리는 알고리즘을 적어라. 시간 복잡도를 따져라.
+
+??? success "연습문제 3 풀이"
+    다녀가지 않은 꼭짓점마다 BFS을 돌리며 빛깔을 번갈아 준다. $\text{color}[u] = \text{color}[v]$인 변 $(u, v)$을 찾으면, $u$과 $v$에서 BFS 어버이 가리개를 따라 가장 낮은 공통 조상까지 거슬러 올라가 두 길을 변 $(u, v)$으로 이어 홀수 고리를 뽑아낸다. BFS은 꼭짓점과 변마다 많아야 한 번 들르므로 전체 시간 복잡도는 $O(n + m)$이다. $\square$
+
+---
+
+**연습문제 4.**
+그래프 $G$이 이분일 때 그리고 그때만 $G$의 모든 닫힌 걸음의 길이가 짝수임을 증명하여라.
+
+??? success "연습문제 4 풀이"
+    $(\Rightarrow)$ $G$이 조각 $(L, R)$을 갖는 이분 그래프면 걸음마다 $L$과 $R$을 번갈아 오간다. 닫힌 걸음은 처음 꼭짓점으로 돌아오므로 걸음의 수가 짝수여야 한다.
+
+    $(\Leftarrow)$ 고리는 모두 닫힌 걸음이므로 고리마다 길이가 짝수이다. 홀수 고리 성격 정리에 따라 $G$은 이분이다. $\square$
+
+---
+
+**연습 5.**
+이어진 이분 그래프 $G$의 이분 나눔이 $(L, R)$이고 $|L| = p$, $|R| = q$이며 $p \neq q$이다. 이 이분 나눔이 하나뿐임을 증명하여라.
+
+??? success "연습 5의 풀이"
+    $(L', R')$이 또 다른 이분 나눔이라고 하자. 아무 꼭짓점 $v \in L$을 잡자. 그래프가 이어져 있으므로 다른 꼭짓점이 어느 조각에 드는지는 $v$에서의 거리로 정해진다. 곧 거리가 짝수인 꼭짓점은 $v$과 같은 조각에, 홀수인 꼭짓점은 반대 조각에 든다. 그러면 ($L$과 $R$을 맞바꾸는 것을 빼면) 이분 나눔이 꼭 하나 나온다. $|L| = p \neq q = |R|$이므로 맞바꾸면 다른 조각이 되고, 따라서 $|L| = p$인 이분 나눔은 하나뿐이다. $\square$

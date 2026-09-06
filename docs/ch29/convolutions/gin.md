@@ -1,58 +1,86 @@
-# 29.3.7 Graph Isomorphism Network (GIN)
+# 29.3.7 그래프 같은 꼴 신경망(GIN)
+## 들어가며
 
+쉬 외(2019)의 **그래프 같은 꼴 신경망(GIN)**은 쪽지 건네기 그래프 신경망 가운데 **나타냄 힘이 가장 크도록** 짜였다. 1차 바이스파일러-레만(1-WL) 그래프 같은 꼴 시험만큼 힘세다는 것이 밝혀져 있어 그래프 켜 나타냄 배움에서 이론으로 가장 탄탄한 얼개이다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 이론적 바탕
 
-## Introduction
-
-The **Graph Isomorphism Network (GIN)** by Xu et al. (2019) is designed to be **maximally expressive** among message passing GNNs. It is provably as powerful as the 1-Weisfeiler-Leman (1-WL) graph isomorphism test, making it the most theoretically grounded architecture for graph-level representation learning.
-
-## Theoretical Foundation
-
-### WL Test Connection
-The 1-WL test iteratively updates node labels:
+### 바이스파일러-레만 시험과의 이음
+1차 바이스파일러-레만 시험은 마디 이름표를 되풀이해 고친다:
 
 $$c^{(l)}(v) = \text{HASH}\left(c^{(l-1)}(v), \{\!\{c^{(l-1)}(u) : u \in \mathcal{N}(v)\}\!\}\right)$$
 
-For a GNN to be as powerful as 1-WL, it must be able to distinguish different multisets of neighbor features. Xu et al. proved that **sum aggregation with injective update** achieves this.
+그래프 신경망이 1차 바이스파일러-레만만큼 힘세려면 이웃 특징의 서로 다른 여럿 모임을 가를 수 있어야 한다. 쉬 외는 **일대일 고침을 갖춘 합 모으기**가 이를 이룸을 밝혔다.
 
-### Why Sum Aggregation?
-- **Sum** can distinguish multisets (counts multiplicities)
-- **Mean** cannot distinguish $\{1,1,1\}$ from $\{1\}$
-- **Max** cannot distinguish $\{1,1,1\}$ from $\{1,2,3\}$ element-wise
+### 왜 합 모으기인가?
+- **합**은 여럿 모임을 가를 수 있다(겹침 수를 센다)
+- **평균**은 $\{1,1,1\}$과 $\{1\}$을 가를 수 없다
+- **최대**는 원소마다 보면 $\{1,1,1\}$과 $\{1,2,3\}$을 가를 수 없다
 
-## GIN Layer
+## GIN 층
 
 $$\mathbf{h}_v^{(l)} = \text{MLP}^{(l)}\left((1 + \epsilon^{(l)}) \cdot \mathbf{h}_v^{(l-1)} + \sum_{u \in \mathcal{N}(v)} \mathbf{h}_u^{(l-1)}\right)$$
 
-where:
-- $\epsilon$ is a learnable scalar (or fixed at 0)
-- MLP provides the injective mapping
-- Sum aggregation preserves multiset information
+여기서 각 기호는 다음과 같다.
 
-## GIN-0 vs GIN-ε
+- $\epsilon$은 배울 수 있는 낱값이다(또는 0으로 붙박인다)
+- 여러 층 신경망이 일대일 옮김을 준다
+- 합 모으기가 여럿 모임의 앎을 지킨다
 
-- **GIN-ε**: Learnable $\epsilon$, empirically slightly better
-- **GIN-0**: Fixed $\epsilon = 0$, simpler: $\text{MLP}(\mathbf{h}_v + \sum \mathbf{h}_u)$
+## GIN-0과 GIN-ε
 
-## Graph-Level Readout
+- **GIN-ε**: 배울 수 있는 $\epsilon$이며 경험으로 조금 낫다
+- **GIN-0**: $\epsilon = 0$으로 붙박여 더 단순하다: $\text{MLP}(\mathbf{h}_v + \sum \mathbf{h}_u)$
 
-For graph classification, GIN uses **concatenation of all layers' readouts**:
+## 그래프 켜 읽어내기
+
+그래프 가름에서 GIN은 **모든 층의 읽어내기를 이어 붙인다**:
 
 $$\mathbf{h}_G = \text{CONCAT}\left(\text{READOUT}(\{\mathbf{h}_v^{(l)}\}_{v \in V}) \mid l = 0, 1, \ldots, L\right)$$
 
-This Jumping Knowledge-style readout prevents information loss from over-smoothing.
+이 건너뛰는 앎 방식의 읽어내기가 지나친 매끄러워짐으로 앎을 잃는 것을 막는다.
 
-## Expressiveness Results
+## 나타냄 힘 결과
 
-| Architecture | Aggregation | Update | WL Equivalent? |
+| 얼개 | 모으기 | 고침 | 바이스파일러-레만과 같은가? |
 |-------------|-------------|--------|----------------|
-| GCN | Normalized sum | Linear | No |
-| GraphSAGE (mean) | Mean | Concat+Linear | No |
-| GAT | Attention-weighted sum | Attention | No |
-| **GIN** | **Sum** | **MLP** | **Yes (1-WL)** |
+| GCN | 고르게 맞춘 합 | 선형 | 아니오 |
+| GraphSAGE(평균) | 평균 | 이어 붙임+선형 | 아니오 |
+| GAT | 눈길 무게 합 | 눈길 | 아니오 |
+| **GIN** | **합** | **여러 층 신경망** | **예(1-WL)** |
 
-## Summary
+## 요약
 
-GIN is the go-to architecture when maximal expressiveness within the message passing framework is required. Its theoretical guarantees make it particularly valuable for graph classification benchmarks and applications where distinguishing graph structures is critical.
+쪽지 건네기 틀 안에서 최대의 나타냄 힘이 필요할 때 GIN이 즐겨 쓰는 얼개이다. 그 이론 보장 덕에 그래프 가름 견줌 시험과 그래프 얼개를 가리는 것이 결정적인 쓰임새에서 특히 값지다.
+
+## 연습문제
+
+**연습문제 1.**
+마디 5개와 돌이의 이웃 얼개를 가진 그래프를 살펴보자. 2차원 특징 벡터에서 이 마디에 적은 쪽지 건네기 고침 한 걸음을 손으로 셈하라.
+
+??? success "연습문제 1 풀이"
+    마디 $1, \ldots, 5$에 특징 벡터 $\mathbf{h}_i \in \mathbb{R}^2$을 붙인다. 돌이에서 마디마다 이웃이 꼭 둘이다. 마디마다 모으기(보기로 이웃의 평균)와 고침(보기로 선형 바꿈과 깨움)을 쓴다. 한 걸음 뒤 마디마다의 나타냄이 바로 옆 이웃의 영향을 받는다. 이 드러난 셈은 받아들이는 자리가 층마다 한 뜀씩 넓어짐을 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+평균 모으기와 합 모으기가 여럿 모임을 가르는 나타냄 힘에서 다름을 밝혀라. 평균 모으기로는 가릴 수 없지만 합 모으기로는 가릴 수 있는 여럿 모임 둘의 구체적인 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    $S_1 = \{1, 1, 1\}$과 $S_2 = \{1\}$을 살펴보자. 평균 모으기는 $\text{mean}(S_1) = 1 = \text{mean}(S_2)$을 주어 둘을 가르지 못한다. 합 모으기는 $\text{sum}(S_1) = 3 \neq 1 = \text{sum}(S_2)$을 준다. 더 넓게는 평균 모으기가 여럿 모임의 겹침 수에 대해 불변이므로 서로 낱값 배인 여럿 모임을 가를 수 없다. 그래서 그래프 동형 신경망은 1차 바이스파일러-레만 시험에 맞먹는 최대 나타냄 힘을 얻으려 합 모으기를 쓴다. $\square$
+
+---
+
+**연습문제 3.**
+최단 길 거리가 $k$일 때 마디 $u$의 앎이 마디 $v$에 닿으려면 쪽지 건네기 층이 몇 개 필요한가? $k$이 커지면 실제로 어떤 문제가 생기는가?
+
+??? success "연습문제 3 풀이"
+    층마다 앎을 한 뜀씩 퍼뜨리므로 꼭 $k$개가 필요하다. $k$이 커지면 받아들이는 자리가 지수로 넓어진다(마디마다 $k$뜀 안의 모든 마디에서 모은다). 이는 지나친 매끄러워짐을 낳는다. 층이 많아지면 마디마다 거의 온 그래프의 앎을 모았기에 모든 마디 나타냄이 가릴 수 없는 벡터로 모인다. 누그러뜨리는 셈속으로는 남은 이음, 건너뛰는 앎, 그래프 변환기가 있다. $\square$
+
+---
+
+**연습문제 4.**
+그래프 겹말기의 자리 방식과 스펙트럼 방식의 맞바꿈을 따져라. 각각은 어떤 조건에서 더 나은가?
+
+??? success "연습문제 4 풀이"
+    스펙트럼 방법(보기로 ChebNet)은 그래프 라플라스의 고유 분해로 겹말기를 뜻매김해 원리 있는 신호 다루기 틀을 주지만 고유 분해($O(n^3)$)가 필요하고 그래프 위상이 붙박여 있어야 한다. 자리 방법(보기로 GraphSAGE, 그래프 눈길 신경망)은 이웃 모으기로 겹말기를 뜻매김해 달라지는 그래프 얼개를 자연스럽게 다루고 작은 묶음으로 큰 그래프에도 키울 수 있다. 정확한 진동수 거르기가 중요한 작고 위상이 붙박인 그래프에는 스펙트럼 방법이, 귀납 배움이 필요한 크거나 바뀌거나 뒤섞인 그래프에는 자리 방법이 낫다. $\square$

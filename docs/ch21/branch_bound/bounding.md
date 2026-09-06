@@ -1,89 +1,89 @@
-# Bounding Functions
+# 묶는 함수
 
-Branch and bound prunes the search tree by computing a **bound** — an optimistic estimate of the best solution reachable from a given node. If the bound indicates that no solution in the subtree can improve upon the current best, the entire subtree is pruned. The quality of the bounding function determines how much of the tree is explored: a tight bound prunes aggressively, while a loose bound provides little benefit.
+가지 뻗어 묶기는 **묶음**, 곧 어떤 마디에서 닿을 수 있는 가장 좋은 풀이를 낙관해 어림한 값을 셈해 찾기 나무를 쳐 낸다. 그 아래 나무의 어떤 풀이도 여태 가장 좋은 것을 넘을 수 없다고 묶음이 말하면 아래 나무 전체를 쳐 낸다. 묶는 함수의 품질이 나무를 얼마나 살피는지 정한다. 곧 빡빡한 묶음은 세게 쳐 내고 헐거운 묶음은 별 도움이 안 된다.
 
-## Role of Bounds in Branch and Bound
+## 가지 뻗어 묶기에서 묶음의 노릇
 
-At each node in the search tree, the bounding function computes:
+찾기 나무의 마디마다 묶는 함수는 다음을 셈한다:
 
-- **Upper bound** (for maximization): the maximum possible value achievable in the subtree.
-- **Lower bound** (for minimization): the minimum possible cost in the subtree.
+- **위 묶음**(가장 크게 할 때): 그 아래 나무에서 이룰 수 있는 최대 값.
+- **아래 묶음**(가장 작게 할 때): 그 아래 나무에서 들 수 있는 최소 값.
 
-A node is pruned when its bound cannot improve on the best complete solution found so far. Formally, for a maximization problem with current best value $z^*$:
+마디의 묶음이 여태 찾은 가장 좋은 온전한 풀이를 넘을 수 없으면 그 마디를 쳐 낸다. 여태 가장 좋은 값이 $z^*$인 가장 크게 하기 문제에서는 엄밀히:
 
 $$
-\text{Prune node } v \quad \text{if} \quad \text{UB}(v) \le z^*
+\text{다음이면 마디 } v \text{ 를 쳐 낸다}: \quad \text{UB}(v) \le z^*
 $$
 
-## Desirable Properties
+## 갖추어야 할 성질
 
-A good bounding function balances two goals:
+좋은 묶는 함수는 두 목표를 저울질한다:
 
-1. **Tightness**: The bound should be close to the true optimal value in the subtree. A tighter bound prunes more nodes.
-2. **Efficiency**: The bound must be fast to compute. A bound that requires solving the original problem is useless — it must be simpler than the problem itself.
+1. **빡빡함**: 묶음이 아래 나무의 참으로 가장 좋은 값에 가까워야 한다. 빡빡할수록 마디를 더 많이 쳐 낸다.
+2. **효율**: 묶음을 빨리 셈할 수 있어야 한다. 본디 문제를 풀어야 하는 묶음은 쓸모없다. 문제 자체보다 단순해야 한다.
 
-!!! tip "The Relaxation Principle"
-    Most bounding functions work by **relaxing** constraints of the original problem. Removing constraints enlarges the feasible set, making the relaxed problem easier to solve, and its optimal value provides a valid bound.
+!!! tip "느슨하게 하기 원칙"
+    거의 모든 묶는 함수는 본디 문제의 제약을 **느슨하게** 해서 돈다. 제약을 없애면 될 수 있는 모임이 커져 느슨해진 문제가 풀기 쉬워지고, 그 가장 좋은 값이 옳은 묶음을 준다.
 
-## Common Bounding Techniques
+## 흔한 묶기 재주
 
-### LP Relaxation
+### 선형 계획 느슨하게 하기
 
-Replace integer constraints $x_i \in \{0, 1\}$ with continuous constraints $0 \le x_i \le 1$. The resulting linear program (LP) can be solved in polynomial time, and its optimal value provides an upper bound for maximization (or lower bound for minimization).
+정수 제약 $x_i \in \{0, 1\}$을 이어진 제약 $0 \le x_i \le 1$으로 갈음한다. 그렇게 나온 선형 계획은 다항 시간에 풀 수 있고 그 가장 좋은 값이 가장 크게 하기의 위 묶음(가장 작게 하기의 아래 묶음)을 준다.
 
-**Example.** For the 0/1 knapsack, LP relaxation allows fractional item selections. The fractional knapsack can be solved greedily in $O(n \log n)$.
+**보기.** 0/1 배낭에서 선형 계획으로 느슨하게 하면 물건을 쪼개어 고를 수 있다. 쪼갤 수 있는 배낭은 욕심쟁이로 $O(n \log n)$에 푼다.
 
-### Greedy Bounds
+### 욕심쟁이 묶음
 
-Apply a greedy heuristic to the remaining items. For the knapsack problem, sorting items by value-to-weight ratio and greedily filling the capacity provides a fast upper bound.
+남은 물건에 욕심쟁이 어림짐작을 쓴다. 배낭 문제에서는 값어치 대 무게 비로 물건을 정렬해 욕심껏 담이를 채우면 빠른 위 묶음을 얻는다.
 
-### Problem-Specific Relaxations
+### 문제마다 다른 느슨하게 하기
 
-- **TSP**: Relax the Hamiltonian cycle requirement to a minimum spanning tree (MST). The MST cost lower-bounds the TSP cost since every Hamiltonian cycle spans all vertices.
-- **Assignment problem**: Relax by allowing fractional assignments; the LP relaxation of the assignment problem has an integral optimum (due to total unimodularity).
+- **떠돌이 장수**: 해밀턴 돌기라는 요건을 최소 뻗음 나무로 느슨하게 한다. 해밀턴 돌기는 모두 꼭짓점 전체를 뻗으므로 최소 뻗음 나무의 값이 떠돌이 장수 값의 아래 묶음이 된다.
+- **배정 문제**: 쪼갠 배정을 허락해 느슨하게 한다. 배정 문제의 선형 계획 느슨하게 하기는 (전체 단일 모듈성 덕분에) 가장 좋은 값이 정수이다.
 
-## Bound Quality Spectrum
+## 묶음 품질의 스펙트럼
 
-| Bound Type | Tightness | Cost | Example |
+| 묶음 갈래 | 빡빡함 | 값 | 보기 |
 |---|---|---|---|
-| Trivial | Loose | $O(1)$ | Sum of all values (knapsack UB) |
-| Greedy | Moderate | $O(n \log n)$ | Fractional knapsack relaxation |
-| LP relaxation | Tight | $O(n^3)$ | Simplex or interior point |
-| Lagrangian | Very tight | Iterative | Subgradient optimization |
+| 뻔한 것 | 헐거움 | $O(1)$ | 값어치의 합(배낭의 위 묶음) |
+| 욕심쟁이 | 가운데 | $O(n \log n)$ | 쪼갤 수 있는 배낭으로 느슨하게 하기 |
+| 선형 계획 느슨하게 하기 | 빡빡함 | $O(n^3)$ | 심플렉스나 안쪽 점 |
+| 라그랑주 | 아주 빡빡함 | 되풀이 | 아래 기울기 가장 좋게 하기 |
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Bounding Functions — Comparison for 0/1 Knapsack.
+묶는 함수 — 0/1 배낭에서의 견줌.
 
-Demonstrates three bounding functions of increasing tightness:
-trivial bound, greedy (fractional) bound, and LP relaxation bound.
+점점 빡빡해지는 묶는 함수 셋을 보인다.
+곧 뻔한 묶음, 욕심쟁이(쪼갤 수 있는) 묶음, 선형 계획 느슨하게 하기 묶음이다.
 """
 
 
-# === Trivial Upper Bound ===
+# === 뻔한 위 묶음 ===
 
 def trivial_bound(
     level: int, value: int,
     values: list[int], capacity: int, weight: int
 ) -> float:
-    """Sum of current value plus all remaining item values.
+    """지금 값어치에 남은 물건의 값어치를 모두 더한 것.
 
-    Ignores weight constraint entirely — very loose but O(n).
+    무게 제약을 아예 무시한다. 아주 헐겁지만 O(n)이다.
     """
     return value + sum(values[level:])
 
 
-# === Fractional (Greedy) Upper Bound ===
+# === 쪼갤 수 있는(욕심쟁이) 위 묶음 ===
 
 def fractional_bound(
     level: int, value: int, weight: int,
     weights: list[int], values: list[int], capacity: int
 ) -> float:
-    """Upper bound via fractional knapsack on remaining items.
+    """남은 물건에 쪼갤 수 있는 배낭을 써서 얻는 위 묶음.
 
-    Items must be pre-sorted by value/weight ratio (descending).
+    물건을 값어치/무게 비 내림차순으로 미리 정렬해야 한다.
     """
     if weight > capacity:
         return 0.0
@@ -102,14 +102,14 @@ def fractional_bound(
     return bound
 
 
-# === Bound Comparison ===
+# === 묶음 견줌 ===
 
 def compare_bounds(
     weights: list[int], values: list[int], capacity: int
 ) -> None:
-    """Compare bound tightness at the root node."""
+    """뿌리 마디에서 묶음의 빡빡함을 견준다."""
     n = len(weights)
-    # Sort by value density
+    # 값어치 밀도로 정렬한다
     order = sorted(range(n), key=lambda i: values[i] / weights[i], reverse=True)
     w_sorted = [weights[i] for i in order]
     v_sorted = [values[i] for i in order]
@@ -121,7 +121,7 @@ def compare_bounds(
     print(f"Fractional upper bound: {frac}")
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     weights = [2, 3, 4, 5]
@@ -132,17 +132,49 @@ if __name__ == "__main__":
     print(f"Values:  {values}")
     print(f"Capacity: {capacity}")
     compare_bounds(weights, values, capacity)
-    # Output:
-    # Weights: [2, 3, 4, 5]
-    # Values:  [3, 4, 5, 6]
-    # Capacity: 8
-    # Trivial upper bound:    18
-    # Fractional upper bound: 12.0
+    # 내임:
+    # 무게: [2, 3, 4, 5]
+    # 값어치:  [3, 4, 5, 6]
+    # 담이: 8
+    # 뻔한 위 묶음:    18
+    # 쪼갤 수 있는 위 묶음: 12.0
 ```
 
-The trivial bound (18) is far from the optimal value (10), while the fractional bound (12.0) is much tighter. In a full branch-and-bound search, the tighter bound prunes significantly more nodes.
+뻔한 묶음(18)은 가장 좋은 값(10)과 멀지만 쪼갤 수 있는 묶음(12.0)은 훨씬 빡빡하다. 온전한 가지 뻗어 묶기 찾기에서 빡빡한 묶음이 마디를 훨씬 많이 쳐 낸다.
 
-## Reference
+## 참고 문헌
 
 - Clausen, J. (1999). Branch and Bound Algorithms — Principles and Examples. Technical Report, University of Copenhagen.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+묶는 함수의 고갱이 생각과 그것이 풀이 공간을 어떻게 짜임새 있게 살피는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    묶는 함수은 풀이 공간을 나무로 보고 살피며 마디마다 어중간한 풀이를 뜻한다. 마디마다 알고리즘은 어중간한 풀이를 넓히고 될 수 있는지 제약을 살핀다. 어중간한 풀이가 제약을 어기거나 (가장 좋거나 옳은 온전한 풀이로 이어질 수 없음이 밝혀지면) 알고리즘은 **가지를 쳐**(되짚어) 그 아래 나무 전체를 살피지 않는다. 가지치기가 찾기 공간의 큰 몫을 없애므로 막무가내보다 효율이 좋다. $\square$
+
+---
+
+**연습문제 2.**
+묶는 함수의 최악의 경우 시간 복잡도는 무엇인가? 가지치기는 언제 찾기 공간을 크게 줄이는가?
+
+??? success "연습문제 2 풀이"
+    최악의 경우(가지치기가 없으면) 알고리즘이 풀이 공간 전체를 살피며 이는 흔히 지수나 계승이다. 곧 갈래 수가 $b$이고 깊이가 $d$이면 $O(b^d)$, 자리 바꿈 문제이면 $O(n!)$이다. 가지치기는 다음일 때 찾기를 크게 줄인다. (1) 제약이 빡빡해 될 수 없는 갈래가 많을 때, (2) 좋은 묶음이 갈래를 일찍 없앨 때, (3) 차례를 매기는 어림짐작이 그럴듯한 갈래를 먼저 살필 때이다. 실전에서 가지치기는 도는 시간을 자릿수만큼 줄일 수 있다. $\square$
+
+---
+
+**연습문제 3.**
+묶는 함수의 가지치기 조건을 적어라. 무엇이 좋은 가지치기 잣대를 만드는가?
+
+??? success "연습문제 3 풀이"
+    가지치기 잣대는 어중간한 풀이를 언제 버릴지 정한다. 좋은 잣대는 다음과 같다. (1) **될 수 있음**: 어중간한 풀이가 이미 제약을 어긴다. (2) **묶음**: 어중간한 풀이를 가장 좋게 마무리해도 여태 가장 좋은 풀이보다 나을 수 없다. (3) **누름**: 다른 어중간한 풀이가 적어도 그만큼 좋음이 밝혀진다. 잘 듣는 가지치기 잣대는 따지기 값싸고 큰 아래 나무를 없앤다. $\square$
+
+---
+
+**연습문제 4.**
+작은 경우에 묶는 함수을 짜고 살핀 마디의 수를 전체 찾기 공간의 크기와 견주어 세어라.
+
+??? success "연습문제 4 풀이"
+    작은 경우(예컨대 N-여왕에서 $n = 8$, 배낭에서 담이 20)에는 전체 찾기 공간에 마디가 수백만 개일 수 있지만 가지치기가 잘 들면 수천 개만 살핀다. (살핀 수 / 전체) 비가 가지치기가 얼마나 잘 드는지 값으로 나타낸다. 제약이 잘 걸린 문제에서는 이 비가 1% 아래일 수 있어 되짚기가 막무가내보다 힘이 셈을 보여 준다. $\square$

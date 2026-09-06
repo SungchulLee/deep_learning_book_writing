@@ -1,116 +1,149 @@
-# Amortized Analysis of Splay Trees
+# 스플레이 트리의 분할 상환 분석
 
-A single [splay operation](operation.md) can take $O(n)$ time if the tree is highly unbalanced.  Despite this worst case, Sleator and Tarjan proved that any sequence of $m$ splay operations on a tree with at most $n$ nodes takes $O(m \log n)$ total time, giving an **amortized cost of $O(\log n)$ per operation**.  The proof uses the potential method with a carefully chosen potential function that captures how "unbalanced" the tree is.
+트리가 크게 기울어 있으면 [스플레이 연산](operation.md) 한 번에 $O(n)$ 시간이 들 수 있다. 이 최악의 경우에도 슬리터와 타잔은 노드가 많아야 $n$개인 트리에서 스플레이 연산 $m$번의 어떤 차례든 전체 $O(m \log n)$ 시간이 들어 **연산당 분할 상환 비용이 $O(\log n)$**임을 증명했다. 증명에는 트리가 얼마나 "기울었는지"를 담아내도록 고른 퍼텐셜 함수를 쓰는 퍼텐셜 방법을 쓴다.
 
-## The Potential Function
+## 퍼텐셜 함수
 
-Assign each node $x$ a **rank** equal to the logarithm of the size of its subtree:
+노드 $x$마다 그 부분 트리 크기의 로그와 같은 **계수**를 매긴다.
 
 $$
 r(x) = \log_2 s(x)
 $$
 
-where $s(x)$ is the number of nodes in the subtree rooted at $x$ (including $x$ itself).
+여기서 $s(x)$은 $x$을 뿌리로 하는 부분 트리의 노드 수이다($x$ 자신을 포함한다).
 
-The **potential** of the entire tree $T$ is the sum of all ranks:
+트리 $T$ 전체의 **퍼텐셜**은 모든 계수의 합이다.
 
 $$
 \Phi(T) = \sum_{x \in T} r(x)
 $$
 
-The potential is always non-negative (since $s(x) \ge 1$ for every node) and satisfies $0 \le \Phi(T) \le n \log_2 n$.
+퍼텐셜은 (노드마다 $s(x) \ge 1$이므로) 언제나 음이 아니며 $0 \le \Phi(T) \le n \log_2 n$을 만족한다.
 
-## The Access Lemma
+## 접근 보조정리
 
-The key result bounding the amortized cost of a splay operation:
+스플레이 연산의 분할 상환 비용을 한계 짓는 핵심 결과이다.
 
-!!! note "Access Lemma"
-    The amortized cost of splaying a node $x$ to the root of a tree with root $t$ is at most:
+!!! note "접근 보조정리"
+    뿌리가 $t$인 트리에서 노드 $x$을 뿌리까지 스플레이하는 분할 상환 비용은 많아야 다음과 같다.
 
     $$
     \hat{c} \le 3(r(t) - r(x)) + 1 = 3\log_2 \frac{s(t)}{s(x)} + 1
     $$
 
-Since $s(t) = n$ (the root's subtree contains all $n$ nodes) and $s(x) \ge 1$, this gives:
+$s(t) = n$(뿌리의 부분 트리가 노드 $n$개를 모두 담는다)이고 $s(x) \ge 1$이므로 다음을 얻는다.
 
 $$
 \hat{c} \le 3 \log_2 n + 1 = O(\log n)
 $$
 
-## Proof Sketch
+## 증명의 얼개
 
-The proof analyzes each [rotation](rotations.md) step (zig, zig-zig, zig-zag) separately and shows that the amortized cost of each step is bounded in terms of rank changes.
+증명은 [회전](rotations.md) 단계(지그, 지그지그, 지그재그)마다 따로 따져 각 단계의 분할 상환 비용이 계수 변화로 한계 지어짐을 보인다.
 
-Let $r(x)$ and $r'(x)$ denote the rank of node $x$ before and after a single splay step.
+$r(x)$과 $r'(x)$을 스플레이 한 단계 앞뒤의 노드 $x$의 계수라 하자.
 
-**Zig step** (single rotation at the root): the amortized cost is at most:
+**지그 단계**(뿌리에서의 한 번 회전): 분할 상환 비용은 많아야 다음과 같다.
 
 $$
 \hat{c}_{\text{zig}} \le 1 + 3(r'(x) - r(x))
 $$
 
-**Zig-zig step** (two rotations in the same direction): the amortized cost is at most:
+**지그지그 단계**(같은 방향으로 두 번 회전): 분할 상환 비용은 많아야 다음과 같다.
 
 $$
 \hat{c}_{\text{zig-zig}} \le 3(r'(x) - r(x))
 $$
 
-**Zig-zag step** (two rotations in opposite directions): the amortized cost is at most:
+**지그재그 단계**(반대 방향으로 두 번 회전): 분할 상환 비용은 많아야 다음과 같다.
 
 $$
 \hat{c}_{\text{zig-zag}} \le 3(r'(x) - r(x))
 $$
 
-The proof of each bound uses the concavity of the logarithm function. For the zig-zig case, the critical inequality is:
+각 한계의 증명에는 로그 함수의 오목함을 쓴다. 지그지그의 경우 핵심 부등식은 다음과 같다.
 
 $$
 \log a + \log b \le 2 \log \frac{a + b}{2} - 2
 $$
 
-which holds when $a + b \le c$ for appropriate subtree sizes.
+이는 알맞은 부분 트리 크기에 대해 $a + b \le c$일 때 성립한다.
 
-Summing the amortized costs over all steps in a splay operation yields a telescoping sum.  The intermediate rank terms cancel, leaving only $3(r'(\text{root}) - r(x)) + 1$, which proves the access lemma.
+스플레이 연산의 모든 단계에 걸쳐 분할 상환 비용을 더하면 망원경 합이 된다. 중간의 계수 항이 지워지고 $3(r'(\text{root}) - r(x)) + 1$만 남아 접근 보조정리가 증명된다.
 
-## Amortized Bound for a Sequence
+## 연산 차례의 분할 상환 한계
 
-For a sequence of $m$ splay operations on a tree that never exceeds $n$ nodes:
+노드가 $n$개를 넘지 않는 트리에서 스플레이 연산 $m$번의 차례에 대해 다음과 같다.
 
 $$
 \sum_{i=1}^{m} c_i = \sum_{i=1}^{m} \hat{c}_i + \Phi_0 - \Phi_m \le m(3 \log_2 n + 1) + \Phi_0
 $$
 
-Since $\Phi_0 \le n \log_2 n$ and $\Phi_m \ge 0$, the total cost is:
+$\Phi_0 \le n \log_2 n$이고 $\Phi_m \ge 0$이므로 전체 비용은 다음과 같다.
 
 $$
 O(m \log n + n \log n) = O((m + n) \log n)
 $$
 
-When $m \ge n$ (which is typical), this simplifies to $O(m \log n)$.
+(흔한 경우인) $m \ge n$이면 이는 $O(m \log n)$으로 간단해진다.
 
-## Weighted Analysis
+## 가중치를 둔 분석
 
-The potential function can be generalized by assigning **weights** $w(x)$ to nodes, letting $s(x) = \sum_{y \in \text{subtree}(x)} w(x)$ be the weighted subtree size.  This leads to the **dynamic optimality conjecture**: splay trees are within a constant factor of any binary search tree on any access sequence.
+노드에 **가중치** $w(x)$을 매기고 $s(x) = \sum_{y \in \text{subtree}(x)} w(x)$을 가중치를 둔 부분 트리 크기로 삼아 퍼텐셜 함수를 일반화할 수 있다. 여기서 **동적 최적성 추측**이 나온다. 어떤 접근 차례에서도 스플레이 트리가 어떤 이진 탐색 트리와도 상수 배 안에 든다는 것이다.
 
-The weighted access lemma gives:
+가중치를 둔 접근 보조정리는 다음을 준다.
 
 $$
 \hat{c} \le 3 \log_2 \frac{W}{w(x)} + 1
 $$
 
-where $W = \sum_{x} w(x)$ is the total weight.  Setting $w(x) = 1/n$ for all $x$ recovers the unweighted bound.
+여기서 $W = \sum_{x} w(x)$은 전체 가중치이다. 모든 $x$에 $w(x) = 1/n$을 두면 가중치 없는 한계를 되찾는다.
 
-## Complexity Summary
+## 복잡도 요약
 
-| Metric | Bound |
+| 지표 | 한계 |
 |--------|-------|
-| Worst-case single splay | $O(n)$ |
-| Amortized single splay | $O(\log n)$ |
-| Sequence of $m$ operations | $O((m + n) \log n)$ |
+| 최악의 스플레이 한 번 | $O(n)$ |
+| 분할 상환한 스플레이 한 번 | $O(\log n)$ |
+| 연산 $m$번의 차례 | $O((m + n) \log n)$ |
 
-!!! tip "Why amortized analysis matters for splay trees"
-    Unlike AVL or red-black trees, splay trees have no explicit balance condition.  Their good performance is a purely amortized phenomenon: expensive operations restructure the tree enough to prepay for future cheap operations.
+!!! tip "스플레이 트리에 분할 상환 분석이 왜 중요한가"
+    AVL 트리나 적흑 트리와 달리 스플레이 트리에는 드러난 균형 조건이 없다. 그 좋은 성능은 순전히 분할 상환의 현상이다. 비싼 연산이 트리를 충분히 다시 짜서 앞으로의 싼 연산을 미리 치러 준다.
 
-## Reference
+## 참고 문헌
 
 - Sleator, D. D., & Tarjan, R. E. (1985). Self-adjusting binary search trees. *Journal of the ACM*, 32(3), 652–686.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Problem 13-2. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+스플레이 트리의 분할 상환 분석의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 스플레이 트리의 분할 상환 분석을 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+스플레이 트리의 분할 상환 분석이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 스플레이 트리의 분할 상환 분석을 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

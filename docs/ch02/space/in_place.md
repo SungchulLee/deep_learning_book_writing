@@ -1,46 +1,46 @@
-# In-Place Algorithms
+# 제자리 알고리즘
 
-When working with large datasets -- a multi-gigabyte training corpus or a tensor that barely fits in GPU memory -- allocating a second copy of the data is often not an option. An in-place algorithm transforms its input using only a small, constant amount of extra memory, overwriting the original data rather than producing a separate output. This property makes in-place algorithms essential in memory-constrained environments, from embedded systems to GPU-accelerated deep learning pipelines.
+큰 데이터셋을 다룰 때, 예를 들어 수 기가바이트짜리 학습 말뭉치나 GPU 메모리에 겨우 들어가는 텐서를 다룰 때, 데이터의 두 번째 복사본을 할당하는 것은 대개 선택지가 아니다. 제자리 알고리즘은 작고 상수인 여분의 메모리만 사용해 입력을 변환하며, 별도의 출력을 만드는 대신 원본 데이터를 덮어쓴다. 이 성질 덕분에 제자리 알고리즘은 임베디드 시스템부터 GPU 가속 딥러닝 파이프라인까지 메모리가 제한된 환경에서 필수적이다.
 
-## Definition
+## 정의
 
-An algorithm is **in-place** if it uses $O(1)$ [auxiliary space](auxiliary.md) -- that is, the extra memory beyond the input is bounded by a constant, independent of the input size $n$.
+알고리즘이 **제자리(in-place)** 라는 것은 $O(1)$의 [보조 공간](auxiliary.md)을 쓴다는 뜻이다. 즉 입력을 넘어선 여분의 메모리가 입력 크기 $n$과 무관하게 상수로 유계라는 뜻이다.
 
-A slightly relaxed definition allows $O(\log n)$ auxiliary space to account for:
+조금 완화된 정의는 다음을 감안해 $O(\log n)$의 보조 공간을 허용한다.
 
-- The recursion stack of divide-and-conquer algorithms
-- Loop indices and pointer variables that require $\lceil \log n \rceil$ bits
+- 분할 정복 알고리즘의 재귀 스택
+- $\lceil \log n \rceil$비트를 필요로 하는 반복 인덱스와 포인터 변수
 
-Under either definition, the key requirement is that the algorithm does not allocate data structures whose size grows with $n$.
+어느 정의를 쓰든 핵심 요구조건은 크기가 $n$에 따라 커지는 자료구조를 할당하지 않는다는 것이다.
 
-## The In-Place Constraint in Practice
+## 실무에서의 제자리 제약
 
-### What Counts as Auxiliary Space
+### 무엇이 보조 공간에 해당하는가
 
-| Counts | Does not count |
+| 해당함 | 해당하지 않음 |
 |--------|---------------|
-| Temporary arrays | The input array |
-| Hash tables, trees | Read-only input that is not modified |
-| Recursion stack frames | Output that the caller provided space for |
-| Buffers for merging | |
+| 임시 배열 | 입력 배열 |
+| 해시 테이블, 트리 | 수정하지 않는 읽기 전용 입력 |
+| 재귀 스택 프레임 | 호출자가 공간을 마련해 준 출력 |
+| 병합용 버퍼 | |
 
-### Strict vs Relaxed In-Place
+### 엄격한 제자리와 완화된 제자리
 
-| Definition | Auxiliary space | Examples |
+| 정의 | 보조 공간 | 예 |
 |------------|----------------|---------|
-| Strict | $O(1)$ | Insertion sort, selection sort, heapsort |
-| Relaxed | $O(\log n)$ | Quicksort (expected), in-place merge sort |
-| Not in-place | $\omega(\log n)$ | Standard merge sort ($O(n)$), counting sort ($O(k)$) |
+| 엄격 | $O(1)$ | 삽입 정렬, 선택 정렬, 힙 정렬 |
+| 완화 | $O(\log n)$ | 퀵 정렬(기댓값), 제자리 병합 정렬 |
+| 제자리가 아님 | $\omega(\log n)$ | 표준 병합 정렬($O(n)$), 계수 정렬($O(k)$) |
 
-## Classic In-Place Algorithms
+## 고전적인 제자리 알고리즘
 
-### In-Place Sorting
+### 제자리 정렬
 
-**Insertion sort** maintains a sorted prefix and inserts each new element by shifting. It uses one temporary variable for the element being inserted.
+**삽입 정렬** 은 정렬된 앞부분을 유지하면서 새 원소를 밀어 넣어 삽입한다. 삽입할 원소를 담는 임시 변수 하나를 쓴다.
 
 ```python
 def insertion_sort(arr):
-    """Sort arr in place using insertion sort. Auxiliary space: O(1)."""
+    """삽입 정렬로 arr을 제자리에서 정렬한다. 보조 공간: O(1)."""
     for i in range(1, len(arr)):
         key = arr[i]
         j = i - 1
@@ -50,17 +50,17 @@ def insertion_sort(arr):
         arr[j + 1] = key
 ```
 
-**Heapsort** builds a max-heap in the input array, then repeatedly extracts the maximum. It uses no extra array -- the heap structure is maintained within the original array.
+**힙 정렬** 은 입력 배열 안에 최대 힙을 만든 뒤 최댓값을 반복해서 꺼낸다. 여분의 배열을 쓰지 않으며 힙 구조가 원래 배열 안에서 유지된다.
 
-**Quicksort** partitions the array around a pivot and recurses on the two halves. The partition step is in-place (swapping elements), and the expected recursion depth is $O(\log n)$.
+**퀵 정렬** 은 배열을 피벗을 기준으로 분할하고 두 절반에 재귀한다. 분할 단계가 제자리이며(원소를 교환한다) 기대 재귀 깊이는 $O(\log n)$이다.
 
-### In-Place Array Reversal
+### 제자리 배열 뒤집기
 
-Reversing an array in place requires only two index variables and one temporary:
+배열을 제자리에서 뒤집는 데는 인덱스 변수 두 개와 임시 변수 하나면 충분하다.
 
 ```python
 def reverse_in_place(arr):
-    """Reverse arr in place. Auxiliary space: O(1)."""
+    """arr을 제자리에서 뒤집는다. 보조 공간: O(1)."""
     left, right = 0, len(arr) - 1
     while left < right:
         arr[left], arr[right] = arr[right], arr[left]
@@ -68,84 +68,117 @@ def reverse_in_place(arr):
         right -= 1
 ```
 
-### In-Place Matrix Transpose
+### 제자리 행렬 전치
 
-Transposing an $n \times n$ matrix in place swaps $A[i][j]$ with $A[j][i]$ for all $i < j$:
+$n \times n$ 행렬을 제자리에서 전치하려면 모든 $i < j$에 대해 $A[i][j]$와 $A[j][i]$를 교환한다.
 
 ```python
 def transpose_in_place(matrix):
-    """Transpose a square matrix in place. Auxiliary space: O(1)."""
+    """정사각 행렬을 제자리에서 전치한다. 보조 공간: O(1)."""
     n = len(matrix)
     for i in range(n):
         for j in range(i + 1, n):
             matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]
 ```
 
-For non-square matrices, in-place transposition is significantly more complex and involves following permutation cycles.
+정사각이 아닌 행렬의 제자리 전치는 훨씬 복잡하며 순열 순환을 따라가야 한다.
 
-## Techniques for Making Algorithms In-Place
+## 알고리즘을 제자리로 만드는 기법
 
-### Swapping
+### 교환
 
-The most common in-place technique. Two elements exchange positions using a temporary variable (or XOR trick), requiring $O(1)$ auxiliary space.
+가장 흔한 제자리 기법이다. 두 원소가 임시 변수(또는 XOR 요령)를 사용해 위치를 맞바꾸며 $O(1)$의 보조 공간만 필요하다.
 
-### Partitioning
+### 분할
 
-Quicksort's partition rearranges elements around a pivot without allocating a new array. The Lomuto and Hoare partition schemes both work in-place.
+퀵 정렬의 분할은 새 배열을 할당하지 않고 원소를 피벗 기준으로 재배치한다. Lomuto와 Hoare 분할 방식 모두 제자리로 동작한다.
 
-### Overwriting Input
+### 입력 덮어쓰기
 
-When the output can replace the input element by element, no extra array is needed. For example, applying a function $f$ to each element: `arr[i] = f(arr[i])`.
+출력이 입력을 원소 단위로 대체할 수 있으면 여분의 배열이 필요 없다. 예를 들어 각 원소에 함수 $f$를 적용하는 경우 `arr[i] = f(arr[i])`로 충분하다.
 
-### Bit Manipulation
+### 비트 조작
 
-Encoding extra information in unused bits of the input (e.g., sign bits, high-order bits) can eliminate auxiliary data structures. This is a specialized technique used in some in-place graph algorithms.
+입력의 쓰이지 않는 비트(예: 부호 비트, 상위 비트)에 여분의 정보를 부호화하면 보조 자료구조를 없앨 수 있다. 일부 제자리 그래프 알고리즘에서 쓰이는 특수한 기법이다.
 
-## When In-Place Is Not Possible (or Not Worth It)
+## 제자리가 불가능하거나 그럴 가치가 없는 경우
 
-Some algorithms fundamentally require extra space:
+어떤 알고리즘은 근본적으로 여분의 공간을 필요로 한다.
 
-- **Merge sort**: The standard merge step requires an $O(n)$ temporary array. In-place merge algorithms exist but are complex and have larger constant factors.
-- **Counting sort**: Requires a count array of size $k$ (the range of input values).
-- **BFS**: Requires a queue that can grow to $O(V)$.
-- **Hash tables**: Require $O(n)$ space for the table itself.
+- **병합 정렬**: 표준 병합 단계는 $O(n)$의 임시 배열을 필요로 한다. 제자리 병합 알고리즘도 있지만 복잡하고 상수 인자가 크다.
+- **계수 정렬**: 입력 값의 범위인 크기 $k$의 계수 배열이 필요하다.
+- **BFS**: $O(V)$까지 커질 수 있는 큐가 필요하다.
+- **해시 테이블**: 테이블 자체를 위해 $O(n)$의 공간이 필요하다.
 
-!!! warning "The Cost of Going In-Place"
-    Forcing an algorithm to be in-place can increase time complexity or constant factors. In-place merge sort achieves $O(n \log^2 n)$ with a straightforward approach or $O(n \log n)$ with a complex block-merge strategy. Standard merge sort with $O(n)$ auxiliary space is simpler and often faster in practice.
+!!! warning "제자리로 만드는 대가"
+    알고리즘을 억지로 제자리로 만들면 시간 복잡도나 상수 인자가 커질 수 있다. 제자리 병합 정렬은 직관적인 접근으로는 $O(n \log^2 n)$을, 복잡한 블록 병합 전략으로는 $O(n \log n)$을 달성한다. $O(n)$의 보조 공간을 쓰는 표준 병합 정렬이 더 단순하고 실무에서 더 빠른 경우가 많다.
 
-## In-Place Operations in PyTorch
+## PyTorch에서의 제자리 연산
 
-PyTorch provides in-place variants of many tensor operations, denoted by a trailing underscore:
+PyTorch는 많은 텐서 연산에 대해 이름 끝에 밑줄이 붙은 제자리 변형을 제공한다.
 
-| Standard | In-place | Effect |
+| 표준 | 제자리 | 효과 |
 |----------|----------|--------|
-| `torch.add(x, y)` | `x.add_(y)` | Adds $y$ to $x$ in place |
-| `torch.relu(x)` | `x.relu_()` | Applies ReLU in place |
-| `torch.zero_like(x)` | `x.zero_()` | Zeros out $x$ in place |
-| `x.clone()` | (no in-place) | Always allocates new memory |
+| `torch.add(x, y)` | `x.add_(y)` | $y$를 $x$에 제자리에서 더한다 |
+| `torch.relu(x)` | `x.relu_()` | ReLU를 제자리에서 적용한다 |
+| `torch.zero_like(x)` | `x.zero_()` | $x$를 제자리에서 0으로 만든다 |
+| `x.clone()` | (제자리 없음) | 항상 새 메모리를 할당한다 |
 
-!!! warning "In-Place Operations and Autograd"
-    In-place operations can cause errors during backpropagation if they modify a tensor that is needed for gradient computation. PyTorch's autograd raises a `RuntimeError` when an in-place operation invalidates the computation graph. Use in-place operations only on leaf tensors or tensors that are not required for gradient computation.
+!!! warning "제자리 연산과 Autograd"
+    제자리 연산이 경사 계산에 필요한 텐서를 수정하면 역전파 중에 오류를 일으킬 수 있다. PyTorch의 autograd는 제자리 연산이 계산 그래프를 무효화하면 `RuntimeError`를 발생시킨다. 제자리 연산은 잎 텐서나 경사 계산에 필요하지 않은 텐서에만 사용해야 한다.
 
-## Stability and In-Place
+## 안정성과 제자리
 
-An important interaction exists between the in-place property and sorting stability. Some in-place sorting algorithms are stable (insertion sort), while others are not (heapsort, standard quicksort). Achieving both in-place and stable sorting simultaneously with $O(n \log n)$ time is possible but requires sophisticated algorithms (e.g., block merge sort).
+제자리 성질과 정렬의 안정성 사이에는 중요한 상호작용이 있다. 어떤 제자리 정렬 알고리즘은 안정적이고(삽입 정렬) 어떤 것은 그렇지 않다(힙 정렬, 표준 퀵 정렬). $O(n \log n)$ 시간에 제자리이면서 동시에 안정적인 정렬도 가능하지만 정교한 알고리즘이 필요하다(예: 블록 병합 정렬).
 
-| Algorithm | In-place | Stable | Time |
+| 알고리즘 | 제자리 | 안정 | 시간 |
 |-----------|----------|--------|------|
-| Insertion sort | Yes | Yes | $O(n^2)$ |
-| Heapsort | Yes | No | $O(n \log n)$ |
-| Quicksort | Yes (relaxed) | No | $O(n \log n)$ expected |
-| Merge sort | No ($O(n)$ aux) | Yes | $O(n \log n)$ |
-| Block merge sort | Yes | Yes | $O(n \log n)$ |
+| 삽입 정렬 | 예 | 예 | $O(n^2)$ |
+| 힙 정렬 | 예 | 아니오 | $O(n \log n)$ |
+| 퀵 정렬 | 예(완화) | 아니오 | $O(n \log n)$ 기댓값 |
+| 병합 정렬 | 아니오($O(n)$ 보조) | 예 | $O(n \log n)$ |
+| 블록 병합 정렬 | 예 | 예 | $O(n \log n)$ |
 
-## Connections to Other Topics
+## 다른 주제와의 연결
 
-- **[Auxiliary Space](auxiliary.md)**: The formal definition of the extra space that in-place algorithms minimize
-- **[Memory Usage](memory.md)**: The broader perspective on algorithm memory consumption
-- **[Space-Time Tradeoffs](tradeoffs.md)**: The cost of reducing space, often measured in increased time
+- **[보조 공간](auxiliary.md)**: 제자리 알고리즘이 최소화하는 여분 공간의 형식적 정의
+- **[메모리 사용량](memory.md)**: 알고리즘의 메모리 소비에 대한 더 넓은 관점
+- **[공간-시간 절충](tradeoffs.md)**: 공간을 줄이는 대가로 흔히 시간이 늘어나는 문제
 
-## References
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapters 2, 6-8. MIT Press.
 - Knuth, D. E. (1997). *The Art of Computer Programming*, Vol. 3: Sorting and Searching. Addison-Wesley.
+
+
+## 연습문제
+
+**연습문제 1.**
+제자리 알고리즘에서 기술한 공간 복잡도를 매개변수 $P$개, 배치 크기 $B$, 은닉 차원 $d$, 층 $L$개인 신경망에 대해 분석하라.
+
+??? success "연습문제 1 풀이"
+    매개변수: $O(P)$. 활성값(역전파를 위해 저장): $O(BdL)$. 경사: $O(P)$. 최적화기 상태(Adam): $O(2P)$. 총합: $O(P + BdL)$. 큰 모델에서는 활성값 메모리($BdL$)가 지배하는 경우가 많다.
+
+---
+
+**연습문제 2.**
+제자리 알고리즘에서 다룬 기법의 공간 요구량을 경사 체크포인팅을 쓸 때와 쓰지 않을 때로 나누어 비교하라.
+
+??? success "연습문제 2 풀이"
+    체크포인팅 없이: $O(BdL)$의 활성값 메모리. 체크포인팅 사용($\sqrt{L}$개 층마다): $O(Bd\sqrt{L})$의 활성값 메모리. 절감: $\sqrt{L}$배. 비용: 역전파 중 대략 순전파 한 번 분량이 추가된다. $L = 100$이면 메모리가 $10\times$ 줄어든다.
+
+---
+
+**연습문제 3.**
+제자리 알고리즘에 대한 공간 복잡도의 하계를 증명하라. 즉 올바른 구현이라면 적어도 명시된 만큼의 메모리를 써야 함을 보여라.
+
+??? success "연습문제 3 풀이"
+    하계는 정보 이론적 논증에서 따라 나온다. 알고리즘은 임의의 입력에 대해 올바른 출력을 만들어 낼 만큼의 정보를 저장해야 한다. 이는 적어도 $\Omega(\text{출력 크기})$의 공간을 요구한다. 여기에 더해 정확성을 위해 필요한 중간 결과들도 하계에 기여한다. $\square$
+
+---
+
+**연습문제 4.**
+대규모 언어 모델 학습의 맥락에서 제자리 알고리즘과 관련된 실용적인 공간-시간 절충을 기술하라.
+
+??? success "연습문제 4 풀이"
+    대규모 언어 모델은 심각한 메모리 제약에 직면한다. 모델 매개변수, 최적화기 상태, 활성값, 경사가 한정된 GPU 메모리를 두고 경쟁한다. 이 절의 절충이 그대로 적용된다. 경사 체크포인팅, 혼합 정밀도, 모델 병렬화 같은 기법은 계산이나 복잡성을 대가로 메모리 사용량을 줄여, 그렇지 않으면 들어가지 않을 모델의 학습을 가능하게 한다.

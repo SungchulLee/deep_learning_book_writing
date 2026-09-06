@@ -1,105 +1,137 @@
-# 29.1.5 Graph Properties
+# 29.1.5 그래프의 성질
+## 들어가며
 
+그래프 켜의 성질을 이해하는 것은 알맞은 그래프 신경망 얼개를 고르고 자료를 앞손질하고 모델의 움직임을 풀이하는 데 꼭 필요하다. 이 마디는 그래프의 핵심 위상, 얼개, 통계 성질을 다룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 이어짐
 
-## Introduction
+### 이어진 조각
+**이어진 조각**은 어느 두 마디도 길로 이어진 극대 부분 그래프이다. 이어진 조각의 개수 $k$은 그래프 라플라스의 고윳값 0의 겹침 수와 같다.
 
-Understanding graph-level properties is essential for selecting appropriate GNN architectures, preprocessing data, and interpreting model behavior. This section covers key topological, structural, and statistical properties of graphs.
+### 강하게 이어진 조각(방향 그래프)
+방향 그래프에서 **강하게 이어진 조각**은 어느 마디에서든 다른 모든 마디에 닿을 수 있는 극대 부분 그래프이다.
 
-## Connectivity
+### 대수 이어짐
+**대수 이어짐** $\lambda_2$(피들러 값)은 라플라스의 둘째로 작은 고윳값이다. 그래프가 얼마나 잘 이어져 있는지 잰다:
 
-### Connected Components
-A **connected component** is a maximal subgraph in which any two nodes are connected by a path. The number of connected components $k$ equals the multiplicity of eigenvalue 0 of the graph Laplacian.
+- $\lambda_2 = 0$: 그래프가 끊겨 있다
+- $\lambda_2$이 큼: 그래프가 잘 이어져 있고 가르기 어렵다
 
-### Strongly Connected Components (Directed)
-In a directed graph, a **strongly connected component** (SCC) is a maximal subgraph where every node is reachable from every other node.
+## 거리 잣대
 
-### Algebraic Connectivity
-The **algebraic connectivity** $\lambda_2$ (Fiedler value) is the second-smallest eigenvalue of the Laplacian. It measures how well connected the graph is:
-- $\lambda_2 = 0$: graph is disconnected
-- Large $\lambda_2$: graph is well-connected and hard to partition
+### 최단 길과 지름
+- **최단 길** $d(u, v)$: $u$과 $v$ 사이의 최소 변 개수
+- **치우침 거리** $\epsilon(v) = \max_{u \in V} d(u, v)$
+- **지름** $\text{diam}(G) = \max_{v \in V} \epsilon(v)$
+- **반지름** $\text{rad}(G) = \min_{v \in V} \epsilon(v)$
+- **평균 길 길이** $\bar{d} = \frac{1}{n(n-1)} \sum_{u \neq v} d(u, v)$
 
-## Distance Measures
-
-### Shortest Path and Diameter
-- **Shortest path** $d(u, v)$: minimum number of edges between $u$ and $v$
-- **Eccentricity** $\epsilon(v) = \max_{u \in V} d(u, v)$
-- **Diameter** $\text{diam}(G) = \max_{v \in V} \epsilon(v)$
-- **Radius** $\text{rad}(G) = \min_{v \in V} \epsilon(v)$
-- **Average path length** $\bar{d} = \frac{1}{n(n-1)} \sum_{u \neq v} d(u, v)$
-
-### Effective Resistance
-The **effective resistance** between nodes $u$ and $v$ is:
+### 실제 저항
+마디 $u$과 $v$ 사이의 **실제 저항**은 다음과 같다:
 
 $$R_{uv} = (e_u - e_v)^T L^+ (e_u - e_v)$$
 
-where $L^+$ is the pseudoinverse of the Laplacian. It provides a distance measure that accounts for all paths between nodes.
+여기서 $L^+$은 라플라스의 유사 역행렬이다. 이는 마디 사이의 모든 길을 셈에 넣은 거리 잣대를 준다.
 
-## Clustering and Community Structure
+## 뭉침과 무리 얼개
 
-### Clustering Coefficient
-The **local clustering coefficient** of node $v$:
+### 뭉침 계수
+마디 $v$의 **그 자리 뭉침 계수**:
 
 $$C(v) = \frac{2|\{(u, w) : u, w \in \mathcal{N}(v), (u, w) \in E\}|}{d(v)(d(v) - 1)}$$
 
-The **global clustering coefficient** (transitivity):
+**온 자리 뭉침 계수**(옮김성):
 
 $$C = \frac{3 \times \text{number of triangles}}{\text{number of connected triples}}$$
 
-### Modularity
-**Modularity** $Q$ measures the quality of a community partition:
+### 무리도
+**무리도** $Q$은 무리 가르기의 품질을 잰다:
 
 $$Q = \frac{1}{2m} \sum_{ij} \left[ A_{ij} - \frac{d_i d_j}{2m} \right] \delta(c_i, c_j)$$
 
-where $c_i$ is the community of node $i$ and $m = |E|$.
+여기서 $c_i$은 마디 $i$의 무리이고 $m = |E|$이다.
 
-## Degree Distribution
+## 차수 분포
 
-### Power-Law Distribution
-Many real-world networks follow a **power-law** degree distribution:
+### 거듭제곱 법칙 분포
+실제의 많은 그물이 **거듭제곱 법칙** 차수 분포를 따른다:
 
 $$P(d) \propto d^{-\gamma}$$
 
-where $\gamma$ is typically between 2 and 3. Such networks are called **scale-free**.
+여기서 $\gamma$은 보통 2과 3 사이이다. 그런 그물을 **잣수 없는** 그물이라 부른다.
 
-### Small-World Property
-A graph exhibits the **small-world** property if:
-1. Average path length is small: $\bar{d} \sim \log n$
-2. Clustering coefficient is high: $C \gg C_{random}$
+### 좁은 세상 성질
+다음이면 그래프가 **좁은 세상** 성질을 보인다:
 
-## Graph Isomorphism and Expressiveness
+1. 평균 길 길이가 짧다: $\bar{d} \sim \log n$
+2. 뭉침 계수가 높다: $C \gg C_{random}$
 
-### Weisfeiler-Leman (WL) Test
-The **1-WL test** iteratively refines node labels based on neighborhood aggregation. Two graphs are non-isomorphic if their multisets of refined labels differ. The WL test is directly connected to GNN expressiveness:
+## 그래프 같은 꼴과 나타냄 힘
 
-- Standard message-passing GNNs are at most as powerful as the 1-WL test
-- GIN (Graph Isomorphism Network) achieves 1-WL expressiveness
+### 바이스파일러-레만(WL) 시험
+**1차 바이스파일러-레만 시험**은 이웃 모으기에 바탕해 마디 이름표를 되풀이해 다듬는다. 다듬은 이름표의 여럿 모임이 다르면 두 그래프는 같은 꼴이 아니다. 이 시험은 그래프 신경망의 나타냄 힘과 곧바로 이어진다:
 
-### Graph Invariants
-Properties preserved under isomorphism:
-- Number of nodes and edges
-- Degree sequence
-- Spectrum (eigenvalues)
-- Number of triangles, cliques, cycles
+- 여느 쪽지 건네기 그래프 신경망은 많아야 1차 바이스파일러-레만 시험만큼 힘세다
+- 그래프 같은 꼴 신경망(GIN)은 1차 바이스파일러-레만의 나타냄 힘을 이룬다
 
-## Spectral Gap
+### 그래프 불변량
+같은 꼴 옮김에서 지켜지는 성질:
 
-The **spectral gap** is $\lambda_1 - \lambda_2$ of the adjacency matrix (for regular graphs). A large spectral gap indicates:
-- Good expansion properties
-- Rapid mixing of random walks
-- Efficient information propagation in GNNs
+- 마디와 변의 개수
+- 차수 차례
+- 스펙트럼(고윳값)
+- 삼각형, 덩어리, 돌이의 개수
 
-## Quantitative Finance Properties
+## 스펙트럼 틈
 
-Key graph properties for financial networks:
-- **Density evolution**: How network connectivity changes during market stress
-- **Clustering patterns**: Sector-based clustering in correlation networks
-- **Hub structure**: Systemically important financial institutions have high centrality
-- **Fragility**: Small spectral gap may indicate vulnerability to contagion
-- **Core-periphery structure**: Common in interbank networks
+**스펙트럼 틈**은 (정규 그래프에서) 이웃 행렬의 $\lambda_1 - \lambda_2$이다. 스펙트럼 틈이 크면 다음을 가리킨다:
 
-## Summary
+- 넓힘 성질이 좋다
+- 아무 걸음이 빨리 섞인다
+- 그래프 신경망에서 앎이 효율 좋게 퍼진다
 
-Graph properties inform both the selection of GNN architectures and the interpretation of learned representations. Properties like diameter, clustering, and spectral gap directly impact how information propagates through message-passing layers, affecting model depth requirements and performance.
+## 계량 금융에서의 성질
+
+금융 그물의 핵심 그래프 성질:
+
+- **빽빽함의 바뀜**: 시장이 버거울 때 그물의 이어짐이 어떻게 바뀌는가
+- **뭉침 무늬**: 얽힘 그물에서 업종 바탕 뭉침
+- **바퀴통 얼개**: 체계로 중요한 금융 기관은 가운데임이 높다
+- **깨지기 쉬움**: 스펙트럼 틈이 작으면 옮아감에 약할 수 있다
+- **속-바깥 얼개**: 은행 사이 그물에 흔하다
+
+## 요약
+
+그래프의 성질은 그래프 신경망 얼개를 고르는 데도, 배운 나타냄을 풀이하는 데도 실마리를 준다. 지름, 뭉침, 스펙트럼 틈 같은 성질은 쪽지 건네기 층을 지나 앎이 퍼지는 방식에 곧바로 영향을 주어 필요한 모델 깊이와 성능을 좌우한다.
+
+## 연습문제
+
+**연습문제 1.**
+마디 5개와 돌이의 이웃 얼개를 가진 그래프를 살펴보자. 2차원 특징 벡터에서 이 마디에 적은 쪽지 건네기 고침 한 걸음을 손으로 셈하라.
+
+??? success "연습문제 1 풀이"
+    마디 $1, \ldots, 5$에 특징 벡터 $\mathbf{h}_i \in \mathbb{R}^2$을 붙인다. 돌이에서 마디마다 이웃이 꼭 둘이다. 마디마다 모으기(보기로 이웃의 평균)와 고침(보기로 선형 바꿈과 깨움)을 쓴다. 한 걸음 뒤 마디마다의 나타냄이 바로 옆 이웃의 영향을 받는다. 이 드러난 셈은 받아들이는 자리가 층마다 한 뜀씩 넓어짐을 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+평균 모으기와 합 모으기가 여럿 모임을 가르는 나타냄 힘에서 다름을 밝혀라. 평균 모으기로는 가릴 수 없지만 합 모으기로는 가릴 수 있는 여럿 모임 둘의 구체적인 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    $S_1 = \{1, 1, 1\}$과 $S_2 = \{1\}$을 살펴보자. 평균 모으기는 $\text{mean}(S_1) = 1 = \text{mean}(S_2)$을 주어 둘을 가르지 못한다. 합 모으기는 $\text{sum}(S_1) = 3 \neq 1 = \text{sum}(S_2)$을 준다. 더 넓게는 평균 모으기가 여럿 모임의 겹침 수에 대해 불변이므로 서로 낱값 배인 여럿 모임을 가를 수 없다. 그래서 그래프 동형 신경망은 1차 바이스파일러-레만 시험에 맞먹는 최대 나타냄 힘을 얻으려 합 모으기를 쓴다. $\square$
+
+---
+
+**연습문제 3.**
+최단 길 거리가 $k$일 때 마디 $u$의 앎이 마디 $v$에 닿으려면 쪽지 건네기 층이 몇 개 필요한가? $k$이 커지면 실제로 어떤 문제가 생기는가?
+
+??? success "연습문제 3 풀이"
+    층마다 앎을 한 뜀씩 퍼뜨리므로 꼭 $k$개가 필요하다. $k$이 커지면 받아들이는 자리가 지수로 넓어진다(마디마다 $k$뜀 안의 모든 마디에서 모은다). 이는 지나친 매끄러워짐을 낳는다. 층이 많아지면 마디마다 거의 온 그래프의 앎을 모았기에 모든 마디 나타냄이 가릴 수 없는 벡터로 모인다. 누그러뜨리는 셈속으로는 남은 이음, 건너뛰는 앎, 그래프 변환기가 있다. $\square$
+
+---
+
+**연습문제 4.**
+그래프 겹말기의 자리 방식과 스펙트럼 방식의 맞바꿈을 따져라. 각각은 어떤 조건에서 더 나은가?
+
+??? success "연습문제 4 풀이"
+    스펙트럼 방법(보기로 ChebNet)은 그래프 라플라스의 고유 분해로 겹말기를 뜻매김해 원리 있는 신호 다루기 틀을 주지만 고유 분해($O(n^3)$)가 필요하고 그래프 위상이 붙박여 있어야 한다. 자리 방법(보기로 GraphSAGE, 그래프 눈길 신경망)은 이웃 모으기로 겹말기를 뜻매김해 달라지는 그래프 얼개를 자연스럽게 다루고 작은 묶음으로 큰 그래프에도 키울 수 있다. 정확한 진동수 거르기가 중요한 작고 위상이 붙박인 그래프에는 스펙트럼 방법이, 귀납 배움이 필요한 크거나 바뀌거나 뒤섞인 그래프에는 자리 방법이 낫다. $\square$

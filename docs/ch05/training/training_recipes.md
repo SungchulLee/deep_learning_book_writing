@@ -1,105 +1,95 @@
-# Practical Training Recipes
+# 실전 학습 요령
+## 들어가며
 
+학습 기법 하나하나, 곧 학습률 일정, 데이터 증강, 정칙화, 정규화는 저마다 조금씩 성능을 올려 준다. 그러나 이들을 체계적으로 결합할 때 진짜 힘이 드러난다. 이 절은 딥러닝 모델을 효과적으로 학습시키는 실용적인 "요령"을 소개하며, 간단한 기법을 겹쳐 쓰면 상당한 누적 개선을 얻을 수 있다는 경험적 결과에 기댄다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+생각은 간단하다. 하나의 돌파구를 찾기보다, 각각은 소박하지만 모으면 뜻깊은 개선이 되는 잘 알려진 방법들을 쌓아 올리는 것이다.
 
-## Introduction
+## 요령 1: 학습률 스케줄링
 
-Individual training techniques — learning rate schedules, data augmentation, regularization, normalization — each provide incremental gains. However, their true power emerges when combined systematically. This section presents practical "recipes" for training deep learning models effectively, drawing from empirical findings that show how combining simple tricks can yield substantial cumulative improvements.
+학습률 일정은 모델 구조 다음으로 가장 큰 영향을 미치는 초매개변수 선택일 때가 많다.
 
-The philosophy is straightforward: rather than searching for a single breakthrough technique, stack multiple well-understood improvements that are individually modest but collectively significant.
+### 선형 워밍업 + 코사인 감쇠
 
-## Recipe 1: Learning Rate Scheduling
-
-The learning rate schedule is often the single most impactful hyperparameter choice beyond the model architecture itself.
-
-### Linear Warmup + Cosine Decay
-
-For most training scenarios, a warmup phase followed by cosine annealing provides robust performance:
+대부분의 학습 상황에서 워밍업 뒤에 코사인 어닐링을 두면 성능이 안정적이다.
 
 $$
-
 \eta(t) = \begin{cases}
 \eta_{\max} \cdot \frac{t}{T_{\text{warmup}}} & \text{if } t < T_{\text{warmup}} \\
 \eta_{\min} + \frac{1}{2}(\eta_{\max} - \eta_{\min})(1 + \cos(\frac{t - T_{\text{warmup}}}{T_{\text{total}} - T_{\text{warmup}}} \cdot \pi)) & \text{otherwise}
 \end{cases}
-
 $$
 
-**Why warmup matters**: At initialization, gradients can be large and noisy. A warmup phase prevents early divergence, especially important with large batch sizes where gradient noise is lower but each step has outsized impact.
+**워밍업이 중요한 이유**: 초기화 시점의 기울기는 크고 잡음이 많을 수 있다. 워밍업은 초반의 발산을 막는다. 기울기 잡음은 적지만 한 걸음의 영향이 큰 대규모 배치에서 특히 중요하다.
 
-**Practical defaults**:
-- Warmup: 5-10% of total training steps
-- Peak learning rate: scale linearly with batch size ($\eta = \eta_{\text{base}} \times \frac{B}{B_{\text{ref}}}$)
-- Minimum learning rate: $\eta_{\max} / 100$ or $1 \times 10^{-6}$
+**실용적인 기본값**:
 
-### Large Batch Training
+- 워밍업: 전체 학습 단계의 5~10%
+- 최고 학습률: 배치 크기에 비례하여 조정한다 ($\eta = \eta_{\text{base}} \times \frac{B}{B_{\text{ref}}}$)
+- 최소 학습률: $\eta_{\max} / 100$ 또는 $1 \times 10^{-6}$
 
-When scaling to large batches for faster training:
+### 대규모 배치 학습
 
-1. **Linear scaling rule**: Multiply the learning rate by $k$ when the batch size is multiplied by $k$
-2. **Gradual warmup**: Use $T_{\text{warmup}} = 5$ epochs to ramp up from a small LR to the scaled LR
-3. **Layer-wise adaptive rates**: Optimizers like LAMB automatically adjust per-layer learning rates, enabling batch sizes up to 32K without accuracy loss
+학습을 빠르게 하려고 배치를 키울 때에는 다음과 같이 한다.
 
-## Recipe 2: Regularization Stack
+1. **선형 조정 규칙**: 배치 크기를 $k$배로 하면 학습률도 $k$배로 한다
+2. **점진적 워밍업**: $T_{\text{warmup}} = 5$ 에포크에 걸쳐 작은 학습률에서 조정된 학습률까지 올린다
+3. **층별 적응형 학습률**: LAMB 같은 최적화기는 층마다 학습률을 자동으로 조정하여 정확도 손실 없이 배치 크기를 32K까지 키울 수 있게 한다
 
-Regularization techniques can be combined, but care is needed to avoid over-regularization.
+## 요령 2: 정칙화 쌓기
 
-### Recommended Combinations
+정칙화 기법은 함께 쓸 수 있지만 지나치게 정칙화하지 않도록 조심해야 한다.
 
-**For small datasets** (common in quant finance — limited historical data):
+### 권장 조합
 
-| Technique | Setting | Purpose |
+**작은 데이터셋의 경우** (역사 자료가 한정된 퀀트 금융에서 흔하다):
+
+| 기법 | 설정 | 목적 |
 |-----------|---------|---------|
-| Weight decay | 1e-4 to 1e-2 | Prevent large weights |
-| Dropout | 0.1-0.3 | Ensemble approximation |
-| Label smoothing ($\epsilon = 0.1$) | Soften targets | Prevent overconfident predictions |
-| Data augmentation | Domain-specific | Increase effective dataset size |
+| 가중치 감쇠 | 1e-4 ~ 1e-2 | 큰 가중치를 막는다 |
+| 드롭아웃 | 0.1~0.3 | 앙상블 근사 |
+| 레이블 평활화 ($\epsilon = 0.1$) | 목표를 부드럽게 | 지나친 확신을 막는다 |
+| 데이터 증강 | 분야에 맞게 | 실효 데이터셋 크기를 늘린다 |
 
-**For large datasets** (high-frequency tick data, large alternative data):
+**큰 데이터셋의 경우** (고빈도 틱 데이터, 대규모 대체 데이터):
 
-| Technique | Setting | Purpose |
+| 기법 | 설정 | 목적 |
 |-----------|---------|---------|
-| Weight decay | 1e-5 to 1e-4 | Light regularization |
-| Stochastic depth | 0.1-0.2 drop rate | Regularize deep networks |
-| Mixup ($\alpha = 0.2$) | Interpolate samples | Smooth decision boundaries |
+| 가중치 감쇠 | 1e-5 ~ 1e-4 | 가벼운 정칙화 |
+| 확률적 깊이 | 떨어뜨릴 비율 0.1~0.2 | 깊은 신경망을 정칙화한다 |
+| 믹스업 ($\alpha = 0.2$) | 표본을 보간 | 결정 경계를 매끄럽게 한다 |
 
-### Label Smoothing
+### 레이블 평활화
 
-Instead of training with hard one-hot targets, use soft targets:
+딱딱한 원-핫 목표로 학습하는 대신 부드러운 목표를 쓴다.
 
 $$
-
 y_i^{\text{smooth}} = (1 - \epsilon) \cdot y_i + \frac{\epsilon}{K}
-
 $$
 
-where $K$ is the number of classes and $\epsilon$ is typically 0.1. This prevents the model from becoming overconfident and improves calibration — critical for quant models where calibrated probabilities inform position sizing.
+여기서 $K$은 클래스의 수이고 $\epsilon$은 보통 0.1이다. 이는 모델이 지나치게 확신하는 것을 막고 보정을 개선한다. 보정된 확률이 포지션 크기를 결정하는 퀀트 모델에서는 매우 중요하다.
 
-### Mixup Training
+### 믹스업 학습
 
-Mixup creates virtual training examples by linearly interpolating between pairs:
+믹스업은 쌍 사이를 선형으로 보간하여 가상의 학습 예를 만든다.
 
 $$
-
 \tilde{x} = \lambda x_i + (1 - \lambda) x_j, \quad \tilde{y} = \lambda y_i + (1 - \lambda) y_j
-
 $$
 
-where $\lambda \sim \text{Beta}(\alpha, \alpha)$. For time-series data in quant finance, mixup can be applied to feature vectors after embedding, smoothing the learned decision boundaries and reducing overfitting to specific market regimes.
+여기서 $\lambda \sim \text{Beta}(\alpha, \alpha)$이다. 퀀트 금융의 시계열 데이터에서는 임베딩 뒤의 특징 벡터에 믹스업을 적용할 수 있으며, 이는 학습된 결정 경계를 매끄럽게 하고 특정 시장 국면에 과적합하는 것을 줄인다.
 
-## Recipe 3: Weight Decay Best Practices
+## 요령 3: 가중치 감쇠의 좋은 관행
 
-Not all parameters should be regularized equally.
+모든 매개변수를 똑같이 정칙화해야 하는 것은 아니다.
 
-### No Bias Decay
+### 편향에는 감쇠를 걸지 않기
 
-A simple but effective trick: apply weight decay only to weight matrices, not to biases or normalization parameters:
+간단하지만 효과적인 요령이 있다. 가중치 감쇠를 가중치 행렬에만 적용하고 편향이나 정규화 매개변수에는 걸지 않는 것이다.
 
 ```python
 def get_parameter_groups(model, weight_decay=1e-2):
-    """Separate parameters into decay and no-decay groups."""
+    """매개변수를 감쇠를 걸 무리와 걸지 않을 무리로 나눈다."""
     decay_params = []
     no_decay_params = []
     
@@ -117,95 +107,139 @@ def get_parameter_groups(model, weight_decay=1e-2):
     ]
 ```
 
-**Rationale**: Biases and normalization parameters have different roles than weight matrices. Regularizing them constrains the model's ability to shift activations, often hurting performance. This trick alone can yield 0.2-0.5% accuracy improvement.
+**근거**: 편향과 정규화 매개변수는 가중치 행렬과 구실이 다르다. 이들을 정칙화하면 활성화를 옮기는 모델의 능력이 제약되어 성능이 나빠지는 일이 많다. 이 요령 하나만으로도 정확도가 0.2~0.5%포인트 오를 수 있다.
 
-## Recipe 4: Initialization for Residual Networks
+## 요령 4: 잔차 신경망의 초기화
 
-For networks with residual connections (common in modern architectures):
+잔차 연결이 있는 신경망(요즘 구조에서 흔하다)에서는 다음과 같이 한다.
 
-### Zero-Initialize Final BatchNorm
+### 마지막 배치 정규화를 0으로 초기화하기
 
-Initialize the $\gamma$ parameter of the last BatchNorm layer in each residual block to zero. This makes each residual block behave like an identity mapping at initialization, effectively starting training with a shallower network that gradually deepens:
+잔차 블록마다 마지막 배치 정규화 층의 $\gamma$ 매개변수를 0으로 초기화한다. 그러면 초기화 시점에 각 잔차 블록이 항등 사상처럼 동작하여, 사실상 더 얕은 신경망으로 학습을 시작해 차츰 깊어지는 셈이 된다.
 
 $$
-
 \text{output} = x + \gamma \cdot F(x) \quad \xrightarrow{\gamma=0} \quad \text{output} = x
-
 $$
 
-This improves training stability, especially for very deep networks (100+ layers), and typically improves final accuracy by 0.1-0.3%.
+이는 학습의 안정성을 높이며, 특히 아주 깊은 신경망(100층 이상)에서 그렇다. 최종 정확도도 보통 0.1~0.3%포인트 오른다.
 
-## Recipe 5: Combining Tricks — A Complete Training Configuration
+## 요령 5: 기법 결합하기 — 완전한 학습 설정
 
-Here is a practical configuration that combines the above recipes. While originally validated for image classification, the principles transfer to any supervised deep learning task:
+앞의 요령들을 결합한 실용적인 설정을 소개한다. 본래는 이미지 분류에서 검증되었지만, 그 원리는 어떤 지도 딥러닝 과제에도 옮겨 쓸 수 있다.
 
 ```python
 training_config = {
-    # Optimizer
+    # 최적화기
     'optimizer': 'AdamW',
     'base_lr': 1e-3,
     'weight_decay': 0.01,
     'no_bias_decay': True,
     
-    # Schedule
+    # 일정
     'warmup_epochs': 5,
     'total_epochs': 100,
     'scheduler': 'cosine',
     'min_lr': 1e-6,
     
-    # Regularization
+    # 정칙화
     'label_smoothing': 0.1,
     'mixup_alpha': 0.2,
     'dropout': 0.1,
     
-    # Initialization
+    # 초기화
     'zero_init_residual': True,
     
-    # Training
+    # 학습
     'gradient_clip_norm': 1.0,
-    'ema_decay': 0.999,  # Exponential moving average of weights
+    'ema_decay': 0.999,  # 가중치의 지수 이동 평균
 }
 ```
 
-### Cumulative Impact
+### 누적 효과
 
-Each technique provides a modest individual gain, but they compound:
+기법 하나하나의 이득은 소박하지만 겹쳐 쓰면 불어난다.
 
-| Technique Added | Incremental Gain | Cumulative Gain |
+| 추가한 기법 | 증분 이득 | 누적 이득 |
 |----------------|-----------------|-----------------|
-| Baseline (SGD, step LR) | — | — |
-| + Cosine LR schedule | +0.5% | +0.5% |
-| + LR warmup | +0.3% | +0.8% |
-| + Label smoothing | +0.3% | +1.1% |
-| + No bias decay | +0.2% | +1.3% |
-| + Mixup ($\alpha=0.2$) | +0.5% | +1.8% |
-| + Zero $\gamma$ init | +0.2% | +2.0% |
-| + Knowledge distillation | +1.0% | +3.0% |
+| 기준선 (SGD, 계단식 학습률) | — | — |
+| + 코사인 학습률 일정 | +0.5% | +0.5% |
+| + 학습률 워밍업 | +0.3% | +0.8% |
+| + 레이블 평활화 | +0.3% | +1.1% |
+| + 편향에 감쇠 없음 | +0.2% | +1.3% |
+| + 믹스업 ($\alpha=0.2$) | +0.5% | +1.8% |
+| + $\gamma$을 0으로 초기화 | +0.2% | +2.0% |
+| + 지식 증류 | +1.0% | +3.0% |
 
-These numbers are representative of image classification benchmarks. For financial time-series tasks, the absolute magnitudes differ but the principle of cumulative stacking holds.
+이 수치는 이미지 분류 기준에서 대표적인 값이다. 금융 시계열 과제에서는 절대적인 크기가 다르지만 겹쳐 쌓으면 누적된다는 원리는 그대로 통한다.
 
-## Quant Finance Considerations
+## 퀀트 금융에서의 고려 사항
 
-When applying these recipes to financial models:
+이 요령들을 금융 모델에 적용할 때에는 다음을 생각하라.
 
-- **Label smoothing** improves probability calibration, which directly affects Kelly criterion-based position sizing and risk management.
-- **Mixup** acts as a data augmentation for regime interpolation — the model learns smoother transitions between market states rather than sharp boundaries.
-- **Large batch training** is essential when processing tick-level data across thousands of securities. Linear LR scaling ensures convergence.
-- **No bias decay** is especially important when model features have heterogeneous scales (price levels vs. volume ratios vs. sentiment scores).
-- **EMA weights** provide more stable predictions for production deployment, reducing turnover from noisy daily rebalancing signals.
+- **레이블 평활화**는 확률의 보정을 개선하며, 이는 켈리 기준에 따른 포지션 크기 결정과 위험 관리에 곧바로 영향을 준다.
+- **믹스업**은 국면을 보간하는 데이터 증강 구실을 한다. 모델이 시장 상태 사이의 급격한 경계 대신 더 매끄러운 전환을 배운다.
+- **대규모 배치 학습**은 수천 종목의 틱 단위 데이터를 처리할 때 꼭 필요하다. 학습률을 선형으로 조정하면 수렴이 보장된다.
+- **편향에 감쇠를 걸지 않기**는 모델의 특징들이 서로 다른 척도를 가질 때(가격 수준, 거래량 비율, 감성 점수 등) 특히 중요하다.
+- **EMA 가중치**는 실전 배포에서 더 안정적인 예측을 주어, 잡음이 섞인 일간 재조정 신호로 인한 회전율을 줄인다.
 
-## Key Takeaways
+## 핵심 정리
 
-1. **Stack incrementally**: Add one technique at a time and validate the improvement before adding the next.
-2. **Warmup is non-negotiable**: Especially with adaptive optimizers (Adam, AdamW) and large batches.
-3. **Regularize selectively**: Not all parameters benefit from weight decay.
-4. **Calibration matters**: In quant finance, well-calibrated probabilities are often more valuable than raw accuracy.
-5. **Reproducibility**: Fix all random seeds and document the exact recipe for audit compliance and strategy replication.
+1. **하나씩 쌓아라**: 기법을 한 번에 하나씩 더하고, 다음 것을 더하기 전에 개선을 확인하라.
+2. **워밍업은 빼놓을 수 없다**: 특히 적응형 최적화기(Adam, AdamW)와 큰 배치를 쓸 때 그렇다.
+3. **가려서 정칙화하라**: 모든 매개변수가 가중치 감쇠로 이득을 보는 것은 아니다.
+4. **보정이 중요하다**: 퀀트 금융에서는 잘 보정된 확률이 날 정확도보다 값어치 있을 때가 많다.
+5. **재현성**: 모든 난수 씨앗을 고정하고, 감사 대응과 전략 복제를 위해 쓴 요령을 정확히 기록하라.
 
-## References
+## 참고 문헌
 
 1. He, T., et al. (2019). "Bag of Tricks for Image Classification with Convolutional Neural Networks." CVPR.
 2. Goyal, P., et al. (2017). "Accurate, Large Minibatch SGD: Training ImageNet in 1 Hour." arXiv.
 3. You, Y., et al. (2020). "Large Batch Optimization for Deep Learning: Training BERT in 76 Minutes." ICLR.
 4. Zhang, H., et al. (2018). "mixup: Beyond Empirical Risk Minimization." ICLR.
 5. Muller, R., et al. (2019). "When Does Label Smoothing Help?" NeurIPS.
+
+## 연습문제
+
+**연습문제 1.**
+ImageNet 분류에 쓰이는 표준 학습 요령을 설명하라.
+
+??? success "연습문제 1 풀이"
+    ResNet 요령: 모멘텀 0.9인 SGD, 가중치 감쇠 1e-4, 처음 학습률 0.1에 계단식 감쇠(에포크 30, 60, 90에서 10으로 나눔), 배치 크기 256, 90 에포크, 무작위 잘라내기와 좌우 뒤집기 증강. 요즘 요령(A2/A3): AdamW, 코사인 학습률 일정, 더 강한 증강(RandAugment, Mixup, CutMix), 더 긴 학습(300 에포크).
+
+---
+
+**연습문제 2.**
+학습률 워밍업 기법을 설명하고 언제 꼭 필요한지 말하라.
+
+??? success "연습문제 2 풀이"
+    워밍업은 처음 $N$ 단계 동안 학습률을 0에서 목표 값까지 선형으로 올린다. (1) 대규모 배치 학습(처음의 큰 갱신으로 인한 발산을 막는다), (2) 트랜스포머(어텐션 가중치가 초반에 불안정하다), (3) 모델을 수술한 뒤(새 층의 가중치가 무작위이다)에 꼭 필요하다. 보통 전체 학습 단계의 1~5%를 워밍업으로 쓴다.
+
+---
+
+**연습문제 3.**
+혼합 정밀도, 기울기 자르기, 학습률 스케줄링을 갖춘 완전한 학습 루프를 구현하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    scaler = torch.cuda.amp.GradScaler()
+    scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=100)
+    for epoch in range(100):
+        for x, y in loader:
+            with torch.cuda.amp.autocast():
+                loss = criterion(model(x), y)
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+            scaler.step(optimizer)
+            scaler.update()
+            optimizer.zero_grad()
+        scheduler.step()
+    ```
+
+---
+
+**연습문제 4.**
+여러 학습 기법을 함께 쓸 때 연산의 일반적인 순서는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    순전파 -> 손실 계산 -> 역전파 -> 기울기 자르기 -> 최적화기 갱신 -> 학습률 스케줄러 갱신 -> 기록. 증강은 순전파 전에 한다. EMA 갱신은 최적화기 갱신 뒤에 한다. 평가는 에포크 경계에서 한다.

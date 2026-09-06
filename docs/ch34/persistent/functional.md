@@ -173,3 +173,43 @@ The cons list demonstrates structural sharing: `v3` and `v4` both share the tail
 
 - Okasaki, C. *Purely Functional Data Structures.* Cambridge University Press, 1998
 - Driscoll, J.R., Sarnak, N., Sleator, D.D., and Tarjan, R.E. "Making Data Structures Persistent." *JCSS*, 1989
+
+## Exercises
+
+**Exercise 1.**
+Explain why a cons-list (singly-linked list with prepend) is naturally persistent. What is the time complexity of prepend, head, and tail operations?
+
+??? success "Solution to Exercise 1"
+    A cons-list is a singly-linked list where each node contains a value and a pointer to the next node. Prepending creates a new node pointing to the existing list head. The old list is unchanged because no node is modified -- the new node simply points to it. Both the old list (old head) and the new list (new head) coexist, sharing all nodes except the new one. This is structural sharing, making the list inherently persistent. Time complexities: `prepend` (cons): $O(1)$ -- allocate one node. `head` (car): $O(1)$ -- return the first node's value. `tail` (cdr): $O(1)$ -- return the pointer to the next node. Random access at index $i$: $O(i)$ -- follow $i$ pointers. Append: $O(n)$ -- must copy the entire spine. $\square$
+
+---
+
+**Exercise 2.**
+Describe Okasaki's purely functional queue that achieves $O(1)$ amortized enqueue and dequeue. Why is a naive two-list approach not sufficient for persistent use?
+
+??? success "Solution to Exercise 2"
+    Okasaki's queue uses two lists: a front list (for dequeue) and a rear list (for enqueue, stored in reverse). Enqueue prepends to the rear; dequeue takes from the front. When the front is empty, reverse the rear into a new front. In an ephemeral setting, this is $O(1)$ amortized via the banker's method. For persistent use, the same version can be dequeued multiple times, each time triggering the expensive reversal. The amortized argument breaks because the "cost" of reversal is not "paid" across multiple operations on the same version. Okasaki solves this using **lazy evaluation with memoization**: the reversal is suspended as a thunk. The first access computes it and caches the result; subsequent accesses (from any version referencing this thunk) use the cached result. This restores $O(1)$ amortized bounds even under persistence. $\square$
+
+---
+
+**Exercise 3.**
+Prove that a balanced binary tree used as a functional map (persistent sorted map) supports insert and lookup in $O(\log n)$ time with $O(\log n)$ new nodes per insert.
+
+??? success "Solution to Exercise 3"
+    Insert follows the BST search path from root to the insertion point, creating a new node at the leaf and copying all nodes on the path from root to leaf. Unchanged subtrees are shared via pointers. The path length in a balanced tree is $O(\log n)$, so $O(\log n)$ nodes are created. Each new node links to the unchanged children of the corresponding old node, so no additional copying is needed. Lookup traverses the tree from the root for the queried version, following pointers at each level. Since the tree is balanced, this takes $O(\log n)$. The key insight: immutability means no node in the old tree is modified, so the old root still provides a valid $O(\log n)$ lookup. Both old and new versions coexist with $O(\log n)$ space overhead. $\square$
+
+---
+
+**Exercise 4.**
+Explain why arrays are difficult to make purely functional with good performance. What is the best known time complexity for a persistent functional array?
+
+??? success "Solution to Exercise 4"
+    Arrays require $O(1)$ random access, which depends on contiguous memory addressing. In a functional (immutable) setting, updating one element requires creating a new array. A full copy costs $O(n)$. Using a balanced binary tree indexed by position reduces the update cost to $O(\log n)$ but also increases read cost from $O(1)$ to $O(\log n)$. Hash array mapped tries (HAMTs, used in Clojure and Scala) provide a practical compromise: branching factor of 32 gives depth $\le \log_{32} n$, so for $n \le 10^9$, depth $\le 6$. This gives practical $O(1)$ performance (with a constant of $\sim$6) for both read and update. Theoretically, the best known persistent array has $O(\log \log n)$ per operation using van Emde Boas-style decomposition, but this is impractical. $\square$
+
+---
+
+**Exercise 5.**
+Functional data structures are naturally thread-safe. Explain why, and discuss when this property is advantageous compared to using concurrent mutable data structures with locks.
+
+??? success "Solution to Exercise 5"
+    Functional data structures are thread-safe because they are immutable: no thread can observe a partially modified state because no modification occurs. Each "update" returns a new version while the old version remains intact. Threads reading the old version see a consistent snapshot without locks, memory barriers, or atomic operations. This is advantageous when: (1) read-heavy workloads dominate -- readers pay zero synchronization cost; (2) snapshot isolation is needed -- each thread can hold a reference to its version indefinitely; (3) debugging and reasoning -- no data races, no deadlocks, no memory corruption. Concurrent mutable structures are preferable when: (1) write-heavy workloads require in-place mutation for performance; (2) memory is constrained and structural sharing's overhead is unacceptable; (3) the workload requires atomic compound operations (e.g., transfer between two accounts) that are awkward to express functionally. $\square$

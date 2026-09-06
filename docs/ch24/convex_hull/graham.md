@@ -1,120 +1,97 @@
-# Graham Scan
+# 그레이엄 훑기
 
-Graham scan constructs the convex hull of $n$ points in $O(n \log n)$ time.
-It chooses an anchor point (the lowest), sorts the remaining points by
-**polar angle** around the anchor, and then processes them in order with a
-stack, ensuring every consecutive triple makes a left turn.
+그레이엄 훑기는 $n$개 점의 볼록 껍질을 $O(n \log n)$ 시간에 세운다. 닻점(가장 아래 점)을 고르고 나머지 점을 닻점 둘레의 **극각**으로 정렬한 뒤 쌓기로 차례대로 다루며, 잇닿은 세 점이 늘 왼쪽으로 돌게 한다.
 
-## Intuition
+## 직관
 
-Pick the bottom-most point — it is guaranteed to be on the hull.  Standing
-at that anchor, sort every other point by the angle of the line from the
-anchor to the point.  Walk around in increasing-angle order, maintaining a
-stack of candidate hull vertices.  Whenever the top two stack entries and
-the new point form a **right turn** (or are collinear), the middle point
-cannot be on the hull, so pop it.  When the sweep is complete the stack
-holds exactly the hull vertices in counter-clockwise order.
+가장 아래 점을 고른다. 그 점은 반드시 껍질 위에 있다. 그 닻점에 서서 다른 모든 점을 닻점에서 그 점으로 그은 선의 각으로 정렬한다. 각이 커지는 차례로 돌면서 껍질 꼭짓점 후보의 쌓기를 지킨다. 쌓기 맨 위 두 개와 새 점이 **오른쪽으로 돌면**(또는 한 줄에 놓이면) 가운데 점은 껍질 위에 있을 수 없으므로 빼낸다. 훑기가 끝나면 쌓기에는 정확히 껍질 꼭짓점이 반시계 차례로 남는다.
 
-## Definitions
+## 정의
 
-**Polar angle.**  The angle $\theta = \operatorname{atan2}(y - y_0,\;
-x - x_0)$ measured from the positive $x$-axis, where $(x_0, y_0)$ is the
-anchor.
+**극각.** 양의 $x$축에서 잰 각 $\theta = \operatorname{atan2}(y - y_0,\; x - x_0)$이며, $(x_0, y_0)$은 닻점이다.
 
-**Left turn / right turn.**  Determined by the sign of the cross product
-of consecutive edge vectors:
+**왼쪽 돌기 / 오른쪽 돌기.** 잇닿은 모서리 벡터의 어긋 곱 부호로 정한다.
 
 $$
 \operatorname{cross}(o, a, b)
   = (a_x - o_x)(b_y - o_y) - (a_y - o_y)(b_x - o_x)
 $$
 
-Positive means left turn (counter-clockwise), negative means right turn.
+양수는 왼쪽 돌기(반시계), 음수는 오른쪽 돌기를 뜻한다.
 
-## Algorithm
+## 알고리즘
 
-1. Find the point $p_0$ with the smallest $y$-coordinate (break ties by
-   smallest $x$).
-2. Sort the remaining points by polar angle with respect to $p_0$.  For
-   points with equal angle, keep only the farthest from $p_0$
-   (or sort by distance as a secondary key).
-3. Push $p_0$ and the first sorted point onto a stack.
-4. For each subsequent point $p_i$:
-    - While $|\text{stack}| \ge 2$ and
-      $\operatorname{cross}(\text{second}, \text{top}, p_i) \le 0$: pop.
-    - Push $p_i$.
-5. The stack contents are the hull vertices in counter-clockwise order.
+1. $y$자리값이 가장 작은 점 $p_0$을 찾는다(같으면 가장 작은 $x$으로 가른다).
+2. 나머지 점을 $p_0$에 대한 극각으로 정렬한다. 각이 같은 점은 $p_0$에서 가장 먼 것만 남긴다(또는 거리를 둘째 열쇠로 삼아 정렬한다).
+3. $p_0$과 정렬된 첫 점을 쌓기에 밀어넣는다.
+4. 뒤따르는 각 점 $p_i$에 대해:
+    - $|\text{stack}| \ge 2$이고 $\operatorname{cross}(\text{second}, \text{top}, p_i) \le 0$인 동안 빼낸다.
+    - $p_i$을 밀어넣는다.
+5. 쌓기의 내용이 반시계 차례의 껍질 꼭짓점이다.
 
-## Correctness
+## 올바름
 
-!!! note "Theorem"
-    Graham scan outputs the vertices of $\operatorname{CH}(S)$ in counter-
-    clockwise order.
+!!! note "정리"
+    그레이엄 훑기는 $\operatorname{CH}(S)$의 꼭짓점을 반시계 차례로 내놓는다.
 
-**Proof.**
-At every stage the stack forms a convex polygon: the invariant is that all
-consecutive triples on the stack make left turns.  The pop operation
-removes a point that would create a right turn, and the push restores the
-invariant.  Because we process points in angular order around $p_0$, no
-hull vertex is ever skipped.  A point that is popped lies inside the
-triangle formed by its neighbors and some later point, so it is interior.
-When the last point has been processed the stack is the complete hull.
+**증명.**
+어느 단계에서나 쌓기는 볼록 다각형을 이룬다. 불변량은 쌓기 위의 잇닿은 세 점이 모두 왼쪽으로 돈다는 것이다. 빼내기는 오른쪽 돌기를 만들 점을 없애고 밀어넣기는 불변량을 되살린다. 점을 $p_0$ 둘레의 각 차례로 다루므로 껍질 꼭짓점을 건너뛰는 일은 없다. 빼낸 점은 그 이웃과 뒤의 어떤 점이 이루는 삼각형 안에 놓이므로 안쪽 점이다. 마지막 점까지 다루고 나면 쌓기가 온전한 껍질이다.
 
-## Complexity
+## 복잡도
 
-| Measure | Cost |
+| 잣대 | 비용 |
 |---------|------|
-| Time | $O(n \log n)$ — sorting dominates; the stack operations are amortized $O(n)$ |
-| Space | $O(n)$ |
+| 시간 | $O(n \log n)$ — 정렬이 도맡는다. 쌓기 셈은 고르게 나누면 $O(n)$이다 |
+| 공간 | $O(n)$ |
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Graham Scan — convex hull in O(n log n) via polar-angle sort.
+그레이엄 훑기 — 극각 정렬로 구한 O(n log n) 볼록 껍질.
 """
 
 from __future__ import annotations
 import math
 
 
-# === Orientation Helper ===
+# === 방향 도우미 ===
 
 def cross(o: tuple[float, float],
           a: tuple[float, float],
           b: tuple[float, float]) -> float:
-    """Signed area of parallelogram OA x OB."""
+    """평행사변형 OA x OB의 부호 있는 넓이."""
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
 
 def dist_sq(a: tuple[float, float], b: tuple[float, float]) -> float:
-    """Squared Euclidean distance."""
+    """유클리드 거리의 제곱."""
     return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
 
 
-# === Graham Scan ===
+# === 그레이엄 훑기 ===
 
 def graham_scan(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
-    """Return convex hull vertices in counter-clockwise order.
+    """볼록 껍질 꼭짓점을 반시계 차례로 돌려준다.
 
-    Uses polar-angle sorting around the bottom-most point.
+    가장 아래 점 둘레의 극각 정렬을 쓴다.
     """
     pts = list(set(points))
     if len(pts) <= 1:
         return pts
 
-    # Step 1: find the bottom-most point (lowest y, then leftmost x)
+    # 걸음 1: 가장 아래 점을 찾는다(y이 가장 작고 그다음 x이 가장 작은 점)
     anchor = min(pts, key=lambda p: (p[1], p[0]))
     pts.remove(anchor)
 
-    # Step 2: sort by polar angle, break ties by distance
+    # 걸음 2: 극각으로 정렬하고 같으면 거리로 가른다
     def angle_key(p: tuple[float, float]) -> tuple[float, float]:
         return (math.atan2(p[1] - anchor[1], p[0] - anchor[0]),
                 dist_sq(anchor, p))
 
     pts.sort(key=angle_key)
 
-    # Step 3-4: build hull with a stack
+    # 걸음 3-4: 쌓기로 껍질을 세운다
     stack: list[tuple[float, float]] = [anchor]
     for p in pts:
         while len(stack) >= 2 and cross(stack[-2], stack[-1], p) <= 0:
@@ -124,7 +101,7 @@ def graham_scan(points: list[tuple[float, float]]) -> list[tuple[float, float]]:
     return stack
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     sample = [(0, 0), (1, 1), (2, 2), (0, 2), (2, 0), (1, 0)]
@@ -132,27 +109,56 @@ if __name__ == "__main__":
     print(f"Input:  {sample}")
     print(f"Hull:   {hull}")
     print(f"Vertices on hull: {len(hull)}")
-    # Output:
-    # Input:  [(0, 0), (1, 1), (2, 2), (0, 2), (2, 0), (1, 0)]
-    # Hull:   [(0, 0), (2, 0), (2, 2), (0, 2)]
-    # Vertices on hull: 4
+    # 내임:
+    # 들임:  [(0, 0), (1, 1), (2, 2), (0, 2), (2, 0), (1, 0)]
+    # 껍질:   [(0, 0), (2, 0), (2, 2), (0, 2)]
+    # 껍질 위 꼭짓점: 4
 ```
 
-## Comparison with Andrew's Monotone Chain
+## 앤드루의 단조 사슬과 견주기
 
-| | Graham Scan | Monotone Chain |
+| | 그레이엄 훑기 | 단조 사슬 |
 |---|---|---|
-| Sort key | Polar angle | Lexicographic $(x, y)$ |
-| Scans | Single pass | Two passes (lower + upper) |
-| Collinear handling | Needs care at equal angles | Naturally handled |
-| Numerical stability | Uses `atan2` (floating point) | Integer-safe with cross product |
+| 정렬 열쇠 | 극각 | 사전 차례 $(x, y)$ |
+| 훑기 | 한 번 | 두 번(아래 + 위) |
+| 한 줄에 놓임 다루기 | 각이 같을 때 조심해야 한다 | 저절로 다루어진다 |
+| 수치의 안정 | `atan2`을 쓴다(뜬 소수점) | 어긋 곱으로 정수에서 안전하다 |
 
-Both run in $O(n \log n)$.  In practice Andrew's monotone chain is often
-preferred because it avoids trigonometric functions.
+둘 다 $O(n \log n)$이다. 실제로는 삼각 함수를 쓰지 않는 앤드루의 단조 사슬을 흔히 더 낫게 여긴다.
 
-## Reference
+## 참고 문헌
 
-- R. L. Graham, "An Efficient Algorithm for Determining the Convex Hull of
-  a Finite Planar Set," *Information Processing Letters*, 1(4), 1972.
-- de Berg, Cheong, van Kreveld, Overmars, *Computational Geometry*, 3rd
-  ed., Springer, 2008.
+- R. L. Graham, "An Efficient Algorithm for Determining the Convex Hull of a Finite Planar Set," *Information Processing Letters*, 1(4), 1972.
+- de Berg, Cheong, van Kreveld, Overmars, *Computational Geometry*, 3rd ed., Springer, 2008.
+
+## 연습문제
+
+**연습문제 1.**
+그레이엄 훑기의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    그레이엄 훑기은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 그레이엄 훑기을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+그레이엄 훑기은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+그레이엄 훑기을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 그레이엄 훑기은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

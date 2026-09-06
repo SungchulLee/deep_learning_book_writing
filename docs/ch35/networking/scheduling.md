@@ -194,3 +194,43 @@ FIFO preserves arrival order. Priority serves all flow-0 packets first (highest 
 
 - Demers, A., Keshav, S., and Shenker, S. "Analysis and Simulation of a Fair Queueing Algorithm." *SIGCOMM*, 1989
 - Shreedhar, M. and Varghese, G. "Efficient Fair Queuing Using Deficit Round-Robin." *IEEE/ACM Trans. Networking*, 1996
+
+## Exercises
+
+**Exercise 1.**
+Compare FIFO, priority queuing, and weighted fair queuing (WFQ) for a router handling voice, video, and data traffic. Which scheduler provides the best quality of service?
+
+??? success "Solution to Exercise 1"
+    **FIFO**: all packets share one queue. A burst of data packets can delay voice packets, causing jitter. No differentiation. **Priority queuing**: voice gets highest priority, video medium, data lowest. Voice and video get low latency, but data can starve if voice/video traffic is heavy (no bandwidth guarantee for data). **WFQ**: each flow gets a guaranteed share of bandwidth proportional to its weight. Voice (weight 5), video (weight 3), data (weight 2) share a 100 Mbps link as 50/30/20 Mbps. No flow starves; voice gets consistent low latency. WFQ provides the best QoS because it guarantees bandwidth for each class while allowing unused capacity to be shared. Priority queuing risks data starvation; FIFO provides no differentiation. $\square$
+
+---
+
+**Exercise 2.**
+Describe the deficit round-robin (DRR) algorithm and explain how it achieves $O(1)$ per-packet scheduling while approximating fair queuing.
+
+??? success "Solution to Exercise 2"
+    DRR maintains a circular list of active queues (one per flow). Each queue has a deficit counter initialized to 0. Each round: (1) add a quantum $Q$ to the queue's deficit counter. (2) While the queue's head packet size $\le$ deficit counter: dequeue the packet, subtract its size from the deficit counter. (3) If the queue becomes empty, reset the deficit to 0. (4) Move to the next queue. Per-packet cost: $O(1)$ (dequeue + counter update). Fairness: over long periods, each flow receives bandwidth proportional to its quantum. Flows with larger average packet sizes may get slightly bursty service but the same long-term share. DRR approximates WFQ without the $O(\log n)$ per-packet cost of computing virtual finish times. The tradeoff: DRR has higher short-term unfairness (jitter) but is practical for high-speed routers where $O(1)$ is essential. $\square$
+
+---
+
+**Exercise 3.**
+A router processes packets at 10 Gbps with an average packet size of 500 bytes. How many packets per second must the scheduler handle, and why does this constraint favor $O(1)$ algorithms?
+
+??? success "Solution to Exercise 3"
+    Packets per second: $10 \times 10^9 / (500 \times 8) = 2.5 \times 10^6$ packets/sec. Time budget per packet: $1 / (2.5 \times 10^6) = 400$ ns. At 3 GHz clock speed: $400 \times 3 = 1200$ clock cycles per packet. An $O(\log n)$ scheduler with $n = 10{,}000$ flows requires $\sim 14$ operations per packet. If each operation involves a cache miss ($\sim 100$ cycles), total = 1400 cycles -- barely fitting the budget. An $O(1)$ scheduler like DRR needs $\sim 5$ operations ($\sim 500$ cycles), comfortably within budget. At 40 Gbps or 100 Gbps, the per-packet budget shrinks to 100 ns or 40 ns, making even $O(\log n)$ too slow. This is why high-speed routers use $O(1)$ scheduling. $\square$
+
+---
+
+**Exercise 4.**
+Explain token bucket and leaky bucket traffic shapers. How does each regulate burst traffic?
+
+??? success "Solution to Exercise 4"
+    **Leaky bucket**: packets enter a queue (bucket) and are transmitted at a fixed rate $r$. Bursts fill the queue; excess packets are dropped. The output is perfectly smooth at rate $r$ regardless of input burstiness. Maximum burst that can be absorbed: bucket depth $b$ packets. **Token bucket**: tokens accumulate at rate $r$ up to a maximum of $b$ tokens. Each packet consumes one token. If tokens are available, packets are sent immediately (even in bursts up to $b$ packets). If no tokens, packets wait. The output is bursty: a burst of $b$ packets can be sent at line rate, followed by a sustained rate of $r$. Token bucket allows controlled bursts (useful for bursty applications like web browsing); leaky bucket enforces strict smoothness (useful for CBR streams like voice). Token bucket is more commonly used because it accommodates legitimate bursts while enforcing a long-term average rate. $\square$
+
+---
+
+**Exercise 5.**
+A financial trading network requires that market data packets never experience more than 10 microseconds of queuing delay. Design a scheduling scheme that guarantees this bound.
+
+??? success "Solution to Exercise 5"
+    Use **strict priority queuing** with market data in the highest priority queue and all other traffic in lower-priority queues. The maximum queuing delay for the highest-priority queue is bounded by the transmission time of the largest lower-priority packet currently being transmitted (non-preemptive scheduling) or zero (preemptive scheduling). For a 10 Gbps link, a maximum-size packet (1500 bytes) takes $1500 \times 8 / (10 \times 10^9) = 1.2$ microseconds to transmit. With non-preemptive strict priority, the worst-case delay for market data is 1.2 microseconds (waiting for one in-progress lower-priority packet) -- well within the 10 microsecond bound. To prevent starvation of lower-priority traffic, set a rate limiter on market data (e.g., police to 50% of link capacity). If market data exceeds this, excess packets are queued and may experience additional delay; alert the administrator. $\square$

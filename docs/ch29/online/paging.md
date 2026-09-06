@@ -1,106 +1,139 @@
-# Paging
+# 쪽 넘기기
 
-Every computer system with a cache faces the same fundamental question: when the cache is full and a new item must be loaded, which existing item should be evicted? This is the **online paging problem**, one of the most studied problems in competitive analysis. It connects directly to CPU cache management, web proxy caching, and GPU memory management in deep learning workloads, making it a cornerstone example of online algorithms with immediate practical relevance.
+두름을 가진 모든 컴퓨터 시스템은 같은 근본 물음을 마주한다. 두름이 가득 찼고 새 것을 불러와야 할 때 이미 있는 어느 것을 내보내야 하는가? 이것이 겨룸 살피기에서 가장 많이 살펴본 문제 가운데 하나인 **온라인 쪽 넘기기 문제**이다. CPU 두름 다루기, 웹 대리 두르기, 깊은 배움 일감의 GPU 기억 다루기와 곧바로 이어져 실제로 곧장 쓸모 있는 온라인 알고리즘의 주춧돌 보기가 된다.
 
-## Problem Formulation
+## 문제 정식화
 
-A cache holds at most $k$ pages from a universe of $N > k$ pages. A request sequence $\sigma = p_1, p_2, \ldots, p_n$ specifies pages to access:
+두름은 쪽 $N > k$개의 온 모임에서 많아야 $k$쪽을 담는다. 요청 차례 $\sigma = p_1, p_2, \ldots, p_n$이 닿을 쪽을 밝힌다:
 
-- **Cache hit**: page $p_i$ is already in the cache; cost is 0.
-- **Cache miss (page fault)**: page $p_i$ is not in the cache; it must be loaded (cost 1), and if the cache is full, one existing page must be evicted.
+- **두름 맞음**: 쪽 $p_i$이 이미 두름에 있다. 비용은 0이다.
+- **두름 어긋남(쪽 어긋남)**: 쪽 $p_i$이 두름에 없다. 불러와야 하고(비용 1) 두름이 가득 찼으면 이미 있는 쪽 하나를 내보내야 한다.
 
-The goal is to minimize the total number of page faults. The online algorithm must decide which page to evict without knowing future requests.
+목표는 쪽 어긋남의 온 개수를 가장 작게 하는 것이다. 온라인 알고리즘은 앞으로의 요청을 모른 채 어느 쪽을 내보낼지 정해야 한다.
 
-## Common Eviction Strategies
+## 흔한 내보내기 셈속
 
-### LRU (Least Recently Used)
+### LRU(가장 오래전에 쓴 것)
 
-Evict the page whose most recent access is farthest in the past. LRU exploits temporal locality: recently used pages are likely to be used again soon.
+가장 최근에 닿은 때가 가장 먼 쪽을 내보낸다. LRU은 때의 가까움을 써먹는다. 최근에 쓴 쪽은 곧 다시 쓰일 법하다.
 
-### FIFO (First In, First Out)
+### FIFO(먼저 들어온 것이 먼저 나감)
 
-Evict the page that has been in the cache the longest, regardless of access pattern.
+닿기 무늬와 상관없이 두름에 가장 오래 있던 쪽을 내보낸다.
 
-### LFU (Least Frequently Used)
+### LFU(가장 드물게 쓴 것)
 
-Evict the page with the fewest accesses. LFU adapts to frequency-based access patterns but can be slow to respond to distribution changes.
+닿은 횟수가 가장 적은 쪽을 내보낸다. LFU은 잦음 바탕 닿기 무늬에 맞춰 가지만 분포가 바뀔 때 굼뜰 수 있다.
 
-### Optimal Offline (Belady's Algorithm)
+### 최적 오프라인(벨레이디 알고리즘)
 
-Evict the page whose next request is farthest in the future. This requires complete knowledge of the future request sequence and serves as the offline optimum $\text{OPT}$.
+다음 요청이 가장 먼 쪽을 내보낸다. 앞으로의 요청 차례를 온전히 알아야 하며 오프라인 최적 $\text{OPT}$이 된다.
 
-## Deterministic Competitive Ratio
+## 정해진 겨룸 비
 
-!!! note "LRU and FIFO Are $k$-Competitive"
-    Both LRU and FIFO achieve a competitive ratio of exactly $k$, where $k$ is the cache size. This is the best possible for any deterministic online paging algorithm.
+!!! note "LRU과 FIFO은 $k$겨룸이다"
+    LRU과 FIFO 모두 겨룸 비가 정확히 $k$이며 여기서 $k$은 두름 크기이다. 이는 어떤 정해진 온라인 쪽 넘기기 알고리즘으로도 이룰 수 있는 가장 좋은 값이다.
 
-**Theorem.** LRU is $k$-competitive for the paging problem.
+**정리.** LRU은 쪽 넘기기 문제에서 $k$겨룸이다.
 
-*Proof sketch.* Partition the request sequence into **phases**. A new phase begins whenever LRU incurs its $(k+1)$-th distinct page request since the last phase boundary. Within each phase, LRU faults on at most $k$ pages, while OPT must fault on at least 1 page (since the phase contains $k + 1$ distinct pages but OPT's cache holds only $k$). Therefore:
+*밝힘 밑그림.* 요청 차례를 **마당**으로 가른다. 지난 마당 경계 뒤로 LRU이 서로 다른 쪽 요청을 $(k+1)$번째로 받을 때마다 새 마당이 시작된다. 마당마다 LRU은 많아야 $k$쪽에서 어긋나고 OPT은 적어도 1쪽에서 어긋나야 한다(마당에 서로 다른 쪽이 $k + 1$개 있지만 OPT의 두름은 $k$개만 담기 때문이다). 그러므로:
 
 $$
 \frac{\text{faults}_{\text{LRU}}}{\text{faults}_{\text{OPT}}} \leq \frac{k \cdot (\text{number of phases})}{1 \cdot (\text{number of phases})} = k
 $$
 
-**Theorem (Lower Bound).** No deterministic online paging algorithm can achieve a competitive ratio better than $k$.
+**정리(아래 가둠).** 어떤 정해진 온라인 쪽 넘기기 알고리즘도 겨룸 비를 $k$보다 좋게 할 수 없다.
 
-*Proof sketch.* An adversary maintains a set of $k + 1$ pages and always requests the page not currently in the algorithm's cache. The algorithm faults on every request, while OPT (with $k$ pages) faults at most once per $k$ requests. $\square$
+*밝힘 밑그림.* 맞수는 쪽 $k + 1$개의 모임을 지니며 늘 알고리즘의 두름에 지금 없는 쪽을 요청한다. 알고리즘은 요청마다 어긋나지만 OPT은($k$쪽으로) 요청 $k$번마다 많아야 한 번 어긋난다. $\square$
 
-## Randomized Competitive Ratio
+## 아무 겨룸 비
 
-Randomization dramatically improves the competitive ratio. Against an oblivious adversary, the optimal randomized competitive ratio is $H_k$, the $k$-th harmonic number:
+아무렇게 하기는 겨룸 비를 크게 좋게 한다. 눈감은 맞수 앞에서 가장 좋은 아무 겨룸 비는 $k$번째 조화수 $H_k$이다:
 
 $$
 H_k = \sum_{i=1}^{k} \frac{1}{i} = \Theta(\ln k)
 $$
 
-### The Marker Algorithm
+### 표시 알고리즘
 
-The **Marker algorithm** achieves the optimal randomized competitive ratio of $H_k$:
+**표시 알고리즘**은 가장 좋은 아무 겨룸 비 $H_k$을 이룬다:
 
-1. Mark all pages as **unmarked** at the start of each phase.
-2. On a cache hit, mark the accessed page.
-3. On a cache miss:
-    - If all pages in the cache are marked, start a new phase: unmark all pages.
-    - Evict a page chosen **uniformly at random** from the unmarked pages in the cache.
-    - Load the requested page and mark it.
+1. 마당이 시작될 때 모든 쪽을 **표시 없음**으로 둔다.
+2. 두름이 맞으면 닿은 쪽에 표시를 한다.
+3. 두름이 어긋나면:
+    - 두름의 모든 쪽에 표시가 있으면 새 마당을 시작한다. 모든 표시를 지운다.
+    - 두름의 표시 없는 쪽 가운데 **고르게 아무렇게나** 고른 쪽을 내보낸다.
+    - 요청한 쪽을 불러와 표시한다.
 
-**Theorem.** The Marker algorithm is $H_k$-competitive against an oblivious adversary.
+**정리.** 표시 알고리즘은 눈감은 맞수 앞에서 $H_k$겨룸이다.
 
-The gap between $k$ (deterministic) and $H_k \approx \ln k$ (randomized) demonstrates the substantial power of randomization in online computation.
+$k$(정해짐)과 $H_k \approx \ln k$(아무렇게)의 틈은 온라인 셈에서 아무렇게 하기의 힘이 얼마나 큰지 보여 준다.
 
-## The $h$-$k$ Paging Problem
+## h-k 쪽 넘기기 문제
 
-A generalization allows the online algorithm a cache of size $k$ while OPT uses a smaller cache of size $h \leq k$. This is called **resource augmentation**. With this advantage:
+넓힌 판에서는 온라인 알고리즘이 크기 $k$의 두름을 쓰고 OPT은 더 작은 크기 $h \leq k$의 두름을 쓴다. 이를 **밑감 늘리기**라 한다. 이 이점이 있으면:
 
 $$
 \text{LRU is } \frac{k}{k - h + 1}\text{-competitive}
 $$
 
-When $k = 2h$, LRU becomes 2-competitive, showing that a constant-factor larger cache eliminates most of the disadvantage of being online.
+$k = 2h$이면 LRU이 2겨룸이 되어, 두름을 상수배만 키워도 온라인이라는 불리함이 거의 사라짐을 보여 준다.
 
-!!! tip "Resource Augmentation in Practice"
-    Resource augmentation is often a more realistic model: in practice, caches can be made somewhat larger than strictly necessary. The $h$-$k$ framework shows that modest extra resources dramatically reduce the competitive ratio.
+!!! tip "실제에서의 밑감 늘리기"
+    밑감 늘리기는 더 현실에 가까운 모형일 때가 많다. 실제로 두름은 꼭 필요한 것보다 다소 크게 만들 수 있다. $h$-$k$ 틀은 밑감을 조금만 더 써도 겨룸 비가 크게 줄어듦을 보여 준다.
 
-## Working Set and Locality
+## 일하는 모임과 가까움
 
-Real-world request sequences exhibit **locality of reference**: recent pages are likely to be requested again. The **working set** at time $t$ consists of the $w(t)$ distinct pages accessed since the last request to the current page.
+실제 요청 차례는 **가리킴의 가까움**을 보인다. 최근 쪽이 다시 요청될 법하다. 때 $t$의 **일하는 모임**은 지금 쪽에 마지막으로 요청한 뒤로 닿은 서로 다른 쪽 $w(t)$개로 이루어진다.
 
-LRU is particularly well-suited to sequences with locality because it automatically adapts its cache contents to the working set. When the working set size $w$ satisfies $w \leq k$, LRU incurs no faults.
+LRU은 두름 속을 일하는 모임에 저절로 맞추므로 가까움이 있는 차례에 특히 잘 맞는다. 일하는 모임 크기 $w$이 $w \leq k$이면 LRU은 어긋남을 내지 않는다.
 
-## Connection to Deep Learning
+## 딥러닝과의 관계
 
-Paging algorithms are directly relevant to deep learning systems:
+쪽 넘기기 알고리즘은 깊은 배움 시스템과 곧바로 이어진다:
 
-- **GPU memory management**: deep learning frameworks like PyTorch and TensorFlow use caching allocators that decide which tensors to keep in GPU memory. The eviction policy directly affects training throughput.
-- **Gradient checkpointing**: during backpropagation, intermediate activations can be recomputed rather than stored, creating a paging-like tradeoff between memory and computation.
-- **Data loading**: prefetching training batches from disk into memory is an online caching problem where the access pattern follows the training data order.
+- **GPU 기억 다루기**: PyTorch, TensorFlow 같은 깊은 배움 틀은 어느 텐서를 GPU 기억에 남길지 정하는 두르기 나눔개를 쓴다. 내보내기 규칙이 익히기 처리량에 곧바로 영향을 준다.
+- **기울기 되짚기 표시**: 거꿀 퍼뜨리기 때 중간 깨움을 담아 두는 대신 다시 셈할 수 있어 기억과 셈 사이에 쪽 넘기기 같은 맞바꿈이 생긴다.
+- **자료 불러오기**: 익히기 묶음을 원반에서 기억으로 미리 가져오는 일은 닿기 무늬가 익히기 자료 차례를 따르는 온라인 두르기 문제이다.
 
-## Summary
+## 요약
 
-The paging problem demonstrates both the power and limitations of online algorithms. Deterministic algorithms like LRU and FIFO achieve the optimal ratio of $k$, while randomized algorithms achieve $H_k \approx \ln k$, an exponential improvement. Resource augmentation further reduces the ratio, providing a practical bridge between theoretical bounds and real-world system design.
+쪽 넘기기 문제는 온라인 알고리즘의 힘과 한계를 함께 보여 준다. LRU, FIFO 같은 정해진 알고리즘은 가장 좋은 비 $k$을 이루고, 아무 알고리즘은 $H_k \approx \ln k$을 이루어 지수만큼 나아진다. 밑감 늘리기는 비를 더 줄여 이론의 가둠과 실제 시스템 설계 사이에 다리를 놓는다.
 
-## References
+## 참고 문헌
 
 - [Online Computation and Competitive Analysis (Borodin and El-Yaniv)](https://www.amazon.com/dp/0521619467)
 - [Data Streams: Algorithms and Applications (Muthukrishnan)](https://www.cs.rutgers.edu/~muthu/stream-1-1.ps)
+
+
+## 연습문제
+
+**연습문제 1.**
+쪽 넘기기 문제를 뜻매김하고 왜 그것이 두름 다루기를 나타내는지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    쪽 넘기기 문제: 두름이 $k$쪽을 담는다. 쪽 요청 차례가 하나씩 온다. 요청한 쪽이 두름에 있으면(맞음) 비용이 없다. 없으면(어긋남) 그것을 들여오고 담긴 쪽 하나를 내보내야 하며 비용은 1이다. 목표는 온 어긋남을 가장 작게 하는 것이다. 이는 CPU 두름, 웹 브라우저 두름, CDN 두름, 자료 바탕 버퍼 다루기를 나타낸다. 오프라인 최적(벨레이디의 MIN)은 다음 쓰임이 가장 먼 쪽을 내보낸다.
+
+---
+
+**연습문제 2.**
+$k$이 두름 크기일 때 LRU(가장 오래전에 쓴 것)이 쪽 넘기기에서 $k$겨룸임을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    어떤 요청 차례에서도 LRU은 OPT이 한 번 어긋날 때마다 많아야 $k$번 어긋난다. 극대 마당, 곧 서로 다른 쪽 $k + 1$개에 대한 요청 차례를 생각하자. LRU은 많아야 $k$번 어긋난다(첫 맞음 뒤 새로 나오는 쪽마다 한 번). OPT은 적어도 한 번 어긋나야 한다($k$쪽만 담는데 서로 다른 요청을 $k + 1$개 보기 때문이다). 모든 마당을 통틀어 LRU의 어긋남 $\leq k \cdot$ (OPT의 어긋남)이다. 이 비는 빈틈없다. 맞수가 쪽 $k + 1$개를 돌아가며 요청하면 LRU은 매번 어긋나지만 OPT은 $k$걸음마다 한 번만 어긋난다.
+
+---
+
+**연습문제 3.**
+어떤 정해진 온라인 쪽 넘기기 알고리즘도 겨룸 비를 $k$보다 좋게 할 수 없음을 보여라.
+
+??? success "연습문제 3 풀이"
+    맞수는 쪽 $k + 1$개의 모임을 지닌다. 걸음마다 온라인 알고리즘의 두름에 없는 쪽을 요청한다(맞수는 두름 상태를 좇을 수 있다). 온라인 알고리즘은 걸음마다 어긋난다. 두름 크기가 $k$인 OPT은 다음에 요청될 쪽만 빼고 다 담을 수 있어 $k$걸음마다 많아야 한 번 어긋난다(벨레이디 셈속). 요청 $n$번 동안 온라인은 $n$번, OPT은 $\leq n/k + 1$번 어긋난다. 비 $\geq k$이다.
+
+---
+
+**연습문제 4.**
+아무 쪽 넘기기의 표시 알고리즘과 그 겨룸 비를 밝혀라.
+
+??? success "연습문제 4 풀이"
+    표시 알고리즘: 담긴 쪽마다 비트 하나를 둔다(표시 있음/없음). 요청이 오면, 쪽이 담겨 있으면 표시한다(맞음). 담겨 있지 않으면(어긋남), 담긴 쪽이 모두 표시되어 있으면 모든 표시를 지운다. 표시 없는 쪽 가운데 고르게 아무 것이나 내보내고 새 쪽을 불러와 표시한다. 표시 알고리즘은 눈감은 맞수 앞에서 겨룸 비 $O(\log k)$을 이루며 이는 아무 쪽 넘기기에서 가장 좋은 값이다. $k$에서 $\log k$으로의 나아짐은 온라인 문제에서 아무렇게 하기의 힘을 보여 준다.

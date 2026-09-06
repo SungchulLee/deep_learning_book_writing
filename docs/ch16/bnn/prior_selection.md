@@ -1,132 +1,162 @@
-# Prior Selection for Bayesian Neural Networks
+# 베이즈 신경망의 앞확률 고르기
+## 들어가며
 
+앞확률 고르기는 베이즈 신경망에서 결정적인 설계 판단으로, 뒤확률 추론과 벌주기의 세기, 나아가 모형의 성능에 깊이 영향을 준다. 앞확률은 가중값 분포에 대한 분야 지식과 짜임의 가정을 담아, 벌주기 노릇과 전문가의 앎을 배움 과정에 넣는 얼개 노릇을 함께 한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+계량 금융에서는 분포의 국면이 여럿이고 꼬리가 두꺼우며 위험 제약을 배움 얼개에 넣어야 하므로 앞확률 고르기가 특히 중요해진다. 앞확률을 잘못 정하면 뒤확률 추론이 시장의 미시 짜임과 체계 위험을 제대로 담지 못하고, 잘 짠 앞확률은 분포 밖 시나리오에 대한 모형의 튼튼함을 크게 높이고 겪지 못한 시장 상황으로의 넓혀 나감을 좋게 한다.
 
-## Introduction
+이 절에서는 앞확률 고르기의 실전과 이론을 살펴본다. 곧 표준 고름, 자료에 달린 앞확률, 층 짜임, 그리고 자료에서 앞확률을 저절로 정하게 해 주는 경험 베이즈 방법을 다룬다.
 
-Prior selection is a critical design decision in Bayesian Neural Networks that profoundly influences posterior inference, regularization strength, and ultimately model performance. The prior encodes domain knowledge and structural assumptions about the weight distribution, serving simultaneously as regularization and as a mechanism for incorporating expert knowledge into the learning process.
+## 핵심 개념
 
-In quantitative finance, prior selection becomes particularly important given the presence of multiple distributional regimes, fat tails, and the need to incorporate risk constraints into the learning framework. Improper prior specification can lead to posterior inference that poorly captures market microstructure and systemic risks, while well-designed priors can substantially improve model robustness to out-of-distribution scenarios and enhance generalization to unseen market conditions.
+### 표준 앞확률 고름
+- **가우스 앞확률**: $w \sim \mathcal{N}(0, \sigma_w^2)$ - 실전에서 가장 흔하다
+- **라플라스 앞확률**: $w \sim \text{Laplace}(0, b)$ - 성김을 북돋운다
+- **편자 앞확률**: 성긴 가중값 고르기를 위한 꼬리 두꺼운 앞확률
+- **못과 판**: 드러난 성김을 위한 섞음 분포
 
-This section examines practical and theoretical aspects of prior selection, including standard choices, data-dependent priors, hierarchical structures, and empirical Bayes approaches that enable automatic prior specification from data.
+### 앞확률의 웃매개변수
+- **규모 매개변수**: $\sigma_w$이 벌주기의 세기를 정한다
+- **층위**: 맞춰 가는 벌주기를 위해 웃매개변수에 웃앞확률을 둔다
+- **상관 짜임**: 가중값 묶음 사이의 달림
 
-## Key Concepts
+## 수학적 틀
 
-### Standard Prior Choices
-- **Gaussian Priors**: $w \sim \mathcal{N}(0, \sigma_w^2)$ - most common in practice
-- **Laplace Priors**: $w \sim \text{Laplace}(0, b)$ - promotes sparsity
-- **Horseshoe Priors**: Heavy-tailed priors for sparse weight selection
-- **Spike-and-Slab**: Mixture distributions for explicit sparsity
+### 표준 가우스 앞확률
 
-### Prior Hyperparameters
-- **Scale Parameters**: $\sigma_w$ determines regularization strength
-- **Hierarchy**: Hyperpriors on hyperparameters for adaptive regularization
-- **Correlation Structure**: Dependencies between weight groups
-
-## Mathematical Framework
-
-### Standard Gaussian Prior
-
-The most commonly used prior is a factorized Gaussian:
+가장 흔히 쓰는 앞확률은 인수로 나눈 가우스이다:
 
 $$p(w) = \prod_{i=1}^{D} \mathcal{N}(w_i | 0, \sigma_w^2)$$
 
-This corresponds to L2 regularization (weight decay) in the maximum a posteriori (MAP) estimate:
+이는 최대 뒤확률(MAP) 어림에서 L2 벌주기(가중값 사그라뜨리기)에 맞대응된다:
 
 $$\mathcal{L}_{\text{regularized}} = \mathcal{L}(w) + \frac{\lambda}{2}\|w\|_2^2$$
 
-with $\lambda = 1/\sigma_w^2$.
+여기서 $\lambda = 1/\sigma_w^2$이다.
 
-### Hierarchical Priors
+### 층 앞확률
 
-For improved flexibility, hierarchical priors introduce level-specific hyperpriors:
+유연함을 높이려고 층 앞확률은 층마다 다른 웃앞확률을 들여온다:
 
 $$p(w|\tau) = \prod_{i=1}^{D} \mathcal{N}(w_i | 0, \tau_i)$$
 
 $$p(\tau) = \prod_{i=1}^{D} \text{Gamma}(\tau_i | a, b)$$
 
-This allows the posterior to automatically determine appropriate regularization strength for different parameters.
+이러면 뒤확률이 매개변수마다 알맞은 벌주기의 세기를 저절로 정하게 된다.
 
-### Weight-Decaying Priors for Financial Networks
+### 금융 망을 위한 가중값 사그라뜨리기 앞확률
 
-For neural networks applied to financial time series, a common choice is:
+금융 시계열에 쓰는 신경망에서 흔한 고름은 다음이다:
 
 $$w \sim \mathcal{N}(0, \sigma_w^2 \mathbf{I})$$
 
-where $\sigma_w$ is typically set based on layer width to maintain gradient flow:
+여기서 $\sigma_w$은 보통 기울기 흐름을 지키도록 층의 너비에 따라 정한다:
 
 $$\sigma_w^2 \approx \frac{2}{n_{\text{in}} + n_{\text{out}}}$$
 
-This initialization-based prior helps preserve gradient information through deep networks.
+첫값 잡기에 바탕을 둔 이 앞확률은 깊은 망을 지나는 동안 기울기 정보를 지키는 데 도움이 된다.
 
-## Prior Design Strategies
+## 앞확률 짜기 전략
 
-### Data-Dependent Priors
+### 자료에 달린 앞확률
 
-Empirical Bayes methods determine hyperprior parameters from marginal likelihood optimization:
+경험 베이즈 방법은 주변 가능도 최적화로 웃앞확률의 매개변수를 정한다:
 
 $$\hat{\sigma}_w = \arg\max_{\sigma_w} p(\mathcal{D}|\sigma_w) = \int p(\mathcal{D}|w)p(w|\sigma_w) dw$$
 
-This provides automatic prior tuning without manual hyperparameter selection.
+이러면 웃매개변수를 손수 고르지 않고도 앞확률이 저절로 맞춰진다.
 
-### Domain-Informed Priors
+### 분야 지식을 담은 앞확률
 
-In quantitative finance, domain knowledge can guide prior specification:
+계량 금융에서는 분야 지식이 앞확률 정하기를 이끌 수 있다:
 
-1. **Volatility Forecasting**: Prior on networks handling normalized returns should reflect stable dynamics
-2. **Portfolio Optimization**: Constraints on weight magnitudes encode risk limits
-3. **Market Microstructure**: Priors on high-frequency components enforce stability
+1. **변동성 미리보기**: 고르게 한 수익을 다루는 망의 앞확률은 안정된 움직임을 담아야 한다
+2. **포트폴리오 최적화**: 가중값 크기의 제약이 위험 한계를 담는다
+3. **시장 미시 짜임**: 높은 잦기 성분의 앞확률이 안정을 강제한다
 
-### Layer-Wise Prior Heterogeneity
+### 층마다 다른 앞확률
 
-Different layers may benefit from different priors:
+층마다 다른 앞확률이 도움이 될 수 있다:
 
 $$p(w^{(l)}) = \mathcal{N}(0, \sigma_l^2 \mathbf{I})$$
 
-where $\sigma_l^2$ is optimized per layer through empirical Bayes, allowing deeper layers to be more constrained than input layers.
+여기서 $\sigma_l^2$은 경험 베이즈로 층마다 최적화하여 깊은 층이 들임 층보다 더 옭아매지도록 한다.
 
-## Sparsity-Inducing Priors
+## 성김을 이끄는 앞확률
 
-### Laplace Prior
+### 라플라스 앞확률
 
-The Laplace distribution:
+라플라스 분포는 다음과 같다:
 
 $$p(w_i) = \frac{1}{2b}\exp\left(-\frac{|w_i|}{b}\right)$$
 
-induces sparsity through its sharp peak at zero, corresponding to L1 regularization.
+0에서의 날카로운 봉우리로 성김을 이끌며, 이는 L1 벌주기에 맞대응된다.
 
-### Horseshoe Prior
+### 편자 앞확률
 
-For selective sparsity with heavy tails:
+꼬리가 두꺼우면서 골라 성기게 하려면:
 
 $$p(w_i|\lambda_i) = \mathcal{N}(0, \lambda_i^2)$$
 
 $$p(\lambda_i) = \text{Exponential}(\nu)$$
 
-This allows small weights to remain zero while large weights retain full posterior uncertainty.
+이러면 작은 가중값은 0으로 남고 큰 가중값은 온전한 뒤확률 불확실함을 지킨다.
 
-## Empirical Bayes Approaches
+## 경험 베이즈 방법
 
-### Automatic Relevance Determination (ARD)
+### 저절로 관련성 정하기(ARD)
 
-ARD priors automatically determine the importance of different input features:
+ARD 앞확률은 들임 특징마다의 중요함을 저절로 정한다:
 
 $$p(w_j|\alpha_j) = \mathcal{N}(0, \alpha_j^{-1})$$
 
-Maximizing the marginal likelihood concentrates posterior mass on features with strong data support while suppressing irrelevant features.
+주변 가능도를 가장 크게 하면 자료가 강하게 뒷받침하는 특징에 뒤확률이 몰리고 상관없는 특징은 눌린다.
 
-## Practical Guidelines
+## 실무 지침
 
-For financial applications, we recommend:
+금융에 쓸 때는 다음을 권한다:
 
-1. **Start with Gaussian Priors**: $\mathcal{N}(0, 0.1^2)$ as default, justified by neural network initialization literature
-2. **Use Layer-Wise Hyperpriors**: Allow different layers separate precision parameters via empirical Bayes
-3. **Validate with Cross-Validation**: Test sensitivity to prior specification across train/test splits
-4. **Consider Domain Constraints**: Incorporate financial constraints (e.g., weight bounds) through modified priors
-5. **Monitor KL Divergence**: Ensure priors are informative but not overly restrictive
+1. **가우스 앞확률로 시작하기**: 기본값으로 $\mathcal{N}(0, 0.1^2)$을 쓴다. 신경망 첫값 잡기 문헌이 이를 뒷받침한다
+2. **층마다 웃앞확률 쓰기**: 경험 베이즈로 층마다 따로 정밀도 매개변수를 두게 한다
+3. **교차 확인으로 살피기**: 익힘과 시험으로 나눈 여러 쪼갬에서 앞확률 정하기에 대한 민감도를 시험한다
+4. **분야의 제약 살피기**: 앞확률을 고쳐 금융의 제약(이를테면 가중값의 경계)을 넣는다
+5. **KL 벌어짐 지켜보기**: 앞확률이 정보를 담되 지나치게 옭아매지 않도록 한다
 
-!!! warning "Prior Sensitivity"
-    Posterior inference can be sensitive to prior specification, particularly with limited data. Always conduct sensitivity analysis by varying prior scale parameters and comparing predictive performance across specifications.
+!!! warning "앞확률에 대한 민감도"
+    뒤확률 추론은 앞확률을 어떻게 정하느냐에 예민할 수 있으며, 특히 자료가 적을 때 그렇다. 앞확률의 규모 매개변수를 바꿔 가며 여러 설정의 미리봄 성능을 견주는 민감도 분석을 늘 하여라.
 
+## 연습문제
+
+**연습문제 1.**
+베이즈 신경망이 앎 불확실함을 어떻게 재는지 설명하여라. 이는 우연 불확실함과 어떻게 다른가?
+
+??? success "연습문제 1 풀이"
+    베이즈 신경망은 점 어림값 하나가 아니라 가중값에 대한 뒤확률 분포 $p(w | \mathcal{D})$을 지닌다. **앎 불확실함**(모형의 불확실함)은 자료가 모자라서 생기며 뒤확률의 퍼짐으로 담긴다. 곧 자료가 성긴 구역에서는 뒤확률이 넓어 다양한 미리봄이 나온다. **우연 불확실함**(자료의 잡음)은 자료에 본디 있으며 내임 분포 $p(y|x,w)$으로 담긴다. 앎 불확실함은 자료가 늘면 줄지만 우연 불확실함은 줄지 않는다. 베이즈 신경망은 미리봄 흩어짐으로 앎 불확실함을 잰다: $\text{Var}[y|x] = \underbrace{\mathbb{E}_w[\text{Var}[y|x,w]]}_{\text{aleatoric}} + \underbrace{\text{Var}_w[\mathbb{E}[y|x,w]]}_{\text{epistemic}}$.
+
+---
+
+**연습문제 2.**
+ELBO 목표에 대한, 되짚음으로 하는 베이즈의 기울기 어림꼴을 이끌어 내어라.
+
+??? success "연습문제 2 풀이"
+    ELBO은 $\mathcal{L}(\theta) = \mathbb{E}_{q_\theta(w)}[\log p(\mathcal{D}|w)] - D_{\text{KL}}(q_\theta(w) \| p(w))$이다. $w = \mu + \sigma \odot \epsilon$, $\epsilon \sim \mathcal{N}(0, I)$인 매개변수 바꾸기 재주를 쓰면:
+
+    $$\nabla_\theta \mathcal{L} = \nabla_\theta \left[ \log p(\mathcal{D}|w) + \log p(w) - \log q_\theta(w) \right]_{w = \mu + \sigma \odot \epsilon}$$
+
+    이는 $\epsilon$을 표집하고 정해진 바꿈을 거쳐 기울기를 셈해 어림한다. $q$과 $p$이 가우스이면 KL 항은 흔히 닫힌 꼴로 셈할 수 있다.
+
+---
+
+**연습문제 3.**
+베이즈 신경망에서 몬테카를로 떨구기와 드러난 변분 추론을 구현의 복잡함과 눈금 맞추기의 질로 견주어라.
+
+??? success "연습문제 3 풀이"
+    **몬테카를로 떨구기**는 시험할 때도 떨구기를 쓰고 앞먹임 $T$번의 평균을 낸다. 구현이 단순하지만(떨구기를 넣고 앞먹임을 여러 번 돌린다) 좁은 변분 집안(베르누이 곱 잡음)에 맞대응되어 눈금이 잘 맞지 않는 불확실함이 나오는 일이 잦다. **드러난 변분 추론**(이를테면 되짚음으로 하는 베이즈)은 매개변수를 곱절로 늘리고(가중값마다 $\mu$과 $\sigma$) 꼼꼼한 최적화가 필요하지만 더 풍성한 뒤확률 어림과 대체로 눈금이 더 잘 맞는 불확실함 어림값을 준다. 불확실함을 빠르게 어림하려면 몬테카를로 떨구기가, 눈금 맞추기가 중요하면 드러난 변분 추론이 낫다.
+
+---
+
+**연습문제 4.**
+베이즈 신경망에서 앞확률 $p(w)$을 고르는 일이 왜 중요하며, 표준 가우스 앞확률과 크기 섞음 앞확률 사이의 주고받음은 무엇인가?
+
+??? success "연습문제 4 풀이"
+    앞확률은 뒤확률에 벌을 주며 익힘의 움직임과 미리봄의 불확실함에 모두 영향을 준다. **표준 가우스** $\mathcal{N}(0, \sigma^2 I)$은 단순하고 L2 벌주기에 맞대응되지만 모든 가중값에 똑같이 벌을 주어 너무 옭아맬 수 있다. **크기 섞음** 앞확률(이를테면 $\pi \mathcal{N}(0, \sigma_1^2) + (1-\pi) \mathcal{N}(0, \sigma_2^2)$)은 어떤 가중값은 크게(신호) 두면서 다른 가중값은 0에 가깝게(잡음) 몰아 맞춰 가는 성김을 준다. 주고받음은 이렇다. 크기 섞음은 표현력이 더 좋지만 최적화가 더 어렵고 웃매개변수가 늘어난다.

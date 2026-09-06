@@ -1,14 +1,14 @@
-# AVL Sort
+# AVL 정렬
 
-Balanced binary search trees guarantee $O(\log n)$ time for insertion, deletion, and search. A natural idea is to use this property for sorting: insert all $n$ elements into a balanced BST, then read them out in sorted order via an in-order traversal. When the balanced BST is an **AVL tree**, this approach is called **AVL sort**. It achieves $O(n \log n)$ worst-case time, matching the theoretical lower bound for comparison-based sorting. Although AVL sort is rarely used as a standalone sorting algorithm in practice, it illustrates the deep connection between balanced search trees and optimal sorting.
+균형 이진 검색 트리는 넣기, 지우기, 찾기에 $O(\log n)$ 시간을 보장한다. 이 성질을 정렬에 쓰자는 것이 자연스러운 생각이다. 곧 원소 $n$개를 모두 균형 BST에 넣은 다음 중위 순회로 정렬된 차례대로 읽어 낸다. 균형 BST가 **AVL 트리**일 때 이 방법을 **AVL 정렬**이라 한다. 이는 최악의 경우 $O(n \log n)$ 시간을 이루어 비교 기반 정렬의 이론적 아래 한계와 맞먹는다. AVL 정렬은 실제로 홀로 쓰이는 정렬 알고리즘으로는 드물게 쓰이지만, 균형 검색 트리와 최적 정렬 사이의 깊은 이음을 잘 보여 준다.
 
-## Algorithm
+## 알고리즘
 
-AVL sort consists of two phases:
+AVL 정렬은 두 단계로 이루어진다.
 
-1. **Build phase.** Starting from an empty AVL tree, insert each of the $n$ input elements one at a time. Each insertion takes $O(\log n)$ time because the AVL tree maintains a height of $O(\log n)$ through rotations.
+1. **쌓기 단계.** 빈 AVL 트리에서 시작하여 입력 원소 $n$개를 하나씩 넣는다. AVL 트리는 회전으로 높이를 $O(\log n)$으로 지키므로 넣기마다 $O(\log n)$ 시간이 든다.
 
-2. **Extract phase.** Perform an in-order traversal of the AVL tree. Since an in-order traversal of a BST visits nodes in sorted order, the traversal produces the elements in non-decreasing order.
+2. **꺼내기 단계.** AVL 트리를 중위 순회한다. BST의 중위 순회는 마디를 정렬된 차례로 들르므로 이 순회는 원소를 감소하지 않는 차례로 낸다.
 
 ```
 AVL-Sort(A[1..n]):
@@ -18,70 +18,103 @@ AVL-Sort(A[1..n]):
     In-Order-Traversal(T)  // outputs elements in sorted order
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
-### Time Complexity
+### 시간 복잡도
 
-Each of the $n$ insertions into the AVL tree takes $O(\log n)$ time in the worst case. The in-order traversal visits each of the $n$ nodes exactly once, taking $\Theta(n)$ time. Therefore, the total time is
+AVL 트리에 넣는 $n$번 각각은 최악의 경우 $O(\log n)$ 시간이 든다. 중위 순회는 마디 $n$개를 꼭 한 번씩 들르므로 $\Theta(n)$ 시간이 든다. 그러므로 전체 시간은 다음과 같다.
 
 $$
-T(n) = \underbrace{n \cdot O(\log n)}_{\text{insertions}} + \underbrace{\Theta(n)}_{\text{traversal}} = O(n \log n)
+T(n) = \underbrace{n \cdot O(\log n)}_{\text{넣기}} + \underbrace{\Theta(n)}_{\text{순회}} = O(n \log n)
 $$
 
-This bound holds in all cases — best, average, and worst — because AVL trees guarantee $O(\log n)$ height regardless of insertion order. This is in contrast to sorting with an unbalanced BST, which degrades to $O(n^2)$ on sorted input.
+AVL 트리는 넣는 차례와 상관없이 높이 $O(\log n)$을 보장하므로 이 한계는 최선, 평균, 최악 모든 경우에 성립한다. 이는 정렬된 입력에서 $O(n^2)$으로 무너지는 균형 없는 BST 정렬과 대비된다.
 
-### Space Complexity
+### 공간 복잡도
 
-The AVL tree stores all $n$ elements plus $O(1)$ additional data per node (height and pointers), requiring $\Theta(n)$ total space. This makes AVL sort an **out-of-place** algorithm, unlike heapsort which sorts in $O(1)$ auxiliary space.
+AVL 트리는 원소 $n$개 모두와 마디마다 $O(1)$의 딸린 데이터(높이와 가리개)를 담으므로 전체로 $\Theta(n)$ 공간이 든다. 그래서 AVL 정렬은 $O(1)$의 도움 공간으로 정렬하는 힙 정렬과 달리 **제자리 아닌** 알고리즘이다.
 
-## Comparison with Unbalanced BST Sort
+## 균형 없는 BST 정렬과의 견줌
 
-Sorting by inserting into an **unbalanced** BST and then performing in-order traversal is sometimes called **tree sort**. The key difference is the worst-case guarantee:
+**균형 없는** BST에 넣은 다음 중위 순회로 정렬하는 것을 **트리 정렬**이라 부르기도 한다. 핵심 차이는 최악의 경우 보장이다.
 
-| Property | BST Sort (unbalanced) | AVL Sort |
+| 성질 | BST 정렬(균형 없음) | AVL 정렬 |
 |----------|----------------------|----------|
-| Best case | $O(n \log n)$ | $O(n \log n)$ |
-| Average case | $O(n \log n)$ | $O(n \log n)$ |
-| Worst case | $O(n^2)$ | $O(n \log n)$ |
-| Extra space | $\Theta(n)$ | $\Theta(n)$ |
-| Rotations needed | No | Yes |
+| 최선의 경우 | $O(n \log n)$ | $O(n \log n)$ |
+| 평균의 경우 | $O(n \log n)$ | $O(n \log n)$ |
+| 최악의 경우 | $O(n^2)$ | $O(n \log n)$ |
+| 여분 공간 | $\Theta(n)$ | $\Theta(n)$ |
+| 회전 필요 | 아니오 | 예 |
 
-The unbalanced BST degrades to $O(n^2)$ when the input is already sorted (or reverse sorted), because the tree becomes a linear chain of height $n$. The AVL tree avoids this by performing rotations to maintain balance after each insertion.
+균형 없는 BST는 입력이 이미 정렬되어 있으면(또는 거꾸로 정렬되어 있으면) 트리가 높이 $n$의 곧은 사슬이 되어 $O(n^2)$으로 무너진다. AVL 트리는 넣을 때마다 회전으로 균형을 지켜 이를 피한다.
 
-## Comparison with Other O(n log n) Sorts
+## 다른 O(n log n) 정렬과 견주기
 
-| Property | AVL Sort | Merge Sort | Heapsort | Quicksort |
+| 성질 | AVL 정렬 | 병합 정렬 | 힙 정렬 | 빠른 정렬 |
 |----------|----------|------------|----------|-----------|
-| Worst case | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n^2)$ |
-| Stable | No | Yes | No | No |
-| In-place | No | No | Yes | Yes (relaxed) |
-| Extra space | $\Theta(n)$ | $\Theta(n)$ | $O(1)$ | $O(\log n)$ |
-| Cache friendly | No | Yes | No | Yes |
+| 최악의 경우 | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n^2)$ |
+| 안정성 | 아니오 | 예 | 아니오 | 아니오 |
+| 제자리 | 아니오 | 아니오 | 예 | 예(느슨한 뜻으로) |
+| 여분 공간 | $\Theta(n)$ | $\Theta(n)$ | $O(1)$ | $O(\log n)$ |
+| 캐시 친화 | 아니오 | 예 | 아니오 | 예 |
 
-AVL sort uses $\Theta(n)$ extra space like merge sort, but merge sort has better cache locality due to sequential array access. Heapsort matches the $O(n \log n)$ worst case while using only $O(1)$ extra space. For these reasons, AVL sort is not competitive as a pure sorting algorithm.
+AVL 정렬은 병합 정렬처럼 $\Theta(n)$의 여분 공간을 쓰지만, 병합 정렬은 배열을 차례로 훑으므로 캐시 지역성이 더 좋다. 힙 정렬은 여분 공간을 $O(1)$만 쓰면서도 최악의 경우 $O(n \log n)$을 이룬다. 이런 까닭으로 AVL 정렬은 순수한 정렬 알고리즘으로는 겨룰 만하지 않다.
 
-## Why AVL Sort Matters
+## AVL 정렬이 중요한 까닭
 
-Despite its practical disadvantages, AVL sort is important for several reasons:
+실전에서 불리한데도 AVL 정렬이 중요한 데에는 몇 가지 까닭이 있다.
 
-1. **Conceptual bridge.** It connects two fundamental areas — balanced search trees and sorting — showing that $O(n \log n)$ sorting follows directly from $O(\log n)$ balanced insertion.
+1. **개념의 다리.** 균형 검색 트리와 정렬이라는 두 근본 영역을 이어, $O(\log n)$ 균형 넣기에서 $O(n \log n)$ 정렬이 곧바로 따라 나옴을 보여 준다.
 
-2. **Online sorting.** AVL sort supports **online** operation: elements can arrive one at a time, and at any point the current sorted order is available via in-order traversal. Merge sort and quicksort require all elements to be present before sorting begins.
+2. **온라인 정렬.** AVL 정렬은 **온라인** 굴림을 받쳐 준다. 곧 원소가 하나씩 도착할 수 있고 언제든 중위 순회로 지금까지의 정렬된 차례를 얻을 수 있다. 병합 정렬과 빠른 정렬은 정렬을 시작하기 전에 원소가 모두 있어야 한다.
 
-3. **Dynamic operations.** After sorting, the AVL tree supports additional insertions and deletions in $O(\log n)$ time while maintaining sorted order. Array-based sorts would require $O(n)$ time to insert into the sorted result.
+3. **움직이는 연산.** 정렬한 뒤에도 AVL 트리는 정렬된 차례를 지키면서 $O(\log n)$ 시간에 더 넣고 지울 수 있다. 배열 기반 정렬은 정렬된 결과에 하나 넣는 데 $O(n)$ 시간이 든다.
 
-4. **Foundation for augmented structures.** AVL trees can be augmented with order statistics (rank queries), interval data, or other metadata. The sorted order comes "for free" on top of these capabilities.
+4. **덧댄 구조의 바탕.** AVL 트리는 순서 통계(순위 물음), 구간 데이터, 그 밖의 메타데이터로 덧댈 수 있다. 정렬된 차례는 이런 힘 위에 "덤으로" 딸려 온다.
 
-!!! tip "When to Use AVL Sort"
-    Consider AVL sort when:
+!!! tip "AVL 정렬을 언제 쓸까"
+    다음일 때 AVL 정렬을 생각해 보라.
 
-    - Elements arrive incrementally and you need sorted order at any time (online setting).
-    - You need both sorted output and fast search/insert/delete afterwards.
-    - You want a guaranteed $O(n \log n)$ worst case without randomization.
+    - 원소가 조금씩 도착하고 언제든 정렬된 차례가 필요할 때(온라인 상황).
+    - 정렬된 출력과 그 뒤의 빠른 찾기·넣기·지우기가 둘 다 필요할 때.
+    - 무작위 없이 최악의 경우 $O(n \log n)$을 보장받고 싶을 때.
 
-    For batch sorting of a fixed array, prefer merge sort, heapsort, or quicksort.
+    고정된 배열을 한꺼번에 정렬하려면 병합 정렬, 힙 정렬, 빠른 정렬이 낫다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapters 12--13.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 12--13장.
 - Adelson-Velsky, G. M., & Landis, E. M. (1962). An algorithm for the organization of information. *Doklady Akademii Nauk SSSR*, 146(2), 263--266.
+
+
+## 연습문제
+
+**연습문제 1.**
+AVL 정렬을 정식으로 정의하고 비교 기반 정렬에서의 뜻을 설명하라.
+
+??? success "연습문제 1 풀이"
+    정식 정의는 정렬 알고리즘 설계를 옥죄는 이론적 바탕을 세운다. 이 바탕을 이해하면 알고리즘을 고르는 데 길잡이가 되고 $\Omega(n\log n)$ 벽이 언제 적용되는지 드러난다.
+
+---
+
+**연습문제 2.**
+배열 $[38, 27, 43, 3, 9, 82, 10]$으로 AVL 정렬을 보여라.
+
+??? success "연습문제 2 풀이"
+    그 개념을 주어진 배열에 적용하며 관련된 단계를 하나씩 보여라. 이 보기는 추상적인 정의를 손에 잡히게 하고 모서리 경우를 짚어야 한다.
+
+---
+
+**연습문제 3.**
+이 쪽에서 밝힌 주된 결과를 증명하라.
+
+??? success "연습문제 3 풀이"
+    설명한 증명 기법(결정 트리, 적수, 세기)을 쓰라. 주장을 밝히고 논증을 세운 뒤 빈틈없이 밀고 나가라. $\square$
+
+---
+
+**연습문제 4.**
+AVL 정렬을 `torch.sort`의 구현에 어떤 실마리를 주는가?
+
+??? success "연습문제 4 풀이"
+    파이토치의 정렬 연산은 이 쪽의 이론적 제약을 지켜야 한다. GPU 정렬에서는 병렬성 요구가 알고리즘 선택을 더 옥죈다. 이론적 한계를 이해하면 데이터의 크기와 종류에 맞는 알고리즘을 고르는 데 도움이 된다.

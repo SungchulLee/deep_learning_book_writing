@@ -1,135 +1,123 @@
-# Access Patterns
+# 접근 양상
 
-The best data structure for a problem depends not just on which operations
-are needed, but on how those operations are interleaved -- the **access
-pattern**. A workload that reads elements by index thousands of times
-between modifications demands a different structure than one that
-alternates between insertions and deletions at both ends. This page
-catalogs common access patterns and matches each one to the data structure
-that serves it most efficiently.
+어떤 문제에 가장 알맞은 자료구조는 어떤 연산이 필요한지뿐 아니라 그 연산들이 어떻게 엮여 나타나는지, 즉 **접근 양상**에 달려 있다. 수정 사이에 인덱스로 원소를 수천 번 읽는 작업은 양쪽 끝에서 삽입과 삭제를 번갈아 하는 작업과는 다른 구조를 요구한다. 이 페이지는 흔한 접근 양상을 정리하고 각각을 가장 효율적으로 뒷받침하는 자료구조와 짝지어 준다.
 
-## Sequential Access
+## 순차 접근
 
-**Pattern**: Elements are visited one after another, from beginning to end
-(or end to beginning).
+**양상**: 원소를 처음부터 끝까지(또는 끝에서 처음까지) 하나씩 차례로 방문한다.
 
-**Examples**: Summing all elements, printing a list, computing a running
-average, streaming data processing.
+**예**: 모든 원소 더하기, 리스트 출력하기, 이동 평균 계산하기, 스트리밍 데이터 처리.
 
-**Best structure**: Both arrays and linked lists support sequential access
-in $O(n)$, but arrays are significantly faster in practice due to cache
-locality (see [Cache Performance](cache.md)). Prefer arrays unless
-structural modifications occur during the traversal.
+**가장 알맞은 구조**: 배열과 연결 리스트 모두 $O(n)$에 순차 접근을 지원하지만, 캐시 지역성 덕분에 실제로는 배열이 훨씬 빠르다([캐시 성능](cache.md) 참고). 순회 도중에 구조를 바꾸는 일이 없다면 배열을 택하라.
 
-## Random Access
+## 임의 접근
 
-**Pattern**: Elements are accessed by index in unpredictable order.
+**양상**: 예측할 수 없는 순서로 인덱스를 통해 원소에 접근한다.
 
-**Examples**: Binary search, hash table probing, matrix operations,
-accessing elements by computed indices.
+**예**: 이진 탐색, 해시 테이블의 조사, 행렬 연산, 계산된 인덱스로 원소에 접근하기.
 
-**Best structure**: Arrays provide $O(1)$ access by index. Linked lists
-require $O(n)$ traversal to reach position $i$, making them unsuitable for
-random access workloads.
+**가장 알맞은 구조**: 배열은 인덱스로 $O(1)$ 접근을 제공한다. 연결 리스트는 위치 $i$에 닿으려면 $O(n)$의 순회가 필요하므로 임의 접근이 많은 작업에는 맞지 않는다.
 
-## Stack Pattern (LIFO)
+## 스택 양상 (후입선출)
 
-**Pattern**: Elements are only added and removed at one end.
+**양상**: 한쪽 끝에서만 원소를 넣고 뺀다.
 
-**Examples**: Function call stacks, undo operations, expression parsing,
-depth-first search.
+**예**: 함수 호출 스택, 실행 취소, 식 구문 분석, 깊이 우선 탐색.
 
-**Best structure**: Both arrays (using the end as the stack top) and singly
-linked lists (using the head as the stack top) provide $O(1)$ push and pop.
-Arrays are preferred for their cache behavior unless the maximum size is
-truly unpredictable.
+**가장 알맞은 구조**: (끝을 스택의 꼭대기로 쓰는) 배열과 (머리를 꼭대기로 쓰는) 단일 연결 리스트 모두 $O(1)$의 넣기와 빼기를 제공한다. 최대 크기를 정말로 예측할 수 없는 경우가 아니라면 캐시 거동 때문에 배열이 낫다.
 
-## Queue Pattern (FIFO)
+## 큐 양상 (선입선출)
 
-**Pattern**: Elements are added at one end and removed from the other.
+**양상**: 한쪽 끝에서 원소를 넣고 다른 쪽 끝에서 뺀다.
 
-**Examples**: Breadth-first search, task scheduling, print queues, message
-buffers.
+**예**: 너비 우선 탐색, 작업 스케줄링, 인쇄 대기열, 메시지 버퍼.
 
-**Best structure**: A circular array or a singly linked list with a tail
-pointer both provide $O(1)$ enqueue and dequeue. For fixed-capacity queues,
-a circular array is more cache-friendly. For unbounded queues, a linked
-list avoids the cost of resizing.
+**가장 알맞은 구조**: 원형 배열과 꼬리 포인터를 갖춘 단일 연결 리스트 모두 $O(1)$의 넣기와 빼기를 제공한다. 용량이 고정된 큐에는 원형 배열이 캐시에 더 친화적이다. 크기에 제한이 없는 큐에는 연결 리스트가 크기 조정 비용을 피하게 해 준다.
 
-## Deque Pattern (Double-Ended)
+## 덱 양상 (양쪽 끝)
 
-**Pattern**: Elements are added and removed at both ends.
+**양상**: 양쪽 끝에서 원소를 넣고 뺀다.
 
-**Examples**: Sliding window maximum, work-stealing schedulers, palindrome
-checking.
+**예**: 미끄럼창 최댓값, 일 훔치기 스케줄러, 회문 확인.
 
-**Best structure**: A circular array (deque) or a doubly linked list both
-provide $O(1)$ operations at both ends. Python's `collections.deque` uses
-a block-based design that combines array cache locality with $O(1)$
-double-ended operations.
+**가장 알맞은 구조**: 원형 배열(덱)과 이중 연결 리스트 모두 양쪽 끝에서 $O(1)$ 연산을 제공한다. 파이썬의 `collections.deque`은 배열의 캐시 지역성과 $O(1)$의 양쪽 끝 연산을 함께 얻는 블록 기반 설계를 쓴다.
 
-## Frequent Insertion and Deletion
+## 잦은 삽입과 삭제
 
-**Pattern**: Elements are frequently inserted or removed at arbitrary
-positions, with the position determined by traversal rather than index.
+**양상**: 임의의 위치에서 원소를 자주 넣고 빼며, 그 위치는 인덱스가 아니라 순회로 정해진다.
 
-**Examples**: Text editors (insert/delete at cursor), LRU caches (evict
-least recently used), maintaining sorted order by pointer rearrangement.
+**예**: 텍스트 편집기(커서 위치에서 삽입·삭제), LRU 캐시(가장 오래 쓰이지 않은 것 내보내기), 포인터를 다시 이어 정렬 순서 유지하기.
 
-**Best structure**: Linked lists provide $O(1)$ insertion and deletion
-once the position is found. Arrays require $O(n)$ element shifting for
-mid-sequence modifications.
+**가장 알맞은 구조**: 연결 리스트는 위치만 찾으면 $O(1)$의 삽입과 삭제를 제공한다. 배열은 열의 중간을 고치려면 원소를 미는 데 $O(n)$이 든다.
 
-## Sorted Order Maintenance
+## 정렬 순서 유지
 
-**Pattern**: Elements must remain in sorted order through a mix of
-insertions, deletions, and lookups.
+**양상**: 삽입, 삭제, 조회가 뒤섞인 가운데 원소들이 정렬된 순서를 유지해야 한다.
 
-**Examples**: Priority queues, ordered dictionaries, database indices.
+**예**: 우선순위 큐, 순서가 있는 사전, 데이터베이스 색인.
 
-**Best structure**: Neither plain arrays nor linked lists are ideal.
-Sorted arrays support $O(\log n)$ search (binary search) but $O(n)$
-insertion. Sorted linked lists support $O(1)$ insertion after finding the
-position but $O(n)$ search. For this pattern, balanced BSTs ($O(\log n)$
-for all operations) or skip lists are superior.
+**가장 알맞은 구조**: 평범한 배열도 연결 리스트도 이상적이지 않다. 정렬된 배열은 $O(\log n)$ 탐색(이진 탐색)을 지원하지만 삽입이 $O(n)$이다. 정렬된 연결 리스트는 위치를 찾은 뒤의 삽입이 $O(1)$이지만 탐색이 $O(n)$이다. 이 양상에는 (모든 연산이 $O(\log n)$인) 균형 이진 탐색 트리나 스킵 리스트가 낫다.
 
-## Pattern Summary Table
+## 양상 요약 표
 
-| Access pattern | Best array variant | Best linked variant | Winner |
+| 접근 양상 | 가장 알맞은 배열 변형 | 가장 알맞은 연결 변형 | 승자 |
 |---|---|---|---|
-| Sequential | Static/dynamic array | Any linked list | Array (cache) |
-| Random access | Static/dynamic array | -- | Array |
-| Stack (LIFO) | Dynamic array | Singly linked | Array (cache) |
-| Queue (FIFO) | Circular array | Singly + tail ptr | Depends |
-| Deque | Circular array | Doubly linked | Depends |
-| Frequent insert/delete | -- | Doubly linked | Linked list |
-| Sorted maintenance | -- | -- | BST / skip list |
+| 순차 | 정적/동적 배열 | 아무 연결 리스트 | 배열 (캐시) |
+| 임의 접근 | 정적/동적 배열 | -- | 배열 |
+| 스택 (후입선출) | 동적 배열 | 단일 연결 | 배열 (캐시) |
+| 큐 (선입선출) | 원형 배열 | 단일 연결 + 꼬리 포인터 | 경우에 따라 다름 |
+| 덱 | 원형 배열 | 이중 연결 | 경우에 따라 다름 |
+| 잦은 삽입·삭제 | -- | 이중 연결 | 연결 리스트 |
+| 정렬 순서 유지 | -- | -- | 이진 탐색 트리 / 스킵 리스트 |
 
-!!! tip "Decision heuristic"
-    Start with an array. Switch to a linked list only when the workload is
-    dominated by insertions and deletions at positions already located by
-    pointer, and random access is not needed. Switch to a tree or skip list
-    when sorted order must be maintained dynamically.
+!!! tip "고르는 요령"
+    배열로 시작하라. 포인터로 이미 찾아 둔 위치에서의 삽입과 삭제가 작업의 대부분이고 임의 접근이 필요 없을 때에만 연결 리스트로 옮겨라. 정렬 순서를 동적으로 유지해야 한다면 트리나 스킵 리스트로 옮겨라.
 
-## Hybrid Approaches
+## 혼합형 접근
 
-Many real-world systems combine arrays and linked lists to match complex
-access patterns:
+현실의 여러 시스템은 복잡한 접근 양상에 맞추려고 배열과 연결 리스트를 결합한다.
 
-- **Hash map with chaining**: An array of bucket heads, each pointing to a
-  linked list of colliding entries. The array provides $O(1)$ bucket
-  lookup; the linked list handles collisions.
-- **LRU cache**: A hash map (array-based) for $O(1)$ key lookup combined
-  with a doubly linked list for $O(1)$ eviction ordering.
-- **Unrolled linked list**: A linked list of small arrays, combining
-  sequential cache locality with linked-list flexibility.
-- **B-tree**: Each node is an array of keys, and nodes are linked by
-  child pointers, optimizing for disk and cache line access patterns.
+- **체이닝을 쓰는 해시 맵**: 버킷 머리들의 배열이며, 각 머리가 충돌한 항목들의 연결 리스트를 가리킨다. 배열이 $O(1)$ 버킷 조회를 제공하고 연결 리스트가 충돌을 처리한다.
+- **LRU 캐시**: $O(1)$ 키 조회를 위한 (배열 기반) 해시 맵과 $O(1)$ 내보내기 순서를 위한 이중 연결 리스트를 결합한다.
+- **펼친 연결 리스트**: 작은 배열들의 연결 리스트로, 순차적인 캐시 지역성과 연결 리스트의 유연성을 함께 얻는다.
+- **B-트리**: 각 노드가 키의 배열이고 노드들이 자식 포인터로 이어져 있어, 디스크와 캐시 라인의 접근 양상에 맞게 최적화된다.
 
-These hybrids demonstrate that arrays and linked lists are not always
-competing choices but often complementary building blocks.
+이런 혼합형들은 배열과 연결 리스트가 언제나 경쟁하는 선택지가 아니라 서로를 보완하는 구성 요소인 경우가 많음을 보여준다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C.
   *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+접근 양상에 대해 삽입, 삭제, 탐색, 접근 연산의 시간 복잡도를 진술하라.
+
+??? success "연습문제 1 풀이"
+    복잡도는 구체적인 구현(배열 기반이냐 연결 기반이냐)에 달려 있다. 배열 기반은 접근이 $O(1)$이고 임의의 위치에서의 삽입·삭제가 $O(n)$이다. 연결 기반은 이미 아는 위치에서의 삽입·삭제가 $O(1)$이고 탐색·접근이 $O(n)$이다. 어떤 연산이 주를 이루느냐에 따라 선택이 갈린다.
+
+---
+
+**연습문제 2.**
+원소 6개로 접근 양상을(를) 따라가며 각 연산 후의 자료구조 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    구조에 삽입, 접근, 삭제를 차례로 수행하라. 각 단계마다 (연결 구조라면) 포인터를, (배열 기반이라면) 배열의 내용을 보이며 구조가 불변식을 어떻게 유지하는지 나타내라.
+
+---
+
+**연습문제 3.**
+접근 양상이(가) PyTorch의 텐서 저장과 어떻게 관련되는지 설명하라. 자료구조의 선택이 메모리 배치와 캐시 성능에 어떤 영향을 주는가?
+
+??? success "연습문제 3 풀이"
+    PyTorch 텐서는 캐시에 효율적으로 접근할 수 있도록 연속된 배열로 저장된다. 연결 구조는 autograd 그래프를 훑는 데 내부적으로 쓰인다. 이 선택은 메모리 사용량(배열에는 포인터 부담이 없다)과 접근 양상(캐시 지역성 덕분에 순차적인 배열 접근이 연결 리스트 순회보다 10~100배 빠르다)에 모두 영향을 준다.
+
+---
+
+**연습문제 4.**
+반복문 불변식을 사용하여 접근 양상의 주요 연산의 시간 복잡도를 증명하라.
+
+??? success "연습문제 4 풀이"
+    알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$

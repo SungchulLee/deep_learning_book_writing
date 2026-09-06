@@ -1,102 +1,98 @@
-# Adversarial Attack Fundamentals
+# 맞겨루기 공격의 바탕
+맞겨루기 공격은 들임 자료에 꼼꼼히 빚은 흔들림을 넣어 기계 배움 모델을 주무른다. 사람은 알아채지 못할 때가 많은 이 흔들림이 모델로 하여금 아주 자신 있게 틀린 헤아림을 하게 만든다.
 
+## 맞겨루기 공격 들어가기
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+### 맞겨루기 보기란 무엇인가?
 
-Adversarial attacks manipulate machine learning models by introducing carefully crafted perturbations to input data. These perturbations, often imperceptible to humans, can cause models to make incorrect predictions with high confidence.
-
-## Introduction to Adversarial Attacks
-
-### What Are Adversarial Examples?
-
-Adversarial examples are inputs to machine learning models that have been intentionally designed to cause the model to make a mistake. In the context of image classification:
+맞겨루기 보기는 모델이 잘못하도록 일부러 빚은 기계 배움 모델의 들임이다. 그림 가르기에서는 다음과 같다.
 
 $$x_{adv} = x + \delta$$
 
-where:
-- $x$ is the original input
-- $\delta$ is a small perturbation
-- $x_{adv}$ is the adversarial example
+여기서 각 기호는 다음과 같다.
 
-The perturbation $\delta$ is constrained to be small (often measured by $L_p$ norms) so that $x_{adv}$ remains visually similar to $x$.
+- $x$은 본디 들임이다
+- $\delta$은 작은 흔들림이다
+- $x_{adv}$은 맞겨루기 보기이다
 
-### Why Do Adversarial Examples Exist?
+흔들림 $\delta$은 $x_{adv}$이 보기에 $x$과 비슷하도록 작게 묶는다(흔히 $L_p$ 잣대로 잰다).
 
-Several hypotheses explain the existence of adversarial examples:
+### 맞겨루기 보기는 왜 있는가?
 
-1. **Linear Hypothesis (Goodfellow et al., 2015)**: Deep networks are essentially linear in high-dimensional spaces. Small perturbations accumulate across dimensions.
+맞겨루기 보기가 있는 까닭을 설명하는 가설이 여럿 있다.
 
-2. **Non-Robust Features**: Models may rely on features that are predictive but not robust to perturbations.
+1. **선형 가설(Goodfellow 외, 2015)**: 깊은 신경망은 차원이 높은 공간에서 사실상 선형이다. 작은 흔들림이 차원을 가로질러 쌓인다.
 
-3. **Decision Boundary Geometry**: Complex, high-dimensional decision boundaries may have regions where small input changes cross the boundary.
+2. **튼튼하지 않은 특징**: 모델이 헤아리는 데는 쓸모 있으나 흔들림에 튼튼하지 않은 특징에 기댈 수 있다.
 
-## Threat Models
+3. **결정 가장자리의 기하**: 복잡하고 차원 높은 결정 가장자리에는 들임이 조금만 바뀌어도 가장자리를 넘는 자리가 있을 수 있다.
 
-### Attack Scenarios
+## 위협 모델
 
-| Scenario | Attacker Knowledge | Example |
+### 공격 상황
+
+| 상황 | 공격자가 아는 것 | 보기 |
 |----------|-------------------|---------|
-| **White-box** | Full model access (architecture, weights, gradients) | Gradient-based attacks |
-| **Black-box** | Query access only (inputs → outputs) | Transfer attacks, query attacks |
-| **Gray-box** | Partial knowledge (architecture but not weights) | Architecture-specific attacks |
+| **흰 상자** | 모델 전체 접근(얼개, 무게, 기울기) | 기울기에 바탕한 공격 |
+| **검은 상자** | 묻기만 가능(들임 → 내놓기) | 옮기기 공격, 묻기 공격 |
+| **회색 상자** | 일부만 앎(얼개는 알되 무게는 모름) | 얼개에 맞춘 공격 |
 
-### Attack Goals
+### 공격 목표
 
-1. **Untargeted Attacks**: Cause misclassification to any incorrect class
+1. **목표 없는 공격**: 어떤 틀린 갈래로든 잘못 가르게 한다
 
 $$\text{Find } \delta: f(x + \delta) \neq y_{true}$$
 
-2. **Targeted Attacks**: Cause misclassification to a specific target class
+2. **목표 있는 공격**: 정해진 목표 갈래로 잘못 가르게 한다
 
 $$\text{Find } \delta: f(x + \delta) = y_{target}$$
 
-## Perturbation Constraints
+## 흔들림의 묶음
 
-Perturbations are typically constrained by $L_p$ norms:
+흔들림은 흔히 $L_p$ 잣대로 묶는다.
 
-### L-infinity Norm (Maximum Perturbation)
+### L무한 잣대(최대 흔들림)
 
 $$\|\delta\|_\infty = \max_i |\delta_i| \leq \epsilon$$
 
-- Bounds the maximum change to any single pixel
-- Common constraint: $\epsilon = 8/255$ for images in $[0, 1]$
+- 화소 하나의 최대 바뀜을 가둔다
+- 흔한 묶음: $[0, 1]$ 안의 그림에서 $\epsilon = 8/255$
 
-### L2 Norm (Euclidean Distance)
+### L2 잣대(유클리드 거리)
 
 $$\|\delta\|_2 = \sqrt{\sum_i \delta_i^2} \leq \epsilon$$
 
-- Bounds the total magnitude of perturbation
-- Allows larger changes to individual pixels if others are small
+- 흔들림의 온 크기를 가둔다
+- 다른 화소가 작으면 낱낱의 화소는 더 크게 바뀔 수 있다
 
-### L0 Norm (Sparse Perturbations)
+### L0 잣대(성긴 흔들림)
 
 $$\|\delta\|_0 = |\{i : \delta_i \neq 0\}| \leq k$$
 
-- Bounds the number of modified pixels
-- Used for sparse adversarial patches
+- 고친 화소의 수를 가둔다
+- 성긴 맞겨루기 헝겊에 쓴다
 
-## Attack Types in GAN Context
+## 맞겨루기 만들개 맥락에서의 공격 갈래
 
-### Attacks on GANs
+### 맞겨루기 만들개에 대한 공격
 
-GANs face unique adversarial vulnerabilities:
+맞겨루기 만들개는 저만의 맞겨루기 약점을 지닌다.
 
-1. **Poisoning Attacks**: Inject malicious samples into training data
-2. **Evasion Attacks**: Craft inputs that fool the discriminator
-3. **Inference Attacks**: Extract information about training data
-4. **Model Extraction**: Steal the generator's learned distribution
+1. **독 넣기 공격**: 익히기 자료에 나쁜 표본을 넣는다
+2. **빠져나가기 공격**: 가름개를 속이는 들임을 빚는다
+3. **추론 공격**: 익히기 자료에 대한 앎을 뽑아낸다
+4. **모델 빼내기**: 만들개가 배운 분포를 훔친다
 
-### GAN-Generated Adversarial Examples
+### 맞겨루기 만들개가 만든 맞겨루기 보기
 
-GANs can be used to generate adversarial examples:
+맞겨루기 만들개로 맞겨루기 보기를 만들 수 있다.
 
 ```python
 import torch
 import torch.nn as nn
 
 class AdversarialGenerator(nn.Module):
-    """Generate adversarial perturbations using a GAN-like architecture."""
+    """맞겨루기 만들개 같은 얼개로 맞겨루기 흔들림을 만든다."""
     
     def __init__(self, input_channels=3, epsilon=0.1):
         super().__init__()
@@ -115,54 +111,54 @@ class AdversarialGenerator(nn.Module):
             nn.BatchNorm2d(64),
             nn.ReLU(),
             nn.ConvTranspose2d(64, input_channels, 4, 2, 1),
-            nn.Tanh()  # Output in [-1, 1], scale by epsilon
+            nn.Tanh()  # [-1, 1]으로 내놓고 엡실론으로 잣수를 맞춘다
         )
     
     def forward(self, x):
-        """Generate adversarial perturbation for input x."""
+        """들임 x의 맞겨루기 흔들림을 만든다."""
         features = self.encoder(x)
         perturbation = self.decoder(features)
         
-        # Scale perturbation to epsilon ball
+        # 흔들림을 엡실론 공에 맞춰 잣수 조정한다
         perturbation = self.epsilon * perturbation
         
-        # Create adversarial example
+        # 맞겨루기 보기를 만든다
         x_adv = torch.clamp(x + perturbation, 0, 1)
         
         return x_adv, perturbation
 ```
 
-## Attack Success Metrics
+## 공격 성공 잣대
 
-### Classification Metrics
+### 가르기 잣대
 
 ```python
 def evaluate_attack(model, x_clean, x_adv, y_true, y_target=None):
     """
-    Evaluate adversarial attack success.
+    맞겨루기 공격의 성공을 따진다.
     
-    Args:
-        model: Target classifier
-        x_clean: Clean images
-        x_adv: Adversarial images
-        y_true: True labels
+    인수:
+        model: 겨눌 가름개
+        x_clean: 깨끗한 그림
+        x_adv: 맞겨루기 그림
+        y_true: 참 레이블
         y_target: Target labels (for targeted attacks)
     
-    Returns:
-        Dictionary of attack metrics
+    반환값:
+        공격 잣대 사전
     """
     model.eval()
     
     with torch.no_grad():
-        # Clean accuracy
+        # 깨끗한 자료의 맞힘률
         pred_clean = model(x_clean).argmax(dim=1)
         clean_acc = (pred_clean == y_true).float().mean().item()
         
-        # Adversarial predictions
+        # 맞겨루기 헤아림
         pred_adv = model(x_adv).argmax(dim=1)
         adv_acc = (pred_adv == y_true).float().mean().item()
         
-        # Attack success rate (untargeted)
+        # 공격 성공 비율(목표 없음)
         fooling_rate = (pred_adv != y_true).float().mean().item()
         
         metrics = {
@@ -172,7 +168,7 @@ def evaluate_attack(model, x_clean, x_adv, y_true, y_target=None):
             'accuracy_drop': clean_acc - adv_acc,
         }
         
-        # Targeted attack success
+        # 목표 있는 공격의 성공
         if y_target is not None:
             target_success = (pred_adv == y_target).float().mean().item()
             metrics['target_success_rate'] = target_success
@@ -180,23 +176,23 @@ def evaluate_attack(model, x_clean, x_adv, y_true, y_target=None):
     return metrics
 ```
 
-### Perturbation Metrics
+### 흔들림 잣대
 
 ```python
 def perturbation_metrics(x_clean, x_adv):
     """
-    Compute perturbation statistics.
+    흔들림 통계를 셈한다.
     
-    Args:
+    인수:
         x_clean: Clean images (batch)
         x_adv: Adversarial images (batch)
     
-    Returns:
-        Dictionary of perturbation metrics
+    반환값:
+        흔들림 잣대 사전
     """
     delta = x_adv - x_clean
     
-    # Per-sample norms
+    # 표본마다 잣대
     l_inf = delta.abs().view(delta.size(0), -1).max(dim=1)[0]
     l_2 = delta.view(delta.size(0), -1).norm(p=2, dim=1)
     l_0 = (delta.abs() > 1e-6).view(delta.size(0), -1).sum(dim=1).float()
@@ -211,7 +207,7 @@ def perturbation_metrics(x_clean, x_adv):
     }
 ```
 
-## Visualization
+## 시각화
 
 ```python
 import numpy as np
@@ -220,36 +216,36 @@ import matplotlib.pyplot as plt
 def visualize_adversarial_example(x_clean, x_adv, y_true, y_pred_clean, y_pred_adv,
                                    class_names=None, amplify=10):
     """
-    Visualize clean image, perturbation, and adversarial image.
+    깨끗한 그림, 흔들림, 맞겨루기 그림을 그려 본다.
     
-    Args:
+    인수:
         x_clean: Clean image tensor (C, H, W)
         x_adv: Adversarial image tensor (C, H, W)
-        y_true: True label
-        y_pred_clean: Prediction on clean image
-        y_pred_adv: Prediction on adversarial image
-        class_names: Optional list of class names
-        amplify: Factor to amplify perturbation for visibility
+        y_true: 참 이름표
+        y_pred_clean: 깨끗한 그림의 헤아림
+        y_pred_adv: 맞겨루기 그림의 헤아림
+        class_names: 갈래 이름 목록(있으면)
+        amplify: 눈에 띄게 흔들림을 키우는 갑절
     """
-    # Compute perturbation
+    # 흔들림을 셈한다
     delta = x_adv - x_clean
     
-    # Convert to displayable format
+    # 보여 줄 수 있는 꼴로 바꾸기
     clean_img = x_clean.cpu().numpy().transpose(1, 2, 0)
     adv_img = x_adv.cpu().numpy().transpose(1, 2, 0)
     
-    # Amplify perturbation for visibility
+    # 눈에 띄게 흔들림을 키운다
     pert_img = delta.cpu().numpy().transpose(1, 2, 0)
-    pert_display = 0.5 + amplify * pert_img  # Center at 0.5
+    pert_display = 0.5 + amplify * pert_img  # 0.5을 가운데로
     pert_display = np.clip(pert_display, 0, 1)
     
-    # Handle grayscale
+    # 회색을 다룬다
     if clean_img.shape[-1] == 1:
         clean_img = clean_img.squeeze(-1)
         adv_img = adv_img.squeeze(-1)
         pert_display = pert_display.squeeze(-1)
     
-    # Get class names
+    # 갈래 이름 얻기
     if class_names is None:
         true_name = str(y_true)
         clean_name = str(y_pred_clean)
@@ -259,7 +255,7 @@ def visualize_adversarial_example(x_clean, x_adv, y_true, y_pred_clean, y_pred_a
         clean_name = class_names[y_pred_clean]
         adv_name = class_names[y_pred_adv]
     
-    # Plot
+    # 그림
     fig, axes = plt.subplots(1, 3, figsize=(12, 4))
     
     cmap = 'gray' if clean_img.ndim == 2 else None
@@ -282,11 +278,11 @@ def visualize_adversarial_example(x_clean, x_adv, y_true, y_pred_clean, y_pred_a
     plt.show()
 ```
 
-## Common Neural Network for Testing
+## 시험에 쓰는 흔한 신경망
 
 ```python
 class SimpleCNN(nn.Module):
-    """Simple CNN for MNIST classification, used as attack target."""
+    """공격 표적으로 쓰는 MNIST 가르기용 단순한 겹말기 신경망."""
     
     def __init__(self):
         super().__init__()
@@ -313,7 +309,7 @@ class SimpleCNN(nn.Module):
 
 
 def train_target_model(model, train_loader, epochs=5, lr=0.001, device='cpu'):
-    """Train the target model for adversarial attack experiments."""
+    """맞겨루기 공격 실험을 위해 표적 모델을 익힌다."""
     model.to(device)
     model.train()
     
@@ -346,62 +342,63 @@ def train_target_model(model, train_loader, epochs=5, lr=0.001, device='cpu'):
     return model
 ```
 
-## Summary
+## 요약
 
-| Concept | Description |
+| 개념 | 설명 |
 |---------|-------------|
-| **Adversarial Example** | Input with small perturbation causing misclassification |
-| **White-box Attack** | Full model access, can compute gradients |
-| **Black-box Attack** | Query-only access |
-| **Untargeted Attack** | Cause any misclassification |
-| **Targeted Attack** | Cause specific misclassification |
-| **$L_\infty$ Constraint** | Bound maximum pixel change |
-| **$L_2$ Constraint** | Bound total perturbation magnitude |
-| **Fooling Rate** | Fraction of successful attacks |
+| **맞겨루기 보기** | 작은 흔들림으로 잘못 가르게 하는 들임 |
+| **흰 상자 공격** | 모델 전체에 접근하며 기울기를 셈할 수 있다 |
+| **검은 상자 공격** | 묻기만 가능하다 |
+| **목표 없는 공격** | 아무 잘못 가르기나 일으킨다 |
+| **목표 있는 공격** | 정해진 잘못 가르기를 일으킨다 |
+| **$L_\infty$ 묶음** | 최대 화소 바뀜을 가둔다 |
+| **$L_2$ 묶음** | 온 흔들림 크기를 가둔다 |
+| **속임 비율** | 이룬 공격의 몫 |
 
-Understanding these fundamentals is essential for both attacking and defending neural networks, including GANs where the discriminator can be targeted by adversarial examples.
+이 바탕을 아는 것은 신경망을 공격하고 지키는 데 모두 꼭 필요하며, 가름개가 맞겨루기 보기의 표적이 될 수 있는 맞겨루기 만들개에서도 그렇다.
 
 ---
 
-# Fast Gradient Sign Method (FGSM)
+# 빠른 기울기 부호 방법(FGSM)
 
-The Fast Gradient Sign Method (FGSM), introduced by Goodfellow et al. in 2015, is a simple yet effective white-box adversarial attack that uses the gradient of the loss with respect to the input.
+Goodfellow 외가 2015년에 내놓은 빠른 기울기 부호 방법(FGSM)은 들임에 대한 손실의 기울기를 쓰는 단순하면서도 잘 듣는 흰 상자 맞겨루기 공격이다.
 
-## Mathematical Foundation
+## 수학적 바탕
 
-### The FGSM Attack
+### FGSM 공격
 
-FGSM creates adversarial examples by taking a single step in the direction of the gradient:
+FGSM은 기울기 방향으로 한 걸음을 내디뎌 맞겨루기 보기를 만든다.
 
 $$x_{adv} = x + \epsilon \cdot \text{sign}(\nabla_x \mathcal{L}(\theta, x, y))$$
 
-where:
-- $x$ is the original input
-- $\epsilon$ is the perturbation magnitude (attack strength)
-- $\nabla_x \mathcal{L}$ is the gradient of the loss with respect to the input
-- $\text{sign}(\cdot)$ takes the sign of each gradient component
+여기서 각 기호는 다음과 같다.
 
-### Why Sign?
+- $x$은 본디 들임이다
+- $\epsilon$은 흔들림의 크기(공격 세기)이다
+- $\nabla_x \mathcal{L}$은 들임에 대한 손실의 기울기이다
+- $\text{sign}(\cdot)$은 기울기 성분마다 부호를 취한다
 
-Using the sign function ensures the perturbation satisfies the $L_\infty$ constraint:
+### 왜 부호인가?
+
+부호 함수를 쓰면 흔들림이 $L_\infty$ 묶음을 채우게 된다.
 
 $$\|\delta\|_\infty = \epsilon$$
 
-Each pixel is perturbed by exactly $\pm\epsilon$, maximizing the perturbation within the constraint.
+화소마다 꼭 $\pm\epsilon$만큼 흔들려 묶음 안에서 흔들림을 가장 크게 한다.
 
-### Linear Approximation Interpretation
+### 선형 어림 풀이
 
-FGSM is based on a first-order Taylor expansion of the loss:
+FGSM은 손실의 일차 테일러 펼침에 바탕한다.
 
 $$\mathcal{L}(x + \delta) \approx \mathcal{L}(x) + \delta^T \nabla_x \mathcal{L}(x)$$
 
-To maximize the loss increase under $\|\delta\|_\infty \leq \epsilon$:
+$\|\delta\|_\infty \leq \epsilon$ 아래서 손실 늘어남을 가장 크게 하려면:
 
 $$\delta^* = \arg\max_{\|\delta\|_\infty \leq \epsilon} \delta^T \nabla_x \mathcal{L}(x) = \epsilon \cdot \text{sign}(\nabla_x \mathcal{L}(x))$$
 
-## Implementation
+## 구현
 
-### Basic FGSM Attack
+### 기본 FGSM 공격
 
 ```python
 import torch
@@ -409,58 +406,58 @@ import torch.nn as nn
 
 def fgsm_attack(model, images, labels, epsilon, criterion=None):
     """
-    Perform FGSM attack on a batch of images.
+    그림 묶음에 FGSM 공격을 한다.
     
-    Args:
-        model: Target classifier
+    인수:
+        model: 겨눌 가름개
         images: Input images (requires_grad should be True)
-        labels: True labels
-        epsilon: Perturbation magnitude
+        labels: 참 이름표
+        epsilon: 흔들림의 크기
         criterion: Loss function (default: CrossEntropyLoss)
     
-    Returns:
-        adversarial_images: Perturbed images
-        perturbation: The applied perturbation
+    반환값:
+        adversarial_images: 흔들린 그림
+        perturbation: 쓴 흔들림
     """
     if criterion is None:
         criterion = nn.CrossEntropyLoss()
     
-    # Ensure images require gradients
+    # 그림이 기울기를 요구하게 한다
     images = images.clone().detach().requires_grad_(True)
     
-    # Forward pass
+    # 순전파
     outputs = model(images)
     loss = criterion(outputs, labels)
     
-    # Backward pass to get gradients
+    # 기울기를 얻으려 뒤먹임한다
     model.zero_grad()
     loss.backward()
     
-    # Get gradient sign
+    # 기울기 부호를 얻는다
     grad_sign = images.grad.data.sign()
     
-    # Create perturbation
+    # 흔들림을 만든다
     perturbation = epsilon * grad_sign
     
-    # Create adversarial images
+    # 맞겨루기 그림을 만든다
     adversarial_images = images + perturbation
     
-    # Clamp to valid range [0, 1]
+    # 올바른 범위 [0, 1]으로 가둔다
     adversarial_images = torch.clamp(adversarial_images, 0, 1)
     
     return adversarial_images.detach(), perturbation.detach()
 
 
 class FGSMAttack:
-    """FGSM Attack wrapper class with additional functionality."""
+    """기능을 더한 FGSM 공격 감싸개 갈래."""
     
     def __init__(self, model, epsilon=0.1, criterion=None, device='cpu'):
         """
-        Args:
-            model: Target model to attack
-            epsilon: Perturbation bound
-            criterion: Loss function
-            device: Device to run attack on
+        인수:
+            model: 공격할 표적 모델
+            epsilon: 흔들림의 한계
+            criterion: 손실 함수
+            device: 공격을 돌릴 기기
         """
         self.model = model
         self.epsilon = epsilon
@@ -469,32 +466,32 @@ class FGSMAttack:
     
     def attack(self, images, labels):
         """
-        Generate adversarial examples.
+        맞겨루기 보기를 만든다.
         
-        Args:
-            images: Clean images
-            labels: True labels
+        인수:
+            images: 깨끗한 그림
+            labels: 참 이름표
         
-        Returns:
-            Adversarial images
+        반환값:
+            맞겨루기 그림
         """
         images = images.to(self.device)
         labels = labels.to(self.device)
         
         self.model.eval()
         
-        # Enable gradient computation for images
+        # 그림에 기울기 셈하기를 켠다
         images.requires_grad = True
         
-        # Forward pass
+        # 순전파
         outputs = self.model(images)
         loss = self.criterion(outputs, labels)
         
-        # Compute gradients
+        # 경사를 계산한다
         self.model.zero_grad()
         loss.backward()
         
-        # FGSM step
+        # FGSM 걸음
         grad_sign = images.grad.data.sign()
         perturbed_images = images + self.epsilon * grad_sign
         perturbed_images = torch.clamp(perturbed_images, 0, 1)
@@ -503,14 +500,14 @@ class FGSMAttack:
     
     def evaluate(self, dataloader, max_batches=None):
         """
-        Evaluate attack success on a dataset.
+        자료 묶음에서 공격의 성공을 따진다.
         
-        Args:
-            dataloader: Test dataloader
-            max_batches: Maximum batches to evaluate
+        인수:
+            dataloader: 시험 자료 불러개
+            max_batches: 따질 최대 묶음 수
         
-        Returns:
-            Dictionary with attack metrics
+        반환값:
+            공격 잣대를 담은 사전
         """
         self.model.eval()
         
@@ -524,16 +521,16 @@ class FGSMAttack:
             
             images, labels = images.to(self.device), labels.to(self.device)
             
-            # Clean predictions
+            # 깨끗한 자료의 헤아림
             with torch.no_grad():
                 clean_outputs = self.model(images)
                 clean_pred = clean_outputs.argmax(dim=1)
                 clean_correct += (clean_pred == labels).sum().item()
             
-            # Adversarial examples
+            # 맞겨루기 보기
             adv_images = self.attack(images, labels)
             
-            # Adversarial predictions
+            # 맞겨루기 헤아림
             with torch.no_grad():
                 adv_outputs = self.model(adv_images)
                 adv_pred = adv_outputs.argmax(dim=1)
@@ -549,17 +546,17 @@ class FGSMAttack:
         }
 ```
 
-### Untargeted FGSM
+### 목표 없는 FGSM
 
-The standard FGSM attack is untargeted—it simply maximizes the loss:
+여느 FGSM 공격은 목표가 없다. 곧 그저 손실을 가장 크게 한다.
 
 ```python
 def untargeted_fgsm(model, images, labels, epsilon):
     """
-    Untargeted FGSM: maximize loss to cause any misclassification.
+    목표 없는 FGSM: 아무 잘못 가르기나 일으키려 손실을 가장 크게 한다.
     
-    The perturbation moves in the direction that increases the loss,
-    pushing the prediction away from the true class.
+    흔들림은 손실이 늘어나는 방향으로 움직여
+    헤아림을 참 갈래에서 밀어낸다.
     """
     criterion = nn.CrossEntropyLoss()
     
@@ -571,7 +568,7 @@ def untargeted_fgsm(model, images, labels, epsilon):
     model.zero_grad()
     loss.backward()
     
-    # Move in direction of increasing loss (positive gradient direction)
+    # 손실이 늘어나는 방향으로 간다(양의 기울기 방향)
     perturbation = epsilon * images.grad.data.sign()
     
     adv_images = torch.clamp(images + perturbation, 0, 1)
@@ -579,16 +576,16 @@ def untargeted_fgsm(model, images, labels, epsilon):
     return adv_images.detach()
 ```
 
-### Targeted FGSM
+### 목표 있는 FGSM
 
-Targeted FGSM aims to cause misclassification to a specific target class:
+목표 있는 FGSM은 정해진 목표 갈래로 잘못 가르게 하려 한다.
 
 ```python
 def targeted_fgsm(model, images, target_labels, epsilon):
     """
-    Targeted FGSM: minimize loss for target class.
+    목표 있는 FGSM: 목표 갈래의 손실을 가장 작게 한다.
     
-    The perturbation moves in the direction that decreases the loss
+    흔들림은 손실이 줄어드는 방향으로 움직인다
     with respect to the target class, pulling predictions toward it.
     """
     criterion = nn.CrossEntropyLoss()
@@ -601,8 +598,8 @@ def targeted_fgsm(model, images, target_labels, epsilon):
     model.zero_grad()
     loss.backward()
     
-    # Move in direction of DECREASING loss (negative gradient direction)
-    # This pushes the prediction TOWARD the target class
+    # 손실이 줄어드는 방향으로 간다(음의 기울기 방향)
+    # 이는 헤아림을 목표 갈래 쪽으로 민다
     perturbation = -epsilon * images.grad.data.sign()
     
     adv_images = torch.clamp(images + perturbation, 0, 1)
@@ -612,17 +609,17 @@ def targeted_fgsm(model, images, target_labels, epsilon):
 
 def run_targeted_attack(model, dataloader, target_class, epsilon, device='cpu'):
     """
-    Run targeted FGSM attack to misclassify all images as target_class.
+    모든 그림을 target_class으로 잘못 가르게 하는 목표 있는 FGSM 공격을 돌린다.
     
-    Args:
-        model: Target classifier
-        dataloader: Test data
-        target_class: Class to misclassify images as
-        epsilon: Perturbation magnitude
-        device: Device to run on
+    인수:
+        model: 겨눌 가름개
+        dataloader: 시험 자료
+        target_class: 그림을 잘못 가를 갈래
+        epsilon: 흔들림의 크기
+        device: 돌릴 장치
     
-    Returns:
-        Attack results dictionary
+    반환값:
+        공격 결과 사전
     """
     model.eval()
     model.to(device)
@@ -634,17 +631,17 @@ def run_targeted_attack(model, dataloader, target_class, epsilon, device='cpu'):
         images, labels = images.to(device), labels.to(device)
         batch_size = images.size(0)
         
-        # Create target labels
+        # 목표 이름표를 만든다
         target_labels = torch.full((batch_size,), target_class, device=device)
         
-        # Skip images already classified as target
+        # 이미 목표로 갈린 그림은 건너뛴다
         with torch.no_grad():
             pred = model(images).argmax(dim=1)
             
-        # Generate adversarial examples
+        # 맞겨루기 보기를 만든다
         adv_images = targeted_fgsm(model, images, target_labels, epsilon)
         
-        # Check success
+        # 이루었는지 살핀다
         with torch.no_grad():
             adv_pred = model(adv_images).argmax(dim=1)
             success += (adv_pred == target_class).sum().item()
@@ -658,7 +655,7 @@ def run_targeted_attack(model, dataloader, target_class, epsilon, device='cpu'):
     }
 ```
 
-## Complete Example
+## 온전한 보기
 
 ```python
 import torch
@@ -669,7 +666,7 @@ from torchvision import transforms
 import matplotlib.pyplot as plt
 
 
-# Define a simple CNN
+# 단순한 겹말기 신경망을 뜻매김한다
 class SimpleCNN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -690,7 +687,7 @@ class SimpleCNN(nn.Module):
 
 
 def train_model(model, train_loader, epochs=5):
-    """Train the model."""
+    """모델을 익힌다."""
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     
@@ -708,18 +705,18 @@ def train_model(model, train_loader, epochs=5):
 
 
 def visualize_fgsm_attack(model, image, label, epsilons, class_names):
-    """Visualize FGSM attack at different epsilon values."""
+    """엡실론 값을 달리하여 FGSM 공격을 그려 본다."""
     
     fig, axes = plt.subplots(1, len(epsilons) + 1, figsize=(3 * (len(epsilons) + 1), 3))
     
-    # Original image
+    # 원래 이미지
     axes[0].imshow(image.squeeze().cpu(), cmap='gray')
     with torch.no_grad():
         pred = model(image.unsqueeze(0)).argmax().item()
     axes[0].set_title(f'Original\nPred: {class_names[pred]}')
     axes[0].axis('off')
     
-    # Adversarial images at different epsilons
+    # 엡실론을 달리한 맞겨루기 그림
     for i, eps in enumerate(epsilons):
         adv_image, _ = fgsm_attack(
             model, 
@@ -740,7 +737,7 @@ def visualize_fgsm_attack(model, image, label, epsilons, class_names):
 
 
 def main():
-    # Setup
+    # 준비
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
@@ -754,15 +751,15 @@ def main():
     train_loader = torch.utils.data.DataLoader(train_data, batch_size=64, shuffle=True)
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True)
     
-    # Train model
+    # 모델을 학습시킨다
     model = SimpleCNN()
     model = train_model(model, train_loader, epochs=5)
     model.eval()
     
-    # Create FGSM attacker
+    # FGSM 공격개를 만든다
     attacker = FGSMAttack(model, epsilon=0.1)
     
-    # Evaluate attack
+    # 공격을 따진다
     results = attacker.evaluate(test_loader, max_batches=100)
     
     print("\nFGSM Attack Results:")
@@ -770,7 +767,7 @@ def main():
     print(f"Adversarial Accuracy: {results['adversarial_accuracy']:.2%}")
     print(f"Attack Success Rate: {results['attack_success_rate']:.2%}")
     
-    # Visualize
+    # 시각화한다
     class_names = [str(i) for i in range(10)]
     image, label = next(iter(test_loader))
     epsilons = [0.05, 0.1, 0.15, 0.2, 0.3]
@@ -781,74 +778,74 @@ if __name__ == "__main__":
     main()
 ```
 
-## Epsilon Selection
+## 엡실론 고르기
 
-The choice of $\epsilon$ controls the trade-off between attack success and perturbation visibility:
+$\epsilon$을 어떻게 고르느냐가 공격 성공과 흔들림이 눈에 띄는 정도 사이의 맞바꿈을 다스린다.
 
-| Epsilon | Effect |
+| 엡실론 | 효과 |
 |---------|--------|
-| Small (0.01-0.05) | Subtle changes, lower success rate |
-| Medium (0.1-0.2) | Visible changes, high success rate |
-| Large (0.3+) | Very visible, nearly 100% success |
+| 작음(0.01-0.05) | 미묘한 바뀜, 낮은 성공 비율 |
+| 보통(0.1-0.2) | 눈에 띄는 바뀜, 높은 성공 비율 |
+| 큼(0.3 이상) | 아주 눈에 띔, 거의 100% 성공 |
 
-### Common Epsilon Values
+### 흔한 엡실론 값
 
-- **MNIST**: $\epsilon = 0.3$ (images in [0, 1])
+- **MNIST**: $\epsilon = 0.3$([0, 1] 안의 그림)
 - **CIFAR-10**: $\epsilon = 8/255 \approx 0.031$
-- **ImageNet**: $\epsilon = 4/255$ or \$8/255$
+- **ImageNet**: $\epsilon = 4/255$ 또는 \$8/255$
 
-## Limitations of FGSM
+## FGSM의 한계
 
-1. **Single Step**: FGSM uses only one gradient step; iterative methods (PGD) are stronger
-2. **Linear Approximation**: Assumes loss is approximately linear, which may not hold
-3. **Gradient Masking**: Models trained against FGSM may learn to hide gradients
-4. **Transferability**: FGSM examples may not transfer well to other models
+1. **한 걸음**: FGSM은 기울기 걸음을 한 번만 쓴다. 되풀이 방법(PGD)이 더 세다
+2. **선형 어림**: 손실이 거의 선형이라고 보는데 그렇지 않을 수 있다
+3. **기울기 가리기**: FGSM에 맞서 익힌 모델이 기울기를 숨기는 법을 배울 수 있다
+4. **옮겨감**: FGSM 보기가 다른 모델로 잘 옮겨 가지 않을 수 있다
 
-## Summary
+## 요약
 
-| Aspect | FGSM |
+| 갈래 | FGSM |
 |--------|------|
-| **Type** | White-box, gradient-based |
-| **Constraint** | $L_\infty$ |
-| **Steps** | Single |
-| **Complexity** | O(1) backward pass |
-| **Strength** | Fast, simple |
-| **Weakness** | Suboptimal perturbation |
+| **갈래** | 흰 상자, 기울기 바탕 |
+| **묶음** | $L_\infty$ |
+| **걸음** | 한 번 |
+| **복잡도** | 뒤먹임 O(1)번 |
+| **센 곳** | 빠르고 단순하다 |
+| **여린 곳** | 흔들림이 가장 좋지는 않다 |
 
-FGSM remains important as a baseline attack and for understanding adversarial robustness. Its simplicity makes it useful for quick evaluations and adversarial training.
+FGSM은 바탕 공격으로서, 그리고 맞겨루기 튼튼함을 이해하는 데 여전히 중요하다. 단순해서 빠른 따지기와 맞겨루기 익히기에 쓸모 있다.
 
 ---
 
-# Targeted Adversarial Attacks
+# 목표 있는 맞겨루기 공격
 
-Targeted adversarial attacks aim to cause misclassification to a specific target class rather than just any incorrect class. These attacks are more challenging but also more dangerous in real-world scenarios.
+목표 있는 맞겨루기 공격은 아무 틀린 갈래가 아니라 정해진 목표 갈래로 잘못 가르게 하려 한다. 이런 공격은 더 어렵지만 실제 상황에서는 더 위험하다.
 
-## Targeted vs Untargeted Attacks
+## 목표 있는 공격과 목표 없는 공격
 
-### Untargeted Attack
+### 목표 없는 공격
 
 $$\text{Find } \delta: f(x + \delta) \neq y_{true}$$
 
-Goal: Cause any misclassification.
+목표: 아무 잘못 가르기나 일으킨다.
 
-### Targeted Attack
+### 목표 있는 공격
 
 $$\text{Find } \delta: f(x + \delta) = y_{target}$$
 
-Goal: Cause misclassification to a specific target class.
+목표: 정해진 목표 갈래로 잘못 가르게 한다.
 
-### Practical Differences
+### 실제의 차이
 
-| Aspect | Untargeted | Targeted |
+| 갈래 | 목표 없음 | 목표 있음 |
 |--------|------------|----------|
-| Difficulty | Easier | Harder |
-| Control | Low | High |
-| Real-world danger | Moderate | High |
-| Example | Image not recognized | Face recognized as authorized user |
+| 어려움 | 더 쉽다 | 더 어렵다 |
+| 다스림 | 낮다 | 높다 |
+| 실제 세상의 위험 | 보통 | 높다 |
+| 보기 | 그림을 알아보지 못함 | 얼굴을 허락된 사용자로 알아봄 |
 
-## Targeted FGSM
+## 목표 있는 FGSM
 
-The simplest targeted attack modifies FGSM to minimize loss toward the target:
+가장 단순한 목표 있는 공격은 목표 쪽으로 손실을 가장 작게 하도록 FGSM을 고친 것이다.
 
 ```python
 import torch
@@ -856,67 +853,67 @@ import torch.nn as nn
 
 def targeted_fgsm(model, images, target_labels, epsilon):
     """
-    Targeted FGSM attack.
+    목표 있는 FGSM 공격.
     
     Instead of maximizing loss (pushing away from true class),
     we minimize loss (pulling toward target class).
     
-    Args:
-        model: Target classifier
-        images: Input images
-        target_labels: Desired target class
-        epsilon: Perturbation magnitude
+    인수:
+        model: 겨눌 가름개
+        images: 들임 그림
+        target_labels: 바라는 목표 갈래
+        epsilon: 흔들림의 크기
     
-    Returns:
-        Adversarial images
+    반환값:
+        맞겨루기 그림
     """
     criterion = nn.CrossEntropyLoss()
     
-    # Clone and enable gradients
+    # 베끼고 기울기를 켠다
     images = images.clone().detach().requires_grad_(True)
     
-    # Forward pass
+    # 순전파
     outputs = model(images)
     loss = criterion(outputs, target_labels)
     
-    # Backward pass
+    # 역전파
     model.zero_grad()
     loss.backward()
     
-    # Move in NEGATIVE gradient direction (minimize loss toward target)
+    # 음의 기울기 방향으로 간다(목표 쪽으로 손실을 가장 작게 한다)
     perturbation = -epsilon * images.grad.data.sign()
     
-    # Create adversarial examples
+    # 맞겨루기 보기를 만든다
     adv_images = torch.clamp(images + perturbation, 0, 1)
     
     return adv_images.detach()
 ```
 
-## Iterative Targeted Attacks
+## 되풀이 목표 있는 공격
 
-### Basic Iterative Method (BIM) - Targeted
+### 기본 되풀이 방법(BIM) - 목표 있음
 
 ```python
 def targeted_bim(model, images, target_labels, epsilon, alpha, num_iter):
     """
     Targeted Basic Iterative Method (Iterative FGSM).
     
-    Takes multiple small steps toward the target class.
+    목표 갈래 쪽으로 작은 걸음을 여러 번 내딛는다.
     
-    Args:
-        model: Target classifier
-        images: Input images
-        target_labels: Desired target class
+    인수:
+        model: 겨눌 가름개
+        images: 들임 그림
+        target_labels: 바라는 목표 갈래
         epsilon: Maximum total perturbation (L_inf bound)
-        alpha: Step size per iteration
-        num_iter: Number of iterations
+        alpha: 되풀이마다 걸음 크기
+        num_iter: 되풀이 횟수
     
-    Returns:
-        Adversarial images
+    반환값:
+        맞겨루기 그림
     """
     criterion = nn.CrossEntropyLoss()
     
-    # Start from original images
+    # 본디 그림에서 시작한다
     adv_images = images.clone().detach()
     
     for i in range(num_iter):
@@ -928,39 +925,39 @@ def targeted_bim(model, images, target_labels, epsilon, alpha, num_iter):
         model.zero_grad()
         loss.backward()
         
-        # Small step toward target
+        # 목표 쪽으로 작은 걸음
         adv_images = adv_images - alpha * adv_images.grad.sign()
         
-        # Project back to epsilon ball around original
+        # 본디 둘레의 엡실론 공으로 도로 쏜다
         perturbation = torch.clamp(adv_images - images, -epsilon, epsilon)
         adv_images = torch.clamp(images + perturbation, 0, 1).detach()
     
     return adv_images
 ```
 
-### Projected Gradient Descent (PGD) - Targeted
+### 쏜 기울기 내려가기(PGD) - 목표 있음
 
 ```python
 def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter, 
                  random_start=True):
     """
-    Targeted PGD attack with random initialization.
+    아무 첫자리매김을 갖춘 목표 있는 PGD 공격.
     
-    Args:
-        model: Target classifier
-        images: Input images
-        target_labels: Desired target class
+    인수:
+        model: 겨눌 가름개
+        images: 들임 그림
+        target_labels: 바라는 목표 갈래
         epsilon: Maximum perturbation (L_inf)
-        alpha: Step size
-        num_iter: Number of iterations
-        random_start: Whether to start from random point in epsilon ball
+        alpha: 걸음 크기
+        num_iter: 되풀이 횟수
+        random_start: 엡실론 공 안의 아무 점에서 시작할지 여부
     
-    Returns:
-        Adversarial images
+    반환값:
+        맞겨루기 그림
     """
     criterion = nn.CrossEntropyLoss()
     
-    # Random initialization within epsilon ball
+    # 엡실론 공 안의 아무 첫자리매김
     if random_start:
         adv_images = images + torch.empty_like(images).uniform_(-epsilon, epsilon)
         adv_images = torch.clamp(adv_images, 0, 1).detach()
@@ -976,10 +973,10 @@ def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter,
         model.zero_grad()
         loss.backward()
         
-        # Gradient descent (minimize loss toward target)
+        # 기울기 내려가기(목표 쪽으로 손실을 가장 작게 한다)
         adv_images = adv_images - alpha * adv_images.grad.sign()
         
-        # Project to epsilon ball
+        # 엡실론 공으로 쏜다
         perturbation = torch.clamp(adv_images - images, -epsilon, epsilon)
         adv_images = torch.clamp(images + perturbation, 0, 1).detach()
     
@@ -987,7 +984,7 @@ def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter,
 
 
 class TargetedPGDAttack:
-    """Targeted PGD attack wrapper."""
+    """목표 있는 PGD 공격 감싸개."""
     
     def __init__(self, model, epsilon=0.3, alpha=0.01, num_iter=40, 
                  random_start=True, device='cpu'):
@@ -999,7 +996,7 @@ class TargetedPGDAttack:
         self.device = device
     
     def attack(self, images, target_labels):
-        """Generate adversarial examples targeting specific class."""
+        """특정 갈래를 겨눈 맞겨루기 보기를 만든다."""
         images = images.to(self.device)
         target_labels = target_labels.to(self.device)
         
@@ -1012,15 +1009,15 @@ class TargetedPGDAttack:
     
     def evaluate(self, dataloader, target_class, max_samples=1000):
         """
-        Evaluate targeted attack success.
+        목표 있는 공격의 성공을 따진다.
         
-        Args:
-            dataloader: Test data
-            target_class: Class to target
-            max_samples: Maximum samples to evaluate
+        인수:
+            dataloader: 시험 자료
+            target_class: 겨눌 갈래
+            max_samples: 따질 최대 표본 수
         
-        Returns:
-            Attack metrics
+        반환값:
+            공격 잣대
         """
         self.model.eval()
         
@@ -1036,21 +1033,21 @@ class TargetedPGDAttack:
             labels = labels.to(self.device)
             batch_size = images.size(0)
             
-            # Create target labels
+            # 목표 이름표를 만든다
             targets = torch.full((batch_size,), target_class, 
                                 device=self.device, dtype=torch.long)
             
-            # Check original predictions
+            # 본디 헤아림을 살핀다
             with torch.no_grad():
                 original_pred = self.model(images).argmax(dim=1)
             
-            # Count images already classified as target
+            # 이미 목표로 갈린 그림을 센다
             already_target += (original_pred == target_class).sum().item()
             
-            # Generate adversarial examples
+            # 맞겨루기 보기를 만든다
             adv_images = self.attack(images, targets)
             
-            # Check adversarial predictions
+            # 맞겨루기 헤아림을 살핀다
             with torch.no_grad():
                 adv_pred = self.model(adv_images).argmax(dim=1)
             
@@ -1065,38 +1062,38 @@ class TargetedPGDAttack:
         }
 ```
 
-## Carlini & Wagner (C&W) Targeted Attack
+## 카를리니-와그너(C&W) 목표 있는 공격
 
-The C&W attack is one of the strongest targeted attacks, using optimization to find minimal perturbations:
+C&W 공격은 가장 센 목표 있는 공격 가운데 하나로, 가장 좋게 하기로 가장 작은 흔들림을 찾는다.
 
 ```python
 def cw_targeted_attack(model, images, target_labels, c=1.0, kappa=0, 
                         num_iter=1000, lr=0.01, device='cpu'):
     """
-    Carlini & Wagner L2 targeted attack.
+    카를리니-와그너 L2 목표 있는 공격.
     
     Minimizes: ||δ||_2 + c * max(Z(x+δ)_t - max_{j≠t} Z(x+δ)_j, -κ)
     
-    where Z is the logits, t is target class, κ is confidence margin.
+    여기서 Z은 로짓, t은 목표 갈래, κ은 자신도 여유이다.
     
-    Args:
-        model: Target classifier
-        images: Input images
-        target_labels: Target class
-        c: Confidence parameter
-        kappa: Confidence margin
-        num_iter: Optimization iterations
-        lr: Learning rate
-        device: Device
+    인수:
+        model: 겨눌 가름개
+        images: 들임 그림
+        target_labels: 목표 갈래
+        c: 자신도 매개변수
+        kappa: 자신도 여유
+        num_iter: 가장 좋게 하기 되풀이 횟수
+        lr: 학습률
+        device: 기기
     
-    Returns:
-        Adversarial images
+    반환값:
+        맞겨루기 그림
     """
     images = images.to(device)
     target_labels = target_labels.to(device)
     
-    # Initialize perturbation as tanh-scaled variable
-    # Using tanh ensures bounded output
+    # 흔들림을 tanh으로 잣수 맞춘 변수로 첫자리매김한다
+    # tanh을 쓰면 내놓기가 가둬진다
     w = torch.zeros_like(images, requires_grad=True, device=device)
     
     optimizer = torch.optim.Adam([w], lr=lr)
@@ -1105,35 +1102,35 @@ def cw_targeted_attack(model, images, target_labels, c=1.0, kappa=0,
     best_l2 = float('inf') * torch.ones(images.size(0), device=device)
     
     for step in range(num_iter):
-        # Transform w to valid image range using tanh
-        adv_images = 0.5 * (torch.tanh(w) + 1)  # Maps to [0, 1]
+        # tanh으로 w을 올바른 그림 범위로 바꾼다
+        adv_images = 0.5 * (torch.tanh(w) + 1)  # [0, 1]으로 옮긴다
         
-        # L2 distance
+        # L2 거리
         l2_dist = ((adv_images - images) ** 2).view(images.size(0), -1).sum(dim=1)
         
-        # Get logits
+        # 로짓을 얻는다
         logits = model(adv_images)
         
-        # C&W loss: maximize logit for target class
+        # C&W 손실: 목표 갈래의 로짓을 가장 크게 한다
         # f(x') = max(max{Z(x')_j : j ≠ t} - Z(x')_t, -κ)
         target_logits = logits.gather(1, target_labels.view(-1, 1)).squeeze()
         
-        # Max logit excluding target
+        # 목표를 뺀 최대 로짓
         other_logits = logits.clone()
         other_logits.scatter_(1, target_labels.view(-1, 1), -float('inf'))
         max_other_logits = other_logits.max(dim=1)[0]
         
-        # f function
+        # f 함수
         f_loss = torch.clamp(max_other_logits - target_logits + kappa, min=0)
         
-        # Total loss
+        # 전체 손실
         loss = l2_dist.sum() + c * f_loss.sum()
         
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
         
-        # Track best adversarial examples (successful with minimum L2)
+        # 가장 좋은 맞겨루기 보기를 좇는다(L2이 가장 작으면서 이룬 것)
         with torch.no_grad():
             pred = logits.argmax(dim=1)
             is_successful = pred == target_labels
@@ -1148,43 +1145,43 @@ def cw_targeted_attack(model, images, target_labels, c=1.0, kappa=0,
     return best_adv.detach()
 ```
 
-## Target Selection Strategies
+## 목표 고르기 방책
 
-### Random Target
+### 아무 목표
 
 ```python
 def random_target(true_labels, num_classes):
-    """Select random target different from true class."""
+    """참 갈래와 다른 아무 목표를 고른다."""
     targets = torch.randint(0, num_classes, true_labels.shape)
-    # Ensure target is different from true label
+    # 목표가 참 이름표와 다르게 한다
     same_mask = targets == true_labels
     targets[same_mask] = (targets[same_mask] + 1) % num_classes
     return targets
 ```
 
-### Least Likely Target
+### 가장 그럴듯하지 않은 목표
 
 ```python
 def least_likely_target(model, images):
-    """Select the class model is least confident about."""
+    """모델이 가장 자신 없어 하는 갈래를 고른다."""
     with torch.no_grad():
         logits = model(images)
         return logits.argmin(dim=1)
 ```
 
-### Most Confusing Target
+### 가장 헷갈리는 목표
 
 ```python
 def most_confusing_target(model, images, true_labels):
-    """Select the class model is second most confident about."""
+    """모델이 둘째로 자신 있어 하는 갈래를 고른다."""
     with torch.no_grad():
         logits = model(images)
-        # Set true class logit to -inf
+        # 참 갈래 로짓을 -inf으로 둔다
         logits.scatter_(1, true_labels.view(-1, 1), -float('inf'))
         return logits.argmax(dim=1)
 ```
 
-## Complete Example
+## 온전한 보기
 
 ```python
 import torch
@@ -1193,7 +1190,7 @@ import torchvision
 from torchvision import transforms
 import matplotlib.pyplot as plt
 
-# CNN Definition (same as before)
+# 겹말기 신경망 뜻매김(앞과 같다)
 class SimpleCNN(nn.Module):
     def __init__(self):
         super().__init__()
@@ -1215,25 +1212,25 @@ class SimpleCNN(nn.Module):
 
 def visualize_targeted_attack(model, image, true_label, target_label, 
                                attack_fn, attack_params, class_names):
-    """Visualize a targeted attack."""
+    """목표 있는 공격을 그려 본다."""
     
-    # Original prediction
+    # 본디 헤아림
     model.eval()
     with torch.no_grad():
         original_pred = model(image.unsqueeze(0)).argmax().item()
     
-    # Generate adversarial example
+    # 맞겨루기 보기를 만든다
     target_tensor = torch.tensor([target_label])
     adv_image = attack_fn(model, image.unsqueeze(0), target_tensor, **attack_params)
     
-    # Adversarial prediction
+    # 맞겨루기 헤아림
     with torch.no_grad():
         adv_pred = model(adv_image).argmax().item()
     
-    # Compute perturbation
+    # 흔들림을 셈한다
     perturbation = adv_image.squeeze(0) - image
     
-    # Visualize
+    # 시각화한다
     fig, axes = plt.subplots(1, 3, figsize=(12, 4))
     
     axes[0].imshow(image.squeeze().cpu(), cmap='gray')
@@ -1241,7 +1238,7 @@ def visualize_targeted_attack(model, image, true_label, target_label,
                       f'Pred: {class_names[original_pred]}')
     axes[0].axis('off')
     
-    # Amplify perturbation for visibility
+    # 눈에 띄게 흔들림을 키운다
     pert_display = 0.5 + 10 * perturbation.squeeze().cpu()
     axes[1].imshow(pert_display.clamp(0, 1), cmap='gray')
     axes[1].set_title(f'Perturbation (×10)\n'
@@ -1264,7 +1261,7 @@ def visualize_targeted_attack(model, image, true_label, target_label,
 
 
 def main():
-    # Load data and model
+    # 자료와 모델을 불러온다
     transform = transforms.Compose([
         transforms.ToTensor(),
     ])
@@ -1273,25 +1270,25 @@ def main():
                                            download=True, transform=transform)
     test_loader = torch.utils.data.DataLoader(test_data, batch_size=1, shuffle=True)
     
-    # Load pre-trained model (assume training code from previous section)
+    # 미리 익힌 모델을 불러온다(앞 마디의 익히기 코드를 쓴다고 본다)
     model = SimpleCNN()
     # model.load_state_dict(torch.load('mnist_cnn.pth'))
     model.eval()
     
     class_names = [str(i) for i in range(10)]
     
-    # Find a sample to attack
+    # 공격할 표본을 찾는다
     for image, label in test_loader:
-        if label.item() != 3:  # Find a non-3 image
+        if label.item() != 3:  # 3이 아닌 그림을 찾는다
             break
     
-    # Attack: try to make it classify as "3"
+    # 공격: "3"으로 갈리게 해 본다
     target_label = 3
     
     print("Testing Targeted Attacks:")
     print("="*50)
     
-    # Targeted FGSM
+    # 목표 있는 FGSM
     print("\n1. Targeted FGSM (ε=0.3):")
     success = visualize_targeted_attack(
         model, image.squeeze(0), label.item(), target_label,
@@ -1299,7 +1296,7 @@ def main():
     )
     print(f"   Success: {success}")
     
-    # Targeted PGD
+    # 목표 있는 PGD
     print("\n2. Targeted PGD (ε=0.3, 40 iterations):")
     success = visualize_targeted_attack(
         model, image.squeeze(0), label.item(), target_label,
@@ -1313,13 +1310,65 @@ if __name__ == "__main__":
     main()
 ```
 
-## Summary
+## 요약
 
-| Attack | Steps | Optimization | Best For |
+| 공격 | 걸음 | 가장 좋게 하기 | 알맞은 곳 |
 |--------|-------|--------------|----------|
-| Targeted FGSM | 1 | None | Quick attacks |
-| Targeted BIM | Multiple | None | Iterative refinement |
-| Targeted PGD | Multiple | Projected GD | Strong attacks |
-| C&W | Many | Adam | Minimal perturbations |
+| 목표 있는 FGSM | 1 | 없음 | 빠른 공격 |
+| 목표 있는 BIM | 여러 번 | 없음 | 되풀이 다듬기 |
+| 목표 있는 PGD | 여러 번 | 쏜 기울기 내려가기 | 센 공격 |
+| C&W | 많이 | Adam | 가장 작은 흔들림 |
 
-Targeted attacks are more challenging but enable precise control over model misbehavior. They're particularly dangerous in security-critical applications like facial recognition and autonomous systems.
+목표 있는 공격은 더 어렵지만 모델의 잘못된 움직임을 꼭 집어 다스릴 수 있게 한다. 얼굴 알아보기나 스스로 움직이는 얼개처럼 보안이 중요한 쓰임새에서 특히 위험하다.
+
+## 연습문제
+
+**연습문제 1.**
+과녁 적분이 끝이 있는데도 중요도 표집의 흩어짐이 왜 끝없을 수 있는지 설명하여라.
+
+??? success "연습문제 1 풀이"
+    중요도 표집 어림자의 흩어짐은 $\text{Var}_q[w(x) f(x)]$에 비례하며, 여기서 $w(x) = p(x)/q(x)$은 중요도 무게이다. $q(x)$의 꼬리가 $p(x) f(x)$보다 가벼우면, $q$은 확률을 거의 주지 않는데 $p$은 주는 구역에서 비 $p(x)/q(x)$이 한없이 커질 수 있다. 그러면 이따금 어림값을 좌우하는 몹시 큰 무게가 생겨, 적분 $\mathbb{E}_p[f(X)]$이 끝이 있는데도 흩어짐이 끝없어진다(또는 사실상 끝없어진다).
+
+---
+
+**연습문제 2.**
+중요도 무게 $w_1, \ldots, w_N$으로 나타낸 실효 표본 크기(ESS)의 공식을 이끌어 내어라.
+
+??? success "연습문제 2 풀이"
+    ESS은 무게 준 표본이 과녁 분포의 독립 표본 몇 개에 맞먹는지를 잰다:
+
+    $$\text{ESS} = \frac{\left(\sum_{i=1}^N w_i\right)^2}{\sum_{i=1}^N w_i^2}$$
+
+    무게가 모두 같으면($w_i = c$) ESS $= N$이다. 무게 하나가 좌우하면 ESS $\approx 1$이다. 이는 스스로 고르게 하는 중요도 표집 어림자의 흩어짐을 과녁에서 뽑은 독립 동일 분포 표본의 흩어짐에 견주어 뜯어보면 나온다.
+
+---
+
+**연습문제 3.**
+중요도 표집으로 $\mathbb{E}_p[f(X)]$을 어림할 때 가장 좋은 제안 분포가 $q^*(x) \propto |f(x)| p(x)$임을 보여라.
+
+??? success "연습문제 3 풀이"
+    중요도 표집 어림자의 흩어짐은 $\text{Var}_q\left[\frac{f(X)p(X)}{q(X)}\right] / N$이다. 제약 $\int q(x) dx = 1$ 아래 라그랑주 곱수로 이를 $q$에 대해 가장 작게 하면 $q^*(x) = |f(x)| p(x) / \int |f(x')| p(x') dx'$이 나온다. $f \geq 0$일 때 이것이 흩어짐 0인 제안이다(어림자가 표본 하나로 정확한 답을 되돌린다). 실전에서 $q^*$은 우리가 셈하려는 바로 그 적분을 필요로 하므로 쓸 수 없다.
+
+---
+
+**연습문제 4.**
+$X \sim \mathcal{N}(0,1)$일 때 $t$분포를 제안으로 써서 $\mathbb{E}[X^2]$의 단순한 중요도 표집 어림자를 구현하여라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    import numpy as np
+    from scipy import stats
+
+    def importance_sampling_x_squared(n_samples=10000, df=5):
+        target = stats.norm(0, 1)
+        proposal = stats.t(df=df)
+        x = proposal.rvs(n_samples)
+        weights = target.pdf(x) / proposal.pdf(x)
+        f_x = x ** 2
+        estimate = np.mean(weights * f_x)
+        return estimate  # 1.0에 가까워야 함
+
+    print(f"Estimate: {importance_sampling_x_squared():.4f}")
+    print(f"True value: 1.0000")
+    ```
+    $t$분포는 가우스보다 꼬리가 무거워 중요도 무게의 흩어짐이 끝이 있음을 보장한다.

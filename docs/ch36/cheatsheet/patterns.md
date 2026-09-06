@@ -126,3 +126,43 @@ When facing a new problem, ask these questions in order:
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Skiena, S. *The Algorithm Design Manual*. 3rd ed. Springer, 2020.
+
+## Exercises
+
+**Exercise 1.**
+Classify the following problem into an algorithmic pattern: "Given an array, find the longest subarray with sum at most $k$." Describe the pattern and the algorithm.
+
+??? success "Solution to Exercise 1"
+    This is a **sliding window** problem. The pattern: maintain a window $[l, r]$ and expand $r$ rightward, adding elements to a running sum. When the sum exceeds $k$, shrink from the left (increment $l$) until the sum is $\le k$ again. Track the maximum window length. Time: $O(n)$ -- each element is added and removed at most once. The sliding window pattern applies when: (1) the problem asks for a contiguous subarray/substring; (2) the constraint is monotone (expanding the window can only make it "worse," shrinking can only make it "better"); (3) both endpoints move in the same direction. $\square$
+
+---
+
+**Exercise 2.**
+The "two pointers" pattern solves problems on sorted arrays. Give two distinct problems it solves and explain the pointer movement logic.
+
+??? success "Solution to Exercise 2"
+    **Problem 1 -- Two Sum (sorted array)**: find indices $i, j$ with $a[i] + a[j] = k$. Start with $l = 0, r = n-1$. If $a[l] + a[r] < k$, increment $l$ (need larger sum). If $> k$, decrement $r$. If equal, return. Time: $O(n)$. **Problem 2 -- Remove duplicates in-place**: maintain a write pointer $w$ and a read pointer $r$. If $a[r] \ne a[w-1]$, copy $a[r]$ to $a[w]$ and increment both. Otherwise, increment only $r$. Time: $O(n)$. The two-pointer pattern applies when: (1) the array is sorted; (2) one pointer's movement depends on a condition involving both pointers; (3) both pointers traverse the array at most once, ensuring $O(n)$ time. $\square$
+
+---
+
+**Exercise 3.**
+When should you use "binary search on the answer" instead of directly computing the answer? Give a concrete example.
+
+??? success "Solution to Exercise 3"
+    Use binary search on the answer when: (1) the answer is a numerical value in a known range; (2) there is a monotone feasibility function -- if answer $x$ is feasible, then $x + 1$ is also feasible (or vice versa); (3) checking feasibility for a given $x$ is easier than finding the optimal $x$ directly. Example: "Allocate $n$ tasks to $k$ workers to minimize the maximum workload." Directly computing the optimal allocation is complex. But binary search on the answer $x$ (maximum workload) transforms the problem into: "Can we assign all tasks such that no worker's total exceeds $x$?" This feasibility check is a simple greedy algorithm. Binary search over $x \in [max(task), sum(tasks)]$ in $O(\log(\text{range}) \times n)$. $\square$
+
+---
+
+**Exercise 4.**
+Describe the "monotonic stack" pattern and give a problem it solves efficiently.
+
+??? success "Solution to Exercise 4"
+    A monotonic stack maintains elements in sorted order (increasing or decreasing) by popping elements that violate the invariant before pushing a new element. Problem: "For each element in an array, find the nearest smaller element to its left." Algorithm: maintain a stack of elements in increasing order. For each element $a[i]$: pop all elements $\ge a[i]$ from the stack. The stack's top is the nearest smaller element (or "none" if empty). Push $a[i]$. Time: $O(n)$ -- each element is pushed and popped at most once. The monotonic stack pattern applies to "next greater/smaller element" problems, histogram areas, stock span problems, and sliding window maximums (with a deque variant). $\square$
+
+---
+
+**Exercise 5.**
+Given the problem "find the number of connected components in an undirected graph," identify the pattern and two algorithms that solve it.
+
+??? success "Solution to Exercise 5"
+    Pattern: **graph traversal / connected components**. Algorithm 1: **BFS/DFS** -- iterate over all vertices. For each unvisited vertex, run BFS or DFS to visit all reachable vertices, marking them as visited. Increment the component count. Time: $O(V + E)$. Space: $O(V)$ for the visited array. Algorithm 2: **Union-Find (DSU)** -- initialize each vertex as its own component. For each edge $(u, v)$, union the components of $u$ and $v$. The number of components is $V - \text{(number of successful unions)}$. Time: $O(E \cdot \alpha(V)) \approx O(E)$. Union-Find is preferable when edges are processed incrementally (online), while BFS/DFS is simpler for static graphs. $\square$

@@ -1,106 +1,158 @@
-# Independent Set
+# 독립 모임
 
-An **independent set** in a graph is a set of vertices with no edges between them. Finding the largest independent set is NP-hard, and the problem is closely related to Clique and Vertex Cover through graph complementation. Understanding these relationships reveals how NP-completeness reductions form a web of equivalent problems.
+그래프의 **독립 모임**은 서로 사이에 변이 없는 꼭짓점의 모임이다. 가장 큰 독립 모임을 찾는 것은 NP 어려움이며, 이 문제는 그래프 여 연산으로 덩어리 및 꼭짓점 덮기와 가깝게 이어진다. 이 관계를 이해하면 NP 완전성 줄임이 어떻게 같은 뜻 문제의 그물을 이루는지 드러난다.
 
-## Problem Definition
+## 문제의 정의
 
-!!! tip "Definition: Independent Set"
-    Given an undirected graph $G = (V, E)$, an **independent set** is a subset $S \subseteq V$ such that no two vertices in $S$ are adjacent:
+!!! tip "뜻매김: 독립 모임"
+    방향 없는 그래프 $G = (V, E)$이 주어질 때 **독립 모임**은 $S$의 어떤 두 꼭짓점도 이웃하지 않는 부분 모임 $S \subseteq V$이다:
 
     $$
     \forall\, u, v \in S : (u, v) \notin E
     $$
 
-    The **Maximum Independent Set (MIS)** problem asks for the largest such $S$. The decision version asks: does $G$ have an independent set of size $\geq k$?
+    **최대 독립 모임(MIS)** 문제는 그런 가장 큰 $S$을 묻는다. 가름 판은 묻는다. $G$에 크기 $\geq k$인 독립 모임이 있는가?
 
-The **independence number** $\alpha(G)$ is the size of a maximum independent set.
+**독립 수** $\alpha(G)$은 최대 독립 모임의 크기이다.
 
-## Relationship to Clique and Vertex Cover
+## 덩어리 및 꼭짓점 덮기와의 관계
 
-Three problems are tightly connected through complementation:
+세 문제가 여 연산으로 빈틈없이 이어져 있다:
 
-**Complement graph.** The complement $\bar{G}$ has the same vertex set as $G$ but edge $(u,v) \in \bar{G}$ if and only if $(u,v) \notin G$.
+**여 그래프.** 여 그래프 $\bar{G}$은 $G$과 꼭짓점 모임이 같지만 $(u,v) \in \bar{G}$일 필요충분조건은 $(u,v) \notin G$인 것이다.
 
-!!! tip "Theorem: IS-Clique Equivalence"
-    $S$ is an independent set in $G$ if and only if $S$ is a clique in $\bar{G}$.
+!!! tip "정리: 독립 모임과 덩어리의 같음"
+    $S$이 $G$의 독립 모임일 필요충분조건은 $S$이 $\bar{G}$의 덩어리인 것이다.
 
-**Proof.** $S$ is independent in $G$ means no edge of $G$ connects vertices in $S$. In $\bar{G}$, all pairs in $S$ are edges, making $S$ a clique. $\square$
+**증명.** $S$이 $G$에서 독립이라는 것은 $G$의 어떤 변도 $S$의 꼭짓점을 잇지 않는다는 뜻이다. $\bar{G}$에서는 $S$의 모든 짝이 변이므로 $S$이 덩어리가 된다. $\square$
 
-!!! tip "Theorem: IS-Vertex Cover Complement"
-    $S$ is an independent set in $G$ if and only if $V \setminus S$ is a vertex cover in $G$.
+!!! tip "정리: 독립 모임과 꼭짓점 덮기의 여 관계"
+    $S$이 $G$의 독립 모임일 필요충분조건은 $V \setminus S$이 $G$의 꼭짓점 덮기인 것이다.
 
-**Proof.** If $S$ is independent, then for every edge $(u,v) \in E$, at least one of $u, v$ is not in $S$ --- so at least one is in $V \setminus S$. Hence $V \setminus S$ covers every edge. The converse is identical. $\square$
+**증명.** $S$이 독립이면 모든 변 $(u,v) \in E$에 대해 $u, v$ 가운데 적어도 하나가 $S$에 없으므로 적어도 하나가 $V \setminus S$에 있다. 따라서 $V \setminus S$이 모든 변을 덮는다. 거꾸로도 마찬가지이다. $\square$
 
-**Corollary:** $\alpha(G) + \tau(G) = |V|$, where $\tau(G)$ is the minimum vertex cover size.
+**따름 정리:** $\tau(G)$이 최소 꼭짓점 덮기의 크기일 때 $\alpha(G) + \tau(G) = |V|$이다.
 
-## NP-Completeness
+## NP 완전성
 
-!!! tip "Theorem"
-    Independent Set is NP-complete.
+!!! tip "정리"
+    독립 모임은 NP 완전이다.
 
-**Membership in NP.** The set $S$ is a certificate, verifiable in $O(|S|^2)$ time by checking no pair is an edge.
+**NP에 듦.** 모임 $S$이 증서이며 어떤 짝도 변이 아님을 살펴 $O(|S|^2)$ 시간에 확인할 수 있다.
 
-**NP-Hardness via Clique.** Since Independent Set in $G$ is equivalent to Clique in $\bar{G}$, and Clique is NP-complete (by reduction from 3-SAT), Independent Set is NP-hard.
+**덩어리를 거친 NP 어려움.** $G$의 독립 모임은 $\bar{G}$의 덩어리와 같고 덩어리는 (3-SAT에서 줄여) NP 완전이므로 독립 모임은 NP 어려움이다.
 
-### Direct Reduction from 3-SAT
+### 3-SAT에서 곧바로 줄이기
 
-For a direct proof, reduce from 3-SAT. Given formula $\phi$ with $m$ clauses, each with 3 literals:
+곧바로 밝히려면 3-SAT에서 줄인다. 절이 $m$개이고 절마다 리터럴이 3개인 식 $\phi$이 주어질 때:
 
-1. For each clause $C_j = (\ell_1 \lor \ell_2 \lor \ell_3)$, create 3 vertices (one per literal).
-2. **Clause edges:** Connect all 3 vertices within each clause (forming a triangle).
-3. **Conflict edges:** Connect $x_i$ in one clause to $\bar{x}_i$ in any other clause.
-4. Set $k = m$.
+1. 절 $C_j = (\ell_1 \lor \ell_2 \lor \ell_3)$마다 꼭짓점 3개를 만든다(리터럴마다 하나).
+2. **절 변:** 절 안의 꼭짓점 3개를 모두 잇는다(삼각형을 이룬다).
+3. **부딪힘 변:** 한 절의 $x_i$을 다른 절의 $\bar{x}_i$에 잇는다.
+4. $k = m$으로 둔다.
 
-**Correctness:**
+**옳음:**
 
-- ($\Rightarrow$) If $\phi$ is satisfiable, pick one true literal per clause. The $m$ chosen vertices form an independent set: clause edges prevent picking two from the same clause, conflict edges prevent picking a variable and its negation.
-- ($\Leftarrow$) An independent set of size $m$ must pick exactly one vertex per clause (triangle constraint). No conflicts means the assignment is consistent. $\square$
+- ($\Rightarrow$) $\phi$이 만족 가능하면 절마다 참인 리터럴을 하나씩 고른다. 고른 꼭짓점 $m$개가 독립 모임을 이룬다. 절 변이 같은 절에서 둘을 고르지 못하게 하고 부딪힘 변이 변수와 그 부정을 함께 고르지 못하게 한다.
+- ($\Leftarrow$) 크기 $m$인 독립 모임은 절마다 꼭짓점을 꼭 하나씩 골라야 한다(삼각형 제약). 부딪힘이 없다는 것은 매김이 어긋나지 않는다는 뜻이다. $\square$
 
-## Inapproximability
+## 어림할 수 없음
 
-Independent Set is one of the hardest problems to approximate:
+독립 모임은 어림하기 가장 어려운 문제 가운데 하나이다:
 
-!!! warning "Theorem (Zuckerman, 2007)"
-    For any $\epsilon > 0$, it is NP-hard to approximate MIS within a factor of $n^{1-\epsilon}$.
+!!! warning "정리(저커먼, 2007)"
+    어떤 $\epsilon > 0$에 대해서도 최대 독립 모임을 $n^{1-\epsilon}$ 배 안으로 어림하는 것은 NP 어려움이다.
 
-This means no polynomial-time algorithm can find an independent set whose size is within a factor of $n^{0.99}$ of optimal. Even distinguishing whether $\alpha(G) = 1$ or $\alpha(G) \geq n^{0.01}$ is hard.
+곧 어떤 다항 시간 알고리즘도 가장 좋은 값의 $n^{0.99}$ 배 안에 드는 크기의 독립 모임을 찾을 수 없다. $\alpha(G) = 1$인지 $\alpha(G) \geq n^{0.01}$인지 가리는 것조차 어렵다.
 
-## Special Graph Classes
+## 특별한 그래프 갈래
 
-| Graph Class | MIS Complexity | Notes |
+| 그래프 갈래 | 최대 독립 모임 복잡도 | 비고 |
 |-------------|---------------|-------|
-| Bipartite | P | Via Konig's theorem: $\alpha = n - \nu$ (matching number) |
-| Planar | NP-hard | But PTAS exists |
-| Trees | P | DP on the tree structure |
-| Interval | P | Greedy by right endpoints |
-| Perfect | P | $\alpha = \theta$ by definition, computable via SDP |
-| Chordal | P | Via perfect elimination ordering |
+| 두 쪽 | P | 쾨니히 정리로 $\alpha = n - \nu$(짝짓기 수) |
+| 평면 | NP 어려움 | 그러나 PTAS이 있다 |
+| 나무 | P | 나무 얼개 위의 짜 넣기 |
+| 구간 | P | 오른쪽 끝점 기준 욕심쟁이 |
+| 완벽 | P | 뜻매김으로 $\alpha = \theta$이며 반정부호 계획으로 셈할 수 있다 |
+| 현 | P | 완벽 없애기 차례로 |
 
-## Algorithms
+## 알고리즘
 
-### Exact Algorithms
+### 정확한 알고리즘
 
-| Algorithm | Time | Technique |
+| 알고리즘 | 시간 | 재주 |
 |-----------|------|-----------|
-| Brute force | $O(2^n \cdot n)$ | Try all subsets |
-| Bron-Kerbosch (for complement) | $O(3^{n/3})$ | Maximal clique enumeration |
-| Measure and conquer | $O(1.1996^n)$ | Branch on low-degree vertices |
+| 막무가내 | $O(2^n \cdot n)$ | 모든 부분 모임을 시험한다 |
+| 브론-케르보슈(여 그래프에) | $O(3^{n/3})$ | 최대 덩어리 늘어놓기 |
+| 재고 나누기 | $O(1.1996^n)$ | 차수 낮은 꼭짓점에서 가지 치기 |
 
-### Greedy Heuristic
+### 욕심쟁이 어림짐작
 
-Repeatedly add the vertex with minimum degree, then remove it and its neighbors. This gives no approximation guarantee in general but produces a maximal independent set.
+차수가 가장 작은 꼭짓점을 되풀이해 넣고 그것과 그 이웃을 지운다. 일반으로 어림 보장은 없지만 극대 독립 모임을 만든다.
 
-??? example "Example: Independent Set from 3-SAT"
-    **Formula:** $(x_1 \lor x_2 \lor x_3) \land (\bar{x}_1 \lor \bar{x}_2 \lor x_3) \land (x_1 \lor x_2 \lor \bar{x}_3)$.
+??? example "보기: 3-SAT에서 얻은 독립 모임"
+    **식:** $(x_1 \lor x_2 \lor x_3) \land (\bar{x}_1 \lor \bar{x}_2 \lor x_3) \land (x_1 \lor x_2 \lor \bar{x}_3)$.
 
-    **Graph construction:** 9 vertices (3 per clause), 3 clause triangles, and conflict edges connecting $x_1$-clause1 to $\bar{x}_1$-clause2, $x_2$-clause1 to $\bar{x}_2$-clause2, etc.
+    **그래프 세우기:** 꼭짓점 9개(절마다 3개), 절 삼각형 3개, 그리고 1번 절의 $x_1$과 2번 절의 $\bar{x}_1$, 1번 절의 $x_2$과 2번 절의 $\bar{x}_2$ 등을 잇는 부딪힘 변.
 
-    **Setting** $x_1 = T, x_2 = T, x_3 = T$: pick $x_1$ from clause 1, $x_3$ from clause 2, $x_1$ from clause 3. But $x_1$ appears twice --- pick $x_2$ from clause 3 instead.
+    **두기** $x_1 = T, x_2 = T, x_3 = T$: 1번 절에서 $x_1$, 2번 절에서 $x_3$, 3번 절에서 $x_1$을 고른다. 그런데 $x_1$이 두 번 나오므로 3번 절에서는 대신 $x_2$을 고른다.
 
-    **Independent set:** $\{x_1^{(1)}, x_3^{(2)}, x_2^{(3)}\}$, size 3 $= m$. No clause edges (different clauses), no conflict edges (no variable and its negation). Confirms satisfiability.
+    **독립 모임:** $\{x_1^{(1)}, x_3^{(2)}, x_2^{(3)}\}$으로 크기가 3 $= m$이다. 절 변이 없고(서로 다른 절이다) 부딪힘 변도 없다(변수와 그 부정이 함께 있지 않다). 만족 가능함을 확인해 준다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
 - Sipser, M. (2012). *Introduction to the Theory of Computation* (3rd ed.). Cengage Learning.
 - Garey, M. R., & Johnson, D. S. (1979). *Computers and Intractability*. W. H. Freeman.
+
+## 연습문제
+
+**연습문제 1.**
+덩어리에서 줄여 독립 모임이 NP 완전임을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    독립 모임은 NP에 든다. 모임 $S$과 그래프 $G$이 주어지면 $|S| \geq k$인지와 $S$의 두 꼭짓점을 잇는 변이 없는지를 $O(n^2)$ 시간에 살핀다.
+
+    NP 어려움은 덩어리에서 줄인다. $(G, k)$이 주어지면 여 그래프 $\bar{G}$을 써서 $(\bar{G}, k)$을 내놓는다. 모임 $S$이 $G$의 덩어리일 필요충분조건은 $S$이 $\bar{G}$에서 독립인 것이다($G[S]$의 모든 변이 $\bar{G}[S]$에서 변이 아니게 되고 그 반대도 마찬가지이다). 세우는 데 $O(n^2)$이 든다.
+
+    덩어리는 (SAT에서 줄여) NP 완전이고 독립 모임으로 줄여지므로 독립 모임은 NP 어려움이다. NP에 듦과 합치면 NP 완전이다.
+
+---
+
+**연습문제 2.**
+최대 짝짓기를 써서 두 쪽 그래프의 독립 모임을 다항 시간에 풀 수 있음을 보여라.
+
+??? success "연습문제 2 풀이"
+    쾨니히 정리에 따라 두 쪽 그래프에서 최대 짝짓기의 크기는 최소 꼭짓점 덮기의 크기와 같다. 여 관계에 따라 최대 독립 모임의 크기는 $n - (\text{minimum vertex cover}) = n - (\text{maximum matching})$이다.
+
+    알고리즘: (1) 홉크로프트-카프로 $O(\sqrt{n} \cdot m)$에 최대 짝짓기 $M$을 찾는다, (2) 쾨니히의 세워 보이는 밝힘(짝지어지지 않은 꼭짓점에서 시작하는 번갈아 길)으로 $M$에서 최소 꼭짓점 덮기를 셈한다, (3) 그 꼭짓점 덮기의 여집합이 최대 독립 모임이다.
+
+    온 시간: $O(\sqrt{n} \cdot m)$으로 다항이다. 이는 NP 완전 문제가 제한된 그래프 갈래에서는 쉬워질 수 있음을 보여 준다.
+
+---
+
+**연습문제 3.**
+돌이 그래프 $C_n$(꼭짓점 $n$개의 돌이)의 독립 수를 찾아라.
+
+??? success "연습문제 3 풀이"
+    돌이 $C_n$에서는 이웃한 두 꼭짓점이 함께 독립 모임에 들 수 없다. 최대 독립 모임은 꼭짓점을 하나 걸러 하나씩 고른다.
+
+    $n$이 짝수이면 번갈아 꼭 $n/2$개를 고를 수 있다. 독립 수 $= n/2$.
+
+    $n$이 홀수이면 번갈아 고르기가 돌이를 어긋남 없이 닫지 못한다. 많아야 $\lfloor n/2 \rfloor = (n-1)/2$개를 고를 수 있다. 독립 수 $= (n-1)/2$.
+
+    두 경우 모두 $\alpha(C_n) = \lfloor n/2 \rfloor$이다.
+
+---
+
+**연습문제 4.**
+독립 모임, 꼭짓점 덮기, 덩어리 사이의 관계를 밝혀라. 그 가운데 하나에 다항 시간 알고리즘이 있다면 나머지는 어떻게 풀겠는가?
+
+??? success "연습문제 4 풀이"
+    세 문제는 단순한 줄임으로 다항 시간에서 서로 같다:
+
+    - **독립 모임 $\leftrightarrow$ 꼭짓점 덮기:** $S$이 $G$의 독립 모임일 필요충분조건은 $V \setminus S$이 꼭짓점 덮기인 것이다. 따라서 크기 $k$인 최대 독립 모임이 있을 필요충분조건은 크기 $n - k$인 최소 꼭짓점 덮기가 있는 것이다.
+    - **독립 모임 $\leftrightarrow$ 덩어리:** $S$이 $G$에서 독립일 필요충분조건은 $S$이 $\bar{G}$의 덩어리인 것이다.
+    - **꼭짓점 덮기 $\leftrightarrow$ 덩어리:** 위를 합치면 $G$의 최소 꼭짓점 덮기가 $\bar{G}$의 최대 덩어리와 이어진다.
+
+    어느 하나에 다항 시간 알고리즘이 있으면, 독립 모임은 꼭짓점 덮기 알고리즘을 돌려 답을 뒤집어 풀거나(또는 $\bar{G}$에서 덩어리를 돌려) 풀 수 있다. 꼭짓점 덮기는 독립 모임을 돌려 뒤집는다. $G$의 덩어리는 $\bar{G}$에서 독립 모임을 돌린다. 모든 줄임은 그래프 여 연산에 $O(n^2)$의 웃돈만 더한다.

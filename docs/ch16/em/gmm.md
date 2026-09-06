@@ -1,180 +1,151 @@
-# Gaussian Mixture Models
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Gaussian Mixture Models (GMMs) are the canonical application of the EM algorithm and serve as a foundational model in unsupervised learning. This section provides a complete treatment: model specification, EM derivation, implementation details, and extensions relevant to quantitative finance.
+# 가우스 섞음 모형
+가우스 섞음 모형(GMM)은 EM 알고리즘의 대표 쓰임새이며 지도 없는 배움의 바탕 모형이다. 이 절에서는 모형 적기, EM 이끌어 내기, 구현의 세부, 계량 금융과 이어지는 넓힘을 온전히 다룬다.
 
 ---
 
-## Model Specification
+## 모형 명세
 
-### The Generative Story
+### 낳는 이야기
 
-A Gaussian Mixture Model assumes that data is generated from a mixture of $K$ Gaussian distributions. For each observation $\mathbf{x}_i$:
+가우스 섞음 모형은 자료가 가우스 분포 $K$개의 섞음에서 나왔다고 놓는다. 관측 $\mathbf{x}_i$마다:
 
-1. **Draw component assignment**: $z_i \sim \text{Categorical}(\boldsymbol{\pi})$ where $\boldsymbol{\pi} = (\pi_1, \ldots, \pi_K)$
-2. **Draw observation from selected component**: $\mathbf{x}_i | z_i = k \sim \mathcal{N}(\boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)$
+1. **성분 배정 뽑기**: $\boldsymbol{\pi} = (\pi_1, \ldots, \pi_K)$일 때 $z_i \sim \text{Categorical}(\boldsymbol{\pi})$
+2. **고른 성분에서 관측 뽑기**: $\mathbf{x}_i | z_i = k \sim \mathcal{N}(\boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)$
 
-The latent variable $z_i \in \{1, \ldots, K\}$ indicates which component generated observation $i$.
+숨은 변수 $z_i \in \{1, \ldots, K\}$은 어느 성분이 관측 $i$을 낳았는지를 가리킨다.
 
-### Joint Distribution
+### 결합 분포
 
-The joint distribution of observations and latent variables is:
+관측과 숨은 변수의 결합 분포는 다음과 같다:
 
 $$
-
 p(\mathbf{x}_i, z_i = k | \theta) = p(z_i = k | \boldsymbol{\pi}) \, p(\mathbf{x}_i | z_i = k, \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k) = \pi_k \, \mathcal{N}(\mathbf{x}_i | \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)
-
 $$
 
-### Marginal Distribution (Mixture Density)
+### 주변 분포(섞음 밀도)
 
-Marginalizing over the latent variable:
+숨은 변수에 걸쳐 주변으로 만들면:
 
 $$
-
 p(\mathbf{x}_i | \theta) = \sum_{k=1}^{K} \pi_k \, \mathcal{N}(\mathbf{x}_i | \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)
-
 $$
 
-This is a **weighted sum of Gaussians**, capable of modeling complex, multimodal distributions.
+이는 **가우스에 무게를 붙여 더한 것**이며 복잡하고 봉우리가 여럿인 분포도 본뜰 수 있다.
 
-### Parameters
+### 매개변수
 
-The full parameter set is $\theta = \{\boldsymbol{\pi}, \{\boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k\}_{k=1}^K\}$:
+온전한 매개변수 모음은 $\theta = \{\boldsymbol{\pi}, \{\boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k\}_{k=1}^K\}$이다:
 
-| Parameter | Dimension | Constraint |
+| 매개변수 | 차원 | 제약 |
 |-----------|-----------|------------|
-| $\pi_k$ (mixing weight) | Scalar | $\pi_k \geq 0$, $\sum_k \pi_k = 1$ |
-| $\boldsymbol{\mu}_k$ (mean) | $d \times 1$ | None |
-| $\boldsymbol{\Sigma}_k$ (covariance) | $d \times d$ | Positive definite, symmetric |
+| $\pi_k$(섞음 무게) | 스칼라 | $\pi_k \geq 0$, $\sum_k \pi_k = 1$ |
+| $\boldsymbol{\mu}_k$(평균) | $d \times 1$ | 없음 |
+| $\boldsymbol{\Sigma}_k$(공분산) | $d \times d$ | 양의 정부호이며 대칭 |
 
-### Parameter Count
+### 매개변수의 수
 
-For a $K$-component GMM in $d$ dimensions:
+$d$차원에서 성분이 $K$개인 가우스 섞음 모형에서:
 
-| Covariance Type | Parameters per Component | Total Parameters |
+| 공분산 갈래 | 성분마다의 매개변수 | 전체 매개변수 |
 |-----------------|-------------------------|------------------|
-| Full | $d + d(d+1)/2$ | $K(d + d(d+1)/2) + (K-1)$ |
-| Diagonal | $d + d = 2d$ | $K \cdot 2d + (K-1)$ |
-| Spherical | $d + 1$ | $K(d+1) + (K-1)$ |
-| Tied (shared) | $d$ | $Kd + d(d+1)/2 + (K-1)$ |
+| 온전함 | $d + d(d+1)/2$ | $K(d + d(d+1)/2) + (K-1)$ |
+| 대각 | $d + d = 2d$ | $K \cdot 2d + (K-1)$ |
+| 구면 | $d + 1$ | $K(d+1) + (K-1)$ |
+| 묶음(함께 씀) | $d$ | $Kd + d(d+1)/2 + (K-1)$ |
 
 ---
 
-## Log-Likelihood Function
+## 로그 가능도 함수
 
-### Complete-Data Log-Likelihood
+### 완전 자료 로그 가능도
 
-If we observed both $\mathbf{X} = \{\mathbf{x}_i\}_{i=1}^N$ and $\mathbf{Z} = \{z_i\}_{i=1}^N$:
+$\mathbf{X} = \{\mathbf{x}_i\}_{i=1}^N$과 $\mathbf{Z} = \{z_i\}_{i=1}^N$을 모두 관측했다면:
 
 $$
-
 \ell_c(\theta) = \log p(\mathbf{X}, \mathbf{Z} | \theta) = \sum_{i=1}^{N} \sum_{k=1}^{K} \mathbb{1}[z_i = k] \left[ \log \pi_k + \log \mathcal{N}(\mathbf{x}_i | \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k) \right]
-
 $$
 
-This is **linear** in the indicator $\mathbb{1}[z_i = k]$ and easy to optimize.
+이는 지시자 $\mathbb{1}[z_i = k]$에 대해 **선형**이라 최적화하기 쉽다.
 
-### Marginal Log-Likelihood
+### 주변 로그 가능도
 
-The observed (incomplete) data log-likelihood:
+관측한(불완전한) 자료의 로그 가능도는 다음과 같다:
 
 $$
-
 \ell(\theta) = \sum_{i=1}^{N} \log p(\mathbf{x}_i | \theta) = \sum_{i=1}^{N} \log \left( \sum_{k=1}^{K} \pi_k \, \mathcal{N}(\mathbf{x}_i | \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k) \right)
-
 $$
 
-The **log of sum** structure makes direct optimization intractable—this motivates EM.
+**합의 로그**라는 짜임 때문에 곧바른 최적화를 다룰 수 없으며, 그래서 EM이 필요해진다.
 
-### Why Direct MLE Fails
+### 곧바른 최대 가능도 어림이 왜 무너지나
 
-1. **No closed-form solution**: Setting $\nabla_\theta \ell = 0$ yields coupled nonlinear equations
-2. **Multimodality**: The likelihood surface has many local maxima (at least $K!$ due to label permutations)
-3. **Singularities**: Likelihood is unbounded when a component collapses to a single point
+1. **닫힌 꼴 풀이가 없음**: $\nabla_\theta \ell = 0$으로 두면 서로 얽힌 비선형 방정식이 나온다
+2. **봉우리가 여럿임**: 가능도 면에 그 자리 최댓점이 많다(이름표 자리바꿈 때문에 적어도 $K!$개)
+3. **특이점**: 성분이 한 점으로 찌부러지면 가능도가 묶이지 않는다
 
 ---
 
-## EM for GMM: Complete Derivation
+## 가우스 섞음 모형의 EM: 온전히 이끌어 내기
 
-### E-Step: Computing Responsibilities
+### E 걸음: 맡음 몫 셈하기
 
-The E-step computes the posterior probability that observation $i$ belongs to component $k$:
+E 걸음은 관측 $i$이 성분 $k$에 들 뒤확률을 셈한다:
 
 $$
-
 \gamma_{ik} = p(z_i = k | \mathbf{x}_i, \theta^{(t)}) = \frac{p(z_i = k) \, p(\mathbf{x}_i | z_i = k)}{\sum_{j=1}^{K} p(z_i = j) \, p(\mathbf{x}_i | z_i = j)}
-
 $$
 
-Substituting the model:
+모형을 넣으면:
 
 $$
-
 \gamma_{ik} = \frac{\pi_k^{(t)} \, \mathcal{N}(\mathbf{x}_i | \boldsymbol{\mu}_k^{(t)}, \boldsymbol{\Sigma}_k^{(t)})}{\sum_{j=1}^{K} \pi_j^{(t)} \, \mathcal{N}(\mathbf{x}_i | \boldsymbol{\mu}_j^{(t)}, \boldsymbol{\Sigma}_j^{(t)})}
-
 $$
 
-**Interpretation**: $\gamma_{ik}$ is the "responsibility" that component $k$ takes for explaining observation $i$.
+**풀이**: $\gamma_{ik}$은 성분 $k$이 관측 $i$을 설명하는 데 지는 "맡음 몫"이다.
 
-### Expected Sufficient Statistics
+### 기댓값 충분 통계량
 
-Define the effective number of points assigned to component $k$:
+성분 $k$에 배정된 점의 실효 개수를 다음과 같이 정한다:
 
 $$
-
 N_k = \sum_{i=1}^{N} \gamma_{ik}
-
 $$
 
-Note: $\sum_{k=1}^{K} N_k = N$ since responsibilities sum to 1 for each observation.
+메모: 관측마다 맡음 몫의 합이 1이므로 $\sum_{k=1}^{K} N_k = N$이다.
 
-### M-Step: Updating Parameters
+### M 걸음: 매개변수 새로 고치기
 
-**Q-function**:
+**Q 함수**:
 
 $$
-
 Q(\theta | \theta^{(t)}) = \sum_{i=1}^{N} \sum_{k=1}^{K} \gamma_{ik} \left[ \log \pi_k + \log \mathcal{N}(\mathbf{x}_i | \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k) \right]
-
 $$
 
-Expanding the Gaussian:
+가우스를 펼치면:
 
 $$
-
 Q = \sum_{i,k} \gamma_{ik} \log \pi_k - \frac{1}{2} \sum_{i,k} \gamma_{ik} \left[ d \log(2\pi) + \log|\boldsymbol{\Sigma}_k| + (\mathbf{x}_i - \boldsymbol{\mu}_k)^\top \boldsymbol{\Sigma}_k^{-1} (\mathbf{x}_i - \boldsymbol{\mu}_k) \right]
-
 $$
 
-**Mixing Proportions** (constrained optimization with $\sum_k \pi_k = 1$):
+**섞음 비율**($\sum_k \pi_k = 1$ 제약 아래의 최적화):
 
 $$
-
 \boxed{\pi_k^{(t+1)} = \frac{N_k}{N}}
-
 $$
 
-**Means** (weighted average):
+**평균**(무게 평균):
 
 $$
-
 \boxed{\boldsymbol{\mu}_k^{(t+1)} = \frac{1}{N_k} \sum_{i=1}^{N} \gamma_{ik} \, \mathbf{x}_i}
-
 $$
 
-**Covariances** (weighted empirical covariance):
+**공분산**(무게 붙인 경험 공분산):
 
 $$
-
 \boxed{\boldsymbol{\Sigma}_k^{(t+1)} = \frac{1}{N_k} \sum_{i=1}^{N} \gamma_{ik} \, (\mathbf{x}_i - \boldsymbol{\mu}_k^{(t+1)})(\mathbf{x}_i - \boldsymbol{\mu}_k^{(t+1)})^\top}
-
 $$
 
-### Algorithm Summary
+### 알고리즘 간추림
 
 ```
 Input: Data X, number of components K
@@ -183,18 +154,18 @@ Output: Parameters θ = {π, μ, Σ}
 1. Initialize parameters θ⁽⁰⁾
 2. Repeat until convergence:
    
-   # E-step: Compute responsibilities
+   # E 걸음: 맡음 몫 셈하기
    For each i, k:
        γ_ik ← π_k N(x_i | μ_k, Σ_k) / Σ_j π_j N(x_i | μ_j, Σ_j)
    
-   # M-step: Update parameters  
+   # M 걸음: 매개변수 새로 고치기
    For each k:
        N_k ← Σ_i γ_ik
        π_k ← N_k / N
        μ_k ← (1/N_k) Σ_i γ_ik x_i
        Σ_k ← (1/N_k) Σ_i γ_ik (x_i - μ_k)(x_i - μ_k)ᵀ
    
-   # Check convergence
+   # 모임 살피기
    If |ℓ(θ⁽ᵗ⁺¹⁾) - ℓ(θ⁽ᵗ⁾)| < tolerance: break
 
 3. Return θ
@@ -202,98 +173,92 @@ Output: Parameters θ = {π, μ, Σ}
 
 ---
 
-## Initialization Strategies
+## 첫값 잡기 전략
 
-### The Importance of Initialization
+### 첫값 잡기의 중요함
 
-GMM likelihood surfaces are highly multimodal. Poor initialization can lead to:
+가우스 섞음 모형의 가능도 면은 봉우리가 몹시 많다. 첫값을 잘못 잡으면 다음이 생길 수 있다:
 
-- Convergence to suboptimal local maxima
-- Slow convergence
-- Component collapse or degeneracy
+- 어설픈 그 자리 최댓점으로의 모임
+- 느린 모임
+- 성분의 찌부러짐이나 무너짐
 
-### K-Means Initialization
+### k 평균으로 첫값 잡기
 
-Use K-means clustering to initialize:
+k 평균 무리짓기로 첫값을 잡는다:
 
-1. Run K-means on data to get cluster centers and assignments
-2. Set $\boldsymbol{\mu}_k$ to K-means centers
-3. Set $\boldsymbol{\Sigma}_k$ to empirical covariance of assigned points
-4. Set $\pi_k$ to proportion of points in cluster $k$
+1. 자료에 k 평균을 돌려 무리의 가운데와 배정을 얻는다
+2. $\boldsymbol{\mu}_k$을 k 평균의 가운데로 둔다
+3. $\boldsymbol{\Sigma}_k$을 배정된 점의 경험 공분산으로 둔다
+4. $\pi_k$을 무리 $k$에 든 점의 비율로 둔다
 
-**Advantages**: Fast, deterministic (given K-means seed), provides reasonable starting point
+**좋은 점**: 빠르고 (k 평균의 씨앗이 정해지면) 정해져 있으며 그럴듯한 출발점을 준다
 
-### K-Means++ Initialization
+### k 평균++으로 첫값 잡기
 
-Improved center selection for K-means:
+k 평균의 가운데 고르기를 낫게 한 것이다:
 
-1. Choose first center uniformly at random from data
-2. For each subsequent center, choose point with probability proportional to squared distance from nearest existing center
-3. Proceed with K-means from these centers
+1. 자료에서 첫 가운데를 고르게 무작위로 고른다
+2. 그다음 가운데마다 이미 있는 가장 가까운 가운데까지의 거리 제곱에 비례하는 확률로 점을 고른다
+3. 이 가운데들에서 k 평균을 이어 간다
 
-This spreads initial centers and avoids placing them too close together.
+이러면 첫 가운데들이 널리 퍼져 서로 너무 가까이 놓이는 것을 피한다.
 
-### Random Initialization
+### 무작위 초기화
 
-Simple but requires multiple restarts:
+단순하지만 여러 번 다시 시작해야 한다:
 
-1. $\boldsymbol{\mu}_k$: Random subset of data points, or sample from data range
-2. $\boldsymbol{\Sigma}_k$: Identity matrix scaled by data variance
-3. $\pi_k$: Uniform ($1/K$) or random from Dirichlet
+1. $\boldsymbol{\mu}_k$: 자료 점의 무작위 부분 모음이나 자료 범위에서 표집
+2. $\boldsymbol{\Sigma}_k$: 자료의 흩어짐으로 크기를 잡은 항등 행렬
+3. $\pi_k$: 고름($1/K$)이나 디리클레에서 무작위
 
-### Hierarchical Initialization
+### 층으로 첫값 잡기
 
-Start with fewer components and split:
+성분을 적게 시작해 쪼개 나간다:
 
-1. Fit GMM with $K' < K$ components
-2. Split largest/most spread component
-3. Repeat until $K$ components reached
+1. 성분이 $K' < K$개인 가우스 섞음 모형을 맞춘다
+2. 가장 크거나 가장 널리 퍼진 성분을 쪼갠다
+3. 성분이 $K$개가 될 때까지 되풀이한다
 
 ---
 
-## Model Selection
+## 모형 고르기
 
-### Choosing the Number of Components
+### 성분의 개수 고르기
 
-The optimal $K$ is unknown and must be selected. Common approaches:
+가장 좋은 $K$은 알 수 없으므로 골라야 한다. 흔한 길은 다음과 같다:
 
-### Information Criteria
+### 정보 기준
 
-**Bayesian Information Criterion (BIC)**:
+**베이즈 정보 잣대(BIC)**:
 
 $$
-
 \text{BIC} = -2 \ell(\hat{\theta}) + p \log N
-
 $$
 
-where $p$ is the number of parameters. BIC penalizes complexity more heavily for large $N$.
+여기서 $p$은 매개변수의 개수이다. BIC은 $N$이 크면 복잡함에 더 무겁게 벌을 준다.
 
-**Akaike Information Criterion (AIC)**:
+**아카이케 정보 잣대(AIC)**:
 
 $$
-
 \text{AIC} = -2 \ell(\hat{\theta}) + 2p
-
 $$
 
-AIC tends to select more complex models than BIC.
+AIC은 BIC보다 더 복잡한 모형을 고르는 경향이 있다.
 
-**Integrated Completed Likelihood (ICL)**:
+**적분 완전 가능도(ICL)**:
 
 $$
-
 \text{ICL} = \text{BIC} - 2 \sum_{i=1}^{N} \sum_{k=1}^{K} \hat{\gamma}_{ik} \log \hat{\gamma}_{ik}
-
 $$
 
-ICL adds an entropy penalty, favoring models with more certain cluster assignments.
+ICL은 엔트로피 벌을 더해 무리 배정이 더 또렷한 모형을 좋아한다.
 
-### Selection Procedure
+### 고르는 절차
 
-1. Fit GMMs for $K = 1, 2, \ldots, K_{\max}$
-2. Compute information criterion for each
-3. Select $K$ that minimizes the criterion
+1. $K = 1, 2, \ldots, K_{\max}$에 대해 가우스 섞음 모형을 맞춘다
+2. 저마다 정보 잣대를 셈한다
+3. 그 잣대를 가장 작게 하는 $K$을 고른다
 
 ```
 K_values = range(1, K_max + 1)
@@ -301,148 +266,130 @@ bic_scores = []
 
 for K in K_values:
     gmm = fit_gmm(X, K)
-    n_params = K * (1 + d + d*(d+1)/2) - 1  # Full covariance
+    n_params = K * (1 + d + d*(d+1)/2) - 1  # 온전한 공분산
     bic = -2 * gmm.log_likelihood(X) + n_params * log(N)
     bic_scores.append(bic)
 
 best_K = K_values[argmin(bic_scores)]
 ```
 
-### Cross-Validation
+### 교차 확인
 
-Held-out log-likelihood:
+남겨 둔 자료의 로그 가능도:
 
-1. Split data into training and validation sets
-2. Fit GMM on training data
-3. Evaluate log-likelihood on validation data
-4. Select $K$ maximizing validation likelihood
+1. 자료를 익힘용과 확인용으로 나눈다
+2. 익힘 자료에 가우스 섞음 모형을 맞춘다
+3. 확인 자료에서 로그 가능도를 매긴다
+4. 확인 가능도를 가장 크게 하는 $K$을 고른다
 
 ---
 
-## Covariance Constraints
+## 공분산의 제약
 
-### Full Covariance
+### 온전한 공분산
 
-Each component has its own unrestricted $d \times d$ positive definite covariance:
+성분마다 옭매이지 않은 $d \times d$ 양의 정부호 공분산을 저마다 갖는다:
 
 $$
-
 \boldsymbol{\Sigma}_k^{(t+1)} = \frac{1}{N_k} \sum_{i=1}^{N} \gamma_{ik} (\mathbf{x}_i - \boldsymbol{\mu}_k)(\mathbf{x}_i - \boldsymbol{\mu}_k)^\top
-
 $$
 
-**Pros**: Maximum flexibility, captures correlations
-**Cons**: Most parameters, risk of singularity, requires more data
+**좋은 점**: 유연함이 가장 크고 상관을 담아낸다
+**나쁜 점**: 매개변수가 가장 많고 특이해질 위험이 있으며 자료가 더 필요하다
 
-### Diagonal Covariance
+### 대각 공분산
 
-Restrict to diagonal matrices $\boldsymbol{\Sigma}_k = \text{diag}(\sigma_{k1}^2, \ldots, \sigma_{kd}^2)$:
+대각 행렬 $\boldsymbol{\Sigma}_k = \text{diag}(\sigma_{k1}^2, \ldots, \sigma_{kd}^2)$으로 옭아맨다:
 
 $$
-
 \sigma_{kj}^{2(t+1)} = \frac{1}{N_k} \sum_{i=1}^{N} \gamma_{ik} (x_{ij} - \mu_{kj})^2
-
 $$
 
-**Pros**: Fewer parameters, more stable
-**Cons**: Assumes features are uncorrelated within clusters
+**좋은 점**: 매개변수가 적고 더 안정하다
+**나쁜 점**: 무리 안에서 특징이 서로 상관없다고 놓는다
 
-### Spherical Covariance
+### 구면 공분산
 
-Single variance per component $\boldsymbol{\Sigma}_k = \sigma_k^2 \mathbf{I}$:
+성분마다 흩어짐 하나인 $\boldsymbol{\Sigma}_k = \sigma_k^2 \mathbf{I}$:
 
 $$
-
 \sigma_k^{2(t+1)} = \frac{1}{N_k \cdot d} \sum_{i=1}^{N} \gamma_{ik} \|\mathbf{x}_i - \boldsymbol{\mu}_k\|^2
-
 $$
 
-**Pros**: Fewest parameters, most stable
-**Cons**: Assumes isotropic clusters
+**좋은 점**: 매개변수가 가장 적고 가장 안정하다
+**나쁜 점**: 무리가 방향에 고르다고 놓는다
 
-### Tied Covariance
+### 묶은 공분산
 
-All components share the same covariance $\boldsymbol{\Sigma}_k = \boldsymbol{\Sigma}$:
+모든 성분이 같은 공분산 $\boldsymbol{\Sigma}_k = \boldsymbol{\Sigma}$을 함께 쓴다:
 
 $$
-
 \boldsymbol{\Sigma}^{(t+1)} = \frac{1}{N} \sum_{k=1}^{K} \sum_{i=1}^{N} \gamma_{ik} (\mathbf{x}_i - \boldsymbol{\mu}_k)(\mathbf{x}_i - \boldsymbol{\mu}_k)^\top
-
 $$
 
-**Pros**: Regularization effect, stable estimation
-**Cons**: Restrictive assumption
+**좋은 점**: 벌주기 효과가 있고 어림이 안정하다
+**나쁜 점**: 옭아매는 가정이다
 
 ---
 
-## Regularization and Singularities
+## 벌주기와 특이점
 
-### The Singularity Problem
+### 특이점 문제
 
-If a component's covariance becomes singular (determinant approaches zero), the likelihood becomes unbounded:
+성분의 공분산이 특이해지면(행렬식이 0으로 다가가면) 가능도가 묶이지 않는다:
 
 $$
-
 \mathcal{N}(\mathbf{x}_i | \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k) \propto |\boldsymbol{\Sigma}_k|^{-1/2} \to \infty \text{ as } |\boldsymbol{\Sigma}_k| \to 0
-
 $$
 
-This occurs when:
+이는 다음일 때 일어난다:
 
-- A component collapses to fit a single data point exactly
-- Fewer than $d+1$ points are effectively assigned to a component
-- Data lies in a lower-dimensional subspace
+- 성분이 찌부러져 자료 점 하나에 딱 맞춰질 때
+- 성분에 실효로 배정된 점이 $d+1$개보다 적을 때
+- 자료가 더 낮은 차원의 부분 공간에 놓일 때
 
-### Covariance Regularization
+### 공분산에 벌주기
 
-**Diagonal Loading** (Ridge regularization):
+**대각에 얹기**(능선 벌주기):
 
 $$
-
 \boldsymbol{\Sigma}_k \leftarrow \boldsymbol{\Sigma}_k + \lambda \mathbf{I}
-
 $$
 
-Adds small positive value to diagonal, ensuring positive definiteness.
+대각에 작은 양수를 더해 양의 정부호임을 보장한다.
 
-**Minimum Eigenvalue Constraint**:
+**최소 고윳값 제약**:
 
 $$
-
 \boldsymbol{\Sigma}_k = \mathbf{U} \max(\boldsymbol{\Lambda}, \epsilon \mathbf{I}) \mathbf{U}^\top
-
 $$
 
-where $\mathbf{U}\boldsymbol{\Lambda}\mathbf{U}^\top$ is the eigendecomposition.
+여기서 $\mathbf{U}\boldsymbol{\Lambda}\mathbf{U}^\top$은 고유 분해이다.
 
-**Shrinkage Estimator** (Ledoit-Wolf):
+**오그라들기 어림꼴**(르두아-울프):
 
 $$
-
 \boldsymbol{\Sigma}_k^{\text{shrunk}} = (1 - \alpha) \boldsymbol{\Sigma}_k + \alpha \cdot \text{tr}(\boldsymbol{\Sigma}_k)/d \cdot \mathbf{I}
-
 $$
 
-### Bayesian Regularization
+### 베이즈 벌주기
 
-Place priors on parameters:
+매개변수에 앞확률을 둔다:
 
-- **Inverse-Wishart prior** on $\boldsymbol{\Sigma}_k$: Acts as pseudo-observations
-- **Dirichlet prior** on $\boldsymbol{\pi}$: Prevents components from having zero weight
+- $\boldsymbol{\Sigma}_k$에 **역위샤트 앞확률**: 가짜 관측 노릇을 한다
+- $\boldsymbol{\pi}$에 **디리클레 앞확률**: 성분의 무게가 0이 되는 것을 막는다
 
-The MAP estimate incorporates these priors:
+MAP 어림값이 이 앞확률을 담는다:
 
 $$
-
 \boldsymbol{\Sigma}_k^{\text{MAP}} = \frac{N_k \boldsymbol{\Sigma}_k^{\text{MLE}} + \nu_0 \boldsymbol{\Psi}_0}{N_k + \nu_0 + d + 1}
-
 $$
 
-where $\nu_0, \boldsymbol{\Psi}_0$ are prior hyperparameters.
+여기서 $\nu_0, \boldsymbol{\Psi}_0$은 앞확률의 웃매개변수이다.
 
 ---
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
@@ -452,9 +399,9 @@ from typing import Tuple, Optional
 
 class GaussianMixtureModel:
     """
-    Gaussian Mixture Model with full EM implementation.
+    온전한 EM 구현을 갖춘 가우스 섞음 모형.
     
-    Supports multiple covariance types and regularization.
+    여러 공분산 갈래와 벌주기를 받쳐 준다.
     """
     
     def __init__(
@@ -470,16 +417,16 @@ class GaussianMixtureModel:
         random_state: Optional[int] = None
     ):
         """
-        Args:
-            n_components: Number of mixture components (K)
-            n_features: Dimensionality of data (d)
-            covariance_type: 'full', 'diagonal', 'spherical', or 'tied'
-            reg_covar: Regularization added to covariance diagonal
-            init_method: 'kmeans', 'random', or 'kmeans++'
-            n_init: Number of initializations to try
-            max_iter: Maximum EM iterations
-            tol: Convergence tolerance
-            random_state: Random seed
+        인수:
+            n_components: 섞음 성분의 개수(K)
+            n_features: 자료의 차원(d)
+            covariance_type: 'full', 'diagonal', 'spherical', 'tied' 가운데 하나
+            reg_covar: 공분산의 대각에 더하는 벌주기
+            init_method: 'kmeans', 'random', 'kmeans++' 가운데 하나
+            n_init: 시도할 첫값 잡기의 횟수
+            max_iter: 최대 EM 되풀이 횟수
+            tol: 모임 너그러움
+            random_state: 무작위 씨앗
         """
         self.K = n_components
         self.d = n_features
@@ -493,47 +440,47 @@ class GaussianMixtureModel:
         if random_state is not None:
             torch.manual_seed(random_state)
         
-        # Parameters (initialized in fit)
+        # 매개변수(fit에서 첫값을 잡는다)
         self.weights_ = None      # (K,)
         self.means_ = None        # (K, d)
-        self.covariances_ = None  # Shape depends on covariance_type
+        self.covariances_ = None  # 꼴은 covariance_type에 달렸다
         
-        # Fitting info
+        # 맞추기 정보
         self.converged_ = False
         self.n_iter_ = 0
         self.lower_bound_ = float('-inf')
         
     def _initialize_parameters(self, X: torch.Tensor):
-        """Initialize GMM parameters."""
+        """가우스 섞음 모형의 매개변수 첫값 잡기."""
         N, d = X.shape
         
         if self.init_method == 'kmeans':
-            # Simple K-means initialization
+            # 단순한 k 평균 첫값 잡기
             indices = torch.randperm(N)[:self.K]
             self.means_ = X[indices].clone()
             
-            # Run a few K-means iterations
+            # k 평균을 몇 번 되풀이하기
             for _ in range(10):
-                # Assign points to nearest center
+                # 점을 가장 가까운 가운데에 배정
                 dists = torch.cdist(X, self.means_)
                 assignments = dists.argmin(dim=1)
                 
-                # Update centers
+                # 가운데 새로 고치기
                 for k in range(self.K):
                     mask = assignments == k
                     if mask.sum() > 0:
                         self.means_[k] = X[mask].mean(dim=0)
             
-            # Initialize covariances from K-means clusters
+            # k 평균 무리로 공분산 첫값 잡기
             self._initialize_covariances(X, assignments)
             
-            # Initialize weights
+            # 가중치 초기화
             self.weights_ = torch.bincount(
                 assignments, minlength=self.K
             ).float() / N
             
         elif self.init_method == 'random':
-            # Random initialization
+            # 무작위 첫값 잡기
             self.means_ = X[torch.randperm(N)[:self.K]].clone()
             self.weights_ = torch.ones(self.K) / self.K
             self._initialize_covariances(X, None)
@@ -541,7 +488,7 @@ class GaussianMixtureModel:
     def _initialize_covariances(
         self, X: torch.Tensor, assignments: Optional[torch.Tensor]
     ):
-        """Initialize covariance matrices."""
+        """공분산 행렬 첫값 잡기."""
         N, d = X.shape
         
         if self.covariance_type == 'full':
@@ -559,10 +506,10 @@ class GaussianMixtureModel:
             
     def _compute_log_prob(self, X: torch.Tensor) -> torch.Tensor:
         """
-        Compute log p(x|z=k) for each observation and component.
+        관측마다 성분마다 log p(x|z=k) 셈하기.
         
-        Returns:
-            log_prob: (N, K) tensor of log-probabilities
+        반환값:
+            log_prob: 로그 확률의 (N, K) 텐서
         """
         N = X.shape[0]
         log_prob = torch.zeros(N, self.K)
@@ -577,20 +524,20 @@ class GaussianMixtureModel:
             elif self.covariance_type == 'tied':
                 cov = self.covariances_
                 
-            # Add regularization
+            # 벌주기 더하기
             cov = cov + self.reg_covar * torch.eye(self.d)
             
-            # Compute log probability
+            # 로그 확률 셈하기
             diff = X - self.means_[k]
             
-            # Cholesky for numerical stability
+            # 수치 안정을 위한 촐레스키
             try:
                 L = torch.linalg.cholesky(cov)
                 log_det = 2 * torch.log(torch.diag(L)).sum()
                 solve = torch.linalg.solve_triangular(L, diff.T, upper=False)
                 mahalanobis = (solve ** 2).sum(dim=0)
             except:
-                # Fallback to direct computation
+                # 곧바른 셈하기로 물러서기
                 log_det = torch.logdet(cov)
                 cov_inv = torch.inverse(cov)
                 mahalanobis = (diff @ cov_inv * diff).sum(dim=1)
@@ -605,43 +552,43 @@ class GaussianMixtureModel:
     
     def _e_step(self, X: torch.Tensor) -> Tuple[torch.Tensor, float]:
         """
-        E-step: compute responsibilities and log-likelihood.
+        E 걸음: 맡음 몫과 로그 가능도 셈하기.
         
-        Returns:
-            responsibilities: (N, K) tensor
-            log_likelihood: scalar
+        반환값:
+            responsibilities: (N, K) 텐서
+            log_likelihood: 스칼라
         """
         log_prob = self._compute_log_prob(X)  # (N, K)
         log_weights = torch.log(self.weights_)  # (K,)
         
-        # Log responsibilities (unnormalized)
+        # 로그 맡음 몫(고르게 하지 않음)
         log_resp = log_prob + log_weights  # (N, K)
         
-        # Log-sum-exp for normalization
+        # 고르게 하기 위한 log-sum-exp
         log_resp_norm = torch.logsumexp(log_resp, dim=1, keepdim=True)  # (N, 1)
         
-        # Normalized log responsibilities
+        # 고르게 한 로그 맡음 몫
         log_resp = log_resp - log_resp_norm
         
-        # Log-likelihood
+        # 로그가능도
         log_likelihood = log_resp_norm.sum().item()
         
         return torch.exp(log_resp), log_likelihood
     
     def _m_step(self, X: torch.Tensor, responsibilities: torch.Tensor):
-        """M-step: update parameters given responsibilities."""
+        """M 걸음: 맡음 몫이 주어졌을 때 매개변수 새로 고치기."""
         N = X.shape[0]
         
-        # Effective counts
+        # 실효 횟수
         N_k = responsibilities.sum(dim=0) + 1e-10  # (K,)
         
-        # Update weights
+        # 가중치를 갱신한다
         self.weights_ = N_k / N
         
-        # Update means
+        # 평균을 갱신한다
         self.means_ = (responsibilities.T @ X) / N_k.unsqueeze(1)  # (K, d)
         
-        # Update covariances
+        # 공분산을 갱신한다
         self._update_covariances(X, responsibilities, N_k)
         
     def _update_covariances(
@@ -650,7 +597,7 @@ class GaussianMixtureModel:
         responsibilities: torch.Tensor,
         N_k: torch.Tensor
     ):
-        """Update covariance matrices based on covariance_type."""
+        """covariance_type에 따라 공분산 행렬 새로 고치기."""
         N, d = X.shape
         
         if self.covariance_type == 'full':
@@ -681,29 +628,29 @@ class GaussianMixtureModel:
     
     def fit(self, X: torch.Tensor, verbose: bool = False) -> 'GaussianMixtureModel':
         """
-        Fit the GMM using EM algorithm.
+        EM 알고리즘으로 가우스 섞음 모형 맞추기.
         
-        Args:
-            X: Data tensor of shape (N, d)
-            verbose: Print progress
+        인수:
+            X: 꼴이 (N, d)인 자료 텐서
+            verbose: 진행 상황 출력 여부
             
-        Returns:
+        반환값:
             self
         """
         best_ll = float('-inf')
         best_params = None
         
         for init in range(self.n_init):
-            # Initialize
+            # 초기화한다
             self._initialize_parameters(X)
             
             prev_ll = float('-inf')
             
             for iteration in range(self.max_iter):
-                # E-step
+                # E 걸음
                 responsibilities, ll = self._e_step(X)
                 
-                # Check convergence
+                # 모임 살피기
                 if abs(ll - prev_ll) < self.tol:
                     self.converged_ = True
                     self.n_iter_ = iteration + 1
@@ -712,12 +659,12 @@ class GaussianMixtureModel:
                 if verbose and iteration % 10 == 0:
                     print(f"Init {init+1}, Iter {iteration}: LL = {ll:.4f}")
                 
-                # M-step
+                # M 걸음
                 self._m_step(X, responsibilities)
                 
                 prev_ll = ll
             
-            # Keep best initialization
+            # 가장 좋은 첫값 남기기
             if ll > best_ll:
                 best_ll = ll
                 best_params = (
@@ -727,33 +674,33 @@ class GaussianMixtureModel:
                     else [c.clone() for c in self.covariances_]
                 )
         
-        # Restore best parameters
+        # 가장 좋은 매개변수 되돌리기
         self.weights_, self.means_, self.covariances_ = best_params
         self.lower_bound_ = best_ll
         
         return self
     
     def predict(self, X: torch.Tensor) -> torch.Tensor:
-        """Predict cluster labels."""
+        """무리 이름표 미리보기."""
         responsibilities, _ = self._e_step(X)
         return responsibilities.argmax(dim=1)
     
     def predict_proba(self, X: torch.Tensor) -> torch.Tensor:
-        """Predict cluster probabilities."""
+        """무리 확률 미리보기."""
         responsibilities, _ = self._e_step(X)
         return responsibilities
     
     def score(self, X: torch.Tensor) -> float:
-        """Compute average log-likelihood."""
+        """평균 로그 가능도 셈하기."""
         _, ll = self._e_step(X)
         return ll / X.shape[0]
     
     def bic(self, X: torch.Tensor) -> float:
-        """Compute Bayesian Information Criterion."""
+        """베이즈 정보 기준을 셈한다."""
         N = X.shape[0]
         _, ll = self._e_step(X)
         
-        # Count parameters
+        # 매개변수 개수 세기
         if self.covariance_type == 'full':
             n_params = self.K * (1 + self.d + self.d * (self.d + 1) / 2) - 1
         elif self.covariance_type == 'diagonal':
@@ -766,8 +713,8 @@ class GaussianMixtureModel:
         return -2 * ll + n_params * torch.log(torch.tensor(N)).item()
     
     def sample(self, n_samples: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Generate samples from the fitted model."""
-        # Sample component assignments
+        """맞춘 모형에서 표본 만들기."""
+        # 성분 배정 표집
         component_counts = torch.multinomial(
             self.weights_, n_samples, replacement=True
         )
@@ -798,71 +745,103 @@ class GaussianMixtureModel:
         X = torch.cat(samples, dim=0)
         y = torch.tensor(labels)
         
-        # Shuffle
+        # 뒤섞는다
         perm = torch.randperm(n_samples)
         return X[perm], y[perm]
 ```
 
 ---
 
-## Applications in Quantitative Finance
+## 계량 금융에서의 쓰임
 
-### Return Distribution Modeling
+### 수익 분포 본뜨기
 
-Financial returns exhibit non-Gaussian features (fat tails, skewness) that GMMs can capture:
+금융 수익은 가우스가 아닌 성질(두꺼운 꼬리, 치우침)을 보이며 가우스 섞음 모형이 이를 담아낼 수 있다:
 
 $$
-
 p(r_t) = \sum_{k=1}^{K} \pi_k \, \mathcal{N}(r_t | \mu_k, \sigma_k^2)
-
 $$
 
-**Interpretation**: Each component represents a market regime (normal, volatile, crisis).
+**풀이**: 성분마다 시장의 한 국면(보통, 출렁임, 위기)을 나타낸다.
 
-### Regime Detection
+### 국면 알아내기
 
-Use GMM to identify market regimes:
+가우스 섞음 모형으로 시장 국면을 가려낸다:
 
-1. Fit GMM to return time series
-2. Compute responsibilities at each time point
-3. Assign regime based on maximum responsibility
+1. 수익 시계열에 가우스 섞음 모형을 맞춘다
+2. 때마다 맡음 몫을 셈한다
+3. 맡음 몫이 가장 큰 것으로 국면을 배정한다
 
-Regime-dependent strategies can then condition on detected state.
+그러면 국면에 따른 전략이 알아낸 상태를 조건으로 삼을 수 있다.
 
-### Risk Measurement
+### 위험 재기
 
-GMM-based Value at Risk:
+가우스 섞음 모형에 바탕을 둔 위험 가치:
 
 $$
-
 \text{VaR}_\alpha = \text{quantile}\left( \sum_{k=1}^{K} \pi_k \, F_k^{-1}(\alpha) \right)
-
 $$
 
-where $F_k$ is the CDF of component $k$. The mixture captures fat tails better than single Gaussian.
+여기서 $F_k$은 성분 $k$의 누적분포함수이다. 섞음은 가우스 하나보다 두꺼운 꼬리를 더 잘 담아낸다.
 
-### Portfolio Clustering
+### 포트폴리오 무리짓기
 
-Cluster assets by return characteristics:
+수익의 성격으로 자산을 무리짓는다:
 
-1. Compute feature vectors (mean, volatility, skewness, correlations)
-2. Fit GMM to feature space
-3. Group assets by cluster assignment
+1. 특징 벡터(평균, 변동성, 치우침, 상관)를 셈한다
+2. 특징 공간에 가우스 섞음 모형을 맞춘다
+3. 무리 배정으로 자산을 묶는다
 
-This reveals hidden structure beyond traditional sector classifications.
+이러면 전통적인 업종 가르기를 넘어선 숨은 짜임이 드러난다.
 
 ---
 
-## Summary
+## 요약
 
-| Aspect | Description |
+| 항목 | 설명 |
 |--------|-------------|
-| **Model** | Weighted sum of $K$ Gaussian distributions |
-| **Parameters** | Mixing weights $\boldsymbol{\pi}$, means $\{\boldsymbol{\mu}_k\}$, covariances $\{\boldsymbol{\Sigma}_k\}$ |
-| **E-step** | Compute responsibilities $\gamma_{ik}$ via Bayes' theorem |
-| **M-step** | Weighted MLE updates for all parameters |
-| **Initialization** | K-means, K-means++, or random with multiple restarts |
-| **Model Selection** | BIC, AIC, or cross-validation to choose $K$ |
-| **Regularization** | Diagonal loading, minimum eigenvalue, Bayesian priors |
+| **모형** | 가우스 분포 $K$개에 무게를 붙여 더한 것 |
+| **매개변수** | 섞음 무게 $\boldsymbol{\pi}$, 평균 $\{\boldsymbol{\mu}_k\}$, 공분산 $\{\boldsymbol{\Sigma}_k\}$ |
+| **E 걸음** | 베이즈 정리로 맡음 몫 $\gamma_{ik}$ 셈하기 |
+| **M 걸음** | 모든 매개변수를 무게 붙인 최대 가능도 어림으로 새로 고치기 |
+| **첫값 잡기** | k 평균, k 평균++, 또는 여러 번 다시 시작하는 무작위 |
+| **모형 고르기** | $K$을 고르는 데 BIC, AIC, 교차 확인 |
+| **벌주기** | 대각에 얹기, 최소 고윳값, 베이즈 앞확률 |
 
-GMMs remain a fundamental tool in machine learning and statistics, providing both a tractable density model and a principled approach to clustering. Their EM estimation procedure exemplifies the elegance of the algorithm and serves as a template for more complex latent variable models.
+가우스 섞음 모형은 기계 학습과 통계의 근본 도구로 남아 있으며 다룰 수 있는 밀도 모형과 원리 있는 무리짓기를 함께 준다. 그 EM 어림 절차는 이 알고리즘의 우아함을 잘 보여 주며 더 복잡한 숨은 변수 모형의 본보기가 된다.
+
+## 연습문제
+
+**연습문제 1.**
+EM 알고리즘의 되풀이마다 로그 가능도 $\log p(X \mid \theta)$이 단조롭게 커짐을 보여라.
+
+??? success "연습문제 1 풀이"
+    근본 항등식에서 $\log p(X \mid \theta) = \mathcal{L}(q, \theta) + D_{\text{KL}}(q \| p(Z|X,\theta))$이다. E 걸음에서 $q = p(Z|X,\theta^{(t)})$으로 두면 $D_{\text{KL}} = 0$이 되어 $\mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \log p(X|\theta^{(t)})$이다. M 걸음에서는 $\theta^{(t+1)} = \arg\max_\theta \mathcal{L}(q^{(t+1)}, \theta) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)})$이다. 그러므로 $\log p(X|\theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \log p(X|\theta^{(t)})$이다. $\square$
+
+---
+
+**연습문제 2.**
+성분이 $K$개인 가우스 섞음 모형의 온전한 E 걸음과 M 걸음 새로 고침을 이끌어 내어라.
+
+??? success "연습문제 2 풀이"
+    **E 걸음:** 맡음 몫 $r_{nk} = \frac{\pi_k \mathcal{N}(x_n | \mu_k, \Sigma_k)}{\sum_{j=1}^K \pi_j \mathcal{N}(x_n | \mu_j, \Sigma_j)}$을 셈한다.
+
+    **M 걸음:** $N_k = \sum_n r_{nk}$이라 하고 다음처럼 새로 고친다:
+
+    $$\mu_k = \frac{1}{N_k} \sum_n r_{nk} x_n, \quad \Sigma_k = \frac{1}{N_k} \sum_n r_{nk} (x_n - \mu_k)(x_n - \mu_k)^\top, \quad \pi_k = \frac{N_k}{N}$$
+
+---
+
+**연습문제 3.**
+딱 잘라 하는 EM과 부드러운 EM의 차이를 설명하여라. 딱 잘라 하는 EM은 언제 나을 수 있는가?
+
+??? success "연습문제 3 풀이"
+    **부드러운 EM**에서는 E 걸음이 몫으로 나뉜 맡음 몫(뒤확률) $r_{nk} \in [0, 1]$을 셈한다. **딱 잘라 하는 EM**에서는 자료 점마다 무리 하나에 배정된다. 곧 $k^* = \arg\max_k r_{nk}$이면 $r_{nk} = 1$, 아니면 $r_{nk} = 0$이다. 딱 잘라 하는 EM은 공분산이 같은 구면 가우스에서 k 평균 알고리즘과 같다. 딱 잘라 하는 EM은 (1) 띄엄띄엄한 무리짓기가 필요할 때, (2) 셈 자원이 빠듯할 때(새로 고침이 더 단순하다), (3) 무리가 잘 떨어져 있어 부드러운 배정이 별 값어치가 없을 때 낫다.
+
+---
+
+**연습문제 4.**
+EM 도중에 가우스 성분이 자료 점 하나로 찌부러지면 어떤 말썽이 생길 수 있는가? 어떻게 막을 수 있는가?
+
+??? success "연습문제 4 풀이"
+    가우스 성분의 평균이 자료 점 하나와 겹치고 그 흩어짐이 0으로 오그라들면 가능도가 묶이지 않는다(그 점에서 밀도가 무한으로 간다). 이것이 가우스 섞음 모형의 **특이점 문제**이다. 막는 방법으로는 (1) 공분산에 작은 벌주기 항 더하기($\Sigma_k + \epsilon I$), (2) $N_k$이 문턱값 아래로 떨어진 성분 되돌리기, (3) 베이즈 앞확률 쓰기(이를테면 $\Sigma_k$에 역위샤트), (4) 공분산 행렬의 고윳값에 최솟값 제약 두기가 있다.

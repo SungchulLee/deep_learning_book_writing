@@ -1,18 +1,18 @@
-# I/O Complexity
+# 들고남 복잡도
 
-In the external memory model, the cost of an algorithm is determined by the number of block transfers between disk and main memory -- not by the number of arithmetic operations or comparisons. This measure, called **I/O complexity**, captures the true bottleneck of processing massive datasets. Understanding the fundamental I/O complexity bounds is essential for designing algorithms that work efficiently when data does not fit in RAM.
+바깥 기억 모형에서 알고리즘의 비용은 셈 연산이나 견줌의 횟수가 아니라 원반과 으뜸 기억 사이의 덩이 옮김 횟수가 정한다. **들고남 복잡도**라 부르는 이 잣대가 거대한 자료 뭉치를 다룰 때의 참 병목을 담는다. 근본 들고남 복잡도 가둠을 아는 것은 자료가 램에 들어가지 않을 때 효율 좋게 도는 알고리즘을 설계하는 데 꼭 필요하다.
 
-## Parameters
+## 잡
 
-Recall the three parameters of the external memory model:
+바깥 기억 모형의 잡 셋을 되짚어 보자:
 
-| Symbol | Meaning |
+| 기호 | 뜻 |
 |---|---|
-| $N$ | Number of data elements (problem size) |
-| $M$ | Number of elements that fit in internal memory |
-| $B$ | Number of elements transferred per I/O operation |
+| $N$ | 자료 원소 개수(문제 크기) |
+| $M$ | 안쪽 기억에 들어가는 원소 개수 |
+| $B$ | 들고남마다 옮기는 원소 개수 |
 
-with the constraint $1 \le B \le M \le N$. For convenience, we define:
+매임은 $1 \le B \le M \le N$이다. 편하게 다음을 뜻매김한다:
 
 $$
 n = \frac{N}{B} \quad \text{(number of blocks in the dataset)}
@@ -22,97 +22,97 @@ $$
 m = \frac{M}{B} \quad \text{(number of blocks that fit in memory)}
 $$
 
-## The Scanning Bound
+## 훑기 가둠
 
-The simplest I/O pattern reads every element exactly once in sequential order. Since each I/O transfers $B$ contiguous elements, scanning $N$ elements requires:
+가장 단순한 들고남 무늬는 원소마다 차례대로 꼭 한 번 읽는다. 들고남마다 이어진 원소 $B$개를 옮기므로 원소 $N$개를 훑는 데 다음이 든다:
 
 $$
 \text{scan}(N) = \Theta\!\left(\frac{N}{B}\right) = \Theta(n)
 $$
 
-This is a tight lower bound for any algorithm that must examine all $N$ elements. No algorithm can do better, because even reading the input requires $\lceil N/B \rceil$ I/O operations.
+이는 원소 $N$개를 모두 살펴야 하는 어떤 알고리즘에도 빈틈없는 아래 가둠이다. 들임을 읽는 것만으로도 들고남 $\lceil N/B \rceil$번이 들므로 더 나은 알고리즘은 없다.
 
-## The Sorting Bound
+## 줄 세우기 가둠
 
-Sorting is fundamentally more expensive than scanning in external memory. The optimal I/O complexity for comparison-based sorting is:
+바깥 기억에서 줄 세우기는 훑기보다 근본에서 더 비싸다. 견줌 바탕 줄 세우기의 가장 좋은 들고남 복잡도는 다음과 같다:
 
 $$
 \text{sort}(N) = \Theta\!\left(\frac{N}{B}\log_{M/B}\frac{N}{B}\right) = \Theta\!\left(n \log_m n\right)
 $$
 
-### Derivation
+### 유도
 
-External merge sort achieves this bound through two phases:
+바깥 기억 합침 정렬이 두 마당으로 이 가둠을 이룬다:
 
-**Phase 1 -- Run formation.** Read $M$ elements into memory, sort them internally, and write the sorted run back to disk. This produces $\lceil N/M \rceil$ sorted runs of length $M$, using $2 \cdot \lceil N/B \rceil$ I/O operations (one pass of reads, one of writes).
+**1마당 -- 줄기 만들기.** 원소 $M$개를 기억에 읽어 속에서 줄 세우고 그 줄기를 원반에 다시 적는다. 이는 길이 $M$의 줄 세운 줄기 $\lceil N/M \rceil$개를 내며 들고남 $2 \cdot \lceil N/B \rceil$번(읽기 한 지나기, 적기 한 지나기)이 든다.
 
-**Phase 2 -- Multi-way merge.** With $M/B$ blocks of memory available, reserve one block for output and use the remaining $M/B - 1 \approx M/B$ blocks as input buffers. This allows merging up to $M/B$ sorted runs simultaneously. Each merge pass reads and writes all $N/B$ blocks, and the number of passes is:
+**2마당 -- 여러 갈래 합침.** 기억에 덩이 $M/B$개가 있으면 하나를 내놓기용으로 남기고 나머지 $M/B - 1 \approx M/B$개를 들임 버퍼로 쓴다. 이로써 줄 세운 줄기를 한꺼번에 많아야 $M/B$개 합칠 수 있다. 합침 지나기마다 덩이 $N/B$개를 모두 읽고 적으며 지나기 횟수는 다음과 같다:
 
 $$
 \left\lceil \log_{M/B} \frac{N}{M} \right\rceil = \Theta\!\left(\log_{M/B} \frac{N}{B}\right)
 $$
 
-since $N/M = (N/B)/(M/B)$. The total I/O is $\Theta(N/B)$ per pass times $\Theta(\log_{M/B}(N/B))$ passes.
+$N/M = (N/B)/(M/B)$이기 때문이다. 온 들고남은 지나기마다 $\Theta(N/B)$에 지나기 $\Theta(\log_{M/B}(N/B))$번을 곱한 것이다.
 
-!!! tip "Why the logarithm base matters"
+!!! tip "로그의 밑이 중요한 까닭"
 
-    In the RAM model, sorting costs $\Theta(N \log N)$ regardless of memory hierarchy. In external memory, the base of the logarithm is $M/B$ rather than 2. When $M/B$ is large (e.g., 1000), the number of merge passes drops dramatically. For typical parameters, external merge sort needs only 2--4 passes.
+    RAM 모형에서 줄 세우기는 기억 계층과 상관없이 $\Theta(N \log N)$이 든다. 바깥 기억에서는 로그의 밑이 2가 아니라 $M/B$이다. $M/B$이 크면(보기로 1000) 합침 지나기 횟수가 크게 줄어든다. 흔한 잡에서 바깥 기억 합침 정렬은 지나기 2~4번이면 된다.
 
-## The Searching Bound
+## 찾기 가둠
 
-Searching for a single element among $N$ sorted elements costs:
+줄 세운 원소 $N$개 가운데 하나를 찾는 데 드는 값은 다음과 같다:
 
 $$
 \text{search}(N) = \Theta(\log_B N)
 $$
 
-This is achieved by a B-tree with branching factor $\Theta(B)$. Each node occupies one disk block, and each level of the tree requires one I/O operation. The height of the tree is $\Theta(\log_B N)$.
+이는 갈래 수가 $\Theta(B)$인 B 나무로 이룬다. 마디마다 원반 덩이 하나를 차지하고 나무의 켜마다 들고남 한 번이 든다. 나무의 높이는 $\Theta(\log_B N)$이다.
 
-## The Permutation Bound
+## 자리바꿈 가둠
 
-Rearranging $N$ elements into an arbitrary permutation requires:
+원소 $N$개를 아무 자리바꿈으로 다시 늘어놓는 데 드는 값은 다음과 같다:
 
 $$
 \text{perm}(N) = \Theta\!\left(\min\!\left(N, \frac{N}{B}\log_{M/B}\frac{N}{B}\right)\right)
 $$
 
-When $B = 1$, the bound reduces to $\Theta(N)$ (each element requires its own I/O). When $B$ is large, the sorting bound applies because sorting is the most efficient general rearrangement strategy.
+$B = 1$이면 가둠이 $\Theta(N)$으로 줄어든다(원소마다 제 들고남이 필요하다). $B$이 크면 줄 세우기가 가장 효율 좋은 일반 다시 늘어놓기 셈속이므로 줄 세우기 가둠이 적용된다.
 
-## Summary of Fundamental Bounds
+## 근본 가둠 간추림
 
-| Operation | I/O Complexity | Achieved By |
+| 연산 | 들고남 복잡도 | 이루는 방법 |
 |---|---|---|
-| Scanning | $\Theta(N/B)$ | Sequential read |
-| Sorting | $\Theta\!\left(\frac{N}{B}\log_{M/B}\frac{N}{B}\right)$ | External merge sort |
-| Searching | $\Theta(\log_B N)$ | B-tree lookup |
-| Permuting | $\Theta\!\left(\min\!\left(N, \frac{N}{B}\log_{M/B}\frac{N}{B}\right)\right)$ | Sort-based rearrangement |
+| 훑기 | $\Theta(N/B)$ | 차례 읽기 |
+| 줄 세우기 | $\Theta\!\left(\frac{N}{B}\log_{M/B}\frac{N}{B}\right)$ | 바깥 기억 합침 정렬 |
+| 찾기 | $\Theta(\log_B N)$ | B 나무 찾기 |
+| 자리바꿈 | $\Theta\!\left(\min\!\left(N, \frac{N}{B}\log_{M/B}\frac{N}{B}\right)\right)$ | 줄 세우기 바탕 다시 늘어놓기 |
 
-A key observation is the separation between these bounds:
+핵심은 이 가둠들이 갈린다는 것이다:
 
 $$
 \text{scan}(N) \le \text{sort}(N) \le \text{perm}(N) \le N
 $$
 
-Sorting is strictly more expensive than scanning (by a logarithmic factor), but strictly cheaper than arbitrary permutation when $B > 1$.
+줄 세우기는 훑기보다 (로그 인수만큼) 엄밀히 비싸지만 $B > 1$이면 아무 자리바꿈보다 엄밀히 싸다.
 
-## Example: Comparing I/O Bounds Across Parameters
+## 보기: 잡에 따른 들고남 가둠 견주기
 
 ```python
 """
-I/O complexity bounds for external memory operations.
+바깥 기억 연산의 들고남 복잡도 가둠.
 
 Computes and compares the fundamental I/O bounds (scan, sort, search)
-for varying problem sizes and memory configurations.
+문제 크기와 기억 짜임을 달리하며.
 """
 
 import math
 
 # ===================================================================
-# Fundamental I/O bounds
+# 근본 들고남 가둠
 # ===================================================================
 
 def scan(n: int, b: int) -> float:
-    """Scanning bound: N/B."""
+    """훑기 가둠: N/B."""
     return n / b
 
 
@@ -126,12 +126,12 @@ def sort(n: int, m: int, b: int) -> float:
 
 
 def search(n: int, b: int) -> float:
-    """Searching bound: log_B(N)."""
+    """찾기 가둠: log_B(N)."""
     return math.log(n) / math.log(b) if b > 1 else n
 
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
@@ -152,12 +152,12 @@ if __name__ == "__main__":
         print(f"{N:>14,}  {sc:>12,.0f}  {so:>12,.0f}  {se:>10.1f}  {ratio:>9.1f}")
 ```
 
-??? example "Sample Output"
+??? example "보기 내놓기"
 
     ```
     M = 1,000,000, B = 4,096, M/B = 244
 
-                 N      scan(N)     sort(N)  search(N)  sort/scan
+                 N      scan(N)     sort(N)  search(N)  줄 세우기/훑기
     -----------------------------------------------------------------
          1,000,000          244          244        1.7        1.0
         10,000,000        2,441        4,883        1.9        2.0
@@ -166,9 +166,42 @@ if __name__ == "__main__":
     10,000,000,000    2,441,406   12,207,031        2.8        5.0
     ```
 
-    The sort-to-scan ratio grows logarithmically, confirming that sorting is only modestly more expensive than scanning for practical parameters.
+    줄 세우기와 훑기의 비는 로그로 늘어나며, 실제 잡에서 줄 세우기가 훑기보다 조금 더 비쌀 뿐임을 확인해 준다.
 
-## Reference
+## 참고 문헌
 
 - Aggarwal, A. & Vitter, J. S. "The Input/Output Complexity of Sorting and Related Problems," *Communications of the ACM*, 31(9), 1988.
 - Vitter, J. S. *Algorithms and Data Structures for External Memory*, Foundations and Trends in Theoretical Computer Science, 2008.
+
+
+## 연습문제
+
+**연습문제 1.**
+들고남 복잡도를 뜻매김하고 때 복잡도와 어떻게 다른지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    들고남 복잡도는 셈 때를 무시하고 기억과 원반 사이의 덩이 옮김 횟수를 센다. 때 복잡도는 기억 계층을 무시하고 셈 걸음을 센다. 큰 자료에서는 들고남이 지배한다. 원반 읽기는 $\sim 10$밀리초(굳은 원반), CPU 연산은 $\sim 1$나노초로 $10^7$배 차이다. 때 복잡도는 낮지만 들고남 무늬가 나쁜(아무 닿기) 알고리즘이 때 복잡도는 높지만 차례 들고남을 하는 알고리즘보다 느릴 수 있다. 두름을 모르는 모형은 기억 계층의 모든 켜에 걸친 들고남을 한꺼번에 살핀다.
+
+---
+
+**연습문제 2.**
+행렬 곱하기에 들고남 $\Omega(n^3 / (B\sqrt{M}))$번이 듦을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    홍-쿵(1981): 여느 $O(n^3)$ 알고리즘의 셈 그래프를 보자. 원소 $B$개를 기억에 올릴 때마다 쓸모 있는 곱하기가 많아야 $O(B\sqrt{M})$번 가능하다(두 피연산자가 모두 기억에 있어야 하고 기억에 원소 $M$개가 있으면 다시 올리기 전에 많아야 $O(M^{3/2})$번 곱할 수 있기 때문이다). 온 곱하기: $n^3$번. 들고남: $\Omega(n^3 / (B\sqrt{M}))$번. 타일로 나눈(덩이) 행렬 곱하기가 이를 이룬다. $\sqrt{M} \times \sqrt{M}$ 덩이로 나누어 덩이마다 곱한다.
+
+---
+
+**연습문제 3.**
+B 나무 연산의 들고남 복잡도는 얼마인가?
+
+??? success "연습문제 3 풀이"
+    갈래 수가 $\Theta(B)$인 B 나무의 높이는 $O(\log_B N)$이다. 찾기: 뿌리에서 잎까지 길 하나를 따라가며 켜마다 덩이 하나를 읽는다. 들고남 $O(\log_B N)$번. 넣기와 지우기: 들고남 $O(\log_B N)$번(찾기 + 길을 따라 고치기 + 갈라짐이나 합침 가능). 잇단 원소 $K$개의 구간 묻기: 들고남 $O(\log_B N + K/B)$번(시작을 찾고 훑는다). 모두 견줌 바탕 바깥 자료 얼개에서 가장 좋은 값이다.
+
+---
+
+**연습문제 4.**
+들고남 복잡도 살피기는 GPU 커널 다듬기에 어떤 실마리를 주는가?
+
+??? success "연습문제 4 풀이"
+    GPU 기억 계층: 등록칸(빠르고 아주 작음) > 공유 기억(빠름, 48~96KB) > L2 두름(더 느림, MB) > 온 자리 기억(느림, GB) > CPU 램(아주 느림). 들고남 복잡도 살피기가 그대로 쓰인다. 타일로 나눈 행렬 곱하기는 공유 기억을 '안쪽 기억'으로 쓰고 덩이 크기를 다발 거래에 맞춘다. 뭉친 온 자리 기억 닿기(실 32개가 잇단 주소에 닿음)가 실제 덩이 옮김을 이룬다. 공유 기억의 뱅크 다툼은 들고남 다툼과 비슷하다. GPU 커널 다듬기는 사실상 GPU 기억 계층에 걸친 들고남 복잡도를 가장 작게 하는 일이다.

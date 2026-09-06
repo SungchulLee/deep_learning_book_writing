@@ -1,47 +1,45 @@
-# Chapter 10: Transfer Learning
+# 10장: 전이 학습
 
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
 
-Transfer learning leverages knowledge from models pretrained on large datasets to improve performance on new tasks, especially when training data is limited. This chapter covers the theoretical foundations, practical fine-tuning strategies, domain adaptation techniques, and real-world applications across computer vision, NLP, and specialized domains.
+전이 학습은 큰 데이터셋으로 사전 학습한 모델의 지식을 써서, 특히 학습 데이터가 적을 때 새 과제의 성능을 높인다. 이 장은 이론적 바탕, 실제 미세 조정 방법, 도메인 적응 기법, 그리고 컴퓨터 비전과 자연어 처리와 특수 분야에 걸친 실제 응용을 다룬다.
 
 ---
 
-## 10.1 Transfer Learning
+## 10.1 전이 학습
 
-Core concepts, strategies, and hands-on examples for adapting pretrained models to downstream tasks.
+사전 학습된 모델을 아래쪽 과제에 맞추는 핵심 개념과 방법과 실습 예제.
 
-- Transfer Learning Overview -- Why transfer learning works, hierarchical feature transferability, and a decision framework for choosing strategies
-- Transfer Learning Tutorial -- PyTorch tutorial package with four progressively challenging transfer learning examples
-- Domain Shift -- Types of distribution mismatch between source and target domains and their formal definitions
-- Feature Extraction -- Using pretrained networks as fixed feature extractors with only a new classifier trained on top
-- [Fine-Tuning](transfer_learning/fine_tuning.md) -- The spectrum from frozen feature extraction to full parameter updates with gradual unfreezing
-- Layer Freezing -- Selectively controlling which pretrained parameters are updated during transfer
-- Discriminative Learning Rates -- Assigning different learning rates to different layers based on feature transferability
-- Example 1: Basic Feature Extraction -- Loading a pretrained ResNet18 and training only the final classification layer on CIFAR-10
-- Example 2: Fine-Tuning -- Selectively unfreezing layers with different learning rates and early stopping
-- Example 3: Custom Datasets -- Applying transfer learning to custom image datasets with class imbalance handling
-- Example 4: Advanced Techniques -- Cosine annealing, mixed precision training, gradient accumulation, and model ensembling
+- 전이 학습 훑어보기 — 전이 학습이 통하는 까닭, 위계적 특징의 옮김 가능성, 방법을 고르는 결정 틀
+- 전이 학습 길잡이 — 점점 어려워지는 전이 학습 예제 넷을 담은 파이토치 길잡이 꾸러미
+- 도메인 이동 — 원천 도메인과 목표 도메인 사이의 분포가 어긋나는 유형과 그 정식 정의
+- 특징 뽑기 — 사전 학습된 신경망을 고정된 특징 뽑개로 쓰고 그 위에 새 분류기만 학습하기
+- [미세 조정](transfer_learning/fine_tuning.md) — 얼린 특징 뽑기에서 차츰 녹이며 매개변수를 모두 갱신하기까지의 스펙트럼
+- 층 얼리기 — 전이 중에 어떤 사전 학습 매개변수를 갱신할지 가려서 다스리기
+- 층별 학습률 — 특징의 옮김 가능성에 따라 층마다 다른 학습률 매기기
+- 예제 1: 기본 특징 뽑기 — 사전 학습된 ResNet18을 싣고 CIFAR-10에서 마지막 분류 층만 학습하기
+- 예제 2: 미세 조정 — 층을 가려서 녹이며 다른 학습률과 조기 종료 쓰기
+- 예제 3: 사용자 데이터셋 — 부류 불균형을 다루며 사용자 이미지 데이터셋에 전이 학습 적용하기
+- 예제 4: 고급 기법 — 코사인 담금질, 섞인 정밀도 학습, 기울기 모으기, 모델 앙상블
 
-## 10.2 Domain Adaptation
+## 10.2 도메인 적응
 
-Techniques for bridging the distribution gap between source and target domains.
+원천 도메인과 목표 도메인 사이의 분포 격차를 메우는 기법.
 
-- Domain Adaptation -- The domain adaptation problem, theoretical foundations, and practical techniques
-- Unsupervised Domain Adaptation -- Adapting models using labeled source data and unlabeled target data
-- DANN -- Domain Adversarial Neural Networks with gradient reversal for domain-invariant features
-- [Maximum Mean Discrepancy](domain_adaptation/mmd.md) -- Kernel-based distribution matching for principled domain alignment
-- Multi-Source Domain Adaptation -- Leveraging multiple source domains with automatic source weighting and selective transfer
-- Self-Training -- Iterative pseudo-labeling of unlabeled target data for progressive domain adaptation
+- 도메인 적응 — 도메인 적응 문제, 이론적 바탕, 실제 기법
+- 비지도 도메인 적응 — 이름표 있는 원천 데이터와 이름표 없는 목표 데이터로 모델 맞추기
+- DANN — 도메인 불변 특징을 위해 기울기를 뒤집는 도메인 적대 신경망
+- [최대 평균 불일치](domain_adaptation/mmd.md) — 원칙에 바탕한 도메인 정렬을 위한 커널 기반 분포 맞추기
+- 다중 원천 도메인 적응 — 원천에 자동으로 가중치를 주고 가려서 옮기며 여러 원천 도메인 쓰기
+- 자기 학습 — 점진적 도메인 적응을 위해 이름표 없는 목표 데이터에 거짓 이름표를 되풀이해 붙이기
 
-## 10.3 Applications
+## 10.3 응용
 
-Practical applications of transfer learning across computer vision, NLP, finance, and specialized domains.
+컴퓨터 비전과 자연어 처리와 금융과 특수 분야에 걸친 전이 학습의 실제 응용.
 
-- Transfer Learning for Computer Vision -- Standard transfer pipeline with ImageNet-pretrained models for diverse visual tasks
-- Transfer Learning for NLP -- Adapting pretrained language models like BERT and GPT to downstream text tasks
-- Cross-Domain Transfer -- Strategies for transferring knowledge across different domains based on domain distance
-- Transfer Learning for Finance -- Text-based and time series transfer for financial applications including FinBERT and temporal adaptation
-- [Transfer Learning for Time Series](applications/transfer_time_series.md) -- Specialized transfer strategies addressing temporal dependencies and non-stationarity
-- Negative Transfer -- When transfer learning hurts performance and how to diagnose and prevent it
+- 컴퓨터 비전을 위한 전이 학습 — 갖가지 시각 과제에 ImageNet 사전 학습 모델을 쓰는 표준 전이 파이프라인
+- 자연어 처리를 위한 전이 학습 — BERT나 GPT 같은 사전 학습 언어 모델을 아래쪽 텍스트 과제에 맞추기
+- 도메인 사이 전이 — 도메인 거리에 따라 서로 다른 도메인으로 지식을 옮기는 방법
+- 금융을 위한 전이 학습 — FinBERT와 시간 적응을 아우르는, 금융 응용을 위한 텍스트 기반·시계열 전이
+- [시계열을 위한 전이 학습](applications/transfer_time_series.md) — 시간 의존성과 비정상성을 다루는 특수 전이 방법
+- 음의 전이 — 전이 학습이 성능을 해치는 때와 그것을 진단하고 막는 법

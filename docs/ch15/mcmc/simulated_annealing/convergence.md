@@ -1,330 +1,287 @@
-# Convergence Theory
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-This section develops the mathematical theory of simulated annealing convergence: when and why the algorithm finds the global optimum, the role of energy barriers, and practical implications of the theoretical results.
+# 모임 이론
+이 절에서는 흉내낸 담금질의 모임에 대한 수학 이론을 펼친다. 곧 알고리즘이 언제 왜 전체 최적점을 찾는지, 에너지 벽이 하는 일이 무엇인지, 이론 결과가 실전에 뜻하는 바가 무엇인지를 다룬다.
 
 ---
 
-## Types of Convergence
+## 모임의 갈래
 
-### Convergence in Probability
+### 확률로 모임
 
-Simulated annealing converges **in probability** to the global optimum if:
+다음이면 흉내낸 담금질은 전체 최적점으로 **확률로 모인다**:
 
 $$
-
 \lim_{t \to \infty} P(X_t \in \mathcal{X}^*) = 1
-
 $$
 
-where $\mathcal{X}^* = \arg\min_x E(x)$ is the set of global minimizers. This is the standard notion of convergence for SA—the probability of being at the optimum approaches 1.
+여기서 $\mathcal{X}^* = \arg\min_x E(x)$은 전체 최솟점의 모임이다. 이것이 SA의 표준 모임 개념이다. 곧 최적점에 있을 확률이 1로 다가간다.
 
-### Almost Sure Convergence
+### 거의 확실히 모임
 
-**Almost sure convergence** is stronger:
+**거의 확실히 모임**은 더 센 뜻이다:
 
 $$
-
 P\left(\lim_{t \to \infty} X_t \in \mathcal{X}^*\right) = 1
-
 $$
 
-This means that with probability 1, the sequence eventually reaches and stays at the global optimum. For finite state spaces, convergence in probability implies almost sure convergence.
+곧 확률 1로 그 늘어놓음이 끝내 전체 최적점에 이르러 거기 머문다는 뜻이다. 상태 공간이 끝이 있으면 확률로 모임에서 거의 확실히 모임이 따라 나온다.
 
-### Convergence of the Distribution
+### 분포의 모임
 
-We can also ask whether the distribution of $X_t$ converges:
+$X_t$의 분포가 모이는지도 물을 수 있다:
 
 $$
-
 \lim_{t \to \infty} \mu_t = \delta_{\mathcal{X}^*}
-
 $$
 
-where $\mu_t$ is the distribution of $X_t$ and $\delta_{\mathcal{X}^*}$ is the uniform distribution on global minima.
+여기서 $\mu_t$은 $X_t$의 분포이고 $\delta_{\mathcal{X}^*}$은 전체 최솟점 위의 고른 분포이다.
 
 ---
 
-## The Main Convergence Theorem
+## 주요 모임 정리
 
-### Statement (Geman & Geman, 1984; Hajek, 1988)
+### 서술(게먼 형제 1984, 하이에크 1988)
 
-**Theorem**: Let $X_t$ be a simulated annealing Markov chain on a finite state space $\mathcal{X}$ with cooling schedule $T(t)$. Assume:
+**정리**: $X_t$을 식힘 일정이 $T(t)$인, 끝이 있는 상태 공간 $\mathcal{X}$ 위의 흉내낸 담금질 마르코프 사슬이라 하자. 다음을 놓자:
 
-1. The proposal distribution allows transitions between any two states (irreducibility)
-2. The cooling schedule satisfies $T(t) \geq \frac{d^*}{\log(t + 2)}$ for all $t$
+1. 제안 분포가 아무 두 상태 사이의 옮김을 허락한다(줄일 수 없음)
+2. 식힘 일정이 모든 $t$에 대해 $T(t) \geq \frac{d^*}{\log(t + 2)}$을 만족한다
 
-Then:
+그러면 다음과 같다.
 
 $$
-
 \lim_{t \to \infty} P(X_t \in \mathcal{X}^*) = 1
-
 $$
 
-where $d^*$ is the **critical depth** of the energy landscape.
+여기서 $d^*$은 에너지 지형의 **임계 깊이**이다.
 
-### The Critical Depth
+### 임계 깊이
 
-The critical depth $d^*$ is the key quantity characterizing the optimization landscape:
+임계 깊이 $d^*$은 최적화 지형을 특징짓는 핵심 양이다:
 
 $$
-
 d^* = \max_{x \notin \mathcal{X}^*} D(x, \mathcal{X}^*)
-
 $$
 
-where $D(x, A)$ is the **depth** of state $x$ relative to set $A$:
+여기서 $D(x, A)$은 집합 $A$에 견준 상태 $x$의 **깊이**이다:
 
 $$
-
 D(x, A) = \min_{\gamma: x \to A} \max_{y \in \gamma} E(y) - E(x)
-
 $$
 
-**Interpretation**: $D(x, A)$ is the minimum "elevation gain" required to travel from $x$ to any state in $A$. The critical depth $d^*$ is then the maximum such elevation gain over all non-optimal states—the height of the highest mountain pass that must be crossed to reach the deepest valley from any other valley.
+**풀이**: $D(x, A)$은 $x$에서 $A$의 어느 상태로 가는 데 필요한 최소 "오름 높이"이다. 임계 깊이 $d^*$은 최적이 아닌 모든 상태에 걸친 그 오름 높이의 최댓값이며, 곧 다른 어느 골짜기에서든 가장 깊은 골짜기에 이르려면 넘어야 하는 가장 높은 고개의 높이이다.
 
-### Computing Critical Depth
+### 임계 깊이 셈하기
 
-For a finite state space, $d^*$ can be computed by:
+상태 공간이 끝이 있으면 $d^*$을 다음처럼 셈할 수 있다:
 
-1. For each local minimum $x_i \notin \mathcal{X}^*$: find all paths to any global minimum, compute the maximum elevation minus $E(x_i)$ for each path, and take the minimum over all paths to get $D(x_i, \mathcal{X}^*)$
-2. Take the maximum over all local minima: this is $d^*$
+1. 그 자리 최솟점 $x_i \notin \mathcal{X}^*$마다 아무 전체 최솟점으로 가는 길을 모두 찾고, 길마다 가장 높은 높이에서 $E(x_i)$을 뺀 값을 셈한 뒤, 길 전체에 걸쳐 최솟값을 잡아 $D(x_i, \mathcal{X}^*)$을 얻는다
+2. 모든 그 자리 최솟점에 걸쳐 최댓값을 잡는다. 이것이 $d^*$이다
 
-**Example**: Three-well potential with $E(x_1) = 2$, $E(x_2) = 3$, $E(x^*) = 0$, and barrier heights of 5 and 4:
+**보기**: $E(x_1) = 2$, $E(x_2) = 3$, $E(x^*) = 0$이고 벽 높이가 5과 4인 세 우물 퍼텐셜에서:
 
 $$
-
 D(x_1, x^*) = 5 - 2 = 3, \quad D(x_2, x^*) = 4 - 3 = 1, \quad d^* = \max(3, 1) = 3
-
 $$
 
 ---
 
-## Proof Sketch
+## 증명의 얼개
 
-### Key Ideas
+### 핵심 생각
 
-The proof proceeds in several steps:
+증명은 여러 걸음으로 나아간다:
 
-**Step 1: Mixing at fixed temperature.** At any fixed temperature $T > 0$, the Metropolis chain is ergodic and converges to $\pi_T(x) = e^{-E(x)/T} / Z_T$.
+**걸음 1: 붙박인 온도에서의 섞임.** 붙박인 온도 $T > 0$에서 메트로폴리스 사슬은 에르고드적이며 $\pi_T(x) = e^{-E(x)/T} / Z_T$으로 모인다.
 
-**Step 2: Low-temperature concentration.** As $T \to 0$:
+**걸음 2: 낮은 온도에서의 몰림.** $T \to 0$이면:
 
 $$
-
 \pi_T(x) \to \begin{cases}
 \frac{1}{|\mathcal{X}^*|} & x \in \mathcal{X}^* \\
 0 & x \notin \mathcal{X}^*
 \end{cases}
-
 $$
 
-**Step 3: Escape time analysis.** The expected time to escape from a local minimum $x$ to a lower-energy state scales as:
+**걸음 3: 벗어나는 시간 살피기.** 그 자리 최솟점 $x$에서 에너지가 더 낮은 상태로 벗어나는 데 드는 기댓값 시간은 다음처럼 커진다:
 
 $$
-
 \tau_{\text{escape}}(x, T) \sim e^{D(x)/T}
-
 $$
 
-where $D(x)$ is the minimum barrier height.
+여기서 $D(x)$은 최소 벽 높이이다.
 
-**Step 4: Sufficient cooling rate.** For the chain to escape all local minima with high probability, we need:
+**걸음 4: 넉넉한 식힘 빠르기.** 사슬이 높은 확률로 모든 그 자리 최솟점에서 벗어나려면 다음이 필요하다:
 
 $$
-
 \sum_{t=1}^{\infty} e^{-d^*/T(t)} = \infty
-
 $$
 
-This is satisfied if and only if $T(t) \geq d^*/\log(t)$.
+이는 $T(t) \geq d^*/\log(t)$일 때 그리고 오직 그때만 만족된다.
 
-### The Weak Reversibility Condition
+### 약한 되돌림 조건
 
-A key technical condition is **weak reversibility**: for any two states $x, y$, there exists a sequence of states connecting them such that each transition has positive probability at any temperature. This ensures the chain can eventually reach the global minimum from any starting point.
+핵심적인 기술 조건은 **약한 되돌림**이다. 곧 아무 두 상태 $x, y$에 대해 그것들을 잇는 상태의 늘어놓음이 있어 옮김마다 어느 온도에서든 확률이 양수인 것이다. 이 덕분에 사슬은 어느 시작점에서든 끝내 전체 최솟점에 이를 수 있다.
 
 ---
 
-## Necessary and Sufficient Conditions
+## 필요충분조건
 
-### Hajek's Characterization
+### 하이에크의 특징지음
 
-**Theorem (Hajek, 1988)**: For simulated annealing on a finite state space:
+**정리(하이에크, 1988)**: 끝이 있는 상태 공간 위의 흉내낸 담금질에 대해:
 
 $$
-
 \lim_{t \to \infty} P(X_t \in \mathcal{X}^*) = 1 \quad \Longleftrightarrow \quad \sum_{t=1}^{\infty} e^{-d^*/T(t)} = \infty
-
 $$
 
-This gives a complete characterization:
+이는 온전한 특징지음을 준다:
 
-- Logarithmic cooling $T(t) = c/\log(t)$ with $c \geq d^*$ satisfies the condition
-- Any faster cooling (e.g., exponential) violates it
-- The critical depth $d^*$ is the sharp threshold
+- $c \geq d^*$인 로그 식힘 $T(t) = c/\log(t)$은 이 조건을 만족한다
+- 그보다 빠른 식힘(이를테면 지수)은 이를 어긴다
+- 임계 깊이 $d^*$이 날카로운 문턱값이다
 
-### Implications
+### 뜻하는 바
 
-**Logarithmic cooling is necessary**: Any schedule with $T(t) < d^*/\log(t)$ infinitely often will fail to converge with positive probability.
+**로그 식힘이 꼭 필요하다**: $T(t) < d^*/\log(t)$이 끝없이 되풀이되는 일정은 양수인 확률로 모이는 데 실패한다.
 
-**The constant matters**: If $T(t) = c/\log(t)$ with $c < d^*$, convergence fails.
+**상수가 중요하다**: $c < d^*$인 $T(t) = c/\log(t)$이면 모임이 무너진다.
 
-**Problem-dependent**: The required cooling rate depends on the specific energy landscape through $d^*$.
+**문제마다 다르다**: 필요한 식힘 빠르기는 $d^*$을 거쳐 그 에너지 지형에 달려 있다.
 
 ---
 
-## Finite-Time Analysis
+## 끝이 있는 시간 살피기
 
-### Probability of Finding Optimum
+### 최적점을 찾을 확률
 
-For finite time $t$, we can bound the probability of not being at the optimum:
+끝이 있는 시간 $t$에 대해 최적점에 있지 않을 확률을 묶을 수 있다:
 
 $$
-
 P(X_t \notin \mathcal{X}^*) \leq C \cdot \exp\left(-\alpha \sum_{s=1}^{t} e^{-d^*/T(s)}\right)
-
 $$
 
-for some constants $C, \alpha > 0$ depending on the problem.
+여기서 $C, \alpha > 0$은 문제에 달린 상수이다.
 
-### Time to Reach Optimum
+### 최적점에 이르는 시간
 
-The expected hitting time to $\mathcal{X}^*$ from the worst starting point scales as $\mathbb{E}[\tau^*] \sim e^{d^*/T_{\text{final}}}$ for constant-temperature algorithms. For annealing with $T(t^*) \approx d^*/\log(t^*)$, this gives $t^* \sim e^{d^*}$—exponential in the critical depth.
+온도가 일정한 알고리즘에서 가장 나쁜 시작점에서 $\mathcal{X}^*$에 닿는 기댓값 시간은 $\mathbb{E}[\tau^*] \sim e^{d^*/T_{\text{final}}}$으로 커진다. $T(t^*) \approx d^*/\log(t^*)$인 담금질에서는 $t^* \sim e^{d^*}$이 되어 임계 깊이에 대해 지수로 커진다.
 
-### Approximation Guarantees
+### 어림 보장
 
-For faster schedules, we cannot guarantee finding the exact optimum, but we can bound the suboptimality:
+더 빠른 일정에서는 정확한 최적점을 찾는다고 보장할 수 없지만 최적에 못 미치는 정도를 묶을 수는 있다:
 
-**Theorem**: With exponential cooling $T(t) = T_0 \alpha^t$, after $t$ iterations:
+**정리**: 지수 식힘 $T(t) = T_0 \alpha^t$을 쓰면 되풀이 $t$번 뒤에 다음이 성립한다:
 
 $$
-
 \mathbb{E}[E(X_t)] - E^* \leq O\left(\frac{d^*}{\log(1/\alpha) \cdot t}\right)
-
 $$
 
-The gap decreases polynomially in $t$ rather than vanishing completely.
+그 틈은 아주 사라지지는 않고 $t$에 대해 다항으로 줄어든다.
 
 ---
 
-## Energy Landscape Analysis
+## 에너지 지형 살피기
 
-### The Transition Graph
+### 옮김 그래프
 
-Define a graph $G = (\mathcal{X}, \mathcal{E})$ where states $x, y$ are connected if transitions are possible. Assign edge weights:
+옮김이 될 수 있으면 상태 $x, y$을 잇는 그래프 $G = (\mathcal{X}, \mathcal{E})$을 정한다. 변에 다음 무게를 준다:
 
 $$
-
 w(x \to y) = \max(0, E(y) - E(x))
-
 $$
 
-The critical depth is related to min-cut problems on this graph.
+임계 깊이는 이 그래프의 최소 자름 문제와 이어져 있다.
 
-### Basins of Attraction
+### 끌림 웅덩이
 
-A **basin** $B(x^*)$ around local minimum $x^*$ consists of all states from which gradient descent would reach $x^*$:
+그 자리 최솟점 $x^*$ 둘레의 **웅덩이** $B(x^*)$은 기울기 내리기로 $x^*$에 이르게 되는 모든 상태로 이루어진다:
 
 $$
-
 B(x^*) = \{x : \text{greedy descent from } x \text{ reaches } x^*\}
-
 $$
 
-At low temperature, the SA chain becomes trapped in basins. Escape requires crossing energy barriers.
+온도가 낮으면 SA 사슬은 웅덩이에 갇힌다. 벗어나려면 에너지 벽을 넘어야 한다.
 
-### Funnel Structure
+### 깔때기 짜임
 
-Many practical problems have a **funnel** structure: most of state space drains into a few deep basins, the global basin is the deepest, and barriers between basins are moderate. Funnel structures are favorable for SA because the critical depth is relatively small.
+많은 실전 문제는 **깔때기** 짜임을 갖는다. 곧 상태 공간의 대부분이 몇몇 깊은 웅덩이로 흘러들고, 전체 웅덩이가 가장 깊으며, 웅덩이 사이의 벽이 알맞다. 깔때기 짜임은 임계 깊이가 비교적 작으므로 SA에 이롭다.
 
-### Rugged Landscapes
+### 울퉁불퉁한 지형
 
-**Rugged landscapes** have many local minima of similar depth, high barriers between nearby states, and large critical depth. Such landscapes are difficult for SA and may require exponentially long runs.
+**울퉁불퉁한 지형**은 깊이가 엇비슷한 그 자리 최솟점이 많고, 가까운 상태 사이의 벽이 높으며, 임계 깊이가 크다. 이런 지형은 SA에 어려우며 지수로 긴 실행이 필요할 수 있다.
 
 ---
 
-## Spectral Gap and Mixing Time
+## 스펙트럼 틈과 섞임 시간
 
-At fixed temperature $T$, the Metropolis chain has a spectral gap $\gamma(T)$ determining mixing time:
+붙박인 온도 $T$에서 메트로폴리스 사슬은 섞임 시간을 정하는 스펙트럼 틈 $\gamma(T)$을 갖는다:
 
 $$
-
 \tau_{\text{mix}}(T) \sim \frac{1}{\gamma(T)}
-
 $$
 
-The spectral gap typically satisfies:
+스펙트럼 틈은 대개 다음을 만족한다:
 
 $$
-
 \gamma(T) \geq C \cdot \exp\left(-\frac{\Delta E_{\max}}{T}\right)
-
 $$
 
-where $\Delta E_{\max}$ is the maximum energy difference and $|\mathcal{X}|$ is the state space size.
+여기서 $\Delta E_{\max}$은 최대 에너지 차이이고 $|\mathcal{X}|$은 상태 공간의 크기이다.
 
-The cooling schedule must be slow enough that the chain approximately mixes at each temperature, requiring time at temperature $T$ on the order of $\tau_{\text{mix}}(T) \sim e^{\Delta/T}$. Logarithmic cooling provides this; faster cooling does not.
+식힘 일정은 온도마다 사슬이 거의 섞일 만큼 느려야 하며, 온도 $T$에서 $\tau_{\text{mix}}(T) \sim e^{\Delta/T}$쯤의 시간이 든다. 로그 식힘은 이를 주지만 더 빠른 식힘은 주지 못한다.
 
 ---
 
-## Continuous State Spaces
+## 이어진 상태 공간
 
-### Extension of Theory
+### 이론 넓히기
 
-For continuous state spaces $\mathcal{X} \subseteq \mathbb{R}^d$, the theory is more complex. The challenges include infinite state space, care needed in defining barriers, and harder mixing time analysis. Under regularity conditions (smoothness, compactness), similar convergence results hold with logarithmic cooling.
+이어진 상태 공간 $\mathcal{X} \subseteq \mathbb{R}^d$에서는 이론이 더 복잡하다. 상태 공간이 끝이 없고, 벽을 정하는 데 조심해야 하며, 섞임 시간 살피기가 더 어렵다. 매끄러움과 옹골짐 같은 규칙 조건 아래에서는 로그 식힘으로 비슷한 모임 결과가 성립한다.
 
-### The Critical Depth in Continuous Spaces
+### 이어진 공간에서의 임계 깊이
 
-For smooth energy functions, define:
+매끄러운 에너지 함수에 대해 다음을 정한다:
 
 $$
-
 d^* = \max_{x \in \mathcal{X}} \min_{\gamma: x \to \mathcal{X}^*} \max_{y \in \gamma} E(y) - E(x)
-
 $$
 
-where the minimum is over continuous paths. This equals the height of the lowest mountain pass between any local minimum and the global minimum.
+여기서 최솟값은 이어진 길에 걸쳐 잡는다. 이는 아무 그 자리 최솟점과 전체 최솟점 사이의 가장 낮은 고개의 높이와 같다.
 
-### Langevin Interpretation
+### 랑주뱅으로 풀이하기
 
-Simulated annealing with small step sizes approximates the time-inhomogeneous Langevin diffusion:
+걸음 크기가 작은 흉내낸 담금질은 시간에 따라 고르지 않은 랑주뱅 퍼짐을 어림한다:
 
 $$
-
 dX_t = -\nabla E(X_t) \, dt + \sqrt{2T(t)} \, dW_t
-
 $$
 
-Convergence results for this SDE parallel the discrete case.
+이 확률 미분방정식의 모임 결과는 띄엄띄엄한 경우와 나란하다.
 
 ---
 
-## Practical Diagnostics
+## 실전 진단
 
-### Detecting Convergence
+### 모임 알아내기
 
-**Energy plateau**: If $E(X_t)$ has not improved for many iterations at low temperature, the algorithm has likely converged to some local minimum.
+**에너지 고원**: 낮은 온도에서 $E(X_t)$이 여러 되풀이 동안 나아지지 않았다면 알고리즘이 어떤 그 자리 최솟점으로 모였을 가능성이 높다.
 
-**Multiple runs**: If independent runs consistently find the same energy, the global optimum has likely been found.
+**여러 번 돌리기**: 독립인 실행이 한결같이 같은 에너지를 찾는다면 전체 최적점을 찾았을 가능성이 높다.
 
-**Acceptance rate**: At very low temperature, near-zero acceptance suggests convergence to a local minimum.
+**받아들임 비율**: 온도가 아주 낮을 때 받아들임이 0에 가까우면 그 자리 최솟점으로 모였다는 뜻이다.
 
-### Estimating Critical Depth
+### 임계 깊이 어림하기
 
-For problems where $d^*$ is unknown:
+$d^*$을 모르는 문제에서는:
 
-- **Upper bound**: Run SA many times, track the worst local minimum found. The barrier from this minimum to the best found gives a lower bound on $d^*$.
-- **Lower bound**: If SA with a given schedule consistently finds the optimum, the schedule is sufficient, giving an upper bound on $d^*$.
+- **위 경계**: SA을 여러 번 돌려 찾은 가장 나쁜 그 자리 최솟점을 기록한다. 이 최솟점에서 가장 좋은 것까지의 벽이 $d^*$의 아래 경계를 준다.
+- **아래 경계**: 주어진 일정의 SA이 한결같이 최적점을 찾으면 그 일정이 넉넉한 것이므로 $d^*$의 위 경계를 준다.
 
-### Quality Assessment
+### 질 살피기
 
 ```python
 def assess_convergence(E, run_sa, n_runs=20, schedule_params=None):
-    """Assess SA convergence through multiple runs."""
+    """여러 번 돌려 SA의 모임 살피기."""
     results = []
     
     for _ in range(n_runs):
@@ -346,49 +303,85 @@ def assess_convergence(E, run_sa, n_runs=20, schedule_params=None):
 
 ---
 
-## Comparison with Other Optimization Methods
+## 다른 최적화 방법과 견주기
 
-### Theoretical Guarantees
+### 이론의 보장
 
-| Method | Convergence | Rate | Conditions |
+| 방법 | 모임 | 빠르기 | 조건 |
 |--------|-------------|------|------------|
-| Gradient descent | Local minimum | Geometric | Smooth, convex → global |
-| Newton's method | Local minimum | Quadratic | Smooth, convex → global |
-| Simulated annealing | Global minimum | Sub-linear | Logarithmic cooling |
-| Genetic algorithms | Global minimum | Problem-dependent | Population diversity |
-| Random search | Global minimum | $O(|\mathcal{X}|)$ | Finite state space |
+| 기울기 내리기 | 그 자리 최솟점 | 등비 | 매끄럽고 볼록하면 → 전체 |
+| 뉴턴 방법 | 그 자리 최솟점 | 이차 | 매끄럽고 볼록하면 → 전체 |
+| 흉내낸 담금질 | 전체 최솟점 | 선형보다 느림 | 로그 식힘 |
+| 유전 알고리즘 | 전체 최솟점 | 문제마다 다름 | 무리의 다양함 |
+| 무작위 찾기 | 전체 최솟점 | $O(|\mathcal{X}|)$ | 끝이 있는 상태 공간 |
 
-### The Exploration-Exploitation Spectrum
+### 살펴보기-써먹기의 띠
 
-SA's temperature parameter allows moving along the exploration-exploitation spectrum during optimization. At one extreme lies pure exploration (random search), at the other pure exploitation (gradient descent). Temperature controls the position on this spectrum, transitioning from exploration-dominant to exploitation-dominant over the course of the run.
-
----
-
-## Limitations of the Theory
-
-### The Practicality Gap
-
-Theory says logarithmic cooling guarantees convergence. Practice shows logarithmic cooling is too slow for real problems. The resolution is to use faster schedules, accept approximate solutions, and use multiple restarts.
-
-### Unknown Critical Depth
-
-The critical depth $d^*$ is typically unknown and hard to estimate: it requires knowledge of the entire energy landscape, computing it exactly is as hard as solving the optimization problem, and bounds are often loose.
-
-### Non-Markovian Improvements
-
-The theory assumes a simple Markov chain. Practical improvements often break Markovianity through momentum methods, memory of past states, and adaptive proposals. These can improve performance but complicate analysis.
+SA의 온도 매개변수는 최적화 도중에 살펴보기와 써먹기의 띠 위를 오갈 수 있게 한다. 한쪽 끝에는 순전한 살펴보기(무작위 찾기)가, 다른 쪽 끝에는 순전한 써먹기(기울기 내리기)가 있다. 온도가 이 띠 위의 자리를 다스리며, 돌리는 동안 살펴보기가 앞서던 데서 써먹기가 앞서는 쪽으로 옮겨 간다.
 
 ---
 
-## Summary
+## 이론의 한계
 
-| Concept | Description |
+### 실전과의 틈
+
+이론은 로그 식힘이 모임을 보장한다고 말한다. 실전은 로그 식힘이 진짜 문제에는 너무 느리다고 말한다. 그 해법은 더 빠른 일정을 쓰고, 어림 풀이를 받아들이며, 여러 번 다시 시작하는 것이다.
+
+### 알 수 없는 임계 깊이
+
+임계 깊이 $d^*$은 대개 알 수 없고 어림하기도 어렵다. 곧 에너지 지형 전체를 알아야 하고, 정확히 셈하는 일은 최적화 문제를 푸는 것만큼 어려우며, 경계는 흔히 헐겁다.
+
+### 마르코프가 아닌 개선
+
+이론은 단순한 마르코프 사슬을 놓고 본다. 실전의 개선은 운동량 방법, 지난 상태의 기억, 맞춰 가는 제안 따위로 마르코프 성질을 흔히 깨뜨린다. 이는 성능을 낫게 할 수 있지만 살피기를 복잡하게 만든다.
+
+---
+
+## 요약
+
+| 개념 | 설명 |
 |---------|-------------|
-| **Critical depth** $d^*$ | Maximum barrier height to global optimum |
-| **Logarithmic cooling** | $T(t) \geq d^*/\log(t)$ guarantees convergence |
-| **Necessary and sufficient** | Hajek's condition: $\sum e^{-d^*/T(t)} = \infty$ |
-| **Escape time** | $\tau \sim e^{d^*/T}$ at temperature $T$ |
-| **Finite-time bounds** | Suboptimality decreases polynomially |
-| **Practical gap** | Theory requires impractically slow cooling |
+| **임계 깊이** $d^*$ | 전체 최적점으로 가는 최대 벽 높이 |
+| **로그 식힘** | $T(t) \geq d^*/\log(t)$이면 모임이 보장된다 |
+| **필요충분** | 하이에크 조건: $\sum e^{-d^*/T(t)} = \infty$ |
+| **벗어나는 시간** | 온도 $T$에서 $\tau \sim e^{d^*/T}$ |
+| **끝이 있는 시간의 경계** | 최적에 못 미치는 정도가 다항으로 줄어든다 |
+| **실전과의 틈** | 이론은 쓸 수 없을 만큼 느린 식힘을 요구한다 |
 
-The convergence theory for simulated annealing provides understanding of why the algorithm works, reveals the fundamental role of energy barriers, explains why fast cooling fails, and offers guidance for schedule design even when logarithmic cooling is impractical.
+흉내낸 담금질의 모임 이론은 알고리즘이 왜 되는지를 알려 주고, 에너지 벽이 하는 근본적인 일을 드러내며, 빠른 식힘이 왜 무너지는지를 밝히고, 로그 식힘이 쓸 수 없을 때에도 일정을 짜는 길잡이가 된다.
+
+## 연습문제
+
+**연습문제 1.**
+마르코프 사슬이 올바른 과녁 분포로 모이게 하는 데 받아들임 확률이 하는 몫을 설명하여라.
+
+??? success "연습문제 1 풀이"
+    받아들임 확률이 **자세한 균형** $\pi(x) T(x \to x') \alpha(x \to x') = \pi(x') T(x' \to x) \alpha(x' \to x)$을 보장한다. 여기서 $\pi$은 과녁 분포, $T$은 제안 분포, $\alpha$은 받아들임 확률이다. 자세한 균형은 $\pi$이 사슬의 멈춘 분포임을 뜻한다. 쪼갤 수 없음과 주기 없음까지 합치면 $\pi$으로의 에르고드 모임이 보장된다.
+
+---
+
+**연습문제 2.**
+제안 분포가 너무 좁은 상황과 너무 넓은 상황을 밝혀라. 저마다 표집 효율에 어떤 영향을 주는가?
+
+??? success "연습문제 2 풀이"
+    **너무 좁을 때:** 제안이 거의 늘 받아들여지지만(받아들임 비율이 높지만) 사슬이 아주 작은 걸음을 떼어 과녁 분포를 느리게 살펴본다. 그러면 자기상관이 높고 실효 표본 크기가 작아진다. **너무 넓을 때:** 제안이 확률이 낮은 구역에 자주 떨어져 물리쳐지므로(받아들임 비율이 낮으므로) 사슬이 여러 되풀이 동안 지금 상태에 갇혀 있게 된다. 두 극단 모두 효율을 떨어뜨린다. 높은 차원에서 무작위 걸음 메트로폴리스의 가장 좋은 받아들임 비율은 대략 0.234이다(Roberts 외, 1997).
+
+---
+
+**연습문제 3.**
+메트로폴리스-헤이스팅스 받아들임 비 $\alpha = \min\left(1, \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}\right)$이 $\pi$에 대해 자세한 균형을 만족함을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    일반성을 잃지 않고 $\pi(x') q(x|x') \leq \pi(x) q(x'|x)$이라 하자. 그러면 $\alpha(x \to x') = \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}$이고 $\alpha(x' \to x) = 1$이다. 자세한 균형 조건은 다음을 요구한다:
+
+    $$\pi(x) q(x'|x) \alpha(x \to x') = \pi(x) q(x'|x) \cdot \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)} = \pi(x') q(x|x')$$
+
+    그리고 $\pi(x') q(x|x') \alpha(x' \to x) = \pi(x') q(x|x') \cdot 1 = \pi(x') q(x|x')$이다. 양변이 같다. $\square$
+
+---
+
+**연습문제 4.**
+MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴지 어떻게 정하는가?
+
+??? success "연습문제 4 풀이"
+    태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.

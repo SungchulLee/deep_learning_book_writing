@@ -1,14 +1,9 @@
 # Adam
+## 개요
 
+Adam(적응형 모멘트 추정)은 모멘텀(일차 모멘트)과 RMSprop(이차 모멘트)의 장점을 편향 보정과 함께 하나의 최적화기로 묶는다. 딥러닝에서 가장 널리 쓰이는 최적화기이다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-Adam (Adaptive Moment Estimation) combines the benefits of momentum (first moment) and RMSprop (second moment) into a single optimizer with bias correction. It is the most widely used optimizer in deep learning.
-
-## Update Rule
+## 갱신 규칙
 
 $$m_t = \beta_1 \, m_{t-1} + (1 - \beta_1) \, g_t$$
 
@@ -18,44 +13,86 @@ $$\hat{m}_t = \frac{m_t}{1 - \beta_1^t}, \quad \hat{v}_t = \frac{v_t}{1 - \beta_
 
 $$\theta_{t+1} = \theta_t - \eta \, \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}$$
 
-where $m_t$ and $v_t$ are the first and second moment estimates, and the hat notation denotes bias-corrected values.
+여기서 $m_t$과 $v_t$은 일차 모멘트와 이차 모멘트의 추정값이고, 모자 표기는 편향을 보정한 값을 뜻한다.
 
-## Bias Correction
+## 편향 보정
 
-Both $m_t$ and $v_t$ are initialized to zero. In early iterations, they are biased toward zero. The correction terms $1/(1 - \beta_1^t)$ and $1/(1 - \beta_2^t)$ compensate for this initialization bias. As $t \to \infty$, the correction approaches 1 and has no effect.
+$m_t$과 $v_t$은 모두 0으로 초기화된다. 초반 반복에서는 이들이 0 쪽으로 치우친다. 보정항 $1/(1 - \beta_1^t)$과 $1/(1 - \beta_2^t)$이 이 초기화 편향을 메운다. $t \to \infty$이면 보정이 1에 가까워져 아무 영향이 없다.
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 optimizer = torch.optim.Adam(model.parameters(), lr=0.001,
                              betas=(0.9, 0.999), eps=1e-8)
 ```
 
-## Default Hyperparameters
+## 기본 초매개변수
 
-The original paper's defaults work well across a wide range of problems:
+원 논문의 기본값은 아주 다양한 문제에서 잘 통한다.
 
-- $\eta = 0.001$ (learning rate)
-- $\beta_1 = 0.9$ (first moment decay)
-- $\beta_2 = 0.999$ (second moment decay)
-- $\epsilon = 10^{-8}$ (numerical stability)
+- $\eta = 0.001$ (학습률)
+- $\beta_1 = 0.9$ (일차 모멘트의 감쇠)
+- $\beta_2 = 0.999$ (이차 모멘트의 감쇠)
+- $\epsilon = 10^{-8}$ (수치 안정성)
 
-## Strengths
+## 장점
 
-- **Low tuning effort**: Default hyperparameters work well out of the box.
-- **Fast convergence**: Combines momentum's acceleration with adaptive learning rates.
-- **Robustness**: Handles sparse gradients and noisy objectives well.
+- **조율이 거의 필요 없다**: 기본 초매개변수가 그대로 잘 통한다.
+- **빠른 수렴**: 모멘텀의 가속과 적응형 학습률을 결합한다.
+- **견고함**: 희소한 기울기와 잡음이 많은 목적 함수를 잘 다룬다.
 
-## Known Issues
+## 알려진 문제
 
-**Weight decay interaction**: L2 regularization in Adam is not equivalent to weight decay (unlike in SGD). The adaptive scaling distorts the regularization effect. This motivated AdamW (next section).
+**가중치 감쇠와의 상호작용**: Adam에서 L2 정칙화는 (SGD와 달리) 가중치 감쇠와 같지 않다. 적응형 배율 조정이 정칙화의 효과를 일그러뜨린다. 이것이 AdamW(다음 절)가 나온 계기이다.
 
-**Generalization gap**: Adam can converge to sharp minima that generalize worse than those found by SGD with momentum, particularly in computer vision tasks.
+**일반화 격차**: Adam은 뾰족한 극소점으로 수렴할 수 있는데, 이는 모멘텀을 쓰는 SGD가 찾는 것보다 일반화가 나쁘다. 컴퓨터 비전 과제에서 특히 그렇다.
 
-**Non-convergence**: In certain settings, Adam's adaptive learning rate can fail to converge. AMSGrad addresses this with a monotonic constraint on the second moment.
+**수렴 실패**: 어떤 상황에서는 Adam의 적응형 학습률이 수렴하지 못한다. AMSGrad는 이차 모멘트에 단조 제약을 두어 이를 다룬다.
 
-## Key Takeaways
+## 핵심 정리
 
-- Adam combines momentum and adaptive learning rates with bias correction.
-- Default hyperparameters ($\beta_1 = 0.9$, $\beta_2 = 0.999$, $\eta = 0.001$) work well for most tasks.
-- For proper weight decay, use AdamW instead of Adam with L2 regularization.
+- Adam은 모멘텀과 적응형 학습률을 편향 보정과 함께 결합한다.
+- 기본 초매개변수($\beta_1 = 0.9$, $\beta_2 = 0.999$, $\eta = 0.001$)가 대부분의 과제에서 잘 통한다.
+- 제대로 된 가중치 감쇠를 쓰려면 L2 정칙화를 쓰는 Adam 대신 AdamW를 쓰라.
+
+## 연습문제
+
+**연습문제 1.**
+Adam의 갱신 규칙을 유도하고 편향 보정이 하는 구실을 설명하라.
+
+??? success "연습문제 1 풀이"
+    Adam은 $m_t = \beta_1 m_{t-1} + (1-\beta_1)g_t$, $v_t = \beta_2 v_{t-1} + (1-\beta_2)g_t^2$이다. 편향 보정은 $\hat{m}_t = m_t/(1-\beta_1^t)$, $\hat{v}_t = v_t/(1-\beta_2^t)$이다. 갱신은 $\theta_{t+1} = \theta_t - \eta\hat{m}_t/(\sqrt{\hat{v}_t}+\epsilon)$이다. 보정이 없으면 (0으로 초기화하므로) 초반 추정값이 0 쪽으로 치우쳐 처음 갱신이 너무 작아진다.
+
+---
+
+**연습문제 2.**
+Adam이 모멘텀을 쓰는 SGD와 다른 해로 수렴할 수 있는 이유와, 어느 쪽이 대체로 더 잘 일반화하는지 설명하라.
+
+??? success "연습문제 2 풀이"
+    Adam은 매개변수마다 학습률을 맞추므로 일반화가 나쁜 뾰족한 극소점으로 수렴할 수 있다. 모멘텀을 쓰는 SGD는 전역 학습률을 쓰며 암묵적인 잡음 정칙화 덕분에 더 평평한 극소점을 찾는 경향이 있다. 경험적으로 이미지 분류에서는 SGD가 더 잘 일반화하고, 자연어 처리나 학습 시간이 제한될 때에는 Adam을 선호한다.
+
+---
+
+**연습문제 3.**
+Adam의 기본 초매개변수는 무엇이며 왜 그렇게 정해졌는가?
+
+??? success "연습문제 3 풀이"
+    $\beta_1 = 0.9$(일차 모멘트의 감쇠), $\beta_2 = 0.999$(이차 모멘트의 감쇠), $\epsilon = 10^{-8}$(수치 안정성)이다. $\beta_1$은 기울기의 이력이 방향에 얼마나 영향을 줄지, $\beta_2$은 기울기 제곱의 이력이 매개변수별 배율에 얼마나 영향을 줄지 조절한다. 이 기본값은 여러 과제에서 잘 통한다.
+
+---
+
+**연습문제 4.**
+Adam을 PyTorch로 바닥부터 구현하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    m = {p: torch.zeros_like(p) for p in model.parameters()}
+    v = {p: torch.zeros_like(p) for p in model.parameters()}
+    for t in range(1, num_steps+1):
+        for p in model.parameters():
+            m[p] = 0.9*m[p] + 0.1*p.grad
+            v[p] = 0.999*v[p] + 0.001*p.grad**2
+            m_hat = m[p] / (1 - 0.9**t)
+            v_hat = v[p] / (1 - 0.999**t)
+            p.data -= lr * m_hat / (v_hat.sqrt() + 1e-8)
+    ```

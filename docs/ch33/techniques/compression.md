@@ -1,100 +1,100 @@
-# Coordinate Compression
+# 좌표 옥죄기
 
-Coordinate compression replaces raw values with their ranks, mapping a potentially
-huge value range down to $\{0, 1, \dots, m{-}1\}$ where $m$ is the number of
-distinct values. This makes array-indexed data structures feasible even when the
-original values span billions.
+좌표 옥죄기는 날값을 그 등수로 바꾸어 아주 넓을 수 있는 값 범위를 서로 다른 값의
+수를 $m$이라 할 때 $\{0, 1, \dots, m{-}1\}$으로 줄인다.
+이로써 본디 값이 수십억에 걸쳐 있어도 배열 번호를 쓰는 자료 얼개를
+쓸 수 있게 된다.
 
-## Intuition
+## 직관
 
-Suppose you have $n$ points with $x$-coordinates in $[0, 10^9]$ and need to build
-a Fenwick tree indexed by coordinate. Allocating $10^9$ cells is impractical, but
-at most $n$ distinct coordinates matter. Sorting them and replacing each with its
-rank yields indices in $[0, n{-}1]$ — a manageable range.
+$x$ 좌표가 $[0, 10^9]$에 있는 점 $n$개가 있고 좌표로 번호를 매기는 펜윅 나무를
+지어야 한다고 하자. 칸 $10^9$개를 잡는 것은 쓸모없지만 뜻있는 서로 다른 좌표는
+많아야 $n$개다. 그것들을 줄 세우고 저마다 등수로 바꾸면 번호가
+$[0, n{-}1]$에 들어 다룰 만한 범위가 된다.
 
-## Formal Definition
+## 엄밀한 정의
 
-Given a multiset $S = \{a_1, a_2, \dots, a_n\}$ of values from some totally ordered
-universe $U$, coordinate compression produces a mapping
+온전히 차례 매겨진 온누리 $U$의 값으로 이뤄진 여럿모음 $S = \{a_1, a_2, \dots, a_n\}$이
+주어지면 좌표 옥죄기는 대응
 
 $$
 f \colon S \to \{0, 1, \dots, m - 1\}
 $$
 
-where $m = |\text{distinct}(S)|$, satisfying the **order-preserving** property:
+을 만든다. 여기서 $m = |\text{distinct}(S)|$이고 **차례 지킴** 성질을 만족한다:
 
 $$
 a_i < a_j \implies f(a_i) < f(a_j)
 $$
 
-Equal elements receive the same compressed value: $a_i = a_j \implies f(a_i) = f(a_j)$.
+같은 원소는 같은 옥죈 값을 받는다: $a_i = a_j \implies f(a_i) = f(a_j)$.
 
-## Algorithm
+## 알고리즘
 
-1. **Collect** all values into a list.
-2. **Sort and deduplicate** to get the sorted distinct values $v_0 < v_1 < \cdots < v_{m-1}$.
-3. **Map** each original value $a_i$ to its index in the sorted distinct list (its rank).
+1. 모든 값을 목록에 **모은다**.
+2. **줄 세우고 겹침을 없애** 줄 세운 서로 다른 값 $v_0 < v_1 < \cdots < v_{m-1}$을 얻는다.
+3. 본디 값 $a_i$마다 줄 세운 서로 다른 값 목록에서의 번호(등수)로 **대응시킨다**.
 
-The rank lookup can use binary search on the sorted list or a hash map built in
-the deduplication step.
+등수 찾기는 줄 세운 목록에 두 갈래 찾기를 쓰거나 겹침 없애기 걸음에서 지은
+흩임 대응표를 쓸 수 있다.
 
-### Complexity
+### 복잡도
 
 | Step | Time | Space |
 |------|------|-------|
-| Sort | $O(n \log n)$ | $O(n)$ |
-| Deduplicate | $O(n)$ | $O(m)$ |
-| Map (binary search) | $O(n \log m)$ | $O(1)$ extra |
-| Map (hash map) | $O(n)$ expected | $O(m)$ |
+| 줄 세우기 | $O(n \log n)$ | $O(n)$ |
+| 겹침 없애기 | $O(n)$ | $O(m)$ |
+| 대응(두 갈래 찾기) | $O(n \log m)$ | 덧붙여 $O(1)$ |
+| 대응(흩임 대응표) | 어림 $O(n)$ | $O(m)$ |
 
-**Overall**: $O(n \log n)$ time, $O(n)$ space.
+**모두**: 때 $O(n \log n)$, 자리 $O(n)$.
 
-## Worked Example
+## 풀이 예제
 
-Given $S = [100, 30, 100, 50, 30]$:
+$S = [100, 30, 100, 50, 30]$일 때:
 
-| Step | Result |
+| 걸음 | 결과 |
 |------|--------|
-| Sorted distinct values | $[30, 50, 100]$ |
-| Rank of $30$ | $0$ |
-| Rank of $50$ | $1$ |
-| Rank of $100$ | $2$ |
-| Compressed $S$ | $[2, 0, 2, 1, 0]$ |
+| 줄 세운 서로 다른 값 | $[30, 50, 100]$ |
+| $30$의 등수 | $0$ |
+| $50$의 등수 | $1$ |
+| $100$의 등수 | $2$ |
+| 옥죈 $S$ | $[2, 0, 2, 1, 0]$ |
 
-The value range shrinks from $[30, 100]$ to $[0, 2]$, enabling a size-3 array.
+값 범위가 $[30, 100]$에서 $[0, 2]$로 줄어 크기 3인 배열을 쓸 수 있다.
 
-## Applications
+## 응용
 
-- **Fenwick / segment trees on large domains**: Compress coordinates before
-  indexing into $O(m)$-sized structures instead of $O(|U|)$.
-- **Sweep-line algorithms**: Rectangle union area, segment intersection counting —
-  compress $y$-coordinates to enable efficient range updates.
-- **Counting inversions**: Compress values so a Fenwick tree of size $n$ suffices.
-- **2-D problems**: Compress both axes independently to reduce the grid size.
+- **넓은 자리의 펜윅 나무와 토막 나무**: $O(|U|)$ 대신 $O(m)$ 크기 얼개에
+  번호를 매기기 전에 좌표를 옥죈다.
+- **쓸어내기 선 알고리즘**: 직사각형 합집합 넓이, 토막 만남 세기 —
+  $y$ 좌표를 옥죄어 범위 고침을 빠르게 한다.
+- **뒤바뀜 세기**: 값을 옥죄어 크기 $n$인 펜윅 나무로 넉넉하게 한다.
+- **2차원 문제**: 두 축을 따로 옥죄어 격자 크기를 줄인다.
 
-## Implementation
+## 구현
 
 ```python
-"""Coordinate compression utility."""
+"""좌표 옥죄기 연장."""
 
 from bisect import bisect_left
 
 
-# === Core compression ===
+# === 핵심 옥죄기 ===
 def compress(values):
-    """Return compressed values and the sorted distinct list.
+    """옥죈 값과 줄 세운 서로 다른 값 목록을 돌려준다.
 
-    Parameters
+    매개변수
     ----------
     values : list[int]
-        Raw values to compress.
+        옥죌 날값.
 
-    Returns
+    반환값
     -------
     compressed : list[int]
-        Each entry is the rank of the corresponding input value.
+        칸마다 그에 맞는 들임 값의 등수다.
     sorted_distinct : list[int]
-        Sorted list of distinct values (used to decompress).
+        줄 세운 서로 다른 값 목록(옥죔을 푸는 데 쓴다).
     """
     sorted_distinct = sorted(set(values))
     rank = {v: i for i, v in enumerate(sorted_distinct)}
@@ -102,21 +102,21 @@ def compress(values):
     return compressed, sorted_distinct
 
 
-# === Binary-search variant (no hash map) ===
+# === 두 갈래 찾기 변형(흩임 대응표 없음) ===
 def compress_bisect(values):
-    """Compress using binary search instead of a hash map."""
+    """흩임 대응표 대신 두 갈래 찾기로 옥죈다."""
     sorted_distinct = sorted(set(values))
     compressed = [bisect_left(sorted_distinct, v) for v in values]
     return compressed, sorted_distinct
 
 
-# === Decompression ===
+# === 옥죔 풀기 ===
 def decompress(compressed, sorted_distinct):
-    """Map compressed ranks back to original values."""
+    """옥죈 등수를 본디 값으로 되돌린다."""
     return [sorted_distinct[c] for c in compressed]
 
 
-# === Demo ===
+# === 시연 ===
 if __name__ == "__main__":
     raw = [100, 30, 100, 50, 30]
     comp, mapping = compress(raw)
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     print(f"Mapping:    {mapping}")
     print(f"Recovered:  {decompress(comp, mapping)}")
 
-    # Verify order preservation
+    # 차례 지킴 확인
     for i in range(len(raw)):
         for j in range(len(raw)):
             if raw[i] < raw[j]:
@@ -133,16 +133,56 @@ if __name__ == "__main__":
     print("Order-preserving property verified.")
 ```
 
-## Common Pitfalls
+## 흔히 빠지는 함정
 
-!!! warning "Duplicates"
-    Forgetting to deduplicate before ranking leads to gaps in the compressed range,
-    wasting space in downstream structures.
+!!! warning "겹치는 값"
+    등수를 매기기 전에 겹침 없애기를 잊으면 옥죈 범위에 틈이 생겨
+    뒤따르는 얼개에서 자리를 낭비한다.
 
-!!! warning "Off-by-one"
-    Some problems require 1-indexed ranks (e.g., Fenwick trees that skip index 0).
-    Add 1 to each rank after compression.
+!!! warning "하나 어긋남"
+    어떤 문제는 등수를 1부터 매겨야 한다(보기로 번호 0을 건너뛰는 펜윅 나무).
+    옥죈 뒤 등수마다 1을 더한다.
 
-## Reference
+## 참고 문헌
 
-- [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf)
+음이 아닌 정수 $x$가 주어질 때 비트 셈만 써서 $x$의 가장 낮은 켜진 비트만 남기는 식을 적어라(곧 그 비트만 켜진 값을 만들어라). $x = 0$일 때 그 식은 무엇을 돌려주는가?
+
+## 연습문제
+
+**연습문제 1.**
+배열 $a = [1000000000, 3, 1000000000, 7, 3, 7]$에 좌표 옥죄기를 하고 옥죈 배열을 적어라. 서로 다른 값은 몇 개인가?
+
+??? success "연습문제 1 풀이"
+    서로 다른 값을 줄 세우면 $\{3, 7, 1000000000\}$이므로 서로 다른 값이 3개다. 등수를 매기면 $3 \to 0$, $7 \to 1$, $1000000000 \to 2$이다. 옥죈 배열은 $[2, 0, 2, 1, 0, 1]$이다. 서로 다른 값이 3개이므로 펜윅 나무나 토막 나무에 $10^9$ 대신 칸 3개만 있으면 된다. $\square$
+
+---
+
+**연습문제 2.**
+좌표 옥죄기가 원소의 상대 차례를 지킴을 증명하여라. 곧 $a_i < a_j$일 때 그리고 그때에만 $\text{rank}(a_i) < \text{rank}(a_j)$임을 보여라.
+
+??? success "연습문제 2 풀이"
+    $S = \{s_0 < s_1 < \cdots < s_{m-1}\}$을 $a$의 줄 세운 서로 다른 값이라 하자. 등수 함수는 $s_k = x$일 때 $\text{rank}(x) = k$이다. $S$가 엄격히 늘어나게 줄 세워졌으므로 $s_k < s_l \iff k < l$이다. 아무 $a_i, a_j$에 대해 $a_i < a_j$이면 $a_i = s_k$, $a_j = s_l$이고 $s_k < s_l$이므로 $k < l$, 곧 $\text{rank}(a_i) < \text{rank}(a_j)$이다. 거꾸로 $\text{rank}(a_i) < \text{rank}(a_j)$이면 $k < l$이므로 $s_k < s_l$, 곧 $a_i < a_j$이다. 등수 함수가 $S$에서 $\{0, \ldots, m-1\}$로 가는 엄격히 늘어나는 일대일 대응이므로 두 방향이 모두 성립한다. $\square$
+
+---
+
+**연습문제 3.**
+값이 $10^{18}$까지인 정수 $n$개의 배열에서 뒤바뀜의 수를 세야 한다. 좌표 옥죄기가 어떻게 펜윅 나무 풀이를 가능하게 하는지 밝히고 모든 때 복잡도를 살펴라.
+
+??? success "연습문제 3 풀이"
+    뒤바뀜 세기의 펜윅 나무는 값으로 번호를 매긴 배열이 필요하다. 왼쪽에서 오른쪽으로 원소를 다루며 앞서 본 원소 가운데 값이 더 큰 것의 수를 묻는다. 값이 $10^{18}$까지면 펜윅 나무에 칸 $10^{18}$개가 필요해 될 수 없다. 좌표 옥죄기는 값 $n$개를 $m \le n$인 $\{0, \ldots, m-1\}$의 등수로 대응시킨다. 옥죈 뒤 펜윅 나무에는 칸 $n$개면 된다. 알고리즘: (1) $O(n \log n)$에 옥죈다(줄 세우기와 등수를 위한 두 갈래 찾기), (2) 원소를 오른쪽에서 왼쪽으로 다루며 지금 등수보다 작은 등수의 원소 수를 펜윅 나무에 묻고 나무를 고친다. 모두: 옥죄기 $O(n \log n)$ + 펜윅 셈 $O(n \log n)$ = $O(n \log n)$. $\square$
+
+---
+
+**연습문제 4.**
+2차원 문제에 좌표가 $[0, 10^9] \times [0, 10^9]$인 점 $n$개가 있다. 직사각형 합 물음에 답해야 한다. 두 차원에 좌표 옥죄기를 어떻게 쓰는지, 그리고 그 결과 자료 얼개의 크기가 얼마인지 밝혀라.
+
+??? success "연습문제 4 풀이"
+    차원마다 따로 옥죈다. 서로 다른 $x$ 좌표를 줄 세워 많아야 값 $n$개를 얻고, 서로 다른 $y$ 좌표를 줄 세워 많아야 값 $n$개를 얻는다. 점 $(x_i, y_i)$마다 $(\text{rank}_x(x_i), \text{rank}_y(y_i))$로 바꾼다. 옥죈 격자는 많아야 $n \times n$이다. 직사각형 합 물음에는 크기 $n \times n$의 2차원 펜윅 나무를 쓰거나, 더 나은 길로 펜윅 나무의 1차원 펜윅 나무(합치기 줄 세우기 나무)를 쓰면 자리가 $O(n \log n)$이다. 물음이 묶음 처리라면 옥죈 한 축을 따라 쓸어내고 다른 축에 1차원 펜윅 나무를 쓴다. 물음 좌표도 같은 등수 자리로 옥죄어야 한다. 물음 직사각형 $[x_1, x_2] \times [y_1, y_2]$을 줄 세운 좌표 배열에 두 갈래 찾기를 써서 $[\text{rank}(x_1), \text{rank}(x_2)] \times [\text{rank}(y_1), \text{rank}(y_2)]$로 대응시킨다. $\square$
+
+---
+
+**연습 5.**
+좌표 옥죄기가 언제 안 되거나 모자란지 논하여라. 좌표를 옥죄면 꼭 필요한 앎을 잃는 문제의 뚜렷한 보기를 들어라.
+
+??? success "연습 5의 풀이"
+    좌표 옥죄기는 차례를 지키지만 크기 앎을 버린다. 상대 차례만이 아니라 실제 수 값이 뜻있을 때는 쓸 수 없다. 보기: "선 위의 점 $n$개가 주어질 때 잇닿은 두 점 사이의 최소 거리를 찾아라." 옥죈 뒤 점의 등수는 $0, 1, 2, \ldots$이라 잇닿은 틈이 모두 1로 보여 실제 거리를 잃는다. 답은 등수가 아니라 본디 값에 달려 있다. 또 다른 보기: "$l_i, r_i \le 10^9$인 구간 $[l_i, r_i]$이 주어질 때 덮인 전체 길이를 세어라." 끝점을 옥죄면 잇닿은 옥죈 값 사이의 본디 거리도 지녀 토막마다 무게를 주어야 한다. 이를 "사건 옥죄기"나 "무게 옥죄기"라 한다. 이 손질 없는 순수 등수 옥죄기는 틀린 답을 낸다. $\square$

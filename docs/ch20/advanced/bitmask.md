@@ -1,117 +1,117 @@
-# Bitmask DP
+# 비트 가림막 동적 짜기
 
-When a problem asks to optimize over all subsets of a small set, brute-force enumeration seems unavoidable. Bitmask DP tames the exponential blow-up by encoding each subset as a binary integer and using bitwise operations to transition between states. Because an $n$-bit integer can represent any subset of $\{0, 1, \ldots, n-1\}$, the DP table is simply an array of size $2^n$, and adding or removing an element reduces to flipping a single bit.
+작은 모임의 모든 부분 모임에 대해 가장 좋은 것을 찾으라는 문제에서는 막무가내로 다 세는 수밖에 없어 보인다. 비트 가림막 동적 짜기는 부분 모임마다 두 값 정수로 담고 비트 연산으로 상태 사이를 옮겨 다녀 지수로 부풀어 오르는 것을 다스린다. $n$비트 정수가 $\{0, 1, \ldots, n-1\}$의 어떤 부분 모임도 나타낼 수 있으므로 동적 짜기 표는 크기 $2^n$짜리 배열일 뿐이고, 원소를 넣고 빼는 일은 비트 하나를 뒤집는 것으로 줄어든다.
 
-## Subset Representation
+## 부분 모임 나타내기
 
-A subset $S \subseteq \{0, 1, \ldots, n-1\}$ is represented by an $n$-bit integer called a **mask**, where bit $i$ is 1 if and only if $i \in S$.
+부분 모임 $S \subseteq \{0, 1, \ldots, n-1\}$은 **가림막**이라 부르는 $n$비트 정수로 나타내며, $i \in S$일 때 그리고 그때만 비트 $i$이 1이다.
 
-| Subset | Binary | Mask |
+| 부분 모임 | 두 값 | 가림막 |
 |--------|--------|------|
 | $\emptyset$ | `0000` | 0 |
 | $\{0\}$ | `0001` | 1 |
 | $\{1, 3\}$ | `1010` | 10 |
 | $\{0, 1, 2, 3\}$ | `1111` | 15 |
 
-Common bitwise operations for subset manipulation:
+부분 모임을 다루는 흔한 비트 연산:
 
-| Operation | Expression | Meaning |
+| 연산 | 식 | 뜻 |
 |-----------|-----------|---------|
-| Check if $i \in S$ | `mask & (1 << i)` | Test bit $i$ |
-| Add $i$ to $S$ | `mask | (1 << i)` | Set bit $i$ |
-| Remove $i$ from $S$ | `mask & ~(1 << i)` | Clear bit $i$ |
-| Toggle $i$ | `mask ^ (1 << i)` | Flip bit $i$ |
-| Full set | `(1 << n) - 1` | All $n$ bits set |
-| Subset size | `bin(mask).count('1')` | Population count |
+| $i \in S$인지 살피기 | `mask & (1 << i)` | 비트 $i$을 시험 |
+| $S$에 $i$ 더하기 | `mask | (1 << i)` | 비트 $i$을 세움 |
+| $S$에서 $i$ 빼기 | `mask & ~(1 << i)` | 비트 $i$을 지움 |
+| $i$ 뒤집기 | `mask ^ (1 << i)` | 비트 $i$을 뒤집음 |
+| 온 모임 | `(1 << n) - 1` | $n$개 비트를 모두 세움 |
+| 부분 모임 크기 | `bin(mask).count('1')` | 선 비트 세기 |
 
-!!! tip "When to use bitmask DP"
-    Bitmask DP is the right choice when (1) the problem involves subsets of a ground set, (2) the ground set has at most about 20 elements, and (3) the optimal solution for a subset can be built from optimal solutions for smaller subsets.
+!!! tip "언제 비트 가림막 동적 짜기를 쓰는가"
+    (1) 문제가 바탕 모임의 부분 모임을 다루고, (2) 바탕 모임의 원소가 스무 개 남짓 이하이며, (3) 어떤 부분 모임의 가장 좋은 풀이를 더 작은 부분 모임의 가장 좋은 풀이로 세울 수 있을 때 비트 가림막 동적 짜기가 알맞다.
 
-## General Framework
+## 일반 얼개
 
-Define a state $dp[\text{mask}]$ (or $dp[\text{mask}][i]$ when the last element chosen matters) where mask encodes which elements have been selected. The key insight is that subset inclusion provides a natural partial order: every mask with $k$ bits set depends only on masks with $k-1$ bits set, so iterating masks in increasing order respects all dependencies.
+어느 원소를 골랐는지 가림막에 담아 상태 $dp[\text{mask}]$(마지막에 고른 원소가 중요하면 $dp[\text{mask}][i]$)를 정한다. 핵심 눈썰미는 부분 모임 포함 관계가 저절로 반순서를 준다는 것이다. 곧 비트가 $k$개 선 가림막은 비트가 $k-1$개 선 가림막에만 기대므로 가림막을 커지는 차례로 되풀이하면 모든 기댐이 지켜진다.
 
-**Generic recurrence** (minimization variant):
+**두루 쓰는 되돌이 관계식**(가장 작게 하는 판):
 
 $$
 dp[\text{mask}] = \min_{i \in \text{mask}} \bigl( dp[\text{mask} \setminus \{i\}] + \text{cost}(i, \text{mask}) \bigr)
 $$
 
-Here $\text{mask} \setminus \{i\}$ denotes removing element $i$ from the subset, implemented as `mask & ~(1 << i)`.
+여기서 $\text{mask} \setminus \{i\}$은 부분 모임에서 원소 $i$을 빼는 것이며 `mask & ~(1 << i)`로 짠다.
 
-**Base case.** $dp[0] = 0$ (empty subset, zero cost).
+**바탕 경우.** $dp[0] = 0$(빈 부분 모임, 값 0).
 
-**Time complexity.** $O(2^n \cdot n)$ --- iterate over all $2^n$ masks and check up to $n$ bits in each.
+**시간 복잡도.** $O(2^n \cdot n)$ --- $2^n$개 가림막을 모두 되풀이하며 저마다 최대 $n$개 비트를 살핀다.
 
-**Space complexity.** $O(2^n)$ or $O(2^n \cdot n)$ if an additional dimension tracks the last element.
+**공간 복잡도.** $O(2^n)$, 마지막 원소를 좇는 차원을 더 두면 $O(2^n \cdot n)$.
 
-## Example: Traveling Salesman Problem
+## 보기: 떠돌이 장수 문제
 
-The TSP asks for the minimum-cost Hamiltonian cycle visiting all $n$ cities exactly once. This formulation, due to Held and Karp (1962), works for both symmetric and asymmetric distance matrices.
+떠돌이 장수 문제는 $n$개 도시를 꼭 한 번씩 들르는 값이 가장 적은 해밀턴 돌기를 묻는다. Held와 Karp(1962)가 세운 이 꼴은 대칭인 거리 행렬과 대칭이 아닌 거리 행렬 모두에 통한다.
 
-**State.** $dp[\text{mask}][i]$ = minimum cost to visit exactly the cities in mask, ending at city $i$.
+**상태.** $dp[\text{mask}][i]$ = 가림막에 든 도시만 들르고 도시 $i$에서 끝나는 가장 적은 값.
 
-**Recurrence.** For each city $j \in \text{mask}$ with $j \neq i$:
+**되돌이 관계식.** $j \neq i$인 도시 $j \in \text{mask}$마다:
 
 $$
 dp[\text{mask}][i] = \min_{j \in \text{mask} \setminus \{i\}} \bigl( dp[\text{mask} \setminus \{i\}][j] + \text{dist}(j, i) \bigr)
 $$
 
-**Base case.** $dp[\{0\}][0] = 0$ (start at city 0).
+**바탕 경우.** $dp[\{0\}][0] = 0$(도시 0에서 시작).
 
-**Answer.** $\min_{i} \bigl( dp[(1 \ll n) - 1][i] + \text{dist}(i, 0) \bigr)$, completing the cycle back to city 0.
+**답.** $\min_{i} \bigl( dp[(1 \ll n) - 1][i] + \text{dist}(i, 0) \bigr)$. 도시 0으로 돌아와 돌기를 마친다.
 
-## Example: Assignment Problem
+## 보기: 배정 문제
 
-Given $n$ workers and $n$ tasks with cost matrix $C$, assign each worker to exactly one task to minimize total cost.
+일꾼 $n$명과 일 $n$가지, 그리고 값 행렬 $C$이 주어질 때 일꾼마다 일 하나씩 맡겨 전체 값을 가장 적게 하라.
 
-**State.** $dp[\text{mask}]$ = minimum cost to assign tasks in mask to the first $|\text{mask}|$ workers.
+**상태.** $dp[\text{mask}]$ = 가림막에 든 일을 앞선 $|\text{mask}|$명의 일꾼에게 맡기는 가장 적은 값.
 
-**Recurrence.** Let $k = |\text{mask}|$ (number of tasks assigned so far):
+**되돌이 관계식.** $k = |\text{mask}|$(여태 맡긴 일의 수)이라 하자:
 
 $$
 dp[\text{mask}] = \min_{j \in \text{mask}} \bigl( dp[\text{mask} \setminus \{j\}] + C[k-1][j] \bigr)
 $$
 
-**Base case.** $dp[0] = 0$.
+**바탕 경우.** $dp[0] = 0$.
 
-## Implementation
+## 구현
 
 ```python
 """
-Bitmask DP: Traveling Salesman Problem and Assignment Problem.
+비트 가림막 동적 짜기: 떠돌이 장수 문제와 배정 문제.
 
-Demonstrates the Held-Karp algorithm for TSP and a subset-based
-approach for the assignment problem, both using bitmask DP.
+떠돌이 장수 문제의 헬드-카프 알고리즘과 배정 문제의 부분 모임 바탕
+방식을 보이며 둘 다 비트 가림막 동적 짜기를 쓴다.
 """
 
 import math
 
 
 # ===================================================================
-# TSP via bitmask DP (Held-Karp algorithm)
+# 비트 가림막 동적 짜기로 푸는 떠돌이 장수 문제(헬드-카프 알고리즘)
 # ===================================================================
 def tsp_bitmask(dist: list[list[int]]) -> int:
-    """Solve TSP using bitmask DP.
+    """비트 가림막 동적 짜기로 떠돌이 장수 문제를 푼다.
 
-    Parameters
+    매개변수
     ----------
     dist : list[list[int]]
-        Distance matrix where dist[i][j] is the cost from city i to j.
-        Need not be symmetric.
+        dist[i][j]이 도시 i에서 j까지의 값인 거리 행렬.
+        대칭일 필요는 없다.
 
-    Returns
+    반환값
     -------
     int
-        Minimum cost of a Hamiltonian cycle starting and ending at city 0.
+        도시 0에서 시작해 도시 0에서 끝나는 해밀턴 돌기의 가장 적은 값.
     """
     n = len(dist)
     full = (1 << n) - 1
     INF = math.inf
 
-    # dp[mask][i] = min cost to visit cities in mask, ending at i
+    # dp[mask][i] = 가림막의 도시를 들르고 i에서 끝나는 가장 적은 값
     dp = [[INF] * n for _ in range(1 << n)]
-    dp[1][0] = 0  # start at city 0
+    dp[1][0] = 0  # 도시 0에서 시작
 
     for mask in range(1, 1 << n):
         for i in range(n):
@@ -127,26 +127,26 @@ def tsp_bitmask(dist: list[list[int]]) -> int:
                 if cost < dp[new_mask][j]:
                     dp[new_mask][j] = cost
 
-    # Close the cycle back to city 0
+    # 도시 0으로 돌아와 돌기를 닫는다
     return int(min(dp[full][i] + dist[i][0] for i in range(n)))
 
 
 # ===================================================================
-# Assignment problem via bitmask DP
+# 비트 가림막 동적 짜기로 푸는 배정 문제
 # ===================================================================
 def assignment_bitmask(cost: list[list[int]]) -> int:
-    """Solve the assignment problem using bitmask DP.
+    """비트 가림막 동적 짜기로 배정 문제를 푼다.
 
-    Parameters
+    매개변수
     ----------
     cost : list[list[int]]
-        Cost matrix where cost[i][j] is the cost of assigning worker i
-        to task j.
+        cost[i][j]이 일꾼 i에게 일 j을 맡기는 값인
+        값 행렬.
 
-    Returns
+    반환값
     -------
     int
-        Minimum total assignment cost.
+        가장 적은 전체 배정 값.
     """
     n = len(cost)
     INF = math.inf
@@ -156,7 +156,7 @@ def assignment_bitmask(cost: list[list[int]]) -> int:
     for mask in range(1 << n):
         if dp[mask] == INF:
             continue
-        k = bin(mask).count("1")  # number of workers assigned so far
+        k = bin(mask).count("1")  # 여태 맡긴 일꾼 수
         if k >= n:
             continue
         for j in range(n):
@@ -171,10 +171,10 @@ def assignment_bitmask(cost: list[list[int]]) -> int:
 
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 if __name__ == "__main__":
-    # TSP example: 4 cities
+    # 떠돌이 장수 보기: 도시 4개
     dist = [
         [0, 10, 15, 20],
         [10, 0, 35, 25],
@@ -183,7 +183,7 @@ if __name__ == "__main__":
     ]
     print(f"TSP minimum cost: {tsp_bitmask(dist)}")
 
-    # Assignment example: 3 workers, 3 tasks
+    # 배정 보기: 일꾼 3명, 일 3가지
     cost = [
         [9, 2, 7],
         [6, 4, 3],
@@ -192,30 +192,30 @@ if __name__ == "__main__":
     print(f"Assignment minimum cost: {assignment_bitmask(cost)}")
 ```
 
-**Output:**
+**출력:**
 ```
 TSP minimum cost: 80
 Assignment minimum cost: 7
 ```
 
-## Complexity
+## 복잡도
 
-| Problem | Time | Space |
+| 문제 | 시간 | 공간 |
 |---------|------|-------|
-| TSP | $O(2^n \cdot n^2)$ | $O(2^n \cdot n)$ |
-| Assignment | $O(2^n \cdot n)$ | $O(2^n)$ |
-| General bitmask DP | $O(2^n \cdot n)$ | $O(2^n)$ |
+| 떠돌이 장수 | $O(2^n \cdot n^2)$ | $O(2^n \cdot n)$ |
+| 배정 | $O(2^n \cdot n)$ | $O(2^n)$ |
+| 두루 쓰는 비트 가림막 동적 짜기 | $O(2^n \cdot n)$ | $O(2^n)$ |
 
-!!! warning "Exponential growth"
-    The $2^n$ factor limits bitmask DP to roughly $n \leq 20$ (about $10^6$ states). At $n = 25$ the state space exceeds $3 \times 10^7$ and memory becomes a bottleneck. For larger instances, approximation algorithms or branch-and-bound are necessary.
+!!! warning "지수로 커짐"
+    $2^n$이라는 인수 때문에 비트 가림막 동적 짜기는 대략 $n \leq 20$(상태 약 $10^6$개)까지만 쓸 수 있다. $n = 25$이면 상태 공간이 $3 \times 10^7$을 넘어 기억 공간이 병목이 된다. 더 큰 경우에는 어림 알고리즘이나 가지 뻗어 묶기가 필요하다.
 
-## Enumerating Subsets of a Mask
+## 가림막의 부분 모임 다 세기
 
-A common subroutine iterates over all subsets of a given mask. The bit trick `sub = (sub - 1) & mask` generates subsets in decreasing order:
+주어진 가림막의 모든 부분 모임을 되풀이하는 것은 흔한 아래 절차이다. 비트 재주 `sub = (sub - 1) & mask`는 부분 모임을 줄어드는 차례로 만든다:
 
 ```python
 def enumerate_subsets(mask: int) -> list[int]:
-    """Enumerate all subsets of mask (including mask and the empty set)."""
+    """가림막의 모든 부분 모임을 센다(가림막 자신과 빈 모임 포함)."""
     subsets = []
     sub = mask
     while sub > 0:
@@ -225,15 +225,47 @@ def enumerate_subsets(mask: int) -> list[int]:
     return subsets
 ```
 
-This runs in $O(2^{|S|})$ time for a single mask $S$. When applied inside a DP that iterates over *all* masks, the total work across all masks of an $n$-element ground set is:
+가림막 $S$ 하나에 대해 $O(2^{|S|})$ 시간이 든다. *모든* 가림막을 되풀이하는 동적 짜기 안에서 쓰면, 원소가 $n$개인 바탕 모임의 모든 가림막에 걸친 일감은 다음과 같다:
 
 $$
 \sum_{k=0}^{n} \binom{n}{k} 2^k = (1 + 2)^n = 3^n
 $$
 
-The equality follows from the binomial theorem with $x = 2$. Each element is in one of three states --- in the superset only, in both the superset and the subset, or in neither --- giving $3^n$ total (superset, subset) pairs. This $O(3^n)$ bound arises in problems like Steiner tree DP and weighted set cover.
+이 등식은 $x = 2$인 이항 정리에서 나온다. 원소마다 세 상태 가운데 하나에 있다. 곧 웃모임에만 들거나, 웃모임과 부분 모임 둘 다에 들거나, 어디에도 들지 않는다. 그래서 (웃모임, 부분 모임) 짝이 모두 $3^n$개이다. 이 $O(3^n)$ 한계는 슈타이너 나무 동적 짜기와 무게 붙은 모임 덮기 같은 문제에서 나온다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 15. MIT Press.
 - Held, M. & Karp, R. M. (1962). A dynamic programming approach to sequencing problems. *Journal of SIAM*, 10(1), 196--210.
+
+## 연습문제
+
+**연습문제 1.**
+비트 가림막 동적 짜기의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+비트 가림막 동적 짜기의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+비트 가림막 동적 짜기의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+비트 가림막 동적 짜기의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

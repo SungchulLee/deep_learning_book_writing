@@ -1,44 +1,35 @@
-# Pretraining Objectives for Large Language Models
+# 큰 말 모델의 미리 익히기 목표
+## 학습 목표
 
+- 인과 말 나타내기(CLM)와 가린 말 나타내기(MLM)를 견준다
+- 다음 토막 어림하기의 수학 바탕을 이해한다
+- 잡음 없애기 목표와 구간 망가뜨리기를 살핀다
+- 여러 미리 익히기 방식의 맞바꿈을 값매김한다
+- UL2와 FIM을 비롯한 요즘 미리 익히기 전략을 짠다
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 들어가며
 
-## Learning Objectives
+미리 익히기 목표는 큰 말 모델이 이름표 없는 글에서 배우는 스스로 살피는 일을 정한다. 어떤 목표를 고르느냐가 모델의 능력을 근본에서 빚어, 만들어 내기에 뛰어난지 이해에 뛰어난지 아니면 둘 다인지를 가른다.
 
-- Compare causal language modeling (CLM) vs masked language modeling (MLM)
-- Understand the mathematical foundations of next-token prediction
-- Analyze denoising objectives and span corruption
-- Evaluate trade-offs between different pretraining approaches
-- Implement modern pretraining strategies including UL2 and FIM
+## 인과 말 나타내기(CLM)
 
-## Introduction
+GPT, LLaMA, Mistral과 모든 풀개만의 모델이 쓴다.
 
-Pretraining objectives define the self-supervised task that LLMs learn from unlabeled text. The choice of objective fundamentally shapes model capabilities, determining whether the model excels at generation, understanding, or both.
+### 자기되돌리기로 세우기
 
-## Causal Language Modeling (CLM)
-
-Used by GPT, LLaMA, Mistral, and all decoder-only models.
-
-### Autoregressive Formulation
-
-CLM models the probability of text as a product of conditional probabilities:
+인과 말 나타내기는 글의 확률을 조건부 확률의 곱으로 나타낸다:
 
 $$
-
 P(x_1, x_2, \ldots, x_n) = \prod_{t=1}^{n} P(x_t | x_1, \ldots, x_{t-1})
-
 $$
 
-The training objective minimizes negative log-likelihood:
+익히기 목표는 음의 로그 가능도를 가장 작게 한다:
 
 $$
-
 \mathcal{L}_{\text{CLM}} = -\sum_{t=1}^{n} \log P_\theta(x_t | x_{<t})
-
 $$
 
-### Causal Attention Mask
+### 인과 눈길 마스크
 
 ```python
 import torch
@@ -48,29 +39,29 @@ import torch.nn.functional as F
 
 def create_causal_mask(seq_len: int) -> torch.Tensor:
     """
-    Create causal attention mask.
+    인과 주의 가림을 만든다.
     
-    Position i can only attend to positions <= i.
+    자리 i는 i 이하 자리만 볼 수 있다.
     
-    Returns:
-        Lower triangular mask (seq_len, seq_len)
+    반환값:
+        아래 세모 가림막 (차례 길이, 차례 길이)
     """
     mask = torch.tril(torch.ones(seq_len, seq_len))
-    return mask  # 1 = attend, 0 = mask
+    return mask  # 1 = 본다, 0 = 가린다
 
 
-# Example for sequence length 4:
+# 차례 길이 4의 보기:
 # [[1, 0, 0, 0],
 #  [1, 1, 0, 0],
 #  [1, 1, 1, 0],
 #  [1, 1, 1, 1]]
 ```
 
-### Implementation
+### 구현
 
 ```python
 class CausalLMHead(nn.Module):
-    """Causal language modeling head."""
+    """인과 말 나타내기 머리."""
     
     def __init__(self, hidden_size: int, vocab_size: int):
         super().__init__()
@@ -82,15 +73,15 @@ class CausalLMHead(nn.Module):
         labels: torch.Tensor = None
     ):
         """
-        Args:
-            hidden_states: (batch, seq_len, hidden_size)
-            labels: (batch, seq_len) - shifted by 1 for next-token prediction
+        인수:
+            hidden_states: (묶음, 차례 길이, 숨은 크기)
+            labels: (묶음, 차례 길이) - 다음 토막 어림을 위해 1만큼 밀림
         """
-        logits = self.lm_head(hidden_states)  # (batch, seq_len, vocab_size)
+        logits = self.lm_head(hidden_states)  # (배치, seq_len, vocab_size)
         
         loss = None
         if labels is not None:
-            # Shift for next-token prediction
+            # 다음 토큰 맞히기를 위해 민다
             shift_logits = logits[..., :-1, :].contiguous()
             shift_labels = labels[..., 1:].contiguous()
             
@@ -105,13 +96,13 @@ class CausalLMHead(nn.Module):
 
 def causal_lm_loss(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     """
-    Standalone causal language modeling loss.
+    홀로 서는 인과 말 나타내기 손실.
     
-    Args:
-        logits: [batch, seq_len, vocab_size]
-        labels: [batch, seq_len]
+    인수:
+        logits: [묶음, 차례 길이, 낱말 곳간 크기]
+        labels: [묶음, 차례 길이]
     """
-    # Shift for next-token prediction
+    # 다음 토큰 맞히기를 위해 민다
     shift_logits = logits[..., :-1, :].contiguous()
     shift_labels = labels[..., 1:].contiguous()
     
@@ -122,40 +113,39 @@ def causal_lm_loss(logits: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     )
 ```
 
-### CLM Characteristics
+### 인과 말 나타내기의 성질
 
-| Aspect | Characteristic |
+| 갈래 | 성질 |
 |--------|----------------|
-| Attention | Unidirectional (left-to-right) |
-| Generation | Natural (autoregressive sampling) |
-| Context | Only past tokens |
-| Training | Simple, every token provides signal |
-| Models | GPT series, LLaMA, Mistral, Claude |
+| 눈길 | 한 방향(왼쪽에서 오른쪽) |
+| 만들어 내기 | 자연스럽다(자기되돌리기 표집) |
+| 맥락 | 지난 토막만 |
+| 익히기 | 단순하고 토막마다 신호를 준다 |
+| 모델 | GPT 계열, LLaMA, Mistral, Claude |
 
-## Masked Language Modeling (MLM)
+## 가린 말 나타내기(MLM)
 
-Used by BERT, RoBERTa, DeBERTa, and encoder-only models.
+BERT, RoBERTa, DeBERTa와 부호기만의 모델이 쓴다.
 
-### Formulation
+### 정식화
 
-MLM randomly masks tokens and predicts them from bidirectional context:
+가린 말 나타내기는 토막을 마구잡이로 가리고 두 방향 맥락으로 그것을 어림한다:
 
 $$
-
 \mathcal{L}_{\text{MLM}} = -\sum_{i \in \mathcal{M}} \log P_\theta(x_i | x_{\backslash \mathcal{M}})
-
 $$
 
 Where $\mathcal{M}$ is the set of masked positions and $x_{\backslash \mathcal{M}}$ denotes all non-masked tokens.
 
-### BERT-Style Masking Strategy
+### BERT 방식 가리기 전략
 
-15% of tokens are selected for prediction:
-- 80% replaced with [MASK]
-- 10% replaced with random token
-- 10% kept unchanged
+토막의 15%를 어림 대상으로 고른다:
 
-This strategy prevents the model from learning that [MASK] tokens always need prediction.
+- 80%는 [MASK]으로 바꾼다
+- 10%는 무작위 토큰으로 바꾼다
+- 10%는 그대로 둔다
+
+이 전략은 모델이 [MASK] 토막만 어림하면 된다고 배우는 것을 막는다.
 
 ```python
 import torch
@@ -170,26 +160,26 @@ def bert_masking(
     mask_prob: float = 0.15
 ) -> Tuple[list, list]:
     """
-    BERT-style masking: 15% of tokens modified.
+    BERT 꼴 가리기: 토막의 15%를 고친다.
     
-    Of masked tokens:
-    - 80% replaced with [MASK]
-    - 10% replaced with random token
-    - 10% kept unchanged
+    가린 토막 가운데:
+    - 80%는 [MASK]으로 바꾼다
+    - 10%는 무작위 토큰으로 바꾼다
+    - 10%는 그대로 둔다
     """
     masked_tokens = tokens.copy()
-    labels = [-100] * len(tokens)  # -100 = ignore in loss
+    labels = [-100] * len(tokens)  # -100 = 손실에서 무시한다
     
     for i in range(len(tokens)):
         if random.random() < mask_prob:
-            labels[i] = tokens[i]  # Original token is the label
+            labels[i] = tokens[i]  # 본디 토막이 이름표이다
             
             r = random.random()
             if r < 0.8:
                 masked_tokens[i] = mask_token
             elif r < 0.9:
                 masked_tokens[i] = random.randint(0, vocab_size - 1)
-            # else: keep original (10%)
+            # 그 밖에는 본디 것을 둔다(10%)
     
     return masked_tokens, labels
 
@@ -202,29 +192,29 @@ def create_mlm_batch(
     special_token_ids: set = None
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     """
-    Create MLM training batch with proper tensor operations.
+    알맞은 텐서 연산으로 가린 말 모델 익히기 묶음을 만든다.
     
-    Args:
-        input_ids: [batch, seq_len] input token ids
-        vocab_size: Size of vocabulary
-        mask_token_id: ID of [MASK] token
-        mask_prob: Probability of masking each token
-        special_token_ids: Set of token ids to never mask (e.g., [CLS], [SEP], [PAD])
+    인수:
+        input_ids: [묶음, 차례 길이] 들임 토막 번호
+        vocab_size: 낱말 곳간의 크기
+        mask_token_id: [MASK] 토막의 번호
+        mask_prob: 토막마다 가릴 확률
+        special_token_ids: 결코 가리지 않을 토막 번호의 모임(예: [CLS], [SEP], [PAD])
     """
     labels = input_ids.clone()
     
-    # Create probability matrix
+    # 확률 행렬을 만든다
     probability_matrix = torch.full(input_ids.shape, mask_prob)
     
-    # Don't mask special tokens
+    # 특별 토큰은 가리지 않는다
     if special_token_ids:
         for token_id in special_token_ids:
             probability_matrix.masked_fill_(input_ids == token_id, 0.0)
     
-    # Sample masked indices
+    # 가릴 번호를 뽑는다
     masked_indices = torch.bernoulli(probability_matrix).bool()
     
-    # Only compute loss on masked tokens
+    # 가린 토막에서만 손실을 셈한다
     labels[~masked_indices] = -100
     
     # 80% -> [MASK]
@@ -233,35 +223,35 @@ def create_mlm_batch(
     ).bool() & masked_indices
     input_ids[indices_replaced] = mask_token_id
     
-    # 10% -> random token
+    # 10% -> 아무 토막
     indices_random = torch.bernoulli(
         torch.full(input_ids.shape, 0.5)
     ).bool() & masked_indices & ~indices_replaced
     random_words = torch.randint(vocab_size, input_ids.shape, dtype=input_ids.dtype)
     input_ids[indices_random] = random_words[indices_random]
     
-    # 10% -> unchanged (already handled by not modifying)
+    # 10% -> 그대로(고치지 않는 것으로 이미 다룸)
     
     return input_ids, labels
 ```
 
-### MLM Characteristics
+### 가린 말 나타내기의 성질
 
-| Aspect | Characteristic |
+| 갈래 | 성질 |
 |--------|----------------|
-| Attention | Bidirectional (full context) |
-| Generation | Requires iterative refinement or separate decoder |
-| Context | All non-masked tokens |
-| Training | Only 15% of tokens provide gradient signal |
-| Models | BERT, RoBERTa, DeBERTa, ALBERT |
+| 눈길 | 두 방향(온 맥락) |
+| 만들어 내기 | 거듭 다듬거나 따로 풀개가 있어야 한다 |
+| 맥락 | 가리지 않은 모든 토막 |
+| 익히기 | 토막의 15%만 기울기 신호를 준다 |
+| 모델 | BERT, RoBERTa, DeBERTa, ALBERT |
 
-## Span Corruption (T5)
+## 구간 망가뜨리기(T5)
 
-Used by T5, BART, and encoder-decoder models.
+T5, BART와 부호기-풀개 모델이 쓴다.
 
-### Denoising Objective
+### 잡음 없애기 목표
 
-Replace consecutive spans with sentinel tokens, then predict the original spans:
+잇닿은 구간을 보초 토막으로 갈음한 뒤 본디 구간을 어림한다:
 
 ```
 Input:  "The quick brown [X] the lazy dog"
@@ -269,12 +259,10 @@ Target: "[X] fox jumps over"
 ```
 
 $$
-
 \mathcal{L}_{\text{denoise}} = -\log P_\theta(\text{corrupted spans} | \text{context})
-
 $$
 
-### Implementation
+### 구현
 
 ```python
 import numpy as np
@@ -288,16 +276,16 @@ def span_corruption(
     corruption_rate: float = 0.15
 ) -> Tuple[List[int], List[int]]:
     """
-    T5-style span corruption.
+    T5 꼴 구간 망가뜨리기.
     
-    Args:
-        tokens: Input token ids
-        sentinel_start_id: Starting id for sentinel tokens ([X], [Y], ...)
-        mean_span_length: Average length of corrupted spans
-        corruption_rate: Fraction of tokens to corrupt
+    인수:
+        tokens: 들임 토막 번호
+        sentinel_start_id: 파수 토막의 첫 번호([X], [Y], ...)
+        mean_span_length: 망가뜨린 구간의 평균 길이
+        corruption_rate: 망가뜨릴 토막의 비율
         
-    Returns:
-        (corrupted_input, target) tuple
+    반환값:
+        (망가뜨린 들임, 목표)의 짝
     """
     n = len(tokens)
     num_to_corrupt = int(n * corruption_rate)
@@ -305,14 +293,14 @@ def span_corruption(
     if num_to_corrupt == 0:
         return tokens, []
     
-    # Determine number and lengths of spans
+    # 구간의 수와 길이를 정한다
     num_spans = max(1, int(num_to_corrupt / mean_span_length))
     
-    # Sample span lengths from geometric distribution
+    # 기하 분포에서 구간 길이를 뽑는다
     span_lengths = np.random.geometric(1.0 / mean_span_length, num_spans)
     span_lengths = np.clip(span_lengths, 1, n // num_spans)
     
-    # Adjust to match target corruption
+    # 목표 망가뜨림에 맞게 조절한다
     total_length = span_lengths.sum()
     if total_length > num_to_corrupt:
         span_lengths = (span_lengths * num_to_corrupt / total_length).astype(int)
@@ -320,8 +308,8 @@ def span_corruption(
     
     num_spans = len(span_lengths)
     
-    # Sample non-overlapping span positions
-    # Divide sequence into num_spans segments, sample one start per segment
+    # 겹치지 않는 구간 자리를 뽑는다
+    # 차례를 num_spans 도막으로 나누고 도막마다 시작점 하나를 뽑는다
     segment_length = n // num_spans
     span_starts = []
     for i in range(num_spans):
@@ -332,39 +320,39 @@ def span_corruption(
         else:
             span_starts.append(start)
     
-    # Sort spans by position
+    # 구간을 자리로 정렬한다
     spans = sorted(zip(span_starts, span_lengths))
     
-    # Build corrupted input and target
+    # 망가뜨린 들임과 목표를 세운다
     input_tokens = []
     target_tokens = []
     sentinel_id = sentinel_start_id
     pos = 0
     
     for start, length in spans:
-        # Add tokens before this span
+        # 이 구간 앞의 토막을 더한다
         input_tokens.extend(tokens[pos:start])
         
-        # Add sentinel to input
+        # 들임에 파수 토막을 더한다
         input_tokens.append(sentinel_id)
         
-        # Add sentinel + original span to target
+        # 목표에 파수 토막 + 본디 구간을 더한다
         target_tokens.append(sentinel_id)
         target_tokens.extend(tokens[start:start + length])
         
         sentinel_id += 1
         pos = start + length
     
-    # Add remaining tokens to input
+    # 남은 토막을 들임에 더한다
     input_tokens.extend(tokens[pos:])
     
-    # Add final sentinel to target
+    # 목표에 마지막 파수 토막을 더한다
     target_tokens.append(sentinel_id)
     
     return input_tokens, target_tokens
 
 
-# Example usage
+# 사용 예
 if __name__ == "__main__":
     tokens = list(range(20))  # [0, 1, 2, ..., 19]
     corrupted, target = span_corruption(tokens, sentinel_start_id=100)
@@ -373,11 +361,11 @@ if __name__ == "__main__":
     print(f"Target: {target}")
 ```
 
-## Prefix Language Modeling
+## 앞가지 말 나타내기
 
-### Hybrid Approach
+### 섞은 방식
 
-Prefix LM uses bidirectional attention on a prefix, then causal attention for generation:
+앞가지 말 모델은 앞가지에 두 방향 눈길을 쓰고 만들어 낼 때는 인과 눈길을 쓴다:
 
 ```
 Prefix (bidirectional): "Translate English to French:"
@@ -385,69 +373,65 @@ Generation (causal):    " Le chat est sur le tapis"
 ```
 
 $$
-
 \mathcal{L} = -\sum_{t > L_{\text{prefix}}} \log P(x_t | x_1, \ldots, x_{t-1})
-
 $$
 
-### Attention Pattern
+### 눈길 무늬
 
 ```python
 def prefix_lm_mask(seq_len: int, prefix_len: int) -> torch.Tensor:
     """
-    Prefix LM attention mask.
+    앞가지 말 모델의 눈길 가림막.
     
-    - Prefix tokens: bidirectional attention (can see all prefix tokens)
-    - Generation tokens: causal attention (can see prefix + prior generation)
+    - 앞가지 토막: 양쪽 눈길(앞가지 토막을 모두 본다)
+    - 만들어 내기 토막: 인과 눈길(앞가지 + 앞서 만든 것을 본다)
     
-    Args:
-        seq_len: Total sequence length
-        prefix_len: Length of the prefix portion
+    인수:
+        seq_len: 전체 차례 길이
+        prefix_len: 앞가지 몫의 길이
         
-    Returns:
-        Attention mask (seq_len, seq_len)
+    반환값:
+        눈길 가림막 (차례 길이, 차례 길이)
     """
     mask = torch.zeros(seq_len, seq_len)
     
-    # Prefix: full attention within prefix
+    # 앞가지: 앞가지 안에서는 눈길이 온전하다
     mask[:prefix_len, :prefix_len] = 1
     
-    # Generation: can see all of prefix + causal within generation
+    # 만들어 내기: 앞가지 전부 + 만들어 내기 안에서는 인과로 본다
     for i in range(prefix_len, seq_len):
-        mask[i, :prefix_len] = 1  # See all prefix
-        mask[i, prefix_len:i+1] = 1  # Causal within generation
+        mask[i, :prefix_len] = 1  # 앞가지를 모두 본다
+        mask[i, prefix_len:i+1] = 1  # 만들어 내기 안에서는 인과로
     
     return mask
 
 
-# Example: seq_len=6, prefix_len=3
-# [[1, 1, 1, 0, 0, 0],   <- prefix token 0
-#  [1, 1, 1, 0, 0, 0],   <- prefix token 1  
-#  [1, 1, 1, 0, 0, 0],   <- prefix token 2
-#  [1, 1, 1, 1, 0, 0],   <- gen token 0 (sees prefix + self)
-#  [1, 1, 1, 1, 1, 0],   <- gen token 1
-#  [1, 1, 1, 1, 1, 1]]   <- gen token 2
+# 보기: seq_len=6, prefix_len=3
+# [[1, 1, 1, 0, 0, 0],   <- 앞가지 토막 0
+#  [1, 1, 1, 0, 0, 0],   <- 앞가지 토막 1
+#  [1, 1, 1, 0, 0, 0],   <- 앞가지 토막 2
+#  [1, 1, 1, 1, 0, 0],   <- 만든 토막 0(앞가지 + 자신을 본다)
+#  [1, 1, 1, 1, 1, 0],   <- 만든 토막 1
+#  [1, 1, 1, 1, 1, 1]]   <- 만든 토막 2
 ```
 
-## Replaced Token Detection (ELECTRA)
+## 갈음된 토막 알아채기(ELECTRA)
 
-ELECTRA trains a discriminator to detect tokens replaced by a small generator:
+ELECTRA는 작은 만들개가 갈음한 토막을 알아채도록 가름개를 익힌다:
 
 $$
-
 \mathcal{L} = -\sum_{t=1}^{T} \left[ y_t \log D(x_t) + (1-y_t) \log(1 - D(x_t)) \right]
-
 $$
 
-Where $y_t = 1$ if token $t$ was replaced by the generator.
+여기서 토막 $t$이 만들개에 갈음됐으면 $y_t = 1$이다.
 
 ```python
 class ELECTRA(nn.Module):
     """
-    ELECTRA: Pre-training Text Encoders as Discriminators.
+    ELECTRA: 글 부호기를 가름개로 미리 익히기.
     
-    Uses a small generator to corrupt text, main model learns to detect corruptions.
-    More sample-efficient than MLM since every token provides signal.
+    작은 만들개로 글을 망가뜨리고, 으뜸 모델이 망가진 곳을 알아내는 법을 배운다.
+    모든 토막이 신호를 주므로 가린 말 모델보다 표본을 아낀다.
     """
     
     def __init__(
@@ -458,8 +442,8 @@ class ELECTRA(nn.Module):
         disc_weight: float = 50.0
     ):
         super().__init__()
-        self.generator = generator  # Small MLM model
-        self.discriminator = discriminator  # Main model
+        self.generator = generator  # 작은 가린 언어 모형
+        self.discriminator = discriminator  # 주 모형
         self.gen_weight = gen_weight
         self.disc_weight = disc_weight
     
@@ -470,30 +454,30 @@ class ELECTRA(nn.Module):
         labels: torch.Tensor
     ):
         """
-        Args:
-            input_ids: Input with [MASK] tokens
-            masked_indices: Boolean mask of corrupted positions
-            labels: Original token ids at masked positions
+        인수:
+            input_ids: [MASK] 토막이 든 들임
+            masked_indices: 망가뜨린 자리의 참거짓 가림막
+            labels: 가린 자리의 본디 토막 번호
         """
-        # Generator predicts masked tokens (MLM)
+        # 만들개가 가린 토막을 어림한다(가린 말 모델)
         gen_logits = self.generator(input_ids).logits
         gen_loss = F.cross_entropy(
             gen_logits[masked_indices],
             labels[masked_indices]
         )
         
-        # Sample replacements from generator
+        # 만들개에서 바꿔 넣을 것을 뽑는다
         with torch.no_grad():
             gen_probs = F.softmax(gen_logits, dim=-1)
             sampled = torch.multinomial(
                 gen_probs.view(-1, gen_probs.size(-1)), 1
             ).view(input_ids.shape)
         
-        # Create corrupted sequence
+        # 망가뜨린 차례를 만든다
         corrupted = input_ids.clone()
         corrupted[masked_indices] = sampled[masked_indices]
         
-        # Discriminator predicts which tokens are replaced
+        # 가름개가 어느 토막이 바뀌었는지 어림한다
         disc_logits = self.discriminator(corrupted).logits
         disc_labels = (corrupted != input_ids).float()
         
@@ -511,23 +495,23 @@ class ELECTRA(nn.Module):
         }
 ```
 
-## Additional Denoising Objectives
+## 그 밖의 잡음 없애기 목표
 
-### Document Rotation
-Rotate document at random point and predict rotation amount.
+### 글월 돌리기
+글월을 마구잡이 지점에서 돌리고 돌린 양을 어림한다.
 
-### Sentence Permutation
-Shuffle sentences and reconstruct original order (used in BART).
+### 월 자리바꿈
+월을 섞고 본디 차례를 되살린다(BART가 쓴다).
 
-### Token Deletion
-Randomly delete tokens and predict original sequence.
+### 토막 지우기
+토막을 마구잡이로 지우고 본디 차례를 어림한다.
 
-### Token Infilling
-Replace spans with single mask token (unlike T5 which uses one mask per span).
+### 토막 메우기
+구간을 마스크 토막 하나로 갈음한다(구간마다 마스크를 하나씩 쓰는 T5와 다르다).
 
-## Mixture of Denoisers (UL2)
+## 잡음 없애개 섞기(UL2)
 
-Google's UL2 combines multiple objectives during pretraining:
+구글의 UL2는 미리 익히는 동안 목표 여럿을 아우른다:
 
 ```python
 from dataclasses import dataclass
@@ -537,24 +521,24 @@ import random
 
 @dataclass
 class UL2Config:
-    """Configuration for a UL2 denoising objective."""
+    """UL2 잡음 없애기 목표의 자리매김."""
     name: str
     mean_span_length: Optional[float]
     corruption_rate: Optional[float]
-    prefix: str  # Mode token added to input
+    prefix: str  # 방식 토막을 들임에 더한다
 
 
 UL2_OBJECTIVES = [
-    UL2Config('R', mean_span_length=3.0, corruption_rate=0.15, prefix='[R]'),   # Regular
-    UL2Config('S', mean_span_length=None, corruption_rate=None, prefix='[S]'),  # Sequential (Prefix LM)
-    UL2Config('X', mean_span_length=32.0, corruption_rate=0.50, prefix='[X]'),  # Extreme
+    UL2Config('R', mean_span_length=3.0, corruption_rate=0.15, prefix='[R]'),   # 보통
+    UL2Config('S', mean_span_length=None, corruption_rate=None, prefix='[S]'),  # 차례차례(앞가지 말 모델)
+    UL2Config('X', mean_span_length=32.0, corruption_rate=0.50, prefix='[X]'),  # 극단
 ]
 
-UL2_WEIGHTS = [0.5, 0.25, 0.25]  # Sampling weights
+UL2_WEIGHTS = [0.5, 0.25, 0.25]  # 표집 무게
 
 
 def sample_ul2_objective() -> UL2Config:
-    """Sample a UL2 training objective."""
+    """UL2 익히기 목표를 뽑는다."""
     return random.choices(UL2_OBJECTIVES, weights=UL2_WEIGHTS)[0]
 
 
@@ -564,22 +548,22 @@ def ul2_transform(
     mode_token_ids: dict
 ) -> Tuple[List[int], List[int]]:
     """
-    Apply UL2 transformation to a sequence.
+    차례에 UL2 바꿈을 적용한다.
     
-    Args:
-        tokens: Input token ids
-        sentinel_start_id: Starting id for sentinel tokens
-        mode_token_ids: Dict mapping mode names ('R', 'S', 'X') to token ids
+    인수:
+        tokens: 들임 토막 번호
+        sentinel_start_id: 파수 토막의 첫 번호
+        mode_token_ids: 방식 이름('R', 'S', 'X')을 토막 번호에 대응시킨 사전
     """
     config = sample_ul2_objective()
     
     if config.name == 'S':
-        # Sequential (Prefix LM): split into prefix and target
+        # 차례차례(앞가지 말 모델): 앞가지와 목표로 쪼갠다
         split_point = random.randint(len(tokens) // 4, 3 * len(tokens) // 4)
         input_tokens = [mode_token_ids['S']] + tokens[:split_point]
         target_tokens = tokens[split_point:]
     else:
-        # R or X: span corruption with different parameters
+        # R이나 X: 매개변수를 달리한 구간 망가뜨리기
         corrupted, target = span_corruption(
             tokens,
             sentinel_start_id,
@@ -592,9 +576,9 @@ def ul2_transform(
     return input_tokens, target_tokens
 ```
 
-## Fill-in-the-Middle (FIM)
+## 가운데 채우기(FIM)
 
-For code models, FIM enables infilling capabilities while maintaining autoregressive training:
+코드 모델에서 FIM은 자기되돌리기 익히기를 그대로 두면서 가운데를 메우는 능력을 준다:
 
 ```python
 def fill_in_middle_transform(
@@ -603,25 +587,25 @@ def fill_in_middle_transform(
     fim_spm_rate: float = 0.5
 ) -> str:
     """
-    Transform code for fill-in-the-middle training.
+    가운데 채우기 익히기를 위해 부호를 바꾼다.
     
-    Two formats:
-    - PSM (prefix-suffix-middle): <PRE>prefix<SUF>suffix<MID>middle
-    - SPM (suffix-prefix-middle): <SUF>suffix<PRE>prefix<MID>middle
+    두 가지 꼴:
+    - PSM(앞-뒤-가운데): <PRE>앞<SUF>뒤<MID>가운데
+    - SPM(뒤-앞-가운데): <SUF>뒤<PRE>앞<MID>가운데
     
-    Args:
-        code: Original code string
-        fim_rate: Probability of applying FIM (vs standard CLM)
-        fim_spm_rate: When FIM applied, probability of SPM format
+    인수:
+        code: 본디 부호 글줄
+        fim_rate: 가운데 채우기를 적용할 확률(여느 인과 말 모델 대비)
+        fim_spm_rate: 가운데 채우기를 쓸 때 SPM 꼴이 될 확률
     """
     if random.random() > fim_rate:
-        return code  # Standard CLM
+        return code  # 여느 인과 말 모델
     
-    # Random split point
+    # 아무 데나 자르는 점
     split = random.randint(0, len(code))
     prefix = code[:split]
     
-    # Optional: random end point for middle
+    # 고를 수 있음: 가운데의 끝점을 아무 데나
     if random.random() < 0.5:
         end = random.randint(split, len(code))
     else:
@@ -630,23 +614,23 @@ def fill_in_middle_transform(
     middle = code[split:end]
     suffix = code[end:]
     
-    # Choose format
+    # 꼴을 고른다
     if random.random() < fim_spm_rate:
-        # SPM format
+        # SPM 꼴
         return f"<SUF>{suffix}<PRE>{prefix}<MID>{middle}"
     else:
-        # PSM format
+        # PSM 꼴
         return f"<PRE>{prefix}<SUF>{suffix}<MID>{middle}"
 
 
-# Example:
-# Original: "def foo():\n    return 42"
+# 보기:
+# 본디: "def foo():\n    return 42"
 # FIM PSM:  "<PRE>def foo():\n<SUF>\n<MID>    return 42"
 ```
 
-## Training Efficiency Comparison
+## 익히기 효율 견줌
 
-### Effective Training Signal
+### 실효 익힘 신호
 
 ```python
 def effective_tokens_per_example(
@@ -655,94 +639,88 @@ def effective_tokens_per_example(
     mask_rate: float = 0.15
 ) -> float:
     """
-    Calculate effective training signal per sequence.
+    차례마다의 실효 익히기 신호를 셈한다.
     
-    Not all objectives provide gradient signal from every token.
+    모든 목표가 토막마다 기울기 신호를 주지는 않는다.
     """
     if objective == 'CLM':
-        # Every token (except first) provides signal
+        # 첫 토막만 빼고 모든 토막이 신호를 준다
         return seq_len - 1
     
     elif objective == 'MLM':
-        # Only masked tokens provide signal
+        # 가린 토막만 신호를 준다
         return seq_len * mask_rate
     
     elif objective == 'span_corruption':
-        # Similar to MLM but with better context
+        # 가린 말 모델과 비슷하나 맥락이 더 낫다
         return seq_len * mask_rate
     
     elif objective == 'prefix_lm':
-        # Only generation portion provides signal
-        # Assuming ~50% prefix
+        # 만들어 내는 몫만 신호를 준다
+        # 앞가지가 50%쯤이라 치고
         return seq_len * 0.5
     
     elif objective == 'ELECTRA':
-        # Every token provides discriminator signal
+        # 모든 토막이 가름개 신호를 준다
         return seq_len
 
 
 def training_equivalence(clm_tokens: int, mlm_mask_rate: float = 0.15) -> dict:
     """
-    Compute how many MLM tokens needed to match CLM training signal.
+    인과 말 모델의 익히기 신호에 맞추려면 가린 말 모델 토막이 얼마나 필요한지 셈한다.
     """
     return {
         'clm_effective': clm_tokens,
         'mlm_effective_per_token': mlm_mask_rate,
         'mlm_tokens_to_match': clm_tokens / mlm_mask_rate,
-        'ratio': 1 / mlm_mask_rate  # ~6.7x more MLM tokens needed
+        'ratio': 1 / mlm_mask_rate  # 가린 말 모델 토막이 약 6.7배 더 필요하다
     }
 ```
 
-## Comprehensive Comparison
+## 두루 살피는 견줌
 
-| Objective | Architecture | Bidirectional | Generation | Signal/Token | Best For |
+| 목표 | 얼개 | 두 방향 | 만들어 내기 | 토막당 신호 | 알맞은 곳 |
 |-----------|--------------|---------------|------------|--------------|----------|
-| CLM | Decoder | ✗ | Natural | 100% | Generation, chat |
-| MLM | Encoder | ✓ | Limited | 15% | Understanding, embeddings |
-| Span Corruption | Enc-Dec | Partial | ✓ | 15% | Seq2seq, translation |
-| Prefix LM | Decoder | Partial | ✓ | ~50% | Conditional generation |
-| ELECTRA | Encoder | ✓ | Limited | 100% | Efficient pretraining |
-| UL2 | Enc-Dec | Mixed | ✓ | Mixed | General purpose |
+| CLM | 풀개 | ✗ | 자연스럽다 | 100% | 만들어 내기, 채팅 |
+| MLM | 부호기 | ✓ | 제한됨 | 15% | 이해, 묻힘 |
+| 구간 망가뜨리기 | 부호기-풀개 | 일부 | ✓ | 15% | 차례에서 차례로, 옮김 |
+| 앞가지 말 모델 | 풀개 | 일부 | ✓ | 약 50% | 조건을 건 만들어 내기 |
+| ELECTRA | 부호기 | ✓ | 제한됨 | 100% | 효율적인 미리 익히기 |
+| UL2 | 부호기-풀개 | 섞임 | ✓ | 섞임 | 두루 쓰기 |
 
-## Key Equations Summary
+## 핵심 식 간추림
 
-**Causal Language Modeling**:
+**인과 말 나타내기**:
 
 $$
-
 \boxed{\mathcal{L}_{\text{CLM}} = -\sum_{t=1}^{n} \log P(x_t | x_{<t})}
-
 $$
 
-**Masked Language Modeling**:
+**가린 말 나타내기**:
 
 $$
-
 \boxed{\mathcal{L}_{\text{MLM}} = -\sum_{i \in \mathcal{M}} \log P(x_i | x_{\backslash \mathcal{M}})}
-
 $$
 
-**ELECTRA Discriminator**:
+**ELECTRA 가름개**:
 
 $$
-
 \boxed{\mathcal{L}_{\text{disc}} = -\sum_{t=1}^{T} \left[ y_t \log D(x_t) + (1-y_t) \log(1 - D(x_t)) \right]}
-
 $$
 
-## Summary
+## 요약
 
-| Objective | Key Models | Primary Use Case |
+| 목표 | 핵심 모델 | 으뜸 쓰임새 |
 |-----------|------------|------------------|
-| **CLM** | GPT, LLaMA, Mistral, Claude | Text generation, chat, reasoning |
-| **MLM** | BERT, RoBERTa, DeBERTa | Classification, NLU, embeddings |
-| **Span Corruption** | T5, BART, mT5 | Translation, summarization, seq2seq |
-| **Prefix LM** | PaLM (partial), UniLM | Conditional generation |
-| **ELECTRA** | ELECTRA, DeBERTa v3 | Efficient encoder pretraining |
-| **UL2** | Flan-UL2, PaLM 2 | General purpose, multi-task |
-| **FIM** | CodeLLaMA, StarCoder | Code completion, infilling |
+| **CLM** | GPT, LLaMA, Mistral, Claude | 글 만들어 내기, 채팅, 따짐 |
+| **MLM** | BERT, RoBERTa, DeBERTa | 갈래 매기기, 자연어 이해, 묻힘 |
+| **구간 망가뜨리기** | T5, BART, mT5 | 옮김, 간추리기, 차례에서 차례로 |
+| **앞가지 말 모델** | PaLM(일부), UniLM | 조건을 건 만들어 내기 |
+| **ELECTRA** | ELECTRA, DeBERTa v3 | 효율적인 부호기 미리 익히기 |
+| **UL2** | Flan-UL2, PaLM 2 | 두루 쓰기, 여러 일 |
+| **FIM** | CodeLLaMA, StarCoder | 코드 이어 쓰기, 가운데 메우기 |
 
-## References
+## 참고 문헌
 
 1. Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners." (GPT-2)
 2. Devlin, J., et al. (2019). "BERT: Pre-training of Deep Bidirectional Transformers."
@@ -750,3 +728,35 @@ $$
 4. Clark, K., et al. (2020). "ELECTRA: Pre-training Text Encoders as Discriminators."
 5. Tay, Y., et al. (2022). "UL2: Unifying Language Learning Paradigms."
 6. Bavarian, M., et al. (2022). "Efficient Training of Language Models to Fill in the Middle."
+
+## 연습문제
+
+**연습문제 1.**
+큰 규모로 큰 말 모델을 익힐 때의 핵심 어려움을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    주된 어려움: (1) **셈 값**: 1750억 매개변수 모델을 익히려면 GPU 수천 대를 몇 주 돌려야 하고 수백만 달러가 든다. (2) **자료의 좋음**: 웹에서 긁은 자료에는 잡음, 치우침, 겹침, 해로운 내용이 들어 있어 대대적인 거르기가 필요하다. (3) **익히기의 흔들림**: 규모가 커지면 손실이 튀거나 흩어지거나 기울기에 탈이 나는 일이 잦아져 배움 비율 일정 짜기와 기울기 자르기를 조심스레 해야 한다. (4) **흩뿌린 익히기**: GPU 수백 대에 걸친 모델 나란히 하기와 자료 나란히 하기는 주고받기 덧짐과 맞추기의 어려움을 낳는다. (5) **값매김**: 표준 잣대가 떠오르는 능력이나 어그러지는 방식을 담아내지 못할 수 있다.
+
+---
+
+**연습문제 2.**
+미리 익히기 목표로서 인과 말 나타내기, 가린 말 나타내기, 앞가지 말 나타내기를 견주어라.
+
+??? success "연습문제 2 풀이"
+    **인과 말 모델**(GPT): 왼쪽 맥락으로 다음 토막을 어림한다. 자연스럽게 만들어 낼 수 있지만 오른쪽 맥락에 조건을 걸 수 없다. **가린 말 모델**(BERT): 두 방향 온 맥락으로 가린 토막을 어림한다. 이해에 아주 좋지만 자기되돌리기로 만들어 내지 못한다. **앞가지 말 모델**(T5의 부호기 + 인과 풀개): 부호기가 "앞가지"(들임)의 두 방향 온 맥락을 보고 풀개가 자기되돌리기로 만들어 낸다. 이해와 만들어 내기를 아우른다. 만들어 내기에 초점을 둔 모델에서는 인과 말 모델이 판을 잡는데, 자기되돌리기 만들어 내기 과정과 결이 맞고 규모를 키우기 좋기 때문이다.
+
+---
+
+**연습문제 3.**
+큰 말 모델의 떠오르는 능력이란 무엇인가? 보기를 들고 그것이 참으로 떠오르는 것인지 논하여라.
+
+??? success "연습문제 3 풀이"
+    떠오르는 능력이란 큰 모델에는 나타나지만 작은 모델에는 없는 능력으로, 규모에 따른 상 바뀜을 시사한다. 보기: 생각의 사슬 따지기, 맥락 안에서 배우기, 코드 만들기, 여러 말을 따로 익히지 않고도 하는 옮김. 논쟁은 이렇다. 어떤 연구자는 떠오름이 매끄럽게 나아지는 로그 확률에 비선형 값매김 잣대(정확도)를 씌워 생긴 찌꺼기라고 본다. 이어진 잣대(로그 가능도)로 값매김하면 나아짐이 차츰차츰 보인다. 다른 이들은 여러 걸음 시킴을 따르는 능력 같은 질적인 능력 바뀜은 참으로 떠오르는 현상이라고 본다.
+
+---
+
+**연습문제 4.**
+큰 말 모델을 값매김하는 흔한 잣대와 그 한계를 설명하여라.
+
+??? success "연습문제 4 풀이"
+    흔한 잣대: **MMLU**(57개 과목에 걸친 여러 일 객관식), **HellaSwag**(상식 따지기), **GSM8K**(초등 수학), **HumanEval**(코드 만들기), **TruthfulQA**(사실 정확도). **한계**: (1) 자료 오염 — 잣대 자료가 익힘 말뭉치에 들어 있어 점수가 부풀 수 있다. (2) 좁은 값매김 — 객관식은 만들어 낸 글의 좋음을 시험하지 못한다. (3) 잣대 맞추기 — 모델을 특정 잣대에 맞춰 다듬을 수 있다. (4) 포화 — 으뜸 모델이 어떤 잣대에서 100%에 가까워 가르는 힘이 줄어든다. (5) 빠진 갈래 — 창의, 안전, 실제 쓸모는 표준 잣대로 잘 재지 못한다.

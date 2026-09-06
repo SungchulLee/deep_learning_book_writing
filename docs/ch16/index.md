@@ -1,29 +1,29 @@
-# Chapter 16: Approximate Inference
+# 16장: 어림 추론
 
-Exact Bayesian inference requires computing the posterior distribution $p(\theta \mid \mathcal{D})$, which in turn requires evaluating the marginal likelihood $p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta)\,p(\theta)\,d\theta$. For all but the simplest models, this integral is intractable. Approximate inference methods make Bayesian computation feasible by replacing the exact posterior with a tractable approximation.
+정확한 베이즈 추론은 뒤확률 분포 $p(\theta \mid \mathcal{D})$을 셈해야 하고, 그러려면 다시 주변 가능도 $p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta)\,p(\theta)\,d\theta$의 값을 매겨야 한다. 가장 단순한 모형을 빼면 이 적분은 다룰 수 없다. 어림 추론 방법은 정확한 뒤확률을 다룰 수 있는 어림으로 바꿔 베이즈 셈하기를 감당할 수 있게 만든다.
 
-This chapter covers three major families of approximate inference. **Variational inference** recasts posterior approximation as an optimization problem -- finding the member of a tractable family that is closest to the true posterior in KL divergence. The **EM algorithm** handles latent variable models through iterative expectation and maximization steps, avoiding the need to compute the full posterior directly. **Bayesian neural networks** extend these ideas to deep learning, placing distributions over weights for principled uncertainty quantification.
+이 장은 어림 추론의 큰 갈래 셋을 다룬다. **변분 추론**은 뒤확률 어림을 최적화 문제로 바꾸어, 다룰 수 있는 집안 가운데 KL 벌어짐으로 참 뒤확률에 가장 가까운 것을 찾는다. **EM 알고리즘**은 기댓값 걸음과 최대화 걸음을 되풀이해 숨은 변수 모형을 다루며, 온전한 뒤확률을 곧바로 셈할 필요를 없앤다. **베이즈 신경망**은 이 생각을 깊은 배움으로 넓혀, 가중값에 분포를 두고 원리 있게 불확실함을 잰다.
 
 ---
 
-## Variational Inference
+## 변분 추론
 
-- [Variational Inference Framework](variational_inference/framework.md) -- Formulating VI as optimization, the relationship to KL divergence, and comparison with other methods
-- [Evidence Lower Bound (ELBO)](variational_inference/elbo.md) -- Three complementary derivations, gap analysis, tightness conditions, and connections to EM and VAEs
-- [Mean-Field Variational Inference](variational_inference/mean_field.md) -- The fully-factorized approximation, optimal factor derivation, and limitations of ignoring correlations
-- [Reparameterization and Black-Box VI](variational_inference/reparameterization.md) -- Score function estimators, variance reduction, and the reparameterization trick for gradient-based VI
-- [Amortized Variational Inference](variational_inference/amortized.md) -- Inference networks for scalable posterior approximation, VAEs, and the amortization gap
+- [변분 추론 얼개](variational_inference/framework.md) -- 변분 추론을 최적화로 세우기, KL 벌어짐과의 관계, 다른 방법과의 견줌
+- [증거 아래 경계(ELBO)](variational_inference/elbo.md) -- 서로 보완하는 세 가지 이끌어 내기, 틈 살피기, 팽팽함의 조건, EM 및 VAE과의 이음
+- [평균장 변분 추론](variational_inference/mean_field.md) -- 온전히 인수로 나눈 어림, 가장 좋은 인수 이끌어 내기, 상관을 무시할 때의 한계
+- [매개변수 바꾸기와 깜깜이 변분 추론](variational_inference/reparameterization.md) -- 점수 함수 어림꼴, 흩어짐 줄이기, 기울기를 쓰는 변분 추론을 위한 매개변수 바꾸기 재주
+- [나눠 갚는 변분 추론](variational_inference/amortized.md) -- 규모를 키울 수 있는 뒤확률 어림을 위한 추론 망, VAE, 나눠 갚기 틈
 
-## Expectation-Maximization
+## 기댓값-최대화
 
-- [EM Foundations](em/foundations.md) -- Latent variable models, the role of hidden variables, and motivation for the EM algorithm
-- [E-Step and M-Step](em/e_step_m_step.md) -- Detailed mechanics of each step including posterior computation and expected sufficient statistics
-- [Gaussian Mixture Models](em/gmm.md) -- The canonical EM application with full derivation, implementation, and financial extensions
-- [EM Variants](em/variants.md) -- Generalized EM, variational EM, and extensions for models lacking closed-form E or M steps
+- [EM의 바탕](em/foundations.md) -- 숨은 변수 모형, 숨은 변수가 하는 일, EM 알고리즘이 필요한 까닭
+- [E 걸음과 M 걸음](em/e_step_m_step.md) -- 뒤확률 셈하기와 기댓값 충분 통계량을 비롯한 걸음마다의 자세한 얼개
+- [가우스 섞음 모형](em/gmm.md) -- 온전한 이끌어 내기, 구현, 금융으로의 넓힘을 갖춘 EM의 대표 쓰임새
+- [EM의 갈래](em/variants.md) -- 넓힌 EM, 변분 EM, 그리고 E 걸음이나 M 걸음이 닫힌 꼴이 아닌 모형으로의 넓힘
 
-## Bayesian Neural Networks
+## 베이즈 신경망
 
-- [BNN Fundamentals](bnn/fundamentals.md) -- Placing probability distributions over weights for principled uncertainty quantification
-- [Weight Uncertainty](bnn/weight_uncertainty.md) -- Prior specification over weights, the geometry of weight spaces, and key inference approaches
-- [Bayes by Backprop](bnn/bayes_by_backprop.md) -- Training BNNs via variational inference using ELBO optimization and the reparameterization trick
-- [Prior Selection](bnn/prior_selection.md) -- Gaussian, Laplace, horseshoe, and spike-and-slab priors with hierarchical and empirical Bayes strategies
+- [베이즈 신경망의 바탕](bnn/fundamentals.md) -- 원리 있게 불확실함을 재려고 가중값에 확률 분포 두기
+- [가중값의 불확실함](bnn/weight_uncertainty.md) -- 가중값에 앞확률 정하기, 가중값 공간의 기하, 주요 추론 방법
+- [되짚음으로 하는 베이즈](bnn/bayes_by_backprop.md) -- ELBO 최적화와 매개변수 바꾸기 재주를 쓴 변분 추론으로 베이즈 신경망 익히기
+- [앞확률 고르기](bnn/prior_selection.md) -- 가우스, 라플라스, 편자, 못과 판 앞확률과 층 베이즈 및 경험 베이즈 전략

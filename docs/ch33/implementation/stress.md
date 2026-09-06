@@ -1,33 +1,33 @@
-# Stress Testing
+# 마구 시험하기
 
-When sample test cases pass but hidden cases fail, the most effective debugging strategy is stress testing: automatically generating random inputs, running both a brute-force and an optimized solution, and reporting the first discrepancy. A single stress test script can find bugs that hours of manual inspection would miss.
+보기 시험은 지나는데 숨은 시험에서 틀릴 때 가장 쓸모 있는 벌레잡이 셈속은 마구 시험하기다. 아무 들임을 저절로 만들어 힘으로 미는 풀이와 다듬은 풀이를 함께 돌리고 처음 어긋나는 곳을 알린다. 마구 시험 글 하나가 몇 시간 눈으로 뜯어봐도 못 찾을 벌레를 찾아낸다.
 
-## The Stress Testing Framework
+## 마구 시험하기의 틀
 
-A stress test has three components:
+마구 시험은 조각 셋으로 이루어진다:
 
-1. **Generator**: produces random valid inputs.
-2. **Brute-force solution**: a simple, obviously correct but slow implementation.
-3. **Optimized solution**: the candidate solution to verify.
+1. **만들개**: 올바른 아무 들임을 낸다.
+2. **힘으로 미는 풀이**: 단순하고 뻔히 옳지만 느린 짜기.
+3. **다듬은 풀이**: 확인하려는 후보 풀이.
 
-The test loop generates an input, feeds it to both solutions, and compares outputs. The first mismatch reveals a counterexample.
+시험 고리가 들임을 만들어 두 풀이에 넣고 내놓기를 견준다. 처음 어긋나는 곳이 반례를 드러낸다.
 
 ```python
 """
-Stress testing framework for competitive programming.
+겨루기 짜기를 위한 마구 시험 얼개.
 
-Compares a brute-force solution against an optimized solution
-on randomly generated inputs to find counterexamples.
+힘으로 미는 풀이와 다듬은 풀이를 아무렇게 만든 들임에서 견주어
+반례를 찾는다.
 """
 
 import random
 
 # ===================================================================
-# Brute-Force Solution
+# 힘으로 미는 풀이
 # ===================================================================
 
 def brute_force(arr):
-    """Find maximum subarray sum using O(n^2) brute force."""
+    """O(n^2) 힘으로 밀기로 밑배열 합의 최댓값을 찾는다."""
     n = len(arr)
     if n == 0:
         return 0
@@ -40,7 +40,7 @@ def brute_force(arr):
     return best
 
 # ===================================================================
-# Optimized Solution (Kadane's Algorithm)
+# 다듬은 풀이(카데인 알고리즘)
 # ===================================================================
 
 def optimized(arr):
@@ -55,21 +55,21 @@ def optimized(arr):
     return max_so_far
 
 # ===================================================================
-# Random Input Generator
+# 아무 들임 만들개
 # ===================================================================
 
 def generate_input(max_n=20, max_val=100):
-    """Generate a random array of integers."""
+    """아무 정수 배열을 만든다."""
     n = random.randint(1, max_n)
     arr = [random.randint(-max_val, max_val) for _ in range(n)]
     return arr
 
 # ===================================================================
-# Stress Test Loop
+# 마구 시험 되돌이
 # ===================================================================
 
 def stress_test(num_tests=10000):
-    """Run stress test comparing brute force and optimized solutions."""
+    """힘으로 미는 풀이와 다듬은 풀이를 견주는 마구 시험을 돌린다."""
     for test in range(1, num_tests + 1):
         arr = generate_input()
         expected = brute_force(arr)
@@ -89,7 +89,7 @@ def stress_test(num_tests=10000):
     return True
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
@@ -97,65 +97,65 @@ if __name__ == "__main__":
     stress_test(5000)
 ```
 
-**Output:**
+**출력:**
 ```
-Passed 1000 tests...
-Passed 2000 tests...
-Passed 3000 tests...
-Passed 4000 tests...
-Passed 5000 tests...
-All 5000 tests passed.
+시험 1000개 지남...
+시험 2000개 지남...
+시험 3000개 지남...
+시험 4000개 지남...
+시험 5000개 지남...
+시험 5000개를 모두 지났다.
 ```
 
-## Designing Good Random Generators
+## 좋은 아무 만들개 설계하기
 
-The generator determines the quality of the stress test. A generator that only produces "nice" inputs will miss the bugs triggered by adversarial cases.
+만들개가 마구 시험의 품질을 정한다. "얌전한" 들임만 내는 만들개는 맞수 같은 경우가 일으키는 벌레를 놓친다.
 
-### Key Principles
+### 핵심 원칙
 
-**Cover the constraint space.** Generate inputs at all scales:
+**매임 자리를 덮어라.** 모든 잣수의 들임을 만든다:
 
-- Small inputs ($n = 1, 2, 3$) catch off-by-one errors and base case bugs.
-- Medium inputs ($n = 10$--$20$) are large enough to exercise algorithm logic while staying small enough for brute-force comparison.
-- Vary value ranges: include negative values, zeros, maximum values, and mixed positive/negative.
+- 작은 들임($n = 1, 2, 3$)이 하나 어긋남과 바탕 경우의 벌레를 잡는다.
+- 가운데 들임($n = 10$~$20$)은 알고리즘 논리를 굴릴 만큼 크면서 힘으로 미는 풀이와 견줄 만큼 작다.
+- 값 범위를 달리한다. 음수, 0, 최대값, 양음이 섞인 것을 넣는다.
 
-**Use structured random generation.** For graph problems, random generators should produce:
+**짜임 있는 아무 만들기를 써라.** 그래프 문제에서 아무 만들개는 다음을 내야 한다:
 
-- Trees (connected, $n - 1$ edges).
-- Dense graphs (many edges).
-- Disconnected graphs (multiple components).
-- Specific structures (paths, stars, complete bipartite graphs) with some probability.
+- 나무(이어졌고 변이 $n - 1$개).
+- 빽빽한 그래프(변이 많음).
+- 끊긴 그래프(조각이 여럿).
+- 어떤 확률로 특정 얼개(길, 별, 완전 두 쪽 그래프).
 
-### Generator Patterns
+### 만들개 무늬
 
-| Problem type | Generator strategy |
+| 문제 갈래 | 만들개 셈속 |
 |---|---|
-| Array problems | Random arrays of varying lengths and value ranges |
-| Graph problems | Random trees, random graphs with controlled density |
-| String problems | Random strings over controlled alphabets |
-| Geometry problems | Random points with controlled coordinate ranges |
-| Multi-test problems | Random number of test cases with varying sizes |
+| 배열 문제 | 길이와 값 범위를 달리한 아무 배열 |
+| 그래프 문제 | 아무 나무, 빽빽함을 다스린 아무 그래프 |
+| 문자열 문제 | 글자 모임을 다스린 아무 문자열 |
+| 기하 문제 | 자리 범위를 다스린 아무 점 |
+| 여러 시험 문제 | 크기가 다른 아무 개수의 시험 사례 |
 
-## When to Use External Processes
+## 언제 바깥 일꾼을 쓸까
 
-For compiled solutions (C++), the stress test invokes external executables:
+옮겨 지은 풀이(C++)에서는 마구 시험이 바깥 실행 파일을 부른다:
 
 ```python
 """
-External process stress testing.
+바깥 프로그램 마구 시험.
 
-Runs compiled C++ solutions and compares their outputs.
+번역한 C++ 풀이를 돌려 그 내놓기를 견준다.
 """
 
 import subprocess
 import random
 
 # ===================================================================
-# Generator and Runner
+# 만들개와 돌리개
 # ===================================================================
 
 def generate_and_test(max_n=15, num_tests=1000):
-    """Generate inputs and compare two external solutions."""
+    """들임을 만들고 바깥 풀이 둘을 견준다."""
     for test in range(1, num_tests + 1):
         n = random.randint(1, max_n)
         arr = [random.randint(-100, 100) for _ in range(n)]
@@ -186,33 +186,73 @@ def generate_and_test(max_n=15, num_tests=1000):
     print(f"All {num_tests} tests passed.")
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
     generate_and_test()
 ```
 
-## Debugging with Counterexamples
+## 반례로 벌레잡기
 
-When the stress test finds a mismatch:
+마구 시험이 어긋남을 찾으면:
 
-1. **Save the failing input** to a file for reproducibility.
-2. **Minimize the input** by removing elements that do not affect the failure. Often, the minimal failing case is just 2--5 elements.
-3. **Trace the optimized solution** on the minimal input step by step.
-4. **Fix the bug** and re-run the full stress test to confirm.
+1. 되풀이할 수 있도록 **틀린 들임을 파일에 담는다**.
+2. 틀림에 영향을 주지 않는 원소를 없애 **들임을 가장 작게 만든다**. 흔히 가장 작은 틀린 경우는 원소 2~5개뿐이다.
+3. 가장 작은 들임에서 **다듬은 풀이를 걸음마다 짚어 본다**.
+4. **벌레를 잡고** 온 마구 시험을 다시 돌려 확인한다.
 
-## Stress Testing Best Practices
+## 마구 시험하기의 가장 좋은 방식
 
-| Practice | Rationale |
+| 방식 | 까닭 |
 |---|---|
-| Keep brute force obviously correct | A bug in the brute force wastes the entire effort |
-| Use a fixed random seed for reproducibility | `random.seed(42)` ensures the same test sequence |
-| Start with small inputs | Small counterexamples are easier to debug |
-| Run at least 10,000 tests | Many bugs trigger only on specific structures |
-| Time both solutions | Catches TLE issues in the optimized solution |
-| Test on edge cases separately | Stress tests may never generate $n = 0$ or $n = 1$ |
+| 힘으로 미는 풀이를 뻔히 옳게 유지 | 거기에 벌레가 있으면 품이 통째로 낭비된다 |
+| 되풀이할 수 있도록 붙박인 아무 씨앗 쓰기 | `random.seed(42)`이 같은 시험 차례를 보장한다 |
+| 작은 들임에서 시작 | 작은 반례가 벌레잡기 쉽다 |
+| 적어도 시험 1만 번 돌리기 | 많은 벌레가 특정 얼개에서만 나온다 |
+| 두 풀이의 때 재기 | 다듬은 풀이의 때 초과 말썽을 잡는다 |
+| 가장자리 경우는 따로 시험 | 마구 시험이 $n = 0$이나 $n = 1$을 아예 안 만들 수 있다 |
 
-## Reference
+## 참고 문헌
 
-- [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf)
+음이 아닌 정수 $x$가 주어질 때 비트 셈만 써서 $x$의 가장 낮은 켜진 비트만 남기는 식을 적어라(곧 그 비트만 켜진 값을 만들어라). $x = 0$일 때 그 식은 무엇을 돌려주는가?
+
+## 연습문제
+
+**연습문제 1.**
+다음 문제의 마구 시험을 적어라. 정수 $n$개의 배열이 주어질 때 엄격히 늘어나는 가장 긴 부분열의 길이를 찾아라. 만들개, 힘으로 미는 풀이, 다듬은 풀이를 내놓아라.
+
+??? success "연습문제 1 풀이"
+    만들개: 값이 $[-10, 10]$이고 길이가 $n \in [1, 15]$인 아무 배열을 낸다. 힘으로 밀기: $2^n$개의 부분열을 모두 늘어놓아 엄격히 늘어나는지 살피고 최대 길이를 돌려준다($O(2^n \cdot n)$). 다듬기: `bisect`로 지키는 가장 작은 꼬리 값 목록을 쓰는 $O(n \log n)$ 인내 줄 세우기 알고리즘을 쓴다. 마구 되돌이는 아무 배열을 만들어 둘을 돌리고 처음 어긋난 곳과 그 들임을 알린다. $n$을 작게(15까지) 두면 힘으로 밀기가 빨라 1초에 수천 번 돌릴 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+다듬은 풀이가 보기 사례는 지나지만 채점기에서 오답이 난다. 두 갈래 찾기에 하나 어긋남이 있다고 짐작한다. 두 갈래 찾기 경계 벌레를 일으킬 낌새를 가장 크게 하는 마구 시험 만들개를 설계하는 길을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    만들개를 두 갈래 찾기의 경계 조건을 만드는 들임에 맞춘다. (1) 길이 1과 2인 배열은 첫 경우와 가장 작은 경우를 시험한다. (2) 이미 줄 세워졌거나 거꾸로 줄 세워진 배열은 찾기 범위의 끝을 다그친다. (3) 겹치는 값이 많은 배열은 `<`와 `<=` 경계를 시험한다. (4) 찾는 값이 첫 원소나 마지막 원소와 같은 배열. (5) 길이가 $2^k$와 $2^k \pm 1$인 배열은 2의 거듭제곱 경계 효과를 다그친다. 만들개를 순전히 아무렇게가 아니라 이런 짜인 들임 쪽으로 기울이면 마구 시험이 수백 번 안에 하나 어긋남을 일으킬 낌새가 훨씬 커진다. $\square$
+
+---
+
+**연습문제 3.**
+힘으로 미는 풀이가 옳고 마구 시험이 $T$번 돌아도 어긋남을 찾지 못했다면, 고른 사전 분포 아래에서 주어진 분포의 아무 들임에 대해 다듬은 풀이가 틀릴 확률이 많아야 $1/(T+1)$임을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    $p$를 만들개 분포의 아무 들임에서 다듬은 풀이가 틀린 답을 낼 확률이라 하자. 우리는 $T$번 잇달아 옳은 내놓기를 보았다. 이 사건의 그럴듯함은 $(1-p)^T$이다. 고른 사전 분포 $p \sim \text{Uniform}(0,1)$ 아래에서 사후 분포는 $\text{Beta}(1, T+1)$이고 그 평균은 $1/(T+2)$이다. 더 곧바로 잦기주의로 따지면 $p \ge \epsilon$일 때 $T$번 잇달아 맞을 확률은 많아야 $(1-\epsilon)^T$이다. 이를 믿음 수준 $\delta$와 같다고 놓으면 $\epsilon \le 1 - \delta^{1/T}$이다. 간단한 가둠으로는 $T$번 맞았을 때 $p > 0$일 확률이 $p \lesssim 1/T$과 어울린다. 이는 $T = 10^4$번 되풀이하면 시험한 분포에서 풀이가 옳다는 강한 증거($10^{-4}$ 아래의 틀림 비율)가 됨을 보인다. $\square$
+
+---
+
+**연습문제 4.**
+나무 위의 물음을 다루는 문제다. 힘으로 미는 풀이는 물음마다 $O(n)$에 답하고 다듬은 풀이는 무거움-가벼움 쪼개기로 $O(\log^2 n)$에 답한다. 아무 나무를 만드는 만들개를 설계하고, 힘으로 미는 풀이가 큰 들임에서 너무 느린 경우를 어떻게 다룰지 밝혀라.
+
+??? success "연습문제 4 풀이"
+    프뤼퍼 열($[1, n]$의 값 $n-2$개로 된 아무 배열)이나 아무 어버이 매기기(마디 $i > 1$마다 $[1, i-1]$에서 고르게 어버이를 뽑기)로 아무 나무를 만든다. 마구 시험에서는 $n$을 작게(보기로 $n \le 100$) 두어 힘으로 밀기가 빨리 끝나게 한다. 나무마다 아무 물음을 $q \le 50$개 만든다. $n = 100$에서도 힘으로 밀기가 너무 느리면 (1) 더 간단하지만 옳은 $O(n \log n)$ 중간 풀이를 잣대로 짜거나 (2) 작은 $n$에서 짜인 나무(길, 별, 애벌레)를 만들어 쪼개기의 가장자리 경우를 넓게 덮는다. 핵심은 마구 시험에 큰 들임이 필요하지 않다는 것이다. 벌레는 보통 작은 크기에서도 나타나는 얼개 성질이 일으킨다. $\square$
+
+---
+
+**연습 5.**
+마구 시험의 한계를 논하여라. 아무 마구 시험이 잡기 어려운 벌레의 보기를 들고 이를 채워 줄 시험 셈속을 내놓아라.
+
+??? success "연습 5의 풀이"
+    마구 시험은 아무 만들개가 가장 나쁜 얼개를 거의 만들지 않으므로 심술궂은 들임을 덮는 힘이 모자란다. 보기: 고침 $n$번이 모두 어떤 무늬로 같은 번호를 겨눌 때만 틀리는 토막 나무 풀이. 번호가 $10^5$개면 아무 만들개가 고침을 한 번호에 몰아주는 일은 거의 없다. 채워 줄 셈속은 다음과 같다. (1) **심술궂은 들임 짓기** — 알려진 약한 곳(모두 같은 값, 줄 세운 들임, 별 그래프, 사슬)을 겨눠 손으로 들임을 만든다. (2) **성질 바탕 시험** — 셈마다 불변량(보기로 토막 나무 마디 값이 아이의 모음과 같음)을 확인한다. (3) **비틀기 시험** — 힘으로 미는 풀이에 일부러 벌레를 넣고 마구 시험이 잡는지 확인해 만들개의 질을 검증한다. $\square$

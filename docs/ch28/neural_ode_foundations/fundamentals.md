@@ -1,101 +1,96 @@
-# ODE Fundamentals
+# 상미분 방정식 바탕
+## 학습 목표
 
+이 마디를 마치면 다음을 하게 된다:
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+- 상미분 방정식을 이어진 때의 움직임 계로 이해한다
+- 오일러와 룽게-쿠타를 담은 수치 적분 방법을 익힌다
+- 남은 이음 신경망과 상미분 방정식을 띄엄띄엄하게 만들기 사이의 깊은 이음을 알아본다
+- 파이토치에서 기본 상미분 방정식 풀개를 바닥부터 짠다
+- 위상 그림과 풀이 자취를 그려 본다
+- `torchdiffeq`으로 온전한 신경 상미분 방정식 모델을 세운다
+- 가름과 되돌이 맞춤 일에 신경 상미분 방정식을 익힌다
 
-## Learning Objectives
+## 미리 알아야 할 것
 
-By the end of this section, you will:
-
-- Understand ordinary differential equations as continuous-time dynamical systems
-- Master numerical integration methods including Euler and Runge-Kutta
-- Recognize the deep connection between ResNets and ODE discretization
-- Implement basic ODE solvers from scratch in PyTorch
-- Visualize phase portraits and solution trajectories
-- Build complete Neural ODE models using `torchdiffeq`
-- Train Neural ODEs for classification and regression tasks
-
-## Prerequisites
-
-- Multivariable calculus (derivatives, integrals)
-- Basic linear algebra (vectors, matrices)
-- PyTorch fundamentals (tensors, autograd)
-- Familiarity with residual networks (helpful but not required)
+- 여러 변수 미적분(미분, 적분)
+- 기본 선형 대수(벡터, 행렬)
+- 파이토치 바탕(텐서, 자동 미분)
+- 남은 이음 신경망에 익숙함(도움이 되지만 꼭 필요하지는 않다)
 
 ---
 
-## 1. What Are Ordinary Differential Equations?
+## 1. 상미분 방정식이란 무엇인가?
 
-An **ordinary differential equation (ODE)** describes how a quantity changes over time. The term "ordinary" distinguishes these from partial differential equations—ODEs involve derivatives with respect to a single variable (typically time).
+**상미분 방정식(ODE)**은 어떤 양이 때에 따라 어떻게 바뀌는지 적어 준다. "상(常)"이라는 말은 이를 편미분 방정식과 갈라 준다. 상미분 방정식은 변수 하나(보통 때)에 대한 미분만 담는다.
 
-### 1.1 Mathematical Formulation
+### 1.1 수학으로 적기
 
-The general first-order ODE takes the form:
+일반적인 일차 상미분 방정식은 다음 꼴이다:
 
 $$\frac{dy}{dt} = f(y, t)$$
 
-where:
+여기서 각 기호는 다음과 같다.
 
-- $y(t) \in \mathbb{R}^d$ is the **state** at time $t$
-- $f: \mathbb{R}^d \times \mathbb{R} \rightarrow \mathbb{R}^d$ is the **dynamics function**
-- $\frac{dy}{dt}$ represents the instantaneous rate of change
+- $y(t) \in \mathbb{R}^d$은 때 $t$의 **상태**이다
+- $f: \mathbb{R}^d \times \mathbb{R} \rightarrow \mathbb{R}^d$은 **움직임 함수**이다
+- $\frac{dy}{dt}$은 순간 바뀜 빠르기를 나타낸다
 
-An **initial value problem (IVP)** adds a starting condition:
+**첫값 문제(IVP)**는 시작 조건을 더한다:
 
 $$\frac{dy}{dt} = f(y, t), \quad y(t_0) = y_0$$
 
-The goal is to find $y(t)$ for all $t > t_0$ given the initial state $y_0$.
+목표는 처음 상태 $y_0$이 주어질 때 모든 $t > t_0$에 대해 $y(t)$을 찾는 것이다.
 
-### 1.2 Autonomous vs Non-Autonomous Systems
+### 1.2 홀로 도는 계와 그렇지 않은 계
 
-**Autonomous ODEs** have dynamics independent of time:
+**홀로 도는 상미분 방정식**은 움직임이 때에 매이지 않는다:
 
 $$\frac{dy}{dt} = f(y)$$
 
-The vector field $f$ depends only on the current state, not when you're observing it. Many physical systems exhibit this time-invariance property.
+벡터 마당 $f$은 지금 상태에만 매이고 언제 보는지에는 매이지 않는다. 많은 물리 계가 이 때 불변 성질을 보인다.
 
-**Non-autonomous ODEs** explicitly depend on time:
+**홀로 돌지 않는 상미분 방정식**은 때에 드러나게 매인다:
 
 $$\frac{dy}{dt} = f(y, t)$$
 
-External forcing, time-varying parameters, or scheduled interventions create non-autonomous behavior.
+바깥의 밀어붙임, 때에 따라 바뀌는 매개변수, 정해진 개입이 홀로 돌지 않는 움직임을 낳는다.
 
-!!! info "Neural ODE Convention"
-    Neural ODEs typically use non-autonomous formulations where $f$ is a neural network. Even if the network architecture doesn't explicitly use $t$, having access to it enables time-dependent transformations and provides additional modeling flexibility. Note that `torchdiffeq` expects the signature `f(t, y)`, not `f(y, t)`.
+!!! info "신경 상미분 방정식의 약속"
+    신경 상미분 방정식은 보통 $f$이 신경망인 홀로 돌지 않는 적기를 쓴다. 신경망 얼개가 $t$을 드러나게 쓰지 않더라도 그것에 닿을 수 있으면 때에 매인 바꿈이 가능해지고 나타내기가 더 너그러워진다. `torchdiffeq`은 `f(y, t)`이 아니라 `f(t, y)` 꼴을 바란다는 점에 유의하라.
 
-### 1.3 Existence and Uniqueness
+### 1.3 있음과 하나뿐임
 
-The **Picard-Lindelöf theorem** guarantees a unique solution exists if $f$ is:
+**피카르-린델뢰프 정리**는 $f$이 다음이면 유일한 풀이가 있음을 보장한다:
 
-1. **Continuous** in both arguments
-2. **Lipschitz continuous** in $y$: $\|f(y_1, t) - f(y_2, t)\| \leq L\|y_1 - y_2\|$
+1. 두 인자 모두에 대해 **이어짐**
+2. $y$에 대해 **립시츠 이어짐**: $\|f(y_1, t) - f(y_2, t)\| \leq L\|y_1 - y_2\|$
 
-The Lipschitz condition prevents solutions from "blowing up" or crossing each other. Neural networks with bounded activations (tanh, sigmoid) naturally satisfy this condition, while unbounded activations (ReLU) can violate it. This has direct implications for activation function selection in Neural ODE architectures:
+립시츠 조건은 풀이가 "터지거나" 서로 가로지르는 것을 막는다. 가둬진 깨움(tanh, 시그모이드)을 쓴 신경망은 이 조건을 자연스럽게 만족하지만 가둬지지 않은 깨움(ReLU)은 어길 수 있다. 이는 신경 상미분 방정식 얼개에서 깨움 함수를 고르는 데 곧바로 뜻이 있다:
 
-| Activation | Lipschitz | Pros | Cons |
+| 깨움 | 립시츠 | 좋은 점 | 나쁜 점 |
 |------------|-----------|------|------|
-| **Tanh** | ✓ Bounded | Stable ODE dynamics, implicit regularization | Saturation, vanishing gradients |
-| **Softplus** | ✗ Unbounded | Smooth, non-saturating | Can cause trajectory explosion |
-| **ReLU** | ✗ Not smooth | Fast computation | Not Lipschitz, violates ODE theory |
-| **GELU/SiLU** | ✓ Bounded | Smooth, expressive | More computation per evaluation |
+| **Tanh** | ✓ 가둬짐 | 안정된 상미분 방정식 움직임, 은근한 규칙 세우기 | 포화, 사라지는 기울기 |
+| **Softplus** | ✗ 가둬지지 않음 | 매끄럽고 포화하지 않음 | 자취가 터질 수 있음 |
+| **ReLU** | ✗ 매끄럽지 않음 | 셈이 빠름 | 립시츠가 아니어서 상미분 방정식 이론을 어김 |
+| **GELU/SiLU** | ✓ 가둬짐 | 매끄럽고 나타냄 힘이 큼 | 매김마다 셈이 더 듦 |
 
 ---
 
-## 2. Classic ODE Examples
+## 2. 고전 상미분 방정식 보기
 
-Understanding classical ODEs builds intuition for neural network dynamics.
+고전 상미분 방정식을 이해하면 신경망 움직임에 대한 직관이 생긴다.
 
-### 2.1 Exponential Growth/Decay
+### 2.1 지수 자람과 사그라짐
 
-The simplest ODE:
+가장 단순한 상미분 방정식:
 
 $$\frac{dy}{dt} = ky, \quad y(0) = y_0$$
 
-**Analytical solution:** $y(t) = y_0 e^{kt}$
+**닫힌 꼴 풀이:** $y(t) = y_0 e^{kt}$
 
-- $k > 0$: Exponential growth (population dynamics, compound interest)
-- $k < 0$: Exponential decay (radioactive decay, cooling)
+- $k > 0$: 지수 자람(인구 움직임, 복리)
+- $k < 0$: 지수 사그라짐(방사성 붕괴, 식음)
 
 ```python
 import torch
@@ -107,49 +102,49 @@ def exponential_ode(y: torch.Tensor, t: float, k: float = 1.0) -> torch.Tensor:
     """
     Exponential growth/decay: dy/dt = k*y
     
-    Args:
+    인수:
         y: Current state (batch_size, dim)
         t: Current time (unused in this autonomous ODE)
-        k: Growth rate parameter
+        k: 자람 빠르기 매개변수
         
-    Returns:
-        Rate of change dy/dt
+    반환값:
+        바뀜 빠르기 dy/dt
     """
     return k * y
 
-# Analytical solution for verification
+# 확인을 위한 닫힌 꼴 풀이
 def exponential_analytical(y0: torch.Tensor, t: torch.Tensor, k: float = 1.0) -> torch.Tensor:
     """Analytical solution: y(t) = y_0 * exp(k*t)"""
     return y0 * torch.exp(k * t)
 ```
 
-### 2.2 Harmonic Oscillator
+### 2.2 조화 떨개
 
-A second-order ODE converted to first-order system:
+이차 상미분 방정식을 일차 계로 바꾼 것:
 
 $$\frac{d^2x}{dt^2} + 2\zeta\omega_0\frac{dx}{dt} + \omega_0^2 x = 0$$
 
-Define state vector $y = [x, \dot{x}]^T$ (position and velocity):
+상태 벡터 $y = [x, \dot{x}]^T$(자리와 빠르기)을 뜻매김한다:
 
 $$\frac{dy}{dt} = \begin{bmatrix} y_1 \\ -\omega_0^2 y_0 - 2\zeta\omega_0 y_1 \end{bmatrix}$$
 
-where $\omega_0$ is the natural frequency and $\zeta$ is the damping ratio ($\zeta < 1$: underdamped, $\zeta = 1$: critically damped, $\zeta > 1$: overdamped).
+여기서 $\omega_0$은 고유 진동수이고 $\zeta$은 감쇠비이다($\zeta < 1$: 덜 감쇠, $\zeta = 1$: 임계 감쇠, $\zeta > 1$: 지나친 감쇠).
 
 ```python
 def damped_oscillator(y: torch.Tensor, t: float, 
                       omega_0: float = 2.0, zeta: float = 0.1) -> torch.Tensor:
     """
-    Damped harmonic oscillator as first-order system.
+    일차 계로 나타낸 감쇠 조화 떨개.
     
     State: y = [position, velocity]
     
-    Args:
+    인수:
         y: State tensor (batch_size, 2)
-        t: Current time
-        omega_0: Natural frequency
-        zeta: Damping ratio
+        t: 지금 때
+        omega_0: 고유 진동수
+        zeta: 감쇠비
         
-    Returns:
+    반환값:
         Derivative [dx/dt, dv/dt]
     """
     position = y[..., 0:1]
@@ -161,33 +156,33 @@ def damped_oscillator(y: torch.Tensor, t: float,
     return torch.cat([dxdt, dvdt], dim=-1)
 ```
 
-### 2.3 Lotka-Volterra Predator-Prey
+### 2.3 로트카-볼테라 잡아먹개와 먹이
 
-A classic nonlinear system exhibiting periodic behavior:
+되풀이 움직임을 보이는 고전 비선형 계:
 
 $$\frac{dx}{dt} = \alpha x - \beta xy$$
 
 $$\frac{dy}{dt} = \delta xy - \gamma y$$
 
-where $x$ is prey population and $y$ is predator population.
+여기서 $x$은 먹이의 수이고 $y$은 잡아먹개의 수이다.
 
 ```python
 def lotka_volterra(state: torch.Tensor, t: float,
                    alpha: float = 1.5, beta: float = 1.0,
                    gamma: float = 3.0, delta: float = 1.0) -> torch.Tensor:
     """
-    Lotka-Volterra predator-prey dynamics.
+    로트카-볼테라 잡아먹개-먹이 움직임.
     
-    Args:
+    인수:
         state: [prey, predator] populations
         t: Time (unused)
-        alpha: Prey growth rate
-        beta: Predation rate  
-        gamma: Predator death rate
-        delta: Predation efficiency
+        alpha: 먹이의 자람 빠르기
+        beta: 잡아먹는 빠르기
+        gamma: 잡아먹개의 죽음 빠르기
+        delta: 잡아먹기 효율
         
-    Returns:
-        Population derivatives
+    반환값:
+        수의 미분
     """
     x, y = state[..., 0:1], state[..., 1:2]
     
@@ -199,35 +194,35 @@ def lotka_volterra(state: torch.Tensor, t: float,
 
 ---
 
-## 3. Numerical Integration Methods
+## 3. 수치 적분 방법
 
-When analytical solutions don't exist (which is most cases), we resort to numerical integration.
+닫힌 꼴 풀이가 없으면(대부분이 그렇다) 수치 적분에 기댄다.
 
-### 3.1 Forward Euler Method
+### 3.1 앞으로 오일러 방법
 
-The simplest numerical integrator approximates the derivative with a forward difference:
+가장 단순한 수치 적분개는 미분을 앞 차분으로 어림한다:
 
 $$y_{n+1} = y_n + \Delta t \cdot f(y_n, t_n)$$
 
-**Derivation:** Taylor expansion gives $y(t + \Delta t) = y(t) + \Delta t \cdot \frac{dy}{dt} + O(\Delta t^2)$. Truncating at first order and substituting the ODE yields the Euler update.
+**이끌어 내기:** 테일러 펼침이 $y(t + \Delta t) = y(t) + \Delta t \cdot \frac{dy}{dt} + O(\Delta t^2)$을 준다. 일차에서 자르고 상미분 방정식을 넣으면 오일러 고침이 나온다.
 
 ```python
 def euler_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
     """
-    Single step of Forward Euler method.
+    앞으로 오일러 방법의 한 걸음.
     
-    Mathematical formulation:
+    수학으로 나타내기:
         y_{n+1} = y_n + dt * f(y_n, t_n)
     
-    This is a first-order method: local error O(dt²), global error O(dt).
+    이는 일차 방법이다. 그 자리 어긋남 O(dt²), 온 어긋남 O(dt).
     
-    Args:
+    인수:
         f: ODE function dy/dt = f(y, t)
-        y: Current state
-        t: Current time
-        dt: Time step size
+        y: 지금 상태
+        t: 지금 때
+        dt: 때 걸음 크기
         
-    Returns:
+    반환값:
         Next state y_{n+1}
     """
     return y + dt * f(y, t)
@@ -235,27 +230,27 @@ def euler_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
 
 def euler_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
     """
-    Integrate ODE using Forward Euler method.
+    앞으로 오일러 방법으로 상미분 방정식을 적분한다.
     
-    Args:
-        f: ODE function
+    인수:
+        f: 상미분 방정식 함수
         y0: Initial state (batch_size, dim)
         t_span: (t_start, t_end)
-        dt: Time step
+        dt: 때 걸음
         
-    Returns:
-        t_values: Time points
-        y_values: States at each time point
+    반환값:
+        t_values: 때 점
+        y_values: 때 점마다의 상태
     """
     t_start, t_end = t_span
     t_values = torch.arange(t_start, t_end + dt, dt)
     n_steps = len(t_values)
     
-    # Initialize trajectory storage
+    # 자취 담을 곳을 첫자리매김한다
     y_values = torch.zeros(n_steps, *y0.shape)
     y_values[0] = y0
     
-    # Integration loop
+    # 적분 되풀이
     y = y0
     for i in range(n_steps - 1):
         y = euler_step(f, y, t_values[i].item(), dt)
@@ -264,36 +259,36 @@ def euler_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
     return t_values, y_values
 ```
 
-### 3.2 Error Analysis
+### 3.2 어긋남 살피기
 
-**Local truncation error:** Error from a single step, assuming perfect initial condition:
+**그 자리의 자름 어긋남:** 처음 조건이 완벽하다고 할 때 한 걸음에서 생기는 어긋남:
 
 $$\text{LTE} = y(t + \Delta t) - \left[y(t) + \Delta t \cdot f(y(t), t)\right] = O(\Delta t^2)$$
 
-**Global error:** Accumulated error over the entire integration:
+**온 어긋남:** 온 적분에 걸쳐 쌓인 어긋남:
 
 $$\text{Global Error} = O(\Delta t)$$
 
-The global error is one order lower because errors accumulate over $O(1/\Delta t)$ steps.
+어긋남이 $O(1/\Delta t)$걸음에 걸쳐 쌓이므로 온 어긋남은 차수가 하나 낮다.
 
-!!! warning "Implications for Neural Networks"
-    The error order has profound implications. A ResNet with $L$ layers using step size $\Delta t = 1$ has global error $O(1)$—the discretization error is *fixed* regardless of depth. Neural ODEs with adaptive solvers can achieve arbitrarily small error by taking more steps.
+!!! warning "신경망에 대한 뜻"
+    어긋남의 차수는 깊은 뜻을 지닌다. 걸음 크기 $\Delta t = 1$으로 층 $L$개를 쓴 남은 이음 신경망은 온 어긋남이 $O(1)$이다. 곧 띄엄띄엄하게 만든 어긋남이 깊이와 상관없이 *붙박여* 있다. 맞추어 가는 풀개를 쓴 신경 상미분 방정식은 걸음을 더 밟아 어긋남을 얼마든지 작게 할 수 있다.
 
-### 3.3 Stability Analysis
+### 3.3 안정성 살피기
 
-Not all step sizes work. Consider the test equation $\frac{dy}{dt} = \lambda y$ with $\lambda < 0$ (decay).
+모든 걸음 크기가 통하지는 않는다. $\lambda < 0$(사그라짐)인 시험 방정식 $\frac{dy}{dt} = \lambda y$을 살펴보자.
 
-Euler gives: $y_{n+1} = (1 + \lambda \Delta t) y_n$
+오일러는 $y_{n+1} = (1 + \lambda \Delta t) y_n$을 준다
 
-For stability, we need $|1 + \lambda \Delta t| < 1$, which requires:
+안정하려면 $|1 + \lambda \Delta t| < 1$이어야 하고 이는 다음을 요구한다:
 
 $$\Delta t < \frac{2}{|\lambda|}$$
 
-If $\lambda$ is large and negative (stiff systems), tiny time steps are needed—this is why adaptive solvers are essential.
+$\lambda$이 크고 음수이면(뻣뻣한 계) 아주 작은 때 걸음이 필요하다. 그래서 맞추어 가는 풀개가 꼭 필요하다.
 
-### 3.4 Fourth-Order Runge-Kutta (RK4)
+### 3.4 4차 룽게-쿠타(RK4)
 
-RK4 achieves fourth-order accuracy by evaluating $f$ at multiple points:
+RK4은 여러 점에서 $f$을 매겨 4차 정확도를 이룬다:
 
 $$k_1 = f(y_n, t_n)$$
 
@@ -308,19 +303,19 @@ $$y_{n+1} = y_n + \frac{\Delta t}{6}(k_1 + 2k_2 + 2k_3 + k_4)$$
 ```python
 def rk4_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
     """
-    Single step of 4th-order Runge-Kutta method.
+    4차 룽게-쿠타 방법의 한 걸음.
     
     Local error: O(dt^5)
     Global error: O(dt^4)
     
-    Args:
-        f: ODE function
-        y: Current state
-        t: Current time
-        dt: Time step
+    인수:
+        f: 상미분 방정식 함수
+        y: 지금 상태
+        t: 지금 때
+        dt: 때 걸음
         
-    Returns:
-        Next state
+    반환값:
+        다음 상태
     """
     k1 = f(y, t)
     k2 = f(y + 0.5 * dt * k1, t + 0.5 * dt)
@@ -331,7 +326,7 @@ def rk4_step(f, y: torch.Tensor, t: float, dt: float) -> torch.Tensor:
 
 
 def rk4_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
-    """Integrate ODE using RK4 method."""
+    """RK4 방법으로 상미분 방정식을 적분한다."""
     t_start, t_end = t_span
     t_values = torch.arange(t_start, t_end + dt, dt)
     n_steps = len(t_values)
@@ -347,66 +342,66 @@ def rk4_integrate(f, y0: torch.Tensor, t_span: tuple, dt: float):
     return t_values, y_values
 ```
 
-### 3.5 Adaptive Step Size Methods
+### 3.5 맞추어 가는 걸음 크기 방법
 
-Production Neural ODE implementations use **adaptive solvers** like `dopri5` (Dormand-Prince) that:
+실제 쓰는 신경 상미분 방정식 짜기는 `dopri5`(도맨드-프린스) 같은 **맞추어 가는 풀개**를 쓰며 이는:
 
-1. Estimate local error by comparing solutions of different orders
-2. Reject steps if error exceeds tolerance
-3. Automatically adjust step size
+1. 차수가 다른 풀이를 견주어 그 자리의 어긋남을 어림한다
+2. 어긋남이 허용 오차를 넘으면 그 걸음을 물리친다
+3. 걸음 크기를 저절로 맞춘다
 
 ```python
 from torchdiffeq import odeint
 
-# Using adaptive solver from torchdiffeq
+# torchdiffeq의 맞추어 가는 풀개를 쓴다
 def integrate_adaptive(f, y0, t_eval, method='dopri5', rtol=1e-7, atol=1e-9):
     """
-    Integrate ODE with adaptive step size control.
+    맞추어 가는 걸음 크기 다스리기로 상미분 방정식을 적분한다.
     
-    Args:
+    인수:
         f: ODE function (must accept (t, y) in that order for torchdiffeq)
-        y0: Initial state
-        t_eval: Times at which to return solution
+        y0: 처음 상태
+        t_eval: 풀이를 돌려줄 때
         method: Solver method ('dopri5', 'rk4', 'euler', etc.)
-        rtol: Relative tolerance
-        atol: Absolute tolerance
+        rtol: 상대 허용 오차
+        atol: 절대 허용 오차
         
-    Returns:
-        Solution at requested times
+    반환값:
+        물어본 때의 풀이
     """
     return odeint(f, y0, t_eval, method=method, rtol=rtol, atol=atol)
 ```
 
 ---
 
-## 4. The ResNet-ODE Connection
+## 4. 남은 이음 신경망과 상미분 방정식의 이음
 
-This is the key insight that motivates Neural ODEs.
+이것이 신경 상미분 방정식의 까닭이 되는 핵심 통찰이다.
 
-### 4.1 ResNet as Euler Discretization
+### 4.1 오일러로 띄엄띄엄하게 만든 것으로서의 남은 이음 신경망
 
-A **ResNet layer** computes:
+**남은 이음 층**은 다음을 셈한다:
 
 $$h_{l+1} = h_l + f_\theta(h_l)$$
 
-This is *exactly* Euler's method with $\Delta t = 1$:
+이는 $\Delta t = 1$인 오일러 방법과 *꼭 같다*:
 
-| Component | Euler Method | ResNet |
+| 조각 | 오일러 방법 | 남은 이음 신경망 |
 |-----------|-------------|--------|
-| State | $y_n$ | $h_l$ |
-| Dynamics | $f(y_n, t_n)$ | $f_\theta(h_l)$ |
-| Update | $y_{n+1} = y_n + \Delta t \cdot f(y_n, t_n)$ | $h_{l+1} = h_l + f_\theta(h_l)$ |
-| Step size | $\Delta t$ | $1$ (implicit) |
+| 상태 | $y_n$ | $h_l$ |
+| 움직임 | $f(y_n, t_n)$ | $f_\theta(h_l)$ |
+| 고침 | $y_{n+1} = y_n + \Delta t \cdot f(y_n, t_n)$ | $h_{l+1} = h_l + f_\theta(h_l)$ |
+| 걸음 크기 | $\Delta t$ | $1$(은근히) |
 
-The residual connection implements numerical integration of a learned dynamics function.
+남은 이음이 배운 움직임 함수의 수치 적분을 짠다.
 
-### 4.2 Taking the Continuous Limit
+### 4.2 이어진 끝으로 가기
 
-As the number of layers $L \to \infty$ and step size $\Delta t \to 0$:
+층의 개수 $L \to \infty$이고 걸음 크기 $\Delta t \to 0$이면:
 
 $$\lim_{L \to \infty, \Delta t \to 0} h_L = h(T) \quad \text{where} \quad \frac{dh}{dt} = f_\theta(h(t), t)$$
 
-The discrete layer index becomes continuous time, and the layer-by-layer transformation becomes a continuous flow.
+띄엄띄엄한 층 번호가 이어진 때가 되고 층마다의 바꿈이 이어진 흐름이 된다.
 
 ```python
 class ResNetBlock(nn.Module):
@@ -436,60 +431,60 @@ class ODEFunc(nn.Module):
         )
     
     def forward(self, t, h):
-        # Note: torchdiffeq expects (t, y) signature
+        # 알림: torchdiffeq은 (t, y) 꼴을 바란다
         return self.net(h)
 ```
 
-### 4.3 Advantages of the Continuous Perspective
+### 4.3 이어진 관점의 이점
 
-| Aspect | ResNet | Neural ODE |
+| 면 | 남은 이음 신경망 | 신경 상미분 방정식 |
 |--------|--------|------------|
-| **Depth** | Fixed (chosen a priori) | Adaptive (solver decides) |
-| **Parameters** | $L$ sets of weights | Single dynamics function |
-| **Memory** | $O(L)$ for $L$ layers | $O(1)$ via adjoint method |
-| **Computation** | Fixed per input | Adaptive per input |
-| **Invertibility** | Not guaranteed | Guaranteed (solve reverse ODE) |
+| **깊이** | 붙박임(미리 고른다) | 맞추어 감(풀개가 정한다) |
+| **매개변수** | 무게 묶음 $L$개 | 움직임 함수 하나 |
+| **기억** | 층 $L$개에 $O(L)$ | 딸림 방법으로 $O(1)$ |
+| **셈** | 들임마다 붙박임 | 들임마다 맞추어 감 |
+| **되돌릴 수 있음** | 보장되지 않음 | 보장됨(뒤 상미분 방정식을 푼다) |
 
-!!! tip "Adaptive Computation"
-    The continuous formulation enables **adaptive computation**—the ODE solver takes more steps where the dynamics are complex and fewer where they're simple. This is analogous to how a trader spends more time analyzing unusual market conditions and less time on routine price movements.
+!!! tip "맞추어 가는 셈"
+    이어진 적기는 **맞추어 가는 셈**을 가능하게 한다. 상미분 방정식 풀개는 움직임이 복잡한 곳에서 걸음을 더 밟고 단순한 곳에서 덜 밟는다. 이는 거래자가 예사롭지 않은 시장 상황을 살피는 데 시간을 더 쓰고 늘 있는 값 움직임에는 덜 쓰는 것과 비슷하다.
 
 ---
 
-## 5. Phase Portraits and Visualization
+## 5. 위상 그림과 그려 보기
 
-Phase portraits reveal the qualitative behavior of dynamical systems.
+위상 그림은 움직임 계의 질적인 모습을 드러낸다.
 
-### 5.1 Vector Fields
+### 5.1 벡터 마당
 
-The function $f(y, t)$ defines a **vector field**—at each point in state space, there's an arrow indicating the direction and magnitude of change.
+함수 $f(y, t)$은 **벡터 마당**을 뜻매김한다. 상태 공간의 점마다 바뀜의 방향과 크기를 가리키는 화살표가 있다.
 
 ```python
 def plot_vector_field(f, xlim, ylim, n_points=20, ax=None):
     """
-    Plot vector field for 2D autonomous ODE.
+    2차원 홀로 도는 상미분 방정식의 벡터 마당을 그린다.
     
-    Args:
+    인수:
         f: ODE function (y, t) -> dy/dt
-        xlim, ylim: Axis limits
-        n_points: Grid resolution
-        ax: Matplotlib axis
+        xlim, ylim: 축의 한계
+        n_points: 격자 해상도
+        ax: Matplotlib 축
     """
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 8))
     
-    # Create grid
+    # 격자 생성
     x = torch.linspace(xlim[0], xlim[1], n_points)
     y = torch.linspace(ylim[0], ylim[1], n_points)
     X, Y = torch.meshgrid(x, y, indexing='ij')
     
-    # Compute vector field
+    # 벡터 마당을 셈한다
     points = torch.stack([X, Y], dim=-1).reshape(-1, 2)
     velocities = f(points, 0.0).reshape(n_points, n_points, 2)
     
     U = velocities[..., 0].numpy()
     V = velocities[..., 1].numpy()
     
-    # Normalize for visualization
+    # 그려 보려고 고르게 하기
     magnitude = np.sqrt(U**2 + V**2)
     magnitude[magnitude == 0] = 1
     U_norm, V_norm = U / magnitude, V / magnitude
@@ -503,14 +498,14 @@ def plot_vector_field(f, xlim, ylim, n_points=20, ax=None):
 
 def plot_trajectories(f, initial_conditions, t_span, dt=0.01, ax=None):
     """
-    Plot solution trajectories from multiple initial conditions.
+    여러 처음 조건에서 풀이 자취를 그린다.
     
-    Args:
-        f: ODE function
-        initial_conditions: List of (y1_0, y2_0) tuples
-        t_span: Integration interval
-        dt: Time step
-        ax: Matplotlib axis
+    인수:
+        f: 상미분 방정식 함수
+        initial_conditions: (y1_0, y2_0) 짝의 목록
+        t_span: 적분 구간
+        dt: 때 걸음
+        ax: Matplotlib 축
     """
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 8))
@@ -534,33 +529,33 @@ def plot_trajectories(f, initial_conditions, t_span, dt=0.01, ax=None):
     return ax
 ```
 
-### 5.2 Fixed Points and Stability
+### 5.2 붙박이점과 안정성
 
-**Fixed points** (equilibria) occur where $f(y^*) = 0$. The system stays at rest if it starts there.
+**붙박이점**(평형)은 $f(y^*) = 0$인 곳에 생긴다. 거기서 시작하면 계가 가만히 머문다.
 
-**Stability** is determined by the Jacobian $J = \frac{\partial f}{\partial y}$ evaluated at the fixed point:
+**안정성**은 붙박이점에서 매긴 야코비 $J = \frac{\partial f}{\partial y}$이 정한다:
 
-- All eigenvalues have negative real parts → **asymptotically stable** (attractor)
-- Any eigenvalue has positive real part → **unstable** (repeller)
-- Complex eigenvalues → **spiral** behavior
+- 고윳값의 실수부가 모두 음수 → **점근 안정**(끌개)
+- 어떤 고윳값의 실수부가 양수 → **흔들림**(밀개)
+- 복소 고윳값 → **소용돌이** 움직임
 
 ```python
 def analyze_fixed_point(f, y_star, epsilon=1e-5):
     """
-    Analyze stability of a fixed point via linearization.
+    선형화로 붙박이점의 안정성을 살핀다.
     
-    Args:
-        f: ODE function
-        y_star: Fixed point location
-        epsilon: Perturbation for numerical Jacobian
+    인수:
+        f: 상미분 방정식 함수
+        y_star: 붙박이점의 자리
+        epsilon: 수치 야코비를 위한 흔들림
         
-    Returns:
-        eigenvalues, eigenvectors of Jacobian
+    반환값:
+        야코비의 고윳값과 고유 벡터
     """
     y_star = torch.tensor(y_star, dtype=torch.float32)
     dim = len(y_star)
     
-    # Numerical Jacobian via finite differences
+    # 유한 차분으로 얻은 수치 야코비
     J = torch.zeros(dim, dim)
     for i in range(dim):
         e_i = torch.zeros(dim)
@@ -571,13 +566,13 @@ def analyze_fixed_point(f, y_star, epsilon=1e-5):
         
         J[:, i] = (f_plus - f_minus) / (2 * epsilon)
     
-    # Eigenvalue analysis
+    # 고윳값 살피기
     eigenvalues, eigenvectors = torch.linalg.eig(J)
     
     print(f"Fixed point: {y_star.numpy()}")
     print(f"Jacobian eigenvalues: {eigenvalues.numpy()}")
     
-    # Stability classification
+    # 안정성 갈래 나눔
     real_parts = eigenvalues.real
     if torch.all(real_parts < 0):
         print("Classification: Asymptotically stable (attractor)")
@@ -591,11 +586,11 @@ def analyze_fixed_point(f, y_star, epsilon=1e-5):
 
 ---
 
-## 6. Neural ODE Architecture and `torchdiffeq`
+## 6. 신경 상미분 방정식 얼개와 `torchdiffeq`
 
-Having built ODE solvers from scratch, we now use the `torchdiffeq` library for production Neural ODE implementations.
+상미분 방정식 풀개를 바닥부터 세워 보았으니 이제 실제로 쓸 신경 상미분 방정식 짜기에는 `torchdiffeq` 꾸러미를 쓴다.
 
-### 6.1 Installation and Basic Usage
+### 6.1 설치와 기본 쓰임
 
 ```bash
 pip install torchdiffeq
@@ -610,7 +605,7 @@ class ODEFunc(nn.Module):
     """
     Defines the dynamics dh/dt = f(h, t).
     
-    IMPORTANT: torchdiffeq expects the signature f(t, y), not f(y, t)!
+    중요: torchdiffeq은 f(y, t)이 아니라 f(t, y) 꼴을 바란다!
     """
     
     def __init__(self, dim: int, hidden_dim: int = 64):
@@ -629,7 +624,7 @@ class ODEFunc(nn.Module):
         return self.net(h)
 
 
-# Basic forward pass
+# 기본 앞먹임
 dim = 10
 batch_size = 32
 
@@ -637,7 +632,7 @@ func = ODEFunc(dim)
 h0 = torch.randn(batch_size, dim)  # Initial hidden state
 t = torch.tensor([0., 1.])  # Integration interval [0, 1]
 
-# Solve ODE: returns solution at times specified in t
+# 상미분 방정식을 푼다: t에 적힌 때의 풀이를 돌려준다
 h_trajectory = odeint(func, h0, t)
 
 print(f"h0 shape: {h0.shape}")          # (32, 10)
@@ -645,43 +640,43 @@ print(f"trajectory shape: {h_trajectory.shape}")  # (2, 32, 10)
 print(f"h(T) shape: {h_trajectory[-1].shape}")    # (32, 10)
 ```
 
-### 6.2 Available Solvers
+### 6.2 쓸 수 있는 풀개
 
 ```python
-# Explicit Runge-Kutta methods
+# 드러난 룽게-쿠타 방법
 y = odeint(func, y0, t, method='euler')      # 1st order
 y = odeint(func, y0, t, method='midpoint')   # 2nd order  
 y = odeint(func, y0, t, method='rk4')        # 4th order, fixed step
 y = odeint(func, y0, t, method='dopri5')     # 4th/5th order, adaptive (DEFAULT)
 
-# Implicit methods (for stiff problems)
+# 은근한 방법(뻣뻣한 문제용)
 y = odeint(func, y0, t, method='implicit_adams')
 
-# Adaptive solver options
+# 맞추어 가는 풀개 고르기
 y = odeint(func, y0, t, method='dopri5',
            rtol=1e-7,    # Relative tolerance (default 1e-7)
            atol=1e-9)    # Absolute tolerance (default 1e-9)
 
-# Fixed step methods need step_size
+# 붙박이 걸음 방법에는 step_size가 필요하다
 y = odeint(func, y0, t, method='euler',
            options={'step_size': 0.1})
 ```
 
-**Solver Selection Guidelines:**
+**풀개 고르기 지침:**
 
-- `dopri5`: Default choice, good for most problems
-- `rk4`: When you want fixed computation cost
-- `euler`: Fast but inaccurate, good for debugging
-- `implicit_adams`: For stiff dynamics (rare in Neural ODEs)
+- `dopri5`: 기본 고르기이며 대부분의 문제에 좋다
+- `rk4`: 셈 비용을 붙박이로 두고 싶을 때
+- `euler`: 빠르지만 부정확하며 벌레 잡기에 좋다
+- `implicit_adams`: 뻣뻣한 움직임에(신경 상미분 방정식에서는 드물다)
 
-### 6.3 Neural ODE Block
+### 6.3 신경 상미분 방정식 덩이
 
 ```python
 class NeuralODEBlock(nn.Module):
     """
-    A Neural ODE block that transforms input h0 to output h(T).
+    들임 h0을 내놓기 h(T)으로 바꾸는 신경 상미분 방정식 덩이.
     
-    This replaces a stack of residual blocks with continuous dynamics.
+    이는 남은 이음 덩이의 쌓기를 이어진 움직임으로 바꾼다.
     """
     
     def __init__(self, dim: int, hidden_dim: int = 64, 
@@ -697,17 +692,17 @@ class NeuralODEBlock(nn.Module):
         self.rtol = rtol
         self.atol = atol
         
-        # Register integration times as buffer (not parameter)
+        # 적분 때를 (매개변수가 아니라) 버퍼로 등록한다
         self.register_buffer('t', torch.tensor([0., integration_time]))
     
     def forward(self, h0):
         """
         Integrate ODE from t=0 to t=T.
         
-        Args:
+        인수:
             h0: Initial state (batch_size, dim)
             
-        Returns:
+        반환값:
             h(T): Final state (batch_size, dim)
         """
         h_trajectory = odeint(
@@ -720,21 +715,21 @@ class NeuralODEBlock(nn.Module):
     
     @property
     def nfe(self):
-        """Number of function evaluations (if tracked)."""
+        """함수 매김 횟수(좇았다면)."""
         return getattr(self.func, 'nfe', None)
 ```
 
-### 6.4 Time-Dependent Dynamics
+### 6.4 때에 매인 움직임
 
-For more expressive models, the dynamics can explicitly depend on time:
+나타냄 힘이 더 큰 모델에서는 움직임이 때에 드러나게 매일 수 있다:
 
 ```python
 class TimeVariantODEFunc(nn.Module):
     """
     Time-dependent dynamics: dh/dt = f(h, t).
     
-    Concatenates time to input, allowing different behavior
-    at different points in the integration interval.
+    때를 들임에 이어 붙여 적분 구간의 자리마다
+    다르게 굴 수 있게 한다.
     """
     
     def __init__(self, dim: int, hidden_dim: int = 64):
@@ -754,17 +749,17 @@ class TimeVariantODEFunc(nn.Module):
         return self.net(th)
 ```
 
-### 6.5 Hypernetwork-Based Time Conditioning
+### 6.5 윗신경망 바탕 때 조건 주기
 
-A more powerful approach uses a hypernetwork to generate time-dependent weights:
+더 힘센 방식은 윗신경망으로 때에 매인 무게를 만든다:
 
 ```python
 class HypernetODEFunc(nn.Module):
     """
-    Dynamics with hypernetwork time conditioning.
+    윗신경망 때 조건 주기를 쓴 움직임.
     
     A small network generates layer weights as a function of time,
-    enabling smooth time-varying dynamics without explicit concatenation.
+    드러난 이어 붙임 없이 때에 따라 매끄럽게 바뀌는 움직임을 가능하게 한다.
     """
     
     def __init__(self, dim: int, hidden_dim: int = 64, hyper_dim: int = 16):
@@ -773,29 +768,29 @@ class HypernetODEFunc(nn.Module):
         self.dim = dim
         self.hidden_dim = hidden_dim
         
-        # Hypernet generates weights from time
+        # 윗신경망이 때에서 무게를 만든다
         self.hypernet = nn.Sequential(
             nn.Linear(1, hyper_dim),
             nn.Tanh(),
             nn.Linear(hyper_dim, hidden_dim * dim + hidden_dim)
         )
         
-        # Fixed layers
+        # 붙박인 층
         self.fc2 = nn.Linear(hidden_dim, hidden_dim)
         self.fc3 = nn.Linear(hidden_dim, dim)
     
     def forward(self, t, h):
         batch_size = h.shape[0]
         
-        # Generate first layer weights from time
+        # 때에서 첫 층의 무게를 만든다
         t_input = t.view(1, 1) if t.dim() == 0 else t.view(-1, 1)
         hyper_out = self.hypernet(t_input)
         
-        # Extract weights and bias
+        # 무게와 치우침을 뽑아낸다
         W = hyper_out[:, :self.hidden_dim * self.dim].view(self.hidden_dim, self.dim)
         b = hyper_out[:, self.hidden_dim * self.dim:].view(self.hidden_dim)
         
-        # Forward pass with generated weights
+        # 만든 무게로 앞먹임
         h = torch.tanh(h @ W.T + b)
         h = torch.tanh(self.fc2(h))
         h = self.fc3(h)
@@ -805,16 +800,16 @@ class HypernetODEFunc(nn.Module):
 
 ---
 
-## 7. Complete Neural ODE Classifier
+## 7. 온전한 신경 상미분 방정식 가름개
 
-### 7.1 Architecture for Image Classification
+### 7.1 그림 가름을 위한 얼개
 
 ```python
 class NeuralODEClassifier(nn.Module):
     """
-    Complete Neural ODE model for image classification.
+    그림 가름을 위한 온전한 신경 상미분 방정식 모델.
     
-    Architecture:
+    구조:
         1. Downsampling convolutions (input → features)
         2. Neural ODE block (continuous transformation)
         3. Classification head (features → logits)
@@ -825,7 +820,7 @@ class NeuralODEClassifier(nn.Module):
                  hidden_dim: int = 64):
         super().__init__()
         
-        # Downsampling: (batch, 1, 28, 28) → (batch, hidden_dim)
+        # 줄이기: (batch, 1, 28, 28) → (batch, hidden_dim)
         self.downsample = nn.Sequential(
             nn.Conv2d(in_channels, 32, 3, padding=1),
             nn.BatchNorm2d(32),
@@ -840,7 +835,7 @@ class NeuralODEClassifier(nn.Module):
             nn.Linear(64 * 7 * 7, hidden_dim)
         )
         
-        # Neural ODE block
+        # 신경 상미분 방정식 덩이
         self.ode_block = NeuralODEBlock(
             dim=hidden_dim,
             hidden_dim=hidden_dim * 2,
@@ -848,7 +843,7 @@ class NeuralODEClassifier(nn.Module):
             solver='dopri5'
         )
         
-        # Classification head
+        # 분류 머리
         self.classifier = nn.Sequential(
             nn.ReLU(),
             nn.Linear(hidden_dim, num_classes)
@@ -861,7 +856,7 @@ class NeuralODEClassifier(nn.Module):
         return logits
 ```
 
-### 7.2 Training Loop
+### 7.2 익히기 되풀이
 
 ```python
 import torch.optim as optim
@@ -869,14 +864,14 @@ from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 def train_neural_ode_classifier():
-    """Complete training pipeline for Neural ODE classifier."""
+    """신경 상미분 방정식 가름개의 온전한 익히기 흐름."""
     
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     batch_size = 128
     learning_rate = 1e-3
     num_epochs = 10
     
-    # Data
+    # 데이터
     transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize((0.1307,), (0.3081,))
@@ -922,7 +917,7 @@ def train_neural_ode_classifier():
         
         train_acc = 100. * correct / total
         
-        # Evaluation
+        # 평가
         model.eval()
         test_correct = 0
         test_total = 0
@@ -943,15 +938,15 @@ def train_neural_ode_classifier():
 
 ---
 
-## 8. Training Considerations
+## 8. 익힐 때 살필 것
 
-### 8.1 Tolerances and Accuracy
+### 8.1 허용 오차와 정확도
 
-The ODE solver tolerances directly affect model behavior:
+상미분 방정식 풀개의 허용 오차가 모델의 움직임에 곧바로 영향을 준다:
 
 ```python
 class NeuralODEWithAdaptiveTolerance(nn.Module):
-    """Neural ODE with different tolerances for train/eval."""
+    """익히기와 따지기에 허용 오차를 달리한 신경 상미분 방정식."""
     
     def __init__(self, dim, hidden_dim=64):
         super().__init__()
@@ -973,23 +968,23 @@ class NeuralODEWithAdaptiveTolerance(nn.Module):
                       rtol=rtol, atol=atol)[-1]
 ```
 
-**Recommendations:**
+**권하는 바:**
 
-- **Training**: Use loose tolerances (e.g., `rtol=1e-3, atol=1e-5`) for speed
-- **Evaluation**: Tighten tolerances for accurate predictions
-- **Gradients**: Adjoint method tolerances affect gradient quality
+- **익히기**: 빠르기를 위해 헐거운 허용 오차(보기로 `rtol=1e-3, atol=1e-5`)를 쓴다
+- **따지기**: 정확한 헤아림을 위해 허용 오차를 빡빡하게 한다
+- **기울기**: 딸림 방법의 허용 오차가 기울기 품질에 영향을 준다
 
-### 8.2 Regularization Techniques
+### 8.2 규칙 세우기 재주
 
-Neural ODEs can learn overly complex dynamics. Regularization helps.
+신경 상미분 방정식은 지나치게 복잡한 움직임을 배울 수 있다. 규칙 세우기가 도움이 된다.
 
-**Kinetic Energy Regularization** penalizes the magnitude of the dynamics to encourage simpler trajectories:
+**운동 에너지 규칙 세우기**는 움직임의 크기를 벌하여 더 단순한 자취를 이끈다:
 
 $$\mathcal{L}_{\text{kinetic}} = \int_0^T \|f_\theta(h(t), t)\|^2 \, dt$$
 
 ```python
 class RegularizedNeuralODE(nn.Module):
-    """Neural ODE with kinetic energy regularization."""
+    """운동 에너지 규칙 세우기를 쓴 신경 상미분 방정식."""
     
     def __init__(self, dim, hidden_dim=64, kinetic_weight=0.01):
         super().__init__()
@@ -1002,12 +997,12 @@ class RegularizedNeuralODE(nn.Module):
             h = state[..., :-1]
             dhdt = self.func(t, h)
             
-            # Kinetic energy: ||dh/dt||^2
+            # 운동 에너지: ||dh/dt||^2
             kinetic = (dhdt ** 2).sum(dim=-1, keepdim=True)
             
             return torch.cat([dhdt, kinetic], dim=-1)
         
-        # Initialize with zero kinetic energy
+        # 운동 에너지를 0으로 첫자리매김한다
         h0_aug = torch.cat([h0, torch.zeros(h0.shape[0], 1, device=h0.device)], dim=-1)
         
         trajectory = odeint(augmented_func, h0_aug, self.t)
@@ -1021,21 +1016,21 @@ class RegularizedNeuralODE(nn.Module):
         return h_final
 ```
 
-**Jacobian Frobenius Norm Regularization** penalizes the complexity of the dynamics:
+**야코비 프로베니우스 노름 규칙 세우기**는 움직임의 복잡함을 벌한다:
 
 $$\mathcal{L}_{\text{jacobian}} = \int_0^T \left\| \frac{\partial f}{\partial h} \right\|_F^2 \, dt$$
 
-This encourages smoother transformations and is closely related to the trace computations used in continuous normalizing flows (Section 27.2).
+이는 더 매끄러운 바꿈을 이끌며 이어진 고르게 맞추는 흐름(27.2절)에 쓰이는 대각합 셈하기와 가깝게 이어진다.
 
-### 8.3 Weight Initialization
+### 8.3 무게 첫자리매김
 
-Neural ODEs are sensitive to initialization. Large initial weights can cause numerical instability, gradient explosion, and excessive function evaluations.
+신경 상미분 방정식은 첫자리매김에 민감하다. 처음 무게가 크면 수치가 흔들리고 기울기가 터지며 함수 매김이 지나치게 많아질 수 있다.
 
 ```python
 def init_neural_ode_weights(module):
     """
-    Initialize Neural ODE weights for stable training.
-    Use small weights to start with near-identity transformation.
+    안정된 익히기를 위해 신경 상미분 방정식의 무게를 첫자리매김한다.
+    거의 항등인 바꿈으로 시작하도록 작은 무게를 쓴다.
     """
     if isinstance(module, nn.Linear):
         nn.init.xavier_normal_(module.weight, gain=0.1)
@@ -1045,17 +1040,17 @@ def init_neural_ode_weights(module):
 
 ---
 
-## 9. Advanced Patterns
+## 9. 나아간 무늬
 
-### 9.1 Multi-Scale Neural ODE
+### 9.1 여러 잣수 신경 상미분 방정식
 
-Process different time scales with separate ODE blocks:
+때 잣수마다 따로 상미분 방정식 덩이로 다룬다:
 
 ```python
 class MultiScaleNeuralODE(nn.Module):
     """
-    Neural ODE with multiple time scales.
-    Useful for problems with both fast and slow dynamics.
+    때 잣수가 여럿인 신경 상미분 방정식.
+    빠른 움직임과 느린 움직임이 함께 있는 문제에 쓸모 있다.
     """
     
     def __init__(self, dim, hidden_dim=64):
@@ -1073,15 +1068,15 @@ class MultiScaleNeuralODE(nn.Module):
         return self.combine(combined)
 ```
 
-### 9.2 Neural ODE with Discrete Events
+### 9.2 띄엄띄엄한 사건이 있는 신경 상미분 방정식
 
-Combine continuous dynamics with discrete jumps:
+이어진 움직임과 띄엄띄엄한 뜀을 합친다:
 
 ```python
 class HybridNeuralODE(nn.Module):
     """
-    Neural ODE with discrete intermediate transformations.
-    Useful when some transformations are naturally discrete
+    띄엄띄엄한 중간 바꿈이 있는 신경 상미분 방정식.
+    어떤 바꿈이 본디 띄엄띄엄할 때 쓸모 있다
     (e.g., pooling, attention, or market open/close events).
     """
     
@@ -1091,7 +1086,7 @@ class HybridNeuralODE(nn.Module):
         self.ode1 = NeuralODEBlock(dim, hidden_dim, integration_time=0.5)
         self.ode2 = NeuralODEBlock(dim, hidden_dim, integration_time=0.5)
         
-        # Discrete transformation between ODE blocks
+        # 상미분 방정식 덩이 사이의 띄엄띄엄한 바꿈
         self.discrete_transform = nn.Sequential(
             nn.Linear(dim, hidden_dim),
             nn.ReLU(),
@@ -1107,16 +1102,16 @@ class HybridNeuralODE(nn.Module):
 
 ---
 
-## 10. Debugging Neural ODEs
+## 10. 신경 상미분 방정식의 벌레 잡기
 
 ```python
 def debug_neural_ode(model, sample_input):
-    """Diagnostic function for Neural ODE debugging."""
+    """신경 상미분 방정식의 벌레를 잡는 진단 함수."""
     print("=" * 50)
     print("Neural ODE Diagnostics")
     print("=" * 50)
     
-    # Check for NaN in parameters
+    # 매개변수에 NaN이 있는지 살핀다
     nan_params = []
     for name, param in model.named_parameters():
         if torch.isnan(param).any():
@@ -1127,7 +1122,7 @@ def debug_neural_ode(model, sample_input):
     else:
         print("✓ No NaN in parameters")
     
-    # Forward pass check
+    # 앞먹임 살피기
     try:
         with torch.no_grad():
             output = model(sample_input)
@@ -1140,13 +1135,13 @@ def debug_neural_ode(model, sample_input):
     except Exception as e:
         print(f"ERROR in forward pass: {e}")
     
-    # Check function evaluations
+    # 함수 매김 횟수를 살핀다
     if hasattr(model, 'ode_block') and hasattr(model.ode_block.func, 'nfe'):
         model.ode_block.func.nfe = 0
         _ = model(sample_input)
         print(f"  Function evaluations: {model.ode_block.func.nfe}")
     
-    # Gradient check
+    # 기울기 살피기
     model.zero_grad()
     output = model(sample_input)
     loss = output.sum()
@@ -1174,15 +1169,15 @@ def debug_neural_ode(model, sample_input):
         print(f"ERROR in backward pass: {e}")
 ```
 
-**Common Issues and Solutions:**
+**흔한 문제와 풀이:**
 
-- **NaN gradients**: Reduce learning rate, use tighter tolerances, check for exploding activations
-- **Very slow training**: Regularize dynamics, use looser tolerances, consider fixed-step solver
-- **Poor accuracy**: Increase hidden dimension, train longer, adjust integration time
+- **NaN 기울기**: 배움 빠르기를 줄이고 허용 오차를 빡빡하게 하며 깨움이 터지는지 살핀다
+- **아주 느린 익히기**: 움직임에 규칙을 세우고 허용 오차를 헐겁게 하며 붙박이 걸음 풀개를 생각해 본다
+- **낮은 정확도**: 숨은 차원을 늘리고 더 오래 익히며 적분 시간을 맞춘다
 
 ---
 
-## 11. Complete Demonstration
+## 11. 온전한 보여 주기
 
 ```python
 torch.manual_seed(42)
@@ -1208,7 +1203,7 @@ class LearnableODE(nn.Module):
             nn.Linear(hidden_dim, dim)
         )
         
-        # Initialize with small weights for stability
+        # 안정을 위해 작은 무게로 첫자리매김한다
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.xavier_normal_(m.weight, gain=0.1)
@@ -1227,12 +1222,12 @@ class LearnableODE(nn.Module):
 
 
 def demonstrate_ode_fundamentals():
-    """Complete demonstration of ODE concepts."""
+    """상미분 방정식 개념의 온전한 보여 주기."""
     print("=" * 70)
     print("ODE FUNDAMENTALS DEMONSTRATION")
     print("=" * 70)
     
-    # Part 1: Compare numerical methods
+    # 1부: 수치 방법 견주기
     print("\n1. Comparing Numerical Methods on Exponential Growth")
     print("-" * 50)
     
@@ -1252,7 +1247,7 @@ def demonstrate_ode_fundamentals():
         rk4_error = abs(y_rk4[-1, 0, 0].item() - np.exp(2.0))
         print(f"dt={dt}: Euler error={euler_error:.6f}, RK4 error={rk4_error:.2e}")
     
-    # Part 2: Phase portrait
+    # 2부: 위상 그림
     print("\n2. Phase Portrait: Damped Oscillator")
     print("-" * 50)
     
@@ -1275,16 +1270,16 @@ def demonstrate_ode_fundamentals():
     1. ODEs describe continuous-time dynamics: dy/dt = f(y, t)
     
     2. Numerical methods approximate solutions:
-       - Euler: O(dt) global error, simple but inaccurate
-       - RK4: O(dt^4) global error, good balance of accuracy/cost
-       - Adaptive methods: automatic error control
+       - 오일러: 온 어긋남 O(dt), 단순하지만 부정확하다
+       - RK4: 온 어긋남 O(dt^4), 정확도와 비용의 균형이 좋다
+       - 맞추어 가는 방법: 저절로 어긋남 다스리기
     
     3. ResNet IS Euler discretization with dt=1:
        h_{l+1} = h_l + f(h_l)  ←→  y_{n+1} = y_n + dt·f(y_n, t_n)
     
     4. Neural ODE is the continuous limit (L → ∞, dt → 0)
     
-    5. Phase portraits reveal qualitative dynamics behavior
+    5. 위상 그림이 움직임의 질적인 모습을 드러낸다
     """)
 
 
@@ -1294,27 +1289,27 @@ if __name__ == "__main__":
 
 ---
 
-## 12. Key Takeaways
+## 12. 핵심 정리
 
-1. **ODEs describe continuous-time dynamics** through the equation $\frac{dy}{dt} = f(y, t)$, with the dynamics function $f$ determining how the state evolves.
+1. **상미분 방정식은 이어진 때의 움직임을 적어 준다.** 식 $\frac{dy}{dt} = f(y, t)$으로 나타내며 움직임 함수 $f$이 상태가 어떻게 바뀌는지 정한다.
 
-2. **Numerical integration approximates solutions** when analytical ones don't exist. Euler is simple but inaccurate; RK4 offers a good balance; adaptive methods handle stiff systems.
+2. **닫힌 꼴 풀이가 없을 때 수치 적분이 풀이를 어림한다.** 오일러는 단순하지만 부정확하고, RK4은 균형이 좋으며, 맞추어 가는 방법은 뻣뻣한 계를 다룬다.
 
-3. **ResNets are Euler discretizations** of an underlying continuous dynamics. The residual connection $h_{l+1} = h_l + f(h_l)$ is precisely one Euler step with $\Delta t = 1$.
+3. **남은 이음 신경망은 밑에 깔린 이어진 움직임을 오일러로 띄엄띄엄하게 만든 것이다.** 남은 이음 $h_{l+1} = h_l + f(h_l)$은 바로 $\Delta t = 1$인 오일러 한 걸음이다.
 
-4. **Neural ODEs take the continuous limit**, replacing discrete layers with a continuous transformation defined by an ODE. This enables adaptive computation, guaranteed invertibility, and memory-efficient training.
+4. **신경 상미분 방정식은 이어진 끝을 잡아** 띄엄띄엄한 층을 상미분 방정식이 뜻매김하는 이어진 바꿈으로 바꾼다. 이는 맞추어 가는 셈, 보장된 되돌릴 수 있음, 기억을 아끼는 익히기를 가능하게 한다.
 
-5. **`torchdiffeq` provides differentiable ODE solvers** with various methods and configurable tolerances. Architecture design involves the dynamics function, integration time, solver choice, and tolerance settings.
+5. **`torchdiffeq`은 미분할 수 있는 상미분 방정식 풀개를 준다.** 여러 방법과 정할 수 있는 허용 오차를 갖춘다. 얼개 짜기에는 움직임 함수, 적분 시간, 풀개 고르기, 허용 오차 두기가 들어간다.
 
-6. **Training considerations include** tolerance tuning (looser for training, tighter for evaluation), regularization (kinetic energy, Jacobian norm), careful weight initialization, and bounded activation functions.
+6. **익힐 때 살필 것은** 허용 오차 맞추기(익힐 때는 헐겁게, 따질 때는 빡빡하게), 규칙 세우기(운동 에너지, 야코비 노름), 조심스러운 무게 첫자리매김, 가둬진 깨움 함수이다.
 
 ---
 
-## 13. Exercises
+## 13. 익힘
 
-### Exercise 1: Implement Midpoint Method
+### 익힘 1: 중점 방법 짜기
 
-The **midpoint method** (RK2) is:
+**중점 방법**(RK2)은 다음과 같다:
 
 $$k_1 = f(y_n, t_n)$$
 
@@ -1322,26 +1317,26 @@ $$k_2 = f\left(y_n + \frac{\Delta t}{2}k_1, t_n + \frac{\Delta t}{2}\right)$$
 
 $$y_{n+1} = y_n + \Delta t \cdot k_2$$
 
-Implement this method and compare its accuracy to Euler and RK4.
+이 방법을 짜고 오일러 및 RK4과 정확도를 견주어라.
 
-### Exercise 2: Stability Region
+### 익힘 2: 안정 자리
 
-For the test equation $\frac{dy}{dt} = \lambda y$, derive the stability region for Forward Euler, Backward Euler ($y_{n+1} = y_n + \Delta t \cdot f(y_{n+1}, t_{n+1})$), and RK4. Plot these regions in the complex $\lambda \Delta t$ plane.
+시험 방정식 $\frac{dy}{dt} = \lambda y$에서 앞으로 오일러, 뒤로 오일러($y_{n+1} = y_n + \Delta t \cdot f(y_{n+1}, t_{n+1})$), RK4의 안정 자리를 이끌어 내라. 복소 $\lambda \Delta t$ 평면에 그 자리를 그려라.
 
-### Exercise 3: Van der Pol Oscillator
+### 익힘 3: 반 데르 폴 떨개
 
-The Van der Pol oscillator is a nonlinear system:
+반 데르 폴 떨개는 비선형 계이다:
 
 $$\frac{d^2x}{dt^2} - \mu(1 - x^2)\frac{dx}{dt} + x = 0$$
 
-1. Convert to a first-order system
-2. Implement the dynamics function
-3. Create phase portraits for $\mu = 0.1, 1.0, 5.0$
-4. Describe how the behavior changes with $\mu$
+1. 일차 계로 바꾼다
+2. 움직임 함수를 짠다
+3. $\mu = 0.1, 1.0, 5.0$의 위상 그림을 만든다
+4. $\mu$에 따라 움직임이 어떻게 바뀌는지 적는다
 
-### Exercise 4: Spiral Classification
+### 익힘 4: 소용돌이 가름
 
-Train a Neural ODE to classify points from interleaved spirals:
+서로 엇갈린 소용돌이의 점을 가르도록 신경 상미분 방정식을 익혀라:
 
 ```python
 def make_spiral_data(n_samples=1000, noise=0.1):
@@ -1351,21 +1346,53 @@ def make_spiral_data(n_samples=1000, noise=0.1):
     return torch.stack([x, y], dim=1)
 ```
 
-### Exercise 5: Tolerance Study
+### 익힘 5: 허용 오차 살피기
 
-Systematically study how `rtol` and `atol` affect training accuracy, number of function evaluations, and training time. Plot the trade-off curves.
+`rtol`과 `atol`이 익히기 정확도, 함수 매김 횟수, 익히기 시간에 어떤 영향을 주는지 차근히 살펴라. 맞바꿈 곡선을 그려라.
 
-### Exercise 6: Depth Comparison
+### 익힘 6: 깊이 견주기
 
-Compare Neural ODE (adaptive depth) with ResNets of depth 2, 4, 8, 16, 32 on MNIST. Analyze accuracy, training time, and effective "depth" of the Neural ODE.
+MNIST에서 신경 상미분 방정식(맞추어 가는 깊이)을 깊이 2, 4, 8, 16, 32의 남은 이음 신경망과 견주어라. 정확도, 익히기 시간, 신경 상미분 방정식의 실제 "깊이"를 살펴라.
 
 ---
 
-## References
+## 참고 문헌
 
 1. Chen, R. T. Q., Rubanova, Y., Bettencourt, J., & Duvenaud, D. (2018). Neural Ordinary Differential Equations. *NeurIPS*.
 2. He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep Residual Learning for Image Recognition. *CVPR*.
 3. Hairer, E., Nørsett, S. P., & Wanner, G. (1993). Solving Ordinary Differential Equations I: Nonstiff Problems. Springer.
 4. Strogatz, S. H. (2015). Nonlinear Dynamics and Chaos. Westview Press.
 5. Finlay, C., Jacobsen, J. H., Nurbekyan, L., & Oberman, A. M. (2020). How to Train Your Neural ODE. *ICML*.
-6. torchdiffeq documentation: https://github.com/rtqichen/torchdiffeq
+6. torchdiffeq 문서: https://github.com/rtqichen/torchdiffeq
+
+## 연습문제
+
+**연습문제 1.**
+딸림 민감도 방법을 이끌어 내라. 딸림 $a(t) = \partial L / \partial z(t)$이 $da/dt = -a^T (\partial f / \partial z)$을 만족함을 보이고 매개변수 기울기를 이끌어 내라.
+
+??? success "연습문제 1 풀이"
+    $a(t) = \partial L / \partial z(t)$이라 뜻매김한다. 아주 작은 흔들림에서 $z(t+\epsilon) \approx z(t) + \epsilon f_\theta(z(t), t)$이므로 $\partial z(t+\epsilon)/\partial z(t) = I + \epsilon(\partial f/\partial z)$이다. 딸림은 $da/dt = -a(t)^T (\partial f/\partial z)(z(t), t)$으로 바뀐다. 매개변수 기울기는 $dL/d\theta = -\int_T^0 a(t)^T (\partial f/\partial \theta)\,dt$이며 늘린 상미분 방정식 $[z, a, dL/d\theta]$을 $T$에서 $0$까지 뒤로 풀어 셈한다. $\square$
+
+---
+
+**연습문제 2.**
+기억 비용을 견주어라. 딸림 방법이 깊이 $L$인 여느 남은 이음 신경망의 $O(L)$에 견주어 $O(1)$ 기억을 이룸을 보여라.
+
+??? success "연습문제 2 풀이"
+    남은 이음 신경망은 뒷걸음 퍼뜨리기를 위해 중간 깨움 $L$개를 모두 담아 기억이 $O(L \cdot d)$이다. 신경 상미분 방정식의 딸림 방법은 마지막 상태 $z(T)$만 있으면 되고 뒤로 풀며 중간 값을 다시 셈한다. 이는 적분 걸음 수와 상관없이 기억 $O(d)$만 든다. 맞바꿈은 셈이 두 배가 되는 것이다(앞으로 한 번, 뒤로 한 번). 깊은 신경망에서는 기억 아낌이 커서 기억이 아니라 셈만이 깊이를 제한하게 된다. $\square$
+
+---
+
+**연습문제 3.**
+립시츠 이어진 $f_\theta$을 가진 신경 상미분 방정식이 위상 동형을 뜻매김함을 밝혀라. 이는 나타냄 힘에 어떤 뜻을 지니는가?
+
+??? success "연습문제 3 풀이"
+    피카르-린델뢰프에 따라 립시츠 이어짐이 유일한 풀이를 보장한다. 흐름 옮김 $\phi_t : z(0) \mapsto z(t)$은 일대일이고(하나뿐임) 이어져 있으며(처음 조건에 이어져 매임) 이어진 역 $\phi_{-t}$을 가진다. 따라서 $\phi_t$은 위상 동형이다. 곧 신경 상미분 방정식은 자료의 위상을 바꿀 수 없다. 이어진 조각을 가르거나 합칠 수 없다. 이는 남은 이음 신경망에 견주어 나타냄 힘을 제한한다. (차원을 더하는) 늘린 신경 상미분 방정식이 이를 넘어선다. $\square$
+
+---
+
+**연습문제 4.**
+신경 상미분 방정식에서 앞 방향 미분이 딸림 방법보다 나은 때는 언제인가?
+
+??? success "연습문제 4 풀이"
+    앞 방향은 매개변수 개수 $p$과 상관없이 $O(d_{\text{out}})$ 시간에 방향 미분을 셈하고, 딸림은 내놓기 차원과 상관없이 $O(p)$이다. 앞 방향이 나은 때는 (1) 매개변수가 적을 때(보기로 물리 상수), (2) 온전한 야코비 $\partial z/\partial z_0$이 필요할 때, (3) 이차 방법이 야코비-벡터 곱을 요구할 때이다. 앞 방향은 또한 딸림의 어긋남이 쌓이는 뒤엉킨 움직임에서 뒤로 적분할 때의 수치 문제를 피한다. $\square$

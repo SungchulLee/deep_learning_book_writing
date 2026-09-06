@@ -1,9 +1,4 @@
 # Grad-CAM: Gradient-weighted Class Activation Mapping
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Introduction
 
 **Gradient-weighted Class Activation Mapping (Grad-CAM)** is a technique for producing visual explanations of decisions from CNN-based models. Unlike earlier Class Activation Mapping (CAM) methods that require specific architectures, Grad-CAM works with any CNN architecture without requiring architectural modifications or retraining.
@@ -20,6 +15,7 @@ Unlike pixel-level gradient methods, Grad-CAM generates **coarse localization ma
 ### Problem Setup
 
 Consider a CNN classifier with:
+
 - Input image $I \in \mathbb{R}^{H \times W \times 3}$
 - Convolutional feature maps $A^k \in \mathbb{R}^{u \times v}$ at a target layer (typically the last convolutional layer)
 - Class score $y^c$ for class $c$ (before softmax)
@@ -33,9 +29,7 @@ Grad-CAM leverages the spatial information preserved in convolutional feature ma
 For a target class $c$, Grad-CAM computes:
 
 $$
-
 L^c_{\text{Grad-CAM}} = \text{ReLU}\left( \sum_k \alpha^c_k A^k \right)
-
 $$
 
 where:
@@ -49,9 +43,7 @@ where:
 The importance weights $\alpha^c_k$ are computed via **global average pooling** of gradients:
 
 $$
-
 \alpha^c_k = \underbrace{\frac{1}{Z} \sum_i \sum_j}_{\text{global average pooling}} \underbrace{\frac{\partial y^c}{\partial A^k_{ij}}}_{\text{gradients}}
-
 $$
 
 where:
@@ -75,6 +67,7 @@ Features with negative contribution (decreasing the class score) are suppressed.
 **Why the last convolutional layer?**
 
 Later layers contain:
+
 - Higher-level semantic information
 - Class-discriminative features
 - Sufficient spatial resolution for localization
@@ -84,25 +77,19 @@ Later layers contain:
 The Grad-CAM formula can be derived from a **first-order Taylor expansion**. Starting from first principles, consider the class score $y^c$ as a function of all feature maps:
 
 $$
-
 y^c = f(A^1, A^2, \ldots, A^K)
-
 $$
 
 The class score change due to a small perturbation in feature maps is approximately:
 
 $$
-
 y^c \approx \sum_k \sum_i \sum_j \frac{\partial y^c}{\partial A_{ij}^k} A_{ij}^k
-
 $$
 
 Rearranging with the global average pooling assumption:
 
 $$
-
 y^c \approx \sum_k \alpha_k^c \sum_i \sum_j A_{ij}^k
-
 $$
 
 This shows that $\alpha_k^c$ measures how much feature map $k$ contributes to the class score.
@@ -110,25 +97,19 @@ This shows that $\alpha_k^c$ measures how much feature map $k$ contributes to th
 The global average pooling aggregates spatial information:
 
 $$
-
 \alpha^c_k = \frac{1}{H' \cdot W'} \sum_{i=1}^{H'} \sum_{j=1}^{W'} \frac{\partial y^c}{\partial A^k_{ij}}
-
 $$
 
 The weighted sum combines feature maps by importance:
 
 $$
-
 L^c(i,j) = \sum_{k=1}^{K} \alpha^c_k A^k_{ij}
-
 $$
 
 Finally, ReLU removes negative influences:
 
 $$
-
 L^c_{\text{Grad-CAM}} = \text{ReLU}(L^c)
-
 $$
 
 ## Algorithm
@@ -644,6 +625,7 @@ Grad-CAM produces **coarse localization** because:
 3. Semantic information is captured at the expense of fine details
 
 This is a **complementary** property to pixel-level methods:
+
 - **Grad-CAM** shows *where* (coarse localization)
 - **Gradient methods** show *what* (fine-grained features)
 - **Guided Grad-CAM** combines both
@@ -661,6 +643,7 @@ The main limitation is spatial resolution. Feature maps at deep layers are typic
 | EfficientNet-B0 | 224×224 | 7×7 | 32× |
 
 This makes Grad-CAM unsuitable for:
+
 - Precise boundary detection
 - Fine-grained localization
 - Small object detection
@@ -681,6 +664,7 @@ cam_dog = grad_cam(input_tensor, target_class=235)  # dog class
 ### 3. Global Average Pooling Assumption
 
 Grad-CAM assumes feature map importance is spatially uniform. This may not hold when:
+
 - Different spatial regions of a feature map encode different semantics
 - The model uses attention mechanisms internally
 - Features have spatially varying importance
@@ -698,6 +682,7 @@ For highly confident predictions, gradients may saturate, leading to weak explan
 ### 5. Adversarial Vulnerability
 
 Grad-CAM explanations can be manipulated by adversarial perturbations:
+
 - Adversarially perturbed images can have misleading Grad-CAMs
 - The model may use imperceptible adversarial features
 - Explanations may highlight "correct-looking" regions while actual decision features are hidden
@@ -769,17 +754,13 @@ Grad-CAM provides interpretable, class-discriminative visualizations for CNN dec
 **Importance weights:**
 
 $$
-
 \alpha^c_k = \frac{1}{Z} \sum_i \sum_j \frac{\partial y^c}{\partial A^k_{ij}}
-
 $$
 
 **Heatmap:**
 
 $$
-
 L^c_{\text{Grad-CAM}} = \text{ReLU}\left( \sum_k \alpha^c_k A^k \right)
-
 $$
 
 ### Key Properties
@@ -802,12 +783,14 @@ $$
 ### When to Use Grad-CAM
 
 **Recommended for:**
+
 - Understanding CNN decisions at a regional level
 - Debugging misclassifications
 - Verifying models use appropriate image regions
 - Quick visualization (single forward-backward pass)
 
 **Consider alternatives when:**
+
 - Fine-grained localization needed → Guided Grad-CAM
 - Theoretical guarantees required → Integrated Gradients
 - Non-CNN architectures → Attention visualization, SHAP
@@ -821,3 +804,35 @@ $$
 3. Chattopadhyay, A., et al. (2018). "Grad-CAM++: Generalized Gradient-based Visual Explanations for Deep Convolutional Networks." *WACV 2018*.
 
 4. Adebayo, J., et al. (2018). "Sanity Checks for Saliency Maps." *NeurIPS 2018*.
+
+## Exercises
+
+**Exercise 1.**
+Apply the interpretability method described in this section to a 2-layer neural network with ReLU activations classifying XOR inputs. Compute the explanation for the input $x = [1, 1]$.
+
+??? success "Solution to Exercise 1"
+    For a trained XOR network with weights $W_1, b_1, W_2, b_2$, the output is $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$. The explanation method produces attributions for each input feature. For $x = [1, 1]$ (class 0), both features contribute to the negative classification. The specific attribution values depend on the method: gradient-based methods compute $\partial f / \partial x_i$; perturbation-based methods measure output change when features are masked. The XOR problem demonstrates that linear explanation methods can mislead because the decision boundary is non-linear. $\square$
+
+---
+
+**Exercise 2.**
+Prove or disprove that the explanation method in this section satisfies the completeness axiom: the sum of all feature attributions equals $f(x) - f(x_0)$ for some baseline $x_0$.
+
+??? success "Solution to Exercise 2"
+    The completeness axiom (also called efficiency in Shapley value theory) states that attributions sum to the difference between the model output at the input and at the baseline. Whether this method satisfies completeness depends on its formulation. Gradient methods do not satisfy completeness (gradients are local, not path-integrated). Integrated Gradients satisfies completeness by construction (fundamental theorem of calculus along the path). SHAP values satisfy efficiency by the Shapley axiom. Methods that violate completeness may over- or under-attribute, making the total attribution unreliable as a global explanation. $\square$
+
+---
+
+**Exercise 3.**
+Design an experiment to evaluate the faithfulness of the explanations produced by this method. Use insertion and deletion curves to measure whether highlighted features are truly important to the model.
+
+??? success "Solution to Exercise 3"
+    Protocol: (1) Compute feature attributions for each test image. (2) Deletion: progressively mask features in order of decreasing attribution, recording the model confidence drop. Faithful explanations cause rapid confidence decrease. (3) Insertion: progressively reveal features in order of decreasing attribution from a blank baseline, recording confidence increase. Faithful explanations cause rapid confidence increase. (4) Compute AUC for both curves. (5) Compare against random ordering (baseline) and other methods. A faithful method should have low deletion AUC and high insertion AUC. Repeat over 1000+ test samples for statistical reliability. $\square$
+
+---
+
+**Exercise 4.**
+Discuss how this interpretability method could be applied to a financial model predicting credit default. What regulatory requirements must the explanations satisfy?
+
+??? success "Solution to Exercise 4"
+    For credit models, regulations (ECOA, GDPR Article 22) require individualized explanations for adverse decisions. The method must produce: (1) the top factors contributing to the denial (adverse action reasons); (2) explanations that are consistent (similar applicants get similar explanations); (3) explanations that are actionable (the applicant understands what to change). The interpretability method from this section can identify feature importances, but must be validated for stability (small input changes should not drastically alter the explanation) and correctness (removing important features should change the prediction). Protected attributes must be handled carefully to avoid revealing proxy discrimination. $\square$

@@ -1,196 +1,196 @@
-# Fibonacci Heap Amortized Analysis
+# 피보나치 힙의 분할 상환 분석
 
-Fibonacci heaps achieve remarkable amortized bounds -- $O(1)$ for insert, merge, find-min, and decrease-key, and $O(\log n)$ for extract-min and delete -- but the worst-case cost of individual operations can be much higher. A single decrease-key may trigger a cascade of cuts costing $O(\log n)$, and extract-min consolidates the root list at a cost proportional to the number of trees. The potential method reveals that these expensive operations are always "paid for" by preceding cheap ones, yielding the advertised amortized bounds. Understanding this analysis is essential because these bounds directly determine the running time of Dijkstra's and Prim's algorithms.
+피보나치 힙은 놀라운 분할 상환 한계를 이룬다. 삽입, 합치기, 최솟값 찾기, 열쇠 낮추기가 $O(1)$이고 최솟값 꺼내기와 삭제가 $O(\log n)$이다. 그러나 연산 하나하나의 최악 비용은 훨씬 클 수 있다. 열쇠 낮추기 한 번이 $O(\log n)$이 드는 잇단 자르기를 일으킬 수 있고, 최솟값 꺼내기는 트리 수에 비례하는 비용으로 뿌리 목록을 다진다. 퍼텐셜 방법은 이 비싼 연산이 언제나 앞선 싼 연산으로 "치러진다"는 것을 드러내어 앞서 말한 분할 상환 한계를 준다. 이 분석을 이해하는 것은 이 한계가 데이크스트라와 프림 알고리즘의 실행 시간을 곧바로 정하므로 꼭 필요하다.
 
-## Potential Function
+## 퍼텐셜 함수
 
-The amortized analysis uses the potential function:
+분할 상환 분석에는 다음 퍼텐셜 함수를 쓴다.
 
 $$
 \Phi(H) = t(H) + 2\,m(H)
 $$
 
-where:
+여기서 각 기호는 다음과 같다.
 
-- $t(H)$ is the number of trees in the root list of heap $H$
-- $m(H)$ is the number of **marked** nodes in $H$ (nodes that have lost one child since they were last made a child of another node)
+- $t(H)$은 힙 $H$의 뿌리 목록에 있는 트리의 수이다
+- $m(H)$은 $H$의 **표시된** 노드(다른 노드의 자식이 된 뒤로 자식을 하나 잃은 노드)의 수이다
 
-Initially, $\Phi(H_0) = 0$ for an empty heap, and $\Phi(H) \ge 0$ always holds. The amortized cost of each operation is:
+처음에 빈 힙에서는 $\Phi(H_0) = 0$이고 언제나 $\Phi(H) \ge 0$이다. 연산마다의 분할 상환 비용은 다음과 같다.
 
 $$
 \hat{c}_i = c_i + \Phi(H_i) - \Phi(H_{i-1})
 $$
 
-where $c_i$ is the actual cost and $H_i$ is the heap state after operation $i$.
+여기서 $c_i$은 실제 비용이고 $H_i$은 연산 $i$ 뒤의 힙 상태이다.
 
-## Insert: Amortized O(1)
+## 삽입: 분할 상환 O(1)
 
-Inserting a new node creates a single new tree in the root list.
+새 노드를 넣으면 뿌리 목록에 새 트리 하나가 생긴다.
 
-**Actual cost**: $c = O(1)$ (create node, add to root list, update min pointer).
+**실제 비용**: $c = O(1)$ (노드 만들기, 뿌리 목록에 더하기, 최소 포인터 고치기).
 
-**Potential change**: $t(H)$ increases by 1, $m(H)$ is unchanged, so $\Delta\Phi = 1$.
+**퍼텐셜 변화**: $t(H)$이 1 늘고 $m(H)$은 그대로이므로 $\Delta\Phi = 1$이다.
 
 $$
 \hat{c} = O(1) + 1 = O(1)
 $$
 
-## Find-Min: Amortized O(1)
+## 최솟값 찾기: 분할 상환 O(1)
 
-The minimum is maintained as a pointer. No structural change occurs.
+최솟값은 포인터로 지킨다. 구조가 바뀌지 않는다.
 
-**Actual cost**: $c = O(1)$.
+**실제 비용**: $c = O(1)$.
 
-**Potential change**: $\Delta\Phi = 0$.
-
-$$
-\hat{c} = O(1) + 0 = O(1)
-$$
-
-## Merge: Amortized O(1)
-
-Merging two heaps concatenates their root lists and updates the min pointer.
-
-**Actual cost**: $c = O(1)$ (with doubly-linked circular lists, concatenation is constant time).
-
-**Potential change**: The new potential equals $t(H_1) + t(H_2) + 2(m(H_1) + m(H_2)) = \Phi(H_1) + \Phi(H_2)$, so $\Delta\Phi = 0$ relative to the sum of the two original potentials.
+**퍼텐셜 변화**: $\Delta\Phi = 0$.
 
 $$
 \hat{c} = O(1) + 0 = O(1)
 $$
 
-## Extract-Min: Amortized O(log n)
+## 합치기: 분할 상환 O(1)
 
-Extract-min is the most complex operation. It removes the minimum root, adds its children to the root list, and then consolidates trees of the same degree.
+두 힙을 합치면 뿌리 목록을 이어 붙이고 최소 포인터를 고친다.
 
-### Actual Cost
+**실제 비용**: $c = O(1)$ (양방향 원형 연결 리스트에서는 이어 붙이기가 일정 시간이다).
 
-Let $D(n)$ denote the maximum degree of any node in an $n$-node Fibonacci heap. The minimum node has at most $D(n)$ children, all added to the root list. Before consolidation, the root list has at most:
+**퍼텐셜 변화**: 새 퍼텐셜은 $t(H_1) + t(H_2) + 2(m(H_1) + m(H_2)) = \Phi(H_1) + \Phi(H_2)$과 같으므로 본디 두 퍼텐셜의 합에 견주어 $\Delta\Phi = 0$이다.
+
+$$
+\hat{c} = O(1) + 0 = O(1)
+$$
+
+## 최솟값 꺼내기: 분할 상환 O(log n)
+
+최솟값 꺼내기가 가장 복잡한 연산이다. 최소 뿌리를 없애고 그 자식을 뿌리 목록에 더한 뒤 같은 차수의 트리를 다진다.
+
+### 실제 비용
+
+노드가 $n$개인 피보나치 힙에서 어떤 노드의 최대 차수를 $D(n)$이라 하자. 최소 노드는 자식이 많아야 $D(n)$개이며 모두 뿌리 목록에 더해진다. 다지기 전에 뿌리 목록에는 많아야 다음만큼의
 
 $$
 t(H) - 1 + D(n)
 $$
 
-trees. Consolidation examines each root and links trees of equal degree. The work is proportional to the number of roots before consolidation plus $D(n)$ (for the degree array). Thus:
+트리가 있다. 다지기는 뿌리마다 살펴 같은 차수의 트리를 잇는다. 그 일은 다지기 전의 뿌리 수에 (차수 배열을 위한) $D(n)$을 더한 값에 비례한다. 따라서 다음과 같다.
 
 $$
 c = O(t(H) + D(n))
 $$
 
-### Potential Change
+### 퍼텐셜 변화
 
-After consolidation, at most one tree of each degree remains, so the new number of trees is at most $D(n) + 1$. No nodes are marked or unmarked during extract-min. Therefore:
+다진 뒤에는 차수마다 트리가 많아야 하나 남으므로 새 트리의 수는 많아야 $D(n) + 1$이다. 최솟값 꺼내기 중에 표시가 붙거나 떨어지는 노드는 없다. 따라서 다음과 같다.
 
 $$
 \Delta\Phi = (D(n) + 1) - t(H)
 $$
 
-### Amortized Cost
+### 분할 상환 비용
 
 $$
 \hat{c} = O(t(H) + D(n)) + (D(n) + 1) - t(H) = O(D(n))
 $$
 
-The $t(H)$ terms cancel: the actual cost from processing many roots is offset by the decrease in potential. Since $D(n) = O(\log n)$ (proven below), the amortized cost is $O(\log n)$.
+$t(H)$ 항이 지워진다. 뿌리를 많이 처리한 실제 비용이 퍼텐셜의 감소로 상쇄된다. (아래에서 증명하듯) $D(n) = O(\log n)$이므로 분할 상환 비용은 $O(\log n)$이다.
 
-## Decrease-Key: Amortized O(1)
+## 열쇠 낮추기: 분할 상환 O(1)
 
-Decreasing a key may trigger cascading cuts. If the decreased node violates the heap order with its parent, it is cut from its parent and added to the root list. If the parent was already marked (had already lost a child), the parent is also cut -- and this cascading continues up the tree.
+열쇠를 낮추면 잇단 자르기가 일어날 수 있다. 낮춘 노드가 부모와의 힙 순서를 어기면 부모에게서 잘려 뿌리 목록에 더해진다. 부모가 이미 표시되어 있었다면(이미 자식을 하나 잃었다면) 부모도 잘리고, 이 잇달음이 트리를 거슬러 이어진다.
 
-### Actual Cost
+### 실제 비용
 
-Suppose the cascade performs $c_{\text{cuts}}$ cuts. Each cut takes $O(1)$ work, so:
+잇달음이 자르기를 $c_{\text{cuts}}$번 한다고 하자. 자르기마다 $O(1)$의 일이 드므로 다음과 같다.
 
 $$
 c = O(c_{\text{cuts}})
 $$
 
-### Potential Change
+### 퍼텐셜 변화
 
-Each cut adds one tree to the root list ($t$ increases by 1 per cut). The first $c_{\text{cuts}} - 1$ cuts unmark nodes (each cascading parent was marked), decreasing $m$ by $c_{\text{cuts}} - 1$. The final node in the cascade may become newly marked (increasing $m$ by at most 1). The decreased node itself is moved to the root list and unmarked. Therefore:
+자르기마다 뿌리 목록에 트리가 하나 더해진다($t$이 자르기마다 1 는다). 앞의 $c_{\text{cuts}} - 1$번의 자르기는 노드의 표시를 떼므로(잇달린 부모마다 표시되어 있었다) $m$이 $c_{\text{cuts}} - 1$ 줄어든다. 잇달음의 마지막 노드는 새로 표시될 수 있다($m$이 많아야 1 는다). 낮춘 노드 자신은 뿌리 목록으로 옮겨지고 표시가 떨어진다. 따라서 다음과 같다.
 
 $$
 \Delta\Phi \le c_{\text{cuts}} + 2(1 - (c_{\text{cuts}} - 1)) = c_{\text{cuts}} + 2(2 - c_{\text{cuts}}) = 4 - c_{\text{cuts}}
 $$
 
-### Amortized Cost
+### 분할 상환 비용
 
 $$
 \hat{c} = O(c_{\text{cuts}}) + 4 - c_{\text{cuts}} = O(1)
 $$
 
-The cascade cost is entirely absorbed by the decrease in potential from unmarking nodes. This is the core insight of the Fibonacci heap design: marking and cascading cuts serve as a "credit scheme" that keeps the amortized cost constant.
+잇달음의 비용은 표시를 떼며 줄어드는 퍼텐셜에 온전히 흡수된다. 이것이 피보나치 힙 설계의 핵심 통찰이다. 표시와 잇단 자르기가 분할 상환 비용을 일정하게 지키는 "외상 장부" 노릇을 한다.
 
-## The Degree Bound: Why Fibonacci Numbers
+## 차수의 한계: 왜 피보나치 수인가
 
-The amortized bounds above rely on $D(n) = O(\log n)$. This bound comes from a structural property enforced by cascading cuts.
+위의 분할 상환 한계는 $D(n) = O(\log n)$에 기댄다. 이 한계는 잇단 자르기가 지키게 하는 구조 성질에서 나온다.
 
-!!! tip "Key Invariant"
-    A node is cut from its parent the **second** time it loses a child (that is what the mark bit tracks). This ensures that no node loses too many children, which in turn limits the minimum size of a subtree.
+!!! tip "핵심 불변식"
+    노드는 자식을 **두 번째로** 잃을 때 부모에게서 잘린다(표시 비트가 이를 좇는다). 그러면 어떤 노드도 자식을 너무 많이 잃지 않게 되고, 이것이 부분 트리의 최소 크기를 제한한다.
 
-Let $x$ be a node with degree $k$, and let $y_1, y_2, \ldots, y_k$ be its children in the order they were linked. When $y_i$ was linked, $x$ already had at least $i - 1$ children, so $y_i$'s degree was at least $i - 1$ at that time. Since a node can lose at most one child (before being cut itself), $y_i$ has degree at least $i - 2$.
+$x$을 차수가 $k$인 노드라 하고 $y_1, y_2, \ldots, y_k$을 이어진 순서대로의 자식이라 하자. $y_i$이 이어질 때 $x$에는 이미 자식이 적어도 $i - 1$개 있었으므로 그때 $y_i$의 차수는 적어도 $i - 1$이었다. 노드는 (제 자신이 잘리기 전에) 자식을 많아야 하나 잃을 수 있으므로 $y_i$의 차수는 적어도 $i - 2$이다.
 
-Let $s_k$ be the minimum number of nodes in a subtree rooted at a node of degree $k$. Then:
+$s_k$을 차수가 $k$인 노드를 뿌리로 하는 부분 트리의 최소 노드 수라 하자. 그러면 다음과 같다.
 
 $$
 s_k \ge s_{k-2} + s_{k-3} + \cdots + s_0 + 2
 $$
 
-This recurrence yields $s_k \ge F_{k+2}$, where $F_k$ is the $k$-th Fibonacci number. Since $F_{k+2} \ge \phi^k$ where $\phi = (1 + \sqrt{5})/2 \approx 1.618$, a node of degree $k$ roots a subtree with at least $\phi^k$ nodes. Therefore, a degree-$k$ node can only exist if $n \ge \phi^k$, giving:
+이 점화식에서 $s_k \ge F_{k+2}$이 나오며 여기서 $F_k$은 $k$번째 피보나치 수이다. $\phi = (1 + \sqrt{5})/2 \approx 1.618$일 때 $F_{k+2} \ge \phi^k$이므로 차수가 $k$인 노드는 노드가 적어도 $\phi^k$개인 부분 트리의 뿌리이다. 따라서 차수 $k$의 노드는 $n \ge \phi^k$일 때만 있을 수 있고 다음을 얻는다.
 
 $$
 D(n) \le \lfloor \log_\phi n \rfloor = O(\log n)
 $$
 
-This is why the data structure is named after Fibonacci: the Fibonacci numbers govern the minimum subtree sizes.
+이 자료 구조에 피보나치의 이름이 붙은 까닭이 이것이다. 피보나치 수가 부분 트리의 최소 크기를 다스린다.
 
-## Summary of Amortized Bounds
+## 분할 상환 한계 간추리기
 
-| Operation | Actual worst-case | Amortized |
+| 연산 | 실제 최악 | 분할 상환 |
 |-----------|:-----------------:|:---------:|
-| Insert | $O(1)$ | $O(1)$ |
-| Find-min | $O(1)$ | $O(1)$ |
-| Merge | $O(1)$ | $O(1)$ |
-| Extract-min | $O(n)$ | $O(\log n)$ |
-| Decrease-key | $O(\log n)$ | $O(1)$ |
-| Delete | $O(n)$ | $O(\log n)$ |
+| 삽입 | $O(1)$ | $O(1)$ |
+| 최솟값 찾기 | $O(1)$ | $O(1)$ |
+| 합치기 | $O(1)$ | $O(1)$ |
+| 최솟값 꺼내기 | $O(n)$ | $O(\log n)$ |
+| 열쇠 낮추기 | $O(\log n)$ | $O(1)$ |
+| 삭제 | $O(n)$ | $O(\log n)$ |
 
-!!! warning "Worst-Case vs Amortized"
-    The amortized bounds guarantee that any sequence of $m$ operations starting from an empty heap costs at most $O(m + k \log n)$ total, where $k$ is the number of extract-min and delete operations. Individual operations may exceed these bounds -- for example, a single extract-min may cost $O(n)$ if all nodes are roots.
+!!! warning "최악의 경우와 분할 상환"
+    분할 상환 한계는 빈 힙에서 시작하는 연산 $m$번의 어떤 차례든 모두 많아야 $O(m + k \log n)$이 듦을 보장한다. 여기서 $k$은 최솟값 꺼내기와 삭제의 횟수이다. 연산 하나하나는 이 한계를 넘을 수 있다. 이를테면 모든 노드가 뿌리이면 최솟값 꺼내기 한 번에 $O(n)$이 들 수 있다.
 
-## Implementation Sketch
+## 구현 개요
 
 ```python
 """
-Fibonacci heap amortized analysis demonstration.
+피보나치 힙의 분할 상환 분석 보이기.
 
-Illustrates the potential function tracking during a sequence
-of Fibonacci heap operations to verify amortized bounds.
+피보나치 힙 연산의 차례 동안 퍼텐셜 함수를 좇아
+분할 상환 한계를 확인하는 것을 보인다.
 """
 
 import math
 
 
-# === Potential Tracking ===
+# === 퍼텐셜 좇기 ===
 
 class PotentialTracker:
-    """Track the potential function Phi = t(H) + 2*m(H)
-    during a sequence of Fibonacci heap operations.
+    """피보나치 힙 연산의 차례 동안 퍼텐셜 함수
+    Phi = t(H) + 2*m(H)을 좇는다.
     """
 
     def __init__(self):
-        self.trees = 0       # t(H): number of trees in root list
-        self.marked = 0      # m(H): number of marked nodes
+        self.trees = 0       # t(H): 뿌리 목록의 트리 수
+        self.marked = 0      # m(H): 표시된 노드의 수
         self.total_actual = 0
         self.total_amortized = 0
         self.ops = []
 
     def potential(self):
-        """Current potential: t(H) + 2*m(H)."""
+        """지금의 퍼텐셜: t(H) + 2*m(H)."""
         return self.trees + 2 * self.marked
 
     def record_op(self, name, actual_cost, new_trees, new_marked):
-        """Record an operation with its actual cost and new state."""
+        """연산과 그 실제 비용과 새 상태를 적어 둔다."""
         old_phi = self.potential()
         self.trees = new_trees
         self.marked = new_marked
@@ -207,7 +207,7 @@ class PotentialTracker:
         })
 
     def report(self):
-        """Print a summary of all operations."""
+        """모든 연산의 요약을 찍는다."""
         print(f"{'Op':<20} {'Actual':>8} {'dPhi':>8} {'Amort':>8} {'Phi':>8}")
         print("-" * 56)
         for op in self.ops:
@@ -219,22 +219,22 @@ class PotentialTracker:
               f"{'':>8} {self.total_amortized:>8}")
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     tracker = PotentialTracker()
 
-    # Simulate inserting 8 elements (each adds one tree)
+    # 원소 8개 넣기를 흉내 낸다 (저마다 트리를 하나 더한다)
     for i in range(1, 9):
         tracker.record_op(f"insert({i})", 1, tracker.trees + 1, tracker.marked)
 
-    # Simulate extract-min: consolidation reduces trees
-    # Before: 8 trees. After consolidation: ~log2(8)=3 trees
-    actual_extract = 8 + 3  # process all roots + degree array
+    # 최솟값 꺼내기를 흉내 낸다. 다지기가 트리를 줄인다
+    # 앞: 트리 8개. 다진 뒤: 약 log2(8)=3개
+    actual_extract = 8 + 3  # 모든 뿌리와 차수 배열을 처리한다
     tracker.record_op("extract-min", actual_extract, 3, tracker.marked)
 
-    # Simulate decrease-key with 3 cascading cuts
-    # 3 cuts: 3 new trees, 2 unmarked, 1 newly marked
+    # 잇단 자르기 3번인 열쇠 낮추기를 흉내 낸다
+    # 자르기 3번: 새 트리 3개, 표시 뗀 것 2개, 새로 표시된 것 1개
     actual_decrease = 3
     tracker.record_op("decrease-key (3 cuts)", actual_decrease,
                       tracker.trees + 3, tracker.marked - 2 + 1)
@@ -245,7 +245,7 @@ if __name__ == "__main__":
           f"{math.floor(math.log(1000) / math.log((1 + math.sqrt(5)) / 2))}")
 ```
 
-**Output:**
+**출력:**
 ```
 Op                     Actual     dPhi    Amort      Phi
 --------------------------------------------------------
@@ -263,9 +263,42 @@ decrease-key (3 cuts)       3        1        4        4
 Total                      21                26
 ```
 
-The output shows that while actual costs vary (extract-min costs 11), the amortized costs remain bounded. The total amortized cost (26) provides the guarantee, while individual amortized costs stay within $O(1)$ for insert and decrease-key, and $O(\log n)$ for extract-min.
+출력을 보면 실제 비용은 들쭉날쭉하지만(최솟값 꺼내기는 11이 든다) 분할 상환 비용은 한계 안에 머문다. 전체 분할 상환 비용(26)이 보장을 주며, 하나하나의 분할 상환 비용은 삽입과 열쇠 낮추기가 $O(1)$, 최솟값 꺼내기가 $O(\log n)$ 안에 머문다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 19: Fibonacci Heaps. MIT Press.
 - Fredman, M. L. and Tarjan, R. E. "Fibonacci heaps and their uses in improved network optimization algorithms." *Journal of the ACM*, 34(3):596--615, 1987.
+
+
+## 연습문제
+
+**연습문제 1.**
+피보나치 힙의 분할 상환 분석의 힙 성질을 밝히고 최솟값·최댓값 원소가 언제나 뿌리에 있음을 증명하라.
+
+??? success "연습문제 1 풀이"
+    힙 성질은 노드마다 열쇠가 자식보다 작거나 같거나(최소 힙) 크거나 같다(최대 힙)는 것이다. 뿌리에서 잎까지의 어떤 경로에서도 추이성이 성립하므로 뿌리가 모든 원소의 최솟값(또는 최댓값)이다.
+
+---
+
+**연습문제 2.**
+배열 $[4, 7, 2, 9, 1, 5, 3]$에서 피보나치 힙의 분할 상환 분석을 따라가라. 단계마다와 그 결과로 나오는 힙을 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽의 연산을 주어진 배열에 적용하라. 단계마다 배열과 그것이 나타내는 트리를 보여라. 비교와 자리바꿈을 짚어라.
+
+---
+
+**연습문제 3.**
+피보나치 힙의 분할 상환 분석의 시간 복잡도를 증명하라. 그 한계는 빡빡한가?
+
+??? success "연습문제 3 풀이"
+    이 연산은 뿌리에서 잎까지 또는 잎에서 뿌리까지의 경로를 훑으며 층마다 $O(1)$의 일을 한다. 완전 이진 트리의 높이는 $\lfloor\log_2 n\rfloor$이므로 모두 $O(\log n)$이다. 이 한계는 빡빡하다. 높이 전체를 훑도록 강요하는 입력이 있다. $\square$
+
+---
+
+**연습문제 4.**
+$k = 5$이고 어휘가 $n = 32{,}000$인 빔 탐색에서 힙으로 뽑기(원소 $n$개에서 상위 $k$개)와 정렬을 견주어라.
+
+??? success "연습문제 4 풀이"
+    정렬은 $O(n\log n) = O(32000 \times 15) \approx 48만$번의 연산이 든다. 힙(크기 $k$인 최소 힙)은 $O(n\log k) = O(32000 \times 2.3) \approx 7만 4천$번이다. 힙이 약 $6.5$배 빠르다. 아니면 `torch.topk`가 GPU에 맞추어 다듬은 부분 정렬 알고리즘을 쓴다.

@@ -1,71 +1,71 @@
-# Divide and Conquer Optimization
+# 나누어 이기기 가장 좋게 하기
 
-Many dynamic programming problems ask to partition $n$ elements into $k$ groups while minimizing total cost. The straightforward DP runs in $O(kn^2)$ time because each state scans all possible split points. When the optimal split point is **monotone** --- it never decreases as the range endpoint grows --- a divide and conquer strategy narrows the search range at each recursion level, reducing the total time to $O(kn \log n)$.
+많은 동적 짜기 문제가 원소 $n$개를 $k$개 무리로 나누되 전체 값을 가장 적게 하라고 한다. 곧이곧대로 짠 동적 짜기는 상태마다 가능한 가르는 점을 모두 훑으므로 $O(kn^2)$ 시간이 든다. 가장 좋은 가르는 점이 **한쪽으로만 간다면**, 곧 범위의 끝이 커질 때 결코 줄지 않는다면, 나누어 이기기 전략으로 되돌이 층마다 찾는 범위를 좁혀 전체 시간을 $O(kn \log n)$으로 줄일 수 있다.
 
-## Problem Structure
+## 문제의 짜임
 
-Consider a DP of the form:
+다음 꼴의 동적 짜기를 보자:
 
 $$
 dp[i][j] = \min_{k < j} \bigl( dp[i-1][k] + C(k+1, j) \bigr)
 $$
 
-where $dp[i][j]$ is the minimum cost of partitioning the first $j$ elements into $i$ groups and $C(l, r)$ is the cost of a single group spanning elements $l$ through $r$.
+여기서 $dp[i][j]$은 앞선 $j$개 원소를 $i$개 무리로 나누는 가장 적은 값이고 $C(l, r)$은 원소 $l$부터 $r$까지를 아우르는 무리 하나의 값이다.
 
-Let $\text{opt}(i, j)$ denote the smallest $k$ achieving the minimum in the recurrence above.
+$\text{opt}(i, j)$을 위 되돌이 관계식에서 가장 작은 값을 주는 가장 작은 $k$이라 하자.
 
-## Monotonicity Condition
+## 한쪽으로만 가는 조건
 
-The optimization applies when, for each fixed row $i$:
+이 가장 좋게 하기는 가로줄 $i$을 고정할 때마다 다음이 성립하면 쓸 수 있다:
 
 $$
 \text{opt}(i, j) \leq \text{opt}(i, j+1) \quad \text{for all } j
 $$
 
-This means the optimal split point for position $j$ is at most the optimal split point for position $j+1$. A sufficient condition is the **quadrangle inequality** on the cost function:
+곧 자리 $j$의 가장 좋은 가르는 점이 자리 $j+1$의 것보다 크지 않다는 뜻이다. 값 함수에 대한 **사각 부등식**이 넉넉한 조건이다:
 
 $$
 C(a, c) + C(b, d) \leq C(a, d) + C(b, c) \quad \text{for all } a \leq b \leq c \leq d
 $$
 
-Intuitively, the quadrangle inequality says that the cost of two overlapping intervals is no more than the cost of the two non-overlapping alternatives formed from the same endpoints. Many natural cost functions satisfy this property, including sum-of-squares costs, prefix-sum-based costs, and variance-based costs.
+직관으로 보면 사각 부등식은 겹치는 두 구간의 값이 같은 끝점으로 만든 겹치지 않는 두 구간의 값보다 크지 않다는 말이다. 제곱합 값, 앞합 바탕 값, 흩어짐 바탕 값 등 자연스러운 값 함수 여럿이 이 성질을 갖춘다.
 
-## Algorithm
+## 알고리즘
 
-The key insight is that monotonicity turns a linear scan into a binary partition. For a fixed row $i$, instead of computing $dp[i][j]$ left to right in $O(n)$ per cell, use divide and conquer:
+핵심 눈썰미는 한쪽으로만 가는 성질이 선형 훑기를 두 갈래 나누기로 바꾼다는 것이다. 가로줄 $i$을 고정할 때 칸마다 $O(n)$을 들여 $dp[i][j]$을 왼쪽에서 오른쪽으로 셈하는 대신 나누어 이기기를 쓴다:
 
-1. **Solve the middle.** Compute $dp[i][\text{mid}]$ by scanning $k$ from $\text{lo}$ to $\text{hi}$, recording $\text{opt}(i, \text{mid})$.
-2. **Recurse left.** Solve $dp[i][j]$ for $j < \text{mid}$ with $k$ restricted to $[\text{lo},\; \text{opt}(i, \text{mid})]$.
-3. **Recurse right.** Solve $dp[i][j]$ for $j > \text{mid}$ with $k$ restricted to $[\text{opt}(i, \text{mid}),\; \text{hi}]$.
+1. **가운데를 푼다.** $k$을 $\text{lo}$에서 $\text{hi}$까지 훑어 $dp[i][\text{mid}]$을 셈하고 $\text{opt}(i, \text{mid})$을 적어 둔다.
+2. **왼쪽으로 되돌이한다.** $k$을 $[\text{lo},\; \text{opt}(i, \text{mid})]$으로 좁혀 $j < \text{mid}$인 $dp[i][j]$을 푼다.
+3. **오른쪽으로 되돌이한다.** $k$을 $[\text{opt}(i, \text{mid}),\; \text{hi}]$으로 좁혀 $j > \text{mid}$인 $dp[i][j]$을 푼다.
 
-Because monotonicity guarantees the split point for any $j < \text{mid}$ is at most $\text{opt}(i, \text{mid})$, and for any $j > \text{mid}$ is at least $\text{opt}(i, \text{mid})$, the search ranges shrink at each level. Each recursion level partitions $[1, n]$ and scans at most $O(n)$ values of $k$ in total. With $O(\log n)$ recursion levels, the work per row is $O(n \log n)$.
+한쪽으로만 가는 성질 덕분에 $j < \text{mid}$인 가르는 점은 $\text{opt}(i, \text{mid})$ 이하이고 $j > \text{mid}$인 것은 그 이상이므로, 층마다 찾는 범위가 줄어든다. 되돌이 층마다 $[1, n]$을 나누고 $k$의 값을 모두 합해 최대 $O(n)$개 훑는다. 되돌이 층이 $O(\log n)$개이므로 가로줄마다 일감은 $O(n \log n)$이다.
 
-## Complexity
+## 복잡도
 
-| Aspect | Naive DP | D&C Optimized |
+| 갈래 | 막무가내 동적 짜기 | 나누어 이기기로 다듬음 |
 |--------|----------|---------------|
-| Per row | $O(n^2)$ | $O(n \log n)$ |
-| Total ($k$ rows) | $O(kn^2)$ | $O(kn \log n)$ |
-| Space | $O(kn)$ or $O(n)$ | $O(kn)$ or $O(n)$ |
+| 가로줄마다 | $O(n^2)$ | $O(n \log n)$ |
+| 전체(가로줄 $k$개) | $O(kn^2)$ | $O(kn \log n)$ |
+| 공간 | $O(kn)$ 또는 $O(n)$ | $O(kn)$ 또는 $O(n)$ |
 
-## Implementation
+## 구현
 
 ```python
 """
-Divide and conquer optimization for DP with monotone optimal split points.
+가장 좋은 가르는 점이 한쪽으로만 가는 동적 짜기의 나누어 이기기 가장 좋게 하기.
 
-Reduces O(kn^2) DP to O(kn log n) when the cost function satisfies
-the quadrangle inequality.
+값 함수가 사각 부등식을 채우면 O(kn^2) 동적 짜기를
+O(kn log n)으로 줄인다.
 """
 
 import math
 
 
 # ===================================================================
-# Cost function (example: sum of elements squared)
+# 값 함수(보기: 원소 합의 제곱)
 # ===================================================================
 def precompute_prefix(arr: list[int]) -> list[int]:
-    """Compute prefix sums for O(1) range sum queries."""
+    """O(1)에 구간 합을 묻도록 앞합을 셈한다."""
     prefix = [0] * (len(arr) + 1)
     for i in range(len(arr)):
         prefix[i + 1] = prefix[i] + arr[i]
@@ -73,38 +73,38 @@ def precompute_prefix(arr: list[int]) -> list[int]:
 
 
 def cost(prefix: list[int], l: int, r: int) -> int:
-    """Cost of grouping elements l..r (sum of elements squared)."""
+    """원소 l..r을 한 무리로 묶는 값(원소 합의 제곱)."""
     s = prefix[r + 1] - prefix[l]
     return s * s
 
 
 # ===================================================================
-# Divide and conquer optimization
+# 나누어 이기기 가장 좋게 하기
 # ===================================================================
 def solve(arr: list[int], k: int) -> int:
-    """Partition arr into k groups to minimize total cost.
+    """전체 값을 가장 적게 하도록 arr을 k개 무리로 나눈다.
 
-    Parameters
+    매개변수
     ----------
     arr : list[int]
-        Array of non-negative integers to partition.
+        나눌 음이 아닌 정수 배열.
     k : int
-        Number of groups.
+        무리의 수.
 
-    Returns
+    반환값
     -------
     int
-        Minimum total cost of the partition.
+        나눔의 가장 적은 전체 값.
     """
     n = len(arr)
     prefix = precompute_prefix(arr)
     INF = math.inf
 
-    # dp[j] = min cost for first j elements using i groups
+    # dp[j] = 무리 i개로 앞선 j개 원소를 다루는 가장 적은 값
     dp_prev = [INF] * (n + 1)
     dp_curr = [INF] * (n + 1)
 
-    # Base: 1 group
+    # 바탕: 무리 1개
     dp_prev[0] = 0
     for j in range(1, n + 1):
         dp_prev[j] = cost(prefix, 0, j - 1)
@@ -114,7 +114,7 @@ def solve(arr: list[int], k: int) -> int:
         dp_curr[0] = 0
 
         def dc(j_lo: int, j_hi: int, k_lo: int, k_hi: int) -> None:
-            """Divide and conquer on column range [j_lo, j_hi]."""
+            """세로줄 범위 [j_lo, j_hi]에서 나누어 이긴다."""
             if j_lo > j_hi:
                 return
             j_mid = (j_lo + j_hi) // 2
@@ -138,7 +138,7 @@ def solve(arr: list[int], k: int) -> int:
 
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 if __name__ == "__main__":
     arr = [1, 5, 3, 2, 4, 6]
@@ -147,7 +147,7 @@ if __name__ == "__main__":
         print(f"k={k}: min cost = {result}")
 ```
 
-**Output:**
+**출력:**
 ```
 k=1: min cost = 441
 k=2: min cost = 193
@@ -157,28 +157,60 @@ k=5: min cost = 87
 k=6: min cost = 85
 ```
 
-??? example "Tracing the split point monotonicity"
-    Consider partitioning $[1, 5, 3, 2, 4, 6]$ into $k=3$ groups with cost $= (\text{sum})^2$:
+??? example "가르는 점이 한쪽으로만 가는 것 좇기"
+    값이 $= (\text{합})^2$일 때 $[1, 5, 3, 2, 4, 6]$을 $k=3$개 무리로 나누는 경우를 보자:
 
-    - For $j=3$, the optimal split is at $k=1$, giving groups $[1]$, $[5,3]$
-    - For $j=4$, the optimal split is at $k=2$, giving groups $[1,5]$, $[3,2]$
-    - For $j=5$, the optimal split is at $k=2$, giving groups $[1,5]$, $[3,2,4]$
+    - $j=3$일 때 가장 좋은 가르기는 $k=1$이며 무리는 $[1]$, $[5,3]$이다
+    - $j=4$일 때 가장 좋은 가르기는 $k=2$이며 무리는 $[1,5]$, $[3,2]$이다
+    - $j=5$일 때 가장 좋은 가르기는 $k=2$이며 무리는 $[1,5]$, $[3,2,4]$이다
 
-    The optimal split points $1, 2, 2$ are non-decreasing, confirming monotonicity.
+    가장 좋은 가르는 점 $1, 2, 2$이 줄지 않으니 한쪽으로만 감이 확인된다.
 
-## When Does This Apply
+## 언제 쓸 수 있는가
 
-The divide and conquer optimization is useful whenever the cost function satisfies the quadrangle inequality. Common examples include:
+나누어 이기기 가장 좋게 하기는 값 함수가 사각 부등식을 채울 때면 언제나 쓸모 있다. 흔한 보기는 다음과 같다:
 
-- **Partitioning into groups** with sum-of-squares or sum-of-cubes cost
-- **Optimal binary search tree** construction
-- **Post office placement** minimizing total distance
-- **Breaking a string** at given positions with length-based cost
+- 제곱합이나 세제곱합 값으로 **무리 나누기**
+- **가장 좋은 두 갈래 찾기 나무** 세우기
+- 전체 거리를 가장 짧게 하는 **우체국 자리 잡기**
+- 길이에 따른 값으로 주어진 자리에서 **글줄 자르기**
 
-!!! tip "Verifying the condition"
-    If you suspect the optimization applies but cannot prove the quadrangle inequality analytically, test empirically: compute $\text{opt}(i, j)$ for small inputs and check that the values are non-decreasing in $j$ for each fixed $i$.
+!!! tip "조건 확인하기"
+    이 가장 좋게 하기를 쓸 수 있을 것 같은데 사각 부등식을 손으로 밝히지 못하겠으면 겪어 보아 시험하라. 곧 작은 들임에 대해 $\text{opt}(i, j)$을 셈하고 $i$을 고정할 때마다 그 값이 $j$에 대해 줄지 않는지 살펴라.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 15. MIT Press.
 - Yao, F. F. (1980). Efficient dynamic programming using quadrangle inequalities. *Proc. STOC*, 429--435.
+
+## 연습문제
+
+**연습문제 1.**
+나누어 이기기 가장 좋게 하기의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+나누어 이기기 가장 좋게 하기의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+나누어 이기기 가장 좋게 하기의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+나누어 이기기 가장 좋게 하기의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

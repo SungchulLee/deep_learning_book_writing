@@ -1,43 +1,43 @@
-# Recursive Thinking
+# 재귀적 사고
 
-Recursion is more than a programming technique — it is a way of thinking about problems. A function is **recursive** if it calls itself within its own definition. The power of recursive thinking lies in reducing a complex problem to a simpler version of itself, trusting that the simpler version will be solved correctly.
+재귀는 프로그래밍 기법 이상이다. 문제를 바라보는 하나의 사고방식이다. 어떤 함수가 자기 정의 안에서 자기 자신을 호출하면 그 함수는 **재귀적** 이다. 재귀적 사고의 힘은 복잡한 문제를 그것의 더 단순한 버전으로 줄이고, 그 단순한 버전이 올바르게 풀릴 것이라고 믿는 데 있다.
 
-## The Recursive Mindset
+## 재귀적 사고방식
 
-To think recursively, follow three steps:
+재귀적으로 생각하려면 세 단계를 따른다.
 
-1. **Identify the base case**: What is the simplest version of this problem, where the answer is immediate?
-2. **Assume the recursive call works**: Trust that calling the function on a smaller input produces the correct result (this is the "recursive leap of faith")
-3. **Combine**: Use the result of the recursive call to solve the current problem
+1. **기저 사례를 찾는다**: 답이 곧바로 나오는, 이 문제의 가장 단순한 버전은 무엇인가?
+2. **재귀 호출이 잘 동작한다고 가정한다**: 더 작은 입력으로 함수를 호출하면 올바른 결과가 나온다고 믿는다(이것이 "재귀적 믿음의 도약"이다)
+3. **결합한다**: 재귀 호출의 결과를 사용해 현재 문제를 푼다
 
-## Example: Sum of First n Integers
+## 예제: 처음 n개 정수의 합
 
-Instead of thinking about a loop that accumulates a running total, recursive thinking frames the problem as:
+누적합을 쌓아 가는 반복문을 떠올리는 대신, 재귀적 사고는 문제를 다음과 같이 바라본다.
 
-- The sum of the first $n$ integers equals $n$ plus the sum of the first $n - 1$ integers
-- The sum of zero integers is $0$
+- 처음 $n$개 정수의 합은 $n$에 처음 $n - 1$개 정수의 합을 더한 것과 같다
+- 정수가 0개일 때의 합은 $0$이다
 
 ```python
-"""Recursive thinking: sum of first n integers."""
+"""재귀적 사고: 처음 n개 정수의 합."""
 
 
-# === Recursive Sum ===
+# === 재귀적 합 ===
 
 def sum_to(n):
-    """Return 1 + 2 + ... + n using recursive thinking."""
-    if n == 0:       # Base case: nothing to add
+    """재귀적 사고로 1 + 2 + ... + n을 반환한다."""
+    if n == 0:       # 기저 사례: 더할 것이 없다
         return 0
-    return n + sum_to(n - 1)  # n plus the answer to the smaller problem
+    return n + sum_to(n - 1)  # n에 더 작은 문제의 답을 더한다
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     for n in [0, 1, 5, 10]:
         print(f"sum_to({n}) = {sum_to(n)}")
 ```
 
-**Output:**
+**출력:**
 ```
 sum_to(0) = 0
 sum_to(1) = 1
@@ -45,15 +45,48 @@ sum_to(5) = 15
 sum_to(10) = 55
 ```
 
-## The Recursive Leap of Faith
+## 재귀적 믿음의 도약
 
-The hardest part of recursive thinking is trusting that the recursive call returns the correct answer. Do not try to trace every call mentally. Instead, verify two things:
+재귀적 사고에서 가장 어려운 부분은 재귀 호출이 올바른 답을 반환한다고 믿는 것이다. 모든 호출을 머릿속으로 따라가려 하지 말라. 대신 두 가지만 확인하면 된다.
 
-1. The base case is correct
-2. If the recursive call returns the right answer for the smaller problem, the current function returns the right answer for the current problem
+1. 기저 사례가 올바른가
+2. 재귀 호출이 더 작은 문제에 대해 올바른 답을 반환한다면, 현재 함수가 현재 문제에 대해 올바른 답을 반환하는가
 
-If both hold, the function is correct by induction.
+둘 다 성립하면 그 함수는 귀납법에 의해 올바르다.
 
-## Reference
+## 참고 자료
 
 [Recursion의 개념과 기본 예제들](https://www.youtube.com/watch?v=ln7AfppN7mY&list=PL52K_8WQO5oUuH06MLOrah4h05TZ4n38l&index=1)
+
+
+## 연습문제
+
+**연습문제 1.**
+재귀적 사고에 대해 기저 사례와 재귀 사례를 찾아라. 모든 유효한 입력에 대해 재귀가 종료됨을 증명하라.
+
+??? success "연습문제 1 풀이"
+    기저 사례는 가장 작은 유효한 입력을 직접 처리한다. 재귀 사례는 호출마다 감소하는 잘 정의된 척도로 문제 크기를 줄인다. 이 척도가 (기저 사례의 문턱값으로) 아래로 유계이면서 엄격히 감소하므로 재귀는 반드시 유한한 단계 안에 종료된다.
+
+---
+
+**연습문제 2.**
+재귀적 사고의 시간 복잡도에 대한 점화식을 유도하고 풀어라.
+
+??? success "연습문제 2 풀이"
+    $T(n)$을 재귀 호출과 호출당 일의 함수로 표현한다. 이 점화식은 분기 계수, 부분문제 크기의 감소, 결합 비용을 담는다. 펼치기, 마스터 정리, 치환 중 하나로 풀어 닫힌 형태를 얻는다.
+
+---
+
+**연습문제 3.**
+$n = 8$일 때 재귀적 사고의 재귀 트리를 그려라. 각 층에서의 일과 전체 일을 계산하라.
+
+??? success "연습문제 3 풀이"
+    트리의 깊이는 입력이 기저 사례까지 얼마나 빨리 줄어드는지로 정해진다. 각 층에서 모든 노드의 일을 더한다. 모든 층에 걸친 총합이 실행 시간을 준다. $n = 8$이면 트리가 작아서 전부 열거할 수 있다.
+
+---
+
+**연습문제 4.**
+재귀 구현을 반복 버전으로 변환하라. 공간 복잡도를 비교하라.
+
+??? success "연습문제 4 풀이"
+    호출 스택을 명시적 스택이나 반복 변수로 대체한다. 꼬리 재귀 형태는 while 반복문으로 곧바로 바뀐다. 꼬리가 아닌 형태는 호출 스택을 흉내 내기 위해 명시적 스택이 필요하다. 반복 버전은 보통 $O(\text{depth})$의 스택 공간을 아낀다.

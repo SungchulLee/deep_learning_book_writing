@@ -1,163 +1,196 @@
-# Space-Time Tradeoffs
+# 공간-시간 절충
 
-Algorithm design rarely offers a free lunch: improving an algorithm's running time often requires using more memory, and reducing memory usage often means doing more computation. This fundamental tension -- the **space-time tradeoff** -- is one of the central principles in algorithm design. Understanding where an algorithm sits on the space-time spectrum helps practitioners choose the right implementation for their hardware constraints, whether that means fitting a model into GPU memory or meeting a latency target.
+알고리즘 설계에 공짜 점심은 거의 없다. 실행 시간을 개선하려면 메모리를 더 써야 하는 경우가 많고, 메모리 사용을 줄이려면 계산을 더 해야 하는 경우가 많다. 이 근본적인 긴장, 즉 **공간-시간 절충** 은 알고리즘 설계의 중심 원리 중 하나이다. 알고리즘이 공간-시간 스펙트럼의 어디에 놓여 있는지 이해하면, 모델을 GPU 메모리에 넣는 일이든 지연 시간 목표를 맞추는 일이든, 하드웨어 제약에 맞는 구현을 고를 수 있다.
 
-## The Core Principle
+## 핵심 원리
 
-Given a computational problem, there is typically a family of algorithms that solve it, each making a different tradeoff between time $T(n)$ and space $S(n)$. The product $T(n) \cdot S(n)$ often satisfies a lower bound:
+어떤 계산 문제가 주어지면 그것을 푸는 알고리즘의 무리가 있고, 각각은 시간 $T(n)$과 공간 $S(n)$ 사이에서 서로 다른 절충을 한다. 곱 $T(n) \cdot S(n)$은 흔히 다음 하계를 만족한다.
 
 $$
 T(n) \cdot S(n) \geq f(n)
 $$
 
-for some function $f(n)$ that depends on the problem. Algorithms on the **Pareto frontier** -- where no other algorithm is better in both time and space -- represent the best achievable tradeoffs.
+여기서 $f(n)$은 문제에 따라 정해지는 함수이다. 시간과 공간 둘 다에서 더 나은 알고리즘이 없는 **파레토 경계** 위의 알고리즘들이 달성 가능한 최선의 절충을 나타낸다.
 
-In practice, the tradeoff manifests in two directions:
+실무에서 이 절충은 두 방향으로 나타난다.
 
-- **Use more space to save time**: Precompute and cache results (lookup tables, memoization, hash tables)
-- **Use more time to save space**: Recompute values on the fly instead of storing them
+- **공간을 더 써서 시간을 아낀다**: 결과를 미리 계산해 캐시한다(조회표, 메모화, 해시 테이블)
+- **시간을 더 써서 공간을 아낀다**: 값을 저장하는 대신 필요할 때마다 다시 계산한다
 
-## Classic Examples
+## 고전적인 예
 
-### Memoization vs Recomputation
+### 메모화 대 재계산
 
-**Time-optimized**: Store all previously computed values in a table.
+**시간 최적화**: 이전에 계산한 모든 값을 표에 저장한다.
 
-The Fibonacci recurrence $F(n) = F(n-1) + F(n-2)$ with naive recursion takes $O(2^n)$ time and $O(n)$ stack space. Memoization stores all $n$ values, reducing time to $O(n)$ at a cost of $O(n)$ space for the table.
+피보나치 점화식 $F(n) = F(n-1) + F(n-2)$를 소박하게 재귀로 계산하면 $O(2^n)$ 시간과 $O(n)$ 스택 공간이 든다. 메모화는 $n$개의 값을 모두 저장하여, 표를 위한 $O(n)$ 공간을 대가로 시간을 $O(n)$으로 줄인다.
 
-**Space-optimized**: Since $F(n)$ depends only on $F(n-1)$ and $F(n-2)$, keep only two variables:
+**공간 최적화**: $F(n)$은 $F(n-1)$과 $F(n-2)$에만 의존하므로 변수 두 개만 유지한다.
 
 $$
 T(n) = O(n), \quad S(n) = O(1)
 $$
 
-This eliminates the table entirely while retaining $O(n)$ time.
+이렇게 하면 $O(n)$ 시간을 유지하면서 표를 완전히 없앨 수 있다.
 
-### Lookup Tables vs Computation
+### 조회표 대 계산
 
-**Time-optimized**: Precompute $\sin(x)$ for all values in a fixed set and store them in a table. Each query is $O(1)$.
+**시간 최적화**: 정해진 값들의 집합에 대해 $\sin(x)$를 미리 계산해 표에 저장한다. 질의마다 $O(1)$이다.
 
-**Space-optimized**: Compute $\sin(x)$ on demand using a Taylor series or CORDIC algorithm. Each query takes $O(k)$ time (for $k$ terms of precision) but requires $O(1)$ space.
+**공간 최적화**: 테일러 급수나 CORDIC 알고리즘으로 필요할 때마다 $\sin(x)$를 계산한다. 질의마다 (정밀도를 위한 항이 $k$개일 때) $O(k)$ 시간이 들지만 $O(1)$ 공간이면 된다.
 
-| Approach | Time per query | Space |
+| 접근 | 질의당 시간 | 공간 |
 |----------|---------------|-------|
-| Full table ($N$ entries) | $O(1)$ | $O(N)$ |
-| Compute on demand | $O(k)$ | $O(1)$ |
-| Sparse table + interpolation | $O(1)$ | $O(\sqrt{N})$ |
+| 전체 표(항목 $N$개) | $O(1)$ | $O(N)$ |
+| 필요할 때 계산 | $O(k)$ | $O(1)$ |
+| 성긴 표 + 보간 | $O(1)$ | $O(\sqrt{N})$ |
 
-The sparse table approach offers an intermediate tradeoff.
+성긴 표 접근은 그 중간의 절충을 제공한다.
 
-### Sorting: Merge Sort vs Heapsort
+### 정렬: 병합 정렬 대 힙 정렬
 
-Both achieve $O(n \log n)$ time, but they differ in space:
+둘 다 $O(n \log n)$ 시간을 달성하지만 공간이 다르다.
 
-| Algorithm | Time | Auxiliary space |
+| 알고리즘 | 시간 | 보조 공간 |
 |-----------|------|----------------|
-| Merge sort | $O(n \log n)$ | $O(n)$ |
-| Heapsort | $O(n \log n)$ | $O(1)$ |
+| 병합 정렬 | $O(n \log n)$ | $O(n)$ |
+| 힙 정렬 | $O(n \log n)$ | $O(1)$ |
 
-Merge sort uses extra space for the merge step and typically has better cache behavior and smaller constant factors. Heapsort is in-place but has worse cache locality. The tradeoff here is between space and practical speed (constant factors).
+병합 정렬은 병합 단계에 여분의 공간을 쓰지만 대개 캐시 동작이 더 좋고 상수 인자가 작다. 힙 정렬은 제자리이지만 캐시 지역성이 나쁘다. 여기서의 절충은 공간과 (상수 인자로 나타나는) 실질적인 속도 사이의 절충이다.
 
-### Hash Table vs Binary Search Tree
+### 해시 테이블 대 이진 탐색 트리
 
-| Structure | Lookup time | Space | Ordered iteration |
+| 구조 | 조회 시간 | 공간 | 순서 있는 순회 |
 |-----------|-------------|-------|-------------------|
-| Hash table | $O(1)$ expected | $O(n)$ with overhead | No |
-| Balanced BST | $O(\log n)$ | $O(n)$ | Yes |
-| Sorted array | $O(\log n)$ | $O(n)$, minimal overhead | Yes |
+| 해시 테이블 | $O(1)$ 기댓값 | 부담 포함 $O(n)$ | 아니오 |
+| 균형 BST | $O(\log n)$ | $O(n)$ | 예 |
+| 정렬된 배열 | $O(\log n)$ | $O(n)$, 최소한의 부담 | 예 |
 
-Hash tables trade ordered access for $O(1)$ lookup. They also use more space per element due to load factor requirements (typically keeping the table at most 75% full).
+해시 테이블은 순서 있는 접근을 포기하는 대신 $O(1)$ 조회를 얻는다. 또한 적재율 요구(보통 표를 75% 이하로 채움) 때문에 원소당 공간을 더 쓴다.
 
-## Dynamic Programming Tradeoffs
+## 동적 계획법에서의 절충
 
-Dynamic programming offers rich space-time tradeoffs because the table structure can often be compressed.
+동적 계획법은 표 구조를 흔히 압축할 수 있어 풍부한 공간-시간 절충을 제공한다.
 
-### Full Table vs Rolling Array
+### 전체 표 대 롤링 배열
 
-For the longest common subsequence (LCS) of sequences of length $m$ and $n$:
+길이가 $m$과 $n$인 두 수열의 최장 공통 부분수열(LCS)에 대해 다음과 같다.
 
-- **Full table**: $O(mn)$ time, $O(mn)$ space. Supports solution reconstruction.
-- **Two-row rolling**: $O(mn)$ time, $O(\min(m,n))$ space. Gives the optimal *value* but not the solution itself.
-- **Hirschberg's algorithm**: $O(mn)$ time, $O(\min(m,n))$ space, with solution reconstruction using a divide-and-conquer approach.
+- **전체 표**: $O(mn)$ 시간, $O(mn)$ 공간. 해의 복원을 지원한다.
+- **두 행 롤링**: $O(mn)$ 시간, $O(\min(m,n))$ 공간. 최적 *값* 은 주지만 해 자체는 주지 않는다.
+- **허쉬버그 알고리즘**: $O(mn)$ 시간, $O(\min(m,n))$ 공간이면서 분할 정복 접근으로 해를 복원한다.
 
-### Knapsack
+### 배낭 문제
 
-For the 0/1 knapsack with $n$ items and capacity $W$:
+물건이 $n$개이고 용량이 $W$인 0/1 배낭 문제에 대해 다음과 같다.
 
-- **Full table**: $O(nW)$ time, $O(nW)$ space
-- **One-row optimization**: $O(nW)$ time, $O(W)$ space (iterating the weight dimension in reverse)
+- **전체 표**: $O(nW)$ 시간, $O(nW)$ 공간
+- **한 행 최적화**: $O(nW)$ 시간, $O(W)$ 공간(무게 차원을 역순으로 순회)
 
-## Space-Time Tradeoffs in Deep Learning
+## 딥러닝에서의 공간-시간 절충
 
-### Gradient Checkpointing
+### 경사 체크포인팅
 
-During training, the forward pass stores all intermediate activations for the backward pass. For a network with $L$ layers:
+학습 중 순전파는 역전파를 위해 모든 중간 활성값을 저장한다. 층이 $L$개인 신경망에 대해 다음과 같다.
 
-- **Standard**: $O(L)$ memory for activations, one forward + one backward pass
-- **Gradient checkpointing**: $O(\sqrt{L})$ memory, but requires recomputing some activations during the backward pass, roughly doubling the forward computation time
+- **표준**: 활성값을 위한 $O(L)$ 메모리, 순전파 한 번 + 역전파 한 번
+- **경사 체크포인팅**: $O(\sqrt{L})$ 메모리이지만 역전파 중 일부 활성값을 다시 계산해야 하므로 순전파 계산 시간이 대략 두 배가 된다
 
-This is the most prominent space-time tradeoff in deep learning training.
+이것이 딥러닝 학습에서 가장 두드러진 공간-시간 절충이다.
 
-### Model Precision
+### 모델 정밀도
 
-Reducing numerical precision saves memory at the cost of potential accuracy loss:
+수치 정밀도를 낮추면 정확도 손실 가능성을 대가로 메모리를 아낀다.
 
-| Precision | Bytes per parameter | Memory for 1B params |
+| 정밀도 | 매개변수당 바이트 | 10억 매개변수의 메모리 |
 |-----------|--------------------|-----------------------|
 | float32 | 4 | 4 GB |
 | float16 / bfloat16 | 2 | 2 GB |
 | int8 | 1 | 1 GB |
 | int4 | 0.5 | 0.5 GB |
 
-Mixed-precision training uses float16 for most operations and float32 for critical accumulations, achieving a 2x memory reduction with minimal accuracy impact.
+혼합 정밀도 학습은 대부분의 연산에 float16을, 중요한 누적에는 float32를 사용하여 정확도 영향을 최소화하면서 메모리를 2배 줄인다.
 
-### KV-Cache vs Recomputation
+### KV 캐시 대 재계산
 
-In autoregressive transformer inference, the **KV-cache** stores key and value tensors from all previous tokens to avoid recomputing attention:
+자기회귀 트랜스포머 추론에서 **KV 캐시** 는 어텐션을 다시 계산하지 않도록 이전 토큰들의 키와 값 텐서를 저장한다.
 
-- **With KV-cache**: $O(L \cdot n \cdot d)$ memory, $O(d^2)$ time per new token
-- **Without KV-cache**: $O(L \cdot d)$ memory, $O(n \cdot d^2)$ time per new token (recompute attention over all $n$ previous tokens)
+- **KV 캐시 사용**: $O(L \cdot n \cdot d)$ 메모리, 새 토큰당 $O(d^2)$ 시간
+- **KV 캐시 미사용**: $O(L \cdot d)$ 메모리, 새 토큰당 $O(n \cdot d^2)$ 시간(이전 $n$개 토큰 전체에 대해 어텐션을 다시 계산)
 
-For long sequences, the KV-cache can consume gigabytes of memory, motivating techniques like sliding-window attention and paged attention.
+긴 시퀀스에서는 KV 캐시가 수 기가바이트를 소비할 수 있어, 슬라이딩 윈도 어텐션이나 페이지 어텐션 같은 기법의 동기가 된다.
 
-### Batch Size Tradeoffs
+### 배치 크기 절충
 
-Larger batch sizes improve GPU utilization (time per sample decreases) but require more memory for activations:
+배치 크기가 클수록 GPU 활용도가 높아지지만(표본당 시간이 줄어든다) 활성값을 위한 메모리가 더 필요하다.
 
 $$
 S_{\text{activations}} = O(B \cdot L \cdot d)
 $$
 
-where $B$ is the batch size. Gradient accumulation simulates large batches without the memory cost by summing gradients over multiple small-batch forward passes.
+여기서 $B$는 배치 크기이다. 경사 누적은 작은 배치의 순전파 여러 번에 걸쳐 경사를 더함으로써 메모리 비용 없이 큰 배치를 흉내 낸다.
 
-## Quantifying the Tradeoff
+## 절충의 정량화
 
-For some problems, the tradeoff has been characterized precisely:
+어떤 문제에 대해서는 절충이 정확히 규명되어 있다.
 
-- **Element distinctness**: Any algorithm deciding whether $n$ elements are distinct satisfies $T \cdot S = \Omega(n^{3/2})$ in the branching-program model.
-- **Matrix multiplication**: Faster algorithms (Strassen, etc.) use more auxiliary space than the naive $O(n^3)$ algorithm.
-- **Sorting**: Comparison-based sorting requires $\Omega(n \log n)$ comparisons regardless of space. With $O(1)$ extra space (heapsort), the constant factor is larger than with $O(n)$ extra space (merge sort).
+- **원소 상이성**: $n$개의 원소가 서로 다른지 판정하는 어떤 알고리즘도 분기 프로그램 모형에서 $T \cdot S = \Omega(n^{3/2})$을 만족한다.
+- **행렬 곱**: 더 빠른 알고리즘(Strassen 등)은 소박한 $O(n^3)$ 알고리즘보다 더 많은 보조 공간을 쓴다.
+- **정렬**: 비교 기반 정렬은 공간과 무관하게 $\Omega(n \log n)$번의 비교를 필요로 한다. $O(1)$의 여분 공간(힙 정렬)일 때가 $O(n)$의 여분 공간(병합 정렬)일 때보다 상수 인자가 크다.
 
-## Decision Framework
+## 판단 기준
 
-When choosing an algorithm, consider:
+알고리즘을 고를 때는 다음을 고려한다.
 
-| Question | Favor time | Favor space |
+| 질문 | 시간을 우선 | 공간을 우선 |
 |----------|-----------|-------------|
-| Is memory the bottleneck? | No | Yes |
-| Is latency critical? | Yes | No |
-| Is the computation repeated? | Cache results | Recompute each time |
-| Is the data size fixed? | Precompute tables | Keep tables small |
-| Training or inference? | Use checkpointing | Use full activation storage |
+| 메모리가 병목인가? | 아니오 | 예 |
+| 지연 시간이 결정적인가? | 예 | 아니오 |
+| 계산이 반복되는가? | 결과를 캐시한다 | 매번 다시 계산한다 |
+| 데이터 크기가 고정인가? | 표를 미리 계산한다 | 표를 작게 유지한다 |
+| 학습인가 추론인가? | 체크포인팅을 쓴다 | 활성값을 전부 저장한다 |
 
-## Connections to Other Topics
+## 다른 주제와의 연결
 
-- **[Memory Usage](memory.md)**: How to measure the space side of the tradeoff
-- **[Auxiliary Space](auxiliary.md)**: The extra memory that tradeoffs typically affect
-- **[In-Place Algorithms](in_place.md)**: Algorithms at the extreme space-efficient end of the spectrum
+- **[메모리 사용량](memory.md)**: 절충의 공간 쪽을 재는 방법
+- **[보조 공간](auxiliary.md)**: 절충이 주로 영향을 주는 여분의 메모리
+- **[제자리 알고리즘](in_place.md)**: 스펙트럼에서 공간 효율이 극단적으로 좋은 쪽의 알고리즘
 
-## References
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
 - Chen, T., Xu, B., Zhang, C., & Guestrin, C. (2016). Training deep nets with sublinear memory cost. arXiv:1604.06174.
 - Knuth, D. E. (1997). *The Art of Computer Programming*, Vol. 3: Sorting and Searching. Addison-Wesley.
+
+
+## 연습문제
+
+**연습문제 1.**
+공간-시간 절충에서 기술한 공간 복잡도를 매개변수 $P$개, 배치 크기 $B$, 은닉 차원 $d$, 층 $L$개인 신경망에 대해 분석하라.
+
+??? success "연습문제 1 풀이"
+    매개변수: $O(P)$. 활성값(역전파를 위해 저장): $O(BdL)$. 경사: $O(P)$. 최적화기 상태(Adam): $O(2P)$. 총합: $O(P + BdL)$. 큰 모델에서는 활성값 메모리($BdL$)가 지배하는 경우가 많다.
+
+---
+
+**연습문제 2.**
+공간-시간 절충에서 다룬 기법의 공간 요구량을 경사 체크포인팅을 쓸 때와 쓰지 않을 때로 나누어 비교하라.
+
+??? success "연습문제 2 풀이"
+    체크포인팅 없이: $O(BdL)$의 활성값 메모리. 체크포인팅 사용($\sqrt{L}$개 층마다): $O(Bd\sqrt{L})$의 활성값 메모리. 절감: $\sqrt{L}$배. 비용: 역전파 중 대략 순전파 한 번 분량이 추가된다. $L = 100$이면 메모리가 $10\times$ 줄어든다.
+
+---
+
+**연습문제 3.**
+공간-시간 절충에 대한 공간 복잡도의 하계를 증명하라. 즉 올바른 구현이라면 적어도 명시된 만큼의 메모리를 써야 함을 보여라.
+
+??? success "연습문제 3 풀이"
+    하계는 정보 이론적 논증에서 따라 나온다. 알고리즘은 임의의 입력에 대해 올바른 출력을 만들어 낼 만큼의 정보를 저장해야 한다. 이는 적어도 $\Omega(\text{출력 크기})$의 공간을 요구한다. 여기에 더해 정확성을 위해 필요한 중간 결과들도 하계에 기여한다. $\square$
+
+---
+
+**연습문제 4.**
+대규모 언어 모델 학습의 맥락에서 공간-시간 절충과 관련된 실용적인 절충을 기술하라.
+
+??? success "연습문제 4 풀이"
+    대규모 언어 모델은 심각한 메모리 제약에 직면한다. 모델 매개변수, 최적화기 상태, 활성값, 경사가 한정된 GPU 메모리를 두고 경쟁한다. 이 절의 절충이 그대로 적용된다. 경사 체크포인팅, 혼합 정밀도, 모델 병렬화 같은 기법은 계산이나 복잡성을 대가로 메모리 사용량을 줄여, 그렇지 않으면 들어가지 않을 모델의 학습을 가능하게 한다.

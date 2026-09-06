@@ -1,97 +1,91 @@
-# Weight Initialization
+# 가중치 초기화
+## 개요
 
+첫 경사 갱신이 있기 전, 신경망의 가중치는 순전파의 활성화와 역전파의 경사를 온전히 결정한다. 처음 가중치의 크기가 너무 크면 활성화와 경사가 깊이에 따라 지수적으로 폭발하고, 너무 작으면 사라진다. 어느 쪽이든 학습이 발산하거나 멈춰 선다. 가중치 초기화 전략은 처음 순전파와 역전파 동안 신호의 크기가 층에 걸쳐 대체로 일정하게 유지되도록 각 층 매개변수의 분산을 정한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+이 절은 분산 조건을 제일원리에서 유도하고, 널리 쓰이는 두 방식인 Xavier(Glorot)와 He(Kaiming)의 동기를 밝히며, 둘 중 무엇을 고를지에 대한 실무 지침을 제시한다.
 
-## Overview
+## 학습 목표
 
-Before the first gradient update, a neural network's weights fully determine its forward activations and backward gradients. If the initial weight magnitudes are too large, activations and gradients explode exponentially with depth; if too small, they vanish. In both cases training either diverges or stalls. Weight initialization strategies set the variance of each layer's parameters so that signal magnitude remains approximately constant across layers during the initial forward and backward passes.
+이 절을 마치면 다음을 이해하게 된다.
 
-This section derives the variance conditions from first principles, motivates the two dominant schemes — Xavier (Glorot) and He (Kaiming) — and provides practical guidance for choosing between them.
-
-## Learning Objectives
-
-By the end of this section, you will understand:
-
-1. Why naive random initialization fails for deep networks
-2. The variance propagation analysis for forward and backward passes
-3. How activation function choice determines the correct variance formula
-4. The relationship between initialization and normalization layers
-5. PyTorch's built-in initialization utilities and when to use them
+1. 소박한 무작위 초기화가 깊은 신경망에서 실패하는 이유
+2. 순전파와 역전파의 분산 전파 분석
+3. 활성화 함수의 선택이 올바른 분산 공식을 어떻게 정하는지
+4. 초기화와 정규화 층의 관계
+5. PyTorch에 내장된 초기화 도구와 그것을 쓰는 때
 
 ---
 
-## The Initialization Problem
+## 초기화 문제
 
-### Signal Propagation in Deep Networks
+### 깊은 신경망에서의 신호 전파
 
-Consider a feedforward network with $L$ layers. At layer $l$, the pre-activation is:
+층이 $L$개인 순방향 신경망을 생각하자. 층 $l$에서 활성화 전 값은 다음과 같다.
 
 $$z^{(l)} = W^{(l)} h^{(l-1)} + b^{(l)}$$
 
-where $h^{(l-1)}$ is the activation from the previous layer (with $h^{(0)} = x$, the input). The activation is:
+여기서 $h^{(l-1)}$은 앞 층의 활성화이다(입력에 대해서는 $h^{(0)} = x$). 활성화는 다음과 같다.
 
 $$h^{(l)} = f\bigl(z^{(l)}\bigr)$$
 
-for some nonlinearity $f$.
+여기서 $f$은 어떤 비선형 함수이다.
 
-If we initialise weights from $W_{ij}^{(l)} \sim \mathcal{N}(0, \sigma^2)$ with biases at zero, the variance of a single pre-activation unit (assuming inputs are i.i.d. with zero mean and independence from weights) is:
+가중치를 $W_{ij}^{(l)} \sim \mathcal{N}(0, \sigma^2)$에서 뽑고 편향을 0으로 두면, (입력이 평균 0의 i.i.d.이고 가중치와 독립이라는 가정 아래) 활성화 전 단위 하나의 분산은 다음과 같다.
 
 $$\text{Var}\bigl(z_j^{(l)}\bigr) = n_{l-1}\,\sigma^2\,\text{Var}\bigl(h^{(l-1)}\bigr)$$
 
-where $n_{l-1}$ is the fan-in (number of input units to layer $l$).
+여기서 $n_{l-1}$은 팬인, 즉 층 $l$로 들어오는 입력 단위의 수이다.
 
-### Exploding and Vanishing Activations
+### 활성화의 폭발과 소실
 
-Across $L$ layers, the variance compounds multiplicatively:
+층 $L$개에 걸쳐 분산은 곱셈적으로 쌓인다.
 
 $$\text{Var}\bigl(z^{(L)}\bigr) \propto \prod_{l=1}^{L} \bigl(n_{l-1}\,\sigma^2 \cdot c_l\bigr) \cdot \text{Var}(x)$$
 
-where $c_l$ accounts for the activation function's effect on variance. If $n_{l-1}\,\sigma^2\,c_l > 1$ at each layer, variance grows exponentially; if $< 1$, it decays exponentially. For a 50-layer network, even a 10% deviation per layer produces a factor of $(1.1)^{50} \approx 117$ or $(0.9)^{50} \approx 0.005$.
+여기서 $c_l$은 활성화 함수가 분산에 미치는 영향을 나타낸다. 각 층에서 $n_{l-1}\,\sigma^2\,c_l > 1$이면 분산이 지수적으로 커지고, $< 1$이면 지수적으로 줄어든다. 50층 신경망이라면 층마다 10%만 어긋나도 $(1.1)^{50} \approx 117$이나 $(0.9)^{50} \approx 0.005$의 배율이 생긴다.
 
-### Gradient Propagation
+### 경사의 전파
 
-The same analysis applies in reverse. During backpropagation, the gradient with respect to layer $l$'s pre-activation involves:
+같은 분석이 거꾸로도 적용된다. 역전파 중에 층 $l$의 활성화 전 값에 대한 경사는 다음을 포함한다.
 
 $$\frac{\partial \mathcal{L}}{\partial z^{(l)}} = \bigl(W^{(l+1)}\bigr)^\top \frac{\partial \mathcal{L}}{\partial z^{(l+1)}} \odot f'\bigl(z^{(l)}\bigr)$$
 
-The variance of the gradient signal depends on $n_{l+1}\,\sigma^2$ (the fan-out) and the derivative of the activation function. For stable backpropagation, we need:
+경사 신호의 분산은 (팬아웃인) $n_{l+1}\,\sigma^2$과 활성화 함수의 도함수에 달려 있다. 역전파가 안정적이려면 다음이 필요하다.
 
 $$n_{l+1}\,\sigma^2\,\mathbb{E}\bigl[f'(z)^2\bigr] \approx 1$$
 
-### The Core Design Principle
+### 핵심 설계 원리
 
-Proper initialization requires choosing $\sigma^2$ so that both conditions are approximately satisfied:
+알맞은 초기화는 두 조건이 대체로 함께 만족되도록 $\sigma^2$을 고르는 일이다.
 
 $$n_{\text{in}}\,\sigma^2\,c_{\text{fwd}} \approx 1 \qquad \text{(forward stability)}$$
 
 $$n_{\text{out}}\,\sigma^2\,c_{\text{bwd}} \approx 1 \qquad \text{(backward stability)}$$
 
-where $c_{\text{fwd}}$ and $c_{\text{bwd}}$ depend on the activation function.
+여기서 $c_{\text{fwd}}$과 $c_{\text{bwd}}$은 활성화 함수에 따라 달라진다.
 
-## Naive Initialization: What Goes Wrong
+## 소박한 초기화: 무엇이 잘못되는가
 
-### Constant Initialization
+### 상수 초기화
 
-Setting all weights to the same value (including zero) is catastrophic: every neuron computes the same output, receives the same gradient, and updates identically. The network is effectively a single neuron per layer regardless of width, a failure known as the **symmetry problem**.
+모든 가중치를 (0을 포함해) 같은 값으로 두는 것은 치명적이다. 모든 뉴런이 같은 출력을 계산하고 같은 경사를 받아 똑같이 갱신된다. 너비와 무관하게 신경망이 사실상 층마다 뉴런 하나인 셈이 되며, 이 실패를 **대칭성 문제**라 부른다.
 
-### Standard Normal (sigma = 1)
+### 표준정규분포 (sigma = 1)
 
-For a layer with $n_{\text{in}} = 512$, the pre-activation variance is $512 \cdot 1 \cdot \text{Var}(h) = 512\,\text{Var}(h)$. After a few layers, activations overflow `float32` range.
+$n_{\text{in}} = 512$인 층에서 활성화 전 분산은 $512 \cdot 1 \cdot \text{Var}(h) = 512\,\text{Var}(h)$이다. 몇 층만 지나면 활성화가 `float32`의 범위를 넘친다.
 
-### Too-Small Variance (sigma = 0.001)
+### 너무 작은 분산 (sigma = 0.001)
 
-Pre-activation variance is $512 \times 10^{-6}\,\text{Var}(h) \approx 5 \times 10^{-4}\,\text{Var}(h)$. Activations collapse to near zero; gradients vanish.
+활성화 전 분산이 $512 \times 10^{-6}\,\text{Var}(h) \approx 5 \times 10^{-4}\,\text{Var}(h)$이다. 활성화가 0 가까이로 주저앉고 경사가 사라진다.
 
 ```python
 import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 
-
 def visualize_initialization_problem(n_layers=20, hidden_dim=256, n_samples=512):
-    """Show how different init scales affect activation magnitudes."""
+    """초기화의 척도가 활성화의 크기에 미치는 영향을 보인다."""
     x = torch.randn(n_samples, hidden_dim)
 
     scales = {'Too small (0.001)': 0.001, 'Too large (1.0)': 1.0, 'Proper (Xavier)': (2.0 / (hidden_dim + hidden_dim)) ** 0.5}
@@ -117,48 +111,47 @@ def visualize_initialization_problem(n_layers=20, hidden_dim=256, n_samples=512)
     plt.savefig('init_comparison.png', dpi=150, bbox_inches='tight')
     plt.show()
 
-
 visualize_initialization_problem()
 ```
 
-## Variance Analysis Framework
+## 분산 분석의 틀
 
-### Assumptions
+### 가정
 
-The derivations below use the following standard assumptions:
+아래 유도는 다음의 표준적인 가정을 쓴다.
 
-1. Weights $W_{ij}^{(l)}$ are i.i.d. with zero mean and variance $\sigma_l^2$
-2. Biases are initialised to zero
-3. Inputs to each layer have zero mean (approximately true after centering or normalization)
-4. Weights and activations are independent (strictly true only at initialization)
+1. 가중치 $W_{ij}^{(l)}$은 평균이 0이고 분산이 $\sigma_l^2$인 i.i.d.이다
+2. 편향은 0으로 초기화한다
+3. 각 층의 입력은 평균이 0이다 (중심화나 정규화 후에는 대체로 참이다)
+4. 가중치와 활성화는 독립이다 (엄밀히는 초기화 시점에만 참이다)
 
-These assumptions hold exactly at the first forward pass and provide a good approximation for the first several gradient steps.
+이 가정들은 첫 순전파에서는 정확히 성립하며 처음 몇 번의 경사 단계에서도 좋은 근사가 된다.
 
-### Forward Pass Variance
+### 순전파의 분산
 
-For a single pre-activation unit at layer $l$:
+층 $l$의 활성화 전 단위 하나에 대해 다음이 성립한다.
 
 $$z_j^{(l)} = \sum_{i=1}^{n_{l-1}} W_{ij}^{(l)}\,h_i^{(l-1)}$$
 
-Taking the variance:
+분산을 취하면 다음과 같다.
 
 $$\text{Var}(z_j^{(l)}) = n_{l-1}\,\text{Var}(W_{ij}^{(l)})\,\mathbb{E}\bigl[(h_i^{(l-1)})^2\bigr]$$
 
-This uses $\text{Var}(XY) = \text{Var}(X)\,\text{Var}(Y) + \text{Var}(X)\,[\mathbb{E}(Y)]^2 + \text{Var}(Y)\,[\mathbb{E}(X)]^2$, which simplifies to $\text{Var}(X)\,\mathbb{E}(Y^2)$ when $\mathbb{E}(X) = 0$.
+여기서 $\text{Var}(XY) = \text{Var}(X)\,\text{Var}(Y) + \text{Var}(X)\,[\mathbb{E}(Y)]^2 + \text{Var}(Y)\,[\mathbb{E}(X)]^2$을 썼으며, $\mathbb{E}(X) = 0$일 때 이는 $\text{Var}(X)\,\mathbb{E}(Y^2)$으로 간단해진다.
 
-For the activation $h^{(l)} = f(z^{(l)})$, we need $\mathbb{E}[f(z)^2]$ in terms of $\text{Var}(z)$. This factor depends on the activation function and is where Xavier and He initialization diverge.
+활성화 $h^{(l)} = f(z^{(l)})$에 대해서는 $\mathbb{E}[f(z)^2]$을 $\text{Var}(z)$으로 나타내야 한다. 이 인수가 활성화 함수에 따라 달라지며, 바로 여기서 Xavier와 He 초기화가 갈린다.
 
-### Backward Pass Variance
+### 역전파의 분산
 
-By analogous reasoning on the gradient signal:
+경사 신호에 같은 논리를 적용하면 다음을 얻는다.
 
 $$\text{Var}\!\left(\frac{\partial \mathcal{L}}{\partial h_i^{(l-1)}}\right) = n_l\,\text{Var}(W_{ij}^{(l)})\,\mathbb{E}\bigl[f'(z_j^{(l)})^2\bigr]\,\text{Var}\!\left(\frac{\partial \mathcal{L}}{\partial z_j^{(l)}}\right)$$
 
-Forward and backward stability generally cannot be achieved simultaneously unless $n_{\text{in}} = n_{\text{out}}$, so practical schemes compromise between the two.
+$n_{\text{in}} = n_{\text{out}}$이 아니라면 순전파와 역전파의 안정성을 동시에 이루기는 대체로 불가능하므로, 실용적인 방식들은 둘 사이에서 절충한다.
 
-## PyTorch Initialization Utilities
+## PyTorch의 초기화 도구
 
-PyTorch provides initialization functions in `torch.nn.init`:
+PyTorch는 `torch.nn.init`에 초기화 함수를 제공한다.
 
 ```python
 import torch.nn as nn
@@ -166,27 +159,27 @@ import torch.nn.init as init
 
 linear = nn.Linear(256, 128)
 
-# Xavier (Glorot) initialization
+# Xavier(Glorot) 초기화
 init.xavier_uniform_(linear.weight)
 init.xavier_normal_(linear.weight)
 
-# He (Kaiming) initialization
+# He(Kaiming) 초기화
 init.kaiming_uniform_(linear.weight, nonlinearity='relu')
 init.kaiming_normal_(linear.weight, nonlinearity='relu')
 
-# Other schemes
-init.orthogonal_(linear.weight)          # preserves norms exactly
-init.sparse_(linear.weight, sparsity=0.1)  # sparse initialization
+# 다른 방식들
+init.orthogonal_(linear.weight)          # 노름을 정확히 보존한다
+init.sparse_(linear.weight, sparsity=0.1)  # 희소 초기화
 
-# Bias initialization (typically zero)
+# 편향 초기화 (보통 0)
 init.zeros_(linear.bias)
 ```
 
-### Custom Initialization for a Full Network
+### 신경망 전체에 대한 사용자 정의 초기화
 
 ```python
 def init_weights(module):
-    """Apply He initialization to all linear and conv layers."""
+    """모든 선형층과 합성곱 층에 He 초기화를 적용한다."""
     if isinstance(module, (nn.Linear, nn.Conv2d)):
         init.kaiming_normal_(module.weight, nonlinearity='relu')
         if module.bias is not None:
@@ -203,45 +196,45 @@ model = nn.Sequential(
 model.apply(init_weights)
 ```
 
-## Initialization Selection Guide
+## 초기화 선택 안내
 
-| Activation Function | Recommended Init | Variance Formula |
+| 활성화 함수 | 권장 초기화 | 분산 공식 |
 |---------------------|-----------------|-----------------|
-| Sigmoid, Tanh | Xavier (Glorot) | $\sigma^2 = \frac{2}{n_{\text{in}} + n_{\text{out}}}$ |
+| 시그모이드, Tanh | Xavier (Glorot) | $\sigma^2 = \frac{2}{n_{\text{in}} + n_{\text{out}}}$ |
 | ReLU | He (Kaiming) | $\sigma^2 = \frac{2}{n_{\text{in}}}$ |
-| Leaky ReLU (slope $a$) | He (modified) | $\sigma^2 = \frac{2}{(1 + a^2)\,n_{\text{in}}}$ |
-| SELU | LeCun Normal | $\sigma^2 = \frac{1}{n_{\text{in}}}$ |
-| GELU, Swish, Mish | He or Xavier | Empirically robust to either |
+| Leaky ReLU (기울기 $a$) | He (수정판) | $\sigma^2 = \frac{2}{(1 + a^2)\,n_{\text{in}}}$ |
+| SELU | LeCun 정규 | $\sigma^2 = \frac{1}{n_{\text{in}}}$ |
+| GELU, Swish, Mish | He 또는 Xavier | 경험적으로 어느 쪽이든 무난하다 |
 
-### Practical Rules
+### 실무 규칙
 
-1. **ReLU networks without normalization**: He initialization is strongly preferred. Xavier causes activation collapse in deep ReLU networks.
-2. **Networks with BatchNorm or LayerNorm**: Initialization matters less because normalization re-scales activations at every layer. Xavier or He both work.
-3. **Transformers**: Often use Xavier or scaled normal $\mathcal{N}(0, 1/\sqrt{d_{\text{model}}})$ with special treatment for residual connections (scaling by $1/\sqrt{2L}$).
-4. **Residual networks**: The final layer in each residual block is sometimes initialised to zero so that the block initially computes the identity.
+1. **정규화가 없는 ReLU 신경망**: He 초기화를 강하게 권한다. Xavier를 쓰면 깊은 ReLU 신경망에서 활성화가 주저앉는다.
+2. **배치 정규화나 층 정규화가 있는 신경망**: 정규화가 층마다 활성화의 배율을 다시 맞추므로 초기화의 중요도가 낮아진다. Xavier와 He 모두 통한다.
+3. **트랜스포머**: 흔히 Xavier나 배율을 조정한 정규분포 $\mathcal{N}(0, 1/\sqrt{d_{\text{model}}})$을 쓰며, 잔차 연결은 따로 다룬다($1/\sqrt{2L}$으로 배율 조정).
+4. **잔차 신경망**: 각 잔차 블록의 마지막 층을 0으로 초기화하여 처음에는 블록이 항등함수를 계산하게 만들기도 한다.
 
-## Interaction with Normalization
+## 정규화와의 상호작용
 
-Normalization layers (BatchNorm, LayerNorm) enforce fixed statistics at each layer boundary, strongly mitigating the signal propagation problem. With normalization:
+정규화 층(배치 정규화, 층 정규화)은 층의 경계마다 정해진 통계량을 강제하여 신호 전파 문제를 크게 누그러뜨린다. 정규화가 있으면 다음과 같다.
 
-- The network is less sensitive to initialization variance — the normalization "corrects" the scale at every layer.
-- Training still starts faster with proper initialization because the first few steps produce more informative gradients before running statistics have stabilised.
-- For very deep networks (100+ layers), combining He initialization with normalization remains best practice.
+- 신경망이 초기화 분산에 덜 민감해진다. 정규화가 층마다 규모를 "바로잡기" 때문이다.
+- 그래도 알맞게 초기화하면 학습이 더 빨리 시작된다. 이동 통계량이 안정되기 전 처음 몇 걸음에서 더 유익한 경사가 나오기 때문이다.
+- 아주 깊은 신경망(100층 이상)에서는 He 초기화와 정규화를 함께 쓰는 것이 여전히 모범 사례이다.
 
-Without normalization, proper initialization is **critical** — the network may not train at all otherwise.
+정규화가 없다면 알맞은 초기화는 **결정적**이다. 그러지 않으면 신경망이 아예 학습되지 않을 수 있다.
 
-## Quantitative Finance Application
+## 계량 금융에서의 응용
 
-In quantitative finance, initialization has particular relevance:
+계량 금융에서 초기화는 특히 눈여겨볼 만하다.
 
-**Online learning and warm-starting.** In production systems that update model weights in real time (e.g., online market-making models), proper initialization of new layers or expanded model components determines how quickly the model adapts to regime changes.
+**온라인 학습과 웜스타트.** 모델 가중치를 실시간으로 갱신하는 실전 시스템(예: 온라인 시장 조성 모델)에서는 새 층이나 확장된 구성 요소를 어떻게 초기화하느냐가 모델이 국면 변화에 얼마나 빨리 적응하는지를 좌우한다.
 
-**Transfer learning for limited data.** When fine-tuning a pre-trained model on a small financial dataset, the initialization of new task-specific heads affects both convergence speed and the risk of catastrophic forgetting of the pre-trained representations.
+**데이터가 적을 때의 전이 학습.** 작은 금융 데이터셋으로 사전학습 모델을 미세 조정할 때, 과제에 특화된 새 갈래를 어떻게 초기화하느냐가 수렴 속도와 사전학습된 표현을 파국적으로 잊을 위험 둘 다에 영향을 준다.
 
-**Ensemble diversity.** When building model ensembles for risk management, different random initializations produce diverse learned functions. The quality of this diversity depends on the initialization distribution spanning distinct basins of attraction in the loss landscape.
+**앙상블의 다양성.** 위험 관리를 위해 모델 앙상블을 만들 때 서로 다른 무작위 초기화는 서로 다른 함수를 배우게 한다. 이 다양성의 질은 초기화 분포가 손실 지형에서 서로 구별되는 끌림 골짜기들에 걸쳐 있는지에 달려 있다.
 
 ```python
-# Example: Initializing a pricing network with output constraints
+# 예: 출력에 제약이 있는 가격 예측 신경망 초기화
 class PricingNetwork(nn.Module):
     def __init__(self, input_dim, hidden_dim=128, n_layers=4):
         super().__init__()
@@ -252,35 +245,74 @@ class PricingNetwork(nn.Module):
         self.backbone = nn.Sequential(*layers)
         self.output_head = nn.Linear(hidden_dim, 1)
 
-        # He init for ReLU backbone
+        # ReLU 뼈대에 He 초기화
         for m in self.backbone:
             if isinstance(m, nn.Linear):
                 init.kaiming_normal_(m.weight, nonlinearity='relu')
                 init.zeros_(m.bias)
 
-        # Small init for output head — predictions start near zero
+        # 출력 머리는 작게 초기화한다 — 예측이 0 근처에서 시작한다
         init.xavier_normal_(self.output_head.weight)
         init.zeros_(self.output_head.bias)
 
     def forward(self, x):
         h = self.backbone(x)
-        return torch.softplus(self.output_head(h))  # enforce positivity
+        return torch.softplus(self.output_head(h))  # 양수임을 강제한다
 ```
 
-## Summary
+## 요약
 
-| Aspect | Key Insight |
+| 항목 | 핵심 통찰 |
 |--------|-------------|
-| **Core problem** | Weight variance determines whether activations and gradients remain in a usable range |
-| **Forward condition** | $n_{\text{in}} \sigma^2 c_{\text{fwd}} \approx 1$ preserves activation variance |
-| **Backward condition** | $n_{\text{out}} \sigma^2 c_{\text{bwd}} \approx 1$ preserves gradient variance |
-| **Xavier** | Compromises between forward and backward for symmetric activations |
-| **He** | Accounts for ReLU zeroing half the distribution |
-| **With normalization** | Initialization is less critical but still beneficial |
+| **핵심 문제** | 가중치의 분산이 활성화와 경사가 쓸 만한 범위에 머무는지를 정한다 |
+| **순전파 조건** | $n_{\text{in}} \sigma^2 c_{\text{fwd}} \approx 1$이 활성화의 분산을 보존한다 |
+| **역전파 조건** | $n_{\text{out}} \sigma^2 c_{\text{bwd}} \approx 1$이 경사의 분산을 보존한다 |
+| **Xavier** | 대칭적인 활성화에 대해 순전파와 역전파 사이에서 절충한다 |
+| **He** | ReLU가 분포의 절반을 0으로 만드는 것을 반영한다 |
+| **정규화가 있을 때** | 초기화의 중요도는 낮아지지만 여전히 이롭다 |
 
-## References
+## 참고 문헌
 
 1. Glorot, X., & Bengio, Y. (2010). "Understanding the difficulty of training deep feedforward neural networks." *AISTATS*.
 2. He, K., Zhang, X., Ren, S., & Sun, J. (2015). "Delving Deep into Rectifiers: Surpassing Human-Level Performance on ImageNet Classification." *ICCV*.
 3. Saxe, A. M., McClelland, J. L., & Ganguli, S. (2014). "Exact solutions to the nonlinear dynamics of learning in deep linear neural networks." *ICLR*.
 4. Mishkin, D., & Matas, J. (2016). "All You Need is a Good Init." *ICLR*.
+
+## 연습문제
+
+**연습문제 1.**
+모든 가중치를 0으로 초기화하면 신경망이 학습하지 못하는 이유를 설명하라.
+
+??? success "연습문제 1 풀이"
+    가중치가 0이면 모든 뉴런이 같은 출력(0)을 계산하고 같은 경사를 받아 똑같이 갱신된다. 이 대칭이 결코 깨지지 않으므로 너비와 무관하게 신경망이 뉴런 하나처럼 행동한다. 무작위 초기화가 이 대칭을 깨뜨린다.
+
+---
+
+**연습문제 2.**
+Xavier(Glorot) 초기화 $W \sim \mathcal{U}(-\sqrt{6/(n_{\text{in}}+n_{\text{out}})}, \sqrt{6/(n_{\text{in}}+n_{\text{out}})})$을 유도하라.
+
+??? success "연습문제 2 풀이"
+    분산을 보존하려면 $\text{Var}(y) = n_{\text{in}} \cdot \text{Var}(w) \cdot \text{Var}(x)$이다. $\text{Var}(y) = \text{Var}(x)$으로 두면 $\text{Var}(w) = 1/n_{\text{in}}$이다. 순전파와 역전파를 평균하면 $\text{Var}(w) = 2/(n_{\text{in}}+n_{\text{out}})$이다. 균등분포 $[-a, a]$에서는 $\text{Var} = a^2/3$이므로 $a = \sqrt{6/(n_{\text{in}}+n_{\text{out}})}$을 얻는다.
+
+---
+
+**연습문제 3.**
+가중치를 너무 크게 초기화하면 어떻게 되는가? 너무 작게 하면?
+
+??? success "연습문제 3 풀이"
+    너무 크면 활성화가 (시그모이드/tanh에서) 포화하거나 (ReLU에서) 폭발하고, 경사가 사라지거나 폭발하며, 학습이 발산한다. 너무 작으면 활성화가 0으로 주저앉고 경사가 사라져 학습이 아주 느리거나 아예 되지 않는다. 알맞은 초기화는 층에 걸쳐 활성화와 경사의 크기를 유지한다.
+
+---
+
+**연습문제 4.**
+Xavier와 He 초기화를 PyTorch로 구현하고 10층 신경망에서 학습의 움직임을 비교하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    for m in model.modules():
+        if isinstance(m, nn.Linear):
+            # Xavier: nn.init.xavier_uniform_(m.weight)
+            # He: nn.init.kaiming_normal_(m.weight, nonlinearity='relu')
+            pass
+    ```
+    He 초기화는 ReLU가 분산을 절반으로 줄이는 것을 반영하므로 ReLU 신경망에서 더 잘 통한다.

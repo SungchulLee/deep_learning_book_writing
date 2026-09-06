@@ -1,61 +1,93 @@
-# Teacher Forcing
+# 스승 밀어 넣기
 
-Training an autoregressive model poses a chicken-and-egg problem: the model predicts the next token based on previous tokens, but during training it has not yet learned to produce good predictions. **Teacher forcing** resolves this by supplying the ground-truth previous tokens as input during training, rather than the model's own (initially poor) predictions. This simple technique enables efficient parallel computation and stable gradient flow, but it introduces a train-test mismatch known as **exposure bias**.
+자기 되돌이 모델을 익히는 일은 닭이 먼저냐 달걀이 먼저냐 하는 문제를 낳는다. 곧 모델은 앞선 토큰을 바탕으로 다음 토큰을 헤아리는데, 익히는 동안에는 아직 좋은 헤아림을 낼 줄 모른다. **스승 밀어 넣기**는 익히는 동안 모델이 (처음에는 서툴게) 헤아린 값 대신 참값 앞 토큰을 들임으로 주어 이를 푼다. 이 단순한 재주는 효율 좋은 나란한 셈과 안정된 기울기 흐름을 가능하게 하지만 **드러남 치우침**이라 부르는 익히기와 시험의 어긋남을 들여온다.
 
-## Mechanism
+## 작동 방식
 
-At training time, the model receives the true sequence shifted by one position:
+익힐 때 모델은 한 자리 옮긴 참 차례를 받는다.
 
 $$
 \text{Input: } (x_1, x_2, \ldots, x_{T-1}) \;\longrightarrow\; \text{Target: } (x_2, x_3, \ldots, x_T)
 $$
 
-The model predicts $x_t$ given the true prefix $x_{1:t-1}$ -- not its own previous predictions. Because every input token is known in advance, the entire sequence can be processed in a **single forward pass**, enabling GPU parallelism across all time steps.
+모델은 제가 앞서 헤아린 값이 아니라 참 앞가지 $x_{1:t-1}$을 받아 $x_t$을 헤아린다. 들임 토큰을 모두 미리 알므로 온 차례를 **앞먹임 한 번**에 다룰 수 있어 모든 때 걸음에 걸쳐 GPU를 나란히 쓸 수 있다.
 
-## Advantages
+## 이점
 
-1. **Parallel computation**: All positions can be computed simultaneously (no sequential dependency during training)
-2. **Stable gradients**: The model always conditions on correct inputs, preventing error accumulation during the forward pass
-3. **Fast convergence**: Direct supervision at every position provides a strong, position-specific learning signal
+1. **나란한 셈**: 모든 자리를 한꺼번에 셈할 수 있다(익히는 동안 차례 매임이 없다)
+2. **안정된 기울기**: 모델이 늘 올바른 들임을 조건으로 삼으므로 앞먹임 동안 어긋남이 쌓이지 않는다
+3. **빠른 모임**: 자리마다 곧바로 가르쳐 주므로 자리에 딱 맞는 센 배움 신호가 생긴다
 
-## Exposure Bias
+## 드러남 치우침
 
-The mismatch between training (conditions on ground truth) and inference (conditions on its own predictions) is called **exposure bias**. During generation, errors in early predictions propagate and compound because the model has never learned to recover from its own mistakes. The severity of exposure bias grows with sequence length.
+익히기(참값을 조건으로 삼음)와 추론(제가 헤아린 값을 조건으로 삼음) 사이의 어긋남을 **드러남 치우침**이라 부른다. 만들어 내는 동안 앞선 헤아림의 어긋남이 퍼지고 쌓이는데, 모델이 제 잘못에서 되돌아오는 법을 배운 적이 없기 때문이다. 드러남 치우침의 심함은 차례 길이에 따라 커진다.
 
-## Mitigations
+## 누그러뜨리는 방법
 
-Several techniques reduce exposure bias:
+드러남 치우침을 줄이는 재주가 여럿 있다.
 
-- **Scheduled sampling**: Gradually replace ground-truth inputs with model predictions during training, starting with full teacher forcing and slowly increasing the self-prediction rate
-- **Sequence-level training**: Use REINFORCE or other reinforcement learning methods to optimize sequence-level metrics (e.g., BLEU) rather than per-token cross-entropy
-- **Data augmentation**: Inject noise into teacher-forced inputs to simulate the kinds of errors the model will encounter at inference time
-- **Beam search**: At inference time, maintain multiple hypotheses to reduce the impact of individual prediction errors
+- **차례 잡은 뽑기**: 익히는 동안 참값 들임을 모델이 헤아린 값으로 차츰 바꾼다. 온전한 스승 밀어 넣기로 시작해 스스로 헤아리는 비율을 천천히 높인다
+- **차례 수준 익히기**: 토큰마다의 어긋 엔트로피 대신 차례 수준 잣대(예컨대 BLEU)를 가장 좋게 하려 REINFORCE나 다른 강화 배움 방법을 쓴다
+- **자료 불리기**: 추론할 때 모델이 마주칠 어긋남을 흉내 내려 스승이 밀어 넣은 들임에 잡음을 넣는다
+- **빔 찾기**: 추론할 때 여러 가설을 지켜 낱낱의 헤아림 어긋남이 미치는 영향을 줄인다
 
-## Implementation
+## 구현
 
 ```python
-"""Teacher-forced training step for an autoregressive model."""
+"""자기 되돌이 모델의 스승 밀어 넣기 익히기 걸음."""
 import torch.nn.functional as F
 
 
 def teacher_forced_loss(model, x, vocab_size):
-    """Compute cross-entropy loss with teacher forcing.
+    """스승 밀어 넣기로 어긋 엔트로피 손실을 셈한다.
 
-    Args:
-        model: autoregressive model mapping (batch, seq_len) -> (batch, seq_len, vocab_size)
-        x: ground-truth token IDs, shape (batch, seq_len)
-        vocab_size: size of the vocabulary
+    인수:
+        model: (묶음, 차례 길이) -> (묶음, 차례 길이, 낱말 수)으로 옮기는 자기 되돌이 모델
+        x: 참값 토큰 아이디, 꼴 (묶음, 차례 길이)
+        vocab_size: 낱말의 크기
 
-    Returns:
-        Scalar cross-entropy loss.
+    반환값:
+        낱값 어긋 엔트로피 손실.
     """
-    logits = model(x[:, :-1])   # input: all tokens except the last
-    targets = x[:, 1:]           # target: all tokens except the first
+    logits = model(x[:, :-1])   # 들임: 마지막을 뺀 모든 토큰
+    targets = x[:, 1:]           # 목표: 첫 토큰을 뺀 모든 토큰
     return F.cross_entropy(
         logits.reshape(-1, vocab_size),
         targets.reshape(-1),
     )
 ```
 
-!!! tip "Teacher Forcing in Transformers"
-    In transformer-based models, teacher forcing is implemented via **causal masking**: the self-attention layer masks out future positions so that the prediction for position $t$ depends only on positions $1, \ldots, t-1$. This allows all positions to be computed in parallel while maintaining the autoregressive property.
+!!! tip "변환기에서의 스승 밀어 넣기"
+    변환기에 바탕한 모델에서는 스승 밀어 넣기를 **인과 가림막**으로 짠다. 곧 스스로 눈길 층이 앞날의 자리를 가려 자리 $t$의 헤아림이 자리 $1, \ldots, t-1$에만 매이게 한다. 그래서 자기 되돌이 성질을 지키면서 모든 자리를 나란히 셈할 수 있다.
+
+## 연습문제
+
+**연습문제 1.**
+스승 밀어 넣기와 그것이 차례에서 차례로 가는 모델을 익힐 때 만드는 드러남 치우침 문제를 설명하라.
+
+??? success "연습문제 1 풀이"
+    **스승 밀어 넣기**는 익히는 동안 푸는 걸음마다 (모델이 헤아린 값이 아니라) 참값 앞 토큰을 들임으로 준다. 이는 익히기를 안정시키고 모임을 빠르게 한다. 그러나 **드러남 치우침**을 낳는다. 곧 추론할 때 모델은 익히는 동안 본 적 없는 분포인 제 (틀릴 수도 있는) 헤아림을 들임으로 써야 한다. 어긋남이 차례를 따라 쌓여 모델이 본 적 없는 상태로 떠밀리고 내놓기 품질이 떨어진다. $\square$
+
+---
+
+**연습문제 2.**
+드러남 치우침을 누그러뜨리는 방법으로서 차례 잡은 뽑기를 설명하라. 익히는 동안 뽑기 확률은 어떻게 바뀌는가?
+
+??? success "연습문제 2 풀이"
+    차례 잡은 뽑기는 익히는 동안 스승 밀어 넣기에서 스스로 도는 만들어 내기로 차츰 옮겨 간다. 푸는 걸음마다 확률 $\epsilon$으로 참값 토큰을, 확률 $1 - \epsilon$으로 모델이 헤아린 값을 쓴다. $\epsilon$은 1.0(온전한 스승 밀어 넣기)에서 시작해 차례표(선형, 지수, 거꾸로 된 S자)에 따라 익히는 동안 줄어든다. 그러면 모델이 익히는 동안 제 어긋남을 겪게 되어 익히기와 시험의 어긋남이 줄어든다. $\square$
+
+---
+
+**연습문제 3.**
+스승 밀어 넣기, 스스로 도는 익히기, 차례 잡은 뽑기를 익히기의 안정과 만들어 내기 품질 면에서 견주어라.
+
+??? success "연습문제 3 풀이"
+    **스승 밀어 넣기**: 익히기가 가장 안정되고(참값 들임) 가장 빨리 모이지만 드러남 치우침이 가장 심하다. **스스로 돌기**: 드러남 치우침이 없지만(제가 헤아린 값으로 익힌다) 익히기가 불안정하고 모임이 느리다(앞머리 헤아림이 서툴다). **차례 잡은 뽑기**: 균형 잡힌 방식으로, 안정되게(스승 밀어 넣기) 시작해 스스로 돌기를 차츰 들여와 익히기의 안정을 알맞게 지키면서 드러남 치우침을 줄인다. 실제로는 차례 잡은 뽑기가 익히기가 조금 복잡해지는 대가로 흔히 가장 좋은 만들어 내기 품질을 이룬다. $\square$
+
+---
+
+**연습문제 4.**
+왜 추론할 때는 자기 되돌이 말 모델에 스승 밀어 넣기를 쓸 수 없는가? 요즘 큰 말 모델은 이를 어떻게 다루는가?
+
+??? success "연습문제 4 풀이"
+    추론할 때는 참값 앞날 토큰을 쓸 수 없다. 모델은 헤아린 토큰을 다음 들임으로 삼아 자기 되돌이로 만들어 내야 한다. 요즘 큰 말 모델(GPT 등)은 스승 밀어 넣기로 익히지만 아주 큰 익히기 자료와 모델 담이에 기대어 드러남 치우침을 줄인다. 빔 찾기, 핵 뽑기, 온도 잣수 맞추기 같은 재주가 서툰 만들어 내기를 누그러뜨린다. 어떤 방식은 강화 배움(RLHF)이나 스스로 겨루기로 모델이 내놓은 것을 써서 미세 조정하여 익히기와 추론 사이의 틈을 더 좁힌다. $\square$

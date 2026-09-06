@@ -1,68 +1,57 @@
-# Mean-Field Variational Inference
+# 평균장 변분 추론
+## 학습 목표
 
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+1. 평균장 가정과 그것이 뜻하는 바 이해하기
+2. 변분 인수마다 가장 좋은 꼴 이끌어 내기
+3. 평균장 어림이 알맞은 때 알아보기
+4. 뒤확률의 상관을 무시할 때의 한계 재기
+5. 다변량 모형에 평균장 변분 추론 구현하기
 
-## Learning Objectives
+## 평균장 가정
 
-By the end of this section, you will be able to:
+**평균장 어림**은 변분 추론에서 가장 흔한, 단순하게 만드는 가정이다. 변분 분포가 모든 숨은 변수에 걸쳐 온전히 인수로 나뉜다고 놓는다.
 
-1. Understand the mean-field assumption and its implications
-2. Derive the optimal form of each variational factor
-3. Recognize when mean-field approximation is appropriate
-4. Quantify the limitations of ignoring posterior correlations
-5. Implement mean-field VI for multivariate models
+### 정의
 
-## The Mean-Field Assumption
-
-The **mean-field approximation** is the most common simplifying assumption in variational inference. It assumes that the variational distribution fully factorizes across all latent variables.
-
-### Definition
-
-For a model with latent variables $\theta = (\theta_1, \theta_2, \ldots, \theta_K)$, the mean-field variational family is:
+숨은 변수가 $\theta = (\theta_1, \theta_2, \ldots, \theta_K)$인 모형에서 평균장 변분 집안은 다음과 같다:
 
 $$
-
 \mathcal{Q}_{\text{MF}} = \left\{ q(\theta) : q(\theta) = \prod_{j=1}^K q_j(\theta_j) \right\}
-
 $$
 
-Each parameter $\theta_j$ has its own independent variational factor $q_j(\theta_j)$.
+매개변수 $\theta_j$마다 저마다 독립인 변분 인수 $q_j(\theta_j)$을 갖는다.
 
-### Etymology: Why "Mean-Field"?
+### 말밑: 왜 "평균장"인가?
 
-The term comes from statistical physics, where it describes approximations to complex many-body systems:
+이 말은 통계 물리에서 왔으며, 거기서는 복잡한 여러 물체 체계의 어림을 가리킨다:
 
-- Each particle interacts with the **average (mean) field** created by all other particles
-- Individual fluctuations and correlations are ignored
-- The approximation replaces complex interactions with simplified averages
+- 알갱이마다 다른 모든 알갱이가 만든 **평균 장**과 맞닿는다
+- 낱낱의 흔들림과 상관은 무시한다
+- 이 어림은 복잡한 맞닿음을 간추린 평균으로 바꾼다
 
-In VI, each variable $\theta_j$ depends on the **expected values** of other variables, not their full distributions.
+변분 추론에서 변수 $\theta_j$은 다른 변수의 온전한 분포가 아니라 그 **기댓값**에 달려 있다.
 
-## Mathematical Consequences
+## 수학으로 따라 나오는 것
 
-### Independence Assumption
+### 독립 가정
 
-The mean-field assumption enforces:
+평균장 가정은 다음을 강제한다:
 
 $$
-
 q(\theta_1, \theta_2, \ldots, \theta_K) = q_1(\theta_1) \times q_2(\theta_2) \times \cdots \times q_K(\theta_K)
-
 $$
 
-This implies:
+이는 다음을 뜻한다:
 
 $$
-
 \text{Cov}_q(\theta_i, \theta_j) = 0 \quad \text{for all } i \neq j
-
 $$
 
-**Even if the true posterior has correlations, mean-field cannot capture them.**
+**참 뒤확률에 상관이 있어도 평균장은 그것을 담아내지 못한다.**
 
-### Visual Illustration
+### 눈으로 보기
 
 ```
 True Posterior p(θ₁,θ₂|D):            Mean-Field q(θ₁)q(θ₂):
@@ -79,35 +68,29 @@ True Posterior p(θ₁,θ₂|D):            Mean-Field q(θ₁)q(θ₂):
     covariance)                        covariance)
 ```
 
-### Quantifying the Approximation Error
+### 어림의 오차 재기
 
-For a bivariate Gaussian with correlation $\rho$:
+상관이 $\rho$인 이변량 가우스에서:
 
 $$
-
 p(\theta_1, \theta_2 | \mathcal{D}) = \mathcal{N}\left(\begin{pmatrix} \mu_1 \\ \mu_2 \end{pmatrix}, \begin{pmatrix} \sigma_1^2 & \rho\sigma_1\sigma_2 \\ \rho\sigma_1\sigma_2 & \sigma_2^2 \end{pmatrix}\right)
-
 $$
 
-The best mean-field approximation is:
+가장 좋은 평균장 어림은 다음이다:
 
 $$
-
 q(\theta_1)q(\theta_2) = \mathcal{N}(\mu_1, \sigma_1^2) \times \mathcal{N}(\mu_2, \sigma_2^2)
-
 $$
 
-The KL divergence between them is:
+둘 사이의 KL 벌어짐은 다음과 같다:
 
 $$
-
 \text{KL}(q \| p) = -\frac{1}{2}\log(1 - \rho^2)
-
 $$
 
-This shows that **high correlation leads to poor approximation**:
+이는 **상관이 높으면 어림이 나빠짐**을 보여 준다:
 
-| Correlation $\rho$ | KL Divergence |
+| 상관 $\rho$ | KL 벌어짐 |
 |-------------------|---------------|
 | 0.0 | 0.000 |
 | 0.5 | 0.144 |
@@ -116,63 +99,53 @@ This shows that **high correlation leads to poor approximation**:
 | 0.95 | 1.151 |
 | 0.99 | 2.296 |
 
-## Optimal Mean-Field Updates
+## 가장 좋은 평균장 새로 고치기
 
-### The CAVI Update Formula
+### CAVI 새로 고침 공식
 
-For mean-field VI, there is a beautiful closed-form expression for the optimal factor $q_j^*(\theta_j)$:
+평균장 변분 추론에는 가장 좋은 인수 $q_j^*(\theta_j)$에 대한 아름다운 닫힌 꼴 식이 있다:
 
 $$
-
 \boxed{q_j^*(\theta_j) \propto \exp\left\{ \mathbb{E}_{q_{-j}}[\log p(\theta, \mathcal{D})] \right\}}
-
 $$
 
-where $q_{-j} = \prod_{i \neq j} q_i(\theta_i)$ denotes all factors except $q_j$.
+여기서 $q_{-j} = \prod_{i \neq j} q_i(\theta_i)$은 $q_j$을 뺀 모든 인수를 뜻한다.
 
-### Derivation
+### 유도
 
-We want to maximize ELBO with respect to $q_j$ while holding all other factors fixed:
+다른 인수를 모두 붙박아 둔 채 $q_j$에 대해 ELBO을 가장 크게 하고자 한다:
 
 $$
-
 \text{ELBO}(q) = \mathbb{E}_q[\log p(\mathcal{D}, \theta)] - \sum_{k=1}^K \mathbb{E}_{q_k}[\log q_k(\theta_k)]
-
 $$
 
-Taking the functional derivative with respect to $q_j$ and setting to zero:
+$q_j$에 대한 범함수 미분을 취하고 0으로 두면:
 
 $$
-
 \frac{\delta \text{ELBO}}{\delta q_j} = \mathbb{E}_{q_{-j}}[\log p(\mathcal{D}, \theta)] - \log q_j(\theta_j) - 1 = 0
-
 $$
 
-Solving for $q_j$:
+$q_j$에 대해 풀면:
 
 $$
-
 \log q_j^*(\theta_j) = \mathbb{E}_{q_{-j}}[\log p(\mathcal{D}, \theta)] + \text{const}
-
 $$
 
-Exponentiating and normalizing:
+지수를 취하고 고르게 하면:
 
 $$
-
 q_j^*(\theta_j) = \frac{\exp\{\mathbb{E}_{q_{-j}}[\log p(\mathcal{D}, \theta)]\}}{\int \exp\{\mathbb{E}_{q_{-j}}[\log p(\mathcal{D}, \theta)]\} d\theta_j}
-
 $$
 
-### Key Insight
+### 핵심 통찰
 
-The optimal $q_j^*(\theta_j)$ depends on the **expected sufficient statistics** of all other variables under their current variational distributions. This creates an iterative dependency that we solve with coordinate ascent.
+가장 좋은 $q_j^*(\theta_j)$은 다른 모든 변수의 지금 변분 분포 아래에서의 **기댓값 충분 통계량**에 달려 있다. 이는 되풀이하는 달림을 낳으며 좌표 오르기로 푼다.
 
-## Coordinate Ascent Variational Inference (CAVI)
+## 좌표 오르기 변분 추론(CAVI)
 
-### Algorithm
+### 알고리즘
 
-CAVI iteratively updates each variational factor while holding others fixed:
+CAVI은 다른 것을 붙박아 둔 채 변분 인수를 하나씩 되풀이해 새로 고친다:
 
 ```
 Algorithm: Coordinate Ascent Variational Inference (CAVI)
@@ -191,109 +164,91 @@ Output: Optimized variational factors q₁*, ..., qₖ*
 4. Return optimized factors
 ```
 
-### Convergence Properties
+### 수렴의 성질
 
-**Theorem (CAVI Monotonicity)**: Each update of $q_j$ cannot decrease the ELBO.
+**정리(CAVI의 단조로움)**: $q_j$을 새로 고쳐도 ELBO이 줄어들 수 없다.
 
-*Proof sketch*: Each coordinate update finds the global optimum for that factor given all others. Since we're maximizing a concave functional over each factor, the ELBO can only increase or stay the same.
+*증명 밑그림*: 좌표를 새로 고칠 때마다 다른 것이 주어진 상태에서 그 인수의 전체 최적점을 찾는다. 인수마다 오목한 범함수를 가장 크게 하므로 ELBO은 커지거나 그대로일 수밖에 없다.
 
-**Corollary**: CAVI converges to a local optimum of the ELBO.
+**따름정리**: CAVI은 ELBO의 그 자리 최적점으로 모인다.
 
-## Example: Gaussian with Unknown Mean and Variance
+## 보기: 평균과 흩어짐을 모르는 가우스
 
-### Model Specification
+### 모형 적기
 
-Consider the conjugate Normal-Gamma model:
+켤레 정규-감마 모형을 보자:
 
 $$
-
 \begin{aligned}
 \text{Prior on precision: } & \tau \sim \text{Gamma}(\alpha_0, \beta_0) \\
 \text{Prior on mean: } & \mu | \tau \sim \mathcal{N}(\mu_0, (\lambda_0 \tau)^{-1}) \\
 \text{Likelihood: } & x_i | \mu, \tau \sim \mathcal{N}(\mu, \tau^{-1})
 \end{aligned}
-
 $$
 
-### Mean-Field Factorization
+### 평균장 인수 나누기
 
-We assume:
+다음을 놓는다:
 
 $$
-
 q(\mu, \tau) = q_\mu(\mu) \cdot q_\tau(\tau)
-
 $$
 
-### Deriving the Optimal Factors
+### 가장 좋은 인수 이끌어 내기
 
-**Joint log probability:**
+**결합 로그 확률:**
 
 $$
-
 \log p(\mathbf{x}, \mu, \tau) = \log p(\tau) + \log p(\mu|\tau) + \sum_{i=1}^n \log p(x_i|\mu,\tau)
-
 $$
 
-**Optimal $q_\mu(\mu)$:**
+**가장 좋은 $q_\mu(\mu)$:**
 
-Taking expectation over $q_\tau$:
+$q_\tau$에 걸쳐 기댓값을 취하면:
 
 $$
-
 \log q_\mu^*(\mu) = \mathbb{E}_{q_\tau}[\log p(\mathbf{x}, \mu, \tau)] + \text{const}
-
 $$
 
-Collecting terms involving $\mu$:
+$\mu$이 든 항을 모으면:
 
 $$
-
 \log q_\mu^*(\mu) \propto -\frac{\mathbb{E}[\tau]}{2}\left[\lambda_0(\mu - \mu_0)^2 + \sum_{i=1}^n(x_i - \mu)^2\right]
-
 $$
 
-This is quadratic in $\mu$, so:
+이는 $\mu$에 대한 이차식이므로:
 
 $$
-
 q_\mu^*(\mu) = \mathcal{N}(\mu_n, \lambda_n^{-1})
-
 $$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$
-
 \begin{aligned}
 \lambda_n &= (\lambda_0 + n)\mathbb{E}_{q_\tau}[\tau] \\
 \mu_n &= \frac{\lambda_0 \mu_0 + n\bar{x}}{\lambda_0 + n}
 \end{aligned}
-
 $$
 
-**Optimal $q_\tau(\tau)$:**
+**가장 좋은 $q_\tau(\tau)$:**
 
-Similarly:
+마찬가지로:
 
 $$
-
 q_\tau^*(\tau) = \text{Gamma}(\alpha_n, \beta_n)
-
 $$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$
-
 \begin{aligned}
 \alpha_n &= \alpha_0 + \frac{n+1}{2} \\
 \beta_n &= \beta_0 + \frac{1}{2}\left[\lambda_0(\mathbb{E}[\mu] - \mu_0)^2 + \sum_{i=1}^n(x_i - \mathbb{E}[\mu])^2 + n\text{Var}_{q_\mu}[\mu]\right]
 \end{aligned}
-
 $$
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
@@ -304,14 +259,14 @@ import numpy as np
 
 class MeanFieldGaussianCAVI:
     """
-    Coordinate Ascent VI for Gaussian with unknown mean and precision.
+    평균과 정밀도를 모르는 가우스의 좌표 오르기 변분 추론.
     
-    Model:
-        τ ~ Gamma(α₀, β₀)           [precision prior]
-        μ | τ ~ N(μ₀, (λ₀τ)⁻¹)      [conditional mean prior]
-        xᵢ | μ,τ ~ N(μ, τ⁻¹)        [likelihood]
+    모형:
+        τ ~ Gamma(α₀, β₀)           [정밀도 앞확률]
+        μ | τ ~ N(μ₀, (λ₀τ)⁻¹)      [조건부 평균 앞확률]
+        xᵢ | μ,τ ~ N(μ, τ⁻¹)        [가능도]
     
-    Variational family:
+    변분 집안:
         q(μ,τ) = q(μ)q(τ)
         q(μ) = N(μₙ, λₙ⁻¹)
         q(τ) = Gamma(αₙ, βₙ)
@@ -320,14 +275,14 @@ class MeanFieldGaussianCAVI:
     def __init__(self, alpha_0: float = 1.0, beta_0: float = 1.0,
                  mu_0: float = 0.0, lambda_0: float = 1.0):
         """
-        Initialize with prior hyperparameters.
+        앞확률의 웃매개변수로 첫값 잡기.
         """
         self.alpha_0 = alpha_0
         self.beta_0 = beta_0
         self.mu_0 = mu_0
         self.lambda_0 = lambda_0
         
-        # Variational parameters (initialized to prior)
+        # 변분 매개변수(앞확률로 첫값을 잡는다)
         self.alpha_n = alpha_0
         self.beta_n = beta_0
         self.mu_n = mu_0
@@ -335,51 +290,51 @@ class MeanFieldGaussianCAVI:
     
     @property
     def E_tau(self) -> float:
-        """Expected precision E_q[τ]"""
+        """기댓값 정밀도 E_q[τ]"""
         return self.alpha_n / self.beta_n
     
     @property
     def E_log_tau(self) -> float:
-        """Expected log precision E_q[log τ]"""
+        """기댓값 로그 정밀도 E_q[log τ]"""
         return torch.digamma(torch.tensor(self.alpha_n)).item() - np.log(self.beta_n)
     
     @property
     def E_mu(self) -> float:
-        """Expected mean E_q[μ]"""
+        """기댓값 평균 E_q[μ]"""
         return self.mu_n
     
     @property
     def Var_mu(self) -> float:
-        """Variance of mean Var_q[μ]"""
+        """평균의 흩어짐 Var_q[μ]"""
         return 1.0 / self.lambda_n
     
     def update_q_mu(self, data: torch.Tensor) -> None:
         """
-        Update variational parameters for q(μ).
+        q(μ)의 변분 매개변수 새로 고치기.
         
         q*(μ) ∝ exp{E_q(τ)[log p(x,μ,τ)]}
         """
         n = len(data)
         x_bar = data.mean().item()
         
-        # Precision of variational Gaussian
+        # 변분 가우스의 정밀도
         self.lambda_n = (self.lambda_0 + n) * self.E_tau
         
-        # Mean of variational Gaussian
+        # 변분 가우스의 평균
         self.mu_n = (self.lambda_0 * self.mu_0 + n * x_bar) / (self.lambda_0 + n)
     
     def update_q_tau(self, data: torch.Tensor) -> None:
         """
-        Update variational parameters for q(τ).
+        q(τ)의 변분 매개변수 새로 고치기.
         
         q*(τ) ∝ exp{E_q(μ)[log p(x,μ,τ)]}
         """
         n = len(data)
         
-        # Shape parameter
+        # 꼴 매개변수
         self.alpha_n = self.alpha_0 + (n + 1) / 2
         
-        # Rate parameter
+        # 비율 매개변수
         # E[(μ - μ₀)²] = (E[μ] - μ₀)² + Var[μ]
         E_mu_minus_mu0_sq = (self.E_mu - self.mu_0)**2 + self.Var_mu
         
@@ -390,7 +345,7 @@ class MeanFieldGaussianCAVI:
     
     def compute_elbo(self, data: torch.Tensor) -> float:
         """
-        Compute the Evidence Lower Bound.
+        증거 아래 경계 셈하기.
         
         ELBO = E_q[log p(x,μ,τ)] - E_q[log q(μ,τ)]
              = E_q[log p(x|μ,τ)] + E_q[log p(μ|τ)] + E_q[log p(τ)]
@@ -398,7 +353,7 @@ class MeanFieldGaussianCAVI:
         """
         n = len(data)
         
-        # E[log p(x|μ,τ)] - expected log-likelihood
+        # E[log p(x|μ,τ)] - 기댓값 로그 가능도
         E_log_likelihood = (
             0.5 * n * (self.E_log_tau - np.log(2 * np.pi))
             - 0.5 * self.E_tau * (
@@ -406,7 +361,7 @@ class MeanFieldGaussianCAVI:
             )
         )
         
-        # E[log p(μ|τ)] - expected log prior on μ
+        # E[log p(μ|τ)] - μ에 대한 기댓값 로그 앞확률
         E_log_prior_mu = (
             0.5 * (np.log(self.lambda_0) + self.E_log_tau - np.log(2 * np.pi))
             - 0.5 * self.lambda_0 * self.E_tau * (
@@ -414,7 +369,7 @@ class MeanFieldGaussianCAVI:
             )
         )
         
-        # E[log p(τ)] - expected log prior on τ
+        # E[log p(τ)] - τ에 대한 기댓값 로그 앞확률
         E_log_prior_tau = (
             self.alpha_0 * np.log(self.beta_0)
             - torch.lgamma(torch.tensor(self.alpha_0)).item()
@@ -422,10 +377,10 @@ class MeanFieldGaussianCAVI:
             - self.beta_0 * self.E_tau
         )
         
-        # -E[log q(μ)] - entropy of q(μ)
+        # -E[log q(μ)] - q(μ)의 엔트로피
         H_q_mu = 0.5 * (1 + np.log(2 * np.pi) - np.log(self.lambda_n))
         
-        # -E[log q(τ)] - entropy of q(τ)
+        # -E[log q(τ)] - q(τ)의 엔트로피
         H_q_tau = (
             self.alpha_n
             - np.log(self.beta_n)
@@ -440,7 +395,7 @@ class MeanFieldGaussianCAVI:
     def fit(self, data: torch.Tensor, max_iter: int = 100, 
             tol: float = 1e-6, verbose: bool = True) -> Dict:
         """
-        Run CAVI algorithm until convergence.
+        모일 때까지 CAVI 알고리즘 돌리기.
         """
         history = {
             'elbo': [],
@@ -455,14 +410,14 @@ class MeanFieldGaussianCAVI:
         elbo_prev = -float('inf')
         
         for iteration in range(max_iter):
-            # Coordinate ascent updates
+            # 좌표 오르기 새로 고침
             self.update_q_mu(data)
             self.update_q_tau(data)
             
-            # Compute ELBO
+            # ELBO 셈하기
             elbo = self.compute_elbo(data)
             
-            # Record history
+            # 이력 기록
             history['elbo'].append(elbo)
             history['mu_n'].append(self.mu_n)
             history['lambda_n'].append(self.lambda_n)
@@ -475,7 +430,7 @@ class MeanFieldGaussianCAVI:
                 print(f"Iter {iteration+1:3d}: ELBO = {elbo:.4f}, "
                       f"E[μ] = {self.E_mu:.4f}, E[τ] = {self.E_tau:.4f}")
             
-            # Check convergence
+            # 모임 살피기
             if abs(elbo - elbo_prev) < tol:
                 if verbose:
                     print(f"\nConverged at iteration {iteration + 1}")
@@ -486,7 +441,7 @@ class MeanFieldGaussianCAVI:
         return history
     
     def get_posterior_distributions(self) -> Tuple[dist.Distribution, dist.Distribution]:
-        """Return the variational distributions."""
+        """변분 분포를 돌려준다."""
         q_mu = dist.Normal(self.mu_n, 1.0 / np.sqrt(self.lambda_n))
         q_tau = dist.Gamma(self.alpha_n, self.beta_n)
         return q_mu, q_tau
@@ -497,11 +452,11 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
                           data: torch.Tensor,
                           true_mu: float = None,
                           true_tau: float = None):
-    """Comprehensive visualization of CAVI results."""
+    """CAVI 결과 두루 그려 보기."""
     
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     
-    # Plot 1: ELBO convergence
+    # 그림 1: ELBO의 모임
     ax = axes[0, 0]
     ax.plot(history['elbo'], 'b-', linewidth=2)
     ax.set_xlabel('Iteration', fontsize=11)
@@ -509,7 +464,7 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.set_title('(a) ELBO Convergence', fontsize=12, fontweight='bold')
     ax.grid(True, alpha=0.3)
     
-    # Plot 2: Mean parameter convergence
+    # 그림 2: 평균 매개변수의 모임
     ax = axes[0, 1]
     ax.plot(history['E_mu'], 'b-', linewidth=2, label='E[μ]')
     if true_mu is not None:
@@ -522,7 +477,7 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Plot 3: Precision parameter convergence
+    # 그림 3: 정밀도 매개변수의 모임
     ax = axes[0, 2]
     ax.plot(history['E_tau'], 'b-', linewidth=2, label='E[τ]')
     if true_tau is not None:
@@ -533,7 +488,7 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Plot 4: Posterior q(μ)
+    # 그림 4: 뒤확률 q(μ)
     ax = axes[1, 0]
     q_mu, _ = model.get_posterior_distributions()
     mu_range = torch.linspace(model.E_mu - 3/np.sqrt(model.lambda_n),
@@ -551,7 +506,7 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Plot 5: Posterior q(τ)
+    # 그림 5: 뒤확률 q(τ)
     ax = axes[1, 1]
     _, q_tau = model.get_posterior_distributions()
     tau_range = torch.linspace(0.01, model.E_tau * 3, 200)
@@ -568,12 +523,12 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Plot 6: Data with posterior predictive
+    # 그림 6: 자료와 뒤확률 미리봄
     ax = axes[1, 2]
     ax.hist(data.numpy(), bins=20, density=True, alpha=0.6, 
             color='gray', edgecolor='black', label='Data')
     
-    # Posterior predictive (approximate by sampling)
+    # 뒤확률 미리봄(표집으로 어림)
     n_samples = 1000
     mu_samples = np.random.normal(model.mu_n, 1/np.sqrt(model.lambda_n), n_samples)
     tau_samples = np.random.gamma(model.alpha_n, 1/model.beta_n, n_samples)
@@ -598,14 +553,14 @@ def visualize_cavi_results(model: MeanFieldGaussianCAVI,
     plt.show()
 
 
-# Example usage
+# 사용 예
 if __name__ == "__main__":
     torch.manual_seed(42)
     np.random.seed(42)
     
-    # Generate synthetic data
+    # 합성 데이터 생성
     true_mu = 3.0
-    true_tau = 0.5  # precision = 1/variance
+    true_tau = 0.5  # 정밀도 = 1/흩어짐
     n_samples = 100
     
     data = torch.randn(n_samples) / np.sqrt(true_tau) + true_mu
@@ -617,10 +572,10 @@ if __name__ == "__main__":
     print(f"Sample mean = {data.mean().item():.4f}")
     print(f"Sample variance = {data.var().item():.4f}")
     
-    # Run CAVI
+    # CAVI 돌리기
     model = MeanFieldGaussianCAVI(
-        alpha_0=1.0, beta_0=1.0,  # Gamma prior on τ
-        mu_0=0.0, lambda_0=0.01   # Normal prior on μ
+        alpha_0=1.0, beta_0=1.0,  # τ에 두는 감마 앞확률
+        mu_0=0.0, lambda_0=0.01   # μ에 두는 정규 앞확률
     )
     
     history = model.fit(data, max_iter=100, verbose=True)
@@ -629,123 +584,117 @@ if __name__ == "__main__":
     print(f"  E[μ] = {model.E_mu:.4f} (true: {true_mu})")
     print(f"  E[τ] = {model.E_tau:.4f} (true: {true_tau})")
     
-    # Visualize
+    # 시각화한다
     visualize_cavi_results(model, history, data, true_mu, true_tau)
 ```
 
-## Advantages and Limitations
+## 장점과 한계
 
-### Advantages
+### 이점
 
-1. **Tractability**: Closed-form updates for many models
-2. **Scalability**: Independent factors scale to high dimensions
-3. **Interpretability**: Each factor has clear meaning
-4. **Convergence**: Guaranteed monotonic improvement in ELBO
+1. **다룰 수 있음**: 많은 모형에서 닫힌 꼴로 새로 고친다
+2. **규모 키우기**: 독립인 인수라 차원이 높아도 커진다
+3. **풀이하기 쉬움**: 인수마다 뜻이 또렷하다
+4. **모임**: ELBO이 단조롭게 나아짐이 보장된다
 
-### Limitations
+### 한계
 
-1. **No correlations**: Cannot capture posterior dependencies
-2. **Underestimates uncertainty**: Typically too confident
-3. **Mode selection**: May miss modes in multimodal posteriors
-4. **Local optima**: CAVI only finds local optima
+1. **상관이 없음**: 뒤확률의 달림을 담아내지 못한다
+2. **불확실함을 낮춰 잡음**: 보통 지나치게 자신한다
+3. **봉우리 고르기**: 봉우리가 여럿인 뒤확률에서 봉우리를 놓칠 수 있다
+4. **그 자리 최적점**: CAVI은 그 자리 최적점만 찾는다
 
-## When to Use Mean-Field
+## 평균장을 언제 쓰나
 
-**Good for:**
+**다음에 좋다:**
 
-- Parameters with weak posterior correlations
-- Large-scale problems where full covariance is infeasible
-- Models with conjugate structure
-- Quick approximate inference
+- 뒤확률 상관이 약한 매개변수
+- 온전한 공분산을 감당할 수 없는 큰 문제
+- 켤레 짜임을 갖는 모형
+- 빠른 어림 추론
 
-**Avoid when:**
+**다음일 때는 피하라:**
 
-- Strong parameter correlations are expected
-- Accurate uncertainty quantification is critical
-- Small problems where MCMC is feasible
-- Multimodal posteriors are likely
+- 매개변수의 상관이 강하리라 여겨질 때
+- 불확실함을 정확히 재는 것이 결정적일 때
+- MCMC을 감당할 수 있는 작은 문제일 때
+- 뒤확률의 봉우리가 여럿일 가능성이 높을 때
 
-## Summary
+## 요약
 
-The mean-field assumption:
+평균장 가정
 
 $$
-
 q(\theta) = \prod_{j=1}^K q_j(\theta_j)
-
 $$
 
-leads to the optimal update:
+은 다음의 가장 좋은 새로 고침으로 이어진다:
 
 $$
-
 q_j^*(\theta_j) \propto \exp\{\mathbb{E}_{q_{-j}}[\log p(\theta, \mathcal{D})]\}
-
 $$
 
-**Key trade-off**: Simplicity and tractability vs. inability to capture correlations.
+**핵심 주고받음**: 단순함과 다룰 수 있음 대 상관을 담아내지 못함.
 
-## Exercises
+## 연습문제
 
-### Exercise 1: Correlation Impact
+### 연습 1: 상관의 영향
 
-Implement a simulation to show how mean-field approximation quality degrades as posterior correlation increases.
+뒤확률의 상관이 커질수록 평균장 어림의 질이 어떻게 나빠지는지 보이는 흉내내기를 구현하여라.
 
-### Exercise 2: Multivariate Gaussian
+### 연습 2: 다변량 가우스
 
-Derive mean-field updates for a multivariate Gaussian with unknown mean vector and diagonal covariance.
+평균 벡터를 모르고 공분산이 대각인 다변량 가우스의 평균장 새로 고침을 이끌어 내어라.
 
-### Exercise 3: CAVI for Linear Regression
+### 연습 3: 선형 회귀의 CAVI
 
-Implement CAVI for Bayesian linear regression with unknown weights and noise variance.
+가중값과 잡음 흩어짐을 모르는 베이즈 선형 회귀에 CAVI을 구현하여라.
 
-## References
+## 참고 문헌
 
 1. Blei, D. M., Kucukelbir, A., & McAuliffe, J. D. (2017). "Variational Inference: A Review for Statisticians."
 
-2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Chapter 10.
+2. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, 10장.
 
 3. Wainwright, M. J., & Jordan, M. I. (2008). "Graphical Models, Exponential Families, and Variational Inference."
 
-4. Parisi, G. (1988). *Statistical Field Theory*. (Origin of mean-field terminology)
+4. Parisi, G. (1988). *Statistical Field Theory*. (평균장이라는 말의 뿌리)
 
 ---
 
-# Appendix: Coordinate Ascent Variational Inference (CAVI)
+# 덧붙임: 좌표 오르기 변분 추론(CAVI)
 
-The following section provides detailed algorithmic and implementation coverage of CAVI, the classical optimization algorithm for mean-field VI.
+다음 절에서는 평균장 변분 추론의 고전 최적화 알고리즘인 CAVI의 알고리즘과 구현을 자세히 다룬다.
 
 ---
 
-# Coordinate Ascent Variational Inference
+# 좌표 오르기 변분 추론
 
-## Learning Objectives
+## 학습 목표
 
-By the end of this section, you will be able to:
+이 절을 마치면 다음을 할 수 있게 된다.
 
-1. Understand coordinate ascent as an optimization strategy for ELBO
-2. Derive CAVI updates for exponential family models
-3. Implement efficient CAVI algorithms with convergence monitoring
-4. Analyze convergence properties and computational complexity
-5. Apply CAVI to Gaussian Mixture Models
+1. ELBO을 최적화하는 전략으로서 좌표 오르기 이해하기
+2. 지수 집안 모형의 CAVI 새로 고침 이끌어 내기
+3. 모임을 지켜보는 효율적인 CAVI 알고리즘 구현하기
+4. 모임의 성질과 셈 복잡도 살피기
+5. 가우스 섞음 모형에 CAVI 쓰기
 
-## Coordinate Ascent Strategy
+## 좌표 오르기 전략
 
-Coordinate Ascent Variational Inference (CAVI) is the classical algorithm for optimizing the ELBO under mean-field assumptions. Instead of optimizing all variational parameters simultaneously, CAVI updates one factor at a time while holding others fixed.
+좌표 오르기 변분 추론(CAVI)은 평균장 가정 아래에서 ELBO을 최적화하는 고전 알고리즘이다. 변분 매개변수를 모두 한꺼번에 최적화하는 대신 CAVI은 다른 것을 붙박아 둔 채 인수를 하나씩 새로 고친다.
 
-### The CAVI Principle
+### CAVI의 원리
 
-For a mean-field factorization $q(\theta) = \prod_{j=1}^K q_j(\theta_j)$, CAVI iterates:
+평균장 인수 나눔 $q(\theta) = \prod_{j=1}^K q_j(\theta_j)$에서 CAVI은 다음을 되풀이한다:
 
 $$
-
 \text{For } j = 1, \ldots, K: \quad q_j^{(t+1)}(\theta_j) \propto \exp\left\{\mathbb{E}_{q_{-j}^{(t)}}[\log p(\theta, \mathcal{D})]\right\}
-
 $$
 
-where $q_{-j}^{(t)}$ uses the most recent updates for factors $1, \ldots, j-1$ and previous iteration values for factors $j+1, \ldots, K$.
+여기서 $q_{-j}^{(t)}$은 인수 $1, \ldots, j-1$에는 가장 최근에 새로 고친 값을, 인수 $j+1, \ldots, K$에는 앞선 되풀이의 값을 쓴다.
 
-### Algorithm Structure
+### 알고리즘의 짜임
 
 ```
 Algorithm: Coordinate Ascent Variational Inference (CAVI)
@@ -775,180 +724,153 @@ Output: Optimized variational factors {qⱼ*}
 4. Return {qⱼ⁽ᵀ⁾} (may not have converged)
 ```
 
-## Convergence Properties
+## 수렴 성질
 
-### Monotonicity Theorem
+### 단조로움 정리
 
-**Theorem**: Each CAVI update cannot decrease the ELBO.
+**정리**: CAVI으로 새로 고쳐도 ELBO이 줄어들 수 없다.
 
-**Proof**: Consider updating factor $q_j$ while holding all others fixed. The ELBO can be written as:
+**증명**: 다른 것을 모두 붙박아 둔 채 인수 $q_j$을 새로 고친다고 하자. ELBO은 다음처럼 쓸 수 있다:
 
 $$
-
 \text{ELBO}(q_1, \ldots, q_K) = \mathbb{E}_q[\log p(\mathcal{D}, \theta)] - \sum_{k=1}^K \mathbb{E}_{q_k}[\log q_k(\theta_k)]
-
 $$
 
-The terms involving $q_j$ are:
+$q_j$이 든 항은 다음과 같다:
 
 $$
-
 \text{ELBO}_j = \mathbb{E}_{q_j}\left[\mathbb{E}_{q_{-j}}[\log p(\mathcal{D}, \theta)]\right] - \mathbb{E}_{q_j}[\log q_j(\theta_j)]
-
 $$
 
-This is the negative KL divergence (up to a constant):
+이는 (상수를 빼면) KL 벌어짐의 음수이다:
 
 $$
-
 \text{ELBO}_j = -\text{KL}\left(q_j(\theta_j) \| \tilde{p}_j(\theta_j)\right) + \text{const}
-
 $$
 
-where $\tilde{p}_j(\theta_j) \propto \exp\{\mathbb{E}_{q_{-j}}[\log p(\mathcal{D}, \theta)]\}$.
+여기서 $\tilde{p}_j(\theta_j) \propto \exp\{\mathbb{E}_{q_{-j}}[\log p(\mathcal{D}, \theta)]\}$이다.
 
-Since KL divergence is minimized (equals zero) when $q_j = \tilde{p}_j$, the CAVI update maximizes $\text{ELBO}_j$. Therefore, each update can only increase or maintain the ELBO.
+$q_j = \tilde{p}_j$일 때 KL 벌어짐이 가장 작아지므로(0이 되므로) CAVI의 새로 고침은 $\text{ELBO}_j$을 가장 크게 한다. 그러므로 새로 고칠 때마다 ELBO은 커지거나 그대로일 수밖에 없다.
 
-### Convergence to Local Optimum
+### 그 자리 최적점으로의 모임
 
-**Corollary**: CAVI converges to a local optimum of the ELBO.
+**따름정리**: CAVI은 ELBO의 그 자리 최적점으로 모인다.
 
-The ELBO is bounded above by $\log p(\mathcal{D})$. Combined with monotonicity, the sequence of ELBO values must converge. At convergence, no single-factor update can improve the ELBO, which is the definition of a coordinate-wise optimum.
+ELBO은 위로 $\log p(\mathcal{D})$으로 묶인다. 단조로움과 함께 보면 ELBO 값의 늘어놓음은 모여야 한다. 모인 자리에서는 인수 하나를 새로 고쳐도 ELBO을 낫게 할 수 없으며, 이것이 좌표별 최적점의 정의이다.
 
-### Rate of Convergence
+### 모임 속도
 
-CAVI typically exhibits linear convergence:
+CAVI은 보통 선형으로 모인다:
 
 $$
-
 \text{ELBO}^* - \text{ELBO}^{(t)} \leq C \cdot \rho^t
-
 $$
 
-where $\rho < 1$ is the convergence rate and depends on the problem structure.
+여기서 $\rho < 1$은 모이는 빠르기이며 문제의 짜임에 달려 있다.
 
-## CAVI for Exponential Family Models
+## 지수 집안 모형의 CAVI
 
-When both the complete conditional distributions and variational factors belong to exponential families, CAVI updates take a particularly elegant form.
+온전한 조건부 분포와 변분 인수가 모두 지수 집안에 들면 CAVI의 새로 고침이 특히 우아한 꼴이 된다.
 
-### Exponential Family Background
+### 지수 집안의 배경
 
-A distribution is in the exponential family if it can be written as:
+다음처럼 쓸 수 있으면 그 분포는 지수 집안에 든다:
 
 $$
-
 p(x | \eta) = h(x) \exp\left\{\eta^\top T(x) - A(\eta)\right\}
-
 $$
 
-where:
-- $\eta$ are the **natural parameters**
-- $T(x)$ are the **sufficient statistics**
-- $A(\eta)$ is the **log-partition function**
-- $h(x)$ is the **base measure**
+여기서 각 기호는 다음과 같다.
 
-### CAVI Update in Natural Parameters
+- $\eta$은 **자연 매개변수**이다
+- $T(x)$은 **충분 통계량**이다
+- $A(\eta)$은 **로그 나눔 함수**이다
+- $h(x)$은 **바탕 측도**이다
 
-For exponential family models, the CAVI update for factor $q_j$ reduces to updating natural parameters:
+### 자연 매개변수로 하는 CAVI 새로 고침
+
+지수 집안 모형에서 인수 $q_j$의 CAVI 새로 고침은 자연 매개변수를 새로 고치는 것으로 줄어든다:
 
 $$
-
 \eta_j^{(t+1)} = \mathbb{E}_{q_{-j}^{(t)}}\left[\eta_j(\theta_{-j}, \mathcal{D})\right]
-
 $$
 
-where $\eta_j(\theta_{-j}, \mathcal{D})$ are the natural parameters of the complete conditional $p(\theta_j | \theta_{-j}, \mathcal{D})$.
+여기서 $\eta_j(\theta_{-j}, \mathcal{D})$은 온전한 조건부 $p(\theta_j | \theta_{-j}, \mathcal{D})$의 자연 매개변수이다.
 
-### Common Exponential Family Updates
+### 흔한 지수 집안의 새로 고침
 
-| Distribution | Natural Parameters | Update Rule |
+| 분포 | 자연 매개변수 | 새로 고치는 규칙 |
 |--------------|-------------------|-------------|
-| Gaussian $\mathcal{N}(\mu, \sigma^2)$ | $\eta_1 = \mu/\sigma^2$, $\eta_2 = -1/(2\sigma^2)$ | Mean of expectations |
-| Gamma $\text{Ga}(\alpha, \beta)$ | $\eta_1 = \alpha - 1$, $\eta_2 = -\beta$ | Sum of expected statistics |
-| Categorical $\text{Cat}(\pi)$ | $\eta_k = \log \pi_k$ | Log of expected probabilities |
-| Dirichlet $\text{Dir}(\alpha)$ | $\eta_k = \alpha_k - 1$ | Sum of expected log-probabilities |
+| 가우스 $\mathcal{N}(\mu, \sigma^2)$ | $\eta_1 = \mu/\sigma^2$, $\eta_2 = -1/(2\sigma^2)$ | 기댓값의 평균 |
+| 감마 $\text{Ga}(\alpha, \beta)$ | $\eta_1 = \alpha - 1$, $\eta_2 = -\beta$ | 기댓값 통계량의 합 |
+| 범주 $\text{Cat}(\pi)$ | $\eta_k = \log \pi_k$ | 기댓값 확률의 로그 |
+| 디리클레 $\text{Dir}(\alpha)$ | $\eta_k = \alpha_k - 1$ | 기댓값 로그 확률의 합 |
 
-## Example: Gaussian Mixture Model
+## 보기: 가우스 섞음 모형
 
-The Gaussian Mixture Model (GMM) is a canonical example for CAVI.
+가우스 섞음 모형(GMM)은 CAVI의 대표 보기이다.
 
-### Model Specification
+### 모형 적기
 
 $$
-
 \begin{aligned}
 \text{Mixing weights: } & \pi \sim \text{Dir}(\alpha_0) \\
 \text{Component means: } & \mu_k \sim \mathcal{N}(\mu_0, \sigma_0^2) \quad k = 1, \ldots, K \\
 \text{Cluster assignments: } & z_i \sim \text{Cat}(\pi) \quad i = 1, \ldots, N \\
 \text{Observations: } & x_i | z_i, \{\mu_k\} \sim \mathcal{N}(\mu_{z_i}, \sigma^2)
 \end{aligned}
-
 $$
 
-### Mean-Field Factorization
+### 평균장 인수 나누기
 
 $$
-
 q(\pi, \{\mu_k\}, \{z_i\}) = q(\pi) \prod_{k=1}^K q(\mu_k) \prod_{i=1}^N q(z_i)
-
 $$
 
-### CAVI Updates
+### CAVI 새로 고침
 
-**Update for $q(z_i)$ (cluster assignments):**
+**$q(z_i)$ 새로 고치기(무리 배정):**
 
 $$
-
 q^*(z_i = k) \propto \exp\left\{\mathbb{E}[\log \pi_k] + \mathbb{E}\left[\log \mathcal{N}(x_i | \mu_k, \sigma^2)\right]\right\}
-
 $$
 
-Let $r_{ik} = q(z_i = k)$, then:
+$r_{ik} = q(z_i = k)$이라 하면:
 
 $$
-
 r_{ik} \propto \exp\left\{\psi(\alpha_k) - \psi\left(\sum_j \alpha_j\right) - \frac{1}{2\sigma^2}\left[(x_i - \mathbb{E}[\mu_k])^2 + \text{Var}[\mu_k]\right]\right\}
-
 $$
 
-**Update for $q(\mu_k)$ (component means):**
+**$q(\mu_k)$ 새로 고치기(성분의 평균):**
 
 $$
-
 q^*(\mu_k) = \mathcal{N}(\mu_k | m_k, s_k^2)
-
 $$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$
-
 \begin{aligned}
 s_k^2 &= \left(\frac{1}{\sigma_0^2} + \frac{N_k}{\sigma^2}\right)^{-1} \\
 m_k &= s_k^2 \left(\frac{\mu_0}{\sigma_0^2} + \frac{\sum_i r_{ik} x_i}{\sigma^2}\right)
 \end{aligned}
-
 $$
 
-and $N_k = \sum_i r_{ik}$ is the expected number of points in cluster $k$.
+그리고 $N_k = \sum_i r_{ik}$은 무리 $k$에 든 점의 기댓값 개수이다.
 
-**Update for $q(\pi)$ (mixing weights):**
+**$q(\pi)$ 새로 고치기(섞음 무게):**
 
 $$
-
 q^*(\pi) = \text{Dir}(\alpha_1, \ldots, \alpha_K)
-
 $$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$
-
 \alpha_k = \alpha_0 + \sum_{i=1}^N r_{ik}
-
 $$
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
@@ -960,15 +882,15 @@ import numpy as np
 
 class GMMCavi:
     """
-    Coordinate Ascent VI for Gaussian Mixture Model.
+    가우스 섞음 모형의 좌표 오르기 변분 추론.
     
-    Model:
+    모형:
         π ~ Dir(α₀)
         μₖ ~ N(μ₀, σ₀²)
         zᵢ ~ Cat(π)
         xᵢ | zᵢ ~ N(μ_{zᵢ}, σ²)
     
-    Variational family:
+    변분 집안:
         q(π, μ, z) = q(π) ∏ₖ q(μₖ) ∏ᵢ q(zᵢ)
     """
     
@@ -978,14 +900,14 @@ class GMMCavi:
                  sigma_0: float = 10.0,
                  sigma: float = 1.0):
         """
-        Initialize GMM-CAVI.
+        가우스 섞음 모형 CAVI 첫값 잡기.
         
-        Args:
-            n_components: Number of mixture components K
-            alpha_0: Dirichlet prior concentration
-            mu_0: Prior mean for component means
-            sigma_0: Prior std for component means
-            sigma: Known observation noise std
+        인수:
+            n_components: 섞음 성분의 개수 K
+            alpha_0: 디리클레 앞확률의 몰림
+            mu_0: 성분 평균의 앞확률 평균
+            sigma_0: 성분 평균의 앞확률 표준편차
+            sigma: 아는 관측 잡음의 표준편차
         """
         self.K = n_components
         self.alpha_0 = alpha_0
@@ -993,38 +915,38 @@ class GMMCavi:
         self.sigma_0 = sigma_0
         self.sigma = sigma
         
-        # Variational parameters (to be initialized with data)
-        self.r = None       # N x K responsibility matrix
-        self.alpha = None   # K Dirichlet parameters
-        self.m = None       # K component means
-        self.s2 = None      # K component variances
+        # 변분 매개변수(자료로 첫값을 잡는다)
+        self.r = None       # N x K 맡음 몫 행렬
+        self.alpha = None   # 디리클레 매개변수 K개
+        self.m = None       # 성분 평균 K개
+        self.s2 = None      # 성분 흩어짐 K개
     
     def initialize(self, data: torch.Tensor, init_method: str = 'kmeans'):
         """
-        Initialize variational parameters.
+        변분 매개변수 첫값 잡기.
         """
         N = len(data)
         
         if init_method == 'random':
-            # Random initialization
+            # 무작위 첫값 잡기
             self.r = torch.rand(N, self.K)
             self.r = self.r / self.r.sum(dim=1, keepdim=True)
         elif init_method == 'kmeans':
-            # K-means++ style initialization
+            # k 평균++ 방식의 첫값 잡기
             indices = torch.randperm(N)[:self.K]
             centers = data[indices].clone()
             
-            # Compute distances and assign
+            # 거리를 셈하고 배정하기
             dists = torch.cdist(data.unsqueeze(1), centers.unsqueeze(0).unsqueeze(2))
             self.r = F.softmax(-dists.squeeze() / self.sigma**2, dim=1)
         
-        # Initialize other parameters based on responsibilities
+        # 맡음 몫에 따라 다른 매개변수 첫값 잡기
         self._update_q_pi()
         self._update_q_mu(data)
     
     def _update_q_z(self, data: torch.Tensor) -> None:
         """
-        Update q(zᵢ) for all data points.
+        모든 자료 점에 대해 q(zᵢ) 새로 고치기.
         
         q*(zᵢ = k) ∝ exp{E[log πₖ] - (xᵢ - E[μₖ])²/(2σ²) - Var[μₖ]/(2σ²)}
         """
@@ -1033,7 +955,7 @@ class GMMCavi:
         # E[log πₖ] = ψ(αₖ) - ψ(Σⱼ αⱼ)
         E_log_pi = torch.digamma(self.alpha) - torch.digamma(self.alpha.sum())
         
-        # Log responsibilities (unnormalized)
+        # 로그 맡음 몫(고르게 하지 않음)
         log_r = torch.zeros(N, self.K)
         
         for k in range(self.K):
@@ -1041,28 +963,28 @@ class GMMCavi:
             E_sq_diff = (data - self.m[k])**2 + self.s2[k]
             log_r[:, k] = E_log_pi[k] - 0.5 / self.sigma**2 * E_sq_diff
         
-        # Normalize (softmax)
+        # 고르게 하기(소프트맥스)
         self.r = F.softmax(log_r, dim=1)
     
     def _update_q_mu(self, data: torch.Tensor) -> None:
         """
-        Update q(μₖ) for all components.
+        모든 성분에 대해 q(μₖ) 새로 고치기.
         
         q*(μₖ) = N(mₖ, sₖ²)
         """
-        N_k = self.r.sum(dim=0)  # Expected count per component
+        N_k = self.r.sum(dim=0)  # 성분마다의 기댓값 횟수
         
-        # Posterior precision
+        # 뒤확률 정밀도
         precision = 1/self.sigma_0**2 + N_k / self.sigma**2
         self.s2 = 1 / precision
         
-        # Posterior mean
+        # 뒤확률 평균
         weighted_sum = (self.r * data.unsqueeze(1)).sum(dim=0)
         self.m = self.s2 * (self.mu_0 / self.sigma_0**2 + weighted_sum / self.sigma**2)
     
     def _update_q_pi(self) -> None:
         """
-        Update q(π).
+        q(π) 새로 고치기.
         
         q*(π) = Dir(α₁, ..., αₖ)
         αₖ = α₀ + Σᵢ rᵢₖ
@@ -1072,12 +994,12 @@ class GMMCavi:
     
     def compute_elbo(self, data: torch.Tensor) -> float:
         """
-        Compute the Evidence Lower Bound.
+        증거 아래 경계 셈하기.
         """
         N = len(data)
         N_k = self.r.sum(dim=0)
         
-        # E[log p(x|z,μ)] - Expected log-likelihood
+        # E[log p(x|z,μ)] - 기댓값 로그 가능도
         E_log_lik = 0.0
         for k in range(self.K):
             E_sq_diff = (data - self.m[k])**2 + self.s2[k]
@@ -1086,18 +1008,18 @@ class GMMCavi:
                 - 0.5 / self.sigma**2 * E_sq_diff
             )).sum()
         
-        # E[log p(z|π)] - Expected log prior on z
+        # E[log p(z|π)] - z에 대한 기댓값 로그 앞확률
         E_log_pi = torch.digamma(self.alpha) - torch.digamma(self.alpha.sum())
         E_log_p_z = (self.r * E_log_pi).sum()
         
-        # E[log p(π)] - Expected log prior on π
+        # E[log p(π)] - π에 대한 기댓값 로그 앞확률
         E_log_p_pi = (
             torch.lgamma(torch.tensor(self.K * self.alpha_0))
             - self.K * torch.lgamma(torch.tensor(self.alpha_0))
             + (self.alpha_0 - 1) * E_log_pi.sum()
         )
         
-        # E[log p(μ)] - Expected log prior on μ
+        # E[log p(μ)] - μ에 대한 기댓값 로그 앞확률
         E_log_p_mu = 0.0
         for k in range(self.K):
             E_log_p_mu += (
@@ -1105,10 +1027,10 @@ class GMMCavi:
                 - 0.5 / self.sigma_0**2 * ((self.m[k] - self.mu_0)**2 + self.s2[k])
             )
         
-        # -E[log q(z)] - Entropy of q(z)
+        # -E[log q(z)] - q(z)의 엔트로피
         H_q_z = -(self.r * torch.log(self.r + 1e-10)).sum()
         
-        # -E[log q(π)] - Entropy of q(π)
+        # -E[log q(π)] - q(π)의 엔트로피
         H_q_pi = (
             torch.lgamma(self.alpha.sum())
             - torch.lgamma(self.alpha).sum()
@@ -1117,7 +1039,7 @@ class GMMCavi:
             )
         )
         
-        # -E[log q(μ)] - Entropy of q(μ)
+        # -E[log q(μ)] - q(μ)의 엔트로피
         H_q_mu = 0.5 * self.K * (1 + np.log(2 * np.pi)) + 0.5 * torch.log(self.s2).sum()
         
         elbo = (E_log_lik + E_log_p_z + E_log_p_pi + E_log_p_mu 
@@ -1128,9 +1050,9 @@ class GMMCavi:
     def fit(self, data: torch.Tensor, max_iter: int = 100,
             tol: float = 1e-6, verbose: bool = True) -> Dict:
         """
-        Run CAVI algorithm.
+        CAVI 알고리즘 돌리기.
         """
-        # Initialize
+        # 초기화한다
         self.initialize(data)
         
         history = {
@@ -1143,15 +1065,15 @@ class GMMCavi:
         elbo_prev = -float('inf')
         
         for iteration in range(max_iter):
-            # CAVI updates
+            # CAVI 새로 고침
             self._update_q_z(data)
             self._update_q_mu(data)
             self._update_q_pi()
             
-            # Compute ELBO
+            # ELBO 셈하기
             elbo = self.compute_elbo(data)
             
-            # Record history
+            # 이력 기록
             history['elbo'].append(elbo)
             history['r'].append(self.r.clone())
             history['m'].append(self.m.clone())
@@ -1161,7 +1083,7 @@ class GMMCavi:
                 print(f"Iter {iteration+1:3d}: ELBO = {elbo:.4f}, "
                       f"means = {self.m.numpy()}")
             
-            # Check convergence
+            # 모임 살피기
             if abs(elbo - elbo_prev) < tol:
                 if verbose:
                     print(f"\nConverged at iteration {iteration + 1}")
@@ -1173,7 +1095,7 @@ class GMMCavi:
     
     def predict(self, data: torch.Tensor) -> torch.Tensor:
         """
-        Predict cluster assignments.
+        무리 배정 미리보기.
         """
         self._update_q_z(data)
         return self.r.argmax(dim=1)
@@ -1181,11 +1103,11 @@ class GMMCavi:
 
 def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
                        true_labels: torch.Tensor = None):
-    """Visualize GMM CAVI results."""
+    """가우스 섞음 모형 CAVI 결과 그려 보기."""
     
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
     
-    # Plot 1: ELBO convergence
+    # 그림 1: ELBO의 모임
     ax = axes[0, 0]
     ax.plot(history['elbo'], 'b-', linewidth=2)
     ax.set_xlabel('Iteration', fontsize=11)
@@ -1193,7 +1115,7 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     ax.set_title('(a) ELBO Convergence', fontsize=12, fontweight='bold')
     ax.grid(True, alpha=0.3)
     
-    # Plot 2: Component means convergence
+    # 그림 2: 성분 평균의 모임
     ax = axes[0, 1]
     means_history = torch.stack(history['m'])
     for k in range(model.K):
@@ -1204,7 +1126,7 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Plot 3: Final clustering
+    # 그림 3: 마지막 무리짓기
     ax = axes[0, 2]
     predictions = model.r.argmax(dim=1)
     colors = plt.cm.tab10(predictions.numpy() / model.K)
@@ -1217,10 +1139,10 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Plot 4: Responsibility evolution
+    # 그림 4: 맡음 몫의 흘러감
     ax = axes[1, 0]
     r_history = torch.stack(history['r'])
-    sample_idx = 0  # Track first data point
+    sample_idx = 0  # 첫 자료 점 기록
     for k in range(model.K):
         ax.plot(r_history[:, sample_idx, k], linewidth=2, label=f'r_{sample_idx+1},{k+1}')
     ax.set_xlabel('Iteration', fontsize=11)
@@ -1230,7 +1152,7 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Plot 5: Dirichlet parameters
+    # 그림 5: 디리클레 매개변수
     ax = axes[1, 1]
     alpha_history = torch.stack(history['alpha'])
     for k in range(model.K):
@@ -1241,7 +1163,7 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Plot 6: Final mixture density
+    # 그림 6: 마지막 섞음 밀도
     ax = axes[1, 2]
     x_range = torch.linspace(data.min() - 2, data.max() + 2, 500)
     
@@ -1270,18 +1192,18 @@ def visualize_gmm_cavi(model: GMMCavi, history: Dict, data: torch.Tensor,
     plt.show()
 
 
-# Example usage
+# 사용 예
 if __name__ == "__main__":
     torch.manual_seed(42)
     np.random.seed(42)
     
-    # Generate synthetic mixture data
+    # 인공 섞음 자료 만들기
     n_samples = 300
     true_means = torch.tensor([-3.0, 0.0, 4.0])
     true_weights = torch.tensor([0.3, 0.4, 0.3])
     sigma = 1.0
     
-    # Sample from mixture
+    # 섞음에서 표집
     z_true = torch.multinomial(true_weights, n_samples, replacement=True)
     data = torch.randn(n_samples) * sigma + true_means[z_true]
     
@@ -1291,7 +1213,7 @@ if __name__ == "__main__":
     print(f"\nTrue means: {true_means.numpy()}")
     print(f"True weights: {true_weights.numpy()}")
     
-    # Fit GMM with CAVI
+    # CAVI으로 가우스 섞음 모형 맞추기
     model = GMMCavi(n_components=3, alpha_0=1.0, sigma=sigma)
     history = model.fit(data, max_iter=100, verbose=True)
     
@@ -1299,63 +1221,65 @@ if __name__ == "__main__":
     print(f"  Means: {model.m.numpy()}")
     print(f"  Expected weights: {(model.alpha / model.alpha.sum()).numpy()}")
     
-    # Visualize
+    # 시각화한다
     visualize_gmm_cavi(model, history, data)
 ```
 
-## Computational Complexity
+## 계산 복잡도
 
-### Per-Iteration Cost
+### 되풀이마다의 값
 
-For a model with $K$ factors, $N$ data points:
+인수가 $K$개, 자료 점이 $N$개인 모형에서:
 
-| Component | Complexity |
+| 부분 | 복잡도 |
 |-----------|------------|
-| Update $q(z_i)$ for all $i$ | $O(NK)$ |
-| Update $q(\mu_k)$ for all $k$ | $O(NK)$ |
-| Update $q(\pi)$ | $O(K)$ |
-| Compute ELBO | $O(NK)$ |
-| **Total per iteration** | $O(NK)$ |
+| 모든 $i$에 대해 $q(z_i)$ 새로 고치기 | $O(NK)$ |
+| 모든 $k$에 대해 $q(\mu_k)$ 새로 고치기 | $O(NK)$ |
+| $q(\pi)$ 새로 고치기 | $O(K)$ |
+| ELBO 셈하기 | $O(NK)$ |
+| **되풀이마다 모두** | $O(NK)$ |
 
-### Comparison with EM
+### EM과 견주기
 
-CAVI for GMM has the same complexity as the EM algorithm, but provides full posterior distributions rather than point estimates.
+가우스 섞음 모형의 CAVI은 EM 알고리즘과 복잡도가 같지만 점 어림값이 아니라 온전한 뒤확률 분포를 준다.
 
-## Summary
+## 요약
 
-CAVI provides a systematic approach to optimizing the ELBO:
+CAVI은 ELBO을 최적화하는 차근차근한 길을 준다:
 
-**Algorithm**:
-1. Initialize variational parameters
-2. Update each factor in turn: $q_j^* \propto \exp\{\mathbb{E}_{q_{-j}}[\log p(\theta, \mathcal{D})]\}$
-3. Monitor ELBO until convergence
+**알고리즘**:
 
-**Properties**:
-- Monotonic ELBO improvement
-- Converges to local optimum
-- Closed-form updates for exponential families
-- Same complexity as EM for mixture models
+1. 변분 매개변수의 첫값을 잡는다
+2. 인수를 차례로 새로 고친다: $q_j^* \propto \exp\{\mathbb{E}_{q_{-j}}[\log p(\theta, \mathcal{D})]\}$
+3. 모일 때까지 ELBO을 지켜본다
 
-## Exercises
+**성질**:
 
-### Exercise 1: CAVI for Factor Analysis
+- ELBO이 단조롭게 나아진다
+- 그 자리 최적점으로 모인다
+- 지수 집안에서는 닫힌 꼴로 새로 고친다
+- 섞음 모형에서 EM과 복잡도가 같다
 
-Derive and implement CAVI for a probabilistic factor analysis model.
+## 참고 문헌
 
-### Exercise 2: Convergence Analysis
-
-Empirically measure the convergence rate of CAVI for GMM as a function of cluster separation.
-
-### Exercise 3: Initialization Sensitivity
-
-Study how different initialization strategies affect the final ELBO and cluster quality.
-
-## References
-
-1. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Chapter 10.
+1. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, 10장.
 
 2. Blei, D. M., & Jordan, M. I. (2006). "Variational Inference for Dirichlet Process Mixtures."
 
 3. Hoffman, M. D., Blei, D. M., Wang, C., & Paisley, J. (2013). "Stochastic Variational Inference."
 
 4. Wainwright, M. J., & Jordan, M. I. (2008). "Graphical Models, Exponential Families, and Variational Inference."
+
+## 연습문제
+
+### 연습 1: 인자 분석의 CAVI
+
+확률 인자 분석 모형의 CAVI을 이끌어 내고 구현하여라.
+
+### 연습 2: 모임 살피기
+
+무리가 떨어진 정도의 함수로 가우스 섞음 모형 CAVI의 모이는 빠르기를 경험으로 재어라.
+
+### 연습 3: 첫값에 대한 민감도
+
+첫값 잡기 전략에 따라 마지막 ELBO과 무리의 질이 어떻게 달라지는지 살펴라.

@@ -1,56 +1,56 @@
-# Reduction
+# 환원
 
-Reduction transforms one problem into another that we already know how to solve. This is a central idea in deep learning: transfer learning, feature extraction, and fine-tuning all reduce new problems to previously solved ones.
+환원(reduction)은 어떤 문제를 이미 푸는 법을 아는 다른 문제로 변환한다. 이는 딥러닝의 중심 아이디어이다. 전이 학습, 특징 추출, 미세 조정은 모두 새로운 문제를 이미 해결된 문제로 환원한다.
 
-## Definition
+## 정의
 
-A reduction from problem $A$ to problem $B$ is a transformation that converts any instance of $A$ into an instance of $B$, such that solving $B$ yields a solution to $A$:
+문제 $A$에서 문제 $B$로의 환원은 $A$의 임의의 사례를 $B$의 사례로 바꾸어, $B$를 풀면 $A$의 해가 나오도록 하는 변환이다.
 
 $$
 A \leq_p B
 $$
 
-If the transformation runs in polynomial time, then $B$ is at least as hard as $A$.
+이 변환이 다항 시간에 수행되면 $B$는 적어도 $A$만큼 어렵다.
 
-## Explanation
+## 설명
 
-Reductions eliminate redundant work by reusing existing solutions:
+환원은 기존 해법을 재사용하여 중복된 작업을 없앤다.
 
-- **Transfer learning**: Reduces a new classification task (e.g., medical imaging) to feature extraction from a pretrained ImageNet model. The pretrained model acts as the "known solver" for feature extraction.
-- **Fine-tuning**: Reduces a domain-specific task to a general language modeling task by starting from pretrained weights and adjusting them with domain data.
-- **Embedding-based retrieval**: Reduces nearest-neighbor search over complex objects (images, text) to Euclidean nearest-neighbor search in an embedding space.
-- **Feature engineering**: Reduces a complex learning task to a simpler one by transforming raw inputs into informative features.
+- **전이 학습**: 새로운 분류 과제(예: 의료 영상)를 사전학습된 ImageNet 모델로부터의 특징 추출로 환원한다. 사전학습 모델이 특징 추출의 "이미 아는 해결기" 역할을 한다.
+- **미세 조정**: 사전학습 가중치에서 출발해 영역 데이터로 조정함으로써, 특정 영역의 과제를 일반적인 언어 모델링 과제로 환원한다.
+- **임베딩 기반 검색**: 복잡한 대상(이미지, 텍스트)에 대한 최근접 이웃 탐색을 임베딩 공간에서의 유클리드 최근접 이웃 탐색으로 환원한다.
+- **특징 공학**: 원시 입력을 유용한 특징으로 변환하여 복잡한 학습 과제를 더 단순한 과제로 환원한다.
 
-The key question when applying a reduction is whether the transformation preserves enough structure. A reduction that discards essential information about $A$ will produce a poor solution, even if $B$ is solved perfectly.
+환원을 적용할 때의 핵심 질문은 그 변환이 충분한 구조를 보존하는가이다. $A$에 관한 본질적 정보를 버리는 환원은 $B$를 완벽히 풀더라도 나쁜 해를 만들어낸다.
 
-## Examples
+## 예제
 
 ```python
 import torch
 import torch.nn as nn
 
-# Reduction: use a pretrained feature extractor for a new task
-# Instead of training from scratch, we reduce to feature extraction
+# 환원: 새 과제에 사전학습된 특징 추출기를 사용한다
+# 처음부터 학습하는 대신 특징 추출 문제로 환원한다
 
-# Simulated "pretrained" feature extractor (frozen)
+# "사전학습된" 특징 추출기 흉내(동결)
 torch.manual_seed(42)
 feature_extractor = nn.Sequential(nn.Linear(20, 64), nn.ReLU(), nn.Linear(64, 32))
 for p in feature_extractor.parameters():
     p.requires_grad = False
 
-# New task: classify into 5 classes using extracted features
+# 새 과제: 추출된 특징으로 5개 클래스를 분류한다
 classifier = nn.Linear(32, 5)
 
-# Generate data
+# 데이터 생성
 X = torch.randn(100, 20)
 y = torch.randint(0, 5, (100,))
 
-# Extract features (the reduction step)
+# 특징 추출(환원 단계)
 with torch.no_grad():
     features = feature_extractor(X)
 print(f"Reduced {X.shape} inputs to {features.shape} features")
 
-# Train only the classifier on the reduced problem
+# 환원된 문제에서 분류기만 학습한다
 optimizer = torch.optim.Adam(classifier.parameters(), lr=0.01)
 for _ in range(100):
     loss = nn.functional.cross_entropy(classifier(features), y)
@@ -59,3 +59,43 @@ for _ in range(100):
     optimizer.step()
 print(f"Loss after training classifier: {loss.item():.4f}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+어떤 의료 영상 과제에 레이블이 붙은 X선 이미지가 500장 있다. 전이 학습이 이를 특징 추출 문제로 환원하는 방법을 기술하고, 이 환원이 과제와 관련된 정보를 보존하는 이유를 설명하라.
+
+??? success "연습문제 1 풀이"
+    사전학습된 ImageNet 모델(예: ResNet-50)을 특징 추출기로 사용한다. 각 X선 이미지를 동결된 신경망에 통과시켜 마지막 직전 층의 출력(2048차원 벡터)을 추출한다. 이 특징 위에서 단순한 선형 분류기를 학습한다. 이 환원이 과제 관련 정보를 보존하는 이유는 ImageNet 사전학습이 의료 영상으로 전이되는 일반적 시각 특징(에지, 질감, 형태)을 학습하기 때문이다. 사전학습된 특징은 계층적 패턴을 포착한다. 저수준 에지 검출기는 곧바로 적용 가능하고, 중간 수준 질감 특징은 병리 패턴과 상관을 보이는 경우가 많다. 최종 분류 층만 과제에 맞게 적응시키면 된다.
+
+---
+
+**연습문제 2.**
+미세 조정은 특정 영역의 NLP 과제를 일반적인 언어 모델링 문제로 환원한다. 이 환원이 잘 동작하는 이유를 설명하고, 실패할 수 있는 상황을 하나 제시하라.
+
+??? success "연습문제 2 풀이"
+    언어 모델 사전학습(예: BERT, GPT)은 방대한 텍스트 말뭉치로부터 구문, 의미, 세계 지식에 대한 풍부한 표현을 학습한다. 미세 조정은 과제별 데이터로 사전학습 가중치를 갱신하여 이 표현을 특정 과제에 적응시킨다. 일반적인 언어 이해가 여러 과제로 전이되기 때문에 잘 동작한다. 이 환원은 다음 경우에 실패한다. (1) 사전학습 데이터에 없는 어휘를 쓰는 고도로 전문화된 영역(예: 고대 언어, 특수한 과학 표기). (2) 언어 모델링이 포착하지 못하는 구조적 추론이 필요한 과제(예: 정밀한 수학 계산). (3) 사전학습 데이터와 목표 데이터 사이의 분포 이동이 너무 큰 경우.
+
+---
+
+**연습문제 3.**
+문제 $A$가 문제 $B$로 다항 시간에 환원되고 $B$가 다항 시간에 풀린다면, $A$도 다항 시간에 풀림을 증명하라.
+
+??? success "연습문제 3 풀이"
+    환원이 $O(n^k)$ 시간에 수행되어 크기 $n$인 $A$의 사례를 크기 최대 $O(n^k)$인 $B$의 사례로 변환한다고 하자(출력이 실행 시간을 넘을 수 없으므로). $B$가 입력 크기 $m$에 대해 $O(m^j)$ 시간에 풀린다고 하자. 그러면 $A$를 푸는 데는 $O(n^k)$에 변환하고 $O((n^k)^j) = O(n^{kj})$에 $B$를 푼다. 총합은 $O(n^k + n^{kj}) = O(n^{kj})$이며 이는 다항식이다. $\square$
+
+---
+
+**연습문제 4.**
+임베딩 기반 검색은 이미지 검색을 유클리드 공간에서의 최근접 이웃 탐색으로 환원한다. 이 환원이 효과적이려면 임베딩 함수 $\phi$가 어떤 성질을 만족해야 하는가?
+
+??? success "연습문제 4 풀이"
+    임베딩 $\phi$는 다음을 만족해야 한다. (1) **의미 보존**: (과제 관점에서) 비슷한 이미지는 가까운 점으로 대응되어야 한다. $\text{sim}(x, x')$가 크면 $\|\phi(x) - \phi(x')\|$가 작아야 한다. (2) **비유사성 보존**: 다른 이미지는 먼 점으로 대응되어야 한다. (3) **낮은 차원**: 효율적인 최근접 이웃 탐색(KD 트리, 근사 방법)이 가능할 만큼 임베딩 공간의 차원이 낮아야 한다. (4) **매끄러움**: 입력의 작은 교란은 임베딩의 작은 변화를 낳아야 한다(강건성). 이 성질들은 임베딩 거리를 직접 최적화하는 대조 손실(예: 삼중항 손실, InfoNCE)을 통해 학습 과정에서 유도된다.
+
+---
+
+**연습문제 5.**
+어떤 다중 과제 학습 설정이 하나의 모델을 분류, 회귀, 분할이라는 세 과제로 동시에 학습시킨다. 각 과제가 어떻게 공유 특징 추출 문제로 환원되는지 설명하고, 이 공유 환원이 성능에 도움이 되는 조건과 해가 되는 조건을 논하라.
+
+??? success "연습문제 5 풀이"
+    세 과제 모두 특징을 추출하는 공통 백본(인코더)을 공유하고 과제별 헤드를 둔다. 분류에는 선형 층, 스칼라 출력에는 회귀 헤드, 분할에는 디코더를 쓴다. 각 과제는 "백본이 준 특징으로 특정 과제를 풀어라"로 환원된다. 다음 경우에 도움이 된다. 과제들이 공통 시각 특징(에지, 질감)을 공유할 때, 공유 표현이 암묵적 정칙화(더 많은 경사 신호)를 제공할 때, 개별 과제의 데이터가 부족할 때. 다음 경우에 해가 된다. 과제들이 충돌할 때(한 과제의 경사가 다른 과제에 해로운 방향으로 특징을 밀어낼 때), 과제 난이도가 불균형할 때(쉬운 과제가 학습을 지배), 과제들이 근본적으로 다른 특징을 요구할 때(분할에는 저수준, 분류에는 고수준 특징).

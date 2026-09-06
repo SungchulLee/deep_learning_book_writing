@@ -1,124 +1,100 @@
-# Point-in-Polygon Test
+# 다각형 안 점 살피기
 
-Given a polygon and a query point, does the point lie inside or outside
-the polygon? This question arises constantly in computer graphics (hit
-testing), geographic information systems (geo-fencing), and robotics
-(collision detection). The classic solution is the **ray casting algorithm**:
-shoot a ray from the query point in any direction and count how many times
-it crosses the polygon boundary. An odd count means inside; an even count
-means outside.
+다각형과 물음 점이 주어질 때 그 점은 다각형 안에 있는가 밖에 있는가? 이 물음은 셈틀 그림(맞음 살피기), 땅 앎 얼개(땅 울타리), 사람틀(부딪힘 알아내기)에서 늘 나온다. 옛부터의 풀이는 **빛살 쏘기 알고리즘**이다. 곧 물음 점에서 아무 방향으로 빛살을 쏘고 다각형 가장자리를 몇 번 가로지르는지 센다. 홀수이면 안, 짝수이면 밖이다.
 
-## The Ray Casting Algorithm
+## 빛살 쏘기 알고리즘
 
-The idea rests on the Jordan Curve Theorem: every simple closed curve
-divides the plane into an interior and an exterior. A ray from an exterior
-point crosses the boundary an even number of times (possibly zero), while
-a ray from an interior point crosses an odd number of times.
+이 생각은 조르당 곡선 정리에 기댄다. 곧 모든 단순 닫힌 곡선은 평면을 안과 밖으로 가른다. 바깥 점에서 나온 빛살은 가장자리를 짝수 번(0번일 수도 있다) 가로지르고, 안쪽 점에서 나온 빛살은 홀수 번 가로지른다.
 
-### Algorithm Steps
+### 알고리즘 걸음
 
-1. Cast a horizontal ray from the query point $Q = (q_x, q_y)$ toward $+\infty$.
-2. For each edge $\overline{P_i P_{i+1}}$ of the polygon, check whether the
-   ray crosses this edge.
-3. Count crossings. If the count is odd, $Q$ is inside; otherwise, outside.
+1. 물음 점 $Q = (q_x, q_y)$에서 $+\infty$ 쪽으로 가로 빛살을 쏜다.
+2. 다각형의 모서리 $\overline{P_i P_{i+1}}$마다 빛살이 이 모서리를 가로지르는지 살핀다.
+3. 가로지름을 센다. 홀수이면 $Q$은 안이고 아니면 밖이다.
 
-### Edge Crossing Condition
+### 모서리 가로지름 조건
 
-The horizontal ray from $Q$ crosses edge $\overline{P_i P_{i+1}}$ when:
+$Q$에서 나온 가로 빛살이 모서리 $\overline{P_i P_{i+1}}$을 가로지르는 때는 다음과 같다.
 
-1. The edge straddles the horizontal line $y = q_y$, meaning one endpoint
-   is above $q_y$ and the other is at or below $q_y$.
-2. The intersection of the edge with $y = q_y$ has $x$-coordinate greater
-   than $q_x$.
+1. 모서리가 가로선 $y = q_y$을 걸터탄다. 곧 한 끝점은 $q_y$ 위에 있고 다른 끝점은 $q_y$이거나 그 아래에 있다.
+2. 모서리와 $y = q_y$의 만남점의 $x$자리값이 $q_x$보다 크다.
 
-The $x$-coordinate of the intersection is computed by linear interpolation:
+만남점의 $x$자리값은 선형 사이 메우기로 셈한다.
 
 $$
 x_{\text{int}} = P_{i,x} + \frac{q_y - P_{i,y}}{P_{i+1,y} - P_{i,y}} \cdot (P_{i+1,x} - P_{i,x})
 $$
 
-## Handling Edge Cases
+## 가장자리 경우 다루기
 
-!!! warning "Degenerate Cases"
-    The ray may pass through a vertex or run along an edge. The standard
-    fix is the "endpoint convention": count an edge as crossed only if
-    its lower endpoint is strictly below the ray and its upper endpoint
-    is at or above the ray. This ensures each vertex is counted exactly
-    once.
+!!! warning "찌그러진 경우"
+    빛살이 꼭짓점을 지나거나 모서리를 따라 흐를 수 있다. 흔한 손질은 "끝점 약속"이다. 곧 아래 끝점이 빛살보다 엄격히 아래에 있고 위 끝점이 빛살이거나 그 위에 있을 때만 그 모서리를 가로질렀다고 센다. 그러면 꼭짓점마다 꼭 한 번씩 세어진다.
 
-Specifically, for edge $\overline{P_i P_{i+1}}$:
+자세히는 모서리 $\overline{P_i P_{i+1}}$에 대해:
 
-- If $P_{i,y} \le q_y < P_{i+1,y}$ (edge goes upward across the ray), check crossing.
-- If $P_{i+1,y} \le q_y < P_{i,y}$ (edge goes downward across the ray), check crossing.
-- Otherwise, skip this edge.
+- $P_{i,y} \le q_y < P_{i+1,y}$이면(모서리가 빛살을 가로질러 위로 간다) 가로지름을 살핀다.
+- $P_{i+1,y} \le q_y < P_{i,y}$이면(모서리가 빛살을 가로질러 아래로 간다) 가로지름을 살핀다.
+- 그 밖에는 이 모서리를 건너뛴다.
 
-## Complexity
+## 복잡도
 
-| Operation | Time | Space |
+| 연산 | 시간 | 공간 |
 |---|---|---|
-| Ray casting | $O(n)$ | $O(1)$ |
-| Preprocessing (trapezoidal map) | $O(n \log n)$ build, $O(\log n)$ query | $O(n)$ |
+| 빛살 쏘기 | $O(n)$ | $O(1)$ |
+| 미리 다듬기(사다리꼴 지도) | 세우기 $O(n \log n)$, 묻기 $O(\log n)$ | $O(n)$ |
 
-For a single query, the simple $O(n)$ algorithm is optimal. For many
-queries on the same polygon, preprocessing into a trapezoidal map
-reduces each query to $O(\log n)$.
+물음이 하나라면 단순한 $O(n)$ 알고리즘이 가장 좋다. 같은 다각형에 물음이 많으면 사다리꼴 지도로 미리 다듬어 물음마다 $O(\log n)$으로 줄인다.
 
-## Winding Number Alternative
+## 감김 수 대안
 
-The **winding number** method counts how many times the polygon winds
-around the query point. For a simple polygon, a nonzero winding number
-means inside. The winding number handles self-intersecting polygons
-correctly, whereas ray casting does not.
+**감김 수** 방법은 다각형이 물음 점 둘레를 몇 번 감는지 센다. 단순 다각형에서 감김 수가 0이 아니면 안이다. 감김 수는 스스로 만나는 다각형도 제대로 다루지만 빛살 쏘기는 그러지 못한다.
 
-The winding number for point $Q$ relative to polygon $P_0 P_1 \ldots P_{n-1}$ is:
+다각형 $P_0 P_1 \ldots P_{n-1}$에 대한 점 $Q$의 감김 수는 다음과 같다.
 
 $$
 w = \frac{1}{2\pi} \sum_{i=0}^{n-1} \theta_i
 $$
 
-where $\theta_i$ is the signed angle subtended by edge $\overline{P_i P_{i+1}}$
-at $Q$. In practice, we avoid computing angles by using orientation tests
-and upward/downward crossing rules.
+여기서 $\theta_i$은 모서리 $\overline{P_i P_{i+1}}$이 $Q$에서 마주하는 부호 있는 각이다. 실제로는 방향 살피기와 위아래 가로지름 규칙을 써서 각 셈하기를 피한다.
 
-## Worked Example
+## 풀이 예제
 
-Consider a square with vertices $(0,0)$, $(4,0)$, $(4,4)$, $(0,4)$ and
-query point $Q = (2, 2)$.
+꼭짓점이 $(0,0)$, $(4,0)$, $(4,4)$, $(0,4)$인 정사각형과 물음 점 $Q = (2, 2)$을 보자.
 
-Casting a horizontal ray from $(2,2)$ toward $+\infty$:
+$(2,2)$에서 $+\infty$ 쪽으로 가로 빛살을 쏘면:
 
-| Edge | Straddles $y=2$? | $x_{\text{int}}$ | Crosses ray? |
+| 모서리 | $y=2$을 걸터타는가? | $x_{\text{int}}$ | 빛살을 가로지르는가? |
 |---|---|---|---|
-| $(0,0) \to (4,0)$ | No ($0 \le 2$ and $0 \le 2$) | — | No |
-| $(4,0) \to (4,4)$ | Yes ($0 \le 2 < 4$) | $4$ | Yes ($4 > 2$) |
-| $(4,4) \to (0,4)$ | No ($4 > 2$ and $4 > 2$) | — | No |
-| $(0,4) \to (0,0)$ | Yes ($0 \le 2 < 4$) | $0$ | No ($0 < 2$) |
+| $(0,0) \to (4,0)$ | 아니다($0 \le 2$이고 $0 \le 2$) | — | 아니다 |
+| $(4,0) \to (4,4)$ | 그렇다($0 \le 2 < 4$) | $4$ | 그렇다($4 > 2$) |
+| $(4,4) \to (0,4)$ | 아니다($4 > 2$이고 $4 > 2$) | — | 아니다 |
+| $(0,4) \to (0,0)$ | 그렇다($0 \le 2 < 4$) | $0$ | 아니다($0 < 2$) |
 
-Crossing count = 1 (odd), so $Q = (2,2)$ is **inside**.
+가로지름 수 = 1(홀수)이므로 $Q = (2,2)$은 **안**이다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Point-in-polygon test using the ray casting algorithm.
+빛살 쏘기 알고리즘을 쓴 다각형 안 점 살피기.
 
-Shoots a horizontal ray from the query point and counts edge crossings.
-Odd crossings = inside, even crossings = outside.
+물음 점에서 가로 빛살을 쏘아 모서리 가로지름을 센다.
+홀수 가로지름 = 안, 짝수 가로지름 = 밖.
 """
 
 
-# === Ray Casting ===
+# === 빛살 쏘기 ===
 
 def point_in_polygon(polygon, query):
-    """Test whether a point lies inside a simple polygon.
+    """점이 단순 다각형 안에 있는지 살핀다.
 
-    Args:
-        polygon: list of (x, y) vertices in order.
-        query: (x, y) point to test.
+    인수:
+        polygon: 차례대로 놓인 (x, y) 꼭짓점의 목록.
+        query: 살필 (x, y) 점.
 
-    Returns:
-        True if the point is inside, False otherwise.
-        Points on the boundary may return either value.
+    반환값:
+        점이 안에 있으면 True, 아니면 False.
+        가장자리 위의 점은 어느 값이든 돌려줄 수 있다.
     """
     qx, qy = query
     n = len(polygon)
@@ -129,9 +105,9 @@ def point_in_polygon(polygon, query):
         xi, yi = polygon[i]
         xj, yj = polygon[j]
 
-        # Check if edge straddles the horizontal ray
+        # 모서리가 가로 빛살을 걸터타는지 살핀다
         if (yi > qy) != (yj > qy):
-            # Compute x-coordinate of intersection
+            # 만남점의 x자리값을 셈한다
             x_int = xj + (qy - yj) / (yi - yj) * (xi - xj)
             if qx < x_int:
                 inside = not inside
@@ -141,13 +117,13 @@ def point_in_polygon(polygon, query):
     return inside
 
 
-# === Winding Number ===
+# === 감김 수 ===
 
 def winding_number(polygon, query):
-    """Compute the winding number of a polygon around a point.
+    """점 둘레로 다각형이 감긴 수를 셈한다.
 
-    Returns:
-        The winding number (nonzero means inside for simple polygons).
+    반환값:
+        감김 수(단순 다각형에서 0이 아니면 안이다).
     """
     qx, qy = query
     n = len(polygon)
@@ -159,13 +135,13 @@ def winding_number(polygon, query):
 
         if yi <= qy:
             if yj > qy:
-                # Upward crossing
+                # 위로 가로지름
                 cross = (xj - xi) * (qy - yi) - (qx - xi) * (yj - yi)
                 if cross > 0:
                     wn += 1
         else:
             if yj <= qy:
-                # Downward crossing
+                # 아래로 가로지름
                 cross = (xj - xi) * (qy - yi) - (qx - xi) * (yj - yi)
                 if cross < 0:
                     wn -= 1
@@ -173,10 +149,10 @@ def winding_number(polygon, query):
     return wn
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Square polygon
+    # 정사각형 다각형
     square = [(0, 0), (4, 0), (4, 4), (0, 4)]
 
     test_points = [(2, 2), (5, 2), (0, 0), (4, 2)]
@@ -185,7 +161,7 @@ if __name__ == "__main__":
         wn = winding_number(square, pt)
         print(f"Point {pt}: ray_cast={rc}, winding={wn}")
 
-    # L-shaped polygon
+    # ㄴ 모양 다각형
     l_shape = [(0, 0), (2, 0), (2, 1), (1, 1), (1, 2), (0, 2)]
     print(f"\nL-shaped polygon: {l_shape}")
     for pt in [(0.5, 0.5), (1.5, 1.5), (0.5, 1.5)]:
@@ -193,7 +169,7 @@ if __name__ == "__main__":
         print(f"Point {pt}: inside={rc}")
 ```
 
-**Output:**
+**출력:**
 ```
 Point (2, 2): ray_cast=True, winding=1
 Point (5, 2): ray_cast=False, winding=0
@@ -206,7 +182,39 @@ Point (1.5, 1.5): inside=False
 Point (0.5, 1.5): inside=True
 ```
 
-## Reference
+## 참고 문헌
 
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.
 - O'Rourke, J. *Computational Geometry in C*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+다각형 안 점 살피기의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    다각형 안 점 살피기은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 다각형 안 점 살피기을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+다각형 안 점 살피기은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+다각형 안 점 살피기을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 다각형 안 점 살피기은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

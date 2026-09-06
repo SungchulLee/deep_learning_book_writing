@@ -1,22 +1,17 @@
-# Mask R-CNN
+# 마스크 R-CNN
+## 학습 목표
 
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+- 마스크 R-CNN의 얼개를 더 빠른 R-CNN의 넓힘으로 이해한다
+- 정확한 화소 수준 마스크를 내놓는 데 RoI Align이 하는 몫을 설명한다
+- 마스크 어림 머리와 마스크 전용 손실 함수를 짠다
+- 미리 익힌 마스크 R-CNN을 낱 물체 나누기 미룸에 쓴다
+- 마스크 R-CNN과 한 단계 낱 물체 나누기 대안을 가린다
 
-## Learning Objectives
+## 더 빠른 R-CNN에서 마스크 R-CNN으로
 
-By the end of this section, you will be able to:
-
-- Understand Mask R-CNN's architecture as an extension of Faster R-CNN
-- Explain the role of RoI Align in producing accurate pixel-level masks
-- Implement mask prediction heads and mask-specific loss functions
-- Use pre-trained Mask R-CNN for instance segmentation inference
-- Distinguish Mask R-CNN from one-stage instance segmentation alternatives
-
-## From Faster R-CNN to Mask R-CNN
-
-Mask R-CNN (He et al., 2017) extends Faster R-CNN by adding a parallel **mask prediction branch** alongside the existing bounding box and classification heads. The key insight is that instance segmentation can be decomposed into detection (bounding box + class) plus per-instance binary mask prediction.
+마스크 R-CNN(He 외, 2017)은 이미 있던 두름 상자 머리와 갈래 매기기 머리 곁에 나란한 **마스크 어림 가지**를 더해 더 빠른 R-CNN을 넓힌다. 핵심 눈썰미는 낱 물체 나누기를 알아내기(두름 상자 + 갈래)와 낱 물체마다의 두 갈래 마스크 어림으로 쪼갤 수 있다는 것이다.
 
 ```
 Input Image
@@ -47,19 +42,19 @@ Input Image
 └─────────┘  └─────────┘
 ```
 
-### RoI Align: The Critical Innovation
+### RoI Align: 결정적인 새로움
 
-Standard RoI Pooling (from Fast R-CNN) introduces spatial misalignment through quantization—rounding floating-point RoI coordinates to integer grid positions. For bounding box regression, this coarse alignment is acceptable. For pixel-level mask prediction, it causes significant degradation.
+(빠른 R-CNN의) 보통 RoI 모으기는 자리를 양자화하면서, 곧 뜬소수점 RoI 자리표를 정수 격자 자리로 반올림하면서 어긋남을 낳는다. 두름 상자 되돌리기에는 이 거친 맞춤도 봐줄 만하다. 그러나 화소 수준 마스크 어림에서는 크게 나빠진다.
 
-**RoI Align** eliminates quantization entirely by using bilinear interpolation to compute exact feature values at non-integer locations:
+**RoI Align**은 정수가 아닌 자리에서 두 줄 사이 끼움으로 정확한 특징 값을 셈해 양자화를 아예 없앤다:
 
 $$\text{RoI Pool}: \text{round}(x / \text{stride}) \rightarrow \text{integer grid}$$
 
 $$\text{RoI Align}: \text{bilinear\_interpolate}(x / \text{stride}) \rightarrow \text{exact position}$$
 
-This seemingly small change improves mask AP by 1–3 points on COCO.
+사소해 보이는 이 바뀜이 COCO에서 마스크 AP를 1~3점 올린다.
 
-## Mask Head Architecture
+## 마스크 머리 얼개
 
 The mask head is a small FCN that predicts a binary mask for each detected instance. It operates on the RoI-aligned features and predicts a fixed-size mask (typically $28 \times 28$ or $14 \times 14$) per class:
 
@@ -69,20 +64,20 @@ import torch.nn as nn
 
 class MaskHead(nn.Module):
     """
-    Mask prediction head for Mask R-CNN.
+    마스크 R-CNN의 마스크 어림 머리.
     
-    Takes RoI-aligned features and predicts per-class binary masks.
+    RoI로 맞춘 특징을 받아 갈래마다 두 갈래 마스크를 어림한다.
     
-    Args:
-        in_channels: Input feature channels (from RoI Align)
-        num_classes: Number of object classes
-        mask_size: Output mask resolution (default: 28×28)
+    인수:
+        in_channels: 들임 특징 채널(RoI Align에서 옴)
+        num_classes: 물체 갈래의 개수
+        mask_size: 내놓는 마스크 해상도(붙박이: 28×28)
     """
     def __init__(self, in_channels: int = 256, num_classes: int = 80, 
                  mask_size: int = 28):
         super().__init__()
         
-        # Four 3×3 convolutions (standard Mask R-CNN design)
+        # 3×3 누비기 4개(보통의 마스크 R-CNN 꾸밈)
         self.conv_layers = nn.Sequential(
             nn.Conv2d(in_channels, 256, 3, padding=1), nn.ReLU(inplace=True),
             nn.Conv2d(256, 256, 3, padding=1), nn.ReLU(inplace=True),
@@ -90,48 +85,48 @@ class MaskHead(nn.Module):
             nn.Conv2d(256, 256, 3, padding=1), nn.ReLU(inplace=True),
         )
         
-        # Upsample 2× via transposed convolution
+        # 뒤바꾼 누비기로 2배 키우기
         self.deconv = nn.ConvTranspose2d(256, 256, kernel_size=2, stride=2)
         self.relu = nn.ReLU(inplace=True)
         
-        # Per-class mask prediction (K binary masks, one per class)
+        # 갈래마다 마스크 어림(갈래마다 하나씩 두 갈래 마스크 K개)
         self.mask_pred = nn.Conv2d(256, num_classes, kernel_size=1)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Args:
-            x: RoI-aligned features (N, C, mask_size/2, mask_size/2)
+        인수:
+            x: RoI로 맞춘 특징 (N, C, mask_size/2, mask_size/2)
         
-        Returns:
-            Per-class mask logits (N, num_classes, mask_size, mask_size)
+        반환값:
+            갈래마다의 마스크 로짓 (N, num_classes, mask_size, mask_size)
         """
         x = self.conv_layers(x)
         x = self.relu(self.deconv(x))
         return self.mask_pred(x)
 ```
 
-### Mask Loss
+### 마스크 손실
 
-Mask R-CNN uses **per-pixel binary cross-entropy** loss, but only for the mask corresponding to the ground-truth class. This decouples mask prediction from classification—the mask head does not need to compete across classes:
+마스크 R-CNN은 **화소마다의 두 갈래 엇갈린 엔트로피** 손실을 쓰되 참값 갈래에 딸린 마스크에만 쓴다. 이러면 마스크 어림이 갈래 매기기에서 떨어져 나와 마스크 머리가 갈래끼리 다툴 필요가 없다:
 
 $$\mathcal{L}_{\text{mask}} = -\frac{1}{m^2} \sum_{i,j} \left[ y_{ij} \log \hat{y}_{ij}^{(k)} + (1 - y_{ij}) \log(1 - \hat{y}_{ij}^{(k)}) \right]$$
 
-where $k$ is the ground-truth class for the instance and $m$ is the mask resolution.
+여기서 $k$은 그 낱 물체의 참값 갈래이고 $m$은 마스크 해상도이다.
 
 ```python
 def mask_rcnn_loss(mask_logits: torch.Tensor, gt_masks: torch.Tensor, 
                    gt_labels: torch.Tensor) -> torch.Tensor:
     """
-    Compute Mask R-CNN mask loss.
+    마스크 R-CNN의 마스크 손실을 셈한다.
     
-    Only the mask for the ground-truth class contributes to the loss.
+    참값 갈래의 마스크만 손실에 보태진다.
     
-    Args:
-        mask_logits: Predicted masks (N, K, m, m)
-        gt_masks: Ground-truth binary masks (N, m, m)
-        gt_labels: Ground-truth class labels (N,)
+    인수:
+        mask_logits: 어림한 마스크 (N, K, m, m)
+        gt_masks: 참값 두 갈래 마스크 (N, m, m)
+        gt_labels: 참값 갈래 이름표 (N,)
     """
-    # Select mask for ground-truth class
+    # 참값 갈래의 마스크 고르기
     N = mask_logits.shape[0]
     indices = torch.arange(N, device=mask_logits.device)
     selected_masks = mask_logits[indices, gt_labels]  # (N, m, m)
@@ -141,15 +136,15 @@ def mask_rcnn_loss(mask_logits: torch.Tensor, gt_masks: torch.Tensor,
     )
 ```
 
-### Multi-Task Loss
+### 여러 일 손실
 
-The complete Mask R-CNN loss combines three terms:
+온전한 마스크 R-CNN 손실은 세 항을 아우른다:
 
 $$\mathcal{L} = \mathcal{L}_{\text{cls}} + \mathcal{L}_{\text{box}} + \mathcal{L}_{\text{mask}}$$
 
-Each head operates independently on the same RoI features, and the mask loss only applies to positive (matched) proposals.
+머리마다 같은 RoI 특징 위에서 서로 얽히지 않고 돌아가며, 마스크 손실은 양성(짝지어진) 제안에만 걸린다.
 
-## Using Pre-trained Mask R-CNN
+## 미리 익힌 마스크 R-CNN 쓰기
 
 ```python
 import torchvision
@@ -157,14 +152,14 @@ from torchvision.models.detection import maskrcnn_resnet50_fpn
 
 def load_and_run_maskrcnn(image: torch.Tensor, threshold: float = 0.5):
     """
-    Run pre-trained Mask R-CNN on an input image.
+    들임 그림에 미리 익힌 마스크 R-CNN을 돌린다.
     
-    Args:
-        image: Input tensor (3, H, W), values in [0, 1]
-        threshold: Confidence threshold for detections
+    인수:
+        image: 들임 텐서 (3, H, W), 값은 [0, 1]
+        threshold: 알아냄의 믿음도 문턱값
     
-    Returns:
-        Filtered predictions with boxes, labels, scores, and masks
+    반환값:
+        상자, 이름표, 점수, 마스크를 담아 거른 어림
     """
     model = maskrcnn_resnet50_fpn(pretrained=True)
     model.eval()
@@ -175,14 +170,14 @@ def load_and_run_maskrcnn(image: torch.Tensor, threshold: float = 0.5):
     keep = predictions['scores'] > threshold
     
     return {
-        'boxes': predictions['boxes'][keep],       # (N, 4) xyxy format
-        'labels': predictions['labels'][keep],     # (N,) class indices
-        'scores': predictions['scores'][keep],     # (N,) confidence
-        'masks': predictions['masks'][keep] > 0.5  # (N, 1, H, W) binary masks
+        'boxes': predictions['boxes'][keep],       # (N, 4) xyxy 꼴
+        'labels': predictions['labels'][keep],     # (N,) 갈래 번호
+        'scores': predictions['scores'][keep],     # (N,) 믿음도
+        'masks': predictions['masks'][keep] > 0.5  # (N, 1, H, W) 두 갈래 마스크
     }
 ```
 
-### Fine-tuning for Custom Classes
+### 맞춤 갈래에 맞게 곱게 다듬기
 
 ```python
 from torchvision.models.detection import maskrcnn_resnet50_fpn
@@ -190,14 +185,14 @@ from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection.mask_rcnn import MaskRCNNPredictor
 
 def get_custom_maskrcnn(num_classes: int):
-    """Create Mask R-CNN with custom number of classes."""
+    """갈래 수를 맞춘 마스크 R-CNN을 만든다."""
     model = maskrcnn_resnet50_fpn(pretrained=True)
     
-    # Replace box predictor
+    # 상자 어림개 갈음
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
     
-    # Replace mask predictor
+    # 마스크 어림개 갈음
     in_features_mask = model.roi_heads.mask_predictor.conv5_mask.in_channels
     hidden_layer = 256
     model.roi_heads.mask_predictor = MaskRCNNPredictor(
@@ -207,31 +202,63 @@ def get_custom_maskrcnn(num_classes: int):
     return model
 ```
 
-## Comparison with One-Stage Approaches
+## 한 단계 방식과의 견줌
 
-| Method | Type | Speed (FPS) | Mask AP (COCO) | Use Case |
+| 방법 | 갈래 | 빠르기(초당 틀) | 마스크 AP(COCO) | 쓰임새 |
 |--------|------|-------------|----------------|----------|
-| Mask R-CNN | Two-stage | ~5 | 37.1 | Accuracy-critical |
-| YOLACT | One-stage | ~30 | 29.8 | Real-time |
-| SOLOv2 | One-stage | ~15 | 37.8 | Balanced |
-| PointRend | Refinement | ~5 | 38.3 | High-resolution masks |
+| 마스크 R-CNN | 두 단계 | 약 5 | 37.1 | 정확도가 중요한 곳 |
+| YOLACT | 한 단계 | 약 30 | 29.8 | 실시간 |
+| SOLOv2 | 한 단계 | 약 15 | 37.8 | 균형 |
+| PointRend | 다듬기 | 약 5 | 38.3 | 높은 해상도 마스크 |
 
-Mask R-CNN remains the standard two-stage approach. One-stage methods like YOLACT trade accuracy for speed, while modern approaches like SOLOv2 achieve competitive accuracy without region proposals.
+마스크 R-CNN은 여전히 표준 두 단계 방식이다. YOLACT 같은 한 단계 방법은 정확도를 내주고 빠르기를 얻는 반면, SOLOv2 같은 요즘 방식은 자리 제안 없이도 견줄 만한 정확도를 낸다.
 
-## Summary
+## 요약
 
-Mask R-CNN's key contributions:
+마스크 R-CNN이 이바지한 핵심:
 
-1. **Simple extension**: Adding a mask branch to Faster R-CNN with minimal overhead
-2. **RoI Align**: Eliminating quantization for precise spatial alignment
-3. **Decoupled prediction**: Per-class binary masks avoid inter-class competition
-4. **Multi-task training**: Joint optimization of detection and segmentation
+1. **단순한 넓힘**: 짐을 거의 늘리지 않고 더 빠른 R-CNN에 마스크 가지를 더한다
+2. **RoI Align**: 양자화를 없애 자리를 정밀하게 맞춘다
+3. **떼어 놓은 어림**: 갈래마다의 두 갈래 마스크로 갈래끼리 다투지 않는다
+4. **여러 일 익히기**: 알아내기와 나누기를 함께 가장 좋게 한다
 
-The architecture established instance segmentation as a tractable problem and remains the foundation for modern approaches including Cascade Mask R-CNN and PointRend.
+이 얼개는 낱 물체 나누기를 풀 만한 문제로 세웠으며, Cascade Mask R-CNN과 PointRend를 비롯한 요즘 방식의 바탕으로 남아 있다.
 
-## References
+## 참고 문헌
 
 1. He, K., Gkioxari, G., Dollár, P., & Girshick, R. (2017). Mask R-CNN. ICCV.
 2. Bolya, D., et al. (2019). YOLACT: Real-time Instance Segmentation. ICCV.
 3. Wang, X., et al. (2020). SOLOv2: Dynamic and Fast Instance Segmentation. NeurIPS.
 4. Kirillov, A., et al. (2020). PointRend: Image Segmentation as Rendering. CVPR.
+
+## 연습문제
+
+**연습문제 1.**
+뜻 나누기, 낱 물체 나누기, 온통 나누기의 차이를 설명하여라.
+
+??? success "연습문제 1 풀이"
+    **뜻 나누기**는 화소마다 갈래 이름표를 붙이되 같은 갈래의 서로 다른 낱 물체를 가리지 않는다. **낱 물체 나누기**는 낱낱의 물체를 알아내고 저마다 화소 수준 마스크를 주되 셀 수 있는 "것" 갈래에만 그렇게 한다. **온통 나누기**는 둘을 아우른다. 곧 화소마다 갈래 이름표를 붙이고 것 갈래에는 낱 물체 번호도 매긴다. 보기로 거리 장면에서 뜻 나누기는 모든 차를 "차"로 이름 붙이고, 낱 물체 나누기는 차를 하나하나 가려내며, 온통 나누기는 그 둘을 다 하면서 "길", "하늘" 따위도 이름 붙인다.
+
+---
+
+**연습문제 2.**
+U-넷 얼개를 설명하고 나누기에서 건너뛰는 이음이 왜 중요한지 밝혀라.
+
+??? success "연습문제 2 풀이"
+    U-넷은 오그라드는 부호기 길(누비기와 모으기의 되풀이)과 부풀어 오르는 풀개 길(키우기와 누비기)로 이루어져 U 꼴을 이룬다. **건너뛰는 이음**은 부호기의 특징 지도를 그에 맞는 풀개 켜에 이어 붙인다. 부호기가 *무엇*(뜻 특징)을 담아내면서 *어디*(자리의 세밀함)를 잃기 때문에 이것이 결정적이다. 건너뛰는 이음은 정밀한 화소 수준 어림에 필요한 높은 해상도의 자리 앎을 주어, 풀개가 거친 뜻 앎과 고운 자리 세부를 아우르게 한다.
+
+---
+
+**연습문제 3.**
+그림 나누기에는 어떤 손실 함수가 흔히 쓰이는가? 엇갈린 엔트로피 손실과 다이스 손실을 견주어라.
+
+??? success "연습문제 3 풀이"
+    **Cross-entropy loss** treats each pixel independently: $L_{CE} = -\sum_i y_i \log \hat{y}_i$. It is well-calibrated but can be dominated by the majority class. **Dice loss** measures overlap between predicted and ground-truth masks: $L_{Dice} = 1 - \frac{2|P \cap G|}{|P| + |G|}$. Dice loss directly optimizes the evaluation metric (Dice coefficient) and handles class imbalance better since it weighs all classes equally regardless of pixel count. In practice, a combination $L = \lambda L_{CE} + (1-\lambda) L_{Dice}$ often works best.
+
+---
+
+**연습문제 4.**
+마스크 R-CNN이 낱 물체 나누기를 위해 더 빠른 R-CNN을 어떻게 넓히는지 밝히고 RoIAlign이 하는 몫을 설명하여라.
+
+??? success "연습문제 4 풀이"
+    마스크 R-CNN은 이미 있던 갈래 매기기 가지와 두름 상자 되돌리기 가지 곁에, 알아낸 물체마다 두 갈래 마스크를 어림하는 나란한 가지를 더한다. 핵심 새로움은 RoI 모으기를 갈음하는 **RoIAlign**이다. RoI 모으기는 양자화된 자리표(정수 화소 자리로 반올림)를 써서 특징 지도와 본디 그림 사이가 어긋난다. RoIAlign은 정확한 뜬소수점 자리에서 두 줄 사이 끼움을 써서 양자화 찌꺼기를 없앤다. 이 정밀한 맞춤이 화소 수준 마스크 어림에 결정적이며, RoI 모으기에 견주어 마스크 AP를 상대적으로 10~50% 올린다.

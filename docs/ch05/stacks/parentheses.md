@@ -1,56 +1,56 @@
-# Balanced Parentheses
+# 균형 잡힌 괄호
 
-Compilers, text editors, and configuration parsers all need to verify that opening brackets are correctly matched with closing brackets. A string like `({[]})` is balanced because every opener has a corresponding closer in the right order, while `({[})` is not because the square bracket closes before the curly brace. The stack is the natural data structure for this problem: its LIFO property ensures that the most recent unmatched opener is always on top, ready to be matched against the next closer. This page describes the balanced parentheses algorithm, proves its correctness, and extends it to handle multiple bracket types.
+컴파일러, 편집기, 설정 파서는 모두 여는 괄호가 닫는 괄호와 제대로 맞는지 확인해야 한다. `({[]})` 같은 문자열은 여는 괄호마다 알맞은 순서로 짝이 있으므로 균형 잡혀 있고, `({[})`는 대괄호가 중괄호보다 먼저 닫히므로 그렇지 않다. 이 문제에는 스택이 자연스러운 자료 구조이다. 후입선출 성질 덕분에 짝이 없는 가장 최근의 여는 괄호가 언제나 꼭대기에 있어 다음 닫는 괄호와 맞출 준비가 되어 있다. 이 쪽은 괄호 균형 알고리즘을 설명하고 올바름을 증명하며 여러 종류의 괄호를 다루도록 넓힌다.
 
-## The Algorithm
+## 알고리즘
 
-Given a string containing bracket characters, determine whether all brackets are properly nested and matched.
+괄호 문자가 들어 있는 문자열이 주어졌을 때 모든 괄호가 제대로 중첩되고 짝지어졌는지 판정하라.
 
-1. Initialize an empty stack
-2. For each character in the string:
-    - If it is an **opening bracket** (`(`, `[`, `{`), push it onto the stack
-    - If it is a **closing bracket** (`)`, `]`, `}`):
-        - If the stack is empty, return **unbalanced** (no matching opener)
-        - Pop the top of the stack and check that it matches the closing bracket
-        - If it does not match, return **unbalanced**
-3. After processing all characters, if the stack is empty, the string is **balanced**; otherwise it is **unbalanced** (unmatched openers remain)
+1. 빈 스택을 만든다
+2. 문자열의 각 문자에 대해:
+    - **여는 괄호**(`(`, `[`, `{`)이면 스택에 넣는다
+    - **닫는 괄호**(`)`, `]`, `}`)이면:
+        - 스택이 비어 있으면 **균형이 맞지 않음**을 돌려준다 (짝이 되는 여는 괄호가 없다)
+        - 스택의 꼭대기를 빼서 닫는 괄호와 짝이 맞는지 확인한다
+        - 맞지 않으면 **균형이 맞지 않음**을 돌려준다
+3. 모든 문자를 처리한 뒤 스택이 비어 있으면 문자열은 **균형 잡혀 있고**, 그렇지 않으면 **균형이 맞지 않는다**(짝이 없는 여는 괄호가 남아 있다)
 
-The algorithm runs in $O(n)$ time and $O(n)$ space, where $n$ is the length of the string. Each character is processed exactly once, and each character is pushed and popped at most once.
+문자열의 길이를 $n$이라 할 때 이 알고리즘은 $O(n)$ 시간과 $O(n)$ 공간에 돌아간다. 각 문자는 정확히 한 번 처리되고, 많아야 한 번 들어가고 한 번 나온다.
 
-??? example "Trace: `({[]})`"
-    | Step | Char | Action | Stack |
+??? example "따라가기: `({[]})`"
+    | 단계 | 문자 | 동작 | 스택 |
     |------|------|--------|-------|
-    | 1 | `(` | Push | `(` |
-    | 2 | `{` | Push | `( {` |
-    | 3 | `[` | Push | `( { [` |
-    | 4 | `]` | Pop `[`, matches | `( {` |
-    | 5 | `}` | Pop `{`, matches | `(` |
-    | 6 | `)` | Pop `(`, matches | (empty) |
+    | 1 | `(` | 넣기 | `(` |
+    | 2 | `{` | 넣기 | `( {` |
+    | 3 | `[` | 넣기 | `( { [` |
+    | 4 | `]` | `[`을 빼니 짝이 맞는다 | `( {` |
+    | 5 | `}` | `{`을 빼니 짝이 맞는다 | `(` |
+    | 6 | `)` | `(`을 빼니 짝이 맞는다 | (비어 있음) |
 
-    Stack is empty at the end --- **balanced**.
+    끝에 스택이 비어 있다 — **균형 잡혀 있다**.
 
-??? example "Trace: `({[)}`"
-    | Step | Char | Action | Stack |
+??? example "따라가기: `({[)}`"
+    | 단계 | 문자 | 동작 | 스택 |
     |------|------|--------|-------|
-    | 1 | `(` | Push | `(` |
-    | 2 | `{` | Push | `( {` |
-    | 3 | `[` | Push | `( { [` |
-    | 4 | `)` | Pop `[`, does NOT match `)` | **FAIL** |
+    | 1 | `(` | 넣기 | `(` |
+    | 2 | `{` | 넣기 | `( {` |
+    | 3 | `[` | 넣기 | `( { [` |
+    | 4 | `)` | `[`을 뺐는데 `)`과 짝이 맞지 않는다 | **실패** |
 
-    Mismatch detected --- **unbalanced**.
+    짝이 어긋남을 찾아냈다 — **균형이 맞지 않는다**.
 
-## Implementation
+## 구현
 
 ```python
 """
-Balanced parentheses — check whether brackets are properly matched.
+균형 잡힌 괄호 — 괄호가 제대로 짝지어졌는지 확인한다.
 
-Uses a stack to match each closing bracket with the most recent
-unmatched opening bracket, supporting (, [, and { bracket types.
+스택으로 닫는 괄호마다 짝이 없는 가장 최근의 여는 괄호와 맞추며,
+(, [, { 세 종류를 지원한다.
 """
 
 
-# === Balanced Parentheses Checker =============================================
+# === 괄호 균형 확인기 =============================================
 
 MATCHING = {")": "(", "]": "[", "}": "{"}
 OPENERS = set(MATCHING.values())
@@ -60,8 +60,8 @@ CLOSERS = set(MATCHING.keys())
 def is_balanced(s):
     """Check whether the brackets in string s are balanced.
 
-    Time:  O(n) — single pass through the string.
-    Space: O(n) — stack can hold up to n/2 openers.
+    시간:  O(n) — 문자열을 한 번만 훑는다.
+    공간: O(n) — 스택에 여는 괄호가 최대 n/2개 들어갈 수 있다.
     """
     stack = []
     for i, ch in enumerate(s):
@@ -78,7 +78,7 @@ def is_balanced(s):
     return True, "Balanced"
 
 
-# === Demonstration ============================================================
+# === 시연 ============================================================
 
 if __name__ == "__main__":
     test_cases = [
@@ -101,7 +101,7 @@ if __name__ == "__main__":
         print(f"{display:<35s} {str(balanced):<12s} {detail}")
 ```
 
-**Output:**
+**출력:**
 ```
 Expression                          Balanced?    Detail
 ---------------------------------------------------------------------------
@@ -116,31 +116,64 @@ Expression                          Balanced?    Detail
 'a * (b + c) - [d / {e + f}]'       True         Balanced
 ```
 
-The algorithm correctly identifies balanced and unbalanced strings, providing specific error messages for mismatches and unmatched brackets.
+이 알고리즘은 균형 잡힌 문자열과 그렇지 않은 문자열을 올바르게 가려내며, 짝이 어긋나거나 짝이 없는 괄호에 대해 구체적인 오류 메시지를 준다.
 
-## Correctness
+## 올바름
 
-The algorithm is correct because the stack maintains the following invariant:
+스택이 다음 불변식을 지키므로 이 알고리즘은 올바르다.
 
-!!! info "Stack Invariant"
-    At any point during the scan, the stack contains exactly the unmatched opening brackets, in the order they were encountered. The top of the stack is the most recent unmatched opener.
+!!! info "스택 불변식"
+    훑는 도중 어느 시점에도 스택에는 짝이 없는 여는 괄호가 만난 순서대로 정확히 들어 있다. 스택의 꼭대기는 짝이 없는 가장 최근의 여는 괄호이다.
 
-**Why this guarantees correct matching**: bracket nesting is inherently LIFO. If we encounter `( [ {`, the `{` must be closed before the `[`, and the `[` before the `(`. The stack enforces exactly this order by always matching against the top element.
+**왜 이것이 올바른 짝짓기를 보장하는가**: 괄호의 중첩은 본디 후입선출이다. `( [ {`을 만났다면 `{`이 `[`보다 먼저 닫혀야 하고 `[`은 `(`보다 먼저 닫혀야 한다. 스택은 언제나 꼭대기 원소와 맞추므로 바로 이 순서를 강제한다.
 
-**Completeness**: the algorithm detects all three types of imbalance:
+**빠짐없음**: 이 알고리즘은 세 가지 불균형을 모두 찾아낸다.
 
-1. **Extra closer** --- the stack is empty when a closer arrives
-2. **Mismatched pair** --- the top of the stack does not match the closer
-3. **Extra opener** --- the stack is non-empty after all characters are processed
+1. **닫는 괄호가 남음** — 닫는 괄호가 왔는데 스택이 비어 있다
+2. **짝이 어긋남** — 스택의 꼭대기가 닫는 괄호와 맞지 않는다
+3. **여는 괄호가 남음** — 모든 문자를 처리한 뒤에도 스택이 비어 있지 않다
 
-## Complexity
+## 복잡도
 
 $$
 T(n) = O(n) \quad \text{and} \quad S(n) = O(n)
 $$
 
-The time bound is tight because every character must be examined. The space bound is tight for strings like `(((...(` with $n/2$ or more opening brackets.
+모든 문자를 살펴야 하므로 시간의 한계는 빡빡하다. `(((...(`처럼 여는 괄호가 $n/2$개 이상인 문자열에서는 공간의 한계도 빡빡하다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+균형 잡힌 괄호의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+균형 잡힌 괄호을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+균형 잡힌 괄호을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+균형 잡힌 괄호을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

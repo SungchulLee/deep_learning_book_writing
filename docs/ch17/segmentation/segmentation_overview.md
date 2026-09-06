@@ -1,24 +1,19 @@
-# Segmentation Fundamentals
+# 나누기의 근본
+## 학습 목표
 
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+- 그림 가르기, 물체 알아내기, 뜻 나누기의 근본 차이를 이해한다
+- 화소마다 갈래 매기기와 그것이 셈에 미치는 뜻을 설명한다
+- 부호기-풀개 얼개라는 틀을 설명한다
+- 기본 값매김 잣대(겹침 비, 다이스 계수, 화소 정확도)를 짠다
+- 뜻 나누기의 흔한 쓰임새와 어려움을 알아본다
 
-## Learning Objectives
+## 뜻 나누기 들어가기
 
-By the end of this section, you will be able to:
+뜻 나누기는 셈틀 보기에서 가장 결이 고운 보기 이해 가운데 하나이다. 그림 전체에 이름표 하나를 붙이는 그림 가르기나 두름 상자로 물체 자리를 잡는 물체 알아내기와 달리, 뜻 나누기는 그림의 **화소마다** 미리 정해 둔 갈래를 매긴다.
 
-- Understand the fundamental differences between image classification, object detection, and semantic segmentation
-- Explain pixel-wise classification and its computational implications
-- Describe the encoder-decoder architecture paradigm
-- Implement basic evaluation metrics (IoU, Dice coefficient, pixel accuracy)
-- Recognize common applications and challenges in semantic segmentation
-
-## Introduction to Semantic Segmentation
-
-Semantic segmentation represents one of the most granular forms of visual understanding in computer vision. Unlike image classification, which assigns a single label to an entire image, or object detection, which localizes objects with bounding boxes, semantic segmentation classifies **every pixel** in an image into a predefined category.
-
-### The Hierarchy of Visual Understanding
+### 보기 이해의 층위
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -39,7 +34,7 @@ Semantic segmentation represents one of the most granular forms of visual unders
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-### Mathematical Formulation
+### 수식으로 나타내기
 
 Given an input image $\mathbf{X} \in \mathbb{R}^{H \times W \times C}$ where $H$ is height, $W$ is width, and $C$ is the number of channels (typically 3 for RGB), semantic segmentation produces an output:
 
@@ -47,7 +42,7 @@ $$\mathbf{Y} \in \{0, 1, 2, \ldots, K-1\}^{H \times W}$$
 
 where $K$ is the number of semantic classes. Each pixel $(i, j)$ receives a class label $y_{i,j} \in \{0, 1, \ldots, K-1\}$.
 
-In practice, neural networks output a probability distribution over classes for each pixel:
+실전에서 신경망은 화소마다 갈래에 대한 확률 분포를 내놓는다:
 
 $$\mathbf{\hat{Y}} \in [0, 1]^{H \times W \times K}$$
 
@@ -55,35 +50,36 @@ where $\hat{y}_{i,j,k}$ represents the probability that pixel $(i, j)$ belongs t
 
 $$y_{i,j} = \arg\max_k \hat{y}_{i,j,k}$$
 
-## Pixel-wise Classification
+## 화소마다 갈래 매기기
 
-### Conceptual Framework
+### 생각의 얼거리
 
-Semantic segmentation can be viewed as performing image classification at each pixel location. However, this naive approach—applying a classifier independently to each pixel—would be computationally prohibitive and would ignore crucial spatial context.
+뜻 나누기는 화소 자리마다 그림 가르기를 하는 일로 볼 수 있다. 그러나 화소마다 갈래 매개를 따로 돌리는 이 막무가내 방식은 셈이 감당하기 어렵고 결정적인 자리 맥락을 놓친다.
 
 Consider an image of size $512 \times 512$:
-- Total pixels: $262,144$
-- Each pixel requires context from surrounding regions
-- Independent classification would miss spatial relationships
 
-### The Receptive Field Problem
+- 전체 화소: $262,144$
+- 화소마다 둘레 자리의 맥락이 필요하다
+- 따로 갈래를 매기면 자리 관계를 놓친다
 
-A key challenge in pixel-wise classification is ensuring each pixel has access to sufficient context. The **receptive field** of a neuron defines the region of the input image that influences its activation.
+### 받는 자리 문제
+
+화소마다 갈래 매기기의 핵심 어려움은 화소마다 넉넉한 맥락을 얻게 하는 것이다. 신경 세포의 **받는 자리**란 그 깨어남에 영향을 주는 들임 그림의 자리를 뜻한다.
 
 ```python
 import torch
 import torch.nn as nn
 
-# Naive per-pixel classifier (illustrative - not practical)
+# 막무가내 화소별 갈래 매개(설명용이며 실전용 아님)
 class NaivePixelClassifier(nn.Module):
     """
-    Demonstrates why per-pixel classification is impractical.
-    Each pixel only sees a small local patch.
+    화소마다 갈래를 매기는 것이 왜 실전에 맞지 않는지 보여 준다.
+    화소마다 작은 이웃 조각만 본다.
     """
     def __init__(self, num_classes, patch_size=3):
         super().__init__()
         self.patch_size = patch_size
-        # Flatten patch and classify
+        # 조각을 펴서 갈래 매기기
         self.classifier = nn.Sequential(
             nn.Linear(3 * patch_size * patch_size, 64),
             nn.ReLU(),
@@ -91,23 +87,23 @@ class NaivePixelClassifier(nn.Module):
         )
     
     def forward(self, x):
-        # This would be extremely slow and ineffective
-        # because each pixel sees only a 3x3 neighborhood
+        # 이것은 몹시 느리고 쓸모가 없다
+        # 화소마다 3x3 이웃만 보기 때문이다
         pass
 ```
 
-Modern segmentation networks solve this through:
+요즘 나누기 그물은 이를 다음으로 푼다:
 
-1. **Encoder networks** that progressively expand receptive fields
-2. **Skip connections** that preserve spatial detail
-3. **Dilated/atrous convolutions** for efficient receptive field expansion
-4. **Multi-scale processing** for capturing objects at different sizes
+1. 받는 자리를 차츰 넓히는 **부호기 그물**
+2. 자리의 세밀함을 지키는 **건너뛰는 이음**
+3. 받는 자리를 효율적으로 넓히는 **벌린/구멍 뚫린 누비기**
+4. 크기가 다른 물체를 담아내는 **여러 잣수 다루기**
 
-## Encoder-Decoder Architecture
+## 부호기-풀개 얼개
 
-The encoder-decoder architecture is the foundational paradigm for semantic segmentation. It addresses the fundamental trade-off between semantic understanding (what) and spatial localization (where).
+부호기-풀개 얼개는 뜻 나누기의 바탕이 되는 틀이다. 이는 뜻 이해(무엇)와 자리 잡기(어디) 사이의 근본 맞바꿈을 다룬다.
 
-### Architecture Overview
+### 구조 훑어보기
 
 ```
 Input Image (H×W×3)
@@ -134,59 +130,62 @@ Input Image (H×W×3)
 Output Mask (H×W×K)
 ```
 
-### The Information Flow
+### 앎의 흐름
 
-**Encoder (Contracting Path):**
-- Progressive downsampling via pooling or strided convolutions
-- Captures increasingly abstract and semantic features
-- Expands receptive field to understand global context
+**부호기(오그라드는 길):**
+
+- 모으기나 성큼 누비기로 차츰 줄여 뽑기
+- 갈수록 추상적이고 뜻이 담긴 특징을 담아낸다
+- 받는 자리를 넓혀 전체 맥락을 이해한다
 - Typical progression: $H \times W \rightarrow H/2 \times W/2 \rightarrow H/4 \times W/4 \rightarrow \ldots$
 
-**Bottleneck:**
-- Most compressed representation
-- Contains rich semantic information
-- Largest receptive field—can "see" the entire image
-- Limited spatial detail
+**병목:**
 
-**Decoder (Expanding Path):**
-- Progressive upsampling via transposed convolutions or interpolation
-- Recovers spatial resolution
-- Combines high-level semantics with low-level details
-- Produces dense, pixel-wise predictions
+- 가장 눌러 담은 나타냄
+- 뜻이 풍부하게 담겨 있다
+- 받는 자리가 가장 넓다. 곧 그림 전체를 "볼" 수 있다
+- 자리의 세밀함은 적다
 
-### Skip Connections: Bridging the Information Gap
+**풀개(부풀어 오르는 길):**
 
-A critical innovation in segmentation architectures is the use of **skip connections** that directly connect encoder layers to corresponding decoder layers.
+- 뒤바꾼 누비기나 사이 끼움으로 차츰 키우기
+- 자리 해상도를 되찾는다
+- 높은 수준의 뜻과 낮은 수준의 세부를 아우른다
+- 촘촘한 화소마다의 어림을 내놓는다
+
+### 건너뛰는 이음: 앎의 틈 잇기
+
+나누기 얼개의 결정적인 새로움은 부호기 층을 그에 맞는 풀개 층에 곧바로 잇는 **건너뛰는 이음**을 쓰는 것이다.
 
 ```python
 class EncoderDecoderWithSkips(nn.Module):
     """
-    Simplified encoder-decoder demonstrating skip connections.
+    건너뛰는 이음을 보여 주는 간추린 부호기-풀개.
     """
     def __init__(self, in_channels=3, num_classes=21):
         super().__init__()
         
-        # Encoder blocks
+        # 인코더 블록
         self.enc1 = self._conv_block(in_channels, 64)
         self.enc2 = self._conv_block(64, 128)
         self.enc3 = self._conv_block(128, 256)
         
         self.pool = nn.MaxPool2d(2, 2)
         
-        # Bottleneck
+        # 병목
         self.bottleneck = self._conv_block(256, 512)
         
-        # Decoder blocks (note: input channels doubled due to skip connections)
+        # 풀개 덩이(건너뛰는 이음 탓에 들임 채널이 두 배임에 유의)
         self.up3 = nn.ConvTranspose2d(512, 256, kernel_size=2, stride=2)
-        self.dec3 = self._conv_block(512, 256)  # 256 from up + 256 from skip
+        self.dec3 = self._conv_block(512, 256)  # 키우기에서 256 + 건너뛰기에서 256
         
         self.up2 = nn.ConvTranspose2d(256, 128, kernel_size=2, stride=2)
-        self.dec2 = self._conv_block(256, 128)  # 128 from up + 128 from skip
+        self.dec2 = self._conv_block(256, 128)  # 키우기에서 128 + 건너뛰기에서 128
         
         self.up1 = nn.ConvTranspose2d(128, 64, kernel_size=2, stride=2)
-        self.dec1 = self._conv_block(128, 64)   # 64 from up + 64 from skip
+        self.dec1 = self._conv_block(128, 64)   # 키우기에서 64 + 건너뛰기에서 64
         
-        # Final classification layer
+        # 마지막 갈래 매기기 층
         self.final = nn.Conv2d(64, num_classes, kernel_size=1)
     
     def _conv_block(self, in_ch, out_ch):
@@ -200,73 +199,74 @@ class EncoderDecoderWithSkips(nn.Module):
         )
     
     def forward(self, x):
-        # Encoder with feature storage for skip connections
-        e1 = self.enc1(x)           # Store for skip
+        # 건너뛰는 이음에 쓸 특징을 갈무리하는 부호기
+        e1 = self.enc1(x)           # 건너뛰기에 쓰려 갈무리
         x = self.pool(e1)
         
-        e2 = self.enc2(x)           # Store for skip
+        e2 = self.enc2(x)           # 건너뛰기에 쓰려 갈무리
         x = self.pool(e2)
         
-        e3 = self.enc3(x)           # Store for skip
+        e3 = self.enc3(x)           # 건너뛰기에 쓰려 갈무리
         x = self.pool(e3)
         
-        # Bottleneck
+        # 병목
         x = self.bottleneck(x)
         
-        # Decoder with skip connections
+        # 건너뛰는 이음을 갖춘 풀개
         x = self.up3(x)
-        x = torch.cat([x, e3], dim=1)  # Skip connection: concatenate
+        x = torch.cat([x, e3], dim=1)  # 건너뛰는 이음: 이어 붙이기
         x = self.dec3(x)
         
         x = self.up2(x)
-        x = torch.cat([x, e2], dim=1)  # Skip connection
+        x = torch.cat([x, e2], dim=1)  # 건너뛰는 이음
         x = self.dec2(x)
         
         x = self.up1(x)
-        x = torch.cat([x, e1], dim=1)  # Skip connection
+        x = torch.cat([x, e1], dim=1)  # 건너뛰는 이음
         x = self.dec1(x)
         
         return self.final(x)
 ```
 
-**Why Skip Connections Matter:**
+**건너뛰는 이음이 중요한 까닭:**
 
-1. **Gradient flow**: Direct paths for gradients during backpropagation
-2. **Detail preservation**: Low-level features (edges, textures) preserved
-3. **Multi-scale information**: Combines features at different resolutions
-4. **Training stability**: Easier optimization of deep networks
+1. **기울기 흐름**: 뒤로 퍼뜨리기 동안 기울기가 지나는 곧은 길
+2. **세부 지키기**: 낮은 수준의 특징(테두리, 결)이 지켜진다
+3. **여러 잣수 앎**: 해상도가 다른 특징을 아우른다
+4. **익히기의 든든함**: 깊은 그물을 가장 좋게 하기가 쉬워진다
 
-## Evaluation Metrics
+## 평가 지표
 
-### Intersection over Union (IoU / Jaccard Index)
+### 겹침 비(IoU / 자카드 지수)
 
-IoU is the standard metric for segmentation evaluation. It measures the overlap between predicted and ground truth regions.
+겹침 비는 나누기 값매김의 표준 잣대이다. 어림한 자리와 참값 자리 사이의 겹침을 잰다.
 
 $$\text{IoU} = \frac{|A \cap B|}{|A \cup B|} = \frac{TP}{TP + FP + FN}$$
 
-where:
-- $TP$ (True Positives): Correctly predicted foreground pixels
-- $FP$ (False Positives): Background pixels incorrectly predicted as foreground
-- $FN$ (False Negatives): Foreground pixels incorrectly predicted as background
+여기서 각 기호는 다음과 같다.
+
+- $TP$(참양성): 올바로 어림한 앞바탕 화소
+- $FP$(헛양성): 앞바탕으로 잘못 어림한 뒷바탕 화소
+- $FN$(헛음성): 뒷바탕으로 잘못 어림한 앞바탕 화소
 
 ```python
 def calculate_iou(pred: torch.Tensor, target: torch.Tensor, 
                   num_classes: int, ignore_index: int = 255) -> dict:
     """
-    Calculate IoU for each class and mean IoU.
+    갈래마다의 겹침 비와 평균 겹침 비를 셈한다.
     
-    Args:
-        pred: Predicted class labels (B, H, W)
-        target: Ground truth labels (B, H, W)
-        num_classes: Number of classes
-        ignore_index: Index to ignore (e.g., boundary pixels)
+    인수:
+        pred: 어림한 갈래 이름표 (B, H, W)
+        target: 참값 이름표 (B, H, W)
+        num_classes: 갈래의 개수
+        ignore_index: 무시할 번호(보기로 테두리 화소)
     
-    Returns:
-        Dictionary with per-class IoU and mIoU
+    반환값:
+        갈래별 겹침 비와 평균 겹침 비를 담은 사전
     """
     ious = {}
     
-    # Create mask for valid pixels
+    # 쓸 수 있는 화소의 마스크 만들기
     valid_mask = (target != ignore_index)
     
     for cls in range(num_classes):
@@ -279,22 +279,22 @@ def calculate_iou(pred: torch.Tensor, target: torch.Tensor,
         if union > 0:
             ious[cls] = (intersection / union).item()
         else:
-            ious[cls] = float('nan')  # Class not present
+            ious[cls] = float('nan')  # 그 갈래가 없음
     
-    # Calculate mean IoU (excluding NaN classes)
+    # 평균 겹침 비 셈하기(NaN 갈래 뺌)
     valid_ious = [v for v in ious.values() if not np.isnan(v)]
     ious['mIoU'] = np.mean(valid_ious) if valid_ious else 0.0
     
     return ious
 ```
 
-### Dice Coefficient (F1 Score)
+### 다이스 계수(F1 점수)
 
-The Dice coefficient is closely related to IoU and is particularly popular in medical imaging.
+다이스 계수는 겹침 비와 가깝게 이어져 있으며 특히 의료 영상에서 널리 쓰인다.
 
 $$\text{Dice} = \frac{2|A \cap B|}{|A| + |B|} = \frac{2 \cdot TP}{2 \cdot TP + FP + FN}$$
 
-Relationship to IoU:
+겹침 비와의 관계:
 
 $$\text{Dice} = \frac{2 \cdot \text{IoU}}{1 + \text{IoU}}$$
 
@@ -302,15 +302,15 @@ $$\text{Dice} = \frac{2 \cdot \text{IoU}}{1 + \text{IoU}}$$
 def calculate_dice(pred: torch.Tensor, target: torch.Tensor, 
                    smooth: float = 1e-6) -> float:
     """
-    Calculate Dice coefficient for binary segmentation.
+    두 갈래 나누기의 다이스 계수를 셈한다.
     
-    Args:
-        pred: Predicted probabilities after sigmoid (B, 1, H, W)
-        target: Ground truth binary mask (B, 1, H, W)
-        smooth: Smoothing factor to avoid division by zero
+    인수:
+        pred: 시그모이드를 거친 어림 확률 (B, 1, H, W)
+        target: 참값 두 갈래 마스크 (B, 1, H, W)
+        smooth: 0으로 나누는 것을 막는 평활 인수
     
-    Returns:
-        Dice coefficient
+    반환값:
+        다이스 계수
     """
     pred_flat = pred.view(-1)
     target_flat = target.view(-1)
@@ -324,9 +324,9 @@ def calculate_dice(pred: torch.Tensor, target: torch.Tensor,
     return dice.item()
 ```
 
-### Pixel Accuracy
+### 화소 정확도
 
-While intuitive, pixel accuracy can be misleading with imbalanced classes.
+직관적이기는 하나 갈래가 치우치면 화소 정확도는 오해를 부를 수 있다.
 
 $$\text{Pixel Accuracy} = \frac{\text{Correct Pixels}}{\text{Total Pixels}} = \frac{TP + TN}{TP + TN + FP + FN}$$
 
@@ -334,15 +334,15 @@ $$\text{Pixel Accuracy} = \frac{\text{Correct Pixels}}{\text{Total Pixels}} = \f
 def calculate_pixel_accuracy(pred: torch.Tensor, target: torch.Tensor,
                              ignore_index: int = 255) -> float:
     """
-    Calculate pixel-wise accuracy.
+    화소마다의 정확도를 셈한다.
     
-    Args:
-        pred: Predicted class labels (B, H, W)
-        target: Ground truth labels (B, H, W)
-        ignore_index: Index to ignore in calculation
+    인수:
+        pred: 어림한 갈래 이름표 (B, H, W)
+        target: 참값 이름표 (B, H, W)
+        ignore_index: 셈에서 무시할 번호
     
-    Returns:
-        Pixel accuracy as a float
+    반환값:
+        실수로 된 화소 정확도
     """
     valid_mask = (target != ignore_index)
     correct = ((pred == target) & valid_mask).float().sum()
@@ -351,9 +351,9 @@ def calculate_pixel_accuracy(pred: torch.Tensor, target: torch.Tensor,
     return (correct / total).item() if total > 0 else 0.0
 ```
 
-### Why IoU Over Pixel Accuracy?
+### 왜 화소 정확도가 아니라 겹침 비인가?
 
-Consider a medical image where the lesion covers only 5% of pixels:
+병터가 화소의 5%만 덮는 의료 그림을 보자:
 
 ```
 Scenario: 95% background, 5% lesion
@@ -369,100 +369,136 @@ Prediction B (correctly segments lesion):
 IoU penalizes missing small objects that pixel accuracy ignores.
 ```
 
-## Applications of Semantic Segmentation
+## 뜻 나누기의 쓰임새
 
-### Autonomous Driving
+### 스스로 몰기
 
-Segmentation enables vehicles to understand road scenes at pixel level:
+나누기 덕분에 차가 길 장면을 화소 수준에서 이해할 수 있다:
 
-| Class | Purpose |
+| 갈래 | 쓰임 |
 |-------|---------|
-| Road | Drivable surface identification |
-| Sidewalk | Pedestrian areas |
-| Vehicle | Dynamic obstacle detection |
-| Pedestrian | Safety-critical detection |
-| Traffic Sign | Navigation and rules |
-| Building | Scene understanding |
+| 길 | 달릴 수 있는 바닥 가려내기 |
+| 인도 | 걷는 이의 자리 |
+| 차 | 움직이는 걸림돌 알아내기 |
+| 걷는 이 | 안전에 결정적인 알아내기 |
+| 길 표지 | 길잡이와 규칙 |
+| 건물 | 장면 이해 |
 
-### Medical Imaging
+### 의료 영상
 
-Precise boundary delineation for clinical applications:
+임상 쓰임을 위한 정밀한 테두리 그리기:
 
-- **Tumor segmentation**: Accurate volume measurement for treatment planning
-- **Organ segmentation**: Surgical planning and radiation therapy
-- **Retinal vessel segmentation**: Diabetic retinopathy screening
-- **Cell segmentation**: Pathology and drug discovery
+- **종양 나누기**: 치료 계획을 위한 정확한 부피 재기
+- **장기 나누기**: 수술 계획과 방사선 치료
+- **망막 혈관 나누기**: 당뇨 망막병증 가려내기
+- **세포 나누기**: 병리와 약 찾기
 
-### Satellite and Aerial Imagery
+### 인공위성과 항공 영상
 
-Large-scale Earth observation:
+큰 잣수의 지구 살피기:
 
-- Land use classification
-- Urban planning and development
-- Disaster assessment
-- Agricultural monitoring
-- Environmental change detection
+- 땅 쓰임 가르기
+- 도시 계획과 개발
+- 재해 살피기
+- 농사 지켜보기
+- 환경 바뀜 알아내기
 
-### Image Editing and AR
+### 그림 고치기와 늘린 현실
 
-Consumer applications:
+소비자 쓰임새:
 
-- Portrait mode (background blur)
-- Virtual try-on (clothing, makeup)
-- Background replacement
-- AR object placement
+- 인물 모드(뒷바탕 흐리기)
+- 가상 입어 보기(옷, 화장)
+- 뒷바탕 갈아 끼우기
+- 늘린 현실 물체 놓기
 
-## Key Challenges in Semantic Segmentation
+## 뜻 나누기의 핵심 어려움
 
-### Class Imbalance
+### 갈래 치우침
 
-Many real-world datasets exhibit severe class imbalance. In autonomous driving, "road" may dominate while "traffic light" is rare.
+실제 자료 뭉치는 갈래가 심하게 치우친 것이 많다. 스스로 몰기에서 "길"은 넘쳐나지만 "신호등"은 드물다.
 
-**Solutions:**
-- Weighted loss functions
-- Focal loss for hard example mining
-- Dice loss for small object emphasis
-- Oversampling minority classes
+**풀이:**
 
-### Boundary Precision
+- 무게를 준 손실 함수
+- 어려운 보기 캐기를 위한 초점 손실
+- 작은 물체를 도드라지게 하는 다이스 손실
+- 적은 갈래를 더 많이 뽑기
 
-Object boundaries are notoriously difficult to segment accurately.
+### 테두리 정밀도
 
-**Solutions:**
-- Boundary-aware loss functions
-- Multi-scale processing
-- Post-processing with CRF
-- Edge detection guidance
+물체 테두리는 정확히 나누기가 어렵기로 이름났다.
 
-### Scale Variation
+**풀이:**
 
-Objects of the same class can vary dramatically in size (near vs. distant cars).
+- 테두리를 헤아리는 손실 함수
+- 여러 잣수 다루기
+- CRF로 뒷손질하기
+- 테두리 알아내기로 이끌기
 
-**Solutions:**
-- Multi-scale feature fusion
-- Pyramid pooling modules
-- Atrous Spatial Pyramid Pooling (ASPP)
-- Feature Pyramid Networks (FPN)
+### 잣수 흩어짐
 
-### Computational Efficiency
+같은 갈래의 물체도 크기가 크게 다를 수 있다(가까운 차와 먼 차).
 
-Dense prediction requires processing every pixel.
+**풀이:**
 
-**Solutions:**
-- Efficient backbone networks (MobileNet, EfficientNet)
-- Depthwise separable convolutions
-- Knowledge distillation
-- Neural architecture search
+- 여러 잣수 특징 녹여 붙이기
+- 피라미드 모으기 단원
+- 구멍 뚫린 자리 피라미드 모으기(ASPP)
+- 특징 피라미드 그물(FPN)
 
-## Summary
+### 계산 효율
 
-Semantic segmentation extends image understanding to the pixel level, enabling fine-grained scene analysis. The encoder-decoder architecture with skip connections has become the foundational paradigm, balancing semantic understanding with spatial precision. Proper evaluation using IoU and Dice metrics is essential, particularly for imbalanced datasets.
+촘촘한 어림은 화소마다 다뤄야 한다.
 
-The field continues to evolve rapidly, with transformer-based architectures and self-supervised learning pushing the boundaries of what's achievable. In the following sections, we'll dive deep into specific architectures—FCN, U-Net, and DeepLab—that have shaped modern semantic segmentation.
+**풀이:**
 
-## Further Reading
+- 효율적인 등뼈 그물(MobileNet, EfficientNet)
+- 깊이별로 갈라지는 누비기
+- 앎 내리기
+- 신경망 얼개 찾기
+
+## 요약
+
+뜻 나누기는 그림 이해를 화소 수준까지 넓혀 결이 고운 장면 살피기를 가능하게 한다. 건너뛰는 이음을 갖춘 부호기-풀개 얼개는 뜻 이해와 자리 정밀도의 균형을 잡는 바탕 틀이 되었다. 특히 치우친 자료 뭉치에서는 겹침 비와 다이스 잣대로 제대로 값매김하는 일이 꼭 필요하다.
+
+이 분야는 빠르게 나아가고 있으며, 변환기 바탕 얼개와 스스로 살피는 배움이 할 수 있는 것의 한계를 밀어내고 있다. 이어지는 절에서는 요즘 뜻 나누기를 빚어낸 구체적인 얼개, 곧 FCN, U-넷, DeepLab을 깊이 파고든다.
+
+## 더 읽을거리
 
 1. Long, J., Shelhamer, E., & Darrell, T. (2015). Fully Convolutional Networks for Semantic Segmentation. CVPR.
 2. Ronneberger, O., Fischer, P., & Brox, T. (2015). U-Net: Convolutional Networks for Biomedical Image Segmentation. MICCAI.
 3. Chen, L.-C., et al. (2017). Rethinking Atrous Convolution for Semantic Image Segmentation. arXiv.
 4. Minaee, S., et al. (2021). Image Segmentation Using Deep Learning: A Survey. IEEE TPAMI.
+
+## 연습문제
+
+**연습문제 1.**
+뜻 나누기, 낱 물체 나누기, 온통 나누기의 차이를 설명하여라.
+
+??? success "연습문제 1 풀이"
+    **뜻 나누기**는 화소마다 갈래 이름표를 붙이되 같은 갈래의 서로 다른 낱 물체를 가리지 않는다. **낱 물체 나누기**는 낱낱의 물체를 알아내고 저마다 화소 수준 마스크를 주되 셀 수 있는 "것" 갈래에만 그렇게 한다. **온통 나누기**는 둘을 아우른다. 곧 화소마다 갈래 이름표를 붙이고 것 갈래에는 낱 물체 번호도 매긴다. 보기로 거리 장면에서 뜻 나누기는 모든 차를 "차"로 이름 붙이고, 낱 물체 나누기는 차를 하나하나 가려내며, 온통 나누기는 그 둘을 다 하면서 "길", "하늘" 따위도 이름 붙인다.
+
+---
+
+**연습문제 2.**
+U-넷 얼개를 설명하고 나누기에서 건너뛰는 이음이 왜 중요한지 밝혀라.
+
+??? success "연습문제 2 풀이"
+    U-넷은 오그라드는 부호기 길(누비기와 모으기의 되풀이)과 부풀어 오르는 풀개 길(키우기와 누비기)로 이루어져 U 꼴을 이룬다. **건너뛰는 이음**은 부호기의 특징 지도를 그에 맞는 풀개 켜에 이어 붙인다. 부호기가 *무엇*(뜻 특징)을 담아내면서 *어디*(자리의 세밀함)를 잃기 때문에 이것이 결정적이다. 건너뛰는 이음은 정밀한 화소 수준 어림에 필요한 높은 해상도의 자리 앎을 주어, 풀개가 거친 뜻 앎과 고운 자리 세부를 아우르게 한다.
+
+---
+
+**연습문제 3.**
+그림 나누기에는 어떤 손실 함수가 흔히 쓰이는가? 엇갈린 엔트로피 손실과 다이스 손실을 견주어라.
+
+??? success "연습문제 3 풀이"
+    **Cross-entropy loss** treats each pixel independently: $L_{CE} = -\sum_i y_i \log \hat{y}_i$. It is well-calibrated but can be dominated by the majority class. **Dice loss** measures overlap between predicted and ground-truth masks: $L_{Dice} = 1 - \frac{2|P \cap G|}{|P| + |G|}$. Dice loss directly optimizes the evaluation metric (Dice coefficient) and handles class imbalance better since it weighs all classes equally regardless of pixel count. In practice, a combination $L = \lambda L_{CE} + (1-\lambda) L_{Dice}$ often works best.
+
+---
+
+**연습문제 4.**
+마스크 R-CNN이 낱 물체 나누기를 위해 더 빠른 R-CNN을 어떻게 넓히는지 밝히고 RoIAlign이 하는 몫을 설명하여라.
+
+??? success "연습문제 4 풀이"
+    마스크 R-CNN은 이미 있던 갈래 매기기 가지와 두름 상자 되돌리기 가지 곁에, 알아낸 물체마다 두 갈래 마스크를 어림하는 나란한 가지를 더한다. 핵심 새로움은 RoI 모으기를 갈음하는 **RoIAlign**이다. RoI 모으기는 양자화된 자리표(정수 화소 자리로 반올림)를 써서 특징 지도와 본디 그림 사이가 어긋난다. RoIAlign은 정확한 뜬소수점 자리에서 두 줄 사이 끼움을 써서 양자화 찌꺼기를 없앤다. 이 정밀한 맞춤이 화소 수준 마스크 어림에 결정적이며, RoI 모으기에 견주어 마스크 AP를 상대적으로 10~50% 올린다.

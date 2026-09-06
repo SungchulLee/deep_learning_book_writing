@@ -178,3 +178,43 @@ The inode analysis shows how different block numbers map to indirection levels. 
 
 - Silberschatz, A., Galvin, P.B., and Gagne, G. *Operating System Concepts*. Wiley
 - Cormen, T.H., Leiserson, C.E., Rivest, R.L., and Stein, C. *Introduction to Algorithms*. MIT Press
+
+## Exercises
+
+**Exercise 1.**
+Compare inode-based file systems (ext4) with B-tree-based file systems (Btrfs) for directory lookup performance on a directory with 1 million files.
+
+??? success "Solution to Exercise 1"
+    **ext4 with htree**: directories use a hash tree (B-tree variant) indexed by filename hash. Lookup: hash the filename, traverse the htree in $O(\log n)$ I/Os where $n$ is the number of entries. For 1 million files, the htree has $\sim$3 levels, so lookup takes $\sim$3 disk reads. **Btrfs**: directories are stored as items in the global B-tree, keyed by (directory inode, hash(filename)). Lookup: one B-tree search in $O(\log N)$ where $N$ is the total number of items in the filesystem. For a typical Btrfs tree with branching factor $\sim$100 and millions of items, this is $\sim$3--4 levels. Performance is similar for single lookups. Btrfs has an advantage for operations spanning multiple directories (copy-on-write snapshots, atomic renames across directories) because everything is in one B-tree. ext4 is simpler and has lower per-I/O overhead. $\square$
+
+---
+
+**Exercise 2.**
+Explain how ext4's extent tree replaces the traditional indirect block scheme. What are the performance benefits for large files?
+
+??? success "Solution to Exercise 2"
+    Traditional indirect blocks: a file's inode has 12 direct pointers, plus single/double/triple indirect block pointers. For a 1 GB file with 4 KB blocks, $\sim$256K block addresses must be stored across many indirect blocks, requiring multiple I/Os to traverse. Ext4's extent tree: each extent records (logical block, physical start block, length). A contiguous 1 GB file needs just one extent: (0, physical_start, 262144). The inode holds up to 4 extents directly; more extents use a B-tree of extent nodes. Benefits: (1) a contiguous file needs 1 extent vs. 256K block pointers -- dramatically less metadata; (2) sequential reads can issue large I/O requests (the OS knows the file is contiguous); (3) the extent tree is shallow (3--4 levels covers petabytes). For fragmented files, extent trees degrade but are still better than indirect blocks because each extent covers multiple blocks. $\square$
+
+---
+
+**Exercise 3.**
+A file system must support $O(1)$ time allocation of a free disk block. Describe how a bitmap-based free space manager achieves this and analyze the space overhead.
+
+??? success "Solution to Exercise 3"
+    A bitmap allocates one bit per disk block: 1 = used, 0 = free. For a 1 TB disk with 4 KB blocks: $1 \text{ TB} / 4 \text{ KB} = 2.5 \times 10^8$ blocks, requiring $2.5 \times 10^8$ bits $= 31.25$ MB for the bitmap. Space overhead: $31.25 / (10^6) \approx 0.003\%$. For $O(1)$ allocation: maintain a "hint" pointer to the last allocated position. Search forward from the hint for a 0 bit. On average, the search scans $1/(1-\alpha)$ bits where $\alpha$ is the utilization. At 90% full, this is 10 bits -- effectively $O(1)$. For guaranteed $O(1)$: maintain a free-block stack or linked list. Bitmaps are preferred because they support contiguous allocation (find $k$ consecutive 0 bits for extent allocation) and are compact. $\square$
+
+---
+
+**Exercise 4.**
+Explain journaling in file systems (ext4, NTFS). How does it prevent corruption after a crash, and what is the performance cost?
+
+??? success "Solution to Exercise 4"
+    Without journaling, a crash during a multi-step file operation (e.g., creating a file requires updating the directory, inode table, and data blocks) can leave the file system in an inconsistent state. Journaling writes a **log** of pending changes before applying them to the main file system. On crash recovery, the journal is replayed: committed transactions are applied, and uncommitted ones are discarded. Three modes: (1) **Full journal**: logs both metadata and data. Safest but slowest (data written twice). (2) **Ordered journal** (ext4 default): logs metadata only but ensures data blocks are written before the metadata journal entry is committed. Good balance. (3) **Writeback journal**: logs metadata only with no ordering guarantee. Fastest but data may be lost on crash. Performance cost: journal writes are sequential (fast), but they add I/O overhead. For metadata-only journaling, the cost is $\sim$5--10% of write throughput. Full journaling costs $\sim$30--50% due to double-writing all data. $\square$
+
+---
+
+**Exercise 5.**
+A log-structured file system (LFS) converts all writes to sequential appends. Explain the write path, the garbage collection challenge, and why LFS is well-suited for SSDs.
+
+??? success "Solution to Exercise 5"
+    **Write path**: all modifications (data and metadata) are buffered in memory and periodically written as a contiguous segment to the end of the log. The segment contains data blocks, inode updates, and a segment summary. An inode map (also stored in the log) tracks the latest location of each inode. Writes are always sequential -- never in-place. **Garbage collection**: as files are updated, old versions of blocks become dead (orphaned in earlier segments). A cleaner process identifies segments with many dead blocks, copies the live blocks to the current segment, and frees the old segment. This adds write amplification. **SSD suitability**: SSDs cannot overwrite -- they must erase blocks before rewriting. LFS's append-only pattern aligns with this constraint, avoiding the costly erase-before-write cycle. LFS also distributes writes evenly (wear leveling). The garbage collector's segment cleaning mirrors SSD firmware's own garbage collection, potentially reducing redundant work. $\square$

@@ -1,35 +1,30 @@
-# Numerical Solvers
+# 수치 풀개
+## 개요
 
+신경 상미분 방정식은 $dz/dt = f_\theta(z(t), t)$을 수치로 적분해야 한다. 풀개를 어떻게 고르느냐가 정확도, 셈 비용, 기억 쓰임에 곧바로 영향을 준다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 붙박이 걸음 풀개
 
-## Overview
-
-Neural ODEs require numerical integration of $dz/dt = f_\theta(z(t), t)$. The choice of solver directly affects accuracy, computational cost, and memory usage.
-
-## Fixed-Step Solvers
-
-### Euler Method
+### 오일러 방법
 
 $$z_{n+1} = z_n + h \cdot f_\theta(z_n, t_n)$$
 
-Simplest solver. First-order accurate ($O(h)$ local error). Fast but inaccurate unless $h$ is very small.
+가장 단순한 풀개이다. 일차 정확도(그 자리 어긋남 $O(h)$)이다. 빠르지만 $h$이 아주 작지 않으면 부정확하다.
 
-### Runge-Kutta 4 (RK4)
+### 룽게-쿠타 4(RK4)
 
 $$z_{n+1} = z_n + \frac{h}{6}(k_1 + 2k_2 + 2k_3 + k_4)$$
 
-where $k_1 = f(z_n, t_n)$, $k_2 = f(z_n + hk_1/2, t_n + h/2)$, etc. Fourth-order accurate. Good balance of accuracy and cost for smooth dynamics.
+여기서 $k_1 = f(z_n, t_n)$, $k_2 = f(z_n + hk_1/2, t_n + h/2)$ 등이다. 4차 정확도이다. 매끄러운 움직임에서 정확도와 비용의 균형이 좋다.
 
-## Adaptive Solvers
+## 맞추어 가는 풀개
 
-### Dormand-Prince (dopri5)
-The default solver in `torchdiffeq`. Fifth-order method with embedded fourth-order estimate for step size control:
+### 도맨드-프린스(dopri5)
+`torchdiffeq`의 기본 풀개이다. 걸음 크기를 다스리려 4차 어림을 박아 넣은 5차 방법이다:
 
 $$h_{\text{new}} = h \cdot \left(\frac{\text{tol}}{\text{err}}\right)^{1/5}$$
 
-Adaptive solvers adjust step size automatically: take larger steps when the dynamics are smooth, smaller steps when they change rapidly.
+맞추어 가는 풀개는 걸음 크기를 저절로 맞춘다. 움직임이 매끄러우면 걸음을 크게, 빠르게 바뀌면 작게 밟는다.
 
 ```python
 from torchdiffeq import odeint
@@ -38,20 +33,52 @@ z_T = odeint(dynamics_fn, z_0, t_span, method='dopri5',
              atol=1e-5, rtol=1e-5)
 ```
 
-## Solver Selection Guidelines
+## 풀개 고르기 지침
 
-| Solver | Order | NFE per Step | Use Case |
+| 풀개 | 차수 | 걸음마다 함수 매김 횟수 | 쓰임새 |
 |--------|-------|-------------|----------|
-| Euler | 1 | 1 | Quick prototyping |
-| Midpoint | 2 | 2 | Moderate accuracy |
-| RK4 | 4 | 4 | Fixed-step, smooth dynamics |
-| Dormand-Prince | 5 | 6 | General purpose (default) |
-| Adams-Bashforth | Variable | 1 (multistep) | Long integrations |
+| 오일러 | 1 | 1 | 빠른 시제품 |
+| 중점 | 2 | 2 | 어지간한 정확도 |
+| RK4 | 4 | 4 | 붙박이 걸음, 매끄러운 움직임 |
+| 도맨드-프린스 | 5 | 6 | 두루 쓰기(기본) |
+| 애덤스-배시포스 | 달라짐 | 1(여러 걸음) | 오랜 적분 |
 
-## Number of Function Evaluations (NFE)
+## 함수 매김 횟수(NFE)
 
-NFE is the key efficiency metric for Neural ODEs. Each function evaluation requires a full forward pass through $f_\theta$. Adaptive solvers have variable NFE per sample, which complicates batching and GPU utilization.
+함수 매김 횟수는 신경 상미분 방정식의 핵심 효율 잣대이다. 매김마다 $f_\theta$을 온전히 앞먹임해야 한다. 맞추어 가는 풀개는 표본마다 매김 횟수가 달라 묶기와 GPU 쓰임을 어렵게 한다.
 
-## Stiff Dynamics
+## 뻣뻣한 움직임
 
-If $f_\theta$ has widely varying timescales (stiff ODE), explicit solvers require very small step sizes. Implicit solvers (backward Euler, BDF) handle stiffness but require solving a nonlinear system at each step, which is expensive for neural ODEs.
+$f_\theta$의 때 잣수가 크게 다르면(뻣뻣한 상미분 방정식) 드러난 풀개는 아주 작은 걸음이 필요하다. 은근한 풀개(뒤로 오일러, 후향 미분 공식)는 뻣뻣함을 다루지만 걸음마다 비선형 계를 풀어야 해 신경 상미분 방정식에는 비싸다.
+
+## 연습문제
+
+**연습문제 1.**
+$dy/dt = -y$, $y(0) = 1$에 오일러, 호인, RK4 풀개를 짜라. 걸음 크기 $h \in \{0.5, 0.1, 0.01\}$에서 $t = 1$의 모임 차수를 확인하라.
+
+??? success "연습문제 1 풀이"
+    정확한 값: $y(1) = e^{-1} \approx 0.3679$. $h = 0.1$에서 오일러 어긋남은 약 $5.2 \times 10^{-2}$, 호인은 약 $1.7 \times 10^{-3}$, RK4은 약 $4.2 \times 10^{-8}$이다. $h$을 절반으로 하면 어긋남이 각각 약 2, 4, 16배 줄어 차수 1, 2, 4을 확인해 준다. 오일러: $y_{n+1} = y_n + hf(t_n, y_n)$. 호인: 시작과 헤아린 끝의 기울기 평균. RK4: 기울기 매김 넷의 무게 있는 평균. $\square$
+
+---
+
+**연습문제 2.**
+$dy/dt = \lambda y$에서 앞으로 오일러의 안정 자리를 이끌어 내고 신경 상미분 방정식에 지니는 뜻을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    오일러는 $y_{n+1} = (1 + h\lambda)y_n$을 준다. 안정하려면 $|1 + h\lambda| \leq 1$이어야 하며 이는 $h\lambda$ 평면에서 $-1$을 가운데로 하는 반지름 1의 원판이다. 실수 $\lambda < 0$에서는 $h < 2/|\lambda|$이다. 립시츠 상수가 큰 신경 상미분 방정식에서 오일러는 아주 작은 걸음이 필요하다. 맞추어 가는 풀개가 이를 저절로 다루고, 은근한 풀개는 왼쪽 반평면 전체를 덮는 안정 자리를 가진다. $\square$
+
+---
+
+**연습문제 3.**
+어떤 방법의 그 자리 자름 어긋남이 $O(h^{p+1})$이면 온 어긋남이 $O(h^p)$임을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    귀납으로 밝힌다. $L$이 립시츠 상수일 때 $|e_{n+1}| \leq (1 + hL)|e_n| + Ch^{p+1}$이다. $N = T/h$걸음에 걸쳐 $|e_N| \leq \frac{Ch^{p+1}}{hL}((1+hL)^N - 1) \leq \frac{Ch^p}{L}(e^{LT} - 1) = O(h^p)$이다. 지수 인자는 문제에 매이지만 $h$에 대해서는 상수이다. $\square$
+
+---
+
+**연습문제 4.**
+신경 상미분 방정식 익히기에서 붙박이 걸음 풀개와 맞추어 가는 걸음 풀개의 맞바꿈을 따져라.
+
+??? success "연습문제 4 풀이"
+    붙박이 걸음: 비용을 미리 알 수 있고 미분이 단순하지만(고정된 셈 그래프) 움직임이 달라지면 효율이 나쁘다. 맞추어 감: 걸음 크기가 가장 좋지만 셈 그래프가 바뀌어 미분이 어려워진다. 딸림 방법은 앞과 뒤의 걸음 크기를 떼어 놓아 저마다 따로 맞추어 갈 수 있게 한다. 앞 움직임의 복잡함이 딸림 방정식의 것과 다를 수 있으므로 보통 이 쪽을 즐겨 쓴다. $\square$

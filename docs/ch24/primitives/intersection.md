@@ -1,39 +1,27 @@
-# Line Segment Intersection
+# 도막 만남
 
-Determining whether two line segments intersect is a core primitive in
-computational geometry. Map overlay, polygon clipping, motion planning,
-and collision detection all reduce to this test. The key insight is that
-two segments intersect if and only if certain orientation tests produce
-opposite signs — no division or floating-point comparison is needed for
-the basic detection step.
+두 도막이 만나는지 가리는 것은 셈 기하의 핵심 밑감이다. 지도 겹치기, 다각형 자르기, 움직임 짜기, 부딪힘 알아내기가 모두 이 살피기로 줄어든다. 핵심 통찰은 두 도막이 만나는 것과 어떤 방향 살피기가 반대 부호를 내는 것이 서로 같다는 점이다. 기본 알아내기 걸음에는 나눗셈이나 뜬 소수점 견줌이 필요 없다.
 
-## Setup
+## 설정
 
-A line segment is defined by two endpoints. Let segment $s_1$ have
-endpoints $P_1, Q_1$ and segment $s_2$ have endpoints $P_2, Q_2$.
+도막은 두 끝점으로 뜻매김한다. 도막 $s_1$의 끝점을 $P_1, Q_1$, 도막 $s_2$의 끝점을 $P_2, Q_2$이라 하자.
 
-We use the cross product function for three points $O, A, B$:
+세 점 $O, A, B$에 대한 어긋 곱 함수를 쓴다.
 
 $$
 \text{cross}(O, A, B) = (A_x - O_x)(B_y - O_y) - (A_y - O_y)(B_x - O_x)
 $$
 
-The sign tells us the orientation of the triplet: positive for
-counterclockwise, negative for clockwise, zero for collinear.
+부호는 세 점의 방향을 알려 준다. 반시계이면 양수, 시계이면 음수, 한 줄에 놓이면 0이다.
 
-## General Position Test
+## 일반 자리 살피기
 
-Two segments $s_1 = \overline{P_1 Q_1}$ and $s_2 = \overline{P_2 Q_2}$
-intersect in the *general* (non-collinear) case when each segment
-*straddles* the line containing the other. Formally:
+두 도막 $s_1 = \overline{P_1 Q_1}$과 $s_2 = \overline{P_2 Q_2}$은 *일반*(한 줄에 놓이지 않은) 경우 각 도막이 다른 도막을 담는 선을 *걸터탈* 때 만난다. 갖추어 적으면 다음과 같다.
 
-!!! note "Straddling Condition"
-    Segment $s_1$ straddles the line through $s_2$ if $P_1$ and $Q_1$ lie
-    on opposite sides of that line, i.e.,
-    $\text{cross}(P_2, Q_2, P_1)$ and $\text{cross}(P_2, Q_2, Q_1)$
-    have opposite signs.
+!!! note "걸터타기 조건"
+    $P_1$과 $Q_1$이 그 선의 반대쪽에 있으면, 곧 $\text{cross}(P_2, Q_2, P_1)$과 $\text{cross}(P_2, Q_2, Q_1)$의 부호가 반대이면 도막 $s_1$은 $s_2$을 지나는 선을 걸터탄다.
 
-The segments intersect (general case) when *both* straddle each other:
+두 도막이 서로를 *둘 다* 걸터탈 때 (일반 경우에) 만난다.
 
 $$
 d_1 = \text{cross}(P_2, Q_2, P_1), \quad d_2 = \text{cross}(P_2, Q_2, Q_1)
@@ -43,51 +31,44 @@ $$
 d_3 = \text{cross}(P_1, Q_1, P_2), \quad d_4 = \text{cross}(P_1, Q_1, Q_2)
 $$
 
-The segments intersect if $d_1$ and $d_2$ have opposite signs **and**
-$d_3$ and $d_4$ have opposite signs.
+$d_1$과 $d_2$의 부호가 반대이고 **또한** $d_3$과 $d_4$의 부호가 반대이면 두 도막이 만난다.
 
-## Collinear Special Cases
+## 한 줄에 놓인 특별한 경우
 
-When any of $d_1, d_2, d_3, d_4$ equals zero, an endpoint lies exactly on
-the line through the other segment. The segments still intersect if that
-endpoint lies *on* the other segment. We check this with a bounding-box
-test: point $R$ lies on segment $\overline{PQ}$ (given collinearity) when
+$d_1, d_2, d_3, d_4$ 가운데 어느 하나가 0이면 끝점이 다른 도막을 지나는 선 위에 꼭 놓인다. 그 끝점이 다른 도막 *위에* 있으면 두 도막은 여전히 만난다. 이는 감싸는 상자 살피기로 확인한다. 곧 한 줄에 놓여 있을 때 점 $R$이 도막 $\overline{PQ}$ 위에 있으려면 다음이 성립해야 한다.
 
 $$
 \min(P_x, Q_x) \le R_x \le \max(P_x, Q_x) \quad \text{and} \quad
 \min(P_y, Q_y) \le R_y \le \max(P_y, Q_y)
 $$
 
-## Complete Algorithm
+## 온전한 알고리즘
 
-Combining both cases:
+두 경우를 아우르면:
 
-1. Compute $d_1, d_2, d_3, d_4$.
-2. If $d_1 \cdot d_2 < 0$ and $d_3 \cdot d_4 < 0$: segments intersect (general case).
-3. If $d_1 = 0$ and $P_1$ lies on $\overline{P_2 Q_2}$: intersect.
-4. If $d_2 = 0$ and $Q_1$ lies on $\overline{P_2 Q_2}$: intersect.
-5. If $d_3 = 0$ and $P_2$ lies on $\overline{P_1 Q_1}$: intersect.
-6. If $d_4 = 0$ and $Q_2$ lies on $\overline{P_1 Q_1}$: intersect.
-7. Otherwise: no intersection.
+1. $d_1, d_2, d_3, d_4$을 셈한다.
+2. $d_1 \cdot d_2 < 0$이고 $d_3 \cdot d_4 < 0$이면 두 도막이 만난다(일반 경우).
+3. $d_1 = 0$이고 $P_1$이 $\overline{P_2 Q_2}$ 위에 있으면 만난다.
+4. $d_2 = 0$이고 $Q_1$이 $\overline{P_2 Q_2}$ 위에 있으면 만난다.
+5. $d_3 = 0$이고 $P_2$이 $\overline{P_1 Q_1}$ 위에 있으면 만난다.
+6. $d_4 = 0$이고 $Q_2$이 $\overline{P_1 Q_1}$ 위에 있으면 만난다.
+7. 그 밖에는 만나지 않는다.
 
-**Time complexity:** $O(1)$ — a constant number of cross products and comparisons.
+**시간 복잡도:** $O(1)$. 어긋 곱과 견줌을 상수 번 한다.
 
-## Finding the Intersection Point
+## 만남점 찾기
 
-When we know two non-parallel segments intersect, we can compute the
-intersection point using parametric representation. Segment $s_1$ is
-parameterized as $P_1 + t(Q_1 - P_1)$ for $t \in [0, 1]$:
+나란하지 않은 두 도막이 만남을 알면 매개변수 나타냄으로 만남점을 셈할 수 있다. 도막 $s_1$은 $t \in [0, 1]$에 대해 $P_1 + t(Q_1 - P_1)$으로 매개변수로 적는다.
 
 $$
 t = \frac{(P_2 - P_1) \times (Q_2 - P_2)}{(Q_1 - P_1) \times (Q_2 - P_2)}
 $$
 
-where $\times$ denotes the 2D cross product. The intersection point is then
-$P_1 + t(Q_1 - P_1)$.
+여기서 $\times$은 2차원 어긋 곱을 뜻한다. 그러면 만남점은 $P_1 + t(Q_1 - P_1)$이다.
 
-## Worked Example
+## 풀이 예제
 
-Let $s_1 = \overline{(1,1)(4,4)}$ and $s_2 = \overline{(1,4)(4,1)}$.
+$s_1 = \overline{(1,1)(4,4)}$, $s_2 = \overline{(1,4)(4,1)}$이라 하자.
 
 $$
 d_1 = \text{cross}((1,4),(4,1),(1,1)) = (4-1)(1-4) - (1-4)(1-1) = 3(-3) - (-3)(0) = -9
@@ -97,7 +78,7 @@ $$
 d_2 = \text{cross}((1,4),(4,1),(4,4)) = (4-1)(4-4) - (1-4)(4-1) = 3(0) - (-3)(3) = 9
 $$
 
-Since $d_1 < 0$ and $d_2 > 0$ (opposite signs), $s_1$ straddles the line through $s_2$.
+$d_1 < 0$이고 $d_2 > 0$(반대 부호)이므로 $s_1$은 $s_2$을 지나는 선을 걸터탄다.
 
 $$
 d_3 = \text{cross}((1,1),(4,4),(1,4)) = (4-1)(4-1) - (4-1)(1-1) = 9 - 0 = 9
@@ -107,54 +88,53 @@ $$
 d_4 = \text{cross}((1,1),(4,4),(4,1)) = (4-1)(1-1) - (4-1)(4-1) = 0 - 9 = -9
 $$
 
-Since $d_3 > 0$ and $d_4 < 0$ (opposite signs), $s_2$ also straddles $s_1$.
-Both conditions hold, so the segments intersect.
+$d_3 > 0$이고 $d_4 < 0$(반대 부호)이므로 $s_2$도 $s_1$을 걸터탄다. 두 조건이 모두 참이므로 두 도막은 만난다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Line segment intersection detection and computation.
+도막 만남 알아내기와 셈하기.
 
-Uses cross-product orientation tests to determine whether two segments
-intersect, handling both general and collinear cases.
+어긋 곱 방향 살피기로 두 도막이 만나는지 가리며
+일반 경우와 한 줄에 놓인 경우를 모두 다룬다.
 """
 
 
-# === Cross Product ===
+# === 벡터곱 ===
 
 def cross(o, a, b):
-    """Compute the cross product of vectors OA and OB."""
+    """벡터 OA와 OB의 벡터곱 셈하기."""
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
 
-# === On-Segment Test ===
+# === 도막 위에 있는지 살피기 ===
 
 def on_segment(p, q, r):
-    """Check if point r lies on segment pq, given that p, q, r are collinear."""
+    """p, q, r이 한 줄에 놓였을 때 점 r이 도막 pq 위에 있는지 살핀다."""
     return (min(p[0], q[0]) <= r[0] <= max(p[0], q[0]) and
             min(p[1], q[1]) <= r[1] <= max(p[1], q[1]))
 
 
-# === Intersection Detection ===
+# === 만남 알아내기 ===
 
 def segments_intersect(p1, q1, p2, q2):
-    """Determine whether segments p1q1 and p2q2 intersect.
+    """도막 p1q1과 p2q2이 만나는지 가린다.
 
-    Handles general position and all collinear special cases.
-    Time complexity: O(1).
+    일반 자리와 한 줄에 놓인 모든 특별한 경우를 다룬다.
+    시간 복잡도: O(1).
     """
     d1 = cross(p2, q2, p1)
     d2 = cross(p2, q2, q1)
     d3 = cross(p1, q1, p2)
     d4 = cross(p1, q1, q2)
 
-    # General case: each segment straddles the other
+    # 일반 경우: 두 도막이 서로를 걸터탄다
     if ((d1 > 0 and d2 < 0) or (d1 < 0 and d2 > 0)) and \
        ((d3 > 0 and d4 < 0) or (d3 < 0 and d4 > 0)):
         return True
 
-    # Collinear special cases
+    # 한 줄에 놓인 특별한 경우
     if d1 == 0 and on_segment(p2, q2, p1):
         return True
     if d2 == 0 and on_segment(p2, q2, q1):
@@ -167,28 +147,28 @@ def segments_intersect(p1, q1, p2, q2):
     return False
 
 
-# === Intersection Point ===
+# === 만남점 ===
 
 def intersection_point(p1, q1, p2, q2):
-    """Compute the intersection point of two segments (if they intersect).
+    """두 도막의 만남점을 셈한다(만난다면).
 
-    Returns (x, y) or None if segments are parallel or do not intersect.
+    (x, y)을 돌려주며 도막이 나란하거나 만나지 않으면 None을 돌려준다.
     """
     dx1, dy1 = q1[0] - p1[0], q1[1] - p1[1]
     dx2, dy2 = q2[0] - p2[0], q2[1] - p2[1]
 
     denom = dx1 * dy2 - dy1 * dx2
     if denom == 0:
-        return None  # Parallel or collinear
+        return None  # 나란하거나 한 줄에 놓임
 
     t = ((p2[0] - p1[0]) * dy2 - (p2[1] - p1[1]) * dx2) / denom
     return (p1[0] + t * dx1, p1[1] + t * dy1)
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Intersecting segments
+    # 만나는 도막
     s1 = ((1, 1), (4, 4))
     s2 = ((1, 4), (4, 1))
     print(f"Segment 1: {s1}")
@@ -196,14 +176,14 @@ if __name__ == "__main__":
     print(f"Intersect: {segments_intersect(*s1, *s2)}")
     print(f"Point: {intersection_point(*s1, *s2)}")
 
-    # Non-intersecting segments
+    # 만나지 않는 도막
     s3 = ((0, 0), (1, 1))
     s4 = ((2, 2), (3, 3))
     print(f"\nSegment 3: {s3}")
     print(f"Segment 4: {s4}")
     print(f"Intersect: {segments_intersect(*s3, *s4)}")
 
-    # Collinear touching segments
+    # 한 줄에 놓여 맞닿은 도막
     s5 = ((0, 0), (2, 0))
     s6 = ((2, 0), (4, 0))
     print(f"\nSegment 5: {s5}")
@@ -211,7 +191,7 @@ if __name__ == "__main__":
     print(f"Intersect: {segments_intersect(*s5, *s6)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Segment 1: ((1, 1), (4, 4))
 Segment 2: ((1, 4), (4, 1))
@@ -227,7 +207,39 @@ Segment 6: ((2, 0), (4, 0))
 Intersect: True
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms*. MIT Press, Chapter 33.
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.
+
+## 연습문제
+
+**연습문제 1.**
+도막 만남의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    도막 만남은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 도막 만남을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+도막 만남은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+도막 만남을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 도막 만남은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

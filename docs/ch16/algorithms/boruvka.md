@@ -1,19 +1,19 @@
-# Boruvka's Algorithm
+# 보루브카 알고리즘
 
-Boruvka's algorithm, published in 1926, is the oldest known MST algorithm -- predating both Kruskal's (1956) and Prim's (1957). Its key idea is that every component can independently and simultaneously select its cheapest outgoing edge, and all such selections are safe by the cut property. Because every component participates in each round, the number of components at least halves with each iteration, yielding at most $O(\log V)$ rounds. This inherent parallelism makes Boruvka's algorithm the foundation of modern parallel and distributed MST algorithms.
+1926년에 나온 보루브카 알고리즘은 알려진 것 가운데 가장 오래된 최소 뻗은 나무 알고리즘으로, 크러스컬(1956)과 프림(1957)보다 앞선다. 핵심 생각은 조각마다 따로 그리고 한꺼번에 자기에게서 나가는 가장 싼 변을 고를 수 있고, 그렇게 고른 것이 자름 성질에 따라 모두 안전하다는 것이다. 판마다 모든 조각이 끼어들므로 되풀이할 때마다 조각의 수가 적어도 반으로 줄어 판이 많아야 $O(\log V)$번이다. 이렇게 본디부터 나란한 성질 덕분에 보루브카 알고리즘은 요즘의 나란한 최소 뻗은 나무 알고리즘과 흩어진 최소 뻗은 나무 알고리즘의 바탕이 되었다.
 
-## Algorithm Overview
+## 알고리즘 훑어보기
 
-Given a connected, undirected graph $G = (V, E)$ with distinct edge weights:
+변의 무게가 모두 다른 이어진 방향 없는 그래프 $G = (V, E)$이 주어졌을 때:
 
-1. **Initialize**: each vertex is its own component (a forest of $|V|$ singleton trees).
-2. **Repeat** until only one component remains:
-    - For each component, find the **cheapest edge** connecting it to a different component.
-    - Add all such cheapest edges to the MST (some may be found by both endpoints' components -- add each edge only once).
-    - Merge the connected components.
-3. **Return** the collected edges as the MST.
+1. **첫값 잡기**: 꼭짓점마다 저마다의 조각이다(홑나무 $|V|$개의 숲).
+2. 조각이 하나만 남을 때까지 **되풀이한다**:
+    - 조각마다 다른 조각으로 잇는 **가장 싼 변**을 찾는다.
+    - 그렇게 찾은 가장 싼 변을 모두 최소 뻗은 나무에 더한다(양 끝의 조각이 같은 변을 찾을 수도 있으니 변마다 한 번만 더한다).
+    - 이어진 조각을 합친다.
+3. 모은 변을 최소 뻗은 나무로 **돌려준다**.
 
-## Pseudocode
+## 의사코드
 
 ```
 BORUVKA(G, w):
@@ -38,25 +38,25 @@ BORUVKA(G, w):
     return mst
 ```
 
-## Why Components Halve Each Round
+## 판마다 조각이 왜 반으로 주나
 
-In each round, every component selects at least one outgoing edge. When two components are linked by their cheapest edges, they merge. Since every component merges with at least one other component, the number of components after a round is at most half the number before:
+판마다 조각은 적어도 하나의 나가는 변을 고른다. 두 조각이 저마다의 가장 싼 변으로 이어지면 둘이 합쳐진다. 조각마다 적어도 다른 조각 하나와 합쳐지므로 한 판이 지난 뒤의 조각 수는 많아야 그전의 절반이다:
 
 $$
 C_{i+1} \le \frac{C_i}{2}
 $$
 
-Starting with $C_0 = |V|$ components, after $k$ rounds we have at most $|V| / 2^k$ components. The algorithm terminates when one component remains, so
+조각 $C_0 = |V|$개로 시작하면 판 $k$번 뒤에 조각이 많아야 $|V| / 2^k$개 남는다. 조각이 하나 남으면 알고리즘이 멈추므로
 
 $$
 k \le \lceil \log_2 |V| \rceil
 $$
 
-## Worked Example
+## 풀이 예제
 
-Consider a graph on $\{A, B, C, D\}$ with edges:
+꼭짓점이 $\{A, B, C, D\}$이고 변이 다음과 같은 그래프를 보자:
 
-| Edge | Weight |
+| 변 | 무게 |
 |------|--------|
 | (A, B) | 4 |
 | (A, C) | 1 |
@@ -64,53 +64,85 @@ Consider a graph on $\{A, B, C, D\}$ with edges:
 | (B, D) | 2 |
 | (C, D) | 5 |
 
-**Round 1** (4 components: {A}, {B}, {C}, {D}):
+**판 1**(조각 4개: {A}, {B}, {C}, {D}):
 
-- Component {A}: cheapest outgoing edge is (A, C) with weight 1.
-- Component {B}: cheapest outgoing edge is (B, D) with weight 2.
-- Component {C}: cheapest outgoing edge is (A, C) with weight 1.
-- Component {D}: cheapest outgoing edge is (B, D) with weight 2.
+- 조각 {A}: 나가는 가장 싼 변은 무게 1인 (A, C)이다.
+- 조각 {B}: 나가는 가장 싼 변은 무게 2인 (B, D)이다.
+- 조각 {C}: 나가는 가장 싼 변은 무게 1인 (A, C)이다.
+- 조각 {D}: 나가는 가장 싼 변은 무게 2인 (B, D)이다.
 
-Add edges (A, C) and (B, D). Components become {A, C} and {B, D}.
+변 (A, C)과 (B, D)을 더한다. 조각은 {A, C}과 {B, D}이 된다.
 
-**Round 2** (2 components: {A, C}, {B, D}):
+**판 2**(조각 2개: {A, C}, {B, D}):
 
-- Component {A, C}: cheapest outgoing edge is (B, C) with weight 3.
-- Component {B, D}: cheapest outgoing edge is (B, C) with weight 3.
+- 조각 {A, C}: 나가는 가장 싼 변은 무게 3인 (B, C)이다.
+- 조각 {B, D}: 나가는 가장 싼 변은 무게 3인 (B, C)이다.
 
-Add edge (B, C). One component remains: {A, B, C, D}.
+변 (B, C)을 더한다. 조각 하나 {A, B, C, D}만 남는다.
 
-MST: $\{(A, C), (B, D), (B, C)\}$ with total weight $1 + 2 + 3 = 6$.
+최소 뻗은 나무: 전체 무게가 $1 + 2 + 3 = 6$인 $\{(A, C), (B, D), (B, C)\}$.
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Per round**: scanning all $|E|$ edges to find the cheapest outgoing edge per component takes $O(E)$ time (with Union-Find operations contributing $O(E \cdot \alpha(V))$).
+**판마다**: 조각마다 나가는 가장 싼 변을 찾으려고 변 $|E|$개를 모두 훑는 데 $O(E)$ 시간이 든다(합치기-찾기 연산이 $O(E \cdot \alpha(V))$을 보탠다).
 
-**Number of rounds**: at most $\lceil \log_2 V \rceil$.
+**판의 수**: 많아야 $\lceil \log_2 V \rceil$번.
 
-**Total time**:
+**전체 시간**:
 
 $$
 T(V, E) = O(E \log V)
 $$
 
-**Space**: $O(V + E)$ for the graph and Union-Find structure.
+**공간**: 그래프와 합치기-찾기 짜임에 $O(V + E)$.
 
-## Correctness
+## 올바름
 
-The correctness follows directly from the cut property. In each round, for each component $C$, the cheapest outgoing edge crosses the cut $(C, V \setminus C)$. Since no MST edge in the current forest crosses this cut (all current MST edges have both endpoints within some component), the cut respects the current edge set. The cheapest crossing edge is therefore safe.
+옳음은 자름 성질에서 곧바로 따라 나온다. 판마다 조각 $C$에 대해 나가는 가장 싼 변은 자름 $(C, V \setminus C)$을 가로지른다. 지금 숲의 어떤 최소 뻗은 나무 변도 이 자름을 가로지르지 않으므로(지금의 최소 뻗은 나무 변은 모두 양 끝이 어떤 조각 안에 있다) 이 자름은 지금의 변 모음을 지킨다. 따라서 가장 싼 가로지르는 변은 안전하다.
 
-## Parallel Potential
+## 나란히 할 수 있는 가능성
 
-Unlike Kruskal's (which requires a global sort) and Prim's (which grows a single tree sequentially), Boruvka's algorithm processes all components independently in each round. This makes it naturally parallelizable:
+(전체 정렬이 필요한) 크러스컬이나 (나무 하나를 차례차례 키우는) 프림과 달리 보루브카 알고리즘은 판마다 모든 조각을 따로 다룬다. 그래서 자연스럽게 나란히 할 수 있다:
 
-- Each round's edge scanning can be distributed across processors.
-- With $p$ processors, each round takes $O(E / p)$ time.
-- Total parallel time: $O((E \log V) / p)$.
+- 판마다의 변 훑기를 여러 처리기에 나눌 수 있다.
+- 처리기가 $p$개면 판마다 $O(E / p)$ 시간이 든다.
+- 나란히 했을 때 전체 시간: $O((E \log V) / p)$.
 
-This parallel structure has made Boruvka's algorithm the basis for many modern parallel MST algorithms, including those used in distributed computing and GPU implementations.
+이 나란한 짜임 덕분에 보루브카 알고리즘은 흩어진 셈하기와 GPU 구현에 쓰이는 것을 비롯해 요즘의 여러 나란한 최소 뻗은 나무 알고리즘의 바탕이 되었다.
 
-## Reference
+## 참고 문헌
 
-- [Introduction to Algorithms (CLRS), Chapter 23](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- [Introduction to Algorithms (CLRS), 23장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Boruvka, O. (1926). O jistem problemu minimalnim. *Prace Moravske Prirodovedecke Spolecnosti*, 3, 37--58.
+
+## 연습문제
+
+**연습문제 1.**
+꼭짓점 4개와 변 $\{(0,1,4),(0,2,3),(1,2,1),(1,3,2),(2,3,5)\}$인 그래프에서 보루브카 알고리즘의 자취를 좇아라.
+
+??? success "연습문제 1 풀이"
+    판 1: 조각마다 꼭짓점 하나이다. 0에서 가장 싼 변은 $(0,2,3)$, 1에서는 $(1,2,1)$, 2에서는 $(1,2,1)$, 3에서는 $(1,3,2)$이다. 고른 변(겹침을 뺀 것): $(1,2,1), (1,3,2), (0,2,3)$. 합친 뒤 모든 꼭짓점이 한 조각에 든다. 최소 뻗은 나무의 변: $\{(1,2,1),(1,3,2),(0,2,3)\}$, 전체 무게 $= 6$. 모든 꼭짓점이 이어졌으므로 판이 한 번만 필요했다. $\square$
+
+---
+
+**연습문제 2.**
+보루브카 알고리즘이 판마다 조각의 수를 반으로 줄임을 증명하여라. 이는 판의 전체 횟수에 무엇을 뜻하는가?
+
+??? success "연습문제 2 풀이"
+    판마다 조각은 자기에게서 나가는 가장 싼 변을 고른다. 이 변은 그 조각을 다른 조각으로 이으므로 둘이 합쳐진다. 조각마다 적어도 한 번의 합침에 끼어들고, 합침마다 조각의 수를 적어도 1 줄인다. 사실 조각마다 다른 조각과 합쳐지거나 두 조각이 서로를 골라 합쳐진다. 최악의 경우 조각이 짝지어 합쳐져 수가 $k$에서 많아야 $k/2$으로 반이 된다. 조각 $V$개로 시작하면 판 $\lceil \log_2 V \rceil$번 뒤에 조각이 하나만 남는다. $\square$
+
+---
+
+**연습문제 3.**
+보루브카 알고리즘의 시간 복잡도는 얼마인가? 살피기의 각 부분을 설명하여라.
+
+??? success "연습문제 3 풀이"
+    판마다 조각별로 나가는 가장 싼 변을 찾으려고 변을 모두 다루므로 $O(E)$ 시간이 든다. (판마다 조각 수가 반으로 주므로) 판은 $O(\log V)$번이다. 모두 합하면 $O(E \log V)$이다. 이는 크러스컬과 프림의 복잡도와 같다. 보루브카의 강점은 나란히 할 수 있다는 것이다. 곧 판 안에서 조각마다의 가장 싼 변 고르기를 따로 할 수 있어 나란한 최소 뻗은 나무 셈하기와 흩어진 셈하기에 알맞다. $\square$
+
+---
+
+**연습문제 4.**
+보루브카 알고리즘을 크러스컬, 프림과 견주어라. 보루브카는 언제 낫는가?
+
+??? success "연습문제 4 풀이"
+    셋 다 $O(E \log V)$ 시간을 이룬다. **크러스컬**: 변을 전체로 정렬하고 합치기-찾기를 쓴다. 성긴 그래프에 단순하고 효율적이다. **프림**: 우선순위 줄로 조각 하나를 키운다. 빽빽한 그래프에서 배열로 $O(V^2)$, 힙으로 $O(E \log V)$이 되어 효율적이다. **보루브카**: 판마다 모든 조각을 나란히 다룬다. 자연스럽게 나란히 할 수 있다. 보루브카는 나란한 셈하기나 흩어진 셈하기, 아주 큰 그래프, 또는 다른 기법과 어우러질 때(이를테면 샤젤이나 카거-클라인-타잔의 최적 최소 뻗은 나무 알고리즘이 보루브카 판을 밑함수로 쓴다) 낫다. $\square$

@@ -1,10 +1,10 @@
-# Binary Recursion
+# 이진 재귀
 
-Binary recursion occurs when a function makes **two** recursive calls per invocation. This pattern arises naturally in divide-and-conquer algorithms, where a problem splits into two subproblems of roughly equal size. The classic examples include merge sort, quicksort, and computing Fibonacci numbers.
+이진 재귀는 함수가 호출마다 재귀 호출을 **두 번** 할 때 나타난다. 이 패턴은 문제가 크기가 거의 같은 두 부분문제로 쪼개지는 분할 정복 알고리즘에서 자연스럽게 생긴다. 대표적인 예로 병합 정렬, 퀵 정렬, 피보나치 수 계산이 있다.
 
-## Structure
+## 구조
 
-A binary recursive function has the form:
+이진 재귀 함수는 다음 형태를 가진다.
 
 ```
 function f(problem):
@@ -15,33 +15,33 @@ function f(problem):
     return combine(left, right)
 ```
 
-The two recursive calls create a binary tree of invocations, which is why binary recursion is closely related to binary tree traversals.
+두 번의 재귀 호출이 호출들의 이진 트리를 만들며, 이 때문에 이진 재귀는 이진 트리 순회와 밀접하게 관련된다.
 
-## Example: Fibonacci Numbers
+## 예제: 피보나치 수
 
-The Fibonacci sequence is the most direct example of binary recursion. Each call spawns two smaller calls:
+피보나치 수열이 이진 재귀의 가장 직접적인 예이다. 각 호출이 더 작은 호출 두 개를 낳는다.
 
 ```python
-"""Binary recursion demonstrated with Fibonacci numbers."""
+"""피보나치 수로 보여주는 이진 재귀."""
 
 
-# === Naive Binary Recursive Fibonacci ===
+# === 소박한 이진 재귀 피보나치 ===
 
 def fib(n):
-    """Compute the nth Fibonacci number using binary recursion."""
+    """이진 재귀로 n번째 피보나치 수를 계산한다."""
     if n <= 1:
         return n
     return fib(n - 1) + fib(n - 2)
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     for i in range(10):
         print(f"fib({i}) = {fib(i)}")
 ```
 
-**Output:**
+**출력:**
 ```
 fib(0) = 0
 fib(1) = 1
@@ -55,18 +55,51 @@ fib(8) = 21
 fib(9) = 34
 ```
 
-## Complexity
+## 복잡도
 
-Binary recursion produces an exponential number of calls in the naive case. For Fibonacci:
+소박하게 구현하면 이진 재귀는 지수적으로 많은 호출을 만든다. 피보나치의 경우 다음과 같다.
 
 $$
 T(n) = T(n-1) + T(n-2) + O(1)
 $$
 
-This gives $T(n) = O(2^n)$ — exponential time, because many subproblems are recomputed. Techniques like memoization can reduce this to $O(n)$.
+이는 $T(n) = O(2^n)$, 즉 지수 시간을 준다. 많은 부분문제가 거듭 계산되기 때문이다. 메모화 같은 기법으로 이를 $O(n)$까지 줄일 수 있다.
 
-When the two subproblems are of equal size (as in merge sort), the recurrence becomes $T(n) = 2T(n/2) + O(n)$, which solves to $O(n \log n)$ by the master theorem.
+(병합 정렬처럼) 두 부분문제의 크기가 같으면 점화식이 $T(n) = 2T(n/2) + O(n)$이 되며, 마스터 정리에 의해 $O(n \log n)$으로 풀린다.
 
-## Reference
+## 참고 문헌
 
 [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+이진 재귀에 대해 기저 사례와 재귀 사례를 찾아라. 모든 유효한 입력에 대해 재귀가 종료됨을 증명하라.
+
+??? success "연습문제 1 풀이"
+    기저 사례는 가장 작은 유효한 입력을 직접 처리한다. 재귀 사례는 호출마다 감소하는 잘 정의된 척도로 문제 크기를 줄인다. 이 척도가 (기저 사례의 문턱값으로) 아래로 유계이면서 엄격히 감소하므로 재귀는 반드시 유한한 단계 안에 종료된다.
+
+---
+
+**연습문제 2.**
+이진 재귀의 시간 복잡도에 대한 점화식을 유도하고 풀어라.
+
+??? success "연습문제 2 풀이"
+    $T(n)$을 재귀 호출과 호출당 일의 함수로 표현한다. 이 점화식은 분기 계수, 부분문제 크기의 감소, 결합 비용을 담는다. 펼치기, 마스터 정리, 치환 중 하나로 풀어 닫힌 형태를 얻는다.
+
+---
+
+**연습문제 3.**
+$n = 8$일 때 이진 재귀의 재귀 트리를 그려라. 각 층에서의 일과 전체 일을 계산하라.
+
+??? success "연습문제 3 풀이"
+    트리의 깊이는 입력이 기저 사례까지 얼마나 빨리 줄어드는지로 정해진다. 각 층에서 모든 노드의 일을 더한다. 모든 층에 걸친 총합이 실행 시간을 준다. $n = 8$이면 트리가 작아서 전부 열거할 수 있다.
+
+---
+
+**연습문제 4.**
+재귀 구현을 반복 버전으로 변환하라. 공간 복잡도를 비교하라.
+
+??? success "연습문제 4 풀이"
+    호출 스택을 명시적 스택이나 반복 변수로 대체한다. 꼬리 재귀 형태는 while 반복문으로 곧바로 바뀐다. 꼬리가 아닌 형태는 호출 스택을 흉내 내기 위해 명시적 스택이 필요하다. 반복 버전은 보통 $O(\text{depth})$의 스택 공간을 아낀다.

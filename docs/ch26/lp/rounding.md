@@ -1,105 +1,137 @@
-# Deterministic LP Rounding
+# 정해진 선형 계획 반올림
 
-After solving an LP relaxation, the fractional solution must be converted to an integer solution. **Deterministic rounding** applies fixed rules to map fractional values to integers. Unlike randomized rounding, these schemes are deterministic and produce the same output on every run. This page covers threshold rounding, iterative rounding, and their applications.
+선형 계획 느슨하게 하기를 푼 뒤 분수 풀이를 정수 풀이로 바꾸어야 한다. **정해진 반올림**은 붙박인 규칙으로 분수 값을 정수로 옮긴다. 마구잡이 반올림과 달리 이 얼개는 정해져 있어 돌릴 때마다 같은 것을 낸다. 이 쪽은 문턱 반올림, 되풀이 반올림과 그 쓰임새를 다룬다.
 
-## Threshold Rounding
+## 문턱 반올림
 
-The simplest deterministic rounding strategy sets each variable to 1 if its LP value exceeds a threshold $\theta$.
+가장 단순한 정해진 반올림 방책은 선형 계획 값이 문턱 $\theta$을 넘으면 변수를 1으로 둔다.
 
-!!! tip "Definition: Threshold Rounding"
-    Given an LP optimal solution $x^*$, define the rounded solution:
+!!! tip "뜻매김: 문턱 반올림"
+    선형 계획의 가장 좋은 풀이 $x^*$이 주어질 때 반올림한 풀이를 다음과 같이 둔다.
 
     $$
     \hat{x}_j = \begin{cases} 1 & \text{if } x_j^* \geq \theta \\ 0 & \text{otherwise} \end{cases}
     $$
 
-    The threshold $\theta$ is chosen to guarantee feasibility and a bounded approximation ratio.
+    문턱 $\theta$은 올바름과 가둔 어림 비율을 보장하도록 고른다.
 
-### Application: Vertex Cover
+### 쓰임새: 꼭짓점 덮기
 
-For vertex cover, $\theta = 1/2$ works. Every edge constraint $x_u^* + x_v^* \geq 1$ ensures at least one endpoint has $x^* \geq 1/2$, so the rounded solution is a valid cover.
+꼭짓점 덮기에서는 $\theta = 1/2$이 통한다. 모서리 조건 $x_u^* + x_v^* \geq 1$이 끝점 하나는 $x^* \geq 1/2$이게 하므로 반올림한 풀이는 올바른 덮기이다.
 
-**Ratio analysis.** Each rounded variable satisfies $\hat{x}_v \leq 2 x_v^*$:
+**비율 살피기.** 반올림한 변수마다 $\hat{x}_v \leq 2 x_v^*$을 채운다.
 
 $$
 \sum_v \hat{x}_v \leq 2 \sum_v x_v^* = 2 \cdot \text{OPT}_{\text{LP}} \leq 2 \cdot \text{OPT}
 $$
 
-This gives a 2-approximation.
+이는 2 어림을 준다.
 
-### Application: Weighted Set Cover
+### 쓰임새: 무게 붙인 모임 덮기
 
-For set cover with element frequency $f$ (maximum number of sets containing any element), use $\theta = 1/f$.
+낱개 잦기가 $f$(어떤 낱개를 담은 모임의 최대 수)인 모임 덮기에서는 $\theta = 1/f$을 쓴다.
 
-Each element $i$ has $\sum_{j : i \in S_j} x_j^* \geq 1$, so at least one set containing $i$ has $x_j^* \geq 1/f$, ensuring element $i$ is covered.
+낱개 $i$마다 $\sum_{j : i \in S_j} x_j^* \geq 1$이므로 $i$을 담은 모임 가운데 적어도 하나는 $x_j^* \geq 1/f$이며, 그래서 낱개 $i$이 덮인다.
 
-The ratio becomes $f$: each $\hat{x}_j \leq f \cdot x_j^*$.
+비율은 $f$이 된다. 곧 $\hat{x}_j \leq f \cdot x_j^*$이다.
 
-## Iterative Rounding
+## 되풀이 반올림
 
-**Iterative rounding**, introduced by Jain (2001) for the Steiner network problem, is a more sophisticated technique that repeatedly solves the LP, rounds variables, and re-solves.
+Jain(2001)이 슈타이너 그물 문제에 내놓은 **되풀이 반올림**은 선형 계획을 거듭 풀고 변수를 반올림한 뒤 다시 푸는 더 정교한 재주이다.
 
-### Algorithm
+### 알고리즘
 
-1. Solve the LP relaxation.
-2. If any variable $x_j^*$ is integral (0 or 1), fix it and remove it from the LP.
-3. If a structural argument guarantees some variable has $x_j^* \geq 1/2$ (or another threshold), round it up and fix it.
-4. Re-solve the reduced LP and repeat.
-5. Return the accumulated integer solution.
+1. 선형 계획 느슨하게 하기를 푼다.
+2. 어떤 변수 $x_j^*$이 정수(0이나 1)이면 붙박고 선형 계획에서 뺀다.
+3. 짜임 논증이 어떤 변수가 $x_j^* \geq 1/2$(또는 다른 문턱)임을 보장하면 올림하고 붙박는다.
+4. 줄어든 선형 계획을 다시 풀고 되풀이한다.
+5. 쌓인 정수 풀이를 돌려준다.
 
-### Key Insight
+### 핵심 통찰
 
-The power of iterative rounding comes from the **rank lemma**: in a basic feasible solution (vertex of the LP polytope), the number of non-zero variables equals the number of tight constraints. As variables are fixed, the LP shrinks, and the remaining basic feasible solution often has "large" fractional values that can be rounded with small loss.
+되풀이 반올림의 힘은 **계수 보조 정리**에서 온다. 곧 바탕 올바른 풀이(선형 계획 다면체의 꼭짓점)에서 0이 아닌 변수의 수는 빡빡한 조건의 수와 같다. 변수를 붙박을수록 선형 계획이 줄고 남은 바탕 올바른 풀이는 흔히 작은 손해로 반올림할 수 있는 "큰" 분수 값을 가진다.
 
-### Application: Degree-Bounded Spanning Tree
+### 쓰임새: 차수를 가둔 뻗음 나무
 
-Iterative rounding achieves a spanning tree whose maximum degree exceeds the optimal by at most 1 (an additive guarantee). At each iteration, the basic feasible solution has some edge variable $x_e^* = 1$ or a degree constraint that can be dropped (relaxed). This structural property ensures progress.
+되풀이 반올림은 최대 차수가 가장 좋은 값보다 많아야 1 큰 뻗음 나무를 이룬다(덧셈 보장). 되풀이마다 바탕 올바른 풀이에는 $x_e^* = 1$인 모서리 변수나 버릴(느슨하게 할) 수 있는 차수 조건이 있다. 이 짜임 성질이 나아감을 보장한다.
 
-## Pipage Rounding
+## 관 반올림
 
-**Pipage rounding** (Ageev and Sviridenko, 2004) converts a fractional solution to an integer solution by iteratively modifying pairs of variables while maintaining (or improving) the objective value.
+**관 반올림**(Ageev와 Sviridenko, 2004)은 목표 값을 지키거나 높이면서 변수 짝을 거듭 고쳐 분수 풀이를 정수 풀이로 바꾼다.
 
-### Procedure
+### 절차
 
-Given fractional $x^*$ with $x_i^*, x_j^* \in (0, 1)$:
+$x_i^*, x_j^* \in (0, 1)$인 분수 $x^*$이 주어질 때:
 
-1. Choose two fractional variables $x_i, x_j$.
-2. Define $\epsilon_1 = \min(x_i^*, 1 - x_j^*)$ and $\epsilon_2 = \min(1 - x_i^*, x_j^*)$.
-3. Either set $(x_i, x_j) \leftarrow (x_i^* - \epsilon_1, x_j^* + \epsilon_1)$ or $(x_i, x_j) \leftarrow (x_i^* + \epsilon_2, x_j^* - \epsilon_2)$, choosing the option that does not decrease the objective.
-4. Repeat until all variables are integral.
+1. 분수 변수 둘 $x_i, x_j$을 고른다.
+2. $\epsilon_1 = \min(x_i^*, 1 - x_j^*)$과 $\epsilon_2 = \min(1 - x_i^*, x_j^*)$으로 둔다.
+3. 목표를 줄이지 않는 쪽을 골라 $(x_i, x_j) \leftarrow (x_i^* - \epsilon_1, x_j^* + \epsilon_1)$이나 $(x_i, x_j) \leftarrow (x_i^* + \epsilon_2, x_j^* - \epsilon_2)$으로 둔다.
+4. 모든 변수가 정수가 될 때까지 되풀이한다.
 
-Each step reduces the number of fractional variables by at least one, so the procedure terminates in at most $n$ steps.
+걸음마다 분수 변수의 수가 적어도 하나 줄므로 이 절차는 많아야 $n$걸음에 멈춘다.
 
-## Comparison of Rounding Methods
+## 반올림 방법 견주기
 
-| Method | Type | Key Property | Example Application |
+| 방법 | 갈래 | 핵심 성질 | 보기 쓰임새 |
 |--------|------|--------------|-------------------|
-| Threshold | Deterministic | Simple, one-pass | Vertex Cover (ratio 2) |
-| Randomized | Probabilistic | Uses LP values as probabilities | MAX-SAT (ratio $1 - 1/e$) |
-| Iterative | Deterministic | Re-solves LP after each fix | Network design |
-| Pipage | Deterministic | Pairs of variables, maintains objective | Submodular maximization |
+| 문턱 | 정해짐 | 단순하고 한 번에 | 꼭짓점 덮기(비율 2) |
+| 마구잡이 | 확률 | 선형 계획 값을 확률로 쓴다 | MAX-SAT(비율 $1 - 1/e$) |
+| 되풀이 | 정해짐 | 붙박을 때마다 선형 계획을 다시 푼다 | 그물 설계 |
+| 관 | 정해짐 | 변수 짝을 다루며 목표를 지킨다 | 아래 모듈 가장 크게 하기 |
 
-??? example "Worked Example: Threshold Rounding for Vertex Cover"
-    **Graph:** Path $a - b - c - d$ with edges $\{(a,b), (b,c), (c,d)\}$.
+??? example "풀어 본 보기: 꼭짓점 덮기의 문턱 반올림"
+    **그래프:** 모서리가 $\{(a,b), (b,c), (c,d)\}$인 길 $a - b - c - d$.
 
-    **LP solution:** $x_a^* = 0, x_b^* = 1, x_c^* = 0.5, x_d^* = 0.5$.
+    **선형 계획 풀이:** $x_a^* = 0, x_b^* = 1, x_c^* = 0.5, x_d^* = 0.5$.
 
-    **Verify constraints:**
+    **조건 확인:**
 
     - $(a,b)$: $0 + 1 = 1 \geq 1$
     - $(b,c)$: $1 + 0.5 = 1.5 \geq 1$
     - $(c,d)$: $0.5 + 0.5 = 1 \geq 1$
 
-    **LP cost:** $0 + 1 + 0.5 + 0.5 = 2$.
+    **선형 계획 비용:** $0 + 1 + 0.5 + 0.5 = 2$.
 
-    **Rounding with $\theta = 1/2$:** $\hat{x}_a = 0, \hat{x}_b = 1, \hat{x}_c = 1, \hat{x}_d = 1$. Cover $= \{b, c, d\}$, cost $= 3$.
+    **$\theta = 1/2$으로 반올림:** $\hat{x}_a = 0, \hat{x}_b = 1, \hat{x}_c = 1, \hat{x}_d = 1$. 덮기 $= \{b, c, d\}$, 비용 $= 3$.
 
-    **Optimal:** $\{b, c\}$ covers all edges, cost $= 2$.
+    **가장 좋은 값:** $\{b, c\}$이 모든 모서리를 덮으며 비용 $= 2$이다.
 
-    **Ratio:** $3/2 = 1.5 \leq 2$. The guarantee holds.
+    **비율:** $3/2 = 1.5 \leq 2$. 보장이 참이다.
 
-## Reference
+## 참고 문헌
 
 - Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.
 - Jain, K. (2001). A factor 2 approximation algorithm for the generalized Steiner network problem. *Combinatorica*, 21(1), 39--60.
 - Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+정해진 선형 계획 반올림의 어림 알고리즘을 설명하고 그 어림 보장을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 다항식 시간에 돌며 가장 좋은 값의 밝힐 수 있는 갑절 안에 드는 풀이를 낸다. 어림 비율은 알고리즘이 내놓은 것을 가장 좋은 값의 아래 한계(가장 작게 하기)나 위 한계(가장 크게 하기), 곧 선형 계획 느슨하게 하기 값이나 조합 한계, 문제의 짜임 성질과 이어 밝힌다. $\square$
+
+---
+
+**연습문제 2.**
+정해진 선형 계획 반올림의 어림 비율을 밝히는 데 어떤 아래 한계 재주를 쓰는가?
+
+??? success "연습문제 2 풀이"
+    밝힘은 흔히 알고리즘의 풀이를 느슨하게 한 한계(선형 계획 느슨하게 하기, 분수 풀이, 조합 아래 한계)와 견준다. 가장 작게 하기에서는 $ALG \leq \rho \cdot LP^* \leq \rho \cdot OPT$이다. 가장 크게 하기에서는 $ALG \geq OPT / \rho$이다. 아래 한계는 효율 좋게 셈할 수 있고 쓸모 있는 비율을 줄 만큼 빡빡해야 한다. $\square$
+
+---
+
+**연습문제 3.**
+정해진 선형 계획 반올림의 어림 비율을 더 좋게 할 수 있는가? 알려진 어려움 결과는 무엇인가?
+
+??? success "연습문제 3 풀이"
+    어림 비율이 얼마나 빡빡한지는 복잡도 이론의 가정(P $\neq$ NP, 하나뿐인 놀이 추측 등)에 달렸다. 어떤 문제에서는 단순한 욕심쟁이나 반올림 알고리즘이 여느 가정 아래 이미 가장 좋다. 다른 문제에서는 가장 좋은 알고리즘과 가장 센 어려움 결과 사이에 틈이 있어 아직 풀리지 않은 연구 문제로 남아 있다. $\square$
+
+---
+
+**연습문제 4.**
+정해진 선형 계획 반올림을 구체적인 보기에 써서 어림 비율이 참임을 확인하라.
+
+??? success "연습문제 4 풀이"
+    작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$

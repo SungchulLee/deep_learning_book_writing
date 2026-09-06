@@ -209,3 +209,43 @@ The in-order traversal confirms the BST property, the height is close to $\log_2
 
 - Seidel, R. and Aragon, C.R. "Randomized Search Trees." *Algorithmica*, 1996
 - [Advanced Data Structures (Brass)](https://www.cambridge.org/core/books/advanced-data-structures/D56E2269D7CEE969A3B8105D3541F601)
+
+## Exercises
+
+**Exercise 1.**
+Insert keys 5, 3, 7, 1, 4 into a treap with random priorities 10, 30, 20, 5, 25 respectively. Draw the resulting tree and verify both BST and heap properties.
+
+??? success "Solution to Exercise 1"
+    Priorities: 5$\to$10, 3$\to$30, 7$\to$20, 1$\to$5, 4$\to$25. The heap property requires higher priority nodes to be closer to the root (max-heap on priorities). Sort by priority descending: 3(30), 4(25), 7(20), 5(10), 1(5). The root is 3 (highest priority). BST property: left subtree has keys $< 3$, right has keys $> 3$. Left subtree of 3: only key 1 with priority 5. Right subtree of 3: keys 4, 5, 7. Among these, 4 has highest priority (25), so 4 is the right child of 3. Left of 4: none (no keys between 3 and 4). Right of 4: keys 5, 7. Between these, 7 has priority 20 $>$ 5's priority 10, so 7 is right child of 4, and 5 is left child of 7. Final tree: 3(30) with left=1(5), right=4(25). 4(25) with right=7(20). 7(20) with left=5(10). BST and max-heap properties both hold. $\square$
+
+---
+
+**Exercise 2.**
+Prove that a treap with $n$ keys and random priorities has the same expected structure as a random BST (a BST built by inserting keys in random order).
+
+??? success "Solution to Exercise 2"
+    In a random BST, the root is the first inserted key, which is equally likely to be any of the $n$ keys. In a treap, the root is the key with the highest random priority. Since priorities are i.i.d. from a continuous distribution, each key is equally likely to have the maximum priority. Therefore, both models select the root uniformly at random from the $n$ keys. Given the root $r$, the BST property partitions the remaining keys into those $< r$ (left subtree) and those $> r$ (right subtree). In a random BST, the insertion order within each subset is a random permutation. In a treap, the priorities within each subset are i.i.d., giving each subset a random structure by the same argument. By induction on $n$, the two distributions over tree shapes are identical. Therefore, all expected properties of random BSTs (expected depth $O(\log n)$, expected height $O(\log n)$) apply to treaps. $\square$
+
+---
+
+**Exercise 3.**
+Describe the split and merge operations on treaps. What are their expected time complexities, and why are they useful?
+
+??? success "Solution to Exercise 3"
+    **Split(T, k)**: split treap $T$ into two treaps $L$ and $R$ where $L$ contains all keys $\le k$ and $R$ contains all keys $> k$. Algorithm: if $T$ is empty, return (empty, empty). If root's key $\le k$, recursively split the right subtree; the root and left subtree go to $L$, and the right part of the split goes to $R$. Otherwise, recursively split the left subtree; the root and right subtree go to $R$. **Merge(L, R)**: merge two treaps where all keys in $L$ are less than all keys in $R$. If either is empty, return the other. If $L$'s root has higher priority, $L$'s root becomes the new root with its left subtree unchanged and right subtree = Merge($L$.right, $R$). Otherwise symmetrically with $R$'s root. Expected time: $O(\log n)$ for both (proportional to the height). These operations enable efficient insert (split + merge), delete (split + merge), and interval operations (split at two points, process, merge back). $\square$
+
+---
+
+**Exercise 4.**
+A treap is used to maintain a dynamic sequence supporting split and merge. Explain how to augment it to answer range-sum queries in $O(\log n)$ time.
+
+??? success "Solution to Exercise 4"
+    Augment each node with a `sum` field storing the sum of all values in its subtree: `node.sum = node.value + node.left.sum + node.right.sum`. Update `sum` during split and merge (each recursive call updates the modified node's `sum` in $O(1)$). For a range-sum query on keys in $[a, b]$: split the treap at $a-1$ to get $(L, R)$, then split $R$ at $b$ to get $(M, R')$. The answer is $M.\text{root.sum}$. Merge $M$ and $R'$, then merge with $L$ to restore the treap. Total: three splits and two merges, each $O(\log n)$. This generalizes to any associative aggregation (max, min, gcd) by replacing `sum` with the appropriate operation. $\square$
+
+---
+
+**Exercise 5.**
+Compare treaps with red-black trees for use as a persistent (functional) data structure. Which is easier to implement persistently and why?
+
+??? success "Solution to Exercise 5"
+    **Treaps** are easier to implement persistently because their split and merge operations are naturally top-down and create new nodes along a single path, producing $O(\log n)$ new nodes per operation via path copying. Insert and delete are expressed as combinations of split and merge, inheriting the same persistent behavior. No rotations propagate unpredictably -- the structure is determined by the immutable priorities. **Red-black trees** require rotations and recolorings that can affect multiple nodes at different levels. Making these persistent requires copying not just the insertion path but also nodes affected by rotations (siblings, uncles). While the asymptotic cost is the same ($O(\log n)$ new nodes), the implementation is substantially more complex because rotation cases must be handled persistently. Treaps' simplicity (two core operations: split and merge) makes them the preferred choice for persistent sorted containers in competitive programming. $\square$

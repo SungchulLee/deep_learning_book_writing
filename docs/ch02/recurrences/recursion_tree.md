@@ -1,17 +1,17 @@
-# Recursion Tree Method
+# 재귀 트리 방법
 
-A recurrence like $T(n) = 2T(n/2) + n$ tells us the *relationship* between the running time at different problem sizes, but it does not immediately reveal the closed-form answer. The recursion tree method makes the answer visible by unfolding the recurrence into a tree, computing the work at each level, and summing across all levels. This visual approach builds the geometric intuition that underlies the [Master theorem](master.md) and is the standard technique for *guessing* an answer that can then be verified with the [substitution method](substitution.md).
+$T(n) = 2T(n/2) + n$ 같은 점화식은 서로 다른 문제 크기에서의 실행 시간 사이의 *관계* 를 알려주지만 닫힌 형태의 답을 곧바로 드러내지는 않는다. 재귀 트리 방법은 점화식을 트리로 펼치고 각 층에서의 일을 계산한 뒤 모든 층에 걸쳐 더함으로써 답을 눈에 보이게 만든다. 이 시각적 접근은 [마스터 정리](master.md)의 바탕이 되는 기하학적 직관을 길러 주며, 이후 [치환 방법](substitution.md)으로 검증할 답을 *추측하는* 표준적인 기법이다.
 
-## Building a Recursion Tree
+## 재귀 트리 만들기
 
-Given a recurrence $T(n) = aT(n/b) + f(n)$, the recursion tree is constructed as follows:
+점화식 $T(n) = aT(n/b) + f(n)$이 주어지면 재귀 트리를 다음과 같이 구성한다.
 
-1. **Root**: A single node representing the original problem of size $n$. The non-recursive work at the root is $f(n)$.
-2. **Children**: The root has $a$ children, each representing a subproblem of size $n/b$. Each child does $f(n/b)$ non-recursive work.
-3. **Recurse**: Each child spawns $a$ grandchildren of size $n/b^2$, and so on.
-4. **Leaves**: The recursion bottoms out when the problem size reaches the base case, at depth $\log_b n$.
+1. **뿌리**: 크기 $n$인 원래 문제를 나타내는 노드 하나. 뿌리에서의 재귀가 아닌 일은 $f(n)$이다.
+2. **자식**: 뿌리는 각각 크기 $n/b$인 부분문제를 나타내는 자식 $a$개를 가진다. 각 자식은 $f(n/b)$의 재귀가 아닌 일을 한다.
+3. **재귀**: 각 자식이 크기 $n/b^2$인 손자 $a$개를 낳고, 이런 식으로 계속된다.
+4. **잎**: 문제 크기가 기저 사례에 도달하면 재귀가 멈추며 그 깊이는 $\log_b n$이다.
 
-### Tree Structure
+### 트리 구조
 
 ```
 Level 0:                    f(n)                          → 1 node
@@ -25,30 +25,30 @@ Level j:    a^j nodes, each doing f(n/b^j)               → a^j nodes
 Level log_b(n):   T(1) T(1) ... T(1)                     → a^(log_b n) = n^(log_b a) leaves
 ```
 
-## Level-by-Level Analysis
+## 층별 분석
 
-At level $j$ (counting the root as level 0):
+(뿌리를 0층으로 세어) $j$층에서는 다음과 같다.
 
-- **Number of nodes**: $a^j$
-- **Subproblem size**: $n / b^j$
-- **Work per node**: $f(n / b^j)$
-- **Total work at level $j$**: $a^j \cdot f(n / b^j)$
+- **노드 개수**: $a^j$
+- **부분문제 크기**: $n / b^j$
+- **노드당 일**: $f(n / b^j)$
+- **$j$층의 전체 일**: $a^j \cdot f(n / b^j)$
 
-The total running time is the sum over all levels, plus the leaf-level base-case work:
+전체 실행 시간은 모든 층에 대한 합에 잎 층의 기저 사례 일을 더한 값이다.
 
 $$
 T(n) = \sum_{j=0}^{\log_b n - 1} a^j \cdot f\!\left(\frac{n}{b^j}\right) + \Theta(n^{\log_b a})
 $$
 
-The last term $\Theta(n^{\log_b a})$ accounts for the $n^{\log_b a}$ leaves, each contributing $\Theta(1)$ work.
+마지막 항 $\Theta(n^{\log_b a})$은 각각 $\Theta(1)$의 일을 기여하는 $n^{\log_b a}$개의 잎을 반영한다.
 
-## Example 1: Merge Sort
+## 예제 1: 병합 정렬
 
-Consider $T(n) = 2T(n/2) + cn$ where $c$ is a constant.
+$c$가 상수일 때 $T(n) = 2T(n/2) + cn$을 생각하자.
 
-### Level-by-Level Costs
+### 층별 비용
 
-| Level | Nodes | Size | Work per node | Level total |
+| 층 | 노드 수 | 크기 | 노드당 일 | 층 합계 |
 |-------|-------|------|---------------|-------------|
 | 0 | 1 | $n$ | $cn$ | $cn$ |
 | 1 | 2 | $n/2$ | $cn/2$ | $cn$ |
@@ -56,48 +56,48 @@ Consider $T(n) = 2T(n/2) + cn$ where $c$ is a constant.
 | $j$ | $2^j$ | $n/2^j$ | $cn/2^j$ | $cn$ |
 | $\log_2 n$ | $n$ | 1 | $\Theta(1)$ | $\Theta(n)$ |
 
-Every level contributes exactly $cn$. There are $\log_2 n + 1$ levels (including the leaf level), giving:
+모든 층이 정확히 $cn$을 기여한다. (잎 층을 포함해) 층이 $\log_2 n + 1$개이므로
 
 $$
 T(n) = cn \cdot \log_2 n + \Theta(n) = \Theta(n \log n)
 $$
 
-This is the **balanced case**: the work is evenly distributed across levels.
+이것이 **균형 잡힌 경우** 이다. 일이 층마다 고르게 분포된다.
 
-## Example 2: Root-Heavy Tree
+## 예제 2: 뿌리가 무거운 트리
 
-Consider $T(n) = 3T(n/4) + cn^2$.
+$T(n) = 3T(n/4) + cn^2$을 생각하자.
 
-### Level-by-Level Costs
+### 층별 비용
 
-| Level | Nodes | Size | Work per node | Level total |
+| 층 | 노드 수 | 크기 | 노드당 일 | 층 합계 |
 |-------|-------|------|---------------|-------------|
 | 0 | 1 | $n$ | $cn^2$ | $cn^2$ |
 | 1 | 3 | $n/4$ | $c(n/4)^2$ | $3cn^2/16$ |
 | 2 | 9 | $n/16$ | $c(n/16)^2$ | $9cn^2/256$ |
 | $j$ | $3^j$ | $n/4^j$ | $c(n/4^j)^2$ | $cn^2 (3/16)^j$ |
 
-The level totals form a geometric series with ratio $r = 3/16 < 1$:
+층 합계는 공비가 $r = 3/16 < 1$인 등비급수를 이룬다.
 
 $$
 T(n) = cn^2 \sum_{j=0}^{\log_4 n - 1} \left(\frac{3}{16}\right)^j + \Theta(n^{\log_4 3})
 $$
 
-Since the geometric series converges:
+등비급수가 수렴하므로
 
 $$
 \sum_{j=0}^{\infty} \left(\frac{3}{16}\right)^j = \frac{1}{1 - 3/16} = \frac{16}{13}
 $$
 
-So $T(n) = \Theta(n^2)$. The root dominates because the work *decreases* geometrically at each level. This corresponds to Case 3 of the Master theorem.
+따라서 $T(n) = \Theta(n^2)$이다. 각 층마다 일이 기하급수적으로 *줄어들기* 때문에 뿌리가 지배한다. 이는 마스터 정리의 경우 3에 해당한다.
 
-## Example 3: Leaf-Heavy Tree
+## 예제 3: 잎이 무거운 트리
 
-Consider $T(n) = 4T(n/2) + cn$.
+$T(n) = 4T(n/2) + cn$을 생각하자.
 
-### Level-by-Level Costs
+### 층별 비용
 
-| Level | Nodes | Size | Work per node | Level total |
+| 층 | 노드 수 | 크기 | 노드당 일 | 층 합계 |
 |-------|-------|------|---------------|-------------|
 | 0 | 1 | $n$ | $cn$ | $cn$ |
 | 1 | 4 | $n/2$ | $cn/2$ | $2cn$ |
@@ -105,78 +105,111 @@ Consider $T(n) = 4T(n/2) + cn$.
 | $j$ | $4^j$ | $n/2^j$ | $cn/2^j$ | $cn \cdot 2^j$ |
 | $\log_2 n$ | $n^2$ | 1 | $\Theta(1)$ | $\Theta(n^2)$ |
 
-The level totals form a geometric series with ratio $r = 2 > 1$, so the work *increases* geometrically. The last full level dominates:
+층 합계는 공비가 $r = 2 > 1$인 등비급수를 이루므로 일이 기하급수적으로 *늘어난다.* 마지막 완전한 층이 지배한다.
 
 $$
 T(n) = cn \sum_{j=0}^{\log_2 n - 1} 2^j + \Theta(n^2) = cn(2^{\log_2 n} - 1) + \Theta(n^2) = \Theta(n^2)
 $$
 
-Here $n^{\log_b a} = n^{\log_2 4} = n^2$, confirming Case 1 of the Master theorem: the leaves dominate.
+여기서 $n^{\log_b a} = n^{\log_2 4} = n^2$이므로 마스터 정리의 경우 1, 즉 잎이 지배하는 경우가 확인된다.
 
-## The Three Geometric Patterns
+## 세 가지 기하학적 패턴
 
-The recursion tree reveals why the Master theorem has exactly three cases:
+재귀 트리는 마스터 정리에 정확히 세 경우가 있는 이유를 드러낸다.
 
-| Pattern | Ratio $r = a / b^c$ where $f(n) = \Theta(n^c)$ | Dominant level | Master case |
+| 패턴 | $f(n) = \Theta(n^c)$일 때의 비 $r = a / b^c$ | 지배하는 층 | 마스터 정리의 경우 |
 |---------|------------------------------------------------|----------------|-------------|
-| Decreasing ($r < 1$) | Work shrinks geometrically | Root | Case 3 |
-| Constant ($r = 1$) | Equal work at every level | All (summed) | Case 2 |
-| Increasing ($r > 1$) | Work grows geometrically | Leaves | Case 1 |
+| 감소($r < 1$) | 일이 기하급수적으로 줄어든다 | 뿌리 | 경우 3 |
+| 일정($r = 1$) | 모든 층에서 일이 같다 | 전체(합) | 경우 2 |
+| 증가($r > 1$) | 일이 기하급수적으로 늘어난다 | 잎 | 경우 1 |
 
-The ratio $r$ determines whether the geometric series converges (root-heavy), is constant (balanced), or diverges (leaf-heavy).
+비 $r$이 등비급수가 수렴하는지(뿌리가 무거움), 일정한지(균형), 발산하는지(잎이 무거움)를 결정한다.
 
-## Using the Recursion Tree to Guess, Then Verify
+## 재귀 트리로 추측하고 검증하기
 
-The recursion tree method is typically used in two stages:
+재귀 트리 방법은 보통 두 단계로 쓰인다.
 
-1. **Guess**: Draw the tree, sum the levels, and conjecture an asymptotic bound
-2. **Verify**: Use the [substitution method](substitution.md) to prove the guess rigorously
+1. **추측**: 트리를 그리고 층을 더한 뒤 점근적 경계를 짐작한다
+2. **검증**: [치환 방법](substitution.md)으로 그 추측을 엄밀하게 증명한다
 
-The tree itself is not a formal proof because it relies on intuitive arguments about geometric series. The substitution method provides the inductive proof that the guess is correct.
+트리 자체는 등비급수에 관한 직관적 논증에 기대고 있으므로 형식적인 증명이 아니다. 추측이 옳다는 귀납적 증명은 치환 방법이 제공한다.
 
-??? example "Guess-and-Verify for $T(n) = 2T(n/2) + n$"
-    **Guess** (from the tree): $T(n) = O(n \log n)$.
+??? example "$T(n) = 2T(n/2) + n$의 추측과 검증"
+    **추측**(트리로부터): $T(n) = O(n \log n)$.
 
-    **Verify** by induction: Assume $T(k) \leq ck \log k$ for all $k < n$. Then:
+    **귀납법으로 검증**: 모든 $k < n$에 대해 $T(k) \leq ck \log k$를 가정하자. 그러면
 
     $$
     T(n) = 2T(n/2) + n \leq 2c(n/2)\log(n/2) + n = cn(\log n - 1) + n = cn\log n - cn + n
     $$
 
-    This is at most $cn \log n$ whenever $c \geq 1$. So $T(n) = O(n \log n)$.
+    이는 $c \geq 1$일 때 $cn \log n$ 이하이다. 따라서 $T(n) = O(n \log n)$이다.
 
-## Handling Non-Standard Recurrences
+## 비표준 점화식 다루기
 
-### Unequal Subproblem Sizes
+### 크기가 다른 부분문제
 
-When subproblems have different sizes, the recursion tree is no longer perfectly balanced. Consider $T(n) = T(n/3) + T(2n/3) + n$.
+부분문제의 크기가 서로 다르면 재귀 트리가 더 이상 완전히 균형 잡히지 않는다. $T(n) = T(n/3) + T(2n/3) + n$을 생각하자.
 
-The longest path goes from root to a leaf via the $2n/3$ branches, reaching the base case at depth $\log_{3/2} n$. The shortest path reaches it at depth $\log_3 n$. At every level, the total work is at most $n$ (because all subproblem sizes at any level sum to at most $n$). Therefore:
+가장 긴 경로는 뿌리에서 $2n/3$ 가지를 따라 잎까지 가며 깊이 $\log_{3/2} n$에서 기저 사례에 도달한다. 가장 짧은 경로는 깊이 $\log_3 n$에서 도달한다. 모든 층에서 전체 일은 많아야 $n$이다(어느 층에서든 모든 부분문제 크기의 합이 많아야 $n$이기 때문이다). 따라서
 
 $$
 T(n) = O(n \log_{3/2} n) = O(n \log n)
 $$
 
-A matching lower bound can be shown by noting that the total work at every level is at least $cn$ for sufficiently many levels, giving $T(n) = \Omega(n \log n)$.
+충분히 많은 층에서 전체 일이 적어도 $cn$임을 보이면 이에 대응하는 하계 $T(n) = \Omega(n \log n)$도 보일 수 있다.
 
-### Additive Recurrences
+### 덧셈형 점화식
 
-For $T(n) = T(n-1) + f(n)$, the "tree" degenerates into a chain (each node has one child). The total work is simply:
+$T(n) = T(n-1) + f(n)$의 경우 "트리"는 사슬로 퇴화한다(각 노드가 자식 하나를 가진다). 전체 일은 단순히 다음과 같다.
 
 $$
 T(n) = \sum_{k=1}^{n} f(k) + T(0)
 $$
 
-This is a summation problem, not a geometric series, so the Master theorem does not apply. Direct summation or [generating functions](generating.md) are more appropriate.
+이는 등비급수가 아니라 합의 문제이므로 마스터 정리를 적용할 수 없다. 직접 합을 구하거나 [생성함수](generating.md)를 쓰는 편이 더 적절하다.
 
-## Connections to Other Topics
+## 다른 주제와의 연결
 
-- **[Master Theorem](master.md)**: The theorem that formalizes the three geometric patterns
-- **[Extended Master Theorem](extended_master.md)**: Handles the balanced case with logarithmic factors
-- **[Substitution Method](substitution.md)**: Verifies guesses obtained from the recursion tree
-- **[Recurrence from Divide and Conquer](divide_conquer.md)**: How to derive the recurrences that recursion trees visualize
+- **[마스터 정리](master.md)**: 세 가지 기하학적 패턴을 형식화한 정리
+- **[확장 마스터 정리](extended_master.md)**: 로그 인자가 있는 균형 잡힌 경우를 다룬다
+- **[치환 방법](substitution.md)**: 재귀 트리에서 얻은 추측을 검증한다
+- **[분할 정복으로부터의 점화식](divide_conquer.md)**: 재귀 트리가 시각화하는 점화식을 유도하는 방법
 
-## References
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Section 4.4. MIT Press.
 - Erickson, J. (2019). *Algorithms*, Chapter 1. Self-published.
+
+
+## 연습문제
+
+**연습문제 1.**
+재귀 트리 방법에서 다룬 점화식 풀이 기법을 점화식 $T(n) = 2T(n/2) + n$에 적용하라.
+
+??? success "연습문제 1 풀이"
+    이 절에서 설명한 방법을 사용한다. 핵심 매개변수를 찾고 기법을 적용하면 $T(n) = \Theta(n \log n)$을 얻는다. 이것이 병합 정렬의 점화식이며, 일이 층마다 고르게 분포되는 균형 잡힌 경우를 나타낸다.
+
+---
+
+**연습문제 2.**
+재귀 트리 방법을 사용하여 $T(n) = 4T(n/2) + n$을 풀어라. 어느 경우에 해당하는가?
+
+??? success "연습문제 2 풀이"
+    $a = 4, b = 2, \log_b a = 2$이다. $f(n) = n = O(n^{2-1})$이다. 재귀 비용이 지배하므로 $T(n) = \Theta(n^2)$이다.
+
+---
+
+**연습문제 3.**
+길이 $n$인 시퀀스를 두 절반으로 나누어 각각을 재귀적으로 처리한 뒤 $O(n)$의 교차 어텐션으로 결합하는 트랜스포머 층의 점화식을 쓰고 풀어라.
+
+??? success "연습문제 3 풀이"
+    $T(n) = 2T(n/2) + O(n)$이다. 이는 $T(n) = \Theta(n \log n)$을 주며 병합 정렬과 같다. 실제로 트랜스포머는 이런 재귀 구조를 쓰지 않지만, (Longformer 같은) 계층적 어텐션 기법이 이를 근사한다.
+
+---
+
+**연습문제 4.**
+재귀 트리 방법에 나오는 점화식의 해를 치환 방법으로 검증하라. 귀납 가정을 서술하고 증명을 수행하라.
+
+??? success "연습문제 4 풀이"
+    이 절의 기법으로 닫힌 형태를 추측한다. 모든 $k < n$에 대해 $T(k) \leq ck^p$(또는 적절한 형태)를 가정한다. 이를 점화식에 대입하여 $T(n) \leq cn^p$임을 검증한다. 기저 사례는 따로 처리한다. $\square$

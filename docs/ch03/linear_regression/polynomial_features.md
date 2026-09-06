@@ -1,71 +1,57 @@
-# Polynomial Features
+# 다항 특징
+## 개요
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-Linear regression is linear in **parameters**, not necessarily in features.  By
-constructing polynomial (or other nonlinear) transformations of the original
-inputs, we can fit curved relationships while keeping the optimisation machinery
-of ordinary least squares.  This page develops the theory, connects it to the
-bias–variance trade-off, and demonstrates cross-validated model selection.
+선형 회귀는 **매개변수**에 대해 선형일 뿐 특징에 대해서까지 선형일 필요는 없다.
+원래 입력을 다항식(또는 다른 비선형) 변환으로 바꾸어 주면, 보통최소제곱의 최적화
+장치를 그대로 쓰면서도 곡선 관계를 적합시킬 수 있다. 이 페이지는 그 이론을 전개하고,
+편향–분산 절충과 연결하며, 교차 검증으로 모델을 고르는 법을 보여준다.
 
 ---
 
-## 1. Feature Map Idea
+## 1. 특징 사상이라는 착상
 
-### 1.1 The Limitation of a Linear Basis
+### 1.1 선형 기저의 한계
 
-With raw features $x \in \mathbb{R}$, the model $\hat{y} = w_1 x + b$ can only
-represent a straight line.  If the true relationship is nonlinear — say,
-quadratic — the best linear fit under-fits systematically.
+원 특징 $x \in \mathbb{R}$을 쓰면 모델 $\hat{y} = w_1 x + b$는 직선밖에 표현하지
+못한다. 참된 관계가 비선형이라면(예컨대 이차식이라면) 최선의 선형 적합도 체계적으로
+과소적합한다.
 
-### 1.2 Polynomial Expansion
+### 1.2 다항식 확장
 
-Define the degree-$d$ **feature map** $\phi : \mathbb{R} \to \mathbb{R}^{d+1}$:
-
-$$
-
-\phi(x) = [1,\; x,\; x^2,\; \ldots,\; x^d]^\top.
+차수 $d$의 **특징 사상** $\phi : \mathbb{R} \to \mathbb{R}^{d+1}$을 정의하자.
 
 $$
-
-The model becomes
-
+\phi(x) = [1,\; x,\; x^2,\; \ldots,\; x^d]^\top
 $$
 
+모델은 다음이 된다.
+
+$$
 \hat{y}
 = \boldsymbol{\theta}^\top \phi(x)
-= \theta_0 + \theta_1 x + \theta_2 x^2 + \cdots + \theta_d x^d.
-
+= \theta_0 + \theta_1 x + \theta_2 x^2 + \cdots + \theta_d x^d
 $$
 
-This is still **linear in $\boldsymbol{\theta}$**, so the normal equations and
-gradient descent apply without modification — only the design matrix changes.
+이는 여전히 **$\boldsymbol{\theta}$에 대해 선형**이므로 정규 방정식과 경사 하강법을
+고칠 것 없이 그대로 쓸 수 있다. 바뀌는 것은 설계 행렬뿐이다.
 
-### 1.3 Multivariate Extension
+### 1.3 다변량으로의 확장
 
-For $p$ input features and degree $d$, the polynomial feature map includes all
-monomials up to total degree $d$:
+입력 특징이 $p$개이고 차수가 $d$일 때, 다항 특징 사상은 총차수가 $d$ 이하인 모든
+단항식을 포함한다.
 
 $$
-
 \phi(\mathbf{x}) = \{x_1^{a_1} x_2^{a_2} \cdots x_p^{a_p}
-                    : a_1 + a_2 + \cdots + a_p \leq d\}.
-
+                    : a_1 + a_2 + \cdots + a_p \leq d\}
 $$
 
-The number of features after expansion is
+확장 후 특징의 개수는 다음과 같다.
 
 $$
-
-\binom{p + d}{d} = \frac{(p + d)!}{p!\, d!}.
-
+\binom{p + d}{d} = \frac{(p + d)!}{p!\, d!}
 $$
 
-| Original features $p$ | Degree $d$ | Expanded features |
+| 원 특징 수 $p$ | 차수 $d$ | 확장된 특징 수 |
 |:---------------------:|:----------:|:-----------------:|
 | 1 | 2 | 3 |
 | 1 | 5 | 6 |
@@ -74,49 +60,47 @@ $$
 | 5 | 3 | 56 |
 | 10 | 3 | 286 |
 
-!!! warning "Curse of Dimensionality"
-    The number of polynomial features grows combinatorially.  For moderate $p$
-    and high $d$, the expanded feature space can become very large, increasing
-    both computation and the risk of overfitting.
+!!! warning "차원의 저주"
+    다항 특징의 개수는 조합적으로 늘어난다. $p$가 적당하고 $d$가 크면 확장된 특징
+    공간이 매우 커져 계산량도, 과적합 위험도 함께 커진다.
 
 ---
 
-## 2. NumPy Implementation
+## 2. NumPy 구현
 
-### 2.1 Manual Construction (Univariate)
+### 2.1 직접 만들기 (단변량)
 
 ```python
 import numpy as np
 
-
 def polynomial_features_1d(x: np.ndarray, degree: int) -> np.ndarray:
-    """Build polynomial design matrix for a single feature.
+    """특징 하나에 대한 다항 설계 행렬을 만든다.
 
-    Parameters
-    ----------
-    x : 1-D array of shape (n,)
-    degree : polynomial degree d
+    매개변수
+    --------
+    x : 모양이 (n,)인 1차원 배열
+    degree : 다항식 차수 d
 
-    Returns
-    -------
-    X : ndarray of shape (n, d+1) — columns are [1, x, x², …, x^d]
+    반환값
+    ------
+    X : 모양이 (n, d+1)인 ndarray — 열은 [1, x, x², …, x^d]
     """
     return np.column_stack([x ** k for k in range(degree + 1)])
 ```
 
-### 2.2 Using scikit-learn
+### 2.2 scikit-learn 사용하기
 
 ```python
 from sklearn.preprocessing import PolynomialFeatures
 
-# degree=3, include_bias=True adds the constant column
+# degree=3, include_bias=True는 상수 열을 추가한다
 poly = PolynomialFeatures(degree=3, include_bias=True)
 X_poly = poly.fit_transform(X_raw)  # (n, C(p+3, 3))
 
 print(poly.get_feature_names_out())  # ['1', 'x0', 'x1', 'x0^2', ...]
 ```
 
-### 2.3 End-to-End Fit
+### 2.3 전 과정 적합
 
 ```python
 from sklearn.linear_model import LinearRegression
@@ -132,36 +116,33 @@ pipe.fit(X_train, y_train)
 y_pred = pipe.predict(X_test)
 ```
 
-!!! tip "Scaling After Expansion"
-    Always standardise **after** the polynomial expansion.  High-degree terms
-    ($x^5$, $x^6$, …) can span orders of magnitude, destabilising both the
-    normal equations and gradient descent.
+!!! tip "확장 후에 스케일링하기"
+    표준화는 언제나 다항식 확장 **뒤에** 하라. 고차 항($x^5$, $x^6$, …)은 자릿수가
+    크게 벌어질 수 있어 정규 방정식과 경사 하강법을 모두 불안정하게 만든다.
 
 ---
 
-## 3. PyTorch Implementation
+## 3. PyTorch 구현
 
 ```python
 import torch
 import torch.nn as nn
 
-
 def polynomial_features_torch(
     x: torch.Tensor, degree: int
 ) -> torch.Tensor:
-    """Univariate polynomial features: [x, x², …, x^d].
+    """단변량 다항 특징: [x, x², …, x^d].
 
-    Args:
-        x: shape (n, 1)
-        degree: polynomial degree
+    인자:
+        x: 모양 (n, 1)
+        degree: 다항식 차수
 
-    Returns:
-        shape (n, degree) — no constant column (nn.Linear adds bias).
+    반환값:
+        모양 (n, degree) — 상수 열은 없다 (nn.Linear가 편향을 더한다).
     """
     return torch.cat([x ** k for k in range(1, degree + 1)], dim=1)
 
-
-# Example: fit a degree-4 polynomial
+# 예: 4차 다항식 적합하기
 torch.manual_seed(42)
 n = 100
 x = torch.linspace(-3, 3, n).unsqueeze(1)
@@ -181,7 +162,7 @@ for epoch in range(1000):
     loss.backward()
     optimizer.step()
 
-# Inspect learned coefficients
+# 학습된 계수 살펴보기
 # model.bias ≈ θ₀,  model.weight ≈ [θ₁, θ₂, θ₃, θ₄]
 print(f"Bias:    {model.bias.item():.3f}")
 print(f"Weights: {model.weight.detach().squeeze().tolist()}")
@@ -189,37 +170,36 @@ print(f"Weights: {model.weight.detach().squeeze().tolist()}")
 
 ---
 
-## 4. Bias–Variance Trade-Off
+## 4. 편향–분산 절충
 
-### 4.1 Conceptual Framework
+### 4.1 개념적 틀
 
-| Degree | Model Complexity | Bias | Variance | Risk |
+| 차수 | 모델 복잡도 | 편향 | 분산 | 위험 |
 |:------:|:----------------:|:----:|:--------:|:----:|
-| 1 | Low | High (underfitting) | Low | High |
-| 3 | Moderate | Low | Moderate | **Low** |
-| 10 | High | Very low | High (overfitting) | High |
+| 1 | 낮음 | 큼 (과소적합) | 작음 | 큼 |
+| 3 | 보통 | 작음 | 보통 | **작음** |
+| 10 | 높음 | 아주 작음 | 큼 (과적합) | 큼 |
 
-- **Bias** measures the systematic error from an overly simple model.
-- **Variance** measures sensitivity to the particular training set.
-- **Total error** $\approx \text{Bias}^2 + \text{Variance} + \text{Irreducible noise}$.
+- **편향**은 모델이 지나치게 단순해서 생기는 체계적 오차를 잰다.
+- **분산**은 특정 학습 집합에 대한 민감도를 잰다.
+- **총 오차** $\approx \text{편향}^2 + \text{분산} + \text{줄일 수 없는 잡음}$.
 
-### 4.2 Mathematical Statement
+### 4.2 수학적 진술
 
-For the squared-error loss and a model $\hat{f}$ trained on dataset
-$\mathcal{D}$:
+제곱 오차 손실과 데이터셋 $\mathcal{D}$로 학습한 모델 $\hat{f}$에 대해 다음이
+성립한다.
 
 $$
-
 E_{\mathcal{D}}\!\bigl[(y - \hat{f}(x))^2\bigr]
-= \underbrace{\bigl(f(x) - E[\hat{f}(x)]\bigr)^2}_{\text{Bias}^2}
-  + \underbrace{E\!\bigl[(\hat{f}(x) - E[\hat{f}(x)])^2\bigr]}_{\text{Variance}}
-  + \sigma^2.
+= \underbrace{\bigl(f(x) - E[\hat{f}(x)]\bigr)^2}_{\text{편향}^2}
 
+  + \underbrace{E\!\bigl[(\hat{f}(x) - E[\hat{f}(x)])^2\bigr]}_{\text{분산}}
+  + \sigma^2
 $$
 
-Increasing the polynomial degree reduces bias but increases variance.
+다항식의 차수를 높이면 편향은 줄지만 분산은 커진다.
 
-### 4.3 Visualising the Trade-Off
+### 4.3 절충을 눈으로 보기
 
 ```python
 import matplotlib.pyplot as plt
@@ -236,7 +216,7 @@ for d in degrees:
         ("poly", PolynomialFeatures(degree=d, include_bias=False)),
         ("lr", LinearRegression()),
     ])
-    # Negative MSE (sklearn convention)
+    # 음의 MSE (sklearn의 관례)
     cv_scores = cross_val_score(
         pipe, X_train, y_train, cv=5, scoring="neg_mean_squared_error"
     )
@@ -258,20 +238,19 @@ ax.grid(True, alpha=0.3)
 
 ---
 
-## 5. Cross-Validation for Degree Selection
+## 5. 차수 선택을 위한 교차 검증
 
-### 5.1 k-Fold Cross-Validation
+### 5.1 k-겹 교차 검증
 
-The optimal degree minimises the **cross-validated** error, not the training
-error.  $k$-fold CV partitions the data into $k$ folds, trains on $k-1$ folds,
-and evaluates on the held-out fold, repeating $k$ times.
+최적의 차수는 학습 오차가 아니라 **교차 검증** 오차를 최소화한다. $k$-겹 교차
+검증은 데이터를 $k$개의 겹으로 나누어 $k-1$개로 학습하고 남겨 둔 겹에서 평가하며,
+이를 $k$번 반복한다.
 
 ```python
 from sklearn.model_selection import cross_val_score
 
-
 def select_degree(X, y, max_degree=10, cv=5):
-    """Select optimal polynomial degree via cross-validation."""
+    """교차 검증으로 최적의 다항식 차수를 고른다."""
     best_degree, best_score = 1, -np.inf
 
     for d in range(1, max_degree + 1):
@@ -291,32 +270,31 @@ def select_degree(X, y, max_degree=10, cv=5):
     return best_degree
 ```
 
-### 5.2 Information Criteria
+### 5.2 정보 기준
 
-For model selection without explicit CV, information criteria penalise model
-complexity:
+교차 검증을 명시적으로 하지 않고 모델을 고를 때는 정보 기준이 모델 복잡도에 벌점을
+준다.
 
-| Criterion | Formula | Notes |
+| 기준 | 공식 | 비고 |
 |-----------|---------|-------|
-| AIC | $n\ln(\text{MSE}) + 2k$ | Asymptotically equivalent to leave-one-out CV |
-| BIC | $n\ln(\text{MSE}) + k\ln(n)$ | Stronger penalty; favours simpler models |
+| AIC | $n\ln(\text{MSE}) + 2k$ | 하나 빼기 교차 검증과 점근적으로 동등 |
+| BIC | $n\ln(\text{MSE}) + k\ln(n)$ | 벌점이 더 강해 단순한 모델을 선호 |
 
-where $k$ is the number of parameters (degree $+$ 1 for univariate).
+여기서 $k$는 매개변수의 개수이다(단변량이면 차수 $+$ 1).
 
 ---
 
-## 6. Regularisation Connection
+## 6. 정칙화와의 관계
 
-High-degree polynomials overfit because they have too many free parameters
-relative to the data.  Two remedies:
+고차 다항식이 과적합하는 것은 데이터에 비해 자유 매개변수가 너무 많기 때문이다.
+해결책은 두 가지이다.
 
-1. **Limit the degree** (model selection via CV — this page).
-2. **Penalise large coefficients** (regularisation — see
-   [Ridge](ridge_regression.md) and [Lasso](lasso_regression.md)).
+1. **차수를 제한한다** (교차 검증을 통한 모델 선택 — 이 페이지의 내용).
+2. **큰 계수에 벌점을 준다** (정칙화 — [릿지](ridge_regression.md)와
+   [라쏘](lasso_regression.md) 참고).
 
-In practice, combining moderate-degree polynomial features with Ridge or Lasso
-regularisation is more robust than using a very high degree without
-regularisation.
+실무에서는 적당한 차수의 다항 특징에 릿지나 라쏘 정칙화를 결합하는 편이, 정칙화 없이
+아주 높은 차수를 쓰는 것보다 견고하다.
 
 ```python
 from sklearn.linear_model import Ridge
@@ -331,25 +309,24 @@ pipe_regularised.fit(X_train, y_train)
 
 ---
 
-## 7. Beyond Polynomials
+## 7. 다항식을 넘어서
 
-Polynomial features are one choice of basis expansion.  Other common choices
-include:
+다항 특징은 기저 확장의 한 가지 선택일 뿐이다. 흔히 쓰이는 다른 선택은 다음과 같다.
 
-| Basis | Formula | Use Case |
+| 기저 | 공식 | 쓰임새 |
 |-------|---------|----------|
-| Polynomial | $x, x^2, \ldots, x^d$ | Smooth global trends |
-| Radial Basis Functions | $\exp(-\gamma\|x - c_k\|^2)$ | Local patterns, kernel methods |
-| Fourier | $\sin(k\omega x), \cos(k\omega x)$ | Periodic data |
-| Splines | Piecewise polynomials with knots | Flexible local fits |
-| Interaction terms | $x_i x_j$ | Feature cross-effects |
+| 다항식 | $x, x^2, \ldots, x^d$ | 매끄러운 전역 추세 |
+| 방사 기저 함수 | $\exp(-\gamma\|x - c_k\|^2)$ | 국소 패턴, 커널 방법 |
+| 푸리에 | $\sin(k\omega x), \cos(k\omega x)$ | 주기적 데이터 |
+| 스플라인 | 매듭으로 이어 붙인 조각별 다항식 | 유연한 국소 적합 |
+| 교호작용 항 | $x_i x_j$ | 특징들의 교차 효과 |
 
-All of these keep the model linear in parameters, so the same OLS / gradient
-descent machinery applies.
+이들 모두 모델을 매개변수에 대해 선형으로 유지하므로 똑같은 OLS / 경사 하강 장치를
+쓸 수 있다.
 
 ---
 
-## 8. Complete Example
+## 8. 완전한 예제
 
 ```python
 import numpy as np
@@ -359,7 +336,7 @@ from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.pipeline import Pipeline
 from sklearn.model_selection import cross_val_score
 
-# --- Synthetic data: cubic with noise ---
+# --- 합성 데이터: 잡음이 섞인 삼차식 ---
 rng = np.random.default_rng(42)
 n = 80
 x = rng.uniform(-3, 3, n)
@@ -367,7 +344,7 @@ y = 0.5 * x ** 3 - x ** 2 + 0.5 * x + 2 + 3 * rng.normal(size=n)
 
 X = x.reshape(-1, 1)
 
-# --- Degree selection via CV ---
+# --- 교차 검증으로 차수 고르기 ---
 degrees = range(1, 12)
 cv_mses = []
 for d in degrees:
@@ -382,7 +359,7 @@ for d in degrees:
 best_d = degrees[np.argmin(cv_mses)]
 print(f"Best degree: {best_d}  (CV MSE: {min(cv_mses):.2f})")
 
-# --- Final fit ---
+# --- 최종 적합 ---
 final_pipe = Pipeline([
     ("poly", PolynomialFeatures(degree=best_d, include_bias=False)),
     ("scaler", StandardScaler()),
@@ -390,7 +367,7 @@ final_pipe = Pipeline([
 ])
 final_pipe.fit(X, y)
 
-# --- Plot ---
+# --- 그리기 ---
 x_plot = np.linspace(-3.5, 3.5, 200).reshape(-1, 1)
 y_plot = final_pipe.predict(x_plot)
 
@@ -417,20 +394,20 @@ plt.tight_layout()
 
 ---
 
-## Summary
+## 요약
 
-| Concept | Key Point |
+| 개념 | 핵심 |
 |---------|-----------|
-| Feature map | $\phi(x) = [1, x, x^2, \ldots, x^d]^\top$ — nonlinear in $x$, linear in $\boldsymbol{\theta}$ |
-| Expanded dimension | $\binom{p+d}{d}$ features for $p$ inputs, degree $d$ |
-| Bias–variance | Low degree → high bias; high degree → high variance |
-| Model selection | $k$-fold CV or AIC/BIC to choose $d$ |
-| Regularisation | Ridge/Lasso with moderate $d$ is more robust than high $d$ alone |
-| Scaling | **Always** standardise after polynomial expansion |
+| 특징 사상 | $\phi(x) = [1, x, x^2, \ldots, x^d]^\top$ — $x$에는 비선형, $\boldsymbol{\theta}$에는 선형 |
+| 확장된 차원 | 입력 $p$개, 차수 $d$에 대해 $\binom{p+d}{d}$개의 특징 |
+| 편향–분산 | 낮은 차수 → 큰 편향; 높은 차수 → 큰 분산 |
+| 모델 선택 | $d$를 고르는 데 $k$-겹 교차 검증이나 AIC/BIC 사용 |
+| 정칙화 | 적당한 $d$에 릿지/라쏘를 쓰는 편이 높은 $d$만 쓰는 것보다 견고 |
+| 스케일링 | 다항식 확장 후에 **반드시** 표준화 |
 
 ---
 
-## References
+## 참고 문헌
 
 1. Hastie, T., Tibshirani, R. & Friedman, J. (2009). *The Elements of
    Statistical Learning*, §§3.1, 7.10.
@@ -438,3 +415,40 @@ plt.tight_layout()
    3.1.
 3. Murphy, K. P. (2022). *Probabilistic Machine Learning: An Introduction*,
    Ch. 11.
+
+## 연습문제
+
+**연습문제 1.**
+원 특징이 $p$개일 때 차수 $d$의 다항 특징은 몇 개가 만들어지는가? 공식을 유도하라.
+
+??? success "연습문제 1 풀이"
+    $p$개 변수에 대한 차수 $\leq d$인 단항식의 개수는 $\binom{p+d}{d}$이다. $p=3$이고 차수가 2이면 $\binom{5}{2} = 10$개의 특징이다(편향 1개, 일차 3개, 교차항을 포함한 이차 6개). $p=2$이고 차수가 3이면 $\binom{5}{3} = 10$이다.
+
+---
+
+**연습문제 2.**
+2차원 데이터셋에 대해 차수 2의 다항 특징을 만들고 선형 모델을 적합시켜라. 그 결과로 나오는 비선형 결정 경계를 시각화하라.
+
+??? success "연습문제 2 풀이"
+    ```python
+    from sklearn.preprocessing import PolynomialFeatures
+    poly = PolynomialFeatures(degree=2)
+    X_poly = poly.fit_transform(X)  # [1, x1, x2, x1^2, x1*x2, x2^2]
+    model = LinearRegression().fit(X_poly, y)
+    ```
+
+---
+
+**연습문제 3.**
+과적합을 보여라. 데이터 점 20개에 차수 1, 5, 15의 다항식을 적합시키고 학습 오차와 시험 오차를 그려라.
+
+??? success "연습문제 3 풀이"
+    차수 1은 과소적합하고(편향이 큼), 차수 15는 과적합하며(분산이 크고 점 사이에서 심하게 진동한다), 차수 5가 대체로 가장 좋은 시험 오차를 준다. 이는 모델 복잡도가 조절하는 편향-분산 절충을 잘 보여준다.
+
+---
+
+**연습문제 4.**
+다항 특징에 릿지나 라쏘 정칙화를 결합하는 것이 왜 중요한지 설명하고, 고차 예제에서 보여라.
+
+??? success "연습문제 4 풀이"
+    고차 다항식은 매개변수가 많아 과적합하기 쉽다. 정칙화는 계수의 크기를 제약한다. 릿지는 모든 계수를 줄이고(더 매끄러운 곡선), 라쏘는 불필요한 항을 0으로 만든다(단항식들 사이에서의 자동 특징 선택). 정칙화가 없으면 15차 다항식은 심하게 진동하지만, 릿지($\lambda = 0.1$)를 쓰면 적합이 매끄럽고 일반화도 잘 된다.

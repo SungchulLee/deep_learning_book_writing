@@ -1,134 +1,116 @@
-# Parameter Uncertainty in Finance
+# 금융에서의 매개변수 불확실성
+## 개요
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-Financial models rely on estimated parameters — expected returns, volatilities, correlations, factor loadings — that carry substantial estimation uncertainty. Bayesian methods quantify this uncertainty and propagate it through to decisions, yielding more robust portfolio construction, risk management, and strategy evaluation.
+금융 모형은 기대 수익률, 변동성, 상관, 요인 적재값처럼 어림에 큰 아리송함이 딸린 매개변수에 기댄다. 베이즈 방법은 이 아리송함을 수로 나타내고 그것을 결정까지 퍼뜨려, 더 튼튼한 포트폴리오 짜기와 위험 다스리기, 전략 평가를 이끈다.
 
 ---
 
-## Estimation Risk
+## 어림 위험
 
-### The Problem
+### 문제
 
-Consider estimating the expected return $\mu$ of an asset from $T$ monthly observations. The standard error of the sample mean is $\sigma / \sqrt{T}$. For a typical stock with annualized volatility $\sigma \approx 0.30$ (monthly $\approx 0.087$):
+달마다의 관찰 $T$개로 자산의 기대 수익률 $\mu$을 어림한다고 하자. 표본 평균의 표준 오차는 $\sigma / \sqrt{T}$이다. 연 변동성이 $\sigma \approx 0.30$(달로는 $\approx 0.087$)인 흔한 주식이라면 다음과 같다.
 
-| Estimation Window | Standard Error (annualized) | 95% CI Width |
+| 어림 창 | 표준 오차(연 환산) | 95% 구간 너비 |
 |-------------------|-----------------------------|---------------|
-| 5 years (60 months) | 3.87% | ±7.6% |
-| 10 years (120 months) | 2.74% | ±5.4% |
-| 20 years (240 months) | 1.94% | ±3.8% |
+| 5년(60달) | 3.87% | ±7.6% |
+| 10년(120달) | 2.74% | ±5.4% |
+| 20년(240달) | 1.94% | ±3.8% |
 
-Expected return estimates are **extremely noisy** relative to typical risk premia (3-8% annualized). This is the fundamental challenge of quantitative investing.
+기대 수익률 어림값은 흔한 위험 프리미엄(연 3~8%)에 견주어 **몹시 잡음이 많다**. 이것이 계량 투자의 근본 어려움이다.
 
-### Bayesian Treatment
+### 베이즈식 다룸
 
-The Bayesian posterior for the mean return under a Normal-Normal model with diffuse prior:
+퍼진 앞확률을 쓴 정규-정규 모형에서 평균 수익률의 베이즈 뒤확률은 다음과 같다.
 
 $$
-
 \mu \mid \mathcal{D} \sim t_{T-1}\left(\bar{r}, \frac{s^2}{T}\right)
-
 $$
 
-The predictive distribution for future returns has fatter tails:
+앞으로의 수익률에 대한 예측 분포는 꼬리가 더 두껍다.
 
 $$
-
 r_{\text{new}} \mid \mathcal{D} \sim t_{T-1}\left(\bar{r}, s^2\left(1 + \frac{1}{T}\right)\right)
-
 $$
 
-The additional variance $s^2/T$ reflects **estimation risk** — uncertainty about the true mean itself.
+더해진 흩어짐 $s^2/T$은 **어림 위험**, 곧 참 평균 자체에 대한 아리송함을 비춘다.
 
 ---
 
-## Posterior Predictive Returns
+## 뒤확률 예측 수익률
 
-### Single Asset
+### 자산 하나
 
-For a single asset with $T$ observations of returns $\{r_1, \ldots, r_T\}$, the posterior predictive distribution integrates over parameter uncertainty:
+수익률 관찰 $\{r_1, \ldots, r_T\}$ $T$개를 가진 자산 하나에 대해 뒤확률 예측 분포는 매개변수의 아리송함 위에서 적분한다.
 
 $$
-
 p(r_{\text{new}} \mid \mathcal{D}) = \int p(r_{\text{new}} \mid \mu, \sigma^2) \, p(\mu, \sigma^2 \mid \mathcal{D}) \, d\mu \, d\sigma^2
-
 $$
 
-Under the conjugate Normal-Inverse-Gamma model, this yields a $t$-distribution with $T - 1$ degrees of freedom.
+켤레 정규-역감마 모형에서는 자유도 $T - 1$인 $t$ 분포가 나온다.
 
-### Portfolio Level
+### 포트폴리오 수준
 
-For a portfolio of $N$ assets, the predictive covariance matrix is:
+자산 $N$개로 이루어진 포트폴리오에서 예측 공분산 행렬은 다음과 같다.
 
 $$
-
 \tilde{\boldsymbol{\Sigma}} = \hat{\boldsymbol{\Sigma}} \cdot \frac{T-1}{T-N-2} \cdot \left(1 + \frac{1}{T}\right)
-
 $$
 
-The inflation factor $\frac{T-1}{T-N-2}$ grows dramatically as $N$ approaches $T$, reflecting the curse of dimensionality in covariance estimation.
+부풀림 인자 $\frac{T-1}{T-N-2}$은 $N$이 $T$에 가까워질수록 크게 자라며, 공분산 어림에서의 차원의 저주를 비춘다.
 
 ---
 
-## Shrinkage Estimators
+## 오그라뜨리는 어림기
 
-Bayesian parameter uncertainty naturally leads to **shrinkage** — pulling estimates toward a structured prior:
+베이즈식 매개변수 불확실성은 자연스럽게 **오그라들기**, 곧 어림값을 짜임새 있는 앞확률 쪽으로 끌어당기는 일로 이어진다.
 
-### Ledoit-Wolf Shrinkage
+### 르두아-볼프 오그라뜨리기
 
-The shrinkage covariance estimator:
+오그라뜨리는 공분산 어림기는 다음과 같다.
 
 $$
-
 \hat{\boldsymbol{\Sigma}}_{\text{shrink}} = \delta \mathbf{F} + (1-\delta) \hat{\boldsymbol{\Sigma}}_{\text{sample}}
-
 $$
 
-where $\mathbf{F}$ is the structured target (e.g., single-factor model) and $\delta$ is the optimal shrinkage intensity.
+여기서 $\mathbf{F}$은 짜임새 있는 목표(이를테면 한 요인 모형)이고 $\delta$은 가장 좋은 오그라듦의 세기이다.
 
-This has a Bayesian interpretation: the structured target $\mathbf{F}$ is the prior, the sample covariance is the data, and $\delta$ reflects the relative precision.
+여기에는 베이즈식 풀이가 있다. 짜임새 있는 목표 $\mathbf{F}$은 앞확률이고, 표본 공분산은 데이터이며, $\delta$은 서로의 정밀도를 비춘다.
 
-### James-Stein Shrinkage for Returns
+### 수익률을 위한 제임스-스타인 오그라뜨리기
 
-The James-Stein estimator shrinks expected returns toward a common mean:
+제임스-스타인 어림기는 기대 수익률을 공통 평균 쪽으로 오그라뜨린다.
 
 $$
-
 \hat{\mu}_i^{\text{JS}} = \bar{\mu} + (1 - \hat{c}) (\hat{\mu}_i - \bar{\mu})
-
 $$
 
-This is the empirical Bayes solution under a Normal hierarchical model (see [Empirical Bayes](../hierarchical/empirical_bayes.md)).
+이는 정규 층층 모형 아래의 경험적 베이즈 해이다([경험적 베이즈](../hierarchical/empirical_bayes.md)를 보라).
 
 ---
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
 import torch.distributions as dist
 
-
 class BayesianReturnEstimator:
     """
-    Bayesian estimation of return parameters with uncertainty propagation.
+    불확실함을 퍼뜨리는 수익률 매개변수의 베이즈 어림.
     """
     
     def __init__(self, prior_mean: float = 0.0, prior_precision: float = 0.01):
         self.mu_0 = prior_mean
-        self.kappa_0 = prior_precision  # precision of prior mean
+        self.kappa_0 = prior_precision  # 앞확률 평균의 정밀도
     
     def fit(self, returns: torch.Tensor):
         """
-        Compute posterior parameters for multivariate returns.
+        다변량 수익률의 뒤확률 매개변수를 셈한다.
         
-        Parameters
+        매개변수
         ----------
-        returns : (T, N) tensor of return observations
+        returns : 수익률 관측의 (T, N) 텐서
         """
         T, N = returns.shape
         
@@ -137,24 +119,24 @@ class BayesianReturnEstimator:
         self.sample_mean = returns.mean(dim=0)
         self.sample_cov = torch.cov(returns.T)
         
-        # Posterior mean (precision-weighted)
+        # 뒤확률 평균(정밀도로 무게 준)
         posterior_precision = self.kappa_0 + T
         self.posterior_mean = (
             self.kappa_0 * self.mu_0 + T * self.sample_mean
         ) / posterior_precision
         
-        # Predictive covariance (with estimation uncertainty)
+        # 예측 공분산(어림 불확실함을 담아)
         if T > N + 2:
             inflation = (T - 1) / (T - N - 2) * (1 + 1/T)
         else:
-            inflation = 2.0  # fallback for small samples
+            inflation = 2.0  # 작은 표본을 위한 물러섬
         self.predictive_cov = self.sample_cov * inflation
         
         return self
     
     def predictive_sharpe(self, weights: torch.Tensor) -> dict:
         """
-        Compute posterior distribution of portfolio Sharpe ratio.
+        포트폴리오 샤프 비율의 뒤확률 분포를 셈한다.
         """
         port_mean = weights @ self.posterior_mean
         port_var = weights @ self.predictive_cov @ weights
@@ -162,7 +144,7 @@ class BayesianReturnEstimator:
         
         sharpe = port_mean / port_std
         
-        # Approximate standard error of Sharpe ratio
+        # 샤프 비율의 어림 표준 오차
         sharpe_se = ((1 + 0.5 * sharpe**2) / self.T).sqrt()
         
         return {
@@ -175,20 +157,58 @@ class BayesianReturnEstimator:
 
 ---
 
-## Key Insights for Practice
+## 실전을 위한 핵심 통찰
 
-1. **Expected returns are estimated with far less precision than volatilities or correlations.** This asymmetry should inform model design — be skeptical of return forecasts, more trusting of risk estimates.
+1. **기대 수익률은 변동성이나 상관보다 훨씬 덜 정밀하게 어림된다.** 이 치우침이 모형 설계에 길잡이가 되어야 한다. 수익률 예보는 미더워하지 말고 위험 어림값은 더 믿어라.
 
-2. **Bayesian predictive distributions have fatter tails** than plug-in Gaussian models, naturally accounting for estimation risk and producing more conservative VaR/CVaR estimates.
+2. **베이즈 예측 분포는 꼬리가 더 두껍다.** 점 어림값을 끼워 넣은 가우스 모형보다 그러하며, 어림 위험을 자연스럽게 셈에 넣어 더 조심스러운 VaR과 CVaR 어림값을 낸다.
 
-3. **Shrinkage toward structured targets** (factor models, equal-weight) is not an ad hoc regularization trick — it is the optimal Bayesian response to parameter uncertainty.
+3. **짜임새 있는 목표(요인 모형, 같은 무게)로 오그라뜨리는 것**은 임시방편의 벌주기 요령이 아니라, 매개변수 불확실성에 대한 가장 알맞은 베이즈식 응답이다.
 
-4. **Sample size requirements grow with dimensionality.** With $N$ assets and $T$ observations, estimation quality degrades rapidly as $N/T$ increases.
+4. **차원이 높아질수록 필요한 표본 크기가 커진다.** 자산 $N$개와 관찰 $T$개에서 $N/T$이 커질수록 어림의 질이 빠르게 나빠진다.
 
 ---
 
-## References
+## 참고 문헌
 
 - Barberis, N. (2000). Investing for the long run when returns are predictable. *Journal of Finance*, 55(1), 225-264.
 - Kan, R., & Zhou, G. (2007). Optimal portfolio choice with parameter uncertainty. *Journal of Financial and Quantitative Analysis*, 42(3), 621-656.
 - Ledoit, O., & Wolf, M. (2004). A well-conditioned estimator for large-dimensional covariance matrices. *Journal of Multivariate Analysis*, 88(2), 365-411.
+
+## 연습문제
+
+**연습문제 1.**
+이 쪽이 다루는 핵심 개념과 그것이 베이즈 통계에서 하는 몫을 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 쪽은 베이즈 추론의 근본 부품인 매개변수의 불확실성을(를) 다룬다. 이는 데이터로 믿음을 고치고, 불확실성을 수로 나타내며, 불확실함 속에서 결정을 내리는 더 넓은 틀과 이어진다. 베이즈의 눈은 앞선 앎을 아우르고 불확실성을 분석 전체로 퍼뜨리는 원칙 있는 길을 준다.
+
+---
+
+**연습문제 2.**
+주된 수학적 결과를 끌어내거나 밝히고 그 뜻을 설명하라.
+
+??? success "연습문제 2 풀이"
+    핵심 결과는 앞선 정보가 베이즈 정리를 거쳐 관찰한 데이터와 어우러져 고쳐진 추론을 낳는 모습을 보여 준다. 이 결과가 뜻깊은 까닭은, 매개변수의 불확실성을 아랑곳하지 않는 점 어림 방법과 달리 불확실성을 셈에 넣으면서 데이터에서 배우는 앞뒤 맞는 틀을 주기 때문이다.
+
+---
+
+**연습문제 3.**
+이 주제에서 베이즈 방법과 빈도주의 대안을 견주어라.
+
+??? success "연습문제 3 풀이"
+    베이즈 방법은 온전한 뒤확률 분포, 자연스러운 불확실성 재기, 앞선 앎을 아우르는 원칙 있는 길을 준다. 빈도주의 대안은 표집 분포에 기대고, 큰 표본 어림이 필요할 수 있으며, 매개변수를 붙박인 미지수로 다룬다. 표본이 작을 때는 앞확률의 벌주기 효과 덕분에 베이즈 방법이 더 나을 때가 많다.
+
+---
+
+**연습문제 4.**
+이 개념의 간단한 보기를 파이토치나 넘파이로 파이썬에 구현하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    import numpy as np
+    # 구현은 주제에 따라 달라진다.
+    # 켤레 모형: 닫힌 꼴 뒤확률 새로 고치기.
+    # 켤레가 아닌 모형: MCMC 또는 변분 추론.
+    # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
+    ```

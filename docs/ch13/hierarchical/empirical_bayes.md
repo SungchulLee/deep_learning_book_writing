@@ -1,153 +1,129 @@
-# Empirical Bayes
+# 경험 베이즈
+## 개요
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-Empirical Bayes methods estimate hyperparameters from the data itself, providing a practical middle ground between fully Bayesian and frequentist approaches. This module develops the methodology, demonstrates the classic baseball batting average example, and connects empirical Bayes to James-Stein estimation and shrinkage.
+경험적 베이즈 방법은 초매개변수를 데이터 자체에서 어림하여, 온전한 베이즈와 빈도주의 사이의 실전적인 중간 지대를 준다. 이 모듈은 그 방법론을 세우고 고전적인 야구 타율 보기를 보여 주며, 경험적 베이즈를 제임스-스타인 어림과 오그라들기에 잇는다.
 
 ---
 
-## 1. The Empirical Bayes Framework
+## 1. 경험적 베이즈의 틀
 
-### 1.1 Standard Bayes vs Empirical Bayes
+### 1.1 보통의 베이즈와 경험적 베이즈
 
-| Approach | Hyperparameters | Procedure |
+| 방법 | 초매개변수 | 절차 |
 |----------|-----------------|-----------|
-| **Standard Bayes** | Fixed before seeing data | Specify prior → Compute posterior |
-| **Empirical Bayes** | Estimated from data | Estimate prior from data → Compute posterior |
-| **Fully Bayesian** | Have their own priors | Specify hyperpriors → Marginalize |
+| **보통의 베이즈** | 데이터를 보기 전에 붙박음 | 앞확률을 정함 → 뒤확률을 셈함 |
+| **경험적 베이즈** | 데이터에서 어림함 | 데이터에서 앞확률을 어림함 → 뒤확률을 셈함 |
+| **온전한 베이즈** | 제 앞확률을 가짐 | 초앞확률을 정함 → 주변화함 |
 
-### 1.2 The Empirical Bayes Procedure
+### 1.2 경험적 베이즈의 절차
 
-1. **Estimate hyperparameters** from the marginal distribution of observed data
-2. **Plug in** these estimates as if they were the true prior parameters
-3. **Proceed with standard Bayesian inference** using the estimated prior
+1. 관찰한 데이터의 주변 분포에서 **초매개변수를 어림한다**
+2. 그 어림값을 참 앞확률 매개변수인 양 **끼워 넣는다**
+3. 어림한 앞확률로 **보통의 베이즈 추론을 이어 간다**
 
-### 1.3 Mathematical Framework
+### 1.3 수학적 틀
 
-For a hierarchical model:
+층층 모형에서는 다음과 같다.
 
 $$
-
 y_i | \theta_i \sim p(y|\theta_i), \quad \theta_i | \eta \sim p(\theta|\eta)
-
 $$
 
-**Standard Bayes:** Fix $\eta$ based on prior knowledge
+**보통의 베이즈:** 앞선 앎을 바탕으로 $\eta$을 붙박는다
 
-**Empirical Bayes:** Estimate $\hat{\eta}$ by maximizing the marginal likelihood:
+**경험적 베이즈:** 주변 가능도를 가장 크게 하여 $\hat{\eta}$을 어림한다.
 
 $$
-
 \hat{\eta} = \underset{\eta}{\arg\max} \prod_{i=1}^n p(y_i | \eta) = \underset{\eta}{\arg\max} \prod_{i=1}^n \int p(y_i|\theta_i) p(\theta_i|\eta) \, d\theta_i
-
 $$
 
 ---
 
-## 2. Estimation Methods
+## 2. 어림 방법
 
-### 2.1 Maximum Marginal Likelihood (MML)
+### 2.1 최대 주변 가능도(MML)
 
-Maximize the marginal likelihood with respect to hyperparameters:
+초매개변수에 대해 주변 가능도를 가장 크게 한다.
 
 $$
-
 \hat{\eta}_{\text{MML}} = \underset{\eta}{\arg\max} \; p(y_1, \ldots, y_n | \eta)
-
 $$
 
-For conjugate models, this often has closed-form solutions.
+켤레 모형에서는 흔히 닫힌 꼴의 해가 있다.
 
-### 2.2 Method of Moments
+### 2.2 적률법
 
-Match theoretical moments to sample moments. For a Beta$(\alpha, \beta)$ prior:
+이론 적률을 표본 적률에 맞춘다. Beta$(\alpha, \beta)$ 앞확률에서는 다음과 같다.
 
-**Theoretical moments:**
+**이론 적률:**
 
 $$
-
 \mathbb{E}[\theta] = \frac{\alpha}{\alpha + \beta}, \quad \text{Var}(\theta) = \frac{\alpha\beta}{(\alpha+\beta)^2(\alpha+\beta+1)}
-
 $$
 
-**Sample moments:**
+**표본 적률:**
 
 $$
-
 \bar{y} = \frac{1}{n}\sum_i y_i, \quad s^2 = \frac{1}{n}\sum_i (y_i - \bar{y})^2
-
 $$
 
-**Solve for $\alpha, \beta$:**
+**$\alpha, \beta$을 풀면 다음과 같다.**
 
 $$
-
 \hat{\alpha} = \bar{y} \left( \frac{\bar{y}(1-\bar{y})}{s^2} - 1 \right)
-
 $$
 
 $$
-
 \hat{\beta} = (1-\bar{y}) \left( \frac{\bar{y}(1-\bar{y})}{s^2} - 1 \right)
-
 $$
 
 ---
 
-## 3. The Baseball Batting Average Example
+## 3. 야구 타율 보기
 
-### 3.1 Problem Setup
+### 3.1 문제의 얼개
 
-A classic empirical Bayes application: estimating true batting abilities from early-season data.
+경험적 베이즈의 고전적인 쓰임새로, 시즌 초 데이터에서 참된 타격 능력을 어림하는 일이다.
 
-**Model:**
-- $y_i$ = hits for player $i$
-- $n_i$ = at-bats for player $i$
-- $\theta_i$ = true batting ability (probability of a hit)
+**모형:**
 
-**Hierarchical structure:**
+- $y_i$ = 선수 $i$의 안타 수
+- $n_i$ = 선수 $i$의 타수
+- $\theta_i$ = 참된 타격 능력(안타를 칠 확률)
+
+**층층 짜임:**
 
 $$
-
 y_i | \theta_i \sim \text{Binomial}(n_i, \theta_i)
-
 $$
 
 $$
-
 \theta_i \sim \text{Beta}(\alpha, \beta)
-
 $$
 
-### 3.2 The MLE Problem
+### 3.2 최대 가능도의 문제
 
-The MLE for each player is simply:
+선수마다의 최대 가능도 어림값은 그저 다음과 같다.
 
 $$
-
 \hat{\theta}_i^{\text{MLE}} = \frac{y_i}{n_i}
-
 $$
 
-**Problem:** With small $n_i$, these estimates are highly variable. A player with 3 hits in 10 at-bats (0.300) may have the same true ability as one with 25 hits in 100 at-bats (0.250).
+**문제:** $n_i$이 작으면 이 어림값이 몹시 흔들린다. 10타수 3안타(0.300)인 선수와 100타수 25안타(0.250)인 선수의 참된 능력이 같을 수도 있다.
 
-### 3.3 Empirical Bayes Solution
+### 3.3 경험적 베이즈의 해
 
-**Step 1:** Estimate Beta prior parameters from observed batting averages
+**1단계:** 관찰한 타율에서 베타 앞확률의 매개변수를 어림한다
 
 ```python
 import numpy as np
 
 def estimate_beta_prior(observed_avgs):
-    """Estimate Beta prior parameters using method of moments."""
+    """적률법으로 베타 앞확률 매개변수를 어림한다."""
     mean_obs = np.mean(observed_avgs)
     var_obs = np.var(observed_avgs)
     
-    # Solve for alpha, beta
+    # alpha, beta 풀기
     common_factor = mean_obs * (1 - mean_obs) / var_obs - 1
     alpha_eb = mean_obs * common_factor
     beta_eb = (1 - mean_obs) * common_factor
@@ -155,39 +131,37 @@ def estimate_beta_prior(observed_avgs):
     return alpha_eb, beta_eb
 ```
 
-**Step 2:** Compute empirical Bayes estimates (posterior means)
+**2단계:** 경험적 베이즈 어림값(뒤확률의 평균)을 셈한다
 
 $$
-
 \hat{\theta}_i^{\text{EB}} = \frac{y_i + \hat{\alpha}}{n_i + \hat{\alpha} + \hat{\beta}}
-
 $$
 
-### 3.4 Implementation
+### 3.4 구현
 
 ```python
 def empirical_bayes_batting(hits, at_bats):
     """
-    Empirical Bayes estimation for batting averages.
+    타율에 대한 경험 베이즈 어림.
     
-    Parameters
+    매개변수
     ----------
     hits : array
-        Number of hits for each player
+        선수마다의 안타 수
     at_bats : array
-        Number of at-bats for each player
+        선수마다의 타수
     
-    Returns
+    반환값
     -------
-    dict with MLE and EB estimates
+    MLE과 EB 어림값을 담은 dict
     """
-    # MLE estimates
+    # MLE 어림값
     mle_estimates = hits / at_bats
     
-    # Estimate Beta prior (method of moments)
+    # 베타 앞확률 어림하기(적률법)
     alpha_eb, beta_eb = estimate_beta_prior(mle_estimates)
     
-    # Empirical Bayes estimates (posterior means)
+    # 경험 베이즈 어림값(뒤확률 평균)
     eb_estimates = (hits + alpha_eb) / (at_bats + alpha_eb + beta_eb)
     
     return {
@@ -199,167 +173,203 @@ def empirical_bayes_batting(hits, at_bats):
     }
 ```
 
-### 3.5 Results
+### 3.5 결과
 
-For simulated data with 20 players:
+선수 20명의 흉내 낸 데이터에서는 다음과 같다.
 
-| Metric | MLE | Empirical Bayes |
+| 지표 | 최대 가능도 | 경험적 베이즈 |
 |--------|-----|-----------------|
-| MSE | 0.00234 | 0.00156 |
-| Improvement | — | 33% |
+| 평균제곱오차 | 0.00234 | 0.00156 |
+| 나아짐 | — | 33% |
 
-**Key observation:** Empirical Bayes consistently outperforms MLE by shrinking extreme estimates toward the population mean.
+**핵심 관찰:** 경험적 베이즈는 극단적인 어림값을 모집단의 평균 쪽으로 오그라뜨려 한결같이 최대 가능도를 앞선다.
 
 ---
 
-## 4. The Shrinkage Effect
+## 4. 오그라들기 효과
 
-### 4.1 How Shrinkage Works
+### 4.1 오그라들기의 얼개
 
-The empirical Bayes estimate can be written as:
+경험적 베이즈 어림값은 다음과 같이 쓸 수 있다.
 
 $$
-
 \hat{\theta}_i^{\text{EB}} = w_i \hat{\theta}_i^{\text{MLE}} + (1 - w_i) \hat{\mu}
-
 $$
 
-where:
-- $w_i = \frac{n_i}{n_i + \hat{\alpha} + \hat{\beta}}$ is the shrinkage weight
-- $\hat{\mu} = \frac{\hat{\alpha}}{\hat{\alpha} + \hat{\beta}}$ is the estimated prior mean
+여기서 각 기호는 다음과 같다.
 
-### 4.2 Shrinkage Properties
+- $w_i = \frac{n_i}{n_i + \hat{\alpha} + \hat{\beta}}$은 오그라듦 무게이다
+- $\hat{\mu} = \frac{\hat{\alpha}}{\hat{\alpha} + \hat{\beta}}$은 어림한 앞확률의 평균이다
 
-| Player Characteristic | Shrinkage Amount |
+### 4.2 오그라들기의 성질
+
+| 선수의 특징 | 오그라드는 정도 |
 |----------------------|------------------|
-| Few at-bats (small $n_i$) | More shrinkage |
-| Many at-bats (large $n_i$) | Less shrinkage |
-| Extreme batting average | Larger absolute change |
-| Average batting average | Smaller absolute change |
+| 타수가 적음($n_i$이 작음) | 더 많이 오그라듦 |
+| 타수가 많음($n_i$이 큼) | 덜 오그라듦 |
+| 극단적인 타율 | 절대 변화가 큼 |
+| 평범한 타율 | 절대 변화가 작음 |
 
-### 4.3 Why Shrinkage Helps
+### 4.3 오그라들기가 도움이 되는 까닭
 
-- **Regression to the mean**: Extreme observations are often due to luck
-- **Bias-variance tradeoff**: Small bias introduced, large variance reduction
-- **Stein's paradox**: Shrinkage estimators dominate MLE for 3+ parameters
+- **평균으로의 회귀**: 극단적인 관찰은 운 때문일 때가 많다
+- **치우침과 흩어짐의 맞바꿈**: 치우침은 조금 들여오고 흩어짐은 크게 줄인다
+- **스타인의 역설**: 매개변수가 셋 이상이면 오그라뜨리는 어림기가 최대 가능도를 압도한다
 
 ---
 
-## 5. Connection to James-Stein Estimation
+## 5. 제임스-스타인 어림과의 이음
 
-### 5.1 Stein's Paradox
+### 5.1 스타인의 역설
 
-For estimating $p \geq 3$ normal means simultaneously, the MLE is **inadmissible** — there exist estimators that dominate it uniformly in MSE.
+정규 평균 $p \geq 3$개를 한꺼번에 어림할 때 최대 가능도는 **받아들일 수 없다**. 평균제곱오차에서 그것을 한결같이 압도하는 어림기가 있기 때문이다.
 
-### 5.2 The James-Stein Estimator
+### 5.2 제임스-스타인 어림기
 
-For $y_i \sim \mathcal{N}(\theta_i, \sigma^2)$:
+$y_i \sim \mathcal{N}(\theta_i, \sigma^2)$에 대해 다음과 같다.
 
 $$
-
 \hat{\theta}_i^{\text{JS}} = \bar{y} + \left(1 - \frac{(p-2)\sigma^2}{\sum_i (y_i - \bar{y})^2}\right)(y_i - \bar{y})
-
 $$
 
-This shrinks toward the grand mean $\bar{y}$.
+이는 큰 평균 $\bar{y}$ 쪽으로 오그라뜨린다.
 
-### 5.3 Empirical Bayes Interpretation
+### 5.3 경험적 베이즈로 풀이하기
 
-James-Stein can be derived as an empirical Bayes estimator:
-- Assume $\theta_i \sim \mathcal{N}(\mu, \tau^2)$
-- Estimate $\mu$ and $\tau^2$ from data
-- Compute posterior means
+제임스-스타인은 경험적 베이즈 어림기로 끌어낼 수 있다.
 
-This provides **Bayesian justification** for shrinkage estimators.
+- $\theta_i \sim \mathcal{N}(\mu, \tau^2)$이라 놓는다
+- 데이터에서 $\mu$과 $\tau^2$을 어림한다
+- 뒤확률의 평균을 셈한다
+
+이는 오그라뜨리는 어림기에 **베이즈식 뒷받침**을 준다.
 
 ---
 
-## 6. Advantages and Limitations
+## 6. 이점과 한계
 
-### 6.1 Advantages
+### 6.1 이점
 
-| Advantage | Description |
+| 이점 | 설명 |
 |-----------|-------------|
-| **Automatic shrinkage** | Data-driven regularization without manual tuning |
-| **Computational simplicity** | No MCMC or complex integration |
-| **Improved MSE** | Often substantially better than MLE |
-| **Practical compromise** | Between frequentist and Bayesian approaches |
+| **저절로 오그라듦** | 손으로 손질하지 않는 데이터 기반 벌주기 |
+| **셈의 단순함** | MCMC이나 복잡한 적분이 필요 없다 |
+| **나아진 평균제곱오차** | 최대 가능도보다 크게 나을 때가 많다 |
+| **실전의 절충** | 빈도주의와 베이즈 사이 |
 
-### 6.2 Limitations
+### 6.2 한계
 
-| Limitation | Description |
+| 한계 | 설명 |
 |------------|-------------|
-| **Underestimates uncertainty** | Treats estimated hyperparameters as known |
-| **Double use of data** | Data used twice (estimate prior, then posterior) |
-| **Not fully coherent** | Doesn't propagate hyperparameter uncertainty |
-| **Can be overconfident** | Credible intervals may be too narrow |
+| **불확실성을 낮잡음** | 어림한 초매개변수를 아는 값처럼 다룬다 |
+| **데이터를 두 번 씀** | 데이터를 두 번 쓴다(앞확률을 어림하고 다시 뒤확률을 셈한다) |
+| **완전히 앞뒤가 맞지는 않음** | 초매개변수의 아리송함을 퍼뜨리지 않는다 |
+| **지나치게 자신할 수 있음** | 믿음 구간이 너무 좁을 수 있다 |
 
-### 6.3 When to Use Empirical Bayes
+### 6.3 경험적 베이즈를 언제 쓸까
 
-- Many similar parameters to estimate (parallel inference)
-- Computational constraints prevent full Bayesian analysis
-- Quick, practical shrinkage is needed
-- As an approximation to hierarchical Bayes
+- 어림할 비슷한 매개변수가 많을 때(나란한 추론)
+- 셈의 제약 때문에 온전한 베이즈 분석을 할 수 없을 때
+- 빠르고 실전적인 오그라들기가 필요할 때
+- 층층 베이즈의 어림으로 쓸 때
 
 ---
 
-## 7. Comparison with Full Bayes
+## 7. 온전한 베이즈와의 견줌
 
-### 7.1 Key Differences
+### 7.1 핵심 차이
 
-| Aspect | Empirical Bayes | Full Bayes |
+| 갈래 | 경험적 베이즈 | 온전한 베이즈 |
 |--------|-----------------|------------|
-| Hyperparameters | Point estimates | Full posterior |
-| Uncertainty | Underestimated | Properly propagated |
-| Computation | Simple | May require MCMC |
-| Inference | Conditional on $\hat{\eta}$ | Marginal over $\eta$ |
+| 초매개변수 | 점 어림값 | 뒤확률 전체 |
+| 불확실성 | 낮잡힘 | 제대로 퍼뜨려짐 |
+| 셈 | 단순함 | MCMC이 필요할 수 있음 |
+| 추론 | $\hat{\eta}$을 조건으로 함 | $\eta$ 위에서 주변화함 |
 
-### 7.2 When They Agree
+### 7.2 둘이 맞아떨어질 때
 
-With large numbers of groups, empirical Bayes and full Bayes give similar results because hyperparameter uncertainty becomes negligible.
+무리가 많으면 초매개변수의 아리송함이 하찮아져 경험적 베이즈와 온전한 베이즈가 비슷한 결과를 낸다.
 
-### 7.3 When They Differ
+### 7.3 둘이 갈릴 때
 
-With few groups, full Bayes provides better uncertainty quantification by accounting for hyperparameter uncertainty.
-
----
-
-## 8. Key Takeaways
-
-1. **Empirical Bayes** estimates prior hyperparameters from the data, providing automatic shrinkage without specifying priors subjectively.
-
-2. **Method of moments** and **maximum marginal likelihood** are common approaches for estimating hyperparameters.
-
-3. **Shrinkage toward the mean** reduces MSE compared to MLE, especially for extreme observations and small samples.
-
-4. **James-Stein estimation** can be understood as empirical Bayes, providing Bayesian justification for shrinkage.
-
-5. **Practical tradeoff**: Empirical Bayes is computationally simple but underestimates uncertainty by treating estimated hyperparameters as fixed.
+무리가 적으면 온전한 베이즈가 초매개변수의 아리송함까지 셈에 넣어 불확실성을 더 잘 나타낸다.
 
 ---
 
-## 9. Exercises
+## 8. 핵심 요점
 
-### Exercise 1: Varying Sample Sizes
-Simulate batting data with very different at-bats per player (e.g., 10 vs 500). Show how shrinkage affects players differently.
+1. **경험적 베이즈**는 앞확률의 초매개변수를 데이터에서 어림하여, 주관적으로 앞확률을 정하지 않고도 저절로 오그라들게 한다.
 
-### Exercise 2: Prior Sensitivity
-Compare empirical Bayes estimates using method of moments vs maximum marginal likelihood. When do they differ substantially?
+2. **적률법**과 **최대 주변 가능도**가 초매개변수를 어림하는 흔한 길이다.
 
-### Exercise 3: Coverage Study
-Generate data, compute empirical Bayes credible intervals, and check their actual coverage. Compare with full Bayesian intervals.
+3. **평균 쪽으로 오그라뜨리기**는 최대 가능도에 견주어 평균제곱오차를 줄이며, 극단적인 관찰과 작은 표본에서 특히 그렇다.
 
-### Exercise 4: James-Stein Implementation
-Implement the James-Stein estimator for normal means and verify it outperforms MLE in simulations with $p \geq 3$.
+4. **제임스-스타인 어림**은 경험적 베이즈로 이해할 수 있어 오그라들기에 베이즈식 뒷받침을 준다.
 
-### Exercise 5: Multiple Testing
-Apply empirical Bayes to a multiple testing scenario (e.g., gene expression). Compare with Benjamini-Hochberg FDR control.
+5. **실전의 맞바꿈**: 경험적 베이즈는 셈이 단순하지만 어림한 초매개변수를 붙박인 값처럼 다루어 불확실성을 낮잡는다.
 
 ---
 
-## References
+## 9. 연습문제
+
+### 연습문제 1: 표본 크기를 달리하기
+선수마다 타수가 크게 다른(이를테면 10과 500) 타격 데이터를 흉내 내어 만들어라. 오그라들기가 선수마다 어떻게 다르게 작용하는지 보여라.
+
+### 연습문제 2: 앞확률 민감도
+적률법과 최대 주변 가능도로 구한 경험적 베이즈 어림값을 견주어라. 둘이 크게 갈리는 때는 언제인가?
+
+### 연습문제 3: 덮음률 연구
+데이터를 만들고 경험적 베이즈 믿음 구간을 셈하여 실제 덮음률을 살펴라. 온전한 베이즈 구간과 견주어라.
+
+### 연습문제 4: 제임스-스타인 구현
+정규 평균에 대한 제임스-스타인 어림기를 구현하고 $p \geq 3$인 흉내 내기에서 최대 가능도를 앞서는지 확인하라.
+
+### 연습문제 5: 여러 번 검정하기
+여러 번 검정하는 상황(이를테면 유전자 발현)에 경험적 베이즈를 적용하라. 벤저미니-호흐베르크 FDR 다스리기와 견주어라.
+
+---
+
+## 참고 문헌
 
 - Efron, B. (2010). *Large-Scale Inference: Empirical Bayes Methods for Estimation, Testing, and Prediction*
 - Efron, B., & Morris, C. (1975). Data analysis using Stein's estimator and its generalizations. *JASA*, 70(350), 311-319.
 - Casella, G. (1985). An introduction to empirical Bayes data analysis. *The American Statistician*, 39(2), 83-87.
-- Gelman, A., et al. *Bayesian Data Analysis* (3rd ed.), Chapter 5
+- Gelman, A., et al. *Bayesian Data Analysis* (3rd ed.), 5장
+
+## 연습문제
+
+**연습문제 1.**
+이 쪽이 다루는 핵심 개념과 그것이 베이즈 통계에서 하는 몫을 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 쪽은 베이즈 추론의 근본 부품인 경험적 베이즈을(를) 다룬다. 이는 데이터로 믿음을 고치고, 불확실성을 수로 나타내며, 불확실함 속에서 결정을 내리는 더 넓은 틀과 이어진다. 베이즈의 눈은 앞선 앎을 아우르고 불확실성을 분석 전체로 퍼뜨리는 원칙 있는 길을 준다.
+
+---
+
+**연습문제 2.**
+주된 수학적 결과를 끌어내거나 밝히고 그 뜻을 설명하라.
+
+??? success "연습문제 2 풀이"
+    핵심 결과는 앞선 정보가 베이즈 정리를 거쳐 관찰한 데이터와 어우러져 고쳐진 추론을 낳는 모습을 보여 준다. 이 결과가 뜻깊은 까닭은, 매개변수의 불확실성을 아랑곳하지 않는 점 어림 방법과 달리 불확실성을 셈에 넣으면서 데이터에서 배우는 앞뒤 맞는 틀을 주기 때문이다.
+
+---
+
+**연습문제 3.**
+이 주제에서 베이즈 방법과 빈도주의 대안을 견주어라.
+
+??? success "연습문제 3 풀이"
+    베이즈 방법은 온전한 뒤확률 분포, 자연스러운 불확실성 재기, 앞선 앎을 아우르는 원칙 있는 길을 준다. 빈도주의 대안은 표집 분포에 기대고, 큰 표본 어림이 필요할 수 있으며, 매개변수를 붙박인 미지수로 다룬다. 표본이 작을 때는 앞확률의 벌주기 효과 덕분에 베이즈 방법이 더 나을 때가 많다.
+
+---
+
+**연습문제 4.**
+이 개념의 간단한 보기를 파이토치나 넘파이로 파이썬에 구현하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    import numpy as np
+    # 구현은 주제에 따라 달라진다.
+    # 켤레 모형: 닫힌 꼴 뒤확률 새로 고치기.
+    # 켤레가 아닌 모형: MCMC 또는 변분 추론.
+    # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
+    ```

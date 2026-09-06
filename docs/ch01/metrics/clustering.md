@@ -1,33 +1,33 @@
-# Clustering Metrics
+# 군집화 평가 지표
 
-Evaluating clusters is harder than evaluating supervised models because ground-truth labels are often unavailable. This page covers the key internal and external metrics used to assess clustering quality.
+군집 평가는 지도 학습 모델 평가보다 어렵다. 참값 레이블을 얻을 수 없는 경우가 많기 때문이다. 이 절에서는 군집화 품질을 평가하는 주요 내부 지표와 외부 지표를 다룬다.
 
-## Definition
+## 정의
 
-Clustering metrics quantify how well a partition of data points into groups captures meaningful structure. **Internal metrics** use only the data and cluster assignments; **external metrics** compare assignments against known labels. The silhouette score is the most widely used internal metric:
+군집화 지표는 데이터 점들을 그룹으로 나눈 분할이 의미 있는 구조를 얼마나 잘 포착하는지를 정량화한다. **내부 지표** 는 데이터와 군집 배정만 사용하고, **외부 지표** 는 배정을 알려진 레이블과 비교한다. 실루엣 점수는 가장 널리 쓰이는 내부 지표이다.
 
 $$
 s(i) = \frac{b(i) - a(i)}{\max(a(i),\; b(i))}
 $$
 
-where $a(i)$ is the mean intra-cluster distance and $b(i)$ is the mean nearest-cluster distance for point $i$. Values range from $-1$ (misassigned) to $+1$ (well-clustered).
+여기서 $a(i)$는 점 $i$의 군집 내 평균 거리이고 $b(i)$는 가장 가까운 다른 군집까지의 평균 거리이다. 값의 범위는 $-1$(잘못 배정됨)부터 $+1$(잘 군집화됨)까지이다.
 
-## Explanation
+## 설명
 
-**Internal metrics** (no labels required):
+**내부 지표**(레이블 불필요):
 
-- **Silhouette score**: Balances cohesion ($a$) and separation ($b$). Average over all points gives the overall score. Higher is better.
-- **Calinski-Harabasz index**: Ratio of between-cluster to within-cluster variance, scaled by degrees of freedom. Higher means more compact and separated clusters.
-- **Davies-Bouldin index**: Average worst-case cluster similarity. Lower is better.
+- **실루엣 점수**: 응집도($a$)와 분리도($b$)의 균형을 잡는다. 모든 점에 대해 평균을 내면 전체 점수가 된다. 높을수록 좋다.
+- **칼린스키-하라바스 지수**: 군집 간 분산 대 군집 내 분산의 비를 자유도로 조정한 값이다. 높을수록 군집이 조밀하고 잘 분리되어 있다.
+- **데이비스-볼딘 지수**: 최악의 경우 군집 유사도의 평균이다. 낮을수록 좋다.
 
-**External metrics** (labels required):
+**외부 지표**(레이블 필요):
 
-- **Adjusted Rand Index (ARI)**: Measures pairwise agreement between predicted and true labels, corrected for chance. ARI $= 1$ is perfect; ARI $\approx 0$ is random.
-- **Normalized Mutual Information (NMI)**: Information-theoretic measure of shared information between clusterings, normalized to $[0, 1]$.
+- **조정 랜드 지수(ARI)**: 예측 레이블과 참 레이블 사이의 쌍별 일치도를 우연 일치에 대해 보정하여 측정한다. ARI $= 1$이면 완벽하고, ARI $\approx 0$이면 무작위이다.
+- **정규화 상호정보량(NMI)**: 두 군집화가 공유하는 정보량을 정보 이론적으로 측정하여 $[0, 1]$로 정규화한 값이다.
 
-Choosing $k$: compute silhouette scores for a range of $k$ values and select the $k$ that maximizes it.
+$k$ 선택: 여러 $k$ 값에 대해 실루엣 점수를 계산하고 그것을 최대화하는 $k$를 고른다.
 
-## Examples
+## 예제
 
 ```python
 import numpy as np
@@ -40,7 +40,7 @@ from sklearn.metrics import (silhouette_score, calinski_harabasz_score,
 X, y_true = make_blobs(n_samples=300, centers=4, cluster_std=0.8, random_state=42)
 X_scaled = StandardScaler().fit_transform(X)
 
-# Fit KMeans and compute all metrics
+# KMeans를 적합시키고 모든 지표를 계산한다
 km = KMeans(n_clusters=4, random_state=42, n_init=10)
 labels = km.fit_predict(X_scaled)
 
@@ -49,8 +49,48 @@ print(f"Calinski-Harabasz: {calinski_harabasz_score(X_scaled, labels):.1f}")
 print(f"Davies-Bouldin:    {davies_bouldin_score(X_scaled, labels):.4f}")
 print(f"Adjusted Rand:     {adjusted_rand_score(y_true, labels):.4f}")
 
-# Select k using silhouette score
+# 실루엣 점수로 k를 선택한다
 for k in range(2, 8):
     lab = KMeans(n_clusters=k, random_state=42, n_init=10).fit_predict(X_scaled)
     print(f"  k={k}: silhouette={silhouette_score(X_scaled, lab):.4f}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+군집 내 거리가 $a(i) = 0.5$이고 가장 가까운 다른 군집까지의 거리가 $b(i) = 2.0$인 점 $i$의 실루엣 점수를 계산하고 결과를 해석하라.
+
+??? success "연습문제 1 풀이"
+    $s(i) = \frac{b(i) - a(i)}{\max(a(i), b(i))} = \frac{2.0 - 0.5}{\max(0.5, 2.0)} = \frac{1.5}{2.0} = 0.75$. 실루엣 점수 0.75는 이 점이 잘 군집화되었음을 나타낸다. 자기 군집($a = 0.5$)에 가장 가까운 다른 군집($b = 2.0$)보다 훨씬 가깝기 때문이다. 1에 가까운 값은 강한 군집 소속을 나타낸다.
+
+---
+
+**연습문제 2.**
+모든 점 $i$에 대해 실루엣 점수 $s(i) \in [-1, 1]$임을 증명하고, $s(i) = -1$, $s(i) = 0$, $s(i) = 1$이 되는 경우를 특징지어라.
+
+??? success "연습문제 2 풀이"
+    $M = \max(a(i), b(i))$라 하자. $a(i), b(i) \geq 0$이고 (퇴화하지 않은 군집을 가정하면) $M > 0$이므로 $s(i) = (b(i) - a(i))/M$이다. $|b(i) - a(i)| \leq \max(a(i), b(i)) = M$이므로 분자는 $-M \leq b(i) - a(i) \leq M$을 만족한다. 따라서 $-1 \leq s(i) \leq 1$이다. $s(i) = 1$: $a(i) = 0$(같은 군집의 모든 원소가 동일)이고 $b(i) > 0$일 때로, 완벽한 군집화이다. $s(i) = 0$: $a(i) = b(i)$일 때로, 점이 자기 군집과 가장 가까운 군집 사이의 등거리에 놓인 경계점이다. $s(i) = -1$: $b(i) = 0$이고 $a(i) > 0$일 때로, 점이 다른 군집의 중심에 있어 완전히 잘못 배정된 경우이다. $\square$
+
+---
+
+**연습문제 3.**
+조정 랜드 지수(ARI)는 우연 일치를 보정하지만 원래의 랜드 지수는 그렇지 않은 이유를 설명하라. 무작위 군집화에 ARI는 어떤 값을 주는가?
+
+??? success "연습문제 3 풀이"
+    원래의 랜드 지수는 두 군집화 모두에서 같은 군집에 속하거나 모두에서 다른 군집에 속하는 점 쌍의 비율을 센다. 무작위 군집화에서도 이 비율은 (특히 군집 수가 적을 때) 순전히 우연으로 0보다 상당히 클 수 있다. ARI는 무작위 순열 모형 아래의 기대 RI를 빼고 정규화한다. $\text{ARI} = (\text{RI} - \mathbb{E}[\text{RI}]) / (\max(\text{RI}) - \mathbb{E}[\text{RI}])$. 무작위 군집화는 군집 수와 무관하게 $\text{ARI} \approx 0$을 주고, 완벽한 군집화는 $\text{ARI} = 1$을 준다.
+
+---
+
+**연습문제 4.**
+$k = 2, 3, \ldots, 10$으로 K-평균을 실행했더니 실루엣 점수가 $0.45, 0.62, 0.58, 0.40, 0.35, 0.30, 0.28, 0.25, 0.22$로 관찰되었다. 어떤 $k$를 골라야 하며 그 이유는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    $k = 3$을 골라야 한다. 실루엣 점수의 최댓값 $0.62$를 달성하기 때문이다. 실루엣 점수는 군집 응집도와 분리도의 균형을 측정하며, 값이 클수록 군집이 잘 정의되어 있다. 점수가 $k = 3$에서 정점을 찍고 그보다 큰 $k$에서 감소하므로 데이터에 자연스러운 군집이 3개 있음을 시사한다. $k$를 3보다 늘리면 자연스러운 군집이 쪼개져 군집 내 거리가 커지고 실루엣 점수가 낮아진다.
+
+---
+
+**연습문제 5.**
+데이비스-볼딘 지수는 $\text{DB} = \frac{1}{k}\sum_{i=1}^{k}\max_{j \neq i} \frac{\sigma_i + \sigma_j}{d(c_i, c_j)}$로 정의되며, $\sigma_i$는 군집 $i$의 점들이 중심 $c_i$까지 갖는 평균 거리이다. 값이 낮을수록 좋은 이유와, 두 군집이 매우 가까울 때 이 지수가 어떻게 되는지 설명하라.
+
+??? success "연습문제 5 풀이"
+    각 항 $(\sigma_i + \sigma_j) / d(c_i, c_j)$는 최악의 쌍에 대해 군집의 퍼짐과 군집 간 분리의 비를 측정한다. 값이 낮다는 것은 군집이 조밀하고($\sigma$가 작고) 잘 분리되어 있다($d$가 크다)는 뜻이다. 두 군집이 매우 가까우면($d(c_i, c_j) \to 0$) 이 비가 무한대로 발산하여 DB 지수가 커지고, 겹치는 군집에 올바르게 벌점을 준다. 이 지수가 0이 되는 것은 군집의 퍼짐이 0이고 분리가 무한대인 경우(단일 점 군집)뿐이므로, 실무에서는 0에 가까운 값을 추구한다.

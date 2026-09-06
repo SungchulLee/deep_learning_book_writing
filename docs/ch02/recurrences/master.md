@@ -1,150 +1,150 @@
-# Master Theorem
+# 마스터 정리
 
-Every divide-and-conquer algorithm that splits a problem of size $n$ into $a$ subproblems of size $n/b$ and does $f(n)$ non-recursive work produces a recurrence of the form $T(n) = aT(n/b) + f(n)$. Solving this recurrence from scratch each time would be tedious. The Master theorem provides a cookbook: compare the toll function $f(n)$ to the critical threshold $n^{\log_b a}$, and the answer falls into one of three cases. This makes it the single most-used tool for analyzing divide-and-conquer running times.
+크기 $n$인 문제를 크기 $n/b$인 부분문제 $a$개로 나누고 재귀가 아닌 일을 $f(n)$만큼 하는 모든 분할 정복 알고리즘은 $T(n) = aT(n/b) + f(n)$ 형태의 점화식을 낳는다. 이 점화식을 매번 처음부터 푸는 것은 번거롭다. 마스터 정리는 요리책 같은 답을 준다. 통행료 함수 $f(n)$을 임계 문턱 $n^{\log_b a}$와 비교하면 답이 세 경우 중 하나에 떨어진다. 그래서 마스터 정리는 분할 정복의 실행 시간을 분석하는 데 가장 많이 쓰이는 도구이다.
 
-## Statement of the Master Theorem
+## 마스터 정리의 서술
 
-!!! note "Master Theorem"
-    Let $a \geq 1$ and $b > 1$ be constants, let $f(n)$ be a function, and let $T(n)$ be defined by the recurrence:
+!!! note "마스터 정리"
+    $a \geq 1$과 $b > 1$을 상수라 하고, $f(n)$을 함수라 하며, $T(n)$이 다음 점화식으로 정의된다고 하자.
 
     $$
     T(n) = aT(n/b) + f(n)
     $$
 
-    where $n/b$ is interpreted as $\lfloor n/b \rfloor$ or $\lceil n/b \rceil$. Then $T(n)$ has the following asymptotic bounds:
+    여기서 $n/b$는 $\lfloor n/b \rfloor$ 또는 $\lceil n/b \rceil$로 해석한다. 그러면 $T(n)$은 다음의 점근적 경계를 가진다.
 
-    **Case 1** (Leaf-heavy): If $f(n) = O(n^{\log_b a - \epsilon})$ for some constant $\epsilon > 0$, then
+    **경우 1**(잎이 무거움): 어떤 상수 $\epsilon > 0$에 대해 $f(n) = O(n^{\log_b a - \epsilon})$이면
 
     $$
     T(n) = \Theta(n^{\log_b a})
     $$
 
-    **Case 2** (Balanced): If $f(n) = \Theta(n^{\log_b a})$, then
+    **경우 2**(균형): $f(n) = \Theta(n^{\log_b a})$이면
 
     $$
     T(n) = \Theta(n^{\log_b a} \log n)
     $$
 
-    **Case 3** (Root-heavy): If $f(n) = \Omega(n^{\log_b a + \epsilon})$ for some constant $\epsilon > 0$, and if $a f(n/b) \leq c f(n)$ for some constant $c < 1$ and all sufficiently large $n$ (the **regularity condition**), then
+    **경우 3**(뿌리가 무거움): 어떤 상수 $\epsilon > 0$에 대해 $f(n) = \Omega(n^{\log_b a + \epsilon})$이고, 어떤 상수 $c < 1$과 충분히 큰 모든 $n$에 대해 $a f(n/b) \leq c f(n)$이면(**정칙 조건**)
 
     $$
     T(n) = \Theta(f(n))
     $$
 
-## The Critical Exponent
+## 임계 지수
 
-The quantity $\log_b a$ is the **critical exponent**. It represents the rate at which the number of subproblems grows relative to the rate at which subproblem size shrinks. Intuitively:
+$\log_b a$라는 양이 **임계 지수** 이다. 이는 부분문제의 개수가 늘어나는 속도를 부분문제 크기가 줄어드는 속도에 견준 값이다. 직관적으로는 다음과 같다.
 
-- $n^{\log_b a}$ is the total number of leaves in the recursion tree
-- The cost per leaf is $\Theta(1)$ (base case work)
-- So $\Theta(n^{\log_b a})$ is the total leaf-level cost
+- $n^{\log_b a}$은 재귀 트리의 전체 잎 개수이다
+- 잎 하나당 비용은 $\Theta(1)$이다(기저 사례의 일)
+- 따라서 $\Theta(n^{\log_b a})$이 잎 층 전체의 비용이다
 
-The three cases compare this leaf-level cost to the non-recursive work at the root and internal nodes.
+세 경우는 이 잎 층 비용을 뿌리와 내부 노드에서의 재귀가 아닌 일과 비교한다.
 
-## Intuition via the Recursion Tree
+## 재귀 트리로 보는 직관
 
-The [recursion tree](recursion_tree.md) provides the geometric intuition behind each case.
+[재귀 트리](recursion_tree.md)가 각 경우의 기하학적 직관을 제공한다.
 
-**Case 1** (Leaf-heavy): The work *increases* geometrically as we descend the tree. The leaves dominate, contributing $\Theta(n^{\log_b a})$, and the root's work $f(n)$ is negligible in comparison.
+**경우 1**(잎이 무거움): 트리를 내려갈수록 일이 기하급수적으로 *늘어난다.* 잎이 지배하여 $\Theta(n^{\log_b a})$을 기여하고, 뿌리의 일 $f(n)$은 이에 비하면 무시할 만하다.
 
-**Case 2** (Balanced): The work is roughly the *same* at every level of the tree. There are $\Theta(\log_b n)$ levels, each contributing $\Theta(n^{\log_b a})$ work, giving $\Theta(n^{\log_b a} \log n)$ in total.
+**경우 2**(균형): 트리의 모든 층에서 일이 대략 *같다.* 층이 $\Theta(\log_b n)$개이고 각각 $\Theta(n^{\log_b a})$의 일을 기여하므로 총합은 $\Theta(n^{\log_b a} \log n)$이다.
 
-**Case 3** (Root-heavy): The work *decreases* geometrically as we descend. The root dominates with cost $\Theta(f(n))$, and all other levels contribute a geometrically smaller amount.
+**경우 3**(뿌리가 무거움): 내려갈수록 일이 기하급수적으로 *줄어든다.* 뿌리가 비용 $\Theta(f(n))$으로 지배하고 나머지 모든 층은 기하급수적으로 작은 양을 기여한다.
 
-## Worked Examples
+## 풀이 예제
 
-### Example 1: Merge Sort (Case 2)
+### 예제 1: 병합 정렬(경우 2)
 
 $$
 T(n) = 2T(n/2) + \Theta(n)
 $$
 
-Here $a = 2$, $b = 2$, and $\log_b a = \log_2 2 = 1$. The toll function $f(n) = \Theta(n) = \Theta(n^1) = \Theta(n^{\log_b a})$.
+여기서 $a = 2$, $b = 2$이므로 $\log_b a = \log_2 2 = 1$이다. 통행료 함수는 $f(n) = \Theta(n) = \Theta(n^1) = \Theta(n^{\log_b a})$이다.
 
-This matches Case 2, so:
+이는 경우 2에 해당하므로
 
 $$
 T(n) = \Theta(n \log n)
 $$
 
-### Example 2: Binary Search (Case 2)
+### 예제 2: 이진 탐색(경우 2)
 
 $$
 T(n) = T(n/2) + \Theta(1)
 $$
 
-Here $a = 1$, $b = 2$, and $\log_b a = \log_2 1 = 0$. The toll function $f(n) = \Theta(1) = \Theta(n^0) = \Theta(n^{\log_b a})$.
+여기서 $a = 1$, $b = 2$이므로 $\log_b a = \log_2 1 = 0$이다. 통행료 함수는 $f(n) = \Theta(1) = \Theta(n^0) = \Theta(n^{\log_b a})$이다.
 
-Case 2 gives:
+경우 2에 의해
 
 $$
 T(n) = \Theta(n^0 \log n) = \Theta(\log n)
 $$
 
-### Example 3: Strassen's Algorithm (Case 1)
+### 예제 3: Strassen의 알고리즘(경우 1)
 
 $$
 T(n) = 7T(n/2) + \Theta(n^2)
 $$
 
-Here $a = 7$, $b = 2$, and $\log_b a = \log_2 7 \approx 2.807$. The toll function $f(n) = \Theta(n^2) = O(n^{2.807 - 0.807})$, so $\epsilon = 0.807 > 0$.
+여기서 $a = 7$, $b = 2$이므로 $\log_b a = \log_2 7 \approx 2.807$이다. 통행료 함수는 $f(n) = \Theta(n^2) = O(n^{2.807 - 0.807})$이므로 $\epsilon = 0.807 > 0$이다.
 
-Case 1 gives:
+경우 1에 의해
 
 $$
 T(n) = \Theta(n^{\log_2 7}) \approx \Theta(n^{2.807})
 $$
 
-### Example 4: Root-Heavy Case (Case 3)
+### 예제 4: 뿌리가 무거운 경우(경우 3)
 
 $$
 T(n) = 2T(n/2) + n^2
 $$
 
-Here $a = 2$, $b = 2$, and $\log_b a = 1$. The toll function $f(n) = n^2 = \Omega(n^{1 + 1})$, so $\epsilon = 1 > 0$.
+여기서 $a = 2$, $b = 2$이므로 $\log_b a = 1$이다. 통행료 함수는 $f(n) = n^2 = \Omega(n^{1 + 1})$이므로 $\epsilon = 1 > 0$이다.
 
-Check the regularity condition: $af(n/b) = 2(n/2)^2 = n^2/2 \leq (1/2) \cdot n^2 = cf(n)$ with $c = 1/2 < 1$.
+정칙 조건을 확인하자. $af(n/b) = 2(n/2)^2 = n^2/2 \leq (1/2) \cdot n^2 = cf(n)$이며 $c = 1/2 < 1$이다.
 
-Case 3 gives:
+경우 3에 의해
 
 $$
 T(n) = \Theta(n^2)
 $$
 
-### Example 5: Karatsuba Multiplication (Case 1)
+### 예제 5: 카라추바 곱셈(경우 1)
 
 $$
 T(n) = 3T(n/2) + \Theta(n)
 $$
 
-Here $a = 3$, $b = 2$, and $\log_b a = \log_2 3 \approx 1.585$. The toll function $f(n) = \Theta(n) = O(n^{1.585 - 0.585})$, so $\epsilon = 0.585$.
+여기서 $a = 3$, $b = 2$이므로 $\log_b a = \log_2 3 \approx 1.585$이다. 통행료 함수는 $f(n) = \Theta(n) = O(n^{1.585 - 0.585})$이므로 $\epsilon = 0.585$이다.
 
-Case 1 gives:
+경우 1에 의해
 
 $$
 T(n) = \Theta(n^{\log_2 3}) \approx \Theta(n^{1.585})
 $$
 
-## The Regularity Condition
+## 정칙 조건
 
-Case 3 requires a regularity condition: $af(n/b) \leq cf(n)$ for some $c < 1$. This ensures that $f(n)$ does not oscillate in a way that would invalidate the conclusion. For most "well-behaved" functions -- polynomials, polynomials times logarithms, exponentials -- the regularity condition holds automatically.
+경우 3은 정칙 조건 $af(n/b) \leq cf(n)$($c < 1$)을 요구한다. 이는 $f(n)$이 결론을 무효화할 만큼 진동하지 않음을 보장한다. 다항식, 다항식 곱하기 로그, 지수함수 같은 대부분의 "얌전한" 함수에 대해서는 정칙 조건이 자동으로 성립한다.
 
-!!! warning "When Regularity Fails"
-    The function $f(n) = n^2 \sin^2(n\pi/2)$ satisfies $f(n) = \Omega(n^{1+\epsilon})$ on a dense subset of inputs but oscillates between $0$ and $n^2$. For the recurrence $T(n) = 2T(n/2) + f(n)$, the regularity condition fails because $af(n/b)$ can exceed $cf(n)$ when $f(n)$ happens to be near zero. Such pathological cases are rare in practice.
+!!! warning "정칙 조건이 성립하지 않을 때"
+    함수 $f(n) = n^2 \sin^2(n\pi/2)$는 조밀한 부분집합의 입력에서 $f(n) = \Omega(n^{1+\epsilon})$을 만족하지만 $0$과 $n^2$ 사이를 진동한다. 점화식 $T(n) = 2T(n/2) + f(n)$에 대해서는 $f(n)$이 0 근처일 때 $af(n/b)$가 $cf(n)$을 넘을 수 있으므로 정칙 조건이 성립하지 않는다. 이런 병적인 경우는 실무에서 드물다.
 
-## Gap Between Cases
+## 경우들 사이의 틈
 
-The three cases do not cover every possible $f(n)$. There is a gap between Cases 1 and 2 when $f(n)$ is smaller than $n^{\log_b a}$ but not polynomially smaller. For example:
+세 경우가 가능한 모든 $f(n)$을 덮지는 않는다. $f(n)$이 $n^{\log_b a}$보다 작지만 다항식적으로 작지는 않을 때 경우 1과 경우 2 사이에 틈이 생긴다. 예를 들어 다음과 같다.
 
 $$
 T(n) = 2T(n/2) + \frac{n}{\log n}
 $$
 
-Here $f(n) = n / \log n$, which is $o(n)$ but not $O(n^{1-\epsilon})$ for any $\epsilon > 0$. The Master theorem does not apply. The [Extended Master theorem](extended_master.md) and the [Akra-Bazzi method](akra_bazzi.md) handle such cases.
+여기서 $f(n) = n / \log n$은 $o(n)$이지만 어떤 $\epsilon > 0$에 대해서도 $O(n^{1-\epsilon})$은 아니다. 마스터 정리를 적용할 수 없다. [확장 마스터 정리](extended_master.md)와 [Akra-Bazzi 방법](akra_bazzi.md)이 이런 경우를 다룬다.
 
-## Quick-Reference Table
+## 빠른 참조 표
 
-| Recurrence | $a$ | $b$ | $\log_b a$ | Case | $T(n)$ |
+| 점화식 | $a$ | $b$ | $\log_b a$ | 경우 | $T(n)$ |
 |-----------|-----|-----|------------|------|--------|
 | $T = 2T(n/2) + n$ | 2 | 2 | 1 | 2 | $\Theta(n \log n)$ |
 | $T = T(n/2) + 1$ | 1 | 2 | 0 | 2 | $\Theta(\log n)$ |
@@ -156,15 +156,48 @@ Here $f(n) = n / \log n$, which is $o(n)$ but not $O(n^{1-\epsilon})$ for any $\
 | $T = T(n/3) + 1$ | 1 | 3 | 0 | 2 | $\Theta(\log n)$ |
 | $T = 9T(n/3) + n$ | 9 | 3 | 2 | 1 | $\Theta(n^2)$ |
 
-## Connections to Other Topics
+## 다른 주제와의 연결
 
-- **[Recurrence from Divide and Conquer](divide_conquer.md)**: How to derive the recurrences that the Master theorem solves
-- **[Recursion Tree Method](recursion_tree.md)**: The visual intuition behind the three cases
-- **[Extended Master Theorem](extended_master.md)**: Fills the gap for logarithmic factors
-- **[Akra-Bazzi Method](akra_bazzi.md)**: The most general method, handling unequal splits
-- **[Substitution Method](substitution.md)**: Can verify Master theorem results from first principles
+- **[분할 정복으로부터의 점화식](divide_conquer.md)**: 마스터 정리가 푸는 점화식을 유도하는 방법
+- **[재귀 트리 방법](recursion_tree.md)**: 세 경우 뒤에 있는 시각적 직관
+- **[확장 마스터 정리](extended_master.md)**: 로그 인자가 있는 틈을 메운다
+- **[Akra-Bazzi 방법](akra_bazzi.md)**: 크기가 다른 분할까지 다루는 가장 일반적인 방법
+- **[치환 방법](substitution.md)**: 마스터 정리의 결과를 제1원리로부터 검증할 수 있다
 
-## References
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 4. MIT Press.
 - Bentley, J. L., Haken, D., & Saxe, J. B. (1980). A general method for solving divide-and-conquer recurrences. *SIGACT News*, 12(3), 36-44.
+
+
+## 연습문제
+
+**연습문제 1.**
+마스터 정리에서 다룬 점화식 풀이 기법을 점화식 $T(n) = 2T(n/2) + n$에 적용하라.
+
+??? success "연습문제 1 풀이"
+    이 절에서 설명한 방법을 사용한다. 핵심 매개변수를 찾고 기법을 적용하면 $T(n) = \Theta(n \log n)$을 얻는다. 이것이 병합 정렬의 점화식이며, 일이 층마다 고르게 분포되는 균형 잡힌 경우를 나타낸다.
+
+---
+
+**연습문제 2.**
+마스터 정리를 사용하여 $T(n) = 4T(n/2) + n$을 풀어라. 어느 경우에 해당하는가?
+
+??? success "연습문제 2 풀이"
+    $a = 4, b = 2, \log_b a = 2$이다. $f(n) = n = O(n^{2-1})$이다. 재귀 비용이 지배하므로 $T(n) = \Theta(n^2)$이다.
+
+---
+
+**연습문제 3.**
+길이 $n$인 시퀀스를 두 절반으로 나누어 각각을 재귀적으로 처리한 뒤 $O(n)$의 교차 어텐션으로 결합하는 트랜스포머 층의 점화식을 쓰고 풀어라.
+
+??? success "연습문제 3 풀이"
+    $T(n) = 2T(n/2) + O(n)$이다. 이는 $T(n) = \Theta(n \log n)$을 주며 병합 정렬과 같다. 실제로 트랜스포머는 이런 재귀 구조를 쓰지 않지만, (Longformer 같은) 계층적 어텐션 기법이 이를 근사한다.
+
+---
+
+**연습문제 4.**
+마스터 정리에 나오는 점화식의 해를 치환 방법으로 검증하라. 귀납 가정을 서술하고 증명을 수행하라.
+
+??? success "연습문제 4 풀이"
+    이 절의 기법으로 닫힌 형태를 추측한다. 모든 $k < n$에 대해 $T(k) \leq ck^p$(또는 적절한 형태)를 가정한다. 이를 점화식에 대입하여 $T(n) \leq cn^p$임을 검증한다. 기저 사례는 따로 처리한다. $\square$

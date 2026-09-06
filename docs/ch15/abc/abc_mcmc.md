@@ -1,58 +1,55 @@
 # ABC-MCMC
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-ABC-MCMC combines Approximate Bayesian Computation with Markov chain Monte Carlo, enabling more efficient exploration of the parameter space than rejection sampling. This section presents the algorithm, its theoretical justification, and practical implementation guidance.
+ABC-MCMC은 어림 베이즈 셈하기와 마르코프 사슬 몬테카를로를 합쳐, 물리치기 표집보다 매개변수 공간을 더 효율적으로 살펴보게 한다. 이 마당은 그 알고리즘과 이론적 뒷받침, 그리고 실전 구현 길잡이를 보인다.
 
 ---
 
-## Motivation
+## 왜 필요한가
 
-### Limitations of ABC Rejection
+### ABC 물리치기의 한계
 
-ABC rejection sampling has a fundamental inefficiency: it samples from the prior, which may have little overlap with the posterior. When the posterior is concentrated relative to the prior:
-- Most proposals are wasted
-- Acceptance rate becomes vanishingly small
-- Computational cost explodes
+ABC 물리치기 표집에는 근본적인 비효율이 있다. 곧 앞확률에서 표집하는데 앞확률이 뒤확률과 거의 겹치지 않을 수 있다. 뒤확률이 앞확률에 견주어 좁게 몰려 있으면:
 
-### The MCMC Solution
+- 제안 대부분이 버려진다
+- 받아들임 비율이 사라질 만큼 작아진다
+- 셈 값이 터진다
 
-Instead of independent sampling from the prior, use MCMC to:
-- Propose from the current location (not the prior)
-- Concentrate samples in high-posterior regions
-- Achieve reasonable acceptance rates even for concentrated posteriors
+### MCMC이라는 풀이
+
+앞확률에서 따로따로 표집하는 대신 MCMC으로 다음을 한다:
+
+- 앞확률이 아니라 지금 자리에서 제안한다
+- 뒤확률이 높은 구역에 표본을 모은다
+- 뒤확률이 좁게 몰려 있어도 그럭저럭한 받아들임 비율을 얻는다
 
 ---
 
-## The ABC-MCMC Algorithm
+## ABC-MCMC 알고리즘
 
-### Algorithm Statement
+### 알고리즘 진술
 
-**Input**: Initial $\theta_0$, prior $p(\theta)$, simulator $p(\mathbf{x}|\theta)$, observed data $\mathbf{y}$, summary statistics $S(\cdot)$, distance $\rho(\cdot, \cdot)$, tolerance $\epsilon$, proposal $q(\theta'|\theta)$, iterations $T$
+**입력**: 첫 $\theta_0$, 앞확률 $p(\theta)$, 흉내내기 장치 $p(\mathbf{x}|\theta)$, 관측 자료 $\mathbf{y}$, 간추린 통계량 $S(\cdot)$, 거리 $\rho(\cdot, \cdot)$, 너그러움 $\epsilon$, 제안 $q(\theta'|\theta)$, 되풀이 $T$
 
-**Output**: Chain $\{\theta_0, \theta_1, \ldots, \theta_T\}$ targeting ABC posterior
+**날 것**: ABC 뒤확률을 겨냥하는 사슬 $\{\theta_0, \theta_1, \ldots, \theta_T\}$
 
 ```
 Simulate x₀ ~ p(x | θ₀)
 Compute s₀ = S(x₀)
 
 for t = 1 to T:
-    # Propose
+    # 내놓기
     θ' ~ q(θ' | θₜ₋₁)
     
-    # Simulate
+    # 흉내내기
     x' ~ p(x | θ')
     s' = S(x')
     
-    # ABC-MH acceptance probability
+    # ABC-MH 받아들임 확률
     if ρ(s', S(y)) < ε:
         α = min(1, [p(θ') q(θₜ₋₁ | θ')] / [p(θₜ₋₁) q(θ' | θₜ₋₁)])
     else:
         α = 0
     
-    # Accept/reject
+    # 받아들이거나 물리치기
     if U(0,1) < α:
         θₜ = θ'
         sₜ = s'
@@ -63,60 +60,56 @@ for t = 1 to T:
 return {θ₀, θ₁, ..., θₜ}
 ```
 
-### Key Insight
+### 핵심 통찰
 
-The acceptance probability has two components:
-1. **ABC criterion**: Is the simulated data close enough? ($\rho(s', S(\mathbf{y})) < \epsilon$)
-2. **MH ratio**: Balances proposal and prior
+받아들임 확률에는 두 부분이 있다:
 
-If the ABC criterion fails, we reject immediately (α = 0).
+1. **ABC 기준**: 흉내 낸 자료가 넉넉히 가까운가?($\rho(s', S(\mathbf{y})) < \epsilon$)
+2. **MH 비**: 제안과 앞확률의 균형을 잡는다
+
+ABC 기준을 못 넘기면 바로 물리친다(α = 0).
 
 ---
 
-## Theoretical Foundation
+## 이론적 바탕
 
-### Target Distribution
+### 과녁 분포
 
-ABC-MCMC targets the joint distribution:
+ABC-MCMC은 다음 결합 분포를 겨냥한다:
 
 $$
-
 \pi_\epsilon(\theta, \mathbf{s}) \propto p(\theta) p(\mathbf{s}|\theta) \mathbf{1}[\rho(\mathbf{s}, S(\mathbf{y})) < \epsilon]
-
 $$
 
-The marginal over $\theta$ is the ABC posterior:
+$\theta$에 걸친 주변 분포가 ABC 뒤확률이다:
 
 $$
-
 p_\epsilon(\theta | \mathbf{y}) = \int \pi_\epsilon(\theta, \mathbf{s}) d\mathbf{s}
-
 $$
 
-### Detailed Balance
+### 자세한 균형
 
-The ABC-MCMC kernel satisfies detailed balance with respect to $\pi_\epsilon(\theta, \mathbf{s})$.
+ABC-MCMC 알맹이는 $\pi_\epsilon(\theta, \mathbf{s})$에 대해 자세한 균형을 만족한다.
 
-**Proof sketch**: 
-- The proposal $q(\theta'|\theta) p(\mathbf{s}'|\theta')$ proposes new $(\theta', \mathbf{s}')$
-- The acceptance probability is standard MH on the extended space
-- The indicator function is symmetric in $(\theta, \mathbf{s})$ and $(\theta', \mathbf{s}')$
+**증명 얼개**:
 
-### Ergodicity
+- 제안 $q(\theta'|\theta) p(\mathbf{s}'|\theta')$이 새 $(\theta', \mathbf{s}')$을 내놓는다
+- 받아들임 확률은 넓힌 공간에서의 표준 MH이다
+- 지시 함수는 $(\theta, \mathbf{s})$과 $(\theta', \mathbf{s}')$에 대해 대칭이다
 
-Under standard conditions (irreducibility, aperiodicity), the chain converges:
+### 에르고드성
+
+표준 조건(쪼갤 수 없음, 주기 없음) 아래 사슬이 모인다:
 
 $$
-
 \frac{1}{T}\sum_{t=1}^T f(\theta_t) \to \mathbb{E}_{p_\epsilon(\theta|\mathbf{y})}[f(\theta)]
-
 $$
 
 ---
 
-## Implementation
+## 구현
 
-### Basic Implementation
+### 기본 구현
 
 ```python
 import numpy as np
@@ -124,33 +117,33 @@ import numpy as np
 def abc_mcmc(theta_init, prior_logpdf, simulator, summary_fn, y_obs,
              distance_fn, epsilon, proposal_fn, proposal_logpdf, n_iter):
     """
-    ABC-MCMC algorithm.
+    ABC-MCMC 알고리즘.
     
-    Args:
-        theta_init: Initial parameter value
-        prior_logpdf: Function theta -> log p(theta)
-        simulator: Function theta -> x
-        summary_fn: Function x -> summary statistics
-        y_obs: Observed data
-        distance_fn: Function (s1, s2) -> distance
-        epsilon: ABC tolerance
-        proposal_fn: Function theta -> theta' (sample from proposal)
-        proposal_logpdf: Function (theta', theta) -> log q(theta' | theta)
-        n_iter: Number of iterations
+    인수:
+        theta_init: 첫 매개변수 값
+        prior_logpdf: 함수 theta -> log p(theta)
+        simulator: 함수 theta -> x
+        summary_fn: 함수 x -> 간추린 통계량
+        y_obs: 관측한 자료
+        distance_fn: 함수 (s1, s2) -> 거리
+        epsilon: ABC 너그러움
+        proposal_fn: 함수 theta -> theta'(제안에서 표집)
+        proposal_logpdf: 함수 (theta', theta) -> log q(theta' | theta)
+        n_iter: 되풀이 횟수
     
-    Returns:
-        chain: Array of shape (n_iter, dim)
-        acceptance_rate: Overall acceptance rate
+    반환값:
+        chain: 꼴이 (n_iter, dim)인 배열
+        acceptance_rate: 전체 받아들임 비율
     """
     s_obs = summary_fn(y_obs)
     dim = len(theta_init)
     
-    # Initialize
+    # 초기화한다
     theta = theta_init.copy()
     x = simulator(theta)
     s = summary_fn(x)
     
-    # Check initial point is valid
+    # 첫 점이 쓸 만한지 살피기
     if distance_fn(s, s_obs) >= epsilon:
         raise ValueError("Initial point does not satisfy ABC criterion")
     
@@ -158,16 +151,16 @@ def abc_mcmc(theta_init, prior_logpdf, simulator, summary_fn, y_obs,
     n_accepted = 0
     
     for t in range(n_iter):
-        # Propose
+        # 내놓기
         theta_prop = proposal_fn(theta)
         
-        # Simulate
+        # 흉내내기
         x_prop = simulator(theta_prop)
         s_prop = summary_fn(x_prop)
         
-        # ABC-MH acceptance
+        # ABC-MH 받아들임
         if distance_fn(s_prop, s_obs) < epsilon:
-            # Compute MH ratio
+            # MH 비 셈하기
             log_alpha = (prior_logpdf(theta_prop) - prior_logpdf(theta) +
                         proposal_logpdf(theta, theta_prop) - 
                         proposal_logpdf(theta_prop, theta))
@@ -182,14 +175,14 @@ def abc_mcmc(theta_init, prior_logpdf, simulator, summary_fn, y_obs,
     return chain, n_accepted / n_iter
 ```
 
-### Finding a Valid Initial Point
+### 올바른 첫 점 찾기
 
-The chain must start from a point satisfying the ABC criterion:
+사슬은 ABC 기준을 만족하는 점에서 시작해야 한다:
 
 ```python
 def find_initial_point(prior_sampler, simulator, summary_fn, y_obs,
                        distance_fn, epsilon, max_attempts=100000):
-    """Find a valid starting point for ABC-MCMC."""
+    """ABC-MCMC의 쓸 만한 시작점 찾기."""
     s_obs = summary_fn(y_obs)
     
     for _ in range(max_attempts):
@@ -203,9 +196,9 @@ def find_initial_point(prior_sampler, simulator, summary_fn, y_obs,
     raise RuntimeError(f"Could not find valid initial point in {max_attempts} attempts")
 ```
 
-### Adaptive Proposal
+### 알아서 맞추는 제안
 
-Adapt the proposal covariance during burn-in:
+태우기 동안 제안 공분산을 알아서 맞춘다:
 
 ```python
 class AdaptiveABCMCMC:
@@ -223,10 +216,10 @@ class AdaptiveABCMCMC:
         )
     
     def adapt(self, theta, accepted):
-        """Update proposal based on chain history."""
+        """사슬의 지난 내력에 따라 제안 새로 고치기."""
         self.n += 1
         
-        # Update running mean and covariance
+        # 달리는 평균과 공분산 새로 고치기
         delta = theta - self.mean
         self.mean += delta / self.n
         
@@ -234,7 +227,7 @@ class AdaptiveABCMCMC:
             self.cov = ((self.n - 2) / (self.n - 1) * self.cov + 
                        delta.reshape(-1, 1) @ delta.reshape(1, -1) / self.n)
         
-        # Adapt scale based on acceptance
+        # 받아들임에 따라 규모 맞추기
         if self.n > 100:
             if accepted:
                 self.scale *= 1.01
@@ -244,64 +237,65 @@ class AdaptiveABCMCMC:
 
 ---
 
-## Comparison with ABC Rejection
+## ABC 물리치기와의 견줌
 
-### Efficiency Comparison
+### 효율 견주기
 
-| Aspect | ABC Rejection | ABC-MCMC |
+| 결 | ABC 물리치기 | ABC-MCMC |
 |--------|---------------|----------|
-| Proposals from | Prior | Local to current |
-| Independence | Samples are independent | Samples are correlated |
-| Acceptance rate | Can be very low | Usually higher |
-| Exploration | Complete (from prior) | Local (needs good mixing) |
-| Parallelization | Trivial | More complex |
-| Burn-in | Not needed | Required |
+| 제안이 나오는 곳 | 앞확률 | 지금 자리 둘레 |
+| 독립성 | 표본이 서로 독립이다 | 표본이 서로 얽혀 있다 |
+| 받아들임 비율 | 아주 낮을 수 있다 | 보통 더 높다 |
+| 살펴보기 | 온전하다(앞확률에서) | 그 자리 둘레(섞임이 좋아야 한다) |
+| 병렬로 돌리기 | 시시하다 | 더 복잡하다 |
+| 태우기 | 필요 없다 | 필요하다 |
 
-### When ABC-MCMC Helps
+### ABC-MCMC이 도움이 될 때
 
-ABC-MCMC is advantageous when:
-- Prior is much wider than posterior
-- ABC rejection acceptance rate is < 0.1%
-- Many posterior samples are needed
+다음일 때 ABC-MCMC이 낫다:
 
-### When ABC Rejection May Be Better
+- 앞확률이 뒤확률보다 훨씬 넓을 때
+- ABC 물리치기의 받아들임 비율이 0.1%보다 낮을 때
+- 뒤확률 표본이 많이 필요할 때
 
-ABC rejection may be preferable when:
-- Acceptance rate is reasonable (> 1%)
-- Posterior is multimodal (MCMC may get stuck)
-- Parallel resources are abundant
-- Independence of samples is important
+### ABC 물리치기가 나을 수 있을 때
+
+다음일 때 ABC 물리치기가 나을 수 있다:
+
+- 받아들임 비율이 그럭저럭할 때(> 1%)
+- 뒤확률의 봉우리가 여럿일 때(MCMC이 갇힐 수 있다)
+- 병렬로 쓸 밑천이 넉넉할 때
+- 표본이 서로 독립인 것이 중요할 때
 
 ---
 
-## Practical Considerations
+## 실용적인 고려
 
-### Proposal Distribution
+### 제안 분포
 
-**Random walk**:
+**무작위 걸음**:
 
 $$
-
 q(\theta'|\theta) = \mathcal{N}(\theta, \Sigma)
-
 $$
 
-- Simple to implement
-- Requires tuning $\Sigma$
-- Scale with dimension: $\Sigma = (2.4^2/d) \hat{\Sigma}$
+- 구현이 단순하다
+- $\Sigma$을 맞춰야 한다
+- 차원에 맞춰 눈금을 잡는다: $\Sigma = (2.4^2/d) \hat{\Sigma}$
 
-**Independent proposal** (not recommended for ABC-MCMC):
-- Falls back to ABC rejection
-- Loses MCMC benefits
+**독립 제안**(ABC-MCMC에는 권하지 않는다):
 
-### Tuning the Proposal
+- ABC 물리치기로 물러선다
+- MCMC의 이점을 잃는다
 
-**Target acceptance rate**: 10-30% for ABC-MCMC (lower than standard MH due to ABC rejections).
+### 제안 맞추기
+
+**목표 받아들임 비율**: ABC-MCMC에서는 10-30%이다(ABC 물리침 때문에 표준 MH보다 낮다).
 
 ```python
 def tune_proposal_scale(abc_mcmc_fn, theta_init, target_rate=0.2, 
                         n_tune=1000, n_test=500):
-    """Tune proposal scale for target acceptance rate."""
+    """목표 받아들임 비율에 맞게 제안의 규모 맞추기."""
     scale = 1.0
     
     for _ in range(n_tune):
@@ -317,28 +311,29 @@ def tune_proposal_scale(abc_mcmc_fn, theta_init, target_rate=0.2,
     return scale
 ```
 
-### Handling Low Acceptance
+### 받아들임이 낮을 때 다루기
 
-If acceptance is too low:
-1. Increase $\epsilon$
-2. Reduce proposal variance
-3. Use better summary statistics
-4. Consider ABC-SMC instead
+받아들임이 너무 낮으면:
 
-### Diagnostics
+1. $\epsilon$을 키운다
+2. 제안의 흩어짐을 줄인다
+3. 더 좋은 간추린 통계량을 쓴다
+4. 대신 ABC-SMC을 생각해 본다
 
-Standard MCMC diagnostics apply:
+### 진단
+
+표준 MCMC 진단을 쓴다:
 
 ```python
 def abc_mcmc_diagnostics(chain):
-    """Compute diagnostics for ABC-MCMC chain."""
+    """ABC-MCMC 사슬의 진단 셈하기."""
     from statsmodels.tsa.stattools import acf
     
     n_samples, dim = chain.shape
     
     diagnostics = {}
     
-    # Effective sample size (per dimension)
+    # 실효 표본 크기(차원마다)
     ess = []
     for d in range(dim):
         autocorr = acf(chain[:, d], nlags=100, fft=True)
@@ -346,7 +341,7 @@ def abc_mcmc_diagnostics(chain):
         ess.append(n_samples / tau)
     diagnostics['ess'] = np.array(ess)
     
-    # Trace plots should be examined visually
+    # 자취 그림은 눈으로 살펴야 한다
     diagnostics['mean'] = np.mean(chain, axis=0)
     diagnostics['std'] = np.std(chain, axis=0)
     
@@ -355,16 +350,16 @@ def abc_mcmc_diagnostics(chain):
 
 ---
 
-## Variants
+## 변형
 
-### ABC-MCMC with Multiple Simulations
+### 흉내내기를 여러 번 하는 ABC-MCMC
 
-Reduce variance by simulating multiple datasets per proposal:
+제안마다 자료 묶음을 여러 개 흉내 내어 흩어짐을 줄인다:
 
 ```python
 def abc_mcmc_multiple_sims(theta, simulator, summary_fn, s_obs, 
                            distance_fn, epsilon, n_sims=10):
-    """ABC acceptance based on multiple simulations."""
+    """흉내내기를 여러 번 해서 정하는 ABC 받아들임."""
     n_close = 0
     for _ in range(n_sims):
         x = simulator(theta)
@@ -372,40 +367,38 @@ def abc_mcmc_multiple_sims(theta, simulator, summary_fn, s_obs,
         if distance_fn(s, s_obs) < epsilon:
             n_close += 1
     
-    return n_close / n_sims  # Estimated acceptance probability
+    return n_close / n_sims  # 어림한 받아들임 확률
 ```
 
-### Noisy ABC-MCMC
+### 시끄러운 ABC-MCMC
 
-Add noise to the acceptance criterion to improve mixing:
+섞임을 낫게 하려고 받아들임 기준에 잡음을 더한다:
 
 $$
-
 \alpha = \min\left(1, \frac{p(\theta') K_\epsilon(s', s_{obs})}{p(\theta) K_\epsilon(s, s_{obs})} \cdot \frac{q(\theta|\theta')}{q(\theta'|\theta)}\right)
-
 $$
 
-where $K_\epsilon$ is a smooth kernel rather than hard threshold.
+여기서 $K_\epsilon$은 딱딱한 문턱값이 아니라 매끄러운 알맹이이다.
 
-### Gibbs-ABC
+### 깁스-ABC
 
-For models with multiple parameter blocks, update blocks separately:
+매개변수 덩이가 여럿인 모형에서는 덩이마다 따로 새로 고친다:
 
 ```python
 def gibbs_abc(theta, blocks, simulators, summary_fns, s_obs, 
               distance_fns, epsilons, proposals):
-    """Gibbs-style ABC-MCMC updating parameter blocks."""
+    """매개변수 덩어리를 새로 고치는 깁스 방식 ABC-MCMC."""
     for i, block in enumerate(blocks):
-        # Propose new value for block i
+        # 덩어리 i의 새 값 내놓기
         theta_prop = theta.copy()
         theta_prop[block] = proposals[i](theta[block])
         
-        # Simulate and check ABC criterion
+        # 흉내내고 ABC 잣대 살피기
         x_prop = simulators[i](theta_prop)
         s_prop = summary_fns[i](x_prop)
         
         if distance_fns[i](s_prop, s_obs[i]) < epsilons[i]:
-            # MH acceptance for this block
+            # 이 덩어리의 MH 받아들임
             # ...
             theta = theta_prop
     
@@ -414,34 +407,34 @@ def gibbs_abc(theta, blocks, simulators, summary_fns, s_obs,
 
 ---
 
-## Example: Inference for a Stochastic Volatility Model
+## 보기: 확률 변동성 모형의 추론
 
 ```python
 import numpy as np
 
-# Stochastic volatility model:
+# 확률 변동성 모형:
 # y_t = exp(h_t/2) * eps_t,  eps_t ~ N(0,1)
 # h_t = mu + phi*(h_{t-1} - mu) + sigma*eta_t,  eta_t ~ N(0,1)
 
 def sv_simulator(theta, T=500):
-    """Simulate stochastic volatility model."""
+    """확률 변동성 모형 흉내내기."""
     mu, phi, sigma = theta
     
-    # Initialize
+    # 초기화한다
     h = np.zeros(T)
     h[0] = mu + sigma * np.random.randn() / np.sqrt(1 - phi**2)
     
-    # Simulate log-volatility
+    # 로그 변동성 흉내내기
     for t in range(1, T):
         h[t] = mu + phi * (h[t-1] - mu) + sigma * np.random.randn()
     
-    # Simulate returns
+    # 수익 흉내내기
     y = np.exp(h / 2) * np.random.randn(T)
     
     return y
 
 def sv_summaries(y):
-    """Summary statistics for SV model."""
+    """확률 변동성 모형의 간추린 통계량."""
     log_y2 = np.log(y**2 + 1e-8)
     
     return np.array([
@@ -453,7 +446,7 @@ def sv_summaries(y):
         np.std(np.abs(y)),
     ])
 
-# Prior
+# 앞확률
 def sv_prior_sample():
     mu = np.random.uniform(-2, 2)
     phi = np.random.uniform(0.8, 0.999)
@@ -464,49 +457,49 @@ def sv_prior_logpdf(theta):
     mu, phi, sigma = theta
     if not (-2 < mu < 2 and 0.8 < phi < 0.999 and 0.01 < sigma < 0.5):
         return -np.inf
-    return 0  # Uniform prior
+    return 0  # 고른 앞확률
 
-# Run ABC-MCMC
-y_obs = sv_simulator([0.0, 0.95, 0.2])  # True parameters
+# ABC-MCMC 돌리기
+y_obs = sv_simulator([0.0, 0.95, 0.2])  # 참 매개변수
 s_obs = sv_summaries(y_obs)
 
-# Find initial point and run chain...
+# 첫 점을 찾고 사슬 돌리기...
 ```
 
 ---
 
-## Summary
+## 요약
 
-| Aspect | Description |
+| 항목 | 설명 |
 |--------|-------------|
-| **Algorithm** | MH with ABC acceptance criterion |
-| **Target** | ABC posterior $p_\epsilon(\theta \| \mathbf{y})$ |
-| **Advantage** | More efficient than rejection when prior is diffuse |
-| **Challenge** | Requires valid starting point, careful tuning |
-| **Acceptance** | Two-stage: ABC criterion then MH ratio |
-| **Diagnostics** | Standard MCMC diagnostics apply |
+| **알고리즘** | ABC 받아들임 기준을 쓴 MH |
+| **과녁** | ABC 뒤확률 $p_\epsilon(\theta \| \mathbf{y})$ |
+| **이점** | 앞확률이 퍼져 있을 때 물리치기보다 효율적이다 |
+| **어려움** | 올바른 시작점과 꼼꼼한 맞추기가 필요하다 |
+| **받아들임** | 두 단계: ABC 기준 뒤에 MH 비 |
+| **진단** | 표준 MCMC 진단을 쓴다 |
 
-ABC-MCMC bridges the gap between simple rejection sampling and more sophisticated methods, providing improved efficiency while maintaining the simplicity of the ABC framework.
-
----
-
-## Exercises
-
-1. **Implementation**. Implement ABC-MCMC for the normal model. Compare efficiency (ESS per simulation) to ABC rejection.
-
-2. **Adaptation**. Implement adaptive ABC-MCMC with proposal covariance learning. Show that it improves mixing.
-
-3. **Initialization sensitivity**. Study how different initialization strategies affect burn-in length and final results.
-
-4. **Proposal tuning**. For a fixed problem, find the optimal proposal scale empirically. How does it compare to standard MH guidelines?
-
-5. **Multimodality**. Create a bimodal posterior and show that ABC-MCMC can get stuck. Propose a solution.
+ABC-MCMC은 단순한 물리치기 표집과 더 정교한 방법 사이의 틈을 이어, ABC 얼개의 단순함을 지키면서 효율을 끌어올린다.
 
 ---
 
-## References
+## 참고 문헌
 
 1. Marjoram, P., Molitor, J., Plagnol, V., & Tavaré, S. (2003). "Markov Chain Monte Carlo Without Likelihoods." *PNAS*.
 2. Sisson, S. A., & Fan, Y. (2011). "Likelihood-Free Markov Chain Monte Carlo." In *Handbook of Markov Chain Monte Carlo*.
 3. Wegmann, D., Leuenberger, C., & Excoffier, L. (2009). "Efficient Approximate Bayesian Computation Coupled with Markov Chain Monte Carlo Without Likelihood." *Genetics*.
 4. Bortot, P., Coles, S. G., & Sisson, S. A. (2007). "Inference for Stereological Extremes." *JASA*.
+
+## 연습문제
+
+1. **구현.** 정규 모형에 ABC-MCMC을 구현하여라. 흉내내기 한 번마다의 ESS으로 ABC 물리치기와 효율을 견주어라.
+
+2. **알아서 맞추기.** 제안 공분산을 배우는 알아서 맞추는 ABC-MCMC을 구현하여라. 섞임이 나아짐을 보여라.
+
+3. **첫걸음에 대한 민감함.** 첫걸음을 어떻게 잡느냐가 태우기 길이와 마지막 결과에 어떤 영향을 주는지 살펴라.
+
+4. **제안 맞추기.** 문제를 붙박아 두고 가장 좋은 제안 눈금을 겪어 보고 찾아라. 표준 MH 길잡이와 견주면 어떠한가?
+
+5. **봉우리 여럿.** 쌍봉 뒤확률을 만들어 ABC-MCMC이 갇힐 수 있음을 보여라. 풀이를 내놓아라.
+
+---

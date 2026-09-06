@@ -1,25 +1,25 @@
-# Binomial Heaps
+# 이항 힙
 
-Binary heaps support insert and extract-min in $O(\log n)$ but merging two heaps requires $O(n)$ time because one must rebuild the heap from scratch. **Binomial heaps** solve this by representing a heap as a collection of binomial trees, enabling merge (and therefore insert) in $O(\log n)$ worst-case time and $O(1)$ amortized time for insert. This makes binomial heaps the natural choice when frequent merging is required, such as in parallel algorithms that merge priority queues from different processors, or in graph algorithms like Prim's MST and Dijkstra's shortest paths where efficient decrease-key is needed. Binomial heaps also serve as the conceptual stepping stone to Fibonacci heaps, which further improve decrease-key to $O(1)$ amortized by relaxing the structural constraints introduced here.
+이진 힙은 삽입과 최솟값 꺼내기를 $O(\log n)$에 하지만, 두 힙을 합치려면 힙을 맨바닥부터 다시 세워야 하므로 $O(n)$ 시간이 든다. **이항 힙**은 힙을 이항 트리의 모음으로 나타내어 이를 풀고, 합치기(따라서 삽입도)를 최악의 경우 $O(\log n)$, 삽입은 분할 상환 $O(1)$에 해낸다. 그래서 서로 다른 프로세서의 우선순위 큐를 합치는 병렬 알고리즘이나, 효율적인 열쇠 낮추기가 필요한 프림의 최소 신장 트리와 데이크스트라의 최단 경로 같은 그래프 알고리즘처럼 합치기가 잦을 때 이항 힙이 자연스러운 선택이 된다. 이항 힙은 또한 여기서 들여온 구조 제약을 느슨하게 하여 열쇠 낮추기를 분할 상환 $O(1)$으로 더 낫게 한 피보나치 힙으로 가는 개념적 디딤돌이기도 하다.
 
-## Binomial Trees
+## 이항 트리
 
-A **binomial tree** $B_k$ is defined recursively:
+**이항 트리** $B_k$은 재귀적으로 정의된다.
 
-- $B_0$ is a single node.
-- $B_k$ is formed by linking two copies of $B_{k-1}$: one becomes the leftmost child of the other's root.
+- $B_0$은 노드 하나이다.
+- $B_k$은 $B_{k-1}$ 둘을 이어 만든다. 하나가 다른 하나의 뿌리의 가장 왼쪽 자식이 된다.
 
-### Properties of Binomial Trees
+### 이항 트리의 성질
 
-A binomial tree $B_k$ has the following properties:
+이항 트리 $B_k$은 다음 성질을 가진다.
 
-1. **Height**: $k$
-2. **Number of nodes**: $2^k$
-3. **Degree of root**: $k$
-4. **Children of root**: the root has children $B_{k-1}, B_{k-2}, \ldots, B_0$ (in some order)
-5. **Nodes at depth $d$**: $\binom{k}{d}$ (this is why they are called *binomial* trees)
+1. **높이**: $k$
+2. **노드의 수**: $2^k$
+3. **뿌리의 차수**: $k$
+4. **뿌리의 자식**: 뿌리는 (어떤 순서로) 자식 $B_{k-1}, B_{k-2}, \ldots, B_0$을 가진다
+5. **깊이 $d$의 노드 수**: $\binom{k}{d}$ (그래서 *이항* 트리라 부른다)
 
-!!! example "First Few Binomial Trees"
+!!! example "처음 몇 개의 이항 트리"
     ```
     B_0:  o        B_1:  o        B_2:    o          B_3:        o
                           |              / |                    / | \
@@ -32,22 +32,22 @@ A binomial tree $B_k$ has the following properties:
     Height: 0             1              2                    3
     ```
 
-## Binomial Heap Structure
+## 이항 힙의 짜임
 
-A **binomial heap** is a collection (forest) of binomial trees satisfying two properties:
+**이항 힙**은 다음 두 성질을 만족하는 이항 트리의 모음(숲)이다.
 
-1. **Heap order**: each tree satisfies the min-heap (or max-heap) property -- every node's key is at most its children's keys.
-2. **Uniqueness**: for each order $k$, there is at most one binomial tree $B_k$ in the collection.
+1. **힙 순서**: 트리마다 최소 힙(또는 최대 힙) 성질을 만족한다. 노드마다 열쇠가 자식의 열쇠 이하이다.
+2. **유일성**: 차수 $k$마다 모음 안에 이항 트리 $B_k$이 많아야 하나 있다.
 
-The uniqueness property creates a direct analogy with binary representation. Since each $B_k$ contains exactly $2^k$ nodes, and at most one copy of each $B_k$ is present, a binomial heap with $n$ nodes contains $B_k$ if and only if bit $k$ is set in the binary representation of $n$. For example, $n = 13 = 1101_2$ contains trees $B_3, B_2, B_0$ with $8 + 4 + 1 = 13$ nodes total.
+유일성 성질은 이진 표현과의 직접적인 대응을 낳는다. $B_k$마다 노드가 꼭 $2^k$개이고 $B_k$이 많아야 하나 있으므로, 노드가 $n$개인 이항 힙은 $n$의 이진 표현에서 $k$번째 비트가 켜져 있을 때만 $B_k$을 담는다. 이를테면 $n = 13 = 1101_2$은 트리 $B_3, B_2, B_0$을 담아 노드가 모두 $8 + 4 + 1 = 13$개이다.
 
-The minimum element is always the root of one of the trees in the forest. Since a heap with $n$ nodes contains at most $\lfloor \log_2 n \rfloor + 1$ trees (bounded by the number of bits in $n$), finding the minimum requires checking at most $\lfloor \log_2 n \rfloor + 1$ roots.
+가장 작은 원소는 언제나 숲의 어느 트리의 뿌리이다. 노드가 $n$개인 힙에는 (그 수가 $n$의 비트 수로 한계 지어져) 트리가 많아야 $\lfloor \log_2 n \rfloor + 1$개이므로, 최솟값을 찾으려면 많아야 뿌리 $\lfloor \log_2 n \rfloor + 1$개를 살피면 된다.
 
-## Merge Operation
+## 합치기 연산
 
-Merging is the central operation of binomial heaps -- all other operations reduce to it. The algorithm is analogous to binary addition: walk through tree orders from smallest to largest, combining trees of the same order just as one carries in binary arithmetic.
+합치기는 이항 힙의 중심 연산이며 다른 모든 연산이 이것으로 귀착된다. 알고리즘은 이진 덧셈과 닮았다. 트리의 차수를 작은 쪽에서 큰 쪽으로 훑으며, 이진 산술에서 올림을 하듯 같은 차수의 트리를 합친다.
 
-### Algorithm
+### 알고리즘
 
 ```
 BINOMIAL-HEAP-MERGE(H1, H2):
@@ -65,75 +65,75 @@ BINOMIAL-HEAP-MERGE(H1, H2):
     return result
 ```
 
-**Linking** two trees of order $k$: compare their roots. The tree with the larger root becomes the leftmost child of the other root, producing a tree of order $k+1$. This preserves the heap-order property.
+차수가 $k$인 두 트리를 **잇기**: 뿌리를 견준다. 뿌리가 큰 쪽이 다른 뿌리의 가장 왼쪽 자식이 되어 차수 $k+1$의 트리가 나온다. 이는 힙 순서 성질을 지킨다.
 
-### Complexity
+### 복잡도
 
-Merge walks through at most $O(\log n)$ orders, performing constant work at each. Therefore:
+합치기는 많아야 $O(\log n)$개의 차수를 훑으며 차수마다 일정한 일을 한다. 따라서 다음과 같다.
 
 $$
 T_{\text{merge}} = O(\log n)
 $$
 
-## Other Operations via Merge
+## 합치기로 하는 다른 연산
 
-With merge in hand, the remaining priority queue operations follow naturally. The elegance of binomial heaps lies in their merge-centric design: every operation either calls merge directly or performs $O(\log n)$ work followed by a merge. This unifying pattern simplifies both the implementation and the complexity analysis.
+합치기가 있으면 나머지 우선순위 큐 연산이 자연스레 따라 나온다. 이항 힙의 우아함은 합치기를 중심에 둔 설계에 있다. 연산마다 합치기를 곧바로 부르거나 $O(\log n)$의 일을 한 뒤 합치기를 한다. 이 하나로 모으는 방식이 구현과 복잡도 분석을 모두 간단하게 한다.
 
-| Operation | How It Uses Merge | Time |
+| 연산 | 합치기를 어떻게 쓰는가 | 시간 |
 |-----------|------------------|------|
-| Insert | Create a single-node heap $B_0$, merge with existing heap | $O(\log n)$ worst, $O(1)$ amortized |
-| Find-min | Check all tree roots | $O(\log n)$ |
-| Extract-min | Remove min root, its children form a new heap, merge | $O(\log n)$ |
-| Decrease-key | Sift up within the binomial tree | $O(\log n)$ |
-| Delete | Decrease key to $-\infty$, then extract-min | $O(\log n)$ |
+| 삽입 | 노드 하나짜리 힙 $B_0$을 만들어 기존 힙과 합친다 | 최악 $O(\log n)$, 분할 상환 $O(1)$ |
+| 최솟값 찾기 | 모든 트리의 뿌리를 살핀다 | $O(\log n)$ |
+| 최솟값 꺼내기 | 최소 뿌리를 없애고 그 자식으로 새 힙을 만들어 합친다 | $O(\log n)$ |
+| 열쇠 낮추기 | 이항 트리 안에서 위로 올린다 | $O(\log n)$ |
+| 삭제 | 열쇠를 $-\infty$으로 낮춘 뒤 최솟값을 꺼낸다 | $O(\log n)$ |
 
-!!! tip "Amortized O(1) Insert"
-    Although a single insert may cascade through $O(\log n)$ tree merges (like binary carries), a sequence of $n$ inserts into an initially empty binomial heap performs a total of at most $2n$ link operations. By an argument analogous to the binary counter analysis, the amortized cost per insert is $O(1)$.
+!!! tip "분할 상환 O(1) 삽입"
+    삽입 한 번이 (이진 올림처럼) $O(\log n)$번의 트리 합치기로 이어질 수 있지만, 처음에 빈 이항 힙에 삽입을 $n$번 하면 잇기 연산이 모두 많아야 $2n$번이다. 이진 계수기 분석과 닮은 논증으로 삽입당 분할 상환 비용은 $O(1)$이다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Binomial heap implementation.
+이항 힙 구현.
 
-A binomial heap is a forest of binomial trees supporting
-merge in O(log n) time. All operations reduce to merge.
+이항 힙은 합치기를 O(log n) 시간에 받쳐 주는 이항 트리의 숲이다.
+모든 연산이 합치기로 귀착된다.
 """
 
 
-# === Binomial Tree Node ===
+# === 이항 트리 노드 ===
 
 class BinomialNode:
-    """A node in a binomial tree.
+    """이항 트리의 노드.
 
-    Each node stores a key, a pointer to its leftmost child,
-    and a pointer to its next sibling (for the forest linked list).
+    노드마다 열쇠와 가장 왼쪽 자식을 가리키는 포인터,
+    그리고 (숲의 연결 리스트를 위한) 다음 형제를 가리키는 포인터를 담는다.
     """
 
     def __init__(self, key):
         self.key = key
-        self.order = 0          # order of the binomial tree rooted here
-        self.child = None       # leftmost child
-        self.sibling = None     # next sibling in the forest
+        self.order = 0          # 여기를 뿌리로 하는 이항 트리의 차수
+        self.child = None       # 가장 왼쪽 자식
+        self.sibling = None     # 숲에서의 다음 형제
 
     def __repr__(self):
         return f"BinomialNode(key={self.key}, order={self.order})"
 
 
-# === Binomial Heap ===
+# === 이항 힙 ===
 
 class BinomialHeap:
-    """A min-binomial-heap implemented as a linked list of binomial trees."""
+    """이항 트리의 연결 리스트로 구현한 최소 이항 힙."""
 
     def __init__(self):
-        self.head = None  # linked list of tree roots, ordered by tree order
+        self.head = None  # 트리 차수 순으로 정렬된 뿌리의 연결 리스트
 
     def _link(self, t1, t2):
-        """Link two trees of the same order.
+        """같은 차수의 트리 둘을 잇는다.
 
-        Compares roots and makes the larger-key root a child of
-        the smaller-key root. After the swap (if needed), t1 is
-        always the winner (smaller key) and t2 becomes its child.
+        뿌리를 견주어 열쇠가 큰 뿌리를 열쇠가 작은 뿌리의 자식으로 만든다.
+        (필요하면) 맞바꾼 뒤 t1이 언제나 이긴 쪽(작은 열쇠)이고
+        t2가 그 자식이 된다.
         """
         if t1.key > t2.key:
             t1, t2 = t2, t1
@@ -143,15 +143,15 @@ class BinomialHeap:
         return t1
 
     def merge(self, other):
-        """Merge another binomial heap into this one. O(log n)."""
-        # Merge the two sorted linked lists by order
+        """다른 이항 힙을 이 힙에 합친다. O(log n)."""
+        # 차수 순으로 정렬된 두 연결 리스트를 합친다
         merged = self._merge_lists(self.head, other.head)
 
         if merged is None:
             self.head = None
             return
 
-        # Walk through and combine trees of the same order
+        # 훑으며 같은 차수의 트리를 모은다
         prev = None
         curr = merged
         nxt = curr.sibling
@@ -159,11 +159,11 @@ class BinomialHeap:
         while nxt is not None:
             if curr.order != nxt.order or \
                (nxt.sibling is not None and nxt.sibling.order == curr.order):
-                # Different orders, or three trees of same order: advance
+                # 차수가 다르거나 같은 차수의 트리가 셋이면 다음으로 나아간다
                 prev = curr
                 curr = nxt
             else:
-                # Two trees of same order: link them
+                # 같은 차수의 트리가 둘이면 잇는다
                 linked = self._link(curr, nxt)
                 linked.sibling = nxt.sibling
                 if prev is None:
@@ -176,7 +176,7 @@ class BinomialHeap:
         self.head = merged
 
     def _merge_lists(self, h1, h2):
-        """Merge two root lists sorted by order into one sorted list."""
+        """차수로 정렬된 두 뿌리 목록을 정렬된 하나로 합친다."""
         if h1 is None:
             return h2
         if h2 is None:
@@ -203,14 +203,14 @@ class BinomialHeap:
         return head
 
     def insert(self, key):
-        """Insert a key by creating a single-node heap and merging. O(log n)."""
+        """노드 하나짜리 힙을 만들어 합쳐서 열쇠를 넣는다. O(log n)."""
         node = BinomialNode(key)
         temp = BinomialHeap()
         temp.head = node
         self.merge(temp)
 
     def find_min(self):
-        """Return the minimum key. O(log n)."""
+        """가장 작은 열쇠를 돌려준다. O(log n)."""
         if self.head is None:
             raise IndexError("find_min from empty heap")
         min_key = self.head.key
@@ -222,11 +222,11 @@ class BinomialHeap:
         return min_key
 
     def extract_min(self):
-        """Remove and return the minimum key. O(log n)."""
+        """가장 작은 열쇠를 없애고 돌려준다. O(log n)."""
         if self.head is None:
             raise IndexError("extract_min from empty heap")
 
-        # Find minimum root and its predecessor
+        # 최소 뿌리와 그 앞의 것을 찾는다
         min_node = self.head
         min_prev = None
         prev = None
@@ -238,13 +238,13 @@ class BinomialHeap:
             prev = curr
             curr = curr.sibling
 
-        # Remove min_node from the root list
+        # 뿌리 목록에서 min_node를 없앤다
         if min_prev is None:
             self.head = min_node.sibling
         else:
             min_prev.sibling = min_node.sibling
 
-        # Reverse the children of min_node to form a new heap
+        # min_node의 자식을 뒤집어 새 힙을 만든다
         child_heap = BinomialHeap()
         child = min_node.child
         prev_child = None
@@ -255,16 +255,16 @@ class BinomialHeap:
             child = nxt
         child_heap.head = prev_child
 
-        # Merge the children back
+        # 자식을 도로 합친다
         self.merge(child_heap)
         return min_node.key
 
     def is_empty(self):
-        """Check if the heap is empty."""
+        """힙이 비었는지 살핀다."""
         return self.head is None
 
     def _collect_keys(self):
-        """Collect all keys in the heap (for testing)."""
+        """힙의 모든 열쇠를 모은다 (시험용)."""
         keys = []
         self._collect_from_node(self.head, keys)
         return keys
@@ -276,7 +276,7 @@ class BinomialHeap:
             node = node.sibling
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     h = BinomialHeap()
@@ -298,7 +298,7 @@ if __name__ == "__main__":
     assert extracted == sorted(values), "Extraction order incorrect!"
     print("Correctness verified.")
 
-    # Demonstrate merge
+    # 합치기를 보인다
     print("\n--- Merge Demo ---")
     h1 = BinomialHeap()
     for v in [5, 3, 7]:
@@ -318,7 +318,7 @@ if __name__ == "__main__":
     print(f"Merged extraction: {merged}")
 ```
 
-**Output:**
+**출력:**
 ```
 Inserting values:
   Inserted 7, min = 7
@@ -351,18 +351,51 @@ After merge, min: 1
 Merged extraction: [1, 2, 3, 5, 7, 8]
 ```
 
-## Complexity Summary
+## 복잡도 요약
 
-| Operation | Binary Heap | Binomial Heap (worst-case) | Binomial Heap (amortized) |
+| 연산 | 이진 힙 | 이항 힙 (최악) | 이항 힙 (분할 상환) |
 |-----------|:-----------:|:--------------------------:|:-------------------------:|
-| Insert | $O(\log n)$ | $O(\log n)$ | $O(1)$ |
-| Find-min | $O(1)$ | $O(\log n)$ | $O(\log n)$ |
-| Extract-min | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ |
-| Merge | $O(n)$ | $O(\log n)$ | $O(\log n)$ |
-| Decrease-key | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ |
+| 삽입 | $O(\log n)$ | $O(\log n)$ | $O(1)$ |
+| 최솟값 찾기 | $O(1)$ | $O(\log n)$ | $O(\log n)$ |
+| 최솟값 꺼내기 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ |
+| 합치기 | $O(n)$ | $O(\log n)$ | $O(\log n)$ |
+| 열쇠 낮추기 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ |
 
-The key advantage of binomial heaps over binary heaps is the $O(\log n)$ merge. The amortized $O(1)$ insert follows from the binary counter argument: just as incrementing a binary counter flips $O(1)$ bits amortized, inserting into a binomial heap links $O(1)$ trees amortized. The cost relative to binary heaps is a slightly more complex implementation and $O(\log n)$ find-min instead of $O(1)$.
+이진 힙에 견준 이항 힙의 핵심 이점은 $O(\log n)$의 합치기이다. 분할 상환 $O(1)$의 삽입은 이진 계수기 논증에서 나온다. 이진 계수기를 하나 올릴 때 분할 상환으로 $O(1)$개의 비트가 뒤집히듯, 이항 힙에 넣을 때 분할 상환으로 $O(1)$개의 트리가 이어진다. 이진 힙에 견준 대가는 구현이 조금 더 까다롭고 최솟값 찾기가 $O(1)$이 아니라 $O(\log n)$이라는 점이다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 19: Binomial Heaps. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+이항 힙의 힙 성질을 밝히고 최솟값·최댓값 원소가 언제나 뿌리에 있음을 증명하라.
+
+??? success "연습문제 1 풀이"
+    힙 성질은 노드마다 열쇠가 자식보다 작거나 같거나(최소 힙) 크거나 같다(최대 힙)는 것이다. 뿌리에서 잎까지의 어떤 경로에서도 추이성이 성립하므로 뿌리가 모든 원소의 최솟값(또는 최댓값)이다.
+
+---
+
+**연습문제 2.**
+배열 $[4, 7, 2, 9, 1, 5, 3]$에서 이항 힙을 따라가라. 단계마다와 그 결과로 나오는 힙을 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽의 연산을 주어진 배열에 적용하라. 단계마다 배열과 그것이 나타내는 트리를 보여라. 비교와 자리바꿈을 짚어라.
+
+---
+
+**연습문제 3.**
+이항 힙의 시간 복잡도를 증명하라. 그 한계는 빡빡한가?
+
+??? success "연습문제 3 풀이"
+    이 연산은 뿌리에서 잎까지 또는 잎에서 뿌리까지의 경로를 훑으며 층마다 $O(1)$의 일을 한다. 완전 이진 트리의 높이는 $\lfloor\log_2 n\rfloor$이므로 모두 $O(\log n)$이다. 이 한계는 빡빡하다. 높이 전체를 훑도록 강요하는 입력이 있다. $\square$
+
+---
+
+**연습문제 4.**
+$k = 5$이고 어휘가 $n = 32{,}000$인 빔 탐색에서 힙으로 뽑기(원소 $n$개에서 상위 $k$개)와 정렬을 견주어라.
+
+??? success "연습문제 4 풀이"
+    정렬은 $O(n\log n) = O(32000 \times 15) \approx 48만$번의 연산이 든다. 힙(크기 $k$인 최소 힙)은 $O(n\log k) = O(32000 \times 2.3) \approx 7만 4천$번이다. 힙이 약 $6.5$배 빠르다. 아니면 `torch.topk`가 GPU에 맞추어 다듬은 부분 정렬 알고리즘을 쓴다.

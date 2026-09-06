@@ -1,48 +1,44 @@
-# Chapter Overview
+# 31장: 그래프 만들기
 
+이 장은 **그래프 만들기**를 다룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+그래프 만들기는 그래프 얼개 자료에 대한 분포를 배우고 익히기 표본과 통계로 가려낼 수 없는 새 그래프를 낸다. 이 장은 차원이 제각각이고 띄엄띄엄하며 자리바꿈에 안 바뀌는 얼개를 만드는 근본 어려움을 다루고 자기 되돌이, 한 번에 만들기, 퍼짐 바탕 길을 살핀다. 쓰임새는 분자 설계, 금융 그물 지어내기, 거래 그래프 만들기에 걸친다.
 
-This chapter covers **External Memory**.
+## 차례
 
-Graph generation learns distributions over graph-structured data and produces novel graphs that are statistically indistinguishable from training samples. This chapter covers the fundamental challenges of generating discrete, permutation-invariant structures with variable dimensionality, and explores autoregressive, one-shot, and diffusion-based approaches. Applications span molecular design, financial network synthesis, and transaction graph generation.
+### 31.1 바탕
 
-## Contents
+- [그래프 만들기 들머리](foundations/introduction.md) -- 만들기 문제, 얽음의 내놓기 자리, 자리바꿈 맞섬, 엄밀한 문제 적기
+- [만들기를 위한 그래프 나타내기](foundations/representations.md) -- 이웃 행렬, 변 목록, 차례 나타냄과 그것이 짓는 모델 설계에 주는 뜻
+- [따지기 잣대](foundations/metrics.md) -- 만들어 낸 그래프의 품질을 재는 차수 분포, 뭉침 계수, 분포 견주기 잣대
 
-### 31.1 Foundations
+### 31.2 자기 되돌이 방법
 
-- [Introduction to Graph Generation](foundations/introduction.md) -- The generation problem, combinatorial output spaces, permutation symmetry, and formal problem statement
-- [Graph Representations for Generation](foundations/representations.md) -- Adjacency matrix, edge list, and sequential representations with their implications for generative model design
-- [Evaluation Metrics](foundations/metrics.md) -- Degree distribution, clustering coefficients, and distributional comparison metrics for assessing generated graph quality
+- [차례로 하는 그래프 만들기](autoregressive/sequential.md) -- 표준 차례와 확률의 사슬 규칙으로 그래프 분포를 자기 되돌이로 인수 분해하기
+- [GraphRNN](autoregressive/graphrnn.md) -- 마디와 변을 차례로 만드는 그래프 켜와 변 켜의 되돌이를 가진 켜진 되돌이 신경망 얼개
+- [GRAN](autoregressive/gran.md) -- 커질 수 있는 자기 되돌이 만들기를 위해 그래프 신경망 바탕 눈길을 쓰는 덩이 단위 그래프 만들기
 
-### 31.2 Autoregressive Methods
+### 31.3 한 번에 만들기 방법
 
-- [Sequential Graph Generation](autoregressive/sequential.md) -- Autoregressive factorization of graph distributions using the chain rule of probability with canonical orderings
-- [GraphRNN](autoregressive/graphrnn.md) -- Hierarchical RNN architecture with graph-level and edge-level recurrence for sequential node and edge generation
-- [GRAN](autoregressive/gran.md) -- Block-wise graph generation using GNN-based attention for scalable autoregressive generation
+- [한 번에 이웃 행렬 만들기](one_shot/adjacency.md) -- 이어진 값으로 느슨히 하기와 자리바꿈에 안 바뀜으로 한 번의 앞으로 가기에 이웃 행렬 전체를 내놓기
+- [GraphVAE](one_shot/graphvae.md) -- 그래프 신경망 담개, 확률 풀개, 그래프 짝짓기 손실을 가진 그래프용 변분 스스로 담개
+- [GraphGAN](one_shot/graphgan.md) -- 숨은 밀도 나타내기와 띄엄띄엄하게 하기 셈속을 쓰는 맞수 그래프 만들기
 
-### 31.3 One-Shot Methods
+### 31.4 퍼짐 바탕 방법
 
-- [One-Shot Adjacency Generation](one_shot/adjacency.md) -- Producing entire adjacency matrices in a single forward pass with continuous relaxations and permutation invariance
-- [GraphVAE](one_shot/graphvae.md) -- Variational autoencoder for graphs with GNN encoder, probabilistic decoder, and graph-matching loss
-- [GraphGAN](one_shot/graphgan.md) -- Adversarial graph generation with implicit density modeling and discretization strategies
+- [그래프 퍼짐 모델](diffusion/graph_diffusion.md) -- 이어진 값으로 느슨히 하기와 띄엄띄엄 잡소리 적기로 잡소리 없애기 퍼짐을 그래프 얼개 자료에 넓히기
+- [DiGress](diffusion/digress.md) -- 그래프 트랜스포머 잡소리 없애개로 갈래 마디와 변 갈래를 다루는 띄엄띄엄 잡소리 없애기 퍼짐
+- [GDSS](diffusion/gdss.md) -- 마디와 이웃 관계를 함께 만드는 얽힌 확률 미분 방정식으로 하는 점수 바탕 그래프 만들기
 
-### 31.4 Diffusion-Based Methods
+### 31.5 분자 만들기
 
-- [Graph Diffusion Models](diffusion/graph_diffusion.md) -- Extending denoising diffusion to graph-structured data with continuous relaxation and discrete noise formulations
-- [DiGress](diffusion/digress.md) -- Discrete denoising diffusion for categorical node and edge types using graph transformer denoisers
-- [GDSS](diffusion/gdss.md) -- Score-based graph generation via coupled stochastic differential equations for joint node and adjacency generation
+- 분자 그래프 -- 원자 갈래, 결합 갈래, 화학 원자가 매임을 가진 속성 그래프로 분자 나타내기
+- SMILES 바탕 만들기 -- SMILES 문자열 나타냄과 말 모델 재주로 분자 만들기를 차례 나타내기로 줄이기
+- 3차원 분자 만들기 -- SE(3)에 같이 바뀌는 모델로 분자 그래프와 원자 자리를 함께 만들기
+- 성질 가장 좋게 하기 -- 힘 북돋우는 배움, 베이즈 가장 좋게 하기, 숨은 자리 찾기로 과녁 성질에 맞춘 분자 만들기
 
-### 31.5 Molecular Generation
+### 31.6 금융 쓰임새
 
-- Molecular Graphs -- Representing molecules as attributed graphs with atom types, bond types, and chemical valency constraints
-- SMILES-Based Generation -- Reducing molecular generation to sequence modeling using SMILES string representations and language model techniques
-- 3D Molecule Generation -- Joint generation of molecular graphs and atomic coordinates with SE(3)-equivariant models
-- Property Optimization -- Generating molecules optimized for target properties using RL, Bayesian optimization, and latent space search
-
-### 31.6 Financial Applications
-
-- Financial Network Generation -- Synthesizing realistic interbank, correlation, and derivative networks for stress testing and systemic risk assessment
-- [Transaction Graph Generation](finance/transactions.md) -- Generating temporal transaction graphs for AML model development and fraud detection training
-- Synthetic Market Networks -- Generating asset correlation and market structure networks for portfolio stress testing and regime analysis
+- 금융 그물 만들기 -- 버거움 시험과 체계 위험 재기를 위한 그럴듯한 은행 사이, 얽힘, 파생 그물 지어내기
+- [거래 그래프 만들기](finance/transactions.md) -- 자금 세탁 막기 모델 개발과 속임수 찾기 익히기를 위한 때 거래 그래프 만들기
+- 지어낸 시장 그물 -- 꾸러미 버거움 시험과 국면 살피기를 위한 자산 얽힘과 시장 얼개 그물 만들기

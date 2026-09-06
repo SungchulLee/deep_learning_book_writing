@@ -112,3 +112,43 @@ the false-positive rate quadratically.
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Gusfield, D. *Algorithms on Strings, Trees, and Sequences*. Cambridge University Press, 1997.
+
+## Exercises
+
+**Exercise 1.**
+Compare the time complexities of brute-force string matching, KMP, and Rabin-Karp for a pattern of length $m$ in a text of length $n$.
+
+??? success "Solution to Exercise 1"
+    **Brute force**: $O(nm)$ worst case (try every alignment, compare up to $m$ characters). **KMP**: $O(n + m)$ worst case ($O(m)$ to build the failure function, $O(n)$ to scan the text). Never backtracks in the text. **Rabin-Karp**: $O(n + m)$ expected time using rolling hashes. Worst case: $O(nm)$ if all hash values collide (every position is a false positive requiring character-by-character verification). KMP is preferred for guaranteed linear time. Rabin-Karp is preferred for multiple pattern matching (hash each pattern, use a hash set for $O(1)$ lookup). $\square$
+
+---
+
+**Exercise 2.**
+Building a suffix array takes $O(n \log n)$ or $O(n)$ time. Once built, how fast can we find all occurrences of a pattern of length $m$? Compare with a suffix tree.
+
+??? success "Solution to Exercise 2"
+    **Suffix array**: binary search for the pattern's position in the sorted suffix array. Each comparison takes $O(m)$ (compare $m$ characters). Total: $O(m \log n)$. With an LCP array, this can be improved to $O(m + \log n)$. Finding all $k$ occurrences: $O(m \log n + k)$. **Suffix tree**: traverse from the root following the pattern's characters. Each character match takes $O(1)$ (with edge labels). Total: $O(m)$ to find the locus node, then $O(k)$ to enumerate all leaves below it. Total: $O(m + k)$. Suffix trees are faster for pattern matching but use 10--20x more memory than suffix arrays. Suffix arrays with LCP arrays are the practical choice for large texts. $\square$
+
+---
+
+**Exercise 3.**
+The longest common substring of two strings of lengths $m$ and $n$ can be found in $O(mn)$ via DP or $O((m+n) \log(m+n))$ via suffix arrays. Describe both approaches.
+
+??? success "Solution to Exercise 3"
+    **DP approach**: build a table $dp[i][j]$ where $dp[i][j]$ is the length of the longest common suffix ending at positions $i$ and $j$. If $s_1[i] = s_2[j]$, then $dp[i][j] = dp[i-1][j-1] + 1$; else $dp[i][j] = 0$. The answer is $\max(dp[i][j])$. Time: $O(mn)$, space $O(\min(m,n))$ with rolling array. **Suffix array approach**: concatenate the two strings with a separator: $s_1 \# s_2$. Build a suffix array and LCP array in $O((m+n) \log(m+n))$ or $O(m+n)$. The longest common substring is the maximum LCP value between adjacent suffixes that belong to different strings. Scan the LCP array in $O(m+n)$. Total: $O((m+n) \log(m+n))$ or $O(m+n)$ with linear suffix array construction. $\square$
+
+---
+
+**Exercise 4.**
+Aho-Corasick matches multiple patterns simultaneously in $O(n + m + z)$ time, where $z$ is the number of matches. Explain why this is faster than running KMP for each pattern separately.
+
+??? success "Solution to Exercise 4"
+    With $k$ patterns of total length $m$, running KMP separately costs $O(k \cdot n + m)$: each pattern requires a full scan of the text. For $k = 1000$ and $n = 10^6$, this is $10^9$ operations. Aho-Corasick builds a trie of all patterns ($O(m)$), augmented with failure links similar to KMP's failure function. The text is scanned once ($O(n)$), following trie transitions and failure links. At each position, all matching patterns are reported. Total: $O(n + m + z)$. The key savings: the text is scanned only once regardless of $k$. For the example above: $O(10^6 + m + z)$, which is $1000\times$ faster than separate KMP runs. Aho-Corasick is used in intrusion detection systems, antivirus scanners, and search engines for multi-pattern matching. $\square$
+
+---
+
+**Exercise 5.**
+Explain why the Z-algorithm and KMP achieve the same $O(n + m)$ complexity for single-pattern matching but use different auxiliary arrays. What is the relationship between the Z-array and KMP's failure function?
+
+??? success "Solution to Exercise 5"
+    Both KMP and the Z-algorithm preprocess the pattern (or the concatenation $P \# T$) in linear time. **KMP's failure function** $\pi[i]$: the length of the longest proper prefix of $P[0..i]$ that is also a suffix. It enables skipping redundant comparisons by shifting the pattern. **Z-array** $Z[i]$: the length of the longest substring starting at $i$ that matches a prefix of the string. It directly identifies matches (if $Z[i] \ge m$, a match starts at $i - m - 1$ in the text). The two are related: $\pi$ and $Z$ encode the same information about the string's self-overlap structure, but in dual form. Given $Z$, one can compute $\pi$ in $O(n)$ and vice versa. KMP processes the text left-to-right with a state machine; the Z-algorithm processes the concatenation with a window-based approach. Both make exactly $O(n + m)$ character comparisons. $\square$

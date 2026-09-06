@@ -1,105 +1,137 @@
-# Expected Running Time
+# 기댓값 도는 시간
 
-Randomized algorithms make random choices during execution, so their running time varies across different runs on the same input. Rather than analyzing a single deterministic path, we characterize performance through the **expected running time** — the average over all possible random choices the algorithm could make. This measure provides a meaningful guarantee because, by linearity of expectation and concentration inequalities, the actual running time on any given run is typically close to the expectation.
+마구잡이 알고리즘은 도는 동안 아무렇게나 고르므로 같은 들임에서도 돌릴 때마다 도는 시간이 다르다. 정해진 길 하나를 살피는 대신 **기댓값 도는 시간**, 곧 알고리즘이 할 수 있는 모든 아무 고르기에 걸친 평균으로 솜씨를 나타낸다. 기댓값의 선형성과 모임 부등식에 따라 어느 한 번의 실제 도는 시간이 흔히 기댓값에 가깝기 때문에 이 잣대는 뜻있는 보장을 준다.
 
-## Definition
+## 정의
 
-Let $A$ be a randomized algorithm and $x$ an input of size $n$. The algorithm's execution depends on random bits $r$ drawn from some probability space $\Omega$. Denote by $T(x, r)$ the number of elementary operations performed on input $x$ with random choices $r$.
+$A$을 마구잡이 알고리즘, $x$을 크기 $n$인 들임이라 하자. 알고리즘이 도는 모습은 어떤 확률 공간 $\Omega$에서 뽑은 아무 비트 $r$에 달렸다. $T(x, r)$을 아무 고르기 $r$과 함께 들임 $x$에서 하는 기본 셈의 수라 하자.
 
-The **expected running time on input $x$** is
+**들임 $x$에서의 기댓값 도는 시간**은 다음과 같다.
 
 $$
 E[T(x)] = \sum_{r \in \Omega} T(x, r) \cdot \Pr[r]
 $$
 
-When the random choices are continuous (e.g., choosing a real-valued pivot), the sum becomes an integral.
+아무 고르기가 이어져 있으면(예컨대 실수 값 축을 고르면) 합이 적분이 된다.
 
-The **worst-case expected running time** over all inputs of size $n$ is
+크기 $n$인 모든 들임에 걸친 **가장 나쁜 경우의 기댓값 도는 시간**은 다음과 같다.
 
 $$
 T_{\text{exp}}(n) = \max_{|x| = n} E[T(x)]
 $$
 
-This is the standard complexity measure for randomized algorithms: it takes the worst case over inputs but averages over the algorithm's internal randomness.
+이것이 마구잡이 알고리즘의 여느 복잡도 잣대이다. 곧 들임에 대해서는 가장 나쁜 경우를 잡고 알고리즘 속의 마구잡이에 대해서는 평균을 낸다.
 
-## Linearity of Expectation
+## 기댓값의 선형성
 
-The most powerful tool for analyzing expected running time is **linearity of expectation**: for any random variables $X_1, X_2, \ldots, X_n$,
+기댓값 도는 시간을 살피는 가장 힘 있는 연장은 **기댓값의 선형성**이다. 곧 아무 변수 $X_1, X_2, \ldots, X_n$에 대해,
 
 $$
 E\left[\sum_{i=1}^{n} X_i\right] = \sum_{i=1}^{n} E[X_i]
 $$
 
-This holds regardless of whether the $X_i$ are independent. The strategy is to decompose the total running time into a sum of simpler random variables — often indicator random variables — and compute each expectation separately.
+이는 $X_i$이 서로 매였든 아니든 참이다. 방책은 온 도는 시간을 더 단순한 아무 변수, 흔히 표시 아무 변수의 합으로 나누고 기댓값을 따로따로 셈하는 것이다.
 
-??? example "Decomposition Strategy"
-    To analyze a randomized algorithm with expected running time:
+??? example "나누기 방책"
+    기댓값 도는 시간으로 마구잡이 알고리즘을 살피려면:
 
-    1. **Identify elementary events**: define indicator random variables $X_{ij}$ for small events (e.g., "element $i$ is compared to element $j$")
-    2. **Express the total cost** as $T = \sum_{i,j} X_{ij}$
-    3. **Compute each expectation**: $E[X_{ij}] = \Pr[X_{ij} = 1]$
-    4. **Sum**: $E[T] = \sum_{i,j} \Pr[X_{ij} = 1]$
+    1. **기본 사건을 가려낸다**: 작은 사건(예컨대 "낱개 $i$이 낱개 $j$과 견주어진다")에 표시 아무 변수 $X_{ij}$을 둔다
+    2. **온 비용을** $T = \sum_{i,j} X_{ij}$으로 적는다
+    3. **기댓값을 하나씩 셈한다**: $E[X_{ij}] = \Pr[X_{ij} = 1]$
+    4. **더한다**: $E[T] = \sum_{i,j} \Pr[X_{ij} = 1]$
 
-## Expected vs Worst-Case vs Average-Case
+## 기댓값, 가장 나쁜 경우, 평균 경우 견주기
 
-It is important to distinguish three different notions of running time:
+도는 시간의 세 가지 뜻을 가려내는 것이 중요하다.
 
-| Measure | Randomness source | Input assumption |
+| 잣대 | 마구잡이의 근원 | 들임 가정 |
 |---|---|---|
-| Worst-case | None (deterministic) | Adversarial |
-| Average-case | None (deterministic) | Random input distribution |
-| Expected (randomized) | Algorithm's coin flips | Adversarial |
+| 가장 나쁜 경우 | 없음(정해짐) | 짓궂음 |
+| 평균 경우 | 없음(정해짐) | 아무 들임 분포 |
+| 기댓값(마구잡이) | 알고리즘의 동전 던지기 | 짓궂음 |
 
-The expected running time of a randomized algorithm does **not** assume a distribution on inputs. The randomness is internal to the algorithm, so the guarantee holds for every input. This contrasts with average-case analysis, which assumes inputs are drawn from a specific distribution.
+마구잡이 알고리즘의 기댓값 도는 시간은 들임의 분포를 가정하지 **않는다**. 마구잡이는 알고리즘 안에 있으므로 보장이 모든 들임에 대해 참이다. 이는 들임이 특정 분포에서 나온다고 보는 평균 경우 살피기와 다르다.
 
-## Worked Example: Randomized Search
+## 풀어 본 보기: 마구잡이 찾기
 
-Consider searching for a target value $t$ in an unsorted array $A[1 \ldots n]$ by repeatedly picking a random index and checking it. Let $T$ denote the number of probes until $t$ is found. Assume $t$ appears exactly once.
+정렬하지 않은 배열 $A[1 \ldots n]$에서 아무 어깨수를 거듭 골라 살펴 목표 값 $t$을 찾는다고 하자. $T$을 $t$을 찾을 때까지의 더듬기 횟수라 하자. $t$은 꼭 한 번 나온다고 본다.
 
-Each probe succeeds with probability $1/n$, so $T$ follows a geometric distribution:
+더듬기마다 확률 $1/n$으로 이루므로 $T$은 기하 분포를 따른다.
 
 $$
 \Pr[T = k] = \left(1 - \frac{1}{n}\right)^{k-1} \cdot \frac{1}{n}
 $$
 
-The expected number of probes is
+기댓값 더듬기 횟수는 다음과 같다.
 
 $$
 E[T] = \sum_{k=1}^{\infty} k \cdot \left(1 - \frac{1}{n}\right)^{k-1} \cdot \frac{1}{n} = n
 $$
 
-Although this is no better than linear scan in expectation, it illustrates how internal randomness defines the expected running time: the input is fixed, and only the algorithm's random choices vary.
+기댓값으로는 훑어보기보다 나을 것이 없지만, 안쪽의 마구잡이가 기댓값 도는 시간을 어떻게 정하는지 보여 준다. 곧 들임은 붙박여 있고 알고리즘의 아무 고르기만 달라진다.
 
-## Conditional Expectation and Recurrences
+## 조건부 기댓값과 되돌이 관계식
 
-Many randomized algorithms are naturally recursive, and their expected running time satisfies a recurrence. The **law of total expectation** is the key tool:
+많은 마구잡이 알고리즘이 자연스레 되돌이꼴이며 그 기댓값 도는 시간은 되돌이 관계식을 채운다. **온 기댓값 법칙**이 핵심 연장이다.
 
 $$
 E[T(n)] = \sum_{i} \Pr[\text{event } i] \cdot E[T(n) \mid \text{event } i]
 $$
 
-For randomized quicksort, if the pivot lands at rank $i$ (each rank equally likely), the expected running time satisfies
+마구잡이 빠른 정렬에서 축이 차례 $i$에 놓이면(차례마다 똑같이 그럴듯하다) 기댓값 도는 시간은 다음을 채운다.
 
 $$
 E[T(n)] = \sum_{i=1}^{n} \frac{1}{n} \cdot \bigl(E[T(i-1)] + E[T(n-i)] + \Theta(n)\bigr)
 $$
 
-Solving this recurrence yields $E[T(n)] = O(n \log n)$.
+이 되돌이 관계식을 풀면 $E[T(n)] = O(n \log n)$이 나온다.
 
-## Tail Bounds and Concentration
+## 꼬리 한계와 모임
 
-Knowing the expectation alone does not guarantee that the running time is close to its mean on any particular execution. **Markov's inequality** provides a basic tail bound: for a non-negative random variable $T$,
+기댓값만 안다고 해서 어느 한 번의 도는 시간이 평균에 가깝다는 보장은 없다. **마르코프 부등식**이 기본 꼬리 한계를 준다. 곧 음이 아닌 아무 변수 $T$에 대해,
 
 $$
 \Pr[T \geq c \cdot E[T]] \leq \frac{1}{c}
 $$
 
-Stronger bounds come from **Chebyshev's inequality** (requires the variance) and **Chernoff bounds** (requires independence). For many randomized algorithms, the running time concentrates sharply around its expectation, making the expected running time a reliable performance predictor.
+더 센 한계는 **체비쇼프 부등식**(흩어짐이 필요하다)과 **체르노프 한계**(서로 매이지 않아야 한다)에서 온다. 많은 마구잡이 알고리즘에서 도는 시간이 기댓값 둘레에 날카롭게 모이므로 기댓값 도는 시간은 믿을 만한 솜씨 내다보기가 된다.
 
-!!! tip "When Expected Running Time Suffices"
-    If a randomized algorithm's running time concentrates well (e.g., the variance is $o(E[T]^2)$), then the expected running time is a strong practical guarantee. Algorithms like randomized quicksort and randomized selection exhibit this concentration.
+!!! tip "기댓값 도는 시간으로 넉넉할 때"
+    마구잡이 알고리즘의 도는 시간이 잘 모이면(예컨대 흩어짐이 $o(E[T]^2)$이면) 기댓값 도는 시간은 실제로 센 보장이 된다. 마구잡이 빠른 정렬과 마구잡이 고르기 같은 알고리즘이 이런 모임을 보인다.
 
-## Reference
+## 참고 문헌
 
 - Motwani, R. & Raghavan, P. *Randomized Algorithms*. Cambridge University Press, 1995.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L. & Stein, C. *Introduction to Algorithms*. MIT Press, 2022.
+
+## 연습문제
+
+**연습문제 1.**
+기댓값 도는 시간의 핵심 마구잡이 재주와 그것이 정해진 방식보다 나은 까닭을 설명하라.
+
+??? success "연습문제 1 풀이"
+    기댓값 도는 시간은 마구잡이를 써서 정해진 알고리즘이 마주칠 수 있는 가장 나쁜 들임을 피한다. 아무렇게나 고르므로 알고리즘의 솜씨가 들임의 짜임이 아니라 제 동전 던지기에 달린다. 그래서 모든 들임에 대해 참인 센 기댓값 시간이나 높은 확률의 보장을 흔히 얻으며, 짓궂거나 병리적인 경우를 걱정할 까닭이 없어진다. $\square$
+
+---
+
+**연습문제 2.**
+기댓값 도는 시간의 기댓값 시간 복잡도는 얼마인가? 가장 나쁜 경우의 복잡도는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    기댓값 시간 복잡도는 흔히 $O(n)$이나 $O(n \log n)$이며 높은 확률로 이룬다. 가장 나쁜 경우는 다항식만큼 더 나쁠 수 있지만(예컨대 $O(n^2)$) 그럴 확률은 무시할 만큼 작다. 기댓값과 가장 나쁜 경우의 틈이 마구잡이의 값이며, 가장 나쁜 움직임이 일어날 확률은 들임 크기에 따라 지수로 줄어든다. $\square$
+
+---
+
+**연습문제 3.**
+기댓값 도는 시간은 라스베이거스 알고리즘인가 몬테카를로 알고리즘인가? 그 차이를 설명하라.
+
+??? success "연습문제 3 풀이"
+    **라스베이거스**: 늘 옳은 결과를 내며 도는 시간이 아무 변수이다(기댓값이 다항식). **몬테카를로**: 늘 다항식 시간에 돌지만 결과가 어떤 가둔 확률로 틀릴 수 있다. 기댓값 도는 시간은 옳음을 보장하느냐 도는 시간을 보장하느냐에 따라 이 가운데 하나에 든다. 이 가름이 어긋날 확률을 어떻게 다룰지 정한다. $\square$
+
+---
+
+**연습문제 4.**
+기댓값 도는 시간에서 마구잡이를 없애거나 솜씨가 나쁠 확률을 줄이는 법을 설명하라.
+
+??? success "연습문제 4 풀이"
+    방책은 다음과 같다. (1) **거듭 해 보기**: 알고리즘을 여러 번 돌려 가장 좋거나 많은 쪽 결과를 택하면 어긋날 확률이 지수로 줄어든다. (2) **마구잡이 없애기**: 조건부 기댓값이나 흩는 함수 무리로 아무 고르기를 정해진 고르기로 바꾼다. (3) **키우기**: 몬테카를로 알고리즘에서는 $k$번 되풀이해 어긋남을 $2^{-k}$으로 줄인다. (4) **비슷 마구잡이 만들개**: 알고리즘이 보기에 "마구잡이처럼 보이는" 정해진 차례를 쓴다. $\square$

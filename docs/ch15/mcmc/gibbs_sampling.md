@@ -1,494 +1,501 @@
-# Gibbs Sampling as Metropolis-Hastings with α = 1
+# α = 1인 메트로폴리스-헤이스팅스로 본 깁스 표집
+## 놀라운 결과
 
+깁스 표집은 **받아들임 확률이 늘 1**인 메트로폴리스-헤이스팅스의 **특별한 경우**로 볼 수 있다. 곧 제안을 **결코** 물리치지 않는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## The Surprising Result
-
-Gibbs sampling can be viewed as a **special case** of Metropolis-Hastings where the **acceptance probability is always 1**—meaning we **never** reject a proposal.
-
-This is not obvious! Let's prove it rigorously.
+이는 뻔하지 않다! 엄밀히 증명해 보자.
 
 ---
 
-## Setup: Multivariate Target
+## 판 벌이기: 다변량 과녁
 
-Target distribution $\pi(\mathbf{x})$ where $\mathbf{x} = (x_1, \ldots, x_d) \in \mathbb{R}^d$.
+과녁 분포 $\pi(\mathbf{x})$이며 여기서 $\mathbf{x} = (x_1, \ldots, x_d) \in \mathbb{R}^d$이다.
 
-Assume we can compute **full conditional distributions**:
+**온전한 조건부 분포**를 셈할 수 있다고 놓자:
 
 $$
-
 \pi_i(x_i | \mathbf{x}_{-i}) = \frac{\pi(\mathbf{x})}{\int \pi(\mathbf{x}) dx_i}
-
 $$
 
-where $\mathbf{x}_{-i} = (x_1, \ldots, x_{i-1}, x_{i+1}, \ldots, x_d)$ denotes all variables except $x_i$.
+여기서 $\mathbf{x}_{-i} = (x_1, \ldots, x_{i-1}, x_{i+1}, \ldots, x_d)$은 $x_i$을 뺀 모든 변수를 뜻한다.
 
 ---
 
-## Gibbs Sampling Algorithm
+## 깁스 표집 알고리즘
 
-At iteration $t$, cycle through coordinates:
+되풀이 $t$에서 좌표를 돌아가며 다룬다:
 
-**For $i = 1, \ldots, d$:**
+**$i = 1, \ldots, d$에 대해:**
 
 $$
-
 x_i^{(t+1)} \sim \pi_i(x_i | x_1^{(t+1)}, \ldots, x_{i-1}^{(t+1)}, x_{i+1}^{(t)}, \ldots, x_d^{(t)})
-
 $$
 
-Key: Use **most recent** values for conditioning.
+핵심: 조건을 걸 때 **가장 최근** 값을 쓴다.
 
 ---
 
-## Gibbs as Metropolis-Hastings
+## 메트로폴리스-헤이스팅스로 본 깁스
 
-### The Proposal Distribution
+### 제안 분포
 
-For coordinate $i$, define the **Gibbs proposal**:
+좌표 $i$에 대해 **깁스 제안**을 다음과 같이 정한다:
 
 $$
-
 q_i(x_i' | \mathbf{x}) = \pi_i(x_i' | \mathbf{x}_{-i})
-
 $$
 
-That is: propose $x_i'$ from the **full conditional** given current values of other variables.
+곧 다른 변수의 지금 값이 주어졌을 때 **온전한 조건부**에서 $x_i'$을 내놓는다.
 
-The full proposal for the state is:
+상태에 대한 온전한 제안은 다음과 같다:
 
 $$
-
 \mathbf{x}' = (x_1, \ldots, x_{i-1}, x_i', x_{i+1}, \ldots, x_d)
-
 $$
 
-Only coordinate $i$ changes; others remain fixed.
+좌표 $i$만 바뀌고 나머지는 그대로 있다.
 
-### The Metropolis-Hastings Acceptance Ratio
+### 메트로폴리스-헤이스팅스 받아들임 비
 
-For this proposal:
+이 제안에서는:
 
 $$
-
 \alpha = \min\left(1, \frac{\pi(\mathbf{x}') q_i(\mathbf{x} | \mathbf{x}')}{\pi(\mathbf{x}) q_i(\mathbf{x}' | \mathbf{x})}\right)
-
 $$
 
-Let's substitute the Gibbs proposal:
+깁스 제안을 넣어 보자:
 
 $$
-
 \alpha = \min\left(1, \frac{\pi(\mathbf{x}') \pi_i(x_i | \mathbf{x}_{-i}')}{\pi(\mathbf{x}) \pi_i(x_i' | \mathbf{x}_{-i})}\right)
-
 $$
 
-But $\mathbf{x}_{-i}' = \mathbf{x}_{-i}$ (other coordinates don't change), so:
+그런데 $\mathbf{x}_{-i}' = \mathbf{x}_{-i}$이므로(다른 좌표는 바뀌지 않으므로) 다음과 같다:
 
 $$
-
 \alpha = \min\left(1, \frac{\pi(\mathbf{x}') \pi_i(x_i | \mathbf{x}_{-i})}{\pi(\mathbf{x}) \pi_i(x_i' | \mathbf{x}_{-i})}\right)
-
 $$
 
 ---
 
-## The Key Identity
+## 핵심 항등식
 
-Recall the definition of the full conditional:
+온전한 조건부의 정의를 떠올리자:
 
 $$
-
 \pi_i(x_i | \mathbf{x}_{-i}) = \frac{\pi(\mathbf{x})}{\int \pi(x_1, \ldots, x_{i-1}, u, x_{i+1}, \ldots, x_d) du}
-
 $$
 
-Denote the marginal over $x_i$ as:
+$x_i$에 걸친 주변 분포를 다음과 같이 쓰자:
 
 $$
-
 m_{-i}(\mathbf{x}_{-i}) = \int \pi(\mathbf{x}) dx_i
-
 $$
 
-Then:
+그러면 다음과 같다.
 
 $$
-
 \pi_i(x_i | \mathbf{x}_{-i}) = \frac{\pi(\mathbf{x})}{m_{-i}(\mathbf{x}_{-i})}
-
 $$
 
-Rearranging:
+정리하면 다음과 같다.
 
 $$
-
 \pi(\mathbf{x}) = \pi_i(x_i | \mathbf{x}_{-i}) \cdot m_{-i}(\mathbf{x}_{-i})
-
 $$
 
 ---
 
-## Proof that α = 1
+## α = 1임의 증명
 
-Substitute the identity into the acceptance ratio:
+받아들임 비에 그 항등식을 넣는다:
 
 $$
-
 \alpha = \min\left(1, \frac{\pi_i(x_i' | \mathbf{x}_{-i}) \cdot m_{-i}(\mathbf{x}_{-i}) \cdot \pi_i(x_i | \mathbf{x}_{-i})}{\pi_i(x_i | \mathbf{x}_{-i}) \cdot m_{-i}(\mathbf{x}_{-i}) \cdot \pi_i(x_i' | \mathbf{x}_{-i})}\right)
-
 $$
 
-Note:
-- $\mathbf{x}_{-i}' = \mathbf{x}_{-i}$ → the marginal $m_{-i}$ is the **same** in numerator and denominator
-- The conditional $\pi_i(x_i | \mathbf{x}_{-i})$ appears in both numerator and denominator
-- The conditional $\pi_i(x_i' | \mathbf{x}_{-i})$ appears in both numerator and denominator
+살펴보면:
 
-**Everything cancels!**
+- $\mathbf{x}_{-i}' = \mathbf{x}_{-i}$ → 주변 분포 $m_{-i}$이 분자와 분모에서 **같다**
+- 조건부 $\pi_i(x_i | \mathbf{x}_{-i})$이 분자와 분모에 모두 나온다
+- 조건부 $\pi_i(x_i' | \mathbf{x}_{-i})$이 분자와 분모에 모두 나온다
+
+**모두 지워진다!**
 
 $$
-
 \alpha = \min\left(1, \frac{\cancel{\pi_i(x_i' | \mathbf{x}_{-i})} \cdot \cancel{m_{-i}(\mathbf{x}_{-i})} \cdot \cancel{\pi_i(x_i | \mathbf{x}_{-i})}}{\cancel{\pi_i(x_i | \mathbf{x}_{-i})} \cdot \cancel{m_{-i}(\mathbf{x}_{-i})} \cdot \cancel{\pi_i(x_i' | \mathbf{x}_{-i})}}\right) = \min(1, 1) = 1
-
 $$
 
-**Therefore**: $\alpha = 1$ for every Gibbs proposal! ✓
+**그러므로** 깁스 제안마다 $\alpha = 1$이다! ✓
 
 ---
 
-## Intuition: Why Acceptance is Always 1
+## 직관: 받아들임이 왜 늘 1인가
 
-### Proposal from the Conditional
+### 조건부에서 나온 제안
 
-The **magic** is that the proposal **is** the full conditional:
+**마법**은 제안이 곧 온전한 조건부**라는** 데 있다:
 
 $$
-
 q_i(x_i' | \mathbf{x}) = \pi_i(x_i' | \mathbf{x}_{-i})
-
 $$
 
-This means:
-- We're proposing from the **exact** conditional distribution of $x_i$ given $\mathbf{x}_{-i}$
-- The proposal **already respects** the target $\pi$ (conditional on $\mathbf{x}_{-i}$)
+곧 다음을 뜻한다:
 
-### Perfect Balance
+- $\mathbf{x}_{-i}$이 주어졌을 때 $x_i$의 **정확한** 조건부 분포에서 내놓는다
+- 제안이 ($\mathbf{x}_{-i}$을 조건으로) 과녁 $\pi$을 **이미 지키고 있다**
 
-For detailed balance, we need:
+### 완벽한 균형
+
+자세한 균형을 위해서는 다음이 필요하다:
 
 $$
-
 \pi(\mathbf{x}) q(\mathbf{x}' | \mathbf{x}) = \pi(\mathbf{x}') q(\mathbf{x} | \mathbf{x}')
-
 $$
 
-With Gibbs proposals:
+깁스 제안을 쓰면:
 
 $$
-
 \pi(\mathbf{x}) \pi_i(x_i' | \mathbf{x}_{-i}) = \pi(\mathbf{x}') \pi_i(x_i | \mathbf{x}_{-i})
-
 $$
 
-Using $\pi(\mathbf{x}) = \pi_i(x_i | \mathbf{x}_{-i}) \cdot m_{-i}(\mathbf{x}_{-i})$:
+$\pi(\mathbf{x}) = \pi_i(x_i | \mathbf{x}_{-i}) \cdot m_{-i}(\mathbf{x}_{-i})$을 쓰면:
 
 $$
-
 \pi_i(x_i | \mathbf{x}_{-i}) \cdot m_{-i}(\mathbf{x}_{-i}) \cdot \pi_i(x_i' | \mathbf{x}_{-i}) = \pi_i(x_i' | \mathbf{x}_{-i}) \cdot m_{-i}(\mathbf{x}_{-i}) \cdot \pi_i(x_i | \mathbf{x}_{-i})
-
 $$
 
-This is **automatically satisfied** (both sides are identical)!
+이는 **저절로 만족된다**(양변이 같다)!
 
-**Conclusion**: The proposal **perfectly** satisfies detailed balance → no correction needed → $\alpha = 1$.
+**맺음**: 제안이 자세한 균형을 **완벽히** 만족한다 → 바로잡을 것이 없다 → $\alpha = 1$.
 
 ---
 
-## Alternative Proof: Direct from Detailed Balance
+## 다른 증명: 자세한 균형에서 곧바로
 
-We can also prove this directly without using the MH formula.
+MH 공식을 쓰지 않고도 곧바로 증명할 수 있다.
 
-**Goal**: Show that Gibbs transitions satisfy detailed balance.
+**목표**: 깁스의 옮김이 자세한 균형을 만족함을 보이기.
 
-**Transition kernel** for updating coordinate $i$:
+좌표 $i$을 새로 고치는 **옮김 알맹이**:
 
 $$
-
 T_i(\mathbf{x}' | \mathbf{x}) = \begin{cases}
 \pi_i(x_i' | \mathbf{x}_{-i}) & \text{if } \mathbf{x}_{-i}' = \mathbf{x}_{-i} \\
 0 & \text{otherwise}
 \end{cases}
-
 $$
 
-**Detailed balance** requires:
+**자세한 균형**은 다음을 요구한다:
 
 $$
-
 \pi(\mathbf{x}) T_i(\mathbf{x}' | \mathbf{x}) = \pi(\mathbf{x}') T_i(\mathbf{x} | \mathbf{x}')
-
 $$
 
-**Left side**:
+**왼쪽 변**:
 
 $$
-
 \pi(\mathbf{x}) T_i(\mathbf{x}' | \mathbf{x}) = \pi(\mathbf{x}) \pi_i(x_i' | \mathbf{x}_{-i})
-
 $$
 
-Using $\pi(\mathbf{x}) = \pi_i(x_i | \mathbf{x}_{-i}) \cdot m_{-i}(\mathbf{x}_{-i})$:
+$\pi(\mathbf{x}) = \pi_i(x_i | \mathbf{x}_{-i}) \cdot m_{-i}(\mathbf{x}_{-i})$을 쓰면:
 
 $$
-
 = \pi_i(x_i | \mathbf{x}_{-i}) \cdot m_{-i}(\mathbf{x}_{-i}) \cdot \pi_i(x_i' | \mathbf{x}_{-i})
-
 $$
 
-**Right side**:
+**오른쪽 변**:
 
 $$
-
 \pi(\mathbf{x}') T_i(\mathbf{x} | \mathbf{x}') = \pi(\mathbf{x}') \pi_i(x_i | \mathbf{x}_{-i}')
-
 $$
 
-Since $\mathbf{x}_{-i}' = \mathbf{x}_{-i}$:
+$\mathbf{x}_{-i}' = \mathbf{x}_{-i}$이므로:
 
 $$
-
 = \pi_i(x_i' | \mathbf{x}_{-i}) \cdot m_{-i}(\mathbf{x}_{-i}) \cdot \pi_i(x_i | \mathbf{x}_{-i})
-
 $$
 
-**Left = Right** ✓
+**왼쪽 = 오른쪽** ✓
 
-Detailed balance holds **exactly** → no MH correction needed!
+자세한 균형이 **정확히** 성립한다 → MH 바로잡기가 필요 없다!
 
 ---
 
-## What This Means Practically
+## 실전에서 뜻하는 바
 
-### No Rejection Step
+### 물리치는 걸음이 없다
 
-In Gibbs sampling:
-1. Sample $x_i' \sim \pi_i(x_i | \mathbf{x}_{-i})$
-2. **Accept** it (always!)
-3. Move to next coordinate
+깁스 표집에서는:
 
-There is **no** rejection step because $\alpha = 1$ guarantees acceptance.
+1. $x_i' \sim \pi_i(x_i | \mathbf{x}_{-i})$을 표집한다
+2. 그것을 **받아들인다**(늘!)
+3. 다음 좌표로 넘어간다
 
-### 100% Acceptance Rate
+$\alpha = 1$이 받아들임을 보장하므로 물리치는 걸음이 **없다**.
 
-Unlike Metropolis-Hastings where:
-- Acceptance rate typically 20%-90%
-- Rejections mean wasted computation
+### 받아들임 비율 100%
 
-Gibbs sampling:
-- **100% acceptance rate**
-- Every proposal is kept
-- No "wasted" iterations
+메트로폴리스-헤이스팅스에서는:
 
-### Why This is Powerful
+- 받아들임 비율이 보통 20%-90%이고
+- 물리침은 셈을 버리는 것이다
 
-**Efficiency**: No rejections → every iteration moves the chain
+깁스 표집에서는:
 
-**Simplicity**: No need to:
-- Compute acceptance ratio
-- Generate uniform random variable for accept/reject
-- Tune proposal to balance acceptance vs exploration
+- **받아들임 비율 100%**
+- 제안마다 모두 남는다
+- "버려지는" 되풀이가 없다
 
-**Automatic tuning**: The conditional $\pi_i(x_i | \mathbf{x}_{-i})$ **automatically** adapts to local geometry of $\pi$
+### 이것이 왜 힘센가
+
+**효율**: 물리침이 없다 → 되풀이마다 사슬이 움직인다
+
+**단순함**: 다음이 필요 없다:
+
+- 받아들임 비 셈하기
+- 받아들임/물리침을 정할 고른 난수 만들기
+- 받아들임과 살펴보기의 균형을 맞추려고 제안을 맞추기
+
+**저절로 맞춰짐**: 조건부 $\pi_i(x_i | \mathbf{x}_{-i})$이 $\pi$의 그 자리 기하에 **저절로** 맞춰진다
 
 ---
 
-## The Critical Requirement
+## 꼭 있어야 할 조건
 
-### Must Sample from Conditional Exactly
+### 조건부에서 정확히 표집해야 한다
 
-Gibbs requires:
+깁스는 다음을 요구한다:
 
 $$
-
 x_i' \sim \pi_i(x_i | \mathbf{x}_{-i}) \quad \text{(exact sampling)}
-
 $$
 
-**Not** just:
-- Evaluate $\pi_i(x_i | \mathbf{x}_{-i})$ (density evaluation)
-- Approximate $\pi_i$ (MCMC within MCMC)
+그저 다음만으로는 **안 된다**:
 
-If we can only **evaluate** but not **sample** from $\pi_i$, we **cannot** use Gibbs. Must use Metropolis-Hastings instead.
+- $\pi_i(x_i | \mathbf{x}_{-i})$의 값 매기기(밀도 값 매기기)
+- $\pi_i$ 어림하기(MCMC 안의 MCMC)
 
-### Examples Where Exact Sampling is Possible
+$\pi_i$의 **값만 매길** 수 있고 거기서 **표집할** 수 없다면 깁스를 **쓸 수 없다**. 대신 메트로폴리스-헤이스팅스를 써야 한다.
 
-**Conjugate models**:
-- Beta-Binomial
-- Gaussian-Gaussian
-- Gamma-Poisson
+### 정확한 표집이 되는 보기
 
-**Standard distributions**:
-- Gaussian
-- Gamma
-- Beta
-- Dirichlet
+**켤레 모형**:
 
-**Conditionals with closed form**:
-- Latent Dirichlet Allocation (LDA)
-- Gaussian Mixture Models
-- Hidden Markov Models
+- 베타-이항
+- 가우스-가우스
+- 감마-푸아송
 
-### Examples Where Exact Sampling is **Not** Possible
+**표준 분포**:
 
-**Logistic regression**: $p(x_i | \mathbf{x}_{-i})$ is non-standard distribution
+- 가우스
+- 감마
+- 베타
+- 디리클레
 
-**Neural networks**: Conditionals are intractable
+**닫힌 꼴 조건부**:
 
-**Complex hierarchical models**: No closed-form conditionals
+- 숨은 디리클레 배분(LDA)
+- 가우스 섞음 모형
+- 숨은 마르코프 모형
 
-In these cases, use:
-- **Metropolis-within-Gibbs**: Use MH for problematic coordinates
-- **Hamiltonian Monte Carlo**: Avoids coordinate-wise updates entirely
-- **Variational inference**: Deterministic approximation
+### 정확한 표집이 **안 되는** 보기
+
+**로지스틱 회귀**: $p(x_i | \mathbf{x}_{-i})$이 표준 분포가 아니다
+
+**신경망**: 조건부를 다룰 수 없다
+
+**복잡한 층 모형**: 닫힌 꼴 조건부가 없다
+
+이런 경우에는 다음을 써라:
+
+- **깁스 안의 메트로폴리스**: 말썽 있는 좌표에 MH을 쓴다
+- **해밀턴 몬테카를로**: 좌표별 새로 고치기를 아예 피한다
+- **변분 추론**: 정해진 어림
 
 ---
 
-## Gibbs vs Metropolis-Hastings: Summary
+## 깁스와 메트로폴리스-헤이스팅스: 간추림
 
-| Property | Gibbs | Metropolis-Hastings |
+| 성질 | 깁스 | 메트로폴리스-헤이스팅스 |
 |----------|-------|---------------------|
-| **Proposal** | $q = \pi_i(x_i \| \mathbf{x}_{-i})$ | Arbitrary $q(\mathbf{x}' \| \mathbf{x})$ |
-| **Acceptance** | Always 1 | Varies (0 to 1) |
-| **Requires** | Exact sampling | Only evaluation |
-| **Tuning** | None | Proposal variance $\sigma$ |
-| **Rejection** | Never | Sometimes |
-| **Scope** | One coordinate | Entire state (or subset) |
-| **When to use** | Tractable conditionals | General distributions |
+| **제안** | $q = \pi_i(x_i \| \mathbf{x}_{-i})$ | 아무 $q(\mathbf{x}' \| \mathbf{x})$ |
+| **받아들임** | 늘 1 | 달라짐(0에서 1) |
+| **필요한 것** | 정확한 표집 | 값 매기기만 |
+| **맞추기** | 없음 | 제안 흩어짐 $\sigma$ |
+| **물리침** | 결코 없음 | 이따금 |
+| **범위** | 좌표 하나 | 상태 전체(또는 일부) |
+| **언제 쓰나** | 다룰 수 있는 조건부 | 일반 분포 |
 
 ---
 
-## Computational Perspective
+## 셈의 눈으로 보기
 
-### Cost of α = 1
+### α = 1의 값
 
-Gibbs acceptance of $\alpha = 1$ is **not free**:
+깁스의 $\alpha = 1$은 **공짜가 아니다**:
 
-**Cost shifted to**:
-- **Sampling** from $\pi_i(x_i | \mathbf{x}_{-i})$ (may be expensive)
-- Computing **normalization constant** of conditional (if needed for sampling)
+**값이 옮겨 간 곳**:
 
-**Metropolis-Hastings**:
-- **Cheap** proposals (e.g., Gaussian)
-- Some **rejections** (wasted computation)
+- $\pi_i(x_i | \mathbf{x}_{-i})$에서 **표집하기**(비쌀 수 있다)
+- 조건부의 **고르게 하는 상수** 셈하기(표집에 필요하다면)
 
-**Gibbs**:
-- **Expensive** proposals (exact sampling from conditional)
-- **No** rejections (all computation used)
+**메트로폴리스-헤이스팅스**:
 
-**Net effect**: Depends on problem structure!
+- **싼** 제안(이를테면 가우스)
+- 얼마쯤의 **물리침**(버려지는 셈)
 
-### When Gibbs is More Efficient
+**깁스**:
 
-If:
-- Conditionals are **standard** distributions (cheap sampling)
-- MH would have **low** acceptance (<50%)
-- Strong **correlations** between variables (coordinate-wise updates work well)
+- **비싼** 제안(조건부에서 정확히 표집)
+- 물리침이 **없음**(셈을 모두 쓴다)
 
-Then: Gibbs often wins.
+**결국**: 문제의 짜임에 달렸다!
 
-### When Metropolis-Hastings is More Efficient
+### 깁스가 더 효율적일 때
 
-If:
-- Conditionals are **non-standard** (expensive or impossible to sample)
-- MH achieves **high** acceptance (>70%)
-- Weak **correlations** (random walk works well)
+다음이면:
 
-Then: MH often wins.
+- 조건부가 **표준** 분포이고(표집이 싸고)
+- MH의 받아들임이 **낮을** 때(50% 미만)
+- 변수 사이의 **상관**이 강할 때(좌표별 새로 고치기가 잘 듣는다)
 
----
+그러면 깁스가 이기는 경우가 많다.
 
-## The Geometric View
+### 메트로폴리스-헤이스팅스가 더 효율적일 때
 
-### Gibbs Moves on Axis-Aligned Slices
+다음이면:
 
-Each Gibbs update:
-- Fixes $d-1$ coordinates
-- Samples exactly from the **slice** of $\pi$ along remaining axis
+- 조건부가 **표준이 아니고**(표집이 비싸거나 불가능하고)
+- MH의 받아들임이 **높고**(70% 초과)
+- **상관**이 약할 때(무작위 걸음이 잘 듣는다)
 
-This is like exploring a high-dimensional distribution by:
-1. Choosing an axis
-2. **Perfectly** sampling the 1D conditional along that axis
-3. Repeat for next axis
-
-**Perfect sampling** along each slice → no rejection needed!
-
-### MH Explores via Proposals
-
-MH:
-- Proposes a move in **any direction** (or subset of coordinates)
-- **Tests** whether the proposal improves fit to $\pi$
-- **Rejects** if it worsens too much
-
-This requires:
-- Proposal design (choose direction/magnitude)
-- Acceptance probability (balance exploration/exploitation)
-
-**Trade-off**: More flexibility but requires tuning and rejections.
+그러면 MH이 이기는 경우가 많다.
 
 ---
 
-## Why Understanding This Matters
+## 기하로 보기
 
-### Hybrid Samplers
+### 깁스는 축에 나란한 조각 위에서 움직인다
 
-Modern MCMC often uses **both**:
+깁스의 새로 고치기마다:
 
-**Metropolis-within-Gibbs**:
-- Use Gibbs for coordinates with tractable conditionals
-- Use MH for coordinates without tractable conditionals
+- 좌표 $d-1$개를 붙박아 둔다
+- 남은 축을 따라 $\pi$의 **조각**에서 정확히 표집한다
 
-**Example**: Hierarchical model
-- Latent variables: Gibbs (conjugate)
-- Hyperparameters: MH (non-conjugate)
+이는 차원 높은 분포를 다음처럼 살펴보는 것과 같다:
 
-### Recognizing When Gibbs Applies
+1. 축 하나를 고른다
+2. 그 축을 따라 1차원 조건부를 **완벽히** 표집한다
+3. 다음 축에 대해 되풀이한다
 
-Knowing that Gibbs is MH with $\alpha = 1$ helps recognize:
-- When you **can** use Gibbs (exact conditional sampling)
-- When you **cannot** (no closed form → use MH instead)
+조각마다 **완벽히 표집**한다 → 물리칠 것이 없다!
 
-### Theoretical Understanding
+### MH은 제안으로 살펴본다
 
-The $\alpha = 1$ result is a beautiful example of:
-- **Special structure** (conditional proposals) → **automatic** detailed balance
-- **Mathematical elegance**: no tuning, no rejections, just works!
+MH은:
 
----
+- **아무 방향**(또는 좌표의 일부)으로 움직임을 내놓는다
+- 제안이 $\pi$에 더 잘 맞는지 **살핀다**
+- 너무 나빠지면 **물리친다**
 
-## Historical Note
+이는 다음을 요구한다:
 
-**Gibbs sampling** was named after Josiah Willard Gibbs (statistical mechanics), introduced to statistics by Geman & Geman (1984) for image restoration.
+- 제안 짜기(방향과 크기 고르기)
+- 받아들임 확률(살펴보기와 써먹기의 균형)
 
-**Key insight**: If you can sample from full conditionals, you get MCMC **for free**—no MH overhead!
-
-This revolutionized Bayesian computation, making complex hierarchical models tractable.
-
-**Modern perspective**: Gibbs is a **special case** of the general MH framework, but one with particularly nice properties ($\alpha = 1$).
+**주고받음**: 더 유연하지만 맞추기와 물리침이 따른다.
 
 ---
 
-## The Bottom Line
+## 이것을 이해하는 것이 왜 중요한가
 
-**Gibbs sampling has acceptance ratio α = 1 because**:
+### 섞음 표집기
 
-1. The proposal distribution **is** the target conditional
-2. This **automatically** satisfies detailed balance
-3. No MH correction needed → always accept
-4. Requires exact conditional sampling (not just evaluation)
+요즘 MCMC은 흔히 **둘 다** 쓴다:
 
-This is both a **strength** (no rejections, no tuning) and a **limitation** (only works when conditionals are tractable).
+**깁스 안의 메트로폴리스**:
 
-Understanding this connection deepens our appreciation of both Gibbs sampling and the general Metropolis-Hastings framework!
+- 조건부를 다룰 수 있는 좌표에는 깁스를 쓴다
+- 조건부를 다룰 수 없는 좌표에는 MH을 쓴다
+
+**보기**: 층 모형
+
+- 숨은 변수: 깁스(켤레)
+- 웃매개변수: MH(켤레 아님)
+
+### 깁스를 쓸 수 있는 때 알아보기
+
+깁스가 $\alpha = 1$인 MH임을 알면 다음을 알아보는 데 도움이 된다:
+
+- 깁스를 **쓸 수 있을** 때(조건부에서 정확히 표집할 수 있을 때)
+- **쓸 수 없을** 때(닫힌 꼴이 없다 → 대신 MH을 쓴다)
+
+### 이론으로 이해하기
+
+$\alpha = 1$이라는 결과는 다음의 아름다운 보기이다:
+
+- **특별한 짜임**(조건부 제안) → **저절로** 성립하는 자세한 균형
+- **수학의 우아함**: 맞출 것도 물리칠 것도 없이 그냥 굴러간다!
+
+---
+
+## 역사 메모
+
+**깁스 표집**은 (통계 역학의) 조사이아 윌러드 깁스의 이름을 딴 것으로, 1984년 게먼 형제가 그림 되살리기를 위해 통계에 들여왔다.
+
+**핵심 통찰**: 온전한 조건부에서 표집할 수 있으면 MH의 짐 없이 MCMC을 **공짜로** 얻는다!
+
+이는 베이즈 셈하기에 혁명을 일으켜 복잡한 층 모형을 다룰 수 있게 했다.
+
+**요즘의 눈**: 깁스는 일반 MH 얼개의 **특별한 경우**이지만 특히 좋은 성질($\alpha = 1$)을 갖는다.
+
+---
+
+## 결론
+
+**깁스 표집의 받아들임 비가 α = 1인 까닭은**:
+
+1. 제안 분포가 곧 과녁의 조건부**이기** 때문이다
+2. 그래서 자세한 균형이 **저절로** 만족된다
+3. MH 바로잡기가 필요 없다 → 늘 받아들인다
+4. (값 매기기만이 아니라) 조건부에서 정확히 표집해야 한다
+
+이는 **강점**(물리침도 맞출 것도 없음)이면서 **한계**(조건부를 다룰 수 있을 때만 된다)이다.
+
+이 이음을 이해하면 깁스 표집과 일반 메트로폴리스-헤이스팅스 얼개를 모두 더 깊이 알게 된다!
+
+## 연습문제
+
+**연습문제 1.**
+마르코프 사슬이 올바른 과녁 분포로 모이게 하는 데 받아들임 확률이 하는 몫을 설명하여라.
+
+??? success "연습문제 1 풀이"
+    받아들임 확률이 **자세한 균형** $\pi(x) T(x \to x') \alpha(x \to x') = \pi(x') T(x' \to x) \alpha(x' \to x)$을 보장한다. 여기서 $\pi$은 과녁 분포, $T$은 제안 분포, $\alpha$은 받아들임 확률이다. 자세한 균형은 $\pi$이 사슬의 멈춘 분포임을 뜻한다. 쪼갤 수 없음과 주기 없음까지 합치면 $\pi$으로의 에르고드 모임이 보장된다.
+
+---
+
+**연습문제 2.**
+제안 분포가 너무 좁은 상황과 너무 넓은 상황을 밝혀라. 저마다 표집 효율에 어떤 영향을 주는가?
+
+??? success "연습문제 2 풀이"
+    **너무 좁을 때:** 제안이 거의 늘 받아들여지지만(받아들임 비율이 높지만) 사슬이 아주 작은 걸음을 떼어 과녁 분포를 느리게 살펴본다. 그러면 자기상관이 높고 실효 표본 크기가 작아진다. **너무 넓을 때:** 제안이 확률이 낮은 구역에 자주 떨어져 물리쳐지므로(받아들임 비율이 낮으므로) 사슬이 여러 되풀이 동안 지금 상태에 갇혀 있게 된다. 두 극단 모두 효율을 떨어뜨린다. 높은 차원에서 무작위 걸음 메트로폴리스의 가장 좋은 받아들임 비율은 대략 0.234이다(Roberts 외, 1997).
+
+---
+
+**연습문제 3.**
+메트로폴리스-헤이스팅스 받아들임 비 $\alpha = \min\left(1, \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}\right)$이 $\pi$에 대해 자세한 균형을 만족함을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    일반성을 잃지 않고 $\pi(x') q(x|x') \leq \pi(x) q(x'|x)$이라 하자. 그러면 $\alpha(x \to x') = \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}$이고 $\alpha(x' \to x) = 1$이다. 자세한 균형 조건은 다음을 요구한다:
+
+    $$\pi(x) q(x'|x) \alpha(x \to x') = \pi(x) q(x'|x) \cdot \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)} = \pi(x') q(x|x')$$
+
+    그리고 $\pi(x') q(x|x') \alpha(x' \to x) = \pi(x') q(x|x') \cdot 1 = \pi(x') q(x|x')$이다. 양변이 같다. $\square$
+
+---
+
+**연습문제 4.**
+MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴지 어떻게 정하는가?
+
+??? success "연습문제 4 풀이"
+    태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.

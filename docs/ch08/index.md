@@ -1,80 +1,77 @@
-# Chapter Overview
+# 장 개요
 
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-This chapter provides comprehensive coverage of the Transformer architecture, from its core mechanisms through pretrained language models to vision applications. We develop the mathematical foundations of self-attention, explore how BERT, GPT, and T5 leverage the Transformer for different tasks, and examine the extension of Transformers to computer vision.
+이 장은 트랜스포머 구조를 두루 다룬다. 핵심 장치에서 시작하여 사전 학습 언어 모형을 거쳐 시각 응용까지 나아간다. 자기 어텐션의 수학적 바탕을 세우고, BERT와 GPT와 T5가 저마다 다른 과제에 트랜스포머를 어떻게 쓰는지 살피며, 트랜스포머가 컴퓨터 비전으로 넓혀진 모습을 들여다본다.
 
 ---
 
-## 8.1 Transformer Architecture
+## 8.1 트랜스포머 구조
 
-The core components of the Transformer, from attention mechanisms to the complete encoder-decoder structure.
+어텐션 장치에서 완전한 부호기-복호기 구조까지, 트랜스포머의 핵심 부품.
 
-- Transformers NLP Overview -- 10-step learning path from basic attention through Vision Transformers and comparative studies
-- Package Summary -- Summary of the complete 43-file educational package covering all Transformer topics
-- Attention Review -- Step 1: RNN-based attention mechanisms as a bridge to self-attention
-- Self-Attention Overview -- Step 2: The core self-attention mechanism behind Transformers
-- Multi-Head Attention Overview -- Step 3: Parallel attention processing across multiple representation subspaces
-- Positional Encoding Overview -- Step 4: Adding position information to Transformer inputs without recurrence
-- [Transformer Architecture](transformer_architecture/transformer_architecture.md) -- Complete architecture overview from historical context through the encoder-decoder design
-- [Positional Encoding](transformer_architecture/positional_encoding.md) -- Sinusoidal, learned, and relative positional encoding schemes
-- [Encoder-Decoder Structure](transformer_architecture/encoder_decoder.md) -- Encoder-only, decoder-only, and encoder-decoder paradigms with their use cases
-- [Masked Self-Attention](transformer_architecture/masked_attention.md) -- Causal masking for autoregressive generation in Transformer decoders
-- [Layer Normalization](transformer_architecture/layer_norm.md) -- Pre-norm vs post-norm placement and modern alternatives like RMSNorm
+- 트랜스포머 자연어 처리 개관 — 기본 어텐션에서 비전 트랜스포머와 비교 연구까지 10단계 학습 길
+- 꾸러미 요약 — 트랜스포머의 모든 주제를 다루는 43개 파일 교육 꾸러미의 요약
+- 어텐션 복습 — 1단계: 자기 어텐션으로 가는 다리인 RNN 기반 어텐션 장치
+- 자기 어텐션 개요 — 2단계: 트랜스포머의 바탕에 있는 핵심 자기 어텐션 장치
+- 다중 머리 어텐션 개요 — 3단계: 여러 표현 부분공간에 걸친 나란한 어텐션 처리
+- 위치 부호화 개요 — 4단계: 순환 없이 트랜스포머의 입력에 위치 정보 넣기
+- [트랜스포머 구조](transformer_architecture/transformer_architecture.md) — 역사적 배경에서 부호기-복호기 설계까지의 온전한 구조 개관
+- [위치 부호화](transformer_architecture/positional_encoding.md) — 사인·코사인, 학습형, 상대적 위치 부호화 방식
+- [부호기-복호기 구조](transformer_architecture/encoder_decoder.md) — 부호기 전용, 복호기 전용, 부호기-복호기 방식과 그 쓰임새
+- [가림막 자기 어텐션](transformer_architecture/masked_attention.md) — 트랜스포머 복호기의 자기회귀 생성을 위한 인과 가림막
+- [층 정규화](transformer_architecture/layer_norm.md) — 사전 정규화와 사후 정규화의 자리, 그리고 RMSNorm 같은 요즘의 대안
 
-## 8.2 Pretrained Models
+## 8.2 사전 학습 모델
 
-Large-scale pretrained Transformer models that define the modern NLP landscape.
+요즘 자연어 처리의 지형을 그리는 대규모 사전 학습 트랜스포머 모델.
 
-- Transformer Encoder Overview -- Step 5: Building the BERT-style encoder with masked language modeling
-- Transformer Decoder Overview -- Step 6: Building the GPT-style decoder for autoregressive generation
-- BERT Text Classification Overview -- Step 7: Fine-tuning BERT for sentiment analysis and text classification
-- GPT Text Generation Overview -- Step 8: Generating text with GPT-style models using various sampling strategies
-- [BERT](pretrained_models/bert.md) -- Bidirectional Encoder Representations from Transformers with masked language model pretraining
-- [GPT](pretrained_models/gpt.md) -- Generative Pre-trained Transformer for autoregressive language modeling from GPT-1 to GPT-4
-- [T5](pretrained_models/t5.md) -- Text-to-Text Transfer Transformer that unifies all NLP tasks into a single text generation format
-- [Transformer Variants](pretrained_models/variants.md) -- Comparative overview of RNN, CNN, and Transformer architectures
+- 트랜스포머 부호기 개요 — 5단계: 가림막 언어 모형으로 BERT 방식 부호기 세우기
+- 트랜스포머 복호기 개요 — 6단계: 자기회귀 생성을 위한 GPT 방식 복호기 세우기
+- BERT 텍스트 분류 개요 — 7단계: 감성 분석과 텍스트 분류를 위해 BERT 미세 조정하기
+- GPT 텍스트 생성 개요 — 8단계: 여러 표본 추출 전략으로 GPT 방식 모델에서 텍스트 만들기
+- [BERT](pretrained_models/bert.md) — 가림막 언어 모형으로 사전 학습하는 트랜스포머 양방향 부호기 표현
+- [GPT](pretrained_models/gpt.md) — GPT-1부터 GPT-4까지, 자기회귀 언어 모형을 위한 생성형 사전 학습 트랜스포머
+- [T5](pretrained_models/t5.md) — 모든 자연어 처리 과제를 하나의 텍스트 생성 형식으로 아우르는 텍스트-투-텍스트 전이 트랜스포머
+- [트랜스포머의 변형](pretrained_models/variants.md) — RNN과 CNN과 트랜스포머 구조의 비교 개관
 
-## 8.3 Attention Visualization
+## 8.3 어텐션 시각화
 
-Tools and techniques for interpreting what Transformer models learn through attention analysis.
+어텐션 분석으로 트랜스포머 모델이 배운 것을 해석하는 도구와 기법.
 
-- Attention Map Visualization -- Visualizing encoder self-attention, decoder self-attention, and cross-attention maps
-- Visualization Tools -- BertViz, matplotlib heatmaps, and other tools for attention visualization
-- Attention Extraction -- Hook-based methods for extracting attention weights from PyTorch models
-- Head and Layer Analysis -- Analyzing head specialization patterns, attention entropy, and head importance
-- Interpretation Pitfalls -- Why attention is not explanation and how to combine with gradient-based methods
+- 어텐션 지도 시각화 — 부호기 자기 어텐션, 복호기 자기 어텐션, 교차 어텐션 지도 그리기
+- 시각화 도구 — BertViz, matplotlib 열지도를 비롯한 어텐션 시각화 도구
+- 어텐션 뽑아내기 — PyTorch 모델에서 훅으로 어텐션 가중치를 꺼내는 방법
+- 머리와 층의 분석 — 머리의 분업 방식, 어텐션 엔트로피, 머리의 중요도 분석하기
+- 해석의 함정 — 어텐션이 설명이 아닌 까닭과 기울기 기반 방법과 함께 쓰는 법
 
-## 8.4 Training and Inference
+## 8.4 학습과 추론
 
-Practical strategies for training Transformers efficiently and optimizing inference performance.
+트랜스포머를 효율적으로 학습시키고 추론 성능을 다듬는 실용적인 전략.
 
-- Comparison Study Overview -- Step 10: Benchmarking Transformers against RNNs and CNNs on speed, accuracy, and memory
-- [Training and Inference](training_and_inference/training_inference.md) -- Training with teacher forcing vs autoregressive inference and the fundamental paradigm differences
-- Training Fundamentals -- Loss functions, AdamW optimizer, and gradient accumulation for Transformer training
-- [Training Optimization](training_and_inference/training_optimization.md) -- Learning rate schedules, warmup strategies, and regularization for deep attention networks
-- Warmup and Scheduling -- Linear warmup, Noam schedule, and cosine annealing with warmup
-- Label Smoothing -- Soft targets that prevent overconfident predictions and improve generalization
-- Large-Batch Training -- Linear and square root scaling rules, LAMB optimizer, and batch size guidelines
-- Memory-Efficient Training -- Mixed precision, gradient checkpointing, and other memory optimization techniques
-- Inference Optimization -- KV cache, torch.compile, and strategies for fast autoregressive generation
+- 비교 연구 개요 — 10단계: 속도와 정확도와 메모리에서 트랜스포머를 RNN 및 CNN과 견주기
+- [학습과 추론](training_and_inference/training_inference.md) — 교사 강요로 하는 학습과 자기회귀 추론, 그리고 근본적인 방식의 차이
+- 학습의 기초 — 트랜스포머 학습을 위한 손실 함수, AdamW 최적화기, 기울기 쌓기
+- [학습 최적화](training_and_inference/training_optimization.md) — 깊은 어텐션 신경망을 위한 학습률 일정, 예열 전략, 규제
+- 예열과 일정 — 선형 예열, Noam 일정, 예열이 있는 코사인 담금질
+- 이름표 매끄럽게 하기 — 지나친 확신을 막고 일반화를 돕는 부드러운 표적
+- 큰 배치 학습 — 선형 및 제곱근 조정 규칙, LAMB 최적화기, 배치 크기의 길잡이
+- 메모리를 아끼는 학습 — 혼합 정밀도, 기울기 검사점, 그 밖의 메모리 최적화 기법
+- 추론 최적화 — KV 캐시, torch.compile, 빠른 자기회귀 생성을 위한 전략
 
-## 8.5 Transformers for Vision
+## 8.5 시각을 위한 트랜스포머
 
-Extending Transformer architectures from NLP to computer vision tasks.
+트랜스포머 구조를 자연어 처리에서 컴퓨터 비전 과제로 넓히기.
 
-- Transformers Vision Overview -- Educational resource bridging traditional CNNs with Transformer-based vision architectures
-- Vision Transformer Overview -- Step 9: Applying Transformers to image classification with patch embeddings and attention rollout
-- [Vision Transformer (ViT)](transformers_vision/vit.md) -- The paradigm shift from convolutions to pure transformer architectures for image understanding
-- ViT Architecture -- Standard transformer encoder applied to sequences of image patches
-- Patch Embeddings -- Tokenizing images into patches analogous to word tokenization in NLP
-- [Position Embeddings](transformers_vision/position_embeddings.md) -- Encoding spatial information for permutation-invariant self-attention over image patches
-- CLS Token -- Learnable classification token for aggregating global image representation
-- DeiT -- Data-efficient Image Transformers with improved training strategies and knowledge distillation
-- [Swin Transformer](transformers_vision/swin.md) -- Hierarchical architecture with windowed attention for linear complexity on dense prediction tasks
-- Hybrid CNN-Transformer -- Combining CNN inductive biases with Transformer global modeling capabilities
-- [CNN vs ViT Comparison](transformers_vision/cnn_vs_vit.md) -- Architectural foundations, strengths, and trade-offs between convolutional and attention-based approaches
-- Training Strategies -- ViT-specific training techniques including heavy augmentation, stochastic depth, and long schedules
-- Attention Visualization -- Interpreting ViT predictions through CLS token attention and patch-to-patch attention maps
+- 트랜스포머 비전 개관 — 전통적인 CNN과 트랜스포머 기반 시각 구조를 잇는 교육 자료
+- 비전 트랜스포머 개요 — 9단계: 조각 임베딩과 어텐션 롤아웃으로 이미지 분류에 트랜스포머 쓰기
+- [비전 트랜스포머 (ViT)](transformers_vision/vit.md) — 이미지 이해에서 합성곱에서 순수한 트랜스포머 구조로의 전환
+- ViT 구조 — 이미지 조각의 순차열에 적용한 표준 트랜스포머 부호기
+- 조각 임베딩 — 자연어의 낱말 토큰화에 견주어 이미지를 조각으로 토큰화하기
+- [위치 임베딩](transformers_vision/position_embeddings.md) — 순열에 무관한 이미지 조각 자기 어텐션을 위해 공간 정보 담기
+- CLS 토큰 — 이미지 전체의 표현을 모으는 학습 가능한 분류 토큰
+- DeiT — 학습 전략을 다듬고 지식 증류를 쓰는 데이터 효율적인 이미지 트랜스포머
+- [스윈 트랜스포머](transformers_vision/swin.md) — 조밀 예측 과제에서 선형 복잡도를 내는 창 어텐션의 계층적 구조
+- 혼합 CNN-트랜스포머 — CNN의 귀납 편향과 트랜스포머의 전역 모형화 능력을 엮기
+- [CNN과 ViT의 비교](transformers_vision/cnn_vs_vit.md) — 합성곱 방식과 어텐션 방식의 구조적 바탕과 강점과 맞바꿈
+- 학습 전략 — 강한 증강, 확률적 깊이, 긴 일정 등 ViT에 특화된 학습 기법
+- 어텐션 시각화 — CLS 토큰 어텐션과 조각 사이 어텐션 지도로 ViT의 예측 해석하기

@@ -1,38 +1,38 @@
-# Python's List sort Method
+# 파이썬 리스트의 sort 메서드
 
-Python provides a built-in `sort()` method on lists that rearranges elements in place. Understanding its behavior -- including the in-place semantics, the default ordering, and the `reverse` parameter -- is essential before studying sorting algorithms in depth, because `sort()` serves as both a practical tool and a benchmark for comparison.
+파이썬은 원소를 제자리에서 다시 늘어놓는 붙박이 `sort()` 메서드를 리스트에 준다. 제자리로 고치는 성질, 기본 순서, `reverse` 매개변수를 아우르는 그 움직임을 이해하는 것은 정렬 알고리즘을 깊이 공부하기 전에 꼭 필요하다. `sort()`가 실제 연장이자 견주는 잣대 노릇을 하기 때문이다.
 
-## Basic Usage
+## 기본 쓰임
 
-The `sort()` method arranges list elements in ascending order by default:
+`sort()` 메서드는 기본으로 리스트의 원소를 오름차순으로 늘어놓는다.
 
 ```python
-"""Demonstration of Python's list.sort() method.
+"""파이썬 list.sort() 메서드 보여 주기.
 
-Shows ascending sort, descending sort, and the in-place return value.
+오름차순 정렬, 내림차순 정렬, 제자리 정렬의 되돌림 값을 보여 준다.
 """
 
 
-# === Ascending sort ===
+# === 오름차순 정렬 ===
 a = [-9, 1, 8, 2, -7, 3, 6, 4, 5]
 a.sort()
 print("Ascending:", a)
 
-# === Descending sort ===
+# === 내림차순 정렬 ===
 b = [-9, 1, 8, 2, -7, 3, 6, 4, 5]
 b.sort(reverse=True)
 print("Descending:", b)
 ```
 
-**Output:**
+**출력:**
 ```
 Ascending: [-9, -7, 1, 2, 3, 4, 5, 6, 8]
 Descending: [8, 6, 5, 4, 3, 2, 1, -7, -9]
 ```
 
-## In-Place Semantics
+## 제자리로 고치는 성질
 
-The `sort()` method modifies the list **in place** and returns `None` -- not the sorted list. This is a deliberate design choice in Python: methods that mutate their object return `None` to signal that the original was changed.
+`sort()` 메서드는 리스트를 **제자리에서** 고치고 정렬된 리스트가 아니라 `None`을 돌려준다. 파이썬의 일부러 그렇게 한 설계이다. 객체를 바꾸는 메서드는 본디 것이 바뀌었음을 알리려고 `None`을 돌려준다.
 
 ```python
 a = [9, 1, 8, 2, 7, 3, 6, 4, 5]
@@ -41,27 +41,60 @@ print(result)  # None
 print(a)       # [1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
-**Output:**
+**출력:**
 ```
 None
 [1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
-!!! warning "Common Mistake"
-    Writing `a = a.sort()` replaces the sorted list with `None`. If you need a new sorted list while keeping the original unchanged, use the built-in function `sorted(a)` instead, which returns a new list.
+!!! warning "흔한 잘못"
+    `a = a.sort()`으로 쓰면 정렬된 리스트가 `None`으로 바뀐다. 본디 것을 그대로 두고 정렬된 새 리스트가 필요하면 새 리스트를 돌려주는 붙박이 함수 `sorted(a)`를 쓰라.
 
-## sort() vs sorted()
+## sort()와 sorted()
 
-| Feature | `list.sort()` | `sorted(iterable)` |
+| 특징 | `list.sort()` | `sorted(iterable)` |
 |:---|:---|:---|
-| Returns | `None` | New sorted list |
-| Modifies original | Yes (in place) | No |
-| Works on | Lists only | Any iterable |
+| 돌려주는 값 | `None` | 정렬된 새 리스트 |
+| 본디 것을 고치는가 | 그렇다 (제자리) | 아니다 |
+| 무엇에 쓰는가 | 리스트만 | 반복 가능한 어떤 것이든 |
 
-## Implementation Details
+## 구현의 세부
 
-Python's `sort()` uses **Timsort**, a hybrid algorithm combining merge sort and insertion sort. Timsort runs in $O(n \log n)$ worst-case time and $O(n)$ best-case time (when the input is already partially sorted). It is **stable**, meaning equal elements retain their original relative order.
+파이썬의 `sort()`는 병합 정렬과 삽입 정렬을 아우른 섞은 알고리즘인 **팀 정렬**을 쓴다. 팀 정렬은 최악의 경우 $O(n \log n)$, (입력이 이미 얼마간 정렬되었을 때인) 최선의 경우 $O(n)$ 시간에 돈다. **안정적**이어서 같은 원소가 본디 상대 순서를 지킨다.
 
-## References
+## 참고 문헌
 
-[Corey Schafer -- Sorting Lists, Tuples, and Objects](https://www.youtube.com/watch?v=D3JvDWO-BY4)
+[Corey Schafer — 리스트와 짝과 객체 정렬하기](https://www.youtube.com/watch?v=D3JvDWO-BY4)
+
+
+## 연습문제
+
+**연습문제 1.**
+파이썬 리스트의 sort 메서드를 정식으로 정의하고 비교 기반 정렬에서의 뜻을 설명하라.
+
+??? success "연습문제 1 풀이"
+    정식 정의는 정렬 알고리즘 설계를 옥죄는 이론적 바탕을 세운다. 이 바탕을 이해하면 알고리즘을 고르는 데 길잡이가 되고 $\Omega(n\log n)$ 벽이 언제 적용되는지 드러난다.
+
+---
+
+**연습문제 2.**
+배열 $[38, 27, 43, 3, 9, 82, 10]$으로 파이썬 리스트의 sort 메서드를 보여라.
+
+??? success "연습문제 2 풀이"
+    그 개념을 주어진 배열에 적용하며 관련된 단계를 하나씩 보여라. 이 보기는 추상적인 정의를 손에 잡히게 하고 모서리 경우를 짚어야 한다.
+
+---
+
+**연습문제 3.**
+이 쪽에서 밝힌 주된 결과를 증명하라.
+
+??? success "연습문제 3 풀이"
+    설명한 증명 기법(결정 트리, 적수, 세기)을 쓰라. 주장을 밝히고 논증을 세운 뒤 빈틈없이 밀고 나가라. $\square$
+
+---
+
+**연습문제 4.**
+파이썬 리스트의 sort 메서드를 `torch.sort`의 구현에 어떤 실마리를 주는가?
+
+??? success "연습문제 4 풀이"
+    파이토치의 정렬 연산은 이 쪽의 이론적 제약을 지켜야 한다. GPU 정렬에서는 병렬성 요구가 알고리즘 선택을 더 옥죈다. 이론적 한계를 이해하면 데이터의 크기와 종류에 맞는 알고리즘을 고르는 데 도움이 된다.

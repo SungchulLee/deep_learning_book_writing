@@ -1,30 +1,25 @@
-# Thompson's Construction
+# 톰프슨 세우기
+톰프슨 세우기는 어떤 정규 표현이든 그와 같은 비결정 유한 자동 기계로 바꾸는 짜임새 있는 알고리즘이다. 1968년 켄 톰프슨이 내놓았으며 길이 $r$인 정규 표현에서 상태가 많아야 $2r$개인 자동 기계를 내고 상태마다 나가는 옮아감이 많아야 둘이다.
 
+## 알고리즘
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+이 세우기는 정규 표현의 짜임을 그대로 따라가는 되돌이이다. 아래 자동 기계마다 시작 상태와 받아들이는 상태가 꼭 하나씩이다.
 
-Thompson's construction is a systematic algorithm for converting any regular expression into an equivalent nondeterministic finite automaton (NFA). Proposed by Ken Thompson in 1968, it produces an NFA with at most $2r$ states for a regular expression of length $r$, where each state has at most two outgoing transitions.
+### 바탕 경우
 
-## Algorithm
+**빈 글줄 $\varepsilon$:** $q_0 \xrightarrow{\varepsilon} q_f$
 
-The construction is recursive, mirroring the structure of the regular expression. Every sub-NFA has exactly one start state and one accepting state.
+**글자 하나 $a$:** $q_0 \xrightarrow{a} q_f$
 
-### Base Cases
+### 귀납 경우
 
-**Empty string $\varepsilon$:** $q_0 \xrightarrow{\varepsilon} q_f$
+**잇기 $r_1 r_2$:** $N(r_1)$의 받아들이는 상태를 $N(r_2)$의 시작 상태와 합친다.
 
-**Single character $a$:** $q_0 \xrightarrow{a} q_f$
+**합치기 $r_1 | r_2$:** 두 아래 자동 기계로 가는 $\varepsilon$ 옮아감을 가진 새 시작 상태를 두고, 두 받아들이는 상태를 $\varepsilon$으로 새 받아들이는 상태에 잇는다.
 
-### Inductive Cases
+**클레이니 별 $r_1^*$:** 새 시작 상태와 받아들이는 상태를 두고 0번 이상 되풀이할 수 있는 $\varepsilon$ 옮아감을 둔다.
 
-**Concatenation $r_1 r_2$:** Merge the accept state of $N(r_1)$ with the start state of $N(r_2)$.
-
-**Union $r_1 | r_2$:** New start state with $\varepsilon$-transitions to both sub-NFAs; both accept states connect via $\varepsilon$ to a new accept state.
-
-**Kleene star $r_1^*$:** New start state and accept state, with $\varepsilon$-transitions allowing zero or more repetitions.
-
-## Implementation
+## 구현
 
 ```python
 class State:
@@ -42,7 +37,7 @@ class Fragment:
         self.accept = accept
 
 def thompson(postfix):
-    """Build NFA from postfix regex. Operators: . (concat), | (union), * (star)"""
+    """뒤 표기 정규 표현에서 비결정 유한 자동 기계를 세운다. 연산: .(잇기), |(합치기), *(별)"""
     stack = []
     for ch in postfix:
         if ch == '.':
@@ -81,7 +76,7 @@ def thompson(postfix):
     return stack.pop()
 
 def infix_to_postfix(regex):
-    """Convert infix regex to postfix with explicit concat operator."""
+    """가운데 표기 정규 표현을 또렷한 잇기 연산을 넣어 뒤 표기로 바꾼다."""
     output = []
     for i, ch in enumerate(regex):
         output.append(ch)
@@ -113,24 +108,56 @@ def infix_to_postfix(regex):
         result.append(ops.pop())
     return ''.join(result)
 
-# Example: regex "a(b|c)*d"
+# 보기: 정규 표현 "a(b|c)*d"
 postfix = infix_to_postfix("a(b|c)*d")
 print(f"Postfix: {postfix}")
-# Output: Postfix: abc|*.d.
+# 내놓기: 뒤 표기: abc|*.d.
 
 nfa = thompson(postfix)
 print(f"Start state: {nfa.start.id}, Accept state: {nfa.accept.id}")
 ```
 
-## Properties
+## 성질
 
-1. **At most $2r$ states** for a regex of length $r$ (each operator creates at most 2 new states).
-2. **Each state has at most two outgoing transitions** (either one character transition, or up to two epsilon transitions).
-3. **The accept state has no outgoing transitions.**
-4. **The construction is linear:** $O(r)$ time and space.
+1. 길이 $r$인 정규 표현에 **상태가 많아야 $2r$개**이다(연산마다 새 상태를 많아야 2개 만든다).
+2. **상태마다 나가는 옮아감이 많아야 둘**이다(글자 옮아감 하나이거나 엡실론 옮아감 최대 둘).
+3. **받아들이는 상태에는 나가는 옮아감이 없다.**
+4. **세우기는 선형이다:** 시간과 공간이 $O(r)$.
 
-# Reference
+# 참고 문헌
 
 [Thompson - Regular Expression Search Algorithm (1968)](https://doi.org/10.1145/363347.363387)
 
 [Regular Expression Matching Can Be Simple And Fast - Russ Cox](https://swtch.com/~rsc/regexp/regexp1.html)
+
+## 연습문제
+
+**연습문제 1.**
+결정 유한 자동 기계와 비결정 유한 자동 기계의 차이를 설명하라. 정규 표현에서 비결정 유한 자동 기계를 세우기가 왜 더 쉬운가?
+
+??? success "연습문제 1 풀이"
+    **결정 유한 자동 기계**는 (상태, 기호) 짝마다 옮아감이 꼭 하나인 반면 **비결정 유한 자동 기계**는 옮아감이 여럿(또는 없음)일 수 있고 들임을 쓰지 않는 엡실론 옮아감도 있다. 비결정 유한 자동 기계를 세우기 쉬운 까닭은 이렇다. (1) 톰프슨 세우기가 단순한 아우름 규칙(잇기, 고르기, 클레이니 별)으로 정규 표현 짜임에서 곧바로 비결정 유한 자동 기계를 낸다. (2) 엡실론 옮아감이 고를 수 있는 것과 되풀이되는 아래 표현을 자연스럽게 나타낸다. (3) 길이 $m$인 정규 표현에서 나온 비결정 유한 자동 기계의 상태가 $O(m)$개이다. 그와 같은 결정 유한 자동 기계는 상태가 $2^{O(m)}$개까지 될 수 있으나 실전에서는 흔히 훨씬 작다.
+
+---
+
+**연습문제 2.**
+정규 표현 `a(b|c)*d`의 비결정 유한 자동 기계를 톰프슨 세우기로 만들어라.
+
+??? success "연습문제 2 풀이"
+    걸음마다 보자. (1) `a`의 자동 기계: 상태 $q_0 \xrightarrow{a} q_1$. (2) `b`의 자동 기계: $q_2 \xrightarrow{b} q_3$. (3) `c`의 자동 기계: $q_4 \xrightarrow{c} q_5$. (4) `b|c`의 자동 기계: $q_2$과 $q_4$으로 가는 $\epsilon$ 옮아감을 가진 새 시작 $q_6$, $q_3$과 $q_5$에서 오는 $\epsilon$ 옮아감을 가진 새 받아들임 $q_7$. (5) `(b|c)*`의 자동 기계: $q_6$과 새 받아들임 $q_9$으로 가는 $\epsilon$을 가진 새 시작 $q_8$, 그리고 $q_7$에서 $q_6$과 $q_9$으로 가는 $\epsilon$. (6) `d`의 자동 기계: $q_{10} \xrightarrow{d} q_{11}$. (7) 셋을 $\epsilon$ 옮아감으로 잇는다. 모두 상태 12개이다.
+
+---
+
+**연습문제 3.**
+비결정 유한 자동 기계를 결정 유한 자동 기계로 바꾸는 부분 모임 세우기 알고리즘을 적어라. 최악의 경우 복잡도는 무엇인가?
+
+??? success "연습문제 3 풀이"
+    이 알고리즘은 비결정 유한 자동 기계 상태의 모임으로 결정 유한 자동 기계 상태를 세운다. (1) 시작 상태는 비결정 유한 자동 기계 시작 상태의 $\epsilon$ 닫힘이다. (2) 상태 $S$과 들임 기호 $a$마다 $\text{move}(S, a) = \{q' : q \in S, q \xrightarrow{a} q'\}$을 셈하고 그 $\epsilon$ 닫힘을 취해 다음 상태를 얻는다. (3) 비결정 유한 자동 기계의 받아들이는 상태를 하나라도 품으면 그 상태는 받아들인다. (4) 새 상태가 나오지 않을 때까지 되풀이한다. 최악의 경우: 상태 $n$개인 비결정 유한 자동 기계가 상태 $2^n$개인 결정 유한 자동 기계를 낼 수 있다(예컨대 정규 표현 `(a|b)*a(a|b)^{n-1}`). 실전에서는 대개 훨씬 작다.
+
+---
+
+**연습문제 4.**
+결정 유한 자동 기계 줄이기란 무엇이며 왜 쓸모 있는가? 홉크로프트 알고리즘을 큰 틀에서 적어라.
+
+??? success "연습문제 4 풀이"
+    결정 유한 자동 기계 줄이기는 같은 상태(앞으로 올 모든 들임에 대해 몸가짐이 똑같은 상태)를 합쳐 같은 말을 알아보는 가장 작은 결정 유한 자동 기계를 낸다. **홉크로프트 알고리즘**: (1) 상태를 받아들이는 무리와 받아들이지 않는 무리로 나눈다. (2) 되풀이해 잘게 다듬는다. 곧 무리와 들임 기호마다 그 무리의 옮아감이 다른 무리로 가면 쪼갠다. (3) 더 쪼갤 무리가 없을 때까지 되풀이한다. 최소 결정 유한 자동 기계는 동치류마다 상태 하나를 갖는다. 시간: 상태 $n$개에 $O(n \log n)$. 줄이기는 어휘 분석기 짜기에서 기억 공간 줄이기, 정규 표현의 표준 견줌, 본 찾기 자동 기계 다듬기에 쓸모 있다.

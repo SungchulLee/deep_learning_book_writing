@@ -1,45 +1,36 @@
-# Data Augmentation
+# 데이터 증강
+## 개요
 
+데이터 증강은 기존 표본을 변형한 판본을 만들어 학습 데이터셋을 인위적으로 넓히는 정칙화 기법이다. 의미를 보존하는 변환된 데이터를 모델에게 보여 줌으로써 무관한 변이에 대한 불변성을 가르치고 일반화를 크게 개선한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 개념적 토대
 
-## Overview
+### 데이터 증강이 통하는 이유
 
-Data augmentation is a regularization technique that artificially expands the training dataset by creating modified versions of existing samples. By exposing the model to transformed data that preserves semantic meaning, augmentation teaches invariance to irrelevant variations and significantly improves generalization.
+데이터 증강은 학습 데이터가 적다는 근본적인 문제를 다룬다.
 
-## Conceptual Foundation
+1. **실효 데이터셋 크기 증가**: 레이블을 더 붙이지 않고도 학습 예가 늘어난다
+2. **불변성 학습**: 모델이 변환에 견고한 특징을 배운다
+3. **과적합 감소**: 증강되어 변화하는 데이터는 외우기 더 어렵다
+4. **암묵적 정칙화**: 가설 공간을 변환에 불변인 해로 제약한다
 
-### Why Data Augmentation Works
+### 수학적 관점
 
-Data augmentation addresses the fundamental problem of limited training data:
-
-1. **Increased effective dataset size**: More training examples without additional labeling
-2. **Invariance learning**: Model learns features robust to transformations
-3. **Reduced overfitting**: Harder to memorize augmented, varying data
-4. **Implicit regularization**: Constrains the hypothesis space to transformation-invariant solutions
-
-### Mathematical Perspective
-
-Augmentation can be viewed as adding a regularization term to the loss. For a transformation $T$ applied with probability $p$:
+증강은 손실에 정칙화 항을 더하는 것으로 볼 수 있다. 확률 $p$으로 적용되는 변환 $T$에 대해 다음과 같다.
 
 $$
-
 \mathcal{L}_{\text{aug}} = \mathbb{E}_{x, y \sim \mathcal{D}} \left[ \mathbb{E}_{T \sim \mathcal{T}} \left[ \ell(f(T(x)), y) \right] \right]
-
 $$
 
-This encourages:
+이는 다음을 이끈다.
 
 $$
-
 f(T(x)) \approx f(x) \quad \forall T \in \mathcal{T}
-
 $$
 
-## Image Augmentation
+## 이미지 증강
 
-### Geometric Transformations
+### 기하 변환
 
 ```python
 import torch
@@ -49,7 +40,7 @@ import numpy as np
 from PIL import Image
 
 class GeometricAugmentation:
-    """Standard geometric augmentations for images."""
+    """이미지를 위한 표준 기하 증강."""
     
     def __init__(
         self,
@@ -62,7 +53,7 @@ class GeometricAugmentation:
     ):
         transforms = []
         
-        # Random affine (rotation, translation, scale, shear)
+        # 무작위 아핀 변환 (회전, 평행이동, 크기, 전단)
         if any([rotation_range, translate_range, scale_range != (1, 1), shear_range]):
             transforms.append(T.RandomAffine(
                 degrees=rotation_range,
@@ -71,7 +62,7 @@ class GeometricAugmentation:
                 shear=shear_range
             ))
         
-        # Flips
+        # 뒤집기
         if flip_horizontal:
             transforms.append(T.RandomHorizontalFlip(p=0.5))
         if flip_vertical:
@@ -82,8 +73,7 @@ class GeometricAugmentation:
     def __call__(self, image):
         return self.transform(image)
 
-
-# PyTorch standard geometric transforms
+# PyTorch의 표준 기하 변환
 geometric_transforms = T.Compose([
     T.RandomRotation(degrees=15),
     T.RandomHorizontalFlip(p=0.5),
@@ -98,11 +88,11 @@ geometric_transforms = T.Compose([
 ])
 ```
 
-### Color/Photometric Transformations
+### 색/광도 변환
 
 ```python
 class PhotometricAugmentation:
-    """Color and lighting augmentations."""
+    """색과 조명 증강."""
     
     def __init__(
         self,
@@ -127,19 +117,18 @@ class PhotometricAugmentation:
     def __call__(self, image):
         return self.transform(image)
 
-
-# Standard color augmentation
+# 표준 색 증강
 color_transforms = T.Compose([
     T.ColorJitter(brightness=0.4, contrast=0.4, saturation=0.4, hue=0.1),
     T.RandomGrayscale(p=0.2),
 ])
 ```
 
-### Noise and Blur
+### 잡음과 흐리기
 
 ```python
 class NoiseAugmentation:
-    """Add various types of noise to images."""
+    """이미지에 여러 종류의 잡음을 더한다."""
     
     def __init__(self, noise_types=['gaussian', 'blur', 'jpeg']):
         self.noise_types = noise_types
@@ -156,7 +145,7 @@ class NoiseAugmentation:
         elif noise_type == 'blur':
             image = T.GaussianBlur(kernel_size=5, sigma=(0.1, 2.0))(image)
         elif noise_type == 'jpeg':
-            # Simulate JPEG compression artifacts
+            # JPEG 압축 잡티 모의실험
             quality = np.random.randint(30, 95)
             pil_img = T.ToPILImage()(image)
             import io
@@ -168,25 +157,25 @@ class NoiseAugmentation:
         return image
 ```
 
-### Advanced Augmentations
+### 고급 증강
 
-Several powerful augmentation strategies go beyond standard geometric and photometric transforms. Each receives detailed treatment in its own section:
+표준적인 기하 및 광도 변환을 넘어서는 강력한 증강 전략이 여럿 있다. 각각은 별도의 절에서 자세히 다룬다.
 
-- **[Cutout](cutout.md)** — Randomly masks rectangular regions, forcing the model to use the full spatial extent of objects rather than relying on local patches. Available in PyTorch as `transforms.RandomErasing`.
-- **[Mixup](mixup.md)** — Blends pairs of training images and their labels via convex combination, encouraging linear behavior between examples and improving calibration.
-- **[CutMix](cutmix.md)** — Combines spatial masking (like Cutout) with sample mixing (like Mixup) by cutting a patch from one image and pasting it onto another, with proportional label mixing.
+- **[컷아웃](cutout.md)** — 직사각형 영역을 무작위로 가려, 모델이 국소 조각에 기대는 대신 물체의 전체 공간 범위를 쓰도록 강제한다. PyTorch에서는 `transforms.RandomErasing`으로 쓸 수 있다.
+- **[믹스업](mixup.md)** — 학습 이미지 쌍과 그 레이블을 볼록 결합으로 섞어, 예 사이에서 선형적인 행동을 이끌고 보정을 개선한다.
+- **[컷믹스](cutmix.md)** — 한 이미지의 조각을 잘라 다른 이미지에 붙이고 레이블을 비례해서 섞음으로써, (컷아웃 같은) 공간적 가림과 (믹스업 같은) 표본 섞기를 결합한다.
 
-These techniques are complementary and can be combined with standard augmentation pipelines. See also **[Label Smoothing](label_smoothing.md)** for a target-side regularization technique that is often used alongside these data augmentations.
+이 기법들은 서로 보완적이며 표준 증강 파이프라인과 함께 쓸 수 있다. 이러한 데이터 증강과 나란히 자주 쓰이는 목표 쪽 정칙화 기법은 **[레이블 평활화](label_smoothing.md)**도 함께 보라.
 
-### Complete Image Augmentation Pipeline
+### 완전한 이미지 증강 파이프라인
 
 ```python
 def get_train_transforms(image_size: int = 224, augment_level: str = 'standard'):
     """
-    Get training transforms based on augmentation level.
+    증강 수준에 따른 학습용 변환을 얻는다.
     
-    Args:
-        image_size: Target image size
+    인수:
+        image_size: 목표 이미지 크기
         augment_level: 'minimal', 'standard', 'aggressive'
     """
     if augment_level == 'minimal':
@@ -224,9 +213,8 @@ def get_train_transforms(image_size: int = 224, augment_level: str = 'standard')
     
     raise ValueError(f"Unknown augment_level: {augment_level}")
 
-
 def get_val_transforms(image_size: int = 224):
-    """Validation/test transforms (no augmentation)."""
+    """검증/시험용 변환 (증강 없음)."""
     return T.Compose([
         T.Resize((image_size, image_size)),
         T.ToTensor(),
@@ -234,9 +222,9 @@ def get_val_transforms(image_size: int = 224):
     ])
 ```
 
-## Text Augmentation
+## 텍스트 증강
 
-### Basic Text Augmentations
+### 기본적인 텍스트 증강
 
 ```python
 import random
@@ -244,22 +232,22 @@ import nltk
 from nltk.corpus import wordnet
 
 class TextAugmentation:
-    """Text augmentation techniques."""
+    """텍스트 증강 기법."""
     
     def __init__(self, aug_prob: float = 0.3):
         self.aug_prob = aug_prob
-        # Download required NLTK data
+        # 필요한 NLTK 데이터 내려받기
         try:
             nltk.data.find('corpora/wordnet')
         except LookupError:
             nltk.download('wordnet')
     
     def synonym_replacement(self, text: str, n: int = 1) -> str:
-        """Replace n words with synonyms."""
+        """낱말 n개를 유의어로 바꾼다."""
         words = text.split()
         new_words = words.copy()
         
-        # Get words that have synonyms
+        # 유의어가 있는 낱말 얻기
         random_word_list = list(set([w for w in words if self._get_synonyms(w)]))
         random.shuffle(random_word_list)
         
@@ -276,7 +264,7 @@ class TextAugmentation:
         return ' '.join(new_words)
     
     def _get_synonyms(self, word: str) -> list:
-        """Get synonyms from WordNet."""
+        """WordNet에서 유의어를 얻는다."""
         synonyms = set()
         for syn in wordnet.synsets(word):
             for lemma in syn.lemmas():
@@ -286,7 +274,7 @@ class TextAugmentation:
         return list(synonyms)
     
     def random_insertion(self, text: str, n: int = 1) -> str:
-        """Randomly insert n synonyms of random words."""
+        """무작위 낱말의 유의어 n개를 무작위 위치에 넣는다."""
         words = text.split()
         new_words = words.copy()
         
@@ -300,7 +288,7 @@ class TextAugmentation:
         return ' '.join(new_words)
     
     def random_swap(self, text: str, n: int = 1) -> str:
-        """Randomly swap n pairs of words."""
+        """낱말 n쌍을 무작위로 맞바꾼다."""
         words = text.split()
         new_words = words.copy()
         
@@ -312,7 +300,7 @@ class TextAugmentation:
         return ' '.join(new_words)
     
     def random_deletion(self, text: str, p: float = 0.1) -> str:
-        """Randomly delete words with probability p."""
+        """확률 p으로 낱말을 무작위로 지운다."""
         words = text.split()
         if len(words) == 1:
             return text
@@ -324,7 +312,7 @@ class TextAugmentation:
         return ' '.join(new_words)
     
     def augment(self, text: str) -> str:
-        """Apply random augmentation."""
+        """무작위 증강을 적용한다."""
         if random.random() > self.aug_prob:
             return text
         
@@ -340,19 +328,19 @@ class TextAugmentation:
             return self.random_deletion(text)
 ```
 
-### Back-Translation
+### 역번역
 
 ```python
 class BackTranslation:
     """
-    Augment text by translating to another language and back.
-    Requires transformers library.
+    다른 언어로 번역했다가 되돌려 텍스트를 증강한다.
+    transformers 라이브러리가 필요하다.
     """
     
     def __init__(self, intermediate_lang: str = 'de'):
         from transformers import MarianMTModel, MarianTokenizer
         
-        # English to intermediate
+        # 영어에서 중간 언어로
         self.en_to_lang = MarianMTModel.from_pretrained(
             f'Helsinki-NLP/opus-mt-en-{intermediate_lang}'
         )
@@ -360,7 +348,7 @@ class BackTranslation:
             f'Helsinki-NLP/opus-mt-en-{intermediate_lang}'
         )
         
-        # Intermediate to English
+        # 중간 언어에서 영어로
         self.lang_to_en = MarianMTModel.from_pretrained(
             f'Helsinki-NLP/opus-mt-{intermediate_lang}-en'
         )
@@ -374,37 +362,37 @@ class BackTranslation:
         return tokenizer.decode(translated[0], skip_special_tokens=True)
     
     def augment(self, text: str) -> str:
-        # Translate to intermediate language
+        # 중간 언어로 번역
         intermediate = self.translate(text, self.en_to_lang, self.en_to_lang_tokenizer)
-        # Translate back to English
+        # 영어로 되돌려 번역
         back_translated = self.translate(intermediate, self.lang_to_en, self.lang_to_en_tokenizer)
         return back_translated
 ```
 
-## Time Series Augmentation
+## 시계열 증강
 
 ```python
 import numpy as np
 import torch
 
 class TimeSeriesAugmentation:
-    """Augmentations for time series data."""
+    """시계열 데이터를 위한 증강."""
     
     @staticmethod
     def jittering(x: np.ndarray, sigma: float = 0.03) -> np.ndarray:
-        """Add Gaussian noise."""
+        """정규 잡음을 더한다."""
         return x + np.random.normal(0, sigma, x.shape)
     
     @staticmethod
     def scaling(x: np.ndarray, sigma: float = 0.1) -> np.ndarray:
-        """Scale by random factor."""
+        """무작위 인수로 배율을 조정한다."""
         factor = np.random.normal(1, sigma, (1, x.shape[1]))
         return x * factor
     
     @staticmethod
     def magnitude_warping(x: np.ndarray, sigma: float = 0.2, 
                           knot: int = 4) -> np.ndarray:
-        """Warp magnitude with smooth curve."""
+        """매끄러운 곡선으로 크기를 뒤튼다."""
         from scipy.interpolate import CubicSpline
         
         orig_steps = np.arange(x.shape[0])
@@ -420,7 +408,7 @@ class TimeSeriesAugmentation:
     @staticmethod
     def time_warping(x: np.ndarray, sigma: float = 0.2, 
                      knot: int = 4) -> np.ndarray:
-        """Warp time axis with smooth curve."""
+        """매끄러운 곡선으로 시간축을 뒤튼다."""
         from scipy.interpolate import CubicSpline
         
         orig_steps = np.arange(x.shape[0])
@@ -438,7 +426,7 @@ class TimeSeriesAugmentation:
     
     @staticmethod
     def window_slicing(x: np.ndarray, reduce_ratio: float = 0.9) -> np.ndarray:
-        """Take random contiguous slice and resize."""
+        """이어진 구간을 무작위로 잘라 내어 크기를 맞춘다."""
         target_len = int(x.shape[0] * reduce_ratio)
         if target_len < 1:
             return x
@@ -446,7 +434,7 @@ class TimeSeriesAugmentation:
         start = np.random.randint(0, x.shape[0] - target_len + 1)
         sliced = x[start:start + target_len]
         
-        # Resize back to original length
+        # 원래 길이로 되돌리기
         indices = np.linspace(0, target_len - 1, x.shape[0])
         resized = np.zeros_like(x)
         for i in range(x.shape[1]):
@@ -456,7 +444,7 @@ class TimeSeriesAugmentation:
     
     @staticmethod
     def permutation(x: np.ndarray, max_segments: int = 5) -> np.ndarray:
-        """Randomly permute segments of the series."""
+        """계열의 구간들을 무작위로 뒤섞는다."""
         n_segments = np.random.randint(2, max_segments + 1)
         segment_len = x.shape[0] // n_segments
         
@@ -470,25 +458,25 @@ class TimeSeriesAugmentation:
         return np.concatenate(segments, axis=0)
 ```
 
-## Tabular Data Augmentation
+## 표 형식 데이터의 증강
 
 ```python
 import numpy as np
 from sklearn.neighbors import NearestNeighbors
 
 class TabularAugmentation:
-    """Augmentation techniques for tabular data."""
+    """표 형식 데이터를 위한 증강 기법."""
     
     @staticmethod
     def add_gaussian_noise(X: np.ndarray, noise_scale: float = 0.1) -> np.ndarray:
-        """Add Gaussian noise to features."""
+        """특징에 정규 잡음을 더한다."""
         std = np.std(X, axis=0) * noise_scale
         noise = np.random.normal(0, std, X.shape)
         return X + noise
     
     @staticmethod
     def feature_dropout(X: np.ndarray, dropout_rate: float = 0.1) -> np.ndarray:
-        """Randomly set features to their column mean."""
+        """특징을 무작위로 그 열의 평균으로 바꾼다."""
         X_aug = X.copy()
         mask = np.random.random(X.shape) < dropout_rate
         col_means = np.mean(X, axis=0)
@@ -501,9 +489,9 @@ class TabularAugmentation:
               k_neighbors: int = 5,
               n_synthetic: int = None) -> tuple:
         """
-        SMOTE: Synthetic Minority Over-sampling Technique.
+        SMOTE: 합성 소수 클래스 과표집 기법.
         
-        Generates synthetic samples for minority class.
+        소수 클래스를 위한 합성 표본을 만든다.
         """
         minority_mask = y == minority_class
         X_minority = X[minority_mask]
@@ -516,22 +504,22 @@ class TabularAugmentation:
         if n_synthetic <= 0 or len(X_minority) < k_neighbors:
             return X, y
         
-        # Find k nearest neighbors
+        # 가장 가까운 이웃 k개 찾기
         nn = NearestNeighbors(n_neighbors=k_neighbors + 1)
         nn.fit(X_minority)
         
         synthetic_samples = []
         for _ in range(n_synthetic):
-            # Random minority sample
+            # 무작위 소수 클래스 표본
             idx = np.random.randint(len(X_minority))
             sample = X_minority[idx]
             
-            # Random neighbor
+            # 무작위 이웃
             distances, indices = nn.kneighbors([sample])
-            neighbor_idx = np.random.choice(indices[0][1:])  # Exclude self
+            neighbor_idx = np.random.choice(indices[0][1:])  # 자기 자신 제외
             neighbor = X_minority[neighbor_idx]
             
-            # Interpolate
+            # 보간
             alpha = np.random.random()
             synthetic = sample + alpha * (neighbor - sample)
             synthetic_samples.append(synthetic)
@@ -541,9 +529,8 @@ class TabularAugmentation:
         
         return np.vstack([X, X_synthetic]), np.concatenate([y, y_synthetic])
 
-
 class MixupTabular:
-    """Mixup for tabular data."""
+    """표 형식 데이터를 위한 믹스업."""
     
     def __init__(self, alpha: float = 0.2):
         self.alpha = alpha
@@ -564,26 +551,26 @@ class MixupTabular:
         return X_mixed, y_mixed
 ```
 
-## AutoAugment and Learned Augmentation
+## AutoAugment와 학습된 증강
 
 ```python
 class RandAugment:
     """
-    RandAugment: simplified learned augmentation policy.
+    RandAugment: 간략화한 학습된 증강 정책.
     
-    Reference: Cubuk et al., "RandAugment: Practical Automated Data Augmentation"
+    참고: Cubuk 등, "RandAugment: Practical Automated Data Augmentation"
     """
     
     def __init__(self, n_ops: int = 2, magnitude: int = 9):
         """
-        Args:
-            n_ops: Number of augmentation operations to apply
-            magnitude: Strength of augmentation (0-30)
+        인수:
+            n_ops: 적용할 증강 연산의 수
+            magnitude: 증강의 세기 (0~30)
         """
         self.n_ops = n_ops
         self.magnitude = magnitude
         
-        # Define available operations
+        # 쓸 수 있는 연산 정의
         self.ops = [
             'identity', 'autocontrast', 'equalize', 'rotate',
             'solarize', 'color', 'posterize', 'contrast',
@@ -592,7 +579,7 @@ class RandAugment:
         ]
     
     def __call__(self, image):
-        # Select random operations
+        # 무작위 연산 고르기
         ops = random.sample(self.ops, self.n_ops)
         
         for op in ops:
@@ -601,9 +588,9 @@ class RandAugment:
         return image
     
     def _apply_op(self, img, op: str, magnitude: int):
-        """Apply a single augmentation operation."""
-        # Magnitude to actual values
-        mag = magnitude / 30.0  # Normalize to 0-1
+        """증강 연산 하나를 적용한다."""
+        # 세기를 실제 값으로
+        mag = magnitude / 30.0  # 0~1로 정규화
         
         if op == 'identity':
             return img
@@ -612,7 +599,7 @@ class RandAugment:
         elif op == 'equalize':
             return F.equalize(img)
         elif op == 'rotate':
-            angle = mag * 30  # Up to 30 degrees
+            angle = mag * 30  # 최대 30도
             return F.rotate(img, angle)
         elif op == 'solarize':
             threshold = int((1 - mag) * 255)
@@ -645,30 +632,30 @@ class RandAugment:
         return img
 ```
 
-## Practical Guidelines
+## 실무 지침
 
-### Choosing Augmentations
+### 증강 고르기
 
-| Data Type | Recommended Augmentations |
+| 데이터 종류 | 권장 증강 |
 |-----------|--------------------------|
-| Natural images | Flips, crops, color jitter, RandAugment |
-| Medical images | Rotations, scaling (careful with flips) |
-| Documents | Slight rotations, noise, blur |
-| Time series | Jittering, scaling, time warping |
-| Text | Synonym replacement, back-translation |
-| Tabular | Noise injection, SMOTE for imbalance |
+| 자연 이미지 | 뒤집기, 잘라내기, 색 흔들기, RandAugment |
+| 의료 영상 | 회전, 크기 조정 (뒤집기는 조심) |
+| 문서 | 약간의 회전, 잡음, 흐리기 |
+| 시계열 | 흔들기, 크기 조정, 시간 뒤틀기 |
+| 텍스트 | 유의어 치환, 역번역 |
+| 표 형식 | 잡음 주입, 불균형에는 SMOTE |
 
-### Augmentation Strength
+### 증강의 강도
 
-- **Too weak**: Little regularization benefit
-- **Too strong**: May destroy semantic information
-- **Best practice**: Start moderate, increase if overfitting persists
+- **너무 약하면**: 정칙화의 이점이 거의 없다
+- **너무 강하면**: 의미 정보를 없앨 수 있다
+- **좋은 관행**: 적당한 세기로 시작하고 과적합이 계속되면 올린다
 
-### Validation Set
+### 검증 집합
 
-**Never augment validation/test data** - use original samples for fair evaluation.
+**검증/시험 데이터는 결코 증강하지 마라.** 공정한 평가를 위해 원래 표본을 쓴다.
 
-## References
+## 참고 문헌
 
 1. Shorten, C., & Khoshgoftaar, T. M. (2019). A Survey on Image Data Augmentation for Deep Learning. *Journal of Big Data*, 6(1), 60.
 2. Cubuk, E. D., et al. (2020). RandAugment: Practical Automated Data Augmentation. *NeurIPS*.
@@ -676,3 +663,44 @@ class RandAugment:
 4. Zhang, H., et al. (2018). mixup: Beyond Empirical Risk Minimization. *ICLR*.
 5. DeVries, T., & Taylor, G. W. (2017). Improved Regularization of CNNs with Cutout. *arXiv*.
 6. Yun, S., et al. (2019). CutMix: Regularization Strategy to Train Strong Classifiers with Localizable Features. *ICCV*.
+
+## 연습문제
+
+**연습문제 1.**
+이미지 분류를 위한 표준 데이터 증강 기법을 열거하고 각각이 북돋우는 불변성을 설명하라.
+
+??? success "연습문제 1 풀이"
+    좌우 뒤집기는 좌우 불변성, 무작위 잘라내기는 평행이동 불변성, 색 흔들기는 조명 불변성, 회전은 회전 불변성, 무작위 지우기는 가림에 대한 견고성을 준다. 각 증강은 어떤 변환이 레이블을 바꾸지 말아야 하는지에 대한 사전 지식을 담는다.
+
+---
+
+**연습문제 2.**
+`torchvision.transforms`를 써서 PyTorch에서 사용자 정의 증강 파이프라인을 구현하라.
+
+??? success "연습문제 2 풀이"
+    ```python
+    from torchvision import transforms
+    train_transform = transforms.Compose([
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomCrop(32, padding=4),
+        transforms.ColorJitter(0.2, 0.2, 0.2),
+        transforms.ToTensor(),
+        transforms.Normalize((0.5,), (0.5,)),
+    ])
+    ```
+
+---
+
+**연습문제 3.**
+데이터 증강이 손실 함수에 정칙화 항을 더하는 것과 동등한 이유를 설명하라.
+
+??? success "연습문제 3 풀이"
+    입력 $x$을 변환 $T$으로 증강하면 $f(T(x)) \approx f(x)$이라는 제약이 더해진다. 이는 손실에 $\mathbb{E}_T[L(f(T(x)), y)]$을 더하는 것과 동등하며, 증강 변환에 대한 민감도에 벌점을 준다.
+
+---
+
+**연습문제 4.**
+(a) 의료 영상, (b) 위성 영상, (c) 텍스트 데이터에 알맞은 증강을 설계하라.
+
+??? success "연습문제 4 풀이"
+    (a) 의료: 회전, 탄성 변형, 명암 크기 조정(좌우가 구분되는 장기에는 좌우 뒤집기를 쓰지 않는다). (b) 위성: 회전, 뒤집기, 색 흔들기, 크기 변화. (c) 텍스트: 유의어 치환, 무작위 삽입/삭제, 역번역, 문장 섞기.

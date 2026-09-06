@@ -1,119 +1,151 @@
-# LP Relaxation
+# 선형 계획 느슨하게 하기
 
-Many NP-hard combinatorial optimization problems can be formulated as **integer linear programs (ILPs)**. Solving ILPs exactly is NP-hard, but replacing the integrality constraint $x \in \{0, 1\}$ with $x \in [0, 1]$ yields a **linear program (LP)** solvable in polynomial time. The LP optimal value provides a bound on the true optimum, and the fractional solution serves as a starting point for rounding techniques that produce near-optimal integer solutions.
+많은 NP-어려운 조합 가장 좋게 하기 문제를 **정수 선형 계획(ILP)**으로 적을 수 있다. 정수 선형 계획을 정확히 푸는 것은 NP-어려움이지만 정수 조건 $x \in \{0, 1\}$을 $x \in [0, 1]$으로 바꾸면 다항식 시간에 풀 수 있는 **선형 계획(LP)**이 된다. 선형 계획의 가장 좋은 값이 참 최적의 한계를 주고 분수 풀이는 가장 좋은 값에 가까운 정수 풀이를 내는 반올림 재주의 출발점이 된다.
 
-## From ILP to LP Relaxation
+## 정수 선형 계획에서 선형 계획 느슨하게 하기로
 
-### Integer Linear Program
+### 정수 선형 계획
 
-A combinatorial optimization problem is often expressed as:
+조합 가장 좋게 하기 문제는 흔히 다음과 같이 적는다.
 
 $$
 \min \mathbf{c}^\top \mathbf{x} \quad \text{s.t.} \quad A\mathbf{x} \geq \mathbf{b}, \quad \mathbf{x} \in \{0, 1\}^n
 $$
 
-Each binary variable $x_j$ represents a yes/no decision (include item $j$ or not).
+두값 변수 $x_j$마다 예/아니오 결정을 나타낸다(물건 $j$을 넣을지 말지).
 
-### LP Relaxation
+### 선형 계획 느슨하게 하기
 
-Replace $x_j \in \{0, 1\}$ with $0 \leq x_j \leq 1$:
+$x_j \in \{0, 1\}$을 $0 \leq x_j \leq 1$으로 바꾼다.
 
 $$
 \min \mathbf{c}^\top \mathbf{x} \quad \text{s.t.} \quad A\mathbf{x} \geq \mathbf{b}, \quad \mathbf{0} \leq \mathbf{x} \leq \mathbf{1}
 $$
 
-The feasible region of the ILP is a subset of the LP feasible region. Therefore:
+정수 선형 계획의 올바른 자리는 선형 계획의 올바른 자리의 부분 모임이다. 따라서:
 
-- **Minimization:** $\text{OPT}_{\text{LP}} \leq \text{OPT}_{\text{ILP}}$ (LP provides a lower bound).
-- **Maximization:** $\text{OPT}_{\text{LP}} \geq \text{OPT}_{\text{ILP}}$ (LP provides an upper bound).
+- **가장 작게 하기:** $\text{OPT}_{\text{LP}} \leq \text{OPT}_{\text{ILP}}$(선형 계획이 아래 한계를 준다).
+- **가장 크게 하기:** $\text{OPT}_{\text{LP}} \geq \text{OPT}_{\text{ILP}}$(선형 계획이 위 한계를 준다).
 
-## Integrality Gap
+## 정수 틈
 
-The **integrality gap** measures how much the relaxation can deviate from the integer optimum.
+**정수 틈**은 느슨하게 한 것이 정수 최적에서 얼마나 벗어날 수 있는지 잰다.
 
-!!! tip "Definition: Integrality Gap"
-    For a minimization problem, the integrality gap is:
+!!! tip "뜻매김: 정수 틈"
+    가장 작게 하기 문제에서 정수 틈은 다음과 같다.
 
     $$
     \text{IG} = \sup_{I} \frac{\text{OPT}_{\text{ILP}}(I)}{\text{OPT}_{\text{LP}}(I)}
     $$
 
-    For maximization, the ratio is inverted.
+    가장 크게 하기에서는 비율이 뒤집힌다.
 
-The integrality gap limits the approximation ratio achievable by any LP-rounding algorithm using this particular relaxation. If IG $= \alpha$, then no rounding scheme can guarantee a ratio better than $\alpha$.
+정수 틈은 이 느슨하게 하기를 쓰는 어떤 선형 계획 반올림 알고리즘이 이룰 수 있는 어림 비율을 제한한다. 정수 틈이 $\alpha$이면 어떤 반올림 얼개도 $\alpha$보다 좋은 비율을 보장하지 못한다.
 
-### Example: Vertex Cover
+### 보기: 꼭짓점 덮기
 
-The vertex cover LP has integrality gap 2. The worst case occurs on odd cycles: for a triangle $K_3$, the LP sets $x_v = 1/2$ for all vertices, giving $\text{OPT}_{\text{LP}} = 3/2$, while $\text{OPT}_{\text{ILP}} = 2$. More generally, odd complete graphs achieve gap approaching 2.
+꼭짓점 덮기 선형 계획의 정수 틈은 2이다. 가장 나쁜 경우는 홀수 돌기에서 일어난다. 삼각형 $K_3$에서 선형 계획은 모든 꼭짓점에 $x_v = 1/2$을 두어 $\text{OPT}_{\text{LP}} = 3/2$이 되지만 $\text{OPT}_{\text{ILP}} = 2$이다. 더 일반으로 홀수 온전 그래프는 틈이 2에 가까워진다.
 
-### Example: Set Cover
+### 보기: 모임 덮기
 
-The set cover LP has integrality gap $\Theta(\log n)$, matching the greedy algorithm's ratio. This means the LP relaxation is tight enough to support an $O(\log n)$-approximation but not better.
+모임 덮기 선형 계획의 정수 틈은 $\Theta(\log n)$이며 욕심쟁이 알고리즘의 비율과 맞는다. 곧 선형 계획 느슨하게 하기는 $O(\log n)$ 어림을 받쳐 줄 만큼 빡빡하지만 그보다 낫지는 않다.
 
-## LP Relaxation for Vertex Cover
+## 꼭짓점 덮기의 선형 계획 느슨하게 하기
 
-**ILP:**
+**정수 선형 계획:**
 
 $$
 \min \sum_{v \in V} x_v \quad \text{s.t.} \quad x_u + x_v \geq 1 \;\; \forall (u,v) \in E, \quad x_v \in \{0, 1\}
 $$
 
-**LP relaxation:**
+**선형 계획 느슨하게 하기:**
 
 $$
 \min \sum_{v \in V} x_v \quad \text{s.t.} \quad x_u + x_v \geq 1 \;\; \forall (u,v) \in E, \quad 0 \leq x_v \leq 1
 $$
 
-**Half-integrality property.** The vertex cover LP always has an optimal solution where every $x_v \in \{0, 1/2, 1\}$. This structure simplifies rounding: set $x_v = 1$ whenever $x_v^* \geq 1/2$.
+**반정수 성질.** 꼭짓점 덮기 선형 계획에는 늘 모든 $x_v \in \{0, 1/2, 1\}$인 가장 좋은 풀이가 있다. 이 짜임이 반올림을 단순하게 한다. 곧 $x_v^* \geq 1/2$일 때마다 $x_v = 1$으로 둔다.
 
-## LP Relaxation for Set Cover
+## 모임 덮기의 선형 계획 느슨하게 하기
 
-Given universe $U$ and sets $S_1, \ldots, S_m$ with costs $c_j$:
+온 모임 $U$과 비용이 $c_j$인 모임 $S_1, \ldots, S_m$이 주어질 때:
 
 $$
 \min \sum_{j=1}^{m} c_j x_j \quad \text{s.t.} \quad \sum_{j : i \in S_j} x_j \geq 1 \;\; \forall i \in U, \quad 0 \leq x_j \leq 1
 $$
 
-The LP dual assigns a price $y_i$ to each element:
+선형 계획 쌍대는 낱개마다 값 $y_i$을 매긴다.
 
 $$
 \max \sum_{i \in U} y_i \quad \text{s.t.} \quad \sum_{i \in S_j} y_i \leq c_j \;\; \forall j, \quad y_i \geq 0
 $$
 
-This dual interpretation says: assign prices to elements such that no set is "overpriced" (the sum of element prices in any set does not exceed its cost).
+이 쌍대 풀이가 말하는 바는 이렇다. 어떤 모임도 "값이 지나치지" 않도록(어느 모임에서든 낱개 값의 합이 그 비용을 넘지 않도록) 낱개에 값을 매긴다.
 
-## Strengthening LP Relaxations
+## 선형 계획 느슨하게 하기 다지기
 
-When the integrality gap is too large, the LP can be tightened:
+정수 틈이 너무 크면 선형 계획을 빡빡하게 할 수 있다.
 
-1. **Adding valid inequalities.** Constraints that are redundant for the LP but tighten the feasible region closer to the integer hull. For example, clique inequalities for independent set.
+1. **올바른 부등식 더하기.** 선형 계획에는 군더더기지만 올바른 자리를 정수 껍질에 더 가깝게 좁히는 조건이다. 예컨대 서로 매이지 않은 모임의 완전 부분 그래프 부등식이 있다.
 
-2. **Lift-and-project.** Systematic methods (Sherali-Adams, Lasserre hierarchies) that add auxiliary variables and constraints to narrow the gap.
+2. **들어 올려 쏘기.** 곁 변수와 조건을 더해 틈을 좁히는 체계적인 방법(셰랄리-애덤스, 라세르 층층 짜임)이다.
 
-3. **Semidefinite relaxation (SDP).** Replace LP with a semidefinite program. The Goemans-Williamson MAX-CUT algorithm uses an SDP relaxation to achieve ratio $\approx 0.878$, beating any LP-based approach.
+3. **반정부호 느슨하게 하기(SDP).** 선형 계획을 반정부호 계획으로 바꾼다. 괴만스-윌리엄슨 최대 자름 알고리즘은 반정부호 느슨하게 하기로 비율 $\approx 0.878$을 이루어 어떤 선형 계획 방식보다 낫다.
 
-??? example "Worked Example: LP Relaxation for Vertex Cover"
-    **Graph:** $V = \{a, b, c\}$, edges $\{(a,b), (b,c), (a,c)\}$ (triangle $K_3$).
+??? example "풀어 본 보기: 꼭짓점 덮기의 선형 계획 느슨하게 하기"
+    **그래프:** $V = \{a, b, c\}$, 모서리 $\{(a,b), (b,c), (a,c)\}$(삼각형 $K_3$).
 
-    **LP constraints:**
+    **선형 계획 조건:**
 
     - $x_a + x_b \geq 1$
     - $x_b + x_c \geq 1$
     - $x_a + x_c \geq 1$
     - $0 \leq x_a, x_b, x_c \leq 1$
 
-    **LP optimum:** $x_a = x_b = x_c = 1/2$, cost $= 3/2$.
+    **선형 계획의 가장 좋은 값:** $x_a = x_b = x_c = 1/2$, 비용 $= 3/2$.
 
-    **Rounding:** All values $\geq 1/2$, so all vertices are included. $|C| = 3$.
+    **반올림:** 모든 값이 $\geq 1/2$이므로 꼭짓점이 모두 든다. $|C| = 3$.
 
-    **ILP optimum:** Any two vertices suffice. $\text{OPT} = 2$.
+    **정수 선형 계획의 가장 좋은 값:** 꼭짓점 둘이면 넉넉하다. $\text{OPT} = 2$.
 
-    **Integrality gap for this instance:** $2 / (3/2) = 4/3$.
+    **이 보기의 정수 틈:** $2 / (3/2) = 4/3$.
 
-    **Approximation ratio:** $3 / 2 = 1.5 \leq 2$. The 2-approximation guarantee holds.
+    **어림 비율:** $3 / 2 = 1.5 \leq 2$. 2 어림 보장이 참이다.
 
-## Reference
+## 참고 문헌
 
 - Vazirani, V. V. (2001). *Approximation Algorithms*. Springer, Chapters 12--14.
 - Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press, Chapter 1.
 - Bertsimas, D., & Tsitsiklis, J. N. (1997). *Introduction to Linear Optimization*. Athena Scientific.
+
+## 연습문제
+
+**연습문제 1.**
+선형 계획 느슨하게 하기의 어림 알고리즘을 설명하고 그 어림 보장을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 다항식 시간에 돌며 가장 좋은 값의 밝힐 수 있는 갑절 안에 드는 풀이를 낸다. 어림 비율은 알고리즘이 내놓은 것을 가장 좋은 값의 아래 한계(가장 작게 하기)나 위 한계(가장 크게 하기), 곧 선형 계획 느슨하게 하기 값이나 조합 한계, 문제의 짜임 성질과 이어 밝힌다. $\square$
+
+---
+
+**연습문제 2.**
+선형 계획 느슨하게 하기의 어림 비율을 밝히는 데 어떤 아래 한계 재주를 쓰는가?
+
+??? success "연습문제 2 풀이"
+    밝힘은 흔히 알고리즘의 풀이를 느슨하게 한 한계(선형 계획 느슨하게 하기, 분수 풀이, 조합 아래 한계)와 견준다. 가장 작게 하기에서는 $ALG \leq \rho \cdot LP^* \leq \rho \cdot OPT$이다. 가장 크게 하기에서는 $ALG \geq OPT / \rho$이다. 아래 한계는 효율 좋게 셈할 수 있고 쓸모 있는 비율을 줄 만큼 빡빡해야 한다. $\square$
+
+---
+
+**연습문제 3.**
+선형 계획 느슨하게 하기의 어림 비율을 더 좋게 할 수 있는가? 알려진 어려움 결과는 무엇인가?
+
+??? success "연습문제 3 풀이"
+    어림 비율이 얼마나 빡빡한지는 복잡도 이론의 가정(P $\neq$ NP, 하나뿐인 놀이 추측 등)에 달렸다. 어떤 문제에서는 단순한 욕심쟁이나 반올림 알고리즘이 여느 가정 아래 이미 가장 좋다. 다른 문제에서는 가장 좋은 알고리즘과 가장 센 어려움 결과 사이에 틈이 있어 아직 풀리지 않은 연구 문제로 남아 있다. $\square$
+
+---
+
+**연습문제 4.**
+선형 계획 느슨하게 하기을 구체적인 보기에 써서 어림 비율이 참임을 확인하라.
+
+??? success "연습문제 4 풀이"
+    작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$

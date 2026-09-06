@@ -1,48 +1,48 @@
-# Black-Height
+# 검은 높이
 
-The red-black properties constrain how colors are distributed along root-to-leaf paths. Property 5 demands that every path from a node to a descendant leaf contains the same number of black nodes. This count --- the **black-height** --- is the central quantity that connects coloring rules to the logarithmic height guarantee. Understanding black-height is essential before proving the height bound of red-black trees.
+레드-블랙 성질은 뿌리에서 잎까지의 경로를 따라 색이 어떻게 놓이는지를 묶는다. 성질 5는 어떤 노드에서 자손 잎까지 가는 모든 경로에 검은 노드가 똑같이 있어야 한다고 요구한다. 이 개수, 곧 **검은 높이**가 색칠 규칙과 로그 높이 보장을 잇는 핵심 양이다. 레드-블랙 트리의 높이 한계를 증명하기에 앞서 검은 높이를 이해해야 한다.
 
-## Definition
+## 정의
 
-The **black-height** of a node $x$, denoted $\text{bh}(x)$, is the number of black nodes on any simple path from $x$ down to a leaf (NIL sentinel), **not counting $x$ itself**.
+노드 $x$의 **검은 높이** $\text{bh}(x)$은 $x$에서 잎(NIL 보초)까지 내려가는 아무 단순 경로에 있는 검은 노드의 수이며, **$x$ 자신은 세지 않는다**.
 
-By Property 5, this count is the same regardless of which descendant leaf path is chosen, so $\text{bh}(x)$ is well-defined.
+성질 5에 따라 어느 자손 잎으로 가든 이 개수가 같으므로 $\text{bh}(x)$은 잘 정의된다.
 
-For the NIL sentinel nodes (leaves), the black-height is 0:
+NIL 보초 노드(잎)의 검은 높이는 0이다.
 
 $$
 \text{bh}(\text{NIL}) = 0
 $$
 
-## Computing Black-Height
+## 검은 높이 계산하기
 
-For an internal node $x$ with children $l$ and $r$:
+자식이 $l$과 $r$인 내부 노드 $x$에 대해 다음과 같다.
 
 $$
 \text{bh}(x) = \begin{cases} \text{bh}(l) & \text{if } l \text{ is black, then } \text{bh}(l) = \text{bh}(r) \\ \text{bh}(l) + 1 & \text{wait — let us be more careful} \end{cases}
 $$
 
-Actually, the relationship depends on the children's colors:
+사실 이 관계는 자식의 색에 달려 있다.
 
-- If child $c$ is **black**, then $\text{bh}(x) = \text{bh}(c) + 1$ (the path from $x$ through $c$ picks up one more black node at $c$).
-- If child $c$ is **red**, then $\text{bh}(x) = \text{bh}(c)$ (red nodes do not count).
+- 자식 $c$이 **검으면** $\text{bh}(x) = \text{bh}(c) + 1$이다($x$에서 $c$을 지나는 경로가 $c$에서 검은 노드를 하나 더 얻는다).
+- 자식 $c$이 **붉으면** $\text{bh}(x) = \text{bh}(c)$이다(붉은 노드는 세지 않는다).
 
-Since Property 5 guarantees both children yield the same $\text{bh}(x)$, we can use either child:
+성질 5가 두 자식 모두 같은 $\text{bh}(x)$을 준다고 보장하므로 어느 자식을 써도 된다.
 
 $$
 \text{bh}(x) = \begin{cases} \text{bh}(\text{child}) + 1 & \text{if child is black} \\ \text{bh}(\text{child}) & \text{if child is red} \end{cases}
 $$
 
-## Key Lemma
+## 핵심 보조정리
 
-!!! info "Lemma: Minimum subtree size"
-    A subtree rooted at node $x$ contains at least $2^{\text{bh}(x)} - 1$ internal nodes.
+!!! info "보조정리: 부분 트리의 최소 크기"
+    노드 $x$을 뿌리로 하는 부분 트리에는 내부 노드가 적어도 $2^{\text{bh}(x)} - 1$개 있다.
 
-**Proof by induction on the height of $x$.**
+**$x$의 높이에 대한 귀납법으로 증명한다.**
 
-*Base case*: If $x$ is a leaf (NIL), then $\text{bh}(x) = 0$ and the subtree has $0 = 2^0 - 1$ internal nodes.
+*바탕 경우*: $x$이 잎(NIL)이면 $\text{bh}(x) = 0$이고 부분 트리의 내부 노드는 $0 = 2^0 - 1$개이다.
 
-*Inductive step*: Let $x$ be an internal node with children $l$ and $r$. Each child has black-height at least $\text{bh}(x) - 1$ (exactly $\text{bh}(x) - 1$ if the child is black, or $\text{bh}(x)$ if the child is red). By the inductive hypothesis, each child's subtree has at least $2^{\text{bh}(x)-1} - 1$ internal nodes. Therefore:
+*귀납 단계*: $x$을 자식이 $l$과 $r$인 내부 노드라 하자. 자식마다 검은 높이가 적어도 $\text{bh}(x) - 1$이다(자식이 검으면 정확히 $\text{bh}(x) - 1$, 붉으면 $\text{bh}(x)$이다). 귀납 가정에 따라 자식의 부분 트리마다 내부 노드가 적어도 $2^{\text{bh}(x)-1} - 1$개 있다. 따라서 다음이 성립한다.
 
 $$
 n(x) \geq 1 + 2\bigl(2^{\text{bh}(x)-1} - 1\bigr) = 2^{\text{bh}(x)} - 1
@@ -50,9 +50,9 @@ $$
 
 $\square$
 
-## Example
+## 예
 
-Consider a red-black tree (B = black, R = red):
+레드-블랙 트리를 생각해 보자 (B = 검정, R = 빨강).
 
 ```
           10(B)          bh = 2
@@ -66,24 +66,24 @@ Consider a red-black tree (B = black, R = red):
             N   N
 ```
 
-- NIL nodes: $\text{bh} = 0$
-- Node 20 (black, leaf-like): $\text{bh}(20) = 0$ (paths go directly to NIL)
-- Node 3 (black): $\text{bh}(3) = 0 + 1 = 1$ (counting the NIL below, which is black... wait, NIL is black but $\text{bh}$ does not count NIL). Let us reclarify.
+- NIL 노드: $\text{bh} = 0$
+- 노드 20 (검정, 잎에 가까움): $\text{bh}(20) = 0$ (경로가 곧바로 NIL로 간다)
+- 노드 3 (검정): $\text{bh}(3) = 0 + 1 = 1$ (아래의 NIL을 세면 그렇다. 그런데 NIL은 검지만 $\text{bh}$은 NIL을 세지 않는다). 다시 정리해 보자.
 
-Using the convention that $\text{bh}(x)$ counts the black nodes **below** $x$ (not including $x$ or NIL):
+$\text{bh}(x)$이 $x$ **아래**의 검은 노드를 센다는 규약을 쓰면($x$과 NIL은 빼고) 다음과 같다.
 
-- Node 20 (black, children are NIL): $\text{bh}(20) = 0$
-- Node 3 (black, children are NIL): $\text{bh}(3) = 0$
-- Node 7 (black, children are NIL): $\text{bh}(7) = 0$
-- Node 11 (black, children are NIL): $\text{bh}(11) = 0$
-- Node 13 (red, children: 11(B) and NIL): $\text{bh}(13) = 0 + 1 = 1$
-- Node 15 (black, children: 13(R) and 20(B)): $\text{bh}(15) = \text{bh}(13) = 1$ (13 is red, so no extra count), and checking: $\text{bh}(20) + 1 = 1$ (20 is black). Both give 1. Check.
-- Node 5 (red, children: 3(B) and 7(B)): $\text{bh}(5) = \text{bh}(3) + 1 = 1$
-- Node 10 (black, children: 5(R) and 15(B)): $\text{bh}(10) = \text{bh}(5) = 1$ (5 is red), and $\text{bh}(15) + 1 = 2$...
+- 노드 20 (검정, 자식이 NIL): $\text{bh}(20) = 0$
+- 노드 3 (검정, 자식이 NIL): $\text{bh}(3) = 0$
+- 노드 7 (검정, 자식이 NIL): $\text{bh}(7) = 0$
+- 노드 11 (검정, 자식이 NIL): $\text{bh}(11) = 0$
+- 노드 13 (빨강, 자식은 11(B)과 NIL): $\text{bh}(13) = 0 + 1 = 1$
+- 노드 15 (검정, 자식은 13(R)과 20(B)): $\text{bh}(15) = \text{bh}(13) = 1$이다(13이 붉으므로 더 세지 않는다). 확인해 보면 $\text{bh}(20) + 1 = 1$이다(20은 검다). 둘 다 1이다. 맞다.
+- 노드 5 (빨강, 자식은 3(B)과 7(B)): $\text{bh}(5) = \text{bh}(3) + 1 = 1$
+- 노드 10 (검정, 자식은 5(R)과 15(B)): $\text{bh}(10) = \text{bh}(5) = 1$이고(5가 붉다) $\text{bh}(15) + 1 = 2$이다…
 
-This discrepancy reveals a problem with our example tree --- it does not satisfy Property 5. Let us use a correct example instead.
+이 어긋남은 예제 트리에 문제가 있음을 드러낸다. 성질 5를 만족하지 않는 것이다. 올바른 예를 대신 쓰자.
 
-**Corrected example:**
+**바로잡은 예:**
 
 ```
           10(B)          bh = 2
@@ -93,37 +93,37 @@ This discrepancy reveals a problem with our example tree --- it does not satisfy
     3(R) 7(R) 13(R) 20(R)   bh = 1
 ```
 
-- Nodes 3, 7, 13, 20 (red, children are NIL): $\text{bh} = 0 + 1 = 1$. Wait, NIL is black, so the path from a red node to its NIL child has 1 black node (the NIL). But by CLRS convention, $\text{bh}$ counts black nodes on the path **not including** $x$ itself but **including** NIL. Under this convention: $\text{bh}(\text{NIL}) = 0$, and $\text{bh}(3) = 0 + 1 = 1$ if NIL is counted...
+- 노드 3, 7, 13, 20 (빨강, 자식이 NIL): $\text{bh} = 0 + 1 = 1$이다. 잠깐, NIL은 검으므로 붉은 노드에서 그 NIL 자식으로 가는 경로에는 검은 노드가 1개(NIL) 있다. 그런데 CLRS의 규약에서 $\text{bh}$은 경로 위의 검은 노드를 세되 $x$ 자신은 **빼고** NIL은 **넣는다**. 이 규약에서는 $\text{bh}(\text{NIL}) = 0$이고, NIL을 세면 $\text{bh}(3) = 0 + 1 = 1$이다…
 
-Let us adopt the **CLRS convention** precisely: $\text{bh}(x)$ = number of black nodes on any path from $x$ to a leaf, **not counting $x$**. NIL sentinels are leaves with $\text{bh} = 0$.
+**CLRS의 규약**을 정확히 따르자. $\text{bh}(x)$은 $x$에서 잎까지 가는 아무 경로 위의 검은 노드 수이며 **$x$은 세지 않는다**. NIL 보초는 $\text{bh} = 0$인 잎이다.
 
-- Node 3 (red, children are NIL(B)): path from 3 to leaf = {NIL}, black count = 1. So $\text{bh}(3) = 1$.
-- Node 5 (black, left child 3(R)): path from 5 to leaf through 3 = {3, NIL}. Black count = 1 (only NIL). So $\text{bh}(5) = 1$.
-- Node 10 (black, left child 5(B)): path through 5 then 3 then NIL = {5, 3, NIL}. Black count = 2 (5 and NIL). So $\text{bh}(10) = 2$.
+- 노드 3 (빨강, 자식이 NIL(B)): 3에서 잎까지의 경로는 {NIL}이고 검은 노드 수는 1이다. 따라서 $\text{bh}(3) = 1$이다.
+- 노드 5 (검정, 왼쪽 자식 3(R)): 5에서 3을 지나 잎까지의 경로는 {3, NIL}이다. 검은 노드 수는 1(NIL뿐)이다. 따라서 $\text{bh}(5) = 1$이다.
+- 노드 10 (검정, 왼쪽 자식 5(B)): 5를 지나 3을 지나 NIL까지의 경로는 {5, 3, NIL}이다. 검은 노드 수는 2(5와 NIL)이다. 따라서 $\text{bh}(10) = 2$이다.
 
-Checking the lemma: the subtree at node 10 has 7 internal nodes, and $2^{\text{bh}(10)} - 1 = 2^2 - 1 = 3$. Indeed $7 \geq 3$.
+보조정리를 확인해 보자. 노드 10의 부분 트리에는 내부 노드가 7개 있고 $2^{\text{bh}(10)} - 1 = 2^2 - 1 = 3$이다. 과연 $7 \geq 3$이다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Black-height computation for red-black trees.
+적흑 트리의 검은 높이 셈하기.
 
-Demonstrates the black-height definition and verifies
-that all paths from a node to leaves have equal black-node counts.
+검은 높이의 정의를 보이고 노드에서 잎까지의 모든 경로에서
+검은 노드의 수가 같음을 확인한다.
 """
 
 
-# === Constants ===
+# === 상수 ===
 
 RED = "R"
 BLACK = "B"
 
 
-# === Red-Black Node ===
+# === 적흑 노드 ===
 
 class RBNode:
-    """A red-black tree node."""
+    """적흑 트리의 노드."""
 
     def __init__(self, key, color=RED):
         self.key = key
@@ -135,20 +135,20 @@ class RBNode:
         return f"{self.key}({self.color})"
 
 
-# Sentinel NIL node
+# 파수 NIL 노드
 NIL = RBNode(key=None, color=BLACK)
 NIL.left = NIL
 NIL.right = NIL
 
 
-# === Black-Height Computation ===
+# === 검은 높이 셈하기 ===
 
 def black_height(node):
-    """Compute black-height of a node (CLRS convention).
+    """노드의 검은 높이를 셈한다(CLRS 관례).
 
-    Returns the number of black nodes on any path from node
-    to a descendant leaf, not counting node itself.
-    Returns -1 if the tree violates Property 5.
+    노드 자신은 세지 않고, 노드에서 자손 잎까지의 아무 경로에나 있는
+    검은 노드의 수를 돌려준다.
+    트리가 성질 5를 어기면 -1을 돌려준다.
     """
     if node is NIL:
         return 0
@@ -157,9 +157,9 @@ def black_height(node):
     right_bh = black_height(node.right)
 
     if left_bh == -1 or right_bh == -1:
-        return -1  # violation in subtree
+        return -1  # 부분 트리에 위반이 있다
 
-    # Adjust for child color
+    # 자식의 색에 맞추어 고친다
     left_count = left_bh + (1 if node.left.color == BLACK else 0)
     right_count = right_bh + (1 if node.right.color == BLACK else 0)
 
@@ -171,10 +171,10 @@ def black_height(node):
     return left_count
 
 
-# === Tree Builder (manual) ===
+# === 트리 세우개 (손수) ===
 
 def build_example_tree():
-    """Build a valid red-black tree for demonstration."""
+    """보여 주기 위해 올바른 적흑 트리를 세운다."""
     root = RBNode(10, BLACK)
     root.left = RBNode(5, BLACK)
     root.right = RBNode(15, BLACK)
@@ -183,7 +183,7 @@ def build_example_tree():
     root.right.left = RBNode(13, RED)
     root.right.right = RBNode(20, RED)
 
-    # Set NIL children
+    # NIL 자식을 둔다
     for node in [root.left.left, root.left.right,
                  root.right.left, root.right.right]:
         node.left = NIL
@@ -194,10 +194,10 @@ def build_example_tree():
     return root
 
 
-# === Display ===
+# === 보이기 ===
 
 def print_tree(node, level=0):
-    """Print tree sideways with colors and black-heights."""
+    """색과 검은 높이와 함께 트리를 옆으로 찍는다."""
     if node is NIL:
         return
     print_tree(node.right, level + 1)
@@ -213,13 +213,13 @@ if __name__ == "__main__":
     print_tree(root)
     print()
     print(f"Root black-height: {black_height(root)}")
-    n = 7  # internal nodes
+    n = 7  # 내부 노드
     bh = black_height(root)
     print(f"Internal nodes: {n}")
     print(f"Lemma check: 2^bh - 1 = {2**bh - 1} <= {n}: {2**bh - 1 <= n}")
 ```
 
-**Output:**
+**출력:**
 ```
 Red-Black Tree with black-heights:
         20(R) bh=1
@@ -235,14 +235,47 @@ Internal nodes: 7
 Lemma check: 2^bh - 1 = 3 <= 7: True
 ```
 
-## Significance
+## 무엇이 중요한가
 
-Black-height serves two critical roles:
+검은 높이는 결정적인 두 구실을 한다.
 
-1. **Height bound proof**: The lemma $n \geq 2^{\text{bh}(x)} - 1$ combined with $\text{bh}(\text{root}) \geq h/2$ yields $h \leq 2\log_2(n+1)$. This proof is developed fully in the Height Bound section.
+1. **높이 한계의 증명**: 보조정리 $n \geq 2^{\text{bh}(x)} - 1$과 $\text{bh}(\text{root}) \geq h/2$을 함께 쓰면 $h \leq 2\log_2(n+1)$이 나온다. 이 증명은 높이의 한계 절에서 온전히 펼친다.
 
-2. **Algorithm correctness**: During insertion and deletion fixup, the algorithms maintain black-height invariants. Every case analysis in the fixup procedures checks that black-heights remain consistent after recoloring and rotations.
+2. **알고리즘의 올바름**: 삽입과 삭제의 손질 과정에서 알고리즘은 검은 높이의 불변식을 지킨다. 손질 절차의 모든 경우 분석이 색을 바꾸고 회전한 뒤에도 검은 높이가 어긋나지 않는지 확인한다.
 
-## Reference
+## 참고 문헌
 
-- [Introduction to Algorithms (CLRS), Chapter 13](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+검은 높이의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 검은 높이를 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+검은 높이이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 검은 높이를 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

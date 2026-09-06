@@ -193,3 +193,43 @@ The empirical timings confirm the theoretical analysis: insertion sort's quadrat
 
 - Cormen, T.H., Leiserson, C.E., Rivest, R.L., and Stein, C. *Introduction to Algorithms*. MIT Press
 - Sedgewick, R. and Wayne, K. *Algorithms*. Addison-Wesley
+
+## Exercises
+
+**Exercise 1.**
+Given $n = 10^6$ elements and a 1-second time limit, determine which complexities are feasible: $O(n)$, $O(n \log n)$, $O(n \sqrt{n})$, $O(n^2)$.
+
+??? success "Solution to Exercise 1"
+    At $\sim 10^8$ operations/second in C++: $O(n) = 10^6$ operations (feasible). $O(n \log n) = 10^6 \times 20 = 2 \times 10^7$ (feasible). $O(n \sqrt{n}) = 10^6 \times 10^3 = 10^9$ (borderline, may TLE). $O(n^2) = 10^{12}$ (infeasible, 10,000x over budget). Conclusion: $O(n \log n)$ is the practical ceiling for $n = 10^6$, with $O(n \sqrt{n})$ possible only with small constants and fast I/O. $\square$
+
+---
+
+**Exercise 2.**
+A problem can be solved with either a sorting-based $O(n \log n)$ algorithm or a hash-based $O(n)$ expected-time algorithm. Discuss when each is preferable considering constant factors, worst cases, and memory.
+
+??? success "Solution to Exercise 2"
+    The hash-based approach has better asymptotic time but: (1) hash table operations have higher constant factors (hashing, collision resolution, cache misses from random access) -- typically 5--10x slower per operation than array access. For $n < 10^5$, sorting may be faster despite the $\log n$ factor. (2) Hash tables have $O(n)$ worst case if hash collisions are adversarial. Sorting is always $O(n \log n)$ worst case. (3) Hash tables use $O(n)$ extra memory with a constant factor of 2--3x. Sorting can be done in-place ($O(1)$ extra). Sorting is preferable when: deterministic worst-case behavior is needed, memory is tight, or the sorted output is useful for subsequent operations (e.g., binary search, merge). Hashing is preferable when average-case performance matters and $n$ is large. $\square$
+
+---
+
+**Exercise 3.**
+Rank the following algorithm complexities from fastest to slowest for $n = 10^4$: $O(2^n)$, $O(n!)$, $O(n^3)$, $O(n \log n)$, $O(n^2)$, $O(\log n)$, $O(1)$, $O(n)$. Compute approximate operation counts for each.
+
+??? success "Solution to Exercise 3"
+    For $n = 10^4$: $O(1) = 1$. $O(\log n) = \log_2(10^4) \approx 13$. $O(n) = 10^4$. $O(n \log n) = 10^4 \times 13 = 1.3 \times 10^5$. $O(n^2) = 10^8$. $O(n^3) = 10^{12}$. $O(2^n) = 2^{10000} \approx 10^{3010}$. $O(n!) = (10^4)! \approx 10^{35659}$. Ranked: $O(1) < O(\log n) < O(n) < O(n \log n) < O(n^2) < O(n^3) < O(2^n) < O(n!)$. Only the first five are computationally feasible. $O(n^3)$ requires $\sim 10^{12}$ operations ($\sim 10{,}000$ seconds) -- infeasible in typical time limits. $\square$
+
+---
+
+**Exercise 4.**
+Explain the difference between amortized $O(1)$ and worst-case $O(1)$. Give a data structure example where the distinction matters practically.
+
+??? success "Solution to Exercise 4"
+    **Worst-case $O(1)$**: every single operation completes in constant time, guaranteed. Example: array access by index is always $O(1)$. **Amortized $O(1)$**: the average cost per operation over a sequence of $n$ operations is $O(1)$, but individual operations may cost $O(n)$. Example: `std::vector::push_back` in C++ -- most pushes are $O(1)$, but when the vector is full, it resizes (doubling capacity), copying all $n$ elements in $O(n)$. Over $n$ pushes, total cost is $O(n)$, so amortized cost is $O(1)$. The distinction matters in real-time systems: a latency-sensitive financial trading system cannot tolerate occasional $O(n)$ spikes from vector resizing. It must use pre-allocated arrays or ring buffers with worst-case $O(1)$ operations. For general-purpose applications, amortized $O(1)$ is sufficient. $\square$
+
+---
+
+**Exercise 5.**
+A problem requires $O(n \log n)$ preprocessing and then answers $q$ queries in $O(\log n)$ each. Compare the total time with an alternative that answers each query in $O(n)$ with no preprocessing. For what values of $q$ is the preprocessing approach faster?
+
+??? success "Solution to Exercise 5"
+    With preprocessing: total time $= O(n \log n + q \log n)$. Without preprocessing: total time $= O(qn)$. The preprocessing approach is faster when $n \log n + q \log n < qn$, i.e., $n \log n < q(n - \log n) \approx qn$ for large $n$. This gives $q > \log n$. For $n = 10^6$: $\log_2 n \approx 20$. If $q > 20$, preprocessing wins. If $q = 1$ (single query), the naive approach ($O(n)$) is faster than $O(n \log n)$ preprocessing. In practice, the crossover point is even lower because the preprocessing constant is larger. The key insight: amortize fixed setup cost over many queries. $\square$

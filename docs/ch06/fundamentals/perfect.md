@@ -1,76 +1,76 @@
-# Perfect Hashing
+# 완전 해싱
 
-Standard hash tables provide $O(1)$ expected-time operations, but the worst case remains $O(n)$ when all keys collide into a single slot. For applications where worst-case guarantees matter -- such as routing tables in network hardware, keyword lookup in compilers, or real-time systems -- this $O(n)$ worst case is unacceptable. **Perfect hashing** eliminates collisions entirely for a static set of keys, guaranteeing $O(1)$ worst-case lookup with $O(n)$ total space.
+보통의 해시 테이블은 기대 $O(1)$ 시간의 연산을 주지만, 모든 키가 한 칸으로 충돌하면 최악의 경우가 $O(n)$이다. 네트워크 장비의 라우팅 테이블, 컴파일러의 예약어 조회, 실시간 시스템처럼 최악의 경우 보장이 중요한 응용에서는 이 $O(n)$을 받아들일 수 없다. **완전 해싱**은 정적인 키 집합에 대해 충돌을 아예 없애어 전체 공간 $O(n)$으로 최악의 경우에도 $O(1)$ 조회를 보장한다.
 
-## Definition
+## 정의
 
-A hash function $h : S \to \{0, 1, \ldots, m-1\}$ is **perfect** for a set $S$ of $n$ keys if it is injective on $S$:
+해시 함수 $h : S \to \{0, 1, \ldots, m-1\}$이 키 $n$개의 집합 $S$에서 단사이면 $S$에 대해 **완전**하다고 한다.
 
 $$
 h(k_1) \neq h(k_2) \quad \text{for all } k_1, k_2 \in S \text{ with } k_1 \neq k_2
 $$
 
-A perfect hash function maps every key in $S$ to a distinct slot, so no collisions occur and every lookup requires exactly one table probe. The function is defined for a **static** key set -- one that is known in advance and does not change during operation.
+완전 해시 함수는 $S$의 모든 키를 서로 다른 칸으로 보내므로 충돌이 없고 조회마다 테이블을 정확히 한 번만 살핀다. 이 함수는 미리 알려져 있고 운용 중에 바뀌지 않는 **정적인** 키 집합에 대해 정의된다.
 
-A perfect hash function is called **minimal** if $m = n$, meaning it uses exactly as many slots as there are keys, with no wasted space.
+$m = n$이면 완전 해시 함수를 **최소**라고 한다. 키의 수만큼만 칸을 써서 낭비되는 공간이 없다는 뜻이다.
 
-## The Two-Level FKS Scheme
+## 두 층으로 된 FKS 방식
 
-The Fredman, Komlós, and Szemerédi (FKS) scheme constructs a perfect hash function using two levels of universal hashing. The construction works as follows:
+프레드먼, 콤로시, 세메레디(FKS) 방식은 보편 해싱을 두 층으로 써서 완전 해시 함수를 만든다. 구성은 다음과 같다.
 
-### First Level
+### 첫째 층
 
-Choose a universal hash function $h : U \to \{0, 1, \ldots, m-1\}$ with $m = n$ slots. This maps the $n$ keys into $n$ buckets, but collisions are expected. Let $n_j$ denote the number of keys that hash to slot $j$:
+칸이 $m = n$개인 보편 해시 함수 $h : U \to \{0, 1, \ldots, m-1\}$을 고른다. 이는 키 $n$개를 버킷 $n$개로 보내지만 충돌이 생기게 마련이다. 칸 $j$으로 해시되는 키의 수를 $n_j$이라 하자.
 
 $$
 n_j = |\{k \in S : h(k) = j\}|
 $$
 
-### Second Level
+### 둘째 층
 
-For each slot $j$ that receives $n_j > 0$ keys, create a secondary hash table of size $m_j = n_j^2$. Choose a second universal hash function $h_j : U \to \{0, 1, \ldots, m_j - 1\}$ for each slot. Because the secondary table has $n_j^2$ slots for only $n_j$ keys, the birthday paradox argument guarantees that a collision-free $h_j$ exists and can be found after $O(1)$ expected trials.
+키가 $n_j > 0$개 들어간 칸 $j$마다 크기가 $m_j = n_j^2$인 이차 해시 테이블을 만든다. 칸마다 두 번째 보편 해시 함수 $h_j : U \to \{0, 1, \ldots, m_j - 1\}$을 고른다. 이차 테이블에는 키 $n_j$개에 대해 칸이 $n_j^2$개 있으므로, 생일 역설 논법에 의해 충돌 없는 $h_j$이 존재하며 기대 $O(1)$번의 시도로 찾을 수 있다.
 
-**Lookup procedure.** To find key $k$:
+**조회 절차.** 키 $k$을 찾으려면 다음과 같이 한다.
 
-1. Compute $j = h(k)$ to identify the first-level slot.
-2. Compute $h_j(k)$ to index into the secondary table at slot $j$.
-3. Check whether the stored key matches $k$.
+1. $j = h(k)$을 계산하여 첫째 층의 칸을 찾는다.
+2. $h_j(k)$을 계산하여 칸 $j$의 이차 테이블을 가리킨다.
+3. 저장된 키가 $k$과 같은지 확인한다.
 
-Each step takes $O(1)$ time, so the total lookup is $O(1)$ in the worst case.
+각 단계가 $O(1)$이므로 조회 전체가 최악의 경우에도 $O(1)$이다.
 
-## Space Analysis
+## 공간 분석
 
-The critical question is whether the two-level scheme uses $O(n)$ total space. The total space is:
+핵심 물음은 두 층 방식이 전체 $O(n)$의 공간을 쓰느냐이다. 전체 공간은 다음과 같다.
 
 $$
 \text{Total space} = m + \sum_{j=0}^{m-1} m_j = n + \sum_{j=0}^{n-1} n_j^2
 $$
 
-We need to bound $\sum_{j} n_j^2$. The number of collisions at the first level is:
+$\sum_{j} n_j^2$의 한계를 정해야 한다. 첫째 층의 충돌 수는 다음과 같다.
 
 $$
 C = \sum_{j=0}^{n-1} \binom{n_j}{2} = \frac{1}{2}\left(\sum_{j} n_j^2 - n\right)
 $$
 
-For a universal hash function, the expected number of collisions is at most:
+보편 해시 함수에서 기대 충돌 수는 많아야 다음과 같다.
 
 $$
 \mathbb{E}[C] \leq \binom{n}{2} \cdot \frac{1}{m} = \frac{n(n-1)}{2n} = \frac{n-1}{2}
 $$
 
-Therefore:
+따라서 다음이 성립한다.
 
 $$
 \mathbb{E}\left[\sum_{j} n_j^2\right] = 2\mathbb{E}[C] + n \leq (n-1) + n = 2n - 1
 $$
 
-By choosing a first-level hash function where $\sum_j n_j^2 < 4n$ (which happens with probability at least $1/2$ by Markov's inequality), the total space is $O(n)$.
+$\sum_j n_j^2 < 4n$이 되는 첫째 층 해시 함수를 고르면(마르코프 부등식에 의해 확률이 적어도 $1/2$이다) 전체 공간이 $O(n)$이 된다.
 
-??? example "Two-Level Perfect Hashing Construction"
+??? example "두 층 완전 해싱의 구성"
 
-    Consider the static key set $S = \{10, 22, 37, 40, 52, 60\}$ with $n = 6$ keys.
+    키가 $n = 6$개인 정적 집합 $S = \{10, 22, 37, 40, 52, 60\}$을 생각해 보자.
 
-    **First level:** Choose $m = 6$ and suppose $h(k) = k \bmod 6$:
+    **첫째 층:** $m = 6$으로 두고 $h(k) = k \bmod 6$이라 하자.
 
     $$
     \begin{array}{rcl}
@@ -79,42 +79,75 @@ By choosing a first-level hash function where $\sum_j n_j^2 < 4n$ (which happens
     \end{array}
     $$
 
-    Slot 4 receives $n_4 = 4$ keys (a bad first-level hash). The secondary table at slot 4 has $m_4 = 4^2 = 16$ slots. A universal hash function $h_4$ is chosen to map the 4 keys to 16 slots without collision.
+    칸 4에 키가 $n_4 = 4$개 들어간다(첫째 층 해시가 나쁘다). 칸 4의 이차 테이블은 칸이 $m_4 = 4^2 = 16$개이다. 키 4개를 충돌 없이 16개 칸으로 보내는 보편 해시 함수 $h_4$을 고른다.
 
-    **Space:** $\sum_j n_j^2 = 1^2 + 1^2 + 4^2 + 0 + 0 + 0 = 18$, which is $3n = 18$. A better first-level hash function would reduce this sum.
+    **공간:** $\sum_j n_j^2 = 1^2 + 1^2 + 4^2 + 0 + 0 + 0 = 18$이며 이는 $3n = 18$이다. 첫째 층 해시 함수가 더 좋으면 이 합이 줄어든다.
 
-## Guarantees
+## 보장
 
-The FKS scheme provides three guarantees:
+FKS 방식은 세 가지를 보장한다.
 
-1. **Worst-case $O(1)$ lookup.** Every key is found in exactly two hash computations and two table probes.
-2. **$O(n)$ space.** The total memory used across both levels is linear in $n$.
-3. **$O(n)$ expected construction time.** Building the two-level structure requires $O(n)$ time in expectation, since each level involves selecting a universal hash function (which succeeds after $O(1)$ expected trials).
+1. **최악의 경우에도 $O(1)$ 조회.** 모든 키를 해시 계산 두 번과 테이블 살피기 두 번으로 찾는다.
+2. **$O(n)$ 공간.** 두 층에 걸쳐 쓰는 메모리가 $n$에 선형이다.
+3. **기대 $O(n)$의 구성 시간.** 층마다 보편 해시 함수를 고르는 데 기대 $O(1)$번의 시도가 들므로 두 층 구조를 세우는 데 기대 $O(n)$ 시간이 든다.
 
-## Static vs Dynamic Perfect Hashing
+## 정적 완전 해싱과 동적 완전 해싱
 
-The FKS scheme assumes the key set $S$ is static. Dynamic perfect hashing extends the idea to support insertions and deletions while maintaining worst-case $O(1)$ lookup:
+FKS 방식은 키 집합 $S$이 정적이라고 가정한다. 동적 완전 해싱은 최악의 경우 $O(1)$ 조회를 지키면서 삽입과 삭제를 지원하도록 이 착상을 넓힌다.
 
-**Cuckoo hashing** uses two hash functions and two tables. Each key is stored in one of two possible locations. Insertions may trigger a chain of relocations, but lookups always check exactly two positions, giving $O(1)$ worst-case lookup.
+**뻐꾸기 해싱**은 해시 함수 두 개와 테이블 두 개를 쓴다. 각 키는 있을 수 있는 두 자리 가운데 하나에 저장된다. 삽입이 자리 옮김의 연쇄를 일으킬 수 있지만 조회는 언제나 두 자리만 살피므로 최악의 경우에도 $O(1)$이다.
 
-**Dynamic FKS** rebuilds secondary tables when they become too full after insertions. The amortized cost of rebuilding is $O(1)$ per operation when the load factor is managed with table doubling.
+**동적 FKS**는 삽입으로 이차 테이블이 너무 차면 다시 세운다. 테이블을 두 배로 늘려 적재율을 관리하면 다시 세우는 상각 비용이 연산당 $O(1)$이다.
 
-## Practical Considerations
+## 실용적인 고려
 
-!!! tip "When to Use Perfect Hashing"
+!!! tip "완전 해싱을 쓸 때"
 
-    Perfect hashing is most valuable when:
+    완전 해싱은 다음과 같을 때 가장 값어치 있다.
 
-    - The key set is known at compile time or during initialization (e.g., reserved keywords in a programming language, routing table entries).
-    - The application requires guaranteed $O(1)$ worst-case lookup (e.g., real-time systems, hardware lookup tables).
-    - The key set changes infrequently, so the one-time construction cost is amortized over many lookups.
+    - 키 집합이 컴파일 시점이나 초기화 중에 알려진 경우 (예: 프로그래밍 언어의 예약어, 라우팅 테이블의 항목).
+    - 응용이 최악의 경우에도 $O(1)$ 조회를 요구하는 경우 (예: 실시간 시스템, 하드웨어 조회 테이블).
+    - 키 집합이 자주 바뀌지 않아 한 번의 구성 비용이 여러 조회에 걸쳐 상각되는 경우.
 
-    For dynamic key sets with frequent insertions and deletions, standard hash tables with good average-case performance are usually more practical.
+    삽입과 삭제가 잦은 동적 키 집합에는 평균 성능이 좋은 보통의 해시 테이블이 대개 더 실용적이다.
 
-## Summary
+## 요약
 
-Perfect hashing achieves the ideal of $O(1)$ worst-case lookup for static key sets by using a two-level construction based on universal hash families. The FKS scheme guarantees $O(n)$ space by sizing secondary tables quadratically in the number of keys per bucket, exploiting the birthday paradox to ensure collision-free secondary hash functions exist. While limited to static key sets in its basic form, extensions like cuckoo hashing bring similar worst-case guarantees to the dynamic setting.
+완전 해싱은 보편 해시 족에 기반한 두 층 구성으로 정적 키 집합에 대해 최악의 경우에도 $O(1)$ 조회라는 이상을 이룬다. FKS 방식은 이차 테이블의 크기를 버킷당 키 수의 제곱으로 잡고 생일 역설로 충돌 없는 이차 해시 함수의 존재를 보장하여 $O(n)$ 공간을 지킨다. 기본 형태로는 정적 키 집합에 한정되지만, 뻐꾸기 해싱 같은 확장이 비슷한 최악의 경우 보장을 동적 상황에도 가져온다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+완전 해싱에 대해, 적재율이 $\alpha = 0.75$일 때 삽입과 조회의 기대 시간과 최악의 경우 시간을 계산하라.
+
+??? success "연습문제 1 풀이"
+    기대 시간은 충돌 해결 전략에 달렸으며 균등 해싱을 가정한다. 체이닝에서는 기대 시간이 $O(1 + \alpha) = O(1.75)$이다. 개방 주소법에서는 탐색에 실패할 때 기대 탐사 횟수가 $\approx 1/(1-\alpha) = 4$이다. 최악의 경우는 모든 키가 같은 칸으로 해시될 때의 $O(n)$이다.
+
+---
+
+**연습문제 2.**
+완전 해싱을(를) 써서 키 10, 22, 31, 4, 15, 28, 17을 크기가 7인 해시 테이블에 넣어라. 최종 테이블의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    해시 함수 $h(k) = k \bmod 7$을 적용하고 이 쪽의 방법으로 충돌을 처리한다. 키마다 해시를 계산하고 충돌을 해결한 뒤 키를 놓는다. 최종 테이블의 내용을 보인다.
+
+---
+
+**연습문제 3.**
+완전 해싱은(는) 딥러닝의 임베딩 테이블에서 어떻게 쓰이는가? 토큰 $V = 50{,}000$개의 어휘를 $m = 30{,}000$개의 버킷에 대응시킬 때 충돌의 양상을 분석하라.
+
+??? success "연습문제 3 풀이"
+    $V/m \approx 1.67$이므로 비둘기집 원리에 의해 충돌이 반드시 생긴다. 버킷마다 평균 1.67개의 토큰이 같은 임베딩을 나누어 쓴다. 충돌률과 그것이 모델의 품질에 미치는 영향은 해시 함수의 품질과 임베딩의 차원에 달렸다(차원이 높을수록 충돌을 더 잘 견딘다).
+
+---
+
+**연습문제 4.**
+$\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 상각 비용이 $O(1)$으로 유지됨을 증명하라.
+
+??? success "연습문제 4 풀이"
+    크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$

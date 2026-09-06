@@ -1,51 +1,47 @@
-# SlowFast Networks
+# 느림빠름 그물
+## 학습 목표
 
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+- 두 갈래 길이라는 꾸밈 철학을 이해한다
+- 옆 이음을 갖춘 느림 길과 빠름 길을 짠다
+- α(틀 비율)와 β(채널) 비를 맞춘다
+- 몸짓 알아보기를 위해 느림빠름 그물을 익힌다
+- 느림빠름을 여러 영상 이해 일에 쓴다
 
-## Learning Objectives
+## 꾸밈 철학
 
-By the end of this section, you will be able to:
+### 생물에서 얻은 실마리
 
-- Understand the dual-pathway design philosophy
-- Implement Slow and Fast pathways with lateral connections
-- Configure the α (frame rate) and β (channel) ratios
-- Train SlowFast networks for action recognition
-- Apply SlowFast to various video understanding tasks
+사람의 보기 체계는 때의 잣수를 달리하며 앎을 다룬다:
 
-## Design Philosophy
+- **큰세포 길**: 빠르고 자리 해상도가 낮으며 움직임에 민감하다
+- **작은세포 길**: 느리고 자리 해상도가 높으며 세부에 밝다
 
-### Biological Inspiration
+느림빠름은 그물 길 둘로 이를 흉내낸다:
 
-The human visual system processes information at different temporal scales:
-- **Magnocellular pathway**: Fast, low spatial resolution, motion-sensitive
-- **Parvocellular pathway**: Slow, high spatial resolution, detail-oriented
+### 두 갈래 길
 
-SlowFast mimics this with two network pathways:
-
-### Two Pathways
-
-| Pathway | Frame Rate | Channels | Focus |
+| 길 | 틀 비율 | 채널 | 초점 |
 |---------|-----------|----------|-------|
-| **Slow** | Low (e.g., 4 fps) | High (e.g., 64) | Spatial semantics |
-| **Fast** | High (e.g., 32 fps) | Low (e.g., 8) | Temporal dynamics |
+| **느림** | 낮다(보기로 초당 4틀) | 많다(보기로 64) | 자리의 뜻 |
+| **빠름** | 높다(보기로 초당 32틀) | 적다(보기로 8) | 때에 걸친 움직임 |
 
-### Key Parameters
+### 핵심 매개변수
 
-**α (alpha)**: Frame rate ratio between pathways
+**α(알파)**: 두 길 사이의 틀 비율 비
 
 $$\text{Fast frames} = \alpha \times \text{Slow frames}$$
 
-Typically α = 8, meaning Fast processes 8× more frames.
+보통 α = 8이며, 이는 빠름 길이 틀을 8배 더 다룬다는 뜻이다.
 
-**β (beta)**: Channel ratio
+**β(베타)**: 채널 비
 
 $$\text{Fast channels} = \beta \times \text{Slow channels}$$
 
-Typically β = 1/8, meaning Fast has 8× fewer channels.
+보통 β = 1/8이며, 이는 빠름 길의 채널이 8배 적다는 뜻이다.
 
-## Architecture
+## 구조
 
 ```python
 import torch
@@ -53,19 +49,19 @@ import torch.nn as nn
 
 class SlowFast(nn.Module):
     """
-    SlowFast Networks for Video Recognition
+    영상 알아보기를 위한 느림빠름 그물
     (Feichtenhofer et al., 2019)
     
-    Two-pathway architecture:
-    - Slow pathway: Low frame rate, high channel capacity
-    - Fast pathway: High frame rate, low channel capacity
-    - Lateral connections fuse information between pathways
+    두 갈래 길 얼개:
+    - 느림 길: 낮은 틀 비율, 많은 채널
+    - 빠름 길: 높은 틀 비율, 적은 채널
+    - 옆 이음이 길 사이의 앎을 녹여 붙인다
     """
     
     def __init__(self,
                  num_classes: int = 400,
-                 alpha: int = 8,      # Frame rate ratio
-                 beta: float = 1/8,   # Channel ratio
+                 alpha: int = 8,      # 틀 비율 비
+                 beta: float = 1/8,   # 채널 비
                  slow_channels: int = 64,
                  num_frames: int = 32):
         super().__init__()
@@ -76,49 +72,49 @@ class SlowFast(nn.Module):
         
         fast_channels = int(slow_channels * beta)
         
-        # Slow pathway
+        # 느림 길
         self.slow_pathway = SlowPathway(
             in_channels=3,
             base_channels=slow_channels
         )
         
-        # Fast pathway
+        # 빠름 길
         self.fast_pathway = FastPathway(
             in_channels=3,
             base_channels=fast_channels,
             alpha=alpha
         )
         
-        # Lateral connections (Fast → Slow)
+        # 옆 이음(빠름 → 느림)
         self.lateral_connections = nn.ModuleList([
             LateralConnection(fast_channels * mult, slow_channels * mult, alpha)
-            for mult in [1, 2, 4, 8]  # At each stage
+            for mult in [1, 2, 4, 8]  # 단계마다
         ])
         
-        # Final classification
+        # 마지막 가려내기
         slow_out = slow_channels * 8
         fast_out = fast_channels * 8
         self.head = nn.Linear(slow_out + fast_out, num_classes)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Args:
-            x: Video tensor (B, C, T, H, W)
-               T should be divisible by alpha
+        인수:
+            x: 영상 텐서 (B, C, T, H, W)
+               T는 alpha로 나누어떨어져야 한다
         
-        Returns:
-            Class logits (B, num_classes)
+        반환값:
+            갈래 로짓 (B, num_classes)
         """
         B, C, T, H, W = x.shape
         
-        # Sample frames for each pathway
-        # Slow: every alpha-th frame
+        # 길마다 틀 뽑기
+        # 느림: alpha번째 틀마다
         x_slow = x[:, :, ::self.alpha, :, :]  # (B, C, T/α, H, W)
         
-        # Fast: all frames
+        # 빠름: 모든 틀
         x_fast = x  # (B, C, T, H, W)
         
-        # Process through pathways with lateral connections
+        # 옆 이음을 갖춘 길로 다루기
         slow_features = []
         fast_features = []
         
@@ -132,15 +128,15 @@ class SlowFast(nn.Module):
             x_fast = fast_block(x_fast)
             lateral_out = lateral(x_fast)
             
-            # Fuse lateral connection with slow pathway
+            # 옆 이음을 느림 길과 녹여 붙이기
             x_slow = torch.cat([x_slow, lateral_out], dim=1)
             x_slow = slow_block(x_slow)
         
-        # Global average pooling
+        # 전체 평균 모으기
         x_slow = x_slow.mean(dim=[2, 3, 4])  # (B, C_slow)
         x_fast = x_fast.mean(dim=[2, 3, 4])  # (B, C_fast)
         
-        # Concatenate and classify
+        # 이어 붙이고 갈래 매기기
         x = torch.cat([x_slow, x_fast], dim=1)
         
         return self.head(x)
@@ -148,15 +144,15 @@ class SlowFast(nn.Module):
 
 class SlowPathway(nn.Module):
     """
-    Slow pathway: processes fewer frames with more channels.
+    느림 길: 채널을 많이 쓰고 틀은 적게 다룬다.
     
-    Focuses on spatial semantics and object recognition.
+    자리의 뜻과 물체 알아보기에 초점을 둔다.
     """
     
     def __init__(self, in_channels: int, base_channels: int):
         super().__init__()
         
-        # Stem
+        # 줄기
         self.stem = nn.Sequential(
             nn.Conv3d(in_channels, base_channels, 
                      kernel_size=(1, 7, 7), stride=(1, 2, 2), padding=(0, 3, 3)),
@@ -165,7 +161,7 @@ class SlowPathway(nn.Module):
             nn.MaxPool3d(kernel_size=(1, 3, 3), stride=(1, 2, 2), padding=(0, 1, 1))
         )
         
-        # Residual stages (channels: 64 → 128 → 256 → 512)
+        # 잔차 단계(채널: 64 → 128 → 256 → 512)
         self.stages = nn.ModuleList([
             self._make_stage(base_channels, base_channels, blocks=3, temporal_stride=1),
             self._make_stage(base_channels, base_channels * 2, blocks=4, temporal_stride=1),
@@ -182,9 +178,9 @@ class SlowPathway(nn.Module):
 
 class FastPathway(nn.Module):
     """
-    Fast pathway: processes more frames with fewer channels.
+    빠름 길: 채널을 적게 쓰고 틀을 더 많이 다룬다.
     
-    Focuses on motion and temporal dynamics.
+    움직임과 때에 걸친 흐름에 초점을 둔다.
     """
     
     def __init__(self, in_channels: int, base_channels: int, alpha: int):
@@ -192,7 +188,7 @@ class FastPathway(nn.Module):
         
         self.alpha = alpha
         
-        # Stem with larger temporal kernel to capture motion
+        # 움직임을 담아내려 때 알맹이를 키운 줄기
         self.stem = nn.Sequential(
             nn.Conv3d(in_channels, base_channels,
                      kernel_size=(5, 7, 7), stride=(1, 2, 2), padding=(2, 3, 3)),
@@ -201,7 +197,7 @@ class FastPathway(nn.Module):
             nn.MaxPool3d(kernel_size=(1, 3, 3), stride=(1, 2, 2), padding=(0, 1, 1))
         )
         
-        # Stages with temporal downsampling
+        # 때를 줄여 뽑는 단계
         self.stages = nn.ModuleList([
             self._make_stage(base_channels, base_channels, blocks=3, temporal_stride=1),
             self._make_stage(base_channels, base_channels * 2, blocks=4, temporal_stride=2),
@@ -218,10 +214,10 @@ class FastPathway(nn.Module):
 
 class LateralConnection(nn.Module):
     """
-    Lateral connection from Fast to Slow pathway.
+    빠름 길에서 느림 길로 가는 옆 이음.
     
-    Performs temporal downsampling to match Slow pathway's frame rate,
-    then channel transformation for fusion.
+    느림 길의 틀 비율에 맞추려 때를 줄여 뽑고,
+    그다음 녹여 붙이려 채널을 바꾼다.
     """
     
     def __init__(self, fast_channels: int, slow_channels: int, alpha: int):
@@ -229,8 +225,8 @@ class LateralConnection(nn.Module):
         
         self.alpha = alpha
         
-        # Temporal downsampling: Fast frames → Slow frames
-        # Using strided 3D conv
+        # 때 줄여 뽑기: 빠름 틀 → 느림 틀
+        # 성큼을 준 3차원 누비기 쓰기
         self.transform = nn.Sequential(
             nn.Conv3d(fast_channels, fast_channels * 2,
                      kernel_size=(5, 1, 1), 
@@ -242,17 +238,17 @@ class LateralConnection(nn.Module):
     
     def forward(self, x_fast: torch.Tensor) -> torch.Tensor:
         """
-        Args:
-            x_fast: Fast pathway features (B, C_fast, T_fast, H, W)
+        인수:
+            x_fast: 빠름 길의 특징 (B, C_fast, T_fast, H, W)
         
-        Returns:
-            Lateral features aligned with Slow pathway (B, C_out, T_slow, H, W)
+        반환값:
+            느림 길에 맞춘 옆 특징 (B, C_out, T_slow, H, W)
         """
         return self.transform(x_fast)
 
 
 class ResBlock3D(nn.Module):
-    """3D Residual block."""
+    """3차원 잔차 덩이."""
     
     def __init__(self, in_channels, out_channels, temporal_stride=1):
         super().__init__()
@@ -280,14 +276,14 @@ class ResBlock3D(nn.Module):
         return self.relu(out)
 ```
 
-## Configuration Variants
+## 자리매김 변종
 
 ```python
 def slowfast_4x16_r50():
     """
     SlowFast 4×16 R50:
-    - Slow: 4 frames, ResNet-50 backbone
-    - Fast: 32 frames (α=8), 1/8 channels (β=1/8)
+    - 느림: 틀 4개, ResNet-50 등뼈
+    - 빠름: 틀 32개(α=8), 채널 1/8(β=1/8)
     """
     return SlowFast(
         num_classes=400,
@@ -301,9 +297,9 @@ def slowfast_4x16_r50():
 def slowfast_8x8_r101():
     """
     SlowFast 8×8 R101:
-    - Slow: 8 frames
-    - Fast: 32 frames (α=4)
-    - ResNet-101 backbone
+    - 느림: 틀 8개
+    - 빠름: 틀 32개(α=4)
+    - ResNet-101 등뼈
     """
     return SlowFast(
         num_classes=400,
@@ -314,12 +310,12 @@ def slowfast_8x8_r101():
     )
 ```
 
-## Training
+## 학습
 
 ```python
 def train_slowfast(model, train_loader, epochs=196):
     """
-    Training recipe from the paper.
+    논문에 나온 익히기 요령.
     """
     
     optimizer = torch.optim.SGD(
@@ -329,16 +325,16 @@ def train_slowfast(model, train_loader, epochs=196):
         weight_decay=1e-4
     )
     
-    # Half-period cosine schedule
+    # 반주기 코사인 일정
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
         optimizer, T_max=epochs
     )
     
-    # Warmup for first 34 epochs
+    # 처음 34세대는 몸풀기
     warmup_epochs = 34
     
     for epoch in range(epochs):
-        # Linear warmup
+        # 선형 워밍업
         if epoch < warmup_epochs:
             lr = 0.1 * (epoch + 1) / warmup_epochs
             for param_group in optimizer.param_groups:
@@ -346,7 +342,7 @@ def train_slowfast(model, train_loader, epochs=196):
         
         model.train()
         for videos, labels in train_loader:
-            # Videos should be (B, C, T, H, W) with T=32 frames
+            # 영상은 틀 T=32인 (B, C, T, H, W)여야 한다
             videos = videos.cuda()
             labels = labels.cuda()
             
@@ -360,36 +356,76 @@ def train_slowfast(model, train_loader, epochs=196):
             scheduler.step()
 ```
 
-## Results
+## 결과
 
-### Kinetics-400 Performance
+### Kinetics-400에서의 성능
 
-| Model | Pretrain | Top-1 | Top-5 |
+| 모델 | 미리 익힘 | 상위 1 | 상위 5 |
 |-------|----------|-------|-------|
 | SlowFast 4×16 R50 | - | 75.6% | 92.1% |
 | SlowFast 8×8 R101 | - | 77.9% | 93.2% |
 | SlowFast 16×8 R101+NL | - | 79.8% | 93.9% |
 
-### Comparison with Other Methods
+### 다른 방법과의 견줌
 
-| Method | Pretrain | GFLOPs | Top-1 |
+| 방법 | 미리 익힘 | GFLOPs | 상위 1 |
 |--------|----------|--------|-------|
 | I3D | ImageNet | 108 | 71.1% |
 | R(2+1)D | - | 152 | 72.0% |
 | SlowFast 4×16 | - | 36.1 | 75.6% |
 | SlowFast 8×8 | - | 65.7 | 77.0% |
 
-Key finding: SlowFast achieves better accuracy with fewer FLOPs.
+핵심 발견: 느림빠름은 FLOPs를 덜 쓰고도 더 나은 정확도를 낸다.
 
-## Summary
+## 요약
 
-SlowFast's key innovations:
-1. **Dual pathways** capture both spatial semantics and temporal dynamics
-2. **Asymmetric design** (α, β parameters) efficiently allocates computation
-3. **Lateral connections** enable cross-pathway information flow
-4. **Strong performance** with reasonable computational cost
+느림빠름의 핵심 새로움:
 
-Best suited for:
-- Action recognition requiring both appearance and motion
-- Scenarios where temporal dynamics are important
-- Balance between accuracy and efficiency
+1. **두 갈래 길**이 자리의 뜻과 때에 걸친 움직임을 모두 담아낸다
+2. **대칭이 아닌 꾸밈**(α, β 매개변수)이 셈을 효율적으로 나눈다
+3. **옆 이음**이 길 사이로 앎이 흐르게 한다
+4. 알맞은 셈 값으로 **센 성능**을 낸다
+
+가장 알맞은 곳:
+
+- 겉모습과 움직임이 모두 필요한 몸짓 알아보기
+- 때에 걸친 움직임이 중요한 장면
+- 정확도와 효율 사이의 균형
+
+## 연습문제
+
+**연습문제 1.**
+영상 이해를 위한 두 갈래 그물의 핵심 눈썰미를 밝히고, 날 틀 위의 한 갈래만으로는 왜 모자란지 설명하여라.
+
+??? success "연습문제 1 풀이"
+    두 갈래 그물은 **자리**(겉모습) 앎과 **때**(움직임) 앎을 서로 다른 갈래에서 다룬다. RGB 한 갈래만으로도 겉모습은 담아내지만 움직임에는 약한데, 그 까닭은 이렇다. (1) 때의 무늬는 여러 틀에 걸쳐 있어 넓은 받는 자리가 필요하다. (2) 움직임은 화소 바뀜 속에 숨어 있어 날 자료에서 배우기 어렵다. 빛 흐름 갈래는 움직임을 드러내어 부호로 담아 서로 채워 주는 신호를 준다. 두 갈래는 보통 (늦게 또는 중간에서) 녹여 붙여 겉모습과 움직임 이해를 아우르며, 한 갈래 방식보다 훨씬 낫다.
+
+---
+
+**연습문제 2.**
+느림빠름 얼개를 설명하여라. 영상을 두 가지 틀 비율로 다루면 왜 알아보기가 나아지는가?
+
+??? success "연습문제 2 풀이"
+    SlowFast uses two pathways: a **Slow** pathway operating at low frame rate (e.g., 2 FPS) with a large channel capacity for detailed spatial semantics, and a **Fast** pathway at high frame rate (e.g., 16 FPS) with fewer channels for capturing rapid temporal dynamics. This design is efficient because: spatial semantics change slowly (don't need high frame rate), while motion occurs at fine temporal scales. The Fast pathway is lightweight ($\sim$20% of computation) and provides temporal resolution, while the Slow pathway provides spatial richness. Lateral connections fuse information between pathways.
+
+---
+
+**연습문제 3.**
+그림 가르기 얼개(보기로 ResNet)를 영상 이해로 넓힐 때의 주된 어려움은 무엇인가?
+
+??? success "연습문제 3 풀이"
+    Key challenges: (1) **Computational cost**: adding a temporal dimension increases data by $T\times$ ($T$ frames), making 3D convolutions expensive; (2) **Temporal modeling**: 2D convolutions only see individual frames and miss temporal patterns; naively inflating 2D kernels to 3D (e.g., I3D) is expensive; (3) **Variable-length inputs**: videos vary in duration, requiring temporal pooling or sampling strategies; (4) **Long-range dependencies**: important events may span hundreds of frames, exceeding the receptive field of local convolutions; (5) **Training data**: video datasets are smaller than image datasets, making overfitting a concern.
+
+---
+
+**연습문제 4.**
+영상을 나타내는 데 쓰는 3차원 누비기, (2+1)차원으로 쪼갠 누비기, 때에 걸친 스스로 눈길을 견주어라.
+
+??? success "연습문제 4 풀이"
+    | 방식 | 셈 | 때의 범위 | 익히기 |
+    |----------|-------------|----------------|----------|
+    | **3D Conv** | $O(k^3 C^2 THW)$ | Local ($k$ frames) | Expensive, needs pretraining |
+    | **(2+1)D Conv** | $O(k^2 C^2 THW + k C^2 THW)$ | Local | Easier to optimize, fewer params |
+    | **Temporal Attention** | $O(T^2 CHW)$ | Global | Quadratic in $T$, flexible |
+
+    3차원 누비기는 힘세지만 값이 비싸다. (2+1)차원 쪼개기는 자리 다루기와 때 다루기를 갈라 정확도를 지키면서 매개변수를 줄인다. 때에 걸친 스스로 눈길은 멀리 떨어진 얽힘을 담아내지만 차례 길이의 제곱으로 늘어난다. 요즘 얼개(보기로 Video Swin Transformer)는 흔히 가까운 자리의 눈길과 층진 꾸밈을 아우른다.

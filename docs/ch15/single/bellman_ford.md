@@ -1,26 +1,18 @@
-# The Bellman-Ford Algorithm
+# 벨먼-포드 알고리즘
 
-Dijkstra's algorithm fails when a graph contains negative-weight edges because
-its greedy strategy assumes that once a vertex is finalized, no shorter path can
-appear later.  The Bellman-Ford algorithm removes this restriction by
-systematically relaxing *every* edge in $|V| - 1$ passes.  It handles negative
-weights correctly and can also detect negative-weight cycles, making it the
-most general single-source shortest path algorithm.
+데이크스트라 알고리즘은 그래프에 무게가 음인 변이 있으면 무너진다. 꼭짓점이 한번 확정되면 나중에 더 짧은 길이 나타날 수 없다고 놓는 욕심 전략 때문이다. 벨먼-포드 알고리즘은 $|V| - 1$번 훑으며 *모든* 변을 차근차근 늦춰 이 제약을 없앤다. 음의 무게를 맞게 다루고 무게가 음인 고리도 알아낼 수 있어 가장 두루 쓰이는 한 샘 최단 경로 알고리즘이다.
 
-## Algorithm Overview
+## 알고리즘 훑어보기
 
-The key idea is simple: a shortest path from $s$ to any vertex $v$ contains at
-most $|V| - 1$ edges (any longer path would revisit a vertex, creating a
-cycle).  After $i$ passes over all edges, every shortest path using at most $i$
-edges has been correctly computed.  Therefore $|V| - 1$ passes suffice.
+핵심 생각은 단순하다. 곧 $s$에서 아무 꼭짓점 $v$까지의 최단 경로에는 변이 많아야 $|V| - 1$개 든다(더 긴 길은 꼭짓점을 다시 들러 고리를 만든다). 모든 변을 $i$번 훑고 나면 변을 많아야 $i$개 쓰는 최단 경로가 모두 맞게 셈해진다. 그러므로 $|V| - 1$번이면 넉넉하다.
 
-| Algorithm | Edge weights | Complexity |
+| 알고리즘 | 변의 무게 | 복잡도 |
 |---|---|---|
-| BFS | $w = 1$ (unweighted) | $O(V + E)$ |
-| Bellman-Ford | Negative weights allowed | $O(VE)$ |
-| Dijkstra | $w \ge 0$ | $O(V^2)$ or $O((V+E)\log V)$ |
+| BFS | $w = 1$(무게 없음) | $O(V + E)$ |
+| 벨먼-포드 | 음의 무게 허락 | $O(VE)$ |
+| 데이크스트라 | $w \ge 0$ | $O(V^2)$ 또는 $O((V+E)\log V)$ |
 
-## Pseudocode
+## 의사코드
 
 ```
 BELLMAN-FORD(G, w, s):
@@ -35,36 +27,24 @@ BELLMAN-FORD(G, w, s):
     return TRUE
 ```
 
-The algorithm has two phases.  The first phase performs $|V| - 1$ relaxation
-passes.  The second phase checks for negative-weight cycles: if any edge can
-still be relaxed, a negative cycle exists.
+이 알고리즘에는 두 단계가 있다. 첫 단계는 늦추기를 $|V| - 1$번 훑는다. 둘째 단계는 무게가 음인 고리를 살핀다. 곧 아직 늦출 수 있는 변이 있으면 음의 고리가 있다.
 
-## Correctness
+## 올바름
 
-The correctness of Bellman-Ford follows from the **path-relaxation property**.
+벨먼-포드의 맞음은 **길 늦추기 성질**에서 따라 나온다.
 
-!!! note "Correctness Theorem"
-    If $G$ contains no negative-weight cycles reachable from $s$, then after
-    $|V| - 1$ passes, $d[v] = \delta(s, v)$ for all $v \in V$.
+!!! note "맞음 정리"
+    $G$에 $s$에서 닿을 수 있는, 무게가 음인 고리가 없으면 $|V| - 1$번 훑은 뒤 모든 $v \in V$에 대해 $d[v] = \delta(s, v)$이다.
 
-**Proof.**  Let $v$ be any vertex reachable from $s$, and let
-$p = \langle v_0, v_1, \dots, v_k \rangle$ be a shortest path from $s = v_0$
-to $v = v_k$.  Since there is no negative-weight cycle, $p$ is simple, so
-$k \le |V| - 1$.
+**증명.** $v$을 $s$에서 닿을 수 있는 아무 꼭짓점이라 하고, $p = \langle v_0, v_1, \dots, v_k \rangle$을 $s = v_0$에서 $v = v_k$까지의 최단 경로라 하자. 무게가 음인 고리가 없으므로 $p$은 단순하고 따라서 $k \le |V| - 1$이다.
 
-After pass $i$, edge $(v_{i-1}, v_i)$ has been relaxed.  By the
-path-relaxation property, after pass $k \le |V| - 1$, we have
-$d[v_k] = \delta(s, v_k)$. $\square$
+$i$번째 훑기 뒤에 변 $(v_{i-1}, v_i)$이 늦춰졌다. 길 늦추기 성질에 따라 $k \le |V| - 1$번째 훑기 뒤에 $d[v_k] = \delta(s, v_k)$이다. $\square$
 
-## Negative-Cycle Detection
+## 음의 고리 알아내기
 
-After the $|V| - 1$ passes, if any edge $(u, v)$ still satisfies
-$d[v] > d[u] + w(u, v)$, then no finite shortest path exists — a
-negative-weight cycle is reachable from $s$.
+$|V| - 1$번 훑은 뒤에도 어떤 변 $(u, v)$이 $d[v] > d[u] + w(u, v)$을 만족하면 끝이 있는 최단 경로가 없다. 곧 $s$에서 닿을 수 있는, 무게가 음인 고리가 있다.
 
-**Proof.**  Suppose for contradiction that no negative cycle is reachable but
-$d[v] > d[u] + w(u, v)$ for some edge.  The correctness theorem guarantees
-$d[v] = \delta(s, v)$ and $d[u] = \delta(s, u)$, so
+**증명.** 어긋냄을 위해 닿을 수 있는 음의 고리가 없는데 어떤 변에 대해 $d[v] > d[u] + w(u, v)$이라고 하자. 맞음 정리가 $d[v] = \delta(s, v)$과 $d[u] = \delta(s, u)$을 보장하므로 다음이 된다
 
 $$
 \delta(s, v) > \delta(s, u) + w(u, v)
@@ -72,20 +52,18 @@ $$
 
 which violates the triangle inequality. $\square$
 
-## Complexity Analysis
+## 복잡도 분석
 
-- **Time:** Each of the $|V| - 1$ passes iterates over all $|E|$ edges,
-  giving $O(VE)$ total.
+- **시간:** $|V| - 1$번 훑을 때마다 변 $|E|$개를 모두 훑으므로 통틀어 $O(VE)$이다.
 - **Space:** $O(V)$ for the distance and predecessor arrays.
 
-The $O(VE)$ bound is worse than Dijkstra's $O((V+E)\log V)$, but Bellman-Ford
-handles negative weights — a capability Dijkstra lacks.
+$O(VE)$ 한계는 데이크스트라의 $O((V+E)\log V)$보다 나쁘지만, 벨먼-포드는 데이크스트라에 없는 힘인 음의 무게 다루기를 해낸다.
 
-## Worked Example
+## 풀이 예제
 
-Consider the following graph with source $s$:
+샘이 $s$인 다음 그래프를 생각하자:
 
-| Edge | Weight |
+| 변 | 무게 |
 |---|---|
 | $(s, a)$ | 6 |
 | $(s, b)$ | 7 |
@@ -97,71 +75,65 @@ Consider the following graph with source $s$:
 | $(c, b)$ | 7 |
 | $(d, c)$ | 2 |
 
-**Pass 1:** Relax all edges.  Vertices reachable in one hop get their direct
-distances: $d[a] = 6$, $d[b] = 7$.  Further relaxations within the pass may
-also discover two-hop paths.
+**훑기 1:** 모든 변을 늦춘다. 한 번에 닿는 꼭짓점은 곧바른 거리를 얻는다. 곧 $d[a] = 6$, $d[b] = 7$이다. 같은 훑기 안의 뒤이은 늦추기가 두 번 뛰는 길을 찾아낼 수도 있다.
 
-**Pass 2:** Paths using up to two edges are finalized.  For example,
-$s \to a \to d$ gives $d[d] = 6 + (-4) = 2$.  Also $s \to b \to c$ yields
-$d[c] = 7 + (-3) = 4$.
+**훑기 2:** 변을 두 개까지 쓰는 길이 확정된다. 이를테면 $s \to a \to d$은 $d[d] = 6 + (-4) = 2$을 준다. 또 $s \to b \to c$은 $d[c] = 7 + (-3) = 4$을 낸다.
 
-**Pass 3:** Three-edge paths are considered.  Path $s \to a \to d \to c$
-gives $d[c] = \min(4, 2 + 2) = 4$ (no improvement).
+**훑기 3:** 변 세 개짜리 길을 헤아린다. 길 $s \to a \to d \to c$은 $d[c] = \min(4, 2 + 2) = 4$을 준다(나아짐 없음).
 
-**Pass 4:** Fourth pass confirms all distances are stable. No edge can be
-further relaxed, so no negative cycle exists.
+**훑기 4:** 네 번째 훑기가 모든 거리가 안정임을 확인한다. 더 늦출 수 있는 변이 없으므로 음의 고리가 없다.
 
-## Comparison with Dijkstra
+## 데이크스트라와의 견줌
 
-| Aspect | Bellman-Ford | Dijkstra |
+| 결 | 벨먼-포드 | 데이크스트라 |
 |---|---|---|
-| Relaxation strategy | Fixed order: all edges, $\lvert V\rvert - 1$ times | Greedy: outgoing edges of nearest vertex |
-| Negative edges | Supported | Not supported |
-| Negative cycle detection | Built-in | Not applicable |
-| Time complexity | $O(VE)$ | $O((V+E)\log V)$ with binary heap |
-| Use case | General graphs | Non-negative weight graphs |
+| 늦추기 전략 | 붙박이 차례: 모든 변을 $\lvert V\rvert - 1$번 | 욕심: 가장 가까운 꼭짓점의 나가는 변 |
+| 음의 변 | 받쳐 줌 | 받쳐 주지 않음 |
+| 음의 고리 알아내기 | 붙박이 | 해당 없음 |
+| 시간 복잡도 | $O(VE)$ | 이진 힙으로 $O((V+E)\log V)$ |
+| 쓰임새 | 일반 그래프 | 무게가 음이 아닌 그래프 |
 
-## Implementation
+## 구현
 
 ```python
 """
-Bellman-Ford single-source shortest path algorithm.
+벨먼-포드 단일 근원 최단 경로 알고리즘.
 
-Handles negative-weight edges and detects negative-weight cycles.
+음의 무게 변을 다루고 음의 무게 순환을 알아낸다.
 """
 
 from math import inf
 
 
-# === Bellman-Ford algorithm ==================================================
+# === 벨먼-포드 알고리즘 ======================================================
 
 def bellman_ford(vertices: list, edges: list, source) -> tuple[dict, dict, bool]:
-    """Run Bellman-Ford from the given source vertex.
+    """주어진 근원 꼭짓점에서 벨먼-포드 돌리기.
 
-    Parameters
+    매개변수
     ----------
     vertices : list
-        All vertex identifiers.
+        모든 꼭짓점 이름.
     edges : list of (u, v, w)
-        Directed edges with weights.
+        무게 있는 방향 변.
     source : hashable
-        The source vertex.
+        근원 꼭짓점.
 
-    Returns
+    반환값
     -------
     dist : dict
-        Shortest distances from source.
+        근원에서의 최단 거리.
     pred : dict
-        Predecessor pointers for path reconstruction.
+        경로를 되짚기 위한 앞선 꼭짓점 가리개.
     no_negative_cycle : bool
-        True if no negative cycle is reachable from source.
+        근원에서 음의 순환에 닿을 수 없으면 True.
     """
-    # Initialize
+    # 초기화한다
     dist = {v: inf for v in vertices}
     dist[source] = 0
     pred = {v: None for v in vertices}
 
-    # Relax all edges |V| - 1 times
+    # 모든 변을 |V| - 1번 늦추기
     for i in range(len(vertices) - 1):
         updated = False
         for u, v, w in edges:
@@ -170,20 +142,20 @@ def bellman_ford(vertices: list, edges: list, source) -> tuple[dict, dict, bool]
                 pred[v] = u
                 updated = True
         if not updated:
-            break  # Early termination: no changes in this pass
+            break  # 일찍 멈춤: 이번 훑기에 바뀐 것이 없음
 
-    # Check for negative-weight cycles
+    # 음의 무게 순환 살피기
     for u, v, w in edges:
         if dist[u] + w < dist[v]:
-            return dist, pred, False  # Negative cycle detected
+            return dist, pred, False  # 음의 순환을 찾음
 
     return dist, pred, True
 
 
-# === Path reconstruction =====================================================
+# === 경로 되짚기 =============================================================
 
 def get_path(pred: dict, source, target) -> list:
-    """Reconstruct the shortest path from source to target."""
+    """근원에서 과녁까지의 최단 경로 되짚기."""
     path = []
     v = target
     while v is not None:
@@ -193,10 +165,10 @@ def get_path(pred: dict, source, target) -> list:
     return path if path[0] == source else []
 
 
-# === Demo ====================================================================
+# === 보임 ====================================================================
 
 if __name__ == "__main__":
-    # Graph with negative-weight edges (no negative cycle)
+    # 음의 무게 변이 있는 그래프(음의 순환은 없음)
     vertices = ["s", "a", "b", "c", "d"]
     edges = [
         ("s", "a", 6), ("s", "b", 7), ("a", "b", 8),
@@ -210,14 +182,14 @@ if __name__ == "__main__":
     print(f"Path s->d: {get_path(pred, 's', 'd')}")
     print(f"Path s->c: {get_path(pred, 's', 'c')}")
 
-    # Graph with a negative-weight cycle
+    # 음의 무게 순환이 있는 그래프
     print("\n--- Graph with negative cycle ---")
-    neg_edges = edges + [("c", "a", -10)]  # Creates cycle a->c->a with weight 5+(-10)=-5
+    neg_edges = edges + [("c", "a", -10)]  # 무게 5+(-10)=-5인 순환 a->c->a을 만듦
     dist2, pred2, ok2 = bellman_ford(vertices, neg_edges, "s")
     print(f"No negative cycle: {ok2}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 No negative cycle: True
@@ -229,9 +201,45 @@ Path s->c: ['s', 'b', 'c']
 No negative cycle: False
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
   Algorithms* (4th ed.), Chapter 24.1: The Bellman-Ford Algorithm.
 - Bellman, R. (1958). On a routing problem. *Quarterly of Applied Mathematics*,
   16(1), 87-90.
+
+## 연습문제
+
+**연습문제 1.**
+꼭짓점 $\{0,1,2,3\}$, 변 $\{(0,1,1),(0,2,4),(1,2,2),(1,3,6),(2,3,3)\}$, 샘 $s=0$인 그래프에서 벨먼-포드를 따라가라. $V-1=3$바퀴마다 뒤의 거리 배열을 보여라.
+
+??? success "연습문제 1 풀이"
+    처음: $d = [0, \infty, \infty, \infty]$. 1바퀴: $(0,1,1)$ 늦추기: $d[1] = 1$. $(0,2,4)$ 늦추기: $d[2] = 4$. $(1,2,2)$ 늦추기: $d[2] = \min(4, 1+2) = 3$. $(1,3,6)$ 늦추기: $d[3] = 7$. $(2,3,3)$ 늦추기: $d[3] = \min(7, 3+3) = 6$. 1바퀴 뒤: $[0, 1, 3, 6]$. 2-3바퀴: 바뀜 없음(이미 가장 좋다). 마지막: $d = [0, 1, 3, 6]$. $\square$
+
+---
+
+**연습문제 2.**
+벨먼-포드는 왜 늦추기를 꼭 $V - 1$바퀴 해야 하는가? 더 적게 하면 무엇이 잘못되는가?
+
+??? success "연습문제 2 풀이"
+    음의 고리가 없는 그래프에서 최단 경로의 변은 많아야 $V - 1$개이다(꼭짓점마다 많아야 한 번 들른다). $k$바퀴 뒤에 알고리즘은 변을 많아야 $k$개 쓰는 최단 경로를 맞게 셈해 두었다. $V - 1$바퀴보다 적게 하면 변을 많이 쓰는 어떤 최단 경로가 아직 다 퍼지지 못했을 수 있다. 무게가 모두 1인 길 그래프 $0 \to 1 \to 2 \to \cdots \to V-1$을 생각하자. $k$바퀴 뒤에는 꼭짓점 $0$부터 $k$까지만 거리가 맞다. 꼭짓점 $V - 1$에 이르려면 $V - 1$바퀴가 필요하다. $\square$
+
+---
+
+**연습문제 3.**
+벨먼-포드의 한 바퀴에서 거리 값이 하나도 바뀌지 않으면 알고리즘이 일찍 멈출 수 있음을 증명하여라. 이 다듬기가 왜 맞는가?
+
+??? success "연습문제 3 풀이"
+    $k$바퀴에서 거리가 하나도 바뀌지 않으면 모든 꼭짓점에서 $d[v]$이 모인 것이다. $k + 1$바퀴에서 늦추기 살피기 $d[u] + w(u,v) < d[v]$은 ($d[u]$도 $d[v]$도 바뀌지 않았으므로) 여전히 거짓이다. 귀납으로 뒤이은 어떤 바퀴도 바뀜을 낼 수 없다. 그러므로 일찍 멈추어도 안전하다. 이 다듬기는 최악의 경우 복잡도($O(VE)$)를 바꾸지는 않지만, 최단 경로의 변이 적은 그래프에서는 알고리즘을 크게 빠르게 한다. $\square$
+
+---
+
+**연습문제 4.**
+벨먼-포드와 데이크스트라 알고리즘을 견주어라. 어느 것을 언제 써야 하는가?
+
+??? success "연습문제 4 풀이"
+    **벨먼-포드**: $O(VE)$ 시간이며 음의 변 무게를 다루고 음의 고리를 알아낸다. 구현이 더 단순하다. 음의 무게가 있거나 음의 고리 알아내기가 필요한 그래프에 가장 알맞다.
+
+    **데이크스트라**: 이진 힙으로 $O((V+E) \log V)$이며 무게가 음이 아니어야 한다. 무게가 음이 아닌 성긴 그래프에서 훨씬 빠르다. 피보나치 힙을 쓰면 $O(VE + V^2 \log V)$으로 이론상 벨먼-포드보다 나을 것은 없지만 실전에서는 더 빠르다.
+
+    무게가 모두 음이 아니면 데이크스트라를 써라. 음의 무게가 있거나 음의 고리 알아내기가 필요하면 벨먼-포드를 써라. $\square$

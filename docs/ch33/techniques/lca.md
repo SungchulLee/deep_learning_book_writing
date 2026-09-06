@@ -1,76 +1,76 @@
-# Lowest Common Ancestor
+# 최소 공통 조상
 
-Given a rooted tree, the **lowest common ancestor** (LCA) of two nodes $u$ and $v$ is the deepest node that is an ancestor of both. For example, finding the distance between two nodes in a tree requires knowing their deepest shared ancestor: the path from $u$ to $v$ always passes through $\text{LCA}(u, v)$. LCA queries appear throughout tree algorithms -- computing distances, answering path queries, building virtual trees, and solving range problems. Efficient LCA algorithms reduce these tasks from $O(n)$ per query to $O(\log n)$ or even $O(1)$.
+뿌리 있는 나무에서 두 마디 $u$와 $v$의 **최소 공통 조상**(LCA)은 둘 모두의 조상 가운데 가장 깊은 마디다. 보기로 나무에서 두 마디 사이의 거리를 찾으려면 가장 깊은 공통 조상을 알아야 한다. $u$에서 $v$까지의 길은 늘 $\text{LCA}(u, v)$을 지난다. LCA 물음은 거리 셈하기, 길 물음에 답하기, 가짜 나무 짓기, 범위 문제 풀기 등 나무 알고리즘 곳곳에 나온다. 좋은 LCA 알고리즘은 이런 일을 물음마다 $O(n)$에서 $O(\log n)$이나 $O(1)$로까지 줄인다.
 
-## Definition and Properties
+## 정의와 성질
 
-Let $T$ be a rooted tree with root $r$. For any node $u$, the set of ancestors of $u$ is the set of nodes on the path from $u$ to $r$ (inclusive). The LCA of $u$ and $v$ is:
+$T$를 뿌리가 $r$인 뿌리 있는 나무라 하자. 아무 마디 $u$에 대해 $u$의 조상 모임은 $u$에서 $r$까지 길 위의 마디 모임이다($r$을 넣는다). $u$와 $v$의 LCA는 다음과 같다:
 
 $$
 \text{LCA}(u, v) = \arg\max_{w} \{\text{depth}(w) : w \text{ is an ancestor of both } u \text{ and } v\}
 $$
 
-Key properties:
+핵심 성질은 다음과 같다.
 
-- $\text{LCA}(u, u) = u$ for all nodes $u$.
-- $\text{LCA}(u, v) = u$ if and only if $u$ is an ancestor of $v$.
-- The path from $u$ to $v$ passes through $\text{LCA}(u, v)$.
-- The distance between $u$ and $v$ in the tree is $\text{depth}(u) + \text{depth}(v) - 2 \cdot \text{depth}(\text{LCA}(u, v))$.
+- 모든 마디 $u$에 대해 $\text{LCA}(u, u) = u$이다.
+- $u$가 $v$의 조상일 때 그리고 그때에만 $\text{LCA}(u, v) = u$이다.
+- $u$에서 $v$까지의 길은 $\text{LCA}(u, v)$을 지난다.
+- 나무에서 $u$와 $v$ 사이의 거리는 $\text{depth}(u) + \text{depth}(v) - 2 \cdot \text{depth}(\text{LCA}(u, v))$이다.
 
-## Binary Lifting
+## 두 갈래 들어 올리기
 
-The most widely used LCA algorithm in competitive programming is **binary lifting** (also called the method of doubling). It preprocesses the tree in $O(n \log n)$ time and answers each LCA query in $O(\log n)$.
+겨루기 짜기에서 가장 널리 쓰이는 LCA 알고리즘은 **두 갈래 들어 올리기**(두 배 방법이라고도 한다)다. 나무를 $O(n \log n)$ 때에 미리 다듬고 LCA 물음마다 $O(\log n)$에 답한다.
 
-### Preprocessing
+### 미리 다듬기
 
-For each node $u$ and each power $k$, store $\text{up}[u][k]$, the $2^k$-th ancestor of $u$:
+마디 $u$와 거듭제곱 $k$마다 $u$의 $2^k$번째 조상 $\text{up}[u][k]$을 갈무리한다:
 
 $$
 \text{up}[u][k] = \text{up}[\text{up}[u][k-1]][k-1]
 $$
 
-The base case is $\text{up}[u][0] = \text{parent}(u)$. The table has $n$ rows and $\lceil \log_2 n \rceil$ columns.
+밑동은 $\text{up}[u][0] = \text{parent}(u)$이다. 표는 줄이 $n$개, 칸이 $\lceil \log_2 n \rceil$개다.
 
-### Query Algorithm
+### 물음 알고리즘
 
-To find $\text{LCA}(u, v)$:
+$\text{LCA}(u, v)$을 찾으려면:
 
-1. Bring $u$ and $v$ to the same depth by lifting the deeper node.
-2. If $u = v$, return $u$.
-3. Simultaneously lift both $u$ and $v$ by decreasing powers of 2, stopping just below the LCA.
-4. Return $\text{parent}(u)$.
+1. 더 깊은 마디를 들어 올려 $u$와 $v$를 같은 깊이로 맞춘다.
+2. $u = v$이면 $u$를 돌려준다.
+3. 2의 거듭제곱을 줄여 가며 $u$와 $v$를 함께 들어 올리되 LCA 바로 아래에서 멈춘다.
+4. $\text{parent}(u)$을 돌려준다.
 
 ```python
 """
-Lowest Common Ancestor using binary lifting.
+두 갈래 들어 올리기로 최소 공통 조상 찾기.
 
-Preprocesses a rooted tree in O(n log n) and answers
-each LCA query in O(log n).
+뿌리 있는 나무를 O(n log n)에 미리 다듬고 LCA 물음마다
+O(log n)에 답한다.
 """
 
 import math
 from collections import deque
 
 # ===================================================================
-# Binary Lifting LCA
+# 두 갈래 들어 올리기 LCA
 # ===================================================================
 
 class LCA:
-    """LCA with binary lifting on a rooted tree."""
+    """뿌리 있는 나무에서 두 갈래 들어 올리기로 LCA 찾기."""
 
     def __init__(self, adj, root=0):
-        """Build the binary lifting table.
+        """두 갈래 들어 올리기 표를 짓는다.
 
-        Args:
+        인수:
             adj: adjacency list (list of lists)
-            root: root node index
+            root: 뿌리 마디 번호
         """
         self.n = len(adj)
         self.LOG = max(1, math.ceil(math.log2(self.n))) + 1
         self.depth = [0] * self.n
         self.up = [[0] * self.LOG for _ in range(self.n)]
 
-        # BFS to compute depth and parent (up[v][0])
+        # 깊이와 어버이(up[v][0])를 셈하는 너비 먼저 훑기
         visited = [False] * self.n
         visited[root] = True
         queue = deque([root])
@@ -83,14 +83,14 @@ class LCA:
                     self.up[v][0] = u
                     queue.append(v)
 
-        # Fill binary lifting table
+        # 두 갈래 들어 올리기 표 채우기
         for k in range(1, self.LOG):
             for v in range(self.n):
                 self.up[v][k] = self.up[self.up[v][k - 1]][k - 1]
 
     def query(self, u, v):
-        """Return the LCA of nodes u and v."""
-        # Step 1: bring to same depth
+        """마디 u와 v의 LCA를 돌려준다."""
+        # 1걸음: 같은 깊이로 맞춤
         if self.depth[u] < self.depth[v]:
             u, v = v, u
         diff = self.depth[u] - self.depth[v]
@@ -101,7 +101,7 @@ class LCA:
         if u == v:
             return u
 
-        # Step 2: lift both until just below LCA
+        # 2걸음: LCA 바로 아래까지 둘을 들어 올림
         for k in range(self.LOG - 1, -1, -1):
             if self.up[u][k] != self.up[v][k]:
                 u = self.up[u][k]
@@ -110,16 +110,16 @@ class LCA:
         return self.up[u][0]
 
     def distance(self, u, v):
-        """Return the distance (number of edges) between u and v."""
+        """u와 v 사이의 거리(변 수)를 돌려준다."""
         w = self.query(u, v)
         return self.depth[u] + self.depth[v] - 2 * self.depth[w]
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
-    # Build a tree:
+    # 나무 짓기:
     #       0
     #      / \
     #     1   2
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     print(f"dist(6, 5) = {lca.distance(6, 5)}")  # 5
 ```
 
-**Output:**
+**출력:**
 ```
 LCA(3, 4) = 1
 LCA(6, 5) = 0
@@ -152,38 +152,91 @@ LCA(6, 6) = 6
 dist(6, 5) = 5
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
-| Phase | Time | Space |
+| 마디 | 시간 | 공간 |
 |---|---|---|
-| Preprocessing | $O(n \log n)$ | $O(n \log n)$ |
-| Query | $O(\log n)$ | -- |
+| 미리 다듬기 | $O(n \log n)$ | $O(n \log n)$ |
+| 물음 | $O(\log n)$ | -- |
 
-The $O(n \log n)$ space for the binary lifting table is acceptable for $n \le 10^5$ (roughly 1.7 million entries at $\log n \approx 17$).
+두 갈래 들어 올리기 표의 $O(n \log n)$ 자리는 $n \le 10^5$에서 받아들일 만하다($\log n \approx 17$일 때 대략 170만 칸).
 
-## Alternative Approaches
+## 다른 길
 
-### Euler Tour + Sparse Table
+### 오일러 돌기와 성긴 표
 
-An alternative achieves $O(1)$ per query after $O(n \log n)$ preprocessing:
+$O(n \log n)$ 미리 다듬기 뒤 물음마다 $O(1)$을 이루는 다른 길도 있다:
 
-1. Compute an Euler tour of the tree, recording the depth at each step.
-2. LCA of $u$ and $v$ is the node with minimum depth between the first occurrences of $u$ and $v$ in the Euler tour.
-3. This is a range minimum query (RMQ), solvable in $O(1)$ with a sparse table.
+1. 나무의 오일러 돌기를 셈하며 걸음마다 깊이를 적는다.
+2. $u$와 $v$의 LCA는 오일러 돌기에서 $u$와 $v$가 처음 나타난 자리 사이에 깊이가 가장 작은 마디다.
+3. 이는 범위 최소 물음(RMQ)이며 성긴 표로 $O(1)$에 풀린다.
 
-This approach is covered in detail in the [Euler Tour](euler_tour.md) section.
+이 길은 [오일러 돌기](euler_tour.md) 마디에서 자세히 다룬다.
 
-### Tarjan's Offline LCA
+### 타잔의 묶음 처리 LCA
 
-When all queries are known in advance, Tarjan's offline algorithm answers all $q$ queries in $O(n \cdot \alpha(n) + q)$ using a DFS with Union-Find. This is optimal but requires offline processing.
+물음을 모두 미리 알 때 타잔의 묶음 처리 알고리즘은 깊이 먼저 훑기와 합치기-찾기로 물음 $q$개에 모두 $O(n \cdot \alpha(n) + q)$에 답한다. 이는 가장 좋지만 묶음 처리가 필요하다.
 
-## Applications
+## 응용
 
-- **Tree distance queries**: $\text{dist}(u, v) = \text{depth}(u) + \text{depth}(v) - 2 \cdot \text{depth}(\text{LCA}(u, v))$.
-- **Path aggregation**: Compute sum, max, or min on the path from $u$ to $v$ by splitting at the LCA.
-- **Virtual trees**: Construct a compressed tree containing only query-relevant nodes and their LCAs (see [Virtual Tree](virtual_tree.md)).
-- **Heavy-light decomposition**: LCA determines which chain transitions occur on a path query (see [HLD](hld.md)).
+- **나무 거리 물음**: $\text{dist}(u, v) = \text{depth}(u) + \text{depth}(v) - 2 \cdot \text{depth}(\text{LCA}(u, v))$.
+- **길 모으기**: LCA에서 갈라 $u$에서 $v$까지 길의 합, 최대, 최소를 셈한다.
+- **가짜 나무**: 물음에 뜻있는 마디와 그 LCA만 담은 옥죈 나무를 짓는다([가짜 나무](virtual_tree.md) 참고).
+- **무거움-가벼움 쪼개기**: LCA가 길 물음에서 어느 사슬을 갈아탈지 정한다([HLD](hld.md) 참고).
 
-## Reference
+## 참고 문헌
 
-- [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf)
+음이 아닌 정수 $x$가 주어질 때 비트 셈만 써서 $x$의 가장 낮은 켜진 비트만 남기는 식을 적어라(곧 그 비트만 켜진 값을 만들어라). $x = 0$일 때 그 식은 무엇을 돌려주는가?
+
+## 연습문제
+
+**연습문제 1.**
+뿌리 있는 나무에서 LCA로 두 마디 $u$와 $v$ 사이의 거리를 셈하는 길을 보여라. 깊이와 LCA로 그 식을 나타내어라.
+
+??? success "연습문제 1 풀이"
+    $u$에서 $v$까지의 하나뿐인 길은 $\text{LCA}(u, v)$을 지난다. $u$에서 $\text{LCA}(u, v)$까지 올라간 뒤 $v$로 내려간다. 거리는 다음과 같다:
+
+    $$
+    d(u, v) = \text{depth}(u) + \text{depth}(v) - 2 \cdot \text{depth}(\text{LCA}(u, v))
+    $$
+
+    $\text{depth}(u) - \text{depth}(\text{LCA}(u,v))$이 $u$에서 LCA까지 올라가는 변의 수이고 $\text{depth}(v) - \text{depth}(\text{LCA}(u,v))$이 LCA에서 $v$로 내려가는 변의 수이므로 이것이 성립한다. 그 합이 전체 길 길이다. $\square$
+
+---
+
+**연습문제 2.**
+LCA를 위한 두 갈래 들어 올리기 알고리즘을 밝혀라. 미리 다듬기의 때와 자리는 얼마이고 물음 때는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    두 갈래 들어 올리기는 마디 $v$와 거듭제곱 $j$마다 $2^j$번째 조상 $\text{up}[v][j]$을 미리 셈한다. 밑동: $\text{up}[v][0] = \text{parent}(v)$. 점화식: $\text{up}[v][j] = \text{up}[\text{up}[v][j-1]][j-1]$. 미리 다듬기: 때와 자리가 $O(n \log n)$이다($j$가 $\lfloor \log_2 n \rfloor$까지). 물음 $\text{LCA}(u, v)$은 먼저 깊이 차이의 두 갈래 표현을 써서 더 깊은 마디를 뛰어올려 $u$와 $v$를 같은 깊이로 맞춘다. 그런 다음 $u = v$이면 $u$를 돌려준다. 아니면 $j$를 $\lfloor \log_2 n \rfloor$에서 0까지 줄이며 $\text{up}[u][j] \ne \text{up}[v][j]$이면 $u = \text{up}[u][j]$, $v = \text{up}[v][j]$로 둔다. 되돌이 뒤 $\text{LCA}(u, v) = \text{parent}(u)$이다. 물음 때: $O(\log n)$. $\square$
+
+---
+
+**연습문제 3.**
+두 갈래 들어 올리기 LCA 물음이 옳음을 증명하여라. 곧 깊이를 맞추고 두 갈래로 내려간 뒤 $\text{parent}(u)$이 정말 LCA임을 보여라.
+
+??? success "연습문제 3 풀이"
+    깊이를 맞추면 $u$와 $v$는 같은 깊이에 있다. $u = v$이면 그 자신이 LCA다. 아니면 두 갈래 내려가기가 가장 큰 뜀 $j = \lfloor \log_2 n \rfloor$에서 0까지 되풀이한다. 걸음마다 $\text{up}[u][j] \ne \text{up}[v][j]$이면 두 마디를 $2^j$만큼 올린다. 불변량은 늘 LCA가 $u$와 $v$보다 엄격히 위에 있다는 것이다(곧 $u$와 $v$가 LCA의 서로 다른 밑나무에 있다). 모든 $j$를 다루고 나면 $u$와 $v$는 깊이 $\text{depth}(\text{LCA}) + 1$, 곧 LCA 바로 아래 한 걸음에 있다. 뜀들이 모두 $\sum_{j : \text{jumped}} 2^j$켜를 건너뛰는데, 두 갈래 표현에 따라 이 합이 정확히 $\text{depth}(u_0) - \text{depth}(\text{LCA}) - 1$과 같기 때문이다. 여기서 $u_0$은 깊이를 맞춘 처음 마디다. 따라서 $\text{parent}(u) = \text{LCA}(u, v)$이다. $\square$
+
+---
+
+**연습문제 4.**
+변에 무게가 있는 나무가 있다. 두 갈래 들어 올리기로 $u$에서 $v$까지 길의 최대 변 무게를 찾는, 미리 다듬기 $O(n \log n)$, 물음 $O(\log n)$인 알고리즘을 설계하여라.
+
+??? success "연습문제 4 풀이"
+    두 갈래 들어 올리기 표에 둘째 배열을 더한다. $\text{maxw}[v][j]$은 $v$에서 그 $2^j$번째 조상까지 길의 최대 변 무게를 갈무리한다. 밑동: $\text{maxw}[v][0] = w(v, \text{parent}(v))$. 점화식: $\text{maxw}[v][j] = \max(\text{maxw}[v][j-1], \text{maxw}[\text{up}[v][j-1]][j-1])$. 미리 다듬기: $O(n \log n)$. 물음에서는 깊이 맞추기와 두 갈래 내려가기 동안 뜀에서 만난 모든 $\text{maxw}$ 값의 흐르는 최댓값을 좇는다. 곧 $u$를 $2^j$만큼 올릴 때마다 $u = \text{up}[u][j]$로 두기 전에 $\text{ans} = \max(\text{ans}, \text{maxw}[u][j])$로 고친다. 마지막 답은 쌓인 최댓값이다. 물음 때: $O(\log n)$. $\square$
+
+---
+
+**연습 5.**
+LCA 알고리즘 셋, 곧 어설픈 기어오르기, 두 갈래 들어 올리기, 오일러 돌기와 RMQ를 미리 다듬기 때, 물음 때, 자리로 견주어라. 저마다 언제 쓰겠는가?
+
+??? success "연습 5의 풀이"
+    | 방법 | 미리 다듬기 | 물음 | 자리 |
+    |---|---|---|---|
+    | 어설픈 기어오르기 | $O(n)$ | 가장 나쁠 때 $O(n)$ | $O(n)$ |
+    | 두 갈래 들어 올리기 | $O(n \log n)$ | $O(\log n)$ | $O(n \log n)$ |
+    | 오일러 돌기와 성긴 표 RMQ | $O(n \log n)$ | $O(1)$ | $O(n \log n)$ |
+    | 오일러 돌기와 벤더-파라크콜턴 | $O(n)$ | $O(1)$ | $O(n)$ |
+
+    $n$이 아주 작거나($n < 100$) 물음이 몇 개뿐일 때는 어설픈 기어오르기가 낫다. 문제가 조상 뛰어오르기(보기로 $k$번째 조상 찾기)나 길 최대/최소 물음도 요구하면 들어 올리기 표가 이런 것으로 자연스레 늘어나므로 두 갈래 들어 올리기가 낫다. 물음 수가 아주 많아 물음마다 $O(1)$이 뜻있고 LCA 말고 다른 길 모음 앎이 필요 없다면 오일러 돌기와 RMQ가 낫다. $\square$

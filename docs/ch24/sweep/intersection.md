@@ -1,109 +1,84 @@
-# Sweep-Line Segment Intersection
+# 훑는 선 도막 만남
 
-Given $n$ line segments in the plane, how many pairs intersect? The brute-force
-approach tests all $\binom{n}{2}$ pairs in $O(n^2)$ time. The
-Bentley-Ottmann sweep-line algorithm finds all $k$ intersection points in
-$O((n + k) \log n)$ time by exploiting the fact that two segments can only
-intersect when they are adjacent in the vertical ordering along a sweep line.
+평면 위 도막 $n$개가 주어질 때 만나는 짝은 몇 개인가? 막무가내 방식은 $\binom{n}{2}$개 짝을 모두 $O(n^2)$ 시간에 살핀다. 벤틀리-오트만 훑는 선 알고리즘은 두 도막이 훑는 선을 따라 세로 차례에서 이웃일 때만 만날 수 있다는 사실을 써서 만남점 $k$개를 모두 $O((n + k) \log n)$ 시간에 찾는다.
 
-## Problem Statement
+## 문제 서술
 
-Given a set of $n$ line segments $S = \{s_1, s_2, \ldots, s_n\}$ in the plane,
-report all pairs of segments that intersect. Let $k$ denote the number of
-intersection points.
+평면 위 도막 $n$개 모임 $S = \{s_1, s_2, \ldots, s_n\}$이 주어질 때 만나는 도막 짝을 모두 알려라. $k$을 만남점의 수라 하자.
 
-## Sweep-Line Paradigm
+## 훑는 선 틀
 
-The algorithm sweeps a vertical line from left to right across the plane.
-Two data structures maintain the state:
+이 알고리즘은 세로선을 평면 위에서 왼쪽에서 오른쪽으로 훑는다. 두 자료 짜임이 상태를 지킨다.
 
-- **Event queue** (priority queue): stores the $x$-coordinates where something
-  interesting happens. Events are left endpoints, right endpoints, and
-  intersection points.
-- **Status structure** (balanced BST): stores the segments currently crossing
-  the sweep line, ordered by their $y$-coordinate at the current $x$-position.
+- **사건 줄**(우선 줄): 뭔가 일어나는 $x$자리값을 담는다. 사건은 왼쪽 끝점, 오른쪽 끝점, 만남점이다.
+- **상태 짜임**(고른 이진 찾기 나무): 지금 훑는 선을 가로지르는 도막을 지금 $x$자리에서의 $y$자리값 차례로 담는다.
 
-!!! note "Key Observation"
-    Two segments can only intersect if they are *adjacent* in the status
-    structure at some point during the sweep. This means we only need to test
-    neighboring pairs, not all pairs.
+!!! note "핵심 살핌"
+    두 도막은 훑는 동안 어느 시점에 상태 짜임에서 *이웃*일 때만 만날 수 있다. 곧 모든 짝이 아니라 이웃 짝만 살피면 된다.
 
-## Event Types
+## 사건 갈래
 
-| Event | Action |
+| 사건 | 할 일 |
 |---|---|
-| Left endpoint of $s$ | Insert $s$ into status; check for intersections with its new neighbors |
-| Right endpoint of $s$ | Remove $s$ from status; check if its former neighbors now intersect |
-| Intersection of $s_i, s_j$ | Report intersection; swap $s_i$ and $s_j$ in status; check new neighbors |
+| $s$의 왼쪽 끝점 | $s$을 상태에 넣고 새 이웃과의 만남을 살핀다 |
+| $s$의 오른쪽 끝점 | $s$을 상태에서 빼고 이전 이웃이 이제 만나는지 살핀다 |
+| $s_i, s_j$의 만남 | 만남을 알리고 상태에서 $s_i$과 $s_j$의 자리를 바꾼 뒤 새 이웃을 살핀다 |
 
-## Algorithm Steps
+## 알고리즘의 걸음
 
-1. Initialize the event queue with all $2n$ segment endpoints.
-2. While the event queue is not empty:
-    - Extract the leftmost event.
-    - **Left endpoint:** Insert the segment into the status. Test it against its
-      upper and lower neighbors.
-    - **Right endpoint:** Before removing the segment, check if its upper and
-      lower neighbors intersect. Then remove it.
-    - **Intersection:** Report it. Swap the two segments in the status.
-      Test the upper segment against its new upper neighbor, and the lower
-      segment against its new lower neighbor.
+1. 도막 끝점 $2n$개 모두로 사건 줄을 첫자리매김한다.
+2. 사건 줄이 비지 않은 동안:
+    - 가장 왼쪽 사건을 꺼낸다.
+    - **왼쪽 끝점:** 도막을 상태에 넣는다. 그 위아래 이웃과 견주어 살핀다.
+    - **오른쪽 끝점:** 도막을 빼기 앞서 그 위아래 이웃이 만나는지 살핀다. 그런 다음 뺀다.
+    - **만남:** 알린다. 상태에서 두 도막의 자리를 바꾼다. 위 도막을 새 위 이웃과, 아래 도막을 새 아래 이웃과 견주어 살핀다.
 
-## Correctness Argument
+## 올바름의 논증
 
-**Claim.** Before two segments intersect, they must become adjacent in the
-status structure.
+**주장.** 두 도막이 만나기 앞서 상태 짜임에서 반드시 이웃이 된다.
 
-Two non-adjacent segments are separated by at least one other segment.
-As the sweep line advances, segments swap positions only at intersection
-points. Therefore, two segments that eventually intersect must first become
-neighbors (by having the separating segments end or swap away). The algorithm
-checks every pair when they become neighbors, so no intersection is missed.
+이웃이 아닌 두 도막 사이에는 적어도 다른 도막 하나가 있다. 훑는 선이 나아가면 도막은 만남점에서만 자리를 바꾼다. 따라서 끝내 만나는 두 도막은 먼저 이웃이 되어야 한다(사이의 도막이 끝나거나 자리를 바꾸어 물러남으로써). 알고리즘은 이웃이 될 때마다 모든 짝을 살피므로 놓치는 만남은 없다.
 
-## Complexity Analysis
+## 복잡도 분석
 
-- Each of the $2n$ endpoints generates one insertion or deletion: $O(n \log n)$.
-- Each of the $k$ intersections generates one swap: $O(k \log n)$.
-- Each event involves $O(1)$ neighbor checks and BST operations.
+- 끝점 $2n$개마다 넣기나 지우기가 한 번씩 생긴다. 곧 $O(n \log n)$이다.
+- 만남 $k$개마다 자리 바꾸기가 한 번씩 생긴다. 곧 $O(k \log n)$이다.
+- 사건마다 이웃 살피기와 이진 찾기 나무 셈을 $O(1)$번 한다.
 
 $$
 T(n, k) = O((n + k) \log n)
 $$
 
-**Space:** $O(n + k)$ for the event queue and status structure.
+**자리:** 사건 줄과 상태 짜임에 $O(n + k)$.
 
-When $k = O(n)$, this is $O(n \log n)$. In the worst case $k = O(n^2)$, so
-the algorithm is $O(n^2 \log n)$ — but this is still better than brute force
-for reporting intersections since we must output each one.
+$k = O(n)$이면 $O(n \log n)$이다. 가장 나쁜 경우 $k = O(n^2)$이므로 알고리즘은 $O(n^2 \log n)$이다. 하지만 만남을 하나씩 내놓아야 하므로 알려 주기에서는 여전히 막무가내보다 낫다.
 
-## Simplified Implementation
+## 단순하게 짜기
 
-The full Bentley-Ottmann algorithm requires a balanced BST with custom
-comparison. Below is a simplified sweep that detects intersections among
-a small set of horizontal and vertical segments.
+온전한 벤틀리-오트만 알고리즘에는 맞춤 견줌을 갖춘 고른 이진 찾기 나무가 필요하다. 아래는 가로와 세로 도막 몇 개 사이의 만남을 알아내는 단순한 훑기이다.
 
 ```python
 """
-Sweep-line segment intersection (simplified).
+훑는 선 도막 만남(단순하게 만든 것).
 
-Demonstrates the sweep-line paradigm for detecting intersections
-between horizontal and vertical line segments.
+가로와 세로 도막 사이의 만남을 알아내는
+훑는 선 틀을 보인다.
 """
 
 import heapq
 from collections import defaultdict
 
 
-# === Event-Based Sweep ===
+# === 사건에 바탕한 훑기 ===
 
 def sweep_intersections(segments):
-    """Find intersections among axis-aligned segments using sweep line.
+    """훑는 선으로 축에 나란한 도막 사이의 만남을 찾는다.
 
-    Args:
-        segments: list of ((x1,y1), (x2,y2)) endpoint pairs.
+    인수:
+        segments: ((x1,y1), (x2,y2)) 끝점 짝의 목록.
 
-    Returns:
-        List of intersection points.
+    반환값:
+        만남점 목록.
     """
     events = []
     horizontals = []
@@ -113,16 +88,16 @@ def sweep_intersections(segments):
         x2, y2 = q
 
         if y1 == y2:
-            # Horizontal segment: start and end events
+            # 가로 도막: 시작과 끝 사건
             lx, rx = min(x1, x2), max(x1, x2)
-            events.append((lx, 0, y1, i))   # start
-            events.append((rx, 2, y1, i))   # end
+            events.append((lx, 0, y1, i))   # 시작
+            events.append((rx, 2, y1, i))   # 끝
             horizontals.append((lx, rx, y1))
         else:
-            # Vertical segment: query event
+            # 세로 도막: 묻기 사건
             x = x1
             ly, ry = min(y1, y2), max(y1, y2)
-            events.append((x, 1, (ly, ry), i))  # vertical
+            events.append((x, 1, (ly, ry), i))  # 세로
 
     events.sort()
     active_y = defaultdict(int)
@@ -133,17 +108,17 @@ def sweep_intersections(segments):
         etype = event[1]
 
         if etype == 0:
-            # Horizontal start: add y to active set
+            # 가로 시작: 살아 있는 모임에 y을 더한다
             y = event[2]
             active_y[y] += 1
         elif etype == 2:
-            # Horizontal end: remove y from active set
+            # 가로 끝: 살아 있는 모임에서 y을 뺀다
             y = event[2]
             active_y[y] -= 1
             if active_y[y] == 0:
                 del active_y[y]
         else:
-            # Vertical segment: check active horizontals
+            # 세로 도막: 살아 있는 가로 도막을 살핀다
             ly, ry = event[2]
             for y in list(active_y.keys()):
                 if ly <= y <= ry and active_y[y] > 0:
@@ -152,15 +127,15 @@ def sweep_intersections(segments):
     return intersections
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Horizontal and vertical segments
+    # 가로와 세로 도막
     segments = [
-        ((1, 3), (6, 3)),   # horizontal
-        ((2, 1), (2, 5)),   # vertical
-        ((4, 1), (4, 4)),   # vertical
-        ((1, 1), (5, 1)),   # horizontal
+        ((1, 3), (6, 3)),   # 가로
+        ((2, 1), (2, 5)),   # 세로
+        ((4, 1), (4, 4)),   # 세로
+        ((1, 1), (5, 1)),   # 가로
     ]
 
     result = sweep_intersections(segments)
@@ -170,7 +145,7 @@ if __name__ == "__main__":
     print(f"Intersections: {result}")
 ```
 
-**Output:**
+**출력:**
 ```
 Segments:
   (1, 3) -> (6, 3)
@@ -180,15 +155,47 @@ Segments:
 Intersections: [(2, 1), (2, 3), (4, 1), (4, 3)]
 ```
 
-## Comparison of Approaches
+## 여러 방식 견주기
 
-| Algorithm | Time | Handles General Segments? |
+| 알고리즘 | 시간 | 일반 도막을 다루는가? |
 |---|---|---|
-| Brute force | $O(n^2)$ | Yes |
-| Bentley-Ottmann | $O((n+k) \log n)$ | Yes |
-| Shamos-Hoey | $O(n \log n)$ | Detection only (yes/no) |
+| 막무가내 | $O(n^2)$ | 그렇다 |
+| 벤틀리-오트만 | $O((n+k) \log n)$ | 그렇다 |
+| 셰이모스-호이 | $O(n \log n)$ | 알아내기만(예/아니오) |
 
-## Reference
+## 참고 문헌
 
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer, Chapter 2.
 - Bentley, J. L. & Ottmann, T. A. "Algorithms for Reporting and Counting Geometric Intersections." *IEEE Trans. Computers*, 1979.
+
+## 연습문제
+
+**연습문제 1.**
+훑는 선 도막 만남의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    훑는 선 도막 만남은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 훑는 선 도막 만남을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+훑는 선 도막 만남은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+훑는 선 도막 만남을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 훑는 선 도막 만남은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

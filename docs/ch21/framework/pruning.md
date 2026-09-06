@@ -1,164 +1,151 @@
-# Pruning Strategies
+# 가지치기 전략
 
-A state space tree for a problem with $n$ decisions and branching factor $b$ contains
-$O(b^n)$ nodes.  Visiting every node is prohibitively expensive for all but the
-smallest instances.  **Pruning** is the technique of recognizing — as early as
-possible — that an entire subtree cannot contain a valid or optimal solution, and
-skipping it entirely.  Effective pruning is what makes backtracking and
-branch-and-bound practical: it preserves correctness while dramatically reducing the
-portion of the tree that is actually explored.
+결정이 $n$번이고 갈래 수가 $b$인 문제의 상태 공간 나무에는 마디가 $O(b^n)$개 있다. 아주 작은 경우가 아니면 마디를 모두 들르는 것은 값이 너무 비싸다. **가지치기**는 어떤 아래 나무 전체에 옳거나 가장 좋은 풀이가 있을 수 없음을 되도록 일찍 알아채고 통째로 건너뛰는 재주이다. 잘 드는 가지치기가 되짚기와 가지 뻗어 묶기를 쓸 만하게 만든다. 곧 옳음을 지키면서 실제로 살피는 나무의 몫을 크게 줄인다.
 
-## Why Pruning Works
+## 가지치기가 통하는 까닭
 
-Consider a state space tree of depth $n$ with a uniform branching factor $b$.
-Without pruning the search visits
+갈래 수가 고르게 $b$이고 깊이가 $n$인 상태 공간 나무를 보자. 가지치기가 없으면 찾기가 다음만큼 들른다
 
 $$
 \sum_{k=0}^{n} b^k = \frac{b^{n+1} - 1}{b - 1} = O(b^n)
 $$
 
-nodes.  If a pruning rule eliminates a fraction $p$ of children at every node, the
-effective branching factor drops to $b' = b(1 - p)$, and the number of visited nodes
-falls to $O(b'^n)$.  Because the tree size is exponential in $n$, even a modest
-reduction in $b'$ produces an enormous speedup.
+개 마디를 들른다. 가지치기 규칙이 마디마다 자식의 $p$ 몫을 없애면 실효 갈래 수가 $b' = b(1 - p)$으로 떨어지고 들르는 마디 수는 $O(b'^n)$으로 준다. 나무 크기가 $n$에 대해 지수이므로 $b'$이 조금만 줄어도 엄청나게 빨라진다.
 
-??? example "Quantitative impact of pruning"
+??? example "가지치기가 미치는 영향을 값으로 보기"
 
-    Suppose $b = 4$ and $n = 20$.  Without pruning the tree has roughly
-    $4^{20} \approx 1.1 \times 10^{12}$ leaves.  If pruning eliminates 50 % of
-    branches at each level, the effective branching factor is $b' = 2$ and the
-    number of leaves drops to $2^{20} \approx 10^6$ — a million-fold reduction.
+    $b = 4$이고 $n = 20$이라 하자. 가지치기가 없으면 나무의 잎이 대략 $4^{20} \approx 1.1 \times 10^{12}$개이다. 가지치기가 층마다 갈래의 50%를 없애면 실효 갈래 수가 $b' = 2$이고 잎의 수는 $2^{20} \approx 10^6$으로 떨어진다. 백만분의 일로 준 것이다.
 
-## Types of Pruning
+## 가지치기의 갈래
 
-### Feasibility Pruning
+### 될 수 있는지로 가지치기
 
-Feasibility pruning checks whether the current partial solution can be extended to a
-**valid** (constraint-satisfying) complete solution.  If not, the subtree rooted at
-the current node is skipped.
+될 수 있는지로 가지치기는 지금 어중간한 풀이를 **옳은**(제약을 채우는) 온전한 풀이로 넓힐 수 있는지 살핀다. 그럴 수 없으면 지금 마디를 뿌리로 하는 아래 나무를 건너뛴다.
 
-**Mechanism.** After adding decision $x_k$ to the partial solution
-$(x_1, \ldots, x_{k-1})$, evaluate a predicate
+**장치.** 어중간한 풀이 $(x_1, \ldots, x_{k-1})$에 결정 $x_k$을 더한 뒤 술어를 따진다
 
 $$
 \text{feasible}(x_1, \ldots, x_k) \in \{\text{True}, \text{False}\}
 $$
 
-If the predicate returns False, prune immediately — do not generate any children.
+술어가 거짓을 돌려주면 곧바로 쳐 낸다. 곧 자식을 하나도 만들지 않는다.
 
-**Examples:**
+**보기:**
 
-- **N-Queens**: after placing a queen in row $k$, check whether it attacks any
-  previously placed queen.  If it does, prune.
-- **Graph coloring**: after assigning color $c$ to vertex $v_k$, check whether any
-  neighbor of $v_k$ already has color $c$.  If so, prune.
-- **Subset sum**: if the running sum already exceeds the target $T$, prune.
+- **N-여왕**: 가로줄 $k$에 여왕을 놓은 뒤 앞서 놓은 여왕을 공격하는지 살핀다. 그렇다면 쳐 낸다.
+- **그래프 색칠하기**: 꼭짓점 $v_k$에 색 $c$을 매긴 뒤 $v_k$의 이웃 가운데 이미 색이 $c$인 것이 있는지 살핀다. 그렇다면 쳐 낸다.
+- **부분 모임 합**: 흐르는 합이 이미 목표 $T$을 넘으면 쳐 낸다.
 
-### Optimality Pruning (Bounding)
+### 가장 좋음으로 가지치기(묶기)
 
-Optimality pruning applies to **optimization** problems.  It computes an optimistic
-bound on the best objective value achievable from the current node and compares it to
-the best complete solution found so far (the **incumbent**).
+가장 좋음으로 가지치기는 **가장 좋게 하기** 문제에 쓴다. 지금 마디에서 이룰 수 있는 가장 좋은 목표 값의 낙관 묶음을 셈해 여태 찾은 가장 좋은 온전한 풀이(**현재 최고**)와 견준다.
 
-**Mechanism.** Let $\text{bound}(x_1, \ldots, x_k)$ be an upper bound on the
-objective for a maximization problem (or a lower bound for minimization).  Let
-$z^*$ be the incumbent value.  Prune when
+**장치.** $\text{bound}(x_1, \ldots, x_k)$을 가장 크게 하기 문제의 목표에 대한 위 묶음(가장 작게 하기라면 아래 묶음)이라 하자. $z^*$을 현재 최고 값이라 하자. 다음일 때 쳐 낸다
 
 $$
 \text{bound}(x_1, \ldots, x_k) \leq z^*
 $$
 
-because no descendant of this node can improve the incumbent.
+이 마디의 어떤 자손도 현재 최고를 넘을 수 없기 때문이다.
 
-The quality of the bound determines how much of the tree is eliminated.  A tighter
-bound prunes more aggressively but is usually more expensive to compute.  The
-best pruning strategies balance bound tightness against computation cost.
+묶음의 품질이 나무를 얼마나 없애는지 정한다. 빡빡한 묶음은 더 세게 쳐 내지만 흔히 셈하기가 더 비싸다. 가장 좋은 가지치기 전략은 묶음의 빡빡함과 셈 값을 저울질한다.
 
-!!! tip "Bound computation trade-off"
+!!! tip "묶음 셈하기의 맞바꿈"
 
-    A bound that takes $O(1)$ to compute but prunes 20 % of nodes can be more
-    effective than a bound that takes $O(n^2)$ to compute but prunes 50 %, because
-    the cheaper bound is evaluated at many more nodes.
+    셈하는 데 $O(1)$이 들고 마디의 20%를 쳐 내는 묶음이, 셈하는 데 $O(n^2)$이 들고 50%를 쳐 내는 묶음보다 나을 수 있다. 값싼 묶음은 훨씬 많은 마디에서 따지기 때문이다.
 
-### Symmetry Pruning
+### 대칭으로 가지치기
 
-Many combinatorial problems have **symmetries** — transformations (rotations,
-reflections, relabelings) that map one solution to another.  Symmetry pruning
-eliminates redundant branches by enforcing a canonical ordering:
+많은 조합 문제에는 **대칭**, 곧 한 풀이를 다른 풀이로 옮기는 바꿈(돌림, 되비침, 이름 다시 붙이기)이 있다. 대칭으로 가지치기는 표준 차례를 강제해 겹치는 갈래를 없앤다:
 
-- **Subsets**: require elements to be chosen in increasing order to avoid generating
-  the same subset in different orderings.
-- **N-Queens**: fix the first queen's column to be in the left half of the board,
-  eliminating mirror-image solutions.
-- **Graph coloring**: assign colors to the first vertex in a fixed order (color 1
-  first, then color 2, etc.) to break color-permutation symmetry.
+- **부분 모임**: 같은 부분 모임을 다른 차례로 만들지 않도록 원소를 늘어나는 차례로 고르게 한다.
+- **N-여왕**: 첫 여왕의 세로줄을 판의 왼쪽 절반으로 고정해 거울 상 풀이를 없앤다.
+- **그래프 색칠하기**: 색 자리 바꿈 대칭을 깨려 첫 꼭짓점에 정해진 차례(색 1 먼저, 다음 색 2, ...)로 색을 매긴다.
 
-Symmetry pruning can reduce the search space by a factor equal to the size of the
-symmetry group — up to $n!$ for permutation symmetries.
+대칭으로 가지치기는 찾기 공간을 대칭 무리의 크기만큼 줄일 수 있으며, 자리 바꿈 대칭이면 최대 $n!$배이다.
 
-### Dominance Pruning
+### 누름으로 가지치기
 
-A partial solution $A$ **dominates** partial solution $B$ if every completion of $B$
-that is optimal can be matched or improved by a corresponding completion of $A$.
-When dominance can be detected efficiently, the entire subtree rooted at $B$ is
-pruned.
+$B$을 가장 좋게 마무리한 것마다 $A$을 그에 맞게 마무리한 것이 맞먹거나 더 나으면 어중간한 풀이 $A$이 어중간한 풀이 $B$을 **누른다**고 한다. 누름을 효율 좋게 알아낼 수 있으면 $B$을 뿌리로 하는 아래 나무 전체를 쳐 낸다.
 
-**Example.** In the 0/1 Knapsack problem, suppose two partial solutions have
-considered the same items $\{1, \ldots, k\}$ and have the same remaining capacity,
-but solution $A$ has a higher total value.  Then $A$ dominates $B$, and $B$'s subtree
-can be pruned.
+**보기.** 0/1 배낭 문제에서 어중간한 풀이 둘이 같은 물건 $\{1, \ldots, k\}$을 살폈고 남은 담이도 같은데 풀이 $A$의 전체 값어치가 더 크다고 하자. 그러면 $A$이 $B$을 누르므로 $B$의 아래 나무를 쳐 낼 수 있다.
 
-## Pruning Order Matters
+## 가지치는 차례가 중요하다
 
-The effectiveness of pruning depends on the **order** in which decisions are made and
-the **order** in which candidate values are tried:
+가지치기가 얼마나 잘 드는지는 결정을 내리는 **차례**와 후보 값을 시험하는 **차례**에 달렸다:
 
-| Strategy | Effect |
+| 전략 | 효과 |
 |----------|--------|
-| **Most-constrained variable first** | Choose the decision with the fewest remaining legal values.  This maximizes the chance of early failure and deeper pruning. |
-| **Least-constraining value first** | Among candidate values, try the one that rules out the fewest options for future decisions.  This increases the chance of finding a solution quickly. |
-| **Best-first ordering** | Sort candidates by their bounding value so that the best incumbent is found early, enabling stronger optimality pruning. |
+| **제약이 가장 많은 변수 먼저** | 쓸 수 있는 값이 가장 적게 남은 결정을 고른다. 일찍 어긋날 가능성과 더 깊은 가지치기를 가장 크게 한다. |
+| **덜 옭아매는 값 먼저** | 후보 값 가운데 앞으로의 결정에서 가장 적은 선택지를 없애는 것을 시험한다. 풀이를 빨리 찾을 가능성을 높인다. |
+| **가장 좋은 것 먼저 차례** | 후보를 묶음 값으로 정렬해 가장 좋은 현재 최고를 일찍 찾아 가장 좋음 가지치기를 세게 한다. |
 
-These heuristics do not change the worst-case complexity, but they can reduce the
-average-case search effort by orders of magnitude.
+이 어림짐작은 최악의 경우 복잡도를 바꾸지 않지만 보통의 경우 찾기 품을 자릿수만큼 줄일 수 있다.
 
-## Measuring Pruning Effectiveness
+## 가지치기가 드는 정도 재기
 
-Two metrics quantify how well pruning performs on a given instance:
+잣대 둘이 주어진 경우에 가지치기가 얼마나 잘 드는지 값으로 나타낸다:
 
-**Pruning ratio.** The fraction of the full state space tree that is never generated:
+**가지치기 비.** 온전한 상태 공간 나무 가운데 아예 만들지 않은 몫:
 
 $$
-r = 1 - \frac{\text{nodes visited with pruning}}{\text{nodes in full tree}}
+r = 1 - \frac{\text{가지치기로 들른 마디 수}}{\text{온전한 나무의 마디 수}}
 $$
 
-A ratio close to 1 indicates effective pruning.
+비가 1에 가까우면 가지치기가 잘 드는 것이다.
 
-**Effective branching factor.** If the search visits $N$ nodes for a tree of depth
-$n$, the effective branching factor $b^*$ satisfies
+**실효 갈래 수.** 깊이 $n$인 나무에서 찾기가 마디 $N$개를 들르면 실효 갈래 수 $b^*$은 다음을 채운다
 
 $$
 N = \sum_{k=0}^{n} (b^*)^k \approx (b^*)^n
 $$
 
-so $b^* \approx N^{1/n}$.  Comparing $b^*$ to the nominal branching factor $b$ shows
-how much pruning reduces the search.
+따라서 $b^* \approx N^{1/n}$이다. $b^*$을 이름뿐인 갈래 수 $b$과 견주면 가지치기가 찾기를 얼마나 줄이는지 알 수 있다.
 
-## Summary
+## 요약
 
-| Pruning type | Applicable to | Prunes when |
+| 가지치기 갈래 | 쓰는 곳 | 언제 쳐 내는가 |
 |-------------|--------------|-------------|
-| Feasibility | Constraint satisfaction | Partial solution violates a constraint |
-| Optimality (bounding) | Optimization | Bound is worse than incumbent |
-| Symmetry | Problems with structural symmetries | Equivalent solutions would be generated |
-| Dominance | Problems with comparable partial solutions | One partial solution is provably no worse |
+| 될 수 있는지 | 제약 채우기 | 어중간한 풀이가 제약을 어길 때 |
+| 가장 좋음(묶기) | 가장 좋게 하기 | 묶음이 현재 최고보다 나쁠 때 |
+| 대칭 | 짜임에 대칭이 있는 문제 | 같은 풀이를 다시 만들게 될 때 |
+| 누름 | 어중간한 풀이를 견줄 수 있는 문제 | 한 어중간한 풀이가 나쁘지 않음이 밝혀질 때 |
 
-All four pruning types can be combined.  In practice, the strongest backtracking
-solvers apply feasibility pruning at every node, optimality pruning when an
-objective function exists, symmetry breaking to remove redundant branches, and
-dominance checks when the partial-solution comparison is cheap.
+네 갈래 가지치기를 모두 아울러 쓸 수 있다. 실전에서 가장 센 되짚기 풀개는 마디마다 될 수 있는지로 가지를 치고, 목표 함수가 있으면 가장 좋음으로 가지를 치며, 겹치는 갈래를 없애려 대칭을 깨고, 어중간한 풀이를 값싸게 견줄 수 있으면 누름도 살핀다.
 
-## Reference
+## 참고 문헌
 
-- Skiena, *The Algorithm Design Manual*, Chapter 9: Combinatorial Search,
+- Skiena, *The Algorithm Design Manual*, 9장: Combinatorial Search,
   [algorist.com](https://www.algorist.com/)
+
+## 연습문제
+
+**연습문제 1.**
+가지치기 전략의 고갱이 생각과 그것이 풀이 공간을 어떻게 짜임새 있게 살피는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    가지치기 전략은 풀이 공간을 나무로 보고 살피며 마디마다 어중간한 풀이를 뜻한다. 마디마다 알고리즘은 어중간한 풀이를 넓히고 될 수 있는지 제약을 살핀다. 어중간한 풀이가 제약을 어기거나 (가장 좋거나 옳은 온전한 풀이로 이어질 수 없음이 밝혀지면) 알고리즘은 **가지를 쳐**(되짚어) 그 아래 나무 전체를 살피지 않는다. 가지치기가 찾기 공간의 큰 몫을 없애므로 막무가내보다 효율이 좋다. $\square$
+
+---
+
+**연습문제 2.**
+가지치기 전략의 최악의 경우 시간 복잡도는 무엇인가? 가지치기는 언제 찾기 공간을 크게 줄이는가?
+
+??? success "연습문제 2 풀이"
+    최악의 경우(가지치기가 없으면) 알고리즘이 풀이 공간 전체를 살피며 이는 흔히 지수나 계승이다. 곧 갈래 수가 $b$이고 깊이가 $d$이면 $O(b^d)$, 자리 바꿈 문제이면 $O(n!)$이다. 가지치기는 다음일 때 찾기를 크게 줄인다. (1) 제약이 빡빡해 될 수 없는 갈래가 많을 때, (2) 좋은 묶음이 갈래를 일찍 없앨 때, (3) 차례를 매기는 어림짐작이 그럴듯한 갈래를 먼저 살필 때이다. 실전에서 가지치기는 도는 시간을 자릿수만큼 줄일 수 있다. $\square$
+
+---
+
+**연습문제 3.**
+가지치기 전략의 가지치기 조건을 적어라. 무엇이 좋은 가지치기 잣대를 만드는가?
+
+??? success "연습문제 3 풀이"
+    가지치기 잣대는 어중간한 풀이를 언제 버릴지 정한다. 좋은 잣대는 다음과 같다. (1) **될 수 있음**: 어중간한 풀이가 이미 제약을 어긴다. (2) **묶음**: 어중간한 풀이를 가장 좋게 마무리해도 여태 가장 좋은 풀이보다 나을 수 없다. (3) **누름**: 다른 어중간한 풀이가 적어도 그만큼 좋음이 밝혀진다. 잘 듣는 가지치기 잣대는 따지기 값싸고 큰 아래 나무를 없앤다. $\square$
+
+---
+
+**연습문제 4.**
+작은 경우에 가지치기 전략을 짜고 살핀 마디의 수를 전체 찾기 공간의 크기와 견주어 세어라.
+
+??? success "연습문제 4 풀이"
+    작은 경우(예컨대 N-여왕에서 $n = 8$, 배낭에서 담이 20)에는 전체 찾기 공간에 마디가 수백만 개일 수 있지만 가지치기가 잘 들면 수천 개만 살핀다. (살핀 수 / 전체) 비가 가지치기가 얼마나 잘 드는지 값으로 나타낸다. 제약이 잘 걸린 문제에서는 이 비가 1% 아래일 수 있어 되짚기가 막무가내보다 힘이 셈을 보여 준다. $\square$

@@ -1,84 +1,84 @@
-# Catalan Numbers
+# 카탈랑 수
 
-The Catalan numbers form a sequence that appears in a remarkable variety of counting problems: the number of valid parenthesizations, the number of distinct binary search trees, the number of lattice paths that stay below the diagonal, and many more. Understanding this sequence equips an algorithm designer with a powerful counting tool.
+카탈랑 수는 놀랍도록 다양한 세기 문제에 나타나는 차례를 이룬다. 올바른 괄호 묶기의 개수, 서로 다른 이진 찾기 나무의 개수, 대각선 아래에 머무는 격자 길의 개수 등이다. 이 차례를 이해하면 알고리즘을 짜는 이가 힘센 세기 도구를 갖추게 된다.
 
-## Intuition
+## 직관
 
-Consider the problem of matching $n$ pairs of parentheses. For $n = 3$, the valid arrangements are `((()))`, `(()())`, `(())()`, `()(())`, and `()()()` — exactly 5 strings. This count is the third Catalan number $C_3 = 5$. The Catalan numbers capture the idea of "balanced" or "non-crossing" structures.
+괄호 $n$쌍을 짝짓는 문제를 살펴보자. $n = 3$에서 올바른 배치는 `((()))`, `(()())`, `(())()`, `()(())`, `()()()`으로 꼭 5가지이다. 이 개수가 셋째 카탈랑 수 $C_3 = 5$이다. 카탈랑 수는 "균형 잡힌" 또는 "가로지르지 않는" 얼개의 생각을 담는다.
 
-## Definition
+## 정의
 
-The $n$-th Catalan number is defined by the closed-form expression:
+$n$번째 카탈랑 수는 닫힌 꼴 식으로 뜻매김된다:
 
 $$
 C_n = \frac{1}{n+1}\binom{2n}{n} = \frac{(2n)!}{(n+1)!\,n!}
 $$
 
-The first several values are:
+처음 몇 값은 다음과 같다:
 
 $$
 C_0 = 1,\; C_1 = 1,\; C_2 = 2,\; C_3 = 5,\; C_4 = 14,\; C_5 = 42,\; C_6 = 132
 $$
 
-## Recurrence
+## 점화식
 
-The Catalan numbers satisfy the recurrence:
+카탈랑 수는 다음 되돌이 식을 만족한다:
 
 $$
 C_0 = 1, \quad C_{n+1} = \sum_{i=0}^{n} C_i \, C_{n-i} \quad (n \ge 0)
 $$
 
-This recurrence arises naturally: in a valid parenthesization, the first opening parenthesis matches some closing parenthesis at position $2i+1$, splitting the remaining string into two independent sub-problems of sizes $i$ and $n - i$.
+이 되돌이 식은 자연스럽게 나온다. 올바른 괄호 묶기에서 첫 여는 괄호가 자리 $2i+1$의 어떤 닫는 괄호와 짝지어져 남은 글줄을 크기 $i$과 $n - i$의 서로 얽매이지 않은 아래 문제 둘로 가른다.
 
-## Proof of the Closed Form
+## 닫힌 꼴의 밝힘
 
-We prove $C_n = \frac{1}{n+1}\binom{2n}{n}$ using the **reflection principle** (ballot problem approach).
+**되비침 원리**(투표 문제 방식)로 $C_n = \frac{1}{n+1}\binom{2n}{n}$을 밝힌다.
 
-**Setup.** Count lattice paths from $(0,0)$ to $(2n, 0)$ using steps $+1$ (up) and $-1$ (down), that never go below the $x$-axis. Each such path corresponds to a sequence of $n$ up-steps and $n$ down-steps where every prefix has at least as many ups as downs.
+**차림.** 걸음 $+1$(위)과 $-1$(아래)을 써서 $(0,0)$에서 $(2n, 0)$까지 가되 $x$축 아래로 내려가지 않는 격자 길을 센다. 그런 길마다 모든 앞부분에서 위 걸음이 아래 걸음보다 적지 않은 위 걸음 $n$개와 아래 걸음 $n$개의 차례에 해당한다.
 
-**Total paths.** Without the non-negativity constraint, there are $\binom{2n}{n}$ paths (choosing which $n$ of $2n$ steps go up).
+**온 길 수.** 음이 아니라는 제약이 없으면 길이 $\binom{2n}{n}$개이다($2n$걸음 가운데 어느 $n$개가 위로 갈지 고른다).
 
-**Bad paths.** A "bad" path touches $y = -1$ at some point. Reflect the portion of the path after the first touch of $y = -1$ across the line $y = -1$. This creates a bijection between bad paths from $(0,0)$ to $(2n,0)$ and all paths from $(0,0)$ to $(2n,-2)$, which have $n+1$ down-steps and $n-1$ up-steps. There are $\binom{2n}{n+1}$ such paths.
+**나쁜 길.** "나쁜" 길은 어딘가에서 $y = -1$에 닿는다. $y = -1$에 처음 닿은 뒤의 부분을 직선 $y = -1$에 대해 되비친다. 이는 $(0,0)$에서 $(2n,0)$까지의 나쁜 길과 $(0,0)$에서 $(2n,-2)$까지의 모든 길 사이에 일대일 대응을 만든다. 뒤의 길은 아래 걸음 $n+1$개와 위 걸음 $n-1$개를 가진다. 그런 길은 $\binom{2n}{n+1}$개이다.
 
-**Good paths.** Therefore:
+**좋은 길.** 따라서:
 
 $$
 C_n = \binom{2n}{n} - \binom{2n}{n+1} = \binom{2n}{n} - \frac{n}{n+1}\binom{2n}{n} = \frac{1}{n+1}\binom{2n}{n}
 $$
 
-## Combinatorial Interpretations
+## 얽음으로 풀이하기
 
-The Catalan number $C_n$ counts each of the following:
+카탈랑 수 $C_n$은 다음을 저마다 센다:
 
-| Structure | Description |
+| 얼개 | 풀이 |
 |---|---|
-| Parenthesizations | Valid arrangements of $n$ pairs of parentheses |
-| Binary trees | Distinct full binary trees with $n+1$ leaves |
-| BST shapes | Structurally distinct BSTs on $n$ keys |
-| Dyck paths | Lattice paths from $(0,0)$ to $(2n,0)$ that stay non-negative |
-| Triangulations | Triangulations of a convex $(n+2)$-gon |
-| Non-crossing partitions | Non-crossing partitions of $\{1, \ldots, n\}$ |
-| Stack-sortable permutations | Permutations of $[n]$ sortable by a single stack |
+| 괄호 묶기 | 괄호 $n$쌍의 올바른 배치 |
+| 이진 나무 | 잎이 $n+1$개인 서로 다른 온전 이진 나무 |
+| 이진 찾기 나무 모양 | 열쇠 $n$개의 얼개가 서로 다른 이진 찾기 나무 |
+| 딕 길 | $(0,0)$에서 $(2n,0)$까지 음이 아닌 채로 가는 격자 길 |
+| 삼각 나누기 | 볼록 $(n+2)$각형의 삼각 나누기 |
+| 가로지르지 않는 나눔 | $\{1, \ldots, n\}$의 가로지르지 않는 나눔 |
+| 쌓기로 줄 세울 수 있는 자리바꿈 | 쌓기 하나로 줄 세울 수 있는 $[n]$의 자리바꿈 |
 
-## Asymptotics
+## 점근
 
-Using Stirling's approximation on $\binom{2n}{n}$:
+$\binom{2n}{n}$에 스털링 어림을 쓰면:
 
 $$
 C_n \sim \frac{4^n}{n^{3/2}\sqrt{\pi}}
 $$
 
-So $C_n$ grows exponentially with base 4, modulated by a polynomial factor.
+따라서 $C_n$은 밑이 4인 지수로 자라며 다항 인자가 이를 누그러뜨린다.
 
-## Computing Catalan Numbers
+## 카탈랑 수 셈하기
 
-### Direct Formula
+### 곧바른 공식
 
 ```python
 def catalan_direct(n: int) -> int:
-    """Compute the n-th Catalan number using the multiplicative formula.
+    """곱셈 공식으로 n번째 카탈랑 수를 셈한다.
 
-    Runs in O(n) time and O(1) space.
+    O(n) 시간과 O(1) 공간에 돈다.
     """
     if n <= 1:
         return 1
@@ -88,13 +88,13 @@ def catalan_direct(n: int) -> int:
     return result // (n + 1)
 ```
 
-### Dynamic Programming
+### 짜 넣기
 
 ```python
 def catalan_dp(n: int) -> list[int]:
-    """Compute Catalan numbers C_0 through C_n using the recurrence.
+    """되돌이 식으로 카탈랑 수 C_0부터 C_n까지 셈한다.
 
-    Runs in O(n^2) time and O(n) space.
+    O(n^2) 시간과 O(n) 공간에 돈다.
     """
     C = [0] * (n + 1)
     C[0] = 1
@@ -105,38 +105,70 @@ def catalan_dp(n: int) -> list[int]:
 
 
 if __name__ == "__main__":
-    # === Example: first 10 Catalan numbers ===
+    # === 보기: 처음 카탈랑 수 10개 ===
     cats = catalan_dp(9)
     for i, c in enumerate(cats):
         print(f"C_{i} = {c}")
 
-    # === Verify against direct formula ===
+    # === 곧바른 공식과 견주어 확인 ===
     for i in range(10):
         assert catalan_direct(i) == cats[i]
     print("Direct formula matches DP for C_0 through C_9.")
 ```
 
-## Application: Matrix Chain Multiplication
+## 쓰임새: 행렬 사슬 곱하기
 
-The number of ways to fully parenthesize a product of $n+1$ matrices is $C_n$. For $n = 3$ (four matrices $A_1 A_2 A_3 A_4$), there are $C_3 = 5$ parenthesizations:
+행렬 $n+1$개의 곱에 괄호를 온전히 매기는 방법의 수는 $C_n$이다. $n = 3$(행렬 넷 $A_1 A_2 A_3 A_4$)에서는 괄호 묶기가 $C_3 = 5$가지이다:
 
 $$
 ((A_1 A_2)(A_3 A_4)),\; (A_1((A_2 A_3) A_4)),\; (A_1(A_2(A_3 A_4))),\; (((A_1 A_2) A_3) A_4),\; ((A_1(A_2 A_3)) A_4)
 $$
 
-The recurrence $C_{n+1} = \sum_{i=0}^{n} C_i C_{n-i}$ directly mirrors the dynamic programming decomposition used in the matrix chain multiplication algorithm.
+되돌이 식 $C_{n+1} = \sum_{i=0}^{n} C_i C_{n-i}$은 행렬 사슬 곱하기 알고리즘에 쓰이는 짜 넣기 나눔을 그대로 비춘다.
 
-## Generating Function
+## 만들개 함수
 
-The ordinary generating function for the Catalan numbers is:
+카탈랑 수의 여느 만들개 함수는 다음과 같다:
 
 $$
 C(x) = \sum_{n=0}^{\infty} C_n x^n = \frac{1 - \sqrt{1 - 4x}}{2x}
 $$
 
-This satisfies the functional equation $C(x) = 1 + x \cdot C(x)^2$, which encodes the recurrence.
+이는 되돌이 식을 담은 함수 방정식 $C(x) = 1 + x \cdot C(x)^2$을 만족한다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
 - Stanley, R. P. (2015). *Catalan Numbers*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+공식 $C_n = \binom{2n}{n}/(n+1)$으로 $C_5$을 셈하고 괄호 5쌍의 올바른 묶기 개수를 늘어놓아 확인하라.
+
+??? success "연습문제 1 풀이"
+    $C_5 = \binom{10}{5}/6 = 252/6 = 42$이다. 괄호 5쌍의 올바른 배치는 42가지이다. 보기: ((((()))), (((()))), ((()())) 등이다. 되돌이 식으로도 확인할 수 있다: $C_5 = \sum_{i=0}^{4} C_i C_{4-i} = C_0 C_4 + C_1 C_3 + C_2 C_2 + C_3 C_1 + C_4 C_0 = 14 + 5 + 4 + 5 + 14 = 42$.
+
+---
+
+**연습문제 2.**
+속 마디가 $n$개인 온전 이진 나무의 개수가 $C_n$임을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    온전 이진 나무는 속 마디마다 자식이 꼭 둘이다. 속 마디가 $n$개이면 잎은 $n + 1$개이다. $T_n$을 속 마디가 $n$개인 온전 이진 나무의 개수라 하자. $T_0 = 1$이다(잎 하나). $n \geq 1$에서 뿌리는 왼쪽 부분 나무에 속 마디 $k$개, 오른쪽에 $n - 1 - k$개를 가지며 $k = 0, \ldots, n-1$이다. 따라서 $T_n = \sum_{k=0}^{n-1} T_k T_{n-1-k}$이다. 이는 $C_0 = 1$인 카탈랑 되돌이 식 $C_n = \sum_{k=0}^{n-1} C_k C_{n-1-k}$과 꼭 같다. 그러므로 $T_n = C_n$이다.
+
+---
+
+**연습문제 3.**
+$(0,0)$에서 $(n,n)$까지 대각선 위로 올라가지 않는 단조 격자 길의 개수가 $C_n$임을 보여라.
+
+??? success "연습문제 3 풀이"
+    단조 길은 오른쪽(R) 걸음 $n$개와 위(U) 걸음 $n$개를 쓴다. 온 길 수: $\binom{2n}{n}$. 대각선 위로 넘어가는 길은 어딘가에서 직선 $y = x + 1$에 닿는다. 되비침 원리(앙드레의 되비침)에 따라 처음 닿은 뒤의 부분을 $y = x + 1$에 대해 되비치면 $(0,0)$에서 $(n-1, n+1)$까지의 길과 일대일 대응이 된다. 그런 길은 $\binom{2n}{n-1}$개이다. 올바른 길: $\binom{2n}{n} - \binom{2n}{n-1} = \frac{1}{n+1}\binom{2n}{n} = C_n$.
+
+---
+
+**연습문제 4.**
+변이 $n + 2$개인 볼록 다각형을 삼각형으로 나누는 방법은 몇 가지인가? 카탈랑 수와의 이음을 밝혀라.
+
+??? success "연습문제 4 풀이"
+    답은 $C_n$이다. 다각형의 변 $e$ 하나를 붙박아 둔다. $e$을 담은 삼각형은 셋째 꼭짓점을 다각형의 어떤 꼭짓점 $v_k$에 둔다. 이는 남은 다각형을 변이 $k + 1$개인 것과 $n - k + 1$개인 더 작은 다각형 둘로 가르며 $k = 1, \ldots, n$이다. 그 삼각 나누기는 서로 얽매이지 않아 되돌이 식 $T_{n+2} = \sum_{k=1}^{n} T_{k+1} T_{n-k+1}$을 준다. $T_{n+2} = C_n$으로 번호를 다시 매기면 이는 카탈랑 되돌이 식과 맞는다. 바탕 경우: $T_3 = 1 = C_1$이다(삼각형의 삼각 나누기는 하나).

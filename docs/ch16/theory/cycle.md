@@ -1,49 +1,49 @@
-# Cycle Property
+# 순환 성질
 
-The cut property tells us which edges *must* appear in an MST. The cycle property provides the complementary perspective: it tells us which edges can *never* appear. Together, these two properties form the theoretical backbone of every MST algorithm. The cycle property justifies, for instance, why Kruskal's algorithm safely skips an edge that would create a cycle -- that edge is always the heaviest in the cycle and therefore dispensable.
+자름 성질은 어떤 변이 최소 뻗은 나무에 *반드시* 나타나는지 알려 준다. 순환 성질은 그와 짝을 이루는 눈을 준다. 곧 어떤 변이 *결코* 나타날 수 없는지 알려 준다. 이 두 성질이 함께 모든 최소 뻗은 나무 알고리즘의 이론 등뼈를 이룬다. 이를테면 순환 성질은 크러스컬 알고리즘이 순환을 만드는 변을 왜 안전하게 건너뛰는지를 뒷받침한다. 그런 변은 늘 그 순환에서 가장 무겁고 따라서 없어도 된다.
 
-## Intuition
+## 직관
 
-Consider adding an edge $e$ to an MST $T$. This creates exactly one cycle (since $T$ is a tree). If $e$ is the heaviest edge in that cycle, replacing any other cycle edge with $e$ would only increase the total weight. Therefore $e$ has no reason to be in any MST. The cycle property formalizes this reasoning.
+최소 뻗은 나무 $T$에 변 $e$을 더한다고 하자. ($T$이 나무이므로) 순환이 딱 하나 생긴다. $e$이 그 순환에서 가장 무거운 변이면 순환의 다른 변을 $e$으로 바꾸어도 전체 무게만 커질 뿐이다. 그러므로 $e$이 어떤 최소 뻗은 나무에 들 까닭이 없다. 순환 성질은 이 논리를 엄밀하게 만든다.
 
-## Theorem (Cycle Property)
+## 정리(순환 성질)
 
-Let $G = (V, E)$ be a connected, undirected graph with weight function $w : E \to \mathbb{R}$. Let $C$ be any cycle in $G$, and let $e$ be the unique heaviest edge in $C$ (i.e., $w(e) > w(e')$ for all other edges $e' \in C$). Then $e$ does not belong to any MST of $G$.
+$G = (V, E)$을 무게 함수가 $w : E \to \mathbb{R}$인 이어진 방향 없는 그래프라 하자. $C$을 $G$의 아무 순환이라 하고, $e$을 $C$에서 오직 하나뿐인 가장 무거운 변이라 하자(곧 $C$의 다른 모든 변 $e'$에 대해 $w(e) > w(e')$이다). 그러면 $e$은 $G$의 어떤 최소 뻗은 나무에도 들지 않는다.
 
-??? warning "Strict inequality is essential"
-    The uniqueness condition matters. If two edges in a cycle share the maximum weight, both *could* appear in different MSTs. The cycle property applies only when the heaviest edge is strictly heavier than every other edge in the cycle.
+??? warning "엄격한 부등호가 꼭 필요하다"
+    하나뿐이라는 조건이 중요하다. 순환에서 변 둘이 최대 무게를 나눠 가지면 둘 다 서로 다른 최소 뻗은 나무에 나타날 *수* 있다. 순환 성질은 가장 무거운 변이 순환의 다른 모든 변보다 엄격히 무거울 때만 쓸 수 있다.
 
-## Proof
+## 증명
 
-Suppose for contradiction that $e = (u, v)$ is the unique heaviest edge in cycle $C$ and that $e$ belongs to some MST $T$.
+어긋남을 이끌어 내려고 $e = (u, v)$이 순환 $C$에서 오직 하나뿐인 가장 무거운 변이고 $e$이 어떤 최소 뻗은 나무 $T$에 든다고 하자.
 
-Removing $e$ from $T$ splits $T$ into two connected components $T_u$ (containing $u$) and $T_v$ (containing $v$). Since $C$ is a cycle containing $e$, there exists a path from $u$ to $v$ in $C$ that does not use $e$. This path must cross from $T_u$ to $T_v$ at some edge $e' \ne e$, where $e' \in C$.
+$T$에서 $e$을 없애면 $T$이 ($u$을 담은) $T_u$과 ($v$을 담은) $T_v$이라는 이어진 조각 둘로 갈린다. $C$이 $e$을 담은 순환이므로 $C$ 안에 $e$을 쓰지 않고 $u$에서 $v$으로 가는 길이 있다. 이 길은 어떤 변 $e' \ne e$에서 $T_u$에서 $T_v$으로 건너가야 하며, 여기서 $e' \in C$이다.
 
-Define
+다음을 정한다
 
 $$
 T' = T \setminus \{e\} \cup \{e'\}
 $$
 
-We verify that $T'$ is a spanning tree:
+$T'$이 뻗은 나무임을 확인한다:
 
-- Removing $e$ disconnects $T$ into $T_u$ and $T_v$.
-- Adding $e'$ reconnects them because $e'$ has one endpoint in $T_u$ and the other in $T_v$.
-- $T'$ has $|V| - 1$ edges, is connected, and is acyclic, so it is a spanning tree.
+- $e$을 없애면 $T$이 $T_u$과 $T_v$으로 끊긴다.
+- $e'$의 한쪽 끝이 $T_u$에, 다른 쪽 끝이 $T_v$에 있으므로 $e'$을 더하면 둘이 다시 이어진다.
+- $T'$은 변이 $|V| - 1$개이고 이어져 있으며 순환이 없으므로 뻗은 나무이다.
 
-Since $e$ is the unique heaviest edge in $C$ and $e' \in C$ with $e' \ne e$, we have $w(e') < w(e)$. Therefore
+$e$이 $C$에서 오직 하나뿐인 가장 무거운 변이고 $e' \in C$이며 $e' \ne e$이므로 $w(e') < w(e)$이다. 그러므로
 
 $$
 w(T') = w(T) - w(e) + w(e') < w(T)
 $$
 
-This contradicts the assumption that $T$ is a minimum spanning tree. $\square$
+이는 $T$이 최소 뻗은 나무라는 가정과 어긋난다. $\square$
 
-## Example
+## 예
 
-Consider a graph on vertices $\{A, B, C, D\}$ with edges:
+꼭짓점이 $\{A, B, C, D\}$이고 변이 다음과 같은 그래프를 보자:
 
-| Edge | Weight |
+| 변 | 무게 |
 |------|--------|
 | (A, B) | 4 |
 | (A, C) | 1 |
@@ -51,33 +51,65 @@ Consider a graph on vertices $\{A, B, C, D\}$ with edges:
 | (B, D) | 2 |
 | (C, D) | 5 |
 
-The cycle $A \to B \to C \to A$ contains edges $(A, B)$ with weight 4, $(B, C)$ with weight 3, and $(A, C)$ with weight 1. The unique heaviest edge is $(A, B)$ with weight 4, so by the cycle property, $(A, B)$ cannot belong to any MST.
+순환 $A \to B \to C \to A$은 무게 4인 $(A, B)$, 무게 3인 $(B, C)$, 무게 1인 $(A, C)$을 담는다. 오직 하나뿐인 가장 무거운 변은 무게 4인 $(A, B)$이므로 순환 성질에 따라 $(A, B)$은 어떤 최소 뻗은 나무에도 들 수 없다.
 
-Similarly, the cycle $B \to C \to D \to B$ contains edges $(B, C)$ with weight 3, $(C, D)$ with weight 5, and $(B, D)$ with weight 2. The unique heaviest edge is $(C, D)$ with weight 5, so $(C, D)$ cannot belong to any MST.
+마찬가지로 순환 $B \to C \to D \to B$은 무게 3인 $(B, C)$, 무게 5인 $(C, D)$, 무게 2인 $(B, D)$을 담는다. 오직 하나뿐인 가장 무거운 변은 무게 5인 $(C, D)$이므로 $(C, D)$은 어떤 최소 뻗은 나무에도 들 수 없다.
 
-The remaining edges $\{(A, C), (B, C), (B, D)\}$ with total weight $1 + 3 + 2 = 6$ form the unique MST.
+남은 변 $\{(A, C), (B, C), (B, D)\}$은 전체 무게가 $1 + 3 + 2 = 6$이며 오직 하나뿐인 최소 뻗은 나무를 이룬다.
 
-## Duality with the Cut Property
+## 자름 성질과의 쌍대성
 
-The cut and cycle properties are dual perspectives on the same underlying structure:
+자름 성질과 순환 성질은 같은 밑바탕 짜임을 보는 쌍대의 눈이다:
 
-| Property | Statement | Algorithm action |
+| 성질 | 서술 | 알고리즘의 행동 |
 |----------|-----------|------------------|
-| **Cut** | The lightest edge crossing a cut respecting $A$ is safe to **include** | Add the edge |
-| **Cycle** | The unique heaviest edge in a cycle is safe to **exclude** | Skip the edge |
+| **자름** | $A$을 지키는 자름을 가로지르는 가장 가벼운 변은 **넣어도** 안전하다 | 그 변을 더한다 |
+| **순환** | 순환에서 오직 하나뿐인 가장 무거운 변은 **빼도** 안전하다 | 그 변을 건너뛴다 |
 
-The cut property builds the MST by inclusion (adding safe edges), while the cycle property builds it by exclusion (removing unsafe edges). Kruskal's algorithm uses both: it includes a light edge when it connects two components (cut property) and skips an edge when both endpoints are in the same component (cycle property, since that edge would complete a cycle and be the heaviest edge considered so far).
+자름 성질은 넣기로(안전한 변을 더해) 최소 뻗은 나무를 세우고, 순환 성질은 빼기로(안전하지 않은 변을 없애) 세운다. 크러스컬 알고리즘은 둘 다 쓴다. 곧 변이 조각 둘을 이을 때는 가벼운 변을 넣고(자름 성질), 양 끝이 같은 조각에 있을 때는 그 변을 건너뛴다(순환 성질이다. 그 변은 순환을 완성하고 지금까지 살펴본 것 가운데 가장 무거운 변이 되기 때문이다).
 
-## Corollary: Red-Blue Meta-Algorithm
+## 따름정리: 빨강-파랑 메타 알고리즘
 
-The duality leads to a unified framework sometimes called the **red-blue algorithm**:
+이 쌍대성은 이따금 **빨강-파랑 알고리즘**이라 부르는 하나로 꿴 얼개로 이어진다:
 
-- **Blue rule** (cut property): find a cut with no blue edge crossing it; color the lightest crossing edge blue.
-- **Red rule** (cycle property): find a cycle with no red edge; color the heaviest edge red.
+- **파랑 규칙**(자름 성질): 파란 변이 가로지르지 않는 자름을 찾아, 그것을 가로지르는 가장 가벼운 변을 파랗게 칠한다.
+- **빨강 규칙**(순환 성질): 빨간 변이 없는 순환을 찾아, 가장 무거운 변을 빨갛게 칠한다.
 
-Repeat until every edge is colored. The blue edges form an MST. This framework generalizes Kruskal's, Prim's, and Boruvka's algorithms as special cases of how cuts and cycles are selected.
+모든 변이 칠해질 때까지 되풀이한다. 파란 변이 최소 뻗은 나무를 이룬다. 이 얼개는 크러스컬, 프림, 보루브카 알고리즘을 자름과 순환을 고르는 방식의 특별한 경우로 아우른다.
 
-## Reference
+## 참고 문헌
 
-- [Introduction to Algorithms (CLRS), Chapter 23](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
-- Tarjan, R. E. (1983). *Data Structures and Network Algorithms*, Chapter 6.
+- [Introduction to Algorithms (CLRS), 23장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- Tarjan, R. E. (1983). *Data Structures and Network Algorithms*, 6장.
+
+## 연습문제
+
+**연습문제 1.**
+순환 성질을 서술하고, 그것으로 어떤 최소 뻗은 나무에도 들지 않는 변을 어떻게 가려내는지 설명하여라.
+
+??? success "연습문제 1 풀이"
+    **순환 성질**: 이어진 무게 그래프의 아무 순환 $C$에 대해 변 $e$이 $C$에서 오직 하나뿐인 가장 무거운 변이면 $e$은 어떤 최소 뻗은 나무에도 들지 않는다. 증명: $e$을 담은 최소 뻗은 나무 $T$이 있다고 하자. $T$에서 $e$을 없애면 조각 둘로 갈린다. 순환 $C$은 이 조각들을 잇는 다른 변 $e'$을 담아야 한다($C$에서 $e$을 뺀 것이 $e$의 양 끝 사이의 길이기 때문이다). $w(e') < w(e)$이므로 $e$을 $e'$으로 바꾸면 더 가벼운 뻗은 나무가 되어 $T$이 최소라는 데 어긋난다. $\square$
+
+---
+
+**연습문제 2.**
+(무게가 모두 다르다고 놓고) 삼각형에서 무게가 가장 큰 변이 최소 뻗은 나무에 들 수 없음을 순환 성질로 증명하여라.
+
+??? success "연습문제 2 풀이"
+    변이 $(u,v,a), (v,w,b), (u,w,c)$이고 $a > b$, $a > c$인(따라서 $(u,v)$이 가장 무거운) 삼각형을 보자. 삼각형 자체가 순환이고 $(u,v,a)$이 오직 하나뿐인 가장 무거운 변이다. 순환 성질에 따라 $(u,v,a)$은 어떤 최소 뻗은 나무에도 들지 않는다. 최소 뻗은 나무는 더 가벼운 두 변 $(v,w,b)$과 $(u,w,c)$을 쓴다. $\square$
+
+---
+
+**연습문제 3.**
+순환에서 가장 무거운 변이 하나뿐이 아니어도 순환 성질을 쓸 수 있는가? 그러면 어떻게 되는가?
+
+??? success "연습문제 3 풀이"
+    순환에서 변 둘이 가장 무거운 것으로 비기면 순환 성질은 어느 쪽도 빠진다고 보장하지 않는다. 많아야 그 가운데 하나가 빠질 수 있다. 이를테면 변의 무게가 1, 2, 2인 삼각형에서는 무게 2인 두 변이 가장 무겁다. 최소 뻗은 나무는 무게가 3이고 무게 2인 변 하나와 무게 1인 변을 담는다. 곧 비긴 가장 무거운 변 가운데 하나는 최소 뻗은 나무에 들고 다른 하나는 들지 않는다. 이 성질은 가장 무거운 변이 하나뿐일 때만 확실한 답을 준다. $\square$
+
+---
+
+**연습문제 4.**
+자름 성질과 순환 성질이 어떤 뜻에서 서로 쌍대임을 증명하여라.
+
+??? success "연습문제 4 풀이"
+    자름 성질은 어떤 최소 뻗은 나무에 반드시 드는 변(자름을 가로지르는 가장 가벼운 변)을 가려낸다. 순환 성질은 어떤 최소 뻗은 나무에도 들 수 없는 변(순환에서 가장 무거운 변)을 가려낸다. 둘은 쌍대이다. 곧 아무 변 $e$에 대해, $e$이 오직 하나뿐인 가장 가벼운 가로지르는 변이 되는 자름이 있거나(그러면 $e$은 모든 최소 뻗은 나무에 든다), $e$이 오직 하나뿐인 가장 무거운 변이 되는 순환이 있거나(그러면 $e$은 어떤 최소 뻗은 나무에도 들지 않는다), 어느 쪽도 하나뿐이 아니다(그러면 $e$은 최소 뻗은 나무에 들 수도 있고 아닐 수도 있다). 올바른 최소 뻗은 나무 알고리즘은 모두 이 성질 가운데 하나나 둘을 쓰는 것으로 이해할 수 있다. $\square$

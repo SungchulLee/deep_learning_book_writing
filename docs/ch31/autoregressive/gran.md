@@ -1,108 +1,91 @@
-# GRAN: Graph Recurrent Attention Network
+# GRAN: 그래프 되돌이 눈길 신경망
+## 개요
 
+GRAN(Liao et al., 2019)은 마디를 하나씩이 아니라 **덩이**로 만들어 GraphRNN의 커지기 한계를 다룬다. 걸음마다 마디 $B$개의 덩이를 한꺼번에 더하며 그래프 신경망 바탕 눈길 얼개로 새 마디와 기존 마디의 주고받음을 나타낸다. 이 덩이 단위 만들기는 그래프 신경망 쪽지 건네기의 비용을 여러 마디에 고루 나누어 만들기 걸음을 $O(n)$ 대신 $O(n/B)$으로 줄이면서, 눈길 바탕 변 헤아리기로 나타냄 힘을 지킨다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 덩이 단위 만들기
 
-## Overview
+GRAN은 그래프 만들기를 $\lceil n/B \rceil$걸음으로 가른다. 걸음 $t$에서 모델은:
 
-GRAN (Liao et al., 2019) addresses the scalability limitations of GraphRNN by generating graphs in **blocks** rather than individual nodes. At each step, GRAN adds a block of $B$ nodes simultaneously, using a GNN-based attention mechanism to model interactions between new and existing nodes. This block-wise generation amortizes the cost of GNN message passing across multiple nodes, achieving $O(n/B)$ generation steps instead of $O(n)$, while maintaining expressiveness through attention-based edge prediction.
+1. 부분으로 지어진 그래프 $\mathcal{G}_{<t}$에 새 후보 마디 $B$개를 더한다
+2. 늘린 그래프에 그래프 신경망을 돌려 마디 박아 넣기를 셈한다
+3. 새 마디마다 기존 마디와 새 마디 모두와의 변을 헤아린다
+4. 뽑은 변으로 그래프를 고친다
 
-## Block-Wise Generation
-
-GRAN partitions graph generation into $\lceil n/B \rceil$ steps. At step $t$, the model:
-
-1. Adds $B$ new candidate nodes to the partially constructed graph $\mathcal{G}_{<t}$
-2. Runs a GNN over the augmented graph to compute node embeddings
-3. Predicts edges between each new node and all existing + new nodes
-4. Updates the graph with sampled edges
-
-The joint probability of the graph factorizes over blocks:
+그래프의 함께 확률은 덩이마다로 인수 분해된다:
 
 $$
-
 p_\theta(\mathcal{G}) = \prod_{t=1}^{\lceil n/B \rceil} p_\theta(\mathbf{A}_t \mid \mathcal{G}_{<t})
-
 $$
 
-where $\mathbf{A}_t$ contains all edge decisions involving the $B$ new nodes at step $t$.
+여기서 $\mathbf{A}_t$은 걸음 $t$의 새 마디 $B$개와 얽힌 모든 변 결정을 담는다.
 
-## Architecture
+## 구조
 
-### GNN Backbone
+### 그래프 신경망 등뼈
 
-At each generation step, GRAN applies a GNN with attention to the augmented graph (existing nodes + $B$ new candidates). The GNN uses $L$ message-passing rounds:
+만들기 걸음마다 GRAN은 늘린 그래프(기존 마디 + 새 후보 $B$개)에 눈길이 있는 그래프 신경망을 쓴다. 그래프 신경망은 쪽지 건네기를 $L$바퀴 돈다:
 
 $$
-
 \mathbf{h}_v^{(\ell+1)} = \mathbf{h}_v^{(\ell)} + \text{MLP}^{(\ell)}\left(\sum_{u \in \tilde{\mathcal{N}}(v)} \alpha_{vu}^{(\ell)} \cdot \mathbf{W}^{(\ell)} \mathbf{h}_u^{(\ell)}\right)
-
 $$
 
-where $\tilde{\mathcal{N}}(v)$ includes both existing neighbors and candidate edges to new nodes. The attention weights $\alpha_{vu}^{(\ell)}$ are computed as:
+여기서 $\tilde{\mathcal{N}}(v)$은 기존 이웃과 새 마디로의 후보 변을 함께 담는다. 눈길 무게 $\alpha_{vu}^{(\ell)}$은 다음과 같이 셈한다:
 
 $$
-
 \alpha_{vu}^{(\ell)} = \frac{\exp(e_{vu}^{(\ell)})}{\sum_{w \in \tilde{\mathcal{N}}(v)} \exp(e_{vw}^{(\ell)})}
-
 $$
 
 $$
-
 e_{vu}^{(\ell)} = \text{LeakyReLU}\left(\mathbf{a}^{(\ell)\top} [\mathbf{W}^{(\ell)} \mathbf{h}_v^{(\ell)} \| \mathbf{W}^{(\ell)} \mathbf{h}_u^{(\ell)}]\right)
-
 $$
 
-### Edge Prediction with Mixture of Bernoullis
+### 베르누이 섞음으로 하는 변 헤아리기
 
-Rather than predicting each edge independently, GRAN models edge probabilities as a **mixture of Bernoullis** over $K$ components:
+변을 저마다 따로 헤아리는 대신 GRAN은 변 확률을 성분 $K$개의 **베르누이 섞음**으로 나타낸다:
 
 $$
-
 p(A_{uv} = 1) = \sum_{k=1}^{K} w_k \cdot \sigma\left(\mathbf{h}_u^{(L)\top} \mathbf{W}_k \mathbf{h}_v^{(L)} + b_k\right)
-
 $$
 
-where $w_k$ are mixing weights with $\sum_k w_k = 1$ and $\sigma$ is the sigmoid function. The mixture model captures multimodal edge distributions — for instance, in community graphs, an edge might be present with high probability if both nodes are in the same community but low probability otherwise.
+여기서 $w_k$은 $\sum_k w_k = 1$인 섞음 무게이고 $\sigma$은 시그모이드 함수다. 섞음 모형은 봉우리가 여럿인 변 분포를 담는다. 보기로 무리 그래프에서 두 마디가 같은 무리에 있으면 변이 있을 확률이 높고 아니면 낮다.
 
-## Training Objective
+## 익히기 목표
 
-GRAN is trained with binary cross-entropy over edge predictions at each block step:
+GRAN은 덩이 걸음마다 변 헤아림에 대한 두 값 교차 엔트로피로 익힌다:
 
 $$
-
 \mathcal{L} = -\sum_{t=1}^{\lceil n/B \rceil} \sum_{(u,v) \in \mathcal{C}_t} \left[ A_{uv}^* \log p_\theta(A_{uv} = 1 \mid \mathcal{G}_{<t}) + (1 - A_{uv}^*) \log(1 - p_\theta(A_{uv} = 1 \mid \mathcal{G}_{<t})) \right]
-
 $$
 
-where $\mathcal{C}_t$ is the set of candidate edge positions at step $t$: all pairs $(u, v)$ where at least one of $u, v$ is a new node.
+여기서 $\mathcal{C}_t$은 걸음 $t$의 후보 변 자리의 모임, 곧 $u, v$ 가운데 적어도 하나가 새 마디인 모든 짝 $(u, v)$이다.
 
-## Comparison with GraphRNN
+## GraphRNN과 견주기
 
-| Aspect | GraphRNN | GRAN |
+| 갈래 | GraphRNN | GRAN |
 |--------|----------|------|
-| Generation unit | Single node | Block of $B$ nodes |
-| State representation | RNN hidden state | GNN over full graph |
-| Edge modeling | Sequential (edge RNN) | Parallel (mixture of Bernoullis) |
-| Steps per graph | $O(n)$ | $O(n/B)$ |
-| Cost per step | $O(M)$ (BFS bandwidth) | $O((n_t + B)^2)$ (GNN) |
-| Edge dependencies | Sequential within step | Independent given GNN state |
+| 만들기 낱덩이 | 마디 하나 | 마디 $B$개의 덩이 |
+| 상태 나타냄 | 되돌이 신경망의 숨은 상태 | 온 그래프의 그래프 신경망 |
+| 변 나타내기 | 차례(변 되돌이 신경망) | 나란히(베르누이 섞음) |
+| 그래프마다 걸음 | $O(n)$ | $O(n/B)$ |
+| 걸음마다 비용 | $O(M)$(너비 우선 띠너비) | $O((n_t + B)^2)$(그래프 신경망) |
+| 변의 매임 | 걸음 안에서 차례 | 그래프 신경망 상태가 주어지면 독립 |
 
-GRAN's GNN backbone provides strictly more expressive state representations than GraphRNN's RNN, as it can directly attend to any node in the current graph rather than relying on a compressed hidden state. The block-wise generation also reduces the effective sequence length, mitigating long-range dependency issues.
+GRAN의 그래프 신경망 등뼈는 눌러 담은 숨은 상태에 기대는 대신 지금 그래프의 어느 마디든 곧바로 살필 수 있어 GraphRNN의 되돌이 신경망보다 엄밀히 나타냄 힘이 세다. 덩이 단위 만들기는 실제 차례 길이도 줄여 멀리 떨어진 매임 말썽을 누그러뜨린다.
 
-## Scalability Considerations
+## 커지기에서 살필 것
 
-The per-step cost of GRAN is dominated by the GNN forward pass over the growing graph. For a graph at step $t$ with $n_t = t \cdot B$ existing nodes, message passing costs $O(L \cdot |\mathcal{E}_t|)$ where $|\mathcal{E}_t|$ is the current edge count, and edge prediction costs $O(B \cdot n_t)$ for candidate pairs. The total cost across all steps is $O(n^2 \cdot L / B)$ for dense graphs or $O(n \cdot \bar{d} \cdot L / B)$ for sparse graphs with average degree $\bar{d}$. Choosing $B = \Theta(\sqrt{n})$ balances step count with per-step cost.
+GRAN의 걸음마다 비용은 커지는 그래프에 대한 그래프 신경망 앞으로 가기가 대부분이다. 기존 마디가 $n_t = t \cdot B$개인 걸음 $t$의 그래프에서 쪽지 건네기는 $|\mathcal{E}_t|$이 지금 변 개수일 때 $O(L \cdot |\mathcal{E}_t|)$이 들고 변 헤아리기는 후보 짝에 $O(B \cdot n_t)$이 든다. 모든 걸음을 통틀은 온 비용은 빽빽한 그래프에서 $O(n^2 \cdot L / B)$, 평균 차수가 $\bar{d}$인 성긴 그래프에서 $O(n \cdot \bar{d} \cdot L / B)$이다. $B = \Theta(\sqrt{n})$으로 고르면 걸음 수와 걸음마다 비용의 균형이 잡힌다.
 
-## Finance Application: Portfolio Network Construction
+## 금융 쓰임새: 꾸러미 그물 짓기
 
-GRAN's block-wise generation naturally models scenarios where groups of financial entities enter the market simultaneously — for instance, batch IPO events, regulatory regime changes that create new market participants, or the simultaneous establishment of derivatives contracts. The mixture of Bernoullis captures the multimodal nature of financial connections: counterparty relationships may cluster by sector, geography, or regulatory jurisdiction.
+GRAN의 덩이 단위 만들기는 금융 낱것 무리가 한꺼번에 시장에 들어오는 상황을 자연스럽게 나타낸다. 보기로 묶음 상장, 새 시장 참여자를 낳는 규제 판의 바뀜, 파생 계약의 한꺼번에 맺음이 그렇다. 베르누이 섞음은 금융 이음의 봉우리가 여럿인 성질을 담는다. 거래 상대 관계가 업종, 지역, 규제 관할로 뭉칠 수 있다.
 
-## Implementation: GRAN with Attention
+## 짜기: 눈길을 쓴 GRAN
 
 ```python
 """
-GRAN: Graph Recurrent Attention Network for block-wise graph generation.
+GRAN: 덩이 단위 그래프 만들기를 위한 그래프 되돌이 눈길 신경망.
 """
 import torch
 import torch.nn as nn
@@ -112,7 +95,7 @@ from typing import Optional
 
 
 class GRANAttentionLayer(nn.Module):
-    """Single attention-based GNN layer for GRAN."""
+    """GRAN의 눈길 바탕 그래프 신경망 층 하나."""
 
     def __init__(self, hidden_dim: int, num_heads: int = 4):
         super().__init__()
@@ -139,10 +122,10 @@ class GRANAttentionLayer(nn.Module):
         candidate_mask: torch.Tensor,
     ) -> torch.Tensor:
         """
-        Args:
-            h: (n_total, hidden_dim) node embeddings
+        인수:
+            h: (n_total, hidden_dim) 마디 박아 넣기
             adj: (n_total, n_total) adjacency (existing + candidate)
-            candidate_mask: (n_total, n_total) candidate edge mask
+            candidate_mask: (n_total, n_total) 후보 변 가리개
         """
         n = h.size(0)
 
@@ -152,9 +135,9 @@ class GRANAttentionLayer(nn.Module):
 
         scores = torch.einsum("ihd,jhd->ijh", Q, K) / math.sqrt(self.head_dim)
 
-        # Attend to existing edges and candidate positions
+        # 기존 변과 후보 자리를 살핀다
         attn_mask = (adj + candidate_mask).clamp(max=1.0)
-        # Add self-connections
+        # 스스로 이음을 더한다
         attn_mask = attn_mask + torch.eye(n, device=h.device)
         attn_mask = attn_mask.unsqueeze(-1).expand_as(scores)
         scores = scores.masked_fill(attn_mask == 0, -1e9)
@@ -170,7 +153,7 @@ class GRANAttentionLayer(nn.Module):
 
 
 class MixtureBernoulliDecoder(nn.Module):
-    """Mixture of Bernoullis edge predictor."""
+    """베르누이 섞음 변 헤아리개."""
 
     def __init__(self, hidden_dim: int, num_components: int = 4):
         super().__init__()
@@ -190,7 +173,7 @@ class MixtureBernoulliDecoder(nn.Module):
         )
 
     def forward(self, h_u: torch.Tensor, h_v: torch.Tensor) -> torch.Tensor:
-        """Predict edge probabilities for node pairs."""
+        """마디 짝의 변 확률을 헤아린다."""
         pair_feat = torch.cat([h_u, h_v], dim=-1)
         mix_weights = F.softmax(self.mix_predictor(pair_feat), dim=-1)
 
@@ -204,10 +187,10 @@ class MixtureBernoulliDecoder(nn.Module):
 
 class GRAN(nn.Module):
     """
-    Graph Recurrent Attention Network.
+    그래프 되돌이 눈길 신경망.
     
-    Generates graphs block-by-block using GNN attention and
-    mixture of Bernoullis edge prediction.
+    그래프 신경망 눈길과 베르누이 섞음 변 헤아리기로
+    그래프를 덩이 단위로 만든다.
     """
 
     def __init__(
@@ -224,7 +207,7 @@ class GRAN(nn.Module):
         self.block_size = block_size
         self.hidden_dim = hidden_dim
 
-        self.node_embed = nn.Embedding(2, hidden_dim)  # 0=existing, 1=new
+        self.node_embed = nn.Embedding(2, hidden_dim)  # 0=기존, 1=새것
         self.gnn_layers = nn.ModuleList([
             GRANAttentionLayer(hidden_dim, num_heads)
             for _ in range(num_gnn_layers)
@@ -237,7 +220,7 @@ class GRAN(nn.Module):
         n_existing: int,
         n_new: int,
     ) -> tuple[torch.Tensor, torch.Tensor]:
-        """Predict edges for a block of new nodes."""
+        """새 마디 덩이의 변을 헤아린다."""
         n_total = n_existing + n_new
         device = adj_padded.device
 
@@ -245,7 +228,7 @@ class GRAN(nn.Module):
         node_types[n_existing:] = 1
         h = self.node_embed(node_types)
 
-        # Candidate mask: new-to-all and all-to-new
+        # 후보 가리개: 새것에서 모두로, 모두에서 새것으로
         candidate_mask = torch.zeros(n_total, n_total, device=device)
         candidate_mask[n_existing:, :n_total] = 1.0
         candidate_mask[:n_total, n_existing:] = 1.0
@@ -254,7 +237,7 @@ class GRAN(nn.Module):
         for layer in self.gnn_layers:
             h = layer(h, adj_padded[:n_total, :n_total], candidate_mask)
 
-        # Get candidate pairs (upper triangle)
+        # 후보 짝을 얻는다(위쪽 삼각)
         pairs_i, pairs_j = torch.where(
             torch.triu(candidate_mask, diagonal=1) > 0
         )
@@ -270,7 +253,7 @@ class GRAN(nn.Module):
         return edge_probs, candidate_pairs
 
     def forward(self, adj_list: list[torch.Tensor]) -> dict[str, torch.Tensor]:
-        """Training forward pass over a list of graphs."""
+        """그래프 목록에 대한 익히기 앞으로 가기."""
         total_loss = torch.tensor(0.0)
         num_preds = 0
 
@@ -305,7 +288,7 @@ class GRAN(nn.Module):
         num_nodes: int = 10,
         temperature: float = 1.0,
     ) -> list[torch.Tensor]:
-        """Generate graphs block by block."""
+        """그래프를 덩이 단위로 만든다."""
         self.eval()
         graphs = []
 
@@ -322,13 +305,13 @@ class GRAN(nn.Module):
                 if len(candidate_pairs) == 0:
                     continue
 
-                # Sample edges
+                # 변을 뽑는다
                 adjusted_probs = torch.sigmoid(
                     torch.log(edge_probs / (1 - edge_probs + 1e-8)) / temperature
                 )
                 sampled = torch.bernoulli(adjusted_probs)
 
-                # Update adjacency (symmetric)
+                # 이웃 행렬을 고친다(맞섬)
                 for idx in range(len(candidate_pairs)):
                     if sampled[idx] > 0:
                         i, j = candidate_pairs[idx]
@@ -346,17 +329,17 @@ if __name__ == "__main__":
     max_n = 16
     block_size = 2
 
-    # Create training data
+    # 익히기 자료를 만든다
     print("=== Preparing Training Data ===")
     train_graphs = []
     for _ in range(100):
         n = torch.randint(6, max_n, (1,)).item()
-        # Ensure n is divisible by block_size for simplicity
+        # 단순하게 하려 n이 block_size으로 나누어떨어지게 한다
         n = (n // block_size) * block_size
         if n < 4:
             n = 4
         adj = torch.zeros(n, n)
-        # Community structure
+        # 무리 얼개
         mid = n // 2
         for i in range(mid):
             for j in range(i + 1, mid):
@@ -375,7 +358,7 @@ if __name__ == "__main__":
     print(f"Training graphs: {len(train_graphs)}")
     print(f"Avg nodes: {sum(g.size(0) for g in train_graphs)/len(train_graphs):.1f}")
 
-    # Train GRAN
+    # GRAN 익히기
     print("\n=== Training GRAN ===")
     model = GRAN(
         max_nodes=max_n,
@@ -391,7 +374,7 @@ if __name__ == "__main__":
 
     for epoch in range(40):
         model.train()
-        # Mini-batch
+        # 작은 묶음
         batch = train_graphs[: 32]
         result = model(batch)
         loss = result["total_loss"]
@@ -404,7 +387,7 @@ if __name__ == "__main__":
         if (epoch + 1) % 10 == 0:
             print(f"Epoch {epoch+1}: loss={loss.item():.4f}")
 
-    # Generate
+    # 생성
     print("\n=== Generation ===")
     generated = model.generate(num_graphs=10, num_nodes=10)
     for i, g in enumerate(generated):
@@ -413,3 +396,35 @@ if __name__ == "__main__":
         density = 2 * e / (n * (n - 1)) if n > 1 else 0
         print(f"Graph {i}: {n} nodes, {e} edges, density={density:.3f}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+자리바꿈에 안 바뀜 문제 때문에 그래프 만들기가 그림 만들기보다 왜 근본에서 더 어려운지 밝혀라. 이름표가 붙은 마디 $n$개의 그래프에는 같은 뜻의 이웃 행렬 나타냄이 몇 개 있는가?
+
+??? success "연습문제 1 풀이"
+    마디 $n$개의 그래프는 서로 다른 이웃 행렬 $n!$개로 나타낼 수 있다(마디 이름표의 자리바꿈마다 하나). $n = 10$이면 같은 뜻의 나타냄이 $10! = 3{,}628{,}800$개다. 짓는 모델은 다음 가운데 하나를 해야 한다. (1) 이 겹침을 줄이려 표준 차례를 배운다, (2) 자리바꿈에 안 바뀌는 손실 함수를 쓴다(보기로 그래프 짝짓기), (3) 본디 안 바뀌는 나타냄에서 돈다(보기로 스펙트럼 특징). 그림 만들기는 픽셀에 붙박인 자리 차례가 있어 이 문제를 겪지 않는다. $\square$
+
+---
+
+**연습문제 2.**
+커지기, 품질, 올바름 매임을 지킬 수 있음의 면에서 그래프 만들기의 자기 되돌이 길과 한 번에 만들기 길을 견주어라.
+
+??? success "연습문제 2 풀이"
+    자기 되돌이 방법은 마디와 변을 차례로 만들어 걸음마다 그 자리 매임(보기로 원자가)을 자연스럽게 지키지만, 이웃 결정이 늘어나 $O(n^2)$으로 커진다. 한 번에 만들기 방법은 이웃 행렬 전체를 한꺼번에 만들어 나란한 셈에는 더 잘 커지지만 띄엄띄엄한 얼개와 온 자리 매임에 애를 먹는다. 자기 되돌이 방법은 작은 크기($n < 100$)에서 대개 더 좋은 그래프를 내지만 큰 그래프에서는 느려진다. 자리바꿈에 안 바뀌는 손실을 쓰는 한 번에 만들기 방법은 더 빠르지만 짝짓기 문제를 조심스레 다루어야 한다. $\square$
+
+---
+
+**연습문제 3.**
+자기 되돌이 인수 분해 $p(G) = \prod_{i=1}^n p(\text{node}_i | \text{nodes}_{<i}) \prod_{j<i} p(e_{ij} | \text{node}_i, \text{nodes}_{<i})$ 아래에서 그래프의 가능도를 이끌어 내어라.
+
+??? success "연습문제 3 풀이"
+    붙박인 마디 차례 $\pi$ 아래에서 함께 확률은 $p(G | \pi) = \prod_{i=1}^n p(v_{\pi(i)} | G_{\pi(<i)}) \prod_{j < i} p(e_{\pi(i),\pi(j)} | v_{\pi(i)}, G_{\pi(<i)})$으로 인수 분해된다. 여기서 $G_{\pi(<i)}$은 앞서 만든 마디의 부분 그래프다. 주변 가능도 $p(G) = \frac{1}{n!}\sum_\pi p(G | \pi)$은 모든 차례를 더하지만 다룰 수 없다. 실제로는 표준 차례(보기로 너비 우선)를 써서 가능도를 그 차례에 매인 것으로 만든다. 차례의 품질이 만들기 품질에 영향을 준다. $\square$
+
+---
+
+**연습문제 4.**
+분포 잣대를 넘어 화학의 올바름과 약다움을 재는, 만들어 낸 분자 그래프의 따지기 규약을 내놓아라.
+
+??? success "연습문제 4 풀이"
+    분포 잣대(차수 분포, 뭉침 계수)를 넘어 다음을 따진다. (1) 화학의 올바름 -- 원자가 매임을 만족하는 분자의 몫(RDKit으로 확인), (2) 하나뿐임 -- 서로 다른 올바른 분자의 몫, (3) 새로움 -- 익히기 모임에 없는 몫, (4) 약다움 -- QED 점수, 리핀스키의 다섯 규칙 지킴, (5) 만들기 쉬움 -- 합성이 얼마나 쉬운지 나타내는 SA 점수, (6) 성질 가장 좋게 하기 -- 바란 과녁 성질과 얻은 성질의 얽힘. 여러 번 만들어 얻은 믿음 구간과 함께 모든 잣대를 알린다. $\square$

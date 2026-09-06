@@ -1,106 +1,106 @@
-# Dynamic Array Example
+# 동적 배열 예제
 
-Dynamic arrays (Python's `list`, C++'s `std::vector`, Java's `ArrayList`) support constant-time access by index and append operations that are fast *on average*, even though individual appends occasionally trigger an expensive resize. This page analyzes the amortized cost of appending to a dynamic array using all three amortized analysis methods: aggregate, accounting, and potential.
+동적 배열(파이썬의 `list`, C++의 `std::vector`, 자바의 `ArrayList`)은 인덱스에 의한 상수 시간 접근과, 개별 추가가 이따금 비싼 크기 조정을 촉발하더라도 *평균적으로는* 빠른 추가 연산을 지원한다. 이 절에서는 동적 배열에 추가하는 연산의 분할 상환 비용을 총계, 회계, 퍼텐셜이라는 세 가지 분할 상환 분석 방법으로 모두 분석한다.
 
-## The Doubling Strategy
+## 두 배로 늘리는 전략
 
-A dynamic array maintains an internal buffer of some capacity $C$. When an append would exceed the capacity, the array allocates a new buffer of size $2C$, copies all existing elements, and then inserts the new element.
+동적 배열은 어떤 용량 $C$의 내부 버퍼를 유지한다. 추가가 용량을 넘어서게 되면 크기 $2C$의 새 버퍼를 할당하고 기존 원소를 모두 복사한 뒤 새 원소를 삽입한다.
 
-**Actual cost of the $i$-th append:**
+**$i$번째 추가의 실제 비용:**
 
 $$
 c_i = \begin{cases} i & \text{if } i - 1 \text{ is an exact power of 2 (resize occurs)} \\ 1 & \text{otherwise} \end{cases}
 $$
 
-Here $i$ counts from 1 and we assume the initial capacity is 1. The cost includes $i - 1$ for copying plus 1 for inserting, giving $i$ total when a resize happens.
+여기서 $i$는 1부터 세며 초기 용량은 1이라고 가정한다. 크기 조정이 일어나면 복사에 $i - 1$, 삽입에 1이 들어 총 $i$가 된다.
 
-## Aggregate Analysis
+## 총계 분석
 
-The total cost of $n$ appends is the sum of all cheap appends plus all resizing costs. Resizes occur at appends $1, 2, 3, 5, 9, 17, \ldots$ (when the size equals a power of 2 plus 1, triggering a copy of $2^0, 2^1, 2^2, \ldots$ elements):
+$n$번 추가하는 전체 비용은 모든 싼 추가의 비용에 모든 크기 조정 비용을 더한 값이다. 크기 조정은 $1, 2, 3, 5, 9, 17, \ldots$번째 추가에서 일어난다(크기가 2의 거듭제곱에 1을 더한 값과 같아져 $2^0, 2^1, 2^2, \ldots$개의 원소 복사를 촉발할 때이다).
 
 $$
 T(n) = n + \sum_{j=0}^{\lfloor \log_2(n-1) \rfloor} 2^j < n + 2n = 3n
 $$
 
-The first $n$ accounts for the 1-unit cost of each insertion, and the sum accounts for copying during resizes. The geometric sum is bounded by $2n$.
+앞의 $n$은 각 삽입의 1단위 비용을, 합은 크기 조정 중의 복사를 반영한다. 등비합은 $2n$으로 유계이다.
 
-The amortized cost per append is:
+추가당 분할 상환 비용은 다음과 같다.
 
 $$
 \hat{c} = \frac{T(n)}{n} < 3 = O(1)
 $$
 
-## Accounting Analysis
+## 회계 분석
 
-Assign an amortized cost of $\hat{c} = 3$ to every append:
+모든 추가에 분할 상환 비용 $\hat{c} = 3$을 배정한다.
 
-- **1 unit** pays for inserting the new element.
-- **1 unit** is stored as credit on the newly inserted element.
-- **1 unit** is stored as credit on one element in the first half of the array that does not yet have credit.
+- **1단위** 는 새 원소를 삽입하는 데 쓴다.
+- **1단위** 는 새로 삽입된 원소에 신용으로 저장한다.
+- **1단위** 는 배열 앞쪽 절반에서 아직 신용이 없는 원소 하나에 신용으로 저장한다.
 
-When a resize occurs at size $s$, each of the $s$ elements in the old array carries 1 unit of credit, providing exactly enough to pay for copying them into the new array.
+크기 $s$에서 크기 조정이 일어나면 옛 배열의 $s$개 원소가 각각 1단위의 신용을 지니고 있으므로, 이들을 새 배열로 복사하는 비용을 정확히 감당할 수 있다.
 
-**Credit invariant:** After each append (without a resize), the number of elements with credit equals $s - C/2$, where $s$ is the current size and $C$ is the current capacity. At the moment of resize ($s = C$), every element has credit, so the $s$ units of credit pay for the $s$ copies. After the resize, all credit is consumed and the new capacity is $2C$, restarting the cycle.
+**신용 불변식:** (크기 조정 없는) 각 추가 후, 신용을 가진 원소의 수는 $s - C/2$이다. 여기서 $s$는 현재 크기, $C$는 현재 용량이다. 크기 조정 시점($s = C$)에는 모든 원소가 신용을 가지므로 $s$단위의 신용이 $s$번의 복사를 지불한다. 크기 조정 후에는 모든 신용이 소진되고 새 용량이 $2C$가 되어 주기가 다시 시작된다.
 
-## Potential Analysis
+## 퍼텐셜 분석
 
-Define the potential function:
+퍼텐셜 함수를 다음과 같이 정의한다.
 
 $$
 \Phi(D) = 2s - C
 $$
 
-where $s$ is the current number of elements and $C$ is the current capacity. This potential satisfies:
+여기서 $s$는 현재 원소 개수, $C$는 현재 용량이다. 이 퍼텐셜은 다음을 만족한다.
 
-- $\Phi(D_0) = 2(0) - 1 = -1$, but after the first insert $\Phi(D_1) = 2(1) - 1 = 1 \geq 0$.
-- For a non-resizing append: $s$ increases by 1 and $C$ stays the same, so $\Delta\Phi = 2$.
-- Just before a resize: $s = C$, so $\Phi = 2C - C = C \geq 0$.
+- $\Phi(D_0) = 2(0) - 1 = -1$이지만 첫 삽입 후에는 $\Phi(D_1) = 2(1) - 1 = 1 \geq 0$이다.
+- 크기 조정이 없는 추가에서는 $s$가 1 증가하고 $C$는 그대로이므로 $\Delta\Phi = 2$이다.
+- 크기 조정 직전에는 $s = C$이므로 $\Phi = 2C - C = C \geq 0$이다.
 
-**Amortized cost (no resize):**
+**분할 상환 비용(크기 조정 없음):**
 
 $$
 \hat{c}_i = c_i + \Phi(D_i) - \Phi(D_{i-1}) = 1 + 2 = 3
 $$
 
-**Amortized cost (resize at size $s$, old capacity $C = s$):**
+**분할 상환 비용(크기 $s$, 옛 용량 $C = s$에서의 크기 조정):**
 
-After the resize, the new capacity is $2s$ and the size becomes $s + 1$:
+크기 조정 후 새 용량은 $2s$이고 크기는 $s + 1$이 된다.
 
 $$
 \hat{c}_i = (s + 1) + \Phi(D_i) - \Phi(D_{i-1}) = (s + 1) + [2(s+1) - 2s] - [2s - s] = (s+1) + 2 - s = 3
 $$
 
-In both cases, the amortized cost is exactly 3.
+두 경우 모두 분할 상환 비용이 정확히 3이다.
 
-!!! note "Why Doubling?"
-    The factor of 2 in the doubling strategy is not special. Any multiplicative growth factor $\alpha > 1$ yields $O(1)$ amortized append. The amortized cost becomes $\frac{\alpha}{\alpha - 1}$ per append. Doubling ($\alpha = 2$) gives amortized cost 3 and wastes at most 50% of allocated memory. A factor of $\alpha = 1.5$ gives amortized cost 5 but wastes at most 33%. Python's `list` uses a growth factor of approximately 1.125 to reduce memory overhead.
+!!! note "왜 두 배인가?"
+    두 배로 늘리는 전략에서 인자 2가 특별한 것은 아니다. 1보다 큰 어떤 곱셈 성장 인자 $\alpha > 1$도 $O(1)$ 분할 상환 추가를 준다. 분할 상환 비용은 추가당 $\frac{\alpha}{\alpha - 1}$이 된다. 두 배($\alpha = 2$)는 분할 상환 비용 3을 주고 할당된 메모리를 많아야 50% 낭비한다. $\alpha = 1.5$는 분할 상환 비용 5를 주지만 낭비는 많아야 33%이다. 파이썬의 `list`는 메모리 부담을 줄이기 위해 대략 1.125의 성장 인자를 쓴다.
 
-## Table Contraction
+## 표 축소
 
-If the array also supports deletions, the strategy must handle shrinking. A natural approach is to halve the capacity when the array is half empty ($s = C/4$), not when $s = C/2$. Halving at $s = C/2$ causes pathological behavior: alternating inserts and deletes near the threshold trigger repeated resizes.
+배열이 삭제도 지원한다면 축소 전략도 다루어야 한다. 자연스러운 접근은 배열이 절반 비었을 때($s = C/2$)가 아니라 $s = C/4$일 때 용량을 반으로 줄이는 것이다. $s = C/2$에서 반으로 줄이면 병적인 동작이 생긴다. 문턱값 근처에서 삽입과 삭제를 번갈아 하면 크기 조정이 반복해서 촉발된다.
 
-With the $C/4$ shrinking threshold, the amortized cost of both insert and delete remains $O(1)$. The potential function for this combined analysis is:
+$C/4$ 축소 문턱값을 쓰면 삽입과 삭제 모두 $O(1)$ 분할 상환 비용을 유지한다. 이 결합된 분석의 퍼텐셜 함수는 다음과 같다.
 
 $$
 \Phi(D) = \begin{cases} 2s - C & \text{if } s \geq C/2 \\ C/2 - s & \text{if } s < C/2 \end{cases}
 $$
 
-## Python Example
+## 파이썬 예제
 
 ```python
 """
-Dynamic array amortized analysis demonstration.
+동적 배열의 분할 상환 분석 시연.
 
-Implements a dynamic array with doubling and tracks actual vs amortized
-costs, verifying the O(1) amortized bound.
+두 배로 늘리는 동적 배열을 구현하고 실제 비용과 분할 상환 비용을
+추적하여 O(1) 분할 상환 경계를 확인한다.
 """
 
 
 # ===================================================================
-# Dynamic Array with Cost Tracking
+# 비용을 추적하는 동적 배열
 # ===================================================================
 class DynamicArray:
-    """Dynamic array that doubles capacity on overflow."""
+    """넘칠 때 용량을 두 배로 늘리는 동적 배열."""
 
     def __init__(self):
         self.capacity = 1
@@ -110,10 +110,10 @@ class DynamicArray:
         self.resize_count = 0
 
     def append(self, value):
-        """Append value, doubling capacity if needed. Returns actual cost."""
-        cost = 1  # insertion cost
+        """필요하면 용량을 두 배로 늘리며 값을 추가한다. 실제 비용을 반환한다."""
+        cost = 1  # 삽입 비용
         if self.size == self.capacity:
-            # Resize: copy all elements
+            # 크기 조정: 모든 원소를 복사한다
             cost += self.size
             new_data = [None] * (2 * self.capacity)
             for i in range(self.size):
@@ -128,15 +128,15 @@ class DynamicArray:
         return cost
 
     def potential(self):
-        """Compute the potential function Phi = 2*size - capacity."""
+        """퍼텐셜 함수 Phi = 2*크기 - 용량을 계산한다."""
         return 2 * self.size - self.capacity
 
 
 # ===================================================================
-# Verification
+# 검증
 # ===================================================================
 def verify_amortized_cost(n):
-    """Verify that total cost < 3n for n appends."""
+    """n번 추가의 전체 비용이 3n 미만임을 확인한다."""
     arr = DynamicArray()
     for i in range(n):
         arr.append(i)
@@ -149,10 +149,10 @@ def verify_amortized_cost(n):
 
 
 # ===================================================================
-# Step-by-Step Trace
+# 단계별 추적
 # ===================================================================
 def trace_appends(n):
-    """Print per-operation details for first n appends."""
+    """처음 n번 추가의 연산별 세부 사항을 출력한다."""
     arr = DynamicArray()
     print(f"\n{'Op':>3} {'Size':>5} {'Cap':>5} {'Cost':>5} "
           f"{'Total':>6} {'Phi':>5} {'Amort':>6}")
@@ -166,7 +166,7 @@ def trace_appends(n):
 
 
 # ===================================================================
-# Demonstration
+# 시연
 # ===================================================================
 if __name__ == "__main__":
     print("=== Aggregate Analysis Verification ===")
@@ -177,6 +177,39 @@ if __name__ == "__main__":
     trace_appends(17)
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 16: Amortized Analysis. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+동적 배열 예제에서 설명한 방법을 사용하여 $n$개 연산의 수열을 분석하고 연산당 분할 상환 비용을 구하라.
+
+??? success "연습문제 1 풀이"
+    이 절의 구체적인 기법(총계, 회계, 퍼텐셜)을 적용하여 $n$개 연산의 전체 비용에 상계를 준다. 이를 $n$으로 나누면 연산당 분할 상환 비용을 얻는다. 핵심 통찰은 비싼 연산이 충분히 드물어서 그 비용이 수많은 싼 연산에 흩어진다는 것이다.
+
+---
+
+**연습문제 2.**
+동적 배열 예제의 분할 상환 패턴, 즉 싼 연산들이 이따금 비싼 연산 하나를 촉발하는 패턴에 대응하는 딥러닝 상황을 찾아라.
+
+??? success "연습문제 2 풀이"
+    예로는 경사 누적(싼 마이크로배치 순전파, 비싼 매개변수 갱신), 모델 체크포인팅(싼 학습 단계, 비싼 저장), 동적 배치에서의 해시 테이블 크기 조정(싼 삽입, 비싼 재해싱)이 있다. 이따금 비싼 연산이 있어도 단계당 분할 상환 비용은 일정하게 유지된다.
+
+---
+
+**연습문제 3.**
+동적 배열 예제로 유도한 분할 상환 경계가 꽉 조여 있음을, 그 경계를 달성하는 연산 수열을 구성하여 증명하라.
+
+??? success "연습문제 3 풀이"
+    전체 실제 비용을 연산 횟수로 나눈 비를 최대화하는 수열을 구성한다. 보통 퍼텐셜을 쌓는 연산과 그것을 방출하는 연산을 번갈아 수행하는 형태가 된다. 이 구성으로 분할 상환 경계를 더 개선할 수 없음이 확인된다. $\square$
+
+---
+
+**연습문제 4.**
+동적 배열 예제의 분할 상환 분석을 최악의 경우 분석과 비교하라. 분할 상환 경계는 최악의 경우보다 몇 배나 개선되는가?
+
+??? success "연습문제 4 풀이"
+    최악의 경우 분석은 비싼 연산 앞에 싼 연산이 많이 온다는 사실을 무시하고 각 연산에 가능한 최대 비용을 부과한다. 개선 배수는 최악의 경우 비용을 분할 상환 비용으로 나눈 값이다. 전형적인 자료구조에서는 $O(n)$ 대 $O(1)$로 $n$배 개선된다.

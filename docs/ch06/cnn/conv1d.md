@@ -1,30 +1,25 @@
-# 1D Convolutions
+# 1차원 합성곱
+## 들어가며
 
+2차원 합성곱이 이미지 처리의 일꾼이라면, **1차원 합성곱**은 시계열, 음향 신호, 텍스트 순차열, 금융 데이터 같은 순차 데이터를 다룬다. 학습 가능한 핵을 하나의 공간(시간) 차원을 따라 미끄러뜨리며 자리마다 지역적인 무늬를 뽑아낸다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Introduction
-
-While 2D convolutions are the workhorse of image processing, **1D convolutions** operate on sequential data—time series, audio signals, text sequences, and financial data. They apply a learnable kernel that slides along a single spatial (temporal) dimension, extracting local patterns at every position.
-
-1D convolutions are foundational to architectures like WaveNet, Temporal Convolutional Networks (TCN), and are widely used in quantitative finance for processing price sequences, order book snapshots, and other temporal signals.
+1차원 합성곱은 WaveNet이나 시간 합성곱 신경망(TCN) 같은 구조의 바탕이며, 퀀트 금융에서 가격 순차열, 호가창 스냅숏을 비롯한 시간 신호를 다루는 데 널리 쓰인다.
 
 ---
 
-## Mathematical Formulation
+## 수학적 정식화
 
-### Single-Channel 1D Convolution
+### 단일 채널 1차원 합성곱
 
-For a 1D input $\mathbf{x} \in \mathbb{R}^{n}$ and kernel $\mathbf{w} \in \mathbb{R}^{k}$:
+1차원 입력 $\mathbf{x} \in \mathbb{R}^{n}$과 핵 $\mathbf{w} \in \mathbb{R}^{k}$에 대해 다음과 같다.
 
 $$y[i] = \sum_{j=0}^{k-1} x[i + j] \cdot w[j]$$
 
-The output size (without padding) is $n - k + 1$.
+(덧대기가 없을 때) 출력 크기는 $n - k + 1$이다.
 
-### Example
+### 예
 
-Consider input $\mathbf{x} = [1, 2, 3, 4, 5]$ and kernel $\mathbf{w} = [1, 0, -1]$:
+입력 $\mathbf{x} = [1, 2, 3, 4, 5]$과 핵 $\mathbf{w} = [1, 0, -1]$을 생각해 보자.
 
 ```
 Position 0: 1×1 + 2×0 + 3×(-1) = 1 - 3 = -2
@@ -34,58 +29,58 @@ Position 2: 3×1 + 4×0 + 5×(-1) = 3 - 5 = -2
 Output: [-2, -2, -2]
 ```
 
-This kernel computes a discrete derivative (difference), detecting changes in the signal.
+이 핵은 이산 도함수(차분)를 계산하여 신호의 변화를 잡아낸다.
 
-### Multi-Channel Formulation
+### 다채널로 나타내기
 
-For an input with $C_{in}$ channels and producing $C_{out}$ channels:
+입력 채널이 $C_{in}$개이고 출력 채널을 $C_{out}$개 낼 때 다음과 같다.
 
 $$Y[o, i] = \sum_{c=0}^{C_{in}-1} \sum_{j=0}^{k-1} X[c, i+j] \cdot W[o, c, j] + b[o]$$
 
-The weight tensor has shape $W \in \mathbb{R}^{C_{out} \times C_{in} \times k}$.
+가중치 텐서의 모양은 $W \in \mathbb{R}^{C_{out} \times C_{in} \times k}$이다.
 
 ---
 
-## PyTorch `nn.Conv1d`
+## PyTorch의 `nn.Conv1d`
 
-### Interface
+### 인터페이스
 
 ```python
 import torch
 import torch.nn as nn
 
-# Conv1d signature
+# Conv1d의 서명
 conv1d = nn.Conv1d(
-    in_channels,    # Number of input channels
-    out_channels,   # Number of output channels (filters)
-    kernel_size,    # Size of the convolving kernel
-    stride=1,       # Stride of the convolution
-    padding=0,      # Zero-padding added to both sides
-    dilation=1,     # Spacing between kernel elements
-    groups=1,       # Number of blocked connections
-    bias=True,      # Add learnable bias
+    in_channels,    # 입력 채널의 수
+    out_channels,   # 출력 채널(필터)의 수
+    kernel_size,    # 합성곱 핵의 크기
+    stride=1,       # 합성곱의 보폭
+    padding=0,      # 양쪽에 더하는 0 덧대기
+    dilation=1,     # 핵 원소 사이의 간격
+    groups=1,       # 막힌 연결의 수
+    bias=True,      # 학습 가능한 편향 더하기
     padding_mode='zeros'  # 'zeros', 'reflect', 'replicate', 'circular'
 )
 ```
 
-**Input shape**: $(N, C_{in}, L)$ — batch size, input channels, sequence length
+**입력 모양**: $(N, C_{in}, L)$ — 배치 크기, 입력 채널, 순차열 길이
 
-**Output shape**: $(N, C_{out}, L_{out})$ where $L_{out} = \left\lfloor \frac{L + 2p - d(k-1) - 1}{s} \right\rfloor + 1$
+**출력 모양**: $(N, C_{out}, L_{out})$이며 $L_{out} = \left\lfloor \frac{L + 2p - d(k-1) - 1}{s} \right\rfloor + 1$이다
 
-### Basic Examples
+### 기본 예제
 
 ```python
 import torch
 import torch.nn as nn
 
-# 1D Convolution Example
-# Input: (batch_size, in_channels, length)
-x = torch.tensor([[[1., 2., 3., 4., 5.]]])  # Shape: (1, 1, 5)
+# 1차원 합성곱 예제
+# 입력: (배치 크기, 입력 채널, 길이)
+x = torch.tensor([[[1., 2., 3., 4., 5.]]])  # 모양: (1, 1, 5)
 
-# Create 1D conv layer: 1 input channel, 1 output channel, kernel size 3
+# 1차원 합성곱 층 만들기: 입력 채널 1개, 출력 채널 1개, 핵 크기 3
 conv1d = nn.Conv1d(in_channels=1, out_channels=1, kernel_size=3, bias=False)
 
-# Manually set weights to [1, 0, -1] (edge detection kernel)
+# 가중치를 [1, 0, -1]로 직접 지정 (모서리 검출 핵)
 with torch.no_grad():
     conv1d.weight = nn.Parameter(torch.tensor([[[1., 0., -1.]]]))
 
@@ -95,19 +90,19 @@ print(f"Output shape: {output.shape}") # torch.Size([1, 1, 3])
 print(f"Output: {output}")             # tensor([[[-2., -2., -2.]]])
 ```
 
-### Multi-Channel Example
+### 다채널 예제
 
 ```python
-# Time series with 8 features (e.g., OHLCV + indicators), length 100
+# 특징 8개(예: OHLCV와 지표), 길이 100인 시계열
 batch_size = 32
 x = torch.randn(batch_size, 8, 100)  # (N, C_in, L)
 
-# Extract 32 temporal features with kernel size 5
+# 핵 크기 5로 시간 특징 32개 뽑기
 conv = nn.Conv1d(in_channels=8, out_channels=32, kernel_size=5, padding=2)
 
 output = conv(x)
 print(f"Input: {x.shape}")    # [32, 8, 100]
-print(f"Output: {output.shape}")  # [32, 32, 100] (same length with padding=2)
+print(f"Output: {output.shape}")  # [32, 32, 100] (padding=2이면 길이가 같다)
 
 params = sum(p.numel() for p in conv.parameters())
 print(f"Parameters: {params:,}")  # 8 × 32 × 5 + 32 = 1,312
@@ -115,9 +110,9 @@ print(f"Parameters: {params:,}")  # 8 × 32 × 5 + 32 = 1,312
 
 ---
 
-## 1D Convolution as Matrix Multiplication
+## 행렬 곱으로 본 1차원 합성곱
 
-The sliding-window interpretation of 1D convolution can be expressed as multiplication with a **Toeplitz matrix**. For input $\mathbf{x} = [x_0, x_1, x_2, x_3, x_4]^\top$ and kernel $\mathbf{k} = [k_0, k_1, k_2]^\top$:
+1차원 합성곱을 창을 미끄러뜨리는 것으로 보는 관점은 **퇴플리츠 행렬**을 곱하는 것으로도 나타낼 수 있다. 입력 $\mathbf{x} = [x_0, x_1, x_2, x_3, x_4]^\top$과 핵 $\mathbf{k} = [k_0, k_1, k_2]^\top$에 대해 다음과 같다.
 
 $$\mathbf{y} = \mathbf{T}\mathbf{x} = \begin{bmatrix}
 k_0 & k_1 & k_2 & 0 & 0 \\
@@ -128,11 +123,11 @@ k_0 & k_1 & k_2 & 0 & 0 \\
 x_0 \\ x_1 \\ x_2 \\ x_3 \\ x_4
 \end{bmatrix}$$
 
-This matrix is **sparse** and **structured** (constant along diagonals), which is why convolution is far more efficient than a general matrix multiplication—only $k$ unique values need to be stored.
+이 행렬은 **성기고** (대각선을 따라 값이 같은) **짜임이 있다**. 그래서 합성곱이 일반적인 행렬 곱보다 훨씬 효율적이다. 서로 다른 값을 $k$개만 저장하면 된다.
 
-### Transposed Convolution as T-transpose
+### $\mathbf{T}^\top$으로 본 전치 합성곱
 
-The gradient of convolution w.r.t. the input corresponds to multiplication by $\mathbf{T}^\top$, which is a **transposed convolution** (see [Transposed Convolutions](transposed_conv.md)):
+입력에 대한 합성곱의 기울기는 $\mathbf{T}^\top$을 곱하는 것에 해당하며, 이것이 **전치 합성곱**이다([전치 합성곱](transposed_conv.md) 참고).
 
 $$\mathbf{T}^\top = \begin{bmatrix}
 k_0 & 0 & 0 \\
@@ -142,58 +137,58 @@ k_2 & k_1 & k_0 \\
 0 & 0 & k_2
 \end{bmatrix}$$
 
-This maps a length-3 vector back to length-5, performing upsampling.
+이는 길이 3인 벡터를 다시 길이 5로 보내며 상향 표본화를 한다.
 
 ```python
 import torch
 import torch.nn as nn
 
-# Verify: Conv1d backward = ConvTranspose1d forward
+# 확인: Conv1d의 역전파 = ConvTranspose1d의 순전파
 x = torch.randn(1, 1, 5, requires_grad=True)
 w = torch.randn(1, 1, 3)
 
-# Forward pass
+# 순전파
 y = torch.nn.functional.conv1d(x, w)
-# y has shape (1, 1, 3)
+# y의 모양은 (1, 1, 3)
 
-# Backward pass gives gradient w.r.t. x
+# 역전파가 x에 대한 기울기를 준다
 grad_output = torch.randn(1, 1, 3)
 y.backward(grad_output)
 
-# This is equivalent to transposed convolution
+# 이는 전치 합성곱과 같다
 grad_manual = torch.nn.functional.conv_transpose1d(grad_output, w)
 print(f"Gradient match: {torch.allclose(x.grad, grad_manual, atol=1e-5)}")
 ```
 
 ---
 
-## Backpropagation in 1D Convolution
+## 1차원 합성곱의 역전파
 
-### Forward Pass
+### 순전파
 
 $$y_i = \sum_{j=0}^{k-1} x_{i+j} \cdot w_j$$
 
-### Gradient with Respect to Input
+### 입력에 대한 기울기
 
 $$\frac{\partial L}{\partial x_i} = \sum_{j=\max(0, i-k+1)}^{\min(i, n-k)} \frac{\partial L}{\partial y_j} \cdot w_{i-j}$$
 
-This is equivalent to **full convolution** of the gradient with a **flipped kernel**:
+이는 기울기와 **뒤집은 핵**의 **온전한 합성곱**과 같다.
 
 $$\frac{\partial L}{\partial \mathbf{x}} = \frac{\partial L}{\partial \mathbf{y}} *_{full} \text{flip}(\mathbf{w})$$
 
-### Gradient with Respect to Kernel
+### 핵에 대한 기울기
 
 $$\frac{\partial L}{\partial w_j} = \sum_{i} \frac{\partial L}{\partial y_i} \cdot x_{i+j}$$
 
-This is the **cross-correlation** of input with output gradient.
+이는 입력과 출력 기울기의 **상호상관**이다.
 
-### NumPy Implementation
+### NumPy 구현
 
 ```python
 import numpy as np
 
 def conv1d_forward(x, w):
-    """1D convolution (cross-correlation) forward pass."""
+    """1차원 합성곱(상호상관) 순전파."""
     n, k = len(x), len(w)
     out_len = n - k + 1
     y = np.zeros(out_len)
@@ -203,31 +198,30 @@ def conv1d_forward(x, w):
 
 def conv1d_backward(x, w, grad_output):
     """
-    1D convolution backward pass.
+    1차원 합성곱 역전파.
     
-    Returns:
-        grad_x: Gradient with respect to input (dL/dx)
-        grad_w: Gradient with respect to weights (dL/dw)
+    반환값:
+        grad_x: 입력에 대한 기울기 (dL/dx)
+        grad_w: 가중치에 대한 기울기 (dL/dw)
     """
     n, k = len(x), len(w)
     out_len = len(grad_output)
     
-    # Gradient w.r.t. input: full convolution with flipped kernel
+    # 입력에 대한 기울기: 뒤집은 핵과의 온전한 합성곱
     grad_x = np.zeros(n)
     w_flip = w[::-1]
     grad_padded = np.pad(grad_output, (k-1, k-1), mode='constant')
     for i in range(n):
         grad_x[i] = np.sum(grad_padded[i:i+k] * w_flip)
     
-    # Gradient w.r.t. weights: correlation of input with grad_output
+    # 가중치에 대한 기울기: 입력과 grad_output의 상관
     grad_w = np.zeros(k)
     for j in range(k):
         grad_w[j] = np.sum(x[j:j+out_len] * grad_output)
     
     return grad_x, grad_w
 
-
-# Numerical gradient verification
+# 수치적 기울기 확인
 np.random.seed(42)
 x = np.random.randn(8)
 w = np.random.randn(3)
@@ -237,7 +231,7 @@ grad_output = np.random.randn(len(y))
 
 grad_x, grad_w = conv1d_backward(x, w, grad_output)
 
-# Numerical verification
+# 수치적 확인
 eps = 1e-5
 grad_w_numerical = np.zeros_like(w)
 for i in range(len(w)):
@@ -254,11 +248,11 @@ print("Match:", np.allclose(grad_w, grad_w_numerical))
 
 ---
 
-## Causal Convolution
+## 인과 합성곱
 
-In many time-series applications, the model must not look into the future—the output at time $t$ should depend only on inputs at times $\leq t$. This requires **causal convolution**.
+많은 시계열 응용에서 모델은 미래를 들여다보아서는 안 된다. 시각 $t$의 출력은 시각이 $t$ 이하인 입력에만 기대야 한다. 이를 위해 **인과 합성곱**이 필요하다.
 
-### Left-Only Padding
+### 왼쪽에만 덧대기
 
 ```python
 import torch
@@ -267,9 +261,9 @@ import torch.nn.functional as F
 
 class CausalConv1d(nn.Module):
     """
-    Causal 1D convolution: output at time t depends only on input at times ≤ t.
+    인과적 1차원 합성곱: 시각 t의 출력은 시각이 t 이하인 입력에만 기댄다.
     
-    Achieved by padding only on the left side and removing trailing elements.
+    왼쪽에만 덧대고 뒤쪽 원소를 잘라 내어 이룬다.
     """
     def __init__(self, in_channels, out_channels, kernel_size, dilation=1):
         super().__init__()
@@ -281,25 +275,24 @@ class CausalConv1d(nn.Module):
     
     def forward(self, x):
         out = self.conv(x)
-        # Remove the right padding to enforce causality
+        # 인과성을 지키려고 오른쪽 덧대기 제거
         return out[:, :, :-self.padding] if self.padding > 0 else out
 
-
-# Verify causality
+# 인과성 확인
 causal = CausalConv1d(1, 1, kernel_size=3)
 x = torch.randn(1, 1, 10)
 y = causal(x)
 print(f"Input length: {x.shape[2]}, Output length: {y.shape[2]}")
-# Both are 10: output[t] depends on input[t-2], input[t-1], input[t]
+# 둘 다 10: output[t]는 input[t-2], input[t-1], input[t]에 기댄다
 ```
 
-### Dilated Causal Convolution (WaveNet-style)
+### 팽창 인과 합성곱 (WaveNet 방식)
 
-Stacking causal convolutions with exponentially increasing dilation achieves very large receptive fields while maintaining causality:
+팽창률을 지수적으로 키우며 인과 합성곱을 쌓으면 인과성을 지키면서도 아주 넓은 수용 영역을 얻는다.
 
 ```python
 class DilatedCausalConv1d(nn.Module):
-    """Dilated causal convolution for sequence modeling."""
+    """순차열 모형을 위한 팽창 인과 합성곱."""
     def __init__(self, in_channels, out_channels, kernel_size, dilation):
         super().__init__()
         self.padding = (kernel_size - 1) * dilation
@@ -312,18 +305,17 @@ class DilatedCausalConv1d(nn.Module):
         out = self.conv(x)
         return out[:, :, :-self.padding] if self.padding > 0 else out
 
-
 def build_wavenet_stack(channels, kernel_size=2, num_layers=10):
-    """Stack with exponentially increasing dilation."""
+    """팽창률을 지수적으로 키우며 쌓는다."""
     layers = []
     for i in range(num_layers):
         dilation = 2 ** i  # 1, 2, 4, 8, 16, 32, 64, 128, 256, 512
         layers.append(DilatedCausalConv1d(channels, channels, kernel_size, dilation))
     return nn.Sequential(*layers)
 
-# Receptive field calculation:
-# With K=2 and dilations [1, 2, 4, ..., 512]:
-# RF = 1 + sum(d * (K-1)) = 1 + (1+2+4+...+512) = 1024 samples
+# 수용 영역 계산:
+# K=2이고 팽창률이 [1, 2, 4, ..., 512]일 때:
+# RF = 1 + sum(d * (K-1)) = 1 + (1+2+4+...+512) = 표본 1024개
 stack = build_wavenet_stack(64, kernel_size=2, num_layers=10)
 print(f"Total layers: 10, Receptive field: 1024 samples")
 print(f"At 16kHz audio: {1024/16000:.3f}s of context")
@@ -331,9 +323,9 @@ print(f"At 16kHz audio: {1024/16000:.3f}s of context")
 
 ---
 
-## Temporal Convolutional Network (TCN)
+## 시간 합성곱 신경망 (TCN)
 
-TCNs combine causal convolutions, dilations, and residual connections for general-purpose sequence modeling:
+TCN은 인과 합성곱, 팽창, 잔차 연결을 엮어 널리 쓸 수 있는 순차열 모형을 만든다.
 
 ```python
 import torch
@@ -341,14 +333,14 @@ import torch.nn as nn
 
 class TCNBlock(nn.Module):
     """
-    Temporal Convolutional Network block.
+    시간 합성곱 신경망 블록.
     
-    Combines:
-    - Dilated causal convolution
-    - Weight normalization
-    - ReLU activation
-    - Dropout for regularization
-    - Residual connection
+    다음을 엮는다:
+    - 팽창 인과 합성곱
+    - 가중치 정규화
+    - ReLU 활성화
+    - 규제를 위한 드롭아웃
+    - 잔차 연결
     """
     def __init__(self, in_channels, out_channels, kernel_size, dilation, dropout=0.2):
         super().__init__()
@@ -367,29 +359,28 @@ class TCNBlock(nn.Module):
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(dropout)
         
-        # Residual connection (1×1 conv if channels change)
+        # 잔차 연결 (채널이 바뀌면 1×1 합성곱)
         self.residual = (nn.Conv1d(in_channels, out_channels, 1)
                         if in_channels != out_channels else nn.Identity())
     
     def forward(self, x):
-        # First conv block
+        # 첫 합성곱 블록
         out = self.conv1(x)
-        out = out[:, :, :-self.padding]  # Causal trim
+        out = out[:, :, :-self.padding]  # 인과적으로 잘라내기
         out = self.relu(out)
         out = self.dropout(out)
         
-        # Second conv block
+        # 둘째 합성곱 블록
         out = self.conv2(out)
-        out = out[:, :, :-self.padding]  # Causal trim
+        out = out[:, :, :-self.padding]  # 인과적으로 잘라내기
         out = self.relu(out)
         out = self.dropout(out)
         
-        # Residual
+        # 잔차
         return self.relu(out + self.residual(x))
 
-
 class TCN(nn.Module):
-    """Complete Temporal Convolutional Network."""
+    """완전한 시간 합성곱 신경망."""
     def __init__(self, input_channels, hidden_channels, output_size,
                  kernel_size=3, num_layers=6, dropout=0.2):
         super().__init__()
@@ -404,30 +395,29 @@ class TCN(nn.Module):
         self.output_layer = nn.Linear(hidden_channels, output_size)
     
     def forward(self, x):
-        # x: (batch, channels, seq_len)
+        # x: (배치, 채널, 순차열 길이)
         out = self.network(x)
-        # Take the last time step for classification/regression
+        # 분류/회귀를 위해 마지막 시각을 쓴다
         out = out[:, :, -1]
         return self.output_layer(out)
 
-
-# Example: predicting next-step returns from 8-feature price history
+# 예: 특징 8개짜리 가격 이력에서 다음 시점의 수익률 예측
 model = TCN(input_channels=8, hidden_channels=64, output_size=1,
             kernel_size=3, num_layers=8)
 
-x = torch.randn(32, 8, 256)  # 32 samples, 8 features, 256 time steps
+x = torch.randn(32, 8, 256)  # 표본 32개, 특징 8개, 시각 256개
 pred = model(x)
 print(f"Input: {x.shape}, Prediction: {pred.shape}")  # [32, 1]
 
-# Receptive field: 1 + sum(2^i * (3-1)) for i=0..7 = 1 + 2*(1+2+...+128) = 511
+# 수용 영역: i=0..7에 대해 1 + sum(2^i * (3-1)) = 1 + 2*(1+2+...+128) = 511
 print(f"Receptive field: 511 time steps")
 ```
 
 ---
 
-## 1D Convolution for Financial Time Series
+## 금융 시계열을 위한 1차원 합성곱
 
-### Feature Extraction from Price Data
+### 가격 데이터에서 특징 뽑기
 
 ```python
 import torch
@@ -435,27 +425,27 @@ import torch.nn as nn
 
 class FinancialFeatureExtractor(nn.Module):
     """
-    Multi-scale 1D convolution for extracting temporal patterns
-    from financial time series at different time horizons.
+    금융 시계열에서 여러 시간 지평의 무늬를 뽑아내는
+    여러 규모의 1차원 합성곱.
     """
     def __init__(self, input_features, hidden_dim=64):
         super().__init__()
         
-        # Short-term patterns (3-day window)
+        # 단기 무늬 (3일 창)
         self.short_conv = nn.Sequential(
             nn.Conv1d(input_features, hidden_dim, kernel_size=3, padding=1),
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU()
         )
         
-        # Medium-term patterns (5-day / weekly)
+        # 중기 무늬 (5일 / 주간)
         self.medium_conv = nn.Sequential(
             nn.Conv1d(input_features, hidden_dim, kernel_size=5, padding=2),
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU()
         )
         
-        # Long-term patterns (21-day / monthly)
+        # 장기 무늬 (21일 / 월간)
         self.long_conv = nn.Sequential(
             nn.Conv1d(input_features, hidden_dim, kernel_size=21, padding=10),
             nn.BatchNorm1d(hidden_dim),
@@ -464,11 +454,11 @@ class FinancialFeatureExtractor(nn.Module):
     
     def forward(self, x):
         """
-        Args:
-            x: (batch, features, time_steps)
-               e.g., features = [open, high, low, close, volume, returns, ...]
-        Returns:
-            Multi-scale features: (batch, 3*hidden_dim, time_steps)
+        인수:
+            x: (배치, 특징, 시각)
+               예: features = [시가, 고가, 저가, 종가, 거래량, 수익률, …]
+        반환값:
+            여러 규모의 특징: (배치, 3*hidden_dim, 시각)
         """
         short = self.short_conv(x)
         medium = self.medium_conv(x)
@@ -476,10 +466,9 @@ class FinancialFeatureExtractor(nn.Module):
         
         return torch.cat([short, medium, long_term], dim=1)
 
-
-# Example usage
+# 사용 예
 extractor = FinancialFeatureExtractor(input_features=6, hidden_dim=32)
-# 6 features: OHLCV + returns, 252 trading days
+# 특징 6개: OHLCV와 수익률, 거래일 252일
 x = torch.randn(16, 6, 252)
 features = extractor(x)
 print(f"Multi-scale features: {features.shape}")  # [16, 96, 252]
@@ -487,40 +476,40 @@ print(f"Multi-scale features: {features.shape}")  # [16, 96, 252]
 
 ---
 
-## Conv1d vs. Conv2d: When to Use Which
+## Conv1d와 Conv2d: 언제 무엇을 쓸까
 
-| Criterion | Conv1d | Conv2d |
+| 기준 | Conv1d | Conv2d |
 |-----------|--------|--------|
-| Data structure | Sequences, time series | Images, spatial grids |
-| Input shape | $(N, C, L)$ | $(N, C, H, W)$ |
-| Kernel slides over | 1 dimension (time/position) | 2 dimensions (height × width) |
-| Typical kernel sizes | 3, 5, 7, 21 | 3×3, 5×5, 7×7 |
-| Example applications | Audio, NLP, finance | Images, video frames, vol surfaces |
-| Parameter count | $C_{out} \times C_{in} \times K$ | $C_{out} \times C_{in} \times K^2$ |
+| 데이터의 짜임 | 순차열, 시계열 | 이미지, 공간 격자 |
+| 입력 모양 | $(N, C, L)$ | $(N, C, H, W)$ |
+| 핵이 미끄러지는 방향 | 1차원 (시간/위치) | 2차원 (높이 × 너비) |
+| 흔한 핵 크기 | 3, 5, 7, 21 | 3×3, 5×5, 7×7 |
+| 응용 예 | 음향, 자연어 처리, 금융 | 이미지, 영상 프레임, 변동성 곡면 |
+| 매개변수 수 | $C_{out} \times C_{in} \times K$ | $C_{out} \times C_{in} \times K^2$ |
 
 ---
 
-## Summary
+## 요약
 
-| Aspect | Description |
+| 항목 | 설명 |
 |--------|-------------|
-| **Operation** | Sliding dot product along one spatial dimension |
-| **Input shape** | $(N, C_{in}, L)$: batch, channels, sequence length |
-| **Output size** | $\lfloor (L + 2p - d(k-1) - 1) / s \rfloor + 1$ |
-| **Causal** | Left-only padding ensures no future information leakage |
-| **Dilated** | Exponential receptive field growth with constant parameters |
-| **Matrix form** | Toeplitz matrix; transpose gives transposed convolution |
+| **연산** | 한 공간 차원을 따라 미끄러지는 내적 |
+| **입력 모양** | $(N, C_{in}, L)$: 배치, 채널, 순차열 길이 |
+| **출력 크기** | $\lfloor (L + 2p - d(k-1) - 1) / s \rfloor + 1$ |
+| **인과성** | 왼쪽에만 덧대어 미래 정보가 새지 않게 한다 |
+| **팽창** | 매개변수는 그대로 두고 수용 영역이 지수적으로 넓어진다 |
+| **행렬 형태** | 퇴플리츠 행렬이며, 전치하면 전치 합성곱이 된다 |
 
-## Key Takeaways
+## 핵심 정리
 
-1. **Conv1d** operates on sequences with shape $(N, C, L)$, sliding kernels along the temporal dimension
-2. **Causal convolutions** (left-padding + trim) ensure outputs depend only on past and present inputs
-3. **Dilated causal stacks** achieve exponential receptive field growth—10 layers of kernel-2 dilated convolutions give a receptive field of 1024
-4. **TCNs** combine dilated causal convolutions with residual connections for competitive sequence modeling
-5. **Multi-scale convolutions** with different kernel sizes capture patterns at different temporal horizons
-6. **Backpropagation** through 1D conv produces a full convolution with a flipped kernel (= transposed convolution)
+1. **Conv1d**는 모양이 $(N, C, L)$인 순차열을 다루며 시간 차원을 따라 핵을 미끄러뜨린다
+2. **인과 합성곱**(왼쪽 덧대기 뒤 잘라내기)은 출력이 과거와 현재의 입력에만 기대게 한다
+3. **팽창 인과 합성곱을 쌓으면** 수용 영역이 지수적으로 넓어진다. 핵 크기 2인 팽창 합성곱 10층이면 수용 영역이 1024가 된다
+4. **TCN**은 팽창 인과 합성곱에 잔차 연결을 엮어 경쟁력 있는 순차열 모형을 만든다
+5. 핵 크기가 서로 다른 **여러 규모의 합성곱**은 서로 다른 시간 지평의 무늬를 붙잡는다
+6. 1차원 합성곱의 **역전파**는 뒤집은 핵과의 온전한 합성곱(= 전치 합성곱)이 된다
 
-## References
+## 참고 문헌
 
 1. van den Oord, A., et al. (2016). "WaveNet: A Generative Model for Raw Audio." *arXiv preprint arXiv:1609.03499*.
 
@@ -529,3 +518,41 @@ print(f"Multi-scale features: {features.shape}")  # [16, 96, 252]
 3. Lea, C., et al. (2017). "Temporal Convolutional Networks for Action Segmentation and Detection." *CVPR*.
 
 4. Dumoulin, V., & Visin, F. (2016). "A guide to convolution arithmetic for deep learning." *arXiv preprint arXiv:1603.07285*.
+
+## 연습문제
+
+**연습문제 1.**
+2차원 합성곱보다 1차원 합성곱이 나은 때를 설명하고 응용 예 세 가지를 들어라.
+
+??? success "연습문제 1 풀이"
+    공간 구조가 1차원인 순차 데이터에는 1차원 합성곱이 낫다. (1) 시계열 예측, (2) 음향·음성 처리, (3) 자연어 텍스트 분류(글자 단위 또는 낱말 단위)가 그 예이다. 핵을 한 방향으로만 미끄러뜨리므로 2차원보다 계산이 싸다.
+
+---
+
+**연습문제 2.**
+입력 길이가 100, 핵 크기가 5, 보폭이 2, 덧대기가 1인 1차원 합성곱의 출력 길이를 계산하라.
+
+??? success "연습문제 2 풀이"
+    출력 길이 $= \lfloor(L_{\text{in}} + 2P - K) / S\rfloor + 1 = \lfloor(100 + 2 - 5)/2\rfloor + 1 = \lfloor 97/2 \rfloor + 1 = 48 + 1 = 49$.
+
+---
+
+**연습문제 3.**
+시계열 분류를 위한 1차원 CNN을 PyTorch로 구현하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    model = nn.Sequential(
+        nn.Conv1d(1, 32, kernel_size=5, padding=2), nn.ReLU(),
+        nn.Conv1d(32, 64, kernel_size=5, padding=2), nn.ReLU(),
+        nn.AdaptiveAvgPool1d(1), nn.Flatten(), nn.Linear(64, num_classes)
+    )
+    ```
+
+---
+
+**연습문제 4.**
+핵 크기가 $k$인 `nn.Conv1d`을 같은 입력에 적용한 완전 연결층과 견주어라. 매개변수는 얼마나 줄어드는가?
+
+??? success "연습문제 4 풀이"
+    길이가 $L$이고 채널이 $C_{\text{in}}$개인 입력에 대한 완전 연결층은 매개변수가 $L \cdot C_{\text{in}} \cdot C_{\text{out}}$개이다. Conv1d은 $k \cdot C_{\text{in}} \cdot C_{\text{out}}$개이다. 줄어드는 비는 $L/k$이다. $L=1000, k=5$이면 가중치 공유 덕분에 매개변수가 200분의 1이 된다.

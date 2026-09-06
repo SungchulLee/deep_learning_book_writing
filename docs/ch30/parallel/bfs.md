@@ -1,71 +1,71 @@
-# Parallel BFS
+# 나란한 너비 우선 찾기
 
-Breadth-first search (BFS) explores a graph level by level, visiting all vertices at distance $d$ before those at distance $d + 1$. In sequential execution, BFS runs in $O(V + E)$ time, but for large graphs (social networks, web graphs) this becomes a bottleneck. **Parallel BFS** exploits the fact that all vertices in the same frontier can be processed simultaneously, reducing the running time to $O(D)$ levels where $D$ is the graph diameter.
+너비 우선 찾기는 그래프를 켜마다 훑으며 거리 $d + 1$의 꼭짓점보다 거리 $d$의 꼭짓점을 먼저 들른다. 차례로 돌리면 $O(V + E)$ 때가 들지만 큰 그래프(사회 그물, 웹 그래프)에서는 이것이 병목이 된다. **나란한 너비 우선 찾기**는 같은 앞자락의 꼭짓점을 한꺼번에 다룰 수 있다는 점을 살려 돌림 때를 $D$이 그래프 지름일 때 $O(D)$켜로 줄인다.
 
-## Level-Synchronous Parallel BFS
+## 켜마다 맞추는 나란한 너비 우선 찾기
 
-The key insight behind parallel BFS is that the algorithm naturally decomposes into independent levels. At each level, every vertex in the current frontier can explore its neighbors independently. This leads to the **level-synchronous** approach:
+나란한 너비 우선 찾기의 핵심 통찰은 알고리즘이 자연스럽게 서로 독립인 켜로 쪼개진다는 것이다. 켜마다 지금 앞자락의 꼭짓점이 저마다 따로 이웃을 훑을 수 있다. 여기서 **켜마다 맞추는** 길이 나온다:
 
-1. Start with the source vertex as the initial frontier $F_0 = \{s\}$.
-2. At level $d$, process all vertices in frontier $F_d$ in parallel.
-3. Each processor examines the neighbors of its assigned vertices.
-4. Unvisited neighbors form the next frontier $F_{d+1}$.
-5. A barrier synchronization separates consecutive levels.
+1. 샘 꼭짓점을 첫 앞자락 $F_0 = \{s\}$으로 삼아 시작한다.
+2. 켜 $d$에서 앞자락 $F_d$의 모든 꼭짓점을 나란히 다룬다.
+3. 셈틀마다 맡은 꼭짓점의 이웃을 살핀다.
+4. 들르지 않은 이웃이 다음 앞자락 $F_{d+1}$을 이룬다.
+5. 울타리 맞추기가 잇단 켜를 갈라놓는다.
 
-### Work-Span Analysis
+### 일-뻗음 살피기
 
-Let $D$ denote the diameter (the maximum shortest-path distance from the source). The parallel BFS has:
+$D$을 지름(샘에서의 최단 길 거리의 최대)이라 하자. 나란한 너비 우선 찾기는 다음과 같다:
 
-- **Work**: $T_1 = O(V + E)$, since every vertex and edge is examined exactly once across all levels.
-- **Span**: $T_\infty = O(D \log V)$, since there are $D$ levels, and within each level a parallel prefix sum or duplicate removal may cost $O(\log V)$.
-- **Parallelism**: $P = O((V + E) / (D \log V))$.
+- **일**: 모든 켜를 통틀어 꼭짓점과 변을 꼭 한 번씩 살피므로 $T_1 = O(V + E)$.
+- **뻗음**: 켜가 $D$개이고 켜마다 나란한 앞자락 합이나 겹침 없애기에 $O(\log V)$이 들 수 있으므로 $T_\infty = O(D \log V)$.
+- **나란함**: $P = O((V + E) / (D \log V))$.
 
-For graphs with small diameter (e.g., $D = O(\log V)$), parallel BFS achieves high parallelism.
+지름이 작은 그래프(보기로 $D = O(\log V)$)에서 나란한 너비 우선 찾기는 나란함이 높다.
 
-## Algorithm
+## 알고리즘
 
-The following pseudocode captures the level-synchronous structure:
+다음 헛코드가 켜마다 맞추는 얼개를 담는다:
 
 $$
 \textbf{Parallel-BFS}(G, s):
 $$
 
-1. Initialize $\text{dist}[v] \leftarrow \infty$ for all $v$; set $\text{dist}[s] \leftarrow 0$.
-2. Set frontier $F \leftarrow \{s\}$.
-3. While $F \neq \emptyset$:
-    - **parallel for** each $u \in F$: examine all neighbors $v$ of $u$.
-    - If $\text{dist}[v] = \infty$, set $\text{dist}[v] \leftarrow \text{dist}[u] + 1$ and add $v$ to $F'$.
-    - Barrier synchronization; set $F \leftarrow F'$.
+1. 모든 $v$에 대해 $\text{dist}[v] \leftarrow \infty$으로 두고 $\text{dist}[s] \leftarrow 0$으로 둔다.
+2. 앞자락 $F \leftarrow \{s\}$으로 둔다.
+3. $F \neq \emptyset$인 동안:
+    - 각 $u \in F$에 대해 **나란히**: $u$의 모든 이웃 $v$을 살핀다.
+    - $\text{dist}[v] = \infty$이면 $\text{dist}[v] \leftarrow \text{dist}[u] + 1$으로 두고 $v$을 $F'$에 더한다.
+    - 울타리로 맞춘 뒤 $F \leftarrow F'$으로 둔다.
 
-!!! warning "Race conditions"
-    Multiple processors may try to update $\text{dist}[v]$ simultaneously. In practice, an atomic compare-and-swap (CAS) ensures that only one processor claims each unvisited vertex. This does not affect correctness since all potential parents are at the same distance.
+!!! warning "다툼 상태"
+    여러 셈틀이 $\text{dist}[v]$을 한꺼번에 고치려 할 수 있다. 실제로는 나눌 수 없는 견주고 바꾸기(CAS)로 들르지 않은 꼭짓점마다 셈틀 하나만 차지하게 한다. 어버이가 될 만한 것들이 모두 같은 거리에 있으므로 올바름에는 영향이 없다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Level-synchronous parallel BFS simulation.
+켜마다 맞추는 나란한 너비 우선 찾기 흉내내기.
 
-Simulates the level-synchronous approach by processing each
-frontier as a batch. In a true parallel system, the inner loop
-over frontier vertices runs on separate processors.
+앞자락을 묶음으로 다루어 켜마다 맞추는 길을 흉내 낸다.
+참으로 나란한 시스템에서는 앞자락 꼭짓점에 대한 안쪽 되돌이가
+서로 다른 셈틀에서 돈다.
 """
 
 from collections import defaultdict
 
 # ===================================================================
-# Level-Synchronous BFS
+# 켜마다 맞추는 너비 우선 찾기
 # ===================================================================
 
 def parallel_bfs(adj, source):
-    """Simulate level-synchronous parallel BFS.
+    """켜마다 맞추는 나란한 너비 우선 찾기를 흉내 낸다.
 
-    Args:
-        adj: adjacency list as dict of lists
-        source: starting vertex
+    인수:
+        adj: 목록의 사전으로 된 이웃 목록
+        source: 시작 꼭짓점
 
-    Returns:
-        dist: dict mapping each reachable vertex to its distance
+    반환값:
+        dist: 닿을 수 있는 꼭짓점마다 거리를 옮기는 사전
         levels: list of frontiers (one per BFS level)
     """
     dist = {source: 0}
@@ -74,7 +74,7 @@ def parallel_bfs(adj, source):
 
     while frontier:
         next_frontier = []
-        # In a parallel system, this loop runs concurrently
+        # 나란한 시스템에서는 이 되돌이가 한꺼번에 돈다
         for u in frontier:
             for v in adj[u]:
                 if v not in dist:
@@ -87,7 +87,7 @@ def parallel_bfs(adj, source):
     return dist, levels
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
@@ -109,7 +109,7 @@ if __name__ == "__main__":
     print(f"Levels processed: {len(levels)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Level-synchronous BFS from vertex 0:
   Level 0: [0]
@@ -118,28 +118,61 @@ Level-synchronous BFS from vertex 0:
   Level 3: [6, 7]
 
 Distances: {0: 0, 1: 1, 2: 1, 3: 2, 4: 2, 5: 2, 6: 3, 7: 3}
-Diameter (from source): 3
-Levels processed: 4
+지름(샘에서): 3
+다룬 켜: 4
 ```
 
-## Complexity Summary
+## 복잡도 요약
 
-| Metric | Value |
+| 잣대 | 값 |
 |---|---|
-| Work $T_1$ | $O(V + E)$ |
-| Span $T_\infty$ | $O(D \log V)$ |
-| Parallelism | $O\!\left(\frac{V + E}{D \log V}\right)$ |
-| Space | $O(V)$ |
+| 일 $T_1$ | $O(V + E)$ |
+| 뻗음 $T_\infty$ | $O(D \log V)$ |
+| 나란함 | $O\!\left(\frac{V + E}{D \log V}\right)$ |
+| 공간 | $O(V)$ |
 
-Here $D$ is the diameter of the graph (or the maximum BFS depth from the source).
+여기서 $D$은 그래프의 지름(또는 샘에서의 최대 너비 우선 깊이)이다.
 
-## Practical Considerations
+## 실용적인 고려
 
-- **Frontier size variation**: Early and late levels have small frontiers (low parallelism), while middle levels often have large frontiers (high parallelism). This uneven workload motivates hybrid approaches.
-- **Direction-optimizing BFS**: For high-diameter graphs, switching between a top-down scan (expanding from frontier) and a bottom-up scan (checking unvisited vertices against the frontier) can reduce edge traversals by an order of magnitude.
-- **Memory bandwidth**: On shared-memory systems, parallel BFS is often memory-bandwidth-bound rather than compute-bound, since each vertex access may cause a cache miss.
+- **앞자락 크기의 들쭉날쭉함**: 이른 켜와 늦은 켜는 앞자락이 작고(나란함이 낮다) 가운데 켜는 흔히 앞자락이 크다(나란함이 높다). 이 고르지 않은 짐이 섞은 길의 까닭이 된다.
+- **방향을 고르는 너비 우선 찾기**: 지름이 큰 그래프에서는 위에서 아래로 훑기(앞자락에서 뻗기)와 아래에서 위로 훑기(들르지 않은 꼭짓점을 앞자락과 맞대 보기)를 오가면 변 밟기를 자릿수만큼 줄일 수 있다.
+- **기억 대역**: 공유 기억 시스템에서 나란한 너비 우선 찾기는 꼭짓점에 닿을 때마다 두름이 어긋날 수 있어 셈보다 기억 대역에 매일 때가 많다.
 
-## Reference
+## 참고 문헌
 
 - Leiserson, C. E. and Schardl, T. B. (2010). "A work-efficient parallel breadth-first search algorithm." *SPAA*.
 - Beamer, S. et al. (2012). "Direction-optimizing breadth-first search." *SC*.
+
+
+## 연습문제
+
+**연습문제 1.**
+켜마다 맞추어 훑는 나란한 너비 우선 찾기 알고리즘을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    나란한 너비 우선 찾기는 켜를 하나씩 다룬다. 켜마다 앞자락 꼭짓점을 모두 나란히 다룬다. 앞자락 꼭짓점마다 모든 이웃을 살핀다. 들르지 않은 이웃이 다음 앞자락을 이룬다. 셈틀 $p$개를 쓰면 켜마다 $\Delta$이 최대 차수일 때 $O(|\text{앞자락 변}|/p + \Delta)$ 때가 든다. 켜 $D$개(지름)를 통틀어 온 일은 $O(|V| + |E|)$, 뻗음은 $O(D \cdot \Delta)$이다. CRCW-PRAM에서는 함께 적기에 켜마다 $O(\log n)$ 때가 들어 모두 $O(D \log n)$이다.
+
+---
+
+**연습문제 2.**
+성긴 그래프와 빽빽한 그래프에서 나란한 너비 우선 찾기의 일-뻗음 맞바꿈은 어떠한가?
+
+??? success "연습문제 2 풀이"
+    성긴 그래프($|E| = O(n)$): 너비 우선 찾기의 일은 $O(n)$으로 차례와 같다. 아무 그래프에서 지름 $D$은 흔히 $O(\log n)$이다. 나란함: $O(n/\log n)$. 빽빽한 그래프($|E| = O(n^2)$): 일은 $O(n^2)$이고 지름은 작다(완전 그래프에서 $O(1)$). 나란함: $O(n^2)$. 나란한 너비 우선 찾기의 어려움은 고르지 않은 기억 닿기 무늬다. 이웃 목록의 크기가 제각각이라 짐이 고르지 않다. GPU 짜기는 변 중심 다루기와 일 효율 좋은 앞자락 다루기 같은 재주를 쓴다.
+
+---
+
+**연습문제 3.**
+방향을 고르는 너비 우선 찾기(밀기-당기기)는 성능을 어떻게 좋게 하는가?
+
+??? success "연습문제 3 풀이"
+    밀기(위에서 아래로)에서는 앞자락 꼭짓점이 이웃으로 '민다'. 당기기(아래에서 위로)에서는 들르지 않은 꼭짓점이 이웃에서 '당기며' 이웃 가운데 앞자락에 있는 것이 있는지 살핀다. 앞자락이 작으면(밟을 변이 적으면) 밀기가 효율 좋다. 앞자락이 크면 당기기가 효율 좋다(들르지 않은 꼭짓점마다 앞자락 이웃 하나를 찾으면 멈춘다). 방향을 고르는 너비 우선 찾기는 앞자락 크기에 따라 밀기와 당기기를 오간다. 잣수 없는 그래프에서 밟는 온 변을 최대 10배까지 줄인다.
+
+---
+
+**연습문제 4.**
+나란한 너비 우선 찾기는 그래프 신경망 익히기의 이웃 뽑기에 어떻게 쓰이는가?
+
+??? success "연습문제 4 풀이"
+    그래프 신경망 익히기는 익히기 마디마다 $k$번 건넌 이웃 자리를 뽑아야 한다. 이는 사실상 너비 우선 찾기 $k$걸음이다. 큰 그래프(변이 수십억 개)에서 차례 너비 우선 찾기는 너무 느리다. GPU의 나란한 너비 우선 찾기는 작은 묶음 전체의 이웃 자리를 한꺼번에 뽑는다. 익히기 마디마다 나란한 너비 우선 찾기를 시작하고 $k$번 건넌 부분 그래프를 묶어 그래프 신경망 셈에 넣는다. DGL과 PyG 같은 시스템이 이웃 뽑기와 함께 나란한 너비 우선 찾기를 써서 큰 그래프에서 효율 좋은 작은 묶음 익히기를 이룬다.

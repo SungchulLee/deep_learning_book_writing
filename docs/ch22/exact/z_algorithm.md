@@ -1,33 +1,26 @@
-# Z-Algorithm
+# Z 알고리즘
+Z 알고리즘은 길이 $n$인 글줄 $S$에 대해 **Z 배열** $Z[0..n-1]$을 셈한다. 여기서 $Z[i]$은 자리 $i$에서 시작해 $S$의 앞가지와 맞는 가장 긴 부분 글줄의 길이이다. 관례상 $Z[0]$은 0(또는 $n$)으로 둔다. 이 배열로 $O(n+m)$ 시간에 딱 맞는 본 찾기를 할 수 있다.
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-The Z-algorithm computes, for a string $S$ of length $n$, the **Z-array** $Z[0..n-1]$ where $Z[i]$ is the length of the longest substring starting at position $i$ that matches a prefix of $S$. By convention, $Z[0]$ is defined as 0 (or $n$). This array can be used for exact pattern matching in $O(n+m)$ time.
-
-## Definition
+## 정의
 
 $$
-
 Z[i] = \max\{k \ge 0 : S[0..k-1] = S[i..i+k-1]\}
-
 $$
 
-For the string $S = \texttt{aabxaab}$, the Z-array is:
+글줄 $S = \texttt{aabxaab}$의 Z 배열은 다음과 같다:
 
 | $i$    | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
 |--------|---|---|---|---|---|---|---|
 | $S[i]$ | a | a | b | x | a | a | b |
 | $Z[i]$ | 0 | 1 | 0 | 0 | 3 | 1 | 0 |
 
-## Algorithm
+## 알고리즘
 
-The Z-algorithm uses a window $[L, R]$ representing the interval with the rightmost endpoint $R$ such that $S[L..R]$ matches a prefix of $S$. We process positions left to right, and for each position $i$, we either use previously computed values or extend the window.
+Z 알고리즘은 $S[L..R]$이 $S$의 앞가지와 맞는, 오른쪽 끝점 $R$이 가장 오른쪽인 구간 $[L, R]$을 창으로 쓴다. 자리를 왼쪽에서 오른쪽으로 처리하며 자리 $i$마다 앞서 셈한 값을 쓰거나 창을 넓힌다.
 
 ```python
 def z_function(s: str) -> list[int]:
-    """Compute the Z-array for string s."""
+    """글줄 s의 Z 배열을 셈한다."""
     n = len(s)
     if n == 0:
         return []
@@ -42,18 +35,18 @@ def z_function(s: str) -> list[int]:
             l, r = i, i + z[i]
     return z
 
-# Example
+# 예
 print(z_function("aabxaab"))
-# Output: [0, 1, 0, 0, 3, 1, 0]
+# 내놓기: [0, 1, 0, 0, 3, 1, 0]
 ```
 
-## Application to Pattern Matching
+## 본 찾기에 쓰기
 
-To find all occurrences of pattern $P$ in text $T$, construct the string $S = P\$T$ where $\$$ is a character not in $P$ or $T$. Compute the Z-array of $S$. Position $i$ in $S$ corresponds to a match if $Z[i] = m$ (the length of $P$).
+글월 $T$에서 본 $P$이 나오는 곳을 모두 찾으려면 $P$이나 $T$에 없는 글자 $\$$을 써서 글줄 $S = P\$T$을 세운다. $S$의 Z 배열을 셈한다. $S$의 자리 $i$에서 $Z[i] = m$($P$의 길이)이면 맞음이다.
 
 ```python
 def z_search(text: str, pattern: str) -> list[int]:
-    """Find all occurrences of pattern in text using the Z-algorithm."""
+    """Z 알고리즘으로 글월에서 본이 나오는 곳을 모두 찾는다."""
     m = len(pattern)
     if m == 0:
         return []
@@ -65,25 +58,70 @@ def z_search(text: str, pattern: str) -> list[int]:
             occurrences.append(i - m - 1)
     return occurrences
 
-# Example
+# 예
 text = "AABCAABXAAAZ"
 pattern = "AAB"
 print(z_search(text, pattern))
-# Output: [0, 4]
+# 내놓기: [0, 4]
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
-- **Time:** $O(n)$. Each character is visited at most twice (once when it is inside the Z-box and once when extending the Z-box). The amortized cost per position is $O(1)$.
-- **Space:** $O(n)$ for the Z-array.
-- **For pattern matching:** $O(n + m)$ time and space, where the concatenated string has length $n + m + 1$.
+- **시간:** $O(n)$. 글자마다 많아야 두 번 들른다(Z 상자 안에 있을 때 한 번, Z 상자를 넓힐 때 한 번). 자리마다 고르게 나눈 값은 $O(1)$이다.
+- **공간:** Z 배열에 $O(n)$.
+- **본 찾기에서:** 이어 붙인 글줄의 길이가 $n + m + 1$이므로 시간과 공간이 $O(n + m)$이다.
 
-## Relationship to KMP
+## KMP와의 관계
 
-The Z-algorithm and the KMP failure function are closely related. In fact, one can compute the failure function from the Z-array and vice versa in $O(n)$ time. However, the Z-algorithm is often considered simpler to implement and understand.
+Z 알고리즘과 KMP 어긋남 함수는 가깝다. 실제로 Z 배열에서 어긋남 함수를, 또 그 반대를 $O(n)$ 시간에 셈할 수 있다. 다만 Z 알고리즘이 짜고 이해하기 더 쉽다고들 한다.
 
-# Reference
+# 참고 문헌
 
 [Z-algorithm - CP-Algorithms](https://cp-algorithms.com/string/z-function.html)
 
 [Z Algorithm (Linear time pattern searching) - GeeksforGeeks](https://www.geeksforgeeks.org/z-algorithm-linear-time-pattern-searching-algorithm/)
+
+## 연습문제
+
+**연습문제 1.**
+막무가내 글자열 짝짓기 알고리즘, KMP, 보이어-무어의 가장 나쁜 경우 시간 복잡도를 견주어라.
+
+??? success "연습문제 1 풀이"
+    | 알고리즘 | 가장 나쁜 경우 | 가장 좋은 경우 | 공간 |
+    |-----------|-----------|-----------|-------|
+    | 막무가내 | $O(nm)$ | $O(n)$ | $O(1)$ |
+    | KMP | $O(n + m)$ | $O(n)$ | 어그러짐 함수에 $O(m)$ |
+    | 보이어-무어 | $O(nm)$(병적인 경우) | $O(n/m)$(선형 아래!) | $O(m + |\Sigma|)$ |
+
+    KMP는 한 줄 시간을 보장한다. 보이어-무어는 (글자를 건너뛰므로) 실전에서 대개 더 빠르지만 갈릴 다듬기를 쓰지 않으면 가장 나쁜 경우 $O(nm)$이다.
+
+---
+
+**연습문제 2.**
+글 $T$ = "ABABCABABD"과 무늬 $P$ = "ABABD"에 대해 알고리즘이 도는 과정을 견줌마다 보이며 좇아라.
+
+??? success "연습문제 2 풀이"
+    자리 0에서 시작: P[0]='A'와 T[0]='A' 견줌(맞음), P[1]='B'와 T[1]='B'(맞음), P[2]='A'와 T[2]='A'(맞음), P[3]='B'와 T[3]='B'(맞음), P[4]='D'와 T[4]='C'(어긋남). 어그러짐 함수 또는 밀기 규칙으로 무늬를 민다. 자리 2에서 시작(KMP는 어그러짐 함수로 다시 견주지 않는다). 끝내 자리 5에서 맞는 곳을 찾는다. 이 알고리즘은 모두 많아야 $2n$번 견준다.
+
+---
+
+**연습문제 3.**
+KMP의 어그러짐 함수란 무엇인가? 무늬 "ABABCAB"에 대해 셈하여라.
+
+??? success "연습문제 3 풀이"
+    어긋남 함수 $\pi[i]$은 $P[0..i]$의 앞가지이면서 뒷가지이기도 한 가장 긴 진앞가지의 길이를 준다. "ABABCAB"에 대해:
+
+    | $i$ | 0 | 1 | 2 | 3 | 4 | 5 | 6 |
+    |-----|---|---|---|---|---|---|---|
+    | $P[i]$ | A | B | A | B | C | A | B |
+    | $\pi[i]$ | 0 | 0 | 1 | 2 | 0 | 1 | 2 |
+
+    예컨대 "AB"이 "ABAB"의 앞가지이자 뒷가지이므로 $\pi[3] = 2$이다.
+
+---
+
+**연습문제 4.**
+라빈-카프에 쓰이는 굴리는 해시 재주를 설명하여라. 헛맞음이 일어날 확률은 얼마인가?
+
+??? success "연습문제 4 풀이"
+    라빈-카프는 본의 흩는 값을 셈하고 글월 위로 흩는 창을 미끄러뜨린다. **구르는 흩는 값**은 $O(1)$에 새로 고친다. 곧 $d$이 밑이고 $q$이 소수일 때 $h(T[i+1..i+m]) = (h(T[i..i+m-1]) - T[i] \cdot d^{m-1}) \cdot d + T[i+m] \pmod{q}$이다. 흩는 값은 맞는데 글줄이 다르면 헛맞음이 난다. 아무 소수 $q$에 대해 헛맞음 한 번의 확률은 $O(1/q)$이고 자리 $n-m+1$개에 대한 헛맞음의 기댓값은 $O(n/q)$이다. $q \approx n^2$을 고르면 헛맞음이 기대상 $O(1)$이다.

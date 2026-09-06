@@ -1,35 +1,31 @@
-# 33.3.1 N-Step Returns
+# 33.3.1 n걸음 돌아옴
+## 1걸음에서 n걸음으로
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## From 1-Step to N-Step
-
-Standard DQN uses 1-step TD targets:
+여느 DQN은 1걸음 때 차이 과녁을 쓴다:
 
 $$y^{(1)} = r_t + \gamma \max_{a'} Q(s_{t+1}, a')$$
 
-**N-step returns** extend this by using $n$ actual rewards before bootstrapping:
+**n걸음 돌아옴**은 띄워 올리기 전에 실제 보상 $n$개를 써서 이를 넓힌다:
 
 $$y^{(n)} = \sum_{k=0}^{n-1} \gamma^k r_{t+k} + \gamma^n \max_{a'} Q(s_{t+n}, a')$$
 
-## The Bias-Variance Trade-off
+## 치우침과 흩어짐의 맞바꿈
 
-| Method | Bias | Variance | Description |
+| 방법 | 치우침 | 흩어짐 | 밝힘 |
 |--------|------|----------|-------------|
-| 1-step TD | High | Low | Bootstraps immediately; biased by Q-estimate errors |
-| N-step TD | Medium | Medium | Uses more real rewards; less bootstrap bias |
-| Monte Carlo | None | High | Full return; no bootstrapping; high variance |
+| 1걸음 때 차이 | 큼 | 작음 | 곧바로 띄워 올린다. Q 어림 어긋남에 치우친다 |
+| n걸음 때 차이 | 보통 | 보통 | 실제 보상을 더 쓴다. 띄워 올리기 치우침이 적다 |
+| 몬테카를로 | 없음 | 큼 | 온 돌아옴. 띄워 올리기 없음. 흩어짐이 크다 |
 
-N-step returns interpolate between TD (n=1) and Monte Carlo (n=∞):
-- **Small n**: Low variance, high bias (relies on Q-estimates)
-- **Large n**: High variance, low bias (uses more real rewards)
-- **Optimal n**: Typically 3–5 for most environments
+n걸음 돌아옴은 때 차이(n=1)와 몬테카를로(n=∞) 사이를 잇는다:
 
-## Implementation
+- **작은 n**: 흩어짐이 작고 치우침이 크다(Q 어림에 기댄다)
+- **큰 n**: 흩어짐이 크고 치우침이 작다(실제 보상을 더 쓴다)
+- **가장 좋은 n**: 대부분의 둘레에서 보통 3~5
 
-N-step returns require buffering $n$ consecutive transitions before computing the target:
+## 구현
+
+n걸음 돌아옴은 과녁을 셈하기 전에 잇단 옮김 $n$개를 버퍼에 담아야 한다:
 
 ```
 n-step buffer: [(s_t, a_t, r_t), (s_{t+1}, a_{t+1}, r_{t+1}), ..., (s_{t+n-1}, ...)]
@@ -38,38 +34,73 @@ R^(n) = r_t + γ r_{t+1} + γ² r_{t+2} + ... + γ^{n-1} r_{t+n-1}
 Target: y = R^(n) + γ^n max_a' Q(s_{t+n}, a')
 ```
 
-### Handling Episode Boundaries
+### 판 경계 다루기
 
-When an episode terminates before $n$ steps:
-- Use the available rewards and set the bootstrap term to zero
-- Flush the n-step buffer at episode end
+판이 $n$걸음 전에 끝나면:
 
-### Storage
+- 있는 보상만 쓰고 띄워 올리기 항을 0으로 둔다
+- 판이 끝날 때 n걸음 버퍼를 비운다
 
-Store $(s_t, a_t, R^{(n)}_t, s_{t+n}, \text{done})$ in the replay buffer, where $R^{(n)}_t$ is the pre-computed n-step return.
+### 담기
 
-## Hyperparameter: Choosing n
+되돌려 보기 버퍼에 $(s_t, a_t, R^{(n)}_t, s_{t+n}, \text{done})$을 담는다. 여기서 $R^{(n)}_t$은 미리 셈한 n걸음 돌아옴이다.
 
-| Environment | Recommended $n$ |
+## 웃잡: n 고르기
+
+| 둘레 | 권하는 $n$ |
 |-------------|----------------|
-| Atari | 3 (Rainbow default) |
-| CartPole / simple | 3–5 |
-| Continuous control | 1–3 |
-| Financial trading | 5–10 (longer credit assignment) |
+| 아타리 | 3(무지개 기본값) |
+| CartPole 등 단순한 것 | 3~5 |
+| 이어진 다스리기 | 1~3 |
+| 금융 거래 | 5~10(공 돌리기가 더 길다) |
 
-Larger $n$ works better when:
-- Rewards are sparse (need to propagate signal further)
-- Q-function estimates are inaccurate (less reliance on bootstrapping)
-- Episodes are long (more intermediate rewards to use)
+다음일 때 큰 $n$이 낫다:
 
-## Off-Policy Correction
+- 보상이 성기다(신호를 더 멀리 퍼뜨려야 한다)
+- Q 함수 어림이 안 맞는다(띄워 올리기에 덜 기댄다)
+- 판이 길다(쓸 중간 보상이 많다)
 
-N-step returns create an off-policy issue: the $n$ transitions in the buffer were collected by an older policy, but we're using them to update the current policy. For small $n$ (3–5), this mismatch is often acceptable. For larger $n$, importance sampling correction is needed (see Retrace and V-trace).
+## 벗어난 방침 바로잡기
 
-## Combining with Other Improvements
+n걸음 돌아옴은 벗어난 방침 말썽을 낳는다. 버퍼의 옮김 $n$개는 더 옛 방침이 모은 것인데 지금 방침을 고치는 데 쓴다. 작은 $n$(3~5)에서는 이 어긋남을 흔히 받아들일 만하다. $n$이 크면 중요도 뽑기 바로잡기가 필요하다(Retrace과 V-trace 참고).
 
-N-step returns are fully compatible with:
-- **Double DQN**: Use Double DQN for the bootstrap term at step $t+n$
-- **Distributional RL**: Apply n-step to the distributional Bellman operator
-- **Prioritized Replay**: Priorities based on n-step TD errors
-- **Rainbow**: N-step is one of the six Rainbow components
+## 다른 좋게 하기와 아우르기
+
+n걸음 돌아옴은 다음과 온전히 어울린다:
+
+- **두 겹 DQN**: 걸음 $t+n$의 띄워 올리기 항에 두 겹 DQN을 쓴다
+- **분포 힘 북돋우는 배움**: 분포 벨먼 연산자에 n걸음을 쓴다
+- **앞섬 되돌려 보기**: n걸음 때 차이 어긋남에 바탕한 앞섬
+- **무지개**: n걸음은 무지개의 여섯 조각 가운데 하나다
+
+## 연습문제
+
+**연습문제 1.**
+Q 값 어림에 신경망을 쓰는 어려움을 이 방법이 어떻게 다루는지 밝혀라. 이 길이 없으면 어떤 불안정이 생기는가?
+
+??? success "연습문제 1 풀이"
+    신경망 Q 값 어림은 차례 자료의 얽힘과 움직이는 과녁 문제(과녁이 지금 잡에 매인다) 때문에 불안정하다. 이 방법은 특정 얼개나 알고리즘 고름으로 이 말썽을 다룬다. 이것이 없으면 기울기 고침이 한결같지 않은 과녁을 좇아 익히기가 발산하고 재앙 같은 지나친 어림이나 흔들림이 생긴다. 이 길은 얽힘을 끊거나 얼마 동안 과녁을 붙박아 익히기를 안정시킨다. $\square$
+
+---
+
+**연습문제 2.**
+CartPole-v1 둘레에서 이 방법을 짜라. 둘레를 푸는 데(100판 평균 보상 > 475) 필요한 판수를 알리고 배움 굽은 줄을 그려라.
+
+??? success "연습문제 2 풀이"
+    숨은 낱덩이 64개의 2층 여러 층 신경망, 배움 빠르기 $3 \times 10^{-4}$의 Adam, 이 마디의 재주를 쓰면 부림꾼이 보통 200~500판에 CartPole을 푼다. 배움 굽은 줄은 처음의 아무 성능(보상 $\approx 20$), 빠르게 좋아지는 마당, 거의 가장 좋은 성능으로의 모임을 보인다. 핵심 짜기 세부: 되돌려 보기 버퍼 크기 10000, 묶음 크기 64, 100걸음마다 과녁 그물 고침, 300판에 걸쳐 1.0에서 0.01로 선형으로 스러지는 $\epsilon$ 욕심쟁이. $\square$
+
+---
+
+**연습문제 3.**
+맨 DQN에 견주어 이 방법이 더하는 셈과 기억 덧짐을 살펴라. 금융 쓰임새에서 그 맞바꿈이 값을 하는가?
+
+??? success "연습문제 3 풀이"
+    덧짐은 방법마다 다르지만 보통 앞으로 가기를 더 하거나(두 겹 DQN은 2배), 그물 잡을 더 두거나(맞겨루기 갈래), 기억을 더 쓴다(앞섬 되돌려 보기). 자료가 비싸고 실수가 값비싼 금융 쓰임새에서는 표본 효율과 안정이 좋아지므로 덧짐이 값을 한다. 금융 상태 자리는 흔히 차원이 웬만하므로(특징 10~100개) 걸음마다 늘어나는 비용이 더 나은 결정의 값어치에 견주면 크지 않다. $\square$
+
+---
+
+**연습문제 4.**
+보상 신호가 성기고(거래를 마칠 때만 실현되고) 늦는 금융 거래 쓰임새에 이 방법을 어떻게 맞출지 다루어라.
+
+??? success "연습문제 4 풀이"
+    성긴 보상은 공 돌리기를 어렵게 한다. 부림꾼은 여러 걸음 전의 움직임을 끝내 생긴 이익이나 손실에 이어야 한다. 맞추는 길: (1) 가장 좋은 방침을 지키면서 더 빽빽한 되먹임을 주는 중간 신호(실현되지 않은 손익, 위험 잣대)로 보상 다듬기, (2) 성긴 보상을 더 효율 좋게 뒤로 퍼뜨리는 여러 걸음 돌아옴, (3) 지난 겪음에 이룬 결과로 새 이름표를 붙이는 뒤늦은 겪음 되돌려 보기. 이 마디의 방법은 드문 보상 신호에서 배우는 안정을 높여 이바지한다. $\square$

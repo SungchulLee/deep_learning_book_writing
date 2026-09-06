@@ -1,21 +1,15 @@
-# Traveling Salesman Problem
+# 떠돌이 장수 문제
 
-Given a list of cities and the cost of traveling between each pair, can a
-salesman visit every city exactly once and return home for at most a given
-budget?  The Traveling Salesman Problem (TSP) is one of the most studied
-NP-complete problems, with applications spanning logistics, circuit design,
-and genome sequencing.
+도시 목록과 도시 짝마다의 이동 비용이 주어질 때, 장수가 모든 도시를 꼭 한 번씩 들르고 주어진 예산 안에서 집으로 돌아올 수 있는가? 떠돌이 장수 문제(TSP)는 가장 많이 연구된 NP 완전 문제 가운데 하나이며 물류, 회로 설계, 유전체 차례 읽기에 걸쳐 쓰인다.
 
-## Problem Definition
+## 문제의 정의
 
-**Input.**  A complete graph $G = (V, E)$ on $n$ vertices with a weight
-function $w : E \to \mathbb{Z}_{\ge 0}$, and a budget $B \in \mathbb{Z}_{\ge 0}$.
+**들임.** 꼭짓점 $n$개 위의 완전 그래프 $G = (V, E)$과 무게 함수 $w : E \to \mathbb{Z}_{\ge 0}$, 그리고 예산 $B \in \mathbb{Z}_{\ge 0}$.
 
-**Question.**  Does there exist a Hamiltonian cycle (a cycle visiting every
-vertex exactly once) of total weight at most $B$?
+**물음.** 온 무게가 많아야 $B$인 해밀턴 돌이(모든 꼭짓점을 꼭 한 번씩 들르는 돌이)가 있는가?
 
-!!! example "Small Instance"
-    Four cities with distances:
+!!! example "작은 사례"
+    거리가 주어진 도시 4개:
 
     | | A | B | C | D |
     |---|---|---|---|---|
@@ -24,29 +18,26 @@ vertex exactly once) of total weight at most $B$?
     | C | 15 | 35 | 0 | 30 |
     | D | 20 | 25 | 30 | 0 |
 
-    The tour $A \to B \to D \to C \to A$ costs $10 + 25 + 30 + 15 = 80$.
-    With $B = 80$, the answer is **YES**.
+    돌이 $A \to B \to D \to C \to A$의 비용은 $10 + 25 + 30 + 15 = 80$이다. $B = 80$이면 답은 **예**이다.
 
-## TSP Is in NP
+## 떠돌이 장수 문제는 NP에 든다
 
-A certificate is a permutation $\pi$ of the vertices.  The verifier computes
+증서는 꼭짓점의 자리바꿈 $\pi$이다. 살피개는 다음을 셈하고
 
 $$
 \sum_{i=1}^{n-1} w(\pi(i), \pi(i+1)) + w(\pi(n), \pi(1))
 $$
 
-and checks whether the total is at most $B$.  This takes $O(n)$ time, so
+그리고 온 합이 많아야 $B$인지 살핀다. 이는 $O(n)$ 시간이 들므로
 TSP $\in$ NP.
 
-## NP-Hardness via Reduction from Hamiltonian Cycle
+## 해밀턴 돌이에서 줄여 얻는 NP 어려움
 
-The **Hamiltonian Cycle** problem (given a graph, does it contain a cycle
-visiting every vertex exactly once?) is NP-complete.  We reduce it to TSP.
+**해밀턴 돌이** 문제(그래프가 주어질 때 모든 꼭짓점을 꼭 한 번씩 들르는 돌이가 있는가?)는 NP 완전이다. 이를 떠돌이 장수 문제로 줄인다.
 
-### Construction
+### 만들기
 
-Given a graph $G = (V, E)$ with $n$ vertices, build a complete weighted graph
-$G'$ on the same vertex set:
+꼭짓점 $n$개인 그래프 $G = (V, E)$이 주어지면 같은 꼭짓점 모임 위에 완전 무게 그래프 $G'$을 세운다:
 
 $$
 w(u, v) =
@@ -56,59 +47,51 @@ w(u, v) =
 \end{cases}
 $$
 
-Set the budget $B = n$.
+예산을 $B = n$으로 둔다.
 
-### Correctness
+### 올바름
 
-- **If $G$ has a Hamiltonian cycle,** that cycle uses only edges of weight $1$
-  in $G'$, giving total cost $n \le B$.  Answer: YES.
-- **If TSP answers YES on $(G', B)$,** the tour has cost at most $n$.  Since
-  each of the $n$ edges costs at least $1$, every edge must cost exactly $1$,
-  meaning every edge belongs to $E$.  Thus $G$ has a Hamiltonian cycle.
+- **$G$에 해밀턴 돌이가 있으면** 그 돌이는 $G'$에서 무게 $1$인 변만 쓰므로 온 비용이 $n \le B$이다. 답: 예.
+- **$(G', B)$에서 떠돌이 장수 문제의 답이 예이면** 돌이의 비용이 많아야 $n$이다. 변 $n$개가 저마다 적어도 $1$이므로 모든 변이 꼭 $1$이어야 하고 곧 모든 변이 $E$에 든다. 따라서 $G$에 해밀턴 돌이가 있다.
 
-The reduction runs in $O(n^2)$ time.
+이 줄임은 $O(n^2)$ 시간에 돈다.
 
-!!! note "Decision vs. Optimization"
-    The decision version ("is there a tour of cost $\le B$?") is NP-complete.
-    The optimization version ("find the minimum-cost tour") is NP-hard.  A
-    polynomial-time algorithm for the decision version would solve the
-    optimization version via binary search on $B$.
+!!! note "가름과 가장 좋게 하기"
+    가름 판("비용이 $\le B$인 돌이가 있는가?")은 NP 완전이다. 가장 좋게 하기 판("비용이 가장 작은 돌이를 찾아라")은 NP 어려움이다. 가름 판의 다항 시간 알고리즘이 있으면 $B$에 이진 찾기를 하여 가장 좋게 하기 판을 풀 수 있다.
 
-## Exact Algorithms
+## 정확한 알고리즘
 
-### Brute Force
+### 무식한 방법
 
-Enumerate all $(n - 1)!$ permutations.  Running time: $O(n!)$.
+자리바꿈 $(n - 1)!$가지를 모두 늘어놓는다. 도는 시간: $O(n!)$.
 
-### Held--Karp Algorithm (Dynamic Programming)
+### 헬드-카프 알고리즘(짜 넣기)
 
-Define $\text{dp}[S][j]$ as the minimum cost of a path starting at vertex $0$,
-visiting every vertex in the subset $S \subseteq V$ exactly once, and ending at
-vertex $j \in S$.
+$\text{dp}[S][j]$을 꼭짓점 $0$에서 시작해 부분 모임 $S \subseteq V$의 모든 꼭짓점을 꼭 한 번씩 들르고 꼭짓점 $j \in S$에서 끝나는 길의 최소 비용이라 뜻매김한다.
 
-**Base case:**
+**바탕 경우:**
 
 $$
 \text{dp}[\{0, j\}][j] = w(0, j) \quad \text{for all } j \ne 0
 $$
 
-**Recurrence:**
+**되돌이 식:**
 
 $$
 \text{dp}[S][j] = \min_{k \in S \setminus \{j\}} \bigl(\text{dp}[S \setminus \{j\}][k] + w(k, j)\bigr)
 $$
 
-**Answer:**
+**답:**
 
 $$
 \min_{j \ne 0} \bigl(\text{dp}[V][j] + w(j, 0)\bigr)
 $$
 
-Time complexity: $O(2^n \cdot n^2)$.  Space: $O(2^n \cdot n)$.
+시간 복잡도: $O(2^n \cdot n^2)$. 공간: $O(2^n \cdot n)$.
 
 ```python
 """
-Held-Karp algorithm for TSP using bitmask DP.
+비트 가림막 짜 넣기를 쓴 떠돌이 장수 문제의 헬드-카프 알고리즘.
 
 Time : O(2^n * n^2)
 Space: O(2^n * n)
@@ -117,9 +100,9 @@ Space: O(2^n * n)
 import math
 
 
-# === Held-Karp DP ===
+# === 헬드-카프 짜 넣기 ===
 def tsp_held_karp(dist: list[list[int]]) -> int:
-    """Return the minimum Hamiltonian cycle cost starting from vertex 0."""
+    """꼭짓점 0에서 시작하는 최소 해밀턴 돌이 비용을 돌려준다."""
     n = len(dist)
     full_mask = (1 << n) - 1
     dp = [[math.inf] * n for _ in range(1 << n)]
@@ -142,7 +125,7 @@ def tsp_held_karp(dist: list[list[int]]) -> int:
     return min(dp[full_mask][u] + dist[u][0] for u in range(1, n))
 
 
-# === Example ===
+# === 보기 ===
 if __name__ == "__main__":
     dist = [
         [0, 10, 15, 20],
@@ -153,18 +136,69 @@ if __name__ == "__main__":
     print(f"Minimum tour cost: {tsp_held_karp(dist)}")  # 80
 ```
 
-## Approximation
+## 어림
 
-For the **metric TSP** (where edge weights satisfy the triangle inequality),
-Christofides' algorithm achieves a $\frac{3}{2}$-approximation.  No
-polynomial-time algorithm can achieve a ratio better than $\frac{123}{122}$
-for metric TSP unless P = NP.
+(변 무게가 삼각 부등식을 만족하는) **잣대 떠돌이 장수 문제**에서는 크리스토피데스 알고리즘이 $\frac{3}{2}$ 어림을 이룬다. P = NP이 아닌 한 어떤 다항 시간 알고리즘도 잣대 떠돌이 장수 문제에서 $\frac{123}{122}$보다 나은 비율을 이룰 수 없다.
 
-For general (non-metric) TSP, no constant-factor approximation exists unless
-P = NP.
+일반(잣대가 아닌) 떠돌이 장수 문제에서는 P = NP이 아닌 한 상수 배 어림이 없다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction
-  to Algorithms* (CLRS), Chapter 34.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 34.
 - Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
+
+## 연습문제
+
+**연습문제 1.**
+잣대 떠돌이 장수 문제의 가장 가까운 이웃 어림짐작이 가장 나쁜 경우에 가장 좋은 값의 $\Theta(\log n)$ 배 비용인 돌이를 낼 수 있음을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    가장 가까운 이웃 어림짐작은 아무 도시에서 시작해 늘 아직 들르지 않은 가장 가까운 도시로 옮긴다. (삼각 부등식을 만족하는) 잣대 떠돌이 장수 문제에서 어림 비율은 $\Theta(\log n)$이다.
+
+    가장 나쁜 경우 세우기: 도시 $n$개를 크기가 지수로 줄어드는 "뭉치"로 지수로 늘어나는 거리에 배치한다. 가장 가까운 이웃 어림짐작은 뭉치마다 들어갔다가 다음 뭉치로 가려고 나중에 긴 변 값을 치러야 하지만, 가장 좋은 돌이는 짧은 이음 변으로 뭉치를 차례대로 들른다.
+
+    엄밀히는 크기가 $n/2, n/4, \ldots, 1$인 뭉치 $k = \log n$개를 거리 $1, 2, 4, \ldots, 2^k$에 두면 어림짐작의 비용은 $\Omega(n \log n)$이고 가장 좋은 값은 $O(n)$이어서 비율이 $\Omega(\log n)$이 된다. 로젠크란츠 외(1977)가 잣대 사례에서 이 한계가 가장 가까운 이웃 어림짐작에 빠듯함을 밝혔다.
+
+---
+
+**연습문제 2.**
+잣대 떠돌이 장수 문제의 크리스토피데스 알고리즘을 적고 그것이 3/2 어림을 이룸을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    크리스토피데스 알고리즘(1976):
+
+    1. 완전 그래프의 최소 뻗은 나무 $T$을 셈한다(가장 좋은 돌이에서 변 하나를 지우면 뻗은 나무가 되므로 비용 $\leq$ 가장 좋은 값).
+    2. $T$에서 차수가 홀수인 꼭짓점 모임 $O$을 찾는다(악수 도움 정리에 따라 $|O|$은 짝수이다).
+    3. $O$에서 무게가 가장 작은 완벽 짝짓기 $M$을 찾는다(가장 좋은 돌이를 $O$으로 제한하면 완벽 짝짓기 둘이 나오므로 비용 $\leq$ 가장 좋은 값$/2$).
+    4. $T$과 $M$을 합쳐 모든 꼭짓점의 차수가 짝수인 여러 변 그래프를 만든다.
+    5. 오일러 회로를 찾고 되풀이되는 꼭짓점을 건너뛴다(삼각 부등식에 따라 올바르다).
+
+    온 비용 $\leq \text{cost}(T) + \text{cost}(M) \leq \text{OPT} + \text{OPT}/2 = 3/2 \cdot \text{OPT}$이다.
+
+    이는 칼린, 클라인, 오베이스 가란(2021)이 $3/2 - \epsilon$을 이룰 때까지 거의 50년 동안 잣대 떠돌이 장수 문제의 가장 좋은 다항 시간 어림으로 남아 있었다.
+
+---
+
+**연습문제 3.**
+$\mathbf{P} = \mathbf{NP}$이 아닌 한 (잣대가 아닌) 아무 거리의 떠돌이 장수 문제를 어떤 상수 배 안으로도 어림할 수 없음을 보여라.
+
+??? success "연습문제 3 풀이"
+    해밀턴 돌이에서 줄인다. $|V| = n$인 그래프 $G = (V,E)$과 바라는 어림 비율 $\rho$이 주어지면 완전 무게 그래프를 세운다. $(u,v) \in E$이면 $w(u,v) = 1$, 그 밖에는 $w(u,v) = \rho \cdot n + 1$이다.
+
+    $G$에 해밀턴 돌이가 있으면 가장 좋은 값은 $n$이다. 없으면 어떤 돌이도 무거운 변을 적어도 하나 쓰므로 비용 $\geq n - 1 + \rho n + 1 > \rho n$이다.
+
+    $\rho$ 어림이라면 예 경우에는 비용 $\leq \rho n$인 돌이를 돌려주고 아니오 경우에는 $\leq \rho n$인 것을 찾지 못하여 해밀턴 돌이를 가르게 된다. $\rho$이 아무거나였고 해밀턴 돌이가 NP 완전이므로 $\mathbf{P} = \mathbf{NP}$이 아닌 한 일반 떠돌이 장수 문제에 상수 배 어림은 없다.
+
+---
+
+**연습문제 4.**
+거리 행렬이 $d(1,2)=10, d(1,3)=15, d(1,4)=20, d(2,3)=35, d(2,4)=25, d(3,4)=30$인 도시 4개 사례에서 가장 좋은 떠돌이 장수 돌이를 셈하라.
+
+??? success "연습문제 4 풀이"
+    도시가 4개이면 (방향을 빼면) 서로 다른 돌이가 $(4-1)!/2 = 3$가지이다:
+
+    - 돌이 1-2-3-4-1: $10 + 35 + 30 + 20 = 95$
+    - 돌이 1-2-4-3-1: $10 + 25 + 30 + 15 = 80$
+    - 돌이 1-3-2-4-1: $15 + 35 + 25 + 20 = 95$
+
+    가장 좋은 돌이는 1-2-4-3-1(같은 말로 1-3-4-2-1)이고 비용은 80이다.

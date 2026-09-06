@@ -1,60 +1,55 @@
-# RNN Fundamentals
+# RNN의 기초
+## 순차열에서 순환으로
 
+원소의 순서가 뜻을 지니는 정보, 곧 순차 데이터는 자연어에서 금융 시계열까지 실제 응용 곳곳에 있다. 행이 서로 독립인 관측인 표 형태 데이터와 달리 순차 데이터에는 시간적·위치적 의존이 있어 정보를 다루고 모형화하는 방식이 근본적으로 달라진다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+순차 데이터를 다른 데이터와 가르는 특징이 세 가지 있다. **순서가 중요하다**: 원소를 다시 늘어놓으면 뜻이 완전히 달라진다. "고양이가 매트 위에 앉았다"와 "위에 앉았다 매트 고양이가"는 낱말이 같아도 전하는 바가 다르다. **시간적 의존**이 지금의 관측을 앞의 관측과 잇는다. 오늘의 주가는 어제의 주가와 이어져 있고, 문장의 다음 낱말은 앞선 모든 낱말에 기댄다. **길이가 정해져 있지 않다**는 것은 크기가 고정된 이미지와 달리 순차열의 길이가 토큰 하나에서 시각 수천 개까지 자연스럽게 달라짐을 뜻한다.
 
-## From Sequences to Recurrence
+### 자기회귀 인수분해
 
-Sequential data—information where the order of elements carries meaning—pervades real-world applications from natural language to financial time series. Unlike tabular data where rows are independent observations, sequential data exhibits temporal or positional dependencies that fundamentally alter how we must process and model information.
-
-Three defining characteristics distinguish sequential data from other data types. **Ordering matters**: rearranging elements changes the meaning entirely, so "The cat sat on the mat" conveys different information than "mat the on sat cat The" despite containing identical words. **Temporal dependencies** link current observations to previous ones: today's stock price relates to yesterday's, and the next word in a sentence depends on all preceding words. **Variable length** means that unlike images with fixed dimensions, sequences naturally range from single tokens to thousands of timesteps.
-
-### The Autoregressive Factorization
-
-The probabilistic structure underlying sequential modeling decomposes a joint distribution via the chain rule:
+순차열 모형의 바탕에 있는 확률 구조는 연쇄 법칙으로 결합 분포를 쪼갠다.
 
 $$P(x_1, x_2, \ldots, x_T) = \prod_{t=1}^{T} P(x_t \mid x_1, \ldots, x_{t-1})$$
 
-Each element's probability depends on all preceding elements. Recurrent Neural Networks are designed precisely to model this conditional structure by maintaining a compressed summary of the past at each timestep.
+원소마다의 확률이 앞선 모든 원소에 기댄다. 순환 신경망은 바로 이 조건부 구조를 다루려고 시각마다 과거를 눌러 담은 요약을 지니도록 설계되었다.
 
-### Why Feedforward Networks Fail
+### 순방향 신경망이 통하지 않는 까닭
 
-A standard feedforward network computes each output independently:
+표준 순방향 신경망은 출력을 저마다 따로 계산한다.
 
 $$y = f(Wx + b)$$
 
-With no mechanism to incorporate information from previous inputs, it cannot capture sequential dependencies. What we need is a formulation that conditions on accumulated history:
+앞선 입력의 정보를 끌어들일 장치가 없으므로 순차적 의존을 붙잡지 못한다. 우리에게 필요한 것은 쌓인 이력에 조건을 두는 형태이다.
 
 $$y_t = f(x_t, h_{t-1})$$
 
-where $h_{t-1}$ encodes all relevant information from timesteps $1$ through $t-1$. This is the hidden state—the memory of the network.
+여기서 $h_{t-1}$은 시각 $1$부터 $t-1$까지의 쓸모 있는 정보를 모두 담는다. 이것이 숨은 상태, 곧 신경망의 기억이다.
 
-## The Recurrence Principle
+## 순환의 원리
 
-Recurrent Neural Networks solve the sequential modeling problem through an elegantly simple idea: maintain a hidden state that accumulates information across timesteps. At each step, the network combines new input with its memory of past inputs to produce both an output and an updated memory.
+순환 신경망은 우아하리만치 간단한 착상으로 순차열 모형 문제를 푼다. 시각에 걸쳐 정보를 쌓아 가는 숨은 상태를 지니는 것이다. 단계마다 신경망은 새 입력과 과거 입력의 기억을 엮어 출력과 갱신된 기억을 함께 내놓는다.
 
-### Core Equations
+### 핵심 식
 
-The fundamental RNN computation at timestep $t$:
+시각 $t$에서 RNN의 근본적인 계산은 다음과 같다.
 
 $$h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b_h)$$
 
 $$y_t = W_{hy} h_t + b_y$$
 
-where:
+여기서 각 기호는 다음과 같다.
 
-- $x_t \in \mathbb{R}^{d}$: input at timestep $t$ (dimension $d$)
-- $h_t \in \mathbb{R}^{H}$: hidden state at timestep $t$ (dimension $H$)
-- $y_t \in \mathbb{R}^{o}$: output at timestep $t$ (dimension $o$)
-- $W_{xh} \in \mathbb{R}^{H \times d}$: input-to-hidden weights
-- $W_{hh} \in \mathbb{R}^{H \times H}$: hidden-to-hidden weights
-- $W_{hy} \in \mathbb{R}^{o \times H}$: hidden-to-output weights
-- $b_h, b_y$: bias vectors
+- $x_t \in \mathbb{R}^{d}$: 시각 $t$의 입력 (차원 $d$)
+- $h_t \in \mathbb{R}^{H}$: 시각 $t$의 숨은 상태 (차원 $H$)
+- $y_t \in \mathbb{R}^{o}$: 시각 $t$의 출력 (차원 $o$)
+- $W_{xh} \in \mathbb{R}^{H \times d}$: 입력에서 숨은 상태로 가는 가중치
+- $W_{hh} \in \mathbb{R}^{H \times H}$: 숨은 상태에서 숨은 상태로 가는 가중치
+- $W_{hy} \in \mathbb{R}^{o \times H}$: 숨은 상태에서 출력으로 가는 가중치
+- $b_h, b_y$: 편향 벡터
 
-### Unrolling Through Time
+### 시간에 따라 펼치기
 
-The recurrence creates a computational graph when "unrolled" across timesteps:
+순환은 시각에 걸쳐 "펼치면" 계산 그래프가 된다.
 
 ```
     x₁       x₂       x₃       x₄
@@ -64,79 +59,119 @@ h₀ → RNN → h₁ → RNN → h₂ → RNN → h₃ → RNN → h₄
            y₁       y₂       y₃       y₄
 ```
 
-Critically, the **same weights** $(W_{xh}, W_{hh}, W_{hy})$ are shared across all timesteps—this parameter sharing enables processing sequences of arbitrary length.
+결정적으로 **같은 가중치** $(W_{xh}, W_{hh}, W_{hy})$을 모든 시각이 나누어 쓴다. 이 매개변수 공유 덕분에 길이가 얼마든 상관없이 순차열을 처리할 수 있다.
 
-### Information Flow
+### 정보의 흐름
 
-At each timestep, information flows through three paths:
+시각마다 정보가 세 갈래로 흐른다.
 
-**Direct input path** ($W_{xh} x_t$): new information from the current input directly influences the hidden state.
+**직접 입력 경로** ($W_{xh} x_t$): 지금 입력의 새 정보가 숨은 상태에 곧바로 영향을 준다.
 
-**Recurrent path** ($W_{hh} h_{t-1}$): historical information carried forward through the hidden state.
+**순환 경로** ($W_{hh} h_{t-1}$): 지난 정보가 숨은 상태를 타고 앞으로 실려 온다.
 
-**Nonlinear combination** ($\tanh(\cdot)$): the activation function squashes values to $[-1, 1]$ and creates complex interactions between current and past information.
+**비선형 결합** ($\tanh(\cdot)$): 활성화 함수가 값을 $[-1, 1]$으로 눌러 담고 지금 정보와 과거 정보 사이에 복잡한 상호작용을 만든다.
 
-## Representing Sequences as Tensors
+## 순차열을 텐서로 나타내기
 
-PyTorch represents sequential data using consistent tensor conventions:
+PyTorch는 한결같은 텐서 규약으로 순차 데이터를 나타낸다.
 
 ```python
 import torch
 
-# Single sequence: 5 timesteps, each with 3 features
-single_sequence = torch.randn(5, 3)    # (seq_len, features)
+# 순차열 하나: 시각 5개, 시각마다 특징 3개
+single_sequence = torch.randn(5, 3)    # (seq_len, 특징)
 
-# Batched sequences (standard RNN input with batch_first=True)
+# 배치 순차열 (batch_first=True인 표준 RNN 입력)
 batch_size, seq_len, num_features = 32, 10, 5
-batched = torch.randn(batch_size, seq_len, num_features)  # (batch, seq_len, features)
+batched = torch.randn(batch_size, seq_len, num_features)  # (배치, seq_len, 특징)
 ```
 
-The convention `(batch, seq_len, features)` with `batch_first=True` provides the most intuitive interpretation.
+`batch_first=True`과 함께 쓰는 `(batch, seq_len, features)` 규약이 가장 직관적이다.
 
-### The Sliding Window Approach
+### 미끄럼창 방법
 
-Creating training examples from sequential data typically uses sliding windows:
+순차 데이터로 학습 예제를 만들 때는 대체로 미끄럼창을 쓴다.
 
 ```python
 def create_sequences(data, window_size):
-    """Create input-target pairs using sliding windows."""
+    """미끄럼창으로 입력-표적 쌍을 만든다."""
     X, y = [], []
     for i in range(len(data) - window_size):
         X.append(data[i:i + window_size])
         y.append(data[i + window_size])
     return torch.stack(X), torch.stack(y)
 
-# Example: predict next value from previous 3
+# 예: 앞의 3개로 다음 값 예측
 data = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0])
 X, y = create_sequences(data, window_size=3)
 # X[0] = [1, 2, 3] → y[0] = 4
 # X[1] = [2, 3, 4] → y[1] = 5
 ```
 
-## Sequence Modeling Tasks
+## 순차열 모형 과제
 
-Different applications require different input-output relationships:
+응용마다 입력과 출력의 관계가 다르다.
 
-**Many-to-One**: a full sequence maps to a single prediction. Sentiment classification takes a review $[w_1, w_2, \ldots, w_n]$ and outputs a label (positive/negative).
+**다대일**: 순차열 전체가 예측 하나로 간다. 감성 분류는 후기 $[w_1, w_2, \ldots, w_n]$을 받아 이름표(긍정/부정)를 낸다.
 
-**One-to-Many**: a single input produces a sequence. Image captioning takes an image feature vector and generates $[w_1, w_2, \ldots, w_n]$.
+**일대다**: 입력 하나가 순차열을 낳는다. 이미지 설명 달기는 이미지 특징 벡터를 받아 $[w_1, w_2, \ldots, w_n]$을 만든다.
 
-**Many-to-Many (Synchronized)**: input and output sequences have the same length. Part-of-speech tagging maps $[\text{word}_1, \text{word}_2, \text{word}_3]$ to $[\text{noun}, \text{verb}, \text{noun}]$.
+**다대다 (동기)**: 입력과 출력 순차열의 길이가 같다. 품사 태깅은 $[\text{word}_1, \text{word}_2, \text{word}_3]$을 $[\text{noun}, \text{verb}, \text{noun}]$으로 보낸다.
 
-**Many-to-Many (Seq2Seq)**: input and output sequences may differ in length. Machine translation maps English words to French words through an encoder-decoder architecture.
+**다대다 (Seq2Seq)**: 입력과 출력 순차열의 길이가 다를 수 있다. 기계 번역은 부호기-복호기 구조로 영어 낱말을 프랑스어 낱말로 옮긴다.
 
-## Computational Profile
+## 계산 특성
 
-For a sequence of length $T$ with hidden size $H$:
+길이가 $T$이고 숨은 차원이 $H$인 순차열에 대해 다음과 같다.
 
-| Metric | Complexity |
+| 지표 | 복잡도 |
 |--------|------------|
-| Time (forward) | $O(T \cdot H^2)$ |
-| Space (all hidden states) | $O(T \cdot H)$ |
-| Parameters | $O(H^2 + d \cdot H + o \cdot H)$ |
+| 시간 (순전파) | $O(T \cdot H^2)$ |
+| 공간 (숨은 상태 전체) | $O(T \cdot H)$ |
+| 매개변수 | $O(H^2 + d \cdot H + o \cdot H)$ |
 
-The sequential nature of the recurrence prevents parallelization across timesteps—a key limitation addressed by Transformer architectures. However, RNNs remain parameter-efficient: the same weights process every timestep regardless of sequence length.
+순환이 순차적이라 시각에 걸친 병렬 처리가 막히는데, 이는 트랜스포머 구조가 푼 핵심 한계이다. 그렇지만 RNN은 여전히 매개변수 면에서 효율적이다. 순차열의 길이와 상관없이 같은 가중치가 모든 시각을 처리한다.
 
-## Summary
+## 요약
 
-RNNs introduce recurrence to neural networks, enabling sequential modeling through hidden states that compress historical information into fixed-size vectors, parameter sharing that reuses the same weights at every timestep, and unrolling that creates a computational graph amenable to backpropagation. The architecture elegantly addresses sequential dependencies but faces challenges with long sequences due to vanishing gradients—motivating the gated architectures (LSTM, GRU) covered in subsequent sections.
+RNN은 신경망에 순환을 들여와 순차열 모형을 가능하게 한다. 지난 정보를 크기가 고정된 벡터로 눌러 담는 숨은 상태, 시각마다 같은 가중치를 다시 쓰는 매개변수 공유, 역전파에 알맞은 계산 그래프를 만드는 펼치기가 그 바탕이다. 이 구조는 순차적 의존을 우아하게 다루지만 기울기 소실 때문에 긴 순차열에서 어려움을 겪는데, 그것이 다음 절에서 다룰 문 달린 구조(LSTM, GRU)를 낳았다.
+
+## 연습문제
+
+**연습문제 1.**
+RNN의 순환식 $h_t = \tanh(W_h h_{t-1} + W_x x_t + b)$을 적고 각 항을 설명하라.
+
+??? success "연습문제 1 풀이"
+    $W_h$은 시간적 의존(과거 숨은 상태가 지금에 주는 영향)을 담고, $W_x$은 지금 입력을 숨은 공간으로 보내며, $b$은 편향이고, $\tanh$은 숨은 상태를 $[-1, 1]$으로 묶는다. 숨은 상태 $h_t$은 시각 $t$까지의 입력 순차열을 눌러 담은 요약이다.
+
+---
+
+**연습문제 2.**
+입력 차원이 100이고 숨은 차원이 256인 RNN의 매개변수 수를 계산하라.
+
+??? success "연습문제 2 풀이"
+    $W_x$: $256 \times 100 = 25{,}600$. $W_h$: $256 \times 256 = 65{,}536$. $b$: $256$. 모두 $91{,}392$개이다. 매개변수를 모든 시각이 나누어 쓴다는 점에 주의하라.
+
+---
+
+**연습문제 3.**
+이론적으로 RNN은 길이가 다양한 순차열을 다룰 수 있는데 MLP는 왜 그러지 못하는가?
+
+??? success "연습문제 3 풀이"
+    RNN은 시각마다 공유된 매개변수로 같은 순환을 적용하므로 매개변수의 수가 순차열의 길이와 무관하다. MLP는 입력 차원이 고정되어야 한다. 숨은 상태는 길이가 얼마든 순차열의 정보를 쌓아 가는 크기 고정 기억 노릇을 한다.
+
+---
+
+**연습문제 4.**
+간단한 RNN 세포를 PyTorch로 밑바닥부터 구현하고 `nn.RNNCell`과 맞는지 확인하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    class SimpleRNNCell(nn.Module):
+        def __init__(self, input_size, hidden_size):
+            super().__init__()
+            self.Wx = nn.Linear(input_size, hidden_size)
+            self.Wh = nn.Linear(hidden_size, hidden_size, bias=False)
+        def forward(self, x, h):
+            return torch.tanh(self.Wx(x) + self.Wh(h))
+    ```

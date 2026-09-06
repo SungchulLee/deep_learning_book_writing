@@ -1,8 +1,8 @@
-# Strassen's Matrix Multiplication
+# 슈트라센 행렬 곱셈
 
 Multiplying two $n \times n$ matrices using the standard algorithm requires $O(n^3)$ scalar multiplications. In 1969, Volker Strassen showed that by cleverly combining seven recursive multiplications of $n/2 \times n/2$ submatrices -- instead of the eight required by the standard divide-and-conquer approach -- the complexity drops to $O(n^{\log_2 7}) \approx O(n^{2.807})$. Like [Karatsuba multiplication](karatsuba.md) for integers, the key insight is reducing the number of recursive multiplications at each level.
 
-## Standard Matrix Multiplication
+## 보통의 행렬 곱셈
 
 The product $C = A \cdot B$ of two $n \times n$ matrices is defined by
 
@@ -12,7 +12,7 @@ $$
 
 Computing each of the $n^2$ entries requires $n$ multiplications and $n - 1$ additions, giving $\Theta(n^3)$ total work.
 
-## Naive Divide and Conquer
+## 막무가내 나누어 이기기
 
 Partition each $n \times n$ matrix into four $n/2 \times n/2$ submatrices:
 
@@ -20,7 +20,7 @@ $$
 A = \begin{pmatrix} A_{11} & A_{12} \\ A_{21} & A_{22} \end{pmatrix}, \quad B = \begin{pmatrix} B_{11} & B_{12} \\ B_{21} & B_{22} \end{pmatrix}, \quad C = \begin{pmatrix} C_{11} & C_{12} \\ C_{21} & C_{22} \end{pmatrix}
 $$
 
-The block multiplication formulas are
+덩이 곱셈 식은 다음과 같다
 
 $$
 C_{11} = A_{11}B_{11} + A_{12}B_{21}
@@ -50,11 +50,11 @@ $$
 T(n) = \Theta(n^3)
 $$
 
-No improvement over the standard algorithm.
+보통의 알고리즘보다 나아진 것이 없다.
 
-## Strassen's Algorithm
+## 슈트라센 알고리즘
 
-Strassen reduces the number of recursive multiplications from 8 to **7** by defining the following seven products:
+슈트라센은 다음 일곱 곱을 정해 되돌이 곱셈 횟수를 8에서 **7**로 줄인다:
 
 $$
 M_1 = (A_{11} + A_{22})(B_{11} + B_{22})
@@ -84,7 +84,7 @@ $$
 M_7 = (A_{12} - A_{22})(B_{21} + B_{22})
 $$
 
-The result submatrices are then computed as
+그다음 결과 부분 행렬을 다음과 같이 셈한다
 
 $$
 C_{11} = M_1 + M_4 - M_5 + M_7
@@ -102,7 +102,7 @@ $$
 C_{22} = M_1 - M_2 + M_3 + M_6
 $$
 
-### Verification of Correctness
+### 옳음 확인
 
 We verify $C_{11}$ as a representative example.
 
@@ -110,7 +110,7 @@ $$
 C_{11} = M_1 + M_4 - M_5 + M_7
 $$
 
-Expanding:
+펼치면 다음과 같다.
 
 $$
 M_1 = A_{11}B_{11} + A_{11}B_{22} + A_{22}B_{11} + A_{22}B_{22}
@@ -128,7 +128,7 @@ $$
 M_7 = A_{12}B_{21} + A_{12}B_{22} - A_{22}B_{21} - A_{22}B_{22}
 $$
 
-Summing $M_1 + M_4 - M_5 + M_7$:
+$M_1 + M_4 - M_5 + M_7$을 더하면:
 
 $$
 = A_{11}B_{11} + \cancel{A_{11}B_{22}} + \cancel{A_{22}B_{11}} + \cancel{A_{22}B_{22}} + \cancel{A_{22}B_{21}} - \cancel{A_{22}B_{11}} - \cancel{A_{11}B_{22}} - \cancel{A_{12}B_{22}} + A_{12}B_{21} + \cancel{A_{12}B_{22}} - \cancel{A_{22}B_{21}} - \cancel{A_{22}B_{22}}
@@ -140,9 +140,9 @@ $$
 
 This matches the definition of $C_{11}$. The other three entries can be verified similarly. $\square$
 
-## Complexity Analysis
+## 복잡도 분석
 
-### Recurrence
+### 점화식
 
 Strassen's algorithm performs 7 recursive multiplications on $n/2 \times n/2$ matrices, plus $O(n^2)$ work for the 18 matrix additions and subtractions:
 
@@ -150,7 +150,7 @@ $$
 T(n) = 7T\!\left(\frac{n}{2}\right) + \Theta(n^2)
 $$
 
-### Solving via the Master Theorem
+### 마스터 정리로 풀기
 
 With $a = 7$, $b = 2$, $f(n) = \Theta(n^2)$:
 
@@ -164,9 +164,9 @@ $$
 T(n) = \Theta(n^{\log_2 7}) \approx \Theta(n^{2.807})
 $$
 
-### Comparison
+### 견줌
 
-| Algorithm | Multiplications | Additions | Time |
+| 알고리즘 | 곱셈 횟수 | 덧셈 횟수 | 시간 |
 |---|---|---|---|
 | Standard | $n^3$ | $n^3 - n^2$ | $\Theta(n^3)$ |
 | Naive D&C | 8 recursive | 4 matrix adds | $\Theta(n^3)$ |
@@ -174,36 +174,68 @@ $$
 
 For $n = 1024$, the standard method performs $\sim 10^9$ multiplications, while Strassen requires $\sim 10^{8.58} \approx 3.8 \times 10^8$ -- roughly a 2.8x speedup at this size.
 
-## Practical Considerations
+## 실용적인 고려
 
-!!! tip "Crossover Point"
-    Strassen's algorithm has larger constant factors than the standard algorithm due to the 18 additions (vs. 4) and the overhead of recursive partitioning. In practice, implementations switch to the standard algorithm when $n$ falls below a crossover point, typically around $n = 32$ to $n = 128$, depending on the hardware.
+!!! tip "갈리는 지점"
+    슈트라센 알고리즘은 (4번이 아니라) 18번의 덧셈과 되돌이로 쪼개는 덧짐 때문에 보통의 알고리즘보다 상수 인자가 크다. 실전에서는 $n$이 갈리는 지점 아래로 내려가면 보통의 알고리즘으로 바꾸는데, 그 지점은 하드웨어에 따라 대개 $n = 32$에서 $n = 128$쯤이다.
 
-!!! warning "Numerical Stability"
+!!! warning "수치의 든든함"
     Strassen's algorithm is less numerically stable than the standard algorithm because it involves subtractions that can cause cancellation. For applications requiring high numerical precision, the standard $O(n^3)$ algorithm or algorithms with better stability properties may be preferred.
 
-### Memory Overhead
+### 기억 공간 덧짐
 
 The naive implementation of Strassen's algorithm creates many temporary matrices at each recursive level, leading to significant memory overhead. Careful implementation can reduce this to $O(n^2)$ additional space by reusing buffers.
 
-## Beyond Strassen
+## 슈트라센을 넘어
 
-Strassen's result sparked the search for faster matrix multiplication algorithms:
+슈트라센의 결과는 더 빠른 행렬 곱셈 알고리즘을 찾는 흐름에 불을 붙였다:
 
 | Algorithm | Year | Exponent $\omega$ |
 |---|---|---|
-| Standard | -- | 3.000 |
-| Strassen | 1969 | 2.807 |
-| Coppersmith-Winograd | 1990 | 2.376 |
-| Alman-Vassilevska Williams | 2021 | 2.373 |
+| 보통 | -- | 3.000 |
+| 슈트라센 | 1969 | 2.807 |
+| 코퍼스미스-위노그라드 | 1990 | 2.376 |
+| 알만-바실레프스카 윌리엄스 | 2021 | 2.373 |
 
 The theoretical lower bound is $\omega \ge 2$ (since the output has $n^2$ entries). Whether $\omega = 2$ is achievable remains one of the major open problems in theoretical computer science.
 
-## Summary
+## 요약
 
 Strassen's algorithm reduces matrix multiplication from $\Theta(n^3)$ to $\Theta(n^{2.807})$ by replacing 8 recursive multiplications with 7, at the cost of more additions. The approach mirrors Karatsuba's strategy for integer multiplication: reducing the number of expensive recursive operations by one, even at the expense of more cheap operations (additions), yields an asymptotic improvement. The resulting recurrence $T(n) = 7T(n/2) + \Theta(n^2)$ is solved by the Master Theorem (case 1).
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 4. MIT Press.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 4장. MIT Press.
 - Strassen, V. (1969). Gaussian elimination is not optimal. *Numerische Mathematik*, 13(4), 354-356.
+
+## 연습문제
+
+**연습문제 1.**
+슈트라센 행렬 곱셈의 핵심 생각과 그 시간 복잡도를 설명하여라.
+
+??? success "연습문제 1 풀이"
+    Strassen's Matrix Multiplication applies the divide-and-conquer paradigm: split the problem into smaller subproblems, solve them recursively, and combine the results. The time complexity is determined by the recurrence relation governing the subproblem sizes and the combination cost. The Master Theorem or recursion tree analysis typically gives the closed-form complexity. $\square$
+
+---
+
+**연습문제 2.**
+슈트라센 행렬 곱셈의 되돌이 관계식을 쓰고 마스터 정리로 풀어라.
+
+??? success "연습문제 2 풀이"
+    The recurrence depends on the specific algorithm's division strategy (number of subproblems $a$, size reduction factor $b$, and combination cost $f(n)$). Apply the Master Theorem: compare $f(n)$ with $n^{\log_b a}$ to determine which case applies. If $f(n) = \Theta(n^{\log_b a})$ (case 2), $T(n) = \Theta(n^{\log_b a} \log n)$. $\square$
+
+---
+
+**연습문제 3.**
+슈트라센 행렬 곱셈이 막무가내 방식보다 나은 장면을 설명하여라. 얼마나 빨라지는지 수로 나타내어라.
+
+??? success "연습문제 3 풀이"
+    The brute-force approach typically runs in $O(n^2)$ or worse. The divide-and-conquer approach achieves a lower complexity by reducing redundant computation through recursive decomposition. For input size $n = 10^6$, the difference between $O(n^2) = 10^{12}$ and $O(n \log n) = 2 \times 10^7$ operations is a factor of $50{,}000$. $\square$
+
+---
+
+**연습문제 4.**
+슈트라센 행렬 곱셈의 바탕 경우는 무엇인가? 그것이 알고리즘 전체의 옳음에 어떤 영향을 주는가?
+
+??? success "연습문제 4 풀이"
+    Base cases handle inputs too small to subdivide further (typically $n \leq 1$ or $n \leq 2$). They must return correct results directly. Without proper base cases, the recursion never terminates. Choosing a larger base case (e.g., $n \leq 10$) and switching to a simpler algorithm can improve practical performance by reducing recursion overhead while maintaining the same asymptotic complexity. $\square$

@@ -1,83 +1,83 @@
-# BFS Properties
+# BFS의 성질
 
-Understanding the formal properties of breadth-first search explains why the algorithm works correctly and what guarantees it provides. BFS is not just a traversal order; it produces a tree that encodes shortest-path information and partitions the graph into distance layers. This page states and justifies the key properties that underpin every BFS application.
+너비 우선 찾기의 엄밀한 성질을 이해하면 이 알고리즘이 왜 맞게 굴러가는지, 무엇을 보장하는지 알 수 있다. BFS은 그저 돌아보는 차례가 아니다. 최단 경로 정보를 담은 나무를 만들고 그래프를 거리 켜로 나눈다. 이 쪽은 모든 BFS 쓰임새를 떠받치는 핵심 성질을 밝히고 뒷받침한다.
 
-## The BFS Tree
+## BFS 나무
 
-Every traversal algorithm implicitly defines a tree over the vertices it visits. For BFS, this tree captures exactly the shortest-path structure of the graph. When BFS discovers a new vertex $v$ through an edge $(u, v)$, it records $u$ as the **predecessor** (or parent) of $v$. The collection of these predecessor edges forms a rooted tree called the **BFS tree** $T$. Every vertex reachable from the source $s$ appears exactly once in $T$, and $s$ is the root.
+돌아보기 알고리즘마다 들르는 꼭짓점 위에 나무를 속뜻으로 정한다. BFS에서 이 나무는 그래프의 최단 경로 짜임을 그대로 담는다. BFS이 변 $(u, v)$을 거쳐 새 꼭짓점 $v$을 찾으면 $u$을 $v$의 **앞선 꼭짓점**(또는 어버이)으로 적는다. 이 앞선 변들의 모음이 뿌리 있는 나무를 이루며 이를 **BFS 나무** $T$이라 한다. 샘 $s$에서 닿는 꼭짓점마다 $T$에 꼭 한 번 나타나고 $s$이 뿌리이다.
 
-??? note "BFS tree vs. the original graph"
-    The BFS tree contains exactly $|V_{\text{reachable}}| - 1$ edges. Edges of the original graph that do not appear in $T$ are called **cross edges** and always connect vertices on the same level or adjacent levels.
+??? note "BFS 나무와 원래 그래프"
+    BFS 나무에는 변이 꼭 $|V_{\text{reachable}}| - 1$개 있다. 원래 그래프의 변 가운데 $T$에 나타나지 않는 것을 **가로 변**이라 하며, 늘 같은 층이나 이웃한 층의 꼭짓점을 잇는다.
 
-## Level-by-Level Exploration
+## 층층이 살펴보기
 
-The FIFO queue is the mechanism that gives BFS its layer-by-layer character. Because the queue processes elements in the order they were added, all vertices at distance $d$ are dequeued before any vertex at distance $d + 1$ enters processing. Formally, define the **level** of vertex $v$ as
+FIFO 줄이 BFS에 켜켜이 나아가는 성격을 준다. 줄이 넣은 차례대로 원소를 다루므로 거리 $d$의 꼭짓점이 모두 꺼내진 뒤에야 거리 $d + 1$의 꼭짓점이 다뤄지기 시작한다. 엄밀하게는 꼭짓점 $v$의 **층**을 다음과 같이 정한다
 
 $$
 \text{level}(v) = \begin{cases} 0 & \text{if } v = s \\ \min\{\text{level}(u) + 1 : (u,v) \in E,\; u \text{ discovered before } v\} & \text{otherwise} \end{cases}
 $$
 
-The FIFO discipline guarantees that `queue.popleft()` always returns a vertex whose level is less than or equal to the level of every other vertex in the queue.
+FIFO 규율은 `queue.popleft()`이 늘 줄 안 다른 모든 꼭짓점의 층보다 작거나 같은 층의 꼭짓점을 되돌림을 보장한다.
 
-## Shortest-Path Property
+## 최단 경로 성질
 
-The most important property of BFS is that it computes shortest paths in unweighted graphs. This property is what makes BFS the foundation for algorithms such as bipartiteness testing and Dijkstra's algorithm on unit-weight graphs.
+BFS의 가장 중요한 성질은 무게 없는 그래프에서 최단 경로를 셈한다는 것이다. 이 성질 덕분에 BFS이 이분성 검정이나 무게가 1인 그래프에서의 데이크스트라 알고리즘 같은 알고리즘의 바탕이 된다.
 
-!!! tip "Shortest-path guarantee"
-    For every vertex $v$ reachable from source $s$, the path from $s$ to $v$ in the BFS tree has exactly $\delta(s, v)$ edges, where $\delta(s, v)$ is the shortest-path distance in the original graph.
+!!! tip "최단 경로 보장"
+    샘 $s$에서 닿는 꼭짓점 $v$마다 BFS 나무에서 $s$부터 $v$까지의 길에는 변이 꼭 $\delta(s, v)$개 있으며, 여기서 $\delta(s, v)$은 원래 그래프에서의 최단 경로 거리이다.
 
-**Proof sketch.** Proceed by induction on $\delta(s, v)$.
+**증명 얼개.** $\delta(s, v)$에 대한 귀납으로 나아간다.
 
-- **Base case.** $\delta(s, s) = 0$, and the path from $s$ to itself in the BFS tree has zero edges.
-- **Inductive step.** Assume the property holds for all vertices with $\delta(s, u) = d$. Let $v$ satisfy $\delta(s, v) = d + 1$. Then there exists an edge $(u, v)$ with $\delta(s, u) = d$. By the inductive hypothesis, $u$ is discovered at level $d$. When $u$ is processed, $v$ is added to the queue (if not already visited) and placed at level $d + 1$.
+- **바탕 경우.** $\delta(s, s) = 0$이고 BFS 나무에서 $s$부터 자기까지의 길에는 변이 없다.
+- **귀납 걸음.** $\delta(s, u) = d$인 모든 꼭짓점에 대해 성질이 성립한다고 놓자. $\delta(s, v) = d + 1$인 $v$을 잡자. 그러면 $\delta(s, u) = d$인 변 $(u, v)$이 있다. 귀납 가정에 따라 $u$은 층 $d$에서 찾아진다. $u$을 다룰 때 $v$은 (아직 다녀가지 않았다면) 줄에 들어가고 층 $d + 1$에 놓인다.
 
-Because BFS never revisits a vertex, the first discovery of $v$ establishes the minimum number of edges from $s$ to $v$. $\square$
+BFS은 꼭짓점을 다시 들르지 않으므로 $v$을 처음 찾은 것이 $s$에서 $v$까지 변의 최소 개수를 정한다. $\square$
 
-## Time and Space Complexity
+## 시간과 공간 복잡도
 
-Each vertex is enqueued and dequeued at most once, and each edge is examined at most twice (once from each endpoint in an undirected graph, or once in a directed graph). Therefore the time complexity is
+꼭짓점마다 많아야 한 번 줄에 들어가고 나오며, 변마다 많아야 두 번 살핀다(무방향 그래프에서는 양끝에서 한 번씩, 방향 그래프에서는 한 번). 그러므로 시간 복잡도는 다음과 같다
 
 $$
 O(V + E)
 $$
 
-The space complexity is also $O(V)$ for the visited set and the queue, since the queue holds at most $O(V)$ vertices at any time.
+줄이 언제나 많아야 꼭짓점 $O(V)$개를 담으므로, 다녀간 묶음과 줄에 드는 공간 복잡도도 $O(V)$이다.
 
-## Completeness and Optimality
+## 온전함과 가장 좋음
 
-These two properties summarize BFS as a search strategy and clarify its scope.
+이 두 성질이 찾기 전략으로서의 BFS을 간추리고 그 테두리를 또렷이 한다.
 
-- **Completeness.** BFS is complete: if a path from $s$ to $v$ exists, BFS will find it. This follows because BFS visits every vertex in the connected component of $s$ (in an undirected graph) or every vertex reachable from $s$ (in a directed graph).
-- **Optimality.** BFS is optimal for unweighted shortest paths, as established by the shortest-path property above. For weighted graphs, BFS does not minimize total weight; Dijkstra's algorithm or Bellman-Ford should be used instead.
+- **온전함.** BFS은 온전하다. 곧 $s$에서 $v$까지 길이 있으면 BFS이 그것을 찾는다. BFS이 (무방향 그래프에서) $s$의 이어진 덩이 안 모든 꼭짓점을, 또는 (방향 그래프에서) $s$에서 닿는 모든 꼭짓점을 들르기 때문이다.
+- **가장 좋음.** 위의 최단 경로 성질이 보인 대로 BFS은 무게 없는 최단 경로에서 가장 좋다. 무게 있는 그래프에서는 BFS이 무게의 합을 가장 작게 하지 못하므로 데이크스트라 알고리즘이나 벨먼-포드를 써야 한다.
 
-## BFS Implementation with Properties Highlighted
+## 성질을 도드라지게 한 BFS 구현
 
 ```python
 """
-BFS implementation that records distances and predecessors,
-illustrating the shortest-path and BFS-tree properties.
+거리와 앞선 꼭짓점을 적는 BFS 구현으로,
+최단 경로 성질과 BFS 나무 성질을 보여 준다.
 """
 
 from collections import deque
 
-# === BFS with distance and predecessor tracking ===============================
+# === 거리와 앞선 꼭짓점을 좇는 BFS ==========================================
 
 def bfs_with_properties(graph, source):
-    """Run BFS and return distances and predecessor map.
+    """BFS을 돌리고 거리와 앞선 꼭짓점 사상을 되돌린다.
 
-    Parameters
+    매개변수
     ----------
     graph : dict[int, list[int]]
-        Adjacency list representation.
+        이웃 목록 표현.
     source : int
-        Starting vertex.
+        시작 꼭짓점.
 
-    Returns
+    반환값
     -------
     dist : dict[int, int]
-        Shortest distance (in edges) from source to each reachable vertex.
+        샘에서 닿을 수 있는 꼭짓점마다의 (변으로 잰) 최단 거리.
     pred : dict[int, int | None]
-        Predecessor of each vertex in the BFS tree (None for the source).
+        BFS 나무에서 꼭짓점마다의 앞선 꼭짓점(샘은 None).
     """
     dist = {source: 0}
     pred = {source: None}
@@ -95,7 +95,7 @@ def bfs_with_properties(graph, source):
 
 
 def reconstruct_path(pred, target):
-    """Trace the BFS tree from target back to the source."""
+    """target에서 샘까지 BFS 나무를 거슬러 간다."""
     path = []
     node = target
     while node is not None:
@@ -105,7 +105,7 @@ def reconstruct_path(pred, target):
     return path
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     graph = {
@@ -127,7 +127,7 @@ if __name__ == "__main__":
     print(f"\nShortest path 0 -> 5: {path} ({len(path) - 1} edges)")
 ```
 
-**Output:**
+**출력:**
 ```
 Vertex | Distance | Predecessor
 -------|----------|------------
@@ -141,8 +141,40 @@ Vertex | Distance | Predecessor
 Shortest path 0 -> 5: [0, 2, 5] (2 edges)
 ```
 
-The output confirms that BFS assigns each vertex its true shortest distance from the source and that the predecessor links form a valid BFS tree.
+날 결과는 BFS이 꼭짓점마다 샘에서의 참된 최단 거리를 주고, 앞선 꼭짓점 이음이 올바른 BFS 나무를 이룸을 확인해 준다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 22. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+샘 $s$에서 BFS을 마친 뒤 그래프의 모든 변 $(u, v)$에 대해 $|d(s, u) - d(s, v)| \leq 1$임을 증명하여라.
+
+??? success "연습문제 1 풀이"
+    변 $(u, v)$을 생각하자. 일반성을 잃지 않고 $d(s, u) \leq d(s, v)$이라 하자. $s$에서 $u$까지 길이 $d(s, u)$인 길이 있고, 거기에 변 $(u, v)$을 이으면 $s$에서 $v$까지 길이 $d(s, u) + 1$인 길이 된다. $d(s, v)$은 최단 경로이므로 $d(s, v) \leq d(s, u) + 1$이다. $d(s, u) \leq d(s, v)$과 합치면 $0 \leq d(s, v) - d(s, u) \leq 1$이므로 $|d(s, u) - d(s, v)| \leq 1$이다. $\square$
+
+---
+
+**연습문제 2.**
+BFS 나무는 하나로 정해지지 않는다. 같은 샘에서 서로 다른 BFS 나무 둘이 나오는 그래프의 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    꼭짓점 $\{0, 1, 2, 3\}$인 $K_4$에서 꼭짓점 0부터 BFS을 한다고 하자. 첫 BFS 걸음에서 꼭짓점 1, 2, 3을 찾는다(모두 거리 1). 0에서 나온 나무 변은 $\{(0,1), (0,2), (0,3)\}$이다. 이제 변이 $\{(0,1), (0,2), (1,3), (2,3)\}$인 그래프 $\{0,1,2,3\}$을 생각하자. 0에서 BFS을 하면 거리 1에서 1과 2을 찾는다. 그다음 다루는 차례에 따라 1에서 3을 찾거나(나무 변 $(1,3)$) 2에서 3을 찾는다(나무 변 $(2,3)$). 이것이 서로 다른 BFS 나무 둘을 준다. $\square$
+
+---
+
+**연습문제 3.**
+$s$에서의 BFS 나무가 최단 경로 나무임을 증명하여라. 곧 꼭짓점 $v$마다 BFS 나무에서 $s$부터 $v$까지의 길이 길이 $d(s, v)$임을 보여라.
+
+??? success "연습문제 3 풀이"
+    $d(s, v)$에 대한 귀납으로 증명한다. 바탕 경우: $d(s, s) = 0$이고 $s$은 길이 0인 BFS 나무의 뿌리이다. 귀납 걸음: 거리 $k$인 모든 꼭짓점에 대해 성질이 성립한다고 놓자. $d(s, v) = k + 1$인 $v$을 잡자. $v$을 처음 찾을 때는 $d(s, u) = k$이고 이미 줄에 있는 어떤 이웃 $u$을 거친다(BFS은 층층이 살펴본다). BFS 나무 변은 $(u, v)$이고, 귀납 가정에 따라 $s$에서 $u$까지의 나무 길은 길이가 $k$이다. 그러므로 $s$에서 $v$까지의 나무 길은 길이가 $k + 1 = d(s, v)$이다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 경우 BFS의 줄이 왜 $O(V)$ 공간을 쓰는지 설명하여라. 이 한계에 이르는 그래프의 보기를 들어라.
+
+??? success "연습문제 4 풀이"
+    최악의 경우 샘을 뺀 모든 꼭짓점이 한꺼번에 줄에 들 수 있다. 별 그래프 $K_{1,n-1}$에서 그렇다. 곧 가운데 꼭짓점에서 BFS을 하면 한 걸음에 잎 $n - 1$개를 모두 찾아 줄에 넣는다. 그러면 줄에 꼭짓점 $n - 1 = O(V)$개가 든다. 크기 $V$의 다녀감 배열과 크기 $V$의 거리 배열까지 합치면 전체 공간은 $O(V)$이다. $\square$

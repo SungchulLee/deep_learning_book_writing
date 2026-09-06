@@ -1,28 +1,28 @@
-# Lomuto Partition Scheme
+# 로무토 나눔 방식
 
-The Lomuto partition scheme is the version of quicksort partitioning presented in most introductory textbooks, including CLRS.  It selects the **last element** as the pivot and maintains a boundary index $i$ that separates elements already known to be $\leq$ pivot from those $>$ pivot.  A single pointer $j$ scans left-to-right, swapping small elements behind the boundary.  While simpler to understand and implement than Hoare's scheme, Lomuto performs roughly three times as many swaps on random data.
+로무토 나눔 방식은 CLRS을 비롯한 대부분의 입문 교과서가 내보이는 빠른 정렬 나눔 판이다. **마지막 원소**를 축으로 고르고, 축보다 작거나 같다고 이미 밝혀진 원소와 축보다 큰 원소를 가르는 경계 첨자 $i$을 지닌다. 가리개 $j$ 하나가 왼쪽에서 오른쪽으로 훑으며 작은 원소를 경계 뒤로 맞바꾼다. 호어 방식보다 이해하고 구현하기 쉽지만, 무작위 데이터에서 맞바꿈이 대략 세 배 많다.
 
-## Algorithm
+## 알고리즘
 
-Given an array $A[\ell..r]$ with pivot $p = A[r]$:
+축이 $p = A[r]$인 배열 $A[\ell..r]$이 주어지면 다음과 같이 한다.
 
-1. Initialize boundary $i = \ell$.
-2. For each $j$ from $\ell$ to $r - 1$:
-    - If $A[j] \leq p$, swap $A[i]$ and $A[j]$, then increment $i$.
-3. Swap $A[i]$ and $A[r]$ to place the pivot in its final position.
-4. Return $i$.
+1. 경계를 $i = \ell$으로 둔다.
+2. $j$을 $\ell$부터 $r - 1$까지 돌린다.
+    - $A[j] \leq p$이면 $A[i]$과 $A[j]$을 맞바꾸고 $i$을 하나 민다.
+3. $A[i]$과 $A[r]$을 맞바꾸어 축을 마지막 자리에 놓는다.
+4. $i$을 되돌린다.
 
-### Loop Invariant
+### 되돌이 불변식
 
-At the start of each iteration of the `for` loop:
+`for` 되돌이를 돌 때마다 그 첫머리에서 다음이 성립한다.
 
-- $A[k] \leq p$ for all $k \in [\ell, i-1]$ (elements already partitioned to the left).
-- $A[k] > p$ for all $k \in [i, j-1]$ (elements already partitioned to the right).
-- $A[r] = p$ (pivot, untouched until the end).
+- 모든 $k \in [\ell, i-1]$에 대해 $A[k] \leq p$이다(이미 왼쪽으로 나뉜 원소).
+- 모든 $k \in [i, j-1]$에 대해 $A[k] > p$이다(이미 오른쪽으로 나뉜 원소).
+- $A[r] = p$이다(축이며 끝까지 건드리지 않는다).
 
-This invariant ensures correctness: when $j$ reaches $r$, swapping $A[i]$ with $A[r]$ places the pivot at index $i$, with all smaller elements to its left and all larger elements to its right.
+이 불변식이 옳음을 보장한다. $j$이 $r$에 닿았을 때 $A[i]$과 $A[r]$을 맞바꾸면 축이 첨자 $i$에 놓이고, 더 작은 원소는 모두 왼쪽에, 더 큰 원소는 모두 오른쪽에 놓인다.
 
-## Pseudocode
+## 의사코드
 
 ```
 LOMUTO-PARTITION(A, left, right):
@@ -36,65 +36,65 @@ LOMUTO-PARTITION(A, left, right):
     return i
 ```
 
-## Step-by-Step Example
+## 한 걸음씩 보는 예
 
-Partition $A = [7, 2, 1, 6, 8, 5, 3, 4]$ with pivot $p = A[7] = 4$:
+축이 $p = A[7] = 4$인 $A = [7, 2, 1, 6, 8, 5, 3, 4]$을 나누어 보자.
 
-| $j$ | $A[j]$ | $A[j] \leq 4$? | Action | $i$ | Array |
+| $j$ | $A[j]$ | $A[j] \leq 4$? | 하는 일 | $i$ | 배열 |
 |-----|---------|-----------------|--------|-----|-------|
-| 0   | 7       | No              | skip   | 0   | $[7, 2, 1, 6, 8, 5, 3, 4]$ |
-| 1   | 2       | Yes             | swap $A[0], A[1]$ | 1 | $[2, 7, 1, 6, 8, 5, 3, 4]$ |
-| 2   | 1       | Yes             | swap $A[1], A[2]$ | 2 | $[2, 1, 7, 6, 8, 5, 3, 4]$ |
-| 3   | 6       | No              | skip   | 2   | $[2, 1, 7, 6, 8, 5, 3, 4]$ |
-| 4   | 8       | No              | skip   | 2   | $[2, 1, 7, 6, 8, 5, 3, 4]$ |
-| 5   | 5       | No              | skip   | 2   | $[2, 1, 7, 6, 8, 5, 3, 4]$ |
-| 6   | 3       | Yes             | swap $A[2], A[6]$ | 3 | $[2, 1, 3, 6, 8, 5, 7, 4]$ |
+| 0 | 7 | 아니오 | 건너뜀 | 0 | $[7, 2, 1, 6, 8, 5, 3, 4]$ |
+| 1 | 2 | 예 | $A[0], A[1]$ 맞바꿈 | 1 | $[2, 7, 1, 6, 8, 5, 3, 4]$ |
+| 2 | 1 | 예 | $A[1], A[2]$ 맞바꿈 | 2 | $[2, 1, 7, 6, 8, 5, 3, 4]$ |
+| 3 | 6 | 아니오 | 건너뜀 | 2 | $[2, 1, 7, 6, 8, 5, 3, 4]$ |
+| 4 | 8 | 아니오 | 건너뜀 | 2 | $[2, 1, 7, 6, 8, 5, 3, 4]$ |
+| 5 | 5 | 아니오 | 건너뜀 | 2 | $[2, 1, 7, 6, 8, 5, 3, 4]$ |
+| 6 | 3 | 예 | $A[2], A[6]$ 맞바꿈 | 3 | $[2, 1, 3, 6, 8, 5, 7, 4]$ |
 
-Final swap: $A[3] \leftrightarrow A[7]$, giving $[2, 1, 3, \mathbf{4}, 8, 5, 7, 6]$.  Pivot 4 is at index 3.
+마지막 맞바꿈: $A[3] \leftrightarrow A[7]$이며 결과는 $[2, 1, 3, \mathbf{4}, 8, 5, 7, 6]$이다. 축 4가 첨자 3에 있다.
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Comparisons.**  The `for` loop makes exactly $r - \ell$ comparisons (one per element, excluding the pivot):
+**견줌.** `for` 되돌이는 꼭 $r - \ell$번 견준다(축을 뺀 원소마다 한 번).
 
 $$
-C = n - 1 \quad \text{per partition call}
+C = n - 1 \quad \text{(나눔 부름마다)}
 $$
 
-**Swaps.**  In the worst case, every element is $\leq$ pivot, causing $n - 1$ swaps (each redundant, as the element is swapped with itself).  On random data, the expected number of swaps is approximately $n/2$ because half the elements are expected to be $\leq$ pivot.
+**맞바꿈.** 최악의 경우 원소마다 축보다 작거나 같아 맞바꿈이 $n - 1$번 일어난다(모두 제 자신과 맞바꾸는 헛일이다). 무작위 데이터에서는 절반이 축보다 작거나 같으리라 보므로 기대 맞바꿈 횟수가 대략 $n/2$이다.
 
 $$
 \mathbb{E}[\text{swaps}] \approx \frac{n}{2}
 $$
 
-This is roughly three times more swaps than Hoare's partition, which typically performs about $n/6$ swaps on random data.
+이는 무작위 데이터에서 대략 $n/6$번 맞바꾸는 호어 나눔보다 대략 세 배 많다.
 
-**Time.** Each partition call is $O(n)$.  The overall quicksort time depends on partition quality (see the analysis page).
+**시간.** 나눔 부름마다 $O(n)$이다. 빠른 정렬 전체의 시간은 나눔의 질에 달렸다(분석 쪽을 보라).
 
-!!! warning "Performance on arrays with many duplicates"
-    When all elements are equal, Lomuto partition always places the pivot at one end (e.g., index $r$), producing a maximally unbalanced split.  This causes $O(n^2)$ behavior.  The three-way partition (Dutch National Flag) handles duplicates gracefully.
+!!! warning "같은 값이 많은 배열에서의 성능"
+    모든 원소가 같으면 로무토 나눔은 늘 축을 한쪽 끝(이를테면 첨자 $r$)에 놓아 가장 치우친 쪼갬을 낸다. 그래서 $O(n^2)$ 거동이 일어난다. 세 갈래 나눔(네덜란드 국기)은 같은 값을 매끄럽게 다룬다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Lomuto partition scheme for quicksort.
+빠른 정렬을 위한 로무토 나눔 방식.
 
-Selects the last element as pivot and partitions the array using
-a single left-to-right scan with a boundary pointer.
+마지막 원소를 축으로 골라 경계 가리개 하나로 왼쪽에서 오른쪽으로
+한 번 훑으며 배열을 나눈다.
 """
 
 
-# === Lomuto partition =========================================================
+# === 로무토 나눔 ==============================================================
 
 def lomuto_partition(arr: list, left: int, right: int) -> int:
-    """Partition arr[left..right] using the last element as pivot.
+    """마지막 원소를 축으로 삼아 arr[left..right]을 나눈다.
 
-    Returns the final index of the pivot.
+    축의 마지막 첨자를 되돌린다.
 
-    Loop invariant:
-    - arr[left..i-1] contains elements <= pivot
-    - arr[i..j-1] contains elements > pivot
-    - arr[right] is the pivot
+    되돌이 불변식:
+    - arr[left..i-1]에는 축보다 작거나 같은 원소가 든다
+    - arr[i..j-1]에는 축보다 큰 원소가 든다
+    - arr[right]이 축이다
     """
     pivot = arr[right]
     i = left
@@ -106,10 +106,10 @@ def lomuto_partition(arr: list, left: int, right: int) -> int:
     return i
 
 
-# === Quicksort with Lomuto partition ==========================================
+# === 로무토 나눔을 쓰는 빠른 정렬 =============================================
 
 def quicksort_lomuto(arr: list, left: int = 0, right: int = None) -> None:
-    """Sort arr[left..right] in place using Lomuto partition."""
+    """로무토 나눔으로 arr[left..right]을 제자리에서 정렬한다."""
     if right is None:
         right = len(arr) - 1
     if left < right:
@@ -118,24 +118,24 @@ def quicksort_lomuto(arr: list, left: int = 0, right: int = None) -> None:
         quicksort_lomuto(arr, pivot_idx + 1, right)
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
-    # Partition demonstration
+    # 나눔 보여 주기
     data = [7, 2, 1, 6, 8, 5, 3, 4]
     print(f"Before: {data}")
     idx = lomuto_partition(data, 0, len(data) - 1)
     print(f"After:  {data}  (pivot at index {idx})")
     print()
 
-    # Full sort
+    # 온전한 정렬
     data2 = [10, 80, 30, 90, 40, 50, 70]
     print(f"Before: {data2}")
     quicksort_lomuto(data2)
     print(f"After:  {data2}")
 ```
 
-**Output:**
+**출력:**
 ```
 Before: [7, 2, 1, 6, 8, 5, 3, 4]
 After:  [2, 1, 3, 4, 8, 5, 7, 6]  (pivot at index 3)
@@ -144,8 +144,41 @@ Before: [10, 80, 30, 90, 40, 50, 70]
 After:  [10, 30, 40, 50, 70, 80, 90]
 ```
 
-## References
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Section 7.1.
-- Lomuto, N. (attributed). Partition scheme popularized by Bentley in *Programming Pearls*.
-- Bentley, J. L. (2000). *Programming Pearls* (2nd ed.). Addison-Wesley, Chapter 11.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 7.1절.
+- Lomuto, N.(로 알려짐). Bentley가 *Programming Pearls*에서 널리 알린 나눔 방식.
+- Bentley, J. L. (2000). *Programming Pearls* (2nd ed.). Addison-Wesley, 11장.
+
+
+## 연습문제
+
+**연습문제 1.**
+$[38, 27, 43, 3, 9, 82, 10]$에서 로무토 나눔 방식을 따라가며 큰 걸음마다의 상태를 보여라.
+
+??? success "연습문제 1 풀이"
+    알고리즘을 한 걸음씩 밟아라. 나누어 정복하는 정렬이라면 되돌이 나눔과 병합을 하나씩 보이고, 나눔 기반 정렬이라면 나눔마다와 축이 놓이는 자리를 보여라. 걸음마다 배열 전체의 상태를 내보여라.
+
+---
+
+**연습문제 2.**
+로무토 나눔 방식의 최선, 최악, 평균의 경우 시간 복잡도를 끌어내라.
+
+??? success "연습문제 2 풀이"
+    경우마다 점화식을 써라. 최선의 경우는 가장 좋은 나눔이거나 미리 정렬된 입력이다. 최악의 경우는 일을 가장 크게 만드는 적수 입력이다. 평균의 경우는 무작위 순열에 대한 기대 성능이다. 점화식을 각각 풀어라.
+
+---
+
+**연습문제 3.**
+로무토 나눔 방식은 안정적인가? 증명하거나 반례를 들어라.
+
+??? success "연습문제 3 풀이"
+    같은 원소가 본디 상대 차례를 지키면 그 정렬은 안정적이다. 모든 입력에서 이것이 성립함을 증명하거나, 정렬 도중 같은 원소 둘의 자리가 뒤바뀌는 구체적인 입력을 들어라.
+
+---
+
+**연습문제 4.**
+float32 학습 손실 값 1000만 개를 정렬할 때 로무토 나눔 방식을 다른 두 방법과 견주어라. 시간, 공간, 캐시 거동, GPU 어울림을 살펴라.
+
+??? success "연습문제 4 풀이"
+    $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.

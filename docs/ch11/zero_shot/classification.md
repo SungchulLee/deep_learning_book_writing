@@ -1,51 +1,50 @@
-# Zero-Shot Classification
+# 영 예시 분류
+## 개요
 
+시각-뜻 묻힘 모델은 (CNN에서 나온) 시각 특징과 (낱말 묻힘 같은) 뜻 표현 사이의 깊은 신경망 옮김을 배운다. 이 절은 DeViSE, 겹선형 어울림 모델, 그리고 영 예시 학습을 위한 한 걸음 나아간 구조를 다룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## DeViSE: 깊은 시각-뜻 묻힘
 
-## Overview
+### 구조 훑어보기
 
-Visual-semantic embedding models learn deep neural network mappings between visual features (from CNNs) and semantic representations (word embeddings). This section covers DeViSE, bilinear compatibility models, and advanced architectures for zero-shot learning.
-
-## DeViSE: Deep Visual-Semantic Embedding
-
-### Architecture Overview
-
-DeViSE (Frome et al., 2013) learns to project CNN visual features into the semantic embedding space:
+DeViSE(Frome 외, 2013)는 CNN 시각 특징을 뜻 묻힘 공간으로 쏘아 넣는 법을 배운다.
 
 $$M: \mathbb{R}^{d_v} \rightarrow \mathbb{R}^{d_s}$$
 
-such that:
+이때 다음이 성립한다.
 
-$$M \cdot \mathbf{v}(\text{image}) \approx \mathbf{s}(\text{class\_name})$$
+$$M \cdot \mathbf{v}(\text{그림}) \approx \mathbf{s}(\text{부류 이름})$$
 
-### Components
+### 부품
 
-**Visual Encoder**: Pre-trained CNN (typically VGG, ResNet)
-- Extract features from penultimate layer
-- Frozen or fine-tuned during training
+**시각 부호기**: 미리 학습된 CNN(대개 VGG, ResNet)
 
-**Projection Network**: Learned transformation
-- Linear or non-linear mapping
-- Projects visual features to semantic space
+- 끝에서 두 번째 층에서 특징을 뽑는다
+- 학습 중에 얼리거나 미세 조정한다
 
-**Semantic Embeddings**: Pre-trained word vectors
-- Word2Vec, GloVe, or FastText
-- Fixed during training (typically)
+**쏘아 넣는 망**: 배운 변환
 
-### Loss Function
+- 선형 또는 비선형 옮김
+- 시각 특징을 뜻 공간으로 쏘아 넣는다
 
-DeViSE uses a margin-based ranking loss:
+**뜻 묻힘**: 미리 학습된 낱말 벡터
+
+- Word2Vec, GloVe 또는 FastText
+- 학습 중에는 (대개) 붙박이로 둔다
+
+### 손실 함수
+
+DeViSE은 여백 기반 순위 손실을 쓴다.
 
 $$\mathcal{L} = \sum_{(\mathbf{x}, y)} \sum_{j \neq y} \max(0, \gamma - \mathbf{s}_y^\top \hat{\mathbf{v}} + \mathbf{s}_j^\top \hat{\mathbf{v}})$$
 
-where:
-- $\hat{\mathbf{v}} = M \cdot \phi(\mathbf{x})$ is the projected visual embedding
-- $\gamma$ is the margin parameter
-- The sum over $j \neq y$ can be approximated by sampling negatives
+여기서 각 기호는 다음과 같다.
 
-### PyTorch Implementation
+- $\hat{\mathbf{v}} = M \cdot \phi(\mathbf{x})$은 쏘아 넣은 시각 묻힘이다
+- $\gamma$은 여백 매개변수이다
+- $j \neq y$에 대한 합은 음의 보기를 뽑아 어림할 수 있다
+
+### PyTorch 구현
 
 ```python
 import torch
@@ -54,9 +53,9 @@ import torch.nn.functional as F
 
 class DeViSE(nn.Module):
     """
-    Deep Visual-Semantic Embedding Model (DeViSE).
+    깊은 시각-뜻 묻힘 모델(DeViSE).
     
-    Projects CNN features into word embedding space.
+    CNN 특징을 낱말 묻힘 공간으로 쏘아 넣는다.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
@@ -65,7 +64,7 @@ class DeViSE(nn.Module):
         
         self.embedding_dim = embedding_dim
         
-        # Visual projection network
+        # 시각 쏘아 넣기 망
         self.visual_projection = nn.Sequential(
             nn.Linear(visual_dim, 2048),
             nn.BatchNorm1d(2048),
@@ -78,25 +77,25 @@ class DeViSE(nn.Module):
             nn.Linear(1024, embedding_dim)
         )
         
-        # Semantic projection (optional)
+        # 뜻 쏘아 넣기(선택)
         self.semantic_projection = nn.Linear(semantic_dim, embedding_dim)
         
-        # Temperature for softmax (learnable)
+        # 소프트맥스의 온도(배울 수 있다)
         self.temperature = nn.Parameter(torch.ones(1))
     
     def project_visual(self, visual_features):
-        """Project visual features to embedding space."""
+        """시각 특징을 묻힘 공간으로 쏘아 넣는다."""
         projected = self.visual_projection(visual_features)
         return F.normalize(projected, p=2, dim=1)
     
     def project_semantic(self, semantic_embeddings):
-        """Project semantic embeddings to embedding space."""
+        """뜻 묻힘을 묻힘 공간으로 쏘아 넣는다."""
         projected = self.semantic_projection(semantic_embeddings)
         return F.normalize(projected, p=2, dim=1)
     
     def forward(self, visual_features, semantic_pos, semantic_neg=None):
         """
-        Forward pass for training.
+        학습용 앞먹임.
         """
         v_proj = self.project_visual(visual_features)
         s_pos_proj = self.project_semantic(semantic_pos)
@@ -111,7 +110,7 @@ class DeViSE(nn.Module):
         return pos_score
     
     def predict(self, visual_features, class_embeddings, class_names):
-        """Predict class for visual features."""
+        """시각 특징의 부류를 맞힌다."""
         self.eval()
         
         with torch.no_grad():
@@ -130,32 +129,32 @@ class DeViSE(nn.Module):
         return predictions, scores
 ```
 
-## Bilinear Compatibility Models
+## 겹선형 어울림 모델
 
-### Concept
+### 개념
 
-Bilinear models capture pairwise interactions between visual and semantic dimensions:
+겹선형 모델은 시각 차원과 뜻 차원 사이의 쌍마다의 어울림을 잡아낸다.
 
 $$F(\mathbf{v}, \mathbf{s}) = \mathbf{v}^\top W \mathbf{s}$$
 
-where $W \in \mathbb{R}^{d_v \times d_s}$ is a learned weight matrix.
+여기서 $W \in \mathbb{R}^{d_v \times d_s}$은 배운 가중치 행렬이다.
 
-### Low-Rank Approximation
+### 낮은 계수 어림
 
-Reduce parameters with low-rank factorization:
+낮은 계수 인수분해로 매개변수를 줄인다.
 
 $$W = U V^\top$$
 
-This is equivalent to projecting both modalities to a lower dimension:
+이는 두 갈래를 모두 더 낮은 차원으로 쏘아 넣는 것과 같다.
 
 $$F(\mathbf{v}, \mathbf{s}) = (U^\top \mathbf{v})^\top (V^\top \mathbf{s})$$
 
-### Implementation
+### 구현
 
 ```python
 class BilinearCompatibility(nn.Module):
     """
-    Bilinear compatibility model for ZSL.
+    ZSL을 위한 겹선형 어울림 모델.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
@@ -183,7 +182,7 @@ class BilinearCompatibility(nn.Module):
             self.visual_bn = nn.BatchNorm1d(visual_dim)
     
     def forward(self, visual, semantic):
-        """Compute bilinear compatibility scores."""
+        """겹선형 어울림 점수를 셈한다."""
         if self.use_low_rank:
             v_proj = F.normalize(self.visual_proj(visual), dim=1)
             s_proj = F.normalize(self.semantic_proj(semantic), dim=-1)
@@ -202,9 +201,9 @@ class BilinearCompatibility(nn.Module):
         return scores
 ```
 
-## Loss Functions
+## 손실 함수
 
-### Margin Ranking Loss
+### 여백 순위 손실
 
 ```python
 class RankingLoss(nn.Module):
@@ -217,7 +216,7 @@ class RankingLoss(nn.Module):
         return loss.mean()
 ```
 
-### Triplet Loss
+### 세쌍 손실
 
 ```python
 class TripletLoss(nn.Module):
@@ -232,11 +231,11 @@ class TripletLoss(nn.Module):
         return loss.mean()
 ```
 
-### InfoNCE / Contrastive Loss
+### InfoNCE와 대조 손실
 
 ```python
 def info_nce_loss(visual_emb, semantic_emb, temperature=0.07):
-    """InfoNCE loss for contrastive learning."""
+    """대조 학습을 위한 InfoNCE 손실."""
     v_norm = F.normalize(visual_emb, dim=1)
     s_norm = F.normalize(semantic_emb, dim=1)
     
@@ -249,13 +248,13 @@ def info_nce_loss(visual_emb, semantic_emb, temperature=0.07):
     return (loss_v + loss_s) / 2
 ```
 
-## Advanced Architectures
+## 한 걸음 나아간 구조
 
-### Cross-Modal Attention
+### 갈래를 넘나드는 주의
 
 ```python
 class CrossModalAttention(nn.Module):
-    """Cross-modal attention for visual-semantic alignment."""
+    """시각과 뜻을 맞추기 위한 갈래를 넘나드는 주의."""
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
                  hidden_dim: int = 256, n_heads: int = 8):
@@ -289,11 +288,11 @@ class CrossModalAttention(nn.Module):
         return score.squeeze(-1)
 ```
 
-### Two-Branch Network
+### 두 가지 망
 
 ```python
 class TwoBranchNetwork(nn.Module):
-    """Two-branch network with separate encoders."""
+    """부호기를 따로 두는 두 가지 망."""
     
     def __init__(self, visual_dim: int, semantic_dim: int, 
                  embedding_dim: int = 512):
@@ -327,29 +326,29 @@ class TwoBranchNetwork(nn.Module):
             return torch.sum(v_emb * s_emb, dim=1)
 ```
 
-## Training Best Practices
+## 학습의 좋은 버릇
 
-### Hard Negative Mining
+### 어려운 음의 보기 캐기
 
-Select negatives that are most confusing to the model:
+모델이 가장 헷갈려 하는 음의 보기를 고른다.
 
 ```python
 def hard_negative_mining(model, visual, positive_idx, all_embeddings, seen_classes):
-    """Select hardest negative for each sample."""
+    """표본마다 가장 어려운 음의 보기를 고른다."""
     with torch.no_grad():
         scores = model(visual, all_embeddings)
         
-        # Mask out positive class
+        # 양의 부류를 가린다
         for i, pos_i in enumerate(positive_idx):
             scores[i, pos_i] = -float('inf')
         
-        # Select hardest negative
+        # 가장 어려운 음의 보기를 고른다
         hard_neg_indices = torch.argmax(scores, dim=1)
     
     return all_embeddings[hard_neg_indices]
 ```
 
-### Learning Rate Scheduling
+### 학습률 스케줄링
 
 ```python
 import math
@@ -364,17 +363,50 @@ def cosine_warmup_scheduler(optimizer, num_epochs, warmup_epochs=10):
     return torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda)
 ```
 
-## Summary
+## 요약
 
-Visual-semantic embedding models form the backbone of modern ZSL:
+시각-뜻 묻힘 모델은 오늘날 ZSL의 등뼈를 이룬다.
 
-1. **DeViSE** projects CNN features to word embedding space using ranking loss
-2. **Bilinear models** capture rich interactions between modalities
-3. **Cross-modal attention** learns fine-grained alignments
-4. **Loss functions** include ranking, triplet, cross-entropy, and InfoNCE variants
+1. **DeViSE**은 순위 손실을 써서 CNN 특징을 낱말 묻힘 공간으로 쏘아 넣는다
+2. **겹선형 모델**은 갈래 사이의 풍부한 어울림을 잡아낸다
+3. **갈래를 넘나드는 주의**는 촘촘한 맞춤을 배운다
+4. **손실 함수**로는 순위, 세쌍, 교차 엔트로피, InfoNCE 변형이 있다
 
-Key considerations:
-- Pre-trained features (both visual and semantic) are crucial
-- Hard negative mining improves discriminative learning
-- Regularization prevents overfitting to seen classes
-- Proper normalization ensures stable training
+살펴야 할 핵심은 다음과 같다.
+
+- (시각과 뜻 양쪽) 미리 학습된 특징이 매우 중요하다
+- 어려운 음의 보기 캐기가 가름 학습을 좋게 한다
+- 벌주기가 본 부류에 지나치게 맞추어지는 것을 막는다
+- 알맞은 고르기가 학습을 안정되게 한다
+
+## 연습문제
+
+**연습문제 1.**
+영 예시 학습을 정의하고 소수 예시 학습과 어떻게 다른지 설명하라.
+
+??? success "연습문제 1 풀이"
+    영 예시 학습은 학습 중에 한 번도 보지 못한 부류의 사례를, 본 부류와 못 본 부류를 잇는 딸린 정보(속성, 글 설명, 낱말 묻힘)를 써서 가려낸다. 소수 예시 학습은 이름표 붙은 보기를 몇 개 쓴다. 영 예시 학습은 대상 부류의 보기가 아예 없어도 되며 오로지 뜻 표현을 거친 앎의 옮김에 기댄다.
+
+---
+
+**연습문제 2.**
+영 예시 학습의 중심 쏠림 문제와 그 다루는 법을 설명하라.
+
+??? success "연습문제 2 풀이"
+    차원이 높은 공간에서는 어떤 점('중심점')이 참 부류와 상관없이 다른 많은 점의 최근접 이웃이 된다. 그래서 최근접 이웃 기반 영 예시 분류에서 어떤 부류가 너무 자주 예측된다. 해법: 묻힘을 고르거나, 눈금 맞춘 점수 매기기를 쓰거나, 전용 거리 재기를 배운다.
+
+---
+
+**연습문제 3.**
+영 예시 학습의 속성 기반 접근법과 묻힘 기반 접근법을 견주어라.
+
+??? success "연습문제 3 풀이"
+    속성 기반: 부류마다 이진이나 이어진 속성 벡터로 그려진다(이를테면 '줄무늬가 있다', '털이 있다'). 모델은 속성을 맞히는 법을 배운 다음 부류 원형과 맞춘다. 묻힘 기반: 시각 특징과 부류 설명(이를테면 부류 이름의 word2vec)을 함께 쓰는 공간으로 옮긴다. 묻힘 방법이 규모를 키우기 쉽고 손 표시가 덜 든다.
+
+---
+
+**연습문제 4.**
+일반화된 영 예시 학습(GZSL)의 치우침 문제란 무엇인가?
+
+??? success "연습문제 4 풀이"
+    GZSL에서는 시험 때 본 부류와 못 본 부류가 함께 나온다. 모델은 본 부류로 익혔으므로 그쪽으로 치우친다. 해법: 눈금 맞춘 쌓기(본 부류 점수에서 치우침을 빼기), 본 부류와 못 본 부류를 가르는 분포 밖 알아채기, 또는 못 본 부류의 특징을 지어내는 생성 접근법.

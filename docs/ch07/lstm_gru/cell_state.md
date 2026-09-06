@@ -1,136 +1,131 @@
-# LSTM Cell State and Gradient Flow
+# LSTM의 세포 상태와 기울기의 흐름
+## 들어가며
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Introduction
-
-The LSTM architecture was specifically designed to solve the vanishing gradient problem in recurrent networks. At its heart lies the **cell state**—a dedicated memory pathway where information and gradients can flow across many time steps with minimal transformation. Understanding how gradients flow through an LSTM reveals why it succeeds where vanilla RNNs fail, and helps diagnose when LSTMs themselves struggle.
+LSTM 구조는 순환 신경망의 기울기 소실 문제를 풀려고 일부러 만든 것이다. 그 한가운데에 **세포 상태**가 있다. 정보와 기울기가 거의 변형되지 않고 여러 시각을 가로질러 흐르는 전용 기억 통로이다. LSTM에서 기울기가 어떻게 흐르는지 이해하면 기본 RNN이 실패하는 곳에서 LSTM이 성공하는 까닭을 알 수 있고, LSTM 자신이 애먹는 때도 짚어 낼 수 있다.
 
 ---
 
-## The Fundamental Problem: Why Vanilla RNNs Fail
+## 근본 문제: 기본 RNN이 실패하는 까닭
 
-### Vanilla RNN Gradient Analysis
+### 기본 RNN의 기울기 분석
 
-For a vanilla RNN with hidden state update $h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b)$, the gradient of loss with respect to hidden state at time $t-k$ involves:
+숨은 상태를 $h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b)$으로 갱신하는 기본 RNN에서, 시각 $t-k$의 숨은 상태에 대한 손실의 기울기에는 다음이 들어 있다.
 
 $$\frac{\partial \mathcal{L}}{\partial h_{t-k}} = \frac{\partial \mathcal{L}}{\partial h_t} \cdot \prod_{j=t-k}^{t-1} \frac{\partial h_{j+1}}{\partial h_j}$$
 
-Each Jacobian term:
+야코비 항 하나하나는 다음과 같다.
 
 $$\frac{\partial h_{j+1}}{\partial h_j} = \text{diag}(\tanh'(z_{j+1})) \cdot W_{hh}$$
 
-where $z_{j+1} = W_{hh} h_j + W_{xh} x_{j+1} + b$.
+여기서 $z_{j+1} = W_{hh} h_j + W_{xh} x_{j+1} + b$이다.
 
-### The Eigenvalue Perspective
+### 고윳값의 관점
 
-The product of Jacobians behaves like:
+야코비 행렬의 곱은 다음처럼 움직인다.
 
 $$\prod_{j=t-k}^{t-1} \frac{\partial h_{j+1}}{\partial h_j} \approx (D \cdot W_{hh})^k$$
 
-where $D$ is a diagonal matrix with entries in $(0, 1)$ (since $\tanh'(x) \in (0, 1]$).
+여기서 $D$은 성분이 $(0, 1)$에 있는 대각 행렬이다($\tanh'(x) \in (0, 1]$이므로).
 
-Let $\lambda_{\max}$ be the largest singular value of $W_{hh}$:
+$\lambda_{\max}$을 $W_{hh}$의 가장 큰 특잇값이라 하자.
 
-- If $\lambda_{\max} < 1$: Gradients vanish exponentially as $\lambda_{\max}^k \to 0$
-- If $\lambda_{\max} > 1$: Gradients explode exponentially
-- The "Goldilocks zone" $\lambda_{\max} \approx 1$ is unstable and hard to maintain
+- $\lambda_{\max} < 1$이면 $\lambda_{\max}^k \to 0$이므로 기울기가 지수적으로 사라진다
+- $\lambda_{\max} > 1$이면 기울기가 지수적으로 폭발한다
+- $\lambda_{\max} \approx 1$이라는 "딱 알맞은 구간"은 불안정하여 지키기 어렵다
 
-This is the **fundamental dilemma** that LSTM resolves.
+이것이 LSTM이 푸는 **근본적인 딜레마**이다.
 
 ---
 
-## The Gradient Highway: Cell State
+## 기울기의 고속도로: 세포 상태
 
-### The Key Architectural Innovation
+### 구조의 핵심 혁신
 
-LSTM introduces a separate **cell state** $c_t$ with an additive update rule:
+LSTM은 덧셈 갱신 규칙을 갖춘 별도의 **세포 상태** $c_t$을 들여온다.
 
 $$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$$
 
-This is fundamentally different from the multiplicative update in vanilla RNNs. The cell state acts as a **gradient highway**—a path where gradients can flow with minimal transformation.
+이는 기본 RNN의 곱셈 갱신과 근본적으로 다르다. 세포 상태는 **기울기의 고속도로**, 곧 기울기가 거의 변형되지 않고 흐르는 길 노릇을 한다.
 
-### Gradient Through Cell State: Rigorous Derivation
+### 세포 상태를 지나는 기울기: 엄밀한 유도
 
-Taking the derivative with respect to $c_{t-1}$:
+$c_{t-1}$에 대해 미분하면 다음과 같다.
 
 $$\frac{\partial c_t}{\partial c_{t-1}} = \frac{\partial}{\partial c_{t-1}}\left[f_t \odot c_{t-1} + i_t \odot \tilde{c}_t\right]$$
 
-Applying the product rule:
+곱의 미분법을 적용하면 다음과 같다.
 
 $$\frac{\partial c_t}{\partial c_{t-1}} = \text{diag}(f_t) + \underbrace{c_{t-1} \odot \frac{\partial f_t}{\partial c_{t-1}} + \tilde{c}_t \odot \frac{\partial i_t}{\partial c_{t-1}} + i_t \odot \frac{\partial \tilde{c}_t}{\partial c_{t-1}}}_{\text{indirect paths through } h_{t-1}}$$
 
-The **crucial observation**: the first term $\text{diag}(f_t)$ provides a direct, unobstructed gradient path. When $f_t \approx 1$:
+**결정적인 관찰**: 첫 항 $\text{diag}(f_t)$이 막힘없는 곧바른 기울기 경로를 준다. $f_t \approx 1$이면 다음과 같다.
 
 $$\frac{\partial c_t}{\partial c_{t-1}} \approx I + \text{(small indirect terms)}$$
 
-This means the Jacobian is close to the identity matrix, allowing gradients to flow unchanged.
+곧 야코비 행렬이 항등 행렬에 가까워 기울기가 그대로 흐른다.
 
-### The Constant Error Carousel
+### 일정 오차 회전목마
 
-Hochreiter and Schmidhuber originally called this the **Constant Error Carousel (CEC)**. The key property:
+Hochreiter와 Schmidhuber는 이를 본디 **일정 오차 회전목마(CEC)**라 불렀다. 핵심 성질은 다음과 같다.
 
 $$\frac{\partial c_t}{\partial c_{t-k}} = \prod_{j=t-k}^{t-1} \frac{\partial c_{j+1}}{\partial c_j} \approx \prod_{j=t-k}^{t-1} \text{diag}(f_{j+1})$$
 
-If forget gates are consistently near 1, this product stays close to the identity:
+망각 문이 한결같이 1에 가까우면 이 곱이 항등에 가깝게 머문다.
 
 $$\prod_{j=t-k}^{t-1} \text{diag}(f_{j+1}) \approx I$$
 
-**This is the mathematical essence of why LSTMs work.**
+**LSTM이 통하는 까닭의 수학적 알맹이가 바로 이것이다.**
 
 ---
 
-## Contrast with Vanilla RNN
+## 기본 RNN과의 대비
 
-| Aspect | Vanilla RNN | LSTM |
+| 항목 | 기본 RNN | LSTM |
 |--------|-------------|------|
-| State update | $h_t = \tanh(W_{hh}h_{t-1} + ...)$ | $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$ |
-| Gradient path | Multiplicative (through $W_{hh}$) | Additive (through $f_t$) |
-| Jacobian | $\text{diag}(\tanh') \cdot W_{hh}$ | $\text{diag}(f_t) + \text{indirect}$ |
-| Eigenvalues | Must tune $W_{hh}$ carefully | $f_t$ learned per-timestep |
-| Long-range | Exponential decay/growth | Can maintain $\approx 1$ |
+| 상태 갱신 | $h_t = \tanh(W_{hh}h_{t-1} + \dots)$ | $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$ |
+| 기울기 경로 | 곱셈 ($W_{hh}$을 지남) | 덧셈 ($f_t$을 지남) |
+| 야코비 행렬 | $\text{diag}(\tanh') \cdot W_{hh}$ | $\text{diag}(f_t)$에 간접 항 |
+| 고윳값 | $W_{hh}$을 꼼꼼히 맞추어야 한다 | $f_t$을 시각마다 배운다 |
+| 먼 거리 | 지수적으로 줄거나 는다 | $\approx 1$을 지킬 수 있다 |
 
-### Mathematical Comparison of Gradient Decay
+### 기울기 감소의 수학적 비교
 
-**Vanilla RNN** (assuming $\|\text{diag}(\tanh') \cdot W_{hh}\| \approx \gamma$):
+**기본 RNN** ($\|\text{diag}(\tanh') \cdot W_{hh}\| \approx \gamma$이라 하면):
 
 $$\left\|\frac{\partial h_t}{\partial h_{t-k}}\right\| \approx \gamma^k$$
 
-**LSTM** (assuming forget gates average to $\bar{f}$):
+**LSTM** (망각 문의 평균이 $\bar{f}$이라 하면):
 
 $$\left\|\frac{\partial c_t}{\partial c_{t-k}}\right\| \approx \bar{f}^k + O(\text{indirect paths})$$
 
-The difference: $\gamma$ is determined by fixed weights and saturating activations, while $\bar{f}$ is **learned** and can adapt to the task.
+차이는 이렇다. $\gamma$은 고정된 가중치와 포화하는 활성화가 정하지만 $\bar{f}$은 **배우는 것**이라 과제에 맞추어 달라질 수 있다.
 
 ---
 
-## Complete Gradient Path Analysis
+## 온전한 기울기 경로 분석
 
-### Full Backpropagation Equations
+### 온전한 역전파 식
 
-Let's trace the complete gradient flow from loss $\mathcal{L}$ to parameters at time $t-k$.
+손실 $\mathcal{L}$에서 시각 $t-k$의 매개변수까지 기울기가 흐르는 길을 따라가 보자.
 
-**Step 1**: Gradient to output
+**1단계**: 출력까지의 기울기
 
 $$\frac{\partial \mathcal{L}}{\partial h_t}$$
 
-**Step 2**: Hidden state to cell state
+**2단계**: 숨은 상태에서 세포 상태로
 
 $$\frac{\partial h_t}{\partial c_t} = \text{diag}(o_t) \cdot \text{diag}(\tanh'(c_t))$$
 
-**Step 3**: Cell state backward through time
+**3단계**: 세포 상태를 시간을 거슬러
 
 $$\frac{\partial c_t}{\partial c_{t-1}} = \text{diag}(f_t) + \text{indirect terms}$$
 
-**Step 4**: Gradient accumulation at each timestep
+**4단계**: 시각마다 기울기 쌓기
 
-The total gradient to $c_{t-k}$ accumulates contributions:
+$c_{t-k}$까지의 전체 기울기는 여러 몫이 쌓인 것이다.
 
 $$\frac{\partial \mathcal{L}}{\partial c_{t-k}} = \sum_{j=t-k}^{T} \frac{\partial \mathcal{L}}{\partial h_j} \cdot \frac{\partial h_j}{\partial c_j} \cdot \frac{\partial c_j}{\partial c_{t-k}}$$
 
-### Gradient Paths Visualization
+### 기울기 경로 그려 보기
 
 ```
 Loss at time T
@@ -154,25 +149,25 @@ LEGEND:
 ←── Indirect path (through hidden states and gates)
 ```
 
-### Indirect Path Contributions
+### 간접 경로의 몫
 
-The indirect paths, while smaller, provide important gradient signal:
+간접 경로는 작기는 해도 중요한 기울기 신호를 준다.
 
 $$\frac{\partial c_t}{\partial c_{t-1}}\bigg|_{\text{indirect}} = \frac{\partial c_t}{\partial h_{t-1}} \cdot \frac{\partial h_{t-1}}{\partial c_{t-1}}$$
 
-Expanding:
+펼치면 다음과 같다.
 
 $$= \left(\frac{\partial f_t}{\partial h_{t-1}} \odot c_{t-1} + \frac{\partial i_t}{\partial h_{t-1}} \odot \tilde{c}_t + \frac{\partial \tilde{c}_t}{\partial h_{t-1}} \odot i_t\right) \cdot \text{diag}(o_{t-1}) \cdot \text{diag}(\tanh'(c_{t-1}))$$
 
-These indirect paths allow gradients to influence gate computations, enabling the network to learn **when** to remember and forget.
+이 간접 경로 덕분에 기울기가 문의 계산에 영향을 주어, 신경망이 **언제** 기억하고 잊을지 배울 수 있다.
 
 ---
 
-## The Role of Each Gate in Gradient Flow
+## 기울기의 흐름에서 각 문의 구실
 
-### Forget Gate: The Highway Controller
+### 망각 문: 고속도로의 관리자
 
-The forget gate $f_t$ is the **primary determinant** of gradient flow:
+망각 문 $f_t$이 기울기 흐름을 **가장 크게 좌우한다**.
 
 ```python
 import torch
@@ -182,7 +177,7 @@ import numpy as np
 
 def analyze_forget_gate_impact():
     """
-    Demonstrate how forget gate values affect gradient propagation.
+    망각 문의 값이 기울기 전파에 어떤 영향을 주는지 보인다.
     """
     scenarios = {
         'Always forget (f=0.0)': 0.0,
@@ -206,10 +201,9 @@ def analyze_forget_gate_impact():
     
     print("\nKey Insight: Even f=0.95 leads to 0.95^100 ≈ 0.006 gradient magnitude")
 
-
 def visualize_forget_gate_gradient_decay():
     """
-    Visualize gradient decay for different forget gate values.
+    망각 문의 값에 따른 기울기의 감소를 그려 본다.
     """
     forget_values = [0.5, 0.8, 0.9, 0.95, 0.99, 1.0]
     max_length = 200
@@ -230,68 +224,67 @@ def visualize_forget_gate_gradient_decay():
     plt.show()
 ```
 
-### Input Gate: Modulating New Information
+### 입력 문: 새 정보 조절하기
 
-The input gate $i_t$ affects gradients indirectly:
+입력 문 $i_t$은 기울기에 간접적으로 영향을 준다.
 
 $$\frac{\partial c_t}{\partial \tilde{c}_t} = i_t$$
 
-When $i_t \approx 0$, the network ignores new information and gradients don't flow to the candidate computation. This can cause issues if the network learns to always ignore input.
+$i_t \approx 0$이면 신경망이 새 정보를 무시하고 기울기가 후보 계산으로 흐르지 않는다. 신경망이 늘 입력을 무시하는 법을 배우면 문제가 될 수 있다.
 
-### Output Gate: The Visibility Controller
+### 출력 문: 보임을 다스리는 문
 
-The output gate $o_t$ affects how gradients flow from $h_t$ to $c_t$:
+출력 문 $o_t$은 $h_t$에서 $c_t$으로 기울기가 흐르는 방식에 영향을 준다.
 
 $$\frac{\partial h_t}{\partial c_t} = o_t \odot \tanh'(c_t)$$
 
-When $o_t \approx 0$, the cell state is "hidden" from the output, and gradients from the loss have reduced influence on the cell state at that timestep.
+$o_t \approx 0$이면 세포 상태가 출력에서 "가려져" 그 시각에 손실에서 오는 기울기가 세포 상태에 미치는 영향이 줄어든다.
 
 ---
 
-## Empirical Gradient Analysis
+## 실험적 기울기 분석
 
 ```python
 def analyze_gradient_flow(model, seq_length=100, input_size=64, 
                           num_samples=50, model_type='lstm'):
     """
-    Comprehensive gradient flow analysis for RNN variants.
+    여러 RNN 판본의 기울기 흐름을 두루 분석한다.
     
-    Returns gradient norms at each timestep, measuring how well
-    gradients propagate from the final output back through time.
+    시각마다 기울기의 노름을 돌려주어, 마지막 출력에서 시간을 거슬러
+    기울기가 얼마나 잘 전파되는지 잰다.
     """
     gradient_norms = torch.zeros(seq_length)
     
     for _ in range(num_samples):
-        # Random input
+        # 무작위 입력
         x = torch.randn(1, seq_length, input_size, requires_grad=True)
         
-        # Forward pass
+        # 순전파
         outputs, _ = model(x)
         
-        # Backprop from final output
+        # 마지막 출력에서 역전파
         loss = outputs[0, -1, :].sum()
         loss.backward()
         
-        # Measure gradient at each timestep
+        # 시각마다 기울기 재기
         for t in range(seq_length):
             gradient_norms[t] += x.grad[0, t, :].norm().item()
         
-        # Reset for next sample
+        # 다음 표본을 위해 초기화
         x.grad.zero_()
     
     gradient_norms /= num_samples
     return gradient_norms
 
-
 def comprehensive_gradient_comparison():
     """
-    Compare gradient flow across RNN, LSTM, and GRU.
+    RNN과 LSTM과 GRU의 기울기 흐름을 견준다.
     """
     seq_length = 100
     hidden_size = 128
     input_size = 64
     
-    # Models
+    # 모델들
     models = {
         'RNN': nn.RNN(input_size, hidden_size, batch_first=True),
         'LSTM': nn.LSTM(input_size, hidden_size, batch_first=True),
@@ -302,11 +295,11 @@ def comprehensive_gradient_comparison():
     for name, model in models.items():
         results[name] = analyze_gradient_flow(model, seq_length, input_size)
     
-    # Visualization
+    # 시각화
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     timesteps = np.arange(seq_length)
     
-    # Linear scale
+    # 선형 눈금
     ax = axes[0]
     for name, grads in results.items():
         ax.plot(timesteps, grads.numpy(), label=name, linewidth=2)
@@ -316,7 +309,7 @@ def comprehensive_gradient_comparison():
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Log scale
+    # 로그 눈금
     ax = axes[1]
     for name, grads in results.items():
         ax.semilogy(timesteps, grads.numpy(), label=name, linewidth=2)
@@ -326,7 +319,7 @@ def comprehensive_gradient_comparison():
     ax.legend()
     ax.grid(True, alpha=0.3)
     
-    # Decay rate analysis
+    # 감소율 분석
     ax = axes[2]
     for name, grads in results.items():
         decay_rates = grads[:-1] / (grads[1:] + 1e-10)
@@ -342,7 +335,7 @@ def comprehensive_gradient_comparison():
     plt.tight_layout()
     plt.show()
     
-    # Quantitative summary
+    # 수치 요약
     print("\nGradient Flow Summary:")
     print("=" * 60)
     for name, grads in results.items():
@@ -363,29 +356,29 @@ def comprehensive_gradient_comparison():
 
 ---
 
-## Why LSTM Gradients Can Still Vanish
+## LSTM에서도 기울기가 사라질 수 있는 까닭
 
-Despite the gradient highway, LSTMs are not immune to vanishing gradients. Understanding when and why helps design better training procedures.
+기울기의 고속도로가 있어도 LSTM이 기울기 소실에서 완전히 자유롭지는 않다. 언제 왜 그런지 알면 더 나은 학습 절차를 설계할 수 있다.
 
-### Condition 1: Forget Gate Saturation
+### 조건 1: 망각 문의 포화
 
-If the forget gate learns to output values near 0 (to forget aggressively), the gradient highway is blocked:
+망각 문이 (세게 잊으려고) 0에 가까운 값을 내는 법을 배우면 기울기의 고속도로가 막힌다.
 
 $$f_t \approx 0 \implies \frac{\partial c_t}{\partial c_{t-1}} \approx 0$$
 
-**Solution**: Initialize forget gate bias to 1–2 to encourage remembering by default.
+**해법**: 기본적으로 기억하도록 망각 문의 편향을 1~2로 초기화한다.
 
 ```python
 def initialize_forget_gate_bias(lstm, bias_value=1.0):
     """
-    Initialize forget gate bias to encourage remembering.
+    기억하도록 이끌려고 망각 문의 편향을 초기화한다.
     
-    In PyTorch LSTM, biases are ordered: [input, forget, cell, output]
+    PyTorch의 LSTM에서 편향의 순서는 [입력, 망각, 세포, 출력]이다.
     """
     for name, param in lstm.named_parameters():
         if 'bias_ih' in name or 'bias_hh' in name:
             n = param.size(0)
-            # Forget gate is the second quarter
+            # 망각 문은 두 번째 사분면에 있다
             start = n // 4
             end = n // 2
             param.data[start:end].fill_(bias_value)
@@ -393,9 +386,9 @@ def initialize_forget_gate_bias(lstm, bias_value=1.0):
     print(f"Initialized forget gate biases to {bias_value}")
 ```
 
-### Condition 2: Very Long Sequences
+### 조건 2: 아주 긴 순차열
 
-Even with $f_t = 0.99$, the gradient decays exponentially:
+$f_t = 0.99$이더라도 기울기는 지수적으로 줄어든다.
 
 $$0.99^{100} \approx 0.366$$
 
@@ -403,13 +396,13 @@ $$0.99^{500} \approx 0.007$$
 
 $$0.99^{1000} \approx 0.00004$$
 
-**This is a fundamental limitation.** For sequences of 1000+ tokens, even LSTMs struggle.
+**이것은 근본적인 한계이다.** 토큰이 1000개를 넘는 순차열에서는 LSTM도 애를 먹는다.
 
 ```python
 def demonstrate_long_sequence_decay():
-    """Show gradient decay for realistic forget gate values."""
+    """현실적인 망각 문 값에 대한 기울기의 감소를 보인다."""
     
-    # Realistic forget gate values from trained models
+    # 학습된 모델에서 나온 현실적인 망각 문 값
     realistic_f_values = [0.9, 0.95, 0.99]
     lengths = [50, 100, 200, 500, 1000, 2000]
     
@@ -424,32 +417,32 @@ def demonstrate_long_sequence_decay():
             print(f"  k={k:4d}: gradient = {gradient:.2e} {status}")
 ```
 
-### Condition 3: Indirect Path Dominance
+### 조건 3: 간접 경로가 주도할 때
 
-For some tasks, the important gradient signal flows through indirect paths (via gates), not the direct cell state path. If these indirect paths vanish, learning suffers even with healthy cell state gradients.
+어떤 과제에서는 중요한 기울기 신호가 곧바른 세포 상태 경로가 아니라 (문을 거치는) 간접 경로로 흐른다. 그 간접 경로가 사라지면 세포 상태의 기울기가 멀쩡해도 학습이 나빠진다.
 
-### Condition 4: Output Gate Blocking
+### 조건 4: 출력 문이 막을 때
 
-If the output gate $o_t \approx 0$, gradients from the loss cannot easily reach the cell state:
+출력 문이 $o_t \approx 0$이면 손실에서 오는 기울기가 세포 상태에 닿기 어렵다.
 
 $$\frac{\partial h_t}{\partial c_t} = o_t \odot \tanh'(c_t) \approx 0$$
 
 ---
 
-## Gradient Flow Diagnostics
+## 기울기 흐름 진단
 
-### Comprehensive Diagnostic Tool
+### 종합 진단 도구
 
 ```python
 class LSTMGradientDiagnostics:
     """
-    Comprehensive gradient flow diagnostics for LSTM networks.
+    LSTM 신경망의 기울기 흐름을 두루 진단한다.
     
-    Monitors gradient health and identifies potential issues:
-    - Vanishing gradients (cell gradients too small)
-    - Exploding gradients (cell gradients too large)
-    - Dead gates (forget/input gates stuck at 0 or 1)
-    - Effective memory length
+    기울기의 건강을 살피고 있을 법한 문제를 짚어 낸다.
+    - 기울기 소실 (세포의 기울기가 너무 작다)
+    - 기울기 폭발 (세포의 기울기가 너무 크다)
+    - 죽은 문 (망각 문이나 입력 문이 0이나 1에 붙박였다)
+    - 실효 기억 길이
     """
     
     def __init__(self, model):
@@ -459,7 +452,7 @@ class LSTMGradientDiagnostics:
         self.hooks = []
     
     def register_hooks(self):
-        """Register forward and backward hooks."""
+        """순전파와 역전파 훅을 등록한다."""
         def forward_hook(module, input, output):
             if isinstance(output, tuple):
                 hidden, (h_n, c_n) = output
@@ -484,7 +477,7 @@ class LSTMGradientDiagnostics:
                 self.hooks.append(module.register_full_backward_hook(backward_hook))
     
     def analyze(self, verbose=True):
-        """Analyze collected gradient statistics."""
+        """모은 기울기 통계를 분석한다."""
         if not self.gradient_history:
             print("No gradients captured. Run training steps first.")
             return None
@@ -520,33 +513,33 @@ class LSTMGradientDiagnostics:
         return analysis
     
     def cleanup(self):
-        """Remove hooks."""
+        """훅을 없앤다."""
         for hook in self.hooks:
             hook.remove()
         self.hooks = []
 ```
 
-### Effective Memory Length Measurement
+### 실효 기억 길이 재기
 
 ```python
 def measure_effective_memory_length(model, input_size, max_length=500, 
                                      threshold=0.01, num_trials=20):
     """
-    Measure how far back gradients effectively propagate.
+    기울기가 실제로 얼마나 멀리 거슬러 전파되는지 잰다.
     
-    The effective memory length is where gradient magnitude falls
-    below `threshold` of the maximum gradient.
+    실효 기억 길이는 기울기의 크기가 최댓값의 `threshold` 아래로
+    떨어지는 지점이다.
     
-    Args:
-        model: LSTM model
-        input_size: Input feature dimension
-        max_length: Maximum sequence length to test
-        threshold: Gradient threshold (fraction of max)
-        num_trials: Number of trials for averaging
+    인수:
+        model: LSTM 모델
+        input_size: 입력 특징의 차원
+        max_length: 시험할 순차열의 최대 길이
+        threshold: 기울기의 문턱값 (최댓값에 대한 비율)
+        num_trials: 평균을 낼 시행 횟수
     
-    Returns:
-        effective_length: Estimated effective memory
-        gradient_profile: Full gradient profile
+    반환값:
+        effective_length: 어림한 실효 기억
+        gradient_profile: 기울기의 전체 프로파일
     """
     gradient_profile = torch.zeros(max_length)
     
@@ -557,27 +550,27 @@ def measure_effective_memory_length(model, input_size, max_length=500,
         
         outputs, _ = model(x)
         
-        # Backprop from final timestep
+        # 마지막 시각에서 역전파
         loss = outputs[0, -1, :].sum()
         loss.backward()
         
-        # Record gradients
+        # 기울기 기록
         for t in range(max_length):
             gradient_profile[t] += x.grad[0, t, :].norm().item()
         
-        # Clear gradients
+        # 기울기 지우기
         model.zero_grad()
     
     gradient_profile /= num_trials
     
-    # Normalize
+    # 정규화
     max_grad = gradient_profile.max()
     normalized = gradient_profile / max_grad
     
-    # Find effective length
+    # 실효 길이 찾기
     effective_length = (normalized > threshold).sum().item()
     
-    # Also compute half-life
+    # 반감기도 계산
     half_life = (normalized > 0.5).sum().item()
     
     print(f"Effective Memory Analysis (threshold={threshold}):")
@@ -590,62 +583,62 @@ def measure_effective_memory_length(model, input_size, max_length=500,
 
 ---
 
-## Comparison with Modern Architectures
+## 요즘 구조와 견주기
 
-### Transformers: Self-Attention as Ultimate Highway
+### 트랜스포머: 궁극의 고속도로인 자기 어텐션
 
-Transformers solve the long-range gradient problem more directly:
+트랜스포머는 먼 거리 기울기 문제를 더 곧바로 푼다.
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
 
-Gradient from position $t$ to position $t-k$ flows through attention weights—a **direct path** with no multiplicative decay, regardless of distance.
+자리 $t$에서 자리 $t-k$까지의 기울기는 어텐션 가중치를 타고 흐른다. 거리에 상관없이 곱셈으로 줄어들지 않는 **곧바른 경로**이다.
 
-| Aspect | LSTM | Transformer |
+| 항목 | LSTM | 트랜스포머 |
 |--------|------|-------------|
-| Gradient path | Through forget gates | Through attention |
-| Distance dependence | Exponential decay | No decay (in theory) |
-| Computation | Sequential | Parallel |
-| Memory | O(hidden_size) | O(sequence_length²) |
+| 기울기 경로 | 망각 문을 지남 | 어텐션을 지남 |
+| 거리 의존 | 지수적 감소 | (이론적으로) 감소 없음 |
+| 계산 | 순차적 | 병렬 |
+| 메모리 | O(hidden_size) | O(sequence_length²) |
 
-### Highway Networks and Skip Connections
+### 하이웨이 신경망과 건너뛰기 연결
 
-The LSTM cell state inspired Highway Networks and ResNets:
+LSTM의 세포 상태는 하이웨이 신경망과 ResNet에 영감을 주었다.
 
 $$y = T(x) \cdot H(x) + (1 - T(x)) \cdot x$$
 
-Compare to LSTM with coupled gates:
+문을 묶은 LSTM과 견주어 보라.
 
 $$c_t = f_t \odot \tilde{c}_t + (1 - f_t) \odot c_{t-1}$$
 
-The principle is identical: **additive updates preserve gradients**.
+원리는 똑같다. **덧셈 갱신이 기울기를 지킨다.**
 
 ---
 
-## Summary
+## 요약
 
-LSTM gradient flow is enabled by the **additive cell state update**:
+LSTM에서 기울기가 흐를 수 있는 것은 **덧셈 세포 상태 갱신** 덕분이다.
 
 $$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$$
 
-Key insights:
+핵심 착상은 다음과 같다.
 
-1. **Direct gradient path**: $\frac{\partial c_t}{\partial c_{t-1}} = f_t$ can stay near 1
-2. **Learned gating**: Network learns when to preserve vs. update information
-3. **Forget gate initialization**: Set bias to 1 to encourage gradient flow
-4. **Limitations persist**: Very long sequences (1000+) still challenge LSTMs
+1. **곧바른 기울기 경로**: $\frac{\partial c_t}{\partial c_{t-1}} = f_t$이 1 가까이 머무를 수 있다
+2. **학습되는 문**: 신경망이 정보를 지킬 때와 갱신할 때를 배운다
+3. **망각 문의 초기화**: 기울기가 흐르도록 편향을 1로 둔다
+4. **한계는 남는다**: 아주 긴 순차열(1000 이상)은 여전히 LSTM에 벅차다
 
-Diagnostic practices:
+진단할 때의 관행은 다음과 같다.
 
-- Monitor gradient norms during training
-- Measure effective memory length
-- Check for saturated gates
-- Use gradient clipping as safety net
+- 학습 중에 기울기의 노름을 살핀다
+- 실효 기억 길이를 잰다
+- 포화된 문이 있는지 확인한다
+- 안전망으로 기울기 자르기를 쓴다
 
-This analysis explains LSTM's historical success and motivates modern innovations: Transformers (direct attention), Highway Networks (skip connections), and various architectural improvements that further address the gradient flow challenge.
+이 분석은 LSTM이 거둔 역사적 성공을 설명하고, 트랜스포머(곧바른 어텐션), 하이웨이 신경망(건너뛰기 연결), 그리고 기울기 흐름 문제를 더 파고든 여러 구조적 개선이 나오게 된 까닭을 밝혀 준다.
 
 ---
 
-## References
+## 참고 문헌
 
 1. Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation*, 9(8), 1735-1780.
 
@@ -654,3 +647,35 @@ This analysis explains LSTM's historical success and motivates modern innovation
 3. Pascanu, R., Mikolov, T., & Bengio, Y. (2013). On the Difficulty of Training Recurrent Neural Networks. *ICML*.
 
 4. Greff, K., Srivastava, R. K., Koutník, J., Steunebrink, B. R., & Schmidhuber, J. (2017). LSTM: A Search Space Odyssey. *IEEE Transactions on Neural Networks and Learning Systems*, 28(10), 2222-2232.
+
+## 연습문제
+
+**연습문제 1.**
+LSTM 세포 상태를 지나는 기울기의 흐름을 유도하고 그것이 기울기 소실 문제를 피함을 보여라.
+
+??? success "연습문제 1 풀이"
+    세포 상태의 기울기는 $\frac{\partial c_T}{\partial c_t} = \prod_{k=t+1}^T f_k$이다. 망각 문이 1에 가까우면(기억하면) 이 곱이 1 가까이 머물러 기울기가 여러 시각에 걸쳐 막힘없이 흐른다. 지수적으로 줄어드는 기본 RNN의 $\prod_k \sigma_{\max}(W_h)\tanh'(z_k)$과 견주어 보라.
+
+---
+
+**연습문제 2.**
+세포 상태와 잔차 연결 사이의 비유를 설명하라.
+
+??? success "연습문제 2 풀이"
+    세포 갱신 $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$은 ResNet의 $y = x + F(x)$과 비슷한 덧셈 갱신이다. 세포 상태가 기울기의 '고속도로' 노릇을 하고 망각 문이 기울기가 얼마나 지나갈지 다스린다. 두 장치 모두 덧셈 건너뛰기 연결로 기울기 소실을 푼다.
+
+---
+
+**연습문제 3.**
+실제로 세포 상태는 대체로 어떤 정보를 담는 법을 배우는가?
+
+??? success "연습문제 3 풀이"
+    언어 모형에서는 문법적 상태(열린 괄호, 따옴표), 먼 거리의 일치(주어와 동사의 수), 감성의 극성 따위이다. 시계열에서는 추세의 방향과 계절의 위상이다. 망각 문은 맥락이 바뀔 때 쓸모없어진 정보를 골라 지우는 법을 배운다.
+
+---
+
+**연습문제 4.**
+감성 분석 LSTM의 망각 문 활성값을 시간에 따라 그려 보고 그 무늬를 해석하라.
+
+??? success "연습문제 4 풀이"
+    망각 문이 1에 가까우면(흰색) 기억하는 것이고 0에 가까우면(검은색) 잊는 것이다. 흔한 무늬는 이렇다. 문장 경계 부근에서 문이 닫히고, 부정어가 앞선 감성을 잊게 만들며, 접속어('but', 'however')가 뒤 절을 위해 상태를 되돌리게 한다.

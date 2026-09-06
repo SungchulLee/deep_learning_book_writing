@@ -1,143 +1,121 @@
-# Mixup
+# 믹스업
+## 개요
 
+믹스업은 학습 예와 그 레이블 쌍의 *볼록 결합*으로 신경망을 학습시키는 데이터 증강 겸 정칙화 기법이다. 기존 데이터 점 사이에 놓이는 가상의 학습 표본을 만들어 모델이 학습 예 사이에서 선형에 가깝게 행동하도록 이끌며, 그 결과 결정 경계가 더 매끄러워지고 일반화가 좋아지며 예측의 보정도 나아진다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 수학적 정식화
 
-## Overview
+### 핵심 연산
 
-Mixup is a data augmentation and regularization technique that trains neural networks on *convex combinations* of pairs of training examples and their labels. By creating virtual training samples that lie between existing data points, Mixup encourages the model to behave linearly between training examples, leading to smoother decision boundaries, improved generalization, and better calibrated predictions.
-
-## Mathematical Formulation
-
-### Core Operation
-
-Given two training examples $(x_i, y_i)$ and $(x_j, y_j)$, Mixup creates a virtual example:
+두 학습 예 $(x_i, y_i)$과 $(x_j, y_j)$이 주어지면 믹스업은 가상의 예를 만든다.
 
 $$
-
 \tilde{x} = \lambda x_i + (1 - \lambda) x_j
-
 $$
 
 $$
-
 \tilde{y} = \lambda y_i + (1 - \lambda) y_j
-
 $$
 
-where the mixing coefficient $\lambda$ is sampled from a Beta distribution:
+여기서 혼합 계수 $\lambda$은 베타분포에서 뽑는다.
 
 $$
-
 \lambda \sim \text{Beta}(\alpha, \alpha), \quad \alpha > 0
-
 $$
 
-The hyperparameter $\alpha$ controls the strength of interpolation. When $\alpha \to 0$, $\lambda$ concentrates at 0 and 1 (no mixing); when $\alpha \to \infty$, $\lambda$ concentrates at 0.5 (maximum mixing).
+초매개변수 $\alpha$은 보간의 강도를 조절한다. $\alpha \to 0$이면 $\lambda$이 0과 1에 몰리고(섞이지 않는다), $\alpha \to \infty$이면 $\lambda$이 0.5에 몰린다(가장 많이 섞인다).
 
-### Vicinal Risk Minimization
+### 근방 위험 최소화
 
-Standard Empirical Risk Minimization (ERM) assumes the training distribution is a set of delta functions centered at the training points:
+표준적인 경험적 위험 최소화(ERM)는 학습 분포가 학습 점을 중심으로 하는 델타 함수의 모임이라고 가정한다.
 
 $$
-
 \mathcal{L}_{\text{ERM}} = \frac{1}{n} \sum_{i=1}^{n} \ell\left(f(x_i), y_i\right)
-
 $$
 
-Mixup implements **Vicinal Risk Minimization (VRM)**, which defines a vicinity distribution around each training point. The Mixup vicinity is the set of all convex combinations:
+믹스업은 각 학습 점 둘레에 근방 분포를 정의하는 **근방 위험 최소화(VRM)**를 구현한다. 믹스업의 근방은 모든 볼록 결합의 모임이다.
 
 $$
-
 \mathcal{L}_{\text{Mixup}} = \mathbb{E}_{\lambda \sim \text{Beta}(\alpha, \alpha)} \left[ \frac{1}{n^2} \sum_{i=1}^{n} \sum_{j=1}^{n} \ell\left(f(\lambda x_i + (1-\lambda) x_j), \; \lambda y_i + (1-\lambda) y_j\right) \right]
-
 $$
 
-In practice, pairs are sampled by random permutation within each mini-batch rather than computing all $n^2$ pairs.
+실무에서는 $n^2$개의 쌍을 모두 계산하지 않고 미니배치 안에서 무작위 순열로 쌍을 뽑는다.
 
-### Properties of the Beta Distribution
+### 베타분포의 성질
 
-The Beta$(\alpha, \alpha)$ distribution is symmetric around 0.5:
+베타$(\alpha, \alpha)$ 분포는 0.5를 중심으로 대칭이다.
 
-| $\alpha$ | Distribution Shape | Mixing Behavior |
+| $\alpha$ | 분포의 모양 | 섞임의 양상 |
 |----------|-------------------|-----------------|
-| $\alpha \to 0$ | Concentrated at 0 and 1 | Almost no mixing (recovers ERM) |
-| $\alpha = 0.2$ | U-shaped | Mostly one sample, occasionally mixed |
-| $\alpha = 1.0$ | Uniform on [0, 1] | All mixing ratios equally likely |
-| $\alpha = 2.0$ | Bell-shaped around 0.5 | Mostly equal-weight blends |
+| $\alpha \to 0$ | 0과 1에 몰림 | 거의 섞이지 않음 (ERM으로 돌아감) |
+| $\alpha = 0.2$ | U자 모양 | 대개 한쪽 표본, 이따금 섞임 |
+| $\alpha = 1.0$ | [0, 1] 위의 균등분포 | 모든 혼합 비율이 똑같이 가능 |
+| $\alpha = 2.0$ | 0.5 둘레의 종 모양 | 대개 같은 비중으로 섞임 |
 
-For classification, $\alpha \in [0.1, 0.4]$ typically works best, providing enough regularization without overly blurring class boundaries.
+분류에서는 보통 $\alpha \in [0.1, 0.4]$이 가장 잘 통하며, 클래스 경계를 지나치게 흐리지 않으면서 충분한 정칙화를 준다.
 
-### Label Representation
+### 레이블의 표현
 
-Mixup requires labels to be representable as continuous vectors. For classification with $K$ classes, labels are converted to one-hot vectors before mixing:
+믹스업은 레이블을 연속 벡터로 나타낼 수 있어야 한다. 클래스가 $K$개인 분류에서는 섞기 전에 레이블을 원-핫 벡터로 바꾼다.
 
 $$
-
 y_i = e_{c_i} \in \mathbb{R}^K, \quad \tilde{y} = \lambda \, e_{c_i} + (1-\lambda) \, e_{c_j}
-
 $$
 
-The loss is then computed against these soft targets using cross-entropy:
+그런 다음 교차 엔트로피로 이 부드러운 목표에 대한 손실을 계산한다.
 
 $$
-
 \ell(\tilde{y}, p) = -\sum_{k=1}^{K} \tilde{y}_k \log p_k = -\lambda \log p_{c_i} - (1-\lambda) \log p_{c_j}
-
 $$
 
-## Why Mixup Works
+## 믹스업이 통하는 이유
 
-### Linear Interpolation Prior
+### 선형 보간이라는 사전 지식
 
-Mixup enforces the prior that the model should behave approximately linearly between training examples:
+믹스업은 모델이 학습 예 사이에서 근사적으로 선형으로 행동해야 한다는 사전 지식을 강제한다.
 
 $$
-
 f(\lambda x_i + (1-\lambda) x_j) \approx \lambda f(x_i) + (1-\lambda) f(x_j)
-
 $$
 
-This is a strong but beneficial inductive bias that leads to smoother decision boundaries and reduces oscillations between training points.
+이는 강하지만 이로운 귀납 편향으로, 결정 경계를 더 매끄럽게 하고 학습 점 사이의 진동을 줄인다.
 
-### Regularization Effect
+### 정칙화 효과
 
-Mixup acts as a regularizer by reducing the model's capacity to memorize individual training examples. The network must learn representations that support meaningful interpolation, which favors simpler, more generalizable features.
+믹스업은 개별 학습 예를 외우는 모델의 능력을 줄여 정칙화 장치로 작동한다. 신경망은 의미 있는 보간을 뒷받침하는 표현을 배워야 하며, 이는 더 단순하고 더 잘 일반화되는 특징을 선호하게 만든다.
 
-### Calibration Improvement
+### 보정의 개선
 
-By training on a continuous distribution of soft targets rather than hard 0/1 labels, Mixup produces models whose output probabilities are better calibrated — the predicted confidence more closely matches the true accuracy.
+딱딱한 0/1 레이블 대신 부드러운 목표의 연속 분포로 학습하므로 믹스업은 출력 확률이 더 잘 보정된 모델을 만든다. 즉 예측된 확신도가 참 정확도에 더 가깝게 들어맞는다.
 
-### Gradient Analysis
+### 기울기 분석
 
-Thulasidasan et al. (2019) showed that Mixup reduces the norm of the Jacobian $\frac{\partial f(x)}{\partial x}$, acting as a form of Jacobian regularization that limits the model's sensitivity to input perturbations.
+Thulasidasan 등(2019)은 믹스업이 야코비 행렬 $\frac{\partial f(x)}{\partial x}$의 노름을 줄여, 입력의 섭동에 대한 모델의 민감도를 제한하는 야코비 정칙화의 한 형태로 작동함을 보였다.
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### Basic Mixup
+### 기본적인 믹스업
 
 ```python
 import torch
 import torch.nn as nn
 import numpy as np
 
-
 def mixup_data(x: torch.Tensor, y: torch.Tensor, 
                alpha: float = 0.2) -> tuple:
     """
-    Apply Mixup to a batch of data.
+    데이터 배치에 믹스업을 적용한다.
     
-    Args:
-        x: Input batch, shape (batch_size, ...)
-        y: Labels (class indices), shape (batch_size,)
-        alpha: Beta distribution parameter. Higher = more mixing.
+    인수:
+        x: 입력 배치, 모양 (batch_size, ...)
+        y: 레이블(클래스 인덱스), 모양 (batch_size,)
+        alpha: 베타분포의 매개변수. 클수록 더 많이 섞인다.
         
-    Returns:
-        mixed_x: Blended inputs
-        y_a: Original labels
-        y_b: Permuted labels
-        lam: Mixing coefficient
+    반환값:
+        mixed_x: 섞인 입력
+        y_a: 원래 레이블
+        y_b: 순열을 적용한 레이블
+        lam: 혼합 계수
     """
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)
@@ -152,29 +130,27 @@ def mixup_data(x: torch.Tensor, y: torch.Tensor,
     
     return mixed_x, y_a, y_b, lam
 
-
 def mixup_criterion(criterion: nn.Module, pred: torch.Tensor,
                     y_a: torch.Tensor, y_b: torch.Tensor,
                     lam: float) -> torch.Tensor:
     """
-    Compute Mixup loss as weighted combination of two standard losses.
+    믹스업 손실을 두 표준 손실의 가중 결합으로 계산한다.
     
-    Args:
-        criterion: Base loss function (e.g., CrossEntropyLoss)
-        pred: Model predictions
-        y_a: First set of labels
-        y_b: Second set of labels
-        lam: Mixing coefficient
+    인수:
+        criterion: 바탕이 되는 손실 함수 (예: CrossEntropyLoss)
+        pred: 모델의 예측
+        y_a: 첫째 레이블 집합
+        y_b: 둘째 레이블 집합
+        lam: 혼합 계수
     """
     return lam * criterion(pred, y_a) + (1 - lam) * criterion(pred, y_b)
 ```
 
-### Complete Training Loop
+### 완전한 학습 루프
 
 ```python
 import torch.optim as optim
 from torch.utils.data import DataLoader
-
 
 def train_with_mixup(
     model: nn.Module,
@@ -185,18 +161,18 @@ def train_with_mixup(
     lr: float = 0.001
 ) -> dict:
     """
-    Train model with Mixup augmentation.
+    믹스업 증강으로 모델을 학습시킨다.
     
-    Args:
-        model: Neural network
-        train_loader: Training data
-        val_loader: Validation data
-        alpha: Mixup interpolation strength
-        epochs: Number of training epochs
-        lr: Learning rate
+    인수:
+        model: 신경망
+        train_loader: 학습 데이터
+        val_loader: 검증 데이터
+        alpha: 믹스업 보간의 세기
+        epochs: 학습 에포크 수
+        lr: 학습률
         
-    Returns:
-        Training history
+    반환값:
+        학습 이력
     """
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=1e-2)
@@ -204,14 +180,14 @@ def train_with_mixup(
     history = {'train_loss': [], 'val_loss': [], 'val_acc': []}
     
     for epoch in range(epochs):
-        # Training with Mixup
+        # 믹스업을 쓰는 학습
         model.train()
         train_loss = 0
         
         for X_batch, y_batch in train_loader:
             optimizer.zero_grad()
             
-            # Apply Mixup
+            # 믹스업 적용
             mixed_x, y_a, y_b, lam = mixup_data(X_batch, y_batch, alpha)
             
             outputs = model(mixed_x)
@@ -221,7 +197,7 @@ def train_with_mixup(
             optimizer.step()
             train_loss += loss.item()
         
-        # Validation (no Mixup)
+        # 검증 (믹스업 없음)
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
         
@@ -246,25 +222,25 @@ def train_with_mixup(
     return history
 ```
 
-## Mixup Variants
+## 믹스업의 변형
 
-### Manifold Mixup
+### 다양체 믹스업
 
-Instead of mixing in input space, Manifold Mixup applies the interpolation to hidden representations at a randomly selected layer:
+다양체 믹스업은 입력 공간에서 섞는 대신 무작위로 고른 층의 은닉 표현에 보간을 적용한다.
 
 ```python
 class ManifoldMixupModel(nn.Module):
     """
-    Model supporting Manifold Mixup at random hidden layers.
+    무작위 은닉층에서 다양체 믹스업을 지원하는 모델.
     
-    Reference: Verma et al., "Manifold Mixup: Better Representations by
+    참고: Verma 등, "Manifold Mixup: Better Representations by
                Interpolating Hidden States" (ICML 2019)
     """
     
     def __init__(self, input_dim, hidden_dims, output_dim):
         super().__init__()
         
-        # Build layers as a list for indexing
+        # 인덱싱을 위해 층을 목록으로 만든다
         self.layers = nn.ModuleList()
         prev_dim = input_dim
         for hidden_dim in hidden_dims:
@@ -277,50 +253,49 @@ class ManifoldMixupModel(nn.Module):
     
     def forward(self, x, mixup_layer=None, lam=None, index=None):
         """
-        Forward pass with optional Manifold Mixup.
+        다양체 믹스업을 선택적으로 쓰는 순전파.
         
-        Args:
-            x: Input tensor
-            mixup_layer: Layer index at which to apply Mixup (None = no Mixup)
-            lam: Mixing coefficient
-            index: Permutation indices for the batch
+        인수:
+            x: 입력 텐서
+            mixup_layer: 믹스업을 적용할 층의 인덱스 (None이면 믹스업 없음)
+            lam: 혼합 계수
+            index: 배치에 대한 순열 인덱스
         """
         for i, layer in enumerate(self.layers):
             x = layer(x)
             
-            # Apply Mixup at the selected layer
+            # 고른 층에서 믹스업 적용
             if mixup_layer is not None and i == mixup_layer:
                 x = lam * x + (1 - lam) * x[index]
         
         return self.output(x)
 
-
 def train_step_manifold_mixup(model, X_batch, y_batch, criterion, 
                                optimizer, alpha=0.2):
-    """Single training step with Manifold Mixup."""
+    """다양체 믹스업을 쓰는 학습 단계 하나."""
     optimizer.zero_grad()
     
-    # Randomly select a layer for mixing
+    # 섞을 층을 무작위로 고르기
     n_layers = len(model.layers)
-    mixup_layer = np.random.randint(0, n_layers + 1)  # +1 includes input space
+    mixup_layer = np.random.randint(0, n_layers + 1)  # +1은 입력 공간을 포함한다
     
-    # Sample mixing coefficient
+    # 혼합 계수 뽑기
     lam = np.random.beta(alpha, alpha) if alpha > 0 else 1.0
     
-    # Create permutation
+    # 순열 만들기
     batch_size = X_batch.size(0)
     index = torch.randperm(batch_size, device=X_batch.device)
     
     if mixup_layer == 0:
-        # Input-space Mixup
+        # 입력 공간에서의 믹스업
         mixed_x = lam * X_batch + (1 - lam) * X_batch[index]
         outputs = model(mixed_x)
     else:
-        # Hidden-layer Mixup
+        # 은닉층에서의 믹스업
         outputs = model(X_batch, mixup_layer=mixup_layer - 1, 
                        lam=lam, index=index)
     
-    # Mixed labels
+    # 섞인 레이블
     loss = lam * criterion(outputs, y_batch) + (1 - lam) * criterion(outputs, y_batch[index])
     
     loss.backward()
@@ -329,19 +304,19 @@ def train_step_manifold_mixup(model, X_batch, y_batch, criterion,
     return loss.item()
 ```
 
-### Batch-Level Mixup Strategies
+### 배치 수준의 믹스업 전략
 
 ```python
 class BatchMixup:
     """
-    Flexible Mixup with different pairing strategies.
+    여러 짝짓기 전략을 갖춘 유연한 믹스업.
     """
     
     def __init__(self, alpha=0.2, strategy='random'):
         """
-        Args:
-            alpha: Beta distribution parameter
-            strategy: Pairing strategy — 'random', 'cross_class', 'same_class'
+        인수:
+            alpha: 베타분포의 매개변수
+            strategy: 짝짓기 전략 — 'random', 'cross_class', 'same_class'
         """
         self.alpha = alpha
         self.strategy = strategy
@@ -357,11 +332,11 @@ class BatchMixup:
             index = torch.randperm(batch_size, device=x.device)
         
         elif self.strategy == 'cross_class':
-            # Pair each sample with a sample from a different class
+            # 각 표본을 다른 클래스의 표본과 짝짓기
             index = self._cross_class_permutation(y)
         
         elif self.strategy == 'same_class':
-            # Pair each sample with a sample from the same class
+            # 각 표본을 같은 클래스의 표본과 짝짓기
             index = self._same_class_permutation(y)
         
         else:
@@ -371,14 +346,14 @@ class BatchMixup:
         return mixed_x, y, y[index], lam
     
     def _cross_class_permutation(self, y):
-        """Create permutation pairing different classes."""
+        """서로 다른 클래스를 짝짓는 순열을 만든다."""
         batch_size = y.size(0)
         index = torch.randperm(batch_size, device=y.device)
         
-        # Try to ensure cross-class pairing (best effort)
+        # 되도록 클래스를 가로질러 짝지으려 시도한다
         for i in range(batch_size):
             if y[i] == y[index[i]]:
-                # Find a swap partner with different class
+                # 클래스가 다른 교환 상대 찾기
                 for j in range(i + 1, batch_size):
                     if y[i] != y[index[j]] and y[j] != y[index[i]]:
                         index[i], index[j] = index[j].clone(), index[i].clone()
@@ -386,11 +361,11 @@ class BatchMixup:
         return index
     
     def _same_class_permutation(self, y):
-        """Create permutation pairing same classes."""
+        """같은 클래스를 짝짓는 순열을 만든다."""
         batch_size = y.size(0)
         index = torch.arange(batch_size, device=y.device)
         
-        # Shuffle within each class
+        # 클래스 안에서 섞기
         for c in y.unique():
             class_mask = (y == c).nonzero(as_tuple=True)[0]
             if len(class_mask) > 1:
@@ -400,17 +375,17 @@ class BatchMixup:
         return index
 ```
 
-### Mixup for Regression
+### 회귀를 위한 믹스업
 
-Mixup applies directly to regression tasks without any modification to the label mixing:
+믹스업은 레이블 섞는 방식을 전혀 바꾸지 않고도 회귀 과제에 바로 적용된다.
 
 ```python
 def mixup_regression(x, y, alpha=0.2):
     """
-    Mixup for regression tasks.
+    회귀 과제를 위한 믹스업.
     
-    Since regression targets are already continuous, the label mixing
-    is straightforward interpolation.
+    회귀의 목푯값은 이미 연속이므로 레이블 섞기는
+    단순한 보간이 된다.
     """
     if alpha > 0:
         lam = np.random.beta(alpha, alpha)
@@ -424,27 +399,27 @@ def mixup_regression(x, y, alpha=0.2):
     return mixed_x, mixed_y
 ```
 
-## Combining Mixup with Other Techniques
+## 믹스업을 다른 기법과 결합하기
 
-### Mixup + Label Smoothing
+### 믹스업 + 레이블 평활화
 
-Both produce soft targets. When combined, reduce the label smoothing parameter:
+둘 다 부드러운 목표를 만든다. 함께 쓸 때에는 레이블 평활화 매개변수를 줄인다.
 
 ```python
 def mixup_with_label_smoothing(model, x, y, alpha=0.2, epsilon=0.05):
     """
-    Combine Mixup with mild label smoothing.
+    믹스업을 가벼운 레이블 평활화와 결합한다.
     
-    Use reduced epsilon since Mixup already softens labels.
+    믹스업이 이미 레이블을 부드럽게 하므로 epsilon을 줄여 쓴다.
     """
-    num_classes = 10  # adjust as needed
+    num_classes = 10  # 필요에 따라 조정하라
     
-    # Mixup
+    # 믹스업
     lam = np.random.beta(alpha, alpha) if alpha > 0 else 1.0
     index = torch.randperm(x.size(0), device=x.device)
     mixed_x = lam * x + (1 - lam) * x[index]
     
-    # Soft targets from Mixup
+    # 믹스업에서 온 부드러운 목표
     y_onehot = torch.zeros(x.size(0), num_classes, device=x.device)
     y_onehot.scatter_(1, y.unsqueeze(1), 1.0)
     y_onehot_perm = torch.zeros(x.size(0), num_classes, device=x.device)
@@ -452,10 +427,10 @@ def mixup_with_label_smoothing(model, x, y, alpha=0.2, epsilon=0.05):
     
     soft_targets = lam * y_onehot + (1 - lam) * y_onehot_perm
     
-    # Apply additional label smoothing
+    # 추가 레이블 평활화 적용
     soft_targets = (1 - epsilon) * soft_targets + epsilon / num_classes
     
-    # Compute loss
+    # 손실을 계산한다
     logits = model(mixed_x)
     log_probs = torch.log_softmax(logits, dim=-1)
     loss = -(soft_targets * log_probs).sum(dim=-1).mean()
@@ -463,52 +438,93 @@ def mixup_with_label_smoothing(model, x, y, alpha=0.2, epsilon=0.05):
     return loss
 ```
 
-### Mixup + CutMix
+### 믹스업 + 컷믹스
 
-Randomly choose between Mixup and CutMix per batch:
+배치마다 믹스업과 컷믹스 중 하나를 무작위로 고른다.
 
 ```python
 def mixup_or_cutmix(x, y, mixup_alpha=0.2, cutmix_alpha=1.0, 
                      cutmix_prob=0.5):
-    """Randomly apply either Mixup or CutMix per batch."""
+    """배치마다 믹스업이나 컷믹스 중 하나를 무작위로 적용한다."""
     if np.random.random() < cutmix_prob:
-        # Apply CutMix (see cutmix.md for implementation)
+        # 컷믹스 적용 (구현은 cutmix.md 참고)
         return cutmix_data(x, y, alpha=cutmix_alpha)
     else:
         return mixup_data(x, y, alpha=mixup_alpha)
 ```
 
-## Practical Guidelines
+## 실무 지침
 
-### Hyperparameter Selection
+### 초매개변수 선택
 
-| Parameter | Recommended Range | Notes |
+| 매개변수 | 권장 범위 | 비고 |
 |-----------|------------------|-------|
-| $\alpha$ (CIFAR-10) | 0.2 – 1.0 | Higher for smaller datasets |
-| $\alpha$ (ImageNet) | 0.1 – 0.4 | 0.2 is standard |
-| $\alpha$ (text) | 0.1 – 0.2 | Smaller for discrete data |
-| $\alpha$ (regression) | 0.1 – 0.4 | Similar to classification |
+| $\alpha$ (CIFAR-10) | 0.2 – 1.0 | 데이터셋이 작을수록 크게 |
+| $\alpha$ (ImageNet) | 0.1 – 0.4 | 0.2가 표준 |
+| $\alpha$ (텍스트) | 0.1 – 0.2 | 이산 데이터에는 작게 |
+| $\alpha$ (회귀) | 0.1 – 0.4 | 분류와 비슷 |
 
-### When to Use Mixup
+### 믹스업을 쓸 때
 
-1. **Limited training data**: Mixup is most beneficial when data is scarce
-2. **Overconfident models**: When models produce poorly calibrated predictions
-3. **Classification with many classes**: Soft targets help with fine-grained distinctions
-4. **Adversarial robustness desired**: Mixup improves robustness to small perturbations
+1. **학습 데이터가 적을 때**: 데이터가 부족할 때 믹스업이 가장 이롭다
+2. **지나치게 확신하는 모델**: 모델의 예측 보정이 나쁠 때
+3. **클래스가 많은 분류**: 부드러운 목표가 세밀한 구분에 도움이 된다
+4. **적대적 견고성이 필요할 때**: 믹스업은 작은 섭동에 대한 견고성을 높인다
 
-### When to Avoid Mixup
+### 믹스업을 피할 때
 
-1. **Object detection/segmentation**: Spatial label mixing is non-trivial (consider CutMix instead)
-2. **Very large $\alpha$**: Heavily mixed examples can confuse the optimizer
-3. **Highly structured data**: Where interpolation may not preserve semantic meaning
+1. **물체 검출/분할**: 공간적 레이블 섞기가 간단하지 않다(대신 컷믹스를 고려하라)
+2. **$\alpha$이 아주 클 때**: 심하게 섞인 예는 최적화기를 혼란스럽게 할 수 있다
+3. **짜임새가 강한 데이터**: 보간이 의미를 보존하지 못할 수 있는 경우
 
-### Evaluation Note
+### 평가에 대한 참고
 
-At evaluation time, Mixup is **never applied**. The model is evaluated on clean, unmodified data.
+평가 시점에는 믹스업을 **결코 적용하지 않는다**. 모델은 손대지 않은 깨끗한 데이터로 평가한다.
 
-## References
+## 참고 문헌
 
 1. Zhang, H., Cissé, M., Dauphin, Y. N., & Lopez-Paz, D. (2018). mixup: Beyond Empirical Risk Minimization. *ICLR*.
 2. Verma, V., et al. (2019). Manifold Mixup: Better Representations by Interpolating Hidden States. *ICML*.
 3. Thulasidasan, S., et al. (2019). On Mixup Training: Improved Calibration and Predictive Uncertainty for Deep Neural Networks. *NeurIPS*.
 4. Chapelle, O., Weston, J., Bottou, L., & Vapnik, V. (2001). Vicinal Risk Minimization. *NeurIPS*.
+
+## 연습문제
+
+**연습문제 1.**
+믹스업의 학습 목적 함수를 유도하고 왜 $\lambda \sim \text{Beta}(\alpha, \alpha)$인지 설명하라.
+
+??? success "연습문제 1 풀이"
+    믹스업은 가상의 학습 예를 만든다. $\lambda \sim \text{Beta}(\alpha, \alpha)$일 때 $\tilde{x} = \lambda x_i + (1-\lambda)x_j$, $\tilde{y} = \lambda y_i + (1-\lambda)y_j$이다. 베타분포는 대칭이며 $\alpha$으로 조절된다. $\alpha \to 0$이면 섞이지 않고, $\alpha = 1$이면 균등하며, $\alpha \to \infty$이면 언제나 반반으로 섞인다.
+
+---
+
+**연습문제 2.**
+PyTorch 학습 루프에서 믹스업을 구현하라.
+
+??? success "연습문제 2 풀이"
+    ```python
+    def mixup_data(x, y, alpha=0.2):
+        lam = torch.distributions.Beta(alpha, alpha).sample()
+        idx = torch.randperm(x.size(0))
+        mixed_x = lam * x + (1 - lam) * x[idx]
+        return mixed_x, y, y[idx], lam
+
+    mixed_x, y_a, y_b, lam = mixup_data(x, y)
+    loss = lam * criterion(model(mixed_x), y_a) + (1-lam) * criterion(model(mixed_x), y_b)
+    ```
+
+---
+
+**연습문제 3.**
+근방 위험 최소화의 관점에서 믹스업이 정칙화 장치로 작동하는 방식을 설명하라.
+
+??? success "연습문제 3 풀이"
+    표준적인 ERM은 경험적 분포(학습 점에 놓인 점질량)에 대한 위험을 최소화한다. 믹스업은 점질량을 '근방'(쌍의 볼록 결합)으로 바꾸어 경험적 분포를 매끄럽게 한다. 이는 학습 점 사이에서 선형적인 행동을 이끌어 학습된 함수의 복잡도를 줄인다.
+
+---
+
+**연습문제 4.**
+믹스업, 컷믹스, 다양체 믹스업을 비교하라. 각각은 언제 가장 알맞은가?
+
+??? success "연습문제 4 풀이"
+    믹스업은 화소 공간에서의 전역 보간으로 단순하고 효과적이다. 컷믹스는 한 이미지의 직사각형 조각을 다른 이미지에 붙여 공간 구조를 보존한다. 다양체 믹스업은 은닉층 공간에서 보간하여 더 추상적인 변이를 포착한다. 물체 검출에는 컷믹스가, 세밀한 인식에는 다양체 믹스업이 가장 잘 통한다.

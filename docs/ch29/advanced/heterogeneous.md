@@ -1,126 +1,159 @@
-# Heterogeneous Graphs
+# 뒤섞인 그래프
 
-Most real-world networks involve more than one kind of entity.  Academic
-graphs connect authors, papers, and venues through different relationships;
-financial networks link companies, banks, investors, and instruments.
-Standard GNNs treat all nodes and edges identically, losing this structural
-richness.  Heterogeneous graph neural networks restore it by assigning
-type-specific transformations to each node and edge type.
+실제 그물은 대개 한 갈래 넘는 낱것을 담는다. 학술 그래프는
+글쓴이, 논문, 발표 자리를 서로 다른 관계로 잇고,
+금융 그물은 회사, 은행, 투자자, 상품을 잇는다.
+여느 그래프 신경망은 모든 마디와 변을 똑같이 다루어 이 얼개의 풍부함을
+잃는다. 섞인 갈래 그래프 신경망은 마디와 변 갈래마다 그에 맞는 바꿈을
+맡겨 이를 되살린다.
 
-## Formal Definition
+## 엄밀한 정의
 
-A **heterogeneous graph** $G = (V, E, \tau_V, \tau_E)$ extends the standard
-graph definition with two type mappings:
+**뒤섞인 그래프** $G = (V, E, \tau_V, \tau_E)$은 여느 그래프 뜻매김에
+갈래 옮김 둘을 더해 넓힌다:
 
-- $\tau_V : V \to \mathcal{T}_V$ assigns each node a type from a set of
-  node types $\mathcal{T}_V$.
-- $\tau_E : E \to \mathcal{T}_E$ assigns each edge a type from a set of
-  edge types $\mathcal{T}_E$.
+- $\tau_V : V \to \mathcal{T}_V$은 마디마다 마디 갈래 모임 $\mathcal{T}_V$에서
+  갈래를 매긴다.
+- $\tau_E : E \to \mathcal{T}_E$은 변마다 변 갈래 모임 $\mathcal{T}_E$에서
+  갈래를 매긴다.
 
-When $|\mathcal{T}_V| = 1$ and $|\mathcal{T}_E| = 1$, the graph is
-homogeneous and standard GNN methods apply directly.
+$|\mathcal{T}_V| = 1$이고 $|\mathcal{T}_E| = 1$이면 그래프가 고르며
+여느 그래프 신경망 방법을 곧바로 쓸 수 있다.
 
-!!! example "Academic Graph"
-    Node types: $\mathcal{T}_V = \{\text{Author}, \text{Paper}, \text{Venue}\}$.
-    Edge types: $\mathcal{T}_E = \{\text{writes}, \text{cites}, \text{published\_in}\}$.
-    A meta-path Author $\to$ Paper $\to$ Author captures co-authorship.
+!!! example "학술 그래프"
+    마디 갈래: $\mathcal{T}_V = \{\text{Author}, \text{Paper}, \text{Venue}\}$.
+    변 갈래: $\mathcal{T}_E = \{\text{writes}, \text{cites}, \text{published\_in}\}$.
+    메타 길 Author $\to$ Paper $\to$ Author이 함께 쓴 관계를 담는다.
 
-## RGCN (Relational Graph Convolutional Network)
+## RGCN(관계 그래프 겹말기 신경망)
 
-RGCN assigns a separate weight matrix to each edge (relation) type.  The
-update rule for node $v$ at layer $l$ is:
+RGCN은 변(관계) 갈래마다 따로 무게 행렬을 매긴다.
+층 $l$의 마디 $v$의 고침 규칙은 다음과 같다:
 
 $$
 \mathbf{h}_v^{(l)} = \sigma\!\left(W_0^{(l)} \mathbf{h}_v^{(l-1)} + \sum_{r \in \mathcal{R}} \sum_{u \in \mathcal{N}_r(v)} \frac{1}{|\mathcal{N}_r(v)|} W_r^{(l)} \mathbf{h}_u^{(l-1)}\right)
 $$
 
-where $\mathcal{R}$ is the set of relation types, $\mathcal{N}_r(v)$ is
-the set of neighbors of $v$ under relation $r$, and $W_0^{(l)}$ is a
-self-loop weight matrix.
+여기서 $\mathcal{R}$은 관계 갈래의 모임이고 $\mathcal{N}_r(v)$은
+관계 $r$ 아래 $v$의 이웃 모임이며 $W_0^{(l)}$은 스스로 이음의
+무게 행렬이다.
 
-The number of parameters grows linearly with $|\mathcal{R}|$, which can be
-problematic for knowledge graphs with hundreds of relation types.  Two
-common regularization strategies address this:
+매개변수의 개수가 $|\mathcal{R}|$에 선형으로 자라 관계 갈래가 수백인
+앎 그래프에서는 문제가 될 수 있다. 흔한 규칙 세우기 셈속 둘이
+이를 다룬다:
 
-- **Basis decomposition:**  $W_r^{(l)} = \sum_{b=1}^{B} a_{rb}^{(l)} V_b^{(l)}$,
-  sharing $B$ basis matrices across all relations.
-- **Block-diagonal decomposition:**  $W_r^{(l)}$ is block-diagonal,
-  reducing parameters while maintaining relation-specific capacity.
+- **바탕 나눔:** $W_r^{(l)} = \sum_{b=1}^{B} a_{rb}^{(l)} V_b^{(l)}$으로
+  모든 관계가 바탕 행렬 $B$개를 함께 쓴다.
+- **덩이 대각 나눔:** $W_r^{(l)}$을 덩이 대각으로 두어
+  관계마다의 담이를 지키면서 매개변수를 줄인다.
 
-## HAN (Heterogeneous Attention Network)
+## HAN(뒤섞인 눈길 신경망)
 
-HAN introduces a two-level attention mechanism:
+HAN은 두 켜 눈길 얼개를 들여온다:
 
-### Node-Level Attention
+### 마디 켜 눈길
 
-For each meta-path $\Phi$, compute attention between node $v$ and its
-meta-path-based neighbors $\mathcal{N}_v^{\Phi}$:
+메타 길 $\Phi$마다 마디 $v$과 그 메타 길 이웃 $\mathcal{N}_v^{\Phi}$ 사이의
+눈길을 셈한다:
 
 $$
 \alpha_{vu}^{\Phi} = \frac{\exp\!\bigl(\text{LeakyReLU}(\mathbf{a}_{\Phi}^{\top} [\mathbf{h}_v' \| \mathbf{h}_u'])\bigr)}{\sum_{k \in \mathcal{N}_v^{\Phi}} \exp\!\bigl(\text{LeakyReLU}(\mathbf{a}_{\Phi}^{\top} [\mathbf{h}_v' \| \mathbf{h}_k'])\bigr)}
 $$
 
-where $\mathbf{h}_v' = W_{\Phi} \mathbf{h}_v$ is the type-projected feature.
+여기서 $\mathbf{h}_v' = W_{\Phi} \mathbf{h}_v$은 갈래로 쏘아 낸 특징이다.
 
-### Meta-Path-Level Attention
+### 메타 길 켜 눈길
 
-Aggregate across meta-paths with learned importance weights:
+배운 중요도 무게로 메타 길에 걸쳐 모은다:
 
 $$
 \mathbf{z}_v = \sum_{\Phi \in \mathcal{P}} \beta_{\Phi} \cdot \mathbf{z}_v^{\Phi}
 $$
 
-where $\beta_{\Phi}$ is computed via an attention mechanism over the set of
-meta-paths $\mathcal{P}$, and $\mathbf{z}_v^{\Phi}$ is the node-level
-aggregation for meta-path $\Phi$.
+여기서 $\beta_{\Phi}$은 메타 길 모임 $\mathcal{P}$에 대한 눈길 얼개로 셈하고
+$\mathbf{z}_v^{\Phi}$은 메타 길 $\Phi$의 마디 켜
+모으기이다.
 
-## HGT (Heterogeneous Graph Transformer)
+## HGT(뒤섞인 그래프 변환기)
 
-HGT applies the Transformer attention mechanism with type-specific
-projections.  For a source node $s$ and target node $t$:
+HGT은 갈래마다 다른 쏘기와 함께 변환기의 눈길 얼개를 쓴다.
+출발 마디 $s$과 도착 마디 $t$에 대해:
 
 $$
 \text{Attention}(s, t) = \text{softmax}\!\left(\frac{(W_{\tau(s)}^Q \mathbf{h}_s)(W_{\tau(t)}^K \mathbf{h}_t)^{\top}}{\sqrt{d}}\right)
 $$
 
-The key insight is that the query, key, and value projections depend on the
-**node types** of $s$ and $t$, while an additional relation-type weight
-$W_{\tau_E(e)}^{\text{ATT}}$ can be inserted between query and key to
-capture edge-type-specific interactions.
+핵심 통찰은 물음, 열쇠, 값의 쏘기가 $s$과 $t$의 **마디 갈래**에 매인다는 것이다.
+한편 변 갈래마다의 주고받음을 담으려 물음과 열쇠 사이에 관계 갈래 무게
+$W_{\tau_E(e)}^{\text{ATT}}$을
+끼워 넣을 수 있다.
 
-## Meta-Paths
+## 메타 길
 
-A **meta-path** $\Phi$ is a sequence of node types connected by edge types:
+**메타 길** $\Phi$은 변 갈래로 이어진 마디 갈래의 차례이다:
 
 $$
 \Phi : T_1 \xrightarrow{r_1} T_2 \xrightarrow{r_2} \cdots \xrightarrow{r_l} T_{l+1}
 $$
 
-Meta-paths capture high-order semantic relationships.  Common examples in
-academic graphs:
+메타 길은 높은 차수의 뜻 관계를 담는다. 학술 그래프의 흔한 보기:
+학술 그래프의 흔한 보기:
 
-| Meta-path | Semantics |
+| 메타 길 | 뜻 |
 |---|---|
-| Author $\to$ Paper $\to$ Author | Co-authorship |
-| Author $\to$ Paper $\to$ Venue $\to$ Paper $\to$ Author | Co-venue authorship |
-| Paper $\to$ Paper (via citation) | Citation relationship |
+| Author $\to$ Paper $\to$ Author | 함께 씀 |
+| Author $\to$ Paper $\to$ Venue $\to$ Paper $\to$ Author | 같은 자리에 실음 |
+| Paper $\to$ Paper(인용으로) | 인용 관계 |
 
-!!! tip "Choosing Meta-Paths"
-    Meta-path selection strongly influences model performance.  Domain
-    knowledge guides which paths are semantically meaningful.  Automated
-    meta-path discovery is an active research area.
+!!! tip "메타 길 고르기"
+    메타 길을 어떻게 고르느냐가 모델 성능에 크게 영향을 준다. 어떤 길이
+    뜻으로 알맞은지는 그 마당의 앎이 알려 준다. 메타 길을 저절로 찾는 것은
+    활발한 연구 마당이다.
 
-## Comparison
+## 비교
 
-| Method | Type handling | Attention | Scalability |
+| 방법 | 갈래 다루기 | 눈길 | 키울 수 있음 |
 |---|---|---|---|
-| RGCN | Per-relation weights | None | Moderate (basis decomposition helps) |
-| HAN | Meta-path grouping | Two-level | Requires meta-path enumeration |
-| HGT | Per-type projections | Transformer-style | Scales well with mini-batching |
+| RGCN | 관계마다 무게 | 없음 | 보통(바탕 나눔이 도움이 된다) |
+| HAN | 메타 길로 묶기 | 두 켜 | 메타 길을 늘어놓아야 한다 |
+| HGT | 갈래마다 쏘기 | 변환기 방식 | 작은 묶음으로 잘 커진다 |
 
-## Reference
+## 참고 문헌
 
 - Schlichtkrull, M. et al. "Modeling Relational Data with Graph Convolutional
   Networks." ESWC 2018.
 - Wang, X. et al. "Heterogeneous Graph Attention Network." WWW 2019.
 - Hu, Z. et al. "Heterogeneous Graph Transformer." WWW 2020.
+
+
+## 연습문제
+
+**연습문제 1.**
+그래프 신경망을 짤 때 뒤섞인 그래프가 고른 그래프에 견주어 지니는 핵심 어려움을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    뒤섞인 그래프에는 마디 갈래와 변 갈래가 여럿이다. 핵심 어려움은 관계 갈래마다 다른 바꿈 함수가 필요하다는 것이다. (여느 그래프 겹말기 신경망처럼) 함께 쓰는 무게 행렬 하나로는 갈래마다의 무늬를 담을 수 없다. 풀이로는 (1) 관계마다의 무게 행렬(R-GCN), (2) 메타 길 바탕 모으기(HAN), (3) 갈래마다의 눈길 얼개가 있다. 매개변수 개수가 관계 갈래 수에 따라 늘어나므로 드문 관계 갈래에 지나치게 맞는 것을 막으려면 조심스러운 규칙 세우기가 필요하다.
+
+---
+
+**연습문제 2.**
+관계 그래프 겹말기 신경망(R-GCN)과 그 쪽지 건네기 얼거리를 적어라.
+
+??? success "연습문제 2 풀이"
+    R-GCN은 관계마다의 무게 행렬로 그래프 겹말기 신경망을 넓힌다. 마디 $v$과 관계 $r$에 대해 $h_v^{(l+1)} = \sigma(\sum_{r \in R} \sum_{u \in N_r(v)} \frac{1}{|N_r(v)|} W_r^{(l)} h_u^{(l)} + W_0^{(l)} h_v^{(l)})$이다. 여기서 $N_r(v)$은 관계 $r$으로 이어진 이웃, $W_r^{(l)}$은 관계마다의 무게, $W_0^{(l)}$은 스스로 이음의 무게이다. 매개변수를 줄이려 $W_r$을 흔히 바탕 나눔으로 쪼갠다: 관계들이 바탕 $V_b$을 함께 쓰는 $W_r = \sum_{b=1}^{B} a_{rb} V_b$이다.
+
+---
+
+**연습문제 3.**
+뒤섞인 그래프에서 메타 길이란 무엇인가? 서지 그물의 보기를 들어라.
+
+??? success "연습문제 3 풀이"
+    메타 길은 겹친 관계를 뜻매김하는 마디 갈래와 변 갈래의 차례이다. 저자(A), 논문(P), 발표 자리(V)가 있는 서지 그물에서 메타 길 A-P-A은 '논문을 함께 쓴 저자'(함께 씀)를 뜻한다. A-P-V-P-A은 '같은 자리에 실은 저자'를 뜻한다. 메타 길마다 다른 뜻 관계를 담는다. 뒤섞인 눈길 신경망(HAN)은 메타 길 바탕 이웃을 쓰고 켜진 눈길을 준다. 메타 길 안에서는 마디 켜 눈길을, 그다음 메타 길에 걸쳐 앎을 합치는 메타 길 켜 눈길을 쓴다.
+
+---
+
+**연습문제 4.**
+뒤섞인 그래프 나타냄은 추천 얼개에 어떻게 쓰이는가?
+
+??? success "연습문제 4 풀이"
+    추천 얼개는 쓰는 이, 물건, 그 주고받음을 뒤섞인 그래프로 나타낸다. 마디 갈래: 쓰는 이, 물건, 갈래, 상표. 변 갈래: 샀다, 훑었다, 에 든다, 가 만들었다. 이 그래프 위의 그래프 신경망은 함께 거르기(쓰는 이와 물건의 주고받음)와 내용 바탕 특징(물건의 속성)을 함께 담는 박아 넣기를 배운다. User-Item-User 같은 메타 길은 '비슷한 물건을 산 쓰는 이'를 담는다. 배운 박아 넣기는 $\text{score}(u, i) = f(h_u, h_i)$으로 점수를 매겨 이음 헤아리기(쓰는 이 $u$이 물건 $i$을 살 것인가?)에 쓰인다.

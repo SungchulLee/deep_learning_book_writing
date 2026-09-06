@@ -1,81 +1,81 @@
-# Interval Partitioning
+# 구간 나누기
 
-While interval scheduling maximizes the number of activities on a single resource, **interval partitioning** asks a different question: given a set of activities, what is the minimum number of resources (rooms, machines, processors) needed so that all activities can run without conflicts? A greedy algorithm that assigns each activity to the earliest available resource solves this optimally, and the answer always equals the maximum number of overlapping activities at any point in time.
+구간 일정 짜기가 자원 하나에서 활동의 수를 가장 크게 하는 것이라면, **구간 나누기**는 다른 물음을 던진다. 곧 활동 모음이 주어질 때 모든 활동이 부딪힘 없이 돌아가려면 자원(방, 기계, 처리기)이 최소 몇 개 필요한가? 활동마다 가장 먼저 비는 자원에 배정하는 욕심쟁이 알고리즘이 이를 가장 좋게 풀며, 답은 늘 어느 한때에 겹치는 활동의 최대 수와 같다.
 
-## Problem Statement
+## 문제 서술
 
-Given $n$ activities with intervals $[s_i, f_i)$, assign each activity to a resource (room) such that no two activities assigned to the same resource overlap. Minimize the number of resources used.
+구간이 $[s_i, f_i)$인 활동 $n$개가 주어질 때, 같은 자원에 배정한 두 활동이 겹치지 않도록 활동마다 자원(방)을 배정하여라. 쓰는 자원의 수를 가장 작게 하여라.
 
-## Lower Bound: Depth
+## 아래 한계: 깊이
 
-The **depth** of a set of intervals is the maximum number of intervals that contain any common point:
+구간 모음의 **깊이**는 어떤 한 점을 함께 담는 구간의 최대 개수이다:
 
 $$
 \text{depth} = \max_{t} |\{i : s_i \le t < f_i\}|
 $$
 
-No schedule can use fewer than depth resources, because at the point of maximum overlap, each overlapping activity needs its own resource.
+가장 많이 겹치는 지점에서 겹치는 활동마다 제 자원이 필요하므로, 어떤 일정도 깊이보다 적은 자원을 쓸 수 없다.
 
-!!! note "Theorem"
-    The minimum number of resources equals the depth.
+!!! note "정리"
+    필요한 자원의 최소 개수는 깊이와 같다.
 
-## Greedy Algorithm
+## 욕심쟁이 알고리즘
 
-**Strategy.** Sort activities by start time. For each activity, assign it to any resource that is free (its last activity ended before the current one starts). If no resource is free, open a new one.
+**전략.** 활동을 시작 시각으로 정렬한다. 활동마다 비어 있는(마지막 활동이 지금 활동의 시작 앞에 끝난) 아무 자원에나 배정한다. 빈 자원이 없으면 새로 하나 연다.
 
-Using a min-heap (priority queue) keyed on the finish time of the last activity on each resource, the algorithm efficiently finds the earliest available resource.
+자원마다 마지막 활동의 마침 시각을 열쇠로 하는 최소 힙(우선순위 줄서기)을 쓰면 알고리즘이 가장 먼저 비는 자원을 효율적으로 찾는다.
 
-## Correctness
+## 올바름
 
-The greedy algorithm uses exactly depth resources. The proof has two parts:
+욕심쟁이 알고리즘은 정확히 깊이만큼의 자원을 쓴다. 증명은 두 부분이다:
 
-1. **Lower bound.** At least depth resources are needed (by the depth argument).
-2. **Upper bound.** The greedy algorithm never opens more than depth resources. When it opens a new resource, all existing resources are busy, meaning the current activity overlaps with at least one activity on each existing resource. This implies depth has increased to the number of open resources.
+1. **아래 한계.** (깊이 논증으로) 적어도 깊이만큼의 자원이 필요하다.
+2. **위 한계.** 욕심쟁이 알고리즘은 깊이보다 많은 자원을 열지 않는다. 새 자원을 열 때는 이미 있는 자원이 모두 바쁘다는 뜻이고, 곧 지금 활동이 그 자원마다 적어도 활동 하나와 겹친다. 이는 깊이가 열린 자원의 수만큼 늘어났음을 뜻한다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Interval partitioning via a greedy algorithm with a min-heap.
+최소 무지를 쓴 욕심쟁이 알고리즘으로 하는 구간 나누기.
 
-Assigns activities to the minimum number of resources such that
-no two activities on the same resource overlap.
+같은 자원에 놓인 두 일이 겹치지 않도록 가장 적은 자원에
+일을 나누어 맡긴다.
 """
 
 import heapq
 
-# === Greedy Interval Partitioning ===
+# === 욕심쟁이 구간 나누기 ===
 
 def interval_partitioning(
     activities: list[tuple[int, int]]
 ) -> list[list[tuple[int, int]]]:
-    """Partition activities into minimum number of resources.
+    """일을 가장 적은 자원으로 나눈다.
 
-    Args:
-        activities: List of (start, finish) tuples.
+    인수:
+        activities: (시작, 마침) 짝의 목록.
 
-    Returns:
-        List of resource assignments, where each resource is a list
-        of activities assigned to it.
+    반환값:
+        자원 배정의 목록. 자원마다 거기 맡긴 일의
+        목록이다.
     """
     if not activities:
         return []
 
-    # Sort by start time
+    # 시작하는 때로 정렬한다
     sorted_acts = sorted(activities, key=lambda x: x[0])
 
-    # Min-heap: (finish_time_of_last_activity, resource_index)
+    # 최소 무지: (마지막 일이 마치는 때, 자원 번호)
     heap = []
     resources = []
 
     for start, finish in sorted_acts:
         if heap and heap[0][0] <= start:
-            # Reuse the resource that finishes earliest
+            # 가장 일찍 마치는 자원을 다시 쓴다
             _, idx = heapq.heappop(heap)
             resources[idx].append((start, finish))
             heapq.heappush(heap, (finish, idx))
         else:
-            # Open a new resource
+            # 새 자원을 연다
             idx = len(resources)
             resources.append([(start, finish)])
             heapq.heappush(heap, (finish, idx))
@@ -84,11 +84,11 @@ def interval_partitioning(
 
 
 def compute_depth(activities: list[tuple[int, int]]) -> int:
-    """Compute the depth (maximum overlap) of a set of intervals."""
+    """구간 모임의 깊이(최대 겹침)를 셈한다."""
     events = []
     for s, f in activities:
-        events.append((s, 1))   # interval starts
-        events.append((f, -1))  # interval ends
+        events.append((s, 1))   # 구간이 시작한다
+        events.append((f, -1))  # 구간이 끝난다
     events.sort()
 
     max_depth = 0
@@ -99,7 +99,7 @@ def compute_depth(activities: list[tuple[int, int]]) -> int:
     return max_depth
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     activities = [
@@ -117,7 +117,7 @@ if __name__ == "__main__":
         print(f"  Resource {i}: {res}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 Number of activities: 7
@@ -128,24 +128,56 @@ Resources needed: 3
   Resource 2: [(2, 5)]
 ```
 
-At time $t = 2$, three activities overlap: $[0,3)$, $[1,4)$, and $[2,5)$. The algorithm uses exactly 3 resources, matching the depth lower bound.
+때 $t = 2$에서 활동 셋 $[0,3)$, $[1,4)$, $[2,5)$이 겹친다. 알고리즘은 정확히 자원 3개를 써서 깊이라는 아래 한계와 맞아떨어진다.
 
-## Complexity
+## 복잡도
 
-| Aspect | Cost |
+| 항목 | 비용 |
 |--------|:----:|
 | Time   | $O(n \log n)$ |
-| Space  | $O(n)$ |
+| 공간 | $O(n)$ |
 
 Sorting takes $O(n \log n)$. Each activity involves one heap push and at most one heap pop, each taking $O(\log n)$ time.
 
-## Applications
+## 응용
 
-- **Classroom assignment.** Assign lectures to the minimum number of rooms given a class schedule.
-- **CPU scheduling.** Determine the minimum number of processors for a set of tasks.
-- **Vehicle routing.** Minimum fleet size to cover all delivery time windows.
+- **강의실 배정.** 수업 일정이 주어질 때 강의를 최소한의 방에 배정한다.
+- **셈틀 머리 일정 짜기.** 일 모음에 필요한 처리기의 최소 개수를 정한다.
+- **차량 길잡기.** 모든 배달 시간 창을 덮는 최소 차량 대수.
 
-## Reference
+## 참고 문헌
 
-- Kleinberg, J., & Tardos, E. (2006). *Algorithm Design*. Pearson. Chapter 4: Greedy Algorithms.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 16: Greedy Algorithms.
+- Kleinberg, J., & Tardos, E. (2006). *Algorithm Design*. Pearson. 4장: Greedy Algorithms.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 16장: Greedy Algorithms.
+
+## 연습문제
+
+**연습문제 1.**
+구간 나누기에서 욕심쟁이 고름이 무엇인지 가려내고 왜 가장 좋은 풀이로 이어지는지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    The greedy choice selects the locally optimal option at each step. For Interval Partitioning, this choice satisfies the greedy choice property: there exists an optimal solution that includes this greedy selection. Combined with optimal substructure (the remaining subproblem after the greedy choice is also optimally solvable by the same strategy), the greedy algorithm produces a globally optimal solution. $\square$
+
+---
+
+**연습문제 2.**
+구간 나누기이 가장 좋은 아래 짜임을 갖는지 증명하거나 반증하여라.
+
+??? success "연습문제 2 풀이"
+    Optimal substructure means that an optimal solution to the problem contains optimal solutions to its subproblems. For Interval Partitioning, after making the greedy choice, the remaining problem is a smaller instance of the same type. If the subproblem solution were not optimal, we could improve the overall solution by replacing it — contradicting overall optimality. Therefore optimal substructure holds. $\square$
+
+---
+
+**연습문제 3.**
+구간 나누기의 시간 복잡도는 무엇인가? 가장 값비싼 단계를 가려내어라.
+
+??? success "연습문제 3 풀이"
+    The time complexity depends on the sorting step (if required) and the greedy selection loop. Sorting typically dominates at $O(n \log n)$. The greedy loop processes each element once in $O(n)$. Total: $O(n \log n)$. If the input is pre-sorted, the algorithm runs in $O(n)$. $\square$
+
+---
+
+**연습문제 4.**
+(구간 나누기에서 쓴 것이 아닌) 다른 욕심쟁이 전략은 가장 좋은 풀이를 내지 못함을 보이는 반례를 들어라.
+
+??? success "연습문제 4 풀이"
+    Consider an alternative greedy criterion that does not align with the problem's structure. This alternative may select an element that blocks better future choices. The counterexample demonstrates that the wrong greedy criterion can produce a suboptimal result, highlighting why the specific greedy choice property must be proven for each problem. $\square$

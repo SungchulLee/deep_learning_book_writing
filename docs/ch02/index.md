@@ -1,53 +1,50 @@
-# Chapter 2: PyTorch Fundamentals
+# 2장: PyTorch 기초
 
-!!! warning "Incomplete page"
-    This is a chapter landing page and does not follow the five-section structure. It serves as a navigation overview for the sections below.
+이 장은 PyTorch를 바닥부터 소개하며 텐서, 자동 미분, 경사 하강법, GPU 가속을 다룬다. 이 장을 마치면 모든 딥러닝 모델의 바탕이 되는 핵심 추상화를 확실히 다룰 수 있게 된다.
 
-This chapter introduces PyTorch from the ground up, covering tensors, automatic differentiation, gradient descent, and GPU acceleration. By the end, you will have a solid command of the core abstractions that underpin every deep learning model.
+## 텐서
 
-## Tensors
+PyTorch의 기본 자료구조 -- 생성, 연산, 상호 운용성.
 
-The fundamental data structure in PyTorch -- creation, operations, and interoperability.
+- 텐서 기초 -- 텐서란 무엇인가, 계수, 모양, NumPy 배열과의 관계
+- 텐서 생성 -- 팩토리 함수, 자료형, 형 변환, 장치 배치
+- 텐서 연산 -- 산술, 축약, 통계, 선형대수
+- 인덱싱과 슬라이싱 -- 기본 및 고급 인덱싱, 뷰와 복사본, 불리언 마스킹
+- NumPy 상호 운용성 -- 메모리 공유, 변환, Pandas 연동
 
-- Tensor Basics -- What tensors are, ranks, shapes, and the relationship to NumPy arrays
-- Tensor Creation -- Factory functions, data types, type conversions, and device placement
-- Tensor Operations -- Arithmetic, reductions, statistics, and linear algebra
-- Indexing and Slicing -- Basic and advanced indexing, views vs copies, and boolean masking
-- NumPy Interoperability -- Memory sharing, conversions, and Pandas integration
+## 텐서 속성
 
-## Tensor Attributes
+모양 조작, 메모리 배치, 브로드캐스팅, 자료형/장치 관리.
 
-Shape manipulation, memory layout, broadcasting, and dtype/device management.
-
-- Dtype and Device -- Data type selection, precision tradeoffs, and CPU/GPU transfers
-- Broadcasting Rules -- Automatic shape expansion for element-wise operations
-- Shape Manipulation -- Concatenation, stacking, splitting, and squeezing
-- Reshaping and View -- Views vs copies, `view`, `reshape`, `contiguous`, and `flatten`
-- [Memory Layout and Strides](tensor_attrs/memory_layout_strides.md) -- Storage-stride model and offset calculation
+- 자료형과 장치 -- 자료형 선택, 정밀도 절충, CPU/GPU 전송
+- 브로드캐스팅 규칙 -- 원소별 연산을 위한 자동 모양 확장
+- 모양 조작 -- 이어 붙이기, 쌓기, 나누기, 차원 제거
+- 재구성과 뷰 -- 뷰와 복사본, `view`, `reshape`, `contiguous`, `flatten`
+- [메모리 배치와 스트라이드](tensor_attrs/memory_layout_strides.md) -- 저장소-스트라이드 모형과 오프셋 계산
 
 ## Autograd
 
-Automatic differentiation -- the engine behind gradient-based training.
+자동 미분 -- 경사 기반 학습을 떠받치는 엔진.
 
-- [Gradient Computation](autograd/gradient_computation.md) -- Jacobian matrices, vector-Jacobian products, and forward vs reverse mode AD
-- Computational Graphs -- Dynamic graph construction, leaf vs non-leaf tensors
-- Backward Pass -- Mechanics of `.backward()` and gradient clipping
-- Gradient Accumulation -- Default accumulation, zeroing gradients, and large-batch simulation
-- Custom Autograd Functions -- `torch.autograd.Function` and `gradcheck`
+- [경사 계산](autograd/gradient_computation.md) -- 야코비 행렬, 벡터-야코비 곱, 전진 모드와 후진 모드 자동 미분
+- 계산 그래프 -- 동적 그래프 구성, 잎 텐서와 비잎 텐서
+- 역전파 -- `.backward()`의 동작 원리와 경사 클리핑
+- 경사 누적 -- 기본 누적 동작, 경사 초기화, 큰 배치 흉내 내기
+- 사용자 정의 autograd 함수 -- `torch.autograd.Function`과 `gradcheck`
 
-## Gradient Descent
+## 경사 하강법
 
-The optimization algorithm at the core of neural network training.
+신경망 학습의 핵심에 있는 최적화 알고리즘.
 
-- [Steepest Direction](gradient_descent/steepest_direction.md) -- Why the gradient points in the direction of steepest ascent
-- [Learning Rate](gradient_descent/learning_rate.md) -- Effects on convergence and selection strategies
-- [Batch, Mini-Batch, and SGD](gradient_descent/batch_minibatch_sgd.md) -- Three variants and their tradeoffs
-- [Convex vs Non-Convex](gradient_descent/convex_nonconvex.md) -- Convexity and deep learning landscapes
+- [최급강하 방향](gradient_descent/steepest_direction.md) -- 경사가 최급상승 방향을 가리키는 이유
+- [학습률](gradient_descent/learning_rate.md) -- 수렴에 미치는 영향과 선택 전략
+- [배치, 미니배치, SGD](gradient_descent/batch_minibatch_sgd.md) -- 세 가지 변형과 그 절충
+- [볼록과 비볼록](gradient_descent/convex_nonconvex.md) -- 볼록성과 딥러닝의 손실 지형
 
-## Performance
+## 성능
 
-GPU acceleration, mixed precision, and optimization techniques.
+GPU 가속, 혼합 정밀도, 최적화 기법.
 
-- GPU Acceleration -- CPU vs GPU architecture, CUDA cores, and when GPUs help
-- Device Management -- `torch.device`, tensor placement, and operand compatibility
-- Mixed Precision -- Float16, bfloat16, and automatic mixed precision with `torch.cuda.amp`
+- GPU 가속 -- CPU와 GPU의 구조, CUDA 코어, GPU가 도움이 되는 경우
+- 장치 관리 -- `torch.device`, 텐서 배치, 피연산자 호환성
+- 혼합 정밀도 -- float16, bfloat16, `torch.cuda.amp`를 이용한 자동 혼합 정밀도

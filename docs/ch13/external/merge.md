@@ -1,100 +1,87 @@
-# External Merge Sort
+# 바깥 병합 정렬
 
-Standard sorting algorithms assume that the entire dataset fits in main memory.  When
-the data is too large -- a 100 GB log file on a machine with 4 GB of RAM, for instance
--- we must sort using disk (or other secondary storage).  Disk I/O is orders of
-magnitude slower than memory access, so the algorithm's goal shifts from minimizing
-comparisons to minimizing the number of **disk reads and writes**.  **External merge
-sort** is the classic algorithm for this setting.
+보통의 정렬 알고리즘은 데이터셋 전체가 주 기억에 들어간다고 놓는다. 데이터가 너무 클 때, 이를테면 램이 4GB인 기계에서 100GB짜리 기록 파일을 다룰 때는 디스크(또는 다른 보조 저장 장치)를 써서 정렬해야 한다. 디스크 입출력은 기억을 훑는 것보다 자릿수 단위로 느리므로, 알고리즘의 목표는 견줌을 줄이는 데서 **디스크 읽기와 쓰기** 횟수를 줄이는 데로 옮겨 간다. **바깥 병합 정렬**이 이런 상황의 고전적인 알고리즘이다.
 
-## The External Memory Model
+## 바깥 기억 모형
 
 The analysis uses the **external memory (I/O) model** with three parameters:
 
-| Symbol | Meaning |
+| 기호 | 뜻 |
 |--------|---------|
-| $N$ | Total number of elements |
-| $M$ | Number of elements that fit in memory |
-| $B$ | Number of elements per disk block (page) |
+| $N$ | 전체 원소 수 |
+| $M$ | 기억에 들어가는 원소 수 |
+| $B$ | 디스크 블록(페이지)마다의 원소 수 |
 
-A single I/O operation reads or writes one block of $B$ elements.  The goal is to
-minimize the total number of I/O operations.
+입출력 연산 한 번은 원소 $B$개짜리 블록 하나를 읽거나 쓴다. 목표는 입출력 연산의 총 횟수를 가장 작게 하는 것이다.
 
-## Algorithm Overview
+## 알고리즘 훑어보기
 
-External merge sort proceeds in two phases:
+바깥 병합 정렬은 두 단계로 나아간다.
 
-### Phase 1 -- Run Formation
+### 1단계 -- 런 만들기
 
-1. Read $M$ elements into memory.
-2. Sort them using an efficient in-memory sort (e.g., quicksort).
-3. Write the sorted **run** of $M$ elements back to disk.
-4. Repeat until all $N$ elements have been processed.
+1. 원소 $M$개를 기억으로 읽어 들인다.
+2. 기억 안에서 도는 효율적인 정렬(이를테면 빠른 정렬)로 정렬한다.
+3. 정렬된 원소 $M$개짜리 **런**을 디스크에 다시 쓴다.
+4. 원소 $N$개를 모두 다룰 때까지 되풀이한다.
 
-This produces $\lceil N / M \rceil$ sorted runs, each of length at most $M$.
+이는 저마다 길이가 많아야 $M$인 정렬된 런 $\lceil N / M \rceil$개를 낸다.
 
-**I/O cost of Phase 1:** Each element is read once and written once, for a total of
-$2 \lceil N / B \rceil$ I/Os.
+**1단계의 입출력 비용:** 원소마다 한 번 읽고 한 번 쓰므로 모두 $2 \lceil N / B \rceil$번의 입출력이다.
 
-### Phase 2 -- Merge Passes
+### 2단계 -- 병합 훑기
 
-Merge the sorted runs pairwise (2-way merge):
+정렬된 런을 쌍으로 병합한다(두 갈래 병합).
 
-1. Open two input runs for reading and one output file for writing.
-2. Repeatedly compare the front elements of both runs, write the smaller one to the
-   output, and advance the corresponding input.
-3. After one merge pass, the number of runs is halved and each run is twice as long.
-4. Repeat until a single sorted run remains.
+1. 읽을 입력 런 둘과 쓸 출력 파일 하나를 연다.
+2. 두 런의 맨 앞 원소를 거듭 견주어 더 작은 것을 출력에 쓰고, 그쪽 입력을 한 칸 민다.
+3. 병합 훑기를 한 번 하면 런의 수가 반으로 줄고 런마다 길이가 두 배가 된다.
+4. 정렬된 런 하나만 남을 때까지 되풀이한다.
 
-Each merge pass reads and writes all $N$ elements, costing $2 \lceil N / B \rceil$
-I/Os.  The number of passes is $\lceil \log_2 (N / M) \rceil$.
+병합 훑기마다 원소 $N$개를 모두 읽고 쓰므로 $2 \lceil N / B \rceil$번의 입출력이 든다. 훑기의 수는 $\lceil \log_2 (N / M) \rceil$이다.
 
-## I/O Complexity
+## 입출력 복잡도
 
 $$
 \text{I/O}(N, M, B) = O\!\left(\frac{N}{B} \log_2 \frac{N}{M}\right)
 $$
 
-Each of the $O(\log_2 (N/M))$ passes performs $O(N/B)$ I/Os.
+$O(\log_2 (N/M))$번의 훑기마다 $O(N/B)$번의 입출력을 한다.
 
-This can be substantially improved using **multi-way merge** (covered in the next
-section), which increases the base of the logarithm from 2 to $M/B - 1$:
+이는 (다음 절에서 다루는) **여러 갈래 병합**으로 크게 나아질 수 있는데, 로그의 밑을 2에서 $M/B - 1$으로 올린다.
 
 $$
 \text{I/O}(N, M, B) = O\!\left(\frac{N}{B} \log_{M/B} \frac{N}{M}\right)
 $$
 
-## Worked Example
+## 풀이 예제
 
-Sort $N = 10{,}000$ elements with $M = 1{,}000$ and $B = 100$.
+$M = 1{,}000$, $B = 100$으로 원소 $N = 10{,}000$개를 정렬해 보자.
 
-| Phase | Runs | Run length | I/Os per pass |
+| 단계 | 런 수 | 런 길이 | 훑기마다의 입출력 |
 |-------|------|-----------|---------------|
-| Run formation | 10 | 1,000 | 200 |
-| Merge pass 1 | 5 | 2,000 | 200 |
-| Merge pass 2 | 3 | 4,000 | 200 |
-| Merge pass 3 | 2 | 8,000 / 2,000 | 200 |
-| Merge pass 4 | 1 | 10,000 | 200 |
+| 런 만들기 | 10 | 1,000 | 200 |
+| 병합 훑기 1 | 5 | 2,000 | 200 |
+| 병합 훑기 2 | 3 | 4,000 | 200 |
+| 병합 훑기 3 | 2 | 8,000 / 2,000 | 200 |
+| 병합 훑기 4 | 1 | 10,000 | 200 |
 
-Total: $200 + 4 \times 200 = 1{,}000$ I/Os (versus $100{,}000$ I/Os if each element
-were accessed individually).
+모두: $200 + 4 \times 200 = 1{,}000$번의 입출력이다(원소마다 따로 접근했다면 $100{,}000$번이었을 것이다).
 
-## Double Buffering
+## 이중 버퍼 두기
 
-A practical optimization is **double buffering**: while processing one input block in
-memory, the next block is being read from disk asynchronously.  This overlaps
-computation with I/O and keeps the disk busy continuously.
+실전에서 쓰는 손질로 **이중 버퍼 두기**가 있다. 기억 속의 입력 블록 하나를 다루는 동안 다음 블록을 디스크에서 따로 읽어 온다. 이렇게 하면 셈과 입출력이 겹쳐 디스크가 쉼 없이 일한다.
 
-## Implementation
+## 구현
 
 ```python
 """
-External merge sort -- two-way merge for data larger than memory.
+바깥 병합 정렬 — 기억 공간보다 큰 자료를 위한 두 갈래 병합.
 
-Simulates external sorting using files. In production, this would use
-memory-mapped files or direct disk I/O with buffer management.
-Time:  O(N log(N/M)) comparisons
-I/O:   O((N/B) * log_2(N/M)) block transfers
+파일을 써서 바깥 정렬을 흉내 낸다. 실제 제품에서는 기억 사상 파일이나
+버퍼를 다루는 곧바른 디스크 입출력을 쓸 것이다.
+시간:  견줌 O(N log(N/M))번
+입출력: 블록 옮김 O((N/B) * log_2(N/M))번
 """
 
 import heapq
@@ -102,14 +89,14 @@ import tempfile
 import os
 
 
-# === Run formation ==========================================================
+# === 런 만들기 ==============================================================
 
 def _create_sorted_runs(
     data: list[int], memory_size: int, temp_dir: str
 ) -> list[str]:
-    """Split data into sorted runs of size *memory_size*.
+    """자료를 크기 *memory_size*의 정렬된 런으로 쪼갠다.
 
-    Returns a list of file paths, each containing one sorted run.
+    정렬된 런을 하나씩 담은 파일 경로의 목록을 되돌린다.
     """
     runs = []
     for start in range(0, len(data), memory_size):
@@ -122,10 +109,10 @@ def _create_sorted_runs(
     return runs
 
 
-# === Two-way merge ===========================================================
+# === 두 갈래 병합 =============================================================
 
 def _merge_two_runs(path_a: str, path_b: str, output_path: str) -> str:
-    """Merge two sorted run files into a single sorted output file."""
+    """정렬된 런 파일 둘을 정렬된 날 파일 하나로 병합한다."""
     with open(path_a) as fa, open(path_b) as fb, open(output_path, "w") as out:
         a = fa.readline()
         b = fb.readline()
@@ -136,7 +123,7 @@ def _merge_two_runs(path_a: str, path_b: str, output_path: str) -> str:
             else:
                 out.write(b)
                 b = fb.readline()
-        # Write remaining elements
+        # 남은 원소 쓰기
         while a:
             out.write(a)
             a = fa.readline()
@@ -146,28 +133,28 @@ def _merge_two_runs(path_a: str, path_b: str, output_path: str) -> str:
     return output_path
 
 
-# === External merge sort =====================================================
+# === 바깥 병합 정렬 ===========================================================
 
 def external_merge_sort(data: list[int], memory_size: int) -> list[int]:
-    """Sort *data* using external merge sort with given memory constraint.
+    """주어진 기억 공간 제약 아래 바깥 병합 정렬로 *data*을 정렬한다.
 
-    Parameters
+    매개변수
     ----------
     data : list[int]
-        Input data (simulating a large file).
+        입력 자료(큰 파일을 흉내 낸다).
     memory_size : int
-        Maximum number of elements that fit in memory.
+        기억 공간에 들어가는 원소의 최대 개수.
 
-    Returns
+    반환값
     -------
     list[int]
-        Sorted data.
+        정렬된 자료.
     """
     with tempfile.TemporaryDirectory() as temp_dir:
-        # Phase 1: create sorted runs
+        # 단계 1: 정렬된 런 만들기
         runs = _create_sorted_runs(data, memory_size, temp_dir)
 
-        # Phase 2: merge passes
+        # 단계 2: 병합 훑기
         pass_num = 0
         while len(runs) > 1:
             next_runs = []
@@ -183,19 +170,19 @@ def external_merge_sort(data: list[int], memory_size: int) -> list[int]:
             runs = next_runs
             pass_num += 1
 
-        # Read final sorted run
+        # 마지막 정렬된 런 읽기
         with open(runs[0]) as f:
             return [int(line) for line in f]
 
 
-# === Demo ===================================================================
+# === 시연 ===================================================================
 
 if __name__ == "__main__":
     import random
 
     random.seed(42)
     data = random.sample(range(10000), 100)
-    memory_size = 20  # simulate small memory
+    memory_size = 20  # 작은 기억 공간 흉내내기
 
     sorted_data = external_merge_sort(data, memory_size)
     print(f"Input (first 10):  {data[:10]}")
@@ -205,7 +192,7 @@ if __name__ == "__main__":
     print(f"Merge passes:      {(len(data) // memory_size - 1).bit_length()}")
 ```
 
-**Output:**
+**출력:**
 ```
 Input (first 10):  [4575, 7562, 7326, 1040, 6498, 8802, 2848, 2813, 7147, 4280]
 Sorted (first 10): [12, 37, 75, 105, 127, 153, 175, 239, 242, 252]
@@ -214,9 +201,40 @@ Runs created:      5
 Merge passes:      3
 ```
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022).
-  *Introduction to Algorithms* (4th ed.), Chapter 8. MIT Press.
-- Vitter, J. S. (2001). External memory algorithms and data structures:
-  dealing with massive data. *ACM Computing Surveys*, 33(2), 209-271.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 8장. MIT Press.
+- Vitter, J. S. (2001). External memory algorithms and data structures: dealing with massive data. *ACM Computing Surveys*, 33(2), 209-271.
+
+
+## 연습문제
+
+**연습문제 1.**
+바깥 병합 정렬의 핵심 생각과 그 시간·공간 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 견줌 너머의 성질(정수 열쇠, 바깥 저장 장치, 병렬 하드웨어)을 살려 써서 비교 기반 정렬이 따라올 수 없는 성능을 이룬다. 구체적인 복잡도 한계는 이 쪽에서 뜯어본다.
+
+---
+
+**연습문제 2.**
+작은 입력에서 바깥 병합 정렬을 따라가라. 훑기나 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    원소 6~8개에 알고리즘을 적용하며 훑을 때마다의 상태를 보여라. 이 따라가기가 알고리즘의 얼개를 드러내고 옳음을 눈에 보이게 한다.
+
+---
+
+**연습문제 3.**
+어떤 조건에서 비교 기반 정렬보다 바깥 병합 정렬이 나은가?
+
+??? success "연습문제 3 풀이"
+    다음일 때 낫다. 입력의 정수 범위가 묶여 있을 때(세기 정렬과 기수 정렬), 데이터가 램을 넘칠 때(바깥 정렬), 병렬 하드웨어를 쓸 수 있을 때(병렬 정렬). 이런 조건에서는 알고리즘이 비교 기반의 아래 한계 $\Omega(n\log n)$을 비껴갈 수 있다.
+
+---
+
+**연습문제 4.**
+바깥 병합 정렬이 실전에서 이득을 주는 깊은 학습 응용을 서술하라.
+
+??? success "연습문제 4 풀이"
+    응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.

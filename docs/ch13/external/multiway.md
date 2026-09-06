@@ -1,60 +1,45 @@
-# Multi-Way Merge
+# 여러 갈래 병합
 
-Two-way external merge sort merges pairs of runs, requiring $O(\log_2(N/M))$ passes
-over the data.  Each pass reads and writes every element, so reducing the number of
-passes directly reduces I/O cost.  **Multi-way merge** (or $k$-way merge) merges $k$
-runs simultaneously using a min-heap (priority queue), increasing the logarithm's base
-from 2 to $k$ and dramatically cutting the number of passes for large datasets.
+두 갈래 바깥 병합 정렬은 런을 쌍으로 병합하여 데이터를 $O(\log_2(N/M))$번 훑어야 한다. 훑을 때마다 원소를 모두 읽고 쓰므로 훑기의 수를 줄이면 입출력 비용이 곧바로 줄어든다. **여러 갈래 병합**(또는 $k$갈래 병합)은 최소 힙(우선순위 큐)으로 런 $k$개를 한꺼번에 병합하여 로그의 밑을 2에서 $k$로 올리고, 큰 데이터셋에서 훑기의 수를 크게 줄인다.
 
-## Why Multi-Way Merge Matters
+## 여러 갈래 병합이 중요한 까닭
 
-With memory $M$ and block size $B$, we can afford $k = \lfloor M/B \rfloor - 1$ input
-buffers (reserving one buffer for output).  Each input buffer holds one block from a
-different run.  By merging $k$ runs at once, the number of merge passes drops from
-$\lceil \log_2 (N/M) \rceil$ to $\lceil \log_k (N/M) \rceil$.
+기억이 $M$이고 블록 크기가 $B$이면 입력 버퍼를 $k = \lfloor M/B \rfloor - 1$개 둘 수 있다(하나는 출력용으로 남긴다). 입력 버퍼마다 서로 다른 런의 블록 하나를 담는다. 런 $k$개를 한꺼번에 병합하면 병합 훑기의 수가 $\lceil \log_2 (N/M) \rceil$에서 $\lceil \log_k (N/M) \rceil$으로 줄어든다.
 
-**Example:** Sorting 1 TB with 1 GB memory and 4 KB blocks gives
-$k \approx 250{,}000$.  Two-way merge needs about 20 passes; multi-way merge needs
-just 1 or 2 passes.
+**보기:** 기억 1GB와 4KB 블록으로 1TB를 정렬하면 $k \approx 250{,}000$이다. 두 갈래 병합은 훑기가 20번쯤 필요하지만 여러 갈래 병합은 한두 번이면 된다.
 
-## Algorithm Overview
+## 알고리즘 훑어보기
 
-1. **Run formation** (same as two-way): create $\lceil N/M \rceil$ sorted runs.
-2. **Multi-way merge pass:**
-    - Open $k$ runs for reading, loading one block from each into memory.
-    - Insert the first element of each block into a min-heap of size $k$.
-    - Repeatedly extract the minimum from the heap, write it to the output buffer,
-      and insert the next element from the same run.
-    - When an input buffer is exhausted, read the next block from that run.
-    - When the output buffer is full, write it to disk.
-3. Repeat until $\lceil N/M \rceil / k$ runs remain, then merge again (if needed).
+1. **런 만들기**(두 갈래와 같다): 정렬된 런 $\lceil N/M \rceil$개를 만든다.
+2. **여러 갈래 병합 훑기:**
+    - 읽을 런 $k$개를 열고 저마다 블록 하나씩을 기억으로 불러온다.
+    - 블록마다 첫 원소를 크기 $k$의 최소 힙에 넣는다.
+    - 힙에서 가장 작은 것을 거듭 꺼내 출력 버퍼에 쓰고, 같은 런에서 다음 원소를 넣는다.
+    - 입력 버퍼가 다하면 그 런에서 다음 블록을 읽는다.
+    - 출력 버퍼가 차면 디스크에 쓴다.
+3. 런이 $\lceil N/M \rceil / k$개 남을 때까지 되풀이한 다음, 필요하면 다시 병합한다.
 
-## I/O Complexity
+## 입출력 복잡도
 
-Each merge pass reads and writes all $N$ elements: $2 \lceil N/B \rceil$ I/Os.
-With merge factor $k = \lfloor M/B \rfloor - 1$, the number of passes is
-$\lceil \log_k (N/M) \rceil$.
+병합 훑기마다 원소 $N$개를 모두 읽고 쓴다. 곧 $2 \lceil N/B \rceil$번의 입출력이다. 병합 인자가 $k = \lfloor M/B \rfloor - 1$이면 훑기의 수는 $\lceil \log_k (N/M) \rceil$이다.
 
 $$
 \text{I/O}(N, M, B) = O\!\left(\frac{N}{B} \log_{M/B} \frac{N}{M}\right)
 $$
 
-This is known to be **asymptotically optimal** in the external memory model -- no
-comparison-based external sorting algorithm can do better.
+이는 바깥 기억 모형에서 **점근적으로 가장 좋다**고 알려져 있다. 비교 기반 바깥 정렬 알고리즘 가운데 이보다 나은 것은 없다.
 
-The in-memory cost per merge step is $O(\log k)$ for the heap operation, giving total
-comparison complexity:
+병합 걸음마다 기억 안에서 드는 비용은 힙 연산의 $O(\log k)$이며, 전체 견줌 복잡도는 다음과 같다.
 
 $$
 T(N, k) = O\!\left(N \log_k \frac{N}{M} \cdot \log k\right) = O(N \log N)
 $$
 
-The comparison count matches internal sorting, confirming that the bottleneck is I/O,
-not computation.
+견줌 횟수가 안쪽 정렬과 같아, 병목이 셈이 아니라 입출력임을 확인해 준다.
 
-## Worked Example
+## 풀이 예제
 
-Sort $N = 12{,}000$ elements with $M = 3{,}000$ and $B = 1{,}000$.
+$M = 3{,}000$, $B = 1{,}000$으로 원소 $N = 12{,}000$개를 정렬해 보자.
 
 **Run formation:** 4 sorted runs of 3,000 elements each. Cost: $2 \times 12 = 24$ I/Os.
 
@@ -68,50 +53,49 @@ Now suppose $B = 500$, so $k = \lfloor 3{,}000/500 \rfloor - 1 = 5$:
 
 With larger memory ($M = 6{,}000$): only 2 runs, one merge pass suffices regardless.
 
-## Min-Heap for k-Way Merge
+## k갈래 병합을 위한 최소 힙
 
-The min-heap stores entries of the form $(value, run\_index)$.  At each step:
+최소 힙은 $(value, run\_index)$ 꼴의 항목을 담는다. 걸음마다 다음을 한다.
 
-1. Extract-min gives the globally smallest unprocessed element and identifies which
-   run it came from.
-2. Insert the next element from that run (cost $O(\log k)$).
+1. 최소 꺼내기가 아직 다루지 않은 원소 가운데 전체에서 가장 작은 것을 주고, 그것이 어느 런에서 왔는지 알려 준다.
+2. 그 런에서 다음 원소를 넣는다(비용 $O(\log k)$).
 
 After $N$ total extractions, the heap has performed $O(N \log k)$ work.
 
-## Implementation
+## 구현
 
 ```python
 """
-Multi-way merge -- merges k sorted runs using a min-heap.
+여러 갈래 병합 — 최소 힙을 써서 정렬된 런 k개를 병합한다.
 
-Reduces the number of merge passes in external sorting from
-log_2(N/M) to log_k(N/M) where k = M/B - 1.
-Time:  O(N log k) comparisons per pass
-I/O:   O((N/B) * log_{M/B}(N/M)) block transfers
+바깥 정렬의 병합 훑기 횟수를 log_2(N/M)에서 log_k(N/M)으로 줄인다.
+여기서 k = M/B - 1이다.
+시간:  훑기마다 견줌 O(N log k)번
+입출력: 블록 옮김 O((N/B) * log_{M/B}(N/M))번
 """
 
 import heapq
 from typing import Iterator
 
 
-# === k-way merge using a min-heap ==========================================
+# === 최소 힙을 쓴 k갈래 병합 ================================================
 
 def k_way_merge(sorted_runs: list[list[int]]) -> list[int]:
-    """Merge k sorted lists into a single sorted list.
+    """정렬된 목록 k개를 정렬된 목록 하나로 병합한다.
 
-    Parameters
+    매개변수
     ----------
     sorted_runs : list[list[int]]
-        A list of k sorted lists (runs).
+        정렬된 목록(런) k개의 목록.
 
-    Returns
+    반환값
     -------
     list[int]
-        Merged sorted list.
+        병합된 정렬 리스트.
     """
     heap: list[tuple[int, int, int]] = []
 
-    # Initialize heap with first element of each run
+    # 런마다 첫 원소로 힙 첫걸음 잡기
     for run_idx, run in enumerate(sorted_runs):
         if run:
             heapq.heappush(heap, (run[0], run_idx, 0))
@@ -121,7 +105,7 @@ def k_way_merge(sorted_runs: list[list[int]]) -> list[int]:
         val, run_idx, elem_idx = heapq.heappop(heap)
         result.append(val)
 
-        # Push next element from the same run
+        # 같은 런에서 다음 원소 밀어 넣기
         next_idx = elem_idx + 1
         if next_idx < len(sorted_runs[run_idx]):
             heapq.heappush(
@@ -132,33 +116,33 @@ def k_way_merge(sorted_runs: list[list[int]]) -> list[int]:
     return result
 
 
-# === External sort with multi-way merge =====================================
+# === 여러 갈래 병합을 쓴 바깥 정렬 ===========================================
 
 def external_sort_multiway(
     data: list[int], memory_size: int, merge_factor: int
 ) -> list[int]:
-    """Sort data using multi-way external merge sort.
+    """여러 갈래 바깥 병합 정렬로 자료를 정렬한다.
 
-    Parameters
+    매개변수
     ----------
     data : list[int]
-        Input data.
+        입력 자료.
     memory_size : int
-        Max elements in memory at once.
+        한 번에 기억 공간에 들어가는 원소의 최대 개수.
     merge_factor : int
-        Number of runs to merge simultaneously (k).
+        한꺼번에 병합할 런의 개수(k).
 
-    Returns
+    반환값
     -------
     list[int]
-        Sorted data.
+        정렬된 자료.
     """
-    # Phase 1: create sorted runs
+    # 단계 1: 정렬된 런 만들기
     runs: list[list[int]] = []
     for start in range(0, len(data), memory_size):
         runs.append(sorted(data[start : start + memory_size]))
 
-    # Phase 2: multi-way merge passes
+    # 단계 2: 여러 갈래 병합 훑기
     while len(runs) > 1:
         next_runs: list[list[int]] = []
         for i in range(0, len(runs), merge_factor):
@@ -170,7 +154,7 @@ def external_sort_multiway(
     return runs[0] if runs else []
 
 
-# === Demo ===================================================================
+# === 시연 ===================================================================
 
 if __name__ == "__main__":
     import random
@@ -178,15 +162,15 @@ if __name__ == "__main__":
     random.seed(42)
     data = random.sample(range(10000), 100)
 
-    # 2-way merge
+    # 2갈래 병합
     sorted_2way = external_sort_multiway(data, memory_size=20, merge_factor=2)
     print(f"2-way merge correct: {sorted_2way == sorted(data)}")
 
-    # 5-way merge
+    # 5갈래 병합
     sorted_5way = external_sort_multiway(data, memory_size=20, merge_factor=5)
     print(f"5-way merge correct: {sorted_5way == sorted(data)}")
 
-    # Show merge passes needed
+    # 필요한 병합 훑기 보이기
     import math
     num_runs = math.ceil(len(data) / 20)
     for k in [2, 5, 10]:
@@ -194,7 +178,7 @@ if __name__ == "__main__":
         print(f"  k={k:2d}: {passes} merge pass(es) for {num_runs} runs")
 ```
 
-**Output:**
+**출력:**
 ```
 2-way merge correct: True
 5-way merge correct: True
@@ -203,18 +187,49 @@ if __name__ == "__main__":
   k=10: 1 merge pass(es) for 5 runs
 ```
 
-## Practical Considerations
+## 실용적인 고려
 
-| Factor | Impact |
+| 요인 | 영향 |
 |--------|--------|
-| Increasing $k$ | Fewer passes but more heap overhead per step |
-| Very large $k$ | Diminishing returns; disk seek time dominates |
-| SSD vs HDD | SSD tolerates higher $k$ due to fast random access |
-| Double buffering | Overlap I/O with computation for each of the $k$ streams |
+| $k$을 키움 | 훑기는 줄지만 걸음마다 힙의 짐이 는다 |
+| $k$이 아주 큼 | 얻는 것이 줄고 디스크 찾기 시간이 우세해진다 |
+| SSD과 HDD | 아무 데나 빨리 읽는 SSD은 더 큰 $k$을 견딘다 |
+| 이중 버퍼 두기 | 흐름 $k$개마다 입출력과 셈을 겹친다 |
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022).
-  *Introduction to Algorithms* (4th ed.), Chapter 8. MIT Press.
-- Knuth, D. E. (1998). *The Art of Computer Programming, Vol. 3: Sorting and
-  Searching* (2nd ed.), Section 5.4. Addison-Wesley.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 8장. MIT Press.
+- Knuth, D. E. (1998). *The Art of Computer Programming, Vol. 3: Sorting and Searching* (2nd ed.), 5.4절. Addison-Wesley.
+
+
+## 연습문제
+
+**연습문제 1.**
+여러 갈래 병합의 핵심 생각과 그 시간·공간 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 견줌 너머의 성질(정수 열쇠, 바깥 저장 장치, 병렬 하드웨어)을 살려 써서 비교 기반 정렬이 따라올 수 없는 성능을 이룬다. 구체적인 복잡도 한계는 이 쪽에서 뜯어본다.
+
+---
+
+**연습문제 2.**
+작은 입력에서 여러 갈래 병합을 따라가라. 훑기나 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    원소 6~8개에 알고리즘을 적용하며 훑을 때마다의 상태를 보여라. 이 따라가기가 알고리즘의 얼개를 드러내고 옳음을 눈에 보이게 한다.
+
+---
+
+**연습문제 3.**
+어떤 조건에서 비교 기반 정렬보다 여러 갈래 병합이 나은가?
+
+??? success "연습문제 3 풀이"
+    다음일 때 낫다. 입력의 정수 범위가 묶여 있을 때(세기 정렬과 기수 정렬), 데이터가 램을 넘칠 때(바깥 정렬), 병렬 하드웨어를 쓸 수 있을 때(병렬 정렬). 이런 조건에서는 알고리즘이 비교 기반의 아래 한계 $\Omega(n\log n)$을 비껴갈 수 있다.
+
+---
+
+**연습문제 4.**
+여러 갈래 병합이 실전에서 이득을 주는 깊은 학습 응용을 서술하라.
+
+??? success "연습문제 4 풀이"
+    응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.

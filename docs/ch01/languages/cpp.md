@@ -1,45 +1,45 @@
-# C++ in Deep Learning
+# 딥러닝에서의 C++
 
-C++ underpins the performance-critical layers of every major deep learning framework. Understanding where C++ fits helps you diagnose bottlenecks and extend frameworks when Python alone is insufficient.
+C++는 주요 딥러닝 프레임워크의 성능이 중요한 계층을 떠받친다. C++가 어디에 자리 잡고 있는지 이해하면 병목을 진단하고, 파이썬만으로 부족할 때 프레임워크를 확장할 수 있다.
 
-## Definition
+## 정의
 
-C++ is a statically typed, compiled language that provides direct memory management and zero-cost abstractions. In deep learning, C++ powers the backend execution engines of PyTorch (ATen/c10), TensorFlow (XLA), and ONNX Runtime. The PyTorch C++ frontend (LibTorch) exposes the same tensor API for inference in production environments where Python is unavailable.
+C++는 정적 타입의 컴파일 언어로, 직접적인 메모리 관리와 비용 없는 추상화를 제공한다. 딥러닝에서 C++는 PyTorch(ATen/c10), TensorFlow(XLA), ONNX Runtime의 백엔드 실행 엔진을 구동한다. PyTorch의 C++ 프론트엔드(LibTorch)는 파이썬을 쓸 수 없는 운영 환경에서 추론을 위해 동일한 텐서 API를 제공한다.
 
-## Explanation
+## 설명
 
-Most deep learning practitioners never write C++ directly because Python APIs delegate computation to optimized C++ and CUDA backends. However, C++ becomes necessary in three scenarios:
+대부분의 딥러닝 실무자는 C++를 직접 작성하지 않는다. 파이썬 API가 계산을 최적화된 C++와 CUDA 백엔드에 위임하기 때문이다. 그러나 다음 세 가지 상황에서는 C++가 필요해진다.
 
-- **Custom operators**: When a novel layer or loss function cannot be expressed efficiently using existing PyTorch primitives, you write a C++ (or CUDA) extension.
-- **Production inference**: Deploying models on embedded devices, mobile platforms, or latency-sensitive servers often requires exporting to TorchScript or ONNX and running via a C++ runtime.
-- **Framework internals**: Contributing to PyTorch core, writing autograd functions, or optimizing memory allocators requires understanding the C++ codebase.
+- **사용자 정의 연산자**: 새로운 층이나 손실 함수를 기존 PyTorch 기본 연산으로 효율적으로 표현할 수 없을 때 C++(또는 CUDA) 확장을 작성한다.
+- **운영 환경 추론**: 임베디드 기기, 모바일 플랫폼, 지연 시간에 민감한 서버에 모델을 배포하려면 TorchScript나 ONNX로 내보내 C++ 런타임에서 실행하는 경우가 많다.
+- **프레임워크 내부**: PyTorch 코어에 기여하거나, autograd 함수를 작성하거나, 메모리 할당기를 최적화하려면 C++ 코드베이스를 이해해야 한다.
 
-Key C++ data structures used in framework internals:
+프레임워크 내부에서 쓰이는 주요 C++ 자료구조는 다음과 같다.
 
 $$
 \begin{array}{lll}
-\texttt{vector} & \text{Dynamic array} & O(1) \text{ amortized append} \\
-\texttt{unordered\_map} & \text{Hash table} & O(1) \text{ average lookup} \\
-\texttt{shared\_ptr} & \text{Reference-counted pointer} & \text{Automatic memory management}
+\texttt{vector} & \text{동적 배열} & O(1) \text{ 분할 상환 추가} \\
+\texttt{unordered\_map} & \text{해시 테이블} & O(1) \text{ 평균 조회} \\
+\texttt{shared\_ptr} & \text{참조 계수 포인터} & \text{자동 메모리 관리}
 \end{array}
 $$
 
-## Examples
+## 예제
 
-While custom operators are written in C++, you invoke them from Python. Here is how PyTorch bridges the two worlds:
+사용자 정의 연산자는 C++로 작성하지만 호출은 파이썬에서 한다. PyTorch가 두 세계를 잇는 방식은 다음과 같다.
 
 ```python
 import torch
 
-# PyTorch operations dispatch to C++ (ATen) under the hood
+# PyTorch 연산은 내부적으로 C++(ATen)로 디스패치된다
 x = torch.randn(3, 3)
 y = torch.randn(3, 3)
 
-# This single Python call triggers optimized C++ matrix multiply
+# 이 파이썬 호출 하나가 최적화된 C++ 행렬 곱을 촉발한다
 z = torch.mm(x, y)
 print(f"Result:\n{z}")
 
-# TorchScript: compile Python model to C++-executable IR
+# TorchScript: 파이썬 모델을 C++에서 실행 가능한 IR로 컴파일한다
 @torch.jit.script
 def relu_forward(x: torch.Tensor) -> torch.Tensor:
     return torch.where(x > 0, x, torch.zeros_like(x))
@@ -47,3 +47,65 @@ def relu_forward(x: torch.Tensor) -> torch.Tensor:
 out = relu_forward(torch.tensor([-1.0, 0.0, 2.0, -3.0]))
 print(f"ReLU output: {out}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+`std::vector<float>`는 원소를 메모리에 연속적으로 저장한다. 이 성질이 딥러닝 프레임워크 내부의 성능에 결정적인 이유를 설명하고, CPU 캐시 동작과 어떻게 관련되는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    연속 저장은 이웃한 원소가 인접한 메모리 주소를 차지한다는 뜻이며, 이것이 **공간 지역성** 을 가능하게 한다. CPU가 원소 하나를 캐시 라인(보통 64바이트 = float 16개)으로 가져오면 다음 15개 원소가 이미 캐시에 들어와 있다. 이 덕분에 (원소별 덧셈이나 축약 같은 텐서 연산에서 흔한) 순차 접근 패턴이 매우 빠르다. 반면 연결 리스트 기반 컨테이너는 원소를 메모리 곳곳에 흩뜨려 캐시 미스를 자주 일으킨다. 딥러닝 프레임워크가 텐서를 연속 배열로 저장하는 이유가 바로 이것이다. 캐시 친화적인 `memcpy` 한 번이나 BLAS 호출 한 번으로 수백만 개의 원소를 효율적으로 처리할 수 있다.
+
+---
+
+**연습문제 2.**
+$(1024, 1024)$ 모양의 float32 텐서를 관리하는 `shared_ptr<Tensor>`의 메모리 사용량을 계산하라. 텐서 데이터와 `shared_ptr` 제어 블록 부담을 모두 포함하라. PyTorch가 텐서 저장소에 참조 계수를 쓰는 이유는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    텐서 데이터: $1024 \times 1024 \times 4\;\text{바이트} = 4{,}194{,}304\;\text{바이트} = 4\;\text{MB}$. `shared_ptr` 제어 블록은 보통 16바이트이다(참조 계수와 약한 참조 계수 각각 8바이트, 64비트 시스템 기준). 포인터 자체는 8바이트이다. 총 부담은 $\approx 24$바이트로 4 MB 텐서에 비하면 무시할 만하다. PyTorch가 참조 계수를 쓰는 이유는 텐서가 여러 연산에 걸쳐 자주 공유되기 때문이다(예: 어떤 텐서가 순전파 결과와 autograd 그래프 양쪽에서 쓰일 수 있다). 참조 계수는 마지막 참조가 사라질 때 메모리를 자동으로 해제하며, 쓰레기 수집으로 인한 멈춤이 필요 없다.
+
+---
+
+**연습문제 3.**
+$f(x) = x \cdot \sigma(x)$(SiLU/Swish 활성화)를 계산하는 C++ 사용자 정의 연산자의 의사코드를 순전파와 역전파 모두 포함하여 작성하라. 역전파 경사를 순전파에서 얻을 수 있는 양들로 표현하라.
+
+??? success "연습문제 3 풀이"
+    순전파: $\sigma(x) = 1/(1 + e^{-x})$일 때 $y = x \cdot \sigma(x)$.
+    역전파: $\frac{\partial y}{\partial x} = \sigma(x) + x \cdot \sigma(x)(1 - \sigma(x)) = \sigma(x)(1 + x(1 - \sigma(x)))$.
+    의사코드:
+    ```
+    SILU_FORWARD(x):
+      s = 1 / (1 + exp(-x))    // 시그모이드
+      y = x * s
+      역전파를 위해 s, x를 저장한다
+      return y
+
+    SILU_BACKWARD(grad_output, s, x):
+      grad_input = grad_output * (s + x * s * (1 - s))
+      return grad_input
+    ```
+    순전파에서 $\sigma(x)$를 저장하면 역전파에서 비용이 큰 지수 계산을 다시 하지 않아도 된다.
+
+---
+
+**연습문제 4.**
+`torch.jit.script`와 `torch.jit.trace`의 차이를 설명하라. 추적(trace)은 잘못된 결과를 내지만 스크립팅(script)은 그렇지 않은 구체적인 예를 제시하라.
+
+??? success "연습문제 4 풀이"
+    `torch.jit.trace`는 예시 입력으로 순전파를 한 번 실행하면서 수행된 연산을 기록하여 정적 그래프를 만든다. `torch.jit.script`는 파이썬 소스 코드를 분석해 TorchScript IR로 컴파일하며 제어 흐름을 보존한다. 모델에 **데이터에 의존하는 제어 흐름** 이 있으면 추적은 실패한다. 예를 들어 다음과 같다.
+    ```python
+    def f(x):
+        if x.sum() > 0:
+            return x * 2
+        else:
+            return x * 3
+    ```
+    합이 양수인 입력으로 추적하면 항상 `x * 2`만 기록되고 `else` 분기는 절대 실행되지 않아, 합이 음수인 입력에서 잘못된 결과가 나온다. 스크립팅은 두 분기를 모두 올바르게 컴파일한다.
+
+---
+
+**연습문제 5.**
+어떤 운영 시스템이 이미지당 5 ms 미만의 추론 지연 시간을 요구한다. 파이썬 기반 파이프라인은 (데이터 전처리, 모델 순전파, 후처리를 포함해) 12 ms가 걸리며, 그중 4 ms가 모델 순전파이고 8 ms가 전/후처리의 파이썬 부담이다. C++를 사용해 지연 시간 요구를 만족시키는 구체적인 전략을 제안하라.
+
+??? success "연습문제 5 풀이"
+    모델을 TorchScript나 ONNX로 내보내고 파이프라인 전체를 C++에서 실행한다. 모델 순전파(4 ms)는 이미 예산에 근접해 있다. 8 ms의 파이썬 부담은 인터프리터 기반 전처리(이미지 디코딩, 크기 조정, 정규화)와 후처리(NMS, 형식 변환)에서 온다. C++에서는 OpenCV로 이 연산들을 구현하여 $<1$ ms에 실행할 수 있다. 전체 C++ 파이프라인은 대략 $4 + 1 = 5$ ms가 되어 요구를 만족한다. 추가 최적화로는 (1) 최적화된 추론을 위한 TensorRT나 ONNX Runtime(4 ms 순전파를 더 줄일 수 있다), (2) 여러 이미지의 배치 처리, (3) 반정밀도(FP16) 계산 사용이 있다.

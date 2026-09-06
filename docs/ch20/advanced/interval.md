@@ -1,92 +1,92 @@
-# Interval DP
+# 구간 동적 짜기
 
-Some optimization problems ask for the best way to process a contiguous range of elements --- merging stones, multiplying matrices, or bursting balloons. In each case, an optimal solution for range $[i, j]$ decomposes into optimal solutions for sub-ranges $[i, k]$ and $[k+1, j]$ at some split point $k$. Interval DP captures this structure by defining states over all $O(n^2)$ sub-intervals and filling the table in order of increasing interval length.
+어떤 가장 좋게 하기 문제는 잇닿은 원소 범위를 처리하는 가장 좋은 길을 묻는다. 돌 합치기, 행렬 곱하기, 풍선 터뜨리기 따위이다. 어느 경우든 범위 $[i, j]$의 가장 좋은 풀이가 어떤 가르는 점 $k$에서 아래 범위 $[i, k]$과 $[k+1, j]$의 가장 좋은 풀이로 쪼개진다. 구간 동적 짜기는 $O(n^2)$개 아래 구간 모두에 상태를 두고 구간 길이가 늘어나는 차례로 표를 채워 이 짜임을 잡아낸다.
 
-## Framework
+## 얼거리
 
-Define $dp[i][j]$ as the optimal value for the sub-interval $[i, j]$. The general recurrence splits the interval at every possible point:
+$dp[i][j]$을 아래 구간 $[i, j]$의 가장 좋은 값이라 정하자. 두루 쓰는 되돌이 관계식은 가능한 모든 점에서 구간을 가른다:
 
 $$
 dp[i][j] = \min_{i \leq k < j} \bigl( dp[i][k] + dp[k+1][j] + \text{merge}(i, k, j) \bigr)
 $$
 
-where $\text{merge}(i, k, j)$ is the cost of combining the results of sub-intervals $[i, k]$ and $[k+1, j]$.
+여기서 $\text{merge}(i, k, j)$은 아래 구간 $[i, k]$과 $[k+1, j]$의 결과를 합치는 값이다.
 
-**Base case.** $dp[i][i] = \text{base}(i)$ (cost of a single element, often 0).
+**바탕 경우.** $dp[i][i] = \text{base}(i)$(원소 하나의 값, 흔히 0).
 
-**Iteration order.** Fill by increasing interval length $\ell = j - i + 1$:
+**되풀이 차례.** 구간 길이 $\ell = j - i + 1$이 늘어나는 차례로 채운다:
 
 ```
-for length in range(2, n + 1):        # interval length
-    for i in range(0, n - length + 1): # left endpoint
-        j = i + length - 1             # right endpoint
-        for k in range(i, j):          # split point
+for length in range(2, n + 1):        # 구간 길이
+    for i in range(0, n - length + 1): # 왼쪽 끝점
+        j = i + length - 1             # 오른쪽 끝점
+        for k in range(i, j):          # 가르는 점
             dp[i][j] = min(dp[i][j], dp[i][k] + dp[k+1][j] + merge(i, k, j))
 ```
 
-## Complexity
+## 복잡도
 
-The three nested loops give $O(n^3)$ time and $O(n^2)$ space. When the cost function satisfies the quadrangle inequality, Knuth's optimization reduces the time to $O(n^2)$.
+세 겹 되풀이라 시간은 $O(n^3)$, 공간은 $O(n^2)$이다. 값 함수가 사각 부등식을 채우면 커누스 가장 좋게 하기로 시간을 $O(n^2)$까지 줄인다.
 
-## Example: Minimum Cost to Merge Stones
+## 보기: 돌 합치기의 가장 적은 값
 
-Given $n$ piles of stones with sizes $a_0, \ldots, a_{n-1}$, merge adjacent piles. The cost of a single merge equals the total size of the merged piles. Minimize the total cost.
+크기가 $a_0, \ldots, a_{n-1}$인 돌무더기 $n$개가 주어질 때 이웃한 무더기를 합쳐라. 한 번 합치는 값은 합친 무더기의 전체 크기와 같다. 전체 값을 가장 적게 하라.
 
 $$
 dp[i][j] = \min_{i \leq k < j} \bigl( dp[i][k] + dp[k+1][j] \bigr) + \sum_{t=i}^{j} a_t
 $$
 
-The merge cost is the sum of all elements in the interval, computable in $O(1)$ with prefix sums.
+합치는 값은 구간에 든 모든 원소의 합이며 앞합을 쓰면 $O(1)$에 셈할 수 있다.
 
-## Example: Matrix Chain Multiplication
+## 보기: 행렬 사슬 곱하기
 
-Given matrices $A_1, A_2, \ldots, A_n$ with dimensions $p_0 \times p_1, p_1 \times p_2, \ldots, p_{n-1} \times p_n$, find the parenthesization that minimizes scalar multiplications.
+꼴이 $p_0 \times p_1, p_1 \times p_2, \ldots, p_{n-1} \times p_n$인 행렬 $A_1, A_2, \ldots, A_n$이 주어질 때 스칼라 곱셈을 가장 적게 하는 괄호 매김을 찾아라.
 
 $$
 dp[i][j] = \min_{i \leq k < j} \bigl( dp[i][k] + dp[k+1][j] + p_{i-1} \cdot p_k \cdot p_j \bigr)
 $$
 
-## Example: Burst Balloons
+## 보기: 풍선 터뜨리기
 
-Given balloons with values $a_1, \ldots, a_n$, bursting balloon $k$ earns $a_{k-1} \cdot a_k \cdot a_{k+1}$ coins (with boundary sentinels $a_0 = a_{n+1} = 1$). Maximize total coins.
+값이 $a_1, \ldots, a_n$인 풍선이 주어질 때 풍선 $k$을 터뜨리면 $a_{k-1} \cdot a_k \cdot a_{k+1}$개의 동전을 얻는다(가장자리 파수 값은 $a_0 = a_{n+1} = 1$). 전체 동전을 가장 많게 하라.
 
-The key insight is to think of $k$ as the **last** balloon burst in the open interval $(i, j)$. At the moment $k$ is burst, only the boundary sentinels $a_i$ and $a_j$ remain as neighbors:
+핵심 눈썰미는 $k$을 열린 구간 $(i, j)$에서 **마지막으로** 터뜨리는 풍선으로 보는 것이다. $k$을 터뜨리는 순간 이웃으로는 가장자리 파수 값 $a_i$과 $a_j$만 남는다:
 
 $$
 dp[i][j] = \max_{i < k < j} \bigl( dp[i][k] + dp[k][j] + a_i \cdot a_k \cdot a_j \bigr)
 $$
 
-**Base case.** $dp[i][i+1] = 0$ (no balloons to burst in an empty open interval).
+**바탕 경우.** $dp[i][i+1] = 0$(빈 열린 구간에는 터뜨릴 풍선이 없다).
 
-## Implementation
+## 구현
 
 ```python
 """
-Interval DP: merge stones, matrix chain multiplication, and burst balloons.
+구간 동적 짜기: 돌 합치기, 행렬 사슬 곱하기, 풍선 터뜨리기.
 """
 
 
 # ===================================================================
-# Minimum cost to merge stones
+# 돌 합치기의 가장 적은 값
 # ===================================================================
 def merge_stones(piles: list[int]) -> int:
-    """Find minimum cost to merge all piles into one.
+    """모든 무더기를 하나로 합치는 가장 적은 값을 찾는다.
 
-    Parameters
+    매개변수
     ----------
     piles : list[int]
-        Sizes of stone piles.
+        돌무더기의 크기.
 
-    Returns
+    반환값
     -------
     int
-        Minimum merge cost.
+        가장 적은 합치기 값.
     """
     n = len(piles)
     if n == 1:
         return 0
 
-    # Prefix sums for O(1) range sum
+    # O(1)에 구간 합을 얻기 위한 앞합
     prefix = [0] * (n + 1)
     for i in range(n):
         prefix[i + 1] = prefix[i] + piles[i]
@@ -109,22 +109,22 @@ def merge_stones(piles: list[int]) -> int:
 
 
 # ===================================================================
-# Matrix chain multiplication
+# 행렬 사슬 곱하기
 # ===================================================================
 def matrix_chain(dims: list[int]) -> int:
-    """Find minimum scalar multiplications for matrix chain.
+    """행렬 사슬의 가장 적은 스칼라 곱셈 수를 찾는다.
 
-    Parameters
+    매개변수
     ----------
     dims : list[int]
-        Dimension array where matrix i has size dims[i] x dims[i+1].
+        행렬 i의 크기가 dims[i] x dims[i+1]인 꼴 배열.
 
-    Returns
+    반환값
     -------
     int
-        Minimum number of scalar multiplications.
+        가장 적은 스칼라 곱셈 수.
     """
-    n = len(dims) - 1  # number of matrices
+    n = len(dims) - 1  # 행렬 수
     if n <= 1:
         return 0
 
@@ -147,23 +147,23 @@ def matrix_chain(dims: list[int]) -> int:
 
 
 # ===================================================================
-# Burst balloons (last-to-burst trick)
+# 풍선 터뜨리기(마지막에 터뜨리기 재주)
 # ===================================================================
 def burst_balloons(nums: list[int]) -> int:
-    """Maximum coins from bursting all balloons.
+    """풍선을 모두 터뜨려 얻는 가장 많은 동전.
 
-    The key trick: think of k as the *last* balloon burst in (i, j),
-    so its neighbors at burst time are the boundary sentinels i and j.
+    핵심 재주: k을 (i, j)에서 *마지막으로* 터뜨리는 풍선으로 본다.
+    그러면 터뜨릴 때의 이웃은 가장자리 파수 i과 j이다.
 
-    Parameters
+    매개변수
     ----------
     nums : list[int]
-        Balloon values.
+        풍선의 값.
 
-    Returns
+    반환값
     -------
     int
-        Maximum total coins.
+        가장 많은 전체 동전.
     """
     vals = [1] + nums + [1]
     n = len(vals)
@@ -180,56 +180,88 @@ def burst_balloons(nums: list[int]) -> int:
 
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 if __name__ == "__main__":
-    # Merge stones
+    # 돌 합치기
     piles = [3, 5, 1, 2, 6]
     print(f"Merge stones cost: {merge_stones(piles)}")
 
-    # Matrix chain
+    # 행렬 사슬
     dims = [10, 30, 5, 60]
     print(f"Matrix chain cost: {matrix_chain(dims)}")
 
-    # Burst balloons
+    # 풍선 터뜨리기
     balloons = [3, 1, 5, 8]
     print(f"Burst balloons max: {burst_balloons(balloons)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Merge stones cost: 38
 Matrix chain cost: 4500
 Burst balloons max: 167
 ```
 
-??? example "Tracing merge stones for [3, 5, 1, 2, 6]"
-    Interval lengths processed in order:
+??? example "[3, 5, 1, 2, 6]의 돌 합치기 좇기"
+    차례로 처리하는 구간 길이:
 
-    - Length 2: $dp[0][1] = 8$, $dp[1][2] = 6$, $dp[2][3] = 3$, $dp[3][4] = 8$
-    - Length 3: $dp[0][2] = 14$, $dp[1][3] = 11$, $dp[2][4] = 12$
-    - Length 4: $dp[0][3] = 22$, $dp[1][4] = 22$
-    - Length 5: $dp[0][4] = 38$
+    - 길이 2: $dp[0][1] = 8$, $dp[1][2] = 6$, $dp[2][3] = 3$, $dp[3][4] = 8$
+    - 길이 3: $dp[0][2] = 14$, $dp[1][3] = 11$, $dp[2][4] = 12$
+    - 길이 4: $dp[0][3] = 22$, $dp[1][4] = 22$
+    - 길이 5: $dp[0][4] = 38$
 
-    Optimal merge order: merge piles 2 and 3 (cost 3), then with pile 1 (cost 8), then with pile 0 (cost 17), finally with pile 4 (total cost 38).
+    가장 좋은 합치기 차례: 무더기 2와 3을 합치고(값 3), 무더기 1과 합치고(값 8), 무더기 0과 합치고(값 17), 마지막으로 무더기 4와 합친다(전체 값 38).
 
-## Recognizing Interval DP Problems
+## 구간 동적 짜기 문제 알아보기
 
-Interval DP applies when:
+구간 동적 짜기는 다음일 때 쓴다:
 
-1. The input is a **sequence** (array, string, or chain)
-2. The optimal solution for a range **decomposes into sub-ranges**
-3. Only **contiguous** sub-ranges appear as subproblems
-4. There is a **merge cost** that depends on the sub-range endpoints
+1. 들임이 **차례**이다(배열, 글줄, 사슬)
+2. 어떤 범위의 가장 좋은 풀이가 **아래 범위로 쪼개진다**
+3. **잇닿은** 아래 범위만 아래 문제로 나온다
+4. 아래 범위의 끝점에 기대는 **합치는 값**이 있다
 
-| Problem | State | Merge Cost |
+| 문제 | 상태 | 합치는 값 |
 |---------|-------|------------|
-| Matrix chain | $dp[i][j]$ = min multiplications | $p_i \cdot p_{k+1} \cdot p_{j+1}$ |
-| Merge stones | $dp[i][j]$ = min merge cost | $\sum_{t=i}^{j} a_t$ |
-| Burst balloons | $dp[i][j]$ = max coins | $a_i \cdot a_k \cdot a_j$ |
-| Palindrome partitioning | $dp[i][j]$ = min cuts | 0 or 1 |
-| Optimal BST | $dp[i][j]$ = min search cost | $\sum_{t=i}^{j} p_t$ |
+| 행렬 사슬 | $dp[i][j]$ = 가장 적은 곱셈 수 | $p_i \cdot p_{k+1} \cdot p_{j+1}$ |
+| 돌 합치기 | $dp[i][j]$ = 가장 적은 합치는 값 | $\sum_{t=i}^{j} a_t$ |
+| 풍선 터뜨리기 | $dp[i][j]$ = 가장 많은 동전 | $a_i \cdot a_k \cdot a_j$ |
+| 뒤집어도 같은 글 나누기 | $dp[i][j]$ = 가장 적은 자르기 수 | 0 또는 1 |
+| 가장 좋은 두 갈래 찾기 나무 | $dp[i][j]$ = 가장 적은 찾기 값 | $\sum_{t=i}^{j} p_t$ |
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 15. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+구간 동적 짜기의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+구간 동적 짜기의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+구간 동적 짜기의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+구간 동적 짜기의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

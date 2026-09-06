@@ -1,10 +1,10 @@
-# Linear Recursion
+# 선형 재귀
 
-Linear recursion is the simplest recursion pattern: the function makes exactly **one** recursive call per invocation, reducing the problem size by a constant amount each time. This creates a single chain of calls rather than a branching tree, making it straightforward to analyze and understand.
+선형 재귀는 가장 단순한 재귀 패턴이다. 함수가 호출마다 정확히 **한 번** 재귀 호출을 하며 매번 문제 크기를 일정한 양만큼 줄인다. 이렇게 하면 가지를 치는 트리가 아니라 하나의 호출 사슬이 만들어지므로 분석하고 이해하기가 간단하다.
 
-## Structure
+## 구조
 
-A linearly recursive function follows this template:
+선형 재귀 함수는 다음 틀을 따른다.
 
 ```
 function f(problem):
@@ -14,26 +14,26 @@ function f(problem):
     return f(smaller_problem)
 ```
 
-Because there is only one recursive call, the call graph is a straight line — hence the name "linear recursion."
+재귀 호출이 하나뿐이므로 호출 그래프가 직선이 된다. "선형 재귀"라는 이름이 여기서 왔다.
 
-## Example: Sum of a List
+## 예제: 리스트의 합
 
-Computing the sum of a list demonstrates linear recursion. Each call processes one element and recurses on the rest:
+리스트의 합을 계산하는 것이 선형 재귀를 잘 보여준다. 각 호출이 원소 하나를 처리하고 나머지에 대해 재귀한다.
 
 ```python
-"""Linear recursion demonstrated with list summation."""
+"""리스트 합으로 보여주는 선형 재귀."""
 
 
-# === Recursive Sum ===
+# === 재귀적 합 ===
 
 def recursive_sum(arr):
-    """Return the sum of elements in arr using linear recursion."""
+    """선형 재귀로 arr의 원소들의 합을 반환한다."""
     if len(arr) == 0:
         return 0
     return arr[0] + recursive_sum(arr[1:])
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     data = [3, 1, 4, 1, 5, 9]
@@ -41,26 +41,59 @@ if __name__ == "__main__":
     print(f"Sum:  {recursive_sum(data)}")
 ```
 
-**Output:**
+**출력:**
 ```
 List: [3, 1, 4, 1, 5, 9]
 Sum:  23
 ```
 
-## Complexity
+## 복잡도
 
-With one recursive call per invocation and $O(1)$ work per call, the recurrence is:
+호출마다 재귀 호출이 하나이고 호출당 일이 $O(1)$이므로 점화식은 다음과 같다.
 
 $$
 T(n) = T(n - 1) + O(1), \quad T(0) = O(1)
 $$
 
-This solves to $T(n) = O(n)$ time. Stack depth is also $O(n)$, which is the primary disadvantage compared to an equivalent iterative loop that uses $O(1)$ space.
+이는 $T(n) = O(n)$ 시간으로 풀린다. 스택 깊이도 $O(n)$인데, 이것이 $O(1)$ 공간을 쓰는 동등한 반복문에 비해 갖는 주된 단점이다.
 
-## Common Examples
+## 흔한 예
 
-Linear recursion appears in: factorial, list reversal, string processing, linked list traversal, and computing powers ($x^n$).
+선형 재귀는 계승, 리스트 뒤집기, 문자열 처리, 연결 리스트 순회, 거듭제곱 계산($x^n$) 등에 나타난다.
 
-## Reference
+## 참고 문헌
 
 [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+선형 재귀에 대해 기저 사례와 재귀 사례를 찾아라. 모든 유효한 입력에 대해 재귀가 종료됨을 증명하라.
+
+??? success "연습문제 1 풀이"
+    기저 사례는 가장 작은 유효한 입력을 직접 처리한다. 재귀 사례는 호출마다 감소하는 잘 정의된 척도로 문제 크기를 줄인다. 이 척도가 (기저 사례의 문턱값으로) 아래로 유계이면서 엄격히 감소하므로 재귀는 반드시 유한한 단계 안에 종료된다.
+
+---
+
+**연습문제 2.**
+선형 재귀의 시간 복잡도에 대한 점화식을 유도하고 풀어라.
+
+??? success "연습문제 2 풀이"
+    $T(n)$을 재귀 호출과 호출당 일의 함수로 표현한다. 이 점화식은 분기 계수, 부분문제 크기의 감소, 결합 비용을 담는다. 펼치기, 마스터 정리, 치환 중 하나로 풀어 닫힌 형태를 얻는다.
+
+---
+
+**연습문제 3.**
+$n = 8$일 때 선형 재귀의 재귀 트리를 그려라. 각 층에서의 일과 전체 일을 계산하라.
+
+??? success "연습문제 3 풀이"
+    트리의 깊이는 입력이 기저 사례까지 얼마나 빨리 줄어드는지로 정해진다. 각 층에서 모든 노드의 일을 더한다. 모든 층에 걸친 총합이 실행 시간을 준다. $n = 8$이면 트리가 작아서 전부 열거할 수 있다.
+
+---
+
+**연습문제 4.**
+재귀 구현을 반복 버전으로 변환하라. 공간 복잡도를 비교하라.
+
+??? success "연습문제 4 풀이"
+    호출 스택을 명시적 스택이나 반복 변수로 대체한다. 꼬리 재귀 형태는 while 반복문으로 곧바로 바뀐다. 꼬리가 아닌 형태는 호출 스택을 흉내 내기 위해 명시적 스택이 필요하다. 반복 버전은 보통 $O(\text{depth})$의 스택 공간을 아낀다.

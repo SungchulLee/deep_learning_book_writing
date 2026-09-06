@@ -1,53 +1,87 @@
-# Scheduled Sampling
+# 차례 잡은 뽑기
+## 개요
 
+차례 잡은 뽑기(Bengio 외, 2015)는 익히는 동안 참값 들임을 모델이 스스로 헤아린 값으로 차츰 바꾸어 스승 밀어 넣기와 스스로 도는 만들어 내기 사이의 틈을 잇는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 알고리즘
 
-## Overview
+익히기 걸음마다 각 자리 $t$에 대해:
 
-Scheduled sampling (Bengio et al., 2015) bridges the gap between teacher forcing and free-running generation by gradually replacing ground-truth inputs with the model's own predictions during training.
+- 확률 $\epsilon_i$(배움 차례 확률)으로 참값 $x_t$을 쓴다
+- 확률 $1 - \epsilon_i$으로 모델이 헤아린 값 $\hat{x}_t = \arg\max p_\theta(\cdot \mid x_{<t})$을 쓴다
 
-## Algorithm
-
-At each training step, for each position $t$:
-
-- With probability $\epsilon_i$ (curriculum probability): use ground truth $x_t$
-- With probability $1 - \epsilon_i$: use model's prediction $\hat{x}_t = \arg\max p_\theta(\cdot \mid x_{<t})$
-
-The curriculum $\epsilon_i$ decreases over training:
+배움 차례 $\epsilon_i$은 익히는 동안 줄어든다.
 
 $$\epsilon_i = \max(\epsilon_{\min}, k^i) \quad \text{(exponential decay)}$$
 
 $$\epsilon_i = \max(\epsilon_{\min}, \frac{k}{k + \exp(i/k)}) \quad \text{(inverse sigmoid)}$$
 
-## Implementation
+## 구현
 
 ```python
 def scheduled_sampling_step(model, x, epsilon):
     batch_size, seq_len = x.shape
-    input_tokens = x[:, 0:1]  # Start with ground truth BOS
+    input_tokens = x[:, 0:1]  # 참값 시작 토큰에서 시작한다
     
     for t in range(1, seq_len):
         logits = model(input_tokens)
         predicted = logits[:, -1].argmax(dim=-1, keepdim=True)
         
-        # Coin flip: use ground truth or prediction
+        # 동전 던지기: 참값을 쓸지 헤아린 값을 쓸지
         use_gt = (torch.rand(batch_size, 1) < epsilon).to(x.device)
         next_token = torch.where(use_gt, x[:, t:t+1], predicted)
         input_tokens = torch.cat([input_tokens, next_token], dim=1)
     
-    # Compute loss on full sequence
+    # 온 차례에 대해 손실을 셈한다
     full_logits = model(input_tokens[:, :-1])
     return F.cross_entropy(full_logits.reshape(-1, vocab_size),
                           x[:, 1:].reshape(-1))
 ```
 
-## Limitations
+## 한계
 
-Scheduled sampling is biased: the training objective no longer corresponds to maximum likelihood because the input distribution is a mixture of ground truth and model predictions. This can lead to inconsistent training in theory, though it often helps in practice.
+차례 잡은 뽑기는 치우쳐 있다. 들임 분포가 참값과 모델이 헤아린 값의 섞임이므로 익히기 목표가 더는 최대 가능도와 맞지 않는다. 이론으로는 한결같지 않은 익히기로 이어질 수 있으나 실제로는 흔히 도움이 된다.
 
-## Alternatives
+## 대안
 
-- **Professor forcing**: use a discriminator to match the hidden state distributions of teacher-forced and free-running modes
-- **Differentiable sampling**: use Gumbel-softmax or straight-through estimators to make sampling differentiable
+- **교수 밀어 넣기**: 가름개를 써서 스승 밀어 넣기 모드와 스스로 도는 모드의 숨은 상태 분포를 맞춘다
+- **미분할 수 있는 뽑기**: 검벨-소프트맥스나 곧바로 통과 어림개를 써서 뽑기를 미분할 수 있게 한다
+
+## 연습문제
+
+**연습문제 1.**
+자기 되돌이 차례 만들어 내기에서의 드러남 치우침 문제를 설명하라.
+
+??? success "연습문제 1 풀이"
+    스승 밀어 넣기로 익히는 동안 모델은 걸음마다 늘 참값 토큰을 들임으로 본다. 추론할 때는 제가 헤아린 (틀릴 수도 있는) 값을 조건으로 삼는다. 이 익히기와 시험 사이의 어긋남이 **드러남 치우침**이다. 곧 모델은 익히는 동안 제 어긋남에서 되돌아오는 법을 배운 적이 없다. 어긋남은 쌓인다. 곧 잘못 헤아린 하나가 낯선 상태로 이끌어 더 많은 어긋남을 낳는다. 적어도 하나쯤 틀릴 확률이 커지는 긴 차례에서 특히 문제가 되며, 어긋남마다 모델을 익히기 분포에서 더 멀리 밀어낸다.
+
+---
+
+**연습문제 2.**
+차례 잡은 뽑기 알고리즘을 설명하라. 익히는 동안 차례표는 어떻게 바뀌는가?
+
+??? success "연습문제 2 풀이"
+    차례 잡은 뽑기는 익히는 동안 스승 밀어 넣기와 스스로 돌기를 섞는다. 푸는 걸음마다 (바퀴 $i$에서) 확률 $p_i$으로 모델은 참값 토큰을 쓰고 확률 $1-p_i$으로 제가 헤아린 값을 쓴다. 확률 $p_i$은 익히는 동안 **선형 줄이기** $p_i = \max(\epsilon, 1 - i/k)$, **지수 줄이기** $p_i = k^i$, **거꾸로 된 S자** $p_i = k/(k + \exp(i/k))$ 같은 차례표로 줄어든다. 익히기 앞머리($p \approx 1$)에는 스승 밀어 넣기가 안정된 기울기를 준다. 익히기 뒷머리($p \ll 1$)에는 모델이 스스로 조건 주기를 익혀 추론을 준비한다.
+
+---
+
+**연습문제 3.**
+차례 잡은 뽑기의 이론상 한계는 무엇인가? 왜 치우친 어림개로 여기는가?
+
+??? success "연습문제 3 풀이"
+    차례 잡은 뽑기는 익히는 동안 서로 다른 두 분포(참값과 모델이 헤아린 값)의 표본을 섞는데, 이는 어느 쪽 분포의 가능도를 가장 크게 하는 것과도 맞지 않는다. 그래서 나오는 익히기 목표는 로그 가능도의 올바른 아래 한계가 아니므로 치우친 어림개가 된다. 치우침이 생기는 까닭은 (1) 모델이 헤아린 값을 쓸 때 기울기가 이를 붙박이 들임으로 다루고(뽑기 결정을 지나는 기울기가 없다), (2) 섞임 분포가 익히는 동안 바뀌어 멈춰 있지 않은 목표가 되기 때문이다. 이런 이론상 문제에도 차례 잡은 뽑기는 실제로 만들어 내기 품질을 꾸준히 높인다.
+
+---
+
+**연습문제 4.**
+차례 잡은 뽑기를 드러남 치우침을 다루는 다른 방식(빔 찾기, 강화 배움, 교수 밀어 넣기)과 견주어라.
+
+??? success "연습문제 4 풀이"
+    | 방법 | 방식 | 좋은 점 | 나쁜 점 |
+    |--------|---------|------|------|
+    | **차례 잡은 뽑기** | 스승 밀어 넣기 + 스스로 조건 주기 섞기 | 단순하고 잘 듣는다 | 기울기가 치우친다 |
+    | **빔 찾기** | 추론할 때 여러 가설을 살핀다 | 익히기를 바꾸지 않는다 | 추론 때만 도움이 된다 |
+    | **강화 배움(REINFORCE)** | 차례 수준 보상을 가장 좋게 한다 | 치우치지 않고 너그럽다 | 흩어짐이 크고 불안정하다 |
+    | **교수 밀어 넣기** | 숨은 상태에 대한 맞겨루기 익히기 | 이론으로 뒷받침된다 | 복잡하고 맞겨루기 만들개 같은 불안정이 있다 |
+
+    차례 잡은 뽑기는 단순함과 잘 듣는 정도의 맞바꿈이 가장 좋아 가장 널리 쓰인다.

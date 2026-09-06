@@ -1,54 +1,94 @@
-# Combinatorics
+# 조합론
 
-Combinatorics counts the number of ways to arrange or select objects. In deep learning, combinatorial reasoning arises when analyzing search spaces, counting model architectures in neural architecture search, and understanding the capacity of discrete structures.
+조합론은 대상을 배열하거나 선택하는 경우의 수를 센다. 딥러닝에서는 탐색 공간을 분석하거나, 신경망 구조 탐색에서 후보 구조의 개수를 세거나, 이산 구조의 표현 용량을 이해할 때 조합론적 추론이 등장한다.
 
-## Definition
+## 정의
 
-Combinatorics is the branch of mathematics concerned with counting, arranging, and selecting elements from finite sets. The fundamental quantities are:
+조합론은 유한 집합에서 원소를 세고, 배열하고, 선택하는 것을 다루는 수학의 한 분야이다. 기본이 되는 양은 다음과 같다.
 
 $$
-\text{Permutations: } P(n, k) = \frac{n!}{(n-k)!} \qquad \text{Combinations: } \binom{n}{k} = \frac{n!}{k!(n-k)!}
+\text{순열: } P(n, k) = \frac{n!}{(n-k)!} \qquad \text{조합: } \binom{n}{k} = \frac{n!}{k!(n-k)!}
 $$
 
-Permutations count ordered arrangements of $k$ items from $n$, while combinations count unordered selections.
+순열은 $n$개에서 $k$개를 뽑아 순서를 고려해 배열하는 경우의 수이고, 조합은 순서를 고려하지 않는 선택의 경우의 수이다.
 
-## Explanation
+## 설명
 
-Three counting principles cover most situations in practice:
+실무에서 마주치는 대부분의 상황은 세 가지 세는 원리로 다룰 수 있다.
 
-- **Multiplication principle**: If task A has $m$ outcomes and task B has $n$ outcomes, the pair has $m \cdot n$ outcomes. This gives $n^k$ arrangements when choosing $k$ items from $n$ with repetition allowed.
-- **Combinations**: Selecting $k$ items from $n$ without regard to order yields $\binom{n}{k}$ possibilities. This appears when choosing which neurons to drop in dropout or selecting subsets of features.
-- **Binomial theorem**: Connects combinations to algebra:
+- **곱의 법칙**: 작업 A의 결과가 $m$가지이고 작업 B의 결과가 $n$가지이면 그 쌍은 $m \cdot n$가지이다. 이로부터 $n$개에서 중복을 허용하여 $k$개를 고르는 경우의 수 $n^k$를 얻는다.
+- **조합**: 순서를 무시하고 $n$개에서 $k$개를 고르면 $\binom{n}{k}$가지이다. 드롭아웃에서 어떤 뉴런을 버릴지 고르거나 특징의 부분집합을 선택할 때 나타난다.
+- **이항 정리**: 조합을 대수와 연결한다.
 
 $$
 (x + y)^n = \sum_{k=0}^{n} \binom{n}{k} x^{n-k} y^k
 $$
 
-In deep learning, combinatorial explosion explains why brute-force hyperparameter search is infeasible. A grid search over $p$ hyperparameters with $v$ values each requires $v^p$ evaluations, motivating random search and Bayesian optimization.
+딥러닝에서 조합적 폭발은 완전 탐색 방식의 하이퍼파라미터 탐색이 실행 불가능한 이유를 설명한다. 하이퍼파라미터 $p$개를 각각 $v$개 값으로 격자 탐색하려면 $v^p$번의 평가가 필요하며, 이것이 무작위 탐색과 베이즈 최적화의 동기가 된다.
 
-## Examples
+## 예제
 
 ```python
 import torch
 from math import comb, factorial
 
-# Permutations and combinations
+# 순열과 조합
 n, k = 10, 3
 perms = factorial(n) // factorial(n - k)
 combs = comb(n, k)
 print(f"P({n},{k}) = {perms}")
 print(f"C({n},{k}) = {combs}")
 
-# Hyperparameter search space explosion
+# 하이퍼파라미터 탐색 공간의 폭발
 params = 5
 values_per_param = 4
 grid_size = values_per_param ** params
 print(f"Grid search: {params} params x {values_per_param} values = {grid_size} configs")
 
-# Verify binomial theorem with PyTorch
+# PyTorch로 이항 정리 확인
 x, y = torch.tensor(2.0), torch.tensor(3.0)
 n_val = 4
 lhs = (x + y) ** n_val
 rhs = sum(comb(n_val, k) * x ** (n_val - k) * y ** k for k in range(n_val + 1))
 print(f"(x+y)^{n_val} = {lhs.item():.0f}, sum of binomial terms = {rhs.item():.0f}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+어떤 신경망 구조 탐색이 $L = 5$개 층을 가진 신경망을 고려하며 각 층은 4가지 유형(합성곱, 완전연결, 어텐션, 항등) 중 하나가 될 수 있다. 서로 다른 구조는 몇 가지인가? 각각을 평가하는 데 1시간이 걸린다면 전수 탐색에는 얼마나 걸리는가?
+
+??? success "연습문제 1 풀이"
+    곱의 법칙에 의해 서로 다른 구조는 $4^5 = 1024$가지이다. 전수 탐색은 $1024$시간 $\approx 42.7$일이 걸린다. 이러한 조합적 폭발이 무작위 탐색, 베이즈 최적화, 경사 기반 NAS(예: DARTS) 같은 효율적인 탐색 방법의 동기가 된다.
+
+---
+
+**연습문제 2.**
+뉴런 $n = 10$개인 층에 비율 $p = 0.5$의 드롭아웃을 적용할 때 서로 다른 드롭아웃 마스크는 몇 가지인가? 정확히 절반의 뉴런을 버리는 마스크의 비율은 얼마인가?
+
+??? success "연습문제 2 풀이"
+    각 뉴런이 독립적으로 유지되거나 버려지므로 가능한 마스크는 $2^{10} = 1024$가지이다. 10개 중 정확히 5개를 버리는 마스크의 수는 $\binom{10}{5} = 252$이다. 비율은 $252 / 1024 \approx 0.246$으로 전체 마스크의 약 24.6%이다.
+
+---
+
+**연습문제 3.**
+이항 정리를 사용하여 항등식 $\sum_{k=0}^{n} \binom{n}{k} = 2^n$을 증명하라.
+
+??? success "연습문제 3 풀이"
+    이항 정리에 의해 $(x + y)^n = \sum_{k=0}^{n} \binom{n}{k} x^{n-k} y^k$이다. $x = 1$, $y = 1$로 두면 $(1 + 1)^n = \sum_{k=0}^{n} \binom{n}{k} 1^{n-k} \cdot 1^k = \sum_{k=0}^{n} \binom{n}{k}$이다. 따라서 $\sum_{k=0}^{n} \binom{n}{k} = 2^n$이다. $\square$
+
+---
+
+**연습문제 4.**
+무작위 탐색이 크기 $N$인 공간에서 하이퍼파라미터 조합 $t$개를 무작위로 평가한다. 무작위 탐색이 유일한 최적 조합을 찾을 확률을 계산하라. 50%의 확률을 얻으려면 $t \approx N \ln 2$번의 시행이 필요함을 보여라.
+
+??? success "연습문제 4 풀이"
+    한 번의 시행에서 최적 조합을 놓칠 확률은 $(N-1)/N$이다. 독립적인 $t$번의 시행 후 한 번도 뽑지 못할 확률은 $((N-1)/N)^t$이다. 따라서 찾을 확률은 $1 - ((N-1)/N)^t$이다. 이를 $0.5$로 두면 $((N-1)/N)^t = 0.5$이므로 $t = \ln(0.5) / \ln((N-1)/N)$이다. $N$이 크면 $\ln((N-1)/N) \approx -1/N$이므로 $t \approx -\ln(0.5) \cdot N = N \ln 2 \approx 0.693 N$이다. $\square$
+
+---
+
+**연습문제 5.**
+어떤 특징 선택 방법이 사용 가능한 $d = 50$개의 특징에서 $k = 5$개를 골라야 한다. (a) 순서 없는 부분집합을 고르는 경우와 (b) 순서 있는 수열을 고르는 경우의 탐색 공간 크기를 비교하라. 특징 선택에는 왜 순서 없는 정식화로 충분한가?
+
+??? success "연습문제 5 풀이"
+    (a) 순서 없음: $\binom{50}{5} = \frac{50!}{5! \cdot 45!} = 2{,}118{,}760$. (b) 순서 있음: $P(50, 5) = \frac{50!}{45!} = 50 \times 49 \times 48 \times 47 \times 46 = 254{,}251{,}200$. 순서 있는 공간이 $5! = 120$배 크다. 순서 없는 정식화로 충분한 이유는 예측 $f(\{x_{i_1}, \ldots, x_{i_5}\})$이 어떤 특징이 선택되었는지에만 의존할 뿐 나열 순서에는 의존하지 않기 때문이다. 순서 있는 정식화를 쓰면 서로 동등한 조합을 $120\times$ 더 탐색하게 되어 계산을 낭비한다.

@@ -1,47 +1,47 @@
-# Rod Cutting
+# 막대 자르기
 
-The rod cutting problem is one of the classic introductory examples of dynamic programming, used in textbooks like CLRS to illustrate optimal substructure, overlapping subproblems, and the progression from naive recursion to efficient tabulation.  Given a rod of integer length $n$ and a price table specifying the revenue for each possible piece length, the goal is to determine the cuts that maximize total revenue.
+막대 자르기 문제는 동적 짜기를 들여올 때 쓰는 고전 보기 가운데 하나로, CLRS 같은 교과서에서 가장 좋은 아래 짜임, 겹치는 아래 문제, 막무가내 되돌이에서 효율 좋은 표 채우기로 나아가는 흐름을 보이는 데 쓰인다. 정수 길이 $n$인 막대와 조각 길이마다의 벌이를 적은 값 표가 주어질 때 전체 벌이를 가장 크게 하는 자르기를 정하는 것이 목표이다.
 
-## Problem Statement
+## 문제 서술
 
-Given a rod of length $n$ and a price table $p_1, p_2, \ldots, p_n$ where $p_i$ is the price for a piece of length $i$, determine the maximum revenue $r(n)$ obtainable by cutting the rod into pieces and selling them.
+길이 $n$인 막대와 $p_i$이 길이 $i$인 조각의 값인 값 표 $p_1, p_2, \ldots, p_n$이 주어질 때 막대를 조각내어 팔아 얻을 수 있는 최대 벌이 $r(n)$을 정하라.
 
-**Example:** With $n = 4$ and prices $p_1 = 1, p_2 = 5, p_3 = 8, p_4 = 9$:
+**보기:** $n = 4$이고 값이 $p_1 = 1, p_2 = 5, p_3 = 8, p_4 = 9$일 때:
 
-| Cut | Revenue |
+| 자르기 | 벌이 |
 |-----|---------|
-| No cut: piece of length 4 | 9 |
-| Pieces of length 2 + 2 | 5 + 5 = 10 |
-| Pieces of length 1 + 3 | 1 + 8 = 9 |
-| Pieces of length 1 + 1 + 2 | 1 + 1 + 5 = 7 |
+| 자르지 않음: 길이 4 조각 | 9 |
+| 길이 2 + 2 조각 | 5 + 5 = 10 |
+| 길이 1 + 3 조각 | 1 + 8 = 9 |
+| 길이 1 + 1 + 2 조각 | 1 + 1 + 5 = 7 |
 
-The optimal solution is two pieces of length 2, yielding revenue 10.
+가장 좋은 풀이는 길이 2 조각 둘이며 벌이는 10이다.
 
-## Recurrence
+## 점화식
 
-The key insight is to consider the first cut.  If the first piece has length $i$ (where $1 \le i \le n$), the remaining rod has length $n - i$ and must be cut optimally.  This gives
+핵심 눈썰미는 첫 자르기를 보는 것이다. 첫 조각의 길이가 $i$($1 \le i \le n$)이면 남은 막대는 길이 $n - i$이고 가장 좋게 잘려야 한다. 그러면 다음을 얻는다
 
 $$
 r(n) = \max_{1 \le i \le n} \bigl(p_i + r(n - i)\bigr)
 $$
 
-with base case $r(0) = 0$ (a rod of length 0 has zero revenue).
+바탕 경우는 $r(0) = 0$이다(길이 0인 막대의 벌이는 0).
 
-The problem has optimal substructure because the remaining rod of length $n - i$ must be cut optimally — otherwise, replacing its cutting plan with a better one would increase total revenue.
+길이 $n - i$인 남은 막대가 가장 좋게 잘려야 하므로 이 문제는 가장 좋은 아래 짜임을 갖춘다. 그렇지 않다면 그 자르기 계획을 더 나은 것으로 갈음해 전체 벌이를 늘릴 수 있다.
 
-## Naive Recursion
+## 막무가내 되돌이
 
 ```python
 """
-Rod cutting: maximize revenue from cutting a rod of length n.
+막대 자르기: 길이 n인 막대를 잘라 벌이를 가장 크게 한다.
 """
 
 
 # ===================================================================
-# Approach 1: Naive recursion
+# 방식 1: 막무가내 되돌이
 # ===================================================================
 def rod_cut_recursive(prices: list[int], n: int) -> int:
-    """Maximum revenue via naive recursion. Time: O(2^n), Space: O(n)."""
+    """막무가내 되돌이로 얻는 최대 벌이. 시간: O(2^n), 공간: O(n)."""
     if n == 0:
         return 0
     best = -1
@@ -50,16 +50,16 @@ def rod_cut_recursive(prices: list[int], n: int) -> int:
     return best
 ```
 
-The recursion tree has $2^{n-1}$ leaves (corresponding to the $2^{n-1}$ ways to cut a rod of length $n$), giving exponential time.
+되돌이 나무의 잎이 $2^{n-1}$개여서(길이 $n$인 막대를 자르는 $2^{n-1}$가지에 맞닿는다) 지수 시간이 든다.
 
-## Memoization (Top-Down)
+## 적어 두기(위에서 아래로)
 
 ```python
 # ===================================================================
-# Approach 2: Memoization (top-down)
+# 방식 2: 적어 두기(위에서 아래로)
 # ===================================================================
 def rod_cut_memo(prices: list[int], n: int, memo: dict[int, int] | None = None) -> int:
-    """Maximum revenue with memoization. Time: O(n^2), Space: O(n)."""
+    """적어 두기로 얻는 최대 벌이. 시간: O(n^2), 공간: O(n)."""
     if memo is None:
         memo = {}
     if n in memo:
@@ -73,16 +73,16 @@ def rod_cut_memo(prices: list[int], n: int, memo: dict[int, int] | None = None) 
     return best
 ```
 
-There are $n + 1$ distinct subproblems, and solving subproblem $r(j)$ requires iterating over at most $j$ choices.  Total time is $\sum_{j=0}^{n} j = O(n^2)$.
+서로 다른 아래 문제가 $n + 1$개이고 아래 문제 $r(j)$을 푸는 데 최대 $j$개의 고름을 되풀이한다. 전체 시간은 $\sum_{j=0}^{n} j = O(n^2)$이다.
 
-## Tabulation (Bottom-Up)
+## 표 채우기(아래에서 위로)
 
 ```python
 # ===================================================================
-# Approach 3: Tabulation (bottom-up)
+# 방식 3: 표 채우기(아래에서 위로)
 # ===================================================================
 def rod_cut_tabulation(prices: list[int], n: int) -> int:
-    """Maximum revenue with tabulation. Time: O(n^2), Space: O(n)."""
+    """표 채우기로 얻는 최대 벌이. 시간: O(n^2), 공간: O(n)."""
     r = [0] * (n + 1)
     for j in range(1, n + 1):
         best = -1
@@ -92,16 +92,16 @@ def rod_cut_tabulation(prices: list[int], n: int) -> int:
     return r[n]
 ```
 
-## Reconstructing the Cuts
+## 자르기 다시 세우기
 
-To find the actual pieces, maintain an auxiliary array recording the first cut at each length:
+실제 조각을 찾으려면 길이마다 첫 자르기를 적어 두는 딸림 배열을 둔다:
 
 ```python
 # ===================================================================
-# Approach 4: With reconstruction
+# 방식 4: 다시 세우기 곁들임
 # ===================================================================
 def rod_cut_with_cuts(prices: list[int], n: int) -> tuple[int, list[int]]:
-    """Return maximum revenue and the list of piece lengths."""
+    """최대 벌이와 조각 길이의 목록을 돌려준다."""
     r = [0] * (n + 1)
     s = [0] * (n + 1)
 
@@ -122,19 +122,19 @@ def rod_cut_with_cuts(prices: list[int], n: int) -> tuple[int, list[int]]:
     return r[n], cuts
 ```
 
-## Complexity
+## 복잡도
 
-| Approach | Time | Space |
+| 방법 | 시간 | 공간 |
 |----------|------|-------|
-| Naive recursion | $O(2^n)$ | $O(n)$ |
-| Memoization | $O(n^2)$ | $O(n)$ |
-| Tabulation | $O(n^2)$ | $O(n)$ |
+| 막무가내 되돌이 | $O(2^n)$ | $O(n)$ |
+| 적어 두기 | $O(n^2)$ | $O(n)$ |
+| 표 채우기 | $O(n^2)$ | $O(n)$ |
 
-The $O(n^2)$ time comes from solving $n$ subproblems, each requiring a loop over at most $n$ cut positions.
+$O(n^2)$ 시간은 아래 문제 $n$개를 풀되 저마다 최대 $n$개 자르는 자리를 되풀이하는 데서 온다.
 
 ```python
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 if __name__ == "__main__":
     prices = [1, 5, 8, 9, 10, 17, 17, 20, 24, 30]
@@ -143,13 +143,45 @@ if __name__ == "__main__":
         print(f"n={n}  revenue={revenue}  cuts={cuts}")
 ```
 
-**Output:**
+**출력:**
 ```
 n=4  revenue=10  cuts=[2, 2]
 n=7  revenue=18  cuts=[1, 6]
 n=10  revenue=30  cuts=[10]
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 14. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+막대 자르기의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+막대 자르기의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+막대 자르기의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+막대 자르기의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

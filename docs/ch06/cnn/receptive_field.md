@@ -1,25 +1,20 @@
-# Receptive Field
+# 수용 영역
+## 들어가며
 
+합성곱 신경망에서 뉴런의 **수용 영역**은 그 뉴런의 활성값에 영향을 주는 입력 이미지의 영역이다. 수용 영역을 이해하는 일은 CNN 설계의 바탕인데, 다음을 정하기 때문이다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+1. **쓸 수 있는 맥락**: 특징 검출기마다 얼마만큼의 공간 맥락에 닿을 수 있는가
+2. **특징의 규모**: 신경망이 어느 크기의 무늬를 알아볼 수 있는가
+3. **구조 결정**: 알맞은 핵 크기, 신경망의 깊이, 팽창률의 선택
+4. **과제 적합성**: 신경망이 필요한 공간 관계를 붙잡을 수 있는가
 
-## Introduction
+이 절은 수용 영역의 계산을 엄밀하게 다루고, 실제로 쓸 수 있는 계산 도구와 설계에 주는 함의를 살핀다.
 
-The **receptive field** of a neuron in a convolutional neural network is the region of the input image that influences the neuron's activation. Understanding receptive fields is fundamental to CNN design because it determines:
+## 정의
 
-1. **Context available**: How much spatial context each feature detector can access
-2. **Feature scale**: What size patterns the network can recognize
-3. **Architecture decisions**: Optimal kernel sizes, network depth, and dilation choices
-4. **Task suitability**: Whether the network can capture the spatial relationships required
+### 지역 수용 영역
 
-This section provides a rigorous mathematical treatment of receptive field calculation, practical computation tools, and design implications.
-
-## Definitions
-
-### Local Receptive Field
-
-The **local receptive field** of a neuron is the set of neurons in the previous layer that directly connect to it. For a convolution with kernel size $K$, the local receptive field is $K \times K$.
+뉴런의 **지역 수용 영역**은 그 뉴런에 곧바로 이어진 앞 층 뉴런들의 모임이다. 핵 크기가 $K$인 합성곱에서 지역 수용 영역은 $K \times K$이다.
 
 ```
 Layer 1 output neuron sees a 3×3 region of input:
@@ -34,9 +29,9 @@ Input:              Layer 1:
 Local receptive field = 3×3
 ```
 
-### Global Receptive Field
+### 전역 수용 영역
 
-The **global receptive field** (or simply "receptive field") is the region of the **original input** that can influence a neuron's output. This accumulates through multiple layers:
+**전역 수용 영역**(또는 그냥 "수용 영역")은 뉴런의 출력에 영향을 줄 수 있는 **원래 입력**의 영역이다. 이는 여러 층을 지나며 쌓인다.
 
 ```
 Input:                Layer 1:              Layer 2:
@@ -49,107 +44,108 @@ Input:                Layer 1:              Layer 2:
 Layer 1 RF = 3×3     Layer 2 RF = 5×5
 ```
 
-### Effective Receptive Field (ERF)
+### 실효 수용 영역 (ERF)
 
-The **theoretical** receptive field is not the same as the **effective** receptive field. In practice, not all pixels within the theoretical receptive field contribute equally to a neuron's activation:
+**이론적인** 수용 영역과 **실효** 수용 영역은 같지 않다. 실제로 이론적인 수용 영역 안의 화소가 모두 뉴런의 활성값에 똑같이 이바지하지는 않는다.
 
-- **Center pixels** have higher influence (more paths through the network)
-- **Edge pixels** have lower influence (fewer contributing paths)
+- **가운데 화소**는 영향이 크다 (신경망을 지나는 길이 더 많다)
+- **가장자리 화소**는 영향이 작다 (이바지하는 길이 더 적다)
 
-The ERF typically follows a Gaussian distribution centered on the neuron, and is often much smaller than the theoretical maximum.
+실효 수용 영역은 대개 뉴런을 중심으로 하는 가우스 분포를 따르며, 이론적인 최댓값보다 훨씬 작을 때가 많다.
 
-## Mathematical Formulation
+## 수학적 정식화
 
-### Single Layer Receptive Field
+### 한 층의 수용 영역
 
-For a single convolutional layer with:
-- Kernel size: $K$
-- Stride: $s$
-- Dilation: $d$
+다음과 같은 합성곱 층 하나에 대해 살펴보자.
 
-The effective kernel size (accounting for dilation) is:
+- 핵 크기: $K$
+- 보폭: $s$
+- 팽창률: $d$
+
+(팽창을 감안한) 실효 핵 크기는 다음과 같다.
 
 $$K_{\text{eff}} = d \cdot (K - 1) + 1$$
 
-For standard convolution ($d = 1$): $K_{\text{eff}} = K$
+표준 합성곱($d = 1$)에서는 $K_{\text{eff}} = K$이다.
 
-### Multi-Layer Receptive Field
+### 여러 층의 수용 영역
 
-For stacked convolutional layers, the receptive field grows according to:
+합성곱 층을 쌓으면 수용 영역이 다음에 따라 자란다.
 
 $$r_l = r_{l-1} + (K_l - 1) \cdot d_l \cdot \prod_{i=1}^{l-1} s_i$$
 
-where:
-- $r_l$: Receptive field after layer $l$
-- $r_0 = 1$: Initial receptive field (single pixel)
-- $K_l$: Kernel size at layer $l$
-- $d_l$: Dilation at layer $l$
-- $s_i$: Stride at layer $i$
-- $\prod_{i=1}^{l-1} s_i$: Cumulative stride (also called "jump")
+여기서 각 기호는 다음과 같다.
 
-### The Cumulative Stride Factor
+- $r_l$: $l$번째 층 뒤의 수용 영역
+- $r_0 = 1$: 처음의 수용 영역 (화소 하나)
+- $K_l$: $l$번째 층의 핵 크기
+- $d_l$: $l$번째 층의 팽창률
+- $s_i$: $i$번째 층의 보폭
+- $\prod_{i=1}^{l-1} s_i$: 누적 보폭 ("뜀"이라고도 한다)
 
-The factor $\prod_{i=1}^{l-1} s_i$ (cumulative stride or "jump") is crucial for understanding receptive field growth:
+### 누적 보폭 인수
 
-1. Each previous stride **amplifies** the receptive field growth of subsequent layers
-2. A stride-2 layer doubles the "step size" for all later layers
-3. This is why early downsampling dramatically increases receptive fields in deeper layers
+인수 $\prod_{i=1}^{l-1} s_i$(누적 보폭 또는 "뜀")은 수용 영역이 자라는 방식을 이해하는 데 매우 중요하다.
 
-### Simplified Formulas
+1. 앞선 보폭 하나하나가 뒤따르는 층의 수용 영역 증가를 **키운다**
+2. 보폭 2인 층은 그 뒤 모든 층의 "걸음 크기"를 두 배로 만든다
+3. 그래서 앞쪽에서 하향 표본화를 하면 깊은 층의 수용 영역이 크게 넓어진다
 
-**For uniform architecture** (same kernel $k$, stride $s$ throughout):
+### 간단히 한 식
+
+**한결같은 구조**(핵 $k$, 보폭 $s$이 처음부터 끝까지 같음)에서는 다음과 같다.
 
 $$r_L = 1 + \sum_{l=1}^{L} (k - 1) \cdot d_l \cdot s^{l-1}$$
 
-**For all stride-1 convolutions** (no downsampling):
+**모두 보폭 1인 합성곱**(하향 표본화 없음)에서는 다음과 같다.
 
 $$r_L = 1 + L \cdot (k - 1)$$
 
-This shows that with stride-1, receptive field grows linearly with depth.
+이는 보폭이 1일 때 수용 영역이 깊이에 따라 선형으로 자람을 보여 준다.
 
-## Computing Receptive Field
+## 수용 영역 계산하기
 
-### Core Python Implementation
+### 핵심 파이썬 구현
 
 ```python
 def compute_receptive_field(layers):
     """
-    Compute receptive field for a sequence of conv/pool layers.
+    합성곱과 풀링 층의 나열에 대해 수용 영역을 계산한다.
     
-    Args:
-        layers: List of dicts with 'kernel', 'stride', 'dilation' keys
+    인수:
+        layers: 'kernel', 'stride', 'dilation' 열쇠를 가진 사전들의 리스트
     
-    Returns:
-        Receptive field size and jump (cumulative stride)
+    반환값:
+        수용 영역의 크기와 뜀(누적 보폭)
     """
-    rf = 1  # Start with single pixel
-    jump = 1  # Cumulative stride
+    rf = 1  # 화소 하나에서 시작
+    jump = 1  # 누적 보폭
     
     for layer in layers:
         k = layer.get('kernel', 1)
         s = layer.get('stride', 1)
         d = layer.get('dilation', 1)
         
-        # Effective kernel size with dilation
+        # 팽창을 감안한 실효 핵 크기
         k_eff = d * (k - 1) + 1
         
-        # Update receptive field
+        # 수용 영역 갱신
         rf = rf + (k_eff - 1) * jump
         
-        # Update jump (cumulative stride)
+        # 뜀(누적 보폭) 갱신
         jump = jump * s
     
     return rf, jump
 
-
-# Example: VGG-style network
+# 예: VGG 방식 신경망
 vgg_layers = [
-    {'kernel': 3, 'stride': 1},  # Conv 3×3
-    {'kernel': 3, 'stride': 1},  # Conv 3×3
-    {'kernel': 2, 'stride': 2},  # MaxPool 2×2
-    {'kernel': 3, 'stride': 1},  # Conv 3×3
-    {'kernel': 3, 'stride': 1},  # Conv 3×3
-    {'kernel': 2, 'stride': 2},  # MaxPool 2×2
+    {'kernel': 3, 'stride': 1},  # 3×3 합성곱
+    {'kernel': 3, 'stride': 1},  # 3×3 합성곱
+    {'kernel': 2, 'stride': 2},  # 2×2 최댓값 풀링
+    {'kernel': 3, 'stride': 1},  # 3×3 합성곱
+    {'kernel': 3, 'stride': 1},  # 3×3 합성곱
+    {'kernel': 2, 'stride': 2},  # 2×2 최댓값 풀링
 ]
 
 rf, jump = compute_receptive_field(vgg_layers)
@@ -157,22 +153,23 @@ print(f"Receptive field: {rf}×{rf}")  # 22×22
 print(f"Jump (output stride): {jump}")  # 4
 ```
 
-### Layer-by-Layer Analysis with Position Tracking
+### 위치까지 좇는 층별 분석
 
-For precise localization, we also track:
-- **Jump**: How many input pixels correspond to moving one unit in the feature map
-- **Start**: The center of the first feature in input coordinates
+정확한 위치를 잡으려면 다음도 함께 좇는다.
+
+- **뜀**: 특징 맵에서 한 칸 움직이는 것이 입력 화소 몇 개에 해당하는가
+- **시작**: 입력 좌표로 나타낸 첫 특징의 중심
 
 ```python
 def analyze_receptive_field(layers, layer_names=None):
     """
-    Detailed receptive field analysis for each layer.
+    층마다의 자세한 수용 영역 분석.
     
-    Tracks receptive field size, jump, and center position.
+    수용 영역의 크기와 뜀과 중심 자리를 좇는다.
     """
     rf = 1
     jump = 1
-    start = 0.5  # Center of first feature (0-indexed)
+    start = 0.5  # 첫 특징의 중심 (0부터 세는 색인)
     
     print(f"{'Layer':<20} {'Kernel':<8} {'Stride':<8} {'Dilation':<8} {'RF':<8} {'Jump':<8}")
     print("-" * 68)
@@ -183,16 +180,16 @@ def analyze_receptive_field(layers, layer_names=None):
         s = layer.get('stride', 1)
         d = layer.get('dilation', 1)
         
-        # Effective kernel size
+        # 실효 핵 크기
         k_eff = d * (k - 1) + 1
         
-        # Update receptive field
+        # 수용 영역 갱신
         rf = rf + (k_eff - 1) * jump
         
-        # Update start position
+        # 시작 자리 갱신
         start = start + ((k_eff - 1) / 2) * jump
         
-        # Update jump
+        # 뜀 갱신
         jump = jump * s
         
         name = layer_names[i] if layer_names else f"Layer {i+1}"
@@ -200,15 +197,14 @@ def analyze_receptive_field(layers, layer_names=None):
     
     return rf, jump
 
-
-# Analyze ResNet-style first few layers
+# ResNet 방식의 앞쪽 몇 층 분석
 resnet_layers = [
     {'kernel': 7, 'stride': 2},   # Conv1
-    {'kernel': 3, 'stride': 2},   # MaxPool
-    {'kernel': 3, 'stride': 1},   # Block1 Conv1
-    {'kernel': 3, 'stride': 1},   # Block1 Conv2
-    {'kernel': 3, 'stride': 2},   # Block2 Conv1 (stride)
-    {'kernel': 3, 'stride': 1},   # Block2 Conv2
+    {'kernel': 3, 'stride': 2},   # 최댓값 풀링
+    {'kernel': 3, 'stride': 1},   # 블록1 Conv1
+    {'kernel': 3, 'stride': 1},   # 블록1 Conv2
+    {'kernel': 3, 'stride': 2},   # 블록2 Conv1 (보폭)
+    {'kernel': 3, 'stride': 1},   # 블록2 Conv2
 ]
 
 names = ['Conv1 7×7/2', 'MaxPool 3×3/2', 'Block1 3×3', 'Block1 3×3',
@@ -217,7 +213,7 @@ names = ['Conv1 7×7/2', 'MaxPool 3×3/2', 'Block1 3×3', 'Block1 3×3',
 analyze_receptive_field(resnet_layers, names)
 ```
 
-**Output:**
+**출력:**
 ```
 Layer                Kernel   Stride   Dilation RF       Jump    
 --------------------------------------------------------------------
@@ -230,50 +226,51 @@ Block2 3×3/2         3        2        1        35       8
 Block2 3×3           3        1        1        51       8       
 ```
 
-## Receptive Field Growth Strategies
+## 수용 영역을 넓히는 전략
 
-### Strategy 1: Increase Kernel Size
+### 전략 1: 핵 크기 키우기
 
-**Pros**: Direct increase in receptive field  
-**Cons**: Quadratic parameter growth, computational cost
+**장점**: 수용 영역이 곧바로 넓어진다
+**단점**: 매개변수가 제곱으로 늘고 계산 비용이 든다
 
 $$\text{Parameters} \propto K^2$$
 
-### Strategy 2: Increase Depth (Preferred)
+### 전략 2: 깊이 늘리기 (권장)
 
-**Pros**: Linear parameter growth, compositional features  
-**Cons**: Vanishing gradients, optimization difficulty
+**장점**: 매개변수가 선형으로 늘고 특징이 층층이 조합된다
+**단점**: 기울기 소실, 최적화의 어려움
 
-Two 3×3 layers have the same receptive field as one 5×5:
+3×3 층 두 개는 5×5 층 하나와 수용 영역이 같다.
 
 $$r_{\text{two } 3\times3} = 1 + (3-1) + (3-1) = 5$$
 
 $$r_{\text{one } 5\times5} = 1 + (5-1) = 5$$
 
-But with **fewer parameters**:
-- Two 3×3 layers: $2 \times 3^2 = 18$ weights per channel
-- One 5×5 layer: $5^2 = 25$ weights per channel
+그런데 **매개변수는 더 적다**.
 
-And **more non-linearity**: Two ReLUs vs. one.
+- 3×3 층 두 개: 채널마다 가중치 $2 \times 3^2 = 18$개
+- 5×5 층 하나: 채널마다 가중치 $5^2 = 25$개
 
-### Strategy 3: Increase Stride
+게다가 **비선형이 더 많다**. ReLU가 하나가 아니라 둘이다.
 
-**Pros**: Fast receptive field growth, reduces computation  
-**Cons**: Information loss, reduced spatial resolution
+### 전략 3: 보폭 늘리기
 
-### Strategy 4: Use Dilation (Efficient)
+**장점**: 수용 영역이 빨리 넓어지고 계산이 줄어든다
+**단점**: 정보가 사라지고 공간 해상도가 낮아진다
 
-**Pros**: Exponential RF growth with linear parameters  
-**Cons**: Gridding artifacts if not designed carefully
+### 전략 4: 팽창 쓰기 (효율적)
+
+**장점**: 매개변수는 선형으로 늘면서 수용 영역은 지수로 넓어진다
+**단점**: 꼼꼼히 설계하지 않으면 격자 무늬 흠이 생긴다
 
 ```python
 def compare_receptive_fields():
-    """Compare standard vs dilated convolutions."""
+    """표준 합성곱과 팽창 합성곱을 견준다."""
     
-    # Standard 3×3 convolutions (5 layers)
+    # 표준 3×3 합성곱 (5층)
     standard = [{'kernel': 3, 'stride': 1} for _ in range(5)]
     
-    # Dilated convolutions with increasing dilation
+    # 팽창률을 키워 가는 팽창 합성곱
     dilated = [
         {'kernel': 3, 'stride': 1, 'dilation': 1},
         {'kernel': 3, 'stride': 1, 'dilation': 2},
@@ -289,18 +286,17 @@ def compare_receptive_fields():
     print(f"Dilated 5 layers (d=1,2,4,8,16): RF = {rf_dilated}")  # 63
     print(f"Ratio: {rf_dilated / rf_standard:.1f}x larger with same parameters!")
 
-
 compare_receptive_fields()
 ```
 
-### WaveNet-Style Exponential Dilation
+### WaveNet 방식의 지수 팽창
 
 ```python
 def wavenet_receptive_field(num_blocks, layers_per_block, kernel_size=2):
     """
-    Calculate receptive field for WaveNet-style architecture.
+    WaveNet 방식 구조의 수용 영역을 계산한다.
     
-    Dilation pattern: 1, 2, 4, 8, ... repeating for each block.
+    팽창 방식: 블록마다 1, 2, 4, 8, …을 되풀이한다.
     """
     layers = []
     for block in range(num_blocks):
@@ -315,43 +311,42 @@ def wavenet_receptive_field(num_blocks, layers_per_block, kernel_size=2):
     rf, _ = compute_receptive_field(layers)
     return rf, len(layers)
 
-
-# WaveNet with 3 blocks of 10 layers each
+# 층 10개짜리 블록 3개로 이루어진 WaveNet
 rf, total_layers = wavenet_receptive_field(3, 10, kernel_size=2)
 print(f"WaveNet (3 blocks × 10 layers): {total_layers} layers, RF = {rf}")
 # RF = 3 × (2^10 - 1) + 1 = 3069
 ```
 
-## Effective Receptive Field (ERF)
+## 실효 수용 영역 (ERF)
 
-### The Gap Between Theory and Practice
+### 이론과 실제의 간격
 
-Luo et al. (2016) showed that the effective receptive field follows a Gaussian distribution:
+Luo 등(2016)은 실효 수용 영역이 가우스 분포를 따름을 보였다.
 
 $$\text{ERF}(i, j) \propto \exp\left(-\frac{(i - c_i)^2 + (j - c_j)^2}{2\sigma^2}\right)$$
 
-where $(c_i, c_j)$ is the center and $\sigma$ depends on network depth.
+여기서 $(c_i, c_j)$은 중심이고 $\sigma$은 신경망의 깊이에 달려 있다.
 
-### Key Empirical Findings
+### 실험에서 드러난 핵심 사실
 
-1. **ERF << Theoretical RF**: The effective receptive field is often much smaller than the theoretical maximum
-2. **ERF grows with $\sqrt{\text{depth}}$**: Not linearly with depth
-3. **Training increases ERF**: Network learns to use more context over training
-4. **Skip connections help**: Residual connections expand ERF significantly
-5. **Batch normalization**: Can increase ERF by normalizing feature statistics
+1. **실효 수용 영역이 이론적 수용 영역보다 훨씬 작다**: 실효 수용 영역은 이론적인 최댓값보다 훨씬 작을 때가 많다
+2. **실효 수용 영역은 $\sqrt{\text{깊이}}$에 비례해 자란다**: 깊이에 선형으로 자라지 않는다
+3. **학습이 실효 수용 영역을 넓힌다**: 학습이 이어질수록 신경망이 더 넓은 맥락을 쓰게 된다
+4. **건너뛰기 연결이 돕는다**: 잔차 연결이 실효 수용 영역을 크게 넓힌다
+5. **배치 정규화**: 특징의 통계량을 고르게 하여 실효 수용 영역을 넓힐 수 있다
 
-### Factors Affecting ERF
+### 실효 수용 영역에 영향을 주는 요인
 
-| Factor | Effect on ERF |
+| 요인 | 실효 수용 영역에 대한 영향 |
 |--------|--------------|
-| ReLU activations | Reduces ERF (dead neurons block gradient flow) |
-| Batch normalization | Can increase ERF |
-| Skip connections | Increases ERF (direct gradient paths) |
-| Attention mechanisms | Dynamic, context-dependent ERF |
-| Initialization | Affects ERF in early training |
-| Training duration | ERF typically grows during training |
+| ReLU 활성화 | 좁힌다 (죽은 뉴런이 기울기의 흐름을 막는다) |
+| 배치 정규화 | 넓힐 수 있다 |
+| 건너뛰기 연결 | 넓힌다 (기울기가 곧바로 흐르는 길) |
+| 어텐션 장치 | 맥락에 따라 그때그때 달라진다 |
+| 초기화 | 학습 초반의 실효 수용 영역에 영향을 준다 |
+| 학습 기간 | 학습이 이어지면 대개 넓어진다 |
 
-### Measuring Effective Receptive Field
+### 실효 수용 영역 재기
 
 ```python
 import torch
@@ -361,19 +356,19 @@ import numpy as np
 
 def measure_effective_receptive_field(model, input_size=224, target_layer=None):
     """
-    Measure the effective receptive field of a CNN by gradient analysis.
+    기울기 분석으로 CNN의 실효 수용 영역을 잰다.
     
-    Computes the gradient of a central output unit w.r.t. all inputs.
-    The magnitude of this gradient indicates each input pixel's influence.
+    가운데 출력 단위의 모든 입력에 대한 기울기를 계산한다.
+    이 기울기의 크기가 입력 화소마다의 영향을 나타낸다.
     """
     model.eval()
     
-    # Create input with gradient tracking
+    # 기울기를 좇는 입력 만들기
     x = torch.zeros(1, 3, input_size, input_size, requires_grad=True)
     
-    # Forward pass
+    # 순전파
     if target_layer:
-        # Get activation at specific layer via hook
+        # 훅으로 특정 층의 활성값 얻기
         features = {}
         def hook(module, input, output):
             features['out'] = output
@@ -384,37 +379,36 @@ def measure_effective_receptive_field(model, input_size=224, target_layer=None):
     else:
         output = model(x)
     
-    # Get center position of output
-    if output.dim() == 4:  # Feature map
+    # 출력의 가운데 자리 얻기
+    if output.dim() == 4:  # 특징 맵
         h, w = output.shape[2], output.shape[3]
         center_h, center_w = h // 2, w // 2
         
-        # Backprop from center neuron (single channel)
+        # 가운데 뉴런에서 역전파 (단일 채널)
         grad_output = torch.zeros_like(output)
         grad_output[0, 0, center_h, center_w] = 1.0
         output.backward(grad_output)
-    else:  # Flattened output
+    else:  # 펼친 출력
         grad_output = torch.zeros_like(output)
         grad_output[0, output.shape[1] // 2] = 1.0
         output.backward(grad_output)
     
-    # ERF is absolute gradient w.r.t. input (sum across channels)
+    # 실효 수용 영역은 입력에 대한 기울기의 절댓값이다 (채널에 대해 합)
     erf = x.grad.abs().sum(dim=1).squeeze().detach().numpy()
     
     return erf
 
-
 def visualize_erf_concept():
-    """Illustrate the concept of effective vs theoretical RF."""
+    """실효 수용 영역과 이론적 수용 영역의 개념을 보인다."""
     
     size = 51
     center = size // 2
     
-    # Theoretical RF (uniform box)
+    # 이론적 수용 영역 (고른 상자)
     theoretical = np.zeros((size, size))
-    theoretical[5:46, 5:46] = 1.0  # 41×41 theoretical RF
+    theoretical[5:46, 5:46] = 1.0  # 이론적 수용 영역 41×41
     
-    # Effective RF (Gaussian-like)
+    # 실효 수용 영역 (가우스 모양)
     y, x = np.ogrid[-center:size-center, -center:size-center]
     sigma = 8
     effective = np.exp(-(x**2 + y**2) / (2 * sigma**2))
@@ -429,7 +423,7 @@ def visualize_erf_concept():
     axes[1].set_title('Effective Receptive Field\n(center-weighted, Gaussian)')
     axes[1].axis('off')
     
-    # Cross-section comparison
+    # 단면 견주기
     axes[2].plot(theoretical[center, :], 'b-', linewidth=2, label='Theoretical')
     axes[2].plot(effective[center, :], 'r-', linewidth=2, label='Effective')
     axes[2].set_xlabel('Position')
@@ -444,46 +438,45 @@ def visualize_erf_concept():
     
     return fig
 
-
 visualize_erf_concept()
 ```
 
-## Architecture Analysis
+## 구조 분석
 
-### Common Architectures and Their RF
+### 흔한 구조와 그 수용 영역
 
-| Architecture | RF Strategy | Approximate Final RF |
+| 구조 | 수용 영역 전략 | 최종 수용 영역 (어림) |
 |--------------|-------------|---------------------|
-| AlexNet | Large kernels (11×11, 5×5) | 195×195 |
-| VGG-16 | Small kernels (3×3), deep | 212×212 |
-| ResNet-50 | Skip connections, bottlenecks | 483×483 |
-| Inception | Multi-scale parallel branches | Variable per branch |
-| U-Net | Encoder-decoder with skips | Full resolution |
-| DeepLab | Dilated convolutions (ASPP) | Very large |
-| EfficientNet | Compound scaling | Scales with model |
+| AlexNet | 큰 핵 (11×11, 5×5) | 195×195 |
+| VGG-16 | 작은 핵 (3×3), 깊음 | 212×212 |
+| ResNet-50 | 건너뛰기 연결, 병목 | 483×483 |
+| Inception | 여러 규모의 병렬 가지 | 가지마다 다름 |
+| U-Net | 건너뛰기가 있는 부호기-복호기 | 전체 해상도 |
+| DeepLab | 팽창 합성곱 (ASPP) | 매우 큼 |
+| EfficientNet | 복합 규모 조정 | 모델에 따라 커짐 |
 
-### RF Requirements by Task
+### 과제별로 필요한 수용 영역
 
-| Task | RF Requirement | Rationale |
+| 과제 | 필요한 수용 영역 | 근거 |
 |------|----------------|-----------|
-| Edge detection | Small (3×3 - 7×7) | Local gradients only |
-| Texture classification | Medium (30×30 - 100×100) | Texture patterns |
-| Object detection | Large (>100×100) | Whole object context |
-| Scene understanding | Very large (>200×200) | Global relationships |
-| Semantic segmentation | Full image context | Dense prediction needs context |
+| 모서리 검출 | 작음 (3×3 ~ 7×7) | 지역적인 기울기만 있으면 된다 |
+| 질감 분류 | 보통 (30×30 ~ 100×100) | 질감의 무늬 |
+| 물체 탐지 | 큼 (100×100 초과) | 물체 전체의 맥락 |
+| 장면 이해 | 매우 큼 (200×200 초과) | 전역적인 관계 |
+| 의미 분할 | 이미지 전체의 맥락 | 조밀 예측에는 맥락이 필요하다 |
 
-### ResNet-50 Detailed Analysis
+### ResNet-50 자세히 뜯어보기
 
 ```python
-# ResNet-50 receptive field calculation (bottleneck blocks)
+# ResNet-50 수용 영역 계산 (병목 블록)
 def analyze_resnet50():
     layers = [
-        # Stem
+        # 줄기
         {'kernel': 7, 'stride': 2, 'name': 'Conv1'},
         {'kernel': 3, 'stride': 2, 'name': 'MaxPool'},
     ]
     
-    # Stage 2 (3 blocks, 256 channels)
+    # 2단계 (블록 3개, 채널 256개)
     for i in range(3):
         layers.extend([
             {'kernel': 1, 'stride': 1, 'name': f'Stage2.Block{i+1}.1x1'},
@@ -491,7 +484,7 @@ def analyze_resnet50():
             {'kernel': 1, 'stride': 1, 'name': f'Stage2.Block{i+1}.1x1'},
         ])
     
-    # Stage 3 (4 blocks, 512 channels, first has stride 2)
+    # 3단계 (블록 4개, 채널 512개, 첫 블록은 보폭 2)
     for i in range(4):
         stride = 2 if i == 0 else 1
         layers.extend([
@@ -500,7 +493,7 @@ def analyze_resnet50():
             {'kernel': 1, 'stride': 1, 'name': f'Stage3.Block{i+1}.1x1'},
         ])
     
-    # Stage 4 (6 blocks, 1024 channels)
+    # 4단계 (블록 6개, 채널 1024개)
     for i in range(6):
         stride = 2 if i == 0 else 1
         layers.extend([
@@ -509,7 +502,7 @@ def analyze_resnet50():
             {'kernel': 1, 'stride': 1, 'name': f'Stage4.Block{i+1}.1x1'},
         ])
     
-    # Stage 5 (3 blocks, 2048 channels)
+    # 5단계 (블록 3개, 채널 2048개)
     for i in range(3):
         stride = 2 if i == 0 else 1
         layers.extend([
@@ -525,15 +518,14 @@ def analyze_resnet50():
     
     return rf
 
-
 analyze_resnet50()
 ```
 
-### Comparing Architectures
+### 구조 견주기
 
 ```python
 def compare_architectures():
-    """Compare receptive fields of different architecture styles."""
+    """여러 구조 방식의 수용 영역을 견준다."""
     
     architectures = {
         'AlexNet-like': [
@@ -571,15 +563,14 @@ def compare_architectures():
     for name, layers in architectures.items():
         rf, _ = compute_receptive_field(layers)
         num_layers = len(layers)
-        # Proxy for parameters (sum of k^2)
+        # 매개변수의 대용치 (k^2의 합)
         params_proxy = sum(l.get('kernel', 1)**2 for l in layers)
         print(f"{name:<25} {rf:>8} {num_layers:>8} {params_proxy:>10}")
-
 
 compare_architectures()
 ```
 
-## Complete Example: RF-Aware Network Design
+## 완전한 예제: 수용 영역을 고려한 신경망 설계
 
 ```python
 import torch
@@ -587,32 +578,32 @@ import torch.nn as nn
 
 class RFAwareNetwork(nn.Module):
     """
-    Network designed with specific receptive field targets.
+    수용 영역 목표를 정해 놓고 설계한 신경망.
     
-    Target: ~128×128 receptive field for recognizing objects up to 100×100 pixels.
+    목표: 화소 100×100까지의 물체를 알아보기 위한 약 128×128의 수용 영역.
     
-    Design rationale:
-    - Start with standard convolutions for fine features
-    - Use pooling for controlled downsampling  
-    - Switch to dilated convolutions for rapid RF growth without resolution loss
+    설계 근거:
+    - 세밀한 특징을 위해 표준 합성곱으로 시작한다
+    - 조절된 하향 표본화를 위해 풀링을 쓴다
+    - 해상도를 잃지 않고 수용 영역을 빨리 넓히려고 팽창 합성곱으로 바꾼다
     """
     def __init__(self, num_classes=10):
         super().__init__()
         
-        # Layer-by-layer RF calculation:
-        # Layer 1: RF = 1 + (3-1)*1 = 3, jump = 1
-        # Layer 2: RF = 3 + (3-1)*1 = 5, jump = 1
-        # Pool 1:  RF = 5 + (2-1)*1 = 6, jump = 2
-        # Layer 3: RF = 6 + (3-1)*2 = 10, jump = 2
-        # Layer 4: RF = 10 + (3-1)*2 = 14, jump = 2
-        # Pool 2:  RF = 14 + (2-1)*2 = 16, jump = 4
-        # Layer 5 (d=2): RF = 16 + (5-1)*4 = 32, jump = 4  [k_eff=5]
-        # Layer 6 (d=4): RF = 32 + (9-1)*4 = 64, jump = 4  [k_eff=9]
-        # Layer 7 (d=8): RF = 64 + (17-1)*4 = 128, jump = 4 [k_eff=17]
-        # Final RF: 128×128 ✓
+        # 층별 수용 영역 계산:
+        # 1층: RF = 1 + (3-1)*1 = 3, 뜀 = 1
+        # 2층: RF = 3 + (3-1)*1 = 5, 뜀 = 1
+        # 풀링 1:  RF = 5 + (2-1)*1 = 6, 뜀 = 2
+        # 3층: RF = 6 + (3-1)*2 = 10, 뜀 = 2
+        # 4층: RF = 10 + (3-1)*2 = 14, 뜀 = 2
+        # 풀링 2:  RF = 14 + (2-1)*2 = 16, 뜀 = 4
+        # 5층 (d=2): RF = 16 + (5-1)*4 = 32, 뜀 = 4  [k_eff=5]
+        # 6층 (d=4): RF = 32 + (9-1)*4 = 64, 뜀 = 4  [k_eff=9]
+        # 7층 (d=8): RF = 64 + (17-1)*4 = 128, 뜀 = 4 [k_eff=17]
+        # 최종 수용 영역: 128×128 ✓
         
         self.features = nn.Sequential(
-            # Block 1: Standard convolutions (fine features)
+            # 블록 1: 표준 합성곱 (세밀한 특징)
             nn.Conv2d(3, 64, 3, padding=1),
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
@@ -621,7 +612,7 @@ class RFAwareNetwork(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2),
             
-            # Block 2: Standard convolutions
+            # 블록 2: 표준 합성곱
             nn.Conv2d(64, 128, 3, padding=1),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
@@ -630,7 +621,7 @@ class RFAwareNetwork(nn.Module):
             nn.ReLU(inplace=True),
             nn.MaxPool2d(2, 2),
             
-            # Block 3: Dilated convolutions (rapid RF growth)
+            # 블록 3: 팽창 합성곱 (수용 영역이 빠르게 넓어짐)
             nn.Conv2d(128, 256, 3, padding=2, dilation=2),
             nn.BatchNorm2d(256),
             nn.ReLU(inplace=True),
@@ -643,7 +634,7 @@ class RFAwareNetwork(nn.Module):
         )
         
         self.classifier = nn.Sequential(
-            nn.AdaptiveAvgPool2d(1),  # Global average pooling
+            nn.AdaptiveAvgPool2d(1),  # 전역 평균 풀링
             nn.Flatten(),
             nn.Linear(256, num_classes)
         )
@@ -653,9 +644,8 @@ class RFAwareNetwork(nn.Module):
         x = self.classifier(x)
         return x
 
-
 def verify_network_design():
-    """Verify the receptive field calculation and test the network."""
+    """수용 영역 계산을 확인하고 신경망을 시험한다."""
     
     layers = [
         {'kernel': 3, 'stride': 1},  # Conv1
@@ -678,7 +668,7 @@ def verify_network_design():
     print(f"\nFinal receptive field: {rf}×{rf} (target: ~128×128) ✓")
     print(f"Output stride: {jump}")
     
-    # Test the network
+    # 신경망 시험
     model = RFAwareNetwork(num_classes=10)
     x = torch.randn(2, 3, 224, 224)
     y = model(x)
@@ -688,12 +678,11 @@ def verify_network_design():
     print(f"  Output shape: {y.shape}")
     print(f"  Total parameters: {sum(p.numel() for p in model.parameters()):,}")
 
-
 if __name__ == "__main__":
     verify_network_design()
 ```
 
-## PyTorch Utility: Automatic RF Tracker
+## PyTorch 도구: 수용 영역 자동 추적기
 
 ```python
 import torch
@@ -701,8 +690,8 @@ import torch.nn as nn
 
 class ReceptiveFieldTracker(nn.Module):
     """
-    Wrapper module that automatically analyzes receptive field 
-    of any sequential-style model.
+    어떤 Sequential 방식 모델의 수용 영역이든 저절로 분석해 주는
+    감싸개 모듈.
     """
     def __init__(self, model):
         super().__init__()
@@ -710,25 +699,25 @@ class ReceptiveFieldTracker(nn.Module):
         self.rf_info = self._analyze_receptive_field()
     
     def _analyze_receptive_field(self):
-        """Analyze receptive field of each conv/pool layer."""
+        """합성곱과 풀링 층마다의 수용 영역을 분석한다."""
         info = []
         rf, jump = 1, 1
         
         for name, module in self.model.named_modules():
             if isinstance(module, (nn.Conv2d, nn.MaxPool2d, nn.AvgPool2d)):
-                # Extract kernel size
+                # 핵 크기 뽑기
                 k = module.kernel_size
                 k = k[0] if isinstance(k, tuple) else k
                 
-                # Extract stride
+                # 보폭 뽑기
                 s = module.stride
                 s = s[0] if isinstance(s, tuple) else s
                 
-                # Extract dilation (default 1 for pooling)
+                # 팽창률 뽑기 (풀링에서는 기본값 1)
                 d = getattr(module, 'dilation', 1)
                 d = d[0] if isinstance(d, tuple) else d
                 
-                # Compute effective kernel and update RF
+                # 실효 핵을 계산하고 수용 영역 갱신
                 k_eff = d * (k - 1) + 1
                 rf = rf + (k_eff - 1) * jump
                 jump = jump * s
@@ -746,7 +735,7 @@ class ReceptiveFieldTracker(nn.Module):
         return info
     
     def print_receptive_field(self):
-        """Print formatted receptive field analysis."""
+        """수용 영역 분석을 보기 좋게 출력한다."""
         print(f"{'Layer':<30} {'Type':<12} {'K':>3} {'S':>3} {'D':>3} {'RF':>6} {'Jump':>6}")
         print("-" * 75)
         for layer in self.rf_info:
@@ -763,8 +752,7 @@ class ReceptiveFieldTracker(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-
-# Example usage
+# 사용 예
 model = nn.Sequential(
     nn.Conv2d(3, 64, 7, stride=2, padding=3),
     nn.ReLU(),
@@ -781,43 +769,31 @@ tracker = ReceptiveFieldTracker(model)
 tracker.print_receptive_field()
 ```
 
-## Key Takeaways
+## 핵심 정리
 
-1. **Definition**: Receptive field is the input region that influences a neuron's activation
+1. **정의**: 수용 영역은 뉴런의 활성값에 영향을 주는 입력 영역이다
 
-2. **Core formula**: 
+2. **핵심 식**:
 
    $$r_l = r_{l-1} + (K_l - 1) \cdot d_l \cdot \prod_{i=1}^{l-1} s_i$$
 
-3. **Cumulative stride amplifies growth**: Early downsampling dramatically increases RF in later layers
+3. **누적 보폭이 증가를 키운다**: 앞쪽에서 하향 표본화를 하면 뒤쪽 층의 수용 영역이 크게 넓어진다
 
-4. **Four growth strategies** (ranked by efficiency):
-   - Dilated convolutions (most efficient for large RF)
-   - Deeper networks with small kernels (preferred for learning)
-   - Strided convolutions (aggressive, loses resolution)
-   - Larger kernels (costly, rarely used)
+4. **넓히는 전략 네 가지** (효율 순):
+   - 팽창 합성곱 (수용 영역을 크게 하는 데 가장 효율적)
+   - 작은 핵을 쓰는 더 깊은 신경망 (학습에는 이쪽이 낫다)
+   - 보폭을 준 합성곱 (거칠고 해상도를 잃는다)
+   - 더 큰 핵 (비싸고 거의 쓰지 않는다)
 
-5. **Effective RF < Theoretical RF**: Due to Gaussian-like influence distribution
+5. **실효 수용 영역 < 이론적 수용 영역**: 영향의 분포가 가우스 모양이기 때문이다
 
-6. **ERF grows with $\sqrt{\text{depth}}$**: Not linearly, so very deep networks may have diminishing returns
+6. **실효 수용 영역은 $\sqrt{\text{깊이}}$에 비례해 자란다**: 선형이 아니므로 아주 깊은 신경망에서는 수확이 줄어들 수 있다
 
-7. **Task matching**: Design RF to match expected object/pattern sizes
+7. **과제에 맞추기**: 다루려는 물체나 무늬의 크기에 맞추어 수용 영역을 설계하라
 
-8. **Skip connections expand ERF**: Residual connections help gradients flow to distant inputs
+8. **건너뛰기 연결이 실효 수용 영역을 넓힌다**: 잔차 연결이 기울기가 멀리 있는 입력까지 흐르도록 돕는다
 
-## Exercises
-
-1. **Manual Calculation**: Calculate the receptive field of VGG-16 at each pooling layer.
-
-2. **Architecture Design**: Design a network with receptive field exactly 101×101 using only 3×3 convolutions and stride-1 (hint: how many layers needed?).
-
-3. **ERF Visualization**: Implement effective receptive field visualization for a pretrained ResNet and compare layers at different depths.
-
-4. **Dilated vs. Deep**: Compare the receptive field growth of (a) 10 standard 3×3 convolutions vs. (b) 5 dilated convolutions with rates 1, 2, 4, 8, 16. Which is more efficient?
-
-5. **Optimal Design**: For an object detection task where objects range from 20×20 to 200×200 pixels, design a feature pyramid where each level has an appropriate receptive field.
-
-## References
+## 참고 문헌
 
 1. Luo, W., Li, Y., Urtasun, R., & Zemel, R. (2016). Understanding the Effective Receptive Field in Deep Convolutional Neural Networks. *NeurIPS*.
 
@@ -828,3 +804,66 @@ tracker.print_receptive_field()
 4. He, K., Zhang, X., Ren, S., & Sun, J. (2016). Deep Residual Learning for Image Recognition. *CVPR*.
 
 5. Simonyan, K., & Zisserman, A. (2015). Very Deep Convolutional Networks for Large-Scale Image Recognition. *ICLR*.
+
+## 연습문제
+
+**연습문제 1.**
+보폭이 1인 $3 \times 3$ 합성곱을 다섯 층 쌓았을 때의 이론적인 수용 영역을 계산하라.
+
+??? success "연습문제 1 풀이"
+    핵 크기가 $k$이고 보폭이 1인 합성곱에서는 층마다 수용 영역에 $k-1$이 더해진다. 수용 영역 1에서 시작하면 다음과 같다.
+
+    1층 뒤: $1 + (3-1) = 3$. 2층 뒤: $3 + 2 = 5$. 3층 뒤: $5 + 2 = 7$. 4층 뒤: $7 + 2 = 9$. 5층 뒤: $9 + 2 = 11$.
+
+    일반식은 $\text{RF} = 1 + L(k-1) = 1 + 5(2) = 11$이며 여기서 $L$은 층의 수이다.
+
+---
+
+**연습문제 2.**
+보폭이 1인 $3 \times 3$ 합성곱만 써서 수용 영역이 정확히 $101 \times 101$인 신경망을 설계하라.
+
+??? success "연습문제 2 풀이"
+    $\text{RF} = 1 + L \times 2 = 101$에서 $3 \times 3$ 합성곱 $L = 50$층이 필요하다.
+
+    아니면 팽창 합성곱을 써서 더 적은 층으로 101에 이를 수 있다. 팽창률이 $1, 2, 4, 8, 16, 32$일 때, 팽창률이 $d$인 $3 \times 3$ 팽창 합성곱 하나가 수용 영역에 $2d$을 더한다.
+
+    $\text{RF} = 1 + 2(1 + 2 + 4 + 8 + 16 + 32) = 1 + 2(63) = 127 > 101$이다. 팽창률 $1, 2, 4, 8, 16$인 다섯 층은 $1 + 2(31) = 63$을 준다. 표준 합성곱과 팽창 합성곱을 섞으면 정확히 맞출 수 있다.
+
+---
+
+**연습문제 3.**
+수용 영역이 자라는 정도를 견주어라. (가) 표준 $3 \times 3$ 층 10개, (나) 팽창률이 1, 2, 4, 8, 16인 팽창 층 5개.
+
+??? success "연습문제 3 풀이"
+    (가) 표준: $\text{RF} = 1 + 10 \times 2 = 21$.
+
+    (나) 팽창: 팽창률이 $d$인 $3 \times 3$ 팽창 합성곱마다 수용 영역에 $2d$이 더해진다.
+
+    $\text{RF} = 1 + 2(1) + 2(2) + 2(4) + 2(8) + 2(16) = 1 + 2 + 4 + 8 + 16 + 32 = 63$.
+
+    팽창 합성곱은 층은 절반이고 층당 매개변수는 같으면서 수용 영역을 $3\times$ 넓힌다. 대신 성긴 표본화 방식에서 오는 "격자 무늬 흠"이 생길 수 있다.
+
+---
+
+**연습문제 4.**
+가운데 화소에 대해 $\frac{\partial \text{output}_{c,h,w}}{\partial \text{input}}$을 계산하고 기울기의 크기를 그려서 실효 수용 영역(ERF) 시각화를 구현하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    import torch
+    import torch.nn as nn
+
+    model = nn.Sequential(*[nn.Sequential(nn.Conv2d(64, 64, 3, padding=1),
+                                           nn.ReLU()) for _ in range(10)])
+    model[0][0] = nn.Conv2d(3, 64, 3, padding=1)
+
+    x = torch.randn(1, 3, 64, 64, requires_grad=True)
+    out = model(x)
+    # 가운데 화소에서 역전파
+    target = torch.zeros_like(out)
+    target[0, 0, 32, 32] = 1.0
+    out.backward(target)
+    erf = x.grad[0].abs().sum(dim=0)  # 채널에 대해 합
+    # erf는 실효 수용 영역을 보이는 64x64 지도이다
+    # 대체로 가우스 모양이며 이론적 수용 영역보다 훨씬 작다
+    ```

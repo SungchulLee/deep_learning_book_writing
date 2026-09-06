@@ -1,110 +1,142 @@
-# LCP Array
+# 최장 공통 앞가지 배열
 
-A suffix array tells us the sorted order of all suffixes, but it does not directly reveal how much two adjacent suffixes in that order share. Knowing the **Longest Common Prefix (LCP)** between consecutive sorted suffixes unlocks several powerful capabilities: accelerating pattern search from $O(m \log n)$ to $O(m + \log n)$, counting the number of distinct substrings in $O(n)$ time, and simulating top-down traversals of the suffix tree without actually building it. This section defines the LCP array, illustrates it with an example, and shows how it enhances suffix array queries.
+뒷가지 배열은 뒷가지의 정렬 차례를 알려 주지만 그 차례에서 이웃한 두 뒷가지가 얼마나 나눠 갖는지는 곧바로 드러내지 않는다. 이어진 정렬 뒷가지 사이의 **최장 공통 앞가지(LCP)**를 알면 힘 있는 능력 여럿이 열린다. 곧 본 찾기를 $O(m \log n)$에서 $O(m + \log n)$으로 빠르게 하고, 서로 다른 부분 글줄의 수를 $O(n)$ 시간에 세며, 뒷가지 나무를 실제로 세우지 않고 위에서 아래로 돌아보는 것을 흉내낸다. 이 절은 최장 공통 앞가지 배열을 정의하고 보기로 보이며 그것이 뒷가지 배열 묻기를 어떻게 돕는지 보인다.
 
-## Definition
+## 정의
 
-Given a string $T[0..n]$ (with sentinel) and its suffix array $\text{SA}[0..n]$, the **LCP array** $\text{LCP}[0..n]$ is defined as:
+(파수를 가진) 글줄 $T[0..n]$과 그 뒷가지 배열 $\text{SA}[0..n]$이 주어질 때 **최장 공통 앞가지 배열** $\text{LCP}[0..n]$을 다음으로 정한다:
 
 $$
 \text{LCP}[k] = \text{lcp}\bigl(\text{suffix}(\text{SA}[k-1]),\; \text{suffix}(\text{SA}[k])\bigr) \quad \text{for } k \geq 1
 $$
 
-where $\text{lcp}(s_1, s_2)$ denotes the length of the longest common prefix of strings $s_1$ and $s_2$. By convention, $\text{LCP}[0] = 0$ (there is no suffix before the first one in sorted order).
+여기서 $\text{lcp}(s_1, s_2)$은 글줄 $s_1$과 $s_2$의 최장 공통 앞가지 길이이다. 관례상 $\text{LCP}[0] = 0$이다(정렬 차례에서 첫 뒷가지 앞에는 아무것도 없다).
 
-In words, $\text{LCP}[k]$ measures how many leading characters the $k$-th suffix in sorted order shares with the $(k-1)$-th suffix.
+말로 하면 $\text{LCP}[k]$은 정렬 차례에서 $k$번째 뒷가지가 $(k-1)$번째 뒷가지와 앞 글자를 몇 개나 나눠 갖는지 잰다.
 
-## Worked Example
+## 풀이 예제
 
-For $T = \texttt{banana\$}$, the suffix array is $\text{SA} = [6, 5, 3, 1, 0, 4, 2]$:
+$T = \texttt{banana\$}$의 뒷가지 배열은 $\text{SA} = [6, 5, 3, 1, 0, 4, 2]$이다:
 
-| Rank $k$ | SA[$k$] | Suffix | LCP[$k$] | Shared prefix with previous |
+| 순위 $k$ | SA[$k$] | 뒷가지 | LCP[$k$] | 앞선 것과 나눠 가진 앞가지 |
 |----------|---------|--------|----------|-----------------------------|
 | 0 | 6 | `$` | 0 | (none) |
-| 1 | 5 | `a$` | 0 | (no common prefix with `$`) |
-| 2 | 3 | `ana$` | 1 | `a` (shared with `a$`) |
-| 3 | 1 | `anana$` | 3 | `ana` (shared with `ana$`) |
-| 4 | 0 | `banana$` | 0 | (no common prefix with `anana$`) |
-| 5 | 4 | `na$` | 0 | (no common prefix with `banana$`) |
-| 6 | 2 | `nana$` | 2 | `na` (shared with `na$`) |
+| 1 | 5 | `a$` | 0 | (`$`과 공통 앞가지 없음) |
+| 2 | 3 | `ana$` | 1 | `a`(`a$`과 나눠 가짐) |
+| 3 | 1 | `anana$` | 3 | `ana`(`ana$`과 나눠 가짐) |
+| 4 | 0 | `banana$` | 0 | (`anana$`과 공통 앞가지 없음) |
+| 5 | 4 | `na$` | 0 | (`banana$`과 공통 앞가지 없음) |
+| 6 | 2 | `nana$` | 2 | `na`(`na$`과 나눠 가짐) |
 
-Therefore:
+따라서 다음이 성립한다.
 
 $$
 \text{LCP} = [0, 0, 1, 3, 0, 0, 2]
 $$
 
-## LCP and Pattern Search
+## 최장 공통 앞가지와 본 찾기
 
-With just the suffix array, binary search for a pattern $P$ of length $m$ requires $O(m \log n)$ time because each of the $O(\log n)$ comparisons costs $O(m)$. The LCP array enables a faster approach.
+뒷가지 배열만으로는 길이 $m$인 본 $P$을 이분 찾기 하는 데 $O(m \log n)$이 든다. $O(\log n)$번의 견줌마다 $O(m)$이 들기 때문이다. 최장 공통 앞가지 배열이 더 빠른 길을 준다.
 
-### The LCP-Enhanced Binary Search
+### 최장 공통 앞가지로 돕는 이분 찾기
 
-During binary search, we maintain the LCP between the pattern $P$ and the left and right boundaries of the search range. Let $\ell_L = \text{lcp}(P, \text{suffix}(\text{SA}[L]))$ and $\ell_R = \text{lcp}(P, \text{suffix}(\text{SA}[R]))$ be the LCP values at the current boundaries.
+이분 찾기 동안 본 $P$과 찾기 범위의 왼쪽, 오른쪽 가장자리 사이의 최장 공통 앞가지를 지닌다. $\ell_L = \text{lcp}(P, \text{suffix}(\text{SA}[L]))$과 $\ell_R = \text{lcp}(P, \text{suffix}(\text{SA}[R]))$을 지금 가장자리의 최장 공통 앞가지 값이라 하자.
 
-At the midpoint $M$, instead of comparing $P$ against suffix($\text{SA}[M]$) from scratch, we use precomputed LCP information to skip $\min(\ell_L, \ell_R)$ characters. This reduces total comparisons across all binary search steps to $O(m + \log n)$:
+가운데 점 $M$에서 $P$을 suffix($\text{SA}[M]$)과 맨바닥에서 견주는 대신 미리 셈한 최장 공통 앞가지 앎으로 글자 $\min(\ell_L, \ell_R)$개를 건너뛴다. 그러면 모든 이분 찾기 걸음에 걸친 견줌의 총수가 $O(m + \log n)$으로 준다:
 
 $$
 T_{\text{search}} = O(m + \log n)
 $$
 
-This matches the search time of suffix trees while using only the space of two arrays (SA and LCP).
+배열 둘(뒷가지 배열과 최장 공통 앞가지 배열)의 공간만 쓰면서 뒷가지 나무의 찾기 시간에 맞먹는다.
 
-## Counting Distinct Substrings
+## 서로 다른 부분 글줄 세기
 
-Every substring of $T$ is a prefix of some suffix. The total number of substrings (including duplicates) starting at suffix($\text{SA}[k]$) is $n - \text{SA}[k]$. However, $\text{LCP}[k]$ of these are shared with the previous suffix in sorted order and are therefore not new. The number of **distinct substrings** is:
+$T$의 모든 부분 글줄은 어떤 뒷가지의 앞가지이다. suffix($\text{SA}[k]$)에서 시작하는 (겹치는 것까지 넣은) 부분 글줄의 총수는 $n - \text{SA}[k]$이다. 다만 그 가운데 $\text{LCP}[k]$개는 정렬 차례에서 앞선 뒷가지와 나눠 가지므로 새것이 아니다. **서로 다른 부분 글줄**의 수는 다음과 같다:
 
 $$
 D = \sum_{k=0}^{n} \bigl(n - \text{SA}[k]\bigr) - \sum_{k=1}^{n} \text{LCP}[k]
 $$
 
-Simplifying:
+간단히 하면:
 
 $$
 D = \frac{n(n+1)}{2} + (n+1) - \sum_{k=1}^{n} \text{LCP}[k]
 $$
 
-where the first term counts all substrings (including the sentinel) and the second term subtracts duplicates.
+여기서 첫 항은 (파수까지 넣어) 모든 부분 글줄을 세고 둘째 항은 겹치는 것을 뺀다.
 
-??? example "Distinct substrings of 'banana$'"
-    For $T = \texttt{banana\$}$ with $n = 6$:
+??? example "'banana$'의 서로 다른 부분 글줄"
+    $n = 6$인 $T = \texttt{banana\$}$에 대해:
 
-    - Total possible substrings: $\frac{7 \times 8}{2} = 28$ (but subtracting sentinel-only substrings)
-    - Sum of LCP values: $0 + 1 + 3 + 0 + 0 + 2 = 6$
-    - This gives 22 distinct substrings (including those containing the sentinel)
-    - Excluding the sentinel, the distinct substrings of `banana` are: `a`, `an`, `ana`, `anan`, `anana`, `b`, `ba`, `ban`, `bana`, `banan`, `banana`, `n`, `na`, `nan`, `nana`, plus the empty string
+    - 가능한 부분 글줄의 총수: $\frac{7 \times 8}{2} = 28$(다만 파수만 있는 것은 뺀다)
+    - 최장 공통 앞가지 값의 합: $0 + 1 + 3 + 0 + 0 + 2 = 6$
+    - 그러면 (파수를 품은 것까지 넣어) 서로 다른 부분 글줄이 22개이다
+    - 파수를 빼면 `banana`의 서로 다른 부분 글줄은 `a`, `an`, `ana`, `anan`, `anana`, `b`, `ba`, `ban`, `bana`, `banan`, `banana`, `n`, `na`, `nan`, `nana`과 빈 글줄이다
 
-## LCP Interval Tree
+## 최장 공통 앞가지 구간 나무
 
-The LCP array also defines a hierarchy of **LCP intervals** that correspond to internal nodes of the suffix tree. An LCP interval $[i, j]$ with LCP value $\ell$ represents a set of suffixes that all share a common prefix of length at least $\ell$:
+최장 공통 앞가지 배열은 뒷가지 나무의 안쪽 마디에 맞닿는 **최장 공통 앞가지 구간**의 층층 짜임도 정한다. 최장 공통 앞가지 값이 $\ell$인 구간 $[i, j]$은 길이가 적어도 $\ell$인 공통 앞가지를 모두 나눠 갖는 뒷가지의 모임을 뜻한다:
 
 $$
-[i, j] \text{ is an LCP interval with value } \ell \iff \text{LCP}[i] < \ell,\; \text{LCP}[j+1] < \ell,\; \text{and } \min_{i < k \leq j} \text{LCP}[k] = \ell
+[i, j] \text{ 가 값 } \ell \text{ 의 LCP 구간이다} \iff \text{LCP}[i] < \ell,\; \text{LCP}[j+1] < \ell,\; \text{그리고 } \min_{i < k \leq j} \text{LCP}[k] = \ell
 $$
 
-This structure enables suffix tree algorithms to run on suffix arrays without constructing the tree explicitly.
+이 짜임 덕분에 나무를 대놓고 세우지 않고도 뒷가지 배열 위에서 뒷가지 나무 알고리즘을 돌릴 수 있다.
 
-## Key Properties
+## 핵심 성질
 
-1. **Range minimum queries**: The LCP of any two suffixes $\text{SA}[i]$ and $\text{SA}[j]$ (not just adjacent ones) equals the minimum value in the LCP array between positions $i+1$ and $j$:
+1. **구간 최소 묻기**: (이웃한 것뿐 아니라) 아무 두 뒷가지 $\text{SA}[i]$과 $\text{SA}[j]$의 최장 공통 앞가지는 최장 공통 앞가지 배열에서 자리 $i+1$과 $j$ 사이의 최솟값과 같다:
 
 $$
 \text{lcp}(\text{suffix}(\text{SA}[i]),\; \text{suffix}(\text{SA}[j])) = \min_{i < k \leq j} \text{LCP}[k]
 $$
 
-Using a range minimum query (RMQ) data structure, this can be answered in $O(1)$ time after $O(n)$ preprocessing.
+구간 최소 묻기 자료 짜임을 쓰면 $O(n)$ 미리 다듬기 뒤에 $O(1)$ 시간에 답할 수 있다.
 
-2. **Sum bounds**: The sum of all LCP values satisfies:
+2. **합의 한계**: 최장 공통 앞가지 값의 합은 다음을 채운다:
 
 $$
 0 \leq \sum_{k=1}^{n} \text{LCP}[k] \leq \frac{n(n+1)}{2}
 $$
 
-The lower bound occurs when all characters are distinct; the upper bound occurs for a string like $\texttt{aaa...a}$.
+아래 한계는 글자가 모두 다를 때, 위 한계는 $\texttt{aaa...a}$ 같은 글줄에서 나온다.
 
-3. **Relationship to suffix tree**: The LCP array encodes the same information as the internal edge lengths of the suffix tree. The depth of the lowest common ancestor of two leaves in the suffix tree equals the LCP of the corresponding suffixes.
+3. **뒷가지 나무와의 관계**: 최장 공통 앞가지 배열은 뒷가지 나무의 안쪽 변 길이와 같은 앎을 담는다. 뒷가지 나무에서 잎 둘의 가장 낮은 공통 조상의 깊이가 그에 맞닿는 뒷가지의 최장 공통 앞가지와 같다.
 
-## Reference
+## 참고 문헌
 
 - Manber, U. and Myers, G. (1993). *Suffix arrays: A new method for on-line string searches*. SIAM Journal on Computing, 22(5), 935-948.
 - Abouelhoda, M. I., Kurtz, S., and Ohlebusch, E. (2004). *Replacing suffix trees with enhanced suffix arrays*. Journal of Discrete Algorithms, 2(1), 53-86.
+
+## 연습문제
+
+**연습문제 1.**
+최장 공통 앞가지 배열의 핵심 자료 짜임이나 개념과 그 으뜸 쓰임새를 설명하라.
+
+??? success "연습문제 1 풀이"
+    최장 공통 앞가지 배열은 글줄이나 차례 자료를 미리 다듬고 묻는 효율 좋은 길을 준다. 으뜸 쓰임새는 부분 글줄, 본, 들임의 짜임 성질에 대한 되풀이되는 물음에 답하는 것이다. 미리 다듬기가 다룰 만한 시간에 자료 짜임을 세우고 나면 맨바닥에서 다시 다듬는 것보다 훨씬 빠르게 물음에 답할 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+최장 공통 앞가지 배열을 세우는 시간 복잡도는 무엇인가? 으뜸 연산의 묻기 시간은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    세우는 시간은 쓰는 알고리즘에 달렸다. 흔한 한계는 $n$이 들임 크기일 때 $O(n)$에서 $O(n \log n)$ 사이이다. 묻기는 흔히 본 찾기에 $O(m)$($m$은 물음 길이), 미리 셈한 성질에 $O(1)$이 든다. 공간 복잡도는 흔히 $O(n)$이거나 $\sigma$이 글자 모임의 크기일 때 $O(n\sigma)$이다. $\square$
+
+---
+
+**연습문제 3.**
+최장 공통 앞가지 배열을 더 단순한 다른 방식과 견주어라. 더 정교한 짜임은 언제 값어치가 있는가?
+
+??? success "연습문제 3 풀이"
+    더 단순한 방식(예컨대 막무가내 훑기나 정렬)은 묻기 시간이 더 길지만 세우는 군더더기가 적다. 정교한 짜임은 다음일 때 값어치가 있다. (1) 같은 자료에 물음을 많이 던져 세우는 값이 고르게 나뉠 때, (2) 묻기 시간이 결정적일 때(실시간 쓰임새), (3) 자료가 커서 점근 나아짐이 실전에서 중요할 때이다. 작은 자료에 물음을 한 번 던지는 경우에는 상수 인수가 작은 단순한 방식이 더 빠를 수 있다. $\square$
+
+---
+
+**연습문제 4.**
+들임 글줄 "banana"에 대해 최장 공통 앞가지 배열을 세우는 것을 좇아라. 중간 걸음을 보여라.
+
+??? success "연습문제 4 풀이"
+    "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$

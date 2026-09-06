@@ -1,29 +1,29 @@
-# Coin Change (Greedy)
+# 동전 거스름(욕심쟁이)
 
-When making change with a set of coin denominations, the natural greedy strategy is to always choose the largest coin that does not exceed the remaining amount. This works correctly for standard currency systems (e.g., US coins: 1, 5, 10, 25 cents) but fails for arbitrary denomination sets. Understanding when greedy succeeds and when it fails motivates the use of dynamic programming for the general case.
+동전 액면 모음으로 거스름돈을 만들 때 자연스러운 욕심쟁이 전략은 남은 액수를 넘지 않는 가장 큰 동전을 늘 고르는 것이다. 이는 표준 화폐 체계(보기로 미국 동전 1, 5, 10, 25센트)에서는 옳게 돌아가지만 아무 액면 모음에서나 되지는 않는다. 욕심쟁이가 언제 되고 언제 어그러지는지 알면 일반 경우에 동적 계획을 쓰게 된다.
 
-## The Greedy Approach
+## 욕심쟁이 방식
 
 Given denominations $d_1 > d_2 > \cdots > d_k$ and a target amount $A$, the greedy algorithm repeatedly selects the largest denomination that fits:
 
-1. Set remaining $= A$, count $= 0$.
+1. 남은 값 $= A$, 개수 $= 0$으로 둔다.
 2. For each denomination $d_i$ (largest first): use $\lfloor \text{remaining} / d_i \rfloor$ coins, update remaining.
-3. If remaining $= 0$, return count. Otherwise, no solution exists (with greedy).
+3. 남은 값이 $0$이면 개수를 돌려준다. 아니면 (욕심쟁이로는) 풀이가 없다.
 
-## When Greedy Works
+## 욕심쟁이가 통할 때
 
 A coin system is called **canonical** if the greedy algorithm always produces the minimum number of coins. The US system $\{1, 5, 10, 25\}$ is canonical.
 
-!!! warning "Greedy Fails for Non-Canonical Systems"
+!!! warning "표준이 아닌 체계에서는 욕심쟁이가 어그러진다"
     For denominations $\{1, 3, 4\}$ and target $6$: greedy picks $4 + 1 + 1 = 3$ coins, but $3 + 3 = 2$ coins is optimal.
 
-## Greedy Correctness for Standard Systems
+## 표준 체계에서 욕심쟁이의 옳음
 
-For the US coin system, the greedy approach works because no optimal solution uses coins in a way that a larger coin could replace. For example, no optimal solution uses five pennies (they would be replaced by a nickel), and no optimal solution uses two dimes and a nickel (they would be replaced by a quarter). These dominance conditions guarantee greedy optimality.
+미국 동전 체계에서 욕심쟁이가 통하는 것은, 더 큰 동전으로 갈음할 수 있는 방식으로 동전을 쓰는 가장 좋은 풀이가 없기 때문이다. 보기로 1센트 다섯 개를 쓰는 가장 좋은 풀이는 없고(5센트로 갈음된다), 10센트 둘과 5센트 하나를 쓰는 가장 좋은 풀이도 없다(25센트로 갈음된다). 이런 눌러 이김 조건이 욕심쟁이의 가장 좋음을 보장한다.
 
-## The General Solution: Dynamic Programming
+## 일반 풀이: 동적 계획
 
-For arbitrary denominations, the minimum number of coins to make amount $i$ satisfies:
+아무 액면에서든 액수 $i$을 만드는 동전의 최소 개수는 다음을 채운다:
 
 $$
 \text{dp}[i] = \min_{c \in \text{coins},\; c \le i} (\text{dp}[i - c] + 1)
@@ -31,27 +31,27 @@ $$
 
 with base case $\text{dp}[0] = 0$ and $\text{dp}[i] = \infty$ for amounts that cannot be formed.
 
-## Implementation
+## 구현
 
 ```python
 """
-Coin change: greedy vs dynamic programming.
+동전 거스름: 욕심쟁이와 동적 짜기의 견줌.
 
-Shows when the greedy approach works (canonical systems) and
-when DP is needed (arbitrary denominations).
+욕심쟁이가 통하는 때(표준 체계)와 동적 짜기가
+필요한 때(아무 액면가)를 보인다.
 """
 
-# === Greedy Coin Change ===
+# === 욕심쟁이 동전 거스름 ===
 
 def coin_change_greedy(coins: list[int], amount: int) -> list[int]:
-    """Make change using the greedy strategy (largest first).
+    """욕심쟁이 전략(큰 것부터)으로 거스름돈을 만든다.
 
-    Args:
-        coins: Available denominations (sorted descending).
-        amount: Target amount.
+    인수:
+        coins: 쓸 수 있는 액면가(내림차순으로 정렬).
+        amount: 목표 금액.
 
-    Returns:
-        List of coins used (may not be optimal for non-canonical systems).
+    반환값:
+        쓴 동전의 목록(표준이 아닌 체계에서는 가장 좋지 않을 수 있다).
     """
     result = []
     remaining = amount
@@ -62,17 +62,17 @@ def coin_change_greedy(coins: list[int], amount: int) -> list[int]:
     return result if remaining == 0 else []
 
 
-# === DP Coin Change ===
+# === 동적 짜기 동전 거스름 ===
 
 def coin_change_dp(coins: list[int], amount: int) -> int:
-    """Find minimum number of coins to make the target amount.
+    """목표 금액을 만드는 데 드는 가장 적은 동전 수를 찾는다.
 
-    Args:
-        coins: Available denominations.
-        amount: Target amount.
+    인수:
+        coins: 쓸 수 있는 액면가.
+        amount: 목표 금액.
 
-    Returns:
-        Minimum number of coins, or -1 if impossible.
+    반환값:
+        가장 적은 동전 수, 할 수 없으면 -1.
     """
     dp = [float('inf')] * (amount + 1)
     dp[0] = 0
@@ -85,10 +85,10 @@ def coin_change_dp(coins: list[int], amount: int) -> int:
     return dp[amount] if dp[amount] != float('inf') else -1
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
-    # Canonical system: greedy works
+    # 표준 체계: 욕심쟁이가 통한다
     us_coins = [25, 10, 5, 1]
     amount = 63
     greedy_result = coin_change_greedy(us_coins, amount)
@@ -97,7 +97,7 @@ if __name__ == "__main__":
     print(f"  Greedy: {len(greedy_result)} coins {greedy_result}")
     print(f"  DP:     {dp_result} coins")
 
-    # Non-canonical system: greedy fails
+    # 표준이 아닌 체계: 욕심쟁이가 어긋난다
     coins = [1, 3, 4]
     amount = 6
     greedy_result = coin_change_greedy(coins, amount)
@@ -107,7 +107,7 @@ if __name__ == "__main__":
     print(f"  DP:     {dp_result} coins")
 ```
 
-**Output:**
+**출력:**
 
 ```
 US coins, amount=63:
@@ -121,16 +121,48 @@ Coins [1, 3, 4], amount=6:
 
 For the US system, greedy and DP agree. For $\{1, 3, 4\}$, greedy uses 3 coins while the optimal DP solution uses only 2 coins ($3 + 3$).
 
-## Complexity
+## 복잡도
 
-| Algorithm | Time | Space |
+| 알고리즘 | 시간 | 공간 |
 |-----------|:----:|:-----:|
-| Greedy    | $O(k)$ where $k$ = number of denominations | $O(1)$ |
+| 욕심쟁이 | $O(k)$, $k$ = 액면의 개수 | $O(1)$ |
 | DP        | $O(A \cdot k)$ where $A$ = amount | $O(A)$ |
 
-The greedy approach is faster but only correct for canonical systems. The DP approach always finds the optimum but requires time proportional to the amount.
+욕심쟁이 방식은 더 빠르지만 표준 체계에서만 옳다. 동적 계획은 늘 최적을 찾지만 액수에 비례하는 시간이 든다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 16: Greedy Algorithms.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 16장: Greedy Algorithms.
 - Kozen, D., & Zaks, S. (1994). Optimal bounds for the change-making problem. *Theoretical Computer Science*, 123(2), 377--388.
+
+## 연습문제
+
+**연습문제 1.**
+동전 거스름(욕심쟁이)에서 욕심쟁이 고름이 무엇인지 가려내고 왜 가장 좋은 풀이로 이어지는지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    The greedy choice selects the locally optimal option at each step. For Coin Change (Greedy), this choice satisfies the greedy choice property: there exists an optimal solution that includes this greedy selection. Combined with optimal substructure (the remaining subproblem after the greedy choice is also optimally solvable by the same strategy), the greedy algorithm produces a globally optimal solution. $\square$
+
+---
+
+**연습문제 2.**
+동전 거스름(욕심쟁이)이 가장 좋은 아래 짜임을 갖는지 증명하거나 반증하여라.
+
+??? success "연습문제 2 풀이"
+    Optimal substructure means that an optimal solution to the problem contains optimal solutions to its subproblems. For Coin Change (Greedy), after making the greedy choice, the remaining problem is a smaller instance of the same type. If the subproblem solution were not optimal, we could improve the overall solution by replacing it — contradicting overall optimality. Therefore optimal substructure holds. $\square$
+
+---
+
+**연습문제 3.**
+동전 거스름(욕심쟁이)의 시간 복잡도는 무엇인가? 가장 값비싼 단계를 가려내어라.
+
+??? success "연습문제 3 풀이"
+    The time complexity depends on the sorting step (if required) and the greedy selection loop. Sorting typically dominates at $O(n \log n)$. The greedy loop processes each element once in $O(n)$. Total: $O(n \log n)$. If the input is pre-sorted, the algorithm runs in $O(n)$. $\square$
+
+---
+
+**연습문제 4.**
+(동전 거스름(욕심쟁이)에서 쓴 것이 아닌) 다른 욕심쟁이 전략은 가장 좋은 풀이를 내지 못함을 보이는 반례를 들어라.
+
+??? success "연습문제 4 풀이"
+    Consider an alternative greedy criterion that does not align with the problem's structure. This alternative may select an element that blocks better future choices. The counterexample demonstrates that the wrong greedy criterion can produce a suboptimal result, highlighting why the specific greedy choice property must be proven for each problem. $\square$

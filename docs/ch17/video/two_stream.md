@@ -1,66 +1,61 @@
-# Two-Stream Networks for Action Recognition
+# 몸짓 알아보기를 위한 두 갈래 그물
+## 학습 목표
 
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+- 두 갈래 얼개를 쓰는 까닭을 이해한다
+- 자리 갈래 그물과 때 갈래 그물을 짠다
+- 때 갈래에 쓸 빛 흐름을 셈하고 앞손질한다
+- 갈래별 어림을 아우르는 좋은 녹여 붙이기 전략을 꾸민다
+- 겉모습과 움직임이 서로 채워 주는 성질을 값매김한다
 
-## Learning Objectives
+## 왜 하는가: 겉모습과 움직임
 
-By the end of this section, you will be able to:
+### 두 갈래 가설
 
-- Understand the motivation for two-stream architectures
-- Implement spatial and temporal stream networks
-- Compute and preprocess optical flow for the temporal stream
-- Design effective fusion strategies for combining stream predictions
-- Evaluate the complementary nature of appearance and motion
+사람의 보기 다루기에는 뚜렷이 다른 길이 둘 있다:
 
-## Motivation: Appearance and Motion
+1. **배쪽 갈래**(무엇): 물체 알아보기, 꼴, 빛깔
+2. **등쪽 갈래**(어디/어떻게): 움직임, 자리 관계
 
-### The Two-Stream Hypothesis
+두 갈래 그물은 다음을 따로 다뤄 이를 흉내낸다:
 
-Human visual processing involves two distinct pathways:
+- **자리 갈래**: 겉모습(물체, 장면, 자세)을 위한 RGB 틀
+- **때 갈래**: 움직임(빠르기, 방향, 흐름)을 위한 빛 흐름
 
-1. **Ventral stream** (what): Object recognition, shape, color
-2. **Dorsal stream** (where/how): Motion, spatial relationships
+### 왜 갈래를 나누는가?
 
-Two-stream networks mimic this by separately processing:
+틀 하나짜리 모델은 결정적인 때의 앎을 놓친다:
 
-- **Spatial stream**: RGB frames for appearance (objects, scenes, poses)
-- **Temporal stream**: Optical flow for motion (velocity, direction, dynamics)
-
-### Why Separate Streams?
-
-Single-frame models miss critical temporal information:
-
-| Action | Appearance | Motion Required? |
+| 몸짓 | 겉모습 | 움직임이 필요한가? |
 |--------|-----------|------------------|
-| "Standing" vs "Walking" | Same pose | Yes - leg movement |
-| "Drinking" vs "Pouring" | Same objects | Yes - hand trajectory |
-| "Opening door" vs "Closing door" | Same scene | Yes - door direction |
+| "서 있기"와 "걷기" | 같은 자세 | 그렇다 — 다리 움직임 |
+| "마시기"와 "따르기" | 같은 물체 | 그렇다 — 손이 그리는 자취 |
+| "문 열기"와 "문 닫기" | 같은 장면 | 그렇다 — 문의 방향 |
 
-### Mathematical Framework
+### 수학 얼거리
 
 Given video $V$ with frames $\{I_1, \ldots, I_T\}$ and optical flow $\{F_1, \ldots, F_{T-1}\}$:
 
-**Spatial stream:**
+**자리 갈래:**
 
 $$p_{spatial} = f_s(I_t) \in \mathbb{R}^K$$
 
-**Temporal stream:**
+**때 갈래:**
 
 $$p_{temporal} = f_t(\{F_{t}, F_{t+1}, \ldots, F_{t+L-1}\}) \in \mathbb{R}^K$$
 
-**Fusion:**
+**녹여 붙이기:**
 
 $$p_{final} = \alpha \cdot p_{spatial} + (1-\alpha) \cdot p_{temporal}$$
 
 where $K$ is the number of classes and $\alpha$ is the fusion weight.
 
-## Spatial Stream
+## 자리 갈래
 
-### Architecture
+### 구조
 
-The spatial stream processes single RGB frames using standard 2D CNNs:
+자리 갈래는 보통의 2차원 누비기 신경망으로 RGB 틀 하나를 다룬다:
 
 ```python
 import torch
@@ -69,10 +64,10 @@ import torchvision.models as models
 
 class SpatialStream(nn.Module):
     """
-    Spatial stream for appearance-based recognition.
+    겉모습에 바탕한 알아보기를 위한 자리 갈래.
     
-    Uses pretrained ImageNet models for transfer learning.
-    Key insight: Actions often correlate with objects and scenes.
+    옮겨 배우기에 ImageNet에서 미리 익힌 모델을 쓴다.
+    핵심 눈썰미: 몸짓은 흔히 물체 및 장면과 얽혀 있다.
     """
     
     def __init__(self, 
@@ -82,7 +77,7 @@ class SpatialStream(nn.Module):
                  dropout: float = 0.5):
         super().__init__()
         
-        # Load pretrained backbone
+        # 미리 익힌 등뼈 읽어 들이기
         if backbone == 'resnet50':
             base = models.resnet50(pretrained=pretrained)
             self.feature_dim = 2048
@@ -92,10 +87,10 @@ class SpatialStream(nn.Module):
         else:
             raise ValueError(f"Unknown backbone: {backbone}")
         
-        # Remove final FC layer
+        # 마지막 온전히 이은 층 없애기
         self.features = nn.Sequential(*list(base.children())[:-1])
         
-        # Action classifier
+        # 몸짓 갈래 매개
         self.classifier = nn.Sequential(
             nn.Dropout(p=dropout),
             nn.Linear(self.feature_dim, num_classes)
@@ -103,12 +98,12 @@ class SpatialStream(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Args:
-            x: RGB frames (B, 3, H, W) or video (B, T, 3, H, W)
-        Returns:
-            Class logits (B, num_classes)
+        인수:
+            x: RGB 틀 (B, 3, H, W) 또는 영상 (B, T, 3, H, W)
+        반환값:
+            갈래 로짓 (B, num_classes)
         """
-        # Handle video input
+        # 영상 들임 다루기
         if x.dim() == 5:
             B, T, C, H, W = x.shape
             x = x.view(B * T, C, H, W)
@@ -117,21 +112,21 @@ class SpatialStream(nn.Module):
             is_video = False
             B = x.shape[0]
         
-        # Extract features
+        # 특징을 뽑는다
         features = self.features(x)
         features = features.flatten(1)  # (B*T, feature_dim)
         
-        # Classify
+        # 분류
         logits = self.classifier(features)
         
-        # Average predictions over time for video
+        # 영상은 때에 걸쳐 어림 고루내기
         if is_video:
             logits = logits.view(B, T, -1).mean(dim=1)
         
         return logits
     
     def extract_features(self, x: torch.Tensor) -> torch.Tensor:
-        """Extract features without classification."""
+        """갈래를 매기지 않고 특징만 뽑는다."""
         if x.dim() == 5:
             B, T, C, H, W = x.shape
             x = x.view(B * T, C, H, W)
@@ -142,40 +137,40 @@ class SpatialStream(nn.Module):
         return features
 ```
 
-### Multi-Frame Sampling
+### 여러 틀 표집
 
-For video-level prediction, sample multiple frames:
+영상 수준의 어림을 하려면 틀을 여럿 뽑는다:
 
 ```python
 def sample_frames_spatial(video: torch.Tensor, 
                           num_samples: int = 25) -> torch.Tensor:
     """
-    Sample frames for spatial stream testing.
+    자리 갈래 시험을 위해 틀을 뽑는다.
     
-    Strategy: 25 frames uniformly sampled across video.
-    Prediction: Average of per-frame softmax scores.
+    전략: 영상 전체에서 틀 25개를 고루 뽑는다.
+    어림: 틀마다의 소프트맥스 점수를 고루낸 값.
     """
     T = video.shape[0]
     indices = torch.linspace(0, T - 1, num_samples).long()
     return video[indices]
 ```
 
-## Temporal Stream
+## 때 갈래
 
-### Optical Flow Input
+### 빛 흐름 들임
 
-The temporal stream processes stacked optical flow:
+때 갈래는 쌓아 올린 빛 흐름을 다룬다:
 
 ```python
 class TemporalStream(nn.Module):
     """
-    Temporal stream for motion-based recognition.
+    움직임에 바탕한 알아보기를 위한 때 갈래.
     
-    Input: Stack of L consecutive optical flow fields.
-    Each flow field has 2 channels (horizontal u, vertical v).
-    Total input channels: 2L
+    들임: 잇단 빛 흐름 마당 L개의 쌓기.
+    흐름마다 채널이 2개다(가로 u, 세로 v).
+    전체 들임 채널: 2L
     
-    Typical configuration: L = 10 (10 flow fields = 20 channels)
+    흔한 자리매김: L = 10(흐름 마당 10개 = 채널 20개)
     """
     
     def __init__(self,
@@ -185,29 +180,29 @@ class TemporalStream(nn.Module):
         super().__init__()
         
         self.flow_length = flow_length
-        input_channels = 2 * flow_length  # u and v for each flow
+        input_channels = 2 * flow_length  # 흐름마다의 u와 v
         
-        # Modified ResNet for flow input
-        # Cannot use pretrained weights (different input channels)
+        # 흐름 들임에 맞게 고친 ResNet
+        # 미리 익힌 무게를 쓸 수 없다(들임 채널이 다르다)
         resnet = models.resnet50(pretrained=False)
         
-        # Replace first conv layer
+        # 첫 누비기 층 갈음
         self.conv1 = nn.Conv2d(
             input_channels, 64,
             kernel_size=7, stride=2, padding=3, bias=False
         )
         
-        # Initialize with mean of pretrained RGB weights
-        # This helps transfer some spatial structure knowledge
-        if True:  # Optional weight initialization
+        # 미리 익힌 RGB 무게의 평균으로 첫자리매김
+        # 이러면 자리 짜임에 대한 앎이 얼마간 옮겨진다
+        if True:  # 있어도 되는 무게 첫자리매김
             pretrained = models.resnet50(pretrained=True)
             pretrained_weight = pretrained.conv1.weight.data
-            # Average over RGB channels, repeat for flow channels
+            # RGB 채널로 고루내고 흐름 채널만큼 되풀이
             mean_weight = pretrained_weight.mean(dim=1, keepdim=True)
             self.conv1.weight.data = mean_weight.repeat(1, input_channels, 1, 1)
-            self.conv1.weight.data /= input_channels  # Scale appropriately
+            self.conv1.weight.data /= input_channels  # 알맞게 잣수 맞추기
         
-        # Copy remaining layers
+        # 남은 층 베끼기
         self.bn1 = resnet.bn1
         self.relu = resnet.relu
         self.maxpool = resnet.maxpool
@@ -217,7 +212,7 @@ class TemporalStream(nn.Module):
         self.layer4 = resnet.layer4
         self.avgpool = resnet.avgpool
         
-        # Classifier
+        # 분류기
         self.classifier = nn.Sequential(
             nn.Dropout(p=dropout),
             nn.Linear(2048, num_classes)
@@ -225,10 +220,10 @@ class TemporalStream(nn.Module):
     
     def forward(self, flow: torch.Tensor) -> torch.Tensor:
         """
-        Args:
-            flow: Stacked optical flow (B, 2*L, H, W)
-        Returns:
-            Class logits (B, num_classes)
+        인수:
+            flow: 쌓아 올린 빛 흐름 (B, 2*L, H, W)
+        반환값:
+            갈래 로짓 (B, num_classes)
         """
         x = self.conv1(flow)
         x = self.bn1(x)
@@ -246,23 +241,23 @@ class TemporalStream(nn.Module):
         return self.classifier(x)
 ```
 
-## Optical Flow Computation
+## 빛 흐름 셈하기
 
-### Mathematical Background
+### 수학 바탕
 
-Optical flow estimates motion between frames based on brightness constancy:
+빛 흐름은 밝기가 한결같다는 가정에 바탕해 틀 사이의 움직임을 어림한다:
 
 $$I(x, y, t) = I(x + u, y + v, t + \Delta t)$$
 
-where $(u, v)$ is the flow vector (displacement per unit time).
+여기서 $(u, v)$은 흐름 벡터(단위 시간당 옮김)이다.
 
-Taylor expansion and simplification yield:
+테일러 펼침과 간추림으로 다음을 얻는다:
 
 $$I_x u + I_y v + I_t = 0$$
 
-where $I_x$, $I_y$, $I_t$ are image gradients.
+여기서 $I_x$, $I_y$, $I_t$은 그림 기울기이다.
 
-### Dense Optical Flow with OpenCV
+### OpenCV로 촘촘한 빛 흐름 얻기
 
 ```python
 import cv2
@@ -272,39 +267,39 @@ def compute_optical_flow(frame1: np.ndarray,
                          frame2: np.ndarray,
                          method: str = 'farneback') -> np.ndarray:
     """
-    Compute dense optical flow between two frames.
+    두 틀 사이의 촘촘한 빛 흐름을 셈한다.
     
-    Args:
-        frame1: Previous frame (H, W, 3) RGB, values [0, 1]
-        frame2: Current frame (H, W, 3) RGB, values [0, 1]
-        method: Flow algorithm ('farneback' or 'tvl1')
+    인수:
+        frame1: 앞 틀 (H, W, 3) RGB, 값 [0, 1]
+        frame2: 지금 틀 (H, W, 3) RGB, 값 [0, 1]
+        method: 흐름 알고리즘('farneback' 또는 'tvl1')
     
-    Returns:
-        flow: Optical flow (H, W, 2) with (u, v) components
+    반환값:
+        flow: (u, v) 성분을 갖는 빛 흐름 (H, W, 2)
         
-    The flow vectors indicate pixel displacement:
-        - u: horizontal motion (positive = right)
-        - v: vertical motion (positive = down)
+    흐름 벡터는 화소의 옮김을 가리킨다:
+        - u: 가로 움직임(양수 = 오른쪽)
+        - v: 세로 움직임(양수 = 아래쪽)
     """
-    # Convert to grayscale uint8
+    # 잿빛 uint8로 바꾸기
     gray1 = cv2.cvtColor((frame1 * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
     gray2 = cv2.cvtColor((frame2 * 255).astype(np.uint8), cv2.COLOR_RGB2GRAY)
     
     if method == 'farneback':
-        # Gunnar Farneback's algorithm
-        # Uses polynomial expansion to approximate neighborhoods
+        # 군나르 파르네베크 알고리즘
+        # 이웃을 어림하려 다항식 펼침을 쓴다
         flow = cv2.calcOpticalFlowFarneback(
             gray1, gray2, None,
-            pyr_scale=0.5,    # Pyramid scale (0.5 = classical pyramid)
-            levels=3,          # Number of pyramid layers
-            winsize=15,        # Averaging window size
-            iterations=3,      # Iterations at each pyramid level
-            poly_n=5,          # Size of pixel neighborhood
-            poly_sigma=1.2,    # Gaussian std for polynomial expansion
+            pyr_scale=0.5,    # 피라미드 잣수(0.5 = 고전 피라미드)
+            levels=3,          # 피라미드 층 수
+            winsize=15,        # 고루내기 창 크기
+            iterations=3,      # 피라미드 켜마다의 되풀이 횟수
+            poly_n=5,          # 화소 이웃의 크기
+            poly_sigma=1.2,    # 다항식 펼침의 가우스 표준편차
             flags=0
         )
     elif method == 'tvl1':
-        # TV-L1 algorithm (more accurate, slower)
+        # TV-L1 알고리즘(더 정확하고 느리다)
         tvl1 = cv2.optflow.DualTVL1OpticalFlow_create()
         flow = tvl1.calc(gray1, gray2, None)
     else:
@@ -317,15 +312,15 @@ def extract_flow_stack(video: torch.Tensor,
                        flow_length: int = 10,
                        normalize: bool = True) -> torch.Tensor:
     """
-    Extract stacked optical flow from video for temporal stream.
+    때 갈래를 위해 영상에서 쌓아 올린 빛 흐름을 뽑는다.
     
-    Args:
-        video: Video tensor (T, C, H, W) with values [0, 1]
-        flow_length: Number of flow fields to stack (L)
-        normalize: Whether to normalize flow values
+    인수:
+        video: 값이 [0, 1]인 영상 텐서 (T, C, H, W)
+        flow_length: 쌓을 흐름 마당의 개수(L)
+        normalize: 흐름 값을 고르게 맞출지 여부
     
-    Returns:
-        flow_stack: Stacked flows (2*L, H, W)
+    반환값:
+        flow_stack: 쌓아 올린 흐름 (2*L, H, W)
     """
     T, C, H, W = video.shape
     
@@ -334,76 +329,76 @@ def extract_flow_stack(video: torch.Tensor,
     
     flows = []
     for t in range(flow_length):
-        # Convert to numpy for OpenCV
+        # OpenCV에 쓰려고 numpy로 바꾸기
         frame1 = video[t].permute(1, 2, 0).numpy()  # (H, W, C)
         frame2 = video[t + 1].permute(1, 2, 0).numpy()
         
-        # Compute flow
+        # 흐름 셈하기
         flow = compute_optical_flow(frame1, frame2)  # (H, W, 2)
         
-        # Normalize flow values
+        # 흐름 값 고르게 맞추기
         if normalize:
-            # Typical flow values are in [-20, 20] pixels
-            # Normalize to [-1, 1]
+            # 흔한 흐름 값은 화소 [-20, 20] 안이다
+            # [-1, 1]로 고르게 맞추기
             flow = np.clip(flow / 20.0, -1, 1)
         
-        # Convert to tensor: (2, H, W)
+        # 텐서로 바꾸기: (2, H, W)
         flow_tensor = torch.from_numpy(flow).permute(2, 0, 1).float()
         flows.append(flow_tensor)
     
-    # Stack: (L, 2, H, W) → (2*L, H, W)
+    # 쌓기: (L, 2, H, W) → (2*L, H, W)
     flow_stack = torch.cat(flows, dim=0)
     
     return flow_stack
 ```
 
-### Optical Flow Visualization
+### 빛 흐름 그려 보기
 
 ```python
 def visualize_flow(flow: np.ndarray) -> np.ndarray:
     """
-    Convert optical flow to RGB visualization.
+    빛 흐름을 RGB 그림으로 바꾼다.
     
-    Encoding:
-        - Hue: Flow direction (angle)
-        - Saturation: Maximum (constant)
-        - Value: Flow magnitude
+    부호화:
+        - 색상: 흐름 방향(각)
+        - 채도: 최대(상수)
+        - 밝기: 흐름의 크기
     
-    Args:
-        flow: Optical flow (H, W, 2)
-    Returns:
-        RGB visualization (H, W, 3)
+    인수:
+        flow: 빛 흐름 (H, W, 2)
+    반환값:
+        RGB 그림 (H, W, 3)
     """
     h, w = flow.shape[:2]
     
-    # Compute magnitude and angle
+    # 크기와 각 셈하기
     mag, ang = cv2.cartToPolar(flow[..., 0], flow[..., 1])
     
-    # Create HSV image
+    # HSV 그림 만들기
     hsv = np.zeros((h, w, 3), dtype=np.uint8)
-    hsv[..., 0] = ang * 180 / np.pi / 2  # Hue: direction
-    hsv[..., 1] = 255  # Saturation: maximum
-    hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)  # Value: magnitude
+    hsv[..., 0] = ang * 180 / np.pi / 2  # 색상: 방향
+    hsv[..., 1] = 255  # 채도: 최대
+    hsv[..., 2] = cv2.normalize(mag, None, 0, 255, cv2.NORM_MINMAX)  # 밝기: 크기
     
-    # Convert to RGB
+    # RGB로 바꾸기
     rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
     
     return rgb
 ```
 
-## Fusion Strategies
+## 녹여 붙이기 전략
 
-### Late Fusion (Score Averaging)
+### 늦은 녹여 붙이기(점수 고루내기)
 
 ```python
 class TwoStreamNetwork(nn.Module):
     """
-    Complete two-stream network with fusion.
+    녹여 붙이기를 갖춘 온전한 두 갈래 그물.
     
-    Fusion options:
-    1. Average: Simple average of softmax scores
-    2. Weighted: Learnable or fixed weights
-    3. Learned: MLP combines feature vectors
+    녹여 붙이기 고름:
+    1. 고루내기: 소프트맥스 점수의 단순 평균
+    2. 무게: 배울 수 있거나 붙박이인 무게
+    3. 배움: 다층 퍼셉트론이 특징 벡터를 아우른다
     """
     
     def __init__(self,
@@ -418,10 +413,10 @@ class TwoStreamNetwork(nn.Module):
         self.fusion = fusion
         
         if fusion == 'weighted':
-            # Fixed or learnable weight
+            # 붙박이 무게 또는 배울 수 있는 무게
             self.alpha = nn.Parameter(torch.tensor(spatial_weight))
         elif fusion == 'learned':
-            # Concatenate features, learn combination
+            # 특징을 이어 붙이고 아우름을 배우기
             self.fusion_net = nn.Sequential(
                 nn.Linear(num_classes * 2, num_classes * 2),
                 nn.ReLU(),
@@ -433,45 +428,45 @@ class TwoStreamNetwork(nn.Module):
                 rgb: torch.Tensor, 
                 flow: torch.Tensor) -> torch.Tensor:
         """
-        Args:
-            rgb: RGB frames (B, 3, H, W) or (B, T, 3, H, W)
-            flow: Optical flow stack (B, 2*L, H, W)
-        Returns:
-            Fused class logits (B, num_classes)
+        인수:
+            rgb: RGB 틀 (B, 3, H, W) 또는 (B, T, 3, H, W)
+            flow: 빛 흐름 쌓기 (B, 2*L, H, W)
+        반환값:
+            녹여 붙인 갈래 로짓 (B, num_classes)
         """
-        # Get stream predictions
+        # 갈래별 어림 얻기
         spatial_logits = self.spatial(rgb)
         temporal_logits = self.temporal(flow)
         
-        # Fusion
+        # 녹여 붙이기
         if self.fusion == 'average':
-            # Simple average (empirically: temporal slightly better)
+            # 단순 고루내기(실제로는 때 갈래가 조금 낫다)
             fused = (spatial_logits + temporal_logits) / 2
             
         elif self.fusion == 'weighted':
-            # Weighted combination
-            alpha = torch.sigmoid(self.alpha)  # Keep in [0, 1]
+            # 무게를 준 아우름
+            alpha = torch.sigmoid(self.alpha)  # [0, 1]에 두기
             fused = alpha * spatial_logits + (1 - alpha) * temporal_logits
             
         elif self.fusion == 'learned':
-            # Concatenate and learn
+            # 이어 붙이고 배우기
             combined = torch.cat([spatial_logits, temporal_logits], dim=1)
             fused = self.fusion_net(combined)
         
         return fused
 ```
 
-### Feature-Level Fusion
+### 특징 수준의 녹여 붙이기
 
-Combine features before classification:
+갈래를 매기기 앞서 특징을 아우른다:
 
 ```python
 class FeatureFusionTwoStream(nn.Module):
     """
-    Early fusion: Combine features from both streams.
+    이른 녹여 붙이기: 두 갈래의 특징을 아우른다.
     
-    More expressive than score fusion but requires
-    matching feature dimensions.
+    점수 녹여 붙이기보다 잘 나타내지만
+    특징 차원을 맞춰야 한다.
     """
     
     def __init__(self, num_classes: int = 101, flow_length: int = 10):
@@ -480,7 +475,7 @@ class FeatureFusionTwoStream(nn.Module):
         self.spatial = SpatialStream(num_classes)
         self.temporal = TemporalStream(num_classes, flow_length)
         
-        # Feature dimension: 2048 from ResNet-50
+        # 특징 차원: ResNet-50에서 2048
         self.fusion_layer = nn.Sequential(
             nn.Linear(2048 * 2, 2048),
             nn.ReLU(),
@@ -489,32 +484,32 @@ class FeatureFusionTwoStream(nn.Module):
         )
     
     def forward(self, rgb, flow):
-        # Extract features (not logits)
+        # 특징 뽑아내기(로짓 아님)
         spatial_feat = self.spatial.extract_features(rgb)  # (B, 2048)
         temporal_feat = self.temporal.features(flow).flatten(1)  # (B, 2048)
         
-        # Concatenate and fuse
+        # 이어 붙이고 녹여 붙이기
         combined = torch.cat([spatial_feat, temporal_feat], dim=1)
         return self.fusion_layer(combined)
 ```
 
-## Training Procedure
+## 학습 절차
 
-### Separate Pre-training
+### 따로 미리 익히기
 
-The original two-stream paper trains streams separately:
+처음의 두 갈래 논문은 갈래를 따로 익힌다:
 
 ```python
 def train_two_stream_separate():
     """
-    Training procedure for two-stream networks.
+    두 갈래 그물의 익히기 절차.
     
-    1. Train spatial stream on RGB frames (can use ImageNet pretrained)
-    2. Train temporal stream on optical flow stacks
-    3. Fuse predictions at test time
+    1. RGB 틀로 자리 갈래 익히기(ImageNet에서 미리 익힌 것을 쓸 수 있다)
+    2. 빛 흐름 쌓기로 때 갈래 익히기
+    3. 시험 때 어림 녹여 붙이기
     """
     
-    # Spatial stream training
+    # 자리 갈래 익히기
     spatial_stream = SpatialStream(num_classes=101)
     spatial_optimizer = torch.optim.SGD(
         spatial_stream.parameters(),
@@ -523,7 +518,7 @@ def train_two_stream_separate():
     
     for epoch in range(epochs):
         for frames, labels in spatial_loader:
-            # Sample one frame per video
+            # 영상마다 틀 하나 뽑기
             idx = torch.randint(0, frames.shape[1], (1,)).item()
             single_frame = frames[:, idx]
             
@@ -534,7 +529,7 @@ def train_two_stream_separate():
             loss.backward()
             spatial_optimizer.step()
     
-    # Temporal stream training (similarly)
+    # 때 갈래 익히기(마찬가지로)
     temporal_stream = TemporalStream(num_classes=101)
     temporal_optimizer = torch.optim.SGD(
         temporal_stream.parameters(),
@@ -551,13 +546,13 @@ def train_two_stream_separate():
             temporal_optimizer.step()
 ```
 
-### End-to-End Training
+### 끝에서 끝까지 익히기
 
-Joint training with both streams:
+두 갈래를 함께 익히기:
 
 ```python
 def train_two_stream_e2e(model, train_loader, optimizer, epochs):
-    """End-to-end training of fused two-stream network."""
+    """녹여 붙인 두 갈래 그물을 끝에서 끝까지 익히기."""
     
     for epoch in range(epochs):
         for rgb, flow, labels in train_loader:
@@ -571,52 +566,90 @@ def train_two_stream_e2e(model, train_loader, optimizer, epochs):
             optimizer.step()
 ```
 
-## Performance Analysis
+## 성능 살피기
 
-### Complementary Information
+### 서로 채워 주는 앎
 
-The two streams capture different aspects:
+두 갈래는 서로 다른 면을 담아낸다:
 
-| Stream | Strengths | Weaknesses |
+| 갈래 | 센 점 | 약한 점 |
 |--------|-----------|------------|
-| Spatial | Objects, scenes, poses | Cannot distinguish motion-dependent actions |
-| Temporal | Motion patterns, speed | Ignores object identity |
-| Fused | Both appearance and motion | More computation |
+| 자리 | 물체, 장면, 자세 | 움직임에 달린 몸짓을 가리지 못한다 |
+| 때 | 움직임 무늬, 빠르기 | 물체가 무엇인지는 헤아리지 않는다 |
+| 녹여 붙임 | 겉모습과 움직임 모두 | 셈이 더 든다 |
 
-### Typical Accuracy (UCF-101)
+### 흔한 정확도(UCF-101)
 
-| Method | Spatial | Temporal | Fused |
+| 방법 | 자리 | 때 | 녹여 붙임 |
 |--------|---------|----------|-------|
-| Original Two-Stream | 73.0% | 83.7% | 88.0% |
-| With VGG-16 | 78.4% | 85.1% | 91.4% |
-| With ResNet | 82.3% | 87.2% | 93.6% |
+| 처음의 두 갈래 | 73.0% | 83.7% | 88.0% |
+| VGG-16을 쓸 때 | 78.4% | 85.1% | 91.4% |
+| ResNet을 쓸 때 | 82.3% | 87.2% | 93.6% |
 
-Key observation: **Temporal stream alone outperforms spatial**, showing the importance of motion for action recognition.
+핵심 살핌: **때 갈래 혼자서도 자리 갈래보다 낫다.** 몸짓 알아보기에서 움직임이 얼마나 중요한지를 보여 준다.
 
-## Summary
+## 요약
 
-Two-stream networks demonstrate that:
+두 갈래 그물이 보여 주는 것:
 
-1. **Appearance and motion** are complementary cues for action recognition
-2. **Optical flow** provides explicit motion representation
-3. **Late fusion** is simple but effective
-4. **Temporal information** is often more discriminative than appearance alone
-5. **Separate pretraining** allows leveraging ImageNet weights for spatial stream
+1. **겉모습과 움직임**은 몸짓 알아보기에서 서로 채워 주는 실마리이다
+2. **빛 흐름**은 움직임을 드러내어 나타낸다
+3. **늦은 녹여 붙이기**는 단순하지만 잘 된다
+4. **때의 앎**은 흔히 겉모습만보다 더 잘 가른다
+5. **따로 미리 익히기**로 자리 갈래에 ImageNet 무게를 써먹을 수 있다
 
-### Limitations
+### 한계
 
-- **Optical flow computation** is expensive (often precomputed offline)
-- **Two separate networks** double parameters and inference time
-- **No long-range temporal modeling** (limited to flow stack length)
+- **빛 흐름 셈하기**는 값이 비싸다(흔히 미리 셈해 둔다)
+- **따로 있는 그물 둘**이 매개변수와 미룸 시간을 두 배로 만든다
+- **멀리 떨어진 때를 나타내지 못한다**(흐름 쌓기 길이에 갇힌다)
 
-### Modern Alternatives
+### 요즘의 대안
 
-- **3D CNNs** (C3D, I3D): Learn motion implicitly from RGB
-- **SlowFast**: Dual-pathway with different temporal resolutions
-- **Video Transformers**: Attention-based spatiotemporal modeling
+- **3차원 누비기 신경망**(C3D, I3D): RGB에서 움직임을 넌지시 배운다
+- **느림빠름**: 때 해상도가 다른 두 갈래 길
+- **영상 변환기**: 눈길에 바탕한 자리·때 나타내기
 
-## Next Steps
+## 다음 걸음
 
-- **Optical Flow Details**: Horn-Schunck, Lucas-Kanade, learned flow
-- **CNN-LSTM**: Recurrent temporal modeling
-- **Video Transformers**: Attention for video understanding
+- **빛 흐름 자세히**: 혼-슝크, 루카스-카나데, 배운 흐름
+- **CNN-LSTM**: 되돌이로 때 나타내기
+- **영상 변환기**: 영상 이해를 위한 눈길
+
+## 연습문제
+
+**연습문제 1.**
+영상 이해를 위한 두 갈래 그물의 핵심 눈썰미를 밝히고, 날 틀 위의 한 갈래만으로는 왜 모자란지 설명하여라.
+
+??? success "연습문제 1 풀이"
+    두 갈래 그물은 **자리**(겉모습) 앎과 **때**(움직임) 앎을 서로 다른 갈래에서 다룬다. RGB 한 갈래만으로도 겉모습은 담아내지만 움직임에는 약한데, 그 까닭은 이렇다. (1) 때의 무늬는 여러 틀에 걸쳐 있어 넓은 받는 자리가 필요하다. (2) 움직임은 화소 바뀜 속에 숨어 있어 날 자료에서 배우기 어렵다. 빛 흐름 갈래는 움직임을 드러내어 부호로 담아 서로 채워 주는 신호를 준다. 두 갈래는 보통 (늦게 또는 중간에서) 녹여 붙여 겉모습과 움직임 이해를 아우르며, 한 갈래 방식보다 훨씬 낫다.
+
+---
+
+**연습문제 2.**
+느림빠름 얼개를 설명하여라. 영상을 두 가지 틀 비율로 다루면 왜 알아보기가 나아지는가?
+
+??? success "연습문제 2 풀이"
+    SlowFast uses two pathways: a **Slow** pathway operating at low frame rate (e.g., 2 FPS) with a large channel capacity for detailed spatial semantics, and a **Fast** pathway at high frame rate (e.g., 16 FPS) with fewer channels for capturing rapid temporal dynamics. This design is efficient because: spatial semantics change slowly (don't need high frame rate), while motion occurs at fine temporal scales. The Fast pathway is lightweight ($\sim$20% of computation) and provides temporal resolution, while the Slow pathway provides spatial richness. Lateral connections fuse information between pathways.
+
+---
+
+**연습문제 3.**
+그림 가르기 얼개(보기로 ResNet)를 영상 이해로 넓힐 때의 주된 어려움은 무엇인가?
+
+??? success "연습문제 3 풀이"
+    Key challenges: (1) **Computational cost**: adding a temporal dimension increases data by $T\times$ ($T$ frames), making 3D convolutions expensive; (2) **Temporal modeling**: 2D convolutions only see individual frames and miss temporal patterns; naively inflating 2D kernels to 3D (e.g., I3D) is expensive; (3) **Variable-length inputs**: videos vary in duration, requiring temporal pooling or sampling strategies; (4) **Long-range dependencies**: important events may span hundreds of frames, exceeding the receptive field of local convolutions; (5) **Training data**: video datasets are smaller than image datasets, making overfitting a concern.
+
+---
+
+**연습문제 4.**
+영상을 나타내는 데 쓰는 3차원 누비기, (2+1)차원으로 쪼갠 누비기, 때에 걸친 스스로 눈길을 견주어라.
+
+??? success "연습문제 4 풀이"
+    | 방식 | 셈 | 때의 범위 | 익히기 |
+    |----------|-------------|----------------|----------|
+    | **3D Conv** | $O(k^3 C^2 THW)$ | Local ($k$ frames) | Expensive, needs pretraining |
+    | **(2+1)D Conv** | $O(k^2 C^2 THW + k C^2 THW)$ | Local | Easier to optimize, fewer params |
+    | **Temporal Attention** | $O(T^2 CHW)$ | Global | Quadratic in $T$, flexible |
+
+    3차원 누비기는 힘세지만 값이 비싸다. (2+1)차원 쪼개기는 자리 다루기와 때 다루기를 갈라 정확도를 지키면서 매개변수를 줄인다. 때에 걸친 스스로 눈길은 멀리 떨어진 얽힘을 담아내지만 차례 길이의 제곱으로 늘어난다. 요즘 얼개(보기로 Video Swin Transformer)는 흔히 가까운 자리의 눈길과 층진 꾸밈을 아우른다.

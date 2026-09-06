@@ -1,19 +1,19 @@
-# Bottom-Up Merge Sort
+# 상향식 병합 정렬
 
-Top-down merge sort relies on recursion to break the array into singleton subarrays before merging upward.  Bottom-up merge sort reverses this perspective: it starts with individual elements (trivially sorted) and iteratively merges adjacent subarrays of increasing size -- 1, 2, 4, 8, and so on -- until the entire array is sorted.  This eliminates recursion entirely, which is advantageous in environments with limited stack space and simplifies the control flow.
+하향식 병합 정렬은 되돌이로 배열을 원소 하나짜리 부분 배열까지 쪼갠 뒤 위로 올라가며 병합한다. 상향식 병합 정렬은 이 눈길을 뒤집는다. 곧 (그 자체로 정렬된) 낱낱의 원소에서 시작해 1, 2, 4, 8처럼 크기를 키워 가며 이웃한 부분 배열을 되풀이하여 병합하다가 배열 전체가 정렬되면 멈춘다. 되돌이를 아예 없애므로 더미 공간이 빠듯한 환경에서 이롭고 흐름 제어도 단순해진다.
 
-## Algorithm Overview
+## 알고리즘 훑어보기
 
-Bottom-up merge sort proceeds in passes, where each pass doubles the size of the sorted subarrays:
+상향식 병합 정렬은 훑기 단위로 나아가며, 훑을 때마다 정렬된 부분 배열의 크기가 두 배가 된다.
 
-1. **Pass 1** ($\text{width} = 1$): merge adjacent pairs of single elements into sorted pairs.
-2. **Pass 2** ($\text{width} = 2$): merge adjacent sorted pairs into sorted quadruples.
-3. **Pass 3** ($\text{width} = 4$): merge adjacent sorted quadruples into sorted octets.
-4. Continue until $\text{width} \geq n$.
+1. **훑기 1**($\text{width} = 1$): 이웃한 낱 원소 쌍을 정렬된 쌍으로 병합한다.
+2. **훑기 2**($\text{width} = 2$): 이웃한 정렬된 쌍을 정렬된 넷으로 병합한다.
+3. **훑기 3**($\text{width} = 4$): 이웃한 정렬된 넷을 정렬된 여덟으로 병합한다.
+4. $\text{width} \geq n$이 될 때까지 이어 간다.
 
-At each pass, every element participates in exactly one merge, so each pass costs $O(n)$.  There are $\lceil \log_2 n \rceil$ passes, giving $O(n \log n)$ total time.
+훑을 때마다 원소마다 꼭 한 번 병합에 낀다. 그래서 훑기마다 $O(n)$이 든다. 훑기는 $\lceil \log_2 n \rceil$번이므로 전체 시간은 $O(n \log n)$이다.
 
-## Pseudocode
+## 의사코드
 
 ```
 BOTTOM-UP-MERGE-SORT(A, n):
@@ -27,82 +27,82 @@ BOTTOM-UP-MERGE-SORT(A, n):
         width = 2 * width
 ```
 
-The `min` operations handle the boundary case where the array length is not a power of two, ensuring the last subarray is merged correctly even if it is shorter than `width`.
+`min` 연산은 배열 길이가 2의 거듭제곱이 아닐 때의 가장자리 경우를 다루어, 마지막 부분 배열이 `width`보다 짧더라도 제대로 병합되게 한다.
 
-## Step-by-Step Example
+## 한 걸음씩 보는 예
 
-Sort $[38, 27, 43, 3, 9, 82, 10]$ (length 7):
+$[38, 27, 43, 3, 9, 82, 10]$(길이 7)을 정렬해 보자.
 
-**Pass 1** (width = 1): merge pairs of single elements.
+**훑기 1**(width = 1): 낱 원소 쌍을 병합한다.
 
 $$
 [38, 27] \to [27, 38], \quad [43, 3] \to [3, 43], \quad [9, 82] \to [9, 82], \quad [10] \to [10]
 $$
 
-Array: $[27, 38, 3, 43, 9, 82, 10]$.
+배열: $[27, 38, 3, 43, 9, 82, 10]$.
 
-**Pass 2** (width = 2): merge sorted pairs into quadruples.
+**훑기 2**(width = 2): 정렬된 쌍을 넷으로 병합한다.
 
 $$
 [27, 38] + [3, 43] \to [3, 27, 38, 43], \quad [9, 82] + [10] \to [9, 10, 82]
 $$
 
-Array: $[3, 27, 38, 43, 9, 10, 82]$.
+배열: $[3, 27, 38, 43, 9, 10, 82]$.
 
-**Pass 3** (width = 4): merge into the final sorted array.
+**훑기 3**(width = 4): 마지막 정렬된 배열로 병합한다.
 
 $$
 [3, 27, 38, 43] + [9, 10, 82] \to [3, 9, 10, 27, 38, 43, 82]
 $$
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Time complexity.** Each pass merges all $n$ elements: $O(n)$ per pass.  The number of passes is $\lceil \log_2 n \rceil$:
+**시간 복잡도.** 훑을 때마다 원소 $n$개를 모두 병합하므로 훑기마다 $O(n)$이다. 훑기의 수는 $\lceil \log_2 n \rceil$이다.
 
 $$
 T(n) = O(n) \cdot \lceil \log_2 n \rceil = O(n \log n)
 $$
 
-This holds for best, average, and worst cases -- the algorithm performs the same work regardless of input order.
+이는 최선, 평균, 최악 모든 경우에 성립한다. 알고리즘은 입력 차례와 상관없이 같은 일을 한다.
 
-**Space complexity.** The merge procedure requires $O(n)$ auxiliary space for temporary arrays.  Unlike top-down merge sort, there is no recursion stack:
+**공간 복잡도.** 병합 절차는 임시 배열에 $O(n)$ 도움 공간이 든다. 하향식 병합 정렬과 달리 되돌이 더미가 없다.
 
 $$
 S(n) = O(n)
 $$
 
-The absence of the $O(\log n)$ stack overhead is the main advantage over the recursive version, though both are $O(n)$ overall.
+$O(\log n)$의 더미 짐이 없다는 것이 되돌이 판보다 나은 주된 점이지만, 전체로는 둘 다 $O(n)$이다.
 
-## Comparison with Top-Down Merge Sort
+## 하향식 병합 정렬과의 견줌
 
-| Property          | Top-down          | Bottom-up          |
+| 성질 | 하향식 | 상향식 |
 |-------------------|-------------------|--------------------|
-| Time              | $O(n \log n)$     | $O(n \log n)$      |
-| Space             | $O(n) + O(\log n)$ stack | $O(n)$     |
-| Recursion         | Yes               | No                 |
-| Implementation    | Simpler logic     | Slightly more index arithmetic |
-| Cache behavior    | Similar           | Similar            |
-| Linked lists      | Natural           | Also natural       |
+| 시간 | $O(n \log n)$ | $O(n \log n)$ |
+| 공간 | $O(n)$ + 더미 $O(\log n)$ | $O(n)$ |
+| 되돌이 | 있음 | 없음 |
+| 구현 | 논리가 더 단순함 | 첨자 셈이 조금 더 많음 |
+| 캐시 거동 | 비슷함 | 비슷함 |
+| 이음 리스트 | 자연스러움 | 마찬가지로 자연스러움 |
 
-!!! tip "Bottom-up for linked lists"
-    Bottom-up merge sort is particularly well-suited for **linked lists**, where the merge operation can be done in $O(1)$ extra space by relinking nodes.  This makes linked-list bottom-up merge sort both $O(n \log n)$ time and $O(1)$ auxiliary space -- a combination not achievable by array-based merge sort.
+!!! tip "이음 리스트에는 상향식"
+    상향식 병합 정렬은 **이음 리스트**에 특히 잘 맞는다. 마디를 다시 이어 주기만 하면 병합을 여분 공간 $O(1)$으로 할 수 있기 때문이다. 그래서 이음 리스트 상향식 병합 정렬은 시간 $O(n \log n)$과 도움 공간 $O(1)$을 함께 이루는데, 배열 기반 병합 정렬로는 다다를 수 없는 조합이다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Bottom-up merge sort.
+상향식 병합 정렬.
 
-Sorts an array iteratively by merging subarrays of doubling width.
-Avoids recursion entirely, making it suitable for environments with
-limited stack space.
+너비를 두 배로 늘려 가며 부분 배열을 병합해 되풀이로 배열을 정렬한다.
+되돌이를 아예 쓰지 않으므로 더미 공간이 빠듯한 환경에
+알맞다.
 """
 
 
-# === Merge procedure ==========================================================
+# === 병합 절차 ================================================================
 
 def merge(arr: list, left: int, mid: int, right: int) -> None:
-    """Merge sorted subarrays arr[left..mid] and arr[mid+1..right]."""
+    """정렬된 부분 배열 arr[left..mid]과 arr[mid+1..right]을 병합한다."""
     left_half = arr[left:mid + 1]
     right_half = arr[mid + 1:right + 1]
     i = j = 0
@@ -127,15 +127,15 @@ def merge(arr: list, left: int, mid: int, right: int) -> None:
         k += 1
 
 
-# === Bottom-up merge sort =====================================================
+# === 상향식 병합 정렬 =========================================================
 
 def bottom_up_merge_sort(arr: list) -> None:
-    """Sort arr in place using iterative bottom-up merge sort.
+    """되풀이하는 상향식 병합 정렬로 arr을 제자리에서 정렬한다.
 
-    Parameters
+    매개변수
     ----------
     arr : list
-        The array to sort (modified in place).
+        정렬할 배열(제자리에서 바뀐다).
     """
     n = len(arr)
     width = 1
@@ -152,7 +152,7 @@ def bottom_up_merge_sort(arr: list) -> None:
         width *= 2
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     data = [38, 27, 43, 3, 9, 82, 10]
@@ -160,7 +160,7 @@ if __name__ == "__main__":
     bottom_up_merge_sort(data)
     print(f"After:  {data}")
 
-    # Edge cases
+    # 모서리 경우
     empty = []
     bottom_up_merge_sort(empty)
     print(f"Empty:  {empty}")
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     print(f"Sorted: {already}")
 ```
 
-**Output:**
+**출력:**
 ```
 Before: [38, 27, 43, 3, 9, 82, 10]
 After:  [3, 9, 10, 27, 38, 43, 82]
@@ -183,8 +183,41 @@ Single: [42]
 Sorted: [1, 2, 3, 4, 5]
 ```
 
-## References
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Problem 2-1.
-- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, Section 2.2.
-- Knuth, D. E. (1998). *The Art of Computer Programming, Vol. 3: Sorting and Searching* (2nd ed.). Addison-Wesley, Section 5.2.4.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 문제 2-1.
+- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, 2.2절.
+- Knuth, D. E. (1998). *The Art of Computer Programming, Vol. 3: Sorting and Searching* (2nd ed.). Addison-Wesley, 5.2.4절.
+
+
+## 연습문제
+
+**연습문제 1.**
+$[38, 27, 43, 3, 9, 82, 10]$에서 상향식 병합 정렬을 따라가며 큰 걸음마다의 상태를 보여라.
+
+??? success "연습문제 1 풀이"
+    알고리즘을 한 걸음씩 밟아라. 나누어 정복하는 정렬이라면 되돌이 나눔과 병합을 하나씩 보이고, 나눔 기반 정렬이라면 나눔마다와 축이 놓이는 자리를 보여라. 걸음마다 배열 전체의 상태를 내보여라.
+
+---
+
+**연습문제 2.**
+상향식 병합 정렬의 최선, 최악, 평균의 경우 시간 복잡도를 끌어내라.
+
+??? success "연습문제 2 풀이"
+    경우마다 점화식을 써라. 최선의 경우는 가장 좋은 나눔이거나 미리 정렬된 입력이다. 최악의 경우는 일을 가장 크게 만드는 적수 입력이다. 평균의 경우는 무작위 순열에 대한 기대 성능이다. 점화식을 각각 풀어라.
+
+---
+
+**연습문제 3.**
+상향식 병합 정렬은 안정적인가? 증명하거나 반례를 들어라.
+
+??? success "연습문제 3 풀이"
+    같은 원소가 본디 상대 차례를 지키면 그 정렬은 안정적이다. 모든 입력에서 이것이 성립함을 증명하거나, 정렬 도중 같은 원소 둘의 자리가 뒤바뀌는 구체적인 입력을 들어라.
+
+---
+
+**연습문제 4.**
+float32 학습 손실 값 1000만 개를 정렬할 때 상향식 병합 정렬을 다른 두 방법과 견주어라. 시간, 공간, 캐시 거동, GPU 어울림을 살펴라.
+
+??? success "연습문제 4 풀이"
+    $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.

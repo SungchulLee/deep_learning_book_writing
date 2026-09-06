@@ -1,79 +1,74 @@
-# Chapter 26: Diffusion Models
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Diffusion models are generative models that learn to create data by reversing a gradual noising process, achieving state-of-the-art results in image generation, audio synthesis, and beyond. By decomposing the difficult generation problem into many small denoising steps, these models produce remarkably high-quality samples with strong mode coverage. This chapter covers the mathematical foundations, score-based methods, DDPM, DDIM, SDE formulations, conditional generation, architectures, evaluation metrics, and finance applications.
+# 26장: 퍼짐 모델
+퍼짐 모델은 차츰 잡음을 더하는 과정을 거꾸로 돌려 자료 만드는 법을 배우는 만들어 내는 모델이며 그림 만들기, 소리 만들기 등에서 최고 수준의 결과를 이룬다. 어려운 만들어 내기 문제를 작은 잡음 없애기 걸음 여럿으로 나누어 봉우리를 잘 덮는 품질 높은 표본을 낸다. 이 장은 수학의 바탕, 점수 바탕 방법, DDPM, DDIM, 확률 미분 방정식 적기, 조건 만들어 내기, 얼개, 따지기 잣대, 돈살림 쓰임새를 다룬다.
 
 ---
 
-## Foundations
+## 바탕
 
-- Introduction to Diffusion Models -- Mathematical framework for diffusion models: forward noising, reverse denoising, and three parameterizations.
-- Forward Diffusion Process -- The fixed, parameter-free Markov chain that gradually corrupts data into Gaussian noise.
-- [Reverse Process](foundations/reverse_process.md) -- The learned generative core that transforms noise into structured data by reversing the forward diffusion.
-- Training Objective -- From the variational lower bound to the simplified noise-prediction loss and its connection to score matching.
+- 퍼짐 모델 들어가기 -- 퍼짐 모델의 수학 틀: 앞 잡음 더하기, 뒤 잡음 없애기, 세 가지 매개변수화.
+- 앞 퍼짐 과정 -- 자료를 차츰 정규 분포 잡음으로 망가뜨리는, 붙박이고 매개변수 없는 마르코프 사슬.
+- [뒤 과정](foundations/reverse_process.md) -- 앞 퍼짐을 거꾸로 돌려 잡음을 짜임 있는 자료로 바꾸는, 배운 만들어 내는 알맹이.
+- 익히기 목표 -- 변분 아래 한계에서 단순하게 만든 잡음 헤아리기 손실과 점수 맞추기와의 이음까지.
 
-## Score-Based Methods
+## 점수 바탕 방법
 
-- Score Function -- The gradient of log-density as the mathematical foundation of score-based generative modeling.
-- Score Matching -- Training unnormalized models by matching score functions without computing the partition function.
-- [Denoising Score Matching](score_based/denoising_score_matching.md) -- Replacing expensive Hessian computations with simple regression against known noise targets.
-- [Sliced Score Matching](score_based/sliced_score_matching.md) -- Scalable alternative using random projections and Hutchinson's trace estimator.
-- Score-Based Models Overview -- Comprehensive tutorial on score-based generative models covering theory and implementation.
-- Score-Based Methods Leading to Diffusion -- Bridge from Bayesian inference and MCMC sampling to modern diffusion models.
-- Quick Start Guide -- Quick start guide for the score-based methods tutorial package.
+- 점수 함수 -- 점수 바탕 만들어 내는 모델의 수학 바탕으로서의 로그 밀도의 기울기.
+- 점수 맞추기 -- 나눔 함수를 셈하지 않고 점수 함수를 맞추어 고르게 맞추지 않은 모델을 익힌다.
+- [잡음 없애는 점수 맞추기](score_based/denoising_score_matching.md) -- 비싼 헤세 셈을 아는 잡음 목표에 대한 단순한 되돌아 기대기로 바꾼다.
+- [저민 점수 맞추기](score_based/sliced_score_matching.md) -- 아무 쏘기와 허친슨 대각합 어림개를 쓴, 키울 수 있는 대안.
+- 점수 바탕 모델 살펴보기 -- 이론과 짜기를 아우른 점수 바탕 만들어 내는 모델의 두루 갖춘 길잡이.
+- 퍼짐으로 이어지는 점수 바탕 방법 -- 베이즈 추론과 마르코프 사슬 몬테카를로 뽑기에서 요즘 퍼짐 모델로 잇는 다리.
+- 빠른 시작 길잡이 -- 점수 바탕 방법 길잡이 꾸러미의 빠른 시작 길잡이.
 
 ## DDPM
 
-- DDPM Fundamentals -- Denoising Diffusion Probabilistic Models: the complete framework with forward process, reverse process, and simplified loss.
-- [Noise Schedules](ddpm/noise_schedule.md) -- How the variance schedule controls information flow, training dynamics, and generation quality.
-- DDPM Training -- Complete training pipeline including EMA, gradient clipping, mixed-precision, and production-ready implementation.
-- [DDPM Sampling](ddpm/sampling.md) -- Iterative denoising from pure noise through the learned reverse process with guidance options.
-- Diffusion Models Tutorial Overview -- Educational package overview for learning diffusion models from basics to advanced techniques.
-- Diffusion Models Collection -- Collection of complete DDPM implementations from toy to expert level with utilities.
-- Quick Start Guide -- Installation and quick start for the diffusion models tutorial.
-- Theory Guide -- Intuitive theory guide covering forward and reverse diffusion processes for beginners.
-- Getting Started -- Entry points for beginners and advanced practitioners in the diffusion models package.
-- Quick Reference -- At-a-glance comparison of diffusion model implementations by complexity and capability.
-- Package Summary -- Complete file listing and descriptions for the diffusion models educational package.
+- DDPM 바탕 -- 잡음 없애는 퍼짐 확률 모델: 앞 과정, 뒤 과정, 단순하게 만든 손실을 갖춘 온전한 틀.
+- [잡음 차례표](ddpm/noise_schedule.md) -- 흩어짐 차례표가 앎의 흐름, 익히기 움직임, 만들어 내기 품질을 어떻게 다스리는가.
+- DDPM 익히기 -- 지수 이동 평균, 기울기 자르기, 섞인 정밀도, 실제로 쓸 만한 짜기를 담은 온전한 익히기 물길.
+- [DDPM 뽑기](ddpm/sampling.md) -- 이끌기 고르기를 갖춘, 배운 뒤 과정으로 순수 잡음에서 거듭 잡음을 없애기.
+- 퍼짐 모델 길잡이 살펴보기 -- 바탕에서 앞선 재주까지 퍼짐 모델을 배우는 가르치기 꾸러미 살펴보기.
+- 퍼짐 모델 모음 -- 장난감 수준에서 전문가 수준까지의 온전한 DDPM 짜기와 도구 모음.
+- 빠른 시작 길잡이 -- 퍼짐 모델 길잡이의 깔기와 빠른 시작.
+- 이론 길잡이 -- 처음 배우는 이를 위해 앞 퍼짐과 뒤 퍼짐 과정을 다룬 직관 이론 길잡이.
+- 시작하기 -- 퍼짐 모델 꾸러미에서 처음 배우는 이와 익숙한 이의 들머리.
+- 빠른 참고 -- 복잡함과 할 수 있는 일로 퍼짐 모델 짜기를 한눈에 견주기.
+- 꾸러미 간추리기 -- 퍼짐 모델 가르치기 꾸러미의 온전한 파일 목록과 설명.
 
 ## DDIM
 
-- [DDIM Fundamentals](ddim/fundamentals.md) -- Denoising Diffusion Implicit Models: faster sampling via non-Markovian processes without retraining.
-- Deterministic Sampling -- Fully deterministic generation where the same noise always produces the same output.
-- Accelerated Sampling -- Methods to reduce sampling steps from 1000 to 50 or fewer while maintaining quality.
+- [DDIM 바탕](ddim/fundamentals.md) -- 잡음 없애는 은근한 퍼짐 모델: 다시 익히지 않고 마르코프가 아닌 과정으로 더 빠르게 뽑기.
+- 정해진 뽑기 -- 같은 잡음이 늘 같은 것을 내놓는 온전히 정해진 만들어 내기.
+- 빠르게 뽑기 -- 품질을 지키면서 뽑기 걸음을 1000에서 50 이하로 줄이는 방법.
 
-## SDE Framework
+## 확률 미분 방정식 틀
 
-- SDE Fundamentals -- Unified continuous-time perspective on diffusion models using stochastic differential equations.
-- Variance Preserving SDE (VP-SDE) -- Continuous-time generalization of DDPM maintaining approximately unit variance throughout diffusion.
-- Variance Exploding SDE (VE-SDE) -- Continuous-time generalization of NCSN with growing noise and no signal shrinkage.
-- Probability Flow ODE -- Deterministic ODE sharing the same marginals as the reverse SDE, enabling exact likelihood and interpolation.
+- 확률 미분 방정식 바탕 -- 확률 미분 방정식으로 퍼짐 모델을 이어진 때의 눈으로 하나로 보기.
+- 흩어짐 지키기 확률 미분 방정식(VP-SDE) -- 퍼지는 내내 흩어짐을 거의 1으로 지키는 DDPM의 이어진 때 넓힘.
+- 흩어짐 터짐 확률 미분 방정식(VE-SDE) -- 잡음이 커지고 신호가 줄지 않는 NCSN의 이어진 때 넓힘.
+- 확률 흐름 상미분 방정식 -- 뒤 확률 미분 방정식과 가장자리 분포가 같은 정해진 상미분 방정식으로 정확한 가능도와 사이 메우기를 가능하게 한다.
 
-## Conditional Generation
+## 조건 만들어 내기
 
-- Classifier Guidance -- Steering diffusion sampling toward desired classes using an external classifier gradient.
-- [Classifier-Free Guidance](conditional/classifier_free.md) -- Improving conditional generation quality without a separate classifier by jointly training conditional and unconditional models.
-- Text-to-Image Generation -- Generating images from natural language descriptions by combining diffusion models with CLIP text encoders.
+- 가름개 이끌기 -- 바깥 가름개 기울기로 퍼짐 뽑기를 바라는 갈래 쪽으로 이끈다.
+- [가름개 없는 이끌기](conditional/classifier_free.md) -- 조건 있는 모델과 없는 모델을 함께 익혀 따로 가름개 없이 조건 만들어 내기 품질을 높인다.
+- 글에서 그림으로 만들어 내기 -- 퍼짐 모델과 CLIP 글 부호기를 아울러 자연어 설명에서 그림을 만든다.
 
-## Architectures
+## 얼개
 
-- U-Net Denoiser -- The standard encoder-decoder architecture with skip connections and timestep conditioning for diffusion models.
-- Diffusion Transformer (DiT) -- Replacing U-Net with a Vision Transformer backbone, demonstrating transformer scaling laws for diffusion.
-- Latent Diffusion Models -- Performing diffusion in compressed latent space for dramatic computational savings, underlying Stable Diffusion.
+- U-Net 잡음 없애개 -- 건너뛰기 이음과 때 걸음 조건 주기를 갖춘 퍼짐 모델의 여느 부호기-풀개 얼개.
+- 퍼짐 변환기(DiT) -- U-Net을 보기 변환기 등뼈로 바꾸어 퍼짐에서 변환기의 키우기 법칙을 보인다.
+- 숨은 퍼짐 모델 -- 셈을 크게 아끼려 누른 숨은 공간에서 퍼짐을 하며 Stable Diffusion의 바탕이 된다.
 
-## Evaluation
+## 평가
 
-- [FID for Diffusion Models](evaluation/fid.md) -- Frechet Inception Distance with diffusion-specific considerations including sampling steps and guidance scale.
-- [Inception Score for Diffusion Models](evaluation/inception_score.md) -- IS as a secondary metric for diffusion models with practical usage guidelines.
-- [Likelihood-Based Evaluation](evaluation/likelihood.md) -- NLL, bits per dimension, and perplexity for principled information-theoretic assessment.
-- CLIP Score -- Measuring text-image alignment as the primary metric for text-to-image diffusion models.
-- Human Evaluation -- Designing effective human evaluation studies as the gold standard for generative model assessment.
+- [퍼짐 모델의 FID](evaluation/fid.md) -- 뽑기 걸음과 이끌기 잣수를 비롯한 퍼짐에 딸린 살핌을 담은 프레셰 인셉션 거리.
+- [퍼짐 모델의 인셉션 점수](evaluation/inception_score.md) -- 실제 쓰기 길잡이와 함께 퍼짐 모델의 둘째 잣대로서의 인셉션 점수.
+- [가능도에 바탕한 따지기](evaluation/likelihood.md) -- 원칙 있는 앎 이론의 따지기를 위한 음의 로그 가능도, 차원마다 비트, 헷갈림도.
+- CLIP 점수 -- 글에서 그림으로 가는 퍼짐 모델의 으뜸 잣대로서 글과 그림의 맞음을 잰다.
+- 사람이 따지기 -- 만들어 내는 모델 따지기의 으뜸 기준으로서 잘 듣는 사람 따지기 연구를 짠다.
 
-## Finance
+## 금융
 
-- Synthetic Financial Data Generation -- Generating privacy-preserving synthetic datasets that preserve statistical properties of real financial data.
-- Scenario Generation -- Producing plausible future market states for risk management, stress testing, and portfolio optimization.
-- Time Series Generation -- Generating realistic financial time series preserving fat tails, volatility clustering, and cross-asset correlations.
+- 인공 돈살림 자료 만들어 내기 -- 실제 돈살림 자료의 통계 성질을 지키면서 사생활을 지키는 인공 자료 묶음을 만든다.
+- 시나리오 만들어 내기 -- 위험 다루기, 버팀 시험, 꾸러미 가장 좋게 하기를 위해 그럴듯한 앞날 저자 상태를 낸다.
+- 시계열 만들어 내기 -- 두꺼운 꼬리, 출렁임 뭉침, 자산 사이 서로 이어짐을 지키는 그럴듯한 돈살림 시계열을 만든다.

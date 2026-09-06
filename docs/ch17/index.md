@@ -1,116 +1,111 @@
-# Chapter 17: Computer Vision
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-This chapter covers the major deep learning tasks and architectures in computer vision, from image classification through object detection, semantic segmentation, video understanding, and multimodal vision-language models. Each section traces the evolution of key architectures, presents the underlying mathematical formulations, and provides practical PyTorch implementations.
+# 17장: 컴퓨터 시각
+이 장은 컴퓨터 시각의 주요 깊은 배움 과제와 얼개를 다룬다. 곧 그림 가르기에서 물체 알아내기, 뜻 나누기, 영상 이해, 여러 갈래 시각-말 모형까지 살펴본다. 절마다 핵심 얼개가 어떻게 자라 왔는지 좇고, 그 밑바탕 수식을 보이며, 쓸모 있는 PyTorch 구현을 준다.
 
 ---
 
-## Image Classification
+## 그림 가르기
 
-Foundational architectures for assigning labels to images, from early convolutional networks to modern efficient designs.
+그림에 이름표를 붙이는 바탕 얼개를 초기 합성곱 망부터 요즘의 효율적인 설계까지 다룬다.
 
-- Classification Overview -- The image classification task, pipeline, and architecture evolution
-- LeNet -- The first successful CNN for digit recognition (1998)
-- AlexNet -- Deep CNN with GPU training, ReLU, and dropout (2012)
-- [VGGNet](image_classification/vgg.md) -- Uniform 3x3 convolutions and very deep networks (2014)
-- GoogLeNet/Inception -- Inception modules and multi-scale processing (2014)
-- ResNet -- Residual connections enabling 100+ layer networks (2015)
-- DenseNet -- Dense connections for maximum feature reuse (2017)
-- MobileNet -- Depthwise separable convolutions for mobile deployment (2017)
-- ResNeXt -- Grouped convolutions with cardinality dimension (2017)
-- ShuffleNet -- Channel shuffle for cross-group information flow (2018)
-- EfficientNet -- Compound scaling of depth, width, and resolution (2019)
-- NFNet -- Normalizer-free networks removing batch normalization (2021)
-- ConvNeXt -- Modernized ConvNet matching Vision Transformer performance (2022)
-- Fine-Grained Classification -- Distinguishing visually similar sub-categories
-- Data Augmentation for Images -- Geometric, photometric, and learned augmentation strategies
-- Well-Known Models Overview -- Collection of 50 influential neural network architectures
-- Advanced Image Classification -- Module overview for advanced CNN architectures
-
----
-
-## Segmentation
-
-Pixel-level prediction architectures for semantic, instance, and panoptic segmentation.
-
-- [Segmentation Fundamentals](segmentation/segmentation_overview.md) -- Pixel-wise classification, encoder-decoder paradigm, and evaluation metrics
-- Semantic Segmentation -- Complete pipeline from data augmentation to production deployment
-- Instance Segmentation -- Mask R-CNN and one-stage instance segmentation approaches
-- Panoptic Segmentation -- Unified segmentation of "stuff" and "things"
-- FCN -- Fully Convolutional Networks for dense prediction
-- [U-Net](segmentation/unet.md) -- Symmetric encoder-decoder with skip connections for biomedical imaging
-- DeepLab -- Atrous convolution and ASPP for multi-scale segmentation
-- [Mask R-CNN](segmentation/mask_rcnn.md) -- Instance segmentation via mask prediction branch on Faster R-CNN
-- Loss Functions -- Dice, Tversky, focal, and boundary-aware losses for segmentation
-- Metrics -- IoU, Dice coefficient, pixel accuracy, and Panoptic Quality
-- Semantic Segmentation Tutorial -- Progressive tutorial series for semantic segmentation in PyTorch
-- Example 1: Basic U-Net -- Binary segmentation with U-Net from scratch
-- Example 2: Pretrained Encoders -- Transfer learning with ResNet/EfficientNet backbones and DeepLabV3
-- Example 3: Medical Segmentation -- Domain-specific techniques for medical imaging
-- Example 4: Advanced Techniques -- Attention mechanisms, TTA, and boundary refinement
+- 가르기 둘러보기 -- 그림 가르기 과제, 흐름, 얼개의 자라남
+- LeNet -- 숫자 알아보기에 처음으로 성공한 합성곱 망(1998)
+- AlexNet -- GPU 익힘, ReLU, 떨구기를 쓴 깊은 합성곱 망(2012)
+- [VGGNet](image_classification/vgg.md) -- 한결같은 3x3 합성곱과 아주 깊은 망(2014)
+- GoogLeNet/Inception -- 인셉션 단위와 여러 규모 다루기(2014)
+- ResNet -- 층 100개가 넘는 망을 가능하게 한 잔차 이음(2015)
+- DenseNet -- 특징을 최대로 다시 쓰게 하는 빽빽한 이음(2017)
+- MobileNet -- 모바일에 올리기 위한 깊이별 분리 합성곱(2017)
+- ResNeXt -- 개수 차원을 둔 묶음 합성곱(2017)
+- ShuffleNet -- 묶음을 넘나드는 정보 흐름을 위한 통로 섞기(2018)
+- EfficientNet -- 깊이, 너비, 해상도의 어우른 규모 키우기(2019)
+- NFNet -- 묶음 고르게 하기를 없앤, 고르게 하는 층 없는 망(2021)
+- ConvNeXt -- 시각 트랜스포머의 성능에 맞선, 요즘식으로 고친 합성곱 망(2022)
+- 잘게 나눈 가르기 -- 눈으로 보아 비슷한 하위 갈래 가려내기
+- 그림 자료 늘리기 -- 기하, 빛, 그리고 배운 늘리기 전략
+- 널리 알려진 모형 둘러보기 -- 영향력 있는 신경망 얼개 50가지 모음
+- 앞선 그림 가르기 -- 앞선 합성곱 망 얼개의 단원 둘러보기
 
 ---
 
-## Detection
+## 나누기
 
-Object detection architectures from two-stage region-based methods to one-stage and transformer-based detectors.
+뜻 나누기, 낱낱 나누기, 두루 나누기를 위한 화소 단위 미리봄 얼개.
 
-- Detection Overview -- Object detection task definition, one-stage vs two-stage paradigms
-- Bounding Box Representations -- Box formats (xyxy, xywh, cxcywh) and coordinate conversions
-- R-CNN -- The first deep learning-based detector with region proposals
-- Fast R-CNN -- Shared computation with RoI Pooling for efficient detection
-- Faster R-CNN -- Region Proposal Network for end-to-end training
-- Region Proposal Networks -- Anchor generation, assignment, and proposal filtering
-- [IoU and NMS](detection/iou_nms.md) -- Intersection over Union, Non-Maximum Suppression, and their variants
-- [YOLO](detection/yolo.md) -- Single-pass grid-based detection from YOLOv1 through YOLOv8
-- [SSD](detection/ssd.md) -- Single Shot MultiBox Detector with multi-scale feature maps
-- [Focal Loss](detection/focal_loss.md) -- Addressing class imbalance in dense detection
-- RetinaNet -- FPN with focal loss achieving two-stage accuracy
-- [FCOS](detection/fcos.md) -- Fully convolutional anchor-free one-stage detection
-- CenterNet -- Keypoint-based anchor-free, NMS-free detection
-- DETR -- Detection Transformer with set prediction and Hungarian matching
-- Detection Metrics -- Precision, recall, AP, mAP, and COCO evaluation protocol
-- Object Detection Tutorial -- Progressive tutorial series for object detection in PyTorch
-- Example 1: Basic Detection -- IoU, NMS, and anchor box fundamentals from scratch
-- Example 2: YOLO Detection -- Using pretrained YOLOv8 for real-time detection
-- Example 3: Custom Detection -- Training YOLO on custom objects with full pipeline
-- Example 4: Advanced Techniques -- Multi-scale testing, quantization, pruning, and deployment
+- [나누기의 바탕](segmentation/segmentation_overview.md) -- 화소별 가르기, 부호기-풀개 방식, 값매김 잣대
+- 뜻 나누기 -- 자료 늘리기부터 실제 운영까지의 온전한 흐름
+- 낱낱 나누기 -- Mask R-CNN과 한 단계 낱낱 나누기 방식
+- 두루 나누기 -- "바탕"과 "물체"를 하나로 꿴 나누기
+- FCN -- 빽빽한 미리봄을 위한 온전한 합성곱 망
+- [U-Net](segmentation/unet.md) -- 생의학 그림을 위한, 건너뛰기 이음을 갖춘 대칭 부호기-풀개
+- DeepLab -- 여러 규모 나누기를 위한 구멍 난 합성곱과 ASPP
+- [Mask R-CNN](segmentation/mask_rcnn.md) -- Faster R-CNN에 가리개 미리봄 가지를 붙인 낱낱 나누기
+- 손실 함수 -- 나누기를 위한 다이스, 트버스키, 초점, 경계 인식 손실
+- 잣대 -- IoU, 다이스 계수, 화소 정확도, 두루 나누기 질
+- 뜻 나누기 익힘책 -- PyTorch로 하는 뜻 나누기의 단계별 익힘 묶음
+- 보기 1: 기본 U-Net -- 밑바닥부터 만든 U-Net으로 하는 두 값 나누기
+- 보기 2: 미리 익힌 부호기 -- ResNet과 EfficientNet 등뼈, DeepLabV3을 쓴 옮김 배움
+- 보기 3: 의료 나누기 -- 의료 그림에 맞춘 기법
+- 보기 4: 앞선 기법 -- 주목 얼개, 시험 때 자료 늘리기, 경계 다듬기
 
 ---
 
-## Video
+## 알아내기
 
-Deep learning architectures for temporal modeling, action recognition, and video understanding.
+두 단계 구역 방식부터 한 단계와 트랜스포머 방식까지의 물체 알아내기 얼개.
 
-- [Video Basics](video/video_overview.md) -- Video data representation, loading, and frame sampling
-- 3D Convolutions -- Spatiotemporal convolutions and 3D CNN architectures (C3D, R3D)
-- [Two-Stream Networks](video/two_stream.md) -- Dual-pathway architectures for appearance and motion
-- I3D -- Inflated 3D ConvNets leveraging ImageNet pre-training
-- [SlowFast Networks](video/slowfast.md) -- Dual-pathway design with different temporal resolutions
-- Temporal Modeling -- Temporal pooling, aggregation, and long-term dependencies
-- Action Recognition -- Complete pipelines for video classification
-- Video Transformers -- Space-time self-attention (TimeSformer, ViViT)
-- Temporal Action Detection -- Localizing action instances in untrimmed videos
-- Video Captioning -- Generating natural language descriptions from video
-- Video Understanding Module -- Module overview for video understanding techniques
-- Usage Guide -- Quick start and installation guide for video examples
+- 알아내기 둘러보기 -- 물체 알아내기 과제의 정의, 한 단계와 두 단계 방식
+- 두름 상자 나타내기 -- 상자 꼴(xyxy, xywh, cxcywh)과 좌표 바꾸기
+- R-CNN -- 구역 제안을 쓴 첫 깊은 배움 알아내개
+- Fast R-CNN -- 효율적인 알아내기를 위해 RoI 모으기로 셈을 함께 쓰기
+- Faster R-CNN -- 끝에서 끝까지 익히기 위한 구역 제안 망
+- 구역 제안 망 -- 닻 만들기, 배정, 제안 거르기
+- [IoU과 NMS](detection/iou_nms.md) -- 겹침 비, 최대가 아닌 것 누르기, 그 갈래들
+- [YOLO](detection/yolo.md) -- YOLOv1부터 YOLOv8까지의 한 번 훑는 격자 알아내기
+- [SSD](detection/ssd.md) -- 여러 규모 특징 지도를 쓴 한 방 다중 상자 알아내개
+- [초점 손실](detection/focal_loss.md) -- 빽빽한 알아내기의 갈래 치우침 다루기
+- RetinaNet -- 초점 손실을 붙인 특징 피라미드 망으로 두 단계의 정확도 이루기
+- [FCOS](detection/fcos.md) -- 닻 없는 온전한 합성곱 한 단계 알아내기
+- CenterNet -- 핵심점을 쓴, 닻도 NMS도 없는 알아내기
+- DETR -- 모음 미리봄과 헝가리 짝짓기를 쓴 알아내기 트랜스포머
+- 알아내기 잣대 -- 정밀도, 재현율, AP, mAP, COCO 값매김 규약
+- 물체 알아내기 익힘책 -- PyTorch로 하는 물체 알아내기의 단계별 익힘 묶음
+- 보기 1: 기본 알아내기 -- 밑바닥부터 배우는 IoU, NMS, 닻 상자의 바탕
+- 보기 2: YOLO 알아내기 -- 미리 익힌 YOLOv8으로 하는 실시간 알아내기
+- 보기 3: 맞춤 알아내기 -- 온전한 흐름으로 맞춤 물체에 YOLO 익히기
+- 보기 4: 앞선 기법 -- 여러 규모 시험, 양자화, 가지치기, 올리기
 
 ---
 
-## Multimodal
+## 영상
 
-Vision-language models that bridge images and text for joint understanding and generation.
+때 흐름 본뜨기, 몸짓 알아보기, 영상 이해를 위한 깊은 배움 얼개.
 
-- Vision-Language Models -- Dual-encoder architectures, cross-modal attention, and pretraining
-- CLIP -- Contrastive Language-Image Pre-training for zero-shot transfer
-- ALIGN -- Large-scale noisy image-text embedding at 1.8B pair scale
-- BLIP -- Bootstrapping Language-Image Pre-training with captioner-filter
-- Image Captioning -- Encoder-decoder caption generation with attention
-- Visual Question Answering -- Answering natural language questions about images
-- Multimodal Fusion -- Early, late, and mid-level fusion strategies
-- Visual Grounding -- Localizing image regions from natural language descriptions
-- Cross-Modal Retrieval -- Image-to-text and text-to-image retrieval with shared embeddings
-- Multimodal Vision Module -- Module overview for multimodal vision-language learning
+- [영상의 기초](video/video_overview.md) -- 영상 자료 나타내기, 싣기, 낱장 표집
+- 3차원 합성곱 -- 공간-시간 합성곱과 3차원 합성곱 망 얼개(C3D, R3D)
+- [두 줄기 망](video/two_stream.md) -- 겉모습과 움직임을 위한 두 갈래 길 얼개
+- I3D -- ImageNet 미리 익히기를 써먹는, 부풀린 3차원 합성곱 망
+- [SlowFast 망](video/slowfast.md) -- 때 해상도가 다른 두 갈래 길 설계
+- 때 흐름 본뜨기 -- 때 모으기, 한데 묶기, 오래가는 달림
+- 몸짓 알아보기 -- 영상 가르기의 온전한 흐름
+- 영상 트랜스포머 -- 공간-시간 자기 주목(TimeSformer, ViViT)
+- 때 몸짓 알아내기 -- 다듬지 않은 영상에서 몸짓이 일어난 자리 찾기
+- 영상 자막 달기 -- 영상에서 자연 말 설명 만들어 내기
+- 영상 이해 단원 -- 영상 이해 기법의 단원 둘러보기
+- 쓰는 법 -- 영상 보기의 빠른 시작과 깔기 안내
+
+---
+
+## 여러 갈래
+
+그림과 글을 이어 함께 이해하고 만들어 내는 시각-말 모형.
+
+- 시각-말 모형 -- 두 부호기 얼개, 갈래를 넘나드는 주목, 미리 익히기
+- CLIP -- 본 적 없는 것으로 옮기기 위한 맞대는 말-그림 미리 익히기
+- ALIGN -- 18억 짝 규모의 시끄러운 그림-글 묻힘
+- BLIP -- 자막기와 거르개로 스스로 끌어올리는 말-그림 미리 익히기
+- 그림 자막 달기 -- 주목을 쓴 부호기-풀개 자막 만들기
+- 그림 묻고 답하기 -- 그림에 대한 자연 말 물음에 답하기
+- 여러 갈래 녹이기 -- 이른, 늦은, 중간 단계의 녹이기 전략
+- 시각 짚어내기 -- 자연 말 설명으로 그림 속 구역 찾기
+- 갈래 넘나드는 찾아오기 -- 함께 쓰는 묻힘으로 그림에서 글, 글에서 그림 찾아오기
+- 여러 갈래 시각 단원 -- 여러 갈래 시각-말 배움의 단원 둘러보기

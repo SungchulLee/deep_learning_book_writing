@@ -256,3 +256,43 @@ if __name__ == "__main__":
 - [Database System Concepts (Silberschatz, Korth, Sudarshan)](https://www.db-book.com/)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 - Ramakrishnan, R. & Gehrke, J. *Database Management Systems*, Chapter 14
+
+## Exercises
+
+**Exercise 1.**
+Compare nested-loop join, sort-merge join, and hash join in terms of I/O cost for joining relations $R$ (1000 pages) and $S$ (500 pages) with a buffer of 52 pages.
+
+??? success "Solution to Exercise 1"
+    **Nested-loop join** (page-oriented, $R$ outer): $|R| + |R| \times |S| = 1000 + 1000 \times 500 = 501{,}000$ I/Os. With block nested loop using 50 buffer pages for $R$: $1000 + \lceil 1000/50 \rceil \times 500 = 1000 + 20 \times 500 = 11{,}000$ I/Os. **Sort-merge join**: sort $R$: $2 \times 1000 \times \lceil \log_{51}(1000/52) \rceil \approx 2 \times 1000 \times 2 = 4000$ I/Os. Sort $S$: $\approx 2000$ I/Os. Merge: $1000 + 500 = 1500$. Total: $\approx 7500$ I/Os. **Hash join**: partition phase: read and write both relations $= 2 \times (1000 + 500) = 3000$ I/Os. Probe phase: read both $= 1500$ I/Os. Total: $4500$ I/Os. Hash join wins for equi-joins; sort-merge wins when the output must be sorted. $\square$
+
+---
+
+**Exercise 2.**
+Explain why hash join requires that at least one partition of the smaller relation fits in memory. What happens if this condition is violated?
+
+??? success "Solution to Exercise 2"
+    In the probe phase of hash join, each partition of the smaller relation $S$ is loaded entirely into a hash table in memory. Tuples from the corresponding partition of $R$ are then streamed through, probing the hash table. If a partition of $S$ exceeds available memory, the hash table cannot be built, and the probe fails. When this occurs (called a **partition overflow**), the overflowing partition must be recursively partitioned using a different hash function and joined in sub-partitions. This adds extra I/O passes. The condition is $|S| / p \le M$ where $p$ is the number of partitions and $M$ is the buffer size, giving $p \ge |S|/M$. Since we need $p \le M$ (one buffer page per partition during partitioning), the requirement is $|S| \le M^2$. This is called the "square root rule." $\square$
+
+---
+
+**Exercise 3.**
+A query joins three tables: $A \bowtie B \bowtie C$. The optimizer considers two join orders: $(A \bowtie B) \bowtie C$ and $A \bowtie (B \bowtie C)$. Explain why the order matters and how the optimizer estimates intermediate result sizes.
+
+??? success "Solution to Exercise 3"
+    The join order determines the size of intermediate results, which affects I/O cost. If $|A \bowtie B|$ is small, joining it with $C$ is cheap. If $|A \bowtie B|$ is large, the second join is expensive. The optimizer estimates intermediate sizes using statistics: selectivity $= 1 / \max(V(A, \text{col}), V(B, \text{col}))$ where $V(R, c)$ is the number of distinct values of column $c$ in $R$. Estimated size: $|A \bowtie B| = |A| \times |B| \times \text{selectivity}$. The optimizer evaluates all feasible orderings (for $n$ tables, there are $C_{n-1}$ Catalan number orderings), estimates the cost of each using the size estimates and the chosen join algorithm's cost formula, and selects the cheapest plan. Dynamic programming (the Selinger algorithm) efficiently searches this space in $O(2^n)$ for $n$ tables. $\square$
+
+---
+
+**Exercise 4.**
+Describe the grace hash join algorithm and explain how it differs from simple (in-memory) hash join.
+
+??? success "Solution to Exercise 4"
+    Simple hash join builds a hash table for the entire smaller relation in memory, then probes with the larger relation. It requires the smaller relation to fit in memory. Grace hash join handles larger-than-memory relations in two phases: (1) **Partition phase**: hash both $R$ and $S$ into $p$ partitions using the same hash function. Each partition is written to disk. (2) **Probe phase**: for each partition $i$, load $S_i$ into a hash table and stream $R_i$ through it. Since each partition is $1/p$-th of the original, it fits in memory if $p$ is large enough. Total I/O: $3(|R| + |S|)$ -- read both for partitioning, write partitions, read partitions for probing. This is higher than in-memory hash join ($|R| + |S|$) but enables joining relations that far exceed memory. $\square$
+
+---
+
+**Exercise 5.**
+In a distributed database, a join between tables on different nodes requires data transfer. Compare broadcast join and shuffle (repartition) join, and explain when each is preferred.
+
+??? success "Solution to Exercise 5"
+    **Broadcast join**: send the entire smaller table to every node. Each node joins its local partition of the larger table with the complete smaller table. Network cost: $|S| \times N$ where $N$ is the number of nodes. No repartitioning of the larger table. **Shuffle join**: repartition both tables on the join key so that matching rows end up on the same node. Network cost: $|R| + |S|$ (each row sent to one node). Broadcast is preferred when $|S|$ is small (the broadcast cost $|S| \times N < |R| + |S|$, i.e., $|S| < |R| / (N - 1)$). Shuffle is preferred when both tables are large. Example: with $N = 10$, $|R| = 10$ GB, $|S| = 100$ MB: broadcast costs $100 \text{ MB} \times 10 = 1$ GB; shuffle costs $10.1$ GB. Broadcast wins by 10x. With $|S| = 5$ GB: broadcast costs 50 GB; shuffle costs 15 GB. Shuffle wins. $\square$

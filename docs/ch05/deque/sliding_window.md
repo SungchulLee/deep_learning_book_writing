@@ -1,59 +1,59 @@
-# Sliding Window Maximum
+# 미끄럼창 최댓값
 
-Given an array of $n$ numbers and a window size $k$, many applications need the maximum within every contiguous subarray of length $k$.  A brute-force scan of each window costs $O(k)$ per position, yielding $O(nk)$ overall.  By maintaining a **monotonic deque** — a [deque](adt.md) whose elements are kept in decreasing order — we can solve the problem in $O(n)$ total time, because each element enters and leaves the deque at most once.  This page states the problem formally, develops the algorithm, proves its correctness, and provides a Python implementation.
+수 $n$개로 이루어진 배열과 창 크기 $k$이 주어졌을 때, 길이가 $k$인 모든 이어진 부분배열의 최댓값이 필요한 응용이 많다. 창마다 무식하게 훑으면 위치마다 $O(k)$이 들어 전체가 $O(nk)$이 된다. 원소를 감소하는 차례로 유지하는 [덱](adt.md), 곧 **단조 덱**을 쓰면 각 원소가 덱에 많아야 한 번 들어가고 한 번 나오므로 전체 $O(n)$ 시간에 문제를 풀 수 있다. 이 쪽은 문제를 형식적으로 진술하고, 알고리즘을 전개하며, 올바름을 증명하고, 파이썬 구현을 제시한다.
 
-## Problem Statement
+## 문제 서술
 
-**Input.** An array $A[0 \ldots n-1]$ of real numbers and an integer $1 \le k \le n$.
+**입력.** 실수 배열 $A[0 \ldots n-1]$과 정수 $1 \le k \le n$.
 
-**Output.** An array $M[0 \ldots n-k]$ where
+**출력.** 다음을 만족하는 배열 $M[0 \ldots n-k]$.
 
 $$
 M[i] = \max(A[i], A[i+1], \dots, A[i+k-1])
 $$
 
-for each $0 \le i \le n - k$.
+여기서 $0 \le i \le n - k$이다.
 
-## Monotonic Deque Algorithm
+## 단조 덱 알고리즘
 
-The key insight is to maintain a deque $D$ that stores **indices** into $A$, with the invariant that the values at those indices are in strictly decreasing order from front to back.
+핵심 착상은 $A$의 **인덱스**를 담는 덱 $D$을 두되, 그 인덱스의 값들이 앞에서 뒤로 엄격히 감소한다는 불변식을 지키는 것이다.
 
-### Invariant
+### 불변식
 
-At every step, the deque $D = \langle d_0, d_1, \dots, d_{m-1} \rangle$ satisfies:
+매 단계에서 덱 $D = \langle d_0, d_1, \dots, d_{m-1} \rangle$은 다음을 만족한다.
 
-1. **Monotonicity**: $A[d_0] > A[d_1] > \cdots > A[d_{m-1}]$.
-2. **Window membership**: all indices in $D$ lie within the current window $[i - k + 1, \, i]$.
-3. **Maximum at front**: $A[d_0]$ is the maximum of the current window.
+1. **단조성**: $A[d_0] > A[d_1] > \cdots > A[d_{m-1}]$.
+2. **창 안에 있음**: $D$의 모든 인덱스가 현재 창 $[i - k + 1, \, i]$ 안에 있다.
+3. **앞이 최댓값**: $A[d_0]$이 현재 창의 최댓값이다.
 
-### Algorithm
+### 알고리즘
 
-For each index $i$ from $0$ to $n - 1$:
+$0$부터 $n - 1$까지 각 인덱스 $i$에 대해 다음과 같이 한다.
 
-1. **Remove expired**: if the front index $d_0$ has fallen out of the window (i.e., $d_0 \le i - k$), remove it with `pop_front()`.
-2. **Maintain monotonicity**: while the deque is non-empty and $A[\text{back}] \le A[i]$, remove the back element with `pop_back()`.  These elements can never be the maximum of any future window because $A[i]$ is at least as large and will remain in the window at least as long.
-3. **Insert**: push $i$ onto the back with `push_back(i)`.
-4. **Record result**: if $i \ge k - 1$ (i.e., the first full window has been reached), then $M[i - k + 1] = A[d_0]$.
+1. **지난 것 없애기**: 앞 인덱스 $d_0$이 창을 벗어났으면(곧 $d_0 \le i - k$이면) `pop_front()`으로 없앤다.
+2. **단조성 지키기**: 덱이 비어 있지 않고 $A[\text{back}] \le A[i]$인 동안 `pop_back()`으로 뒤 원소를 없앤다. $A[i]$이 적어도 그만큼 크고 창에 적어도 그만큼 오래 남으므로, 없앤 원소들은 앞으로 어떤 창에서도 최댓값이 될 수 없다.
+3. **넣기**: `push_back(i)`으로 $i$을 뒤에 넣는다.
+4. **결과 적기**: $i \ge k - 1$이면(곧 처음으로 창이 다 찼으면) $M[i - k + 1] = A[d_0]$으로 둔다.
 
-### Correctness Argument
+### 올바름의 논증
 
-After step 2, every remaining index $d_j$ in the deque satisfies $A[d_j] > A[i]$, so inserting $i$ at the back preserves monotonicity.  Step 1 ensures all indices are within the current window.  Because the deque is sorted in decreasing order by value, the front element is always the window maximum.
+2단계를 마치면 덱에 남은 모든 인덱스 $d_j$이 $A[d_j] > A[i]$을 만족하므로 $i$을 뒤에 넣어도 단조성이 유지된다. 1단계는 모든 인덱스가 현재 창 안에 있게 한다. 덱이 값에 대해 감소하는 차례로 정렬되어 있으므로 앞 원소가 언제나 창의 최댓값이다.
 
-### Complexity
+### 복잡도
 
-Each of the $n$ elements is pushed onto the deque exactly once and popped at most once (either from the front when it expires or from the back when a larger element arrives).  Therefore the total number of deque operations is at most $2n$, and each operation costs $O(1)$.
+$n$개의 원소가 저마다 덱에 정확히 한 번 들어가고 (기간이 지나 앞에서 나가거나 더 큰 원소가 와서 뒤에서 나가거나) 많아야 한 번 나온다. 따라서 덱 연산은 모두 합해 많아야 $2n$번이고 각 연산에 $O(1)$이 든다.
 
 $$
 T(n) = O(n)
 $$
 
-The algorithm uses $O(k)$ extra space for the deque, since the deque never holds more than $k$ indices.
+덱에는 인덱스가 $k$개를 넘게 들어가지 않으므로 알고리즘은 $O(k)$의 추가 공간을 쓴다.
 
-## Worked Example
+## 풀이 예제
 
-??? example "Trace with A = [1, 3, -1, -3, 5, 3, 6, 7] and k = 3"
+??? example "A = [1, 3, -1, -3, 5, 3, 6, 7], k = 3으로 따라가기"
 
-    | $i$ | $A[i]$ | Deque (indices) | Deque (values) | $M$ |
+    | $i$ | $A[i]$ | 덱 (인덱스) | 덱 (값) | $M$ |
     |-----|--------|-----------------|----------------|-----|
     | 0 | 1 | [0] | [1] | — |
     | 1 | 3 | [1] | [3] | — |
@@ -64,60 +64,60 @@ The algorithm uses $O(k)$ extra space for the deque, since the deque never holds
     | 6 | 6 | [6] | [6] | 6 |
     | 7 | 7 | [7] | [7] | 7 |
 
-    At $i = 1$: index 0 is popped from the back because $A[0] = 1 \le 3 = A[1]$.
+    $i = 1$에서: $A[0] = 1 \le 3 = A[1]$이므로 인덱스 0이 뒤에서 빠진다.
 
-    At $i = 3$: index 1 is still valid ($1 > 3 - 3 = 0$), so it remains at the front.
+    $i = 3$에서: 인덱스 1은 아직 유효하므로($1 > 3 - 3 = 0$) 앞에 남는다.
 
-    At $i = 4$: indices 1, 2, 3 are all popped from the back because their values are $\le 5$.  Index 1 would also be expired ($1 \le 4 - 3 = 1$).
+    $i = 4$에서: 인덱스 1, 2, 3의 값이 모두 $\le 5$이므로 뒤에서 빠진다. 인덱스 1은 기간도 지났다($1 \le 4 - 3 = 1$).
 
-    The final result is $M = [3, 3, 5, 5, 6, 7]$.
+    최종 결과는 $M = [3, 3, 5, 5, 6, 7]$이다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
-"""Sliding window maximum using a monotonic deque."""
+"""단조 덱으로 구하는 미끄럼창 최댓값."""
 
 from collections import deque
 
 
-# === Monotonic Deque Algorithm ===
+# === 단조 덱 알고리즘 ===
 
 def sliding_window_max(nums: list[int | float], k: int) -> list[int | float]:
     """Return the maximum of every contiguous subarray of length k.
 
-    Args:
-        nums: Input array of numbers.
-        k: Window size (1 <= k <= len(nums)).
+    인수:
+        nums: 수로 이루어진 입력 배열.
+        k: 창의 크기 (1 <= k <= len(nums)).
 
-    Returns:
-        List of length len(nums) - k + 1 with the window maximums.
+    반환값:
+        창의 최댓값을 담은 길이 len(nums) - k + 1의 목록.
 
-    Time:  O(n) where n = len(nums).
-    Space: O(k) for the deque.
+    시간:  O(n), 여기서 n = len(nums)이다.
+    공간: 덱을 위해 O(k).
     """
     n = len(nums)
-    dq = deque()  # stores indices, values in decreasing order
+    dq = deque()  # 인덱스를 담되 값은 감소하는 차례
     result = []
 
     for i in range(n):
-        # Remove indices that have left the window
+        # 창을 벗어난 인덱스 없애기
         if dq and dq[0] <= i - k:
             dq.popleft()
 
-        # Remove back elements smaller than or equal to nums[i]
+        # nums[i]보다 작거나 같은 뒤쪽 원소 없애기
         while dq and nums[dq[-1]] <= nums[i]:
             dq.pop()
 
         dq.append(i)
 
-        # Record the maximum once the first full window is reached
+        # 창이 처음으로 다 차면 최댓값을 적는다
         if i >= k - 1:
             result.append(nums[dq[0]])
 
     return result
 
 
-# === Demo ===
+# === 시연 ===
 
 if __name__ == "__main__":
     A = [1, 3, -1, -3, 5, 3, 6, 7]
@@ -128,16 +128,49 @@ if __name__ == "__main__":
     # Output: [3, 3, 5, 5, 6, 7]
 ```
 
-## Sliding Window Minimum
+## 미끄럼창 최솟값
 
-The same technique works for the sliding window minimum by reversing the comparison: pop from the back while $A[\text{back}] \ge A[i]$.  The front of the deque then holds the index of the current minimum.
+비교를 뒤집으면 같은 기법이 미끄럼창 최솟값에도 통한다. $A[\text{back}] \ge A[i]$인 동안 뒤에서 뺀다. 그러면 덱의 앞이 현재 최솟값의 인덱스를 담는다.
 
-## Applications
+## 응용
 
-- **Max-pooling in CNNs**: computing the maximum over spatial patches can be viewed as a sliding window maximum along each dimension.
-- **Stock price analysis**: finding rolling highs and lows over a fixed-size time window.
-- **Monotone queue optimization in dynamic programming**: certain DP recurrences of the form $f(i) = \max_{j \in [i-k, i-1]} g(j) + h(i)$ can be accelerated from $O(nk)$ to $O(n)$ using this technique.
+- **CNN의 최댓값 풀링**: 공간 조각에 대한 최댓값 계산은 차원마다의 미끄럼창 최댓값으로 볼 수 있다.
+- **주가 분석**: 크기가 정해진 시간 창에서 이동 고점과 저점을 찾는다.
+- **동적 계획법의 단조 큐 최적화**: $f(i) = \max_{j \in [i-k, i-1]} g(j) + h(i)$ 꼴의 어떤 점화식은 이 기법으로 $O(nk)$에서 $O(n)$으로 빨라진다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+미끄럼창 최댓값의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+미끄럼창 최댓값을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+미끄럼창 최댓값을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+미끄럼창 최댓값을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

@@ -1,100 +1,132 @@
-# Inapproximability
+# 어림할 수 없음
 
-Approximation algorithms provide guaranteed near-optimal solutions for NP-hard problems. A natural question follows: can we always do better with a cleverer algorithm? **Inapproximability** theory answers "no" for many problems, proving that certain approximation ratios cannot be achieved in polynomial time unless P = NP. These lower bounds complement the upper bounds from algorithm design and tell us when to stop searching for improvements.
+어림 알고리즘은 NP-어려운 문제에 가장 좋은 값에 가까운 풀이를 보장한다. 자연스러운 물음이 따른다. 더 영리한 알고리즘으로 늘 더 잘할 수 있을까? **어림할 수 없음** 이론은 많은 문제에서 "아니오"라 답하며, P = NP이 아니라면 어떤 어림 비율은 다항식 시간에 이룰 수 없음을 밝힌다. 이 아래 한계는 알고리즘 설계의 위 한계를 메워 주며 개선 찾기를 언제 그만둘지 알려 준다.
 
-## Gap-Producing Reductions
+## 틈을 만드는 줄이기
 
-The standard technique for proving inapproximability uses **gap-producing reductions**. Rather than reducing one decision problem to another, we reduce a decision problem to a gap between two objective values.
+어림할 수 없음을 밝히는 여느 재주는 **틈을 만드는 줄이기**를 쓴다. 결정 문제를 다른 결정 문제로 줄이는 대신 결정 문제를 두 목표 값 사이의 틈으로 줄인다.
 
-A gap-producing reduction from an NP-hard decision problem $L$ to an optimization problem $\Pi$ works as follows:
+NP-어려운 결정 문제 $L$에서 가장 좋게 하기 문제 $\Pi$으로 가는 틈을 만드는 줄이기는 다음과 같이 된다.
 
-- **YES instances** of $L$ map to instances of $\Pi$ with optimal value at most $c$.
-- **NO instances** of $L$ map to instances of $\Pi$ with optimal value at least $\alpha \cdot c$.
+- $L$의 **예 보기**는 가장 좋은 값이 많아야 $c$인 $\Pi$의 보기로 옮겨진다.
+- $L$의 **아니오 보기**는 가장 좋은 값이 적어도 $\alpha \cdot c$인 $\Pi$의 보기로 옮겨진다.
 
-If a polynomial-time algorithm achieved approximation ratio better than $\alpha$ on $\Pi$, it could distinguish YES from NO instances, solving $L$ in polynomial time. This contradicts P $\neq$ NP.
+다항식 시간 알고리즘이 $\Pi$에서 $\alpha$보다 좋은 어림 비율을 이룬다면 예 보기와 아니오 보기를 가려내어 $L$을 다항식 시간에 풀 수 있다. 이는 P $\neq$ NP에 어긋난다.
 
-## The PCP Theorem
+## PCP 정리
 
-The most powerful tool for inapproximability is the **PCP (Probabilistically Checkable Proofs) Theorem**, one of the deepest results in complexity theory.
+어림할 수 없음의 가장 힘 있는 연장은 복잡도 이론의 가장 깊은 결과 가운데 하나인 **PCP(확률로 살필 수 있는 밝힘) 정리**이다.
 
-!!! tip "Theorem (PCP Theorem, Arora-Safra, Arora-Lund-Motwani-Sudan-Szegedy, 1998)"
-    Every language in NP has a probabilistically checkable proof that can be verified by reading only $O(\log n)$ random bits and $O(1)$ bits of the proof.
+!!! tip "정리(PCP 정리, Arora-Safra, Arora-Lund-Motwani-Sudan-Szegedy, 1998)"
+    NP의 모든 말은 아무 비트 $O(\log n)$개와 밝힘의 비트 $O(1)$개만 읽어 확인할 수 있는, 확률로 살필 수 있는 밝힘을 가진다.
 
-Formally, NP = PCP$[\log n, 1]$, where PCP$[r(n), q(n)]$ denotes the class of languages with proofs verifiable using $r(n)$ random bits and $q(n)$ query bits.
+갖추어 적으면 NP = PCP$[\log n, 1]$이며, PCP$[r(n), q(n)]$은 아무 비트 $r(n)$개와 물음 비트 $q(n)$개로 밝힘을 확인할 수 있는 말의 갈래이다.
 
-### Connection to Inapproximability
+### 어림할 수 없음과의 이음
 
-The PCP Theorem implies that MAX-3SAT is NP-hard to approximate within some constant factor. Specifically:
+PCP 정리는 MAX-3SAT을 어떤 상수 갑절 안으로 어림하는 것이 NP-어려움임을 뜻한다. 자세히는:
 
-!!! tip "Corollary (Hastad, 2001)"
-    It is NP-hard to distinguish between 3SAT instances where at least a $(1 - \epsilon)$ fraction of clauses are satisfiable and instances where at most a $(7/8 + \epsilon)$ fraction are satisfiable, for any $\epsilon > 0$.
+!!! tip "따름 정리(Hastad, 2001)"
+    아무 $\epsilon > 0$에 대해 절의 적어도 $(1 - \epsilon)$ 몫을 채울 수 있는 3SAT 보기와 많아야 $(7/8 + \epsilon)$ 몫을 채울 수 있는 보기를 가려내는 것은 NP-어려움이다.
 
-Since a random assignment satisfies $7/8$ of clauses in expectation, this result shows that beating the trivial random algorithm is NP-hard.
+아무 매김이 기댓값으로 절의 $7/8$을 채우므로 이 결과는 뻔한 마구잡이 알고리즘을 넘어서는 것이 NP-어려움임을 보인다.
 
-## Key Inapproximability Results
+## 핵심 어림할 수 없음 결과
 
-The following table summarizes landmark results, assuming P $\neq$ NP:
+다음 표는 P $\neq$ NP을 가정한 이정표 결과를 간추린다.
 
-| Problem | Best Ratio | Inapproximability | Source |
+| 문제 | 가장 좋은 비율 | 어림할 수 없음 | 출처 |
 |---------|------------|-------------------|--------|
 | MAX-3SAT | $7/8 + \epsilon$ | $< 7/8 + \epsilon$ | Hastad (2001) |
-| Set Cover | $O(\log n)$ | $(1 - \epsilon) \ln n$ | Dinur-Steurer (2014) |
-| Clique | $O(n)$ | $n^{1 - \epsilon}$ | Hastad (1996), Zuckerman (2007) |
-| Vertex Cover | $2$ | $< 2 - \epsilon$ (UGC) | Khot-Regev (2008) |
-| General TSP | --- | Any finite ratio | Sahni-Gonzalez (1976) |
-| Chromatic Number | $O(n)$ | $n^{1 - \epsilon}$ | Zuckerman (2007) |
+| 모임 덮기 | $O(\log n)$ | $(1 - \epsilon) \ln n$ | Dinur-Steurer (2014) |
+| 완전 부분 그래프 | $O(n)$ | $n^{1 - \epsilon}$ | Hastad (1996), Zuckerman (2007) |
+| 꼭짓점 덮기 | $2$ | $< 2 - \epsilon$(하나뿐인 놀이 추측) | Khot-Regev (2008) |
+| 일반 떠돌이 장수 문제 | --- | 어떤 유한한 비율도 | Sahni-Gonzalez (1976) |
+| 색칠 수 | $O(n)$ | $n^{1 - \epsilon}$ | Zuckerman (2007) |
 
-## Set Cover Inapproximability
+## 모임 덮기를 어림할 수 없음
 
-The **Set Cover** problem asks for the fewest sets from a collection $\mathcal{S} = \{S_1, \ldots, S_m\}$ that cover a universe $U$ of $n$ elements. The greedy algorithm achieves ratio $H_n = \ln n + O(1)$, and this is essentially optimal.
+**모임 덮기** 문제는 낱개 $n$개의 온 모임 $U$을 덮는, 묶음 $\mathcal{S} = \{S_1, \ldots, S_m\}$에서 가장 적은 모임을 묻는다. 욕심쟁이 알고리즘은 비율 $H_n = \ln n + O(1)$을 이루며 이는 사실상 가장 좋다.
 
-!!! tip "Theorem (Dinur-Steurer, 2014)"
-    Unless P = NP, no polynomial-time algorithm can approximate Set Cover within a factor of $(1 - \epsilon) \ln n$ for any constant $\epsilon > 0$.
+!!! tip "정리(Dinur-Steurer, 2014)"
+    P = NP이 아니라면 어떤 다항식 시간 알고리즘도 아무 상수 $\epsilon > 0$에 대해 모임 덮기를 $(1 - \epsilon) \ln n$ 갑절 안으로 어림하지 못한다.
 
-This shows that the simple greedy algorithm is essentially the best possible.
+이는 단순한 욕심쟁이 알고리즘이 사실상 가장 좋음을 보인다.
 
-## General TSP Is Inapproximable
+## 일반 떠돌이 장수 문제는 어림할 수 없다
 
-Unlike metric TSP (which admits a $3/2$-approximation), the general TSP has no finite approximation ratio.
+($3/2$ 어림을 받아들이는) 잣대 떠돌이 장수 문제와 달리 일반 떠돌이 장수 문제에는 유한한 어림 비율이 없다.
 
-**Proof sketch.** Suppose an $\alpha$-approximation exists for general TSP. Given a graph $G$ on $n$ vertices, construct a complete weighted graph: set $w(u,v) = 1$ if $(u,v) \in E(G)$, and $w(u,v) = \alpha n + 1$ otherwise. If $G$ has a Hamiltonian cycle, OPT $= n$. If not, any tour uses at least one heavy edge, giving cost $> \alpha n$. The $\alpha$-approximation would distinguish these cases, solving the NP-complete Hamiltonian Cycle problem. $\square$
+**밝힘 밑그림.** 일반 떠돌이 장수 문제에 $\alpha$ 어림이 있다고 하자. 꼭짓점 $n$개인 그래프 $G$이 주어질 때 온전 무게 그래프를 세운다. 곧 $(u,v) \in E(G)$이면 $w(u,v) = 1$, 아니면 $w(u,v) = \alpha n + 1$으로 둔다. $G$에 해밀턴 돌기가 있으면 OPT $= n$이다. 없으면 어떤 나들이든 무거운 모서리를 적어도 하나 써서 비용이 $> \alpha n$이다. $\alpha$ 어림이 이 두 경우를 가려내어 NP-완전인 해밀턴 돌기 문제를 풀게 된다. $\square$
 
-## The Unique Games Conjecture
+## 하나뿐인 놀이 추측
 
-Many tight inapproximability results rely on the **Unique Games Conjecture (UGC)** of Khot (2002), which remains unproven.
+빡빡한 어림할 수 없음 결과 여럿이 아직 밝혀지지 않은 Khot(2002)의 **하나뿐인 놀이 추측**에 기댄다.
 
-**Unique Games Problem.** Given a constraint satisfaction problem where each constraint is a bijection between two variable domains of size $k$, distinguish:
+**하나뿐인 놀이 문제.** 조건마다 크기 $k$인 두 변수 마당 사이의 일대일 대응인 조건 채우기 문제가 주어질 때 다음을 가려내라.
 
-- Instances where at least $(1 - \epsilon)$ fraction of constraints are satisfiable
-- Instances where at most $\delta$ fraction are satisfiable
+- 조건의 적어도 $(1 - \epsilon)$ 몫을 채울 수 있는 보기
+- 많아야 $\delta$ 몫을 채울 수 있는 보기
 
-The UGC asserts this is NP-hard for all constants $\epsilon, \delta > 0$ and sufficiently large $k$.
+하나뿐인 놀이 추측은 모든 상수 $\epsilon, \delta > 0$과 넉넉히 큰 $k$에 대해 이것이 NP-어려움이라고 주장한다.
 
-Assuming the UGC, optimal inapproximability results follow for:
+하나뿐인 놀이 추측을 가정하면 다음에서 가장 좋은 어림할 수 없음 결과가 따라 나온다.
 
-- **Vertex Cover:** ratio $2 - \epsilon$ is NP-hard
-- **MAX-CUT:** the Goemans-Williamson ratio $\approx 0.878$ is optimal
-- **Unique Label Cover:** forms the basis for many further reductions
+- **꼭짓점 덮기:** 비율 $2 - \epsilon$은 NP-어려움이다
+- **최대 자름:** 괴만스-윌리엄슨 비율 $\approx 0.878$이 가장 좋다
+- **하나뿐인 이름표 덮기:** 뒤이은 많은 줄이기의 바탕이 된다
 
-??? example "Example: Proving MAX-CUT Inapproximability via Gap Reduction"
-    Consider reducing from Unique Games to MAX-CUT.
+??? example "보기: 틈 줄이기로 최대 자름을 어림할 수 없음 밝히기"
+    하나뿐인 놀이에서 최대 자름으로 줄이는 것을 보자.
 
-    **Setup.** A Unique Games instance with value $(1 - \epsilon)$ maps to a MAX-CUT instance with cut value at least $(1 - f(\epsilon)) \cdot |E|$, where $f(\epsilon) \to 0$ as $\epsilon \to 0$.
+    **채비.** 값이 $(1 - \epsilon)$인 하나뿐인 놀이 보기는 자름 값이 적어도 $(1 - f(\epsilon)) \cdot |E|$인 최대 자름 보기로 옮겨지며 $\epsilon \to 0$이면 $f(\epsilon) \to 0$이다.
 
-    A Unique Games instance with value $\delta$ maps to a MAX-CUT instance with cut value at most $(c_{\text{GW}} + g(\delta)) \cdot |E|$, where $c_{\text{GW}} \approx 0.878$.
+    값이 $\delta$인 하나뿐인 놀이 보기는 자름 값이 많아야 $(c_{\text{GW}} + g(\delta)) \cdot |E|$인 최대 자름 보기로 옮겨지며 $c_{\text{GW}} \approx 0.878$이다.
 
-    Any algorithm beating $c_{\text{GW}}$ would distinguish these cases, contradicting the UGC.
+    $c_{\text{GW}}$을 넘는 어떤 알고리즘도 이 두 경우를 가려내어 하나뿐인 놀이 추측에 어긋난다.
 
-## Implications for Algorithm Design
+## 알고리즘 설계에 대한 함의
 
-Inapproximability results guide where to direct research effort:
+어림할 수 없음 결과는 연구의 힘을 어디에 쏟을지 이끌어 준다.
 
-1. **Tight ratios.** When the best algorithm matches the inapproximability bound (e.g., Set Cover), the problem is "solved" from an approximation standpoint.
-2. **Open gaps.** When a gap exists between the best algorithm and the best lower bound (e.g., Vertex Cover has ratio 2 but only $1.3606$ unconditional hardness), improving either side remains open.
-3. **Parameterized approaches.** When polynomial-time approximation is hopeless, consider exact algorithms parameterized by input structure (treewidth, planarity).
+1. **빡빡한 비율.** 가장 좋은 알고리즘이 어림할 수 없음 한계와 맞으면(예컨대 모임 덮기) 어림의 관점에서 그 문제는 "풀린" 것이다.
+2. **열린 틈.** 가장 좋은 알고리즘과 가장 센 아래 한계 사이에 틈이 있으면(예컨대 꼭짓점 덮기는 비율 2이지만 조건 없는 어려움은 $1.3606$뿐이다) 어느 쪽이든 개선하는 일이 열려 있다.
+3. **매개변수 방식.** 다항식 시간 어림이 가망 없으면 들임 짜임(나무 너비, 평면성)으로 매개변수를 잡은 정확한 알고리즘을 살펴보라.
 
-## Reference
+## 참고 문헌
 
 - Arora, S., & Barak, B. (2009). *Computational Complexity: A Modern Approach*. Cambridge University Press.
 - Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.
 - Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+Describe the approximation algorithm for Inapproximability and state its approximation guarantee.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 다항식 시간에 돌며 가장 좋은 값의 밝힐 수 있는 갑절 안에 드는 풀이를 낸다. 어림 비율은 알고리즘이 내놓은 것을 가장 좋은 값의 아래 한계(가장 작게 하기)나 위 한계(가장 크게 하기), 곧 선형 계획 느슨하게 하기 값이나 조합 한계, 문제의 짜임 성질과 이어 밝힌다. $\square$
+
+---
+
+**연습문제 2.**
+What lower bound technique is used to prove the approximation ratio for Inapproximability?
+
+??? success "연습문제 2 풀이"
+    밝힘은 흔히 알고리즘의 풀이를 느슨하게 한 한계(선형 계획 느슨하게 하기, 분수 풀이, 조합 아래 한계)와 견준다. 가장 작게 하기에서는 $ALG \leq \rho \cdot LP^* \leq \rho \cdot OPT$이다. 가장 크게 하기에서는 $ALG \geq OPT / \rho$이다. 아래 한계는 효율 좋게 셈할 수 있고 쓸모 있는 비율을 줄 만큼 빡빡해야 한다. $\square$
+
+---
+
+**연습문제 3.**
+Can the approximation ratio for Inapproximability be improved? What are the known hardness results?
+
+??? success "연습문제 3 풀이"
+    어림 비율이 얼마나 빡빡한지는 복잡도 이론의 가정(P $\neq$ NP, 하나뿐인 놀이 추측 등)에 달렸다. 어떤 문제에서는 단순한 욕심쟁이나 반올림 알고리즘이 여느 가정 아래 이미 가장 좋다. 다른 문제에서는 가장 좋은 알고리즘과 가장 센 어려움 결과 사이에 틈이 있어 아직 풀리지 않은 연구 문제로 남아 있다. $\square$
+
+---
+
+**연습문제 4.**
+Apply Inapproximability to a concrete instance and verify the approximation ratio holds.
+
+??? success "연습문제 4 풀이"
+    작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$

@@ -1,36 +1,36 @@
-# Polynomial Reductions
+# 다항 줄임
 
-How do we compare the difficulty of computational problems?  If we can efficiently transform every instance of problem $A$ into an instance of problem $B$ while preserving yes/no answers, then $B$ is "at least as hard" as $A$.  This idea -- **polynomial-time reduction** -- is the primary tool for establishing relative difficulty in complexity theory and the foundation upon which NP-completeness proofs are built.
+셈 문제의 어려움을 어떻게 견주는가? 문제 $A$의 모든 사례를 예/아니오 답을 지키면서 문제 $B$의 사례로 효율 좋게 바꿀 수 있다면 $B$은 $A$보다 "적어도 어렵다". 이 생각, 곧 **다항 시간 줄임**은 복잡도 이론에서 상대 어려움을 세우는 으뜸 도구이며 NP 완전성 밝힘이 놓이는 바탕이다.
 
-## Intuition
+## 직관
 
-A reduction from $A$ to $B$ is a compiler that translates $A$-questions into $B$-questions.  If you can solve $B$, you can solve $A$ by first translating, then solving.  The translation must be efficient (polynomial time) and correctness-preserving (yes maps to yes, no maps to no).
+$A$에서 $B$으로 가는 줄임은 $A$ 물음을 $B$ 물음으로 옮기는 옮김틀이다. $B$을 풀 수 있으면 먼저 옮긴 뒤 풀어서 $A$을 풀 수 있다. 옮김은 효율 좋아야 하고(다항 시간) 옳음을 지켜야 한다(예는 예로, 아니오는 아니오로 간다).
 
-The direction of reduction is crucial: $A \leq_p B$ means "A reduces to B," which implies *B is at least as hard as A*, not the other way around.
+줄임의 방향이 결정적이다. $A \leq_p B$은 "A이 B으로 줄여진다"는 뜻이며 이는 *B이 A보다 적어도 어렵다*는 뜻이지 그 반대가 아니다.
 
-## Many-One Reductions (Karp Reductions)
+## 여럿 대 하나 줄임(카프 줄임)
 
-### Formal Definition
+### 형식적 정의
 
-A **polynomial-time many-one reduction** (or **Karp reduction**) from language $A$ to language $B$ is a function $f : \Sigma^* \to \Sigma^*$ such that:
+말 $A$에서 말 $B$으로 가는 **다항 시간 여럿 대 하나 줄임**(또는 **카프 줄임**)은 다음을 만족하는 함수 $f : \Sigma^* \to \Sigma^*$이다:
 
-1. $f$ is computable in polynomial time, and
-2. for every $x \in \Sigma^*$:
+1. $f$이 다항 시간에 셈할 수 있고,
+2. 모든 $x \in \Sigma^*$에 대해:
 
 $$
 x \in A \iff f(x) \in B
 $$
 
-When such a reduction exists, we write $A \leq_p B$ (or $A \leq_m^p B$).
+그런 줄임이 있으면 $A \leq_p B$(또는 $A \leq_m^p B$)이라 적는다.
 
-??? info "Why 'many-one'?"
-    The name "many-one" reflects that multiple inputs $x$ may map to the same output $f(x)$.  The function $f$ need not be injective.  This distinguishes many-one reductions from one-one reductions, where $f$ is required to be injective.
+??? info "왜 '여럿 대 하나'인가?"
+    "여럿 대 하나"라는 이름은 여러 들임 $x$이 같은 내놓기 $f(x)$으로 갈 수 있음을 비춘다. 함수 $f$은 일대일일 필요가 없다. 이 점이 $f$이 일대일이어야 하는 하나 대 하나 줄임과 여럿 대 하나 줄임을 갈라 준다.
 
-### Properties
+### 성질
 
-**Transitivity.** If $A \leq_p B$ and $B \leq_p C$, then $A \leq_p C$.
+**옮김 성질.** $A \leq_p B$이고 $B \leq_p C$이면 $A \leq_p C$이다.
 
-*Proof.* Let $f$ reduce $A$ to $B$ in time $p(n)$ and $g$ reduce $B$ to $C$ in time $q(n)$.  The composition $g \circ f$ maps $x$ to $g(f(x))$.  Since $|f(x)| \leq p(|x|)$, the computation of $g(f(x))$ takes time at most $q(p(|x|))$, which is polynomial.  Correctness follows from both equivalences:
+*증명.* $f$이 $A$을 $B$으로 시간 $p(n)$에 줄이고 $g$이 $B$을 $C$으로 시간 $q(n)$에 줄인다고 하자. 이어 붙인 $g \circ f$은 $x$을 $g(f(x))$으로 보낸다. $|f(x)| \leq p(|x|)$이므로 $g(f(x))$을 셈하는 데 많아야 $q(p(|x|))$ 시간이 들며 이는 다항이다. 옳음은 두 같음에서 따라 나온다:
 
 $$
 x \in A \iff f(x) \in B \iff g(f(x)) \in C
@@ -38,84 +38,132 @@ $$
 
 $\square$
 
-**Hardness transfer.** If $A \leq_p B$ and $B \in \mathbf{P}$, then $A \in \mathbf{P}$.  Equivalently, by contrapositive: if $A \notin \mathbf{P}$, then $B \notin \mathbf{P}$.
+**어려움 옮김.** $A \leq_p B$이고 $B \in \mathbf{P}$이면 $A \in \mathbf{P}$이다. 같은 말로 대우를 쓰면 $A \notin \mathbf{P}$이면 $B \notin \mathbf{P}$이다.
 
-**Closure.** If $A \leq_p B$, then:
+**닫힘.** $A \leq_p B$이면:
 
 - $B \in \mathbf{NP} \implies A \in \mathbf{NP}$
 - $B \in \mathbf{co\text{-}NP} \implies A \in \mathbf{co\text{-}NP}$
 - $B \in \mathbf{P} \implies A \in \mathbf{P}$
 
-## Turing Reductions (Cook Reductions)
+## 튜링 줄임(쿡 줄임)
 
-A more general notion allows the reduction to make *multiple* queries to an oracle for $B$.
+더 넓은 개념은 줄임이 $B$의 신탁에 *여러 번* 묻는 것을 허락한다.
 
-### Formal Definition
+### 형식적 정의
 
-A **polynomial-time Turing reduction** (or **Cook reduction**) from $A$ to $B$ is an algorithm that decides $A$ in polynomial time given access to an oracle for $B$.  We write $A \leq_T^p B$.
+$A$에서 $B$으로 가는 **다항 시간 튜링 줄임**(또는 **쿡 줄임**)은 $B$의 신탁을 쓸 수 있을 때 $A$을 다항 시간에 가르는 알고리즘이다. $A \leq_T^p B$이라 적는다.
 
-Every many-one reduction is a special case of a Turing reduction (make one oracle query on $f(x)$ and return the answer), so:
+모든 여럿 대 하나 줄임은 튜링 줄임의 특별한 경우이다($f(x)$으로 신탁에 한 번 묻고 그 답을 돌려준다). 따라서:
 
 $$
 A \leq_p B \implies A \leq_T^p B
 $$
 
-The converse does not hold in general.  Turing reductions are strictly more powerful because they allow:
+거꾸로는 일반으로 성립하지 않는다. 튜링 줄임이 엄격히 더 힘센 까닭은 다음을 허락하기 때문이다:
 
-- Multiple queries to the oracle.
-- Adaptive queries (later queries depend on earlier answers).
-- Using the oracle answer as part of further computation.
+- 신탁에 여러 번 묻기.
+- 맞추어 가는 물음(뒤 물음이 앞 답에 매인다).
+- 신탁의 답을 이어지는 셈의 한 부분으로 쓰기.
 
-??? example "Turing reduction: optimization from decision"
-    Consider optimization TSP (find the shortest tour) and decision TSP (is there a tour of cost $\leq k$?).  The optimization version Turing-reduces to the decision version: binary search on $k$ using the decision oracle finds the optimal cost, then edge-by-edge queries reconstruct the optimal tour.  This is a Turing reduction but *not* a many-one reduction.
+??? example "튜링 줄임: 가름에서 가장 좋게 하기로"
+    가장 좋게 하기 떠돌이 장수 문제(가장 짧은 돌이 찾기)와 가름 판(비용이 $\leq k$인 돌이가 있는가?)을 살펴보자. 가장 좋게 하기 판은 가름 판으로 튜링 줄임이 된다. 가름 신탁으로 $k$에 이진 찾기를 하면 가장 좋은 비용을 찾고, 그다음 변마다 물어 가장 좋은 돌이를 되짓는다. 이는 튜링 줄임이지만 여럿 대 하나 줄임은 *아니다*.
 
-## Comparison of Reduction Types
+## 줄임 갈래 견주기
 
-| Property | Many-One ($\leq_p$) | Turing ($\leq_T^p$) |
+| 성질 | 여럿 대 하나($\leq_p$) | 튜링($\leq_T^p$) |
 |----------|---------------------|---------------------|
-| Queries to oracle | Exactly 1 | Polynomially many |
-| Query must be final step | Yes | No |
-| Output must equal oracle's answer | Yes | No |
-| Defines NP-completeness | Yes (standard) | Yes (Cook's definition) |
-| Transitivity | Yes | Yes |
-| Strength | Weaker | Stronger |
+| 신탁에 묻는 횟수 | 꼭 1번 | 다항 번 |
+| 물음이 마지막 걸음이어야 하는가 | 예 | 아니오 |
+| 내놓기가 신탁의 답과 같아야 하는가 | 예 | 아니오 |
+| NP 완전성을 뜻매김하는가 | 예(여느 방식) | 예(쿡의 뜻매김) |
+| 옮김 성질 | 예 | 예 |
+| 힘 | 약함 | 셈 |
 
-!!! tip "Which reduction to use?"
-    In complexity theory, NP-completeness is typically defined via many-one (Karp) reductions because they preserve membership in NP.  Turing reductions are used when studying structural properties or when many-one reductions are too restrictive (e.g., relating optimization to decision problems).
+!!! tip "어떤 줄임을 쓸 것인가?"
+    복잡도 이론에서 NP 완전성은 보통 여럿 대 하나(카프) 줄임으로 뜻매김한다. NP에 듦을 지키기 때문이다. 얼개 성질을 살피거나 여럿 대 하나 줄임이 너무 빡빡할 때(보기로 가장 좋게 하기와 가름 문제를 이을 때) 튜링 줄임을 쓴다.
 
-## Anatomy of a Reduction Proof
+## 줄임 밝힘의 뼈대
 
-To prove $A \leq_p B$ (and thereby show $B$ is at least as hard as $A$):
+$A \leq_p B$을 밝히려면(그리하여 $B$이 $A$보다 적어도 어려움을 보이려면):
 
-**Step 1: Define the mapping.** Given an arbitrary instance $x$ of $A$, construct an instance $f(x)$ of $B$.
+**걸음 1: 옮김을 뜻매김한다.** $A$의 아무 사례 $x$이 주어지면 $B$의 사례 $f(x)$을 세운다.
 
-**Step 2: Prove the forward direction.** If $x \in A$, then $f(x) \in B$.
+**걸음 2: 앞 방향을 밝힌다.** $x \in A$이면 $f(x) \in B$이다.
 
-**Step 3: Prove the reverse direction.** If $f(x) \in B$, then $x \in A$.
+**걸음 3: 뒤 방향을 밝힌다.** $f(x) \in B$이면 $x \in A$이다.
 
-**Step 4: Prove efficiency.** The computation of $f(x)$ runs in time polynomial in $|x|$.
+**걸음 4: 효율을 밝힌다.** $f(x)$의 셈이 $|x|$에 대해 다항인 시간에 돈다.
 
-### Example: CLIQUE Reduces to INDEPENDENT SET
+### 보기: 덩어리가 독립 모임으로 줄여진다
 
-**Claim.** CLIQUE $\leq_p$ INDEPENDENT SET.
+**주장.** 덩어리 $\leq_p$ 독립 모임.
 
-**Reduction.** Given $(G, k)$ where $G = (V, E)$, output $(\overline{G}, k)$ where $\overline{G} = (V, \overline{E})$ is the complement graph.
+**줄임.** $G = (V, E)$인 $(G, k)$이 주어지면 여 그래프 $\overline{G} = (V, \overline{E})$을 써서 $(\overline{G}, k)$을 내놓는다.
 
-**Forward.** If $G$ has a clique $S$ of size $k$, then every pair in $S$ is adjacent in $G$, so no pair in $S$ is adjacent in $\overline{G}$, meaning $S$ is an independent set of size $k$ in $\overline{G}$.
+**앞 방향.** $G$에 크기 $k$인 덩어리 $S$이 있으면 $S$의 모든 짝이 $G$에서 이웃이므로 $\overline{G}$에서는 $S$의 어떤 짝도 이웃이 아니다. 곧 $S$은 $\overline{G}$에서 크기 $k$인 독립 모임이다.
 
-**Reverse.** If $\overline{G}$ has an independent set $S$ of size $k$, then no pair in $S$ is adjacent in $\overline{G}$, so every pair in $S$ is adjacent in $G$, meaning $S$ is a clique of size $k$ in $G$.
+**뒤 방향.** $\overline{G}$에 크기 $k$인 독립 모임 $S$이 있으면 $\overline{G}$에서 $S$의 어떤 짝도 이웃이 아니므로 $G$에서는 $S$의 모든 짝이 이웃이다. 곧 $S$은 $G$에서 크기 $k$인 덩어리이다.
 
-**Efficiency.** Constructing $\overline{G}$ takes $O(|V|^2)$ time.
+**효율.** $\overline{G}$을 세우는 데 $O(|V|^2)$ 시간이 든다.
 
 $\square$
 
-## Common Mistakes
+## 흔한 실수
 
-!!! warning "Direction errors"
-    The most common mistake in reduction proofs is reducing in the wrong direction.  To show $B$ is NP-hard, you must reduce *from* a known NP-hard problem $A$ *to* $B$: show $A \leq_p B$.  Reducing $B$ to $A$ would only show that $A$ is at least as hard as $B$, proving nothing about $B$'s hardness.
+!!! warning "방향 잘못"
+    줄임 밝힘에서 가장 흔한 잘못은 방향을 거꾸로 줄이는 것이다. $B$이 NP 어려움임을 보이려면 알려진 NP 어려움 문제 $A$*에서* $B$*으로* 줄여야 한다. 곧 $A \leq_p B$을 보인다. $B$을 $A$으로 줄이면 $A$이 $B$보다 적어도 어렵다는 것만 보일 뿐 $B$의 어려움에 대해서는 아무것도 밝히지 못한다.
 
-## Reference
+## 참고 문헌
 
 - Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
 - Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
 - Karp, R. M. "Reducibility Among Combinatorial Problems." *Complexity of Computer Computations*, 1972.
+
+## 연습문제
+
+**연습문제 1.**
+다항 시간 줄임이 옮김 성질을 지님을 밝혀라. 곧 $A \leq_p B$이고 $B \leq_p C$이면 $A \leq_p C$이다.
+
+??? success "연습문제 1 풀이"
+    $A \leq_p B$이므로 $x \in A \iff f(x) \in B$인 다항 시간에 셈할 수 있는 함수 $f$이 있다. $B \leq_p C$이므로 $y \in B \iff g(y) \in C$인 다항 시간에 셈할 수 있는 함수 $g$이 있다.
+
+    $h = g \circ f$이라 두자. 그러면 $x \in A \iff f(x) \in B \iff g(f(x)) \in C \iff h(x) \in C$이다. 함수 $h$은 다항 시간에 셈할 수 있다. $f$은 시간 $p_f(n)$에 돌며 길이 $\leq p_f(n)$인 내놓기를 만들고, 그다음 $g$이 시간 $p_g(p_f(n))$에 도는데 이는 $n$에 대해 다항이다. 따라서 $A \leq_p C$이다.
+
+---
+
+**연습문제 2.**
+독립 모임에서 덩어리로 가는 다항 시간 줄임을 세워라.
+
+??? success "연습문제 2 풀이"
+    $G = (V, E)$인 독립 모임 사례 $(G, k)$이 주어지면 $\bar{E} = \{(u,v) : u \neq v, (u,v) \notin E\}$인 여 그래프 $\bar{G} = (V, \bar{E})$을 세운다. 덩어리 사례로 $(\bar{G}, k)$을 내놓는다.
+
+    옳음: 모임 $S \subseteq V$이 $G$에서 독립일($S$의 꼭짓점 사이에 변이 없을) 필요충분조건은 $S$이 $\bar{G}$에서 덩어리인($S$의 꼭짓점 사이 모든 변이 $\bar{G}$에 있는) 것이다. 따라서 $G$에 크기 $k$인 독립 모임이 있을 필요충분조건은 $\bar{G}$에 크기 $k$인 덩어리가 있는 것이다.
+
+    효율: $\bar{G}$을 세우는 데 $O(|V|^2)$ 시간이 들며(꼭짓점 짝마다 살핀다) 이는 다항이다.
+
+---
+
+**연습문제 3.**
+카프 줄임과 쿡(튜링) 줄임의 차이를 밝혀라. 쿡 줄임은 있지만 카프 줄임은 알려지지 않은 보기를 들어라.
+
+??? success "연습문제 3 풀이"
+    $A$에서 $B$으로 가는 **카프 줄임**은 사례 $x$마다 $x \in A \iff f(x) \in B$인 사례 $f(x)$ 하나로 옮긴다(예/아니오를 지키는 여럿 대 하나 옮김). **쿡 줄임**은 줄이는 알고리즘이 $B$의 신탁에 맞추어 가며 여러 번 묻는 것을 허락한다(다항 시간 튜링 줄임).
+
+    쿡 줄임이 엄격히 더 힘세다. $B$의 "예" 사례와 "아니오" 사례를 모두 물을 수 있고 여러 번 물을 수 있다. 카프 줄임은 꼭 한 번 묻고 답의 방향을 지켜야 한다.
+
+    보기: SAT의 여 문제(UNSAT)는 SAT으로 쿡 줄임이 된다(신탁에 물어 답을 뒤집는다). 그러나 UNSAT에서 SAT으로 가는 카프 줄임은 SAT $\in$ 여 NP을 뜻하고 이는 NP $=$ 여 NP을 뜻한다. 이는 알려져 있지 않으므로 카프 줄임도 알려져 있지 않다.
+
+---
+
+**연습문제 4.**
+3-SAT에서 그래프 문제로 가는 줄임은 부울 얼개를 그래프 얼개로 옮겨야 한다. 3-SAT에서 3색 칠하기로 가는 줄임의 핵심 생각을 적어라.
+
+??? success "연습문제 4 풀이"
+    이 줄임은 변수 $x_1, \ldots, x_n$과 절 $C_1, \ldots, C_m$을 가진 3-SAT 식 $\phi$에서 그래프를 세운다.
+
+    **변수 장치:** 변수 $x_i$마다 꼭짓점 둘 $v_i$($x_i$을 나타냄)과 $\bar{v}_i$($\neg x_i$을 나타냄)을 만들어 변으로 잇는다. 둘 다에 이어진 특별한 꼭짓점 $B$(바탕)을 더한다. 이는 $v_i$과 $\bar{v}_i$이 세 색 가운데 서로 다른 색을 받게 하여 참과 거짓을 적는다.
+
+    **절 장치:** 절 $C_j = (\ell_1 \vee \ell_2 \vee \ell_3)$마다 리터럴 꼭짓점과 $B$에 이어진 작은 부분 그래프(또는 장치)를 더한다. 이 장치를 3색으로 칠할 수 있을 필요충분조건은 리터럴 꼭짓점 가운데 적어도 하나가 "참" 색을 가지는 것이다.
+
+    그렇게 얻은 그래프를 3색으로 칠할 수 있을 필요충분조건은 $\phi$이 만족 가능한 것이다. 이 세움은 $|\phi|$에 대해 다항이다.

@@ -1,109 +1,142 @@
-# Adaptive Sorting
+# 적응 정렬
 
-In many practical scenarios, data arrives nearly sorted. Log files are ordered by timestamp except for occasional late entries. A list that was sorted yesterday needs only minor adjustments after a few insertions. Version-controlled records change incrementally. An algorithm that ignores this existing order and performs the same work regardless wastes effort. **Adaptive** sorting algorithms detect and exploit existing order in the input, completing faster when the data is partially sorted. This section defines adaptivity formally, introduces measures of presortedness, and examines how specific algorithms achieve adaptive behavior.
+실제로는 데이터가 거의 정렬된 채로 들어오는 일이 많다. 로그 파일은 이따금 늦게 들어오는 항목만 빼면 시각 순으로 놓여 있다. 어제 정렬한 목록은 몇 번 넣은 뒤 조금만 손보면 된다. 판 관리를 하는 기록은 조금씩 바뀐다. 이 이미 있는 순서를 무시하고 늘 같은 일을 하는 알고리즘은 힘을 버린다. **적응** 정렬 알고리즘은 입력에 이미 있는 순서를 알아채고 이용하여 데이터가 얼마간 정렬되어 있으면 더 빨리 끝난다. 이 절은 적응성을 정식으로 정의하고, 얼마나 미리 정렬되었는지를 재는 척도를 들여오고, 특정 알고리즘이 어떻게 적응적으로 움직이는지 살핀다.
 
-## What Makes an Algorithm Adaptive
+## 무엇이 알고리즘을 적응적으로 만드는가
 
-A sorting algorithm is **adaptive** if its running time decreases as the input becomes more sorted. More precisely, let $m$ be a measure of the "disorder" or "unsortedness" of the input. An algorithm is adaptive with respect to $m$ if its running time is a function of both $n$ (the number of elements) and $m$, with the running time decreasing as $m$ decreases.
+정렬 알고리즘은 입력이 더 정렬되어 있을수록 실행 시간이 줄면 **적응적**이다. 더 정확히, $m$을 입력의 "어지러움" 또는 "정렬되지 않음"을 재는 척도라 하자. 알고리즘의 실행 시간이 (원소의 수인) $n$과 $m$ 둘의 함수이고 $m$이 줄면 실행 시간도 준다면 그 알고리즘은 $m$에 대해 적응적이다.
 
-A **non-adaptive** algorithm always performs the same number of operations regardless of the input order. Selection sort, for example, always makes
+**적응적이지 않은** 알고리즘은 입력의 순서와 무관하게 언제나 같은 수의 연산을 한다. 이를테면 선택 정렬은 입력이 이미 정렬되었든 거꾸로 정렬되었든 무작위로 섞였든 언제나
 
 $$
 \frac{n(n-1)}{2}
 $$
 
-comparisons whether the input is already sorted, reverse sorted, or randomly permuted.
+만큼 비교한다.
 
-## Measures of Presortedness
+## 미리 정렬된 정도를 재는 척도
 
-Several measures quantify how far an input is from being sorted. Each captures a different aspect of disorder.
+입력이 정렬된 상태에서 얼마나 멀리 있는지를 재는 척도가 여럿 있다. 저마다 어지러움의 다른 면을 잡아낸다.
 
-### Inversions
+### 뒤바뀜
 
-An **inversion** is a pair of indices $(i, j)$ with $i < j$ and $a_i > a_j$. The number of inversions, denoted $\text{Inv}(A)$, ranges from $0$ (sorted) to
+**뒤바뀜**은 $i < j$이고 $a_i > a_j$인 색인 쌍 $(i, j)$이다. 뒤바뀜의 수를 $\text{Inv}(A)$이라 하며 (정렬된) $0$부터
 
 $$
 \binom{n}{2} = \frac{n(n-1)}{2}
 $$
 
-(reverse sorted). This is the most widely used measure of presortedness.
+(거꾸로 정렬된)까지이다. 미리 정렬된 정도를 재는 가장 널리 쓰이는 척도이다.
 
-!!! example "Counting Inversions"
-    For the sequence $\langle 2, 4, 1, 3, 5 \rangle$, the inversions are:
-    $(2, 1)$, $(4, 1)$, $(4, 3)$ — so $\text{Inv}(A) = 3$.
+!!! example "뒤바뀜 세기"
+    수열 $\langle 2, 4, 1, 3, 5 \rangle$의 뒤바뀜은 다음과 같다.
+    $(2, 1)$, $(4, 1)$, $(4, 3)$이므로 $\text{Inv}(A) = 3$이다.
 
-    For the sorted sequence $\langle 1, 2, 3, 4, 5 \rangle$, $\text{Inv}(A) = 0$.
+    정렬된 수열 $\langle 1, 2, 3, 4, 5 \rangle$에서는 $\text{Inv}(A) = 0$이다.
 
-### Runs
+### 이어진 구간
 
-A **run** is a maximal contiguous subsequence that is already sorted. The number of runs, denoted $\text{Runs}(A)$, ranges from $1$ (fully sorted) to $n$ (every consecutive pair is out of order, e.g., a strictly decreasing sequence). Timsort and natural merge sort are designed around this measure.
+**이어진 구간**은 이미 정렬되어 있는 가장 긴 연속 부분 수열이다. 그 수를 $\text{Runs}(A)$이라 하며 (온전히 정렬된) $1$부터 (잇따른 쌍이 모두 어긋난, 이를테면 엄밀히 줄어드는 수열인) $n$까지이다. 팀 정렬과 자연 병합 정렬이 이 척도를 중심에 두고 설계되었다.
 
-!!! example "Counting Runs"
-    For $\langle 1, 3, 5, 2, 4, 6 \rangle$: the runs are $\langle 1, 3, 5 \rangle$ and $\langle 2, 4, 6 \rangle$, so $\text{Runs}(A) = 2$.
+!!! example "이어진 구간 세기"
+    $\langle 1, 3, 5, 2, 4, 6 \rangle$에서 이어진 구간은 $\langle 1, 3, 5 \rangle$과 $\langle 2, 4, 6 \rangle$이므로 $\text{Runs}(A) = 2$이다.
 
-    For $\langle 5, 4, 3, 2, 1 \rangle$: every element starts a new ascending run, so $\text{Runs}(A) = 5$ (or $1$ if descending runs are also detected, as in Timsort).
+    $\langle 5, 4, 3, 2, 1 \rangle$에서는 원소마다 새 오름 구간을 시작하므로 $\text{Runs}(A) = 5$이다(팀 정렬처럼 내림 구간도 알아채면 $1$이다).
 
-### Displacement
+### 밀림
 
-The **displacement** of element $a_i$ is $|i - \sigma(i)|$, where $\sigma(i)$ is the position of $a_i$ in the sorted output. The maximum displacement $\text{Dis}(A) = \max_i |i - \sigma(i)|$ measures how far any element is from its correct position. If $\text{Dis}(A) = k$, then each element needs to move at most $k$ positions, and an algorithm can exploit this locality.
+원소 $a_i$의 **밀림**은 $|i - \sigma(i)|$이며, 여기서 $\sigma(i)$은 정렬된 출력에서 $a_i$의 자리이다. 최대 밀림 $\text{Dis}(A) = \max_i |i - \sigma(i)|$은 어떤 원소든 제자리에서 얼마나 멀리 있는지를 잰다. $\text{Dis}(A) = k$이면 원소마다 많아야 $k$자리 옮기면 되고 알고리즘이 이 국소성을 이용할 수 있다.
 
-### Removals
+### 덜어 내기
 
-The minimum number of elements that must be removed so that the remaining elements are sorted is $n - \text{LIS}(A)$, where $\text{LIS}(A)$ is the length of the longest increasing subsequence. A nearly sorted sequence has a long LIS and requires few removals.
+남은 원소가 정렬되도록 덜어 내야 하는 원소의 최소 수는 $n - \text{LIS}(A)$이며, 여기서 $\text{LIS}(A)$은 가장 긴 증가 부분 수열의 길이이다. 거의 정렬된 수열은 LIS가 길고 덜어 낼 것이 적다.
 
-## Adaptive Algorithms
+## 적응 알고리즘
 
-### Insertion Sort: Adaptive via Inversions
+### 삽입 정렬: 뒤바뀜에 적응
 
-Insertion sort performs exactly $\text{Inv}(A)$ swaps (or shifts) plus $n - 1$ comparisons in the outer loop. Its total running time is
+삽입 정렬은 자리바꿈(또는 밀기)을 꼭 $\text{Inv}(A)$번 하고 바깥 고리에서 비교를 $n - 1$번 한다. 전체 실행 시간은 다음과 같다.
 
 $$
 \Theta(n + \text{Inv}(A))
 $$
 
-When the input is already sorted, $\text{Inv}(A) = 0$ and insertion sort runs in $\Theta(n)$. When the input is reverse sorted, $\text{Inv}(A) = n(n-1)/2$ and insertion sort runs in $\Theta(n^2)$. This smooth interpolation between $O(n)$ and $O(n^2)$ makes insertion sort one of the most naturally adaptive algorithms.
+입력이 이미 정렬되었으면 $\text{Inv}(A) = 0$이고 삽입 정렬이 $\Theta(n)$에 돈다. 거꾸로 정렬되었으면 $\text{Inv}(A) = n(n-1)/2$이고 $\Theta(n^2)$에 돈다. $O(n)$과 $O(n^2)$ 사이를 매끄럽게 오가는 이 성질이 삽입 정렬을 가장 자연스레 적응적인 알고리즘 가운데 하나로 만든다.
 
-### Timsort: Adaptive via Runs
+### 팀 정렬: 이어진 구간에 적응
 
-Python's built-in sort (Timsort) exploits existing runs. It scans the array for natural runs (both ascending and descending), extends short runs using insertion sort, and merges runs using a carefully designed merge strategy. On an input with $r$ runs, Timsort performs
+파이썬의 붙박이 정렬(팀 정렬)은 이미 있는 이어진 구간을 이용한다. 배열에서 (오름과 내림 모두) 자연스러운 구간을 훑고, 짧은 구간은 삽입 정렬로 늘리고, 정성껏 설계한 방법으로 구간을 합친다. 구간이 $r$개인 입력에서 팀 정렬은
 
 $$
 O(n \log r)
 $$
 
-comparisons. When the input is already sorted ($r = 1$), Timsort runs in $O(n)$. When the input has many short runs ($r = \Theta(n)$), it performs $O(n \log n)$ comparisons, matching optimal worst-case behavior.
+만큼 비교한다. 입력이 이미 정렬되었으면($r = 1$) 팀 정렬이 $O(n)$에 돈다. 짧은 구간이 많으면($r = \Theta(n)$) 비교를 $O(n \log n)$번 하여 최적의 최악 성능과 맞먹는다.
 
-### Natural Merge Sort: Adaptive via Runs
+### 자연 병합 정렬: 이어진 구간에 적응
 
-Natural merge sort identifies existing sorted runs in the input and merges them pairwise. Like Timsort, it runs in $O(n \log r)$ time where $r$ is the number of runs, but it lacks Timsort's run-extension and galloping optimizations.
+자연 병합 정렬은 입력에서 이미 정렬된 구간을 찾아 둘씩 합친다. 팀 정렬처럼 구간의 수를 $r$이라 할 때 $O(n \log r)$ 시간에 돌지만, 팀 정렬의 구간 늘리기와 질주 다듬기는 없다.
 
-### Bubble Sort: Weakly Adaptive
+### 거품 정렬: 약하게 적응
 
-Bubble sort with an early-termination check (stop if no swaps occur in a pass) is adaptive in a limited sense: it terminates in $O(n)$ on already-sorted input. However, even a single out-of-place element can require $O(n)$ passes, so bubble sort is not as smoothly adaptive as insertion sort.
+(한 번 훑는 동안 자리바꿈이 없으면 멈추는) 조기 종료 검사를 갖춘 거품 정렬은 제한된 뜻에서 적응적이다. 이미 정렬된 입력에서 $O(n)$에 끝난다. 그러나 제자리를 벗어난 원소가 하나만 있어도 $O(n)$번 훑어야 할 수 있으므로 삽입 정렬만큼 매끄럽게 적응적이지는 않다.
 
-## Adaptive vs Non-Adaptive Comparison
+## 적응과 비적응 견주기
 
-| Algorithm | Adaptive? | Best Case | Worst Case | Adapts To |
+| 알고리즘 | 적응적인가 | 최선 | 최악 | 무엇에 적응하는가 |
 |-----------|-----------|-----------|------------|-----------|
-| Insertion sort | Yes | $O(n)$ | $O(n^2)$ | Inversions |
-| Timsort | Yes | $O(n)$ | $O(n \log n)$ | Runs |
-| Natural merge sort | Yes | $O(n)$ | $O(n \log n)$ | Runs |
-| Bubble sort (optimized) | Weakly | $O(n)$ | $O(n^2)$ | Sorted input |
-| Shell sort | Partially | $O(n \log n)$ | $O(n^{3/2})$ | Depends on gap sequence |
-| Selection sort | No | $O(n^2)$ | $O(n^2)$ | None |
-| Heapsort | No | $O(n \log n)$ | $O(n \log n)$ | None |
-| Standard merge sort | No | $O(n \log n)$ | $O(n \log n)$ | None |
+| 삽입 정렬 | 그렇다 | $O(n)$ | $O(n^2)$ | 뒤바뀜 |
+| 팀 정렬 | 그렇다 | $O(n)$ | $O(n \log n)$ | 이어진 구간 |
+| 자연 병합 정렬 | 그렇다 | $O(n)$ | $O(n \log n)$ | 이어진 구간 |
+| 거품 정렬 (다듬은 것) | 약하게 | $O(n)$ | $O(n^2)$ | 정렬된 입력 |
+| 셸 정렬 | 일부 | $O(n \log n)$ | $O(n^{3/2})$ | 간격 수열에 따라 다르다 |
+| 선택 정렬 | 아니다 | $O(n^2)$ | $O(n^2)$ | 없음 |
+| 힙 정렬 | 아니다 | $O(n \log n)$ | $O(n \log n)$ | 없음 |
+| 표준 병합 정렬 | 아니다 | $O(n \log n)$ | $O(n \log n)$ | 없음 |
 
-!!! tip "When Adaptivity Matters"
-    Adaptivity is most valuable when:
+!!! tip "적응성이 중요할 때"
+    적응성은 다음일 때 가장 값지다.
 
-    - Data is frequently re-sorted after small modifications (e.g., maintaining a sorted list with occasional insertions).
-    - Data arrives from multiple sorted streams that need to be merged.
-    - The distribution of inputs is skewed toward nearly sorted configurations.
+    - 조금 고친 뒤 데이터를 자주 다시 정렬할 때 (이를테면 이따금 넣으며 정렬된 목록을 지킬 때).
+    - 합쳐야 하는 여러 정렬된 흐름에서 데이터가 들어올 때.
+    - 입력의 분포가 거의 정렬된 쪽으로 치우쳐 있을 때.
 
-    When input is truly random, adaptive and non-adaptive algorithms perform similarly, so adaptivity provides no advantage.
+    입력이 참으로 무작위이면 적응 알고리즘과 비적응 알고리즘의 성능이 비슷하므로 적응성이 이점을 주지 않는다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 8.
 - Estivill-Castro, V., & Wood, D. (1992). A survey of adaptive sorting algorithms. *ACM Computing Surveys*, 24(4), 441--476.
+
+
+## 연습문제
+
+**연습문제 1.**
+적응 정렬을 정식으로 정의하고 비교 기반 정렬에서의 뜻을 설명하라.
+
+??? success "연습문제 1 풀이"
+    정식 정의는 정렬 알고리즘 설계를 옥죄는 이론적 바탕을 세운다. 이 바탕을 이해하면 알고리즘을 고르는 데 길잡이가 되고 $\Omega(n\log n)$ 벽이 언제 적용되는지 드러난다.
+
+---
+
+**연습문제 2.**
+배열 $[38, 27, 43, 3, 9, 82, 10]$으로 적응 정렬을 보여라.
+
+??? success "연습문제 2 풀이"
+    그 개념을 주어진 배열에 적용하며 관련된 단계를 하나씩 보여라. 이 보기는 추상적인 정의를 손에 잡히게 하고 모서리 경우를 짚어야 한다.
+
+---
+
+**연습문제 3.**
+이 쪽에서 밝힌 주된 결과를 증명하라.
+
+??? success "연습문제 3 풀이"
+    설명한 증명 기법(결정 트리, 적수, 세기)을 쓰라. 주장을 밝히고 논증을 세운 뒤 빈틈없이 밀고 나가라. $\square$
+
+---
+
+**연습문제 4.**
+적응 정렬을 `torch.sort`의 구현에 어떤 실마리를 주는가?
+
+??? success "연습문제 4 풀이"
+    파이토치의 정렬 연산은 이 쪽의 이론적 제약을 지켜야 한다. GPU 정렬에서는 병렬성 요구가 알고리즘 선택을 더 옥죈다. 이론적 한계를 이해하면 데이터의 크기와 종류에 맞는 알고리즘을 고르는 데 도움이 된다.

@@ -1,23 +1,23 @@
-# Suffix Array Definition
+# 뒷가지 배열의 정의
 
-Searching for patterns inside a long text is one of the most fundamental problems in computer science, with applications ranging from genome analysis to full-text search engines. A naive approach checks every possible starting position, but this becomes impractical for texts with millions or billions of characters. The **suffix array** provides an elegant solution: by sorting all suffixes of the text, binary search can locate any pattern in $O(m \log n)$ time, where $m$ is the pattern length and $n$ is the text length. This section defines the suffix array formally and illustrates its construction with a concrete example.
+긴 글월 안에서 본을 찾는 것은 컴퓨터 과학의 가장 바탕이 되는 문제 가운데 하나이며 유전체 살피기부터 전문 찾기 엔진까지 두루 쓰인다. 막무가내 방식은 가능한 시작 자리를 모두 살피지만 글자가 수백만이나 수십억이면 쓸 수 없다. **뒷가지 배열**은 산뜻한 풀이를 준다. 곧 글월의 뒷가지를 모두 정렬해 두면 이분 찾기로 어떤 본이든 $O(m \log n)$ 시간에 찾을 수 있으며 $m$은 본의 길이, $n$은 글월의 길이이다. 이 절은 뒷가지 배열을 엄밀히 정의하고 구체적인 보기로 세우는 법을 보인다.
 
-## Suffixes of a String
+## 글줄의 뒷가지
 
-Let $T[0..n-1]$ be a string of length $n$ over a finite alphabet $\Sigma$. In practice, we often append a special sentinel character $\$$ (lexicographically smaller than every character in $\Sigma$) to obtain $T[0..n]$ of length $n+1$. The sentinel ensures that no suffix is a prefix of another suffix, which simplifies the sorted ordering.
+$T[0..n-1]$을 유한한 글자 모임 $\Sigma$ 위의 길이 $n$인 글줄이라 하자. 실전에서는 흔히 ($\Sigma$의 어떤 글자보다 사전 차례로 앞선) 특별한 파수 글자 $\$$을 붙여 길이 $n+1$인 $T[0..n]$을 얻는다. 파수 덕분에 어떤 뒷가지도 다른 뒷가지의 앞가지가 아니게 되어 정렬 차례가 간단해진다.
 
-The $i$-th **suffix** of $T$ is the substring starting at position $i$ and extending to the end of the string:
+$T$의 $i$번째 **뒷가지**는 자리 $i$에서 시작해 글줄 끝까지 뻗는 부분 글줄이다:
 
 $$
 \text{suffix}(i) = T[i..n]
 $$
 
-For a string of length $n+1$ (including the sentinel), there are exactly $n+1$ suffixes, one for each starting position $0, 1, \ldots, n$.
+(파수까지 넣어) 길이 $n+1$인 글줄에는 시작 자리 $0, 1, \ldots, n$마다 하나씩 뒷가지가 꼭 $n+1$개 있다.
 
-??? example "Suffixes of 'banana$'"
-    For $T = \texttt{banana\$}$ (length 7), the suffixes are:
+??? example "'banana$'의 뒷가지"
+    $T = \texttt{banana\$}$(길이 7)의 뒷가지는 다음과 같다:
 
-    | Index $i$ | suffix($i$) |
+    | 번호 $i$ | suffix($i$) |
     |-----------|-------------|
     | 0 | `banana$` |
     | 1 | `anana$` |
@@ -27,35 +27,35 @@ For a string of length $n+1$ (including the sentinel), there are exactly $n+1$ s
     | 5 | `a$` |
     | 6 | `$` |
 
-## Formal Definition
+## 엄밀한 정의
 
-The **suffix array** $\text{SA}$ of a string $T[0..n]$ is a permutation of the indices $\{0, 1, \ldots, n\}$ such that the suffixes appear in lexicographic order:
+글줄 $T[0..n]$의 **뒷가지 배열** $\text{SA}$은 뒷가지가 사전 차례로 놓이도록 하는 번호 $\{0, 1, \ldots, n\}$의 자리 바꿈이다:
 
 $$
 T[\text{SA}[0]..n] < T[\text{SA}[1]..n] < \cdots < T[\text{SA}[n]..n]
 $$
 
-where $<$ denotes strict lexicographic comparison. Equivalently, $\text{SA}[k]$ is the starting index of the suffix that ranks $k$-th in the sorted order.
+여기서 $<$은 딱 잘라 앞선다는 사전 차례 견줌이다. 달리 말해 $\text{SA}[k]$은 정렬 차례에서 $k$번째인 뒷가지의 시작 번호이다.
 
-The suffix array can also be viewed as the result of sorting all suffix indices by their corresponding suffix strings:
+뒷가지 배열은 뒷가지 번호를 그에 딸린 뒷가지 글줄로 정렬한 결과로도 볼 수 있다:
 
 $$
 \text{SA} = \text{argsort}\bigl(\text{suffix}(0),\; \text{suffix}(1),\; \ldots,\; \text{suffix}(n)\bigr)
 $$
 
-The **inverse suffix array** $\text{SA}^{-1}$ maps each suffix position to its rank in the sorted order:
+**역 뒷가지 배열** $\text{SA}^{-1}$은 뒷가지 자리마다 정렬 차례에서의 순위에 대응시킨다:
 
 $$
 \text{SA}^{-1}[i] = k \quad \iff \quad \text{SA}[k] = i
 $$
 
-In other words, $\text{SA}^{-1}[i]$ tells us the rank of suffix($i$) among all sorted suffixes.
+달리 말해 $\text{SA}^{-1}[i]$은 정렬한 모든 뒷가지 가운데 suffix($i$)의 순위를 알려 준다.
 
-## Worked Example
+## 풀이 예제
 
-Consider the string $T = \texttt{banana\$}$. Sorting all suffixes lexicographically produces the following order:
+글줄 $T = \texttt{banana\$}$을 보자. 뒷가지를 모두 사전 차례로 정렬하면 다음이 된다:
 
-| Rank $k$ | SA[$k$] | Suffix |
+| 순위 $k$ | SA[$k$] | 뒷가지 |
 |----------|---------|--------|
 | 0 | 6 | `$` |
 | 1 | 5 | `a$` |
@@ -65,60 +65,92 @@ Consider the string $T = \texttt{banana\$}$. Sorting all suffixes lexicographica
 | 5 | 4 | `na$` |
 | 6 | 2 | `nana$` |
 
-Therefore:
+따라서 다음이 성립한다.
 
 $$
 \text{SA} = [6, 5, 3, 1, 0, 4, 2]
 $$
 
-The inverse suffix array is:
+역 뒷가지 배열은 다음과 같다:
 
 $$
 \text{SA}^{-1} = [4, 3, 6, 2, 5, 1, 0]
 $$
 
-For instance, $\text{SA}^{-1}[0] = 4$ because `banana$` (the suffix starting at position 0) has rank 4 in the sorted order.
+예컨대 (자리 0에서 시작하는 뒷가지) `banana$`이 정렬 차례에서 순위 4이므로 $\text{SA}^{-1}[0] = 4$이다.
 
-## Pattern Searching with a Suffix Array
+## 뒷가지 배열로 본 찾기
 
-Once the suffix array is built, searching for a pattern $P[0..m-1]$ in $T$ reduces to finding all suffixes that begin with $P$. Since the suffix array stores suffixes in sorted order, all matches form a contiguous range. Binary search locates the leftmost and rightmost positions in $O(m \log n)$ time.
+뒷가지 배열을 세우고 나면 $T$에서 본 $P[0..m-1]$을 찾는 것은 $P$으로 시작하는 뒷가지를 모두 찾는 것으로 줄어든다. 뒷가지 배열이 뒷가지를 정렬해 담으므로 맞는 것이 모두 잇닿은 범위를 이룬다. 이분 찾기가 가장 왼쪽과 가장 오른쪽 자리를 $O(m \log n)$ 시간에 찾는다.
 
-The search procedure finds the range $[\ell, r]$ such that for all $k \in [\ell, r]$, the suffix starting at $\text{SA}[k]$ has $P$ as a prefix. The number of occurrences is $r - \ell + 1$, and each occurrence starts at position $\text{SA}[k]$.
+찾기 절차는 모든 $k \in [\ell, r]$에 대해 $\text{SA}[k]$에서 시작하는 뒷가지가 $P$을 앞가지로 갖는 범위 $[\ell, r]$을 찾는다. 나온 횟수는 $r - \ell + 1$이고 나온 곳은 저마다 자리 $\text{SA}[k]$에서 시작한다.
 
-??? example "Searching for 'ana' in 'banana$'"
-    With $P = \texttt{ana}$ and $\text{SA} = [6, 5, 3, 1, 0, 4, 2]$:
+??? example "'banana$'에서 'ana' 찾기"
+    $P = \texttt{ana}$이고 $\text{SA} = [6, 5, 3, 1, 0, 4, 2]$일 때:
 
-    - Binary search finds that suffixes at ranks 2 and 3 begin with `ana`
-    - $\text{SA}[2] = 3$ corresponds to `ana$`
-    - $\text{SA}[3] = 1$ corresponds to `anana$`
-    - Pattern `ana` occurs at positions 1 and 3 in the original string
+    - 이분 찾기가 순위 2와 3의 뒷가지가 `ana`으로 시작함을 찾는다
+    - $\text{SA}[2] = 3$은 `ana$`에 맞닿는다
+    - $\text{SA}[3] = 1$은 `anana$`에 맞닿는다
+    - 본 `ana`이 본디 글줄의 자리 1과 3에 나온다
 
-## Comparison with Suffix Trees
+## 뒷가지 나무와의 견줌
 
-The suffix array is closely related to the **suffix tree**, which stores all suffixes in a compressed trie. While the suffix tree supports the same queries, it requires significantly more memory (typically 10-20 times the text size in practice). The suffix array achieves similar functionality with just $n$ integers of storage, making it far more space-efficient.
+뒷가지 배열은 뒷가지를 모두 눌러 담은 트라이에 담는 **뒷가지 나무**와 가깝다. 뒷가지 나무도 같은 물음을 받치지만 기억 공간이 훨씬 많이 든다(실전에서 흔히 글월 크기의 10~20배). 뒷가지 배열은 정수 $n$개만 담고도 비슷한 일을 해내 공간을 훨씬 아낀다.
 
-| Property | Suffix Array | Suffix Tree |
+| 성질 | 뒷가지 배열 | 뒷가지 나무 |
 |----------|-------------|-------------|
-| Space | $O(n)$ integers | $O(n)$ but large constant |
-| Construction | $O(n)$ optimal | $O(n)$ (Ukkonen) |
-| Pattern search | $O(m \log n)$ or $O(m + \log n)$ with LCP | $O(m)$ |
-| Practical memory | ~$4n$ bytes | ~$20n$ bytes |
+| 공간 | 정수 $O(n)$개 | $O(n)$이나 상수가 크다 |
+| 세우기 | $O(n)$이 가장 좋다 | $O(n)$(우코넨) |
+| 본 찾기 | $O(m \log n)$, 최장 공통 앞가지가 있으면 $O(m + \log n)$ | $O(m)$ |
+| 실전 기억 공간 | 약 $4n$ 바이트 | 약 $20n$ 바이트 |
 
-When augmented with the **Longest Common Prefix (LCP) array**, the suffix array can match the $O(m + \log n)$ search time of suffix trees while retaining its space advantage.
+**최장 공통 앞가지(LCP) 배열**을 곁들이면 뒷가지 배열이 공간 이점을 지키면서도 뒷가지 나무의 $O(m + \log n)$ 찾기 시간에 맞먹는다.
 
-## Key Properties
+## 핵심 성질
 
-Several properties of suffix arrays follow directly from the definition:
+뒷가지 배열의 성질 여럿이 정의에서 곧바로 나온다:
 
-1. **Uniqueness**: With the sentinel character, the suffix array is a unique permutation of $\{0, 1, \ldots, n\}$ because no two suffixes are identical.
+1. **하나뿐임**: 파수 글자가 있으면 어떤 두 뒷가지도 같지 않으므로 뒷가지 배열이 $\{0, 1, \ldots, n\}$의 하나뿐인 자리 바꿈이다.
 
-2. **Invertibility**: The suffix array $\text{SA}$ and its inverse $\text{SA}^{-1}$ are each other's inverses as permutations, so $\text{SA}[\text{SA}^{-1}[i]] = i$ and $\text{SA}^{-1}[\text{SA}[k]] = k$.
+2. **뒤집을 수 있음**: 뒷가지 배열 $\text{SA}$과 그 역 $\text{SA}^{-1}$은 자리 바꿈으로서 서로의 역이라 $\text{SA}[\text{SA}^{-1}[i]] = i$이고 $\text{SA}^{-1}[\text{SA}[k]] = k$이다.
 
-3. **Adjacent suffixes share prefixes**: Suffixes that are adjacent in the suffix array tend to share long common prefixes, which is the basis for the LCP array.
+3. **이웃한 뒷가지는 앞가지를 나눠 갖는다**: 뒷가지 배열에서 이웃한 뒷가지는 긴 공통 앞가지를 나눠 갖기 쉬우며 이것이 최장 공통 앞가지 배열의 바탕이다.
 
-4. **All substrings are represented**: Every substring of $T$ is a prefix of some suffix, so the suffix array implicitly encodes all substrings of $T$.
+4. **모든 부분 글줄이 담긴다**: $T$의 모든 부분 글줄이 어떤 뒷가지의 앞가지이므로 뒷가지 배열이 $T$의 모든 부분 글줄을 넌지시 담는다.
 
-## Reference
+## 참고 문헌
 
 - Manber, U. and Myers, G. (1993). *Suffix arrays: A new method for on-line string searches*. SIAM Journal on Computing, 22(5), 935-948.
 - Gusfield, D. (1997). *Algorithms on Strings, Trees, and Sequences*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+뒷가지 배열의 정의의 핵심 자료 짜임이나 개념과 그 으뜸 쓰임새를 설명하라.
+
+??? success "연습문제 1 풀이"
+    뒷가지 배열의 정의은 글줄이나 차례 자료를 미리 다듬고 묻는 효율 좋은 길을 준다. 으뜸 쓰임새는 부분 글줄, 본, 들임의 짜임 성질에 대한 되풀이되는 물음에 답하는 것이다. 미리 다듬기가 다룰 만한 시간에 자료 짜임을 세우고 나면 맨바닥에서 다시 다듬는 것보다 훨씬 빠르게 물음에 답할 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+뒷가지 배열의 정의을 세우는 시간 복잡도는 무엇인가? 으뜸 연산의 묻기 시간은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    세우는 시간은 쓰는 알고리즘에 달렸다. 흔한 한계는 $n$이 들임 크기일 때 $O(n)$에서 $O(n \log n)$ 사이이다. 묻기는 흔히 본 찾기에 $O(m)$($m$은 물음 길이), 미리 셈한 성질에 $O(1)$이 든다. 공간 복잡도는 흔히 $O(n)$이거나 $\sigma$이 글자 모임의 크기일 때 $O(n\sigma)$이다. $\square$
+
+---
+
+**연습문제 3.**
+뒷가지 배열의 정의을 더 단순한 다른 방식과 견주어라. 더 정교한 짜임은 언제 값어치가 있는가?
+
+??? success "연습문제 3 풀이"
+    더 단순한 방식(예컨대 막무가내 훑기나 정렬)은 묻기 시간이 더 길지만 세우는 군더더기가 적다. 정교한 짜임은 다음일 때 값어치가 있다. (1) 같은 자료에 물음을 많이 던져 세우는 값이 고르게 나뉠 때, (2) 묻기 시간이 결정적일 때(실시간 쓰임새), (3) 자료가 커서 점근 나아짐이 실전에서 중요할 때이다. 작은 자료에 물음을 한 번 던지는 경우에는 상수 인수가 작은 단순한 방식이 더 빠를 수 있다. $\square$
+
+---
+
+**연습문제 4.**
+들임 글줄 "banana"에 대해 뒷가지 배열의 정의을 세우는 것을 좇아라. 중간 걸음을 보여라.
+
+??? success "연습문제 4 풀이"
+    "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$

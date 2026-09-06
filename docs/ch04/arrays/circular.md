@@ -1,68 +1,68 @@
-# Circular Arrays
+# 원형 배열
 
-When implementing a queue with a static array, elements are enqueued at the back and dequeued from the front. In a naive approach, dequeuing shifts all remaining elements left in $O(n)$ time, or alternatively the front index advances forward, eventually exhausting the array even when most slots are empty. A **circular array** (also called a ring buffer) solves both problems by treating the array as if it wraps around: when an index moves past the last slot, it jumps back to the first. This achieves $O(1)$ enqueue and dequeue without wasting any space.
+정적 배열로 큐를 구현하면 원소를 뒤에 넣고 앞에서 뺀다. 소박하게 만들면 뺄 때마다 남은 원소를 모두 왼쪽으로 밀어 $O(n)$ 시간이 들거나, 아니면 앞 인덱스만 앞으로 나아가다가 대부분의 자리가 비어 있는데도 결국 배열을 다 써 버린다. **원형 배열**(링 버퍼라고도 한다)은 배열이 빙 둘러 이어진 것처럼 다루어 두 문제를 함께 푼다. 인덱스가 마지막 자리를 지나면 첫 자리로 돌아간다. 이로써 공간을 낭비하지 않으면서 $O(1)$의 넣기와 빼기를 얻는다.
 
-## Modular Index Arithmetic
+## 나머지 연산을 이용한 인덱스 계산
 
-The wrapping behavior is implemented with the modulo operator. Given an array of capacity $c$, any index $i$ maps to a physical position via
+빙 둘러 이어지는 동작은 나머지 연산자로 구현한다. 용량이 $c$인 배열에서 임의의 인덱스 $i$은 다음을 통해 물리적 위치로 대응된다.
 
 $$
 \text{pos}(i) = i \bmod c
 $$
 
-This means index $c$ wraps to position 0, index $c + 1$ wraps to position 1, and so on. The two key pointers maintained by a circular buffer are:
+즉 인덱스 $c$은 위치 0으로, 인덱스 $c + 1$은 위치 1로 돌아가는 식이다. 원형 버퍼가 유지하는 핵심 포인터는 둘이다.
 
-- **front**: the index of the first (oldest) element.
-- **rear**: the index of the next available slot for insertion.
+- **front**: 첫 번째(가장 오래된) 원소의 인덱스.
+- **rear**: 다음에 삽입할 수 있는 빈자리의 인덱스.
 
-After each enqueue, the rear advances as
+넣을 때마다 rear는 다음과 같이 나아간다.
 
 $$
 \text{rear} \leftarrow (\text{rear} + 1) \bmod c
 $$
 
-After each dequeue, the front advances as
+뺄 때마다 front는 다음과 같이 나아간다.
 
 $$
 \text{front} \leftarrow (\text{front} + 1) \bmod c
 $$
 
-The current number of elements is
+현재 원소의 개수는 다음과 같다.
 
 $$
 \text{size} = (\text{rear} - \text{front}) \bmod c
 $$
 
-## Full vs Empty Distinction
+## 가득 참과 비어 있음의 구분
 
-A subtle issue arises: when `front == rear`, the buffer could be either completely empty or completely full. Two common solutions exist:
+미묘한 문제가 하나 생긴다. `front == rear`일 때 버퍼가 완전히 비었을 수도, 완전히 찼을 수도 있다. 흔한 해결책이 둘 있다.
 
-1. **Waste one slot**: keep one slot always empty, so the buffer is full when $(\text{rear} + 1) \bmod c = \text{front}$. This limits usable capacity to $c - 1$.
-2. **Maintain a count**: track the number of elements separately, allowing all $c$ slots to be used.
+1. **자리 하나를 비워 둔다**: 자리 하나를 늘 비워 두어 $(\text{rear} + 1) \bmod c = \text{front}$일 때 버퍼가 가득 찬 것으로 본다. 쓸 수 있는 용량이 $c - 1$로 줄어든다.
+2. **개수를 따로 센다**: 원소의 개수를 따로 추적하여 $c$개의 자리를 모두 쓴다.
 
-The implementation below uses the count-based approach.
+아래 구현은 개수를 세는 방식을 쓴다.
 
-## Operations and Complexity
+## 연산과 복잡도
 
-| Operation | Time Complexity | Description                                 |
+| 연산 | 시간 복잡도 | 설명                                 |
 |-----------|-----------------|---------------------------------------------|
-| Enqueue   | $O(1)$          | Write at rear, advance rear pointer         |
-| Dequeue   | $O(1)$          | Read at front, advance front pointer        |
-| Peek      | $O(1)$          | Read at front without advancing             |
-| Is Empty  | $O(1)$          | Check if count equals zero                  |
-| Is Full   | $O(1)$          | Check if count equals capacity              |
+| 넣기   | $O(1)$          | rear에 쓰고 rear 포인터를 나아가게 한다         |
+| 빼기   | $O(1)$          | front에서 읽고 front 포인터를 나아가게 한다        |
+| 들여다보기      | $O(1)$          | 나아가지 않고 front에서 읽는다             |
+| 비었는가  | $O(1)$          | 개수가 0인지 확인한다                  |
+| 가득 찼는가   | $O(1)$          | 개수가 용량과 같은지 확인한다              |
 
-All operations are worst-case $O(1)$, not merely amortized. No element shifting or reallocation occurs.
+모든 연산이 상각이 아니라 최악의 경우에도 $O(1)$이다. 원소를 밀거나 다시 할당하는 일이 없다.
 
-## Implementation
+## 구현
 
 ```python
-"""Circular buffer (ring buffer) implementation using a fixed-size array."""
+"""고정 크기 배열로 구현한 원형 버퍼(링 버퍼)."""
 
 
-# === Circular Buffer Class ===
+# === 원형 버퍼 클래스 ===
 class CircularBuffer:
-    """A fixed-capacity circular buffer supporting O(1) enqueue and dequeue."""
+    """O(1) 넣기와 빼기를 지원하는 고정 용량 원형 버퍼."""
 
     def __init__(self, capacity: int):
         self._data = [None] * capacity
@@ -88,7 +88,7 @@ class CircularBuffer:
         if self.is_empty():
             raise IndexError("Buffer is empty")
         value = self._data[self._front]
-        self._data[self._front] = None  # help garbage collection
+        self._data[self._front] = None  # 쓰레기 수집을 돕는다
         self._front = (self._front + 1) % self._capacity
         self._size -= 1
         return value
@@ -110,7 +110,7 @@ class CircularBuffer:
         return f"CircularBuffer([{', '.join(items)}])"
 
 
-# === Demonstration ===
+# === 시연 ===
 if __name__ == "__main__":
     buf = CircularBuffer(4)
     buf.enqueue("A")
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     print(f"Internal array: {buf._data}")
 ```
 
-**Output:**
+**출력:**
 ```
 After 3 enqueues: CircularBuffer(['A', 'B', 'C'])
 Dequeue: A
@@ -138,13 +138,13 @@ After 2 more enqueues: CircularBuffer(['C', 'D', 'E'])
 Internal array: ['E', None, 'C', 'D']
 ```
 
-The internal array shows the wrap-around effect: after dequeuing A and B from positions 0 and 1, new elements D and E fill position 3 and wrap back to position 0.
+내부 배열을 보면 빙 둘러 이어지는 효과가 드러난다. 위치 0과 1에서 A와 B를 빼낸 뒤, 새 원소 D와 E가 위치 3을 채우고 다시 위치 0으로 돌아간다.
 
-??? example "Tracing the Wrap-Around"
+??? example "빙 둘러 이어지는 과정 따라가기"
 
-    Starting with capacity 4, `front = 0`, `rear = 0`, `size = 0`:
+    용량 4, `front = 0`, `rear = 0`, `size = 0`에서 시작한다.
 
-    | Operation   | front | rear | size | Array State              |
+    | 연산   | front | rear | size | 배열 상태              |
     |-------------|-------|------|------|--------------------------|
     | enqueue(A)  | 0     | 1    | 1    | `[A, _, _, _]`           |
     | enqueue(B)  | 0     | 2    | 2    | `[A, B, _, _]`           |
@@ -154,17 +154,50 @@ The internal array shows the wrap-around effect: after dequeuing A and B from po
     | enqueue(D)  | 2     | 0    | 2    | `[_, _, C, D]`           |
     | enqueue(E)  | 2     | 1    | 3    | `[E, _, C, D]`           |
 
-    When `rear` advances past index 3, it wraps to index 0 via $(3 + 1) \bmod 4 = 0$.
+    `rear`가 인덱스 3을 지나 나아가면 $(3 + 1) \bmod 4 = 0$을 통해 인덱스 0으로 돌아간다.
 
-## Applications
+## 응용
 
-Circular arrays are the standard backing structure for several important use cases:
+원형 배열은 몇 가지 중요한 쓰임새에서 표준적인 밑받침 구조이다.
 
-- **Queue implementations**: the circular array queue provides $O(1)$ operations without wasted space, used in the array-based queue discussed in Chapter 5.
-- **Bounded producer-consumer buffers**: operating systems and I/O systems use ring buffers to pass data between a producer and consumer at different speeds.
-- **Streaming data**: audio processing, network packet buffers, and logging systems use circular buffers to keep the most recent $c$ elements and automatically discard older ones.
-- **Sliding window algorithms**: maintaining a fixed-size window over a data stream maps directly to a circular buffer.
+- **큐 구현**: 원형 배열 큐는 공간을 낭비하지 않으면서 $O(1)$ 연산을 제공하며, 5장에서 다루는 배열 기반 큐에 쓰인다.
+- **유계인 생산자-소비자 버퍼**: 운영체제와 입출력 시스템은 속도가 다른 생산자와 소비자 사이에서 데이터를 주고받는 데 링 버퍼를 쓴다.
+- **스트리밍 데이터**: 음향 처리, 네트워크 패킷 버퍼, 로그 시스템은 가장 최근의 원소 $c$개를 남기고 오래된 것을 자동으로 버리는 데 원형 버퍼를 쓴다.
+- **미끄럼창 알고리즘**: 데이터 흐름 위에 고정 크기의 창을 유지하는 일은 원형 버퍼에 그대로 대응된다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+원형 배열에 대해 삽입, 삭제, 탐색, 접근 연산의 시간 복잡도를 진술하라.
+
+??? success "연습문제 1 풀이"
+    복잡도는 구체적인 구현(배열 기반이냐 연결 기반이냐)에 달려 있다. 배열 기반은 접근이 $O(1)$이고 임의의 위치에서의 삽입·삭제가 $O(n)$이다. 연결 기반은 이미 아는 위치에서의 삽입·삭제가 $O(1)$이고 탐색·접근이 $O(n)$이다. 어떤 연산이 주를 이루느냐에 따라 선택이 갈린다.
+
+---
+
+**연습문제 2.**
+원소 6개로 원형 배열을(를) 따라가며 각 연산 후의 자료구조 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    구조에 삽입, 접근, 삭제를 차례로 수행하라. 각 단계마다 (연결 구조라면) 포인터를, (배열 기반이라면) 배열의 내용을 보이며 구조가 불변식을 어떻게 유지하는지 나타내라.
+
+---
+
+**연습문제 3.**
+원형 배열이(가) PyTorch의 텐서 저장과 어떻게 관련되는지 설명하라. 자료구조의 선택이 메모리 배치와 캐시 성능에 어떤 영향을 주는가?
+
+??? success "연습문제 3 풀이"
+    PyTorch 텐서는 캐시에 효율적으로 접근할 수 있도록 연속된 배열로 저장된다. 연결 구조는 autograd 그래프를 훑는 데 내부적으로 쓰인다. 이 선택은 메모리 사용량(배열에는 포인터 부담이 없다)과 접근 양상(캐시 지역성 덕분에 순차적인 배열 접근이 연결 리스트 순회보다 10~100배 빠르다)에 모두 영향을 준다.
+
+---
+
+**연습문제 4.**
+반복문 불변식을 사용하여 원형 배열의 주요 연산의 시간 복잡도를 증명하라.
+
+??? success "연습문제 4 풀이"
+    알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$

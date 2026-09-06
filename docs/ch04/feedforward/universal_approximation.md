@@ -1,267 +1,241 @@
-# Universal Approximation Theorem
+# 보편 근사 정리
+## 학습 목표
 
+!!! abstract "배울 내용"
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+    - 보편 근사 정리를 고전적 형태, 일반화된 형태, ReLU 형태로 정확히 진술하기
+    - 시그모이드 신경망과 ReLU 신경망이 임의의 연속 함수를 근사할 수 있는 이유를 기하학적으로 설명하기
+    - 좋은 해의 존재(정리)와 찾아냄(학습)을 구별하기
+    - 얕은 근사와 깊은 근사의 너비 복잡도, 그리고 차원의 저주 분석하기
+    - PyTorch 실험으로 보편 근사를 경험적으로 보이기
 
-## Learning Objectives
+## 미리 알아야 할 것
 
-!!! abstract "What You Will Learn"
-    - State the Universal Approximation Theorem precisely in its classical, generalized, and ReLU forms
-    - Explain geometrically why sigmoid and ReLU networks can approximate arbitrary continuous functions
-    - Distinguish between existence (the theorem) and findability (training) of good solutions
-    - Analyze the width complexity of shallow vs. deep approximation and the curse of dimensionality
-    - Demonstrate universal approximation empirically with PyTorch experiments
-
-## Prerequisites
-
-| Topic | Why It Matters |
+| 주제 | 왜 중요한가 |
 |-------|---------------|
-| MLP Architecture (§4.2.1) | The theorem applies to single-hidden-layer networks |
-| Continuity and compactness | Theorem hypotheses involve continuous functions on compact domains |
-| Fourier analysis (optional) | Barron's theorem uses Fourier moments |
+| MLP 구조 (§4.2.1) | 이 정리는 은닉층이 하나인 신경망에 적용된다 |
+| 연속성과 옹골성 | 정리의 가정은 옹골 정의역 위의 연속 함수를 다룬다 |
+| 푸리에 해석 (선택) | 배런의 정리가 푸리에 적률을 쓴다 |
 
 ---
 
-## Overview
+## 개요
 
-The **Universal Approximation Theorem** is one of the most important theoretical results in neural network theory. It establishes that feedforward neural networks with a single hidden layer can approximate any continuous function to arbitrary accuracy, given sufficient width. This provides the theoretical foundation for using neural networks as flexible function approximators, though it says nothing about how to find the right parameters.
+**보편 근사 정리**는 신경망 이론에서 가장 중요한 이론적 결과 중 하나이다. 은닉층이 하나인 순방향 신경망도 너비가 충분하면 임의의 연속 함수를 원하는 정확도로 근사할 수 있음을 확립한다. 이는 신경망을 유연한 함수 근사기로 쓰는 이론적 토대가 되지만, 알맞은 매개변수를 어떻게 찾을지에 대해서는 아무 말도 하지 않는다.
 
 ---
 
-## Theorem Statements
+## 정리의 진술
 
-### Classical Form (Cybenko, 1989)
+### 고전적 형태 (Cybenko, 1989)
 
-!!! abstract "Theorem (Universal Approximation — Width Version)"
-    Let $\sigma: \mathbb{R} \to \mathbb{R}$ be a continuous **sigmoidal** function, i.e.,
+!!! abstract "정리 (보편 근사 — 너비 판)"
+    $\sigma: \mathbb{R} \to \mathbb{R}$을 연속인 **시그모이드형** 함수라 하자. 즉 다음과 같다.
     
     $$
-
     \sigma(t) \to \begin{cases} 1 & t \to +\infty \\ 0 & t \to -\infty \end{cases}
-
     $$
     
-    Let $I_n = [0,1]^n$ denote the $n$-dimensional unit hypercube and $C(I_n)$ the space of continuous functions on $I_n$ with the supremum norm.
+    $I_n = [0,1]^n$을 $n$차원 단위 초입방체라 하고, $C(I_n)$을 상한 노름을 갖춘 $I_n$ 위의 연속 함수 공간이라 하자.
     
-    Then for any $f \in C(I_n)$ and any $\varepsilon > 0$, there exist $N \in \mathbb{N}$, real constants $v_i, b_i \in \mathbb{R}$, and vectors $\mathbf{w}_i \in \mathbb{R}^n$ for $i = 1, \ldots, N$ such that the function
+    그러면 임의의 $f \in C(I_n)$과 임의의 $\varepsilon > 0$에 대해, $N \in \mathbb{N}$과 실수 $v_i, b_i \in \mathbb{R}$, 벡터 $\mathbf{w}_i \in \mathbb{R}^n$($i = 1, \ldots, N$)이 존재하여 다음 함수가
     
     $$
-
     F(\mathbf{x}) = \sum_{i=1}^{N} v_i \, \sigma\!\left(\mathbf{w}_i^\top \mathbf{x} + b_i\right)
-
     $$
     
-    satisfies $\|F - f\|_\infty = \sup_{\mathbf{x} \in I_n} |F(\mathbf{x}) - f(\mathbf{x})| < \varepsilon$.
+    $\|F - f\|_\infty = \sup_{\mathbf{x} \in I_n} |F(\mathbf{x}) - f(\mathbf{x})| < \varepsilon$을 만족한다.
 
-In neural network language: a single-hidden-layer network with $N$ sigmoid neurons, using output weights $v_i$ (no output activation), can uniformly approximate any continuous function on a compact domain.
+신경망의 언어로 말하면, 시그모이드 뉴런 $N$개를 갖고 (출력 활성화 없이) 출력 가중치 $v_i$을 쓰는 은닉층 하나짜리 신경망이 옹골 정의역 위의 임의의 연속 함수를 고르게 근사할 수 있다는 것이다.
 
-### Generalized Form (Hornik, 1991)
+### 일반화된 형태 (Hornik, 1991)
 
-Hornik extended Cybenko's result significantly:
+Hornik은 Cybenko의 결과를 크게 확장했다.
 
-1. **Any non-polynomial activation** works (not just sigmoid) — including tanh, softplus, etc.
-2. The result holds for **any compact subset** $K \subset \mathbb{R}^n$, not just $[0,1]^n$
-3. Both the function and its **derivatives** can be approximated
-4. Approximation holds in $L^p$ norms, not just the supremum norm
+1. (시그모이드뿐 아니라) **다항식이 아닌 어떤 활성화**든 통한다. tanh, softplus 등이 포함된다
+2. $[0,1]^n$뿐 아니라 **임의의 옹골 부분집합** $K \subset \mathbb{R}^n$에서 성립한다
+3. 함수뿐 아니라 그 **도함수**도 근사할 수 있다
+4. 상한 노름뿐 아니라 $L^p$ 노름에서도 근사가 성립한다
 
-!!! abstract "Theorem (Hornik, 1991)"
-    Let $\sigma$ be any continuous, non-polynomial function. Then the class of single-hidden-layer feedforward networks is **dense** in $C(K)$ for any compact $K \subset \mathbb{R}^n$.
+!!! abstract "정리 (Hornik, 1991)"
+    $\sigma$을 다항식이 아닌 임의의 연속 함수라 하자. 그러면 은닉층이 하나인 순방향 신경망의 모임은 임의의 옹골집합 $K \subset \mathbb{R}^n$에 대해 $C(K)$에서 **조밀**하다.
 
-The non-polynomial condition is necessary: a polynomial activation of degree $d$ can only represent polynomials up to degree $d \cdot L$ with $L$ layers, which is not dense in $C(K)$.
+다항식이 아니어야 한다는 조건은 반드시 필요하다. 차수 $d$인 다항 활성화는 층이 $L$개일 때 차수 $d \cdot L$까지의 다항식만 표현할 수 있는데, 그것은 $C(K)$에서 조밀하지 않다.
 
-### ReLU Form (Modern)
+### ReLU 형태 (현대적)
 
-!!! abstract "Theorem (Universal Approximation with ReLU)"
-    Let $\sigma(x) = \max(0, x)$ be the ReLU activation. For any continuous function $f: K \to \mathbb{R}$ on a compact domain $K \subset \mathbb{R}^n$ and any $\varepsilon > 0$, there exists a single-hidden-layer ReLU network
+!!! abstract "정리 (ReLU를 쓰는 보편 근사)"
+    $\sigma(x) = \max(0, x)$을 ReLU 활성화라 하자. 옹골 정의역 $K \subset \mathbb{R}^n$ 위의 임의의 연속 함수 $f: K \to \mathbb{R}$과 임의의 $\varepsilon > 0$에 대해, 은닉층이 하나인 ReLU 신경망
     
     $$
-
     F(\mathbf{x}) = \sum_{i=1}^{N} v_i \max\!\left(0,\; \mathbf{w}_i^\top \mathbf{x} + b_i\right)
-
     $$
     
-    such that $\sup_{\mathbf{x} \in K} |F(\mathbf{x}) - f(\mathbf{x})| < \varepsilon$.
+    이 존재하여 $\sup_{\mathbf{x} \in K} |F(\mathbf{x}) - f(\mathbf{x})| < \varepsilon$을 만족한다.
 
-Despite ReLU being neither bounded nor smooth, the result holds because ReLU networks produce **piecewise linear** functions, and any continuous function on a compact domain can be uniformly approximated by piecewise linear functions.
+ReLU는 유계도 아니고 매끄럽지도 않지만, ReLU 신경망이 **조각별 선형** 함수를 내고 옹골 정의역 위의 임의의 연속 함수를 조각별 선형 함수로 고르게 근사할 수 있으므로 이 결과가 성립한다.
 
 ---
 
-## Geometric Intuition
+## 기하학적 직관
 
-### Sigmoid Networks: Sums of Soft Steps
+### 시그모이드 신경망: 부드러운 계단의 합
 
-Each hidden neuron $\sigma(\mathbf{w}_i^\top \mathbf{x} + b_i)$ produces a **soft step function** — a smooth transition from 0 to 1 along the direction $\mathbf{w}_i$:
+각 은닉 뉴런 $\sigma(\mathbf{w}_i^\top \mathbf{x} + b_i)$은 **부드러운 계단 함수**를 만든다. $\mathbf{w}_i$ 방향을 따라 0에서 1로 매끄럽게 넘어가는 함수이다.
 
-- The vector $\mathbf{w}_i$ determines the **orientation** of the step
-- The bias $b_i$ determines the **position** (offset along $\mathbf{w}_i$)
-- The magnitude $\|\mathbf{w}_i\|$ controls the **steepness** (larger $\|\mathbf{w}_i\| \Rightarrow$ sharper step)
+- 벡터 $\mathbf{w}_i$은 계단의 **방향**을 정한다
+- 편향 $b_i$은 ($\mathbf{w}_i$을 따르는) **위치**를 정한다
+- 크기 $\|\mathbf{w}_i\|$은 **가파름**을 조절한다 ($\|\mathbf{w}_i\|$이 클수록 계단이 날카롭다)
 
-A **bump function** can be constructed from two opposing steps:
+서로 반대 방향의 계단 둘로 **혹 함수**를 만들 수 있다.
 
 $$
-
 \text{bump}(x) \approx v \cdot \sigma(w x + b_1) - v \cdot \sigma(w x + b_2), \quad b_1 > b_2
-
 $$
 
-By combining many such bumps with different positions, heights ($v_i$), and widths, we can reconstruct any continuous function — analogous to how step functions approximate integrals.
+위치, 높이($v_i$), 너비가 서로 다른 이런 혹을 여럿 결합하면 임의의 연속 함수를 다시 만들어 낼 수 있다. 계단 함수가 적분을 근사하는 것과 닮았다.
 
-### ReLU Networks: Piecewise Linear Approximation
+### ReLU 신경망: 조각별 선형 근사
 
-Each ReLU neuron creates a "hinge" — a piecewise linear function with a single breakpoint (knot):
+각 ReLU 뉴런은 "경첩"을 만든다. 꺾이는 점(매듭)이 하나뿐인 조각별 선형 함수이다.
 
 $$
-
 \max(0, w x + b) = \begin{cases} 0 & \text{if } wx + b \leq 0 \\ wx + b & \text{if } wx + b > 0 \end{cases}
-
 $$
 
-Key observations:
+눈여겨볼 점은 다음과 같다.
 
-- $N$ ReLU neurons in 1D create a function with up to $N+1$ linear regions
-- In $n$ dimensions, $N$ neurons create up to $O(N^n)$ linear regions (hyperplane arrangement)
-- Any continuous function on a compact domain can be uniformly approximated by piecewise linear functions (a standard result in real analysis)
+- 1차원에서 ReLU 뉴런 $N$개는 최대 $N+1$개의 선형 영역을 갖는 함수를 만든다
+- $n$차원에서 뉴런 $N$개는 (초평면 배열로) 최대 $O(N^n)$개의 선형 영역을 만든다
+- 옹골 정의역 위의 임의의 연속 함수는 조각별 선형 함수로 고르게 근사할 수 있다 (실해석의 표준적인 결과이다)
 
-The ReLU network is therefore a **trainable piecewise linear approximator** whose breakpoints, slopes, and offsets are all learned from data.
+따라서 ReLU 신경망은 꺾이는 점, 기울기, 치우침을 모두 데이터에서 배우는 **학습 가능한 조각별 선형 근사기**이다.
 
 ---
 
-## Proof Sketch
+## 증명의 얼개
 
-### Stone-Weierstrass Approach (Cybenko's Proof)
+### 스톤-바이어슈트라스 접근 (Cybenko의 증명)
 
-The key idea is to show that the set of single-hidden-layer networks is **dense** in $C(I_n)$ using a functional analysis argument.
+핵심 착상은 함수해석의 논증으로 은닉층 하나짜리 신경망의 집합이 $C(I_n)$에서 **조밀**함을 보이는 것이다.
 
-**Step 1.** Define the function class:
+**1단계.** 함수 모임을 정의한다.
 
 $$
-
 \mathcal{S} = \left\{ \sum_{i=1}^{N} v_i \, \sigma(\mathbf{w}_i^\top \mathbf{x} + b_i) \;\Big|\; N \in \mathbb{N},\, v_i, b_i \in \mathbb{R},\, \mathbf{w}_i \in \mathbb{R}^n \right\}
-
 $$
 
-**Step 2.** Assume for contradiction that $\overline{\mathcal{S}} \neq C(I_n)$, so there exists $f \in C(I_n) \setminus \overline{\mathcal{S}}$.
+**2단계.** 모순을 위해 $\overline{\mathcal{S}} \neq C(I_n)$이라 가정하자. 그러면 $f \in C(I_n) \setminus \overline{\mathcal{S}}$이 존재한다.
 
-**Step 3.** By the Hahn-Banach theorem, there exists a bounded linear functional $\mu \in C(I_n)^*$ such that:
+**3단계.** 한-바나흐 정리에 의해 다음을 만족하는 유계 선형 범함수 $\mu \in C(I_n)^*$이 존재한다.
 
 $$
-
 \int_{I_n} g(\mathbf{x}) \, d\mu(\mathbf{x}) = 0 \quad \forall\, g \in \mathcal{S}, \qquad \text{but} \qquad \int_{I_n} f(\mathbf{x}) \, d\mu(\mathbf{x}) \neq 0
-
 $$
 
-By the Riesz representation theorem, $\mu$ corresponds to a signed measure.
+리스 표현 정리에 의해 $\mu$은 부호 측도에 대응한다.
 
-**Step 4.** From $\int \sigma(\mathbf{w}^\top \mathbf{x} + b) \, d\mu = 0$ for all $\mathbf{w}, b$, exploit the sigmoidal property to show $\mu = 0$, yielding a contradiction.
+**4단계.** 모든 $\mathbf{w}, b$에 대해 $\int \sigma(\mathbf{w}^\top \mathbf{x} + b) \, d\mu = 0$임에서 시그모이드형이라는 성질을 활용해 $\mu = 0$임을 보이면 모순이 나온다.
 
-The critical step uses the fact that $\sigma(t) \to \mathbf{1}_{t > 0}$ as the weights scale, so the integrals against $\mu$ must vanish on all half-spaces, forcing $\mu = 0$.
+결정적인 단계는 가중치의 배율이 커질 때 $\sigma(t) \to \mathbf{1}_{t > 0}$이라는 사실을 쓴다. 그러면 $\mu$에 대한 적분이 모든 반공간에서 0이 되어야 하고, 따라서 $\mu = 0$이 강제된다.
 
-### Constructive Approach for ReLU
+### ReLU에 대한 구성적 접근
 
-For ReLU networks in 1D, the proof is constructive:
+1차원 ReLU 신경망에서는 증명이 구성적이다.
 
-**Step 1.** For any continuous $f: [a,b] \to \mathbb{R}$ and $\varepsilon > 0$, choose $N$ large enough and partition $[a,b]$ into $N$ equal subintervals.
+**1단계.** 임의의 연속 함수 $f: [a,b] \to \mathbb{R}$과 $\varepsilon > 0$에 대해 $N$을 충분히 크게 잡고 $[a,b]$을 $N$개의 같은 소구간으로 나눈다.
 
-**Step 2.** On each subinterval $[x_i, x_{i+1}]$, the linear interpolant of $f$ satisfies $|f(x) - L_i(x)| < \varepsilon$ by uniform continuity.
+**2단계.** 각 소구간 $[x_i, x_{i+1}]$에서 고른 연속성에 의해 $f$의 선형 보간이 $|f(x) - L_i(x)| < \varepsilon$을 만족한다.
 
-**Step 3.** The piecewise linear interpolant can be written exactly using ReLU:
+**3단계.** 조각별 선형 보간은 ReLU로 정확히 쓸 수 있다.
 
 $$
-
 F(x) = f(x_0) + \sum_{i=0}^{N-1} (s_{i+1} - s_i) \max(0, x - x_i)
-
 $$
 
-where $s_i = \frac{f(x_{i+1}) - f(x_i)}{x_{i+1} - x_i}$ are the slopes. This is a single-hidden-layer ReLU network with $N$ neurons.
+여기서 $s_i = \frac{f(x_{i+1}) - f(x_i)}{x_{i+1} - x_i}$은 기울기이다. 이것이 뉴런 $N$개를 갖는 은닉층 하나짜리 ReLU 신경망이다.
 
 ---
 
-## Width Complexity and the Curse of Dimensionality
+## 너비 복잡도와 차원의 저주
 
-### Shallow Networks
+### 얕은 신경망
 
-To approximate a function $f$ with Lipschitz constant $L$ on $[0,1]^n$ to accuracy $\varepsilon$ using piecewise linear (or piecewise constant) regions:
+립시츠 상수가 $L$인 함수 $f$을 $[0,1]^n$에서 정확도 $\varepsilon$으로 조각별 선형(또는 조각별 상수) 영역으로 근사하려면 다음이 필요하다.
 
 $$
-
 N_{\text{regions}} = O\!\left(\left(\frac{L}{\varepsilon}\right)^n\right)
-
 $$
 
-Each region requires $O(1)$ neurons, so the required width is **exponential** in input dimension $n$. This is the **curse of dimensionality** for shallow networks.
+각 영역에 뉴런이 $O(1)$개 필요하므로 요구되는 너비는 입력 차원 $n$에 대해 **지수적**이다. 이것이 얕은 신경망의 **차원의 저주**이다.
 
-### Deep Networks (Exponential Separation)
+### 깊은 신경망 (지수적 분리)
 
-Deep networks can be **exponentially more efficient** than shallow ones for certain function classes.
+특정 함수 모임에서는 깊은 신경망이 얕은 것보다 **지수적으로 더 효율적**일 수 있다.
 
-!!! abstract "Depth Efficiency (Telgarsky, 2016)"
-    There exist functions computable by depth-$O(k)$ ReLU networks with $O(1)$ width that require width $\Omega(2^{k/3})$ to approximate with depth-2 networks.
+!!! abstract "깊이의 효율 (Telgarsky, 2016)"
+    너비가 $O(1)$인 깊이 $O(k)$의 ReLU 신경망으로 계산할 수 있으면서, 깊이 2인 신경망으로 근사하려면 너비 $\Omega(2^{k/3})$이 필요한 함수들이 존재한다.
 
-**Canonical example:** $f(x_1, \ldots, x_n) = x_1 \cdot x_2 \cdots x_n$
+**정석적인 예:** $f(x_1, \ldots, x_n) = x_1 \cdot x_2 \cdots x_n$
 
-| Network | Width | Depth | Parameters |
+| 신경망 | 너비 | 깊이 | 매개변수 |
 |---------|-------|-------|------------|
-| Shallow (1 hidden layer) | $\Omega(2^n)$ | 2 | Exponential |
-| Deep (tree structure) | $O(n)$ | $O(\log n)$ | $O(n \log n)$ |
+| 얕음 (은닉층 1개) | $\Omega(2^n)$ | 2 | 지수적 |
+| 깊음 (트리 구조) | $O(n)$ | $O(\log n)$ | $O(n \log n)$ |
 
-The deep network computes the product via a binary tree of pairwise multiplications, each of which can be implemented with a constant number of ReLU neurons (using the identity $xy = \frac{1}{4}[(x+y)^2 - (x-y)^2]$).
+깊은 신경망은 두 개씩 곱하는 이진 트리로 곱을 계산하며, 각 곱은 (항등식 $xy = \frac{1}{4}[(x+y)^2 - (x-y)^2]$을 써서) 상수 개의 ReLU 뉴런으로 구현할 수 있다.
 
-### Barron's Theorem (1993)
+### 배런의 정리 (1993)
 
-Barron provided dimension-independent error bounds for a specific function class:
+배런은 특정 함수 모임에 대해 차원과 무관한 오차 상계를 제시했다.
 
-!!! abstract "Barron's Theorem"
-    Define the **Barron norm** (first Fourier moment) of $f$:
+!!! abstract "배런의 정리"
+    $f$의 **배런 노름**(1차 푸리에 적률)을 다음과 같이 정의한다.
     
     $$
-
     C_f = \int_{\mathbb{R}^n} \|\boldsymbol{\omega}\| \, |\hat{f}(\boldsymbol{\omega})| \, d\boldsymbol{\omega}
-
     $$
     
-    where $\hat{f}$ is the Fourier transform. If $C_f < \infty$, then a single-hidden-layer network with $N$ neurons achieves:
+    여기서 $\hat{f}$은 푸리에 변환이다. $C_f < \infty$이면 뉴런 $N$개를 갖는 은닉층 하나짜리 신경망이 다음을 달성한다.
     
     $$
-
     \inf_{F_N} \|F_N - f\|_{L^2}^2 \leq \frac{C_f^2}{N}
-
     $$
     
-    **Key insight:** The approximation rate $O(1/N)$ is **independent of input dimension** $n$.
+    **핵심 통찰:** 근사 속도 $O(1/N)$이 입력 차원 $n$과 **무관하다**.
 
-This means that for "smooth enough" functions (finite Barron norm), shallow networks avoid the curse of dimensionality. However, many practically relevant functions do not have finite Barron norm, and the Barron norm itself may grow with dimension.
+즉 (배런 노름이 유한한) "충분히 매끄러운" 함수에서는 얕은 신경망도 차원의 저주를 피한다. 다만 실무에서 중요한 함수 중 상당수는 배런 노름이 유한하지 않고, 배런 노름 자체가 차원에 따라 커질 수도 있다.
 
 ---
 
-## Practical Implications
+## 실무적 함의
 
-### What the Theorem Guarantees
+### 이 정리가 보장하는 것
 
-The Universal Approximation Theorem tells us:
+보편 근사 정리는 다음을 말해 준다.
 
-- Neural networks are expressive enough to model **any** continuous input-output relationship
-- There are **no intrinsic representational limitations** — if the true function is continuous, a neural network can represent it
-- A single hidden layer is sufficient **in principle** (though not necessarily in practice)
+- 신경망은 **어떤** 연속적인 입출력 관계든 모형화할 만큼 표현력이 있다
+- **표현력에 본질적인 한계가 없다.** 참 함수가 연속이라면 신경망이 그것을 표현할 수 있다
+- **원리적으로는** 은닉층 하나로 충분하다 (실무에서도 그렇다는 뜻은 아니다)
 
-### What the Theorem Does NOT Guarantee
+### 이 정리가 보장하지 않는 것
 
-!!! warning "Existence ≠ Findability"
-    The theorem is a **pure existence result**. It guarantees that good weights exist but is silent on:
+!!! warning "존재한다고 찾을 수 있는 것은 아니다"
+    이 정리는 **순수한 존재 결과**이다. 좋은 가중치가 존재함은 보장하지만 다음에 대해서는 아무 말이 없다.
     
-    - **How many neurons are needed** for a specific problem and accuracy
-    - **Whether gradient-based training will find** those weights (optimization landscape)
-    - **Whether training will converge** in polynomial time
-    - **Generalization** to unseen data (the theorem addresses approximation, not statistical learning)
-    - **Computational efficiency** — the required width may be astronomically large
+    - 특정 문제와 정확도에 **뉴런이 몇 개 필요한지**
+    - 경사 기반 학습이 그 가중치를 **찾아낼 수 있는지** (최적화 지형)
+    - 학습이 다항 시간 안에 **수렴할지**
+    - 보지 않은 데이터로의 **일반화** (이 정리는 통계적 학습이 아니라 근사를 다룬다)
+    - **계산 효율.** 요구되는 너비가 천문학적으로 클 수 있다
 
-In practice, deep networks with moderate width consistently outperform wide-shallow networks, even though the theorem only requires one hidden layer. This gap between theory (existence) and practice (efficiency) motivates the study of depth (§4.2.3).
+실무에서는 이 정리가 은닉층 하나만 요구하는데도 적당한 너비의 깊은 신경망이 넓고 얕은 신경망보다 한결같이 낫다. 이론(존재)과 실무(효율) 사이의 이 간극이 깊이에 대한 연구(§4.2.3)의 동기가 된다.
 
 ---
 
-## PyTorch Demonstration
+## PyTorch로 보이기
 
-### Approximating a Complex 1D Function
+### 복잡한 1차원 함수 근사하기
 
 ```python
 import torch
@@ -270,14 +244,12 @@ import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
 
-
 def target_function(x):
-    """Complex non-linear target: product of oscillation and Gaussian envelope."""
+    """복잡한 비선형 목표 함수: 진동과 가우스 포락선의 곱."""
     return np.sin(3 * x) * np.exp(-x**2) + 0.5 * np.cos(5 * x)
 
-
 class ShallowApproximator(nn.Module):
-    """Single hidden layer — the architecture the theorem guarantees."""
+    """은닉층 하나 — 정리가 보장하는 구조."""
     def __init__(self, width: int, activation: nn.Module = nn.Tanh):
         super().__init__()
         self.net = nn.Sequential(
@@ -289,8 +261,7 @@ class ShallowApproximator(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-
-# ── Generate data ──
+# ── 데이터 생성 ──
 np.random.seed(42)
 x_train = np.random.uniform(-3, 3, 1000).reshape(-1, 1).astype(np.float32)
 y_train = target_function(x_train) + np.random.normal(0, 0.05, x_train.shape).astype(np.float32)
@@ -298,7 +269,7 @@ y_train = target_function(x_train) + np.random.normal(0, 0.05, x_train.shape).as
 x_train_t = torch.from_numpy(x_train)
 y_train_t = torch.from_numpy(y_train)
 
-# ── Compare different widths ──
+# ── 서로 다른 너비 비교 ──
 widths = [5, 20, 100, 500]
 fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 
@@ -310,14 +281,14 @@ for idx, width in enumerate(widths):
     optimizer = optim.Adam(model.parameters(), lr=0.01)
     criterion = nn.MSELoss()
     
-    # Train
+    # 학습
     for epoch in range(3000):
         optimizer.zero_grad()
         loss = criterion(model(x_train_t), y_train_t)
         loss.backward()
         optimizer.step()
     
-    # Evaluate
+    # 평가한다
     x_plot = torch.linspace(-3, 3, 500).reshape(-1, 1)
     with torch.no_grad():
         y_pred = model(x_plot).numpy()
@@ -337,11 +308,11 @@ plt.savefig('universal_approximation_width.png', dpi=150, bbox_inches='tight')
 plt.show()
 ```
 
-### Depth vs. Width Comparison
+### 깊이와 너비의 비교
 
 ```python
 class DeepNarrowNet(nn.Module):
-    """Multiple hidden layers with moderate width."""
+    """너비가 적당한 여러 은닉층."""
     def __init__(self, width: int = 32, depth: int = 4):
         super().__init__()
         layers = [nn.Linear(1, width), nn.ReLU()]
@@ -353,15 +324,12 @@ class DeepNarrowNet(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-
-# Nested composition target — naturally favors depth
+# 중첩 합성 목표 함수 — 자연히 깊이에 유리하다
 def nested_target(x):
     return torch.sin(torch.sin(torch.sin(x * 3) * 2) * 4)
 
-
 x = torch.linspace(-2, 2, 1000).reshape(-1, 1)
 y = nested_target(x)
-
 
 def train_model(model, x, y, epochs=5000, lr=1e-3):
     optimizer = optim.Adam(model.parameters(), lr=lr)
@@ -374,10 +342,9 @@ def train_model(model, x, y, epochs=5000, lr=1e-3):
         losses.append(loss.item())
     return losses
 
-
 torch.manual_seed(42)
-wide_model = ShallowApproximator(500, activation=nn.ReLU)   # 1 hidden, 500 wide
-deep_model = DeepNarrowNet(width=32, depth=5)                # 5 hidden, 32 wide
+wide_model = ShallowApproximator(500, activation=nn.ReLU)   # 은닉층 1개, 너비 500
+deep_model = DeepNarrowNet(width=32, depth=5)                # 은닉층 5개, 너비 32
 
 print(f"Wide-shallow params: {sum(p.numel() for p in wide_model.parameters()):,}")
 print(f"Deep-narrow  params: {sum(p.numel() for p in deep_model.parameters()):,}")
@@ -391,23 +358,56 @@ print(f"Deep-narrow  final MSE: {deep_losses[-1]:.6f}")
 
 ---
 
-## Key Takeaways
+## 핵심 정리
 
-!!! success "Summary"
-    1. **Universal approximation** guarantees that a single-hidden-layer network can approximate any continuous function on a compact domain to arbitrary accuracy
-    2. The theorem applies to sigmoid (Cybenko), any non-polynomial activation (Hornik), and ReLU networks
-    3. It is a **pure existence result** — it says nothing about how many neurons are needed or whether training will find the right weights
-    4. **Width complexity** for shallow networks is $O((L/\varepsilon)^n)$, suffering from the curse of dimensionality
-    5. **Deep networks** can achieve the same approximation with polynomially many parameters for compositional functions (exponential separation)
-    6. **Barron's theorem** gives dimension-independent $O(1/N)$ rates for smooth (finite Fourier moment) functions
-    7. In practice, **moderate depth with moderate width** consistently outperforms extreme width or extreme depth
+!!! success "요약"
+
+    1. **보편 근사**는 은닉층 하나짜리 신경망이 옹골 정의역 위의 임의의 연속 함수를 원하는 정확도로 근사할 수 있음을 보장한다
+    2. 이 정리는 시그모이드(Cybenko), 다항식이 아닌 임의의 활성화(Hornik), 그리고 ReLU 신경망에 적용된다
+    3. 이는 **순수한 존재 결과**이다. 뉴런이 몇 개 필요한지도, 학습이 알맞은 가중치를 찾아낼지도 말해 주지 않는다
+    4. 얕은 신경망의 **너비 복잡도**는 $O((L/\varepsilon)^n)$이라 차원의 저주를 겪는다
+    5. **깊은 신경망**은 합성으로 이루어진 함수에 대해 다항 개수의 매개변수만으로 같은 근사를 이룰 수 있다 (지수적 분리)
+    6. **배런의 정리**는 (푸리에 적률이 유한한) 매끄러운 함수에 대해 차원과 무관한 $O(1/N)$의 속도를 준다
+    7. 실무에서는 **적당한 깊이와 적당한 너비**가 극단적인 너비나 극단적인 깊이보다 한결같이 낫다
 
 ---
 
-## References
+## 참고 문헌
 
 - Cybenko, G. (1989). Approximation by superpositions of a sigmoidal function. *Mathematics of Control, Signals and Systems*, 2(4), 303–314.
 - Hornik, K. (1991). Approximation capabilities of multilayer feedforward networks. *Neural Networks*, 4(2), 251–257.
 - Barron, A. R. (1993). Universal approximation bounds for superpositions of a sigmoidal function. *IEEE Transactions on Information Theory*, 39(3), 930–945.
 - Telgarsky, M. (2016). Benefits of depth in neural networks. *COLT*.
 - Lu, Z., Pu, H., Wang, F., Hu, Z., & Wang, L. (2017). The expressive power of neural networks: A view from the width. *NeurIPS*.
+
+## 연습문제
+
+**연습문제 1.**
+ReLU 활성화를 쓰는 신경망에 대해 보편 근사 정리를 정확히 진술하라.
+
+??? success "연습문제 1 풀이"
+    임의의 연속 함수 $f: [0,1]^d \to \mathbb{R}$과 $\epsilon > 0$에 대해, $\sup_{x \in [0,1]^d} |f(x) - g(x)| < \epsilon$을 만족하는 은닉층 하나짜리 신경망 $g(x) = \sum_{i=1}^N c_i \max(0, w_i^\top x + b_i)$이 존재한다. 필요한 너비 $N$은 $f$, $d$, $\epsilon$에 따라 달라진다.
+
+---
+
+**연습문제 2.**
+보편 근사 정리가 경사 하강법이 좋은 근사를 찾아낼 것임을 보장하지 못하는 이유는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    이 정리는 구성적이지 않은 존재 결과이다. 좋은 가중치가 존재함은 보장하지만 (1) 경사 하강법이 그것을 찾을 수 있는지(손실 지형에 나쁜 국소 최솟값이 있을 수 있다), (2) 일반화에 표본이 몇 개 필요한지, (3) 학습의 계산 효율이 어떤지에 대해서는 아무 말이 없다.
+
+---
+
+**연습문제 3.**
+은닉 뉴런 두 개로 함수 $f(x) = |x|$을 정확히 표현하는 ReLU 신경망을 구성하라.
+
+??? success "연습문제 3 풀이"
+    $|x| = \max(x, 0) + \max(-x, 0) = \text{ReLU}(x) + \text{ReLU}(-x)$이다. 신경망: 은닉층은 $w_1 = 1, b_1 = 0$과 $w_2 = -1, b_2 = 0$, 출력층은 $c_1 = c_2 = 1$이다.
+
+---
+
+**연습문제 4.**
+층이 $L$개이고 너비가 $d$로 일정한 ReLU 신경망이 최대 $O(d^L)$개의 선형 영역을 갖는 조각별 선형 함수를 표현할 수 있음을 보여라.
+
+??? success "연습문제 4 풀이"
+    각 ReLU 뉴런이 접힘(초평면 경계) 하나를 만든다. 층마다 뉴런이 $d$개이면 각 층은 선형 영역의 수를 많아야 두 배로 만들 수 있다(기존 영역이 저마다 쪼개질 수 있다). $L$개 층을 지나면 최대 $\prod_{l=1}^L 2d = O((2d)^L)$개의 영역이 되며, 이는 깊이에 대해 지수적이다.

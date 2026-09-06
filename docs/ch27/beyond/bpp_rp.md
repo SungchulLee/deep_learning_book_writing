@@ -1,67 +1,67 @@
-# BPP and RP
+# BPP과 RP
 
-Randomness appears to help computation: some problems have efficient randomized algorithms but no known deterministic polynomial-time solutions. The complexity classes **BPP** and **RP** formalize what randomized algorithms can achieve, with different error guarantees. Understanding these classes reveals the surprising fact that randomness may not provide essential computational power --- a conjecture captured by the belief that BPP = P.
+마구잡이는 셈에 도움이 되는 듯하다. 어떤 문제는 효율 좋은 마구잡이 알고리즘이 있지만 정해진 다항 시간 풀이는 알려져 있지 않다. 복잡도 갈래 **BPP**과 **RP**은 마구잡이 알고리즘이 이룰 수 있는 바를 어긋남 보장에 따라 갈라 적어 준다. 이 갈래들을 이해하면 마구잡이가 셈의 힘에 꼭 필요하지는 않을 수 있다는 놀라운 사실이 드러난다. 이는 BPP = P이라는 믿음으로 나타난 추측이다.
 
-## Probabilistic Turing Machines
+## 확률 튜링 기계
 
-A **probabilistic Turing machine (PTM)** is a Turing machine that, at each step, can flip a fair coin to decide its next move. Equivalently, it has two transition functions and randomly chooses between them at each step. The machine's output on a given input is a random variable.
+**확률 튜링 기계(PTM)**는 걸음마다 공정한 동전을 던져 다음 움직임을 정할 수 있는 튜링 기계이다. 같은 말로, 옮김 함수를 둘 가지고 걸음마다 그 가운데 하나를 아무렇게나 고른다. 주어진 들임에 대한 기계의 내놓기는 아무 변수이다.
 
-## RP: One-Sided Error
+## RP: 한쪽 어긋남
 
-!!! tip "Definition: RP (Randomized Polynomial Time)"
-    A language $L$ is in **RP** if there exists a probabilistic polynomial-time Turing machine $M$ such that:
+!!! tip "뜻매김: RP(마구잡이 다항 시간)"
+    다음을 만족하는 확률 다항 시간 튜링 기계 $M$이 있으면 말 $L$은 **RP**에 든다:
 
-    - If $x \in L$: $\Pr[M \text{ accepts } x] \geq 1/2$
-    - If $x \notin L$: $\Pr[M \text{ accepts } x] = 0$
+    - $x \in L$이면: $\Pr[M \text{ accepts } x] \geq 1/2$
+    - $x \notin L$이면: $\Pr[M \text{ accepts } x] = 0$
 
-RP has **one-sided error**: the machine never gives false positives. If it accepts, the input is definitely in $L$. If it rejects, the input might or might not be in $L$.
+RP은 **한쪽 어긋남**을 가진다. 기계는 거짓 양성을 결코 내지 않는다. 받아들이면 들임은 반드시 $L$에 든다. 물리치면 들임은 $L$에 들 수도 있고 아닐 수도 있다.
 
-### co-RP
+### 여 RP
 
-The complementary class **co-RP** flips the error side:
+여 갈래 **여 RP**은 어긋나는 쪽을 뒤집는다:
 
-- If $x \in L$: $\Pr[M \text{ accepts } x] = 1$
-- If $x \notin L$: $\Pr[M \text{ accepts } x] \leq 1/2$
+- $x \in L$이면: $\Pr[M \text{ accepts } x] = 1$
+- $x \notin L$이면: $\Pr[M \text{ accepts } x] \leq 1/2$
 
-A co-RP machine never gives false negatives.
+여 RP 기계는 거짓 음성을 결코 내지 않는다.
 
-### Error Amplification for RP
+### RP의 어긋남 줄이기
 
-Running an RP machine $k$ times independently and accepting if any run accepts reduces the error probability exponentially:
+RP 기계를 서로 얽매이지 않게 $k$번 돌려 한 번이라도 받아들이면 받아들이면 어긋날 확률이 지수로 줄어든다:
 
 $$
 \Pr[\text{all } k \text{ runs reject} \mid x \in L] \leq \left(\frac{1}{2}\right)^k
 $$
 
-With $k = O(\log(1/\delta))$ repetitions, the error drops below any desired $\delta > 0$.
+$k = O(\log(1/\delta))$번 되풀이하면 어긋남이 바라는 어떤 $\delta > 0$보다 작아진다.
 
-## BPP: Two-Sided Error
+## BPP: 양쪽 어긋남
 
-!!! tip "Definition: BPP (Bounded-Error Probabilistic Polynomial Time)"
-    A language $L$ is in **BPP** if there exists a probabilistic polynomial-time Turing machine $M$ such that:
+!!! tip "뜻매김: BPP(어긋남이 가둬진 확률 다항 시간)"
+    다음을 만족하는 확률 다항 시간 튜링 기계 $M$이 있으면 말 $L$은 **BPP**에 든다:
 
-    - If $x \in L$: $\Pr[M \text{ accepts } x] \geq 2/3$
-    - If $x \notin L$: $\Pr[M \text{ accepts } x] \leq 1/3$
+    - $x \in L$이면: $\Pr[M \text{ accepts } x] \geq 2/3$
+    - $x \notin L$이면: $\Pr[M \text{ accepts } x] \leq 1/3$
 
-BPP has **two-sided error**: the machine can err in both directions, but the error probability is bounded away from $1/2$.
+BPP은 **양쪽 어긋남**을 가진다. 기계는 양쪽으로 어긋날 수 있지만 어긋날 확률은 $1/2$에서 떨어져 가둬져 있다.
 
-### Error Amplification for BPP
+### BPP의 어긋남 줄이기
 
-The constants $2/3$ and $1/3$ are arbitrary --- any constants bounded away from $1/2$ yield the same class. Running $M$ independently $k$ times and taking a **majority vote**:
+상수 $2/3$과 $1/3$은 아무렇게나 고른 것이다. $1/2$에서 떨어져 가둬진 상수라면 어느 것이나 같은 갈래를 낳는다. $M$을 서로 얽매이지 않게 $k$번 돌려 **많은 쪽 뽑기**를 하면:
 
 $$
 \Pr[\text{majority wrong}] \leq \exp(-\Omega(k))
 $$
 
-by the Chernoff bound. With $k = O(\log(1/\delta))$ repetitions, the error drops below $\delta$.
+체르노프 한계에 따라 그렇다. $k = O(\log(1/\delta))$번 되풀이하면 어긋남이 $\delta$보다 작아진다.
 
-### BPP Is Closed Under Complement
+### BPP은 여 연산에 닫혀 있다
 
-BPP = co-BPP: simply flip the accept/reject output. This symmetry distinguishes BPP from RP, where one-sided error creates an asymmetry.
+BPP = 여 BPP이다. 받아들임과 물리침을 뒤집기만 하면 된다. 이 맞섬은 BPP을 RP과 갈라 준다. RP에서는 한쪽 어긋남이 맞섬을 깨뜨린다.
 
-## Class Relationships
+## 갈래 사이의 관계
 
-The following containments hold:
+다음 담김 관계가 성립한다:
 
 $$
 \text{P} \subseteq \text{RP} \subseteq \text{NP}
@@ -79,52 +79,105 @@ $$
 \text{RP} \cap \text{co-RP} = \text{ZPP}
 $$
 
-where **ZPP** (Zero-error Probabilistic Polynomial time) is the class of problems solvable by randomized algorithms that always give the correct answer but may vary in running time (expected polynomial).
+여기서 **ZPP**(어긋남 없는 확률 다항 시간)은 늘 옳은 답을 주지만 도는 시간이 달라질 수 있는(기댓값이 다항인) 마구잡이 알고리즘으로 풀 수 있는 문제의 갈래이다.
 
-### Relationship to NP
+### NP과의 관계
 
-It is believed (but unproven) that:
+다음이 믿어지지만 밝혀지지는 않았다:
 
 $$
 \text{BPP} \subseteq \text{NP} \cap \text{co-NP}
 $$
 
-If NP-complete problems were in BPP, then NP = RP, which would be a major breakthrough.
+NP 완전 문제가 BPP에 든다면 NP = RP이 되며 이는 큰 돌파가 될 것이다.
 
-### The BPP = P Conjecture
+### BPP = P 추측
 
-!!! warning "Open Problem"
-    It is widely conjectured that BPP = P, meaning every problem solvable by efficient randomized algorithms is also solvable by efficient deterministic algorithms. This conjecture is supported by the Impagliazzo-Wigderson theorem: if any problem in E = DTIME($2^{O(n)}$) requires exponential-size circuits, then BPP = P.
+!!! warning "열린 문제"
+    BPP = P이라는 추측이 널리 받아들여진다. 즉 효율 좋은 마구잡이 알고리즘으로 풀 수 있는 문제는 모두 효율 좋은 정해진 알고리즘으로도 풀 수 있다는 것이다. 이 추측은 임파글리아초-위그더슨 정리가 받쳐 준다. E = DTIME($2^{O(n)}$)에 지수 크기 회로가 필요한 문제가 하나라도 있으면 BPP = P이다.
 
-## Examples
+## 보기
 
-| Problem | Class | Notes |
+| 문제 | 갈래 | 비고 |
 |---------|-------|-------|
-| Polynomial Identity Testing | co-RP | Schwartz-Zippel lemma |
-| Primality Testing | Was in co-RP | Now in P (AKS, 2002) |
-| Perfect Matching (bipartite) | P | Deterministic via augmenting paths |
-| Undirected Connectivity | L $\subseteq$ P | Random walks solve in randomized logspace |
+| 다항식 항등 시험 | 여 RP | 슈워츠-지펠 도움 정리 |
+| 소수 시험 | 여 RP에 있었다 | 이제 P에 든다(AKS, 2002) |
+| 완벽 짝짓기(두 쪽 그래프) | P | 늘림 길로 정해진 방법 |
+| 방향 없는 이어짐 | L $\subseteq$ P | 아무 걸음이 마구잡이 로그 공간에서 푼다 |
 
-### Polynomial Identity Testing
+### 다항식 항등 시험
 
-Given an arithmetic circuit computing a polynomial $p(x_1, \ldots, x_n)$, determine whether $p \equiv 0$. By the **Schwartz-Zippel lemma**, evaluating $p$ at a random point from a sufficiently large set detects non-zero polynomials with high probability. No efficient deterministic algorithm is known.
+다항식 $p(x_1, \ldots, x_n)$을 셈하는 셈 회로가 주어질 때 $p \equiv 0$인지 가려라. **슈워츠-지펠 도움 정리**에 따라 넉넉히 큰 모임에서 아무 점을 골라 $p$을 매기면 0이 아닌 다항식을 높은 확률로 찾아낸다. 효율 좋은 정해진 알고리즘은 알려져 있지 않다.
 
-### Primality as Historical Example
+### 옛 보기로서의 소수 시험
 
-Before AKS (2002), the best primality test was Miller-Rabin, which places primality in co-RP. The AKS deterministic polynomial-time algorithm moved primality into P, illustrating that randomness was not essential for this problem.
+AKS(2002) 이전에 가장 좋은 소수 시험은 밀러-라빈이었고 이는 소수 판정을 여 RP에 놓았다. AKS의 정해진 다항 시간 알고리즘이 소수 판정을 P로 옮겼으며 이 문제에는 마구잡이가 꼭 필요하지 않았음을 보여 준다.
 
-??? example "Example: Error Amplification"
-    An RP algorithm for language $L$ accepts YES instances with probability $\geq 1/2$.
+??? example "보기: 어긋남 줄이기"
+    말 $L$의 RP 알고리즘은 예 사례를 확률 $\geq 1/2$으로 받아들인다.
 
-    **Goal:** Reduce error to $< 0.001$.
+    **목표:** 어긋남을 $< 0.001$으로 줄여라.
 
-    **Method:** Run $k$ independent trials, accept if any trial accepts.
+    **방법:** 서로 얽매이지 않은 시도를 $k$번 돌려 한 번이라도 받아들이면 받아들인다.
 
-    **Required $k$:** $(1/2)^k < 0.001 \Rightarrow k > \log_2(1000) \approx 10$.
+    **필요한 $k$:** $(1/2)^k < 0.001 \Rightarrow k > \log_2(1000) \approx 10$.
 
-    With 10 repetitions, the probability of incorrectly rejecting a YES instance drops below $1/1024 < 0.001$. The total running time is $10 \cdot T(n)$, which remains polynomial.
+    10번 되풀이하면 예 사례를 잘못 물리칠 확률이 $1/1024 < 0.001$보다 작아진다. 온 도는 시간은 $10 \cdot T(n)$으로 여전히 다항이다.
 
-## Reference
+## 참고 문헌
 
 - Sipser, M. (2012). *Introduction to the Theory of Computation* (3rd ed.). Cengage Learning.
 - Arora, S., & Barak, B. (2009). *Computational Complexity: A Modern Approach*. Cambridge University Press, Chapter 7.
+
+## 연습문제
+
+**연습문제 1.**
+$\mathbf{RP} \subseteq \mathbf{BPP}$임을 밝혀라. 자세히는, 어긋날 확률이 $\leq 1/2$인 RP 기계가 가르는 말은 양쪽 어긋남이 $1/3$으로 가둬진 BPP 기계로도 가를 수 있음을 보여라.
+
+??? success "연습문제 1 풀이"
+    $M$을 말 $L$의 RP 기계라 하자. 들임 $x$에 대해:
+
+    - $x \notin L$이면: $M$은 늘 물리치므로 $\Pr[M \text{ accepts}] = 0 \leq 1/3$이다.
+    - $x \in L$이면: 줄이기 뒤에 $\Pr[M \text{ accepts}] \geq 1/2 \geq 2/3$이다.
+
+    $M$을 서로 얽매이지 않게 세 번 돌려 한 번이라도 받아들이면 받아들인다. $x \in L$일 때 셋 모두 물리칠 확률은 많아야 $(1/2)^3 = 1/8$이므로 $\Pr[\text{accept}] \geq 7/8 \geq 2/3$이다. $x \notin L$일 때 $M$은 결코 받아들이지 않으므로 $\Pr[\text{accept}] = 0 \leq 1/3$이다. 이는 올바른 BPP 기계이므로 $\mathbf{RP} \subseteq \mathbf{BPP}$이다.
+
+---
+
+**연습문제 2.**
+다항식 항등 시험의 RP 알고리즘은 주어진 셈 회로가 영 다항식을 셈하는지 살핀다. 크기 $q$인 체 위에서 차수 한계 $d$으로 슈워츠-지펠 시험을 돌리면 어긋날 확률은 얼마인가? 어긋남을 $2^{-100}$ 아래로 줄이려면 서로 얽매이지 않은 되풀이가 몇 번 필요한가?
+
+??? success "연습문제 2 풀이"
+    슈워츠-지펠 도움 정리는 온 차수가 $d$인 0이 아닌 다항식을 크기 $q$인 체의 아무 점에서 매길 때 뿌리를 맞힐 확률이 많아야 $d/q$임을 말한다. 서로 얽매이지 않은 시도마다 어긋남이 많아야 $d/q$이다. 서로 얽매이지 않게 $k$번 되풀이하면(모든 $k$번이 0을 낼 때만 물리친다) 어긋남은 많아야 $(d/q)^k$이다.
+
+    $(d/q)^k < 2^{-100}$이 필요하므로 $k > 100 / \log_2(q/d)$이다. 보기로 $q = 2d$이면 시도마다 어긋남이 $\leq 1/2$이므로 $k > 100$번 되풀이하면 넉넉하다.
+
+---
+
+**연습문제 3.**
+$\mathbf{BPP} \subseteq \mathbf{P/poly}$임을 보여라. 좋은 도움말 글줄이 있음을 확률 방법으로 따지는 밝힘 얼개를 그려라.
+
+??? success "연습문제 3 풀이"
+    애들먼 정리에 따라 들임 길이 $n$마다 아무 비트를 붙박이로 둘 수 있다. 어긋남을 줄인 뒤 BPP 기계 $M$은 아무 비트를 $m$개 쓰고 어떤 하나의 들임에서도 확률 $< 2^{-n-1}$으로 어긋난다. 길이 $n$인 $2^n$개 들임 모두에 합 한계를 쓰면 아무 글줄 $r$이 어떤 들임에서 $M$을 어긋나게 할 확률은 $2^n \cdot 2^{-n-1} = 1/2$보다 작다. 따라서 확률 방법으로 좋은 $r$이 있다. 이 $r$을 길이 $m = \text{poly}(n)$인 도움말 글줄로 붙박이한다. 그렇게 얻은 도움말 딸린 정해진 기계는 길이 $n$인 모든 들임에서 $L$을 옳게 가르므로 $\mathbf{BPP} \subseteq \mathbf{P/poly}$이다.
+
+---
+
+**연습문제 4.**
+마구잡이 없애기 추측 $\mathbf{BPP} = \mathbf{P}$이 널리 믿어지는 까닭을 밝혀라. 이를 밝히기에 넉넉한 회로 아래 한계 가정은 무엇이며 쓰이는 핵심 얼개는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    이 추측은 임파글리아초-위그더슨 정리에 기댄다. 크기 $2^{\Omega(n)}$인 회로가 필요한 문제가 $\mathbf{E} = \text{DTIME}(2^{O(n)})$에 있으면 $\mathbf{BPP} = \mathbf{P}$이다. 얼개는 니산-위그더슨 틀로 어려운 함수에서 세운 거짓 마구잡이 만들개(PRG)를 쓴다. 이 만들개는 짧고 참으로 아무런 씨앗을 늘려, 다항 크기 회로가 참 마구잡이와 가릴 수 없는 긴 거짓 마구잡이 글줄로 만든다. BPP 알고리즘은 이 만들개에 속으므로 모든 씨앗(다항 개)을 늘어놓고 많은 쪽 뽑기를 하면 마구잡이가 없어진다. $\mathbf{E}$의 드러난 문제에 지수 회로 아래 한계가 있으리라 여기므로 이 가정이 널리 믿어진다.
+
+---
+
+**연습 5.**
+$\mathbf{RP} \cap \mathbf{co\text{-}RP} \subseteq \mathbf{ZPP}$임을 밝혀라. 여기서 $\mathbf{ZPP}$은 어긋남 없이 기댓값 다항 시간에 풀 수 있는 문제의 갈래이다.
+
+??? success "연습 5의 풀이"
+    $L \in \mathbf{RP} \cap \mathbf{co\text{-}RP}$이라 하자. 그러면 기계 $M_1$($L$의 RP)과 $M_2$($L$의 여 RP)가 있다. ZPP 알고리즘을 다음과 같이 세운다. 들임 $x$에서 $M_1$과 $M_2$을 번갈아 돌린다.
+
+    - $M_1$이 받아들이면 "예"를 내놓는다(RP은 거짓 양성이 없으므로 옳다).
+    - $M_2$이 물리치면 "아니오"를 내놓는다(여 RP은 거짓 음성이 없으므로 옳다).
+    - 그 밖에는 되풀이한다.
+
+    한 바퀴마다 두 조건이 모두 걸리지 않을 확률은 많아야 $1/2 \cdot 1/2 = 1/4$이다($x \in L$일 때 $M_1$이 확률 $\geq 1/2$으로 받아들이고, $x \notin L$일 때 $M_2$이 확률 $\geq 1/2$으로 물리치기 때문이다). 바퀴 수의 기댓값은 $O(1)$이고 바퀴마다 다항 시간이 걸리므로 온 도는 시간의 기댓값은 다항이다. 내놓기는 늘 옳으므로 어긋남 없는 셈이 된다.

@@ -1,22 +1,22 @@
-# Static Arrays
+# 정적 배열
 
-Arrays are the simplest and most widely used data structure in computing. A **static array** allocates a fixed number of elements in a single contiguous block of memory at creation time. Because every element occupies the same number of bytes and sits next to its neighbors, any element can be reached in constant time through a single arithmetic calculation. This predictable memory layout also makes static arrays exceptionally cache-friendly, which is why they remain the backbone of high-performance numerical computing and the internal storage behind many higher-level data structures.
+배열은 컴퓨팅에서 가장 단순하면서도 가장 널리 쓰이는 자료구조이다. **정적 배열**은 만들어질 때 정해진 개수의 원소를 메모리의 연속된 한 덩어리에 할당한다. 모든 원소가 같은 바이트 수를 차지하고 이웃과 나란히 놓이므로, 어떤 원소든 산술 계산 한 번으로 상수 시간에 닿을 수 있다. 이 예측 가능한 메모리 배치는 정적 배열을 캐시에 대단히 친화적으로 만들며, 그래서 정적 배열은 고성능 수치 계산의 등뼈이자 여러 고수준 자료구조의 내부 저장소로 남아 있다.
 
-## Memory Layout
+## 메모리 배치
 
-A static array of $n$ elements, each occupying $w$ bytes, is stored as a single contiguous block of $n \cdot w$ bytes starting at some base address $b$. The address of the element at index $i$ (using zero-based indexing) is computed by the formula
+원소가 $n$개이고 각 원소가 $w$바이트를 차지하는 정적 배열은 어떤 기준 주소 $b$에서 시작하는 $n \cdot w$바이트의 연속된 한 덩어리로 저장된다. (0에서 시작하는 인덱스를 쓸 때) 인덱스 $i$에 있는 원소의 주소는 다음 공식으로 계산된다.
 
 $$
 \text{addr}(i) = b + i \cdot w
 $$
 
-where $0 \le i \le n - 1$. Because this formula uses only a multiplication and an addition, both of which execute in constant time on modern hardware, accessing any element takes $O(1)$ time regardless of the array's size.
+여기서 $0 \le i \le n - 1$이다. 이 공식은 곱셈과 덧셈만 쓰고 둘 다 현대 하드웨어에서 상수 시간에 실행되므로, 배열의 크기와 무관하게 어떤 원소에 접근하든 $O(1)$ 시간이 걸린다.
 
-??? example "Address Computation Example"
+??? example "주소 계산 예제"
 
-    Consider an array of 5 integers, each 4 bytes wide, starting at base address 1000:
+    기준 주소 1000에서 시작하며 각 4바이트인 정수 5개짜리 배열을 생각하자.
 
-    | Index $i$ | Address $= 1000 + i \times 4$ | Value |
+    | 인덱스 $i$ | 주소 $= 1000 + i \times 4$ | 값 |
     |-----------|-------------------------------|-------|
     | 0         | 1000                          | 10    |
     | 1         | 1004                          | 20    |
@@ -24,80 +24,113 @@ where $0 \le i \le n - 1$. Because this formula uses only a multiplication and a
     | 3         | 1012                          | 40    |
     | 4         | 1016                          | 50    |
 
-    To access the element at index 3, the hardware computes $1000 + 3 \times 4 = 1012$ and reads 4 bytes starting at that address.
+    인덱스 3의 원소에 접근하려면 하드웨어가 $1000 + 3 \times 4 = 1012$를 계산하고 그 주소에서 4바이트를 읽는다.
 
-## Declaration and Initialization
+## 선언과 초기화
 
-In languages like C, a static array is declared with a fixed size known at compile time. Python does not have a built-in static array type, but the `array` module and NumPy's `ndarray` provide fixed-type contiguous storage that behaves similarly.
+C 같은 언어에서는 컴파일 시점에 알려진 고정 크기로 정적 배열을 선언한다. 파이썬에는 정적 배열 자료형이 내장되어 있지 않지만, `array` 모듈과 NumPy의 `ndarray`가 비슷하게 동작하는 고정 자료형의 연속 저장소를 제공한다.
 
 ```python
-"""Static array operations using Python's array module and ctypes."""
+"""파이썬의 array 모듈과 ctypes를 쓰는 정적 배열 연산."""
 
 import array
 import ctypes
 
-# === Fixed-type array using the array module ===
-# 'i' specifies signed 32-bit integers
+# === array 모듈을 쓰는 고정 타입 배열 ===
+# 'i'는 부호 있는 32비트 정수를 뜻한다
 int_array = array.array('i', [10, 20, 30, 40, 50])
 
-# O(1) access by index
+# 인덱스로 O(1) 접근
 print(f"Element at index 2: {int_array[2]}")   # 30
 print(f"Element at index 4: {int_array[4]}")   # 50
 
-# === Low-level static allocation using ctypes ===
-# Allocate exactly 5 integers — size is fixed at creation
+# === ctypes를 쓰는 저수준 정적 할당 ===
+# 정수 5개를 정확히 할당한다 — 크기는 생성 시점에 고정된다
 ArrayType = ctypes.c_int * 5
 static = ArrayType(10, 20, 30, 40, 50)
 
 print(f"ctypes element at index 3: {static[3]}")  # 40
 ```
 
-**Output:**
+**출력:**
 ```
 Element at index 2: 30
 Element at index 4: 50
 ctypes element at index 3: 40
 ```
 
-## Operations and Complexity
+## 연산과 복잡도
 
-The fixed size of a static array constrains which operations are efficient. Reading or writing at a known index is instantaneous, but operations that change the logical size or shift elements require linear work.
+정적 배열의 고정된 크기는 어떤 연산이 효율적인지를 제약한다. 이미 아는 인덱스에서 읽고 쓰는 것은 즉각적이지만, 논리적 크기를 바꾸거나 원소를 밀어야 하는 연산에는 선형 시간의 일이 든다.
 
-| Operation         | Time Complexity | Description                                       |
+| 연산         | 시간 복잡도 | 설명                                       |
 |-------------------|-----------------|---------------------------------------------------|
-| Access by index   | $O(1)$          | Direct address computation                        |
-| Update by index   | $O(1)$          | Write to a computed address                       |
-| Search (unsorted) | $O(n)$          | Must scan every element in the worst case         |
-| Search (sorted)   | $O(\log n)$     | Binary search on a sorted array                   |
-| Insert at end     | $O(1)$          | Only if there is unused capacity                  |
-| Insert at index   | $O(n)$          | Must shift all subsequent elements right           |
-| Delete at index   | $O(n)$          | Must shift all subsequent elements left            |
+| 인덱스로 접근   | $O(1)$          | 주소를 곧바로 계산한다                        |
+| 인덱스로 갱신   | $O(1)$          | 계산된 주소에 쓴다                       |
+| 탐색 (정렬 안 됨) | $O(n)$          | 최악의 경우 모든 원소를 훑어야 한다         |
+| 탐색 (정렬됨)   | $O(\log n)$     | 정렬된 배열에서의 이진 탐색                   |
+| 끝에 삽입     | $O(1)$          | 남는 용량이 있을 때에만                  |
+| 인덱스에 삽입   | $O(n)$          | 뒤따르는 원소를 모두 오른쪽으로 밀어야 한다           |
+| 인덱스에서 삭제   | $O(n)$          | 뒤따르는 원소를 모두 왼쪽으로 밀어야 한다            |
 
-!!! warning "No Built-in Resizing"
+!!! warning "크기 조정 기능이 없다"
 
-    A static array cannot grow or shrink after creation. Attempting to add a sixth element to a five-element array requires allocating a new, larger array and copying all existing elements. This limitation motivates the **dynamic array** (covered in the next section), which automates resizing with amortized constant-time appends.
+    정적 배열은 만들어진 뒤에 커지거나 줄어들 수 없다. 원소 다섯 개짜리 배열에 여섯 번째 원소를 넣으려면 더 큰 배열을 새로 할당하고 기존 원소를 모두 복사해야 한다. 이 한계가 **동적 배열**(다음 절에서 다룬다)의 동기가 되며, 동적 배열은 상각 상수 시간의 덧붙이기로 크기 조정을 자동화한다.
 
-## Advantages and Limitations
+## 장점과 한계
 
-Static arrays excel when the number of elements is known in advance and does not change during execution.
+정적 배열은 원소의 개수를 미리 알고 실행 중에 바뀌지 않을 때 빛을 발한다.
 
-**Advantages:**
+**장점:**
 
-- **Constant-time access**: $O(1)$ read and write at any index, the fastest possible for random access.
-- **Cache efficiency**: contiguous memory layout exploits spatial locality, so sequential scans run close to hardware speed.
-- **Minimal overhead**: no pointers, no metadata beyond the base address and length. Memory usage is exactly $n \cdot w$ bytes plus a small constant.
-- **Predictable performance**: no amortized costs or worst-case surprises from resizing.
+- **상수 시간 접근**: 어떤 인덱스에서든 $O(1)$에 읽고 쓴다. 임의 접근으로는 가장 빠르다.
+- **캐시 효율**: 연속된 메모리 배치가 공간 지역성을 활용하므로 순차적인 훑기가 하드웨어 속도에 가깝게 돈다.
+- **최소한의 부담**: 포인터도 없고 기준 주소와 길이 외의 메타데이터도 없다. 메모리 사용량이 정확히 $n \cdot w$바이트에 작은 상수를 더한 값이다.
+- **예측 가능한 성능**: 상각 비용도, 크기 조정에서 오는 최악의 경우의 뜻밖의 일도 없다.
 
-**Limitations:**
+**한계:**
 
-- **Fixed capacity**: the size must be decided at allocation time. Overestimating wastes memory; underestimating requires reallocation.
-- **Expensive insertion and deletion**: inserting or removing an element in the middle requires shifting $O(n)$ elements.
-- **No built-in bounds checking** (in C/C++): accessing an out-of-bounds index causes undefined behavior rather than a clean error.
+- **고정된 용량**: 크기를 할당 시점에 정해야 한다. 크게 잡으면 메모리를 낭비하고, 작게 잡으면 다시 할당해야 한다.
+- **비싼 삽입과 삭제**: 중간에 원소를 넣거나 빼려면 $O(n)$개의 원소를 밀어야 한다.
+- **범위 검사가 내장되어 있지 않다** (C/C++에서): 범위를 벗어난 인덱스에 접근하면 깔끔한 오류가 아니라 정의되지 않은 동작이 일어난다.
 
-## Connection to Deep Learning
+## 딥러닝과의 관계
 
-Static arrays are directly relevant to deep learning through tensors. A PyTorch or NumPy tensor is fundamentally a static array: a contiguous block of memory with fixed size and element type. The address computation formula above generalizes to multiple dimensions via strides, which Chapter 2 covers in detail. Understanding the flat, contiguous nature of static arrays is essential for reasoning about memory layout, cache performance, and GPU memory access patterns in neural network training.
+정적 배열은 텐서를 통해 딥러닝과 곧바로 이어진다. PyTorch나 NumPy의 텐서는 근본적으로 정적 배열이다. 크기와 원소 자료형이 고정된 연속된 메모리 덩어리이기 때문이다. 위의 주소 계산 공식은 스트라이드를 통해 여러 차원으로 일반화되며, 이는 2장에서 자세히 다룬다. 정적 배열이 평평하고 연속적이라는 성질을 이해하는 것은 신경망 학습에서 메모리 배치, 캐시 성능, GPU 메모리 접근 양상을 따져 보는 데 필수적이다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+정적 배열에 대해 삽입, 삭제, 탐색, 접근 연산의 시간 복잡도를 진술하라.
+
+??? success "연습문제 1 풀이"
+    복잡도는 구체적인 구현(배열 기반이냐 연결 기반이냐)에 달려 있다. 배열 기반은 접근이 $O(1)$이고 임의의 위치에서의 삽입·삭제가 $O(n)$이다. 연결 기반은 이미 아는 위치에서의 삽입·삭제가 $O(1)$이고 탐색·접근이 $O(n)$이다. 어떤 연산이 주를 이루느냐에 따라 선택이 갈린다.
+
+---
+
+**연습문제 2.**
+원소 6개로 정적 배열을(를) 따라가며 각 연산 후의 자료구조 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    구조에 삽입, 접근, 삭제를 차례로 수행하라. 각 단계마다 (연결 구조라면) 포인터를, (배열 기반이라면) 배열의 내용을 보이며 구조가 불변식을 어떻게 유지하는지 나타내라.
+
+---
+
+**연습문제 3.**
+정적 배열이(가) PyTorch의 텐서 저장과 어떻게 관련되는지 설명하라. 자료구조의 선택이 메모리 배치와 캐시 성능에 어떤 영향을 주는가?
+
+??? success "연습문제 3 풀이"
+    PyTorch 텐서는 캐시에 효율적으로 접근할 수 있도록 연속된 배열로 저장된다. 연결 구조는 autograd 그래프를 훑는 데 내부적으로 쓰인다. 이 선택은 메모리 사용량(배열에는 포인터 부담이 없다)과 접근 양상(캐시 지역성 덕분에 순차적인 배열 접근이 연결 리스트 순회보다 10~100배 빠르다)에 모두 영향을 준다.
+
+---
+
+**연습문제 4.**
+반복문 불변식을 사용하여 정적 배열의 주요 연산의 시간 복잡도를 증명하라.
+
+??? success "연습문제 4 풀이"
+    알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$

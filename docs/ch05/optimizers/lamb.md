@@ -1,12 +1,12 @@
 # LAMB
 
-Training large models like BERT with very large batch sizes (e.g., 32K or 65K samples) can dramatically reduce wall-clock time, but standard [Adam](adam.md) often diverges in this regime.  The root cause is that different layers of a deep network can have vastly different gradient magnitudes, and a single global learning rate cannot accommodate all of them simultaneously when the batch is large enough to reduce gradient noise.  **LAMB** (Layer-wise Adaptive Moments optimizer for Batch training; You et al., 2020) addresses this by adding a per-layer **trust ratio** on top of Adam's per-parameter adaptive step, enabling stable training at batch sizes up to 65,536 and reducing BERT pre-training from days to just 76 minutes.
+BERT 같은 큰 모델을 아주 큰 배치(예: 32K나 65K 표본)로 학습시키면 실제 걸리는 시간을 크게 줄일 수 있지만, 표준 [Adam](adam.md)은 이런 상황에서 자주 발산한다. 근본 원인은 깊은 신경망의 층마다 기울기의 크기가 크게 다르다는 데 있다. 배치가 커서 기울기의 잡음이 줄면 전역 학습률 하나로 그 모두를 감당할 수 없다. **LAMB**(배치 학습을 위한 층별 적응형 모멘트 최적화기, You 등, 2020)는 Adam의 매개변수별 적응 걸음 위에 층별 **신뢰 비율**을 더하여 이를 다루며, 배치 크기를 65,536까지 키워도 안정적으로 학습하게 하여 BERT 사전 학습을 며칠에서 76분으로 줄였다.
 
-## Algorithm
+## 알고리즘
 
-LAMB builds on [Adam](adam.md).  At each time step $t$, let $g_t = \nabla_\theta L(\theta_t)$ denote the gradient.  For each layer $l$ with parameter tensor $\theta_t^{(l)}$, LAMB performs the following steps.  All element-wise operations are applied within each layer.
+LAMB는 [Adam](adam.md) 위에 세워진다. 각 시각 $t$에서 기울기를 $g_t = \nabla_\theta L(\theta_t)$이라 하자. 매개변수 텐서가 $\theta_t^{(l)}$인 각 층 $l$에 대해 LAMB는 다음 단계를 수행한다. 원소별 연산은 모두 층 안에서 이루어진다.
 
-**Step 1.** Update the biased first and second moment estimates (identical to Adam):
+**1단계.** (Adam과 같이) 치우친 일차 모멘트와 이차 모멘트의 추정값을 갱신한다.
 
 $$
 m_t = \beta_1 \, m_{t-1} + (1 - \beta_1) \, g_t
@@ -16,49 +16,49 @@ $$
 v_t = \beta_2 \, v_{t-1} + (1 - \beta_2) \, g_t^2
 $$
 
-**Step 2.** Compute bias-corrected moments:
+**2단계.** 편향을 보정한 모멘트를 계산한다.
 
 $$
 \hat{m}_t = \frac{m_t}{1 - \beta_1^t}, \qquad \hat{v}_t = \frac{v_t}{1 - \beta_2^t}
 $$
 
-**Step 3.** Compute the layer-wise update direction $r_t^{(l)}$, which combines the Adam step with decoupled weight decay (coefficient $\lambda$):
+**3단계.** Adam의 걸음과 분리된 가중치 감쇠(계수 $\lambda$)를 결합한 층별 갱신 방향 $r_t^{(l)}$을 계산한다.
 
 $$
 r_t^{(l)} = \frac{\hat{m}_t^{(l)}}{\sqrt{\hat{v}_t^{(l)}} + \epsilon} + \lambda \, \theta_t^{(l)}
 $$
 
-**Step 4.** Compute the **trust ratio** $\phi^{(l)}$ using $\ell_2$ norms:
+**4단계.** $\ell_2$ 노름으로 **신뢰 비율** $\phi^{(l)}$을 계산한다.
 
 $$
 \phi^{(l)} = \frac{\|\theta_t^{(l)}\|_2}{\|r_t^{(l)}\|_2}
 $$
 
-If $\|\theta_t^{(l)}\|_2 = 0$ or $\|r_t^{(l)}\|_2 = 0$, the trust ratio is set to $1$.
+$\|\theta_t^{(l)}\|_2 = 0$이거나 $\|r_t^{(l)}\|_2 = 0$이면 신뢰 비율을 $1$로 둔다.
 
-**Step 5.** Apply the layer-wise scaled update:
+**5단계.** 층별로 배율을 조정한 갱신을 적용한다.
 
 $$
 \theta_{t+1}^{(l)} = \theta_t^{(l)} - \eta \, \phi^{(l)} \, r_t^{(l)}
 $$
 
-Here $\eta$ is the global learning rate, $\beta_1$ and $\beta_2$ are the moment decay rates (typically $0.9$ and $0.999$), and $\epsilon$ is a small constant for numerical stability.
+여기서 $\eta$은 전역 학습률, $\beta_1$과 $\beta_2$은 모멘트의 감쇠율(보통 $0.9$과 $0.999$), $\epsilon$은 수치 안정성을 위한 작은 상수이다.
 
-## Trust Ratio Intuition
+## 신뢰 비율의 직관
 
-The trust ratio $\phi^{(l)} = \|\theta_t^{(l)}\|_2 / \|r_t^{(l)}\|_2$ rescales the update for each layer so that the relative change $\|\Delta\theta^{(l)}\|_2 / \|\theta^{(l)}\|_2$ is controlled by the learning rate $\eta$ alone, regardless of the raw gradient magnitude.  Layers with small parameters receive proportionally small updates, and layers with large parameters receive proportionally large updates, preventing any single layer from dominating the optimization step.
+신뢰 비율 $\phi^{(l)} = \|\theta_t^{(l)}\|_2 / \|r_t^{(l)}\|_2$은 층마다 갱신의 배율을 조정하여, 날 기울기의 크기와 무관하게 상대적인 변화 $\|\Delta\theta^{(l)}\|_2 / \|\theta^{(l)}\|_2$이 학습률 $\eta$만으로 정해지게 한다. 매개변수가 작은 층은 그에 비례해 작은 갱신을, 큰 층은 큰 갱신을 받으므로 어느 한 층이 최적화 걸음을 좌지우지하지 못한다.
 
-!!! note "Relationship to LARS"
-    LAMB can be viewed as a combination of Adam and LARS (Layer-wise Adaptive Rate Scaling).  LARS applies the same trust ratio idea to SGD with momentum.  LAMB extends it to Adam, inheriting Adam's per-parameter adaptivity while adding LARS's per-layer scaling.
+!!! note "LARS와의 관계"
+    LAMB는 Adam과 LARS(층별 적응형 학습률 조정)를 결합한 것으로 볼 수 있다. LARS는 같은 신뢰 비율 착상을 모멘텀을 쓰는 SGD에 적용한다. LAMB는 이를 Adam으로 넓혀 Adam의 매개변수별 적응성을 물려받으면서 LARS의 층별 배율 조정을 더한다.
 
-## PyTorch Example
+## PyTorch 예제
 
 ```python
-"""LAMB optimizer usage example for large-batch training."""
+"""대규모 배치 학습을 위한 LAMB 최적화기 사용 예."""
 
-# === LAMB Optimizer Setup ===
+# === LAMB 최적화기 준비 ===
 
-# LAMB is not in core PyTorch; install via:
+# LAMB는 PyTorch 본체에 없다. 다음으로 설치한다:
 #   pip install torch-optimizer
 
 if __name__ == "__main__":
@@ -80,7 +80,7 @@ if __name__ == "__main__":
             weight_decay=0.01,
         )
 
-        # Simulated training step
+        # 모의 학습 단계
         x = torch.randn(64, 768)
         y = torch.randn(64, 768)
         loss = nn.functional.mse_loss(model(x), y)
@@ -93,16 +93,49 @@ if __name__ == "__main__":
         print("Install torch-optimizer: pip install torch-optimizer")
 ```
 
-## When to Use LAMB
+## LAMB를 쓸 때
 
-LAMB is designed for a specific regime:
+LAMB는 특정한 상황을 위해 설계되었다.
 
-- **Large-batch distributed training**: batch sizes of 8K--65K across many GPUs/TPUs, where standard Adam or [AdamW](adamw.md) becomes unstable.
-- **Pre-training large transformers**: the original paper demonstrated its effectiveness for BERT pre-training at scale.
-- **Linear scaling of batch size**: LAMB allows increasing the batch size with near-linear speedup, maintaining convergence quality.
+- **대규모 배치 분산 학습**: 여러 GPU/TPU에 걸쳐 배치 크기가 8K~65K이고 표준 Adam이나 [AdamW](adamw.md)가 불안정해질 때.
+- **큰 트랜스포머의 사전 학습**: 원 논문은 대규모 BERT 사전 학습에서의 효과를 보였다.
+- **배치 크기의 선형 확장**: LAMB는 수렴 품질을 지키면서 배치 크기를 늘려 거의 선형에 가까운 속도 향상을 얻게 해 준다.
 
-For standard single-GPU training with batch sizes under 1024, [AdamW](adamw.md) is simpler and sufficient.  The trust ratio adds per-layer overhead and complexity that provides no benefit at small batch scales.
+배치 크기가 1024 미만인 보통의 단일 GPU 학습에는 [AdamW](adamw.md)가 더 간단하고 충분하다. 신뢰 비율은 층마다 부담과 복잡함을 더할 뿐 작은 배치에서는 아무 이득이 없다.
 
-## Reference
+## 참고 문헌
 
 - You, Y., Li, J., Reddi, S., Hseu, J., Kumar, S., Bhojanapalli, S., Song, X., Demmel, J., Keutzer, K., & Hsieh, C.-J. (2020). Large Batch Optimization for Deep Learning: Training BERT in 76 Minutes. *ICLR 2020*.
+
+
+## 연습문제
+
+**연습문제 1.**
+LAMB의 갱신 규칙 전체를 쓰라. 각 항(기울기, 모멘텀, 적응형 학습률, 편향 보정)이 하는 구실을 밝히라.
+
+??? success "연습문제 1 풀이"
+    이 쪽의 갱신 규칙은 여러 부분으로 이루어진다. 기울기는 하강 방향을 주고, 모멘텀 항은 단계에 걸쳐 잡음이 섞인 기울기를 매끄럽게 하며, 적응 항은 매개변수마다 학습률의 배율을 조정하고, (있다면) 편향 보정은 모멘트 추정값을 0으로 초기화한 데서 오는 치우침을 바로잡는다.
+
+---
+
+**연습문제 2.**
+LAMB을(를) 기본 SGD와 비교하라. 어떤 손실 지형에서 LAMB이(가) 가장 유리한가?
+
+??? success "연습문제 2 풀이"
+    LAMB은(는) 다음과 같은 손실 지형에서 유리하다. (1) 차원마다 곡률이 다를 때(적응형 학습률이 도움이 된다), (2) 기울기에 잡음이 많을 때(모멘텀의 평활화가 도움이 된다), (3) 기울기가 희소할 때(누적된 이차 모멘트가 드물게 갱신되는 매개변수에도 뜻있는 학습률을 준다). 잘 조율된 대규모 과제에서는 SGD가 더 잘 일반화할 수 있다.
+
+---
+
+**연습문제 3.**
+LAMB으로 4단계 동안 기울기 $[0.1, 0.2, 0.1, 0.3]$을 받은 매개변수의 실효 학습률을 유도하라. 명목 학습률과 어떻게 다른가?
+
+??? success "연습문제 3 풀이"
+    이 쪽의 갱신 규칙을 적용하여 4단계 뒤에 누적된 상태를 계산하라. 실효 학습률은 명목 학습률을 누적된 이차 모멘트 항(에 엡실론을 더한 값)으로 나눈 것이다. 기울기가 꾸준히 큰 매개변수는 실효 학습률이 작아지고, 기울기가 작은 매개변수는 실효 학습률이 커진다.
+
+---
+
+**연습문제 4.**
+LAMB이(가) 어떤 학습률 선택에서 발산할 수 있는 이유를 설명하라. 안정 조건을 유도하라.
+
+??? success "연습문제 4 풀이"
+    실효 걸음 크기가 곡률의 한계를 넘으면 발산한다. 매개변수가 극소점을 지나쳐 진폭이 커지며 진동한다. 안정 조건은 학습률, 손실의 곡률(헤세 행렬의 고윳값), 최적화기의 적응 배율 사이의 관계에 달렸다. 볼록 이차 함수에서는 매끄러움 상수를 $L$이라 할 때 조건이 $\eta < 2/L$이다.

@@ -1,378 +1,317 @@
-# Gradient Computation
+# 경사 계산
+## 학습 목표
 
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Learning Objectives
-
-By the end of this section, you will be able to:
-
-- Derive the gradient of the BCE loss with respect to model parameters
-- Understand the elegant cancellation that simplifies the logistic regression gradient
-- Derive the Hessian matrix and prove convexity of the loss
-- Understand Newton's method and the IRLS algorithm as second-order optimization
-- Implement and compare gradient descent, Newton's method, and IRLS
+- 모델 매개변수에 대한 BCE 손실의 경사 유도하기
+- 로지스틱 회귀의 경사를 간단하게 만드는 우아한 상쇄 이해하기
+- 헤세 행렬을 유도하고 손실의 볼록성 증명하기
+- 이차 최적화로서의 뉴턴 방법과 IRLS 알고리즘 이해하기
+- 경사 하강법, 뉴턴 방법, IRLS를 구현하고 비교하기
 
 ---
 
-## The Optimization Problem
+## 최적화 문제
 
-We want to find parameters $\boldsymbol{\beta}$ that minimize the BCE loss:
+우리는 BCE 손실을 최소화하는 매개변수 $\boldsymbol{\beta}$을 찾고자 한다.
 
 $$
-
 \mathcal{L}(\boldsymbol{\beta}) = -\frac{1}{n}\sum_{i=1}^{n} \left[ y_i \log(\sigma(z_i)) + (1-y_i) \log(1-\sigma(z_i)) \right]
-
 $$
 
-where $z_i = \mathbf{x}_i^\top \boldsymbol{\beta}$ is the linear predictor and $\sigma(z) = \frac{1}{1+e^{-z}}$ is the sigmoid function.
+여기서 $z_i = \mathbf{x}_i^\top \boldsymbol{\beta}$은 선형 예측자이고 $\sigma(z) = \frac{1}{1+e^{-z}}$은 시그모이드 함수이다.
 
 ---
 
-## Step-by-Step Gradient Derivation
+## 단계별 경사 유도
 
-### Step 1: Chain Rule Setup
+### 1단계: 연쇄 법칙 준비
 
-For a single sample $i$, the loss contribution is:
+표본 하나 $i$가 손실에 기여하는 몫은 다음과 같다.
 
 $$
-
 \ell_i = -y_i \log(p_i) - (1-y_i) \log(1-p_i)
-
 $$
 
-where $p_i = \sigma(z_i)$ and $z_i = \mathbf{x}_i^\top \boldsymbol{\beta}$. By the chain rule:
+여기서 $p_i = \sigma(z_i)$이고 $z_i = \mathbf{x}_i^\top \boldsymbol{\beta}$이다. 연쇄 법칙에 의해 다음과 같다.
 
 $$
-
 \frac{\partial \ell_i}{\partial \boldsymbol{\beta}} = \frac{\partial \ell_i}{\partial p_i} \cdot \frac{\partial p_i}{\partial z_i} \cdot \frac{\partial z_i}{\partial \boldsymbol{\beta}}
-
 $$
 
-### Step 2: Derivative of Loss w.r.t. Probability
+### 2단계: 확률에 대한 손실의 도함수
 
 $$
-
 \frac{\partial \ell_i}{\partial p_i} = -\frac{y_i}{p_i} + \frac{1-y_i}{1-p_i} = \frac{-y_i(1-p_i) + (1-y_i)p_i}{p_i(1-p_i)} = \frac{p_i - y_i}{p_i(1-p_i)}
-
 $$
 
-### Step 3: Derivative of Sigmoid
+### 3단계: 시그모이드의 도함수
 
-The sigmoid has a beautiful derivative property:
+시그모이드에는 아름다운 도함수 성질이 있다.
 
 $$
-
 \frac{\partial p_i}{\partial z_i} = \sigma'(z_i) = \sigma(z_i)(1-\sigma(z_i)) = p_i(1-p_i)
-
 $$
 
-### Step 4: Derivative of Linear Predictor
+### 4단계: 선형 예측자의 도함수
 
 $$
-
 \frac{\partial z_i}{\partial \boldsymbol{\beta}} = \frac{\partial}{\partial \boldsymbol{\beta}}\left(\mathbf{x}_i^\top \boldsymbol{\beta}\right) = \mathbf{x}_i
-
 $$
 
-### Step 5: The Elegant Cancellation
+### 5단계: 우아한 상쇄
 
-Combining via the chain rule:
+연쇄 법칙으로 합치면 다음과 같다.
 
 $$
-
 \frac{\partial \ell_i}{\partial \boldsymbol{\beta}} = \frac{p_i - y_i}{p_i(1-p_i)} \cdot p_i(1-p_i) \cdot \mathbf{x}_i
-
 $$
 
-The $p_i(1-p_i)$ terms **cancel**:
+$p_i(1-p_i)$ 항들이 **상쇄된다**.
 
 $$
-
 \boxed{\frac{\partial \ell_i}{\partial \boldsymbol{\beta}} = (p_i - y_i)\mathbf{x}_i = (\sigma(\mathbf{x}_i^\top \boldsymbol{\beta}) - y_i)\mathbf{x}_i}
-
 $$
 
-This cancellation is no accident — it is a consequence of the **canonical link** in the GLM framework. When we use the logit link with a Bernoulli response, the gradient simplifies to this elegant form.
+이 상쇄는 우연이 아니다. GLM의 틀에서 **정준 연결**을 쓴 결과이다. 베르누이 반응에 로짓 연결을 쓰면 경사가 이 우아한 형태로 간단해진다.
 
 ---
 
-## The Complete Gradient
+## 전체 경사
 
-### For the Average Loss
+### 평균 손실에 대해
 
-The gradient of the average BCE loss is:
+평균 BCE 손실의 경사는 다음과 같다.
 
 $$
-
 \nabla_{\boldsymbol{\beta}} \mathcal{L} = \frac{1}{n}\sum_{i=1}^{n} (\sigma(\mathbf{x}_i^\top \boldsymbol{\beta}) - y_i)\mathbf{x}_i
-
 $$
 
-### In Matrix Form
+### 행렬 형태
 
-Let $\mathbf{X} \in \mathbb{R}^{n \times d}$ be the design matrix (rows are samples), $\mathbf{p} = \sigma(\mathbf{X}\boldsymbol{\beta}) \in \mathbb{R}^n$ the predicted probabilities, and $\mathbf{y} \in \{0,1\}^n$ the true labels. Then:
+$\mathbf{X} \in \mathbb{R}^{n \times d}$을 설계 행렬(행이 표본), $\mathbf{p} = \sigma(\mathbf{X}\boldsymbol{\beta}) \in \mathbb{R}^n$을 예측 확률, $\mathbf{y} \in \{0,1\}^n$을 참 이름표라 하자. 그러면 다음이 성립한다.
 
 $$
-
 \boxed{\nabla_{\boldsymbol{\beta}} \mathcal{L} = \frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y})}
-
 $$
 
-This elegant form is the **error-weighted features**: each sample's feature vector $\mathbf{x}_i$ is scaled by the prediction error $(p_i - y_i)$.
+이 우아한 형태는 **오차로 가중된 특징**이다. 각 표본의 특징 벡터 $\mathbf{x}_i$에 예측 오차 $(p_i - y_i)$이 곱해진다.
 
-### Comparison with Linear Regression
+### 선형 회귀와의 비교
 
-| Model | Gradient (per-sample) |
+| 모델 | 경사 (표본당) |
 |-------|----------------------|
-| Linear Regression | $(y_i - \hat{y}_i)\mathbf{x}_i$ |
-| Logistic Regression | $(\hat{p}_i - y_i)\mathbf{x}_i$ |
+| 선형 회귀 | $(y_i - \hat{y}_i)\mathbf{x}_i$ |
+| 로지스틱 회귀 | $(\hat{p}_i - y_i)\mathbf{x}_i$ |
 
-The forms are identical except for the sign convention and the use of probability $\hat{p}_i$ instead of continuous prediction $\hat{y}_i$.
+부호 관례와, 연속적인 예측 $\hat{y}_i$ 대신 확률 $\hat{p}_i$을 쓴다는 점만 빼면 형태가 동일하다.
 
 ---
 
-## Gradient Interpretation
+## 경사의 해석
 
-### Error Signal
+### 오차 신호
 
-The term $(p_i - y_i)$ is the **prediction error**:
+$(p_i - y_i)$ 항이 **예측 오차**이다.
 
-| Scenario | $y_i$ | $p_i$ | $p_i - y_i$ | Effect on gradient |
+| 상황 | $y_i$ | $p_i$ | $p_i - y_i$ | 경사에 미치는 영향 |
 |----------|-------|-------|-------------|-------------------|
-| Correct, confident | 1 | 0.99 | -0.01 | Small update |
-| Correct, uncertain | 1 | 0.6 | -0.4 | Medium update |
-| Wrong, confident | 0 | 0.99 | +0.99 | **Large update** |
-| Wrong, uncertain | 0 | 0.6 | +0.6 | Medium update |
+| 맞고 확신함 | 1 | 0.99 | -0.01 | 작은 갱신 |
+| 맞지만 불확실함 | 1 | 0.6 | -0.4 | 중간 갱신 |
+| 틀렸는데 확신함 | 0 | 0.99 | +0.99 | **큰 갱신** |
+| 틀렸고 불확실함 | 0 | 0.6 | +0.6 | 중간 갱신 |
 
-### Gradient Properties
+### 경사의 성질
 
-1. **Bounded errors**: Since $p \in (0, 1)$ and $y \in \{0, 1\}$, errors are bounded: $|p - y| < 1$
-2. **Feature scaling matters**: Large features → large gradients → potentially unstable training
-3. **Vanishing gradients near optimum**: When $p \approx y$, gradient is small
+1. **유계인 오차**: $p \in (0, 1)$이고 $y \in \{0, 1\}$이므로 오차는 유계이다. $|p - y| < 1$
+2. **특징의 규모가 중요하다**: 큰 특징 → 큰 경사 → 학습이 불안정해질 수 있다
+3. **최적점 근처에서 경사가 사라진다**: $p \approx y$이면 경사가 작다
 
 ---
 
-## Gradient Descent Update Rule
+## 경사 하강법의 갱신 규칙
 
-### Standard (Batch) Gradient Descent
+### 표준 (배치) 경사 하강법
 
 $$
-
 \boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \frac{\eta}{n}\mathbf{X}^\top(\mathbf{p}^{(t)} - \mathbf{y})
-
 $$
 
-### Stochastic Gradient Descent
+### 확률적 경사 하강법
 
-For a single sample $i$:
+표본 하나 $i$에 대해 다음과 같다.
 
 $$
-
 \boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \eta (p_i^{(t)} - y_i)\mathbf{x}_i
-
 $$
 
-### Mini-Batch SGD
+### 미니배치 SGD
 
-For a batch $\mathcal{B}$ of size $B$:
+크기가 $B$인 배치 $\mathcal{B}$에 대해 다음과 같다.
 
 $$
-
 \boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \frac{\eta}{B}\sum_{i \in \mathcal{B}} (p_i^{(t)} - y_i)\mathbf{x}_i
-
 $$
 
 ---
 
-## Hessian Derivation
+## 헤세 행렬의 유도
 
-### Per-Sample Second Derivative
+### 표본별 이계도함수
 
-The gradient contribution from sample $i$ is $(p_i - y_i)\mathbf{x}_i$. Since $y_i$ is constant, we differentiate only the $p_i$ term:
+표본 $i$이 경사에 기여하는 몫은 $(p_i - y_i)\mathbf{x}_i$이다. $y_i$은 상수이므로 $p_i$ 항만 미분한다.
 
 $$
-
 \frac{\partial^2 \mathcal{L}}{\partial \boldsymbol{\beta} \partial \boldsymbol{\beta}^{\top}} \bigg|_{\text{sample } i} = \mathbf{x}_i \frac{\partial p_i}{\partial \boldsymbol{\beta}^{\top}} = p_i(1-p_i) \, \mathbf{x}_i \mathbf{x}_i^{\top}
-
 $$
 
-### Full Hessian
+### 전체 헤세 행렬
 
-Summing over all samples (for the unaveraged loss):
+(평균을 내지 않은 손실에 대해) 모든 표본에 걸쳐 더하면 다음과 같다.
 
 $$
-
 \mathbf{H} = \nabla^2_{\boldsymbol{\beta}} \mathcal{L} = \sum_{i=1}^{n} p_i(1-p_i) \, \mathbf{x}_i \mathbf{x}_i^{\top}
-
 $$
 
-Define the diagonal weight matrix $\mathbf{B} = \operatorname{diag}(p_1(1-p_1), \ldots, p_n(1-p_n))$. Then:
+대각 가중치 행렬 $\mathbf{B} = \operatorname{diag}(p_1(1-p_1), \ldots, p_n(1-p_n))$을 정의하자. 그러면 다음이 성립한다.
 
 $$
-
 \boxed{\mathbf{H} = \mathbf{X}^{\top} \mathbf{B} \mathbf{X}}
-
 $$
 
-### Positive Semi-Definiteness and Convexity
+### 양의 준정부호성과 볼록성
 
-For any vector $\mathbf{v} \in \mathbb{R}^d$:
+임의의 벡터 $\mathbf{v} \in \mathbb{R}^d$에 대해 다음이 성립한다.
 
 $$
-
 \mathbf{v}^{\top} \mathbf{H} \mathbf{v} = \mathbf{v}^{\top} \mathbf{X}^{\top} \mathbf{B} \mathbf{X} \mathbf{v} = (\mathbf{X}\mathbf{v})^{\top} \mathbf{B} (\mathbf{X}\mathbf{v}) = \sum_{i=1}^{n} p_i(1-p_i)(\mathbf{x}_i^{\top}\mathbf{v})^2
-
 $$
 
-Since $p_i \in (0, 1)$ we have $p_i(1-p_i) > 0$, and $(\mathbf{x}_i^{\top}\mathbf{v})^2 \geq 0$, so every term is non-negative:
+$p_i \in (0, 1)$이므로 $p_i(1-p_i) > 0$이고 $(\mathbf{x}_i^{\top}\mathbf{v})^2 \geq 0$이므로, 모든 항이 음이 아니다.
 
 $$
-
 \mathbf{v}^{\top} \mathbf{H} \mathbf{v} \geq 0 \quad \forall \, \mathbf{v}
-
 $$
 
-Therefore $\mathbf{H}$ is **positive semi-definite**, which means the negative log-likelihood is **convex**. If $\mathbf{X}$ has full column rank, the Hessian is strictly positive definite and the loss is strictly convex, guaranteeing a unique global minimum.
+따라서 $\mathbf{H}$은 **양의 준정부호**이며, 이는 음의 로그가능도가 **볼록**함을 뜻한다. $\mathbf{X}$이 완전 열계수를 가지면 헤세 행렬이 엄격히 양의 정부호가 되어 손실이 엄격히 볼록해지고, 유일한 전역 최솟값이 보장된다.
 
 ---
 
-## Newton's Method
+## 뉴턴 방법
 
-### Update Rule
+### 갱신 규칙
 
-Newton's method uses the Hessian to take curvature-informed steps:
+뉴턴 방법은 헤세 행렬을 사용하여 곡률을 반영한 걸음을 내딛는다.
 
 $$
-
 \boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \mathbf{H}^{-1} \mathbf{g}
-
 $$
 
-Substituting the gradient and Hessian:
+경사와 헤세 행렬을 대입하면 다음과 같다.
 
 $$
-
 \boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1} \mathbf{X}^{\top}(\mathbf{p} - \mathbf{y})
-
 $$
 
-### Comparison with Gradient Descent
+### 경사 하강법과의 비교
 
-| Property | Gradient Descent | Newton's Method |
+| 성질 | 경사 하강법 | 뉴턴 방법 |
 |----------|-----------------|-----------------|
-| Update | $\boldsymbol{\beta} - \eta \mathbf{g}$ | $\boldsymbol{\beta} - \mathbf{H}^{-1}\mathbf{g}$ |
-| Convergence rate | Linear | Quadratic (near optimum) |
-| Per-step cost | $O(nd)$ | $O(nd^2 + d^3)$ |
-| Hyperparameters | Learning rate $\eta$ | None (or damping factor) |
-| Memory | $O(d)$ | $O(d^2)$ for Hessian |
+| 갱신 | $\boldsymbol{\beta} - \eta \mathbf{g}$ | $\boldsymbol{\beta} - \mathbf{H}^{-1}\mathbf{g}$ |
+| 수렴 속도 | 선형 | 이차 (최적점 근처에서) |
+| 단계당 비용 | $O(nd)$ | $O(nd^2 + d^3)$ |
+| 초매개변수 | 학습률 $\eta$ | 없음 (또는 감쇠 인수) |
+| 메모리 | $O(d)$ | 헤세 행렬에 $O(d^2)$ |
 
-Newton's method converges in far fewer iterations but each iteration is more expensive due to the Hessian computation and matrix inversion.
+뉴턴 방법은 훨씬 적은 반복으로 수렴하지만, 헤세 행렬 계산과 행렬 역변환 때문에 반복마다 비용이 더 크다.
 
 ---
 
-## Iteratively Reweighted Least Squares (IRLS)
+## 반복 재가중 최소제곱 (IRLS)
 
-### Derivation from Newton's Method
+### 뉴턴 방법으로부터의 유도
 
-Starting from Newton's update and rearranging into normal-equations form. Multiply both sides by $(\mathbf{X}^{\top}\mathbf{B}\mathbf{X})$:
+뉴턴 갱신에서 출발하여 정규 방정식의 형태로 정리한다. 양변에 $(\mathbf{X}^{\top}\mathbf{B}\mathbf{X})$을 곱한다.
 
 $$
-
 (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})\boldsymbol{\beta}^{(t)} - \mathbf{X}^{\top}(\mathbf{p} - \mathbf{y})
-
 $$
 
-Factor $\mathbf{X}^{\top}$ from the right-hand side:
+우변에서 $\mathbf{X}^{\top}$을 묶어내면 다음과 같다.
 
 $$
-
 (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})\boldsymbol{\beta}^{(t+1)} = \mathbf{X}^{\top}\bigl[\mathbf{B}\mathbf{X}\boldsymbol{\beta}^{(t)} - (\mathbf{p} - \mathbf{y})\bigr]
-
 $$
 
-Since $\mathbf{B}$ is invertible, write $(\mathbf{p} - \mathbf{y}) = \mathbf{B}\mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$:
+$\mathbf{B}$은 가역이므로 $(\mathbf{p} - \mathbf{y}) = \mathbf{B}\mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$으로 쓴다.
 
 $$
-
 (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})\boldsymbol{\beta}^{(t+1)} = \mathbf{X}^{\top}\mathbf{B}\bigl[\mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})\bigr]
-
 $$
 
-### The Working Response
+### 작업 반응
 
-Define the **working response** (or adjusted dependent variable):
+**작업 반응**(또는 조정된 종속 변수)을 다음과 같이 정의한다.
 
 $$
-
 \mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})
-
 $$
 
-Then the update becomes:
+그러면 갱신은 다음이 된다.
 
 $$
-
 \boxed{\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}}
-
 $$
 
-### Connection to Weighted Least Squares
+### 가중 최소제곱과의 관계
 
-This is exactly the **normal equation** for the weighted least squares problem:
+이는 정확히 다음 가중 최소제곱 문제의 **정규 방정식**이다.
 
 $$
-
 \min_{\boldsymbol{\beta}} \; (\mathbf{z} - \mathbf{X}\boldsymbol{\beta})^{\top} \mathbf{B} (\mathbf{z} - \mathbf{X}\boldsymbol{\beta})
-
 $$
 
-At each iteration, we solve a weighted least squares problem where:
+매 반복마다 다음과 같은 가중 최소제곱 문제를 푼다.
 
-- The **response** $\mathbf{z}$ is the linearized version of the nonlinear model
-- The **weights** $\mathbf{B}$ reflect the variance of each observation under the current parameters
-- Both $\mathbf{z}$ and $\mathbf{B}$ depend on $\boldsymbol{\beta}^{(t)}$ and must be recomputed each iteration
+- **반응** $\mathbf{z}$은 비선형 모델을 선형화한 것이다
+- **가중치** $\mathbf{B}$은 현재 매개변수 아래에서 각 관측의 분산을 반영한다
+- $\mathbf{z}$과 $\mathbf{B}$은 모두 $\boldsymbol{\beta}^{(t)}$에 의존하므로 반복마다 다시 계산해야 한다
 
-Because the weight matrix $\mathbf{B}$ changes at every step, this procedure is called **Iteratively Reweighted Least Squares (IRLS)**.
+가중치 행렬 $\mathbf{B}$이 매 단계 바뀌므로 이 절차를 **반복 재가중 최소제곱(IRLS)**이라 부른다.
 
-### IRLS Algorithm
+### IRLS 알고리즘
 
-1. Initialize $\boldsymbol{\beta}^{(0)}$ (e.g., zeros)
-2. **Repeat** until convergence:
-    - Compute predictions: $\mathbf{p} = \sigma(\mathbf{X}\boldsymbol{\beta}^{(t)})$
-    - Compute weights: $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$
-    - Compute working response: $\mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$
-    - Solve: $\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}$
-3. Return $\boldsymbol{\beta}^{(t+1)}$
+1. $\boldsymbol{\beta}^{(0)}$을 초기화한다 (예: 0)
+2. 수렴할 때까지 **반복한다**.
+    - 예측을 계산한다: $\mathbf{p} = \sigma(\mathbf{X}\boldsymbol{\beta}^{(t)})$
+    - 가중치를 계산한다: $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$
+    - 작업 반응을 계산한다: $\mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$
+    - 푼다: $\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}$
+3. $\boldsymbol{\beta}^{(t+1)}$을 반환한다
 
-### Working Response Interpretation
+### 작업 반응의 해석
 
-The working response for observation $i$ is:
+관측 $i$에 대한 작업 반응은 다음과 같다.
 
 $$
-
 z_i = \mathbf{x}_i^{\top}\boldsymbol{\beta}^{(t)} - \frac{p_i - y_i}{p_i(1-p_i)}
-
 $$
 
-This is the current linear predictor adjusted by a linearized correction term. Note that $p_i(1-p_i) = \sigma'(\mathbf{x}_i^{\top}\boldsymbol{\beta}^{(t)})$, so the adjustment is the residual divided by the derivative of the link function — precisely the first-order Taylor expansion of the link function applied to the response.
+이는 현재의 선형 예측자를 선형화한 보정 항으로 조정한 것이다. $p_i(1-p_i) = \sigma'(\mathbf{x}_i^{\top}\boldsymbol{\beta}^{(t)})$임에 유의하라. 즉 조정량은 잔차를 연결 함수의 도함수로 나눈 것이며, 이는 정확히 반응에 적용한 연결 함수의 일차 테일러 전개이다.
 
-### GLM Perspective
+### GLM의 관점
 
-IRLS is not specific to logistic regression. It applies to the entire family of **generalized linear models (GLMs)**. For any GLM with canonical link:
+IRLS은 로지스틱 회귀에만 국한되지 않는다. **일반화 선형 모형(GLM)** 전체에 적용된다. 정준 연결을 쓰는 어떤 GLM에서든 다음이 성립한다.
 
 $$
-
 \boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{W}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{W}\mathbf{z}
-
 $$
 
-where $\mathbf{W}$ and $\mathbf{z}$ depend on the specific distribution and link function.
+여기서 $\mathbf{W}$과 $\mathbf{z}$은 구체적인 분포와 연결 함수에 따라 달라진다.
 
 ---
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 """
@@ -405,35 +344,30 @@ print("GRADIENT, HESSIAN, AND IRLS FOR LOGISTIC REGRESSION")
 print("=" * 70)
 
 # ============================================================================
-# Part 1: Core Functions
+# 1부: 핵심 함수들
 # ============================================================================
-
 
 def sigmoid(z):
     return 1.0 / (1.0 + torch.exp(-z))
-
 
 def compute_loss(X, y, beta):
     p = sigmoid(X @ beta)
     eps = 1e-12
     return -(y * torch.log(p + eps) + (1 - y) * torch.log(1 - p + eps)).mean()
 
-
 def compute_gradient(X, y, beta):
     """g = (1/n) X^T (p - y)"""
     p = sigmoid(X @ beta)
     return (1.0 / len(y)) * X.T @ (p - y)
 
-
 def compute_hessian(X, beta):
-    """H = (1/n) X^T B X where B = diag(p_i(1-p_i))"""
+    """H = (1/n) X^T B X이며 여기서 B = diag(p_i(1-p_i))이다"""
     p = sigmoid(X @ beta)
     b = p * (1 - p)  # (n, 1)
     return (1.0 / len(p)) * (X * b).T @ X
 
-
 # ============================================================================
-# Part 2: Verify Gradient via Autograd
+# 2부: Autograd로 경사 확인하기
 # ============================================================================
 
 print("\n1. Verifying Gradient Computation")
@@ -444,11 +378,11 @@ X = torch.randn(n_samples, n_features)
 y = torch.randint(0, 2, (n_samples, 1)).float()
 beta = torch.randn(n_features, 1, requires_grad=True)
 
-# Manual gradient
+# 직접 계산한 경사
 with torch.no_grad():
     manual_grad = compute_gradient(X, y, beta)
 
-# Autograd gradient
+# Autograd가 계산한 경사
 loss = compute_loss(X, y, beta)
 loss.backward()
 autograd_grad = beta.grad
@@ -459,7 +393,7 @@ print(f"Max difference: {(manual_grad - autograd_grad).abs().max().item():.2e}")
 print(f"Gradients match: {torch.allclose(manual_grad, autograd_grad, atol=1e-6)}")
 
 # ============================================================================
-# Part 3: Gradient Components Breakdown
+# 3부: 경사의 성분 분해
 # ============================================================================
 
 print("\n" + "=" * 70)
@@ -493,7 +427,7 @@ gradient_small = (1 / 3) * X_small.T @ error_small
 print(f"\nTotal gradient (averaged): {[f'{v:.3f}' for v in gradient_small.flatten().tolist()]}")
 
 # ============================================================================
-# Part 4: Hessian and Convexity Verification
+# 4부: 헤세 행렬과 볼록성 확인
 # ============================================================================
 
 print("\n" + "=" * 70)
@@ -513,7 +447,7 @@ X_test = torch.FloatTensor(scaler.transform(X_test))
 y_train = torch.FloatTensor(y_train).reshape(-1, 1)
 y_test = torch.FloatTensor(y_test).reshape(-1, 1)
 
-# Add bias column
+# 편향 열을 추가한다
 X_train = torch.cat([torch.ones(len(X_train), 1), X_train], dim=1)
 X_test = torch.cat([torch.ones(len(X_test), 1), X_test], dim=1)
 
@@ -530,14 +464,14 @@ print(f"Smallest eigenvalue: {eigenvalues.min().item():.6f}")
 print("=> Loss is convex (PSD Hessian confirmed)")
 
 # ============================================================================
-# Part 5: Convergence Comparison — GD vs Newton vs IRLS
+# 5부: 수렴 비교 — GD 대 뉴턴 대 IRLS
 # ============================================================================
 
 print("\n" + "=" * 70)
 print("CONVERGENCE COMPARISON")
 print("=" * 70)
 
-# --- Gradient Descent ---
+# --- 경사 하강법 ---
 beta_gd = torch.zeros(d, 1)
 lr = 1.0
 gd_losses = []
@@ -548,7 +482,7 @@ for epoch in range(50):
     g = compute_gradient(X_train, y_train, beta_gd)
     beta_gd = beta_gd - lr * g
 
-# --- Newton's Method ---
+# --- 뉴턴 방법 ---
 beta_newton = torch.zeros(d, 1)
 newton_losses = []
 
@@ -577,17 +511,17 @@ print(f"GD final loss (50 iters):     {gd_losses[-1]:.6f}")
 print(f"Newton final loss (10 iters): {newton_losses[-1]:.6f}")
 print(f"IRLS final loss (10 iters):   {irls_losses[-1]:.6f}")
 
-# Verify Newton == IRLS
+# 뉴턴 == IRLS임을 확인한다
 print(f"\nNewton ≈ IRLS: {torch.allclose(beta_newton, beta_irls, atol=1e-5)}")
 print(f"Max difference: {(beta_newton - beta_irls).abs().max().item():.2e}")
 
 # ============================================================================
-# Part 6: Visualization
+# 6부: 시각화
 # ============================================================================
 
 fig, axes = plt.subplots(1, 3, figsize=(15, 4))
 
-# Plot 1: Convergence comparison
+# 그림 1: 수렴 비교
 ax = axes[0]
 ax.plot(gd_losses, "b-o", ms=3, label=f"Gradient Descent ({len(gd_losses)} iters)")
 ax.plot(newton_losses, "r-s", ms=5, label=f"Newton ({len(newton_losses)} iters)")
@@ -598,7 +532,7 @@ ax.set_title("Convergence Comparison")
 ax.legend()
 ax.grid(True, alpha=0.3)
 
-# Plot 2: Log-scale convergence (quadratic vs linear)
+# 그림 2: 로그 척도 수렴 (이차 대 선형)
 ax = axes[1]
 loss_star = min(newton_losses[-1], gd_losses[-1])
 gd_gap = [abs(l - loss_star) + 1e-16 for l in gd_losses]
@@ -611,7 +545,7 @@ ax.set_title("Convergence Rate (log scale)")
 ax.legend()
 ax.grid(True, alpha=0.3)
 
-# Plot 3: Gradient norm during GD training
+# 그림 3: GD 학습 중 경사의 노름
 beta_gd2 = torch.zeros(d, 1)
 grad_norms = []
 for epoch in range(50):
@@ -635,43 +569,102 @@ print("\n✓ Visualization saved!")
 
 ---
 
-## Exercises
+## 요약
 
-### Mathematical
-
-1. **Show** that when the data is linearly separable, the MLE does not exist (parameters diverge to infinity) and explain how this manifests in the Hessian becoming ill-conditioned.
-
-2. **Derive** the IRLS update for Poisson regression with the canonical log link and identify the corresponding weight matrix $\mathbf{B}$.
-
-3. **Analyze** how the gradient magnitude changes as predictions become more confident, and relate this to the vanishing gradient problem in deep networks.
-
-### Computational
-
-4. Implement a damped Newton's method with line search and compare its robustness to pure Newton's method on ill-conditioned problems.
-
-5. Create a visualization showing the optimization trajectory of gradient descent vs Newton's method on the log-likelihood surface.
-
----
-
-## Summary
-
-| Quantity | Formula |
+| 양 | 공식 |
 |----------|---------|
-| Per-sample gradient | $(p_i - y_i)\mathbf{x}_i$ |
-| Batch gradient | $\frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y})$ |
-| Key cancellation | $\frac{p-y}{p(1-p)} \cdot p(1-p) = p - y$ |
-| Hessian | $\mathbf{H} = \mathbf{X}^{\top}\mathbf{B}\mathbf{X}$ |
-| Weight matrix | $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$ |
-| Newton update | $\boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \mathbf{H}^{-1}\mathbf{g}$ |
-| IRLS update | $\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}$ |
-| Working response | $\mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$ |
+| 표본별 경사 | $(p_i - y_i)\mathbf{x}_i$ |
+| 배치 경사 | $\frac{1}{n}\mathbf{X}^\top(\mathbf{p} - \mathbf{y})$ |
+| 핵심 상쇄 | $\frac{p-y}{p(1-p)} \cdot p(1-p) = p - y$ |
+| 헤세 행렬 | $\mathbf{H} = \mathbf{X}^{\top}\mathbf{B}\mathbf{X}$ |
+| 가중치 행렬 | $\mathbf{B} = \operatorname{diag}(p_i(1-p_i))$ |
+| 뉴턴 갱신 | $\boldsymbol{\beta}^{(t+1)} = \boldsymbol{\beta}^{(t)} - \mathbf{H}^{-1}\mathbf{g}$ |
+| IRLS 갱신 | $\boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^{\top}\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^{\top}\mathbf{B}\mathbf{z}$ |
+| 작업 반응 | $\mathbf{z} = \mathbf{X}\boldsymbol{\beta}^{(t)} - \mathbf{B}^{-1}(\mathbf{p} - \mathbf{y})$ |
 
-The elegant gradient formula $(\sigma(\mathbf{x}^\top\boldsymbol{\beta}) - y)\mathbf{x}$ enables efficient first-order optimization, while the Hessian $\mathbf{X}^\top\mathbf{B}\mathbf{X}$ provides both a proof of convexity and the foundation for second-order methods (Newton/IRLS) with quadratic convergence.
+우아한 경사 공식 $(\sigma(\mathbf{x}^\top\boldsymbol{\beta}) - y)\mathbf{x}$은 효율적인 일차 최적화를 가능케 하고, 헤세 행렬 $\mathbf{X}^\top\mathbf{B}\mathbf{X}$은 볼록성의 증명과 이차 수렴을 갖는 이차 방법(뉴턴/IRLS)의 토대를 함께 제공한다.
 
 ---
 
-## References
+## 참고 문헌
 
 1. Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*, Section 4.3.3
 2. McCullagh, P. & Nelder, J. A. (1989). *Generalized Linear Models*, 2nd ed.
 3. Green, P. J. (1984). Iteratively reweighted least squares for maximum likelihood estimation, and some robust and resistant alternatives. *JRSS-B*, 46(2), 149–192.
+
+## 연습문제
+
+**연습문제 1.**
+데이터가 선형 분리 가능하면 $\|\boldsymbol{\beta}\| \to \infty$이 되어 MLE이 존재하지 않음을 보여라.
+
+??? success "연습문제 1 풀이"
+    데이터가 선형 분리 가능하면 모든 $i$에 대해 $y_i \mathbf{x}_i^\top\boldsymbol{\beta} > 0$인 $\boldsymbol{\beta}$이 존재한다. 로그가능도는 다음과 같다.
+
+    $$
+    \ell(\boldsymbol{\beta}) = \sum_i [y_i \mathbf{x}_i^\top\boldsymbol{\beta} - \log(1+e^{\mathbf{x}_i^\top\boldsymbol{\beta}})]
+    $$
+
+    $c \to \infty$으로 $\boldsymbol{\beta} \to c\boldsymbol{\beta}$처럼 배율을 키우면 각 $\sigma(c \cdot \mathbf{x}_i^\top\boldsymbol{\beta}) \to y_i$이 되어 $\ell \to 0$(상한)이다. 그러나 유한한 $\boldsymbol{\beta}$에서는 $\ell = 0$에 결코 도달하지 못하므로 MLE이 존재하지 않는다. 모든 $i$에 대해 $\sigma_i(1-\sigma_i) \to 0$이 되면서 헤세 행렬은 특이해진다. $\square$
+
+---
+
+**연습문제 2.**
+정준 로그 연결을 쓰는 포아송 회귀에 대한 IRLS 갱신을 유도하라.
+
+??? success "연습문제 2 풀이"
+    $\mu_i = e^{\mathbf{x}_i^\top\boldsymbol{\beta}}$(로그 연결)인 포아송의 경우, $\text{Var}(y_i) = \mu_i$이고 $\frac{d\mu}{d\eta} = \mu$이므로 가중치 행렬은 $\mathbf{B} = \text{diag}(\mu_1, \ldots, \mu_n)$이다.
+
+    작업 반응은 $z_i = \mathbf{x}_i^\top\boldsymbol{\beta} + \frac{y_i - \mu_i}{\mu_i}$이다.
+
+    IRLS 갱신은 다음과 같다.
+
+    $$
+    \boldsymbol{\beta}^{(t+1)} = (\mathbf{X}^\top\mathbf{B}\mathbf{X})^{-1}\mathbf{X}^\top\mathbf{B}\mathbf{z}
+    $$
+
+    여기서 $\mathbf{B} = \text{diag}(\hat{\mu}_1^{(t)}, \ldots, \hat{\mu}_n^{(t)})$이다.
+
+---
+
+**연습문제 3.**
+예측이 확신에 차감에 따라 경사의 크기 $\|(\sigma(\mathbf{x}^\top\boldsymbol{\beta}) - y)\mathbf{x}\|$이 어떻게 변하는지 분석하고, 이를 경사 소실과 연결하라.
+
+??? success "연습문제 3 풀이"
+    예측이 맞고 확신에 차 있으면 $\sigma(z) \approx y$이므로 잔차 $\sigma(z) - y \approx 0$이 되고 경사가 사라진다. 잘 분류된 점에서는 이것이 바람직하다.
+
+    그러나 깊은 신경망에서 시그모이드 활성화를 쓰면 포화 $\sigma'(z) = \sigma(z)(1-\sigma(z)) \leq 1/4$ 때문에 역전파 중 경사가 층마다 최소 4분의 1로 줄어든다. $L$개 층을 지나면 $\|\nabla\| \leq (1/4)^L$이 되어 지수적으로 사라진다. 이것이 ReLU 활성화와 배치 정규화가 개발된 동기가 되었다.
+
+---
+
+**연습문제 4.**
+로지스틱 회귀에 대해 되돌림 직선 탐색을 쓰는 뉴턴 방법을 구현하고, 경사 하강법과 수렴 속도를 비교하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    import torch
+
+    def newton_logistic(X, y, max_iter=20, tol=1e-8):
+        n, d = X.shape
+        beta = torch.zeros(d, dtype=torch.float64)
+        for t in range(max_iter):
+            z = X @ beta
+            p = torch.sigmoid(z)
+            g = X.T @ (p - y) / n  # gradient
+            B = torch.diag(p * (1 - p))
+            H = X.T @ B @ X / n    # Hessian
+            direction = torch.linalg.solve(H, -g)
+            # 되돌림 직선 탐색
+            step = 1.0
+            while True:
+                beta_new = beta + step * direction
+                loss_new = -(y * (X @ beta_new) - torch.log(1 + torch.exp(X @ beta_new))).mean()
+                loss_old = -(y * z - torch.log(1 + torch.exp(z))).mean()
+                if loss_new < loss_old + 0.5 * step * g @ direction:
+                    break
+                step *= 0.5
+            beta = beta_new
+            if torch.norm(g) < tol:
+                break
+        return beta
+    # 뉴턴은 약 5-10회 반복에 수렴하지만 경사 하강법은 수백 회가 필요하다
+    ```

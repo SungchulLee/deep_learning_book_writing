@@ -1,111 +1,86 @@
-# Lower Bound for Convex Hull
+# 볼록 껍질의 아래 한계
 
-Every convex hull algorithm must examine every input point, but can we do better
-than $O(n \log n)$? This page proves that the answer is no: any comparison-based
-convex hull algorithm requires $\Omega(n \log n)$ time in the worst case. The
-proof uses a reduction from the sorting problem, which itself has a known
-$\Omega(n \log n)$ lower bound.
+모든 볼록 껍질 알고리즘은 들임 점을 모두 살펴야 하지만 $O(n \log n)$보다 더 잘할 수 있을까? 이 쪽에서는 그럴 수 없음을 밝힌다. 곧 견줌에 바탕한 볼록 껍질 알고리즘은 가장 나쁜 경우 $\Omega(n \log n)$ 시간이 든다. 밝힘은 $\Omega(n \log n)$ 아래 한계가 알려진 정렬 문제로 줄이기를 쓴다.
 
-## Why Lower Bounds Matter
+## 아래 한계가 중요한 까닭
 
-An upper bound tells us that a problem *can* be solved in a given time.
-A lower bound tells us that *no algorithm* can do better. When the upper
-and lower bounds match, we know the algorithm is optimal. Since Andrew's
-monotone chain and Graham scan both run in $O(n \log n)$, proving a matching
-lower bound of $\Omega(n \log n)$ confirms that these algorithms are
-asymptotically optimal.
+위 한계는 문제를 주어진 시간에 풀 수 *있음*을 알려 준다. 아래 한계는 *어떤 알고리즘도* 그보다 잘할 수 없음을 알려 준다. 위와 아래 한계가 맞으면 그 알고리즘이 가장 좋음을 안다. 앤드루의 단조 사슬과 그레이엄 훑기가 모두 $O(n \log n)$이므로 $\Omega(n \log n)$ 아래 한계를 밝히면 이 알고리즘들이 점근으로 가장 좋음이 굳어진다.
 
-## The Sorting Lower Bound
+## 정렬의 아래 한계
 
-Any comparison-based sorting algorithm on $n$ elements requires $\Omega(n \log n)$
-comparisons in the worst case. This follows from a decision-tree argument: the
-algorithm must distinguish among $n!$ possible permutations, and a binary
-decision tree of depth $d$ has at most $2^d$ leaves.
+$n$개 낱개에 대한 견줌에 바탕한 정렬 알고리즘은 가장 나쁜 경우 $\Omega(n \log n)$번 견주어야 한다. 이는 결정 나무 논증에서 따라 나온다. 곧 알고리즘은 있을 수 있는 $n!$가지 자리 바꿈을 갈라내야 하고, 깊이 $d$인 이진 결정 나무의 잎은 많아야 $2^d$개이다.
 
 $$
 2^d \ge n! \implies d \ge \log_2(n!) = \Omega(n \log n)
 $$
 
-The last step uses Stirling's approximation $\log_2(n!) = n \log_2 n - \Theta(n)$.
+마지막 걸음은 스털링 어림 $\log_2(n!) = n \log_2 n - \Theta(n)$을 쓴다.
 
-## Reduction from Sorting to Convex Hull
+## 정렬에서 볼록 껍질로 줄이기
 
-!!! tip "Core Idea"
-    If we could compute the convex hull in $o(n \log n)$ time, then we could
-    sort $n$ numbers in $o(n \log n)$ time — contradicting the sorting lower bound.
+!!! tip "핵심 생각"
+    볼록 껍질을 $o(n \log n)$ 시간에 셈할 수 있다면 $n$개 수를 $o(n \log n)$ 시간에 정렬할 수 있고, 이는 정렬의 아래 한계에 어긋난다.
 
-**Theorem.** Any comparison-based algorithm for computing the convex hull
-of $n$ points in the plane requires $\Omega(n \log n)$ time in the worst case.
+**정리.** 평면 위 $n$개 점의 볼록 껍질을 셈하는 견줌에 바탕한 알고리즘은 가장 나쁜 경우 $\Omega(n \log n)$ 시간이 든다.
 
-**Proof.** We reduce sorting to convex hull in $O(n)$ time.
+**밝힘.** 정렬을 $O(n)$ 시간에 볼록 껍질로 줄인다.
 
-**Step 1 — Lift to a parabola.** Given $n$ real numbers $x_1, x_2, \ldots, x_n$
-to sort, construct $n$ points in the plane by mapping each $x_i$ to the point
-$(x_i,\, x_i^2)$. This takes $O(n)$ time.
+**걸음 1 — 포물선으로 들어 올리기.** 정렬할 실수 $x_1, x_2, \ldots, x_n$이 주어지면 각 $x_i$을 점 $(x_i,\, x_i^2)$으로 옮겨 평면 위에 $n$개 점을 세운다. $O(n)$ 시간이 든다.
 
-**Step 2 — All points are on the hull.** Every point $(x_i, x_i^2)$ lies on
-the parabola $y = x^2$, which is a convex curve. Therefore every constructed
-point is a vertex of the convex hull.
+**걸음 2 — 모든 점이 껍질 위에 있다.** 모든 점 $(x_i, x_i^2)$은 볼록 곡선인 포물선 $y = x^2$ 위에 있다. 따라서 세운 점은 모두 볼록 껍질의 꼭짓점이다.
 
-**Step 3 — Read the sorted order.** The convex hull algorithm returns the
-hull vertices in order (either clockwise or counterclockwise). Starting from
-the leftmost point and traversing the lower hull from left to right produces
-the $x$-coordinates in sorted order. This traversal takes $O(n)$ time.
+**걸음 3 — 정렬된 차례 읽기.** 볼록 껍질 알고리즘은 껍질 꼭짓점을 차례대로(시계나 반시계) 돌려준다. 가장 왼쪽 점에서 시작해 아래 껍질을 왼쪽에서 오른쪽으로 훑으면 $x$자리값이 정렬된 차례로 나온다. 이 훑기는 $O(n)$ 시간이 든다.
 
-**Combining the steps.** Sorting $n$ numbers reduces to convex hull
-computation plus $O(n)$ overhead:
+**걸음 아우르기.** $n$개 수의 정렬은 볼록 껍질 셈에 $O(n)$ 덧짐을 더한 것으로 줄어든다.
 
 $$
 T_{\text{sort}}(n) \le T_{\text{hull}}(n) + O(n)
 $$
 
-Since $T_{\text{sort}}(n) = \Omega(n \log n)$, we conclude
-$T_{\text{hull}}(n) = \Omega(n \log n)$. $\square$
+$T_{\text{sort}}(n) = \Omega(n \log n)$이므로 $T_{\text{hull}}(n) = \Omega(n \log n)$이라 매듭짓는다. $\square$
 
-## Worked Example
+## 풀이 예제
 
-Consider sorting the numbers $\{3, 1, 4, 1, 5\}$.
+수 $\{3, 1, 4, 1, 5\}$을 정렬한다고 하자.
 
-**Step 1.** Construct points: $(3, 9)$, $(1, 1)$, $(4, 16)$, $(1, 1)$, $(5, 25)$.
-After removing duplicates: $(1, 1)$, $(3, 9)$, $(4, 16)$, $(5, 25)$.
+**걸음 1.** 점을 세운다: $(3, 9)$, $(1, 1)$, $(4, 16)$, $(1, 1)$, $(5, 25)$. 겹친 것을 없애면 $(1, 1)$, $(3, 9)$, $(4, 16)$, $(5, 25)$이다.
 
-**Step 2.** All four points lie on $y = x^2$, so they all appear on the convex hull.
+**걸음 2.** 네 점이 모두 $y = x^2$ 위에 있으므로 모두 볼록 껍질에 나타난다.
 
-**Step 3.** Traversing the lower hull left to right yields $x$-coordinates
-$1, 3, 4, 5$ — the sorted order.
+**걸음 3.** 아래 껍질을 왼쪽에서 오른쪽으로 훑으면 $x$자리값 $1, 3, 4, 5$, 곧 정렬된 차례가 나온다.
 
 ```python
 """
-Lower bound for convex hull: reduction from sorting.
+볼록 껍질의 아래 한계: 정렬에서 줄이기.
 
-Demonstrates that sorting n numbers reduces to computing the convex hull
-of n points on the parabola y = x^2, confirming the Omega(n log n) lower bound.
+$n$개 수의 정렬이 볼록 껍질 셈하기로 줄어듦을 보인다
+곧 포물선 y = x^2 위 점 n개의 볼록 껍질 셈하기로 줄어들어 Omega(n log n) 아래 한계를 굳힌다.
 """
 
 
-# === Parabolic Lifting ===
+# === 포물면 들어 올리기 ===
 
 def lift_to_parabola(numbers):
-    """Map each number x to the point (x, x^2) on the parabola y = x^2."""
+    """수 x마다 포물선 y = x^2 위의 점 (x, x^2)으로 옮긴다."""
     return [(x, x * x) for x in numbers]
 
 
-# === Convex Hull (Andrew's Monotone Chain) ===
+# === 볼록 껍질(앤드루의 단조 사슬) ===
 
 def cross(o, a, b):
-    """Return the cross product of vectors OA and OB.
+    """벡터 OA과 OB의 어긋 곱을 돌려준다.
 
-    A positive value means a left turn, zero means collinear,
-    and a negative value means a right turn.
+    양수는 왼쪽 돌기, 0은 한 줄에 놓임을 뜻하고,
+    음수는 오른쪽 돌기를 뜻한다.
     """
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
 
 def convex_hull(points):
-    """Compute the convex hull using Andrew's monotone chain algorithm.
+    """앤드루의 단조 사슬 알고리즘으로 볼록 껍질을 셈한다.
 
-    Returns hull vertices in counterclockwise order.
-    Time complexity: O(n log n).
+    껍질 꼭짓점을 반시계 차례로 돌려준다.
+    시간 복잡도: O(n log n).
     """
     points = sorted(set(points))
     if len(points) <= 1:
@@ -126,34 +101,34 @@ def convex_hull(points):
     return lower[:-1] + upper[:-1]
 
 
-# === Sorting via Convex Hull ===
+# === 볼록 껍질로 정렬하기 ===
 
 def sort_via_hull(numbers):
-    """Sort numbers by lifting to a parabola and reading the hull.
+    """포물선으로 들어 올린 뒤 껍질을 읽어 수를 정렬한다.
 
-    This reduction proves that convex hull is at least as hard as sorting.
+    이 줄이기는 볼록 껍질이 적어도 정렬만큼 어렵다는 것을 밝힌다.
     """
     points = lift_to_parabola(numbers)
     hull = convex_hull(points)
 
-    # Find the leftmost point (smallest x) and traverse the lower hull
+    # 가장 왼쪽 점(x이 가장 작은 점)을 찾아 아래 껍질을 훑는다
     sorted_x = [p[0] for p in hull]
-    # The hull is in CCW order; lower hull gives left-to-right order
+    # 껍질은 반시계 차례이다. 아래 껍질이 왼쪽에서 오른쪽 차례를 준다
     min_idx = sorted_x.index(min(sorted_x))
-    # Rotate so the smallest x comes first
+    # 가장 작은 x이 앞에 오도록 돌린다
     rotated = hull[min_idx:] + hull[:min_idx]
 
-    # Extract x-coordinates from lower hull (left to right)
+    # 아래 껍질에서 x자리값을 뽑아낸다(왼쪽에서 오른쪽으로)
     result = []
     for p in rotated:
         result.append(p[0])
         if len(result) > 1 and p[0] < result[-2]:
             break
-    # Simpler: just return sorted x-coords from hull vertices
+    # 더 단순하게: 껍질 꼭짓점에서 정렬한 x자리값만 돌려준다
     return sorted([p[0] for p in hull])
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     numbers = [3, 1, 4, 5, 2]
@@ -169,25 +144,53 @@ if __name__ == "__main__":
     print(f"Sorted output: {sorted_numbers}")
 ```
 
-## Output-Sensitive Algorithms
+## 내놓기에 민감한 알고리즘
 
-The $\Omega(n \log n)$ bound applies to worst-case comparison-based algorithms.
-Output-sensitive algorithms such as Chan's algorithm achieve $O(n \log h)$ where
-$h$ is the number of hull vertices. When $h = o(n)$, this is faster than
-$\Theta(n \log n)$. The lower bound still holds in the worst case because
-$h$ can be as large as $n$.
+$\Omega(n \log n)$ 한계는 가장 나쁜 경우의 견줌에 바탕한 알고리즘에 들어맞는다. 챈 알고리즘 같은 내놓기에 민감한 알고리즘은 $O(n \log h)$을 이루며 $h$은 껍질 꼭짓점의 수이다. $h = o(n)$이면 $\Theta(n \log n)$보다 빠르다. $h$이 $n$만큼 커질 수 있으므로 아래 한계는 가장 나쁜 경우에 여전히 참이다.
 
-## Key Takeaways
+## 핵심 정리
 
-| Aspect | Detail |
+| 항목 | 내용 |
 |---|---|
-| Lower bound | $\Omega(n \log n)$ for comparison-based convex hull |
-| Proof technique | Reduction from sorting |
-| Lifting map | $x \mapsto (x, x^2)$ on the parabola $y = x^2$ |
-| Optimal algorithms | Graham scan, Andrew's chain, merge hull |
-| Exception | Output-sensitive algorithms achieve $O(n \log h)$ |
+| 아래 한계 | 견줌에 바탕한 볼록 껍질에서 $\Omega(n \log n)$ |
+| 밝힘 재주 | 정렬에서 줄이기 |
+| 들어 올리는 옮김 | 포물선 $y = x^2$ 위의 $x \mapsto (x, x^2)$ |
+| 가장 좋은 알고리즘 | 그레이엄 훑기, 앤드루의 사슬, 합치기 껍질 |
+| 예외 | 내놓기에 민감한 알고리즘은 $O(n \log h)$을 이룬다 |
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms*. MIT Press.
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.
+
+## 연습문제
+
+**연습문제 1.**
+볼록 껍질의 아래 한계의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    볼록 껍질의 아래 한계은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 볼록 껍질의 아래 한계을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+볼록 껍질의 아래 한계은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+볼록 껍질의 아래 한계을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 볼록 껍질의 아래 한계은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

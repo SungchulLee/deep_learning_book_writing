@@ -144,3 +144,43 @@ The sharing check confirms that path copying reuses unchanged subtrees: the left
 
 - Driscoll, J.R., Sarnak, N., Sleator, D.D., and Tarjan, R.E. "Making Data Structures Persistent." *JCSS*, 1989
 - [Advanced Data Structures (Brass)](https://www.cambridge.org/core/books/advanced-data-structures/D56E2269D7CEE969A3B8105D3541F601)
+
+## Exercises
+
+**Exercise 1.**
+Describe how to make a BST partially persistent using path copying. What is the time and space cost per insert operation?
+
+??? success "Solution to Exercise 1"
+    For partial persistence (old versions are read-only, only the latest is modified): on each insert, the new key is placed at a leaf position. Copy all nodes from the root to the new leaf, linking each copied node's unchanged child to the original subtree. The new root becomes the latest version; the old root still points to the old tree. Time per insert: $O(h)$ where $h$ is the tree height (same as ephemeral BST). Space per insert: $O(h)$ new nodes (one per level on the root-to-leaf path). For a balanced BST (AVL or red-black), $h = O(\log n)$, so both time and space per insert are $O(\log n)$. After $m$ insertions, total space is $O(n + m \log n)$. $\square$
+
+---
+
+**Exercise 2.**
+Explain the difference between partial persistence and full persistence. Give an example where full persistence is necessary but partial persistence is insufficient.
+
+??? success "Solution to Exercise 2"
+    **Partial persistence**: all versions are queryable, but only the latest version can be modified. Versions form a linear sequence: $v_0 \to v_1 \to v_2 \to \cdots$. **Full persistence**: any version can be modified to produce a new version, creating a branching version tree. Example requiring full persistence: a version control system where a user checks out an old commit (version $v_3$) and makes a new edit, creating version $v_3'$ that branches off from $v_3$ rather than continuing from the latest $v_{10}$. With partial persistence, editing $v_3$ is impossible -- only $v_{10}$ can be modified. Another example: an undo tree in a text editor where the user can undo to any point and create a new branch of edits, rather than a linear undo/redo stack. $\square$
+
+---
+
+**Exercise 3.**
+A persistent red-black tree inserts a key that triggers a rebalancing rotation. How many additional nodes must be copied compared to a simple path-copying insert without rotation?
+
+??? success "Solution to Exercise 3"
+    A red-black tree insert may trigger up to $O(\log n)$ recolorings (which are pointer-field changes on existing nodes) and at most 2 rotations. Each recoloring along the path requires copying the recolored node (which is already on the root-to-leaf path, so it would be copied anyway). Each rotation involves rearranging parent-child pointers among 2--3 nodes. If the rotated nodes are on the insertion path, they are already being copied. If a rotation involves a node's sibling (off the path), that sibling must also be copied -- at most 1 additional node per rotation. With at most 2 rotations, the additional nodes are at most 2. Total nodes copied: $O(\log n) + O(1) = O(\log n)$. The rotations do not change the asymptotic cost. $\square$
+
+---
+
+**Exercise 4.**
+Design a persistent BST that supports the operation "count the number of keys in the range $[a, b]$ at version $v$" in $O(\log n)$ time. What augmentation is needed?
+
+??? success "Solution to Exercise 4"
+    Augment each node with a `size` field storing the number of nodes in its subtree. This is maintained during insertions: when copying nodes on the insertion path, update each copied node's size as the sum of its children's sizes plus 1. To count keys in $[a, b]$ at version $v$: define `rank(x, v)` as the number of keys $\le x$ in version $v$, computed by traversing the tree for version $v$ in $O(\log n)$ using the size fields. The count in $[a, b]$ is $\text{rank}(b, v) - \text{rank}(a-1, v)$, requiring two $O(\log n)$ traversals. The size augmentation adds $O(1)$ space per node and $O(1)$ time per node during updates, so the persistent BST's asymptotic complexities remain $O(\log n)$ per operation. $\square$
+
+---
+
+**Exercise 5.**
+Compare persistent BSTs implemented via path copying versus fat nodes. Under what conditions does each approach use less total space after $m$ operations on a tree of $n$ elements?
+
+??? success "Solution to Exercise 5"
+    **Path copying**: each update copies $O(\log n)$ nodes. Total space after $m$ operations: $O(n + m \log n)$. Each version has its own root pointer. **Fat nodes**: each update stores $O(1)$ field changes in the modified nodes (with amortized $O(1)$ space per update if the node has bounded in-degree). Total space: $O(n + m)$. However, queries must search through modification logs at each node, adding $O(\log m)$ time per node access (binary search on timestamps). Path copying uses less space when $m$ is small ($m \ll n$), since the initial $O(n)$ dominates. Fat nodes use less space when $m$ is large ($m \gg n / \log n$), since $O(m)$ vs. $O(m \log n)$ becomes significant. The crossover is at $m \approx n / \log n$. Path copying is simpler to implement and has no query-time overhead, making it the preferred choice in competitive programming and most practical applications. $\square$

@@ -1,62 +1,57 @@
-# 32.3.3 Bellman Equations
+# 32.3.3 벨먼 방정식
+## 개요
 
+**벨먼 방정식**은 값 함수를 되돌이로 적는다. 상태의 값은 즉시 보상에 다음 상태의 깎은 값을 더한 것과 같다. 이 방정식이 거의 모든 힘 북돋우는 배움 알고리즘의 수학 바탕이다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-The **Bellman equations** express value functions recursively: the value of a state equals the immediate reward plus the discounted value of the next state. These equations are the mathematical foundation of nearly all RL algorithms.
-
-## Bellman Equation for V_pi
+## V_pi의 벨먼 방정식
 
 $$V_\pi(s) = \sum_a \pi(a|s) \left[R(s,a) + \gamma \sum_{s'} P(s'|s,a) V_\pi(s')\right]$$
 
-Expanding step by step:
+걸음마다 펼치면:
 
-1. The agent is in state $s$
-2. It selects action $a$ with probability $\pi(a|s)$
-3. It receives expected reward $R(s,a)$
-4. It transitions to state $s'$ with probability $P(s'|s,a)$
-5. The value from $s'$ onward is $V_\pi(s')$, discounted by $\gamma$
+1. 부림꾼이 상태 $s$에 있다
+2. 확률 $\pi(a|s)$으로 움직임 $a$을 고른다
+3. 기대 보상 $R(s,a)$을 받는다
+4. 확률 $P(s'|s,a)$으로 상태 $s'$으로 옮겨 간다
+5. $s'$부터의 값은 $V_\pi(s')$이며 $\gamma$만큼 깎인다
 
-### Matrix Form
+### 행렬 꼴
 
 $$\mathbf{v}_\pi = \mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v}_\pi$$
 
-This is a system of $|\mathcal{S}|$ linear equations with $|\mathcal{S}|$ unknowns.
+이는 미지수가 $|\mathcal{S}|$개인 선형 방정식 $|\mathcal{S}|$개의 체계다.
 
-**Closed-form solution:**
+**닫힌 꼴 풀이:**
 
 $$\mathbf{v}_\pi = (\mathbf{I} - \gamma \mathbf{P}_\pi)^{-1} \mathbf{r}_\pi$$
 
-The matrix $(\mathbf{I} - \gamma \mathbf{P}_\pi)$ is always invertible for $\gamma < 1$ because its eigenvalues have modulus at least $1 - \gamma > 0$.
+$\gamma < 1$이면 행렬 $(\mathbf{I} - \gamma \mathbf{P}_\pi)$은 늘 뒤집을 수 있다. 고윳값의 크기가 적어도 $1 - \gamma > 0$이기 때문이다.
 
-## Bellman Equation for Q_pi
+## Q_pi의 벨먼 방정식
 
 $$Q_\pi(s, a) = R(s, a) + \gamma \sum_{s'} P(s'|s,a) \sum_{a'} \pi(a'|s') Q_\pi(s', a')$$
 
-Or equivalently, using $V_\pi$:
+또는 같은 뜻으로 $V_\pi$을 쓰면:
 
 $$Q_\pi(s, a) = R(s, a) + \gamma \sum_{s'} P(s'|s,a) V_\pi(s')$$
 
-## Bellman Backup Diagrams
+## 벨먼 되짚기 그림
 
-The Bellman equations can be visualized as **backup diagrams** showing information flow:
+벨먼 방정식은 앎의 흐름을 보이는 **되짚기 그림**으로 그릴 수 있다:
 
-### V-function backup:
+### V 함수 되짚기:
 
 ```
      (s)          ← State node: sum over actions weighted by π(a|s)
     / | \
-  a₁  a₂  a₃     ← Action nodes
+  a₁  a₂  a₃     ← 움직임 마디
   |   |   |
  s'₁ s'₂ s'₃     ← Next state nodes: sum over transitions P(s'|s,a)
 ```
 
-The value of the root (state) is computed from the leaves (next states) — hence "backup."
+뿌리(상태)의 값을 잎(다음 상태)에서 셈하므로 "되짚기"라 부른다.
 
-### Q-function backup:
+### Q 함수 되짚기:
 
 ```
    (s,a)          ← State-action node: sum over transitions
@@ -66,41 +61,41 @@ The value of the root (state) is computed from the leaves (next states) — henc
  a'₁ a'₂ a'₃     ← Next action nodes: sum over π(a'|s')
 ```
 
-## Bellman Operator
+## 벨먼 연산자
 
-The Bellman equation defines a **Bellman operator** $\mathcal{T}_\pi$:
+벨먼 방정식이 **벨먼 연산자** $\mathcal{T}_\pi$을 뜻매김한다:
 
 $$(\mathcal{T}_\pi V)(s) = \sum_a \pi(a|s) \left[R(s,a) + \gamma \sum_{s'} P(s'|s,a) V(s')\right]$$
 
-$V_\pi$ is the **fixed point** of this operator: $\mathcal{T}_\pi V_\pi = V_\pi$.
+$V_\pi$은 이 연산자의 **고정점**이다: $\mathcal{T}_\pi V_\pi = V_\pi$.
 
-### Contraction Mapping Property
+### 오므리는 옮김 성질
 
-$\mathcal{T}_\pi$ is a **$\gamma$-contraction** in the max norm:
+$\mathcal{T}_\pi$은 최대 노름에서 **$\gamma$오므리기**다:
 
 $$\|\mathcal{T}_\pi V_1 - \mathcal{T}_\pi V_2\|_\infty \leq \gamma \|V_1 - V_2\|_\infty$$
 
-By the **Banach fixed-point theorem**, this guarantees:
+**바나흐 고정점 정리**에 따라 이는 다음을 보장한다:
 
-1. **Existence and uniqueness**: $V_\pi$ is the unique fixed point
-2. **Convergence**: Repeated application converges: $\mathcal{T}_\pi^k V \to V_\pi$ as $k \to \infty$
-3. **Convergence rate**: $\|V_k - V_\pi\|_\infty \leq \gamma^k \|V_0 - V_\pi\|_\infty$
+1. **있음과 하나뿐임**: $V_\pi$이 하나뿐인 고정점이다
+2. **모임**: 거듭 쓰면 모인다. $k \to \infty$일 때 $\mathcal{T}_\pi^k V \to V_\pi$이다
+3. **모이는 빠르기**: $\|V_k - V_\pi\|_\infty \leq \gamma^k \|V_0 - V_\pi\|_\infty$
 
-## Intuition: Why Bellman Equations Work
+## 느낌: 벨먼 방정식이 통하는 까닭
 
-The Bellman equation decomposes the value of a state into:
+벨먼 방정식은 상태의 값을 다음으로 쪼갠다:
 
 $$\underbrace{V_\pi(s)}_{\text{Total value}} = \underbrace{R(s,a)}_{\text{Immediate reward}} + \gamma \underbrace{V_\pi(s')}_{\text{Future value}}$$
 
-This **recursive decomposition** is the key insight that enables:
+이 **되돌이 쪼개기**가 다음을 가능하게 하는 핵심 통찰이다:
 
-- **Dynamic programming**: Solve by iterating the Bellman equation
-- **TD learning**: Update estimates toward the bootstrapped target $R + \gamma V(s')$
-- **Q-learning**: Update toward $R + \gamma \max_{a'} Q(s', a')$
+- **동적 짜기**: 벨먼 방정식을 되풀이해 푼다
+- **때 차이 배우기**: 띄워 올린 과녁 $R + \gamma V(s')$ 쪽으로 어림을 고친다
+- **Q 배우기**: $R + \gamma \max_{a'} Q(s', a')$ 쪽으로 고친다
 
-## Derivation from First Principles
+## 첫 원리에서 이끌어 내기
 
-Starting from the definition of $V_\pi$:
+$V_\pi$의 뜻매김에서 시작해:
 
 $$V_\pi(s) = \mathbb{E}_\pi[G_t | S_t = s]$$
 
@@ -112,8 +107,40 @@ $$= \sum_a \pi(a|s) \sum_{s'} P(s'|s,a) \left[R(s,a,s') + \gamma \mathbb{E}_\pi[
 
 $$= \sum_a \pi(a|s) \sum_{s'} P(s'|s,a) \left[R(s,a,s') + \gamma V_\pi(s')\right]$$
 
-The key step uses the **Markov property**: $\mathbb{E}_\pi[G_{t+1} | S_{t+1} = s'] = V_\pi(s')$.
+핵심 걸음은 **마르코프 성질**을 쓴다: $\mathbb{E}_\pi[G_{t+1} | S_{t+1} = s'] = V_\pi(s')$.
 
-## Summary
+## 요약
 
-The Bellman equations provide the recursive structure that makes RL computationally tractable. They decompose the value of a state into immediate reward plus discounted future value, enabling iterative algorithms. The contraction mapping property guarantees convergence, and the backup diagram provides visual intuition for information flow in value computation.
+벨먼 방정식은 힘 북돋우는 배움을 셈으로 다룰 만하게 하는 되돌이 얼개를 준다. 상태의 값을 즉시 보상에 깎은 앞날 값을 더한 것으로 쪼개어 되풀이 알고리즘을 가능하게 한다. 오므리는 옮김 성질이 모임을 보장하고 되짚기 그림이 값 셈에서 앎이 흐르는 모습을 눈으로 느끼게 해 준다.
+
+## 연습문제
+
+**연습문제 1.**
+이 마디의 주제와 딸린 단순한 마르코프 결정 과정을 생각하여라. 상태 3개와 움직임 2개의 작은 보기에서 관련 양을 손으로 셈하여라.
+
+??? success "연습문제 1 풀이"
+    상태 $S = \{s_1, s_2, s_3\}$과 움직임 $A = \{a_1, a_2\}$을 뜻매김한다. 옮김 확률과 보상을 매긴다. 상태-움직임 짝마다 기대 즉시 보상과 옮김 분포를 셈한다. 이 마디의 뜻매김과 식으로 바라는 양을 셈한다. 상태 자리가 작아 정확히 셈할 수 있어 추상 적기가 구체 숫자로 어떻게 옮겨지는지 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 다룬 핵심 성질이나 모임 결과를 밝혀라. 여김을 또렷이 적고 어느 것이 꼭 필요한지 가려내어라.
+
+??? success "연습문제 2 풀이"
+    밝힘은 그 연산자에 오므리는 옮김 정리를 써서 따라온다. 깎기 인수가 $\gamma < 1$인 유한 마르코프 결정 과정을 여기면 그 연산자는 상한 노름에서 $\gamma$오므리기다. 바나흐 고정점 정리에 따라 되풀이해 쓰면 $k$이 되풀이 횟수일 때 빠르기 $O(\gamma^k)$으로 하나뿐인 고정점에 모인다. 유한하다는 여김이 보상이 가둬짐을 보장하고 깎기 인수 $\gamma < 1$이 오므리기 성질에 꼭 필요하다. $\square$
+
+---
+
+**연습문제 3.**
+이 마디에서 밝힌 알고리즘이나 셈을 단순한 격자 세상에 대해 파이썬으로 짜라. $\epsilon = 0.01$ 안으로 모이는 데 필요한 되풀이 횟수를 알려라.
+
+??? success "연습문제 3 풀이"
+    모서리에 마침 상태가 있고 고른 아무 방침을 쓰는 $4 \times 4$ 격자 세상이 여느 시험 사례가 된다. 짜기는 모든 상태의 가장 큰 바뀜이 $\epsilon$ 아래로 떨어질 때까지 고침 규칙을 되풀이한다. 깎기 인수에 따라 보통 50~200번 되풀이하면 모인다. 핵심 짜기 세부는 맞춘 고침보다 빨리 모이도록 제자리 고침(가우스-자이델 방식)을 쓰는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+이 마디에서 밝힌 길에 본디 있는 근본 한계나 맞바꿈을 다루어라. 뒤 장의 더 나아간 방법이 이 한계를 어떻게 넘는가?
+
+??? success "연습문제 4 풀이"
+    표로 하는 길은 모든 상태(어쩌면 움직임까지)를 늘어놓아야 하는데 이어지거나 차원이 높은 상태 자리에서는 될 일이 아니다. 차원의 저주는 상태 변수의 수에 따라 상태 수가 지수로 늘어남을 뜻한다. 함수 어림(33~34장)은 그 함수를 신경망으로 잡을 두어 나타내고 닮은 상태에 걸쳐 넓혀 이를 넘는다. 다만 새 어려움이 생긴다. 모임이 더는 보장되지 않으며 함수 어림, 띄워 올리기, 벗어난 방침 익히기의 죽음의 삼각이 발산을 일으킬 수 있다. $\square$

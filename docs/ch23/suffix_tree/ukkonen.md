@@ -1,78 +1,78 @@
 # Ukkonen's Algorithm
 
-Constructing a suffix tree by inserting all $n+1$ suffixes independently takes $O(n^2)$ time. Ukkonen (1995) devised an **online** algorithm that builds the suffix tree in $O(n)$ time by processing the string one character at a time, from left to right. The algorithm maintains an **implicit suffix tree** for the prefix seen so far and extends it as each new character arrives. Three key optimizations -- suffix links, the active point trick, and the rule-3 skip -- reduce the total work from $O(n^2)$ to $O(n)$. This section presents the algorithm in full detail.
+뒷가지 $n+1$개를 따로따로 끼워 뒷가지 나무를 세우면 $O(n^2)$이 든다. 우코넨(1995)은 글줄을 왼쪽에서 오른쪽으로 한 글자씩 처리해 뒷가지 나무를 $O(n)$ 시간에 세우는 **온라인** 알고리즘을 만들었다. 이 알고리즘은 여태 본 앞가지의 **넌지시 담긴 뒷가지 나무**를 지니며 새 글자가 올 때마다 넓힌다. 핵심 다듬기 셋, 곧 뒷가지 이음, 살아 있는 점 재주, 규칙 3 건너뛰기가 전체 일감을 $O(n^2)$에서 $O(n)$으로 줄인다. 이 절은 그 알고리즘을 자세히 보인다.
 
 ## Implicit Suffix Trees
 
-For a prefix $T[0..i]$ that does not end with the sentinel $\$$, some suffixes may be prefixes of other suffixes. In this case, the suffix tree for $T[0..i]$ is **implicit**: some suffixes end in the middle of an edge rather than at a leaf. Ukkonen's algorithm builds these implicit trees incrementally and the final tree (after appending $\$$) becomes the proper suffix tree.
+파수 $\$$으로 끝나지 않는 앞가지 $T[0..i]$에서는 어떤 뒷가지가 다른 뒷가지의 앞가지일 수 있다. 이때 $T[0..i]$의 뒷가지 나무는 **넌지시 담긴** 것이다. 곧 어떤 뒷가지가 잎이 아니라 변 가운데에서 끝난다. 우코넨 알고리즘은 이런 넌지시 담긴 나무를 조금씩 세우며 ($\$$을 붙인 뒤) 마지막 나무가 제대로 된 뒷가지 나무가 된다.
 
-The **implicit suffix tree** for $T[0..i]$ contains all suffixes of $T[0..i]$, but without the guarantee that each suffix ends at a leaf. It can be obtained from the explicit suffix tree of $T[0..i]\$$ by removing the sentinel, then removing any edges with empty labels, and then removing any internal nodes with only one child.
+$T[0..i]$의 **넌지시 담긴 뒷가지 나무**는 $T[0..i]$의 뒷가지를 모두 담지만 뒷가지마다 잎에서 끝난다는 보장은 없다. $T[0..i]\$$의 또렷한 뒷가지 나무에서 파수를 없애고, 이름표가 빈 변을 없애고, 자식이 하나뿐인 안쪽 마디를 없애 얻을 수 있다.
 
-## Phases and Extensions
+## 마디와 넓히기
 
-The algorithm processes the string in $n + 1$ **phases**, one for each character. In phase $i + 1$ (processing character $T[i]$), the algorithm must ensure that every suffix of $T[0..i]$ is present in the tree.
+이 알고리즘은 글자마다 하나씩 **마디** $n + 1$개로 글줄을 처리한다. 마디 $i + 1$(글자 $T[i]$ 처리)에서 알고리즘은 $T[0..i]$의 뒷가지가 모두 나무에 있게 해야 한다.
 
-Each phase consists of up to $i + 1$ **extensions**, one for each suffix $T[j..i]$ where $0 \leq j \leq i$. In extension $j$ of phase $i + 1$, the algorithm ensures that suffix $T[j..i]$ is in the tree.
+마디마다 $0 \leq j \leq i$인 뒷가지 $T[j..i]$마다 하나씩 최대 $i + 1$개의 **넓히기**로 이루어진다. 마디 $i + 1$의 넓히기 $j$에서 알고리즘은 뒷가지 $T[j..i]$이 나무에 있게 한다.
 
 ## The Three Extension Rules
 
-When extending the tree to include suffix $T[j..i]$ (which was previously $T[j..i-1]$, now extended by character $T[i]$), one of three rules applies:
+뒷가지 $T[j..i]$(앞서 $T[j..i-1]$이던 것을 글자 $T[i]$으로 넓힌 것)을 담도록 나무를 넓힐 때 규칙 셋 가운데 하나가 쓰인다:
 
-**Rule 1 (Leaf extension)**: If the path for $T[j..i-1]$ ends at a leaf, extend the leaf edge label to include $T[i]$. This happens automatically if edge labels are stored as open-ended intervals $(l, \infty)$, which is the **global end** trick.
+**규칙 1(잎 넓히기)**: $T[j..i-1]$의 길이 잎에서 끝나면 그 잎 변의 이름표를 넓혀 $T[i]$을 담는다. 변 이름표를 열린 구간 $(l, \infty)$으로 담으면 저절로 그렇게 되며 이것이 **전역 끝** 재주이다.
 
-**Rule 2 (Branch)**: If the path for $T[j..i-1]$ ends at a non-leaf and no edge continues with character $T[i]$, create a new leaf edge labeled $T[i]$ (and a new internal node if the path ends in the middle of an edge).
+**규칙 2(갈래 내기)**: $T[j..i-1]$의 길이 잎이 아닌 곳에서 끝나고 글자 $T[i]$으로 이어지는 변이 없으면 $T[i]$ 이름표의 새 잎 변을 만든다(길이 변 가운데에서 끝나면 새 안쪽 마디도 만든다).
 
-**Rule 3 (Do nothing)**: If the path for $T[j..i-1]$ ends at a non-leaf and an edge continues with $T[i]$, the suffix $T[j..i]$ is already implicitly present. Do nothing.
+**규칙 3(아무것도 하지 않기)**: $T[j..i-1]$의 길이 잎이 아닌 곳에서 끝나고 $T[i]$으로 이어지는 변이 있으면 뒷가지 $T[j..i]$이 이미 넌지시 담겨 있다. 아무것도 하지 않는다.
 
-!!! note "Rule 3 and early termination"
-    Once Rule 3 applies in extension $j$, it will also apply in all subsequent extensions $j+1, j+2, \ldots, i$ of the same phase. This is because if $T[j..i]$ is already in the tree, then so is every shorter suffix $T[j'..i]$ for $j' > j$. The algorithm can therefore stop the current phase immediately when Rule 3 fires.
+!!! note "규칙 3과 일찍 끝내기"
+    넓히기 $j$에서 규칙 3이 한 번 쓰이면 같은 마디의 뒤이은 넓히기 $j+1, j+2, \ldots, i$에서도 모두 쓰인다. $T[j..i]$이 이미 나무에 있으면 $j' > j$인 더 짧은 뒷가지 $T[j'..i]$도 모두 있기 때문이다. 그러므로 규칙 3이 걸리면 알고리즘이 지금 마디를 곧바로 멈출 수 있다.
 
 ## Suffix Links
 
-A **suffix link** connects an internal node with path label $xw$ (where $x$ is a single character and $w$ is a possibly empty string) to the internal node with path label $w$.
+**뒷가지 이음**은 길 이름표가 $xw$인 안쪽 마디($x$은 글자 하나, $w$은 빌 수도 있는 글줄)를 길 이름표가 $w$인 안쪽 마디에 잇는다.
 
 $$
 \text{suffixLink}(v) = u \quad \text{where } \text{path}(v) = x \cdot \text{path}(u)
 $$
 
-Suffix links are crucial for efficiency: after processing extension $j$ (for suffix $T[j..i-1]$), the algorithm follows the suffix link to jump to the node for $T[j+1..i-1]$, avoiding the need to walk from the root for each extension.
+뒷가지 이음은 효율에 결정적이다. 곧 (뒷가지 $T[j..i-1]$의) 넓히기 $j$을 처리한 뒤 알고리즘이 뒷가지 이음을 따라 $T[j+1..i-1]$의 마디로 건너뛰어 넓히기마다 뿌리에서 걸어가지 않아도 된다.
 
-!!! tip "Suffix link existence"
-    Every internal node in a suffix tree has a suffix link (this can be proven by induction on the construction process). During construction, whenever Rule 2 creates a new internal node, its suffix link is set in the next extension when the corresponding shorter suffix is processed.
+!!! tip "뒷가지 이음이 있음"
+    뒷가지 나무의 안쪽 마디마다 뒷가지 이음이 있다(세우는 과정에 대한 귀납으로 밝힐 수 있다). 세우는 동안 규칙 2가 새 안쪽 마디를 만들 때마다 그에 맞닿는 더 짧은 뒷가지를 처리하는 다음 넓히기에서 그 뒷가지 이음을 정한다.
 
 ## The Active Point
 
-The algorithm maintains an **active point** $(v, e, \ell)$ consisting of:
+이 알고리즘은 다음으로 이루어진 **살아 있는 점** $(v, e, \ell)$을 지닌다:
 
-- **Active node** $v$: the current internal node
-- **Active edge** $e$: the first character of the edge being traversed (or null if at a node)
-- **Active length** $\ell$: how far along the active edge the algorithm has progressed
+- **살아 있는 마디** $v$: 지금 안쪽 마디
+- **살아 있는 변** $e$: 지나고 있는 변의 첫 글자(마디에 있으면 없음)
+- **살아 있는 길이** $\ell$: 살아 있는 변을 따라 얼마나 나아갔는지
 
-The active point tracks where in the tree the next extension should begin, avoiding redundant traversals.
+살아 있는 점이 다음 넓히기를 나무의 어디서 시작할지 좇아 겹치는 돌아보기를 피한다.
 
 ### Active Point Update Rules
 
-After each extension:
+넓히기마다 뒤에:
 
-- If **Rule 3** fires (character already present): increment the active length by 1. If this walks past the end of the current edge, follow that edge and reset the active point at the new node.
-- If **Rule 2** fires at the root: decrement the active length by 1 and update the active edge to $T[j+1]$.
-- If **Rule 2** fires at a non-root node: follow the suffix link from the active node (or go to the root if no suffix link exists).
+- **규칙 3**이 걸리면(글자가 이미 있으면) 살아 있는 길이를 1 늘린다. 그러다 지금 변의 끝을 지나면 그 변을 따라가 새 마디에서 살아 있는 점을 다시 잡는다.
+- 뿌리에서 **규칙 2**가 걸리면 살아 있는 길이를 1 줄이고 살아 있는 변을 $T[j+1]$으로 새로 고친다.
+- 뿌리가 아닌 마디에서 **규칙 2**가 걸리면 살아 있는 마디의 뒷가지 이음을 따라간다(뒷가지 이음이 없으면 뿌리로 간다).
 
 ## The Global End Trick
 
-Edge labels to leaves are stored with an open right boundary: $(l, e)$ where $e$ is a global variable that increments with each phase. This means Rule 1 (leaf extensions) happens implicitly for all existing leaves when the global end is incremented, requiring no explicit work.
+잎으로 가는 변 이름표는 오른쪽 가장자리를 열어 $(l, e)$으로 담으며 $e$은 마디마다 늘어나는 전역 변수이다. 그러면 전역 끝이 늘어날 때 이미 있는 잎 모두에 규칙 1(잎 넓히기)이 넌지시 일어나므로 따로 할 일이 없다.
 
-This reduces the number of explicit extension operations per phase to only those that create new nodes (Rule 2) or find that the suffix is already present (Rule 3).
+그러면 마디마다 또렷이 하는 넓히기 연산이 새 마디를 만드는 것(규칙 2)이나 뒷가지가 이미 있음을 찾는 것(규칙 3)뿐으로 준다.
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Time complexity**: The total number of Rule 2 extensions across all phases is at most $2n$, because each Rule 2 extension creates a new leaf, and there are at most $n + 1$ leaves. The Rule 3 extensions take $O(1)$ each (due to early termination). Suffix link traversals contribute $O(n)$ total time by an amortized argument. Therefore:
+**시간 복잡도**: 규칙 2 넓히기마다 새 잎을 만들고 잎이 많아야 $n + 1$개이므로 모든 마디에 걸친 규칙 2 넓히기의 총수는 많아야 $2n$이다. 규칙 3 넓히기는 (일찍 끝내므로) 저마다 $O(1)$이 든다. 뒷가지 이음 돌아보기는 고르게 나눈 논증으로 모두 $O(n)$ 시간을 보탠다. 따라서:
 
 $$
 T(n) = O(n)
 $$
 
-**Space complexity**: The suffix tree has $O(n)$ nodes and edges, so:
+**공간 복잡도**: 뒷가지 나무의 마디와 변이 $O(n)$개이므로:
 
 $$
 S(n) = O(n)
@@ -139,17 +139,49 @@ UKKONEN(T[0..n]):
     return tree
 ```
 
-## Comparison with Other Construction Algorithms
+## 다른 세우기 알고리즘과의 견줌
 
 | Algorithm | Year | Time | Online | Approach |
 |-----------|------|------|--------|----------|
-| Weiner | 1973 | $O(n)$ | No | Right-to-left, extension links |
-| McCreight | 1976 | $O(n)$ | No | Right-to-left, suffix links |
-| Ukkonen | 1995 | $O(n)$ | Yes | Left-to-right, implicit trees |
+| 와이너 | 1973 | $O(n)$ | 아니오 | 오른쪽에서 왼쪽, 넓힘 이음 |
+| 매크레이트 | 1976 | $O(n)$ | 아니오 | 오른쪽에서 왼쪽, 뒷가지 이음 |
+| 우코넨 | 1995 | $O(n)$ | 예 | 왼쪽에서 오른쪽, 넌지시 담긴 나무 |
 
-Ukkonen's algorithm is the most commonly taught because its online nature is intuitive: it extends the tree one character at a time. All three achieve the same $O(n)$ complexity.
+우코넨 알고리즘은 나무를 한 글자씩 넓히는 온라인 성질이 직관적이라 가장 흔히 가르친다. 셋 모두 같은 $O(n)$ 복잡도를 이룬다.
 
-## Reference
+## 참고 문헌
 
 - Ukkonen, E. (1995). *On-line construction of suffix trees*. Algorithmica, 14(3), 249-260.
 - Gusfield, D. (1997). *Algorithms on Strings, Trees, and Sequences*. Cambridge University Press, Chapter 6.
+
+## 연습문제
+
+**연습문제 1.**
+우코넨 알고리즘의 핵심 자료 짜임이나 개념과 그 으뜸 쓰임새를 설명하라.
+
+??? success "연습문제 1 풀이"
+    우코넨 알고리즘은 글줄이나 차례 자료를 미리 다듬고 묻는 효율 좋은 길을 준다. 으뜸 쓰임새는 부분 글줄, 본, 들임의 짜임 성질에 대한 되풀이되는 물음에 답하는 것이다. 미리 다듬기가 다룰 만한 시간에 자료 짜임을 세우고 나면 맨바닥에서 다시 다듬는 것보다 훨씬 빠르게 물음에 답할 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+우코넨 알고리즘을 세우는 시간 복잡도는 무엇인가? 으뜸 연산의 묻기 시간은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    세우는 시간은 쓰는 알고리즘에 달렸다. 흔한 한계는 $n$이 들임 크기일 때 $O(n)$에서 $O(n \log n)$ 사이이다. 묻기는 흔히 본 찾기에 $O(m)$($m$은 물음 길이), 미리 셈한 성질에 $O(1)$이 든다. 공간 복잡도는 흔히 $O(n)$이거나 $\sigma$이 글자 모임의 크기일 때 $O(n\sigma)$이다. $\square$
+
+---
+
+**연습문제 3.**
+우코넨 알고리즘을 더 단순한 다른 방식과 견주어라. 더 정교한 짜임은 언제 값어치가 있는가?
+
+??? success "연습문제 3 풀이"
+    더 단순한 방식(예컨대 막무가내 훑기나 정렬)은 묻기 시간이 더 길지만 세우는 군더더기가 적다. 정교한 짜임은 다음일 때 값어치가 있다. (1) 같은 자료에 물음을 많이 던져 세우는 값이 고르게 나뉠 때, (2) 묻기 시간이 결정적일 때(실시간 쓰임새), (3) 자료가 커서 점근 나아짐이 실전에서 중요할 때이다. 작은 자료에 물음을 한 번 던지는 경우에는 상수 인수가 작은 단순한 방식이 더 빠를 수 있다. $\square$
+
+---
+
+**연습문제 4.**
+들임 글줄 "banana"에 대해 우코넨 알고리즘을 세우는 것을 좇아라. 중간 걸음을 보여라.
+
+??? success "연습문제 4 풀이"
+    "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$

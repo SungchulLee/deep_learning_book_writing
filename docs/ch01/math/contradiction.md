@@ -1,35 +1,35 @@
-# Proof by Contradiction
+# 모순에 의한 증명
 
-Proof by contradiction is a fundamental reasoning technique used throughout mathematics and theoretical machine learning. It establishes truth by showing that the negation leads to an impossibility.
+모순에 의한 증명은 수학과 이론 기계학습 전반에서 쓰이는 기본적인 추론 기법이다. 부정이 불가능한 결과로 이어짐을 보임으로써 참임을 확립한다.
 
-## Definition
+## 정의
 
-A proof by contradiction (reductio ad absurdum) proves a statement $P$ by assuming $\neg P$ and deriving a logical contradiction. Since a consistent system cannot contain contradictions, the assumption $\neg P$ must be false, and therefore $P$ is true.
+모순에 의한 증명(귀류법, reductio ad absurdum)은 명제 $P$를 증명하기 위해 $\neg P$를 가정하고 논리적 모순을 유도한다. 무모순인 체계는 모순을 포함할 수 없으므로 가정 $\neg P$가 거짓이어야 하고, 따라서 $P$가 참이다.
 
-## Explanation
+## 설명
 
-The structure of a contradiction proof is:
+모순 증명의 구조는 다음과 같다.
 
-1. Assume $\neg P$ (the claim is false)
-2. Through valid logical steps, derive a statement that contradicts a known fact or the assumption itself
-3. Conclude $P$ must be true
+1. $\neg P$를 가정한다(주장이 거짓이라고 가정)
+2. 타당한 논리 단계를 거쳐 알려진 사실이나 가정 자체와 충돌하는 명제를 유도한다
+3. $P$가 참이어야 한다고 결론짓는다
 
-This technique is especially useful when direct proof is difficult. In machine learning theory, contradiction proofs appear in:
+이 기법은 직접 증명이 어려울 때 특히 유용하다. 기계학습 이론에서 모순 증명은 다음과 같은 곳에 나타난다.
 
-- **No Free Lunch theorems**: Proving that no single algorithm dominates all others by assuming one does and deriving a contradiction
-- **Lower bounds on sample complexity**: Showing that fewer than $n$ samples cannot suffice by constructing indistinguishable distributions
-- **Impossibility results**: Proving certain learning tasks require specific conditions (e.g., that a hypothesis class must be finite for consistent convergence without structural assumptions)
+- **공짜 점심은 없다 정리**: 어떤 알고리즘이 다른 모든 알고리즘을 압도한다고 가정하고 모순을 유도하여, 그런 알고리즘이 없음을 증명한다
+- **표본 복잡도의 하계**: 구별 불가능한 분포를 구성하여 $n$개보다 적은 표본으로는 충분하지 않음을 보인다
+- **불가능성 결과**: 특정 학습 과제가 특정 조건을 요구함을 증명한다(예: 구조적 가정 없이 일관된 수렴을 얻으려면 가설 공간이 유한해야 함)
 
-A classic example: proving $\sqrt{2}$ is irrational. Assume $\sqrt{2} = p/q$ with $\gcd(p, q) = 1$. Then $2q^2 = p^2$, so $p$ is even. Write $p = 2k$, giving $q^2 = 2k^2$, so $q$ is also even. This contradicts $\gcd(p, q) = 1$.
+고전적인 예는 $\sqrt{2}$가 무리수임을 증명하는 것이다. $\gcd(p, q) = 1$인 $\sqrt{2} = p/q$를 가정한다. 그러면 $2q^2 = p^2$이므로 $p$는 짝수이다. $p = 2k$로 쓰면 $q^2 = 2k^2$이므로 $q$도 짝수이다. 이는 $\gcd(p, q) = 1$과 모순된다.
 
-## Examples
+## 예제
 
 ```python
 import torch
 
-# Demonstrate contradiction logic numerically:
-# If sqrt(2) were rational p/q, then p^2 = 2*q^2 exactly.
-# We show no small integer pair satisfies this.
+# 모순 논리를 수치적으로 보여준다.
+# sqrt(2)가 유리수 p/q라면 p^2 = 2*q^2가 정확히 성립해야 한다.
+# 작은 정수 쌍 중에는 이를 만족하는 것이 없음을 보인다.
 
 max_val = 1000
 found = False
@@ -42,13 +42,53 @@ for q in range(1, max_val):
 
 print(f"Found exact integer p/q with p^2 = 2q^2 for q < {max_val}: {found}")
 
-# Contradiction in optimization: a convex function cannot have
-# two distinct global minima. Verify with a quadratic.
+# 최적화에서의 모순: 볼록 함수는 서로 다른 두 개의 전역 최솟값을
+# 가질 수 없다. 이차함수로 확인한다.
 x = torch.linspace(-5, 5, 1000)
-f = x ** 2 + 1  # strictly convex
+f = x ** 2 + 1  # 강볼록
 min_val = f.min().item()
 min_indices = (f - min_val).abs() < 1e-6
 num_minima = min_indices.sum().item()
 print(f"Number of global minima of x^2 + 1: {num_minima}")
 print(f"Minimum value: {min_val:.4f}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+강볼록 손실 함수 $\ell(\theta)$가 서로 다른 두 개의 전역 최솟값을 가질 수 없음을 모순법으로 보여라.
+
+??? success "연습문제 1 풀이"
+    모순을 위해 $\theta_1 \neq \theta_2$가 모두 전역 최솟값이어서 $\ell(\theta_1) = \ell(\theta_2) = \ell^*$이라고 가정하자. 강볼록성에 의해 임의의 $\lambda \in (0, 1)$에 대해 $\ell(\lambda \theta_1 + (1-\lambda)\theta_2) < \lambda \ell(\theta_1) + (1-\lambda)\ell(\theta_2) = \lambda \ell^* + (1-\lambda)\ell^* = \ell^*$이다. 즉 $\bar{\theta} = \lambda \theta_1 + (1-\lambda)\theta_2$가 $\ell(\bar{\theta}) < \ell^*$을 달성하는데, 이는 $\ell^*$이 전역 최솟값이라는 가정과 모순이다. 따라서 전역 최솟값은 유일하다. $\square$
+
+---
+
+**연습문제 2.**
+ReLU 활성화를 쓰는 신경망이 연결된 열린 집합의 모든 입력에 대해 상수 값을 출력한다면 출력층의 모든 가중치가 0이어야 함을 모순법으로 증명하라.
+
+??? success "연습문제 2 풀이"
+    마지막 은닉층을 $\mathbf{h}(\mathbf{x})$라 할 때, 어떤 열린 집합의 모든 $\mathbf{x}$에 대해 신경망 출력이 $f(\mathbf{x}) = \mathbf{w}^\top \mathbf{h}(\mathbf{x}) + b = c$라고 가정하자. 이는 $\mathbf{w}^\top \mathbf{h}(\mathbf{x}) = c - b$가 상수임을 뜻한다. 모순을 위해 $\mathbf{w} \neq \mathbf{0}$이라고 가정하자. ReLU 신경망은 조각별 선형이고 연속이므로 $\mathbf{h}(\mathbf{x})$는 조각별 선형이다. 열린 집합 안에는 $\mathbf{h}$의 적어도 한 성분이 변하는 방향이 존재한다(그렇지 않다면 $\mathbf{h}$가 상수이고 그때는 임의의 $\mathbf{w}$가 가능하다). $\mathbf{w} \neq \mathbf{0}$이면 $\mathbf{w}^\top \mathbf{h}$를 변화시키는 교란을 찾을 수 있고, 이는 출력이 상수라는 것과 모순이다. 따라서 $\mathbf{w} = \mathbf{0}$이다. $\square$
+
+---
+
+**연습문제 3.**
+공짜 점심은 없다 정리는 가능한 모든 분포에 걸쳐 보편적으로 가장 좋은 학습 알고리즘은 없다고 말한다. 알고리즘 $A$가 모든 분포에 대해 가장 낮은 기대 오차를 가진다고 가정하고 모순을 유도하는 증명의 개요를 제시하라.
+
+??? success "연습문제 3 풀이"
+    모순을 위해 알고리즘 $A$가 모든 분포 $D$에 대해 가장 낮은 기대 오차 $\mathbb{E}_D[\text{err}(A, D)]$를 달성한다고 가정하자. 가능한 모든 목표 함수의 집합을 생각한다. 고정된 학습 집합 $S$에 대해 알고리즘 $A$는 보지 못한 점들에 대해 특정한 예측을 한다. 학습 점들에서는 $S$와 일치하지만 테스트 점들에서는 $A$의 예측과 최대한 어긋나는 레이블을 부여하는 분포 $D^*$를 구성한다. $D^*$ 아래에서 알고리즘 $A$는 무작위 수준의 성능을 내는 반면, $D^*$의 레이블을 그대로 예측하는 암기 알고리즘은 오차 0을 달성한다. 이는 $A$가 보편적으로 최선이라는 가정과 모순이다. 핵심 통찰은 어떤 분포에서 얻은 성능은 다른 분포에서 대가를 치른다는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+유한한 입력 $z_i$에 대해 소프트맥스 출력 $\sigma(\mathbf{z})_i = e^{z_i} / \sum_j e^{z_j}$이 정확히 0이 되는 일은 없음을 모순법으로 보여라.
+
+??? success "연습문제 4 풀이"
+    모순을 위해 어떤 유한한 $z_i$에 대해 $\sigma(\mathbf{z})_i = 0$이라고 가정하자. 그러면 $e^{z_i} / \sum_j e^{z_j} = 0$이다. $\sum_j e^{z_j} > 0$이므로(양수 항들의 합) 이는 $e^{z_i} = 0$을 요구한다. 그러나 지수함수는 모든 유한한 $z_i \in \mathbb{R}$에 대해 $e^{z_i} > 0$을 만족한다. 이는 모순이다. 따라서 모든 유한한 입력에 대해 $\sigma(\mathbf{z})_i > 0$이다. $\square$
+
+---
+
+**연습문제 5.**
+$\mathbb{R}^d$에 $n$개의 점이 있는 이진 분류 데이터셋에서 $d < n$일 때, $n > d + 1$이면 선형 분류기 $\mathbf{w}^\top \mathbf{x} + b = 0$이 $n$개 점을 산산조각 낼(모든 $2^n$가지 레이블링을 완벽히 분리할) 수 없음을 모순법으로 증명하라.
+
+??? success "연습문제 5 풀이"
+    $\mathbb{R}^d$의 선형 분류기는 $d + 1$개의 값(가중치 $d$개와 편향)으로 매개변수화된다. $\mathbb{R}^d$에서 선형 분류기의 VC 차원은 $d + 1$이다. 모순을 위해 선형 분류기가 $n > d + 1$개의 점을 산산조각 내어 $2^n$가지 레이블링을 모두 실현할 수 있다고 가정하자. 그러나 $\mathbb{R}^d$의 $n > d + 1$개 점들에 대해 확장 벡터 $[\mathbf{x}_i; 1]$ 사이에는 선형 종속 관계가 존재한다. 이 종속성은 어떤 초평면으로도 분리할 수 없는 레이블링이 존재함을 뜻한다. 구체적으로 모든 $\alpha_i$가 0은 아닌 채로 $\sum \alpha_i [\mathbf{x}_i; 1] = 0$이라면, 양수 $\alpha_i$에 $+1$을, 음수 $\alpha_i$에 $-1$을 부여하면 분리 불가능한 레이블링이 된다. 이는 산산조각 낼 수 있다는 가정과 모순이다. $\square$

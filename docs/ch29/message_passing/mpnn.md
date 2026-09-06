@@ -1,106 +1,134 @@
-# 29.2.4 Message Passing Neural Network (MPNN)
+# 29.2.4 쪽지 건네기 신경망(MPNN)
+## 들어가며
 
+Gilmer 등(2017)이 *"Neural Message Passing for Quantum Chemistry"*에서 내놓은 **쪽지 건네기 신경망(MPNN)** 틀은 많은 그래프 신경망 얼개를 하나의 추상 적기로 아우른다. 그래프 신경망을 설계하고 살피는 이론과 실제의 바탕을 준다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## MPNN 적기
 
-## Introduction
+MPNN 틀은 두 마당으로 이루어진다:
 
-The **Message Passing Neural Network (MPNN)** framework, proposed by Gilmer et al. (2017) in *"Neural Message Passing for Quantum Chemistry"*, unifies many graph neural network architectures under a single abstract formulation. It provides the theoretical and practical foundation for designing and analyzing GNNs.
+### 쪽지 건네기 마당
 
-## MPNN Formulation
-
-The MPNN framework consists of two phases:
-
-### Message Passing Phase
-
-For $T$ time steps (layers), each node updates its hidden state:
+때 걸음(층) $T$번 동안 마디마다 숨은 상태를 고친다:
 
 $$\mathbf{m}_v^{t+1} = \sum_{u \in \mathcal{N}(v)} M_t\left(\mathbf{h}_v^t, \mathbf{h}_u^t, \mathbf{e}_{vu}\right)$$
 
 $$\mathbf{h}_v^{t+1} = U_t\left(\mathbf{h}_v^t, \mathbf{m}_v^{t+1}\right)$$
 
-where:
-- $M_t$: Message function at step $t$
-- $U_t$: Update function at step $t$ (e.g., GRU)
-- $\mathbf{e}_{vu}$: Edge features between $v$ and $u$
+여기서 각 기호는 다음과 같다.
 
-### Readout Phase
+- $M_t$: 걸음 $t$의 쪽지 함수
+- $U_t$: 걸음 $t$의 고치기 함수(보기로 GRU)
+- $\mathbf{e}_{vu}$: $v$과 $u$ 사이의 변 특징
 
-For graph-level tasks, a readout function produces a graph-level representation:
+### 읽어내기 마당
+
+그래프 켜의 일에서는 읽어내기 함수가 그래프 켜의 나타냄을 내놓는다:
 
 $$\hat{y} = R\left(\{\mathbf{h}_v^T : v \in V\}\right)$$
 
-The readout $R$ must be invariant to node permutation. Common choices include sum, mean, or attention-based pooling.
+읽어내기 $R$은 마디 자리바꿈에 안 바뀌어야 한다. 흔히 합, 평균, 눈길 바탕 모으기를 고른다.
 
-## Existing Models as MPNN Instances
+## MPNN의 보기로 본 기존 모델
 
-### GCN (Kipf & Welling, 2017)
+### GCN(Kipf & Welling, 2017)
 
 $$M_t(\mathbf{h}_u) = \frac{1}{\sqrt{d_u d_v}} W^t \mathbf{h}_u^t, \quad U_t(\mathbf{h}_v, \mathbf{m}_v) = \sigma(\mathbf{m}_v)$$
 
-Self-loops provide self-information; no explicit separate update.
+스스로 이음이 스스로의 앎을 준다. 드러나게 따로 고치는 일은 없다.
 
-### GraphSAGE (Hamilton et al., 2017)
+### GraphSAGE(Hamilton et al., 2017)
 
 $$M_t(\mathbf{h}_u) = \mathbf{h}_u^t, \quad U_t(\mathbf{h}_v, \mathbf{m}_v) = \sigma\left(W^t [\mathbf{h}_v^t \| \mathbf{m}_v]\right)$$
 
-Explicit separation of self and neighbor information.
+스스로와 이웃의 앎을 드러나게 떼어 놓는다.
 
-### GAT (Velickovic et al., 2018)
+### GAT(Velickovic et al., 2018)
 
 $$M_t(\mathbf{h}_u, \mathbf{h}_v) = \alpha_{uv} W^t \mathbf{h}_u^t$$
 
 $$\alpha_{uv} = \text{softmax}_u\left(\text{LeakyReLU}\left(\mathbf{a}^T [W\mathbf{h}_v \| W\mathbf{h}_u]\right)\right)$$
 
-### GIN (Xu et al., 2019)
+### GIN(Xu et al., 2019)
 
 $$M_t(\mathbf{h}_u) = \mathbf{h}_u^t, \quad U_t(\mathbf{h}_v, \mathbf{m}_v) = \text{MLP}\left((1+\epsilon^t) \mathbf{h}_v^t + \mathbf{m}_v\right)$$
 
-Provably as powerful as the 1-WL test.
+1차 바이스파일러-레만 시험만큼 힘셈이 밝혀졌다.
 
-### Edge-Conditioned Convolution (Simonovsky & Komodakis, 2017)
+### 변에 매인 겹말기(Simonovsky & Komodakis, 2017)
 
 $$M_t(\mathbf{h}_u, \mathbf{e}_{vu}) = \Theta(\mathbf{e}_{vu}) \mathbf{h}_u^t$$
 
-Edge features parameterize the message function via a neural network $\Theta$.
+변 특징이 신경망 $\Theta$을 거쳐 쪽지 함수의 잡을 정한다.
 
-## MPNN for Graph-Level Prediction
+## 그래프 켜 헤아리기를 위한 MPNN
 
-For tasks like molecular property prediction, the MPNN pipeline is:
+분자 성질 헤아리기 같은 일에서 MPNN 흐름은 다음과 같다:
 
-1. **Input**: Graph $G = (V, E)$ with node features $\mathbf{x}_v$ and edge features $\mathbf{e}_{uv}$
-2. **Initialize**: $\mathbf{h}_v^0 = \mathbf{x}_v$
-3. **Message passing**: Run $T$ rounds of message passing
-4. **Readout**: $\hat{y} = R(\{\mathbf{h}_v^T\})$
-5. **Loss**: $\mathcal{L}(\hat{y}, y)$ (e.g., MSE for regression, CE for classification)
+1. **들임**: 마디 특징 $\mathbf{x}_v$과 변 특징 $\mathbf{e}_{uv}$을 가진 그래프 $G = (V, E)$
+2. **첫 값**: $\mathbf{h}_v^0 = \mathbf{x}_v$
+3. **쪽지 건네기**: 쪽지 건네기를 $T$바퀴 돈다
+4. **읽어내기**: $\hat{y} = R(\{\mathbf{h}_v^T\})$
+5. **손실**: $\mathcal{L}(\hat{y}, y)$(보기로 되돌이 맞춤에는 평균 제곱 어긋남, 가름에는 교차 엔트로피)
 
-## Theoretical Properties
+## 이론적 성질
 
-### Expressiveness
-- MPNNs are bounded by the 1-WL test in distinguishing graphs
-- GIN achieves this upper bound
-- Higher-order GNNs (k-WL) can be more expressive but more expensive
+### 나타냄 힘
+- MPNN이 그래프를 가려내는 힘은 1차 바이스파일러-레만 시험에 가둬져 있다
+- GIN이 이 위 가둠에 이른다
+- 더 높은 차수의 그래프 신경망(k차 바이스파일러-레만)은 나타냄 힘이 세지만 더 비싸다
 
-### Computation
-- Time complexity per layer: $O(|E| \cdot d)$ where $d$ is the feature dimension
-- Memory: $O(|V| \cdot d + |E| \cdot d)$
-- Parallelizable across edges (GPU-friendly)
+### 셈
+- 층마다 때 복잡도: $d$이 특징 차원일 때 $O(|E| \cdot d)$
+- 기억: $O(|V| \cdot d + |E| \cdot d)$
+- 변을 가로질러 나란히 셈할 수 있다(GPU에 친하다)
 
-### Limitations
-- Cannot detect certain structural properties (e.g., cycles of specific lengths)
-- Long-range dependencies require many layers (over-smoothing risk)
-- Expressiveness limited by 1-WL bound
+### 한계
+- 어떤 얼개 성질은 알아채지 못한다(보기로 특정 길이의 돌이)
+- 멀리 떨어진 매임에는 층이 많이 필요하다(지나친 매끄러워짐 위험)
+- 나타냄 힘이 1차 바이스파일러-레만 가둠에 매인다
 
-## Quantitative Finance MPNN Applications
+## 계량 금융에서 MPNN의 쓰임새
 
-The MPNN framework naturally models financial problems:
+MPNN 틀은 금융 문제를 자연스럽게 나타낸다:
 
-- **Portfolio risk assessment**: Message passing aggregates correlated risks through asset networks
-- **Fraud detection**: Transaction patterns propagate through account networks
-- **Credit scoring**: Counterparty risk flows through lending networks
-- **Market microstructure**: Order flow information propagates through trading networks
+- **꾸러미 위험 재기**: 쪽지 건네기가 자산 그물을 지나며 얽힌 위험을 모은다
+- **속임수 찾기**: 거래 무늬가 계좌 그물을 지나며 퍼진다
+- **신용 점수 매기기**: 거래 상대 위험이 빌려주기 그물을 지나 흐른다
+- **시장 미시 얼개**: 주문 흐름의 앎이 거래 그물을 지나며 퍼진다
 
-## Summary
+## 요약
 
-The MPNN framework provides a unified language for understanding and designing graph neural networks. By specifying the message function, aggregation, update rule, and readout, one can instantiate most existing GNN architectures or design new ones tailored to specific applications.
+MPNN 틀은 그래프 신경망을 이해하고 설계하는 하나의 말을 준다. 쪽지 함수, 모으기, 고치기 규칙, 읽어내기를 밝히면 기존 그래프 신경망 얼개 대부분을 만들어 낼 수 있고 특정 쓰임새에 맞춘 새 얼개도 설계할 수 있다.
+
+## 연습문제
+
+**연습문제 1.**
+마디 5개와 돌이의 이웃 얼개를 가진 그래프를 살펴보자. 2차원 특징 벡터에서 이 마디에 적은 쪽지 건네기 고침 한 걸음을 손으로 셈하라.
+
+??? success "연습문제 1 풀이"
+    마디 $1, \ldots, 5$에 특징 벡터 $\mathbf{h}_i \in \mathbb{R}^2$을 붙인다. 돌이에서 마디마다 이웃이 꼭 둘이다. 마디마다 모으기(보기로 이웃의 평균)와 고침(보기로 선형 바꿈과 깨움)을 쓴다. 한 걸음 뒤 마디마다의 나타냄이 바로 옆 이웃의 영향을 받는다. 이 드러난 셈은 받아들이는 자리가 층마다 한 뜀씩 넓어짐을 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+평균 모으기와 합 모으기가 여럿 모임을 가르는 나타냄 힘에서 다름을 밝혀라. 평균 모으기로는 가릴 수 없지만 합 모으기로는 가릴 수 있는 여럿 모임 둘의 구체적인 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    $S_1 = \{1, 1, 1\}$과 $S_2 = \{1\}$을 살펴보자. 평균 모으기는 $\text{mean}(S_1) = 1 = \text{mean}(S_2)$을 주어 둘을 가르지 못한다. 합 모으기는 $\text{sum}(S_1) = 3 \neq 1 = \text{sum}(S_2)$을 준다. 더 넓게는 평균 모으기가 여럿 모임의 겹침 수에 대해 불변이므로 서로 낱값 배인 여럿 모임을 가를 수 없다. 그래서 그래프 동형 신경망은 1차 바이스파일러-레만 시험에 맞먹는 최대 나타냄 힘을 얻으려 합 모으기를 쓴다. $\square$
+
+---
+
+**연습문제 3.**
+최단 길 거리가 $k$일 때 마디 $u$의 앎이 마디 $v$에 닿으려면 쪽지 건네기 층이 몇 개 필요한가? $k$이 커지면 실제로 어떤 문제가 생기는가?
+
+??? success "연습문제 3 풀이"
+    층마다 앎을 한 뜀씩 퍼뜨리므로 꼭 $k$개가 필요하다. $k$이 커지면 받아들이는 자리가 지수로 넓어진다(마디마다 $k$뜀 안의 모든 마디에서 모은다). 이는 지나친 매끄러워짐을 낳는다. 층이 많아지면 마디마다 거의 온 그래프의 앎을 모았기에 모든 마디 나타냄이 가릴 수 없는 벡터로 모인다. 누그러뜨리는 셈속으로는 남은 이음, 건너뛰는 앎, 그래프 변환기가 있다. $\square$
+
+---
+
+**연습문제 4.**
+그래프 겹말기의 자리 방식과 스펙트럼 방식의 맞바꿈을 따져라. 각각은 어떤 조건에서 더 나은가?
+
+??? success "연습문제 4 풀이"
+    스펙트럼 방법(보기로 ChebNet)은 그래프 라플라스의 고유 분해로 겹말기를 뜻매김해 원리 있는 신호 다루기 틀을 주지만 고유 분해($O(n^3)$)가 필요하고 그래프 위상이 붙박여 있어야 한다. 자리 방법(보기로 GraphSAGE, 그래프 눈길 신경망)은 이웃 모으기로 겹말기를 뜻매김해 달라지는 그래프 얼개를 자연스럽게 다루고 작은 묶음으로 큰 그래프에도 키울 수 있다. 정확한 진동수 거르기가 중요한 작고 위상이 붙박인 그래프에는 스펙트럼 방법이, 귀납 배움이 필요한 크거나 바뀌거나 뒤섞인 그래프에는 자리 방법이 낫다. $\square$

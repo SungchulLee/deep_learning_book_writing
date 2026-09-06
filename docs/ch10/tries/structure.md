@@ -1,33 +1,33 @@
-# Trie Structure
+# 트라이의 짜임
 
-A **trie** (pronounced "try", from re**trie**val) is a tree-shaped data structure for storing a set of strings over a finite alphabet $\Sigma$. Each path from the root to a marked node spells out one stored string, and strings that share a common prefix share the corresponding path in the trie. This prefix-sharing property makes tries extremely efficient for operations like prefix search, autocomplete, and spell-checking.
+**트라이**(retrieval에서 온 말로 "트라이"라고 읽는다)는 유한한 낱자 집합 $\Sigma$ 위의 문자열 집합을 담는 나무 모양 자료 구조이다. 뿌리에서 표시된 노드까지의 경로마다 담긴 문자열 하나를 이루고, 공통 접두사를 나누어 갖는 문자열은 트라이에서 그 경로를 함께 쓴다. 이 접두사를 함께 쓰는 성질 덕분에 트라이는 접두사 찾기, 자동 완성, 맞춤법 검사 같은 연산에 매우 효율적이다.
 
-## Definition
+## 정의
 
-A trie for an alphabet $\Sigma$ is a rooted tree where:
+낱자 집합 $\Sigma$의 트라이는 다음과 같은 뿌리 있는 나무이다.
 
-- Each edge is labeled with a character from $\Sigma$
-- No two edges leaving the same node share the same label
-- Certain nodes are marked as **endpoints**, indicating that the path from the root to that node spells a complete word
+- 변마다 $\Sigma$의 글자를 이름표로 단다
+- 같은 노드에서 나가는 두 변이 같은 이름표를 갖지 않는다
+- 어떤 노드는 **끝점**으로 표시되어 뿌리에서 그 노드까지의 경로가 온전한 낱말을 이룸을 알린다
 
-For a set of $n$ strings with total length $L$ over an alphabet of size $|\Sigma|$, the trie has at most $L + 1$ nodes (one per character plus the root).
+크기가 $|\Sigma|$인 낱자 집합 위에서 전체 길이가 $L$인 문자열 $n$개의 집합에 대해 트라이의 노드는 많아야 $L + 1$개이다(글자마다 하나에 뿌리 하나).
 
-## Node Representation
+## 노드의 표현
 
-The most common implementation stores each node as a dictionary (hash map) mapping characters to child nodes, plus a boolean flag indicating whether the node marks the end of a stored word.
+가장 흔한 구현은 노드마다 글자를 자식 노드로 잇대는 사전(해시 표)과, 그 노드가 담긴 낱말의 끝을 표시하는지 알려 주는 참거짓 깃발을 담는다.
 
 ```python
-"""Basic trie structure with insertion and search.
+"""삽입과 찾기를 갖춘 기본 트라이 짜임.
 
-Each node stores a dictionary of children and an end-of-word flag.
+노드마다 자식의 사전과 낱말 끝 깃발을 담는다.
 """
 
 
-# === Trie Node and Trie ===
+# === 트라이 노드와 트라이 ===
 class TrieNode:
     def __init__(self):
-        self.children = {}  # char -> TrieNode
-        self.end = False     # True if this node marks a complete word
+        self.children = {}  # 글자 -> TrieNode
+        self.end = False     # 이 노드가 온전한 낱말을 표시하면 True
 
 
 class Trie:
@@ -35,7 +35,7 @@ class Trie:
         self.root = TrieNode()
 
     def insert(self, word):
-        """Insert a word into the trie."""
+        """트라이에 낱말을 넣는다."""
         node = self.root
         for c in word:
             if c not in node.children:
@@ -44,7 +44,7 @@ class Trie:
         node.end = True
 
     def search(self, word):
-        """Return True if the exact word exists in the trie."""
+        """그 낱말이 그대로 트라이에 있으면 True를 돌려준다."""
         node = self.root
         for c in word:
             if c not in node.children:
@@ -53,7 +53,7 @@ class Trie:
         return node.end
 
 
-# === Main ===
+# === 메인 ===
 if __name__ == "__main__":
     t = Trie()
     for w in ["apple", "app", "bat"]:
@@ -62,7 +62,7 @@ if __name__ == "__main__":
         print(f"{w}: {t.search(w)}")
 ```
 
-**Output:**
+**출력:**
 ```
 app: True
 ap: False
@@ -70,20 +70,53 @@ bat: True
 bad: False
 ```
 
-## Space Complexity
+## 공간 복잡도
 
-The worst-case space for a trie depends on the representation:
+트라이의 최악 공간은 표현 방식에 매인다.
 
-| Representation | Space per node | Total space |
+| 표현 | 노드당 공간 | 전체 공간 |
 |:---|:---|:---|
-| Array of size $\lvert\Sigma\rvert$ | $O(\lvert\Sigma\rvert)$ | $O(L \cdot \lvert\Sigma\rvert)$ |
-| Hash map | $O(\text{children count})$ | $O(L)$ average |
+| 크기 $\lvert\Sigma\rvert$의 배열 | $O(\lvert\Sigma\rvert)$ | $O(L \cdot \lvert\Sigma\rvert)$ |
+| 해시 표 | $O(\text{자식 수})$ | 평균 $O(L)$ |
 
-The hash-map representation (used above) is more space-efficient when the alphabet is large or when most nodes have few children.
+(위에서 쓴) 해시 표 표현은 낱자 집합이 크거나 노드 대부분이 자식이 적을 때 공간을 더 아낀다.
 
-!!! note "Trie vs Hash Table"
-    A hash table supports $O(1)$ average lookup for exact strings, but a trie supports $O(p)$ prefix search (where $p$ is the prefix length) -- something a hash table cannot do without scanning all keys. Tries are the data structure of choice when prefix-based queries are common.
+!!! note "트라이와 해시 표"
+    해시 표는 정확한 문자열을 평균 $O(1)$에 찾아 주지만, 트라이는 (접두사 길이를 $p$이라 할 때) $O(p)$의 접두사 찾기를 받쳐 준다. 해시 표는 열쇠를 모두 훑지 않고는 할 수 없는 일이다. 접두사 기반 질의가 잦으면 트라이가 고를 만한 자료 구조이다.
 
-## References
+## 참고 문헌
 
 [Introduction to Algorithms (CLRS), Chapter 14](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+트라이의 짜임의 짜임을 설명하고 질의와 갱신의 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 짜임은 위계적 분해를 이용해 일차보다 빠른 질의 시간을 이룬다. 대개 질의와 갱신이 모두 $O(\log n)$이고 세우는 데 $O(n)$이나 $O(n\log n)$이 든다.
+
+---
+
+**연습문제 2.**
+입력 $[3, 1, 4, 1, 5, 9, 2, 6]$으로 트라이의 짜임을 세워라. 마지막 짜임을 보여라.
+
+??? success "연습문제 2 풀이"
+    세우기 알고리즘을 적용하며 중간 상태를 보여라. 트리 짜임이면 트리를 그려라. 배열에 바탕한 짜임이면 부모-자식 관계를 덧붙여 배열의 내용을 보여라.
+
+---
+
+**연습문제 3.**
+질의 연산이 올바른 어떤 질의 범위에 대해서도 옳은 결과를 돌려줌을 증명하라.
+
+??? success "연습문제 3 풀이"
+    증명에는 대개 트리의 높이에 대한 귀납법을 쓴다. 노드마다 질의가 한 부분 트리 안에 온전히 들거나(재귀한다) 두 부분 트리에 걸친다(부분 결과를 모은다). 모으는 함수(합, 최솟값, 최댓값)가 결합적이므로 올바로 모아진다. $\square$
+
+---
+
+**연습문제 4.**
+트라이의 짜임가 질의마다의 계산을 $O(n)$에서 $O(\log n)$으로 빠르게 하는 딥러닝 응용을 설명하라.
+
+??? success "연습문제 4 풀이"
+    응용으로는 누적 어텐션 가중치를 위한 접두사 합 질의, 길이가 제각각인 수열에서 효율적인 풀링을 위한 범위 질의, 검색 증강 생성을 위한 최근접 이웃 찾기, 3차원 딥러닝의 점 구름 처리를 위한 공간 색인이 있다.

@@ -1,101 +1,134 @@
-# Big-O Notation
+# 빅오 표기법
 
-When analyzing algorithms, we care about how running time or space usage grows as the input size increases.  Constant factors and lower-order terms depend on hardware and implementation details, so they obscure the fundamental growth behavior.  Big-O notation gives us a precise way to state that one function grows *at most as fast as* another, capturing the idea of an **asymptotic upper bound** while discarding those irrelevant details.
+알고리즘을 분석할 때 우리가 관심을 갖는 것은 입력 크기가 커질 때 실행 시간이나 공간 사용량이 어떻게 증가하는가이다. 상수 인자와 낮은 차수의 항은 하드웨어와 구현 세부사항에 따라 달라지므로 근본적인 증가 양상을 가린다. 빅오 표기법은 한 함수가 다른 함수보다 *많아야 그만큼 빠르게* 증가한다는 것을 정확히 말할 수 있게 해 주며, 이러한 무관한 세부사항을 버리고 **점근적 상계** 라는 개념을 포착한다.
 
-## Formal Definition
+## 형식적 정의
 
-Let $f$ and $g$ be functions from the positive integers (or positive reals) to the non-negative reals.  We say $f(n)$ is $O(g(n))$ if, beyond some starting point, $f(n)$ never exceeds a fixed constant multiple of $g(n)$.
+$f$와 $g$를 양의 정수(또는 양의 실수)에서 음이 아닌 실수로 가는 함수라 하자. 어떤 출발점을 넘어서면 $f(n)$이 $g(n)$의 고정된 상수배를 결코 넘지 않을 때, $f(n)$은 $O(g(n))$이라고 한다.
 
-!!! info "Definition -- Big-O"
+!!! info "정의 -- 빅오"
 
-    $f(n) = O(g(n))$ if there exist constants $c > 0$ and $n_0 > 0$ such that
+    다음을 만족하는 상수 $c > 0$과 $n_0 > 0$이 존재하면 $f(n) = O(g(n))$이다.
 
     $$
     f(n) \leq c \cdot g(n) \quad \text{for all } n \geq n_0
     $$
 
-The two constants play distinct roles:
+두 상수는 서로 다른 역할을 한다.
 
-- **$c$ (the constant multiplier)** absorbs all constant factors.  It lets us ignore the exact coefficients in $f$ and focus on its growth shape.
-- **$n_0$ (the threshold)** lets us ignore finitely many small values of $n$ where the relationship might not hold.  Asymptotic analysis only cares about behavior as $n \to \infty$.
+- **$c$(상수 배수)** 는 모든 상수 인자를 흡수한다. 덕분에 $f$의 정확한 계수를 무시하고 증가의 모양에 집중할 수 있다.
+- **$n_0$(문턱값)** 는 관계가 성립하지 않을 수도 있는 유한개의 작은 $n$ 값을 무시할 수 있게 해 준다. 점근적 분석은 $n \to \infty$일 때의 거동만을 다룬다.
 
-## Intuition
+## 직관
 
-Think of $O(g(n))$ as an **upper envelope**: once you move past the threshold $n_0$, the curve $c \cdot g(n)$ always sits above (or equals) the curve $f(n)$.  The exact multiplier $c$ and threshold $n_0$ do not matter -- what matters is that *some* pair $(c, n_0)$ exists.
+$O(g(n))$을 **위쪽 포락선** 으로 생각하라. 문턱값 $n_0$을 지나고 나면 곡선 $c \cdot g(n)$이 항상 곡선 $f(n)$ 위에(또는 같은 높이에) 놓인다. 정확한 배수 $c$와 문턱값 $n_0$이 무엇인지는 중요하지 않다. 중요한 것은 그런 쌍 $(c, n_0)$이 *존재한다* 는 사실이다.
 
-A useful analogy: saying "this algorithm runs in $O(n^2)$ time" is like saying "the running time is *at most quadratic* for large inputs, up to a constant factor."
+유용한 비유를 들면, "이 알고리즘은 $O(n^2)$ 시간에 실행된다"는 말은 "큰 입력에 대해 실행 시간이 상수 인자를 무시하면 *많아야 이차* 이다"라는 뜻이다.
 
-## Examples
+## 예제
 
-### Example 1 -- Linear Function
+### 예제 1 -- 일차 함수
 
-Show that $f(n) = 3n + 5$ is $O(n)$.
+$f(n) = 3n + 5$가 $O(n)$임을 보이자.
 
-Choose $c = 4$ and $n_0 = 5$.  For all $n \geq 5$:
+$c = 4$, $n_0 = 5$로 두자. 모든 $n \geq 5$에 대해
 
 $$
 3n + 5 \leq 3n + n = 4n = c \cdot n
 $$
 
-Since $5 \leq n$ when $n \geq 5$, the inequality holds, confirming $3n + 5 = O(n)$.
+$n \geq 5$일 때 $5 \leq n$이므로 부등식이 성립하고, 따라서 $3n + 5 = O(n)$이 확인된다.
 
-### Example 2 -- Quadratic Function
+### 예제 2 -- 이차 함수
 
-Show that $f(n) = 2n^2 + 3n + 1$ is $O(n^2)$.
+$f(n) = 2n^2 + 3n + 1$이 $O(n^2)$임을 보이자.
 
-For $n \geq 1$, observe that $3n \leq 3n^2$ and $1 \leq n^2$, so:
+$n \geq 1$일 때 $3n \leq 3n^2$이고 $1 \leq n^2$이므로
 
 $$
 2n^2 + 3n + 1 \leq 2n^2 + 3n^2 + n^2 = 6n^2
 $$
 
-Choosing $c = 6$ and $n_0 = 1$ satisfies the definition.
+$c = 6$, $n_0 = 1$로 두면 정의를 만족한다.
 
-### Example 3 -- Big-O is an Upper Bound, Not a Tight Bound
+### 예제 3 -- 빅오는 상계이지 꽉 조인 경계가 아니다
 
-Since $n = O(n^2)$ (choose $c = 1$, $n_0 = 1$), Big-O does not claim that $f$ grows at the *same* rate as $g$ -- only that $f$ grows no faster.  For a tight bound, use $\Theta$-notation instead.
+$n = O(n^2)$이므로($c = 1$, $n_0 = 1$로 두면 된다) 빅오는 $f$가 $g$와 *같은* 속도로 증가한다고 주장하지 않는다. 단지 $f$가 더 빠르게 증가하지는 않는다고 말할 뿐이다. 꽉 조인 경계가 필요하면 $\Theta$-표기법을 써야 한다.
 
-## Proof Strategy
+## 증명 전략
 
-To prove that $f(n) = O(g(n))$:
+$f(n) = O(g(n))$을 증명하려면 다음과 같이 한다.
 
-1. **Find suitable constants.** Pick a candidate $c$ and $n_0$.
-2. **Verify the inequality.** Show that $f(n) \leq c \cdot g(n)$ for every $n \geq n_0$.
+1. **적당한 상수를 찾는다.** 후보 $c$와 $n_0$을 고른다.
+2. **부등식을 검증한다.** 모든 $n \geq n_0$에 대해 $f(n) \leq c \cdot g(n)$임을 보인다.
 
-To prove that $f(n) \neq O(g(n))$:
+$f(n) \neq O(g(n))$을 증명하려면 다음과 같이 한다.
 
-1. **Assume the contrary.** Suppose constants $c > 0$ and $n_0 > 0$ exist such that $f(n) \leq c \cdot g(n)$ for all $n \geq n_0$.
-2. **Derive a contradiction.** Exhibit a sequence of $n$ values that violate the inequality.
+1. **반대로 가정한다.** 모든 $n \geq n_0$에 대해 $f(n) \leq c \cdot g(n)$인 상수 $c > 0$과 $n_0 > 0$이 존재한다고 가정한다.
+2. **모순을 유도한다.** 부등식을 위배하는 $n$ 값들의 수열을 제시한다.
 
-??? example "Proof that $n^2 \neq O(n)$"
+??? example "$n^2 \neq O(n)$의 증명"
 
-    Assume for contradiction that there exist $c > 0$ and $n_0 > 0$ with $n^2 \leq c \cdot n$ for all $n \geq n_0$.  Dividing both sides by $n$ (valid for $n > 0$) gives $n \leq c$ for all $n \geq n_0$.  But choosing $n = \lceil c \rceil + 1$ contradicts this, so $n^2 \neq O(n)$.
+    모순을 위해 모든 $n \geq n_0$에 대해 $n^2 \leq c \cdot n$인 $c > 0$과 $n_0 > 0$이 존재한다고 가정하자. 양변을 $n$으로 나누면($n > 0$이므로 가능하다) 모든 $n \geq n_0$에 대해 $n \leq c$가 된다. 그러나 $n = \lceil c \rceil + 1$을 택하면 이에 모순되므로 $n^2 \neq O(n)$이다.
 
-## Common Big-O Classes
+## 흔히 쓰이는 빅오 부류
 
-The table below lists growth rates from slowest to fastest.  Each class appears frequently in algorithm analysis.
+아래 표는 증가 속도가 느린 것부터 빠른 것 순으로 정리한 것이다. 각 부류는 알고리즘 분석에서 자주 등장한다.
 
-| Big-O | Name | Example Algorithm |
+| 빅오 | 이름 | 예시 알고리즘 |
 |---|---|---|
-| $O(1)$ | Constant | Hash table lookup |
-| $O(\log n)$ | Logarithmic | Binary search |
-| $O(n)$ | Linear | Linear scan |
-| $O(n \log n)$ | Linearithmic | Merge sort |
-| $O(n^2)$ | Quadratic | Insertion sort (worst case) |
-| $O(n^3)$ | Cubic | Naive matrix multiplication |
-| $O(2^n)$ | Exponential | Brute-force subset enumeration |
+| $O(1)$ | 상수 | 해시 테이블 조회 |
+| $O(\log n)$ | 로그 | 이진 탐색 |
+| $O(n)$ | 선형 | 선형 탐색 |
+| $O(n \log n)$ | 선형로그 | 병합 정렬 |
+| $O(n^2)$ | 이차 | 삽입 정렬(최악의 경우) |
+| $O(n^3)$ | 삼차 | 소박한 행렬 곱 |
+| $O(2^n)$ | 지수 | 완전 탐색 부분집합 열거 |
 
-For a detailed discussion of these and other growth rates, see [Common Growth Rates](growth_rates.md).
+이들을 비롯한 여러 증가 속도에 대한 자세한 논의는 [흔한 증가 속도](growth_rates.md)를 참고하라.
 
-## Connection to Algorithm Analysis
+## 알고리즘 분석과의 연결
 
-Big-O notation appears throughout algorithm design in two main ways:
+빅오 표기법은 알고리즘 설계 전반에 두 가지 방식으로 등장한다.
 
-- **Running time analysis.** We express worst-case (or average-case) running time as $T(n) = O(g(n))$, meaning the algorithm takes at most a constant multiple of $g(n)$ steps for inputs of size $n$.
-- **Space analysis.** We express memory usage as $S(n) = O(g(n))$, bounding auxiliary or total space.
+- **실행 시간 분석.** 최악의 경우(또는 평균적인 경우) 실행 시간을 $T(n) = O(g(n))$으로 표현한다. 이는 크기 $n$인 입력에 대해 알고리즘이 많아야 $g(n)$의 상수배만큼의 단계를 수행한다는 뜻이다.
+- **공간 분석.** 메모리 사용량을 $S(n) = O(g(n))$으로 표현하여 보조 공간이나 전체 공간의 상계를 준다.
 
-Because Big-O provides only an upper bound, it gives a **guarantee**: the algorithm will never perform worse than the stated bound (up to constants).  When a matching lower bound is also known, we use $\Theta$-notation (see [Big-Theta Notation](big_theta.md)).  When we need only a lower bound, we use $\Omega$-notation (see [Big-Omega Notation](big_omega.md)).
+빅오는 상계만을 제공하므로 **보장** 을 준다. 즉 알고리즘은 (상수 인자를 무시하면) 명시된 경계보다 나쁘게 동작하는 일이 결코 없다. 대응하는 하계까지 알려져 있으면 $\Theta$-표기법을 쓴다([빅세타 표기법](big_theta.md) 참고). 하계만 필요하면 $\Omega$-표기법을 쓴다([빅오메가 표기법](big_omega.md) 참고).
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapters 3-4. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+빅오 표기법에서 다룬 점근 표기법을 적용하여 셀프 어텐션($n^2 d$번 연산)과 순방향 층($n d^2$번 연산)의 복잡도를 분류하라.
+
+??? success "연습문제 1 풀이"
+    셀프 어텐션: $O(n^2 d)$로 시퀀스 길이에 대해 이차이다. FFN: $O(nd^2)$로 시퀀스 길이에 대해서는 선형이지만 은닉 차원에 대해서는 이차이다. $n > d$이면 어텐션이 지배한다. $d > n$이면 FFN이 지배한다. 교차점은 $n = d$이다.
+
+---
+
+**연습문제 2.**
+빅오 표기법에서 서술한 형식적 정의를 구체적인 상수 $c$와 $n_0$을 사용하여 증명하라.
+
+??? success "연습문제 2 풀이"
+    정의를 만족하는 $c$와 $n_0$의 구체적인 값을 고른다. 대수적 조작으로, 또는 각 항의 상계를 잡아서, 모든 $n \geq n_0$에 대해 부등식이 성립함을 검증한다.
+
+---
+
+**연습문제 3.**
+극한 판정법을 사용하여 빅오 표기법과 관련된 두 함수 사이의 점근적 관계를 결정하라.
+
+??? success "연습문제 3 풀이"
+    $\lim_{n \to \infty} f(n)/g(n)$을 계산한다. 극한이 0이면 $f = o(g)$이다. 극한이 $\infty$이면 $f = \omega(g)$이다. 극한이 양의 상수이면 $f = \Theta(g)$이다.
+
+---
+
+**연습문제 4.**
+다음 함수들을 증가 속도 순으로 나열하라: $n$, $n \log n$, $n^2$, $2^n$, $\log n$. 인접한 각 쌍의 순서를 증명하라.
+
+??? success "연습문제 4 풀이"
+    $\log n \prec n \prec n\log n \prec n^2 \prec 2^n$. 증명: $\lim \log n / n = 0$(로피탈 정리), $\lim n/(n\log n) = 1/\log n \to 0$, $\lim n\log n / n^2 = \log n / n \to 0$, $\lim n^2/2^n = 0$(지수가 다항식을 지배한다). $\square$

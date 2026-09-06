@@ -1,16 +1,16 @@
-# Heapsort
+# 힙 정렬
 
-Heapsort combines the heap data structure with a clever in-place strategy to sort an array in $O(n \log n)$ time using only $O(1)$ extra space. The algorithm works in two phases: first build a max-heap from the input array, then repeatedly extract the maximum and place it at the end of the array. Unlike mergesort, heapsort requires no auxiliary array; unlike quicksort, it guarantees $O(n \log n)$ worst-case time.
+힙 정렬은 힙 자료 구조와 영리한 제자리 방법을 아울러 여분 공간 $O(1)$만으로 배열을 $O(n \log n)$ 시간에 정렬한다. 알고리즘은 두 국면으로 돈다. 먼저 입력 배열로 최대 힙을 세우고, 그다음 최댓값을 되풀이해 꺼내 배열 끝에 놓는다. 병합 정렬과 달리 힙 정렬은 보조 배열이 필요 없고, 퀵 정렬과 달리 최악의 경우에도 $O(n \log n)$을 보장한다.
 
-## Algorithm Overview
+## 알고리즘 훑어보기
 
-Heapsort consists of two phases:
+힙 정렬은 두 국면으로 이루어진다.
 
-**Phase 1 -- Build Heap**: transform the unordered input array into a max-heap using the bottom-up Build-Heap procedure. This takes $O(n)$ time.
+**1국면 — 힙 세우기**: 아래에서 위로 가는 힙 세우기 절차로 정렬되지 않은 입력 배열을 최대 힙으로 바꾼다. $O(n)$ 시간이 든다.
 
-**Phase 2 -- Repeated Extraction**: repeatedly swap the root (maximum element) with the last element of the unsorted region, shrink the heap by one, and sift-down to restore the heap property. Each extraction costs $O(\log n)$, and there are $n - 1$ extractions.
+**2국면 — 되풀이 꺼내기**: 뿌리(최댓값 원소)를 정렬되지 않은 구역의 마지막 원소와 되풀이해 맞바꾸고, 힙을 하나 줄이고, 아래로 내려 힙 성질을 되살린다. 꺼내기마다 $O(\log n)$이 들고 꺼내기는 $n - 1$번이다.
 
-### Pseudocode
+### 의사 코드
 
 ```
 HEAPSORT(A):
@@ -20,27 +20,27 @@ HEAPSORT(A):
         MAX-HEAPIFY(A, 0, i)
 ```
 
-After each iteration, `A[i..n-1]` contains the $n - i$ largest elements in sorted order, and `A[0..i-1]` is a valid max-heap.
+되풀이마다 그 뒤에 `A[i..n-1]`은 가장 큰 $n - i$개 원소를 정렬된 순서로 담고 `A[0..i-1]`은 올바른 최대 힙이다.
 
-## Complexity Analysis
+## 복잡도 분석
 
-| Phase | Operations | Cost |
+| 국면 | 연산 | 비용 |
 |-------|-----------|------|
-| Build Heap | One call to Build-Heap | $O(n)$ |
-| Extraction | $n-1$ sift-down operations | $O(n \log n)$ |
-| **Total** | | $O(n \log n)$ |
+| 힙 세우기 | 힙 세우기 한 번 호출 | $O(n)$ |
+| 꺼내기 | 아래로 내리기 $n-1$번 | $O(n \log n)$ |
+| **모두** | | $O(n \log n)$ |
 
 $$
 T(n) = O(n) + (n-1) \cdot O(\log n) = O(n \log n)
 $$
 
-This bound is tight: heapsort performs $\Theta(n \log n)$ comparisons in the worst case.
+이 한계는 빡빡하다. 힙 정렬은 최악의 경우 비교를 $\Theta(n \log n)$번 한다.
 
-**Space complexity**: $O(1)$ auxiliary space -- heapsort sorts in place.
+**공간 복잡도**: 보조 공간 $O(1)$. 힙 정렬은 제자리에서 정렬한다.
 
-## Step-by-Step Example
+## 한 걸음씩 보는 예
 
-Sort the array `[4, 1, 3, 2, 16, 9, 10, 14, 8, 7]`:
+배열 `[4, 1, 3, 2, 16, 9, 10, 14, 8, 7]`을 정렬해 보자.
 
 ```
 Phase 1: Build max-heap
@@ -60,51 +60,51 @@ Phase 2: Extract and place
 Result: [1, 2, 3, 4, 7, 8, 9, 10, 14, 16]
 ```
 
-The `|` separator shows the boundary between the unsorted heap region (left) and the sorted region (right).
+`|` 가름줄은 정렬되지 않은 힙 구역(왼쪽)과 정렬된 구역(오른쪽)의 경계를 보여 준다.
 
-## Properties
+## 성질
 
-| Property | Heapsort |
+| 성질 | 힙 정렬 |
 |----------|----------|
-| Time (worst case) | $O(n \log n)$ |
-| Time (average case) | $O(n \log n)$ |
-| Time (best case) | $O(n \log n)$ |
-| Space | $O(1)$ |
-| Stable | No |
-| In-place | Yes |
-| Comparison-based | Yes |
-| Adaptive | No |
+| 시간 (최악) | $O(n \log n)$ |
+| 시간 (평균) | $O(n \log n)$ |
+| 시간 (최선) | $O(n \log n)$ |
+| 공간 | $O(1)$ |
+| 안정적인가 | 아니다 |
+| 제자리인가 | 그렇다 |
+| 비교에 바탕하는가 | 그렇다 |
+| 적응적인가 | 아니다 |
 
-!!! warning "Heapsort is Not Stable"
-    Heapsort does not preserve the relative order of equal elements. The repeated swap-to-end operation can move equal elements past each other. If stability is required, mergesort or Timsort (Python's built-in sort) are better choices.
+!!! warning "힙 정렬은 안정적이지 않다"
+    힙 정렬은 같은 원소들의 상대 순서를 지키지 않는다. 끝으로 맞바꾸기를 되풀이하다 보면 같은 원소들이 서로를 지나칠 수 있다. 안정성이 필요하면 병합 정렬이나 (파이썬의 붙박이 정렬인) 팀 정렬이 낫다.
 
-## Comparison with Other O(n log n) Sorts
+## 다른 O(n log n) 정렬과 견주기
 
-| Algorithm | Worst Case | Space | Stable | Notes |
+| 알고리즘 | 최악의 경우 | 공간 | 안정성 | 비고 |
 |-----------|-----------|-------|--------|-------|
-| Heapsort | $O(n \log n)$ | $O(1)$ | No | Guaranteed worst case, poor cache behavior |
-| Mergesort | $O(n \log n)$ | $O(n)$ | Yes | Stable, good for linked lists |
-| Quicksort | $O(n^2)$ | $O(\log n)$ | No | Fastest in practice (average case), poor worst case |
+| 힙 정렬 | $O(n \log n)$ | $O(1)$ | 아니다 | 최악의 경우가 보장되지만 캐시 움직임이 나쁘다 |
+| 병합 정렬 | $O(n \log n)$ | $O(n)$ | 그렇다 | 안정적이고 연결 리스트에 좋다 |
+| 퀵 정렬 | $O(n^2)$ | $O(\log n)$ | 아니다 | 실제로 (평균적으로) 가장 빠르지만 최악이 나쁘다 |
 
-Heapsort's main advantage is the combination of guaranteed $O(n \log n)$ worst-case time with $O(1)$ space. Its main disadvantage is poor cache locality: sift-down accesses array positions that double at each level ($i, 2i+1, 4i+3, \ldots$), causing frequent cache misses on large arrays.
+힙 정렬의 가장 큰 이점은 최악의 경우 $O(n \log n)$이 보장되면서 공간이 $O(1)$이라는 점이다. 가장 큰 단점은 캐시 국소성이 나쁘다는 것이다. 아래로 내리기는 층마다 두 배로 커지는 배열 자리($i, 2i+1, 4i+3, \ldots$)에 닿아 큰 배열에서 캐시를 자주 놓친다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Heapsort implementation.
+힙 정렬 구현.
 
-Sorts an array in ascending order using a max-heap.
-Phase 1: Build-Heap in O(n).
-Phase 2: Repeated extract-max in O(n log n).
-Total: O(n log n) time, O(1) space.
+최대 힙으로 배열을 오름차순으로 정렬한다.
+1국면: 힙 세우기를 O(n)에.
+2국면: 최댓값 꺼내기를 되풀이해 O(n log n)에.
+모두: 시간 O(n log n), 공간 O(1).
 """
 
 
-# === Sift Down ===
+# === 아래로 내리기 ===
 
 def sift_down(arr, i, n):
-    """Restore max-heap property at index i, considering only arr[0:n]."""
+    """arr[0:n]만 따져 색인 i에서 최대 힙 성질을 되살린다."""
     while True:
         largest = i
         left = 2 * i + 1
@@ -121,51 +121,51 @@ def sift_down(arr, i, n):
         i = largest
 
 
-# === Heapsort ===
+# === 힙 정렬 ===
 
 def heapsort(arr):
-    """Sort arr in ascending order using heapsort. In-place, O(n log n)."""
+    """힙 정렬로 arr을 오름차순으로 정렬한다. 제자리에서 O(n log n)."""
     n = len(arr)
 
-    # Phase 1: Build max-heap in O(n)
+    # 1국면: 최대 힙을 O(n)에 세운다
     for i in range(n // 2 - 1, -1, -1):
         sift_down(arr, i, n)
 
-    # Phase 2: Extract max and place at end
+    # 2국면: 최댓값을 꺼내 끝에 놓는다
     for i in range(n - 1, 0, -1):
         arr[0], arr[i] = arr[i], arr[0]
         sift_down(arr, 0, i)
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
-    # Sort example from CLRS
+    # CLRS의 정렬 보기
     data = [4, 1, 3, 2, 16, 9, 10, 14, 8, 7]
     print(f"Before: {data}")
     heapsort(data)
     print(f"After:  {data}")
 
-    # Already sorted input (worst case for quicksort, fine for heapsort)
+    # 이미 정렬된 입력 (퀵 정렬에는 최악이지만 힙 정렬에는 괜찮다)
     data2 = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     print(f"\nAlready sorted: {data2}")
     heapsort(data2)
     print(f"After heapsort: {data2}")
 
-    # Reverse sorted input
+    # 거꾸로 정렬된 입력
     data3 = [10, 9, 8, 7, 6, 5, 4, 3, 2, 1]
     print(f"\nReverse sorted: {data3}")
     heapsort(data3)
     print(f"After heapsort: {data3}")
 
-    # All equal elements
+    # 원소가 모두 같은 경우
     data4 = [5, 5, 5, 5, 5]
     print(f"\nAll equal: {data4}")
     heapsort(data4)
     print(f"After:     {data4}")
 ```
 
-**Output:**
+**출력:**
 ```
 Before: [4, 1, 3, 2, 16, 9, 10, 14, 8, 7]
 After:  [1, 2, 3, 4, 7, 8, 9, 10, 14, 16]
@@ -180,6 +180,39 @@ All equal: [5, 5, 5, 5, 5]
 After:     [5, 5, 5, 5, 5]
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 6.4: The heapsort algorithm. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+힙 정렬의 힙 성질을 밝히고 최솟값·최댓값 원소가 언제나 뿌리에 있음을 증명하라.
+
+??? success "연습문제 1 풀이"
+    힙 성질은 노드마다 열쇠가 자식보다 작거나 같거나(최소 힙) 크거나 같다(최대 힙)는 것이다. 뿌리에서 잎까지의 어떤 경로에서도 추이성이 성립하므로 뿌리가 모든 원소의 최솟값(또는 최댓값)이다.
+
+---
+
+**연습문제 2.**
+배열 $[4, 7, 2, 9, 1, 5, 3]$에서 힙 정렬을 따라가라. 단계마다와 그 결과로 나오는 힙을 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽의 연산을 주어진 배열에 적용하라. 단계마다 배열과 그것이 나타내는 트리를 보여라. 비교와 자리바꿈을 짚어라.
+
+---
+
+**연습문제 3.**
+힙 정렬의 시간 복잡도를 증명하라. 그 한계는 빡빡한가?
+
+??? success "연습문제 3 풀이"
+    이 연산은 뿌리에서 잎까지 또는 잎에서 뿌리까지의 경로를 훑으며 층마다 $O(1)$의 일을 한다. 완전 이진 트리의 높이는 $\lfloor\log_2 n\rfloor$이므로 모두 $O(\log n)$이다. 이 한계는 빡빡하다. 높이 전체를 훑도록 강요하는 입력이 있다. $\square$
+
+---
+
+**연습문제 4.**
+$k = 5$이고 어휘가 $n = 32{,}000$인 빔 탐색에서 힙으로 뽑기(원소 $n$개에서 상위 $k$개)와 정렬을 견주어라.
+
+??? success "연습문제 4 풀이"
+    정렬은 $O(n\log n) = O(32000 \times 15) \approx 48만$번의 연산이 든다. 힙(크기 $k$인 최소 힙)은 $O(n\log k) = O(32000 \times 2.3) \approx 7만 4천$번이다. 힙이 약 $6.5$배 빠르다. 아니면 `torch.topk`가 GPU에 맞추어 다듬은 부분 정렬 알고리즘을 쓴다.

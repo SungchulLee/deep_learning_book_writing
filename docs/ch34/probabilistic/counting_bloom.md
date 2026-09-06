@@ -154,3 +154,70 @@ After deletion, `banana` correctly reports `False`, while `apple` and `cherry` r
 
 - Fan, L., Cao, P., Almeida, J., and Broder, A.Z. "Summary Cache: A Scalable Wide-Area Web Cache Sharing Protocol." *IEEE/ACM Trans. Networking*, 2000
 - Mitzenmacher, M. and Upfal, E. *Probability and Computing*. Cambridge University Press, 2005
+
+## Exercises
+
+**Exercise 1.**
+Explain why deletion is impossible in a standard Bloom filter and how counting Bloom filters solve this. What is the space overhead?
+
+??? success "Solution to Exercise 1"
+    In a standard Bloom filter, each bit position may be set by multiple elements. Clearing a bit during deletion would erase evidence of other elements that also hash to that position, potentially creating false negatives (which violate the Bloom filter guarantee). Counting Bloom filters replace each bit with an integer counter. Insert increments all $k$ counters; delete decrements all $k$ counters. A membership query checks whether all $k$ counters are $> 0$. Since counters are never set to negative values (assuming no bogus deletes), elements that were not deleted retain positive counts at all their positions. Space overhead: each counter needs $b$ bits instead of 1 bit. With 4-bit counters ($b = 4$, maximum count 15), the space is $4m$ bits instead of $m$ bits -- a 4x increase. The 4-bit choice is standard because the probability of a counter exceeding 15 is negligibly small for typical loads. $\square$
+
+---
+
+**Exercise 2.**
+Derive the probability that a counter in a counting Bloom filter overflows (exceeds its maximum value) given $n$ elements, $m$ counters, $k$ hash functions, and counter width $b$ bits.
+
+??? success "Solution to Exercise 2"
+    Each insertion increments $k$ of the $m$ counters. The number of times a specific counter is incremented follows a Binomial distribution: $X \sim \text{Binomial}(nk, 1/m)$, since each of the $nk$ hash outputs independently hits this counter with probability $1/m$. The expected count is $\mu = nk/m$. The counter overflows if $X > 2^b - 1$. With $b = 4$, overflow occurs when $X > 15$. For $k = 7$ and $m/n = 10$ (optimal for 1% FPR): $\mu = 7/10 = 0.7$. Using a Poisson approximation: $P(X > 15) \approx \sum_{i=16}^{\infty} e^{-0.7} (0.7)^i / i! < 10^{-15}$. Over $m = 10^7$ counters, the expected number of overflows is $< 10^{-8}$, making overflow essentially impossible. $\square$
+
+---
+
+**Exercise 3.**
+What happens if an element is deleted from a counting Bloom filter that was never inserted? Describe the failure mode and propose a safeguard.
+
+??? success "Solution to Exercise 3"
+    Deleting a non-member decrements $k$ counters that may have been incremented by other elements. This reduces those counters, potentially to 0, which creates false negatives for the elements that originally incremented them. This is a correctness violation: the no-false-negatives guarantee is broken. Example: elements A and B both hash to counter $i$. Delete non-member C, which also hashes to counter $i$. Counter $i$ decreases; if it reaches 0, both A and B produce false negatives. Safeguard: before deleting, query the filter to verify the element is (probably) present. If the query returns "not present," skip the deletion. This prevents most bogus deletes but is not foolproof (a false positive could cause an incorrect delete of a non-member). For guaranteed correctness, maintain a separate exact set alongside the counting Bloom filter. $\square$
+
+---
+
+**Exercise 4.**
+Compare counting Bloom filters with cuckoo filters in terms of space efficiency, deletion support, and false positive rate. When is each preferable?
+
+??? success "Solution to Exercise 4"
+    **Counting Bloom filter**: 4x space of a standard Bloom filter (4-bit counters). Supports deletion. FPR depends on $m/n$ and $k$. For 1% FPR: $\sim$40 bits/element. **Cuckoo filter**: stores fingerprints in a cuckoo hash table. For 1% FPR with 8-bit fingerprints and 95% load factor: $\sim$8.5 bits/element. Supports deletion natively (remove the fingerprint). Counting Bloom filters are preferable when: (1) the system already uses Bloom filters and a drop-in replacement is needed; (2) the number of hash functions must be configurable. Cuckoo filters are preferable when: (1) space efficiency matters (4--5x more compact); (2) deletion is needed (inherent in the design, no counter overflow risk); (3) lookup performance matters (cuckoo filters check only 2 buckets vs. $k$ random positions for Bloom). $\square$
+
+---
+
+**Exercise 5.**
+Implement a counting Bloom filter in pseudocode that supports insert, delete, and query operations. Include the counter overflow check.
+
+??? success "Solution to Exercise 5"
+    ```
+    class CountingBloomFilter:
+        init(m, k):
+            counters = array of m integers, all 0
+            hash_functions = k independent hash functions
+    
+        insert(x):
+            for i in 1..k:
+                pos = hash_functions[i](x) % m
+                if counters[pos] < MAX_COUNT:
+                    counters[pos] += 1
+    
+        delete(x):
+            if not query(x):
+                return  # safeguard against bogus deletes
+            for i in 1..k:
+                pos = hash_functions[i](x) % m
+                if counters[pos] > 0:
+                    counters[pos] -= 1
+    
+        query(x):
+            for i in 1..k:
+                pos = hash_functions[i](x) % m
+                if counters[pos] == 0:
+                    return False
+            return True
+    ```
+    The overflow check in `insert` caps counters at `MAX_COUNT` (e.g., 15 for 4-bit counters). The delete safeguard queries first and the `> 0` check prevents underflow. $\square$

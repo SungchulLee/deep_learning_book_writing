@@ -1,139 +1,117 @@
-# Bayesian Hypothesis Testing and Model Comparison
+# 베이즈 가설 검정과 모형 견줌
+## 개요
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-Bayesian hypothesis testing uses Bayes factors to compare competing hypotheses, providing a principled framework for quantifying evidence. This module develops the theory of Bayes factors, posterior odds, and the Savage-Dickey density ratio for testing point null hypotheses.
+베이즈 가설 검정은 베이즈 인자로 겨루는 가설을 견주어, 증거를 수로 나타내는 원칙 있는 틀을 준다. 이 모듈은 베이즈 인자, 뒤확률 승산, 그리고 점 영가설을 검정하는 새비지-디키 밀도비의 이론을 세운다.
 
 ---
 
-## 1. Bayes Factors
+## 1. 베이즈 인자
 
-### 1.1 Definition
+### 1.1 정의
 
-For two competing hypotheses $H_1$ and $H_2$, the **Bayes factor** is the ratio of marginal likelihoods:
+겨루는 두 가설 $H_1$과 $H_2$에 대해 **베이즈 인자**는 주변 가능도의 비이다.
 
 $$
-
 \boxed{BF_{12} = \frac{p(D|H_1)}{p(D|H_2)}}
-
 $$
 
-where the marginal likelihood (evidence) under hypothesis $H_i$ is:
+여기서 가설 $H_i$ 아래의 주변 가능도(증거)는 다음과 같다.
 
 $$
-
 p(D|H_i) = \int p(D|\theta, H_i) \, p(\theta|H_i) \, d\theta
-
 $$
 
-### 1.2 Interpretation
+### 1.2 풀이
 
-The Bayes factor quantifies how much the data favor one hypothesis over another:
+베이즈 인자는 데이터가 한 가설을 다른 가설보다 얼마나 편드는지를 수로 나타낸다.
 
-| Bayes Factor $BF_{12}$ | Evidence for $H_1$ |
+| 베이즈 인자 $BF_{12}$ | $H_1$을 편드는 증거 |
 |------------------------|-------------------|
-| $> 100$ | Decisive |
-| \$30 - 100$ | Very strong |
-| \$10 - 30$ | Strong |
-| \$3 - 10$ | Moderate |
-| \$1 - 3$ | Weak |
-| $1$ | No evidence either way |
-| \$1/3 - 1$ | Weak evidence for $H_2$ |
-| $< 1/10$ | Strong evidence for $H_2$ |
+| $> 100$ | 결정적임 |
+| \$30 - 100$ | 매우 강함 |
+| \$10 - 30$ | 강함 |
+| \$3 - 10$ | 보통 |
+| \$1 - 3$ | 약함 |
+| $1$ | 어느 쪽으로도 증거 없음 |
+| \$1/3 - 1$ | $H_2$을 약하게 편드는 증거 |
+| $< 1/10$ | $H_2$을 강하게 편드는 증거 |
 
-### 1.3 Key Properties
+### 1.3 핵심 성질
 
-1. **Symmetry:** $BF_{21} = 1/BF_{12}$
+1. **대칭성:** $BF_{21} = 1/BF_{12}$
 
-2. **Transitivity:** $BF_{13} = BF_{12} \times BF_{23}$
+2. **추이성:** $BF_{13} = BF_{12} \times BF_{23}$
 
-3. **Independence from prior odds:** The Bayes factor depends only on the data and the models, not on prior beliefs about which hypothesis is true.
+3. **앞선 승산과 무관함:** 베이즈 인자는 데이터와 모형에만 기대며, 어느 가설이 참인지에 대한 앞선 믿음에는 기대지 않는다.
 
 ---
 
-## 2. Posterior Odds
+## 2. 뒤확률 승산
 
-### 2.1 Connecting Prior to Posterior
+### 2.1 앞확률과 뒤확률 잇기
 
-The **posterior odds** relate to **prior odds** through the Bayes factor:
+**뒤확률 승산**은 베이즈 인자를 거쳐 **앞확률 승산**과 이어진다.
 
 $$
-
 \boxed{\underbrace{\frac{p(H_1|D)}{p(H_2|D)}}_{\text{Posterior Odds}} = \underbrace{\frac{p(D|H_1)}{p(D|H_2)}}_{\text{Bayes Factor}} \times \underbrace{\frac{p(H_1)}{p(H_2)}}_{\text{Prior Odds}}}
-
 $$
 
-Or more compactly:
+또는 더 야무지게 쓰면 다음과 같다.
 
 $$
-
 \text{Posterior Odds} = BF_{12} \times \text{Prior Odds}
-
 $$
 
-### 2.2 Posterior Model Probabilities
+### 2.2 모형의 뒤확률
 
-Given prior probabilities $p(H_1)$ and $p(H_2) = 1 - p(H_1)$:
+앞확률 $p(H_1)$과 $p(H_2) = 1 - p(H_1)$이 주어지면 다음과 같다.
 
 $$
-
 p(H_1|D) = \frac{BF_{12} \cdot p(H_1)}{BF_{12} \cdot p(H_1) + p(H_2)}
-
 $$
 
-**Example:** With equal priors ($p(H_1) = p(H_2) = 0.5$) and $BF_{12} = 10$:
+**보기:** 앞확률이 같고($p(H_1) = p(H_2) = 0.5$) $BF_{12} = 10$이면 다음과 같다.
 
 $$
-
 p(H_1|D) = \frac{10 \times 0.5}{10 \times 0.5 + 0.5} = \frac{5}{5.5} \approx 0.91
-
 $$
 
 ---
 
-## 3. Testing Coin Fairness
+## 3. 동전이 공정한지 검정하기
 
-### 3.1 Problem Setup
+### 3.1 문제의 얼개
 
-**Hypotheses:**
-- $H_0$: $\theta = 0.5$ (fair coin)
-- $H_1$: $\theta \neq 0.5$ (biased coin, with prior $\theta \sim \text{Beta}(\alpha, \beta)$)
+**가설:**
 
-**Data:** $k$ heads in $n$ flips
+- $H_0$: $\theta = 0.5$(공정한 동전)
+- $H_1$: $\theta \neq 0.5$(치우친 동전이며 앞확률은 $\theta \sim \text{Beta}(\alpha, \beta)$)
 
-### 3.2 Marginal Likelihoods
+**데이터:** $n$번 던져 앞면 $k$번
 
-**Under $H_0$** (point hypothesis):
+### 3.2 주변 가능도
+
+**$H_0$ 아래**(점 가설):
 
 $$
-
 p(D|H_0) = \binom{n}{k} (0.5)^n
-
 $$
 
-**Under $H_1$** (Beta-Binomial):
+**$H_1$ 아래**(베타-이항):
 
 $$
-
 p(D|H_1) = \binom{n}{k} \frac{B(k + \alpha, n - k + \beta)}{B(\alpha, \beta)}
-
 $$
 
-where $B(\cdot, \cdot)$ is the Beta function.
+여기서 $B(\cdot, \cdot)$은 베타 함수이다.
 
-### 3.3 Bayes Factor Computation
+### 3.3 베이즈 인자 셈하기
 
 $$
-
 BF_{10} = \frac{p(D|H_1)}{p(D|H_0)} = \frac{B(k + \alpha, n - k + \beta)}{B(\alpha, \beta) \cdot (0.5)^n}
-
 $$
 
-### 3.4 Implementation
+### 3.4 구현
 
 ```python
 import numpy as np
@@ -142,26 +120,26 @@ from scipy.special import beta as beta_func
 
 def bayes_factor_coin_fairness(n_heads, n_tails, prior_alpha=1, prior_beta=1):
     """
-    Compute Bayes Factor for H1 (biased) vs H0 (fair coin).
+    H1(치우침) 대 H0(공평한 동전)의 베이즈 인자를 셈한다.
     
-    Parameters
+    매개변수
     ----------
     n_heads, n_tails : int
-        Observed data
+        관측 자료
     prior_alpha, prior_beta : float
-        Beta prior parameters under H1
+        H1 아래의 베타 앞확률 매개변수
     
-    Returns
+    반환값
     -------
     bf : float
-        Bayes Factor (H1 vs H0)
+        베이즈 인자(H1 대 H0)
     """
     n = n_heads + n_tails
     
-    # Evidence under H0: θ = 0.5
+    # H0 아래 증거: θ = 0.5
     evidence_h0 = stats.binom.pmf(n_heads, n, 0.5)
     
-    # Evidence under H1: Beta-Binomial marginal likelihood
+    # H1 아래 증거: 베타-이항 주변 가능도
     evidence_h1 = (beta_func(n_heads + prior_alpha, n_tails + prior_beta) / 
                    beta_func(prior_alpha, prior_beta))
     evidence_h1 *= stats.binom.comb(n, n_heads)
@@ -171,184 +149,222 @@ def bayes_factor_coin_fairness(n_heads, n_tails, prior_alpha=1, prior_beta=1):
     return bf_h1_vs_h0
 ```
 
-### 3.5 Example
+### 3.5 보기
 
-**Data:** 17 heads, 3 tails
+**데이터:** 앞면 17번, 뒷면 3번
 
 ```python
 bf = bayes_factor_coin_fairness(n_heads=17, n_tails=3)
 # bf ≈ 17.5
 ```
 
-| Quantity | Value |
+| 양 | 값 |
 |----------|-------|
-| Evidence under $H_0$ | 0.000181 |
-| Evidence under $H_1$ | 0.00317 |
-| Bayes Factor $BF_{10}$ | 17.5 |
-| Interpretation | Strong evidence for biased coin |
+| $H_0$ 아래의 증거 | 0.000181 |
+| $H_1$ 아래의 증거 | 0.00317 |
+| 베이즈 인자 $BF_{10}$ | 17.5 |
+| 풀이 | 동전이 치우쳤다는 강한 증거 |
 
 ---
 
-## 4. Savage-Dickey Density Ratio
+## 4. 새비지-디키 밀도비
 
-### 4.1 The Method
+### 4.1 방법
 
-For testing a **point null hypothesis** $H_0: \theta = \theta_0$ against $H_1: \theta \neq \theta_0$, the Bayes factor can be computed as:
+**점 영가설** $H_0: \theta = \theta_0$을 $H_1: \theta \neq \theta_0$과 견주어 검정할 때 베이즈 인자는 다음과 같이 셈할 수 있다.
 
 $$
-
 \boxed{BF_{01} = \frac{p(\theta_0|D, H_1)}{p(\theta_0|H_1)}}
-
 $$
 
-This is the ratio of **posterior to prior density** evaluated at the null value $\theta_0$.
+이는 영가설 값 $\theta_0$에서 잰 **뒤확률 밀도와 앞확률 밀도의 비**이다.
 
-### 4.2 Intuition
+### 4.2 직관
 
-- If the posterior density at $\theta_0$ is **lower** than the prior density → data moved probability mass away from $\theta_0$ → evidence against $H_0$
-- If the posterior density at $\theta_0$ is **higher** than the prior density → data moved probability mass toward $\theta_0$ → evidence for $H_0$
+- $\theta_0$에서 뒤확률 밀도가 앞확률 밀도보다 **낮으면** → 데이터가 확률 질량을 $\theta_0$에서 멀리 옮긴 것 → $H_0$에 맞서는 증거
+- $\theta_0$에서 뒤확률 밀도가 앞확률 밀도보다 **높으면** → 데이터가 확률 질량을 $\theta_0$ 쪽으로 옮긴 것 → $H_0$을 편드는 증거
 
-### 4.3 Implementation
+### 4.3 구현
 
 ```python
 from scipy import stats
 
 def savage_dickey_bf(n_heads, n_tails, prior_alpha=1, prior_beta=1, null_value=0.5):
     """
-    Compute Bayes Factor using Savage-Dickey density ratio.
+    새비지-디키 밀도 비로 베이즈 인자를 셈한다.
     
-    Returns BF_{01} (null vs alternative) and BF_{10} (alternative vs null).
+    BF_{01}(귀무 대 대립)과 BF_{10}(대립 대 귀무)을 되돌린다.
     """
-    # Prior and posterior distributions
+    # 앞확률과 뒤확률 분포
     prior = stats.beta(prior_alpha, prior_beta)
     posterior = stats.beta(prior_alpha + n_heads, prior_beta + n_tails)
     
-    # Evaluate densities at null value
+    # 귀무값에서 밀도 값 매기기
     prior_density = prior.pdf(null_value)
     posterior_density = posterior.pdf(null_value)
     
-    # Savage-Dickey ratio
+    # 새비지-디키 비
     bf_h0_vs_h1 = posterior_density / prior_density
     bf_h1_vs_h0 = 1 / bf_h0_vs_h1
     
     return bf_h0_vs_h1, bf_h1_vs_h0
 ```
 
-### 4.4 Example
+### 4.4 보기
 
-**Data:** 17 heads, 3 tails  
-**Testing:** $H_0: \theta = 0.5$
+**데이터:** 앞면 17번, 뒷면 3번
+**검정:** $H_0: \theta = 0.5$
 
 ```python
 bf_01, bf_10 = savage_dickey_bf(n_heads=17, n_tails=3)
 ```
 
-| Quantity | Value |
+| 양 | 값 |
 |----------|-------|
-| Prior density at $\theta = 0.5$ | 1.000 |
-| Posterior density at $\theta = 0.5$ | 0.057 |
-| $BF_{01}$ (Savage-Dickey) | 0.057 |
+| $\theta = 0.5$에서의 앞확률 밀도 | 1.000 |
+| $\theta = 0.5$에서의 뒤확률 밀도 | 0.057 |
+| $BF_{01}$(새비지-디키) | 0.057 |
 | $BF_{10}$ | 17.5 |
 
-The posterior density at $\theta = 0.5$ is much lower than the prior density, indicating the data have moved probability mass away from the fair coin hypothesis.
+$\theta = 0.5$에서 뒤확률 밀도가 앞확률 밀도보다 훨씬 낮은데, 이는 데이터가 확률 질량을 공정한 동전 가설에서 멀리 옮겼음을 뜻한다.
 
 ---
 
-## 5. Bayesian vs Frequentist Testing
+## 5. 베이즈 검정과 빈도주의 검정
 
-### 5.1 Fundamental Differences
+### 5.1 근본 차이
 
-| Aspect | Bayesian (Bayes Factor) | Frequentist (p-value) |
+| 갈래 | 베이즈(베이즈 인자) | 빈도주의(p값) |
 |--------|-------------------------|------------------------|
-| **Measures** | Evidence for $H_1$ vs $H_0$ | Extremeness of data under $H_0$ |
-| **Interpretation** | Relative plausibility | Probability of data more extreme |
-| **Can favor null** | Yes | No (can only fail to reject) |
-| **Sample size** | Can stop anytime | Requires fixed sample size |
-| **Prior required** | Yes | No |
+| **재는 것** | $H_0$에 견준 $H_1$의 증거 | $H_0$ 아래에서 데이터의 극단성 |
+| **풀이** | 상대적인 그럴듯함 | 더 극단적인 데이터가 나올 확률 |
+| **영가설을 편들 수 있는가** | 예 | 아니오(기각하지 못할 뿐이다) |
+| **표본 크기** | 언제든 멈출 수 있다 | 표본 크기를 미리 붙박아야 한다 |
+| **앞확률 필요** | 예 | 아니오 |
 
-### 5.2 The p-value Problem
+### 5.2 p값의 문제
 
-P-values only measure evidence *against* $H_0$, not evidence *for* $H_0$. A non-significant p-value (e.g., $p = 0.15$) does not mean $H_0$ is true — it could simply reflect insufficient data.
+p값은 $H_0$에 *맞서는* 증거만 재지 $H_0$을 *편드는* 증거는 재지 못한다. 유의하지 않은 p값(이를테면 $p = 0.15$)이 $H_0$이 참이라는 뜻은 아니다. 그저 데이터가 모자랐다는 것을 비출 수도 있다.
 
-Bayes factors can distinguish between:
-- **Evidence for $H_0$** ($BF_{01} > 3$)
-- **Evidence for $H_1$** ($BF_{10} > 3$)
-- **Inconclusive** ($1/3 < BF < 3$)
+베이즈 인자는 다음을 가려낼 수 있다.
 
-### 5.3 Lindley's Paradox
+- **$H_0$을 편드는 증거**($BF_{01} > 3$)
+- **$H_1$을 편드는 증거**($BF_{10} > 3$)
+- **판가름 나지 않음**($1/3 < BF < 3$)
 
-With large sample sizes, p-values and Bayes factors can give contradictory conclusions. A small p-value might coexist with a Bayes factor favoring the null — especially when the effect size is small but the sample is large.
+### 5.3 린들리의 역설
+
+표본이 크면 p값과 베이즈 인자가 서로 어긋나는 결론을 낼 수 있다. 작은 p값과 영가설을 편드는 베이즈 인자가 함께 나올 수 있는데, 효과 크기는 작고 표본은 클 때 특히 그렇다.
 
 ---
 
-## 6. Practical Considerations
+## 6. 실전에서 살필 것
 
-### 6.1 Choosing Priors for Model Comparison
+### 6.1 모형 견줌에 쓸 앞확률 고르기
 
-The Bayes factor is **sensitive to prior specification** under $H_1$. Guidelines:
+베이즈 인자는 $H_1$ 아래의 **앞확률을 어떻게 정하느냐에 민감하다**. 지침은 다음과 같다.
 
-| Approach | Description |
+| 방법 | 설명 |
 |----------|-------------|
-| Default priors | Unit information priors, Jeffreys priors |
-| Substantive priors | Based on domain knowledge |
-| Sensitivity analysis | Check robustness to prior choice |
+| 기본 앞확률 | 단위 정보 앞확률, 제프리스 앞확률 |
+| 실질 앞확률 | 분야의 앎을 바탕으로 한다 |
+| 민감도 분석 | 앞확률 선택에 대한 튼튼함을 살핀다 |
 
-### 6.2 Computational Methods
+### 6.2 셈하는 방법
 
-For complex models where marginal likelihoods are intractable:
+주변 가능도를 다룰 수 없는 복잡한 모형에서는 다음과 같이 한다.
 
-| Method | Description |
+| 방법 | 설명 |
 |--------|-------------|
-| Importance sampling | Weighted Monte Carlo estimation |
-| Bridge sampling | Efficient marginal likelihood estimation |
-| Thermodynamic integration | Path from prior to posterior |
-| Reversible jump MCMC | Trans-dimensional sampling |
+| 중요도 표집 | 무게 준 몬테카를로 어림 |
+| 다리 표집 | 효율적인 주변 가능도 어림 |
+| 열역학 적분 | 앞확률에서 뒤확률로 가는 길 |
+| 되돌릴 수 있는 뜀 MCMC | 차원을 넘나드는 표집 |
 
-### 6.3 Reporting Results
+### 6.3 결과 알리기
 
-Report:
-1. The Bayes factor with interpretation
-2. Prior assumptions under each model
-3. Posterior model probabilities (if prior odds specified)
+다음을 알린다.
 
-**Example:**
+1. 베이즈 인자와 그 풀이
+2. 모형마다의 앞확률 가정
+3. 모형의 뒤확률(앞선 승산을 정했다면)
 
-> "The data provide strong evidence for a biased coin ($BF_{10} = 17.5$). Assuming equal prior odds, the posterior probability of bias is 0.95."
+**예:**
 
----
-
-## 7. Key Takeaways
-
-1. **Bayes factors** quantify relative evidence for competing hypotheses as a ratio of marginal likelihoods.
-
-2. **Posterior odds = Bayes factor × Prior odds**: The Bayes factor updates our prior beliefs about hypotheses.
-
-3. **Savage-Dickey density ratio** provides an elegant method for testing point nulls: $BF_{01} = p(\theta_0|D)/p(\theta_0)$.
-
-4. **Bayesian testing avoids p-values** and their interpretation problems. Bayes factors can provide evidence *for* the null, not just against it.
-
-5. **Prior sensitivity**: Bayes factors depend on prior choices under the alternative hypothesis. Always conduct sensitivity analyses.
+> "데이터는 동전이 치우쳤다는 강한 증거를 준다($BF_{10} = 17.5$). 앞선 승산이 같다고 놓으면 치우쳤을 뒤확률은 0.95이다."
 
 ---
 
-## 8. Exercises
+## 7. 핵심 요점
 
-### Exercise 1: Frequentist Comparison
-For the coin fairness example (17 heads, 3 tails), compute the frequentist p-value (two-sided binomial test). Compare the conclusion with the Bayes factor analysis.
+1. **베이즈 인자**는 겨루는 가설의 상대적 증거를 주변 가능도의 비로 수에 담는다.
 
-### Exercise 2: Evidence Accumulation
-Compute Bayes factors for increasing sample sizes (n = 10, 20, 50, 100) with a fixed proportion of heads (70%). Plot how evidence accumulates.
+2. **뒤확률 승산 = 베이즈 인자 × 앞확률 승산**: 베이즈 인자가 가설에 대한 앞선 믿음을 고친다.
 
-### Exercise 3: Nested Model Comparison
-Implement Bayes factor computation for comparing nested linear regression models (e.g., simple vs multiple regression).
+3. **새비지-디키 밀도비**는 점 영가설을 검정하는 우아한 방법을 준다. 곧 $BF_{01} = p(\theta_0|D)/p(\theta_0)$이다.
 
-### Exercise 4: Normal-Normal Testing
-Use the Savage-Dickey method to test $H_0: \mu = 0$ vs $H_1: \mu \neq 0$ in the Normal-Normal model with known variance.
+4. **베이즈 검정은 p값**과 그 풀이의 문제를 비껴간다. 베이즈 인자는 영가설에 맞서는 증거만이 아니라 그것을 *편드는* 증거도 줄 수 있다.
+
+5. **앞확률 민감도**: 베이즈 인자는 대립가설 아래의 앞확률 선택에 기댄다. 늘 민감도 분석을 하라.
 
 ---
 
-## References
+## 8. 연습문제
+
+### 연습문제 1: 빈도주의와의 견줌
+동전이 공정한지 보는 보기(앞면 17번, 뒷면 3번)에서 빈도주의 p값(양측 이항 검정)을 셈하라. 그 결론을 베이즈 인자 분석과 견주어라.
+
+### 연습문제 2: 증거가 쌓이는 모습
+앞면 비율을 70%으로 붙박고 표본 크기를 키워 가며(n = 10, 20, 50, 100) 베이즈 인자를 셈하라. 증거가 어떻게 쌓이는지 그려라.
+
+### 연습문제 3: 겹친 모형 견줌
+겹친 선형 회귀 모형(이를테면 단순 회귀와 다중 회귀)을 견주는 베이즈 인자 셈을 구현하라.
+
+### 연습문제 4: 정규-정규 검정
+흩어짐을 아는 정규-정규 모형에서 새비지-디키 방법으로 $H_0: \mu = 0$과 $H_1: \mu \neq 0$을 검정하라.
+
+---
+
+## 참고 문헌
 
 - Kass, R. E., & Raftery, A. E. (1995). Bayes factors. *JASA*, 90(430), 773-795.
 - Wagenmakers, E. J. (2007). A practical solution to the pervasive problems of p values. *Psychonomic Bulletin & Review*, 14(5), 779-804.
-- Gelman, A., et al. *Bayesian Data Analysis* (3rd ed.), Chapter 7
+- Gelman, A., et al. *Bayesian Data Analysis* (3rd ed.), 7장
+
+## 연습문제
+
+**연습문제 1.**
+이 쪽이 다루는 핵심 개념과 그것이 베이즈 통계에서 하는 몫을 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 쪽은 베이즈 추론의 근본 부품인 가설 검정을(를) 다룬다. 이는 데이터로 믿음을 고치고, 불확실성을 수로 나타내며, 불확실함 속에서 결정을 내리는 더 넓은 틀과 이어진다. 베이즈의 눈은 앞선 앎을 아우르고 불확실성을 분석 전체로 퍼뜨리는 원칙 있는 길을 준다.
+
+---
+
+**연습문제 2.**
+주된 수학적 결과를 끌어내거나 밝히고 그 뜻을 설명하라.
+
+??? success "연습문제 2 풀이"
+    핵심 결과는 앞선 정보가 베이즈 정리를 거쳐 관찰한 데이터와 어우러져 고쳐진 추론을 낳는 모습을 보여 준다. 이 결과가 뜻깊은 까닭은, 매개변수의 불확실성을 아랑곳하지 않는 점 어림 방법과 달리 불확실성을 셈에 넣으면서 데이터에서 배우는 앞뒤 맞는 틀을 주기 때문이다.
+
+---
+
+**연습문제 3.**
+이 주제에서 베이즈 방법과 빈도주의 대안을 견주어라.
+
+??? success "연습문제 3 풀이"
+    베이즈 방법은 온전한 뒤확률 분포, 자연스러운 불확실성 재기, 앞선 앎을 아우르는 원칙 있는 길을 준다. 빈도주의 대안은 표집 분포에 기대고, 큰 표본 어림이 필요할 수 있으며, 매개변수를 붙박인 미지수로 다룬다. 표본이 작을 때는 앞확률의 벌주기 효과 덕분에 베이즈 방법이 더 나을 때가 많다.
+
+---
+
+**연습문제 4.**
+이 개념의 간단한 보기를 파이토치나 넘파이로 파이썬에 구현하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    import numpy as np
+    # 구현은 주제에 따라 달라진다.
+    # 켤레 모형: 닫힌 꼴 뒤확률 새로 고치기.
+    # 켤레가 아닌 모형: MCMC 또는 변분 추론.
+    # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
+    ```

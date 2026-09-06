@@ -1,52 +1,81 @@
-# 29.4.4 Graph Transformers
+# 29.4.4 그래프 변환기
+## 들어가며
 
+**그래프 변환기**는 변환기의 스스로 눈길 얼개를 그래프에 써서 한 층에서 온 자리의 앎을 주고받게 하고 그 자리 쪽지 건네기의 병목을 피한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 핵심 얼개
 
-## Introduction
+### 그래포머(잉 외, 2021)
+얼개 적기 셋으로 변환기를 그래프에 맞춘다:
 
-**Graph Transformers** apply the transformer's self-attention mechanism to graphs, enabling global information exchange in a single layer and avoiding the local message passing bottleneck.
+- **가운데임 적기**: 마디 특징에 더하는 차수 바탕 치우침
+- **자리 적기**: 눈길 치우침으로 쓰는 최단 길 거리
+- **변 적기**: 최단 길을 따른 변 특징의 평균
 
-## Key Architectures
+### 그래프 변환기(드위베디와 브레송, 2020)
+다음을 갖춘 그래프 위의 여느 여러 갈래 눈길:
 
-### Graphormer (Ying et al., 2021)
-Adapts transformers to graphs with three structural encodings:
-- **Centrality encoding**: Degree-based bias added to node features
-- **Spatial encoding**: Shortest-path distance as attention bias
-- **Edge encoding**: Average of edge features along shortest paths
+- 마디 특징으로 쓰는 라플라스 자리 적기
+- 눈길 셈하기에 넣은 변 특징
 
-### Graph Transformer (Dwivedi & Bresson, 2020)
-Standard multi-head attention on graphs with:
-- Laplacian positional encodings as node features
-- Edge features incorporated into attention computation
-
-### GPS (General, Powerful, Scalable)
-Combines local message passing (MPNN) with global attention:
+### GPS(두루 쓰고 힘세고 키울 수 있는 것)
+그 자리 쪽지 건네기(쪽지 건네기 신경망)와 온 자리 눈길을 합친다:
 
 $$h_v = \text{MPNN}(h_v, \{h_u\}_{u \in \mathcal{N}(v)}) + \text{Transformer}(h_v, \{h_u\}_{u \in V})$$
 
-## Attention Mechanism on Graphs
+## 그래프 위의 눈길 얼개
 
-Standard: $\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right) V$
+여느 방식: $\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right) V$
 
-With graph bias: $\text{Attention} = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + B\right) V$
+그래프 치우침을 더하면: $\text{Attention} = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + B\right) V$
 
-where $B_{ij}$ encodes structural relationships (distance, connectivity).
+여기서 $B_{ij}$은 얼개 관계(거리, 이어짐)를 적는다.
 
-## Advantages over Message Passing
+## 쪽지 건네기보다 나은 점
 
-1. **Global receptive field** in a single layer
-2. **No over-smoothing** (attention is selective)
-3. **Captures long-range dependencies** directly
-4. **Parallelizable** computation
+1. 한 층에서 **온 자리를 받아들이는 자리**
+2. **지나친 매끄러워짐 없음**(눈길이 가려서 본다)
+3. **먼 거리 매임을 곧바로 담는다**
+4. **나란히 할 수 있는** 셈
 
-## Limitations
+## 한계
 
-- $O(n^2)$ complexity for full attention
-- Requires positional/structural encodings to be structure-aware
-- May overfit on small graphs
+- 온전한 눈길에 $O(n^2)$ 복잡도
+- 얼개를 알아보려면 자리와 얼개 적기가 필요하다
+- 작은 그래프에서는 지나치게 맞을 수 있다
 
-## Summary
+## 요약
 
-Graph transformers represent the frontier of graph learning, combining the expressiveness of transformers with graph-structural inductive biases. They are particularly promising for tasks requiring long-range interactions.
+그래프 변환기는 변환기의 나타냄 힘과 그래프 얼개의 귀납 치우침을 합쳐 그래프 배움의 최전선을 이룬다. 먼 거리의 주고받음이 필요한 일에 특히 기대할 만하다.
+
+## 연습문제
+
+**연습문제 1.**
+마디 5개와 돌이의 이웃 얼개를 가진 그래프를 살펴보자. 2차원 특징 벡터에서 이 마디에 적은 쪽지 건네기 고침 한 걸음을 손으로 셈하라.
+
+??? success "연습문제 1 풀이"
+    마디 $1, \ldots, 5$에 특징 벡터 $\mathbf{h}_i \in \mathbb{R}^2$을 붙인다. 돌이에서 마디마다 이웃이 꼭 둘이다. 마디마다 모으기(보기로 이웃의 평균)와 고침(보기로 선형 바꿈과 깨움)을 쓴다. 한 걸음 뒤 마디마다의 나타냄이 바로 옆 이웃의 영향을 받는다. 이 드러난 셈은 받아들이는 자리가 층마다 한 뜀씩 넓어짐을 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+평균 모으기와 합 모으기가 여럿 모임을 가르는 나타냄 힘에서 다름을 밝혀라. 평균 모으기로는 가릴 수 없지만 합 모으기로는 가릴 수 있는 여럿 모임 둘의 구체적인 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    $S_1 = \{1, 1, 1\}$과 $S_2 = \{1\}$을 살펴보자. 평균 모으기는 $\text{mean}(S_1) = 1 = \text{mean}(S_2)$을 주어 둘을 가르지 못한다. 합 모으기는 $\text{sum}(S_1) = 3 \neq 1 = \text{sum}(S_2)$을 준다. 더 넓게는 평균 모으기가 여럿 모임의 겹침 수에 대해 불변이므로 서로 낱값 배인 여럿 모임을 가를 수 없다. 그래서 그래프 동형 신경망은 1차 바이스파일러-레만 시험에 맞먹는 최대 나타냄 힘을 얻으려 합 모으기를 쓴다. $\square$
+
+---
+
+**연습문제 3.**
+최단 길 거리가 $k$일 때 마디 $u$의 앎이 마디 $v$에 닿으려면 쪽지 건네기 층이 몇 개 필요한가? $k$이 커지면 실제로 어떤 문제가 생기는가?
+
+??? success "연습문제 3 풀이"
+    층마다 앎을 한 뜀씩 퍼뜨리므로 꼭 $k$개가 필요하다. $k$이 커지면 받아들이는 자리가 지수로 넓어진다(마디마다 $k$뜀 안의 모든 마디에서 모은다). 이는 지나친 매끄러워짐을 낳는다. 층이 많아지면 마디마다 거의 온 그래프의 앎을 모았기에 모든 마디 나타냄이 가릴 수 없는 벡터로 모인다. 누그러뜨리는 셈속으로는 남은 이음, 건너뛰는 앎, 그래프 변환기가 있다. $\square$
+
+---
+
+**연습문제 4.**
+그래프 겹말기의 자리 방식과 스펙트럼 방식의 맞바꿈을 따져라. 각각은 어떤 조건에서 더 나은가?
+
+??? success "연습문제 4 풀이"
+    스펙트럼 방법(보기로 ChebNet)은 그래프 라플라스의 고유 분해로 겹말기를 뜻매김해 원리 있는 신호 다루기 틀을 주지만 고유 분해($O(n^3)$)가 필요하고 그래프 위상이 붙박여 있어야 한다. 자리 방법(보기로 GraphSAGE, 그래프 눈길 신경망)은 이웃 모으기로 겹말기를 뜻매김해 달라지는 그래프 얼개를 자연스럽게 다루고 작은 묶음으로 큰 그래프에도 키울 수 있다. 정확한 진동수 거르기가 중요한 작고 위상이 붙박인 그래프에는 스펙트럼 방법이, 귀납 배움이 필요한 크거나 바뀌거나 뒤섞인 그래프에는 자리 방법이 낫다. $\square$

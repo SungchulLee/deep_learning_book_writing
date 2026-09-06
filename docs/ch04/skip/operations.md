@@ -1,93 +1,74 @@
-# Insertion and Deletion
+# 삽입과 삭제
 
-Search in a skip list finds an element without modifying the structure.
-Insertion and deletion, by contrast, must maintain the skip list invariants
-while adding or removing nodes across multiple levels. Both operations
-build on the search procedure: they first locate the correct position using
-the same top-down traversal, then perform local pointer updates at each
-affected level. This page describes both operations in detail, with a
-complete implementation.
+스킵 리스트의 탐색은 구조를 바꾸지 않고 원소를 찾는다. 반면 삽입과 삭제는 여러 층에 걸쳐 노드를 넣거나 빼면서 스킵 리스트의 불변식을 지켜야 한다. 두 연산 모두 탐색 절차 위에 세워진다. 같은 하향식 순회로 먼저 올바른 자리를 찾고, 영향을 받는 각 층에서 국소적으로 포인터를 고친다. 이 페이지는 두 연산을 완전한 구현과 함께 자세히 설명한다.
 
-## Insertion Algorithm
+## 삽입 알고리즘
 
-Inserting a key $k$ into a skip list requires three steps:
+스킵 리스트에 키 $k$을 삽입하려면 세 단계가 필요하다.
 
-1. **Search for position**: Traverse the skip list as in a normal search,
-   but at each level record the last node visited before dropping down.
-   These nodes form the **update array** -- they are the predecessors at
-   each level where pointers must be redirected.
+1. **자리 찾기**: 보통의 탐색처럼 스킵 리스트를 훑되, 각 층에서 내려가기 직전에 방문한 마지막 노드를 기록한다. 이 노드들이 **갱신 배열**을 이루며, 포인터를 돌려놓아야 할 각 층의 앞 노드들이다.
 
-2. **Generate random level**: Determine the level of the new node by
-   repeatedly flipping a biased coin with probability $p$. Start at
-   level 1 and promote while the coin lands heads.
+2. **무작위 층 정하기**: 확률 $p$인 치우친 동전을 되풀이해 던져 새 노드의 층을 정한다. 층 1에서 시작하여 앞면이 나오는 동안 위로 올린다.
 
-3. **Splice into each level**: For each level from 1 up to the new node's
-   level, insert the new node after the corresponding update node by
-   redirecting pointers.
+3. **각 층에 끼워 넣기**: 층 1부터 새 노드의 층까지, 해당 갱신 노드 뒤에 새 노드를 넣도록 포인터를 돌려놓는다.
 
-If the new node's level exceeds the current skip list height, the header
-is extended with new levels pointing directly to the new node.
+새 노드의 층이 현재 스킵 리스트의 높이를 넘으면, 머리글에 새 층을 늘려 새 노드를 곧바로 가리키게 한다.
 
-## Deletion Algorithm
+## 삭제 알고리즘
 
-Deleting a key $k$ follows a similar pattern:
+키 $k$을 삭제하는 것도 비슷한 형태를 따른다.
 
-1. **Search for position**: Traverse the skip list, recording the update
-   array as during insertion.
+1. **자리 찾기**: 삽입 때처럼 갱신 배열을 기록하며 스킵 리스트를 훑는다.
 
-2. **Verify existence**: Check that the target node actually contains
-   key $k$. If not, the key is not in the list.
+2. **존재 확인**: 목표 노드가 실제로 키 $k$을 담고 있는지 확인한다. 아니라면 그 키는 리스트에 없다.
 
-3. **Unlink from each level**: For each level where the target node
-   appears, redirect the predecessor's forward pointer to skip over
-   the target node.
+3. **각 층에서 떼어내기**: 목표 노드가 나타나는 각 층에서 앞 노드의 앞쪽 포인터가 목표 노드를 건너뛰도록 돌려놓는다.
 
-4. **Reduce height**: If the deletion causes the top levels to become
-   empty (header points to `None`), reduce the skip list height.
+4. **높이 줄이기**: 삭제로 인해 위쪽 층들이 비면(머리글이 `None`을 가리키면) 스킵 리스트의 높이를 줄인다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Skip list insertion and deletion operations.
+건너뛰기 리스트의 삽입과 삭제 연산.
 
-Both operations use the search-with-update-array pattern:
-find the position, then splice or unlink at each level.
+두 연산 모두 갱신 배열을 쓰는 탐색 양식을 따른다.
+위치를 찾은 뒤 각 층에서 이어 넣거나 끊는다.
 """
 
 import random
 
 
-# === Node Definition ===
+# === 노드 정의 ===
 
 class SkipNode:
-    """A node in the skip list with forward pointers at multiple levels."""
+    """여러 층의 전진 포인터를 갖는 건너뛰기 리스트의 노드."""
 
     def __init__(self, key, level):
         self.key = key
-        self.forward = [None] * (level + 1)  # forward[i] = next node at level i
+        self.forward = [None] * (level + 1)  # forward[i] = 층 i에서의 다음 노드
 
 
-# === Skip List ===
+# === 건너뛰기 리스트 ===
 
 class SkipList:
-    """Skip list supporting search, insertion, and deletion."""
+    """탐색, 삽입, 삭제를 지원하는 건너뛰기 리스트."""
 
     def __init__(self, max_level=16, p=0.5):
         self.max_level = max_level
         self.p = p
-        self.level = 0   # current highest level in use
-        self.header = SkipNode(-1, max_level)  # sentinel header
+        self.level = 0   # 현재 쓰이는 가장 높은 층
+        self.header = SkipNode(-1, max_level)  # 보초 머리
 
     def random_level(self):
-        """Generate a random level for a new node."""
+        """새 노드를 위한 층을 무작위로 정한다."""
         lvl = 0
         while random.random() < self.p and lvl < self.max_level:
             lvl += 1
         return lvl
 
     def search(self, key):
-        """Search for a key, returning the node if found."""
+        """키를 찾고, 찾으면 그 노드를 돌려준다."""
         current = self.header
         for i in range(self.level, -1, -1):
             while current.forward[i] and current.forward[i].key < key:
@@ -100,9 +81,9 @@ class SkipList:
     def insert(self, key):
         """Insert a key into the skip list.
 
-        Returns the newly created node.
+        새로 만든 노드를 돌려준다.
         """
-        # Step 1: Find update array (predecessors at each level)
+        # 1단계: 갱신 배열 찾기 (각 층에서의 선행 노드)
         update = [None] * (self.max_level + 1)
         current = self.header
         for i in range(self.level, -1, -1):
@@ -112,20 +93,20 @@ class SkipList:
 
         current = current.forward[0]
 
-        # If key already exists, do not insert duplicate
+        # 키가 이미 있으면 중복해서 넣지 않는다
         if current and current.key == key:
             return current
 
-        # Step 2: Generate random level
+        # 2단계: 무작위 층 생성
         new_level = self.random_level()
 
-        # Extend update array if new level exceeds current height
+        # 새 층이 현재 높이를 넘으면 갱신 배열을 늘린다
         if new_level > self.level:
             for i in range(self.level + 1, new_level + 1):
                 update[i] = self.header
             self.level = new_level
 
-        # Step 3: Create node and splice into each level
+        # 3단계: 노드를 만들어 각 층에 이어 넣기
         new_node = SkipNode(key, new_level)
         for i in range(new_level + 1):
             new_node.forward[i] = update[i].forward[i]
@@ -136,9 +117,9 @@ class SkipList:
     def delete(self, key):
         """Delete a key from the skip list.
 
-        Returns True if the key was found and deleted, False otherwise.
+        키를 찾아 지웠으면 True, 아니면 False를 돌려준다.
         """
-        # Step 1: Find update array
+        # 1단계: 갱신 배열 찾기
         update = [None] * (self.max_level + 1)
         current = self.header
         for i in range(self.level, -1, -1):
@@ -148,24 +129,24 @@ class SkipList:
 
         target = current.forward[0]
 
-        # Step 2: Verify existence
+        # 2단계: 존재 여부 확인
         if not target or target.key != key:
             return False
 
-        # Step 3: Unlink from each level
+        # 3단계: 각 층에서 연결 끊기
         for i in range(self.level + 1):
             if update[i].forward[i] is not target:
                 break
             update[i].forward[i] = target.forward[i]
 
-        # Step 4: Reduce height if needed
+        # 4단계: 필요하면 높이 줄이기
         while self.level > 0 and self.header.forward[self.level] is None:
             self.level -= 1
 
         return True
 
     def to_list(self):
-        """Return all keys in sorted order (level-0 traversal)."""
+        """모든 키를 정렬된 차례로 돌려준다 (0층 순회)."""
         result = []
         current = self.header.forward[0]
         while current:
@@ -174,7 +155,7 @@ class SkipList:
         return result
 
     def display(self):
-        """Print the skip list level by level."""
+        """건너뛰기 리스트를 층별로 출력한다."""
         for i in range(self.level, -1, -1):
             nodes = []
             current = self.header.forward[i]
@@ -184,13 +165,13 @@ class SkipList:
             print(f"Level {i}: {' -> '.join(nodes)}")
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     random.seed(42)
     sl = SkipList(max_level=4, p=0.5)
 
-    # Insert elements
+    # 원소 삽입
     for key in [3, 6, 7, 9, 12, 19, 17, 26, 21, 25]:
         sl.insert(key)
 
@@ -198,21 +179,21 @@ if __name__ == "__main__":
     sl.display()
     print("Sorted:", sl.to_list())
 
-    # Delete elements
+    # 원소 삭제
     sl.delete(19)
     sl.delete(3)
     print("\nAfter deleting 19 and 3:")
     sl.display()
     print("Sorted:", sl.to_list())
 
-    # Search
+    # 탐색
     found = sl.search(12)
     print(f"\nSearch 12: {'found' if found else 'not found'}")
     found = sl.search(19)
     print(f"Search 19: {'found' if found else 'not found'}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 After insertions:
@@ -235,35 +216,59 @@ Search 12: found
 Search 19: not found
 ```
 
-## The Update Array
+## 갱신 배열
 
-The update array is the central bookkeeping structure for both insertion
-and deletion. For each level $i$, `update[i]` stores the rightmost node
-at level $i$ whose key is less than the target key. This node is the
-predecessor of the insertion or deletion point at level $i$.
+갱신 배열은 삽입과 삭제 모두에서 중심이 되는 장부이다. 각 층 $i$에 대해 `update[i]`은 층 $i$에서 키가 목표 키보다 작은 가장 오른쪽 노드를 담는다. 이 노드가 층 $i$에서 삽입 또는 삭제 지점의 앞 노드이다.
 
-Building the update array costs the same as a search: $O(\log n)$ expected
-time. The splice or unlink step at each level takes $O(1)$ per level, and
-the number of levels for a single node is $O(\log n)$ in expectation.
+갱신 배열을 만드는 비용은 탐색과 같은 기대 시간 $O(\log n)$이다. 각 층에서 끼워 넣거나 떼어내는 단계는 층당 $O(1)$이고, 한 노드가 걸치는 층의 수는 기댓값으로 $O(\log n)$이다.
 
-## Complexity
+## 복잡도
 
-| Operation | Expected time | Worst-case time |
+| 연산 | 기대 시간 | 최악의 경우 시간 |
 |---|---|---|
-| Insert | $O(\log n)$ | $O(n)$ |
-| Delete | $O(\log n)$ | $O(n)$ |
+| 삽입 | $O(\log n)$ | $O(n)$ |
+| 삭제 | $O(\log n)$ | $O(n)$ |
 
-Both operations are dominated by the search step. The pointer updates
-themselves take $O(\ell)$ where $\ell$ is the level of the affected node,
-which is $O(1)$ in expectation.
+두 연산 모두 탐색 단계가 비용을 지배한다. 포인터 고치기 자체는 영향을 받는 노드의 층을 $\ell$이라 할 때 $O(\ell)$이며, 기댓값으로는 $O(1)$이다.
 
-The worst case $O(n)$ occurs only if all nodes happen to be at level 1
-(probability decreasing exponentially with $n$), degrading the skip list
-to a plain sorted linked list.
+최악의 경우인 $O(n)$은 모든 노드가 우연히 층 1에만 있을 때에만 일어나며($n$이 커질수록 그 확률이 지수적으로 줄어든다), 그때 스킵 리스트는 평범한 정렬 연결 리스트로 주저앉는다.
 
-## Reference
+## 참고 문헌
 
 - Pugh, W. "Skip Lists: A Probabilistic Alternative to Balanced Trees."
   *Communications of the ACM*, 33(6), 1990.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C.
   *Introduction to Algorithms* (4th ed.). MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+삽입과 삭제에 대해 삽입, 삭제, 탐색, 접근 연산의 시간 복잡도를 진술하라.
+
+??? success "연습문제 1 풀이"
+    복잡도는 구체적인 구현(배열 기반이냐 연결 기반이냐)에 달려 있다. 배열 기반은 접근이 $O(1)$이고 임의의 위치에서의 삽입·삭제가 $O(n)$이다. 연결 기반은 이미 아는 위치에서의 삽입·삭제가 $O(1)$이고 탐색·접근이 $O(n)$이다. 어떤 연산이 주를 이루느냐에 따라 선택이 갈린다.
+
+---
+
+**연습문제 2.**
+원소 6개로 삽입과 삭제을(를) 따라가며 각 연산 후의 자료구조 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    구조에 삽입, 접근, 삭제를 차례로 수행하라. 각 단계마다 (연결 구조라면) 포인터를, (배열 기반이라면) 배열의 내용을 보이며 구조가 불변식을 어떻게 유지하는지 나타내라.
+
+---
+
+**연습문제 3.**
+삽입과 삭제이(가) PyTorch의 텐서 저장과 어떻게 관련되는지 설명하라. 자료구조의 선택이 메모리 배치와 캐시 성능에 어떤 영향을 주는가?
+
+??? success "연습문제 3 풀이"
+    PyTorch 텐서는 캐시에 효율적으로 접근할 수 있도록 연속된 배열로 저장된다. 연결 구조는 autograd 그래프를 훑는 데 내부적으로 쓰인다. 이 선택은 메모리 사용량(배열에는 포인터 부담이 없다)과 접근 양상(캐시 지역성 덕분에 순차적인 배열 접근이 연결 리스트 순회보다 10~100배 빠르다)에 모두 영향을 준다.
+
+---
+
+**연습문제 4.**
+반복문 불변식을 사용하여 삽입과 삭제의 주요 연산의 시간 복잡도를 증명하라.
+
+??? success "연습문제 4 풀이"
+    알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$

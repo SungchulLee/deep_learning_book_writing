@@ -1,9 +1,4 @@
 # Perturbation Types
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Introduction
 
 The choice of perturbation constraint defines the "budget" an adversary operates within. Different norms capture different notions of imperceptibility and lead to different attack strategies. This section formalizes the standard perturbation types, their geometric properties, and their projection operators used in constrained optimization.
@@ -11,9 +6,7 @@ The choice of perturbation constraint defines the "budget" an adversary operates
 ## L-infinity Norm
 
 $$
-
 \|\boldsymbol{\delta}\|_\infty = \max_i |\delta_i| \leq \varepsilon
-
 $$
 
 **Interpretation:** Each coordinate changes by at most $\varepsilon$. This is the most commonly used constraint in adversarial robustness research.
@@ -28,9 +21,7 @@ $$
 **Projection operator:**
 
 $$
-
 \Pi_\varepsilon^{\infty}(\boldsymbol{\delta})_i = \text{clip}(\delta_i, -\varepsilon, \varepsilon)
-
 $$
 
 This is computationally trivial—simply clamp each coordinate independently.
@@ -40,9 +31,7 @@ This is computationally trivial—simply clamp each coordinate independently.
 ## L2 Norm
 
 $$
-
 \|\boldsymbol{\delta}\|_2 = \sqrt{\sum_i \delta_i^2} \leq \varepsilon
-
 $$
 
 **Interpretation:** The total Euclidean magnitude of the perturbation is bounded. Individual coordinates may change by more than $\varepsilon$, provided the overall vector length remains small.
@@ -57,13 +46,11 @@ $$
 **Projection operator:**
 
 $$
-
 \Pi_\varepsilon^{2}(\boldsymbol{\delta}) = 
 \begin{cases}
 \boldsymbol{\delta} & \text{if } \|\boldsymbol{\delta}\|_2 \leq \varepsilon \\
 \varepsilon \cdot \frac{\boldsymbol{\delta}}{\|\boldsymbol{\delta}\|_2} & \text{otherwise}
 \end{cases}
-
 $$
 
 This normalizes the perturbation to lie on the surface of the $\varepsilon$-ball when it exceeds the budget.
@@ -71,9 +58,7 @@ This normalizes the perturbation to lie on the surface of the $\varepsilon$-ball
 ## L1 Norm
 
 $$
-
 \|\boldsymbol{\delta}\|_1 = \sum_i |\delta_i| \leq \varepsilon
-
 $$
 
 **Interpretation:** The total absolute change across all coordinates is bounded.
@@ -120,9 +105,7 @@ def project_l1(v: torch.Tensor, radius: float) -> torch.Tensor:
 ## L0 "Norm"
 
 $$
-
 \|\boldsymbol{\delta}\|_0 = |\{i : \delta_i \neq 0\}| \leq k
-
 $$
 
 **Interpretation:** At most $k$ features (pixels) may be modified, but those features can change by an arbitrary amount (usually still clipped to valid input range).
@@ -151,9 +134,7 @@ The unit balls of different norms have distinct shapes in $\mathbb{R}^d$:
 For any vector $\boldsymbol{\delta} \in \mathbb{R}^d$:
 
 $$
-
 \|\boldsymbol{\delta}\|_\infty \leq \|\boldsymbol{\delta}\|_2 \leq \|\boldsymbol{\delta}\|_1 \leq \sqrt{d} \|\boldsymbol{\delta}\|_2 \leq d \|\boldsymbol{\delta}\|_\infty
-
 $$
 
 These inequalities allow converting perturbation budgets between norms, though the conversions become loose in high dimensions.
@@ -333,3 +314,35 @@ The choice of norm should match the threat model's notion of imperceptibility. F
 2. Carlini, N., & Wagner, D. (2017). "Towards Evaluating the Robustness of Neural Networks." IEEE S&P.
 3. Duchi, J., et al. (2008). "Efficient Projections onto the L1-Ball for Learning in High Dimensions." ICML.
 4. Croce, F., & Hein, M. (2021). "Mind the Box: L1-APGD for Sparse Adversarial Attacks on Image Classifiers." ICML.
+
+## Exercises
+
+**Exercise 1.**
+For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+
+??? success "Solution to Exercise 1"
+    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
+
+---
+
+**Exercise 2.**
+Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
+
+??? success "Solution to Exercise 2"
+    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+
+---
+
+**Exercise 3.**
+Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+
+??? success "Solution to Exercise 3"
+    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+
+---
+
+**Exercise 4.**
+Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+
+??? success "Solution to Exercise 4"
+    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$

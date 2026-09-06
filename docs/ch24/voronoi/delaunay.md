@@ -1,46 +1,30 @@
-# Delaunay Triangulation
+# 들로네 삼각 나누기
 
-A triangulation of a point set connects the points with non-crossing edges
-to form triangles. Among all possible triangulations, the **Delaunay
-triangulation** is special: it maximizes the minimum angle across all
-triangles, avoiding the long, thin triangles that cause numerical problems
-in finite element methods, mesh generation, and terrain modeling. The
-Delaunay triangulation is also the dual graph of the Voronoi diagram.
+점 모임의 삼각 나누기는 점을 서로 가로지르지 않는 모서리로 이어 삼각형을 이룬다. 있을 수 있는 모든 삼각 나누기 가운데 **들로네 삼각 나누기**는 특별하다. 곧 모든 삼각형에 걸쳐 가장 작은 각을 가장 크게 하여, 유한 낱개 방법과 그물 만들기, 땅 모양 나타내기에서 수치 문제를 일으키는 길고 가는 삼각형을 피한다. 들로네 삼각 나누기는 보로노이 그림의 짝 그래프이기도 하다.
 
-## Definition
+## 정의
 
-Given a set $P$ of $n$ points in the plane, the **Delaunay triangulation**
-$DT(P)$ is the triangulation satisfying the **empty circumcircle property**:
+평면 위 점 $n$개 모임 $P$이 주어질 때 **들로네 삼각 나누기** $DT(P)$은 **빈 둘레 동그라미 성질**을 채우는 삼각 나누기이다.
 
-!!! note "Empty Circumcircle Property"
-    For every triangle in $DT(P)$, its circumscribed circle contains no
-    point of $P$ in its interior.
+!!! note "빈 둘레 동그라미 성질"
+    $DT(P)$의 모든 삼각형에 대해 그 둘레 동그라미는 안에 $P$의 점을 담지 않는다.
 
-Equivalently, for every edge in $DT(P)$, the two triangles sharing that
-edge (if they exist) satisfy the Delaunay condition: the sum of opposite
-angles is at most $\pi$.
+같은 말로 $DT(P)$의 모든 모서리에 대해 그 모서리를 나누어 가진 두 삼각형은(있다면) 들로네 조건을 채운다. 곧 마주 보는 각의 합이 많아야 $\pi$이다.
 
-## Properties
+## 성질
 
-The Delaunay triangulation has several important properties:
+들로네 삼각 나누기에는 중요한 성질이 여럿 있다.
 
-- **Max-min angle:** Among all triangulations of $P$, $DT(P)$ maximizes the
-  minimum angle. This makes it optimal for avoiding degenerate triangles.
-- **Dual of Voronoi:** Two points $p_i, p_j$ are connected by a Delaunay edge
-  if and only if their Voronoi regions share an edge.
-- **Uniqueness:** If no four points are cocircular, $DT(P)$ is unique.
-- **Number of edges:** $O(n)$ — specifically at most $3n - 6$ edges and
-  $2n - 5$ triangles.
-- **Contains the nearest neighbor graph:** The nearest neighbor of every
-  point is connected to it by a Delaunay edge.
-- **Contains the Euclidean MST:** The minimum spanning tree is a subgraph
-  of $DT(P)$.
+- **가장 작은 각을 가장 크게:** $P$의 모든 삼각 나누기 가운데 $DT(P)$은 가장 작은 각을 가장 크게 한다. 그래서 찌그러진 삼각형을 피하는 데 가장 좋다.
+- **보로노이의 짝:** 두 점 $p_i, p_j$이 들로네 모서리로 이어지는 것과 그 보로노이 자리가 모서리를 나누어 가지는 것은 서로 같다.
+- **하나뿐임:** 네 점이 한 동그라미 위에 있지 않으면 $DT(P)$은 하나뿐이다.
+- **모서리의 수:** $O(n)$이며 자세히는 많아야 모서리 $3n - 6$개와 삼각형 $2n - 5$개이다.
+- **가장 가까운 이웃 그래프를 담는다:** 모든 점의 가장 가까운 이웃은 들로네 모서리로 그 점과 이어진다.
+- **유클리드 최소 뻗음 나무를 담는다:** 최소 뻗음 나무는 $DT(P)$의 아래 그래프이다.
 
-## The In-Circle Test
+## 동그라미 안 살피기
 
-The fundamental predicate for Delaunay triangulation is the **in-circle test**:
-given four points $A, B, C, D$, is $D$ inside the circumcircle of
-$\triangle ABC$?
+들로네 삼각 나누기의 바탕 판정은 **동그라미 안 살피기**이다. 곧 네 점 $A, B, C, D$이 주어질 때 $D$은 $\triangle ABC$의 둘레 동그라미 안에 있는가?
 
 $$
 \text{InCircle}(A, B, C, D) =
@@ -51,66 +35,62 @@ c_x - d_x & c_y - d_y & (c_x - d_x)^2 + (c_y - d_y)^2
 \end{vmatrix}
 $$
 
-If $A, B, C$ are in counterclockwise order:
+$A, B, C$이 반시계 차례이면:
 
-- $> 0$: $D$ is inside the circumcircle
-- $= 0$: $D$ is on the circumcircle (cocircular)
-- $< 0$: $D$ is outside the circumcircle
+- $> 0$: $D$은 둘레 동그라미 안에 있다
+- $= 0$: $D$은 둘레 동그라미 위에 있다(한 동그라미 위)
+- $< 0$: $D$은 둘레 동그라미 밖에 있다
 
-## Edge Flipping Algorithm
+## 모서리 뒤집기 알고리즘
 
-A simple approach to construct $DT(P)$:
+$DT(P)$을 세우는 단순한 방식이다.
 
-1. Start with any valid triangulation of $P$.
-2. For each interior edge, check whether it satisfies the Delaunay condition
-   using the in-circle test.
-3. If an edge fails the test, **flip** it: replace the shared edge of two
-   adjacent triangles with the other diagonal of their quadrilateral.
-4. Repeat until no more flips are needed.
+1. $P$의 아무 올바른 삼각 나누기에서 시작한다.
+2. 안쪽 모서리마다 동그라미 안 살피기로 들로네 조건을 채우는지 살핀다.
+3. 모서리가 살피기를 통과하지 못하면 **뒤집는다**. 곧 이웃한 두 삼각형이 나누어 가진 모서리를 그 사각형의 다른 대각선으로 바꾼다.
+4. 더는 뒤집을 것이 없을 때까지 되풀이한다.
 
-This algorithm terminates because each flip strictly increases the minimum
-angle, and there are finitely many triangulations.
+뒤집기마다 가장 작은 각이 엄격히 커지고 삼각 나누기의 가짓수가 유한하므로 이 알고리즘은 멈춘다.
 
-**Complexity:** $O(n^2)$ in the worst case due to cascading flips.
+**복잡도:** 뒤집기가 잇달아 일어나므로 가장 나쁜 경우 $O(n^2)$이다.
 
-## Incremental Construction
+## 조금씩 늘려 세우기
 
-The more practical algorithm inserts points one at a time:
+더 쓸모 있는 알고리즘은 점을 하나씩 넣는다.
 
-1. Start with a large bounding triangle containing all points.
-2. For each point $p$:
-    - Find the triangle containing $p$.
-    - Split that triangle into three (or two if $p$ is on an edge).
-    - Flip edges as needed to restore the Delaunay property.
-3. Remove the bounding triangle and its edges.
+1. 모든 점을 담는 큰 감싸는 삼각형에서 시작한다.
+2. 각 점 $p$에 대해:
+    - $p$을 담는 삼각형을 찾는다.
+    - 그 삼각형을 셋으로 가른다($p$이 모서리 위에 있으면 둘로).
+    - 들로네 성질을 되살리도록 필요한 만큼 모서리를 뒤집는다.
+3. 감싸는 삼각형과 그 모서리를 없앤다.
 
-With a point-location structure, each insertion takes $O(\log n)$ expected
-time, giving $O(n \log n)$ total.
+점 자리 찾기 짜임을 쓰면 넣기마다 기댓값으로 $O(\log n)$이 걸려 모두 $O(n \log n)$이 된다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Delaunay triangulation: incremental construction with edge flipping.
+들로네 삼각 나누기: 모서리 뒤집기를 쓴 조금씩 늘려 세우기.
 
-Demonstrates the in-circle test and a simplified incremental algorithm.
+동그라미 안 살피기와 단순하게 만든 조금씩 늘리기 알고리즘을 보인다.
 """
 
 import math
 
 
-# === Geometric Predicates ===
+# === 기하 판정 ===
 
 def orient(a, b, c):
-    """Orientation test: positive if CCW, negative if CW, zero if collinear."""
+    """방향 살피기: 반시계이면 양수, 시계이면 음수, 한 줄에 놓이면 0."""
     return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0])
 
 
 def in_circle(a, b, c, d):
-    """Test if point d is inside the circumcircle of triangle abc.
+    """점 d이 삼각형 abc의 둘레 동그라미 안에 있는지 살핀다.
 
-    Assumes a, b, c are in counterclockwise order.
-    Returns positive if d is inside, zero if on, negative if outside.
+    a, b, c이 반시계 차례라고 본다.
+    d이 안이면 양수, 위에 있으면 0, 밖이면 음수를 돌려준다.
     """
     ax, ay = a[0] - d[0], a[1] - d[1]
     bx, by = b[0] - d[0], b[1] - d[1]
@@ -121,10 +101,10 @@ def in_circle(a, b, c, d):
          + (cx * cx + cy * cy) * (ax * by - bx * ay)
 
 
-# === Circumcircle Computation ===
+# === 둘레 동그라미 셈하기 ===
 
 def circumcenter(a, b, c):
-    """Compute the circumcenter of triangle abc."""
+    """삼각형 abc의 둘레 중심을 셈한다."""
     ax, ay = a
     bx, by = b
     cx, cy = c
@@ -141,19 +121,19 @@ def circumcenter(a, b, c):
 
 
 def circumradius(a, b, c):
-    """Compute the circumradius of triangle abc."""
+    """삼각형 abc의 둘레 반지름을 셈한다."""
     center = circumcenter(a, b, c)
     if center is None:
         return float("inf")
     return math.hypot(center[0] - a[0], center[1] - a[1])
 
 
-# === Brute-Force Delaunay Check ===
+# === 막무가내 들로네 살피기 ===
 
 def is_delaunay(triangles, points):
-    """Check if a triangulation satisfies the Delaunay property.
+    """삼각 나누기가 들로네 성질을 채우는지 살핀다.
 
-    Returns True if no point lies inside any triangle's circumcircle.
+    어떤 삼각형의 둘레 동그라미 안에도 점이 없으면 True을 돌려준다.
     """
     for tri in triangles:
         a, b, c = [points[i] for i in tri]
@@ -167,10 +147,10 @@ def is_delaunay(triangles, points):
     return True
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # In-circle test examples
+    # 동그라미 안 살피기 보기
     A, B, C = (0, 0), (4, 0), (2, 3)
     D_in = (2, 1)
     D_out = (10, 10)
@@ -184,16 +164,16 @@ if __name__ == "__main__":
     print(f"Circumcenter: ({center[0]:.3f}, {center[1]:.3f})")
     print(f"Circumradius: {radius:.3f}")
 
-    # Check a simple triangulation
+    # 단순한 삼각 나누기를 살핀다
     pts = [(0, 0), (4, 0), (4, 4), (0, 4)]
-    tri1 = [(0, 1, 2), (0, 2, 3)]  # Diagonal (0,2)
-    tri2 = [(0, 1, 3), (1, 2, 3)]  # Diagonal (1,3)
+    tri1 = [(0, 1, 2), (0, 2, 3)]  # 대각선 (0,2)
+    tri2 = [(0, 1, 3), (1, 2, 3)]  # 대각선 (1,3)
     print(f"\nSquare points: {pts}")
     print(f"Triangulation 1 is Delaunay: {is_delaunay(tri1, pts)}")
     print(f"Triangulation 2 is Delaunay: {is_delaunay(tri2, pts)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Triangle: (0, 0), (4, 0), (2, 3)
 Point (2, 1): in_circle = 20.0 (inside)
@@ -206,16 +186,48 @@ Triangulation 1 is Delaunay: True
 Triangulation 2 is Delaunay: True
 ```
 
-## Algorithms Summary
+## 알고리즘 간추리기
 
-| Algorithm | Time | Notes |
+| 알고리즘 | 시간 | 참고 |
 |---|---|---|
-| Edge flipping | $O(n^2)$ | Simple but slow |
-| Incremental | $O(n \log n)$ expected | Most practical |
-| Divide and conquer | $O(n \log n)$ worst case | Theoretically optimal |
-| Fortune's sweep | $O(n \log n)$ | Via Voronoi dual |
+| 모서리 뒤집기 | $O(n^2)$ | 단순하지만 느리다 |
+| 조금씩 늘리기 | 기댓값 $O(n \log n)$ | 가장 쓸모 있다 |
+| 나누어 이기기 | 가장 나쁜 경우 $O(n \log n)$ | 이론으로 가장 좋다 |
+| 포춘 훑기 | $O(n \log n)$ | 보로노이 짝을 거친다 |
 
-## Reference
+## 참고 문헌
 
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer, Chapter 9.
 - Guibas, L. & Stolfi, J. "Primitives for the Manipulation of General Subdivisions." *ACM Trans. Graphics*, 1985.
+
+## 연습문제
+
+**연습문제 1.**
+들로네 삼각 나누기의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    들로네 삼각 나누기은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 들로네 삼각 나누기을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+들로네 삼각 나누기은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+들로네 삼각 나누기을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 들로네 삼각 나누기은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

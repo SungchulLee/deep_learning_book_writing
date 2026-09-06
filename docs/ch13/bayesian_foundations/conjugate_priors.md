@@ -1,119 +1,103 @@
-# Conjugate Priors
+# 켤레 앞확률
+## 개요
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-Conjugate priors enable analytical solutions to Bayesian inference problems, avoiding numerical integration or sampling methods. This module develops the theory of conjugacy and presents three fundamental conjugate families: Beta-Binomial, Gamma-Poisson, and Normal-Normal.
+켤레 앞확률은 수치 적분이나 표집 없이도 베이즈 추론 문제를 해석적으로 풀 수 있게 한다. 이 모듈은 켤레성의 이론을 세우고 근본이 되는 켤레족 셋, 곧 베타-이항, 감마-푸아송, 정규-정규를 내보인다.
 
 ---
 
-## 1. Theory of Conjugate Priors
+## 1. 켤레 앞확률의 이론
 
-### 1.1 Definition
+### 1.1 정의
 
-A prior distribution $p(\theta)$ is **conjugate** to a likelihood function $p(D|\theta)$ if the posterior distribution $p(\theta|D)$ belongs to the same parametric family as the prior.
+뒤확률 분포 $p(\theta|D)$이 앞확률과 같은 모수족에 들면, 앞확률 분포 $p(\theta)$은 가능도 함수 $p(D|\theta)$의 **켤레**이다.
 
-Formally, if $\mathcal{F}$ is a family of distributions and:
+정식으로, $\mathcal{F}$이 분포족이고 다음이 성립하면
 
 $$
-
 p(\theta) \in \mathcal{F} \implies p(\theta|D) \in \mathcal{F} \quad \text{for all data } D
-
 $$
 
-then $\mathcal{F}$ is a **conjugate family** for the likelihood.
+$\mathcal{F}$은 그 가능도의 **켤레족**이다.
 
-### 1.2 Advantages of Conjugate Priors
+### 1.2 켤레 앞확률의 이점
 
-| Advantage | Description |
+| 이점 | 설명 |
 |-----------|-------------|
-| **Analytical posteriors** | Closed-form solutions without numerical computation |
-| **Computational efficiency** | No numerical integration or MCMC sampling required |
-| **Interpretable updates** | Simple parameter transformations with clear meaning |
-| **Sequential updating** | Straightforward online learning |
-| **Mathematical elegance** | Deep insight into the structure of inference |
+| **해석적 뒤확률** | 수치 셈 없이 닫힌 꼴의 해 |
+| **셈 효율** | 수치 적분이나 MCMC 표집이 필요 없다 |
+| **풀이할 수 있는 갱신** | 뜻이 또렷한 단순한 매개변수 변환 |
+| **차례 갱신** | 온라인 학습이 쉽다 |
+| **수학적 우아함** | 추론의 짜임에 대한 깊은 통찰 |
 
-### 1.3 Common Conjugate Families
+### 1.3 흔한 켤레족
 
-| Prior | Likelihood | Posterior | Use Case |
+| 앞확률 | 가능도 | 뒤확률 | 쓰임새 |
 |-------|------------|-----------|----------|
-| Beta | Binomial/Bernoulli | Beta | Binary outcomes, proportions |
-| Gamma | Poisson | Gamma | Count data, rates |
-| Gamma | Exponential | Gamma | Waiting times, lifetimes |
-| Normal | Normal (known $\sigma^2$) | Normal | Continuous measurements |
-| Normal-Inverse-Gamma | Normal | Normal-Inverse-Gamma | Unknown mean and variance |
-| Dirichlet | Multinomial | Dirichlet | Categorical outcomes |
+| 베타 | 이항/베르누이 | 베타 | 이진 결과, 비율 |
+| 감마 | 푸아송 | 감마 | 세는 데이터, 비율 |
+| 감마 | 지수 | 감마 | 기다리는 시간, 수명 |
+| 정규 | 정규($\sigma^2$을 알 때) | 정규 | 이어진 측정값 |
+| 정규-역감마 | 정규 | 정규-역감마 | 평균과 흩어짐을 모를 때 |
+| 디리클레 | 다항 | 디리클레 | 갈래 결과 |
 
 ---
 
-## 2. Beta-Binomial Model
+## 2. 베타-이항 모형
 
-### 2.1 Model Specification
+### 2.1 모형 명세
 
-**Prior:** $\theta \sim \text{Beta}(\alpha, \beta)$
+**앞확률:** $\theta \sim \text{Beta}(\alpha, \beta)$
 
 $$
-
 p(\theta) = \frac{\theta^{\alpha-1}(1-\theta)^{\beta-1}}{B(\alpha, \beta)}
-
 $$
 
-**Likelihood:** $k | n, \theta \sim \text{Binomial}(n, \theta)$
+**가능도:** $k | n, \theta \sim \text{Binomial}(n, \theta)$
 
 $$
-
 p(k|n, \theta) = \binom{n}{k} \theta^k (1-\theta)^{n-k}
-
 $$
 
-**Posterior:** $\theta | k, n \sim \text{Beta}(\alpha + k, \beta + n - k)$
+**뒤확률:** $\theta | k, n \sim \text{Beta}(\alpha + k, \beta + n - k)$
 
-### 2.2 Conjugate Update
+### 2.2 켤레 갱신
 
-The update rule has an elegant interpretation:
+갱신 규칙에는 우아한 풀이가 있다.
 
 $$
-
 \boxed{\alpha_{\text{post}} = \alpha_{\text{prior}} + k, \quad \beta_{\text{post}} = \beta_{\text{prior}} + (n-k)}
-
 $$
 
-where:
-- $k$ = number of successes observed
-- $n - k$ = number of failures observed
-- $\alpha - 1$ = prior pseudo-successes
-- $\beta - 1$ = prior pseudo-failures
+여기서 각 기호는 다음과 같다.
 
-### 2.3 Posterior Predictive Distribution
+- $k$ = 관찰한 성공 횟수
+- $n - k$ = 관찰한 실패 횟수
+- $\alpha - 1$ = 앞확률의 가짜 성공 횟수
+- $\beta - 1$ = 앞확률의 가짜 실패 횟수
 
-The posterior predictive for $y$ successes in $m$ future trials is the **Beta-Binomial distribution**:
+### 2.3 뒤확률 예측 분포
+
+앞으로의 시행 $m$번에서 성공 $y$번에 대한 뒤확률 예측은 **베타-이항 분포**이다.
 
 $$
-
 P(y | D) = \int_0^1 \text{Binomial}(y | m, \theta) \cdot \text{Beta}(\theta | \alpha', \beta') \, d\theta
-
 $$
 
 $$
-
 = \binom{m}{y} \frac{B(y + \alpha', m - y + \beta')}{B(\alpha', \beta')}
-
 $$
 
-### 2.4 Implementation
+### 2.4 구현
 
 ```python
 from scipy import stats
 import numpy as np
 
 class BetaBinomialModel:
-    """Beta-Binomial conjugate model for binary data."""
+    """이진 자료를 위한 베타-이항 켤레 모형."""
     
     def __init__(self, alpha=1, beta=1):
-        """Initialize with Beta(alpha, beta) prior."""
+        """Beta(alpha, beta) 앞확률로 첫걸음을 잡는다."""
         self.prior_alpha = alpha
         self.prior_beta = beta
         self.posterior_alpha = alpha
@@ -121,14 +105,14 @@ class BetaBinomialModel:
         self.data_history = []
     
     def update(self, successes, trials):
-        """Update posterior with observed data."""
+        """관측 자료로 뒤확률을 새로 고친다."""
         failures = trials - successes
         self.posterior_alpha += successes
         self.posterior_beta += failures
         self.data_history.append((successes, trials))
     
     def posterior_predictive(self, n_trials=1):
-        """Compute posterior predictive probabilities."""
+        """뒤확률 예측 확률을 셈한다."""
         y_values = np.arange(n_trials + 1)
         probs = []
         
@@ -143,7 +127,7 @@ class BetaBinomialModel:
         return np.array(probs)
     
     def summary(self):
-        """Print summary statistics."""
+        """간추린 통계량을 찍는다."""
         post_dist = stats.beta(self.posterior_alpha, self.posterior_beta)
         
         print(f"Posterior: Beta({self.posterior_alpha}, {self.posterior_beta})")
@@ -151,83 +135,76 @@ class BetaBinomialModel:
         print(f"  95% CI: [{post_dist.ppf(0.025):.4f}, {post_dist.ppf(0.975):.4f}]")
 ```
 
-### 2.5 Example: Coin Flipping
+### 2.5 보기: 동전 던지기
 
-**Prior:** Beta$(2, 2)$ — weak belief in fairness
+**앞확률:** Beta$(2, 2)$ — 공정하다는 약한 믿음
 
-**Data:** 17 successes in 20 trials
+**데이터:** 20번 가운데 17번 성공
 
-**Posterior:** Beta$(2 + 17, 2 + 3) = $ Beta$(19, 5)$
+**뒤확률:** Beta$(2 + 17, 2 + 3) = $ Beta$(19, 5)$
 
-| Statistic | Value |
+| 통계량 | 값 |
 |-----------|-------|
-| Posterior Mean | \$19/24 = 0.792$ |
-| Posterior Mode | \$18/22 = 0.818$ |
-| 95% Credible Interval | $[0.60, 0.93]$ |
+| 뒤확률의 평균 | \$19/24 = 0.792$ |
+| 뒤확률의 최빈값 | \$18/22 = 0.818$ |
+| 95% 믿음 구간 | $[0.60, 0.93]$ |
 
 ---
 
-## 3. Gamma-Poisson Model
+## 3. 감마-푸아송 모형
 
-### 3.1 Model Specification
+### 3.1 모형 명세
 
-**Prior:** $\lambda \sim \text{Gamma}(\alpha, \beta)$
+**앞확률:** $\lambda \sim \text{Gamma}(\alpha, \beta)$
 
 $$
-
 p(\lambda) = \frac{\beta^\alpha}{\Gamma(\alpha)} \lambda^{\alpha-1} e^{-\beta\lambda}
-
 $$
 
-**Likelihood:** $x_i | \lambda \sim \text{Poisson}(\lambda)$ independently
+**가능도:** $x_i | \lambda \sim \text{Poisson}(\lambda)$이며 서로 독립이다
 
 $$
-
 p(x_1, \ldots, x_n | \lambda) = \prod_{i=1}^n \frac{\lambda^{x_i} e^{-\lambda}}{x_i!}
-
 $$
 
-**Posterior:** $\lambda | x_1, \ldots, x_n \sim \text{Gamma}(\alpha + \sum x_i, \beta + n)$
+**뒤확률:** $\lambda | x_1, \ldots, x_n \sim \text{Gamma}(\alpha + \sum x_i, \beta + n)$
 
-### 3.2 Conjugate Update
+### 3.2 켤레 갱신
 
 $$
-
 \boxed{\alpha_{\text{post}} = \alpha_{\text{prior}} + \sum_{i=1}^n x_i, \quad \beta_{\text{post}} = \beta_{\text{prior}} + n}
-
 $$
 
-**Interpretation:**
-- $\alpha$ = prior pseudo-count (total events)
-- $\beta$ = prior pseudo-observations (number of periods)
-- Update: add actual total count to $\alpha$, number of observations to $\beta$
+**해석:**
 
-### 3.3 Prior and Posterior Statistics
+- $\alpha$ = 앞확률의 가짜 세기(전체 사건 수)
+- $\beta$ = 앞확률의 가짜 관찰 수(기간의 개수)
+- 갱신: 실제 전체 세기를 $\alpha$에, 관찰 수를 $\beta$에 더한다
 
-| Statistic | Prior | Posterior |
+### 3.3 앞확률과 뒤확률의 통계량
+
+| 통계량 | 앞확률 | 뒤확률 |
 |-----------|-------|-----------|
-| Mean | $\alpha/\beta$ | $(\alpha + \sum x_i)/(\beta + n)$ |
-| Variance | $\alpha/\beta^2$ | $(\alpha + \sum x_i)/(\beta + n)^2$ |
-| Mode | $(\alpha-1)/\beta$ | $(\alpha + \sum x_i - 1)/(\beta + n)$ |
+| 평균 | $\alpha/\beta$ | $(\alpha + \sum x_i)/(\beta + n)$ |
+| 흩어짐 | $\alpha/\beta^2$ | $(\alpha + \sum x_i)/(\beta + n)^2$ |
+| 최빈값 | $(\alpha-1)/\beta$ | $(\alpha + \sum x_i - 1)/(\beta + n)$ |
 
-### 3.4 Posterior Predictive Distribution
+### 3.4 뒤확률 예측 분포
 
-The posterior predictive for a future count is **Negative Binomial**:
+앞으로의 세기에 대한 뒤확률 예측은 **음이항 분포**이다.
 
 $$
-
 P(x_{\text{new}} | D) = \text{NegBinom}\left(x_{\text{new}} \,\Big|\, \alpha', \frac{\beta'}{\beta' + 1}\right)
-
 $$
 
-### 3.5 Implementation
+### 3.5 구현
 
 ```python
 class GammaPoissonModel:
-    """Gamma-Poisson conjugate model for count data."""
+    """세기 자료를 위한 감마-푸아송 켤레 모형."""
     
     def __init__(self, alpha=1, beta=1):
-        """Initialize with Gamma(alpha, beta) prior."""
+        """Gamma(alpha, beta) 앞확률로 첫걸음을 잡는다."""
         self.prior_alpha = alpha
         self.prior_beta = beta
         self.posterior_alpha = alpha
@@ -235,20 +212,20 @@ class GammaPoissonModel:
         self.data = []
     
     def update(self, counts):
-        """Update posterior with observed counts."""
+        """관측된 세기로 뒤확률을 새로 고친다."""
         counts = np.asarray(counts)
         self.posterior_alpha += np.sum(counts)
         self.posterior_beta += len(counts)
         self.data.extend(counts)
     
     def posterior_predictive(self):
-        """Return posterior predictive (Negative Binomial)."""
+        """뒤확률 예측 분포(음이항)를 되돌린다."""
         n = self.posterior_alpha
         p = self.posterior_beta / (self.posterior_beta + 1)
         return stats.nbinom(n, p)
     
     def summary(self):
-        """Print summary statistics."""
+        """간추린 통계량을 찍는다."""
         post_dist = stats.gamma(self.posterior_alpha, 
                                 scale=1/self.posterior_beta)
         
@@ -257,74 +234,69 @@ class GammaPoissonModel:
         print(f"  95% CI: [{post_dist.ppf(0.025):.4f}, {post_dist.ppf(0.975):.4f}]")
 ```
 
-### 3.6 Example: Website Visits
+### 3.6 보기: 누리집 방문
 
-**Prior:** Gamma$(2, 1)$ — expect approximately 2 events per period
+**앞확률:** Gamma$(2, 1)$ — 기간마다 사건이 2번쯤 있으리라 본다
 
-**Data:** Daily visits $[5, 3, 7, 4, 6, 5, 8, 3, 4, 6]$ (total = 51, n = 10)
+**데이터:** 날마다의 방문 $[5, 3, 7, 4, 6, 5, 8, 3, 4, 6]$(합 = 51, n = 10)
 
-**Posterior:** Gamma$(2 + 51, 1 + 10) = $ Gamma$(53, 11)$
+**뒤확률:** Gamma$(2 + 51, 1 + 10) = $ Gamma$(53, 11)$
 
-| Statistic | Value |
+| 통계량 | 값 |
 |-----------|-------|
-| Posterior Mean | \$53/11 = 4.82$ |
-| Sample Mean | \$51/10 = 5.10$ |
-| 95% Credible Interval | $[3.61, 6.22]$ |
+| 뒤확률의 평균 | \$53/11 = 4.82$ |
+| 표본 평균 | \$51/10 = 5.10$ |
+| 95% 믿음 구간 | $[3.61, 6.22]$ |
 
 ---
 
-## 4. Normal-Normal Model (Known Variance)
+## 4. 정규-정규 모형(흩어짐을 알 때)
 
-### 4.1 Model Specification
+### 4.1 모형 명세
 
-**Prior:** $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$
+**앞확률:** $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$
 
-**Likelihood:** $x_i | \mu \sim \mathcal{N}(\mu, \sigma^2)$ independently, with $\sigma^2$ known
+**가능도:** $x_i | \mu \sim \mathcal{N}(\mu, \sigma^2)$이며 서로 독립이고 $\sigma^2$은 안다
 
-**Posterior:** $\mu | x_1, \ldots, x_n \sim \mathcal{N}(\mu_n, \sigma_n^2)$
+**뒤확률:** $\mu | x_1, \ldots, x_n \sim \mathcal{N}(\mu_n, \sigma_n^2)$
 
-### 4.2 Conjugate Update (Precision Form)
+### 4.2 켤레 갱신(정밀도 꼴)
 
-Define **precision** as inverse variance: $\tau = 1/\sigma^2$
+**정밀도**를 흩어짐의 역수로 정의한다: $\tau = 1/\sigma^2$
 
 $$
-
 \tau_n = \tau_0 + n\tau_{\text{data}}
-
 $$
 
 $$
-
 \boxed{\mu_n = \frac{\tau_0 \mu_0 + n\tau_{\text{data}} \bar{x}}{\tau_n}, \quad \sigma_n^2 = \frac{1}{\tau_n}}
-
 $$
 
-where $\bar{x} = \frac{1}{n}\sum_{i=1}^n x_i$ is the sample mean.
+여기서 $\bar{x} = \frac{1}{n}\sum_{i=1}^n x_i$은 표본 평균이다.
 
-### 4.3 Interpretation
+### 4.3 풀이
 
-The posterior mean is a **precision-weighted average**:
+뒤확률의 평균은 **정밀도로 무게 준 평균**이다.
 
 $$
-
 \mu_n = w_{\text{prior}} \cdot \mu_0 + w_{\text{data}} \cdot \bar{x}
-
 $$
 
-where:
-- $w_{\text{prior}} = \tau_0 / \tau_n$ — weight on prior mean
-- $w_{\text{data}} = n\tau_{\text{data}} / \tau_n$ — weight on sample mean
+여기서 각 기호는 다음과 같다.
 
-As $n \to \infty$: $w_{\text{data}} \to 1$ and $\mu_n \to \bar{x}$.
+- $w_{\text{prior}} = \tau_0 / \tau_n$ — 앞확률 평균의 무게
+- $w_{\text{data}} = n\tau_{\text{data}} / \tau_n$ — 표본 평균의 무게
 
-### 4.4 Implementation
+$n \to \infty$이면 $w_{\text{data}} \to 1$이고 $\mu_n \to \bar{x}$이다.
+
+### 4.4 구현
 
 ```python
 class NormalNormalModel:
-    """Normal-Normal conjugate model (known variance)."""
+    """정규-정규 켤레 모형(흩어짐을 아는 경우)."""
     
     def __init__(self, prior_mean=0, prior_std=1, known_std=1):
-        """Initialize with N(prior_mean, prior_std^2) prior."""
+        """N(prior_mean, prior_std^2) 앞확률로 첫걸음을 잡는다."""
         self.prior_mean = prior_mean
         self.prior_std = prior_std
         self.known_std = known_std
@@ -334,246 +306,226 @@ class NormalNormalModel:
         self.data = []
     
     def update(self, observations):
-        """Update posterior with new observations."""
+        """새 관측으로 뒤확률을 새로 고친다."""
         observations = np.asarray(observations)
         n = len(observations)
         x_bar = np.mean(observations)
         
-        # Precision calculations
+        # 정밀도 셈하기
         prior_precision = 1 / (self.prior_std ** 2)
         data_precision = n / (self.known_std ** 2)
         posterior_precision = prior_precision + data_precision
         
-        # Update parameters
+        # 매개변수 갱신
         self.posterior_mean = ((prior_precision * self.prior_mean + 
                                data_precision * x_bar) / posterior_precision)
         self.posterior_std = np.sqrt(1 / posterior_precision)
         
-        # For sequential updates
+        # 잇단 새로 고치기용
         self.prior_mean = self.posterior_mean
         self.prior_std = self.posterior_std
         
         self.data.extend(observations)
     
     def summary(self):
-        """Print summary statistics."""
+        """간추린 통계량을 찍는다."""
         post_dist = stats.norm(self.posterior_mean, self.posterior_std)
         
         print(f"Posterior: N({self.posterior_mean:.4f}, {self.posterior_std:.4f})")
         print(f"  95% CI: [{post_dist.ppf(0.025):.4f}, {post_dist.ppf(0.975):.4f}]")
 ```
 
-### 4.5 Example: Measurements
+### 4.5 보기: 측정값
 
-**Prior:** $\mathcal{N}(100, 10^2)$ — prior belief about true value
+**앞확률:** $\mathcal{N}(100, 10^2)$ — 참값에 대한 앞선 믿음
 
-**Known data std:** $\sigma = 5$
+**아는 데이터 표준편차:** $\sigma = 5$
 
-**Data:** Measurements $[102, 98, 105, 101, 99, 103, 97, 104, 100, 102]$
+**데이터:** 측정값 $[102, 98, 105, 101, 99, 103, 97, 104, 100, 102]$
 
-Sample statistics: $n = 10$, $\bar{x} = 101.1$
+표본 통계량: $n = 10$, $\bar{x} = 101.1$
 
-**Posterior calculation:**
-- Prior precision: $\tau_0 = 1/100 = 0.01$
-- Data precision: $n\tau = 10/25 = 0.4$
-- Total precision: $\tau_n = 0.41$
+**뒤확률 셈하기:**
+
+- 앞확률의 정밀도: $\tau_0 = 1/100 = 0.01$
+- 데이터의 정밀도: $n\tau = 10/25 = 0.4$
+- 전체 정밀도: $\tau_n = 0.41$
 
 $$
-
 \mu_n = \frac{0.01 \times 100 + 0.4 \times 101.1}{0.41} \approx 101.07
-
 $$
 
 $$
-
 \sigma_n = \sqrt{1/0.41} \approx 1.56
-
 $$
 
-| Weight | Value |
+| 무게 | 값 |
 |--------|-------|
-| Prior | $0.01/0.41 = 2.4\%$ |
-| Data | $0.40/0.41 = 97.6\%$ |
+| 앞확률 | $0.01/0.41 = 2.4\%$ |
+| 데이터 | $0.40/0.41 = 97.6\%$ |
 
 ---
 
-## 5. Summary of Conjugate Update Rules
+## 5. 켤레 갱신 규칙 간추림
 
-### 5.1 Quick Reference Table
+### 5.1 빠른 참고 표
 
-| Model | Prior Parameters | Update Rule |
+| 모형 | 앞확률의 매개변수 | 갱신 규칙 |
 |-------|------------------|-------------|
-| **Beta-Binomial** | $\alpha, \beta$ | $\alpha' = \alpha + k$, $\beta' = \beta + (n-k)$ |
-| **Gamma-Poisson** | $\alpha, \beta$ | $\alpha' = \alpha + \sum x_i$, $\beta' = \beta + n$ |
-| **Normal-Normal** | $\mu_0, \sigma_0$ | $\mu_n = \frac{\tau_0\mu_0 + n\tau\bar{x}}{\tau_0 + n\tau}$, $\sigma_n^2 = \frac{1}{\tau_0 + n\tau}$ |
+| **베타-이항** | $\alpha, \beta$ | $\alpha' = \alpha + k$, $\beta' = \beta + (n-k)$ |
+| **감마-푸아송** | $\alpha, \beta$ | $\alpha' = \alpha + \sum x_i$, $\beta' = \beta + n$ |
+| **정규-정규** | $\mu_0, \sigma_0$ | $\mu_n = \frac{\tau_0\mu_0 + n\tau\bar{x}}{\tau_0 + n\tau}$, $\sigma_n^2 = \frac{1}{\tau_0 + n\tau}$ |
 
-### 5.2 Hyperparameter Interpretation
+### 5.2 초매개변수의 풀이
 
-| Model | Hyperparameters | Interpretation |
+| 모형 | 초매개변수 | 풀이 |
 |-------|-----------------|----------------|
-| **Beta** | $\alpha, \beta$ | $\alpha - 1$ pseudo-successes, $\beta - 1$ pseudo-failures |
-| **Gamma** | $\alpha, \beta$ | $\alpha$ pseudo-counts, $\beta$ pseudo-observations |
-| **Normal** | $\mu_0, \tau_0$ | Prior mean, prior precision (confidence) |
+| **베타** | $\alpha, \beta$ | 가짜 성공 $\alpha - 1$번, 가짜 실패 $\beta - 1$번 |
+| **감마** | $\alpha, \beta$ | 가짜 세기 $\alpha$, 가짜 관찰 $\beta$ |
+| **정규** | $\mu_0, \tau_0$ | 앞확률의 평균, 앞확률의 정밀도(자신감) |
 
 ---
 
-## 6. Key Takeaways
+## 6. 핵심 요점
 
-1. **Conjugate priors** yield analytical posterior distributions in the same family as the prior, enabling closed-form Bayesian inference.
+1. **켤레 앞확률**은 앞확률과 같은 족의 해석적 뒤확률 분포를 내어 닫힌 꼴의 베이즈 추론을 가능하게 한다.
 
-2. **Beta-Binomial** is the workhorse for binary and proportion data. The Beta hyperparameters act as pseudo-counts.
+2. **베타-이항**은 이진 데이터와 비율 데이터의 일꾼이다. 베타의 초매개변수는 가짜 세기 노릇을 한다.
 
-3. **Gamma-Poisson** handles count data naturally. The posterior predictive is Negative Binomial.
+3. **감마-푸아송**은 세는 데이터를 자연스럽게 다룬다. 뒤확률 예측은 음이항 분포이다.
 
-4. **Normal-Normal** (known variance) produces precision-weighted averages. The posterior mean interpolates between prior mean and sample mean.
+4. **정규-정규**(흩어짐을 알 때)는 정밀도로 무게 준 평균을 낸다. 뒤확률의 평균은 앞확률의 평균과 표본 평균 사이를 메운다.
 
-5. **Sequential updating** is computationally efficient with conjugate priors — the posterior from one batch becomes the prior for the next.
-
----
-
-## 7. Exercises
-
-### Exercise 1: Conjugate Verification
-Mathematically verify that Beta is conjugate to Binomial by working through Bayes' theorem. Show explicitly that $p(\theta|k, n)$ is Beta distributed.
-
-### Exercise 2: Prior Elicitation
-You believe a coin is fair but aren't certain. Express this as Beta$(\alpha, \beta)$. What values capture "weak belief" vs "strong belief" in fairness?
-
-### Exercise 3: Gamma-Exponential
-Research the Gamma-Exponential conjugate pair (for waiting times/lifetimes). Implement a class similar to `GammaPoissonModel` for this pair.
-
-### Exercise 4: Dirichlet-Multinomial
-Extend Beta-Binomial to multiple categories using Dirichlet-Multinomial. Implement inference for a 3-outcome dice rolling problem.
-
-### Exercise 5: Non-Conjugate Prior
-What happens when the prior is not conjugate? Compare analytical Beta-Binomial with grid-based numerical integration using a non-conjugate prior (e.g., Uniform on $\log(\theta)$).
+5. 켤레 앞확률에서는 **차례 갱신**이 셈으로 효율적이다. 한 묶음의 뒤확률이 다음 묶음의 앞확률이 된다.
 
 ---
 
-## References
+## 7. 연습문제
 
-- Gelman, A., et al. *Bayesian Data Analysis* (3rd ed.), Chapter 2
-- Murphy, K. *Machine Learning: A Probabilistic Perspective*, Chapter 3
-- Hoff, P. *A First Course in Bayesian Statistical Methods*, Chapters 3–5
+### 연습문제 1: 켤레성 확인
+베이즈 정리를 짚어 가며 베타가 이항의 켤레임을 수학으로 확인하라. $p(\theta|k, n)$이 베타 분포임을 드러내 보여라.
 
----
+### 연습문제 2: 앞확률 끌어내기
+동전이 공정하다고 믿지만 확신하지는 못한다. 이를 Beta$(\alpha, \beta)$으로 나타내라. 공정함에 대한 "약한 믿음"과 "강한 믿음"은 각각 어떤 값으로 담기는가?
 
-# Appendix: Detailed Conjugate Model Derivations
+### 연습문제 3: 감마-지수
+(기다리는 시간과 수명을 위한) 감마-지수 켤레 쌍을 살펴보라. 이 쌍에 대해 `GammaPoissonModel`과 비슷한 클래스를 구현하라.
 
-The following sections provide complete derivations, implementations, and analysis for each conjugate family introduced above.
+### 연습문제 4: 디리클레-다항
+디리클레-다항으로 베타-이항을 여러 갈래로 넓혀라. 결과가 세 가지인 주사위 굴리기 문제의 추론을 구현하라.
 
-
----
-
-# Bernoulli-Beta Conjugate Model
-
-The Bernoulli-Beta model is the simplest and most instructive example of Bayesian conjugate analysis. It provides a complete, analytically tractable framework for inference about probabilities from binary data. This canonical model illustrates fundamental Bayesian concepts that generalize to more complex settings.
+### 연습문제 5: 켤레가 아닌 앞확률
+앞확률이 켤레가 아니면 어떻게 되는가? 해석적 베타-이항을, 켤레가 아닌 앞확률(이를테면 $\log(\theta)$ 위의 고른 분포)로 격자 수치 적분한 결과와 견주어라.
 
 ---
 
-## Problem Setup
+## 참고 문헌
 
-### The Inference Problem
+- Gelman, A., et al. *Bayesian Data Analysis* (3rd ed.), 2장
+- Murphy, K. *Machine Learning: A Probabilistic Perspective*, 3장
+- Hoff, P. *A First Course in Bayesian Statistical Methods*, 3~5장
 
-We observe binary outcomes $x_1, x_2, \ldots, x_n \in \{0, 1\}$ (e.g., coin flips, success/failure, click/no-click) and wish to infer the underlying success probability $\theta \in [0, 1]$.
+---
 
-**Frequentist approach**: Point estimate $\hat{\theta} = \bar{x} = k/n$ where $k = \sum_i x_i$.
+# 덧붙임: 켤레 모형의 자세한 끌어내기
 
-**Bayesian approach**: Full posterior distribution $p(\theta \mid x_1, \ldots, x_n)$ quantifying uncertainty about $\theta$.
+뒤이은 절들은 앞서 들여온 켤레족마다 온전한 끌어내기, 구현, 분석을 준다.
 
-### The Bernoulli Likelihood
+---
 
-Each observation follows a Bernoulli distribution:
+# 베르누이-베타 켤레 모형
+
+베르누이-베타 모형은 베이즈 켤레 분석의 가장 단순하고 가르침이 많은 보기이다. 이진 데이터에서 확률을 추론하는, 해석적으로 다룰 수 있는 온전한 틀을 준다. 이 본보기 모형은 더 복잡한 상황으로도 이어지는 베이즈의 근본 개념을 잘 보여 준다.
+
+---
+
+## 문제 설정
+
+### 추론 문제
+
+이진 결과 $x_1, x_2, \ldots, x_n \in \{0, 1\}$(이를테면 동전 던지기, 성공과 실패, 누름과 안 누름)을 관찰하고 그 밑에 깔린 성공 확률 $\theta \in [0, 1]$을 미루어 알고자 한다.
+
+**빈도주의 방법**: 점 어림값 $\hat{\theta} = \bar{x} = k/n$이며 $k = \sum_i x_i$이다.
+
+**베이즈 방법**: $\theta$에 대한 불확실성을 수로 나타내는 온전한 뒤확률 분포 $p(\theta \mid x_1, \ldots, x_n)$.
+
+### 베르누이 가능도
+
+관찰마다 베르누이 분포를 따른다.
 
 $$
-
 x_i \mid \theta \sim \text{Bernoulli}(\theta)
-
 $$
 
 $$
-
 p(x_i \mid \theta) = \theta^{x_i}(1-\theta)^{1-x_i}
-
 $$
 
-For $n$ independent observations with $k$ successes:
+성공이 $k$번인 서로 독립인 관찰 $n$개에 대해 다음과 같다.
 
 $$
-
 p(x_1, \ldots, x_n \mid \theta) = \prod_{i=1}^{n} \theta^{x_i}(1-\theta)^{1-x_i} = \theta^k(1-\theta)^{n-k}
-
 $$
 
-**Key observation**: The likelihood depends on the data only through $k$ and $n$. The sufficient statistic is $(k, n)$.
+**핵심 관찰**: 가능도는 데이터에 대해 오직 $k$과 $n$을 거쳐서만 달라진다. 충분 통계량은 $(k, n)$이다.
 
 ---
 
-## The Beta Prior
+## 베타 앞확률
 
-### Why Beta?
+### 왜 베타인가?
 
-We need a prior $p(\theta)$ on $[0, 1]$. The **Beta distribution** is the natural choice because:
+$[0, 1]$ 위의 앞확률 $p(\theta)$이 필요하다. **베타 분포**가 자연스러운 선택인 까닭은 다음과 같다.
 
-1. **Support**: Defined on $[0, 1]$, matching the parameter space
-2. **Flexibility**: Can represent diverse prior beliefs (uniform, U-shaped, skewed)
-3. **Conjugacy**: Posterior is also Beta, enabling closed-form updates
+1. **받침**: $[0, 1]$ 위에서 정의되어 매개변수 공간과 맞는다
+2. **융통성**: 여러 앞선 믿음(고른 것, U자 모양, 한쪽으로 기운 것)을 나타낼 수 있다
+3. **켤레성**: 뒤확률도 베타여서 닫힌 꼴로 고칠 수 있다
 
-### Beta Distribution Definition
+### 베타 분포의 정의
 
 $$
-
 \theta \sim \text{Beta}(\alpha, \beta)
-
 $$
 
 $$
-
 p(\theta \mid \alpha, \beta) = \frac{\Gamma(\alpha + \beta)}{\Gamma(\alpha)\Gamma(\beta)} \theta^{\alpha-1}(1-\theta)^{\beta-1} = \frac{1}{B(\alpha, \beta)} \theta^{\alpha-1}(1-\theta)^{\beta-1}
-
 $$
 
-where $B(\alpha, \beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha + \beta)}$ is the Beta function.
+여기서 $B(\alpha, \beta) = \frac{\Gamma(\alpha)\Gamma(\beta)}{\Gamma(\alpha + \beta)}$은 베타 함수이다.
 
-### Beta Distribution Properties
+### 베타 분포의 성질
 
-**Moments**:
+**적률**:
 
 $$
-
 \mathbb{E}[\theta] = \frac{\alpha}{\alpha + \beta}
-
 $$
 
 $$
-
 \text{Var}[\theta] = \frac{\alpha\beta}{(\alpha + \beta)^2(\alpha + \beta + 1)}
-
 $$
 
 $$
-
 \text{Mode}[\theta] = \frac{\alpha - 1}{\alpha + \beta - 2} \quad \text{(for } \alpha, \beta > 1\text{)}
-
 $$
 
-**Interpretation of parameters**:
+**매개변수의 풀이**:
 
-- $\alpha - 1$: "pseudo-count" of prior successes
-- $\beta - 1$: "pseudo-count" of prior failures
-- $\alpha + \beta$: "prior sample size" or concentration
+- $\alpha - 1$: 앞확률의 성공 "가짜 세기"
+- $\beta - 1$: 앞확률의 실패 "가짜 세기"
+- $\alpha + \beta$: "앞확률의 표본 크기" 또는 몰림 정도
 
-### Common Beta Priors
+### 흔한 베타 앞확률
 
-| Prior | $\alpha$ | $\beta$ | Mean | Shape | Use Case |
+| 앞확률 | $\alpha$ | $\beta$ | 평균 | 모양 | 쓰임새 |
 |-------|----------|---------|------|-------|----------|
-| Uniform | 1 | 1 | 0.5 | Flat | Maximum ignorance |
-| Jeffreys | 0.5 | 0.5 | 0.5 | U-shaped | Reference prior |
-| Haldane | 0 | 0 | — | Improper | Limiting non-informative |
-| Symmetric | $a$ | $a$ | 0.5 | Peaked/U | No directional preference |
-| Informative | 10 | 2 | 0.83 | Right-skewed | Prior belief $\theta$ is high |
+| 고른 분포 | 1 | 1 | 0.5 | 평평 | 최대 무지 |
+| 제프리스 | 0.5 | 0.5 | 0.5 | U자 | 참조 앞확률 |
+| 홀데인 | 0 | 0 | — | 제대로 되지 않음 | 극한의 정보 없는 앞확률 |
+| 대칭 | $a$ | $a$ | 0.5 | 뾰족하거나 U자 | 어느 쪽도 편들지 않음 |
+| 정보 있는 앞확률 | 10 | 2 | 0.83 | 오른쪽으로 기움 | $\theta$이 높다는 앞선 믿음 |
 
-### Visualizing Beta Priors
+### 베타 앞확률 그려 보기
 
 ```
 α=1, β=1 (Uniform)        α=0.5, β=0.5 (Jeffreys)    α=2, β=5 (Informative)
@@ -585,334 +537,274 @@ $$
 
 ---
 
-## Conjugate Posterior Derivation
+## 켤레 뒤확률 끌어내기
 
-### The Conjugacy Property
+### 켤레성
 
-**Definition**: A prior $p(\theta)$ is **conjugate** to a likelihood $p(\mathcal{D} \mid \theta)$ if the posterior $p(\theta \mid \mathcal{D})$ belongs to the same distributional family as the prior.
+**정의**: 뒤확률 $p(\theta \mid \mathcal{D})$이 앞확률과 같은 분포족에 들면 앞확률 $p(\theta)$은 가능도 $p(\mathcal{D} \mid \theta)$의 **켤레**이다.
 
-### Derivation
+### 유도
 
-**Prior**: $\theta \sim \text{Beta}(\alpha, \beta)$
+**앞확률**: $\theta \sim \text{Beta}(\alpha, \beta)$
 
 $$
-
 p(\theta) \propto \theta^{\alpha-1}(1-\theta)^{\beta-1}
-
 $$
 
-**Likelihood**: $k$ successes in $n$ trials
+**가능도**: 시행 $n$번 가운데 성공 $k$번
 
 $$
-
 p(\mathcal{D} \mid \theta) = \theta^k(1-\theta)^{n-k}
-
 $$
 
-**Posterior** (via Bayes' theorem):
+**뒤확률**(베이즈 정리로):
 
 $$
-
 p(\theta \mid \mathcal{D}) \propto p(\mathcal{D} \mid \theta) \cdot p(\theta)
-
 $$
 
 $$
-
 p(\theta \mid \mathcal{D}) \propto \theta^k(1-\theta)^{n-k} \cdot \theta^{\alpha-1}(1-\theta)^{\beta-1}
-
 $$
 
 $$
-
 p(\theta \mid \mathcal{D}) \propto \theta^{k + \alpha - 1}(1-\theta)^{n-k+\beta-1}
-
 $$
 
-This is the kernel of a Beta distribution! Therefore:
+이것은 베타 분포의 알맹이이다! 그러므로 다음과 같다.
 
 $$
-
 \boxed{\theta \mid \mathcal{D} \sim \text{Beta}(\alpha + k, \beta + n - k)}
-
 $$
 
-### The Update Rule
+### 갱신 규칙
 
-| Quantity | Prior | Posterior |
+| 양 | 앞확률 | 뒤확률 |
 |----------|-------|-----------|
-| Distribution | $\text{Beta}(\alpha, \beta)$ | $\text{Beta}(\alpha + k, \beta + n - k)$ |
-| "Successes" | $\alpha - 1$ | $\alpha + k - 1$ |
-| "Failures" | $\beta - 1$ | $\beta + n - k - 1$ |
-| "Sample size" | $\alpha + \beta$ | $\alpha + \beta + n$ |
+| 분포 | $\text{Beta}(\alpha, \beta)$ | $\text{Beta}(\alpha + k, \beta + n - k)$ |
+| "성공" | $\alpha - 1$ | $\alpha + k - 1$ |
+| "실패" | $\beta - 1$ | $\beta + n - k - 1$ |
+| "표본 크기" | $\alpha + \beta$ | $\alpha + \beta + n$ |
 
-**Intuition**: We simply add the observed successes to $\alpha$ and observed failures to $\beta$. The prior acts like "pseudo-data" from a previous experiment.
+**직관**: 관찰한 성공을 $\alpha$에, 관찰한 실패를 $\beta$에 더하기만 하면 된다. 앞확률은 앞선 실험에서 온 "가짜 데이터" 노릇을 한다.
 
 ---
 
-## Posterior Analysis
+## 뒤확률 분석
 
-### Posterior Mean
+### 뒤확률의 평균
 
 $$
-
 \mathbb{E}[\theta \mid \mathcal{D}] = \frac{\alpha + k}{\alpha + \beta + n}
-
 $$
 
-This can be rewritten as a **weighted average**:
+이는 **무게 준 평균**으로 다시 쓸 수 있다.
 
 $$
-
 \mathbb{E}[\theta \mid \mathcal{D}] = \frac{\alpha + \beta}{\alpha + \beta + n} \cdot \underbrace{\frac{\alpha}{\alpha + \beta}}_{\text{prior mean}} + \frac{n}{\alpha + \beta + n} \cdot \underbrace{\frac{k}{n}}_{\text{MLE}}
-
 $$
 
-Let $w = \frac{n}{\alpha + \beta + n}$ be the data weight. Then:
+데이터의 무게를 $w = \frac{n}{\alpha + \beta + n}$이라 하자. 그러면 다음과 같다.
 
 $$
-
 \mathbb{E}[\theta \mid \mathcal{D}] = (1-w) \cdot \text{prior mean} + w \cdot \text{MLE}
-
 $$
 
-**Key insight**: The posterior mean interpolates between prior mean and MLE, with weight determined by relative "sample sizes."
+**핵심 통찰**: 뒤확률의 평균은 앞확률의 평균과 최대 가능도 어림값 사이를 메우며, 그 무게는 서로의 "표본 크기"가 정한다.
 
-### Posterior Mode (MAP Estimate)
+### 뒤확률의 최빈값(최대 뒤확률 어림값)
 
 $$
-
 \hat{\theta}_{\text{MAP}} = \frac{\alpha + k - 1}{\alpha + \beta + n - 2} \quad \text{(for } \alpha + k > 1, \beta + n - k > 1\text{)}
-
 $$
 
-### Posterior Variance
+### 뒤확률의 흩어짐
 
 $$
-
 \text{Var}[\theta \mid \mathcal{D}] = \frac{(\alpha + k)(\beta + n - k)}{(\alpha + \beta + n)^2(\alpha + \beta + n + 1)}
-
 $$
 
-As $n \to \infty$:
+$n \to \infty$이면 다음과 같다.
 
 $$
-
 \text{Var}[\theta \mid \mathcal{D}] \approx \frac{\hat{\theta}(1-\hat{\theta})}{n} \to 0
-
 $$
 
-The posterior concentrates around the true value.
+뒤확률이 참값 둘레로 몰린다.
 
-### Credible Intervals
+### 믿음 구간
 
-The $(1-\alpha)$ **equal-tailed credible interval** is:
+$(1-\alpha)$ **양 꼬리가 같은 믿음 구간**은 다음과 같다.
 
 $$
-
 \left[F^{-1}_{\text{Beta}}\left(\frac{\alpha}{2}\right), F^{-1}_{\text{Beta}}\left(1 - \frac{\alpha}{2}\right)\right]
-
 $$
 
-where $F^{-1}_{\text{Beta}}$ is the quantile function of $\text{Beta}(\alpha + k, \beta + n - k)$.
+여기서 $F^{-1}_{\text{Beta}}$은 $\text{Beta}(\alpha + k, \beta + n - k)$의 분위수 함수이다.
 
 ---
 
-## Sequential Updating
+## 차례 갱신
 
-### Online Learning
+### 온라인 학습
 
-A powerful feature of conjugate models is efficient sequential updating. Given a stream of observations, we update the posterior incrementally:
+켤레 모형의 힘 있는 성질 하나는 차례 갱신이 효율적이라는 것이다. 관찰이 흐르듯 들어오면 뒤확률을 조금씩 고쳐 간다.
 
 $$
-
 \text{Beta}(\alpha_0, \beta_0) \xrightarrow{x_1} \text{Beta}(\alpha_1, \beta_1) \xrightarrow{x_2} \text{Beta}(\alpha_2, \beta_2) \xrightarrow{x_3} \cdots
-
 $$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$
-
 \alpha_{t+1} = \alpha_t + x_{t+1}, \quad \beta_{t+1} = \beta_t + (1 - x_{t+1})
-
 $$
 
-### Order Independence
+### 차례와 무관함
 
-The final posterior is **independent of observation order**:
+마지막 뒤확률은 **관찰의 차례와 무관하다**.
 
 $$
-
 p(\theta \mid x_1, x_2, \ldots, x_n) = p(\theta \mid x_{\pi(1)}, x_{\pi(2)}, \ldots, x_{\pi(n)})
-
 $$
 
-for any permutation $\pi$. This follows from exchangeability of the Bernoulli likelihood.
+어떤 순열 $\pi$에 대해서도 그렇다. 이는 베르누이 가능도의 맞바꿈 가능성에서 따라 나온다.
 
 ---
 
-## Posterior Predictive Distribution
+## 뒤확률 예측 분포
 
-### Predicting the Next Observation
+### 다음 관찰 맞히기
 
-Given observed data, what is the probability the next observation is a success?
+관찰한 데이터가 주어졌을 때 다음 관찰이 성공일 확률은 얼마인가?
 
 $$
-
 p(x_{n+1} = 1 \mid \mathcal{D}) = \int_0^1 p(x_{n+1} = 1 \mid \theta) \, p(\theta \mid \mathcal{D}) \, d\theta
-
 $$
 
 $$
-
 = \int_0^1 \theta \cdot p(\theta \mid \mathcal{D}) \, d\theta = \mathbb{E}[\theta \mid \mathcal{D}]
-
 $$
 
 $$
-
 \boxed{p(x_{n+1} = 1 \mid \mathcal{D}) = \frac{\alpha + k}{\alpha + \beta + n}}
-
 $$
 
-This is **Laplace's rule of succession**: The predictive probability equals the posterior mean.
+이것이 **라플라스의 계승 규칙**이다. 예측 확률은 뒤확률의 평균과 같다.
 
-### Predicting Multiple Future Observations
+### 앞으로의 관찰 여럿 맞히기
 
-For $m$ future trials, the number of successes $k'$ follows a **Beta-Binomial** distribution:
+앞으로의 시행 $m$번에서 성공 횟수 $k'$은 **베타-이항** 분포를 따른다.
 
 $$
-
 p(k' \mid m, \mathcal{D}) = \binom{m}{k'} \frac{B(\alpha + k + k', \beta + n - k + m - k')}{B(\alpha + k, \beta + n - k)}
-
 $$
 
-This accounts for both sampling variability and parameter uncertainty.
+이는 표집의 흔들림과 매개변수의 불확실성을 모두 셈에 넣는다.
 
 ---
 
-## Special Cases and Connections
+## 특별한 경우와 이음
 
-### Uniform Prior (alpha = beta = 1)
+### 고른 앞확률(alpha = beta = 1)
 
 $$
-
 p(\theta \mid \mathcal{D}) = \text{Beta}(1 + k, 1 + n - k)
-
 $$
 
 $$
-
 \mathbb{E}[\theta \mid \mathcal{D}] = \frac{k + 1}{n + 2}
-
 $$
 
-This is **Laplace's rule**: Add one success and one failure to the observed counts.
+이것이 **라플라스의 규칙**이다. 관찰한 세기에 성공 하나와 실패 하나를 더한다.
 
-### Jeffreys Prior (alpha = beta = 1/2)
+### 제프리스 앞확률(alpha = beta = 1/2)
 
 $$
-
 p(\theta \mid \mathcal{D}) = \text{Beta}(k + 1/2, n - k + 1/2)
-
 $$
 
 $$
-
 \mathbb{E}[\theta \mid \mathcal{D}] = \frac{k + 1/2}{n + 1}
-
 $$
 
-The Jeffreys prior is the unique prior invariant under reparameterization $\theta \leftrightarrow 1 - \theta$ and under monotonic transformations.
+제프리스 앞확률은 $\theta \leftrightarrow 1 - \theta$의 다시 매개변수화와 단조 변환에 흔들리지 않는 유일한 앞확률이다.
 
-### Haldane Prior (alpha = beta = 0)
+### 홀데인 앞확률(alpha = beta = 0)
 
 $$
-
 p(\theta \mid \mathcal{D}) = \text{Beta}(k, n - k)
-
 $$
 
 $$
-
 \mathbb{E}[\theta \mid \mathcal{D}] = \frac{k}{n} = \text{MLE}
-
 $$
 
-**Warning**: The Haldane prior is improper and yields an improper posterior if $k = 0$ or $k = n$.
+**주의**: 홀데인 앞확률은 제대로 된 확률이 아니며, $k = 0$이거나 $k = n$이면 뒤확률도 제대로 되지 않는다.
 
-### Connection to Maximum Likelihood
+### 최대 가능도와의 이음
 
-As prior strength $\to 0$ (or $n \to \infty$):
+앞확률의 세기가 $\to 0$이거나 $n \to \infty$이면 다음과 같다.
 
 $$
-
 \hat{\theta}_{\text{Bayes}} \to \hat{\theta}_{\text{MLE}} = \frac{k}{n}
-
 $$
 
-The Bayesian and frequentist estimates converge asymptotically.
+베이즈 어림값과 빈도주의 어림값은 점근적으로 하나로 모인다.
 
 ---
 
-## Practical Considerations
+## 실용적인 고려
 
-### Choosing Prior Parameters
+### 앞확률의 매개변수 고르기
 
-**Method 1: Prior Mean and "Equivalent Sample Size"**
+**방법 1: 앞확률의 평균과 "맞먹는 표본 크기"**
 
-If you believe the prior mean is $\mu_0$ with prior equivalent to $n_0$ observations:
+앞확률의 평균이 $\mu_0$이고 앞확률이 관찰 $n_0$개에 맞먹는다고 믿으면 다음과 같다.
 
 $$
-
 \alpha = \mu_0 \cdot n_0, \quad \beta = (1 - \mu_0) \cdot n_0
-
 $$
 
-**Method 2: Prior Mean and Variance**
+**방법 2: 앞확률의 평균과 흩어짐**
 
-Given prior mean $\mu$ and variance $\sigma^2$:
+앞확률의 평균 $\mu$과 흩어짐 $\sigma^2$이 주어지면 다음과 같다.
 
 $$
-
 \alpha = \mu \left(\frac{\mu(1-\mu)}{\sigma^2} - 1\right), \quad \beta = (1-\mu) \left(\frac{\mu(1-\mu)}{\sigma^2} - 1\right)
-
 $$
 
-**Method 3: Prior Credible Interval**
+**방법 3: 앞확률의 믿음 구간**
 
-If you believe $\theta \in [a, b]$ with 95% probability, solve numerically for $(\alpha, \beta)$ such that:
+$\theta \in [a, b]$일 확률이 95%라고 믿으면 다음을 만족하는 $(\alpha, \beta)$을 수치로 풀어라.
 
 $$
-
 F_{\text{Beta}}(b; \alpha, \beta) - F_{\text{Beta}}(a; \alpha, \beta) = 0.95
-
 $$
 
-### Prior Sensitivity Analysis
+### 앞확률 민감도 분석
 
-Always check how conclusions change with different priors:
+앞확률을 달리했을 때 결론이 어떻게 바뀌는지 늘 살펴라.
 
-| Prior | Parameters | Posterior Mean (k=7, n=10) |
+| 앞확률 | 매개변수 | 뒤확률의 평균(k=7, n=10) |
 |-------|------------|---------------------------|
-| Uniform | (1, 1) | 0.667 |
-| Jeffreys | (0.5, 0.5) | 0.682 |
-| Skeptical | (1, 9) | 0.400 |
-| Optimistic | (9, 1) | 0.800 |
+| 고른 분포 | (1, 1) | 0.667 |
+| 제프리스 | (0.5, 0.5) | 0.682 |
+| 미더워하지 않음 | (1, 9) | 0.400 |
+| 낙관적 | (9, 1) | 0.800 |
 
-If conclusions are robust across reasonable priors, they are more credible.
+그럴듯한 앞확률들에 걸쳐 결론이 흔들리지 않으면 더 미덥다.
 
 ---
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Bernoulli-Beta Conjugate Model: Complete Implementation
+베르누이-베타 켤레 모형: 온전한 구현
 
-This module provides a comprehensive implementation of Bayesian inference
-for binary data using the Beta-Bernoulli conjugate pair.
+이 모듈은 베타-베르누이 켤레 짝을 써서 이진 자료에 대한 베이즈 추론을
+두루 갖춰 구현한다.
 """
 
 import numpy as np
@@ -922,22 +814,21 @@ from scipy.special import beta as beta_func
 from typing import Tuple, List, Optional
 from dataclasses import dataclass
 
-
 @dataclass
 class BetaPosterior:
     """
-    Represents a Beta posterior distribution.
+    베타 뒤확률 분포를 나타낸다.
     
-    Attributes
+    속성
     ----------
     alpha : float
-        First shape parameter (pseudo-successes + 1)
+        첫째 모양 매개변수(가짜 성공 + 1)
     beta : float
-        Second shape parameter (pseudo-failures + 1)
+        둘째 모양 매개변수(가짜 실패 + 1)
     n_successes : int
-        Observed number of successes
+        관측된 성공 횟수
     n_trials : int
-        Observed number of trials
+        관측된 시도 횟수
     """
     alpha: float
     beta: float
@@ -946,12 +837,12 @@ class BetaPosterior:
     
     @property
     def mean(self) -> float:
-        """Posterior mean E[θ|D]."""
+        """뒤확률 평균 E[θ|D]."""
         return self.alpha / (self.alpha + self.beta)
     
     @property
     def mode(self) -> Optional[float]:
-        """Posterior mode (MAP estimate)."""
+        """뒤확률 최빈값(MAP 어림값)."""
         if self.alpha > 1 and self.beta > 1:
             return (self.alpha - 1) / (self.alpha + self.beta - 2)
         elif self.alpha <= 1 and self.beta > 1:
@@ -959,44 +850,44 @@ class BetaPosterior:
         elif self.alpha > 1 and self.beta <= 1:
             return 1.0
         else:
-            return None  # Bimodal or undefined
+            return None  # 쌍봉이거나 정해지지 않음
     
     @property
     def variance(self) -> float:
-        """Posterior variance Var[θ|D]."""
+        """뒤확률 흩어짐 Var[θ|D]."""
         a, b = self.alpha, self.beta
         return (a * b) / ((a + b)**2 * (a + b + 1))
     
     @property
     def std(self) -> float:
-        """Posterior standard deviation."""
+        """뒤확률 표준편차."""
         return np.sqrt(self.variance)
     
     def pdf(self, theta: np.ndarray) -> np.ndarray:
-        """Evaluate posterior density."""
+        """뒤확률 밀도의 값을 매긴다."""
         return stats.beta.pdf(theta, self.alpha, self.beta)
     
     def cdf(self, theta: float) -> float:
-        """Evaluate posterior CDF."""
+        """뒤확률 누적분포함수의 값을 매긴다."""
         return stats.beta.cdf(theta, self.alpha, self.beta)
     
     def quantile(self, p: float) -> float:
-        """Compute posterior quantile."""
+        """뒤확률 분위수를 셈한다."""
         return stats.beta.ppf(p, self.alpha, self.beta)
     
     def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
         """
-        Compute equal-tailed credible interval.
+        양끝이 같은 믿음 구간을 셈한다.
         
-        Parameters
+        매개변수
         ----------
         level : float
-            Credibility level (default 0.95 for 95% CI)
+            믿음 수준(95% 구간이면 기본값 0.95)
         
-        Returns
+        반환값
         -------
         tuple
-            (lower, upper) bounds
+            (아래, 위) 경계
         """
         alpha_level = 1 - level
         lower = self.quantile(alpha_level / 2)
@@ -1005,49 +896,48 @@ class BetaPosterior:
     
     def hpd_interval(self, level: float = 0.95, n_points: int = 1000) -> Tuple[float, float]:
         """
-        Compute Highest Posterior Density interval.
+        최고 뒤확률 밀도 구간을 셈한다.
         
-        The shortest interval containing the specified probability mass.
+        주어진 확률 질량을 담는 가장 짧은 구간.
         """
-        # Grid search for HPD
+        # HPD을 찾는 격자 뒤지기
         theta_grid = np.linspace(0.001, 0.999, n_points)
         pdf_vals = self.pdf(theta_grid)
         
-        # Sort by density (descending)
+        # 밀도로 정렬(내림차순)
         sorted_idx = np.argsort(pdf_vals)[::-1]
         sorted_theta = theta_grid[sorted_idx]
         sorted_pdf = pdf_vals[sorted_idx]
         
-        # Accumulate probability mass
+        # 확률 질량 쌓기
         cumsum = np.cumsum(sorted_pdf) * (theta_grid[1] - theta_grid[0])
         cutoff_idx = np.searchsorted(cumsum, level)
         
-        # HPD region bounds
+        # HPD 구역 경계
         hpd_theta = sorted_theta[:cutoff_idx + 1]
         return (hpd_theta.min(), hpd_theta.max())
     
     def sample(self, n_samples: int) -> np.ndarray:
-        """Draw samples from posterior."""
+        """뒤확률에서 표본을 뽑는다."""
         return stats.beta.rvs(self.alpha, self.beta, size=n_samples)
     
     def predictive_prob(self) -> float:
-        """Probability next observation is success (Laplace's rule)."""
+        """다음 관측이 성공일 확률(라플라스의 규칙)."""
         return self.mean
     
     def __repr__(self) -> str:
         return f"Beta({self.alpha:.2f}, {self.beta:.2f})"
 
-
 class BetaBernoulliModel:
     """
-    Complete Beta-Bernoulli conjugate model.
+    온전한 베타-베르누이 켤레 모형.
     
-    Parameters
+    매개변수
     ----------
     prior_alpha : float
-        Prior α parameter
+        앞확률 α 매개변수
     prior_beta : float
-        Prior β parameter
+        앞확률 β 매개변수
     """
     
     def __init__(self, prior_alpha: float = 1.0, prior_beta: float = 1.0):
@@ -1056,7 +946,7 @@ class BetaBernoulliModel:
         self._reset()
     
     def _reset(self):
-        """Reset to prior state."""
+        """앞확률 상태로 되돌린다."""
         self.current_alpha = self.prior_alpha
         self.current_beta = self.prior_beta
         self.n_successes = 0
@@ -1064,12 +954,12 @@ class BetaBernoulliModel:
     
     @property
     def prior(self) -> BetaPosterior:
-        """Return prior distribution."""
+        """앞확률 분포를 되돌린다."""
         return BetaPosterior(self.prior_alpha, self.prior_beta)
     
     @property
     def posterior(self) -> BetaPosterior:
-        """Return current posterior distribution."""
+        """지금의 뒤확률 분포를 되돌린다."""
         return BetaPosterior(
             self.current_alpha, 
             self.current_beta,
@@ -1079,19 +969,19 @@ class BetaBernoulliModel:
     
     def update(self, successes: int, trials: int) -> BetaPosterior:
         """
-        Update posterior with new observations.
+        새 관측으로 뒤확률을 새로 고친다.
         
-        Parameters
+        매개변수
         ----------
         successes : int
-            Number of successes observed
+            관측된 성공 횟수
         trials : int
-            Number of trials observed
+            관측된 시도 횟수
         
-        Returns
+        반환값
         -------
         BetaPosterior
-            Updated posterior distribution
+            새로 고친 뒤확률 분포
         """
         self.current_alpha += successes
         self.current_beta += (trials - successes)
@@ -1101,33 +991,33 @@ class BetaBernoulliModel:
     
     def update_single(self, outcome: int) -> BetaPosterior:
         """
-        Update with a single observation.
+        관측 하나로 새로 고친다.
         
-        Parameters
+        매개변수
         ----------
         outcome : int
-            0 or 1
+            0 또는 1
         
-        Returns
+        반환값
         -------
         BetaPosterior
-            Updated posterior
+            새로 고친 뒤확률
         """
         return self.update(outcome, 1)
     
     def update_sequence(self, outcomes: List[int]) -> List[BetaPosterior]:
         """
-        Update sequentially, returning posterior history.
+        차례대로 새로 고치며 뒤확률의 자취를 되돌린다.
         
-        Parameters
+        매개변수
         ----------
         outcomes : list
-            Sequence of 0/1 observations
+            0/1 관측의 늘어놓음
         
-        Returns
+        반환값
         -------
         list
-            List of posterior distributions after each update
+            새로 고칠 때마다의 뒤확률 분포 목록
         """
         history = [self.posterior]
         for outcome in outcomes:
@@ -1137,14 +1027,14 @@ class BetaBernoulliModel:
     
     def log_marginal_likelihood(self) -> float:
         """
-        Compute log marginal likelihood (log evidence).
+        로그 주변 가능도(로그 증거)를 셈한다.
         
         log p(D) = log B(α + k, β + n - k) - log B(α, β)
         
-        Returns
+        반환값
         -------
         float
-            Log marginal likelihood
+            로그 주변 가능도
         """
         from scipy.special import betaln
         
@@ -1155,17 +1045,17 @@ class BetaBernoulliModel:
     
     def predictive_distribution(self, m: int) -> np.ndarray:
         """
-        Compute Beta-Binomial predictive distribution for m future trials.
+        앞으로의 시도 m번에 대한 베타-이항 예측 분포를 셈한다.
         
-        Parameters
+        매개변수
         ----------
         m : int
-            Number of future trials
+            앞으로의 시도 횟수
         
-        Returns
+        반환값
         -------
         array
-            Probabilities for k' = 0, 1, ..., m successes
+            성공 k' = 0, 1, ..., m의 확률
         """
         from scipy.special import comb, betaln
         
@@ -1180,9 +1070,8 @@ class BetaBernoulliModel:
         
         return np.exp(log_probs)
 
-
 # =============================================================================
-# Visualization Functions
+# 그려 보기 함수
 # =============================================================================
 
 def plot_beta_distribution(
@@ -1193,7 +1082,7 @@ def plot_beta_distribution(
     color: str = 'steelblue',
     fill: bool = True
 ) -> plt.Axes:
-    """Plot a Beta distribution."""
+    """베타 분포를 그린다."""
     if ax is None:
         _, ax = plt.subplots(figsize=(8, 5))
     
@@ -1211,30 +1100,29 @@ def plot_beta_distribution(
     
     return ax
 
-
 def plot_prior_posterior(
     model: BetaBernoulliModel,
     true_theta: Optional[float] = None,
     title: str = "Bayesian Update"
 ) -> plt.Figure:
-    """Visualize prior, likelihood, and posterior."""
+    """앞확률, 가능도, 뒤확률을 그려 본다."""
     
     fig, ax = plt.subplots(figsize=(10, 6))
     theta = np.linspace(0.001, 0.999, 500)
     
-    # Prior
+    # 앞확률
     prior_pdf = stats.beta.pdf(theta, model.prior_alpha, model.prior_beta)
     ax.plot(theta, prior_pdf / prior_pdf.max(), 'b--', 
             linewidth=2, label=f'Prior: Beta({model.prior_alpha}, {model.prior_beta})')
     
-    # Likelihood (normalized for visualization)
+    # 가능도(그려 보려고 고르게 함)
     if model.n_trials > 0:
         k, n = model.n_successes, model.n_trials
         likelihood = theta**k * (1 - theta)**(n - k)
         ax.plot(theta, likelihood / likelihood.max(), 'g:', 
                 linewidth=2, label=f'Likelihood ({k}/{n} successes)')
     
-    # Posterior
+    # 뒤확률
     post = model.posterior
     posterior_pdf = post.pdf(theta)
     ax.fill_between(theta, posterior_pdf / posterior_pdf.max(), 
@@ -1242,12 +1130,12 @@ def plot_prior_posterior(
     ax.plot(theta, posterior_pdf / posterior_pdf.max(), 'r-', 
             linewidth=2, label=f'Posterior: {post}')
     
-    # True value
+    # 참값
     if true_theta is not None:
         ax.axvline(true_theta, color='black', linestyle='--', 
                    linewidth=2, label=f'True θ = {true_theta}')
     
-    # Posterior mean
+    # 뒤확률 평균
     ax.axvline(post.mean, color='red', linestyle=':', linewidth=1.5)
     
     ax.set_xlabel('θ', fontsize=12)
@@ -1259,14 +1147,13 @@ def plot_prior_posterior(
     
     return fig
 
-
 def plot_sequential_update(
     outcomes: List[int],
     prior_alpha: float = 1.0,
     prior_beta: float = 1.0,
     true_theta: Optional[float] = None
 ) -> plt.Figure:
-    """Visualize sequential Bayesian updating."""
+    """차례대로 베이즈 새로 고치기를 그려 본다."""
     
     model = BetaBernoulliModel(prior_alpha, prior_beta)
     history = model.update_sequence(outcomes)
@@ -1299,7 +1186,7 @@ def plot_sequential_update(
         ax.set_xlim(0, 1)
         ax.set_xlabel('θ')
     
-    # Hide unused axes
+    # 안 쓰는 축 감추기
     for ax in axes[n_steps:]:
         ax.set_visible(False)
     
@@ -1308,19 +1195,18 @@ def plot_sequential_update(
     
     return fig
 
-
 # =============================================================================
-# Demonstrations
+# 보여 주기
 # =============================================================================
 
 def demo_basic_inference():
-    """Demonstrate basic Beta-Bernoulli inference."""
+    """기본 베타-베르누이 추론을 보인다."""
     
     print("=" * 60)
     print("BASIC BETA-BERNOULLI INFERENCE")
     print("=" * 60)
     
-    # Setup
+    # 준비
     true_theta = 0.7
     n_trials = 20
     np.random.seed(42)
@@ -1331,7 +1217,7 @@ def demo_basic_inference():
     print(f"Data: {k} successes in {n_trials} trials")
     print(f"MLE: {k/n_trials:.4f}")
     
-    # Different priors
+    # 서로 다른 앞확률
     priors = [
         ("Uniform", 1, 1),
         ("Jeffreys", 0.5, 0.5),
@@ -1356,9 +1242,8 @@ def demo_basic_inference():
         print(f"  95% CI: [{ci[0]:.4f}, {ci[1]:.4f}]")
         print(f"  P(next success): {post.predictive_prob():.4f}")
 
-
 def demo_sequential_learning():
-    """Demonstrate sequential updating."""
+    """차례대로 새로 고치기를 보인다."""
     
     print("\n" + "=" * 60)
     print("SEQUENTIAL BAYESIAN LEARNING")
@@ -1371,7 +1256,7 @@ def demo_sequential_learning():
     print(f"\nTrue θ: {true_theta}")
     print(f"Outcomes: {outcomes}")
     
-    model = BetaBernoulliModel(1, 1)  # Uniform prior
+    model = BetaBernoulliModel(1, 1)  # 고른 앞확률
     
     print("\nEvolution of posterior mean:")
     print("-" * 40)
@@ -1385,21 +1270,20 @@ def demo_sequential_learning():
               f"σ = {post.std:.4f}, "
               f"Data: {cumsum}/{i+1}")
     
-    # Create visualization
+    # 시각화 만들기
     fig = plot_sequential_update(outcomes, true_theta=true_theta)
     fig.savefig('sequential_beta_update.png', dpi=150, bbox_inches='tight')
     plt.close()
     print("\nSee: sequential_beta_update.png")
 
-
 def demo_predictive_distribution():
-    """Demonstrate posterior predictive distribution."""
+    """뒤확률 예측 분포를 보인다."""
     
     print("\n" + "=" * 60)
     print("POSTERIOR PREDICTIVE DISTRIBUTION")
     print("=" * 60)
     
-    # Observed data
+    # 관측 자료
     k, n = 7, 10
     
     model = BetaBernoulliModel(1, 1)
@@ -1408,7 +1292,7 @@ def demo_predictive_distribution():
     print(f"\nObserved: {k} successes in {n} trials")
     print(f"Posterior: Beta({model.current_alpha}, {model.current_beta})")
     
-    # Predict next m trials
+    # 다음 시도 m번 미리 알기
     m = 10
     predictive = model.predictive_distribution(m)
     
@@ -1420,7 +1304,7 @@ def demo_predictive_distribution():
     k_vals = np.arange(m + 1)
     ax.bar(k_vals, predictive, color='steelblue', alpha=0.7, edgecolor='black')
     
-    # Expected value
+    # 기댓값
     expected = np.sum(k_vals * predictive)
     ax.axvline(expected, color='red', linestyle='--', linewidth=2,
                label=f'E[k\'] = {expected:.2f}')
@@ -1439,7 +1323,6 @@ def demo_predictive_distribution():
     print(f"Most likely outcome: {k_vals[np.argmax(predictive)]} successes")
     print("\nSee: predictive_distribution.png")
 
-
 if __name__ == "__main__":
     demo_basic_inference()
     demo_sequential_learning()
@@ -1448,653 +1331,547 @@ if __name__ == "__main__":
 
 ---
 
-## Summary
+## 요약
 
-| Aspect | Formula |
+| 갈래 | 식 |
 |--------|---------|
-| **Prior** | $\theta \sim \text{Beta}(\alpha, \beta)$ |
-| **Likelihood** | $p(\mathcal{D} \mid \theta) = \theta^k(1-\theta)^{n-k}$ |
-| **Posterior** | $\theta \mid \mathcal{D} \sim \text{Beta}(\alpha + k, \beta + n - k)$ |
-| **Posterior Mean** | $\frac{\alpha + k}{\alpha + \beta + n}$ |
-| **Posterior Mode** | $\frac{\alpha + k - 1}{\alpha + \beta + n - 2}$ |
-| **Predictive** | $p(x_{n+1}=1 \mid \mathcal{D}) = \frac{\alpha + k}{\alpha + \beta + n}$ |
+| **앞확률** | $\theta \sim \text{Beta}(\alpha, \beta)$ |
+| **가능도** | $p(\mathcal{D} \mid \theta) = \theta^k(1-\theta)^{n-k}$ |
+| **뒤확률** | $\theta \mid \mathcal{D} \sim \text{Beta}(\alpha + k, \beta + n - k)$ |
+| **뒤확률의 평균** | $\frac{\alpha + k}{\alpha + \beta + n}$ |
+| **뒤확률의 최빈값** | $\frac{\alpha + k - 1}{\alpha + \beta + n - 2}$ |
+| **예측** | $p(x_{n+1}=1 \mid \mathcal{D}) = \frac{\alpha + k}{\alpha + \beta + n}$ |
 
-### Key Insights
+### 핵심 통찰
 
-1. **Conjugacy**: Beta prior + Bernoulli likelihood → Beta posterior
-2. **Pseudo-counts**: Prior parameters act like additional observations
-3. **Weighted average**: Posterior mean interpolates prior mean and MLE
-4. **Sequential updating**: Add successes to $\alpha$, failures to $\beta$
-5. **Laplace's rule**: Predictive probability equals posterior mean
-6. **Asymptotic MLE**: As $n \to \infty$, Bayesian estimate → frequentist MLE
+1. **켤레성**: 베타 앞확률 + 베르누이 가능도 → 베타 뒤확률
+2. **가짜 세기**: 앞확률의 매개변수가 관찰을 더한 것처럼 굴러간다
+3. **무게 준 평균**: 뒤확률의 평균이 앞확률의 평균과 최대 가능도 어림값 사이를 메운다
+4. **차례 갱신**: 성공은 $\alpha$에, 실패는 $\beta$에 더한다
+5. **라플라스의 규칙**: 예측 확률은 뒤확률의 평균과 같다
+6. **점근적 최대 가능도**: $n \to \infty$이면 베이즈 어림값이 빈도주의 최대 가능도 어림값으로 간다
 
-### Connections to Other Chapters
+### 다른 장과의 이음
 
-| Topic | Chapter | Connection |
+| 주제 | 장 | 이음 |
 |-------|---------|------------|
-| Prior-likelihood-posterior | Ch13: Foundations | General framework |
-| Gaussian conjugate | Ch13: Gaussian Models | Continuous analog |
-| Conjugate priors | Ch13: Conjugate Priors | General theory |
-| Model comparison | Ch13: Bayes Factor | Evidence computation |
-| BNN classification | Ch13: BNN | Multi-layer extension |
+| 앞확률-가능도-뒤확률 | 13장: 바탕 | 일반 틀 |
+| 가우스 켤레 | 13장: 가우스 모형 | 이어진 값에서의 대응물 |
+| 켤레 앞확률 | 13장: 켤레 앞확률 | 일반 이론 |
+| 모형 견줌 | 13장: 베이즈 인자 | 증거 셈하기 |
+| BNN 분류 | 13장: BNN | 여러 층으로 넓히기 |
 
-### Key References
+### 주요 참고 문헌
 
-- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). Chapter 2.
-- Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*. Chapter 3.
+- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). 2장.
+- Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*. 3장.
 - Hoff, P. D. (2009). *A First Course in Bayesian Statistical Methods*. Springer.
-- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Section 2.1.
+- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. 2.1절.
 
 ---
 
-# Gaussian Inference with Known Variance
+# 흩어짐을 알 때의 가우스 추론
 
-Bayesian inference for the mean of a Gaussian distribution with known variance is the foundational continuous conjugate model. It provides the clearest illustration of how Bayesian updating combines prior information with data through **precision-weighted averaging**. This elegant result generalizes to multivariate settings and forms the basis for understanding more complex Bayesian models.
+흩어짐을 아는 가우스 분포의 평균에 대한 베이즈 추론은 이어진 값에 대한 켤레 모형의 바탕이다. 베이즈 갱신이 **정밀도로 무게 준 평균 내기**를 거쳐 앞선 정보와 데이터를 어떻게 어우르는지 가장 또렷이 보여 준다. 이 우아한 결과는 다변량 상황으로도 이어지며 더 복잡한 베이즈 모형을 이해하는 바탕이 된다.
 
 ---
 
-## Problem Setup
+## 문제 설정
 
-### The Inference Problem
+### 추론 문제
 
-We observe continuous measurements $x_1, x_2, \ldots, x_n \in \mathbb{R}$ assumed to be drawn from a Gaussian distribution with **unknown mean** $\mu$ and **known variance** $\sigma^2$:
+**평균 $\mu$은 모르고 흩어짐 $\sigma^2$은 아는** 가우스 분포에서 나왔다고 놓는 이어진 측정값 $x_1, x_2, \ldots, x_n \in \mathbb{R}$을 관찰한다.
 
 $$
-
 x_i \mid \mu \sim \mathcal{N}(\mu, \sigma^2)
-
 $$
 
-The goal is to infer the posterior distribution $p(\mu \mid x_1, \ldots, x_n)$.
+목표는 뒤확률 분포 $p(\mu \mid x_1, \ldots, x_n)$을 미루어 아는 것이다.
 
-**When is variance known?**
+**흩어짐을 아는 때는 언제인가?**
 
-- Measurement devices with calibrated precision
-- Long-run historical estimates of variability
-- Theoretical constraints (e.g., quantum noise limits)
-- Simplifying assumption for pedagogical purposes
+- 정밀도가 눈금 맞춰진 측정 장치
+- 오랜 기간에 걸친 변동성의 지난 어림값
+- 이론적 제약(이를테면 양자 잡음 한계)
+- 가르치기 위해 단순하게 놓는 가정
 
-### The Gaussian Likelihood
+### 가우스 가능도
 
-For a single observation:
+관찰 하나에 대해 다음과 같다.
 
 $$
-
 p(x_i \mid \mu) = \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x_i - \mu)^2}{2\sigma^2}\right)
-
 $$
 
-For $n$ independent observations:
+서로 독립인 관찰 $n$개에 대해 다음과 같다.
 
 $$
-
 p(x_1, \ldots, x_n \mid \mu) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x_i - \mu)^2}{2\sigma^2}\right)
-
 $$
 
 $$
-
 = (2\pi\sigma^2)^{-n/2} \exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^{n}(x_i - \mu)^2\right)
-
 $$
 
-### Sufficient Statistics
+### 충분 통계량
 
-The likelihood can be rewritten using the sufficient statistic $\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$:
+가능도는 충분 통계량 $\bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i$으로 다시 쓸 수 있다.
 
 $$
-
 \sum_{i=1}^{n}(x_i - \mu)^2 = \sum_{i=1}^{n}(x_i - \bar{x})^2 + n(\bar{x} - \mu)^2
-
 $$
 
-The first term is constant with respect to $\mu$, so:
+첫 항은 $\mu$에 대해 상수이므로 다음과 같다.
 
 $$
-
 p(\mathcal{D} \mid \mu) \propto \exp\left(-\frac{n(\bar{x} - \mu)^2}{2\sigma^2}\right)
-
 $$
 
-**Key insight**: The likelihood depends on the data only through $(\bar{x}, n)$. The sample mean $\bar{x}$ is sufficient for $\mu$.
+**핵심 통찰**: 가능도는 데이터에 대해 오직 $(\bar{x}, n)$을 거쳐서만 달라진다. 표본 평균 $\bar{x}$이 $\mu$에 충분하다.
 
 ---
 
-## Precision: The Natural Parameterization
+## 정밀도: 자연스러운 매개변수화
 
-### Definition
+### 정의
 
-The **precision** is the inverse variance:
+**정밀도**는 흩어짐의 역수이다.
 
 $$
-
 \tau = \frac{1}{\sigma^2}
-
 $$
 
-Precision measures **information content**: higher precision means more informative (less uncertain) measurements.
+정밀도는 **정보의 알맹이**를 잰다. 정밀도가 높을수록 알맹이가 많고 덜 아리송한 측정이다.
 
-### Why Precision?
+### 왜 정밀도인가?
 
-Precision is the natural parameter for combining Gaussian information:
+정밀도는 가우스 정보를 어우르는 데 자연스러운 매개변수이다.
 
-- **Precisions add**: When combining independent information sources, precisions sum
-- **Variances don't add simply**: $\text{Var}(X+Y) = \text{Var}(X) + \text{Var}(Y)$ only for independent $X, Y$
-- **Linear updates**: Bayesian updates become linear in precision
+- **정밀도는 더해진다**: 서로 독립인 정보를 어우를 때 정밀도가 합쳐진다
+- **흩어짐은 그렇게 단순히 더해지지 않는다**: $\text{Var}(X+Y) = \text{Var}(X) + \text{Var}(Y)$은 $X, Y$이 독립일 때만 성립한다
+- **선형 갱신**: 베이즈 갱신이 정밀도에 대해 선형이 된다
 
-| Quantity | Variance Form | Precision Form |
+| 양 | 흩어짐 꼴 | 정밀도 꼴 |
 |----------|---------------|----------------|
-| Single observation | $\sigma^2$ | $\tau = 1/\sigma^2$ |
-| Sample mean of $n$ obs | $\sigma^2/n$ | $n\tau$ |
-| Prior | $\sigma_0^2$ | $\tau_0 = 1/\sigma_0^2$ |
-| Posterior | $\sigma_n^2$ | $\tau_n = \tau_0 + n\tau$ |
+| 관찰 하나 | $\sigma^2$ | $\tau = 1/\sigma^2$ |
+| 관찰 $n$개의 표본 평균 | $\sigma^2/n$ | $n\tau$ |
+| 앞확률 | $\sigma_0^2$ | $\tau_0 = 1/\sigma_0^2$ |
+| 뒤확률 | $\sigma_n^2$ | $\tau_n = \tau_0 + n\tau$ |
 
 ---
 
-## The Gaussian Prior
+## 가우스 앞확률
 
-### Conjugate Prior
+### 켤레 앞확률
 
-For conjugacy, we use a Gaussian prior on $\mu$:
+켤레가 되도록 $\mu$에 가우스 앞확률을 쓴다.
 
 $$
-
 \mu \sim \mathcal{N}(\mu_0, \sigma_0^2)
-
 $$
 
-or equivalently, with precision $\tau_0 = 1/\sigma_0^2$:
+또는 같은 말로 정밀도 $\tau_0 = 1/\sigma_0^2$을 쓰면 다음과 같다.
 
 $$
-
 p(\mu) = \sqrt{\frac{\tau_0}{2\pi}} \exp\left(-\frac{\tau_0}{2}(\mu - \mu_0)^2\right)
-
 $$
 
-### Prior Parameters Interpretation
+### 앞확률 매개변수의 풀이
 
-| Parameter | Symbol | Interpretation |
+| 매개변수 | 기호 | 풀이 |
 |-----------|--------|----------------|
-| Prior mean | $\mu_0$ | Best guess before seeing data |
-| Prior variance | $\sigma_0^2$ | Uncertainty in prior belief |
-| Prior precision | $\tau_0$ | Confidence in prior belief |
-| Prior "effective sample size" | $n_0 = \tau_0/\tau = \sigma^2/\sigma_0^2$ | Prior equivalent to $n_0$ observations |
+| 앞확률의 평균 | $\mu_0$ | 데이터를 보기 전의 가장 나은 어림 |
+| 앞확률의 흩어짐 | $\sigma_0^2$ | 앞선 믿음의 아리송함 |
+| 앞확률의 정밀도 | $\tau_0$ | 앞선 믿음에 대한 자신감 |
+| 앞확률의 "실효 표본 크기" | $n_0 = \tau_0/\tau = \sigma^2/\sigma_0^2$ | 앞확률이 관찰 $n_0$개에 맞먹는다 |
 
-### Common Prior Choices
+### 흔한 앞확률 선택
 
-**Informative prior**: $\mu_0$ and $\sigma_0^2$ reflect genuine prior knowledge
+**정보 있는 앞확률**: $\mu_0$과 $\sigma_0^2$이 참된 앞선 앎을 비춘다
 
 $$
-
 \mu \sim \mathcal{N}(100, 5^2) \quad \text{("Mean is around 100, ± 10")}
-
 $$
 
-**Weakly informative prior**: Broad but proper
+**약하게 정보 있는 앞확률**: 넓지만 제대로 된 확률
 
 $$
-
 \mu \sim \mathcal{N}(0, 100^2) \quad \text{("Probably not astronomically large")}
-
 $$
 
-**Improper flat prior**: Limiting case $\sigma_0^2 \to \infty$
+**제대로 되지 않은 평평한 앞확률**: 극한의 경우 $\sigma_0^2 \to \infty$
 
 $$
-
 p(\mu) \propto 1 \quad \text{(improper, but yields proper posterior)}
-
 $$
 
 ---
 
-## Conjugate Posterior Derivation
+## 켤레 뒤확률 끌어내기
 
-### The Derivation
+### 끌어내기
 
-**Prior**:
+**앞확률**:
 
 $$
-
 p(\mu) \propto \exp\left(-\frac{\tau_0}{2}(\mu - \mu_0)^2\right)
-
 $$
 
-**Likelihood**:
+**가능도**:
 
 $$
-
 p(\mathcal{D} \mid \mu) \propto \exp\left(-\frac{n\tau}{2}(\mu - \bar{x})^2\right)
-
 $$
 
-where $\tau = 1/\sigma^2$ is the known data precision.
+여기서 $\tau = 1/\sigma^2$은 아는 데이터의 정밀도이다.
 
-**Posterior** (via Bayes' theorem):
+**뒤확률**(베이즈 정리로):
 
 $$
-
 p(\mu \mid \mathcal{D}) \propto p(\mathcal{D} \mid \mu) \cdot p(\mu)
-
 $$
 
 $$
-
 \propto \exp\left(-\frac{n\tau}{2}(\mu - \bar{x})^2 - \frac{\tau_0}{2}(\mu - \mu_0)^2\right)
-
 $$
 
-### Completing the Square
+### 완전제곱 만들기
 
-Expand the exponent:
+지수를 펼치면 다음과 같다.
 
 $$
-
 -\frac{1}{2}\left[n\tau(\mu^2 - 2\mu\bar{x} + \bar{x}^2) + \tau_0(\mu^2 - 2\mu\mu_0 + \mu_0^2)\right]
-
 $$
 
 $$
-
 = -\frac{1}{2}\left[(n\tau + \tau_0)\mu^2 - 2\mu(n\tau\bar{x} + \tau_0\mu_0) + \text{const}\right]
-
 $$
 
 $$
-
 = -\frac{n\tau + \tau_0}{2}\left[\mu^2 - 2\mu\frac{n\tau\bar{x} + \tau_0\mu_0}{n\tau + \tau_0}\right] + \text{const}
-
 $$
 
 $$
-
 = -\frac{\tau_n}{2}\left(\mu - \mu_n\right)^2 + \text{const}
-
 $$
 
-This is the kernel of a Gaussian! Therefore:
+이것은 가우스 분포의 알맹이이다! 그러므로 다음과 같다.
 
 $$
-
 \boxed{\mu \mid \mathcal{D} \sim \mathcal{N}(\mu_n, \sigma_n^2)}
-
 $$
 
-### The Update Formulas
+### 갱신 식
 
-**Posterior precision** (precisions add):
+**뒤확률의 정밀도**(정밀도는 더해진다):
 
 $$
-
 \boxed{\tau_n = \tau_0 + n\tau}
-
 $$
 
 $$
-
 \sigma_n^2 = \frac{1}{\tau_n} = \frac{1}{\tau_0 + n\tau} = \frac{\sigma^2\sigma_0^2}{n\sigma_0^2 + \sigma^2}
-
 $$
 
-**Posterior mean** (precision-weighted average):
+**뒤확률의 평균**(정밀도로 무게 준 평균):
 
 $$
-
 \boxed{\mu_n = \frac{\tau_0\mu_0 + n\tau\bar{x}}{\tau_0 + n\tau} = \frac{\tau_0\mu_0 + n\tau\bar{x}}{\tau_n}}
-
 $$
 
-Or in variance form:
+또는 흩어짐 꼴로 쓰면 다음과 같다.
 
 $$
-
 \mu_n = \frac{\frac{\mu_0}{\sigma_0^2} + \frac{n\bar{x}}{\sigma^2}}{\frac{1}{\sigma_0^2} + \frac{n}{\sigma^2}}
-
 $$
 
 ---
 
-## Precision-Weighted Averaging
+## 정밀도로 무게 준 평균 내기
 
-### The Fundamental Insight
+### 근본 통찰
 
-The posterior mean is a **weighted average** of prior mean and data mean:
+뒤확률의 평균은 앞확률의 평균과 데이터 평균의 **무게 준 평균**이다.
 
 $$
-
 \mu_n = w_0 \cdot \mu_0 + w_{\text{data}} \cdot \bar{x}
-
 $$
 
-where the weights are **proportional to precisions**:
+여기서 무게는 **정밀도에 비례한다**.
 
 $$
-
 w_0 = \frac{\tau_0}{\tau_0 + n\tau}, \quad w_{\text{data}} = \frac{n\tau}{\tau_0 + n\tau}
-
 $$
 
-Note that $w_0 + w_{\text{data}} = 1$.
+$w_0 + w_{\text{data}} = 1$임에 유의하라.
 
-### Interpretation
+### 해석
 
-- **More precise prior** ($\tau_0$ large) → More weight on prior mean
-- **More data** ($n$ large) → More weight on sample mean
-- **More precise measurements** ($\tau$ large) → Each observation counts more
+- **앞확률이 더 정밀하면**($\tau_0$이 크면) → 앞확률의 평균에 무게가 더 실린다
+- **데이터가 많으면**($n$이 크면) → 표본 평균에 무게가 더 실린다
+- **측정이 더 정밀하면**($\tau$이 크면) → 관찰마다의 몫이 커진다
 
-### Equivalent Sample Size
+### 맞먹는 표본 크기
 
-Define the prior's **equivalent sample size**:
+앞확률의 **맞먹는 표본 크기**를 정의한다.
 
 $$
-
 n_0 = \frac{\tau_0}{\tau} = \frac{\sigma^2}{\sigma_0^2}
-
 $$
 
-Then:
+그러면 다음과 같다.
 
 $$
-
 \mu_n = \frac{n_0 \cdot \mu_0 + n \cdot \bar{x}}{n_0 + n}
-
 $$
 
-The prior is worth $n_0$ observations at the data precision.
+앞확률은 데이터 정밀도에서 관찰 $n_0$개의 값어치를 지닌다.
 
 ---
 
-## Posterior Analysis
+## 뒤확률 분석
 
-### Point Estimates
+### 점 어림값
 
-All three common point estimates coincide for the Gaussian posterior:
+가우스 뒤확률에서는 흔한 점 어림값 셋이 모두 일치한다.
 
 $$
-
 \mathbb{E}[\mu \mid \mathcal{D}] = \text{Mode}[\mu \mid \mathcal{D}] = \text{Median}[\mu \mid \mathcal{D}] = \mu_n
-
 $$
 
-This is a unique property of symmetric unimodal distributions.
+이는 대칭이고 봉우리가 하나인 분포만의 성질이다.
 
-### Posterior Variance and Standard Error
+### 뒤확률의 흩어짐과 표준 오차
 
 $$
-
 \text{Var}[\mu \mid \mathcal{D}] = \sigma_n^2 = \frac{1}{\tau_0 + n\tau}
-
 $$
 
-The posterior standard deviation (Bayesian "standard error"):
+뒤확률의 표준편차(베이즈판 "표준 오차")는 다음과 같다.
 
 $$
-
 \sigma_n = \frac{1}{\sqrt{\tau_0 + n\tau}}
-
 $$
 
-### Credible Intervals
+### 믿음 구간
 
-For a Gaussian posterior, the $(1-\alpha)$ credible interval is:
+가우스 뒤확률에서 $(1-\alpha)$ 믿음 구간은 다음과 같다.
 
 $$
-
 \mu_n \pm z_{\alpha/2} \cdot \sigma_n
-
 $$
 
-where $z_{\alpha/2}$ is the standard normal quantile.
+여기서 $z_{\alpha/2}$은 표준 정규 분위수이다.
 
-**95% credible interval**:
+**95% 믿음 구간**:
 
 $$
-
 \left[\mu_n - 1.96\sigma_n, \mu_n + 1.96\sigma_n\right]
-
 $$
 
-For Gaussian posteriors, equal-tailed and HPD intervals coincide due to symmetry.
+가우스 뒤확률에서는 대칭 덕분에 양 꼬리가 같은 구간과 최고 뒤확률 밀도 구간이 일치한다.
 
-### Shrinkage
+### 오그라들기
 
-The posterior mean "shrinks" the MLE toward the prior mean:
+뒤확률의 평균은 최대 가능도 어림값을 앞확률의 평균 쪽으로 "오그라뜨린다".
 
 $$
-
 \mu_n - \mu_0 = \frac{n\tau}{\tau_0 + n\tau}(\bar{x} - \mu_0)
-
 $$
 
-The shrinkage factor $\frac{n\tau}{\tau_0 + n\tau} < 1$ pulls the estimate toward the prior.
+오그라듦 인자 $\frac{n\tau}{\tau_0 + n\tau} < 1$이 어림값을 앞확률 쪽으로 끌어당긴다.
 
 ---
 
-## Asymptotic Behavior
+## 점근 거동
 
-### Large Sample Limit
+### 큰 표본의 극한
 
-As $n \to \infty$:
+$n \to \infty$이면 다음과 같다.
 
-**Posterior mean**:
+**뒤확률의 평균**:
 
 $$
-
 \mu_n = \frac{\tau_0\mu_0 + n\tau\bar{x}}{\tau_0 + n\tau} \to \bar{x} \to \mu_{\text{true}}
-
 $$
 
-**Posterior variance**:
+**뒤확률의 흩어짐**:
 
 $$
-
 \sigma_n^2 = \frac{1}{\tau_0 + n\tau} \sim \frac{1}{n\tau} = \frac{\sigma^2}{n} \to 0
-
 $$
 
-**Rate of convergence**:
+**모이는 속도**:
 
 $$
-
 \sigma_n = O(n^{-1/2})
-
 $$
 
-The posterior concentrates around the true mean at the standard $\sqrt{n}$ rate.
+뒤확률은 여느 때와 같은 $\sqrt{n}$ 속도로 참 평균 둘레에 몰린다.
 
-### Prior Washout
+### 앞확률이 씻겨 나감
 
-The influence of the prior vanishes:
+앞확률의 영향이 사라진다.
 
 $$
-
 \text{Prior weight} = \frac{\tau_0}{\tau_0 + n\tau} \to 0 \quad \text{as } n \to \infty
-
 $$
 
-With enough data, reasonable priors yield identical posteriors.
+데이터가 넉넉하면 그럴듯한 앞확률들은 똑같은 뒤확률을 낸다.
 
-### Bernstein-von Mises
+### 베른슈타인-폰 미제스
 
-This model exactly satisfies the Bernstein-von Mises theorem: the posterior is asymptotically normal centered at the MLE with variance equal to the inverse Fisher information:
+이 모형은 베른슈타인-폰 미제스 정리를 꼭 만족한다. 뒤확률은 최대 가능도 어림값을 중심으로 점근적으로 정규 분포이며 흩어짐은 피셔 정보의 역수와 같다.
 
 $$
-
 p(\mu \mid \mathcal{D}_n) \xrightarrow{d} \mathcal{N}\left(\bar{x}, \frac{\sigma^2}{n}\right)
-
 $$
 
 ---
 
-## Sequential Updating
+## 차례 갱신
 
-### Online Bayesian Learning
+### 온라인 베이즈 학습
 
-With conjugate priors, we can update sequentially without storing all data:
+켤레 앞확률에서는 데이터를 모두 담아 두지 않고도 차례로 고칠 수 있다.
 
 $$
-
 \mathcal{N}(\mu_0, \sigma_0^2) \xrightarrow{x_1} \mathcal{N}(\mu_1, \sigma_1^2) \xrightarrow{x_2} \mathcal{N}(\mu_2, \sigma_2^2) \xrightarrow{x_3} \cdots
-
 $$
 
-**Update equations** (single observation $x$):
+**갱신 식**(관찰 $x$ 하나):
 
 $$
-
 \tau_{t+1} = \tau_t + \tau
-
 $$
 
 $$
-
 \mu_{t+1} = \frac{\tau_t \mu_t + \tau x}{\tau_{t+1}}
-
 $$
 
-### Recursive Form
+### 되돌이 꼴
 
-Equivalently:
+같은 말로 다음과 같다.
 
 $$
-
 \mu_{t+1} = \mu_t + \frac{\tau}{\tau_{t+1}}(x - \mu_t) = \mu_t + K_t(x - \mu_t)
-
 $$
 
-where $K_t = \frac{\tau}{\tau_t + \tau} = \frac{\sigma_t^2}{\sigma_t^2 + \sigma^2}$ is the **Kalman gain**.
+여기서 $K_t = \frac{\tau}{\tau_t + \tau} = \frac{\sigma_t^2}{\sigma_t^2 + \sigma^2}$은 **칼만 이득**이다.
 
-This is the simplest Kalman filter: a scalar state with known observation noise.
+이는 가장 단순한 칼만 거르개이다. 곧 관찰 잡음을 아는 스칼라 상태이다.
 
 ---
 
-## Posterior Predictive Distribution
+## 뒤확률 예측 분포
 
-### Predicting New Observations
+### 새 관찰 맞히기
 
-Given observed data, what is the distribution of a new observation $x_{n+1}$?
+관찰한 데이터가 주어졌을 때 새 관찰 $x_{n+1}$의 분포는 무엇인가?
 
 $$
-
 p(x_{n+1} \mid \mathcal{D}) = \int p(x_{n+1} \mid \mu) \, p(\mu \mid \mathcal{D}) \, d\mu
-
 $$
 
-Both distributions are Gaussian, so the predictive is also Gaussian:
+두 분포가 모두 가우스이므로 예측 분포도 가우스이다.
 
 $$
-
 x_{n+1} \mid \mathcal{D} \sim \mathcal{N}(\mu_n, \sigma^2 + \sigma_n^2)
-
 $$
 
-### Predictive Variance Decomposition
+### 예측 흩어짐 쪼개기
 
 $$
-
 \text{Var}[x_{n+1} \mid \mathcal{D}] = \underbrace{\sigma^2}_{\text{aleatoric}} + \underbrace{\sigma_n^2}_{\text{epistemic}}
-
 $$
 
-- **Aleatoric uncertainty** ($\sigma^2$): Inherent randomness in observations (irreducible)
-- **Epistemic uncertainty** ($\sigma_n^2$): Uncertainty about $\mu$ (reducible with more data)
+- **우연의 불확실성**($\sigma^2$): 관찰에 깃든 무작위성(줄일 수 없다)
+- **앎의 불확실성**($\sigma_n^2$): $\mu$에 대한 아리송함(데이터가 늘면 줄어든다)
 
-As $n \to \infty$, epistemic uncertainty vanishes, and predictive variance approaches $\sigma^2$.
+$n \to \infty$이면 앎의 불확실성이 사라지고 예측 흩어짐은 $\sigma^2$에 다가간다.
 
 ---
 
-## Connection to Frequentist Inference
+## 빈도주의 추론과의 이음
 
-### Comparison Table
+### 비교표
 
-| Aspect | Bayesian | Frequentist |
+| 갈래 | 베이즈 | 빈도주의 |
 |--------|----------|-------------|
-| Point estimate | $\mu_n$ (posterior mean) | $\bar{x}$ (MLE) |
-| Interval | $\mu_n \pm z_{\alpha/2}\sigma_n$ (credible) | $\bar{x} \pm z_{\alpha/2}\frac{\sigma}{\sqrt{n}}$ (confidence) |
-| Interpretation | "95% probability $\mu$ is in interval" | "95% of such intervals contain $\mu$" |
-| Prior required | Yes | No |
-| Incorporates prior info | Explicitly | Not directly |
+| 점 어림값 | $\mu_n$(뒤확률의 평균) | $\bar{x}$(최대 가능도) |
+| 구간 | $\mu_n \pm z_{\alpha/2}\sigma_n$(믿음 구간) | $\bar{x} \pm z_{\alpha/2}\frac{\sigma}{\sqrt{n}}$(신뢰 구간) |
+| 풀이 | "$\mu$이 구간 안에 있을 확률이 95%" | "그런 구간의 95%가 $\mu$을 담는다" |
+| 앞확률 필요 | 예 | 아니오 |
+| 앞선 정보 아우름 | 드러내 놓고 | 곧바로는 아님 |
 
-### When They Agree
+### 둘이 맞아떨어질 때
 
-With flat prior ($\tau_0 \to 0$):
+평평한 앞확률($\tau_0 \to 0$)에서는 다음과 같다.
 
 $$
-
 \mu_n \to \bar{x}, \quad \sigma_n^2 \to \frac{\sigma^2}{n}
-
 $$
 
-The Bayesian credible interval equals the frequentist confidence interval.
+베이즈 믿음 구간이 빈도주의 신뢰 구간과 같아진다.
 
-### When They Differ
+### 둘이 갈릴 때
 
-With informative prior, the Bayesian estimate is "regularized" toward the prior mean. This provides:
+정보 있는 앞확률에서는 베이즈 어림값이 앞확률의 평균 쪽으로 "벌을 받아" 끌린다. 그래서 다음을 준다.
 
-- **Better small-sample behavior** when prior is reasonable
-- **Worse estimates** if prior is badly misspecified
+- 앞확률이 그럴듯하면 **작은 표본에서 더 나은 거동**
+- 앞확률을 크게 잘못 잡으면 **더 나쁜 어림값**
 
 ---
 
-## Multivariate Extension
+## 다변량으로 넓히기
 
-### Setup
+### 준비
 
-For $\boldsymbol{x}_i \in \mathbb{R}^d$ with known covariance $\boldsymbol{\Sigma}$:
+공분산 $\boldsymbol{\Sigma}$을 아는 $\boldsymbol{x}_i \in \mathbb{R}^d$에 대해 다음과 같다.
 
 $$
-
 \boldsymbol{x}_i \mid \boldsymbol{\mu} \sim \mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\Sigma})
-
 $$
 
-Prior:
+앞확률:
 
 $$
-
 \boldsymbol{\mu} \sim \mathcal{N}(\boldsymbol{\mu}_0, \boldsymbol{\Sigma}_0)
-
 $$
 
-### Posterior
+### 뒤확률
 
 $$
-
 \boldsymbol{\mu} \mid \mathcal{D} \sim \mathcal{N}(\boldsymbol{\mu}_n, \boldsymbol{\Sigma}_n)
-
 $$
 
-**Posterior precision** (precision matrices add):
+**뒤확률의 정밀도**(정밀도 행렬은 더해진다):
 
 $$
-
 \boldsymbol{\Lambda}_n = \boldsymbol{\Lambda}_0 + n\boldsymbol{\Lambda}
-
 $$
 
-where $\boldsymbol{\Lambda} = \boldsymbol{\Sigma}^{-1}$ and $\boldsymbol{\Lambda}_0 = \boldsymbol{\Sigma}_0^{-1}$.
+여기서 $\boldsymbol{\Lambda} = \boldsymbol{\Sigma}^{-1}$이고 $\boldsymbol{\Lambda}_0 = \boldsymbol{\Sigma}_0^{-1}$이다.
 
-**Posterior mean**:
+**뒤확률의 평균**:
 
 $$
-
 \boldsymbol{\mu}_n = \boldsymbol{\Sigma}_n(\boldsymbol{\Lambda}_0\boldsymbol{\mu}_0 + n\boldsymbol{\Lambda}\bar{\boldsymbol{x}})
-
 $$
 
-The same precision-weighted averaging, now in matrix form.
+똑같이 정밀도로 무게 준 평균 내기이며 이제 행렬 꼴이다.
 
 ---
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Gaussian Inference with Known Variance: Complete Implementation
+흩어짐을 아는 가우스 추론: 온전한 구현
 
-This module provides Bayesian inference for the mean of a Gaussian
-distribution when the variance is known, demonstrating precision-weighted
-averaging and sequential updating.
+이 모듈은 흩어짐을 알 때 가우스 분포의 평균에 대한 베이즈 추론을 주며,
+정밀도로 무게를 준 평균 내기와 차례대로 새로 고치기를
+보여 준다.
 """
 
 import numpy as np
@@ -2103,20 +1880,19 @@ from scipy import stats
 from typing import Tuple, List, Optional
 from dataclasses import dataclass
 
-
 @dataclass
 class GaussianPosterior:
     """
-    Represents a Gaussian posterior distribution for μ.
+    μ의 가우스 뒤확률 분포를 나타낸다.
     
-    Attributes
+    속성
     ----------
     mean : float
-        Posterior mean μₙ
+        뒤확률 평균 μₙ
     variance : float
-        Posterior variance σₙ²
+        뒤확률 흩어짐 σₙ²
     n_observations : int
-        Number of observations incorporated
+        담아 넣은 관측의 개수
     """
     mean: float
     variance: float
@@ -2124,56 +1900,55 @@ class GaussianPosterior:
     
     @property
     def precision(self) -> float:
-        """Posterior precision τₙ = 1/σₙ²."""
+        """뒤확률 정밀도 τₙ = 1/σₙ²."""
         return 1.0 / self.variance
     
     @property
     def std(self) -> float:
-        """Posterior standard deviation σₙ."""
+        """뒤확률 표준편차 σₙ."""
         return np.sqrt(self.variance)
     
     def pdf(self, mu: np.ndarray) -> np.ndarray:
-        """Evaluate posterior density."""
+        """뒤확률 밀도의 값을 매긴다."""
         return stats.norm.pdf(mu, self.mean, self.std)
     
     def cdf(self, mu: float) -> float:
-        """Evaluate posterior CDF."""
+        """뒤확률 누적분포함수의 값을 매긴다."""
         return stats.norm.cdf(mu, self.mean, self.std)
     
     def quantile(self, p: float) -> float:
-        """Compute posterior quantile."""
+        """뒤확률 분위수를 셈한다."""
         return stats.norm.ppf(p, self.mean, self.std)
     
     def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
         """
-        Compute credible interval.
+        믿음 구간을 셈한다.
         
-        For Gaussian, equal-tailed and HPD intervals coincide.
+        가우스에서는 양끝이 같은 구간과 HPD 구간이 맞아떨어진다.
         """
         alpha = 1 - level
         z = stats.norm.ppf(1 - alpha/2)
         return (self.mean - z * self.std, self.mean + z * self.std)
     
     def sample(self, n_samples: int) -> np.ndarray:
-        """Draw samples from posterior."""
+        """뒤확률에서 표본을 뽑는다."""
         return np.random.normal(self.mean, self.std, n_samples)
     
     def __repr__(self) -> str:
         return f"N({self.mean:.4f}, {self.variance:.4f})"
 
-
 class GaussianKnownVarianceModel:
     """
-    Bayesian inference for Gaussian mean with known variance.
+    흩어짐을 알 때 가우스 평균에 대한 베이즈 추론.
     
-    Parameters
+    매개변수
     ----------
     prior_mean : float
-        Prior mean μ₀
+        앞확률 평균 μ₀
     prior_variance : float
-        Prior variance σ₀²
+        앞확률 흩어짐 σ₀²
     known_variance : float
-        Known data variance σ²
+        아는 자료 흩어짐 σ²
     """
     
     def __init__(
@@ -2186,15 +1961,15 @@ class GaussianKnownVarianceModel:
         self.prior_variance = prior_variance
         self.known_variance = known_variance
         
-        # Precisions
+        # 정밀도
         self.prior_precision = 1.0 / prior_variance
         self.data_precision = 1.0 / known_variance
         
-        # Current state
+        # 지금 상태
         self._reset()
     
     def _reset(self):
-        """Reset to prior state."""
+        """앞확률 상태로 되돌린다."""
         self.current_precision = self.prior_precision
         self.current_mean = self.prior_mean
         self.n_observations = 0
@@ -2202,12 +1977,12 @@ class GaussianKnownVarianceModel:
     
     @property
     def prior(self) -> GaussianPosterior:
-        """Return prior distribution."""
+        """앞확률 분포를 되돌린다."""
         return GaussianPosterior(self.prior_mean, self.prior_variance, 0)
     
     @property
     def posterior(self) -> GaussianPosterior:
-        """Return current posterior distribution."""
+        """지금의 뒤확률 분포를 되돌린다."""
         return GaussianPosterior(
             self.current_mean,
             1.0 / self.current_precision,
@@ -2216,29 +1991,29 @@ class GaussianKnownVarianceModel:
     
     def update(self, data: np.ndarray) -> GaussianPosterior:
         """
-        Update posterior with new observations.
+        새 관측으로 뒤확률을 새로 고친다.
         
-        Parameters
+        매개변수
         ----------
         data : array
-            New observations
+            새 관측
         
-        Returns
+        반환값
         -------
         GaussianPosterior
-            Updated posterior
+            새로 고친 뒤확률
         """
         data = np.atleast_1d(data)
         n = len(data)
         
-        # Update sufficient statistics
+        # 충분 통계량 새로 고치기
         self.n_observations += n
         self.sum_x += data.sum()
         
-        # Update precision (precisions add)
+        # 정밀도 새로 고치기(정밀도는 더해진다)
         self.current_precision = self.prior_precision + self.n_observations * self.data_precision
         
-        # Update mean (precision-weighted average)
+        # 평균 새로 고치기(정밀도로 무게 준 평균)
         self.current_mean = (
             self.prior_precision * self.prior_mean + 
             self.data_precision * self.sum_x
@@ -2247,22 +2022,22 @@ class GaussianKnownVarianceModel:
         return self.posterior
     
     def update_single(self, x: float) -> GaussianPosterior:
-        """Update with a single observation."""
+        """관측 하나로 새로 고친다."""
         return self.update(np.array([x]))
     
     def update_sequential(self, data: np.ndarray) -> List[GaussianPosterior]:
         """
-        Update sequentially, returning posterior history.
+        차례대로 새로 고치며 뒤확률의 자취를 되돌린다.
         
-        Parameters
+        매개변수
         ----------
         data : array
-            Sequence of observations
+            관측의 늘어놓음
         
-        Returns
+        반환값
         -------
         list
-            Posterior after each observation
+            관측마다의 뒤확률
         """
         self._reset()
         history = [self.posterior]
@@ -2275,12 +2050,12 @@ class GaussianKnownVarianceModel:
     
     def predictive_distribution(self) -> Tuple[float, float]:
         """
-        Compute posterior predictive distribution for next observation.
+        다음 관측의 뒤확률 예측 분포를 셈한다.
         
-        Returns
+        반환값
         -------
         tuple
-            (predictive_mean, predictive_variance)
+            (예측_평균, 예측_흩어짐)
         """
         pred_mean = self.current_mean
         pred_var = self.known_variance + 1.0 / self.current_precision
@@ -2288,22 +2063,22 @@ class GaussianKnownVarianceModel:
     
     def log_marginal_likelihood(self, data: np.ndarray) -> float:
         """
-        Compute log marginal likelihood (log evidence).
+        로그 주변 가능도(로그 증거)를 셈한다.
         
         log p(D) = log ∫ p(D|μ) p(μ) dμ
         
-        For Gaussian-Gaussian, this is available in closed form.
+        가우스-가우스에서는 이것을 닫힌 꼴로 얻을 수 있다.
         """
         n = len(data)
         x_bar = data.mean()
         
-        # Marginal is Gaussian with inflated variance
+        # 주변 분포는 흩어짐이 부푼 가우스
         marginal_var = self.prior_variance + self.known_variance / n
         
-        # Sum of squared deviations from prior mean
+        # 앞확률 평균에서의 제곱 어긋남의 합
         ss_from_prior = np.sum((data - self.prior_mean)**2)
         
-        # Log marginal likelihood
+        # 로그 주변 가능도
         log_ml = (
             -0.5 * n * np.log(2 * np.pi * self.known_variance)
             - 0.5 * ss_from_prior / self.known_variance
@@ -2315,20 +2090,19 @@ class GaussianKnownVarianceModel:
         return log_ml
     
     def prior_weight(self) -> float:
-        """Compute weight given to prior mean."""
+        """앞확률 평균에 주는 무게를 셈한다."""
         return self.prior_precision / self.current_precision
     
     def data_weight(self) -> float:
-        """Compute weight given to data mean."""
+        """자료 평균에 주는 무게를 셈한다."""
         return (self.n_observations * self.data_precision) / self.current_precision
     
     def equivalent_prior_samples(self) -> float:
-        """Prior expressed as equivalent number of observations."""
+        """앞확률을 맞먹는 관측 개수로 나타낸다."""
         return self.prior_precision / self.data_precision
 
-
 # =============================================================================
-# Visualization Functions
+# 그려 보기 함수
 # =============================================================================
 
 def plot_precision_weighted_averaging(
@@ -2336,14 +2110,14 @@ def plot_precision_weighted_averaging(
     data: np.ndarray,
     true_mu: Optional[float] = None
 ) -> plt.Figure:
-    """Visualize precision-weighted averaging."""
+    """정밀도로 무게를 준 평균 내기를 그려 본다."""
     
     model._reset()
     model.update(data)
     
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
-    # Left: Prior, likelihood, posterior
+    # 왼쪽: 앞확률, 가능도, 뒤확률
     ax = axes[0]
     
     x_bar = data.mean()
@@ -2353,18 +2127,18 @@ def plot_precision_weighted_averaging(
         500
     )
     
-    # Prior
+    # 앞확률
     prior_pdf = stats.norm.pdf(mu_range, model.prior_mean, np.sqrt(model.prior_variance))
     ax.plot(mu_range, prior_pdf, 'b--', linewidth=2, 
             label=f'Prior: N({model.prior_mean}, {model.prior_variance})')
     
-    # Likelihood (normalized for visualization)
+    # 가능도(그려 보려고 고르게 함)
     likelihood_var = model.known_variance / len(data)
     likelihood_pdf = stats.norm.pdf(mu_range, x_bar, np.sqrt(likelihood_var))
     ax.plot(mu_range, likelihood_pdf, 'g:', linewidth=2,
             label=f'Likelihood: centered at x̄={x_bar:.2f}')
     
-    # Posterior
+    # 뒤확률
     post = model.posterior
     posterior_pdf = post.pdf(mu_range)
     ax.fill_between(mu_range, posterior_pdf, alpha=0.3, color='red')
@@ -2383,7 +2157,7 @@ def plot_precision_weighted_averaging(
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
     
-    # Right: Weight diagram
+    # 오른쪽: 무게 그림
     ax = axes[1]
     
     weights = [model.prior_weight(), model.data_weight()]
@@ -2405,7 +2179,6 @@ def plot_precision_weighted_averaging(
     plt.tight_layout()
     return fig
 
-
 def plot_sequential_updating(
     data: np.ndarray,
     prior_mean: float,
@@ -2413,14 +2186,14 @@ def plot_sequential_updating(
     known_variance: float,
     true_mu: Optional[float] = None
 ) -> plt.Figure:
-    """Visualize sequential Bayesian updating."""
+    """차례대로 베이즈 새로 고치기를 그려 본다."""
     
     model = GaussianKnownVarianceModel(prior_mean, prior_variance, known_variance)
     history = model.update_sequential(data)
     
     fig, axes = plt.subplots(2, 1, figsize=(12, 8))
     
-    # Top: Evolution of posterior mean and CI
+    # 위: 뒤확률 평균과 믿음 구간의 흐름
     ax = axes[0]
     
     n_vals = np.arange(len(history))
@@ -2447,13 +2220,13 @@ def plot_sequential_updating(
     ax.legend(loc='upper right', fontsize=9)
     ax.grid(True, alpha=0.3)
     
-    # Bottom: Evolution of posterior std
+    # 아래: 뒤확률 표준편차의 흐름
     ax = axes[1]
     
     stds = [h.std for h in history]
     ax.plot(n_vals, stds, 'g-', linewidth=2, marker='s', markersize=4)
     
-    # Theoretical asymptotic
+    # 이론상 점근
     asymptotic_std = np.sqrt(known_variance) / np.sqrt(np.maximum(n_vals, 1))
     asymptotic_std[0] = np.sqrt(prior_variance)
     ax.plot(n_vals, asymptotic_std, 'r--', linewidth=1.5, 
@@ -2468,12 +2241,11 @@ def plot_sequential_updating(
     plt.tight_layout()
     return fig
 
-
 def plot_predictive_distribution(
     model: GaussianKnownVarianceModel,
     true_mu: Optional[float] = None
 ) -> plt.Figure:
-    """Visualize posterior predictive distribution."""
+    """뒤확률 예측 분포를 그려 본다."""
     
     pred_mean, pred_var = model.predictive_distribution()
     post = model.posterior
@@ -2483,12 +2255,12 @@ def plot_predictive_distribution(
     x_range = np.linspace(pred_mean - 4*np.sqrt(pred_var), 
                           pred_mean + 4*np.sqrt(pred_var), 500)
     
-    # Posterior for μ
+    # μ의 뒤확률
     posterior_pdf = post.pdf(x_range)
     ax.plot(x_range, posterior_pdf, 'b-', linewidth=2,
             label=f'Posterior for μ: N({post.mean:.2f}, {post.variance:.3f})')
     
-    # Predictive for x_{n+1}
+    # x_{n+1}의 예측 분포
     predictive_pdf = stats.norm.pdf(x_range, pred_mean, np.sqrt(pred_var))
     ax.fill_between(x_range, predictive_pdf, alpha=0.3, color='orange')
     ax.plot(x_range, predictive_pdf, 'orange', linewidth=2,
@@ -2504,7 +2276,7 @@ def plot_predictive_distribution(
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3)
     
-    # Annotate variance decomposition
+    # 흩어짐 쪼개기 적어 넣기
     textstr = (f'Predictive Var = {pred_var:.3f}\n'
                f'  = Aleatoric ({model.known_variance:.3f})\n'
                f'  + Epistemic ({post.variance:.3f})')
@@ -2515,21 +2287,20 @@ def plot_predictive_distribution(
     plt.tight_layout()
     return fig
 
-
 # =============================================================================
-# Demonstrations
+# 보여 주기
 # =============================================================================
 
 def demo_basic_inference():
-    """Demonstrate basic Gaussian inference."""
+    """기본 가우스 추론을 보인다."""
     
     print("=" * 60)
     print("GAUSSIAN INFERENCE WITH KNOWN VARIANCE")
     print("=" * 60)
     
-    # Setup
+    # 준비
     true_mu = 5.0
-    known_var = 4.0  # σ² = 4, so σ = 2
+    known_var = 4.0  # σ² = 4, 그러므로 σ = 2
     
     np.random.seed(42)
     n = 10
@@ -2540,7 +2311,7 @@ def demo_basic_inference():
     print(f"Sample: n = {n}, x̄ = {data.mean():.4f}")
     print(f"MLE: {data.mean():.4f}")
     
-    # Different priors
+    # 서로 다른 앞확률
     priors = [
         ("Weak prior (σ₀² = 100)", 0.0, 100.0),
         ("Moderate prior", 3.0, 4.0),
@@ -2564,9 +2335,8 @@ def demo_basic_inference():
         print(f"  Data weight: {model.data_weight():.1%}")
         print(f"  95% CI: [{ci[0]:.3f}, {ci[1]:.3f}]")
 
-
 def demo_sequential_updating():
-    """Demonstrate sequential updating."""
+    """차례대로 새로 고치기를 보인다."""
     
     print("\n" + "=" * 60)
     print("SEQUENTIAL BAYESIAN UPDATING")
@@ -2578,7 +2348,7 @@ def demo_sequential_updating():
     np.random.seed(123)
     data = np.random.normal(true_mu, np.sqrt(known_var), 20)
     
-    # Start with wrong prior
+    # 틀린 앞확률로 시작
     prior_mean = 80.0
     prior_var = 100.0
     
@@ -2598,16 +2368,15 @@ def demo_sequential_updating():
         print(f"{i+1:4d} {x:8.2f} {model.current_mean:10.3f} "
               f"{model.posterior.std:10.3f} {model.data_weight():10.1%}")
     
-    # Create visualization
+    # 시각화 만들기
     model._reset()
     fig = plot_sequential_updating(data, prior_mean, prior_var, known_var, true_mu)
     fig.savefig('gaussian_sequential_update.png', dpi=150, bbox_inches='tight')
     plt.close()
     print("\nSee: gaussian_sequential_update.png")
 
-
 def demo_predictive():
-    """Demonstrate predictive distribution."""
+    """예측 분포를 보인다."""
     
     print("\n" + "=" * 60)
     print("POSTERIOR PREDICTIVE DISTRIBUTION")
@@ -2636,7 +2405,7 @@ def demo_predictive():
     print(f"  Variance: {pred_var:.4f}")
     print(f"    = Aleatoric ({known_var:.4f}) + Epistemic ({post.variance:.4f})")
     
-    # 95% prediction interval
+    # 95% 예측 구간
     z = 1.96
     pi_lower = pred_mean - z * np.sqrt(pred_var)
     pi_upper = pred_mean + z * np.sqrt(pred_var)
@@ -2647,7 +2416,6 @@ def demo_predictive():
     plt.close()
     print("\nSee: gaussian_predictive.png")
 
-
 if __name__ == "__main__":
     demo_basic_inference()
     demo_sequential_updating()
@@ -2656,384 +2424,319 @@ if __name__ == "__main__":
 
 ---
 
-## Summary
+## 요약
 
-| Aspect | Formula |
+| 갈래 | 식 |
 |--------|---------|
-| **Prior** | $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$ |
-| **Likelihood** | $p(\mathcal{D} \mid \mu) \propto \exp\left(-\frac{n(\bar{x}-\mu)^2}{2\sigma^2}\right)$ |
-| **Posterior** | $\mu \mid \mathcal{D} \sim \mathcal{N}(\mu_n, \sigma_n^2)$ |
-| **Posterior precision** | $\tau_n = \tau_0 + n\tau$ |
-| **Posterior mean** | $\mu_n = \frac{\tau_0\mu_0 + n\tau\bar{x}}{\tau_n}$ |
-| **Predictive** | $x_{n+1} \mid \mathcal{D} \sim \mathcal{N}(\mu_n, \sigma^2 + \sigma_n^2)$ |
+| **앞확률** | $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$ |
+| **가능도** | $p(\mathcal{D} \mid \mu) \propto \exp\left(-\frac{n(\bar{x}-\mu)^2}{2\sigma^2}\right)$ |
+| **뒤확률** | $\mu \mid \mathcal{D} \sim \mathcal{N}(\mu_n, \sigma_n^2)$ |
+| **뒤확률의 정밀도** | $\tau_n = \tau_0 + n\tau$ |
+| **뒤확률의 평균** | $\mu_n = \frac{\tau_0\mu_0 + n\tau\bar{x}}{\tau_n}$ |
+| **예측** | $x_{n+1} \mid \mathcal{D} \sim \mathcal{N}(\mu_n, \sigma^2 + \sigma_n^2)$ |
 
-### Key Insights
+### 핵심 통찰
 
-1. **Precisions add**: Posterior precision = prior precision + data precision
-2. **Precision-weighted averaging**: Posterior mean weights sources by precision
-3. **Equivalent sample size**: Prior worth $n_0 = \sigma^2/\sigma_0^2$ observations
-4. **Shrinkage**: Posterior mean shrinks MLE toward prior mean
-5. **Predictive variance**: Decomposes into aleatoric + epistemic
-6. **Kalman filter**: Sequential updating is simplest Kalman filter
+1. **정밀도는 더해진다**: 뒤확률의 정밀도 = 앞확률의 정밀도 + 데이터의 정밀도
+2. **정밀도로 무게 준 평균 내기**: 뒤확률의 평균은 정밀도로 정보의 무게를 준다
+3. **맞먹는 표본 크기**: 앞확률은 관찰 $n_0 = \sigma^2/\sigma_0^2$개의 값어치를 지닌다
+4. **오그라들기**: 뒤확률의 평균은 최대 가능도 어림값을 앞확률의 평균 쪽으로 오그라뜨린다
+5. **예측 흩어짐**: 우연의 불확실성과 앎의 불확실성으로 쪼개진다
+6. **칼만 거르개**: 차례 갱신이 곧 가장 단순한 칼만 거르개이다
 
-### Connections to Other Chapters
+### 다른 장과의 이음
 
-| Topic | Chapter | Connection |
+| 주제 | 장 | 이음 |
 |-------|---------|------------|
-| Beta-Bernoulli | Ch13: Bernoulli-Beta | Discrete analog |
-| Unknown variance | Ch13: Gaussian Unknown Variance | More realistic setting |
-| Multivariate | Ch13: Bayesian Linear Regression | Extension to regression |
-| Kalman filter | Ch16: State Space Models | Sequential inference |
-| BNN priors | Ch13: BNN Priors | Weight distribution design |
+| 베타-베르누이 | 13장: 베르누이-베타 | 낱낱의 값에서의 대응물 |
+| 흩어짐을 모를 때 | 13장: 흩어짐을 모르는 가우스 | 더 현실에 가까운 상황 |
+| 다변량 | 13장: 베이즈 선형 회귀 | 회귀로 넓히기 |
+| 칼만 거르개 | 16장: 상태 공간 모형 | 차례 추론 |
+| BNN 앞확률 | 13장: BNN 앞확률 | 가중치 분포 설계 |
 
-### Key References
+### 주요 참고 문헌
 
 - DeGroot, M. H. (1970). *Optimal Statistical Decisions*. McGraw-Hill.
-- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). Chapter 2.
-- Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*. Chapter 4.
-- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. Section 2.3.
+- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). 2장.
+- Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*. 4장.
+- Bishop, C. M. (2006). *Pattern Recognition and Machine Learning*. 2.3절.
 
 ---
 
-# Gaussian Inference with Unknown Variance
+# 흩어짐을 모를 때의 가우스 추론
 
-When both the mean $\mu$ and variance $\sigma^2$ of a Gaussian distribution are unknown, Bayesian inference requires a joint prior over both parameters. The conjugate prior is the **Normal-Inverse-Gamma** (NIG) distribution, which leads to elegant closed-form posteriors. This setting is far more realistic than known variance and introduces the important concept of **marginalizing over nuisance parameters**.
+가우스 분포의 평균 $\mu$과 흩어짐 $\sigma^2$을 모두 모르면 베이즈 추론에는 두 매개변수 위의 결합 앞확률이 필요하다. 켤레 앞확률은 **정규-역감마**(NIG) 분포이며, 이는 우아한 닫힌 꼴의 뒤확률로 이어진다. 이 상황은 흩어짐을 아는 경우보다 훨씬 현실에 가까우며 **귀찮은 매개변수를 주변화하기**라는 중요한 개념을 들여온다.
 
 ---
 
-## Problem Setup
+## 문제 설정
 
-### The Inference Problem
+### 추론 문제
 
-We observe continuous measurements $x_1, x_2, \ldots, x_n \in \mathbb{R}$ assumed to be drawn from a Gaussian distribution with **unknown mean** $\mu$ and **unknown variance** $\sigma^2$:
+**평균 $\mu$과 흩어짐 $\sigma^2$을 모두 모르는** 가우스 분포에서 나왔다고 놓는 이어진 측정값 $x_1, x_2, \ldots, x_n \in \mathbb{R}$을 관찰한다.
 
 $$
-
 x_i \mid \mu, \sigma^2 \sim \mathcal{N}(\mu, \sigma^2)
-
 $$
 
-The goal is to infer the joint posterior distribution $p(\mu, \sigma^2 \mid \mathcal{D})$ and, importantly, the **marginal posterior** for $\mu$ alone:
+목표는 결합 뒤확률 분포 $p(\mu, \sigma^2 \mid \mathcal{D})$과, 무엇보다 $\mu$만의 **주변 뒤확률**을 미루어 아는 것이다.
 
 $$
-
 p(\mu \mid \mathcal{D}) = \int_0^\infty p(\mu, \sigma^2 \mid \mathcal{D}) \, d\sigma^2
-
 $$
 
-### Why Unknown Variance Matters
+### 흩어짐을 모르는 것이 중요한 까닭
 
-In most real applications, variance is unknown:
+실제 응용에서는 대개 흩어짐을 모른다.
 
-- **Scientific experiments**: Measurement precision varies between instruments
-- **Financial data**: Volatility changes over time
-- **A/B testing**: Effect size variability is typically unknown
-- **Machine learning**: Model uncertainty estimation
+- **과학 실험**: 장치마다 측정 정밀도가 다르다
+- **금융 데이터**: 변동성이 때에 따라 바뀐다
+- **A/B 시험**: 효과 크기의 흔들림을 대개 모른다
+- **기계 학습**: 모형의 불확실성 어림
 
-The known-variance assumption, while pedagogically useful, is rarely realistic.
+흩어짐을 안다는 가정은 가르치기에는 쓸모 있지만 현실에서는 드물다.
 
-### The Gaussian Likelihood
+### 가우스 가능도
 
-For $n$ independent observations:
+서로 독립인 관찰 $n$개에 대해 다음과 같다.
 
 $$
-
 p(\mathcal{D} \mid \mu, \sigma^2) = \prod_{i=1}^{n} \frac{1}{\sqrt{2\pi\sigma^2}} \exp\left(-\frac{(x_i - \mu)^2}{2\sigma^2}\right)
-
 $$
 
 $$
-
 = (2\pi\sigma^2)^{-n/2} \exp\left(-\frac{1}{2\sigma^2}\sum_{i=1}^{n}(x_i - \mu)^2\right)
-
 $$
 
-### Sufficient Statistics
+### 충분 통계량
 
-The likelihood depends on the data only through two sufficient statistics:
+가능도는 데이터에 대해 오직 충분 통계량 둘을 거쳐서만 달라진다.
 
 $$
-
 \bar{x} = \frac{1}{n}\sum_{i=1}^{n} x_i, \quad s^2 = \frac{1}{n-1}\sum_{i=1}^{n}(x_i - \bar{x})^2
-
 $$
 
-Using the decomposition:
+다음 쪼갬을 쓰면
 
 $$
-
 \sum_{i=1}^{n}(x_i - \mu)^2 = (n-1)s^2 + n(\bar{x} - \mu)^2
-
 $$
 
-The likelihood becomes:
+가능도는 다음이 된다.
 
 $$
-
 p(\mathcal{D} \mid \mu, \sigma^2) \propto (\sigma^2)^{-n/2} \exp\left(-\frac{(n-1)s^2 + n(\bar{x} - \mu)^2}{2\sigma^2}\right)
-
 $$
 
 ---
 
-## The Inverse-Gamma Distribution
+## 역감마 분포
 
-### Definition
+### 정의
 
-The **Inverse-Gamma** distribution is the conjugate prior for the variance parameter. If $\sigma^2 \sim \text{Inv-Gamma}(\alpha, \beta)$:
+**역감마** 분포는 흩어짐 매개변수의 켤레 앞확률이다. $\sigma^2 \sim \text{Inv-Gamma}(\alpha, \beta)$이면 다음과 같다.
 
 $$
-
 p(\sigma^2) = \frac{\beta^\alpha}{\Gamma(\alpha)} (\sigma^2)^{-\alpha-1} \exp\left(-\frac{\beta}{\sigma^2}\right), \quad \sigma^2 > 0
-
 $$
 
-### Parameters and Moments
+### 매개변수와 적률
 
-| Parameter | Symbol | Interpretation |
+| 매개변수 | 기호 | 풀이 |
 |-----------|--------|----------------|
-| Shape | $\alpha$ | Controls concentration (larger = more peaked) |
-| Scale | $\beta$ | Controls location (larger = larger variances) |
+| 모양 | $\alpha$ | 몰림 정도를 다스린다(클수록 더 뾰족하다) |
+| 눈금 | $\beta$ | 자리를 다스린다(클수록 흩어짐이 커진다) |
 
-**Moments** (for $\alpha > 1$ and $\alpha > 2$ respectively):
+**적률**(각각 $\alpha > 1$과 $\alpha > 2$일 때):
 
 $$
-
 \mathbb{E}[\sigma^2] = \frac{\beta}{\alpha - 1}, \quad \text{Var}[\sigma^2] = \frac{\beta^2}{(\alpha-1)^2(\alpha-2)}
-
 $$
 
-**Mode**:
+**최빈값**:
 
 $$
-
 \text{Mode}[\sigma^2] = \frac{\beta}{\alpha + 1}
-
 $$
 
-### Connection to Chi-Square
+### 카이제곱과의 이음
 
-If $X \sim \chi^2_\nu$, then:
+$X \sim \chi^2_\nu$이면 다음과 같다.
 
 $$
-
 \frac{\nu s_0^2}{X} \sim \text{Inv-Gamma}\left(\frac{\nu}{2}, \frac{\nu s_0^2}{2}\right)
-
 $$
 
-This connects to the sampling distribution of the sample variance.
+이는 표본 흩어짐의 표집 분포와 이어진다.
 
-### Why Inverse-Gamma?
+### 왜 역감마인가?
 
-The Inverse-Gamma is natural for variance because:
+역감마가 흩어짐에 자연스러운 까닭은 다음과 같다.
 
-1. **Support**: Defined on $(0, \infty)$, matching variance's domain
-2. **Conjugacy**: Leads to closed-form posteriors
-3. **Interpretability**: Parameters relate to "prior observations"
+1. **받침**: $(0, \infty)$ 위에서 정의되어 흩어짐의 영역과 맞는다
+2. **켤레성**: 닫힌 꼴의 뒤확률로 이어진다
+3. **풀이 가능성**: 매개변수가 "앞선 관찰"과 이어진다
 
 ---
 
-## The Normal-Inverse-Gamma Prior
+## 정규-역감마 앞확률
 
-### Joint Prior Specification
+### 결합 앞확률 명세
 
-The conjugate prior for $(\mu, \sigma^2)$ is the **Normal-Inverse-Gamma** (NIG) distribution:
+$(\mu, \sigma^2)$의 켤레 앞확률은 **정규-역감마**(NIG) 분포이다.
 
 $$
-
 \sigma^2 \sim \text{Inv-Gamma}(\alpha_0, \beta_0)
-
 $$
 
 $$
-
 \mu \mid \sigma^2 \sim \mathcal{N}\left(\mu_0, \frac{\sigma^2}{\kappa_0}\right)
-
 $$
 
-This is written as:
+이를 다음과 같이 쓴다.
 
 $$
-
 (\mu, \sigma^2) \sim \text{NIG}(\mu_0, \kappa_0, \alpha_0, \beta_0)
-
 $$
 
-### Joint Density
+### 결합 밀도
 
 $$
-
 p(\mu, \sigma^2) = p(\mu \mid \sigma^2) \cdot p(\sigma^2)
-
 $$
 
 $$
-
 = \frac{1}{\sqrt{2\pi\sigma^2/\kappa_0}} \exp\left(-\frac{\kappa_0(\mu - \mu_0)^2}{2\sigma^2}\right) \cdot \frac{\beta_0^{\alpha_0}}{\Gamma(\alpha_0)} (\sigma^2)^{-\alpha_0-1} \exp\left(-\frac{\beta_0}{\sigma^2}\right)
-
 $$
 
 $$
-
 \propto (\sigma^2)^{-\alpha_0-3/2} \exp\left(-\frac{1}{\sigma^2}\left[\beta_0 + \frac{\kappa_0}{2}(\mu - \mu_0)^2\right]\right)
-
 $$
 
-### Prior Parameters Interpretation
+### 앞확률 매개변수의 풀이
 
-| Parameter | Symbol | Interpretation |
+| 매개변수 | 기호 | 풀이 |
 |-----------|--------|----------------|
-| Prior mean location | $\mu_0$ | Best guess for $\mu$ before seeing data |
-| Prior precision scaling | $\kappa_0$ | "Equivalent observations" for mean |
-| Variance shape | $\alpha_0$ | Half the "prior degrees of freedom" |
-| Variance scale | $\beta_0$ | Scales the prior variance estimate |
+| 앞확률 평균의 자리 | $\mu_0$ | 데이터를 보기 전 $\mu$에 대한 가장 나은 어림 |
+| 앞확률 정밀도의 눈금 | $\kappa_0$ | 평균에 대한 "맞먹는 관찰 수" |
+| 흩어짐의 모양 | $\alpha_0$ | "앞확률의 자유도"의 절반 |
+| 흩어짐의 눈금 | $\beta_0$ | 앞확률의 흩어짐 어림값에 눈금을 준다 |
 
-**Pseudo-observation interpretation**:
+**가짜 관찰로 풀이하기**:
 
-- $\kappa_0$: Prior worth $\kappa_0$ observations for estimating $\mu$
-- $2\alpha_0$: Prior worth $2\alpha_0$ observations for estimating $\sigma^2$
-- $\beta_0 / \alpha_0$: Prior estimate of $\sigma^2$ (at the mode)
+- $\kappa_0$: 앞확률이 $\mu$을 어림하는 데 관찰 $\kappa_0$개의 값어치를 지닌다
+- $2\alpha_0$: 앞확률이 $\sigma^2$을 어림하는 데 관찰 $2\alpha_0$개의 값어치를 지닌다
+- $\beta_0 / \alpha_0$: (최빈값에서) $\sigma^2$의 앞확률 어림값
 
-### Common Prior Choices
+### 흔한 앞확률 선택
 
-**Weakly informative prior**:
+**약하게 정보 있는 앞확률**:
 
 $$
-
 \mu_0 = 0, \quad \kappa_0 = 0.01, \quad \alpha_0 = 0.01, \quad \beta_0 = 0.01
-
 $$
 
-**Jeffrey's prior** (improper but reference):
+**제프리스 앞확률**(제대로 되지는 않지만 참조로 쓴다):
 
 $$
-
 p(\mu, \sigma^2) \propto \frac{1}{\sigma^2}
-
 $$
 
-This corresponds to $\kappa_0 \to 0$, $\alpha_0 \to 0$, $\beta_0 \to 0$.
+이는 $\kappa_0 \to 0$, $\alpha_0 \to 0$, $\beta_0 \to 0$에 해당한다.
 
-**Data-dependent prior** (empirical Bayes style):
+**데이터에 기댄 앞확률**(경험적 베이즈 방식):
 
 $$
-
 \mu_0 = \bar{x}_{\text{pilot}}, \quad \alpha_0 = 1, \quad \beta_0 = s^2_{\text{pilot}}
-
 $$
 
 ---
 
-## Conjugate Posterior Derivation
+## 켤레 뒤확률 끌어내기
 
-### The Derivation
+### 끌어내기
 
-**Prior**:
+**앞확률**:
 
 $$
-
 p(\mu, \sigma^2) \propto (\sigma^2)^{-\alpha_0-3/2} \exp\left(-\frac{1}{\sigma^2}\left[\beta_0 + \frac{\kappa_0}{2}(\mu - \mu_0)^2\right]\right)
-
 $$
 
-**Likelihood**:
+**가능도**:
 
 $$
-
 p(\mathcal{D} \mid \mu, \sigma^2) \propto (\sigma^2)^{-n/2} \exp\left(-\frac{1}{2\sigma^2}\left[(n-1)s^2 + n(\bar{x} - \mu)^2\right]\right)
-
 $$
 
-**Posterior** (via Bayes' theorem):
+**뒤확률**(베이즈 정리로):
 
 $$
-
 p(\mu, \sigma^2 \mid \mathcal{D}) \propto p(\mathcal{D} \mid \mu, \sigma^2) \cdot p(\mu, \sigma^2)
-
 $$
 
-### Combining Exponents
+### 지수 합치기
 
-The exponent in $\sigma^2$ becomes:
+$\sigma^2$의 지수는 다음이 된다.
 
 $$
-
 -\alpha_0 - \frac{3}{2} - \frac{n}{2} = -\left(\alpha_0 + \frac{n}{2}\right) - \frac{3}{2} = -\alpha_n - \frac{3}{2}
-
 $$
 
-where $\alpha_n = \alpha_0 + n/2$.
+여기서 $\alpha_n = \alpha_0 + n/2$이다.
 
-The terms inside the exponential:
+지수 안의 항은 다음과 같다.
 
 $$
-
 \beta_0 + \frac{\kappa_0}{2}(\mu - \mu_0)^2 + \frac{(n-1)s^2}{2} + \frac{n}{2}(\bar{x} - \mu)^2
-
 $$
 
-### Completing the Square for mu
+### mu에 대해 완전제곱 만들기
 
-The $\mu$-dependent terms:
+$\mu$에 기댄 항은 다음과 같다.
 
 $$
-
 \frac{\kappa_0}{2}(\mu - \mu_0)^2 + \frac{n}{2}(\bar{x} - \mu)^2
-
 $$
 
 $$
-
 = \frac{\kappa_0}{2}\left[\mu^2 - 2\mu\mu_0 + \mu_0^2\right] + \frac{n}{2}\left[\mu^2 - 2\mu\bar{x} + \bar{x}^2\right]
-
 $$
 
 $$
-
 = \frac{\kappa_0 + n}{2}\mu^2 - \mu(\kappa_0\mu_0 + n\bar{x}) + \frac{\kappa_0\mu_0^2 + n\bar{x}^2}{2}
-
 $$
 
-Completing the square:
+완전제곱을 만들면 다음과 같다.
 
 $$
-
 = \frac{\kappa_n}{2}\left(\mu - \mu_n\right)^2 + \text{const}
-
 $$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$
-
 \kappa_n = \kappa_0 + n, \quad \mu_n = \frac{\kappa_0\mu_0 + n\bar{x}}{\kappa_0 + n}
-
 $$
 
-### The beta_n Update
+### beta_n 갱신
 
-The constant term (independent of $\mu$) contributes to $\beta_n$:
+($\mu$과 무관한) 상수 항이 $\beta_n$에 보태진다.
 
 $$
-
 \beta_n = \beta_0 + \frac{(n-1)s^2}{2} + \frac{\kappa_0 n(\bar{x} - \mu_0)^2}{2(\kappa_0 + n)}
-
 $$
 
-The last term arises from completing the square and represents the "prior-data conflict" for the mean.
+마지막 항은 완전제곱을 만들며 나오는데, 평균에 대한 "앞확률과 데이터의 부딪침"을 나타낸다.
 
-### The Posterior Distribution
+### 뒤확률 분포
 
 $$
-
 \boxed{(\mu, \sigma^2) \mid \mathcal{D} \sim \text{NIG}(\mu_n, \kappa_n, \alpha_n, \beta_n)}
-
 $$
 
-with update formulas:
+갱신 식은 다음과 같다.
 
 $$
-
 \boxed{
 \begin{aligned}
 \kappa_n &= \kappa_0 + n \\
@@ -3042,333 +2745,284 @@ $$
 \beta_n &= \beta_0 + \frac{(n-1)s^2}{2} + \frac{\kappa_0 n(\bar{x} - \mu_0)^2}{2\kappa_n}
 \end{aligned}
 }
-
 $$
 
 ---
 
-## Marginal Posterior Distributions
+## 주변 뒤확률 분포
 
-### Marginal for sigma-squared
+### 시그마 제곱의 주변 분포
 
-Integrating out $\mu$:
+$\mu$을 적분해 없애면 다음과 같다.
 
 $$
-
 p(\sigma^2 \mid \mathcal{D}) = \int_{-\infty}^{\infty} p(\mu, \sigma^2 \mid \mathcal{D}) \, d\mu
-
 $$
 
 $$
-
 \sigma^2 \mid \mathcal{D} \sim \text{Inv-Gamma}(\alpha_n, \beta_n)
-
 $$
 
-**Point estimates**:
+**점 어림값**:
 
 $$
-
 \mathbb{E}[\sigma^2 \mid \mathcal{D}] = \frac{\beta_n}{\alpha_n - 1} \quad (\text{if } \alpha_n > 1)
-
 $$
 
 $$
-
 \text{Mode}[\sigma^2 \mid \mathcal{D}] = \frac{\beta_n}{\alpha_n + 1}
-
 $$
 
-### Marginal for mu: The Student-t Distribution
+### mu의 주변 분포: 스튜던트 t 분포
 
-Integrating out $\sigma^2$:
+$\sigma^2$을 적분해 없애면 다음과 같다.
 
 $$
-
 p(\mu \mid \mathcal{D}) = \int_0^\infty p(\mu, \sigma^2 \mid \mathcal{D}) \, d\sigma^2
-
 $$
 
-This integral yields a **Student-t distribution**:
+이 적분은 **스튜던트 t 분포**를 낸다.
 
 $$
-
 \boxed{\mu \mid \mathcal{D} \sim t_{2\alpha_n}\left(\mu_n, \frac{\beta_n}{\alpha_n \kappa_n}\right)}
-
 $$
 
-where $t_\nu(\mu, \sigma^2)$ denotes a Student-t with $\nu$ degrees of freedom, location $\mu$, and scale $\sigma$.
+여기서 $t_\nu(\mu, \sigma^2)$은 자유도 $\nu$, 자리 $\mu$, 눈금 $\sigma$인 스튜던트 t를 뜻한다.
 
-### The Student-t Distribution
+### 스튜던트 t 분포
 
-The Student-t pdf with $\nu$ degrees of freedom, location $\mu$, and scale $\sigma$:
+자유도 $\nu$, 자리 $\mu$, 눈금 $\sigma$인 스튜던트 t의 확률밀도함수는 다음과 같다.
 
 $$
-
 p(x) = \frac{\Gamma\left(\frac{\nu+1}{2}\right)}{\Gamma\left(\frac{\nu}{2}\right)\sqrt{\nu\pi}\sigma} \left(1 + \frac{1}{\nu}\left(\frac{x-\mu}{\sigma}\right)^2\right)^{-\frac{\nu+1}{2}}
-
 $$
 
-**Properties**:
+**성질**:
 
-| Property | Formula |
+| 성질 | 식 |
 |----------|---------|
-| Mean | $\mu$ (if $\nu > 1$) |
-| Variance | $\frac{\nu}{\nu-2}\sigma^2$ (if $\nu > 2$) |
-| Degrees of freedom | $\nu = 2\alpha_n$ |
+| 평균 | $\mu$($\nu > 1$일 때) |
+| 흩어짐 | $\frac{\nu}{\nu-2}\sigma^2$($\nu > 2$일 때) |
+| 자유도 | $\nu = 2\alpha_n$ |
 
-### Why Student-t?
+### 왜 스튜던트 t인가?
 
-The Student-t arises because:
+스튜던트 t가 나오는 까닭은 다음과 같다.
 
-1. **Uncertainty about $\sigma^2$** makes tails heavier than Gaussian
-2. **With more data**, $\nu \to \infty$ and $t_\nu \to \mathcal{N}$
-3. **Robustness**: Heavier tails accommodate outliers
+1. **$\sigma^2$에 대한 아리송함** 때문에 꼬리가 가우스보다 두꺼워진다
+2. **데이터가 늘면** $\nu \to \infty$이고 $t_\nu \to \mathcal{N}$이다
+3. **튼튼함**: 두꺼운 꼬리가 튀는 값을 받아 준다
 
 ---
 
-## Posterior Analysis
+## 뒤확률 분석
 
-### Point Estimates for mu
+### mu의 점 어림값
 
-**Posterior mean** (equals posterior mode for Student-t):
+**뒤확률의 평균**(스튜던트 t에서는 뒤확률의 최빈값과 같다):
 
 $$
-
 \mathbb{E}[\mu \mid \mathcal{D}] = \mu_n = \frac{\kappa_0\mu_0 + n\bar{x}}{\kappa_0 + n}
-
 $$
 
-This is the same precision-weighted average as in the known-variance case!
+이는 흩어짐을 아는 경우와 똑같이 정밀도로 무게 준 평균이다!
 
-**Posterior variance** (if $\nu = 2\alpha_n > 2$):
+**뒤확률의 흩어짐**($\nu = 2\alpha_n > 2$일 때):
 
 $$
-
 \text{Var}[\mu \mid \mathcal{D}] = \frac{\nu}{\nu - 2} \cdot \frac{\beta_n}{\alpha_n \kappa_n} = \frac{\beta_n}{(\alpha_n - 1)\kappa_n}
-
 $$
 
-### Point Estimates for sigma-squared
+### 시그마 제곱의 점 어림값
 
-**Posterior mean**:
+**뒤확률의 평균**:
 
 $$
-
 \mathbb{E}[\sigma^2 \mid \mathcal{D}] = \frac{\beta_n}{\alpha_n - 1}
-
 $$
 
-**Posterior mode**:
+**뒤확률의 최빈값**:
 
 $$
-
 \text{Mode}[\sigma^2 \mid \mathcal{D}] = \frac{\beta_n}{\alpha_n + 1}
-
 $$
 
-### Credible Intervals
+### 믿음 구간
 
-**For $\mu$**: Use Student-t quantiles
+**$\mu$에 대해**: 스튜던트 t 분위수를 쓴다
 
 $$
-
 \left[\mu_n - t_{\nu, \alpha/2} \cdot \sqrt{\frac{\beta_n}{\alpha_n\kappa_n}}, \; \mu_n + t_{\nu, \alpha/2} \cdot \sqrt{\frac{\beta_n}{\alpha_n\kappa_n}}\right]
-
 $$
 
-**For $\sigma^2$**: Use Inverse-Gamma quantiles (asymmetric interval)
+**$\sigma^2$에 대해**: 역감마 분위수를 쓴다(대칭이 아닌 구간)
 
 ---
 
-## Connection to Frequentist Inference
+## 빈도주의 추론과의 이음
 
-### The t-Test Connection
+### t 검정과의 이음
 
-With Jeffrey's prior ($\kappa_0 \to 0$, $\alpha_0 \to 0$, $\beta_0 \to 0$):
+제프리스 앞확률($\kappa_0 \to 0$, $\alpha_0 \to 0$, $\beta_0 \to 0$)에서는 다음과 같다.
 
 $$
-
 \mu_n \to \bar{x}, \quad \kappa_n \to n, \quad \alpha_n \to \frac{n}{2}, \quad \beta_n \to \frac{(n-1)s^2}{2}
-
 $$
 
-The marginal posterior for $\mu$ becomes:
+$\mu$의 주변 뒤확률은 다음이 된다.
 
 $$
-
 \mu \mid \mathcal{D} \sim t_{n-1}\left(\bar{x}, \frac{s^2}{n}\right)
-
 $$
 
-This matches the frequentist sampling distribution used in the one-sample $t$-test!
+이는 한 표본 $t$ 검정에서 쓰는 빈도주의 표집 분포와 꼭 맞는다!
 
-### Comparison Table
+### 비교표
 
-| Aspect | Bayesian (Jeffrey's) | Frequentist |
+| 갈래 | 베이즈(제프리스) | 빈도주의 |
 |--------|---------------------|-------------|
-| Point estimate | $\bar{x}$ | $\bar{x}$ |
-| Interval for $\mu$ | $\bar{x} \pm t_{n-1,\alpha/2} \cdot \frac{s}{\sqrt{n}}$ | $\bar{x} \pm t_{n-1,\alpha/2} \cdot \frac{s}{\sqrt{n}}$ |
-| Distribution | Posterior (probability for $\mu$) | Sampling distribution |
-| Interpretation | "95% probability $\mu$ in interval" | "95% of intervals contain $\mu$" |
+| 점 어림값 | $\bar{x}$ | $\bar{x}$ |
+| $\mu$의 구간 | $\bar{x} \pm t_{n-1,\alpha/2} \cdot \frac{s}{\sqrt{n}}$ | $\bar{x} \pm t_{n-1,\alpha/2} \cdot \frac{s}{\sqrt{n}}$ |
+| 분포 | 뒤확률($\mu$에 대한 확률) | 표집 분포 |
+| 풀이 | "$\mu$이 구간 안에 있을 확률이 95%" | "구간의 95%가 $\mu$을 담는다" |
 
-### The Remarkable Agreement
+### 놀라운 일치
 
-With Jeffrey's prior, Bayesian credible intervals exactly match frequentist confidence intervals. This is not a coincidence—it reflects the deep connection between:
+제프리스 앞확률에서는 베이즈 믿음 구간이 빈도주의 신뢰 구간과 꼭 맞는다. 우연이 아니라 다음 둘 사이의 깊은 이음을 비추는 것이다.
 
-- **Jeffrey's prior**: Designed for "objective" Bayesian inference
-- **Maximum likelihood**: Asymptotically efficient under regularity conditions
+- **제프리스 앞확률**: "객관적인" 베이즈 추론을 위해 설계되었다
+- **최대 가능도**: 규칙성 조건 아래 점근적으로 효율적이다
 
 ---
 
-## Sequential Updating
+## 차례 갱신
 
-### Online Learning
+### 온라인 학습
 
-The NIG conjugate family enables sequential updating:
+NIG 켤레족은 차례 갱신을 가능하게 한다.
 
 $$
-
 \text{NIG}(\mu_0, \kappa_0, \alpha_0, \beta_0) \xrightarrow{x_1} \text{NIG}(\mu_1, \kappa_1, \alpha_1, \beta_1) \xrightarrow{x_2} \cdots
-
 $$
 
-**Single observation update** (given observation $x$):
+**관찰 하나에 대한 갱신**(관찰 $x$이 주어질 때):
 
 $$
-
 \begin{aligned}
 \kappa_{t+1} &= \kappa_t + 1 \\
 \mu_{t+1} &= \frac{\kappa_t \mu_t + x}{\kappa_{t+1}} \\
 \alpha_{t+1} &= \alpha_t + \frac{1}{2} \\
 \beta_{t+1} &= \beta_t + \frac{\kappa_t(x - \mu_t)^2}{2\kappa_{t+1}}
 \end{aligned}
-
 $$
 
-### Interpretation
+### 해석
 
-- $\kappa_t$ and $\alpha_t$ grow linearly with observations
-- $\mu_t$ converges to the sample mean
-- $\beta_t$ accumulates squared deviations, scaled appropriately
+- $\kappa_t$과 $\alpha_t$은 관찰 수에 따라 선형으로 자란다
+- $\mu_t$은 표본 평균으로 모인다
+- $\beta_t$은 제곱 편차를 알맞게 눈금 맞추어 쌓는다
 
 ---
 
-## Posterior Predictive Distribution
+## 뒤확률 예측 분포
 
-### Predicting New Observations
+### 새 관찰 맞히기
 
-The posterior predictive integrates over both unknown parameters:
+뒤확률 예측은 모르는 두 매개변수 위에서 적분한다.
 
 $$
-
 p(x_{n+1} \mid \mathcal{D}) = \int_0^\infty \int_{-\infty}^\infty p(x_{n+1} \mid \mu, \sigma^2) \, p(\mu, \sigma^2 \mid \mathcal{D}) \, d\mu \, d\sigma^2
-
 $$
 
-**Result**: The predictive distribution is also Student-t:
+**결과**: 예측 분포도 스튜던트 t이다.
 
 $$
-
 \boxed{x_{n+1} \mid \mathcal{D} \sim t_{2\alpha_n}\left(\mu_n, \frac{\beta_n(\kappa_n + 1)}{\alpha_n \kappa_n}\right)}
-
 $$
 
-### Predictive Variance Decomposition
+### 예측 흩어짐 쪼개기
 
-For $\nu = 2\alpha_n > 2$:
+$\nu = 2\alpha_n > 2$일 때 다음과 같다.
 
 $$
-
 \text{Var}[x_{n+1} \mid \mathcal{D}] = \frac{\nu}{\nu - 2} \cdot \frac{\beta_n(\kappa_n + 1)}{\alpha_n \kappa_n}
-
 $$
 
-This variance has three components:
+이 흩어짐은 세 성분으로 이루어진다.
 
-1. **Aleatoric**: Inherent randomness in observations
-2. **Epistemic (mean)**: Uncertainty about $\mu$
-3. **Epistemic (variance)**: Uncertainty about $\sigma^2$
+1. **우연**: 관찰에 깃든 무작위성
+2. **앎(평균)**: $\mu$에 대한 아리송함
+3. **앎(흩어짐)**: $\sigma^2$에 대한 아리송함
 
-As $n \to \infty$, only aleatoric uncertainty remains.
+$n \to \infty$이면 우연의 불확실성만 남는다.
 
 ---
 
-## Asymptotic Behavior
+## 점근 거동
 
-### Large Sample Limits
+### 큰 표본의 극한
 
-As $n \to \infty$:
+$n \to \infty$이면 다음과 같다.
 
-**Posterior for $\mu$**:
+**$\mu$의 뒤확률**:
 
 $$
-
 \mu \mid \mathcal{D} \xrightarrow{d} \mathcal{N}\left(\bar{x}, \frac{s^2}{n}\right)
-
 $$
 
-The Student-t converges to Gaussian as degrees of freedom increase.
+자유도가 커지면 스튜던트 t는 가우스로 모인다.
 
-**Posterior for $\sigma^2$**:
+**$\sigma^2$의 뒤확률**:
 
 $$
-
 \sigma^2 \mid \mathcal{D} \xrightarrow{p} s^2
-
 $$
 
-The posterior concentrates around the sample variance.
+뒤확률은 표본 흩어짐 둘레에 몰린다.
 
-### Prior Washout
+### 앞확률이 씻겨 나감
 
-With enough data, reasonable priors are "washed out":
+데이터가 넉넉하면 그럴듯한 앞확률은 "씻겨 나간다".
 
 $$
-
 \frac{\kappa_0}{\kappa_n} \to 0, \quad \frac{\alpha_0}{\alpha_n} \to 0
-
 $$
 
-The posterior is dominated by the likelihood.
+뒤확률은 가능도가 좌우한다.
 
 ---
 
-## Numerical Stability Considerations
+## 수치적 안정성에 대한 고려
 
-### Computing beta_n
+### beta_n 셈하기
 
-The formula for $\beta_n$ can suffer from numerical issues. A more stable form:
+$\beta_n$의 식은 수치 문제를 겪을 수 있다. 더 안정된 꼴은 다음과 같다.
 
 $$
-
 \beta_n = \beta_0 + \frac{1}{2}\left[\sum_{i=1}^n (x_i - \bar{x})^2 + \frac{\kappa_0 n}{\kappa_n}(\bar{x} - \mu_0)^2\right]
-
 $$
 
-Using Welford's algorithm for the sum of squares ensures numerical stability.
+제곱합에 웰퍼드 알고리즘을 쓰면 수치가 안정된다.
 
-### Log-Space Computations
+### 로그 공간에서 셈하기
 
-For evaluating densities, work in log-space:
+밀도를 셈할 때는 로그 공간에서 다룬다.
 
 $$
-
 \log p(\sigma^2 \mid \mathcal{D}) = \alpha_n \log \beta_n - \log\Gamma(\alpha_n) - (\alpha_n + 1)\log\sigma^2 - \frac{\beta_n}{\sigma^2}
-
 $$
 
 ---
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Gaussian Inference with Unknown Variance: Complete Implementation
+흩어짐을 모르는 가우스 추론: 온전한 구현
 
-This module provides Bayesian inference for the mean and variance of a 
-Gaussian distribution using the Normal-Inverse-Gamma conjugate prior,
-demonstrating the Student-t marginal posterior for the mean.
+이 모듈은 정규-역감마 켤레 앞확률을 써서 가우스 분포의 평균과 흩어짐에 대한
+베이즈 추론을 주며, 평균의 주변 뒤확률이 스튜던트 t임을
+보여 준다.
 """
 
 import numpy as np
@@ -3378,26 +3032,25 @@ from scipy.special import gammaln
 from typing import Tuple, List, Optional
 from dataclasses import dataclass
 
-
 @dataclass
 class NIGParameters:
     """
-    Normal-Inverse-Gamma distribution parameters.
+    정규-역감마 분포의 매개변수.
     
-    The NIG distribution is parameterized as:
-        σ² ~ Inv-Gamma(α, β)
+    NIG 분포는 다음과 같이 매개변수로 나타낸다:
+        σ² ~ 역감마(α, β)
         μ | σ² ~ N(μ₀, σ²/κ)
     
-    Attributes
+    속성
     ----------
     mu : float
-        Location parameter μ₀
+        위치 매개변수 μ₀
     kappa : float
-        Precision scaling κ (effective sample size for mean)
+        정밀도 눈금 κ(평균에 대한 실효 표본 크기)
     alpha : float
-        Shape parameter α for variance
+        흩어짐의 모양 매개변수 α
     beta : float
-        Scale parameter β for variance
+        흩어짐의 눈금 매개변수 β
     """
     mu: float
     kappa: float
@@ -3414,7 +3067,7 @@ class NIGParameters:
     
     @property
     def variance_mean(self) -> Optional[float]:
-        """E[σ²] = β/(α-1) if α > 1."""
+        """α > 1이면 E[σ²] = β/(α-1)."""
         if self.alpha > 1:
             return self.beta / (self.alpha - 1)
         return None
@@ -3426,30 +3079,29 @@ class NIGParameters:
     
     @property
     def degrees_of_freedom(self) -> float:
-        """Degrees of freedom for marginal t-distribution on μ."""
+        """μ의 주변 t분포의 자유도."""
         return 2 * self.alpha
     
     @property
     def mu_scale(self) -> float:
-        """Scale parameter for marginal t-distribution on μ."""
+        """μ의 주변 t분포의 눈금 매개변수."""
         return np.sqrt(self.beta / (self.alpha * self.kappa))
     
     def __repr__(self) -> str:
         return f"NIG(μ={self.mu:.4f}, κ={self.kappa:.4f}, α={self.alpha:.4f}, β={self.beta:.4f})"
 
-
 class StudentTPosterior:
     """
-    Represents the marginal Student-t posterior for μ.
+    μ의 주변 스튜던트 t 뒤확률을 나타낸다.
     
-    Parameters
+    매개변수
     ----------
     loc : float
-        Location parameter (posterior mean)
+        위치 매개변수(뒤확률 평균)
     scale : float
-        Scale parameter
+        배율 매개변수
     df : float
-        Degrees of freedom
+        자유도
     """
     
     def __init__(self, loc: float, scale: float, df: float):
@@ -3460,51 +3112,50 @@ class StudentTPosterior:
     
     @property
     def mean(self) -> Optional[float]:
-        """Mean exists if df > 1."""
+        """df > 1이면 평균이 있다."""
         return self.loc if self.df > 1 else None
     
     @property
     def variance(self) -> Optional[float]:
-        """Variance exists if df > 2."""
+        """df > 2이면 흩어짐이 있다."""
         if self.df > 2:
             return (self.df / (self.df - 2)) * self.scale**2
         return None
     
     def pdf(self, x: np.ndarray) -> np.ndarray:
-        """Evaluate posterior density."""
+        """뒤확률 밀도의 값을 매긴다."""
         return self._dist.pdf(x)
     
     def cdf(self, x: float) -> float:
-        """Evaluate posterior CDF."""
+        """뒤확률 누적분포함수의 값을 매긴다."""
         return self._dist.cdf(x)
     
     def quantile(self, p: float) -> float:
-        """Compute posterior quantile."""
+        """뒤확률 분위수를 셈한다."""
         return self._dist.ppf(p)
     
     def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
-        """Compute equal-tailed credible interval."""
+        """양끝이 같은 믿음 구간을 셈한다."""
         alpha = 1 - level
         return (self.quantile(alpha/2), self.quantile(1 - alpha/2))
     
     def sample(self, n_samples: int) -> np.ndarray:
-        """Draw samples from posterior."""
+        """뒤확률에서 표본을 뽑는다."""
         return self._dist.rvs(n_samples)
     
     def __repr__(self) -> str:
         return f"t_{self.df:.1f}({self.loc:.4f}, {self.scale:.4f})"
 
-
 class InverseGammaPosterior:
     """
-    Represents the marginal Inverse-Gamma posterior for σ².
+    σ²의 주변 역감마 뒤확률을 나타낸다.
     
-    Parameters
+    매개변수
     ----------
     alpha : float
-        Shape parameter
+        모양 매개변수
     beta : float
-        Scale parameter
+        배율 매개변수
     """
     
     def __init__(self, alpha: float, beta: float):
@@ -3514,55 +3165,54 @@ class InverseGammaPosterior:
     
     @property
     def mean(self) -> Optional[float]:
-        """Mean exists if α > 1."""
+        """α > 1이면 평균이 있다."""
         return self.beta / (self.alpha - 1) if self.alpha > 1 else None
     
     @property
     def mode(self) -> float:
-        """Mode = β/(α+1)."""
+        """최빈값 = β/(α+1)."""
         return self.beta / (self.alpha + 1)
     
     def pdf(self, x: np.ndarray) -> np.ndarray:
-        """Evaluate posterior density."""
+        """뒤확률 밀도의 값을 매긴다."""
         return self._dist.pdf(x)
     
     def cdf(self, x: float) -> float:
-        """Evaluate posterior CDF."""
+        """뒤확률 누적분포함수의 값을 매긴다."""
         return self._dist.cdf(x)
     
     def quantile(self, p: float) -> float:
-        """Compute posterior quantile."""
+        """뒤확률 분위수를 셈한다."""
         return self._dist.ppf(p)
     
     def credible_interval(self, level: float = 0.95) -> Tuple[float, float]:
-        """Compute equal-tailed credible interval."""
+        """양끝이 같은 믿음 구간을 셈한다."""
         alpha = 1 - level
         return (self.quantile(alpha/2), self.quantile(1 - alpha/2))
     
     def sample(self, n_samples: int) -> np.ndarray:
-        """Draw samples from posterior."""
+        """뒤확률에서 표본을 뽑는다."""
         return self._dist.rvs(n_samples)
     
     def __repr__(self) -> str:
         return f"Inv-Gamma({self.alpha:.4f}, {self.beta:.4f})"
 
-
 class GaussianUnknownVarianceModel:
     """
-    Bayesian inference for Gaussian with unknown mean and variance.
+    평균과 흩어짐을 모르는 가우스에 대한 베이즈 추론.
     
-    Uses Normal-Inverse-Gamma conjugate prior.
+    정규-역감마 켤레 앞확률을 쓴다.
     
-    Parameters
+    매개변수
     ----------
     prior_mu : float
-        Prior mean location μ₀
+        앞확률 평균 위치 μ₀
     prior_kappa : float
-        Prior precision scaling κ₀
+        앞확률 정밀도 눈금 κ₀
     prior_alpha : float
-        Prior shape α₀
+        앞확률 모양 α₀
     prior_beta : float
-        Prior scale β₀
+        앞확률 눈금 β₀
     """
     
     def __init__(
@@ -3576,7 +3226,7 @@ class GaussianUnknownVarianceModel:
         self._reset()
     
     def _reset(self):
-        """Reset to prior state."""
+        """앞확률 상태로 되돌린다."""
         self.current = NIGParameters(
             self.prior.mu, self.prior.kappa, 
             self.prior.alpha, self.prior.beta
@@ -3587,12 +3237,12 @@ class GaussianUnknownVarianceModel:
     
     @property
     def posterior_nig(self) -> NIGParameters:
-        """Return current NIG posterior parameters."""
+        """지금의 NIG 뒤확률 매개변수를 되돌린다."""
         return self.current
     
     @property
     def posterior_mu(self) -> StudentTPosterior:
-        """Return marginal posterior for μ (Student-t)."""
+        """μ의 주변 뒤확률(스튜던트 t)을 되돌린다."""
         return StudentTPosterior(
             loc=self.current.mu,
             scale=self.current.mu_scale,
@@ -3601,7 +3251,7 @@ class GaussianUnknownVarianceModel:
     
     @property
     def posterior_variance(self) -> InverseGammaPosterior:
-        """Return marginal posterior for σ² (Inverse-Gamma)."""
+        """σ²의 주변 뒤확률(역감마)을 되돌린다."""
         return InverseGammaPosterior(
             alpha=self.current.alpha,
             beta=self.current.beta
@@ -3609,17 +3259,17 @@ class GaussianUnknownVarianceModel:
     
     def update(self, data: np.ndarray) -> NIGParameters:
         """
-        Update posterior with new observations.
+        새 관측으로 뒤확률을 새로 고친다.
         
-        Parameters
+        매개변수
         ----------
         data : array
-            New observations
+            새 관측
         
-        Returns
+        반환값
         -------
         NIGParameters
-            Updated posterior parameters
+            새로 고친 뒤확률 매개변수
         """
         data = np.atleast_1d(data).astype(float)
         n = len(data)
@@ -3627,26 +3277,26 @@ class GaussianUnknownVarianceModel:
         if n == 0:
             return self.current
         
-        # Update sufficient statistics
+        # 충분 통계량 새로 고치기
         self.n_observations += n
         self._data_sum += data.sum()
         self._data_sum_sq += (data**2).sum()
         
-        # Overall sample mean
+        # 전체 표본 평균
         overall_mean = self._data_sum / self.n_observations
         
-        # Compute sample variance (using all data)
+        # 표본 흩어짐 셈하기(모든 자료를 써서)
         if self.n_observations > 1:
             ss = self._data_sum_sq - self.n_observations * overall_mean**2
         else:
             ss = 0.0
         
-        # NIG update formulas
+        # NIG 새로 고치기 공식
         kappa_n = self.prior.kappa + self.n_observations
         mu_n = (self.prior.kappa * self.prior.mu + self._data_sum) / kappa_n
         alpha_n = self.prior.alpha + self.n_observations / 2
         
-        # Beta update
+        # 베타 새로 고치기
         prior_data_sq = (self.prior.kappa * self.n_observations / kappa_n) * \
                         (overall_mean - self.prior.mu)**2
         beta_n = self.prior.beta + 0.5 * ss + 0.5 * prior_data_sq
@@ -3655,11 +3305,11 @@ class GaussianUnknownVarianceModel:
         return self.current
     
     def update_single(self, x: float) -> NIGParameters:
-        """Update with a single observation using online formulas."""
+        """온라인 공식을 써서 관측 하나로 새로 고친다."""
         kappa_old = self.current.kappa
         mu_old = self.current.mu
         
-        # Update parameters
+        # 매개변수 갱신
         kappa_new = kappa_old + 1
         mu_new = (kappa_old * mu_old + x) / kappa_new
         alpha_new = self.current.alpha + 0.5
@@ -3673,7 +3323,7 @@ class GaussianUnknownVarianceModel:
         return self.current
     
     def update_sequential(self, data: np.ndarray) -> List[NIGParameters]:
-        """Update sequentially, returning posterior history."""
+        """차례대로 새로 고치며 뒤확률의 자취를 되돌린다."""
         self._reset()
         history = [self.current]
         
@@ -3684,7 +3334,7 @@ class GaussianUnknownVarianceModel:
         return history
     
     def predictive_distribution(self) -> StudentTPosterior:
-        """Compute posterior predictive distribution for next observation."""
+        """다음 관측의 뒤확률 예측 분포를 셈한다."""
         pred_scale = np.sqrt(
             self.current.beta * (self.current.kappa + 1) / 
             (self.current.alpha * self.current.kappa)
@@ -3696,25 +3346,25 @@ class GaussianUnknownVarianceModel:
         )
     
     def sample_posterior(self, n_samples: int) -> Tuple[np.ndarray, np.ndarray]:
-        """Draw joint samples from posterior (mu, sigma2)."""
-        # First sample σ² from Inverse-Gamma
+        """뒤확률에서 (mu, sigma2) 결합 표본을 뽑는다."""
+        # 먼저 역감마에서 σ²을 표집
         sigma2_samples = self.posterior_variance.sample(n_samples)
         
-        # Then sample μ | σ² from Normal
+        # 그다음 정규에서 μ | σ²을 표집
         mu_std = np.sqrt(sigma2_samples / self.current.kappa)
         mu_samples = np.random.normal(self.current.mu, mu_std)
         
         return mu_samples, sigma2_samples
     
     def log_marginal_likelihood(self, data: np.ndarray) -> float:
-        """Compute log marginal likelihood (model evidence)."""
+        """로그 주변 가능도(모형 증거)를 셈한다."""
         data = np.atleast_1d(data)
         n = len(data)
         
         if n == 0:
             return 0.0
         
-        # Compute posterior parameters
+        # 뒤확률 매개변수 셈하기
         x_bar = data.mean()
         ss = ((data - x_bar)**2).sum() if n > 1 else 0.0
         
@@ -3723,7 +3373,7 @@ class GaussianUnknownVarianceModel:
         prior_data_sq = (self.prior.kappa * n / kappa_n) * (x_bar - self.prior.mu)**2
         beta_n = self.prior.beta + 0.5 * ss + 0.5 * prior_data_sq
         
-        # Log marginal likelihood
+        # 로그 주변 가능도
         log_ml = (
             gammaln(alpha_n) - gammaln(self.prior.alpha)
             + self.prior.alpha * np.log(self.prior.beta) - alpha_n * np.log(beta_n)
@@ -3733,9 +3383,8 @@ class GaussianUnknownVarianceModel:
         
         return log_ml
 
-
 # =============================================================================
-# Visualization Functions
+# 그려 보기 함수
 # =============================================================================
 
 def plot_joint_posterior(
@@ -3744,14 +3393,14 @@ def plot_joint_posterior(
     true_sigma2: Optional[float] = None,
     n_grid: int = 100
 ) -> plt.Figure:
-    """Visualize joint and marginal posteriors."""
+    """결합 뒤확률과 주변 뒤확률을 그려 본다."""
     
     fig, axes = plt.subplots(2, 2, figsize=(12, 10))
     
     post_mu = model.posterior_mu
     post_var = model.posterior_variance
     
-    # Determine plotting ranges
+    # 그릴 범위 정하기
     mu_std = post_mu.scale * np.sqrt(post_mu.df / (post_mu.df - 2)) if post_mu.df > 2 else post_mu.scale * 3
     mu_range = (post_mu.loc - 4*mu_std, post_mu.loc + 4*mu_std)
     
@@ -3761,7 +3410,7 @@ def plot_joint_posterior(
     mu_vals = np.linspace(mu_range[0], mu_range[1], n_grid)
     var_vals = np.linspace(var_range[0], var_range[1], n_grid)
     
-    # Top-left: Joint posterior contour
+    # 왼쪽 위: 결합 뒤확률 등고선
     ax = axes[0, 0]
     MU, VAR = np.meshgrid(mu_vals, var_vals)
     
@@ -3783,7 +3432,7 @@ def plot_joint_posterior(
     ax.set_title('Joint Posterior p(μ, σ² | D)', fontsize=14)
     plt.colorbar(contour, ax=ax)
     
-    # Top-right: Marginal for μ
+    # 오른쪽 위: μ의 주변 분포
     ax = axes[0, 1]
     ax.plot(mu_vals, post_mu.pdf(mu_vals), 'b-', linewidth=2, label=f'{post_mu}')
     ax.fill_between(mu_vals, post_mu.pdf(mu_vals), alpha=0.3)
@@ -3795,7 +3444,7 @@ def plot_joint_posterior(
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
     
-    # Bottom-left: Marginal for σ²
+    # 왼쪽 아래: σ²의 주변 분포
     ax = axes[1, 0]
     ax.plot(var_vals, post_var.pdf(var_vals), 'b-', linewidth=2, label=f'{post_var}')
     ax.fill_between(var_vals, post_var.pdf(var_vals), alpha=0.3)
@@ -3808,7 +3457,7 @@ def plot_joint_posterior(
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
     
-    # Bottom-right: Posterior samples
+    # 오른쪽 아래: 뒤확률 표본
     ax = axes[1, 1]
     mu_samples, var_samples = model.sample_posterior(1000)
     ax.scatter(mu_samples, var_samples, alpha=0.3, s=10, c='steelblue')
@@ -3822,7 +3471,6 @@ def plot_joint_posterior(
     plt.tight_layout()
     return fig
 
-
 def plot_sequential_updating(
     data: np.ndarray,
     prior_mu: float,
@@ -3832,7 +3480,7 @@ def plot_sequential_updating(
     true_mu: Optional[float] = None,
     true_sigma2: Optional[float] = None
 ) -> plt.Figure:
-    """Visualize sequential Bayesian updating."""
+    """차례대로 베이즈 새로 고치기를 그려 본다."""
     
     model = GaussianUnknownVarianceModel(prior_mu, prior_kappa, prior_alpha, prior_beta)
     history = model.update_sequential(data)
@@ -3841,7 +3489,7 @@ def plot_sequential_updating(
     
     fig, axes = plt.subplots(2, 2, figsize=(14, 10))
     
-    # Top-left: Posterior mean for μ
+    # 왼쪽 위: μ의 뒤확률 평균
     ax = axes[0, 0]
     mu_means = [h.mu for h in history]
     
@@ -3862,7 +3510,7 @@ def plot_sequential_updating(
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
     
-    # Top-right: Posterior mode for σ²
+    # 오른쪽 위: σ²의 뒤확률 최빈값
     ax = axes[0, 1]
     var_modes = [h.variance_mode for h in history]
     ax.plot(n_vals, var_modes, 'g-', linewidth=2, marker='s', markersize=4, label='Mode[σ²|D]')
@@ -3874,7 +3522,7 @@ def plot_sequential_updating(
     ax.legend(fontsize=9)
     ax.grid(True, alpha=0.3)
     
-    # Bottom-left: Degrees of freedom
+    # 왼쪽 아래: 자유도
     ax = axes[1, 0]
     dfs = [h.degrees_of_freedom for h in history]
     ax.plot(n_vals, dfs, 'm-', linewidth=2, marker='d', markersize=4)
@@ -3885,7 +3533,7 @@ def plot_sequential_updating(
     ax.legend(fontsize=10)
     ax.grid(True, alpha=0.3)
     
-    # Bottom-right: κ and α growth
+    # 오른쪽 아래: κ과 α의 자람
     ax = axes[1, 1]
     kappas = [h.kappa for h in history]
     alphas = [h.alpha for h in history]
@@ -3900,13 +3548,12 @@ def plot_sequential_updating(
     plt.tight_layout()
     return fig
 
-
 # =============================================================================
-# Demonstrations
+# 보여 주기
 # =============================================================================
 
 def demo_basic_inference():
-    """Demonstrate basic inference with unknown variance."""
+    """흩어짐을 모를 때의 기본 추론을 보인다."""
     
     print("=" * 70)
     print("GAUSSIAN INFERENCE WITH UNKNOWN VARIANCE")
@@ -3926,9 +3573,8 @@ def demo_basic_inference():
     print(f"Marginal for μ: {model.posterior_mu}")
     print(f"Marginal for σ²: {model.posterior_variance}")
 
-
 def demo_t_test_connection():
-    """Demonstrate connection to frequentist t-test."""
+    """빈도주의 t검정과의 이음을 보인다."""
     
     print("\n" + "=" * 70)
     print("CONNECTION TO t-TEST")
@@ -3937,12 +3583,12 @@ def demo_t_test_connection():
     np.random.seed(456)
     data = np.random.normal(50, 10, 25)
     
-    # Frequentist
+    # 빈도주의
     x_bar, s = data.mean(), data.std(ddof=1)
     t_crit = stats.t.ppf(0.975, df=len(data)-1)
     freq_ci = (x_bar - t_crit * s/np.sqrt(len(data)), x_bar + t_crit * s/np.sqrt(len(data)))
     
-    # Bayesian with vague prior
+    # 흐릿한 앞확률을 쓴 베이즈
     model = GaussianUnknownVarianceModel(0.0, 0.001, 0.001, 0.001)
     model.update(data)
     bayes_ci = model.posterior_mu.credible_interval(0.95)
@@ -3951,7 +3597,6 @@ def demo_t_test_connection():
     print(f"Bayesian 95% CI:    [{bayes_ci[0]:.4f}, {bayes_ci[1]:.4f}]")
     print(f"Difference: {abs(freq_ci[1] - bayes_ci[1]):.6f}")
 
-
 if __name__ == "__main__":
     demo_basic_inference()
     demo_t_test_connection()
@@ -3959,53 +3604,81 @@ if __name__ == "__main__":
 
 ---
 
-## Summary
+## 요약
 
-| Aspect | Formula |
+| 갈래 | 식 |
 |--------|---------|
-| **Prior** | $(\mu, \sigma^2) \sim \text{NIG}(\mu_0, \kappa_0, \alpha_0, \beta_0)$ |
-| **Likelihood** | $p(\mathcal{D} \mid \mu, \sigma^2) \propto (\sigma^2)^{-n/2} \exp\left(-\frac{(n-1)s^2 + n(\bar{x}-\mu)^2}{2\sigma^2}\right)$ |
-| **Posterior** | $(\mu, \sigma^2) \mid \mathcal{D} \sim \text{NIG}(\mu_n, \kappa_n, \alpha_n, \beta_n)$ |
-| **Marginal for $\mu$** | $\mu \mid \mathcal{D} \sim t_{2\alpha_n}\left(\mu_n, \sqrt{\beta_n/(\alpha_n\kappa_n)}\right)$ |
-| **Marginal for $\sigma^2$** | $\sigma^2 \mid \mathcal{D} \sim \text{Inv-Gamma}(\alpha_n, \beta_n)$ |
-| **Predictive** | $x_{n+1} \mid \mathcal{D} \sim t_{2\alpha_n}\left(\mu_n, \sqrt{\beta_n(\kappa_n+1)/(\alpha_n\kappa_n)}\right)$ |
+| **앞확률** | $(\mu, \sigma^2) \sim \text{NIG}(\mu_0, \kappa_0, \alpha_0, \beta_0)$ |
+| **가능도** | $p(\mathcal{D} \mid \mu, \sigma^2) \propto (\sigma^2)^{-n/2} \exp\left(-\frac{(n-1)s^2 + n(\bar{x}-\mu)^2}{2\sigma^2}\right)$ |
+| **뒤확률** | $(\mu, \sigma^2) \mid \mathcal{D} \sim \text{NIG}(\mu_n, \kappa_n, \alpha_n, \beta_n)$ |
+| **$\mu$의 주변 분포** | $\mu \mid \mathcal{D} \sim t_{2\alpha_n}\left(\mu_n, \sqrt{\beta_n/(\alpha_n\kappa_n)}\right)$ |
+| **$\sigma^2$의 주변 분포** | $\sigma^2 \mid \mathcal{D} \sim \text{Inv-Gamma}(\alpha_n, \beta_n)$ |
+| **예측** | $x_{n+1} \mid \mathcal{D} \sim t_{2\alpha_n}\left(\mu_n, \sqrt{\beta_n(\kappa_n+1)/(\alpha_n\kappa_n)}\right)$ |
 
-### Update Formulas
+### 갱신 식
 
 $$
-
 \kappa_n = \kappa_0 + n, \quad \mu_n = \frac{\kappa_0\mu_0 + n\bar{x}}{\kappa_n}
-
 $$
 
 $$
-
 \alpha_n = \alpha_0 + \frac{n}{2}, \quad \beta_n = \beta_0 + \frac{(n-1)s^2}{2} + \frac{\kappa_0 n(\bar{x} - \mu_0)^2}{2\kappa_n}
-
 $$
 
-### Key Insights
+### 핵심 통찰
 
-1. **Joint inference**: Must infer $\mu$ and $\sigma^2$ together
-2. **Normal-Inverse-Gamma**: Conjugate prior for both parameters
-3. **Student-t marginal**: Uncertainty about variance gives heavier tails
-4. **t-test connection**: Jeffrey's prior yields frequentist intervals
-5. **Sequential updating**: NIG family enables online learning
-6. **Asymptotic normality**: Student-t approaches Gaussian as $n \to \infty$
+1. **결합 추론**: $\mu$과 $\sigma^2$을 함께 미루어 알아야 한다
+2. **정규-역감마**: 두 매개변수의 켤레 앞확률
+3. **스튜던트 t 주변 분포**: 흩어짐에 대한 아리송함이 꼬리를 두껍게 한다
+4. **t 검정과의 이음**: 제프리스 앞확률이 빈도주의 구간을 낸다
+5. **차례 갱신**: NIG족이 온라인 학습을 가능하게 한다
+6. **점근 정규성**: $n \to \infty$이면 스튜던트 t가 가우스에 다가간다
 
-### Connections to Other Chapters
+### 다른 장과의 이음
 
-| Topic | Chapter | Connection |
+| 주제 | 장 | 이음 |
 |-------|---------|------------|
-| Known variance | Ch13: Gaussian Known Variance | Simpler special case |
-| Bayesian regression | Ch13: Bayesian Linear Regression | Extension to multiple parameters |
-| Model comparison | Ch13: Model Evidence | Marginal likelihood computation |
-| BNN uncertainty | Ch13: BNN Uncertainty | Epistemic vs aleatoric |
-| Robust inference | Ch8: Robust Methods | Student-t as robust likelihood |
+| 흩어짐을 알 때 | 13장: 흩어짐을 아는 가우스 | 더 단순한 특별한 경우 |
+| 베이즈 회귀 | 13장: 베이즈 선형 회귀 | 매개변수 여럿으로 넓히기 |
+| 모형 견줌 | 13장: 모형 증거 | 주변 가능도 셈하기 |
+| BNN 불확실성 | 13장: BNN 불확실성 | 앎의 불확실성과 우연의 불확실성 |
+| 튼튼한 추론 | 8장: 튼튼한 방법 | 튼튼한 가능도로서의 스튜던트 t |
 
-### Key References
+### 주요 참고 문헌
 
-- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). Chapter 3.
-- Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*. Chapter 4.
+- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). 3장.
+- Murphy, K. P. (2012). *Machine Learning: A Probabilistic Perspective*. 4장.
 - DeGroot, M. H. (1970). *Optimal Statistical Decisions*. McGraw-Hill.
 - Box, G. E. P., & Tiao, G. C. (1973). *Bayesian Inference in Statistical Analysis*.
+
+## 연습문제
+
+**연습문제 1.**
+켤레 앞확률을 정의하고 보기 셋을 들어라.
+
+??? success "연습문제 1 풀이"
+    뒤확률이 앞확률과 같은 족에 들면 그 앞확률은 가능도의 켤레이다. 보기: (1) 베타-이항: $\text{Beta}(\alpha,\beta) + \text{Binomial} \to \text{Beta}(\alpha+k, \beta+n-k)$. (2) 정규-정규: $\mathcal{N}(\mu_0, \sigma_0^2) + \mathcal{N}(\mu, \sigma^2) \to \mathcal{N}(\mu_n, \sigma_n^2)$. (3) 감마-푸아송: $\text{Gamma}(\alpha,\beta) + \text{Poisson} \to \text{Gamma}(\alpha+\sum x_i, \beta+n)$.
+
+---
+
+**연습문제 2.**
+흩어짐을 아는 정규 가능도와 정규 앞확률에서 뒤확률을 끌어내라.
+
+??? success "연습문제 2 풀이"
+    앞확률: $\mu \sim \mathcal{N}(\mu_0, \sigma_0^2)$. 데이터: $x_1,\ldots,x_n \sim \mathcal{N}(\mu, \sigma^2)$. 뒤확률: $\mu|x \sim \mathcal{N}(\mu_n, \sigma_n^2)$이며 $\sigma_n^2 = (1/\sigma_0^2 + n/\sigma^2)^{-1}$이고 $\mu_n = \sigma_n^2(\mu_0/\sigma_0^2 + n\bar{x}/\sigma^2)$이다. 뒤확률의 평균은 앞확률의 평균과 표본 평균을 정밀도로 무게 준 평균이다.
+
+---
+
+**연습문제 3.**
+켤레 앞확률은 왜 셈에 편하면서도 때로 옥죄는가?
+
+??? success "연습문제 3 풀이"
+    편한 점: 닫힌 꼴의 뒤확률이 나오고 MCMC이 필요 없다. 옥죄는 점: 그 앞확률족이 실제 믿음을 담아내지 못할 수 있다. 이를테면 평균이 봉우리 둘이라고 믿는다면 정규 앞확률 하나로는 나타낼 수 없다. 켤레가 아닌 앞확률은 수치 방법(MCMC, 변분 추론)이 필요하지만 더 자유롭다.
+
+---
+
+**연습문제 4.**
+앞확률의 '실효 표본 크기'라는 개념을 설명하라.
+
+??? success "연습문제 4 풀이"
+    앞확률 $\text{Beta}(\alpha, \beta)$의 실효 표본 크기는 $\alpha + \beta$이다. 곧 관찰 $\alpha + \beta$개만큼의 정보를 보탠다. 실제 관찰 $n$개를 얻은 뒤 뒤확률은 $\text{Beta}(\alpha+k, \beta+n-k)$이고 전체 실효 표본 크기는 $\alpha + \beta + n$이다. $n$이 커질수록 앞확률의 영향은 그만큼 줄어든다.

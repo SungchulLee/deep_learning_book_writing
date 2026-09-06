@@ -1,9 +1,4 @@
 # Variational Bayesian Neural Networks
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 **Variational Bayesian Neural Networks** (Variational BNNs) provide a principled framework for approximate posterior inference by casting the intractable Bayesian inference problem as an optimization problem. By maximizing the Evidence Lower Bound (ELBO), we learn a tractable approximating distribution over network weights, enabling scalable uncertainty quantification in deep learning.
 
 ---
@@ -15,12 +10,11 @@
 The true posterior over neural network weights is intractable:
 
 $$
-
 p(\theta \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{p(\mathcal{D})}
-
 $$
 
 **Challenges**:
+
 - The evidence $p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta) p(\theta) d\theta$ has no closed form
 - High-dimensional parameter space ($10^6$-$10^9$ parameters)
 - Complex, multimodal posterior landscape
@@ -31,9 +25,7 @@ $$
 **Key idea**: Approximate the intractable posterior with a tractable distribution:
 
 $$
-
 p(\theta \mid \mathcal{D}) \approx q_\phi(\theta)
-
 $$
 
 where $q_\phi(\theta)$ is from a tractable family (e.g., Gaussian) with parameters $\phi$.
@@ -41,9 +33,7 @@ where $q_\phi(\theta)$ is from a tractable family (e.g., Gaussian) with paramete
 **Optimization objective**: Find $\phi$ that minimizes the KL divergence:
 
 $$
-
 \phi^* = \arg\min_\phi \text{KL}(q_\phi(\theta) \| p(\theta \mid \mathcal{D}))
-
 $$
 
 ### Advantages of Variational Inference
@@ -64,25 +54,19 @@ $$
 Starting from the log evidence:
 
 $$
-
 \log p(\mathcal{D}) = \log \int p(\mathcal{D} \mid \theta) p(\theta) d\theta
-
 $$
 
 Introduce the variational distribution $q_\phi(\theta)$:
 
 $$
-
 \log p(\mathcal{D}) = \log \int \frac{q_\phi(\theta)}{q_\phi(\theta)} p(\mathcal{D} \mid \theta) p(\theta) d\theta
-
 $$
 
 Apply Jensen's inequality:
 
 $$
-
 \log p(\mathcal{D}) \geq \int q_\phi(\theta) \log \frac{p(\mathcal{D} \mid \theta) p(\theta)}{q_\phi(\theta)} d\theta = \mathcal{L}(\phi)
-
 $$
 
 This lower bound $\mathcal{L}(\phi)$ is the **Evidence Lower Bound (ELBO)**.
@@ -92,21 +76,18 @@ This lower bound $\mathcal{L}(\phi)$ is the **Evidence Lower Bound (ELBO)**.
 The ELBO can be written as:
 
 $$
-
 \boxed{\mathcal{L}(\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(\mathcal{D} \mid \theta)] - \text{KL}(q_\phi(\theta) \| p(\theta))}
-
 $$
 
 **Interpretation**:
+
 - **First term**: Expected log-likelihood (data fit)
 - **Second term**: KL divergence to prior (complexity penalty)
 
 **Alternative form**:
 
 $$
-
 \mathcal{L}(\phi) = \log p(\mathcal{D}) - \text{KL}(q_\phi(\theta) \| p(\theta \mid \mathcal{D}))
-
 $$
 
 Since $\text{KL} \geq 0$, maximizing ELBO is equivalent to minimizing KL to the posterior.
@@ -116,25 +97,19 @@ Since $\text{KL} \geq 0$, maximizing ELBO is equivalent to minimizing KL to the 
 For neural network training, minimize the negative ELBO:
 
 $$
-
 \boxed{\mathcal{L}_{\text{VI}}(\phi) = -\mathbb{E}_{q_\phi(\theta)}[\log p(\mathcal{D} \mid \theta)] + \text{KL}(q_\phi(\theta) \| p(\theta))}
-
 $$
 
 For regression with Gaussian likelihood:
 
 $$
-
 \mathcal{L}_{\text{VI}}(\phi) = \frac{1}{2\sigma^2} \mathbb{E}_{q_\phi}\left[\sum_{i=1}^N (y_i - f_\theta(x_i))^2\right] + \text{KL}(q_\phi \| p)
-
 $$
 
 For classification with categorical likelihood:
 
 $$
-
 \mathcal{L}_{\text{VI}}(\phi) = -\mathbb{E}_{q_\phi}\left[\sum_{i=1}^N \sum_c y_{ic} \log \text{softmax}(f_\theta(x_i))_c\right] + \text{KL}(q_\phi \| p)
-
 $$
 
 ---
@@ -146,9 +121,7 @@ $$
 The **mean-field** assumption factorizes the posterior:
 
 $$
-
 q_\phi(\theta) = \prod_{j=1}^d q_{\phi_j}(\theta_j)
-
 $$
 
 Each parameter has its own independent distribution.
@@ -158,9 +131,7 @@ Each parameter has its own independent distribution.
 The most common choice is diagonal Gaussian:
 
 $$
-
 \boxed{q_\phi(\theta) = \prod_{j=1}^d \mathcal{N}(\theta_j \mid \mu_j, \sigma_j^2)}
-
 $$
 
 **Variational parameters**: $\phi = \{(\mu_j, \sigma_j)\}_{j=1}^d$
@@ -172,27 +143,25 @@ $$
 For Gaussian prior $p(\theta) = \mathcal{N}(0, \sigma_p^2 I)$:
 
 $$
-
 \text{KL}(q_\phi \| p) = \frac{1}{2} \sum_{j=1}^d \left[ \frac{\mu_j^2 + \sigma_j^2}{\sigma_p^2} - 1 - \log \frac{\sigma_j^2}{\sigma_p^2} \right]
-
 $$
 
 **Per-parameter KL**:
 
 $$
-
 \text{KL}(\mathcal{N}(\mu, \sigma^2) \| \mathcal{N}(0, \sigma_p^2)) = \frac{\mu^2 + \sigma^2}{2\sigma_p^2} - \frac{1}{2} - \log \frac{\sigma}{\sigma_p}
-
 $$
 
 ### Limitations of Mean-Field
 
 **Independence assumption**: Ignores correlations between weights
+
 - Cannot capture weight interactions
 - May underestimate uncertainty
 - Posterior covariance is diagonal
 
 **Unimodality**: Gaussian approximation captures single mode
+
 - Cannot represent multimodal posteriors
 - May miss important posterior structure
 
@@ -205,9 +174,7 @@ $$
 To optimize the ELBO, we need:
 
 $$
-
 \nabla_\phi \mathbb{E}_{q_\phi(\theta)}[\log p(\mathcal{D} \mid \theta)]
-
 $$
 
 **Challenge**: The expectation is over $q_\phi$, which depends on $\phi$.
@@ -217,17 +184,13 @@ $$
 **Key insight**: Express $\theta$ as a deterministic function of $\phi$ and noise:
 
 $$
-
 \theta = g(\phi, \epsilon) = \mu + \sigma \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
-
 $$
 
 Now the expectation is over $\epsilon$, independent of $\phi$:
 
 $$
-
 \mathbb{E}_{q_\phi(\theta)}[f(\theta)] = \mathbb{E}_{\epsilon \sim \mathcal{N}(0,I)}[f(\mu + \sigma \odot \epsilon)]
-
 $$
 
 ### Gradient Computation
@@ -235,17 +198,13 @@ $$
 The gradient becomes:
 
 $$
-
 \nabla_\phi \mathbb{E}_{q_\phi}[f(\theta)] = \mathbb{E}_{\epsilon}\left[\nabla_\phi f(\mu + \sigma \odot \epsilon)\right]
-
 $$
 
 **Monte Carlo estimate** with single sample:
 
 $$
-
 \nabla_\phi \mathbb{E}_{q_\phi}[f(\theta)] \approx \nabla_\phi f(\mu + \sigma \odot \epsilon), \quad \epsilon \sim \mathcal{N}(0, I)
-
 $$
 
 ### Practical Implementation
@@ -255,9 +214,7 @@ $$
 **Gradient flow**:
 
 $$
-
 \frac{\partial \mathcal{L}}{\partial \mu} = \frac{\partial \mathcal{L}}{\partial \theta}, \quad \frac{\partial \mathcal{L}}{\partial \rho} = \frac{\partial \mathcal{L}}{\partial \theta} \cdot \epsilon \cdot \frac{e^\rho}{1 + e^\rho}
-
 $$
 
 ---
@@ -292,9 +249,7 @@ For each epoch:
 For minibatch training, scale the ELBO appropriately:
 
 $$
-
 \mathcal{L}(\phi) \approx \frac{N}{|B|} \sum_{i \in B} \log p(y_i \mid x_i, \theta) - \text{KL}(q_\phi \| p)
-
 $$
 
 **KL weighting**: The KL term is computed once per minibatch, scaled by $1/M$ where $M$ is the number of minibatches.
@@ -304,12 +259,11 @@ $$
 The trained variational distribution gives:
 
 $$
-
 W_{ij} \sim \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)
-
 $$
 
 **Interpretation**:
+
 - $\mu_{ij}$: Most likely weight value
 - $\sigma_{ij}$: Uncertainty about weight value
 - Large $\sigma$ → high uncertainty → less confident predictions
@@ -323,17 +277,13 @@ $$
 Standard reparameterization samples weights:
 
 $$
-
 W = \mu_W + \sigma_W \odot \epsilon_W
-
 $$
 
 Then computes activations:
 
 $$
-
 a = Wx
-
 $$
 
 **Problem**: High variance in gradient estimates when network is wide.
@@ -343,23 +293,17 @@ $$
 **Key insight**: For linear layers, directly sample activations:
 
 $$
-
 a = Wx = (\mu_W + \sigma_W \odot \epsilon_W)x
-
 $$
 
 $$
-
 a \sim \mathcal{N}(\mu_W x, (\sigma_W^2 \odot x^2) \mathbf{1})
-
 $$
 
 **Reparameterize at activation level**:
 
 $$
-
 a = \mu_W x + \sqrt{\sigma_W^2 \odot x^2} \odot \epsilon_a
-
 $$
 
 where $\epsilon_a \sim \mathcal{N}(0, I)$ has dimension equal to output size.
@@ -397,17 +341,13 @@ a = a_mu + sqrt(a_var) * eps_a           # eps_a: (n,)
 For Gaussian-to-Gaussian KL:
 
 $$
-
 \text{KL}(q \| p) = \frac{1}{2}\left[\text{tr}(\Sigma_p^{-1}\Sigma_q) + (\mu_p - \mu_q)^\top \Sigma_p^{-1}(\mu_p - \mu_q) - d + \log\frac{|\Sigma_p|}{|\Sigma_q|}\right]
-
 $$
 
 For diagonal Gaussians with zero-mean prior:
 
 $$
-
 \text{KL} = \frac{1}{2}\sum_j \left[\frac{\mu_j^2 + \sigma_j^2}{\sigma_p^2} - 1 - \log\frac{\sigma_j^2}{\sigma_p^2}\right]
-
 $$
 
 ### Monte Carlo KL Estimation
@@ -415,9 +355,7 @@ $$
 For non-conjugate priors, estimate KL via sampling:
 
 $$
-
 \text{KL}(q \| p) = \mathbb{E}_{q}[\log q(\theta) - \log p(\theta)] \approx \frac{1}{S}\sum_{s=1}^S [\log q(\theta^{(s)}) - \log p(\theta^{(s)})]
-
 $$
 
 ### KL Annealing
@@ -427,9 +365,7 @@ $$
 **Solution**: Gradually increase KL weight:
 
 $$
-
 \mathcal{L}_t(\phi) = \mathbb{E}_{q_\phi}[\log p(\mathcal{D} \mid \theta)] - \beta_t \cdot \text{KL}(q_\phi \| p)
-
 $$
 
 **Annealing schedules**:
@@ -437,25 +373,19 @@ $$
 **Linear**:
 
 $$
-
 \beta_t = \min(1, t / T_{\text{warmup}})
-
 $$
 
 **Sigmoid**:
 
 $$
-
 \beta_t = \frac{1}{1 + \exp(-(t - T_{\text{mid}})/\tau)}
-
 $$
 
 **Cyclical**:
 
 $$
-
 \beta_t = \min(1, \text{mod}(t, T_{\text{cycle}}) / T_{\text{rise}})
-
 $$
 
 ---
@@ -465,9 +395,7 @@ $$
 ### Full Covariance Gaussian
 
 $$
-
 q(\theta) = \mathcal{N}(\mu, \Sigma)
-
 $$
 
 **Parameters**: $d + d(d+1)/2$ (mean + lower triangular Cholesky)
@@ -479,9 +407,7 @@ $$
 **Low-rank plus diagonal**:
 
 $$
-
 \Sigma = D + VV^\top
-
 $$
 
 where $D$ is diagonal and $V \in \mathbb{R}^{d \times r}$ with $r \ll d$.
@@ -495,9 +421,7 @@ where $D$ is diagonal and $V \in \mathbb{R}^{d \times r}$ with $r \ll d$.
 For weight matrix $W \in \mathbb{R}^{m \times n}$:
 
 $$
-
 q(W) = \mathcal{MN}(M, U, V)
-
 $$
 
 where $U \in \mathbb{R}^{m \times m}$ and $V \in \mathbb{R}^{n \times n}$.
@@ -509,20 +433,17 @@ where $U \in \mathbb{R}^{m \times m}$ and $V \in \mathbb{R}^{n \times n}$.
 Transform a simple distribution through invertible functions:
 
 $$
-
 \theta = f_K \circ f_{K-1} \circ \cdots \circ f_1(z), \quad z \sim \mathcal{N}(0, I)
-
 $$
 
 **Density**:
 
 $$
-
 q(\theta) = q_0(f^{-1}(\theta)) \left|\det \frac{\partial f^{-1}}{\partial \theta}\right|
-
 $$
 
 **Popular flows**:
+
 - **Planar flows**: $f(z) = z + u \cdot \tanh(w^\top z + b)$
 - **Radial flows**: $f(z) = z + \beta h(\alpha, r)(z - z_0)$
 - **RealNVP**: Coupling layers with tractable Jacobian
@@ -539,20 +460,17 @@ The prior $p(\theta)$ affects both regularization and uncertainty:
 **Standard Gaussian**:
 
 $$
-
 p(\theta) = \mathcal{N}(0, \sigma_p^2 I)
-
 $$
 
 **Scale mixture** (for robustness):
 
 $$
-
 p(\theta) = \pi \mathcal{N}(0, \sigma_1^2) + (1-\pi) \mathcal{N}(0, \sigma_2^2)
-
 $$
 
 **Empirical guidelines**:
+
 - Start with $\sigma_p = 1$
 - Tune based on validation performance
 - Consider hierarchical priors for automatic tuning
@@ -560,10 +478,12 @@ $$
 ### Initialization
 
 **Mean initialization**: 
+
 - Standard initialization (Xavier, He)
 - Or pre-trained weights
 
 **Variance initialization**:
+
 - Small initial variance: $\sigma_{\text{init}} \approx 0.01$-$0.1$
 - Ensures early training resembles deterministic network
 
@@ -594,9 +514,7 @@ $$
 Auxiliary variables for more expressive posteriors:
 
 $$
-
 q(\theta) = \int q(\theta \mid z) q(z) dz
-
 $$
 
 where $q(\theta \mid z)$ is Gaussian and $q(z)$ is a normalizing flow.
@@ -606,9 +524,7 @@ where $q(\theta \mid z)$ is Gaussian and $q(z)$ is a normalizing flow.
 Use natural gradient with noise for better optimization:
 
 $$
-
 \theta_{t+1} = \theta_t - \alpha F^{-1} (\nabla \mathcal{L} + \epsilon)
-
 $$
 
 where $F$ is the Fisher information matrix.
@@ -618,15 +534,11 @@ where $F$ is the Fisher information matrix.
 Approximate natural gradient variational inference:
 
 $$
-
 \mu_{t+1} = \mu_t - \alpha \Sigma_t \nabla_\mu \mathcal{L}
-
 $$
 
 $$
-
 \Sigma_{t+1}^{-1} = (1-\alpha)\Sigma_t^{-1} + \alpha \hat{F}
-
 $$
 
 ### Functional Variational Inference
@@ -634,12 +546,11 @@ $$
 Place variational distribution in function space:
 
 $$
-
 q(f) \approx p(f \mid \mathcal{D})
-
 $$
 
 **Advantages**:
+
 - More interpretable priors
 - Better uncertainty in function space
 - Avoids weight-space pathologies
@@ -1626,25 +1537,19 @@ if __name__ == "__main__":
 **Variational Inference** approximates the intractable posterior:
 
 $$
-
 p(\theta \mid \mathcal{D}) \approx q_\phi(\theta)
-
 $$
 
 **ELBO** (Evidence Lower Bound):
 
 $$
-
 \mathcal{L}(\phi) = \mathbb{E}_{q_\phi}[\log p(\mathcal{D} \mid \theta)] - \text{KL}(q_\phi \| p)
-
 $$
 
 **Reparameterization Trick**:
 
 $$
-
 \theta = \mu + \sigma \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
-
 $$
 
 ### Mean-Field Gaussian
@@ -1709,3 +1614,35 @@ $$
 - Louizos, C., & Welling, M. (2017). Multiplicative normalizing flows for variational Bayesian neural networks. *ICML*.
 - Zhang, G., et al. (2018). Noisy natural gradient as variational inference. *ICML*.
 - Osawa, K., et al. (2019). Practical deep learning with Bayesian principles. *NeurIPS*.
+
+## Exercises
+
+**Exercise 1.**
+For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+
+??? success "Solution to Exercise 1"
+    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
+
+---
+
+**Exercise 2.**
+Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
+
+??? success "Solution to Exercise 2"
+    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+
+---
+
+**Exercise 3.**
+Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+
+??? success "Solution to Exercise 3"
+    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+
+---
+
+**Exercise 4.**
+Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+
+??? success "Solution to Exercise 4"
+    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$

@@ -1,24 +1,24 @@
-# Hoare Partition Scheme
+# 호어 나눔 방식
 
-C. A. R. Hoare invented quicksort in 1960 and proposed the original partition scheme that bears his name.  Unlike Lomuto's scheme, which uses a single pointer scanning left-to-right, Hoare's partition uses **two pointers** starting at opposite ends of the array and moving inward until they cross.  This produces roughly three times fewer swaps on average, making it faster in practice despite being slightly harder to implement correctly.
+C. A. R. 호어는 1960년에 빠른 정렬을 지어냈고 제 이름이 붙은 본디 나눔 방식을 내놓았다. 왼쪽에서 오른쪽으로 훑는 가리개 하나를 쓰는 로무토 방식과 달리, 호어의 나눔은 배열의 양 끝에서 시작해 서로 엇갈릴 때까지 안쪽으로 다가오는 **가리개 둘**을 쓴다. 그래서 평균으로 맞바꿈이 대략 3분의 1로 줄어, 제대로 구현하기가 조금 더 까다로운데도 실전에서 더 빠르다.
 
-## Algorithm
+## 알고리즘
 
-Given an array $A[\ell..r]$ with pivot $p = A[\ell]$ (the first element):
+축이 $p = A[\ell]$(첫 원소)인 배열 $A[\ell..r]$이 주어지면 다음과 같이 한다.
 
-1. Initialize $i = \ell - 1$ and $j = r + 1$.
-2. Repeat:
-    - Increment $i$ until $A[i] \geq p$.
-    - Decrement $j$ until $A[j] \leq p$.
-    - If $i < j$, swap $A[i]$ and $A[j]$.
-    - If $i \geq j$, return $j$.
+1. $i = \ell - 1$, $j = r + 1$으로 둔다.
+2. 다음을 되풀이한다.
+    - $A[i] \geq p$이 될 때까지 $i$을 민다.
+    - $A[j] \leq p$이 될 때까지 $j$을 당긴다.
+    - $i < j$이면 $A[i]$과 $A[j]$을 맞바꾼다.
+    - $i \geq j$이면 $j$을 되돌린다.
 
-The returned index $j$ is not necessarily the pivot's final position.  Instead, it guarantees that $A[\ell..j] \leq p$ and $A[j+1..r] \geq p$.  This is a weaker postcondition than Lomuto's, which matters for the recursive calls.
+되돌린 첨자 $j$이 축의 마지막 자리인 것은 아니다. 그 대신 $A[\ell..j] \leq p$이고 $A[j+1..r] \geq p$임을 보장한다. 이는 로무토보다 약한 뒤조건이며 되돌이 부름에서 중요하다.
 
-!!! warning "Recursive call structure"
-    Because the pivot may not be at index $j$, quicksort with Hoare partition must recurse on $A[\ell..j]$ and $A[j+1..r]$ (not $A[\ell..j-1]$ and $A[j+1..r]$).  Using Lomuto-style recursion with Hoare partition causes infinite loops.
+!!! warning "되돌이 부름의 짜임"
+    축이 첨자 $j$에 없을 수 있으므로 호어 나눔을 쓰는 빠른 정렬은 ($A[\ell..j-1]$과 $A[j+1..r]$이 아니라) $A[\ell..j]$과 $A[j+1..r]$에서 되돌이해야 한다. 호어 나눔에 로무토식 되돌이를 쓰면 끝없이 돈다.
 
-## Pseudocode
+## 의사코드
 
 ```
 HOARE-PARTITION(A, left, right):
@@ -33,66 +33,66 @@ HOARE-PARTITION(A, left, right):
         swap A[i] and A[j]
 ```
 
-## Step-by-Step Example
+## 한 걸음씩 보는 예
 
-Partition $A = [7, 2, 1, 6, 8, 5, 3, 4]$ with pivot $p = A[0] = 7$:
+축이 $p = A[0] = 7$인 $A = [7, 2, 1, 6, 8, 5, 3, 4]$을 나누어 보자.
 
-| Step | $i$ scan | $j$ scan | Action | Array |
+| 걸음 | $i$ 훑기 | $j$ 훑기 | 하는 일 | 배열 |
 |------|----------|----------|--------|-------|
-| 1    | $i=0$: $A[0]=7 \geq 7$, stop | $j=7$: $A[7]=4 \leq 7$, stop | swap $A[0], A[7]$ | $[4, 2, 1, 6, 8, 5, 3, 7]$ |
-| 2    | $i=1$: $2 < 7$; $i=2$: $1 < 7$; $i=3$: $6 < 7$; $i=4$: $8 \geq 7$, stop | $j=6$: $3 \leq 7$, stop | swap $A[4], A[6]$ | $[4, 2, 1, 6, 3, 5, 8, 7]$ |
-| 3    | $i=5$: $5 < 7$; $i=6$: $8 \geq 7$, stop | $j=5$: $5 \leq 7$, stop | $i \geq j$, return $j=5$ | $[4, 2, 1, 6, 3, 5, 8, 7]$ |
+| 1 | $i=0$: $A[0]=7 \geq 7$, 멈춤 | $j=7$: $A[7]=4 \leq 7$, 멈춤 | $A[0], A[7]$ 맞바꿈 | $[4, 2, 1, 6, 8, 5, 3, 7]$ |
+| 2 | $i=1$: $2 < 7$; $i=2$: $1 < 7$; $i=3$: $6 < 7$; $i=4$: $8 \geq 7$, 멈춤 | $j=6$: $3 \leq 7$, 멈춤 | $A[4], A[6]$ 맞바꿈 | $[4, 2, 1, 6, 3, 5, 8, 7]$ |
+| 3 | $i=5$: $5 < 7$; $i=6$: $8 \geq 7$, 멈춤 | $j=5$: $5 \leq 7$, 멈춤 | $i \geq j$, $j=5$ 되돌림 | $[4, 2, 1, 6, 3, 5, 8, 7]$ |
 
-Result: $j = 5$.  Elements $A[0..5] = [4, 2, 1, 6, 3, 5]$ are all $\leq 7$, and $A[6..7] = [8, 7]$ are all $\geq 7$.
+결과: $j = 5$. 원소 $A[0..5] = [4, 2, 1, 6, 3, 5]$은 모두 $\leq 7$이고 $A[6..7] = [8, 7]$은 모두 $\geq 7$이다.
 
-## Why Fewer Swaps
+## 맞바꿈이 적은 까닭
 
-In Lomuto's scheme, every element $\leq$ pivot triggers a swap, even when the element is already on the correct side.  Hoare's scheme only swaps when both pointers have found an out-of-place element -- an element $\geq$ pivot on the left and an element $\leq$ pivot on the right.
+로무토 방식에서는 축보다 작거나 같은 원소마다 맞바꿈이 일어나는데, 그 원소가 이미 맞는 쪽에 있어도 그렇다. 호어 방식은 두 가리개가 모두 제자리를 벗어난 원소를 찾았을 때에만 맞바꾼다. 곧 왼쪽에서 축보다 크거나 같은 원소를, 오른쪽에서 축보다 작거나 같은 원소를 찾았을 때이다.
 
-On random data with distinct elements, the expected number of swaps per partition is:
+원소가 모두 다른 무작위 데이터에서 나눔마다의 기대 맞바꿈 횟수는 다음과 같다.
 
 $$
 \mathbb{E}[\text{swaps}]_{\text{Hoare}} \approx \frac{n}{6}, \quad \mathbb{E}[\text{swaps}]_{\text{Lomuto}} \approx \frac{n}{2}
 $$
 
-This 3:1 ratio explains Hoare's consistent practical advantage.
+이 3:1 비율이 호어가 실전에서 한결같이 앞서는 까닭을 말해 준다.
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Comparisons per partition call:** at most $n + 1$ (each pointer scans at most $n$ positions total, plus one comparison to check crossing).
+**나눔 부름마다의 견줌:** 많아야 $n + 1$번이다(가리개마다 모두 많아야 $n$개 자리를 훑고, 엇갈렸는지 살피는 견줌이 한 번 더 있다).
 
-**Swaps per partition call:** at most $n/2$ (each swap fixes two elements).
+**나눔 부름마다의 맞바꿈:** 많아야 $n/2$번이다(맞바꿈마다 원소 둘을 제자리에 놓는다).
 
-**Overall quicksort complexity** is the same as with Lomuto partition: $O(n \log n)$ average, $O(n^2)$ worst case.  The improvement is in the constant factor.
+**빠른 정렬 전체의 복잡도**는 로무토 나눔과 같다. 평균 $O(n \log n)$, 최악 $O(n^2)$이다. 나아지는 것은 상수 인자이다.
 
-## Correctness Argument
+## 올바름의 논증
 
-The key invariant maintained by Hoare partition:
+호어 나눔이 지키는 핵심 불변식은 다음과 같다.
 
-- When $i$ stops, $A[i] \geq p$.
-- When $j$ stops, $A[j] \leq p$.
-- After swapping, $A[i] \leq p$ and $A[j] \geq p$.
-- When $i \geq j$, every element in $A[\ell..j]$ has been "approved" by the $j$ pointer (i.e., $\leq p$), and every element in $A[j+1..r]$ has been "approved" by the $i$ pointer (i.e., $\geq p$).
+- $i$이 멈추면 $A[i] \geq p$이다.
+- $j$이 멈추면 $A[j] \leq p$이다.
+- 맞바꾼 뒤에는 $A[i] \leq p$이고 $A[j] \geq p$이다.
+- $i \geq j$일 때 $A[\ell..j]$의 원소마다 $j$ 가리개가 "통과시킨"($\leq p$인) 것이고, $A[j+1..r]$의 원소마다 $i$ 가리개가 "통과시킨"($\geq p$인) 것이다.
 
-This ensures a valid partition even though the pivot element may end up anywhere in $A[\ell..j]$.
+그래서 축 원소가 $A[\ell..j]$ 어디에 놓이든 나눔이 올바르게 된다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Hoare partition scheme for quicksort.
+빠른 정렬을 위한 호어 나눔 방식.
 
-Uses two pointers scanning inward from opposite ends of the array,
-producing roughly 3x fewer swaps than Lomuto on random data.
+배열의 양 끝에서 안쪽으로 훑는 가리개 둘을 써서,
+무작위 데이터에서 로무토보다 맞바꿈이 대략 3분의 1이다.
 """
 
 
-# === Hoare partition ==========================================================
+# === 호어 나눔 ================================================================
 
 def hoare_partition(arr: list, left: int, right: int) -> int:
-    """Partition arr[left..right] using the first element as pivot.
+    """첫 원소를 축으로 삼아 arr[left..right]을 나눈다.
 
-    Returns index j such that:
+    다음을 만족하는 첨자 j을 되돌린다.
     - arr[left..j] <= pivot
     - arr[j+1..right] >= pivot
     """
@@ -115,25 +115,25 @@ def hoare_partition(arr: list, left: int, right: int) -> int:
         arr[i], arr[j] = arr[j], arr[i]
 
 
-# === Quicksort with Hoare partition ===========================================
+# === 호어 나눔을 쓰는 빠른 정렬 ===============================================
 
 def quicksort_hoare(arr: list, left: int = 0, right: int = None) -> None:
-    """Sort arr[left..right] in place using Hoare partition.
+    """호어 나눔으로 arr[left..right]을 제자리에서 정렬한다.
 
-    Note: recurse on [left..j] and [j+1..right], NOT [left..j-1].
+    참고: [left..j-1]이 **아니라** [left..j]과 [j+1..right]에서 되돌이한다.
     """
     if right is None:
         right = len(arr) - 1
     if left < right:
         j = hoare_partition(arr, left, right)
-        quicksort_hoare(arr, left, j)        # includes j
+        quicksort_hoare(arr, left, j)        # j을 넣는다
         quicksort_hoare(arr, j + 1, right)
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
-    # Partition demonstration
+    # 나눔 보여 주기
     data = [7, 2, 1, 6, 8, 5, 3, 4]
     print(f"Before: {data}")
     j = hoare_partition(data, 0, len(data) - 1)
@@ -142,14 +142,14 @@ if __name__ == "__main__":
     print(f"Right:  {data[j+1:]}")
     print()
 
-    # Full sort
+    # 온전한 정렬
     data2 = [10, 80, 30, 90, 40, 50, 70]
     print(f"Before: {data2}")
     quicksort_hoare(data2)
     print(f"After:  {data2}")
 ```
 
-**Output:**
+**출력:**
 ```
 Before: [7, 2, 1, 6, 8, 5, 3, 4]
 After:  [4, 2, 1, 6, 3, 5, 8, 7]  (partition index j=5)
@@ -160,8 +160,41 @@ Before: [10, 80, 30, 90, 40, 50, 70]
 After:  [10, 30, 40, 50, 70, 80, 90]
 ```
 
-## References
+## 참고 문헌
 
 - Hoare, C. A. R. (1962). Quicksort. *The Computer Journal*, 5(1), 10-16.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Problem 7-1.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 문제 7-1.
 - Sedgewick, R. (1978). Implementing Quicksort programs. *Communications of the ACM*, 21(10), 847-857.
+
+
+## 연습문제
+
+**연습문제 1.**
+$[38, 27, 43, 3, 9, 82, 10]$에서 호어 나눔 방식을 따라가며 큰 걸음마다의 상태를 보여라.
+
+??? success "연습문제 1 풀이"
+    알고리즘을 한 걸음씩 밟아라. 나누어 정복하는 정렬이라면 되돌이 나눔과 병합을 하나씩 보이고, 나눔 기반 정렬이라면 나눔마다와 축이 놓이는 자리를 보여라. 걸음마다 배열 전체의 상태를 내보여라.
+
+---
+
+**연습문제 2.**
+호어 나눔 방식의 최선, 최악, 평균의 경우 시간 복잡도를 끌어내라.
+
+??? success "연습문제 2 풀이"
+    경우마다 점화식을 써라. 최선의 경우는 가장 좋은 나눔이거나 미리 정렬된 입력이다. 최악의 경우는 일을 가장 크게 만드는 적수 입력이다. 평균의 경우는 무작위 순열에 대한 기대 성능이다. 점화식을 각각 풀어라.
+
+---
+
+**연습문제 3.**
+호어 나눔 방식은 안정적인가? 증명하거나 반례를 들어라.
+
+??? success "연습문제 3 풀이"
+    같은 원소가 본디 상대 차례를 지키면 그 정렬은 안정적이다. 모든 입력에서 이것이 성립함을 증명하거나, 정렬 도중 같은 원소 둘의 자리가 뒤바뀌는 구체적인 입력을 들어라.
+
+---
+
+**연습문제 4.**
+float32 학습 손실 값 1000만 개를 정렬할 때 호어 나눔 방식을 다른 두 방법과 견주어라. 시간, 공간, 캐시 거동, GPU 어울림을 살펴라.
+
+??? success "연습문제 4 풀이"
+    $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.

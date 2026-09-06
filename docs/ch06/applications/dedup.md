@@ -1,84 +1,84 @@
-# Deduplication
+# 중복 제거
 
-Given a collection of $n$ elements, **deduplication** removes all duplicate entries, retaining exactly one copy of each distinct value. This operation is fundamental in data processing --- from cleaning database records to removing redundant entries in log files. Hash-based sets provide the fastest general-purpose solution, achieving $O(n)$ expected time compared to $O(n^2)$ for brute force and $O(n \log n)$ for sorting-based approaches.
+원소 $n$개의 모음이 주어졌을 때 **중복 제거**는 중복된 항목을 모두 없애고 서로 다른 값마다 정확히 하나씩만 남긴다. 데이터베이스 기록을 정리하는 일부터 로그 파일의 군더더기 항목을 없애는 일까지, 데이터 처리에서 근본적인 연산이다. 해시 기반 집합이 가장 빠른 범용 해법을 주며, 무식한 방법의 $O(n^2)$이나 정렬 기반의 $O(n \log n)$에 견주어 기대 $O(n)$ 시간을 이룬다.
 
-## Problem Statement
+## 문제 서술
 
-Given an array $A[0 \ldots n-1]$, produce an array $B$ containing exactly one copy of each distinct element in $A$, preserving the first occurrence order. The number of distinct elements is $d \le n$.
+배열 $A[0 \ldots n-1]$이 주어졌을 때, $A$의 서로 다른 원소마다 정확히 하나씩을 처음 나온 순서대로 담은 배열 $B$을 만든다. 서로 다른 원소의 수는 $d \le n$이다.
 
-## Approaches and Complexity
+## 접근법과 복잡도
 
-### Brute Force
+### 무식한 방법
 
-For each element, scan all previous elements to check for duplicates:
+원소마다 앞선 원소를 모두 훑어 중복인지 확인한다.
 
 $$
 T(n) = \sum_{i=0}^{n-1} O(i) = O(n^2)
 $$
 
-This requires no extra space beyond the output array.
+출력 배열 말고는 추가 공간이 들지 않는다.
 
-### Sorting-Based
+### 정렬 기반
 
-Sort the array, then scan linearly to remove adjacent duplicates:
+배열을 정렬한 뒤 선형으로 훑으며 이웃한 중복을 없앤다.
 
 $$
 T(n) = O(n \log n) + O(n) = O(n \log n)
 $$
 
-This approach is efficient but destroys the original insertion order. A stable sort preserves relative order, but the overall cost remains $O(n \log n)$.
+효율적이지만 원래의 순서가 무너진다. 안정 정렬은 상대적인 순서를 지키지만 전체 비용은 여전히 $O(n \log n)$이다.
 
-### Hash-Set-Based
+### 해시 집합 기반
 
-Insert each element into a hash set. If the element is already present, skip it; otherwise, add it to the output:
+각 원소를 해시 집합에 넣는다. 이미 있으면 건너뛰고, 없으면 출력에 더한다.
 
 $$
 T(n) = O(n) \quad \text{expected}
 $$
 
-Each insertion and membership test in the hash set takes $O(1)$ expected time under the simple uniform hashing assumption. The space cost is $O(d)$ for the hash set.
+단순 균등 해싱 가정 아래 해시 집합의 삽입과 소속 판정은 저마다 기대 $O(1)$ 시간이 든다. 해시 집합을 위한 공간 비용은 $O(d)$이다.
 
-## Complexity Comparison
+## 복잡도 비교
 
-| Method | Time | Space | Order preserved |
+| 방법 | 시간 | 공간 | 순서 유지 |
 |---|---|---|---|
-| Brute force | $O(n^2)$ | $O(1)$ | Yes |
-| Sorting | $O(n \log n)$ | $O(1)$ or $O(n)$ | No (unless stable) |
-| Hash set | $O(n)$ expected | $O(d)$ | Yes |
+| 무식한 방법 | $O(n^2)$ | $O(1)$ | 그렇다 |
+| 정렬 | $O(n \log n)$ | $O(1)$ 또는 $O(n)$ | 아니다 (안정 정렬이 아니면) |
+| 해시 집합 | 기대 $O(n)$ | $O(d)$ | 그렇다 |
 
-The hash-set approach dominates when order preservation is required and extra space is available.
+순서를 지켜야 하고 추가 공간을 쓸 수 있다면 해시 집합 방식이 가장 낫다.
 
-## Correctness Argument
+## 올바름의 논증
 
-The hash-set method is correct because:
+해시 집합 방법이 올바른 까닭은 다음과 같다.
 
-1. **No duplicates in output**: an element is appended to the output only when it is absent from the set. After appending, it is added to the set, preventing future duplicates.
-2. **No elements lost**: every element in $A$ is processed. If it is new, it is added to the output; if it is a duplicate, its first occurrence is already in the output.
-3. **Order preserved**: elements are appended to the output in the order they first appear in $A$.
+1. **출력에 중복이 없다**: 원소는 집합에 없을 때만 출력에 붙는다. 붙인 뒤 집합에 더하므로 나중에 중복이 생기지 않는다.
+2. **잃어버리는 원소가 없다**: $A$의 모든 원소를 처리한다. 새 원소이면 출력에 더하고, 중복이면 그 첫 등장이 이미 출력에 있다.
+3. **순서가 지켜진다**: 원소는 $A$에 처음 나타난 순서대로 출력에 붙는다.
 
-## Streaming Deduplication
+## 흐르는 데이터의 중복 제거
 
-When the input arrives as a stream and cannot be stored entirely in memory, exact deduplication requires $O(d)$ space for the hash set, which may be prohibitive for large $d$. In such cases, approximate deduplication using a **Bloom filter** trades a small false positive rate for dramatically reduced memory:
+입력이 흐름으로 들어와 메모리에 다 담을 수 없을 때, 정확한 중복 제거에는 해시 집합을 위한 $O(d)$ 공간이 필요한데 $d$이 크면 감당하기 어렵다. 이때 **블룸 필터**를 쓰는 근사 중복 제거는 작은 거짓 양성률을 대가로 메모리를 크게 줄인다.
 
-- A Bloom filter uses $O(d)$ bits (not entries) to represent the seen set.
-- False positives cause some unique elements to be incorrectly classified as duplicates.
-- False negatives never occur: no duplicate passes through as unique.
+- 블룸 필터는 본 것들의 집합을 나타내는 데 (항목이 아니라) $O(d)$비트를 쓴다.
+- 거짓 양성 때문에 유일한 원소가 중복으로 잘못 분류될 수 있다.
+- 거짓 음성은 결코 생기지 않는다. 중복이 유일한 것처럼 빠져나가는 일은 없다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Deduplication using hash sets.
+해시 집합을 쓰는 중복 제거.
 
-Compares brute-force, sorting-based, and hash-set-based
-approaches to removing duplicate elements.
+중복 원소를 없애는 무차별 대입, 정렬 기반, 해시 집합 기반
+방법을 견준다.
 """
 
 
-# === Brute Force Deduplication ===
+# === 무차별 대입 중복 제거 ===
 
 def dedup_brute(arr):
-    """Remove duplicates in O(n^2) time, preserving order."""
+    """순서를 지키며 O(n^2) 시간에 중복을 없앤다."""
     result = []
     for item in arr:
         if item not in result:
@@ -86,10 +86,10 @@ def dedup_brute(arr):
     return result
 
 
-# === Sorting-Based Deduplication ===
+# === 정렬 기반 중복 제거 ===
 
 def dedup_sort(arr):
-    """Remove duplicates in O(n log n) time. Does NOT preserve order."""
+    """O(n log n) 시간에 중복을 없앤다. 순서는 지키지 않는다."""
     if not arr:
         return []
     sorted_arr = sorted(arr)
@@ -100,10 +100,10 @@ def dedup_sort(arr):
     return result
 
 
-# === Hash-Set Deduplication ===
+# === 해시 집합 중복 제거 ===
 
 def dedup_hash(arr):
-    """Remove duplicates in O(n) expected time, preserving order."""
+    """순서를 지키며 기대 시간 O(n)에 중복을 없앤다."""
     seen = set()
     result = []
     for item in arr:
@@ -113,7 +113,7 @@ def dedup_hash(arr):
     return result
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     data = [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5]
@@ -123,13 +123,13 @@ if __name__ == "__main__":
     print(f"Sort-based: {dedup_sort(data)}")
     print(f"Hash-based: {dedup_hash(data)}")
 
-    # String deduplication
+    # 문자열 중복 제거
     words = ["apple", "banana", "apple", "cherry", "banana", "date"]
     print(f"\nWords input: {words}")
     print(f"Hash-based:  {dedup_hash(words)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Input:      [3, 1, 4, 1, 5, 9, 2, 6, 5, 3, 5]
 Brute:      [3, 1, 4, 5, 9, 2, 6]
@@ -140,6 +140,39 @@ Words input: ['apple', 'banana', 'apple', 'cherry', 'banana', 'date']
 Hash-based:  ['apple', 'banana', 'cherry', 'date']
 ```
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+중복 제거에 대해, 적재율이 $\alpha = 0.75$일 때 삽입과 조회의 기대 시간과 최악의 경우 시간을 계산하라.
+
+??? success "연습문제 1 풀이"
+    기대 시간은 충돌 해결 전략에 달렸으며 균등 해싱을 가정한다. 체이닝에서는 기대 시간이 $O(1 + \alpha) = O(1.75)$이다. 개방 주소법에서는 탐색에 실패할 때 기대 탐사 횟수가 $\approx 1/(1-\alpha) = 4$이다. 최악의 경우는 모든 키가 같은 칸으로 해시될 때의 $O(n)$이다.
+
+---
+
+**연습문제 2.**
+중복 제거을(를) 써서 키 10, 22, 31, 4, 15, 28, 17을 크기가 7인 해시 테이블에 넣어라. 최종 테이블의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    해시 함수 $h(k) = k \bmod 7$을 적용하고 이 쪽의 방법으로 충돌을 처리한다. 키마다 해시를 계산하고 충돌을 해결한 뒤 키를 놓는다. 최종 테이블의 내용을 보인다.
+
+---
+
+**연습문제 3.**
+중복 제거은(는) 딥러닝의 임베딩 테이블에서 어떻게 쓰이는가? 토큰 $V = 50{,}000$개의 어휘를 $m = 30{,}000$개의 버킷에 대응시킬 때 충돌의 양상을 분석하라.
+
+??? success "연습문제 3 풀이"
+    $V/m \approx 1.67$이므로 비둘기집 원리에 의해 충돌이 반드시 생긴다. 버킷마다 평균 1.67개의 토큰이 같은 임베딩을 나누어 쓴다. 충돌률과 그것이 모델의 품질에 미치는 영향은 해시 함수의 품질과 임베딩의 차원에 달렸다(차원이 높을수록 충돌을 더 잘 견딘다).
+
+---
+
+**연습문제 4.**
+$\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 상각 비용이 $O(1)$으로 유지됨을 증명하라.
+
+??? success "연습문제 4 풀이"
+    크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$

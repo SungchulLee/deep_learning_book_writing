@@ -1,19 +1,19 @@
-# Prim's Algorithm
+# 프림 알고리즘
 
-While Kruskal's algorithm is edge-centric -- sorting and scanning all edges globally -- Prim's algorithm takes a vertex-centric approach. It grows a single tree from an arbitrary starting vertex, repeatedly attaching the lightest edge that connects the tree to a vertex not yet included. This mirrors how one might physically lay cable: start at one location and always extend to the nearest unconnected site.
+크러스컬 알고리즘이 변 중심으로 모든 변을 전체로 정렬하고 훑는 것과 달리, 프림 알고리즘은 꼭짓점 중심으로 나아간다. 아무 시작 꼭짓점에서 나무 하나를 키우며 아직 들지 않은 꼭짓점으로 나무를 잇는 가장 가벼운 변을 되풀이해 붙인다. 이는 실제로 선을 까는 모습과 닮았다. 곧 한 곳에서 시작해 늘 가장 가까운, 아직 잇지 않은 곳으로 뻗어 나간다.
 
-## Algorithm Overview
+## 알고리즘 훑어보기
 
-Given a connected, undirected graph $G = (V, E)$ with weight function $w : E \to \mathbb{R}$, Prim's algorithm proceeds as follows:
+무게 함수가 $w : E \to \mathbb{R}$인 이어진 방향 없는 그래프 $G = (V, E)$이 주어지면 프림 알고리즘은 다음처럼 나아간다:
 
-1. **Initialize**: pick an arbitrary starting vertex $r$. Set the key of $r$ to 0 and the key of every other vertex to $\infty$. Each vertex's key represents the minimum weight of any edge connecting it to the growing tree.
-2. **Repeat** $|V|$ times:
-    - Extract the vertex $u$ with minimum key from the set of vertices not yet in the tree.
-    - Add $u$ to the tree.
-    - For each neighbor $v$ of $u$ not yet in the tree: if $w(u, v) < \text{key}[v]$, update $\text{key}[v] = w(u, v)$ and record $u$ as the parent of $v$.
-3. **Terminate** when all vertices are in the tree.
+1. **첫값 잡기**: 아무 시작 꼭짓점 $r$을 고른다. $r$의 열쇠값을 0으로, 다른 모든 꼭짓점의 열쇠값을 $\infty$으로 둔다. 꼭짓점의 열쇠값은 그 꼭짓점을 자라나는 나무로 잇는 변의 최소 무게를 나타낸다.
+2. $|V|$번 **되풀이한다**:
+    - 아직 나무에 들지 않은 꼭짓점 가운데 열쇠값이 가장 작은 꼭짓점 $u$을 꺼낸다.
+    - $u$을 나무에 더한다.
+    - 아직 나무에 들지 않은 $u$의 이웃 $v$마다 $w(u, v) < \text{key}[v]$이면 $\text{key}[v] = w(u, v)$으로 고치고 $u$을 $v$의 어버이로 적어 둔다.
+3. 모든 꼭짓점이 나무에 들면 **멈춘다**.
 
-## Pseudocode
+## 의사코드
 
 ```
 PRIM(G, w, r):
@@ -34,55 +34,87 @@ PRIM(G, w, r):
     return {(parent[v], v) : v ∈ V, v ≠ r}
 ```
 
-## Worked Example
+## 풀이 예제
 
-Consider a graph on $\{A, B, C, D, E\}$. Start from vertex $A$:
+꼭짓점이 $\{A, B, C, D, E\}$인 그래프를 보자. 꼭짓점 $A$에서 시작한다:
 
-| Step | Extract | key[A] | key[B] | key[C] | key[D] | key[E] | Edge added |
+| 걸음 | 꺼냄 | key[A] | key[B] | key[C] | key[D] | key[E] | 더한 변 |
 |------|---------|--------|--------|--------|--------|--------|------------|
-| Init | -- | 0 | inf | inf | inf | inf | -- |
+| 첫값 | -- | 0 | inf | inf | inf | inf | -- |
 | 1 | A | **0** | 4 | 1 | inf | inf | -- |
 | 2 | C | -- | 3 | **1** | 5 | inf | (A, C) |
 | 3 | B | -- | **3** | -- | 2 | inf | (C, B) |
 | 4 | D | -- | -- | -- | **2** | 6 | (B, D) |
 | 5 | E | -- | -- | -- | -- | **6** | (D, E) |
 
-MST edges: $\{(A,C), (C,B), (B,D), (D,E)\}$ with total weight $1 + 3 + 2 + 6 = 12$.
+최소 뻗은 나무의 변: 전체 무게가 $1 + 3 + 2 + 6 = 12$인 $\{(A,C), (C,B), (B,D), (D,E)\}$.
 
-## Correctness
+## 올바름
 
-At each step, Prim's algorithm maintains a tree $T$ on a subset $S \subseteq V$ of vertices. The cut $(S, V \setminus S)$ respects the current edge set because every edge in $T$ has both endpoints in $S$. The algorithm selects the lightest edge crossing this cut (the vertex with minimum key and its connecting edge). By the cut property, this edge is safe to add to the MST.
+걸음마다 프림 알고리즘은 꼭짓점의 부분 모음 $S \subseteq V$ 위의 나무 $T$을 지닌다. $T$의 모든 변이 양 끝을 $S$ 안에 두므로 자름 $(S, V \setminus S)$은 지금의 변 모음을 지킨다. 알고리즘은 이 자름을 가로지르는 가장 가벼운 변(열쇠값이 가장 작은 꼭짓점과 그것을 잇는 변)을 고른다. 자름 성질에 따라 이 변은 최소 뻗은 나무에 더해도 안전하다.
 
-Since the algorithm adds $|V| - 1$ safe edges, the result is an MST.
+알고리즘이 안전한 변 $|V| - 1$개를 더하므로 그 결과는 최소 뻗은 나무이다.
 
-## Complexity Analysis
+## 복잡도 분석
 
-The running time depends on the priority queue implementation:
+돌아가는 시간은 우선순위 줄을 어떻게 구현했는지에 달렸다:
 
-| Priority Queue | EXTRACT-MIN | DECREASE-KEY | Total |
+| 우선순위 줄 | EXTRACT-MIN | DECREASE-KEY | 모두 |
 |---------------|-------------|--------------|-------|
-| Array (unsorted) | $O(V)$ | $O(1)$ | $O(V^2)$ |
-| Binary heap | $O(\log V)$ | $O(\log V)$ | $O(E \log V)$ |
-| Fibonacci heap | $O(\log V)$ amortized | $O(1)$ amortized | $O(E + V \log V)$ |
+| 배열(정렬 안 함) | $O(V)$ | $O(1)$ | $O(V^2)$ |
+| 이진 힙 | $O(\log V)$ | $O(\log V)$ | $O(E \log V)$ |
+| 피보나치 힙 | 고르게 친 $O(\log V)$ | 고르게 친 $O(1)$ | $O(E + V \log V)$ |
 
-**Array implementation**: iterating $V$ times, each EXTRACT-MIN scans $V$ entries. DECREASE-KEY is $O(1)$ (direct array access). Total: $O(V^2)$. This is optimal for dense graphs where $E = \Theta(V^2)$.
+**배열 구현**: $V$번 되풀이하며 EXTRACT-MIN마다 자리 $V$개를 훑는다. DECREASE-KEY은 (배열에 곧바로 닿으므로) $O(1)$이다. 모두 합하면 $O(V^2)$이다. 이는 $E = \Theta(V^2)$인 빽빽한 그래프에서 최적이다.
 
-**Binary heap**: covered in detail on the next page (Prim with Heap).
+**이진 힙**: 다음 쪽(힙을 쓴 프림)에서 자세히 다룬다.
 
-**Fibonacci heap**: achieves $O(E + V \log V)$, which is the best known bound for Prim's algorithm and is asymptotically faster than Kruskal's $O(E \log E)$ when $E = \omega(V)$.
+**피보나치 힙**: $O(E + V \log V)$을 이루며, 이는 프림 알고리즘에 알려진 가장 좋은 경계이고 $E = \omega(V)$일 때 크러스컬의 $O(E \log E)$보다 점근으로 빠르다.
 
-## Comparison with Kruskal's
+## 크러스컬과 견주기
 
-| Aspect | Prim's | Kruskal's |
+| 살필 점 | 프림 | 크러스컬 |
 |--------|--------|-----------|
-| Strategy | Grow one tree vertex by vertex | Merge forest edge by edge |
-| Data structure | Priority queue | Union-Find |
-| Best for | Dense graphs | Sparse graphs |
-| Best complexity | $O(E + V \log V)$ (Fibonacci heap) | $O(E \log E)$ |
-| Parallelizable | Less naturally | More naturally |
+| 전략 | 나무 하나를 꼭짓점씩 키움 | 숲을 변씩 합침 |
+| 자료 짜임 | 우선순위 줄 | 합치기-찾기 |
+| 어디에 좋은가 | 빽빽한 그래프 | 성긴 그래프 |
+| 가장 좋은 복잡도 | $O(E + V \log V)$(피보나치 힙) | $O(E \log E)$ |
+| 나란히 하기 | 덜 자연스러움 | 더 자연스러움 |
 
-## Reference
+## 참고 문헌
 
-- [Introduction to Algorithms (CLRS), Chapter 23](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- [Introduction to Algorithms (CLRS), 23장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Prim, R. C. (1957). Shortest connection networks and some generalizations. *Bell System Technical Journal*, 36(6), 1389--1401.
-- [Prim's algorithm -- Wikipedia](https://en.wikipedia.org/wiki/Prim%27s_algorithm)
+- [프림 알고리즘 -- 위키백과](https://en.wikipedia.org/wiki/Prim%27s_algorithm)
+
+## 연습문제
+
+**연습문제 1.**
+꼭짓점이 $\{A,B,C,D\}$이고 변이 $\{(A,B,10),(A,C,6),(A,D,5),(B,D,15),(C,D,4)\}$일 때 꼭짓점 $A$에서 시작하는 프림 알고리즘의 자취를 좇아라.
+
+??? success "연습문제 1 풀이"
+    시작: 최소 뻗은 나무 $= \{A\}$, 후보: $(A,B,10),(A,C,6),(A,D,5)$. 가장 가벼운 것을 고른다: $(A,D,5)$. 최소 뻗은 나무 $= \{A,D\}$, $D$에서 온 새 후보: $(B,D,15),(C,D,4)$. 모든 후보: $(A,B,10),(A,C,6),(B,D,15),(C,D,4)$. $(C,D,4)$을 고른다. 최소 뻗은 나무 $= \{A,D,C\}$, 고침: $(A,C,6)$은 더 이상 필요 없다. 후보: $(A,B,10),(B,D,15)$. $(A,B,10)$을 고른다. 최소 뻗은 나무의 변: $\{(A,D,5),(C,D,4),(A,B,10)\}$, 전체 무게 $= 19$. $\square$
+
+---
+
+**연습문제 2.**
+자름 성질로 프림 알고리즘이 최소 뻗은 나무를 내놓음을 증명하여라.
+
+??? success "연습문제 2 풀이"
+    걸음마다 프림은 자름 $(S, V \setminus S)$을 가로지르는 가장 가벼운 변을 고르며, 여기서 $S$은 이미 최소 뻗은 나무에 든 꼭짓점의 모음이다. 자름 성질에 따라 어떤 자름이든 그것을 가로지르는 가장 가벼운 변은 어떤 최소 뻗은 나무에 든다. 그러므로 프림이 고르는 변마다 최소 뻗은 나무의 변이다. $V - 1$번 고르면 모든 꼭짓점이 들어와 뻗은 나무를 이룬다. 고른 변이 모두 어떤 최소 뻗은 나무에 들고 그 결과가 나무이므로 그것은 최소 뻗은 나무여야 한다. $\square$
+
+---
+
+**연습문제 3.**
+우선순위 줄로 단순한 배열을 쓴 프림 알고리즘과 이진 힙을 쓴 것을 견주어라. 각각 언제 더 나은가?
+
+??? success "연습문제 3 풀이"
+    **배열 방식**: 열쇠값이 가장 작은 꼭짓점을 찾는 데 $O(V)$, 열쇠값을 고치는 데 $O(1)$이 든다. 모두 합하면 $O(V^2)$이다. **힙 방식**: 최소 꺼내기와 열쇠값 줄이기에 $O(\log V)$이 든다. 모두 합하면 $O((V + E) \log V)$이다. 빽빽한 그래프($E = \Theta(V^2)$)에서는 배열이 $O(V^2)$, 힙이 $O(V^2 \log V)$이므로 배열이 낫다. 성긴 그래프($E = O(V)$)에서는 힙이 $O(V \log V)$, 배열이 $O(V^2)$이므로 힙이 낫다. 뒤바뀌는 점은 대략 $E = V^2 / \log V$이다. $\square$
+
+---
+
+**연습문제 4.**
+프림 알고리즘이 끊긴 그래프를 다룰 수 있는가? 무엇을 고쳐야 하는가?
+
+??? success "연습문제 4 풀이"
+    표준 프림은 시작 꼭짓점에서 나무 하나를 키우므로 다른 조각의 꼭짓점에 닿을 수 없다. 최소 뻗은 숲을 만들려면 아직 들르지 않은 꼭짓점마다 프림을 돌린다. 곧 시작 꼭짓점에서 프림이 끝난 뒤 아직 들르지 않은 꼭짓점이 있는지 살피고 저마다 새 나무를 시작한다. 이러면 이어진 조각마다의 최소 뻗은 나무가 나온다. 모든 실행에 걸쳐 꼭짓점과 변을 많아야 한 번씩 다루므로 전체 시간은 그대로 $O(V^2)$(배열)이나 $O((V+E)\log V)$(힙)이다. $\square$

@@ -1,85 +1,68 @@
-# Masked Self-Attention
+# 가린 자기 주의
+## 들어가며
 
+가린 자기 주의는 트랜스포머 디코더에서 자기 회귀 생성을 가능케 하는 얼개이다. 자리마다 앞으로의 자리에 주의하지 못하게 막아 왼쪽에서 오른쪽으로의 수열 생성에 필요한 인과 짜임을 지킨다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 인과성이라는 요구
 
-## Introduction
-
-Masked self-attention is the mechanism that enables autoregressive generation in Transformer decoders. By preventing each position from attending to future positions, it maintains the causal structure required for left-to-right sequence generation.
-
-## The Causality Requirement
-
-In language modeling, we predict the next token given all previous tokens:
+언어 모형화에서는 앞선 토큰을 모두 주고 다음 토큰을 맞힌다.
 
 $$
-
 P(x_1, x_2, \ldots, x_n) = \prod_{t=1}^{n} P(x_t | x_1, \ldots, x_{t-1})
-
 $$
 
-This factorization requires that when predicting $x_t$, we can only use information from $x_1, \ldots, x_{t-1}$. Masked attention enforces this constraint during parallel training.
+이 인수분해는 $x_t$을 맞힐 때 $x_1, \ldots, x_{t-1}$의 정보만 쓸 것을 요구한다. 가린 주의가 병렬 학습 중에 이 제약을 지키게 한다.
 
-## Mathematical Formulation
+## 수학적 정식화
 
-### Standard Self-Attention
+### 표준 자기 주의
 
-Without masking, attention allows each position to attend to all positions:
+가림이 없으면 주의는 자리마다 모든 자리에 주의하게 한다.
 
 $$
-
 \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V
-
 $$
 
-### Causal (Masked) Self-Attention
+### 인과(가린) 자기 주의
 
-We add a mask $M$ that sets future positions to $-\infty$ before softmax:
+소프트맥스에 앞서 앞으로의 자리를 $-\infty$으로 두는 가림 $M$을 더한다.
 
 $$
-
 \text{MaskedAttention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}} + M\right)V
-
 $$
 
-Where the mask $M \in \mathbb{R}^{n \times n}$:
+여기서 가림 $M \in \mathbb{R}^{n \times n}$은 다음과 같다.
 
 $$
-
 M_{ij} = \begin{cases} 0 & \text{if } j \leq i \text{ (can attend)} \\ -\infty & \text{if } j > i \text{ (masked)} \end{cases}
-
 $$
 
-### Effect on Attention Weights
+### 주의 가중치에 미치는 영향
 
-After applying softmax with $-\infty$ masking:
+$-\infty$ 가림과 함께 소프트맥스를 적용하면 다음과 같다.
 
 $$
-
 \text{softmax}(-\infty) = 0
-
 $$
 
-This ensures zero attention weight to future positions:
+이는 앞으로의 자리에 대한 주의 가중치를 0으로 만든다.
 
 $$
-
 \alpha_{ij} = \begin{cases} \frac{\exp(s_{ij})}{\sum_{k \leq i} \exp(s_{ik})} & \text{if } j \leq i \\ 0 & \text{if } j > i \end{cases}
-
 $$
 
-## Mask Construction
+## 가림 만들기
 
-### Lower Triangular Mask
+### 아래 삼각 가림
 
 ```python
 def create_causal_mask(seq_len: int, device: torch.device = None) -> torch.Tensor:
     """
-    Create causal attention mask.
+    인과 주의 가림을 만든다.
     
-    Returns a mask where mask[i,j] = True means position i CANNOT attend to j.
+    mask[i,j] = True이면 자리 i가 j에 주의할 수 **없다**는 뜻인 가림을 돌려준다.
     
-    Example for seq_len=4:
+    seq_len=4일 때의 보기:
     [[False,  True,  True,  True],
      [False, False,  True,  True],
      [False, False, False,  True],
@@ -88,12 +71,11 @@ def create_causal_mask(seq_len: int, device: torch.device = None) -> torch.Tenso
     mask = torch.triu(torch.ones(seq_len, seq_len, device=device), diagonal=1).bool()
     return mask
 
-
 def create_causal_mask_float(seq_len: int, device: torch.device = None) -> torch.Tensor:
     """
-    Create causal mask with -inf for masked positions.
+    가린 자리를 -inf로 둔 인과 가림을 만든다.
     
-    Returns a mask that can be added directly to attention scores.
+    주의 점수에 곧바로 더할 수 있는 가림을 돌려준다.
     """
     mask = torch.triu(
         torch.full((seq_len, seq_len), float('-inf'), device=device),
@@ -102,7 +84,7 @@ def create_causal_mask_float(seq_len: int, device: torch.device = None) -> torch
     return mask
 ```
 
-### Visualization
+### 눈으로 보기
 
 ```
 Attention Pattern for Position 4:
@@ -115,7 +97,7 @@ Position 4  │ ✓ │ ✓ │ ✓ │ ✓ │ ✗ │
            Attend          Masked
 ```
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
@@ -124,13 +106,12 @@ import torch.nn.functional as F
 import math
 from typing import Optional, Tuple
 
-
 class MaskedSelfAttention(nn.Module):
     """
-    Masked (Causal) Self-Attention mechanism.
+    가린(인과) 자기 주의 얼개.
     
-    Implements autoregressive attention where each position can only
-    attend to itself and previous positions.
+    자리마다 제 자신과 앞선 자리에만 주의할 수 있는
+    자기 회귀 주의를 구현한다.
     """
     
     def __init__(
@@ -141,11 +122,11 @@ class MaskedSelfAttention(nn.Module):
         max_len: int = 2048
     ):
         """
-        Args:
-            d_model: Model dimension
-            num_heads: Number of attention heads
-            dropout: Attention dropout probability
-            max_len: Maximum sequence length for pre-computed mask
+        인수:
+            d_model: 모형 차원
+            num_heads: 주의 머리의 수
+            dropout: 주의 드롭아웃 확률
+            max_len: 미리 셈해 둘 가림의 최대 수열 길이
         """
         super().__init__()
         
@@ -156,25 +137,25 @@ class MaskedSelfAttention(nn.Module):
         self.head_dim = d_model // num_heads
         self.scale = self.head_dim ** -0.5
         
-        # Linear projections
+        # 선형 사영
         self.W_q = nn.Linear(d_model, d_model)
         self.W_k = nn.Linear(d_model, d_model)
         self.W_v = nn.Linear(d_model, d_model)
         self.W_o = nn.Linear(d_model, d_model)
         
-        # Dropout
+        # 드롭아웃
         self.dropout = nn.Dropout(dropout)
         
-        # Pre-compute and register causal mask
+        # 인과 가림을 미리 셈해 등록한다
         mask = torch.triu(torch.ones(max_len, max_len), diagonal=1).bool()
         self.register_buffer('causal_mask', mask)
     
     def _split_heads(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Split tensor into multiple heads.
+        텐서를 여러 머리로 나눈다.
         
-        Input: [batch, seq_len, d_model]
-        Output: [batch, num_heads, seq_len, head_dim]
+        입력: [batch, seq_len, d_model]
+        출력: [batch, num_heads, seq_len, head_dim]
         """
         batch_size, seq_len, _ = x.shape
         x = x.view(batch_size, seq_len, self.num_heads, self.head_dim)
@@ -182,10 +163,10 @@ class MaskedSelfAttention(nn.Module):
     
     def _merge_heads(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Merge heads back to single tensor.
+        머리를 다시 텐서 하나로 합친다.
         
-        Input: [batch, num_heads, seq_len, head_dim]
-        Output: [batch, seq_len, d_model]
+        입력: [batch, num_heads, seq_len, head_dim]
+        출력: [batch, seq_len, d_model]
         """
         batch_size, _, seq_len, _ = x.shape
         x = x.transpose(1, 2).contiguous()
@@ -198,42 +179,42 @@ class MaskedSelfAttention(nn.Module):
         return_attention: bool = False
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        Forward pass with causal masking.
+        인과 가림을 쓰는 앞먹임.
         
-        Args:
-            x: Input tensor [batch_size, seq_len, d_model]
-            padding_mask: Optional padding mask [batch_size, seq_len]
-                True for positions to mask (padding tokens)
-            return_attention: Whether to return attention weights
+        인수:
+            x: 입력 텐서 [batch_size, seq_len, d_model]
+            padding_mask: 선택으로 주는 채움 가림 [batch_size, seq_len]
+                가릴 자리(채움 토큰)가 True
+            return_attention: 어텐션 가중치를 돌려줄지 여부
             
-        Returns:
-            output: Transformed tensor [batch_size, seq_len, d_model]
-            attention_weights: Optional [batch_size, num_heads, seq_len, seq_len]
+        반환값:
+            output: 바뀐 텐서 [batch_size, seq_len, d_model]
+            attention_weights: 선택 [batch_size, num_heads, seq_len, seq_len]
         """
         batch_size, seq_len, _ = x.shape
         
-        # Step 1: Linear projections
+        # 1단계: 선형 사영
         Q = self.W_q(x)  # [batch, seq, d_model]
         K = self.W_k(x)
         V = self.W_v(x)
         
-        # Step 2: Split into heads
+        # 2단계: 머리로 나눈다
         Q = self._split_heads(Q)  # [batch, heads, seq, head_dim]
         K = self._split_heads(K)
         V = self._split_heads(V)
         
-        # Step 3: Scaled dot-product attention
+        # 3단계: 스케일 조정 내적 주의
         # [batch, heads, seq, seq]
         attention_scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
         
-        # Step 4: Apply causal mask (prevent attending to future)
+        # 4단계: 인과 가림을 적용한다 (앞으로의 자리에 주의하지 못하게)
         causal_mask = self.causal_mask[:seq_len, :seq_len]
         attention_scores = attention_scores.masked_fill(
             causal_mask.unsqueeze(0).unsqueeze(0),
             float('-inf')
         )
         
-        # Step 5: Apply padding mask (optional)
+        # 5단계: 채움 가림을 적용한다 (선택)
         if padding_mask is not None:
             # padding_mask: [batch, seq] -> [batch, 1, 1, seq]
             padding_mask = padding_mask.unsqueeze(1).unsqueeze(2)
@@ -242,20 +223,20 @@ class MaskedSelfAttention(nn.Module):
                 float('-inf')
             )
         
-        # Step 6: Softmax
+        # 6단계: 소프트맥스
         attention_weights = F.softmax(attention_scores, dim=-1)
         
-        # Handle NaN from all-masked rows (shouldn't happen with causal mask)
+        # 모두 가려진 행에서 나오는 NaN을 다룬다 (인과 가림에서는 생기지 않아야 한다)
         attention_weights = torch.nan_to_num(attention_weights, 0.0)
         
-        # Step 7: Dropout
+        # 7단계: 드롭아웃
         attention_weights = self.dropout(attention_weights)
         
-        # Step 8: Apply attention to values
+        # 8단계: 값에 주의를 적용한다
         # [batch, heads, seq, head_dim]
         context = torch.matmul(attention_weights, V)
         
-        # Step 9: Merge heads and final projection
+        # 9단계: 머리를 합치고 마지막 사영을 한다
         context = self._merge_heads(context)  # [batch, seq, d_model]
         output = self.W_o(context)
         
@@ -263,23 +244,22 @@ class MaskedSelfAttention(nn.Module):
             return output, attention_weights
         return output, None
 
-
 def visualize_causal_attention(seq_len: int = 10):
-    """Visualize the causal attention pattern."""
+    """인과 주의 무늬를 그려 본다."""
     import matplotlib.pyplot as plt
     import numpy as np
     
-    # Create sample attention weights (uniform within allowed positions)
+    # 보기용 주의 가중치를 만든다 (허락된 자리 안에서 고르게)
     mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()
     attention = torch.ones(seq_len, seq_len)
     attention = attention.masked_fill(mask, 0.0)
     
-    # Normalize rows
+    # 행을 정규화한다
     attention = attention / attention.sum(dim=-1, keepdim=True)
     
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     
-    # Causal mask
+    # 인과 가림
     ax1 = axes[0]
     im1 = ax1.imshow(mask.float().numpy(), cmap='Reds')
     ax1.set_xlabel('Key Position (j)')
@@ -289,7 +269,7 @@ def visualize_causal_attention(seq_len: int = 10):
     ax1.set_yticks(range(seq_len))
     plt.colorbar(im1, ax=ax1)
     
-    # Attention pattern
+    # 주의 무늬
     ax2 = axes[1]
     im2 = ax2.imshow(attention.numpy(), cmap='Blues')
     ax2.set_xlabel('Key Position (j)')
@@ -303,34 +283,33 @@ def visualize_causal_attention(seq_len: int = 10):
     plt.savefig('causal_attention_pattern.png', dpi=150)
     plt.close()
 
-
-# Example usage
+# 사용 예
 if __name__ == "__main__":
-    # Configuration
+    # 설정
     d_model = 512
     num_heads = 8
     batch_size = 4
     seq_len = 20
     
-    # Create module
+    # 모듈을 만든다
     masked_attn = MaskedSelfAttention(
         d_model=d_model,
         num_heads=num_heads,
         dropout=0.1
     )
     
-    # Test input
+    # 시험 입력
     x = torch.randn(batch_size, seq_len, d_model)
     
-    # Forward pass
+    # 순전파
     output, attn_weights = masked_attn(x, return_attention=True)
     
     print(f"Input shape: {x.shape}")
     print(f"Output shape: {output.shape}")
     print(f"Attention weights shape: {attn_weights.shape}")
     
-    # Verify causality: attention weights should be lower triangular
-    # Check that upper triangle (excluding diagonal) is all zeros
+    # 인과성을 확인한다: 주의 가중치가 아래 삼각이어야 한다
+    # 위 삼각(대각선 제외)이 모두 0인지 살핀다
     for b in range(batch_size):
         for h in range(num_heads):
             upper = torch.triu(attn_weights[b, h], diagonal=1)
@@ -339,19 +318,19 @@ if __name__ == "__main__":
     
     print("\n✓ Causality verified: No attention to future positions")
     
-    # Show attention pattern for first head
+    # 첫 머리의 주의 무늬를 보인다
     print("\nAttention pattern (first batch, first head):")
     pattern = attn_weights[0, 0].detach()
     print(f"Sum of each row (should be 1.0): {pattern.sum(dim=-1)[:5].tolist()}")
     
-    # Visualize
+    # 시각화한다
     visualize_causal_attention(10)
     print("\nVisualization saved to 'causal_attention_pattern.png'")
 ```
 
-## Combining Causal and Padding Masks
+## 인과 가림과 채움 가림 섞기
 
-In practice, we often combine causal masking with padding masking:
+실제로는 인과 가림과 채움 가림을 자주 함께 쓴다.
 
 ```python
 def create_combined_mask(
@@ -360,40 +339,40 @@ def create_combined_mask(
     device: torch.device = None
 ) -> torch.Tensor:
     """
-    Create combined causal + padding mask.
+    인과 가림과 채움 가림을 합쳐 만든다.
     
-    Args:
-        seq_len: Sequence length
-        padding_mask: [batch, seq] True for padding positions
-        device: Device for mask tensor
+    인수:
+        seq_len: 수열 길이
+        padding_mask: [batch, seq]. 채운 자리가 True
+        device: 가림 텐서를 둘 장치
         
-    Returns:
-        Combined mask [batch, 1, seq, seq]
+    반환값:
+        합친 가림 [batch, 1, seq, seq]
     """
-    # Causal mask: [seq, seq]
+    # 인과 가림: [seq, seq]
     causal_mask = torch.triu(
         torch.ones(seq_len, seq_len, device=device),
         diagonal=1
     ).bool()
     
-    # Expand to [1, 1, seq, seq]
+    # [1, 1, seq, seq]로 넓힌다
     causal_mask = causal_mask.unsqueeze(0).unsqueeze(0)
     
-    # Padding mask: [batch, seq] -> [batch, 1, 1, seq]
+    # 채움 가림: [batch, seq] -> [batch, 1, 1, seq]
     padding_mask = padding_mask.unsqueeze(1).unsqueeze(2)
     
-    # Combine: mask if EITHER is true
+    # 합친다: 둘 중 하나라도 참이면 가린다
     combined_mask = causal_mask | padding_mask
     
     return combined_mask
 ```
 
-## Efficient Implementation with Flash Attention
+## 플래시 주의로 효율적으로 구현하기
 
-For long sequences, Flash Attention provides memory-efficient causal attention:
+긴 수열에서는 플래시 주의가 기억을 아끼는 인과 주의를 준다.
 
 ```python
-# Using PyTorch's scaled_dot_product_attention with is_causal=True
+# 파이토치의 scaled_dot_product_attention에 is_causal=True를 쓴다
 def efficient_causal_attention(
     query: torch.Tensor,
     key: torch.Tensor,
@@ -401,26 +380,26 @@ def efficient_causal_attention(
     dropout_p: float = 0.0
 ) -> torch.Tensor:
     """
-    Efficient causal attention using PyTorch's SDPA.
+    파이토치의 SDPA를 쓰는 효율적인 인과 주의.
     
-    Args:
+    인수:
         query, key, value: [batch, heads, seq, head_dim]
-        dropout_p: Dropout probability
+        dropout_p: 드롭아웃 확률
         
-    Returns:
-        Output tensor [batch, heads, seq, head_dim]
+    반환값:
+        출력 텐서 [batch, heads, seq, head_dim]
     """
     return F.scaled_dot_product_attention(
         query, key, value,
         attn_mask=None,
         dropout_p=dropout_p,
-        is_causal=True  # Automatically applies causal mask
+        is_causal=True  # 인과 가림을 저절로 적용한다
     )
 ```
 
-## Prefix-LM: Bidirectional Prefix with Causal Suffix
+## 접두 언어 모형: 양방향 접두와 인과 접미
 
-Some models (like T5 decoder, UL2) use a hybrid approach:
+어떤 모형(T5 디코더, UL2 같은)은 섞은 방식을 쓴다.
 
 ```python
 def create_prefix_lm_mask(
@@ -429,21 +408,21 @@ def create_prefix_lm_mask(
     device: torch.device = None
 ) -> torch.Tensor:
     """
-    Create Prefix-LM attention mask.
+    접두 언어 모형 주의 가림을 만든다.
     
-    Prefix positions (1 to prefix_len) can attend to each other bidirectionally.
-    Suffix positions can attend to prefix and previous suffix positions.
+    접두 자리(1부터 prefix_len까지)는 서로 양방향으로 주의할 수 있다.
+    접미 자리는 접두와 앞선 접미 자리에 주의할 수 있다.
     
-    Args:
-        prefix_len: Length of bidirectional prefix
-        total_len: Total sequence length
+    인수:
+        prefix_len: 양방향 접두의 길이
+        total_len: 수열 전체의 길이
         
-    Returns:
-        Mask tensor [total_len, total_len]
+    반환값:
+        가림 텐서 [total_len, total_len]
     """
     mask = torch.zeros(total_len, total_len, device=device)
     
-    # Suffix positions cannot attend to future suffix
+    # 접미 자리는 앞으로의 접미에 주의할 수 없다
     suffix_mask = torch.triu(
         torch.ones(total_len - prefix_len, total_len - prefix_len, device=device),
         diagonal=1
@@ -452,15 +431,14 @@ def create_prefix_lm_mask(
     
     return mask.bool()
 
-
-# Example: Prefix-LM with 5-token prefix
-# Positions 1-5: bidirectional (can see each other)
-# Positions 6+: causal (can see prefix + previous suffix)
+# 보기: 토큰 5개짜리 접두를 가진 접두 언어 모형
+# 자리 1~5: 양방향 (서로 볼 수 있다)
+# 자리 6 이상: 인과 (접두와 앞선 접미를 볼 수 있다)
 ```
 
-## Sliding Window Attention
+## 미끄러지는 창 주의
 
-For efficiency with long sequences, sliding window limits attention to nearby positions:
+긴 수열에서 효율을 위해 미끄러지는 창은 주의를 가까운 자리로 제한한다.
 
 ```python
 def create_sliding_window_causal_mask(
@@ -469,21 +447,21 @@ def create_sliding_window_causal_mask(
     device: torch.device = None
 ) -> torch.Tensor:
     """
-    Create sliding window causal attention mask.
+    미끄러지는 창 인과 주의 가림을 만든다.
     
-    Each position can attend to at most window_size previous positions.
+    자리마다 많아야 window_size개의 앞선 자리에 주의할 수 있다.
     
-    Args:
-        seq_len: Sequence length
-        window_size: Size of attention window
+    인수:
+        seq_len: 수열 길이
+        window_size: 주의 창의 크기
         
-    Returns:
-        Mask tensor [seq_len, seq_len]
+    반환값:
+        가림 텐서 [seq_len, seq_len]
     """
-    # Start with causal mask
+    # 인과 가림으로 시작한다
     mask = torch.triu(torch.ones(seq_len, seq_len, device=device), diagonal=1)
     
-    # Also mask positions outside the window
+    # 창 바깥의 자리도 가린다
     for i in range(seq_len):
         start = max(0, i - window_size + 1)
         mask[i, :start] = 1
@@ -491,46 +469,83 @@ def create_sliding_window_causal_mask(
     return mask.bool()
 ```
 
-## Training vs Inference
+## 학습과 추론
 
-### Training (Parallel)
+### 학습 (병렬)
 
-During training, all positions are computed in parallel with the causal mask:
+학습 중에는 인과 가림과 함께 모든 자리를 병렬로 셈한다.
 
 ```python
-# All positions computed simultaneously
+# 모든 자리를 한꺼번에 셈한다
 output = masked_attention(input_sequence)  # [batch, seq_len, d_model]
 ```
 
-### Inference (Autoregressive)
+### 추론 (자기 회귀)
 
-During generation, tokens are generated one at a time:
+생성 중에는 토큰을 하나씩 만든다.
 
 ```python
-# Generate token by token
+# 토큰을 하나씩 만든다
 for t in range(max_tokens):
-    # Only compute for the last position
+    # 마지막 자리만 셈한다
     logits = model(generated_tokens)[:, -1, :]
     next_token = sample(logits)
     generated_tokens = torch.cat([generated_tokens, next_token], dim=1)
 ```
 
-With KV-caching, we avoid recomputing attention for previous positions.
+KV 캐싱을 쓰면 앞선 자리의 주의를 다시 셈하지 않아도 된다.
 
-## Summary
+## 요약
 
-Masked self-attention is essential for autoregressive models:
+가린 자기 주의는 자기 회귀 모형에 꼭 필요하다.
 
-1. **Enforces Causality**: Prevents information flow from future to past
-2. **Enables Parallel Training**: All positions computed simultaneously
-3. **Maintains Generation Order**: Tokens generated left-to-right
-4. **Combines with Other Masks**: Works with padding, sliding window, etc.
+1. **인과성을 지킨다**: 앞에서 뒤로의 정보 흐름을 막는다
+2. **병렬 학습을 가능케 한다**: 모든 자리를 한꺼번에 셈한다
+3. **생성 순서를 지킨다**: 토큰을 왼쪽에서 오른쪽으로 만든다
+4. **다른 가림과 어울린다**: 채움, 미끄러지는 창 따위와 함께 쓸 수 있다
 
-Understanding masked attention is crucial for implementing language models and text generation systems.
+가린 주의를 이해하는 것은 언어 모형과 글 생성 체계를 구현하는 데 매우 중요하다.
 
-## References
+## 참고 문헌
 
 1. Vaswani, A., et al. (2017). "Attention Is All You Need." NeurIPS.
 2. Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners."
 3. Dao, T., et al. (2022). "FlashAttention: Fast and Memory-Efficient Attention."
 4. Beltagy, I., et al. (2020). "Longformer: The Long-Document Transformer."
+
+## 연습문제
+
+**연습문제 1.**
+자기 회귀 언어 모형에 인과 가림이 왜 필요한지 설명하라.
+
+??? success "연습문제 1 풀이"
+    자기 회귀 생성에서 모형은 $P(x_t|x_{<t})$을 맞힌다. 학습 중에 모형이 앞으로의 토큰에 주의할 수 있으면 답을 맞히는 대신 '베끼기'를 배우게 된다. 인과 가림은 주의 행렬의 위 삼각을 $-\infty$으로 채워 자리마다 자신과 앞선 자리에만 주의하게 한다.
+
+---
+
+**연습문제 2.**
+파이토치에서 효율적인 인과 주의 가림을 구현하라.
+
+??? success "연습문제 2 풀이"
+    ```python
+    def causal_mask(n):
+        return torch.triu(torch.ones(n, n), diagonal=1).bool()  # True면 가린다
+
+    # 주의에서: scores.masked_fill_(mask, float('-inf'))
+    ```
+
+---
+
+**연습문제 3.**
+인과 가림과 채움 가림을 견주어라. 각각 언제 쓰는가?
+
+??? success "연습문제 3 풀이"
+    인과 가림은 위 삼각 꼴로 앞으로의 자리에 주의하지 못하게 막는다. 디코더와 자기 회귀 모형에 쓴다. 채움 가림은 (길이가 제각각인 수열에서) 채운 자리를 표시한다. 인코더와 디코더 모두에 쓴다. `mask = causal_mask | padding_mask`처럼 함께 쓸 수 있다.
+
+---
+
+**연습문제 4.**
+KV 캐싱이 인과 가림을 어떻게 이용해 자기 회귀 추론을 빠르게 하는지 설명하라.
+
+??? success "연습문제 4 풀이"
+    생성 중에 새 토큰마다 앞선 토큰 모두에만 주의하면 된다. KV 캐시를 쓰면 앞 단계의 열쇠와 값 사영을 담아 둔다. 새 토큰에 대해서는 그 질의만 셈해 담아 둔 K, V에 주의한다. 그러면 단계마다의 비용이 $O(n^2)$에서 $O(n)$으로 줄고 앞선 토큰의 표현을 다시 셈하지 않아도 된다.

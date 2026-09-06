@@ -1,149 +1,123 @@
-# Fortune's Algorithm
+# 포춘 알고리즘
 
-Computing a Voronoi diagram by intersecting half-planes takes $O(n^2 \log n)$
-time. Fortune's algorithm uses the sweep-line paradigm to construct the
-Voronoi diagram of $n$ sites in $O(n \log n)$ time and $O(n)$ space,
-matching the lower bound. The key innovation is the **beach line** — a
-curve of parabolic arcs that tracks the frontier of the known diagram as
-the sweep line advances.
+반평면을 만나게 하여 보로노이 그림을 셈하면 $O(n^2 \log n)$ 시간이 든다. 포춘 알고리즘은 훑는 선 틀을 써서 터 $n$개의 보로노이 그림을 $O(n \log n)$ 시간과 $O(n)$ 자리에 세우며 아래 한계와 맞는다. 핵심 새로움은 **바닷가 선**이다. 이는 훑는 선이 나아갈 때 이미 아는 그림의 앞자락을 좇는 포물선 활꼴의 곡선이다.
 
-## High-Level Idea
+## 큰 틀의 생각
 
-A vertical sweep line moves from left to right. At any position, the
-portion of the Voronoi diagram to the left of the sweep line is fully
-determined. The **beach line** is the boundary between the determined and
-undetermined regions.
+세로 훑는 선이 왼쪽에서 오른쪽으로 움직인다. 어느 자리에서든 훑는 선 왼쪽의 보로노이 그림은 온전히 정해진다. **바닷가 선**은 정해진 자리와 정해지지 않은 자리 사이의 가장자리이다.
 
-!!! note "Beach Line Definition"
-    The beach line is the locus of points equidistant from a site to the
-    left and the sweep line itself. For each site, this locus is a
-    parabola, so the beach line is a sequence of parabolic arcs.
+!!! note "바닷가 선 뜻매김"
+    바닷가 선은 왼쪽의 터와 훑는 선 자체에서 같은 거리에 있는 점의 자취이다. 터마다 이 자취는 포물선이므로 바닷가 선은 포물선 활꼴의 차례이다.
 
-## Parabolas and the Beach Line
+## 포물선과 바닷가 선
 
-A parabola is the set of points equidistant from a point (the focus,
-which is a site) and a line (the directrix, which is the sweep line).
-If the sweep line is at $x = l$ and the site is at $(s_x, s_y)$, then
-a point $(x, y)$ on the parabola satisfies:
+포물선은 한 점(초점, 곧 터)과 한 선(준선, 곧 훑는 선)에서 같은 거리에 있는 점의 모임이다. 훑는 선이 $x = l$에 있고 터가 $(s_x, s_y)$에 있으면 포물선 위의 점 $(x, y)$은 다음을 채운다.
 
 $$
 (x - s_x)^2 + (y - s_y)^2 = (x - l)^2
 $$
 
-Expanding and solving for $x$:
+펼쳐서 $x$에 대해 풀면:
 
 $$
 x = \frac{(y - s_y)^2}{2(s_x - l)} + \frac{s_x + l}{2}
 $$
 
-The beach line at sweep position $l$ is the lower envelope of all such
-parabolas (one per site to the left of $l$).
+훑는 자리 $l$에서의 바닷가 선은 그런 포물선 모두($l$ 왼쪽의 터마다 하나)의 아래 감싸개이다.
 
-## Events
+## 사건
 
-Fortune's algorithm processes two types of events:
+포춘 알고리즘은 두 갈래의 사건을 다룬다.
 
-### Site Events
+### 터 사건
 
-When the sweep line reaches a new site $p$:
+훑는 선이 새 터 $p$에 닿으면:
 
-1. A new parabolic arc for $p$ appears on the beach line (initially
-   a degenerate vertical ray).
-2. The arc splits an existing arc into two pieces.
-3. New **breakpoints** emerge between the new arc and the split arcs.
-4. Check for potential circle events involving the new arc and its neighbors.
+1. $p$을 위한 새 포물선 활꼴이 바닷가 선에 나타난다(처음에는 찌그러진 세로 빛살이다).
+2. 그 활꼴이 이미 있던 활꼴을 두 조각으로 가른다.
+3. 새 활꼴과 갈린 활꼴 사이에 새 **꺾임점**이 생긴다.
+4. 새 활꼴과 그 이웃이 얽힌 동그라미 사건이 있을지 살핀다.
 
-### Circle Events
+### 동그라미 사건
 
-A circle event occurs when three consecutive arcs on the beach line
-converge to a single point — their three defining sites are cocircular,
-and the center of that circle becomes a Voronoi vertex.
+동그라미 사건은 바닷가 선의 잇닿은 활꼴 셋이 한 점으로 모일 때 일어난다. 곧 그 셋을 정하는 터가 한 동그라미 위에 있고 그 동그라미의 중심이 보로노이 꼭짓점이 된다.
 
-When a circle event fires:
+동그라미 사건이 터지면:
 
-1. The middle arc vanishes from the beach line.
-2. A new Voronoi vertex is created at the circle center.
-3. Two half-edges (Voronoi edges) are completed.
-4. A new breakpoint emerges, and new potential circle events are checked.
+1. 가운데 활꼴이 바닷가 선에서 사라진다.
+2. 동그라미 중심에 새 보로노이 꼭짓점이 만들어진다.
+3. 반 모서리(보로노이 모서리) 둘이 다 지어진다.
+4. 새 꺾임점이 생기고 새로 있을 수 있는 동그라미 사건을 살핀다.
 
-!!! tip "Detecting Circle Events"
-    Three consecutive arcs defined by sites $p_i, p_j, p_k$ generate a
-    circle event only if $p_i, p_j, p_k$ are not collinear and the
-    rightmost point of their circumcircle lies to the right of the
-    sweep line.
+!!! tip "동그라미 사건 알아내기"
+    터 $p_i, p_j, p_k$이 정하는 잇닿은 활꼴 셋은 $p_i, p_j, p_k$이 한 줄에 놓이지 않고 그 둘레 동그라미의 가장 오른쪽 점이 훑는 선 오른쪽에 있을 때만 동그라미 사건을 만든다.
 
-## Data Structures
+## 자료 짜임
 
-| Structure | Purpose | Operations |
+| 짜임 | 쓸모 | 셈 |
 |---|---|---|
-| Event queue (priority queue) | Stores site and circle events, ordered by $x$ | Insert, delete-min: $O(\log n)$ |
-| Beach line (balanced BST) | Stores parabolic arcs by $y$-position | Insert, delete, find-arc: $O(\log n)$ |
-| DCEL (doubly connected edge list) | Stores the Voronoi diagram | Edge/face operations: $O(1)$ |
+| 사건 줄(우선 줄) | 터 사건과 동그라미 사건을 $x$ 차례로 담는다 | 넣기, 최소 지우기: $O(\log n)$ |
+| 바닷가 선(고른 이진 찾기 나무) | 포물선 활꼴을 $y$자리 차례로 담는다 | 넣기, 지우기, 활꼴 찾기: $O(\log n)$ |
+| 두 겹 이은 모서리 목록(DCEL) | 보로노이 그림을 담는다 | 모서리/면 셈: $O(1)$ |
 
-## Algorithm Pseudocode
+## 알고리즘 밑그림 코드
 
-1. Insert all site events into the event queue.
-2. While the event queue is not empty:
-    - If the next event is a **site event** for site $p$:
-        - Find the arc on the beach line directly above $p$.
-        - Split that arc and insert the new arc for $p$.
-        - Start two new half-edges (Voronoi edges).
-        - Check for circle events involving the new and adjacent arcs.
-    - If the next event is a **circle event**:
-        - Remove the vanishing arc from the beach line.
-        - Add the Voronoi vertex to the diagram.
-        - Complete half-edges and start new ones.
-        - Check for new circle events among newly adjacent arcs.
-3. Complete all remaining half-edges (they extend to infinity).
+1. 모든 터 사건을 사건 줄에 넣는다.
+2. 사건 줄이 비지 않은 동안:
+    - 다음 사건이 터 $p$의 **터 사건**이면:
+        - 바닷가 선에서 $p$ 바로 위의 활꼴을 찾는다.
+        - 그 활꼴을 가르고 $p$의 새 활꼴을 넣는다.
+        - 새 반 모서리(보로노이 모서리) 둘을 시작한다.
+        - 새 활꼴과 이웃 활꼴이 얽힌 동그라미 사건을 살핀다.
+    - 다음 사건이 **동그라미 사건**이면:
+        - 사라지는 활꼴을 바닷가 선에서 뺀다.
+        - 보로노이 꼭짓점을 그림에 더한다.
+        - 반 모서리를 다 짓고 새것을 시작한다.
+        - 새로 이웃이 된 활꼴 사이에서 새 동그라미 사건을 살핀다.
+3. 남은 반 모서리를 모두 다 짓는다(끝없이 뻗는다).
 
-## Complexity Analysis
+## 복잡도 분석
 
-Each site causes one site event and at most one circle event creation per
-neighbor check. The total number of events is $O(n)$.
+터마다 터 사건 하나가 생기고 이웃 살피기마다 많아야 동그라미 사건 하나가 생긴다. 사건의 온 수는 $O(n)$이다.
 
-- Site events: $n$, each processed in $O(\log n)$.
-- Circle events: $O(n)$, each processed in $O(\log n)$.
+- 터 사건: $n$개이며 저마다 $O(\log n)$에 다룬다.
+- 동그라미 사건: $O(n)$개이며 저마다 $O(\log n)$에 다룬다.
 
 $$
 T(n) = O(n \log n)
 $$
 
-Space: $O(n)$ for the beach line, event queue, and output diagram.
+자리: 바닷가 선, 사건 줄, 내놓는 그림에 $O(n)$.
 
-## Worked Example
+## 풀이 예제
 
-Three sites: $A = (1, 3)$, $B = (3, 1)$, $C = (5, 4)$.
+터 셋: $A = (1, 3)$, $B = (3, 1)$, $C = (5, 4)$.
 
-1. **Site event at $x = 1$:** Arc for $A$ spans the entire beach line.
-2. **Site event at $x = 3$:** Arc for $B$ splits $A$'s arc. Beach line:
-   $A$-$B$-$A$. Two breakpoints track the emerging Voronoi edge between
-   $V(A)$ and $V(B)$.
-3. **Site event at $x = 5$:** Arc for $C$ splits one of $A$'s arcs.
-   A circle event is created for the triple $(A, B, A)$ or $(B, A, C)$
-   depending on the configuration.
-4. **Circle event:** When processed, a Voronoi vertex is placed at the
-   circumcenter of the three relevant sites.
+1. **$x = 1$의 터 사건:** $A$의 활꼴이 바닷가 선 전체를 덮는다.
+2. **$x = 3$의 터 사건:** $B$의 활꼴이 $A$의 활꼴을 가른다. 바닷가 선은 $A$-$B$-$A$이다. 꺾임점 둘이 $V(A)$과 $V(B)$ 사이에 생겨나는 보로노이 모서리를 좇는다.
+3. **$x = 5$의 터 사건:** $C$의 활꼴이 $A$의 활꼴 하나를 가른다. 놓임새에 따라 세 짝 $(A, B, A)$이나 $(B, A, C)$에 대해 동그라미 사건이 만들어진다.
+4. **동그라미 사건:** 다루어지면 관련된 터 셋의 둘레 중심에 보로노이 꼭짓점이 놓인다.
 
-## Implementation Notes
+## 짜기 참고
 
 ```python
 """
-Fortune's algorithm: conceptual components.
+포춘 알고리즘: 개념의 부품.
 
-Provides the parabola and circumcircle computations used in Fortune's
-sweep-line algorithm for Voronoi diagrams. A full implementation requires
-a balanced BST for the beach line and careful DCEL bookkeeping.
+보로노이 그림을 위한 포춘 훑는 선 알고리즘에 쓰이는
+포물선과 둘레 동그라미 셈하기를 준다.
+온전히 짜려면 바닷가 선을 위한 고른 이진 찾기 나무와 꼼꼼한 DCEL 관리가 필요하다.
 """
 
 import math
 
 
-# === Parabola Computation ===
+# === 포물선 셈하기 ===
 
 def parabola_x(site, sweep_x, y):
-    """Compute the x-coordinate on the parabola at height y.
+    """높이 y에서 포물선의 x자리값을 셈한다.
 
-    The parabola has focus at site and directrix at x = sweep_x.
+    포물선의 초점은 터이고 준선은 x = sweep_x이다.
     """
     sx, sy = site
     if abs(sx - sweep_x) < 1e-10:
@@ -151,12 +125,12 @@ def parabola_x(site, sweep_x, y):
     return ((y - sy) ** 2) / (2 * (sx - sweep_x)) + (sx + sweep_x) / 2
 
 
-# === Breakpoint Computation ===
+# === 꺾임점 셈하기 ===
 
 def breakpoint_y(s1, s2, sweep_x):
-    """Compute the y-coordinate where two parabolas intersect.
+    """두 포물선이 만나는 y자리값을 셈한다.
 
-    Returns the y-values of the intersection(s).
+    만남의 y값을 돌려준다.
     """
     x1, y1 = s1
     x2, y2 = s2
@@ -164,7 +138,7 @@ def breakpoint_y(s1, s2, sweep_x):
     if abs(x1 - x2) < 1e-10:
         return [(y1 + y2) / 2]
 
-    # Coefficients of quadratic in y
+    # y에 대한 이차식의 계수
     a1 = 1 / (2 * (x1 - sweep_x))
     b1 = -y1 / (x1 - sweep_x)
     c1 = (y1 * y1 / (2 * (x1 - sweep_x))) + (x1 + sweep_x) / 2
@@ -190,12 +164,12 @@ def breakpoint_y(s1, s2, sweep_x):
     return [(-b + sqrt_disc) / (2 * a), (-b - sqrt_disc) / (2 * a)]
 
 
-# === Circle Event Detection ===
+# === 동그라미 사건 알아내기 ===
 
 def circumcircle(a, b, c):
-    """Compute the circumcircle of three points.
+    """세 점의 둘레 동그라미를 셈한다.
 
-    Returns (center_x, center_y, radius) or None if collinear.
+    (중심_x, 중심_y, 반지름)을 돌려주며 한 줄에 놓이면 None을 돌려준다.
     """
     ax, ay = a
     bx, by = b
@@ -216,30 +190,62 @@ def circumcircle(a, b, c):
     return (ux, uy, r)
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     A, B, C = (1, 3), (3, 1), (5, 4)
 
-    # Circumcircle (potential circle event)
+    # 둘레 동그라미(있을 수 있는 동그라미 사건)
     cc = circumcircle(A, B, C)
     print(f"Sites: A={A}, B={B}, C={C}")
     print(f"Circumcircle: center=({cc[0]:.3f}, {cc[1]:.3f}), r={cc[2]:.3f}")
     print(f"Circle event x = {cc[0] + cc[2]:.3f}")
 
-    # Parabola values at sweep position x=4
+    # 훑는 자리 x=4에서의 포물선 값
     sweep = 4.0
     for y in [0, 1, 2, 3, 4, 5]:
         xA = parabola_x(A, sweep, y)
         xB = parabola_x(B, sweep, y)
         print(f"  y={y}: parab_A={xA:.2f}, parab_B={xB:.2f}")
 
-    # Breakpoints
+    # 꺾임점
     bp = breakpoint_y(A, B, sweep)
     print(f"Breakpoints of A and B at sweep={sweep}: y={bp}")
 ```
 
-## Reference
+## 참고 문헌
 
 - Fortune, S. "A Sweepline Algorithm for Voronoi Diagrams." *Algorithmica*, 1987.
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer, Chapter 7.
+
+## 연습문제
+
+**연습문제 1.**
+포춘 알고리즘의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    포춘 알고리즘은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 포춘 알고리즘을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+포춘 알고리즘은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+포춘 알고리즘을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 포춘 알고리즘은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

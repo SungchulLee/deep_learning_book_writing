@@ -1,13 +1,13 @@
-# Array Representation
+# 배열 표현
 
-A binary heap gains much of its practical efficiency from a remarkably simple insight: a complete binary tree can be stored in a flat array with no pointers at all. Because every level is fully filled except possibly the last (which is filled left to right), the position of each node's parent and children can be computed with elementary arithmetic. This pointer-free layout gives excellent cache performance and zero memory overhead for child/parent links.
+이진 힙의 실용적인 효율은 놀랍도록 간단한 통찰에서 크게 온다. 완전 이진 트리는 포인터 없이 납작한 배열에 담을 수 있다는 것이다. (왼쪽에서 오른쪽으로 채워지는) 마지막 층만 빼고 층마다 꽉 차 있으므로, 노드마다 부모와 자식의 자리를 초등 산술로 셈할 수 있다. 이 포인터 없는 배치가 캐시 성능을 아주 좋게 하고 자식·부모 이음에 드는 기억을 0으로 만든다.
 
-## Level-Order Storage
+## 층 순서로 담기
 
-A complete binary tree is stored in an array by placing nodes in **level order** -- the root first, then all nodes at depth 1 from left to right, then depth 2, and so on. The result is a compact array with no gaps.
+완전 이진 트리는 노드를 **층 순서**로 놓아 배열에 담는다. 뿌리를 먼저, 그다음 깊이 1의 모든 노드를 왼쪽에서 오른쪽으로, 그다음 깊이 2, 이런 식이다. 그 결과는 빈틈 없는 촘촘한 배열이다.
 
-!!! example "Tree-to-Array Mapping"
-    Consider a max-heap with 10 elements:
+!!! example "트리에서 배열로 잇대기"
+    원소가 10개인 최대 힙을 생각해 보자.
 
     ```
     Tree view:                    Array view (0-indexed):
@@ -21,15 +21,15 @@ A complete binary tree is stored in an array by placing nodes in **level order**
       2  4 1
     ```
 
-    Node 16 is at index 0, its children 14 and 10 are at indices 1 and 2, and so on.
+    노드 16은 색인 0에, 그 자식 14와 10은 색인 1과 2에 있는 식이다.
 
-## Index Formulas
+## 색인 공식
 
-The parent-child relationships in the array follow directly from the level-order layout. Two conventions are common.
+배열에서의 부모-자식 관계는 층 순서 배치에서 곧바로 따라 나온다. 관례가 둘 흔하다.
 
-### 0-Indexed (used by Python heapq)
+### 0부터 세기 (파이썬 heapq가 쓴다)
 
-For a node at index $i$:
+색인 $i$의 노드에 대해 다음과 같다.
 
 $$
 \text{parent}(i) = \left\lfloor \frac{i - 1}{2} \right\rfloor
@@ -43,11 +43,11 @@ $$
 \text{right}(i) = 2i + 2
 $$
 
-The root is at index 0. A node at index $i$ is a leaf if $2i + 1 \ge n$, where $n$ is the total number of elements.
+뿌리는 색인 0에 있다. 전체 원소 수를 $n$이라 할 때 $2i + 1 \ge n$이면 색인 $i$의 노드는 잎이다.
 
-### 1-Indexed (used in CLRS)
+### 1부터 세기 (CLRS가 쓴다)
 
-For a node at index $i$:
+색인 $i$의 노드에 대해 다음과 같다.
 
 $$
 \text{parent}(i) = \left\lfloor \frac{i}{2} \right\rfloor
@@ -61,69 +61,69 @@ $$
 \text{right}(i) = 2i + 1
 $$
 
-The root is at index 1, and index 0 is unused. The 1-indexed formulas are slightly simpler because multiplication and division by 2 correspond to left and right bit shifts.
+뿌리는 색인 1에 있고 색인 0은 쓰지 않는다. 2로 곱하고 나누는 것이 왼쪽·오른쪽 비트 밀기에 해당하므로 1부터 세는 공식이 조금 더 간단하다.
 
-??? tip "Bit-Shift Optimization"
-    In the 1-indexed scheme, the parent, left-child, and right-child operations reduce to single bitwise instructions:
+??? tip "비트 밀기로 다듬기"
+    1부터 세는 방식에서 부모, 왼쪽 자식, 오른쪽 자식 연산은 비트 명령 하나로 줄어든다.
 
     - `parent(i) = i >> 1`
     - `left(i) = i << 1`
     - `right(i) = (i << 1) | 1`
 
-    These are constant-time operations that modern CPUs execute in a single cycle.
+    이는 요즘 CPU가 한 주기에 해내는 일정 시간 연산이다.
 
-## Why Arrays Work for Complete Binary Trees
+## 완전 이진 트리에 배열이 통하는 까닭
 
-The array representation works only because a complete binary tree has no "holes" in its level-order traversal. An arbitrary binary tree might waste vast amounts of space: a skewed tree with $n$ nodes at depth $n-1$ would require an array of size $2^n - 1$, with most entries empty.
+배열 표현이 통하는 것은 오로지 완전 이진 트리의 층 순서 순회에 "구멍"이 없기 때문이다. 아무 이진 트리나 쓰면 공간을 엄청나게 버릴 수 있다. 노드 $n$개가 깊이 $n-1$까지 한쪽으로 기운 트리는 크기 $2^n - 1$의 배열이 필요하고 대부분의 칸이 빈다.
 
-For a complete binary tree, the array is always compact:
+완전 이진 트리에서는 배열이 언제나 촘촘하다.
 
-| Property | Value |
+| 성질 | 값 |
 |----------|-------|
-| Nodes on level $k$ | $2^k$ (except possibly the last level) |
-| Total nodes in a complete tree of height $h$ | Between $2^h$ and $2^{h+1} - 1$ |
-| Array size needed | Exactly $n$ (no wasted slots) |
-| Memory overhead for pointers | Zero |
+| 층 $k$의 노드 수 | $2^k$ (마지막 층만 다를 수 있다) |
+| 높이 $h$인 완전 트리의 전체 노드 수 | $2^h$과 $2^{h+1} - 1$ 사이 |
+| 필요한 배열 크기 | 꼭 $n$ (버리는 칸 없음) |
+| 포인터에 드는 기억 | 0 |
 
-## Navigating the Heap Array
+## 힙 배열 오가기
 
-The following implementation demonstrates parent-child navigation using the 0-indexed convention.
+다음 구현은 0부터 세는 관례로 부모와 자식을 오가는 법을 보인다.
 
 ```python
 """
-Array representation of a binary heap.
+이진 힙의 배열 표현.
 
-Demonstrates how parent-child relationships in a complete binary
-tree map to simple index arithmetic in a flat array.
+완전 이진 트리의 부모-자식 관계가 납작한 배열에서 간단한
+색인 산술로 잇대어짐을 보인다.
 """
 
 
-# === Index Navigation (0-indexed) ===
+# === 색인 오가기 (0부터 세기) ===
 
 def parent(i):
-    """Return the index of the parent of node i."""
+    """노드 i의 부모 색인을 돌려준다."""
     return (i - 1) // 2
 
 
 def left_child(i):
-    """Return the index of the left child of node i."""
+    """노드 i의 왼쪽 자식의 색인을 돌려준다."""
     return 2 * i + 1
 
 
 def right_child(i):
-    """Return the index of the right child of node i."""
+    """노드 i의 오른쪽 자식의 색인을 돌려준다."""
     return 2 * i + 2
 
 
 def is_leaf(i, n):
-    """Check if node i is a leaf in a heap of size n."""
+    """크기 n인 힙에서 노드 i가 잎인지 살핀다."""
     return left_child(i) >= n
 
 
-# === Tree Visualization ===
+# === 트리 그려 보기 ===
 
 def print_heap_tree(arr):
-    """Print the array as a tree structure showing parent-child relationships."""
+    """부모-자식 관계를 보이는 트리 짜임으로 배열을 찍는다."""
     n = len(arr)
     if n == 0:
         print("Empty heap")
@@ -150,7 +150,7 @@ def print_heap_tree(arr):
         print(f"  idx {i}: value={arr[i]}{parent_info}  -> {child_info}")
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     heap = [16, 14, 10, 8, 7, 9, 3, 2, 4, 1]
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     print("All parent-child relationships satisfy the max-heap property.")
 ```
 
-**Output:**
+**출력:**
 ```
 Array: [16, 14, 10, 8, 7, 9, 3, 2, 4, 1]
 Size:  10
@@ -184,10 +184,43 @@ Size:  10
 All parent-child relationships satisfy the max-heap property.
 ```
 
-## Cache Efficiency
+## 캐시 효율
 
-Storing a tree as a contiguous array provides significant performance benefits on modern hardware. When the processor accesses an element at index $i$, the cache line typically loads neighboring elements as well. Since a node's children at indices $2i+1$ and $2i+2$ are nearby in memory, traversing from parent to child frequently hits the cache. By contrast, a pointer-based tree scatters nodes throughout memory, causing frequent cache misses during traversal.
+트리를 이어진 배열로 담으면 요즘 하드웨어에서 성능이 크게 좋아진다. 프로세서가 색인 $i$의 원소에 닿을 때 캐시 줄이 이웃한 원소도 함께 실어 온다. 노드의 자식이 색인 $2i+1$과 $2i+2$에 있어 기억 속에서 가까우므로 부모에서 자식으로 갈 때 캐시에 자주 맞는다. 이와 달리 포인터에 바탕한 트리는 노드를 기억 곳곳에 흩어 놓아 순회 중에 캐시를 자주 놓친다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 6: Heapsort. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+배열 표현의 힙 성질을 밝히고 최솟값·최댓값 원소가 언제나 뿌리에 있음을 증명하라.
+
+??? success "연습문제 1 풀이"
+    힙 성질은 노드마다 열쇠가 자식보다 작거나 같거나(최소 힙) 크거나 같다(최대 힙)는 것이다. 뿌리에서 잎까지의 어떤 경로에서도 추이성이 성립하므로 뿌리가 모든 원소의 최솟값(또는 최댓값)이다.
+
+---
+
+**연습문제 2.**
+배열 $[4, 7, 2, 9, 1, 5, 3]$에서 배열 표현을 따라가라. 단계마다와 그 결과로 나오는 힙을 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽의 연산을 주어진 배열에 적용하라. 단계마다 배열과 그것이 나타내는 트리를 보여라. 비교와 자리바꿈을 짚어라.
+
+---
+
+**연습문제 3.**
+배열 표현의 시간 복잡도를 증명하라. 그 한계는 빡빡한가?
+
+??? success "연습문제 3 풀이"
+    이 연산은 뿌리에서 잎까지 또는 잎에서 뿌리까지의 경로를 훑으며 층마다 $O(1)$의 일을 한다. 완전 이진 트리의 높이는 $\lfloor\log_2 n\rfloor$이므로 모두 $O(\log n)$이다. 이 한계는 빡빡하다. 높이 전체를 훑도록 강요하는 입력이 있다. $\square$
+
+---
+
+**연습문제 4.**
+$k = 5$이고 어휘가 $n = 32{,}000$인 빔 탐색에서 힙으로 뽑기(원소 $n$개에서 상위 $k$개)와 정렬을 견주어라.
+
+??? success "연습문제 4 풀이"
+    정렬은 $O(n\log n) = O(32000 \times 15) \approx 48만$번의 연산이 든다. 힙(크기 $k$인 최소 힙)은 $O(n\log k) = O(32000 \times 2.3) \approx 7만 4천$번이다. 힙이 약 $6.5$배 빠르다. 아니면 `torch.topk`가 GPU에 맞추어 다듬은 부분 정렬 알고리즘을 쓴다.

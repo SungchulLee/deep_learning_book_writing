@@ -205,3 +205,43 @@ When the load factor exceeds a threshold (typically 0.75), the table must be res
 
 - Herlihy, M. and Shavit, N. *The Art of Multiprocessor Programming*, Chapter 13 (Concurrent Hashing).
 - Lea, D. (2003). "Overview of package java.util.concurrent." (Java ConcurrentHashMap design).
+
+## Exercises
+
+**Exercise 1.**
+Explain the striped locking design used in Java's `ConcurrentHashMap`. How does it achieve higher throughput than a single global lock?
+
+??? success "Solution to Exercise 1"
+    Striped locking partitions the hash table into $S$ segments (stripes), each protected by its own lock. A key's stripe is determined by a hash of the key modulo $S$. Operations on keys in different stripes proceed in parallel without contention. With $S$ stripes and $T$ threads, the probability of two threads contending on the same lock is approximately $1/S$ per operation pair, compared to 1.0 with a global lock. Throughput scales nearly linearly with the number of threads up to $S$ (assuming uniform key distribution). Java's original `ConcurrentHashMap` used 16 segments by default, later replaced by a finer-grained per-bucket CAS approach in Java 8 that eliminates the fixed segment count entirely. $\square$
+
+---
+
+**Exercise 2.**
+Describe the ABA problem in the context of a lock-free concurrent hash map that uses CAS on bucket pointers. Propose a solution.
+
+??? success "Solution to Exercise 2"
+    The ABA problem occurs when a CAS operation succeeds spuriously: thread 1 reads pointer value A, is suspended; thread 2 changes the pointer from A to B then back to A (e.g., deletes a node and inserts a new node at the same address); thread 1 resumes and CAS succeeds because the pointer is A again, even though the underlying data has changed. In a hash map, this can cause a thread to link a new node to a stale or freed node. Solutions: (1) **Tagged pointers**: pack a monotonically increasing version counter into the unused bits of the pointer (or use a double-width CAS). CAS compares both pointer and version, so ABA is detected. (2) **Hazard pointers**: defer memory reclamation until no thread holds a reference, preventing freed addresses from being reused. (3) **Epoch-based reclamation**: batch deferred frees by epoch, ensuring no concurrent reader sees a recycled address. $\square$
+
+---
+
+**Exercise 3.**
+A concurrent hash map uses open addressing with linear probing. Explain why deletion is problematic and how tombstone markers solve the issue.
+
+??? success "Solution to Exercise 3"
+    In linear probing, a key $k$ is found by starting at $h(k)$ and scanning consecutive slots until finding $k$ or an empty slot. If we delete a key by marking its slot empty, a subsequent lookup for a different key that probed past the deleted slot will stop at the newly empty slot, falsely concluding the key is absent. Tombstones solve this: instead of emptying the slot, mark it as "deleted." Lookup treats tombstones as occupied (continues scanning past them), while insertion treats tombstones as available (can reuse the slot). In a concurrent setting, tombstones must be set atomically, and a thread performing lookup must handle the case where a slot transitions from occupied to tombstone during its scan. The downside is that tombstones degrade probe-chain length over time; periodic rehashing (under a write lock) is needed to reclaim them. $\square$
+
+---
+
+**Exercise 4.**
+Prove that a concurrent hash map with $n$ buckets, load factor $\alpha = n_{\text{items}}/n$, and $k$ hash functions (cuckoo hashing) has expected $O(1)$ lookup time regardless of the number of concurrent readers.
+
+??? success "Solution to Exercise 4"
+    In cuckoo hashing, each key is stored at one of $k$ possible locations: $h_1(\text{key}), h_2(\text{key}), \ldots, h_k(\text{key})$. A lookup checks these $k$ locations and returns the key if found in any of them. Since $k$ is a constant (typically 2 or 3), lookup performs $k = O(1)$ memory accesses regardless of $\alpha$ or table size. Concurrent readers do not interfere with each other because reads are side-effect-free. Even without locks, each reader independently accesses the $k$ positions. The only concern is that a concurrent writer might relocate a key between two of its positions during a read, causing a false negative. This is resolved by having the reader retry (check all $k$ positions again) or by using a version counter. The expected $O(1)$ bound holds because the number of positions checked is always exactly $k$, independent of the number of concurrent readers. $\square$
+
+---
+
+**Exercise 5.**
+Compare the throughput characteristics of three concurrent hash map designs -- global lock, striped locking, and lock-free CAS -- under read-heavy (95% reads) and write-heavy (50% writes) workloads. What design is best for each scenario?
+
+??? success "Solution to Exercise 5"
+    Under read-heavy (95% reads): global lock serializes all operations, making throughput inversely proportional to thread count due to contention. Striped locking allows parallel reads on different stripes but still serializes readers within a stripe. Lock-free CAS (or RCU-enhanced) allows fully parallel reads with zero synchronization overhead, achieving near-linear scaling. Best: lock-free or RCU. Under write-heavy (50% writes): global lock throughput collapses. Striped locking provides moderate parallelism -- writes to different stripes proceed in parallel, and with $S = 64$ stripes, contention probability per operation pair is $\approx 1.5\%$. Lock-free CAS suffers from high CAS retry rates under contention (each failed CAS wastes a retry cycle), but avoids deadlocks and priority inversion. Best: striped locking for simplicity and predictable performance; lock-free for maximum throughput if the retry rate is manageable. $\square$

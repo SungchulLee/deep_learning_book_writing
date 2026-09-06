@@ -1,9 +1,4 @@
 # SWAG: Stochastic Weight Averaging Gaussian
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 **SWAG (Stochastic Weight Averaging Gaussian)** provides a simple, scalable approach to Bayesian inference in neural networks by fitting a Gaussian distribution to the trajectory of SGD iterates. This post-hoc method captures both the mean and covariance of the weight posterior using statistics collected during standard training.
 
 ---
@@ -15,9 +10,7 @@
 Standard neural network training produces a point estimate $\hat{\theta}$:
 
 $$
-
 \hat{\theta} = \arg\min_\theta \mathcal{L}(\theta; \mathcal{D})
-
 $$
 
 To get uncertainty estimates, we need the posterior $p(\theta \mid \mathcal{D})$. Full Bayesian methods (MCMC, VI) are expensive and require architectural changes.
@@ -29,9 +22,7 @@ To get uncertainty estimates, we need the posterior $p(\theta \mid \mathcal{D})$
 **SWA** (Izmailov et al., 2018) improves generalization by averaging weights:
 
 $$
-
 \bar{\theta}_{\text{SWA}} = \frac{1}{T} \sum_{t=1}^T \theta_t
-
 $$
 
 where $\theta_t$ are weights from the last $T$ epochs with cyclical or constant learning rate.
@@ -49,9 +40,7 @@ where $\theta_t$ are weights from the last $T$ epochs with cyclical or constant 
 Fit a Gaussian to the SGD trajectory:
 
 $$
-
 \boxed{q(\theta) = \mathcal{N}(\theta \mid \bar{\theta}, \Sigma_{\text{SWAG}})}
-
 $$
 
 The covariance $\Sigma_{\text{SWAG}}$ is approximated using a low-rank plus diagonal structure.
@@ -63,25 +52,19 @@ During training (after initial burn-in), collect:
 **First moment** (running mean):
 
 $$
-
 \bar{\theta} = \frac{1}{T} \sum_{t=1}^T \theta_t
-
 $$
 
 **Second moment** (running squared mean):
 
 $$
-
 \overline{\theta^2} = \frac{1}{T} \sum_{t=1}^T \theta_t^2
-
 $$
 
 **Deviation matrix** (for low-rank component):
 
 $$
-
 D = [\theta_1 - \bar{\theta}, \theta_2 - \bar{\theta}, \ldots, \theta_K - \bar{\theta}]
-
 $$
 
 where we keep only the last $K$ deviations (typically $K = 20$).
@@ -93,25 +76,19 @@ where we keep only the last $K$ deviations (typically $K = 20$).
 **SWAG approximation**:
 
 $$
-
 \boxed{\Sigma_{\text{SWAG}} = \Sigma_{\text{diag}} + \Sigma_{\text{low-rank}}}
-
 $$
 
 **Diagonal component**:
 
 $$
-
 \Sigma_{\text{diag}} = \text{diag}\left(\overline{\theta^2} - \bar{\theta}^2\right)
-
 $$
 
 **Low-rank component**:
 
 $$
-
 \Sigma_{\text{low-rank}} = \frac{1}{K-1} D D^\top
-
 $$
 
 ### Sampling from SWAG
@@ -119,9 +96,7 @@ $$
 To sample $\theta \sim q(\theta)$:
 
 $$
-
 \theta = \bar{\theta} + \frac{1}{\sqrt{2}} \sqrt{\Sigma_{\text{diag}}} \odot z_1 + \frac{1}{\sqrt{2(K-1)}} D z_2
-
 $$
 
 where $z_1 \sim \mathcal{N}(0, I_d)$ and $z_2 \sim \mathcal{N}(0, I_K)$.
@@ -161,9 +136,7 @@ Output: SWAG parameters (θ̄, Σ_diag, D)
 **Cyclical schedule** (recommended):
 
 $$
-
 \alpha_t = \alpha_{\min} + \frac{1}{2}(\alpha_{\max} - \alpha_{\min})\left(1 + \cos\left(\frac{\pi \cdot \text{mod}(t, c)}{c}\right)\right)
-
 $$
 
 Collect samples at the end of each cycle when learning rate is low.
@@ -171,9 +144,7 @@ Collect samples at the end of each cycle when learning rate is low.
 **Constant schedule**:
 
 $$
-
 \alpha_t = \alpha_{\text{SWA}}
-
 $$
 
 Simpler but may provide less diverse samples.
@@ -196,25 +167,19 @@ Simpler but may provide less diverse samples.
 Given test input $x^*$, sample $S$ weight configurations:
 
 $$
-
 \theta^{(s)} \sim q(\theta) = \mathcal{N}(\bar{\theta}, \Sigma_{\text{SWAG}})
-
 $$
 
 **Predictive mean**:
 
 $$
-
 \hat{\mu}(x^*) = \frac{1}{S} \sum_{s=1}^S f_{\theta^{(s)}}(x^*)
-
 $$
 
 **Predictive variance** (epistemic):
 
 $$
-
 \hat{\sigma}^2(x^*) = \frac{1}{S} \sum_{s=1}^S \left(f_{\theta^{(s)}}(x^*) - \hat{\mu}(x^*)\right)^2
-
 $$
 
 ### For Classification
@@ -222,12 +187,11 @@ $$
 Average softmax probabilities:
 
 $$
-
 p(y = c \mid x^*, \mathcal{D}) \approx \frac{1}{S} \sum_{s=1}^S \text{softmax}(f_{\theta^{(s)}}(x^*))_c
-
 $$
 
 **Uncertainty measures**:
+
 - **Entropy**: $\mathbb{H}[\bar{p}] = -\sum_c \bar{p}_c \log \bar{p}_c$
 - **Mutual information**: $\mathbb{I}[y; \theta] = \mathbb{H}[\bar{p}] - \frac{1}{S}\sum_s \mathbb{H}[p_s]$
 
@@ -244,6 +208,7 @@ SWAG can be viewed as an approximate Laplace approximation:
 **SWAG**: $q(\theta) = \mathcal{N}(\bar{\theta}_{\text{SWA}}, \Sigma_{\text{SWAG}})$
 
 The key differences:
+
 - SWAG uses SWA mean (potentially flatter region) vs MAP
 - SWAG approximates Hessian inverse via trajectory statistics
 
@@ -252,9 +217,7 @@ The key differences:
 Under certain conditions, SGD with noise explores the posterior:
 
 $$
-
 \theta_{t+1} = \theta_t - \alpha \nabla \mathcal{L}(\theta_t) + \epsilon_t
-
 $$
 
 SWAG captures the marginal statistics of this exploration.
@@ -262,6 +225,7 @@ SWAG captures the marginal statistics of this exploration.
 ### Loss Landscape Perspective
 
 SWAG samples from the "basin" around the SWA solution:
+
 - Diagonal captures per-parameter variance
 - Low-rank captures principal directions of variation
 - Together they approximate the local posterior geometry
@@ -275,9 +239,7 @@ SWAG samples from the "basin" around the SWA solution:
 Use only the diagonal covariance (no low-rank):
 
 $$
-
 \Sigma = \text{diag}\left(\overline{\theta^2} - \bar{\theta}^2\right)
-
 $$
 
 **Advantages**: Simpler, less storage
@@ -288,9 +250,7 @@ $$
 Run SWAG from multiple random initializations:
 
 $$
-
 p(\theta \mid \mathcal{D}) \approx \frac{1}{M} \sum_{m=1}^M q_m(\theta)
-
 $$
 
 Captures multiple modes of the posterior.
@@ -769,12 +729,14 @@ if __name__ == "__main__":
 ### When to Use SWAG
 
 **Good candidates**:
+
 - Already have trained networks
 - Need quick uncertainty estimates
 - Large models where VI is expensive
 - Standard architectures (ResNets, etc.)
 
 **Less suitable**:
+
 - Need very accurate posteriors
 - Multimodal posteriors expected
 - Real-time inference requirements
@@ -790,6 +752,7 @@ if __name__ == "__main__":
 ### Calibration
 
 If predictions are under/overconfident:
+
 - **Underconfident**: Reduce scale factor
 - **Overconfident**: Increase scale factor, collect more samples
 
@@ -802,25 +765,19 @@ If predictions are under/overconfident:
 **SWAG distribution**:
 
 $$
-
 q(\theta) = \mathcal{N}(\bar{\theta}, \Sigma_{\text{diag}} + \Sigma_{\text{low-rank}})
-
 $$
 
 **Sampling**:
 
 $$
-
 \theta = \bar{\theta} + \frac{1}{\sqrt{2}} \sqrt{\Sigma_{\text{diag}}} \odot z_1 + \frac{1}{\sqrt{2(K-1)}} D z_2
-
 $$
 
 **Running statistics**:
 
 $$
-
 \bar{\theta} = \frac{1}{T}\sum_t \theta_t, \quad \Sigma_{\text{diag}} = \text{diag}(\overline{\theta^2} - \bar{\theta}^2)
-
 $$
 
 ### Advantages and Limitations
@@ -846,3 +803,35 @@ $$
 - Maddox, W., et al. (2019). A simple baseline for Bayesian inference in deep learning. *NeurIPS*.
 - Izmailov, P., et al. (2018). Averaging weights leads to wider optima and better generalization. *UAI*.
 - Wilson, A. G., & Izmailov, P. (2020). Bayesian deep learning and a probabilistic perspective of generalization. *NeurIPS*.
+
+## Exercises
+
+**Exercise 1.**
+For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+
+??? success "Solution to Exercise 1"
+    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
+
+---
+
+**Exercise 2.**
+Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
+
+??? success "Solution to Exercise 2"
+    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+
+---
+
+**Exercise 3.**
+Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+
+??? success "Solution to Exercise 3"
+    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+
+---
+
+**Exercise 4.**
+Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+
+??? success "Solution to Exercise 4"
+    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$

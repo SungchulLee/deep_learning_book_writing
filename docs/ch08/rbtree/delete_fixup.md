@@ -1,110 +1,143 @@
-# Red-Black Tree Deletion Fixup
+# 레드-블랙 트리의 삭제 뒤 손질
 
-When a [black node is removed](deletion.md) from a red-black tree, the black-height property may be violated: one path in the tree has one fewer black node than all others.  The **deletion fixup** procedure restores the red-black properties by performing rotations and recoloring along the path from the replacement node to the root.  The fixup considers four symmetric cases (and their mirror images), each designed to either resolve the violation locally or push it one level closer to the root.
+레드-블랙 트리에서 [검은 노드를 없애면](deletion.md) 검은 높이 성질이 깨질 수 있다. 어느 한 경로의 검은 노드가 다른 경로보다 하나 적어지는 것이다. **삭제 뒤 손질** 절차는 대체 노드에서 뿌리까지의 경로를 따라 회전하고 색을 바꾸어 레드-블랙 성질을 되살린다. 손질은 (거울상까지 더해) 네 가지 대칭적인 경우를 다루며, 저마다 어긋남을 그 자리에서 풀거나 뿌리 쪽으로 한 층 밀어 올린다.
 
-## When Fixup Is Needed
+## 언제 손질이 필요한가
 
-After the standard BST deletion and transplant, fixup is invoked only when the **removed or moved node was black**.  Removing a red node does not violate any red-black property.  When a black node is removed, the subtree that lost the node has a black-height deficit of 1.
+표준 이진 탐색 트리 삭제와 이식을 마친 뒤, **없애거나 옮긴 노드가 검었을 때만** 손질을 부른다. 붉은 노드를 없애는 것은 어떤 레드-블랙 성질도 깨뜨리지 않는다. 검은 노드를 없애면 그 노드를 잃은 부분 트리의 검은 높이가 1만큼 모자라게 된다.
 
-Let $x$ denote the node that moved into the deleted node's position (or the sentinel `T.nil` if the deleted node had no children).  The fixup procedure treats $x$ as carrying an "extra black" — conceptually, $x$ is either **double-black** (if $x$ is black) or **red-and-black** (if $x$ is red).  The goal is to remove this extra black by transferring it upward or absorbing it through rotations.
+$x$을 지운 노드의 자리로 옮겨 온 노드(지운 노드에 자식이 없었다면 보초 `T.nil`)라 하자. 손질 절차는 $x$이 "여분의 검정"을 지고 있다고 본다. 개념적으로 $x$은 (검다면) **이중 검정**이거나 (붉다면) **빨강이자 검정**이다. 목표는 이 여분의 검정을 위로 넘기거나 회전으로 흡수하여 없애는 것이다.
 
-## The Four Cases
+## 네 가지 경우
 
-Let $x$ be the node with the extra black, and let $w$ be $x$'s sibling.  The cases below assume $x$ is a left child; the symmetric cases apply when $x$ is a right child.
+$x$을 여분의 검정을 진 노드, $w$을 $x$의 형제라 하자. 아래의 경우는 $x$이 왼쪽 자식이라고 가정한다. $x$이 오른쪽 자식이면 대칭적인 경우가 적용된다.
 
-### Case 1: Sibling w is Red
+### 경우 1: 형제 $w$이 붉다
 
-Since $w$ is red, both of $w$'s children must be black (by the red-black property).
+$w$이 붉으므로 (레드-블랙 성질에 따라) $w$의 두 자식은 모두 검어야 한다.
 
-- Recolor $w$ to black and $x.parent$ to red.
-- Left-rotate on $x.parent$.
-- The new sibling of $x$ is now one of $w$'s former children, which is black.
+- $w$을 검게, $x.parent$을 붉게 칠한다.
+- $x.parent$에서 왼쪽 회전을 한다.
+- 이제 $x$의 새 형제는 $w$의 옛 자식 가운데 하나이며 검다.
 
-This transforms the situation into Case 2, 3, or 4 with a black sibling.
+그러면 형제가 검은 경우 2, 3, 4 가운데 하나로 바뀐다.
 
-### Case 2: Sibling w is Black, Both Children of w are Black
+### 경우 2: 형제 $w$이 검고 $w$의 두 자식도 검다
 
-Neither of $w$'s children can donate blackness through rotation.
+$w$의 어느 자식도 회전으로 검정을 내어 줄 수 없다.
 
-- Remove one black from both $x$ (eliminating the extra black) and $w$ (recolor $w$ to red).
-- Move the extra black up to $x.parent$.
-- If $x.parent$ is red, color it black and terminate.  Otherwise, repeat the fixup with $x.parent$ as the new $x$.
+- $x$에서 검정 하나를 없애고(여분의 검정이 사라진다) $w$에서도 없앤다($w$을 붉게 칠한다).
+- 여분의 검정을 $x.parent$으로 올린다.
+- $x.parent$이 붉으면 검게 칠하고 끝낸다. 그렇지 않으면 $x.parent$을 새 $x$으로 삼아 손질을 되풀이한다.
 
-### Case 3: Sibling w is Black, w's Left Child is Red, w's Right Child is Black
+### 경우 3: 형제 $w$이 검고 $w$의 왼쪽 자식은 붉으며 오른쪽 자식은 검다
 
-The sibling's red child is on the "wrong side" for a single rotation to fix the problem.
+형제의 붉은 자식이 단일 회전으로 문제를 풀기에는 "반대쪽"에 있다.
 
-- Recolor $w$'s left child to black and $w$ to red.
-- Right-rotate on $w$.
-- The new sibling of $x$ now has a red right child, transitioning to Case 4.
+- $w$의 왼쪽 자식을 검게, $w$을 붉게 칠한다.
+- $w$에서 오른쪽 회전을 한다.
+- 이제 $x$의 새 형제에게 붉은 오른쪽 자식이 생겨 경우 4로 넘어간다.
 
-### Case 4: Sibling w is Black, w's Right Child is Red
+### 경우 4: 형제 $w$이 검고 $w$의 오른쪽 자식이 붉다
 
-This is the terminal case — it resolves the extra black in one step.
+마지막 경우이다. 한 걸음에 여분의 검정을 없앤다.
 
-- Set $w$'s color to $x.parent$'s color.
-- Set $x.parent$ to black.
-- Set $w$'s right child to black.
-- Left-rotate on $x.parent$.
-- Set $x$ to the root (terminating the loop).
+- $w$의 색을 $x.parent$의 색으로 둔다.
+- $x.parent$을 검게 둔다.
+- $w$의 오른쪽 자식을 검게 둔다.
+- $x.parent$에서 왼쪽 회전을 한다.
+- $x$을 뿌리로 두어 반복문을 끝낸다.
 
-After the rotation, the extra black is absorbed and all red-black properties are restored.
+회전 뒤에는 여분의 검정이 흡수되고 모든 레드-블랙 성질이 되살아난다.
 
-## Pseudocode
+## 의사코드
 
 ```
 RB-DELETE-FIXUP(T, x):
     while x != T.root and x.color == BLACK:
         if x == x.parent.left:
-            w = x.parent.right            # sibling
-            if w.color == RED:             # Case 1
+            w = x.parent.right            # 형제
+            if w.color == RED:             # 경우 1
                 w.color = BLACK
                 x.parent.color = RED
                 LEFT-ROTATE(T, x.parent)
                 w = x.parent.right
-            if w.left.color == BLACK and w.right.color == BLACK:  # Case 2
+            if w.left.color == BLACK and w.right.color == BLACK:  # 경우 2
                 w.color = RED
                 x = x.parent
             else:
-                if w.right.color == BLACK:  # Case 3
+                if w.right.color == BLACK:  # 경우 3
                     w.left.color = BLACK
                     w.color = RED
                     RIGHT-ROTATE(T, w)
                     w = x.parent.right
-                w.color = x.parent.color   # Case 4
+                w.color = x.parent.color   # 경우 4
                 x.parent.color = BLACK
                 w.right.color = BLACK
                 LEFT-ROTATE(T, x.parent)
                 x = T.root
         else:
-            # symmetric: swap left/right
+            # 대칭: 왼쪽과 오른쪽을 바꾼다
             ...
     x.color = BLACK
 ```
 
-## Case Flow
+## 경우의 흐름
 
-The cases are not independent — they form a directed progression:
+이 경우들은 서로 독립이 아니라 한 방향으로 이어진다.
 
-- **Case 1** always leads to Case 2, 3, or 4 (with a black sibling).
-- **Case 2** may repeat at a higher level (moving $x$ toward the root) or terminate if the parent is red.
-- **Case 3** always leads to Case 4.
-- **Case 4** always terminates the fixup.
+- **경우 1**은 언제나 (형제가 검은) 경우 2, 3, 4로 이어진다.
+- **경우 2**는 위층에서 되풀이되거나($x$이 뿌리 쪽으로 간다) 부모가 붉으면 끝난다.
+- **경우 3**은 언제나 경우 4로 이어진다.
+- **경우 4**는 언제나 손질을 끝낸다.
 
-This means the fixup performs at most **three rotations** total and $O(\log n)$ recolorings.
+곧 손질은 모두 합쳐 회전을 많아야 **세 번** 하고 색을 $O(\log n)$번 바꾼다.
 
-## Complexity
+## 복잡도
 
-| Metric | Bound |
+| 지표 | 한계 |
 |--------|-------|
-| Rotations | At most 3 |
-| Recolorings | $O(\log n)$ |
-| Total time | $O(\log n)$ |
+| 회전 | 많아야 3번 |
+| 색 바꾸기 | $O(\log n)$ |
+| 전체 시간 | $O(\log n)$ |
 
-!!! warning "Sentinel node"
-    The fixup procedure references `x.parent` and sibling colors even when $x$ is `T.nil`.  The sentinel node must have its `color` set to BLACK and its `parent` pointer set correctly by the deletion procedure for the fixup to work.
+!!! warning "보초 노드"
+    손질 절차는 $x$이 `T.nil`일 때도 `x.parent`과 형제의 색을 참조한다. 손질이 제대로 돌아가려면 삭제 절차가 보초 노드의 `color`을 BLACK으로 두고 `parent` 포인터를 올바르게 지정해야 한다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Section 13.4. MIT Press.
 - Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.), Section 3.3. Addison-Wesley.
+
+
+## 연습문제
+
+**연습문제 1.**
+레드-블랙 트리의 삭제 뒤 손질의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 레드-블랙 트리의 삭제 뒤 손질을 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+레드-블랙 트리의 삭제 뒤 손질이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 레드-블랙 트리의 삭제 뒤 손질을 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

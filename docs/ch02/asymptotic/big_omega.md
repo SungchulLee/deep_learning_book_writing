@@ -1,93 +1,126 @@
-# Big-Omega Notation
+# 빅오메가 표기법
 
-Big-O notation tells us that a function grows *at most* as fast as another, providing an upper bound.  In many situations we need the opposite guarantee: a function grows *at least* as fast as another.  Big-Omega notation ($\Omega$) formalizes this idea of an **asymptotic lower bound**, and it is the mirror image of Big-O.
+빅오 표기법은 어떤 함수가 다른 함수보다 *많아야 그만큼* 빠르게 증가한다는 상계를 알려준다. 많은 상황에서 우리는 그 반대의 보장을 필요로 한다. 어떤 함수가 다른 함수보다 *적어도 그만큼* 빠르게 증가한다는 보장이다. 빅오메가 표기법($\Omega$)은 이러한 **점근적 하계** 의 개념을 형식화하며, 빅오의 거울상이다.
 
-## Formal Definition
+## 형식적 정의
 
-Let $f$ and $g$ be functions from the positive integers (or positive reals) to the non-negative reals.  We say $f(n)$ is $\Omega(g(n))$ if, beyond some threshold, $f(n)$ is always at least a fixed constant multiple of $g(n)$.
+$f$와 $g$를 양의 정수(또는 양의 실수)에서 음이 아닌 실수로 가는 함수라 하자. 어떤 문턱값을 넘어서면 $f(n)$이 항상 $g(n)$의 고정된 상수배 이상일 때, $f(n)$은 $\Omega(g(n))$이라고 한다.
 
-!!! info "Definition -- Big-Omega"
+!!! info "정의 -- 빅오메가"
 
-    $f(n) = \Omega(g(n))$ if there exist constants $c > 0$ and $n_0 > 0$ such that
+    다음을 만족하는 상수 $c > 0$과 $n_0 > 0$이 존재하면 $f(n) = \Omega(g(n))$이다.
 
     $$
     f(n) \geq c \cdot g(n) \quad \text{for all } n \geq n_0
     $$
 
-The constants mirror those in the Big-O definition:
+두 상수는 빅오 정의의 상수들과 대응된다.
 
-- **$c$ (the constant multiplier)** sets the scale.  We only need $f$ to exceed *some* positive fraction of $g$, not $g$ itself.
-- **$n_0$ (the threshold)** lets us ignore finitely many small input sizes.
+- **$c$(상수 배수)** 는 척도를 정한다. $f$가 $g$ 자체를 넘을 필요는 없고 $g$의 *어떤* 양의 비율을 넘기만 하면 된다.
+- **$n_0$(문턱값)** 는 유한개의 작은 입력 크기를 무시할 수 있게 해 준다.
 
-## Relationship to Big-O
+## 빅오와의 관계
 
-Big-Omega is the symmetric counterpart of Big-O.  The two notations are linked by a simple duality:
+빅오메가는 빅오의 대칭적인 짝이다. 두 표기법은 간단한 쌍대성으로 연결된다.
 
 $$
 f(n) = \Omega(g(n)) \iff g(n) = O(f(n))
 $$
 
-This means every Big-Omega statement can be restated as a Big-O statement with the roles of $f$ and $g$ swapped.  The duality is useful for converting between upper-bound and lower-bound perspectives.
+즉 모든 빅오메가 서술은 $f$와 $g$의 역할을 바꾼 빅오 서술로 다시 쓸 수 있다. 이 쌍대성은 상계 관점과 하계 관점을 오갈 때 유용하다.
 
-When both an upper and a lower bound hold simultaneously -- that is, $f(n) = O(g(n))$ *and* $f(n) = \Omega(g(n))$ -- we write $f(n) = \Theta(g(n))$, indicating a **tight bound** (see [Big-Theta Notation](big_theta.md)).
+상계와 하계가 동시에 성립할 때, 즉 $f(n) = O(g(n))$ *이고* $f(n) = \Omega(g(n))$일 때 $f(n) = \Theta(g(n))$이라 쓰며 이는 **꽉 조인 경계** 를 나타낸다([빅세타 표기법](big_theta.md) 참고).
 
-## Intuition
+## 직관
 
-Think of $\Omega(g(n))$ as a **lower envelope**: past the threshold $n_0$, the curve $c \cdot g(n)$ always sits below (or equals) the curve $f(n)$.  Saying "this algorithm runs in $\Omega(n \log n)$ time" means that no matter how clever the implementation, it must perform at least a constant multiple of $n \log n$ operations for sufficiently large inputs.
+$\Omega(g(n))$을 **아래쪽 포락선** 으로 생각하라. 문턱값 $n_0$을 지나면 곡선 $c \cdot g(n)$이 항상 곡선 $f(n)$ 아래에(또는 같은 높이에) 놓인다. "이 알고리즘은 $\Omega(n \log n)$ 시간에 실행된다"는 말은, 구현을 아무리 영리하게 하더라도 충분히 큰 입력에 대해 적어도 $n \log n$의 상수배만큼의 연산을 수행해야 한다는 뜻이다.
 
-## Examples
+## 예제
 
-### Example 1 -- Linear Lower Bound
+### 예제 1 -- 일차 하계
 
-Show that $f(n) = 3n + 5$ is $\Omega(n)$.
+$f(n) = 3n + 5$가 $\Omega(n)$임을 보이자.
 
-Choose $c = 3$ and $n_0 = 1$.  For all $n \geq 1$:
+$c = 3$, $n_0 = 1$로 두자. 모든 $n \geq 1$에 대해
 
 $$
 3n + 5 \geq 3n = c \cdot n
 $$
 
-Since $5 \geq 0$, the inequality holds immediately, confirming $3n + 5 = \Omega(n)$.
+$5 \geq 0$이므로 부등식이 곧바로 성립하고, 따라서 $3n + 5 = \Omega(n)$이 확인된다.
 
-### Example 2 -- Quadratic Lower Bound
+### 예제 2 -- 이차 하계
 
-Show that $f(n) = 2n^2 + 3n + 1$ is $\Omega(n^2)$.
+$f(n) = 2n^2 + 3n + 1$이 $\Omega(n^2)$임을 보이자.
 
-Choose $c = 2$ and $n_0 = 1$.  For all $n \geq 1$:
+$c = 2$, $n_0 = 1$로 두자. 모든 $n \geq 1$에 대해
 
 $$
 2n^2 + 3n + 1 \geq 2n^2 = c \cdot n^2
 $$
 
-The additional non-negative terms $3n + 1$ only increase the left side, so the inequality holds.
+추가된 음이 아닌 항 $3n + 1$은 좌변을 키우기만 하므로 부등식이 성립한다.
 
-### Example 3 -- Proving a Non-Lower-Bound
+### 예제 3 -- 하계가 아님을 증명하기
 
-Show that $n \neq \Omega(n^2)$.
+$n \neq \Omega(n^2)$임을 보이자.
 
-Assume for contradiction that there exist $c > 0$ and $n_0 > 0$ with $n \geq c \cdot n^2$ for all $n \geq n_0$.  Dividing by $n$ (valid for $n > 0$) yields $1 \geq c \cdot n$, which fails for $n > 1/c$.  This contradiction shows $n \neq \Omega(n^2)$.
+모순을 위해 모든 $n \geq n_0$에 대해 $n \geq c \cdot n^2$인 $c > 0$과 $n_0 > 0$이 존재한다고 가정하자. $n$으로 나누면($n > 0$이므로 가능하다) $1 \geq c \cdot n$이 되는데, 이는 $n > 1/c$에서 성립하지 않는다. 이 모순으로부터 $n \neq \Omega(n^2)$임을 알 수 있다.
 
-## Proof Strategy
+## 증명 전략
 
-To prove that $f(n) = \Omega(g(n))$:
+$f(n) = \Omega(g(n))$을 증명하려면 다음과 같이 한다.
 
-1. **Find suitable constants.** Pick a candidate $c$ and $n_0$.
-2. **Verify the inequality.** Show that $f(n) \geq c \cdot g(n)$ for every $n \geq n_0$.
+1. **적당한 상수를 찾는다.** 후보 $c$와 $n_0$을 고른다.
+2. **부등식을 검증한다.** 모든 $n \geq n_0$에 대해 $f(n) \geq c \cdot g(n)$임을 보인다.
 
-To prove that $f(n) \neq \Omega(g(n))$:
+$f(n) \neq \Omega(g(n))$을 증명하려면 다음과 같이 한다.
 
-1. **Assume the contrary.** Suppose constants $c > 0$ and $n_0 > 0$ exist.
-2. **Derive a contradiction.** Show that the inequality $f(n) \geq c \cdot g(n)$ must eventually fail.
+1. **반대로 가정한다.** 상수 $c > 0$과 $n_0 > 0$이 존재한다고 가정한다.
+2. **모순을 유도한다.** 부등식 $f(n) \geq c \cdot g(n)$이 결국 성립하지 않게 됨을 보인다.
 
-## Use in Algorithm Analysis
+## 알고리즘 분석에서의 쓰임
 
-Big-Omega appears in two main contexts:
+빅오메가는 주로 두 가지 맥락에서 등장한다.
 
-- **Lower bounds on problems.** A statement like "comparison-based sorting requires $\Omega(n \log n)$ comparisons" means *every* algorithm in that model needs at least that many operations.  This establishes a fundamental limit, not just a property of one particular algorithm.
-- **Best-case analysis.** Saying an algorithm runs in $\Omega(n)$ time means that even on the most favorable input, it still takes at least linear time.
+- **문제의 하계.** "비교 기반 정렬은 $\Omega(n \log n)$번의 비교를 필요로 한다"는 서술은 그 모형에 속하는 *모든* 알고리즘이 적어도 그만큼의 연산을 필요로 한다는 뜻이다. 이는 특정 알고리즘 하나의 성질이 아니라 근본적인 한계를 확립한다.
+- **최선의 경우 분석.** 어떤 알고리즘이 $\Omega(n)$ 시간에 실행된다는 것은 가장 유리한 입력에서조차 적어도 선형 시간이 걸린다는 뜻이다.
 
-Combining Big-Omega lower bounds with Big-O upper bounds is how we establish that an algorithm is **asymptotically optimal**: if the lower bound on the problem matches the upper bound of our algorithm, no other algorithm can do asymptotically better.
+빅오메가 하계와 빅오 상계를 결합하는 것이 알고리즘이 **점근적으로 최적** 임을 확립하는 방법이다. 문제의 하계가 우리 알고리즘의 상계와 일치하면, 다른 어떤 알고리즘도 점근적으로 더 잘할 수 없다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 3. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+빅오메가 표기법에서 다룬 점근 표기법을 적용하여 셀프 어텐션($n^2 d$번 연산)과 순방향 층($n d^2$번 연산)의 복잡도를 분류하라.
+
+??? success "연습문제 1 풀이"
+    셀프 어텐션: $O(n^2 d)$로 시퀀스 길이에 대해 이차이다. FFN: $O(nd^2)$로 시퀀스 길이에 대해서는 선형이지만 은닉 차원에 대해서는 이차이다. $n > d$이면 어텐션이 지배한다. $d > n$이면 FFN이 지배한다. 교차점은 $n = d$이다.
+
+---
+
+**연습문제 2.**
+빅오메가 표기법에서 서술한 형식적 정의를 구체적인 상수 $c$와 $n_0$을 사용하여 증명하라.
+
+??? success "연습문제 2 풀이"
+    정의를 만족하는 $c$와 $n_0$의 구체적인 값을 고른다. 대수적 조작으로, 또는 각 항의 상계를 잡아서, 모든 $n \geq n_0$에 대해 부등식이 성립함을 검증한다.
+
+---
+
+**연습문제 3.**
+극한 판정법을 사용하여 빅오메가 표기법과 관련된 두 함수 사이의 점근적 관계를 결정하라.
+
+??? success "연습문제 3 풀이"
+    $\lim_{n \to \infty} f(n)/g(n)$을 계산한다. 극한이 0이면 $f = o(g)$이다. 극한이 $\infty$이면 $f = \omega(g)$이다. 극한이 양의 상수이면 $f = \Theta(g)$이다.
+
+---
+
+**연습문제 4.**
+다음 함수들을 증가 속도 순으로 나열하라: $n$, $n \log n$, $n^2$, $2^n$, $\log n$. 인접한 각 쌍의 순서를 증명하라.
+
+??? success "연습문제 4 풀이"
+    $\log n \prec n \prec n\log n \prec n^2 \prec 2^n$. 증명: $\lim \log n / n = 0$(로피탈 정리), $\lim n/(n\log n) = 1/\log n \to 0$, $\lim n\log n / n^2 = \log n / n \to 0$, $\lim n^2/2^n = 0$(지수가 다항식을 지배한다). $\square$

@@ -1,158 +1,155 @@
-# Feature Distillation for Continual Learning
+# 이어 배우기를 위한 특징 증류
+## 들어가며
 
+이어 배우기에서 특징 증류는 앞선 모델과 지금 모델의 중간 층 특징을 맞추어, 잇단 과제에 걸쳐 배운 표현을 지키는 데 집중한다. 보통의 앎 증류처럼 마지막 출력만 맞추는 것이 아니라, 특징 수준의 제약이 여러 추상 층위에 걸쳐 과제와 맞닿은 본새를 담은 풍부한 특징 층층 짜임을 지켜 낸다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+계량 금융에서 특징 수준의 지킴은 매우 중요하다. 금융 모델은 시장 미시구조(주문 흐름, 틱 본새), 기술적 요인(추세, 운동량), 거시경제 관계의 층층 표현을 배운다. 특징 증류는 이렇게 배운 층층 짜임이 새 시장 상황에 맞추어 가면서도 새 예측 과제로 옮겨 가게 한다.
 
-## Introduction
+## 핵심 개념
 
-Feature distillation in continual learning focuses on preserving learned representations across task sequences by matching intermediate layer features between previous and current models. Rather than only matching final outputs as in standard knowledge distillation, feature-level constraints preserve the rich learned feature hierarchies that encode task-relevant patterns across multiple abstraction levels.
+- **중간 표현**: 배운 특징을 담은 층의 활성값
+- **여러 층위 맞추기**: 여러 층에서 한꺼번에 증류한다
+- **특징 맞추기**: 모델 사이의 차원 차이를 다룬다
+- **층층 짜임 지키기**: 특징의 추상 층위를 지킨다
+- **과제와 맞닿은 특징**: 중요한 표현에 증류를 집중한다
+- **셈 효율**: 얼마나 촘촘히 맞출지와 비용 사이의 맞바꿈
 
-In quantitative finance, feature-level preservation proves crucial: financial models learn hierarchical representations of market microstructure (order flow, tick patterns), technical factors (trends, momentum), and macroeconomic relationships. Feature distillation ensures these learned hierarchies transfer to new prediction tasks while adapting to novel market conditions.
+## 수학적 틀
 
-## Key Concepts
+### 한 층 특징 증류
 
-- **Intermediate Representations**: Layer activations capturing learned features
-- **Multi-Level Matching**: Distill from multiple layers simultaneously
-- **Feature Alignment**: Handle dimension differences between models
-- **Hierarchy Preservation**: Maintain feature abstraction levels
-- **Task-Relevant Features**: Focus distillation on important representations
-- **Computational Efficiency**: Trade-off between matching granularity and cost
-
-## Mathematical Framework
-
-### Single-Layer Feature Distillation
-
-For layer $\ell$, match feature activations:
+층 $\ell$에서 특징 활성값을 맞춘다.
 
 $$\mathcal{L}_{\text{feat}}^{(\ell)} = \sum_{\mathbf{x} \in D_{\text{prev}}} \|f_t^{(\ell)}(\mathbf{x}) - f_{t-1}^{(\ell)}(\mathbf{x})\|_2^2$$
 
-where $f^{(\ell)}(\mathbf{x}) \in \mathbb{R}^{d_{\ell}}$ are layer $\ell$ activations.
+여기서 $f^{(\ell)}(\mathbf{x}) \in \mathbb{R}^{d_{\ell}}$은 층 $\ell$의 활성값이다.
 
-### Multi-Layer Feature Distillation
+### 여러 층 특징 증류
 
-Combine losses from multiple layers:
+여러 층의 손실을 합친다.
 
 $$\mathcal{L}_{\text{feat}} = \sum_{\ell \in L} \alpha_{\ell} \mathcal{L}_{\text{feat}}^{(\ell)}$$
 
-where $L$ is set of matched layers and $\alpha_{\ell}$ are layer-specific weights.
+여기서 $L$은 맞출 층의 모임이고 $\alpha_{\ell}$은 층마다의 무게이다.
 
-**Layer Selection**: Match 3-5 intermediate layers rather than all (balances information and cost).
+**층 고르기**: 모든 층이 아니라 중간 층 3~5개를 맞춘다(정보와 비용의 균형을 잡는다).
 
-### Total Continual Learning Loss
+### 이어 배우기의 전체 손실
 
-Combine feature distillation with task and output losses:
+특징 증류를 과제 손실, 출력 손실과 합친다.
 
 $$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{task}} + \lambda_{\text{out}} \mathcal{L}_{\text{output}} + \lambda_{\text{feat}} \mathcal{L}_{\text{feat}}$$
 
-where:
-- $\mathcal{L}_{\text{task}}$ is current task loss
-- $\mathcal{L}_{\text{output}}$ is output distillation loss
-- $\mathcal{L}_{\text{feat}}$ is feature distillation loss
+여기서 각 기호는 다음과 같다.
 
-## Feature Alignment Strategies
+- $\mathcal{L}_{\text{task}}$은 지금 과제의 손실이다
+- $\mathcal{L}_{\text{output}}$은 출력 증류 손실이다
+- $\mathcal{L}_{\text{feat}}$은 특징 증류 손실이다
 
-### Direct L2 Matching (Same Dimensions)
+## 특징 맞추기 전략
 
-When feature dimensions match naturally:
+### 곧은 L2 맞추기(차원이 같을 때)
+
+특징의 차원이 저절로 맞을 때이다.
 
 $$\mathcal{L} = \|f_t^{(\ell)} - f_{t-1}^{(\ell)}\|_F^2$$
 
-Works when both models have identical architecture.
+두 모델의 구조가 똑같을 때 통한다.
 
-### Projection-Based Alignment (Different Dimensions)
+### 쏘아 넣기로 맞추기(차원이 다를 때)
 
-!!! tip "Handling Architecture Changes"
-    When $d_t^{(\ell)} \neq d_{t-1}^{(\ell)}$, insert learnable projections:
+!!! tip "구조가 바뀔 때 다루기"
+    $d_t^{(\ell)} \neq d_{t-1}^{(\ell)}$이면 배울 수 있는 쏘아 넣기를 끼워 넣는다.
 
 $$\mathcal{L} = \|P_t(f_t^{(\ell)}) - P_{t-1}(f_{t-1}^{(\ell)})\|_F^2$$
 
-where:
-- $P_t: \mathbb{R}^{d_t^{(\ell)}} \to \mathbb{R}^{d_{\text{shared}}}$ projects current features
-- $P_{t-1}: \mathbb{R}^{d_{t-1}^{(\ell)}} \to \mathbb{R}^{d_{\text{shared}}}$ projects previous features
+여기서 각 기호는 다음과 같다.
 
-Both projects to shared dimension $d_{\text{shared}}$.
+- $P_t: \mathbb{R}^{d_t^{(\ell)}} \to \mathbb{R}^{d_{\text{shared}}}$은 지금 특징을 쏘아 넣는다
+- $P_{t-1}: \mathbb{R}^{d_{t-1}^{(\ell)}} \to \mathbb{R}^{d_{\text{shared}}}$은 앞선 특징을 쏘아 넣는다
 
-### Similarity-Based Alignment
+둘 다 함께 쓰는 차원 $d_{\text{shared}}$으로 쏘아 넣는다.
 
-Instead of matching raw features, match feature similarity structures:
+### 닮음으로 맞추기
+
+날 특징을 맞추는 대신 특징의 닮음 짜임을 맞춘다.
 
 $$\mathcal{L} = \|\text{Sim}(f_t^{(\ell)}) - \text{Sim}(f_{t-1}^{(\ell)})\|_F^2$$
 
-where similarity matrix:
+여기서 닮음 행렬은 다음과 같다.
 
 $$\text{Sim}(\mathbf{F})_{ij} = \frac{\mathbf{F}_i \cdot \mathbf{F}_j}{\|\mathbf{F}_i\| \|\mathbf{F}_j\|}$$
 
-This matches feature relationships rather than absolute values.
+이는 절댓값이 아니라 특징 사이의 관계를 맞춘다.
 
-## Layer Selection Strategy
+## 층 고르기 전략
 
-### Which Layers to Match?
+### 어느 층을 맞출까?
 
-Different layer depths serve different purposes:
+층의 깊이마다 하는 몫이 다르다.
 
-| Layer Depth | Features | Matching Value | Cost |
+| 층의 깊이 | 특징 | 맞출 값어치 | 비용 |
 |-------------|----------|----------------|------|
-| **Early** | Low-level patterns | Low | Low |
-| **Middle** | Task-relevant abstractions | High | Medium |
-| **Late** | High-level concepts | Very High | High |
+| **앞쪽** | 낮은 수준의 본새 | 낮음 | 낮음 |
+| **중간** | 과제와 맞닿은 추상 | 높음 | 보통 |
+| **뒤쪽** | 높은 수준의 개념 | 매우 높음 | 높음 |
 
-**Recommendation**: Match 2-3 middle-to-late layers capturing semantic features.
+**권고**: 뜻을 담은 특징을 지닌 중간에서 뒤쪽 층 2~3개를 맞추라.
 
-### Adaptive Layer Selection
+### 맞추어 가는 층 고르기
 
-Weight layer matching by importance:
+중요도로 층 맞추기에 무게를 준다.
 
 $$\alpha_{\ell} = \frac{\text{gradient\_norm}(\mathcal{L}_{\text{task}}, \theta^{(\ell)})}{\sum_{\ell'} \text{gradient\_norm}(\mathcal{L}_{\text{task}}, \theta^{(\ell')})}$$
 
-Emphasize layers critical to task performance.
+과제 성능에 결정적인 층에 힘을 싣는다.
 
-## Handling Feature Scale Differences
+## 특징의 크기 차이 다루기
 
-### Normalization Strategies
+### 고르기 전략
 
-Features across models may have different scales:
+모델마다 특징의 크기가 다를 수 있다.
 
-**Instance Normalization**:
-
-$$\tilde{\mathbf{f}} = \frac{\mathbf{f} - \mathbb{E}[\mathbf{f}]}{\sqrt{\text{Var}(\mathbf{f}) + \epsilon}}$$
-
-Normalize each feature sample independently.
-
-**Layer Normalization**:
+**사례 고르기**:
 
 $$\tilde{\mathbf{f}} = \frac{\mathbf{f} - \mathbb{E}[\mathbf{f}]}{\sqrt{\text{Var}(\mathbf{f}) + \epsilon}}$$
 
-Normalize across features for each sample.
+특징 표본마다 따로 고른다.
 
-**No Normalization**: Use projection layers to learn appropriate scaling.
+**층 고르기(layer norm)**:
 
-## Computational Considerations
+$$\tilde{\mathbf{f}} = \frac{\mathbf{f} - \mathbb{E}[\mathbf{f}]}{\sqrt{\text{Var}(\mathbf{f}) + \epsilon}}$$
 
-### Memory and Computation Cost
+표본마다 특징에 걸쳐 고른다.
 
-Storing intermediate features from both models:
+**고르지 않기**: 쏘아 넣기 층으로 알맞은 눈금을 배운다.
+
+## 계산에 대한 고려
+
+### 기억과 셈의 비용
+
+두 모델의 중간 특징을 담아 두면 다음과 같다.
 
 $$\text{Memory} = \sum_{\ell} 2 \times d_{\ell} \times \text{batch\_size}$$
 
-Selecting only key layers reduces overhead.
+핵심 층만 고르면 짐이 줄어든다.
 
-### Efficiency Optimizations
+### 효율 높이기
 
-**Selective Matching**: Only compute distillation loss on subset of training data
+**가려 맞추기**: 학습 데이터의 일부에서만 증류 손실을 셈한다
 
 $$\mathcal{L}_{\text{feat}} = \frac{1}{|S|} \sum_{\mathbf{x} \in S} \|\cdots\|^2$$
 
-where $S$ is sampled subset of training data.
+여기서 $S$은 학습 데이터에서 뽑은 부분집합이다.
 
-**Feature Caching**: Precompute previous model features, store offline
+**특징 미리 담아 두기**: 앞선 모델의 특징을 미리 셈해 따로 담아 둔다
 
-!!! note "Practical Trade-off"
-    Cache previous model features during training to avoid redundant computation.
+!!! note "실전에서의 맞바꿈"
+    학습 중에 앞선 모델의 특징을 담아 두어 같은 셈을 되풀이하지 않게 한다.
 
-## Continual Learning Dynamics
+## 이어 배우기의 움직임
 
-### Task Sequence Learning
+### 과제 차례 배우기
 
 ```
 Task 1: Train f_1 on D_1
@@ -168,25 +165,26 @@ Task 3: Initialize f_3 with f_2 or random
         ...
 ```
 
-### Feature Degradation Over Long Sequences
+### 긴 차례에서 특징이 무너짐
 
-!!! warning "Sequential Feature Drift"
-    In long task sequences, features may drift cumulatively:
+!!! warning "차례에 따른 특징 흘러남"
+    과제 차례가 길면 특징이 차곡차곡 흘러날 수 있다.
     
-    Task 1 → Task 2 → Task 3 → ... → Task T
+    과제 1 → 과제 2 → 과제 3 → ... → 과제 T
     
-    Features gradually diverge from original Task 1 representation.
+    특징이 본디 과제 1의 표현에서 차츰 멀어진다.
 
-**Mitigation**: 
-- Periodically consolidate learned features
-- Use stronger distillation on early tasks
-- Store "anchor" features from early tasks, reference them in late tasks
+**누그러뜨리기**:
 
-## Application Examples
+- 배운 특징을 이따금 다진다
+- 이른 과제에 더 센 증류를 쓴다
+- 이른 과제의 "닻" 특징을 담아 두고 늦은 과제에서 참고한다
 
-### Parameter-Efficient Fine-Tuning
+## 쓰임새 보기
 
-Use feature distillation with adapters for efficiency:
+### 매개변수를 아끼는 미세 조정
+
+효율을 위해 어댑터와 함께 특징 증류를 쓴다.
 
 ```
 Base Model (Frozen)
@@ -198,57 +196,90 @@ Task Adapter ← Feature Distillation Loss
 Task Output
 ```
 
-Adapters learn task-specific transformations while features match previous knowledge.
+어댑터가 과제마다의 변환을 배우는 동안 특징은 앞선 앎에 맞추어진다.
 
-### Cross-Task Feature Sharing
+### 과제를 넘나드는 특징 나누어 쓰기
 
-Match features that transfer across tasks:
+과제를 넘나들며 옮겨 가는 특징을 맞춘다.
 
-**Task 1**: Predict asset returns using technical features
+**과제 1**: 기술적 특징으로 자산 수익률을 맞힌다
 
-**Task 2**: Predict asset volatility using features from Task 1
+**과제 2**: 과제 1의 특징으로 자산 변동성을 맞힌다
 
-**Distillation**: Share common features (price momentum, volatility regimes) across tasks
+**증류**: 과제를 넘나들며 공통 특징(가격 운동량, 변동성 국면)을 나누어 쓴다
 
-## Comparison with Output Distillation
+## 출력 증류와의 견줌
 
-| Aspect | Output | Feature | Combined |
+| 갈래 | 출력 | 특징 | 합침 |
 |--------|--------|---------|----------|
-| **Information** | Final decisions | Intermediate knowledge | Comprehensive |
-| **Flexibility** | High | Requires matching | Very High |
-| **Computational** | Low | Medium | Higher |
-| **Preserves** | Decision boundaries | Learned hierarchy | Both |
+| **정보** | 마지막 판단 | 중간의 앎 | 두루 갖춤 |
+| **융통성** | 높음 | 맞추어야 함 | 매우 높음 |
+| **셈 비용** | 낮음 | 보통 | 더 높음 |
+| **지키는 것** | 판단 경계 | 배운 층층 짜임 | 둘 다 |
 
-## Financial Implementation
+## 금융에서의 구현
 
-!!! warning "Feature Distillation in Trading"
+!!! warning "거래에서의 특징 증류"
     
-    **Task Sequence**:
-    1. **Task 1**: Predict equity returns using price/volume features
-    2. **Task 2**: Predict bond spreads, distill equity price momentum features
-    3. **Task 3**: Predict FX, distill volatility features from Task 1-2
+    **과제 차례**:
+
+    1. **과제 1**: 가격과 거래량 특징으로 주식 수익률을 맞힌다
+    2. **과제 2**: 채권 스프레드를 맞히면서 주식 가격 운동량 특징을 증류한다
+    3. **과제 3**: 외환을 맞히면서 과제 1~2의 변동성 특징을 증류한다
     
-    Progressive feature accumulation across asset classes.
+    자산 갈래를 가로질러 특징이 차츰 쌓인다.
 
-### Multi-Horizon Forecasting
+### 여러 지평 예보
 
-Match features across prediction horizons:
+예측 지평을 가로질러 특징을 맞춘다.
 
-- **1-Day Forecast**: High-frequency patterns, microstructure features
-- **5-Day Forecast**: Distill 1-day feature hierarchy
-- **20-Day Forecast**: Distill 5-day features
-- **252-Day Forecast**: Distill longer-term trend features
+- **1일 예보**: 고빈도 본새, 미시구조 특징
+- **5일 예보**: 1일 특징의 층층 짜임을 증류한다
+- **20일 예보**: 5일 특징을 증류한다
+- **252일 예보**: 더 긴 흐름의 추세 특징을 증류한다
 
-## Research Directions
+## 연구의 방향
 
-- Optimal layer selection for feature matching
-- Theoretically-grounded feature distillation objective design
-- Hierarchical feature distillation across multiple scales
-- Adaptive weighting of feature distillation in continual learning
+- 특징 맞추기에 가장 좋은 층 고르기
+- 이론에 뿌리를 둔 특징 증류 목표 설계
+- 여러 눈금에 걸친 층층 특징 증류
+- 이어 배우기에서 특징 증류에 맞추어 무게 주기
 
-## Related Topics
+## 관련 주제
 
-- Feature Distillation Overview (Chapter 12.2)
-- Knowledge Distillation Basics (Chapter 9.2.1)
-- Architecture-Based Continual Learning (Chapter 12.1)
-- Representation Learning
+- 특징 증류 훑어보기(12.2절)
+- 지식 증류의 기초 (9.2.1절)
+- 구조 기반 이어 배우기(12.1절)
+- 표현 학습
+
+## 연습문제
+
+**연습문제 1.**
+이 방법의 핵심 생각과 그것이 파국적 잊음을 어떻게 다루는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 방법은 새 과제를 배울 때 모델의 매개변수나 표현이 바뀌는 방식을 옥죄어 파국적 잊음을 누그러뜨린다. (벌주기, 되살리기, 증류, 구조 갈라두기로) 배운 함수의 중요한 대목을 지켜 냄으로써, 앞선 과제의 성능을 지키면서도 새 과제에 맞추어 갈 수 있게 한다.
+
+---
+
+**연습문제 2.**
+이 접근법의 셈과 기억 요구는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    요구는 변형마다 다르지만 대체로 (a) 매개변수의 중요도 무게, (b) 학습 보기의 일부, (c) 스승 모델의 출력, (d) 과제마다의 망 모듈 가운데 하나를 담아 두어야 한다. 기억 비용과 잊음 막기의 효과 사이에서 맞바꿈이 일어난다.
+
+---
+
+**연습문제 3.**
+이 방법을 효과와 셈 비용 면에서 EWC와 견주어라.
+
+??? success "연습문제 3 풀이"
+    EWC은 대각 피셔 정보로 중요한 가중치를 짚어낸다. 이 방법은 다른 맞바꿈을 준다. 옛 과제의 성능을 더 잘 지킬 수 있고, 기억 요구가 다르며, 과제 짜임에 대한 가정도 다르다. 실험으로 견주어 보면 잣대에 따라 서로 보완되는 강점을 보일 때가 많다.
+
+---
+
+**연습문제 4.**
+이 방법을 간추린 판으로 파이토치에 구현하라.
+
+??? success "연습문제 4 풀이"
+    구현은 대개 새 과제를 익히는 동안 보통의 교차 엔트로피 손실에 벌주기 항을 더한다. 핵심 부품은 (1) 앞선 과제 학습에서 제약을 셈하기, (2) 필요한 정보(가중치, 본보기, 스승 출력)를 담아 두기, (3) 새 과제 학습 중에 그 제약을 씌우기이다.

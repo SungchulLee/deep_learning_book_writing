@@ -1,75 +1,76 @@
-# Graph Coloring
+# 그래프 색칠하기
 
-Graph coloring assigns colors to vertices so that no two adjacent vertices share the same color. The **$m$-coloring problem** asks: can a given graph be colored with at most $m$ colors? This NP-complete problem is solvable via backtracking, which systematically tries color assignments and prunes branches that violate the adjacency constraint.
+그래프 색칠하기는 이웃한 두 꼭짓점이 같은 색을 갖지 않도록 꼭짓점에 색을 매긴다. **$m$-색칠 문제**는 주어진 그래프를 색 $m$개 이하로 칠할 수 있는지 묻는다. NP 완전인 이 문제는 되짚기로 풀 수 있으며, 색 매김을 짜임새 있게 시험하고 이웃 제약을 어기는 갈래를 쳐 낸다.
 
-## Problem Definition
+## 문제의 정의
 
-Given an undirected graph $G = (V, E)$ with $n = |V|$ vertices and a positive integer $m$, assign each vertex a color from $\{1, 2, \ldots, m\}$ such that for every edge $(u, v) \in E$, the colors of $u$ and $v$ differ.
+꼭짓점이 $n = |V|$개인 방향 없는 그래프 $G = (V, E)$과 양의 정수 $m$이 주어질 때, 모든 변 $(u, v) \in E$에 대해 $u$과 $v$의 색이 다르도록 꼭짓점마다 $\{1, 2, \ldots, m\}$에서 색을 매겨라.
 
-The minimum $m$ for which a valid coloring exists is called the **chromatic number** $\chi(G)$.
+옳은 색칠이 있는 가장 작은 $m$을 **색칠 수** $\chi(G)$이라 한다.
 
-## Backtracking Approach
+## 되짚기 방식
 
-Process vertices in order $v_1, v_2, \ldots, v_n$. At each vertex $v_i$, try each color $c \in \{1, \ldots, m\}$:
+꼭짓점을 $v_1, v_2, \ldots, v_n$ 차례로 처리한다. 꼭짓점 $v_i$마다 색 $c \in \{1, \ldots, m\}$을 하나씩 시험한다:
 
-- **Feasibility check**: Is color $c$ different from the colors of all already-colored neighbors of $v_i$?
-- If feasible, assign $c$ to $v_i$ and recurse to $v_{i+1}$.
-- If no color is feasible, **backtrack** to $v_{i-1}$ and try the next color.
+- **될 수 있는지 살피기**: 색 $c$이 이미 칠한 $v_i$의 이웃 모두의 색과 다른가?
+- 될 수 있으면 $v_i$에 $c$을 매기고 $v_{i+1}$으로 되돌이한다.
+- 어느 색도 될 수 없으면 $v_{i-1}$으로 **되짚어** 다음 색을 시험한다.
 
-The search tree has branching factor $m$ and depth $n$, giving $O(m^n)$ worst-case time. Pruning via the feasibility check eliminates many branches in practice.
+찾기 나무의 갈래 수는 $m$, 깊이는 $n$이라 최악의 경우 $O(m^n)$ 시간이 든다. 될 수 있는지 살펴 가지를 치면 실전에서 갈래를 많이 없앤다.
 
-## Pruning Strategies
+## 가지치기 전략
 
-Several techniques reduce the search space:
+찾기 공간을 줄이는 재주가 여럿 있다:
 
-1. **Forward checking**: When coloring vertex $v_i$, remove its color from the available colors of all uncolored neighbors. If any neighbor has zero available colors, prune immediately.
-2. **Vertex ordering**: Color vertices with higher degree first (largest-first heuristic). Constrained vertices are harder to color, so addressing them early prunes more branches.
-3. **Symmetry breaking**: Fix the color of the first vertex to 1 (any valid coloring can be relabeled).
+1. **앞서 살피기**: 꼭짓점 $v_i$을 칠할 때 아직 칠하지 않은 이웃 모두의 쓸 수 있는 색에서 그 색을 뺀다. 어떤 이웃의 쓸 수 있는 색이 0개가 되면 곧바로 쳐 낸다.
+2. **꼭짓점 차례 매기기**: 차수가 큰 꼭짓점을 먼저 칠한다(큰 것 먼저 어림짐작). 제약이 많은 꼭짓점은 칠하기 어려우므로 일찍 다루면 갈래를 더 많이 쳐 낸다.
+3. **대칭 깨기**: 첫 꼭짓점의 색을 1로 고정한다(옳은 색칠은 이름을 다시 붙일 수 있다).
 
-## Complexity
+## 복잡도
 
-| Aspect | Value |
+| 갈래 | 값 |
 |---|---|
-| Time (worst case) | $O(m^n)$ |
-| Space | $O(n)$ for color assignments |
-| Decision problem | NP-complete for $m \ge 3$ |
+| 시간(최악의 경우) | $O(m^n)$ |
+| 공간 | 색 매김에 $O(n)$ |
+| 판정 문제 | $m \ge 3$이면 NP 완전 |
 
-!!! tip "Special Cases"
-    - $m = 2$: Graph is 2-colorable if and only if it is bipartite, checkable in $O(V + E)$ via BFS/DFS.
-    - Planar graphs: Always 4-colorable (Four Color Theorem), and 3-colorability is still NP-complete.
+!!! tip "특별한 경우"
 
-## Python Implementation
+    - $m = 2$: 그래프가 두 색으로 칠해질 필요충분조건은 두 쪽 그래프인 것이며, 너비 먼저나 깊이 먼저로 $O(V + E)$에 살필 수 있다.
+    - 평면 그래프: 늘 네 색으로 칠할 수 있고(네 색 정리) 세 색으로 칠할 수 있는지는 여전히 NP 완전이다.
+
+## 파이썬 구현
 
 ```python
 """
-Graph Coloring — Backtracking with Feasibility Pruning.
+그래프 색칠하기 — 될 수 있는지로 가지를 치는 되짚기.
 
-Finds an m-coloring of a graph or reports that none exists.
-Uses adjacency list representation and simple feasibility check.
+그래프의 m-색칠을 찾거나 없다고 알린다.
+이웃 목록 나타냄과 단순한 될 수 있는지 살피기를 쓴다.
 """
 
 
-# === Feasibility Check ===
+# === 될 수 있는지 살피기 ===
 
 def is_safe(vertex: int, color: int, colors: list[int], adj: list[list[int]]) -> bool:
-    """Check if assigning color to vertex violates no constraint."""
+    """꼭짓점에 색을 매겨도 제약을 어기지 않는지 살핀다."""
     for neighbor in adj[vertex]:
         if colors[neighbor] == color:
             return False
     return True
 
 
-# === Backtracking Solver ===
+# === 되짚기 풀개 ===
 
 def graph_coloring(adj: list[list[int]], m: int) -> list[int] | None:
-    """Find an m-coloring of the graph, or return None.
+    """그래프의 m-색칠을 찾거나 None을 돌려준다.
 
-    Args:
-        adj: Adjacency list for n vertices (0-indexed).
-        m: Number of available colors.
+    인수:
+        adj: 꼭짓점 n개의 이웃 목록(0부터 셈).
+        m: 쓸 수 있는 색의 수.
 
-    Returns:
-        List of color assignments (1-indexed colors), or None.
+    반환값:
+        색 매김의 목록(색은 1부터 셈), 또는 None.
     """
     n = len(adj)
     colors = [0] * n
@@ -92,10 +93,10 @@ def graph_coloring(adj: list[list[int]], m: int) -> list[int] | None:
     return None
 
 
-# === Count All Valid Colorings ===
+# === 옳은 색칠을 모두 세기 ===
 
 def count_colorings(adj: list[list[int]], m: int) -> int:
-    """Count the number of valid m-colorings."""
+    """옳은 m-색칠의 수를 센다."""
     n = len(adj)
     colors = [0] * n
     count = 0
@@ -116,15 +117,15 @@ def count_colorings(adj: list[list[int]], m: int) -> int:
     return count
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Example: a cycle of 4 vertices (C4)
+    # 보기: 꼭짓점 4개의 돌기(C4)
     adj = [
-        [1, 3],  # vertex 0
-        [0, 2],  # vertex 1
-        [1, 3],  # vertex 2
-        [2, 0],  # vertex 3
+        [1, 3],  # 꼭짓점 0
+        [0, 2],  # 꼭짓점 1
+        [1, 3],  # 꼭짓점 2
+        [2, 0],  # 꼭짓점 3
     ]
 
     for m in range(2, 5):
@@ -132,23 +133,55 @@ if __name__ == "__main__":
         num = count_colorings(adj, m)
         status = result if result else "No valid coloring"
         print(f"m={m}: {status}, total valid colorings: {num}")
-    # Output:
-    # m=2: [1, 2, 1, 2], total valid colorings: 2
-    # m=3: [1, 2, 1, 2], total valid colorings: 18
-    # m=4: [1, 2, 1, 2], total valid colorings: 84
+    # 내임:
+    # m=2: [1, 2, 1, 2], 옳은 색칠 전체: 2
+    # m=3: [1, 2, 1, 2], 옳은 색칠 전체: 18
+    # m=4: [1, 2, 1, 2], 옳은 색칠 전체: 84
 ```
 
-## Worked Example
+## 풀이 예제
 
-Consider a triangle graph ($K_3$) with $m = 3$ colors:
+색 $m = 3$개로 세모 그래프($K_3$)를 보자:
 
-- Vertex 0: try color 1. Feasible (no colored neighbors). Assign 1.
-- Vertex 1: try color 1. Not feasible (neighbor 0 has color 1). Try color 2. Feasible. Assign 2.
-- Vertex 2: try color 1. Not feasible (neighbor 0 has color 1). Try color 2. Not feasible (neighbor 1 has color 2). Try color 3. Feasible. Assign 3.
+- 꼭짓점 0: 색 1을 시험한다. 될 수 있다(칠한 이웃이 없다). 1을 매긴다.
+- 꼭짓점 1: 색 1을 시험한다. 안 된다(이웃 0이 색 1이다). 색 2를 시험한다. 된다. 2를 매긴다.
+- 꼭짓점 2: 색 1을 시험한다. 안 된다(이웃 0이 색 1이다). 색 2를 시험한다. 안 된다(이웃 1이 색 2이다). 색 3을 시험한다. 된다. 3을 매긴다.
 
-Valid coloring: $[1, 2, 3]$. The chromatic number of $K_3$ is $\chi(K_3) = 3$.
+옳은 색칠: $[1, 2, 3]$. $K_3$의 색칠 수는 $\chi(K_3) = 3$이다.
 
-## Reference
+## 참고 문헌
 
 - Skiena, S. S. (2020). *The Algorithm Design Manual* (3rd ed.), Chapter 9. Springer.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+그래프 색칠하기의 고갱이 생각과 그것이 풀이 공간을 어떻게 짜임새 있게 살피는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    그래프 색칠하기은 풀이 공간을 나무로 보고 살피며 마디마다 어중간한 풀이를 뜻한다. 마디마다 알고리즘은 어중간한 풀이를 넓히고 될 수 있는지 제약을 살핀다. 어중간한 풀이가 제약을 어기거나 (가장 좋거나 옳은 온전한 풀이로 이어질 수 없음이 밝혀지면) 알고리즘은 **가지를 쳐**(되짚어) 그 아래 나무 전체를 살피지 않는다. 가지치기가 찾기 공간의 큰 몫을 없애므로 막무가내보다 효율이 좋다. $\square$
+
+---
+
+**연습문제 2.**
+그래프 색칠하기의 최악의 경우 시간 복잡도는 무엇인가? 가지치기는 언제 찾기 공간을 크게 줄이는가?
+
+??? success "연습문제 2 풀이"
+    최악의 경우(가지치기가 없으면) 알고리즘이 풀이 공간 전체를 살피며 이는 흔히 지수나 계승이다. 곧 갈래 수가 $b$이고 깊이가 $d$이면 $O(b^d)$, 자리 바꿈 문제이면 $O(n!)$이다. 가지치기는 다음일 때 찾기를 크게 줄인다. (1) 제약이 빡빡해 될 수 없는 갈래가 많을 때, (2) 좋은 묶음이 갈래를 일찍 없앨 때, (3) 차례를 매기는 어림짐작이 그럴듯한 갈래를 먼저 살필 때이다. 실전에서 가지치기는 도는 시간을 자릿수만큼 줄일 수 있다. $\square$
+
+---
+
+**연습문제 3.**
+그래프 색칠하기의 가지치기 조건을 적어라. 무엇이 좋은 가지치기 잣대를 만드는가?
+
+??? success "연습문제 3 풀이"
+    가지치기 잣대는 어중간한 풀이를 언제 버릴지 정한다. 좋은 잣대는 다음과 같다. (1) **될 수 있음**: 어중간한 풀이가 이미 제약을 어긴다. (2) **묶음**: 어중간한 풀이를 가장 좋게 마무리해도 여태 가장 좋은 풀이보다 나을 수 없다. (3) **누름**: 다른 어중간한 풀이가 적어도 그만큼 좋음이 밝혀진다. 잘 듣는 가지치기 잣대는 따지기 값싸고 큰 아래 나무를 없앤다. $\square$
+
+---
+
+**연습문제 4.**
+작은 경우에 그래프 색칠하기을 짜고 살핀 마디의 수를 전체 찾기 공간의 크기와 견주어 세어라.
+
+??? success "연습문제 4 풀이"
+    작은 경우(예컨대 N-여왕에서 $n = 8$, 배낭에서 담이 20)에는 전체 찾기 공간에 마디가 수백만 개일 수 있지만 가지치기가 잘 들면 수천 개만 살핀다. (살핀 수 / 전체) 비가 가지치기가 얼마나 잘 드는지 값으로 나타낸다. 제약이 잘 걸린 문제에서는 이 비가 1% 아래일 수 있어 되짚기가 막무가내보다 힘이 셈을 보여 준다. $\square$

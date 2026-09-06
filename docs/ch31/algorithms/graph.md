@@ -1,96 +1,96 @@
-# External Graph Algorithms
+# 바깥 기억 그래프 알고리즘
 
-Graphs arising in practice -- web link structures, social networks, road networks -- often contain billions of vertices and edges, far exceeding main memory capacity. **External graph algorithms** process such graphs efficiently by minimizing disk I/O operations rather than CPU time. This page introduces the fundamental techniques that enable graph computation on disk-resident data.
+실제로 나오는 그래프, 곧 웹 이음 얼개, 사회 그물, 길 그물은 흔히 꼭짓점과 변이 수십억 개여서 으뜸 기억을 훨씬 넘는다. **바깥 기억 그래프 알고리즘**은 CPU 때가 아니라 원반 들고남을 가장 적게 하여 그런 그래프를 효율 좋게 다룬다. 이 쪽은 원반에 놓인 자료에서 그래프를 셈할 수 있게 하는 근본 재주를 소개한다.
 
-## The I/O Model for Graphs
+## 그래프를 위한 들고남 모형
 
-Recall the external-memory model parameters:
+바깥 기억 모형의 잡을 되짚어 보자:
 
-- **$N$**: number of data items (vertices or edges).
-- **$M$**: main memory capacity (in items).
-- **$B$**: disk block size (items per block transfer).
+- **$N$**: 자료 낱것(꼭짓점이나 변)의 개수.
+- **$M$**: 으뜸 기억이 담는 양(낱것 수).
+- **$B$**: 원반 덩이 크기(덩이 옮김마다의 낱것 수).
 
-The I/O cost of scanning $N$ items is $\text{scan}(N) = O(N/B)$, and sorting costs $\text{sort}(N) = O((N/B) \log_{M/B}(N/B))$.
+낱것 $N$개를 훑는 들고남 비용은 $\text{scan}(N) = O(N/B)$이고 줄 세우기는 $\text{sort}(N) = O((N/B) \log_{M/B}(N/B))$이다.
 
-For a graph $G = (V, E)$, we typically have $|V| = n$ and $|E| = m$. Graph algorithms face a fundamental challenge: graph traversals follow pointers (edges) that may point to arbitrary locations on disk, causing random I/O.
+그래프 $G = (V, E)$에서 보통 $|V| = n$, $|E| = m$으로 둔다. 그래프 알고리즘은 근본 어려움을 마주한다. 그래프 밟기는 원반의 아무 자리나 가리킬 수 있는 가리개(변)를 따라가므로 아무 들고남이 일어난다.
 
-## Graph Representations on Disk
+## 원반 위의 그래프 나타내기
 
-The choice of disk layout significantly affects I/O performance.
+원반에 어떻게 놓느냐가 들고남 성능에 크게 영향을 준다.
 
-### Adjacency Array
+### 이웃 배열
 
-Store vertices in sorted order, with each vertex pointing to a contiguous block of its neighbors:
+꼭짓점을 줄 세워 담고 꼭짓점마다 이웃이 이어진 덩이를 가리키게 한다:
 
 $$
 \text{I/O to scan all edges} = O\!\left(\frac{m}{B}\right)
 $$
 
-This representation supports efficient sequential scans and is the default for external graph algorithms.
+이 나타냄은 효율 좋은 차례 훑기를 받쳐 주며 바깥 기억 그래프 알고리즘의 기본이다.
 
-### Edge List
+### 변 목록
 
-Store all edges $(u, v)$ as a flat sorted list. Sorting by source vertex costs $O(\text{sort}(m))$ I/Os and enables efficient merge-based algorithms.
+모든 변 $(u, v)$을 납작하게 줄 세운 목록으로 담는다. 출발 꼭짓점으로 줄 세우는 데 들고남 $O(\text{sort}(m))$번이 들며 효율 좋은 합침 바탕 알고리즘을 할 수 있게 한다.
 
-## Key Algorithmic Techniques
+## 핵심 알고리즘 재주
 
-### Technique 1: Sort and Scan
+### 재주 1: 줄 세우고 훑기
 
-Many graph problems reduce to sorting edges by some key and scanning the sorted list. For example, computing vertex degrees requires only sorting the edge list and scanning it, costing $O(\text{sort}(m))$ I/Os.
+많은 그래프 문제는 변을 어떤 열쇠로 줄 세우고 그 목록을 훑는 일로 줄어든다. 보기로 꼭짓점 차수를 셈하려면 변 목록을 줄 세우고 훑기만 하면 되며 들고남 $O(\text{sort}(m))$번이 든다.
 
-### Technique 2: Time-Forward Processing
+### 재주 2: 때 앞으로 보내기
 
-When processing a DAG in topological order, each vertex may need data from its predecessors. **Time-forward processing** sends messages along edges to future vertices using a priority queue, avoiding random access to predecessor data.
+방향 있고 돌이 없는 그래프를 위상 차례로 다룰 때 꼭짓점마다 앞선 것들의 자료가 필요할 수 있다. **때 앞으로 보내기**는 앞섬 줄로 변을 따라 앞으로 올 꼭짓점에 쪽지를 보내 앞선 자료에 아무렇게 닿는 일을 피한다.
 
-- Vertices are processed in topological order.
-- When vertex $u$ is processed, it sends results to each successor $v$ via the priority queue.
-- When $v$ is processed, it retrieves all messages addressed to it.
+- 꼭짓점을 위상 차례로 다룬다.
+- 꼭짓점 $u$을 다룰 때 앞섬 줄로 뒤따르는 $v$마다 결과를 보낸다.
+- $v$을 다룰 때 자기 앞으로 온 쪽지를 모두 가져온다.
 
-The I/O cost is $O(\text{sort}(m))$ for the priority queue operations.
+앞섬 줄 연산의 들고남 비용은 $O(\text{sort}(m))$이다.
 
-### Technique 3: Graph Contraction
+### 재주 3: 그래프 오므리기
 
-Reduce the graph size by contracting vertices (e.g., removing degree-1 vertices, merging degree-2 paths). Process the contracted graph in memory, then expand the solution back.
+꼭짓점을 오므려 그래프 크기를 줄인다(보기로 차수 1인 꼭짓점 없애기, 차수 2인 길 합치기). 오므린 그래프를 기억에서 다룬 뒤 풀이를 도로 펼친다.
 
-## Example: External DFS
+## 보기: 바깥 기억 깊이 우선 찾기
 
-External DFS is significantly harder than external BFS because the DFS stack may require random access to the graph.
+깊이 우선 찾기의 쌓기가 그래프에 아무렇게 닿아야 할 수 있어 바깥 기억 깊이 우선 찾기는 너비 우선 찾기보다 훨씬 어렵다.
 
 ```python
 """
-External graph algorithm fundamentals.
+바깥 기억 그래프 알고리즘의 바탕.
 
-Demonstrates sorting-based edge processing and vertex degree
-computation in the external-memory style (batch processing).
+바깥 기억 방식(묶음 다루기)의 줄 세우기 바탕 변 다루기와
+꼭짓점 차수 셈하기를 보여 준다.
 """
 
 # ===================================================================
-# External-Memory Style Graph Processing
+# 바깥 기억 방식 그래프 다루기
 # ===================================================================
 
 def compute_degrees_external(edges, n):
-    """Compute vertex degrees using sort-and-scan approach.
+    """줄 세우고 훑는 길로 꼭짓점 차수를 셈한다.
 
-    In an external-memory setting, this sorts the edge list
-    and scans it to count degrees, avoiding random access.
+    바깥 기억 자리에서는 변 목록을 줄 세우고 훑어 차수를 세며
+    아무 닿기를 피한다.
 
-    Args:
-        edges: list of (u, v) tuples
-        n: number of vertices
+    인수:
+        edges: (u, v) 짝의 목록
+        n: 꼭짓점 개수
 
-    Returns:
-        List of degrees indexed by vertex
+    반환값:
+        꼭짓점 번호로 매긴 차수 목록
     """
-    # Create directed edge entries (both directions)
+    # 방향 변 칸을 만든다(양쪽 방향)
     directed = []
     for u, v in edges:
         directed.append(u)
         directed.append(v)
 
-    # Sort (external sort in real implementation)
+    # 줄 세운다(실제 짜기에서는 바깥 줄 세우기)
     directed.sort()
 
-    # Scan to count degrees
+    # 훑어 차수를 센다
     degrees = [0] * n
     for vertex in directed:
         degrees[vertex] += 1
@@ -99,18 +99,18 @@ def compute_degrees_external(edges, n):
 
 
 def connected_components_external(edges, n, B=4):
-    """Find connected components using iterative label propagation.
+    """되풀이 이름표 퍼뜨리기로 이어진 조각을 찾는다.
 
-    Simulates an external-memory approach where each round
-    propagates the minimum label along edges.
+    바퀴마다 변을 따라 최소 이름표를 퍼뜨리는 바깥 기억 길을
+    흉내 낸다.
 
-    Args:
-        edges: list of (u, v) tuples
-        n: number of vertices
-        B: simulated block size
+    인수:
+        edges: (u, v) 짝의 목록
+        n: 꼭짓점 개수
+        B: 흉내 낸 덩이 크기
 
-    Returns:
-        Component labels and I/O count
+    반환값:
+        조각 이름표와 들고남 횟수
     """
     labels = list(range(n))
     io_count = 0
@@ -118,7 +118,7 @@ def connected_components_external(edges, n, B=4):
 
     while changed:
         changed = False
-        # Sort edges by label (external sort)
+        # 변을 이름표로 줄 세운다(바깥 줄 세우기)
         io_count += max(1, len(edges) // B)
 
         for u, v in edges:
@@ -130,26 +130,26 @@ def connected_components_external(edges, n, B=4):
                 labels[v] = new_label
                 changed = True
 
-        # Scan cost
+        # 훑기 비용
         io_count += max(1, len(edges) // B)
 
     return labels, io_count
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
     edges = [(0, 1), (1, 2), (2, 3), (4, 5), (5, 6), (7, 8)]
     n = 9
 
-    # Degree computation
+    # 차수 셈하기
     degrees = compute_degrees_external(edges, n)
     print("Degree computation (sort-and-scan):")
     for v in range(n):
         print(f"  deg({v}) = {degrees[v]}")
 
-    # Connected components
+    # 이어진 조각
     labels, ios = connected_components_external(edges, n)
     print(f"\nConnected components:")
     components = {}
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     print(f"Simulated I/Os: {ios}")
 ```
 
-**Output:**
+**출력:**
 ```
 Degree computation (sort-and-scan):
   deg(0) = 1
@@ -178,21 +178,54 @@ Connected components:
   Component 0: [0, 1, 2, 3]
   Component 4: [4, 5, 6]
   Component 7: [7, 8]
-Simulated I/Os: 4
+흉내 낸 들고남: 4
 ```
 
-## I/O Complexity Summary
+## 들고남 복잡도 간추림
 
-| Problem | I/O Complexity | Technique |
+| 문제 | 들고남 복잡도 | 재주 |
 |---|---|---|
-| Scanning all edges | $O(m/B)$ | Sequential scan |
-| Sorting edges | $O(\text{sort}(m))$ | External merge sort |
-| BFS | $O(n + m/B)$ to $O(D \cdot \text{sort}(m))$ | Level-synchronous |
-| DFS | $O((n + m/B) \cdot n/M)$ | Complicated; open problem for optimal |
-| Connected components | $O(\text{sort}(m))$ | Contraction + label propagation |
-| MST | $O(\text{sort}(m))$ | See [External MST](mst.md) |
+| 모든 변 훑기 | $O(m/B)$ | 차례 훑기 |
+| 변 줄 세우기 | $O(\text{sort}(m))$ | 바깥 기억 합침 정렬 |
+| 너비 우선 찾기 | $O(n + m/B)$에서 $O(D \cdot \text{sort}(m))$ | 켜마다 맞춤 |
+| 깊이 우선 찾기 | $O((n + m/B) \cdot n/M)$ | 복잡하다. 가장 좋은 값은 미해결 |
+| 이어진 조각 | $O(\text{sort}(m))$ | 오므리기 + 이름표 퍼뜨리기 |
+| 최소 뻗은 나무 | $O(\text{sort}(m))$ | [바깥 기억 최소 뻗은 나무](mst.md) 참고 |
 
-## Reference
+## 참고 문헌
 
 - Vitter, J. S. (2001). "External memory algorithms and data structures: dealing with massive data." *ACM Computing Surveys*, 33(2), 209--271.
 - Arge, L. (2003). "The buffer tree: a technique for designing batched external data structures." *Algorithmica*.
+
+
+## 연습문제
+
+**연습문제 1.**
+바깥 기억에서 그래프 알고리즘의 주된 어려움은 무엇인가?
+
+??? success "연습문제 1 풀이"
+    어려움 셋: (1) 고르지 않은 닿기 무늬: 그래프 밟기가 가리개를 따라가 차례 훑기 대신 아무 들고남이 일어난다. (2) 가까움이 나쁨: 꼭짓점의 이웃이 원반 덩이 여기저기에 흩어져 있을 수 있다. (3) 바뀌는 앞자락: 움직이는 꼭짓점의 모임이 헤아릴 수 없이 바뀐다. 차례로 닿아 들고남 $O(N/B)$번을 이루는 배열 바탕 알고리즘과 대비된다. 풀이로는 변 줄 세우기, 그래프 가르기, 버퍼로 다루기가 있다.
+
+---
+
+**연습문제 2.**
+이어진 조각을 셈하는 바깥 기억 알고리즘을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    보루프카 방식 알고리즘: 마당마다 조각마다 밖으로 나가는 최소 무게 변을 고른다. 그 변을 오므린다(조각을 합친다). 조각이 하나 남을 때까지 되풀이한다. 바깥 기억에서는 (1) 변을 조각 번호로 줄 세우고, (2) 조각마다 훑어 밖으로 나가는 최소 변을 찾고, (3) 합집합 찾기로 조각을 합치고, (4) 변에 새 이름표를 붙인다. 마당마다 조각 수가 반으로 줄므로 마당이 $O(\log |V|)$개다. 마당마다 들고남 $O(\text{sort}(|E|))$번이 든다. 모두: $O(\text{sort}(|E|) \cdot \log(|V|/M))$.
+
+---
+
+**연습문제 3.**
+바깥 기억 최소 뻗은 나무 알고리즘을 안쪽 기억의 크루스칼, 프림 알고리즘과 견주어라.
+
+??? success "연습문제 3 풀이"
+    안쪽 크루스칼: 변을 줄 세우고($O(|E| \log |E|)$) 합집합 찾기로 차례대로 다룬다($O(|E| \alpha(|V|))$). 바깥 크루스칼: 변을 바깥에서 줄 세우고(들고남 $O(\text{sort}(|E|))$번) 합집합 찾기로 훑는다. 합집합 찾기가 기억에 들어가면($O(|V|)$ 공간) 잘 된다. 안쪽 프림: 꼭짓점의 앞섬 줄($O(|E| \log |V|)$). 바깥 프림은 앞섬 줄에 아무렇게 닿아야 해서 쓸 수 없다. 보루프카에 바탕한 바깥 기억 최소 뻗은 나무 알고리즘(이어진 조각과 비슷하다)은 들고남 $O(\text{sort}(|E|))$번을 이룬다.
+
+---
+
+**연습문제 4.**
+코어 밖 그래프 알고리즘은 원반 바탕 그래프 신경망 익히기와 어떻게 이어지는가?
+
+??? success "연습문제 4 풀이"
+    GPU 기억을 넘는 그래프에서 그래프 신경망을 익힐 때도 같은 원칙을 쓴다. (1) 그래프를 GPU 기억에 들어가는 부분 그래프로 가른다(바깥 기억 그래프 가르기와 닮았다), (2) 이웃 자리를 뽑아 묶음마다 올린다(버퍼를 쓰는 바깥 기억 너비 우선 찾기와 닮았다), (3) 자주 닿는 마디를 위해 CPU 기억을 가운데 두름으로 쓴다. PyG, DGL, GraphSAINT 같은 시스템이 이 셈속을 짜며 셈(다시 뽑기)을 들고남 효율과 맞바꾼다.

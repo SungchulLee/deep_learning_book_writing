@@ -1,171 +1,175 @@
-# Comparison of Regularization Methods (EWC, SI, MAS)
+# 벌주기 방법의 견줌(EWC, SI, MAS)
+## 들어가며
 
+벌주기 기반 이어 배우기 방법은 정보 이론의 틀에서 기울기 기반과 시냅스 재기까지, 매개변수 중요도를 어림하는 여러 길을 보여 준다. 강점과 약점, 쓸 수 있는 조건을 견주어 이해하면 상황에 가장 알맞은 벌주기 전략을 고를 수 있다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 방법의 자세한 견줌
 
-## Introduction
-
-Regularization-based continual learning methods represent diverse approaches to parameter importance estimation, from information-theoretic frameworks to gradient-based and synaptic measures. Understanding comparative strengths, weaknesses, and applicability conditions enables practitioners to select optimal regularization strategies for specific continual learning scenarios.
-
-## Detailed Method Comparison
-
-### Elastic Weight Consolidation (EWC)
+### 탄성 가중치 다지기(EWC)
 
 $$\mathcal{L}_{\text{EWC}} = \mathcal{L}_{\text{task}} + \frac{\lambda}{2} \sum_i F_i (\theta_i - \theta_i^*)^2$$
 
-where Fisher Information:
+여기서 피셔 정보는 다음과 같다.
 
 $$F_i = \mathbb{E}\left[\left(\frac{\partial \log p(y|\mathbf{x}, \theta)}{\partial \theta_i}\right)^2\right]$$
 
-**Theoretical Foundation**: Information geometry and natural gradient descent
+**이론적 바탕**: 정보 기하와 자연 기울기 내려가기
 
-**Importance Interpretation**: Measure of parameter's contribution to output uncertainty
+**중요도의 뜻**: 매개변수가 출력의 불확실성에 이바지하는 정도
 
-### Synaptic Intelligence (SI)
+### 시냅스 지능(SI)
 
 $$\mathcal{L}_{\text{SI}} = \mathcal{L}_{\text{task}} + \lambda \sum_i \frac{S_i}{(\omega_i + \epsilon)^2} (\theta_i - \theta_i^*)^2$$
 
-where synaptic relevance accumulates:
+여기서 시냅스 관련도가 다음과 같이 쌓인다.
 
 $$\omega_i \leftarrow \omega_i + \left|\frac{dL}{d\theta_i} \cdot \Delta\theta_i\right|$$
 
-**Theoretical Foundation**: Synaptic consolidation in neuroscience
+**이론적 바탕**: 신경과학의 시냅스 다지기
 
-**Importance Interpretation**: Parameter's learning contribution across task sequence
+**중요도의 뜻**: 잇단 과제에 걸쳐 매개변수가 배움에 이바지한 정도
 
-### Memory Aware Synapses (MAS)
+### 기억을 아는 시냅스(MAS)
 
 $$\mathcal{L}_{\text{MAS}} = \mathcal{L}_{\text{task}} + \lambda \sum_i M_i (\theta_i - \theta_i^*)^2$$
 
-where task-relevant importance:
+여기서 과제와 맞닿은 중요도는 다음과 같다.
 
 $$M_i = \left|\frac{\partial f(\mathbf{x})}{\partial \theta_i}\right|$$
 
-**Theoretical Foundation**: Gradient sensitivity to output
+**이론적 바탕**: 출력에 대한 기울기의 민감도
 
-**Importance Interpretation**: Parameter's influence on model predictions
+**중요도의 뜻**: 매개변수가 모델 예측에 미치는 영향
 
-## Comprehensive Comparison Table
+## 두루 갖춘 견줌 표
 
-| Aspect | EWC | SI | MAS |
+| 갈래 | EWC | SI | MAS |
 |--------|-----|----|----|
-| **Importance Metric** | Fisher Info | Weight Change | Output Gradient |
-| **Theoretical Rigor** | Very High | High | Medium |
-| **Computation Cost** | Medium | Low | Low |
-| **Memory Requirements** | Medium | High | Low |
-| **Importance Stability** | High | Very High | Medium |
-| **Hyperparameter Tuning** | Medium | High | Low |
-| **Scalability** | Good | Excellent | Excellent |
+| **중요도 재기** | 피셔 정보 | 가중치 변화 | 출력 기울기 |
+| **이론적 엄밀함** | 매우 높음 | 높음 | 보통 |
+| **셈 비용** | 보통 | 낮음 | 낮음 |
+| **기억 요구** | 보통 | 높음 | 낮음 |
+| **중요도의 한결같음** | 높음 | 매우 높음 | 보통 |
+| **초매개변수 손질** | 보통 | 많음 | 적음 |
+| **규모 확장성** | 좋음 | 매우 좋음 | 매우 좋음 |
 
-## Detailed Property Analysis
+## 성질의 자세한 분석
 
-### Importance Metric Comparison
+### 중요도 재기의 견줌
 
-#### Fisher Information (EWC)
+#### 피셔 정보(EWC)
 
-**Definition**: Expected squared gradient of log-probability
+**정의**: 로그 확률 기울기 제곱의 기댓값
 
-**Advantages**:
-- Grounded in information theory
-- Optimal for certain statistical learning scenarios
-- Captures second-order information
-- Interpretable: uncertainty about output
+**좋은 점**:
 
-**Disadvantages**:
-- Computationally expensive
-- Requires diagonal approximation for scalability
-- Assumes Hessian-vector product structure
-- Sensitive to batch effects
+- 정보 이론에 뿌리를 둔다
+- 어떤 통계 학습 상황에서는 가장 좋다
+- 이차 정보를 담는다
+- 풀이할 수 있다. 곧 출력에 대한 불확실성이다
 
-**When to Use**: 
-- Theoretical analysis needed
-- Complex decision boundaries
-- Sufficient computational budget
+**나쁜 점**:
 
-#### Synaptic Relevance (SI)
+- 셈이 값비싸다
+- 규모를 키우려면 대각 어림이 필요하다
+- 헤세-벡터 곱 짜임을 놓는다
+- 배치의 영향에 민감하다
 
-**Definition**: Accumulated importance of weight changes
+**쓸 때**:
 
-**Advantages**:
-- Directly measures contribution to learning
-- Accumulates across tasks
-- Neuroscience-inspired
-- Computationally efficient
+- 이론적 분석이 필요할 때
+- 판단 경계가 복잡할 때
+- 셈 예산이 넉넉할 때
 
-**Disadvantages**:
-- Less theoretical justification
-- Depends on optimization trajectory
-- May be biased by learning rate
-- Requires careful decay rate tuning
+#### 시냅스 관련도(SI)
 
-**When to Use**:
-- Long task sequences
-- Incremental learning scenarios
-- Computational efficiency critical
-- Task relationships through weight dynamics
+**정의**: 가중치 변화의 중요도를 쌓은 값
 
-#### Output Gradient Magnitude (MAS)
+**좋은 점**:
 
-**Definition**: Magnitude of gradients on validation set
+- 배움에 이바지한 정도를 곧바로 잰다
+- 과제에 걸쳐 쌓인다
+- 신경과학에서 영감을 얻었다
+- 셈이 효율적이다
 
-**Advantages**:
-- Simple to compute
-- Task-agnostic (no labels required)
-- Interpretable: direct prediction influence
-- Fast computation
+**나쁜 점**:
 
-**Disadvantages**:
-- May miss subtle parameter interactions
-- Requires access to validation data
-- Ignores second-order effects
-- Sensitive to validation set composition
+- 이론적 뒷받침이 약하다
+- 최적화 자취에 기댄다
+- 학습률에 치우칠 수 있다
+- 감쇠율을 꼼꼼히 손질해야 한다
 
-**When to Use**:
-- Real-time adaptation needed
-- No labeled task data available
-- Computational budget very limited
-- Quick adaptation required
+**쓸 때**:
 
-## Importance Metric Relationships
+- 과제 차례가 길 때
+- 증분 학습 상황
+- 셈 효율이 결정적일 때
+- 가중치 움직임으로 과제의 관계를 볼 때
 
-!!! note "Mathematical Relationships"
+#### 출력 기울기의 크기(MAS)
+
+**정의**: 검증 집합에서의 기울기 크기
+
+**좋은 점**:
+
+- 셈하기 단순하다
+- 과제를 가리지 않는다(이름표가 필요 없다)
+- 풀이할 수 있다. 곧 예측에 미치는 곧은 영향이다
+- 셈이 빠르다
+
+**나쁜 점**:
+
+- 미묘한 매개변수 어울림을 놓칠 수 있다
+- 검증 데이터를 쓸 수 있어야 한다
+- 이차 효과를 무시한다
+- 검증 집합을 어떻게 짜느냐에 민감하다
+
+**쓸 때**:
+
+- 실시간 맞춤이 필요할 때
+- 이름표 붙은 과제 데이터가 없을 때
+- 셈 예산이 아주 빠듯할 때
+- 재빠른 맞춤이 필요할 때
+
+## 중요도 재기 사이의 관계
+
+!!! note "수학적 관계"
     
-    Under certain assumptions about network behavior:
+    망의 거동에 대한 어떤 가정 아래에서는 다음이 성립한다.
     
     $$\text{EWC} \geq \text{MAS} \text{ (for classification)}$$
     
-    EWC fisher information includes first-order effects plus variance from true labels.
+    EWC의 피셔 정보는 일차 효과에 참 이름표에서 오는 흩어짐까지 담는다.
 
-## Performance Comparison on Task Sequences
+## 잇단 과제에서의 성능 견줌
 
-### 5-Task Sequence Benchmark
+### 과제 5개 차례 잣대
 
-| Task | EWC | SI | MAS | Random |
+| 과제 | EWC | SI | MAS | 무작위 |
 |------|-----|----|----|--------|
 | 1 | 95.0% | 95.0% | 95.0% | 95.0% |
 | 2 | 90.2% | 90.5% | 90.1% | 87.3% |
 | 3 | 83.4% | 84.8% | 82.9% | 75.2% |
 | 4 | 74.1% | 76.5% | 73.8% | 61.4% |
 | 5 | 62.3% | 68.1% | 61.9% | 48.2% |
-| Avg | 81.0% | 83.0% | 80.7% | 73.4% |
+| 평균 | 81.0% | 83.0% | 80.7% | 73.4% |
 
-SI shows best performance on long sequences due to accumulated importance.
+SI은 중요도가 쌓이므로 긴 차례에서 가장 좋은 성능을 보인다.
 
-### Computational Overhead
+### 셈의 짐
 
-| Method | One-Time | Per-Batch | Total Time | Memory |
+| 방법 | 한 번 드는 비용 | 배치마다 | 전체 시간 | 기억 |
 |--------|----------|-----------|-----------|--------|
-| **EWC** | O(n²) | 0 | 1.3x | 2x |
-| **SI** | 0 | O(n) | 1.1x | 3x |
-| **MAS** | 0 | O(n) | 1.05x | 1.5x |
-| **Naive** | 0 | 0 | 1x | 1x |
+| **EWC** | O(n²) | 0 | 1.3배 | 2배 |
+| **SI** | 0 | O(n) | 1.1배 | 3배 |
+| **MAS** | 0 | O(n) | 1.05배 | 1.5배 |
+| **소박한 방법** | 0 | 0 | 1배 | 1배 |
 
-EWC has significant upfront cost; SI/MAS have streaming overhead.
+EWC은 앞단에서 드는 비용이 크고, SI과 MAS은 흐르는 내내 짐이 있다.
 
-## Method Selection Framework
+## 방법 고르기 틀
 
-### Decision Tree for Method Selection
+### 방법 고르기를 위한 결정 트리
 
 ```
 Computational Budget Available?
@@ -193,105 +197,140 @@ Task Relationship?
    └─> MAS (safe choice)
 ```
 
-## Hyperparameter Tuning
+## 초매개변수 손질
 
-### Critical Hyperparameters
+### 결정적인 초매개변수
 
-| Method | Parameter | Role | Tuning Range |
+| 방법 | 매개변수 | 몫 | 손질 범위 |
 |--------|-----------|------|--------------|
-| **EWC** | $\lambda$ | Regularization strength | [0.01, 5.0] |
-| **EWC** | $F$ scaling | Importance magnitude | Auto or [0.1, 10] |
-| **SI** | $\lambda$ | Regularization strength | [0.01, 5.0] |
-| **SI** | $\rho$ | Decay rate | [0.0001, 0.01] |
-| **SI** | c | Relative scaling | [0.001, 0.1] |
-| **MAS** | $\lambda$ | Regularization strength | [0.01, 5.0] |
+| **EWC** | $\lambda$ | 벌주기 세기 | [0.01, 5.0] |
+| **EWC** | $F$ 눈금 | 중요도의 크기 | 자동 또는 [0.1, 10] |
+| **SI** | $\lambda$ | 벌주기 세기 | [0.01, 5.0] |
+| **SI** | $\rho$ | 감쇠율 | [0.0001, 0.01] |
+| **SI** | c | 상대 눈금 | [0.001, 0.1] |
+| **MAS** | $\lambda$ | 벌주기 세기 | [0.01, 5.0] |
 
-### Validation Protocol
+### 검증 규약
 
-1. Split dataset into task sequence + validation
-2. For each (method, hyperparameters) pair:
-   - Train on task sequence with regularization
-   - Evaluate average performance across all tasks
-3. Select method + hyperparameters maximizing average
-4. Retrain on full task sequence with selected configuration
+1. 데이터셋을 잇단 과제와 검증으로 쪼갠다
+2. (방법, 초매개변수) 쌍마다 다음을 한다.
+   - 벌주기를 곁들여 잇단 과제로 익힌다
+   - 모든 과제에 걸친 평균 성능을 평가한다
+3. 평균을 가장 크게 하는 방법과 초매개변수를 고른다
+4. 고른 설정으로 잇단 과제 전체를 다시 익힌다
 
-## Robustness Analysis
+## 튼튼함 분석
 
-### Robustness to Task Similarity
+### 과제의 닮음에 대한 튼튼함
 
-| Scenario | EWC | SI | MAS |
+| 상황 | EWC | SI | MAS |
 |----------|-----|----|----|
-| **Very Similar** | Good | Excellent | Good |
-| **Similar** | Excellent | Excellent | Good |
-| **Different** | Good | Good | Excellent |
-| **Very Different** | Good | Good | Excellent |
+| **아주 닮음** | 좋음 | 매우 좋음 | 좋음 |
+| **닮음** | 매우 좋음 | 매우 좋음 | 좋음 |
+| **다름** | 좋음 | 좋음 | 매우 좋음 |
+| **아주 다름** | 좋음 | 좋음 | 매우 좋음 |
 
-SI excels when tasks build on each other; MAS more robust to diverse tasks.
+SI은 과제가 서로 쌓아 올릴 때 뛰어나고, MAS은 과제가 서로 다를 때 더 튼튼하다.
 
-### Robustness to Hyperparameter Mismatch
+### 초매개변수가 어긋날 때의 튼튼함
 
-How performance degrades with wrong $\lambda$:
+$\lambda$이 틀렸을 때 성능이 얼마나 떨어지는지이다.
 
-| $\lambda$ Error | EWC | SI | MAS |
+| $\lambda$ 오차 | EWC | SI | MAS |
 |---|---|---|---|
-| **2x too small** | -5% | -3% | -4% |
-| **2x too large** | -8% | -10% | -6% |
-| **10x too small** | -15% | -8% | -12% |
-| **10x too large** | -25% | -20% | -15% |
+| **2배 작음** | -5% | -3% | -4% |
+| **2배 큼** | -8% | -10% | -6% |
+| **10배 작음** | -15% | -8% | -12% |
+| **10배 큼** | -25% | -20% | -15% |
 
-EWC most sensitive; SI and MAS more forgiving.
+EWC이 가장 민감하고 SI과 MAS은 더 너그럽다.
 
-## Financial Application Scenarios
+## 금융에서의 쓰임새
 
-### Scenario 1: Regime-Change Adaptation
+### 상황 1: 국면 바뀜에 맞추기
 
-When market regime changes (bull → bear):
-- **Use SI**: Accumulate importance captures which factors remained critical through regimes
-- **Reason**: Synaptic relevance emphasizes robust relationships
+시장 국면이 바뀔 때(오름장 → 내림장)이다.
 
-### Scenario 2: Real-Time Portfolio Updates
+- **SI을 쓰라**: 쌓인 중요도가 국면을 가로질러 어떤 요인이 계속 결정적이었는지 담아낸다
+- **까닭**: 시냅스 관련도가 튼튼한 관계에 힘을 싣는다
 
-Continuous portfolio rebalancing:
-- **Use MAS**: Low computational overhead, online importance computation
-- **Reason**: Efficiency critical, gradient-based importance sufficient
+### 상황 2: 실시간 포트폴리오 갱신
 
-### Scenario 3: Cross-Market Transfer
+쉼 없이 포트폴리오의 균형을 다시 잡는 경우이다.
 
-Applying US equity model to emerging markets:
-- **Use EWC**: Fisher information captures which parameter relationships transfer
-- **Reason**: Complex market relationships require principled importance
+- **MAS을 쓰라**: 셈의 짐이 가볍고 중요도를 온라인으로 셈한다
+- **까닭**: 효율이 결정적이고 기울기 기반 중요도로 충분하다
 
-## Hybrid Approaches
+### 상황 3: 시장을 넘나드는 옮김
 
-### EWC + SI Combination
+미국 주식 모델을 신흥국 시장에 쓰는 경우이다.
 
-Combine both importance measures:
+- **EWC을 쓰라**: 피셔 정보가 어떤 매개변수 관계가 옮겨 가는지 담아낸다
+- **까닭**: 시장 관계가 복잡하여 원칙 있는 중요도가 필요하다
+
+## 혼합형 접근
+
+### EWC과 SI 섞기
+
+두 중요도 재기를 함께 쓴다.
 
 $$\mathcal{L} = \mathcal{L}_{\text{task}} + \lambda_1 F_i (\theta_i - \theta_i^*)^2 + \lambda_2 \frac{S_i}{(\omega_i + \epsilon)^2} (\theta_i - \theta_i^*)^2$$
 
-**Advantages**: Robustness of multiple perspectives
+**이점**: 여러 눈으로 보아 튼튼하다
 
-**Disadvantages**: Increased hyperparameter tuning
+**흠**: 초매개변수 손질이 늘어난다
 
-### Task-Weighted Regularization
+### 과제로 무게 준 벌주기
 
-Use different $\lambda$ for different task types:
+과제 종류마다 다른 $\lambda$을 쓴다.
 
 $$\lambda_t = \text{Learned}(\text{task\_features}_t)$$
 
-Meta-learn appropriate regularization strength per task.
+과제마다 알맞은 벌주기 세기를 메타 학습한다.
 
-## Research Frontiers
+## 연구의 앞머리
 
-- Unified theoretical framework for all importance metrics
-- Automatic hyperparameter selection for continual learning
-- Combining regularization with other continual learning paradigms
-- Importance measures for modern architectures (Transformers, etc.)
+- 모든 중요도 재기를 아우르는 하나의 이론 틀
+- 이어 배우기의 초매개변수를 알아서 고르기
+- 벌주기를 다른 이어 배우기 틀과 섞기
+- 오늘날의 구조(트랜스포머 등)를 위한 중요도 재기
 
-## Related Topics
+## 관련 주제
 
-- Regularization Overview (Chapter 12.3.1)
-- Elastic Weight Consolidation (Chapter 12.3.2)
-- Online EWC (Chapter 12.3.3)
-- Synaptic Intelligence
-- Continual Learning Foundations
+- 벌주기 훑어보기(12.3.1절)
+- 탄성 가중치 다지기(12.3.2절)
+- 온라인 EWC(12.3.3절)
+- 시냅스 지능
+- 이어 배우기의 바탕
+
+## 연습문제
+
+**연습문제 1.**
+이 방법의 핵심 생각과 그것이 파국적 잊음을 어떻게 다루는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 방법은 새 과제를 배울 때 모델의 매개변수나 표현이 바뀌는 방식을 옥죄어 파국적 잊음을 누그러뜨린다. (벌주기, 되살리기, 증류, 구조 갈라두기로) 배운 함수의 중요한 대목을 지켜 냄으로써, 앞선 과제의 성능을 지키면서도 새 과제에 맞추어 갈 수 있게 한다.
+
+---
+
+**연습문제 2.**
+이 접근법의 셈과 기억 요구는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    요구는 변형마다 다르지만 대체로 (a) 매개변수의 중요도 무게, (b) 학습 보기의 일부, (c) 스승 모델의 출력, (d) 과제마다의 망 모듈 가운데 하나를 담아 두어야 한다. 기억 비용과 잊음 막기의 효과 사이에서 맞바꿈이 일어난다.
+
+---
+
+**연습문제 3.**
+이 방법을 효과와 셈 비용 면에서 EWC와 견주어라.
+
+??? success "연습문제 3 풀이"
+    EWC은 대각 피셔 정보로 중요한 가중치를 짚어낸다. 이 방법은 다른 맞바꿈을 준다. 옛 과제의 성능을 더 잘 지킬 수 있고, 기억 요구가 다르며, 과제 짜임에 대한 가정도 다르다. 실험으로 견주어 보면 잣대에 따라 서로 보완되는 강점을 보일 때가 많다.
+
+---
+
+**연습문제 4.**
+이 방법을 간추린 판으로 파이토치에 구현하라.
+
+??? success "연습문제 4 풀이"
+    구현은 대개 새 과제를 익히는 동안 보통의 교차 엔트로피 손실에 벌주기 항을 더한다. 핵심 부품은 (1) 앞선 과제 학습에서 제약을 셈하기, (2) 필요한 정보(가중치, 본보기, 스승 출력)를 담아 두기, (3) 새 과제 학습 중에 그 제약을 씌우기이다.

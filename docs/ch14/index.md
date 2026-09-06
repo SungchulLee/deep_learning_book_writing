@@ -1,43 +1,43 @@
-# Chapter 14: Probabilistic Graphical Models
+# 14장: 확률 그래프 모형
 
-Many real-world systems involve dozens or hundreds of interacting random variables -- symptoms and diseases, words in a sentence, pixels in an image. Representing their joint distribution directly requires an exponential number of parameters, making both storage and inference intractable. **Probabilistic graphical models** (PGMs) solve this problem by exploiting conditional independence: a graph structure encodes which variables depend on which others, enabling the joint distribution to be factored into a product of smaller, manageable terms.
+실제 세상의 많은 얼개는 서로 얽힌 확률 변수를 수십에서 수백 개 거느린다. 증상과 질병, 문장 속 낱말, 그림 속 화소가 그렇다. 그 결합 분포를 그대로 나타내려면 매개변수가 지수로 늘어나 저장도 추론도 감당할 수 없게 된다. **확률 그래프 모형**(PGM)은 조건부 독립을 써먹어 이 문제를 푼다. 곧 그래프 짜임이 어느 변수가 어느 변수에 기대는지를 담아, 결합 분포를 더 작고 다루기 쉬운 항의 곱으로 쪼갤 수 있게 한다.
 
-This chapter covers directed models (Bayesian networks), undirected models (Markov random fields), exact and approximate inference algorithms, and methods for learning both parameters and structure from data.
+이 장은 방향 모형(베이즈 망), 방향 없는 모형(마르코프 무작위 마당), 정확한 추론과 어림 추론 알고리즘, 그리고 자료에서 매개변수와 짜임을 함께 배우는 방법을 다룬다.
 
 ---
 
-## PGM Foundations
+## PGM의 바탕
 
-- PGM Overview -- Complete educational overview of graphical models from foundational concepts to advanced applications
-- [Fundamentals](pgm_foundations/fundamentals.md) -- The curse of dimensionality in probability and how conditional independence enables tractable factorizations
-- Conditional Independence -- Formal definition, relation to graphical models, factorization, and statistical testing methods
-- D-Separation -- Graphical criterion for determining conditional independence in Bayesian networks without computing probabilities
-- Plate Notation -- Compact graphical representation for models with repeated structure, including nested and crossed plates
+- PGM 훑어보기 — 바탕 개념부터 나아간 쓰임새까지 그래프 모형을 온전히 가르치며 훑어본다
+- [바탕](pgm_foundations/fundamentals.md) — 확률에서의 차원의 저주와, 조건부 독립이 어떻게 다룰 만한 쪼개기를 가능하게 하는가
+- 조건부 독립 — 엄밀한 정의, 그래프 모형과의 이음, 쪼개기, 그리고 통계 검정 방법
+- d-가름 — 확률을 셈하지 않고 베이즈 망에서 조건부 독립을 가려내는 그래프 기준
+- 판 표기 — 되풀이되는 짜임을 가진 모형을 간결하게 그리는 법으로, 겹친 판과 엇갈린 판을 함께 다룬다
 
-## Directed Models
+## 방향 모형
 
-- Bayesian Networks -- Directed acyclic graphs representing joint distributions via conditional probability tables
-- Naive Bayes as a PGM -- The naive conditional independence assumption, parameter savings, and why it works despite the assumption
-- Dynamic Bayesian Networks -- Temporal extensions of Bayesian networks including the relationship to HMMs and Kalman filters
-- Causal Inference -- Distinguishing correlation from causation through do-calculus, interventions, and the adjustment formula
+- 베이즈 망 — 조건부 확률표로 결합 분포를 나타내는 방향 비순환 그래프
+- PGM으로 본 나이브 베이즈 — 소박한 조건부 독립 가정, 매개변수 아끼기, 그리고 그 가정에도 왜 잘 굴러가는가
+- 동적 베이즈 망 — 베이즈 망을 시간으로 넓힌 것으로, HMM과 칼만 거르개와의 이음을 함께 다룬다
+- 인과 추론 — do-셈법, 개입, 조정 공식으로 상관과 인과를 갈라내기
 
-## Undirected Models
+## 방향 없는 모형
 
-- Markov Random Fields -- Undirected graphical models using potential functions and the Gibbs distribution for symmetric relationships
-- Factor Graphs -- Unified bipartite graph representation subsuming both Bayesian networks and MRFs
-- Ising Model -- The canonical undirected model from statistical physics with pairwise interactions on a lattice
-- Conditional Random Fields -- Discriminative undirected models for sequence labeling that model conditional distributions directly
+- 마르코프 무작위 마당 — 대칭 관계를 위해 퍼텐셜 함수와 깁스 분포를 쓰는 방향 없는 그래프 모형
+- 인자 그래프 — 베이즈 망과 MRF을 모두 아우르는 한 갈래 이분 그래프 표현
+- 이징 모형 — 격자 위 짝 상호작용을 갖는, 통계 물리에서 온 대표적인 방향 없는 모형
+- 조건부 무작위 마당 — 조건부 분포를 곧바로 다루는, 차례 이름 붙이기용 판별 방향 없는 모형
 
-## Inference
+## 추론
 
-- Variable Elimination -- Exploiting factored structure by pushing sums inside products to eliminate variables one at a time
-- Belief Propagation -- Message passing algorithm for computing exact marginals on tree-structured graphical models
-- Loopy Belief Propagation -- Applying BP message passing to graphs with cycles as an approximate inference method
-- Junction Tree Algorithm -- Exact inference on arbitrary graphs by transforming the original graph into a tree of clusters
+- 변수 없애기 — 합을 곱 안쪽으로 밀어 넣어 변수를 하나씩 없애며 쪼개진 짜임을 써먹기
+- 믿음 퍼뜨리기 — 나무 꼴 그래프 모형에서 정확한 주변 분포를 셈하는 쪽지 주고받기 알고리즘
+- 고리 있는 믿음 퍼뜨리기 — BP 쪽지 주고받기를 고리 있는 그래프에 어림 추론으로 쓰기
+- 이음 나무 알고리즘 — 원래 그래프를 뭉치의 나무로 바꾸어 아무 그래프에서나 정확히 추론하기
 
-## Learning
+## 배우기
 
-- Parameter Learning -- MLE and Bayesian estimation of conditional distributions given a fixed graph structure
-- Structure Learning -- Discovering graph structure from data through score-based search and constraint-based testing
-- [EM for PGMs](pgm_learning/em_for_pgms.md) -- Expectation-Maximization for learning parameters of graphical models with latent variables
-- Score-Based vs Constraint-Based Learning -- Comparing the two main paradigms for structure discovery with their respective scoring functions and tests
+- 매개변수 배우기 — 그래프 짜임을 붙박아 두고 조건부 분포를 MLE과 베이즈로 어림하기
+- 짜임 배우기 — 점수 기반 뒤지기와 제약 기반 검정으로 자료에서 그래프 짜임 찾아내기
+- [PGM을 위한 EM](pgm_learning/em_for_pgms.md) — 숨은 변수를 가진 그래프 모형의 매개변수를 배우는 기댓값-최대화
+- 점수 기반 대 제약 기반 배우기 — 짜임 찾기의 두 큰 갈래를 저마다의 점수 함수와 검정과 함께 견주기

@@ -1,151 +1,184 @@
-# Expected Search Time
+# 기대 탐색 시간
 
-The central promise of hash tables is $O(1)$ expected-time lookup. This section makes that promise precise by deriving the expected number of elements examined during a search operation in a hash table with chaining, under the simple uniform hashing assumption (SUHA). The analysis distinguishes between **unsuccessful search** (the key is not in the table) and **successful search** (the key is present), as these cases have different costs.
+해시 테이블의 핵심 약속은 기대 $O(1)$ 시간의 조회이다. 이 절은 단순 균등 해싱 가정 아래 체이닝을 쓰는 해시 테이블의 탐색에서 살펴보는 원소의 기대 개수를 유도하여 그 약속을 정확히 한다. 분석은 **탐색 실패**(키가 테이블에 없는 경우)와 **탐색 성공**(키가 있는 경우)을 나누는데, 두 경우의 비용이 다르기 때문이다.
 
-## Setup and Assumptions
+## 설정과 가정
 
-Consider a hash table with $m$ slots and $n$ stored keys, using separate chaining for collision resolution. Each slot $j$ contains a linked list (chain) of all keys $k$ with $h(k) = j$.
+칸이 $m$개이고 키가 $n$개 저장된, 충돌 해결에 분리 체이닝을 쓰는 해시 테이블을 생각하자. 각 칸 $j$에는 $h(k) = j$인 모든 키 $k$의 연결 리스트(사슬)가 들어 있다.
 
-**Simple Uniform Hashing Assumption (SUHA).** Each key is equally likely to hash to any of the $m$ slots, independently of all other keys:
+**단순 균등 해싱 가정(SUHA).** 각 키는 다른 모든 키와 무관하게 $m$개의 칸 어디로든 같은 확률로 해시된다.
 
 $$
 \Pr[h(k) = j] = \frac{1}{m} \quad \text{for all } k,\ j \in \{0, 1, \ldots, m-1\}
 $$
 
-Under SUHA, the expected length of each chain is the load factor:
+이 가정 아래 각 사슬의 기대 길이는 적재율이다.
 
 $$
 \alpha = \frac{n}{m}
 $$
 
-## Unsuccessful Search
+## 탐색 실패
 
-An unsuccessful search for a key $k \notin T$ (where $T$ is the set of stored keys) computes $h(k)$ and traverses the entire chain at slot $h(k)$, since $k$ is not found until the end of the chain.
+저장된 키의 집합을 $T$이라 할 때 $k \notin T$인 키를 찾는 탐색 실패는 $h(k)$을 계산하고 칸 $h(k)$의 사슬 전체를 훑는다. 사슬의 끝까지 가도 $k$을 찾지 못하기 때문이다.
 
-**Theorem.** Under SUHA, the expected time of an unsuccessful search is:
+**정리.** 단순 균등 해싱 가정 아래 탐색 실패의 기대 시간은 다음과 같다.
 
 $$
 \Theta(1 + \alpha)
 $$
 
-*Proof.* The cost consists of two parts:
+*증명.* 비용은 두 부분으로 이루어진다.
 
-1. Computing $h(k)$: $O(1)$ time.
-2. Traversing the chain at slot $h(k)$: the expected chain length is $\alpha$.
+1. $h(k)$의 계산: $O(1)$ 시간.
+2. 칸 $h(k)$의 사슬 훑기: 기대 사슬 길이는 $\alpha$이다.
 
-The expected number of elements examined is exactly $\alpha$, since under SUHA each of the $n$ keys lands in slot $h(k)$ with probability $1/m$, and by linearity of expectation:
+살펴보는 원소의 기대 개수는 정확히 $\alpha$이다. 단순 균등 해싱 가정 아래 $n$개의 키가 저마다 확률 $1/m$으로 칸 $h(k)$에 들어가므로 기댓값의 선형성에 의해 다음이 성립한다.
 
 $$
 \mathbb{E}[\text{chain length at slot } h(k)] = \sum_{i=1}^{n} \Pr[h(k_i) = h(k)] = n \cdot \frac{1}{m} = \alpha
 $$
 
-Adding the $O(1)$ cost of computing the hash gives $\Theta(1 + \alpha)$. The $1 +$ term ensures the bound is $\Theta(1)$ when $\alpha = 0$ (empty table). $\square$
+해시를 계산하는 $O(1)$ 비용을 더하면 $\Theta(1 + \alpha)$이 된다. $1 +$ 항은 $\alpha = 0$(빈 테이블)일 때 한계가 $\Theta(1)$이 되게 해 준다. $\square$
 
-## Successful Search
+## 탐색 성공
 
-A successful search for a key $k \in T$ computes $h(k)$ and traverses the chain at slot $h(k)$ until $k$ is found. On average, $k$ is not at the end of the chain, so fewer elements are examined than in an unsuccessful search.
+$k \in T$인 키를 찾는 탐색 성공은 $h(k)$을 계산하고 $k$을 찾을 때까지 칸 $h(k)$의 사슬을 훑는다. 평균적으로 $k$이 사슬의 끝에 있지는 않으므로 탐색 실패보다 적은 원소를 살펴본다.
 
-**Theorem.** Under SUHA, the expected time of a successful search is:
+**정리.** 단순 균등 해싱 가정 아래 탐색 성공의 기대 시간은 다음과 같다.
 
 $$
 \Theta\!\left(1 + \frac{\alpha}{2}\right)
 $$
 
-More precisely, the expected number of elements examined (including the target) is:
+더 정확히, (찾는 대상을 포함하여) 살펴보는 원소의 기대 개수는 다음과 같다.
 
 $$
 1 + \frac{\alpha}{2} - \frac{1}{2m} = 1 + \frac{n-1}{2m}
 $$
 
-*Proof.* Assume keys are inserted in order $k_1, k_2, \ldots, k_n$ and each new key is appended to the end of its chain. When searching for $k_i$ (the $i$-th key inserted), we must traverse all keys in the same chain that were inserted **after** $k_i$, plus $k_i$ itself.
+*증명.* 키를 $k_1, k_2, \ldots, k_n$의 순서로 넣고 새 키를 사슬의 끝에 덧붙인다고 하자. ($i$번째로 넣은) $k_i$을 찾을 때에는 같은 사슬에서 $k_i$보다 **나중에** 넣은 키를 모두 훑고 $k_i$ 자신까지 보아야 한다.
 
-For a key $k_j$ inserted after $k_i$ (i.e., $j > i$), the probability that $k_j$ is in the same chain as $k_i$ is $1/m$ under SUHA. Define the indicator variable:
+$k_i$보다 나중에 넣은 키 $k_j$(곧 $j > i$)에 대해, 단순 균등 해싱 가정 아래 $k_j$이 $k_i$과 같은 사슬에 있을 확률은 $1/m$이다. 지시 변수를 다음과 같이 정의한다.
 
 $$
 X_{ij} = \mathbf{1}[h(k_j) = h(k_i)]
 $$
 
-The expected number of elements examined when searching for $k_i$ is:
+$k_i$을 찾을 때 살펴보는 원소의 기대 개수는 다음과 같다.
 
 $$
 1 + \sum_{j=i+1}^{n} \mathbb{E}[X_{ij}] = 1 + \frac{n - i}{m}
 $$
 
-Averaging over all $n$ keys (each equally likely to be searched):
+(찾을 확률이 모두 같다고 보고) $n$개의 키에 대해 평균하면 다음과 같다.
 
 $$
 \frac{1}{n} \sum_{i=1}^{n} \left(1 + \frac{n - i}{m}\right) = 1 + \frac{1}{nm} \sum_{i=1}^{n} (n - i)
 $$
 
-The summation evaluates to:
+이 합은 다음과 같다.
 
 $$
 \sum_{i=1}^{n} (n - i) = \sum_{j=0}^{n-1} j = \frac{n(n-1)}{2}
 $$
 
-Substituting:
+대입하면 다음과 같다.
 
 $$
 1 + \frac{1}{nm} \cdot \frac{n(n-1)}{2} = 1 + \frac{n-1}{2m} = 1 + \frac{\alpha}{2} - \frac{1}{2m}
 $$
 
-For large $n$, this is $\Theta(1 + \alpha/2)$. $\square$
+$n$이 크면 이는 $\Theta(1 + \alpha/2)$이다. $\square$
 
-## Interpretation
+## 해석
 
-The factor of $1/2$ difference between successful and unsuccessful search is intuitive: an unsuccessful search must examine every element in the chain (average length $\alpha$), while a successful search stops, on average, halfway through the chain (average cost $\alpha/2$).
+탐색 성공과 실패의 $1/2$배 차이는 직관적이다. 탐색 실패는 사슬의 모든 원소를 살펴야 하지만(평균 길이 $\alpha$), 탐색 성공은 평균적으로 사슬의 절반쯤에서 멈춘다(평균 비용 $\alpha/2$).
 
-When the load factor $\alpha$ is bounded by a constant (e.g., $\alpha \leq 0.75$), both search types run in $O(1)$ expected time:
+적재율 $\alpha$이 어떤 상수로 유계이면(예: $\alpha \leq 0.75$) 두 탐색 모두 기대 $O(1)$ 시간에 돌아간다.
 
 $$
 \Theta(1 + \alpha) = \Theta(1 + 0.75) = \Theta(1)
 $$
 
-This is the fundamental result that justifies the $O(1)$ expected-time claim for hash tables.
+이것이 해시 테이블의 기대 $O(1)$ 주장을 뒷받침하는 근본 결과이다.
 
-## Expected Time for Open Addressing
+## 개방 주소법의 기대 시간
 
-For hash tables using open addressing (no chaining), the expected probe counts under uniform hashing are:
+체이닝 없이 개방 주소법을 쓰는 해시 테이블에서 균등 해싱 아래의 기대 탐사 횟수는 다음과 같다.
 
-**Unsuccessful search:**
+**탐색 실패:**
 
 $$
 \mathbb{E}[\text{probes}] \leq \frac{1}{1 - \alpha}
 $$
 
-**Successful search:**
+**탐색 성공:**
 
 $$
 \mathbb{E}[\text{probes}] \leq \frac{1}{\alpha} \ln \frac{1}{1 - \alpha}
 $$
 
-These bounds assume the **uniform hashing assumption** (each probe sequence is an independent random permutation of the slots), which is stronger than SUHA. Open addressing degrades more sharply as $\alpha \to 1$ because every probe inspects a slot that is occupied with probability $\alpha$.
+이 한계는 단순 균등 해싱보다 강한 **균등 해싱 가정**(각 탐사 열이 칸들의 독립인 무작위 순열이라는 가정)에 기댄다. 개방 주소법은 탐사할 때마다 확률 $\alpha$으로 이미 찬 칸을 만나므로 $\alpha \to 1$일 때 더 가파르게 나빠진다.
 
-??? example "Expected Probes at Various Load Factors"
+??? example "적재율에 따른 기대 탐사 횟수"
 
-    | Load factor $\alpha$ | Unsuccessful (chaining) | Successful (chaining) | Unsuccessful (open addressing) | Successful (open addressing) |
+    | 적재율 $\alpha$ | 실패 (체이닝) | 성공 (체이닝) | 실패 (개방 주소법) | 성공 (개방 주소법) |
     |---|---|---|---|---|
     | 0.50 | 1.50 | 1.25 | 2.00 | 1.39 |
     | 0.75 | 1.75 | 1.38 | 4.00 | 1.85 |
     | 0.90 | 1.90 | 1.45 | 10.00 | 2.56 |
     | 0.99 | 1.99 | 1.50 | 100.00 | 4.65 |
 
-    Chaining degrades linearly with $\alpha$, while open addressing degrades dramatically as $\alpha$ approaches 1. This is why open addressing implementations typically maintain $\alpha \leq 0.75$.
+    체이닝은 $\alpha$에 따라 선형으로 나빠지지만 개방 주소법은 $\alpha$이 1에 다가갈수록 급격히 나빠진다. 개방 주소법 구현이 보통 $\alpha \leq 0.75$을 지키는 까닭이 여기에 있다.
 
-## Conditional Expectation View
+## 조건부 기댓값의 관점
 
-The expected search time can also be understood through conditional expectation. Let $L_j$ denote the length of the chain at slot $j$. Then:
+기대 탐색 시간은 조건부 기댓값으로도 이해할 수 있다. 칸 $j$의 사슬 길이를 $L_j$이라 하면 다음과 같다.
 
 $$
 \mathbb{E}[\text{cost of unsuccessful search}] = \sum_{j=0}^{m-1} \Pr[h(k) = j] \cdot \mathbb{E}[L_j] = \frac{1}{m} \sum_{j=0}^{m-1} \mathbb{E}[L_j] = \frac{1}{m} \cdot n = \alpha
 $$
 
-This decomposition makes explicit that the $O(1)$ guarantee depends on both SUHA (which ensures $\Pr[h(k) = j] = 1/m$) and the uniform distribution of chain lengths (which ensures no slot has a disproportionately long chain).
+이 분해는 $O(1)$ 보장이 ($\Pr[h(k) = j] = 1/m$을 보장하는) 단순 균등 해싱 가정과 (어느 칸도 지나치게 긴 사슬을 갖지 않게 하는) 사슬 길이의 고른 분포 모두에 달려 있음을 뚜렷이 보여 준다.
 
-## Summary
+## 요약
 
-Under the simple uniform hashing assumption, the expected search time in a hash table with chaining is $\Theta(1 + \alpha)$ for unsuccessful search and $\Theta(1 + \alpha/2)$ for successful search, where $\alpha = n/m$ is the load factor. When $\alpha$ is bounded by a constant, both operations take $O(1)$ expected time. Open addressing achieves similar bounds but degrades more sharply as $\alpha$ approaches 1. These results form the theoretical foundation for the practical performance of hash tables.
+단순 균등 해싱 가정 아래 체이닝을 쓰는 해시 테이블의 기대 탐색 시간은 실패일 때 $\Theta(1 + \alpha)$, 성공일 때 $\Theta(1 + \alpha/2)$이며 여기서 $\alpha = n/m$은 적재율이다. $\alpha$이 어떤 상수로 유계이면 두 연산 모두 기대 $O(1)$ 시간이다. 개방 주소법도 비슷한 한계를 이루지만 $\alpha$이 1에 다가갈수록 더 가파르게 나빠진다. 이 결과들이 해시 테이블의 실제 성능을 뒷받침하는 이론적 바탕이다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+기대 탐색 시간에 대해, 적재율이 $\alpha = 0.75$일 때 삽입과 조회의 기대 시간과 최악의 경우 시간을 계산하라.
+
+??? success "연습문제 1 풀이"
+    기대 시간은 충돌 해결 전략에 달렸으며 균등 해싱을 가정한다. 체이닝에서는 기대 시간이 $O(1 + \alpha) = O(1.75)$이다. 개방 주소법에서는 탐색에 실패할 때 기대 탐사 횟수가 $\approx 1/(1-\alpha) = 4$이다. 최악의 경우는 모든 키가 같은 칸으로 해시될 때의 $O(n)$이다.
+
+---
+
+**연습문제 2.**
+기대 탐색 시간을(를) 써서 키 10, 22, 31, 4, 15, 28, 17을 크기가 7인 해시 테이블에 넣어라. 최종 테이블의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    해시 함수 $h(k) = k \bmod 7$을 적용하고 이 쪽의 방법으로 충돌을 처리한다. 키마다 해시를 계산하고 충돌을 해결한 뒤 키를 놓는다. 최종 테이블의 내용을 보인다.
+
+---
+
+**연습문제 3.**
+기대 탐색 시간은(는) 딥러닝의 임베딩 테이블에서 어떻게 쓰이는가? 토큰 $V = 50{,}000$개의 어휘를 $m = 30{,}000$개의 버킷에 대응시킬 때 충돌의 양상을 분석하라.
+
+??? success "연습문제 3 풀이"
+    $V/m \approx 1.67$이므로 비둘기집 원리에 의해 충돌이 반드시 생긴다. 버킷마다 평균 1.67개의 토큰이 같은 임베딩을 나누어 쓴다. 충돌률과 그것이 모델의 품질에 미치는 영향은 해시 함수의 품질과 임베딩의 차원에 달렸다(차원이 높을수록 충돌을 더 잘 견딘다).
+
+---
+
+**연습문제 4.**
+$\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 상각 비용이 $O(1)$으로 유지됨을 증명하라.
+
+??? success "연습문제 4 풀이"
+    크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$

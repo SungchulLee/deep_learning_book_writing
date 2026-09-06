@@ -1,100 +1,85 @@
-# Miller-Rabin Primality Test
+# 밀러-라빈 소수 판정 살피기
 
-Testing whether a large number is prime is fundamental to cryptography,
-where RSA key generation requires finding primes with hundreds of digits.
-Trial division takes $O(\sqrt{n})$ time — infeasible for 1024-bit numbers.
-The **Miller-Rabin test** is a Monte Carlo algorithm that determines
-primality in $O(k \log^2 n)$ time with error probability at most $4^{-k}$,
-where $k$ is the number of rounds.
+큰 수가 소수인지 살피는 일은 암호에서 바탕이 된다. RSA 열쇠를 만들려면 자릿수가 수백인 소수를 찾아야 한다. 나누어 보기는 $O(\sqrt{n})$ 시간이 들어 1024비트 수에는 쓸 수 없다. **밀러-라빈 살피기**는 소수인지를 $O(k \log^2 n)$ 시간에 가리는 몬테카를로 알고리즘이며 어긋날 확률은 많아야 $4^{-k}$이다. 여기서 $k$은 바퀴 수이다.
 
-## Background: Fermat's Little Theorem
+## 바탕: 페르마 소정리
 
-If $p$ is prime and $\gcd(a, p) = 1$, then:
+$p$이 소수이고 $\gcd(a, p) = 1$이면 다음이 성립한다.
 
 $$
 a^{p-1} \equiv 1 \pmod{p}
 $$
 
-A **Fermat witness** for compositeness of $n$ is a value $a$ such that
-$a^{n-1} \not\equiv 1 \pmod{n}$. However, Carmichael numbers pass the
-Fermat test for all bases coprime to $n$ despite being composite.
+$n$이 합성수임을 밝히는 **페르마 증인**은 $a^{n-1} \not\equiv 1 \pmod{n}$인 값 $a$이다. 그러나 카마이클 수는 합성수인데도 $n$과 서로소인 모든 밑에 대해 페르마 살피기를 통과한다.
 
-## The Miller-Rabin Improvement
+## 밀러-라빈의 개선
 
-Miller-Rabin strengthens the Fermat test by exploiting a property of primes
-related to square roots of unity.
+밀러-라빈은 1의 제곱근에 얽힌 소수의 성질을 써서 페르마 살피기를 더 세게 만든다.
 
-Write $n - 1 = 2^s \cdot d$ where $d$ is odd. If $n$ is prime and
-$\gcd(a, n) = 1$, then either:
+$d$이 홀수일 때 $n - 1 = 2^s \cdot d$으로 적자. $n$이 소수이고 $\gcd(a, n) = 1$이면 다음 가운데 하나가 참이다.
 
-1. $a^d \equiv 1 \pmod{n}$, or
-2. $a^{2^r d} \equiv -1 \pmod{n}$ for some $0 \le r < s$.
+1. $a^d \equiv 1 \pmod{n}$이거나,
+2. 어떤 $0 \le r < s$에 대해 $a^{2^r d} \equiv -1 \pmod{n}$이다.
 
-!!! note "Why This Works"
-    If $n$ is prime, the sequence $a^d, a^{2d}, a^{4d}, \ldots, a^{2^s d} = a^{n-1}$
-    must end at $1$ (by Fermat). Working backwards, the value just before
-    the first $1$ must be $-1$ (since $\pm 1$ are the only square roots
-    of $1$ modulo a prime).
+!!! note "왜 통하는가"
+    $n$이 소수이면 차례 $a^d, a^{2d}, a^{4d}, \ldots, a^{2^s d} = a^{n-1}$은 (페르마에 따라) $1$으로 끝나야 한다. 거꾸로 따져 보면 처음 $1$ 바로 앞의 값은 $-1$이어야 한다(소수를 법으로 $1$의 제곱근은 $\pm 1$뿐이기 때문이다).
 
-## Algorithm
+## 알고리즘
 
-**Input:** Odd integer $n > 3$ and number of rounds $k$.
+**들임:** 홀수 정수 $n > 3$과 바퀴 수 $k$.
 
-1. Write $n - 1 = 2^s \cdot d$ with $d$ odd.
-2. Repeat $k$ times:
-    - Choose random $a \in \{2, 3, \ldots, n - 2\}$.
-    - Compute $x = a^d \bmod n$.
-    - If $x = 1$ or $x = n - 1$: this round passes (continue).
-    - For $r = 1, 2, \ldots, s - 1$:
+1. $d$이 홀수가 되게 $n - 1 = 2^s \cdot d$으로 적는다.
+2. $k$번 되풀이한다:
+    - 아무 $a \in \{2, 3, \ldots, n - 2\}$을 고른다.
+    - $x = a^d \bmod n$을 셈한다.
+    - $x = 1$이거나 $x = n - 1$이면 이 바퀴는 통과한다(이어 간다).
+    - $r = 1, 2, \ldots, s - 1$에 대해:
         - $x = x^2 \bmod n$
-        - If $x = n - 1$: this round passes (break).
-    - If we never found $x = n - 1$: **composite** (return).
-3. Return **probably prime**.
+        - $x = n - 1$이면 이 바퀴는 통과한다(빠져나온다).
+    - $x = n - 1$을 한 번도 찾지 못했으면 **합성수**이다(돌려준다).
+3. **아마 소수**를 돌려준다.
 
-## Error Analysis
+## 오차 분석
 
-**Theorem.** If $n$ is composite, the probability that Miller-Rabin declares
-it "probably prime" after $k$ rounds is at most $4^{-k}$.
+**정리.** $n$이 합성수이면 밀러-라빈이 $k$바퀴 뒤 "아마 소수"라고 말할 확률은 많아야 $4^{-k}$이다.
 
-More precisely, at least $3/4$ of the values $a \in \{1, \ldots, n-1\}$ are
-Miller-Rabin witnesses for any composite $n$. This is stronger than the
-Fermat test, where Carmichael numbers have *no* witnesses.
+더 자세히는 어떤 합성수 $n$에 대해서도 값 $a \in \{1, \ldots, n-1\}$의 적어도 $3/4$이 밀러-라빈 증인이다. 이는 카마이클 수에 증인이 *하나도* 없는 페르마 살피기보다 세다.
 
-| Rounds $k$ | Error probability |
+| 바퀴 수 $k$ | 어긋날 확률 |
 |---|---|
 | 1 | $\le 1/4$ |
 | 10 | $\le 10^{-6}$ |
 | 20 | $\le 10^{-12}$ |
 | 40 | $\le 10^{-24}$ |
 
-## Deterministic Variants
+## 정해진 변형
 
-For small $n$, specific sets of bases guarantee correctness:
+$n$이 작으면 정해진 밑 모임이 옳음을 보장한다.
 
-| Range of $n$ | Sufficient bases |
+| $n$의 범위 | 넉넉한 밑 |
 |---|---|
 | $< 2{,}047$ | $\{2\}$ |
 | $< 1{,}373{,}653$ | $\{2, 3\}$ |
 | $< 3{,}215{,}031{,}751$ | $\{2, 3, 5, 7\}$ |
-| $< 3.3 \times 10^{24}$ | First 13 primes |
+| $< 3.3 \times 10^{24}$ | 처음 소수 13개 |
 
-## Implementation
+## 구현
 
 ```python
 """
-Miller-Rabin primality test.
+밀러-라빈 소수 판정 살피기.
 
-A Monte Carlo algorithm that tests whether a number is prime with
+수가 소수인지를 어긋날 확률이 가둬진 채 살피는 몬테카를로 알고리즘.
 error probability at most 4^{-k} for k rounds.
 """
 
 import random
 
 
-# === Modular Exponentiation ===
+# === 나머지 거듭제곱 ===
 
 def power_mod(base, exp, mod):
-    """Compute base^exp mod mod using repeated squaring.
+    """거듭 제곱하기로 base^exp mod mod을 셈한다.
 
     Time complexity: O(log exp * log^2 mod) with Python's big integers.
     """
@@ -108,17 +93,17 @@ def power_mod(base, exp, mod):
     return result
 
 
-# === Miller-Rabin Test ===
+# === 밀러-라빈 살피기 ===
 
 def miller_rabin(n, k=20):
-    """Test if n is probably prime using k rounds of Miller-Rabin.
+    """밀러-라빈 k바퀴로 n이 아마 소수인지 살핀다.
 
-    Args:
+    인수:
         n: integer to test (must be > 1).
         k: number of rounds (error <= 4^{-k}).
 
-    Returns:
-        True if probably prime, False if definitely composite.
+    반환값:
+        아마 소수이면 True, 틀림없이 합성수이면 False.
     """
     if n < 2:
         return False
@@ -127,13 +112,13 @@ def miller_rabin(n, k=20):
     if n % 2 == 0:
         return False
 
-    # Write n-1 = 2^s * d with d odd
+    # d이 홀수가 되게 n-1 = 2^s * d으로 적는다
     s, d = 0, n - 1
     while d % 2 == 0:
         s += 1
         d //= 2
 
-    # k rounds of testing
+    # 살피기 k바퀴
     for _ in range(k):
         a = random.randrange(2, n - 1)
         x = power_mod(a, d, n)
@@ -146,17 +131,17 @@ def miller_rabin(n, k=20):
             if x == n - 1:
                 break
         else:
-            return False  # Composite
+            return False  # 합성수
 
-    return True  # Probably prime
+    return True  # 아마 소수
 
 
-# === Deterministic Miller-Rabin ===
+# === 정해진 밀러-라빈 ===
 
 def is_prime_deterministic(n):
-    """Deterministic primality test for n < 3.3 * 10^24.
+    """n < 3.3 * 10^24에 대한 정해진 소수 판정 살피기.
 
-    Uses specific bases that guarantee correctness.
+    옳음을 보장하는 특정 밑을 쓴다.
     """
     if n < 2:
         return False
@@ -170,7 +155,7 @@ def is_prime_deterministic(n):
         s += 1
         d //= 2
 
-    # Sufficient witnesses for n < 3,317,044,064,679,887,385,961,981
+    # n < 3,317,044,064,679,887,385,961,981에 넉넉한 증인
     witnesses = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41]
 
     for a in witnesses:
@@ -189,61 +174,93 @@ def is_prime_deterministic(n):
     return True
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     random.seed(42)
 
-    # Test small numbers
+    # 작은 수를 시험한다
     primes = [n for n in range(2, 50) if miller_rabin(n)]
     print(f"Primes < 50: {primes}")
 
-    # Test large numbers
-    large_prime = 104729  # Known prime
-    large_composite = 104723 * 3  # Known composite
+    # 큰 수를 시험한다
+    large_prime = 104729  # 알려진 소수
+    large_composite = 104723 * 3  # 알려진 합성수
     print(f"\n{large_prime} is prime: {miller_rabin(large_prime)}")
     print(f"{large_composite} is prime: {miller_rabin(large_composite)}")
 
-    # Carmichael number (561 = 3 * 11 * 17)
+    # 카마이클 수(561 = 3 * 11 * 17)
     print(f"\n561 (Carmichael): {miller_rabin(561)}")
 
-    # Deterministic test
+    # 정해진 살피기
     print(f"\nDeterministic test on 104729: {is_prime_deterministic(104729)}")
     print(f"Deterministic test on 561: {is_prime_deterministic(561)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Primes < 50: [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47]
 
-104729 is prime: True
-314169 is prime: False
+104729은 소수: True
+314169은 소수: False
 
 561 (Carmichael): False
 
-Deterministic test on 104729: True
-Deterministic test on 561: False
+104729에 대한 정해진 살피기: True
+561에 대한 정해진 살피기: False
 ```
 
-## Complexity
+## 복잡도
 
-| Operation | Time |
+| 연산 | 시간 |
 |---|---|
-| One round | $O(\log^2 n)$ (dominated by modular exponentiation) |
-| $k$ rounds | $O(k \log^2 n)$ |
-| Space | $O(\log n)$ |
+| 한 바퀴 | $O(\log^2 n)$(나머지 거듭제곱이 도맡는다) |
+| $k$바퀴 | $O(k \log^2 n)$ |
+| 자리 | $O(\log n)$ |
 
-## Classification
+## 가름
 
-Miller-Rabin is a **Monte Carlo** algorithm:
+밀러-라빈은 **몬테카를로** 알고리즘이다.
 
-- It always runs in polynomial time.
-- It may err: a composite number may be declared "probably prime."
-- It never errs on primes: if it says "composite," the number is definitely composite.
+- 늘 다항식 시간에 돈다.
+- 어긋날 수 있다. 곧 합성수를 "아마 소수"라고 말할 수 있다.
+- 소수에서는 결코 어긋나지 않는다. 곧 "합성수"라고 하면 그 수는 틀림없이 합성수이다.
 
-This is a one-sided error algorithm (false positives but no false negatives).
+이는 한쪽만 어긋나는 알고리즘이다(거짓 양성은 있으나 거짓 음성은 없다).
 
-## Reference
+## 참고 문헌
 
 - Rabin, M. O. "Probabilistic Algorithm for Testing Primality." *J. Number Theory*, 1980.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms*. MIT Press, Chapter 31.
+
+## 연습문제
+
+**연습문제 1.**
+밀러-라빈 소수 판정 살피기의 핵심 마구잡이 재주와 그것이 정해진 방식보다 나은 까닭을 설명하라.
+
+??? success "연습문제 1 풀이"
+    밀러-라빈 소수 판정 살피기은 마구잡이를 써서 정해진 알고리즘이 마주칠 수 있는 가장 나쁜 들임을 피한다. 아무렇게나 고르므로 알고리즘의 솜씨가 들임의 짜임이 아니라 제 동전 던지기에 달린다. 그래서 모든 들임에 대해 참인 센 기댓값 시간이나 높은 확률의 보장을 흔히 얻으며, 짓궂거나 병리적인 경우를 걱정할 까닭이 없어진다. $\square$
+
+---
+
+**연습문제 2.**
+밀러-라빈 소수 판정 살피기의 기댓값 시간 복잡도는 얼마인가? 가장 나쁜 경우의 복잡도는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    기댓값 시간 복잡도는 흔히 $O(n)$이나 $O(n \log n)$이며 높은 확률로 이룬다. 가장 나쁜 경우는 다항식만큼 더 나쁠 수 있지만(예컨대 $O(n^2)$) 그럴 확률은 무시할 만큼 작다. 기댓값과 가장 나쁜 경우의 틈이 마구잡이의 값이며, 가장 나쁜 움직임이 일어날 확률은 들임 크기에 따라 지수로 줄어든다. $\square$
+
+---
+
+**연습문제 3.**
+밀러-라빈 소수 판정 살피기은 라스베이거스 알고리즘인가 몬테카를로 알고리즘인가? 그 차이를 설명하라.
+
+??? success "연습문제 3 풀이"
+    **라스베이거스**: 늘 옳은 결과를 내며 도는 시간이 아무 변수이다(기댓값이 다항식). **몬테카를로**: 늘 다항식 시간에 돌지만 결과가 어떤 가둔 확률로 틀릴 수 있다. 밀러-라빈 소수 판정 살피기은 옳음을 보장하느냐 도는 시간을 보장하느냐에 따라 이 가운데 하나에 든다. 이 가름이 어긋날 확률을 어떻게 다룰지 정한다. $\square$
+
+---
+
+**연습문제 4.**
+밀러-라빈 소수 판정 살피기에서 마구잡이를 없애거나 솜씨가 나쁠 확률을 줄이는 법을 설명하라.
+
+??? success "연습문제 4 풀이"
+    방책은 다음과 같다. (1) **거듭 해 보기**: 알고리즘을 여러 번 돌려 가장 좋거나 많은 쪽 결과를 택하면 어긋날 확률이 지수로 줄어든다. (2) **마구잡이 없애기**: 조건부 기댓값이나 흩는 함수 무리로 아무 고르기를 정해진 고르기로 바꾼다. (3) **키우기**: 몬테카를로 알고리즘에서는 $k$번 되풀이해 어긋남을 $2^{-k}$으로 줄인다. (4) **비슷 마구잡이 만들개**: 알고리즘이 보기에 "마구잡이처럼 보이는" 정해진 차례를 쓴다. $\square$

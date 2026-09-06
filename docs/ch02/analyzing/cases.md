@@ -1,36 +1,36 @@
-# Best, Worst, and Average Case
+# 최선, 최악, 평균의 경우
 
-An algorithm does not run in the same amount of time on every input of a given size.
-Consider searching for a target value in an unsorted array: the target might be the
-first element checked (fast) or the last (slow), and on average it falls somewhere
-in between. Distinguishing these scenarios lets us make precise statements about an
-algorithm's performance guarantees and expected behavior.
+알고리즘은 같은 크기의 모든 입력에 대해 똑같은 시간에 실행되지 않는다.
+정렬되지 않은 배열에서 목표 값을 찾는 경우를 생각해 보자. 목표 값이 처음 검사한
+원소일 수도 있고(빠름) 마지막 원소일 수도 있으며(느림), 평균적으로는 그 사이
+어딘가에 있다. 이 시나리오들을 구분하면 알고리즘의 성능 보장과 기대 동작에 대해
+정확한 서술을 할 수 있다.
 
-## Why Cases Matter
+## 경우가 중요한 이유
 
-When we say an algorithm "takes $O(n)$ time," that statement hides which inputs we
-are talking about. Two algorithms with identical worst-case bounds can differ
-dramatically in practice if one has a much better average case. Conversely, an
-algorithm with an excellent best case may be unusable if its worst case is
-catastrophic. Analyzing all three cases gives a complete picture of performance.
+어떤 알고리즘이 "$O(n)$ 시간이 걸린다"고 말할 때, 그 서술은 어떤 입력을 두고
+하는 말인지를 숨기고 있다. 최악의 경우 경계가 같은 두 알고리즘이라도 한쪽의
+평균적인 경우가 훨씬 좋으면 실무에서 극적으로 다를 수 있다. 반대로 최선의 경우가
+아주 좋은 알고리즘도 최악의 경우가 파국적이면 쓸 수 없다. 세 경우를 모두
+분석하면 성능의 전체 그림이 나온다.
 
-## Best-Case Running Time
+## 최선의 경우 실행 시간
 
-The **best-case running time** $T_{\text{best}}(n)$ is the minimum number of
-operations the algorithm performs over all inputs of size $n$:
+**최선의 경우 실행 시간** $T_{\text{best}}(n)$은 크기 $n$인 모든 입력에 대해
+알고리즘이 수행하는 연산 횟수의 최솟값이다.
 
 $$
 T_{\text{best}}(n) = \min_{\text{input } I,\; |I|=n} T(I)
 $$
 
-Best-case analysis identifies the most favorable input configuration. While it rarely
-drives algorithm selection, it reveals structural properties. For example, a best case
-of $\Omega(n)$ for a sorting algorithm tells us that every comparison-based sort must
-at least read all elements.
+최선의 경우 분석은 가장 유리한 입력 구성을 찾아낸다. 알고리즘 선택을 좌우하는 일은
+드물지만 구조적 성질을 드러낸다. 예를 들어 정렬 알고리즘의 최선의 경우가
+$\Omega(n)$이라는 것은 모든 비교 기반 정렬이 적어도 모든 원소를 읽어야 한다는
+뜻이다.
 
-??? example "Linear Search Best Case"
+??? example "선형 탐색의 최선의 경우"
 
-    Searching for a target in an array of $n$ elements:
+    원소가 $n$개인 배열에서 목표 값을 찾는다.
 
     ```
     LinearSearch(A, target):
@@ -40,104 +40,132 @@ at least read all elements.
         return -1
     ```
 
-    The best case occurs when the target is the first element, giving
-    $T_{\text{best}}(n) = \Theta(1)$.
+    최선의 경우는 목표 값이 첫 원소일 때이며
+    $T_{\text{best}}(n) = \Theta(1)$이다.
 
-## Worst-Case Running Time
+## 최악의 경우 실행 시간
 
-The **worst-case running time** $T_{\text{worst}}(n)$ is the maximum number of
-operations over all inputs of size $n$:
+**최악의 경우 실행 시간** $T_{\text{worst}}(n)$은 크기 $n$인 모든 입력에 대한
+연산 횟수의 최댓값이다.
 
 $$
 T_{\text{worst}}(n) = \max_{\text{input } I,\; |I|=n} T(I)
 $$
 
-Worst-case analysis provides an **upper-bound guarantee**: for any input of size $n$,
-the algorithm finishes in at most $T_{\text{worst}}(n)$ steps. This guarantee is
-critical in real-time systems, security applications, and anywhere predictable
-performance is required.
+최악의 경우 분석은 **상계 보장** 을 제공한다. 크기 $n$인 어떤 입력에 대해서도
+알고리즘은 많아야 $T_{\text{worst}}(n)$ 단계 안에 끝난다. 이 보장은 실시간 시스템,
+보안 응용, 그 밖에 예측 가능한 성능이 필요한 모든 곳에서 결정적이다.
 
-??? example "Linear Search Worst Case"
+??? example "선형 탐색의 최악의 경우"
 
-    The worst case for `LinearSearch` occurs when the target is the last element or
-    is absent entirely, requiring all $n$ comparisons:
+    `LinearSearch`의 최악의 경우는 목표 값이 마지막 원소이거나 아예 없을 때로,
+    $n$번의 비교가 모두 필요하다.
 
     $$
     T_{\text{worst}}(n) = \Theta(n)
     $$
 
-## Average-Case Running Time
+## 평균적인 경우 실행 시간
 
-The **average-case running time** $T_{\text{avg}}(n)$ measures the expected number of
-operations, averaged over some probability distribution on inputs of size $n$.
-Formally, let $\mathcal{I}_n$ denote the set of all inputs of size $n$, and let
-$\Pr[I]$ be the probability of input $I$. Then:
+**평균적인 경우 실행 시간** $T_{\text{avg}}(n)$은 크기 $n$인 입력에 대한 어떤
+확률 분포에 대해 평균 낸 연산 횟수의 기댓값이다.
+형식적으로, 크기 $n$인 모든 입력의 집합을 $\mathcal{I}_n$이라 하고 입력 $I$의 확률을
+$\Pr[I]$라 하면 다음과 같다.
 
 $$
 T_{\text{avg}}(n) = \sum_{I \in \mathcal{I}_n} \Pr[I] \cdot T(I) = \mathbb{E}[T(I)]
 $$
 
-Average-case analysis requires an explicit assumption about the input distribution.
-The most common assumption is the **uniform distribution**, where every input of size
-$n$ is equally likely.
+평균적인 경우 분석은 입력 분포에 대한 명시적인 가정을 요구한다. 가장 흔한 가정은
+크기 $n$인 모든 입력이 똑같이 나올 법하다는 **균등 분포** 이다.
 
-??? example "Linear Search Average Case"
+??? example "선형 탐색의 평균적인 경우"
 
-    Assume the target is in the array and each position is equally likely. Position
-    $i$ (0-indexed) requires $i + 1$ comparisons. Under the uniform distribution:
+    목표 값이 배열 안에 있고 각 위치가 똑같이 나올 법하다고 가정하자. 위치
+    $i$(0부터 시작)에는 $i + 1$번의 비교가 필요하다. 균등 분포 아래에서
 
     $$
     T_{\text{avg}}(n) = \sum_{i=0}^{n-1} \frac{1}{n}(i + 1) = \frac{1}{n} \cdot \frac{n(n+1)}{2} = \frac{n+1}{2}
     $$
 
-    On average, linear search examines about half the array, giving
-    $T_{\text{avg}}(n) = \Theta(n)$.
+    평균적으로 선형 탐색은 배열의 절반 정도를 살펴보므로
+    $T_{\text{avg}}(n) = \Theta(n)$이다.
 
-## Comparing the Three Cases
+## 세 경우 비교
 
-The three cases satisfy the ordering:
+세 경우는 다음 순서를 만족한다.
 
 $$
 T_{\text{best}}(n) \leq T_{\text{avg}}(n) \leq T_{\text{worst}}(n)
 $$
 
-This inequality holds because the average cannot exceed the maximum or fall below the
-minimum.
+평균이 최댓값을 넘거나 최솟값 아래로 떨어질 수 없으므로 이 부등식이 성립한다.
 
-| Case | Linear Search | Insertion Sort | Binary Search |
+| 경우 | 선형 탐색 | 삽입 정렬 | 이진 탐색 |
 |---|---|---|---|
-| Best | $\Theta(1)$ | $\Theta(n)$ | $\Theta(1)$ |
-| Average | $\Theta(n)$ | $\Theta(n^2)$ | $\Theta(\log n)$ |
-| Worst | $\Theta(n)$ | $\Theta(n^2)$ | $\Theta(\log n)$ |
+| 최선 | $\Theta(1)$ | $\Theta(n)$ | $\Theta(1)$ |
+| 평균 | $\Theta(n)$ | $\Theta(n^2)$ | $\Theta(\log n)$ |
+| 최악 | $\Theta(n)$ | $\Theta(n^2)$ | $\Theta(\log n)$ |
 
-!!! tip "Which Case Matters Most?"
+!!! tip "어느 경우가 가장 중요한가?"
 
-    In practice, **worst-case analysis** is the most commonly used because it provides
-    a guarantee independent of the input. Average-case analysis is valuable when the
-    input distribution is known or can be enforced (e.g., through randomization).
-    Best-case analysis is the least informative for algorithm selection but useful for
-    establishing lower bounds on specific problems.
+    실무에서는 입력과 무관한 보장을 제공하기 때문에 **최악의 경우 분석** 이 가장
+    많이 쓰인다. 평균적인 경우 분석은 입력 분포를 알거나 (예를 들어 무작위화를 통해)
+    강제할 수 있을 때 가치가 있다. 최선의 경우 분석은 알고리즘 선택에는 가장 도움이
+    되지 않지만 특정 문제의 하계를 확립하는 데는 유용하다.
 
-## Connection to Asymptotic Notation
+## 점근 표기법과의 연결
 
-The three cases connect directly to asymptotic notation. Given an algorithm with
-running time $T(n)$:
+세 경우는 점근 표기법과 직접 연결된다. 실행 시간이 $T(n)$인 알고리즘이 주어졌을 때
+다음과 같다.
 
-- $O$-notation naturally pairs with **worst-case** analysis: $T(n) = O(f(n))$ means
-  the algorithm takes at most $f(n)$ steps on every input of size $n$.
-- $\Omega$-notation naturally pairs with **best-case** analysis: $T(n) = \Omega(g(n))$
-  means the algorithm takes at least $g(n)$ steps on some input of size $n$.
-- $\Theta$-notation applies when the best and worst cases share the same growth rate,
-  or when describing the exact growth of a specific case (e.g., "the worst case is
-  $\Theta(n^2)$").
+- $O$-표기법은 **최악의 경우** 분석과 자연스럽게 짝을 이룬다. $T(n) = O(f(n))$은
+  크기 $n$인 모든 입력에 대해 알고리즘이 많아야 $f(n)$ 단계를 밟는다는 뜻이다.
+- $\Omega$-표기법은 **최선의 경우** 분석과 자연스럽게 짝을 이룬다. $T(n) = \Omega(g(n))$은
+  크기 $n$인 어떤 입력에 대해 알고리즘이 적어도 $g(n)$ 단계를 밟는다는 뜻이다.
+- $\Theta$-표기법은 최선의 경우와 최악의 경우의 증가 속도가 같을 때, 또는 특정
+  경우의 정확한 증가를 기술할 때(예: "최악의 경우는 $\Theta(n^2)$이다") 쓰인다.
 
-!!! warning "Common Misconception"
+!!! warning "흔한 오해"
 
-    $O$ does not mean "worst case" and $\Omega$ does not mean "best case." These are
-    separate concepts. We can say "the best-case running time is $O(n)$" or "the
-    worst-case running time is $\Omega(n^2)$." The asymptotic notation describes the
-    growth rate of a function; the case specifies which function we are analyzing.
+    $O$는 "최악의 경우"를 뜻하지 않고 $\Omega$는 "최선의 경우"를 뜻하지 않는다.
+    이들은 별개의 개념이다. "최선의 경우 실행 시간은 $O(n)$이다"라거나 "최악의
+    경우 실행 시간은 $\Omega(n^2)$이다"라고 말할 수 있다. 점근 표기법은 함수의
+    증가 속도를 기술하고, 경우는 우리가 분석하는 함수가 무엇인지를 지정한다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapters 2-4](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+최선, 최악, 평균의 경우에서 다룬 분석 기법을 너비 $d$인 층 $L$개로 이루어진 신경망의 순전파에 적용하라.
+
+??? success "연습문제 1 풀이"
+    각 층은 행렬 곱($O(d^2)$)과 활성화($O(d)$)를 수행한다. 이 절의 기법을 사용하여 층당 비용을 $L$개 층에 걸쳐 결합하면 전체 순전파 복잡도를 얻는다.
+
+---
+
+**연습문제 2.**
+최선, 최악, 평균의 경우의 분석 방법을 적용하여 작은 예제($n = 6$)를 따라가 보라. 정확한 연산 횟수를 세어라.
+
+??? success "연습문제 2 풀이"
+    $n = 6$에 대해 알고리즘이 수행하는 각 연산을 열거한다. 곱셈, 덧셈, 비교, 대입을 각각 따로 센다. 이를 합해 총합을 구한 뒤 빅오 표기법으로 표현한다.
+
+---
+
+**연습문제 3.**
+최선, 최악, 평균의 경우의 분석을 사용하여 학습 루프의 어느 단계(순전파, 역전파, 최적화기 갱신)가 전체 실행 시간을 지배하는지 판단하라.
+
+??? success "연습문제 3 풀이"
+    각 단계에 분석을 따로 적용한다. 순전파 $O(BPL)$, 역전파 $O(BPL)$, 최적화기 갱신 $O(P)$. 복잡도가 가장 큰 단계가 지배한다. 배치 크기가 크고 층이 많으면 순전파와 역전파(각각 $O(BPL)$)가 최적화기 갱신($O(P)$)을 지배한다.
+
+---
+
+**연습문제 4.**
+최선, 최악, 평균의 경우의 분석 기법이 논의된 알고리즘에 대해 꽉 조인 경계(상계와 하계가 일치)를 준다는 것을 증명하라.
+
+??? success "연습문제 4 풀이"
+    최악의 경우를 분석하여 상계를 보인다. 알고리즘이 최대 횟수의 연산을 수행하도록 강제하는 입력을 구성하여 하계를 보인다. 두 경계가 일치하면 분석이 꽉 조인 것이다($\Theta$ 표기법). $\square$

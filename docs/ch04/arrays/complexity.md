@@ -1,111 +1,111 @@
-# Array Operations and Complexity
+# 배열의 연산과 복잡도
 
-Choosing the right array variant for a task requires understanding how each operation scales with the number of elements. This page consolidates the time and space complexities of all array types covered in this section -- static, dynamic, and circular -- and explains the underlying reasons for each bound. Knowing these costs prevents common performance mistakes such as using repeated insertions at the front of a dynamic array (which silently degrades to quadratic time) or choosing a linked list when cache-friendly sequential access would be faster.
+과제에 알맞은 배열 변형을 고르려면 각 연산이 원소의 개수에 따라 어떻게 커지는지를 이해해야 한다. 이 페이지는 이 절에서 다룬 모든 배열 유형(정적, 동적, 원형)의 시간·공간 복잡도를 한데 모으고 각 상계가 왜 그런지를 설명한다. 이 비용을 알아 두면 동적 배열의 앞쪽에 반복해서 삽입한다든가(조용히 이차 시간으로 나빠진다) 캐시 친화적인 순차 접근이 더 빠를 상황에서 연결 리스트를 고르는 것 같은 흔한 성능 실수를 피할 수 있다.
 
-## Time Complexity Summary
+## 시간 복잡도 요약
 
-The table below lists worst-case complexities unless marked as amortized.
+아래 표는 상각이라고 표시하지 않는 한 최악의 경우 복잡도를 나열한다.
 
-| Operation              | Static Array | Dynamic Array        | Circular Array |
+| 연산              | 정적 배열 | 동적 배열        | 원형 배열 |
 |------------------------|--------------|----------------------|----------------|
-| Access by index        | $O(1)$       | $O(1)$               | $O(1)$         |
-| Update by index        | $O(1)$       | $O(1)$               | $O(1)$         |
-| Append (end)           | --           | $O(1)$ amortized     | $O(1)$         |
-| Prepend (front)        | $O(n)$       | $O(n)$               | $O(1)$         |
-| Insert at index $i$    | $O(n - i)$   | $O(n - i)$           | $O(\min(i, n-i))$ |
-| Delete at index $i$    | $O(n - i)$   | $O(n - i)$           | $O(\min(i, n-i))$ |
-| Search (unsorted)      | $O(n)$       | $O(n)$               | $O(n)$         |
-| Search (sorted)        | $O(\log n)$  | $O(\log n)$          | $O(\log n)$    |
-| Find minimum/maximum   | $O(n)$       | $O(n)$               | $O(n)$         |
+| 인덱스로 접근        | $O(1)$       | $O(1)$               | $O(1)$         |
+| 인덱스로 갱신        | $O(1)$       | $O(1)$               | $O(1)$         |
+| 끝에 덧붙이기           | --           | 상각 $O(1)$     | $O(1)$         |
+| 앞에 붙이기        | $O(n)$       | $O(n)$               | $O(1)$         |
+| 인덱스 $i$에 삽입    | $O(n - i)$   | $O(n - i)$           | $O(\min(i, n-i))$ |
+| 인덱스 $i$에서 삭제    | $O(n - i)$   | $O(n - i)$           | $O(\min(i, n-i))$ |
+| 탐색 (정렬 안 됨)      | $O(n)$       | $O(n)$               | $O(n)$         |
+| 탐색 (정렬됨)        | $O(\log n)$  | $O(\log n)$          | $O(\log n)$    |
+| 최솟값/최댓값 찾기   | $O(n)$       | $O(n)$               | $O(n)$         |
 
-## Why Each Bound Holds
+## 각 상계가 성립하는 이유
 
-### Access and Update: O(1)
+### 접근과 갱신: O(1)
 
-All array types store elements contiguously in memory. The address of element $i$ is computed as $b + i \cdot w$ (or with a modular offset for circular arrays), which takes constant time.
+모든 배열 유형은 원소를 메모리에 연속해서 저장한다. 원소 $i$의 주소는 $b + i \cdot w$으로(원형 배열에서는 나머지 오프셋을 써서) 계산되며 상수 시간이 걸린다.
 
-### Append: O(1) Amortized for Dynamic Arrays
+### 덧붙이기: 동적 배열에서 상각 O(1)
 
-A dynamic array doubles its capacity when full. As shown in the Amortized Growth section, the aggregate cost of $n$ appends is at most $3n$, yielding $O(1)$ amortized per operation. A circular array with fixed capacity enqueues in $O(1)$ worst-case because no resizing occurs.
+동적 배열은 가득 차면 용량을 두 배로 늘린다. 상각 성장 절에서 보였듯이 덧붙이기 $n$번의 총비용은 많아야 $3n$이므로 연산당 상각 $O(1)$이 된다. 용량이 고정된 원형 배열은 크기 조정이 없으므로 최악의 경우에도 $O(1)$에 넣는다.
 
-### Insert and Delete in the Middle: O(n)
+### 중간에서의 삽입과 삭제: O(n)
 
-Inserting at index $i$ in a static or dynamic array requires shifting $n - i$ elements to make room, which takes $\Theta(n - i)$ time. In the worst case (inserting at the front), this is $\Theta(n)$.
+정적 배열이나 동적 배열의 인덱스 $i$에 삽입하려면 자리를 만들기 위해 $n - i$개의 원소를 밀어야 하며 $\Theta(n - i)$ 시간이 든다. 최악의 경우(맨 앞에 삽입)에는 $\Theta(n)$이다.
 
-A well-implemented circular array (such as Python's `collections.deque`) can choose to shift elements from whichever side is closer, yielding $O(\min(i, n - i))$.
+잘 구현된 원형 배열(예: 파이썬의 `collections.deque`)은 더 가까운 쪽에서 원소를 밀도록 고를 수 있어 $O(\min(i, n - i))$이 된다.
 
-### Search: O(n) Unsorted, O(log n) Sorted
+### 탐색: 정렬 안 되면 O(n), 정렬되면 O(log n)
 
-An unsorted array must examine every element in the worst case. A sorted array enables binary search, which halves the search space at each step, producing a recurrence
+정렬되지 않은 배열은 최악의 경우 모든 원소를 살펴야 한다. 정렬된 배열에서는 이진 탐색을 쓸 수 있는데, 매 단계 탐색 공간을 절반으로 줄이므로 다음 점화식이 나온다.
 
 $$
 T(n) = T(n/2) + O(1)
 $$
 
-with solution $T(n) = O(\log n)$.
+그 해는 $T(n) = O(\log n)$이다.
 
-## Space Complexity
+## 공간 복잡도
 
-| Array Type      | Space Usage            | Notes                                    |
+| 배열 유형      | 공간 사용량            | 비고                                    |
 |-----------------|------------------------|------------------------------------------|
-| Static array    | $\Theta(c)$            | $c$ = fixed capacity, no overhead        |
-| Dynamic array   | $\Theta(c)$, $c \le 2n$ | At most 2x the number of elements        |
-| Circular array  | $\Theta(c)$            | Fixed capacity, one slot may be wasted   |
+| 정적 배열    | $\Theta(c)$            | $c$ = 고정 용량, 부담 없음        |
+| 동적 배열   | $\Theta(c)$, $c \le 2n$ | 원소 개수의 많아야 2배        |
+| 원형 배열  | $\Theta(c)$            | 고정 용량, 자리 하나를 버릴 수 있음   |
 
-For all array types, the auxiliary space beyond the stored elements is $O(1)$ -- just a few pointers or counters.
+모든 배열 유형에서 저장된 원소 외의 보조 공간은 $O(1)$이다. 포인터나 계수기 몇 개뿐이다.
 
-## Practical Performance: Cache Effects
+## 실제 성능: 캐시의 영향
 
-Asymptotic complexity does not capture the full picture. Arrays benefit enormously from **spatial locality**: since elements sit in adjacent memory addresses, accessing one element loads an entire cache line (typically 64 bytes) into the CPU cache, making subsequent accesses nearly free.
+점근적 복잡도가 전부를 말해 주지는 않는다. 배열은 **공간 지역성**에서 큰 이득을 본다. 원소들이 인접한 메모리 주소에 놓이므로 원소 하나에 접근하면 캐시 라인 전체(보통 64바이트)가 CPU 캐시로 올라오고, 뒤이은 접근은 거의 공짜가 된다.
 
-For sequential scans of $n$ elements with a cache line of size $B$ elements, the number of cache misses is
+캐시 라인이 원소 $B$개 크기일 때 원소 $n$개를 차례로 훑으면 캐시 실패의 수는 다음과 같다.
 
 $$
 \frac{n}{B}
 $$
 
-rather than $n$. This is why iterating over a contiguous array is typically 10--100x faster than iterating over a linked list of the same length, even though both operations are $O(n)$ in the asymptotic sense.
+$n$이 아니라 그렇다. 두 연산 모두 점근적으로는 $O(n)$인데도 연속된 배열을 순회하는 것이 같은 길이의 연결 리스트를 순회하는 것보다 대체로 10~100배 빠른 이유가 여기 있다.
 
-!!! tip "When Constants Matter"
+!!! tip "상수가 중요할 때"
 
-    Two $O(n)$ algorithms can differ by orders of magnitude in practice. Array-based algorithms often outperform linked-list-based alternatives for moderate $n$ due to cache effects, even when the asymptotic complexity favors the linked structure. Always benchmark with realistic data sizes.
+    같은 $O(n)$ 알고리즘 둘이 실제로는 자릿수만큼 차이 날 수 있다. 점근적 복잡도가 연결 구조에 유리하더라도, $n$이 적당한 범위에서는 캐시 효과 때문에 배열 기반 알고리즘이 연결 리스트 기반보다 나은 경우가 많다. 언제나 현실적인 데이터 크기로 견주어 보라.
 
-## Common Pitfalls
+## 흔히 빠지는 함정
 
-!!! warning "Quadratic Time from Repeated Front Insertion"
+!!! warning "앞쪽에 반복해서 삽입하면 이차 시간이 된다"
 
-    Inserting $n$ elements one by one at the front of a dynamic array costs
+    동적 배열의 앞쪽에 원소 $n$개를 하나씩 삽입하는 데 드는 비용은 다음과 같다.
 
     $$
     \sum_{i=1}^{n} i = \frac{n(n+1)}{2} = \Theta(n^2)
     $$
 
-    This is a common source of performance bugs. Use `collections.deque` (which supports $O(1)$ front insertion) or build the list in reverse and then reverse it once in $O(n)$.
+    이는 성능 버그의 흔한 원인이다. ($O(1)$ 앞쪽 삽입을 지원하는) `collections.deque`를 쓰거나, 리스트를 거꾸로 만든 뒤 $O(n)$에 한 번 뒤집어라.
 
-## Python Demonstration
+## 파이썬 시연
 
 ```python
-"""Demonstrate and time key array operations to illustrate complexity differences."""
+"""주요 배열 연산의 시간을 재어 복잡도 차이를 보인다."""
 
 import time
 
 
-# === Helper: time a function ===
+# === 도우미: 함수의 실행 시간 재기 ===
 def time_operation(func, *args, repeats=1):
-    """Return the average time in microseconds."""
+    """평균 시간을 마이크로초 단위로 돌려준다."""
     start = time.perf_counter()
     for _ in range(repeats):
         func(*args)
     elapsed = (time.perf_counter() - start) / repeats
-    return elapsed * 1e6  # convert to microseconds
+    return elapsed * 1e6  # 마이크로초로 바꾸기
 
 
-# === Access by index: O(1) ===
+# === 인덱스로 접근: O(1) ===
 data = list(range(1_000_000))
 t_access = time_operation(lambda: data[500_000], repeats=100_000)
 print(f"Index access:    {t_access:.3f} us")
 
-# === Append to end: O(1) amortized ===
+# === 끝에 덧붙이기: 상각 O(1) ===
 def append_test():
     lst = []
     for i in range(10_000):
@@ -114,7 +114,7 @@ def append_test():
 t_append = time_operation(append_test, repeats=100)
 print(f"10k appends:     {t_append:.1f} us total")
 
-# === Insert at front: O(n) each ===
+# === 앞에 삽입: 각각 O(n) ===
 def insert_front_test():
     lst = []
     for i in range(1_000):
@@ -123,13 +123,13 @@ def insert_front_test():
 t_insert = time_operation(insert_front_test, repeats=10)
 print(f"1k front inserts: {t_insert:.1f} us total")
 
-# === Linear search: O(n) ===
+# === 선형 탐색: O(n) ===
 target = 999_999
 t_search = time_operation(lambda: target in data, repeats=100)
 print(f"Linear search:   {t_search:.1f} us")
 ```
 
-**Output:**
+**출력:**
 ```
 Index access:    0.030 us
 10k appends:     312.5 us total
@@ -137,8 +137,41 @@ Index access:    0.030 us
 Linear search:   5432.1 us
 ```
 
-The output confirms that index access is effectively instant, appends are fast (amortized $O(1)$), front insertions are significantly slower (each shifts existing elements), and linear search scales with the array size.
+출력을 보면 인덱스 접근은 사실상 즉각적이고, 덧붙이기는 빠르며(상각 $O(1)$), 앞쪽 삽입은 (매번 기존 원소를 밀기 때문에) 눈에 띄게 느리고, 선형 탐색은 배열 크기에 비례해 커짐을 확인할 수 있다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+배열의 연산과 복잡도에 대해 삽입, 삭제, 탐색, 접근 연산의 시간 복잡도를 진술하라.
+
+??? success "연습문제 1 풀이"
+    복잡도는 구체적인 구현(배열 기반이냐 연결 기반이냐)에 달려 있다. 배열 기반은 접근이 $O(1)$이고 임의의 위치에서의 삽입·삭제가 $O(n)$이다. 연결 기반은 이미 아는 위치에서의 삽입·삭제가 $O(1)$이고 탐색·접근이 $O(n)$이다. 어떤 연산이 주를 이루느냐에 따라 선택이 갈린다.
+
+---
+
+**연습문제 2.**
+원소 6개로 배열의 연산과 복잡도을(를) 따라가며 각 연산 후의 자료구조 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    구조에 삽입, 접근, 삭제를 차례로 수행하라. 각 단계마다 (연결 구조라면) 포인터를, (배열 기반이라면) 배열의 내용을 보이며 구조가 불변식을 어떻게 유지하는지 나타내라.
+
+---
+
+**연습문제 3.**
+배열의 연산과 복잡도이(가) PyTorch의 텐서 저장과 어떻게 관련되는지 설명하라. 자료구조의 선택이 메모리 배치와 캐시 성능에 어떤 영향을 주는가?
+
+??? success "연습문제 3 풀이"
+    PyTorch 텐서는 캐시에 효율적으로 접근할 수 있도록 연속된 배열로 저장된다. 연결 구조는 autograd 그래프를 훑는 데 내부적으로 쓰인다. 이 선택은 메모리 사용량(배열에는 포인터 부담이 없다)과 접근 양상(캐시 지역성 덕분에 순차적인 배열 접근이 연결 리스트 순회보다 10~100배 빠르다)에 모두 영향을 준다.
+
+---
+
+**연습문제 4.**
+반복문 불변식을 사용하여 배열의 연산과 복잡도의 주요 연산의 시간 복잡도를 증명하라.
+
+??? success "연습문제 4 풀이"
+    알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$

@@ -1,71 +1,71 @@
-# Multiplication Method
+# 곱셈법
 
-The division method ties hash function quality to the choice of table size $m$, requiring careful selection of a prime far from powers of two. The **multiplication method** eliminates this sensitivity: it works well for any table size $m$, including powers of two. This flexibility makes it a practical alternative in systems where the table size must be a power of two for memory alignment or bitwise optimization reasons.
+나눗셈법은 해시 함수의 품질을 테이블 크기 $m$의 선택에 묶어 두어 2의 거듭제곱에서 먼 소수를 조심스럽게 골라야 한다. **곱셈법**은 이러한 민감함을 없앤다. 2의 거듭제곱을 포함해 어떤 크기 $m$에서도 잘 통한다. 이러한 유연함 덕분에 메모리 정렬이나 비트 최적화 때문에 테이블의 크기를 2의 거듭제곱으로 두어야 하는 시스템에서 실용적인 대안이 된다.
 
-## Definition
+## 정의
 
-The multiplication method computes the hash of an integer key $k$ in two steps:
+곱셈법은 정수 키 $k$의 해시를 두 단계로 계산한다.
 
-1. Multiply $k$ by a constant $A \in (0, 1)$ and extract the fractional part.
-2. Scale the fractional part by the table size $m$ and take the floor.
+1. $k$에 상수 $A \in (0, 1)$을 곱하고 소수부를 뽑는다.
+2. 소수부에 테이블의 크기 $m$을 곱하고 내림한다.
 
-Formally:
+형식적으로 다음과 같다.
 
 $$
 h(k) = \lfloor m \cdot (kA \bmod 1) \rfloor
 $$
 
-where $kA \bmod 1 = kA - \lfloor kA \rfloor$ denotes the fractional part of $kA$. The result $h(k)$ lies in $\{0, 1, \ldots, m-1\}$.
+여기서 $kA \bmod 1 = kA - \lfloor kA \rfloor$은 $kA$의 소수부를 뜻한다. 결과 $h(k)$은 $\{0, 1, \ldots, m-1\}$ 안에 있다.
 
-The key insight is that multiplying by an irrational (or irrational-like) constant $A$ and extracting the fractional part effectively "scrambles" the key, distributing keys uniformly regardless of their original structure.
+핵심 착상은 무리수(또는 그에 가까운) 상수 $A$을 곱하고 소수부를 뽑으면 키가 사실상 "휘저어져" 원래 구조와 무관하게 고르게 흩어진다는 것이다.
 
-## Choice of the Constant A
+## 상수 A 고르기
 
-The constant $A$ can be any value in $(0, 1)$, but some choices yield better distribution than others.
+상수 $A$은 $(0, 1)$ 안의 어떤 값이든 될 수 있지만 어떤 값이 다른 값보다 더 고른 분포를 준다.
 
-**Knuth's recommendation.** Donald Knuth showed that the golden ratio conjugate:
+**커누스의 권고.** 도널드 커누스는 황금비의 켤레가
 
 $$
 A = \frac{\sqrt{5} - 1}{2} \approx 0.6180339887\ldots
 $$
 
-produces particularly good distribution. This value is optimal in a precise sense: it generates the most uniformly spaced fractional parts $\{kA \bmod 1 : k = 1, 2, \ldots, n\}$ among all choices of $A$, a consequence of the three-distance theorem in number theory.
+특히 좋은 분포를 낸다는 것을 보였다. 이 값은 정확한 뜻에서 최적이다. 모든 $A$ 가운데 소수부 $\{kA \bmod 1 : k = 1, 2, \ldots, n\}$을 가장 고르게 벌려 놓는데, 이는 정수론의 세 거리 정리에서 따라 나온다.
 
-**Why the golden ratio works.** The continued fraction expansion of the golden ratio conjugate is $[0; 1, 1, 1, \ldots]$, making it the "most irrational" number. Its multiples $kA$ avoid clustering near any rational fraction, which translates to hash values that avoid clustering near any particular slot.
+**황금비가 통하는 까닭.** 황금비 켤레의 연분수 전개는 $[0; 1, 1, 1, \ldots]$이어서 "가장 무리수다운" 수가 된다. 그 배수 $kA$은 어떤 유리수 근처에도 뭉치지 않으며, 이는 해시값이 특정 칸 근처에 뭉치지 않는다는 뜻이 된다.
 
-## Efficient Bit-Level Implementation
+## 비트 수준의 효율적인 구현
 
-When the machine word size is $w$ bits (typically $w = 32$ or $w = 64$), the multiplication method can be implemented using only integer multiplication and bit shifts, avoiding floating-point arithmetic entirely.
+기계의 워드 크기가 $w$비트(보통 $w = 32$이나 $w = 64$)일 때 곱셈법은 부동소수점 연산 없이 정수 곱셈과 비트 자리옮김만으로 구현할 수 있다.
 
-Choose $A$ and represent it as the integer $s = \lfloor A \cdot 2^w \rfloor$. For $w = 32$ and Knuth's constant:
+$A$을 고르고 정수 $s = \lfloor A \cdot 2^w \rfloor$으로 나타낸다. $w = 32$이고 커누스의 상수를 쓰면 다음과 같다.
 
 $$
 s = \lfloor 0.6180339887 \cdot 2^{32} \rfloor = 2654435769
 $$
 
-The hash computation becomes:
+해시 계산은 다음이 된다.
 
 $$
 h(k) = (k \cdot s \bmod 2^w) \gg (w - p)
 $$
 
-where $m = 2^p$ and $\gg$ denotes a right bit shift. The steps are:
+여기서 $m = 2^p$이고 $\gg$은 오른쪽 비트 자리옮김을 뜻한다. 단계는 다음과 같다.
 
-1. Multiply: $k \cdot s$ produces a $2w$-bit product.
-2. Extract: take the lower $w$ bits (i.e., $k \cdot s \bmod 2^w$), which corresponds to the fractional part.
-3. Shift: the top $p$ bits of this $w$-bit quantity give $h(k)$, equivalent to multiplying by $m = 2^p$ and taking the floor.
+1. 곱하기: $k \cdot s$은 $2w$비트 곱을 낸다.
+2. 뽑기: 하위 $w$비트(곧 $k \cdot s \bmod 2^w$)를 취한다. 이것이 소수부에 해당한다.
+3. 자리옮김: 이 $w$비트 값의 상위 $p$비트가 $h(k)$이며, 이는 $m = 2^p$을 곱하고 내림하는 것과 같다.
 
-This implementation uses only integer arithmetic and runs in $O(1)$ time on all architectures.
+이 구현은 정수 연산만 쓰며 어떤 구조에서도 $O(1)$ 시간에 돌아간다.
 
-??? example "Step-by-Step Computation"
+??? example "단계별 계산"
 
-    Let $w = 8$ (for small illustration), $m = 2^3 = 8$ (so $p = 3$), and $A \approx 0.618$:
+    작게 보이려고 $w = 8$, $m = 2^3 = 8$(따라서 $p = 3$), $A \approx 0.618$이라 하자.
 
     $$
     s = \lfloor 0.618 \times 256 \rfloor = 158
     $$
 
-    For $k = 123$:
+    $k = 123$에 대해 다음과 같다.
 
     $$
     k \cdot s = 123 \times 158 = 19434
@@ -79,66 +79,66 @@ This implementation uses only integer arithmetic and runs in $O(1)$ time on all 
     234 \text{ in binary} = 11101010_2
     $$
 
-    Extract the top $p = 3$ bits: $111_2 = 7$.
+    상위 $p = 3$비트를 뽑는다. $111_2 = 7$이다.
 
     $$
     h(123) = 7
     $$
 
-## Comparison with the Division Method
+## 나눗셈법과의 비교
 
-| Property | Division Method | Multiplication Method |
+| 성질 | 나눗셈법 | 곱셈법 |
 |---|---|---|
-| Formula | $h(k) = k \bmod m$ | $h(k) = \lfloor m(kA \bmod 1) \rfloor$ |
-| Table size restriction | $m$ should be prime, not near $2^p$ | Any $m$ works; $m = 2^p$ is ideal |
-| Sensitivity to $m$ | High | Low |
-| Implementation | Single division/modulo | Multiply + shift (no division) |
-| Bit utilization | Low-order bits only when $m = 2^p$ | All bits contribute |
+| 식 | $h(k) = k \bmod m$ | $h(k) = \lfloor m(kA \bmod 1) \rfloor$ |
+| 테이블 크기의 제약 | $m$이 소수이고 $2^p$ 근처가 아니어야 한다 | 어떤 $m$이든 되며 $m = 2^p$이 이상적이다 |
+| $m$에 대한 민감도 | 높다 | 낮다 |
+| 구현 | 나눗셈/나머지 한 번 | 곱셈과 자리옮김 (나눗셈 없음) |
+| 비트 활용 | $m = 2^p$이면 하위 비트만 쓴다 | 모든 비트가 기여한다 |
 
-The multiplication method is generally preferred when the table size must be a power of two. The division method is simpler when a prime table size can be chosen freely.
+테이블의 크기를 2의 거듭제곱으로 두어야 한다면 대체로 곱셈법을 선호한다. 소수 크기를 자유롭게 고를 수 있다면 나눗셈법이 더 간단하다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Multiplication method hash table.
+곱셈법 해시 표.
 
-Demonstrates h(k) = floor(m * (k * A mod 1)) using both
-floating-point and bit-shift implementations.
+부동소수점 구현과 비트 이동 구현으로
+h(k) = floor(m * (k * A mod 1))을 보인다.
 """
 
 import math
 
 
-# === Multiplication Method Hash Functions ===
+# === 곱셈법 해시 함수 ===
 
 GOLDEN_RATIO_CONJUGATE = (math.sqrt(5) - 1) / 2  # ~0.6180339887
 
 
 def hash_multiply_float(key: int, m: int, A: float = GOLDEN_RATIO_CONJUGATE) -> int:
-    """Compute hash using the floating-point multiplication method."""
+    """부동소수점 곱셈법으로 해시값을 계산한다."""
     return int(m * ((key * A) % 1))
 
 
 def hash_multiply_bitshift(key: int, p: int, w: int = 32) -> int:
-    """Compute hash using the bit-shift multiplication method.
+    """비트 이동 곱셈법으로 해시값을 계산한다.
 
-    Args:
-        key: Integer key to hash.
-        p: Log2 of table size (m = 2^p).
-        w: Machine word size in bits.
+    인수:
+        key: 해싱할 정수 열쇠.
+        p: 표 크기의 로그 (m = 2^p).
+        w: 기계 낱말의 비트 수.
 
-    Returns:
-        Hash value in {0, 1, ..., 2^p - 1}.
+    반환값:
+        {0, 1, …, 2^p - 1} 안의 해시값.
     """
     s = int(GOLDEN_RATIO_CONJUGATE * (2 ** w))
     return ((key * s) % (2 ** w)) >> (w - p)
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
-    m = 16  # table size (power of two)
+    m = 16  # 표의 크기 (2의 거듭제곱)
     p = 4   # log2(m)
 
     keys = [10, 22, 37, 45, 59, 72, 88, 100]
@@ -154,7 +154,7 @@ if __name__ == "__main__":
         print(f"  h({k:3d}) = {h}")
 ```
 
-**Output:**
+**출력:**
 ```
 Floating-point multiplication method (m=16):
   h( 10) = floor(16 * 0.1803) = 2
@@ -177,6 +177,39 @@ Bit-shift multiplication method (m=16, w=32):
   h(100) = 12
 ```
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+곱셈법에 대해, 적재율이 $\alpha = 0.75$일 때 삽입과 조회의 기대 시간과 최악의 경우 시간을 계산하라.
+
+??? success "연습문제 1 풀이"
+    기대 시간은 충돌 해결 전략에 달렸으며 균등 해싱을 가정한다. 체이닝에서는 기대 시간이 $O(1 + \alpha) = O(1.75)$이다. 개방 주소법에서는 탐색에 실패할 때 기대 탐사 횟수가 $\approx 1/(1-\alpha) = 4$이다. 최악의 경우는 모든 키가 같은 칸으로 해시될 때의 $O(n)$이다.
+
+---
+
+**연습문제 2.**
+곱셈법을(를) 써서 키 10, 22, 31, 4, 15, 28, 17을 크기가 7인 해시 테이블에 넣어라. 최종 테이블의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    해시 함수 $h(k) = k \bmod 7$을 적용하고 이 쪽의 방법으로 충돌을 처리한다. 키마다 해시를 계산하고 충돌을 해결한 뒤 키를 놓는다. 최종 테이블의 내용을 보인다.
+
+---
+
+**연습문제 3.**
+곱셈법은(는) 딥러닝의 임베딩 테이블에서 어떻게 쓰이는가? 토큰 $V = 50{,}000$개의 어휘를 $m = 30{,}000$개의 버킷에 대응시킬 때 충돌의 양상을 분석하라.
+
+??? success "연습문제 3 풀이"
+    $V/m \approx 1.67$이므로 비둘기집 원리에 의해 충돌이 반드시 생긴다. 버킷마다 평균 1.67개의 토큰이 같은 임베딩을 나누어 쓴다. 충돌률과 그것이 모델의 품질에 미치는 영향은 해시 함수의 품질과 임베딩의 차원에 달렸다(차원이 높을수록 충돌을 더 잘 견딘다).
+
+---
+
+**연습문제 4.**
+$\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 상각 비용이 $O(1)$으로 유지됨을 증명하라.
+
+??? success "연습문제 4 풀이"
+    크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$

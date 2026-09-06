@@ -1,92 +1,92 @@
-# Queue Abstract Data Type
+# 큐 추상 자료형
 
-A checkout line at a grocery store, a printer processing documents, and an operating system scheduling tasks all share a common pattern: items are served in the order they arrive. The **queue** abstract data type formalizes this "first in, first out" principle. Unlike a stack, which only exposes the most recently added element, a queue provides access to the *oldest* element --- the one that has been waiting the longest. This page defines the queue ADT, specifies its operations with their contracts, and establishes the time complexity guarantees.
+식료품점의 계산대 줄, 문서를 처리하는 프린터, 작업을 배정하는 운영체제는 모두 같은 방식을 따른다. 도착한 순서대로 처리하는 것이다. **큐** 추상 자료형은 이 "먼저 들어온 것을 먼저 내보내는" 원리를 형식화한다. 가장 최근에 넣은 원소만 내주는 스택과 달리, 큐는 *가장 오래된* 원소, 곧 가장 오래 기다린 원소를 내준다. 이 쪽은 큐 추상 자료형을 정의하고, 연산과 그 계약을 규정하며, 시간 복잡도 보장을 세운다.
 
-## FIFO Principle
+## 선입선출 원리
 
-A queue maintains a sequence of elements governed by the **First-In, First-Out (FIFO)** policy. New elements are added at the **rear** (also called the *back* or *tail*) and removed from the **front** (also called the *head*). The element that has been in the queue the longest is the next one to be served.
+큐는 **선입선출(FIFO)** 정책에 따라 원소의 열을 관리한다. 새 원소는 **뒤**(뒷단 또는 꼬리라고도 한다)에 넣고 **앞**(머리라고도 한다)에서 뺀다. 큐에 가장 오래 있던 원소가 다음에 처리된다.
 
-Formally, if elements $e_1, e_2, \ldots, e_n$ are enqueued in that order, then successive dequeue operations return $e_1, e_2, \ldots, e_n$ --- the same order.
+형식적으로, 원소 $e_1, e_2, \ldots, e_n$을 그 순서대로 넣었다면 잇따른 빼기 연산은 같은 순서인 $e_1, e_2, \ldots, e_n$을 돌려준다.
 
-!!! info "FIFO vs LIFO"
-    The queue's FIFO policy is the complement of the stack's LIFO policy. A stack reverses the input order; a queue preserves it. Choosing between them depends on whether the most recent or the oldest item should be processed next.
+!!! info "선입선출과 후입선출"
+    큐의 선입선출 정책은 스택의 후입선출 정책과 짝을 이룬다. 스택은 입력 순서를 뒤집고 큐는 그대로 지킨다. 둘 중 어느 것을 고를지는 가장 최근의 항목을 먼저 처리해야 하는지, 가장 오래된 항목을 먼저 처리해야 하는지에 달렸다.
 
-## Core Operations
+## 핵심 연산
 
-The queue ADT specifies the following operations. Every correct implementation must provide all of them.
+큐 추상 자료형은 다음 연산을 규정한다. 올바른 구현이라면 이들을 모두 제공해야 한다.
 
-| Operation | Description | Precondition | Postcondition |
+| 연산 | 설명 | 사전 조건 | 사후 조건 |
 |-----------|-------------|--------------|---------------|
-| `Enqueue(x)` | Insert element $x$ at the rear | None | Queue size increases by 1; $x$ becomes the new rear element |
-| `Dequeue()` | Remove and return the front element | Queue is non-empty | Queue size decreases by 1; the second element becomes the new front |
-| `Front()` / `Peek()` | Return the front element without removing it | Queue is non-empty | Queue is unchanged |
-| `IsEmpty()` | Return whether the queue contains no elements | None | Queue is unchanged |
-| `Size()` | Return the number of elements | None | Queue is unchanged |
+| `Enqueue(x)` | 원소 $x$을 뒤에 넣는다 | 없음 | 큐의 크기가 1 늘고 $x$이 새 뒤 원소가 된다 |
+| `Dequeue()` | 앞 원소를 빼서 돌려준다 | 큐가 비어 있지 않다 | 큐의 크기가 1 줄고 둘째 원소가 새 앞이 된다 |
+| `Front()` / `Peek()` | 앞 원소를 빼지 않고 돌려준다 | 큐가 비어 있지 않다 | 큐는 그대로이다 |
+| `IsEmpty()` | 큐에 원소가 없는지 돌려준다 | 없음 | 큐는 그대로이다 |
+| `Size()` | 원소의 개수를 돌려준다 | 없음 | 큐는 그대로이다 |
 
-!!! warning "Underflow"
-    Calling `Dequeue()` or `Front()` on an empty queue is an **underflow error**. Implementations typically raise an exception. Client code should check `IsEmpty()` before accessing the front element.
+!!! warning "언더플로"
+    빈 큐에 `Dequeue()`나 `Front()`을 부르는 것은 **언더플로 오류**이다. 구현은 보통 예외를 일으킨다. 사용 측 코드는 앞 원소에 손대기 전에 `IsEmpty()`을 확인해야 한다.
 
-## Time Complexity Contract
+## 시간 복잡도 계약
 
-All five core operations must run in $O(1)$ time for the ADT to be useful. Both circular-array and linked-list implementations achieve this.
+이 추상 자료형이 쓸모 있으려면 다섯 가지 핵심 연산이 모두 $O(1)$ 시간에 돌아가야 한다. 원형 배열 구현과 연결 리스트 구현 모두 이를 이룬다.
 
 $$
 T_{\text{Enqueue}} = T_{\text{Dequeue}} = T_{\text{Front}} = T_{\text{IsEmpty}} = T_{\text{Size}} = O(1)
 $$
 
-For dynamic arrays without circular indexing, `Dequeue` takes $O(n)$ time because all remaining elements must shift forward. This is why circular arrays or linked lists are preferred for queue implementations.
+원형 인덱싱을 쓰지 않는 동적 배열에서는 남은 원소를 모두 앞으로 옮겨야 하므로 `Dequeue`이 $O(n)$ 시간이 든다. 큐를 구현할 때 원형 배열이나 연결 리스트를 선호하는 까닭이 여기에 있다.
 
-## Abstraction Barrier
+## 추상화 장벽
 
-Like the stack ADT, the queue ADT specifies the interface but not the internal representation. Client code depends only on the five operations and their guarantees, allowing the implementation to be swapped freely between array-based, circular-array, and linked-list variants.
+스택 추상 자료형과 마찬가지로 큐 추상 자료형도 인터페이스만 규정하고 내부 표현은 규정하지 않는다. 사용 측 코드는 다섯 가지 연산과 그 보장에만 기대므로, 배열 기반, 원형 배열, 연결 리스트 구현을 자유롭게 바꿔 쓸 수 있다.
 
 ```python
 """
-Queue ADT — interface demonstration.
+큐 추상 자료형 — 인터페이스 시연.
 
-Shows that client code interacts only with the public operations
-(enqueue, dequeue, front, is_empty, size) without knowing the
-internal storage mechanism.
+사용 측 코드가 공개된 연산으로만 다룬다는 것을 보인다
+(enqueue, dequeue, front, is_empty, size)만 알면 되고 내부 저장
+방식은 몰라도 된다.
 """
 
 
-# === Queue ADT Interface =====================================================
+# === 큐 추상 자료형 인터페이스 =====================================================
 
 class Queue:
-    """Queue following the FIFO (First-In, First-Out) principle."""
+    """선입선출(FIFO) 원리를 따르는 큐."""
 
     def __init__(self):
         self._items = []
 
     def enqueue(self, x):
-        """Add element x to the rear of the queue."""
+        """원소 x를 큐의 뒤에 넣는다."""
         self._items.append(x)
 
     def dequeue(self):
-        """Remove and return the front element. Raises IndexError if empty."""
+        """앞 원소를 빼서 돌려준다. 비어 있으면 IndexError를 일으킨다."""
         if self.is_empty():
             raise IndexError("dequeue from empty queue")
         return self._items.pop(0)
 
     def front(self):
-        """Return the front element without removing it."""
+        """앞 원소를 빼지 않고 돌려준다."""
         if self.is_empty():
             raise IndexError("front from empty queue")
         return self._items[0]
 
     def is_empty(self):
-        """Return True if the queue contains no elements."""
+        """큐에 원소가 없으면 True를 돌려준다."""
         return len(self._items) == 0
 
     def size(self):
-        """Return the number of elements in the queue."""
+        """큐에 든 원소의 개수를 돌려준다."""
         return len(self._items)
 
     def __repr__(self):
         return f"Queue({self._items})"
 
 
-# === Demonstration ============================================================
+# === 시연 ============================================================
 
 if __name__ == "__main__":
     q = Queue()
@@ -103,7 +103,7 @@ if __name__ == "__main__":
         print(f"Dequeued {q.dequeue():>3} → {q}")
 ```
 
-**Output:**
+**출력:**
 ```
 Empty? True
 Enqueued  10 → Queue([10])
@@ -118,20 +118,53 @@ Dequeued  30 → Queue([40])
 Dequeued  40 → Queue([])
 ```
 
-The output confirms FIFO ordering: elements enqueued in order 10, 20, 30, 40 are dequeued in the same order. The `front` operation returns 10 --- the oldest element --- without modifying the queue.
+출력은 선입선출 순서를 확인해 준다. 10, 20, 30, 40 순서로 넣은 원소가 같은 순서로 나온다. `front` 연산은 큐를 바꾸지 않고 가장 오래된 원소인 10을 돌려준다.
 
-!!! note "Implementation Note"
-    The `pop(0)` call above takes $O(n)$ time because Python lists shift all remaining elements. This simple implementation illustrates the ADT interface. For $O(1)$ dequeue performance, use a circular array or linked list, as described on the sibling pages.
+!!! note "구현에 대한 참고"
+    위의 `pop(0)`은 파이썬 리스트가 남은 원소를 모두 옮기므로 $O(n)$ 시간이 든다. 이 간단한 구현은 추상 자료형의 인터페이스를 보이기 위한 것이다. 빼기를 $O(1)$에 하려면 이웃 쪽에서 설명하는 원형 배열이나 연결 리스트를 쓰라.
 
-## Queue Invariant
+## 큐 불변식
 
-A correct queue implementation must maintain the following invariant at all times:
+올바른 큐 구현은 언제나 다음 불변식을 지켜야 한다.
 
-!!! info "Queue Invariant"
-    After any sequence of `Enqueue` and `Dequeue` operations, the element returned by `Front()` is the element earliest added by `Enqueue` that has not yet been removed by `Dequeue`. If no such element exists, the queue is empty.
+!!! info "큐 불변식"
+    `Enqueue`과 `Dequeue`을 어떻게 이어서 수행하든, `Front()`이 돌려주는 원소는 `Enqueue`으로 넣었으나 아직 `Dequeue`으로 빼지 않은 원소 가운데 가장 먼저 넣은 것이다. 그런 원소가 없으면 큐는 비어 있다.
 
-This invariant is the formal statement of the FIFO property. Any implementation that violates it --- for example, by returning elements in a different order --- is not a valid queue.
+이 불변식이 선입선출 성질을 형식적으로 진술한 것이다. 이를 어기는 구현, 예를 들어 원소를 다른 순서로 돌려주는 구현은 올바른 큐가 아니다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+큐 추상 자료형의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+큐 추상 자료형을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+큐 추상 자료형을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+큐 추상 자료형을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

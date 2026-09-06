@@ -1,74 +1,68 @@
-# Chapter 32: RL Foundations
+# 32장: 힘 북돋우는 배움의 바탕
 
+힘 북돋우는 배움은 부림꾼이 둘레와 주고받으며 보상 신호를 받아 잇단 결정을 내리는 법을 배우는 것을 살핀다. 이 장은 마르코프 결정 과정, 값 함수, 동적 짜기, 몬테카를로 방법, 때 차이 배우기, 살펴보기 셈속을 다루며 힘 북돋우는 배움의 수학 바탕을 맨바닥부터 쌓는다. 이 바탕이 뒤 장의 깊은 힘 북돋우는 배움 방법에 꼭 필요한 벽돌이 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 차례
 
-This chapter covers **algorithm design techniques** -- the meta-skills that allow you to approach unfamiliar problems systematically. Rather than memorizing solutions, we focus on building a toolkit of strategies that transfer across problem domains.
+### 32.1 들머리
 
-Reinforcement learning (RL) is the study of how agents learn to make sequential decisions by interacting with an environment and receiving reward signals. This chapter builds the mathematical foundations of RL from the ground up, covering Markov decision processes, value functions, dynamic programming, Monte Carlo methods, temporal difference learning, and exploration strategies. These fundamentals provide the essential building blocks for the deep RL methods in subsequent chapters.
+- 힘 북돋우는 배움 살펴보기 -- 셋째 배움 틀로서의 힘 북돋우는 배움, 남다른 점, 스승 있는 배움과 없는 배움과의 견줌
+- 부림꾼-둘레 이음면 -- 주고받기 고리, 자취, 상태, 움직임, 보상, 부림꾼과 둘레의 엄밀한 추상
+- [보상 가설](introduction/reward_hypothesis.md) -- 모든 목표를 쌓인 보상을 가장 크게 하기로 적을 수 있다는 바탕 여김
 
-## Contents
+### 32.2 마르코프 결정 과정
 
-### 32.1 Introduction
+- 마르코프 결정 과정의 바탕 -- 엄밀한 뜻매김, 마르코프 성질, 잇단 결정의 수학 틀
+- 상태와 움직임 -- 띄엄띄엄하고 이어진 상태와 움직임 자리, 상태 나타냄의 설계 원칙
+- 옮김 흐름 -- 옮김 함수, 행렬 나타냄, 모델 있는 자리와 없는 자리
+- 보상 함수 -- 인수가 하나, 둘, 셋인 보상 적기와 설계에서 살필 것
+- [깎기 인수](mdp/discount.md) -- 모임을 위한 깎기, 경제로 풀이하기, 부림꾼 움직임에 주는 영향
 
-- Reinforcement Learning Overview -- RL as the third learning paradigm, distinguishing features, and comparison with supervised and unsupervised learning
-- Agent-Environment Interface -- The interaction loop, trajectories, states, actions, rewards, and the formal agent-environment abstraction
-- [The Reward Hypothesis](introduction/reward_hypothesis.md) -- The foundational assumption that all goals can be expressed as cumulative reward maximization
+### 32.3 값 함수
 
-### 32.2 Markov Decision Processes
+- [상태 값 함수](value_functions/state_value.md) -- 방침 아래의 기대 돌아옴, 성질, 유한 마르코프 결정 과정의 셈하기
+- [움직임 값 함수](value_functions/action_value.md) -- Q 함수의 뜻매김, 상태 값과의 관계, 모델 없는 다스림에서의 구실
+- [벨먼 방정식](value_functions/bellman.md) -- 모든 힘 북돋우는 배움 알고리즘의 수학 바탕이 되는 되돌이 값 함수 쪼개기
+- 벨먼 최적 방정식 -- 가장 좋은 값 함수와 방침 평균을 대신하는 최대 연산자
 
-- MDP Fundamentals -- Formal MDP definition, the Markov property, and the mathematical framework for sequential decision-making
-- States and Actions -- Discrete and continuous state and action spaces with design principles for state representations
-- Transition Dynamics -- Transition functions, matrix representations, and model-based vs model-free settings
-- Reward Functions -- One, two, and three-argument reward formulations with design considerations
-- [Discount Factor](mdp/discount.md) -- Discounting for convergence, economic interpretation, and the effect on agent behavior
+### 32.4 동적 짜기
 
-### 32.3 Value Functions
+- 방침 따지기 -- 벨먼 고침으로 주어진 방침의 상태 값 함수를 되풀이해 셈하기
+- 방침 좋게 하기 -- 욕심쟁이 움직임 고르기로 값 함수에서 더 좋은 방침 짓기
+- [방침 되풀이](dynamic_programming/policy_iteration.md) -- 따지기와 좋게 하기를 번갈아 하여 가장 좋은 방침으로 모으기
+- 값 되풀이 -- 벨먼 최적 연산자를 써서 가장 좋은 값 함수를 곧바로 셈하기
 
-- [State Value Function](value_functions/state_value.md) -- Expected return under a policy, properties, and computation methods for finite MDPs
-- [Action Value Function](value_functions/action_value.md) -- Q-function definition, relationship to state value, and its role in model-free control
-- [Bellman Equations](value_functions/bellman.md) -- Recursive value function decomposition as the mathematical foundation for all RL algorithms
-- Bellman Optimality Equations -- Optimal value functions and the max operator replacing policy averaging
+### 32.5 몬테카를로 방법
 
-### 32.4 Dynamic Programming
+- 몬테카를로 헤아리기 -- 뽑은 판의 돌아옴을 평균 내어 모델 없이 값 어림하기
+- 몬테카를로 다스리기 -- 살펴보는 시작과 엡실론 부드러운 방침으로 Q 값을 어림해 가장 좋은 방침 찾기
+- 벗어난 방침 몬테카를로 -- 다른 움직임 방침이 낸 자료로 과녁 방침을 배우기
+- 중요도 뽑기 -- 여느 판과 무게 매긴 판으로 벗어난 방침 어림을 위해 돌아옴에 다시 무게 주기
 
-- Policy Evaluation -- Iterative computation of the state value function for a given policy using Bellman updates
-- Policy Improvement -- Constructing a better policy from a value function using greedy action selection
-- [Policy Iteration](dynamic_programming/policy_iteration.md) -- Alternating evaluation and improvement to converge to the optimal policy
-- Value Iteration -- Directly computing the optimal value function by applying the Bellman optimality operator
+### 32.6 때 차이 배우기
 
-### 32.5 Monte Carlo Methods
+- 때 차이 헤아리기 -- 몬테카를로의 겪음 바탕 배움과 동적 짜기의 띄워 올리기를 아울러 걸음마다 값 고치기
+- TD(0) -- 때 차이 어긋남 신호로 상태 값을 어림하는 가장 단순한 한 걸음 때 차이 알고리즘
+- SARSA -- Q 값 배우기를 위해 상태-움직임-보상-상태-움직임 다섯 쌍을 쓰는 방침 안 때 차이 다스리기
+- Q 배우기 -- 살펴보기 방침과 상관없이 가장 좋은 움직임 값 함수를 곧바로 배우는 벗어난 방침 때 차이 다스리기
+- 기대 SARSA -- 다음 움직임 분포에 대한 기대 Q 값을 써서 흩어짐을 줄인 때 차이 다스리기
 
-- Monte Carlo Prediction -- Model-free value estimation by averaging returns from sampled episodes
-- Monte Carlo Control -- Finding optimal policies using Q-value estimation with exploring starts and epsilon-soft policies
-- Off-Policy Monte Carlo -- Learning about a target policy from data generated by a different behavior policy
-- Importance Sampling -- Reweighting returns for off-policy estimation with ordinary and weighted variants
+### 32.7 n걸음 방법
 
-### 32.6 Temporal Difference Learning
+- n걸음 때 차이 헤아리기 -- 실제 보상 n걸음 뒤에 띄워 올려 TD(0)과 몬테카를로를 넓히기
+- n걸음 SARSA -- 치우침과 흩어짐의 맞바꿈을 손볼 수 있도록 n걸음 돌아옴으로 SARSA 넓히기
+- [TD(람다)](n_step/td_lambda.md) -- 람다 돌아옴으로 모든 n걸음 돌아옴을 지수 무게로 합치기
+- [자격 자취](n_step/eligibility_traces.md) -- TD(람다)를 거꿀 관점으로 효율 좋게 짜는 짧은 때 기억 얼개
 
-- TD Prediction -- Combining MC experience-based learning with DP bootstrapping for step-by-step value updates
-- TD(0) -- The simplest one-step TD algorithm for estimating state values with the TD error signal
-- SARSA -- On-policy TD control using state-action-reward-state-action quintuples for Q-value learning
-- Q-Learning -- Off-policy TD control that directly learns the optimal action-value function regardless of exploration policy
-- Expected SARSA -- Variance-reduced TD control using expected Q-values over the next action distribution
+### 32.8 함수 어림
 
-### 32.7 N-Step Methods
+- 선형 함수 어림 -- 큰 상태 자리를 위한 선형 무게의 잡 값 함수와 반쯤 기울기 때 차이 고침
+- 힘 북돋우는 배움의 특징 만들기 -- 쓸모 있는 상태 나타냄을 위한 다항식, 타일 담기, 방사 바탕 함수 특징
+- 모임의 말썽 -- 함수 어림, 띄워 올리기, 벗어난 방침 익히기의 죽음의 삼각
 
-- N-Step TD Prediction -- Generalizing TD(0) and Monte Carlo by bootstrapping after n actual reward steps
-- N-Step SARSA -- Extending SARSA with n-step returns for control with tunable bias-variance trade-off
-- [TD(lambda)](n_step/td_lambda.md) -- Exponentially weighted combination of all n-step returns using the lambda-return
-- [Eligibility Traces](n_step/eligibility_traces.md) -- Short-term memory mechanism for efficient backward-view implementation of TD(lambda)
+### 32.9 살펴보기 셈속
 
-### 32.8 Function Approximation
-
-- Linear Function Approximation -- Parameterized value functions with linear weights and semi-gradient TD updates for large state spaces
-- Feature Engineering for RL -- Polynomial, tile coding, and radial basis function features for effective state representation
-- Convergence Issues -- The deadly triad of function approximation, bootstrapping, and off-policy training
-
-### 32.9 Exploration Strategies
-
-- Epsilon-Greedy -- Simple random exploration with probability epsilon and common decay schedules
-- Upper Confidence Bound (UCB) -- Optimism in the face of uncertainty using exploration bonuses based on visit counts
-- Boltzmann Exploration -- Softmax action selection with temperature-controlled exploration-exploitation trade-off
-- Exploration Bonuses -- Intrinsic motivation through count-based, density-based, and prediction-error-based novelty rewards
+- 엡실론 욕심쟁이 -- 확률 엡실론으로 하는 단순한 아무 살펴보기와 흔한 스러짐 일정
+- 위 믿음 가둠(UCB) -- 들른 횟수에 바탕한 살펴보기 덤으로 알 수 없음 앞에서 낙관하기
+- 볼츠만 살펴보기 -- 온도로 살펴보기와 써먹기의 맞바꿈을 다스리는 소프트맥스 움직임 고르기
+- 살펴보기 덤 -- 셈 바탕, 밀도 바탕, 헤아림 어긋남 바탕 새로움 보상으로 하는 안쪽 동기

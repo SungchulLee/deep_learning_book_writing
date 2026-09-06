@@ -1,9 +1,4 @@
 # Monte Carlo Dropout Sample Convergence
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Overview
 
 The quality of MC Dropout uncertainty estimates depends critically on the number of forward passes $T$. This document provides rigorous convergence analysis, practical bounds, and guidelines for selecting the number of samples.
@@ -15,9 +10,7 @@ The quality of MC Dropout uncertainty estimates depends critically on the number
 MC Dropout approximates the predictive distribution through sampling:
 
 $$
-
 \mathbb{E}_{q_\theta(\omega)}[f(\mathbf{x}; \omega)] \approx \hat{\mu}_T = \frac{1}{T} \sum_{t=1}^{T} f(\mathbf{x}; \hat{\omega}_t)
-
 $$
 
 where $\hat{\omega}_t \sim q_\theta(\omega)$ are i.i.d. samples from the dropout distribution.
@@ -27,9 +20,7 @@ where $\hat{\omega}_t \sim q_\theta(\omega)$ are i.i.d. samples from the dropout
 The MC estimator is unbiased:
 
 $$
-
 \mathbb{E}[\hat{\mu}_T] = \mathbb{E}\left[\frac{1}{T} \sum_{t=1}^{T} f(\mathbf{x}; \hat{\omega}_t)\right] = \frac{1}{T} \sum_{t=1}^{T} \mathbb{E}[f(\mathbf{x}; \hat{\omega}_t)] = \mathbb{E}_{q_\theta}[f(\mathbf{x}; \omega)]
-
 $$
 
 ### Variance of the Mean Estimator
@@ -37,17 +28,13 @@ $$
 Let $\sigma^2_f = \text{Var}_{q_\theta}[f(\mathbf{x}; \omega)]$ be the variance of the network output under the dropout distribution. The variance of the MC mean estimator is:
 
 $$
-
 \text{Var}[\hat{\mu}_T] = \frac{\sigma^2_f}{T}
-
 $$
 
 **Standard error:**
 
 $$
-
 \text{SE}[\hat{\mu}_T] = \frac{\sigma_f}{\sqrt{T}}
-
 $$
 
 This decreases as $O(1/\sqrt{T})$, the standard Monte Carlo rate.
@@ -59,9 +46,7 @@ This decreases as $O(1/\sqrt{T})$, the standard Monte Carlo rate.
 For large $T$, by the Central Limit Theorem:
 
 $$
-
 \sqrt{T}(\hat{\mu}_T - \mu) \xrightarrow{d} \mathcal{N}(0, \sigma^2_f)
-
 $$
 
 where $\mu = \mathbb{E}_{q_\theta}[f(\mathbf{x}; \omega)]$.
@@ -69,9 +54,7 @@ where $\mu = \mathbb{E}_{q_\theta}[f(\mathbf{x}; \omega)]$.
 This gives asymptotic confidence intervals:
 
 $$
-
 P\left( \left| \hat{\mu}_T - \mu \right| \leq z_{\alpha/2} \frac{\sigma_f}{\sqrt{T}} \right) \approx 1 - \alpha
-
 $$
 
 For 95% confidence, $z_{0.025} \approx 1.96$.
@@ -81,9 +64,7 @@ For 95% confidence, $z_{0.025} \approx 1.96$.
 If the network output is bounded, $f(\mathbf{x}; \omega) \in [a, b]$, Hoeffding's inequality gives:
 
 $$
-
 P\left( \left| \hat{\mu}_T - \mu \right| \geq \epsilon \right) \leq 2 \exp\left( -\frac{2T\epsilon^2}{(b-a)^2} \right)
-
 $$
 
 **Inverting for required samples:**
@@ -91,9 +72,7 @@ $$
 To achieve $|\hat{\mu}_T - \mu| \leq \epsilon$ with probability at least $1 - \delta$:
 
 $$
-
 T \geq \frac{(b-a)^2 \ln(2/\delta)}{2\epsilon^2}
-
 $$
 
 ### Finite-Sample Bounds (Chebyshev)
@@ -101,9 +80,7 @@ $$
 Without boundedness assumptions, Chebyshev's inequality gives:
 
 $$
-
 P\left( \left| \hat{\mu}_T - \mu \right| \geq k \frac{\sigma_f}{\sqrt{T}} \right) \leq \frac{1}{k^2}
-
 $$
 
 For 95% confidence ($\delta = 0.05$), need $k = \sqrt{20} \approx 4.47$.
@@ -115,9 +92,7 @@ For 95% confidence ($\delta = 0.05$), need $k = \sqrt{20} \approx 4.47$.
 The epistemic uncertainty is estimated via sample variance:
 
 $$
-
 \hat{\sigma}^2_T = \frac{1}{T-1} \sum_{t=1}^{T} \left( f(\mathbf{x}; \hat{\omega}_t) - \hat{\mu}_T \right)^2
-
 $$
 
 ### Distribution of Sample Variance
@@ -125,17 +100,13 @@ $$
 If $f(\mathbf{x}; \omega)$ is approximately Gaussian (often reasonable by CLT for deep networks), then:
 
 $$
-
 \frac{(T-1)\hat{\sigma}^2_T}{\sigma^2_f} \sim \chi^2_{T-1}
-
 $$
 
 **Mean and variance:**
 
 $$
-
 \mathbb{E}[\hat{\sigma}^2_T] = \sigma^2_f, \quad \text{Var}[\hat{\sigma}^2_T] = \frac{2\sigma^4_f}{T-1}
-
 $$
 
 ### Relative Error in Variance Estimation
@@ -143,9 +114,7 @@ $$
 The coefficient of variation for the variance estimator:
 
 $$
-
 \text{CV}[\hat{\sigma}^2_T] = \frac{\sqrt{\text{Var}[\hat{\sigma}^2_T]}}{\mathbb{E}[\hat{\sigma}^2_T]} = \sqrt{\frac{2}{T-1}}
-
 $$
 
 | $T$ | Relative Error in Variance |
@@ -163,9 +132,7 @@ $$
 Using the chi-squared distribution:
 
 $$
-
 P\left( \frac{(T-1)\hat{\sigma}^2_T}{\chi^2_{T-1, \alpha/2}} \leq \sigma^2_f \leq \frac{(T-1)\hat{\sigma}^2_T}{\chi^2_{T-1, 1-\alpha/2}} \right) = 1 - \alpha
-
 $$
 
 ## Entropy and Mutual Information Convergence
@@ -175,9 +142,7 @@ $$
 Predictive entropy for classification:
 
 $$
-
 \mathbb{H}[\mathbf{y} | \mathbf{x}, \mathcal{D}] = -\sum_{c=1}^{C} p_c \log p_c
-
 $$
 
 where $p_c = \mathbb{E}_{q_\theta}[\text{softmax}(f(\mathbf{x}; \omega))_c]$.
@@ -189,9 +154,7 @@ The MC estimate uses $\hat{p}_c = \frac{1}{T} \sum_{t=1}^T \text{softmax}(f(\mat
 The entropy of the empirical distribution is a biased estimator:
 
 $$
-
 \mathbb{E}[\hat{\mathbb{H}}_T] = \mathbb{H}[p] - \frac{C - 1}{2T} + O(T^{-2})
-
 $$
 
 where $C$ is the number of classes. The bias is negative (entropy is underestimated).
@@ -199,9 +162,7 @@ where $C$ is the number of classes. The bias is negative (entropy is underestima
 **Miller-Madow correction:**
 
 $$
-
 \hat{\mathbb{H}}^{\text{MM}}_T = \hat{\mathbb{H}}_T + \frac{C - 1}{2T}
-
 $$
 
 ### Mutual Information Convergence
@@ -323,9 +284,7 @@ def plot_convergence(results: dict, output_idx: int = 0, batch_idx: int = 0):
 When MC samples are not truly independent (e.g., correlated dropout masks across layers), the effective sample size may be less than $T$:
 
 $$
-
 T_{\text{eff}} = \frac{T}{1 + 2\sum_{k=1}^{\infty} \rho_k}
-
 $$
 
 where $\rho_k$ is the autocorrelation at lag $k$.
@@ -519,9 +478,7 @@ def estimate_optimal_batch_samples(
 For estimating the mean $\mu$ with $T$ samples, the variance is bounded by:
 
 $$
-
 \text{Var}[\hat{\mu}_T] \geq \frac{\sigma^2_f}{T}
-
 $$
 
 MC estimation achieves this bound (is efficient) for i.i.d. samples.
@@ -531,9 +488,7 @@ MC estimation achieves this bound (is efficient) for i.i.d. samples.
 The mutual information between the MC estimate and the true parameter:
 
 $$
-
 I(\hat{\mu}_T; \mu) = \frac{1}{2} \log\left(1 + \frac{T \sigma^2_\mu}{\sigma^2_f}\right)
-
 $$
 
 where $\sigma^2_\mu$ is the prior variance on $\mu$. Information grows logarithmically with $T$.
@@ -543,9 +498,7 @@ where $\sigma^2_\mu$ is the prior variance on $\mu$. Information grows logarithm
 The marginal information gain from sample $T$ to $T+1$:
 
 $$
-
 \Delta I_T = I(\hat{\mu}_{T+1}; \mu) - I(\hat{\mu}_T; \mu) \approx \frac{\sigma^2_\mu}{2T\sigma^2_f} \quad \text{for large } T
-
 $$
 
 This $O(1/T)$ decay quantifies the diminishing returns of additional samples.
@@ -571,3 +524,35 @@ This $O(1/T)$ decay quantifies the diminishing returns of additional samples.
 2. Robert, C. P., & Casella, G. (2004). Monte Carlo Statistical Methods. *Springer*.
 
 3. Geyer, C. J. (1992). Practical Markov Chain Monte Carlo. *Statistical Science*.
+
+## Exercises
+
+**Exercise 1.**
+For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+
+??? success "Solution to Exercise 1"
+    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
+
+---
+
+**Exercise 2.**
+Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
+
+??? success "Solution to Exercise 2"
+    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+
+---
+
+**Exercise 3.**
+Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+
+??? success "Solution to Exercise 3"
+    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+
+---
+
+**Exercise 4.**
+Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+
+??? success "Solution to Exercise 4"
+    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$

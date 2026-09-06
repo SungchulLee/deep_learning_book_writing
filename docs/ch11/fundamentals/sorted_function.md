@@ -1,149 +1,182 @@
-# Built-in sorted
+# 붙박이 sorted
 
-Python provides two primary ways to sort data: the `list.sort()` method and the built-in `sorted()` function. While `list.sort()` modifies a list in place and returns `None` (see the [List Method sort](sort_method.md) page), `sorted()` takes any iterable and returns a **new sorted list**, leaving the original unchanged. This non-destructive behavior makes `sorted()` the preferred choice when the original data must be preserved or when sorting non-list iterables like tuples, sets, and dictionaries.
+파이썬은 데이터를 정렬하는 주된 길 둘, 곧 `list.sort()` 메서드와 붙박이 `sorted()` 함수를 준다. `list.sort()`는 리스트를 제자리에서 고치고 `None`을 돌려주지만([리스트의 sort 메서드](sort_method.md) 쪽을 보라), `sorted()`는 반복 가능한 어떤 것이든 받아 **정렬된 새 리스트**를 돌려주고 본디 것은 그대로 둔다. 본디 것을 망가뜨리지 않는 이 성질 덕분에 본디 데이터를 지켜야 하거나 짝이나 집합이나 사전처럼 리스트가 아닌 것을 정렬할 때 `sorted()`를 즐겨 쓴다.
 
-## Function Signature
+## 함수의 모양
 
-The full signature of `sorted()` is:
+`sorted()`의 온전한 모양은 다음과 같다.
 
 ```python
 sorted(iterable, /, *, key=None, reverse=False)
 ```
 
-- **`iterable`** — any iterable (list, tuple, set, dict, generator, string, etc.).
-- **`key`** — a function applied to each element before comparison. Elements are compared by their key values rather than directly. See [Built-in sorted with key](sorted_with_key.md) for detailed usage.
-- **`reverse`** — if `True`, sorts in descending order.
+- **`iterable`** — 반복 가능한 어떤 것이든 (리스트, 짝, 집합, 사전, 생성기, 문자열 등).
+- **`key`** — 견주기 전에 원소마다 적용하는 함수. 원소를 곧바로가 아니라 그 열쇠 값으로 견준다. 자세한 쓰임은 [key를 쓰는 붙박이 sorted](sorted_with_key.md)를 보라.
+- **`reverse`** — `True`이면 내림차순으로 정렬한다.
 
-The return value is always a **new list**, even if the input is a different type.
+돌려주는 값은 입력이 다른 형이더라도 언제나 **새 리스트**이다.
 
-## Sorting a List
+## 리스트 정렬하기
 
-The most common use case is sorting a list of numbers or strings.
+가장 흔한 쓰임은 수나 문자열의 리스트를 정렬하는 것이다.
 
 ```python
 numbers = [9, 1, 8, 2, 7, 3, 6, 4, 5]
 sorted(numbers)
 ```
 
-**Output:**
+**출력:**
 ```
 [1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
-The original list is unchanged:
+본디 리스트는 그대로이다.
 
 ```python
-numbers  # still [9, 1, 8, 2, 7, 3, 6, 4, 5]
+numbers  # 여전히 [9, 1, 8, 2, 7, 3, 6, 4, 5]
 ```
 
-To sort in descending order, use `reverse=True`:
+내림차순으로 정렬하려면 `reverse=True`를 쓴다.
 
 ```python
 sorted(numbers, reverse=True)
 ```
 
-**Output:**
+**출력:**
 ```
 [9, 8, 7, 6, 5, 4, 3, 2, 1]
 ```
 
-## Sorting a Tuple
+## 짝 정렬하기
 
-Since tuples are immutable, `sorted()` is the only built-in way to obtain a sorted version. The result is a list, not a tuple.
+짝은 바뀌지 않으므로 정렬된 판을 얻는 붙박이 길은 `sorted()`뿐이다. 결과는 짝이 아니라 리스트이다.
 
 ```python
 t = (9, 1, 8, 2, 7, 3, 6, 4, 5)
 sorted(t)
 ```
 
-**Output:**
+**출력:**
 ```
 [1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
-## Sorting a Set
+## 집합 정렬하기
 
-Sets are unordered collections, so their iteration order is not predictable. Applying `sorted()` to a set produces a deterministic sorted list.
+집합은 순서가 없는 모음이라 훑는 순서를 내다볼 수 없다. 집합에 `sorted()`를 쓰면 정해진 정렬 리스트가 나온다.
 
 ```python
 s = {'name', 'job', 'age', 'os'}
 sorted(s)
 ```
 
-**Output:**
+**출력:**
 ```
 ['age', 'job', 'name', 'os']
 ```
 
-## Sorting a Dictionary
+## 사전 정렬하기
 
-When `sorted()` receives a dictionary, it iterates over the **keys** by default.
+`sorted()`가 사전을 받으면 기본으로 **열쇠**를 훑는다.
 
 ```python
 d = {'name': 'Jake', 'job': 'Programming', 'age': '29', 'os': 'Mac'}
 sorted(d)
 ```
 
-**Output:**
+**출력:**
 ```
 ['age', 'job', 'name', 'os']
 ```
 
-To sort by values instead, use the `key` parameter:
+대신 값으로 정렬하려면 `key` 매개변수를 쓴다.
 
 ```python
 sorted(d.items(), key=lambda item: item[1])
 ```
 
-**Output:**
+**출력:**
 ```
 [('age', '29'), ('name', 'Jake'), ('os', 'Mac'), ('job', 'Programming')]
 ```
 
-## Sorting a List of Tuples
+## 짝의 리스트 정렬하기
 
-When elements are tuples, Python compares them **lexicographically**: first by the first component, then by the second on ties, and so on.
+원소가 짝이면 파이썬이 **사전식**으로 견준다. 첫 성분을 먼저 보고 같으면 둘째 성분을 보는 식이다.
 
 ```python
 pairs = [(3, 34), (2, 35), (4, 30), (3, 33)]
 sorted(pairs)
 ```
 
-**Output:**
+**출력:**
 ```
 [(2, 35), (3, 33), (3, 34), (4, 30)]
 ```
 
-The two tuples starting with `3` are ordered by their second component: $(3, 33)$ before $(3, 34)$.
+`3`으로 시작하는 두 짝은 둘째 성분으로 순서가 매겨져 $(3, 33)$이 $(3, 34)$보다 앞선다.
 
-## sorted vs list.sort
+## sorted와 list.sort
 
-The table below summarizes the differences between the two approaches.
+아래 표는 두 방식의 차이를 간추린다.
 
-| Feature | `sorted()` | `list.sort()` |
+| 특징 | `sorted()` | `list.sort()` |
 |---------|-----------|--------------|
-| Returns | New list | `None` (in-place) |
-| Input types | Any iterable | Lists only |
-| Original data | Preserved | Modified |
-| Memory | Allocates new list | No extra allocation |
-| Algorithm | Timsort | Timsort |
-| Stable | Yes | Yes |
+| 돌려주는 값 | 새 리스트 | `None` (제자리) |
+| 입력 형 | 반복 가능한 어떤 것이든 | 리스트만 |
+| 본디 데이터 | 지켜진다 | 고쳐진다 |
+| 기억 | 새 리스트를 잡는다 | 더 잡지 않는다 |
+| 알고리즘 | 팀 정렬 | 팀 정렬 |
+| 안정성 | 그렇다 | 그렇다 |
 
-!!! tip "When to Use Which"
-    Use `sorted()` when you need the original data intact or when sorting a non-list iterable. Use `list.sort()` when you want to sort a list in place and do not need the original order, saving memory by avoiding a copy.
+!!! tip "언제 무엇을 쓰는가"
+    본디 데이터를 그대로 두어야 하거나 리스트가 아닌 것을 정렬할 때는 `sorted()`를 쓴다. 리스트를 제자리에서 정렬하고 본디 순서가 필요 없으면 `list.sort()`를 써서 사본을 만들지 않고 기억을 아낀다.
 
-## Implementation: Timsort
+## 구현: 팀 정렬
 
-Both `sorted()` and `list.sort()` use **Timsort**, a hybrid sorting algorithm derived from merge sort and insertion sort. Timsort is:
+`sorted()`와 `list.sort()` 모두 병합 정렬과 삽입 정렬에서 나온 섞은 정렬 알고리즘 **팀 정렬**을 쓴다. 팀 정렬은 다음과 같다.
 
-- **Stable**: equal elements preserve their relative order.
-- **Adaptive**: it exploits existing runs of sorted data, achieving $O(n)$ time on already-sorted input.
-- **Worst-case** $O(n \log n)$: it never degrades beyond optimal comparison-based performance.
-- **Space**: $O(n)$ auxiliary space for the merge buffer.
+- **안정적이다**: 같은 원소가 상대 순서를 지킨다.
+- **적응적이다**: 이미 정렬된 구간을 이용해 이미 정렬된 입력에서 $O(n)$ 시간을 이룬다.
+- **최악의 경우** $O(n \log n)$이다: 최적의 비교 기반 성능보다 나빠지지 않는다.
+- **공간**: 합치기 버퍼에 보조 공간 $O(n)$이 든다.
 
-These properties make Timsort an excellent general-purpose sorting algorithm, which is why it was adopted as the default sort in Python (since 2002), Java (for objects, since Java SE 7), and several other languages and libraries.
+이런 성질 덕분에 팀 정렬은 두루 쓰기에 아주 좋은 정렬 알고리즘이며, 그래서 파이썬(2002년부터), 자바(객체에 대해 Java SE 7부터)를 비롯한 여러 언어와 라이브러리에서 기본 정렬로 받아들여졌다.
 
-## Reference
+## 참고 문헌
 
-- Python Documentation. [Built-in Functions: sorted](https://docs.python.org/3/library/functions.html#sorted).
-- Python Documentation. [Sorting HOW TO](https://docs.python.org/3/howto/sorting.html).
+- 파이썬 문서. [붙박이 함수: sorted](https://docs.python.org/3/library/functions.html#sorted).
+- 파이썬 문서. [정렬 방법 안내](https://docs.python.org/3/howto/sorting.html).
+
+
+## 연습문제
+
+**연습문제 1.**
+붙박이 sorted를 정식으로 정의하고 비교 기반 정렬에서의 뜻을 설명하라.
+
+??? success "연습문제 1 풀이"
+    정식 정의는 정렬 알고리즘 설계를 옥죄는 이론적 바탕을 세운다. 이 바탕을 이해하면 알고리즘을 고르는 데 길잡이가 되고 $\Omega(n\log n)$ 벽이 언제 적용되는지 드러난다.
+
+---
+
+**연습문제 2.**
+배열 $[38, 27, 43, 3, 9, 82, 10]$으로 붙박이 sorted를 보여라.
+
+??? success "연습문제 2 풀이"
+    그 개념을 주어진 배열에 적용하며 관련된 단계를 하나씩 보여라. 이 보기는 추상적인 정의를 손에 잡히게 하고 모서리 경우를 짚어야 한다.
+
+---
+
+**연습문제 3.**
+이 쪽에서 밝힌 주된 결과를 증명하라.
+
+??? success "연습문제 3 풀이"
+    설명한 증명 기법(결정 트리, 적수, 세기)을 쓰라. 주장을 밝히고 논증을 세운 뒤 빈틈없이 밀고 나가라. $\square$
+
+---
+
+**연습문제 4.**
+붙박이 sorted를 `torch.sort`의 구현에 어떤 실마리를 주는가?
+
+??? success "연습문제 4 풀이"
+    파이토치의 정렬 연산은 이 쪽의 이론적 제약을 지켜야 한다. GPU 정렬에서는 병렬성 요구가 알고리즘 선택을 더 옥죈다. 이론적 한계를 이해하면 데이터의 크기와 종류에 맞는 알고리즘을 고르는 데 도움이 된다.

@@ -97,3 +97,50 @@ Here $k$ is the number of results returned.
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Sedgewick, R. and Wayne, K. *Algorithms*. 4th ed. Addison-Wesley, 2011.
+
+## Exercises
+
+**Exercise 1.**
+Compare unbalanced BST, AVL tree, red-black tree, and B-tree in terms of worst-case search, insert, and delete time.
+
+??? success "Solution to Exercise 1"
+    | Structure | Search | Insert | Delete | Balance |
+    |---|---|---|---|---|
+    | Unbalanced BST | $O(n)$ | $O(n)$ | $O(n)$ | None |
+    | AVL tree | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | Height $\le 1.44 \log n$ |
+    | Red-black tree | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | Height $\le 2 \log n$ |
+    | B-tree (order $m$) | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | All leaves same depth |
+
+    AVL trees are more strictly balanced (faster lookups) but require more rotations on insertion. Red-black trees allow slightly taller trees but need fewer rotations (at most 2 per insert), making them faster for insert-heavy workloads. B-trees minimize disk I/O by maximizing branching factor. $\square$
+
+---
+
+**Exercise 2.**
+Prove that an AVL tree with $n$ nodes has height at most $1.44 \log_2(n + 2)$.
+
+??? success "Solution to Exercise 2"
+    Let $N(h)$ be the minimum number of nodes in an AVL tree of height $h$. The AVL property requires subtree heights to differ by at most 1, so the minimum tree of height $h$ has subtrees of heights $h-1$ and $h-2$: $N(h) = N(h-1) + N(h-2) + 1$ with $N(0) = 1$, $N(1) = 2$. This recurrence is similar to Fibonacci: $N(h) > F(h+2) - 1$ where $F$ is the Fibonacci sequence. Since $F(k) \approx \phi^k / \sqrt{5}$ where $\phi = (1 + \sqrt{5})/2$: $n \ge N(h) > \phi^{h+2}/\sqrt{5} - 2$. Solving for $h$: $h < \log_\phi(n+2) \cdot \sqrt{5} \approx 1.44 \log_2(n+2)$. Therefore, the height is $O(\log n)$ with constant $\approx 1.44$. $\square$
+
+---
+
+**Exercise 3.**
+Explain why red-black trees are preferred over AVL trees in standard library implementations (e.g., C++ `std::map`, Java `TreeMap`).
+
+??? success "Solution to Exercise 3"
+    Red-black trees perform at most 2 rotations per insertion and at most 3 per deletion, with recolorings propagating upward in $O(\log n)$. AVL trees may perform up to $O(\log n)$ rotations per deletion (one at each level). For workloads with frequent insertions and deletions, red-black trees have lower overhead per modification. AVL trees have a tighter height bound (1.44 vs. 2 times $\log n$), making lookups $\sim$30% faster in the worst case. But the difference is small in practice (one or two fewer comparisons for $n = 10^6$). Standard libraries prioritize balanced performance across all operations, making red-black trees the better default. AVL trees are preferred in read-heavy applications (databases, lookup tables) where the tighter height bound matters. $\square$
+
+---
+
+**Exercise 4.**
+An order-statistic tree augments a BST with subtree sizes. Describe how to find the $k$-th smallest element in $O(\log n)$.
+
+??? success "Solution to Exercise 4"
+    Each node stores `size`: the number of nodes in its subtree ($\text{size} = 1 + \text{left.size} + \text{right.size}$). To find the $k$-th smallest: start at root. Let $r = \text{left.size} + 1$ (the rank of the root). If $k = r$: return root. If $k < r$: recurse on left subtree with same $k$. If $k > r$: recurse on right subtree with $k - r$. Each step descends one level, so time is $O(h) = O(\log n)$ for a balanced BST. The size field is updated in $O(1)$ per node during insertions, deletions, and rotations, so all operations remain $O(\log n)$. $\square$
+
+---
+
+**Exercise 5.**
+A splay tree has $O(\log n)$ amortized time per operation but $O(n)$ worst case for a single operation. Explain when splay trees are preferable to balanced BSTs.
+
+??? success "Solution to Exercise 5"
+    Splay trees move accessed nodes to the root via rotations (splaying). This provides two advantages: (1) **Temporal locality**: recently accessed elements are near the root, so repeated accesses are $O(1)$. If the access pattern has a small working set, splay trees outperform balanced BSTs. (2) **Simplicity**: no balance metadata (no colors, no heights) -- just the splay operation. Easier to implement and lower memory overhead. Splay trees are preferable when: (a) the access pattern is skewed (some elements accessed much more than others); (b) simplicity of implementation matters; (c) amortized bounds are acceptable. They are not suitable when: (a) worst-case $O(\log n)$ per operation is required (real-time systems); (b) the access pattern is uniform (all elements equally likely) -- splay's constant factor is higher than red-black trees. $\square$

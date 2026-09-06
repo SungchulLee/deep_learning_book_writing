@@ -103,3 +103,43 @@ $4nm$ bytes. For $n = m = 8000$, this is 256 MB -- right at the limit.
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Halim, S. and Halim, F. *Competitive Programming*. 4th ed. 2020.
+
+## Exercises
+
+**Exercise 1.**
+A problem has $n \le 10^5$ and a 2-second time limit. List the complexities that are likely to pass and those that will fail.
+
+??? success "Solution to Exercise 1"
+    Pass: $O(n) = 10^5$ (trivially). $O(n \log n) = 10^5 \times 17 \approx 1.7 \times 10^6$ (easy). $O(n \sqrt{n}) = 10^5 \times 316 \approx 3.2 \times 10^7$ (likely passes). $O(n \log^2 n) \approx 3 \times 10^7$ (likely passes). Borderline: $O(n^{1.5} \log n) \approx 10^8$ (tight). Fail: $O(n^2) = 10^{10}$ (50x over budget). $O(n^2 \log n) \approx 1.7 \times 10^{11}$. The practical threshold for C++ is $\sim 2 \times 10^8$ operations in 2 seconds. For Python, divide by 10. $\square$
+
+---
+
+**Exercise 2.**
+The constraint is $n \le 20$. This strongly suggests exponential-time algorithms. List three algorithmic paradigms suitable for $n \le 20$.
+
+??? success "Solution to Exercise 2"
+    (1) **Bitmask DP**: represent subsets of $n$ elements as bitmasks. State space: $2^n = 10^6$ subsets. With $O(n)$ transitions per state: $O(n \cdot 2^n) = 2 \times 10^7$. Example: TSP in $O(n^2 \cdot 2^n)$. (2) **Backtracking with pruning**: explore the $2^n$ or $n!$ solution space, pruning branches that cannot improve the current best. Effective when the feasible region is small. (3) **Brute force over all subsets**: enumerate all $2^{20} \approx 10^6$ subsets and check each. Time: $O(2^n \cdot \text{check})$. For $n = 20$ with an $O(n)$ check: $2 \times 10^7$, feasible. The key insight: $2^{20} \approx 10^6$ is very manageable, but $2^{30} \approx 10^9$ is borderline, and $2^{40} \approx 10^{12}$ is infeasible. $\square$
+
+---
+
+**Exercise 3.**
+A problem has $n \le 10^6$ and $q \le 10^5$ queries. The naive approach processes each query in $O(n)$. Is this feasible? If not, what complexity should you target?
+
+??? success "Solution to Exercise 3"
+    Naive: $O(nq) = 10^{11}$ -- infeasible (1000 seconds). Target: preprocessing in $O(n \log n)$ or $O(n)$, then each query in $O(\log n)$ or $O(1)$. Total: $O(n \log n + q \log n) \approx 2 \times 10^7$ (fast). Examples: (1) prefix sums: $O(n)$ preprocessing, $O(1)$ per range sum query. (2) Segment tree: $O(n)$ build, $O(\log n)$ per query and update. (3) Sparse table: $O(n \log n)$ build, $O(1)$ per range minimum query. The constraint pattern "$n$ large, $q$ moderate" signals that $O(\sqrt{n})$ per query might also work: $10^5 \times 10^3 = 10^8$ (borderline but possible with Mo's algorithm). $\square$
+
+---
+
+**Exercise 4.**
+Map the following $n$ constraints to the most likely expected complexities: (a) $n \le 10$, (b) $n \le 1000$, (c) $n \le 10^5$, (d) $n \le 10^7$.
+
+??? success "Solution to Exercise 4"
+    (a) $n \le 10$: $O(n!)$ is feasible ($10! = 3.6 \times 10^6$). Also $O(2^n \cdot n^2) = 10^4$. These constraints suggest brute force, backtracking, or bitmask DP. (b) $n \le 1000$: $O(n^2) = 10^6$ (easy). $O(n^3) = 10^9$ (borderline). Suggests DP with $O(n^2)$ states or pairwise algorithms. (c) $n \le 10^5$: $O(n \log n)$ is comfortable. $O(n \sqrt{n}) \approx 3 \times 10^7$ (feasible). $O(n^2) = 10^{10}$ (too slow). Suggests sorting, binary search, segment trees, or balanced BSTs. (d) $n \le 10^7$: only $O(n)$ or $O(n \log \log n)$ works. $O(n \log n) \approx 2.3 \times 10^8$ (borderline). Suggests linear-time algorithms: sieve, counting sort, single-pass with hash map. $\square$
+
+---
+
+**Exercise 5.**
+In Python, the effective operations-per-second is roughly $10^7$. A problem has $n \le 10^5$ with a 5-second limit. What is the maximum feasible complexity in Python? How can PyPy help?
+
+??? success "Solution to Exercise 5"
+    Budget: $5 \times 10^7 = 5 \times 10^7$ operations. $O(n \log n) = 10^5 \times 17 = 1.7 \times 10^6$ (fast, well within budget). $O(n \sqrt{n}) = 10^5 \times 316 = 3.2 \times 10^7$ (feasible but tight). $O(n^2) = 10^{10}$ (200x over budget, impossible). Maximum feasible: $O(n \sqrt{n})$ or $O(n \log^2 n)$. PyPy (JIT-compiled Python) runs 5--10x faster than CPython, effectively giving $5 \times 10^7$ to $10^8$ operations/second. With PyPy: $O(n \sqrt{n})$ is comfortable, and $O(n^{1.5} \log n)$ may pass. Strategies for Python: avoid per-element function calls (use list comprehensions, `map()`), use `sys.stdin` for input, and consider implementing the inner loop in a compiled extension or using NumPy for vectorized operations. $\square$

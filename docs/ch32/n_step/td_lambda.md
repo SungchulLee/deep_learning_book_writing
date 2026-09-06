@@ -1,49 +1,45 @@
 # 32.7.3 TD(λ)
+## 개요
 
+**TD(λ)**는 지수 무게 평균으로 모든 n걸음 돌아옴을 고침 하나로 아우른다. 특정 $n$을 고르지 않아도 되고 TD(0)과 몬테카를로 사이를 매끄럽게 잇는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## λ 돌아옴
 
-## Overview
-
-**TD(λ)** combines all n-step returns into a single update using an exponentially weighted average. This avoids choosing a specific $n$ and smoothly interpolates between TD(0) and MC.
-
-## The λ-Return
-
-The **λ-return** is a weighted average of all n-step returns:
+**λ 돌아옴**은 모든 n걸음 돌아옴의 무게 평균이다:
 
 $$G_t^\lambda = (1 - \lambda) \sum_{n=1}^{T-t-1} \lambda^{n-1} G_{t:t+n} + \lambda^{T-t-1} G_t$$
 
-where $\lambda \in [0, 1]$ controls the weighting:
-- $\lambda = 0$: Only $G_{t:t+1}$ contributes → TD(0)
-- $\lambda = 1$: Only $G_t$ contributes → Monte Carlo
-- Intermediate: Geometrically decaying mixture
+여기서 $\lambda \in [0, 1]$이 무게를 다스린다:
 
-## Weight Distribution
+- $\lambda = 0$: $G_{t:t+1}$만 이바지한다 → TD(0)
+- $\lambda = 1$: $G_t$만 이바지한다 → 몬테카를로
+- 가운데: 기하로 스러지는 섞음
 
-The weights $(1-\lambda)\lambda^{n-1}$ form a geometric distribution that sums to 1:
+## 무게 분포
 
-| n-step | Weight |
+무게 $(1-\lambda)\lambda^{n-1}$은 합이 1인 기하 분포를 이룬다:
+
+| n걸음 | 무게 |
 |--------|--------|
-| 1-step | $(1-\lambda)$ |
-| 2-step | $(1-\lambda)\lambda$ |
-| 3-step | $(1-\lambda)\lambda^2$ |
+| 1걸음 | $(1-\lambda)$ |
+| 2걸음 | $(1-\lambda)\lambda$ |
+| 3걸음 | $(1-\lambda)\lambda^2$ |
 | ... | ... |
-| Terminal | $\lambda^{T-t-1}$ (remainder) |
+| 마침 | $\lambda^{T-t-1}$(나머지) |
 
-## Forward View vs. Backward View
+## 앞 관점과 거꿀 관점
 
-### Forward View (Theoretical)
+### 앞 관점(이론)
 
-Look forward from state $S_t$ and compute the λ-return using future rewards:
+상태 $S_t$에서 앞을 보고 앞으로의 보상으로 λ 돌아옴을 셈한다:
 
 $$V(S_t) \leftarrow V(S_t) + \alpha [G_t^\lambda - V(S_t)]$$
 
-This requires waiting until the end of the episode (like MC).
+이는 (몬테카를로처럼) 판이 끝날 때까지 기다려야 한다.
 
-### Backward View (Practical)
+### 거꿀 관점(실제)
 
-Use **eligibility traces** to update all previously visited states at each step:
+걸음마다 앞서 들른 모든 상태를 고치려 **자격 자취**를 쓴다:
 
 $$\delta_t = R_{t+1} + \gamma V(S_{t+1}) - V(S_t)$$
 
@@ -51,28 +47,61 @@ $$e_t(s) = \gamma \lambda e_{t-1}(s) + \mathbb{1}[S_t = s]$$
 
 $$V(s) \leftarrow V(s) + \alpha \delta_t e_t(s) \quad \text{for all } s$$
 
-The forward and backward views produce identical updates over a complete episode.
+앞 관점과 거꿀 관점은 판 하나를 온전히 마치면 똑같은 고침을 낸다.
 
-## Special Cases
+## 특별한 경우
 
-| $\lambda$ | Algorithm | Trace | Behavior |
+| $\lambda$ | 알고리즘 | 자취 | 움직임 |
 |-----------|----------|-------|----------|
-| 0 | TD(0) | No trace needed | One-step bootstrap |
-| 0.5 | TD(0.5) | Moderate traces | Balanced |
-| 0.9 | TD(0.9) | Long traces | Near-MC |
-| 1 | TD(1) = MC | Full episode trace | Monte Carlo |
+| 0 | TD(0) | 자취가 필요 없음 | 한 걸음 띄워 올리기 |
+| 0.5 | TD(0.5) | 알맞은 자취 | 균형 |
+| 0.9 | TD(0.9) | 긴 자취 | 몬테카를로에 가까움 |
+| 1 | TD(1) = 몬테카를로 | 온 판 자취 | 몬테카를로 |
 
-## Choosing λ
+## λ 고르기
 
-- **$\lambda \approx 0.9$** is often a good default
-- The optimal $\lambda$ is problem-dependent
-- Lower $\lambda$: faster learning in MDPs with reliable value estimates
-- Higher $\lambda$: better in MDPs with sparse or noisy rewards
-- Can be tuned via cross-validation or meta-learning
+- **$\lambda \approx 0.9$**이 흔히 좋은 기본값이다
+- 가장 좋은 $\lambda$은 문제에 매인다
+- 낮은 $\lambda$: 값 어림이 믿을 만한 마르코프 결정 과정에서 배움이 빠르다
+- 높은 $\lambda$: 보상이 성기거나 잡소리가 섞인 마르코프 결정 과정에서 낫다
+- 맞대어 살피기나 상위 배움으로 손볼 수 있다
 
-## Financial Application
+## 금융 쓰임새
 
-TD(λ) provides a natural framework for multi-horizon strategy evaluation in finance:
-- Low $\lambda$: Focus on short-term prediction (day trading)
-- High $\lambda$: Emphasize long-term cumulative returns (portfolio management)
-- The exponential weighting naturally models the decreasing relevance of distant future states
+TD(λ)는 금융에서 여러 지평의 셈속을 따지는 자연스러운 틀을 준다:
+
+- 낮은 $\lambda$: 짧은 때 헤아리기에 집중(하루 거래)
+- 높은 $\lambda$: 긴 때의 쌓인 벌이를 앞세움(꾸러미 다루기)
+- 지수 무게가 먼 앞날의 상태가 덜 알맞아지는 것을 자연스럽게 나타낸다
+
+## 연습문제
+
+**연습문제 1.**
+이 마디의 주제와 딸린 단순한 마르코프 결정 과정을 생각하여라. 상태 3개와 움직임 2개의 작은 보기에서 관련 양을 손으로 셈하여라.
+
+??? success "연습문제 1 풀이"
+    상태 $S = \{s_1, s_2, s_3\}$과 움직임 $A = \{a_1, a_2\}$을 뜻매김한다. 옮김 확률과 보상을 매긴다. 상태-움직임 짝마다 기대 즉시 보상과 옮김 분포를 셈한다. 이 마디의 뜻매김과 식으로 바라는 양을 셈한다. 상태 자리가 작아 정확히 셈할 수 있어 추상 적기가 구체 숫자로 어떻게 옮겨지는지 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 다룬 핵심 성질이나 모임 결과를 밝혀라. 여김을 또렷이 적고 어느 것이 꼭 필요한지 가려내어라.
+
+??? success "연습문제 2 풀이"
+    밝힘은 그 연산자에 오므리는 옮김 정리를 써서 따라온다. 깎기 인수가 $\gamma < 1$인 유한 마르코프 결정 과정을 여기면 그 연산자는 상한 노름에서 $\gamma$오므리기다. 바나흐 고정점 정리에 따라 되풀이해 쓰면 $k$이 되풀이 횟수일 때 빠르기 $O(\gamma^k)$으로 하나뿐인 고정점에 모인다. 유한하다는 여김이 보상이 가둬짐을 보장하고 깎기 인수 $\gamma < 1$이 오므리기 성질에 꼭 필요하다. $\square$
+
+---
+
+**연습문제 3.**
+이 마디에서 밝힌 알고리즘이나 셈을 단순한 격자 세상에 대해 파이썬으로 짜라. $\epsilon = 0.01$ 안으로 모이는 데 필요한 되풀이 횟수를 알려라.
+
+??? success "연습문제 3 풀이"
+    모서리에 마침 상태가 있고 고른 아무 방침을 쓰는 $4 \times 4$ 격자 세상이 여느 시험 사례가 된다. 짜기는 모든 상태의 가장 큰 바뀜이 $\epsilon$ 아래로 떨어질 때까지 고침 규칙을 되풀이한다. 깎기 인수에 따라 보통 50~200번 되풀이하면 모인다. 핵심 짜기 세부는 맞춘 고침보다 빨리 모이도록 제자리 고침(가우스-자이델 방식)을 쓰는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+이 마디에서 밝힌 길에 본디 있는 근본 한계나 맞바꿈을 다루어라. 뒤 장의 더 나아간 방법이 이 한계를 어떻게 넘는가?
+
+??? success "연습문제 4 풀이"
+    표로 하는 길은 모든 상태(어쩌면 움직임까지)를 늘어놓아야 하는데 이어지거나 차원이 높은 상태 자리에서는 될 일이 아니다. 차원의 저주는 상태 변수의 수에 따라 상태 수가 지수로 늘어남을 뜻한다. 함수 어림(33~34장)은 그 함수를 신경망으로 잡을 두어 나타내고 닮은 상태에 걸쳐 넓혀 이를 넘는다. 다만 새 어려움이 생긴다. 모임이 더는 보장되지 않으며 함수 어림, 띄워 올리기, 벗어난 방침 익히기의 죽음의 삼각이 발산을 일으킬 수 있다. $\square$

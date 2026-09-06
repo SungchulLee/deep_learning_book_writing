@@ -1,106 +1,106 @@
-# Representation Comparison
+# 표현 방식의 견줌
 
-Choosing the right graph representation is one of the first and most consequential decisions in graph algorithm design. The adjacency matrix, adjacency list, and edge list each offer different trade-offs in space usage and operation speed. The optimal choice depends on the graph's density, the operations the algorithm performs most frequently, and whether the graph is static or dynamic.
+알맞은 그래프 표현을 고르는 일은 그래프 알고리즘을 짤 때 가장 먼저 하는, 그리고 가장 크게 좌우하는 결정 가운데 하나이다. 이웃 행렬, 이웃 목록, 변 목록은 저마다 공간 씀씀이와 연산 속도에서 다른 주고받음을 준다. 가장 좋은 고름은 그래프의 빽빽함, 알고리즘이 가장 자주 하는 연산, 그리고 그래프가 붙박이인지 움직이는지에 달렸다.
 
-## Sparse vs Dense Graphs
+## 성긴 그래프와 빽빽한 그래프
 
-The distinction between sparse and dense graphs drives the representation choice.
+성김과 빽빽함의 갈림이 표현 고르기를 이끈다.
 
-A graph on $|V|$ vertices can have at most $O(|V|^2)$ edges. A graph is **sparse** when $|E| = O(|V|)$ or more generally $|E| \ll |V|^2$. It is **dense** when $|E| = \Theta(|V|^2)$.
+꼭짓점이 $|V|$개인 그래프는 변을 많아야 $O(|V|^2)$개 가질 수 있다. $|E| = O(|V|)$이거나 더 일반으로 $|E| \ll |V|^2$이면 그래프가 **성기다**고 한다. $|E| = \Theta(|V|^2)$이면 **빽빽하다**고 한다.
 
-Most real-world graphs are sparse: social networks, road maps, and biological networks typically have each vertex connected to a small fraction of all other vertices.
+실제 세상의 그래프는 대부분 성기다. 사회 망, 도로 지도, 생물 망에서는 보통 꼭짓점마다 다른 모든 꼭짓점 가운데 아주 적은 몫에만 이어져 있다.
 
-## Operation Complexity Comparison
+## 연산 복잡도 비교
 
-The following table compares the three standard representations across common operations.
+다음 표는 흔한 연산에 걸쳐 표준 표현 셋을 견준다.
 
-| Operation | Adjacency Matrix | Adjacency List | Edge List |
+| 연산 | 이웃 행렬 | 이웃 목록 | 변 목록 |
 |---|---|---|---|
-| **Space** | $O(V^2)$ | $O(V + E)$ | $O(E)$ |
-| **Check edge $(u,v)$** | $O(1)$ | $O(\deg(u))$ | $O(E)$ |
-| **Iterate neighbors of $u$** | $O(V)$ | $O(\deg(u))$ | $O(E)$ |
-| **Iterate all edges** | $O(V^2)$ | $O(V + E)$ | $O(E)$ |
-| **Add edge** | $O(1)$ | $O(1)$ | $O(1)$ |
-| **Remove edge** | $O(1)$ | $O(\deg(u))$ | $O(E)$ |
-| **Add vertex** | $O(V)$ (resize) | $O(1)$ | $O(1)$ |
-| **Check if graph is dense** | Natural fit | Wasteful | Wasteful |
+| **공간** | $O(V^2)$ | $O(V + E)$ | $O(E)$ |
+| **변 $(u,v)$ 확인** | $O(1)$ | $O(\deg(u))$ | $O(E)$ |
+| **$u$의 이웃 훑기** | $O(V)$ | $O(\deg(u))$ | $O(E)$ |
+| **모든 변 훑기** | $O(V^2)$ | $O(V + E)$ | $O(E)$ |
+| **변 더하기** | $O(1)$ | $O(1)$ | $O(1)$ |
+| **변 지우기** | $O(1)$ | $O(\deg(u))$ | $O(E)$ |
+| **꼭짓점 더하기** | $O(V)$(크기 바꾸기) | $O(1)$ | $O(1)$ |
+| **빽빽한 그래프에 맞나** | 잘 맞음 | 헤픔 | 헤픔 |
 
-## Detailed Analysis
+## 자세한 분석
 
-### Adjacency Matrix
+### 이웃 행렬
 
-The [adjacency matrix](matrix.md) stores a $|V| \times |V|$ matrix $A$ where $A[i][j] = 1$ (or the edge weight) if edge $(i,j)$ exists.
+[이웃 행렬](matrix.md)은 변 $(i,j)$이 있으면 $A[i][j] = 1$(또는 변의 무게)인 $|V| \times |V|$ 행렬 $A$을 저장한다.
 
-**Strengths:**
+**좋은 점:**
 
-- $O(1)$ edge existence queries -- critical for algorithms like Floyd-Warshall that check $A[i][j]$ repeatedly.
-- Simple implementation with 2D arrays.
-- Matrix operations (multiplication, transitive closure) apply directly.
+- 변이 있는지 묻는 데 $O(1)$ — $A[i][j]$을 되풀이해 살피는 플로이드-워셜 같은 알고리즘에 아주 중요하다.
+- 2차원 배열로 구현이 단순하다.
+- 행렬 연산(곱하기, 이행 닫힘)을 곧바로 쓸 수 있다.
 
-**Weaknesses:**
+**나쁜 점:**
 
-- $O(V^2)$ space regardless of edge count, wasteful for sparse graphs.
-- Iterating neighbors of a vertex always takes $O(V)$, even if the vertex has few neighbors.
-- Adding a vertex requires resizing the entire matrix.
+- 변의 개수와 상관없이 공간이 $O(V^2)$이라 성긴 그래프에는 헤프다.
+- 꼭짓점의 이웃이 적어도 이웃을 훑는 데 늘 $O(V)$이 든다.
+- 꼭짓점을 더하려면 행렬 전체의 크기를 바꿔야 한다.
 
-**Best for:** Dense graphs, algorithms using matrix operations, small graphs where $O(V^2)$ space is acceptable.
+**가장 알맞은 곳:** 빽빽한 그래프, 행렬 연산을 쓰는 알고리즘, $O(V^2)$ 공간을 감당할 수 있는 작은 그래프.
 
-### Adjacency List
+### 이웃 목록
 
-The [adjacency list](list.md) stores, for each vertex $u$, a list of vertices adjacent to $u$ (with optional edge weights).
+[이웃 목록](list.md)은 꼭짓점 $u$마다 $u$에 이웃한 꼭짓점의 목록을 저장한다(변의 무게를 함께 둘 수도 있다).
 
-**Strengths:**
+**좋은 점:**
 
-- $O(V + E)$ space, proportional to the actual graph size.
-- Iterating neighbors of $u$ takes $O(\deg(u))$, which is optimal.
-- Most graph traversal algorithms (BFS, DFS) naturally iterate over neighbor lists, making this the default choice.
+- 공간이 $O(V + E)$으로 실제 그래프 크기에 비례한다.
+- $u$의 이웃을 훑는 데 $O(\deg(u))$이 들며 이것이 가장 좋다.
+- 그래프 돌아보기 알고리즘(BFS, DFS) 대부분이 이웃 목록을 자연스럽게 훑으므로 이것이 기본 고름이 된다.
 
-**Weaknesses:**
+**나쁜 점:**
 
-- Edge existence queries take $O(\deg(u))$ in the worst case (can be improved to $O(1)$ with hash sets instead of lists).
-- Slightly more complex implementation than a matrix.
+- 변이 있는지 묻는 데 최악의 경우 $O(\deg(u))$이 든다(목록 대신 해시 집합을 쓰면 $O(1)$으로 나아질 수 있다).
+- 행렬보다 구현이 살짝 더 복잡하다.
 
-**Best for:** Sparse graphs (the most common case), BFS/DFS-based algorithms, dynamic graphs.
+**가장 알맞은 곳:** 성긴 그래프(가장 흔한 경우), BFS/DFS 기반 알고리즘, 움직이는 그래프.
 
-### Edge List
+### 변 목록
 
-The [edge list](edge_list.md) stores edges as a flat list of tuples $(u, v)$ or $(u, v, w)$.
+[변 목록](edge_list.md)은 변을 튜플 $(u, v)$이나 $(u, v, w)$의 납작한 목록으로 저장한다.
 
-**Strengths:**
+**좋은 점:**
 
-- $O(E)$ space, the most compact representation when $E \ll V$.
-- Simple to iterate over all edges, natural for Kruskal's algorithm and other edge-processing algorithms.
-- Easy to sort edges by weight.
+- 공간이 $O(E)$으로, $E \ll V$일 때 가장 간결한 표현이다.
+- 모든 변을 훑기 쉬워 크러스컬 알고리즘을 비롯한 변 다루기 알고리즘에 자연스럽다.
+- 변을 무게로 정렬하기 쉽다.
 
-**Weaknesses:**
+**나쁜 점:**
 
-- Neighbor queries and edge existence checks require $O(E)$ scans.
-- Not suitable for algorithms that repeatedly query adjacency.
+- 이웃을 묻거나 변이 있는지 살피려면 $O(E)$번 훑어야 한다.
+- 이웃함을 되풀이해 묻는 알고리즘에는 알맞지 않다.
 
-**Best for:** Edge-centric algorithms (Kruskal, Bellman-Ford), input/output formats, very sparse graphs.
+**가장 알맞은 곳:** 변 중심 알고리즘(크러스컬, 벨먼-포드), 입출력 꼴, 아주 성긴 그래프.
 
-## Decision Guide
+## 고르기 길잡이
 
 ```python
 """
-Graph representation selection guide.
+그래프 표현 고르기 길잡이.
 
-Demonstrates when to choose each representation based on graph
-density and the primary operations needed.
+그래프의 빽빽함과 주로 필요한 연산에 따라 어느 표현을
+고를지 보인다.
 """
 
 
-# === Representation Selection ===
+# === 표현 고르기 ===
 
 def recommend_representation(n_vertices, n_edges, primary_ops):
     """
-    Recommend a graph representation based on graph properties
-    and required operations.
+    그래프의 성질과 필요한 연산에 따라
+    그래프 표현을 추천한다.
 
-    Parameters:
-        n_vertices: number of vertices
-        n_edges: number of edges
-        primary_ops: list of primary operations needed
+    매개변수:
+        n_vertices: 꼭짓점의 개수
+        n_edges: 변의 개수
+        primary_ops: 주로 필요한 연산의 목록
             ('edge_query', 'neighbor_iter', 'all_edges', 'matrix_ops')
     """
     density = n_edges / max(1, n_vertices * (n_vertices - 1) / 2)
@@ -124,12 +124,12 @@ def recommend_representation(n_vertices, n_edges, primary_ops):
     return recommendations
 
 
-# === Space Comparison ===
+# === 공간 견줌 ===
 
 def compare_space(n_vertices, n_edges):
-    """Compare space usage of all three representations."""
+    """표현 셋의 공간 씀씀이를 견준다."""
     matrix_space = n_vertices ** 2
-    adj_list_space = n_vertices + 2 * n_edges  # undirected
+    adj_list_space = n_vertices + 2 * n_edges  # 무방향
     edge_list_space = 2 * n_edges
 
     return {
@@ -139,10 +139,10 @@ def compare_space(n_vertices, n_edges):
     }
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Sparse graph: 1000 vertices, 3000 edges
+    # 성긴 그래프: 꼭짓점 1000개, 변 3000개
     print("=== Sparse Graph (V=1000, E=3000) ===")
     space = compare_space(1000, 3000)
     for name, s in space.items():
@@ -150,7 +150,7 @@ if __name__ == "__main__":
     recs = recommend_representation(1000, 3000, ['neighbor_iter'])
     print(f"  Recommendation: {recs[0][0]} ({recs[0][1]})")
 
-    # Dense graph: 100 vertices, 4000 edges
+    # 빽빽한 그래프: 꼭짓점 100개, 변 4000개
     print("\n=== Dense Graph (V=100, E=4000) ===")
     space = compare_space(100, 4000)
     for name, s in space.items():
@@ -158,13 +158,13 @@ if __name__ == "__main__":
     recs = recommend_representation(100, 4000, ['edge_query'])
     print(f"  Recommendation: {recs[0][0]} ({recs[0][1]})")
 
-    # Edge-centric: Kruskal's MST
+    # 변 중심: 크러스컬의 MST
     print("\n=== Edge-Centric (Kruskal's MST) ===")
     recs = recommend_representation(1000, 5000, ['all_edges'])
     print(f"  Recommendation: {recs[0][0]} ({recs[0][1]})")
 ```
 
-**Output:**
+**출력:**
 ```
 === Sparse Graph (V=1000, E=3000) ===
   Adjacency Matrix: 1,000,000 entries
@@ -180,14 +180,54 @@ if __name__ == "__main__":
   Recommendation: Edge List (only need to iterate all edges)
 ```
 
-## Hybrid Approaches
+## 혼합형 접근
 
-In practice, several hybrid strategies combine the advantages of multiple representations:
+실전에서는 여러 표현의 좋은 점을 합친 섞음 전략을 쓰기도 한다:
 
-- **Adjacency list with hash sets.** Replace each vertex's neighbor list with a hash set to get $O(1)$ edge existence queries while maintaining $O(V + E)$ space.
-- **Compressed sparse row (CSR).** Store the adjacency list in contiguous arrays for cache-friendly neighbor iteration. Common in high-performance graph libraries.
-- **Implicit representations.** For graphs defined by rules (grids, game states), neighbors are computed on the fly without explicit storage. See [Implicit Graphs](implicit.md).
+- **해시 집합을 쓴 이웃 목록.** 꼭짓점마다의 이웃 목록을 해시 집합으로 바꾸면 $O(V + E)$ 공간을 지키면서 변이 있는지 $O(1)$에 물을 수 있다.
+- **눌린 성긴 행(CSR).** 이웃 목록을 이어 붙은 배열에 저장해 캐시에 상냥하게 이웃을 훑는다. 성능이 중요한 그래프 라이브러리에서 흔하다.
+- **속뜻 표현.** 규칙으로 정해지는 그래프(격자, 놀이 상태)에서는 저장하지 않고 이웃을 그때그때 셈한다. [속뜻 그래프](implicit.md)를 보아라.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 22.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
+
+## 연습문제
+
+**연습문제 1.**
+사회 망에 이용자가 백만 명 있고 이용자마다 벗이 평균 200명이다. 이웃 행렬과 이웃 목록의 기억 공간 씀씀이를 견주어라. 어느 표현이 알맞은가?
+
+??? success "연습문제 1 풀이"
+    $V = 10^6$이고 $E \approx 10^6 \times 200 / 2 = 10^8$이라고 하자(벗 관계를 한 번씩만 센다). 이웃 행렬은 항목 $V^2 = 10^{12}$개가 필요하며 항목마다 1바이트면 1 TB쯤이다. 이웃 목록은 항목 $O(V + 2E) = O(10^6 + 2 \times 10^8) \approx 2 \times 10^8$개, 곧 가리개나 정수 2억 개쯤으로 몇 GB이다. 이 그래프는 몹시 성기므로($E \ll V^2$) 이웃 목록이 뚜렷이 낫다. $\square$
+
+---
+
+**연습문제 2.**
+아래 연산마다 어느 표현(이웃 행렬, 이웃 목록, 변 목록)이 최악의 경우 시간 복잡도가 가장 좋은지 밝혀라. (a) 변 $(u, v)$이 있는지 살피기, (b) $v$의 모든 이웃 훑기, (c) 그래프의 모든 변 훑기.
+
+??? success "연습문제 2 풀이"
+    (a) **이웃 행렬**: $M[u][v]$을 $O(1)$에 찾는다. 이웃 목록은 $O(\deg(v))$번 훑어야 하고, 변 목록은 $O(E)$번 훑어야 한다.
+
+    (b) **이웃 목록**: 이웃 목록을 훑어 $O(\deg(v))$이다. 이웃 행렬은 $O(V)$이 들고(행 전체를 훑는다), 변 목록은 $O(E)$이 든다.
+
+    (c) **변 목록**: 모든 변이 차례로 저장되어 있어 $O(E)$이다. 이웃 목록도 모든 목록을 훑어 $O(V + E)$을 이룬다. 이웃 행렬은 $O(V^2)$이 든다. $\square$
+
+---
+
+**연습문제 3.**
+움직이는 그래프에서 변을 되풀이해 더하고 지워야 한다. 이웃 행렬을 쓰는 것과 이웃 저장에 해시 집합을 쓴 이웃 목록을 쓰는 것의 주고받음을 이야기하여라.
+
+??? success "연습문제 3 풀이"
+    **이웃 행렬**: 변을 더하거나 지우는 데 $O(1)$이다. $M[u][v]$을 $1$이나 $0$으로 놓으면 된다. 빽빽함과 상관없이 공간은 $O(V^2)$이다. 변이 있는지 살피는 것도 $O(1)$이다.
+
+    **해시 집합을 쓴 이웃 목록**: 변을 더하는 데 고르게 나눠 $O(1)$이다(해시 집합에 넣기). 변을 지우는 것도 고르게 나눠 $O(1)$이다. 변이 있는지 살피는 것은 기대 $O(1)$이다. 공간은 $O(V + E)$으로 성긴 그래프에 훨씬 낫다.
+
+    성기고 움직이는 그래프에는 해시 집합 이웃 목록이 낫다. 빽빽한 그래프이거나 최악의 경우에도 $O(1)$이 보장되어야 한다면 이웃 행렬이 더 단순하다. $\square$
+
+---
+
+**연습문제 4.**
+변의 개수와 상관없이 이웃 행렬을 이웃 목록으로 바꾸는 데 $\Theta(V^2)$ 시간이 듦을 증명하여라.
+
+??? success "연습문제 4 풀이"
+    이웃 행렬에는 항목이 $V^2$개 있다(무방향이면 대각선을 뺀 $V(V-1)/2$개). 이웃 목록을 쌓으려면 어떤 변이 있는지 알려고 항목을 모두 살펴야 한다. 그래프에 변이 0개여도 변이 없음을 확인하려면 항목 $V^2$개를 모두 들여다봐야 한다. 그러므로 바꾸는 데 $\Theta(V^2)$ 시간이 든다. 거꾸로 이웃 목록을 행렬로 바꾸는 데도 $V \times V$ 행렬을 첫걸음 잡아야 하므로 $\Theta(V^2)$ 시간이 든다. $\square$

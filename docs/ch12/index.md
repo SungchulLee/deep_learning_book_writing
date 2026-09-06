@@ -1,67 +1,65 @@
-# Chapter Overview
+# 장 개요
 
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
 
-This chapter covers continual learning (also known as lifelong or incremental learning), which addresses the fundamental challenge of training neural networks on a sequence of tasks without catastrophically forgetting previously learned knowledge. We examine the stability-plasticity dilemma, formalize different learning scenarios, and survey the major families of methods -- regularization, replay, architecture, and distillation -- along with standard benchmarks for evaluation.
+이 장은 이어 배우기(평생 학습이나 증분 학습이라고도 한다)를 다룬다. 이는 앞서 배운 앎을 파국적으로 잊지 않으면서 잇단 과제로 신경망을 익히는 근본 어려움을 다루는 분야이다. 안정성과 말랑함의 딜레마를 살피고, 여러 학습 상황을 정식화하며, 벌주기·되살리기·구조·증류라는 주요 방법 갈래를 표준 평가 잣대와 함께 훑어본다.
 
 ---
 
-## Foundations
+## 바탕
 
-- Continual Learning Overview -- Comprehensive introduction to continual learning concepts, mathematical frameworks, and main approaches
-- Usage Guide -- Practical quick-start guide with installation instructions and script organization
-- [Catastrophic Forgetting](continual_learning/catastrophic_forgetting.md) -- Rigorous treatment of the forgetting phenomenon, including mathematical formalization and historical context
-- [Evaluation Metrics](continual_learning/evaluation_metrics.md) -- Standard metrics including the accuracy matrix, backward/forward transfer, and forgetting measures
-- Taxonomy -- Classification of methods by strategy (regularization, replay, architecture, distillation) and information access
-- Stability-Plasticity Dilemma -- The fundamental tension between retaining old knowledge and learning new tasks
+- 이어 배우기 훑어보기 -- 이어 배우기의 개념, 수학적 틀, 주요 접근법을 두루 들려주는 들머리
+- 사용 안내 -- 설치 방법과 스크립트 짜임을 담은 실전 빠른 시작 안내
+- [파국적 잊음](continual_learning/catastrophic_forgetting.md) -- 수학적 정식화와 지난 이야기를 아우르는 잊음 현상의 빈틈없는 다룸
+- [평가 지표](continual_learning/evaluation_metrics.md) -- 정확도 행렬, 뒤와 앞으로의 옮김, 잊음 재기를 아우르는 표준 지표
+- 갈래 나누기 -- 전략(벌주기, 되살리기, 구조, 증류)과 정보 접근으로 방법을 가르기
+- 안정성과 말랑함의 딜레마 -- 옛 앎을 지키는 것과 새 과제를 배우는 것 사이의 근본적인 팽팽함
 
-## Learning Scenarios
+## 학습 상황
 
-- Task-Incremental Learning -- Simplest scenario where task identity is provided at both training and test time
-- Class-Incremental Learning -- Most challenging scenario requiring classification among all classes seen so far without task identifiers
-- Online Continual Learning -- Most restrictive setting where data arrives as a stream and each sample is seen only once
+- 과제 증분 학습 -- 학습 때와 시험 때 모두 과제 번호가 주어지는 가장 단순한 상황
+- 부류 증분 학습 -- 과제 번호 없이 지금까지 본 모든 부류 사이에서 가려내야 하는 가장 어려운 상황
+- 온라인 이어 배우기 -- 데이터가 흐름으로 도착하고 표본마다 딱 한 번만 보이는 가장 빠듯한 상황
 
-## Regularization Methods
+## 벌주기 방법
 
-- [Overview](regularization_methods/overview.md) -- Introduction to regularization-based continual learning through parameter importance estimation
-- [Elastic Weight Consolidation (EWC)](regularization_methods/ewc.md) -- Protecting important parameters using the Fisher information matrix with Bayesian foundations
-- [Online EWC](regularization_methods/online_ewc.md) -- Extension of EWC with continuous online updating of parameter importance estimates
-- Synaptic Intelligence (SI) -- Tracking parameter importance during training based on contribution to loss reduction
-- Memory Aware Synapses (MAS) -- Task-agnostic importance estimation based on output sensitivity to parameter changes
-- [Comparison of Regularization Methods](regularization_methods/comparison.md) -- Detailed comparison of EWC, SI, and MAS including strengths, weaknesses, and applicability
+- [훑어보기](regularization_methods/overview.md) -- 매개변수 중요도 어림을 거친 벌주기 기반 이어 배우기의 들머리
+- [탄성 가중치 다지기(EWC)](regularization_methods/ewc.md) -- 베이즈 바탕 위에서 피셔 정보 행렬로 중요한 매개변수를 지키기
+- [온라인 EWC](regularization_methods/online_ewc.md) -- 매개변수 중요도 어림을 쉼 없이 온라인으로 고치는 EWC의 확장
+- 시냅스 지능(SI) -- 손실을 줄이는 데 얼마나 이바지했는지로 학습 중에 매개변수 중요도를 좇기
+- 기억을 아는 시냅스(MAS) -- 매개변수 변화에 대한 출력의 민감도로 과제를 가리지 않고 중요도를 어림하기
+- [벌주기 방법의 견줌](regularization_methods/comparison.md) -- 강점, 약점, 쓸 수 있는 곳까지 아우른 EWC, SI, MAS의 자세한 견줌
 
-## Replay Methods
+## 되살리기 방법
 
-- Overview -- Introduction to replay-based continual learning through exemplar storage and rehearsal strategies
-- [Experience Replay](replay_methods/experience_replay.md) -- Maintaining and rehearsing a memory buffer of examples from previous tasks
-- Generative Replay -- Using a generative model to produce pseudo-samples instead of storing raw data
-- Gradient Episodic Memory (GEM) -- Using stored examples as gradient constraints rather than for direct replay
-- [A-GEM](replay_methods/agem.md) -- Averaged GEM with efficient gradient projection using average reference gradients
-- Dark Experience Replay -- Learning task-specific weighting schemes for replayed data with dynamic priority adjustment
+- 훑어보기 -- 본보기 담아 두기와 되뇌기 전략을 거친 되살리기 기반 이어 배우기의 들머리
+- [경험 되살리기](replay_methods/experience_replay.md) -- 앞선 과제의 보기를 담은 기억 버퍼를 지니고 되뇌기
+- 생성 되살리기 -- 날 데이터를 담아 두는 대신 생성 모델로 가짜 표본을 만들기
+- 기울기 에피소드 기억(GEM) -- 담아 둔 보기를 곧바로 되살리는 대신 기울기의 제약으로 쓰기
+- [A-GEM](replay_methods/agem.md) -- 평균 참조 기울기로 효율적으로 기울기를 쏘아 넣는 평균 GEM
+- 어두운 경험 되살리기 -- 우선순위를 움직여 가며 되살린 데이터에 과제마다의 무게 방식을 배우기
 
-## Architecture Methods
+## 구조 방법
 
-- Overview -- Introduction to architecture-based methods using task-specific modules and dynamic expansion
-- Progressive Neural Networks -- Preventing forgetting by freezing old columns and adding new capacity with lateral connections
-- PackNet -- Packing multiple tasks into a single network through iterative pruning, retraining, and freezing
-- Dynamically Expandable Networks (DEN) -- Combining selective retraining, dynamic expansion, and neuron duplication
-- [Expert Gate](architecture_methods/expert_gate.md) -- Routing data to specialized expert modules via a learned gating network
-- [Supermask in Superposition](architecture_methods/supermask.md) -- Binary masks selecting task-specific subnetworks from a single frozen base network
+- 훑어보기 -- 과제마다의 모듈과 움직이는 확장을 쓰는 구조 기반 방법의 들머리
+- 점진 확장 신경망 -- 옛 기둥을 얼려 두고 옆 이음으로 새 용량을 더해 잊음을 막기
+- PackNet -- 가지치기, 다시 익히기, 얼리기를 되풀이하여 망 하나에 여러 과제를 담기
+- 움직여 넓히는 망(DEN) -- 가려 다시 익히기, 움직이는 확장, 뉴런 복제를 함께 쓰기
+- [전문가 문](architecture_methods/expert_gate.md) -- 배운 문 망으로 데이터를 전문가 모듈에 보내기
+- [겹쳐 놓은 초가리개](architecture_methods/supermask.md) -- 얼린 바탕 망 하나에서 이진 가리개로 과제마다의 부분 망 골라내기
 
-## Distillation Methods
+## 증류 방법
 
-- Overview -- Introduction to knowledge distillation for continual learning through soft target constraints
-- [Learning Without Forgetting (LwF)](distillation_methods/lwf.md) -- Preserving old task performance by matching the model's outputs to its own previous predictions
-- LUCIR -- Addressing classifier bias in class-incremental learning through cosine normalization and margin ranking
-- PODNet -- Constraining intermediate features at every layer using pooled distillation loss
-- [Feature Distillation](distillation_methods/feature_distillation.md) -- Preserving learned representations by matching intermediate layer features across task sequences
-- [Comparison of Distillation Methods](distillation_methods/comparison.md) -- Comparative analysis of response-based, feature-based, attention-based, and relation-based distillation
+- 훑어보기 -- 부드러운 목표 제약을 거친 이어 배우기용 앎 증류의 들머리
+- [잊지 않고 배우기(LwF)](distillation_methods/lwf.md) -- 모델의 출력을 제 자신의 앞선 예측에 맞추어 옛 과제의 성능 지키기
+- LUCIR -- 코사인 고르기와 여백 순위로 부류 증분 학습의 가려내개 치우침 다루기
+- PODNet -- 모은 증류 손실로 층마다 중간 특징을 옥죄기
+- [특징 증류](distillation_methods/feature_distillation.md) -- 잇단 과제에 걸쳐 중간 층 특징을 맞추어 배운 표현 지키기
+- [증류 방법의 견줌](distillation_methods/comparison.md) -- 반응 기반, 특징 기반, 주의 기반, 관계 기반 증류의 견줌 분석
 
-## Benchmarks
+## 잣대
 
-- Benchmark Comparison -- Comprehensive comparison of continual learning methods across standard benchmarks
-- Standard Benchmarks -- Split MNIST, Split CIFAR-100, Split ImageNet, and permutation benchmarks
-- Stream Benchmarks -- CORe50 and online continual learning benchmarks with gradual distribution shifts
-- Evaluation Protocols -- Task-incremental vs class-incremental evaluation, metrics, and controlled comparison guidelines
+- 잣대 견줌 -- 표준 잣대에 걸친 이어 배우기 방법의 두루 견줌
+- 표준 잣대 -- Split MNIST, Split CIFAR-100, Split ImageNet, 그리고 순열 잣대
+- 흐름 잣대 -- CORe50과 분포가 차츰 옮겨 가는 온라인 이어 배우기 잣대
+- 평가 규약 -- 과제 증분 평가와 부류 증분 평가, 지표, 그리고 견줌을 다스리는 지침

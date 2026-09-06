@@ -1,53 +1,94 @@
-# EM for PGMs
+# PGM을 위한 EM
+## 개요
 
+기댓값-최대화(EM) 알고리즘은 숨은 변수를 가진 PGM의 매개변수를 배우는 표준 길이다. 기대 충분 통계량을 셈하는 걸음(E-걸음)과 기대 로그 가능도를 최대로 만드는 걸음(M-걸음)을 되풀이한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 일반 얼개
 
-## Overview
+관측 자료 $X$, 숨은 변수 $Z$, 매개변수 $\theta$이 주어졌을 때:
 
-The Expectation-Maximization (EM) algorithm is the standard approach for learning parameters of PGMs with latent variables. It iteratively computes expected sufficient statistics (E-step) and maximizes the expected log-likelihood (M-step).
-
-## General Framework
-
-Given observed data $X$, latent variables $Z$, and parameters $\theta$:
-
-**E-step**: Compute the posterior over latent variables:
+**E-걸음**: 숨은 변수에 걸친 뒤확률을 셈한다:
 
 $$Q(Z) = P(Z \mid X, \theta^{(t)})$$
 
-**M-step**: Maximize the expected complete-data log-likelihood:
+**M-걸음**: 기대 완전 자료 로그 가능도를 최대로 만든다:
 
 $$\theta^{(t+1)} = \arg\max_\theta \mathbb{E}_{Q(Z)}[\log P(X, Z \mid \theta)]$$
 
-## EM for Bayesian Networks
+## 베이즈 망을 위한 EM
 
-For a BN with latent variables, the M-step decomposes by parameter group:
+숨은 변수를 가진 BN에서 M-걸음은 매개변수 무리별로 쪼개진다:
 
 $$\theta^{(t+1)}_{X_i \mid \text{Pa}(X_i)} = \frac{\mathbb{E}[N(X_i, \text{Pa}(X_i))]}{\mathbb{E}[N(\text{Pa}(X_i))]}$$
 
-where $N(\cdot)$ denotes sufficient statistics (counts for discrete variables, moments for Gaussian).
+여기서 $N(\cdot)$은 충분 통계량을 뜻한다(이산 변수는 세기, 가우스는 적률).
 
-## EM for Specific Models
+## 몇몇 모형을 위한 EM
 
-### Gaussian Mixture Models
-- E-step: compute responsibility $\gamma_{nk} = P(z_n = k \mid x_n, \theta)$
-- M-step: update $\mu_k, \Sigma_k, \pi_k$ using weighted statistics
+### 가우스 섞음 모형
+- E-걸음: 책임 $\gamma_{nk} = P(z_n = k \mid x_n, \theta)$을 셈한다
+- M-걸음: 무게 준 통계량으로 $\mu_k, \Sigma_k, \pi_k$을 새로 고친다
 
-### Hidden Markov Models (Baum-Welch)
-- E-step: forward-backward algorithm to compute $\gamma_t(i), \xi_t(i,j)$
-- M-step: update transition and emission parameters
+### 숨은 마르코프 모형(바움-웰치)
+- E-걸음: 앞뒤 알고리즘으로 $\gamma_t(i), \xi_t(i,j)$을 셈한다
+- M-걸음: 옮김과 방출 매개변수를 새로 고친다
 
-### Latent Dirichlet Allocation
-- E-step: variational inference for per-document topic distributions
-- M-step: update topic-word distributions
+### 숨은 디리클레 배분
+- E-걸음: 글마다의 주제 분포에 대한 변분 추론
+- M-걸음: 주제-낱말 분포를 새로 고친다
 
-## Convergence
+## 모임
 
-EM guarantees monotonic increase of the log-likelihood (or ELBO for variational EM). However, it converges to a local maximum, so multiple random restarts are recommended.
+EM은 로그 가능도(변분 EM에서는 ELBO)가 한결같이 커짐을 보장한다. 그러나 국소 최댓값으로 모이므로 무작위로 여러 번 다시 시작하기를 권한다.
 
-## Variants
+## 변형
 
-- **Hard EM** (Viterbi EM): use $\arg\max$ instead of expectation in E-step
-- **Variational EM**: use an approximate posterior when exact inference is intractable
-- **Online EM**: update parameters incrementally as data arrives
+- **딱딱한 EM**(비터비 EM): E-걸음에서 기댓값 대신 $\arg\max$을 쓴다
+- **변분 EM**: 정확한 추론이 감당되지 않을 때 어림 뒤확률을 쓴다
+- **온라인 EM**: 자료가 들어오는 대로 매개변수를 조금씩 새로 고친다
+
+## 연습문제
+
+**연습문제 1.**
+숨은 변수를 가진 그래프 모형의 EM 알고리즘에서 E-걸음이 왜 숨은 변수의 뒤확률 분포에 대해 기댓값을 셈하는지 설명하여라.
+
+??? success "연습문제 1 풀이"
+    EM 알고리즘은 ELBO $\mathcal{L}(q, \theta) = \mathbb{E}_q[\log p(\mathbf{X}, \mathbf{Z} \mid \theta)] + H[q]$을 최대로 만든다. E-걸음에서 $q(\mathbf{Z}) = p(\mathbf{Z} \mid \mathbf{X}, \theta^{(t)})$으로 두면 ELBO이 빈틈없어진다(틈 = 0). 그러면 기대 완전 자료 로그 가능도 $\mathbb{E}_{p(Z|X,\theta^{(t)})}[\log p(X, Z \mid \theta)]$이 M-걸음에서 최대로 만드는 양이 된다. 뒤확률을 쓰면 숨은 변수의 모든 있을 수 있는 꼴을 저마다의 확률로 무게 주어 헤아리게 된다.
+
+---
+
+**연습문제 2.**
+섞음 무게가 같은 가우스 둘의 섞음을 생각하여라. 책임 $r_{nk}$의 E-걸음 새로 고치기와 평균 $\mu_k$의 M-걸음 새로 고치기를 적어라.
+
+??? success "연습문제 2 풀이"
+    **E-걸음:** 자료점 $x_n$에 대한 성분 $k$의 책임은 다음과 같다:
+
+    $$r_{nk} = \frac{\pi_k \, \mathcal{N}(x_n \mid \mu_k, \sigma_k^2)}{\sum_{j=1}^{2} \pi_j \, \mathcal{N}(x_n \mid \mu_j, \sigma_j^2)}$$
+
+    섞음 무게가 $\pi_1 = \pi_2 = 0.5$으로 같으면 이는 가우스 밀도의 비로 간단해진다.
+
+    **M-걸음:** 새로 고친 평균은 다음과 같다:
+
+    $$\mu_k^{\text{new}} = \frac{\sum_{n=1}^{N} r_{nk} \, x_n}{\sum_{n=1}^{N} r_{nk}}$$
+
+    이는 자료점의 무게 준 평균이며, 무게는 책임이다.
+
+---
+
+**연습문제 3.**
+EM 알고리즘이 왜 온 세상 최댓값이 아니라 국소 최댓값으로 모일 수 있는가? 구체적인 보기를 들어라.
+
+??? success "연습문제 3 풀이"
+    EM은 걸음마다 로그 가능도를 키움이 보장되지만 멈춘 점(국소 최댓값이나 안장점)으로만 모인다. 성분이 $K \geq 2$개인 가우스 섞음에서는 성분 이름을 바꿔 붙여도 같다는 대칭성과 목적 함수의 비볼록성 때문에 로그 가능도의 겉면이 봉우리가 여럿이다. $\mu_k$의 첫걸음을 달리 잡으면 서로 다른 국소 최댓값에 다다를 수 있다. 이를테면 뚜렷이 갈라진 뭉치 둘에서 온 자료에서 두 평균의 첫걸음을 같은 뭉치에 두면, 한 성분이 자료 전부를 나타내고 다른 성분의 책임이 거의 0인 나쁜 풀이에 EM이 갇힐 수 있다.
+
+---
+
+**연습문제 4.**
+가우스 섞음 모형에서 공분산 행렬 $\Sigma_k$의 M-걸음 새로 고치기를 이끌어 내어라.
+
+??? success "연습문제 4 풀이"
+    기대 완전 자료 로그 가능도를 $\Sigma_k$으로 미분한 것을 0으로 놓으면 다음과 같다:
+
+    $$\Sigma_k^{\text{new}} = \frac{\sum_{n=1}^{N} r_{nk} (x_n - \mu_k^{\text{new}})(x_n - \mu_k^{\text{new}})^\top}{\sum_{n=1}^{N} r_{nk}}$$
+
+    이는 새로 고친 평균 $\mu_k^{\text{new}}$ 둘레의 책임으로 무게 준 표본 공분산이다.

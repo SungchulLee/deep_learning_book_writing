@@ -1,212 +1,207 @@
-# Risk-Aware Recommender Systems
+# 위험을 살피는 추천 시스템
+## 들어가며
 
+여느 추천 시스템은 맞음을 가장 좋게 한다. 곧 쓰는 이가 좋아할 물건을 권한다. 금융에서는 맞음만으로는 모자란다. 추천은 위험도 다루고 규제 매임도 지켜야 한다. 위험을 살피는 추천 시스템은 권할 때 내림 위험, 꾸러미 쏠림, 꼬리 매임, 시장 버거움 상황을 드러나게 나타낸다. 여느 시장 형편에서 가장 좋아 보이는 추천이 버거운 때에는 재앙이 되거나 꾸러미를 지나치게 쏠리게 할 수 있다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+위험을 살피는 시스템은 꾸러미 가장 좋게 하기, 버거움 시험, 매임 지키기를 추천 알고리즘에 아우른다. 기대 벌이나 어림한 쓰는 이 취향으로 물건을 그저 매기는 대신, 위험이라는 렌즈로 추천을 따진다. 이 추천이 꾸러미의 흔들림, 꺾임, 쏠림, 꼬리 위험에 어떤 영향을 주는가? 추천이 위험 한도나 규제 매임을 어기는가? 추천이 여러 시장 상황에서 튼튼한가?
 
-## Introduction
+이 마디는 위험을 살피는 추천 틀을 세우고 꾸러미 위험 다루기와의 아우름을 살피며 규제받는 금융 기관의 실제 짜기를 보여 준다.
 
-Traditional recommender systems optimize for accuracy—recommending items users will like. In financial contexts, accuracy alone is insufficient; recommendations must also manage risk and comply with regulatory constraints. Risk-aware recommender systems explicitly model downside risk, portfolio concentration, tail dependencies, and market stress scenarios when making recommendations. A recommendation that appears optimal under normal market conditions may be disastrous during stress periods or create excessive portfolio concentration.
+## 핵심 개념
 
-Risk-aware systems integrate portfolio optimization, stress testing, and constraint enforcement into recommendation algorithms. Rather than simply ranking products by expected return or estimated user preference, risk-aware systems evaluate recommendations through a risk lens: How does this recommendation affect portfolio volatility, drawdown, concentration, and tail risk? Do recommendations violate risk limits or regulatory constraints? Are recommendations robust across market scenarios?
+### 추천의 위험 갈래
+- **흔들림**: 추천 뒤 꾸러미 벌이의 표준 어긋남
+- **꺾임**: 꼭대기에서 골까지 기대되는 가장 큰 내림
+- **쏠림**: 추천이 위험을 몇 자리에 몰아넣는지
+- **꼬리 위험**: 위험 가치와 기대 모자람
+- **얽힘 무너짐**: 시장이 버거울 때 추천의 성과
 
-This section develops risk-aware recommendation frameworks, explores integration with portfolio risk management, and demonstrates practical implementations for regulated financial institutions.
+### 매임의 갈래
+- **규제**: 규제 한도(한 자리 최대 30%, 지렛대 한도)
+- **위험 규정**: 안쪽 위험 한도(꾸러미 최대 흔들림, 최대 꺾임)
+- **돈**: 알맞음, 비용 매임
+- **ESG**: 환경, 사회, 지배 구조에 대한 살핌
 
-## Key Concepts
+## 수학적 틀
 
-### Risk Dimensions in Recommendations
-- **Volatility**: Standard deviation of portfolio returns post-recommendation
-- **Drawdown**: Maximum peak-to-trough decline expected
-- **Concentration**: Whether recommendation concentrates risk in few positions
-- **Tail Risk**: Value-at-Risk (VaR) and Expected Shortfall (ES)
-- **Correlation Breakdown**: Recommendation performance during market stress
+### 위험을 고려한 추천 점수 매기기
 
-### Constraint Types
-- **Regulatory**: Regulatory limits (max 30% single position, limits on leverage)
-- **Risk Policy**: Internal risk limits (max portfolio volatility, max drawdown)
-- **Financial**: Suitability, cost constraints
-- **ESG**: Environmental, social, governance considerations
-
-## Mathematical Framework
-
-### Risk-Adjusted Recommendation Scoring
-
-Standard recommendation score with risk penalty:
+위험 벌을 더한 여느 추천 점수:
 
 $$\text{Score}_{\text{risk-aware}}(u, p) = w_1 \cdot \text{Accuracy}(u, p) - w_2 \cdot \text{RiskPenalty}(u, p)$$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$\text{RiskPenalty}(u, p) = \alpha_1 \cdot \text{RiskIncrease} + \alpha_2 \cdot \text{Concentration} + \alpha_3 \cdot \text{TailRisk}$$
 
-### Portfolio Risk Increment
+### 꾸러미 위험의 늘어남
 
-Quantify how recommendation increases portfolio risk:
+추천이 꾸러미 위험을 얼마나 늘리는지 수량으로 나타낸다:
 
 $$\Delta \sigma^2 = (w_{\text{old}} + \Delta w)^T \Sigma (w_{\text{old}} + \Delta w) - w_{\text{old}}^T \Sigma w_{\text{old}}$$
 
 $$\approx 2 \Delta w^T \Sigma w_{\text{old}} + (\Delta w)^T \Sigma (\Delta w)$$
 
-First-order approximation for small changes.
+작은 바뀜에 대한 1차 어림.
 
-### Tail Risk Metric
+### 꼬리 위험 잣대
 
-Value-at-Risk of portfolio post-recommendation:
+추천 뒤 꾸러미의 위험 가치:
 
 $$\text{VaR}_\alpha = \inf\{r : P(\text{portfolio return} \leq r) \geq \alpha\}$$
 
-Penalize recommendations increasing VaR:
+위험 가치를 늘리는 추천에 벌을 준다:
 
 $$\text{TailRiskPenalty} = \max(0, \text{VaR}_\alpha(\text{new}) - \text{VaR}_\alpha(\text{old}))$$
 
-## Constraint-Based Filtering
+## 매임 바탕 거르기
 
-### Regulatory Constraints
+### 규제 매임
 
-Before scoring, filter recommendations violating hard constraints:
+점수를 매기기 전에 굳은 매임을 어기는 추천을 거른다:
 
-**Position Limit**: Single position < 30%
+**자리 한도**: 한 자리 < 30%
 
 $$w_i < 0.30 \quad \forall i$$
 
-**Leverage Limit**: Total exposure < 1.5x capital
+**지렛대 한도**: 온 노출 < 밑천의 1.5배
 
 $$\sum_i |w_i| < 1.5$$
 
-**Sector Concentration**: No sector > 40% of portfolio
+**업종 쏠림**: 어느 업종도 꾸러미의 40%를 넘지 않음
 
 $$\sum_{i \in \text{sector}} w_i < 0.40$$
 
-**Counterparty Limit**: Max exposure to single institution < 20%
+**거래 상대 한도**: 한 기관에 대한 최대 노출 < 20%
 
 $$\sum_{i: \text{issuer}=j} w_i < 0.20 \quad \forall j$$
 
-### Risk Policy Constraints
+### 위험 규정 매임
 
-Internal risk management limits:
+안쪽 위험 다루기 한도:
 
-**Volatility Ceiling**:
+**흔들림 천장**:
 
 $$\sigma(\text{portfolio}_{\text{new}}) \leq \sigma_{\text{max}} = 0.15$$
 
-**Maximum Drawdown**:
+**최대 꺾임**:
 
 $$\max_{T} \min_{t \leq T} \frac{\text{portfolio}_t - \text{portfolio}_T}{\text{portfolio}_T} \leq D_{\text{max}} = -0.25$$
 
-**Correlation Constraint**: Don't add assets highly correlated with existing holdings
+**얽힘 매임**: 이미 가진 것과 크게 얽힌 자산을 더하지 않는다
 
 $$\max_j \text{Corr}(r_{\text{new}}, r_j) \leq 0.75$$
 
-### Constraint Violation Handling
+### 매임 어김 다루기
 
-When recommendation violates constraints:
+추천이 매임을 어길 때:
 
-1. **Reject**: Remove from candidate set if severe violation
-2. **Modify**: Reduce position size until constraints satisfied
-3. **Swap**: Recommend alternative product satisfying constraints
+1. **물리치기**: 어김이 심하면 후보에서 뺀다
+2. **고치기**: 매임이 채워질 때까지 자리 크기를 줄인다
+3. **바꾸기**: 매임을 채우는 다른 물건을 권한다
 
-## Stress Testing in Recommendations
+## 추천의 버거움 시험
 
-### Historical Stress Scenarios
+### 지난 버거움 상황
 
-Evaluate recommendations under past market crises:
+지난 시장 위기 아래에서 추천을 따진다:
 
-**2008 Financial Crisis**: Portfolio held Aug 2008, evaluated through Oct 2008 performance
+**2008년 금융 위기**: 2008년 8월에 가진 꾸러미를 2008년 10월까지의 성과로 따진다
 
 $$\text{Stress Loss} = -\frac{\text{portfolio value}_{10/2008} - \text{portfolio value}_{8/2008}}{\text{portfolio value}_{8/2008}}$$
 
-Penalize recommendations with large stress losses.
+버거울 때 손실이 큰 추천에 벌을 준다.
 
-### Synthetic Stress Scenarios
+### 지어낸 버거움 상황
 
-Create plausible but unrealized scenarios:
+그럴듯하지만 실제로 일어나지 않은 상황을 만든다:
 
-**Scenario 1 - Equity Crash**: S&P 500 down 20%, correlations increase 0.3
+**상황 1 - 주식 폭락**: S&P 500이 20% 내리고 얽힘이 0.3 늘어남
 
-**Scenario 2 - Credit Shock**: Bond spreads widen 200bp, equity down 10%
+**상황 2 - 신용 충격**: 채권 값 차이가 200bp 벌어지고 주식이 10% 내림
 
-**Scenario 3 - Volatility Spike**: VIX increases 50%, volatility-sensitive assets down 15%
+**상황 3 - 흔들림 치솟음**: VIX이 50% 오르고 흔들림에 민감한 자산이 15% 내림
 
-Evaluate portfolio recommendation under each scenario:
+상황마다 꾸러미 추천을 따진다:
 
 $$\text{Worst-Case Loss} = \min_{\text{scenario}} \text{Return}_{\text{scenario}}$$
 
-Penalize recommendations with large worst-case losses.
+가장 나쁜 경우 손실이 큰 추천에 벌을 준다.
 
-### Correlation Breakdown Scenarios
+### 얽힘 무너짐 상황
 
-During stress, correlations approach 1. Stress test with elevated correlations:
+버거울 때 얽힘이 1에 가까워진다. 얽힘을 높여 버거움 시험을 한다:
 
 $$\rho_{\text{stress}} = \min(1.0, \rho_{\text{normal}} + 0.3)$$
 
-Portfolio risk can surge 2-3x under correlation breakdown.
+얽힘이 무너지면 꾸러미 위험이 2~3배로 치솟을 수 있다.
 
-## Risk-Return Trade-Off in Recommendations
+## 추천의 위험과 벌이 맞바꿈
 
-### Pareto-Optimal Recommendations
+### 파레토 최적 추천
 
-Rather than single recommendation, present Pareto frontier:
+추천 하나 대신 파레토 앞자락을 보인다:
 
-1. **Maximum Accuracy**: Highest expected utility, unconstrained
-2. **Balanced**: Moderate accuracy, moderate risk
-3. **Conservative**: Lower accuracy, minimal risk
+1. **최대 맞음**: 기대 쓸모가 가장 높고 매임 없음
+2. **균형**: 알맞은 맞음, 알맞은 위험
+3. **조심스러움**: 낮은 맞음, 가장 작은 위험
 
-Let user choose along trade-off curve based on risk appetite.
+위험을 감당할 뜻에 따라 맞바꿈 굽은 줄 위에서 쓰는 이가 고르게 한다.
 
-### Risk-Reward Visualization
+### 위험과 보상 그리기
 
-Communicate trade-offs clearly:
+맞바꿈을 또렷이 알린다:
 
-**Recommendation A**: Accuracy 0.75, Expected volatility increase 2%
-**Recommendation B**: Accuracy 0.70, Expected volatility increase 0.5%
-**Recommendation C**: Accuracy 0.65, Expected volatility decrease 0.5%
+**추천 A**: 맞음 0.75, 기대 흔들림 2% 늘어남
+**추천 B**: 맞음 0.70, 기대 흔들림 0.5% 늘어남
+**추천 C**: 맞음 0.65, 기대 흔들림 0.5% 줄어듦
 
-### Satisfaction Under Different Scenarios
+### 서로 다른 상황에서의 만족
 
-Report expected satisfaction across scenarios:
+상황마다 기대 만족을 알린다:
 
 $$\text{Satisfaction}_{\text{scenario}} = \text{Accuracy}(u, p) \times \mathbb{1}[\text{return}_{\text{scenario}} > \text{risk-free}]$$
 
-Scenarios where recommendation performs well vs badly.
+추천이 잘 되는 상황과 나쁜 상황.
 
-## Collaboration Between Recommendation and Risk Management
+## 추천과 위험 다루기의 손발 맞추기
 
-### Risk-Aware Scoring
+### 위험을 살피는 점수 매기기
 
-Joint optimization: Recommend + Risk teams:
+함께 가장 좋게 하기: 추천 팀 + 위험 팀:
 
 $$\text{Score}_{\text{final}} = \text{Recommendation score} \times \text{Risk approval factor}$$
 
-where Risk approval ∈ [0, 1]. Score 0 = "Risk rejects"; Score 1 = "Risk approves."
+여기서 위험 승인 ∈ [0, 1]이다. 점수 0 = "위험 팀이 물리침", 점수 1 = "위험 팀이 받아들임".
 
-### Feedback Loop
+### 되먹임 고리
 
-Risk monitoring post-recommendation:
+추천 뒤 위험 지켜보기:
 
-1. **Recommend**: Generate recommendation
-2. **Approve**: Risk team validates constraints
-3. **Implement**: Client implements recommendation
-4. **Monitor**: Track post-recommendation performance
-5. **Learn**: Feedback on actual vs predicted risk improves models
+1. **권하기**: 추천을 만든다
+2. **받아들이기**: 위험 팀이 매임을 확인한다
+3. **실행하기**: 손님이 추천을 실행한다
+4. **지켜보기**: 추천 뒤 성과를 좇는다
+5. **배우기**: 실제 위험과 헤아린 위험의 되먹임이 모델을 좋게 한다
 
-### Escalation Procedures
+### 위로 올리는 절차
 
-For edge-case recommendations:
+가장자리 경우의 추천에 대해:
 
-- **Routine** (expected risk): Automatic approval
-- **Non-routine** (elevated risk): Risk manager review
-- **Exception** (significant risk): Senior approval required
+- **여느 것**(예상된 위험): 저절로 받아들임
+- **여느 것 아님**(높아진 위험): 위험 담당자가 살핌
+- **예외**(큰 위험): 윗선 승인이 필요
 
-Clear escalation criteria ensure risk governance.
+또렷한 올림 잣대가 위험 다스림을 보장한다.
 
-## Implementation Architecture
+## 구현 구조
 
-### Risk-Aware Recommendation Pipeline
+### 위험을 살피는 추천 흐름
 
 ```
-1. Candidate Generation
+1. 후보 만들기
    ↓
-2. Suitability Screening
+2. 알맞음 걸러내기
    ↓
 3. Constraint Filtering (eliminate hard constraint violations)
    ↓
@@ -221,100 +216,134 @@ Clear escalation criteria ensure risk governance.
 8. Recommendation Presentation (with risk disclosure)
 ```
 
-### Data Requirements
+### 자료 요구
 
-1. **Market Data**: Returns, correlations, volatility for all tradeable assets
-2. **Portfolio Data**: Current holdings, recent transactions
-3. **Risk Model**: Covariance matrix, factor models, stress parameters
-4. **Constraint Data**: Regulatory limits, internal policies
-5. **Client Data**: Risk tolerance, investment goals
+1. **시장 자료**: 거래할 수 있는 모든 자산의 벌이, 얽힘, 흔들림
+2. **꾸러미 자료**: 지금 가진 것, 최근 거래
+3. **위험 모델**: 함께 흩어짐 행렬, 인수 모델, 버거움 잡
+4. **매임 자료**: 규제 한도, 안쪽 규정
+5. **손님 자료**: 위험 견딤, 투자 목표
 
-## Evaluation of Risk-Aware Recommendations
+## 위험을 살피는 추천의 따지기
 
-### Risk-Return Metrics
+### 위험과 벌이 잣대
 
-**Sharpe Ratio of Recommendation**:
+**추천의 샤프 비**:
 
 $$\text{Sharpe} = \frac{\mu_{\text{rec}} - r_f}{\sigma_{\text{rec}}}$$
 
-Expected return vs risk after recommendation.
+추천 뒤의 기대 벌이와 위험.
 
-**Information Ratio**:
+**앎 비**:
 
 $$\text{IR} = \frac{\text{Return}_{\text{rec}} - \text{Return}_{\text{benchmark}}}{\text{Tracking Error}}$$
 
-Value-add accounting for risk relative to benchmark.
+잣대에 견주어 위험을 셈에 넣은 값어치 더함.
 
-### Risk Management Metrics
+### 위험 다루기 잣대
 
-**Constraint Satisfaction Rate**:
+**매임 채움 비율**:
 
 $$\text{Compliance} = \frac{\# \text{recommendations satisfying all constraints}}{\# \text{total recommendations}}$$
 
-Target: 99%+ compliance (only edge cases require escalation).
+과녁: 99% 넘게 지킴(가장자리 경우만 위로 올린다).
 
-**Worst-Case Performance**:
+**가장 나쁜 경우의 성과**:
 
 $$\text{Recovery Time} = \text{time until portfolio returns to pre-shock level}$$
 
-Measure resilience to market stress.
+시장 버거움에 견디는 힘을 잰다.
 
-## Case Study: Risk-Aware Fund Recommendation
+## 사례 살피기: 위험을 살피는 펀드 추천
 
-### Scenario
+### 상황
 
-Institutional investor, \$10M portfolio, moderate risk tolerance, 15-year horizon.
+기관 투자자, \$10M 꾸러미, 알맞은 위험 견딤, 15년 지평.
 
-Current allocation:
-- 50% US Large-Cap Equities
-- 30% Investment-Grade Bonds
-- 20% Cash
+지금 나눔:
 
-### Risk-Aware Recommendation
+- 미국 대형주 50%
+- 투자 등급 채권 30%
+- 현금 20%
 
-**Recommendation**: Add 5% Emerging Market Equities (EM), reduce Cash to 15%
+### 위험을 살피는 추천
 
-**Risk Analysis**:
-- Current volatility: 8.5%
-- Post-recommendation volatility: 9.1% (+0.6%)
-- Expected return increase: 0.4% (from diversification)
-- Sharpe ratio: 0.65 → 0.68 (improvement)
+**추천**: 떠오르는 시장 주식 5%를 더하고 현금을 15%로 줄인다
 
-**Stress Test**:
-- 2008-style crisis: -22% (within tolerance)
-- Credit shock: -12% (manageable)
-- EM crisis: -18% (acceptable)
+**위험 살피기**:
 
-**Constraints**: All satisfied (no concentration, no leverage issues)
+- 지금 흔들림: 8.5%
+- 추천 뒤 흔들림: 9.1%(+0.6%)
+- 기대 벌이 늘어남: 0.4%(갈라 담기에서)
+- 샤프 비: 0.65 → 0.68(나아짐)
 
-**Approval**: Recommended with risk sign-off.
+**버거움 시험**:
 
-## Advanced Considerations
+- 2008년식 위기: -22%(견딜 만함)
+- 신용 충격: -12%(다룰 만함)
+- 떠오르는 시장 위기: -18%(받아들일 만함)
 
-### Machine Learning for Risk Prediction
+**매임**: 모두 채움(쏠림 없음, 지렛대 말썽 없음)
 
-Use neural networks to predict portfolio risk post-recommendation:
+**받아들임**: 위험 팀의 결재와 함께 권함.
+
+## 나아간 살핌
+
+### 위험 헤아리기를 위한 기계 배움
+
+추천 뒤 꾸러미 위험을 헤아리는 데 신경망을 쓴다:
 
 $$\sigma_{\text{pred}}^{\text{post}} = \text{NN}(\text{current portfolio}, \text{recommendation})$$
 
-Train on historical data; enables fast risk assessment without explicit covariance matrix inversion.
+지난 자료로 익힌다. 함께 흩어짐 행렬을 드러나게 뒤집지 않고도 위험을 빠르게 잴 수 있다.
 
-### Real-Time Risk Monitoring
+### 실시간 위험 지켜보기
 
-Update risk metrics as market conditions change:
+시장 형편이 바뀔 때마다 위험 잣대를 고친다:
 
-- Daily: Recompute correlations, volatilities
-- Real-time: Adjust tail risk estimates as volatility spikes
-- Automatic: Trigger alerts if portfolio drifts from risk limits
+- 날마다: 얽힘과 흔들림을 다시 셈한다
+- 실시간: 흔들림이 치솟으면 꼬리 위험 어림을 손본다
+- 저절로: 꾸러미가 위험 한도에서 벗어나면 알림을 울린다
 
-### Fairness in Risk-Aware Recommendations
+### 위험을 살피는 추천의 공정함
 
-Ensure risk constraints applied fairly:
+위험 매임이 공정하게 쓰이도록 한다:
 
-- Do aggressive investors receive riskier recommendations?
-- Are conservative investors protected appropriately?
-- Avoid discriminatory risk penalization
+- 거센 투자자가 더 위험한 추천을 받는가?
+- 조심스러운 투자자가 알맞게 보호받는가?
+- 차별하는 위험 벌주기를 피한다
 
-!!! warning "Risk Management Primacy"
-    In financial contexts, risk management overrides recommendation accuracy. A high-accuracy recommendation that violates risk constraints or suitability must be rejected, regardless of expected return. Clear governance structures, constraint definitions, and approval procedures essential for responsible financial recommendation systems.
+!!! warning "위험 다루기가 먼저다"
+    금융에서는 위험 다루기가 추천의 맞음보다 앞선다. 맞음이 높아도 위험 매임이나 알맞음을 어기는 추천은 기대 벌이와 상관없이 물리쳐야 한다. 또렷한 다스림 얼개, 매임 뜻매김, 승인 절차가 책임 있는 금융 추천 시스템에 꼭 필요하다.
 
+## 연습문제
+
+**연습문제 1.**
+이 길에서 차가운 출발 문제가 새 쓰는 이와 새 물건에 어떻게 다르게 나타나는지 밝혀라. 경우마다 누그러뜨릴 셈속을 하나씩 내놓아라.
+
+??? success "연습문제 1 풀이"
+    새 쓰는 이는 취향을 배울 주고받음 지난 일이 없어 함께 거르기 신호를 쓸 수 없다. 누그러뜨리기: 내용 바탕 특징(인구 특성, 밝힌 취향)으로 쓰는 이 박아 넣기의 첫 값을 잡는다. 새 물건은 아직 주고받은 쓰는 이가 없어 함께 거르기로 매길 수 없다. 누그러뜨리기: 물건 내용 특징(밝힘, 갈래)으로 그 물건을 박아 넣기 자리에서 닮은 물건 곁에 놓는다. 두 셈속 모두 주고받음이 넉넉히 쌓일 때까지 차가운 낱것을 띄워 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 밝힌 잡의 기울기 고침을 이끌어 내어라. 어느 항이 셈하기에 가장 비싼지 가려내고 어림을 내놓아라.
+
+??? success "연습문제 2 풀이"
+    기울기에는 고르게 맞추려 온 물건 목록에 대한 기댓값을 셈하는 일이 든다. 물건 수에 선형으로 늘어나므로 가장 비싼 항이다. 음의 뽑기는 온 목록 대신 음의 물건 가운데 아무 작은 부분 모임만 더해 이를 어림하여, 고침마다 비용을 $O(|\mathcal{I}|)$에서 $O(k)$으로 줄인다. 여기서 $k$은 음의 표본 수(보통 5~20)이다. 중요도 뽑기가 이 어림에 치우치지 않은 어림개를 준다. $\square$
+
+---
+
+**연습문제 3.**
+이 추천 방식이 인기 바탕 밑그림보다 쓰는 이의 눈여겨봄을 높이는지 따질 A/B 시험을 설계하여라. 아무 나누기 단위, 으뜸 잣대, 최소 표본 크기 셈을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    아무 나누기 단위: 쓰는 이(서로 섞이지 않도록 세션이 아님). 으뜸 잣대: 추천의 누름 비율. 밑그림 누름 비율이 5%이고 알아챌 최소 효과가 0.5%포인트(상대 10% 오름)일 때, 뜻 있음 수준 $\alpha = 0.05$과 힘 $1 - \beta = 0.80$에서 무리마다 필요한 표본 크기는 $n = 2(z_{\alpha/2} + z_\beta)^2 \cdot p(1-p) / \delta^2 \approx 15{,}000$명이다. 주마다의 무늬를 담으려 적어도 2주 돌린다. 난간: 벌이와 다양함 잣대를 딸린 결과로 지켜본다. $\square$
+
+---
+
+**연습문제 4.**
+이 추천 방법의 따지기가 오프라인(지난 자료)과 온라인(실제 오감) 자리에서 어떻게 다른지 밝혀라. 오프라인 따지기에서 어떤 치우침이 생길 수 있는가?
+
+??? success "연습문제 4 풀이"
+    오프라인 따지기는 때로 나눈 지난 주고받음을 쓴다(지난 것으로 익히고 앞으로의 것으로 시험). 치우침에는 다음이 있다. (1) 고름 치우침 -- 쓰는 이는 보여 준 물건과만 주고받았으므로 보지 않은 물건이 참으로 음인 것은 아니다. (2) 인기 치우침 -- 인기 물건이 시험 모임을 지배한다. (3) 자리 치우침 -- 위쪽에 놓인 물건이 알맞음과 상관없이 더 눌린다. 온라인 따지기(A/B 시험)는 고름 치우침을 피하지만 비싸고 느리다. 치우치지 않은 오프라인 따지기 방법으로는 보여 줄 확률로 봄에 다시 무게를 주는 거꿀 성향 점수 매기기가 있다. $\square$

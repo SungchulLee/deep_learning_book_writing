@@ -1,3 +1,14 @@
 .DS_Store
 **/.DS_Store
 site/
+
+# AI agent instructions — local only
+CLAUDE.md
+agents/
+
+# Agent working files — local only
+docs/**/review.md
+docs/**/*_v[0-9]*.md
+docs/**/*_review.md
+!docs/ch15/definition_and_setup/markov_processes_review.md
+reviews/

@@ -1,28 +1,28 @@
-# d-ary Heaps
+# d진 힙
 
-A binary heap gives every node exactly two children. A natural question arises: what happens if we allow each node to have $d$ children instead? A **$d$-ary heap** generalizes the binary heap by letting each internal node have up to $d$ children, where $d \ge 2$. The binary heap is the special case $d = 2$.
+이진 힙은 노드마다 자식을 꼭 둘 준다. 자연스러운 물음이 생긴다. 노드마다 자식을 $d$개 갖게 하면 어떻게 될까? **$d$진 힙**은 내부 노드마다 자식을 $d$개까지($d \ge 2$) 갖게 하여 이진 힙을 일반화한 것이다. 이진 힙은 $d = 2$인 특수한 경우이다.
 
-The motivation for this generalization is a performance tradeoff. Increasing $d$ reduces the tree height from $\log_2 n$ to $\log_d n$, which speeds up operations that traverse root-to-leaf paths (like decrease-key). However, finding the minimum child among $d$ children now takes $O(d)$ instead of $O(1)$. Choosing the right $d$ can optimize performance for specific workloads -- for instance, Dijkstra's algorithm benefits from $d$-ary heaps when the graph is dense.
+이 일반화의 동기는 성능의 맞바꿈이다. $d$을 키우면 트리의 높이가 $\log_2 n$에서 $\log_d n$으로 줄어 (열쇠 낮추기처럼) 뿌리에서 잎까지의 경로를 훑는 연산이 빨라진다. 그러나 자식 $d$개 가운데 가장 작은 것을 찾는 데 $O(1)$이 아니라 $O(d)$가 든다. $d$을 알맞게 고르면 특정 작업에서 성능을 다듬을 수 있다. 이를테면 그래프가 빽빽할 때 데이크스트라 알고리즘이 $d$진 힙의 덕을 본다.
 
-## Structure and Index Formulas
+## 짜임과 색인 공식
 
-Like a binary heap, a $d$-ary heap is stored as an array using level-order indexing (0-based). For a node at index $i$:
+이진 힙처럼 $d$진 힙도 (0부터 세는) 층 순서 색인으로 배열에 담는다. 색인 $i$의 노드에 대해 다음과 같다.
 
-**Children** of node $i$: indices $di + 1, \; di + 2, \; \ldots, \; di + d$ (those that are $\le n-1$).
+노드 $i$의 **자식**: 색인 $di + 1, \; di + 2, \; \ldots, \; di + d$ 가운데 $n-1$ 이하인 것들.
 
-**Parent** of node $i$ (for $i > 0$):
+노드 $i$의 **부모**($i > 0$일 때):
 
 $$
 \text{parent}(i) = \left\lfloor \frac{i - 1}{d} \right\rfloor
 $$
 
-The tree has height:
+트리의 높이는 다음과 같다.
 
 $$
 h = \lfloor \log_d n \rfloor = \left\lfloor \frac{\ln n}{\ln d} \right\rfloor
 $$
 
-!!! example "A 3-ary Min-Heap"
+!!! example "3진 최소 힙"
     ```
     Array: [1, 3, 5, 2, 7, 8, 9, 6, 4, 10]
 
@@ -33,97 +33,97 @@ $$
             / | \   |   / | \
            7  8  9  6  4  10
     ```
-    Each node has at most 3 children. The last level may be partially filled.
-    Node at index 3 (value 2) has parent at index 0 (value 1): 2 > 1, valid.
-    Node at index 7 (value 6) has parent at index 2 (value 5): 6 > 5, valid.
+    노드마다 자식이 많아야 3개이다. 마지막 층은 일부만 찰 수 있다.
+    색인 3의 노드(값 2)의 부모는 색인 0(값 1)이다. 2 > 1이므로 올바르다.
+    색인 7의 노드(값 6)의 부모는 색인 2(값 5)이다. 6 > 5이므로 올바르다.
 
-## Operations
+## 연산
 
-### Sift-Up (for Insert and Decrease-Key)
+### 위로 올리기 (삽입과 열쇠 낮추기용)
 
-Sift-up compares a node with its single parent and swaps if the heap property is violated. Since the tree height is $\lfloor \log_d n \rfloor$, sift-up traverses at most this many levels with one comparison per level:
+위로 올리기는 노드를 하나뿐인 부모와 견주어 힙 성질이 어긋나면 자리를 바꾼다. 트리의 높이가 $\lfloor \log_d n \rfloor$이므로 위로 올리기는 많아야 그만큼의 층을 층마다 한 번씩 비교하며 훑는다.
 
 $$
 T_{\text{sift-up}} = O(\log_d n)
 $$
 
-### Sift-Down (for Extract-Min and Build-Heap)
+### 아래로 내리기 (최솟값 꺼내기와 힙 세우기용)
 
-Sift-down must find the minimum among a node's $d$ children before swapping. Each level requires $d - 1$ comparisons to find the minimum child, and sift-down traverses at most $\lfloor \log_d n \rfloor$ levels:
+아래로 내리기는 자리를 바꾸기 전에 노드의 자식 $d$개 가운데 가장 작은 것을 찾아야 한다. 층마다 가장 작은 자식을 찾는 데 비교가 $d - 1$번 들고, 아래로 내리기는 많아야 $\lfloor \log_d n \rfloor$개의 층을 훑는다.
 
 $$
 T_{\text{sift-down}} = O(d \log_d n)
 $$
 
-### Operation Complexities
+### 연산의 복잡도
 
-| Operation | Complexity |
+| 연산 | 복잡도 |
 |-----------|:----------:|
-| Insert | $O(\log_d n)$ |
-| Find-min | $O(1)$ |
-| Extract-min | $O(d \log_d n)$ |
-| Decrease-key | $O(\log_d n)$ |
-| Build-heap | $O(n)$ |
+| 삽입 | $O(\log_d n)$ |
+| 최솟값 찾기 | $O(1)$ |
+| 최솟값 꺼내기 | $O(d \log_d n)$ |
+| 열쇠 낮추기 | $O(\log_d n)$ |
+| 힙 세우기 | $O(n)$ |
 
-The build-heap complexity remains $O(n)$ by the same bottom-up argument as for binary heaps. The sum telescopes regardless of $d$.
+힙 세우기의 복잡도는 이진 힙과 같은 아래에서 위로의 논증으로 $O(n)$ 그대로이다. $d$과 무관하게 합이 망원경처럼 줄어든다.
 
-## The Tradeoff
+## 맞바꿈
 
-The key insight is that increasing $d$ creates opposing effects:
+핵심 통찰은 $d$을 키우면 서로 반대되는 효과가 생긴다는 것이다.
 
-- **Decrease-key becomes faster**: $O(\log_d n) = O(\log n / \log d)$, which decreases as $d$ grows.
-- **Extract-min becomes slower**: $O(d \log_d n) = O(d \log n / \log d)$, which increases with $d$ when $d$ grows beyond $\log n$.
+- **열쇠 낮추기가 빨라진다**: $O(\log_d n) = O(\log n / \log d)$이며 $d$이 커질수록 줄어든다.
+- **최솟값 꺼내기가 느려진다**: $O(d \log_d n) = O(d \log n / \log d)$이며 $d$이 $\log n$을 넘어서면 커진다.
 
-For algorithms like Dijkstra's shortest paths, which perform $|V|$ extract-min and $|E|$ decrease-key operations, the total heap cost is:
+최솟값 꺼내기를 $|V|$번, 열쇠 낮추기를 $|E|$번 하는 데이크스트라 최단 경로 같은 알고리즘에서 힙의 전체 비용은 다음과 같다.
 
 $$
 T = O\left(|V| \cdot d \cdot \frac{\log |V|}{\log d} + |E| \cdot \frac{\log |V|}{\log d}\right)
 $$
 
-Setting $d = \max(2, \lceil |E|/|V| \rceil)$ balances the two terms. For dense graphs where $|E| = \Theta(|V|^2)$, choosing $d = |V|$ gives:
+$d = \max(2, \lceil |E|/|V| \rceil)$으로 두면 두 항의 균형이 맞는다. $|E| = \Theta(|V|^2)$인 빽빽한 그래프에서 $d = |V|$으로 고르면 다음을 얻는다.
 
 $$
 T = O(|V|^2)
 $$
 
-which matches the performance of an unordered-array priority queue and is optimal for dense Dijkstra.
+이는 정렬되지 않은 배열 우선순위 큐의 성능과 같고 빽빽한 그래프의 데이크스트라에 최적이다.
 
-## Implementation
+## 구현
 
 ```python
 """
-d-ary heap implementation.
+d진 힙 구현.
 
-A d-ary heap generalizes the binary heap by giving each node
-up to d children. This trades off extract-min cost against
-decrease-key cost, controlled by the branching factor d.
+d진 힙은 노드마다 자식을 d개까지 주어 이진 힙을 일반화한다.
+이는 갈래 인수 d으로 다스리는, 최솟값 꺼내기 비용과
+열쇠 낮추기 비용의 맞바꿈이다.
 """
 
 
-# === d-ary Heap ===
+# === d진 힙 ===
 
 class DAryHeap:
-    """A min-d-ary-heap stored as an array."""
+    """배열로 담은 최소 d진 힙."""
 
     def __init__(self, d=2):
-        """Initialize with branching factor d >= 2."""
+        """갈래 인수 d >= 2으로 시작한다."""
         if d < 2:
             raise ValueError("Branching factor d must be >= 2")
         self.d = d
         self.heap = []
 
     def _parent(self, i):
-        """Return the parent index of node i."""
+        """노드 i의 부모 색인을 돌려준다."""
         return (i - 1) // self.d
 
     def _children(self, i):
-        """Return the range of children indices for node i."""
+        """노드 i의 자식 색인 범위를 돌려준다."""
         start = self.d * i + 1
         end = min(start + self.d, len(self.heap))
         return range(start, end)
 
     def _sift_up(self, i):
-        """Move node i up until the heap property is restored."""
+        """힙 성질이 되살아날 때까지 노드 i를 위로 옮긴다."""
         while i > 0:
             parent = self._parent(i)
             if self.heap[i] < self.heap[parent]:
@@ -133,7 +133,7 @@ class DAryHeap:
                 break
 
     def _sift_down(self, i):
-        """Move node i down until the heap property is restored."""
+        """힙 성질이 되살아날 때까지 노드 i를 아래로 옮긴다."""
         n = len(self.heap)
         while True:
             min_idx = i
@@ -146,18 +146,18 @@ class DAryHeap:
             i = min_idx
 
     def insert(self, key):
-        """Insert a key into the heap. O(log_d n)."""
+        """힙에 열쇠를 넣는다. O(log_d n)."""
         self.heap.append(key)
         self._sift_up(len(self.heap) - 1)
 
     def find_min(self):
-        """Return the minimum key. O(1)."""
+        """가장 작은 열쇠를 돌려준다. O(1)."""
         if not self.heap:
             raise IndexError("find_min from empty heap")
         return self.heap[0]
 
     def extract_min(self):
-        """Remove and return the minimum key. O(d * log_d n)."""
+        """가장 작은 열쇠를 없애고 돌려준다. O(d * log_d n)."""
         if not self.heap:
             raise IndexError("extract_min from empty heap")
         min_val = self.heap[0]
@@ -168,7 +168,7 @@ class DAryHeap:
         return min_val
 
     def decrease_key(self, i, new_key):
-        """Decrease the key at index i to new_key. O(log_d n)."""
+        """색인 i의 열쇠를 new_key로 낮춘다. O(log_d n)."""
         if new_key > self.heap[i]:
             raise ValueError("New key is greater than current key")
         self.heap[i] = new_key
@@ -176,21 +176,21 @@ class DAryHeap:
 
     @classmethod
     def build_heap(cls, data, d=2):
-        """Build a d-ary heap from a list in O(n) time."""
+        """리스트로 d진 힙을 O(n) 시간에 세운다."""
         h = cls(d=d)
         h.heap = list(data)
-        # Sift down from the last parent to the root
+        # 마지막 부모에서 뿌리까지 아래로 내린다
         n = len(h.heap)
         for i in range((n - 2) // d, -1, -1):
             h._sift_down(i)
         return h
 
     def is_empty(self):
-        """Check if the heap is empty."""
+        """힙이 비었는지 살핀다."""
         return len(self.heap) == 0
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     import math
@@ -209,7 +209,7 @@ if __name__ == "__main__":
         height = math.floor(math.log(len(values)) / math.log(d))
         print(f"d={d}: height={height}, extracted={extracted}")
 
-    # Build-heap demonstration
+    # 힙 세우기 보이기
     print("\nBuild-heap (d=3):")
     h = DAryHeap.build_heap([7, 3, 8, 1, 5, 2, 9, 4, 6], d=3)
     extracted = []
@@ -218,7 +218,7 @@ if __name__ == "__main__":
     print(f"  Extracted: {extracted}")
 ```
 
-**Output:**
+**출력:**
 ```
 d=2: height=3, extracted=[1, 2, 3, 4, 5, 6, 7, 8, 9]
 d=3: height=1, extracted=[1, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -228,20 +228,53 @@ Build-heap (d=3):
   Extracted: [1, 2, 3, 4, 5, 6, 7, 8, 9]
 ```
 
-## Comparison with Binary Heap
+## 이진 힙과 견주기
 
-| Aspect | Binary Heap ($d=2$) | $d$-ary Heap |
+| 측면 | 이진 힙 ($d=2$) | $d$진 힙 |
 |--------|:-------------------:|:------------:|
-| Height | $\lfloor \log_2 n \rfloor$ | $\lfloor \log_d n \rfloor$ |
-| Insert | $O(\log_2 n)$ | $O(\log_d n)$ |
-| Extract-min | $O(\log_2 n)$ | $O(d \log_d n)$ |
-| Decrease-key | $O(\log_2 n)$ | $O(\log_d n)$ |
-| Cache behavior | Good | Better for large $d$ (wider, shallower) |
+| 높이 | $\lfloor \log_2 n \rfloor$ | $\lfloor \log_d n \rfloor$ |
+| 삽입 | $O(\log_2 n)$ | $O(\log_d n)$ |
+| 최솟값 꺼내기 | $O(\log_2 n)$ | $O(d \log_d n)$ |
+| 열쇠 낮추기 | $O(\log_2 n)$ | $O(\log_d n)$ |
+| 캐시 움직임 | 좋음 | $d$이 크면 더 좋음 (더 넓고 얕다) |
 
-!!! tip "Practical Guidance"
-    In practice, $d = 4$ often outperforms $d = 2$ due to better cache utilization -- the shallower tree means fewer cache misses during sift-down. For Dijkstra on dense graphs, $d = |E|/|V|$ is theoretically optimal.
+!!! tip "실제 지침"
+    실제로는 캐시를 더 잘 써서 $d = 4$가 $d = 2$보다 나은 경우가 많다. 트리가 얕으면 아래로 내릴 때 캐시를 덜 놓친다. 빽빽한 그래프의 데이크스트라에서는 $d = |E|/|V|$이 이론상 최적이다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. *Introduction to Algorithms* (4th ed.), Problem 6-2: d-ary Heaps. MIT Press.
 - Johnson, D. B. "Efficient algorithms for shortest paths in sparse networks." *Journal of the ACM*, 24(1):1--13, 1977.
+
+
+## 연습문제
+
+**연습문제 1.**
+d진 힙의 힙 성질을 밝히고 최솟값·최댓값 원소가 언제나 뿌리에 있음을 증명하라.
+
+??? success "연습문제 1 풀이"
+    힙 성질은 노드마다 열쇠가 자식보다 작거나 같거나(최소 힙) 크거나 같다(최대 힙)는 것이다. 뿌리에서 잎까지의 어떤 경로에서도 추이성이 성립하므로 뿌리가 모든 원소의 최솟값(또는 최댓값)이다.
+
+---
+
+**연습문제 2.**
+배열 $[4, 7, 2, 9, 1, 5, 3]$에서 d진 힙을 따라가라. 단계마다와 그 결과로 나오는 힙을 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽의 연산을 주어진 배열에 적용하라. 단계마다 배열과 그것이 나타내는 트리를 보여라. 비교와 자리바꿈을 짚어라.
+
+---
+
+**연습문제 3.**
+d진 힙의 시간 복잡도를 증명하라. 그 한계는 빡빡한가?
+
+??? success "연습문제 3 풀이"
+    이 연산은 뿌리에서 잎까지 또는 잎에서 뿌리까지의 경로를 훑으며 층마다 $O(1)$의 일을 한다. 완전 이진 트리의 높이는 $\lfloor\log_2 n\rfloor$이므로 모두 $O(\log n)$이다. 이 한계는 빡빡하다. 높이 전체를 훑도록 강요하는 입력이 있다. $\square$
+
+---
+
+**연습문제 4.**
+$k = 5$이고 어휘가 $n = 32{,}000$인 빔 탐색에서 힙으로 뽑기(원소 $n$개에서 상위 $k$개)와 정렬을 견주어라.
+
+??? success "연습문제 4 풀이"
+    정렬은 $O(n\log n) = O(32000 \times 15) \approx 48만$번의 연산이 든다. 힙(크기 $k$인 최소 힙)은 $O(n\log k) = O(32000 \times 2.3) \approx 7만 4천$번이다. 힙이 약 $6.5$배 빠르다. 아니면 `torch.topk`가 GPU에 맞추어 다듬은 부분 정렬 알고리즘을 쓴다.

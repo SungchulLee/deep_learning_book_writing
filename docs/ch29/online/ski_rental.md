@@ -1,103 +1,136 @@
-# Ski Rental Problem
+# 스키 빌리기 문제
 
-Should you rent equipment each time you use it, or pay a large upfront cost to own it? This dilemma — balancing recurring costs against a one-time investment when the duration of need is unknown — is the **ski rental problem**, the canonical example of a **rent-or-buy** online problem. Despite its simplicity, it captures a fundamental tradeoff that appears in cloud computing (renting VMs vs buying servers), software licensing, and even deep learning (recomputing activations vs storing them in memory).
+쓸 때마다 장비를 빌릴 것인가, 아니면 큰돈을 한 번에 치러 가질 것인가? 얼마나 오래 쓸지 모르는 채 되풀이되는 비용과 한 번의 투자를 저울질하는 이 딜레마가 **빌릴까 살까** 온라인 문제의 본보기인 **스키 빌리기 문제**이다. 단순해 보이지만 구름 셈(가상 기계 빌리기 대 일꾼 사기), 프로그램 쓸 권리, 나아가 깊은 배움(깨움을 다시 셈하기 대 기억에 담아 두기)에 나타나는 근본 맞바꿈을 담고 있다.
 
-## Problem Formulation
+## 문제 정식화
 
-A skier goes skiing for an unknown number of days $n$. Each day, the skier can either:
+스키 타는 이가 며칠인지 모르는 $n$일 동안 스키를 탄다. 날마다 다음 가운데 하나를 할 수 있다:
 
-- **Rent** skis for \$1, or
-- **Buy** skis for \$b (and never pay again).
+- 스키를 \$1에 **빌리거나**
+- 스키를 \$b에 **산다**(그 뒤로는 더 치르지 않는다).
 
-Once the skier buys, all future days are free. The skier does not know $n$ in advance and must decide each day whether to rent or buy. The goal is to minimize total cost relative to the offline optimum.
+한 번 사면 그 뒤의 날은 모두 공짜다. 스키 타는 이는 $n$을 미리 모르며 날마다 빌릴지 살지 정해야 한다. 목표는 오프라인 최적에 견주어 온 비용을 가장 작게 하는 것이다.
 
-The offline optimum is:
+오프라인 최적은 다음과 같다:
 
 $$
 C_{\text{OPT}}(n) = \min(n, b)
 $$
 
-If $n < b$, it is cheaper to rent every day (cost $n$). If $n \geq b$, it is cheaper to buy on day 1 (cost $b$).
+$n < b$이면 날마다 빌리는 편이 싸다(비용 $n$). $n \geq b$이면 첫날에 사는 편이 싸다(비용 $b$).
 
-## Deterministic Strategy
+## 정해진 셈속
 
-The natural deterministic strategy is: **rent for exactly $b - 1$ days, then buy on day $b$**.
+자연스러운 정해진 셈속은 **꼭 $b - 1$일 빌린 뒤 $b$일째에 사는 것**이다.
 
-**Analysis.** Consider two cases:
+**살피기.** 두 경우를 보자:
 
-- **Case 1: $n \leq b - 1$.** The skier rents every day for a total cost of $n$. The offline optimum is also $n$. Competitive ratio: 1.
-- **Case 2: $n \geq b$.** The skier rents for $b - 1$ days (cost $b - 1$) and then buys (cost $b$), for a total of $2b - 1$. The offline optimum is $b$. Competitive ratio:
+- **경우 1: $n \leq b - 1$.** 날마다 빌려 온 비용이 $n$이다. 오프라인 최적도 $n$이다. 겨룸 비: 1.
+- **경우 2: $n \geq b$.** $b - 1$일 빌리고(비용 $b - 1$) 산다(비용 $b$). 모두 $2b - 1$이다. 오프라인 최적은 $b$이다. 겨룸 비:
 
 $$
 \frac{2b - 1}{b} = 2 - \frac{1}{b} < 2
 $$
 
-**Theorem.** The strategy "rent $b - 1$ times, then buy" is strictly 2-competitive. Moreover, no deterministic algorithm can achieve a competitive ratio better than $2 - 1/b$.
+**정리.** "$b - 1$번 빌린 뒤 사기" 셈속은 엄밀히 2겨룸이다. 나아가 어떤 정해진 알고리즘도 겨룸 비를 $2 - 1/b$보다 좋게 할 수 없다.
 
-*Proof of lower bound.* Consider any deterministic algorithm $A$ that buys on day $d$ (if it ever buys). An adversary sets $n = d$:
+*아래 가둠 밝힘.* $d$일째에 사는(사기는 한다면) 어떤 정해진 알고리즘 $A$을 보자. 맞수는 $n = d$으로 둔다:
 
-- If $A$ buys on day $d$: $C_A = (d - 1) + b$ and $C_{\text{OPT}} = \min(d, b)$.
-- If $d \leq b$: $C_A/C_{\text{OPT}} = (d - 1 + b)/d$. This is maximized near $d = b$, giving $(2b - 1)/b$.
-- If $A$ never buys: the adversary sets $n$ arbitrarily large, making $C_A/C_{\text{OPT}}$ unbounded.
+- $A$이 $d$일째에 사면 $C_A = (d - 1) + b$이고 $C_{\text{OPT}} = \min(d, b)$이다.
+- $d \leq b$이면 $C_A/C_{\text{OPT}} = (d - 1 + b)/d$이다. $d = b$ 언저리에서 가장 커져 $(2b - 1)/b$이다.
+- $A$이 끝내 사지 않으면 맞수가 $n$을 얼마든지 크게 하여 $C_A/C_{\text{OPT}}$이 가둬지지 않는다.
 
-Therefore no deterministic algorithm achieves ratio better than $2 - 1/b$. $\square$
+그러므로 어떤 정해진 알고리즘도 비를 $2 - 1/b$보다 좋게 하지 못한다. $\square$
 
-## Randomized Strategy
+## 아무렇게 하는 셈속
 
-Randomization improves the competitive ratio. The skier chooses a random day $D$ on which to buy, drawn from a carefully designed distribution.
+아무렇게 하기가 겨룸 비를 좋게 한다. 스키 타는 이는 조심스레 설계한 분포에서 살 날 $D$을 아무렇게나 뽑는다.
 
-**Theorem.** The optimal randomized competitive ratio against an oblivious adversary is:
+**정리.** 눈감은 맞수 앞에서 가장 좋은 아무 겨룸 비는 다음과 같다:
 
 $$
 c^* = \frac{e}{e - 1} \approx 1.5820
 $$
 
-### Construction of the Optimal Distribution
+### 가장 좋은 분포 짓기
 
-Define the probability of buying on day $d$ as:
+$d$일째에 살 확률을 다음과 같이 뜻매김한다:
 
 $$
 P(D = d) = \begin{cases} \frac{1}{b} \left(\frac{b-1}{b}\right)^{d-1} & \text{if } 1 \leq d \leq b \\ 0 & \text{if } d > b \end{cases}
 $$
 
-This is (approximately) a truncated geometric distribution. The expected cost of this strategy satisfies:
+이는 (거의) 잘라 낸 기하 분포이다. 이 셈속의 기대 비용은 다음을 만족한다:
 
 $$
 \frac{\mathbb{E}[C_A(n)]}{C_{\text{OPT}}(n)} \leq \frac{e}{e - 1}
 $$
 
-for all $n$.
+모든 $n$에 대해.
 
-!!! tip "Intuition for $e/(e-1)$"
-    The ratio $e/(e-1)$ arises because the optimal distribution balances the probability of buying too early (wasting money if the season is short) against buying too late (overpaying rent). The geometric distribution achieves this balance, and the ratio $e/(e-1)$ emerges in the continuous limit as $b \to \infty$.
+!!! tip "$e/(e-1)$의 느낌"
+    비 $e/(e-1)$이 나오는 까닭은 가장 좋은 분포가 너무 일찍 사는 것(철이 짧으면 돈을 버림)과 너무 늦게 사는 것(빌림 값을 더 치름)의 확률을 저울질하기 때문이다. 기하 분포가 이 균형을 이루고 $b \to \infty$의 이어진 끝값에서 비 $e/(e-1)$이 나타난다.
 
-## Generalizations
+## 넓힘
 
-### Multi-Slope Ski Rental
+### 여러 기울기 스키 빌리기
 
-Instead of a binary rent-or-buy decision, the skier faces multiple options with different costs and durations (e.g., daily rental, weekly pass, season pass). The competitive ratio generalizes accordingly.
+빌릴까 살까의 두 갈래 대신 값과 기간이 다른 여러 선택이 있다(보기로 하루 빌리기, 한 주 표, 한 철 표). 겨룸 비도 그에 맞게 넓혀진다.
 
-### TCP Acknowledgment Problem
+### TCP 받음 알림 문제
 
-A server accumulates acknowledgments and must decide when to send them: one at a time (rent) or in a batch with fixed overhead (buy). This is equivalent to ski rental and has the same competitive ratio.
+일꾼이 받음 알림을 쌓아 두었다가 언제 보낼지 정해야 한다. 하나씩 보내거나(빌리기) 붙박인 덧짐과 함께 묶어 보낸다(사기). 이는 스키 빌리기와 같으며 겨룸 비도 같다.
 
-### Bahncard Problem
+### 철도 카드 문제
 
-A commuter decides whether to buy a discount card (fixed cost) that reduces future trip prices. This generalization includes partial savings rather than free future use.
+오가는 이가 앞으로의 삯을 깎아 주는 할인 카드(붙박인 값)를 살지 정한다. 이 넓힌 판은 앞으로 공짜가 아니라 얼마간 아끼는 경우를 담는다.
 
-## Connection to Deep Learning
+## 딥러닝과의 관계
 
-The rent-or-buy tradeoff appears in several deep learning settings:
+빌릴까 살까의 맞바꿈은 깊은 배움의 여러 자리에 나타난다:
 
-- **Cloud computing**: training a model requires GPU hours. Renting on-demand instances costs more per hour than reserved instances, but reserved instances require upfront commitment. The ski rental framework helps decide the break-even point.
-- **Gradient checkpointing**: storing activations (buy memory) vs recomputing them during backpropagation (rent compute). The tradeoff depends on how many backward passes will use the stored activation.
-- **Model compilation**: JIT-compiling a model graph has upfront cost but speeds up future executions. The decision to compile depends on how many times the graph will be executed.
+- **구름 셈**: 모델을 익히려면 GPU 시간이 든다. 그때그때 빌리는 것은 미리 잡아 두는 것보다 시간당 값이 비싸지만 미리 잡으려면 먼저 약속해야 한다. 스키 빌리기 틀이 본전 지점을 정하는 데 도움이 된다.
+- **기울기 되짚기 표시**: 깨움을 담아 두기(기억을 사기)와 거꿀 퍼뜨리기 때 다시 셈하기(셈을 빌리기). 맞바꿈은 담아 둔 깨움을 거꿀 지나기가 몇 번이나 쓰느냐에 매인다.
+- **모델 옮겨 짓기**: 모델 그래프를 그때그때 옮겨 지으면 처음에 값이 들지만 뒤의 돌림이 빨라진다. 옮겨 지을지는 그래프를 몇 번 돌릴지에 매인다.
 
-## Summary
+## 요약
 
-The ski rental problem distills the rent-or-buy dilemma into its purest form. The deterministic strategy of renting $b - 1$ times then buying achieves a tight competitive ratio of $2 - 1/b$. Randomization improves this to $e/(e-1) \approx 1.58$, demonstrating the power of randomized online algorithms. The problem's simplicity makes it an ideal starting point for understanding competitive analysis while its generalizations connect to real-world infrastructure decisions.
+스키 빌리기 문제는 빌릴까 살까의 딜레마를 가장 순수한 꼴로 뽑아낸다. $b - 1$번 빌린 뒤 사는 정해진 셈속은 빈틈없는 겨룸 비 $2 - 1/b$을 이룬다. 아무렇게 하기가 이를 $e/(e-1) \approx 1.58$으로 좋게 하여 아무 온라인 알고리즘의 힘을 보여 준다. 이 문제는 단순해서 겨룸 살피기를 이해하는 좋은 출발점이 되고, 그 넓힌 판은 실제 바탕 시설의 결정과 이어진다.
 
-## References
+## 참고 문헌
 
 - [Online Computation and Competitive Analysis (Borodin and El-Yaniv)](https://www.amazon.com/dp/0521619467)
 - [Data Streams: Algorithms and Applications (Muthukrishnan)](https://www.cs.rutgers.edu/~muthu/stream-1-1.ps)
+
+
+## 연습문제
+
+**연습문제 1.**
+스키 빌리기 문제를 적어라. 가장 좋은 정해진 셈속과 그 겨룸 비는 무엇인가?
+
+??? success "연습문제 1 풀이"
+    스키 빌리기: 며칠인지 모르는 동안 스키를 탄다. 빌리기는 하루 \$1, 사기는 \$B이다. 결정: 언제(사기는 한다면) 사느냐. $T$일 탄다면 OPT = $\min(T, B)$이다. 가장 좋은 정해진 셈속: $B$일째에 산다. $T \leq B$이면 날마다 빌려 비용 $T$ = OPT이다. $T > B$이면 비용 = $B - 1 + B = 2B - 1$, OPT $= B$이다. 비 = $(2B-1)/B < 2$. 겨룸 비: $2 - 1/B \to 2$.
+
+---
+
+**연습문제 2.**
+스키 빌리기의 가장 좋은 아무 셈속을 밝히고 그 겨룸 비가 $e/(e-1)$임을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    가장 좋은 아무 셈속: 분포 $F$에서 뽑은 날 $d$에 산다. 이어진 판으로 느슨히 하면 $t \in [0, B]$에서 누적 분포 $F(t) = 1 - (1 - t/B)$으로 때 $t$에 산다... 더 엄밀히는 가장 좋은 분포의 확률 밀도가 $t \in [0, B]$에서 $f(t) = e^{t/B}/(Be^1 - B)$이다. 이는 모든 $T$에 대해 $E[\text{비용}] \leq \frac{e}{e-1} \cdot \text{OPT}$을 이룬다. 비 $e/(e-1) \approx 1.582$은 눈감은 맞수를 상대하는 아무 알고리즘에서 가장 좋은 값이다.
+
+---
+
+**연습문제 3.**
+구름 셈에서 스키 빌리기 틀의 실제 보기를 들어라.
+
+??? success "연습문제 3 풀이"
+    구름 셈: 가상 기계를 시간당 \$1에 빌리거나 앞으로의 쓰임을 모두 덮는 자리를 \$B에 미리 잡는다. 일감이 얼마나 오래갈지 모른다. $T < B$시간이면 빌리는 편이 싸다. $T > B$이면 미리 잡는 편이 싸다. 스키 빌리기 풀이가 그대로 쓰인다. $B$시간 빌린 뒤 미리 잡아 겨룸 비 2을 이룬다. 일감 기간의 헤아림이 있으면(보기로 지난 자료에서) 배움으로 도운 알고리즘이 헤아림이 맞을 때 비를 1 가까이로 줄일 수 있다.
+
+---
+
+**연습문제 4.**
+스키 빌리기 문제를 여러 선택(보기로 하루, 한 달, 한 해 구독)으로 넓혀라. 겨룸 비는 어떻게 달라지는가?
+
+??? success "연습문제 4 풀이"
+    값 층이 $k$개면(보기로 하루 \$1, 한 달 \$20, 한 해 \$200) 문제가 여러 켜 스키 빌리기가 된다. 가장 좋은 정해진 셈속의 겨룸 비는 선택이 $k$개일 때 $O(\log k)$이다(선택이 2개면 2). 층마다 지금 켜에서 쓴 돈이 쌓인 정도를 보고 언제 '올릴지' 정한다. 이는 구름 셈의 층별 값매김, 구독 서비스, 바탕 시설 투자 결정을 나타낸다. 층이 바뀌는 지점에 대해 동적 짜기로 가장 좋게 풀 수 있다.

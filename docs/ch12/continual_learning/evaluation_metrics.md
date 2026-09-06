@@ -1,34 +1,27 @@
-# Evaluation Metrics for Continual Learning
+# 이어 배우기의 평가 지표
+## 들어가며
 
+이어 배우기 연구에서 제대로 된 평가는 매우 중요하다. 정확도 하나로 충분할 때가 많은 보통의 기계 학습과 달리, 이어 배우기는 성능의 여러 결을 담아내려면 지표가 여럿 필요하다. 곧 새 과제를 배우는 힘, 옛 과제를 잊는 성향, 그리고 과제 사이의 앎 옮김이다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+이 절은 이어 배우기에서 쓰는 표준 평가 규약과 지표를, 그 수학적 정의와 파이토치 구현과 함께 내보인다.
 
-## Introduction
+## 평가 규약
 
-Proper evaluation is critical in continual learning research. Unlike standard machine learning where a single accuracy metric often suffices, continual learning requires multiple metrics to capture different aspects of performance: the ability to learn new tasks, the tendency to forget old ones, and the transfer of knowledge between tasks.
+### 정확도 행렬
 
-This section presents the standard evaluation protocol and metrics used in continual learning, along with their mathematical definitions and PyTorch implementations.
-
-## Evaluation Protocol
-
-### The Accuracy Matrix
-
-The foundation of continual learning evaluation is the **accuracy matrix** $A \in \mathbb{R}^{T \times T}$, where:
+이어 배우기 평가의 바탕은 **정확도 행렬** $A \in \mathbb{R}^{T \times T}$이며, 여기서 다음과 같다.
 
 $$
-
-A_{i,j} = \text{Accuracy on task } i \text{ after training on task } j
-
+A_{i,j} = \text{과제 } j \text{까지 익힌 뒤 과제 } i \text{의 정확도}
 $$
 
-Key properties:
+핵심 성질은 다음과 같다.
 
-- **Lower triangular**: Only entries where $j \geq i$ are defined (can't evaluate before learning)
-- **Diagonal**: $A_{i,i}$ is the accuracy immediately after learning task $i$
-- **Last column**: $A_{i,T}$ is the final accuracy on task $i$
+- **아래 삼각**: $j \geq i$인 자리만 정의된다(배우기 전에는 평가할 수 없다)
+- **대각선**: $A_{i,i}$은 과제 $i$을 막 배운 직후의 정확도이다
+- **마지막 열**: $A_{i,T}$은 과제 $i$의 마지막 정확도이다
 
-Example accuracy matrix for 5 tasks:
+과제 5개에 대한 정확도 행렬 보기이다.
 
 ```
         After Training Task
@@ -40,33 +33,33 @@ T3    [  -       -       -     97.5%   58.9%]
 T4    [  -       -       -       -     98.1%]
 ```
 
-### Evaluation Procedure
+### 평가 절차
 
 ```python
 def evaluate_continual_learning(model, test_loaders, train_loaders, 
                                 train_fn, epochs_per_task, device):
     """
-    Standard evaluation procedure for continual learning.
+    이어 배우기의 표준 평가 절차.
     
-    Args:
-        model: Neural network model
-        test_loaders: List of test DataLoaders for each task
-        train_loaders: List of train DataLoaders for each task
-        train_fn: Function to train on a single task
-        epochs_per_task: Training epochs per task
-        device: Computation device
+    인수:
+        model: 신경망 모델
+        test_loaders: 과제마다의 시험 DataLoader 목록
+        train_loaders: 과제마다의 학습 DataLoader 목록
+        train_fn: 과제 하나로 익히는 함수
+        epochs_per_task: 과제마다의 학습 시대 수
+        device: 셈할 장치
     
-    Returns:
-        accuracy_matrix: T x T matrix of accuracies
+    반환값:
+        accuracy_matrix: T x T 정확도 행렬
     """
     num_tasks = len(train_loaders)
     accuracy_matrix = np.zeros((num_tasks, num_tasks))
     
     for task_id in range(num_tasks):
-        # Train on current task
+        # 지금 과제로 익힌다
         train_fn(model, train_loaders[task_id], epochs_per_task, device)
         
-        # Evaluate on ALL tasks seen so far
+        # 지금까지 본 모든 과제에서 평가한다
         for eval_id in range(task_id + 1):
             accuracy_matrix[eval_id, task_id] = evaluate_single_task(
                 model, test_loaders[eval_id], device
@@ -74,9 +67,8 @@ def evaluate_continual_learning(model, test_loaders, train_loaders,
     
     return accuracy_matrix
 
-
 def evaluate_single_task(model, test_loader, device):
-    """Compute accuracy on a single task."""
+    """과제 하나의 정확도를 셈한다."""
     model.eval()
     correct, total = 0, 0
     
@@ -91,62 +83,58 @@ def evaluate_single_task(model, test_loader, device):
     return 100.0 * correct / total
 ```
 
-## Primary Metrics
+## 으뜸 지표
 
-### Average Accuracy (AA)
+### 평균 정확도(AA)
 
-The most fundamental metric—mean accuracy across all tasks at the end of training:
+가장 근본이 되는 지표로, 학습이 끝난 뒤 모든 과제에 걸친 평균 정확도이다.
 
 $$
-
 \text{AA} = \frac{1}{T} \sum_{i=1}^{T} A_{i,T}
-
 $$
 
-**Interpretation**: Overall performance across all tasks. Higher is better.
+**풀이**: 모든 과제에 걸친 전체 성능이다. 높을수록 좋다.
 
-**Limitations**: Doesn't distinguish between forgetting and inability to learn.
+**한계**: 잊은 것인지 아예 배우지 못한 것인지를 가르지 못한다.
 
 ```python
 def average_accuracy(accuracy_matrix):
     """
-    Compute average accuracy across all tasks.
+    모든 과제에 걸친 평균 정확도를 셈한다.
     
-    Args:
-        accuracy_matrix: T x T accuracy matrix
+    인수:
+        accuracy_matrix: T x T 정확도 행렬
     
-    Returns:
-        Average final accuracy (percentage)
+    반환값:
+        마지막 평균 정확도(백분율)
     """
     return np.mean(accuracy_matrix[:, -1])
 ```
 
-### Backward Transfer (BWT)
+### 뒤로의 옮김(BWT)
 
-Measures how much learning new tasks affects performance on old tasks:
+새 과제를 배우는 일이 옛 과제의 성능에 얼마나 영향을 주는지 잰다.
 
 $$
-
 \text{BWT} = \frac{1}{T-1} \sum_{i=1}^{T-1} (A_{i,T} - A_{i,i})
-
 $$
 
-**Interpretation**:
+**풀이**:
 
-- **Negative BWT**: Forgetting occurred (common case)
-- **Zero BWT**: No forgetting
-- **Positive BWT**: Learning new tasks improved old task performance (positive backward transfer)
+- **음의 BWT**: 잊음이 일어났다(흔한 경우)
+- **0인 BWT**: 잊음이 없다
+- **양의 BWT**: 새 과제를 배워 옛 과제의 성능이 좋아졌다(뒤로의 좋은 옮김)
 
 ```python
 def backward_transfer(accuracy_matrix):
     """
-    Compute backward transfer (negative = forgetting).
+    뒤로의 옮김을 셈한다(음수면 잊음).
     
-    Args:
-        accuracy_matrix: T x T accuracy matrix
+    인수:
+        accuracy_matrix: T x T 정확도 행렬
     
-    Returns:
-        Average backward transfer (percentage)
+    반환값:
+        평균 뒤로의 옮김(백분율)
     """
     T = accuracy_matrix.shape[0]
     if T <= 1:
@@ -159,35 +147,33 @@ def backward_transfer(accuracy_matrix):
     return bwt / (T - 1)
 ```
 
-### Forward Transfer (FWT)
+### 앞으로의 옮김(FWT)
 
-Measures how much previous learning helps with new tasks:
+앞선 배움이 새 과제에 얼마나 도움이 되는지 잰다.
 
 $$
-
 \text{FWT} = \frac{1}{T-1} \sum_{i=2}^{T} (A_{i,i} - A_i^{\text{rand}})
-
 $$
 
-where $A_i^{\text{rand}}$ is the accuracy of a randomly initialized model on task $i$.
+여기서 $A_i^{\text{rand}}$은 아무렇게나 초기화한 모델의 과제 $i$ 정확도이다.
 
-**Interpretation**:
+**풀이**:
 
-- **Positive FWT**: Previous learning helps new tasks
-- **Zero FWT**: No transfer
-- **Negative FWT**: Previous learning hurts new task learning
+- **양의 FWT**: 앞선 배움이 새 과제에 도움이 된다
+- **0인 FWT**: 옮김이 없다
+- **음의 FWT**: 앞선 배움이 새 과제 배우기를 해친다
 
 ```python
 def forward_transfer(accuracy_matrix, random_init_accuracies):
     """
-    Compute forward transfer.
+    앞으로의 옮김을 셈한다.
     
-    Args:
-        accuracy_matrix: T x T accuracy matrix
-        random_init_accuracies: Accuracies of random model on each task
+    인수:
+        accuracy_matrix: T x T 정확도 행렬
+        random_init_accuracies: 과제마다 무작위 모델의 정확도
     
-    Returns:
-        Average forward transfer (percentage)
+    반환값:
+        평균 앞으로의 옮김(백분율)
     """
     T = accuracy_matrix.shape[0]
     if T <= 1:
@@ -200,62 +186,56 @@ def forward_transfer(accuracy_matrix, random_init_accuracies):
     return fwt / (T - 1)
 ```
 
-### Learning Accuracy (LA)
+### 배움 정확도(LA)
 
-Measures the model's ability to learn each task when first encountered:
+과제를 처음 만났을 때 모델이 그것을 배우는 힘을 잰다.
 
 $$
-
 \text{LA} = \frac{1}{T} \sum_{i=1}^{T} A_{i,i}
-
 $$
 
-**Interpretation**: Average accuracy immediately after learning. Should be high for a good learner.
+**풀이**: 배운 직후의 평균 정확도이다. 잘 배우는 모델이라면 높아야 한다.
 
 ```python
 def learning_accuracy(accuracy_matrix):
     """
-    Compute average learning accuracy (diagonal mean).
+    평균 배움 정확도를 셈한다(대각선의 평균).
     
-    Args:
-        accuracy_matrix: T x T accuracy matrix
+    인수:
+        accuracy_matrix: T x T 정확도 행렬
     
-    Returns:
-        Average learning accuracy (percentage)
+    반환값:
+        평균 배움 정확도(백분율)
     """
     return np.mean(np.diag(accuracy_matrix))
 ```
 
-## Secondary Metrics
+## 버금 지표
 
-### Forgetting Measure (FM)
+### 잊음 재기(FM)
 
-Maximum forgetting observed for each task:
+과제마다 관찰된 가장 큰 잊음이다.
 
 $$
-
 F_i = \max_{j \in \{i, \ldots, T-1\}} (A_{i,j} - A_{i,T})
-
 $$
 
 $$
-
 \text{FM} = \frac{1}{T-1} \sum_{i=1}^{T-1} F_i
-
 $$
 
-**Note**: FM uses the maximum drop rather than the final drop, accounting for non-monotonic forgetting patterns.
+**참고**: FM은 마지막 낙폭이 아니라 가장 큰 낙폭을 쓰는데, 잊음이 한결같이 늘지 않는 본새까지 담기 위해서이다.
 
 ```python
 def forgetting_measure(accuracy_matrix):
     """
-    Compute forgetting measure (max forgetting per task).
+    잊음 재기를 셈한다(과제마다 가장 큰 잊음).
     
-    Args:
-        accuracy_matrix: T x T accuracy matrix
+    인수:
+        accuracy_matrix: T x T 정확도 행렬
     
-    Returns:
-        Average maximum forgetting (percentage)
+    반환값:
+        평균 최대 잊음(백분율)
     """
     T = accuracy_matrix.shape[0]
     if T <= 1:
@@ -263,57 +243,51 @@ def forgetting_measure(accuracy_matrix):
     
     forgetting = 0.0
     for i in range(T - 1):
-        # Max accuracy achieved at any point
+        # 어느 시점에서든 다다른 가장 높은 정확도
         max_acc = np.max(accuracy_matrix[i, i:])
-        # Final accuracy
+        # 마지막 정확도
         final_acc = accuracy_matrix[i, -1]
         forgetting += max_acc - final_acc
     
     return forgetting / (T - 1)
 ```
 
-### Intransigence Measure (IM)
+### 뻣뻣함 재기(IM)
 
-Measures inability to learn new tasks compared to training from scratch:
+맨바닥부터 익히는 것에 견주어 새 과제를 배우지 못하는 정도를 잰다.
 
 $$
-
 \text{IM} = \frac{1}{T-1} \sum_{i=2}^{T} (A_i^{\text{joint}} - A_{i,i})
-
 $$
 
-where $A_i^{\text{joint}}$ is the accuracy when training on task $i$ from scratch (or jointly with other tasks).
+여기서 $A_i^{\text{joint}}$은 과제 $i$을 맨바닥부터(또는 다른 과제와 함께) 익혔을 때의 정확도이다.
 
-**Interpretation**: How much does prior learning hinder new task acquisition?
+**풀이**: 앞선 배움이 새 과제를 익히는 데 얼마나 걸림돌이 되는가?
 
-### Memory Stability (MS)
+### 기억 안정성(MS)
 
-Variance in performance on old tasks over time:
+때에 따라 옛 과제의 성능이 얼마나 흔들리는지이다.
 
 $$
-
 \text{MS}_i = \text{Var}(A_{i,i}, A_{i,i+1}, \ldots, A_{i,T})
-
 $$
 
 $$
-
 \text{MS} = \frac{1}{T-1} \sum_{i=1}^{T-1} \text{MS}_i
-
 $$
 
-Lower variance indicates more stable performance.
+흩어짐이 작을수록 성능이 더 한결같다.
 
 ```python
 def memory_stability(accuracy_matrix):
     """
-    Compute memory stability (lower variance = more stable).
+    기억 안정성을 셈한다(흩어짐이 작을수록 안정적이다).
     
-    Args:
-        accuracy_matrix: T x T accuracy matrix
+    인수:
+        accuracy_matrix: T x T 정확도 행렬
     
-    Returns:
-        Average variance in task performance
+    반환값:
+        과제 성능의 평균 흩어짐
     """
     T = accuracy_matrix.shape[0]
     if T <= 1:
@@ -321,45 +295,45 @@ def memory_stability(accuracy_matrix):
     
     stability = 0.0
     for i in range(T - 1):
-        # Variance of task i's accuracy over time
+        # 때에 따른 과제 i 정확도의 흩어짐
         task_accs = accuracy_matrix[i, i:]
         stability += np.var(task_accs)
     
     return stability / (T - 1)
 ```
 
-## Comprehensive Evaluation Class
+## 두루 갖춘 평가 클래스
 
 ```python
 class ContinualLearningMetrics:
     """
-    Comprehensive metrics computation for continual learning.
+    이어 배우기의 지표를 두루 셈하기.
     
-    This class computes and stores all standard metrics from an accuracy matrix.
+    이 클래스는 정확도 행렬에서 표준 지표를 모두 셈해 담아 둔다.
     """
     
     def __init__(self, accuracy_matrix, random_init_accuracies=None):
         """
-        Initialize with accuracy matrix.
+        정확도 행렬로 초기화한다.
         
-        Args:
-            accuracy_matrix: T x T numpy array of accuracies
-            random_init_accuracies: Optional baseline accuracies
+        인수:
+            accuracy_matrix: T x T 정확도 넘파이 배열
+            random_init_accuracies: 선택할 수 있는 밑금 정확도
         """
         self.accuracy_matrix = accuracy_matrix
         self.T = accuracy_matrix.shape[0]
         self.random_init = random_init_accuracies
         
-        # Compute all metrics
+        # 모든 지표를 셈한다
         self._compute_metrics()
     
     def _compute_metrics(self):
-        """Compute all metrics."""
-        # Primary metrics
+        """모든 지표를 셈한다."""
+        # 으뜸 지표
         self.average_accuracy = np.mean(self.accuracy_matrix[:, -1])
         self.learning_accuracy = np.mean(np.diag(self.accuracy_matrix))
         
-        # Backward transfer
+        # 뒤로의 옮김
         if self.T > 1:
             bwt = sum(self.accuracy_matrix[i, -1] - self.accuracy_matrix[i, i] 
                      for i in range(self.T - 1))
@@ -367,7 +341,7 @@ class ContinualLearningMetrics:
         else:
             self.backward_transfer = 0.0
         
-        # Forward transfer (if baseline provided)
+        # 앞으로의 옮김(밑금이 주어지면)
         if self.random_init is not None and self.T > 1:
             fwt = sum(self.accuracy_matrix[i, i] - self.random_init[i] 
                      for i in range(1, self.T))
@@ -375,7 +349,7 @@ class ContinualLearningMetrics:
         else:
             self.forward_transfer = None
         
-        # Forgetting measure
+        # 잊음 재기
         if self.T > 1:
             fm = 0.0
             for i in range(self.T - 1):
@@ -385,14 +359,14 @@ class ContinualLearningMetrics:
         else:
             self.forgetting_measure = 0.0
         
-        # Per-task forgetting
+        # 과제별 잊음
         self.per_task_forgetting = []
         for i in range(self.T - 1):
             self.per_task_forgetting.append(
                 self.accuracy_matrix[i, i] - self.accuracy_matrix[i, -1]
             )
         
-        # Memory stability
+        # 기억 안정성
         if self.T > 1:
             stability = sum(np.var(self.accuracy_matrix[i, i:]) 
                            for i in range(self.T - 1))
@@ -401,7 +375,7 @@ class ContinualLearningMetrics:
             self.memory_stability = 0.0
     
     def summary(self):
-        """Return summary dictionary."""
+        """간추림 사전을 되돌린다."""
         return {
             'average_accuracy': self.average_accuracy,
             'learning_accuracy': self.learning_accuracy,
@@ -413,7 +387,7 @@ class ContinualLearningMetrics:
         }
     
     def print_report(self):
-        """Print formatted metrics report."""
+        """모양을 갖춘 지표 보고를 찍는다."""
         print("=" * 60)
         print("CONTINUAL LEARNING METRICS REPORT")
         print("=" * 60)
@@ -436,10 +410,10 @@ class ContinualLearningMetrics:
         print("=" * 60)
     
     def plot_metrics(self, save_path=None):
-        """Generate visualization of metrics."""
+        """지표를 그려 본다."""
         fig, axes = plt.subplots(2, 2, figsize=(12, 10))
         
-        # 1. Accuracy Matrix Heatmap
+        # 1. 정확도 행렬 열 지도
         ax1 = axes[0, 0]
         im = ax1.imshow(self.accuracy_matrix, cmap='RdYlGn', 
                         vmin=0, vmax=100, aspect='auto')
@@ -450,14 +424,14 @@ class ContinualLearningMetrics:
         ax1.set_yticks(range(self.T))
         plt.colorbar(im, ax=ax1, label='Accuracy (%)')
         
-        # Add text annotations
+        # 글자 주석을 추가한다
         for i in range(self.T):
             for j in range(self.T):
                 if j >= i:
                     ax1.text(j, i, f'{self.accuracy_matrix[i,j]:.0f}',
                             ha='center', va='center', fontsize=9)
         
-        # 2. Learning vs Final Accuracy
+        # 2. 배움 정확도와 마지막 정확도
         ax2 = axes[0, 1]
         x = np.arange(self.T)
         width = 0.35
@@ -475,7 +449,7 @@ class ContinualLearningMetrics:
         ax2.set_ylim([0, 105])
         ax2.grid(True, alpha=0.3, axis='y')
         
-        # 3. Per-Task Forgetting
+        # 3. 과제별 잊음
         ax3 = axes[1, 0]
         colors = ['red' if f > 0 else 'green' for f in self.per_task_forgetting]
         ax3.bar(range(len(self.per_task_forgetting)), 
@@ -486,7 +460,7 @@ class ContinualLearningMetrics:
         ax3.set_title('Per-Task Forgetting', fontweight='bold')
         ax3.grid(True, alpha=0.3, axis='y')
         
-        # 4. Accuracy Trajectories
+        # 4. 정확도의 자취
         ax4 = axes[1, 1]
         for i in range(self.T):
             accs = [self.accuracy_matrix[i, j] if j >= i else np.nan 
@@ -507,47 +481,45 @@ class ContinualLearningMetrics:
         plt.show()
 ```
 
-## Metric Relationships
+## 지표 사이의 관계
 
-The metrics are interconnected:
+지표들은 서로 이어져 있다.
 
 $$
-
 \text{AA} \approx \text{LA} + \text{BWT}
-
 $$
 
-This approximation holds because:
+이 어림이 성립하는 까닭은 다음과 같다.
 
-- LA measures initial learning capability
-- BWT measures subsequent change (usually negative)
-- AA is the final result after both effects
+- LA는 처음 배우는 힘을 잰다
+- BWT는 그 뒤의 변화를 잰다(대개 음수이다)
+- AA는 두 효과가 모두 작용한 뒤의 마지막 결과이다
 
-!!! info "Interpreting Metric Combinations"
-    | LA | BWT | AA | Interpretation |
+!!! info "지표 조합 풀이하기"
+    | LA | BWT | AA | 풀이 |
     |----|-----|-----|----------------|
-    | High | ~0 | High | Good continual learner |
-    | High | Very negative | Low | Severe forgetting |
-    | Low | ~0 | Low | Poor learning capability |
-    | High | Positive | Very High | Beneficial transfer |
+    | 높음 | 0 근처 | 높음 | 잘 이어 배우는 모델 |
+    | 높음 | 크게 음수 | 낮음 | 심한 잊음 |
+    | 낮음 | 0 근처 | 낮음 | 배우는 힘이 모자람 |
+    | 높음 | 양수 | 아주 높음 | 이로운 옮김 |
 
-## Practical Considerations
+## 실용적인 고려
 
-### Multiple Runs
+### 여러 번 돌리기
 
-Always report mean ± standard deviation over multiple random seeds:
+여러 무작위 씨앗에 걸친 평균 ± 표준편차를 늘 알려라.
 
 ```python
 def evaluate_with_confidence(run_experiment_fn, num_runs=5):
     """
-    Run experiment multiple times and compute confidence intervals.
+    실험을 여러 번 돌려 믿음 구간을 셈한다.
     
-    Args:
-        run_experiment_fn: Function that returns accuracy matrix
-        num_runs: Number of independent runs
+    인수:
+        run_experiment_fn: 정확도 행렬을 되돌리는 함수
+        num_runs: 서로 독립인 실행의 횟수
     
-    Returns:
-        Dictionary with mean and std for each metric
+    반환값:
+        지표마다 평균과 표준편차를 담은 사전
     """
     all_metrics = []
     
@@ -559,7 +531,7 @@ def evaluate_with_confidence(run_experiment_fn, num_runs=5):
         metrics = ContinualLearningMetrics(accuracy_matrix)
         all_metrics.append(metrics.summary())
     
-    # Aggregate results
+    # 결과를 모은다
     results = {}
     for key in all_metrics[0].keys():
         if key == 'per_task_forgetting':
@@ -572,32 +544,32 @@ def evaluate_with_confidence(run_experiment_fn, num_runs=5):
     return results
 ```
 
-### Reporting Guidelines
+### 알림 지침
 
-Following community standards (Hsu et al., 2018):
+학계의 표준(Hsu 외, 2018)을 따른다.
 
-1. **Always report**: AA, BWT, LA at minimum
-2. **Include baselines**: Naive sequential learning, joint training upper bound
-3. **Same architecture**: Compare methods with identical network architectures
-4. **Same data splits**: Use consistent task configurations
-5. **Computational cost**: Report training time and memory usage
+1. **늘 알릴 것**: 적어도 AA, BWT, LA
+2. **밑금 넣기**: 소박한 차례 학습과 함께 익히기의 위 한계
+3. **같은 구조**: 똑같은 망 구조로 방법을 견주기
+4. **같은 데이터 쪼갬**: 한결같은 과제 설정을 쓰기
+5. **셈 비용**: 학습 시간과 기억 씀씀이를 알리기
 
-## Comparison with Joint Training
+## 함께 익히기와의 견줌
 
-The **joint training upper bound** trains on all tasks simultaneously:
+**함께 익히기의 위 한계**는 모든 과제를 한꺼번에 익힌다.
 
 ```python
 def joint_training_baseline(model, all_loaders, test_loaders, 
                             epochs, device):
     """
-    Train jointly on all tasks (upper bound baseline).
+    모든 과제를 함께 익힌다(위 한계 밑금).
     
-    This represents the best achievable performance without
-    continual learning constraints.
+    이는 이어 배우기의 제약 없이 다다를 수 있는
+    가장 좋은 성능을 나타낸다.
     """
     from torch.utils.data import ConcatDataset
     
-    # Combine all training data
+    # 학습 데이터를 모두 합친다
     combined_dataset = ConcatDataset([
         loader.dataset for loader in all_loaders
     ])
@@ -605,11 +577,11 @@ def joint_training_baseline(model, all_loaders, test_loaders,
         combined_dataset, batch_size=128, shuffle=True
     )
     
-    # Train jointly
+    # 함께 익힌다
     optimizer = optim.Adam(model.parameters(), lr=0.001)
     criterion = nn.CrossEntropyLoss()
     
-    for epoch in range(epochs * len(all_loaders)):  # Scale epochs
+    for epoch in range(epochs * len(all_loaders)):  # 시대 수를 조절한다
         for data, target in combined_loader:
             data, target = data.to(device), target.to(device)
             optimizer.zero_grad()
@@ -618,25 +590,25 @@ def joint_training_baseline(model, all_loaders, test_loaders,
             loss.backward()
             optimizer.step()
     
-    # Evaluate on all tasks
+    # 모든 과제에서 평가한다
     return [evaluate_single_task(model, loader, device) 
             for loader in test_loaders]
 ```
 
-## Summary
+## 요약
 
-| Metric | Formula | Measures | Good Value |
+| 지표 | 식 | 재는 것 | 좋은 값 |
 |--------|---------|----------|------------|
-| AA | $\frac{1}{T}\sum_i A_{i,T}$ | Overall performance | High (>80%) |
-| LA | $\frac{1}{T}\sum_i A_{i,i}$ | Learning capability | High (>90%) |
-| BWT | $\frac{1}{T-1}\sum_i (A_{i,T} - A_{i,i})$ | Forgetting | ~0 or positive |
-| FWT | $\frac{1}{T-1}\sum_i (A_{i,i} - A_i^{\text{rand}})$ | Forward transfer | Positive |
-| FM | Max forgetting per task | Worst-case forgetting | Low |
-| MS | Variance over time | Stability | Low |
+| AA | $\frac{1}{T}\sum_i A_{i,T}$ | 전체 성능 | 높음(80% 넘음) |
+| LA | $\frac{1}{T}\sum_i A_{i,i}$ | 배우는 힘 | 높음(90% 넘음) |
+| BWT | $\frac{1}{T-1}\sum_i (A_{i,T} - A_{i,i})$ | 잊음 | 0 근처이거나 양수 |
+| FWT | $\frac{1}{T-1}\sum_i (A_{i,i} - A_i^{\text{rand}})$ | 앞으로의 옮김 | 양수 |
+| FM | 과제마다 가장 큰 잊음 | 최악의 경우 잊음 | 낮음 |
+| MS | 때에 따른 흩어짐 | 안정성 | 낮음 |
 
-Proper evaluation using these metrics enables fair comparison of continual learning methods and identification of their strengths and weaknesses across different dimensions of performance.
+이 지표들로 제대로 평가하면 이어 배우기 방법을 공정하게 견줄 수 있고, 성능의 여러 결에 걸친 장단점을 짚어낼 수 있다.
 
-## References
+## 참고 문헌
 
 1. Lopez-Paz, D., & Ranzato, M. (2017). Gradient episodic memory for continual learning. *NeurIPS*.
 
@@ -645,3 +617,36 @@ Proper evaluation using these metrics enables fair comparison of continual learn
 3. Hsu, Y. C., Liu, Y. C., Ramasamy, A., & Kira, Z. (2018). Re-evaluating continual learning scenarios: A categorization and case for strong baselines. *NeurIPS Workshop*.
 
 4. Díaz-Rodríguez, N., et al. (2018). Don't forget, there is more than forgetting: New metrics for continual learning. *NeurIPS Workshop*.
+
+## 연습문제
+
+**연습문제 1.**
+이어 배우기의 평균 정확도, 뒤로의 옮김, 앞으로의 옮김을 정의하라.
+
+??? success "연습문제 1 풀이"
+    평균 정확도: $\bar{A} = \frac{1}{T}\sum_{i=1}^T a_{T,i}$(과제 $T$까지 익힌 뒤 모든 과제의 정확도). 뒤로의 옮김: $\text{BWT} = \frac{1}{T-1}\sum_{i=1}^{T-1}(a_{T,i} - a_{i,i})$(옛 과제 정확도의 변화). 앞으로의 옮김: $\text{FWT} = \frac{1}{T-1}\sum_{i=2}^T(a_{i-1,i} - b_i)$(앞선 배움 덕분에 얻는 앞으로의 과제에 대한 영 예시 성능).
+
+---
+
+**연습문제 2.**
+정확도 행렬 $R_{ij}$과 그것에서 지표를 어떻게 끌어내는지 설명하라.
+
+??? success "연습문제 2 풀이"
+    성분 $R_{ij}$은 과제 $1, \ldots, i$까지 익힌 뒤 과제 $j$에서의 정확도이다. 대각선은 과제를 막 배운 직후의 정확도이다. 마지막 행은 모든 과제의 마지막 정확도이다. BWT는 마지막 행과 대각선의 차이를 쓴다. BWT가 음수이면 잊음이 있다는 뜻이다.
+
+---
+
+**연습문제 3.**
+이어 배우기 방법을 공정하게 견줄 평가 규약을 설계하라.
+
+??? success "연습문제 3 풀이"
+
+    1. 과제 차례를 붙박아 두라(또는 여러 차례에 걸친 평균을 알려라). 2. 같은 등뼈 구조를 쓰라. 3. 세 지표(AA, BWT, FWT)를 모두 알려라. 4. 위 한계(모든 과제를 함께 익히기)와 아래 한계(이어 배우기 방법 없이 미세 조정하기)를 넣으라. 5. 정확도뿐 아니라 기억과 셈 비용도 알려라.
+
+---
+
+**연습문제 4.**
+오늘날 이어 배우기 평가 잣대의 한계는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    대부분의 잣대는 과제의 경계가 또렷한 단순한 데이터셋(MNIST, CIFAR)을 쓰는데, 이는 현실과 동떨어져 있다. 현실에서는 과제의 경계가 흐릿하고, 데이터 흐름이 멈추어 있지 않으며, 시험 때 과제 이름표도 없다. 지금의 지표는 셈 효율, 기억 씀씀이, 따로 떼어 둔 과제에서의 성능도 담아내지 못한다.

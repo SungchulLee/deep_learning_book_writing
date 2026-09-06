@@ -1,27 +1,59 @@
-# Algorithms as Technology
+# 기술로서의 알고리즘
 
-When building software systems, engineers routinely make technology choices -- which database to use, how much memory to provision, what hardware to deploy. Algorithm selection belongs in the same category. A well-chosen algorithm can transform an intractable computation into one that finishes in seconds, often delivering gains that no amount of hardware can match.
+소프트웨어 시스템을 구축할 때 엔지니어는 어떤 데이터베이스를 쓸지, 메모리를 얼마나 확보할지, 어떤 하드웨어에 배포할지 같은 기술 선택을 일상적으로 한다. 알고리즘 선택도 같은 범주에 속한다. 잘 고른 알고리즘은 다루기 불가능한 계산을 몇 초 만에 끝나는 계산으로 바꿔 놓으며, 그 이득은 하드웨어를 아무리 늘려도 따라잡을 수 없는 경우가 많다.
 
-## Hardware vs Algorithms
+## 하드웨어 대 알고리즘
 
-A faster algorithm on a slower computer often beats a slower algorithm on a faster computer. The following comparison illustrates why.
+느린 컴퓨터에서 도는 빠른 알고리즘이 빠른 컴퓨터에서 도는 느린 알고리즘을 이기는 경우가 많다. 다음 비교가 그 이유를 보여준다.
 
-Consider sorting $n = 10^7$ elements. Insertion sort runs in $O(n^2)$ time, while merge sort runs in $O(n \log n)$ time. Even if insertion sort executes on a supercomputer performing $10^{10}$ operations per second and merge sort runs on a laptop performing $10^7$ operations per second, the wall-clock times are:
+$n = 10^7$개의 원소를 정렬한다고 하자. 삽입 정렬은 $O(n^2)$ 시간에, 병합 정렬은 $O(n \log n)$ 시간에 실행된다. 삽입 정렬이 초당 $10^{10}$번 연산하는 슈퍼컴퓨터에서 실행되고 병합 정렬이 초당 $10^7$번 연산하는 노트북에서 실행되더라도, 실제 걸리는 시간은 다음과 같다.
 
-- **Insertion sort on supercomputer**: $\dfrac{(10^7)^2}{10^{10}} = 10{,}000$ seconds (nearly 3 hours)
-- **Merge sort on laptop**: $\dfrac{10^7 \times 23}{10^7} = 23$ seconds
+- **슈퍼컴퓨터에서의 삽입 정렬**: $\dfrac{(10^7)^2}{10^{10}} = 10{,}000$초(거의 3시간)
+- **노트북에서의 병합 정렬**: $\dfrac{10^7 \times 23}{10^7} = 23$초
 
-The ratio of operations is
+연산 횟수의 비는 다음과 같다.
 
 $$
 \frac{n^2}{n \log_2 n} = \frac{10^{14}}{10^7 \times 23} \approx 4.3 \times 10^5
 $$
 
-Merge sort performs roughly 430,000 times fewer operations. As datasets scale from thousands to millions to billions of entries, the gap between an $O(n^2)$ and an $O(n \log n)$ algorithm widens dramatically -- making algorithmic efficiency one of the highest-leverage investments in system design.
+병합 정렬은 대략 43만 배 적은 연산을 수행한다. 데이터셋 규모가 수천에서 수백만, 수십억으로 커질수록 $O(n^2)$ 알고리즘과 $O(n \log n)$ 알고리즘의 격차는 극적으로 벌어진다. 이 때문에 알고리즘 효율성은 시스템 설계에서 가장 큰 지렛대 효과를 내는 투자 중 하나가 된다.
 
-!!! tip "The Takeaway"
-    When input sizes are large, the **growth rate** of an algorithm's running time matters far more than the constant factors or the speed of the hardware. This is why asymptotic analysis ($O$-notation) is the primary tool for comparing algorithms.
+!!! tip "핵심 요점"
+    입력 크기가 클 때는 알고리즘 실행 시간의 **증가율** 이 상수 인자나 하드웨어 속도보다 훨씬 더 중요하다. 이것이 점근적 분석($O$-표기법)이 알고리즘을 비교하는 기본 도구인 이유이다.
 
-## References
+## 참고 문헌
 
 [Introduction to Algorithms (CLRS), Section 1.1](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+## 연습문제
+
+**연습문제 1.**
+어떤 연구실이 GPU 8대를 추가로 구입하거나(연산량 2배), FlashAttention을 구현할 엔지니어를 채용하는(어텐션의 메모리 복잡도를 $O(n^2)$에서 $O(n)$으로 감소) 두 선택지 중 하나를 고를 수 있다. 시퀀스 길이 $n = 8192$인 트랜스포머에서 어느 쪽 투자가 더 큰 속도 향상을 가져오는가?
+
+??? success "연습문제 1 풀이"
+    GPU를 두 배로 늘리면 최대 $2\times$ 속도 향상을 얻는다(통신 부담을 고려하면 낙관적인 완전 선형 확장을 가정한 값). FlashAttention은 IO 연산에서 메모리 병목을 $O(n)$ 인자만큼 줄인다. $n = 8192$에서 메모리 접근 감소는 어텐션이 병목인 작업에서 대략 $4\times$–$8\times$의 실제 속도 향상을 가능하게 한다. 알고리즘 개선이 더 크고 확장성 있는 이득을 준다. 알고리즘 개선은 이후의 하드웨어 향상과 곱해져 누적되지만, GPU를 더 사는 것은 상수 인자만 제공한다.
+
+---
+
+**연습문제 2.**
+$n = 10^6$일 때 $O(n^2)$ 알고리즘과 $O(n \log n)$ 알고리즘의 연산 횟수 비를 계산하라. 무어의 법칙(18개월마다 2배)에 따른 하드웨어 발전으로 이 격차를 메우려면 몇 년이 걸리는가?
+
+??? success "연습문제 2 풀이"
+    비: $n^2 / (n \log_2 n) = n / \log_2 n = 10^6 / 20 = 50{,}000$. 18개월마다 $2\times$ 향상으로 $50{,}000\times$ 격차를 메우려면 $2^k = 50{,}000$이므로 $k = \log_2(50{,}000) \approx 15.6$번의 배증이 필요하다. 기간: $15.6 \times 1.5 = 23.4$년. 알고리즘 개선이 20년 이상의 하드웨어 발전과 맞먹는 셈이다.
+
+---
+
+**연습문제 3.**
+트랜스포머 학습 비용의 증가 양상을 예로 들어, 딥러닝 작업에서 증가율(점근적 복잡도)이 상수 인자보다 더 중요한 이유를 설명하라.
+
+??? success "연습문제 3 풀이"
+    트랜스포머 학습 비용은 표준 형태에서 토큰당 $O(n^2 d L)$로 증가하며, 여기서 $n$은 문맥 길이이다. $2\times$의 상수 인자 개선(예: 더 빠른 하드웨어)은 실제 소요 시간을 절반으로 줄이지만 증가 양상 자체를 바꾸지는 못한다. 문맥 길이 $n$을 두 배로 늘리면 비용은 네 배가 된다. GPT-2($n = 1024$)에서 GPT-4($n \geq 32{,}768$)로의 변화를 보면 층당 어텐션 계산량의 비는 $(32768/1024)^2 = 1024\times$이다. 어떤 상수 인자 하드웨어 개선으로도 이 이차적 증가를 상쇄할 수 없으며, 그래서 알고리즘적 혁신(희소 어텐션, 선형 어텐션, FlashAttention)이 필요하다.
+
+---
+
+**연습문제 4.**
+정렬 기반 중복 제거 파이프라인은 $O(n \log n)$ 시간에 실행된다. 해시 기반 방법은 기댓값으로 $O(n)$ 시간에 실행된다. 상수 인자가 같다고 가정할 때, 학습 예제 $n = 10^9$개의 데이터셋에 대해 해시 기반 방법의 속도 향상을 계산하라.
+
+??? success "연습문제 4 풀이"
+    정렬: $n \log_2 n = 10^9 \times 30 = 3 \times 10^{10}$번 연산. 해싱: $n = 10^9$번 연산. 속도 향상: $3 \times 10^{10} / 10^9 = 30\times$. 상수 인자가 같다면 해시 기반 방법이 30배 빠르다. 실제로는 해싱의 상수 인자가 조금 더 클 수 있지만(해시 계산 비용), 이 규모에서는 점근적 이점이 압도적이다.

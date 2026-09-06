@@ -1,480 +1,446 @@
-# Theoretical Comparison of MCMC Methods
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-This section provides a rigorous theoretical comparison of MCMC methods, covering convergence rates, spectral analysis, optimal scaling theory, and the fundamental limits of different approaches.
+# MCMC 방법의 이론적 견줌
+이 마당은 MCMC 방법을 이론으로 엄밀히 견주며, 모임 속도, 스펙트럼 분석, 가장 좋은 눈금 잡기 이론, 그리고 길마다의 근본 한계를 다룬다.
 
 ---
 
-## Convergence Theory Framework
+## 모임 이론의 얼개
 
-### Measuring Convergence
+### 모임 재기
 
-For a Markov chain with transition kernel $P$ and stationary distribution $\pi$, we measure convergence via:
+옮김 알맹이 $P$과 멈춘 분포 $\pi$을 갖는 마르코프 사슬에서 모임을 다음으로 잰다:
 
-**Total variation distance**:
+**총 변동 거리**:
 
 $$
-
 \|P^n(x, \cdot) - \pi\|_{TV} = \frac{1}{2} \int |P^n(x, dy) - \pi(dy)|
-
 $$
 
-**$\chi^2$ divergence**:
+**$\chi^2$ 갈림**:
 
 $$
-
 \chi^2(P^n(x, \cdot) \| \pi) = \int \frac{(P^n(x, dy) - \pi(dy))^2}{\pi(dy)}
-
 $$
 
-**Wasserstein distance** (for continuous state spaces):
+**바서슈타인 거리**(이어진 상태 공간에서):
 
 $$
-
 W_2(\mu, \nu) = \left( \inf_{\gamma \in \Gamma(\mu, \nu)} \int \|x - y\|^2 d\gamma(x, y) \right)^{1/2}
-
 $$
 
-### Mixing Time
+### 섞임 시간
 
-The **mixing time** $\tau_{mix}(\epsilon)$ is the time to reach $\epsilon$-closeness to stationarity:
+**섞임 시간** $\tau_{mix}(\epsilon)$은 멈춤에 $\epsilon$만큼 가까워지는 데 걸리는 시간이다:
 
 $$
-
 \tau_{mix}(\epsilon) = \min\{n : \sup_x \|P^n(x, \cdot) - \pi\|_{TV} \leq \epsilon\}
-
 $$
 
-For theoretical comparisons, we typically use $\tau_{mix} = \tau_{mix}(1/4)$.
+이론으로 견줄 때는 보통 $\tau_{mix} = \tau_{mix}(1/4)$을 쓴다.
 
-### Spectral Gap
+### 스펙트럼 틈
 
-For reversible chains, the **spectral gap** $\gamma$ determines the convergence rate:
+뒤집을 수 있는 사슬에서는 **스펙트럼 틈** $\gamma$이 모임 속도를 정한다:
 
 $$
-
 \|P^n(x, \cdot) - \pi\|_{TV} \leq C(x) (1 - \gamma)^n
-
 $$
 
-The spectral gap is:
+스펙트럼 틈은 다음과 같다:
 
 $$
-
 \gamma = 1 - \lambda_2
-
 $$
 
-where $\lambda_2$ is the second-largest eigenvalue of $P$.
+여기서 $\lambda_2$은 $P$의 둘째로 큰 고유값이다.
 
-**Key relation**: $\tau_{mix} \asymp 1/\gamma$ (up to logarithmic factors).
+**핵심 관계**: (로그 인자를 빼면) $\tau_{mix} \asymp 1/\gamma$이다.
 
 ---
 
-## Spectral Analysis by Method
+## 방법마다의 스펙트럼 분석
 
-### Random Walk Metropolis
+### 무작위 걸음 메트로폴리스
 
-For a $d$-dimensional Gaussian target $\pi = \mathcal{N}(0, \Sigma)$ with proposal $q(x'|x) = \mathcal{N}(x, \sigma^2 I)$:
+제안이 $q(x'|x) = \mathcal{N}(x, \sigma^2 I)$인 $d$차원 가우스 과녁 $\pi = \mathcal{N}(0, \Sigma)$에서:
 
-**Spectral gap**:
+**스펙트럼 틈**:
 
 $$
-
 \gamma_{RWM} = O\left(\frac{\sigma^2}{\text{tr}(\Sigma)}\right) = O\left(\frac{\sigma^2}{d \cdot \bar{\lambda}}\right)
-
 $$
 
-where $\bar{\lambda}$ is the average eigenvalue of $\Sigma$.
+여기서 $\bar{\lambda}$은 $\Sigma$의 평균 고유값이다.
 
-**Optimal scaling**: $\sigma_{opt} \sim d^{-1/2}$, giving acceptance rate $\approx 23.4\%$.
+**가장 좋은 눈금**: $\sigma_{opt} \sim d^{-1/2}$이며 받아들임 비율이 $\approx 23.4\%$이 된다.
 
-**Mixing time**: $\tau_{mix} = O(d^2)$ for isotropic targets.
+**섞임 시간**: 방향에 상관없는 과녁에서 $\tau_{mix} = O(d^2)$이다.
 
-### Gibbs Sampling
+### 깁스 표집
 
-For a $d$-dimensional target with systematic scan Gibbs:
+체계적으로 훑는 깁스를 쓴 $d$차원 과녁에서:
 
-**Spectral gap**: Depends on correlations between variables.
+**스펙트럼 틈**: 변수 사이의 상관에 기댄다.
 
-For Gaussian $\pi = \mathcal{N}(0, \Sigma)$:
+가우스 $\pi = \mathcal{N}(0, \Sigma)$에서:
 
 $$
-
 \gamma_{Gibbs} \geq 1 - \rho_{max}^2
-
 $$
 
-where $\rho_{max}$ is the maximum correlation between any coordinate and the others.
+여기서 $\rho_{max}$은 어떤 좌표와 나머지 사이의 최대 상관이다.
 
-**Best case** (independent coordinates): $\gamma = 1 - O(1/d)$, so $\tau_{mix} = O(d)$.
+**가장 좋은 경우**(서로 독립인 좌표): $\gamma = 1 - O(1/d)$이므로 $\tau_{mix} = O(d)$이다.
 
-**Worst case** (highly correlated): $\gamma = O(1/d)$, so $\tau_{mix} = O(d^2)$.
+**최악의 경우**(몹시 얽힘): $\gamma = O(1/d)$이므로 $\tau_{mix} = O(d^2)$이다.
 
-### MALA (Metropolis-Adjusted Langevin)
+### MALA(메트로폴리스 바로잡은 랑주뱅)
 
-For smooth, log-concave targets in $d$ dimensions:
+$d$차원의 매끄럽고 로그 오목한 과녁에서:
 
-**Spectral gap**:
+**스펙트럼 틈**:
 
 $$
-
 \gamma_{MALA} = O(\epsilon^2)
-
 $$
 
-where $\epsilon$ is the step size.
+여기서 $\epsilon$은 걸음 크기이다.
 
-**Optimal scaling**: $\epsilon_{opt} \sim d^{-1/6}$, giving acceptance rate $\approx 57.4\%$.
+**가장 좋은 눈금**: $\epsilon_{opt} \sim d^{-1/6}$이며 받아들임 비율이 $\approx 57.4\%$이 된다.
 
-**Mixing time**: $\tau_{mix} = O(d^{1/3} \cdot d^{4/3}) = O(d^{5/3})$.
+**섞임 시간**: $\tau_{mix} = O(d^{1/3} \cdot d^{4/3}) = O(d^{5/3})$.
 
-### Hamiltonian Monte Carlo
+### 해밀턴 몬테카를로
 
-For smooth, log-concave targets:
+매끄럽고 로그 오목한 과녁에서:
 
-**Spectral gap**: With optimal tuning,
+**스펙트럼 틈**: 가장 좋게 맞추면,
 
 $$
-
 \gamma_{HMC} = O(\epsilon^2 L^2) = O(1)
-
 $$
 
-when $\epsilon \sim d^{-1/4}$ and $L \sim d^{1/4}$.
+$\epsilon \sim d^{-1/4}$이고 $L \sim d^{1/4}$일 때.
 
-**Mixing time**: $\tau_{mix} = O(d^{1/4})$ to $O(d^{1/2})$ depending on the target.
+**섞임 시간**: 과녁에 따라 $\tau_{mix} = O(d^{1/4})$에서 $O(d^{1/2})$까지.
 
 ---
 
-## Optimal Scaling Theory
+## 가장 좋은 눈금 잡기 이론
 
-### The Roberts-Rosenthal Framework
+### 로버츠-로젠탈 얼개
 
-Roberts, Gelman, and Gilks (1997) established optimal scaling for random walk Metropolis:
+로버츠, 겔먼, 길크스(1997)가 무작위 걸음 메트로폴리스의 가장 좋은 눈금을 세웠다:
 
-**Theorem**: For a product target $\pi(x) = \prod_{i=1}^d f(x_i)$ with proposal $\mathcal{N}(x, \sigma^2/d \cdot I)$, as $d \to \infty$:
+**정리**: 제안이 $\mathcal{N}(x, \sigma^2/d \cdot I)$인 곱 과녁 $\pi(x) = \prod_{i=1}^d f(x_i)$에서 $d \to \infty$이면:
 
-1. The optimal acceptance rate is $\alpha^* = 0.234$
-2. The diffusion limit is $dX_t = h(\alpha)^{1/2} dW_t$
-3. The optimal efficiency $h(\alpha)$ is maximized at $\alpha = 0.234$
+1. 가장 좋은 받아들임 비율은 $\alpha^* = 0.234$이다
+2. 퍼짐 극한은 $dX_t = h(\alpha)^{1/2} dW_t$이다
+3. 효율 $h(\alpha)$은 $\alpha = 0.234$에서 가장 크다
 
-### Optimal Acceptance Rates by Method
+### 방법마다 가장 좋은 받아들임 비율
 
-| Method | Optimal Acceptance | Scaling |
+| 방법 | 가장 좋은 받아들임 | 눈금 |
 |--------|-------------------|---------|
-| Random Walk MH | 23.4% | $\sigma \sim d^{-1/2}$ |
+| 무작위 걸음 MH | 23.4% | $\sigma \sim d^{-1/2}$ |
 | MALA | 57.4% | $\epsilon \sim d^{-1/6}$ |
-| HMC | ~65% | $\epsilon \sim d^{-1/4}$ |
-| Gibbs | 100% (by construction) | N/A |
+| HMC | 약 65% | $\epsilon \sim d^{-1/4}$ |
+| 깁스 | 100%(짜임새 덕분) | 해당 없음 |
 
-### The MALA Scaling Result
+### MALA의 눈금 결과
 
-Roberts and Rosenthal (1998) proved:
+로버츠와 로젠탈(1998)이 증명했다:
 
-**Theorem**: For MALA on a product target, the optimal acceptance rate is:
+**정리**: 곱 과녁에서 MALA의 가장 좋은 받아들임 비율은 다음과 같다:
 
 $$
-
 \alpha^* = 2\Phi\left(-\frac{I^{1/2}}{2}\right) \approx 0.574
-
 $$
 
-where $I$ is the Fisher information and $\Phi$ is the standard normal CDF.
+여기서 $I$은 피셔 정보이고 $\Phi$은 표준 정규 누적분포함수이다.
 
-### HMC Scaling
+### HMC의 눈금
 
-For HMC, the scaling is more complex:
+HMC에서는 눈금이 더 복잡하다:
 
-**Beskos et al. (2013)**: For Gaussian targets with optimal tuning:
-- Step size: $\epsilon^* \sim d^{-1/4}$
-- Number of steps: $L^* \sim d^{1/4}$
-- Acceptance rate: ~65%
-- Cost per effective sample: $O(d^{1/4} \cdot d) = O(d^{5/4})$
+**Beskos 외(2013)**: 가장 좋게 맞춘 가우스 과녁에서:
+
+- 걸음 크기: $\epsilon^* \sim d^{-1/4}$
+- 걸음의 개수: $L^* \sim d^{1/4}$
+- 받아들임 비율: 약 65%
+- 실효 표본마다의 값: $O(d^{1/4} \cdot d) = O(d^{5/4})$
 
 ---
 
-## Convergence Rate Comparison
+## 모임 속도 견주기
 
-### For Gaussian Targets
+### 가우스 과녁에서
 
-Consider $\pi = \mathcal{N}(0, I_d)$:
+$\pi = \mathcal{N}(0, I_d)$을 생각하자:
 
-| Method | Mixing Time | Steps per ESS |
+| 방법 | 섞임 시간 | ESS마다의 걸음 |
 |--------|-------------|---------------|
-| Random Walk MH | $O(d^2)$ | $O(d^2)$ |
-| Gibbs | $O(d)$ | $O(d^2)$ |
+| 무작위 걸음 MH | $O(d^2)$ | $O(d^2)$ |
+| 깁스 | $O(d)$ | $O(d^2)$ |
 | MALA | $O(d^{5/3})$ | $O(d^{5/3})$ |
 | HMC | $O(d^{1/4})$ | $O(d^{5/4})$ |
 
-### For Ill-Conditioned Targets
+### 조건이 나쁜 과녁에서
 
-For $\pi = \mathcal{N}(0, \Sigma)$ with condition number $\kappa = \lambda_{max}/\lambda_{min}$:
+조건수가 $\kappa = \lambda_{max}/\lambda_{min}$인 $\pi = \mathcal{N}(0, \Sigma)$에서:
 
-| Method | Mixing Time |
+| 방법 | 섞임 시간 |
 |--------|-------------|
-| Random Walk MH | $O(d^2 \kappa)$ |
-| Gibbs | $O(d \kappa)$ to $O(d^2 \kappa)$ |
+| 무작위 걸음 MH | $O(d^2 \kappa)$ |
+| 깁스 | $O(d \kappa)$에서 $O(d^2 \kappa)$ |
 | MALA | $O(d^{5/3} \kappa^{1/3})$ |
 | HMC | $O(d^{1/4} \kappa^{1/2})$ |
 
-**Key insight**: HMC's dependence on condition number is weaker than other methods, making it more robust to ill-conditioning.
+**핵심 통찰**: HMC은 조건수에 덜 기대므로 조건이 나쁜 문제에 더 튼튼하다.
 
-### For Log-Concave Targets
+### 로그 오목한 과녁에서
 
-For strongly log-concave targets with $m I \preceq -\nabla^2 \log \pi \preceq M I$:
+$m I \preceq -\nabla^2 \log \pi \preceq M I$인 강한 로그 오목 과녁에서:
 
-**Langevin convergence** (Dalalyan, 2017):
+**랑주뱅의 모임**(Dalalyan, 2017):
 
 $$
-
 W_2(\mu_n, \pi) \leq e^{-m n \epsilon} W_2(\mu_0, \pi) + O(\epsilon \sqrt{d/m})
-
 $$
 
-**HMC convergence** (Mangoubi & Smith, 2017):
+**HMC의 모임**(Mangoubi & Smith, 2017):
 
 $$
-
 W_2(\mu_n, \pi) \leq e^{-\gamma n} W_2(\mu_0, \pi)
-
 $$
 
-with $\gamma = O(m/M)$ independent of dimension under certain conditions.
+어떤 조건 아래 $\gamma = O(m/M)$이며 차원과 상관없다.
 
 ---
 
-## Information-Theoretic Perspective
+## 정보 이론의 관점
 
-### Gradient Information Value
+### 기울기 정보의 값어치
 
-The gradient $\nabla \log \pi(x)$ provides directional information:
-- Points toward higher probability regions
-- Magnitude indicates "steepness" of the log-density
+기울기 $\nabla \log \pi(x)$은 방향 정보를 준다:
 
-**Information content**: At point $x$, the gradient provides $O(d)$ bits of information (one derivative per dimension).
+- 확률이 높은 구역을 가리킨다
+- 크기가 로그 밀도의 "가파름"을 알려 준다
 
-### Methods by Information Order
+**담긴 정보**: 점 $x$에서 기울기는 정보를 $O(d)$비트 준다(차원마다 도함수 하나).
 
-| Order | Information Used | Methods |
+### 정보 차수로 나눈 방법
+
+| 차수 | 쓰는 정보 | 방법 |
 |-------|-----------------|---------|
-| 0th | $\pi(x)$ only | RW-MH, Gibbs |
-| 1st | $\pi(x)$, $\nabla \log \pi(x)$ | MALA, HMC |
-| 2nd | Also $\nabla^2 \log \pi(x)$ | Riemannian HMC |
+| 0차 | $\pi(x)$만 | 무작위 걸음 MH, 깁스 |
+| 1차 | $\pi(x)$, $\nabla \log \pi(x)$ | MALA, HMC |
+| 2차 | $\nabla^2 \log \pi(x)$까지 | 리만 HMC |
 
-### Theoretical Limits
+### 이론의 한계
 
-**Proposition**: Any MCMC method using only 0th-order information has mixing time $\Omega(d)$ for $d$-dimensional Gaussians.
+**명제**: 0차 정보만 쓰는 MCMC 방법은 $d$차원 가우스에서 섞임 시간이 $\Omega(d)$이다.
 
-**Proposition**: Gradient-based methods can achieve mixing time $O(d^{\alpha})$ with $\alpha < 1$ for well-conditioned targets.
+**명제**: 기울기 기반 방법은 조건이 좋은 과녁에서 $\alpha < 1$인 섞임 시간 $O(d^{\alpha})$을 이룰 수 있다.
 
-This establishes a fundamental separation between gradient-free and gradient-based approaches.
+이는 기울기 없는 길과 기울기 기반 길 사이의 근본적인 갈림을 세운다.
 
 ---
 
-## Geometric Ergodicity
+## 기하적 에르고드성
 
-### Definition
+### 정의
 
-A Markov chain is **geometrically ergodic** if:
+마르코프 사슬이 다음을 만족하면 **기하적으로 에르고드**이다:
 
 $$
-
 \|P^n(x, \cdot) - \pi\|_{TV} \leq M(x) \rho^n
-
 $$
 
-for some $\rho < 1$ and function $M(x)$.
+여기서 $\rho < 1$이고 $M(x)$은 어떤 함수이다.
 
-### Conditions by Method
+### 방법마다의 조건
 
-**Random Walk MH**: Geometrically ergodic if:
-- Target has exponentially decaying tails
-- Proposal variance is appropriate
+**무작위 걸음 MH**: 다음이면 기하적으로 에르고드이다:
 
-**MALA**: Geometrically ergodic under weaker conditions:
-- Log-concavity at infinity suffices
-- Can handle heavier tails than RW-MH
+- 과녁의 꼬리가 지수로 사그라든다
+- 제안의 흩어짐이 알맞다
 
-**HMC**: Geometrically ergodic under:
-- Smooth, log-concave targets
-- Appropriate step size and trajectory length
+**MALA**: 더 약한 조건에서도 기하적으로 에르고드이다:
 
-### Importance for Practice
+- 무한대에서 로그 오목하면 넉넉하다
+- 무작위 걸음 MH보다 무거운 꼬리를 다룰 수 있다
 
-Geometric ergodicity implies:
-- Central limit theorems for MCMC averages
-- Finite variance of importance sampling estimators
-- Reliable confidence intervals
+**HMC**: 다음 아래에서 기하적으로 에르고드이다:
+
+- 매끄럽고 로그 오목한 과녁
+- 알맞은 걸음 크기와 자취 길이
+
+### 실전에서의 중요함
+
+기하적 에르고드성은 다음을 뜻한다:
+
+- MCMC 평균에 중심 극한 정리가 성립한다
+- 중요도 표집 어림자의 흩어짐이 끝이 있다
+- 미더운 신뢰 구간
 
 ---
 
-## Lower Bounds
+## 아래 한계
 
-### Fundamental Limits
+### 근본 한계
 
-**Theorem** (Complexity lower bound): For any MCMC method sampling from a $d$-dimensional Gaussian with condition number $\kappa$:
+**정리**(복잡도의 아래 한계): 조건수가 $\kappa$인 $d$차원 가우스에서 표집하는 어떤 MCMC 방법에서도:
 
 $$
-
 \tau_{mix} = \Omega(\sqrt{\kappa})
-
 $$
 
-This is achieved (up to $d$-dependent factors) by HMC with optimal mass matrix.
+가장 좋은 질량 행렬을 쓴 HMC이 ($d$에 기대는 인자를 빼면) 이에 이른다.
 
-### Query Complexity
+### 물음 복잡도
 
-**Theorem**: For gradient-free methods with oracle access to $\pi(x)$:
+**정리**: $\pi(x)$을 신탁으로 얻는 기울기 없는 방법에서:
 
 $$
-
 \text{Queries to reach } \epsilon\text{-accuracy} = \Omega(d^2/\epsilon^2)
-
 $$
 
-**Theorem**: For gradient-based methods with oracle access to $\nabla \log \pi(x)$:
+**정리**: $\nabla \log \pi(x)$을 신탁으로 얻는 기울기 기반 방법에서:
 
 $$
-
 \text{Gradient queries to reach } \epsilon\text{-accuracy} = O(d/\epsilon)
-
 $$
 
-for strongly log-concave targets.
+강한 로그 오목 과녁에서.
 
 ---
 
-## Asymptotic Efficiency
+## 점근 효율
 
-### Peskun Ordering
+### 페스쿤 차례
 
-**Theorem** (Peskun, 1973): For two reversible chains $P_1, P_2$ on the same state space with the same stationary distribution:
+**정리**(Peskun, 1973): 같은 상태 공간에서 멈춘 분포가 같은 뒤집을 수 있는 사슬 $P_1, P_2$에 대해:
 
-If $P_1(x, A) \geq P_2(x, A)$ for all $x \notin A$ (i.e., $P_1$ has smaller rejection probability), then $P_1$ has smaller asymptotic variance for any function $f$.
+$x \notin A$인 모든 $x$에 대해 $P_1(x, A) \geq P_2(x, A)$이면(곧 $P_1$의 물리침 확률이 더 작으면) 어떤 함수 $f$에 대해서도 $P_1$의 점근 흩어짐이 더 작다.
 
-**Implication**: Among Metropolis-Hastings variants, those with higher acceptance rates (for similar proposals) are more efficient.
+**뜻하는 바**: 메트로폴리스-헤이스팅스의 여러 판 가운데 (비슷한 제안에서) 받아들임 비율이 높은 쪽이 더 효율적이다.
 
-### Asymptotic Variance
+### 점근 흩어짐
 
-For estimating $\mathbb{E}_\pi[f(X)]$ from a chain $(X_1, \ldots, X_n)$:
+사슬 $(X_1, \ldots, X_n)$에서 $\mathbb{E}_\pi[f(X)]$을 어림할 때:
 
 $$
-
 \text{Var}\left(\frac{1}{n}\sum_{i=1}^n f(X_i)\right) \approx \frac{\sigma_f^2}{n} \cdot \tau_f
-
 $$
 
-where $\tau_f = 1 + 2\sum_{k=1}^\infty \rho_k$ is the **integrated autocorrelation time** and $\rho_k$ is the lag-$k$ autocorrelation.
+여기서 $\tau_f = 1 + 2\sum_{k=1}^\infty \rho_k$은 **적분 자기상관 시간**이고 $\rho_k$은 뒤짐 $k$의 자기상관이다.
 
-**Effective sample size**: $n_{eff} = n/\tau_f$.
+**실효 표본 크기**: $n_{eff} = n/\tau_f$.
 
-### Efficiency by Method
+### 방법마다의 효율
 
-| Method | Typical $\tau_f$ | $n_{eff}/n$ |
+| 방법 | 흔한 $\tau_f$ | $n_{eff}/n$ |
 |--------|-----------------|-------------|
-| Random Walk MH | $O(d^2)$ | $O(d^{-2})$ |
-| Gibbs | $O(d)$ to $O(d^2)$ | $O(d^{-1})$ to $O(d^{-2})$ |
+| 무작위 걸음 MH | $O(d^2)$ | $O(d^{-2})$ |
+| 깁스 | $O(d)$에서 $O(d^2)$ | $O(d^{-1})$에서 $O(d^{-2})$ |
 | MALA | $O(d^{5/3})$ | $O(d^{-5/3})$ |
 | HMC | $O(d^{1/4})$ | $O(d^{-1/4})$ |
 
 ---
 
-## Robustness Properties
+## 튼튼함의 성질
 
-### Sensitivity to Tuning
+### 맞추기에 대한 민감함
 
-| Method | Tuning Parameters | Sensitivity |
+| 방법 | 맞출 매개변수 | 민감함 |
 |--------|------------------|-------------|
-| Random Walk MH | $\sigma$ | Moderate |
-| Gibbs | None | Low |
-| MALA | $\epsilon$ | Moderate |
-| HMC | $\epsilon$, $L$, $M$ | High (without NUTS) |
+| 무작위 걸음 MH | $\sigma$ | 보통 |
+| 깁스 | 없음 | 낮음 |
+| MALA | $\epsilon$ | 보통 |
+| HMC | $\epsilon$, $L$, $M$ | 높음(NUTS 없이) |
 
-### Robustness to Target Properties
+### 과녁의 성질에 대한 튼튼함
 
-**Heavy tails**:
-- RW-MH: Can fail (proposal doesn't match tail)
-- Gibbs: Depends on conditionals
-- MALA: More robust (gradient adapts)
-- HMC: Can have issues (trajectory escapes)
+**무거운 꼬리**:
 
-**Multimodality**:
-- All local methods struggle
-- Parallel tempering helps all methods
-- HMC can cross shallow barriers via momentum
+- 무작위 걸음 MH: 무너질 수 있다(제안이 꼬리와 안 맞는다)
+- 깁스: 조건부 분포에 달렸다
+- MALA: 더 튼튼하다(기울기가 맞춰 준다)
+- HMC: 말썽이 있을 수 있다(자취가 달아난다)
 
-**Discontinuities**:
-- Gradient methods fail at discontinuities
-- RW-MH and Gibbs handle discontinuities
+**봉우리 여럿**:
+
+- 그 자리 둘레만 보는 방법은 모두 애를 먹는다
+- 병렬 온도 다루기가 모든 방법에 도움이 된다
+- HMC은 운동량으로 얕은 벽을 넘을 수 있다
+
+**끊긴 곳**:
+
+- 기울기 방법은 끊긴 곳에서 무너진다
+- 무작위 걸음 MH과 깁스는 끊긴 곳을 다룬다
 
 ---
 
-## Theoretical Summary
+## 이론 간추림
 
-### Convergence Rate Hierarchy
+### 모임 속도의 층위
 
-For smooth, well-conditioned targets in $d$ dimensions:
+$d$차원의 매끄럽고 조건이 좋은 과녁에서:
 
 $$
-
 \tau_{HMC} \ll \tau_{MALA} \ll \tau_{Gibbs} \lesssim \tau_{RWM}
-
 $$
 
-Specifically:
+구체적으로는 다음과 같다.
 
 $$
-
 O(d^{1/4}) \ll O(d^{5/3}) \ll O(d) \text{ to } O(d^2) \lesssim O(d^2)
-
 $$
 
-### Key Theoretical Insights
+### 핵심 이론 통찰
 
-| Insight | Implication |
+| 통찰 | 뜻하는 바 |
 |---------|-------------|
-| Gradient information reduces complexity | Use gradients when available |
-| Momentum enables ballistic exploration | HMC > MALA |
-| Optimal scaling depends on target | Tune acceptance rates |
-| Condition number affects all methods | Precondition when possible |
-| Geometric ergodicity ensures CLT | Verify for reliable inference |
+| 기울기 정보가 복잡도를 줄인다 | 쓸 수 있으면 기울기를 써라 |
+| 운동량이 탄도 살펴보기를 가능하게 한다 | HMC > MALA |
+| 가장 좋은 눈금은 과녁에 달렸다 | 받아들임 비율을 맞춰라 |
+| 조건수가 모든 방법에 영향을 준다 | 될 수 있으면 미리 다듬어라 |
+| 기하적 에르고드성이 중심 극한 정리를 보장한다 | 미더운 추론을 위해 확인하여라 |
 
-### When Theory Applies
+### 이론이 들어맞을 때
 
-**Theory is most accurate for**:
-- High-dimensional targets ($d \gg 1$)
-- Log-concave or near-log-concave targets
-- Well-tuned algorithms
+**이론이 가장 정확한 곳**:
 
-**Theory may be misleading for**:
-- Low dimensions (constants matter)
-- Highly multimodal targets
-- Poorly tuned implementations
+- 차원이 높은 과녁($d \gg 1$)
+- 로그 오목하거나 그에 가까운 과녁
+- 잘 맞춘 알고리즘
 
----
+**이론이 잘못 이끌 수 있는 곳**:
 
-## Exercises
-
-1. **Spectral gap computation**. Compute the spectral gap of random walk MH on a 1D Gaussian with variance $\sigma^2$ and proposal variance $\tau^2$. How does it depend on $\tau$?
-
-2. **Optimal scaling verification**. Implement random walk MH and verify the 23.4% optimal acceptance rate on a high-dimensional Gaussian.
-
-3. **Mixing time comparison**. Empirically estimate mixing times for RW-MH, MALA, and HMC on a 50-dimensional Gaussian. Compare to theoretical predictions.
-
-4. **Condition number effect**. For a 2D Gaussian with correlation $\rho$, measure how mixing time depends on $\kappa = (1+\rho)/(1-\rho)$ for each method.
-
-5. **Peskun ordering**. Construct two MH chains differing only in proposal variance. Verify that the one with higher acceptance has lower asymptotic variance.
+- 낮은 차원(상수가 중요하다)
+- 봉우리가 몹시 여럿인 과녁
+- 잘못 맞춘 구현
 
 ---
 
-## References
+## 참고 문헌
 
 1. Roberts, G. O., Gelman, A., & Gilks, W. R. (1997). "Weak Convergence and Optimal Scaling of Random Walk Metropolis Algorithms." *Annals of Applied Probability*.
 2. Roberts, G. O., & Rosenthal, J. S. (1998). "Optimal Scaling of Discrete Approximations to Langevin Diffusions." *JRSS-B*.
 3. Beskos, A., Pillai, N., Roberts, G., Sanz-Serna, J. M., & Stuart, A. (2013). "Optimal Tuning of the Hybrid Monte Carlo Algorithm." *Bernoulli*.
 4. Dalalyan, A. S. (2017). "Theoretical Guarantees for Approximate Sampling from Smooth and Log-Concave Densities." *JRSS-B*.
 5. Peskun, P. H. (1973). "Optimum Monte-Carlo Sampling Using Markov Chains." *Biometrika*.
+
+## 연습문제
+
+1. **스펙트럼 틈 셈하기.** 흩어짐이 $\sigma^2$인 1차원 가우스에서 제안 흩어짐이 $\tau^2$인 무작위 걸음 MH의 스펙트럼 틈을 셈하여라. $\tau$에 어떻게 기대는가?
+
+2. **가장 좋은 눈금 확인.** 무작위 걸음 MH을 구현하고 차원 높은 가우스에서 가장 좋은 받아들임 비율이 23.4%인지 확인하여라.
+
+3. **섞임 시간 견주기.** 50차원 가우스에서 무작위 걸음 MH, MALA, HMC의 섞임 시간을 겪어 보고 어림하여라. 이론의 예측과 견주어라.
+
+4. **조건수의 효과.** 상관이 $\rho$인 2차원 가우스에서 방법마다 섞임 시간이 $\kappa = (1+\rho)/(1-\rho)$에 어떻게 기대는지 재어라.
+
+5. **페스쿤 차례.** 제안 흩어짐만 다른 MH 사슬 둘을 지어라. 받아들임이 높은 쪽의 점근 흩어짐이 낮은지 확인하여라.
+
+---

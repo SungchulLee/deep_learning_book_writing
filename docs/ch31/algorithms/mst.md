@@ -1,82 +1,82 @@
-# External MST
+# 바깥 기억 최소 뻗은 나무
 
-Computing a minimum spanning tree (MST) on massive graphs -- road networks, communication networks, terrain models -- requires algorithms that minimize disk I/O rather than CPU operations. In-memory algorithms like Kruskal's and Prim's access edges in patterns that cause excessive random I/O when the graph exceeds main memory. **External MST** algorithms restructure these computations around sorting and scanning to achieve $O(\text{sort}(m))$ I/O complexity.
+길 그물, 주고받기 그물, 땅 모양 모형 같은 거대한 그래프에서 최소 뻗은 나무를 셈하려면 CPU 연산이 아니라 원반 들고남을 가장 적게 하는 알고리즘이 필요하다. 크루스칼과 프림 같은 기억 속 알고리즘은 그래프가 으뜸 기억을 넘으면 아무 들고남이 지나치게 많은 무늬로 변에 닿는다. **바깥 기억 최소 뻗은 나무** 알고리즘은 이 셈을 줄 세우기와 훑기 둘레로 다시 짜 들고남 복잡도 $O(\text{sort}(m))$을 이룬다.
 
-## Problem Statement
+## 문제 서술
 
-Given a connected, weighted, undirected graph $G = (V, E)$ with $n = |V|$ vertices and $m = |E|$ edges, find a spanning tree $T \subseteq E$ that minimizes the total weight:
+꼭짓점이 $n = |V|$개, 변이 $m = |E|$개인 이어진 무게 방향 없는 그래프 $G = (V, E)$이 주어질 때 온 무게를 가장 작게 하는 뻗은 나무 $T \subseteq E$을 찾아라:
 
 $$
 w(T) = \sum_{(u,v) \in T} w(u,v)
 $$
 
-In the external-memory model, the algorithm has main memory of size $M$ and disk blocks of size $B$. The goal is to minimize the number of I/O operations.
+바깥 기억 모형에서 알고리즘은 크기 $M$의 으뜸 기억과 크기 $B$의 원반 덩이를 가진다. 목표는 들고남 연산 횟수를 가장 적게 하는 것이다.
 
-## External Kruskal's Algorithm
+## 바깥 기억 크루스칼 알고리즘
 
-The most natural external MST algorithm adapts Kruskal's greedy approach.
+가장 자연스러운 바깥 기억 최소 뻗은 나무 알고리즘은 크루스칼의 욕심쟁이 길을 맞춘 것이다.
 
-### Algorithm
+### 알고리즘
 
-1. **Sort** all edges by weight: $O(\text{sort}(m))$ I/Os.
-2. **Scan** edges in sorted order. For each edge $(u, v)$:
-    - If $u$ and $v$ are in different components, add the edge to the MST.
-    - Otherwise, discard it.
-3. The challenge is step 2: the Union-Find structure may not fit in memory.
+1. 모든 변을 무게로 **줄 세운다**: 들고남 $O(\text{sort}(m))$번.
+2. 줄 세운 차례로 변을 **훑는다**. 변 $(u, v)$마다:
+    - $u$과 $v$이 다른 조각에 있으면 그 변을 최소 뻗은 나무에 더한다.
+    - 그렇지 않으면 버린다.
+3. 어려움은 2걸음이다. 합집합 찾기 얼개가 기억에 들어가지 않을 수 있다.
 
-### I/O Complexity
+### 들고남 복잡도
 
-If the Union-Find structure fits in memory ($n \le M$), the algorithm costs $O(\text{sort}(m))$ I/Os total -- the sorting dominates.
+합집합 찾기 얼개가 기억에 들어가면($n \le M$) 온 들고남이 $O(\text{sort}(m))$번이며 줄 세우기가 대부분이다.
 
-When $n > M$, the Union-Find operations cause random I/O. In this case, a **semi-external** approach works: maintain components using external data structures, yielding $O(\text{sort}(m) \cdot \alpha(n))$ I/Os.
+$n > M$이면 합집합 찾기 연산이 아무 들고남을 낳는다. 이때는 **반 바깥 기억** 길이 듣는다. 바깥 기억 자료 얼개로 조각을 지니며 들고남 $O(\text{sort}(m) \cdot \alpha(n))$번이 든다.
 
-## Arge-Brodal-Toma Algorithm
+## 아르게-브로달-토마 알고리즘
 
-For the fully external case where even $n > M$, Arge, Brodal, and Toma (2004) achieve:
+$n > M$이기까지 한 온전한 바깥 기억 경우에 아르게, 브로달, 토마(2004)는 다음을 이룬다:
 
 $$
 \text{I/O complexity} = O\!\left(\text{sort}(m) \cdot \log \log \frac{n \cdot B}{m}\right)
 $$
 
-This approaches the optimal $O(\text{sort}(m))$ bound for dense graphs where $m = \Omega(n \cdot B)$.
+$m = \Omega(n \cdot B)$인 빽빽한 그래프에서 가장 좋은 가둠 $O(\text{sort}(m))$에 가까워진다.
 
-## Boruvka-Based External MST
+## 보루프카 바탕 바깥 기억 최소 뻗은 나무
 
-An external adaptation of Boruvka's algorithm provides a clean approach:
+보루프카 알고리즘을 바깥 기억에 맞추면 깔끔한 길이 나온다:
 
-1. In each **phase**, find the minimum-weight edge leaving each component.
-2. Contract the selected edges, merging components.
-3. Remove duplicate edges and self-loops.
-4. Repeat until one component remains.
+1. **마당**마다 조각마다 밖으로 나가는 최소 무게 변을 찾는다.
+2. 고른 변을 오므려 조각을 합친다.
+3. 겹치는 변과 스스로 이음을 없앤다.
+4. 조각이 하나 남을 때까지 되풀이한다.
 
-Each phase can be implemented with $O(\text{sort}(m))$ I/Os (sort edges by component, scan to find minimums). Since each phase halves the number of components, there are $O(\log n)$ phases.
+마당마다 들고남 $O(\text{sort}(m))$번으로 짤 수 있다(변을 조각으로 줄 세우고 훑어 최소를 찾는다). 마당마다 조각 수가 반으로 줄므로 마당이 $O(\log n)$개다.
 
-**Total I/O**: $O(\text{sort}(m) \cdot \log(n/M))$, since after $O(\log(M))$ phases, the graph fits in memory.
+**온 들고남**: $O(\log(M))$마당 뒤에는 그래프가 기억에 들어가므로 $O(\text{sort}(m) \cdot \log(n/M))$이다.
 
 ```python
 """
 External MST simulation using Boruvka's approach.
 
-Simulates the phase-based Boruvka algorithm where each phase
+마당마다 최소 변을 고르고 조각을 오므리며 군더더기 변을 없애는
 finds minimum-weight outgoing edges, contracts components,
-and removes redundant edges. Tracks simulated I/O operations.
+마당 바탕 보루프카 알고리즘을 흉내 낸다. 흉내 낸 들고남을 좇는다.
 """
 
 # ===================================================================
-# External Boruvka MST
+# 바깥 기억 보루프카 최소 뻗은 나무
 # ===================================================================
 
 def external_boruvka_mst(n, edges, B=4):
     """Compute MST using Boruvka's algorithm (external-memory style).
 
-    Args:
-        n: number of vertices
-        edges: list of (weight, u, v) tuples
-        B: simulated block size
+    인수:
+        n: 꼭짓점 개수
+        edges: (무게, u, v) 짝의 목록
+        B: 흉내 낸 덩이 크기
 
-    Returns:
-        mst_edges: edges in the MST
-        io_count: simulated I/O operations
+    반환값:
+        mst_edges: 최소 뻗은 나무의 변
+        io_count: 흉내 낸 들고남 횟수
     """
     component = list(range(n))
     mst_edges = []
@@ -95,10 +95,10 @@ def external_boruvka_mst(n, edges, B=4):
         if num_components <= 1:
             break
 
-        # Sort edges by component pair (external sort)
+        # 변을 조각 짝으로 줄 세운다(바깥 줄 세우기)
         io_count += max(1, len(edges) // B)
 
-        # Find minimum edge for each component
+        # 조각마다 최소 변을 찾는다
         min_edge = {}
         for w, u, v in edges:
             cu, cv = find(u), find(v)
@@ -111,20 +111,20 @@ def external_boruvka_mst(n, edges, B=4):
         if not min_edge:
             break
 
-        # Add minimum edges and merge components
+        # 최소 변을 더하고 조각을 합친다
         for (w, u, v) in min_edge.values():
             cu, cv = find(u), find(v)
             if cu != cv:
                 mst_edges.append((w, u, v))
                 component[cu] = cv
 
-        # Remove self-loops (scan)
+        # 스스로 이음을 없앤다(훑기)
         io_count += max(1, len(edges) // B)
 
     return mst_edges, io_count
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     print(f"Simulated I/Os (B=2): {io_count}")
 ```
 
-**Output:**
+**출력:**
 ```
 External Boruvka MST:
   (0, 1) weight=1
@@ -156,30 +156,63 @@ External Boruvka MST:
   (5, 6) weight=4
   (0, 2) weight=4
 
-Total MST weight: 19
-MST edges: 6
+최소 뻗은 나무의 온 무게: 19
+최소 뻗은 나무의 변: 6
 Simulated I/Os (B=2): 10
 ```
 
-## Complexity Comparison
+## 복잡도 비교
 
-| Algorithm | I/O Complexity | Condition |
+| 알고리즘 | 들고남 복잡도 | 조건 |
 |---|---|---|
-| In-memory Kruskal | $O(m)$ random I/Os | Worst case |
-| External sort + Kruskal | $O(\text{sort}(m))$ | $n \le M$ (semi-external) |
-| External Boruvka | $O(\text{sort}(m) \cdot \log(n/M))$ | General case |
-| Arge-Brodal-Toma | $O(\text{sort}(m) \cdot \log\log(nB/m))$ | General case |
-| Lower bound | $\Omega(\text{sort}(m))$ | Information-theoretic |
+| 기억 속 크루스칼 | 아무 들고남 $O(m)$번 | 가장 나쁜 경우 |
+| 바깥 줄 세우기 + 크루스칼 | $O(\text{sort}(m))$ | $n \le M$(반 바깥 기억) |
+| 바깥 보루프카 | $O(\text{sort}(m) \cdot \log(n/M))$ | 일반 경우 |
+| 아르게-브로달-토마 | $O(\text{sort}(m) \cdot \log\log(nB/m))$ | 일반 경우 |
+| 아래 가둠 | $\Omega(\text{sort}(m))$ | 앎 이론으로 |
 
-Where $\text{sort}(N) = O((N/B) \log_{M/B}(N/B))$.
+여기서 $\text{sort}(N) = O((N/B) \log_{M/B}(N/B))$이다.
 
-## Practical Considerations
+## 실용적인 고려
 
-- **Semi-external setting**: When $n$ fits in memory but $m$ does not ($n \le M < m$), external Kruskal with in-memory Union-Find is optimal and simple to implement.
-- **Edge reduction**: After each Boruvka phase, the number of remaining edges can be reduced by removing duplicates and self-loops, significantly decreasing the data volume.
-- **Disk layout**: Storing edges sorted by weight on disk saves one external sort pass.
+- **반 바깥 기억 자리**: $n$은 기억에 들어가지만 $m$은 들어가지 않을 때($n \le M < m$), 기억 속 합집합 찾기를 쓰는 바깥 크루스칼이 가장 좋고 짜기도 단순하다.
+- **변 줄이기**: 보루프카 마당마다 겹침과 스스로 이음을 없애 남은 변 수를 줄이면 자료 양이 크게 준다.
+- **원반에 놓기**: 변을 무게로 줄 세워 원반에 담으면 바깥 줄 세우기 지나기를 한 번 아낀다.
 
-## Reference
+## 참고 문헌
 
 - Arge, L., Brodal, G. S., and Toma, L. (2004). "On external-memory MST, SSSP, and multi-way planar graph separation." *Journal of Algorithms*, 53(2), 186--206.
 - Vitter, J. S. (2001). "External memory algorithms and data structures." *ACM Computing Surveys*.
+
+
+## 연습문제
+
+**연습문제 1.**
+보루프카 방식에 바탕한 바깥 기억 최소 뻗은 나무 알고리즘을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    마당: 꼭짓점(조각)마다 밖으로 나가는 최소 무게 변을 찾는다. 그 변을 최소 뻗은 나무에 더하고 양 끝을 합친다. 마당마다 조각 수가 반으로 준다. 짜기: (1) 변을 출발점의 조각으로 줄 세우고, (2) 훑어 조각마다 밖으로 나가는 최소 변을 찾고, (3) 합집합 찾기로 새 이름표를 붙인다. 마당마다 들고남 $O(\text{sort}(|E|))$번. 마당 수: $O(\log(|V|/M))$. 모두: 들고남 $O(\text{sort}(|E|) \cdot \log(|V|/M))$번.
+
+---
+
+**연습문제 2.**
+크루스칼 알고리즘이 프림보다 바깥 기억에 맞추기 쉬운 까닭은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    크루스칼은 변을 줄 세운 차례로 다루며 이는 줄 세운 뒤의 차례 훑기다. 바깥 기억에 안성맞춤이다(줄 세우기에 들고남 $O(\text{sort}(|E|))$번, 훑기에 $O(|E|/B)$번). 합집합 찾기 얼개는 $O(|V|)$이고 흔히 램에 들어간다. 프림은 아무 꼭짓점에 열쇠 낮추기를 하는 앞섬 줄이 필요하다. 이는 아무 닿기여서 연산마다 들고남 $O(1)$번, 모두 $O(|E|)$번이 든다. 기억을 넘는 그래프에서 아무 들고남 $O(|E|)$번은 $O(\text{sort}(|E|))$보다 훨씬 나쁘다.
+
+---
+
+**연습문제 3.**
+바깥 기억 최소 뻗은 나무의 들고남 복잡도 아래 가둠은 얼마인가?
+
+??? success "연습문제 3 풀이"
+    바깥 기억 최소 뻗은 나무의 아래 가둠은 들고남 $\Omega(\text{sort}(|E|))$번이다. 모든 변을 읽고 줄 세운 내놓기를 내는 데만도 그만큼이 들기 때문이다. 알려진 위 가둠은 아르게, 브로달, 토마(2003)가 이룬 $O(\text{sort}(|E|) \cdot \log \log(|V|B/|E|))$이다. $\Omega(\text{sort}(|E|))$과 $O(\text{sort}(|E|) \cdot \log\log)$ 사이의 틈을 메우는 것은 미해결 문제다.
+
+---
+
+**연습문제 4.**
+바깥 기억 최소 뻗은 나무는 큰 자료 뭉치의 켜진 뭉치기와 어떻게 이어지는가?
+
+??? success "연습문제 4 풀이"
+    한 이음 방식의 켜진 뭉치기는 최소 뻗은 나무를 셈한 뒤 무게가 큰 차례로 변을 끊는 것과 같다. 램에 담기 너무 큰 자료 뭉치에서 바깥 기억 최소 뻗은 나무 알고리즘 덕에 점 수십억 개의 한 이음 뭉치기를 할 수 있다. 걸음: (1) 짝별 거리(또는 어림 이웃)를 셈하고, (2) 바깥에서 최소 뻗은 나무를 세우고, (3) 변을 끊어 뭉치를 만든다. 생물 정보학(유전체 뭉치기), 사회 그물(무리 찾기), 그림 나누기에 쓰인다.

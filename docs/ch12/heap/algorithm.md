@@ -1,33 +1,33 @@
-# Heapsort Algorithm
+# 힙 정렬 알고리즘
 
-Sorting an array by comparison requires at least $O(n \log n)$ time in the worst case.  Heapsort achieves this bound exactly by exploiting the **max-heap** property: the largest element always sits at the root, so repeatedly extracting it yields a sorted sequence.  Unlike merge sort, heapsort sorts in place with only $O(1)$ auxiliary space, making it attractive when memory is tight.
+견주어 배열을 정렬하려면 최악의 경우 적어도 $O(n \log n)$ 시간이 든다. 힙 정렬은 **최대 힙**의 성질을 써서 이 한계를 꼭 맞게 이룬다. 가장 큰 원소가 늘 뿌리에 앉으므로 그것을 거듭 꺼내면 정렬된 수열이 나온다. 병합 정렬과 달리 힙 정렬은 도움 공간을 $O(1)$만 쓰며 제자리에서 정렬하므로 기억이 빠듯할 때 매력적이다.
 
-## Core Idea
+## 핵심 생각
 
-Heapsort works in two phases:
+힙 정렬은 두 단계로 굴러간다.
 
-1. **Build a max-heap** from the unsorted array using the bottom-up `heapify` procedure in $O(n)$ time.
-2. **Repeatedly extract the maximum**: swap the root (largest element) with the last unsorted element, shrink the heap by one, and restore the heap property with `sift_down` in $O(\log n)$ time.
+1. 아래에서 위로 올라가는 `heapify` 절차로 정렬되지 않은 배열에서 $O(n)$ 시간에 **최대 힙을 쌓는다**.
+2. **가장 큰 값을 거듭 꺼낸다**: 뿌리(가장 큰 원소)를 아직 정렬되지 않은 마지막 원소와 맞바꾸고, 힙을 하나 줄인 뒤 $O(\log n)$ 시간에 `sift_down`으로 힙의 성질을 되살린다.
 
-After $n - 1$ extractions the array is sorted in ascending order.
+$n - 1$번 꺼내고 나면 배열이 오름차순으로 정렬된다.
 
-## Key Operations
+## 핵심 연산
 
-The algorithm relies on three array-based heap operations.  For an array of length $n$ with 0-based indexing:
+이 알고리즘은 배열 기반 힙 연산 세 가지에 기댄다. 길이가 $n$이고 첨자가 0부터인 배열에서는 다음과 같다.
 
-- **Parent**: $\text{parent}(i) = \lfloor (i - 1) / 2 \rfloor$
-- **Left child**: $\text{left}(i) = 2i + 1$
-- **Right child**: $\text{right}(i) = 2i + 2$
+- **어버이**: $\text{parent}(i) = \lfloor (i - 1) / 2 \rfloor$
+- **왼쪽 자식**: $\text{left}(i) = 2i + 1$
+- **오른쪽 자식**: $\text{right}(i) = 2i + 2$
 
-### Sift Down
+### 아래로 내리기
 
-`sift_down` restores the max-heap property rooted at index $i$ by comparing the node with its children and swapping with the larger child if necessary, then recursing on the affected subtree.
+`sift_down`은 마디를 그 자식과 견주어 필요하면 더 큰 자식과 맞바꾸고, 영향을 받은 부분 트리에서 되돌이하여 첨자 $i$에 뿌리를 둔 최대 힙의 성질을 되살린다.
 
-### Build Max-Heap
+### 최대 힙 쌓기
 
-Starting from the last internal node $\lfloor n/2 \rfloor - 1$ down to index 0, call `sift_down` on each node.  Because most nodes are near the leaves and require little work, the total cost is $O(n)$ rather than $O(n \log n)$.
+마지막 안쪽 마디 $\lfloor n/2 \rfloor - 1$에서 첨자 0까지 내려가며 마디마다 `sift_down`을 부른다. 대부분의 마디가 잎에 가까워 일이 적으므로 전체 비용은 $O(n \log n)$이 아니라 $O(n)$이다.
 
-## Complexity Summary
+## 복잡도 요약
 
 $$
 \begin{array}{lcl}
@@ -40,9 +40,9 @@ $$
 \end{array}
 $$
 
-Space complexity is $O(1)$ auxiliary because the heap is built inside the input array.
+힙을 입력 배열 안에 쌓으므로 도움 공간의 복잡도는 $O(1)$이다.
 
-## Pseudocode
+## 의사코드
 
 ```
 HEAPSORT(A, n):
@@ -64,48 +64,48 @@ SIFT-DOWN(A, i, heap_size):
         SIFT-DOWN(A, largest, heap_size)
 ```
 
-## Step-by-Step Example
+## 한 걸음씩 보는 예
 
-Consider the array $[4, 10, 3, 5, 1]$.
+배열 $[4, 10, 3, 5, 1]$을 생각해 보자.
 
-**Phase 1 -- Build max-heap:**
+**1단계 -- 최대 힙 쌓기:**
 
-Starting from the last internal node (index 1), apply `sift_down`:
+마지막 안쪽 마디(첨자 1)에서 시작해 `sift_down`을 쓴다.
 
-- Index 1: node 10 is already larger than its child 1 -- no swap.
-- Index 0: node 4 is smaller than its child 10 -- swap 4 and 10, then sift 4 down past 5.
+- 첨자 1: 마디 10이 이미 자식 1보다 크다 -- 맞바꿈 없음.
+- 첨자 0: 마디 4가 자식 10보다 작다 -- 4와 10을 맞바꾸고, 4를 5 아래로 내린다.
 
-Result: $[10, 5, 3, 4, 1]$.
+결과: $[10, 5, 3, 4, 1]$.
 
-**Phase 2 -- Repeated extraction:**
+**2단계 -- 거듭 꺼내기:**
 
-| Step | Swap root with | Heap after sift-down | Sorted tail |
+| 걸음 | 뿌리와 맞바꾼 자리 | 내리기 뒤의 힙 | 정렬된 꼬리 |
 |------|----------------|----------------------|-------------|
-| 1    | index 4        | $[5, 4, 3, 1]$      | $10$        |
-| 2    | index 3        | $[4, 1, 3]$         | $5, 10$     |
-| 3    | index 2        | $[3, 1]$            | $4, 5, 10$  |
-| 4    | index 1        | $[1]$               | $3, 4, 5, 10$ |
+| 1 | 첨자 4 | $[5, 4, 3, 1]$ | $10$ |
+| 2 | 첨자 3 | $[4, 1, 3]$ | $5, 10$ |
+| 3 | 첨자 2 | $[3, 1]$ | $4, 5, 10$ |
+| 4 | 첨자 1 | $[1]$ | $3, 4, 5, 10$ |
 
-Final sorted array: $[1, 3, 4, 5, 10]$.
+마지막 정렬된 배열: $[1, 3, 4, 5, 10]$.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Heapsort algorithm.
+힙 정렬 알고리즘.
 
-Demonstrates the two-phase heapsort: build a max-heap in O(n), then
-repeatedly extract the maximum to produce a sorted array in O(n log n)
-total time with O(1) auxiliary space.
+두 단계 힙 정렬을 보여 준다. O(n)에 최대 힙을 쌓은 다음
+가장 큰 값을 거듭 꺼내어 도움 공간 O(1)으로 모두 O(n log n) 시간에
+정렬된 배열을 낸다.
 """
 
 
-# === Sift-down procedure =====================================================
+# === 아래로 내리기 절차 =======================================================
 
 def sift_down(arr: list, i: int, heap_size: int) -> None:
-    """Restore the max-heap property rooted at index *i*.
+    """첨자 *i*에 뿌리를 둔 최대 힙의 성질을 되살린다.
 
-    Assumes both subtrees of *i* are valid max-heaps.
+    *i*의 두 부분 트리가 모두 올바른 최대 힙이라고 놓는다.
     """
     largest = i
     left = 2 * i + 1
@@ -121,19 +121,19 @@ def sift_down(arr: list, i: int, heap_size: int) -> None:
         sift_down(arr, largest, heap_size)
 
 
-# === Build max-heap ===========================================================
+# === 최대 힙 쌓기 =============================================================
 
 def build_max_heap(arr: list) -> None:
-    """Build a max-heap in place in O(n) time."""
+    """O(n) 시간에 제자리에서 최대 힙을 쌓는다."""
     n = len(arr)
     for i in range(n // 2 - 1, -1, -1):
         sift_down(arr, i, n)
 
 
-# === Heapsort =================================================================
+# === 힙 정렬 ==================================================================
 
 def heapsort(arr: list) -> None:
-    """Sort *arr* in ascending order using heapsort (in place)."""
+    """힙 정렬로 *arr*을 오름차순으로 정렬한다(제자리)."""
     n = len(arr)
     build_max_heap(arr)
     for i in range(n - 1, 0, -1):
@@ -141,7 +141,7 @@ def heapsort(arr: list) -> None:
         sift_down(arr, 0, i)
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     data = [4, 10, 3, 5, 1]
@@ -154,18 +154,51 @@ if __name__ == "__main__":
     print(f"Sorted: {data2}")
 ```
 
-**Output:**
+**출력:**
 ```
 Before: [4, 10, 3, 5, 1]
 After:  [1, 3, 4, 5, 10]
 Sorted: [3, 9, 10, 27, 38, 43, 82]
 ```
 
-## Why Heapsort Matters
+## 힙 정렬이 중요한 까닭
 
-Heapsort guarantees $O(n \log n)$ time in the **worst case** -- a property that quicksort lacks without randomization or introspection.  Combined with $O(1)$ extra space, heapsort is the go-to algorithm when both time and space guarantees are required.  Its main practical drawback is poor cache locality compared to quicksort and merge sort, which leads to higher constant factors on modern hardware.
+힙 정렬은 **최악의 경우**에도 $O(n \log n)$ 시간을 보장한다. 무작위나 들여다보기 없이는 빠른 정렬이 갖추지 못하는 성질이다. 여기에 여분 공간이 $O(1)$이라는 점까지 더해져, 시간과 공간을 모두 보장받아야 할 때 첫손에 꼽히는 알고리즘이 된다. 실전에서의 큰 흠은 빠른 정렬이나 병합 정렬에 견주어 캐시 지역성이 나빠 오늘날 하드웨어에서 상수 인자가 커진다는 점이다.
 
-## References
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Chapter 6.
-- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, Section 2.4.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 6장.
+- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, 2.4절.
+
+
+## 연습문제
+
+**연습문제 1.**
+$[38, 27, 43, 3, 9, 82, 10]$에서 힙 정렬 알고리즘을 따라가며 큰 걸음마다의 상태를 보여라.
+
+??? success "연습문제 1 풀이"
+    알고리즘을 한 걸음씩 밟아라. 나누어 정복하는 정렬이라면 되돌이 나눔과 병합을 하나씩 보이고, 나눔 기반 정렬이라면 나눔마다와 축이 놓이는 자리를 보여라. 걸음마다 배열 전체의 상태를 내보여라.
+
+---
+
+**연습문제 2.**
+힙 정렬 알고리즘의 최선, 최악, 평균의 경우 시간 복잡도를 끌어내라.
+
+??? success "연습문제 2 풀이"
+    경우마다 점화식을 써라. 최선의 경우는 가장 좋은 나눔이거나 미리 정렬된 입력이다. 최악의 경우는 일을 가장 크게 만드는 적수 입력이다. 평균의 경우는 무작위 순열에 대한 기대 성능이다. 점화식을 각각 풀어라.
+
+---
+
+**연습문제 3.**
+힙 정렬 알고리즘은 안정적인가? 증명하거나 반례를 들어라.
+
+??? success "연습문제 3 풀이"
+    같은 원소가 본디 상대 차례를 지키면 그 정렬은 안정적이다. 모든 입력에서 이것이 성립함을 증명하거나, 정렬 도중 같은 원소 둘의 자리가 뒤바뀌는 구체적인 입력을 들어라.
+
+---
+
+**연습문제 4.**
+float32 학습 손실 값 1000만 개를 정렬할 때 힙 정렬 알고리즘을 다른 두 방법과 견주어라. 시간, 공간, 캐시 거동, GPU 어울림을 살펴라.
+
+??? success "연습문제 4 풀이"
+    $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.

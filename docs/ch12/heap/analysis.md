@@ -1,116 +1,116 @@
-# Heapsort Analysis
+# 힙 정렬 분석
 
-Understanding *why* heapsort runs in $O(n \log n)$ time requires examining both phases independently.  The build-heap phase is surprisingly $O(n)$ -- not $O(n \log n)$ as a naive argument might suggest -- and the extraction phase contributes the dominant $O(n \log n)$ term.  This page derives both bounds and discusses the practical implications.
+힙 정렬이 *왜* $O(n \log n)$ 시간에 도는지 알려면 두 단계를 따로 뜯어보아야 한다. 힙 쌓기 단계는 놀랍게도 $O(n)$이며, 어설픈 논증이 넌지시 이르는 $O(n \log n)$이 아니다. 꺼내기 단계가 으뜸 항인 $O(n \log n)$을 내놓는다. 이 쪽은 두 한계를 모두 끌어내고 실전에서의 뜻을 이야기한다.
 
-## Build Max-Heap Complexity
+## 최대 힙 쌓기의 복잡도
 
-### Naive Upper Bound
+### 어설픈 위 한계
 
-Calling `sift_down` on each of the $n/2$ internal nodes appears to cost $O(\log n)$ each, giving $O(n \log n)$.  This bound is correct but not tight.
+안쪽 마디 $n/2$개마다 `sift_down`을 부르면 저마다 $O(\log n)$이 드는 듯 보여 $O(n \log n)$이 나온다. 이 한계는 옳지만 빈틈이 있다.
 
-### Tight O(n) Bound
+### 빈틈없는 O(n) 한계
 
-The key observation is that most nodes are near the bottom of the tree and require very few swaps.  In a heap of height $h = \lfloor \log_2 n \rfloor$:
+핵심 관찰은 대부분의 마디가 트리의 바닥 가까이에 있어 맞바꿈이 아주 적다는 것이다. 높이가 $h = \lfloor \log_2 n \rfloor$인 힙에서는 다음과 같다.
 
-- At depth $d$, there are at most $\lceil n / 2^{d+1} \rceil$ nodes.
-- A node at depth $d$ has height $h - d$ and `sift_down` costs at most $O(h - d)$.
+- 깊이 $d$에는 마디가 많아야 $\lceil n / 2^{d+1} \rceil$개 있다.
+- 깊이 $d$의 마디는 높이가 $h - d$이고 `sift_down`은 많아야 $O(h - d)$이 든다.
 
-The total work is:
+전체 일은 다음과 같다.
 
 $$
 W = \sum_{d=0}^{h} \left\lceil \frac{n}{2^{d+1}} \right\rceil \cdot O(h - d)
 $$
 
-Substituting $k = h - d$ (so $d = h - k$):
+$k = h - d$(곧 $d = h - k$)로 바꾸면 다음과 같다.
 
 $$
 W = \sum_{k=0}^{h} \left\lceil \frac{n}{2^{h - k + 1}} \right\rceil \cdot O(k) \leq \sum_{k=0}^{h} \frac{n}{2^{h - k + 1}} \cdot k
 $$
 
-Since $2^h \leq n$, we have $n / 2^{h+1} \leq 1$, and the sum simplifies to:
+$2^h \leq n$이므로 $n / 2^{h+1} \leq 1$이고, 합은 다음으로 간추려진다.
 
 $$
 W \leq n \sum_{k=0}^{\infty} \frac{k}{2^k} = n \cdot \frac{1/2}{(1 - 1/2)^2} = 2n = O(n)
 $$
 
-The identity $\sum_{k=0}^{\infty} k x^k = x / (1 - x)^2$ for $|x| < 1$ with $x = 1/2$ closes the proof.
+$|x| < 1$에 대한 항등식 $\sum_{k=0}^{\infty} k x^k = x / (1 - x)^2$에 $x = 1/2$을 넣으면 증명이 끝난다.
 
-??? note "Intuition for the O(n) bound"
-    Half the nodes are leaves (height 0) and do zero work.  A quarter of the nodes have height 1 and do at most 1 swap.  An eighth have height 2 and do at most 2 swaps.  The work per level decreases geometrically, so the total is dominated by a constant times $n$.
+??? note "O(n) 한계에 대한 직관"
+    마디의 절반은 잎(높이 0)이라 일이 없다. 4분의 1은 높이가 1이라 많아야 한 번 맞바꾼다. 8분의 1은 높이가 2라 많아야 두 번 맞바꾼다. 층마다의 일이 기하급수로 줄어들므로 전체는 $n$에 상수를 곱한 값에 눌린다.
 
-## Extraction Phase Complexity
+## 꺼내기 단계의 복잡도
 
-After building the heap, we perform $n - 1$ extract-max operations.  Each extraction:
+힙을 쌓은 뒤 최대 꺼내기를 $n - 1$번 한다. 꺼낼 때마다 다음이 일어난다.
 
-1. Swaps the root with the last element: $O(1)$.
-2. Calls `sift_down` on the new root through a heap of decreasing size: $O(\log k)$ for the $k$-th extraction.
+1. 뿌리를 마지막 원소와 맞바꾼다: $O(1)$.
+2. 크기가 줄어드는 힙에서 새 뿌리에 `sift_down`을 부른다: $k$번째 꺼내기에서 $O(\log k)$.
 
-The total cost is:
+전체 비용은 다음과 같다.
 
 $$
 \sum_{k=1}^{n-1} O(\log k) = O\!\left(\sum_{k=1}^{n} \log k\right) = O(\log(n!)) = O(n \log n)
 $$
 
-The last equality uses Stirling's approximation: $\log(n!) = \Theta(n \log n)$.
+마지막 등호는 스털링 어림 $\log(n!) = \Theta(n \log n)$을 쓴다.
 
-## Total Complexity
+## 전체 복잡도
 
-Combining both phases:
+두 단계를 합치면 다음과 같다.
 
 $$
 T(n) = \underbrace{O(n)}_{\text{build heap}} + \underbrace{O(n \log n)}_{\text{extract all}} = O(n \log n)
 $$
 
-### Best, Average, and Worst Cases
+### 최선, 평균, 최악의 경우
 
-| Case    | Time           | When it occurs |
+| 경우 | 시간 | 언제 일어나는가 |
 |---------|----------------|----------------|
-| Best    | $O(n \log n)$  | All elements identical (still performs all swaps) |
-| Average | $O(n \log n)$  | Random permutation |
-| Worst   | $O(n \log n)$  | Any input (guaranteed) |
+| 최선 | $O(n \log n)$ | 모든 원소가 같을 때(그래도 맞바꿈은 다 한다) |
+| 평균 | $O(n \log n)$ | 무작위 순열 |
+| 최악 | $O(n \log n)$ | 어떤 입력에서도(보장된다) |
 
-Unlike quicksort, heapsort has **no pathological inputs**.  The $O(n \log n)$ bound holds for every input, not just in expectation.
+빠른 정렬과 달리 힙 정렬에는 **병적인 입력이 없다**. $O(n \log n)$ 한계는 기댓값으로서가 아니라 모든 입력에서 성립한다.
 
-!!! tip "Heapsort vs. the comparison lower bound"
-    The comparison-based sorting lower bound is $\Omega(n \log n)$.  Heapsort matches this bound in the worst case, making it asymptotically optimal among comparison sorts.
+!!! tip "힙 정렬과 비교의 아래 한계"
+    비교 기반 정렬의 아래 한계는 $\Omega(n \log n)$이다. 힙 정렬은 최악의 경우에도 이 한계와 맞먹으므로 비교 정렬 가운데 점근적으로 가장 좋다.
 
-## Space Complexity
+## 공간 복잡도
 
-Heapsort uses $O(1)$ auxiliary space because it operates on the array in place.  The only extra storage is a constant number of variables for indices and temporary swaps.
+힙 정렬은 배열 위에서 제자리로 굴러가므로 도움 공간을 $O(1)$만 쓴다. 여분으로 드는 것은 첨자와 임시 맞바꿈에 쓰는 상수 개의 변수뿐이다.
 
-If `sift_down` is implemented recursively, the call stack uses $O(\log n)$ space.  An iterative implementation of `sift_down` reduces this to $O(1)$.
+`sift_down`을 되돌이로 구현하면 부름 더미가 $O(\log n)$ 공간을 쓴다. `sift_down`을 되풀이로 구현하면 이를 $O(1)$으로 줄인다.
 
-## Practical Considerations
+## 실용적인 고려
 
-### Cache Performance
+### 캐시 성능
 
-Heapsort accesses array elements in a pattern determined by the heap structure: a node at index $i$ accesses indices $2i + 1$ and $2i + 2$.  For large arrays, these jumps frequently cross cache-line boundaries, leading to more cache misses than sequential-access algorithms like merge sort or quicksort.
+힙 정렬은 힙의 짜임이 정하는 본새대로 배열 원소를 훑는다. 곧 첨자 $i$의 마디가 첨자 $2i + 1$과 $2i + 2$을 찾아간다. 배열이 크면 이런 뜀박질이 캐시 줄의 경계를 자주 넘어, 차례대로 훑는 병합 정렬이나 빠른 정렬보다 캐시가 더 자주 빗나간다.
 
-### Comparison Count
+### 견줌 횟수
 
-Heapsort performs approximately $2n \log_2 n$ comparisons in the worst case (two comparisons per level of `sift_down` -- one to find the larger child, one to compare with the parent).  This is roughly twice the information-theoretic minimum of $n \log_2 n - O(n)$ comparisons.
+힙 정렬은 최악의 경우 대략 $2n \log_2 n$번 견준다(`sift_down`의 층마다 두 번씩 견준다. 하나는 더 큰 자식을 찾으려고, 하나는 어버이와 견주려고). 이는 정보 이론이 말하는 최소 $n \log_2 n - O(n)$번의 대략 두 배이다.
 
-### Stability
+### 안정성
 
-Heapsort is **not stable**.  The extraction phase can change the relative order of equal elements.  When stability is required, merge sort or a stable variant of heapsort (at the cost of extra space) is preferred.
+힙 정렬은 **안정적이지 않다**. 꺼내기 단계가 같은 원소의 상대 차례를 바꿀 수 있다. 안정성이 필요하면 병합 정렬이나 (여분 공간을 치르는) 안정한 힙 정렬 변형이 낫다.
 
-## Python Demonstration
+## 파이썬 시연
 
 ```python
 """
-Heapsort analysis demonstration.
+힙 정렬 분석 보여 주기.
 
-Verifies the O(n log n) behavior empirically by counting comparisons
-during heapsort on arrays of increasing size.
+크기를 키워 가며 힙 정렬의 견줌 횟수를 세어
+O(n log n) 거동을 실험으로 확인한다.
 """
 
 import math
 
 
-# === Comparison-counting heapsort =============================================
+# === 견줌을 세는 힙 정렬 ======================================================
 
 def sift_down_counted(arr: list, i: int, heap_size: int, count: list) -> None:
-    """Sift down with comparison counting."""
+    """견줌을 세며 아래로 내린다."""
     largest = i
     left = 2 * i + 1
     right = 2 * i + 2
@@ -130,15 +130,15 @@ def sift_down_counted(arr: list, i: int, heap_size: int, count: list) -> None:
 
 
 def heapsort_counted(arr: list) -> int:
-    """Heapsort returning the total number of comparisons."""
+    """견줌의 총 횟수를 되돌리는 힙 정렬."""
     n = len(arr)
     count = [0]
 
-    # Build max-heap
+    # 최대 힙을 쌓는다
     for i in range(n // 2 - 1, -1, -1):
         sift_down_counted(arr, i, n, count)
 
-    # Extract elements
+    # 원소를 꺼낸다
     for i in range(n - 1, 0, -1):
         arr[0], arr[i] = arr[i], arr[0]
         sift_down_counted(arr, 0, i, count)
@@ -146,7 +146,7 @@ def heapsort_counted(arr: list) -> int:
     return count[0]
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     import random
@@ -163,7 +163,7 @@ if __name__ == "__main__":
         print(f"{n:>8}  {comps:>12}  {theory:>10.0f}  {ratio:>6.3f}")
 ```
 
-**Output (typical, varies with random seed):**
+**출력(흔한 예이며 무작위 씨앗에 따라 달라진다):**
 ```
        n   comparisons     2n lg n   ratio
 --------------------------------------------
@@ -174,10 +174,43 @@ if __name__ == "__main__":
    10000        234820      265754   0.884
 ```
 
-The ratio remains below 1.0, confirming that the actual comparison count stays within the $2n \log_2 n$ upper bound.
+비율이 1.0 아래에 머물러, 실제 견줌 횟수가 위 한계 $2n \log_2 n$ 안에 있음을 확인해 준다.
 
-## References
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Chapter 6.
-- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, Section 2.4.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 6장.
+- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, 2.4절.
 - Floyd, R. W. (1964). Algorithm 245: Treesort 3. *Communications of the ACM*, 7(12), 701.
+
+
+## 연습문제
+
+**연습문제 1.**
+$[38, 27, 43, 3, 9, 82, 10]$에서 힙 정렬 분석을 따라가며 큰 걸음마다의 상태를 보여라.
+
+??? success "연습문제 1 풀이"
+    알고리즘을 한 걸음씩 밟아라. 나누어 정복하는 정렬이라면 되돌이 나눔과 병합을 하나씩 보이고, 나눔 기반 정렬이라면 나눔마다와 축이 놓이는 자리를 보여라. 걸음마다 배열 전체의 상태를 내보여라.
+
+---
+
+**연습문제 2.**
+힙 정렬 분석의 최선, 최악, 평균의 경우 시간 복잡도를 끌어내라.
+
+??? success "연습문제 2 풀이"
+    경우마다 점화식을 써라. 최선의 경우는 가장 좋은 나눔이거나 미리 정렬된 입력이다. 최악의 경우는 일을 가장 크게 만드는 적수 입력이다. 평균의 경우는 무작위 순열에 대한 기대 성능이다. 점화식을 각각 풀어라.
+
+---
+
+**연습문제 3.**
+힙 정렬 분석은 안정적인가? 증명하거나 반례를 들어라.
+
+??? success "연습문제 3 풀이"
+    같은 원소가 본디 상대 차례를 지키면 그 정렬은 안정적이다. 모든 입력에서 이것이 성립함을 증명하거나, 정렬 도중 같은 원소 둘의 자리가 뒤바뀌는 구체적인 입력을 들어라.
+
+---
+
+**연습문제 4.**
+float32 학습 손실 값 1000만 개를 정렬할 때 힙 정렬 분석을 다른 두 방법과 견주어라. 시간, 공간, 캐시 거동, GPU 어울림을 살펴라.
+
+??? success "연습문제 4 풀이"
+    $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.

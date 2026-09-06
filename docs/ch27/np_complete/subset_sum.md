@@ -1,140 +1,169 @@
-# Subset Sum
+# 부분 모임 합
 
-Many computational problems ask whether a collection of numbers can combine to
-hit a target value.  Subset Sum distills this question to its purest form and
-serves as a gateway to understanding NP-completeness: it is easy to verify a
-solution, yet no known polynomial-time algorithm can find one.
+많은 셈 문제가 수의 모음을 합쳐 목표 값에 맞출 수 있는지 묻는다. 부분 모임 합은 이 물음을 가장 순수한 꼴로 뽑아내며 NP 완전성을 이해하는 관문 노릇을 한다. 풀이를 살피기는 쉽지만 알려진 다항 시간 알고리즘으로는 찾을 수 없다.
 
-## Problem Definition
+## 문제의 정의
 
-Given a finite set $S = \{a_1, a_2, \dots, a_n\}$ of non-negative integers and
-a target integer $t$, the **Subset Sum** decision problem asks:
+음이 아닌 정수의 유한 모임 $S = \{a_1, a_2, \dots, a_n\}$과 목표 정수 $t$이 주어질 때 **부분 모임 합** 가름 문제는 묻는다:
 
-> Does there exist a subset $S' \subseteq S$ such that
+> 다음을 만족하는 부분 모임 $S' \subseteq S$이 있는가?
 > $\sum_{a \in S'} a = t$?
 
-!!! example "Concrete Instance"
-    Let $S = \{3, 7, 1, 8, 4\}$ and $t = 12$.  The subset $\{3, 1, 8\}$ sums
-    to $12$, so the answer is **YES**.  Changing the target to $t = 2$ yields
-    **NO**, because no subset reaches exactly $2$.
+!!! example "구체적인 사례"
+    $S = \{3, 7, 1, 8, 4\}$이고 $t = 12$이라 하자. 부분 모임 $\{3, 1, 8\}$의 합이 $12$이므로 답은 **예**이다. 목표를 $t = 2$으로 바꾸면 정확히 $2$에 닿는 부분 모임이 없으므로 **아니오**가 된다.
 
-## Membership in NP
+## NP에 듦
 
-A certificate for a YES instance is simply the subset $S'$.  A polynomial-time
-verifier checks two things:
+예 사례의 증서는 그저 부분 모임 $S'$이다. 다항 시간 살피개는
+다음 두 가지를 살핀다:
 
 1. $S' \subseteq S$.
 2. $\sum_{a \in S'} a = t$.
 
-Both checks run in $O(n)$ time, so Subset Sum $\in$ NP.
+두 살피기 모두 $O(n)$ 시간에 도므로 부분 모임 합 $\in$ NP이다.
 
-## NP-Completeness via Reduction from 3-SAT
+## 3-SAT에서 줄여 얻는 NP 완전성
 
-The standard proof reduces **3-SAT** to Subset Sum.  The reduction constructs
-numbers whose decimal (or large-base) digits encode clause satisfaction.
+여느 밝힘은 **3-SAT**을 부분 모임 합으로 줄인다. 이 줄임은 십진(또는 큰 밑) 자릿수가 절의 만족을 적는 수를 세운다.
 
-### Reduction Sketch
+### 줄임 얼개
 
-Given a 3-SAT formula $\phi$ with $n$ variables $x_1, \dots, x_n$ and $m$
-clauses $C_1, \dots, C_m$:
+변수 $x_1, \dots, x_n$ $n$개와 절 $C_1, \dots, C_m$ $m$개를 가진 3-SAT 식 $\phi$이 주어질 때:
 
-1. **Create $n + m$ digit positions.**  The first $n$ positions correspond to
-   variables; the last $m$ positions correspond to clauses.
-2. **For each variable $x_i$,** create two numbers $v_i$ (for $x_i = \text{true}$)
-   and $v_i'$ (for $x_i = \text{false}$).  In digit position $i$, both $v_i$
-   and $v_i'$ have a $1$.  In each clause digit position $j$, $v_i$ has a $1$
-   if $x_i$ appears positively in $C_j$, and $v_i'$ has a $1$ if $\lnot x_i$
-   appears in $C_j$.
-3. **For each clause $C_j$,** add slack numbers $s_j$ and $s_j'$ with a $1$
-   only in position $j$.
-4. **Set the target** $t$ to have a $1$ in each variable position and a $3$ in
-   each clause position.
+1. **자릿자리 $n + m$개를 만든다.** 앞의 $n$자리는 변수에, 뒤의 $m$자리는 절에 해당한다.
+2. **변수 $x_i$마다** 수 둘 $v_i$($x_i = \text{true}$에)과 $v_i'$($x_i = \text{false}$에)을 만든다. $i$번째 자리에서 $v_i$과 $v_i'$ 모두 $1$을 가진다. 절 자리 $j$마다 $x_i$이 $C_j$에 양으로 나오면 $v_i$이 $1$을, $\lnot x_i$이 $C_j$에 나오면 $v_i'$이 $1$을 가진다.
+3. **절 $C_j$마다** $j$번째 자리에만 $1$인 여유 수 $s_j$과 $s_j'$을 더한다.
+4. **목표** $t$을 변수 자리마다 $1$, 절 자리마다 $3$이 되도록 둔다.
 
-Use a base $b \ge 4$ to prevent carries across digit positions.
+자리 사이에 올림이 생기지 않도록 밑 $b \ge 4$을 쓴다.
 
-### Correctness Argument
+### 올바름의 논증
 
-- **If $\phi$ is satisfiable,** the truth assignment selects exactly one of
-  $v_i, v_i'$ per variable, contributing $1$ to each variable digit.  Each
-  satisfied clause receives $1$, $2$, or $3$ from the selected $v_i / v_i'$
-  values; the slack numbers fill the remainder to reach $3$.
-- **If the subset sums to $t$,** exactly one of $v_i, v_i'$ is chosen per
-  variable (forced by the variable digits), and every clause digit reaches $3$,
-  meaning every clause is satisfied.
+- **$\phi$이 만족 가능하면** 참 값 매김이 변수마다 $v_i, v_i'$ 가운데 꼭 하나를 골라 변수 자리마다 $1$을 보탠다. 만족된 절마다 고른 $v_i / v_i'$ 값에서 $1$, $2$, $3$ 가운데 하나를 받고 여유 수가 나머지를 채워 $3$에 이른다.
+- **부분 모임의 합이 $t$이면** 변수마다 $v_i, v_i'$ 가운데 꼭 하나가 고른 것이 되고(변수 자리가 강제한다) 절 자리마다 $3$에 이르므로 모든 절이 만족된다.
 
-The reduction runs in polynomial time because it creates $O(n + m)$ numbers,
-each with $O(n + m)$ digits.
+이 줄임은 자릿수가 저마다 $O(n + m)$개인 수를 $O(n + m)$개 만들므로 다항 시간에 돈다.
 
-## Dynamic Programming Solution
+## 짜 넣기 풀이
 
-Although the problem is NP-complete, a pseudo-polynomial algorithm exists.
+이 문제는 NP 완전이지만 거짓 다항 알고리즘이 있다.
 
 ```python
 """
-Subset Sum via dynamic programming.
+짜 넣기로 푸는 부분 모임 합.
 
 Time : O(n * t)
 Space: O(t)
 """
 
 
-# === Subset Sum DP ===
+# === 부분 모임 합 짜 넣기 ===
 def subset_sum(nums: list[int], target: int) -> bool:
-    """Return True if any subset of nums sums to target."""
+    """nums의 어떤 부분 모임의 합이 target이면 True을 돌려준다."""
     dp = [False] * (target + 1)
     dp[0] = True
     for num in nums:
-        # Traverse right-to-left to avoid using num twice
+        # num을 두 번 쓰지 않도록 오른쪽에서 왼쪽으로 훑는다
         for j in range(target, num - 1, -1):
             if dp[j - num]:
                 dp[j] = True
     return dp[target]
 
 
-# === Example ===
+# === 보기 ===
 if __name__ == "__main__":
     S = [3, 7, 1, 8, 4]
     t = 12
     print(f"S = {S}, t = {t}")
-    print(f"Subset with sum {t} exists: {subset_sum(S, t)}")  # True
+    print(f"Subset with sum {t} exists: {subset_sum(S, t)}")  # 참
 
     t2 = 2
     print(f"Subset with sum {t2} exists: {subset_sum(S, t2)}")  # False
 ```
 
-The running time is $O(n \cdot t)$.  Because $t$ can be exponential in the
-input size (the number of bits needed to represent $t$ is $\log t$), this is
-**pseudo-polynomial** rather than truly polynomial.
+도는 시간은 $O(n \cdot t)$이다. $t$이 들임 크기에 대해 지수만큼 클 수 있으므로($t$을 적는 데 드는 비트 수는 $\log t$이다) 이는 참으로 다항이 아니라 **거짓 다항**이다.
 
-## Relationship to Other NP-Complete Problems
+## 다른 NP 완전 문제와의 관계
 
-Subset Sum is a special case of the **0/1 Knapsack** problem (set all item
-values equal to their weights).  It also connects to:
+부분 모임 합은 **0/1 배낭** 문제의 특별한 경우이다(모든 물건의 값을 그 무게와 같게 둔다). 다음과도 이어진다:
 
-| Problem | Reduction Direction |
+| 문제 | 줄임 방향 |
 |---|---|
-| 3-SAT | 3-SAT $\le_p$ Subset Sum |
-| Partition | Subset Sum $\le_p$ Partition |
-| 0/1 Knapsack | Subset Sum $\le_p$ 0/1 Knapsack |
+| 3-SAT | 3-SAT $\le_p$ 부분 모임 합 |
+| 나누기 | 부분 모임 합 $\le_p$ 나누기 |
+| 0/1 배낭 | 부분 모임 합 $\le_p$ 0/1 배낭 |
 
-!!! tip "Partition as a Variant"
-    The **Partition** problem asks whether $S$ can be split into two subsets of
-    equal sum.  This reduces to Subset Sum with $t = (\sum S) / 2$ and is
-    itself NP-complete.
+!!! tip "변형으로서의 나누기"
+    **나누기** 문제는 $S$을 합이 같은 부분 모임 둘로 나눌 수 있는지 묻는다. 이는 $t = (\sum S) / 2$인 부분 모임 합으로 줄여지며 그 자체로 NP 완전이다.
 
-## Practical Considerations
+## 실용적인 고려
 
-- **Approximation.**  A fully polynomial-time approximation scheme (FPTAS)
-  exists: for any $\epsilon > 0$, one can find a subset whose sum is within
-  $(1 - \epsilon)t$ in time polynomial in $n$ and $1/\epsilon$.
-- **Cryptographic relevance.**  Lattice-based cryptosystems build on the
-  hardness of Subset Sum variants (e.g., the Merkle--Hellman knapsack system).
-- **Meet-in-the-middle.**  Splitting $S$ into two halves and enumerating all
-  $2^{n/2}$ sums per half yields an $O(2^{n/2})$ exact algorithm, improving
-  over brute-force $O(2^n)$.
+- **어림.** 온전 다항 시간 어림 얼거리(FPTAS)가 있다. 어떤 $\epsilon > 0$에 대해서도 $n$과 $1/\epsilon$에 대해 다항인 시간에 합이 $(1 - \epsilon)t$ 안에 드는 부분 모임을 찾을 수 있다.
+- **암호와의 이음.** 격자 바탕 암호는 부분 모임 합 변형의 어려움 위에 세워진다(보기로 머클-헬먼 배낭 얼개).
+- **가운데서 만나기.** $S$을 반 둘로 나누고 반쪽마다 합 $2^{n/2}$가지를 모두 늘어놓으면 $O(2^{n/2})$의 정확한 알고리즘을 얻어 막무가내 $O(2^n)$보다 낫다.
 
-## Reference
+## 참고 문헌
 
 - Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction
-  to Algorithms* (CLRS), Chapter 34.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 34.
+
+## 연습문제
+
+**연습문제 1.**
+목표가 $T = 11$인 부분 모임 합 사례 $\{2, 3, 7, 8, 10\}$을 짜 넣기로 풀어라.
+
+??? success "연습문제 1 풀이"
+    부울 짜 넣기 표 $dp[j]$ = 어떤 부분 모임으로 합 $j$을 이룰 수 있는가?
+
+    첫자리매김: $dp[0] = \text{true}$.
+
+    - 2 뒤: $dp[0] = T, dp[2] = T$
+    - 3 뒤: $dp[0] = T, dp[2] = T, dp[3] = T, dp[5] = T$
+    - 7 뒤: $dp[7] = T, dp[9] = T, dp[10] = T$을 더한다. 아직 11은 아니다.
+    - 8 뒤: $dp[8] = T, dp[10] = T, dp[11] = T$을 더한다. 목표에 닿았다!
+
+    $dp[11] = \text{true}$이다. 되돌아가면 $11 - 8 = 3$($dp[3] = T$), $3 - 3 = 0$($dp[0] = T$)이다. 부분 모임: $\{3, 8\}$. 확인: $3 + 8 = 11$. 맞다.
+
+---
+
+**연습문제 2.**
+3-SAT에서 줄여 부분 모임 합이 NP 완전임을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    부분 모임 합은 NP에 든다. 부분 모임이 주어지면 원소를 더해 $O(n)$에 $T$과 견준다.
+
+    3-SAT에서 줄이기: 변수 $n$개와 절 $m$개를 가진 식 $\phi$이 주어지면 밑 10(또는 $> m$인 아무 밑)으로 수를 세운다. 수마다 자릿수가 $n + m$개이다.
+
+    변수 $x_i$마다 수 $v_i$과 $\bar{v}_i$을 만든다. $i$번째 자리(변수 자리)는 $v_i$과 $\bar{v}_i$에서 1이고 다른 모든 변수 자리에서는 0이다. 절 자리에서는 그 리터럴이 절 $C_j$에 나오면 $n + j$번째 자리가 1이다.
+
+    절 $C_j$마다 $n + j$번째 자리에만 1인 여유 수 $s_j$과 $s'_j$을 더한다.
+
+    목표 $T$: $i$번째 자리(변수) = 1($x_i$이나 $\bar{x}_i$ 가운데 꼭 하나를 고른다), $n + j$번째 자리(절) = 3(절이 리터럴에서 1~3을 보태고 여유 수가 나머지를 채운다).
+
+    만족시키는 매김은 그에 해당하는 $v_i$이나 $\bar{v}_i$을 골라 변수 자리마다 자릿합 1을, 절 자리마다 $\geq 1$을 이룬다. 여유 수가 꼭 3이 되도록 채운다.
+
+---
+
+**연습문제 3.**
+부분 모임 합의 FPTAS(온전 다항 시간 어림 얼거리)을 적어라.
+
+??? success "연습문제 3 풀이"
+    이 FPTAS은 합이 $\geq (1-\epsilon) \cdot \text{OPT}$인 부분 모임을 $O(n^2/\epsilon)$ 시간에 찾는다.
+
+    알고리즘: 이룰 수 있는 합의 목록 $L$을 지닌다. 처음에 $L = \{0\}$이다. 원소 $a_i$마다 $L' = L \cup \{s + a_i : s \in L, s + a_i \leq T\}$을 만든다. 그다음 $L'$을 **다듬는다**. 서로 $(1 + \epsilon/n)$ 배 안에 드는 값을 지우고 무리마다 대표 하나만 남긴다.
+
+    다듬은 뒤 $|L'| \leq O(n/\epsilon \cdot \log T)$이고 더 꼼꼼히 보면 $|L'| \leq O(n/\epsilon)$이다. 물건 $n$개에 걸쳐 온 시간은 $O(n^2/\epsilon)$이다.
+
+    어긋남 살피기: 다듬기 걸음마다 많아야 $(1 + \epsilon/n)$ 배의 곱셈 어긋남이 생긴다. $n$걸음 뒤 온 어긋남은 많아야 $(1 + \epsilon/n)^n \leq e^\epsilon \approx 1 + \epsilon$이다. 돌려주는 합은 $\geq \text{OPT}/(1+\epsilon) \geq (1-\epsilon) \cdot \text{OPT}$이다.
+
+---
+
+**연습문제 4.**
+가운데서 만나기 재주가 어떻게 부분 모임 합의 $O(n \cdot 2^{n/2})$ 알고리즘을 주는지 밝혀라. 그 실제 성능을 짜 넣기 방식과 견주어라.
+
+??? success "연습문제 4 풀이"
+    물건을 반 둘 $A$(앞의 $n/2$개)과 $B$(뒤의 $n/2$개)으로 나눈다. $A$의 부분 모임 합 $2^{n/2}$가지를 모두 늘어놓고 줄 세운다. $B$의 부분 모임 합 $s_B$마다 $A$의 줄 세운 목록에서 $T - s_B$을 이진 찾기로 찾는다.
+
+    시간: $O(2^{n/2} \log(2^{n/2})) = O(n \cdot 2^{n/2})$. 공간: $O(2^{n/2})$.
+
+    짜 넣기($O(nT)$)와 견주기: $T \ll 2^{n/2}$(목표 값이 작을 때)이면 짜 넣기가 더 빠르다. $T \gg 2^{n/2}$(목표 값이 클 때, 보기로 $T \sim 2^n$인 암호 크기)이면 가운데서 만나기가 더 빠르다. $n = 40$에서 가운데서 만나기는 약 $10^6$번 셈하지만(아주 빠르다) $T = 2^{40}$인 짜 넣기는 약 $4 \times 10^{13}$번이 든다(쓸 수 없다). $n = 40, T = 10^6$에서는 짜 넣기가 약 $4 \times 10^7$번(빠르다), 가운데서 만나기가 약 $10^6$번(역시 빠르지만 기억을 더 쓴다)이다.

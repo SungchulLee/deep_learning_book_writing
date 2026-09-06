@@ -1,102 +1,148 @@
-# The P vs NP Problem
+# P 대 NP 문제
 
-Is finding a solution inherently harder than checking one?  This question, formalized as the **P vs NP problem**, is the most important open question in theoretical computer science and one of the seven Clay Mathematics Institute Millennium Prize Problems, with a \$1,000,000 award for its resolution.  Its answer would have profound consequences for mathematics, cryptography, optimization, and artificial intelligence.
+풀이를 찾는 것이 살피는 것보다 본디 어려운가? **P 대 NP 문제**로 엄밀히 적힌 이 물음은 이론 셈 과학에서 가장 중요한 열린 물음이며, 풀면 \$1,000,000을 주는 클레이 수학 연구소의 밀레니엄 문제 일곱 가운데 하나이다. 그 답은 수학, 암호, 가장 좋게 하기, 인공 지능에 깊은 뜻을 지닌다.
 
-## The Central Question
+## 한가운데 물음
 
-The P vs NP problem asks whether the two complexity classes P and NP are equal:
+P 대 NP 문제는 두 복잡도 갈래 P과 NP이 같은지 묻는다:
 
 $$
 \mathbf{P} \stackrel{?}{=} \mathbf{NP}
 $$
 
-- **P**: the class of decision problems solvable in polynomial time.
-- **NP**: the class of decision problems whose solutions are *verifiable* in polynomial time.
+- **P**: 다항 시간에 풀 수 있는 가름 문제의 갈래.
+- **NP**: 풀이를 다항 시간에 *살필 수 있는* 가름 문제의 갈래.
 
-Since every polynomial-time algorithm also serves as a polynomial-time verifier, $\mathbf{P} \subseteq \mathbf{NP}$ is trivially true.  The question is whether the reverse inclusion holds -- can every problem with efficiently verifiable solutions also be efficiently *solved*?
+모든 다항 시간 알고리즘은 다항 시간 살피개 노릇도 하므로 $\mathbf{P} \subseteq \mathbf{NP}$은 하찮게 참이다. 물음은 거꾸로의 담김이 성립하느냐이다. 효율 좋게 살필 수 있는 풀이를 가진 모든 문제를 효율 좋게 *풀* 수도 있는가?
 
-## Two Possible Worlds
+## 있을 수 있는 두 세상
 
-### If P = NP
+### P = NP이라면
 
-If $\mathbf{P} = \mathbf{NP}$, then every problem whose solution can be checked quickly can also be *solved* quickly.  The consequences would be revolutionary:
+$\mathbf{P} = \mathbf{NP}$이면 풀이를 빨리 살필 수 있는 모든 문제를 빨리 *풀* 수도 있다. 그 결과는 뒤바꿈이 될 것이다:
 
-- **Cryptography collapses**: most public-key cryptosystems (RSA, Diffie-Hellman, elliptic curves) rely on the hardness of problems believed to be outside P.
-- **Optimization becomes easy**: scheduling, routing, resource allocation, and protein folding would all admit efficient exact algorithms.
-- **Mathematical proof discovery**: finding proofs of bounded length would be polynomial, as verifying a proof is in P.
-- **Machine learning**: many NP-hard learning problems (optimal neural architecture, feature selection) would become tractable.
+- **암호가 무너진다**: 대부분의 공개 열쇠 암호(RSA, 디피-헬먼, 타원 곡선)는 P 밖에 있다고 믿어지는 문제의 어려움에 기댄다.
+- **가장 좋게 하기가 쉬워진다**: 일정 짜기, 길 잡기, 밑천 나누기, 단백질 접힘이 모두 효율 좋은 정확한 알고리즘을 갖게 된다.
+- **수학 밝힘 찾기**: 밝힘을 살피는 것이 P에 들므로 길이가 가둬진 밝힘을 찾는 것이 다항이 된다.
+- **기계 배움**: 많은 NP 어려움 배움 문제(가장 좋은 신경망 얼개, 특징 고르기)가 다룰 만해진다.
 
-### If P != NP
+### P != NP이라면
 
-If $\mathbf{P} \neq \mathbf{NP}$ (the prevailing belief), then there exist problems in NP that are *inherently* harder than polynomial time.  NP-complete problems, in particular, would have no polynomial-time algorithms:
+$\mathbf{P} \neq \mathbf{NP}$이면(널리 퍼진 믿음이다) NP에는 다항 시간보다 *본디* 어려운 문제가 있다. 특히 NP 완전 문제에는 다항 시간 알고리즘이 없을 것이다:
 
-- Cryptographic hardness assumptions would be justified.
-- Approximation algorithms, heuristics, and parameterized complexity would remain essential tools.
-- There would exist an infinite hierarchy of difficulty within NP (by Ladner's theorem).
+- 암호의 어려움 가정이 정당화된다.
+- 어림 알고리즘, 어림짐작, 매개변수 복잡도가 여전히 꼭 필요한 도구로 남는다.
+- NP 안에 어려움의 끝없는 켜가 있게 된다(라드너 정리에 따라).
 
-## Ladner's Theorem
+## 라드너 정리
 
-If $\mathbf{P} \neq \mathbf{NP}$, the landscape of NP is richer than just "easy" (in P) and "hardest" (NP-complete).
+$\mathbf{P} \neq \mathbf{NP}$이면 NP의 풍경은 "쉬움"(P에 듦)과 "가장 어려움"(NP 완전)만 있는 것보다 풍성하다.
 
-**Theorem (Ladner, 1975).** If $\mathbf{P} \neq \mathbf{NP}$, then there exist languages in $\mathbf{NP} \setminus \mathbf{P}$ that are *not* NP-complete.  These are called **NP-intermediate** problems.
+**정리(라드너, 1975).** $\mathbf{P} \neq \mathbf{NP}$이면 NP 완전이 *아닌* 말이 $\mathbf{NP} \setminus \mathbf{P}$에 있다. 이를 **NP 중간** 문제라 부른다.
 
 $$
 \mathbf{P} \neq \mathbf{NP} \implies \exists\, L \in \mathbf{NP} \setminus (\mathbf{P} \cup \text{NPC})
 $$
 
-Candidate NP-intermediate problems include:
+NP 중간 문제의 후보는 다음과 같다:
 
-- **Graph isomorphism**: decidable in quasi-polynomial time, unlikely to be NP-complete.
-- **Factoring** (decision version): in $\mathbf{NP} \cap \mathbf{co\text{-}NP}$, widely believed not to be NP-complete.
-- **Discrete logarithm**: similar status to factoring.
+- **그래프 같은 꼴**: 준다항 시간에 가릴 수 있으며 NP 완전일 법하지 않다.
+- **인수 분해**(가름 판): $\mathbf{NP} \cap \mathbf{co\text{-}NP}$에 들며 NP 완전이 아니라고 널리 믿어진다.
+- **이산 로그**: 인수 분해와 비슷한 자리에 있다.
 
-## Known Results
+## 알려진 결과
 
-Despite decades of effort, neither $\mathbf{P} = \mathbf{NP}$ nor $\mathbf{P} \neq \mathbf{NP}$ has been proven.  Several partial results constrain the possibilities.
+수십 년의 애씀에도 $\mathbf{P} = \mathbf{NP}$도 $\mathbf{P} \neq \mathbf{NP}$도 밝혀지지 않았다. 몇몇 부분 결과가 가능성을 좁힌다.
 
-### What We Know
+### 우리가 아는 것
 
-| Result | Statement |
+| 결과 | 말 |
 |--------|-----------|
-| $\mathbf{P} \subseteq \mathbf{NP}$ | By definition |
-| $\mathbf{NP} \subseteq \mathbf{PSPACE}$ | Enumerate all certificates in polynomial space |
-| $\mathbf{P} \subsetneq \mathbf{EXPTIME}$ | Time hierarchy theorem |
-| If $\mathbf{P} = \mathbf{NP}$, then $\mathbf{NP} = \mathbf{co\text{-}NP}$ | Complement closure of P |
+| $\mathbf{P} \subseteq \mathbf{NP}$ | 뜻매김에 따라 |
+| $\mathbf{NP} \subseteq \mathbf{PSPACE}$ | 다항 공간에서 모든 증서를 늘어놓는다 |
+| $\mathbf{P} \subsetneq \mathbf{EXPTIME}$ | 시간 켜 정리 |
+| $\mathbf{P} = \mathbf{NP}$이면 $\mathbf{NP} = \mathbf{co\text{-}NP}$ | P의 여 연산 닫힘 |
 
-### Barrier Results
+### 가로막 결과
 
-Several results show that certain proof techniques *cannot* resolve P vs NP:
+몇몇 결과는 어떤 밝힘 재주로는 P 대 NP을 *풀 수 없음*을 보인다:
 
-- **Relativization barrier** (Baker, Gill, Solovay, 1975): there exist oracles $A$ and $B$ such that $\mathbf{P}^A = \mathbf{NP}^A$ and $\mathbf{P}^B \neq \mathbf{NP}^B$.  Any proof must use techniques that do not relativize.
-- **Natural proofs barrier** (Razborov, Rudich, 1997): any "natural" circuit lower bound proof would break certain cryptographic assumptions.  Proving $\mathbf{P} \neq \mathbf{NP}$ requires "unnatural" techniques.
-- **Algebrization barrier** (Aaronson, Wigderson, 2009): extends relativization to algebraic settings, ruling out another broad class of techniques.
+- **상대화 가로막**(베이커, 길, 솔로베이, 1975): $\mathbf{P}^A = \mathbf{NP}^A$이고 $\mathbf{P}^B \neq \mathbf{NP}^B$인 신탁 $A$과 $B$이 있다. 어떤 밝힘도 상대화되지 않는 재주를 써야 한다.
+- **자연스러운 밝힘 가로막**(라즈보로프, 루디치, 1997): "자연스러운" 회로 아래 한계 밝힘은 어떤 암호 가정을 깨뜨린다. $\mathbf{P} \neq \mathbf{NP}$을 밝히려면 "자연스럽지 않은" 재주가 필요하다.
+- **대수화 가로막**(애런슨, 위그더슨, 2009): 상대화를 대수 자리로 넓혀 또 다른 넓은 재주 무리를 걸러 낸다.
 
-!!! warning "Why P vs NP is hard to resolve"
-    The barrier results show that most proof techniques known to work in complexity theory are provably insufficient for resolving P vs NP.  Any resolution will require fundamentally new mathematical ideas that bypass all three barriers simultaneously.
+!!! warning "P 대 NP을 풀기 어려운 까닭"
+    가로막 결과는 복잡도 이론에서 통한다고 알려진 밝힘 재주 대부분이 P 대 NP을 푸는 데 모자람을 밝힐 수 있음을 보인다. 풀려면 세 가로막을 한꺼번에 비켜 가는 근본으로 새로운 수학 생각이 필요하다.
 
-## Evidence That P != NP
+## P != NP이라는 증거
 
-While no proof exists, the evidence strongly favors $\mathbf{P} \neq \mathbf{NP}$:
+밝힘은 없지만 증거는 $\mathbf{P} \neq \mathbf{NP}$ 쪽을 크게 편든다:
 
-1. **Decades of failure**: thousands of researchers have tried and failed to find polynomial-time algorithms for NP-complete problems.
-2. **Practical experience**: the best known algorithms for NP-complete problems are exponential, and practical instances require heuristics.
-3. **Cryptographic constructions**: if $\mathbf{P} = \mathbf{NP}$, many well-tested cryptosystems would be broken, contradicting extensive empirical evidence.
-4. **Circuit complexity**: super-linear lower bounds are known for restricted circuit classes, consistent with $\mathbf{P} \neq \mathbf{NP}$.
+1. **수십 년의 실패**: 수천 명의 연구자가 NP 완전 문제의 다항 시간 알고리즘을 찾으려 애썼으나 실패했다.
+2. **실제 경험**: NP 완전 문제의 알려진 가장 좋은 알고리즘은 지수이며 실제 사례에는 어림짐작이 필요하다.
+3. **암호 얼개**: $\mathbf{P} = \mathbf{NP}$이면 잘 시험된 많은 암호가 깨질 텐데 이는 넓은 경험 증거와 어긋난다.
+4. **회로 복잡도**: 제한된 회로 갈래에 선형을 넘는 아래 한계가 알려져 있으며 이는 $\mathbf{P} \neq \mathbf{NP}$과 어긋나지 않는다.
 
-## Consequences for the Complexity Landscape
+## 복잡도 풍경에 미치는 결과
 
-The resolution of P vs NP determines the structure of the entire complexity hierarchy:
+P 대 NP이 풀리면 온 복잡도 켜의 얼개가 정해진다:
 
 $$
 \mathbf{P} \subseteq \mathbf{NP} \subseteq \mathbf{PSPACE} \subseteq \mathbf{EXPTIME}
 $$
 
-- If $\mathbf{P} = \mathbf{NP}$: the first inclusion collapses, and it follows that $\mathbf{NP} = \mathbf{co\text{-}NP}$, the polynomial hierarchy collapses, and many complexity-theoretic distinctions vanish.
-- If $\mathbf{P} \neq \mathbf{NP}$: the polynomial hierarchy is infinite (under standard conjectures), NP-intermediate problems exist, and the rich structure of complexity classes is preserved.
+- $\mathbf{P} = \mathbf{NP}$이면: 첫 담김이 무너지고 $\mathbf{NP} = \mathbf{co\text{-}NP}$이 따라 나오며 다항 켜가 무너지고 많은 복잡도 이론의 가름이 사라진다.
+- $\mathbf{P} \neq \mathbf{NP}$이면: (여느 추측 아래) 다항 켜가 끝없고 NP 중간 문제가 있으며 복잡도 갈래의 풍성한 얼개가 지켜진다.
 
-## Reference
+## 참고 문헌
 
 - Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
 - Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
 - Cook, S. "The P versus NP Problem." *Clay Mathematics Institute*, 2000.
 - Fortnow, L. *The Golden Ticket: P, NP, and the Search for the Impossible*. Princeton University Press, 2013.
+
+## 연습문제
+
+**연습문제 1.**
+베이커-길-솔로베이 정리를 밝히고, 왜 그것이 P 대 NP을 푸는 데 상대화되지 않는 재주가 필요함을 뜻하는지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    베이커, 길, 솔로베이(1975)는 $\mathbf{P}^A = \mathbf{NP}^A$이고 $\mathbf{P}^B \neq \mathbf{NP}^B$인 신탁 $A$과 $B$이 있음을 보였다. 신탁 $A$: $A$을 아무 PSPACE 완전 말이라 하면 $\mathbf{P}^A = \mathbf{NP}^A = \mathbf{PSPACE}$이다. 신탁 $B$: 아무 신탁이면 확률 1로 넉넉하다.
+
+    밝힘 재주가 "상대화된다"는 것은 양쪽 모두 신탁을 쓸 수 있을 때에도 그대로 통한다는 뜻이다. 상대화되는 따짐은 서로 어긋나는 결과를 내므로(한 신탁에서는 같고 다른 신탁에서는 다르다) P $\neq$ NP(또는 P $=$ NP)의 올바른 밝힘은 신탁 없는 셈에만 있는 성질을 써야 한다. 곧 상대화되지 않아야 한다. 이는 단순한 대각선 따짐과 흉내 내기 따짐을 걸러 낸다.
+
+---
+
+**연습문제 2.**
+$\mathbf{P} = \mathbf{NP}$이 암호에 미치는 결과 셋을 따져라.
+
+??? success "연습문제 2 풀이"
+
+    1. **공개 열쇠 암호가 깨진다:** RSA, 디피-헬먼, 타원 곡선 암호는 인수 분해나 이산 로그의 어려움에 기댄다. P $=$ NP이면 이 문제들에 다항 시간 알고리즘이 있어 그런 암호가 모두 안전하지 않게 된다.
+
+    2. **한 방향 함수가 없다:** 한 방향 함수는 셈하기는 쉽지만 되돌리기는 어렵다. P $=$ NP이면 다항 시간에 셈할 수 있는 어떤 함수도 되돌리기가 다항이다(되돌림 문제는 NP에 들고 따라서 P에 든다). 한 방향 함수가 없으면 대칭 암호, 해시 함수, 디지털 서명이 모두 이론의 바탕을 잃는다.
+
+    3. **영 앎 밝힘이 하찮아진다:** P $=$ NP이면 밝히개가 증인을 효율 좋게 찾을 수 있고 살피개는 주고받기 없이도 문제를 효율 좋게 가를 수 있다. 밝히기와 가리기 사이의 틈에 기대는 영 앎 밝힘은 쓸모를 잃는다.
+
+---
+
+**연습문제 3.**
+자연스러운 밝힘 가로막(라즈보로프-루디치)을 적고, 왜 그것이 회로 아래 한계로 P $\neq$ NP을 밝히려는 방식을 좁히는지 밝혀라.
+
+??? success "연습문제 3 풀이"
+    라즈보로프와 루디치(1997)는 회로 갈래 $\mathcal{C}$에 맞선 "자연스러운 밝힘"을 다음을 만족하는 부울 함수의 성질 $\mathcal{P}$으로 뜻매김했다. (1) **쓸모 있음** --- $\mathcal{P}$을 만족하는 함수는 다항 크기의 $\mathcal{C}$ 회로로 셈할 수 없다. (2) **세울 수 있음** --- 참 값표가 주어지면 $\mathcal{P}$을 $2^{O(n)}$ 시간에 가릴 수 있다. (3) **큼** --- 아무 함수가 무시할 수 없는 확률로 $\mathcal{P}$을 만족한다.
+
+    이들은 강한 거짓 마구잡이 만들개가 있으면(여느 암호 가정이다) 어떤 자연스러운 밝힘도 일반 회로에 대해 다항을 넘는 아래 한계를 밝힐 수 없음을 보였다. 알려진 회로 아래 한계 재주 대부분이 자연스러우므로, 제한된 회로(보기로 $AC^0$, 단조 회로)의 아래 한계를 일반 회로로 넓히는 일이 왜 실패했는지 설명해 준다. 회로 복잡도로 P 대 NP을 푸는 데는 "자연스럽지 않은" 재주가 필요할 듯하다.
+
+---
+
+**연습문제 4.**
+$\mathbf{P} \neq \mathbf{NP}$이면 라드너 정리가 NP 중간 문제가 있음을 보장한다. NP 중간 후보 문제 둘을 들고 왜 그럴듯한 후보인지 밝혀라.
+
+??? success "연습문제 4 풀이"
+
+    1. **그래프 같은 꼴(GI):** 그래프 둘이 주어질 때 같은 꼴인지 가려라. GI은 NP에 든다(같은 꼴 옮김이 증서이다). 바바이(2016)가 준다항 알고리즘을 내놓았지만 P에 든다고는 알려져 있지 않다. GI은 NP 완전일 법하지 않다. 보파나, 호스타드, 자코스는 GI이 NP 완전이면 다항 켜가 둘째 켜로 무너짐을 보였다.
+
+    2. **인수 분해(가름 문제로서):** $N$과 $k$이 주어질 때 $N$에 $\leq k$인 인수가 있는가? 인수 분해는 NP $\cap$ 여 NP에 든다(양쪽 방향의 프랫 증서). 인수 분해가 NP 완전이면 NP $=$ 여 NP이 되어 다항 켜가 무너진다. 다항 시간 고전 알고리즘은 알려져 있지 않지만 쇼어의 양자 알고리즘이 효율 좋게 풀며 이는 NP 완전 문제보다 쉬움을 시사한다.
+
+    두 문제 모두 P과 NP 완전 사이에 놓이며 어느 한쪽 끝에 있지 않다는 얼개 증거가 있다.

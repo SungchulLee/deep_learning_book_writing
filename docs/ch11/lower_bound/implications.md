@@ -1,96 +1,129 @@
-# Implications
+# 함의
 
-The $\Omega(n \log n)$ lower bound for comparison-based sorting is one of the most important results in algorithm analysis. It does not merely tell us that sorting is hard — it tells us precisely *how* hard sorting is, separating algorithms that are optimal from those that are not, and identifying the exact conditions under which the bound can be bypassed. This page explores the consequences of the lower bound for algorithm design, optimality, and related computational problems.
+비교 기반 정렬의 $\Omega(n \log n)$ 아래 한계는 알고리즘 분석에서 가장 중요한 결과 가운데 하나이다. 정렬이 어렵다고만 말하는 것이 아니라 *얼마나* 어려운지를 정확히 알려 주어, 최적인 알고리즘과 그렇지 않은 알고리즘을 가르고 그 한계를 비껴갈 수 있는 조건을 꼭 집어 준다. 이 쪽은 이 아래 한계가 알고리즘 설계와 최적성과 관련된 계산 문제에 어떤 결과를 낳는지 살핀다.
 
-## Optimal Comparison-Based Sorts
+## 최적의 비교 기반 정렬
 
-An algorithm is **asymptotically optimal** for a problem if its worst-case running time matches the lower bound up to constant factors. Since the lower bound for comparison-based sorting is $\Omega(n \log n)$, any comparison-based sorting algorithm with worst-case time $O(n \log n)$ is optimal.
+알고리즘의 최악 실행 시간이 상수 배 안에서 아래 한계와 맞먹으면 그 문제에 **점근적으로 최적**이다. 비교 기반 정렬의 아래 한계가 $\Omega(n \log n)$이므로 최악 시간이 $O(n \log n)$인 비교 기반 정렬 알고리즘은 모두 최적이다.
 
-The following algorithms achieve this bound:
+다음 알고리즘이 이 한계를 이룬다.
 
-| Algorithm | Worst Case | Stable | In-Place |
+| 알고리즘 | 최악 | 안정성 | 제자리 |
 |-----------|-----------|--------|----------|
-| Merge sort | $\Theta(n \log n)$ | Yes | No |
-| Heapsort | $\Theta(n \log n)$ | No | Yes |
-| Timsort | $\Theta(n \log n)$ | Yes | No |
+| 병합 정렬 | $\Theta(n \log n)$ | 그렇다 | 아니다 |
+| 힙 정렬 | $\Theta(n \log n)$ | 아니다 | 그렇다 |
+| 팀 정렬 | $\Theta(n \log n)$ | 그렇다 | 아니다 |
 
-These algorithms cannot be improved asymptotically in the comparison model. Any attempt to design a comparison-based sort that runs in $o(n \log n)$ time (i.e., strictly faster than $n \log n$ for all large $n$) is guaranteed to fail.
+이 알고리즘들은 비교 모형에서 점근적으로 더 나아질 수 없다. $o(n \log n)$ 시간에(곧 충분히 큰 모든 $n$에서 $n \log n$보다 엄밀히 빠르게) 도는 비교 기반 정렬을 설계하려는 어떤 시도든 반드시 실패한다.
 
-!!! note "Quicksort and Optimality"
-    Quicksort's expected running time is $O(n \log n)$ with random pivot selection, but its worst case is $O(n^2)$. Therefore, quicksort is optimal *on average* but not in the worst case. Introsort resolves this by switching to heapsort when the recursion depth exceeds $O(\log n)$, achieving $O(n \log n)$ worst-case time.
+!!! note "퀵 정렬과 최적성"
+    퀵 정렬은 축을 무작위로 고르면 기대 실행 시간이 $O(n \log n)$이지만 최악의 경우는 $O(n^2)$이다. 따라서 퀵 정렬은 *평균적으로는* 최적이지만 최악의 경우에는 아니다. 인트로 정렬은 재귀 깊이가 $O(\log n)$을 넘으면 힙 정렬로 바꾸어 이를 풀고 최악 $O(n \log n)$ 시간을 이룬다.
 
-## No Comparison Sort Below n log n
+## n log n 아래로 가는 비교 정렬은 없다
 
-The lower bound says that for any comparison-based sorting algorithm $A$ and for any $n$, there exists an input of size $n$ on which $A$ makes at least
+이 아래 한계는 어떤 비교 기반 정렬 알고리즘 $A$과 어떤 $n$에 대해서도 $A$이 적어도
 
 $$
 \lceil \log_2(n!) \rceil
 $$
 
-comparisons. By Stirling's approximation:
+만큼 비교하는 크기 $n$의 입력이 있다고 말한다. 스털링 어림으로 다음과 같다.
 
 $$
 \log_2(n!) = n \log_2 n - n \log_2 e + O(\log n) \approx n \log_2 n - 1.443n
 $$
 
-This means the constant factor matters: an optimal algorithm must make approximately $n \log_2 n$ comparisons, not just $cn \log n$ for some large $c$. Merge sort makes at most $n \lceil \log_2 n \rceil$ comparisons, coming very close to the information-theoretic optimum.
+곧 상수 배가 중요하다는 뜻이다. 최적 알고리즘은 어떤 큰 $c$에 대한 $cn \log n$이 아니라 대략 $n \log_2 n$번 비교해야 한다. 병합 정렬은 많아야 $n \lceil \log_2 n \rceil$번 비교하여 정보 이론적 최적에 아주 가깝다.
 
-## Breaking the Bound with Non-Comparison Sorts
+## 비교하지 않는 정렬로 한계 깨기
 
-The $\Omega(n \log n)$ bound applies **only** to comparison-based algorithms. When additional information about the keys is available, faster algorithms are possible:
+$\Omega(n \log n)$ 한계는 **오직** 비교 기반 알고리즘에만 적용된다. 열쇠에 대한 정보가 더 있으면 더 빠른 알고리즘이 가능하다.
 
-- **Counting sort** runs in $\Theta(n + k)$ time when keys are integers in the range $[0, k)$. When $k = O(n)$, this is $\Theta(n)$.
-- **Radix sort** runs in $\Theta(d(n + k))$ time for $d$-digit keys with digits in $[0, k)$. For fixed-width integers ($d$ and $k$ constant), this is $\Theta(n)$.
-- **Bucket sort** runs in $\Theta(n)$ expected time when keys are uniformly distributed in $[0, 1)$.
+- **계수 정렬**은 열쇠가 $[0, k)$ 범위의 정수일 때 $\Theta(n + k)$ 시간에 돈다. $k = O(n)$이면 $\Theta(n)$이다.
+- **기수 정렬**은 자릿수가 $[0, k)$에 있는 $d$자리 열쇠에서 $\Theta(d(n + k))$ 시간에 돈다. 너비가 고정된 정수($d$과 $k$이 상수)에서는 $\Theta(n)$이다.
+- **양동이 정렬**은 열쇠가 $[0, 1)$에 고르게 퍼져 있으면 기대 시간 $\Theta(n)$에 돈다.
 
-These algorithms bypass the lower bound because they use operations other than comparisons — specifically, they use key values as array indices. In the decision tree framework, this corresponds to using multi-way branching (not just binary yes/no comparisons), which allows more information to be extracted per operation.
+이 알고리즘들은 비교가 아닌 연산, 구체적으로 열쇠 값을 배열 색인으로 쓰기 때문에 아래 한계를 비껴간다. 결정 트리 틀에서 이는 (이진 예-아니오 비교만이 아니라) 여러 갈래로 나누는 것에 해당하며, 연산마다 더 많은 정보를 뽑을 수 있게 한다.
 
-!!! warning "Not a Free Lunch"
-    Non-comparison sorts trade generality for speed. They require assumptions about the key type and range. Counting sort is impractical when $k$ is very large (e.g., sorting 64-bit floating-point numbers). Comparison sorts work for any type with a total order, making no assumptions about key structure.
+!!! warning "공짜는 아니다"
+    비교하지 않는 정렬은 두루 쓰임을 내주고 속도를 얻는다. 열쇠의 형과 범위에 대한 가정이 필요하다. $k$이 아주 크면(이를테면 64비트 부동소수점 수를 정렬할 때) 계수 정렬을 쓸 수 없다. 비교 정렬은 열쇠의 짜임에 아무 가정도 하지 않고 전순서가 있는 어떤 형에서도 통한다.
 
-## Implications for Related Problems
+## 관련 문제에 대한 함의
 
-The sorting lower bound has consequences for problems that can be reduced to sorting.
+정렬의 아래 한계는 정렬로 귀착할 수 있는 문제에도 영향을 미친다.
 
-### Element Uniqueness
+### 원소의 유일성
 
-The **element uniqueness problem** asks whether all elements in a sequence are distinct. In the comparison model, this problem has a lower bound of $\Omega(n \log n)$. The proof uses a reduction: if we could solve element uniqueness in $o(n \log n)$ comparisons, we could sort in $o(n \log n)$ comparisons (by solving uniqueness on successive prefixes), contradicting the sorting lower bound.
+**원소 유일성 문제**는 수열의 원소가 모두 서로 다른지를 묻는다. 비교 모형에서 이 문제의 아래 한계는 $\Omega(n \log n)$이다. 증명에는 귀착을 쓴다. 원소 유일성을 비교 $o(n \log n)$번에 풀 수 있다면 (잇따른 접두사마다 유일성을 풀어) 정렬도 $o(n \log n)$번에 할 수 있어 정렬의 아래 한계에 어긋난다.
 
-In practice, element uniqueness is often solved by sorting the sequence and checking adjacent pairs, confirming that the $\Theta(n \log n)$ bound is tight for this problem as well.
+실제로 원소 유일성은 수열을 정렬하고 이웃한 쌍을 살펴 푸는 일이 많은데, 이 문제에서도 $\Theta(n \log n)$ 한계가 빡빡함을 확인해 준다.
 
-### Convex Hull
+### 볼록 껍질
 
-Computing the convex hull of $n$ points in the plane requires $\Omega(n \log n)$ time in the comparison model. The reduction from sorting is straightforward: given numbers $x_1, \ldots, x_n$ to sort, create points $(x_i, x_i^2)$ on a parabola. The convex hull of these points lists them in sorted order. Since sorting requires $\Omega(n \log n)$, so does convex hull computation.
+평면 위 점 $n$개의 볼록 껍질을 셈하는 데는 비교 모형에서 $\Omega(n \log n)$ 시간이 든다. 정렬에서의 귀착은 어렵지 않다. 정렬할 수 $x_1, \ldots, x_n$이 주어지면 포물선 위에 점 $(x_i, x_i^2)$을 만든다. 이 점들의 볼록 껍질이 그것을 정렬된 순서로 늘어놓는다. 정렬에 $\Omega(n \log n)$이 드니 볼록 껍질 셈하기에도 그만큼 든다.
 
-### Closest Pair
+### 가장 가까운 쌍
 
-Finding the closest pair of points among $n$ points in the plane can be solved in $O(n \log n)$ time using divide and conquer. Whether a faster algorithm exists in the comparison model is related to the sorting bound, since a close-to-linear algorithm for closest pair could potentially be used to sort.
+평면 위 점 $n$개 가운데 가장 가까운 쌍 찾기는 나누어 정복하기로 $O(n \log n)$ 시간에 풀 수 있다. 비교 모형에서 더 빠른 알고리즘이 있는지는 정렬의 한계와 얽혀 있는데, 가장 가까운 쌍을 거의 일차에 푸는 알고리즘이 있으면 그것으로 정렬할 수도 있기 때문이다.
 
-## Average-Case vs Worst-Case
+## 평균의 경우와 최악의 경우
 
-The $\Omega(n \log n)$ bound is a **worst-case** bound: for every algorithm, there exists at least one input requiring $\Omega(n \log n)$ comparisons. However, the bound also holds in the **average case** when inputs are uniformly random permutations.
+$\Omega(n \log n)$ 한계는 **최악의 경우** 한계이다. 알고리즘마다 비교가 $\Omega(n \log n)$번 드는 입력이 적어도 하나 있다. 그런데 입력이 고르게 무작위인 순열이면 **평균의 경우**에도 이 한계가 성립한다.
 
-For a random permutation, the expected number of comparisons for any comparison-based sorting algorithm is at least
+무작위 순열에서 어떤 비교 기반 정렬 알고리즘이든 기대 비교 횟수는 적어도
 
 $$
 \log_2(n!) - n \approx n \log_2 n - 2.443n
 $$
 
-This means that even algorithms with good average-case performance (like quicksort) cannot beat $\Omega(n \log n)$ expected comparisons on uniformly random input.
+이다. 곧 (퀵 정렬처럼) 평균 성능이 좋은 알고리즘도 고르게 무작위인 입력에서 기대 비교 횟수 $\Omega(n \log n)$을 이길 수 없다는 뜻이다.
 
-## Implications for Algorithm Design
+## 알고리즘 설계에 대한 함의
 
-The lower bound provides clear guidance for algorithm designers:
+이 아래 한계는 알고리즘을 설계하는 이에게 또렷한 길잡이를 준다.
 
-1. **Stop searching for faster comparison sorts.** The $\Omega(n \log n)$ bound is tight: merge sort and heapsort achieve it. Effort should go into improving constant factors, cache performance, and practical optimizations — not asymptotic improvement.
+1. **더 빠른 비교 정렬 찾기를 그만두라.** $\Omega(n \log n)$ 한계는 빡빡하다. 병합 정렬과 힙 정렬이 그것을 이룬다. 점근적 개선이 아니라 상수 배와 캐시 성능과 실제 다듬기에 힘을 쏟아야 한다.
 
-2. **Exploit key structure when possible.** If keys are integers, strings, or have other exploitable structure, non-comparison sorts can achieve linear time. The choice between comparison and non-comparison sorts depends on the key type and range.
+2. **할 수 있으면 열쇠의 짜임을 이용하라.** 열쇠가 정수나 문자열이거나 이용할 만한 다른 짜임이 있으면 비교하지 않는 정렬로 일차 시간을 이룰 수 있다. 비교 정렬과 비교하지 않는 정렬의 선택은 열쇠의 형과 범위에 매인다.
 
-3. **Reduce to sorting.** When faced with a new problem, try reducing it to sorting. If the reduction works, you immediately get an $O(n \log n)$ algorithm and an $\Omega(n \log n)$ lower bound, fully characterizing the problem's complexity.
+3. **정렬로 귀착하라.** 새 문제를 만나면 정렬로 귀착해 보라. 귀착이 통하면 곧바로 $O(n \log n)$ 알고리즘과 $\Omega(n \log n)$ 아래 한계를 얻어 그 문제의 복잡도를 온전히 밝히게 된다.
 
-4. **Look beyond comparisons for harder problems.** The decision tree model is specific to comparison-based computation. For problems in other computational models (e.g., algebraic computation trees, Boolean circuits), different lower bound techniques are needed.
+4. **더 어려운 문제에는 비교 너머를 보라.** 결정 트리 모형은 비교에 바탕한 계산에만 해당한다. (대수 계산 트리나 불 회로 같은) 다른 계산 모형의 문제에는 다른 아래 한계 기법이 필요하다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Section 8.1.
 - Knuth, D. E. (1997). *The Art of Computer Programming, Volume 3: Sorting and Searching* (2nd ed.). Addison-Wesley. Section 5.3.1.
+
+
+## 연습문제
+
+**연습문제 1.**
+함의를 정식으로 정의하고 비교 기반 정렬에서의 뜻을 설명하라.
+
+??? success "연습문제 1 풀이"
+    정식 정의는 정렬 알고리즘 설계를 옥죄는 이론적 바탕을 세운다. 이 바탕을 이해하면 알고리즘을 고르는 데 길잡이가 되고 $\Omega(n\log n)$ 벽이 언제 적용되는지 드러난다.
+
+---
+
+**연습문제 2.**
+배열 $[38, 27, 43, 3, 9, 82, 10]$으로 함의를 보여라.
+
+??? success "연습문제 2 풀이"
+    그 개념을 주어진 배열에 적용하며 관련된 단계를 하나씩 보여라. 이 보기는 추상적인 정의를 손에 잡히게 하고 모서리 경우를 짚어야 한다.
+
+---
+
+**연습문제 3.**
+이 쪽에서 밝힌 주된 결과를 증명하라.
+
+??? success "연습문제 3 풀이"
+    설명한 증명 기법(결정 트리, 적수, 세기)을 쓰라. 주장을 밝히고 논증을 세운 뒤 빈틈없이 밀고 나가라. $\square$
+
+---
+
+**연습문제 4.**
+함의를 `torch.sort`의 구현에 어떤 실마리를 주는가?
+
+??? success "연습문제 4 풀이"
+    파이토치의 정렬 연산은 이 쪽의 이론적 제약을 지켜야 한다. GPU 정렬에서는 병렬성 요구가 알고리즘 선택을 더 옥죈다. 이론적 한계를 이해하면 데이터의 크기와 종류에 맞는 알고리즘을 고르는 데 도움이 된다.

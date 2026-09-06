@@ -1,16 +1,16 @@
-# Splay Rotations: Zig, Zig-Zig, Zig-Zag
+# 스플레이 회전: 지그, 지그지그, 지그재그
 
-The [splay operation](operation.md) moves a target node $x$ to the root of the tree through a sequence of **rotation steps**.  Each step is chosen based on the relationship between $x$, its parent $p$, and its grandparent $g$ (if one exists).  The three cases — zig, zig-zig, and zig-zag — are designed not just to move $x$ upward, but to simultaneously improve the balance of the tree along the access path.  This restructuring property is what gives splay trees their $O(\log n)$ [amortized performance](amortized.md).
+[스플레이 연산](operation.md)은 **회전 단계**를 잇달아 하여 표적 노드 $x$을 트리의 뿌리로 옮긴다. 단계마다 $x$과 그 부모 $p$, 그리고 (있다면) 조부모 $g$의 관계에 따라 고른다. 지그, 지그지그, 지그재그의 세 경우는 $x$을 위로 올리기만 하는 것이 아니라 접근 경로를 따라 트리의 균형도 함께 낫게 하도록 짜였다. 이 다시 짜는 성질이 스플레이 트리에 $O(\log n)$의 [분할 상환 성능](amortized.md)을 준다.
 
-## Why Not Simple Rotations?
+## 왜 단순한 회전으로는 안 되는가
 
-A naive approach would rotate $x$ with its parent repeatedly until $x$ reaches the root.  This "move-to-root" strategy does move $x$ to the top, but it can leave the tree just as unbalanced as before — it merely shifts the imbalance to a different path.  The zig-zig and zig-zag steps fix this by rotating at the **grandparent first** (in the zig-zig case), which compresses the access path and improves balance for future operations.
+순진한 방법은 $x$이 뿌리에 닿을 때까지 $x$을 그 부모와 되풀이해 회전시키는 것이다. 이 "뿌리로 옮기기" 전략은 $x$을 꼭대기로 올리기는 하지만 트리를 전과 똑같이 기운 채로 둘 수 있다. 그저 기울어짐을 다른 경로로 옮길 뿐이다. 지그지그와 지그재그 단계는 (지그지그의 경우) **조부모에서 먼저** 회전하여 이를 바로잡는데, 그러면 접근 경로가 눌리고 앞으로의 연산을 위한 균형이 나아진다.
 
-## Zig Step
+## 지그 단계
 
-The zig step applies when $x$'s parent $p$ is the **root** of the tree.  Since there is no grandparent, a single rotation suffices.
+지그 단계는 $x$의 부모 $p$이 트리의 **뿌리**일 때 쓴다. 조부모가 없으므로 한 번 회전이면 넉넉하다.
 
-**$x$ is the left child of $p$:** right-rotate at $p$.
+**$x$이 $p$의 왼쪽 자식일 때:** $p$에서 오른쪽으로 회전한다.
 
 ```
       p               x
@@ -20,15 +20,15 @@ The zig step applies when $x$'s parent $p$ is the **root** of the tree.  Since t
   A   B               B   C
 ```
 
-**$x$ is the right child of $p$:** left-rotate at $p$.
+**$x$이 $p$의 오른쪽 자식일 때:** $p$에서 왼쪽으로 회전한다.
 
-The zig step occurs at most once per splay operation (as the final step when $x$ is one level below the root).
+지그 단계는 스플레이 연산마다 많아야 한 번 일어난다($x$이 뿌리 바로 아래에 있을 때 마지막 단계로).
 
-## Zig-Zig Step
+## 지그지그 단계
 
-The zig-zig step applies when $x$ and its parent $p$ are **both left children** (or both right children) of their respective parents.  The critical detail is the **order of rotations**: rotate at the grandparent $g$ first, then at $p$.
+지그지그 단계는 $x$과 그 부모 $p$이 각자의 부모의 **둘 다 왼쪽 자식**일 때(또는 둘 다 오른쪽 자식일 때) 쓴다. 핵심은 **회전의 순서**이다. 조부모 $g$에서 먼저 회전한 뒤 $p$에서 회전한다.
 
-**Both left children:**
+**둘 다 왼쪽 자식일 때:**
 
 ```
         g                 p               x
@@ -40,19 +40,19 @@ The zig-zig step applies when $x$ and its parent $p$ are **both left children** 
   A   B                                    C   D
 ```
 
-Step 1: right-rotate at $g$ (bringing $p$ up).
-Step 2: right-rotate at $p$ (bringing $x$ up).
+1단계: $g$에서 오른쪽으로 회전한다($p$이 올라온다).
+2단계: $p$에서 오른쪽으로 회전한다($x$이 올라온다).
 
-**Both right children:** the mirror image — left-rotate at $g$, then left-rotate at $p$.
+**둘 다 오른쪽 자식일 때:** 거울상이다. $g$에서 왼쪽으로 회전한 뒤 $p$에서 왼쪽으로 회전한다.
 
-!!! warning "Rotation order matters"
-    Rotating at $p$ first (instead of $g$) gives the naive move-to-root heuristic, which does NOT achieve $O(\log n)$ amortized cost.  The grandparent-first order is essential because it compresses the path from $g$ downward, reducing the depth of all nodes on the access path.
+!!! warning "회전 순서가 중요하다"
+    ($g$ 대신) $p$에서 먼저 회전하면 순진한 뿌리로 옮기기 어림법이 되는데, 이는 분할 상환 비용 $O(\log n)$을 이루지 **못한다**. 조부모 먼저의 순서가 꼭 필요한데, 그래야 $g$부터 아래로의 경로가 눌려 접근 경로의 모든 노드의 깊이가 줄기 때문이다.
 
-## Zig-Zag Step
+## 지그재그 단계
 
-The zig-zag step applies when $x$ and $p$ are on **opposite sides**: $x$ is a right child and $p$ is a left child (or vice versa).  Two rotations in opposite directions bring $x$ to $g$'s position.
+지그재그 단계는 $x$과 $p$이 **반대쪽**에 있을 때, 곧 $x$이 오른쪽 자식이고 $p$이 왼쪽 자식일 때(또는 그 반대일 때) 쓴다. 반대 방향의 회전 두 번이 $x$을 $g$의 자리로 데려온다.
 
-**$x$ is right child of $p$, $p$ is left child of $g$:**
+**$x$이 $p$의 오른쪽 자식이고 $p$이 $g$의 왼쪽 자식일 때:**
 
 ```
       g                 g               x
@@ -64,30 +64,63 @@ The zig-zag step applies when $x$ and $p$ are on **opposite sides**: $x$ is a ri
     B   C        A   B
 ```
 
-Step 1: left-rotate at $p$ (bringing $x$ above $p$).
-Step 2: right-rotate at $g$ (bringing $x$ above $g$).
+1단계: $p$에서 왼쪽으로 회전한다($x$이 $p$ 위로 올라온다).
+2단계: $g$에서 오른쪽으로 회전한다($x$이 $g$ 위로 올라온다).
 
-**$x$ is left child of $p$, $p$ is right child of $g$:** the mirror image — right-rotate at $p$, then left-rotate at $g$.
+**$x$이 $p$의 왼쪽 자식이고 $p$이 $g$의 오른쪽 자식일 때:** 거울상이다. $p$에서 오른쪽으로 회전한 뒤 $g$에서 왼쪽으로 회전한다.
 
-## Summary of Cases
+## 경우 정리
 
-| Case | Condition | Rotations | When it occurs |
+| 경우 | 조건 | 회전 | 언제 일어나는가 |
 |------|-----------|-----------|----------------|
-| Zig | $p$ is the root | 1 rotation at $p$ | At most once (last step) |
-| Zig-zig | $x$ and $p$ same side | 2 rotations: $g$ then $p$ | Any non-root step |
-| Zig-zag | $x$ and $p$ opposite sides | 2 rotations: $p$ then $g$ | Any non-root step |
+| 지그 | $p$이 뿌리 | $p$에서 회전 1번 | 많아야 한 번 (마지막 단계) |
+| 지그지그 | $x$과 $p$이 같은 쪽 | 회전 2번: $g$ 다음 $p$ | 뿌리가 아닌 아무 단계 |
+| 지그재그 | $x$과 $p$이 반대쪽 | 회전 2번: $p$ 다음 $g$ | 뿌리가 아닌 아무 단계 |
 
-Each zig-zig or zig-zag step moves $x$ up by **two levels**.  The zig step moves $x$ up by one level.  Therefore, if $x$ starts at depth $d$, the splay operation performs at most $\lfloor d/2 \rfloor$ zig-zig/zig-zag steps plus at most one zig step.
+지그지그나 지그재그 단계마다 $x$이 **두 층** 올라간다. 지그 단계는 $x$을 한 층 올린다. 그러므로 $x$이 깊이 $d$에서 시작하면 스플레이 연산은 많아야 지그지그·지그재그 단계 $\lfloor d/2 \rfloor$번에 지그 단계 많아야 한 번을 한다.
 
-## Effect on Tree Structure
+## 트리 짜임에 미치는 영향
 
-The key structural property of splaying is **path compression**: after splaying node $x$, every node on the original access path from the root to $x$ has its depth roughly halved.  This ensures that a sequence of accesses to deep nodes does not repeatedly pay $O(n)$ cost — the first access restructures the tree so that subsequent accesses are cheaper.
+스플레이의 핵심 구조 성질은 **경로 누르기**이다. 노드 $x$을 스플레이한 뒤에는 뿌리에서 $x$까지의 본래 접근 경로 위의 노드마다 깊이가 대략 절반이 된다. 그래서 깊은 노드에 잇달아 접근해도 $O(n)$ 비용을 되풀이해 치르지 않는다. 첫 접근이 트리를 다시 짜서 뒤따르는 접근이 싸진다.
 
-## Complexity Per Step
+## 단계마다의 복잡도
 
-Each individual rotation is an $O(1)$ operation (rearranging a constant number of pointers).  The entire splay operation performs $O(d)$ rotations where $d$ is the depth of $x$.  The amortized cost is $O(\log n)$ by the [access lemma](amortized.md).
+회전 하나하나는 (일정한 수의 포인터를 다시 잇는) $O(1)$ 연산이다. 스플레이 연산 전체는 회전을 $O(d)$번 하는데 여기서 $d$은 $x$의 깊이이다. 분할 상환 비용은 [접근 보조정리](amortized.md)에 따라 $O(\log n)$이다.
 
-## Reference
+## 참고 문헌
 
 - Sleator, D. D., & Tarjan, R. E. (1985). Self-adjusting binary search trees. *Journal of the ACM*, 32(3), 652–686.
 - Goodrich, M. T., & Tamassia, R. (2014). *Data Structures and Algorithms in Java* (6th ed.), Section 11.4. Wiley.
+
+
+## 연습문제
+
+**연습문제 1.**
+스플레이 회전: 지그, 지그지그, 지그재그의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 스플레이 회전: 지그, 지그지그, 지그재그를 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+스플레이 회전: 지그, 지그지그, 지그재그이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 스플레이 회전: 지그, 지그지그, 지그재그를 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

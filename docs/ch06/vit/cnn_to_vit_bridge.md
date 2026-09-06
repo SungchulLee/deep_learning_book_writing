@@ -1,103 +1,143 @@
-# Bridge: From CNNs to Vision Transformers
+# 다리: CNN에서 비전 트랜스포머로
+## 들어가며
 
+합성곱 신경망에서 비전 트랜스포머로 넘어간 것은 컴퓨터 비전 구조의 근본적인 전환이다. 이 흐름은 갑작스러운 단절이라기보다 CNN의 귀납 편향을 차츰 느슨하게 푸는 과정이며, 그 사이의 구조들이 지역성 기반 처리와 어텐션 기반 처리를 잇는 개념적 다리 노릇을 한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+두 방식의 서로 보완하는 장점을 쓰려는 실무자에게 이 다리를 이해하는 일은 중요하다. 요즘 최상급 시스템은 CNN의 효율을 지키면서 트랜스포머의 유연함을 들여오는 혼합 방식을 자주 쓰며, 계산 제약과 모형화 능력을 잘 저울질한 구조를 만든다.
 
-## Introduction
+## 구조 패러다임의 변천
 
-The transition from convolutional neural networks to Vision Transformers represents a fundamental shift in architectural paradigms for computer vision. Rather than an abrupt discontinuity, this evolution reflects a gradual relaxation of CNN inductive biases, with intermediate architectures serving as conceptual bridges between locality-based and attention-based processing.
+### 1단계: 순수한 CNN
 
-Understanding this bridge is crucial for practitioners seeking to leverage the complementary strengths of both paradigms. Modern state-of-the-art systems often employ hybrid approaches that retain CNN efficiency while incorporating transformer flexibility, creating architectures that effectively balance computational constraints with modeling power.
-
-## Evolution of Architectural Paradigms
-
-### Stage 1: Pure CNNs
-
-Traditional CNNs process images through successive local convolutions:
+전통적인 CNN은 지역 합성곱을 잇달아 적용하여 이미지를 처리한다.
 
 $$\mathbf{y}_{i,j}^{(l)} = f\left(\sum_{p,q} W_{p,q}^{(l)} \mathbf{x}_{i+p, j+q}^{(l-1)}\right)$$
 
-This locality-centric approach ensures:
-- Computational efficiency
-- Inductive alignment with image structure
-- Parameter sharing across space
+지역성에 기댄 이 방식은 다음을 보장한다.
 
-### Stage 2: Attention-Enhanced CNNs
+- 계산 효율
+- 이미지 구조와 들어맞는 귀납 편향
+- 공간에 걸친 매개변수 공유
 
-Augmenting CNNs with attention mechanisms (SE-Net, CBAM) preserves locality while enabling adaptive channel and spatial reweighting:
+### 2단계: 어텐션으로 보강한 CNN
+
+CNN에 어텐션 장치(SE-Net, CBAM)를 더하면 지역성을 지키면서도 채널과 공간의 가중치를 적응적으로 다시 매길 수 있다.
 
 $$\mathbf{y}_{i,j}^{(l)} = \alpha_{i,j}^{(l)} \odot f\left(\sum_{p,q} W_{p,q}^{(l)} \mathbf{x}_{i+p, j+q}^{(l-1)}\right)$$
 
-where $\odot$ denotes element-wise multiplication and $\alpha_{i,j}^{(l)}$ represents learned attention weights.
+여기서 $\odot$은 성분별 곱을 뜻하고 $\alpha_{i,j}^{(l)}$은 학습된 어텐션 가중치를 나타낸다.
 
-### Stage 3: Non-Local Networks
+### 3단계: 비국소 신경망
 
-Non-local operations capture dependencies across entire spatial domains:
+비국소 연산은 공간 전체에 걸친 의존 관계를 붙잡는다.
 
 $$\mathbf{y}_{i,j} = \frac{1}{Z} \sum_{i',j'} w(i,j,i',j') \cdot \mathbf{x}_{i',j'}$$
 
-where $Z$ is a normalization factor and $w$ represents learned interaction weights. This represents a departure from strict locality.
+여기서 $Z$은 정규화 인수이고 $w$은 학습된 상호작용 가중치를 나타낸다. 이는 엄격한 지역성에서 벗어난 것이다.
 
-### Stage 4: Hybrid Architectures
+### 4단계: 혼합 구조
 
-Hybrid models combine convolutional stems with transformer bodies:
+혼합 모델은 합성곱 줄기에 트랜스포머 몸통을 잇는다.
 
 $$\text{Tokens} = \text{PatchEmbed}(\text{ConvStem}(\mathbf{x}))$$
 
 $$\mathbf{z}^{(l)} = \text{Transformer}(\mathbf{z}^{(l-1)})$$
 
-Early layers leverage CNN inductive biases for efficiency; later layers employ transformer flexibility.
+앞쪽 층은 효율을 위해 CNN의 귀납 편향을 쓰고, 뒤쪽 층은 트랜스포머의 유연함을 쓴다.
 
-### Stage 5: Pure Vision Transformers
+### 5단계: 순수한 비전 트랜스포머
 
-ViT processes images as sequences of patches without convolution:
+ViT는 합성곱 없이 이미지를 조각의 순차열로 처리한다.
 
 $$\mathbf{z}^{(l)} = \text{MSA}(\text{LN}(\mathbf{z}^{(l-1)})) + \mathbf{z}^{(l-1)}$$
 
 $$\mathbf{z}^{(l)} = \text{MLP}(\text{LN}(\mathbf{z}^{(l)})) + \mathbf{z}^{(l)}$$
 
-## Key Architectural Bridges
+## 핵심적인 구조의 다리
 
-!!! tip "Patch Embedding as Convolution"
-    The patch embedding layer in ViT can be understood as a single convolutional layer with non-overlapping kernels, creating a smooth transition from CNN thinking.
+!!! tip "합성곱으로 본 조각 임베딩"
+    ViT의 조각 임베딩 층은 겹치지 않는 핵을 쓰는 합성곱 층 하나로 볼 수 있어, CNN식 사고에서 매끄럽게 넘어가게 해 준다.
 
-**Convolutional Stems**: Replace initial ViT patch embedding with several convolutional layers to capture low-level features, improving performance on smaller datasets.
+**합성곱 줄기**: ViT의 첫 조각 임베딩을 합성곱 층 여러 개로 바꾸어 저수준 특징을 잡으면 작은 데이터셋에서 성능이 좋아진다.
 
-**Pyramid Structures**: Hierarchical vision models (Swin, PVT) maintain multi-scale processing similar to CNNs while using attention mechanisms.
+**피라미드 구조**: 계층적 시각 모델(Swin, PVT)은 어텐션을 쓰면서도 CNN과 비슷하게 여러 규모의 처리를 유지한다.
 
-**Hybrid Self-Attention**: Replace full transformer blocks with convolutional layers in specific positions, balancing computational cost and modeling capacity.
+**혼합 자기 어텐션**: 특정 자리의 트랜스포머 블록을 합성곱 층으로 바꾸어 계산 비용과 모형화 능력을 저울질한다.
 
-## Comparative Analysis
+## 비교 분석
 
-| Dimension | CNN | Hybrid | ViT |
+| 항목 | CNN | 혼합 | ViT |
 |-----------|-----|--------|-----|
-| **Receptive Field Growth** | Linear | Hybrid | Quadratic |
-| **Computational Cost** | Low | Medium | High |
-| **Data Requirements** | Low | Medium | High |
-| **Adaptivity** | Limited | Moderate | High |
-| **Translation Equivariance** | Strict | Relaxed | None |
+| **수용 영역의 증가** | 선형 | 혼합 | 이차 |
+| **계산 비용** | 낮음 | 보통 | 높음 |
+| **필요한 데이터양** | 적음 | 보통 | 많음 |
+| **적응성** | 제한적 | 보통 | 높음 |
+| **평행 이동 동변성** | 엄격 | 느슨 | 없음 |
 
-## Practical Considerations for Practitioners
+## 실무자를 위한 고려 사항
 
-!!! warning "Data Regime Matters"
-    Pure ViTs typically underperform CNNs on small datasets (< 1M images). Hybrid architectures or transfer learning become essential for limited data scenarios.
+!!! warning "데이터의 규모가 중요하다"
+    순수한 ViT는 작은 데이터셋(이미지 100만 장 미만)에서 대체로 CNN보다 못하다. 데이터가 적은 상황에서는 혼합 구조나 전이 학습이 꼭 필요해진다.
 
-!!! note "Computational Budget"
-    CNNs remain advantageous when computational resources are severely constrained. Hybrid models offer middle-ground solutions.
+!!! note "계산 예산"
+    계산 자원이 크게 모자랄 때는 여전히 CNN이 유리하다. 혼합 모델이 그 중간을 메운다.
 
-## Future Directions
+## 앞으로의 방향
 
-Emerging research explores:
+새로 나오는 연구는 다음을 살핀다.
 
-- **Neuromorphic Hybrids**: Combining spiking neurons with attention
-- **Efficient Transformers**: Linear-complexity attention for high-resolution images
-- **Learned Routing**: Dynamically selecting between convolution and attention based on input
-- **Multi-modal Fusion**: Bridging vision and language through hybrid architectures
+- **뉴로모픽 혼합**: 스파이킹 뉴런과 어텐션의 결합
+- **효율적인 트랜스포머**: 고해상도 이미지를 위한 선형 복잡도 어텐션
+- **학습된 경로 배정**: 입력에 따라 합성곱과 어텐션 중에서 그때그때 고르기
+- **다중 양식 융합**: 혼합 구조로 시각과 언어를 잇기
 
-## Related Topics
+## 관련 주제
 
-- CNN Limitations (Chapter 6.1.2)
-- Vision Transformer Architecture (Chapter 6.2)
-- Attention Mechanisms in CNNs (Chapter 6.1.1)
-- Pyramid Vision Transformers (Chapter 6.2.2)
+- CNN의 한계 (6.1.2절)
+- 비전 트랜스포머 구조 (6.2절)
+- CNN의 어텐션 장치 (6.1.1절)
+- 피라미드 비전 트랜스포머 (6.2.2절)
+
+## 연습문제
+
+**연습문제 1.**
+CNN과 비전 트랜스포머의 구조적 차이 가운데 핵심은 무엇인가?
+
+??? success "연습문제 1 풀이"
+    CNN은 지역 수용 영역, 가중치 공유로 얻는 평행 이동 동변성, 계층적 하향 표본화, 공간 지역성에 대한 귀납 편향을 갖는다. ViT는 첫 층부터 전역 어텐션을 쓰고, 내장된 공간 편향이 없으며, 조각 단위로 토큰을 만들고, 공간 정보를 위해 위치 임베딩을 쓴다. ViT는 데이터가 더 많이 필요하지만 더 유연한 표현을 배운다.
+
+---
+
+**연습문제 2.**
+압축-여기 신경망과 비국소 신경망의 어텐션 장치가 어떻게 ViT를 앞서 보여 주었는지 설명하라.
+
+??? success "연습문제 2 풀이"
+    SE 신경망은 채널 어텐션(전역 평균 풀링과 완전 연결층)을 더하여 '무엇'에 주목할지 배운다. 비국소 신경망은 공간 어텐션(특징 맵 위의 자기 어텐션)을 더하여 '어디'에 주목할지 배운다. 둘 다 지역적인 CNN 특징에 전역 맥락을 더하여 ViT의 온전한 자기 어텐션으로 가는 다리를 놓는다.
+
+---
+
+**연습문제 3.**
+ViT가 비슷한 성능을 내는 데 CNN보다 학습 데이터가 더 많이 드는 까닭은 무엇인가?
+
+??? success "연습문제 3 풀이"
+    CNN은 이미지에 대한 사전 지식을 담은 강한 귀납 편향(지역성, 평행 이동 동변성)을 갖는다. ViT는 그런 성질을 데이터에서 배워야 한다. 데이터가 적으면 CNN의 사전 지식이 일반화를 돕는다. 데이터가 넉넉하면(이미지 1억 장 초과 또는 강한 증강) ViT의 유연함이 CNN을 앞지르게 해 준다.
+
+---
+
+**연습문제 4.**
+CNN의 특징 추출과 트랜스포머의 처리를 결합한 혼합 구조를 설계하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    class HybridViT(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.cnn = nn.Sequential(  # 특징 뽑기
+                nn.Conv2d(3, 64, 7, stride=2, padding=3),
+                nn.BatchNorm2d(64), nn.ReLU(),
+                nn.Conv2d(64, 128, 3, stride=2, padding=1),
+            )  # 출력: (B, 128, H/4, W/4)
+            self.proj = nn.Linear(128, 768)  # 트랜스포머 차원으로 사영
+            self.transformer = nn.TransformerEncoder(...)
+    ```
+    CNN은 (지역성 편향이 도움이 되는) 저수준 특징 추출을 맡고, 트랜스포머는 전역적인 추론을 맡는다.

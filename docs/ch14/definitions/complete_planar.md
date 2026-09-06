@@ -1,99 +1,141 @@
-# Complete and Planar Graphs
+# 완전 그래프와 평면 그래프
 
-Certain graph families arise so frequently in algorithm design and combinatorics that they deserve dedicated study. Complete graphs represent the densest possible structure, where every vertex connects to every other. Planar graphs, on the other hand, represent structures that can be drawn flat without crossings -- a property with deep consequences for algorithm efficiency and topological reasoning.
+어떤 그래프 집안은 알고리즘 짜기와 조합론에 하도 자주 나와 따로 살펴볼 만하다. 완전 그래프는 있을 수 있는 가장 빽빽한 짜임으로, 꼭짓점마다 다른 모든 꼭짓점에 이어진다. 한편 평면 그래프는 서로 가로지르지 않고 평평하게 그릴 수 있는 짜임인데, 이 성질은 알고리즘의 효율과 위상 따짐에 깊은 자취를 남긴다.
 
-## Complete Graphs
+## 완전 그래프
 
-A **complete graph** $K_n$ is a simple undirected graph on $n$ vertices in which every pair of distinct vertices is connected by exactly one edge. The edge count follows directly from choosing 2 vertices out of $n$:
+**완전 그래프** $K_n$은 꼭짓점 $n$개의 단순 무방향 그래프로, 서로 다른 꼭짓점 짝마다 변이 꼭 하나로 이어져 있다. 변의 개수는 $n$개에서 2개를 고르는 데서 곧바로 나온다:
 
 $$
 |E(K_n)| = \binom{n}{2} = \frac{n(n-1)}{2}
 $$
 
-!!! example "Small Complete Graphs"
-    - $K_1$: a single vertex, no edges.
-    - $K_2$: two vertices, one edge.
-    - $K_3$: a triangle with 3 edges.
-    - $K_4$: four vertices with $\binom{4}{2} = 6$ edges.
-    - $K_5$: five vertices with 10 edges.
+!!! example "작은 완전 그래프"
 
-### Properties of Complete Graphs
+    - $K_1$: 꼭짓점 하나, 변 없음.
+    - $K_2$: 꼭짓점 둘, 변 하나.
+    - $K_3$: 변 3개의 세모.
+    - $K_4$: 꼭짓점 넷에 변 $\binom{4}{2} = 6$개.
+    - $K_5$: 꼭짓점 다섯에 변 10개.
 
-- **Degree.** Every vertex in $K_n$ has degree $n - 1$, so $K_n$ is $(n-1)$-regular.
-- **Connectivity.** $K_n$ is $(n-1)$-vertex-connected, meaning it remains connected after removing any $n - 2$ vertices.
-- **Hamiltonian.** $K_n$ contains a Hamiltonian cycle for $n \geq 3$.
-- **Chromatic number.** $\chi(K_n) = n$ because every vertex is adjacent to every other.
-- **Clique number.** The clique number of $K_n$ is $n$ itself.
+### 완전 그래프의 성질
 
-### Complete Bipartite Graphs
+- **차수.** $K_n$의 꼭짓점마다 차수가 $n - 1$이므로 $K_n$은 $(n-1)$-정규이다.
+- **이어짐.** $K_n$은 $(n-1)$-꼭짓점 이어짐이며, 곧 꼭짓점 $n - 2$개를 아무렇게나 지워도 이어진 채로 있다.
+- **해밀턴.** $n \geq 3$이면 $K_n$에 해밀턴 고리가 있다.
+- **빛깔 수.** 꼭짓점마다 다른 모든 꼭짓점에 이웃하므로 $\chi(K_n) = n$이다.
+- **파벌 수.** $K_n$의 파벌 수는 $n$ 그 자체이다.
 
-The complete bipartite graph $K_{m,n}$ connects every vertex in a set of size $m$ to every vertex in a set of size $n$, yielding $m \cdot n$ edges. The graph $K_{3,3}$ plays a special role in planarity theory (see below).
+### 완전 이분 그래프
 
-## Planar Graphs
+완전 이분 그래프 $K_{m,n}$은 크기 $m$인 묶음의 꼭짓점마다 크기 $n$인 묶음의 모든 꼭짓점에 이어 변 $m \cdot n$개를 낸다. 그래프 $K_{3,3}$은 평면성 이론에서 특별한 몫을 한다(아래를 보아라).
 
-A graph $G$ is **planar** if it can be drawn in the plane so that no two edges cross except at shared endpoints. Such a crossing-free drawing is called a **planar embedding** or **plane graph**. The regions bounded by edges in a planar embedding are called **faces**, including one unbounded outer face.
+## 평면 그래프
 
-!!! example "Planar and Non-Planar Examples"
-    - $K_4$ is planar: it can be drawn as a triangle with one vertex inside.
-    - $K_5$ is **not** planar: no crossing-free drawing exists.
-    - $K_{3,3}$ is **not** planar: this is the "three utilities" problem.
+그래프 $G$을 평면에 그리되 함께 쓰는 끝점 말고는 어떤 변도 가로지르지 않게 할 수 있으면 그 그래프는 **평면**이다. 이렇게 가로지름 없이 그린 것을 **평면 박음** 또는 **평면 그래프**라 한다. 평면 박음에서 변이 두르는 구역을 **면**이라 하며, 끝이 없는 바깥 면 하나를 함께 센다.
 
-### Euler's Formula
+!!! example "평면인 보기와 아닌 보기"
 
-The most fundamental result about planar graphs relates vertices, edges, and faces.
+    - $K_4$은 평면이다. 세모 안에 꼭짓점 하나를 두어 그릴 수 있다.
+    - $K_5$은 평면이 **아니다**. 가로지름 없는 그림이 없다.
+    - $K_{3,3}$은 평면이 **아니다**. 이것이 "세 집 세 우물" 문제이다.
 
-!!! tip "Theorem: Euler's Formula for Connected Planar Graphs"
-    If $G$ is a connected planar graph with $v$ vertices, $e$ edges, and $f$ faces (including the outer face), then
+### 오일러 공식
+
+평면 그래프에 대한 가장 근본적인 결과는 꼭짓점, 변, 면을 잇는다.
+
+!!! tip "정리: 이어진 평면 그래프의 오일러 공식"
+    $G$이 꼭짓점 $v$개, 변 $e$개, (바깥 면을 아우른) 면 $f$개의 이어진 평면 그래프면 다음이 성립한다
 
 $$
 v - e + f = 2
 $$
 
-**Proof sketch.** Start with a spanning tree of $G$, which has $v$ vertices, $v - 1$ edges, and 1 face (the entire plane). Each additional edge added back creates exactly one new face by splitting an existing face. After adding all $e - (v - 1)$ remaining edges, the face count is $1 + e - v + 1 = e - v + 2$, so $f = e - v + 2$, which rearranges to $v - e + f = 2$. $\square$
+**증명 얼개.** $G$의 뻗음 나무에서 시작하자. 이는 꼭짓점 $v$개, 변 $v - 1$개, 면 1개(평면 전체)를 갖는다. 변을 하나씩 도로 넣을 때마다 있던 면을 갈라 새 면이 꼭 하나 생긴다. 남은 변 $e - (v - 1)$개를 모두 넣으면 면의 개수는 $1 + e - v + 1 = e - v + 2$이므로 $f = e - v + 2$이고, 이를 옮기면 $v - e + f = 2$이다. $\square$
 
-### Edge Bound for Planar Graphs
+### 평면 그래프의 변 한계
 
-Euler's formula yields a tight upper bound on the number of edges in a planar graph.
+오일러 공식은 평면 그래프의 변 개수에 빈틈없는 위 한계를 준다.
 
-!!! tip "Corollary: Planar Edge Bound"
-    If $G$ is a simple planar graph with $v \geq 3$ vertices and $e$ edges, then
+!!! tip "따름정리: 평면 그래프의 변 한계"
+    $G$이 꼭짓점 $v \geq 3$개와 변 $e$개의 단순 평면 그래프면 다음이 성립한다
 
 $$
 e \leq 3v - 6
 $$
 
-**Proof.** Every face is bounded by at least 3 edges (since $G$ is simple and has no multi-edges or self-loops). Counting edge-face incidences, each edge borders at most 2 faces, so $3f \leq 2e$. Substituting $f = 2 - v + e$ from Euler's formula gives $3(2 - v + e) \leq 2e$, which simplifies to $e \leq 3v - 6$. $\square$
+**증명.** ($G$이 단순하고 겹 변이나 제 고리가 없으므로) 면마다 적어도 변 3개가 두른다. 변과 면이 맞닿는 횟수를 세면 변마다 많아야 면 2개와 맞닿으므로 $3f \leq 2e$이다. 오일러 공식에서 $f = 2 - v + e$을 넣으면 $3(2 - v + e) \leq 2e$이고 이를 간단히 하면 $e \leq 3v - 6$이다. $\square$
 
-This bound immediately proves that $K_5$ is non-planar: with $v = 5$, the bound gives $e \leq 9$, but $K_5$ has 10 edges.
+이 한계는 $K_5$이 평면이 아님을 곧바로 증명한다. $v = 5$이면 한계가 $e \leq 9$을 주는데 $K_5$의 변은 10개이다.
 
-### Kuratowski's Theorem
+### 쿠라토프스키 정리
 
-The definitive characterization of planarity connects the concept to two specific graphs.
+평면성의 결정적인 성격 밝힘은 이 개념을 특정한 그래프 둘과 잇는다.
 
-!!! tip "Theorem: Kuratowski's Characterization"
-    A graph $G$ is planar if and only if $G$ contains no subgraph that is a subdivision of $K_5$ or $K_{3,3}$.
+!!! tip "정리: 쿠라토프스키의 성격 밝힘"
+    그래프 $G$이 평면일 때 그리고 그때만 $G$에 $K_5$이나 $K_{3,3}$을 잘게 나눈 부분 그래프가 없다.
 
-A **subdivision** of a graph $H$ is obtained by replacing edges of $H$ with paths of one or more edges. Equivalently, by Wagner's theorem, $G$ is planar if and only if it has no $K_5$ or $K_{3,3}$ minor.
+그래프 $H$을 **잘게 나눈 것**은 $H$의 변을 변 하나 이상의 길로 바꾸어 얻는다. 마찬가지로 바그너 정리에 따라 $G$이 평면일 때 그리고 그때만 $K_5$이나 $K_{3,3}$ 마이너를 갖지 않는다.
 
-### Algorithmic Implications
+### 알고리즘에 미치는 자취
 
-Planarity has significant algorithmic consequences:
+평면성은 알고리즘에 큰 자취를 남긴다:
 
-- **Planarity testing** can be performed in $O(V + E)$ time using algorithms by Hopcroft-Tarjan or Boyer-Myrvold.
-- **Sparse structure.** The edge bound $e \leq 3v - 6$ guarantees that planar graphs are sparse: $|E| = O(|V|)$. Many algorithms that are expensive on dense graphs become efficient on planar graphs.
-- **Four Color Theorem.** Every planar graph can be properly colored with at most 4 colors, so $\chi(G) \leq 4$ for all planar $G$.
-- **Separator theorems.** Planar graphs admit $O(\sqrt{n})$-size separators, enabling efficient divide-and-conquer algorithms.
+- **평면성 검정**은 홉크로프트-타잔이나 보이어-머볼드의 알고리즘으로 $O(V + E)$ 시간에 할 수 있다.
+- **성긴 짜임.** 변 한계 $e \leq 3v - 6$은 평면 그래프가 성김을 보장한다. 곧 $|E| = O(|V|)$이다. 빽빽한 그래프에서 비싼 알고리즘 가운데 많은 것이 평면 그래프에서는 효율적이 된다.
+- **네 빛깔 정리.** 평면 그래프는 모두 많아야 네 빛깔로 제대로 칠할 수 있으므로 평면인 $G$마다 $\chi(G) \leq 4$이다.
+- **가름자 정리.** 평면 그래프는 크기 $O(\sqrt{n})$의 가름자를 가지므로 효율적인 나누어 정복하기 알고리즘을 쓸 수 있다.
 
-## Summary Comparison
+## 간추린 견줌
 
-| Property | Complete $K_n$ | Planar |
+| 성질 | 완전 $K_n$ | 평면 |
 |---|---|---|
-| Edge count | $\frac{n(n-1)}{2}$ | $\leq 3v - 6$ |
-| Density | Maximum | Sparse ($O(V)$ edges) |
-| Chromatic number | $n$ | $\leq 4$ |
-| $K_5$ subgraph | Yes (for $n \geq 5$) | Never |
+| 변의 개수 | $\frac{n(n-1)}{2}$ | $\leq 3v - 6$ |
+| 빽빽함 | 가장 빽빽함 | 성김(변 $O(V)$개) |
+| 빛깔 수 | $n$ | $\leq 4$ |
+| $K_5$ 부분 그래프 | 있음($n \geq 5$일 때) | 결코 없음 |
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 22.
-- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. Sections 1.1, 6.1-6.3.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22장.
+- West, D. B. (2001). *Introduction to Graph Theory* (2nd ed.). Prentice Hall. 1.1절, 6.1-6.3절.
+
+## 연습문제
+
+**연습문제 1.**
+오일러 공식을 써서 $K_{3,3}$이 평면이 아님을 증명하여라.
+
+??? success "연습문제 1 풀이"
+    $K_{3,3}$은 꼭짓점 $v = 6$개와 변 $e = 9$개를 갖는다. $K_{3,3}$은 이분이므로 세모가 없고, 따라서 어떤 평면 박음에서도 면마다 적어도 변 4개가 두른다. 면과 변이 맞닿는 횟수를 세면 $4f \leq 2e$이므로 $f \leq e/2$이다. 오일러 공식에 넣으면 $v - e + f = 2$에서 $f = 2 - v + e = 2 - 6 + 9 = 5$이다. 그러나 $f \leq 9/2 = 4.5$이므로 $f \leq 4$이고 $f = 5$과 어긋난다. 그러므로 $K_{3,3}$은 평면이 아니다. $\square$
+
+---
+
+**연습문제 2.**
+$n = 10$일 때 $K_n$의 변은 몇 개인가? $K_n$을 제대로 칠하는 데 필요한 빛깔의 최소 개수는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    $|E(K_{10})| = \binom{10}{2} = 45$개이다. 꼭짓점 짝마다 이웃하므로 어떤 두 꼭짓점도 빛깔을 함께 쓸 수 없다. 그러므로 $\chi(K_{10}) = 10$가지 빛깔이 필요하다. $\square$
+
+---
+
+**연습문제 3.**
+이어진 평면 그래프에 꼭짓점 12개와 변 20개가 있다. 면은 몇 개인가? 변 한계 $e \leq 3v - 6$이 만족되는지 확인하여라.
+
+??? success "연습문제 3 풀이"
+    오일러 공식에 따라 면은 $f = 2 - v + e = 2 - 12 + 20 = 10$개이다. 변 한계는 $3v - 6 = 3(12) - 6 = 30$을 주고 실제로 $20 \leq 30$이므로 한계가 만족된다. $\square$
+
+---
+
+**연습문제 4.**
+평면 그래프마다 차수가 많아야 5인 꼭짓점이 있음을 증명하여라.
+
+??? success "연습문제 4 풀이"
+    어긋냄을 위해 꼭짓점마다 차수가 적어도 6이라고 하자. 악수 보조정리에 따라 $2e = \sum_{v} \deg(v) \geq 6v$이므로 $e \geq 3v$이다. 그러나 $v \geq 3$인 단순 평면 그래프에서는 $e \leq 3v - 6 < 3v$이므로 어긋난다. 그러므로 적어도 한 꼭짓점의 차수가 많아야 5이다. $\square$
+
+---
+
+**연습 5.**
+$G$을 단순 평면 그래프라 하자. $G$의 평균 차수가 6보다 반드시 작음을 증명하여라.
+
+??? success "연습 5의 풀이"
+    $v \geq 3$이면 변 한계가 $e \leq 3v - 6$을 준다. 평균 차수는 $\bar{d} = 2e/v \leq 2(3v - 6)/v = 6 - 12/v < 6$이다. $v \leq 2$이면 평균 차수가 많아야 1이며 이 또한 6보다 작다. $\square$

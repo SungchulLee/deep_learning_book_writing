@@ -1,136 +1,163 @@
-# 32.2.5 Discount Factor
+# 32.2.5 깎기 인수
+## 정의
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Definition
-
-The **discount factor** $\gamma \in [0, 1]$ determines how much the agent values future rewards relative to immediate ones. The discounted return is:
+**깎기 인수** $\gamma \in [0, 1]$은 부림꾼이 앞으로의 보상을 지금의 보상에 견주어 얼마나 값지게 여기는지 정한다. 깎은 돌아옴은 다음과 같다:
 
 $$G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1} = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \cdots$$
 
-## Interpretation
+## 해석
 
-The discount factor has multiple interpretations:
+깎기 인수는 여러 가지로 풀이된다:
 
-### Mathematical: Convergence Guarantee
+### 수학: 모임 보장
 
-For bounded rewards $|R| \leq R_{\max}$ and $\gamma < 1$:
+가둬진 보상 $|R| \leq R_{\max}$과 $\gamma < 1$에서:
 
 $$|G_t| \leq \sum_{k=0}^{\infty} \gamma^k R_{\max} = \frac{R_{\max}}{1 - \gamma}$$
 
-Without discounting ($\gamma = 1$), the return may diverge for continuing tasks.
+깎지 않으면($\gamma = 1$) 이어지는 일에서 돌아옴이 발산할 수 있다.
 
-### Economic: Time Value
+### 경제: 때의 값어치
 
-A dollar today is worth more than a dollar tomorrow. The discount factor encodes this time preference, analogous to the **discount rate** in finance:
+오늘의 1달러가 내일의 1달러보다 값지다. 깎기 인수가 이 때 선호를 담으며 금융의 **할인율**과 비슷하다:
 
 $$\gamma = \frac{1}{1 + r}$$
 
-where $r$ is the per-period interest rate.
+여기서 $r$은 기간마다의 이자율이다.
 
-### Probabilistic: Survival Probability
+### 확률: 살아남을 확률
 
-$\gamma$ can be interpreted as the probability that the process continues at each step. With probability $1 - \gamma$, the episode terminates, making the effective horizon geometric with mean $\frac{1}{1-\gamma}$.
+$\gamma$은 걸음마다 과정이 이어질 확률로 풀이할 수 있다. 확률 $1 - \gamma$으로 판이 끝나며 실제 지평이 평균 $\frac{1}{1-\gamma}$의 기하 분포가 된다.
 
-### Computational: Effective Horizon
+### 셈: 실제 지평
 
-The **effective horizon** is the number of future steps that significantly influence the return:
+**실제 지평**은 돌아옴에 크게 영향을 주는 앞으로의 걸음 수다:
 
 $$\text{Effective Horizon} \approx \frac{1}{1 - \gamma}$$
 
-| $\gamma$ | Effective Horizon | Interpretation |
+| $\gamma$ | 실제 지평 | 풀이 |
 |-----------|------------------|----------------|
-| 0.0 | 1 step | Completely myopic |
-| 0.9 | 10 steps | Short-term planning |
-| 0.95 | 20 steps | Medium-term |
-| 0.99 | 100 steps | Long-term planning |
-| 0.999 | 1000 steps | Very long horizon |
-| 1.0 | $\infty$ | Undiscounted (episodic only) |
+| 0.0 | 1걸음 | 아주 눈앞만 봄 |
+| 0.9 | 10걸음 | 짧은 때 짜기 |
+| 0.95 | 20걸음 | 가운데 때 |
+| 0.99 | 100걸음 | 긴 때 짜기 |
+| 0.999 | 1000걸음 | 아주 긴 지평 |
+| 1.0 | $\infty$ | 깎지 않음(판으로 나뉜 일에만) |
 
-## Effect on Optimal Policy
+## 가장 좋은 방침에 주는 영향
 
-The discount factor directly affects which policy is optimal:
+깎기 인수가 어떤 방침이 가장 좋은지에 곧바로 영향을 준다:
 
-- **Low $\gamma$ (myopic)**: The agent prioritizes immediate rewards, ignoring long-term consequences. May miss strategies that require short-term sacrifice for long-term gain.
-- **High $\gamma$ (far-sighted)**: The agent considers long-term consequences but learning becomes harder due to high variance in return estimates and slower value propagation.
+- **낮은 $\gamma$(눈앞만 봄)**: 부림꾼이 즉시 보상을 앞세우고 긴 때의 결과를 무시한다. 긴 때의 이득을 위해 짧은 때에 손해를 감수하는 셈속을 놓칠 수 있다.
+- **높은 $\gamma$(멀리 봄)**: 부림꾼이 긴 때의 결과를 살피지만 돌아옴 어림의 흩어짐이 크고 값이 퍼지는 것이 느려 배우기가 어려워진다.
 
-### Discount Factor and Bias-Variance Trade-off
+### 깎기 인수와 치우침-흩어짐 맞바꿈
 
-| Low $\gamma$ | High $\gamma$ |
+| 낮은 $\gamma$ | 높은 $\gamma$ |
 |--------------|---------------|
-| Low variance in return estimates | High variance |
-| High bias (ignores future) | Low bias |
-| Faster convergence | Slower convergence |
-| May miss long-term strategies | Can learn complex strategies |
+| 돌아옴 어림의 흩어짐이 작음 | 흩어짐이 큼 |
+| 치우침이 큼(앞을 무시) | 치우침이 작음 |
+| 빨리 모임 | 느리게 모임 |
+| 긴 때 셈속을 놓칠 수 있음 | 복잡한 셈속을 배울 수 있음 |
 
-## Special Cases
+## 특별한 경우
 
-### gamma = 0: Myopic Agent
+### 감마 = 0: 눈앞만 보는 부림꾼
 
 $$G_t = R_{t+1}$$
 
-The agent is a **greedy** or **myopic** agent, caring only about the immediate reward. The optimal policy maximizes $R(s,a)$ at each step.
+부림꾼이 즉시 보상만 살피는 **욕심쟁이** 또는 **눈앞만 보는** 부림꾼이다. 가장 좋은 방침은 걸음마다 $R(s,a)$을 가장 크게 한다.
 
-### gamma = 1: Undiscounted Return
+### 감마 = 1: 깎지 않은 돌아옴
 
 $$G_t = \sum_{k=0}^{T-t-1} R_{t+k+1}$$
 
-Valid only for episodic tasks where $T$ is finite. The agent treats all future rewards equally. Used in many game-playing applications.
+$T$이 유한한 판으로 나뉜 일에만 올바르다. 부림꾼이 앞으로의 보상을 모두 똑같이 다룬다. 많은 놀이 쓰임새에 쓰인다.
 
-### Average Reward Setting
+### 평균 보상 자리
 
-For continuing tasks with $\gamma \to 1$, an alternative is the **average reward** criterion:
+$\gamma \to 1$인 이어지는 일에서 다른 길은 **평균 보상** 잣대다:
 
 $$r(\pi) = \lim_{T \to \infty} \frac{1}{T} \sum_{t=1}^{T} \mathbb{E}_\pi[R_t]$$
 
-This avoids divergence while treating all time steps equally.
+이는 모든 때 걸음을 똑같이 다루면서 발산을 피한다.
 
-## Choosing gamma in Practice
+## 실제로 감마 고르기
 
-### Guidelines
+### 지침
 
-1. **Episodic tasks**: $\gamma = 1.0$ or $\gamma = 0.99$ is common
-2. **Continuing tasks**: Must have $\gamma < 1$; typically $0.95 \leq \gamma \leq 0.999$
-3. **Problem-dependent**: Match $\frac{1}{1-\gamma}$ to the natural planning horizon
-4. **Tuning**: Often treated as a hyperparameter to be tuned
+1. **판으로 나뉜 일**: $\gamma = 1.0$이나 $\gamma = 0.99$이 흔하다
+2. **이어지는 일**: $\gamma < 1$이어야 한다. 보통 $0.95 \leq \gamma \leq 0.999$이다
+3. **문제에 매임**: $\frac{1}{1-\gamma}$을 자연스러운 짜기 지평에 맞춘다
+4. **손보기**: 흔히 손봐야 할 웃잡으로 다룬다
 
-### Interaction with Other Hyperparameters
+### 다른 웃잡과의 얽힘
 
-The discount factor interacts with:
+깎기 인수는 다음과 얽힌다:
 
-- **Learning rate**: Higher $\gamma$ may require lower learning rates for stability
-- **Episode length**: $\gamma$ should be high enough that the agent can "see" the end of the episode
-- **Reward scale**: Effective value range is $\left[-\frac{R_{\max}}{1-\gamma}, \frac{R_{\max}}{1-\gamma}\right]$
+- **배움 빠르기**: $\gamma$이 크면 안정을 위해 배움 빠르기를 낮춰야 할 수 있다
+- **판 길이**: 부림꾼이 판의 끝을 "볼" 수 있을 만큼 $\gamma$이 커야 한다
+- **보상 잣수**: 실제 값 범위는 $\left[-\frac{R_{\max}}{1-\gamma}, \frac{R_{\max}}{1-\gamma}\right]$이다
 
-## Financial Applications
+## 금융에서의 쓰임
 
-### Investment Horizon Mapping
+### 투자 지평에 맞추기
 
-Map $\gamma$ to the investor's time horizon:
+$\gamma$을 투자자의 때 지평에 맞춘다:
 
-| Investor Type | Horizon | Suggested $\gamma$ |
+| 투자자 갈래 | 지평 | 권하는 $\gamma$ |
 |--------------|---------|-------------------|
-| Day trader | Hours to days | 0.9 - 0.95 |
-| Swing trader | Days to weeks | 0.95 - 0.99 |
-| Position trader | Weeks to months | 0.99 - 0.995 |
-| Long-term investor | Months to years | 0.995 - 0.999 |
+| 하루 거래자 | 몇 시간에서 며칠 | 0.9~0.95 |
+| 흔들림 거래자 | 며칠에서 몇 주 | 0.95~0.99 |
+| 자리 거래자 | 몇 주에서 몇 달 | 0.99~0.995 |
+| 긴 때 투자자 | 몇 달에서 몇 해 | 0.995~0.999 |
 
-### Risk-Free Rate Connection
+### 무위험 이자율과의 이음
 
-If the risk-free rate is $r_f$ per period:
+무위험 이자율이 기간마다 $r_f$이면:
 
 $$\gamma_{\text{financial}} = \frac{1}{1 + r_f}$$
 
-For daily data with annual risk-free rate of 5%: $\gamma \approx \frac{1}{1 + 0.05/252} \approx 0.9998$
+해마다 무위험 이자율이 5%인 날마다 자료에서는 $\gamma \approx \frac{1}{1 + 0.05/252} \approx 0.9998$이다
 
-### Practical Considerations
+### 실제로 살필 것
 
-- Transaction costs create a natural preference for patience (higher $\gamma$)
-- Market microstructure effects are more relevant for low $\gamma$ (short horizon)
-- Regime changes may warrant adaptive $\gamma$ or state-dependent discounting
+- 거래 비용이 자연스럽게 참을성(더 큰 $\gamma$)을 선호하게 만든다
+- 시장 미시 얼개 효과는 낮은 $\gamma$(짧은 지평)에 더 알맞다
+- 국면이 바뀌면 맞춰 가는 $\gamma$이나 상태에 매인 깎기가 필요할 수 있다
 
-## Summary
+## 요약
 
-The discount factor is a fundamental parameter that controls the agent's planning horizon and the trade-off between immediate and future rewards. Its choice significantly affects the optimal policy, convergence properties, and practical performance. In financial applications, $\gamma$ should be aligned with the investment horizon and risk preferences of the strategy being developed.
+깎기 인수는 부림꾼의 짜기 지평과 즉시 보상과 앞으로의 보상 사이의 맞바꿈을 다스리는 근본 잡이다. 어떻게 고르느냐가 가장 좋은 방침, 모임 성질, 실제 성능에 크게 영향을 준다. 금융 쓰임새에서 $\gamma$은 세우려는 셈속의 투자 지평과 위험 취향에 맞춰야 한다.
+
+## 연습문제
+
+**연습문제 1.**
+이 마디의 주제와 딸린 단순한 마르코프 결정 과정을 생각하여라. 상태 3개와 움직임 2개의 작은 보기에서 관련 양을 손으로 셈하여라.
+
+??? success "연습문제 1 풀이"
+    상태 $S = \{s_1, s_2, s_3\}$과 움직임 $A = \{a_1, a_2\}$을 뜻매김한다. 옮김 확률과 보상을 매긴다. 상태-움직임 짝마다 기대 즉시 보상과 옮김 분포를 셈한다. 이 마디의 뜻매김과 식으로 바라는 양을 셈한다. 상태 자리가 작아 정확히 셈할 수 있어 추상 적기가 구체 숫자로 어떻게 옮겨지는지 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 다룬 핵심 성질이나 모임 결과를 밝혀라. 여김을 또렷이 적고 어느 것이 꼭 필요한지 가려내어라.
+
+??? success "연습문제 2 풀이"
+    밝힘은 그 연산자에 오므리는 옮김 정리를 써서 따라온다. 깎기 인수가 $\gamma < 1$인 유한 마르코프 결정 과정을 여기면 그 연산자는 상한 노름에서 $\gamma$오므리기다. 바나흐 고정점 정리에 따라 되풀이해 쓰면 $k$이 되풀이 횟수일 때 빠르기 $O(\gamma^k)$으로 하나뿐인 고정점에 모인다. 유한하다는 여김이 보상이 가둬짐을 보장하고 깎기 인수 $\gamma < 1$이 오므리기 성질에 꼭 필요하다. $\square$
+
+---
+
+**연습문제 3.**
+이 마디에서 밝힌 알고리즘이나 셈을 단순한 격자 세상에 대해 파이썬으로 짜라. $\epsilon = 0.01$ 안으로 모이는 데 필요한 되풀이 횟수를 알려라.
+
+??? success "연습문제 3 풀이"
+    모서리에 마침 상태가 있고 고른 아무 방침을 쓰는 $4 \times 4$ 격자 세상이 여느 시험 사례가 된다. 짜기는 모든 상태의 가장 큰 바뀜이 $\epsilon$ 아래로 떨어질 때까지 고침 규칙을 되풀이한다. 깎기 인수에 따라 보통 50~200번 되풀이하면 모인다. 핵심 짜기 세부는 맞춘 고침보다 빨리 모이도록 제자리 고침(가우스-자이델 방식)을 쓰는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+이 마디에서 밝힌 길에 본디 있는 근본 한계나 맞바꿈을 다루어라. 뒤 장의 더 나아간 방법이 이 한계를 어떻게 넘는가?
+
+??? success "연습문제 4 풀이"
+    표로 하는 길은 모든 상태(어쩌면 움직임까지)를 늘어놓아야 하는데 이어지거나 차원이 높은 상태 자리에서는 될 일이 아니다. 차원의 저주는 상태 변수의 수에 따라 상태 수가 지수로 늘어남을 뜻한다. 함수 어림(33~34장)은 그 함수를 신경망으로 잡을 두어 나타내고 닮은 상태에 걸쳐 넓혀 이를 넘는다. 다만 새 어려움이 생긴다. 모임이 더는 보장되지 않으며 함수 어림, 띄워 올리기, 벗어난 방침 익히기의 죽음의 삼각이 발산을 일으킬 수 있다. $\square$

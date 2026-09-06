@@ -1,50 +1,50 @@
-# Range Updates
+# 범위 갱신
 
-Many real-world problems require modifying contiguous blocks of data in bulk. Consider adjusting exam scores for an entire class, or applying a brightness offset to a row of pixels. A point-update segment tree handles each element individually in $O(\log n)$, so updating $k$ elements costs $O(k \log n)$. Range updates backed by **lazy propagation** reduce the cost of updating an arbitrary interval $[l, r]$ to a single $O(\log n)$ operation, regardless of the interval's length.
+실제 문제 가운데 이어진 데이터 덩어리를 한꺼번에 고쳐야 하는 것이 많다. 반 전체의 시험 점수를 조정하거나 화소 한 줄에 밝기 값을 더하는 일을 생각해 보라. 점 갱신 구간 트리는 원소를 하나씩 $O(\log n)$에 다루므로 원소 $k$개를 고치면 $O(k \log n)$이 든다. **게으른 전파**를 등에 업은 범위 갱신은 아무 구간 $[l, r]$이든 그 길이와 무관하게 $O(\log n)$ 연산 한 번으로 줄인다.
 
-## Range Addition Update
+## 범위 더하기 갱신
 
-The most common range update adds a value $\delta$ to every element in $[l, r]$:
+가장 흔한 범위 갱신은 $[l, r]$의 모든 원소에 값 $\delta$을 더하는 것이다.
 
 $$
 a[i] \leftarrow a[i] + \delta \quad \text{for all } l \leq i \leq r
 $$
 
-In the segment tree, every node whose range is fully contained in $[l, r]$ receives the update immediately. Nodes that partially overlap push the update to their children via lazy propagation. This deferred propagation is what keeps the per-operation cost logarithmic.
+구간 트리에서 범위가 $[l, r]$ 안에 온전히 드는 노드는 갱신을 곧바로 받는다. 일부만 겹치는 노드는 게으른 전파로 갱신을 자식에 밀어 넣는다. 이 미룬 전파가 연산마다의 비용을 로그로 지킨다.
 
-## Algorithm
+## 알고리즘
 
-The range update procedure visits a node covering $[lo, hi]$ and branches into one of three cases:
+범위 갱신 절차는 $[lo, hi]$을 덮는 노드를 들러 세 경우 가운데 하나로 갈라진다.
 
-1. **No overlap** ($r < lo$ or $hi < l$): return immediately.
-2. **Full containment** ($l \leq lo$ and $hi \leq r$): add $\delta \cdot (hi - lo + 1)$ to the node's stored sum and record $\delta$ in its lazy tag. Return without recursing.
-3. **Partial overlap**: push down any existing lazy tag to the two children, recurse on both children, then recompute the node's value from its updated children.
+1. **겹치지 않음** ($r < lo$이거나 $hi < l$): 곧바로 돌아간다.
+2. **온전히 담김** ($l \leq lo$이고 $hi \leq r$): 노드에 담긴 합에 $\delta \cdot (hi - lo + 1)$을 더하고 게으른 꼬리표에 $\delta$을 적는다. 재귀하지 않고 돌아간다.
+3. **일부만 겹침**: 이미 있는 게으른 꼬리표를 두 자식에 밀어 내리고 두 자식으로 재귀한 뒤 고쳐진 자식에서 노드의 값을 다시 셈한다.
 
-The lazy tag at a node represents a deferred per-element addition that has not yet been propagated to that node's children. Each push-down transfers the tag one level deeper, clearing it at the current node.
+노드의 게으른 꼬리표는 아직 그 자식에 퍼지지 않은, 원소마다의 미룬 더하기를 나타낸다. 밀어 내릴 때마다 꼬리표가 한 층 더 깊이 옮겨 가고 지금 노드에서는 지워진다.
 
-## Simpler Alternatives
+## 더 간단한 대안
 
-When only range updates and **point queries** are needed (no range queries), a **difference array** backed by a Fenwick tree (BIT) solves the problem with the same $O(\log n)$ bounds and simpler code. However, when both range updates and range queries are required, the lazy segment tree is the standard approach because a difference array alone cannot answer range-sum queries efficiently.
+(범위 질의 없이) 범위 갱신과 **점 질의**만 필요하면 펜윅 트리(BIT)를 등에 업은 **차이 배열**이 같은 $O(\log n)$ 한계로 더 간단한 코드로 푼다. 다만 범위 갱신과 범위 질의가 모두 필요하면 차이 배열만으로는 범위 합 질의에 효율적으로 답할 수 없으므로 게으른 구간 트리가 표준이다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Segment tree with lazy propagation for range-add updates.
+범위 더하기 갱신을 위해 게으른 전파를 쓰는 구간 트리.
 
-Supports two operations in O(log n) each:
-  - range_update(l, r, delta): add delta to every element in [l, r]
-  - range_query(l, r): return the sum of elements in [l, r]
+연산 둘을 저마다 O(log n)에 받쳐 준다.
+  - range_update(l, r, delta): [l, r]의 모든 원소에 delta를 더한다
+  - range_query(l, r): [l, r]의 원소의 합을 돌려준다
 
-The lazy tag at each node stores the pending per-element addition
-that has not yet been pushed to its children.
+노드마다의 게으른 꼬리표는 아직 자식에 밀어 넣지 않은
+원소별 미룬 더하기를 담는다.
 """
 
 
-# === Segment Tree with Range Updates ===
+# === 범위 갱신을 하는 구간 트리 ===
 
 class RangeUpdateSegTree:
-    """Segment tree with lazy propagation for range add + range sum."""
+    """범위 더하기와 범위 합을 위해 게으른 전파를 쓰는 구간 트리."""
 
     def __init__(self, data: list):
         self.n = len(data)
@@ -63,7 +63,7 @@ class RangeUpdateSegTree:
         self.tree[node] = self.tree[2 * node] + self.tree[2 * node + 1]
 
     def _push_down(self, node: int, lo: int, hi: int) -> None:
-        """Propagate the lazy tag to children."""
+        """게으른 꼬리표를 자식으로 퍼뜨린다."""
         if self.lazy[node] != 0 and lo != hi:
             mid = (lo + hi) // 2
             left, right = 2 * node, 2 * node + 1
@@ -78,13 +78,13 @@ class RangeUpdateSegTree:
 
     def range_update(self, node: int, lo: int, hi: int,
                      l: int, r: int, delta: int) -> None:
-        """Add delta to every element in [l, r].
+        """[l, r]의 모든 원소에 delta를 더한다.
 
-        Args:
-            node: Current position in the tree array.
-            lo, hi: Range this node covers.
-            l, r: Update range.
-            delta: Value to add to each element.
+        인수:
+            node: 트리 배열에서 지금 자리.
+            lo, hi: 이 노드가 덮는 범위.
+            l, r: 갱신 범위.
+            delta: 원소마다 더할 값.
         """
         if r < lo or hi < l:
             return
@@ -100,7 +100,7 @@ class RangeUpdateSegTree:
 
     def range_query(self, node: int, lo: int, hi: int,
                     l: int, r: int) -> int:
-        """Return sum of elements in [l, r]."""
+        """[l, r]의 원소의 합을 돌려준다."""
         if r < lo or hi < l:
             return 0
         if l <= lo and hi <= r:
@@ -111,11 +111,11 @@ class RangeUpdateSegTree:
                 + self.range_query(2 * node + 1, mid + 1, hi, l, r))
 
     def point_query(self, idx: int) -> int:
-        """Return the current value of a[idx]."""
+        """a[idx]의 지금 값을 돌려준다."""
         return self.range_query(1, 0, self.n - 1, idx, idx)
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     data = [1, 3, 5, 7, 9, 11]
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     print(f"Sum [0,5] = {st.range_query(1, 0, n-1, 0, 5)}")
     print()
 
-    # Range update: add 10 to [1, 4]
+    # 범위 갱신: [1, 4]에 10을 더한다
     print("Range update: add 10 to [1, 4]")
     st.range_update(1, 0, n - 1, 1, 4, 10)
     print(f"Sum [0,5] = {st.range_query(1, 0, n-1, 0, 5)}")
@@ -136,7 +136,7 @@ if __name__ == "__main__":
     print(f"a[5] = {st.point_query(5)}")
     print()
 
-    # Another range update: add 5 to [0, 2]
+    # 또 다른 범위 갱신: [0, 2]에 5를 더한다
     print("Range update: add 5 to [0, 2]")
     st.range_update(1, 0, n - 1, 0, 2, 5)
     print(f"Sum [0,5] = {st.range_query(1, 0, n-1, 0, 5)}")
@@ -145,7 +145,7 @@ if __name__ == "__main__":
     print(f"a[2] = {st.point_query(2)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Original: [1, 3, 5, 7, 9, 11]
 Sum [0,5] = 36
@@ -164,23 +164,56 @@ a[1] = 18
 a[2] = 20
 ```
 
-## Complexity
+## 복잡도
 
-| Operation | Time | Space |
+| 연산 | 시간 | 공간 |
 |-----------|------|-------|
-| Range update (add $\delta$ to $[l, r]$) | $O(\log n)$ | $O(\log n)$ stack |
-| Range query after updates | $O(\log n)$ | $O(\log n)$ stack |
-| Total space | — | $O(n)$ (tree + lazy arrays) |
+| 범위 갱신 ($[l, r]$에 $\delta$ 더하기) | $O(\log n)$ | 스택 $O(\log n)$ |
+| 갱신 뒤의 범위 질의 | $O(\log n)$ | 스택 $O(\log n)$ |
+| 전체 공간 | — | $O(n)$ (트리 배열과 게으른 배열) |
 
-Each operation visits at most $O(\log n)$ nodes. The recursion depth is bounded by the tree height, which is $\lceil \log_2 n \rceil$.
+연산마다 노드를 많아야 $O(\log n)$개 들른다. 재귀 깊이는 트리의 높이 $\lceil \log_2 n \rceil$으로 한계 지어진다.
 
-## Range Assignment
+## 범위 덮어쓰기
 
-A useful variant **sets** all elements in $[l, r]$ to a value $v$ rather than adding $\delta$. The key difference lies in the lazy tag semantics: the tag now stores the assigned value, and a sentinel (typically `None` in Python, or $-1$ when values are non-negative) distinguishes "no pending assignment" from "assign zero." During push-down, children's values are **replaced** rather than incremented.
+쓸모 있는 변형은 $[l, r]$의 모든 원소에 $\delta$을 더하는 대신 값 $v$으로 **덮어쓰는** 것이다. 핵심 차이는 게으른 꼬리표의 뜻에 있다. 이제 꼬리표가 덮어쓸 값을 담고, (파이썬에서는 대개 `None`, 값이 음이 아니면 $-1$인) 파수 값이 "미룬 덮어쓰기 없음"과 "0으로 덮어쓰기"를 가른다. 밀어 내릴 때 자식의 값은 더해지는 것이 아니라 **바뀐다**.
 
-!!! warning "Composing Different Operations"
-    When both range-add and range-assign operations coexist on the same tree, the lazy tag must store both components. During push-down, the assignment is applied first (it overwrites), then the addition is applied on top. Reversing this order produces incorrect results.
+!!! warning "서로 다른 연산 이어 붙이기"
+    같은 트리에 범위 더하기와 범위 덮어쓰기가 함께 있으면 게으른 꼬리표가 두 성분을 모두 담아야 한다. 밀어 내릴 때 (덮어쓰는) 덮어쓰기를 먼저 적용하고 그 위에 더하기를 적용한다. 이 순서를 뒤집으면 틀린 결과가 나온다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+범위 갱신의 짜임을 설명하고 질의와 갱신의 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 짜임은 위계적 분해를 이용해 일차보다 빠른 질의 시간을 이룬다. 대개 질의와 갱신이 모두 $O(\log n)$이고 세우는 데 $O(n)$이나 $O(n\log n)$이 든다.
+
+---
+
+**연습문제 2.**
+입력 $[3, 1, 4, 1, 5, 9, 2, 6]$으로 범위 갱신을 세워라. 마지막 짜임을 보여라.
+
+??? success "연습문제 2 풀이"
+    세우기 알고리즘을 적용하며 중간 상태를 보여라. 트리 짜임이면 트리를 그려라. 배열에 바탕한 짜임이면 부모-자식 관계를 덧붙여 배열의 내용을 보여라.
+
+---
+
+**연습문제 3.**
+질의 연산이 올바른 어떤 질의 범위에 대해서도 옳은 결과를 돌려줌을 증명하라.
+
+??? success "연습문제 3 풀이"
+    증명에는 대개 트리의 높이에 대한 귀납법을 쓴다. 노드마다 질의가 한 부분 트리 안에 온전히 들거나(재귀한다) 두 부분 트리에 걸친다(부분 결과를 모은다). 모으는 함수(합, 최솟값, 최댓값)가 결합적이므로 올바로 모아진다. $\square$
+
+---
+
+**연습문제 4.**
+범위 갱신가 질의마다의 계산을 $O(n)$에서 $O(\log n)$으로 빠르게 하는 딥러닝 응용을 설명하라.
+
+??? success "연습문제 4 풀이"
+    응용으로는 누적 어텐션 가중치를 위한 접두사 합 질의, 길이가 제각각인 수열에서 효율적인 풀링을 위한 범위 질의, 검색 증강 생성을 위한 최근접 이웃 찾기, 3차원 딥러닝의 점 구름 처리를 위한 공간 색인이 있다.

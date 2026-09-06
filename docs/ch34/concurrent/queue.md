@@ -195,3 +195,43 @@ A subtle correctness issue with CAS-based data structures:
 
 - Michael, M. M. and Scott, M. L. (1996). "Simple, fast, and practical non-blocking and blocking concurrent queue algorithms." *PODC*.
 - Herlihy, M. and Shavit, N. *The Art of Multiprocessor Programming*, Chapter 10.
+
+## Exercises
+
+**Exercise 1.**
+Describe the Michael-Scott lock-free queue algorithm. How do `enqueue` and `dequeue` use CAS to maintain correctness without locks?
+
+??? success "Solution to Exercise 1"
+    The Michael-Scott queue uses a singly-linked list with `head` and `tail` atomic pointers and a sentinel node. **Enqueue**: allocate a new node, then CAS `tail->next` from null to the new node. If successful, CAS `tail` forward to the new node (a "helping" step any thread can perform). If the first CAS fails, another thread enqueued first; retry. **Dequeue**: read `head->next` (the first real node). If null, the queue is empty. Otherwise, CAS `head` from the sentinel to `head->next`, extracting the value from the old `head->next`. If CAS fails, another thread dequeued first; retry. The sentinel node ensures `head` and `tail` never become null, simplifying edge cases. Lock-freedom is guaranteed because at least one CAS succeeds in every contention cycle. $\square$
+
+---
+
+**Exercise 2.**
+Explain why the Michael-Scott queue needs a "helping" mechanism where an enqueuing thread may advance the `tail` pointer on behalf of another thread. What goes wrong without it?
+
+??? success "Solution to Exercise 2"
+    Enqueue is a two-step operation: (1) CAS `tail->next` to the new node, (2) CAS `tail` to the new node. Between steps 1 and 2, the enqueueing thread might be preempted. If no other thread helps advance `tail`, the tail pointer lags behind the actual last node. Subsequent enqueue attempts read `tail->next` and find it non-null (pointing to the node from step 1), but `tail` has not advanced. Without helping, these threads would spin indefinitely waiting for `tail->next` to be null. The helping mechanism resolves this: when a thread observes `tail->next != null`, it CAS-advances `tail` to `tail->next` before retrying its own enqueue. This ensures progress -- even if the original thread is delayed, `tail` eventually catches up. Without helping, the queue is not lock-free because a preempted thread can block all others. $\square$
+
+---
+
+**Exercise 3.**
+Analyze the memory management challenge in a lock-free queue. Why can't nodes be freed immediately after dequeue, and how do hazard pointers address this?
+
+??? success "Solution to Exercise 3"
+    After a dequeue CAS succeeds, the old head node appears free to the dequeuing thread. However, other threads may still be reading this node (e.g., they read `head` before the CAS but haven't yet completed their operation). Freeing the node immediately causes use-after-free errors. Hazard pointers solve this: each thread publishes (in a thread-local array) the pointers it is currently accessing. Before freeing a node, a thread checks all hazard pointers; if any thread lists the node, freeing is deferred. Periodically, deferred nodes are re-checked and freed when no longer hazard-protected. This guarantees that no thread accesses freed memory while bounding the number of deferred nodes to $O(T^2)$ where $T$ is the thread count. $\square$
+
+---
+
+**Exercise 4.**
+Compare the throughput of a lock-free queue versus a lock-based queue under low contention (2 threads) and high contention (64 threads). What causes the crossover point?
+
+??? success "Solution to Exercise 4"
+    Under low contention (2 threads), CAS operations rarely fail, so the lock-free queue performs similarly to a lock-based queue (or slightly better due to avoiding the overhead of lock acquisition/release). Under high contention (64 threads), the lock-based queue serializes all operations, with throughput bounded by $1/(\text{lock acquisition time})$. The lock-free queue avoids serialization but suffers from CAS retries: with 64 threads, most CAS attempts fail, and each retry wastes a cache-line transfer. The crossover occurs around 8--16 threads, where lock-free throughput stalls due to CAS contention on `head` and `tail` (both are single cache lines bouncing between cores). Beyond this, techniques like combining (flat combining or elimination) outperform both approaches by batching operations. $\square$
+
+---
+
+**Exercise 5.**
+Design a bounded lock-free multi-producer multi-consumer (MPMC) queue using a circular buffer. Explain how to handle the full and empty conditions atomically.
+
+??? success "Solution to Exercise 5"
+    Use a power-of-2 sized array `buf[N]` with atomic `head` and `tail` indices. Each slot has an atomic `sequence` field initialized to its index. **Enqueue**: read `tail`, compute `pos = tail % N`, read `seq = buf[pos].sequence`. If `seq == tail`, CAS `tail` to `tail + 1`; if successful, write data and set `buf[pos].sequence = tail + 1`. If `seq < tail`, the queue is full (return failure). If `seq > tail`, another thread advanced `tail`; reload and retry. **Dequeue**: analogous with `head`. Read `head`, check `buf[pos].sequence == head + 1` (data available). CAS `head` forward, read data, set `buf[pos].sequence = head + N` (mark slot as reusable). The sequence field serves as a per-slot state indicator, enabling full/empty detection without comparing `head` and `tail` (which would require atomic operations on two separate variables). $\square$

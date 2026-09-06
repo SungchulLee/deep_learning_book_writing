@@ -1,132 +1,145 @@
-# 6.11.4 Training Process
+# 6.11.4 익히기 과정
+ChatGPT의 익히기는 크게 두 마디, 곧 **미리 익히기**와 **결 맞추기**로 나아가며, 마디마다 목표와 자료 요건과 가장 좋게 하기 전략이 다르다.
 
+## 1마디: 미리 익히기
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-The training of ChatGPT proceeds in two major phases — **pre-training** and **alignment** — each with distinct objectives, data requirements, and optimization strategies.
-
-## Phase 1: Pre-Training
-
-### Objective
+### 목표
 
 During pre-training, the model learns general language representations by training on a large-scale text corpus using the **causal language modeling (CLM)** objective. Given a sequence of tokens $\mathbf{x} = (x_1, x_2, \ldots, x_T)$, the model is trained to maximize the log-likelihood:
 
 $$
-
 \mathcal{L}_{\text{CLM}}(\theta) = \sum_{t=1}^{T} \log p_\theta(x_t \mid x_1, \ldots, x_{t-1})
-
 $$
 
-This is equivalent to minimizing the cross-entropy between the model's predicted distribution and the empirical next-token distribution. The model learns to capture patterns in grammar, facts, reasoning structures, and stylistic conventions from the training data.
+이는 모델이 어림한 분포와 실제 다음 토막 분포 사이의 엇갈린 엔트로피를 가장 작게 하는 것과 같다. 모델은 익히기 자료에서 문법, 사실, 따져 봄의 짜임, 문체의 관례에 있는 결을 잡아내는 법을 배운다.
 
-!!! warning "Clarification on Masked LM vs. Causal LM"
-    GPT models use **causal (left-to-right) language modeling**, not masked language modeling (MLM). MLM, where random tokens are masked and predicted from bidirectional context, is the approach used by BERT-family models. The GPT pre-training objective always predicts the *next* token conditioned on all *preceding* tokens. This distinction is important because the causal structure is what enables autoregressive generation at inference time.
+!!! warning "가린 말 모델과 인과 말 모델의 구별"
+    GPT 모델은 가린 말 모델링(MLM)이 아니라 **인과(왼쪽에서 오른쪽) 말 나타내기**를 쓴다. 토막을 아무렇게나 가리고 양쪽 맥락에서 어림하는 MLM은 BERT 갈래 모델이 쓰는 방식이다. GPT의 미리 익히기 목표는 늘 *앞선* 토막 모두를 조건으로 *다음* 토막을 어림한다. 이 구별이 중요한 까닭은 미룸 때 자기되돌리기로 만들어 낼 수 있게 하는 것이 바로 이 인과 짜임이기 때문이다.
 
-### Training Data
+### 익히기 자료
 
-GPT models are pre-trained on massive, diverse text corpora. While exact dataset compositions vary by model version, typical sources include:
+GPT 모델은 크고 다양한 글 뭉치로 미리 익힌다. 정확한 자료 묶음의 구성은 모델 판마다 다르지만 흔한 출처는 다음과 같다:
 
-- **Web crawl data** (filtered Common Crawl) — the largest component by volume
-- **Books** (fiction and non-fiction corpora)
-- **Wikipedia** and other reference sources
-- **Code repositories** (especially for later models)
-- **Academic papers and technical documentation**
+- **누리 훑기 자료**(걸러 낸 Common Crawl) — 양으로 가장 큰 몫
+- **책**(소설과 비소설 뭉치)
+- **위키백과**와 그 밖의 참고 출처
+- **부호 곳간**(특히 나중 모델에서)
+- **학술 논문과 기술 문서**
 
-Data quality is crucial. Raw web data contains noise, duplication, and harmful content, so extensive preprocessing is applied: deduplication (both exact and fuzzy), quality filtering (using classifier scores trained on high-quality reference text), and content filtering to remove toxic or personally identifiable information.
+자료의 품질이 결정적이다. 날 누리 자료에는 잡음과 겹침과 해로운 내용이 있으므로 미리 다듬기를 널리 한다. 곧 겹침 없애기(딱 맞는 것과 어림잡아 비슷한 것 모두), 품질 거르기(품질 좋은 참고 글로 익힌 가르개 점수를 써서), 독하거나 개인을 알아볼 수 있는 앎을 없애는 내용 거르기이다.
 
-### Optimization
+### 가장 좋게 하기
 
-Pre-training uses the **AdamW** optimizer (Loshchilov & Hutter, 2019) with the following typical hyperparameter ranges:
+미리 익히기는 **AdamW** 가장 좋게 하개(Loshchilov & Hutter, 2019)를 쓰며 웃매개변수의 흔한 범위는 다음과 같다:
 
 $$
-
 \theta_{t+1} = \theta_t - \eta_t \left( \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon} + \lambda \, \theta_t \right)
-
 $$
 
 where $\hat{m}_t$ and $\hat{v}_t$ are the bias-corrected first and second moment estimates, $\eta_t$ is the learning rate at step $t$ (following a cosine or linear warmup-then-decay schedule), and $\lambda$ is the weight decay coefficient.
 
-Key training details for large GPT models:
+큰 GPT 모델의 핵심 익히기 세부:
 
-- **Batch size:** Gradually increased during training (e.g., from 32K to 3.2M tokens per batch for GPT-3)
-- **Learning rate:** Warmup over the first ~375M tokens, then cosine decay
-- **Context length:** 2,048 tokens (GPT-3) or longer for later models
-- **Mixed precision:** FP16/BF16 training with loss scaling for numerical stability
-- **Distributed training:** Model parallelism (tensor + pipeline) across hundreds or thousands of GPUs
+- **묶음 크기:** 익히는 동안 차츰 늘린다(예컨대 GPT-3는 묶음마다 토막 3만 2천에서 320만으로)
+- **배움 빠르기:** 첫 3억 7500만 토막쯤 동안 몸풀기를 한 뒤 코사인으로 줄인다
+- **맥락 길이:** 토막 2,048개(GPT-3), 나중 모델은 더 길다
+- **섞인 정밀도:** 수치 안정을 위해 손실 잣수 맞추기를 곁들인 FP16/BF16 익히기
+- **나눠 익히기:** 수백에서 수천 GPU에 걸친 모델 나란히 하기(텐서 + 물길)
 
-!!! info "Compute Scale"
-    GPT-3 (175B parameters) required approximately 3,640 petaflop/s-days of compute. At current hardware prices, this represents millions of dollars in training cost — a key reason why only a small number of organizations can train frontier language models from scratch. See [Section 15.2: Scaling Laws](../scaling/scaling_overview.md) for the compute-optimal training analysis.
+!!! info "셈의 규모"
+    GPT-3(매개변수 1750억)는 셈이 약 3,640 페타플롭/초·일 들었다. 지금 하드웨어 값으로 치면 익히기 값이 수백만 달러에 이르며, 이것이 몇몇 조직만 앞선 말 모델을 맨바닥에서 익힐 수 있는 핵심 까닭이다. 셈에 가장 알맞은 익히기 분석은 [15.2절: 잣수 맞추기 법칙](../scaling/scaling_overview.md)을 보라.
 
-## Phase 2: Alignment
+## 2마디: 결 맞추기
 
-Pre-training produces a model that is capable of generating fluent text but is not inherently aligned with human preferences for helpfulness, safety, and instruction-following. The alignment phase addresses this through three sequential steps.
+미리 익히기는 매끄러운 글을 만들어 낼 수 있으나 도움됨, 안전함, 시킴말 따르기에 대한 사람의 선호와 저절로 결이 맞지는 않는 모델을 낳는다. 결 맞추기 마디는 이를 차례차례 세 걸음으로 다룬다.
 
-### Step 1: Supervised Fine-Tuning (SFT)
+### 1걸음: 이끌린 곱게 다듬기(SFT)
 
-Human annotators write high-quality responses to a diverse set of prompts, creating a dataset of $(x, y)$ pairs where $x$ is a prompt and $y$ is the desired response. The pre-trained model is fine-tuned on this demonstration data using the same CLM objective:
+사람 붙임말꾼이 여러 시킴말에 품질 좋은 응답을 써서 $(x, y)$ 짝의 자료 묶음을 만든다. 여기서 $x$은 시킴말이고 $y$은 바라는 응답이다. 미리 익힌 모델을 이 본보기 자료로 같은 인과 말 모델 목표를 써서 곱게 다듬는다:
 
 $$
-
 \mathcal{L}_{\text{SFT}}(\theta) = -\mathbb{E}_{(x, y) \sim \mathcal{D}_{\text{demo}}} \left[ \sum_{\ell=1}^{|y|} \log p_\theta(y_\ell \mid x, y_{<\ell}) \right]
-
 $$
 
 The SFT stage typically uses a small learning rate (e.g., $10^{-5}$) and trains for only a few epochs to avoid overfitting to the relatively small demonstration dataset.
 
-### Step 2: Reward Model (RM) Training
+### 2걸음: 갚음 모델(RM) 익히기
 
 A separate model $R_\phi(x, y)$ is trained to predict human preferences over responses. Human annotators are shown a prompt $x$ and several candidate responses $y_1, \ldots, y_K$ generated by the SFT model, then asked to rank them by quality.
 
-These rankings are converted to pairwise comparisons and used to train the reward model via the **Bradley-Terry** preference model:
+이 순위를 둘씩 견줌으로 바꾸어 **브래들리-테리** 선호 모델로 갚음 모델을 익히는 데 쓴다:
 
 $$
-
 \mathcal{L}_{\text{RM}}(\phi) = -\mathbb{E}_{(x, y_w, y_l) \sim \mathcal{D}_{\text{rank}}} \Big[ \log \sigma\!\big(R_\phi(x, y_w) - R_\phi(x, y_l)\big) \Big]
-
 $$
 
 where $(y_w, y_l)$ is a (preferred, dispreferred) response pair and $\sigma$ is the sigmoid function. The reward model is typically initialized from the SFT model (with the language modeling head replaced by a scalar output head) to leverage the learned representations.
 
-!!! note "Why Pairwise Comparisons?"
-    Absolute quality ratings are noisy and inconsistent across annotators. Pairwise comparisons ("Is response A better than B?") are more reliable and produce more consistent reward signals. The Bradley-Terry model provides a principled way to aggregate pairwise comparisons into a scalar reward function.
+!!! note "왜 둘씩 견주는가?"
+    절대 품질 점수는 잡음이 많고 붙임말꾼마다 어긋난다. 둘씩 견줌("응답 A가 B보다 나은가?")은 더 믿을 만하고 더 한결같은 갚음 신호를 낸다. 브래들리-테리 모델은 둘씩 견줌을 하나의 갚음 함수로 모으는 원칙 있는 길을 준다.
 
-### Step 3: Reinforcement Learning from Human Feedback (RLHF)
+### 3걸음: 사람 되먹임에서 배우는 북돋움 배움(RLHF)
 
-The SFT model is further optimized to maximize the learned reward using **Proximal Policy Optimization (PPO)** (Schulman et al., 2017). The optimization objective is:
+SFT 모델을 **가까운 방침 가장 좋게 하기(PPO)**(Schulman et al., 2017)로 배운 갚음을 가장 크게 하도록 더 가장 좋게 한다. 목표는 다음과 같다:
 
 $$
-
 \max_\theta \; \mathbb{E}_{x \sim \mathcal{D},\; y \sim \pi_\theta(\cdot \mid x)} \Big[ R_\phi(x, y) \Big] - \beta \, \mathbb{E}_{x \sim \mathcal{D}} \Big[ D_{\text{KL}}\!\big(\pi_\theta(\cdot \mid x) \;\|\; \pi_{\text{SFT}}(\cdot \mid x)\big) \Big]
-
 $$
 
 The **KL divergence penalty** (weighted by $\beta > 0$) is critical: it prevents the policy from diverging too far from the SFT model, which would lead to **reward hacking** — generating outputs that achieve high reward scores without genuinely useful content.
 
-The PPO update uses a clipped surrogate objective to ensure stable policy updates:
+PPO 새로 고침은 방침이 안정되게 바뀌도록 잘라 낸 대리 목표를 쓴다:
 
 $$
-
 \mathcal{L}_{\text{PPO}}(\theta) = \mathbb{E}_t \Big[ \min\!\big(r_t(\theta) \hat{A}_t, \; \text{clip}(r_t(\theta), 1-\epsilon, 1+\epsilon) \hat{A}_t\big) \Big]
-
 $$
 
 where $r_t(\theta) = \pi_\theta(a_t \mid s_t) / \pi_{\theta_{\text{old}}}(a_t \mid s_t)$ is the probability ratio and $\hat{A}_t$ is the estimated advantage. In the language model setting, "actions" are token selections and "states" are the generated token prefixes.
 
-!!! tip "Practical Consideration"
-    The RLHF phase is computationally expensive, requiring simultaneous inference from the policy model, the reference (SFT) model, the reward model, and the value model (for advantage estimation). This effectively quadruples the memory requirements compared to standard fine-tuning.
+!!! tip "실전에서 헤아릴 점"
+    RLHF 마디는 셈이 비싸다. 방침 모델, 참고(SFT) 모델, 갚음 모델, 값 모델(이득 어림을 위해)에서 한꺼번에 미뤄야 하기 때문이다. 이는 여느 곱게 다듬기에 견주어 기억 공간 요건을 사실상 네 곱으로 만든다.
 
-## Bias Mitigation During Training
+## 익히는 동안의 치우침 누그러뜨리기
 
-Bias mitigation is an ongoing concern throughout both pre-training and alignment:
+치우침 누그러뜨리기는 미리 익히기와 결 맞추기 내내 이어지는 걱정거리이다:
 
-**Data-level interventions** include filtering training data to remove or downweight content containing harmful stereotypes, slurs, or personally identifiable information. Deduplication also reduces the amplification of biases present in overrepresented sources.
+**자료 수준의 손질**에는 해로운 고정관념, 욕설, 개인을 알아볼 수 있는 앎이 든 내용을 없애거나 무게를 낮추도록 익히기 자료를 거르는 일이 든다. 겹침 없애기도 지나치게 많이 나오는 출처에 있는 치우침이 커지는 것을 줄여 준다.
 
-**Model-level interventions** during RLHF involve training the reward model on comparison data that specifically penalizes biased or stereotypical outputs. Annotator guidelines explicitly instruct raters to flag and downrank responses exhibiting gender, racial, or cultural bias.
+RLHF 동안의 **모델 수준의 손질**은 치우치거나 고정관념에 찬 내놓기에 딱 집어 벌을 주는 견줌 자료로 갚음 모델을 익히는 것이다. 붙임말 지침은 성별, 인종, 문화의 치우침을 드러내는 응답에 표시하고 순위를 낮추라고 또렷이 이른다.
 
-**Post-training interventions** include rule-based output filtering, safety classifiers that flag potentially harmful responses before they reach the user, and red-teaming exercises where adversarial testers deliberately probe the model for failure modes.
+**익힌 뒤의 손질**에는 규칙 바탕 내놓기 거르기, 해로울 수 있는 응답이 쓰는 이에게 닿기 전에 표시하는 안전 가르개, 겨루는 시험꾼이 일부러 모델의 무너지는 방식을 캐는 붉은 편 연습이 든다.
 
-!!! note "Cross-Reference"
-    For a comprehensive treatment of bias and fairness in machine learning, including formal definitions of fairness criteria (demographic parity, equalized odds, calibration) and debiasing techniques, see [Chapter 30: Bias and Fairness](../../ch30/index.md).
+!!! note "엇갈린 참고"
+    공정 잣대(인구 균등, 고른 승산, 눈금 맞음)의 엄밀한 정의와 치우침 없애기 재주를 아우른 기계 배움의 치우침과 공정에 대한 두루 다룸은 [30장: 치우침과 공정](../../ch30/index.md)을 보라.
 
+## 연습문제
 
+**연습문제 1.**
+큰 말 모델 결 맞추기 물길의 세 단계(미리 익히기, 이끌린 곱게 다듬기, RLHF)를 적어라. 각 단계는 무엇을 보태는가?
+
+??? success "연습문제 1 풀이"
+    (1) **미리 익히기**: 큰 규모의 이끌리지 않은 글로 익혀 말의 짜임, 세상 앎, 따져 봄의 결을 배운다. 글을 이어 쓸 수는 있으나 시킴말을 따르지는 않는 바탕 모델을 낳는다. (2) **이끌린 곱게 다듬기(SFT)**: 골라 뽑은 (시킴말, 응답) 짝으로 익혀 시킴말을 따르고 응답을 알맞게 꾸미고 해로운 요청을 물리치도록 가르친다. (3) **RLHF**(사람 되먹임에서 배우는 북돋움 배움): 사람의 선호 순위로 갚음 모델을 익힌 뒤 PPO나 DPO로 사람이 좋아하는 응답을 내놓도록 큰 말 모델을 가장 좋게 한다. 각 단계는 앞 단계 위에 쌓이며, SFT는 꼴을, RLHF는 품질과 안전을 가르친다.
+
+---
+
+**연습문제 2.**
+RLHF의 갚음 모델을 설명하라. 어떻게 익히며 한계는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    The reward model is trained on pairs of responses $(y_w, y_l)$ to the same prompt, where $y_w$ is preferred by human annotators. It learns a scalar reward function $r(x, y)$ by minimizing the Bradley-Terry loss: $\mathcal{L} = -\log \sigma(r(x, y_w) - r(x, y_l))$. **Limitations**: (1) reward hacking -- the policy learns to exploit reward model weaknesses rather than genuinely improving, (2) reward model quality is bounded by annotator agreement and consistency, (3) scalar reward cannot capture multi-dimensional quality (helpfulness, harmlessness, honesty), (4) distribution shift as the policy moves away from the training distribution.
+
+---
+
+**연습문제 3.**
+곧바른 선호 가장 좋게 하기(DPO)란 무엇이며 PPO 바탕 RLHF와 어떻게 다른가?
+
+??? success "연습문제 3 풀이"
+    DPO reformulates the RLHF objective to directly optimize the policy without an explicit reward model. It derives a closed-form mapping between the optimal policy and the reward function, yielding a simple classification loss on preference pairs: $\mathcal{L}_{\text{DPO}} = -\log \sigma\left(\beta \log \frac{\pi_\theta(y_w|x)}{\pi_{\text{ref}}(y_w|x)} - \beta \log \frac{\pi_\theta(y_l|x)}{\pi_{\text{ref}}(y_l|x)}\right)$. DPO is simpler (no reward model training, no RL optimization loop), more stable, and cheaper. However, PPO can be more flexible and may achieve better performance when the reward model is well-calibrated.
+
+---
+
+**연습문제 4.**
+헌법 인공지능이란 무엇이며 결 맞추기와 어떤 관계인가?
+
+??? success "연습문제 4 풀이"
+    헌법 인공지능(Anthropic, 2022)은 사람 되먹임을 많이 쓰지 않고 원칙 묶음("헌법")으로 모델의 몸가짐을 이끈다. 과정은 이렇다: (1) 해로운 시킴말에 응답을 만들고, (2) 모델에게 헌법에 비추어 제 응답을 따지고 고치게 하고, (3) 고친 응답으로 곱게 다듬는다(RLAIF, 곧 인공지능 되먹임에서 배우는 북돋움 배움). 이는 안전 익히기에서 사람 붙임말꾼에 기대는 것을 줄이고 규모를 키우기 쉬우며 결 맞추기 잣대를 또렷하고 살펴볼 수 있게 만든다. RLHF가 두루 쓰이는 품질 선호를 다루는 동안 헌법 인공지능은 안전 걱정을 짜임새 있게 다루어 서로 채워 준다.

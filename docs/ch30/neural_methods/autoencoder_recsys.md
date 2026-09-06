@@ -1,342 +1,370 @@
-# Autoencoders for Recommender Systems
+# 추천 시스템을 위한 스스로 담개
+## 들어가며
 
+스스로 담개는 숨은 쓰는 이와 물건 나타냄을 스승 없이 배워 추천에 우아한 신경망 얼개를 준다. 쓰는 이와 물건의 주고받음을 드러나게 나타내는 함께 거르기와 달리, 스스로 담개는 쓰는 이의 취향 벡터(보기로 물건별 매김 됨됨이)를 되지으며 눌러 담은 나타냄을 배운다. 병목 층이 취향을 이끄는 숨은 인수를 자연스럽게 담아, 추천에 필요한 얼개를 지키면서 차원을 줄인다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+변분 스스로 담개는 기본 스스로 담개에 확률 얼개를 얹어 넓힌 것이다. 점 어림 대신 숨은 인수의 분포를 배워 알 수 없음을 수량으로 나타내고, 원칙 있게 추천을 뽑으며, 널리 쓰임을 좋게 한다. 금융 추천 시스템에서 변분 스스로 담개의 알 수 없음 어림은 꾸러미 위험 재기와 규제에 맞는 믿음 정도를 붙인 추천을 가능하게 한다.
 
-## Introduction
+이 마디는 추천을 위한 스스로 담개의 길을 세우고 얼개 변형을 살피며 금융 쓰임새를 보인다.
 
-Autoencoders provide an elegant neural architecture for recommendation through unsupervised learning of latent user/item representations. Unlike collaborative filtering that explicitly models user-item interactions, autoencoders learn compressed representations by reconstructing user preference vectors (e.g., rating profiles across items). The bottleneck layer naturally captures latent factors driving preferences, enabling dimensionality reduction while preserving recommendation-relevant structure.
+## 핵심 개념
 
-Variational Autoencoders (VAEs) extend basic autoencoders by imposing probabilistic structure—learning distributions over latent factors rather than point estimates—enabling uncertainty quantification, principled recommendation sampling, and improved generalization. In financial recommendation systems, VAE uncertainty estimates enable portfolio risk assessment and regulatory-compliant confidence-qualified recommendations.
+### 스스로 담개 추천 틀
+- **들임**: 쓰는 이의 물건 매김 됨됨이(숨은 것이든 드러난 것이든)
+- **담개**: 매김을 숨은 쓰는 이 인수로 옮긴다
+- **병목**: 쓰는 이 취향을 눌러 담은 나타냄
+- **풀개**: 인수에서 헤아린 매김을 되짓는다
+- **손실**: 본 매김에 대한 되짓기 어긋남
 
-This section develops autoencoder approaches for recommendations, explores architectural variants, and demonstrates financial applications.
+### 변분 스스로 담개
+- **확률 숨은 값**: 점 어림 대신 숨은 분포 q(z|x)
+- **KL 다잡기**: 사전 분포 p(z)이 얌전한 숨은 자리를 북돋운다
+- **뽑기**: 배운 분포에서 뽑아 추천을 만든다
+- **알 수 없음**: 사후 흩어짐이 취향의 알 수 없음을 수량으로 나타낸다
 
-## Key Concepts
+## 수학적 틀
 
-### Autoencoder Recommendation Framework
-- **Input**: User's item rating profile (implicit or explicit)
-- **Encoder**: Maps ratings to latent user factors
-- **Bottleneck**: Compressed representation of user preferences
-- **Decoder**: Reconstructs predicted ratings from factors
-- **Loss**: Reconstruction error on observed ratings
+### 스스로 담개의 되짓기
 
-### Variational Autoencoders (VAE)
-- **Probabilistic Latent**: Latent distribution q(z|x) instead of point estimates
-- **KL Regularization**: Prior p(z) encourages well-behaved latent space
-- **Sampling**: Generate recommendations by sampling from learned distribution
-- **Uncertainty**: Posterior variance quantifies preference uncertainty
+매김 됨됨이가 r_u ∈ ℝ^n인 쓰는 이 u에 대해:
 
-## Mathematical Framework
-
-### Autoencoder Reconstruction
-
-For user u with rating profile r_u ∈ ℝ^n:
-
-**Encoder**:
+**담개**:
 
 $$z_u = \text{Encoder}(r_u) \in \mathbb{R}^k, \quad k \ll n$$
 
-**Decoder**:
+**풀개**:
 
 $$\hat{r}_u = \text{Decoder}(z_u) \in \mathbb{R}^n$$
 
-**Loss**:
+**손실**:
 
 $$\mathcal{L}_{\text{AE}} = \sum_u \|r_u - \hat{r}_u\|^2$$
 
-### Variational Autoencoder
+### 변분 스스로 담개
 
-Probabilistic model with latent distribution:
+숨은 분포를 가진 확률 모형:
 
-**Encoder (Variational Inference)**:
+**담개(변분 미루어 알기)**:
 
 $$q_\phi(z_u | r_u) = \mathcal{N}(\mu_\phi(r_u), \sigma_\phi^2(r_u) I)$$
 
-**Decoder (Generative Model)**:
+**풀개(짓는 모형)**:
 
 $$p_\theta(r_u | z_u)$$
 
-**Loss (ELBO)**:
+**손실(증거 아래 가둠)**:
 
 $$\mathcal{L}_{\text{VAE}} = -\mathbb{E}_{q_\phi}[\log p_\theta(r_u | z_u)] + \text{KL}(q_\phi(z_u | r_u) \| p(z_u))$$
 
-First term: reconstruction; second term: regularization toward prior N(0,I).
+첫 항: 되짓기. 둘째 항: 사전 분포 N(0,I) 쪽으로의 다잡기.
 
-### Conditional Generation
+### 조건부 낳기
 
-Given latent z, probability of rating item i:
+숨은 값 z이 주어질 때 물건 i을 매길 확률:
 
 $$p(r_{ui} | z_u) = \text{Softmax}_i(\text{Decoder}(z_u))$$
 
-For explicit ratings, typical choice: categorical distribution over {1, 2, 3, 4, 5}.
+드러난 매김에서는 보통 {1, 2, 3, 4, 5}에 대한 갈래 분포를 고른다.
 
-## Training Procedures
+## 학습 절차
 
-### Implicit Feedback Autoencoders
+### 숨은 되먹임 스스로 담개
 
-For binary feedback (click/no-click):
+두 값 되먹임(누름/안 누름)에 대해:
 
 $$r_{ui} \in \{0, 1\}, \quad p(r_{ui} = 1 | z_u) = \sigma(\text{Decoder}_i(z_u))$$
 
-**Loss**: Binary cross-entropy
+**손실**: 두 값 교차 엔트로피
 
 $$\mathcal{L} = -\sum_{(u,i) \in E} \log(\sigma(\hat{r}_{ui})) - \sum_{(u,i) \notin E} \log(1 - \sigma(\hat{r}_{ui}))$$
 
-where E is observed interaction set.
+여기서 E은 본 주고받음의 모임이다.
 
-### Weighted Reconstruction
+### 무게 매긴 되짓기
 
-Down-weight negative samples (missing interactions harder to interpret):
+음의 표본의 무게를 낮춘다(없는 주고받음은 풀이하기 어렵다):
 
 $$\mathcal{L} = \sum_{(u,i) \in E} \log(\sigma(\hat{r}_{ui})) + w \sum_{(u,i) \notin E} \log(1 - \sigma(\hat{r}_{ui}))$$
 
-Typical w = 0.01 to 0.1 (rare classes weighted less).
+보통 w = 0.01~0.1이다(드문 갈래에 무게를 덜 준다).
 
-### Mini-Batch Training
+### 작은 묶음 익히기
 
-Sample users and items efficiently:
+쓰는 이와 물건을 효율 좋게 뽑는다:
 
-1. Sample mini-batch of users
-2. For each user, sample k positive items and k negative items
-3. Compute loss on batch
-4. Backpropagate, update parameters
+1. 쓰는 이의 작은 묶음을 뽑는다
+2. 쓰는 이마다 양의 물건 k개와 음의 물건 k개를 뽑는다
+3. 묶음에서 손실을 셈한다
+4. 거꿀 퍼뜨리고 잡을 고친다
 
-## Autoencoder Architectures for Recommendation
+## 추천을 위한 스스로 담개 얼개
 
-### Dense Bottleneck VAE
+### 빽빽한 병목 변분 스스로 담개
 
-Standard fully-connected VAE:
+여느 온전히 이어진 변분 스스로 담개:
 
 ```
-Input (1000): Full item rating vector
-Hidden 1 (500): ReLU
-Hidden 2 (200): ReLU
+들임(1000): 온 물건 매김 벡터
+숨은 층 1(500): ReLU
+숨은 층 2(200): ReLU
 Bottleneck (20): Latent (μ, σ)
-Hidden 2 (200): ReLU
-Hidden 1 (500): ReLU
+숨은 층 2(200): ReLU
+숨은 층 1(500): ReLU
 Output (1000): Sigmoid (predicted ratings)
 ```
 
-Simple, interpretable, suitable for ~1000 items.
+단순하고 풀이할 수 있으며 물건 1000개쯤에 알맞다.
 
-### Convolutional Bottleneck
+### 겹말기 병목
 
-For implicit feedback viewed as image, use CNN:
+숨은 되먹임을 그림으로 볼 때는 겹말기 신경망을 쓴다:
 
 ```
-Input: Item rating heatmap
-Conv1: 32 filters, 3×3 kernel
-Conv2: 64 filters, 3×3 kernel
-Flatten → Bottleneck (k dims) → Upsample
+들임: 물건 매김 열 지도
+겹말기 1: 거르개 32개, 3×3 알맹이
+겹말기 2: 거르개 64개, 3×3 알맹이
+납작하게 → 병목(k차원) → 키우기
 ...
-Output: Rating heatmap
+내놓기: 매김 열 지도
 ```
 
-Captures local item correlation structure.
+그 자리 물건 얽힘 얼개를 담는다.
 
-### Recurrent Bottleneck
+### 되돌이 병목
 
-For sequential recommendations (time-aware):
+차례 추천(때를 살핌)에 대해:
 
 ```
 Input sequence: [item_1, item_2, ..., item_T]
-LSTM encode: Forward + backward passes
+장단기 기억망 담기: 앞으로 가기 + 거꿀 가기
 Bottleneck: LSTM hidden state (k dims)
-LSTM decode: Reconstruct sequence
-Output: Predicted next item
+장단기 기억망 풀기: 차례 되짓기
+내놓기: 헤아린 다음 물건
 ```
 
-Captures temporal dynamics of preferences.
+취향의 때 흐름을 담는다.
 
-## Recommendation via Autoencoder
+## 스스로 담개로 하는 추천
 
-### Rating Prediction
+### 매김 헤아리기
 
-After training, predict ratings for unobserved items:
+익힌 뒤 보지 않은 물건의 매김을 헤아린다:
 
 $$\hat{r}_{ui} = \text{Decoder}_i(\text{Encoder}(r_u))$$
 
-Recommend items with highest predicted ratings.
+헤아린 매김이 가장 높은 물건을 권한다.
 
-### Sampling-Based Recommendation
+### 뽑기 바탕 추천
 
-VAE enables sampling alternative preference profiles:
+변분 스스로 담개는 다른 취향 됨됨이를 뽑을 수 있게 한다:
 
-1. Encode user: $\mu_u, \sigma_u^2 = \text{Encoder}(r_u)$
-2. Sample latent: $z \sim \mathcal{N}(\mu_u, \sigma_u^2)$
-3. Decode: $\hat{r} = \text{Decoder}(z)$
-4. Recommend high-rated items
+1. 쓰는 이를 담는다: $\mu_u, \sigma_u^2 = \text{Encoder}(r_u)$
+2. 숨은 값을 뽑는다: $z \sim \mathcal{N}(\mu_u, \sigma_u^2)$
+3. 푼다: $\hat{r} = \text{Decoder}(z)$
+4. 매김이 높은 물건을 권한다
 
-Multiple samples reveal preference uncertainty.
+여러 번 뽑으면 취향의 알 수 없음이 드러난다.
 
-### Nearest Neighbor in Latent Space
+### 숨은 자리의 가장 가까운 이웃
 
-Recommend items liked by latent-similar users:
+숨은 자리에서 닮은 쓰는 이가 좋아한 물건을 권한다:
 
-1. Encode all users: $z_u = \text{Encoder}(r_u)$ for all u
-2. Find K nearest neighbors to user u in latent space
-3. Recommend items those neighbors like
+1. 모든 쓰는 이를 담는다: 모든 u에 대해 $z_u = \text{Encoder}(r_u)$
+2. 숨은 자리에서 쓰는 이 u과 가장 가까운 이웃 K명을 찾는다
+3. 그 이웃이 좋아하는 물건을 권한다
 
-Implicit collaborative filtering via learned latent representations.
+배운 숨은 나타냄으로 하는 숨은 함께 거르기.
 
-## Variational Autoencoder Applications
+## 변분 스스로 담개의 쓰임새
 
-### Uncertainty Quantification
+### 알 수 없음 수량으로 나타내기
 
-Posterior variance on latent factors quantifies preference uncertainty:
+숨은 인수의 사후 흩어짐이 취향의 알 수 없음을 수량으로 나타낸다:
 
 $$\text{Uncertainty}(u, i) = \text{Var}_{q(z|r_u)}[\text{Decoder}_i(z)]$$
 
-High uncertainty indicates low confidence in recommendation.
+알 수 없음이 크면 추천에 대한 믿음이 낮다는 뜻이다.
 
-### Risk-Aware Portfolio Recommendation
+### 위험을 살피는 꾸러미 추천
 
-Use VAE uncertainty for portfolio recommendations:
+꾸러미 추천에 변분 스스로 담개의 알 수 없음을 쓴다:
 
 $$\text{Score}(u, p) = \text{Expected Return} - \lambda \times \text{Uncertainty}(u, p)$$
 
-Trade off expected return against preference uncertainty.
+기대 벌이와 취향의 알 수 없음을 맞바꾼다.
 
-### Confidence-Qualified Recommendations
+### 믿음 정도를 붙인 추천
 
-Report recommendations with confidence intervals:
+믿음 구간과 함께 추천을 알린다:
 
 ```
-Recommended: Tech ETF
-Expected Rating: 4.2/5
+권함: 기술 상장 지수 펀드
+기대 매김: 4.2/5
 Confidence Interval: [3.1, 5.0]  (high uncertainty)
 
-Recommended: Dividend ETF
-Expected Rating: 4.1/5
+권함: 배당 상장 지수 펀드
+기대 매김: 4.1/5
 Confidence Interval: [3.9, 4.3]  (low uncertainty)
 ```
 
-### Anomaly Detection
+### 별난 것 찾기
 
-Reconstruction error indicates unusual preference profiles:
+되짓기 어긋남이 별난 취향 됨됨이를 가리킨다:
 
 $$\text{Anomaly}_u = \|r_u - \text{Decoder}(\text{Encoder}(r_u))\|$$
 
-High error suggests outlier preferences or data quality issues.
+어긋남이 크면 튀는 취향이거나 자료 품질에 말썽이 있다는 뜻이다.
 
-## Comparison with Alternatives
+## 다른 길과 견주기
 
-| Method | Accuracy | Interpretability | Speed | Scalability |
+| 방법 | 맞음 | 풀이 가능함 | 빠르기 | 커질 수 있음 |
 |--------|----------|-----------------|-------|------------|
-| Matrix Factorization | 0.60 | Medium | High | Very High |
-| VAE | 0.65 | Low | Medium | High |
-| Attention | 0.68 | Medium | Low | Medium |
-| Hybrid (VAE + CF) | 0.70 | Medium | Medium | High |
+| 행렬 인수 분해 | 0.60 | 보통 | 높음 | 매우 높음 |
+| 변분 스스로 담개 | 0.65 | 낮음 | 보통 | 높음 |
+| 눈길 | 0.68 | 보통 | 낮음 | 보통 |
+| 섞음(변분 스스로 담개 + 함께 거르기) | 0.70 | 보통 | 보통 | 높음 |
 
-Autoencoders balance accuracy and interpretability; VAE uncertainty valuable for risk-aware recommendations.
+스스로 담개는 맞음과 풀이 가능함을 저울질한다. 변분 스스로 담개의 알 수 없음은 위험을 살피는 추천에 값지다.
 
-## Financial Application: Mutual Fund Recommendation
+## 금융 쓰임새: 펀드 추천
 
-### Problem
+### 문제
 
-Recommend mutual funds to investors based on past fund holdings.
+지난 펀드 보유를 바탕으로 투자자에게 펀드를 권한다.
 
-### Solution
+### 풀이
 
-**VAE Autoencoder**:
+**변분 스스로 담개**:
 
-1. **Input**: Vector of 500 mutual funds, rating = # shares held (normalized)
-2. **Encoder**: 3 hidden layers (500→200→50→20 latent)
-3. **Bottleneck**: 20-dimensional latent factor
-4. **Decoder**: 3 hidden layers reconstructing fund ratings
-5. **Loss**: Weighted reconstruction (0.1 weight on unobserved funds)
+1. **들임**: 펀드 500개의 벡터, 매김 = 가진 좌수(고르게 맞춤)
+2. **담개**: 숨은 층 3개(500→200→50→숨은 값 20)
+3. **병목**: 20차원 숨은 인수
+4. **풀개**: 펀드 매김을 되짓는 숨은 층 3개
+5. **손실**: 무게 매긴 되짓기(보지 않은 펀드에 무게 0.1)
 
-### Training
+### 학습
 
-- Data: 100,000 investor portfolios
-- Training: 1 epoch = ~10 minutes on GPU
-- Validation: 20,000 hold-out portfolios
+- 자료: 투자자 꾸러미 10만 개
+- 익히기: GPU에서 1판에 10분쯤
+- 살피기: 남겨 둔 꾸러미 2만 개
 
-### Recommendation Generation
+### 추천 만들기
 
-For investor u:
+투자자 u에 대해:
 
-1. Encode portfolio: $\mu_u, \sigma_u^2 = \text{Encoder}(r_u)$
-2. Predict unobserved funds: $\hat{r}_{u,\text{unobserved}} = \text{Decoder}(\mu_u)$
-3. Rank by predicted rating
-4. Recommend top-k with highest ratings
+1. 꾸러미를 담는다: $\mu_u, \sigma_u^2 = \text{Encoder}(r_u)$
+2. 보지 않은 펀드를 헤아린다: $\hat{r}_{u,\text{unobserved}} = \text{Decoder}(\mu_u)$
+3. 헤아린 매김으로 줄 세운다
+4. 매김이 가장 높은 위 k개를 권한다
 
-### Results
+### 결과
 
-- NDCG@10: 0.72 (vs 0.65 baseline matrix factorization)
-- Correlation with acceptance: 0.68 (high confidence in predictions)
-- Execution time: <100ms per recommendation (real-time capable)
+- NDCG@10: 0.72(밑그림 행렬 인수 분해 0.65)
+- 받아들임과의 얽힘: 0.68(헤아림에 대한 믿음이 높다)
+- 돌림 때: 추천마다 100밀리초 미만(실시간 가능)
 
-### Confidence Quantification
+### 믿음 정도 수량으로 나타내기
 
-Use VAE variance for confidence:
+믿음에 변분 스스로 담개의 흩어짐을 쓴다:
 
 ```python
-# High confidence (low variance)
-Low variance latent → Low reconstruction variance → 
-High confidence recommendations
+# 믿음 높음(흩어짐 작음)
+숨은 값의 흩어짐이 작음 → 되짓기 흩어짐이 작음 →
+믿음이 높은 추천
 
-# Low confidence (high variance)
-High variance latent → High reconstruction variance → 
-Low confidence recommendations
+# 믿음 낮음(흩어짐 큼)
+숨은 값의 흩어짐이 큼 → 되짓기 흩어짐이 큼 →
+믿음이 낮은 추천
 ```
 
-Report uncertainty to users; caveat low-confidence recommendations.
+알 수 없음을 쓰는 이에게 알리고 믿음이 낮은 추천에는 단서를 붙인다.
 
-## Implementation Considerations
+## 구현에서 살필 점
 
-### Handling Sparse Data
+### 성긴 자료 다루기
 
-User-item matrices often sparse (user rated only tiny fraction of items).
+쓰는 이-물건 행렬은 대개 성기다(쓰는 이가 물건의 아주 일부만 매긴다).
 
-Approaches:
+길:
 
-1. **Selective Reconstruction**: Only reconstruct observed items + sample negatives
-2. **Confidence Weighting**: Weight observed items higher in loss
-3. **Implicit Feedback**: Treat unobserved as weak negative signal
+1. **가려 되짓기**: 본 물건과 뽑은 음의 표본만 되짓는다
+2. **믿음 무게 주기**: 손실에서 본 물건에 더 큰 무게를 준다
+3. **숨은 되먹임**: 보지 않은 것을 약한 음의 신호로 본다
 
-### Cold Start Handling
+### 차가운 출발 다루기
 
-New users without history: supplement with content features:
+지난 일이 없는 새 쓰는 이: 내용 특징으로 채운다:
 
 $$z_{\text{new}} = \text{Encoder}_{\text{hybrid}}(r_{\text{demographics}})$$
 
-Or use prior: $z_{\text{new}} \sim \mathcal{N}(0, I)$ (sampled from prior).
+또는 사전 분포를 쓴다: $z_{\text{new}} \sim \mathcal{N}(0, I)$(사전 분포에서 뽑음).
 
-### Computational Efficiency
+### 계산 효율
 
-For millions of items, full reconstruction infeasible.
+물건이 수백만 개면 온전한 되짓기는 될 일이 아니다.
 
-Solutions:
+풀이:
 
-1. **Sampling**: Recommend from sample of items, not full catalog
-2. **Hierarchical**: Hierarchy of autoencoders (categories → items)
-3. **Approximate**: Factorization of decoder for fast inference
+1. **뽑기**: 온 목록이 아니라 뽑은 물건에서 권한다
+2. **켜 짓기**: 스스로 담개를 켜로 둔다(갈래 → 물건)
+3. **어림**: 빠른 헤아림을 위해 풀개를 인수 분해한다
 
-## Practical Guidelines
+## 실무 지침
 
-### When to Use Autoencoders
+### 언제 스스로 담개를 쓸까
 
-Good for recommendation when:
-- Implicit feedback primary data source
-- Uncertainty quantification important
-- Interpretability (via latent factors) desired
-- Model size/complexity not bottleneck
+다음일 때 추천에 좋다:
 
-Avoid when:
-- Extreme sparsity (< 0.001% observed)
-- Real-time constraints tight
-- Cold start users dominant
+- 숨은 되먹임이 으뜸 자료일 때
+- 알 수 없음을 수량으로 나타내는 것이 중요할 때
+- (숨은 인수로) 풀이할 수 있기를 바랄 때
+- 모델 크기와 복잡함이 병목이 아닐 때
 
-### Architecture Selection
+다음일 때는 피한다:
 
-- **Small datasets**: Shallow network (1-2 hidden layers)
-- **Medium datasets**: 2-3 hidden layers, bottleneck k=10-50
-- **Large datasets**: Deeper networks, bottleneck k=50-200
+- 지나치게 성길 때(본 것이 0.001% 미만)
+- 실시간 매임이 빡빡할 때
+- 차가운 출발 쓰는 이가 대부분일 때
 
-Monitor validation loss; stop when plateaus.
+### 얼개 고르기
 
-!!! note "Autoencoders for Recommendations"
-    Autoencoders provide flexible neural recommendation framework with built-in uncertainty via VAEs. Particularly suited for financial applications requiring confidence quantification and interpretable latent factors. Main limitation: cold start for new users; mitigate via hybrid approaches combining collaborative and content-based signals.
+- **작은 자료 뭉치**: 얕은 그물(숨은 층 1~2개)
+- **가운데 자료 뭉치**: 숨은 층 2~3개, 병목 k=10~50
+- **큰 자료 뭉치**: 더 깊은 그물, 병목 k=50~200
 
+살피기 손실을 지켜보다가 평평해지면 멈춘다.
+
+!!! note "추천을 위한 스스로 담개"
+    스스로 담개는 변분 판을 통해 알 수 없음까지 갖춘 너그러운 신경망 추천 틀을 준다. 믿음 정도를 수량으로 나타내고 풀이할 수 있는 숨은 인수가 필요한 금융 쓰임새에 특히 알맞다. 주된 한계는 새 쓰는 이의 차가운 출발이다. 함께 거르기와 내용 바탕 신호를 아우른 섞은 길로 누그러뜨린다.
+
+## 연습문제
+
+**연습문제 1.**
+이 길에서 차가운 출발 문제가 새 쓰는 이와 새 물건에 어떻게 다르게 나타나는지 밝혀라. 경우마다 누그러뜨릴 셈속을 하나씩 내놓아라.
+
+??? success "연습문제 1 풀이"
+    새 쓰는 이는 취향을 배울 주고받음 지난 일이 없어 함께 거르기 신호를 쓸 수 없다. 누그러뜨리기: 내용 바탕 특징(인구 특성, 밝힌 취향)으로 쓰는 이 박아 넣기의 첫 값을 잡는다. 새 물건은 아직 주고받은 쓰는 이가 없어 함께 거르기로 매길 수 없다. 누그러뜨리기: 물건 내용 특징(밝힘, 갈래)으로 그 물건을 박아 넣기 자리에서 닮은 물건 곁에 놓는다. 두 셈속 모두 주고받음이 넉넉히 쌓일 때까지 차가운 낱것을 띄워 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 밝힌 잡의 기울기 고침을 이끌어 내어라. 어느 항이 셈하기에 가장 비싼지 가려내고 어림을 내놓아라.
+
+??? success "연습문제 2 풀이"
+    기울기에는 고르게 맞추려 온 물건 목록에 대한 기댓값을 셈하는 일이 든다. 물건 수에 선형으로 늘어나므로 가장 비싼 항이다. 음의 뽑기는 온 목록 대신 음의 물건 가운데 아무 작은 부분 모임만 더해 이를 어림하여, 고침마다 비용을 $O(|\mathcal{I}|)$에서 $O(k)$으로 줄인다. 여기서 $k$은 음의 표본 수(보통 5~20)이다. 중요도 뽑기가 이 어림에 치우치지 않은 어림개를 준다. $\square$
+
+---
+
+**연습문제 3.**
+이 추천 방식이 인기 바탕 밑그림보다 쓰는 이의 눈여겨봄을 높이는지 따질 A/B 시험을 설계하여라. 아무 나누기 단위, 으뜸 잣대, 최소 표본 크기 셈을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    아무 나누기 단위: 쓰는 이(서로 섞이지 않도록 세션이 아님). 으뜸 잣대: 추천의 누름 비율. 밑그림 누름 비율이 5%이고 알아챌 최소 효과가 0.5%포인트(상대 10% 오름)일 때, 뜻 있음 수준 $\alpha = 0.05$과 힘 $1 - \beta = 0.80$에서 무리마다 필요한 표본 크기는 $n = 2(z_{\alpha/2} + z_\beta)^2 \cdot p(1-p) / \delta^2 \approx 15{,}000$명이다. 주마다의 무늬를 담으려 적어도 2주 돌린다. 난간: 벌이와 다양함 잣대를 딸린 결과로 지켜본다. $\square$
+
+---
+
+**연습문제 4.**
+이 추천 방법의 따지기가 오프라인(지난 자료)과 온라인(실제 오감) 자리에서 어떻게 다른지 밝혀라. 오프라인 따지기에서 어떤 치우침이 생길 수 있는가?
+
+??? success "연습문제 4 풀이"
+    오프라인 따지기는 때로 나눈 지난 주고받음을 쓴다(지난 것으로 익히고 앞으로의 것으로 시험). 치우침에는 다음이 있다. (1) 고름 치우침 -- 쓰는 이는 보여 준 물건과만 주고받았으므로 보지 않은 물건이 참으로 음인 것은 아니다. (2) 인기 치우침 -- 인기 물건이 시험 모임을 지배한다. (3) 자리 치우침 -- 위쪽에 놓인 물건이 알맞음과 상관없이 더 눌린다. 온라인 따지기(A/B 시험)는 고름 치우침을 피하지만 비싸고 느리다. 치우치지 않은 오프라인 따지기 방법으로는 보여 줄 확률로 봄에 다시 무게를 주는 거꿀 성향 점수 매기기가 있다. $\square$

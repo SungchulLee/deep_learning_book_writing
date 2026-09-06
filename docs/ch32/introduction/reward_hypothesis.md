@@ -1,162 +1,189 @@
-# 32.1.3 The Reward Hypothesis
+# 32.1.3 보상 가설
+## 진술
 
+**보상 가설**은 힘 북돋우는 배움의 바탕 여김이다:
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Statement
-
-The **reward hypothesis** is a foundational assumption of reinforcement learning:
-
-> *That all of what we mean by goals and purposes can be well thought of as the maximization of the expected value of the cumulative sum of a received scalar signal (called reward).*
+> *우리가 목표와 목적이라 부르는 모든 것은 받은 낱값 신호(보상이라 부른다)의 쌓인 합의 기댓값을 가장 크게 하는 일로 잘 여길 수 있다.*
 >
 > — Sutton & Barto (2018)
 
-This hypothesis asserts that any goal-directed behavior can be captured by a suitably designed reward function. It is both the great strength and a potential limitation of the RL framework.
+이 가설은 목표를 좇는 어떤 움직임도 알맞게 설계한 보상 함수로 담을 수 있다고 말한다. 이는 힘 북돋우는 배움 틀의 큰 강점이자 한계가 될 수도 있다.
 
-## Formal Statement
+## 엄밀한 서술
 
-The agent's objective is to maximize the **expected return**:
+부림꾼의 목표는 **기대 돌아옴**을 가장 크게 하는 것이다:
 
 $$G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \cdots = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$$
 
-where $\gamma \in [0, 1]$ is the **discount factor**.
+여기서 $\gamma \in [0, 1]$은 **깎기 인수**다.
 
-The agent seeks a policy $\pi^*$ such that:
+부림꾼은 다음을 만족하는 방침 $\pi^*$을 찾는다:
 
 $$\pi^* = \arg\max_\pi \mathbb{E}_\pi[G_t]$$
 
-for all states $S_t$.
+모든 상태 $S_t$에 대해.
 
-## Why a Scalar Reward?
+## 왜 낱값 보상인가
 
-Using a single scalar reward signal might seem restrictive, but it provides:
+낱값 보상 신호 하나만 쓰는 것이 갑갑해 보일 수 있지만 다음을 준다:
 
-1. **Clear optimization objective**: A scalar defines a total ordering over outcomes
-2. **Simplicity**: Avoids the complexities of multi-objective optimization
-3. **Generality**: Complex goals can often be decomposed into a scalar reward function
-4. **Theoretical tractability**: Enables the Bellman equation framework
+1. **또렷한 가장 좋게 하기 목표**: 낱값이 결과에 온전한 차례를 뜻매김한다
+2. **단순함**: 여러 목표 가장 좋게 하기의 복잡함을 피한다
+3. **두루 쓰임**: 복잡한 목표도 흔히 낱값 보상 함수로 쪼갤 수 있다
+4. **이론으로 다룰 만함**: 벨먼 방정식 틀을 쓸 수 있게 한다
 
-## The Return
+## 돌아옴
 
-The return $G_t$ can take several forms depending on the problem:
+돌아옴 $G_t$은 문제에 따라 여러 꼴을 띤다:
 
-### Finite-Horizon Undiscounted Return
+### 지평이 유한한 깎지 않은 돌아옴
 
-For episodic tasks with terminal time $T$:
+마침 때가 $T$인 판으로 나뉜 일에서는:
 
 $$G_t = R_{t+1} + R_{t+2} + \cdots + R_T = \sum_{k=0}^{T-t-1} R_{t+k+1}$$
 
-### Infinite-Horizon Discounted Return
+### 지평이 무한한 깎은 돌아옴
 
-For continuing tasks (or when we want to weight near-term rewards more heavily):
+이어지는 일에서(또는 가까운 때의 보상에 무게를 더 주고 싶을 때):
 
 $$G_t = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$$
 
-The discount factor $\gamma$ ensures convergence when rewards are bounded: if $|R_t| \leq R_{\max}$, then:
+보상이 가둬져 있으면 깎기 인수 $\gamma$이 모임을 보장한다. $|R_t| \leq R_{\max}$이면:
 
 $$|G_t| \leq \frac{R_{\max}}{1 - \gamma}$$
 
-### Average Reward
+### 평균 보상
 
-For continuing tasks, an alternative objective is the average reward per step:
+이어지는 일에서 다른 목표는 걸음마다의 평균 보상이다:
 
 $$r(\pi) = \lim_{T \to \infty} \frac{1}{T} \mathbb{E}\left[\sum_{t=1}^{T} R_t \mid \pi\right]$$
 
-## Recursive Property of Returns
+## 돌아옴의 되돌이 성질
 
-A key property is that the return satisfies a recursive relationship:
+핵심 성질은 돌아옴이 되돌이 관계를 만족한다는 것이다:
 
 $$G_t = R_{t+1} + \gamma G_{t+1}$$
 
-This recursive structure is the basis for **bootstrapping** in temporal difference methods and the **Bellman equations** for value functions.
+이 되돌이 얼개가 때 차이 방법의 **띄워 올리기**와 값 함수의 **벨먼 방정식**의 바탕이다.
 
-## Designing Reward Functions
+## 보상 함수 설계하기
 
-Effective reward design is crucial and often challenging. Poor reward functions lead to unintended behavior.
+쓸모 있는 보상 설계는 결정적이며 흔히 어렵다. 나쁜 보상 함수는 뜻하지 않은 움직임을 낳는다.
 
-### Principles of Good Reward Design
+### 좋은 보상 설계의 원칙
 
-1. **Reward what you want, not how to achieve it**: Reward the goal state, not intermediate steps (unless necessary for learning)
-2. **Avoid reward hacking**: Anticipate ways the agent might exploit the reward function
-3. **Keep it sparse vs. dense**: Dense rewards speed learning but may bias behavior; sparse rewards are more general but harder to learn from
-4. **Align incentives**: Ensure that maximizing the reward truly corresponds to the desired behavior
+1. **어떻게가 아니라 무엇을 바라는지에 보상하라**: (배움에 꼭 필요한 경우가 아니면) 중간 걸음이 아니라 목표 상태에 보상한다
+2. **보상 파고들기를 피하라**: 부림꾼이 보상 함수를 파고들 길을 미리 헤아린다
+3. **성기게 할지 빽빽하게 할지**: 빽빽한 보상은 배움을 빠르게 하지만 움직임을 치우치게 할 수 있고, 성긴 보상은 두루 쓰이지만 배우기 어렵다
+4. **바람을 맞춰라**: 보상을 가장 크게 하는 것이 참으로 바라는 움직임과 맞는지 확인한다
 
-### Common Reward Structures
+### 흔한 보상 얼개
 
-| Structure | Description | Example |
+| 얼개 | 밝힘 | 보기 |
 |-----------|-------------|---------|
-| **Sparse** | Reward only at goal | +1 at checkmate, 0 otherwise |
-| **Dense** | Reward at every step | Distance reduction to goal |
-| **Shaped** | Engineered guidance signals | Potential-based shaping |
-| **Intrinsic** | Self-generated curiosity | Prediction error as reward |
+| **성김** | 목표에서만 보상 | 외통에서 +1, 아니면 0 |
+| **빽빽함** | 걸음마다 보상 | 목표까지 거리 줄이기 |
+| **다듬음** | 만들어 넣은 이끌기 신호 | 잠재 바탕 다듬기 |
+| **안쪽** | 스스로 내는 호기심 | 헤아림 어긋남을 보상으로 |
 
-### Reward Shaping
+### 보상 다듬기
 
-**Potential-based reward shaping** adds a supplementary reward without changing the optimal policy:
+**잠재 바탕 보상 다듬기**는 가장 좋은 방침을 바꾸지 않으면서 보상을 덧붙인다:
 
 $$F(s, a, s') = \gamma \Phi(s') - \Phi(s)$$
 
-where $\Phi: \mathcal{S} \to \mathbb{R}$ is a potential function. This is the only form of shaping guaranteed to preserve the optimal policy (Ng et al., 1999).
+여기서 $\Phi: \mathcal{S} \to \mathbb{R}$은 잠재 함수다. 이것이 가장 좋은 방침을 지킨다고 보장된 유일한 다듬기 꼴이다(Ng et al., 1999).
 
-## Challenges and Limitations
+## 어려움과 한계
 
-### Multi-Objective Problems
+### 여러 목표 문제
 
-Real-world problems often have multiple objectives. The scalar reward forces a tradeoff:
+실제 문제에는 흔히 목표가 여럿이다. 낱값 보상은 맞바꿈을 강요한다:
 
 $$R_t = w_1 \cdot r_t^{(1)} + w_2 \cdot r_t^{(2)} + \cdots$$
 
-The weights $w_i$ encode preferences, but choosing them correctly is itself a challenge.
+무게 $w_i$이 취향을 담지만 그것을 옳게 고르는 일 자체가 어렵다.
 
-### Reward Misspecification
+### 보상 잘못 적기
 
-When the reward function doesn't capture the true objective:
+보상 함수가 참 목표를 담지 못하면:
 
-- **Reward hacking**: The agent finds unexpected ways to maximize reward without achieving the intended goal
-- **Goodhart's Law**: "When a measure becomes a target, it ceases to be a good measure"
-- **Side effects**: The agent may cause unintended harm while pursuing the specified reward
+- **보상 파고들기**: 부림꾼이 뜻한 목표를 이루지 않고 보상을 가장 크게 할 뜻밖의 길을 찾는다
+- **굿하트의 법칙**: "잣대가 과녁이 되는 순간 그것은 좋은 잣대이기를 그친다"
+- **곁 효과**: 부림꾼이 밝힌 보상을 좇다가 뜻하지 않은 해를 끼칠 수 있다
 
-### Sparse Rewards
+### 성긴 보상
 
-When rewards are very sparse (e.g., only at the end of a long episode), learning becomes extremely difficult due to the **credit assignment problem**—the agent must determine which of its many actions contributed to the final outcome.
+보상이 아주 성기면(보기로 긴 판의 끝에서만) **공 돌리기 문제** 때문에 배우기가 몹시 어려워진다. 부림꾼은 자기의 많은 움직임 가운데 어느 것이 마지막 결과에 이바지했는지 알아내야 한다.
 
-## Financial Reward Design
+## 금융에서의 보상 설계
 
-Designing reward functions for financial applications requires careful consideration:
+금융 쓰임새의 보상 함수를 설계할 때는 조심스레 살펴야 한다:
 
-### Common Financial Reward Functions
+### 흔한 금융 보상 함수
 
-| Reward Function | Formula | Properties |
+| 보상 함수 | 식 | 성질 |
 |----------------|---------|------------|
-| **Simple return** | $r_t = \frac{P_t - P_{t-1}}{P_{t-1}}$ | Easy to compute, ignores risk |
-| **Log return** | $r_t = \ln\frac{P_t}{P_{t-1}}$ | Time-additive, better for compounding |
-| **Risk-adjusted** | $r_t = \frac{\mu_t}{\sigma_t}$ (Sharpe-like) | Balances return and risk |
-| **Differential Sharpe** | $r_t = \frac{\partial S_t}{\partial \eta}$ | Incremental Sharpe ratio update |
-| **Drawdown-penalized** | $r_t = R_t - \lambda \cdot \text{DD}_t$ | Penalizes drawdowns |
+| **단순 벌이** | $r_t = \frac{P_t - P_{t-1}}{P_{t-1}}$ | 셈하기 쉽고 위험을 무시한다 |
+| **로그 벌이** | $r_t = \ln\frac{P_t}{P_{t-1}}$ | 때에 대해 더할 수 있고 불어남에 낫다 |
+| **위험을 고려함** | $r_t = \frac{\mu_t}{\sigma_t}$(샤프 비슷) | 벌이와 위험의 균형을 잡는다 |
+| **미분 샤프** | $r_t = \frac{\partial S_t}{\partial \eta}$ | 샤프 비를 조금씩 고침 |
+| **꺾임에 벌 주기** | $r_t = R_t - \lambda \cdot \text{DD}_t$ | 꺾임에 벌을 준다 |
 
-### The Differential Sharpe Ratio
+### 미분 샤프 비
 
-Moody & Saffell (2001) proposed using the **differential Sharpe ratio** as a reward signal:
+Moody와 Saffell(2001)은 **미분 샤프 비**를 보상 신호로 쓰자고 내놓았다:
 
 $$D_t = \frac{B_{t-1} \Delta A_t - \frac{1}{2} A_{t-1} \Delta B_t}{(B_{t-1} - A_{t-1}^2)^{3/2}}$$
 
-where $A_t$ and $B_t$ are exponential moving averages of the first and second moments of returns:
+여기서 $A_t$과 $B_t$은 벌이의 1차와 2차 적률의 지수 이동 평균이다:
 
 $$A_t = A_{t-1} + \eta \Delta A_t, \quad \Delta A_t = R_t - A_{t-1}$$
 
 $$B_t = B_{t-1} + \eta \Delta B_t, \quad \Delta B_t = R_t^2 - B_{t-1}$$
 
-This provides a dense reward signal that directly optimizes the Sharpe ratio.
+이는 샤프 비를 곧바로 가장 좋게 하는 빽빽한 보상 신호를 준다.
 
-### Transaction Cost Integration
+### 거래 비용 넣기
 
-A practical reward function for trading should include transaction costs:
+거래의 실제 보상 함수에는 거래 비용이 들어가야 한다:
 
 $$r_t = \sum_i w_{i,t} \cdot r_{i,t} - c \sum_i |w_{i,t} - w_{i,t-1}|$$
 
-where $w_{i,t}$ are portfolio weights, $r_{i,t}$ are asset returns, and $c$ is the transaction cost rate.
+여기서 $w_{i,t}$은 꾸러미 무게, $r_{i,t}$은 자산 벌이, $c$은 거래 비용 비율이다.
 
-## Summary
+## 요약
 
-The reward hypothesis is the foundational assumption that enables the mathematical framework of RL. While powerful and general, it requires careful reward function design to avoid misspecification. In financial applications, reward design must balance multiple objectives—returns, risk, transaction costs, and regulatory constraints—within a single scalar signal. The recursive structure of returns enables efficient algorithms through bootstrapping and the Bellman equations.
+보상 가설은 힘 북돋우는 배움의 수학 틀을 가능하게 하는 바탕 여김이다. 힘세고 두루 쓰이지만 잘못 적지 않으려면 보상 함수를 조심스레 설계해야 한다. 금융 쓰임새에서 보상 설계는 벌이, 위험, 거래 비용, 규제 매임 같은 여러 목표를 낱값 신호 하나 안에서 저울질해야 한다. 돌아옴의 되돌이 얼개가 띄워 올리기와 벨먼 방정식으로 효율 좋은 알고리즘을 가능하게 한다.
+
+## 연습문제
+
+**연습문제 1.**
+이 마디의 주제와 딸린 단순한 마르코프 결정 과정을 생각하여라. 상태 3개와 움직임 2개의 작은 보기에서 관련 양을 손으로 셈하여라.
+
+??? success "연습문제 1 풀이"
+    상태 $S = \{s_1, s_2, s_3\}$과 움직임 $A = \{a_1, a_2\}$을 뜻매김한다. 옮김 확률과 보상을 매긴다. 상태-움직임 짝마다 기대 즉시 보상과 옮김 분포를 셈한다. 이 마디의 뜻매김과 식으로 바라는 양을 셈한다. 상태 자리가 작아 정확히 셈할 수 있어 추상 적기가 구체 숫자로 어떻게 옮겨지는지 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 다룬 핵심 성질이나 모임 결과를 밝혀라. 여김을 또렷이 적고 어느 것이 꼭 필요한지 가려내어라.
+
+??? success "연습문제 2 풀이"
+    밝힘은 그 연산자에 오므리는 옮김 정리를 써서 따라온다. 깎기 인수가 $\gamma < 1$인 유한 마르코프 결정 과정을 여기면 그 연산자는 상한 노름에서 $\gamma$오므리기다. 바나흐 고정점 정리에 따라 되풀이해 쓰면 $k$이 되풀이 횟수일 때 빠르기 $O(\gamma^k)$으로 하나뿐인 고정점에 모인다. 유한하다는 여김이 보상이 가둬짐을 보장하고 깎기 인수 $\gamma < 1$이 오므리기 성질에 꼭 필요하다. $\square$
+
+---
+
+**연습문제 3.**
+이 마디에서 밝힌 알고리즘이나 셈을 단순한 격자 세상에 대해 파이썬으로 짜라. $\epsilon = 0.01$ 안으로 모이는 데 필요한 되풀이 횟수를 알려라.
+
+??? success "연습문제 3 풀이"
+    모서리에 마침 상태가 있고 고른 아무 방침을 쓰는 $4 \times 4$ 격자 세상이 여느 시험 사례가 된다. 짜기는 모든 상태의 가장 큰 바뀜이 $\epsilon$ 아래로 떨어질 때까지 고침 규칙을 되풀이한다. 깎기 인수에 따라 보통 50~200번 되풀이하면 모인다. 핵심 짜기 세부는 맞춘 고침보다 빨리 모이도록 제자리 고침(가우스-자이델 방식)을 쓰는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+이 마디에서 밝힌 길에 본디 있는 근본 한계나 맞바꿈을 다루어라. 뒤 장의 더 나아간 방법이 이 한계를 어떻게 넘는가?
+
+??? success "연습문제 4 풀이"
+    표로 하는 길은 모든 상태(어쩌면 움직임까지)를 늘어놓아야 하는데 이어지거나 차원이 높은 상태 자리에서는 될 일이 아니다. 차원의 저주는 상태 변수의 수에 따라 상태 수가 지수로 늘어남을 뜻한다. 함수 어림(33~34장)은 그 함수를 신경망으로 잡을 두어 나타내고 닮은 상태에 걸쳐 넓혀 이를 넘는다. 다만 새 어려움이 생긴다. 모임이 더는 보장되지 않으며 함수 어림, 띄워 올리기, 벗어난 방침 익히기의 죽음의 삼각이 발산을 일으킬 수 있다. $\square$

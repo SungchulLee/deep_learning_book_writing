@@ -1,76 +1,104 @@
-# 33.7.3 Discrete Trading
+# 33.7.3 띄엄띄엄한 거래
+## 문제 정식화
 
+**띄엄띄엄한 거래**는 사기/팔기/쥐기라는 고전 결정 문제에 DQN을 쓴다. 부림꾼이 시장 특징을 보고 띄엄띄엄한 자리 바꿈 가운데 하나를 고른다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+### 마르코프 결정 과정의 조각
 
-## Problem Formulation
+- **상태**: $s_t = (\text{position}_t, \text{features}_t)$
+  - 지금 자리: 없음(0), 사 둠(+1), 팔아 둠(-1)
+  - 시장 특징: 벌이, 이동 평균, RSI, 거래량, 흔들림 등
 
-**Discrete trading** applies DQN to the classic buy/sell/hold decision problem. The agent observes market features and selects from a discrete set of position changes.
+- **움직임**: $a_t \in \{\text{사기}, \text{쥐기}, \text{팔기}\}$, 같은 뜻으로 $\{+1, 0, -1\}$
 
-### MDP Components
-
-- **State**: $s_t = (\text{position}_t, \text{features}_t)$
-  - Current position: flat (0), long (+1), short (-1)
-  - Market features: returns, moving averages, RSI, volume, volatility, etc.
-
-- **Action**: $a_t \in \{\text{Buy}, \text{Hold}, \text{Sell}\}$ or equivalently $\{+1, 0, -1\}$
-
-- **Reward**: PnL from position changes minus transaction costs
+- **보상**: 자리 바꿈에서 온 손익에서 거래 비용을 뺀 값
 
   $$r_t = \text{position}_t \cdot (p_{t+1} - p_t) - c \cdot |\Delta \text{position}_t|$$
 
-## Feature Engineering
+## 특징 만들기
 
-### Technical Features
-- Price returns (1, 5, 20 day)
-- Moving average crossovers (SMA, EMA)
-- RSI, MACD, Bollinger Band position
-- Realized volatility (multiple windows)
-- Volume ratios
+### 기술 특징
+- 값 벌이(1일, 5일, 20일)
+- 이동 평균 엇갈림(단순, 지수)
+- RSI, MACD, 볼린저 띠에서의 자리
+- 실현 흔들림(창을 여럿 두어)
+- 거래량 비
 
-### Normalization
-All features should be normalized to approximately zero mean, unit variance:
-- Returns: Already centered, scale by rolling std
-- Oscillators (RSI): Map to [-1, 1]
-- Volume: Log-transform, then z-score
+### 고르게 맞추기
+모든 특징을 평균 0, 흩어짐 1에 가깝게 고르게 맞춰야 한다:
 
-## Reward Design
+- 벌이: 이미 가운데 맞춰 있으니 굴러가는 표준 어긋남으로 잣수를 맞춘다
+- 진동 지표(RSI): [-1, 1]로 옮긴다
+- 거래량: 로그로 바꾼 뒤 z 점수로
 
-Several reward formulations exist:
+## 보상 설계
 
-1. **Raw PnL**: $r_t = \text{pos}_t \cdot \text{return}_t - \text{cost}_t$
-2. **Risk-adjusted (Sharpe)**: Maximize rolling Sharpe ratio
-3. **Differential Sharpe**: $r_t \approx \frac{\partial \text{Sharpe}}{\partial \theta}$ at each step
-4. **Log return**: $r_t = \log(1 + \text{pos}_t \cdot \text{return}_t)$ — accounts for compounding
+보상을 적는 길이 여럿 있다:
 
-## Transaction Cost Modeling
+1. **날 손익**: $r_t = \text{pos}_t \cdot \text{return}_t - \text{cost}_t$
+2. **위험을 고려함(샤프)**: 굴러가는 샤프 비를 가장 크게 한다
+3. **미분 샤프**: 걸음마다 $r_t \approx \frac{\partial \text{Sharpe}}{\partial \theta}$
+4. **로그 벌이**: $r_t = \log(1 + \text{pos}_t \cdot \text{return}_t)$ — 불어남을 셈에 넣는다
 
-| Cost component | Typical magnitude |
+## 거래 비용 나타내기
+
+| 비용 조각 | 흔한 크기 |
 |---------------|------------------|
-| Commission | 0.001% – 0.01% |
-| Spread | 0.01% – 0.1% |
-| Market impact | 0.01% – 0.5% |
-| Slippage | 0.01% – 0.05% |
+| 수수료 | 0.001%~0.01% |
+| 값 차이 | 0.01%~0.1% |
+| 시장 충격 | 0.01%~0.5% |
+| 미끄러짐 | 0.01%~0.05% |
 
-Transaction costs are critical: many RL agents overfit to noise and trade excessively. Include realistic costs to ensure practical strategies.
+거래 비용이 결정적이다. 많은 힘 북돋우는 배움 부림꾼이 잡소리에 지나치게 맞추어 너무 자주 거래한다. 쓸 만한 셈속이 되도록 그럴듯한 비용을 담는다.
 
-## Common Pitfalls
+## 흔히 빠지는 함정
 
-1. **Overfitting**: DQN can memorize training data patterns → use out-of-sample validation
-2. **Look-ahead bias**: Features must use only past data
-3. **Non-stationarity**: Market regimes change; periodically retrain
-4. **Excessive trading**: Without transaction costs, agents may trade every step
-5. **Survivorship bias**: Use delisted stocks/instruments in backtest
-6. **Data snooping**: Hyperparameter tuning on test set inflates results
+1. **지나친 맞춤**: DQN이 익히기 자료의 무늬를 외울 수 있다 → 표본 밖 살피기를 쓴다
+2. **앞을 엿보는 치우침**: 특징은 지난 자료만 써야 한다
+3. **한결같지 않음**: 시장 국면이 바뀌니 때때로 다시 익힌다
+4. **지나친 거래**: 거래 비용이 없으면 부림꾼이 걸음마다 거래할 수 있다
+5. **살아남은 것만 보는 치우침**: 되짚어 시험할 때 상장 폐지된 종목도 넣는다
+6. **자료 엿보기**: 시험 모임에서 웃잡을 손보면 결과가 부풀려진다
 
-## Evaluation Metrics
+## 평가 지표
 
-| Metric | Description | Good Value |
+| 잣대 | 밝힘 | 좋은 값 |
 |--------|-------------|------------|
-| Sharpe ratio | Risk-adjusted return | > 1.0 |
-| Maximum drawdown | Worst peak-to-trough | < 20% |
-| Win rate | Fraction of profitable trades | > 50% |
-| Profit factor | Gross profit / gross loss | > 1.5 |
-| Calmar ratio | Annual return / max drawdown | > 1.0 |
-| Trading frequency | Average trades per day | Depends on strategy |
+| 샤프 비 | 위험을 고려한 벌이 | > 1.0 |
+| 최대 꺾임 | 꼭대기에서 골까지 가장 나쁜 값 | < 20% |
+| 이긴 비율 | 이익을 낸 거래의 몫 | > 50% |
+| 이익 인수 | 총 이익 / 총 손실 | > 1.5 |
+| 칼마 비 | 해마다 벌이 / 최대 꺾임 | > 1.0 |
+| 거래 잦음 | 날마다 평균 거래 수 | 셈속에 매임 |
+
+## 연습문제
+
+**연습문제 1.**
+Q 값 어림에 신경망을 쓰는 어려움을 이 방법이 어떻게 다루는지 밝혀라. 이 길이 없으면 어떤 불안정이 생기는가?
+
+??? success "연습문제 1 풀이"
+    신경망 Q 값 어림은 차례 자료의 얽힘과 움직이는 과녁 문제(과녁이 지금 잡에 매인다) 때문에 불안정하다. 이 방법은 특정 얼개나 알고리즘 고름으로 이 말썽을 다룬다. 이것이 없으면 기울기 고침이 한결같지 않은 과녁을 좇아 익히기가 발산하고 재앙 같은 지나친 어림이나 흔들림이 생긴다. 이 길은 얽힘을 끊거나 얼마 동안 과녁을 붙박아 익히기를 안정시킨다. $\square$
+
+---
+
+**연습문제 2.**
+CartPole-v1 둘레에서 이 방법을 짜라. 둘레를 푸는 데(100판 평균 보상 > 475) 필요한 판수를 알리고 배움 굽은 줄을 그려라.
+
+??? success "연습문제 2 풀이"
+    숨은 낱덩이 64개의 2층 여러 층 신경망, 배움 빠르기 $3 \times 10^{-4}$의 Adam, 이 마디의 재주를 쓰면 부림꾼이 보통 200~500판에 CartPole을 푼다. 배움 굽은 줄은 처음의 아무 성능(보상 $\approx 20$), 빠르게 좋아지는 마당, 거의 가장 좋은 성능으로의 모임을 보인다. 핵심 짜기 세부: 되돌려 보기 버퍼 크기 10000, 묶음 크기 64, 100걸음마다 과녁 그물 고침, 300판에 걸쳐 1.0에서 0.01로 선형으로 스러지는 $\epsilon$ 욕심쟁이. $\square$
+
+---
+
+**연습문제 3.**
+맨 DQN에 견주어 이 방법이 더하는 셈과 기억 덧짐을 살펴라. 금융 쓰임새에서 그 맞바꿈이 값을 하는가?
+
+??? success "연습문제 3 풀이"
+    덧짐은 방법마다 다르지만 보통 앞으로 가기를 더 하거나(두 겹 DQN은 2배), 그물 잡을 더 두거나(맞겨루기 갈래), 기억을 더 쓴다(앞섬 되돌려 보기). 자료가 비싸고 실수가 값비싼 금융 쓰임새에서는 표본 효율과 안정이 좋아지므로 덧짐이 값을 한다. 금융 상태 자리는 흔히 차원이 웬만하므로(특징 10~100개) 걸음마다 늘어나는 비용이 더 나은 결정의 값어치에 견주면 크지 않다. $\square$
+
+---
+
+**연습문제 4.**
+보상 신호가 성기고(거래를 마칠 때만 실현되고) 늦는 금융 거래 쓰임새에 이 방법을 어떻게 맞출지 다루어라.
+
+??? success "연습문제 4 풀이"
+    성긴 보상은 공 돌리기를 어렵게 한다. 부림꾼은 여러 걸음 전의 움직임을 끝내 생긴 이익이나 손실에 이어야 한다. 맞추는 길: (1) 가장 좋은 방침을 지키면서 더 빽빽한 되먹임을 주는 중간 신호(실현되지 않은 손익, 위험 잣대)로 보상 다듬기, (2) 성긴 보상을 더 효율 좋게 뒤로 퍼뜨리는 여러 걸음 돌아옴, (3) 지난 겪음에 이룬 결과로 새 이름표를 붙이는 뒤늦은 겪음 되돌려 보기. 이 마디의 방법은 드문 보상 신호에서 배우는 안정을 높여 이바지한다. $\square$

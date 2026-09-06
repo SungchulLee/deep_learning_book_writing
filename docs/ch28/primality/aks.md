@@ -1,106 +1,103 @@
-# AKS Primality Test
+# AKS 소수 시험
 
-Before 2002, all known deterministic primality tests were either exponential
-or relied on unproven conjectures.  The AKS test, due to Agrawal, Kayal, and
-Saxena, settled a long-standing open question by providing the first
-**deterministic polynomial-time** algorithm for primality.
+2002년 이전에 알려진 정해진 소수 시험은 모두 지수이거나 밝혀지지 않은 추측에 기댔다. 아그라왈, 카얄, 삭세나의 AKS 시험은 소수 판정의 첫 **정해진 다항 시간** 알고리즘을 내놓아 오랜 열린 물음을 매듭지었다.
 
-## Key Result
+## 핵심 결과
 
-The AKS algorithm proves that PRIMES $\in$ P: given an integer $n$, it
-decides whether $n$ is prime in time polynomial in $\log n$ (the number of
-digits).
+AKS 알고리즘은 PRIMES $\in$ P임을 밝힌다. 정수 $n$이 주어지면
+$\log n$(자릿수)에 대해 다항인 시간에 $n$이 소수인지
+가른다.
 
-## Mathematical Foundation
+## 수학적 바탕
 
-The test builds on a generalization of Fermat's little theorem to
-polynomial rings.
+이 시험은 페르마의 작은 정리를 다항식 고리로 넓힌 것 위에
+세워진다.
 
-!!! note "Core Identity"
-    An integer $n \ge 2$ is prime if and only if the polynomial congruence
+!!! note "핵심 항등식"
+    정수 $n \ge 2$이 소수일 필요충분조건은 다항식 합동
 
     $$
     (x + a)^n \equiv x^n + a \pmod{n}
     $$
 
-    holds for every integer $a$ coprime to $n$.
+    이 $n$과 서로 소인 모든 정수 $a$에 대해 성립하는 것이다.
 
-Checking this identity directly requires expanding $(x + a)^n$, which has
-$n + 1$ terms and is thus exponential.  The AKS insight is to check the
-identity modulo $x^r - 1$ for a carefully chosen small $r$:
+이 항등식을 곧바로 살피려면 $(x + a)^n$을 펼쳐야 하는데 항이
+$n + 1$개여서 지수가 된다. AKS의 통찰은 조심스레 고른 작은 $r$에 대해
+$x^r - 1$을 법으로 이 항등식을 살피는 것이다:
 
 $$
 (x + a)^n \equiv x^n + a \pmod{x^r - 1, \, n}
 $$
 
-## Algorithm
+## 알고리즘
 
-**Input:** Integer $n \ge 2$.
+**들임:** 정수 $n \ge 2$.
 
-1. **Perfect power check.**  If $n = b^k$ for integers $b \ge 2$ and
-   $k \ge 2$, output COMPOSITE.
-2. **Find suitable $r$.**  Find the smallest $r$ such that $\text{ord}_r(n) > (\log_2 n)^2$,
-   where $\text{ord}_r(n)$ is the multiplicative order of $n$ modulo $r$.
-3. **GCD checks.**  For all $a \le r$, if $1 < \gcd(a, n) < n$, output
-   COMPOSITE.
-4. **Small $n$ check.**  If $n \le r$, output PRIME.
-5. **Polynomial checks.**  For $a = 1, 2, \dots, \lfloor \sqrt{\phi(r)} \log_2 n \rfloor$,
-   verify
+1. **완전 거듭제곱 살피기.** 정수 $b \ge 2$과 $k \ge 2$에 대해
+   $n = b^k$이면 합성수를 내놓는다.
+2. **알맞은 $r$ 찾기.** $\text{ord}_r(n) > (\log_2 n)^2$인 가장 작은 $r$을 찾는다.
+   여기서 $\text{ord}_r(n)$은 $r$을 법으로 하는 $n$의 곱셈 차수이다.
+3. **최대 공약수 살피기.** 모든 $a \le r$에 대해 $1 < \gcd(a, n) < n$이면
+   합성수를 내놓는다.
+4. **작은 $n$ 살피기.** $n \le r$이면 소수를 내놓는다.
+5. **다항식 살피기.** $a = 1, 2, \dots, \lfloor \sqrt{\phi(r)} \log_2 n \rfloor$에 대해
+   다음을 확인한다
 
     $$
     (x + a)^n \equiv x^n + a \pmod{x^r - 1, \, n}
     $$
 
-    If any check fails, output COMPOSITE.
+    하나라도 어긋나면 합성수를 내놓는다.
 
-6. Output PRIME.
+6. 소수를 내놓는다.
 
-## Correctness Sketch
+## 옳음 얼개
 
-The algorithm relies on two directions:
+이 알고리즘은 두 방향에 기댄다:
 
-- **Completeness.**  If $n$ is prime, the polynomial identity holds for all
-  $a$ (a consequence of the binomial theorem modulo $p$), so the algorithm
-  always outputs PRIME.
-- **Soundness.**  If $n$ is composite and passes all polynomial checks, one
-  can derive a contradiction using properties of the multiplicative group in
-  $\mathbb{F}_p[x]/(x^r - 1)$ where $p$ is a prime factor of $n$.  The
-  bound on $r$ and the number of $a$-values ensure enough constraints to
-  force $n$ to be a prime power, which step 1 already ruled out.
+- **온전함.** $n$이 소수이면 다항식 항등식이 모든 $a$에 대해 성립하므로
+  ($p$을 법으로 하는 이항 정리의 따름이다) 알고리즘은
+  늘 소수를 내놓는다.
+- **건전함.** $n$이 합성수인데 모든 다항식 살피기를 지나면
+  $p$이 $n$의 소인수일 때 $\mathbb{F}_p[x]/(x^r - 1)$의 곱셈 무리의 성질로
+  어긋남을 이끌어 낼 수 있다.
+  $r$의 한계와 $a$ 값의 개수가 $n$을 소수 거듭제곱으로 몰아붙일 만큼
+  제약을 주며 그것은 걸음 1에서 이미 걸러 냈다.
 
-## Complexity
+## 복잡도
 
-- **Finding $r$:** $r = O((\log n)^5)$ suffices (later improved to
-  $O((\log n)^3)$ in some variants).
-- **Polynomial checks:** Each check multiplies polynomials of degree $< r$
-  modulo $n$, costing $\widetilde{O}(r \log n)$ per check.
-- **Number of checks:** $O(\sqrt{r} \log n)$.
-- **Total:** $\widetilde{O}(r^{3/2} (\log n)^2)$, which is
-  $\widetilde{O}((\log n)^{21/2})$ with the original bound on $r$.
+- **$r$ 찾기:** $r = O((\log n)^5)$이면 넉넉하다(뒤에 어떤 변형에서는
+  $O((\log n)^3)$으로 나아졌다).
+- **다항식 살피기:** 살피기마다 차수 $< r$인 다항식을 $n$을 법으로 곱하며
+  살피기마다 $\widetilde{O}(r \log n)$이 든다.
+- **살피기 횟수:** $O(\sqrt{r} \log n)$.
+- **온 시간:** $\widetilde{O}(r^{3/2} (\log n)^2)$이며 이는 $r$의 본디 한계로
+  $\widetilde{O}((\log n)^{21/2})$이다.
 
-Subsequent improvements by Lenstra and Pomerance reduced the complexity to
-$\widetilde{O}((\log n)^6)$.
+렌스트라와 포머런스의 뒤이은 개선이 복잡도를
+$\widetilde{O}((\log n)^6)$으로 줄였다.
 
-| Primality Test | Type | Complexity |
+| 소수 시험 | 갈래 | 복잡도 |
 |---|---|---|
-| Trial division | Deterministic | $O(\sqrt{n})$ |
-| Miller-Rabin | Probabilistic | $O(k \log^2 n)$ per round |
-| AKS | Deterministic | $\widetilde{O}((\log n)^6)$ |
+| 시험 나눗셈 | 정해짐 | $O(\sqrt{n})$ |
+| 밀러-라빈 | 확률 | 바퀴마다 $O(k \log^2 n)$ |
+| AKS | 정해짐 | $\widetilde{O}((\log n)^6)$ |
 
-## Simplified Implementation
+## 단순하게 짜기
 
 ```python
 """
-Simplified AKS primality test (educational version).
+단순하게 만든 AKS 소수 시험(가르치기용).
 
-The full AKS test requires polynomial arithmetic modulo (x^r - 1, n).
-This implementation demonstrates the structure of the algorithm.
+온전한 AKS 시험은 (x^r - 1, n)을 법으로 하는 다항식 셈이 필요하다.
+이 짜기는 알고리즘의 얼개를 보여 준다.
 """
 
 import math
 
 
-# === Perfect Power Check ===
+# === 완전 거듭제곱 살피기 ===
 def is_perfect_power(n: int) -> bool:
     """Check if n = b^k for some b >= 2, k >= 2."""
     if n <= 3:
@@ -113,7 +110,7 @@ def is_perfect_power(n: int) -> bool:
     return False
 
 
-# === Multiplicative Order ===
+# === 곱셈 차수 ===
 def multiplicative_order(n: int, r: int) -> int:
     """Return the smallest k such that n^k = 1 (mod r)."""
     if math.gcd(n, r) > 1:
@@ -126,9 +123,9 @@ def multiplicative_order(n: int, r: int) -> int:
     return result
 
 
-# === Polynomial Multiplication mod (x^r - 1, n) ===
+# === (x^r - 1, n)을 법으로 하는 다항식 곱셈 ===
 def poly_mult_mod(a: list[int], b: list[int], r: int, n: int) -> list[int]:
-    """Multiply polynomials a and b modulo x^r - 1 and n."""
+    """x^r - 1과 n을 법으로 다항식 a과 b을 곱한다."""
     result = [0] * r
     for i, ai in enumerate(a):
         if ai == 0:
@@ -140,9 +137,9 @@ def poly_mult_mod(a: list[int], b: list[int], r: int, n: int) -> list[int]:
     return result
 
 
-# === Polynomial Power mod (x^r - 1, n) ===
+# === (x^r - 1, n)을 법으로 하는 다항식 거듭제곱 ===
 def poly_pow_mod(base: list[int], exp: int, r: int, n: int) -> list[int]:
-    """Compute base^exp modulo x^r - 1 and n."""
+    """x^r - 1과 n을 법으로 base^exp을 셈한다."""
     result = [0] * r
     result[0] = 1
     b = base[:]
@@ -154,19 +151,19 @@ def poly_pow_mod(base: list[int], exp: int, r: int, n: int) -> list[int]:
     return result
 
 
-# === AKS Test ===
+# === AKS 시험 ===
 def aks(n: int) -> bool:
-    """Return True if n is prime (AKS algorithm)."""
+    """n이 소수이면 True을 돌려준다(AKS 알고리즘)."""
     if n <= 1:
         return False
     if n <= 3:
         return True
 
-    # Step 1: perfect power check
+    # 걸음 1: 완전 거듭제곱 살피기
     if is_perfect_power(n):
         return False
 
-    # Step 2: find r
+    # 걸음 2: r 찾기
     log2n = math.log2(n)
     threshold = log2n * log2n
     r = 2
@@ -180,26 +177,26 @@ def aks(n: int) -> bool:
             break
         r += 1
 
-    # Step 3: GCD checks
+    # 걸음 3: 최대 공약수 살피기
     for a in range(2, min(r + 1, n)):
         g = math.gcd(a, n)
         if 1 < g < n:
             return False
 
-    # Step 4: small n
+    # 걸음 4: 작은 n
     if n <= r:
         return True
 
-    # Step 5: polynomial checks
+    # 걸음 5: 다항식 살피기
     limit = int(math.sqrt(r) * log2n) + 1
     for a in range(1, limit + 1):
-        # Compute (x + a)^n mod (x^r - 1, n)
+        # (x^r - 1, n)을 법으로 (x + a)^n을 셈한다
         poly = [0] * r
         poly[0] = a % n
         poly[1 % r] = (poly[1 % r] + 1) % n
         lhs = poly_pow_mod(poly, n, r, n)
 
-        # Expected: x^(n mod r) + a
+        # 바라는 값: x^(n mod r) + a
         rhs = [0] * r
         rhs[n % r] = 1
         rhs[0] = (rhs[0] + a) % n
@@ -210,7 +207,7 @@ def aks(n: int) -> bool:
     return True
 
 
-# === Example ===
+# === 보기 ===
 if __name__ == "__main__":
     test_values = [2, 7, 10, 13, 15, 31, 37, 49, 97]
     for val in test_values:
@@ -218,23 +215,51 @@ if __name__ == "__main__":
         print(f"AKS({val}) = {result}")
 ```
 
-!!! warning "Performance Note"
-    AKS is primarily of theoretical importance.  In practice, Miller-Rabin
-    with enough rounds (or a deterministic variant for small $n$) is far
-    faster.  AKS proves that a polynomial-time deterministic test *exists*,
-    but its constants make it impractical for large inputs.
+!!! warning "성능 알림"
+    AKS은 주로 이론에서 중요하다. 실제로는 넉넉한 바퀴의 밀러-라빈(또는 작은 $n$의 정해진 변형)이 훨씬 빠르다. AKS은 다항 시간의 정해진 시험이 *있음*을 밝히지만 상수 때문에 큰 들임에는 쓸 수 없다.
 
-## Historical Significance
+## 역사에서의 뜻
 
-The AKS result resolved the complexity of primality testing:
+AKS 결과는 소수 시험의 복잡도를 매듭지었다:
 
-- **Before AKS:** PRIMES was known to be in co-NP and in BPP (via
-  Miller-Rabin), but not known to be in P.
-- **After AKS (2002):** PRIMES $\in$ P, unconditionally.
+- **AKS 이전:** PRIMES은 (밀러-라빈으로) 여 NP과 BPP에 든다고 알려졌지만
+  P에 든다고는 알려지지 않았다.
+- **AKS 이후(2002):** 조건 없이 PRIMES $\in$ P이다.
 
-## Reference
+## 참고 문헌
 
-- Agrawal, M., Kayal, N., & Saxena, N. "PRIMES is in P." *Annals of
-  Mathematics*, 160(2), 2004.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction
-  to Algorithms* (CLRS), Chapter 31.
+- Agrawal, M., Kayal, N., & Saxena, N. "PRIMES is in P." *Annals of Mathematics*, 160(2), 2004.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.
+
+
+## 연습문제
+
+**연습문제 1.**
+AKS의 바탕이 되는 주요 정리를 적어라. 어떤 다항식 항등식이 소수를 성격 짓는가?
+
+??? success "연습문제 1 풀이"
+    AKS 시험은 다음 항등식에 바탕한다. $n$이 소수일 필요충분조건은 $\gcd(a, n) = 1$인 모든 $a$에 대해 $(x + a)^n \equiv x^n + a \pmod{n}$인 것이다. 모든 $a$에 대해 살피는 것은 비싸므로 AKS는 이를 줄인다. 알맞은 $r$을 찾아 $a = 1, \ldots, O(\sqrt{\phi(r)} \log n)$에 대해 $(x + a)^n \equiv x^n + a \pmod{x^r - 1, n}$을 살핀다. 이것으로 소수인지 가리기에 넉넉하며 다항 시간에 돈다.
+
+---
+
+**연습문제 2.**
+AKS 알고리즘(2002)이 실제로는 밀러-라빈보다 느린데도 돌파였던 까닭은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    AKS은 첫 정해진 다항 시간 소수 시험으로 PRIMES $\in$ P임을 밝혔다. AKS 이전에 가장 좋은 정해진 시험은 시험 나눗셈($O(\sqrt{n})$으로 자릿수에 대해 지수)이었다. 밀러-라빈은 더 빠르지만($O(k \log^2 n)$) 마구잡이이다(또는 정해지려면 일반 리만 가설에 기댄다). AKS은 $\tilde{O}(\log^{6} n)$에 돌며(조건 아래에서 $\tilde{O}(\log^{3} n)$으로 나아졌다) 다항이지만 실제로는 밀러-라빈보다 훨씬 느리다. 그 이론상의 중요함은 소수 시험의 복잡도를 매듭지은 데 있다.
+
+---
+
+**연습문제 3.**
+$n$비트 수의 소수 시험에서 시험 나눗셈, 밀러-라빈, AKS의 시간 복잡도를 견주어라.
+
+??? success "연습문제 3 풀이"
+    시험 나눗셈: $O(2^{n/2})$으로 비트 길이에 대해 지수이다. 밀러-라빈: $k$바퀴에 $O(k \cdot n^2)$이며(바퀴마다 $O(n^2)$의 법 거듭제곱을 한다) 다항이고 마구잡이이다. AKS: 정해진 방식으로 $\tilde{O}(n^6)$(처음 것)이고 어떤 추측 아래에서 $\tilde{O}(n^3)$으로 나아졌다. 1024비트 수에서 시험 나눗셈은 아주 쓸 수 없고($2^{512}$번 셈), 밀러-라빈은 밀리초가 걸리며, AKS은 짜기에 따라 몇 초에서 몇 분이 걸린다.
+
+---
+
+**연습문제 4.**
+AKS이 정해진 방식인데도 실제로는(보기로 OpenSSL에서) AKS 대신 밀러-라빈을 쓰는 까닭을 밝혀라.
+
+??? success "연습문제 4 풀이"
+    $k$바퀴의 밀러-라빈은 어긋날 확률이 $\leq 4^{-k}$이다. $k = 64$이면 어긋남이 $< 2^{-128}$으로 실제로는 무시할 만하다. AKS보다 자릿수가 여러 자리 빠르다. 암호 열쇠 만들기(보기로 RSA 소수)에서는 이 빠르기 차이가 중요하다. 2048비트 소수를 만들려면 후보를 많이 시험해야 한다. 밀러-라빈은 하나를 밀리초에 시험하지만 AKS은 훨씬 오래 걸린다. 밀러-라빈의 확률 보장($< 2^{-128}$ 어긋남)이 하드웨어 오류율보다 강할 때 AKS의 이론 보장(정해짐)은 필요 없다.

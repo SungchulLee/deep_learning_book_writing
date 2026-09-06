@@ -1,37 +1,31 @@
-# Speculative Decoding
+# 미리 짚어 풀기
+## 들어가며
 
+미리 짚어 풀기는 더 작은 **밑그림 모델**로 토막 여럿을 내놓고 그것을 더 큰 **목표 모델**이 나란히 확인해 자기되돌리기 만들어 내기를 빠르게 하는 재주이다. 나란히 할 수 있어 확인이 만들어 내기보다 값싸다는 점을 써먹는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 자기되돌리기의 병목
 
-## Introduction
+### 보통의 만들어 내기
 
-Speculative decoding is a technique that accelerates autoregressive generation by using a smaller **draft model** to propose multiple tokens, which are then verified in parallel by the larger **target model**. This exploits the fact that verification is cheaper than generation due to parallelization.
-
-## The Autoregressive Bottleneck
-
-### Standard Generation
-
-Autoregressive models generate one token at a time:
+자기되돌리기 모델은 한 번에 토막 하나씩 만든다:
 
 $$
-
 p(x_{1:T}) = \prod_{t=1}^{T} p(x_t | x_{<t})
-
 $$
 
-Each token requires a full forward pass through the model, making generation:
-- **Memory-bound**: Low arithmetic intensity
-- **Sequential**: Cannot parallelize across tokens
-- **Slow**: Large models have high latency per token
+토막마다 모델을 온전히 한 번 지나야 하므로 만들어 내기는:
 
-### Key Insight
+- **기억 공간에 묶임**: 셈의 밀도가 낮다
+- **차례차례**: 토막끼리 나란히 할 수 없다
+- **느림**: 큰 모델은 토막마다 늦음이 크다
 
-**Verification is faster than generation**: Given $K$ draft tokens, the target model can verify all of them in a single forward pass (parallel), whereas generating $K$ tokens requires $K$ sequential passes.
+### 핵심 통찰
 
-## Algorithm
+**확인이 만들어 내기보다 빠르다**: 밑그림 토막 $K$개가 주어지면 목표 모델이 앞먹임 한 번으로 모두 (나란히) 확인할 수 있지만, $K$개를 만들려면 차례차례 $K$번 지나야 한다.
 
-### Overview
+## 알고리즘
+
+### 훑어보기
 
 ```
 1. Draft model generates K candidate tokens quickly
@@ -41,29 +35,25 @@ Each token requires a full forward pass through the model, making generation:
 5. Repeat
 ```
 
-### Mathematical Framework
+### 수학 얼거리
 
-Let $p(x)$ be the target distribution and $q(x)$ be the draft distribution.
+$p(x)$을 목표 분포, $q(x)$을 밑그림 분포라 하자.
 
-**Acceptance criterion** for token $x_t$:
+토막 $x_t$의 **받아들임 잣대**:
 
 $$
-
 \text{Accept with probability } \min\left(1, \frac{p(x_t | x_{<t})}{q(x_t | x_{<t})}\right)
-
 $$
 
-**Rejection sampling correction**: If rejected, sample from the residual:
+**물리치기 표집 바로잡기**: 물리쳤으면 남은 것에서 뽑는다:
 
 $$
-
 p'(x) = \text{norm}\left(\max\left(0, p(x) - q(x)\right)\right)
-
 $$
 
-This ensures the output distribution exactly matches the target model.
+이러면 내놓는 분포가 목표 모델의 것과 정확히 맞는다.
 
-### Detailed Algorithm
+### 자세한 알고리즘
 
 ```
 Algorithm: Speculative Decoding
@@ -72,36 +62,36 @@ Input: Target model p, Draft model q, Prompt x₀, Draft length K
 Output: Generated sequence
 
 while not done:
-    # Step 1: Draft phase
+    # 1걸음: 밑그림 마디
     for i = 1 to K:
         Sample x̃ᵢ ~ q(· | x₀, x̃₁, ..., x̃ᵢ₋₁)
         Store q(x̃ᵢ | ...)
     
-    # Step 2: Verification phase (single forward pass)
+    # 2걸음: 확인 마디(앞먹임 한 번)
     Compute p(x̃₁ | x₀), p(x̃₂ | x₀, x̃₁), ..., p(x̃ₖ | x₀, ..., x̃ₖ₋₁)
     
-    # Step 3: Accept/Reject
-    n = 0  # Number of accepted tokens
+    # 3걸음: 받아들이기/물리치기
+    n = 0  # 받아들인 토막 수
     for i = 1 to K:
         r ~ Uniform(0, 1)
         if r < min(1, p(x̃ᵢ)/q(x̃ᵢ)):
             Accept x̃ᵢ
             n = n + 1
         else:
-            # Sample from residual distribution
+            # 남은 분포에서 뽑는다
             Sample x from norm(max(0, p(·) - q(·)))
             Append x to sequence
             break
     
     if all K tokens accepted:
-        # Bonus: sample one more token from p
+        # 덤: p에서 토막 하나를 더 뽑는다
         Sample x ~ p(· | x₀, x̃₁, ..., x̃ₖ)
         Append x to sequence
     
     Update x₀ with accepted tokens
 ```
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
@@ -113,7 +103,7 @@ from dataclasses import dataclass
 
 @dataclass
 class SpeculativeOutput:
-    """Output from speculative decoding step."""
+    """미리 짚어 풀기 한 걸음이 내놓는 것."""
     tokens: torch.Tensor
     num_accepted: int
     num_drafted: int
@@ -125,9 +115,9 @@ class SpeculativeOutput:
 
 class SpeculativeDecoder:
     """
-    Speculative decoding for accelerated text generation.
+    글 만들어 내기를 빠르게 하는 미리 짚어 풀기.
     
-    Uses a small draft model to propose tokens, verified by larger target model.
+    작은 밑그림 모델로 토막을 내놓고 더 큰 목표 모델이 확인한다.
     """
     
     def __init__(
@@ -150,14 +140,14 @@ class SpeculativeDecoder:
         draft_cache: Optional[Tuple] = None
     ) -> Tuple[SpeculativeOutput, Optional[Tuple], Optional[Tuple]]:
         """
-        Single step of speculative decoding.
+        미리 짚어 풀기의 한 걸음.
         
-        Returns accepted tokens and updated caches.
+        받아들인 토막과 새로 고친 곳간을 돌려준다.
         """
         device = input_ids.device
         batch_size = input_ids.size(0)
         
-        # Step 1: Generate K draft tokens
+        # 1걸음: 밑그림 토막 K개를 만든다
         draft_tokens = []
         draft_probs = []
         current_ids = input_ids
@@ -166,37 +156,37 @@ class SpeculativeDecoder:
             logits, draft_cache = self.draft(current_ids, past_caches=draft_cache)
             probs = F.softmax(logits[:, -1, :] / self.temperature, dim=-1)
             
-            # Sample from draft distribution
+            # 밑그림 분포에서 뽑는다
             token = torch.multinomial(probs, num_samples=1)
             draft_tokens.append(token)
             draft_probs.append(probs.gather(-1, token))
             
             current_ids = token
         
-        draft_tokens = torch.cat(draft_tokens, dim=1)  # [batch, K]
-        draft_probs = torch.cat(draft_probs, dim=1)    # [batch, K]
+        draft_tokens = torch.cat(draft_tokens, dim=1)  # [묶음, K]
+        draft_probs = torch.cat(draft_probs, dim=1)    # [묶음, K]
         
-        # Step 2: Verify all K tokens in parallel with target model
+        # 2걸음: 목표 모델로 K개 토막을 모두 나란히 확인한다
         verify_ids = torch.cat([input_ids, draft_tokens], dim=1)
         target_logits, target_cache = self.target(verify_ids, past_caches=target_cache)
         
-        # Get target probabilities for draft tokens
-        # target_logits[:, -K-1:-1, :] corresponds to positions before each draft token
+        # 밑그림 토막에 대한 목표 확률을 얻는다
+        # target_logits[:, -K-1:-1, :]는 밑그림 토막마다 그 앞자리에 맞닿는다
         target_probs = F.softmax(target_logits[:, -self.K-1:, :] / self.temperature, dim=-1)
         
-        # Step 3: Accept/reject with proper indexing
+        # 3걸음: 알맞은 번호 매기기로 받아들이거나 물리친다
         accepted_tokens = []
         num_accepted = 0
         
         for i in range(self.K):
-            # Target probability for the drafted token
+            # 밑그림으로 낸 토막의 목표 확률
             p = target_probs[:, i, :].gather(-1, draft_tokens[:, i:i+1]).squeeze(-1)
             q = draft_probs[:, i]
             
-            # Acceptance probability
+            # 받아들일 확률
             accept_prob = torch.clamp(p / q, max=1.0)
             
-            # Sample acceptance
+            # 받아들임을 뽑는다
             r = torch.rand(batch_size, device=device)
             accept = r < accept_prob
             
@@ -204,13 +194,13 @@ class SpeculativeDecoder:
                 accepted_tokens.append(draft_tokens[:, i:i+1])
                 num_accepted += 1
             else:
-                # Rejection: sample from residual distribution
+                # 물리침: 남은 분포에서 뽑는다
                 residual = torch.clamp(target_probs[:, i, :] - 
                                        F.softmax(logits[:, -1, :] / self.temperature, dim=-1), 
                                        min=0)
                 residual = residual / residual.sum(dim=-1, keepdim=True)
                 
-                # Handle numerical issues
+                # 수치 문제를 다룬다
                 if torch.isnan(residual).any():
                     correction = torch.multinomial(target_probs[:, i, :], num_samples=1)
                 else:
@@ -220,7 +210,7 @@ class SpeculativeDecoder:
                 num_accepted += 1
                 break
         else:
-            # All K tokens accepted - sample bonus token
+            # K개 토막을 모두 받아들였다 - 덤 토막을 뽑는다
             bonus = torch.multinomial(target_probs[:, -1, :], num_samples=1)
             accepted_tokens.append(bonus)
             num_accepted += 1
@@ -240,7 +230,7 @@ class SpeculativeDecoder:
         max_new_tokens: int = 100
     ) -> Tuple[torch.Tensor, dict]:
         """
-        Generate tokens using speculative decoding.
+        미리 짚어 풀기로 토막을 만든다.
         """
         generated = input_ids
         total_accepted = 0
@@ -260,7 +250,7 @@ class SpeculativeDecoder:
             total_drafted += output.num_drafted
             num_steps += 1
             
-            # Reset caches periodically to avoid memory issues
+            # 기억 공간 문제를 피하려 곳간을 이따금 비운다
             if num_steps % 50 == 0:
                 target_cache = None
                 draft_cache = None
@@ -280,24 +270,24 @@ def speculative_sample(
     draft_token: torch.Tensor
 ) -> Tuple[torch.Tensor, bool]:
     """
-    Core speculative sampling operation.
+    미리 짚어 뽑기의 고갱이 연산.
     
-    Args:
-        target_probs: [vocab_size] target model probabilities
-        draft_probs: [vocab_size] draft model probabilities  
-        draft_token: Proposed token from draft model
+    인수:
+        target_probs: [낱말 곳간 크기] 목표 모델의 확률
+        draft_probs: [낱말 곳간 크기] 밑그림 모델의 확률
+        draft_token: 밑그림 모델이 내놓은 토막
         
-    Returns:
-        (accepted_token, was_accepted)
+    반환값:
+        (받아들인 토막, 받아들였는지 여부)
     """
     p = target_probs[draft_token]
     q = draft_probs[draft_token]
     
-    # Accept with probability min(1, p/q)
+    # min(1, p/q)의 확률로 받아들인다
     if torch.rand(1) < p / q:
         return draft_token, True
     
-    # Reject: sample from residual
+    # 물리침: 남은 것에서 뽑는다
     residual = torch.clamp(target_probs - draft_probs, min=0)
     residual = residual / residual.sum()
     
@@ -305,9 +295,9 @@ def speculative_sample(
     return corrected, False
 
 
-# Demonstration with mock models
+# 가짜 모델로 보이기
 class MockLanguageModel(nn.Module):
-    """Simple mock LM for demonstration."""
+    """보이기 위한 단순한 가짜 말 모델."""
     
     def __init__(self, vocab_size: int, hidden_size: int, num_layers: int):
         super().__init__()
@@ -331,11 +321,11 @@ if __name__ == "__main__":
     
     vocab_size = 1000
     
-    # Create models (target is larger)
+    # 모델을 만든다(목표가 더 크다)
     target = MockLanguageModel(vocab_size, hidden_size=256, num_layers=6)
     draft = MockLanguageModel(vocab_size, hidden_size=128, num_layers=2)
     
-    # Create decoder
+    # 복호기 만들기
     decoder = SpeculativeDecoder(
         target_model=target,
         draft_model=draft,
@@ -343,7 +333,7 @@ if __name__ == "__main__":
         temperature=1.0
     )
     
-    # Generate
+    # 생성
     prompt = torch.randint(0, vocab_size, (1, 10))
     output, stats = decoder.generate(prompt, max_new_tokens=50)
     
@@ -354,121 +344,151 @@ if __name__ == "__main__":
     print(f"Theoretical speedup: {stats['speedup_factor']:.2f}x")
 ```
 
-## Theoretical Analysis
+## 이론적 분석
 
-### Expected Tokens per Step
+### 걸음마다의 기대 토막 수
 
 If the acceptance rate is $\alpha$, expected accepted tokens per step:
 
 $$
-
 \mathbb{E}[\text{tokens}] = \sum_{k=1}^{K} k \cdot \alpha^{k-1}(1-\alpha) + (K+1)\alpha^K
-
 $$
 
 For $K=4$ and $\alpha=0.8$: $\mathbb{E} \approx 3.36$ tokens per step.
 
-### Speedup Analysis
+### 빨라짐 살피기
 
-Let:
-- $T_t$ = target model forward pass time
-- $T_d$ = draft model forward pass time
-- $K$ = draft length
+다음이라 하자:
+
+- $T_t$ = 목표 모델의 앞먹임 시간
+- $T_d$ = 밑그림 모델의 앞먹임 시간
+- $K$ = 밑그림 길이
 - $\alpha$ = acceptance rate
 
 **Without speculation**: Generate $N$ tokens takes $N \cdot T_t$
 
-**With speculation**: 
+**미리 짚을 때**:
+
 - Steps needed: $\approx N / \mathbb{E}[\text{tokens}]$
 - Time per step: $K \cdot T_d + T_t$ (K draft passes + 1 verify)
 
-**Speedup**:
+**빨라짐**:
 
 $$
-
 S = \frac{N \cdot T_t}{\frac{N}{\mathbb{E}[\text{tokens}]} \cdot (K \cdot T_d + T_t)} = \frac{\mathbb{E}[\text{tokens}] \cdot T_t}{K \cdot T_d + T_t}
-
 $$
 
 When $T_d \ll T_t$:
 
 $$
-
 S \approx \mathbb{E}[\text{tokens}]
-
 $$
 
-## Practical Considerations
+## 실용적인 고려
 
-### Draft Model Selection
+### 밑그림 모델 고르기
 
-| Approach | Pros | Cons |
+| 방식 | 좋은 점 | 나쁜 점 |
 |----------|------|------|
-| Smaller same-family | High acceptance | Still requires separate model |
-| Quantized target | Very high acceptance | Limited speedup |
-| n-gram / retrieval | No neural compute | Lower acceptance |
-| Early exit | Shares parameters | Architecture changes |
+| 같은 갈래의 작은 모델 | 받아들임이 높다 | 그래도 따로 모델이 필요하다 |
+| 양자화한 목표 모델 | 받아들임이 아주 높다 | 빨라짐이 제한된다 |
+| n-그램 / 찾기 | 신경망 셈이 없다 | 받아들임이 낮다 |
+| 일찍 빠져나가기 | 매개변수를 나눠 쓴다 | 얼개를 바꿔야 한다 |
 
-### Acceptance Rate Factors
+### 받아들임 비율을 좌우하는 것
 
-1. **Distribution alignment**: Draft closer to target → higher acceptance
-2. **Temperature**: Higher temperature → more uniform → higher acceptance
-3. **Domain match**: In-domain draft → higher acceptance
-4. **Sequence position**: Later positions often have higher acceptance
+1. **분포의 결 맞음**: 밑그림이 목표에 가까울수록 → 받아들임이 높다
+2. **온도**: 온도가 높을수록 → 더 고르게 → 받아들임이 높다
+3. **분야 맞음**: 같은 분야의 밑그림 → 받아들임이 높다
+4. **차례에서의 자리**: 뒤쪽 자리가 흔히 받아들임이 높다
 
-### Memory Considerations
+### 기억 공간에서 헤아릴 점
 
-- Must keep both models in memory
-- KV cache for both models
-- Trade-off: memory vs. speed
+- 두 모델을 모두 기억 공간에 두어야 한다
+- 두 모델 모두에 열쇠-값 곳간이 필요하다
+- 맞바꿈: 기억 공간과 빠르기
 
-## Variants
+## 변형
 
-### Medusa
+### 메두사
 
-Uses multiple prediction heads on target model:
-- No separate draft model
-- Predicts multiple future tokens in parallel
-- Single model, reduced memory
+목표 모델에 어림 머리를 여럿 둔다:
+
+- 따로 밑그림 모델이 없다
+- 앞으로 올 토막 여럿을 나란히 어림한다
+- 모델 하나로 기억 공간을 줄인다
 
 ### SpecInfer
 
-Tree-structured speculation:
-- Multiple draft sequences (tree)
-- Verify entire tree in one pass
-- Higher acceptance with more candidates
+나무 짜임의 미리 짚기:
 
-### Staged Speculative Decoding
+- 밑그림 차례 여럿(나무)
+- 나무 전체를 한 번에 확인한다
+- 후보가 많을수록 받아들임이 높다
 
-Chain of progressively larger models:
+### 단계별 미리 짚어 풀기
+
+점점 커지는 모델의 사슬:
 ```
 Tiny → Small → Medium → Target
 ```
 
-## Comparison with Other Acceleration Methods
+## 다른 빠르게 하기 방법과의 견줌
 
-| Method | Speedup | Exact | Memory | Complexity |
+| 방법 | 빨라짐 | 정확 | 기억 공간 | 복잡도 |
 |--------|---------|-------|--------|------------|
-| Speculative Decoding | 2-3x | ✓ | 2x models | Medium |
-| KV Cache | ~Nx | ✓ | O(seq_len) | Low |
-| Flash Attention | 2-4x | ✓ | O(N) | Low |
-| Quantization | 2-4x | ✗ | 0.25-0.5x | Medium |
-| Pruning | Variable | ✗ | <1x | High |
+| 미리 짚어 풀기 | 2~3배 | ✓ | 모델 2배 | 가운데 |
+| 열쇠-값 곳간 | 약 N배 | ✓ | O(차례 길이) | 낮음 |
+| 플래시 눈길 | 2~4배 | ✓ | O(N) | 낮음 |
+| 양자화 | 2~4배 | ✗ | 0.25~0.5배 | 가운데 |
+| 가지치기 | 들쭉날쭉 | ✗ | 1배 미만 | 높음 |
 
-## Summary
+## 요약
 
-Speculative decoding accelerates LLM inference by:
+미리 짚어 풀기는 다음으로 큰 말 모델 미룸을 빠르게 한다:
 
-1. **Parallel verification**: Check multiple draft tokens in one forward pass
-2. **Exact sampling**: Mathematically guarantees target distribution
-3. **Complementary**: Combines with KV cache, Flash Attention, quantization
-4. **Trade-off**: Requires draft model, effectiveness depends on alignment
+1. **나란한 확인**: 앞먹임 한 번으로 밑그림 토막 여럿을 살핀다
+2. **정확한 뽑기**: 목표 분포를 수학으로 보장한다
+3. **서로 채워 줌**: 열쇠-값 곳간, 플래시 눈길, 양자화와 함께 쓴다
+4. **맞바꿈**: 밑그림 모델이 필요하고 얼마나 잘 듣는지는 결이 얼마나 맞느냐에 달렸다
 
-Typical speedups: **2-3x** with well-matched draft models.
+흔한 빨라짐: 잘 맞는 밑그림 모델이면 **2~3배**.
 
-## References
+## 참고 문헌
 
 1. Leviathan, Y., et al. (2023). "Fast Inference from Transformers via Speculative Decoding." ICML.
 2. Chen, C., et al. (2023). "Accelerating Large Language Model Decoding with Speculative Sampling."
 3. Cai, T., et al. (2024). "Medusa: Simple LLM Inference Acceleration Framework with Multiple Decoding Heads."
 4. Miao, X., et al. (2023). "SpecInfer: Accelerating Generative Large Language Model Serving with Speculative Inference."
+
+## 연습문제
+
+**연습문제 1.**
+열쇠-값 곳간이 자기되돌리기 풀기를 어떻게 빠르게 하는지 밝혀라. 기억 공간의 맞바꿈은 무엇인가?
+
+??? success "연습문제 1 풀이"
+    During autoregressive generation, each new token attends to all previous tokens. Without caching, generating token $t$ recomputes the key and value projections for all $t-1$ previous tokens, giving $O(t^2)$ total computation for a sequence of length $T$. With KV-caching, keys and values from previous steps are stored and reused, so only the new token's K/V are computed at each step, reducing computation to $O(T)$ total. The trade-off: KV-cache memory grows as $O(T \cdot L \cdot d)$ where $L$ is the number of layers and $d$ is the hidden dimension. For long sequences with large models, this can consume significant GPU memory.
+
+---
+
+**연습문제 2.**
+플래시 눈길의 고갱이 생각을 설명하여라. 수학으로는 같은 셈을 하는데 왜 빨라지는가?
+
+??? success "연습문제 2 풀이"
+    Flash Attention exploits the GPU memory hierarchy. Standard attention materializes the $N \times N$ attention matrix in HBM (slow GPU memory), causing memory-bound computation. Flash Attention tiles the computation into blocks that fit in SRAM (fast on-chip memory), computing attention block-by-block without ever materializing the full attention matrix. It uses online softmax (tracking running max and sum) to compute exact attention incrementally. The speedup comes from reduced HBM reads/writes (IO complexity drops from $O(N^2 d)$ to $O(N^2 d^2 / M)$ where $M$ is SRAM size), not from fewer FLOPs. This provides 2-4x wall-clock speedup and $O(N)$ memory.
+
+---
+
+**연습문제 3.**
+미리 짚어 풀기란 무엇이며 내놓는 분포를 바꾸지 않고 어떻게 미룸을 빠르게 하는가?
+
+??? success "연습문제 3 풀이"
+    미리 짚어 풀기는 작고 빠른 "밑그림" 모델로 후보 토막 $K$개를 만든 뒤 큰 "목표" 모델로 그 $K$개를 나란히 확인한다. 목표 모델이 밑그림의 어림에 동의하면 목표 모델 앞먹임 한 번으로 $K$개를 모두 받아들인다(차례차례 $K$번 대신). 어긋나면 물리치기 표집으로 다룬다. 곧 처음 물리친 토막을 맞춘 분포에서 다시 뽑아 내놓는 분포가 목표 모델의 것과 같게 한다. 빨라짐은 밑그림 모델의 받아들임 비율에 달렸고, 좋은 밑그림 모델이면 2~3배가 보통이다. 핵심 눈썰미는 확인은 나란히 되지만 만들어 내기는 차례차례라는 것이다.
+
+---
+
+**연습문제 4.**
+익힌 뒤 양자화(PTQ)와 양자화를 헤아린 익히기(QAT)를 견주어라. 저마다 언제 쓰는 것이 좋은가?
+
+??? success "연습문제 4 풀이"
+    **익힌 뒤 양자화**는 더 익히지 않고 눈금 맞추기 자료로 잣수 인자를 정해 미리 익힌 모델의 무게(그리고 원하면 깨어남)를 양자화한다. 빠르고 단순하지만 특히 8비트 아래에서는 정확도가 떨어질 수 있다. **양자화를 헤아린 익히기**는 기울기에 곧바로 지나가기 어림개를 써서 익히는 동안 양자화를 흉내내어 모델이 낮은 정밀도에 맞춰지게 한다. 낮은 자릿수(4비트, 2비트)에서 정확도가 더 낫지만 온전한 익히기를 한 번 더 돌려야 한다. 빠르기가 중요하고 8비트면 넉넉한 (펼치기) 장면에서는 **익힌 뒤 양자화가 낫다**. 4비트처럼 세게 양자화해야 하고 익힐 자원이 있으면 **양자화를 헤아린 익히기가 낫다**.

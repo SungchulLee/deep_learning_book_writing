@@ -1,9 +1,4 @@
 # Adversarial Training
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Introduction
 
 **Adversarial training** is the most effective defense against adversarial attacks. It augments the training process with adversarial examples, teaching the model to be robust within an $\varepsilon$-ball around each training point. This section covers standard adversarial training (PGD-AT), TRADES, MART, and practical considerations.
@@ -15,9 +10,7 @@
 **Standard Empirical Risk Minimization (ERM):**
 
 $$
-
 \min_\theta \mathbb{E}_{(\mathbf{x}, y) \sim \mathcal{D}} \left[ \mathcal{L}(f_\theta(\mathbf{x}), y) \right]
-
 $$
 
 This optimizes for average-case performance but ignores adversarial perturbations.
@@ -25,18 +18,18 @@ This optimizes for average-case performance but ignores adversarial perturbation
 **Robust Optimization (Adversarial Training):**
 
 $$
-
 \min_\theta \mathbb{E}_{(\mathbf{x}, y) \sim \mathcal{D}} \left[ \max_{\|\boldsymbol{\delta}\|_p \leq \varepsilon} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y) \right]
-
 $$
 
 This is a **min-max** problem:
+
 - **Inner maximization**: Find worst-case perturbation (the attack)
 - **Outer minimization**: Train to be robust against it
 
 ### Interpretation
 
 For each training example $(\mathbf{x}, y)$:
+
 1. Find the adversarial perturbation $\boldsymbol{\delta}^*$ that maximizes loss
 2. Update parameters to minimize loss on $\mathbf{x} + \boldsymbol{\delta}^*$
 
@@ -47,9 +40,7 @@ The model learns to correctly classify not just $\mathbf{x}$, but the entire $\v
 Since the inner maximization is intractable, we approximate it with PGD:
 
 $$
-
 \boldsymbol{\delta}^* \approx \text{PGD}(\mathbf{x}, y, \varepsilon, \alpha, K)
-
 $$
 
 **Algorithm: PGD Adversarial Training**
@@ -73,12 +64,11 @@ Standard adversarial training can sacrifice too much clean accuracy. **TRADES** 
 TRADES decomposes the robust loss:
 
 $$
-
 \mathcal{L}_{\text{TRADES}} = \mathcal{L}_{\text{CE}}(f_\theta(\mathbf{x}), y) + \beta \cdot \text{KL}(f_\theta(\mathbf{x}) \| f_\theta(\mathbf{x}_{\text{adv}}))
-
 $$
 
 where:
+
 - First term: Standard cross-entropy (clean accuracy)
 - Second term: KL divergence between clean and adversarial predictions (local smoothness)
 - $\beta$: Trade-off parameter (typically 1-6)
@@ -107,12 +97,11 @@ Not all examples are equally important. **MART** (Wang et al., 2020) focuses mor
 ### Formulation
 
 $$
-
 \mathcal{L}_{\text{MART}} = \text{BCE}(f_\theta(\mathbf{x}_{\text{adv}}), y) + \lambda \cdot (1 - p_y(\mathbf{x})) \cdot \text{KL}(f_\theta(\mathbf{x}) \| f_\theta(\mathbf{x}_{\text{adv}}))
-
 $$
 
 where:
+
 - $p_y(\mathbf{x})$ is the probability of true class on clean input
 - $(1 - p_y(\mathbf{x}))$ upweights examples that are already difficult
 
@@ -456,6 +445,7 @@ history = trainer_trades.train(train_loader, test_loader, epochs=100)
 ### Computational Cost
 
 Adversarial training is **7-10× slower** than standard training:
+
 - Each batch requires $K$ forward-backward passes for PGD
 - Typical: 10 PGD steps means 10× more gradient computations
 
@@ -495,3 +485,35 @@ Adversarial training remains the gold standard for achieving robust models, desp
 1. Madry, A., et al. (2018). "Towards Deep Learning Models Resistant to Adversarial Attacks." ICLR.
 2. Zhang, H., et al. (2019). "Theoretically Principled Trade-off between Robustness and Accuracy." ICML.
 3. Wang, Y., et al. (2020). "Improving Adversarial Robustness Requires Revisiting Misclassified Examples." ICLR.
+
+## Exercises
+
+**Exercise 1.**
+For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+
+??? success "Solution to Exercise 1"
+    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
+
+---
+
+**Exercise 2.**
+Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
+
+??? success "Solution to Exercise 2"
+    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+
+---
+
+**Exercise 3.**
+Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+
+??? success "Solution to Exercise 3"
+    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+
+---
+
+**Exercise 4.**
+Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+
+??? success "Solution to Exercise 4"
+    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$

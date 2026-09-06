@@ -1,67 +1,95 @@
-# 33.5.4 Implicit Q-Learning (IQL)
+# 33.5.4 숨은 Q 배우기(IQL)
+## 핵심 생각
 
+**IQL**(Kostrikov et al., 2022)은 자료 뭉치에 있는 움직임만으로 Q 값을 배워 분포 밖 움직임을 묻는 일을 아예 피한다. **기대분위 되돌이 맞춤**으로 보지 않은 움직임을 따지지 않고도 움직임에 대한 최대를 어림한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 핵심 통찰
 
-## Core Idea
-
-**IQL** (Kostrikov et al., 2022) avoids querying out-of-distribution actions entirely by learning Q-values using only actions present in the dataset. It uses **expectile regression** to approximate the maximum over actions without ever evaluating unseen actions.
-
-## The Key Insight
-
-Standard Q-learning requires $\max_a Q(s', a)$ in the Bellman target, which queries OOD actions. IQL replaces this with an expectile-based value function:
+여느 Q 배우기는 벨먼 과녁에 $\max_a Q(s', a)$이 필요한데 이는 분포 밖 움직임을 묻는다. IQL은 이를 기대분위 바탕 값 함수로 바꾼다:
 
 $$\mathcal{L}_V(\psi) = \mathbb{E}_{(s,a) \sim \mathcal{D}}\left[L_2^\tau(Q_\theta(s, a) - V_\psi(s))\right]$$
 
-where $L_2^\tau$ is the **asymmetric squared loss** (expectile loss):
+여기서 $L_2^\tau$은 **어긋난 제곱 손실**(기대분위 손실)이다:
 
 $$L_2^\tau(u) = |\tau - \mathbf{1}(u < 0)| \cdot u^2$$
 
-For $\tau > 0.5$, this loss penalizes underestimation more heavily, causing $V_\psi(s)$ to approximate $\max_a Q(s, a)$ using only in-sample actions.
+$\tau > 0.5$이면 이 손실이 모자란 어림에 더 큰 벌을 주어 $V_\psi(s)$이 표본 안 움직임만으로 $\max_a Q(s, a)$을 어림하게 한다.
 
-## Algorithm
+## 알고리즘
 
-IQL trains three networks:
+IQL은 그물 셋을 익힌다:
 
-1. **Q-network** $Q_\theta(s, a)$: Trained with standard Bellman loss using $V_\psi$ instead of $\max_a Q$:
+1. **Q 그물** $Q_\theta(s, a)$: $\max_a Q$ 대신 $V_\psi$을 쓰는 여느 벨먼 손실로 익힌다:
 
    $$\mathcal{L}_Q(\theta) = \mathbb{E}_\mathcal{D}\left[(r + \gamma V_\psi(s') - Q_\theta(s, a))^2\right]$$
 
-2. **Value network** $V_\psi(s)$: Trained with expectile regression on Q-values:
+2. **값 그물** $V_\psi(s)$: Q 값에 대한 기대분위 되돌이 맞춤으로 익힌다:
 
    $$\mathcal{L}_V(\psi) = \mathbb{E}_\mathcal{D}\left[L_2^\tau(Q_{\hat{\theta}}(s, a) - V_\psi(s))\right]$$
 
-3. **Policy** $\pi_\phi(a|s)$: Extracted via advantage-weighted regression:
+3. **방침** $\pi_\phi(a|s)$: 이점 무게 되돌이 맞춤으로 뽑아낸다:
 
    $$\mathcal{L}_\pi(\phi) = \mathbb{E}_\mathcal{D}\left[\exp(\beta \cdot A(s, a)) \cdot \log \pi_\phi(a|s)\right]$$
 
-   where $A(s, a) = Q(s, a) - V(s)$
+   여기서 $A(s, a) = Q(s, a) - V(s)$이다
 
-## Why Expectile Regression Works
+## 기대분위 되돌이 맞춤이 통하는 까닭
 
-- At $\tau = 0.5$: $V(s)$ approximates $\mathbb{E}_\mu[Q(s, a)]$ (mean)
-- At $\tau \to 1$: $V(s)$ approximates $\max_{a \in \text{support}(\mu)} Q(s, a)$ (in-sample max)
-- Typical $\tau = 0.7$–$0.9$: Good balance between optimism and staying in-distribution
+- $\tau = 0.5$에서 $V(s)$은 $\mathbb{E}_\mu[Q(s, a)]$(평균)을 어림한다
+- $\tau \to 1$에서 $V(s)$은 $\max_{a \in \text{support}(\mu)} Q(s, a)$(표본 안 최대)을 어림한다
+- 흔한 $\tau = 0.7$~$0.9$: 낙관과 분포 안에 머무름의 균형이 좋다
 
-## Advantages
+## 이점
 
-1. **No OOD queries**: Never evaluates Q at unseen actions
-2. **Simple**: No behavior model, no constrained optimization, no min-max
-3. **Effective**: State-of-the-art on D4RL benchmarks
-4. **Stable**: Avoids the optimization challenges of CQL's min-max objective
+1. **분포 밖 묻기 없음**: 보지 않은 움직임에서 Q을 결코 따지지 않는다
+2. **단순함**: 움직임 모델도, 매인 가장 좋게 하기도, 최소최대도 없다
+3. **쓸모 있음**: D4RL 잣대에서 가장 앞선다
+4. **안정**: CQL 최소최대 목표의 가장 좋게 하기 어려움을 피한다
 
-## Hyperparameters
+## 초매개변수
 
-| Parameter | Typical | Notes |
+| 잡 | 흔한 값 | 메모 |
 |-----------|---------|-------|
-| $\tau$ (expectile) | 0.7–0.9 | Higher = more optimistic |
-| $\beta$ (advantage temperature) | 3.0–10.0 | Higher = more selective policy |
-| LR (all networks) | $3 \times 10^{-4}$ | Standard |
+| $\tau$(기대분위) | 0.7~0.9 | 클수록 더 낙관 |
+| $\beta$(이점 온도) | 3.0~10.0 | 클수록 더 까다로운 방침 |
+| 배움 빠르기(모든 그물) | $3 \times 10^{-4}$ | 여느 값 |
 
-## Finance Application
+## 금융 쓰임새
 
-IQL is particularly attractive for finance because:
-- No risk of evaluating extreme positions not in historical data
-- The expectile parameter $\tau$ can be interpreted as a quantile preference
-- Advantage-weighted policy extraction naturally favors profitable trades seen in data
+IQL은 다음 까닭으로 금융에 특히 끌린다:
+
+- 지난 자료에 없는 극단 자리를 따질 위험이 없다
+- 기대분위 잡 $\tau$을 분위 취향으로 풀이할 수 있다
+- 이점 무게 방침 뽑기가 자료에 있는 이익 나는 거래를 자연스럽게 좋아한다
+
+## 연습문제
+
+**연습문제 1.**
+Q 값 어림에 신경망을 쓰는 어려움을 이 방법이 어떻게 다루는지 밝혀라. 이 길이 없으면 어떤 불안정이 생기는가?
+
+??? success "연습문제 1 풀이"
+    신경망 Q 값 어림은 차례 자료의 얽힘과 움직이는 과녁 문제(과녁이 지금 잡에 매인다) 때문에 불안정하다. 이 방법은 특정 얼개나 알고리즘 고름으로 이 말썽을 다룬다. 이것이 없으면 기울기 고침이 한결같지 않은 과녁을 좇아 익히기가 발산하고 재앙 같은 지나친 어림이나 흔들림이 생긴다. 이 길은 얽힘을 끊거나 얼마 동안 과녁을 붙박아 익히기를 안정시킨다. $\square$
+
+---
+
+**연습문제 2.**
+CartPole-v1 둘레에서 이 방법을 짜라. 둘레를 푸는 데(100판 평균 보상 > 475) 필요한 판수를 알리고 배움 굽은 줄을 그려라.
+
+??? success "연습문제 2 풀이"
+    숨은 낱덩이 64개의 2층 여러 층 신경망, 배움 빠르기 $3 \times 10^{-4}$의 Adam, 이 마디의 재주를 쓰면 부림꾼이 보통 200~500판에 CartPole을 푼다. 배움 굽은 줄은 처음의 아무 성능(보상 $\approx 20$), 빠르게 좋아지는 마당, 거의 가장 좋은 성능으로의 모임을 보인다. 핵심 짜기 세부: 되돌려 보기 버퍼 크기 10000, 묶음 크기 64, 100걸음마다 과녁 그물 고침, 300판에 걸쳐 1.0에서 0.01로 선형으로 스러지는 $\epsilon$ 욕심쟁이. $\square$
+
+---
+
+**연습문제 3.**
+맨 DQN에 견주어 이 방법이 더하는 셈과 기억 덧짐을 살펴라. 금융 쓰임새에서 그 맞바꿈이 값을 하는가?
+
+??? success "연습문제 3 풀이"
+    덧짐은 방법마다 다르지만 보통 앞으로 가기를 더 하거나(두 겹 DQN은 2배), 그물 잡을 더 두거나(맞겨루기 갈래), 기억을 더 쓴다(앞섬 되돌려 보기). 자료가 비싸고 실수가 값비싼 금융 쓰임새에서는 표본 효율과 안정이 좋아지므로 덧짐이 값을 한다. 금융 상태 자리는 흔히 차원이 웬만하므로(특징 10~100개) 걸음마다 늘어나는 비용이 더 나은 결정의 값어치에 견주면 크지 않다. $\square$
+
+---
+
+**연습문제 4.**
+보상 신호가 성기고(거래를 마칠 때만 실현되고) 늦는 금융 거래 쓰임새에 이 방법을 어떻게 맞출지 다루어라.
+
+??? success "연습문제 4 풀이"
+    성긴 보상은 공 돌리기를 어렵게 한다. 부림꾼은 여러 걸음 전의 움직임을 끝내 생긴 이익이나 손실에 이어야 한다. 맞추는 길: (1) 가장 좋은 방침을 지키면서 더 빽빽한 되먹임을 주는 중간 신호(실현되지 않은 손익, 위험 잣대)로 보상 다듬기, (2) 성긴 보상을 더 효율 좋게 뒤로 퍼뜨리는 여러 걸음 돌아옴, (3) 지난 겪음에 이룬 결과로 새 이름표를 붙이는 뒤늦은 겪음 되돌려 보기. 이 마디의 방법은 드문 보상 신호에서 배우는 안정을 높여 이바지한다. $\square$

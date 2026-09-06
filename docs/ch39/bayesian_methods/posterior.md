@@ -1,9 +1,4 @@
 # Posterior Inference in Bayesian Neural Networks
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 **Posterior inference** is the central computational challenge in Bayesian neural networks. Given a prior $p(\theta)$ and likelihood $p(\mathcal{D} \mid \theta)$, we seek the posterior distribution $p(\theta \mid \mathcal{D})$. For neural networks, this posterior is intractable, necessitating approximate inference methods ranging from sampling (MCMC) to optimization (variational inference) to implicit approximations (dropout, ensembles).
 
 ---
@@ -15,12 +10,11 @@
 By Bayes' theorem, the posterior over network weights is:
 
 $$
-
 \boxed{p(\theta \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{p(\mathcal{D})}}
-
 $$
 
 where:
+
 - $p(\mathcal{D} \mid \theta) = \prod_{i=1}^N p(y_i \mid x_i, \theta)$ is the likelihood
 - $p(\theta)$ is the prior
 - $p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta) \, p(\theta) \, d\theta$ is the evidence (marginal likelihood)
@@ -32,9 +26,7 @@ where:
 **2. Non-conjugacy**: Neural network likelihoods are not conjugate to standard priors:
 
 $$
-
 p(y \mid x, \theta) = \mathcal{N}(y \mid f_\theta(x), \sigma^2)
-
 $$
 
 where $f_\theta$ is a complex nonlinear function.
@@ -42,12 +34,11 @@ where $f_\theta$ is a complex nonlinear function.
 **3. Intractable normalization**: The evidence integral has no closed form:
 
 $$
-
 p(\mathcal{D}) = \int p(\mathcal{D} \mid \theta) \, p(\theta) \, d\theta
-
 $$
 
 **4. Multimodality**: The posterior landscape has many modes due to:
+
 - Weight space symmetries (permutation, scaling)
 - Multiple good solutions
 - Complex loss surfaces
@@ -114,9 +105,7 @@ Posterior Inference Methods
 MCMC constructs a Markov chain whose stationary distribution is the posterior:
 
 $$
-
 \theta^{(t+1)} \sim T(\theta^{(t+1)} \mid \theta^{(t)})
-
 $$
 
 such that $\theta^{(t)} \to p(\theta \mid \mathcal{D})$ as $t \to \infty$.
@@ -124,21 +113,18 @@ such that $\theta^{(t)} \to p(\theta \mid \mathcal{D})$ as $t \to \infty$.
 **Using samples**: Given samples $\{\theta^{(t)}\}_{t=1}^T$, approximate expectations:
 
 $$
-
 \mathbb{E}_{p(\theta \mid \mathcal{D})}[f(\theta)] \approx \frac{1}{T} \sum_{t=1}^T f(\theta^{(t)})
-
 $$
 
 ### Metropolis-Hastings
 
 **Algorithm**:
+
 1. Propose $\theta' \sim q(\theta' \mid \theta^{(t)})$
 2. Compute acceptance probability:
 
 $$
-
 \alpha = \min\left(1, \frac{p(\theta' \mid \mathcal{D}) \, q(\theta^{(t)} \mid \theta')}{p(\theta^{(t)} \mid \mathcal{D}) \, q(\theta' \mid \theta^{(t)})}\right)
-
 $$
 
 3. Accept with probability $\alpha$: $\theta^{(t+1)} = \theta'$ or $\theta^{(t+1)} = \theta^{(t)}$
@@ -152,40 +138,31 @@ HMC uses gradient information to make informed proposals.
 **Augmented system**: Introduce momentum $\rho$ and define Hamiltonian:
 
 $$
-
 H(\theta, \rho) = -\log p(\theta \mid \mathcal{D}) + \frac{1}{2}\rho^\top M^{-1} \rho
-
 $$
 
 **Hamiltonian dynamics**:
 
 $$
-
 \frac{d\theta}{dt} = M^{-1} \rho, \quad \frac{d\rho}{dt} = \nabla_\theta \log p(\theta \mid \mathcal{D})
-
 $$
 
 **Leapfrog integrator** (for $L$ steps with step size $\epsilon$):
 
 $$
-
 \rho^{(t+1/2)} = \rho^{(t)} + \frac{\epsilon}{2} \nabla_\theta \log p(\theta^{(t)} \mid \mathcal{D})
-
 $$
 
 $$
-
 \theta^{(t+1)} = \theta^{(t)} + \epsilon \, M^{-1} \rho^{(t+1/2)}
-
 $$
 
 $$
-
 \rho^{(t+1)} = \rho^{(t+1/2)} + \frac{\epsilon}{2} \nabla_\theta \log p(\theta^{(t+1)} \mid \mathcal{D})
-
 $$
 
 **HMC Algorithm**:
+
 1. Sample momentum: $\rho \sim \mathcal{N}(0, M)$
 2. Run leapfrog for $L$ steps
 3. Accept/reject with Metropolis correction
@@ -203,9 +180,7 @@ $$
 Full-batch gradients are expensive. Stochastic gradient MCMC uses minibatch gradients:
 
 $$
-
 \nabla_\theta \log p(\theta \mid \mathcal{D}) \approx \nabla_\theta \log p(\theta) + \frac{N}{|B|} \sum_{i \in B} \nabla_\theta \log p(y_i \mid x_i, \theta)
-
 $$
 
 where $B$ is a minibatch of size $|B|$.
@@ -215,9 +190,7 @@ where $B$ is a minibatch of size $|B|$.
 **Update rule**:
 
 $$
-
 \boxed{\theta^{(t+1)} = \theta^{(t)} + \frac{\epsilon_t}{2} \nabla_\theta \log p(\theta^{(t)} \mid \mathcal{D}) + \eta_t, \quad \eta_t \sim \mathcal{N}(0, \epsilon_t I)}
-
 $$
 
 **Key insight**: With decreasing step size $\epsilon_t \to 0$, the Metropolis acceptance step can be skipped.
@@ -225,9 +198,7 @@ $$
 **Step size schedule**: Must satisfy:
 
 $$
-
 \sum_{t=1}^\infty \epsilon_t = \infty, \quad \sum_{t=1}^\infty \epsilon_t^2 < \infty
-
 $$
 
 Common choice: $\epsilon_t = a(b + t)^{-\gamma}$ with $\gamma \in (0.5, 1]$.
@@ -235,9 +206,7 @@ Common choice: $\epsilon_t = a(b + t)^{-\gamma}$ with $\gamma \in (0.5, 1]$.
 **Practical SGLD**:
 
 $$
-
 \theta^{(t+1)} = \theta^{(t)} + \frac{\epsilon_t}{2} \left[ \nabla_\theta \log p(\theta^{(t)}) + \frac{N}{|B|} \sum_{i \in B} \nabla_\theta \log p(y_i \mid x_i, \theta^{(t)}) \right] + \eta_t
-
 $$
 
 ### Stochastic Gradient Hamiltonian Monte Carlo (SGHMC)
@@ -245,15 +214,11 @@ $$
 Adds momentum to SGLD for better exploration:
 
 $$
-
 \theta^{(t+1)} = \theta^{(t)} + \rho^{(t)}
-
 $$
 
 $$
-
 \rho^{(t+1)} = (1 - \alpha) \rho^{(t)} + \epsilon_t \nabla_\theta \log p(\theta^{(t)} \mid \mathcal{D}) + \eta_t
-
 $$
 
 where $\alpha$ is a friction coefficient and $\eta_t \sim \mathcal{N}(0, 2\alpha\epsilon_t I)$.
@@ -263,14 +228,13 @@ where $\alpha$ is a friction coefficient and $\eta_t \sim \mathcal{N}(0, 2\alpha
 Use preconditioning matrix $G(\theta)$ for better scaling:
 
 $$
-
 \theta^{(t+1)} = \theta^{(t)} + \frac{\epsilon_t}{2} \left[ G(\theta^{(t)}) \nabla_\theta \log p(\theta^{(t)} \mid \mathcal{D}) + \Gamma(\theta^{(t)}) \right] + \eta_t
-
 $$
 
 where $\eta_t \sim \mathcal{N}(0, \epsilon_t G(\theta^{(t)}))$ and $\Gamma$ is a correction term.
 
 **Common choices for $G$**:
+
 - RMSprop preconditioner
 - Adam preconditioner
 - Fisher information matrix
@@ -280,9 +244,7 @@ where $\eta_t \sim \mathcal{N}(0, \epsilon_t G(\theta^{(t)}))$ and $\Gamma$ is a
 Use cyclical learning rates to escape local modes:
 
 $$
-
 \epsilon_t = \epsilon_0 \left( \cos\left(\frac{\pi \, \text{mod}(t, T_{\text{cycle}})}{T_{\text{cycle}}}\right) + 1 \right) / 2
-
 $$
 
 Collect samples at the end of each cycle when step size is small.
@@ -296,12 +258,11 @@ Collect samples at the end of each cycle when step size is small.
 Approximate the posterior with a Gaussian centered at the MAP estimate:
 
 $$
-
 \boxed{p(\theta \mid \mathcal{D}) \approx q(\theta) = \mathcal{N}(\theta \mid \hat{\theta}_{\text{MAP}}, \Sigma)}
-
 $$
 
 where:
+
 - $\hat{\theta}_{\text{MAP}} = \arg\max_\theta \log p(\theta \mid \mathcal{D})$
 - $\Sigma = \left[ -\nabla^2_\theta \log p(\theta \mid \mathcal{D}) \big|_{\hat{\theta}_{\text{MAP}}} \right]^{-1}$
 
@@ -310,9 +271,7 @@ where:
 Taylor expand the log posterior around the MAP:
 
 $$
-
 \log p(\theta \mid \mathcal{D}) \approx \log p(\hat{\theta} \mid \mathcal{D}) - \frac{1}{2}(\theta - \hat{\theta})^\top H (\theta - \hat{\theta})
-
 $$
 
 where $H = -\nabla^2_\theta \log p(\theta \mid \mathcal{D})|_{\hat{\theta}}$ is the Hessian.
@@ -326,9 +285,7 @@ Exponentiating gives a Gaussian with covariance $\Sigma = H^{-1}$.
 **Diagonal approximation**:
 
 $$
-
 \Sigma = \text{diag}(\sigma_1^2, \ldots, \sigma_d^2)
-
 $$
 
 where $\sigma_i^2 = 1/H_{ii}$.
@@ -338,21 +295,18 @@ where $\sigma_i^2 = 1/H_{ii}$.
 For layer $l$ with weights $W^{(l)}$:
 
 $$
-
 H^{(l)} \approx A^{(l)} \otimes G^{(l)}
-
 $$
 
 where:
+
 - $A^{(l)} = \mathbb{E}[a^{(l-1)} (a^{(l-1)})^\top]$ (input activations)
 - $G^{(l)} = \mathbb{E}[g^{(l)} (g^{(l)})^\top]$ (output gradients)
 
 **Inversion**:
 
 $$
-
 (A \otimes G)^{-1} = A^{-1} \otimes G^{-1}
-
 $$
 
 Reduces $O(d^3)$ to $O(n_l^3 + n_{l-1}^3)$ per layer.
@@ -362,12 +316,11 @@ Reduces $O(d^3)$ to $O(n_l^3 + n_{l-1}^3)$ per layer.
 Apply Laplace only to the last layer, keeping earlier layers fixed:
 
 $$
-
 p(\theta_L \mid \mathcal{D}, \theta_{1:L-1}) \approx \mathcal{N}(\theta_L \mid \hat{\theta}_L, \Sigma_L)
-
 $$
 
 **Advantages**:
+
 - Much smaller Hessian
 - Often captures most uncertainty
 - Feature extractor remains deterministic
@@ -377,17 +330,13 @@ $$
 For regression with Gaussian likelihood:
 
 $$
-
 p(y^* \mid x^*, \mathcal{D}) = \int p(y^* \mid x^*, \theta) \, q(\theta) \, d\theta
-
 $$
 
 **Linearization** around MAP:
 
 $$
-
 f_\theta(x) \approx f_{\hat{\theta}}(x) + J_{\hat{\theta}}(x)(\theta - \hat{\theta})
-
 $$
 
 where $J_{\hat{\theta}}(x) = \nabla_\theta f_\theta(x)|_{\hat{\theta}}$ is the Jacobian.
@@ -395,39 +344,31 @@ where $J_{\hat{\theta}}(x) = \nabla_\theta f_\theta(x)|_{\hat{\theta}}$ is the J
 **Predictive variance**:
 
 $$
-
 \text{Var}[f(x^*)] \approx J_{\hat{\theta}}(x^*)^\top \Sigma \, J_{\hat{\theta}}(x^*)
-
 $$
 
 ---
 
-## Variational Inference
+## 변분 추론
 
 ### The Variational Objective
 
 Approximate $p(\theta \mid \mathcal{D})$ with a tractable distribution $q_\phi(\theta)$ by minimizing KL divergence:
 
 $$
-
 \phi^* = \arg\min_\phi \text{KL}(q_\phi(\theta) \| p(\theta \mid \mathcal{D}))
-
 $$
 
 **Evidence Lower Bound (ELBO)**:
 
 $$
-
 \boxed{\mathcal{L}(\phi) = \mathbb{E}_{q_\phi}[\log p(\mathcal{D} \mid \theta)] - \text{KL}(q_\phi(\theta) \| p(\theta))}
-
 $$
 
 **Derivation**:
 
 $$
-
 \log p(\mathcal{D}) = \mathcal{L}(\phi) + \text{KL}(q_\phi \| p(\theta \mid \mathcal{D})) \geq \mathcal{L}(\phi)
-
 $$
 
 Maximizing ELBO is equivalent to minimizing KL to the posterior.
@@ -437,17 +378,13 @@ Maximizing ELBO is equivalent to minimizing KL to the posterior.
 **Factorized approximation**:
 
 $$
-
 q_\phi(\theta) = \prod_{i=1}^d q_{\phi_i}(\theta_i)
-
 $$
 
 **Gaussian mean-field**:
 
 $$
-
 q_\phi(\theta) = \prod_{i=1}^d \mathcal{N}(\theta_i \mid \mu_i, \sigma_i^2)
-
 $$
 
 Parameters: $\phi = \{\mu_i, \sigma_i\}_{i=1}^d$ (or $\log \sigma_i$ for positivity).
@@ -457,17 +394,13 @@ Parameters: $\phi = \{\mu_i, \sigma_i\}_{i=1}^d$ (or $\log \sigma_i$ for positiv
 To compute gradients through stochastic sampling:
 
 $$
-
 \theta = \mu + \sigma \odot \epsilon, \quad \epsilon \sim \mathcal{N}(0, I)
-
 $$
 
 **Gradient of ELBO**:
 
 $$
-
 \nabla_\phi \mathcal{L} = \nabla_\phi \mathbb{E}_{\epsilon}[\log p(\mathcal{D} \mid \mu + \sigma \odot \epsilon)] - \nabla_\phi \text{KL}(q_\phi \| p)
-
 $$
 
 The first term is estimated via Monte Carlo; the second often has closed form.
@@ -477,9 +410,7 @@ The first term is estimated via Monte Carlo; the second often has closed form.
 For $q(\theta) = \mathcal{N}(\mu, \text{diag}(\sigma^2))$ and $p(\theta) = \mathcal{N}(0, \sigma_0^2 I)$:
 
 $$
-
 \text{KL}(q \| p) = \frac{1}{2} \sum_{i=1}^d \left[ \frac{\mu_i^2 + \sigma_i^2}{\sigma_0^2} - 1 - \log\frac{\sigma_i^2}{\sigma_0^2} \right]
-
 $$
 
 ### Bayes by Backprop
@@ -494,22 +425,19 @@ $$
 **Minibatch ELBO**:
 
 $$
-
 \mathcal{L} \approx \frac{N}{|B|} \sum_{i \in B} \log p(y_i \mid x_i, \theta) - \text{KL}(q_\phi \| p)
-
 $$
 
 ### Beyond Mean-Field
 
 **Full covariance**: $q(\theta) = \mathcal{N}(\mu, \Sigma)$
+
 - $O(d^2)$ parameters — often intractable
 
 **Low-rank plus diagonal**:
 
 $$
-
 \Sigma = D + VV^\top
-
 $$
 
 where $D$ is diagonal and $V \in \mathbb{R}^{d \times r}$ with rank $r \ll d$.
@@ -517,9 +445,7 @@ where $D$ is diagonal and $V \in \mathbb{R}^{d \times r}$ with rank $r \ll d$.
 **Normalizing flows**: Transform simple distribution through invertible functions
 
 $$
-
 q(\theta) = q_0(f^{-1}(\theta)) \left| \det \frac{\partial f^{-1}}{\partial \theta} \right|
-
 $$
 
 ---
@@ -531,27 +457,25 @@ $$
 Train $M$ networks independently with different initializations:
 
 $$
-
 \{\theta^{(m)}\}_{m=1}^M \quad \text{where each } \theta^{(m)} = \arg\min_\theta \mathcal{L}(\theta; \mathcal{D})
-
 $$
 
 **Predictive distribution**:
 
 $$
-
 p(y^* \mid x^*, \mathcal{D}) \approx \frac{1}{M} \sum_{m=1}^M p(y^* \mid x^*, \theta^{(m)})
-
 $$
 
 **Interpretation**: Implicit posterior approximation sampling different modes.
 
 **Advantages**:
+
 - Simple to implement
 - Embarrassingly parallel
 - Often well-calibrated
 
 **Disadvantages**:
+
 - $M\times$ training cost
 - $M\times$ storage and inference cost
 - Not a proper Bayesian method
@@ -563,39 +487,29 @@ Collect statistics during SGD training:
 **Running statistics**:
 
 $$
-
 \bar{\theta} = \frac{1}{T} \sum_{t=1}^T \theta^{(t)}
-
 $$
 
 $$
-
 \bar{\theta^2} = \frac{1}{T} \sum_{t=1}^T (\theta^{(t)})^2
-
 $$
 
 **Diagonal variance**:
 
 $$
-
 \Sigma_{\text{diag}} = \text{diag}(\bar{\theta^2} - \bar{\theta}^2)
-
 $$
 
 **Low-rank component** (from deviations):
 
 $$
-
 D = [\theta^{(t_1)} - \bar{\theta}, \ldots, \theta^{(t_K)} - \bar{\theta}]
-
 $$
 
 **SWAG posterior**:
 
 $$
-
 q(\theta) = \mathcal{N}\left(\bar{\theta}, \frac{1}{2}(\Sigma_{\text{diag}} + \frac{1}{K-1}DD^\top)\right)
-
 $$
 
 ### MC Dropout
@@ -603,9 +517,7 @@ $$
 Use dropout at test time as approximate variational inference:
 
 $$
-
 q(\theta) = \prod_l q(W^{(l)})
-
 $$
 
 where $q(W^{(l)})$ has columns randomly set to zero.
@@ -619,26 +531,31 @@ See the dedicated chapter on MC Dropout for details.
 ### Choosing an Inference Method
 
 **Use SGLD when**:
+
 - Need theoretically grounded samples
 - Can afford longer training
 - Posterior multimodality is important
 
 **Use Laplace approximation when**:
+
 - Have a trained network (post-hoc uncertainty)
 - Need quick uncertainty estimates
 - Gaussian approximation is reasonable
 
 **Use variational inference when**:
+
 - Need scalable training
 - Can specify a reasonable variational family
 - Willing to tune hyperparameters
 
 **Use ensembles when**:
+
 - Simplicity is paramount
 - Have computational resources for multiple models
 - Need robust uncertainty
 
 **Use MC Dropout when**:
+
 - Need minimal code changes
 - Already using dropout
 - Computational efficiency is critical
@@ -646,16 +563,19 @@ See the dedicated chapter on MC Dropout for details.
 ### Hyperparameter Considerations
 
 **SGLD**:
+
 - Learning rate schedule (critical)
 - Burn-in period
 - Thinning interval
 
 **Variational inference**:
+
 - Prior variance $\sigma_0^2$
 - KL weight (warm-up schedule)
 - Number of MC samples
 
 **Laplace**:
+
 - Hessian approximation (diagonal, KFAC, etc.)
 - Prior precision
 
@@ -1712,33 +1632,25 @@ if __name__ == "__main__":
 **Posterior**:
 
 $$
-
 p(\theta \mid \mathcal{D}) \propto p(\mathcal{D} \mid \theta) \, p(\theta)
-
 $$
 
 **SGLD Update**:
 
 $$
-
 \theta^{(t+1)} = \theta^{(t)} + \frac{\epsilon_t}{2} \nabla \log p(\theta^{(t)} \mid \mathcal{D}) + \mathcal{N}(0, \epsilon_t I)
-
 $$
 
 **ELBO** (Variational Inference):
 
 $$
-
 \mathcal{L}(\phi) = \mathbb{E}_{q_\phi}[\log p(\mathcal{D} \mid \theta)] - \text{KL}(q_\phi \| p)
-
 $$
 
 **Laplace Approximation**:
 
 $$
-
 q(\theta) = \mathcal{N}(\theta_{\text{MAP}}, H^{-1})
-
 $$
 
 ### Computational Complexity
@@ -1779,3 +1691,35 @@ $$
 - Ritter, H., et al. (2018). A scalable Laplace approximation for neural networks. *ICLR*.
 - Lakshminarayanan, B., et al. (2017). Simple and scalable predictive uncertainty estimation using deep ensembles. *NeurIPS*.
 - Maddox, W., et al. (2019). A simple baseline for Bayesian inference in deep learning. *NeurIPS*.
+
+## Exercises
+
+**Exercise 1.**
+For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+
+??? success "Solution to Exercise 1"
+    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
+
+---
+
+**Exercise 2.**
+Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
+
+??? success "Solution to Exercise 2"
+    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+
+---
+
+**Exercise 3.**
+Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+
+??? success "Solution to Exercise 3"
+    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+
+---
+
+**Exercise 4.**
+Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+
+??? success "Solution to Exercise 4"
+    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$

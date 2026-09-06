@@ -1,63 +1,63 @@
-# Quickselect
+# 빠른 고르기
 
-Sorting an array to find the $k$-th smallest element costs $O(n \log n)$ -- far more than necessary. **Quickselect**, invented by Tony Hoare in 1961, adapts the quicksort partition to solve the selection problem in $O(n)$ expected time. The key insight is that after partitioning, we know which side of the pivot contains the $k$-th element, so we only need to recurse on **one** side instead of both. This halving of work at each step (on average) produces a geometric series that sums to $O(n)$.
+$k$번째로 작은 원소를 찾으려고 배열을 정렬하면 $O(n \log n)$이 드는데, 필요보다 훨씬 많다. 1961년 토니 호어가 지어낸 **빠른 고르기**는 빠른 정렬의 나눔을 손질해 고르기 문제를 기대 시간 $O(n)$에 푼다. 핵심 통찰은 나눈 뒤 축의 어느 쪽에 $k$번째 원소가 있는지 알게 되므로 양쪽이 아니라 **한쪽**에서만 되돌이하면 된다는 것이다. 걸음마다 (평균으로) 일이 반으로 줄어 등비급수를 이루고 그 합이 $O(n)$이 된다.
 
-## Algorithm
+## 알고리즘
 
-Given array $A[lo..hi]$ and target rank $k$ (0-indexed within this subarray):
+배열 $A[lo..hi]$과 목표 순위 $k$(이 부분 배열 안에서 0부터 세는)이 주어지면 다음과 같이 한다.
 
-1. If $lo = hi$, return $A[lo]$.
-2. Choose a pivot (randomly for best expected performance).
-3. Partition $A[lo..hi]$ around the pivot. Let the pivot land at position $p$.
-4. If $k = p$, return $A[p]$ (the pivot is the answer).
-5. If $k < p$, recurse on $A[lo..p-1]$.
-6. If $k > p$, recurse on $A[p+1..hi]$.
+1. $lo = hi$이면 $A[lo]$을 되돌린다.
+2. 축을 고른다(기대 성능이 가장 좋으려면 무작위로 고른다).
+3. 축을 기준으로 $A[lo..hi]$을 나눈다. 축이 자리 $p$에 떨어진다고 하자.
+4. $k = p$이면 $A[p]$을 되돌린다(축이 답이다).
+5. $k < p$이면 $A[lo..p-1]$에서 되돌이한다.
+6. $k > p$이면 $A[p+1..hi]$에서 되돌이한다.
 
-Unlike quicksort, which recurses on **both** sides, quickselect recurses on only one. This is what reduces the expected total work from $O(n \log n)$ to $O(n)$.
+**양쪽**에서 되돌이하는 빠른 정렬과 달리 빠른 고르기는 한쪽에서만 되돌이한다. 이것이 기대 전체 일의 양을 $O(n \log n)$에서 $O(n)$으로 줄인다.
 
-## Expected Time Analysis
+## 기대 시간 분석
 
-With a random pivot, the expected partition splits the array roughly in half. The total expected work is:
+무작위 축을 쓰면 나눔이 배열을 대체로 반으로 쪼갠다. 기대 전체 일의 양은 다음과 같다.
 
 $$
 E[T(n)] = n + \frac{1}{n} \sum_{q=0}^{n-1} E\!\left[T\!\left(\max(q, n - 1 - q)\right)\right]
 $$
 
-The worst-case recursive call covers the larger side. An upper bound uses the fact that a random pivot lands in the middle half with probability $1/2$, giving:
+최악의 되돌이 부름은 더 큰 쪽을 다룬다. 무작위 축이 확률 $1/2$으로 가운데 절반에 떨어진다는 사실로 위 한계를 잡으면 다음이 나온다.
 
 $$
 E[T(n)] \leq n + \frac{3n}{4} + \frac{9n}{16} + \cdots = n \sum_{i=0}^{\infty} \left(\frac{3}{4}\right)^i = 4n
 $$
 
-Therefore $E[T(n)] = O(n)$. A tighter analysis gives $E[T(n)] \leq 3.39\, n + o(n)$.
+그러므로 $E[T(n)] = O(n)$이다. 더 빈틈없이 뜯어보면 $E[T(n)] \leq 3.39\, n + o(n)$이다.
 
-## Worst Case
+## 최악의 경우
 
-The worst case occurs when every pivot is the minimum or maximum element:
+최악의 경우는 축마다 가장 작거나 가장 큰 원소일 때 일어난다.
 
 $$
 T(n) = n + (n-1) + (n-2) + \cdots + 1 = \frac{n(n+1)}{2} = O(n^2)
 $$
 
-This happens with probability at most $O(1/n!)$ for random pivots, so it is practically negligible.
+무작위 축에서는 이런 일이 많아야 확률 $O(1/n!)$으로 일어나므로 실전에서는 하찮다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Quickselect: partition-based selection in O(n) expected time.
+빠른 고르기: 기대 시간 O(n)의 나눔 기반 고르기.
 
-Finds the k-th smallest element by partitioning around a random
-pivot and recursing on only the side that contains the target rank.
+무작위 축을 기준으로 나누고 목표 순위를 담은 쪽에서만 되돌이하여
+k번째로 작은 원소를 찾는다.
 """
 
 import random
 
 
-# === Partition ===
+# === 나눔 ===
 
 def partition(arr: list, lo: int, hi: int) -> int:
-    """Lomuto partition with random pivot. Returns pivot index."""
+    """무작위 축을 쓴 로무토 나눔. 축의 첨자를 되돌린다."""
     pivot_idx = random.randint(lo, hi)
     arr[pivot_idx], arr[hi] = arr[hi], arr[pivot_idx]
     pivot = arr[hi]
@@ -71,13 +71,13 @@ def partition(arr: list, lo: int, hi: int) -> int:
     return i
 
 
-# === Quickselect ===
+# === 빠른 고르기 ===
 
 def quickselect(arr: list, k: int):
-    """Find the k-th smallest element (1-indexed).
+    """k번째로 작은 원소(1부터 세는)를 찾는다.
 
-    Returns the element that would be at index k-1 in a sorted array.
-    Operates on a copy to preserve the original.
+    정렬된 배열에서 첨자 k-1에 있을 원소를 되돌린다.
+    원본을 지키려고 베낀 것에서 굴린다.
     """
     if k < 1 or k > len(arr):
         raise ValueError(f"k={k} out of range for array of size {len(arr)}")
@@ -87,7 +87,7 @@ def quickselect(arr: list, k: int):
 
 
 def _quickselect(arr: list, lo: int, hi: int, k: int):
-    """Recursive quickselect on arr[lo..hi] for rank k."""
+    """순위 k에 대한 arr[lo..hi]의 되돌이 빠른 고르기."""
     if lo == hi:
         return arr[lo]
 
@@ -101,13 +101,13 @@ def _quickselect(arr: list, lo: int, hi: int, k: int):
         return _quickselect(arr, pivot_pos + 1, hi, k)
 
 
-# === Iterative Variant ===
+# === 되풀이 판 ===
 
 def quickselect_iterative(arr: list, k: int):
-    """Iterative quickselect using tail-call elimination."""
+    """꼬리 부름 없애기를 쓴 되풀이 빠른 고르기."""
     data = arr.copy()
     lo, hi = 0, len(data) - 1
-    k -= 1  # convert to 0-indexed
+    k -= 1  # 0부터 세는 첨자로 바꾸기
 
     while lo < hi:
         pivot_pos = partition(data, lo, hi)
@@ -121,7 +121,7 @@ def quickselect_iterative(arr: list, k: int):
     return data[lo]
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     random.seed(42)
@@ -144,7 +144,7 @@ if __name__ == "__main__":
     print(f"  Array size: {n}, median (k={( n + 1) // 2}): {median}")
 ```
 
-**Output:**
+**출력:**
 ```
 Array:  [7, 10, 4, 3, 20, 15, 8, 1, 12, 5]
 Sorted: [1, 3, 4, 5, 7, 8, 10, 12, 15, 20]
@@ -159,18 +159,51 @@ Finding median:
   Array size: 10, median (k=5): 7
 ```
 
-## Complexity
+## 복잡도
 
-| Case | Time | Space |
+| 경우 | 시간 | 공간 |
 |------|------|-------|
-| Best | $O(n)$ | $O(1)$ iterative / $O(\log n)$ recursive |
-| Expected | $O(n)$ | $O(1)$ iterative / $O(\log n)$ recursive |
-| Worst | $O(n^2)$ | $O(n)$ recursive |
+| 최선 | $O(n)$ | 되풀이 $O(1)$ / 되돌이 $O(\log n)$ |
+| 기대 | $O(n)$ | 되풀이 $O(1)$ / 되돌이 $O(\log n)$ |
+| 최악 | $O(n^2)$ | 되돌이 $O(n)$ |
 
-!!! warning "Adversarial Inputs"
-    Deterministic pivot choices (e.g., always first or last element) allow an adversary to force $O(n^2)$. Always use randomized pivot selection, or fall back to median-of-medians when the recursion depth exceeds a threshold.
+!!! warning "적수 입력"
+    축을 정해 놓고 고르면(이를테면 늘 첫 원소나 마지막 원소) 적수가 $O(n^2)$을 강제할 수 있다. 늘 무작위로 축을 고르거나, 되돌이 깊이가 문턱값을 넘으면 중앙값의 중앙값으로 물러서라.
 
-## Reference
+## 참고 문헌
 
 - Hoare, C. A. R. (1961). Algorithm 65: Find. *Communications of the ACM*, 4(7), 321-322.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 9. MIT Press.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 9장. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+빠른 고르기의 핵심 생각과 그 시간·공간 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 견줌 너머의 성질(정수 열쇠, 바깥 저장 장치, 병렬 하드웨어)을 살려 써서 비교 기반 정렬이 따라올 수 없는 성능을 이룬다. 구체적인 복잡도 한계는 이 쪽에서 뜯어본다.
+
+---
+
+**연습문제 2.**
+작은 입력에서 빠른 고르기를 따라가라. 훑기나 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    원소 6~8개에 알고리즘을 적용하며 훑을 때마다의 상태를 보여라. 이 따라가기가 알고리즘의 얼개를 드러내고 옳음을 눈에 보이게 한다.
+
+---
+
+**연습문제 3.**
+어떤 조건에서 비교 기반 정렬보다 빠른 고르기가 나은가?
+
+??? success "연습문제 3 풀이"
+    다음일 때 낫다. 입력의 정수 범위가 묶여 있을 때(세기 정렬과 기수 정렬), 데이터가 램을 넘칠 때(바깥 정렬), 병렬 하드웨어를 쓸 수 있을 때(병렬 정렬). 이런 조건에서는 알고리즘이 비교 기반의 아래 한계 $\Omega(n\log n)$을 비껴갈 수 있다.
+
+---
+
+**연습문제 4.**
+빠른 고르기가 실전에서 이득을 주는 깊은 학습 응용을 서술하라.
+
+??? success "연습문제 4 풀이"
+    응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.

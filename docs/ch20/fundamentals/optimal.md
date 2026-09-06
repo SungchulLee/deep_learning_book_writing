@@ -1,84 +1,116 @@
-# Optimal Substructure
+# 가장 좋은 아래 짜임
 
-When solving an optimization problem, a natural question arises: can the solution to the whole problem be built from solutions to its parts?  Optimal substructure answers this affirmatively for many classical problems.  A problem exhibits optimal substructure if an optimal solution to the problem contains within it optimal solutions to subproblems.  Together with overlapping subproblems, optimal substructure is one of the two hallmarks that make dynamic programming applicable.
+가장 좋게 하는 문제를 풀 때 자연스러운 물음이 하나 떠오른다. 문제 전체의 풀이를 그 부분의 풀이로 세울 수 있는가? 가장 좋은 아래 짜임은 여러 고전 문제에서 그렇다고 답한다. 어떤 문제의 가장 좋은 풀이가 그 안에 아래 문제의 가장 좋은 풀이를 품으면 그 문제는 가장 좋은 아래 짜임을 갖췄다고 한다. 겹치는 아래 문제와 함께, 가장 좋은 아래 짜임은 동적 짜기를 쓸 수 있게 하는 두 표지 가운데 하나이다.
 
-## Definition
+## 정의
 
-A problem has **optimal substructure** if the following property holds:
+다음 성질이 성립하면 그 문제는 **가장 좋은 아래 짜임**을 갖춘다:
 
-> An optimal solution to the problem can be constructed from optimal solutions to its subproblems.
+> 문제의 가장 좋은 풀이를 그 아래 문제의 가장 좋은 풀이로 세울 수 있다.
 
-More precisely, suppose an optimal solution $S^*$ to a problem of size $n$ makes a choice that leaves one or more subproblems to solve.  If the restriction of $S^*$ to each subproblem is itself an optimal solution to that subproblem, then the problem has optimal substructure.
+더 정확히 말해, 크기 $n$인 문제의 가장 좋은 풀이 $S^*$이 어떤 고름을 해서 아래 문제 하나 이상이 남는다고 하자. $S^*$을 각 아래 문제로 좁힌 것이 그 아래 문제의 가장 좋은 풀이이면 그 문제는 가장 좋은 아래 짜임을 갖춘다.
 
-Formally, let $\text{OPT}(P)$ denote the value of an optimal solution to problem $P$, and suppose $P$ decomposes into subproblems $P_1, P_2, \ldots, P_k$ after an initial decision.  Optimal substructure means
+엄밀히, $\text{OPT}(P)$을 문제 $P$의 가장 좋은 풀이의 값이라 하고, 첫 결정 뒤 $P$이 아래 문제 $P_1, P_2, \ldots, P_k$으로 쪼개진다고 하자. 가장 좋은 아래 짜임이란 다음을 뜻한다
 
 $$
 \text{OPT}(P) = f\bigl(\text{OPT}(P_1), \text{OPT}(P_2), \ldots, \text{OPT}(P_k)\bigr)
 $$
 
-for some combining function $f$ that depends on the problem structure.
+여기서 $f$은 문제의 짜임에 따라 달라지는 어떤 아우르는 함수이다.
 
-## Proving Optimal Substructure
+## 가장 좋은 아래 짜임 증명하기
 
-Establishing optimal substructure typically follows a **cut-and-paste** argument:
+가장 좋은 아래 짜임을 세우는 데는 흔히 **잘라 붙이기** 논증을 쓴다:
 
-1. **Assume** an optimal solution $S^*$ to the original problem.
-2. **Identify** the subproblem solutions contained within $S^*$.
-3. **Suppose for contradiction** that one of those subproblem solutions is not optimal.
-4. **Cut** the suboptimal piece out and **paste** in a truly optimal subproblem solution.
-5. **Show** that the resulting solution is strictly better than $S^*$, contradicting its optimality.
+1. 본디 문제의 가장 좋은 풀이 $S^*$을 **가정한다**.
+2. $S^*$ 안에 든 아래 문제의 풀이를 **가려낸다**.
+3. 그 아래 문제 풀이 가운데 하나가 가장 좋지 않다고 **어긋남을 노리고 가정한다**.
+4. 덜 좋은 조각을 **잘라 내고** 참으로 가장 좋은 아래 문제 풀이를 **붙인다**.
+5. 그렇게 나온 풀이가 $S^*$보다 딱 잘라 더 낫다는 것을 **보여** 가장 좋음에 어긋나게 한다.
 
-This proof pattern applies broadly across DP problems and provides a systematic way to verify that a proposed recurrence is correct.
+이 증명 결은 동적 짜기 문제 전반에 두루 쓰이며 내놓은 되돌이 관계식이 옳은지 짜임새 있게 확인하는 길을 준다.
 
-## Example: Rod Cutting
+## 보기: 막대 자르기
 
-Consider a rod of length $n$ and a price table $p_i$ for pieces of length $i$.  The goal is to cut the rod into pieces to maximize total revenue.
+길이 $n$인 막대와 길이 $i$인 조각의 값 표 $p_i$을 보자. 목표는 막대를 잘라 전체 벌이를 가장 크게 하는 것이다.
 
-Suppose the optimal solution makes a first cut of length $i$, leaving a rod of length $n - i$.  The remaining rod must be cut optimally — otherwise we could replace its cutting plan with a better one and increase total revenue, contradicting optimality.
+가장 좋은 풀이가 길이 $i$으로 처음 자르고 길이 $n - i$인 막대를 남긴다고 하자. 남은 막대는 가장 좋게 잘려 있어야 한다. 그렇지 않다면 그 자르기 계획을 더 나은 것으로 갈음해 전체 벌이를 늘릴 수 있어 가장 좋음에 어긋난다.
 
-This yields the recurrence
+이로써 다음 되돌이 관계식을 얻는다
 
 $$
 r(n) = \max_{1 \le i \le n} \bigl(p_i + r(n - i)\bigr)
 $$
 
-with base case $r(0) = 0$.  The fact that $r(n-i)$ appears in the recurrence is a direct consequence of optimal substructure.
+바탕 경우는 $r(0) = 0$이다. 되돌이 관계식에 $r(n-i)$이 나오는 것이 바로 가장 좋은 아래 짜임의 곧바른 결과이다.
 
-## Example: Shortest Paths
+## 보기: 최단 길
 
-Let $\delta(u, v)$ denote the weight of a shortest path from vertex $u$ to vertex $v$ in a weighted graph.  If vertex $w$ lies on a shortest path from $u$ to $v$, then
+$\delta(u, v)$을 무게 붙은 그래프에서 꼭짓점 $u$부터 꼭짓점 $v$까지 최단 길의 무게라 하자. 꼭짓점 $w$이 $u$에서 $v$로 가는 최단 길 위에 있으면
 
 $$
 \delta(u, v) = \delta(u, w) + \delta(w, v)
 $$
 
-The sub-paths from $u$ to $w$ and from $w$ to $v$ must each be shortest paths.  If either sub-path were not shortest, we could substitute a shorter one and obtain a $u$-to-$v$ path with smaller total weight — a contradiction.
+$u$에서 $w$까지, $w$에서 $v$까지의 아래 길이 저마다 최단 길이어야 한다. 어느 한쪽이 최단이 아니라면 더 짧은 것으로 갈음해 전체 무게가 더 작은 $u$-$v$ 길을 얻게 되어 어긋난다.
 
-!!! warning "Optimal substructure does not hold for all problems"
-    The **longest simple path** problem in a general graph does *not* exhibit optimal substructure.  A longest simple path from $u$ to $v$ passing through $w$ does not necessarily consist of a longest simple path from $u$ to $w$ followed by one from $w$ to $v$, because the simplicity constraint (no repeated vertices) creates dependencies between subproblems.
+!!! warning "모든 문제가 가장 좋은 아래 짜임을 갖추지는 않는다"
+    두루 쓰는 그래프에서 **가장 긴 단순 길** 문제는 가장 좋은 아래 짜임을 갖추지 *않는다*. $w$을 지나는 $u$에서 $v$까지의 가장 긴 단순 길이 $u$에서 $w$까지의 가장 긴 단순 길과 $w$에서 $v$까지의 그것을 이은 것이라는 보장이 없다. 단순함이라는 제약(꼭짓점을 되풀이하지 않음)이 아래 문제 사이에 기댐을 만들기 때문이다.
 
-## Recognizing Optimal Substructure
+## 가장 좋은 아래 짜임 알아보기
 
-When analyzing a new problem, look for these indicators:
+새 문제를 살필 때 다음 표지를 찾아라:
 
-1. **The problem asks for an optimum** (minimum, maximum, longest, shortest, or count).
-2. **A choice reduces the problem** to one or more smaller instances of the same type.
-3. **Subproblem solutions combine independently** — the choice for one subproblem does not constrain the choices available in another.
+1. **문제가 가장 좋은 것을 묻는다**(최소, 최대, 가장 긴, 가장 짧은, 개수).
+2. **어떤 고름이 문제를** 같은 갈래의 더 작은 것 하나 이상으로 **줄인다**.
+3. **아래 문제의 풀이가 서로 얽히지 않고 아우러진다**. 곧 한 아래 문제의 고름이 다른 아래 문제에서 고를 수 있는 것을 옭아매지 않는다.
 
-When indicator 3 fails — for example, when subproblems share resources or constraints — optimal substructure may not hold, and dynamic programming may not apply directly.
+세 번째 표지가 어긋나면, 예컨대 아래 문제가 자원이나 제약을 함께 쓰면, 가장 좋은 아래 짜임이 성립하지 않을 수 있고 동적 짜기를 곧바로 쓰지 못할 수 있다.
 
-## Relationship to Greedy Algorithms
+## 욕심쟁이 알고리즘과의 관계
 
-Both dynamic programming and greedy algorithms exploit optimal substructure.  The difference lies in how they handle the initial choice:
+동적 짜기와 욕심쟁이 알고리즘 모두 가장 좋은 아래 짜임을 써먹는다. 차이는 첫 고름을 어떻게 다루느냐에 있다:
 
-| Aspect | Dynamic Programming | Greedy |
+| 갈래 | 동적 짜기 | 욕심쟁이 |
 |--------|-------------------|--------|
-| Choices considered | All possible choices at each step | A single locally optimal choice |
-| Subproblems solved | All subproblems arising from each choice | Only the subproblem after the greedy choice |
-| Correctness guarantee | Always correct if optimal substructure holds | Requires an additional greedy-choice property |
+| 살피는 고름 | 걸음마다 가능한 모든 고름 | 그때그때 가장 좋은 고름 하나 |
+| 푸는 아래 문제 | 고름마다 생기는 모든 아래 문제 | 욕심쟁이 고름 뒤의 아래 문제만 |
+| 옳음 보장 | 가장 좋은 아래 짜임이 성립하면 늘 옳다 | 욕심쟁이 고르기 성질이 더 필요하다 |
 
-Dynamic programming is more general: it examines all choices and picks the best, while greedy algorithms commit to one choice and never reconsider.  Greedy algorithms are faster when applicable, but they require a separate proof that the greedy choice is safe.
+동적 짜기가 더 두루 쓰인다. 모든 고름을 살펴 가장 좋은 것을 고르는 반면 욕심쟁이 알고리즘은 하나를 골라 붙들고 다시 돌아보지 않는다. 욕심쟁이는 쓸 수 있을 때 더 빠르지만 그 고름이 안전하다는 것을 따로 밝혀야 한다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 14. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+가장 좋은 아래 짜임의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+가장 좋은 아래 짜임의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+가장 좋은 아래 짜임의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+가장 좋은 아래 짜임의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

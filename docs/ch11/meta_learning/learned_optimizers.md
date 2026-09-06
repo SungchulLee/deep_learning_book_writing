@@ -1,119 +1,115 @@
-# Learned Optimizers: Meta-Learning for Optimization
+# 배운 최적화기: 최적화를 위한 메타 학습
+## 들어가며
 
+여느 최적화기(SGD, Adam, RMSprop)는 손으로 설계한 붙박이 갱신 규칙을 쓰지만, 배운 최적화기는 최적화 과정 자체를 메타 학습으로 배우는 틀이다. 최적화 과제의 분포로 익히면서 배운 최적화기는 문제를 알아채고 맞추어 가는 갱신 전략을 길러 내며, 속도와 마지막 성능에서 붙박이 최적화기를 앞지를 때가 많다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+계량 금융에서 배운 최적화기는 남다른 이점이 있다. 시장의 움직임은 끊임없이 바뀌어 모델을 계속 다시 익혀야 하기 때문이다. 특정 자산 갈래나 시장 국면에 맞추어 가는 배운 최적화기는 모델 맞추기를 크게 빠르게 하면서 여러 금융 상품에 걸친 일반화도 좋게 할 수 있다.
 
-## Introduction
+## 핵심 개념
 
-While traditional optimizers (SGD, Adam, RMSprop) use fixed, hand-designed update rules, learned optimizers represent a paradigm where the optimization process itself is learned through meta-learning. By training on a distribution of optimization tasks, learned optimizers develop adaptive, problem-aware update strategies that often surpass fixed optimizers in speed and final performance.
+- **배운 갱신 규칙**: 붙박이 최적화기를 배운 함수로 갈아 끼운다
+- **최적화 과제**: 학습 손실을 메타 학습 과제로 삼는다
+- **메타 최적화기**: 최적화기를 배우는 알고리즘
+- **상태 표현**: 최적화 내력을 담아내는 특징
+- **과제를 넘나드는 일반화**: 최적화기가 여러 손실 지형에서 굴러간다
 
-For quantitative finance, learned optimizers offer particular advantages: market dynamics change continuously, requiring constant model retraining. A learned optimizer that adapts to specific asset classes or market regimes could substantially accelerate model fitting while improving generalization across diverse financial instruments.
+## 수학적 틀
 
-## Key Concepts
+### 붙박이 최적화기 밑금
 
-- **Learned Update Rule**: Replace fixed optimizer with learned function
-- **Optimization Tasks**: Training losses as meta-learning tasks
-- **Meta-Optimizer**: Algorithm learning the optimizer
-- **State Representation**: Features encoding optimization history
-- **Generalization Across Tasks**: Optimizer works for diverse loss landscapes
-
-## Mathematical Framework
-
-### Fixed Optimizer Baseline
-
-Standard optimizers apply identical update rule:
+보통의 최적화기는 똑같은 갱신 규칙을 쓴다.
 
 $$\theta_{t+1} = \theta_t - \alpha_t \mathbf{g}_t$$
 
-where $\mathbf{g}_t$ is gradient and $\alpha_t$ is learning rate.
+여기서 $\mathbf{g}_t$은 기울기이고 $\alpha_t$은 학습률이다.
 
-### Learned Optimizer Framework
+### 배운 최적화기 틀
 
-Replace fixed rule with learned function:
+붙박이 규칙을 배운 함수로 갈아 끼운다.
 
 $$\theta_{t+1} = \theta_t + f_{\Phi}(\mathbf{g}_t, \mathbf{m}_t, \mathbf{s}_t)$$
 
-where:
-- $f_{\Phi}$ is learned update function
-- $\mathbf{m}_t$ is momentum/historical state
-- $\mathbf{s}_t$ encodes problem structure
+여기서 각 기호는 다음과 같다.
 
-### Optimization Loss
+- $f_{\Phi}$은 배운 갱신 함수이다
+- $\mathbf{m}_t$은 운동량, 곧 지난 상태이다
+- $\mathbf{s}_t$은 문제의 짜임을 담는다
 
-Meta-training minimizes loss over training trajectory:
+### 최적화 손실
+
+메타 학습은 학습 자취 위의 손실을 가장 작게 한다.
 
 $$\mathcal{L}_{\text{meta}} = \sum_{\mathcal{L} \sim \mathcal{D}} \sum_{t=1}^{T} \mathcal{L}(\theta_t)$$
 
-where meta-loss is sum over target losses, optimized through learned optimizer.
+여기서 메타 손실은 대상 손실의 합이며 배운 최적화기로 최적화한다.
 
-## Architectures for Learned Optimizers
+## 배운 최적화기의 구조
 
-### Recurrent Optimizer
+### 되돌이 최적화기
 
-Use LSTM to maintain hidden state representing optimization memory:
+LSTM으로 최적화 기억을 나타내는 숨은 상태를 지닌다.
 
 $$\mathbf{h}_t = \text{LSTM}(\mathbf{g}_t, \mathbf{h}_{t-1})$$
 
 $$\Delta \theta_t = \text{Linear}(\mathbf{h}_t)$$
 
-LSTM learns when to accelerate (momentum-like), when to reset (adaptive learning rate), and which directions to explore.
+LSTM은 언제 가속할지(운동량처럼), 언제 되돌릴지(맞추어 가는 학습률), 어느 방향을 살필지를 배운다.
 
-### Convolutional Optimizer
+### 합성곱 최적화기
 
-Process gradient maps (for image models) with convolutions:
+(그림 모델의) 기울기 지도를 합성곱으로 다룬다.
 
-$$\Delta \theta_t = \text{Conv}(\mathbf{g}_t, \text{conv history})$$
+$$\Delta \theta_t = \text{Conv}(\mathbf{g}_t, \text{합성곱 내력})$$
 
-Captures spatial structure in gradients, learning how different layer types should update.
+기울기의 공간 짜임을 잡아내어 층의 종류마다 어떻게 갱신해야 하는지를 배운다.
 
-### Transformer-Based Optimizer
+### 트랜스포머 기반 최적화기
 
-Attend to gradient history and problem structure:
+기울기 내력과 문제 짜임에 주의를 준다.
 
-$$\Delta \theta_t = \text{Attention}(\mathbf{g}_t, \text{past gradients})$$
+$$\Delta \theta_t = \text{Attention}(\mathbf{g}_t, \text{지난 기울기})$$
 
-Enables long-range dependency modeling across optimization trajectory.
+최적화 자취를 가로지르는 먼 거리 기댐을 모형으로 삼을 수 있게 한다.
 
-## State Representation
+## 상태 표현
 
-What features should learned optimizer input?
+배운 최적화기에 어떤 특징을 넣어야 하는가?
 
-### Gradient Information
+### 기울기 정보
 
-**Raw Gradients**: $\mathbf{g}_t$ directly (high-dimensional but informative)
+**날 기울기**: $\mathbf{g}_t$을 그대로 쓴다(차원이 높지만 알맹이가 많다)
 
-**Normalized Gradients**: $\mathbf{g}_t / (\|\mathbf{g}_t\| + \epsilon)$ (removes scale, focuses on direction)
+**고른 기울기**: $\mathbf{g}_t / (\|\mathbf{g}_t\| + \epsilon)$(크기를 없애고 방향에 집중한다)
 
-**Log-Absolute Gradients**: $\log(|\mathbf{g}_t| + \epsilon)$ (handles wide range of magnitudes)
+**로그 절댓값 기울기**: $\log(|\mathbf{g}_t| + \epsilon)$(넓은 크기 범위를 다룬다)
 
-### Momentum Information
+### 운동량 정보
 
 $$\mathbf{m}_t = \beta \mathbf{m}_{t-1} + (1-\beta) \mathbf{g}_t$$
 
-Encode recent history of updates and momentum state.
+최근 갱신 내력과 운동량 상태를 담는다.
 
-### Second-Order Information
+### 이차 정보
 
-**Gradient Variance**: $\text{Var}(\mathbf{g}_{t-k:t})$ for recent window
+**기울기 흩어짐**: 최근 창에 대한 $\text{Var}(\mathbf{g}_{t-k:t})$
 
-**Loss Curvature Estimate**: From Hessian diagonal approximations
+**손실 굽음 어림**: 헤세 대각선 어림에서 얻는다
 
-### Problem-Specific Features
+### 문제에 맞춘 특징
 
-!!! tip "Domain Knowledge Integration"
-    Include domain-specific features for better adaptation:
+!!! tip "영역 지식 아우르기"
+    더 잘 맞추어 가도록 영역에 맞춘 특징을 넣는다.
     
-    - Asset class (equity, bond, derivative)
-    - Market liquidity regime
-    - Historical volatility
-    - Time since last update
+    - 자산 갈래(주식, 채권, 파생)
+    - 시장 유동성 국면
+    - 지난 변동성
+    - 마지막 갱신 뒤로 흐른 시간
 
-## Training Procedures
+## 학습 절차
 
-### Meta-Training
+### 메타 학습
 
-Collect diverse optimization tasks (different losses, datasets, architectures):
+서로 다른 최적화 과제(다른 손실, 데이터셋, 구조)를 모은다.
 
 ```
 for each meta-iteration:
@@ -128,91 +124,124 @@ for each meta-iteration:
     Update optimizer: Φ ← Φ - α∇Φ L_meta
 ```
 
-### Challenges in Meta-Training
+### 메타 학습의 어려움
 
-**Non-Stationarity**: Optimization landscape changes during training, making learned optimizer unstable.
+**멈추지 않음**: 학습 중에 최적화 지형이 바뀌어 배운 최적화기가 흔들린다.
 
-**Generalization Gap**: Optimizer trained on specific problem distributions may not transfer to different problem types.
+**일반화 틈**: 특정 문제 분포로 익힌 최적화기가 다른 종류의 문제로 옮겨 가지 못할 수 있다.
 
-**Computational Overhead**: Meta-training requires optimizing the optimizer, expensive nested loops.
+**셈의 짐**: 메타 학습은 최적화기를 최적화해야 하므로 값비싼 겹 되돌이가 필요하다.
 
-## Addressing Generalization
+## 일반화 다루기
 
-### Task Distribution Design
+### 과제 분포 설계
 
-Meta-train on diverse problem distributions:
+여러 문제 분포로 메타 학습한다.
 
-- Different loss functions (classification, regression, ranking)
-- Different architectures (CNNs, RNNs, Transformers)
-- Different dataset sizes
-- Different condition numbers (easy vs. hard optimization landscapes)
+- 서로 다른 손실 함수(분류, 회귀, 순위 매기기)
+- 서로 다른 구조(CNN, RNN, 트랜스포머)
+- 서로 다른 데이터셋 크기
+- 서로 다른 조건수(쉬운 최적화 지형과 어려운 최적화 지형)
 
-### Regularization of Learned Optimizers
+### 배운 최적화기의 벌주기
 
-Add regularization to prevent overfitting to specific problems:
+특정 문제에 지나치게 맞추어지지 않도록 벌주기를 더한다.
 
 $$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{meta}} + \lambda \Omega(\Phi)$$
 
-where $\Omega(\Phi)$ encourages smooth, interpretable update rules.
+여기서 $\Omega(\Phi)$은 매끄럽고 풀이할 수 있는 갱신 규칙을 북돋운다.
 
-### Hybrid Approaches
+### 섞은 접근법
 
-Combine learned and fixed components:
+배운 부품과 붙박이 부품을 섞는다.
 
-$$\Delta \theta_t = \alpha_{\text{learned}}(\mathbf{g}_t) \cdot \mathbf{g}_t + \beta \cdot \text{momentum}$$
+$$\Delta \theta_t = \alpha_{\text{learned}}(\mathbf{g}_t) \cdot \mathbf{g}_t + \beta \cdot \text{운동량}$$
 
-Balance adaptivity with stability by learning scalar multiplier while keeping base structure fixed.
+바탕 짜임은 그대로 두고 스칼라 곱수만 배워 적응성과 안정성 사이의 균형을 잡는다.
 
-## Efficiency Considerations
+## 효율에 대한 고려
 
-### Computational Cost
+### 계산 비용
 
-Learned optimizers add overhead:
+배운 최적화기는 짐을 더한다.
 
-- Extra neural network evaluations per optimization step
-- Maintaining hidden state (memory cost)
-- More iterations needed to converge (generalization-convergence trade-off)
+- 최적화 걸음마다 신경망을 더 셈해야 한다
+- 숨은 상태를 지녀야 한다(기억 비용)
+- 모이는 데 되풀이가 더 필요하다(일반화와 모임 사이의 맞바꿈)
 
-**Net Effect**: Can be faster or slower depending on problem
+**알짜 효과**: 문제에 따라 더 빠를 수도 더 느릴 수도 있다
 
-### Acceleration for Repeated Optimization
+### 되풀이되는 최적화에서의 가속
 
-Learned optimizers shine when solving similar optimization problems repeatedly:
+배운 최적화기는 닮은 최적화 문제를 거듭 풀 때 빛을 낸다.
 
-**Financial Application**: Retrain model daily on new data
+**금융 응용**: 새 데이터로 날마다 모델을 다시 익힌다
 
-**Speedup**: 50-200% faster convergence than Adam on same task distribution
+**빨라짐**: 같은 과제 분포에서 Adam보다 50~200% 빨리 모인다
 
-## Comparison with Fixed Optimizers
+## 붙박이 최적화기와의 견줌
 
-| Aspect | Adam | SGD+Momentum | Learned |
+| 갈래 | Adam | SGD+운동량 | 배운 최적화기 |
 |--------|------|-------------|---------|
-| **Tuning** | Low | Low | Very High |
-| **Generalization** | Broad | Narrow | Specific |
-| **Speed** | Fast | Medium | Fast/Slow |
-| **Interpretability** | High | High | Low |
-| **Computation** | Low | Low | Medium |
+| **손질 부담** | 낮음 | 낮음 | 매우 높음 |
+| **일반화** | 넓음 | 좁음 | 특정 영역 |
+| **속도** | 빠름 | 보통 | 빠르거나 느림 |
+| **풀이 가능성** | 높음 | 높음 | 낮음 |
+| **셈 비용** | 낮음 | 낮음 | 보통 |
 
-## Applications in Quantitative Finance
+## 계량 금융에서의 쓰임
 
-!!! warning "Financial Optimization"
+!!! warning "금융 최적화"
     
-    Learn asset-class-specific optimizers:
-    - **Equity Models**: Fast convergence on noisy daily data
-    - **Bond Models**: Capture term structure with fewer updates
-    - **FX Models**: Adapt to regime-specific volatility
-    - **Portfolio Optimization**: Rapidly rebalance with learned updates
+    자산 갈래에 맞춘 최적화기를 배운다.
 
-## Research Directions
+    - **주식 모델**: 잡음 많은 일별 데이터에서 빠르게 모인다
+    - **채권 모델**: 더 적은 갱신으로 기간 구조를 잡아낸다
+    - **외환 모델**: 국면마다의 변동성에 맞추어 간다
+    - **포트폴리오 최적화**: 배운 갱신으로 재빨리 다시 균형을 잡는다
 
-- Improving generalization across diverse problem classes
-- Theoretically understanding learned optimizer convergence
-- Combining meta-learned and evolutionary optimization
-- Application to non-convex, non-smooth optimization
+## 연구의 방향
 
-## Related Topics
+- 여러 문제 갈래에 걸친 일반화 높이기
+- 배운 최적화기의 모임을 이론으로 이해하기
+- 메타 학습과 진화 최적화 섞기
+- 볼록하지 않고 매끄럽지 않은 최적화에 쓰기
 
-- Meta-Learning Overview (Chapter 11.1)
-- Task Distribution Design (Chapter 11.3)
-- Optimization Theory
-- Neural Architecture Search (uses learned optimization)
+## 관련 주제
+
+- 메타 학습 훑어보기(11.1절)
+- 과제 분포 설계(11.3절)
+- 최적화 이론
+- 신경 구조 찾기(배운 최적화를 쓴다)
+
+## 연습문제
+
+**연습문제 1.**
+배운 최적화기가 손으로 설계한 갱신 규칙을 어떻게 갈아 끼우는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    배운 최적화기는 갱신 규칙을 신경망으로 매개변수화한다. 곧 $\theta_{t+1} = \theta_t + g_\phi(\nabla L, h_t)$이며, $g_\phi$은 기울기(와 최적화기 상태 $h_t$)를 받아 매개변수 갱신을 내는 LSTM이나 MLP이다. 최적화기 매개변수 $\phi$은 과제들에 걸쳐 메타 학습된다.
+
+---
+
+**연습문제 2.**
+배운 최적화기의 이점과 어려움은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    이점: 손실 지형의 짜임에 맞추어 갈 수 있고, 운동량과 앞조건화를 알아서 배우며, 짜임새 있는 문제 무리에서 더 빨리 모일 수 있다. 어려움: 메타 학습이 값비싸고, 학습과 다른 문제에는 일반화되지 않을 수 있으며, 수백만 개의 매개변수로 규모를 키우기 어렵다(최적화기 자신이 매개변수마다를 다루어야 한다).
+
+---
+
+**연습문제 3.**
+Andrychowicz 외(2016)의 LSTM 기반 최적화기를 서술하라.
+
+??? success "연습문제 3 풀이"
+    이 최적화기는 매개변수마다 놓인 LSTM으로, 기울기 $g_t$을 받아 갱신을 낸다. 곧 $(\Delta \theta_t, h_{t+1}) = \text{LSTM}(g_t, h_t)$이다. 앞손질: 수치 안정성을 위해 기울기를 로그 눈금으로 $[\log|g|, \text{sign}(g)]$처럼 바꾼다. 매개변수는 좌표들 사이에서 나누어 쓰지만 좌표마다 제 숨은 상태를 갖는다. 메타 손실: 풀어 편 걸음들에 걸친 피최적화 손실의 합이다.
+
+---
+
+**연습문제 4.**
+배운 최적화기와 Adam을 견주어라. 각각은 언제 더 나은가?
+
+??? success "연습문제 4 풀이"
+    Adam: 두루 쓰이고 잘 알려져 있으며 여러 영역에서 굴러가고 메타 학습이 필요 없다. 배운 최적화기: 메타 학습한 특정 문제 갈래에서는 Adam을 앞지를 수 있지만 분포 밖 문제에서는 무너질 수 있다. 고르는 기준: 두루 쓰려면 Adam, 문제 짜임이 한결같은 전용 파이프라인이라면 배운 최적화기.

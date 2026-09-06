@@ -1,47 +1,87 @@
-# Choosing a Language
+# 언어 선택
 
-Selecting the right programming language shapes how efficiently you can prototype, optimize, and deploy machine learning systems. This page compares common choices and provides guidance for different use cases.
+어떤 프로그래밍 언어를 고르느냐에 따라 기계학습 시스템을 원형으로 만들고, 최적화하고, 배포하는 효율이 달라진다. 이 절에서는 흔히 고려되는 선택지를 비교하고 용도별 지침을 제시한다.
 
-## Definition
+## 정의
 
-Language choice in the context of deep learning and scientific computing involves trading off execution speed, ecosystem maturity, readability, and memory control. Python dominates due to its rich library ecosystem (NumPy, PyTorch, scikit-learn), while C++ remains essential for performance-critical inference and custom CUDA kernels.
+딥러닝과 과학 계산 맥락에서의 언어 선택은 실행 속도, 생태계 성숙도, 가독성, 메모리 제어 사이의 절충을 수반한다. 파이썬은 풍부한 라이브러리 생태계(NumPy, PyTorch, scikit-learn) 덕분에 지배적이며, C++는 성능이 중요한 추론과 사용자 정의 CUDA 커널에 여전히 필수적이다.
 
-## Explanation
+## 설명
 
-The key factors when choosing a language for deep learning work are:
+딥러닝 작업을 위한 언어를 고를 때 핵심 요소는 다음과 같다.
 
-- **Execution speed**: C++ compiles to native code and runs orders of magnitude faster than interpreted Python. However, Python delegates heavy computation to optimized C/Fortran backends (BLAS, cuDNN), so the gap narrows in practice.
-- **Ecosystem**: Python has unmatched library support for data science and deep learning. PyTorch, TensorFlow, scikit-learn, pandas, and NumPy all provide Python-first APIs.
-- **Readability**: Python's minimal syntax lets you focus on algorithmic logic rather than boilerplate. This matters for rapid prototyping and collaboration.
-- **Memory control**: C++ gives manual control over allocation, which is critical for embedded deployment and latency-sensitive systems. Python relies on garbage collection.
+- **실행 속도**: C++는 네이티브 코드로 컴파일되어 인터프리터 방식의 파이썬보다 몇 자릿수 빠르게 실행된다. 다만 파이썬은 무거운 계산을 최적화된 C/포트란 백엔드(BLAS, cuDNN)에 위임하므로 실제 격차는 좁아진다.
+- **생태계**: 파이썬은 데이터 과학과 딥러닝에서 견줄 데 없는 라이브러리 지원을 가진다. PyTorch, TensorFlow, scikit-learn, pandas, NumPy 모두 파이썬 우선 API를 제공한다.
+- **가독성**: 파이썬의 간결한 문법 덕분에 상용구가 아니라 알고리즘 논리에 집중할 수 있다. 빠른 원형 제작과 협업에서 중요한 점이다.
+- **메모리 제어**: C++는 할당을 수동으로 제어할 수 있어 임베디드 배포와 지연 시간에 민감한 시스템에서 결정적이다. 파이썬은 쓰레기 수집에 의존한다.
 
-For most deep learning practitioners, Python is the default choice. C++ becomes relevant when you need to write custom operators, optimize inference latency, or deploy on resource-constrained hardware.
+대부분의 딥러닝 실무자에게는 파이썬이 기본 선택이다. 사용자 정의 연산자를 작성하거나, 추론 지연 시간을 최적화하거나, 자원이 제한된 하드웨어에 배포해야 할 때 C++가 필요해진다.
 
-## Examples
+## 예제
 
-Comparison of language properties:
+언어 특성 비교:
 
 $$
 \begin{array}{llll}
 & \text{Python} & \text{C++} & \text{Java} \\
 \hline
-\text{Speed} & \text{Slow (interpreted)} & \text{Fast (compiled)} & \text{Medium (JIT)} \\
-\text{Readability} & \text{High} & \text{Medium} & \text{Medium} \\
-\text{Typing} & \text{Dynamic} & \text{Static} & \text{Static} \\
-\text{Memory} & \text{GC} & \text{Manual} & \text{GC} \\
-\text{ML Ecosystem} & \text{Dominant} & \text{Limited} & \text{Limited}
+\text{속도} & \text{느림(인터프리터)} & \text{빠름(컴파일)} & \text{중간(JIT)} \\
+\text{가독성} & \text{높음} & \text{중간} & \text{중간} \\
+\text{타입} & \text{동적} & \text{정적} & \text{정적} \\
+\text{메모리} & \text{GC} & \text{수동} & \text{GC} \\
+\text{ML 생태계} & \text{지배적} & \text{제한적} & \text{제한적}
 \end{array}
 $$
 
 ```python
 import torch
 
-# Python + PyTorch: fast prototyping with GPU acceleration
+# 파이썬 + PyTorch: GPU 가속과 함께하는 빠른 원형 제작
 x = torch.randn(1000, 1000, device="cpu")
 y = torch.randn(1000, 1000, device="cpu")
 
-# Matrix multiply dispatches to optimized BLAS — Python overhead is negligible
+# 행렬 곱은 최적화된 BLAS로 디스패치된다 — 파이썬 부담은 무시할 만하다
 z = x @ y
 print(f"Result shape: {z.shape}")
 print(f"Result mean:  {z.mean().item():.4f}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+$(n \times n)$ 행렬 두 개의 곱셈에는 $O(n^3)$번의 부동소수점 연산이 필요하다. 파이썬 인터프리터의 연산당 부담이 $1\;\mu\text{s}$이고 C++ 백엔드(BLAS)의 부담이 $1\;\text{ns}$일 때, $n = 1000$에 대한 실행 시간 비(파이썬 반복문 대 BLAS)를 계산하라.
+
+??? success "연습문제 1 풀이"
+    전체 곱셈-덧셈 연산 횟수는 $n^3 = 10^9$이다. 순수 파이썬 반복문: $10^9 \times 10^{-6}\;\text{s} = 10^3\;\text{s}$. BLAS: $10^9 \times 10^{-9}\;\text{s} = 1\;\text{s}$. 비는 $10^3 / 1 = 1000\times$이다. 파이썬이 인터프리터에서 원소별 반복문을 돌리는 대신 무거운 계산을 컴파일된 백엔드에 위임하는 이유를 잘 보여준다.
+
+---
+
+**연습문제 2.**
+파이썬이 인터프리터 언어이고 연산당 실행 속도가 느림에도 불구하고 딥러닝 연구를 지배하는 이유를 설명하라. 구체적인 이유를 최소 세 가지 제시하라.
+
+??? success "연습문제 2 풀이"
+    (1) 파이썬은 계산이 무거운 연산(행렬 곱, 합성곱)을 최적화된 C++/CUDA/포트란 백엔드(BLAS, cuDNN)에 위임하므로 큰 텐서에서는 인터프리터 부담이 무시할 만하다. (2) 생태계가 독보적이다. PyTorch, TensorFlow, NumPy, pandas, Hugging Face, scikit-learn 모두 파이썬 우선 API를 제공한다. (3) 파이썬의 간결한 문법과 동적 타입은 빠른 원형 제작을 가능하게 하여 연구자가 모델 아이디어를 빠르게 반복할 수 있다. (4) 주피터 노트북 같은 대화형 도구가 딥러닝 연구가 요구하는 탐색적 작업 흐름을 뒷받침한다.
+
+---
+
+**연습문제 3.**
+RAM이 512 KB이고 파이썬 런타임이 없는 임베디드 기기에 이미지 분류 모델을 배포해야 한다. 어떤 언어를 선택하고 그 이유는 무엇인가? 이 작업 흐름을 돕는 PyTorch 도구는 무엇인가?
+
+??? success "연습문제 3 풀이"
+    C++가 적절한 선택이다. 네이티브 코드로 컴파일되고, 제약된 환경에 필요한 수동 메모리 관리를 제공하며, 인터프리터 런타임을 요구하지 않기 때문이다. PyTorch는 모델을 중간 표현으로 내보내는 **TorchScript**(`torch.jit.script` 또는 `torch.jit.trace`)를 제공하며, 이를 C++ 프론트엔드인 **LibTorch** 로 불러와 실행할 수 있다. 또는 모델을 ONNX 형식으로 내보내 ONNX Runtime의 C++ API로 실행할 수도 있다.
+
+---
+
+**연습문제 4.**
+어떤 팀이 새로운 어텐션 기법을 위한 사용자 정의 GPU 커널을 CUDA C++로 작성했다. 이 커널은 동등한 PyTorch 파이썬 구현보다 5배 빠르지만 개발과 디버깅에 3주가 걸렸다. 파이썬 버전은 2시간이면 되었다. C++ 투자가 정당화되는 조건은 무엇인가?
+
+??? success "연습문제 4 풀이"
+    다음 경우에 C++ 투자가 정당화된다. (1) 커널이 여러 실험이나 운영 환경에서 반복적으로 쓰여 개발 비용이 분산될 때. (2) 그 연산이 병목일 때 — 전체 학습/추론 시간의 큰 부분을 차지한다면 5배 속도 향상이 상당한 시간 절약으로 이어진다. (3) 지연 시간과 처리량이 비용이나 사용자 경험에 직접 영향을 주는 대규모 배포 환경일 때. (4) 그 연산을 기존 PyTorch 기본 연산으로 효율적으로 표현할 수 없을 때. 커널이 일회성 실험에만 쓰인다면 파이썬 버전이 낫다. 연구자의 시간이 대개 계산 시간보다 비싸기 때문이다.
+
+---
+
+**연습문제 5.**
+BLAS 백엔드를 쓸 때 행렬 차원이 충분히 크면 파이썬 인터프리터 부담이 전체 실행 시간에서 무시할 만한 비율이 됨을 증명하라. 구체적으로 $n \to \infty$일 때 부담 비율이 0으로 감을 보여라.
+
+??? success "연습문제 5 풀이"
+    BLAS 호출 한 번을 디스패치하는 데 드는 고정된 파이썬 부담(함수 호출 준비, 타입 검사 등)을 $c_{\text{py}}$라 하고, $(n \times n)$ 행렬 곱의 BLAS 계산 시간을 $T_{\text{blas}}(n) = \Theta(n^3)$이라 하자. 부담 비율은 $c_{\text{py}} / T_{\text{blas}}(n) = c_{\text{py}} / \Theta(n^3)$이다. $c_{\text{py}}$는 $n$과 무관한 상수이므로 $\lim_{n \to \infty} c_{\text{py}} / \Theta(n^3) = 0$이다. 따라서 $n$이 충분히 크면 파이썬 디스패치 부담은 전체 시간의 임의로 작은 비율이 되고, 실행은 최적화된 백엔드가 지배한다. $\square$

@@ -1,32 +1,30 @@
-# Loop Analysis
+# 반복문 분석
 
-Loops are the primary source of nonconstant running time in algorithms. A single
-statement costs $O(1)$, but wrapping it in a loop that iterates $n$ times produces
-$O(n)$ total cost. Understanding how to count loop iterations — and how the loop
-variable changes from one iteration to the next — is the essential skill in algorithm
-analysis.
+반복문은 알고리즘에서 상수가 아닌 실행 시간이 생기는 주된 원인이다. 문장 하나는
+$O(1)$이지만 그것을 $n$번 도는 반복문으로 감싸면 전체 비용이 $O(n)$이 된다. 반복
+횟수를 세는 법, 그리고 반복 변수가 한 반복에서 다음 반복으로 어떻게 변하는지 이해하는 것이
+알고리즘 분석의 핵심 기술이다.
 
-## Linear Loops
+## 선형 반복문
 
-A **linear loop** increments (or decrements) its counter by a constant amount each
-iteration.
+**선형 반복문** 은 매 반복마다 계수기를 일정한 양만큼 증가(또는 감소)시킨다.
 
 ```
 for i = 0 to n - 1:
     body                    # O(1)
 ```
 
-The loop variable $i$ takes values $0, 1, 2, \ldots, n - 1$, so the body executes
-exactly $n$ times. Total cost:
+반복 변수 $i$는 $0, 1, 2, \ldots, n - 1$의 값을 가지므로 몸체는 정확히 $n$번
+수행된다. 전체 비용은
 
 $$
 T(n) = n \cdot O(1) = O(n)
 $$
 
-More generally, a loop `for i = a to b` with step size $s$ runs
-$\lfloor (b - a) / s \rfloor + 1$ times.
+더 일반적으로, 보폭이 $s$인 반복문 `for i = a to b`는
+$\lfloor (b - a) / s \rfloor + 1$번 수행된다.
 
-??? example "Summing Every Other Element"
+??? example "한 칸 건너 원소 더하기"
 
     ```
     SumEven(A, n):
@@ -36,14 +34,12 @@ $\lfloor (b - a) / s \rfloor + 1$ times.
         return total
     ```
 
-    The loop runs $\lceil n / 2 \rceil$ times. Since each iteration costs $O(1)$,
-    the total is $T(n) = \Theta(n)$. The factor of $1/2$ vanishes inside
-    $\Theta$-notation.
+    반복문은 $\lceil n / 2 \rceil$번 수행된다. 각 반복이 $O(1)$이므로
+    전체는 $T(n) = \Theta(n)$이다. 인자 $1/2$은 $\Theta$-표기법 안에서 사라진다.
 
-## Logarithmic Loops
+## 로그 반복문
 
-A **logarithmic loop** multiplies or divides the counter by a constant factor each
-iteration.
+**로그 반복문** 은 매 반복마다 계수기에 상수를 곱하거나 상수로 나눈다.
 
 ```
 i = 1
@@ -52,16 +48,16 @@ while i < n:
     i = i * 2
 ```
 
-The variable $i$ takes values $1, 2, 4, 8, \ldots$ and stops when $i \geq n$. After
-$k$ iterations, $i = 2^k$. The loop ends when $2^k \geq n$, which gives:
+변수 $i$는 $1, 2, 4, 8, \ldots$의 값을 가지며 $i \geq n$이 되면 멈춘다. $k$번
+반복한 뒤에는 $i = 2^k$이다. 반복문은 $2^k \geq n$일 때 끝나므로
 
 $$
 k = \lceil \log_2 n \rceil
 $$
 
-Total cost: $T(n) = O(\log n)$.
+전체 비용은 $T(n) = O(\log n)$이다.
 
-Similarly, dividing by a constant produces a logarithmic loop:
+비슷하게, 상수로 나누어도 로그 반복문이 된다.
 
 ```
 i = n
@@ -70,11 +66,11 @@ while i >= 1:
     i = i / 2
 ```
 
-This also runs $O(\log n)$ times because $n / 2^k < 1$ when $k > \log_2 n$.
+$k > \log_2 n$일 때 $n / 2^k < 1$이 되므로 이 역시 $O(\log n)$번 수행된다.
 
-??? example "Repeated Halving"
+??? example "반복적인 반 나누기"
 
-    Binary search reduces the search space by half at each step:
+    이진 탐색은 매 단계마다 탐색 공간을 절반으로 줄인다.
 
     ```
     BinarySearch(A, target, lo, hi):
@@ -89,13 +85,12 @@ This also runs $O(\log n)$ times because $n / 2^k < 1$ when $k > \log_2 n$.
         return -1
     ```
 
-    The range $[\text{lo}, \text{hi}]$ halves each iteration, so the loop runs at
-    most $\lfloor \log_2 n \rfloor + 1$ times, giving $T(n) = O(\log n)$.
+    구간 $[\text{lo}, \text{hi}]$가 매 반복마다 절반이 되므로 반복문은 많아야
+    $\lfloor \log_2 n \rfloor + 1$번 수행되어 $T(n) = O(\log n)$이다.
 
-## Square-Root Loops
+## 제곱근 반복문
 
-Some loops have counters that grow quadratically, producing a square-root iteration
-count.
+어떤 반복문은 계수기가 이차적으로 커져서 반복 횟수가 제곱근이 된다.
 
 ```
 i = 0
@@ -104,13 +99,13 @@ while i * i < n:
     i = i + 1
 ```
 
-The loop stops when $i^2 \geq n$, so $i = \lceil \sqrt{n} \rceil$. Total cost:
-$T(n) = O(\sqrt{n})$.
+반복문은 $i^2 \geq n$일 때 멈추므로 $i = \lceil \sqrt{n} \rceil$이다. 전체 비용은
+$T(n) = O(\sqrt{n})$이다.
 
-## While Loops with Data-Dependent Termination
+## 데이터에 따라 종료되는 while 반복문
 
-When a `while` loop's termination depends on the input data rather than a simple
-counter, the iteration count varies across inputs.
+`while` 반복문의 종료가 단순한 계수기가 아니라 입력 데이터에 의존하면 반복 횟수가
+입력마다 달라진다.
 
 ```
 LinearSearch(A, n, target):
@@ -122,25 +117,23 @@ LinearSearch(A, n, target):
     return -1
 ```
 
-- **Best case:** $A[0]$ = target, loop runs 1 time, $T_{\text{best}}(n) = O(1)$.
-- **Worst case:** target not in $A$, loop runs $n$ times,
-  $T_{\text{worst}}(n) = O(n)$.
+- **최선의 경우:** $A[0]$이 찾는 값이면 반복문이 1번 수행되어 $T_{\text{best}}(n) = O(1)$이다.
+- **최악의 경우:** 찾는 값이 $A$에 없으면 반복문이 $n$번 수행되어
+  $T_{\text{worst}}(n) = O(n)$이다.
 
-For such loops, the analysis requires considering best, worst, and average cases
-separately.
+이러한 반복문은 최선, 최악, 평균의 경우를 따로 고려해야 한다.
 
-## General Loop Analysis Strategy
+## 일반적인 반복문 분석 전략
 
-Given any loop, follow these steps:
+임의의 반복문이 주어지면 다음 단계를 따른다.
 
-1. **Identify the loop variable** and how it changes each iteration (increment,
-   multiply, or data-dependent).
-2. **Determine the stopping condition** in terms of $n$ and the loop variable.
-3. **Solve for the number of iterations** $k$ by finding when the loop variable
-   reaches the stopping condition.
-4. **Multiply** the iteration count by the cost per iteration.
+1. **반복 변수를 찾고** 매 반복마다 어떻게 변하는지 파악한다(증가, 곱셈, 또는
+   데이터 의존).
+2. $n$과 반복 변수로 **종료 조건을 정한다.**
+3. 반복 변수가 종료 조건에 도달하는 시점을 찾아 **반복 횟수 $k$를 구한다.**
+4. 반복 횟수에 반복당 비용을 **곱한다.**
 
-| Loop Pattern | Variable Update | Iterations | Running Time |
+| 반복문 패턴 | 변수 갱신 | 반복 횟수 | 실행 시간 |
 |---|---|---|---|
 | `i = 0; i < n; i++` | $i \leftarrow i + 1$ | $n$ | $O(n)$ |
 | `i = 0; i < n; i += c` | $i \leftarrow i + c$ | $n / c$ | $O(n)$ |
@@ -149,12 +142,45 @@ Given any loop, follow these steps:
 | `i = n; i >= 1; i /= 2` | $i \leftarrow i/2$ | $\log_2 n$ | $O(\log n)$ |
 | `i = 0; i*i < n; i++` | $i \leftarrow i + 1$ | $\sqrt{n}$ | $O(\sqrt{n})$ |
 
-!!! tip "Logarithm Base Does Not Matter"
+!!! tip "로그의 밑은 중요하지 않다"
 
-    Since $\log_c n = \frac{\log_2 n}{\log_2 c}$ and $\log_2 c$ is a constant, all
-    logarithmic bases produce the same asymptotic class $O(\log n)$. We typically omit
-    the base in asymptotic notation.
+    $\log_c n = \frac{\log_2 n}{\log_2 c}$이고 $\log_2 c$가 상수이므로 어떤 밑을
+    쓰든 같은 점근적 부류 $O(\log n)$이 된다. 점근 표기법에서는 보통 밑을
+    생략한다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapters 2-4](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+반복문 분석에서 다룬 분석 기법을 너비 $d$인 층 $L$개로 이루어진 신경망의 순전파에 적용하라.
+
+??? success "연습문제 1 풀이"
+    각 층은 행렬 곱($O(d^2)$)과 활성화($O(d)$)를 수행한다. 이 절의 기법을 사용하여 층당 비용을 $L$개 층에 걸쳐 결합하면 전체 순전파 복잡도를 얻는다.
+
+---
+
+**연습문제 2.**
+반복문 분석의 분석 방법을 적용하여 작은 예제($n = 6$)를 따라가 보라. 정확한 연산 횟수를 세어라.
+
+??? success "연습문제 2 풀이"
+    $n = 6$에 대해 알고리즘이 수행하는 각 연산을 열거한다. 곱셈, 덧셈, 비교, 대입을 각각 따로 센다. 이를 합해 총합을 구한 뒤 빅오 표기법으로 표현한다.
+
+---
+
+**연습문제 3.**
+반복문 분석의 분석을 사용하여 학습 루프의 어느 단계(순전파, 역전파, 최적화기 갱신)가 전체 실행 시간을 지배하는지 판단하라.
+
+??? success "연습문제 3 풀이"
+    각 단계에 분석을 따로 적용한다. 순전파 $O(BPL)$, 역전파 $O(BPL)$, 최적화기 갱신 $O(P)$. 복잡도가 가장 큰 단계가 지배한다. 배치 크기가 크고 층이 많으면 순전파와 역전파(각각 $O(BPL)$)가 최적화기 갱신($O(P)$)을 지배한다.
+
+---
+
+**연습문제 4.**
+반복문 분석의 분석 기법이 논의된 알고리즘에 대해 꽉 조인 경계(상계와 하계가 일치)를 준다는 것을 증명하라.
+
+??? success "연습문제 4 풀이"
+    최악의 경우를 분석하여 상계를 보인다. 알고리즘이 최대 횟수의 연산을 수행하도록 강제하는 입력을 구성하여 하계를 보인다. 두 경계가 일치하면 분석이 꽉 조인 것이다($\Theta$ 표기법). $\square$

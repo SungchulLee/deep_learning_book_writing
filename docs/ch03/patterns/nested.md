@@ -1,47 +1,47 @@
-# Nested Recursion
+# 중첩 재귀
 
-Nested recursion is an unusual pattern where the result of one recursive call is used as an **argument** to another recursive call. Unlike linear or binary recursion, the recursion depth depends on the output of inner calls, making the behavior difficult to trace mentally and often producing surprising results.
+중첩 재귀는 한 재귀 호출의 결과가 다른 재귀 호출의 **인수** 로 쓰이는 흔치 않은 패턴이다. 선형 재귀나 이진 재귀와 달리 재귀의 깊이가 안쪽 호출의 출력에 의존하므로, 동작을 머릿속으로 따라가기 어렵고 놀라운 결과를 낳는 경우가 많다.
 
-## Structure
+## 구조
 
-In nested recursion, a recursive call appears inside the argument list of another recursive call:
+중첩 재귀에서는 재귀 호출이 다른 재귀 호출의 인수 목록 안에 나타난다.
 
 ```
 function f(n):
     if base_case:
         return simple_answer
-    return f(f(n - 1))  # inner call feeds outer call
+    return f(f(n - 1))  # 안쪽 호출이 바깥 호출에 입력된다
 ```
 
-## Example: McCarthy's 91 Function
+## 예제: 매카시의 91 함수
 
-The most famous example of nested recursion is McCarthy's 91 function, which returns 91 for all inputs $n \leq 100$:
+중첩 재귀의 가장 유명한 예는 매카시의 91 함수이다. $n \leq 100$인 모든 입력에 대해 91을 반환한다.
 
 $$
 M(n) = \begin{cases} n - 10 & \text{if } n > 100 \\ M(M(n + 11)) & \text{if } n \leq 100 \end{cases}
 $$
 
 ```python
-"""Nested recursion demonstrated with McCarthy's 91 function."""
+"""매카시의 91 함수로 보여주는 중첩 재귀."""
 
 
 # === McCarthy's 91 Function ===
 
 def mccarthy91(n):
-    """Compute McCarthy's 91 function using nested recursion."""
+    """중첩 재귀로 매카시의 91 함수를 계산한다."""
     if n > 100:
         return n - 10
     return mccarthy91(mccarthy91(n + 11))
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     for n in [85, 90, 95, 100, 101, 105, 111]:
         print(f"M({n}) = {mccarthy91(n)}")
 ```
 
-**Output:**
+**출력:**
 ```
 M(85) = 91
 M(90) = 91
@@ -52,16 +52,49 @@ M(105) = 95
 M(111) = 101
 ```
 
-## Why It Is Unusual
+## 흔치 않은 이유
 
-Nested recursion is rarely used in practice because:
+중첩 재귀는 다음 이유로 실무에서 거의 쓰이지 않는다.
 
-1. **Hard to analyze**: the recursion depth depends on intermediate results, not just the input size
-2. **Hard to trace**: mental execution requires tracking nested evaluations
-3. **Often replaceable**: most practical problems have simpler formulations
+1. **분석하기 어렵다**: 재귀 깊이가 입력 크기만이 아니라 중간 결과에 의존한다
+2. **따라가기 어렵다**: 머릿속으로 실행하려면 중첩된 계산을 추적해야 한다
+3. **대체 가능한 경우가 많다**: 대부분의 실제 문제에는 더 간단한 정식화가 있다
 
-However, it appears in certain mathematical functions and is important for understanding the full spectrum of recursive patterns.
+다만 어떤 수학 함수에는 나타나며, 재귀 패턴의 전체 스펙트럼을 이해하는 데 중요하다.
 
-## Reference
+## 참고 문헌
 
 [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+중첩 재귀에 대해 기저 사례와 재귀 사례를 찾아라. 모든 유효한 입력에 대해 재귀가 종료됨을 증명하라.
+
+??? success "연습문제 1 풀이"
+    기저 사례는 가장 작은 유효한 입력을 직접 처리한다. 재귀 사례는 호출마다 감소하는 잘 정의된 척도로 문제 크기를 줄인다. 이 척도가 (기저 사례의 문턱값으로) 아래로 유계이면서 엄격히 감소하므로 재귀는 반드시 유한한 단계 안에 종료된다.
+
+---
+
+**연습문제 2.**
+중첩 재귀의 시간 복잡도에 대한 점화식을 유도하고 풀어라.
+
+??? success "연습문제 2 풀이"
+    $T(n)$을 재귀 호출과 호출당 일의 함수로 표현한다. 이 점화식은 분기 계수, 부분문제 크기의 감소, 결합 비용을 담는다. 펼치기, 마스터 정리, 치환 중 하나로 풀어 닫힌 형태를 얻는다.
+
+---
+
+**연습문제 3.**
+$n = 8$일 때 중첩 재귀의 재귀 트리를 그려라. 각 층에서의 일과 전체 일을 계산하라.
+
+??? success "연습문제 3 풀이"
+    트리의 깊이는 입력이 기저 사례까지 얼마나 빨리 줄어드는지로 정해진다. 각 층에서 모든 노드의 일을 더한다. 모든 층에 걸친 총합이 실행 시간을 준다. $n = 8$이면 트리가 작아서 전부 열거할 수 있다.
+
+---
+
+**연습문제 4.**
+재귀 구현을 반복 버전으로 변환하라. 공간 복잡도를 비교하라.
+
+??? success "연습문제 4 풀이"
+    호출 스택을 명시적 스택이나 반복 변수로 대체한다. 꼬리 재귀 형태는 while 반복문으로 곧바로 바뀐다. 꼬리가 아닌 형태는 호출 스택을 흉내 내기 위해 명시적 스택이 필요하다. 반복 버전은 보통 $O(\text{depth})$의 스택 공간을 아낀다.

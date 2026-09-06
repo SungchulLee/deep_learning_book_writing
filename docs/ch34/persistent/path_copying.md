@@ -182,3 +182,43 @@ The tail-sharing check for the linked list confirms that modifying index 2 copie
 
 - Driscoll, J.R., Sarnak, N., Sleator, D.D., and Tarjan, R.E. "Making Data Structures Persistent." *JCSS*, 1989
 - Okasaki, C. *Purely Functional Data Structures.* Cambridge University Press, 1998
+
+## Exercises
+
+**Exercise 1.**
+Draw the state of a persistent BST (using path copying) after inserting keys 5, 3, 7, 2 sequentially. Show which nodes are shared between versions.
+
+??? success "Solution to Exercise 1"
+    Version 0: empty. Version 1: single node [5]. Version 2: insert 3 -- copy root to get [5'], set 5'.left = new node [3]. Version 1's root [5] is unchanged. Version 3: insert 7 -- copy root to get [5''], set 5''.left = [3] (shared from v2), 5''.right = new node [7]. Version 2's root [5'] is unchanged, with its left child [3] shared by both v2 and v3. Version 4: insert 2 -- copy root to [5'''], copy [3] to [3']. Set 5'''.left = [3'], 3'.left = new node [2], 5'''.right = [7] (shared). Shared nodes: [7] is shared by v3 and v4; original [3] is still referenced by v2; [5] by v1. Each version has its own root pointer. Total new nodes per version: 1, 2, 2, 3 (matching path lengths). $\square$
+
+---
+
+**Exercise 2.**
+Prove that path copying on a balanced BST with $n$ nodes creates $O(\log n)$ new nodes per update and uses $O(n + m \log n)$ total space after $m$ updates.
+
+??? success "Solution to Exercise 2"
+    An update (insert or delete) in a balanced BST modifies nodes along a root-to-leaf path of length $O(\log n)$. Path copying duplicates each node on this path, creating $O(\log n)$ new nodes per update. Unchanged subtrees are shared via pointers, requiring no additional copies. The initial tree has $O(n)$ nodes. Each of the $m$ updates adds $O(\log n)$ nodes. Total: $O(n) + m \cdot O(\log n) = O(n + m \log n)$. This bound is tight: in the worst case, each update modifies a distinct root-to-leaf path of length $\Theta(\log n)$, and no nodes from different updates are shared (though in practice, updates to nearby keys share subtrees, using less space). $\square$
+
+---
+
+**Exercise 3.**
+Path copying requires storing a root pointer per version. If there are $m$ versions, what is the overhead of the version table, and how can it be made more efficient for range version queries?
+
+??? success "Solution to Exercise 3"
+    The version table stores $m$ root pointers, one per version. If each pointer is 8 bytes, the overhead is $8m$ bytes -- negligible compared to the $O(n + m \log n)$ node storage. For range version queries (e.g., "find the first version where key $k$ exists"), a linear scan of the version table costs $O(m)$. To improve this: (1) store the version table as a sorted array and binary search for the relevant version in $O(\log m)$; (2) build a persistent segment tree over the version indices, enabling range queries in $O(\log m)$; (3) for specific queries like "when was key $k$ first inserted," augment each version's root with metadata and use fractional cascading across versions for $O(\log n + \log m)$ queries. $\square$
+
+---
+
+**Exercise 4.**
+Explain why path copying does not work efficiently for data structures with back-pointers (e.g., doubly-linked lists). What alternative persistence technique handles this case?
+
+??? success "Solution to Exercise 4"
+    Path copying requires that modifying a node only necessitates updating its ancestors (nodes that point to it). In a tree, each node has exactly one parent, so copying a node requires updating only the parent's pointer -- propagating up the path to the root. In a doubly-linked list, each node has both a `next` and `prev` pointer. Copying a node requires updating both its predecessor's `next` and its successor's `prev`. Updating the predecessor triggers copying it, which requires updating its predecessor, cascading through the entire list. The result is $O(n)$ copies per modification -- no better than full copying. The fat-node technique handles this case: instead of copying nodes, modifications are stored as timestamped logs within each node, achieving $O(1)$ amortized space per modification regardless of pointer structure. $\square$
+
+---
+
+**Exercise 5.**
+Design a persistent stack using path copying. What are the time and space complexities for push, pop, and top operations? How many versions can be maintained simultaneously?
+
+??? success "Solution to Exercise 5"
+    A stack is a singly-linked list with a top pointer. Push: create a new node pointing to the current top. The new top is the new node; the old version's top pointer is unchanged. No copying needed -- this is structural sharing, equivalent to path copying on a list of depth 1. Pop: the new version's top points to `top.next`. Again, no copying. Top: return `top.value`. All operations are $O(1)$ time and $O(1)$ space (push creates one node; pop and top create zero nodes). The number of simultaneous versions is unlimited -- each version is just a pointer to a node in the shared linked list. With $m$ push operations across all versions, total space is $O(m)$. This is the simplest example of a persistent data structure: a cons-list is inherently persistent because it has no back-pointers and no mutations. $\square$

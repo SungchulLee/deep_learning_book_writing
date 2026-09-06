@@ -1,49 +1,49 @@
-# Algorithm Definition
+# 알고리즘의 정의
 
-An algorithm is a finite, well-defined computational procedure that maps inputs to outputs. Neural networks are parameterized algorithms: the forward pass is a fixed procedure, but the learned weights determine the specific input-output mapping.
+알고리즘(algorithm)은 입력을 출력으로 대응시키는 유한하고 잘 정의된 계산 절차이다. 신경망은 매개변수를 가진 알고리즘이다. 순전파는 고정된 절차이지만, 학습된 가중치가 구체적인 입력-출력 대응 관계를 결정한다.
 
-## Definition
+## 정의
 
-An algorithm is a procedure satisfying five properties:
+알고리즘은 다음 다섯 가지 성질을 만족하는 절차이다.
 
 $$
-\text{Algorithm}: \mathcal{X} \rightarrow \mathcal{Y}
+\text{알고리즘}: \mathcal{X} \rightarrow \mathcal{Y}
 $$
 
-1. **Input**: Zero or more quantities are externally supplied
-2. **Output**: At least one quantity is produced
-3. **Definiteness**: Each instruction is clear and unambiguous
-4. **Finiteness**: The procedure terminates after a finite number of steps
-5. **Effectiveness**: Every instruction can be carried out in finite time
+1. **입력(input)**: 외부에서 0개 이상의 값이 주어진다
+2. **출력(output)**: 적어도 하나의 값이 생성된다
+3. **명확성(definiteness)**: 각 명령이 분명하고 모호하지 않다
+4. **유한성(finiteness)**: 유한한 단계 후에 절차가 종료된다
+5. **유효성(effectiveness)**: 모든 명령이 유한한 시간 안에 수행될 수 있다
 
-## Explanation
+## 설명
 
-A neural network's forward pass is an algorithm: given input tensor $\mathbf{x}$, it applies a sequence of matrix multiplications, nonlinearities, and normalizations to produce output $\hat{\mathbf{y}}$. Training is also an algorithm: given a dataset and loss function, gradient descent iteratively updates parameters until a stopping criterion is met.
+신경망의 순전파는 알고리즘이다. 입력 텐서 $\mathbf{x}$가 주어지면 행렬 곱, 비선형 함수, 정규화를 차례로 적용하여 출력 $\hat{\mathbf{y}}$를 만들어낸다. 학습 또한 알고리즘이다. 데이터셋과 손실 함수가 주어지면 경사 하강법이 정지 조건을 만족할 때까지 매개변수를 반복적으로 갱신한다.
 
-The distinction between an algorithm and a model is that an algorithm has fixed behavior, while a model has learned behavior. However, once training is complete, inference is a deterministic algorithm (assuming no dropout or stochastic components at test time).
+알고리즘과 모델의 차이는, 알고리즘은 고정된 동작을 가지는 반면 모델은 학습된 동작을 가진다는 점이다. 다만 학습이 끝나고 나면 추론은 결정적 알고리즘이 된다(테스트 시점에 드롭아웃이나 확률적 요소가 없다고 가정할 때).
 
-Key algorithmic properties of neural networks:
+신경망이 가지는 핵심적인 알고리즘적 성질은 다음과 같다.
 
-- **Definiteness**: Every operation (matmul, ReLU, softmax) is precisely defined
-- **Finiteness**: A forward pass terminates in $O(L)$ layer computations
-- **Effectiveness**: Each operation is a basic tensor operation executable on hardware
+- **명확성**: 모든 연산(행렬 곱, ReLU, 소프트맥스)이 정확하게 정의되어 있다
+- **유한성**: 순전파는 $O(L)$번의 층 계산으로 종료된다
+- **유효성**: 각 연산은 하드웨어에서 실행 가능한 기본 텐서 연산이다
 
-## Examples
+## 예제
 
 ```python
 import torch
 import torch.nn as nn
 
-# A neural network forward pass is an algorithm
+# 신경망의 순전파는 하나의 알고리즘이다
 class SimpleNet(nn.Module):
     def __init__(self, d_in, d_hidden, d_out):
         super().__init__()
-        self.layer1 = nn.Linear(d_in, d_hidden)  # step 1: affine transform
-        self.relu = nn.ReLU()                      # step 2: nonlinearity
-        self.layer2 = nn.Linear(d_hidden, d_out)   # step 3: affine transform
+        self.layer1 = nn.Linear(d_in, d_hidden)  # 1단계: 아핀 변환
+        self.relu = nn.ReLU()                      # 2단계: 비선형 함수
+        self.layer2 = nn.Linear(d_hidden, d_out)   # 3단계: 아핀 변환
 
     def forward(self, x):
-        # Each step is definite, finite, and effective
+        # 각 단계는 명확하고, 유한하며, 유효하다
         h = self.layer1(x)
         h = self.relu(h)
         return self.layer2(h)
@@ -56,3 +56,43 @@ print(f"Output: {y.shape}")
 print(f"Steps:  Linear -> ReLU -> Linear (finite, 3 steps)")
 print(f"Deterministic: {torch.equal(model(x), model(x))}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+2층 ReLU 신경망이 알고리즘의 다섯 가지 성질(입력, 출력, 명확성, 유한성, 유효성)을 모두 만족함을 확인하라. 학습 과정에서 가장 위배되기 쉬운 성질은 무엇인가?
+
+??? success "연습문제 1 풀이"
+    **입력**: 텐서 $\mathbf{x} \in \mathbb{R}^d$. $\checkmark$ **출력**: 텐서 $\hat{\mathbf{y}} \in \mathbb{R}^k$. $\checkmark$ **명확성**: 각 연산(행렬 곱, ReLU, 편향 덧셈)이 정확하게 정의되어 있다. $\checkmark$ **유한성**: 순전파는 정확히 행렬 곱 2회, ReLU 1회, 편향 덧셈 2회로 이루어지므로 유한하다. $\checkmark$ **유효성**: 모든 연산이 기본 선형대수 연산이므로 하드웨어에서 실행 가능하다. $\checkmark$ 학습 과정에서는 **유한성**이 가장 위배되기 쉽다. 정지 조건(최대 에폭 수, 조기 종료)이 없으면 학습 루프가 무한히 반복된다. 또한 수렴하지 않는 학습률은 종료 없이 진동을 일으킬 수 있다.
+
+---
+
+**연습문제 2.**
+알고리즘(고정된 절차)과 모델(학습된 절차)의 차이를 설명하라. 딥러닝 작업 흐름에서 모델은 어느 시점에 알고리즘이 되는가?
+
+??? success "연습문제 2 풀이"
+    알고리즘은 임의의 입력에 대해 미리 정해진 고정된 동작을 한다. 모델은 학습된 매개변수에 의해 동작이 결정된다. 학습 중에는 경사 갱신마다 모델의 동작이 바뀌므로 고정된 절차가 아니다. 학습이 끝나 매개변수가 고정되면 모델은 결정적 알고리즘이 된다. 즉 임의의 입력을 동일한 연산 순서를 거쳐 출력으로 대응시키는 고정 함수 $f_{\theta^*}: \mathcal{X} \to \mathcal{Y}$가 된다. 이 전환은 학습이 끝나고 매개변수가 고정되는 순간(예: `model.eval()`과 `torch.no_grad()`)에 일어난다.
+
+---
+
+**연습문제 3.**
+단일 입력 벡터에 적용된 `nn.Linear(d_in, d_out)`의 순전파에서 수행되는 기본 연산(곱셈과 덧셈)의 횟수를 세어라. 답을 $d_{\text{in}}$과 $d_{\text{out}}$으로 표현하라.
+
+??? success "연습문제 3 풀이"
+    이 연산은 $\mathbf{y} = \mathbf{W}\mathbf{x} + \mathbf{b}$이며, 여기서 $\mathbf{W} \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$, $\mathbf{x} \in \mathbb{R}^{d_{\text{in}}}$, $\mathbf{b} \in \mathbb{R}^{d_{\text{out}}}$이다. $d_{\text{out}}$개의 출력 원소 각각은 내적을 위해 $d_{\text{in}}$번의 곱셈과 $d_{\text{in}} - 1$번의 덧셈이 필요하고, 여기에 편향을 더하는 덧셈 1회가 추가된다. 총합: $d_{\text{out}}(d_{\text{in}} + d_{\text{in}} - 1 + 1) = d_{\text{out}}(2d_{\text{in}}) = 2d_{\text{in}} d_{\text{out}}$번의 연산이다. FLOPs 표기로는 $\mathbf{Wx}$가 $2d_{\text{in}} d_{\text{out}}$ FLOPs를 소모한다(곱셈-덧셈을 2회 연산으로 계산).
+
+---
+
+**연습문제 4.**
+신경망 학습에는 확률적 요소(무작위 초기화, 미니배치 표본 추출, 드롭아웃)가 사용된다. 이것이 "명확성" 성질을 위배하는가? 답을 정당화하라.
+
+??? success "연습문제 4 풀이"
+    아니다, 명확성은 위배되지 않는다. 각 확률적 연산은 표본 추출 절차로서 정확하게 정의된다. "$\mathcal{N}(0, 1)$에서 추출하라" 또는 "$\{1, \ldots, n\}$에서 $B$개의 인덱스를 복원 없이 균등하게 추출하라"는 모호하지 않은 명령이다. 무작위성 때문에 실행할 때마다 결과가 달라지지만, 각 단계 자체는 잘 정의되어 있다. 이는 결정적 알고리즘과 무작위화 알고리즘의 구분일 뿐이며, 둘 다 명확성을 만족한다. 위배되는 예는 "적당한 학습률을 고르라"처럼 방법을 명시하지 않은 모호한 명령이다.
+
+---
+
+**연습문제 5.**
+각 층이 행렬 곱과 ReLU 활성화를 수행하는 $L$층 신경망에서, 순전파가 정확히 $2L$번의 연산(층마다 행렬 곱 1회 + ReLU 1회)으로 종료되며 따라서 유한성을 만족함을 증명하라.
+
+??? success "연습문제 5 풀이"
+    순전파를 다음 수열로 정의한다. $l = 1, \ldots, L$에 대하여 (연산 $2l-1$) $\mathbf{z}_l = \mathbf{W}_l \mathbf{h}_{l-1} + \mathbf{b}_l$을 계산하고, (연산 $2l$) $\mathbf{h}_l = \text{ReLU}(\mathbf{z}_l)$을 계산한다. 반복은 정확히 $L$회 수행되고 각 반복마다 2회의 연산이 이루어지므로 총 $2L$번의 연산이 수행된다. $L$은 구조 설계 시점에 정해지는 유한한 정수이므로 절차는 $2L$단계 후에 종료된다. 각 연산은 (입력이 유한 차원이라는 가정 아래) 유한 차원 출력을 만들어내므로, 어떤 개별 단계도 무한히 지속되지 않는다. $\square$

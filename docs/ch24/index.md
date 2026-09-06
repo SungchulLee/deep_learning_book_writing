@@ -1,61 +1,56 @@
-# Chapter 24: Autoregressive Models
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Autoregressive models decompose joint probability distributions into products of conditional distributions using the chain rule of probability, enabling exact density evaluation and sequential generation. From PixelCNN for images to WaveNet for audio and GPT-style transformers for text, autoregressive models underpin many of the most successful generative systems in modern deep learning. This chapter covers the theoretical foundations, key architectures, training strategies, evaluation methods, and finance applications.
+# 24장: 자기 되돌이 모델
+자기 되돌이 모델은 확률의 사슬 규칙으로 결합 확률 분포를 조건부 분포의 곱으로 나누어 정확한 밀도 따지기와 차례대로 만들어 내기를 할 수 있게 한다. 그림을 위한 PixelCNN, 소리를 위한 WaveNet, 글을 위한 GPT 꼴 변환기에 이르기까지 자기 되돌이 모델은 요즘 깊은 배움에서 가장 잘된 만들어 내는 얼개 여럿을 받친다. 이 장은 이론의 바탕, 핵심 얼개, 익히기 방책, 따지기 방법, 돈살림 쓰임새를 다룬다.
 
 ---
 
-## Foundations
+## 바탕
 
-- Autoregressive Models Overview -- Educational overview of autoregressive models with PyTorch implementations and examples.
-- Autoregressive Factorization -- Chain rule decomposition of joint distributions into tractable conditional distributions.
-- Ordering Strategies -- How the choice of variable ordering affects model complexity and natural orderings for different data types.
-- Density Estimation Perspective -- Autoregressive models as density estimators with connections to compression and information theory.
-- Masking Approaches -- Mechanisms for enforcing the autoregressive property including causal masking in attention and weight masking.
+- 자기 되돌이 모델 살펴보기 -- PyTorch 짜기와 보기로 자기 되돌이 모델을 가르치듯 살펴본다.
+- 자기 되돌이 인수 나누기 -- 결합 분포를 다룰 수 있는 조건부 분포로 나누는 사슬 규칙.
+- 차례 정하기 방책 -- 변수 차례를 어떻게 고르느냐가 모델 복잡도에 미치는 영향과 자료 갈래마다 자연스러운 차례.
+- 밀도 어림 관점 -- 누르기와 앎 이론에 이어지는 밀도 어림개로서의 자기 되돌이 모델.
+- 가림막 방식 -- 눈길의 인과 가림막과 무게 가림막을 비롯해 자기 되돌이 성질을 지키게 하는 얼개.
 
-## Factorization
+## 인수 나누기
 
-- [Autoregressive Factorization (Extended)](factorization/factorization.md) -- In-depth treatment of chain rule factorization as the mathematical foundation for all autoregressive generative models.
+- [자기 되돌이 인수 나누기(넓힘)](factorization/factorization.md) -- 모든 자기 되돌이 만들어 내는 모델의 수학 바탕으로서 사슬 규칙 인수 나누기를 깊이 다룬다.
 
 ## PixelCNN
 
-- PixelCNN: Autoregressive Image Generation -- Landmark autoregressive model for images using masked convolutions with raster scan ordering.
-- PixelCNN Architecture -- Detailed architecture of PixelCNN with stacked masked convolutional layers.
-- Masked Convolutions -- Key building block that constrains convolutions to access only previously generated pixels.
-- Gated PixelCNN -- Addresses the blind spot problem and improves expressiveness with gated activations and two-stack architecture.
-- PixelCNN++ -- Improvements including discretized logistic mixture likelihood and U-Net-like multi-resolution architecture.
+- PixelCNN: 자기 되돌이 그림 만들어 내기 -- 가로 훑기 차례와 가린 겹말기를 쓰는 그림용 이정표 자기 되돌이 모델.
+- PixelCNN 얼개 -- 가린 겹말기 층을 쌓은 PixelCNN의 자세한 얼개.
+- 가린 겹말기 -- 겹말기가 앞서 만든 화소만 보게 묶는 핵심 벽돌.
+- 문 달린 PixelCNN -- 보이지 않는 자리 문제를 다루고 문 달린 깨움과 두 쌓기 얼개로 표현력을 높인다.
+- PixelCNN++ -- 띄엄띄엄하게 만든 로지스틱 섞기 가능도와 U-Net을 닮은 여러 해상도 얼개 같은 개선.
 
 ## WaveNet
 
-- WaveNet: Autoregressive Audio Generation -- Breakthrough autoregressive model for raw audio waveforms using dilated causal convolutions.
-- WaveNet Architecture -- Core architecture with stacked dilated causal convolutions and exponentially increasing dilation rates.
-- Dilated Causal Convolutions -- Key building block enabling exponentially growing receptive fields without proportional increase in computation.
-- Conditioning Mechanisms -- Global and local conditioning for controlling generated audio in text-to-speech and other applications.
+- WaveNet: 자기 되돌이 소리 만들어 내기 -- 늘린 인과 겹말기를 쓰는 날 소리 물결꼴용 돌파구 자기 되돌이 모델.
+- WaveNet 얼개 -- 늘린 인과 겹말기를 쌓고 늘림 비율을 지수로 키우는 핵심 얼개.
+- 늘린 인과 겹말기 -- 셈을 그만큼 늘리지 않고도 받는 자리를 지수로 키우는 핵심 벽돌.
+- 조건 주기 얼개 -- 글에서 말로 바꾸기 등 여러 쓰임새에서 만든 소리를 다스리는 온마당과 자리 조건 주기.
 
-## Transformers
+## 변환기
 
-- [Autoregressive Transformers](transformers/transformers.md) -- The transformer architecture as the dominant paradigm for autoregressive sequence modeling with causal masking.
-- Image GPT -- Applying the GPT architecture directly to image generation by treating images as sequences of pixels.
-- Autoregressive Image Generation -- Modern token-based approaches combining VQGAN with transformers for image generation.
-- Connection to LLMs -- How large language models are autoregressive models and why techniques transfer across modalities.
+- [자기 되돌이 변환기](transformers/transformers.md) -- 인과 가림막을 쓰는 자기 되돌이 차례 나타내기의 으뜸 틀로서의 변환기 얼개.
+- 그림 GPT -- 그림을 화소의 차례로 보아 GPT 얼개를 그림 만들어 내기에 곧바로 쓴다.
+- 자기 되돌이 그림 만들어 내기 -- 그림 만들어 내기에 VQGAN과 변환기를 아우르는 요즘의 토큰 바탕 방식.
+- 큰 말 모델과의 이음 -- 큰 말 모델이 어떻게 자기 되돌이 모델인지와 재주가 갈래를 넘어 옮겨 가는 까닭.
 
-## Training
+## 학습
 
-- [Teacher Forcing](training/teacher_forcing.md) -- Standard training strategy using ground-truth inputs for efficient parallel training of autoregressive models.
-- Training Stability -- Practical techniques for stable training at scale including gradient clipping, warmup, and normalization.
-- [Scheduled Sampling](training/scheduled_sampling.md) -- Bridging the gap between teacher forcing and free-running generation by gradually using model predictions.
+- [스승 밀어 넣기](training/teacher_forcing.md) -- 자기 되돌이 모델을 효율 좋게 나란히 익히려 참값 들임을 쓰는 여느 익히기 방책.
+- 익히기의 안정 -- 기울기 자르기, 몸 풀기, 고르게 맞추기를 비롯해 큰 규모에서 안정되게 익히는 쓸모 있는 재주.
+- [차례 잡은 뽑기](training/scheduled_sampling.md) -- 모델이 헤아린 값을 차츰 써서 스승 밀어 넣기와 스스로 도는 만들어 내기 사이의 틈을 잇는다.
 
-## Evaluation
+## 평가
 
-- Comparison with Other Generative Models -- Strengths and weaknesses of autoregressive models relative to VAEs, GANs, flows, and diffusion models.
-- Likelihood Evaluation -- Computing, reporting, and interpreting exact log-likelihood metrics for autoregressive models.
-- Sample Quality -- Sampling strategies including temperature scaling, top-k, and nucleus sampling for generation quality.
+- 다른 만들어 내는 모델과 견주기 -- 변분 자기 부호기, 맞겨루기 만들개, 흐름, 퍼짐 모델에 견준 자기 되돌이 모델의 세고 여린 곳.
+- 가능도 따지기 -- 자기 되돌이 모델의 정확한 로그 가능도 잣대를 셈하고 알리고 풀이하기.
+- 표본 품질 -- 만들어 내기 품질을 위한 온도 잣수 맞추기, 웃 k, 핵 뽑기 같은 뽑기 방책.
 
-## Finance
+## 금융
 
-- Time Series Forecasting -- Autoregressive models for probabilistic financial time series forecasting with exact density evaluation.
-- Volatility Modeling -- Data-driven volatility modeling capturing clustering, leverage effects, and regime dependence.
-- Order Flow Modeling -- Modeling sequences of buy and sell orders for market microstructure analysis and optimal execution.
+- 시계열 내다보기 -- 정확한 밀도 따지기를 갖춘 확률 돈살림 시계열 내다보기용 자기 되돌이 모델.
+- 출렁임 나타내기 -- 뭉침, 지렛대 효과, 판세 매임을 담는 자료 바탕 출렁임 나타내기.
+- 주문 흐름 나타내기 -- 저자 미시 짜임 살피기와 가장 좋은 집행을 위해 사고파는 주문의 차례를 나타낸다.

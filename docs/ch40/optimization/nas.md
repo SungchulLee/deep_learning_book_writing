@@ -1,9 +1,4 @@
 # Neural Architecture Search
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Overview
 
 Neural Architecture Search (NAS) automates the design of neural network architectures, replacing manual architecture engineering with algorithmic optimization. NAS discovers architectures that are often more efficient than human-designed networks, making it a powerful tool for model compression and deployment optimization.
@@ -192,11 +187,13 @@ A matrix $\mathbf{W} \in \mathbb{R}^{m \times n}$ can be approximated by a low-r
 $$\mathbf{W} \approx \mathbf{U}\mathbf{V}^T$$
 
 where:
+
 - $\mathbf{U} \in \mathbb{R}^{m \times r}$
 - $\mathbf{V} \in \mathbb{R}^{n \times r}$
 - $r \ll \min(m, n)$ is the rank
 
 **Parameter reduction:**
+
 - Original: $m \times n$ parameters
 - Factorized: $m \times r + n \times r = r(m + n)$ parameters
 - Reduction factor: $\frac{mn}{r(m+n)}$
@@ -208,6 +205,7 @@ For a weight matrix $\mathbf{W} \in \mathbb{R}^{m \times n}$ with rank $r$, the 
 $$\mathbf{W} = \mathbf{U} \mathbf{\Sigma} \mathbf{V}^T$$
 
 where:
+
 - $\mathbf{U} \in \mathbb{R}^{m \times m}$ contains left singular vectors (orthonormal)
 - $\mathbf{\Sigma} \in \mathbb{R}^{m \times n}$ contains singular values $\sigma_1 \geq \sigma_2 \geq \cdots \geq \sigma_r > 0$
 - $\mathbf{V} \in \mathbb{R}^{n \times n}$ contains right singular vectors (orthonormal)
@@ -241,6 +239,7 @@ $$\rho = \frac{mn}{k(m + n)}$$
 For compression, we need $k < \frac{mn}{m + n}$.
 
 **Example:** For $\mathbf{W} \in \mathbb{R}^{1024 \times 1024}$:
+
 - Original: 1,048,576 parameters
 - With $k = 64$: 131,136 parameters (8× compression)
 - With $k = 128$: 262,272 parameters (4× compression)
@@ -968,12 +967,14 @@ def count_lora_params(model: nn.Module) -> Dict[str, int]:
 ### When to Use Low-Rank Factorization
 
 **Good candidates:**
+
 - Large fully connected layers with many parameters
 - Convolutional layers with many channels
 - Layers with naturally low-rank weight distributions
 - Fine-tuning scenarios (LoRA)
 
 **Poor candidates:**
+
 - Small layers (overhead may exceed savings)
 - 1×1 convolutions (already efficient)
 - First/last layers (often critical for accuracy)
@@ -981,6 +982,7 @@ def count_lora_params(model: nn.Module) -> Dict[str, int]:
 ### Computational Overhead
 
 Factorization introduces additional operations:
+
 - One matrix multiply becomes two sequential multiplies
 - Memory access patterns may be less efficient
 - GPU utilization may decrease for small intermediate ranks
@@ -996,6 +998,7 @@ Low-rank factorization reduces model size and computation:
 5. **LoRA**: Efficient fine-tuning of large pre-trained models
 
 Key recommendations:
+
 - Analyze layer ranks before deciding compression ratio
 - Use energy-based rank selection (95-99% energy retention)
 - Fine-tune after factorization to recover accuracy
@@ -1057,6 +1060,7 @@ Based on empirical results, the recommended order is:
 ```
 
 **Rationale:**
+
 - Distillation first: Student architecture optimized for downstream compression
 - Pruning before quantization: Narrower weight distributions quantize better
 - Fine-tuning between steps: Recover accuracy at each stage
@@ -1612,3 +1616,35 @@ torch.save(compressed_model.state_dict(), 'compressed_model.pth')
 1. Polino, A., et al. "Model Compression via Distillation and Quantization." ICLR 2018.
 2. Han, S., et al. "Deep Compression." ICLR 2016.
 3. Cheng, Y., et al. "A Survey of Model Compression and Acceleration." IEEE Signal Processing 2020.
+
+## Exercises
+
+**Exercise 1.**
+Describe the trade-offs between the optimization techniques discussed in this section in terms of accuracy loss, inference speedup, and implementation complexity.
+
+??? success "Solution to Exercise 1"
+    Each technique has a different trade-off profile. Quantization (INT8) typically achieves 2--4x speedup with < 1% accuracy loss and moderate implementation effort (supported by frameworks). Pruning achieves variable speedup depending on sparsity pattern (structured pruning is more hardware-friendly) with 1--3% accuracy loss. Knowledge distillation maintains the original architecture's inference cost but uses a smaller student, achieving 2--10x compression with 1--5% accuracy loss. NAS finds optimal architectures but requires massive search compute (thousands of GPU-hours). For financial applications, the acceptable accuracy loss depends on the cost of errors. $\square$
+
+---
+
+**Exercise 2.**
+Implement post-training quantization (INT8) for a simple feedforward network and measure the accuracy degradation and inference speedup on a benchmark dataset.
+
+??? success "Solution to Exercise 2"
+    Using PyTorch's quantization API: (1) train a float32 model to baseline accuracy; (2) apply `torch.quantization.quantize_dynamic` for dynamic quantization or calibrate with representative data for static quantization; (3) measure inference time (average over 1000 batches) and accuracy on test set. Typical results: 1.5--3x speedup on CPU, < 0.5% accuracy drop for dynamic quantization, < 0.2% for calibrated static quantization. The model size reduction is approximately 4x (FP32 to INT8). Key: static quantization requires a calibration dataset representative of deployment data. $\square$
+
+---
+
+**Exercise 3.**
+Design a production monitoring system for a deployed model that detects data drift, concept drift, and model degradation. Specify the metrics and alerting thresholds.
+
+??? success "Solution to Exercise 3"
+    Monitor three levels: (1) Data drift: track input feature distributions using KS test or PSI (Population Stability Index). Alert if PSI > 0.2 for any feature. (2) Concept drift: track prediction distribution shift and ground-truth label distribution (when available). Alert if prediction mean shifts by > 2 standard deviations from the baseline period. (3) Model degradation: track live accuracy/loss metrics with a rolling window. Alert if accuracy drops > 3% from baseline or latency exceeds SLA (e.g., p99 > 50ms). Implement dashboards with Grafana, store metrics in Prometheus, and send alerts via PagerDuty. $\square$
+
+---
+
+**Exercise 4.**
+Explain why latency requirements in financial trading systems are fundamentally different from web serving. How does this affect the deployment optimization strategy?
+
+??? success "Solution to Exercise 4"
+    Web serving tolerates 100--500ms latency with occasional spikes; trading systems require deterministic sub-millisecond latency (often < 100 microseconds for HFT). This changes the optimization strategy: (1) avoid garbage collection pauses (use C++ inference, not Python); (2) pre-allocate all memory (no dynamic allocation); (3) pin threads to cores (avoid context switches); (4) use FPGA or ASIC for the most latency-critical path; (5) quantization is essential but must not introduce non-deterministic rounding. Batch inference is not applicable (each decision is latency-critical). The deployment stack prioritizes worst-case latency (p99.9) over throughput. $\square$

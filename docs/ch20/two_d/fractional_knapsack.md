@@ -1,121 +1,121 @@
-# Fractional Knapsack via Dynamic Programming
+# 동적 짜기로 푸는 쪼갤 수 있는 배낭
 
-The classical 0/1 knapsack problem restricts each item to an all-or-nothing choice. The **fractional knapsack** variant relaxes this constraint: you may take any fraction of an item. While the fractional knapsack is optimally solved by a greedy algorithm in $O(n \log n)$, studying it alongside the 0/1 variant highlights when dynamic programming is necessary and when a simpler strategy suffices.
+고전 0/1 배낭 문제는 물건마다 전부 담거나 아예 안 담는 고름만 허락한다. **쪼갤 수 있는 배낭** 변형은 이 제약을 늦춰 물건의 일부만 담을 수 있게 한다. 쪼갤 수 있는 배낭은 욕심쟁이 알고리즘이 $O(n \log n)$에 가장 좋게 풀지만, 0/1 변형과 나란히 살피면 언제 동적 짜기가 필요하고 언제 더 단순한 전략으로 넉넉한지 드러난다.
 
-## Problem Formulation
+## 문제 정식화
 
-Given $n$ items, each with weight $w_i > 0$ and value $v_i > 0$, and a knapsack of capacity $W$, choose fractions $x_i \in [0, 1]$ to maximize total value subject to the weight constraint:
+무게 $w_i > 0$과 값어치 $v_i > 0$을 가진 물건 $n$개와 담이 $W$인 배낭이 주어질 때, 무게 제약 아래 전체 값어치를 가장 크게 하는 비율 $x_i \in [0, 1]$을 고르라:
 
 $$
 \max \sum_{i=1}^{n} v_i \, x_i \quad \text{subject to} \quad \sum_{i=1}^{n} w_i \, x_i \le W, \quad 0 \le x_i \le 1
 $$
 
-The key quantity is the **value-to-weight ratio** (or value density) of each item:
+핵심 값은 물건마다의 **값어치 대 무게 비**(값어치 밀도)이다:
 
 $$
 r_i = \frac{v_i}{w_i}
 $$
 
-Items with higher $r_i$ deliver more value per unit of weight.
+$r_i$이 큰 물건일수록 무게 한 단위마다 더 큰 값어치를 준다.
 
-## Greedy Algorithm
+## 욕심쟁이 알고리즘
 
-The greedy strategy sorts items by decreasing value density $r_i$ and greedily fills the knapsack.
+욕심쟁이 전략은 값어치 밀도 $r_i$이 큰 차례로 물건을 정렬한 뒤 욕심껏 배낭을 채운다.
 
-**Algorithm:**
+**알고리즘:**
 
-1. Compute $r_i = v_i / w_i$ for each item $i$.
-2. Sort items so that $r_1 \ge r_2 \ge \cdots \ge r_n$.
-3. Initialize remaining capacity $C = W$.
-4. For each item $i$ in sorted order:
-    - If $w_i \le C$: take the entire item ($x_i = 1$), set $C \leftarrow C - w_i$.
-    - Else: take the fraction $x_i = C / w_i$, set $C = 0$, and stop.
+1. 물건 $i$마다 $r_i = v_i / w_i$을 셈한다.
+2. $r_1 \ge r_2 \ge \cdots \ge r_n$이 되게 물건을 정렬한다.
+3. 남은 담이를 $C = W$으로 첫자리매김한다.
+4. 정렬된 차례로 물건 $i$마다:
+    - $w_i \le C$이면 물건 전체를 담고($x_i = 1$) $C \leftarrow C - w_i$으로 둔다.
+    - 아니면 비율 $x_i = C / w_i$만큼 담고 $C = 0$으로 둔 뒤 멈춘다.
 
-## Proof of Optimality
+## 가장 좋음의 증명
 
-!!! tip "Greedy Choice Property"
-    At each step, including the item with the highest remaining value density in the solution is consistent with an optimal solution.
+!!! tip "욕심쟁이 고르기 성질"
+    걸음마다 남은 물건 가운데 값어치 밀도가 가장 큰 것을 풀이에 넣는 것은 어떤 가장 좋은 풀이와도 어긋나지 않는다.
 
-**Proof by exchange argument.** Let $\mathbf{x}^*$ be an optimal solution, and let item $j$ be the first item (in sorted order by $r_i$) where the greedy solution $\mathbf{x}^G$ differs from $\mathbf{x}^*$. By construction, $x_j^G > x_j^*$.
+**맞바꿈 논증에 의한 증명.** $\mathbf{x}^*$을 가장 좋은 풀이라 하고, ($r_i$으로 정렬한 차례에서) 욕심쟁이 풀이 $\mathbf{x}^G$이 $\mathbf{x}^*$과 처음으로 달라지는 물건을 $j$이라 하자. 세운 방식에 따라 $x_j^G > x_j^*$이다.
 
-Define a new solution $\mathbf{x}'$ that increases $x_j$ from $x_j^*$ toward $x_j^G$ and decreases some later item $k$ (with $r_k \le r_j$) to maintain feasibility. The change in value is:
+$x_j$을 $x_j^*$에서 $x_j^G$ 쪽으로 늘리고, 실행할 수 있게 뒤쪽 물건 $k$($r_k \le r_j$)을 줄인 새 풀이 $\mathbf{x}'$을 정하자. 값어치의 바뀜은 다음과 같다:
 
 $$
 \Delta V = (x_j^G - x_j^*) \cdot v_j - \delta_k \cdot v_k = w_\Delta (r_j - r_k) \ge 0
 $$
 
-where $w_\Delta$ is the weight shifted. Since $r_j \ge r_k$, the new solution is at least as good. Repeating this exchange for every differing item transforms $\mathbf{x}^*$ into $\mathbf{x}^G$ without decreasing the objective. $\square$
+여기서 $w_\Delta$은 옮긴 무게이다. $r_j \ge r_k$이므로 새 풀이가 적어도 그만큼은 좋다. 달라지는 물건마다 이 맞바꿈을 되풀이하면 목표를 줄이지 않고 $\mathbf{x}^*$을 $\mathbf{x}^G$으로 바꿀 수 있다. $\square$
 
-## Complexity Analysis
+## 복잡도 분석
 
-| Step | Time |
+| 걸음 | 시간 |
 |---|---|
-| Compute ratios | $O(n)$ |
-| Sort by ratio | $O(n \log n)$ |
-| Greedy fill | $O(n)$ |
-| **Total** | $O(n \log n)$ |
+| 비 셈하기 | $O(n)$ |
+| 비로 정렬하기 | $O(n \log n)$ |
+| 욕심껏 채우기 | $O(n)$ |
+| **전체** | $O(n \log n)$ |
 
-Space complexity is $O(n)$ for storing items and fractions.
+물건과 비율을 담는 데 공간 복잡도는 $O(n)$이다.
 
-## Comparison with 0/1 Knapsack
+## 0/1 배낭과의 견줌
 
-| Property | Fractional Knapsack | 0/1 Knapsack |
+| 성질 | 쪼갤 수 있는 배낭 | 0/1 배낭 |
 |---|---|---|
-| Fractions allowed | Yes ($x_i \in [0,1]$) | No ($x_i \in \{0,1\}$) |
-| Optimal strategy | Greedy | Dynamic programming |
-| Time complexity | $O(n \log n)$ | $O(nW)$ pseudo-polynomial |
-| Greedy works? | Yes | No |
+| 쪼개기 허락 | 예($x_i \in [0,1]$) | 아니오($x_i \in \{0,1\}$) |
+| 가장 좋은 전략 | 욕심쟁이 | 동적 짜기 |
+| 시간 복잡도 | $O(n \log n)$ | $O(nW)$ 유사 다항 |
+| 욕심쟁이가 통하는가? | 예 | 아니오 |
 
-!!! warning "Why Greedy Fails for 0/1 Knapsack"
-    Consider items with $(w, v) = \{(10, 60), (20, 100), (30, 120)\}$ and $W = 50$. The greedy approach by value density selects items 1 and 2 (value 160), but the optimal 0/1 solution takes items 2 and 3 (value 220). Greedy fails because it cannot take a fraction of item 3 to fill the remaining capacity.
+!!! warning "0/1 배낭에서 욕심쟁이가 어긋나는 까닭"
+    $(w, v) = \{(10, 60), (20, 100), (30, 120)\}$이고 $W = 50$인 물건을 보자. 값어치 밀도로 하는 욕심쟁이는 물건 1과 2를 고르지만(값어치 160) 가장 좋은 0/1 풀이는 물건 2와 3을 담는다(값어치 220). 남은 담이를 채우려 물건 3의 일부만 담을 수 없어 욕심쟁이가 어긋난다.
 
-## Worked Example
+## 풀이 예제
 
-**Items:** $(w_1, v_1) = (10, 60)$, $(w_2, v_2) = (20, 100)$, $(w_3, v_3) = (30, 120)$.
-**Capacity:** $W = 50$.
+**물건:** $(w_1, v_1) = (10, 60)$, $(w_2, v_2) = (20, 100)$, $(w_3, v_3) = (30, 120)$.
+**담이:** $W = 50$.
 
-**Step 1.** Compute ratios: $r_1 = 6$, $r_2 = 5$, $r_3 = 4$.
+**걸음 1.** 비를 셈한다: $r_1 = 6$, $r_2 = 5$, $r_3 = 4$.
 
-**Step 2.** Sorted order: item 1, item 2, item 3.
+**걸음 2.** 정렬된 차례: 물건 1, 물건 2, 물건 3.
 
-**Step 3.** Greedy fill:
+**걸음 3.** 욕심껏 채우기:
 
-- Item 1: $w_1 = 10 \le 50$. Take all. $C = 40$. Value $= 60$.
-- Item 2: $w_2 = 20 \le 40$. Take all. $C = 20$. Value $= 160$.
-- Item 3: $w_3 = 30 > 20$. Take fraction $x_3 = 20/30 = 2/3$. Value $= 160 + 80 = 240$.
+- 물건 1: $w_1 = 10 \le 50$. 전부 담는다. $C = 40$. 값어치 $= 60$.
+- 물건 2: $w_2 = 20 \le 40$. 전부 담는다. $C = 20$. 값어치 $= 160$.
+- 물건 3: $w_3 = 30 > 20$. 비율 $x_3 = 20/30 = 2/3$만큼 담는다. 값어치 $= 160 + 80 = 240$.
 
-**Result:** Total value $= 240$ with items $[1.0, 1.0, 0.667]$.
+**결과:** 물건 $[1.0, 1.0, 0.667]$으로 전체 값어치 $= 240$.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Fractional Knapsack — Greedy Algorithm.
+쪼갤 수 있는 배낭 — 욕심쟁이 알고리즘.
 
-Solves the fractional knapsack problem by sorting items by value-to-weight
-ratio and greedily selecting the most valuable items first.
+값어치 대 무게 비로 물건을 정렬해 값어치 큰 것부터 욕심껏 골라
+쪼갤 수 있는 배낭 문제를 푼다.
 """
 
 from typing import List, Tuple
 
 
-# === Greedy Fractional Knapsack ===
+# === 욕심쟁이 쪼갤 수 있는 배낭 ===
 
 def fractional_knapsack(
     items: List[Tuple[float, float]], capacity: float
 ) -> Tuple[float, List[float]]:
-    """Solve the fractional knapsack problem.
+    """쪼갤 수 있는 배낭 문제를 푼다.
 
-    Args:
-        items: List of (weight, value) tuples.
-        capacity: Maximum weight capacity.
+    인수:
+        items: (무게, 값어치) 짝의 목록.
+        capacity: 최대 무게 담이.
 
-    Returns:
-        Tuple of (max_value, fractions) where fractions[i] is
-        the fraction of item i taken.
+    반환값:
+        (최대 값어치, 비율)의 짝. 여기서 fractions[i]는
+        물건 i를 담은 비율이다.
     """
     n = len(items)
-    # Compute (index, weight, value, ratio) and sort by ratio descending
+    # (번호, 무게, 값어치, 비)를 셈해 비 내림차순으로 정렬한다
     indexed = [(i, w, v, v / w) for i, (w, v) in enumerate(items)]
     indexed.sort(key=lambda x: x[3], reverse=True)
 
@@ -139,7 +139,7 @@ def fractional_knapsack(
     return total_value, fractions
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     items = [(10, 60), (20, 100), (30, 120)]
@@ -150,13 +150,45 @@ if __name__ == "__main__":
     print(f"Capacity: {capacity}")
     print(f"Fractions taken: {[round(f, 3) for f in fracs]}")
     print(f"Maximum value: {max_val}")
-    # Output:
-    # Items (weight, value): [(10, 60), (20, 100), (30, 120)]
-    # Capacity: 50
-    # Fractions taken: [1.0, 1.0, 0.667]
-    # Maximum value: 240.0
+    # 내임:
+    # 물건(무게, 값어치): [(10, 60), (20, 100), (30, 120)]
+    # 담이: 50
+    # 담은 비율: [1.0, 1.0, 0.667]
+    # 최대 값어치: 240.0
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 15 (Greedy Algorithms).
+
+## 연습문제
+
+**연습문제 1.**
+동적 짜기로 푸는 쪼갤 수 있는 배낭의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+동적 짜기로 푸는 쪼갤 수 있는 배낭의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+동적 짜기로 푸는 쪼갤 수 있는 배낭의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+동적 짜기로 푸는 쪼갤 수 있는 배낭의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

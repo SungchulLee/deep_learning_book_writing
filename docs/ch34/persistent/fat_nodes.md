@@ -195,3 +195,43 @@ Each version reflects the tree state after the corresponding insertions, and ear
 
 - Driscoll, J.R., Sarnak, N., Sleator, D.D., and Tarjan, R.E. "Making Data Structures Persistent." *JCSS*, 1989
 - [Advanced Data Structures (Brass)](https://www.cambridge.org/core/books/advanced-data-structures/D56E2269D7CEE969A3B8105D3541F601)
+
+## Exercises
+
+**Exercise 1.**
+Explain the fat node technique for partial persistence. How does a query at version $t$ find the correct field value at a given node?
+
+??? success "Solution to Exercise 1"
+    In the fat node technique, each node stores a list of (timestamp, value) pairs for each mutable field. When a field is modified at version $t$, the pair $(t, \text{new\_value})$ is appended to that field's log. The original value is stored with timestamp 0 (or the creation time). To query a field at version $t$: binary search the log for the largest timestamp $\le t$, returning the corresponding value. This gives the field's value as it was at version $t$. Since the log is sorted by timestamp (modifications are applied in version order for partial persistence), binary search takes $O(\log m)$ where $m$ is the number of modifications to that field. For a BST search at version $t$, each node access costs $O(\log m)$ instead of $O(1)$, making total search time $O(h \log m)$. $\square$
+
+---
+
+**Exercise 2.**
+Prove that fat nodes achieve $O(1)$ amortized space per modification for a data structure where each node has bounded in-degree (at most $p$ pointers pointing to it).
+
+??? success "Solution to Exercise 2"
+    The DSST framework assigns each node $2p$ extra modification slots (where $p$ is the max in-degree). When a field of a node is modified, the change is written into one of its free slots. If the node's slots are full, the node is "copied out": a new node is created with the latest values, and all pointers to the old node are updated to point to the new node. These pointer updates are themselves modifications to the pointing nodes, handled recursively. The amortized analysis uses a potential function $\Phi = c \cdot (\text{total occupied slots})$ for an appropriate constant $c$. Each modification fills one slot (cost 1, potential increases by $c$). A copy-out empties $2p$ slots (potential decreases by $2pc$) but requires updating $\le p$ pointers (cost $\le p$, each filling one slot). Choosing $c \ge 1$ makes the amortized cost $O(1)$ per modification. $\square$
+
+---
+
+**Exercise 3.**
+Compare the query-time overhead of fat nodes versus path copying for reading version $t$ of a BST with $n$ nodes and $m$ total modifications.
+
+??? success "Solution to Exercise 3"
+    **Path copying**: each version has its own root pointer. A query at version $t$ traverses the tree from version $t$'s root, following pointers that lead to shared or copied nodes. Each node access is $O(1)$ (just follow a pointer). Total query time: $O(h)$ where $h$ is the tree height. **Fat nodes**: a single tree structure exists, with modification logs at each node. A query at version $t$ must binary-search the log at each visited node to find the correct field values. Each node access costs $O(\log m_v)$ where $m_v$ is the number of modifications at that node. Total query time: $O(h \cdot \log m)$ in the worst case (if modifications are concentrated). In practice, $m_v$ varies across nodes, and most nodes have few modifications, so the average cost is closer to $O(h)$. Path copying has strictly better query performance at the cost of higher space. $\square$
+
+---
+
+**Exercise 4.**
+A fat-node persistent linked list stores 1000 versions, each with a single modification. What is the total space usage? How does it compare to storing 1000 separate copies of the list?
+
+??? success "Solution to Exercise 4"
+    Let the list have $n$ nodes. Each of the 1000 modifications adds one (timestamp, value) pair to one node's log. Total space: $O(n)$ for the original list + $O(1000)$ for the modification entries = $O(n + 1000)$. If $n = 10{,}000$, total space is roughly $11{,}000$ units. Storing 1000 separate copies would require $1000 \times n = 10{,}000{,}000$ units -- a 1000x increase. Fat nodes are dramatically more space-efficient when modifications are sparse relative to the data structure size. The tradeoff is that each node access now requires searching the modification log, adding $O(\log 1000) \approx 10$ overhead per access. $\square$
+
+---
+
+**Exercise 5.**
+Can fat nodes support full persistence (modifying any version, not just the latest)? What fundamental difficulty arises, and how did Driscoll et al. address it?
+
+??? success "Solution to Exercise 5"
+    Fat nodes as described support only partial persistence: modifications must be applied in timestamp order to the latest version. For full persistence, a modification to version $t$ (which may not be the latest) creates a branch. The difficulty is that the modification log at each node is no longer linearly ordered by time -- the version history forms a tree, and binary search on a linear log does not work. Driscoll et al. addressed this by augmenting the fat-node technique with a "node-splitting" strategy and an access function that navigates the version tree. Each node's modification log is organized by the version tree structure, and field lookup at version $t$ requires finding the correct branch. The amortized space bound increases: $O(1)$ per modification still holds, but the constant factor is larger. The query overhead also increases because navigating the version DAG adds complexity. In practice, path copying is preferred for full persistence due to its simpler implementation. $\square$

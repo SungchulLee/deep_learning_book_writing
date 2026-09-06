@@ -1,25 +1,25 @@
-# B-Tree Definition
+# B-트리의 정의
 
-Binary search trees provide $O(\log n)$ operations when balanced, but each comparison touches a separate node that may reside on a different disk block.  On storage devices where a single block read is orders of magnitude slower than a CPU instruction, the number of **disk accesses** dominates performance.  B-trees address this by packing many keys into each node so that one disk read loads an entire node, and the tree's branching factor is high enough to keep the height — and therefore the number of disk accesses — extremely small.
+이진 탐색 트리는 균형 잡혀 있으면 연산이 $O(\log n)$이지만, 비교할 때마다 서로 다른 디스크 블록에 있을 수도 있는 다른 노드를 건드린다. 블록 한 번 읽기가 CPU 명령보다 몇 자릿수 느린 저장 장치에서는 **디스크 접근 횟수**가 성능을 좌우한다. B-트리는 노드마다 열쇠를 많이 담아 디스크를 한 번 읽으면 노드 하나가 통째로 올라오게 하고, 갈래를 충분히 많이 두어 높이를, 곧 디스크 접근 횟수를 아주 작게 유지하여 이를 해결한다.
 
-## Minimum Degree
+## 최소 차수
 
-A B-tree is parameterized by a **minimum degree** $t \ge 2$.  This single parameter controls both the minimum and maximum number of keys that each node can hold.
+B-트리는 **최소 차수** $t \ge 2$으로 매개변수화된다. 이 하나의 매개변수가 노드마다 담을 수 있는 열쇠의 최솟값과 최댓값을 모두 정한다.
 
-## B-Tree Properties
+## B-트리의 성질
 
-A B-tree of minimum degree $t$ satisfies the following properties:
+최소 차수가 $t$인 B-트리는 다음 성질을 만족한다.
 
-1. **Every node** $x$ stores $x.n$ keys in non-decreasing order: $x.key_1 \le x.key_2 \le \cdots \le x.key_{x.n}$.
-2. **Every internal node** $x$ has $x.n + 1$ children.  The keys act as separators: for child $c_i$, all keys $k$ in the subtree rooted at $c_i$ satisfy $x.key_{i-1} \le k \le x.key_i$ (with appropriate boundary handling for the first and last children).
-3. **All leaves are at the same depth**, which equals the height $h$ of the tree.
-4. **Key bounds for non-root nodes:** every node other than the root has at least $t - 1$ keys and at most $2t - 1$ keys.
-5. **Root bound:** the root has at least 1 key (if the tree is non-empty) and at most $2t - 1$ keys.
+1. **노드마다** $x$이 열쇠 $x.n$개를 감소하지 않는 순서로 담는다: $x.key_1 \le x.key_2 \le \cdots \le x.key_{x.n}$.
+2. **내부 노드마다** $x$이 자식을 $x.n + 1$개 가진다. 열쇠가 구분자 노릇을 한다. 자식 $c_i$에 대해 $c_i$을 뿌리로 하는 부분 트리의 모든 열쇠 $k$이 $x.key_{i-1} \le k \le x.key_i$을 만족한다(첫 자식과 마지막 자식의 경계는 알맞게 다룬다).
+3. **모든 잎이 같은 깊이에 있고** 그 깊이가 트리의 높이 $h$이다.
+4. **뿌리가 아닌 노드의 열쇠 한계:** 뿌리가 아닌 노드마다 열쇠가 적어도 $t - 1$개, 많아야 $2t - 1$개 있다.
+5. **뿌리의 한계:** 뿌리는 (트리가 비어 있지 않다면) 열쇠가 적어도 1개, 많아야 $2t - 1$개 있다.
 
-A node with $2t - 1$ keys is called **full**.
+열쇠가 $2t - 1$개인 노드를 **꽉 찼다**고 한다.
 
-??? example "B-tree of minimum degree t = 2 (a 2-3-4 tree)"
-    When $t = 2$, each non-root node holds 1 to 3 keys and has 2 to 4 children.  This special case is called a **2-3-4 tree**.
+??? example "최소 차수가 t = 2인 B-트리 (2-3-4 트리)"
+    $t = 2$이면 뿌리가 아닌 노드마다 열쇠를 1개에서 3개까지 담고 자식을 2개에서 4개까지 가진다. 이 특수한 경우를 **2-3-4 트리**라 한다.
 
     ```
             [  8  ]
@@ -29,70 +29,103 @@ A node with $2t - 1$ keys is called **full**.
     [1] [4] [6] [9] [11] [13] [16,17]
     ```
 
-    - The root has 1 key and 2 children.
-    - The internal node `[10, 12, 15]` is full (3 keys = $2t - 1$).
-    - All leaves reside at depth 2.
+    - 뿌리는 열쇠가 1개, 자식이 2개이다.
+    - 내부 노드 `[10, 12, 15]`은 꽉 찼다(열쇠 3개 = $2t - 1$).
+    - 모든 잎이 깊이 2에 있다.
 
-## Height Bound
+## 높이의 한계
 
-The most important consequence of the B-tree properties is that the height grows logarithmically with the number of keys.
+B-트리 성질에서 나오는 가장 중요한 결과는 높이가 열쇠 수에 따라 로그로만 자란다는 것이다.
 
-!!! note "B-tree height theorem"
-    For a B-tree of minimum degree $t \ge 2$ containing $n \ge 1$ keys, the height $h$ satisfies:
+!!! note "B-트리 높이 정리"
+    열쇠 $n \ge 1$개를 담은 최소 차수 $t \ge 2$의 B-트리에서 높이 $h$은 다음을 만족한다.
 
     $$
     h \le \log_t \frac{n + 1}{2}
     $$
 
-**Proof sketch.**  The tree has the fewest keys when every node contains exactly the minimum number.  The root contributes at least 1 key, the root's children contribute at least 2 nodes with $t - 1$ keys each, the next level has at least $2t$ nodes with $t - 1$ keys each, and so on.  Summing over all levels:
+**증명 개요.** 노드마다 최소한의 열쇠만 담을 때 트리의 열쇠가 가장 적다. 뿌리가 열쇠 1개 이상, 뿌리의 자식이 $t - 1$개씩의 열쇠를 가진 노드 2개 이상, 그다음 층이 $t - 1$개씩의 열쇠를 가진 노드 $2t$개 이상, 이런 식으로 이어진다. 모든 층에 걸쳐 더하면 다음과 같다.
 
 $$
 n \ge 1 + (t - 1) \sum_{i=1}^{h} 2t^{i-1} = 1 + 2(t - 1) \cdot \frac{t^h - 1}{t - 1} = 2t^h - 1
 $$
 
-Solving for $h$ gives $t^h \le (n + 1)/2$, so $h \le \log_t \frac{n+1}{2}$. $\square$
+$h$에 대해 풀면 $t^h \le (n + 1)/2$이므로 $h \le \log_t \frac{n+1}{2}$이다. $\square$
 
-For a typical disk-based system with $t = 1000$ and $n = 10^9$ keys, the height is at most $\log_{1000}(5 \times 10^8) \approx 3$.  Three disk reads suffice to locate any key among a billion entries.
+$t = 1000$이고 열쇠가 $n = 10^9$개인 흔한 디스크 기반 시스템에서 높이는 많아야 $\log_{1000}(5 \times 10^8) \approx 3$이다. 십억 개의 항목 가운데 어떤 열쇠든 디스크를 세 번 읽으면 찾을 수 있다.
 
-## Node Structure
+## 노드 구조
 
-Each B-tree node stores:
+B-트리의 노드마다 다음을 담는다.
 
-| Field | Description |
+| 칸 | 설명 |
 |-------|-------------|
-| $x.n$ | Number of keys currently stored |
-| $x.key_1, \ldots, x.key_{x.n}$ | Keys in sorted order |
-| $x.c_1, \ldots, x.c_{x.n+1}$ | Child pointers (internal nodes only) |
-| $x.leaf$ | Boolean flag: is the node a leaf? |
+| $x.n$ | 지금 담긴 열쇠의 수 |
+| $x.key_1, \ldots, x.key_{x.n}$ | 정렬된 순서의 열쇠 |
+| $x.c_1, \ldots, x.c_{x.n+1}$ | 자식 포인터 (내부 노드만) |
+| $x.leaf$ | 참거짓 깃발: 이 노드가 잎인가 |
 
-In practice, each key may have an associated satellite data pointer (or the data may be stored inline for small records).
+실제로는 열쇠마다 딸린 데이터를 가리키는 포인터가 있을 수 있다(레코드가 작으면 데이터를 그 자리에 담을 수도 있다).
 
-## Choosing the Minimum Degree
+## 최소 차수 고르기
 
-The minimum degree $t$ is typically chosen so that a full node fits into a single disk block.  If a disk block holds $B$ bytes, a key occupies $k$ bytes, and a child pointer occupies $p$ bytes, then:
+최소 차수 $t$은 대체로 꽉 찬 노드가 디스크 블록 하나에 들어가도록 고른다. 디스크 블록이 $B$바이트를 담고 열쇠가 $k$바이트, 자식 포인터가 $p$바이트를 차지하면 다음과 같다.
 
 $$
 (2t - 1) \cdot k + 2t \cdot p \le B
 $$
 
-Solving for $t$ maximizes the branching factor while keeping each node within one block.
+$t$에 대해 풀면 노드마다 블록 하나 안에 두면서 갈래 수를 가장 크게 할 수 있다.
 
-!!! tip "Practical values"
-    Database systems commonly use $t$ values in the range 50–2000, depending on the block size (typically 4 KB or 8 KB) and the key size.  With $t = 500$ and 8 KB blocks, each node holds up to 999 keys.
+!!! tip "실제로 쓰는 값"
+    데이터베이스 시스템은 (보통 4KB나 8KB인) 블록 크기와 열쇠 크기에 따라 $t$을 50에서 2000 사이로 흔히 쓴다. $t = 500$이고 블록이 8KB이면 노드마다 열쇠를 999개까지 담는다.
 
-## Comparison with Binary Search Trees
+## 이진 탐색 트리와 견주기
 
-| Property | BST | B-tree (degree $t$) |
+| 성질 | 이진 탐색 트리 | B-트리 (차수 $t$) |
 |----------|-----|---------------------|
-| Keys per node | 1 | $t-1$ to $2t-1$ |
-| Children per node | 2 | $t$ to $2t$ |
-| Height | $O(\log_2 n)$ | $O(\log_t n)$ |
-| Disk accesses per search | $O(\log_2 n)$ | $O(\log_t n)$ |
-| Balanced? | Only if self-balancing | Always |
+| 노드당 열쇠 | 1 | $t-1$개에서 $2t-1$개 |
+| 노드당 자식 | 2 | $t$개에서 $2t$개 |
+| 높이 | $O(\log_2 n)$ | $O(\log_t n)$ |
+| 찾기당 디스크 접근 | $O(\log_2 n)$ | $O(\log_t n)$ |
+| 균형 잡혀 있는가 | 스스로 균형을 잡을 때만 | 언제나 |
 
-The reduction from $\log_2 n$ to $\log_t n$ disk accesses is the fundamental advantage of B-trees.
+디스크 접근이 $\log_2 n$에서 $\log_t n$으로 줄어드는 것이 B-트리의 근본적인 이점이다.
 
-## Reference
+## 참고 문헌
 
 - Bayer, R., & McCreight, E. (1972). Organization and maintenance of large ordered indexes. *Acta Informatica*, 1(3), 173–189.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 18. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+B-트리의 정의의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 B-트리의 정의를 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+B-트리의 정의이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 B-트리의 정의를 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

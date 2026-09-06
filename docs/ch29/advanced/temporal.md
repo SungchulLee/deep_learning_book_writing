@@ -1,56 +1,89 @@
-# Temporal Graph Neural Networks
+# 때 그래프 신경망
 
-Real-world networks are rarely static: social connections form and dissolve, financial transactions occur at irregular intervals, and communication patterns shift over time. **Temporal graphs** (also called dynamic graphs) capture this evolution by associating timestamps with nodes, edges, or features. Temporal graph neural networks (Temporal GNNs) extend static GNN architectures to learn from these evolving structures, combining spatial message passing with temporal modeling.
+실제 그물은 거의 고정되어 있지 않다. 사회의 이음이 생겼다 사라지고, 금융 거래는 고르지 않은 간격으로 일어나며, 주고받음의 무늬는 때에 따라 바뀐다. **때 그래프**(바뀌는 그래프라고도 한다)는 마디, 변, 특징에 때 표를 붙여 이 바뀜을 담는다. 때 그래프 신경망은 자리 쪽지 건네기와 때 나타내기를 합쳐 고정된 그래프 신경망 얼개를 이 바뀌는 얼개에서 배우도록 넓힌다.
 
-## Types of Temporal Graphs
+## 때 그래프의 갈래
 
-**Discrete-time dynamic graphs (DTDG)**: The graph is observed as a sequence of snapshots $G_1, G_2, \ldots, G_T$ at regular time intervals. Each snapshot is a complete static graph.
+**띄엄띄엄한 때의 바뀌는 그래프(DTDG)**: 그래프를 고른 때 간격의 스냅숏 차례 $G_1, G_2, \ldots, G_T$으로 본다. 스냅숏마다 온전한 고정 그래프이다.
 
-**Continuous-time dynamic graphs (CTDG)**: Events (edge additions, deletions, feature updates) occur at arbitrary timestamps. The graph evolves continuously rather than in fixed steps.
+**이어진 때의 바뀌는 그래프(CTDG)**: 사건(변 더하기, 지우기, 특징 고치기)이 아무 때 표에서 일어난다. 그래프가 붙박인 걸음이 아니라 이어져 바뀐다.
 
-## Approaches
+## 다가가는 길
 
-### Snapshot-Based Methods
+### 스냅숏 바탕 방법
 
-Apply a static GNN independently to each snapshot, then combine the resulting node embeddings over time using an RNN or transformer:
+스냅숏마다 고정 그래프 신경망을 따로 쓴 뒤 그 마디 박아 넣기를 되돌이 신경망이나 변환기로 때에 걸쳐 합친다:
 
 $$
 \mathbf{Z}_t = \text{GNN}(G_t), \quad \mathbf{H}_t = \text{RNN}(\mathbf{Z}_t, \mathbf{H}_{t-1})
 $$
 
-This approach is simple but treats each snapshot independently during the spatial aggregation step and requires discrete time steps.
+이 방식은 단순하지만 자리 모으기 걸음에서 스냅숏을 따로 다루고 띄엄띄엄한 때 걸음이 필요하다.
 
-### Temporal Message Passing
+### 때 쪽지 건네기
 
-Extend standard message passing by including temporal information in the messages. Each message carries the timestamp of the interaction, and temporal encodings (analogous to positional encodings in transformers) enable the model to distinguish recent from distant interactions.
+쪽지에 때 앎을 담아 여느 쪽지 건네기를 넓힌다. 쪽지마다 그 주고받음의 때 표를 지니고, (변환기의 자리 적기와 비슷한) 때 적기가 최근의 주고받음과 먼 것을 가르게 한다.
 
 ### EvolveGCN
 
-Rather than evolving node embeddings over time, EvolveGCN evolves the GNN's **weight matrices** using an RNN:
+마디 박아 넣기를 때에 따라 바꾸는 대신 EvolveGCN은 되돌이 신경망으로 그래프 신경망의 **무게 행렬**을 바꾼다:
 
 $$
 \mathbf{W}_t = \text{GRU}(\mathbf{H}_t, \mathbf{W}_{t-1})
 $$
 
-This allows the convolutional filters themselves to adapt as the graph structure changes.
+이는 그래프 얼개가 바뀔 때 겹말기 거르개 자체가 맞추어 가게 한다.
 
-### TGAT (Temporal Graph Attention)
+### TGAT(때 그래프 눈길)
 
-TGAT applies the attention mechanism with time-aware positional encodings. A functional encoding $\Phi(t) = \cos(\omega t + \phi)$ injects temporal information into the attention scores, allowing the model to weight recent interactions more heavily.
+TGAT은 때를 아는 자리 적기와 함께 눈길 얼개를 쓴다. 함수 적기 $\Phi(t) = \cos(\omega t + \phi)$이 눈길 점수에 때 앎을 넣어 최근의 주고받음에 무게를 더 주게 한다.
 
-### TGN (Temporal Graph Network)
+### TGN(때 그래프 신경망)
 
-TGN maintains a per-node **memory module** that is updated with each interaction. The architecture combines three components: a message function that summarizes each event, a memory updater (GRU or LSTM) that incorporates messages into node memory, and an embedding module that produces the final node representation from memory and graph structure.
+TGN은 주고받음마다 고쳐지는 마디마다의 **기억 조각**을 지닌다. 이 얼개는 세 조각을 합친다. 사건마다 간추리는 쪽지 함수, 쪽지를 마디 기억에 넣는 기억 고침개(게이트 되돌이 단위나 장단기 기억망), 기억과 그래프 얼개에서 마지막 마디 나타냄을 만드는 박아 넣기 조각이다.
 
-## Financial Applications
+## 금융에서의 쓰임
 
-- **Portfolio rebalancing**: Track evolving asset correlation networks to detect when portfolio weights need adjustment
-- **Fraud detection**: Identify anomalous temporal transaction patterns that static analysis would miss
-- **Market regime detection**: Monitor changes in network structure (e.g., sectoral correlations breaking down) as early signals of regime shifts
+- **꾸러미 다시 맞추기**: 자산 얽힘 그물의 바뀜을 좇아 꾸러미 무게를 맞출 때를 알아챈다
+- **속임수 찾기**: 고정된 살피기로는 놓치는 예사롭지 않은 때 거래 무늬를 짚어낸다
+- **시장 국면 찾기**: 그물 얼개의 바뀜(보기로 업종 얽힘이 무너짐)을 국면 바뀜의 이른 신호로 살핀다
 
-!!! note "Choosing Between DTDG and CTDG"
-    If your data arrives at regular intervals (e.g., daily closing prices), snapshot-based methods are natural. If events occur at irregular timestamps (e.g., trade-level data), continuous-time methods avoid the information loss of binning into fixed windows.
+!!! note "띄엄띄엄한 때와 이어진 때 가운데 고르기"
+    자료가 고른 간격으로 오면(보기로 일별 종가) 스냅숏 바탕 방법이 자연스럽다. 사건이 고르지 않은 때 표에서 일어나면(보기로 거래 단위 자료) 이어진 때의 방법이 붙박인 창으로 묶을 때 생기는 앎 잃음을 피한다.
 
-## References
+## 참고 문헌
 
 [Kazemi et al. -- Representation Learning for Dynamic Graphs: A Survey (JMLR 2020)](https://jmlr.org/papers/v21/19-447.html)
+
+
+## 연습문제
+
+**연습문제 1.**
+때 그래프란 무엇이며 고정 그래프와 어떻게 다른가?
+
+??? success "연습문제 1 풀이"
+    때 그래프 $G(t) = (V(t), E(t))$은 꼭짓점과 변이 때에 따라 바뀐다. 변이 나타났다 사라지고 마디가 들어왔다 나가며 특징이 바뀐다. 이는 얼개가 붙박인 고정 그래프와 다르다. 보기: 사회 그물(우정이 생겼다 사라진다), 금융 그물(거래에 때 표가 있다), 주고받음 그물(전자우편에 때 표가 있다). 때 그래프 신경망은 얼개 무늬와 때 움직임을 모두 나타내야 한다.
+
+---
+
+**연습문제 2.**
+때 그래프 신경망의 두 방식, 곧 띄엄띄엄한 때와 이어진 때를 적어라.
+
+??? success "연습문제 2 풀이"
+    띄엄띄엄한 때: 그래프를 고른 간격 $G_1, G_2, \ldots, G_T$으로 찍는다. 스냅숏마다 자리 그래프 신경망을 쓴 뒤 때 모델(되돌이 신경망, 장단기 기억망, 변환기)로 때 걸음에 걸쳐 모은다. 보기: GCRN은 스냅숏마다 그래프 겹말기 신경망을, 때에 걸쳐 장단기 기억망을 쓴다. 이어진 때: 사건을 흐름 $(u, v, t, \text{features})$으로 나타낸다. 주고받음마다 고쳐지는 마디 기억 상태를 지닌다. 보기: TGN(때 그래프 신경망)은 기억 조각, 쪽지 함수, 때 눈길을 쓴다. 이어진 때가 간격이 고르지 않은 사건에 더 너그럽다.
+
+---
+
+**연습문제 3.**
+때 이웃 자리 개념과 그것이 고정 이웃 자리와 어떻게 다른지 밝혀라.
+
+??? success "연습문제 3 풀이"
+    때 $t$에서 마디 $v$의 때 이웃 자리는 때 $t$ 전에 $v$과 주고받은 마디를 담는다: $N(v, t) = \{(u, t') : (u, v, t') \in E, t' < t\}$. 이는 때 차례를 지니며 가장 최근 $k$개의 주고받음으로 잘라 쓸 수 있다. (모임인) 고정 이웃 자리와 달리 때 이웃 자리는 주고받음의 차례와 때를 지키는 차례이다. 최근의 주고받음에 무게를 더 줄 수 있다. 때 이웃 자리는 인과 쪽지 건네기를 가능하게 한다. 때 $t$의 마디 나타냄이 지난 사건에만 매여 앞날의 앎이 새는 것을 막는다.
+
+---
+
+**연습문제 4.**
+때 그래프 신경망은 금융 거래 그물의 속임수 찾기에 어떻게 쓰이는가?
+
+??? success "연습문제 4 풀이"
+    금융 거래는 때 그래프를 이룬다. 계좌가 마디이고 거래가 특징(금액, 갈래, 때)을 가진 때 표 붙은 변이다. 때 그래프 신경망은 다음으로 속임수를 찾는다. (1) 때에 따른 씀씀이 무늬를 담는 계좌 박아 넣기를 배운다, (2) 예사롭지 않은 주고받음 차례(보기로 새 계좌로의 빠른 거래)를 찾아낸다, (3) 의심을 그물로 퍼뜨린다(계좌 A이 표시된 계좌 B으로 보내면 A의 위험이 커진다). 때의 면이 결정적이다. 거래의 차례와 때가 돈세탁 무늬를 떳떳한 움직임과 갈라 준다.

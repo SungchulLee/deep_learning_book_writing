@@ -1,62 +1,89 @@
-# 33.7.2 Market Making
+# 33.7.2 시장 만들기
+## 문제 정식화
 
+**시장 만드는 이**는 시장에 사고파는 호가를 끊임없이 내며 재고 위험을 다루면서 호가 차이로 이익을 낸다. 힘 북돋우는 배움 부림꾼이 가장 좋은 호가 셈속을 배운다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+### 마르코프 결정 과정의 조각
 
-## Problem Formulation
+- **상태**: $s_t = (q_t, p_t^{\text{mid}}, \sigma_t, S_t, \text{imbalance}_t, t)$
+  - $q_t$: 지금 재고 자리
+  - $p_t^{\text{mid}}$: 가운데 값
+  - $\sigma_t$: 어림한 흔들림
+  - $S_t$: 지금 호가 차이
+  - 호가창 치우침, 하루 중 때 특징
 
-A **market maker** continuously provides buy and sell quotes (bids and asks) to the market, profiting from the bid-ask spread while managing inventory risk. The RL agent learns optimal quoting strategies.
+- **움직임**: 가운데 값에서 사고파는 호가를 얼마나 떨어뜨릴지의 띄엄띄엄한 고름
+  - 보기: 저마다 떨어뜨림 켜(보기로 1, 2, 3, 5, 10틱)인 $a = (a_{\text{bid}}, a_{\text{ask}})$
 
-### MDP Components
-
-- **State**: $s_t = (q_t, p_t^{\text{mid}}, \sigma_t, S_t, \text{imbalance}_t, t)$
-  - $q_t$: Current inventory position
-  - $p_t^{\text{mid}}$: Mid-price
-  - $\sigma_t$: Estimated volatility
-  - $S_t$: Current spread
-  - Order book imbalance, time of day features
-
-- **Action**: Discrete choices for bid/ask offsets from mid-price
-  - Example: $a = (a_{\text{bid}}, a_{\text{ask}})$ where each is an offset level (e.g., 1, 2, 3, 5, 10 ticks)
-
-- **Reward**: PnL minus inventory penalty
+- **보상**: 손익에서 재고 벌을 뺀 값
 
   $$r_t = \text{PnL}_t - \lambda \cdot q_t^2$$
 
-### Inventory Risk
+### 재고 위험
 
-Market makers face **adverse selection**: informed traders trade against the market maker, causing losses. Large inventory positions expose the market maker to directional risk. The inventory penalty $\lambda q_t^2$ encourages mean-reversion of the position.
+시장 만드는 이는 **불리한 고름**을 마주한다. 앎을 가진 거래자가 시장 만드는 이를 상대로 거래해 손실을 입힌다. 재고 자리가 크면 방향 위험에 노출된다. 재고 벌 $\lambda q_t^2$이 자리가 평균으로 돌아오도록 이끈다.
 
-## Avellaneda-Stoikov Framework
+## 아벨라네다-스토이코프 틀
 
-The classical market-making model provides an analytical benchmark:
+고전 시장 만들기 모형이 손으로 셈하는 잣대를 준다:
 
 $$\delta^* = \frac{1}{\gamma}\ln\left(1 + \frac{\gamma}{\kappa}\right) + \frac{q \cdot \gamma \sigma^2 (T - t)}{2}$$
 
-where $\gamma$ is risk aversion, $\kappa$ is order arrival rate intensity, and $q$ is inventory. The RL agent should match or exceed this on realistic market dynamics.
+여기서 $\gamma$은 위험을 꺼리는 정도, $\kappa$은 주문이 오는 빠르기의 세기, $q$은 재고다. 힘 북돋우는 배움 부림꾼은 그럴듯한 시장 흐름에서 이와 같거나 낫아야 한다.
 
-## DQN for Market Making
+## 시장 만들기를 위한 DQN
 
-The agent selects spread levels for buy and sell quotes. The action space is discretized:
+부림꾼이 사고파는 호가의 차이 켜를 고른다. 움직임 자리를 띄엄띄엄하게 나눈다:
 
-| Action | Bid offset | Ask offset |
+| 움직임 | 사는 호가 떨어뜨림 | 파는 호가 떨어뜨림 |
 |--------|-----------|------------|
-| 0 | 1 tick | 1 tick (tight spread) |
-| 1 | 1 tick | 2 ticks |
-| 2 | 2 ticks | 1 tick |
+| 0 | 1틱 | 1틱(좁은 차이) |
+| 1 | 1틱 | 2틱 |
+| 2 | 2틱 | 1틱 |
 | ... | ... | ... |
 
-### Key Design Choices
+### 핵심 설계 선택
 
-1. **Symmetric vs asymmetric spreads**: Allow different bid/ask offsets for inventory management
-2. **Order size**: Fixed lot size or variable (adds action dimensions)
-3. **Position limits**: Constrain $|q_t| \leq Q_{\max}$
-4. **Reward shaping**: Balance spread capture vs inventory risk
+1. **맞선 차이와 어긋난 차이**: 재고를 다루려 사고파는 떨어뜨림을 다르게 둔다
+2. **주문 크기**: 붙박인 단위나 바뀌는 크기(움직임 차원이 는다)
+3. **자리 한도**: $|q_t| \leq Q_{\max}$으로 매인다
+4. **보상 다듬기**: 차이 챙기기와 재고 위험의 균형을 잡는다
 
-## Practical Considerations
+## 실용적인 고려
 
-- **Latency**: Real market making requires microsecond decisions; RL computes policies offline
-- **Adverse selection modeling**: Fill probability depends on toxicity of order flow
-- **Multiple venues**: Market makers often operate across exchanges
-- **Regulatory constraints**: Obligations to quote continuously, maximum spread limits
+- **지체**: 실제 시장 만들기는 마이크로초 단위 결정이 필요하다. 힘 북돋우는 배움은 방침을 오프라인에서 셈한다
+- **불리한 고름 나타내기**: 체결 확률이 주문 흐름의 해로움에 매인다
+- **여러 거래소**: 시장 만드는 이는 흔히 여러 거래소에서 움직인다
+- **규제 매임**: 끊임없이 호가를 낼 의무, 최대 차이 한도
+
+## 연습문제
+
+**연습문제 1.**
+Q 값 어림에 신경망을 쓰는 어려움을 이 방법이 어떻게 다루는지 밝혀라. 이 길이 없으면 어떤 불안정이 생기는가?
+
+??? success "연습문제 1 풀이"
+    신경망 Q 값 어림은 차례 자료의 얽힘과 움직이는 과녁 문제(과녁이 지금 잡에 매인다) 때문에 불안정하다. 이 방법은 특정 얼개나 알고리즘 고름으로 이 말썽을 다룬다. 이것이 없으면 기울기 고침이 한결같지 않은 과녁을 좇아 익히기가 발산하고 재앙 같은 지나친 어림이나 흔들림이 생긴다. 이 길은 얽힘을 끊거나 얼마 동안 과녁을 붙박아 익히기를 안정시킨다. $\square$
+
+---
+
+**연습문제 2.**
+CartPole-v1 둘레에서 이 방법을 짜라. 둘레를 푸는 데(100판 평균 보상 > 475) 필요한 판수를 알리고 배움 굽은 줄을 그려라.
+
+??? success "연습문제 2 풀이"
+    숨은 낱덩이 64개의 2층 여러 층 신경망, 배움 빠르기 $3 \times 10^{-4}$의 Adam, 이 마디의 재주를 쓰면 부림꾼이 보통 200~500판에 CartPole을 푼다. 배움 굽은 줄은 처음의 아무 성능(보상 $\approx 20$), 빠르게 좋아지는 마당, 거의 가장 좋은 성능으로의 모임을 보인다. 핵심 짜기 세부: 되돌려 보기 버퍼 크기 10000, 묶음 크기 64, 100걸음마다 과녁 그물 고침, 300판에 걸쳐 1.0에서 0.01로 선형으로 스러지는 $\epsilon$ 욕심쟁이. $\square$
+
+---
+
+**연습문제 3.**
+맨 DQN에 견주어 이 방법이 더하는 셈과 기억 덧짐을 살펴라. 금융 쓰임새에서 그 맞바꿈이 값을 하는가?
+
+??? success "연습문제 3 풀이"
+    덧짐은 방법마다 다르지만 보통 앞으로 가기를 더 하거나(두 겹 DQN은 2배), 그물 잡을 더 두거나(맞겨루기 갈래), 기억을 더 쓴다(앞섬 되돌려 보기). 자료가 비싸고 실수가 값비싼 금융 쓰임새에서는 표본 효율과 안정이 좋아지므로 덧짐이 값을 한다. 금융 상태 자리는 흔히 차원이 웬만하므로(특징 10~100개) 걸음마다 늘어나는 비용이 더 나은 결정의 값어치에 견주면 크지 않다. $\square$
+
+---
+
+**연습문제 4.**
+보상 신호가 성기고(거래를 마칠 때만 실현되고) 늦는 금융 거래 쓰임새에 이 방법을 어떻게 맞출지 다루어라.
+
+??? success "연습문제 4 풀이"
+    성긴 보상은 공 돌리기를 어렵게 한다. 부림꾼은 여러 걸음 전의 움직임을 끝내 생긴 이익이나 손실에 이어야 한다. 맞추는 길: (1) 가장 좋은 방침을 지키면서 더 빽빽한 되먹임을 주는 중간 신호(실현되지 않은 손익, 위험 잣대)로 보상 다듬기, (2) 성긴 보상을 더 효율 좋게 뒤로 퍼뜨리는 여러 걸음 돌아옴, (3) 지난 겪음에 이룬 결과로 새 이름표를 붙이는 뒤늦은 겪음 되돌려 보기. 이 마디의 방법은 드문 보상 신호에서 배우는 안정을 높여 이바지한다. $\square$

@@ -1,166 +1,203 @@
-# Knowledge Distillation Basics: Teacher-Student Framework
+# 지식 증류의 기초: 교사-학생 틀
+## 들어가며
 
+지식 증류(KD)는 정성껏 설계한 학습 목표로 복잡한 교사 모형의 지식을 더 간단한 학생 모형으로 옮기는 방식이다. 본디 모형 압축에서 비롯했지만, 증류는 모형 학습을 낫게 하고 배운 표현을 옮기며 갖가지 기계 학습 과제에서 일반화를 높이는 근본 기법으로 자라났다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+지식 증류의 이론적 바탕은 구조가 달라도 모형이 비슷한 표현을 배우는 일이 많고, 학생을 교사가 배운 출력 분포에 노출시키면 학습이 빨라진다는 관찰에 놓여 있다. 이 틀은 예측의 질을 잃지 않으면서 지연이 짧은 추론 시스템을 올려야 하는 계량 금융에서 특히 값지다.
 
-## Introduction
+## 핵심 개념
 
-Knowledge distillation (KD) represents a paradigm for transferring knowledge from a complex teacher model to a simpler student model through a carefully designed learning objective. Originally motivated by model compression, distillation has evolved into a fundamental technique for improving model training, enabling transfer of learned representations, and enhancing generalization across diverse machine learning tasks.
+- **교사 모형**: 지도를 주는, 복잡하고 잘 학습된 모형
+- **학생 모형**: 학습시킬 더 간단한 목표 모형
+- **지식 옮기기**: 교사의 표현에서 학생의 표현으로 흐르는 정보
+- **어둠의 지식**: 딱딱한 정확도 너머 부드러운 목표에 담긴 통찰
+- **온도 조정**: 확률 분포의 부드러움 다스리기
+- **응답 기반 증류**: 출력 분포 맞추기
+- **특징 기반 증류**: 중간 층의 표현 맞추기
+- **관계 기반 증류**: 표본 사이의 쌍별 관계 맞추기
 
-The theoretical foundation of knowledge distillation rests on the observation that models often learn similar representations despite architectural differences, and that exposing a student to the teacher's learned distribution of outputs accelerates learning. This framework proves particularly valuable in quantitative finance, where deploying low-latency inference systems requires compact models without sacrificing prediction quality.
+## 수학적 틀
 
-## Key Concepts
+### 증류 손실
 
-- **Teacher Model**: Complex, well-trained model providing supervision
-- **Student Model**: Simpler target model to be trained
-- **Knowledge Transfer**: Information flow from teacher to student representations
-- **Dark Knowledge**: Insights captured in soft targets beyond hard accuracy
-- **Temperature Scaling**: Controlling softness of probability distributions
-- **Response-Based KD**: Matching output distributions
-- **Feature-Based KD**: Matching intermediate layer representations
-- **Relation-Based KD**: Matching pairwise relationships between samples
-
-## Mathematical Framework
-
-### Distillation Loss
-
-The knowledge distillation objective combines two components:
+지식 증류의 목표는 두 성분을 아우른다.
 
 $$\mathcal{L}_{\text{KD}} = \alpha \mathcal{L}_{\text{CE}}(\mathbf{y}_s, \mathbf{y}) + (1-\alpha) \mathcal{L}_{\text{KL}}(\mathbf{p}_s, \mathbf{p}_t)$$
 
-where:
-- $\mathcal{L}_{\text{CE}}$ is cross-entropy loss with ground truth labels $\mathbf{y}$
-- $\mathcal{L}_{\text{KL}}$ is Kullback-Leibler divergence between student and teacher outputs
-- $\mathbf{p}_s, \mathbf{p}_t$ are softened probability distributions
-- $\alpha$ is a weighting parameter controlling supervision source
+여기서 각 기호는 다음과 같다.
 
-### Temperature-Based Softening
+- $\mathcal{L}_{\text{CE}}$은 참 이름표 $\mathbf{y}$에 대한 교차 엔트로피 손실이다
+- $\mathcal{L}_{\text{KL}}$은 학생과 교사의 출력 사이의 쿨백-라이블러 발산이다
+- $\mathbf{p}_s, \mathbf{p}_t$은 부드럽게 한 확률 분포이다
+- $\alpha$은 지도의 원천을 다스리는 가중치 매개변수이다
 
-Softened probability distributions use temperature parameter $T$:
+### 온도로 부드럽게 하기
+
+부드럽게 한 확률 분포는 온도 매개변수 $T$을 쓴다.
 
 $$\mathbf{p}_i = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}$$
 
-where $z_i$ represents logit values.
+여기서 $z_i$은 로짓 값을 나타낸다.
 
-The KL divergence between softened distributions:
+부드럽게 한 분포 사이의 KL 발산은 다음과 같다.
 
 $$D_{\text{KL}}(\mathbf{p}_s \| \mathbf{p}_t) = -\sum_i \mathbf{p}_t(T) \log \frac{\mathbf{p}_s(T)}{\mathbf{p}_t(T)}$$
 
-**Temperature Effects**:
-- **$T = 1$**: Recovers standard softmax (sharp distributions)
-- **$T > 1$**: Softens distributions, revealing relative class importance
-- **$T \to \infty$**: Approaches uniform distribution
+**온도의 효과**:
 
-## Distillation Paradigms
+- **$T = 1$**: 표준 소프트맥스로 돌아간다 (뾰족한 분포)
+- **$T > 1$**: 분포를 부드럽게 하여 부류 사이의 상대적 중요도를 드러낸다
+- **$T \to \infty$**: 고른 분포에 다가간다
 
-### Response-Based Knowledge Distillation
+## 증류의 갈래
 
-Matches final output distributions:
+### 응답 기반 지식 증류
+
+마지막 출력 분포를 맞춘다.
 
 $$\mathcal{L}_{\text{response}} = KL(T(\text{Teacher} \text{ logits}), T(\text{Student} \text{ logits}))$$
 
-**Advantages**: Applicable to any architecture, simple implementation
+**좋은 점**: 어떤 구조에도 쓸 수 있고 구현이 간단하다
 
-**Disadvantages**: Loses intermediate representation information
+**나쁜 점**: 중간 표현의 정보를 잃는다
 
-### Feature-Based Knowledge Distillation
+### 특징 기반 지식 증류
 
-Matches intermediate layer representations:
+중간 층의 표현을 맞춘다.
 
 $$\mathcal{L}_{\text{feature}} = \|F_s(\mathbf{x}) - F_t(\mathbf{x})\|_2^2$$
 
-where $F_s, F_t$ are intermediate features from student and teacher.
+여기서 $F_s, F_t$은 학생과 교사의 중간 특징이다.
 
-**Advantages**: Richer supervision, better feature transfer
+**좋은 점**: 지도가 더 넉넉하고 특징이 더 잘 옮겨 간다
 
-**Disadvantages**: Requires architecture compatibility, higher computational cost
+**나쁜 점**: 구조가 맞아야 하고 계산 비용이 더 든다
 
-### Relation-Based Knowledge Distillation
+### 관계 기반 지식 증류
 
-Matches pairwise sample relationships:
+표본 사이의 쌍별 관계를 맞춘다.
 
 $$\mathcal{L}_{\text{relation}} = \|R_s(\mathbf{x}_i, \mathbf{x}_j) - R_t(\mathbf{x}_i, \mathbf{x}_j)\|_2^2$$
 
-where $R$ measures similarity or relationship between samples.
+여기서 $R$은 표본 사이의 비슷함이나 관계를 잰다.
 
-## Training Dynamics
+## 학습의 움직임
 
-### Gradient Analysis
+### 기울기 분석
 
-During backpropagation, distillation losses provide gradients:
+역전파 중에 증류 손실이 다음 기울기를 준다.
 
 $$\frac{\partial \mathcal{L}_{\text{KD}}}{\partial z_i^s} = T^2 (\mathbf{p}_s(T) - \mathbf{p}_t(T))$$
 
-Higher temperature increases gradient magnitude during early training when distributions differ significantly.
+분포가 크게 다른 학습 초기에 온도가 높으면 기울기의 크기가 커진다.
 
-### Learning Behavior
+### 학습의 모습
 
-!!! tip "Dual Supervision Benefits"
-    Ground truth labels provide "what" to predict; teacher distribution provides "how" to predict, capturing learned inductive biases.
+!!! tip "두 갈래 지도의 이점"
+    참 이름표는 무엇을 맞힐지를 주고, 교사의 분포는 어떻게 맞힐지를 주어 배운 귀납 편향을 담아 낸다.
 
-## Practical Implementation Considerations
+## 구현할 때 살필 점
 
-### Temperature Selection
+### 온도 고르기
 
-| Temperature | Use Case | Effect |
+| 온도 | 쓰임새 | 효과 |
 |---|---|---|
-| **1** | High-confidence teacher | Sharp distinction |
-| **3-5** | Standard scenarios | Moderate softening |
-| **8-10** | Similar complexity | Gentle guidance |
-| **20+** | Very different models | Heavy softening |
+| **1** | 확신이 높은 교사 | 뚜렷한 구분 |
+| **3~5** | 보통의 상황 | 알맞게 부드럽게 |
+| **8~10** | 복잡도가 비슷할 때 | 부드러운 이끔 |
+| **20 이상** | 아주 다른 모형 | 크게 부드럽게 |
 
-### Weight Coefficient alpha
+### 가중치 계수 alpha
 
-Balances classification and distillation losses:
+분류 손실과 증류 손실의 균형을 잡는다.
 
 $$\alpha = \frac{\text{Number of Classes}}{\text{Distillation Importance}}$$
 
-Typical values: $\alpha \in [0.1, 0.5]$
+흔한 값: $\alpha \in [0.1, 0.5]$
 
-### Training Procedures
+### 학습 절차
 
-!!! warning "Teacher Model Selection"
-    Teacher quality directly impacts student performance. Ensure teacher is well-trained before distillation.
+!!! warning "교사 모형 고르기"
+    교사의 질이 학생의 성능을 곧바로 좌우한다. 증류 전에 교사가 잘 학습되었는지 확인하라.
 
-**Teacher Pretraining**: Train teacher thoroughly with all available resources
+**교사 사전 학습**: 쓸 수 있는 자원을 모두 들여 교사를 충분히 학습시킨다
 
-**Student Distillation**: Train student with combined loss function
+**학생 증류**: 아우른 손실 함수로 학생을 학습시킨다
 
-**Convergence Monitoring**: Student training should converge smoothly with lower loss variance than standard training
+**수렴 살피기**: 학생의 학습은 표준 학습보다 손실의 흩어짐이 작으면서 매끄럽게 수렴해야 한다
 
-## Applications in Quantitative Finance
+## 계량 금융에서의 쓰임
 
-Distillation proves particularly valuable for financial models:
+증류는 금융 모형에 특히 값지다.
 
-- **Latency Optimization**: Compress complex ensemble models to single student network
-- **Regulatory Compliance**: Maintain prediction quality while improving model interpretability
-- **Real-Time Trading**: Deploy lightweight models for execution while maintaining research quality
-- **Cross-Market Transfer**: Leverage teacher trained on liquid markets to improve illiquid asset predictions
+- **지연 다듬기**: 복잡한 앙상블 모형을 학생 신경망 하나로 눌러 담는다
+- **규제 지키기**: 예측의 질을 지키면서 모형의 해석 가능성을 높인다
+- **실시간 거래**: 연구의 질을 지키면서 실행에는 가벼운 모형을 올린다
+- **시장 사이 전이**: 유동성이 좋은 시장에서 학습한 교사를 써서 유동성이 낮은 자산의 예측을 낫게 한다
 
-## Theoretical Properties
+## 이론적 성질
 
-### Information Theory Perspective
+### 정보 이론의 관점
 
-From information-theoretic view, distillation performs:
+정보 이론의 눈으로 보면 증류는 다음을 한다.
 
 $$\text{Student} \approx \arg\min_{\theta_s} I(\text{Teacher Output}; \text{Student Output})$$
 
-This minimizes mutual information gap while maintaining task performance.
+이는 과제 성능을 지키면서 상호 정보의 틈을 가장 작게 한다.
 
-## Advanced Topics
+## 더 깊은 주제
 
-**Multi-Teacher Distillation**: Combine knowledge from multiple teachers:
+**여러 교사 증류**: 여러 교사의 지식을 아우른다.
 
 $$\mathcal{L} = \sum_t w_t \mathcal{L}_{\text{KD}}(\text{Student}, \text{Teacher}_t)$$
 
-**Mutual Learning**: Students teach each other simultaneously without external teacher.
+**서로 배우기**: 바깥의 교사 없이 학생들이 서로를 동시에 가르친다.
 
-**Self-Distillation**: Use model's own previous parameters as teacher (Chapter 9.2.2).
+**자기 증류**: 모형 자신의 앞선 매개변수를 교사로 쓴다 (9.2.2절).
 
-## Related Topics
+## 관련 주제
 
-- Exponential Moving Average Teacher (Chapter 9.2.2)
-- Self-Distillation Overview (Chapter 9.2.0)
-- Model Compression Techniques
-- Transfer Learning (Chapter 10)
+- 지수 이동 평균 교사 (9.2.2절)
+- 자기 증류 훑어보기 (9.2.0절)
+- 모형 압축 기법
+- 전이 학습 (10장)
+
+## 연습문제
+
+**연습문제 1.**
+지식 증류 손실 $L = \alpha L_{\text{CE}}(y, \sigma(z_s)) + (1-\alpha) T^2 D_{\text{KL}}(\sigma(z_t/T) \| \sigma(z_s/T))$을 설명하라.
+
+??? success "연습문제 1 풀이"
+    첫 항은 딱딱한 이름표에 대한 표준 교차 엔트로피이다. 둘째 항은 온도 $T$에서 학생의 부드러운 예측을 교사의 부드러운 예측에 맞춘다. $T^2$ 인수는 온도 조정으로 달라진 기울기 크기를 메운다. 흔한 값은 $\alpha = 0.1$, $T = 4$이다.
+
+---
+
+**연습문제 2.**
+교사의 부드러운 출력이 딱딱한 이름표보다 정보를 더 많이 지니는 까닭은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    딱딱한 이름표는 원-핫이다(이를테면 [0,0,1,0]). 교사의 부드러운 출력(이를테면 [0.01, 0.09, 0.85, 0.05])은 부류 사이의 비슷함을 담는다. '3'은 '7'보다 '8'을 더 닮았다. 이 '어둠의 지식'이 더 넉넉한 지도를 주어 학생이 더 나은 표현을 배우도록 돕는다.
+
+---
+
+**연습문제 3.**
+파이토치에서 지식 증류를 구현하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    def distillation_loss(student_logits, teacher_logits, labels, T=4, alpha=0.1):
+        soft_loss = F.kl_div(
+            F.log_softmax(student_logits / T, dim=-1),
+            F.softmax(teacher_logits / T, dim=-1),
+            reduction='batchmean') * T * T
+        hard_loss = F.cross_entropy(student_logits, labels)
+        return alpha * hard_loss + (1 - alpha) * soft_loss
+    ```
+
+---
+
+**연습문제 4.**
+어떤 조건에서 증류가 학생에게 도움이 되지 않는가?
+
+??? success "연습문제 4 풀이"
+    교사가 학생보다 뚜렷이 낫지 않을 때, 그릇의 차이가 너무 클 때(학생이 교사의 함수를 나타낼 수 없을 때), 과제가 너무 쉬울 때(딱딱한 이름표로 넉넉할 때), 또는 온도를 잘못 골랐을 때(너무 낮으면 부드러운 목표가 거의 딱딱해지고, 너무 높으면 고르게 된다)이다.

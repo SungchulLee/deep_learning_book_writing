@@ -1,41 +1,36 @@
-# Architectural Innovations in Large Language Models
+# 큰 말 모델 얼개의 새로움
+## 학습 목표
 
+- 맨 변환기에서 요즘 큰 말 모델까지의 핵심 얼개 바뀜을 이해한다
+- RMSNorm, SwiGLU, 돌림 묻힘, 묶은 물음 눈길을 짠다
+- 여러 얼개 고름의 맞바꿈을 살핀다
+- GPT, LLaMA, Mistral 갈래의 얼개를 견준다
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 들어가며
 
-## Learning Objectives
+요즘 큰 말 모델은 처음 변환기를 넘어 수많은 얼개의 새로움을 담고 있다. 이 고침은 고갱이 눈길 얼개는 그대로 두면서 익히기의 든든함, 셈의 효율, 모델의 능력을 낫게 한다.
 
-- Understand key architectural changes from vanilla Transformer to modern LLMs
-- Implement RMSNorm, SwiGLU, Rotary Embeddings, and Grouped-Query Attention
-- Analyze the trade-offs of different architectural choices
-- Compare architectures across GPT, LLaMA, and Mistral families
+## 고르게 맞추기 변종
 
-## Introduction
+### 앞 고르게 맞추기와 뒤 고르게 맞추기
 
-Modern LLMs incorporate numerous architectural innovations beyond the original Transformer. These modifications improve training stability, computational efficiency, and model capabilities while maintaining the core attention mechanism.
-
-## Normalization Variants
-
-### Pre-Norm vs Post-Norm
-
-**Original Transformer (Post-Norm)**:
+**처음 변환기(뒤 고르게 맞추기)**:
 
 $$\text{output} = \text{LayerNorm}(x + \text{Sublayer}(x))$$
 
-**Modern LLMs (Pre-Norm)**:
+**요즘 큰 말 모델(앞 고르게 맞추기)**:
 
 $$\text{output} = x + \text{Sublayer}(\text{LayerNorm}(x))$$
 
-Pre-norm provides better gradient flow for deep models.
+앞 고르게 맞추기는 깊은 모델에서 기울기가 더 잘 흐르게 한다.
 
 ### RMSNorm
 
-Root Mean Square Normalization removes the mean-centering:
+제곱 평균 제곱근 고르게 맞추기는 평균 빼기를 없앤다:
 
 $$\text{RMSNorm}(x) = \frac{x}{\text{RMS}(x)} \cdot \gamma$$
 
-Where:
+여기서:
 
 $$\text{RMS}(x) = \sqrt{\frac{1}{d}\sum_{i=1}^{d} x_i^2}$$
 
@@ -44,7 +39,7 @@ import torch
 import torch.nn as nn
 
 class RMSNorm(nn.Module):
-    """Root Mean Square Layer Normalization."""
+    """제곱평균제곱근 층 정규화."""
     
     def __init__(self, dim: int, eps: float = 1e-6):
         super().__init__()
@@ -52,19 +47,19 @@ class RMSNorm(nn.Module):
         self.weight = nn.Parameter(torch.ones(dim))
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        # RMS computation
+        # 제곱 평균 제곱근 셈하기
         rms = torch.sqrt(torch.mean(x ** 2, dim=-1, keepdim=True) + self.eps)
         x_normed = x / rms
         return x_normed * self.weight
 ```
 
-**Advantages**: 15% faster than LayerNorm, similar performance.
+**좋은 점**: LayerNorm보다 15% 빠르고 성능은 비슷하다.
 
-## Activation Functions
+## 깨어남 함수
 
 ### SwiGLU
 
-Gated Linear Unit with Swish activation:
+스위시 깨어남을 쓴 문 달린 선형 낱:
 
 $$\text{SwiGLU}(x) = \text{Swish}(xW_1) \otimes (xW_2)$$
 
@@ -72,55 +67,55 @@ Where $\text{Swish}(x) = x \cdot \sigma(x)$ and $\sigma$ is sigmoid.
 
 ```python
 class SwiGLU(nn.Module):
-    """SwiGLU activation for FFN."""
+    """앞먹임 그물을 위한 SwiGLU 깨어남."""
     
     def __init__(self, dim: int, hidden_dim: int = None, bias: bool = False):
         super().__init__()
-        hidden_dim = hidden_dim or int(dim * 8/3)  # LLaMA uses 8/3 multiplier
-        # Round to multiple of 256 for efficiency
+        hidden_dim = hidden_dim or int(dim * 8/3)  # LLaMA는 8/3 곱수를 쓴다
+        # 효율을 위해 256의 배수로 반올림한다
         hidden_dim = 256 * ((hidden_dim + 255) // 256)
         
-        self.w1 = nn.Linear(dim, hidden_dim, bias=bias)  # Gate
-        self.w2 = nn.Linear(hidden_dim, dim, bias=bias)  # Down projection
-        self.w3 = nn.Linear(dim, hidden_dim, bias=bias)  # Up projection
+        self.w1 = nn.Linear(dim, hidden_dim, bias=bias)  # 빗장
+        self.w2 = nn.Linear(hidden_dim, dim, bias=bias)  # 내림 쏘기
+        self.w3 = nn.Linear(dim, hidden_dim, bias=bias)  # 올림 쏘기
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # SwiGLU: swish(x @ W1) * (x @ W3)
         return self.w2(nn.functional.silu(self.w1(x)) * self.w3(x))
 ```
 
-### FFN Comparison
+### 앞먹임 그물 견줌
 
-| Activation | Parameters | Performance | Used In |
+| 깨어남 | 매개변수 | 성능 | 쓰이는 곳 |
 |------------|------------|-------------|---------|
 | ReLU | $2 \cdot d \cdot d_{ff}$ | Baseline | Original Transformer |
 | GELU | $2 \cdot d \cdot d_{ff}$ | +1% | GPT-2, BERT |
 | SwiGLU | $3 \cdot d \cdot d_{ff}$ | +2% | LLaMA, Mistral |
 
-## Positional Encodings
+## 자리 부호
 
-### Rotary Position Embeddings (RoPE)
+### 돌림 자리 묻힘(RoPE)
 
-RoPE encodes position through rotation in complex space:
+RoPE는 복소 공간에서의 돌림으로 자리를 부호화한다:
 
 $$\text{RoPE}(x_m, m) = x_m e^{im\theta}$$
 
-For real-valued vectors, apply rotation to pairs of dimensions:
+실수 벡터에서는 차원 짝마다 돌림을 쓴다:
 
 $$R_\theta^m = \begin{pmatrix} \cos m\theta & -\sin m\theta \\ \sin m\theta & \cos m\theta \end{pmatrix}$$
 
 ```python
 class RotaryEmbedding(nn.Module):
-    """Rotary Position Embedding (RoPE)."""
+    """회전 위치 임베딩(RoPE)."""
     
     def __init__(self, dim: int, max_seq_len: int = 8192, base: int = 10000):
         super().__init__()
         
-        # Compute frequencies
+        # 잦기를 셈한다
         inv_freq = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
         self.register_buffer('inv_freq', inv_freq)
         
-        # Precompute cos/sin
+        # cos/sin을 미리 셈한다
         t = torch.arange(max_seq_len)
         freqs = torch.outer(t, inv_freq)
         
@@ -129,13 +124,13 @@ class RotaryEmbedding(nn.Module):
     
     def forward(self, q: torch.Tensor, k: torch.Tensor, positions: torch.Tensor):
         """
-        Apply rotary embeddings to queries and keys.
+        물음과 열쇠에 돌림 묻힘을 적용한다.
         
-        Args:
-            q, k: (batch, heads, seq_len, head_dim)
-            positions: (seq_len,) position indices
+        인수:
+            q, k: (묶음, 머리, 차례 길이, 머리 차원)
+            positions: (차례 길이,) 자리 번호
         """
-        cos = self.cos_cached[positions]  # (seq_len, head_dim/2)
+        cos = self.cos_cached[positions]  # (차례 길이, 머리 차원/2)
         sin = self.sin_cached[positions]
         
         q_rotated = self._apply_rotary(q, cos, sin)
@@ -144,11 +139,11 @@ class RotaryEmbedding(nn.Module):
         return q_rotated, k_rotated
     
     def _apply_rotary(self, x: torch.Tensor, cos: torch.Tensor, sin: torch.Tensor):
-        """Apply rotation to tensor."""
-        # Split into pairs
+        """텐서에 돌림을 적용한다."""
+        # 짝으로 쪼갠다
         x1, x2 = x[..., ::2], x[..., 1::2]
         
-        # Rotate
+        # 회전
         rotated = torch.stack([
             x1 * cos - x2 * sin,
             x1 * sin + x2 * cos
@@ -157,44 +152,44 @@ class RotaryEmbedding(nn.Module):
         return rotated.flatten(-2)
 ```
 
-### RoPE Advantages
+### RoPE의 좋은 점
 
-1. **Relative position**: Attention depends on $(m - n)$, not absolute positions
-2. **Extrapolation**: Better length generalization than absolute embeddings
-3. **No additional parameters**: Position encoded through rotation
+1. **상대 자리**: 눈길이 절대 자리가 아니라 $(m - n)$에 달렸다
+2. **밖으로 늘리기**: 절대 묻힘보다 길이에 두루 통한다
+3. **매개변수를 더하지 않음**: 자리를 돌림으로 부호화한다
 
-### Extended Context: NTK-Aware Scaling
+### 넓힌 맥락: NTK를 헤아린 잣수 맞추기
 
-For longer sequences than training, scale the base frequency:
+익힐 때보다 긴 차례에서는 바탕 잦기의 잣수를 맞춘다:
 
 $$\theta'_i = \theta_i \cdot \alpha^{-2i/d}$$
 
 ```python
 def ntk_scaled_rope(dim: int, max_seq_len: int, base: int = 10000, scale: float = 2.0):
-    """NTK-aware RoPE scaling for extended context."""
-    # Scale base for longer sequences
+    """맥락을 넓히기 위한 NTK를 헤아린 돌림 자리 묻힘 잣수 맞추기."""
+    # 더 긴 차례를 위해 밑을 늘린다
     scaled_base = base * (scale ** (dim / (dim - 2)))
     inv_freq = 1.0 / (scaled_base ** (torch.arange(0, dim, 2).float() / dim))
     return inv_freq
 ```
 
-## Attention Variants
+## 어텐션의 갈래
 
-### Multi-Query Attention (MQA)
+### 다중 질의 어텐션 (MQA)
 
-Single key-value head shared across all query heads:
+모든 물음 머리가 열쇠-값 머리 하나를 나눠 쓴다:
 
 ```python
 class MultiQueryAttention(nn.Module):
-    """Multi-Query Attention: single KV head, multiple Q heads."""
+    """여러 물음 눈길: 열쇠-값 머리 하나, 물음 머리 여럿."""
     
     def __init__(self, dim: int, num_heads: int):
         super().__init__()
         self.num_heads = num_heads
         self.head_dim = dim // num_heads
         
-        self.q_proj = nn.Linear(dim, dim)  # Multiple query heads
-        self.k_proj = nn.Linear(dim, self.head_dim)  # Single KV head
+        self.q_proj = nn.Linear(dim, dim)  # 물음 머리 여럿
+        self.k_proj = nn.Linear(dim, self.head_dim)  # 열쇠-값 머리 하나
         self.v_proj = nn.Linear(dim, self.head_dim)
         self.o_proj = nn.Linear(dim, dim)
     
@@ -202,14 +197,14 @@ class MultiQueryAttention(nn.Module):
         B, L, _ = x.shape
         
         q = self.q_proj(x).view(B, L, self.num_heads, self.head_dim)
-        k = self.k_proj(x).view(B, L, 1, self.head_dim)  # Single head
+        k = self.k_proj(x).view(B, L, 1, self.head_dim)  # 머리 하나
         v = self.v_proj(x).view(B, L, 1, self.head_dim)
         
-        # Broadcast k, v across query heads
+        # k, v를 물음 머리에 걸쳐 퍼뜨린다
         k = k.expand(-1, -1, self.num_heads, -1)
         v = v.expand(-1, -1, self.num_heads, -1)
         
-        # Standard attention
+        # 여느 눈길
         scores = torch.einsum('blhd,bmhd->bhlm', q, k) / (self.head_dim ** 0.5)
         attn = torch.softmax(scores, dim=-1)
         out = torch.einsum('bhlm,bmhd->blhd', attn, v)
@@ -217,19 +212,19 @@ class MultiQueryAttention(nn.Module):
         return self.o_proj(out.reshape(B, L, -1))
 ```
 
-### Grouped-Query Attention (GQA)
+### 묶음 질의 어텐션 (GQA)
 
-Intermediate between MHA and MQA: groups of query heads share KV heads:
+여러 머리 눈길과 여러 물음 눈길의 사이. 곧 물음 머리 묶음이 열쇠-값 머리를 나눠 쓴다:
 
 ```python
 class GroupedQueryAttention(nn.Module):
-    """Grouped-Query Attention: KV heads < Query heads."""
+    """무리 지은 물음 눈길: 열쇠-값 머리 수 < 물음 머리 수."""
     
     def __init__(
         self, 
         dim: int, 
         num_heads: int, 
-        num_kv_heads: int  # LLaMA-2 70B uses 8 KV heads, 64 Q heads
+        num_kv_heads: int  # LLaMA-2 70B는 열쇠-값 머리 8개, 물음 머리 64개를 쓴다
     ):
         super().__init__()
         self.num_heads = num_heads
@@ -249,12 +244,12 @@ class GroupedQueryAttention(nn.Module):
         k = self.k_proj(x).view(B, L, self.num_kv_heads, self.head_dim)
         v = self.v_proj(x).view(B, L, self.num_kv_heads, self.head_dim)
         
-        # Repeat KV heads to match query heads
+        # 물음 머리 수에 맞추려 열쇠-값 머리를 되풀이한다
         k = k.repeat_interleave(self.num_groups, dim=2)
         v = v.repeat_interleave(self.num_groups, dim=2)
         
-        # Standard attention computation
-        q = q.transpose(1, 2)  # (B, H, L, D)
+        # 여느 눈길 셈하기
+        q = q.transpose(1, 2)  # (묶음, 머리, 길이, 차원)
         k = k.transpose(1, 2)
         v = v.transpose(1, 2)
         
@@ -266,23 +261,23 @@ class GroupedQueryAttention(nn.Module):
         return self.o_proj(out)
 ```
 
-### Attention Comparison
+### 눈길 견줌
 
-| Type | KV Heads | KV Cache Size | Quality | Used In |
+| 갈래 | 열쇠-값 머리 | 열쇠-값 곳간 크기 | 좋음 | 쓰이는 곳 |
 |------|----------|---------------|---------|---------|
 | MHA | H | $2 \cdot H \cdot d_h$ | Best | GPT-3 |
 | GQA | H/G | $2 \cdot H/G \cdot d_h$ | Near-MHA | LLaMA-2 70B |
 | MQA | 1 | $2 \cdot d_h$ | Good | PaLM |
 
-## Sliding Window Attention
+## 미끄러지는 창 주의
 
-### Mistral's Approach
+### Mistral의 방식
 
-Local attention with window size $W$:
+창 크기가 $W$인 가까운 자리 눈길:
 
 ```python
 def sliding_window_mask(seq_len: int, window_size: int) -> torch.Tensor:
-    """Create sliding window attention mask."""
+    """미끄러지는 창 주의 가림을 만든다."""
     mask = torch.zeros(seq_len, seq_len)
     
     for i in range(seq_len):
@@ -292,7 +287,7 @@ def sliding_window_mask(seq_len: int, window_size: int) -> torch.Tensor:
     return mask
 
 class SlidingWindowAttention(nn.Module):
-    """Attention with sliding window for efficiency."""
+    """효율을 위해 미끄러지는 창을 쓰는 눈길."""
     
     def __init__(self, dim: int, num_heads: int, window_size: int = 4096):
         super().__init__()
@@ -309,11 +304,11 @@ class SlidingWindowAttention(nn.Module):
         qkv = self.qkv(x).reshape(B, L, 3, self.num_heads, self.head_dim)
         q, k, v = qkv.unbind(2)
         
-        # Create sliding window mask
+        # 미끄러지는 창 가림막을 만든다
         mask = sliding_window_mask(L, self.window_size).to(x.device)
         mask = mask.masked_fill(mask == 0, float('-inf'))
         
-        # Attention with mask
+        # 가림막을 쓴 눈길
         scores = torch.einsum('bnhd,bmhd->bhnm', q, k) / (self.head_dim ** 0.5)
         scores = scores + mask
         attn = torch.softmax(scores, dim=-1)
@@ -322,16 +317,16 @@ class SlidingWindowAttention(nn.Module):
         return self.out(out.reshape(B, L, -1))
 ```
 
-### Benefits
+### 좋은 점
 
-- **Memory**: O(n·W) instead of O(n²)
-- **Effective context**: Still attends to full sequence via stacked layers
+- **기억 공간**: O(n²) 대신 O(n·W)
+- **실효 맥락**: 층을 쌓아 여전히 온 차례에 눈길을 준다
 
-## Complete LLaMA-Style Block
+## 온전한 LLaMA 방식 덩이
 
 ```python
 class LLaMABlock(nn.Module):
-    """LLaMA-style transformer block with modern innovations."""
+    """요즘 새것을 담은 LLaMA 꼴 변환기 덩이."""
     
     def __init__(
         self,
@@ -343,17 +338,17 @@ class LLaMABlock(nn.Module):
     ):
         super().__init__()
         
-        # Pre-norm
+        # 앞 고르게 맞추기
         self.attention_norm = RMSNorm(dim, eps=norm_eps)
         self.ffn_norm = RMSNorm(dim, eps=norm_eps)
         
-        # GQA
+        # 무리 지은 물음 눈길
         self.attention = GroupedQueryAttention(dim, num_heads, num_kv_heads)
         
-        # SwiGLU FFN
+        # SwiGLU 앞먹임 그물
         self.ffn = SwiGLU(dim, int(dim * ffn_dim_multiplier))
         
-        # RoPE
+        # 돌림 자리 묻힘
         self.rope = RotaryEmbedding(dim // num_heads)
     
     def forward(
@@ -362,12 +357,12 @@ class LLaMABlock(nn.Module):
         positions: torch.Tensor,
         mask: torch.Tensor = None
     ) -> torch.Tensor:
-        # Attention with residual
+        # 남는 이음을 곁들인 눈길
         h = self.attention_norm(x)
         h = self.attention(h, positions, mask)
         x = x + h
         
-        # FFN with residual
+        # 잔차를 곁들인 순전파
         h = self.ffn_norm(x)
         h = self.ffn(h)
         x = x + h
@@ -375,34 +370,72 @@ class LLaMABlock(nn.Module):
         return x
 ```
 
-## Architecture Comparison
+## 구조 견주기
 
-| Component | GPT-3 | LLaMA-2 | Mistral |
+| 조각 | GPT-3 | LLaMA-2 | Mistral |
 |-----------|-------|---------|---------|
-| Normalization | LayerNorm | RMSNorm | RMSNorm |
-| Norm Position | Post | Pre | Pre |
-| Activation | GELU | SwiGLU | SwiGLU |
-| Position | Learned | RoPE | RoPE |
-| Attention | MHA | GQA | SWA + GQA |
-| Context | 2K/4K | 4K | 8K (SWA) |
+| 고르게 맞추기 | LayerNorm | RMSNorm | RMSNorm |
+| 고르게 맞추기 자리 | 뒤 | 앞 | 앞 |
+| 깨어남 | GELU | SwiGLU | SwiGLU |
+| 자리 | 배움 | RoPE | RoPE |
+| 눈길 | 여러 머리 눈길 | 묶은 물음 눈길 | 미끄러지는 창 + 묶은 물음 눈길 |
+| 맥락 | 2K/4K | 4K | 8K(미끄러지는 창) |
 
-## Summary
+## 요약
 
-Modern LLM architectures incorporate:
+요즘 큰 말 모델 얼개는 다음을 담고 있다:
 
-1. **RMSNorm**: Faster normalization without mean-centering
-2. **SwiGLU**: Gated activation for better expressivity
-3. **RoPE**: Rotation-based relative positional encoding
-4. **GQA/MQA**: Reduced KV cache for efficient inference
-5. **Sliding Window**: Linear complexity attention
+1. **RMSNorm**: 평균 빼기 없는 더 빠른 고르게 맞추기
+2. **SwiGLU**: 나타내는 힘을 키우는 문 달린 깨어남
+3. **RoPE**: 돌림에 바탕한 상대 자리 부호
+4. **묶은 물음 눈길/여러 물음 눈길**: 효율적인 미룸을 위해 줄인 열쇠-값 곳간
+5. **미끄러지는 창**: 한 줄 복잡도의 눈길
 
-## Key Insight
+## 핵심 통찰
 
 $$\boxed{\text{Modern LLMs} = \text{Transformer} + \text{Pre-Norm} + \text{RoPE} + \text{SwiGLU} + \text{GQA}}$$
 
-## References
+## 참고 문헌
 
 1. Zhang, B., & Sennrich, R. (2019). Root Mean Square Layer Normalization.
 2. Shazeer, N. (2020). GLU Variants Improve Transformer.
 3. Su, J., et al. (2021). RoFormer: Enhanced Transformer with Rotary Position Embedding.
 4. Ainslie, J., et al. (2023). GQA: Training Generalized Multi-Query Transformer Models.
+
+## 연습문제
+
+**연습문제 1.**
+GPT, BERT, T5의 얼개 차이를 견주어라. 미리 익히기 목표는 어떻게 다른가?
+
+??? success "연습문제 1 풀이"
+    | 모델 | 얼개 | 미리 익히기 목표 | 방향 |
+    |-------|-------------|----------------------|----------------|
+    | **GPT** | 풀개만의 변환기 | 인과 말 나타내기(다음 토막 어림) | 왼쪽에서 오른쪽만 |
+    | **BERT** | 부호기만의 변환기 | 가린 말 나타내기 + 다음 월 어림 | 두 방향 |
+    | **T5** | 부호기-풀개 변환기 | 구간 망가뜨리기(잡음 없애기) | 부호기: 두 방향, 풀개: 왼쪽에서 오른쪽 |
+
+    GPT는 만들어 내기에, BERT는 이해와 갈래 매기기에 뛰어나며, T5는 모든 일을 글에서 글로 세워 둘 다 잘한다.
+
+---
+
+**연습문제 2.**
+GPT-1에서 GPT-4까지의 흐름을 좇아라. 걸음마다의 핵심 규모 눈썰미는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    **GPT-1**(매개변수 1억 1700만): 살펴보지 않는 미리 익히기와 살펴 배우는 곱게 다듬기가 여러 일에 통함을 보였다. **GPT-2**(15억): 규모만으로 영 발 성능이 나옴을 보였고 "말 모델은 살펴보지 않는 여러 일 배우개"라는 눈썰미를 들여왔다. **GPT-3**(1750억): 기울기 고침 없이 몇 발 맥락 안에서 배우기를 보였고 규모 법칙을 세웠다. **GPT-4**(크기 미공개): 여러 갈래(글 + 그림)이며 사람 되먹임 북돋움 배움으로 따짐, 시킴 따르기, 안전을 크게 낫게 했다. 핵심 눈썰미: 세대마다 매개변수, 자료, 셈을 키우면 작은 규모에는 없던 떠오르는 능력이 나옴을 보였다.
+
+---
+
+**연습문제 3.**
+자기되돌리기 말 나타내기와 가린 말 나타내기의 차이는 무엇인가? 요즘 큰 말 모델은 왜 대부분 자기되돌리기인가?
+
+??? success "연습문제 3 풀이"
+    **Autoregressive** models predict the next token given all previous tokens: $p(x_t | x_{<t})$. **Masked** models predict randomly masked tokens given all unmasked tokens: $p(x_t | x_{\setminus t})$. Autoregressive models dominate because: (1) they naturally generate text left-to-right, matching how humans read and write, (2) the causal structure enables efficient KV-caching during inference, (3) scaling laws favor autoregressive objectives (better sample efficiency at scale), and (4) in-context learning and instruction following emerge more naturally from next-token prediction.
+
+---
+
+**연습문제 4.**
+맥락 안에서 배우기라는 생각을 밝혀라. 왜 놀라우며 한계는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    맥락 안에서 배우기(ICL)는 큰 말 모델이 기울기를 조금도 고치지 않고 시킴말에 든 보기에 조건을 걸어 일을 해내는 힘이다. "Translate English to French: sea otter => loutre de mer, cheese => " 같은 시킴말을 주면 모델이 "fromage"를 올바로 내놓는다. 모델을 옮김에 대놓고 익힌 적이 없는데도 그렇다는 점이 놀랍다. 갖가지 글로 미리 익히는 동안 보기에서 일의 무늬를 미루는 법을 배운 것이다. **한계**: (1) 여러 걸음 따짐이 필요한 복잡한 일에서는 성능이 떨어진다. (2) 보기의 차례와 꼴에 민감하다. (3) 맥락 창의 길이에 매인다. (4) 특화된 일에서는 곱게 다듬은 성능에 못 미친다. (5) 그 얼개가 이론으로 온전히 밝혀지지 않았다.

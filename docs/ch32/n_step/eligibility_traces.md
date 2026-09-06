@@ -1,55 +1,50 @@
-# 32.7.4 Eligibility Traces
+# 32.7.4 자격 자취
+## 개요
 
+**자격 자취**는 최근에 들른 상태의 짧은 때 기억을 지녀 때 차이 방법과 몬테카를로 방법을 잇는 얼개다. TD(λ)를 거꿀 관점으로 짜게 해 주고 λ 돌아옴을 효율 좋게 온라인으로 셈하게 한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 자취의 갈래
 
-## Overview
-
-**Eligibility traces** are a mechanism that bridges TD and MC methods by maintaining a short-term memory of recently visited states. They provide the backward-view implementation of TD(λ) and enable efficient, online computation of λ-returns.
-
-## Types of Traces
-
-### Accumulating Traces
+### 쌓이는 자취
 
 $$e_t(s) = \gamma \lambda \, e_{t-1}(s) + \mathbb{1}[S_t = s]$$
 
-Each visit adds 1 to the trace, and the trace decays by $\gamma\lambda$ at each step. Multiple visits accumulate.
+들를 때마다 자취에 1을 더하고 걸음마다 자취가 $\gamma\lambda$만큼 스러진다. 여러 번 들르면 쌓인다.
 
-### Replacing Traces
+### 바꿔 넣는 자취
 
 $$e_t(s) = \begin{cases} 1 & \text{if } S_t = s \\ \gamma \lambda \, e_{t-1}(s) & \text{otherwise} \end{cases}$$
 
-Resets the trace to 1 upon each visit instead of accumulating. Often performs better in practice.
+들를 때마다 쌓지 않고 자취를 1로 되돌린다. 실제로 더 잘될 때가 많다.
 
-### Dutch Traces
+### 네덜란드 자취
 
 $$e_t(s) = \gamma \lambda \, e_{t-1}(s) + \alpha(1 - \gamma \lambda \, e_{t-1}(s)) \mathbb{1}[S_t = s]$$
 
-Designed to exactly reproduce the offline λ-return algorithm in the linear function approximation setting.
+선형 함수 어림 자리에서 오프라인 λ 돌아옴 알고리즘을 정확히 되살리도록 설계되었다.
 
-## TD(λ) with Eligibility Traces
+## 자격 자취를 쓴 TD(λ)
 
 ```
 Initialize V(s), e(s) = 0 for all s
-Parameters: α, γ, λ
+잡: α, γ, λ
 
 For each episode:
     S = initial state, e(s) = 0 for all s
     For each step:
         A ~ π(S)
         Take A, observe R, S'
-        δ = R + γ V(S') - V(S)          # TD error
-        e(S) = e(S) + 1                   # Update trace (accumulating)
+        δ = R + γ V(S') - V(S)          # 때 차이 어긋남
+        e(S) = e(S) + 1                   # 자취를 고친다(쌓임)
         For all s:
-            V(s) ← V(s) + α δ e(s)       # Update values
-            e(s) ← γ λ e(s)              # Decay traces
+            V(s) ← V(s) + α δ e(s)       # 값을 고친다
+            e(s) ← γ λ e(s)              # 자취를 스러뜨린다
         S ← S'
 ```
 
-## SARSA(λ) — Control with Traces
+## SARSA(λ) — 자취를 쓴 다스리기
 
-Extend eligibility traces to state-action pairs:
+자격 자취를 상태-움직임 짝으로 넓힌다:
 
 $$e_t(s, a) = \gamma \lambda \, e_{t-1}(s, a) + \mathbb{1}[S_t = s, A_t = a]$$
 
@@ -57,43 +52,75 @@ $$\delta_t = R_{t+1} + \gamma Q(S_{t+1}, A_{t+1}) - Q(S_t, A_t)$$
 
 $$Q(s, a) \leftarrow Q(s, a) + \alpha \delta_t e_t(s, a) \quad \text{for all } s, a$$
 
-## Watkins's Q(λ) — Off-Policy with Traces
+## 왓킨스의 Q(λ) — 자취를 쓴 벗어난 방침
 
-Cut traces when the greedy action differs from the taken action:
+욕심쟁이 움직임이 실제로 한 움직임과 다르면 자취를 끊는다:
 
 $$e_t(s, a) = \begin{cases} \gamma \lambda \, e_{t-1}(s, a) + \mathbb{1}[S_t=s, A_t=a] & \text{if } A_t = \arg\max_{a'} Q(S_t, a') \\ \mathbb{1}[S_t=s, A_t=a] & \text{otherwise (reset)} \end{cases}$$
 
-This ensures traces are only propagated along greedy trajectories.
+이로써 자취가 욕심쟁이 자취를 따라서만 퍼진다.
 
-## Intuition: Credit Assignment
+## 느낌: 공 돌리기
 
-Eligibility traces solve the **temporal credit assignment** problem:
+자격 자취는 **때에 따른 공 돌리기** 문제를 푼다:
 
-- When a reward is received, which past states/actions were responsible?
-- The trace $e(s)$ measures each state's "eligibility" for credit
-- Recently and frequently visited states get more credit
-- The trace decays with rate $\gamma\lambda$, fading out older states
+- 보상을 받았을 때 지난 어느 상태와 움직임이 그 몫을 했는가?
+- 자취 $e(s)$이 상태마다 공을 받을 "자격"을 잰다
+- 최근에 자주 들른 상태가 공을 더 받는다
+- 자취가 빠르기 $\gamma\lambda$으로 스러져 오래된 상태가 흐려진다
 
-## Computational Considerations
+## 계산에 대한 고려
 
-| Approach | Memory | Per-step Cost |
+| 길 | 기억 | 걸음마다 비용 |
 |----------|--------|---------------|
-| N-step (forward) | Store n steps | $O(n)$ |
-| Eligibility traces | One trace per state | $O(\|\mathcal{S}\|)$ per step |
-| Sparse traces | Only active states | $O(\text{active states})$ |
+| n걸음(앞 관점) | n걸음을 담는다 | $O(n)$ |
+| 자격 자취 | 상태마다 자취 하나 | 걸음마다 $O(\|\mathcal{S}\|)$ |
+| 성긴 자취 | 살아 있는 상태만 | $O(\text{살아 있는 상태})$ |
 
-For large state spaces, sparse trace implementations only update states with non-negligible traces.
+상태 자리가 크면 성긴 자취 짜기는 자취가 무시할 수 없는 상태만 고친다.
 
-## The Unified View
+## 하나로 꿴 눈
 
-Eligibility traces provide a unifying framework:
+자격 자취는 하나로 아우르는 틀을 준다:
 
 $$\text{TD}(0) \xleftrightarrow{\lambda \in [0,1]} \text{MC}$$
 
 $$\text{SARSA}(0) \xleftrightarrow{\lambda \in [0,1]} \text{MC Control}$$
 
-The parameter $\lambda$ smoothly interpolates between pure bootstrapping and pure sampling.
+잡 $\lambda$이 순수한 띄워 올리기와 순수한 뽑기 사이를 매끄럽게 잇는다.
 
-## Summary
+## 요약
 
-Eligibility traces are a powerful mechanism for credit assignment that enables efficient implementation of multi-step TD methods. They maintain a decaying memory of visited states and distribute TD errors across all eligible states at each step. The choice of trace type (accumulating, replacing, Dutch) and the λ parameter control the balance between TD and MC behavior.
+자격 자취는 여러 걸음 때 차이 방법을 효율 좋게 짜게 하는 힘센 공 돌리기 얼개다. 들른 상태의 스러지는 기억을 지니고 걸음마다 자격 있는 모든 상태에 때 차이 어긋남을 나눈다. 자취 갈래(쌓임, 바꿔 넣음, 네덜란드)와 λ 잡을 어떻게 고르느냐가 때 차이와 몬테카를로 움직임의 균형을 다스린다.
+
+## 연습문제
+
+**연습문제 1.**
+이 마디의 주제와 딸린 단순한 마르코프 결정 과정을 생각하여라. 상태 3개와 움직임 2개의 작은 보기에서 관련 양을 손으로 셈하여라.
+
+??? success "연습문제 1 풀이"
+    상태 $S = \{s_1, s_2, s_3\}$과 움직임 $A = \{a_1, a_2\}$을 뜻매김한다. 옮김 확률과 보상을 매긴다. 상태-움직임 짝마다 기대 즉시 보상과 옮김 분포를 셈한다. 이 마디의 뜻매김과 식으로 바라는 양을 셈한다. 상태 자리가 작아 정확히 셈할 수 있어 추상 적기가 구체 숫자로 어떻게 옮겨지는지 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 다룬 핵심 성질이나 모임 결과를 밝혀라. 여김을 또렷이 적고 어느 것이 꼭 필요한지 가려내어라.
+
+??? success "연습문제 2 풀이"
+    밝힘은 그 연산자에 오므리는 옮김 정리를 써서 따라온다. 깎기 인수가 $\gamma < 1$인 유한 마르코프 결정 과정을 여기면 그 연산자는 상한 노름에서 $\gamma$오므리기다. 바나흐 고정점 정리에 따라 되풀이해 쓰면 $k$이 되풀이 횟수일 때 빠르기 $O(\gamma^k)$으로 하나뿐인 고정점에 모인다. 유한하다는 여김이 보상이 가둬짐을 보장하고 깎기 인수 $\gamma < 1$이 오므리기 성질에 꼭 필요하다. $\square$
+
+---
+
+**연습문제 3.**
+이 마디에서 밝힌 알고리즘이나 셈을 단순한 격자 세상에 대해 파이썬으로 짜라. $\epsilon = 0.01$ 안으로 모이는 데 필요한 되풀이 횟수를 알려라.
+
+??? success "연습문제 3 풀이"
+    모서리에 마침 상태가 있고 고른 아무 방침을 쓰는 $4 \times 4$ 격자 세상이 여느 시험 사례가 된다. 짜기는 모든 상태의 가장 큰 바뀜이 $\epsilon$ 아래로 떨어질 때까지 고침 규칙을 되풀이한다. 깎기 인수에 따라 보통 50~200번 되풀이하면 모인다. 핵심 짜기 세부는 맞춘 고침보다 빨리 모이도록 제자리 고침(가우스-자이델 방식)을 쓰는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+이 마디에서 밝힌 길에 본디 있는 근본 한계나 맞바꿈을 다루어라. 뒤 장의 더 나아간 방법이 이 한계를 어떻게 넘는가?
+
+??? success "연습문제 4 풀이"
+    표로 하는 길은 모든 상태(어쩌면 움직임까지)를 늘어놓아야 하는데 이어지거나 차원이 높은 상태 자리에서는 될 일이 아니다. 차원의 저주는 상태 변수의 수에 따라 상태 수가 지수로 늘어남을 뜻한다. 함수 어림(33~34장)은 그 함수를 신경망으로 잡을 두어 나타내고 닮은 상태에 걸쳐 넓혀 이를 넘는다. 다만 새 어려움이 생긴다. 모임이 더는 보장되지 않으며 함수 어림, 띄워 올리기, 벗어난 방침 익히기의 죽음의 삼각이 발산을 일으킬 수 있다. $\square$

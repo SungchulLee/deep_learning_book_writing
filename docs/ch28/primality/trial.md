@@ -1,40 +1,36 @@
-# Trial Division Primality Test
+# 시험 나눗셈 소수 시험
 
-The most natural way to check whether a number $n$ is prime is to try
-dividing it by every integer from $2$ up to $\sqrt{n}$.  If no divisor is
-found, $n$ must be prime.  Trial division is the simplest primality test,
-ideal for small numbers and as a first filter before applying more
-sophisticated methods.
+수 $n$이 소수인지 살피는 가장 자연스러운 길은 $2$부터 $\sqrt{n}$까지 모든 정수로 나누어 보는 것이다. 약수를 찾지 못하면 $n$은 소수여야 한다. 시험 나눗셈은 가장 단순한 소수 시험으로 작은 수에 알맞고 더 정교한 방법을 쓰기 전 첫 거르개로 알맞다.
 
-## Mathematical Basis
+## 수학 바탕
 
-**Theorem.**  If $n > 1$ is composite, then $n$ has a prime factor
-$p \le \sqrt{n}$.
+**정리.** $n > 1$이 합성수이면 $n$에 소인수
+$p \le \sqrt{n}$이 있다.
 
-**Proof.**  Write $n = ab$ with $1 < a \le b < n$.  Then $a^2 \le ab = n$,
-so $a \le \sqrt{n}$.  The smallest prime factor of $a$ (which divides $n$)
-is at most $a \le \sqrt{n}$.  $\square$
+**증명.** $1 < a \le b < n$인 $n = ab$이라 적는다. 그러면 $a^2 \le ab = n$이므로
+$a \le \sqrt{n}$이다. ($n$을 나누는) $a$의 가장 작은 소인수는
+많아야 $a \le \sqrt{n}$이다. $\square$
 
-This theorem means we need to test at most $\pi(\sqrt{n}) \approx
-2\sqrt{n}/\ln n$ prime divisors, or at most $\sqrt{n}/2$ odd divisors if we
-skip even numbers.
+이 정리는 소수 약수를 많아야 $\pi(\sqrt{n}) \approx
+2\sqrt{n}/\ln n$개, 짝수를 건너뛰면 홀수 약수를 많아야 $\sqrt{n}/2$개
+시험하면 된다는 뜻이다.
 
-## Algorithm
+## 알고리즘
 
 ```python
 """
-Trial division primality test.
+시험 나눗셈 소수 시험.
 
 Time : O(sqrt(n))
-Space: O(1)
+공간: O(1)
 """
 
 import math
 
 
-# === Trial Division Primality ===
+# === 시험 나눗셈 소수 판정 ===
 def is_prime(n: int) -> bool:
-    """Return True if n is prime using trial division."""
+    """시험 나눗셈으로 n이 소수이면 True을 돌려준다."""
     if n < 2:
         return False
     if n < 4:
@@ -42,7 +38,7 @@ def is_prime(n: int) -> bool:
     if n % 2 == 0 or n % 3 == 0:
         return False
 
-    # Check divisors of the form 6k +/- 1
+    # 6k +/- 1 꼴의 약수를 살핀다
     d = 5
     while d * d <= n:
         if n % d == 0 or n % (d + 2) == 0:
@@ -52,7 +48,7 @@ def is_prime(n: int) -> bool:
     return True
 
 
-# === Example ===
+# === 보기 ===
 if __name__ == "__main__":
     test_values = [1, 2, 3, 4, 17, 49, 97, 100, 997, 1000003]
     for val in test_values:
@@ -60,7 +56,7 @@ if __name__ == "__main__":
         print(f"is_prime({val}) = {result}")
 ```
 
-**Expected output:**
+**바라는 내놓기:**
 
 ```
 is_prime(1) = composite
@@ -75,51 +71,82 @@ is_prime(997) = prime
 is_prime(1000003) = prime
 ```
 
-## Why 6k +/- 1?
+## 왜 6k +/- 1인가?
 
-Every integer falls into one of six classes modulo $6$:
+모든 정수는 $6$을 법으로 여섯 무리 가운데 하나에 든다:
 
 $$
 n \equiv 0, 1, 2, 3, 4, 5 \pmod{6}
 $$
 
-Numbers congruent to $0, 2, 4$ are divisible by $2$; numbers congruent to
-$0, 3$ are divisible by $3$.  After checking divisibility by $2$ and $3$,
-the only remaining primes satisfy $n \equiv 1$ or $5 \pmod{6}$, i.e.,
-$n = 6k \pm 1$.  Testing only these candidates reduces the divisor count
-by a factor of $3$ compared to testing all integers.
+$0, 2, 4$과 합동인 수는 $2$으로 나누어떨어지고 $0, 3$과 합동인 수는
+$3$으로 나누어떨어진다. $2$과 $3$으로 나누어떨어지는지 살핀 뒤 남는 소수는
+$n \equiv 1$이거나 $5 \pmod{6}$, 곧 $n = 6k \pm 1$을 만족한다.
+이 후보만 시험하면 모든 정수를 시험할 때에 견주어 약수 개수가
+$3$배 줄어든다.
 
-## Complexity
+## 복잡도
 
-| Variant | Divisors tested | Time |
+| 변형 | 시험한 약수 | 시간 |
 |---|---|---|
-| Naive (all $d$ from 2 to $\sqrt{n}$) | $\sqrt{n}$ | $O(\sqrt{n})$ |
-| Odd only | $\sqrt{n}/2$ | $O(\sqrt{n})$ |
+| 순진한 방식(2부터 $\sqrt{n}$까지 모든 $d$) | $\sqrt{n}$ | $O(\sqrt{n})$ |
+| 홀수만 | $\sqrt{n}/2$ | $O(\sqrt{n})$ |
 | 6k +/- 1 | $\sqrt{n}/3$ | $O(\sqrt{n})$ |
-| Precomputed primes | $\pi(\sqrt{n}) \approx 2\sqrt{n}/\ln n$ | $O(\sqrt{n}/\ln n)$ |
+| 미리 셈한 소수 | $\pi(\sqrt{n}) \approx 2\sqrt{n}/\ln n$ | $O(\sqrt{n}/\ln n)$ |
 
-All variants have the same asymptotic complexity $O(\sqrt{n})$, but constant
-factors differ significantly in practice.
+모든 변형이 점근 복잡도 $O(\sqrt{n})$으로 같지만 실제로 상수 배는
+크게 다르다.
 
-!!! tip "When to Switch Methods"
-    Trial division is practical for $n$ up to about $10^{14}$.  For larger
-    numbers, probabilistic tests like Miller-Rabin ($O(k \log^3 n)$) are
-    vastly more efficient.
+!!! tip "방법을 언제 바꿀 것인가"
+    시험 나눗셈은 $n$이 약 $10^{14}$까지일 때 쓸 만하다. 더 큰 수에는
+    밀러-라빈($O(k \log^3 n)$) 같은 확률 시험이
+    훨씬 효율 좋다.
 
-## Comparison with Other Primality Tests
+## 다른 소수 시험과 견주기
 
-| Test | Type | Time | Error |
+| 시험 | 갈래 | 시간 | 어긋남 |
 |---|---|---|---|
-| Trial division | Deterministic | $O(\sqrt{n})$ | None |
-| Miller-Rabin | Probabilistic | $O(k \log^3 n)$ | $\le 4^{-k}$ |
-| AKS | Deterministic | $\widetilde{O}(\log^6 n)$ | None |
+| 시험 나눗셈 | 정해짐 | $O(\sqrt{n})$ | 없음 |
+| 밀러-라빈 | 확률 | $O(k \log^3 n)$ | $\le 4^{-k}$ |
+| AKS | 정해짐 | $\widetilde{O}(\log^6 n)$ | 없음 |
 
-Trial division is the only method that simultaneously finds the smallest
-factor when $n$ is composite, making it useful beyond pure primality testing.
+시험 나눗셈은 $n$이 합성수일 때 가장 작은 인수를 함께 찾아 주는
+유일한 방법이어서 순수한 소수 시험을 넘어 쓸모가 있다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction
-  to Algorithms* (CLRS), Chapter 31.
-- Crandall, R. & Pomerance, C. *Prime Numbers: A Computational Perspective*.
-  Springer, 2005.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (CLRS), Chapter 31.
+- Crandall, R. & Pomerance, C. *Prime Numbers: A Computational Perspective*. Springer, 2005.
+
+
+## 연습문제
+
+**연습문제 1.**
+시험 나눗셈으로 97이 소수인지 가려라.
+
+??? success "연습문제 1 풀이"
+    $\sqrt{97} < 10$까지의 소수 2, 3, 5, 7을 시험한다. $97/2 = 48.5$(나누어떨어지지 않는다). $97/3 = 32.33$(나누어떨어지지 않는다). $97/5 = 19.4$(나누어떨어지지 않는다). $97/7 = 13.86$(나누어떨어지지 않는다). 인수를 찾지 못했으므로 97은 소수이다.
+
+---
+
+**연습문제 2.**
+$n$비트 수가 소수인지 시험하는 시험 나눗셈의 시간 복잡도는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    $\sqrt{N}$까지의 모든 소수(또는 홀수)를 시험한다. $n$비트 수에서 $N \leq 2^n$이므로 $\sqrt{N} \leq 2^{n/2}$이다. 나눗셈마다 여러 자리 셈에 $O(n)$ 시간이 든다. 온 시간: $O(2^{n/2} \cdot n)$으로 비트 길이에 대해 지수이다. 이는 작은 수(요즘 하드웨어에서 십진 약 20자리까지)에만 쓸 만하다.
+
+---
+
+**연습문제 3.**
+$6k \pm 1$ 꼴의 수만 시험하여 시험 나눗셈을 낫게 하라. 이는 후보의 얼마를 건너뛰는가?
+
+??? success "연습문제 3 풀이"
+    모든 정수는 $6$을 법으로 $\equiv 0, 1, 2, 3, 4, 5$ 가운데 하나이다. $\equiv 0, 2, 4$인 수는 짝수이다(2으로 나누어떨어진다). $\equiv 3$인 수는 3으로 나누어떨어진다. ($k \geq 1$에서) $\equiv 1$과 $\equiv 5$(곧 $6k \pm 1$)만 소수일 수 있다. 2과 3을 살핀 뒤 $5, 7, 11, 13, 17, 19, \ldots$을 시험한다. 6개마다 후보가 둘이다. 이는 모든 수의 $2/6 = 1/3$을 시험하는 것으로 홀수만 시험할 때의 $1/2$과 견주어진다. 빨라지는 배수: $3/2 = 1.5$배.
+
+---
+
+**연습문제 4.**
+실제로 시험 나눗셈과 밀러-라빈을 각각 언제 써야 하는가?
+
+??? success "연습문제 4 풀이"
+    시험 나눗셈이 가장 좋은 때: (1) 작은 수($N < 10^{12}$, $\sqrt{N} < 10^6$번 시험이 마이크로초에 끝난다), (2) 확률 시험을 쓰기 전 작은 인수를 살피는 첫 걸음으로, (3) 작은 인수의 정확한 인수 분해(소수 판정만이 아니라)가 필요할 때. 밀러-라빈이 가장 좋은 때: (1) 큰 수($N > 10^{12}$), (2) 인수 분해가 아니라 소수 판정만 필요할 때, (3) 1024비트 넘는 수의 빠른 소수 시험이 필요한 암호 쓰임새. 흔한 셈속: $10^6$까지의 소수로 시험 나눗셈을 한 뒤 밀러-라빈을 쓴다.

@@ -1,67 +1,62 @@
-# Self-Attention
+# 자기 어텐션
+## 들어가며
 
+자기 어텐션은 질의와 열쇠와 값이 모두 **같은 입력 순차열**에서 나오는 어텐션의 특수한 경우이다. 순차열의 자리마다 (자기 자신을 포함한) 모든 자리에 주목할 수 있어, 바깥 문맥 없이도 한 순차열 안의 관계와 의존을 붙잡는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+자기 어텐션은 트랜스포머에 힘을 주는 핵심 장치로, 이해를 위한 구조(BERT, RoBERTa)와 생성을 위한 구조(GPT)의 바탕을 이룬다. 순차적인 처리를 병렬적이고 내용에 기반한 상호작용으로 바꾸어 순차 데이터를 다루는 방식을 뒤집어 놓았다.
 
-## Introduction
+## 수학적 정식화
 
-Self-attention is a special case of attention where queries, keys, and values all derive from the **same input sequence**. Each position in the sequence can attend to all positions (including itself), enabling the model to capture relationships and dependencies within a single sequence without any external context.
+### 자기 어텐션의 정의
 
-Self-attention is the core mechanism that gives Transformers their power—forming the foundation for both understanding architectures (BERT, RoBERTa) and generation architectures (GPT). It revolutionized how we model sequential data by replacing sequential processing with parallel, content-based interactions.
-
-## Mathematical Formulation
-
-### Self-Attention Definition
-
-Given an input sequence $\mathbf{X} \in \mathbb{R}^{n \times d}$ with $n$ positions and embedding dimension $d$:
+자리가 $n$개이고 임베딩 차원이 $d$인 입력 순차열 $\mathbf{X} \in \mathbb{R}^{n \times d}$이 주어졌을 때 다음과 같다.
 
 $$\mathbf{Q} = \mathbf{X}\mathbf{W}^Q, \quad \mathbf{K} = \mathbf{X}\mathbf{W}^K, \quad \mathbf{V} = \mathbf{X}\mathbf{W}^V$$
 
 $$\text{SelfAttention}(\mathbf{X}) = \text{softmax}\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_k}}\right)\mathbf{V}$$
 
-where $\mathbf{W}^Q, \mathbf{W}^K \in \mathbb{R}^{d \times d_k}$ and $\mathbf{W}^V \in \mathbb{R}^{d \times d_v}$.
+여기서 $\mathbf{W}^Q, \mathbf{W}^K \in \mathbb{R}^{d \times d_k}$이고 $\mathbf{W}^V \in \mathbb{R}^{d \times d_v}$이다.
 
-**The key distinction from general attention: Q, K, V all come from the same source X.**
+**일반적인 어텐션과의 핵심 차이는 Q, K, V이 모두 같은 출처 X에서 나온다는 점이다.**
 
-### Why sqrt(d_k) Scaling?
+### 왜 $\sqrt{d_k}$으로 배율을 조정하는가
 
-The scaling factor $\frac{1}{\sqrt{d_k}}$ prevents the dot products from growing too large in magnitude. When $d_k$ is large, the dot products $\mathbf{q}_i^T \mathbf{k}_j$ tend to have variance proportional to $d_k$ (assuming components are independent with zero mean and unit variance). Large dot products push the softmax into regions of extremely small gradients, effectively making it behave like a hard argmax and stalling learning.
+배율 인수 $\frac{1}{\sqrt{d_k}}$은 내적의 크기가 너무 커지는 것을 막는다. $d_k$이 크면 (성분이 서로 독립이고 평균 0, 분산 1이라 할 때) 내적 $\mathbf{q}_i^T \mathbf{k}_j$의 분산이 $d_k$에 비례하는 경향이 있다. 내적이 크면 소프트맥스가 기울기가 아주 작은 영역으로 밀려나 사실상 딱딱한 argmax처럼 움직이고 학습이 멈춘다.
 
-To see this formally, if $q_i, k_j \sim \mathcal{N}(0, 1)$ independently, then:
+엄밀히 보면 $q_i, k_j$이 서로 독립으로 $\mathcal{N}(0, 1)$을 따를 때 다음이 성립한다.
 
 $$\text{Var}(\mathbf{q}^T \mathbf{k}) = \sum_{i=1}^{d_k} \text{Var}(q_i k_i) = d_k$$
 
-Dividing by $\sqrt{d_k}$ normalizes the variance to 1, keeping the softmax in a well-behaved regime.
+$\sqrt{d_k}$으로 나누면 분산이 1로 정규화되어 소프트맥스가 얌전한 영역에 머문다.
 
-### Semantic Interpretation of Q, K, V
+### Q, K, V의 의미로 보는 해석
 
-Each token generates three distinct representations:
+토큰마다 서로 다른 표현 세 가지를 만든다.
 
-| Projection | Semantic Role | Intuition |
+| 사영 | 의미상의 구실 | 직관 |
 |------------|---------------|-----------|
-| **Query** $\mathbf{q}_i$ | "What information am I looking for?" | The question a token asks |
-| **Key** $\mathbf{k}_i$ | "What information do I offer?" | How a token advertises its content |
-| **Value** $\mathbf{v}_i$ | "What will I contribute if selected?" | The actual information to aggregate |
+| **질의** $\mathbf{q}_i$ | "나는 어떤 정보를 찾는가?" | 토큰이 던지는 물음 |
+| **열쇠** $\mathbf{k}_i$ | "나는 어떤 정보를 주는가?" | 토큰이 제 내용을 알리는 방식 |
+| **값** $\mathbf{v}_i$ | "뽑히면 나는 무엇을 내놓는가?" | 실제로 모아질 정보 |
 
-This separation allows a token to seek different information than it provides—critical for modeling asymmetric relationships like subject-verb dependencies.
+이렇게 나누면 토큰이 주는 정보와 찾는 정보가 서로 다를 수 있다. 주어와 동사의 의존처럼 비대칭인 관계를 다루는 데 매우 중요하다.
 
-### Attention Matrix Interpretation
+### 어텐션 행렬 읽기
 
-The attention matrix $\mathbf{A} \in \mathbb{R}^{n \times n}$ has element $a_{ij}$ representing how much position $i$ attends to position $j$:
+어텐션 행렬 $\mathbf{A} \in \mathbb{R}^{n \times n}$의 성분 $a_{ij}$은 자리 $i$이 자리 $j$에 얼마나 주목하는지를 나타낸다.
 
 $$a_{ij} = \frac{\exp(\mathbf{q}_i^T \mathbf{k}_j / \sqrt{d_k})}{\sum_{l=1}^{n} \exp(\mathbf{q}_i^T \mathbf{k}_l / \sqrt{d_k})}$$
 
-**Properties:**
+**성질:**
 
-- Each row sums to 1 (valid probability distribution over source positions)
-- $a_{ii}$ represents self-attention (attending to the same position)
-- The matrix is generally **not symmetric** ($a_{ij} \neq a_{ji}$)
-- The matrix is **square**—every position attends to every position
+- 행마다 합이 1이다 (원본 자리에 대한 올바른 확률 분포)
+- $a_{ii}$은 자기 자신에 대한 주목을 나타낸다
+- 이 행렬은 대체로 **대칭이 아니다** ($a_{ij} \neq a_{ji}$)
+- 이 행렬은 **정사각**이다. 자리마다 모든 자리에 주목한다
 
-### Visualizing the Attention Matrix
+### 어텐션 행렬 그려 보기
 
-For the sentence "The cat sat":
+문장 "The cat sat"에 대해 살펴보자.
 
 ```
          Keys
@@ -75,157 +70,160 @@ Q   cat │ .1 │ .7 │ .2 │  Query "cat" attends mostly to itself
         └────┴────┴────┘
 ```
 
-Each row is a probability distribution (sums to 1). The asymmetry shows that "sat" strongly attends to "cat" (finding its subject), but "cat" doesn't equally attend to "sat".
+행마다 확률 분포이다(합이 1이다). 비대칭성은 "sat"이 (주어를 찾느라) "cat"에 세게 주목하지만 "cat"은 "sat"에 그만큼 주목하지 않음을 보여 준다.
 
-## Why Self-Attention Enables Global Context
+## 자기 어텐션이 전역 문맥을 가능하게 하는 까닭
 
-### The Long-Range Dependency Problem
+### 먼 거리 의존 문제
 
-Consider: *"The cat sat on the mat because it was soft."*
+*"The cat sat on the mat because it was soft."*를 생각해 보자.
 
-To resolve "it" (position 8) to "mat" (position 6), the model needs to connect these distant positions.
+자리 8의 "it"을 자리 6의 "mat"으로 이어 주려면 모델이 멀리 떨어진 두 자리를 잇대야 한다.
 
-**Traditional RNN approach** (sequential processing):
-- Information from "mat" must propagate through positions 7, then to 8
-- Path length: $O(|i - j|)$
-- Gradients must flow through many steps, leading to vanishing/exploding gradients
+**전통적인 RNN 방식** (순차 처리):
 
-**Self-attention approach** (parallel processing):
-- Position 8 ("it") directly attends to position 6 ("mat")
-- Path length: $O(1)$ — constant, regardless of distance
-- Direct gradient flow between any two positions
+- "mat"의 정보가 자리 7을 지나 자리 8로 전해져야 한다
+- 경로의 길이: $O(|i - j|)$
+- 기울기가 여러 걸음을 지나야 해서 소실하거나 폭발한다
 
-### Path Length Comparison
+**자기 어텐션 방식** (병렬 처리):
 
-| Architecture | Path Length (positions $i$ to $j$) | Parallelization |
+- 자리 8("it")이 자리 6("mat")에 곧바로 주목한다
+- 경로의 길이: $O(1)$ — 거리와 상관없이 일정하다
+- 어떤 두 자리 사이에도 기울기가 곧바로 흐른다
+
+### 경로 길이 견주기
+
+| 구조 | 경로 길이 (자리 $i$에서 $j$까지) | 병렬화 |
 |--------------|-----------------------------------|-----------------|
-| RNN/LSTM | $O(\|i - j\|)$ | Sequential |
-| CNN | $O(\log_{k}\|i - j\|)$ with kernel $k$ | Parallel |
-| Self-Attention | $O(1)$ | Fully parallel |
+| RNN/LSTM | $O(\|i - j\|)$ | 순차적 |
+| CNN | 핵이 $k$일 때 $O(\log_{k}\|i - j\|)$ | 병렬 |
+| 자기 어텐션 | $O(1)$ | 완전 병렬 |
 
-Short paths enable better gradient flow for learning long-range dependencies. This is why Transformers excel at tasks requiring global understanding.
+경로가 짧으면 기울기가 잘 흘러 먼 거리 의존을 배우기 좋다. 그래서 전역적인 이해가 필요한 과제에서 트랜스포머가 뛰어나다.
 
-## Self-Attention vs Cross-Attention
+## 자기 어텐션과 교차 어텐션
 
-| Aspect | Self-Attention | Cross-Attention |
+| 항목 | 자기 어텐션 | 교차 어텐션 |
 |--------|----------------|-----------------|
-| Q source | Same sequence X | Decoder sequence |
-| K, V source | Same sequence X | Encoder sequence |
-| Purpose | Internal context modeling | External reference/grounding |
-| Attention shape | Square $(n \times n)$ | Rectangular $(n_q \times n_k)$ |
-| Typical use | Within encoder or decoder | Decoder attending to encoder |
+| Q의 출처 | 같은 순차열 X | 복호기 순차열 |
+| K와 V의 출처 | 같은 순차열 X | 부호기 순차열 |
+| 목적 | 내부 문맥 다루기 | 바깥을 참조하고 붙들기 |
+| 어텐션의 모양 | 정사각 $(n \times n)$ | 직사각 $(n_q \times n_k)$ |
+| 흔한 쓰임 | 부호기나 복호기 안에서 | 복호기가 부호기에 주목할 때 |
 
-Self-attention captures relationships **within** a sequence; cross-attention bridges **between** sequences.
+자기 어텐션은 순차열 **안**의 관계를 붙잡고, 교차 어텐션은 순차열 **사이**를 잇는다.
 
-## Bidirectional vs Causal Self-Attention
+## 양방향 자기 어텐션과 인과 자기 어텐션
 
-### Bidirectional (Encoder-style)
+### 양방향 (부호기 방식)
 
-Every position can see every other position—full context in both directions:
+자리마다 다른 모든 자리를 볼 수 있다. 양쪽 방향의 온전한 문맥이다.
 
 $$\mathbf{A} = \begin{pmatrix} a_{11} & a_{12} & a_{13} \\ a_{21} & a_{22} & a_{23} \\ a_{31} & a_{32} & a_{33} \end{pmatrix}$$
 
-**Use cases:** Understanding tasks where full context is available (BERT, sentence classification, NER, question answering)
+**쓰임새:** 온전한 문맥을 쓸 수 있는 이해 과제(BERT, 문장 분류, 개체명 인식, 질의응답).
 
-### Causal/Masked (Decoder-style)
+### 인과·가림막 (복호기 방식)
 
-Position $i$ can only attend to positions $1, \ldots, i$ (past and present, not future):
+자리 $i$은 자리 $1, \ldots, i$에만 주목할 수 있다(과거와 현재이며 미래는 아니다).
 
 $$\mathbf{A} = \begin{pmatrix} a_{11} & 0 & 0 \\ a_{21} & a_{22} & 0 \\ a_{31} & a_{32} & a_{33} \end{pmatrix}$$
 
-**Use cases:** Generation tasks where we predict the next token autoregressively (GPT, language modeling, text generation)
+**쓰임새:** 다음 토큰을 자기회귀적으로 예측하는 생성 과제(GPT, 언어 모형, 텍스트 생성).
 
-The causal mask is implemented by setting future positions to $-\infty$ before softmax:
+인과 가림막은 소프트맥스에 앞서 미래 자리를 $-\infty$으로 두어 구현한다.
 
 $$\text{scores}_{ij} = \begin{cases} \mathbf{q}_i^T \mathbf{k}_j / \sqrt{d_k} & \text{if } j \leq i \\ -\infty & \text{if } j > i \end{cases}$$
 
-### Masking in Multi-Head Attention
+### 다중 머리 어텐션에서의 가림막
 
-When causal masking is applied in a multi-head setting, the same mask is broadcast across all heads. Each head independently learns different attention patterns, but they all respect the same causal constraint. This means head $h$ computes:
+다중 머리 상황에서 인과 가림막을 쓰면 같은 가림막이 모든 머리에 퍼진다. 머리마다 서로 다른 어텐션 무늬를 따로 배우지만 모두 같은 인과 제약을 지킨다. 곧 머리 $h$은 다음을 계산한다.
 
 $$\text{head}_h = \text{softmax}\left(\frac{\mathbf{Q}_h \mathbf{K}_h^T}{\sqrt{d_k}} + \mathbf{M}\right)\mathbf{V}_h$$
 
-where $\mathbf{M}_{ij} = 0$ if $j \leq i$ and $\mathbf{M}_{ij} = -\infty$ otherwise. The additive formulation (rather than multiplicative) ensures clean gradient flow through the softmax.
+여기서 $j \leq i$이면 $\mathbf{M}_{ij} = 0$이고 그렇지 않으면 $\mathbf{M}_{ij} = -\infty$이다. (곱셈이 아니라) 덧셈으로 쓰면 소프트맥스를 지나는 기울기가 깨끗하게 흐른다.
 
-### Encoder-Decoder Masking Patterns
+### 부호기-복호기의 가림막 방식
 
-In a full encoder-decoder Transformer, three distinct masking patterns coexist:
+온전한 부호기-복호기 트랜스포머에는 서로 다른 가림막 방식 세 가지가 함께 있다.
 
-| Component | Masking | Reason |
+| 부품 | 가림막 | 까닭 |
 |-----------|---------|--------|
-| Encoder self-attention | None (bidirectional) | Source is fully available |
-| Decoder self-attention | Causal mask | Preserve autoregressive property |
-| Decoder cross-attention | None (over encoder) | All source positions accessible |
+| 부호기 자기 어텐션 | 없음 (양방향) | 원본을 온전히 쓸 수 있다 |
+| 복호기 자기 어텐션 | 인과 가림막 | 자기회귀 성질을 지킨다 |
+| 복호기 교차 어텐션 | 없음 (부호기에 대해) | 원본의 모든 자리에 닿을 수 있다 |
 
-The decoder additionally uses a **padding mask** for both self-attention and cross-attention to ignore padding tokens.
+복호기는 덧댐 토큰을 무시하려고 자기 어텐션과 교차 어텐션 모두에 **덧댐 가림막**도 쓴다.
 
-## Fundamental Properties
+## 근본적인 성질
 
-### Permutation Equivariance
+### 순열 동변성
 
-If we permute the input positions, the output is permuted identically:
+입력의 자리를 뒤섞으면 출력도 똑같이 뒤섞인다.
 
 $$\text{SelfAttn}(\mathbf{P}\mathbf{X}) = \mathbf{P} \cdot \text{SelfAttn}(\mathbf{X})$$
 
-where $\mathbf{P}$ is a permutation matrix.
+여기서 $\mathbf{P}$은 순열 행렬이다.
 
-**Implication:** Self-attention treats positions symmetrically—it has no built-in notion of order. Positional information must be added explicitly via positional encodings (sinusoidal, learned, rotary, etc.).
+**뜻하는 바:** 자기 어텐션은 자리를 대칭적으로 다루며 순서라는 개념을 스스로 갖고 있지 않다. 위치 정보는 위치 부호화(사인·코사인, 학습형, 회전형 등)로 따로 넣어 주어야 한다.
 
-### No Inductive Bias for Locality or Order
+### 지역성이나 순서에 대한 귀납 편향이 없다
 
-Unlike RNNs (sequential bias) or CNNs (local receptive field), self-attention has no built-in assumptions about:
-- Position (which tokens are "close")
-- Direction (left vs right context)
-- Locality (nearby tokens being more relevant)
+(순차적 편향이 있는) RNN이나 (지역 수용 영역이 있는) CNN과 달리 자기 어텐션에는 다음에 대한 가정이 없다.
 
-This is both a **strength** (flexibility to learn arbitrary patterns) and a **weakness** (requires more data, needs explicit positional encoding).
+- 위치(어떤 토큰이 "가까운지")
+- 방향(왼쪽 문맥과 오른쪽 문맥)
+- 지역성(가까운 토큰이 더 쓸모 있다는 것)
 
-### Computational Complexity
+이는 (어떤 무늬든 배울 수 있는 유연함이라는) **강점**이면서 (데이터가 더 필요하고 위치 부호화를 따로 넣어야 하는) **약점**이기도 하다.
 
-| Resource | Complexity | Bottleneck |
+### 계산 복잡도
+
+| 자원 | 복잡도 | 병목 |
 |----------|------------|------------|
-| Time | $O(n^2 d)$ | Quadratic in sequence length |
-| Memory | $O(n^2)$ | Storing the attention matrix |
+| 시간 | $O(n^2 d)$ | 순차열 길이에 이차 |
+| 메모리 | $O(n^2)$ | 어텐션 행렬을 담는 데 든다 |
 
-The $O(n^2)$ scaling is the primary limitation for long sequences, motivating efficient variants like Linear Attention, Linformer, Performer, and FlashAttention.
+$O(n^2)$으로 커지는 것이 긴 순차열에서 가장 큰 한계이며, 그 때문에 선형 어텐션, Linformer, Performer, FlashAttention 같은 효율적인 판본이 나왔다.
 
-## Self-Attention vs Fully Connected Layers
+## 자기 어텐션과 완전 연결층
 
-Self-attention might appear similar to a fully connected layer, but they differ fundamentally:
+자기 어텐션이 완전 연결층과 비슷해 보일 수 있지만 근본적으로 다르다.
 
-| Aspect | Fully Connected | Self-Attention |
+| 항목 | 완전 연결 | 자기 어텐션 |
 |--------|-----------------|----------------|
-| Weights | Static (fixed after training) | Dynamic (computed from input) |
-| Position dependency | Different weights per position | Same Q, K, V matrices for all positions |
-| Adaptability | Rigid (same transformation) | Content-adaptive (input-dependent mixing) |
-| Parameter count | $O(n^2 d^2)$ for sequence | $O(d^2)$ regardless of sequence length |
+| 가중치 | 정적 (학습 뒤 고정) | 동적 (입력에서 계산) |
+| 자리 의존 | 자리마다 가중치가 다름 | 모든 자리가 같은 Q, K, V 행렬을 씀 |
+| 적응성 | 뻣뻣함 (늘 같은 변환) | 내용에 맞춤 (입력에 따라 섞음) |
+| 매개변수 수 | 순차열에 대해 $O(n^2 d^2)$ | 순차열 길이와 무관하게 $O(d^2)$ |
 
-**Key insight:** Self-attention computes **dynamic, content-based** mixing weights, while fully connected layers apply **static, learned** transformations.
+**핵심 착상:** 자기 어텐션은 **동적이고 내용에 기반한** 섞음 가중치를 계산하고, 완전 연결층은 **정적이고 학습된** 변환을 적용한다.
 
-## What Self-Attention Learns
+## 자기 어텐션이 배우는 것
 
-Research (probing classifiers, attention visualization) has revealed that different layers learn different patterns:
+탐침 분류기와 어텐션 시각화 연구는 층마다 서로 다른 무늬를 배운다는 것을 밝혔다.
 
-### Early Layers
-- Local patterns (adjacent token attention)
-- Positional patterns (fixed offsets like "attend to previous word")
-- Syntactic basics (punctuation, function words, articles)
+### 앞쪽 층
+- 지역적인 무늬 (이웃 토큰에 대한 주목)
+- 위치의 무늬 ("앞 낱말에 주목" 같은 고정된 자리 차이)
+- 기본적인 문법 (문장 부호, 기능어, 관사)
 
-### Middle Layers
-- Syntactic relationships (subject-verb agreement, modifier-head)
-- Coreference resolution (pronoun-antecedent linking)
-- Named entity recognition patterns
-- Phrase structure
+### 중간 층
+- 문법적 관계 (주어와 동사의 일치, 수식어와 머리)
+- 상호 참조 해소 (대명사와 선행사 잇기)
+- 개체명 인식의 무늬
+- 구의 구조
 
-### Later Layers
-- Task-specific patterns
-- Semantic relationships and reasoning
-- Long-range dependencies
-- Abstract feature combinations
+### 뒤쪽 층
+- 과제에 특화된 무늬
+- 의미 관계와 추론
+- 먼 거리 의존
+- 추상적인 특징의 조합
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### Basic Self-Attention
+### 기본 자기 어텐션
 
 ```python
 import torch
@@ -234,13 +232,12 @@ import torch.nn.functional as F
 import math
 from typing import Optional, Tuple
 
-
 class SelfAttention(nn.Module):
     """
-    Self-Attention Layer
+    자기 어텐션 층
     
-    Computes attention where queries, keys, and values all come from 
-    the same input. Used in Transformer encoder layers.
+    질의와 열쇠와 값이 모두 같은 입력에서 나오는 어텐션을 계산한다.
+    트랜스포머 부호기 층에서 쓴다.
     """
     
     def __init__(
@@ -255,12 +252,12 @@ class SelfAttention(nn.Module):
         self.d_v = d_v or d_model
         self.scale = self.d_k ** -0.5
         
-        # Linear projections for Q, K, V
+        # Q, K, V의 선형 사영
         self.W_q = nn.Linear(d_model, self.d_k)
         self.W_k = nn.Linear(d_model, self.d_k)
         self.W_v = nn.Linear(d_model, self.d_v)
         
-        # Output projection
+        # 출력 사영
         self.out_proj = nn.Linear(self.d_v, d_model)
         self.dropout = nn.Dropout(dropout)
         
@@ -270,42 +267,41 @@ class SelfAttention(nn.Module):
         mask: Optional[torch.Tensor] = None
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Args:
-            x: Input sequence (batch_size, seq_len, d_model)
-            mask: Optional attention mask (batch_size, seq_len, seq_len)
-                  0 indicates positions to mask out
+        인수:
+            x: 입력 순차열 (배치 크기, seq_len, d_model)
+            mask: 선택적인 어텐션 가림막 (배치 크기, seq_len, seq_len)
+                  0은 가릴 자리를 뜻한다
             
-        Returns:
-            output: Self-attended output (batch_size, seq_len, d_model)
-            attention_weights: Attention matrix (batch_size, seq_len, seq_len)
+        반환값:
+            output: 자기 어텐션을 거친 출력 (배치 크기, seq_len, d_model)
+            attention_weights: 어텐션 행렬 (배치 크기, seq_len, seq_len)
         """
-        # Project to Q, K, V (all from the same input x)
-        Q = self.W_q(x)  # (batch, seq_len, d_k)
-        K = self.W_k(x)  # (batch, seq_len, d_k)
-        V = self.W_v(x)  # (batch, seq_len, d_v)
+        # Q, K, V로 사영 (모두 같은 입력 x에서 나온다)
+        Q = self.W_q(x)  # (배치, seq_len, d_k)
+        K = self.W_k(x)  # (배치, seq_len, d_k)
+        V = self.W_v(x)  # (배치, seq_len, d_v)
         
-        # Compute scaled dot-product attention scores
+        # 배율 조정 내적 어텐션 점수 계산
         scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
         
-        # Apply mask if provided
+        # 가림막이 있으면 씌우기
         if mask is not None:
             scores = scores.masked_fill(mask == 0, float('-inf'))
         
-        # Softmax over keys (last dimension)
+        # 열쇠(마지막 차원)에 대해 소프트맥스
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
-        # Weighted sum of values
+        # 값의 가중합
         attended = torch.matmul(attention_weights, V)
         
-        # Output projection
+        # 출력 사영
         output = self.out_proj(attended)
         
         return output, attention_weights
 
-
 def demonstrate_self_attention():
-    """Demonstrate basic self-attention."""
+    """기본 자기 어텐션 시연."""
     d_model = 512
     seq_len = 10
     batch_size = 2
@@ -322,15 +318,15 @@ def demonstrate_self_attention():
     print(f"Each row sums to 1: {weights[0, 0].sum().item():.4f}")
 ```
 
-### Causal Self-Attention (for Autoregressive Models)
+### 인과 자기 어텐션 (자기회귀 모델용)
 
 ```python
 class CausalSelfAttention(nn.Module):
     """
-    Causal (Masked) Self-Attention with Multi-Head Support
+    다중 머리를 지원하는 인과(가림막) 자기 어텐션
     
-    Prevents positions from attending to subsequent positions.
-    Used in decoder-only models like GPT for autoregressive generation.
+    자리마다 뒤의 자리에 주목하지 못하게 막는다.
+    자기회귀 생성을 하는 GPT 같은 복호기 전용 모델에서 쓴다.
     """
     
     def __init__(
@@ -348,12 +344,12 @@ class CausalSelfAttention(nn.Module):
         self.head_dim = embed_dim // num_heads
         self.scale = self.head_dim ** -0.5
         
-        # Combined QKV projection for efficiency (single matmul instead of three)
+        # 효율을 위해 QKV 사영을 합침 (행렬 곱 세 번 대신 한 번)
         self.qkv_proj = nn.Linear(embed_dim, 3 * embed_dim)
         self.out_proj = nn.Linear(embed_dim, embed_dim)
         self.dropout = nn.Dropout(dropout)
         
-        # Register causal mask as buffer (not a parameter, but moves with model)
+        # 인과 가림막을 버퍼로 등록 (매개변수는 아니지만 모델과 함께 움직인다)
         causal_mask = torch.tril(torch.ones(max_seq_len, max_seq_len))
         self.register_buffer('causal_mask', causal_mask.view(1, 1, max_seq_len, max_seq_len))
         
@@ -363,37 +359,37 @@ class CausalSelfAttention(nn.Module):
         return_attention: bool = True
     ) -> Tuple[torch.Tensor, Optional[torch.Tensor]]:
         """
-        Args:
-            x: Input sequence (batch_size, seq_len, embed_dim)
-            return_attention: Whether to return attention weights
+        인수:
+            x: 입력 순차열 (배치 크기, seq_len, embed_dim)
+            return_attention: 어텐션 가중치를 돌려줄지 여부
             
-        Returns:
-            output: Attended output (batch_size, seq_len, embed_dim)
-            attention_weights: Optional (batch_size, num_heads, seq_len, seq_len)
+        반환값:
+            output: 어텐션을 거친 출력 (배치 크기, seq_len, embed_dim)
+            attention_weights: 선택적으로 (배치 크기, num_heads, seq_len, seq_len)
         """
         batch_size, seq_len, _ = x.shape
         
-        # Project to Q, K, V in one efficient operation
+        # 효율적인 연산 한 번으로 Q, K, V 사영
         qkv = self.qkv_proj(x)
         qkv = qkv.view(batch_size, seq_len, 3, self.num_heads, self.head_dim)
-        qkv = qkv.permute(2, 0, 3, 1, 4)  # (3, batch, heads, seq, head_dim)
+        qkv = qkv.permute(2, 0, 3, 1, 4)  # (3, 배치, heads, seq, head_dim)
         Q, K, V = qkv[0], qkv[1], qkv[2]
         
-        # Compute attention scores: (batch, heads, seq, seq)
+        # 어텐션 점수 계산: (배치, heads, seq, seq)
         scores = torch.matmul(Q, K.transpose(-2, -1)) * self.scale
         
-        # Apply causal mask (positions can only attend to past and present)
+        # 인과 가림막 씌우기 (자리마다 과거와 현재에만 주목할 수 있다)
         mask = self.causal_mask[:, :, :seq_len, :seq_len]
         scores = scores.masked_fill(mask == 0, float('-inf'))
         
-        # Softmax and optional dropout
+        # 소프트맥스와 선택적인 드롭아웃
         attention_weights = F.softmax(scores, dim=-1)
         attention_weights = self.dropout(attention_weights)
         
-        # Apply attention to values
+        # 값에 어텐션 적용
         attended = torch.matmul(attention_weights, V)
         
-        # Concatenate heads and project back
+        # 머리를 이어 붙이고 되사영
         attended = attended.transpose(1, 2).contiguous()
         attended = attended.view(batch_size, seq_len, self.embed_dim)
         output = self.out_proj(attended)
@@ -402,9 +398,8 @@ class CausalSelfAttention(nn.Module):
             return output, attention_weights
         return output, None
 
-
 def demonstrate_causal_attention():
-    """Show causal masking pattern."""
+    """인과 가림막의 무늬를 보인다."""
     batch_size, seq_len, embed_dim, num_heads = 1, 5, 64, 4
     
     x = torch.randn(batch_size, seq_len, embed_dim)
@@ -418,12 +413,11 @@ def demonstrate_causal_attention():
     print(weights[0, 0].detach().numpy().round(3))
     print("\nNote: Upper triangle is 0 (future positions masked)")
 
-
 if __name__ == "__main__":
     demonstrate_causal_attention()
 ```
 
-**Output:**
+**출력:**
 ```
 Causal Attention Pattern (first head):
 Each row shows what that position attends to.
@@ -438,45 +432,45 @@ Position i can only attend to positions <= i (lower triangular).
 Note: Upper triangle is 0 (future positions masked)
 ```
 
-## Comparison with Other Mechanisms
+## 다른 장치와 견주기
 
-### Self-Attention vs RNNs
+### 자기 어텐션과 RNN
 
-| Aspect | Self-Attention | RNN/LSTM |
+| 항목 | 자기 어텐션 | RNN/LSTM |
 |--------|---------------|----------|
-| Long-range dependencies | $O(1)$ path length | $O(n)$ path length |
-| Parallelization | Fully parallel | Sequential (inherently serial) |
-| Computation per layer | $O(n^2 d)$ | $O(n d^2)$ |
-| Memory | $O(n^2)$ | $O(n)$ |
-| Gradient flow | Direct connections | Through recurrent steps |
-| Inductive bias | None | Sequential/temporal |
+| 먼 거리 의존 | 경로 길이 $O(1)$ | 경로 길이 $O(n)$ |
+| 병렬화 | 완전 병렬 | 순차적 (본디 직렬) |
+| 층당 계산 | $O(n^2 d)$ | $O(n d^2)$ |
+| 메모리 | $O(n^2)$ | $O(n)$ |
+| 기울기의 흐름 | 곧바른 연결 | 순환 걸음을 거침 |
+| 귀납 편향 | 없음 | 순차적·시간적 |
 
-**When to prefer self-attention:** Tasks requiring global context, parallel training, long sequences with important long-range dependencies.
+**자기 어텐션이 나을 때:** 전역 문맥이 필요한 과제, 병렬 학습, 먼 거리 의존이 중요한 긴 순차열.
 
-**When to prefer RNNs:** Streaming applications, memory-constrained settings, tasks with strong sequential/temporal structure.
+**RNN이 나을 때:** 흐름 처리 응용, 메모리가 빠듯한 환경, 순차적·시간적 구조가 뚜렷한 과제.
 
-### Self-Attention vs Convolution
+### 자기 어텐션과 합성곱
 
-| Aspect | Self-Attention | Convolution |
+| 항목 | 자기 어텐션 | 합성곱 |
 |--------|---------------|-------------|
-| Receptive field | Global (full sequence) | Local (kernel size $k$) |
-| Parameter sharing | Same Q, K, V everywhere | Same kernel everywhere |
-| Inductive bias | None | Translation equivariance, locality |
-| Computation | $O(n^2 d)$ | $O(k n d)$ |
-| Long-range | Direct | Requires stacking/dilation |
+| 수용 영역 | 전역 (순차열 전체) | 지역 (핵 크기 $k$) |
+| 매개변수 공유 | 어디서나 같은 Q, K, V | 어디서나 같은 핵 |
+| 귀납 편향 | 없음 | 평행 이동 동변성, 지역성 |
+| 계산 | $O(n^2 d)$ | $O(k n d)$ |
+| 먼 거리 | 곧바로 | 쌓거나 팽창해야 한다 |
 
-**Insight:** CNNs have strong locality bias (nearby elements interact); self-attention learns which elements should interact regardless of distance.
+**착상:** CNN은 가까운 원소끼리 어울린다는 지역성 편향이 강하다. 자기 어텐션은 거리와 상관없이 어떤 원소끼리 어울려야 하는지를 배운다.
 
-## Applications
+## 응용
 
-### Transformer Encoder Block (BERT-style)
+### 트랜스포머 부호기 블록 (BERT 방식)
 
 ```python
 class TransformerEncoderBlock(nn.Module):
     """
-    Single Transformer encoder block with bidirectional self-attention.
+    양방향 자기 어텐션이 있는 트랜스포머 부호기 블록 하나.
     
-    Architecture: Self-Attention → Add & Norm → FFN → Add & Norm
+    구조: 자기 어텐션 → 더하기와 정규화 → 순방향 신경망 → 더하기와 정규화
     """
     
     def __init__(
@@ -488,7 +482,7 @@ class TransformerEncoderBlock(nn.Module):
     ):
         super().__init__()
         
-        # Multi-head self-attention (bidirectional)
+        # 다중 머리 자기 어텐션 (양방향)
         self.self_attn = nn.MultiheadAttention(
             embed_dim, num_heads, 
             dropout=dropout, 
@@ -496,7 +490,7 @@ class TransformerEncoderBlock(nn.Module):
         )
         self.norm1 = nn.LayerNorm(embed_dim)
         
-        # Position-wise feed-forward network
+        # 자리별 순방향 신경망
         self.ffn = nn.Sequential(
             nn.Linear(embed_dim, ff_dim),
             nn.GELU(),
@@ -514,12 +508,12 @@ class TransformerEncoderBlock(nn.Module):
         src_key_padding_mask: torch.Tensor = None
     ) -> torch.Tensor:
         """
-        Args:
-            x: Input (batch, seq_len, embed_dim)
-            src_mask: Attention mask (seq_len, seq_len)
-            src_key_padding_mask: Padding mask (batch, seq_len)
+        인수:
+            x: 입력 (배치, seq_len, embed_dim)
+            src_mask: 어텐션 가림막 (seq_len, seq_len)
+            src_key_padding_mask: 덧댐 가림막 (배치, seq_len)
         """
-        # Self-attention with residual connection (Pre-LN variant)
+        # 잔차 연결이 있는 자기 어텐션 (사전 층 정규화 판본)
         attn_out, _ = self.self_attn(
             x, x, x, 
             attn_mask=src_mask,
@@ -527,24 +521,24 @@ class TransformerEncoderBlock(nn.Module):
         )
         x = self.norm1(x + self.dropout(attn_out))
         
-        # Feed-forward with residual connection
+        # 잔차 연결이 있는 순방향 신경망
         ffn_out = self.ffn(x)
         x = self.norm2(x + ffn_out)
         
         return x
 ```
 
-### Vision Transformer (ViT) Self-Attention
+### 비전 트랜스포머(ViT)의 자기 어텐션
 
-Self-attention applied to image patches, treating an image as a sequence:
+이미지를 순차열로 다루어 이미지 조각에 자기 어텐션을 적용한다.
 
 ```python
 class VisionSelfAttention(nn.Module):
     """
-    Self-attention for image patches (Vision Transformer style).
+    이미지 조각을 위한 자기 어텐션 (비전 트랜스포머 방식).
     
-    Images are split into patches, flattened, and treated as a sequence.
-    Each patch can attend to all other patches globally.
+    이미지를 조각으로 나누어 펼친 뒤 순차열로 다룬다.
+    조각마다 다른 모든 조각에 전역적으로 주목할 수 있다.
     """
     
     def __init__(
@@ -563,75 +557,115 @@ class VisionSelfAttention(nn.Module):
         
     def forward(self, patches: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Args:
-            patches: Flattened image patches (batch, num_patches, embed_dim)
-                     Typically includes a [CLS] token as first position
+        인수:
+            patches: 펼친 이미지 조각 (배치, num_patches, embed_dim)
+                     대체로 첫 자리에 [CLS] 토큰이 있다
         
-        Returns:
-            output: Self-attended patches (batch, num_patches, embed_dim)
-            weights: Attention weights (batch, num_patches, num_patches)
+        반환값:
+            output: 자기 어텐션을 거친 조각 (배치, num_patches, embed_dim)
+            weights: 어텐션 가중치 (배치, num_patches, num_patches)
         """
-        # Each patch attends to all other patches (including CLS token)
+        # 조각마다 (CLS 토큰을 포함한) 다른 모든 조각에 주목한다
         attended, weights = self.attention(patches, patches, patches)
         
-        # Residual connection
+        # 잔차 연결
         output = self.norm(patches + attended)
         
         return output, weights
 ```
 
-### Self-Attention in Different Contexts
+### 여러 맥락에서의 자기 어텐션
 
-| Context | Attention Type | Key Characteristics |
+| 맥락 | 어텐션의 종류 | 핵심 특징 |
 |---------|---------------|---------------------|
-| **BERT Encoder** | Bidirectional | Full context, [CLS] token for pooling |
-| **GPT Decoder** | Causal | Autoregressive, predicts next token |
-| **Vision Transformer** | Bidirectional | Patches as tokens, [CLS] for classification |
-| **Audio (Wav2Vec)** | Bidirectional | Raw waveform or spectral features |
-| **Protein (ESM)** | Bidirectional | Amino acids as tokens |
+| **BERT 부호기** | 양방향 | 온전한 문맥, 모으기에 [CLS] 토큰 사용 |
+| **GPT 복호기** | 인과 | 자기회귀적으로 다음 토큰을 예측 |
+| **비전 트랜스포머** | 양방향 | 조각을 토큰으로, 분류에 [CLS] 사용 |
+| **음향 (Wav2Vec)** | 양방향 | 날 파형이나 스펙트럼 특징 |
+| **단백질 (ESM)** | 양방향 | 아미노산을 토큰으로 |
 
-## Efficient Self-Attention Variants
+## 효율적인 자기 어텐션 판본
 
-The $O(n^2)$ complexity motivates many efficient alternatives:
+$O(n^2)$의 복잡도 때문에 효율적인 대안이 많이 나왔다.
 
-| Method | Complexity | Key Idea |
+| 방법 | 복잡도 | 핵심 착상 |
 |--------|------------|----------|
-| **Sparse Attention** | $O(n\sqrt{n})$ | Attend to fixed patterns (local + strided) |
-| **Linformer** | $O(n)$ | Low-rank projection of K, V |
-| **Performer** | $O(n)$ | Random feature approximation of softmax |
-| **Linear Attention** | $O(n)$ | Remove softmax, use kernel trick |
-| **FlashAttention** | $O(n^2)$ time, $O(n)$ memory | IO-aware, tiled computation |
-| **Sliding Window** | $O(nw)$ | Local attention with window size $w$ |
+| **성긴 어텐션** | $O(n\sqrt{n})$ | 정해진 무늬(지역과 보폭)에만 주목한다 |
+| **Linformer** | $O(n)$ | K와 V를 낮은 계수로 사영한다 |
+| **Performer** | $O(n)$ | 무작위 특징으로 소프트맥스를 어림한다 |
+| **선형 어텐션** | $O(n)$ | 소프트맥스를 없애고 핵 요령을 쓴다 |
+| **FlashAttention** | 시간 $O(n^2)$, 메모리 $O(n)$ | 입출력을 고려한 타일 계산 |
+| **미끄럼창** | $O(nw)$ | 창 크기가 $w$인 지역 어텐션 |
 
-## Summary
+## 요약
 
-Self-attention is characterized by:
+자기 어텐션의 특징은 다음과 같다.
 
-| Property | Description |
+| 성질 | 설명 |
 |----------|-------------|
-| **Source** | Q, K, V all from the same sequence |
-| **Scope** | Every position attends to every position |
-| **Path length** | $O(1)$ between any two positions |
-| **Complexity** | $O(n^2 d)$ time, $O(n^2)$ space |
-| **Inductive bias** | None (requires positional encoding) |
-| **Key advantage** | Global context with parallel computation |
+| **출처** | Q, K, V이 모두 같은 순차열에서 나온다 |
+| **범위** | 자리마다 모든 자리에 주목한다 |
+| **경로 길이** | 어떤 두 자리 사이에도 $O(1)$ |
+| **복잡도** | 시간 $O(n^2 d)$, 공간 $O(n^2)$ |
+| **귀납 편향** | 없음 (위치 부호화가 필요하다) |
+| **핵심 이점** | 병렬 계산으로 얻는 전역 문맥 |
 
-Self-attention enables direct modeling of relationships within a sequence by allowing each position to attend to all others. It is the mechanism that gives Transformers their power—forming the foundation for both understanding (BERT) and generation (GPT) architectures that have revolutionized NLP, vision, and beyond.
+자기 어텐션은 자리마다 다른 모든 자리에 주목하게 하여 순차열 안의 관계를 곧바로 다룬다. 트랜스포머에 힘을 주는 장치이며, 자연어 처리와 시각을 비롯한 여러 분야를 뒤집어 놓은 이해(BERT)와 생성(GPT) 구조의 바탕을 이룬다.
 
-**Key insights:**
+**핵심 착상:**
 
-1. **Separation of concerns:** Q, K, V allow tokens to ask different questions than they answer, enabling asymmetric relationship modeling.
+1. **역할의 분리:** Q, K, V 덕분에 토큰이 답하는 것과 다른 물음을 던질 수 있어 비대칭인 관계를 다룰 수 있다.
 
-2. **Content-based addressing:** Unlike fixed connectivity in RNNs/CNNs, attention patterns adapt dynamically to input content.
+2. **내용으로 찾기:** RNN이나 CNN의 고정된 연결과 달리 어텐션의 무늬는 입력의 내용에 따라 그때그때 달라진다.
 
-3. **Position agnostic:** The architecture itself doesn't know about position—this must be injected explicitly, allowing flexibility in how position is encoded.
+3. **위치에 무관:** 구조 자체는 위치를 모르므로 따로 넣어 주어야 하며, 그 덕분에 위치를 담는 방식을 자유롭게 고를 수 있다.
 
-4. **Scalability trade-off:** Global context comes at quadratic cost, motivating the rich literature on efficient attention variants.
+4. **규모의 맞바꿈:** 전역 문맥에는 이차 비용이 따르며, 그 때문에 효율적인 어텐션 판본에 대한 연구가 풍성하다.
 
-## References
+## 참고 문헌
 
-- Vaswani et al., "Attention Is All You Need" (2017) — Original Transformer paper
+- Vaswani et al., "Attention Is All You Need" (2017) — 최초의 트랜스포머 논문
 - Devlin et al., "BERT: Pre-training of Deep Bidirectional Transformers" (2019)
 - Radford et al., "Language Models are Unsupervised Multitask Learners" (GPT-2, 2019)
 - Dosovitskiy et al., "An Image is Worth 16x16 Words" (ViT, 2020)
-- Clark et al., "What Does BERT Look At?" (2019) — Attention analysis
+- Clark et al., "What Does BERT Look At?" (2019) — 어텐션 분석
+
+## 연습문제
+
+**연습문제 1.**
+자기 어텐션과 교차 어텐션의 차이를 설명하라.
+
+??? success "연습문제 1 풀이"
+    자기 어텐션에서는 질의와 열쇠와 값이 모두 같은 순차열에서 나온다($Q = K = V = X$). 자리마다 같은 순차열의 모든 자리에 주목한다. 교차 어텐션에서는 질의가 한 순차열에서, 열쇠와 값이 다른 순차열에서 온다(seq2seq에서 복호기가 부호기의 출력에 주목하는 것 따위).
+
+---
+
+**연습문제 2.**
+자기 어텐션이 순열 동변임을 보여라. 곧 입력의 순서를 바꾸면 출력의 순서도 똑같이 바뀜을 보여라.
+
+??? success "연습문제 2 풀이"
+    $\pi$을 순열이라 하고 $X' = \pi(X)$이라 하자. 그러면 $Q' = X'W_Q = \pi(X)W_Q = \pi(Q)$이고 $K'$과 $V'$도 마찬가지이다. 어텐션은 $\text{softmax}(Q'K'^\top/\sqrt{d})V' = \pi(\text{softmax}(QK^\top/\sqrt{d})V)$이 된다. 출력의 순서가 똑같이 바뀐다. 그래서 위치 부호화가 필요하다.
+
+---
+
+**연습문제 3.**
+순차열의 길이가 $n$일 때 자기 어텐션의 메모리 복잡도는 얼마인가? 그것이 실제 쓰임을 어떻게 제한하는가?
+
+??? success "연습문제 3 풀이"
+    어텐션 행렬이 $n \times n$이라 메모리가 $O(n^2)$ 든다. float32에서 $n = 4096$이면 층마다 머리마다 $4096^2 \times 4 \approx 64$MB이다. 머리 12개에 층 12개면 어텐션 행렬에만 약 9GB가 든다. 그래서 표준 트랜스포머가 $n \approx 512{\sim}2048$으로 제한된다.
+
+---
+
+**연습문제 4.**
+미래 자리에 주목하지 못하게 가림막을 씌워 인과(자기회귀) 자기 어텐션을 구현하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    def causal_self_attention(X, WQ, WK, WV, d_k):
+        Q, K, V = X @ WQ, X @ WK, X @ WV
+        scores = Q @ K.T / d_k**0.5
+        # 인과 가림막: 미래 자리에 -inf
+        mask = torch.triu(torch.ones(n, n), diagonal=1).bool()
+        scores.masked_fill_(mask, float('-inf'))
+        return torch.softmax(scores, dim=-1) @ V
+    ```

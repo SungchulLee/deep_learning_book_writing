@@ -1,20 +1,20 @@
-# Fork-Join Framework
+# 갈라짐-합침 틀
 
-Many parallel algorithms share a common structure: split a problem into independent subproblems, solve them concurrently, and combine the results. The **fork-join** model formalizes this pattern, providing both a programming abstraction and an analytical framework. It underpins parallel divide-and-conquer algorithms and is the execution model behind frameworks like Cilk, Java ForkJoinPool, and Intel TBB.
+많은 나란한 알고리즘은 같은 얼개를 지닌다. 문제를 서로 독립인 부분 문제로 가르고 한꺼번에 풀어 결과를 합친다. **갈라짐-합침** 모형이 이 무늬를 엄밀히 적어 짜기의 추상과 살피기의 틀을 함께 준다. 나란한 나누어 정복하기 알고리즘의 바탕이며 Cilk, Java ForkJoinPool, Intel TBB 같은 틀의 돌림 모형이다.
 
-## The Fork-Join Model
+## 갈라짐-합침 모형
 
-A fork-join computation consists of three phases:
+갈라짐-합침 셈은 세 마당으로 이루어진다:
 
-1. **Fork**: The current task spawns one or more child tasks that can execute in parallel.
-2. **Compute**: Each child task executes independently (and may recursively fork further subtasks).
-3. **Join**: The parent task waits until all child tasks complete, then combines their results.
+1. **갈라짐**: 지금 일감이 나란히 돌 수 있는 자식 일감을 하나 넘게 낳는다.
+2. **셈하기**: 자식 일감마다 따로 돈다(되돌이로 더 갈라질 수도 있다).
+3. **합침**: 어버이 일감이 자식 일감이 모두 끝날 때까지 기다린 뒤 결과를 합친다.
 
-This creates a tree-structured computation DAG. Each internal node represents a fork point, and the join corresponds to a synchronization barrier.
+이는 나무 꼴의 셈 그래프를 만든다. 안쪽 마디마다 갈라지는 지점이고 합침은 맞추기 울타리에 해당한다.
 
-## Work-Span Analysis
+## 일-뻗음 살피기
 
-The fork-join structure naturally leads to divide-and-conquer recurrences. For a problem of size $n$ that forks into $a$ subproblems of size $n/b$ with $O(f(n))$ overhead for forking and joining:
+갈라짐-합침 얼개는 자연스럽게 나누어 정복하기 점화식을 낳는다. 크기 $n$의 문제가 크기 $n/b$인 부분 문제 $a$개로 갈라지고 갈라짐과 합침에 $O(f(n))$ 덧짐이 들 때:
 
 $$
 T_1(n) = a \cdot T_1(n/b) + f(n)
@@ -24,43 +24,43 @@ $$
 T_\infty(n) = T_\infty(n/b) + f(n)
 $$
 
-The work recurrence counts all operations (each subproblem contributes). The span recurrence follows only the critical path, so the $a$ parallel subproblems contribute just one term (the slowest, which by symmetry has the same span).
+일 점화식은 모든 연산을 센다(부분 문제마다 이바지한다). 뻗음 점화식은 핵심 길만 따르므로 나란한 부분 문제 $a$개가 항 하나만 이바지한다(가장 느린 것이며 맞섬이므로 뻗음이 같다).
 
-!!! tip "Applying the Master theorem"
-    The work recurrence $T_1(n) = a \cdot T_1(n/b) + f(n)$ follows the standard Master theorem form. The span recurrence $T_\infty(n) = T_\infty(n/b) + f(n)$ is the special case $a = 1$.
+!!! tip "마스터 정리 쓰기"
+    일 점화식 $T_1(n) = a \cdot T_1(n/b) + f(n)$은 여느 마스터 정리 꼴을 따른다. 뻗음 점화식 $T_\infty(n) = T_\infty(n/b) + f(n)$은 $a = 1$인 특별한 경우이다.
 
-## Example: Parallel Sum
+## 보기: 나란한 합
 
-A parallel sum of an array $A[0 \ldots n-1]$ forks the array into two halves, recursively sums each half, and joins by adding the two partial sums.
+배열 $A[0 \ldots n-1]$의 나란한 합은 배열을 반 둘로 가르고 되돌이로 반씩 더한 뒤 두 부분 합을 더해 합친다.
 
-**Work recurrence**:
+**일 점화식**:
 
 $$
 T_1(n) = 2 \cdot T_1(n/2) + O(1) = O(n)
 $$
 
-**Span recurrence**:
+**뻗음 점화식**:
 
 $$
 T_\infty(n) = T_\infty(n/2) + O(1) = O(\log n)
 $$
 
-**Parallelism**: $P = T_1 / T_\infty = O(n / \log n)$.
+**나란함**: $P = T_1 / T_\infty = O(n / \log n)$.
 
 ```python
 """
-Fork-join parallel sum simulation.
+갈라짐-합침 나란한 합 흉내내기.
 
-Demonstrates the fork-join pattern with recursive array summation.
-Tracks work (total operations) and span (critical path depth).
+되돌이 배열 더하기로 갈라짐-합침 무늬를 보여 준다.
+일(온 연산)과 뻗음(핵심 길 깊이)을 좇는다.
 """
 
 # ===================================================================
-# Fork-Join Parallel Sum
+# 갈라짐-합침 나란한 합
 # ===================================================================
 
 class ForkJoinStats:
-    """Track work and span of a fork-join computation."""
+    """갈라짐-합침 셈의 일과 뻗음을 좇는다."""
 
     def __init__(self):
         self.work = 0
@@ -68,12 +68,12 @@ class ForkJoinStats:
     def parallel_sum(self, arr, lo, hi):
         """Compute sum of arr[lo:hi] using fork-join pattern.
 
-        Args:
-            arr: input array
+        인수:
+            arr: 들임 배열
             lo: start index (inclusive)
             hi: end index (exclusive)
 
-        Returns:
+        반환값:
             Tuple of (sum, span)
         """
         if hi - lo <= 1:
@@ -82,20 +82,20 @@ class ForkJoinStats:
 
         mid = (lo + hi) // 2
 
-        # Fork: two subproblems (would run in parallel)
+        # 갈라짐: 부분 문제 둘(나란히 돌 것)
         left_sum, left_span = self.parallel_sum(arr, lo, mid)
         right_sum, right_span = self.parallel_sum(arr, mid, hi)
 
-        # Join: combine results
-        self.work += 1  # addition at join
+        # 합침: 결과를 합친다
+        self.work += 1  # 합침에서의 더하기
         total = left_sum + right_sum
-        # Span: max of parallel branches + 1 for the join
+        # 뻗음: 나란한 가지의 최대 + 합침에 1
         span = max(left_span, right_span) + 1
 
         return total, span
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
@@ -112,20 +112,20 @@ if __name__ == "__main__":
     print(f"Parallelism:  {stats.work / span:.1f}")
     print()
 
-    # Brent's bound for various processor counts
+    # 여러 셈틀 수에 대한 브렌트 가둠
     print("Brent's bound T_p <= T_1/p + T_inf:")
     for p in [1, 2, 4, 8]:
         tp = stats.work / p + span
         print(f"  p={p}: T_p <= {tp:.1f}")
 ```
 
-**Output:**
+**출력:**
 ```
 Array: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 Sum:   136
-Work (T_1):   31
-Span (T_inf): 5
-Parallelism:  6.2
+일(T_1):   31
+뻗음(T_inf): 5
+나란함:  6.2
 
 Brent's bound T_p <= T_1/p + T_inf:
   p=1: T_p <= 36.0
@@ -134,41 +134,74 @@ Brent's bound T_p <= T_1/p + T_inf:
   p=8: T_p <= 8.9
 ```
 
-## Nested Fork-Join
+## 겹친 갈라짐-합침
 
-Fork-join computations can nest arbitrarily. A common pattern in practice:
+갈라짐-합침 셈은 얼마든지 겹칠 수 있다. 실제로 흔한 무늬:
 
 ```
 fork_join_outer:
     fork:
         fork_join_inner_A:
-            fork: subproblem A1
-            fork: subproblem A2
+            갈라짐: 부분 문제 A1
+            갈라짐: 부분 문제 A2
             join
     fork:
         fork_join_inner_B:
-            fork: subproblem B1
-            fork: subproblem B2
+            갈라짐: 부분 문제 B1
+            갈라짐: 부분 문제 B2
             join
     join
 ```
 
-The span of the outer computation is the span of the sequential composition of fork and join overhead plus the maximum span among the parallel branches.
+바깥 셈의 뻗음은 갈라짐과 합침 덧짐을 차례로 이은 뻗음에 나란한 가지 가운데 가장 큰 뻗음을 더한 것이다.
 
-## Greedy Scheduler
+## 욕심쟁이 일정잡이
 
-A **greedy scheduler** assigns ready tasks to idle processors without unnecessary delays. Brent's theorem guarantees that any greedy scheduler achieves:
+**욕심쟁이 일정잡이**는 준비된 일감을 쓸데없이 늦추지 않고 노는 셈틀에 맡긴다. 브렌트 정리가 어떤 욕심쟁이 일정잡이도 다음을 이룸을 보장한다:
 
 $$
 T_p \le \frac{T_1}{p} + T_\infty
 $$
 
-This bound is within a factor of 2 of optimal, since no schedule can beat $\max(T_1/p,\, T_\infty)$.
+어떤 일정도 $\max(T_1/p,\, T_\infty)$을 넘어설 수 없으므로 이 가둠은 가장 좋은 값의 2배 안에 든다.
 
-!!! note "Work stealing implements greedy scheduling"
-    The work-stealing scheduler (see [Work Stealing](work_stealing.md)) is a practical realization of a greedy scheduler. Each processor maintains a local deque of tasks, and idle processors steal from busy ones.
+!!! note "일 훔치기가 욕심쟁이 일정 잡기를 짠다"
+    일 훔치기 일정잡이([일 훔치기](work_stealing.md) 참고)는 욕심쟁이 일정잡이를 실제로 짠 것이다. 셈틀마다 그 자리 일감 두 끝 줄을 지니고 노는 셈틀이 바쁜 셈틀에서 훔친다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H. et al. *Introduction to Algorithms*, Chapter 27 (Multithreaded Algorithms).
+- Cormen, T. H. et al. *Introduction to Algorithms*, 27장(여러 실 알고리즘).
 - Blumofe, R. D. and Leiserson, C. E. (1999). "Scheduling multithreaded computations by work stealing." *JACM*, 46(5), 720--748.
+
+
+## 연습문제
+
+**연습문제 1.**
+갈라짐-합침 나란한 짜기 모형을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    갈라짐-합침: 일감이 나란히 도는 부분 일감으로 '갈라지고' 이어 가기 전에 '합친다'(부분 일감이 모두 끝나기를 기다린다). 이는 나누어 정복하기 알고리즘에 자연스럽게 들어맞는다. 으뜸 실이 자식 실로 갈라져 저마다 일의 일부를 다룬다. 끝나면 결과를 합친다. 틀: Java ForkJoinPool, Intel TBB, OpenMP의 나란한 마디. 이 모형은 되돌이 나란함을 가능하게 한다. 갈라진 일감이 다시 갈라질 수 있다.
+
+---
+
+**연습문제 2.**
+갈라짐-합침의 맥락에서 일 훔치기를 밝혀라.
+
+??? success "연습문제 2 풀이"
+    일 훔치기는 갈라짐-합침 틀에서 짐을 고르게 한다. 셈틀마다 그 자리 두 끝 줄에 일감을 담는다. 셈틀은 (갈라짐에서 나온) 새 일감을 제 줄의 아래에 넣고 아래에서 꺼낸다(나중 것 먼저). 제 줄이 비면 아무 희생자의 줄 위쪽(먼저 것 먼저)에서 일감을 '훔친다'. 아래에서 꺼내는 그 자리 돌림은 두름 가까움을 살린다(최근 일감이 서로 딸려 있다). 위에서 훔치기는 (뿌리에 가까운) 큰 일감을 가져가 훔치는 잦음을 줄인다. 블루모프-라이저슨 정리: 일 훔치기는 기대 때 $T_p \leq W/p + O(D)$을 이룬다.
+
+---
+
+**연습문제 3.**
+갈라짐-합침 모형으로 나란한 빠른 정렬을 살펴라.
+
+??? success "연습문제 3 풀이"
+    나란한 빠른 정렬: (1) 축을 고르고, (2) 가르고(나란한 훑기), (3) 갈라짐: 왼쪽과 오른쪽 반을 되돌이로 나란히 줄 세우고, (4) 합친다. 일: 기댓값 $O(n \log n)$(차례와 같다). 뻗음: 가르기는 일이 $O(n)$이지만 나란한 앞자락으로 깊이가 $O(\log n)$이다. 두 되돌이 부름이 나란히 도므로 (고른 경우) $D(n) = D(n/2) + O(\log n)$이다. 기대 뻗음: $O(\log^2 n)$. 나란함: $O(n/\log n)$.
+
+---
+
+**연습문제 4.**
+갈라짐-합침 모형은 GPU의 CUDA 커널 띄우기에 어떻게 들어맞는가?
+
+??? success "연습문제 4 풀이"
+    CUDA의 짜기 모형에는 닮은 데가 있다. 커널을 띄우면 실 수천 개가 생겨(갈라짐) 여러 스트리밍 멀티프로세서에서 나란히 돌고, 주인이 끝나기를 기다린다(cudaDeviceSynchronize으로 합침). 다만 CUDA 실은 가볍고(기계가 일정을 잡는다) 갈라짐-합침의 실은 더 무겁다(운영 체제가 일정을 잡는다). CUDA은 되돌이 갈라짐이 아니라 납작한 나란함 모형을 쓴다(모든 실을 한꺼번에 띄운다). GPU의 되돌이 알고리즘에서는 그때그때 나란함으로 커널이 자식 커널을 띄울 수 있지만 덧짐이 크다. 실제로는 GPU에서 나누어 정복하기를 되풀이 꼴로 바꿔 쓰는 편이 낫다.

@@ -1,238 +1,285 @@
-# Language Models and Sequence Modeling
+# 언어 모형과 순차열 모형
+## 언어 모형이란 무엇인가
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## What is a Language Model?
-
-A language model assigns probability to sequences. Formally, it estimates the joint probability distribution over a sequence:
+언어 모형은 순차열에 확률을 매긴다. 엄밀히는 순차열에 대한 결합 확률 분포를 추정한다.
 
 $$P(x_1, x_2, \ldots, x_T)$$
 
-where $x_1, \ldots, x_T$ are sequential elements (words, characters, tokens, or in finance: price ticks, returns, order events).
+여기서 $x_1, \ldots, x_T$은 순차적인 원소이다(낱말, 글자, 토큰, 또는 금융에서는 가격 틱, 수익률, 주문 사건).
 
-### The Chain Rule Decomposition
+### 연쇄 법칙 분해
 
-We decompose this joint probability using the chain rule of probability:
+확률의 연쇄 법칙으로 이 결합 확률을 쪼갠다.
 
 $$P(x_1, x_2, \ldots, x_T) = P(x_1) \cdot P(x_2 | x_1) \cdot P(x_3 | x_1, x_2) \cdots P(x_T | x_1, \ldots, x_{T-1})$$
 
-More compactly:
+더 간결하게 쓰면 다음과 같다.
 
 $$P(x_1, x_2, \ldots, x_T) = \prod_{t=1}^T P(x_t | x_{<t})$$
 
-where $x_{<t} = \{x_1, x_2, \ldots, x_{t-1}\}$ represents the context (all previous elements).
+여기서 $x_{<t} = \{x_1, x_2, \ldots, x_{t-1}\}$은 문맥(앞선 모든 원소)을 나타낸다.
 
-**Key insight:** The probability of the entire sequence factorizes into predictions of each element conditioned on its history. This makes the problem tractable: instead of modeling $T$-way dependencies directly, we model one-step-ahead prediction repeatedly.
+**핵심 착상:** 순차열 전체의 확률이 원소마다 그 이력에 조건을 둔 예측으로 쪼개진다. 그러면 문제를 다룰 만해진다. $T$개가 얽힌 의존을 곧바로 다루는 대신 한 걸음 앞을 예측하는 일을 되풀이하면 된다.
 
-## N-Gram Models: Classical Approach
+## N-그램 모형: 고전적인 방법
 
-Before neural networks, n-gram models were the workhorse of sequence modeling.
+신경망이 나오기 전에는 n-그램 모형이 순차열 모형의 일꾼이었다.
 
-### Principle
+### 원리
 
-An n-gram model makes a **Markov assumption**: the probability of the next element depends only on the previous $n-1$ elements, not the entire history:
+n-그램 모형은 **마르코프 가정**을 둔다. 다음 원소의 확률이 이력 전체가 아니라 앞선 $n-1$개의 원소에만 기댄다는 것이다.
 
 $$P(x_t | x_{<t}) \approx P(x_t | x_{t-n+1}, \ldots, x_{t-1})$$
 
-**Common variants:**
-- **Unigram** $(n=1)$: $P(x_t) = P(x_t)$ - context-independent frequencies
-- **Bigram** $(n=2)$: $P(x_t | x_{t-1})$ - single-step context
-- **Trigram** $(n=3)$: $P(x_t | x_{t-2}, x_{t-1})$ - two-step context
+**흔한 판본:**
 
-### Counting and Estimation
+- **유니그램** $(n=1)$: $P(x_t) = P(x_t)$ — 문맥과 무관한 빈도
+- **바이그램** $(n=2)$: $P(x_t | x_{t-1})$ — 한 걸음의 문맥
+- **트라이그램** $(n=3)$: $P(x_t | x_{t-2}, x_{t-1})$ — 두 걸음의 문맥
 
-N-gram probabilities are estimated from data via relative frequency:
+### 세기와 추정
+
+n-그램의 확률은 상대 빈도로 데이터에서 추정한다.
 
 $$P(x_t = w | x_{t-1} = v) = \frac{\text{count}(v, w)}{\text{count}(v)}$$
 
-Simply count transitions in the training corpus and normalize.
+학습 말뭉치에서 전이를 세어 정규화하면 된다.
 
-### Smoothing
+### 매끄럽게 하기
 
-A critical problem: **data sparsity**. Most n-gram combinations never appear in training data, resulting in zero counts and zero probabilities.
+중요한 문제가 하나 있다. **데이터의 성김**이다. 대부분의 n-그램 조합은 학습 데이터에 아예 나타나지 않아 횟수가 0이고 확률도 0이 된다.
 
-**Smoothing techniques** assign non-zero probability to unseen n-grams:
+**매끄럽게 하는 기법**은 본 적 없는 n-그램에도 0이 아닌 확률을 준다.
 
-1. **Add-one smoothing (Laplace smoothing):**
+1. **1 더하기 매끄럽게 하기 (라플라스 매끄럽게 하기):**
 
    $$P(x_t = w | \text{context}) = \frac{\text{count}(\text{context}, w) + 1}{\text{count}(\text{context}) + V}$$
 
-   where $V$ is vocabulary size
+   여기서 $V$은 어휘의 크기이다
 
-2. **Backoff:** If an n-gram is unseen, fall back to lower-order model (e.g., bigram → unigram)
+2. **물러서기:** n-그램을 본 적이 없으면 차수가 낮은 모형으로 물러선다(바이그램 → 유니그램 따위).
 
-3. **Interpolation:** Mix predictions from multiple n-gram orders with learned weights
+3. **보간:** 여러 차수의 n-그램 예측을 학습된 가중치로 섞는다.
 
-!!! note "Limitations of N-Gram Models"
-    - Cannot capture dependencies beyond $n-1$ steps
-    - Exponential growth in parameters with $n$ (curse of dimensionality)
-    - Binary decision at position $n$: context either included or dropped (no gradual importance)
-    - Requires extensive smoothing for real vocabularies
+!!! note "N-그램 모형의 한계"
 
-## Neural Language Models: RNNs for Sequences
+    - $n-1$걸음을 넘어서는 의존을 붙잡지 못한다
+    - $n$이 커지면 매개변수가 지수적으로 는다(차원의 저주)
+    - 자리 $n$에서 이분법적으로 결정한다. 문맥을 넣거나 버리거나이며 중요도의 정도가 없다
+    - 실제 어휘에서는 매끄럽게 하는 작업이 많이 필요하다
 
-Neural language models overcome n-gram limitations by using **recurrent neural networks** (RNNs) to dynamically maintain a latent context representation.
+## 신경망 언어 모형: 순차열을 위한 RNN
 
-### RNN Architecture for Language Modeling
+신경망 언어 모형은 **순환 신경망**(RNN)으로 잠재된 문맥 표현을 그때그때 지녀 n-그램의 한계를 넘는다.
 
-An RNN processes sequences element-by-element, maintaining a hidden state $h_t$:
+### 언어 모형을 위한 RNN 구조
+
+RNN은 숨은 상태 $h_t$을 지니며 순차열을 원소 하나씩 처리한다.
 
 $$h_t = f(h_{t-1}, x_t; \theta)$$
 
-where $f$ is a recurrent cell (Elman, LSTM, or GRU) and $\theta$ are learnable parameters.
+여기서 $f$은 순환 세포(엘만, LSTM, GRU)이고 $\theta$은 학습 가능한 매개변수이다.
 
-At each timestep, an output distribution is computed from the hidden state:
+시각마다 숨은 상태에서 출력 분포를 계산한다.
 
 $$P(x_{t+1} | x_1, \ldots, x_t) = \text{softmax}(\mathbf{W} h_t + \mathbf{b})$$
 
-**Advantages over n-grams:**
-- Theoretically unlimited context through hidden state compression
-- Learned representations capture linguistic (or market) structure
-- No explicit limit on dependency range
-- Single set of parameters reused across sequence positions (weight sharing)
+**n-그램보다 나은 점:**
 
-### Unrolling and Backpropagation Through Time (BPTT)
+- 숨은 상태에 눌러 담으므로 이론적으로 문맥에 제한이 없다
+- 학습된 표현이 언어(또는 시장)의 구조를 담는다
+- 의존의 거리에 뚜렷한 제한이 없다
+- 순차열의 모든 자리가 하나의 매개변수 묶음을 다시 쓴다(가중치 공유)
 
-Training an RNN language model involves:
+### 펼치기와 시간을 거슬러 가는 역전파 (BPTT)
 
-1. **Forward pass:** Unroll the network over the sequence, computing $h_t$ and output distributions at each step
-2. **Loss computation:** Sum cross-entropy losses at each position
-3. **Backward pass:** Backpropagate through time (BPTT) to compute gradients
-4. **Update:** Gradient descent on parameters
+RNN 언어 모형을 학습시키는 일은 다음으로 이루어진다.
 
-!!! warning "Vanishing/Exploding Gradients"
-    Long-term dependencies remain challenging. Gradients propagated backward through time can vanish (exponentially decay) or explode, limiting effective context length in practice. This motivated LSTM and GRU architectures with gating mechanisms.
+1. **순전파:** 순차열에 걸쳐 신경망을 펼치며 걸음마다 $h_t$과 출력 분포를 계산한다
+2. **손실 계산:** 자리마다의 교차 엔트로피 손실을 더한다
+3. **역전파:** 시간을 거슬러 역전파(BPTT)하여 기울기를 계산한다
+4. **갱신:** 매개변수에 경사 하강을 적용한다
 
-## Perplexity: Evaluation Metric
+!!! warning "기울기 소실과 폭발"
+    장기 의존은 여전히 어렵다. 시간을 거슬러 전파되는 기울기가 (지수적으로 줄어) 사라지거나 폭발할 수 있어 실제로 쓸 수 있는 문맥의 길이가 제한된다. 이 때문에 문 장치를 갖춘 LSTM과 GRU 구조가 나왔다.
 
-Perplexity is the standard evaluation metric for language models, quantifying how well the model predicts a test sequence.
+## 혼란도: 평가 지표
 
-### Definition
+혼란도는 언어 모형의 표준 평가 지표로, 모델이 시험 순차열을 얼마나 잘 예측하는지를 수로 나타낸다.
 
-For a test sequence $x_1, \ldots, x_T$, perplexity is defined as:
+### 정의
+
+시험 순차열 $x_1, \ldots, x_T$에 대해 혼란도를 다음과 같이 정의한다.
 
 $$\text{PPL} = P(x_1, \ldots, x_T)^{-1/T} = \exp\left(-\frac{1}{T}\sum_{t=1}^T \log P(x_t | x_{<t})\right)$$
 
-### Interpretation
+### 해석
 
-- **Lower perplexity = better model** - the model assigns higher probability to the test sequence
-- **Baseline:** Uniform distribution over vocabulary of size $V$ has perplexity $V$
-- **Intuition:** Geometric mean of inverse probabilities; represents the average branching factor
+- **혼란도가 낮을수록 좋은 모델이다.** 모델이 시험 순차열에 더 높은 확률을 매긴다는 뜻이다
+- **기준선:** 크기가 $V$인 어휘에 대한 균등 분포의 혼란도는 $V$이다
+- **직관:** 확률의 역수의 기하 평균이며 평균적인 갈림의 수를 나타낸다
 
-**Example:**
-- Vocabulary size 10,000
-- Uniform model perplexity: 10,000
-- A model achieving perplexity of 50 is 200x better than uniform
-- Interpret as: the model is "as confused" as if choosing from 50 equally-likely alternatives
+**예:**
 
-### Relationship to Loss
+- 어휘 크기 10,000
+- 균등 모델의 혼란도: 10,000
+- 혼란도 50인 모델은 균등 모델보다 200배 낫다
+- 해석: 모델이 똑같이 그럴듯한 대안 50개 가운데 하나를 고르는 것만큼 "헷갈려" 한다
 
-During training, we minimize cross-entropy loss:
+### 손실과의 관계
+
+학습할 때는 교차 엔트로피 손실을 최소로 한다.
 
 $$\mathcal{L} = -\frac{1}{T}\sum_{t=1}^T \log P(x_t | x_{<t})$$
 
-The relationship is direct:
+관계는 곧바르다.
 
 $$\text{PPL} = e^{\mathcal{L}}$$
 
-A decrease in loss directly correlates with decrease in perplexity.
+손실이 줄면 혼란도도 그대로 줄어든다.
 
-## Teacher Forcing in Training
+## 학습에서의 교사 강요
 
-### The Concept
+### 개념
 
-During training, RNNs are exposed to **ground truth** previous elements. During inference, they receive **model predictions** from previous steps.
+학습 중에 RNN은 앞선 원소의 **정답**을 본다. 추론 중에는 앞 걸음에서 나온 **모델의 예측**을 받는다.
 
-**Teacher forcing:** At training time, feed the true previous element $x_t$ regardless of what the model predicted:
+**교사 강요:** 학습할 때 모델이 무엇을 예측했든 참된 이전 원소 $x_t$을 넣는 것이다.
 
 $$P(x_{t+1} | x_1, \ldots, x_t) \text{ conditioned on true } x_t$$
 
-versus inference where you condition on $\hat{x}_t$ (model's best guess).
+추론에서는 (모델이 가장 그럴듯하다고 본) $\hat{x}_t$에 조건을 두는 것과 대비된다.
 
-### Benefits and Tradeoffs
+### 이점과 맞바꿈
 
-**Benefits:**
-- Speeds up training convergence
-- Provides clean gradient signal at each step
-- Decouples error propagation across timesteps
+**이점:**
 
-**Drawbacks:**
-- **Distribution mismatch:** During inference, the model encounters different distributions (its own errors) than seen during training
-- **Exposure bias:** Model relies on teacher-provided context, potentially failing when it must condition on its own predictions
-- Can lead to brittle models that struggle with long-horizon generation
+- 학습이 빨리 수렴한다
+- 걸음마다 깨끗한 기울기 신호를 준다
+- 시각에 걸친 오류 전파를 끊어 준다
 
-### Scheduled Sampling
+**단점:**
 
-A middle ground: gradually transition from teacher forcing to model predictions during training:
+- **분포의 어긋남:** 추론 중에 모델이 학습 때 본 것과 다른 분포(제 오류)를 만난다
+- **노출 편향:** 모델이 교사가 준 문맥에 기대므로 제 예측에 조건을 걸어야 할 때 무너질 수 있다
+- 먼 지평까지 생성하는 데 약한 무른 모델이 될 수 있다
+
+### 예정된 표본 추출
+
+절충안은 학습 도중 교사 강요에서 모델의 예측으로 차츰 옮겨 가는 것이다.
 
 $$x_t^{\text{input}} = \begin{cases} x_t & \text{with probability } 1 - \epsilon(k) \\ \hat{x}_t & \text{with probability } \epsilon(k) \end{cases}$$
 
-where $\epsilon(k)$ increases over epochs $k$, starting near 0.
+여기서 $\epsilon(k)$은 0 가까이에서 시작하여 세대 $k$에 따라 커진다.
 
-This reduces exposure bias while maintaining training efficiency.
+이렇게 하면 학습의 효율을 지키면서 노출 편향을 줄인다.
 
-## Connection to Financial Time Series
+## 금융 시계열과의 이음새
 
-Language modeling directly applies to financial sequences with minimal conceptual changes:
+언어 모형은 개념을 거의 바꾸지 않고도 금융 순차열에 그대로 쓸 수 있다.
 
-### Modeling Return Sequences
+### 수익률 순차열 모형화
 
-Instead of tokens, model log-returns $r_t = \log(P_t / P_{t-1})$:
+토큰 대신 로그 수익률 $r_t = \log(P_t / P_{t-1})$을 다룬다.
 
 $$P(r_t | r_{t-1}, r_{t-2}, \ldots) = \mathcal{N}(\mu_t, \sigma_t^2)$$
 
-where $\mu_t$ and $\sigma_t^2$ are outputs from an RNN predicting mean and variance (volatility) given history.
+여기서 $\mu_t$과 $\sigma_t^2$은 이력이 주어졌을 때 평균과 분산(변동성)을 예측하는 RNN의 출력이다.
 
-**Applications:**
-- Next-step return forecasting
-- Volatility prediction
-- Conditional probability distributions for risk management
+**응용:**
 
-### Order Flow and Microstructure
+- 다음 시점의 수익률 예측
+- 변동성 예측
+- 위험 관리를 위한 조건부 확률 분포
 
-Model sequences of trades and order events:
-- Bid-ask spreads evolution
-- Trade size sequences
-- Direction of price movement conditioned on order flow history
+### 주문 흐름과 미시 구조
 
-RNN language models capture temporal dependencies in market microstructure.
+체결과 주문 사건의 순차열을 다룬다.
 
-### Multivariate Sequences
+- 매수·매도 호가 차이의 변화
+- 체결 수량의 순차열
+- 주문 흐름의 이력에 조건을 둔 가격 움직임의 방향
 
-Extend to multiple assets with:
+RNN 언어 모형은 시장 미시 구조의 시간적 의존을 붙잡는다.
+
+### 다변량 순차열
+
+다음과 같이 여러 자산으로 넓힌다.
 
 $$P(x_t^{(1)}, x_t^{(2)}, \ldots, x_t^{(n)} | \text{history})$$
 
-where superscripts index different assets. An RNN maintains a latent state capturing cross-asset dependencies and correlations.
+위 첨자가 서로 다른 자산을 가리킨다. RNN은 자산 사이의 의존과 상관을 담은 잠재 상태를 지닌다.
 
-!!! info "Financial Sequence Modeling Benefits"
-    - Captures market regimes and momentum effects
-    - Models time-varying correlation structures
-    - Enables scenario generation and stress testing
-    - Supports adaptive trading strategies
-    - Provides probabilistic forecasts with uncertainty quantification
+!!! info "금융 순차열 모형의 이점"
 
-## Bridge to Transformers (Chapter 8)
+    - 시장의 국면과 모멘텀 효과를 붙잡는다
+    - 시간에 따라 달라지는 상관 구조를 다룬다
+    - 시나리오 생성과 스트레스 시험을 가능하게 한다
+    - 적응하는 매매 전략을 뒷받침한다
+    - 불확실성을 수로 나타낸 확률적 예측을 준다
 
-RNN language models have fundamental limitations despite their success:
+## 트랜스포머로 가는 다리 (8장)
 
-1. **Sequential computation:** Must process element-by-element; cannot parallelize efficiently
-2. **Vanishing gradients:** Long-term dependencies difficult despite LSTMs/GRUs
-3. **Hidden state bottleneck:** All information compressed into fixed-size vector $h_t$
+RNN 언어 모형은 성공을 거두었지만 근본적인 한계가 있다.
 
-**Transformers** (next chapter) address these limitations through:
+1. **순차적인 계산:** 원소를 하나씩 처리해야 하므로 효율적으로 병렬 처리할 수 없다
+2. **기울기 소실:** LSTM과 GRU가 있어도 장기 의존은 어렵다
+3. **숨은 상태의 병목:** 모든 정보를 크기가 고정된 벡터 $h_t$에 눌러 담는다
 
-- **Self-attention mechanism:** Direct, learnable connections between any pair of positions
-- **Parallelizable architecture:** Process all positions simultaneously
-- **Scalability:** More effective use of model capacity for longer sequences
-- **Transfer learning:** Pre-trained models transferable to diverse downstream tasks
+(다음 장의) **트랜스포머**는 다음으로 이 한계를 다룬다.
 
-The language modeling objective remains the same - predict $P(x_t | x_{<t})$ - but the architecture fundamentally changes how context is processed and integrated.
+- **자기 어텐션 장치:** 어떤 두 자리 사이에도 곧바르고 학습 가능한 연결을 준다
+- **병렬 처리가 되는 구조:** 모든 자리를 한꺼번에 처리한다
+- **규모 확장성:** 긴 순차열에서 모델의 용량을 더 효과적으로 쓴다
+- **전이 학습:** 사전 학습 모델을 여러 뒤따르는 과제로 옮길 수 있다
 
-Modern language models based on Transformers (BERT, GPT, etc.) have achieved remarkable performance across natural language and, increasingly, financial sequence tasks, building on the language modeling foundations established by RNNs.
+언어 모형의 목표는 $P(x_t | x_{<t})$을 예측하는 것으로 그대로이지만, 구조가 문맥을 처리하고 아우르는 방식을 근본적으로 바꾼다.
 
-## Summary
+트랜스포머에 바탕을 둔 요즘 언어 모형(BERT, GPT 따위)은 RNN이 세운 언어 모형의 바탕 위에서 자연어와, 점차 금융 순차열 과제에서도 놀라운 성능을 거두었다.
 
-Language models learn probability distributions over sequences via the chain rule decomposition. Classical n-gram approaches are limited by context and data sparsity. RNN language models learn distributed representations maintaining flexible, learned context, enabling better long-range dependency modeling. Evaluation via perplexity provides a principled metric for model comparison. Teacher forcing enables efficient training but introduces exposure bias. In finance, language modeling principles apply directly to return sequences, order flows, and multivariate market data, enabling forecasting, risk quantification, and scenario generation.
+## 요약
+
+언어 모형은 연쇄 법칙 분해로 순차열에 대한 확률 분포를 배운다. 고전적인 n-그램 방법은 문맥과 데이터의 성김에 발목이 잡힌다. RNN 언어 모형은 분산 표현을 배워 유연하고 학습된 문맥을 지니므로 먼 거리 의존을 더 잘 다룬다. 혼란도로 평가하면 모델을 견주는 원칙 있는 지표를 얻는다. 교사 강요는 학습을 효율적으로 만들지만 노출 편향을 들여온다. 금융에서는 언어 모형의 원리를 수익률 순차열과 주문 흐름, 다변량 시장 데이터에 그대로 적용하여 예측과 위험 계량, 시나리오 생성을 할 수 있다.
+
+## 연습문제
+
+**연습문제 1.**
+언어 모형을 수학적으로 정의하고 RNN이 그것을 어떻게 구현하는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    언어 모형은 $P(w_1, w_2, \ldots, w_T) = \prod_{t=1}^T P(w_t | w_1, \ldots, w_{t-1})$을 추정한다. RNN은 이력을 $h_t$에 눌러 담고 $P(w_{t+1}|h_t) = \text{softmax}(W_o h_t)$을 예측한다. 숨은 상태가 문맥의 충분 통계량 노릇을 한다.
+
+---
+
+**연습문제 2.**
+언어 모형의 평가 지표로서 혼란도를 설명하라.
+
+??? success "연습문제 2 풀이"
+    혼란도는 $\exp(-\frac{1}{T}\sum_t \log P(w_t|w_{<t}))$이다. 모델이 시험 데이터에 얼마나 '놀라는지'를 잰다. 낮을수록 좋다. 혼란도가 $k$이면 모델이 걸음마다 $k$개의 선택지 가운데 고르게 하나를 고르는 것만큼 헷갈려 한다는 뜻이다. 완벽한 모델의 혼란도는 1이다.
+
+---
+
+**연습문제 3.**
+먼 거리 의존을 붙잡는 능력 면에서 RNN, LSTM, 트랜스포머 언어 모형을 견주어라.
+
+??? success "연습문제 3 풀이"
+    기본 RNN은 (기울기 소실 때문에) 토큰 10~20개쯤을 붙잡는다. LSTM은 (문이 돕지만 기억은 여전히 유한하여) 토큰 100~200개쯤을 붙잡는다. 트랜스포머는 (어텐션이 곧바르고 순차적인 병목이 없어) 문맥 창 전체를 붙잡는다. 그래서 요즘 언어 모형을 트랜스포머가 주름잡는다.
+
+---
+
+**연습문제 4.**
+글자 단위의 간단한 RNN 언어 모형을 PyTorch로 구현하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    class CharRNN(nn.Module):
+        def __init__(self, vocab_size, hidden_size):
+            super().__init__()
+            self.embed = nn.Embedding(vocab_size, hidden_size)
+            self.rnn = nn.LSTM(hidden_size, hidden_size, batch_first=True)
+            self.fc = nn.Linear(hidden_size, vocab_size)
+        def forward(self, x, h=None):
+            x = self.embed(x)
+            out, h = self.rnn(x, h)
+            return self.fc(out), h
+    ```

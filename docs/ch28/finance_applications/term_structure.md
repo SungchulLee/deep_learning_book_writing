@@ -1,24 +1,19 @@
-# Term Structure Dynamics
+# 기간 얼개 움직임
+## 개요
 
+신경 상미분 방정식은 수익률 곡선의 움직임을 이어진 때의 과정으로 나타내어 시장 자료에서 이자율 기간 얼개의 바뀜을 배울 수 있다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 이어진 움직임으로서의 기간 얼개
 
-## Overview
-
-Neural ODEs can model yield curve dynamics as continuous-time processes, learning the evolution of interest rate term structures from market data.
-
-## Term Structure as Continuous Dynamics
-
-The yield curve $y(\tau, t)$ (yield as a function of maturity $\tau$ at time $t$) evolves according to:
+수익률 곡선 $y(\tau, t)$(때 $t$에 만기 $\tau$의 함수로서의 수익률)은 다음에 따라 바뀐다:
 
 $$\frac{\partial y}{\partial t} = f_\theta(y(\cdot, t), t)$$
 
-This is an infinite-dimensional ODE, discretized by representing the yield curve at a finite set of maturities.
+이는 차원이 끝없는 상미분 방정식이며 수익률 곡선을 유한한 만기 모임에서 나타내어 띄엄띄엄하게 만든다.
 
-## Latent Factor Approach
+## 숨은 요인 방식
 
-Encode the yield curve into a low-dimensional latent state:
+수익률 곡선을 차원 낮은 숨은 상태로 적는다:
 
 $$z(t) = \text{Encoder}(y(\tau_1, t), \ldots, y(\tau_M, t))$$
 
@@ -26,28 +21,60 @@ $$\frac{dz}{dt} = f_\theta(z(t), t)$$
 
 $$\hat{y}(\tau, t) = \text{Decoder}(z(t), \tau)$$
 
-The latent space typically has 3–5 dimensions, corresponding to level, slope, and curvature factors (analogous to Nelson-Siegel).
+숨은 공간은 보통 차원이 3~5이며 이는 수준, 기울기, 굽음 요인에 해당한다(넬슨-시겔과 비슷하다).
 
-## Advantages Over Classical Models
+## 고전 모델보다 나은 점
 
-| Classical Model | Neural ODE Advantage |
+| 고전 모델 | 신경 상미분 방정식의 이점 |
 |----------------|---------------------|
-| Nelson-Siegel | No fixed functional form |
-| Vasicek/CIR | Non-linear dynamics, multi-factor |
-| HJM | Learned drift restriction (no-arbitrage learned from data) |
-| Affine models | No restrictive affine assumption |
+| 넬슨-시겔 | 붙박인 함수 꼴이 없다 |
+| 바시체크와 CIR | 비선형 움직임, 여러 요인 |
+| HJM | 배운 떠돎 제약(차익 없음을 자료에서 배운다) |
+| 아핀 모델 | 빡빡한 아핀 가정이 없다 |
 
-## Training
+## 학습
 
-Train on historical yield curve snapshots:
+지난 수익률 곡선 스냅숏으로 익힌다:
 
 $$\mathcal{L} = \sum_{t} \sum_{\tau} (y(\tau, t) - \hat{y}(\tau, t))^2$$
 
-The ODE is integrated between observation times, handling irregular spacing naturally.
+상미분 방정식을 관측 때 사이에서 적분하여 고르지 않은 간격을 자연스럽게 다룬다.
 
-## Applications
+## 응용
 
-- **Yield curve forecasting**: predict future term structure shapes
-- **Scenario generation**: sample yield curve paths for risk management
-- **Bond pricing**: price bonds and interest rate derivatives from the learned dynamics
-- **Monetary policy analysis**: model the yield curve response to policy changes
+- **수익률 곡선 내다보기**: 앞으로의 기간 얼개 모양을 헤아린다
+- **시나리오 만들기**: 위험 다스리기를 위해 수익률 곡선 길을 뽑는다
+- **채권 값 매기기**: 배운 움직임으로 채권과 이자율 파생 상품의 값을 매긴다
+- **통화 정책 살피기**: 정책 바뀜에 대한 수익률 곡선의 대꾸를 나타낸다
+
+## 연습문제
+
+**연습문제 1.**
+넬슨-시겔 기간 얼개 모델을 신경 상미분 방정식으로 적고 그 매개변수를 수준, 기울기, 굽음 요인으로 옮겨라.
+
+??? success "연습문제 1 풀이"
+    넬슨-시겔의 선도 이자율은 $f(t) = \beta_0 + \beta_1 e^{-t/\tau} + \beta_2 (t/\tau)e^{-t/\tau}$이다. 신경 상미분 방정식으로는 수준, 기울기, 굽음에 대해 상태 $z(t) = [y(t), s(t), c(t)]^T$을 뜻매김한다. 움직임 $dz/dt = f_\theta(z, t)$이 지수 사그라짐 얼개를 넓힌다. 만기 $\tau$의 수익률은 $Y(\tau) = \frac{1}{\tau}\int_0^\tau f(t)\,dt$이며 상미분 방정식을 적분해 셈한다. 신경망은 매개변수 꼴을 넘어선 비선형 요인 움직임을 담는다. $\square$
+
+---
+
+**연습문제 2.**
+히스-재로-모턴 틀 아래에서 신경 상미분 방정식 기간 얼개 모델의 차익 없음 떠돎 제약을 이끌어 내라.
+
+??? success "연습문제 2 풀이"
+    HJM 아래에서 선도 이자율의 떠돎은 $\alpha(t, T) = \sigma(t, T)\int_t^T \sigma(t, s)\,ds$을 만족해야 한다. 떠돎 $\mu_\theta$과 퍼짐 $\sigma_\theta$을 가진 신경 상미분 방정식에서는 $\mu_\theta(f, t, T) = \sigma_\theta(f, t, T)\int_t^T \sigma_\theta(f, t, s)\,ds$이라는 제약이 된다. 지키는 방법: $\sigma_\theta$만 매개변수로 두고 제약에서 $\mu_\theta$을 셈하거나, 손실에 벌점 항을 더한다. $\square$
+
+---
+
+**연습문제 3.**
+이자율 움직임의 국면 바뀜을 담는 데에서 신경 상미분 방정식, 바시체크, CIR 기간 얼개 모델을 견주어라.
+
+??? success "연습문제 3 풀이"
+    바시체크($dr = \kappa(\theta - r)dt + \sigma dW$)와 CIR($\sigma\sqrt{r}$ 퍼짐)은 매개변수가 붙박여 있다. 신경 상미분 방정식은 떠돎과 퍼짐을 신경망 $f_\theta(r, t)$과 $g_\theta(r, t)$으로 바꾸어 때에 따라 달라지는 평균 되돌림과 상태에 매인 변동성을 배운다. 국면 바뀜에서는 신경망이 드러난 갈아 듦 없이 여러 국면을 은근히 나타내지만, 지나치게 맞는 것을 막으려면 자료와 규칙 세우기가 더 필요하다. $\square$
+
+---
+
+**연습문제 4.**
+신경 상미분 방정식 기간 얼개 모델에서 이자율을 양수로 지키는 법을 적고 방식마다의 맞바꿈을 따져라.
+
+??? success "연습문제 4 풀이"
+    세 가지 방식: (1) $\log r(t)$을 나타내어 $r = \exp(z)$이 늘 양수가 되게 한다. (2) 소프트플러스 내놓기 $r = \log(1 + \exp(z))$을 쓴다. (3) 담 벌점 $\lambda\max(-r, 0)^2$을 더한다. (1)은 CIR의 로그 정규 얼개를 따르며 양수임을 굳게 지키지만 움직임을 풀이하기 어렵게 한다. (2)는 미분할 수 있고 양수에서 거의 선형이다. (3)은 가장 부드럽지만 잠깐 음의 이자율을 허락할 수 있다. $\square$

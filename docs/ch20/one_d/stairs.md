@@ -1,60 +1,60 @@
-# Climbing Stairs
+# 계단 오르기
 
-The climbing stairs problem is one of the most natural introductions to one-dimensional dynamic programming.  Given a staircase of $n$ steps where you can climb 1 or 2 steps at a time, the task is to count the number of distinct ways to reach the top.  The problem has a direct Fibonacci-like recurrence, making it an ideal bridge between the Fibonacci sequence and more complex DP formulations.
+계단 오르기 문제는 1차원 동적 짜기로 들어가는 가장 자연스러운 길 가운데 하나이다. 계단 $n$개를 한 번에 1칸이나 2칸씩 오를 수 있을 때 꼭대기에 이르는 서로 다른 길의 수를 세는 것이 일이다. 피보나치와 꼭 닮은 되돌이 관계식을 지녀 피보나치 차례와 더 복잡한 동적 짜기 꼴을 잇는 다리가 된다.
 
-## Problem Statement
+## 문제 서술
 
-You are climbing a staircase with $n$ steps.  At each step, you can climb either 1 step or 2 steps.  How many distinct ways can you reach the top?
+계단 $n$개를 오른다. 한 번에 1칸이나 2칸을 오를 수 있다. 꼭대기에 이르는 서로 다른 길은 몇 가지인가?
 
-For example, with $n = 3$ steps, there are 3 ways: $(1,1,1)$, $(1,2)$, and $(2,1)$.
+예컨대 $n = 3$이면 $(1,1,1)$, $(1,2)$, $(2,1)$의 세 가지가 있다.
 
-## Recurrence Derivation
+## 되돌이 관계식 이끌어 내기
 
-Let $dp[i]$ denote the number of distinct ways to reach step $i$.  To arrive at step $i$, you must have come from either step $i-1$ (taking 1 step) or step $i-2$ (taking 2 steps).  Since these two cases are mutually exclusive, the total count is their sum:
+$dp[i]$을 계단 $i$에 이르는 서로 다른 길의 수라 하자. 계단 $i$에 오려면 계단 $i-1$에서(1칸을 올라) 왔거나 계단 $i-2$에서(2칸을 올라) 왔어야 한다. 이 둘은 서로 겹치지 않으므로 전체 수는 둘의 합이다:
 
 $$
 dp[i] = dp[i-1] + dp[i-2] \quad \text{for } i \ge 2
 $$
 
-The base cases capture the starting conditions:
+바탕 경우가 시작 조건을 담는다:
 
 $$
 dp[0] = 1, \quad dp[1] = 1
 $$
 
-Here $dp[0] = 1$ represents the single way to stay at the ground level (doing nothing), and $dp[1] = 1$ represents the single way to reach step 1 (one step of size 1).
+여기서 $dp[0] = 1$은 바닥에 그대로 있는(아무것도 하지 않는) 한 가지 길을, $dp[1] = 1$은 계단 1에 이르는 한 가지 길(1칸 오르기)을 뜻한다.
 
-This recurrence is identical to the Fibonacci sequence shifted by one index: $dp[n] = F(n+1)$.
+이 되돌이 관계식은 번호를 하나 민 피보나치 차례와 똑같다. 곧 $dp[n] = F(n+1)$이다.
 
-## Naive Recursion
+## 막무가내 되돌이
 
 ```python
 """
-Climbing stairs: count distinct ways to climb n steps,
-taking 1 or 2 steps at a time.
+계단 오르기: 한 번에 1칸이나 2칸씩 올라
+계단 n개를 오르는 서로 다른 길을 센다.
 """
 
 
 # ===================================================================
-# Approach 1: Naive recursion
+# 방식 1: 막무가내 되돌이
 # ===================================================================
 def climb_recursive(n: int) -> int:
-    """Count ways to climb n stairs. Time: O(2^n), Space: O(n)."""
+    """계단 n개를 오르는 길을 센다. 시간: O(2^n), 공간: O(n)."""
     if n <= 1:
         return 1
     return climb_recursive(n - 1) + climb_recursive(n - 2)
 ```
 
-This has the same exponential $O(2^n)$ time complexity as naive Fibonacci due to the overlapping subproblem structure.
+겹치는 아래 문제 짜임 탓에 막무가내 피보나치와 같은 지수 시간 복잡도 $O(2^n)$이 든다.
 
-## Memoization (Top-Down)
+## 적어 두기(위에서 아래로)
 
 ```python
 # ===================================================================
-# Approach 2: Memoization (top-down)
+# 방식 2: 적어 두기(위에서 아래로)
 # ===================================================================
 def climb_memo(n: int, memo: dict[int, int] | None = None) -> int:
-    """Count ways with memoization. Time: O(n), Space: O(n)."""
+    """적어 두기로 길을 센다. 시간: O(n), 공간: O(n)."""
     if memo is None:
         memo = {}
     if n in memo:
@@ -65,16 +65,16 @@ def climb_memo(n: int, memo: dict[int, int] | None = None) -> int:
     return memo[n]
 ```
 
-Each of the $n + 1$ subproblems is solved exactly once, reducing the time to $O(n)$.
+아래 문제 $n + 1$개를 저마다 꼭 한 번 풀어 시간이 $O(n)$으로 준다.
 
-## Tabulation (Bottom-Up)
+## 표 채우기(아래에서 위로)
 
 ```python
 # ===================================================================
-# Approach 3: Tabulation (bottom-up)
+# 방식 3: 표 채우기(아래에서 위로)
 # ===================================================================
 def climb_tabulation(n: int) -> int:
-    """Count ways with tabulation. Time: O(n), Space: O(n)."""
+    """표 채우기로 길을 센다. 시간: O(n), 공간: O(n)."""
     if n <= 1:
         return 1
     dp = [0] * (n + 1)
@@ -85,16 +85,16 @@ def climb_tabulation(n: int) -> int:
     return dp[n]
 ```
 
-## Space Optimization
+## 공간 줄이기
 
-Since each state depends only on the two preceding states, space reduces to $O(1)$:
+상태마다 앞선 두 상태에만 기대므로 공간이 $O(1)$으로 준다:
 
 ```python
 # ===================================================================
-# Approach 4: Space-optimized
+# 방식 4: 공간 줄임
 # ===================================================================
 def climb_optimized(n: int) -> int:
-    """Count ways with O(1) space. Time: O(n), Space: O(1)."""
+    """O(1) 공간으로 길을 센다. 시간: O(n), 공간: O(1)."""
     if n <= 1:
         return 1
     prev2, prev1 = 1, 1
@@ -103,28 +103,28 @@ def climb_optimized(n: int) -> int:
     return prev1
 ```
 
-## Generalization: k Steps at a Time
+## 넓히기: 한 번에 k칸
 
-A natural extension allows taking 1 through $k$ steps at a time.  The recurrence becomes
+한 번에 1칸부터 $k$칸까지 오를 수 있게 넓히는 것이 자연스럽다. 되돌이 관계식은 다음이 된다
 
 $$
 dp[i] = \sum_{j=1}^{\min(i, k)} dp[i - j]
 $$
 
-with $dp[0] = 1$.  The tabulation approach extends naturally, with each cell summing the previous $k$ entries.
+$dp[0] = 1$이다. 표 채우기 방식도 자연스레 넓어지며 칸마다 앞선 $k$개 칸을 더한다.
 
-## Complexity Summary
+## 복잡도 요약
 
-| Approach | Time | Space |
+| 방법 | 시간 | 공간 |
 |----------|------|-------|
-| Naive recursion | $O(2^n)$ | $O(n)$ |
-| Memoization | $O(n)$ | $O(n)$ |
-| Tabulation | $O(n)$ | $O(n)$ |
-| Space-optimized | $O(n)$ | $O(1)$ |
+| 막무가내 되돌이 | $O(2^n)$ | $O(n)$ |
+| 적어 두기 | $O(n)$ | $O(n)$ |
+| 표 채우기 | $O(n)$ | $O(n)$ |
+| 공간 줄임 | $O(n)$ | $O(1)$ |
 
 ```python
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 if __name__ == "__main__":
     for n in range(1, 8):
@@ -132,7 +132,7 @@ if __name__ == "__main__":
         print(f"climb({n}) = {result}")
 ```
 
-**Output:**
+**출력:**
 ```
 climb(1) = 1
 climb(2) = 2
@@ -143,6 +143,38 @@ climb(6) = 13
 climb(7) = 21
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 14. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+계단 오르기의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+계단 오르기의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+계단 오르기의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+계단 오르기의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

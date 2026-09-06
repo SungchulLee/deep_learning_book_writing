@@ -1,32 +1,32 @@
-# Morris Traversal
+# 모리스 순회
 
-Both recursive and [iterative](iterative.md) tree traversals use $O(h)$ auxiliary space, either via the call stack or an explicit stack.  **Morris traversal** (Morris, 1979) eliminates this space overhead entirely.  It achieves inorder traversal in $O(1)$ auxiliary space by temporarily modifying the tree structure itself, creating **threaded links** from the rightmost node of each left subtree back to its inorder successor.  These threads let the traversal return to ancestor nodes without a stack.  After the traversal completes, all modifications are undone, leaving the tree in its original state.
+재귀 순회든 [반복 순회](iterative.md)든 호출 스택이나 명시적인 스택으로 $O(h)$의 보조 공간을 쓴다. **모리스 순회**(Morris, 1979)는 이 공간 부담을 아예 없앤다. 트리의 구조를 잠시 고쳐 왼쪽 부분 트리마다 가장 오른쪽 노드에서 그 중위 후속자로 가는 **실 연결**을 만들어 $O(1)$의 보조 공간으로 중위 순회를 해낸다. 이 실 덕분에 스택 없이도 조상 노드로 돌아갈 수 있다. 순회가 끝나면 고친 것을 모두 되돌려 트리가 원래 모습으로 남는다.
 
-## Core Idea: Threaded Binary Trees
+## 핵심 착상: 실 달린 이진 트리
 
-In a standard binary tree, many right-child pointers are `nil`.  Morris traversal exploits these null pointers by temporarily pointing them to the inorder successor.  Specifically, for a node $x$ with a left subtree, the traversal sets:
+보통의 이진 트리에는 `nil`인 오른쪽 자식 포인터가 많다. 모리스 순회는 이 널 포인터를 잠시 중위 후속자를 가리키게 하여 활용한다. 구체적으로, 왼쪽 부분 트리가 있는 노드 $x$에 대해 다음과 같이 둔다.
 
 $$
 \text{rightmost node of } x.\text{left} \;\rightarrow\; x
 $$
 
-This thread allows the traversal to return to $x$ after finishing $x$'s left subtree, without using a stack.
+이 실 덕분에 $x$의 왼쪽 부분 트리를 끝낸 뒤 스택 없이 $x$으로 돌아올 수 있다.
 
-## Algorithm
+## 알고리즘
 
-The algorithm maintains a single pointer `current`, starting at the root.  At each step:
+알고리즘은 뿌리에서 시작하는 포인터 `current` 하나만 둔다. 단계마다 다음을 한다.
 
-**Case 1: `current.left` is `nil`.**  Visit `current` and move to `current.right`.
+**경우 1: `current.left`이 `nil`이다.** `current`을 들르고 `current.right`으로 옮긴다.
 
-**Case 2: `current.left` is not `nil`.**  Find the inorder predecessor of `current` — the rightmost node in `current`'s left subtree.
+**경우 2: `current.left`이 `nil`이 아니다.** `current`의 중위 선행자, 곧 `current`의 왼쪽 부분 트리에서 가장 오른쪽 노드를 찾는다.
 
-- **Sub-case 2a:** The predecessor's right child is `nil`.  This means the left subtree has not been traversed yet.  Create a thread: set `predecessor.right = current`.  Move to `current.left`.
-- **Sub-case 2b:** The predecessor's right child is `current`.  This means the left subtree has been fully traversed and we have returned via the thread.  Remove the thread: set `predecessor.right = nil`.  Visit `current` and move to `current.right`.
+- **작은 경우 2a:** 선행자의 오른쪽 자식이 `nil`이다. 왼쪽 부분 트리를 아직 훑지 않았다는 뜻이다. 실을 만든다: `predecessor.right = current`으로 둔다. `current.left`으로 옮긴다.
+- **작은 경우 2b:** 선행자의 오른쪽 자식이 `current`이다. 왼쪽 부분 트리를 다 훑고 실을 타고 돌아왔다는 뜻이다. 실을 없앤다: `predecessor.right = nil`으로 둔다. `current`을 들르고 `current.right`으로 옮긴다.
 
-The traversal terminates when `current` becomes `nil`.
+`current`이 `nil`이 되면 순회가 끝난다.
 
-??? example "Step-by-step Morris traversal"
-    Consider the tree:
+??? example "모리스 순회 한 단계씩 따라가기"
+    다음 트리를 생각해 보자.
 
     ```
           4
@@ -36,30 +36,30 @@ The traversal terminates when `current` becomes `nil`.
       1   3
     ```
 
-    | Step | current | Action | Thread created/removed |
+    | 단계 | current | 하는 일 | 만든/없앤 실 |
     |------|---------|--------|------------------------|
-    | 1 | 4 | Left exists. Predecessor of 4 is 3. 3.right is nil | Create thread: 3 -> 4. Move to 2 |
-    | 2 | 2 | Left exists. Predecessor of 2 is 1. 1.right is nil | Create thread: 1 -> 2. Move to 1 |
-    | 3 | 1 | No left child | **Visit 1**. Move to 1.right = 2 (thread) |
-    | 4 | 2 | Left exists. Predecessor of 2 is 1. 1.right = 2 (thread found) | Remove thread. **Visit 2**. Move to 3 |
-    | 5 | 3 | No left child | **Visit 3**. Move to 3.right = 4 (thread) |
-    | 6 | 4 | Left exists. Predecessor of 4 is 3. 3.right = 4 (thread found) | Remove thread. **Visit 4**. Move to 5 |
-    | 7 | 5 | No left child | **Visit 5**. Move to nil |
+    | 1 | 4 | 왼쪽이 있다. 4의 선행자는 3. 3.right은 nil | 실 만들기: 3 -> 4. 2로 옮김 |
+    | 2 | 2 | 왼쪽이 있다. 2의 선행자는 1. 1.right은 nil | 실 만들기: 1 -> 2. 1로 옮김 |
+    | 3 | 1 | 왼쪽 자식 없음 | **1 들름**. 1.right = 2(실)로 옮김 |
+    | 4 | 2 | 왼쪽이 있다. 2의 선행자는 1. 1.right = 2 (실 발견) | 실 없앰. **2 들름**. 3으로 옮김 |
+    | 5 | 3 | 왼쪽 자식 없음 | **3 들름**. 3.right = 4(실)로 옮김 |
+    | 6 | 4 | 왼쪽이 있다. 4의 선행자는 3. 3.right = 4 (실 발견) | 실 없앰. **4 들름**. 5로 옮김 |
+    | 7 | 5 | 왼쪽 자식 없음 | **5 들름**. nil로 옮김 |
 
-    Inorder result: **1, 2, 3, 4, 5**
+    중위 순회 결과: **1, 2, 3, 4, 5**
 
-## Implementation
+## 구현
 
 ```python
-"""Morris traversal: O(1) space inorder traversal of a binary tree."""
+"""모리스 순회: 공간 O(1)로 하는 이진 트리의 중위 순회."""
 
 from __future__ import annotations
 
 
-# === Node Definition ===
+# === 노드 정의 ===
 
 class TreeNode:
-    """Binary tree node."""
+    """이진 트리 노드."""
 
     def __init__(self, val: int = 0, left: TreeNode | None = None,
                  right: TreeNode | None = None):
@@ -68,39 +68,39 @@ class TreeNode:
         self.right = right
 
 
-# === Morris Inorder Traversal ===
+# === 모리스 중위 순회 ===
 
 def morris_inorder(root: TreeNode | None) -> list[int]:
-    """Inorder traversal using O(1) auxiliary space."""
+    """보조 공간 O(1)로 하는 중위 순회."""
     result: list[int] = []
     current = root
     while current is not None:
         if current.left is None:
-            # Case 1: no left subtree — visit and move right
+            # 경우 1: 왼쪽 부분 트리 없음 — 들르고 오른쪽으로
             result.append(current.val)
             current = current.right
         else:
-            # Find the inorder predecessor
+            # 중위 선행자 찾기
             predecessor = current.left
             while predecessor.right is not None and predecessor.right is not current:
                 predecessor = predecessor.right
 
             if predecessor.right is None:
-                # Case 2a: create thread and move left
+                # 경우 2a: 실을 만들고 왼쪽으로
                 predecessor.right = current
                 current = current.left
             else:
-                # Case 2b: remove thread, visit, and move right
+                # 경우 2b: 실을 없애고 들른 뒤 오른쪽으로
                 predecessor.right = None
                 result.append(current.val)
                 current = current.right
     return result
 
 
-# === Morris Preorder Traversal ===
+# === 모리스 전위 순회 ===
 
 def morris_preorder(root: TreeNode | None) -> list[int]:
-    """Preorder traversal using O(1) auxiliary space."""
+    """보조 공간 O(1)로 하는 전위 순회."""
     result: list[int] = []
     current = root
     while current is not None:
@@ -113,7 +113,7 @@ def morris_preorder(root: TreeNode | None) -> list[int]:
                 predecessor = predecessor.right
 
             if predecessor.right is None:
-                # Visit current BEFORE moving left (preorder)
+                # 왼쪽으로 가기 전에 지금 노드를 들른다 (전위)
                 result.append(current.val)
                 predecessor.right = current
                 current = current.left
@@ -123,7 +123,7 @@ def morris_preorder(root: TreeNode | None) -> list[int]:
     return result
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     tree = TreeNode(4,
@@ -134,38 +134,71 @@ if __name__ == "__main__":
     print(f"Morris preorder: {morris_preorder(tree)}")  # [4, 2, 1, 3, 5]
 ```
 
-## Why the Total Work is O(n)
+## 전체 일의 양이 $O(n)$인 까닭
 
-Although the algorithm repeatedly searches for predecessors, an amortized argument shows the total work is linear.  Each node becomes the `current` pointer at most twice: once when the thread from its predecessor is created, and once when that thread is removed.  Nodes may also be touched during predecessor searches — but each such walk follows a chain of right-child pointers, and every edge in the tree is traversed at most twice across all predecessor searches combined (once to create a thread, once to detect and remove it).
+알고리즘이 선행자를 거듭 찾기는 하지만 분할 상환으로 따져 보면 전체 일의 양은 선형이다. 노드마다 `current`이 되는 것은 많아야 두 번, 곧 선행자에서 오는 실을 만들 때 한 번과 그 실을 없앨 때 한 번이다. 선행자를 찾는 동안에도 노드를 건드리지만, 그런 걸음은 오른쪽 자식 포인터의 사슬을 따라가고, 모든 선행자 찾기를 통틀어 트리의 변마다 많아야 두 번(실을 만들 때 한 번, 알아채고 없앨 때 한 번) 지난다.
 
-Since the tree has $n - 1$ edges, the aggregate cost of all predecessor searches is $O(n)$.
+트리의 변이 $n - 1$개이므로 모든 선행자 찾기의 총비용은 $O(n)$이다.
 
-## Complexity
+## 복잡도
 
-These observations yield the following complexity bounds:
+이로부터 다음과 같은 복잡도가 나온다.
 
-| Aspect | Complexity |
+| 항목 | 복잡도 |
 |---|---|
-| Time | $O(n)$ |
-| Auxiliary space | $O(1)$ |
+| 시간 | $O(n)$ |
+| 보조 공간 | $O(1)$ |
 
-The $O(1)$ space is the defining advantage of Morris traversal.  The price is temporary modification of the tree, which is fully restored before the traversal completes.
+$O(1)$의 공간이 모리스 순회의 결정적인 장점이다. 그 대가로 트리를 잠시 고치지만 순회가 끝나기 전에 온전히 되돌린다.
 
-!!! warning "Thread safety"
-    Morris traversal modifies the tree during execution.  It is not safe to run concurrently with other operations on the same tree.  If thread safety is required, use a stack-based iterative traversal instead.
+!!! warning "스레드 안전성"
+    모리스 순회는 실행 중에 트리를 고친다. 같은 트리에 대한 다른 연산과 동시에 돌리면 안전하지 않다. 스레드 안전성이 필요하면 스택을 쓰는 반복적 순회를 쓰라.
 
-## Morris Preorder vs Morris Inorder
+## 모리스 전위 순회와 모리스 중위 순회
 
-The only difference between Morris preorder and inorder is **when** the node is visited:
+모리스 전위 순회와 중위 순회의 유일한 차이는 노드를 **언제** 들르느냐이다.
 
-| Traversal | Visit timing |
+| 순회 | 들르는 시점 |
 |---|---|
-| Morris inorder | Visit when the thread is **removed** (Case 2b) |
-| Morris preorder | Visit when the thread is **created** (Case 2a) |
+| 모리스 중위 | 실을 **없앨** 때 들른다 (경우 2b) |
+| 모리스 전위 | 실을 **만들** 때 들른다 (경우 2a) |
 
-Morris postorder is more complex because postorder requires visiting children before parents, which conflicts with the natural threading direction.  The standard approach reverses the right spine of each left subtree during the thread-removal step; this technique is rarely needed in practice.
+모리스 후위 순회는 더 까다롭다. 후위 순회는 부모보다 자식을 먼저 들러야 하는데 이는 실이 놓이는 자연스러운 방향과 어긋난다. 표준적인 방법은 실을 없애는 단계에서 왼쪽 부분 트리마다 오른쪽 등뼈를 뒤집는 것인데, 실제로 이 기법이 필요한 일은 드물다.
 
-## Reference
+## 참고 문헌
 
 - Morris, J. H. (1979). Traversing binary trees simply and cheaply. *Information Processing Letters*, 9(5), 197–200.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 12. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+모리스 순회에 대해 트리의 높이 $h$으로 시간 복잡도를 밝혀라. $h = O(\log n)$이 되는 것은 언제인가?
+
+??? success "연습문제 1 풀이"
+    이 연산은 $O(h)$ 시간이 걸린다. 균형 잡힌 트리에서는 $h = O(\log n)$이다(무작위 삽입 순서에서는 기댓값이 $O(\log n)$이고, 균형 이진 탐색 트리 계열은 이를 보장한다). 한쪽으로 치우친 트리에서는 $h = O(n)$이다(정렬된 순서로 넣은 경우).
+
+---
+
+**연습문제 2.**
+열쇠 5, 3, 7, 1, 4, 6, 8을 차례로 넣어 만든 이진 탐색 트리에 모리스 순회을(를) 적용하라. 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    차례로 넣어 트리를 만든 뒤 이 쪽의 연산을 적용한다. 단계마다 트리의 모습을 보이고 들르거나 고친 노드를 표시한다.
+
+---
+
+**연습문제 3.**
+이진 탐색 트리의 높이를 $h$이라 할 때 모리스 순회이(가) $O(h)$ 시간에 끝남을 증명하라.
+
+??? success "연습문제 3 풀이"
+    이 연산은 뿌리에서 잎으로 가는 경로(또는 그 일부)를 따라가며 노드마다 $O(1)$의 일을 한다. 경로의 길이는 많아야 $h$이다. 따라서 모두 $O(h)$이다. $\square$
+
+---
+
+**연습문제 4.**
+이진 탐색 트리의 연산은 딥러닝에서 정렬된 데이터를 다루는 일(예를 들어 빔 탐색에서 상위 $k$개의 점수를 유지하는 일)과 어떤 관계가 있는가?
+
+??? success "연습문제 4 풀이"
+    빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.

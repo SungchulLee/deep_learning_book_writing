@@ -1,126 +1,121 @@
-# Chapter 18: Natural Language Processing
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-This chapter covers the core tasks and deep learning architectures in natural language processing, from language modeling and sequence labeling to text classification, information extraction, machine translation, question answering, and summarization. Each section presents the mathematical foundations, traces the evolution from classical to neural approaches, and provides practical implementations.
+# 18장: 자연어 다루기
+이 장은 자연어 다루기의 고갱이 일과 깊은 배움 얼개를 다룬다. 말 나타내기와 차례 이름표 붙이기에서 글 가르기, 앎 뽑기, 기계 옮김, 물음 답하기, 간추리기까지 살펴본다. 절마다 수학 바탕을 내놓고 고전에서 신경망으로 이어지는 흐름을 좇으며 실전에서 쓸 짜기를 준다.
 
 ---
 
-## Language Modeling
+## 말 나타내기
 
-Predicting word sequences from n-gram models to neural architectures and modern generation strategies.
+n-그램 모델에서 신경망 얼개와 요즘의 만들어 내기 전략까지, 낱말 차례를 어림하기.
 
-- Language Modeling Module -- Module overview covering statistical and neural language models
-- Quick Start Guide -- Installation and setup for language modeling examples
-- [N-gram Language Models](language_modeling/ngram.md) -- Unigram, bigram, trigram models with MLE and smoothing
-- [Neural Language Models](language_modeling/neural_lm.md) -- Feedforward, RNN, and LSTM language models in PyTorch
-- Tokenization -- BPE, WordPiece, and SentencePiece algorithms
-- Causal vs Masked Language Modeling -- Comparing autoregressive and masked pretraining objectives
-- Perplexity -- Standard intrinsic evaluation metric from information theory
-- [Sampling Strategies](language_modeling/sampling_strategies.md) -- Greedy, beam search, top-k, top-p, and temperature-based decoding
-- Controlled Generation -- Steering outputs via prompt engineering, constrained decoding, and RLHF
-
----
-
-## Sequence Labeling
-
-Token-level prediction tasks including named entity recognition, POS tagging, and chunking.
-
-- NER Module Overview -- Comprehensive introduction to NER from rule-based to transformer models
-- Quick Start Guide -- Installation and quick start for NER examples
-- [NER Fundamentals](sequence_labeling/ner_fundamentals.md) -- Definition, role in NLP pipelines, and sequence labeling formulation
-- [Entity Types and Taxonomies](sequence_labeling/entity_types.md) -- CoNLL, OntoNotes, and domain-specific entity type systems
-- [BIO Tagging Schemes](sequence_labeling/bio_tagging.md) -- IOB, IOB2, and BIOES tagging formats with conversion
-- POS Tagging -- Part-of-speech tagging with standard tag sets
-- Chunking -- Shallow parsing to identify noun, verb, and other phrase chunks
-- Feature Engineering -- Hand-crafted orthographic, lexical, and contextual features for NER
-- Rule-Based NER -- Pattern-based entity recognition using regular expressions
-- Dictionary and Gazetteer Methods -- Dictionary-based NER with fuzzy matching and gazetteer features
-- [Conditional Random Fields](sequence_labeling/crf.md) -- Linear-chain CRF derivation and PyTorch implementation
-- [BiLSTM for NER](sequence_labeling/bilstm_ner.md) -- Bidirectional LSTM with character embeddings for sequence labeling
-- BiLSTM-CRF -- End-to-end BiLSTM-CRF pipeline for sequence labeling
-- Transformer NER -- Fine-tuning BERT and RoBERTa for named entity recognition
-- BERT for Token Classification -- BERT fine-tuning with HuggingFace for NER
-- Subword Token Alignment -- Aligning subword tokens to word-level labels
-- NER Datasets -- Standard benchmarks including CoNLL-2003 and OntoNotes
-- [NER Evaluation Metrics](sequence_labeling/ner_evaluation.md) -- Entity-level evaluation with exact and partial match F1
-- Nested NER -- Handling overlapping and nested entity annotations
-- Cross-Lingual NER -- Transferring NER from high-resource to low-resource languages
-- Few-Shot NER -- Recognizing entities with minimal labeled examples
-- Domain Adaptation -- Bridging domain shift for NER across different text sources
+- 말 나타내기 단원 — 통계 말 모델과 신경 말 모델을 아우르는 단원 개요
+- 빠른 시작 길잡이 — 말 나타내기 보기를 위한 설치와 자리매김
+- [n-그램 말 모델](language_modeling/ngram.md) — 최대 가능도 어림과 부드럽게 하기를 쓴 유니그램, 바이그램, 트라이그램 모델
+- [신경 말 모델](language_modeling/neural_lm.md) — PyTorch로 짠 앞먹임, 되돌이 그물, LSTM 말 모델
+- 토막내기 — BPE, WordPiece, SentencePiece 알고리즘
+- 인과 말 나타내기와 가린 말 나타내기 — 자기되돌리기 목표와 가리기 목표 견주기
+- 헷갈림도 — 앎 이론에서 온 표준 내재 값매김 잣대
+- [표집 전략](language_modeling/sampling_strategies.md) — 욕심쟁이, 빔 찾기, top-k, top-p, 온도 바탕 풀기
+- 다스린 만들어 내기 — 시킴말 다듬기, 제약을 둔 풀기, 사람 되먹임 북돋움 배움으로 내놓음 이끌기
 
 ---
 
-## Text Classification
+## 차례 이름표 붙이기
 
-Document-level classification from bag-of-words baselines to transformer fine-tuning.
+이름 있는 것 알아보기, 품사 붙이기, 덩이 짓기를 비롯한 토막 수준의 어림 일.
 
-- Text Classification Fundamentals -- Task definition, pipeline, and probabilistic formulation
-- Bag-of-Words and TF-IDF -- Count-based document representations for classification
-- CNN for Text -- TextCNN with 1D convolutions over word embeddings
-- RNN for Text -- LSTM/RNN classifiers with sequential processing
-- Transformer Classification -- BERT fine-tuning with CLS token for text classification
-- Sentiment Analysis -- Binary, fine-grained, and aspect-level sentiment tasks
-- Hierarchical Classification -- Taxonomy-based classification with parent-child consistency
-- Multi-Label Classification -- Predicting multiple categories per document with BCE loss
-
----
-
-## Information Extraction
-
-Extracting structured knowledge from unstructured text through relations, events, and knowledge graphs.
-
-- [IE Overview](information_extraction/ie_overview.md) -- The information extraction pipeline and financial applications
-- Relation Extraction -- Pipeline and joint approaches to extracting entity relations
-- [Event Extraction](information_extraction/event_extraction.md) -- Trigger detection and argument extraction from text
-- [Coreference Resolution](information_extraction/coreference.md) -- Mention detection and antecedent linking for document-level IE
-- [Open Information Extraction](information_extraction/open_ie.md) -- Schema-free triple extraction for exploratory text mining
-- Knowledge Graph Construction -- End-to-end KG pipeline with entity linking and embeddings
-
----
-
-## Machine Translation
-
-Translating between languages from statistical methods to neural and transformer-based approaches.
-
-- MT Overview -- Evolution from rule-based to neural machine translation
-- Statistical MT -- Noisy channel model, IBM alignment, and phrase-based translation
-- Neural MT -- Encoder-decoder architecture and the information bottleneck
-- Attention in MT -- Additive, multiplicative, and dot-product attention for translation
-- [Transformer MT](machine_translation/transformer_mt.md) -- Multi-head self-attention replacing RNN-based translation
-- Subword Segmentation -- BPE and SentencePiece for open vocabulary translation
-- Multilingual MT -- Single-model many-to-many and zero-shot translation
-- Low-Resource MT -- Data augmentation and transfer learning for low-resource languages
-- MT Evaluation -- BLEU score computation, neural metrics, and evaluation protocols
+- 이름 알아보기 단원 개요 — 규칙 바탕에서 변환기 모델까지 두루 살피는 들머리
+- 빠른 시작 길잡이 — 이름 알아보기 보기의 설치와 빠른 시작
+- [이름 알아보기의 근본](sequence_labeling/ner_fundamentals.md) — 정의, 자연어 물길에서의 몫, 차례 이름표 붙이기로 세우기
+- [것의 갈래와 갈래 체계](sequence_labeling/entity_types.md) — CoNLL, OntoNotes, 분야별 것 갈래 체계
+- [BIO 이름표 방식](sequence_labeling/bio_tagging.md) — IOB, IOB2, BIOES 이름표 꼴과 서로 바꾸기
+- 품사 붙이기 — 표준 이름표 모음을 쓴 품사 붙이기
+- 덩이 짓기 — 이름씨, 움직씨 등의 마디 덩이를 가려내는 얕은 뜯어 읽기
+- 특징 빚기 — 이름 알아보기를 위해 손수 만든 철자, 낱말, 맥락 특징
+- 규칙 바탕 이름 알아보기 — 정규식을 쓴 무늬 바탕 것 알아보기
+- 사전과 지명록 방법 — 어림 짝짓기와 지명록 특징을 쓴 사전 바탕 이름 알아보기
+- [조건부 무작위 마당](sequence_labeling/crf.md) — 선형 사슬 CRF 이끌어 내기와 PyTorch 짜기
+- [이름 알아보기를 위한 두 방향 LSTM](sequence_labeling/bilstm_ner.md) — 글자 묻힘을 곁들인 두 방향 LSTM으로 차례 이름표 붙이기
+- 두 방향 LSTM-CRF — 차례 이름표 붙이기를 위한 끝에서 끝까지 물길
+- 변환기 이름 알아보기 — 이름 알아보기를 위해 BERT와 RoBERTa를 곱게 다듬기
+- 토막 갈래 매기기를 위한 BERT — HuggingFace로 이름 알아보기에 BERT를 곱게 다듬기
+- 아래낱말 토막 맞추기 — 아래낱말 토막을 낱말 수준 이름표에 맞추기
+- 이름 알아보기 자료 뭉치 — CoNLL-2003과 OntoNotes를 비롯한 표준 잣대
+- [이름 알아보기 값매김 잣대](sequence_labeling/ner_evaluation.md) — 딱 맞음과 일부 맞음 F1로 하는 것 수준 값매김
+- 겹겹이 든 이름 알아보기 — 겹치고 겹겹이 든 것 표시 다루기
+- 말을 넘나드는 이름 알아보기 — 자료가 많은 말에서 적은 말로 옮기기
+- 몇 개만으로 하는 이름 알아보기 — 이름표 붙인 보기를 아주 적게 쓰고 것을 알아보기
+- 분야 맞추기 — 글 출처가 다를 때 생기는 분야 틈을 이름 알아보기에서 잇기
 
 ---
 
-## Question Answering
+## 글 가르기
 
-Answering questions through extractive, abstractive, and knowledge-based approaches.
+낱말 자루 바탕에서 변환기 곱게 다듬기까지, 글월 수준의 갈래 매기기.
 
-- QA Overview -- Taxonomy of QA tasks and financial QA applications
-- Reading Comprehension -- Benchmarks and challenges in machine reading
-- [Extractive QA](question_answering/extractive_qa.md) -- BERT-based span extraction for question answering
-- Span Extraction -- Mathematical formulation of start/end position prediction
-- Abstractive QA -- Generating answers that synthesize and paraphrase source text
-- Open-Domain QA -- Retriever-reader architecture for corpus-scale QA
-- Knowledge-Based QA -- Answering questions by querying structured knowledge bases
-- Multi-Hop QA -- Reasoning over multiple evidence pieces to answer questions
-- QA Datasets -- SQuAD, Natural Questions, TriviaQA, and other benchmarks
+- 글 가르기의 근본 — 일의 정의, 물길, 확률로 세우기
+- 낱말 자루와 TF-IDF — 갈래 매기기를 위한 셈 바탕 글월 나타내기
+- 글을 위한 누비기 신경망 — 낱말 묻힘 위에 1차원 누비기를 쓴 TextCNN
+- 글을 위한 되돌이 그물 — 차례대로 다루는 LSTM/RNN 갈래 매개
+- 변환기 갈래 매기기 — CLS 토막을 쓴 BERT 곱게 다듬기로 글 가르기
+- 마음결 살피기 — 두 갈래, 결이 고운, 갈래별 마음결 일
+- 층진 갈래 매기기 — 부모-자식이 어긋나지 않는 갈래 체계 바탕 갈래 매기기
+- 여러 이름표 갈래 매기기 — 두 갈래 엇갈린 엔트로피 손실로 글월마다 여러 갈래 어림하기
 
 ---
 
-## Summarization
+## 앎 뽑기
 
-Condensing documents through extractive selection and abstractive generation.
+관계, 사건, 앎 그래프를 거쳐 짜임 없는 글에서 짜임 있는 앎 뽑아내기.
 
-- Summarization Overview -- Definition, taxonomy, and comparison of summarization approaches
-- Extractive Summarization -- Selecting important sentences from source documents
-- Abstractive Summarization -- Generating novel summary text with paraphrasing and fusion
-- Seq2Seq Summarization -- Encoder-decoder models with attention for summarization
-- Transformer Summarization -- BART, T5, and Pegasus for state-of-the-art summarization
-- Multi-Document Summarization -- Summarizing across multiple related documents
-- Summarization Evaluation -- ROUGE metrics and evaluation protocols
+- [앎 뽑기 개요](information_extraction/ie_overview.md) — 앎 뽑기 물길과 금융 쓰임새
+- 관계 뽑기 — 것 사이의 관계를 뽑는 물길 방식과 함께 푸는 방식
+- [사건 뽑기](information_extraction/event_extraction.md) — 글에서 방아쇠 찾기와 딸린 것 뽑기
+- [같은 것 가리키기 풀기](information_extraction/coreference.md) — 글월 수준 앎 뽑기를 위한 언급 찾기와 앞선 말 잇기
+- [열린 앎 뽑기](information_extraction/open_ie.md) — 틀 없이 세 쌍을 뽑아 글을 캐어 보기
+- 앎 그래프 세우기 — 것 잇기와 묻힘을 갖춘 끝에서 끝까지 앎 그래프 물길
+
+---
+
+## 기계 옮김
+
+통계 방법에서 신경망과 변환기 바탕 방식까지, 말 사이 옮기기.
+
+- 기계 옮김 개요 — 규칙 바탕에서 신경 기계 옮김으로의 흐름
+- 통계 기계 옮김 — 잡음 통로 모델, IBM 맞추기, 마디 바탕 옮김
+- 신경 기계 옮김 — 부호기-풀개 얼개와 앎의 병목
+- 기계 옮김의 눈길 — 옮김을 위한 더하기, 곱하기, 점곱 눈길
+- [변환기 기계 옮김](machine_translation/transformer_mt.md) — 되돌이 그물 바탕 옮김을 갈음하는 여러 머리 스스로 눈길
+- 아래낱말 나누기 — 열린 낱말 곳간 옮김을 위한 BPE와 SentencePiece
+- 여러 말 기계 옮김 — 모델 하나로 하는 여럿 대 여럿 옮김과 영 발 옮김
+- 자료가 적은 말의 기계 옮김 — 자료 불리기와 옮겨 배우기
+- 기계 옮김 값매김 — BLEU 점수 셈하기, 신경 잣대, 값매김 절차
+
+---
+
+## 물음 답하기
+
+뽑아내기, 새로 짓기, 앎 바탕 방식으로 물음에 답하기.
+
+- 물음 답하기 개요 — 물음 답하기 일의 갈래와 금융 쓰임새
+- 읽고 이해하기 — 기계 읽기의 잣대와 어려움
+- [뽑아내는 물음 답하기](question_answering/extractive_qa.md) — 물음 답하기를 위한 BERT 바탕 구간 뽑기
+- 구간 뽑기 — 시작/끝 자리 어림의 수학 세우기
+- 새로 짓는 물음 답하기 — 원문을 녹여 다시 말하는 답 만들기
+- 열린 분야 물음 답하기 — 말뭉치 규모의 물음 답하기를 위한 찾개-읽개 얼개
+- 앎 바탕 물음 답하기 — 짜임 있는 앎 곳간에 물어 답하기
+- 여러 걸음 물음 답하기 — 여러 증거 조각을 따져 답하기
+- 물음 답하기 자료 뭉치 — SQuAD, Natural Questions, TriviaQA 등의 잣대
+
+---
+
+## 간추리기
+
+뽑아 고르기와 새로 지어 내기로 글월 줄이기.
+
+- 간추리기 개요 — 정의, 갈래, 방식 견줌
+- 뽑아내는 간추리기 — 원문에서 중요한 월 고르기
+- 새로 짓는 간추리기 — 다시 말하기와 녹여 붙이기로 새 간추림 글 만들기
+- 차례에서 차례로 간추리기 — 눈길을 갖춘 부호기-풀개 모델
+- 변환기 간추리기 — 가장 앞선 간추리기를 위한 BART, T5, Pegasus
+- 여러 글월 간추리기 — 서로 얽힌 글월 여럿을 아울러 간추리기
+- 간추리기 값매김 — ROUGE 잣대와 값매김 절차

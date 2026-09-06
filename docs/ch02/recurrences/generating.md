@@ -1,59 +1,59 @@
-# Generating Functions
+# 생성함수
 
-The methods covered in sibling pages -- substitution, recursion trees, and the Master theorem -- all work directly with the recurrence relation. Generating functions take a fundamentally different approach: they encode the entire sequence of values $T(0), T(1), T(2), \ldots$ as the coefficients of a formal power series, transform the recurrence into an algebraic equation, solve that equation, and then extract the coefficients to obtain a closed-form solution. While more heavyweight than the Master theorem for standard divide-and-conquer recurrences, generating functions can solve recurrences that no other method in this chapter can handle, including full-history recurrences and recurrences with non-constant coefficients.
+같은 장의 다른 절에서 다룬 방법들, 즉 치환, 재귀 트리, 마스터 정리는 모두 점화식을 직접 다룬다. 생성함수는 근본적으로 다른 접근을 취한다. 값들의 수열 $T(0), T(1), T(2), \ldots$ 전체를 형식적 멱급수의 계수로 부호화하고, 점화식을 대수 방정식으로 바꾸고, 그 방정식을 푼 뒤, 계수를 뽑아내어 닫힌 형태의 해를 얻는다. 표준적인 분할 정복 점화식에 대해서는 마스터 정리보다 무겁지만, 생성함수는 전체 이력 점화식이나 계수가 상수가 아닌 점화식처럼 이 장의 다른 어떤 방법으로도 풀 수 없는 점화식을 풀 수 있다.
 
-## Ordinary Generating Functions
+## 보통 생성함수
 
-An **ordinary generating function** (OGF) for a sequence $\{a_n\}_{n=0}^{\infty}$ is the formal power series:
+수열 $\{a_n\}_{n=0}^{\infty}$의 **보통 생성함수(OGF)** 는 다음 형식적 멱급수이다.
 
 $$
 A(x) = \sum_{n=0}^{\infty} a_n \, x^n = a_0 + a_1 x + a_2 x^2 + a_3 x^3 + \cdots
 $$
 
-The variable $x$ is a formal placeholder; convergence is not required for the algebraic manipulations to be valid. The key idea is that operations on the power series correspond to operations on the sequence:
+변수 $x$는 형식적인 자리 표시자이며, 대수적 조작이 타당하기 위해 수렴이 필요하지는 않다. 핵심 아이디어는 멱급수에 대한 연산이 수열에 대한 연산에 대응된다는 것이다.
 
-| Operation on $A(x)$ | Effect on $\{a_n\}$ |
+| $A(x)$에 대한 연산 | $\{a_n\}$에 대한 효과 |
 |---------------------|---------------------|
-| $x \cdot A(x)$ | Shift: $\{0, a_0, a_1, a_2, \ldots\}$ |
-| $A(x) - a_0$ | Remove first term |
-| $\frac{A(x) - a_0}{x}$ | Shift left: $\{a_1, a_2, a_3, \ldots\}$ |
-| $A(x) + B(x)$ | Termwise sum: $\{a_n + b_n\}$ |
-| $A(x) \cdot B(x)$ | Convolution: $\{c_n = \sum_{k=0}^n a_k b_{n-k}\}$ |
+| $x \cdot A(x)$ | 이동: $\{0, a_0, a_1, a_2, \ldots\}$ |
+| $A(x) - a_0$ | 첫 항 제거 |
+| $\frac{A(x) - a_0}{x}$ | 왼쪽으로 이동: $\{a_1, a_2, a_3, \ldots\}$ |
+| $A(x) + B(x)$ | 항별 합: $\{a_n + b_n\}$ |
+| $A(x) \cdot B(x)$ | 합성곱: $\{c_n = \sum_{k=0}^n a_k b_{n-k}\}$ |
 
-## The Method in Four Steps
+## 네 단계로 보는 방법
 
-Solving a recurrence with generating functions follows a systematic procedure:
+생성함수로 점화식을 푸는 절차는 체계적이다.
 
-1. **Define**: Let $A(x) = \sum_{n \geq 0} a_n x^n$ where $a_n$ is the quantity defined by the recurrence
-2. **Translate**: Multiply both sides of the recurrence by $x^n$ and sum over all valid $n$ to obtain an equation in $A(x)$
-3. **Solve**: Manipulate the equation algebraically to isolate $A(x)$ as a closed-form expression in $x$
-4. **Extract**: Expand $A(x)$ using partial fractions, the geometric series, or other identities to read off $a_n = [x^n] A(x)$
+1. **정의**: $a_n$이 점화식으로 정의되는 양일 때 $A(x) = \sum_{n \geq 0} a_n x^n$으로 둔다
+2. **변환**: 점화식의 양변에 $x^n$을 곱하고 유효한 모든 $n$에 대해 더하여 $A(x)$에 관한 방정식을 얻는다
+3. **풀이**: 방정식을 대수적으로 조작하여 $A(x)$를 $x$의 닫힌 형태 식으로 분리한다
+4. **추출**: 부분분수, 등비급수, 그 밖의 항등식을 사용해 $A(x)$를 전개하여 $a_n = [x^n] A(x)$를 읽어 낸다
 
-## Example 1: The Fibonacci Recurrence
+## 예제 1: 피보나치 점화식
 
-The Fibonacci sequence satisfies $F_n = F_{n-1} + F_{n-2}$ for $n \geq 2$, with $F_0 = 0$ and $F_1 = 1$.
+피보나치 수열은 $F_0 = 0$, $F_1 = 1$이고 $n \geq 2$에 대해 $F_n = F_{n-1} + F_{n-2}$를 만족한다.
 
-### Step 1: Define
+### 1단계: 정의
 
 $$
 F(x) = \sum_{n=0}^{\infty} F_n \, x^n
 $$
 
-### Step 2: Translate
+### 2단계: 변환
 
-Multiply the recurrence $F_n = F_{n-1} + F_{n-2}$ by $x^n$ and sum for $n \geq 2$:
+점화식 $F_n = F_{n-1} + F_{n-2}$에 $x^n$을 곱하고 $n \geq 2$에 대해 더한다.
 
 $$
 \sum_{n=2}^{\infty} F_n x^n = \sum_{n=2}^{\infty} F_{n-1} x^n + \sum_{n=2}^{\infty} F_{n-2} x^n
 $$
 
-The left side is $F(x) - F_0 - F_1 x = F(x) - x$. The first sum on the right is $x(F(x) - F_0) = xF(x)$. The second sum is $x^2 F(x)$. So:
+좌변은 $F(x) - F_0 - F_1 x = F(x) - x$이다. 우변의 첫 합은 $x(F(x) - F_0) = xF(x)$이다. 둘째 합은 $x^2 F(x)$이다. 따라서
 
 $$
 F(x) - x = xF(x) + x^2 F(x)
 $$
 
-### Step 3: Solve
+### 3단계: 풀이
 
 $$
 F(x)(1 - x - x^2) = x
@@ -63,35 +63,35 @@ $$
 F(x) = \frac{x}{1 - x - x^2}
 $$
 
-### Step 4: Extract
+### 4단계: 추출
 
-Factor the denominator. The roots of $1 - x - x^2 = 0$ are $x = \frac{-1 \pm \sqrt{5}}{2}$, so the roots of the characteristic equation $t^2 - t - 1 = 0$ are $\phi = \frac{1+\sqrt{5}}{2}$ and $\hat{\phi} = \frac{1-\sqrt{5}}{2}$.
+분모를 인수분해한다. $1 - x - x^2 = 0$의 근은 $x = \frac{-1 \pm \sqrt{5}}{2}$이므로 특성방정식 $t^2 - t - 1 = 0$의 근은 $\phi = \frac{1+\sqrt{5}}{2}$와 $\hat{\phi} = \frac{1-\sqrt{5}}{2}$이다.
 
-Using partial fractions:
+부분분수를 사용하면
 
 $$
 F(x) = \frac{1}{\sqrt{5}} \left( \frac{1}{1 - \phi x} - \frac{1}{1 - \hat{\phi} x} \right)
 $$
 
-Expanding each geometric series $\frac{1}{1 - rx} = \sum_{n \geq 0} r^n x^n$:
+각 등비급수 $\frac{1}{1 - rx} = \sum_{n \geq 0} r^n x^n$을 전개하면
 
 $$
 F_n = \frac{1}{\sqrt{5}} \left( \phi^n - \hat{\phi}^n \right)
 $$
 
-This is **Binet's formula**, an exact closed form for the $n$-th Fibonacci number.
+이것이 $n$번째 피보나치 수의 정확한 닫힌 형태인 **비네의 공식** 이다.
 
-## Example 2: A Linear Recurrence with Constant Coefficients
+## 예제 2: 계수가 상수인 선형 점화식
 
-Consider $a_n = 5a_{n-1} - 6a_{n-2}$ for $n \geq 2$, with $a_0 = 1$ and $a_1 = 4$.
+$a_0 = 1$, $a_1 = 4$이고 $n \geq 2$에 대해 $a_n = 5a_{n-1} - 6a_{n-2}$인 점화식을 생각하자.
 
-### Step 1: Define
+### 1단계: 정의
 
 $$
 A(x) = \sum_{n=0}^{\infty} a_n x^n
 $$
 
-### Step 2: Translate
+### 2단계: 변환
 
 $$
 A(x) - a_0 - a_1 x = 5x(A(x) - a_0) + (-6x^2) A(x)
@@ -101,7 +101,7 @@ $$
 A(x) - 1 - 4x = 5xA(x) - 5x - 6x^2 A(x)
 $$
 
-### Step 3: Solve
+### 3단계: 풀이
 
 $$
 A(x)(1 - 5x + 6x^2) = 1 + 4x - 5x = 1 - x
@@ -111,33 +111,33 @@ $$
 A(x) = \frac{1 - x}{1 - 5x + 6x^2} = \frac{1 - x}{(1 - 2x)(1 - 3x)}
 $$
 
-### Step 4: Extract via Partial Fractions
+### 4단계: 부분분수로 추출
 
-Write $\frac{1 - x}{(1-2x)(1-3x)} = \frac{A}{1-2x} + \frac{B}{1-3x}$.
+$\frac{1 - x}{(1-2x)(1-3x)} = \frac{A}{1-2x} + \frac{B}{1-3x}$로 쓴다.
 
-Setting $x = 1/2$: $A = \frac{1 - 1/2}{1 - 3/2} = \frac{1/2}{-1/2} = -1$.
+$x = 1/2$로 두면 $A = \frac{1 - 1/2}{1 - 3/2} = \frac{1/2}{-1/2} = -1$이다.
 
-Setting $x = 1/3$: $B = \frac{1 - 1/3}{1 - 2/3} = \frac{2/3}{1/3} = 2$.
+$x = 1/3$으로 두면 $B = \frac{1 - 1/3}{1 - 2/3} = \frac{2/3}{1/3} = 2$이다.
 
-So:
+따라서
 
 $$
 A(x) = \frac{-1}{1-2x} + \frac{2}{1-3x}
 $$
 
-Expanding:
+전개하면
 
 $$
 a_n = -2^n + 2 \cdot 3^n
 $$
 
-Verification: $a_0 = -1 + 2 = 1$ and $a_1 = -2 + 6 = 4$, matching the initial conditions.
+검증: $a_0 = -1 + 2 = 1$이고 $a_1 = -2 + 6 = 4$로 초기 조건과 일치한다.
 
-## Example 3: A Recurrence with Polynomial Toll
+## 예제 3: 다항 통행료가 있는 점화식
 
-Consider $T(n) = 2T(n-1) + 1$ for $n \geq 1$, with $T(0) = 0$. This is a non-divide-and-conquer recurrence (subtractive rather than divisive), but generating functions handle it naturally.
+$T(0) = 0$이고 $n \geq 1$에 대해 $T(n) = 2T(n-1) + 1$인 점화식을 생각하자. 이는 (나눗셈이 아니라 뺄셈으로 줄어드는) 분할 정복이 아닌 점화식이지만 생성함수는 이를 자연스럽게 다룬다.
 
-### Steps 1-2: Define and Translate
+### 1-2단계: 정의와 변환
 
 $$
 G(x) = \sum_{n=0}^{\infty} T(n) x^n
@@ -147,7 +147,7 @@ $$
 G(x) - T(0) = 2x \, G(x) + \sum_{n=1}^{\infty} x^n = 2x \, G(x) + \frac{x}{1-x}
 $$
 
-### Step 3: Solve
+### 3단계: 풀이
 
 $$
 G(x)(1 - 2x) = \frac{x}{1-x}
@@ -157,27 +157,27 @@ $$
 G(x) = \frac{x}{(1-x)(1-2x)}
 $$
 
-### Step 4: Extract
+### 4단계: 추출
 
-Partial fractions: $\frac{x}{(1-x)(1-2x)} = \frac{-1}{1-x} + \frac{1}{1-2x}$.
+부분분수로 $\frac{x}{(1-x)(1-2x)} = \frac{-1}{1-x} + \frac{1}{1-2x}$이다.
 
-Verification: at $x = 1$, $\frac{-1}{0}$ diverges, so use cover-up more carefully. Setting $\frac{x}{(1-x)(1-2x)} = \frac{A}{1-x} + \frac{B}{1-2x}$:
+검증: $x = 1$에서 $\frac{-1}{0}$이 발산하므로 가리기 방법을 좀 더 조심스럽게 쓰자. $\frac{x}{(1-x)(1-2x)} = \frac{A}{1-x} + \frac{B}{1-2x}$로 두면
 
 $$
 x = A(1-2x) + B(1-x)
 $$
 
-Setting $x = 1$: $1 = A(-1)$, so $A = -1$. Setting $x = 1/2$: $1/2 = B(1/2)$, so $B = 1$.
+$x = 1$로 두면 $1 = A(-1)$이므로 $A = -1$이다. $x = 1/2$로 두면 $1/2 = B(1/2)$이므로 $B = 1$이다.
 
 $$
 T(n) = -1 + 2^n = 2^n - 1
 $$
 
-Verification: $T(1) = 2(0) + 1 = 1 = 2^1 - 1$ and $T(2) = 2(1) + 1 = 3 = 2^2 - 1$.
+검증: $T(1) = 2(0) + 1 = 1 = 2^1 - 1$이고 $T(2) = 2(1) + 1 = 3 = 2^2 - 1$이다.
 
-## Useful Generating Function Identities
+## 유용한 생성함수 항등식
 
-The following closed-form generating functions appear frequently when extracting coefficients:
+계수를 추출할 때 다음과 같은 닫힌 형태 생성함수가 자주 등장한다.
 
 $$
 \frac{1}{1 - rx} = \sum_{n=0}^{\infty} r^n x^n
@@ -195,26 +195,59 @@ $$
 e^x = \sum_{n=0}^{\infty} \frac{x^n}{n!}
 $$
 
-The last identity is relevant when using **exponential generating functions** (EGFs), where $\hat{A}(x) = \sum a_n x^n / n!$. EGFs are particularly natural for recurrences involving factorials or permutations.
+마지막 항등식은 $\hat{A}(x) = \sum a_n x^n / n!$인 **지수 생성함수(EGF)** 를 쓸 때 관련이 있다. EGF는 계승이나 순열이 관여하는 점화식에 특히 자연스럽다.
 
-## Scope and Limitations
+## 적용 범위와 한계
 
-Generating functions are the most general method in this chapter for solving recurrences, but they come with trade-offs:
+생성함수는 이 장에서 점화식을 푸는 가장 일반적인 방법이지만 절충이 따른다.
 
-- **Strengths**: Handle non-constant coefficients, full-history recurrences ($a_n = \sum_{k=0}^{n-1} a_k$), and recurrences that no theorem covers. They also yield exact solutions, not just asymptotic bounds.
-- **Weaknesses**: The algebra can become intricate. Partial fraction decomposition for high-degree polynomials is tedious. For standard divide-and-conquer recurrences $T(n) = aT(n/b) + f(n)$, the [Master theorem](master.md) or [Akra-Bazzi method](akra_bazzi.md) is far simpler.
+- **강점**: 계수가 상수가 아닌 경우, 전체 이력 점화식($a_n = \sum_{k=0}^{n-1} a_k$), 어떤 정리로도 덮을 수 없는 점화식을 다룬다. 또한 점근적 경계만이 아니라 정확한 해를 준다.
+- **약점**: 대수 계산이 복잡해질 수 있다. 차수가 높은 다항식의 부분분수 분해는 번거롭다. 표준적인 분할 정복 점화식 $T(n) = aT(n/b) + f(n)$에는 [마스터 정리](master.md)나 [Akra-Bazzi 방법](akra_bazzi.md)이 훨씬 간단하다.
 
-!!! tip "When to Use Generating Functions"
-    Use generating functions when the recurrence has one or more of: non-constant coefficients, full-history dependence, a subtractive step size ($T(n-1)$ rather than $T(n/b)$), or when an exact closed-form solution (not just $\Theta$-notation) is needed.
+!!! tip "생성함수를 쓸 때"
+    점화식에 계수가 상수가 아니거나, 전체 이력에 의존하거나, ($T(n/b)$가 아니라 $T(n-1)$처럼) 뺄셈으로 크기가 줄어드는 성질이 있거나, ($\Theta$-표기법이 아니라) 정확한 닫힌 형태의 해가 필요할 때 생성함수를 쓴다.
 
-## Connections to Other Topics
+## 다른 주제와의 연결
 
-- **[Substitution Method](substitution.md)**: Once a generating function yields a closed form, substitution can verify it directly in the original recurrence
-- **[Master Theorem](master.md)**: Handles divide-and-conquer recurrences more directly when applicable
-- **[Akra-Bazzi Method](akra_bazzi.md)**: Another general method, but gives $\Theta$-bounds rather than exact solutions
+- **[치환 방법](substitution.md)**: 생성함수가 닫힌 형태를 주면 치환으로 원래 점화식에서 직접 검증할 수 있다
+- **[마스터 정리](master.md)**: 적용 가능한 경우 분할 정복 점화식을 더 직접적으로 다룬다
+- **[Akra-Bazzi 방법](akra_bazzi.md)**: 또 다른 일반적인 방법이지만 정확한 해가 아니라 $\Theta$-경계를 준다
 
-## References
+## 참고 문헌
 
 - Graham, R. L., Knuth, D. E., & Patashnik, O. (1994). *Concrete Mathematics* (2nd ed.), Chapter 7. Addison-Wesley.
 - Wilf, H. S. (2006). *generatingfunctionology* (3rd ed.). A K Peters.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Appendix C. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+생성함수에서 다룬 점화식 풀이 기법을 점화식 $T(n) = 2T(n/2) + n$에 적용하라.
+
+??? success "연습문제 1 풀이"
+    이 절에서 설명한 방법을 사용한다. 핵심 매개변수를 찾고 기법을 적용하면 $T(n) = \Theta(n \log n)$을 얻는다. 이것이 병합 정렬의 점화식이며, 일이 층마다 고르게 분포되는 균형 잡힌 경우를 나타낸다.
+
+---
+
+**연습문제 2.**
+생성함수를 사용하여 $T(n) = 4T(n/2) + n$을 풀어라. 어느 경우에 해당하는가?
+
+??? success "연습문제 2 풀이"
+    $a = 4, b = 2, \log_b a = 2$이다. $f(n) = n = O(n^{2-1})$이다. 재귀 비용이 지배하므로 $T(n) = \Theta(n^2)$이다.
+
+---
+
+**연습문제 3.**
+길이 $n$인 시퀀스를 두 절반으로 나누어 각각을 재귀적으로 처리한 뒤 $O(n)$의 교차 어텐션으로 결합하는 트랜스포머 층의 점화식을 쓰고 풀어라.
+
+??? success "연습문제 3 풀이"
+    $T(n) = 2T(n/2) + O(n)$이다. 이는 $T(n) = \Theta(n \log n)$을 주며 병합 정렬과 같다. 실제로 트랜스포머는 이런 재귀 구조를 쓰지 않지만, (Longformer 같은) 계층적 어텐션 기법이 이를 근사한다.
+
+---
+
+**연습문제 4.**
+생성함수에 나오는 점화식의 해를 치환 방법으로 검증하라. 귀납 가정을 서술하고 증명을 수행하라.
+
+??? success "연습문제 4 풀이"
+    이 절의 기법으로 닫힌 형태를 추측한다. 모든 $k < n$에 대해 $T(k) \leq ck^p$(또는 적절한 형태)를 가정한다. 이를 점화식에 대입하여 $T(n) \leq cn^p$임을 검증한다. 기저 사례는 따로 처리한다. $\square$

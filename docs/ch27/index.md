@@ -1,47 +1,43 @@
-# Chapter 27: Energy-Based Models
+# 27장: 에너지 바탕 모델
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Energy-Based Models (EBMs) define probability distributions through scalar energy functions, where lower energy corresponds to higher probability via the Boltzmann distribution. This flexible framework places essentially no constraints on the energy function architecture, making EBMs a unifying perspective across generative model families. This chapter covers the theoretical foundations from statistical physics, classical architectures like Boltzmann machines and Hopfield networks, training methods that circumvent the intractable partition function, modern neural EBMs, and applications to quantitative finance.
+에너지 바탕 모델(EBM)은 낱값 에너지 함수로 확률 분포를 뜻매김하며, 볼츠만 분포를 거쳐 에너지가 낮을수록 확률이 높다. 이 너그러운 틀은 에너지 함수 얼개에 사실상 제약을 두지 않아 에너지 바탕 모델을 만들어 내는 모델 무리를 아우르는 관점으로 만든다. 이 장은 통계 물리학에서 온 이론 바탕, 볼츠만 기계와 홉필드 신경망 같은 고전 얼개, 다룰 수 없는 나눔 함수를 비켜 가는 익히기 방법, 요즘의 신경망 에너지 바탕 모델, 그리고 계량 금융에서의 쓰임새를 다룬다.
 
 ---
 
-## EBM Foundations
+## 에너지 바탕 모델의 바탕
 
-- Introduction to Energy-Based Models -- Core principle of energy-based modeling, the energy-probability connection, and the central computational challenges.
-- Energy-Based Models Overview -- Comprehensive tutorial package covering EBM theory, implementations, and connections to modern generative models.
-- [Boltzmann Distribution](ebm_foundations/boltzmann.md) -- Derivation from maximum entropy principles, temperature effects, and connections to the exponential family.
-- Energy Functions -- Formal definition, desirable properties, and neural network parameterization of energy functions.
-- [Partition Function](ebm_foundations/partition_function.md) -- The intractable normalization constant, its role in encoding distributional information, and estimation methods.
+- 에너지 바탕 모델 들어가기 -- 에너지 바탕 나타내기의 핵심 원리, 에너지와 확률의 이음, 한가운데 셈 어려움.
+- 에너지 바탕 모델 살펴보기 -- 에너지 바탕 모델 이론, 짜기, 요즘 만들어 내는 모델과의 이음을 두루 다루는 익힘 꾸러미.
+- [볼츠만 분포](ebm_foundations/boltzmann.md) -- 최대 엔트로피 원리에서 이끌어 내기, 온도의 영향, 지수 무리와의 이음.
+- 에너지 함수 -- 에너지 함수의 엄밀한 뜻매김, 바람직한 성질, 신경망 매개변수화.
+- [나눔 함수](ebm_foundations/partition_function.md) -- 다룰 수 없는 고르게 맞추는 상수, 분포 앎을 담는 몫, 어림 방법.
 
-## Classical EBMs
+## 고전 에너지 바탕 모델
 
-- [Boltzmann Machines](classical_ebm/boltzmann_machines.md) -- Stochastic binary units, Gibbs sampling, and the extension from Hopfield networks to generative models.
-- [Restricted Boltzmann Machines](classical_ebm/rbm.md) -- Bipartite architecture with tractable conditional distributions and Contrastive Divergence training.
-- Deep Boltzmann Machines -- Multi-layer undirected models with hierarchical representations and mean-field variational inference.
-- [Hopfield Networks](classical_ebm/hopfield.md) -- Energy-based associative memories using energy minimization for pattern storage and retrieval.
+- [볼츠만 기계](classical_ebm/boltzmann_machines.md) -- 확률 이진 단위, 깁스 뽑기, 홉필드 신경망에서 만들어 내는 모델로의 넓힘.
+- [제한 볼츠만 기계](classical_ebm/rbm.md) -- 다룰 만한 조건 분포를 가진 두 쪽 얼개와 맞댐 벌어짐 익히기.
+- 깊은 볼츠만 기계 -- 켜진 나타냄과 평균 마당 변분 추론을 갖춘 여러 층 방향 없는 모델.
+- [홉필드 신경망](classical_ebm/hopfield.md) -- 무늬를 담고 되찾는 데 에너지 가장 작게 하기를 쓰는 에너지 바탕 이어 떠올림 기억.
 
-## EBM Training
+## 에너지 바탕 모델 익히기
 
-- Contrastive Divergence -- Practical approximation to the intractable maximum likelihood gradient using short-run MCMC from data.
-- Persistent Contrastive Divergence -- Maintaining persistent Markov chains across updates for less biased negative phase samples.
-- Score Matching for EBMs -- Training energy functions by matching score functions, avoiding the partition function entirely.
-- Noise Contrastive Estimation -- Reducing density estimation to binary classification between data and noise, learning the partition function as a byproduct.
+- 맞댐 벌어짐 -- 자료에서 시작한 짧은 마르코프 사슬 몬테카를로로 다룰 수 없는 최대 가능도 기울기를 실제로 어림하기.
+- 이어지는 맞댐 벌어짐 -- 덜 치우친 음의 국면 표본을 얻으려 고침에 걸쳐 마르코프 사슬을 이어 가기.
+- 에너지 바탕 모델의 점수 맞추기 -- 점수 함수를 맞추어 에너지 함수를 익히며 나눔 함수를 아예 피하기.
+- 잡음 맞댐 어림 -- 밀도 어림을 자료와 잡음 사이의 이진 가름으로 줄이고 덤으로 나눔 함수를 배우기.
 
-## Modern EBMs
+## 요즘 에너지 바탕 모델
 
-- Neural Energy-Based Models -- Deep neural networks as energy functions trained with Langevin dynamics and replay buffers.
-- Joint Energy Models (JEM) -- Unifying classification and generation by reinterpreting classifier logits as energy functions.
-- [Cooperative Learning](modern_ebm/cooperative.md) -- Combining EBMs with autoencoders, VAEs, and GANs for hybrid systems leveraging complementary strengths.
-- EBM for Classification and Beyond -- Out-of-distribution detection, compositional generation, and image denoising using energy scores.
-- Connection to Diffusion Models -- Mathematical unification of EBMs and diffusion models through score-based generative modeling.
-- [EBM-Based Generation](modern_ebm/generation.md) -- Generating samples from learned energy landscapes via Langevin and Hamiltonian dynamics.
+- 신경망 에너지 바탕 모델 -- 랑주뱅 움직임과 되돌림 곳간으로 익히는 에너지 함수로서의 깊은 신경망.
+- 결합 에너지 모델(JEM) -- 가름개의 로짓을 에너지 함수로 다시 읽어 가름과 만들어 내기를 하나로 묶기.
+- [함께 배우기](modern_ebm/cooperative.md) -- 서로 보완하는 힘을 살리려 에너지 바탕 모델을 자기 부호기, 변분 자기 부호기, 맞겨루기 만들개와 합치기.
+- 가름과 그 너머의 에너지 바탕 모델 -- 에너지 점수를 쓴 분포 밖 찾기, 얽어 만들어 내기, 그림 잡음 없애기.
+- 퍼짐 모델과의 이음 -- 점수 바탕 만들어 내기로 에너지 바탕 모델과 퍼짐 모델을 수학으로 하나로 묶기.
+- [에너지 바탕 만들어 내기](modern_ebm/generation.md) -- 랑주뱅 움직임과 해밀턴 움직임으로 배운 에너지 풍경에서 표본 만들기.
 
-## Finance Applications
+## 금융에서의 쓰임새
 
-- Anomaly Detection -- Detecting unusual trading patterns and rare market events using energy-based anomaly scoring.
-- Density Estimation for Finance -- Flexible non-parametric density estimation for financial returns capturing heavy tails and non-Gaussianity.
-- Energy-Based Portfolio Optimization -- Framing portfolio optimization as energy minimization with return objectives and risk penalties.
-- [Credit Network Models](finance_applications/credit_networks.md) -- Modeling credit default dependencies using Boltzmann machine structure for systemic risk monitoring.
+- 이상 찾기 -- 에너지 바탕 이상 점수로 예사롭지 않은 거래 무늬와 드문 시장 사건 찾기.
+- 금융의 밀도 어림 -- 두꺼운 꼬리와 정규가 아님을 담는 금융 수익률의 너그러운 비모수 밀도 어림.
+- 에너지 바탕 꾸러미 가장 좋게 하기 -- 수익 목표와 위험 벌점을 담아 꾸러미 가장 좋게 하기를 에너지 가장 작게 하기로 적기.
+- [신용 그물 모델](finance_applications/credit_networks.md) -- 체계 위험을 살피려 볼츠만 기계 얼개로 신용 부도 매임을 나타내기.

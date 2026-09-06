@@ -1,53 +1,53 @@
-# Hierholzer's Algorithm
+# 히어홀처 알고리즘
 
-Once we know a graph has an Eulerian circuit (every vertex has even degree and the graph is connected), we need an efficient algorithm to actually construct it. Hierholzer's algorithm (1873) does this in $O(E)$ time by repeatedly finding sub-circuits and splicing them together. The key idea is simple: start walking along unused edges until you return to your starting vertex, then expand any vertex that still has unused edges into a new sub-circuit.
+그래프에 오일러 회로가 있음(꼭짓점마다 차수가 짝수이고 그래프가 이어져 있음)을 알고 나면 그것을 실제로 세우는 효율적인 알고리즘이 필요하다. 히어홀처 알고리즘(1873)은 작은 회로를 거듭 찾아 이어 붙여 이를 $O(E)$ 시간에 해낸다. 핵심 생각은 단순하다. 곧 쓰지 않은 변을 따라 걷다가 처음 꼭짓점으로 돌아오고, 아직 쓰지 않은 변이 남은 꼭짓점을 새 작은 회로로 부풀린다.
 
-## Algorithm Description
+## 알고리즘 설명
 
-**Input.** A connected graph $G = (V, E)$ where every vertex has even degree (for an Eulerian circuit) or exactly two vertices have odd degree (for an Eulerian path).
+**들임.** 꼭짓점마다 차수가 짝수이거나(오일러 회로) 차수가 홀수인 꼭짓점이 정확히 둘인(오일러 경로) 이어진 그래프 $G = (V, E)$.
 
-**Step 1.** Choose a starting vertex $s$. For a circuit, any vertex works. For a path, start at one of the two odd-degree vertices.
+**1단계.** 시작 꼭짓점 $s$을 고른다. 회로라면 아무 꼭짓점이나 된다. 경로라면 홀수 차수 꼭짓점 둘 가운데 하나에서 시작한다.
 
-**Step 2.** Follow unused edges from $s$, marking each edge as used, until returning to $s$. This produces an initial circuit $C$.
+**2단계.** $s$에서 쓰지 않은 변을 따라가며 변마다 썼다고 표시하고 $s$으로 돌아온다. 이러면 첫 회로 $C$이 나온다.
 
-**Step 3.** If $C$ covers all edges, we are done. Otherwise, find a vertex $v$ on $C$ that has unused edges. Start a new walk from $v$ along unused edges until returning to $v$, producing a sub-circuit $C'$.
+**3단계.** $C$이 모든 변을 덮으면 끝이다. 그렇지 않으면 $C$ 위에서 쓰지 않은 변이 남은 꼭짓점 $v$을 찾는다. $v$에서 쓰지 않은 변을 따라 새로 걸어 $v$으로 돌아와 작은 회로 $C'$을 만든다.
 
-**Step 4.** Splice $C'$ into $C$ at vertex $v$: replace the occurrence of $v$ in $C$ with the entire sub-circuit $C'$.
+**4단계.** 꼭짓점 $v$에서 $C'$을 $C$에 이어 붙인다. 곧 $C$에 나오는 $v$을 작은 회로 $C'$ 전체로 바꾼다.
 
-**Step 5.** Repeat Steps 3--4 until all edges are used.
+**5단계.** 모든 변을 쓸 때까지 3~4단계를 되풀이한다.
 
-## Why It Works
+## 왜 통하는가
 
-Because every vertex has even degree, any walk that enters a vertex can always leave it. So every walk from a vertex must eventually return to that vertex, producing a closed circuit. After removing the edges of a circuit, the remaining graph still has all even degrees (removing a circuit decreases every touched vertex's degree by an even amount). The splicing step ensures all sub-circuits merge into one Eulerian circuit.
+꼭짓점마다 차수가 짝수이므로 어떤 걸음이든 꼭짓점에 들어가면 늘 나올 수 있다. 그래서 한 꼭짓점에서 떠난 걸음은 끝내 그 꼭짓점으로 돌아와 닫힌 회로를 이룬다. 회로의 변을 없애고 나도 남은 그래프의 차수는 여전히 모두 짝수이다(회로를 없애면 닿은 꼭짓점의 차수가 짝수만큼 줄어든다). 이어 붙이기 단계가 모든 작은 회로를 하나의 오일러 회로로 합쳐 준다.
 
-## Efficient Stack-Based Implementation
+## 쌓기를 쓴 효율적인 짜기
 
-The splicing approach above is conceptually clear but fiddly to implement with linked lists. A cleaner implementation uses a stack and builds the circuit in reverse. At each vertex, we greedily follow unused edges, pushing vertices onto a stack. When we reach a vertex with no remaining edges, we pop it to the output.
+위의 이어 붙이기 방식은 생각으로는 또렷하지만 이음 목록으로 짜기에는 성가시다. 더 깔끔한 짜기는 쌓기를 써서 회로를 거꾸로 세운다. 꼭짓점마다 쓰지 않은 변을 욕심껏 따라가며 꼭짓점을 쌓기에 올린다. 남은 변이 없는 꼭짓점에 이르면 그것을 꺼내 내놓는다.
 
 ```python
 """
-Hierholzer's algorithm for finding an Eulerian circuit or path.
+오일러 회로나 경로를 찾는 히어홀처 알고리즘.
 
-Constructs the Euler tour in O(E) time using a stack-based approach
-that avoids explicit circuit splicing.
+쌓기를 쓰는 방식으로 오일러 돌기를 O(E) 시간에 세우며
+회로를 드러내어 이어 붙이지 않는다.
 """
 
 from collections import defaultdict, deque
 
-# === Hierholzer's Algorithm ===
+# === 히어홀처 알고리즘 ===
 
 def euler_circuit(n: int, edges: list[tuple[int, int]]) -> list[int]:
-    """Find an Eulerian circuit in an undirected graph.
+    """방향 없는 그래프에서 오일러 회로를 찾는다.
 
-    Assumes every vertex has even degree and the graph is connected
-    (among vertices with nonzero degree).
+    꼭짓점마다 차수가 짝수이고 그래프가 이어져 있다고 가정한다
+    (차수가 0이 아닌 꼭짓점 가운데서).
 
-    Args:
-        n: Number of vertices (0-indexed).
-        edges: List of undirected edges.
+    인수:
+        n: 꼭짓점의 개수(0부터 셈).
+        edges: 방향 없는 변의 목록.
 
-    Returns:
-        List of vertices forming the Eulerian circuit.
+    반환값:
+        오일러 회로를 이루는 꼭짓점의 목록.
     """
     adj = defaultdict(deque)
     edge_used = {}
@@ -57,7 +57,7 @@ def euler_circuit(n: int, edges: list[tuple[int, int]]) -> list[int]:
         adj[v].append((u, i))
         edge_used[i] = False
 
-    # Find a vertex with nonzero degree to start
+    # 시작할, 차수가 0이 아닌 꼭짓점 찾기
     start = 0
     for v in range(n):
         if adj[v]:
@@ -69,7 +69,7 @@ def euler_circuit(n: int, edges: list[tuple[int, int]]) -> list[int]:
 
     while stack:
         v = stack[-1]
-        # Find an unused edge from v
+        # v에서 아직 안 쓴 변 찾기
         found = False
         while adj[v]:
             w, idx = adj[v][0]
@@ -86,30 +86,30 @@ def euler_circuit(n: int, edges: list[tuple[int, int]]) -> list[int]:
 
 
 def euler_path(n: int, edges: list[tuple[int, int]]) -> list[int]:
-    """Find an Eulerian path in an undirected graph.
+    """방향 없는 그래프에서 오일러 경로를 찾는다.
 
-    Assumes exactly two vertices have odd degree.
+    차수가 홀수인 꼭짓점이 정확히 둘이라고 가정한다.
 
-    Args:
-        n: Number of vertices (0-indexed).
-        edges: List of undirected edges.
+    인수:
+        n: 꼭짓점의 개수(0부터 셈).
+        edges: 방향 없는 변의 목록.
 
-    Returns:
-        List of vertices forming the Eulerian path.
+    반환값:
+        오일러 경로를 이루는 꼭짓점의 목록.
     """
     degree = [0] * n
     for u, v in edges:
         degree[u] += 1
         degree[v] += 1
 
-    # Find an odd-degree vertex to start
+    # 시작할, 차수가 홀수인 꼭짓점 찾기
     odd_vertices = [v for v in range(n) if degree[v] % 2 == 1]
 
     if len(odd_vertices) == 2:
-        # Add a temporary edge between the two odd-degree vertices
+        # 홀수 차수 꼭짓점 둘 사이에 임시 변을 더한다
         temp_edge = (odd_vertices[0], odd_vertices[1])
         circuit = euler_circuit(n, edges + [temp_edge])
-        # Remove the temporary edge from the circuit
+        # 회로에서 임시 변 없애기
         for i in range(len(circuit) - 1):
             if (circuit[i] == temp_edge[0] and circuit[i+1] == temp_edge[1]) or \
                (circuit[i] == temp_edge[1] and circuit[i+1] == temp_edge[0]):
@@ -117,16 +117,16 @@ def euler_path(n: int, edges: list[tuple[int, int]]) -> list[int]:
     return circuit
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
-    # Graph: 0-1-2-3-0, 0-2 (all even degrees)
+    # 그래프: 0-1-2-3-0, 0-2(차수가 모두 짝수)
     edges = [(0,1),(1,2),(2,3),(3,0),(0,2)]
     circuit = euler_circuit(4, edges)
     print(f"Euler circuit: {circuit}")
     print(f"Uses {len(circuit)-1} edges (total edges: {len(edges)})")
 
-    # Verify: each edge used exactly once
+    # 확인: 변마다 정확히 한 번씩 쓰였는지
     edge_pairs = set()
     for i in range(len(circuit) - 1):
         u, v = circuit[i], circuit[i+1]
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     print(f"Distinct edge traversals: {len(edge_pairs)}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 Euler circuit: [0, 2, 1, 0, 3, 2, 0]
@@ -142,28 +142,75 @@ Uses 5 edges (total edges: 5)
 Distinct edge traversals: 5
 ```
 
-The algorithm traverses all five edges exactly once, starting and ending at vertex $0$. The internal order depends on the adjacency list ordering, but any valid Eulerian circuit is correct.
+이 알고리즘은 꼭짓점 $0$에서 시작해 $0$에서 끝나며 다섯 변을 모두 정확히 한 번씩 지난다. 속 차례는 이웃 목록의 차례에 달렸지만 올바른 오일러 회로라면 어느 것이든 맞다.
 
-## Complexity
+## 복잡도
 
-| Aspect | Cost |
+| 항목 | 비용 |
 |--------|:----:|
-| Time   | $O(V + E)$ |
-| Space  | $O(V + E)$ |
+| 시간 | $O(V + E)$ |
+| 공간 | $O(V + E)$ |
 
-Each edge is examined at most twice (once from each endpoint's adjacency list) and used exactly once. The stack never exceeds $O(E)$ entries. The algorithm is optimal since the output itself has length $E + 1$.
+변마다 많아야 두 번 살피고(끝점마다의 이웃 목록에서 한 번씩) 정확히 한 번 쓴다. 쌓기는 결코 $O(E)$개를 넘지 않는다. 내놓는 것 자체의 길이가 $E + 1$이므로 이 알고리즘은 가장 좋다.
 
-## Directed Graphs
+## 방향 그래프
 
-For directed graphs, Hierholzer's algorithm works with the following modifications:
+방향 그래프에서는 히어홀처 알고리즘을 다음과 같이 고쳐 쓴다:
 
-- Use directed adjacency lists (out-edges only).
+- 방향 이웃 목록(나가는 변만)을 쓴다.
 - An Eulerian circuit exists when $\text{in-deg}(v) = \text{out-deg}(v)$ for all vertices and the graph is strongly connected.
-- Follow outgoing edges, removing each as it is used.
+- 나가는 변을 따라가며 쓸 때마다 없앤다.
 
-The time complexity remains $O(V + E)$.
+시간 복잡도는 그대로 $O(V + E)$이다.
 
-## Reference
+## 참고 문헌
 
 - Hierholzer, C. (1873). Ueber die Moglichkeit, einen Linienzug ohne Wiederholung und ohne Unterbrechung zu umfahren. *Mathematische Annalen*, 6, 30--32.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 22: Elementary Graph Algorithms.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 22장: Elementary Graph Algorithms.
+
+## 연습문제
+
+**연습문제 1.**
+오일러 회로를 찾는 히어홀처 알고리즘을 설명하여라. 그 시간 복잡도는 무엇인가?
+
+??? success "연습문제 1 풀이"
+    (1) Start from any vertex, follow edges (removing them) until returning to the start. This forms an initial circuit. (2) If unused edges remain, find a vertex $v$ on the circuit with unused edges. Start a new sub-circuit from $v$ using unused edges. (3) Splice the sub-circuit into the main circuit at $v$. (4) Repeat until all edges are used. Time: $O(V + E)$ since each edge is traversed exactly once and splicing is efficient with a linked list. $\square$
+
+---
+
+**연습문제 2.**
+히어홀처 알고리즘은 왜 작은 회로를 늘 이어 붙일 수 있음을 보장하는가? 왜 늘 끝나는가?
+
+??? success "연습문제 2 풀이"
+    If unused edges remain, some vertex on the current circuit has unused edges (because the graph is connected and all degrees are even — unused edges form a connected subgraph through the circuit). Starting a sub-circuit from this vertex will return to it (all remaining degrees are even). Splicing extends the circuit without repeating edges. The algorithm terminates because each step uses at least one edge, and there are finitely many edges. $\square$
+
+---
+
+**연습문제 3.**
+쌓기를 쓰는 방식으로 히어홀처 알고리즘을 짜라. 유사 코드를 그려라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    def eulerian_circuit(adj, n):
+        stack = [0]
+        circuit = []
+        while stack:
+            v = stack[-1]
+            if adj[v]:
+                u = adj[v].pop()
+                adj[u].remove(v)  # 방향 없는 경우
+                stack.append(u)
+            else:
+                circuit.append(stack.pop())
+        return circuit[::-1]
+    ```
+
+    The stack tracks the current path. When a vertex has no remaining edges, it is added to the circuit. This naturally handles the splicing step. Using adjacency lists with efficient removal (e.g., sets or deques), the total time is $O(V + E)$. $\square$
+
+---
+
+**연습문제 4.**
+차수가 홀수인 꼭짓점이 정확히 둘일 때 오일러 경로(회로가 아닌 것)를 찾도록 히어홀처 알고리즘을 어떻게 고치는가?
+
+??? success "연습문제 4 풀이"
+    Add a temporary edge between the two odd-degree vertices. Now all degrees are even, so an Eulerian circuit exists. Run Hierholzer's algorithm to find the circuit. Remove the temporary edge from the result — this breaks the circuit into a path starting at one odd-degree vertex and ending at the other. Alternatively, start the algorithm from one of the odd-degree vertices; it will naturally end at the other. $\square$

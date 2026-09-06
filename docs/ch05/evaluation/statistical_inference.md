@@ -1,98 +1,96 @@
-# Statistical Inference for Model Evaluation
+# 모델 평가를 위한 통계적 추론
+## 1. 들어가며: 신호와 잡음의 차이
 
+퀀트 트레이딩용 딥러닝 모델을 평가할 때, 그럴듯해 보이는 샤프 비율 2% 개선이 진짜 알파일 수도 있고 그저 통계적 잡음일 수도 있다. 통계적 추론은 진짜 개선과 무작위 요동을 가려내는 엄밀한 틀을 준다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+!!! warning "다중성 문제"
+    수십 가지 모델 구조를 역사 자료에 시험하면 순전히 우연으로도 개선처럼 보이는 것을 찾게 되어 있다. 이것이 데이터 스누핑이며 퀀트 전략을 조용히 죽이는 주범이다.
 
-## 1. Introduction: The Difference Between Signal and Noise
+## 2. 추정량의 성질
 
-When evaluating a deep learning model for quantitative trading, a seemingly impressive 2% improvement in Sharpe ratio could be genuine alpha or merely statistical noise. Statistical inference provides the rigorous framework to distinguish between real improvements and random fluctuations.
+모델을 견주기 전에 추정값을 믿을 수 있게 해 주는 성질이 필요하다.
 
-!!! warning "The Multiplicity Problem"
-    Testing dozens of model architectures against historical data virtually guarantees finding apparent improvements by chance alone. This is data snooping—the silent killer of quantitative strategies.
-
-## 2. Estimator Properties
-
-Before comparing models, we need properties that guarantee our estimates are trustworthy:
-
-**Bias**: An estimator $\hat{\theta}$ is unbiased if $E[\hat{\theta}] = \theta$
+**편향**: $E[\hat{\theta}] = \theta$이면 추정량 $\hat{\theta}$은 불편이다
 
 $$\text{Bias}(\hat{\theta}) = E[\hat{\theta}] - \theta$$
 
-**Variance**: Measures estimator stability across different samples
+**분산**: 표본이 달라질 때 추정량이 얼마나 안정적인지를 잰다
 
 $$\text{Var}(\hat{\theta}) = E[(\hat{\theta} - E[\hat{\theta}])^2]$$
 
-**Mean Squared Error**: Combines bias and variance
+**평균제곱오차**: 편향과 분산을 합친다
 
 $$\text{MSE}(\hat{\theta}) = \text{Bias}(\hat{\theta})^2 + \text{Var}(\hat{\theta})$$
 
-**Consistency**: An estimator is consistent if $\hat{\theta} \xrightarrow{p} \theta$ as $n \to \infty$
+**일치성**: $n \to \infty$일 때 $\hat{\theta} \xrightarrow{p} \theta$이면 추정량은 일치추정량이다
 
-For the sample mean $\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i$:
-- Unbiased: $E[\bar{X}_n] = \mu$
-- Variance: $\text{Var}(\bar{X}_n) = \frac{\sigma^2}{n}$ (decreases with sample size)
-- Consistent: By law of large numbers
+표본평균 $\bar{X}_n = \frac{1}{n}\sum_{i=1}^n X_i$에 대해 다음과 같다.
 
-Sample variance $S^2 = \frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2$ is unbiased but has higher variance.
+- 불편: $E[\bar{X}_n] = \mu$
+- 분산: $\text{Var}(\bar{X}_n) = \frac{\sigma^2}{n}$ (표본이 커질수록 줄어든다)
+- 일치: 큰 수의 법칙에 의해
 
-## 3. Confidence Intervals
+표본분산 $S^2 = \frac{1}{n-1}\sum_{i=1}^n (X_i - \bar{X})^2$은 불편이지만 분산이 더 크다.
 
-A 95% confidence interval for a model metric provides a range where the true parameter lies with 95% probability.
+## 3. 신뢰구간
 
-**For Accuracy or Average Return:**
-Using the normal approximation (for large $n$):
+모델 지표에 대한 95% 신뢰구간은 참 모수가 95%의 확률로 들어 있는 구간을 준다.
+
+**정확도나 평균 수익률의 경우:**
+($n$이 클 때) 정규 근사를 쓰면 다음과 같다.
 
 $$\hat{p} \pm z_{1-\alpha/2} \sqrt{\frac{\hat{p}(1-\hat{p})}{n}}$$
 
-**For Sharpe Ratio:**
-The Sharpe ratio $\hat{S} = \frac{\bar{R} - r_f}{\hat{\sigma}_R}$ has non-normal sampling distribution.
+**샤프 비율의 경우:**
+샤프 비율 $\hat{S} = \frac{\bar{R} - r_f}{\hat{\sigma}_R}$은 표집분포가 정규분포가 아니다.
 
-!!! tip "Bootstrap Confidence Intervals"
-    For non-standard metrics (maximum drawdown, Calmar ratio), bootstrap provides distribution-free CIs:
-    1. Resample returns with replacement 10,000 times
-    2. Compute metric on each bootstrap sample
-    3. Use empirical 2.5% and 97.5% quantiles as CI bounds
+!!! tip "부트스트랩 신뢰구간"
+    표준적이지 않은 지표(최대 낙폭, 칼마 비율)에는 부트스트랩이 분포에 기대지 않는 신뢰구간을 준다.
 
-## 4. Hypothesis Testing
+    1. 수익률을 복원추출로 10,000번 다시 뽑는다
+    2. 부트스트랩 표본마다 지표를 계산한다
+    3. 경험적 2.5% 분위수와 97.5% 분위수를 신뢰구간의 경계로 삼는다
 
-**Comparing Two Models (Paired t-test):**
+## 4. 가설 검정
 
-Given paired performance metrics $(Y_{1i}, Y_{2i})$ for each test period $i$:
+**두 모델 비교 (대응 t 검정):**
+
+각 시험 기간 $i$에 대해 짝지어진 성능 지표 $(Y_{1i}, Y_{2i})$이 주어졌을 때 다음과 같다.
 
 $$t = \frac{\bar{D}}{\frac{S_D}{\sqrt{n}}} \sim t_{n-1}$$
 
-where $D_i = Y_{1i} - Y_{2i}$ is the performance difference.
+여기서 $D_i = Y_{1i} - Y_{2i}$은 성능의 차이이다.
 
-**Null Hypothesis**: $H_0: \mu_D = 0$ (no difference in performance)
+**귀무가설**: $H_0: \mu_D = 0$ (성능에 차이가 없다)
 
-**p-value**: Probability of observing this (or more extreme) test statistic under $H_0$
+**p 값**: $H_0$ 아래에서 이 검정통계량(또는 더 극단적인 값)을 관측할 확률
 
-!!! danger "Multiple Comparison Problem"
-    If you test 100 models against a benchmark, expect ~5 false positives at $\alpha=0.05$ significance level. This is why corrections are essential.
+!!! danger "다중 비교 문제"
+    모델 100개를 기준선과 견주어 시험하면 유의수준 $\alpha=0.05$에서 거짓 양성이 5개쯤 나오게 마련이다. 보정이 꼭 필요한 까닭이 여기에 있다.
 
-## 5. Multiple Testing Correction
+## 5. 다중 검정 보정
 
-**Bonferroni Correction:**
+**본페로니 보정:**
 
-For $m$ independent tests, control family-wise error rate by adjusting individual significance level:
+독립인 검정 $m$개에 대해 개별 유의수준을 조정하여 집단별 오류율을 통제한다.
 
 $$\alpha_{adjusted} = \frac{\alpha}{m}$$
 
-Very conservative—rejects many true signals. For $m=100$ tests: $\alpha_{adjusted} = 0.0005$
+매우 보수적이어서 참 신호도 많이 버린다. 검정이 $m=100$개라면 $\alpha_{adjusted} = 0.0005$이다.
 
-**False Discovery Rate (FDR) Control:**
+**거짓 발견율(FDR) 통제:**
 
-Benjamini-Hochberg procedure is less conservative:
-1. Sort p-values: $p_{(1)} \leq p_{(2)} \leq ... \leq p_{(m)}$
-2. Find largest $i$ where $p_{(i)} \leq \frac{i}{m} \alpha$
-3. Reject all hypotheses $1, ..., i$
+벤저미니-호크버그 절차는 덜 보수적이다.
 
-FDR limits the proportion of false positives among rejections (typically 10% in quant).
+1. p 값을 정렬한다. $p_{(1)} \leq p_{(2)} \leq ... \leq p_{(m)}$
+2. $p_{(i)} \leq \frac{i}{m} \alpha$을 만족하는 가장 큰 $i$을 찾는다
+3. 가설 $1, ..., i$을 모두 기각한다
 
-## 6. Bootstrap Methods
+FDR은 기각한 것 가운데 거짓 양성의 비율을 제한한다(퀀트에서는 보통 10%).
 
-**Non-parametric Bootstrap Algorithm:**
+## 6. 부트스트랩 방법
+
+**비모수 부트스트랩 알고리즘:**
 
 ```
 for b = 1 to B:
@@ -102,64 +100,110 @@ end
 Estimated variance: Var(θ̂) ≈ Var(θ̂*_1, ..., θ̂*_B)
 ```
 
-**Advantages:**
-- No distributional assumptions
-- Works for any metric (Sharpe, max drawdown, etc.)
-- Estimates standard errors and confidence intervals directly
+**장점:**
 
-**Example**: Testing if strategy Sharpe ratio > 1.0
-- Bootstrap resample returns 10,000 times
-- Compute Sharpe ratio each time
-- If 95% CI excludes 1.0, reject $H_0: S \leq 1.0$
+- 분포에 대한 가정이 없다
+- 어떤 지표에도 통한다(샤프, 최대 낙폭 등)
+- 표준오차와 신뢰구간을 곧바로 추정한다
 
-## 7. Cross-Validation as Statistical Procedure
+**예**: 전략의 샤프 비율이 1.0보다 큰지 검정하기
 
-K-fold cross-validation estimates generalization error $\mathcal{L}$:
+- 수익률을 부트스트랩으로 10,000번 다시 뽑는다
+- 그때마다 샤프 비율을 계산한다
+- 95% 신뢰구간이 1.0을 포함하지 않으면 $H_0: S \leq 1.0$을 기각한다
+
+## 7. 통계적 절차로서의 교차 검증
+
+K겹 교차 검증은 일반화 오차 $\mathcal{L}$을 추정한다.
 
 $$\widehat{\text{CV}} = \frac{1}{k} \sum_{i=1}^k L_i$$
 
-where $L_i$ is loss on $i$-th holdout fold.
+여기서 $L_i$은 $i$번째 홀드아웃 겹에서의 손실이다.
 
-**Key Insight**: CV estimates are not independent. Folds share training data, creating correlation.
+**핵심**: 교차 검증의 추정값은 서로 독립이 아니다. 겹들이 학습 데이터를 나누어 쓰므로 상관이 생긴다.
 
-**Variance of CV Estimator:**
+**교차 검증 추정량의 분산:**
 
 $$\text{Var}(\widehat{\text{CV}}) = \frac{\sigma^2_{CV}}{k} + \text{correlation effect}$$
 
-Standard error typically 10-30% higher than if folds were independent. Always use this larger estimate when constructing CIs!
+표준오차는 겹이 독립인 경우보다 보통 10~30% 크다. 신뢰구간을 만들 때에는 언제나 이 더 큰 추정값을 쓰라!
 
-!!! warning "Time Series CV"
-    Standard k-fold inappropriate for time series. Use forward-chaining validation:
-    - Train on years 1-5, test on year 6
-    - Train on years 1-6, test on year 7
-    - No look-ahead bias, no data leakage
+!!! warning "시계열 교차 검증"
+    표준 K겹은 시계열에 알맞지 않다. 앞으로 이어 가는 검증을 쓰라.
 
-## 8. Practical Guidelines for Quant Practitioners
+    - 1~5년으로 학습하고 6년으로 시험한다
+    - 1~6년으로 학습하고 7년으로 시험한다
+    - 미래를 엿보는 편향도, 데이터 유출도 없다
 
-**Avoid Data Snooping:**
-- Specify strategy *before* looking at data
-- Use out-of-sample testing with proper time-series CV
-- Report all backtests, not just winners
-- Use Bonferroni or FDR correction when comparing multiple strategies
+## 8. 퀀트 실무자를 위한 실용 지침
 
-**Rigorous Performance Testing:**
+**데이터 스누핑을 피하라:**
 
-1. **Point Estimate**: Report Sharpe ratio, max drawdown, Calmar ratio
-2. **Uncertainty**: Bootstrap 95% CI around each metric
-3. **Hypothesis Test**: Test if Sharpe > 1.0 at 5% significance
-4. **Multiple Correction**: If testing multiple variants, apply FDR
-5. **Walk-Forward**: Test on recent data not in training set
+- 데이터를 보기 *전에* 전략을 정하라
+- 알맞은 시계열 교차 검증으로 표본 밖 시험을 하라
+- 잘된 것만이 아니라 모든 백테스트를 보고하라
+- 여러 전략을 견줄 때에는 본페로니나 FDR 보정을 쓰라
 
-**Statistical Power:**
+**엄밀한 성능 검정:**
 
-To reliably detect strategy with true Sharpe = 1.2 vs. benchmark 1.0, need roughly 250 daily observations (1 year). With 10 years of data, power exceeds 99%.
+1. **점추정**: 샤프 비율, 최대 낙폭, 칼마 비율을 보고한다
+2. **불확실성**: 지표마다 부트스트랩 95% 신뢰구간을 낸다
+3. **가설 검정**: 유의수준 5%에서 샤프가 1.0보다 큰지 검정한다
+4. **다중 보정**: 여러 변형을 시험한다면 FDR을 적용한다
+5. **전진 검증**: 학습에 쓰지 않은 최근 데이터로 시험한다
 
-!!! success "Best Practice"
-    Implement trading strategy on paper for 3+ months before live trading. Treat paper results as *new* data for hypothesis testing. Only deploy if significance tests pass on this fresh data.
+**검정력:**
 
-## References
+참 샤프가 1.2인 전략을 기준선 1.0과 구별하여 믿을 만하게 찾아내려면 일간 관측이 대략 250개(1년) 필요하다. 10년치 데이터가 있으면 검정력이 99%를 넘는다.
+
+!!! success "좋은 관행"
+    실거래에 앞서 3개월 이상 모의로 전략을 굴려 보라. 모의 결과를 가설 검정을 위한 *새* 데이터로 다루라. 이 새 데이터에서 유의성 검정을 통과할 때에만 실전에 내보내라.
+
+## 참고 문헌
 
 - Efron & Tibshirani (1993): *An Introduction to the Bootstrap*
 - White (2000): "A Reality Check for Data Snooping" (*Econometric Reviews*)
 - Benjamini & Hochberg (1995): "Controlling the False Discovery Rate" (*JASA*)
 - De Prado (2018): *Advances in Financial Machine Learning*, Chapters 4-6
+
+## 연습문제
+
+**연습문제 1.**
+모델 성능에 대한 점추정과 신뢰구간의 차이를 설명하라.
+
+??? success "연습문제 1 풀이"
+    점추정(예: 정확도 = 92%)은 수 하나를 준다. 신뢰구간(예: 92% ± 1.5%)은 불확실성을 수치로 나타낸다. 시험 표본이 $n$개일 때 정확도 $p$의 95% 신뢰구간은 대략 $p \pm 1.96\sqrt{p(1-p)/n}$이다. 구간 없이 점추정만 보고하면 오해를 부를 수 있다.
+
+---
+
+**연습문제 2.**
+두 모델을 견주는 대응 부트스트랩 검정을 구현하라.
+
+??? success "연습문제 2 풀이"
+    ```python
+    def bootstrap_compare(scores_a, scores_b, n_bootstrap=10000):
+        n = len(scores_a)
+        diffs = []
+        for _ in range(n_bootstrap):
+            idx = torch.randint(0, n, (n,))
+            diff = scores_a[idx].mean() - scores_b[idx].mean()
+            diffs.append(diff.item())
+        p_value = (torch.tensor(diffs) <= 0).float().mean()
+        return p_value
+    ```
+
+---
+
+**연습문제 3.**
+교차 검증이 한 번의 학습/시험 분할보다 일반화를 더 잘 추정하는 이유를 설명하라.
+
+??? success "연습문제 3 풀이"
+    한 번의 분할은 분산이 큰 추정값 하나를 준다(어떤 예가 시험 집합에 들어가느냐에 달렸다). $k$겹 교차 검증은 추정값 $k$개를 평균하여 분산을 대략 $1/k$로 줄인다. 또한 모든 데이터를 학습과 시험 모두에 쓴다(각 예가 시험 집합에 정확히 한 번 들어간다).
+
+---
+
+**연습문제 4.**
+분류기를 견줄 때 대응 t 검정보다 맥니마 검정이 더 알맞은 때는 언제인가?
+
+??? success "연습문제 4 풀이"
+    맥니마 검정은 같은 시험 집합에서 두 분류기가 일치하고 어긋나는 분할표를 살펴 둘을 견준다. 시험 집합이 하나뿐이어서 되풀이 시행이 없을 때, 정확도 차이의 정규성을 가정하지 않으므로 t 검정보다 알맞다.

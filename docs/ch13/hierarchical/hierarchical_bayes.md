@@ -1,164 +1,147 @@
-# Hierarchical Bayesian Models
+# 층층 베이즈 모형
+## 개요
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-Hierarchical models allow parameters to vary by group while sharing statistical strength across groups through partial pooling. This module develops the theory of multi-level inference, contrasts pooling strategies, and demonstrates the shrinkage phenomenon that makes hierarchical models powerful.
+층층 모형은 매개변수가 무리마다 달라지게 하면서도 반쯤 모으기로 무리들 사이에 통계의 힘을 나누어 쓴다. 이 모듈은 여러 층 추론의 이론을 세우고 모으기 전략을 견주며, 층층 모형을 힘 있게 만드는 오그라들기 현상을 보여 준다.
 
 ---
 
-## 1. Hierarchical Model Structure
+## 1. 층층 모형의 짜임
 
-### 1.1 The Multi-Level Framework
+### 1.1 여러 층의 틀
 
-A hierarchical model specifies distributions at multiple levels:
+층층 모형은 여러 층에서 분포를 정한다.
 
-**Level 1 (Data):** Observations within groups
+**층 1(데이터):** 무리 안의 관찰
 
 $$
-
 y_{ij} | \theta_i \sim \mathcal{N}(\theta_i, \sigma^2)
-
 $$
 
-**Level 2 (Groups):** Group-level parameters
+**층 2(무리):** 무리 수준의 매개변수
 
 $$
-
 \theta_i | \mu, \tau \sim \mathcal{N}(\mu, \tau^2)
-
 $$
 
-**Level 3 (Hyperparameters):** Population-level parameters
+**층 3(초매개변수):** 모집단 수준의 매개변수
 
 $$
-
 \mu \sim \mathcal{N}(\mu_0, \sigma_0^2), \quad \tau \sim \text{Half-Cauchy}(\text{scale})
-
 $$
 
-### 1.2 Notation
+### 1.2 기호
 
-| Symbol | Meaning |
+| 기호 | 뜻 |
 |--------|---------|
-| $y_{ij}$ | Observation $j$ in group $i$ |
-| $\theta_i$ | Group-specific parameter |
-| $\mu$ | Population mean (hyperparameter) |
-| $\tau$ | Between-group standard deviation |
-| $\sigma$ | Within-group standard deviation |
-| $n_i$ | Sample size for group $i$ |
+| $y_{ij}$ | 무리 $i$의 $j$번째 관찰 |
+| $\theta_i$ | 무리마다의 매개변수 |
+| $\mu$ | 모집단의 평균(초매개변수) |
+| $\tau$ | 무리 사이의 표준편차 |
+| $\sigma$ | 무리 안의 표준편차 |
+| $n_i$ | 무리 $i$의 표본 크기 |
 
-### 1.3 Applications
+### 1.3 쓰임새
 
-| Domain | Groups | Observations |
+| 분야 | 무리 | 관찰 |
 |--------|--------|--------------|
-| Education | Schools | Student test scores |
-| Healthcare | Hospitals | Patient outcomes |
-| Marketing | Products | Customer ratings |
-| Psychology | Subjects | Repeated measurements |
-| Sports | Teams | Game performances |
+| 교육 | 학교 | 학생의 시험 점수 |
+| 의료 | 병원 | 환자의 결과 |
+| 마케팅 | 상품 | 고객의 평점 |
+| 심리학 | 피험자 | 되풀이한 측정 |
+| 스포츠 | 팀 | 경기 성적 |
 
 ---
 
-## 2. Three Pooling Strategies
+## 2. 세 가지 모으기 전략
 
-### 2.1 No Pooling (Complete Separation)
+### 2.1 모으지 않기(온전히 따로 두기)
 
-Estimate each $\theta_i$ independently, ignoring group structure:
+무리의 짜임을 아랑곳하지 않고 $\theta_i$마다 따로 어림한다.
 
 $$
-
 \hat{\theta}_i^{\text{no pool}} = \bar{y}_i = \frac{1}{n_i} \sum_{j=1}^{n_i} y_{ij}
-
 $$
 
-**Properties:**
-- Maximum flexibility for group differences
-- High variance for small groups
-- Ignores information from other groups
+**성질:**
 
-### 2.2 Complete Pooling (No Group Effects)
+- 무리 사이의 차이에 가장 자유롭다
+- 작은 무리에서 흩어짐이 크다
+- 다른 무리의 정보를 아랑곳하지 않는다
 
-Assume all groups share the same parameter:
+### 2.2 온전히 모으기(무리 효과 없음)
+
+모든 무리가 같은 매개변수를 나누어 쓴다고 놓는다.
 
 $$
-
 \hat{\theta}_i^{\text{complete}} = \bar{y}_{\cdot\cdot} = \frac{1}{N} \sum_{i,j} y_{ij}
-
 $$
 
-**Properties:**
-- Minimum variance
-- Maximum bias if groups truly differ
-- Ignores group structure entirely
+**성질:**
 
-### 2.3 Partial Pooling (Hierarchical)
+- 흩어짐이 가장 작다
+- 무리가 정말 다르면 치우침이 가장 크다
+- 무리의 짜임을 아예 아랑곳하지 않는다
 
-Shrink group estimates toward the population mean:
+### 2.3 반쯤 모으기(층층)
+
+무리의 어림값을 모집단의 평균 쪽으로 오그라뜨린다.
 
 $$
-
 \boxed{\hat{\theta}_i^{\text{partial}} = w_i \bar{y}_i + (1 - w_i) \mu}
-
 $$
 
-where the **shrinkage weight** is:
+여기서 **오그라듦 무게**는 다음과 같다.
 
 $$
-
 w_i = \frac{n_i}{n_i + \sigma^2/\tau^2}
-
 $$
 
-**Properties:**
-- Balances bias and variance
-- Groups with small $n_i$ shrink more toward $\mu$
-- Optimal under squared error loss
+**성질:**
+
+- 치우침과 흩어짐의 균형을 잡는다
+- $n_i$이 작은 무리일수록 $\mu$ 쪽으로 더 오그라든다
+- 제곱 오차 손실 아래에서 가장 좋다
 
 ---
 
-## 3. The Shrinkage Phenomenon
+## 3. 오그라들기 현상
 
-### 3.1 Understanding Shrinkage Weights
+### 3.1 오그라듦 무게 이해하기
 
-The weight $w_i$ determines how much group $i$'s estimate relies on its own data vs the population:
+무게 $w_i$은 무리 $i$의 어림값이 제 데이터와 모집단 가운데 어느 쪽에 얼마나 기대는지를 정한다.
 
 $$
-
 w_i = \frac{n_i}{n_i + \sigma^2/\tau^2} = \frac{\text{group precision}}{\text{group precision} + \text{prior precision}}
-
 $$
 
-| Scenario | $w_i$ | Behavior |
+| 상황 | $w_i$ | 거동 |
 |----------|-------|----------|
-| Large $n_i$ | $\approx 1$ | Trust group data |
-| Small $n_i$ | $\approx 0$ | Trust population mean |
-| Large $\tau$ (heterogeneous groups) | Higher | Less shrinkage |
-| Small $\tau$ (homogeneous groups) | Lower | More shrinkage |
+| $n_i$이 큼 | $\approx 1$ | 무리의 데이터를 믿는다 |
+| $n_i$이 작음 | $\approx 0$ | 모집단의 평균을 믿는다 |
+| $\tau$이 큼(무리가 서로 다름) | 더 높음 | 덜 오그라듦 |
+| $\tau$이 작음(무리가 서로 비슷함) | 더 낮음 | 더 오그라듦 |
 
-### 3.2 Shrinkage as Regularization
+### 3.2 벌주기로서의 오그라들기
 
-Partial pooling is equivalent to **regularization**:
-- Prevents overfitting to noisy group estimates
-- Especially beneficial for small groups
-- Automatically adapts shrinkage to data
+반쯤 모으기는 **벌주기**와 같다.
 
-### 3.3 Visual Intuition
+- 잡음 많은 무리 어림값에 지나치게 맞추어지는 것을 막는다
+- 작은 무리에 특히 이롭다
+- 데이터에 맞추어 오그라듦을 저절로 조절한다
 
-Groups with extreme estimates (far from the mean) and small samples are pulled most strongly toward the population mean — this is the **shrinkage toward the grand mean**.
+### 3.3 눈으로 보는 직관
+
+어림값이 극단적이고(평균에서 멀고) 표본이 작은 무리일수록 모집단의 평균 쪽으로 가장 세게 끌린다. 이것이 **큰 평균으로의 오그라들기**이다.
 
 ---
 
-## 4. The Eight Schools Example
+## 4. 여덟 학교 보기
 
-### 4.1 Classic Dataset
+### 4.1 고전적인 데이터셋
 
-The "Eight Schools" dataset is a canonical hierarchical modeling example:
+"여덟 학교" 데이터셋은 층층 모형의 본보기 보기이다.
 
-| School | $n_i$ | Observed Effect $\bar{y}_i$ |
+| 학교 | $n_i$ | 관찰된 효과 $\bar{y}_i$ |
 |--------|-------|----------------------------|
 | A | 28 | 28.4 |
 | B | 8 | 7.9 |
@@ -169,38 +152,38 @@ The "Eight Schools" dataset is a canonical hierarchical modeling example:
 | G | 6 | 18.0 |
 | H | 11 | 12.2 |
 
-### 4.2 Implementation
+### 4.2 구현
 
 ```python
 import numpy as np
 
 def hierarchical_estimates(observed_means, sample_sizes, sigma=15.0):
     """
-    Compute no pooling, complete pooling, and partial pooling estimates.
+    어울림 없음, 온전한 어울림, 얼마쯤 어울림 어림값을 셈한다.
     
-    Parameters
+    매개변수
     ----------
     observed_means : array
-        Group sample means
+        무리 표본 평균
     sample_sizes : array
-        Sample size for each group
+        무리마다의 표본 크기
     sigma : float
-        Known within-group standard deviation
+        아는 무리 안 표준편차
     
-    Returns
+    반환값
     -------
-    dict with estimates for each pooling strategy
+    어울림 전략마다의 어림값을 담은 dict
     """
     n_groups = len(observed_means)
     
-    # No pooling: use observed means directly
+    # 어울림 없음: 관측 평균을 그대로 쓴다
     no_pool = observed_means.copy()
     
-    # Complete pooling: grand mean
+    # 온전한 어울림: 큰 평균
     complete_pool = np.full(n_groups, np.mean(observed_means))
     
-    # Partial pooling: shrink toward grand mean
-    tau_est = np.std(observed_means)  # Empirical estimate
+    # 얼마쯤 어울림: 큰 평균 쪽으로 오그라뜨리기
+    tau_est = np.std(observed_means)  # 경험 어림값
     grand_mean = np.mean(observed_means)
     
     weights = sample_sizes / (sample_sizes + sigma**2 / tau_est**2)
@@ -214,159 +197,195 @@ def hierarchical_estimates(observed_means, sample_sizes, sigma=15.0):
     }
 ```
 
-### 4.3 Results Interpretation
+### 4.3 결과 풀이
 
-For a typical run with the Eight Schools structure:
+여덟 학교 짜임으로 흔히 돌려 보면 다음과 같다.
 
-| School | $n$ | No Pool | Partial Pool | Shrinkage |
+| 학교 | $n$ | 모으지 않음 | 반쯤 모음 | 오그라듦 |
 |--------|-----|---------|--------------|-----------|
-| A | 28 | 28.4 | 19.2 | High (extreme value) |
-| B | 8 | 7.9 | 8.5 | Low (near mean) |
-| G | 6 | 18.0 | 12.1 | High (small $n$, extreme) |
-| F | 44 | 0.6 | 2.8 | Low (large $n$) |
+| A | 28 | 28.4 | 19.2 | 큼(극단적인 값) |
+| B | 8 | 7.9 | 8.5 | 작음(평균에 가까움) |
+| G | 6 | 18.0 | 12.1 | 큼($n$이 작고 극단적임) |
+| F | 44 | 0.6 | 2.8 | 작음($n$이 큼) |
 
-**Key observations:**
-- School G (small $n$, extreme value) shrinks substantially
-- School F (large $n$, near mean) changes little
-- Partial pooling "borrows strength" from all schools
+**핵심 관찰:**
+
+- 학교 G($n$이 작고 값이 극단적임)는 크게 오그라든다
+- 학교 F($n$이 크고 평균에 가까움)는 거의 바뀌지 않는다
+- 반쯤 모으기는 모든 학교에서 "힘을 빌린다"
 
 ---
 
-## 5. Mathematical Derivation
+## 5. 수학적 끌어내기
 
-### 5.1 Posterior for Group Parameters
+### 5.1 무리 매개변수의 뒤확률
 
-Under the hierarchical model, the posterior for $\theta_i$ given data and hyperparameters is:
+층층 모형에서 데이터와 초매개변수가 주어졌을 때 $\theta_i$의 뒤확률은 다음과 같다.
 
 $$
-
 \theta_i | y, \mu, \tau, \sigma \sim \mathcal{N}\left(\hat{\theta}_i, V_i\right)
-
 $$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$
-
 \hat{\theta}_i = \frac{\frac{n_i}{\sigma^2} \bar{y}_i + \frac{1}{\tau^2} \mu}{\frac{n_i}{\sigma^2} + \frac{1}{\tau^2}}
-
 $$
 
 $$
-
 V_i = \frac{1}{\frac{n_i}{\sigma^2} + \frac{1}{\tau^2}}
-
 $$
 
-### 5.2 Precision-Weighted Average
+### 5.2 정밀도로 무게 준 평균
 
-The posterior mean is a **precision-weighted average**:
+뒤확률의 평균은 **정밀도로 무게 준 평균**이다.
 
 $$
-
 \hat{\theta}_i = \frac{\tau_{\text{data}} \cdot \bar{y}_i + \tau_{\text{prior}} \cdot \mu}{\tau_{\text{data}} + \tau_{\text{prior}}}
-
 $$
 
-where:
-- $\tau_{\text{data}} = n_i/\sigma^2$ is the data precision
-- $\tau_{\text{prior}} = 1/\tau^2$ is the prior precision
+여기서 각 기호는 다음과 같다.
 
-### 5.3 Limiting Cases
+- $\tau_{\text{data}} = n_i/\sigma^2$은 데이터의 정밀도이다
+- $\tau_{\text{prior}} = 1/\tau^2$은 앞확률의 정밀도이다
 
-**As $\tau \to \infty$** (groups very different):
-- Prior is vague → $w_i \to 1$
-- Partial pooling → No pooling
+### 5.3 극한의 경우
 
-**As $\tau \to 0$** (groups identical):
-- Prior is tight → $w_i \to 0$
-- Partial pooling → Complete pooling
+**$\tau \to \infty$일 때**(무리가 아주 다름):
+
+- 앞확률이 흐릿하다 → $w_i \to 1$
+- 반쯤 모으기 → 모으지 않기
+
+**$\tau \to 0$일 때**(무리가 똑같음):
+
+- 앞확률이 빡빡하다 → $w_i \to 0$
+- 반쯤 모으기 → 온전히 모으기
 
 ---
 
-## 6. Benefits of Hierarchical Models
+## 6. 층층 모형의 이점
 
-### 6.1 Improved Estimation
+### 6.1 나아진 어림
 
-| Benefit | Explanation |
+| 이점 | 설명 |
 |---------|-------------|
-| **Borrowing strength** | Small groups benefit from information in other groups |
-| **Regularization** | Extreme estimates are automatically shrunk |
-| **Bias-variance tradeoff** | Optimal balance between group-specific and population info |
+| **힘 빌리기** | 작은 무리가 다른 무리의 정보에서 이득을 본다 |
+| **벌주기** | 극단적인 어림값이 저절로 오그라든다 |
+| **치우침과 흩어짐의 맞바꿈** | 무리마다의 정보와 모집단 정보 사이의 가장 좋은 균형 |
 
-### 6.2 Better Predictions
+### 6.2 더 나은 예측
 
-Hierarchical estimates typically have **lower mean squared error** than no-pooling estimates, especially for small groups.
+층층 어림값은 모으지 않은 어림값보다 **평균제곱오차가 작을** 때가 많으며, 특히 작은 무리에서 그렇다.
 
-### 6.3 Coherent Uncertainty
+### 6.3 앞뒤 맞는 불확실성
 
-The hierarchical framework provides:
-- Uncertainty for each $\theta_i$
-- Uncertainty for population parameters $\mu, \tau$
-- Proper propagation of uncertainty across levels
+층층 틀은 다음을 준다.
+
+- $\theta_i$마다의 아리송함
+- 모집단 매개변수 $\mu, \tau$의 아리송함
+- 층을 가로지르는 제대로 된 불확실성 퍼뜨리기
 
 ---
 
-## 7. Practical Considerations
+## 7. 실전에서 살필 것
 
-### 7.1 When to Use Hierarchical Models
+### 7.1 층층 모형을 언제 쓸까
 
-- Multiple groups with related parameters
-- Varying sample sizes across groups
-- Interest in both group-level and population-level inference
-- Small groups that benefit from borrowing strength
+- 서로 이어진 매개변수를 가진 무리가 여럿일 때
+- 무리마다 표본 크기가 다를 때
+- 무리 수준과 모집단 수준의 추론이 모두 궁금할 때
+- 힘을 빌려 이득을 보는 작은 무리가 있을 때
 
-### 7.2 Challenges
+### 7.2 어려움
 
-| Challenge | Solution |
+| 어려움 | 해법 |
 |-----------|----------|
-| Computational complexity | MCMC, variational inference |
-| Prior specification for $\tau$ | Half-Cauchy, Half-Normal priors |
-| Identifiability | Ensure sufficient data at each level |
-| Model checking | Posterior predictive checks |
+| 셈의 복잡함 | MCMC, 변분 추론 |
+| $\tau$의 앞확률 정하기 | 반코시, 반정규 앞확률 |
+| 식별 가능성 | 층마다 데이터가 넉넉하게 하기 |
+| 모형 점검 | 뒤확률 예측 점검 |
 
-### 7.3 Software
+### 7.3 소프트웨어
 
-Modern probabilistic programming languages make hierarchical models accessible:
-- **Stan** (via PyStan, RStan)
+오늘날의 확률 프로그래밍 언어들이 층층 모형을 손쉽게 쓸 수 있게 한다.
+
+- **Stan**(PyStan, RStan을 거쳐)
 - **PyMC**
-- **NumPyro** / **Numpyro**
+- **NumPyro**
 - **JAGS**
 
 ---
 
-## 8. Key Takeaways
+## 8. 핵심 요점
 
-1. **Hierarchical models** share information across groups through a multi-level structure, where group parameters are drawn from a common population distribution.
+1. **층층 모형**은 여러 층의 짜임으로 무리들 사이에 정보를 나누어 쓰며, 무리의 매개변수는 공통 모집단 분포에서 나온다.
 
-2. **Three pooling strategies**: No pooling (independent), complete pooling (identical), and partial pooling (hierarchical). Partial pooling optimally balances bias and variance.
+2. **세 가지 모으기 전략**: 모으지 않기(따로), 온전히 모으기(똑같이), 반쯤 모으기(층층). 반쯤 모으기가 치우침과 흩어짐의 균형을 가장 잘 잡는다.
 
-3. **Shrinkage is automatic**: Groups with small samples or extreme values are pulled toward the population mean. The amount of shrinkage is determined by the data.
+3. **오그라들기는 저절로 일어난다**: 표본이 작거나 값이 극단적인 무리가 모집단의 평균 쪽으로 끌린다. 얼마나 오그라들지는 데이터가 정한다.
 
-4. **Borrowing strength**: Small groups benefit most from hierarchical modeling by leveraging information from other groups.
+4. **힘 빌리기**: 작은 무리가 다른 무리의 정보를 끌어 써서 층층 모형에서 가장 큰 이득을 본다.
 
-5. **The shrinkage weight** $w_i = n_i/(n_i + \sigma^2/\tau^2)$ determines how much each group relies on its own data vs the population estimate.
-
----
-
-## 9. Exercises
-
-### Exercise 1: Varying Heterogeneity
-Simulate data with different values of $\tau$ (between-group variation). Show how partial pooling estimates change as groups become more or less similar.
-
-### Exercise 2: Sample Size Effects
-Create groups with very different sample sizes (e.g., $n_i \in \{5, 50, 500\}$). Demonstrate that small groups shrink more.
-
-### Exercise 3: MSE Comparison
-Compare the mean squared error of no-pooling vs partial-pooling estimates across many simulations. Show that partial pooling wins on average.
-
-### Exercise 4: Full Bayesian Implementation
-Implement the Eight Schools model in PyMC or Stan with proper priors on $\mu$ and $\tau$. Compare posterior estimates with the simple empirical Bayes approach.
+5. **오그라듦 무게** $w_i = n_i/(n_i + \sigma^2/\tau^2)$이 무리마다 제 데이터와 모집단 어림값 가운데 어느 쪽에 얼마나 기대는지를 정한다.
 
 ---
 
-## References
+## 9. 연습문제
 
-- Gelman, A., et al. *Bayesian Data Analysis* (3rd ed.), Chapter 5
+### 연습문제 1: 서로 다름의 정도 바꾸기
+$\tau$(무리 사이의 변동) 값을 달리하며 데이터를 흉내 내어 만들어라. 무리가 더 닮거나 덜 닮아질 때 반쯤 모은 어림값이 어떻게 바뀌는지 보여라.
+
+### 연습문제 2: 표본 크기의 영향
+표본 크기가 크게 다른 무리(이를테면 $n_i \in \{5, 50, 500\}$)를 만들어라. 작은 무리가 더 오그라듦을 보여라.
+
+### 연습문제 3: 평균제곱오차 견줌
+흉내 내기를 여러 번 하며 모으지 않은 어림값과 반쯤 모은 어림값의 평균제곱오차를 견주어라. 평균으로 반쯤 모으기가 앞섬을 보여라.
+
+### 연습문제 4: 온전한 베이즈 구현
+$\mu$과 $\tau$에 제대로 된 앞확률을 두고 PyMC이나 Stan으로 여덟 학교 모형을 구현하라. 뒤확률 어림값을 단순한 경험적 베이즈 방법과 견주어라.
+
+---
+
+## 참고 문헌
+
+- Gelman, A., et al. *Bayesian Data Analysis* (3rd ed.), 5장
 - Gelman, A., & Hill, J. *Data Analysis Using Regression and Multilevel/Hierarchical Models*
 - Efron, B., & Morris, C. (1975). Data analysis using Stein's estimator and its generalizations. *JASA*, 70(350), 311-319.
+
+## 연습문제
+
+**연습문제 1.**
+이 쪽이 다루는 핵심 개념과 그것이 베이즈 통계에서 하는 몫을 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 쪽은 베이즈 추론의 근본 부품인 층층 베이즈을(를) 다룬다. 이는 데이터로 믿음을 고치고, 불확실성을 수로 나타내며, 불확실함 속에서 결정을 내리는 더 넓은 틀과 이어진다. 베이즈의 눈은 앞선 앎을 아우르고 불확실성을 분석 전체로 퍼뜨리는 원칙 있는 길을 준다.
+
+---
+
+**연습문제 2.**
+주된 수학적 결과를 끌어내거나 밝히고 그 뜻을 설명하라.
+
+??? success "연습문제 2 풀이"
+    핵심 결과는 앞선 정보가 베이즈 정리를 거쳐 관찰한 데이터와 어우러져 고쳐진 추론을 낳는 모습을 보여 준다. 이 결과가 뜻깊은 까닭은, 매개변수의 불확실성을 아랑곳하지 않는 점 어림 방법과 달리 불확실성을 셈에 넣으면서 데이터에서 배우는 앞뒤 맞는 틀을 주기 때문이다.
+
+---
+
+**연습문제 3.**
+이 주제에서 베이즈 방법과 빈도주의 대안을 견주어라.
+
+??? success "연습문제 3 풀이"
+    베이즈 방법은 온전한 뒤확률 분포, 자연스러운 불확실성 재기, 앞선 앎을 아우르는 원칙 있는 길을 준다. 빈도주의 대안은 표집 분포에 기대고, 큰 표본 어림이 필요할 수 있으며, 매개변수를 붙박인 미지수로 다룬다. 표본이 작을 때는 앞확률의 벌주기 효과 덕분에 베이즈 방법이 더 나을 때가 많다.
+
+---
+
+**연습문제 4.**
+이 개념의 간단한 보기를 파이토치나 넘파이로 파이썬에 구현하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    import numpy as np
+    # 구현은 주제에 따라 달라진다.
+    # 켤레 모형: 닫힌 꼴 뒤확률 새로 고치기.
+    # 켤레가 아닌 모형: MCMC 또는 변분 추론.
+    # 핵심 걸음: 앞확률 정하기, 가능도 셈하기, 뒤확률 이끌어 내기/어림하기.
+    ```

@@ -1,80 +1,80 @@
-# Sorted Array
+# 정렬된 배열
 
-One straightforward way to implement the [priority queue ADT](adt.md) is to keep the elements in a sorted array.  Because the array is always sorted by key, the minimum (or maximum) element sits at a known position, making extraction trivial.  The price is paid at insertion time: each new element must be placed in its correct sorted position, which requires shifting existing elements.  This page describes the sorted-array priority queue, analyzes its complexity, and contrasts it with the [unsorted-array](unsorted.md) and [heap-based](heap_preview.md) alternatives.
+[우선순위 큐 추상 자료형](adt.md)을 구현하는 곧바른 방법 하나는 원소를 정렬된 배열에 두는 것이다. 배열이 언제나 키로 정렬되어 있으므로 최솟값(또는 최댓값)이 알려진 자리에 있어 꺼내기가 아주 쉽다. 대가는 넣을 때 치른다. 새 원소를 정렬된 자리에 놓아야 하므로 기존 원소를 옮겨야 한다. 이 쪽은 정렬된 배열 우선순위 큐를 설명하고 복잡도를 분석하며 [정렬되지 않은 배열](unsorted.md) 및 [힙 기반](heap_preview.md) 방식과 견주어 본다.
 
-## Representation
+## 표현
 
-The priority queue stores its $n$ elements in an array $A[0 \ldots n-1]$ sorted in non-decreasing order of key:
+이 우선순위 큐는 원소 $n$개를 키에 대해 감소하지 않는 차례로 정렬된 배열 $A[0 \ldots n-1]$에 담는다.
 
 $$
 \text{key}(A[0]) \le \text{key}(A[1]) \le \cdots \le \text{key}(A[n-1])
 $$
 
-The minimum element is always at index $0$, and the maximum is at index $n - 1$.
+최솟값은 언제나 인덱스 $0$에, 최댓값은 인덱스 $n - 1$에 있다.
 
-## Operations
+## 연산
 
-### Insert
+### 삽입
 
-To insert a new element $x$ with key $k$:
+키가 $k$인 새 원소 $x$을 넣으려면 다음과 같이 한다.
 
-1. Find the correct position $j$ using **binary search** in $O(\log n)$ time.
-2. Shift elements $A[j], A[j+1], \dots, A[n-1]$ one position to the right to make room.
-3. Place $x$ at index $j$.
-4. Increment $n$.
+1. **이진 탐색**으로 $O(\log n)$ 시간에 알맞은 자리 $j$을 찾는다.
+2. 자리를 내려고 원소 $A[j], A[j+1], \dots, A[n-1]$을 오른쪽으로 한 칸씩 옮긴다.
+3. 인덱스 $j$에 $x$을 놓는다.
+4. $n$을 1 늘린다.
 
-The binary search costs $O(\log n)$, but the shifting costs $O(n)$ in the worst case (when $x$ must be inserted at the beginning).  Therefore:
+이진 탐색에는 $O(\log n)$이 들지만 옮기기에는 최악의 경우($x$을 맨 앞에 넣어야 할 때) $O(n)$이 든다. 따라서 다음과 같다.
 
 $$
 T_{\text{insert}} = O(n)
 $$
 
-### Extract-Min
+### 최솟값 빼기
 
-The minimum is at index $0$.  Remove it by shifting all elements one position to the left:
+최솟값은 인덱스 $0$에 있다. 모든 원소를 왼쪽으로 한 칸씩 옮겨 없앤다.
 
 $$
 T_{\text{extract-min}} = O(n)
 $$
 
-Alternatively, store elements in non-increasing order so the minimum is at the end.  Then extraction is $O(1)$ (just decrement $n$), but inserting at the correct position still requires shifting.
+대안으로 원소를 늘어나지 않는 차례로 담아 최솟값이 끝에 오게 할 수도 있다. 그러면 꺼내기가 $O(1)$이지만($n$을 1 줄이면 된다) 알맞은 자리에 넣으려면 여전히 옮겨야 한다.
 
-!!! tip "Optimization: reverse the sort order"
-    If we store elements in **non-increasing** order — largest at index 0, smallest at index $n-1$ — then `extract_min()` simply returns and removes the last element in $O(1)$.  Insertion still costs $O(n)$ due to shifting, but extraction becomes constant time.  This is the more practical variant.
+!!! tip "최적화: 정렬 순서를 뒤집기"
+    원소를 **늘어나지 않는** 차례로 담으면, 곧 가장 큰 값을 인덱스 0에, 가장 작은 값을 인덱스 $n-1$에 두면 `extract_min()`은 마지막 원소를 $O(1)$에 돌려주고 없애기만 하면 된다. 넣기는 옮기기 때문에 여전히 $O(n)$이지만 꺼내기는 상수 시간이 된다. 이쪽이 더 실용적인 변형이다.
 
-### Find-Min
+### 최솟값 찾기
 
-With either sort order, the minimum is at a known position (index $0$ or index $n-1$):
+어느 정렬 순서를 쓰든 최솟값은 알려진 자리(인덱스 $0$ 또는 인덱스 $n-1$)에 있다.
 
 $$
 T_{\text{find-min}} = O(1)
 $$
 
-## Complexity Summary
+## 복잡도 요약
 
-Using the non-increasing order optimization:
+늘어나지 않는 차례로 두는 최적화를 쓰면 다음과 같다.
 
-| Operation | Time |
+| 연산 | 시간 |
 |---|---|
 | `insert(x)` | $O(n)$ |
 | `extract_min()` | $O(1)$ |
 | `find_min()` | $O(1)$ |
 | `is_empty()` | $O(1)$ |
 
-## When to Use a Sorted Array
+## 정렬된 배열을 쓸 때
 
-The sorted-array approach is best when:
+정렬된 배열 방식은 다음과 같을 때 가장 좋다.
 
-- **Extractions dominate insertions**: if the workload performs many more `extract_min` calls than `insert` calls, the $O(1)$ extraction is advantageous.
-- **The dataset is small**: for small $n$, the $O(n)$ insertion cost is negligible, and the simplicity of the implementation outweighs the benefit of a heap.
-- **The data arrives pre-sorted**: if elements are inserted in sorted order, each insertion requires no shifting and takes $O(1)$.
+- **꺼내기가 넣기보다 많을 때**: `insert`보다 `extract_min`을 훨씬 자주 부른다면 $O(1)$ 꺼내기가 유리하다.
+- **데이터가 적을 때**: $n$이 작으면 $O(n)$ 넣기 비용이 무시할 만하고 구현이 간단하다는 이점이 힙의 이득보다 크다.
+- **데이터가 이미 정렬되어 들어올 때**: 원소를 정렬된 순서로 넣으면 옮길 것이 없어 넣기마다 $O(1)$이다.
 
-For workloads with frequent insertions, a [binary heap](heap_preview.md) provides $O(\log n)$ for both insertion and extraction and is generally preferred.
+넣기가 잦은 작업에는 넣기와 꺼내기 모두 $O(\log n)$인 [이진 힙](heap_preview.md)이 대체로 낫다.
 
-??? example "Operation trace with non-increasing order"
-    Elements are stored largest-first.  The minimum is always at the end.
+??? example "늘어나지 않는 차례로 따라가기"
+    원소를 큰 것부터 담는다. 최솟값은 언제나 끝에 있다.
 
-    | Step | Operation | Array (non-increasing) | Returned |
+    | 단계 | 연산 | 배열 (늘어나지 않는 차례) | 반환값 |
     |------|-----------|----------------------|----------|
     | 1 | `insert(5)` | [5] | — |
     | 2 | `insert(3)` | [5, 3] | — |
@@ -84,26 +84,26 @@ For workloads with frequent insertions, a [binary heap](heap_preview.md) provide
     | 6 | `insert(1)` | [8, 5, 1] | — |
     | 7 | `extract_min()` | [8, 5] | 1 |
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
-"""Sorted-array priority queue (non-increasing order for O(1) extract-min)."""
+"""정렬된 배열 우선순위 큐 (최솟값 꺼내기를 O(1)로 하려고 늘어나지 않는 차례로 둔다)."""
 
 import bisect
 
 
-# === Sorted Array Priority Queue ===
+# === 정렬된 배열 우선순위 큐 ===
 
 class SortedArrayPQ:
     """A min-priority queue backed by an array sorted in non-increasing order.
 
-    insert:      O(n) due to shifting
-    extract_min: O(1) by removing the last element
-    find_min:    O(1) by peeking at the last element
+    insert:      옮기기 때문에 O(n)
+    extract_min: 마지막 원소를 없애므로 O(1)
+    find_min:    마지막 원소를 들여다보므로 O(1)
     """
 
     def __init__(self):
-        self._data = []  # sorted in non-increasing order
+        self._data = []  # 늘어나지 않는 차례로 정렬됨
 
     def __len__(self):
         return len(self._data)
@@ -112,26 +112,26 @@ class SortedArrayPQ:
         return len(self._data) == 0
 
     def insert(self, key):
-        """Insert a key in O(n) time, maintaining non-increasing order."""
-        # bisect works on non-decreasing order, so we negate keys
-        # to reuse it for non-increasing order.
+        """늘어나지 않는 차례를 지키며 O(n) 시간에 키를 넣는다."""
+        # bisect은 감소하지 않는 차례에서 작동하므로 키의 부호를 뒤집어
+        # 늘어나지 않는 차례에 다시 쓴다.
         pos = bisect.bisect_left(self._data, key, key=lambda x: -x)
         self._data.insert(pos, key)
 
     def find_min(self):
-        """Return the minimum key in O(1) time."""
+        """최소 키를 O(1) 시간에 돌려준다."""
         if self.is_empty():
             raise IndexError("find_min from empty priority queue")
         return self._data[-1]
 
     def extract_min(self):
-        """Remove and return the minimum key in O(1) time."""
+        """최소 키를 O(1) 시간에 빼서 돌려준다."""
         if self.is_empty():
             raise IndexError("extract_min from empty priority queue")
         return self._data.pop()
 
 
-# === Demo ===
+# === 시연 ===
 
 if __name__ == "__main__":
     pq = SortedArrayPQ()
@@ -143,6 +143,39 @@ if __name__ == "__main__":
     print(f"Remaining size: {len(pq)}")     # 4
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 6. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+정렬된 배열의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+정렬된 배열을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+정렬된 배열을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+정렬된 배열을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

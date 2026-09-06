@@ -1,125 +1,119 @@
-# Adversarial Training
+# 맞겨루기 익히기
+맞겨루기 만들개(GAN)는 만들어 내는 모델에서 틀이 바뀐 것을 나타낸다. 가능도에 바탕한 방식(변분 자기 부호기, 흐름, 퍼짐 모델)과 달리 맞겨루기 만들개는 신경망 둘 사이의 **맞겨루는 겨룸**으로 배운다.
 
+## 핵심 직관
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+그림 위조에 빗대어 보자.
 
-Generative Adversarial Networks (GANs) represent a paradigm shift in generative modeling. Unlike likelihood-based approaches (VAEs, Flows, Diffusion models), GANs learn through **adversarial competition** between two neural networks.
+**위조범(만들개)**: 진짜처럼 보이는 가짜 그림 만드는 법을 배운다 **감정가(가름개)**: 진짜 작품과 위조품을 가려내는 법을 배운다
 
-## The Core Intuition
+감정가가 가짜를 더 잘 알아볼수록 위조범은 더 그럴듯한 위조품을 만들어야 한다. 이 맞겨루는 움직임이 두 쪽을 끊임없이 나아지게 한다. 마침내 위조범은 진짜 걸작과 가려낼 수 없는 그림을 만든다.
 
-Consider an analogy from art forgery:
+이 겨루는 과정을 신경망으로 옮기면 만들개가 확률 밀도를 드러내어 셈하지 않고도 놀랍도록 그럴듯한 자료를 낼 수 있다.
 
-**The Forger (Generator)**: Learns to create fake paintings that look authentic
-**The Expert (Discriminator)**: Learns to distinguish genuine art from forgeries
+## 지난 이야기
 
-As the expert improves at detecting fakes, the forger must create more convincing forgeries. This adversarial dynamic drives both parties to continuously improve. Eventually, the forger produces paintings indistinguishable from authentic masterpieces.
+이언 굿펠로가 2014년에 맞겨루기 만들개를 내놓으며 신경망이 놀이 이론 틀로 만들어 내는 모델을 배울 수 있게 한 돌파구라고 밝혔다. 본디 논문은 맞겨루기 익히기가 또렷하고 그럴듯한 그림을 낼 수 있음을 보였고, 이는 그때 변분 자기 부호기가 내던 흐릿한 결과에 견주어 크게 나아진 것이었다.
 
-This competitive process, when translated to neural networks, enables generators to produce remarkably realistic data without ever explicitly computing probability densities.
+## 맞겨루기 틀
 
-## Historical Context
+맞겨루기 만들개는 함께 익히는 신경망 둘로 이루어진다.
 
-Ian Goodfellow introduced GANs in 2014, describing them as a breakthrough that enabled neural networks to learn generative models through a game-theoretic framework. The original paper demonstrated that adversarial training could produce sharp, realistic images—a significant improvement over the blurry outputs typical of variational autoencoders at the time.
+### 만들개 G
 
-## The Adversarial Framework
-
-GANs consist of two neural networks trained simultaneously:
-
-### Generator G
-
-The generator transforms random noise into synthetic data:
+만들개는 아무 잡음을 인공 자료로 바꾼다.
 
 $$G: \mathcal{Z} \rightarrow \mathcal{X}$$
 
-where:
+여기서 각 기호는 다음과 같다.
 
-- $\mathcal{Z}$ is the latent space (typically standard Gaussian $\mathcal{N}(0, I)$)
-- $\mathcal{X}$ is the data space (e.g., images)
-- $z \sim p_z(z)$ is the input noise vector
-- $G(z)$ is the generated sample
+- $\mathcal{Z}$은 숨은 공간이다(흔히 표준 정규 분포 $\mathcal{N}(0, I)$)
+- $\mathcal{X}$은 자료 공간이다(예컨대 그림)
+- $z \sim p_z(z)$은 들임 잡음 벡터이다
+- $G(z)$은 만든 표본이다
 
-### Discriminator D
+### 가름개 D
 
-The discriminator classifies inputs as real or generated:
+가름개는 들임을 실제인지 만든 것인지 가른다.
 
 $$D: \mathcal{X} \rightarrow [0, 1]$$
 
-where:
+여기서 각 기호는 다음과 같다.
 
-- $D(x)$ outputs the probability that $x$ is real
-- $D(x) \approx 1$ indicates "definitely real"
-- $D(x) \approx 0$ indicates "definitely fake"
+- $D(x)$은 $x$이 실제일 확률을 내놓는다
+- $D(x) \approx 1$은 "틀림없이 실제"를 뜻한다
+- $D(x) \approx 0$은 "틀림없이 가짜"를 뜻한다
 
-## The Two-Player Game
+## 두 사람 놀이
 
-GAN training is formulated as a **minimax game** between G and D:
+맞겨루기 만들개 익히기는 G과 D 사이의 **최소최대 놀이**로 적는다.
 
 $$\min_G \max_D V(D, G) = \mathbb{E}_{x \sim p_{\text{data}}(x)}[\log D(x)] + \mathbb{E}_{z \sim p_z(z)}[\log(1 - D(G(z)))]$$
 
-This objective has two components:
+이 목표에는 두 몫이 있다.
 
-1. **$\mathbb{E}_{x \sim p_{\text{data}}}[\log D(x)]$**: Expected log-probability that D correctly classifies real data
-2. **$\mathbb{E}_{z \sim p_z}[\log(1 - D(G(z)))]$**: Expected log-probability that D correctly classifies fake data
+1. **$\mathbb{E}_{x \sim p_{\text{data}}}[\log D(x)]$**: D이 실제 자료를 제대로 가를 기댓값 로그 확률
+2. **$\mathbb{E}_{z \sim p_z}[\log(1 - D(G(z)))]$**: D이 가짜 자료를 제대로 가를 기댓값 로그 확률
 
-### Discriminator's Goal
+### 가름개의 목표
 
-The discriminator maximizes $V(D, G)$, which means:
+가름개는 $V(D, G)$을 가장 크게 하며 이는 다음을 뜻한다.
 
-- Maximize $D(x)$ for real samples (push toward 1)
-- Minimize $D(G(z))$ for fake samples (push toward 0)
+- 실제 표본에서 $D(x)$을 가장 크게 한다(1 쪽으로 민다)
+- 가짜 표본에서 $D(G(z))$을 가장 작게 한다(0 쪽으로 민다)
 
-This is equivalent to **binary cross-entropy classification**.
+이는 **두값 어긋 엔트로피 가르기**와 같다.
 
-### Generator's Goal
+### 만들개의 목표
 
-The generator minimizes $V(D, G)$, which means:
+만들개는 $V(D, G)$을 가장 작게 하며 이는 다음을 뜻한다.
 
-- Maximize $D(G(z))$ (fool the discriminator)
-- Generate samples that D classifies as real
+- $D(G(z))$을 가장 크게 한다(가름개를 속인다)
+- D이 실제로 가르는 표본을 만든다
 
-## Why Adversarial Training Works
+## 맞겨루기 익히기가 통하는 까닭
 
-The adversarial framework provides several advantages:
+맞겨루기 틀은 여러 장점을 준다.
 
-### Implicit Distribution Matching
+### 은근한 분포 맞추기
 
-Unlike VAEs that require explicit likelihood computation, GANs implicitly match distributions through the discriminator's feedback. The generator never needs to compute $p_G(x)$ directly—it only needs to produce samples that fool D.
+가능도를 드러내어 셈해야 하는 변분 자기 부호기와 달리 맞겨루기 만들개는 가름개의 되먹임으로 분포를 은근히 맞춘다. 만들개는 $p_G(x)$을 곧바로 셈할 필요가 전혀 없고 D을 속이는 표본만 내면 된다.
 
-### Sharp Sample Generation
+### 또렷한 표본 만들어 내기
 
-The discriminator provides detailed feedback about sample quality. Unlike reconstruction losses that average over all pixels, the discriminator focuses on features that distinguish real from fake, enabling sharper outputs.
+가름개는 표본 품질에 대해 자세한 되먹임을 준다. 모든 화소에 걸쳐 평균 내는 되짓기 손실과 달리 가름개는 실제와 가짜를 가르는 특징에 집중하여 더 또렷한 내놓기를 낳는다.
 
-### Flexible Architecture
+### 너그러운 얼개
 
-Both G and D can be any differentiable function (typically neural networks). This flexibility allows GANs to leverage powerful architectures like CNNs for image generation.
+G과 D 모두 미분할 수 있는 아무 함수(흔히 신경망)면 된다. 이 너그러움 덕분에 맞겨루기 만들개는 그림 만들어 내기에 겹말기 신경망 같은 힘 있는 얼개를 쓸 수 있다.
 
-## The Learning Process
+## 배움의 과정
 
-### Phase 1: Early Training
+### 단계 1: 익히기 앞머리
 
-Initially, the generator produces random noise-like outputs:
+처음에 만들개는 아무 잡음 같은 것을 내놓는다.
 
-- D easily distinguishes real from fake: $D(x) \approx 1$, $D(G(z)) \approx 0$
-- G receives strong gradient signal to improve
-- Both networks learn rapidly
+- D이 실제와 가짜를 쉽게 가른다: $D(x) \approx 1$, $D(G(z)) \approx 0$
+- G이 나아지도록 센 기울기 신호를 받는다
+- 두 신경망이 빠르게 배운다
 
-### Phase 2: Competitive Improvement
+### 단계 2: 겨루며 나아지기
 
-As training progresses:
+익히기가 나아가면서:
 
-- G produces increasingly realistic samples
-- D must become more sophisticated to detect fakes
-- The "arms race" drives quality improvements
+- G이 점점 더 그럴듯한 표본을 낸다
+- D은 가짜를 알아내려 더 정교해져야 한다
+- 이 "군비 경쟁"이 품질을 끌어올린다
 
-### Phase 3: Equilibrium (Ideal)
+### 단계 3: 균형(가장 좋은 상태)
 
-At convergence:
+모이면:
 
-- G produces samples indistinguishable from real data
-- D outputs 0.5 for all inputs (cannot distinguish)
-- Neither network can improve unilaterally
+- G이 실제 자료와 가려낼 수 없는 표본을 낸다
+- D이 모든 들임에 0.5을 내놓는다(가려내지 못한다)
+- 어느 신경망도 혼자서는 나아질 수 없다
 
-## Basic Training Algorithm
+## 기본 익히기 알고리즘
 
 ```python
 import torch
@@ -129,17 +123,17 @@ import torch.optim as optim
 def train_gan(generator, discriminator, dataloader, latent_dim, 
               n_epochs, device):
     """
-    Basic GAN training loop.
+    기본 맞겨루기 만들개 익히기 되풀이.
     
-    Args:
+    인수:
         generator: Generator network G(z) -> x
         discriminator: Discriminator network D(x) -> [0, 1]
-        dataloader: DataLoader for real data
-        latent_dim: Dimension of latent vector z
-        n_epochs: Number of training epochs
+        dataloader: 실제 자료용 DataLoader
+        latent_dim: 숨은 벡터 z의 차원
+        n_epochs: 익히기 바퀴 수
         device: Training device (cpu/cuda)
     """
-    # Loss and optimizers
+    # 손실과 가장 좋게 하개
     criterion = nn.BCELoss()
     g_optimizer = optim.Adam(generator.parameters(), lr=0.0002, betas=(0.5, 0.999))
     d_optimizer = optim.Adam(discriminator.parameters(), lr=0.0002, betas=(0.5, 0.999))
@@ -149,111 +143,157 @@ def train_gan(generator, discriminator, dataloader, latent_dim,
             batch_size = real_data.size(0)
             real_data = real_data.to(device)
             
-            # Labels
+            # 이름표
             real_labels = torch.ones(batch_size, 1, device=device)
             fake_labels = torch.zeros(batch_size, 1, device=device)
             
             # ==================
-            # Train Discriminator
+            # 가름개를 익힌다
             # ==================
             d_optimizer.zero_grad()
             
-            # Loss on real data
+            # 실제 자료의 손실
             d_real = discriminator(real_data)
             d_loss_real = criterion(d_real, real_labels)
             
-            # Loss on fake data
+            # 가짜 자료의 손실
             z = torch.randn(batch_size, latent_dim, device=device)
             fake_data = generator(z)
-            d_fake = discriminator(fake_data.detach())  # Detach to avoid G gradients
+            d_fake = discriminator(fake_data.detach())  # G 기울기를 피하려 떼어 낸다
             d_loss_fake = criterion(d_fake, fake_labels)
             
-            # Total discriminator loss
+            # 온 가름개 손실
             d_loss = d_loss_real + d_loss_fake
             d_loss.backward()
             d_optimizer.step()
             
             # ===============
-            # Train Generator
+            # 만들개를 익힌다
             # ===============
             g_optimizer.zero_grad()
             
-            # Generate new fake samples
+            # 새 가짜 표본을 만든다
             z = torch.randn(batch_size, latent_dim, device=device)
             fake_data = generator(z)
             d_fake = discriminator(fake_data)
             
-            # G wants D to think fakes are real
+            # G은 D이 가짜를 실제로 여기기를 바란다
             g_loss = criterion(d_fake, real_labels)
             g_loss.backward()
             g_optimizer.step()
 ```
 
-## Key Training Principles
+## 핵심 익히기 원칙
 
-### 1. Alternating Optimization
+### 1. 번갈아 가장 좋게 하기
 
-Train D and G in alternation:
-- Update D with fixed G
-- Update G with fixed D
-- Repeat
+D과 G을 번갈아 익힌다.
 
-### 2. Balanced Training
+- G을 붙박아 두고 D을 고친다
+- D을 붙박아 두고 G을 고친다
+- 되풀이한다
 
-Neither network should dominate:
-- If D is too strong, G gets vanishing gradients
-- If G is too strong, D provides poor feedback
+### 2. 균형 잡힌 익히기
 
-### 3. Detachment for Discriminator Training
+어느 신경망도 도맡아서는 안 된다.
 
-When training D on fake samples, **detach** the generator output to prevent gradients from flowing back to G:
+- D이 너무 세면 G의 기울기가 사라진다
+- G이 너무 세면 D이 나쁜 되먹임을 준다
+
+### 3. 가름개 익히기에서 떼어 내기
+
+가짜 표본으로 D을 익힐 때는 기울기가 G으로 되돌아 흐르지 않도록 만들개 내놓기를 **떼어 낸다**.
 
 ```python
 d_fake = discriminator(fake_data.detach())
 ```
 
-### 4. Fresh Samples for Generator Training
+### 4. 만들개 익히기에는 새 표본
 
-Generate new fake samples when training G (don't reuse samples from D training):
+G을 익힐 때는 새 가짜 표본을 만든다(D 익히기에 쓴 표본을 다시 쓰지 않는다).
 
 ```python
-# For G training
-z = torch.randn(batch_size, latent_dim)  # New noise
-fake_data = generator(z)  # Fresh samples
+# G 익히기용
+z = torch.randn(batch_size, latent_dim)  # 새 잡음
+fake_data = generator(z)  # 새 표본
 ```
 
-## Comparison with Other Generative Models
+## 다른 만들어 내는 모델과 견주기
 
-| Aspect | GANs | VAEs | Flows | Diffusion |
+| 갈래 | 맞겨루기 만들개 | 변분 자기 부호기 | 흐름 | 퍼짐 |
 |--------|------|------|-------|-----------|
-| **Training** | Adversarial game | ELBO maximization | MLE | Denoising |
-| **Likelihood** | Implicit | Lower bound | Exact | Lower bound |
-| **Sample Quality** | Sharp | Blurry | Good | Excellent |
-| **Training Stability** | Challenging | Stable | Stable | Stable |
-| **Sampling Speed** | Fast | Fast | Fast | Slow |
+| **익히기** | 맞겨루기 놀이 | 증거 하한 가장 크게 하기 | 최대 가능도 | 잡음 없애기 |
+| **가능도** | 은근함 | 아래 한계 | 정확함 | 아래 한계 |
+| **표본 품질** | 또렷하다 | 흐릿하다 | 좋다 | 뛰어나다 |
+| **익히기의 안정** | 어렵다 | 안정되다 | 안정되다 | 안정되다 |
+| **뽑는 빠르기** | 빠르다 | 빠르다 | 빠르다 | 느리다 |
 
-## Advantages of Adversarial Training
+## 맞겨루기 익히기의 장점
 
-1. **No explicit density**: Avoids intractable partition functions
-2. **Flexible architectures**: Any differentiable network works
-3. **Sharp samples**: Discriminator focuses on perceptually important features
-4. **Fast inference**: Single forward pass through generator
+1. **드러난 밀도가 없다**: 다룰 수 없는 나눔 함수를 피한다
+2. **너그러운 얼개**: 미분할 수 있는 어떤 신경망이든 된다
+3. **또렷한 표본**: 가름개가 느낌으로 중요한 특징에 집중한다
+4. **빠른 추론**: 만들개를 앞먹임 한 번 지난다
 
-## Challenges
+## 어려움
 
-1. **Training instability**: Careful hyperparameter tuning required
-2. **Mode collapse**: Generator may ignore parts of the data distribution
-3. **No likelihood**: Cannot evaluate $p_G(x)$ directly
-4. **Evaluation difficulty**: Quality metrics are imperfect
+1. **익히기의 불안정**: 웃매개변수를 꼼꼼히 맞추어야 한다
+2. **봉우리 무너짐**: 만들개가 자료 분포의 일부를 무시할 수 있다
+3. **가능도가 없다**: $p_G(x)$을 곧바로 따질 수 없다
+4. **따지기의 어려움**: 품질 잣대가 완전하지 않다
 
-## Summary
+## 요약
 
-Adversarial training is a powerful paradigm for generative modeling:
+맞겨루기 익히기는 만들어 내는 모델의 힘 있는 틀이다.
 
-- Two networks compete in a minimax game
-- The generator learns to produce realistic samples
-- The discriminator provides learning signal through classification
-- Competition drives quality improvements
-- Results in high-quality samples without explicit density modeling
+- 신경망 둘이 최소최대 놀이에서 겨룬다
+- 만들개는 그럴듯한 표본 내는 법을 배운다
+- 가름개는 가르기로 배움 신호를 준다
+- 겨룸이 품질을 끌어올린다
+- 밀도를 드러내어 나타내지 않고도 품질 높은 표본을 얻는다
 
-This framework has spawned numerous variants and applications, from image synthesis to drug discovery, making it one of the most influential ideas in modern deep learning.
+이 틀은 그림 만들기에서 약 찾기까지 수많은 변형과 쓰임새를 낳아 요즘 깊은 배움에서 가장 영향력 있는 생각 가운데 하나가 되었다.
+
+## 연습문제
+
+**연습문제 1.**
+맞겨루기 만들개 익히기 목표를 최소최대 놀이로 설명하라. 각 사람은 무엇을 가장 좋게 하는가?
+
+??? success "연습문제 1 풀이"
+    맞겨루기 만들개의 목표는 다음과 같다.
+
+    $$\min_G \max_D \; \mathbb{E}_{x \sim p_{\text{data}}}[\log D(x)] + \mathbb{E}_{z \sim p_z}[\log(1 - D(G(z)))]$$
+
+    **가름개** $D$은 이를 가장 크게 한다. 곧 실제 자료에는 $D(x) \to 1$, 가짜 자료에는 $D(G(z)) \to 0$을 바란다. **만들개** $G$은 가장 작게 한다. 곧 $D(G(z)) \to 1$(가름개 속이기)을 바란다. 내시 균형에서 $G$은 참 자료 분포에서 표본을 만들고 어디서나 $D(x) = 1/2$이다.
+
+---
+
+**연습문제 2.**
+만들개가 붙박였을 때 가장 좋은 가름개가 $D^*(x) = \frac{p_{\text{data}}(x)}{p_{\text{data}}(x) + p_g(x)}$임을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    만든 분포가 $p_g$인 붙박인 $G$에서 가름개는 다음을 가장 크게 한다.
+
+    $$V(D) = \int \left[ p_{\text{data}}(x) \log D(x) + p_g(x) \log(1 - D(x)) \right] dx$$
+
+    $D(x)$에 대해 미분해 0으로 두면:
+
+    $$\frac{p_{\text{data}}(x)}{D(x)} - \frac{p_g(x)}{1 - D(x)} = 0 \implies D^*(x) = \frac{p_{\text{data}}(x)}{p_{\text{data}}(x) + p_g(x)}$$
+
+    이차 미분이 음수이므로 이것이 최댓값임이 굳어진다. $\square$
+
+---
+
+**연습문제 3.**
+맞겨루기 만들개 익히기에서 봉우리 무너짐이란 무엇인가? 이를 누그러뜨리는 방식 둘을 설명하라.
+
+??? success "연습문제 3 풀이"
+    봉우리 무너짐은 만들개가 자료 분포의 봉우리 가운데 일부에서만 표본을 내고 나머지를 무시할 때 일어난다. 예컨대 숫자로 익힌 맞겨루기 만들개가 "1"과 "7"만 만들 수 있다. **누그러뜨리는 방식**: (1) **작은 묶음 가름**: 가름개가 묶음 전체의 통계를 받아 다양함이 모자라면 벌을 준다. (2) **바서슈타인 맞겨루기 만들개(WGAN)**: 젠슨-섀넌 벌어짐 대신 바서슈타인 거리를 써서 분포가 겹치지 않아도 0이 아닌 기울기를 주어 익히기를 안정시키고 봉우리 무너짐을 줄인다. 그 밖에 펼친 맞겨루기 만들개, 스펙트럼 고르게 맞추기, 차츰 키우기가 있다.
+
+---
+
+**연습문제 4.**
+가름개가 너무 셀 때 본디 맞겨루기 만들개 손실의 기울기가 사라질 수 있는 까닭을 설명하라.
+
+??? success "연습문제 4 풀이"
+    가름개가 만들개보다 훨씬 나으면 만든 표본에서 $D(G(z)) \approx 0$이다. $\log(1 - D(G(z)))$에서 오는 만들개의 기울기는 $\frac{-D'(G(z))}{1 - D(G(z))}$이며 $D(G(z)) \approx 0$일 때 $-D'(G(z))$(작다)에 가까워진다. 더 결정적으로 손실 $\log(1 - D(G(z)))$이 $\log(1) = 0$ 가까이에서 포화해 기울기가 거의 0이 된다. 실제의 손질은 **포화하지 않는 손실**이다. 곧 $\log(1 - D(G(z)))$을 가장 작게 하는 대신 만들개가 $\log D(G(z))$을 가장 크게 하며, 이는 $D(G(z))$이 작을 때 센 기울기를 지닌다.

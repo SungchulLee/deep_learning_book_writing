@@ -1,230 +1,278 @@
-# Transfer Learning for Time Series Data
+# 시계열 데이터를 위한 전이 학습
+## 들어가며
 
+시계열의 전이 학습은 이미지나 텍스트 분야와는 다른 고유한 어려움과 기회를 준다. 시계열 데이터는 시간 의존성, 비정상성, 분야에 딸린 특성을 지니므로 특수한 전이 학습 방법이 필요하다. 이런 어려움에도 이름표 붙은 과거 데이터가 비싸고 시장 국면이 자주 바뀌는 계량 금융에서 전이 학습은 특히 값지다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+시계열 전이 학습의 성패는 시간을 알맞게 다루고 특징을 알맞게 뽑고 비정상성을 꼼꼼히 살피는 데 크게 매인다. 사전 학습된 ImageNet 특징이 잘 옮겨 가는 정지 이미지와 달리, 시계열 전이 학습에는 시간의 움직임에 맞춘 더 특수한 방법이 필요하다.
 
-## Introduction
+## 핵심 개념
 
-Transfer learning for time series presents unique challenges and opportunities distinct from image and text domains. Time series data exhibits temporal dependencies, non-stationarity, and domain-specific characteristics that require specialized transfer learning approaches. Despite these challenges, transfer learning proves particularly valuable in quantitative finance where labeled historical data is expensive and market regimes shift frequently.
+- **시간 의존성**: 시계열 예측에 매우 중요한 차례 무늬
+- **비정상성**: 시간에 따라 통계적 성질이 바뀌므로 적응적 전이가 필요하다
+- **분야에 딸린 특징**: 자기 상관, 계절성, 추세의 짜임
+- **전이 창**: 목표 기간에 견준, 사전 학습에 쓸 과거 기간
+- **되돌아보기 기간**: 특징을 뽑는 능력을 정하는 과거의 길이
 
-The success of time series transfer learning depends critically on proper temporal handling, appropriate feature extraction, and careful consideration of non-stationarity. Unlike static images where pretrained ImageNet features transfer effectively, time series transfer learning requires more specialized strategies aligned with temporal dynamics.
+## 시계열을 위한 전이 학습 구조
 
-## Key Concepts
+### LSTM과 GRU 전이
 
-- **Temporal Dependencies**: Sequential patterns critical to time series prediction
-- **Non-Stationarity**: Changing statistical properties over time requiring adaptive transfer
-- **Domain-Specific Features**: Autocorrelation, seasonality, and trend structures
-- **Transfer Window**: Historical period for pretraining relative to target period
-- **Lookback Period**: History length determining feature extraction capability
-
-## Transfer Learning Architectures for Time Series
-
-### LSTM and GRU Transfer
-
-Recurrent architectures enable temporal feature transfer:
+순환 구조가 시간 특징의 전이를 가능케 한다.
 
 $$\mathbf{h}_t = \text{LSTM}(\mathbf{x}_t, \mathbf{h}_{t-1}) = \mathbf{h}_t(\mathbf{x}_t, \mathbf{h}_{t-1}; \theta)$$
 
-**Transfer Strategy**: Pretrain on long historical sequences, fine-tune on target task
+**전이 방법**: 긴 과거 수열로 사전 학습한 뒤 목표 과제에 미세 조정한다
 
-**Advantages**:
-- Captures temporal patterns
-- Handles variable-length sequences
-- Sequential nature aligns with time series
+**좋은 점**:
 
-**Disadvantages**:
-- Training instability with long sequences
-- Vanishing gradient problems
-- Limited parallel computation
+- 시간 무늬를 잡아낸다
+- 길이가 제각각인 수열을 다룬다
+- 차례를 따르는 성질이 시계열과 들어맞는다
 
-### Transformer-Based Transfer
+**나쁜 점**:
 
-Transformer architectures (Chapters 7-8) enable more efficient temporal transfer:
+- 수열이 길면 학습이 흔들린다
+- 기울기 사라짐 문제
+- 병렬 계산이 제한된다
+
+### 트랜스포머 기반 전이
+
+트랜스포머 구조(7~8장)가 더 효율적인 시간 전이를 가능케 한다.
 
 $$\text{Output}_t = \text{MultiHeadAttention}(\mathbf{x}_t, \text{context})$$
 
-**Transfer Strategy**: Pretrain on self-supervised objectives, fine-tune on downstream tasks
+**전이 방법**: 자기 지도 목표로 사전 학습한 뒤 아래쪽 과제에 미세 조정한다
 
-**Advantages**:
-- Parallel training efficiency
-- Global temporal context
-- Gradient stability
+**좋은 점**:
 
-**Disadvantages**:
-- Requires substantial pretraining data
-- Positional encoding design choices critical
-- May overfit to pretraining distribution
+- 병렬 학습의 효율
+- 전역 시간 맥락
+- 기울기의 안정성
 
-### Convolutional Transfer
+**나쁜 점**:
 
-1D convolutions capture local temporal patterns:
+- 사전 학습 데이터가 많이 필요하다
+- 위치 인코딩의 설계 선택이 매우 중요하다
+- 사전 학습 분포에 과적합될 수 있다
+
+### 합성곱 전이
+
+1차원 합성곱이 국소 시간 무늬를 잡아낸다.
 
 $$\mathbf{y}_t = \sum_{i=-k/2}^{k/2} W_i \cdot \mathbf{x}_{t+i}$$
 
-**Transfer Strategy**: Pretrain on signal processing tasks, adapt to financial forecasting
+**전이 방법**: 신호 처리 과제로 사전 학습한 뒤 금융 예측에 맞춘다
 
-**Advantages**:
-- Efficient computation
-- Hierarchical feature learning
-- Natural temporal locality
+**좋은 점**:
 
-**Disadvantages**:
-- Limited receptive field
-- Struggles with long-range dependencies
+- 효율적인 계산
+- 위계적 특징 학습
+- 자연스러운 시간 국소성
 
-## Domain-Specific Transfer Strategies
+**나쁜 점**:
 
-### Pretraining Tasks for Time Series
+- 받는 영역이 좁다
+- 먼 거리 의존을 다루기 어렵다
 
-!!! tip "Pretraining Objectives"
-    Design pretraining tasks that capture domain-relevant patterns without using target variable.
+## 분야에 맞춘 전이 방법
 
-**Autoregressive Prediction**: Predict future values from history:
+### 시계열을 위한 사전 학습 과제
+
+!!! tip "사전 학습 목표"
+    목표 변수를 쓰지 않고도 분야에 관련된 무늬를 잡아내는 사전 학습 과제를 설계하라.
+
+**자기 회귀 예측**: 과거에서 앞으로의 값을 맞힌다.
 
 $$\mathcal{L} = \sum_{t} \|x_{t+h} - \hat{x}_{t+h}(\mathbf{x}_{1:t})\|^2$$
 
-**Masked Prediction**: Mask random timesteps, predict from neighbors:
+**가린 예측**: 시간 단계를 무작위로 가리고 이웃에서 맞힌다.
 
 $$\mathcal{L} = \sum_{i \in M} \|x_i - \hat{x}_i\|^2$$
 
-**Contrastive Learning**: Learn representations invariant to time shifts:
+**대조 학습**: 시간 이동에 변하지 않는 표현을 배운다.
 
 $$\mathcal{L} = -\log \frac{\exp(s(x_t, x_{t+\tau})/T)}{\sum_j \exp(s(x_t, x_j)/T)}$$
 
-**Trend-Seasonality Decomposition**: Separate trend and seasonal components.
+**추세-계절 분해**: 추세 성분과 계절 성분을 가른다.
 
-### Market Regime Transfer
+### 시장 국면 전이
 
-In quantitative finance, transfer learning must account for market regimes:
+계량 금융에서 전이 학습은 시장 국면을 살펴야 한다.
 
 $$P_{\text{source}} = \text{Bull Market Regime}$$
 
 $$P_{\text{target}} = \text{Sideways Regime}$$
 
-Different regimes exhibit different volatility, autocorrelation, and correlation structures.
+국면마다 변동성과 자기 상관과 상관 구조가 다르다.
 
-**Regime-Aware Fine-tuning**:
-- Detect target regime characteristics
-- Adjust learning rates based on regime distance
-- Use domain adaptation for large regime shifts
+**국면을 고려한 미세 조정**:
 
-## Non-Stationarity and Transfer Learning
+- 목표 국면의 특성을 알아챈다
+- 국면 사이의 거리에 따라 학습률을 조정한다
+- 국면이 크게 바뀌면 도메인 적응을 쓴다
 
-### Challenge: Shifting Distributions
+## 비정상성과 전이 학습
 
-Time series exhibit non-stationarity fundamentally different from image domain:
+### 어려움: 옮겨 가는 분포
+
+시계열은 이미지 분야와 근본적으로 다른 비정상성을 보인다.
 
 $$P_{\text{source}}(x_t, x_{t+1}, \ldots) \neq P_{\text{target}}(x_t, x_{t+1}, \ldots)$$
 
-Stock market relationships change with:
-- Market structure evolution
-- Regulatory changes
-- Technology advancements
-- Macroeconomic conditions
+주식 시장의 관계는 다음에 따라 바뀐다.
 
-### Adaptation Strategies
+- 시장 짜임의 변화
+- 규제의 변화
+- 기술의 발전
+- 거시 경제 여건
 
-**Continuous Learning**: Periodically retrain on recent data:
+### 맞추어 가는 방법
+
+**이어지는 학습**: 최근 데이터로 이따금 다시 학습한다.
 
 $$\theta_t = \theta_{t-1} + \alpha \nabla \mathcal{L}(\text{recent data})$$
 
-**Partial Reset**: Reinitialize later layers while keeping earlier representations:
+**일부 되돌리기**: 앞쪽 표현은 지키면서 뒤쪽 층을 다시 초기화한다.
 
 $$\theta^{\text{new}}_{\text{late}} = \text{random init}$$
 
 $$\theta^{\text{new}}_{\text{early}} = \theta_{\text{pretrain}}^{\text{early}}$$
 
-**Adaptive Regularization**: Increase regularization for older pretrained weights:
+**적응 규제**: 오래된 사전 학습 가중치에 규제를 더 준다.
 
 $$\mathcal{L} = \mathcal{L}_{\text{task}} + \lambda(t) \|\theta - \theta_{\text{init}}\|_2$$
 
-where $\lambda(t)$ decreases with time, allowing gradual departure.
+여기서 $\lambda(t)$은 시간에 따라 줄어 차츰 벗어날 수 있게 한다.
 
-## Practical Considerations
+## 실용적인 고려
 
-### Feature Engineering and Normalization
+### 특징 만들기와 정규화
 
-!!! warning "Normalization Importance"
-    Normalization choices impact transfer learning significantly. Use consistent schemes across pretraining and fine-tuning.
+!!! warning "정규화의 중요성"
+    정규화를 어떻게 고르느냐가 전이 학습에 크게 영향을 준다. 사전 학습과 미세 조정에 한결같은 방식을 쓰라.
 
-**Standardization Options**:
-- Global standardization: Use pretraining data statistics
-- Rolling standardization: Adapt statistics to recent data
-- Per-sample normalization: Normalize each sequence independently
+**표준화의 선택지**:
 
-### Temporal Alignment
+- 전역 표준화: 사전 학습 데이터의 통계를 쓴다
+- 굴리는 표준화: 최근 데이터에 통계를 맞춘다
+- 표본별 정규화: 수열마다 따로 정규화한다
 
-Ensure temporal alignment between source and target:
+### 시간 맞추기
 
-| Aspect | Alignment Strategy |
+원천과 목표 사이의 시간을 맞추어야 한다.
+
+| 측면 | 맞추는 방법 |
 |--------|-------------------|
-| **Sampling Frequency** | Resample to common frequency |
-| **Trading Hours** | Account for market hours differences |
-| **Time Zones** | Convert to common time reference |
-| **Holidays** | Handle exchange closures consistently |
+| **표집 빈도** | 공통 빈도로 다시 표집한다 |
+| **거래 시간** | 시장 시간의 차이를 살핀다 |
+| **시간대** | 공통 시간 기준으로 바꾼다 |
+| **휴일** | 거래소 휴장을 한결같이 다룬다 |
 
-### Lookback Period Selection
+### 되돌아보기 기간 고르기
 
-Optimal lookback period depends on target task:
+가장 좋은 되돌아보기 기간은 목표 과제에 매인다.
 
 $$\tau_{\text{lookback}} = f(\text{autocorrelation decay time})$$
 
-**Financial Applications**:
-- High-frequency trading: 50-500 timesteps
-- Daily predictions: 60-250 trading days
-- Long-term forecasting: 500-2000 days
+**금융에서의 쓰임**:
 
-## Empirical Performance
+- 초단타 거래: 시간 단계 50~500
+- 일별 예측: 거래일 60~250
+- 긴 흐름 예측: 500~2000일
 
-### Transfer Learning Gains
+## 실험으로 본 성능
 
-On financial time series, transfer learning typically yields:
+### 전이 학습의 이득
 
-**Improvement in Test Performance**: 5-15% reduction in MSE
+금융 시계열에서 전이 학습은 대체로 다음을 준다.
 
-**Training Stability**: 30-50% fewer training iterations to convergence
+**시험 성능의 개선**: 평균 제곱 오차 5~15% 감소
 
-**Generalization**: Reduced overfitting to specific time periods
+**학습 안정성**: 수렴까지의 학습 되풀이 30~50% 감소
 
-### Dataset Size Effects
+**일반화**: 특정 기간에 대한 과적합 감소
 
-Transfer learning benefits increase with:
+### 데이터셋 크기의 효과
 
-- **Small Target Sets** (< 250 samples): 20-30% improvement
-- **Medium Sets** (250-1000 samples): 10-20% improvement  
-- **Large Sets** (> 10,000 samples): 2-5% improvement
+전이 학습의 이득은 다음에 따라 커진다.
 
-## Challenges Specific to Financial Time Series
+- **작은 목표 집합** (표본 250개 미만): 20~30% 개선
+- **중간 집합** (표본 250~1000개): 10~20% 개선
+- **큰 집합** (표본 1만 개 초과): 2~5% 개선
 
-**Regime Shifts**: Models trained on bull markets fail during crashes
+## 금융 시계열의 고유한 어려움
 
-**Low Signal-to-Noise Ratio**: Market noise limits information transfer
+**국면 전환**: 상승장에서 학습한 모델이 폭락 때 무너진다
 
-**Non-Stationary Features**: Correlations and volatilities evolve continuously
+**낮은 신호 대 잡음비**: 시장의 잡음이 정보의 전이를 막는다
 
-**Look-Ahead Bias**: Forward-looking information not available at inference
+**비정상 특징**: 상관과 변동성이 끊임없이 바뀐다
 
-## Best Practices
+**미래 참조 편향**: 추론 때 쓸 수 없는 앞날의 정보
 
-!!! note "Financial Time Series Transfer Learning"
+## 모범 사례
+
+!!! note "금융 시계열 전이 학습"
     
-    1. **Pretraining**: Use long historical periods with similar market conditions
-    2. **Validation**: Separate temporal cross-validation maintains realism
-    3. **Monitoring**: Track transfer learning performance degradation over time
-    4. **Retraining**: Update models quarterly or with regime changes
-    5. **Ensembles**: Combine transfer-learned models with domain-specific methods
+    1. **사전 학습**: 비슷한 시장 여건의 긴 과거 기간을 쓴다
+    2. **검증**: 시간을 나눈 교차 검증이 현실성을 지킨다
+    3. **살피기**: 시간이 지나며 전이 학습 성능이 나빠지는지 좇는다
+    4. **다시 학습**: 분기마다 또는 국면이 바뀔 때 모델을 고친다
+    5. **앙상블**: 전이 학습한 모델을 분야에 맞는 방법과 아우른다
 
-## Research Directions
+## 연구의 방향
 
-- Theoretically-grounded time series transfer learning
-- Automated regime detection for adaptive transfer
-- Multi-task learning across assets and timeframes
-- Meta-learning for rapid adaptation to new markets
+- 이론에 바탕한 시계열 전이 학습
+- 적응적 전이를 위한 자동 국면 알아채기
+- 자산과 시간 틀을 넘나드는 다중 과제 학습
+- 새 시장에 빠르게 맞추기 위한 메타 학습
 
-## Related Topics
+## 관련 주제
 
-- Domain Adaptation for Time Series
-- Temporal Models and RNNs (Chapter 7)
-- Transformers for Time Series (Chapter 8)
-- Non-Stationary Process Modeling
+- 시계열을 위한 도메인 적응
+- 시간 모델과 순환 신경망 (7장)
+- 시계열을 위한 트랜스포머 (8장)
+- 비정상 과정 모형화
+
+## 연습문제
+
+**연습문제 1.**
+이미지에 견주어 시계열 데이터에 전이 학습을 쓸 때 어떤 어려움이 생기는가?
+
+??? success "연습문제 1 풀이"
+    시계열의 어려움은 이렇다. (1) 사전 학습을 위한 표준 'ImageNet'이 없다. (2) 분야마다 시간 무늬가 다르다(금융과 의료). (3) 표집 빈도와 길이가 제각각이다. (4) 비정상성 때문에 시간에 따라 분포가 옮겨 간다. (5) 대부분의 분야에서 이름표 붙은 예가 적다.
+
+---
+
+**연습문제 2.**
+시계열 전이 학습을 위한 사전 학습 방법 셋을 설명하라.
+
+??? success "연습문제 2 풀이"
+    (1) 자기 지도 사전 학습: 앞으로의 값을 맞히거나, 가린 구간을 되살리거나, 불린 시야로 대조 학습을 한다. (2) 분야를 넘는 사전 학습: 큰 시계열 말뭉치로 학습한 뒤 목표 분야에 미세 조정한다. (3) 인공 사전 학습: 성질을 아는 인공 시계열을 만들어 배운 표현을 옮긴다.
+
+---
+
+**연습문제 3.**
+사전 학습하고 미세 조정할 수 있는 간단한 시계열 특징 뽑개를 구현하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    class TSEncoder(nn.Module):
+        def __init__(self, input_dim, hidden_dim):
+            super().__init__()
+            self.conv = nn.Sequential(
+                nn.Conv1d(input_dim, hidden_dim, 3, padding=1), nn.ReLU(),
+                nn.Conv1d(hidden_dim, hidden_dim, 3, padding=1), nn.ReLU(),
+            )
+            self.pool = nn.AdaptiveAvgPool1d(1)
+        def forward(self, x):  # x: (B, C, T)
+            return self.pool(self.conv(x)).squeeze(-1)
+    ```
+
+---
+
+**연습문제 4.**
+시계열의 전이 학습은 언제 실패하는가? 구체적인 보기를 들어라.
+
+??? success "연습문제 4 풀이"
+    다음일 때 실패한다. (1) 원천과 목표의 움직임이 근본적으로 다를 때(이를테면 주가에서 심전도 신호로). (2) 시간 해상도가 크게 다를 때. (3) 시계열이 비정상이어서 사전 학습 기간과 미세 조정 기간 사이에 분포가 옮겨 갈 때. (4) 목표 분야에 원천에 없는 고유한 특징이 있을 때(이를테면 그 분야에만 있는 이상값).

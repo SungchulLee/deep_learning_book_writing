@@ -1,21 +1,21 @@
-# Monte Carlo Algorithms
+# 몬테카를로 알고리즘
 
-Some computational problems admit algorithms that trade absolute correctness for a guaranteed time bound. **Monte Carlo algorithms** use randomness and always terminate within a fixed running time, but may produce an incorrect answer with some bounded probability. This paradigm is essential in settings where a hard deadline matters more than a perfect answer, or where no efficient deterministic algorithm is known.
+어떤 셈 문제는 온전한 옳음을 보장된 시간 한계와 맞바꾸는 알고리즘을 받아들인다. **몬테카를로 알고리즘**은 마구잡이를 쓰며 늘 정해진 시간 안에 멈추지만 어떤 가둔 확률로 틀린 답을 낼 수 있다. 이 틀은 흠 없는 답보다 단단한 마감이 중요하거나 효율 좋은 정해진 알고리즘이 알려지지 않은 자리에서 꼭 필요하다.
 
-## Definition
+## 정의
 
-A randomized algorithm $A$ is a **Monte Carlo algorithm** if, for every input $x$:
+마구잡이 알고리즘 $A$이 모든 들임 $x$에 대해 다음을 채우면 **몬테카를로 알고리즘**이다.
 
-1. $A(x)$ runs in deterministic time $T(n)$ (no randomness in the running time), and
-2. $A(x)$ produces the correct answer with probability at least $1 - \epsilon$ for some error bound $\epsilon < 1/2$.
+1. $A(x)$이 정해진 시간 $T(n)$에 돌고(도는 시간에 마구잡이가 없다),
+2. 어떤 어긋남 한계 $\epsilon < 1/2$에 대해 적어도 $1 - \epsilon$의 확률로 옳은 답을 낸다.
 
-The error bound $\epsilon$ is over the algorithm's internal random choices, not over the input distribution.
+어긋남 한계 $\epsilon$은 들임 분포가 아니라 알고리즘 안의 아무 고르기에 걸친 것이다.
 
-## One-Sided vs Two-Sided Error
+## 한쪽 어긋남과 양쪽 어긋남
 
-Monte Carlo algorithms are classified by their error behavior:
+몬테카를로 알고리즘은 어긋나는 방식으로 가른다.
 
-**One-sided error (false negatives only).** If the correct answer is YES, the algorithm may incorrectly output NO with probability at most $\epsilon$. If the correct answer is NO, the algorithm always outputs NO correctly. This defines the complexity class **RP** (Randomized Polynomial time):
+**한쪽 어긋남(거짓 음성만).** 옳은 답이 예이면 알고리즘이 많아야 $\epsilon$의 확률로 아니오를 잘못 내놓을 수 있다. 옳은 답이 아니오이면 늘 아니오를 제대로 내놓는다. 이것이 복잡도 갈래 **RP**(마구잡이 다항식 시간)을 뜻매김한다.
 
 $$
 x \in L \implies \Pr[A(x) = \text{YES}] \geq \frac{1}{2}
@@ -25,7 +25,7 @@ $$
 x \notin L \implies \Pr[A(x) = \text{YES}] = 0
 $$
 
-**Two-sided error.** The algorithm may err on both YES and NO instances, but with bounded probability. This defines the complexity class **BPP**:
+**양쪽 어긋남.** 알고리즘이 예와 아니오 모두에서 어긋날 수 있으나 확률이 가둬져 있다. 이것이 복잡도 갈래 **BPP**을 뜻매김한다.
 
 $$
 x \in L \implies \Pr[A(x) = \text{YES}] \geq \frac{2}{3}
@@ -35,56 +35,88 @@ $$
 x \notin L \implies \Pr[A(x) = \text{NO}] \geq \frac{2}{3}
 $$
 
-The constants $1/2$ and $2/3$ are conventional; any constant bounded away from $1/2$ suffices because of probability amplification.
+상수 $1/2$과 $2/3$은 관례이다. 확률 키우기 덕분에 $1/2$에서 떨어진 아무 상수여도 된다.
 
-## Probability Amplification
+## 확률 키우기
 
-A central technique reduces the error probability exponentially by independent repetition. Run the Monte Carlo algorithm $k$ times independently and take the **majority vote** (for two-sided error) or **accept if any run accepts** (for one-sided error).
+핵심 재주는 서로 매이지 않은 되풀이로 어긋날 확률을 지수로 줄이는 것이다. 몬테카를로 알고리즘을 서로 매이지 않게 $k$번 돌리고 (양쪽 어긋남이면) **많은 쪽에 따르거나** (한쪽 어긋남이면) **한 번이라도 받아들이면 받아들인다**.
 
-For a two-sided error algorithm with success probability $p > 1/2$ per run, the probability that the majority of $k$ independent runs is wrong is bounded by
+한 번 돌릴 때 성공 확률이 $p > 1/2$인 양쪽 어긋남 알고리즘에서 서로 매이지 않은 $k$번 가운데 많은 쪽이 틀릴 확률은 다음으로 가둬진다.
 
 $$
 \Pr[\text{majority wrong}] \leq e^{-2k(p - 1/2)^2}
 $$
 
-by a Chernoff bound. Setting $k = O(\log(1/\delta))$ reduces the error to any desired $\delta > 0$.
+체르노프 한계에 따른 것이다. $k = O(\log(1/\delta))$으로 두면 어긋남을 바라는 아무 $\delta > 0$까지 줄인다.
 
-??? example "Amplification in Practice"
-    Suppose a Monte Carlo algorithm has error probability $1/3$. Running it $k = 100$ times and taking the majority vote gives error probability at most
+??? example "실제의 키우기"
+    몬테카를로 알고리즘의 어긋날 확률이 $1/3$이라 하자. $k = 100$번 돌려 많은 쪽에 따르면 어긋날 확률이 많아야 다음과 같다.
 
     $$
     e^{-2 \cdot 100 \cdot (1/6)^2} = e^{-100/18} \approx 3.7 \times 10^{-3}
     $$
 
-    With $k = 1000$ independent runs, the error drops below $10^{-24}$, which is negligible for any practical purpose.
+    서로 매이지 않게 $k = 1000$번 돌리면 어긋남이 $10^{-24}$ 아래로 떨어져 어떤 실제 쓰임에서도 무시할 만하다.
 
-## Classic Examples
+## 옛부터의 보기
 
-### Miller-Rabin Primality Test
+### 밀러-라빈 소수 판정 살피기
 
-Given an integer $n$, the Miller-Rabin test determines whether $n$ is prime. It is a one-sided Monte Carlo algorithm: if it declares $n$ composite, it is always correct; if it declares $n$ prime, there is at most a $1/4$ probability of error per round. After $k$ rounds, the error probability is at most $4^{-k}$.
+정수 $n$이 주어질 때 밀러-라빈 살피기는 $n$이 소수인지 가린다. 이는 한쪽 어긋남 몬테카를로 알고리즘이다. 곧 $n$을 합성수라 하면 늘 옳고, 소수라 하면 바퀴마다 많아야 $1/4$의 확률로 어긋난다. $k$바퀴 뒤 어긋날 확률은 많아야 $4^{-k}$이다.
 
-### Randomized Min-Cut (Karger's Algorithm)
+### 마구잡이 최소 자름(카거 알고리즘)
 
-Karger's contraction algorithm finds a minimum cut in a graph. A single run succeeds with probability at least $\binom{n}{2}^{-1} = 2/(n(n-1))$. By repeating $O(n^2 \log n)$ times, the probability of finding the min-cut approaches 1.
+카거의 오그리기 알고리즘은 그래프의 최소 자름을 찾는다. 한 번 돌리면 적어도 $\binom{n}{2}^{-1} = 2/(n(n-1))$의 확률로 이룬다. $O(n^2 \log n)$번 되풀이하면 최소 자름을 찾을 확률이 1에 가까워진다.
 
-### Freivalds' Algorithm
+### 프라이발츠 알고리즘
 
-To verify whether $AB = C$ for $n \times n$ matrices, choose a random vector $r \in \{0, 1\}^n$ and check whether $A(Br) = Cr$. This runs in $O(n^2)$ time (versus $O(n^3)$ for direct multiplication). If $AB \neq C$, the check fails with probability at least $1/2$. After $k$ repetitions, the error drops to $2^{-k}$.
+$n \times n$ 행렬에서 $AB = C$인지 확인하려면 아무 벡터 $r \in \{0, 1\}^n$을 골라 $A(Br) = Cr$인지 살핀다. 이는 $O(n^2)$ 시간에 돈다(곧바로 곱하면 $O(n^3)$이다). $AB \neq C$이면 적어도 $1/2$의 확률로 살피기가 걸러 낸다. $k$번 되풀이하면 어긋남이 $2^{-k}$으로 떨어진다.
 
-## Monte Carlo vs Las Vegas
+## 몬테카를로와 라스베이거스
 
-| Property | Monte Carlo | Las Vegas |
+| 성질 | 몬테카를로 | 라스베이거스 |
 |---|---|---|
-| Correctness | Probabilistic ($\geq 1 - \epsilon$) | Always correct |
-| Running time | Deterministic bound | Random variable |
-| Error reduction | Repeat and vote | Restart with fresh randomness |
-| Complexity class | BPP, RP | ZPP |
+| 옳음 | 확률로(적어도 $1 - \epsilon$) | 늘 옳다 |
+| 도는 시간 | 정해진 한계 | 아무 변수 |
+| 어긋남 줄이기 | 되풀이해 많은 쪽에 따른다 | 새 마구잡이로 다시 시작한다 |
+| 복잡도 갈래 | BPP, RP | ZPP |
 
-!!! tip "Conversion Between Paradigms"
-    A Las Vegas algorithm with expected time $E[T]$ can be converted to a Monte Carlo algorithm by imposing a time cutoff of $c \cdot E[T]$ and outputting "failure" if unfinished. Conversely, a Monte Carlo algorithm whose output is efficiently verifiable can be converted to Las Vegas by repeating until verification succeeds.
+!!! tip "틀 사이 바꾸기"
+    기댓값 시간이 $E[T]$인 라스베이거스 알고리즘은 $c \cdot E[T]$에서 시간을 끊고 끝나지 않으면 "실패"를 내놓게 하여 몬테카를로 알고리즘으로 바꿀 수 있다. 거꾸로 내놓기를 효율 좋게 확인할 수 있는 몬테카를로 알고리즘은 확인이 이룰 때까지 되풀이하여 라스베이거스로 바꿀 수 있다.
 
-## Reference
+## 참고 문헌
 
 - Motwani, R. & Raghavan, P. *Randomized Algorithms*. Cambridge University Press, 1995.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L. & Stein, C. *Introduction to Algorithms*. MIT Press, 2022.
+
+## 연습문제
+
+**연습문제 1.**
+몬테카를로 알고리즘의 핵심 마구잡이 재주와 그것이 정해진 방식보다 나은 까닭을 설명하라.
+
+??? success "연습문제 1 풀이"
+    몬테카를로 알고리즘은 마구잡이를 써서 정해진 알고리즘이 마주칠 수 있는 가장 나쁜 들임을 피한다. 아무렇게나 고르므로 알고리즘의 솜씨가 들임의 짜임이 아니라 제 동전 던지기에 달린다. 그래서 모든 들임에 대해 참인 센 기댓값 시간이나 높은 확률의 보장을 흔히 얻으며, 짓궂거나 병리적인 경우를 걱정할 까닭이 없어진다. $\square$
+
+---
+
+**연습문제 2.**
+몬테카를로 알고리즘의 기댓값 시간 복잡도는 얼마인가? 가장 나쁜 경우의 복잡도는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    기댓값 시간 복잡도는 흔히 $O(n)$이나 $O(n \log n)$이며 높은 확률로 이룬다. 가장 나쁜 경우는 다항식만큼 더 나쁠 수 있지만(예컨대 $O(n^2)$) 그럴 확률은 무시할 만큼 작다. 기댓값과 가장 나쁜 경우의 틈이 마구잡이의 값이며, 가장 나쁜 움직임이 일어날 확률은 들임 크기에 따라 지수로 줄어든다. $\square$
+
+---
+
+**연습문제 3.**
+몬테카를로 알고리즘은 라스베이거스 알고리즘인가 몬테카를로 알고리즘인가? 그 차이를 설명하라.
+
+??? success "연습문제 3 풀이"
+    **라스베이거스**: 늘 옳은 결과를 내며 도는 시간이 아무 변수이다(기댓값이 다항식). **몬테카를로**: 늘 다항식 시간에 돌지만 결과가 어떤 가둔 확률로 틀릴 수 있다. 몬테카를로 알고리즘은 옳음을 보장하느냐 도는 시간을 보장하느냐에 따라 이 가운데 하나에 든다. 이 가름이 어긋날 확률을 어떻게 다룰지 정한다. $\square$
+
+---
+
+**연습문제 4.**
+몬테카를로 알고리즘에서 마구잡이를 없애거나 솜씨가 나쁠 확률을 줄이는 법을 설명하라.
+
+??? success "연습문제 4 풀이"
+    방책은 다음과 같다. (1) **거듭 해 보기**: 알고리즘을 여러 번 돌려 가장 좋거나 많은 쪽 결과를 택하면 어긋날 확률이 지수로 줄어든다. (2) **마구잡이 없애기**: 조건부 기댓값이나 흩는 함수 무리로 아무 고르기를 정해진 고르기로 바꾼다. (3) **키우기**: 몬테카를로 알고리즘에서는 $k$번 되풀이해 어긋남을 $2^{-k}$으로 줄인다. (4) **비슷 마구잡이 만들개**: 알고리즘이 보기에 "마구잡이처럼 보이는" 정해진 차례를 쓴다. $\square$

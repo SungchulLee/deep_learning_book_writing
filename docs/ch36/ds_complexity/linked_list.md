@@ -116,3 +116,50 @@ iteration without null checks.
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Sedgewick, R. and Wayne, K. *Algorithms*. 4th ed. Addison-Wesley, 2011.
+
+## Exercises
+
+**Exercise 1.**
+Compare singly-linked lists, doubly-linked lists, and arrays for insertion at the front, insertion at the back, deletion by value, and random access.
+
+??? success "Solution to Exercise 1"
+    | Operation | Singly LL | Doubly LL | Array |
+    |---|---|---|---|
+    | Insert front | $O(1)$ | $O(1)$ | $O(n)$ |
+    | Insert back | $O(n)$* | $O(1)$** | $O(1)$ amortized |
+    | Delete by value | $O(n)$ | $O(n)$ search + $O(1)$ unlink | $O(n)$ |
+    | Random access | $O(n)$ | $O(n)$ | $O(1)$ |
+
+    *$O(1)$ with a tail pointer. **With a tail pointer. Linked lists win for front insertion and deletion at known positions. Arrays win for random access and cache performance. $\square$
+
+---
+
+**Exercise 2.**
+Explain why linked list deletion given a pointer to the node is $O(1)$ for doubly-linked lists but $O(n)$ for singly-linked lists.
+
+??? success "Solution to Exercise 2"
+    To delete a node, we must update the predecessor's `next` pointer. In a doubly-linked list, the node has a `prev` pointer, so the predecessor is accessed in $O(1)$: set `node.prev.next = node.next` and `node.next.prev = node.prev`. In a singly-linked list, there is no `prev` pointer. Finding the predecessor requires traversing from the head until reaching a node whose `next` is the target: $O(n)$ in the worst case. A trick for singly-linked lists: copy the next node's value into the target node and delete the next node. This is $O(1)$ but fails for the last node (no next node to copy). $\square$
+
+---
+
+**Exercise 3.**
+Describe how a linked list is used to implement an LRU cache with $O(1)$ operations.
+
+??? success "Solution to Exercise 3"
+    Use a doubly-linked list combined with a hash map. The list maintains access order: most recently accessed at the head, least recently at the tail. The hash map maps keys to list nodes. `get(key)`: look up the node in the hash map ($O(1)$). Move the node to the head of the list ($O(1)$ pointer operations). Return the value. `put(key, value)`: if key exists, update and move to head. If new, create a node at the head, add to hash map. If over capacity, remove the tail node from the list and hash map ($O(1)$). All operations are $O(1)$. $\square$
+
+---
+
+**Exercise 4.**
+Prove that detecting a cycle in a linked list can be done in $O(n)$ time and $O(1)$ space using Floyd's tortoise and hare algorithm.
+
+??? success "Solution to Exercise 4"
+    Use two pointers: slow (advances 1 step) and fast (advances 2 steps). If there is no cycle, fast reaches null in $O(n)$ steps. If there is a cycle of length $c$ starting at position $\mu$: once both pointers enter the cycle, the fast pointer gains 1 step per iteration on the slow pointer. Since the cycle has $c$ nodes, they meet within $c$ steps after slow enters the cycle. Time: slow travels at most $\mu + c$ steps before meeting; fast travels at most $2(\mu + c)$ steps. Both are $O(n)$ since $\mu + c \le n$. Space: only two pointer variables, so $O(1)$. After detecting the cycle, finding its start: reset slow to head. Advance both pointers 1 step at a time. They meet at the cycle start after $\mu$ steps (proof: their distance modulo $c$ equals 0 when slow has traveled $\mu$ steps). $\square$
+
+---
+
+**Exercise 5.**
+When should you use a linked list instead of a dynamic array in practice? Give two scenarios where linked lists provide a genuine advantage.
+
+??? success "Solution to Exercise 5"
+    (1) **Constant-time splicing**: merging or splitting lists at known positions is $O(1)$ with linked lists (redirect pointers) but $O(n)$ with arrays (copy elements). Example: a text editor's undo buffer, where paragraphs are frequently moved, split, or merged. (2) **Guaranteed $O(1)$ insertion/deletion without amortization**: linked lists never resize or copy. Arrays have $O(n)$ worst-case insertion (during resize). In real-time systems where worst-case latency matters, linked lists provide predictable $O(1)$ operations. In most other cases, arrays are superior due to cache performance. Modern practice often uses arrays (or deques) even when linked lists have better theoretical bounds, because the 10--20x cache performance advantage of arrays outweighs the occasional $O(n)$ resize. $\square$

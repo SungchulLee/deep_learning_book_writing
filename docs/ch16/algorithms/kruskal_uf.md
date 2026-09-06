@@ -1,56 +1,56 @@
-# Kruskal with Union-Find
+# 합치기-찾기를 쓴 크러스컬
 
-Kruskal's algorithm needs to answer one question repeatedly: "Are vertices $u$ and $v$ already in the same connected component?" A naive approach -- running BFS or DFS each time -- costs $O(V)$ per query, leading to $O(VE)$ total. The Union-Find (disjoint set) data structure reduces this to nearly constant time per query, making the sorting step the bottleneck rather than the connectivity checks.
+크러스컬 알고리즘은 "꼭짓점 $u$과 $v$이 이미 같은 이어진 조각에 있는가?"라는 물음에 되풀이해 답해야 한다. 어수룩한 길, 곧 그때마다 너비 우선 찾기나 깊이 우선 찾기를 돌리면 물음마다 $O(V)$이 들어 모두 $O(VE)$이 된다. 합치기-찾기(서로 겹치지 않는 모음) 자료 짜임은 이를 물음마다 거의 상수 시간으로 줄여, 병목이 이어짐 살피기가 아니라 정렬 걸음이 되게 한다.
 
-## Why Union-Find Fits Kruskal's
+## 합치기-찾기가 크러스컬에 맞는 까닭
 
-Kruskal's algorithm processes edges in sorted order and performs two operations for each edge $(u, v)$:
+크러스컬 알고리즘은 변을 정렬한 차례로 다루며 변 $(u, v)$마다 연산 둘을 한다:
 
-1. **Query**: are $u$ and $v$ in the same component? (`FIND-SET`)
-2. **Merge**: if not, combine their components (`UNION`)
+1. **묻기**: $u$과 $v$이 같은 조각에 있는가?(`FIND-SET`)
+2. **합치기**: 아니라면 두 조각을 합친다(`UNION`)
 
-These are exactly the operations that Union-Find provides. With union by rank and path compression, both operations run in amortized $O(\alpha(n))$ time, where $\alpha$ is the inverse Ackermann function -- effectively constant for all practical input sizes.
+이것이 바로 합치기-찾기가 주는 연산이다. 계급으로 합치기와 길 줄이기를 쓰면 두 연산 모두 고르게 친 $O(\alpha(n))$ 시간에 돌아가며, 여기서 $\alpha$은 거꿀 애커만 함수로 실전에서 다룰 만한 모든 들임 크기에서 사실상 상수이다.
 
-## Implementation
+## 구현
 
-The implementation below uses two key optimizations:
+아래 구현은 핵심 최적화 둘을 쓴다:
 
-- **Union by rank**: attach the shorter tree under the taller tree to keep heights small.
-- **Path compression** (two-pass halving): during `find`, make each node point to its grandparent, flattening the tree incrementally.
+- **계급으로 합치기**: 높이를 작게 지키려고 더 낮은 나무를 더 높은 나무 아래에 붙인다.
+- **길 줄이기**(두 번 훑는 반으로 줄이기): `find` 동안 마디마다 자기 할아비를 가리키게 하여 나무를 조금씩 납작하게 만든다.
 
 ```python
 """
-Kruskal's MST algorithm with Union-Find.
+합치기-찾기를 쓴 크러스컬의 최소 뻗은 나무 알고리즘.
 
-Demonstrates the complete implementation using union by rank
-and path compression for near-constant-time set operations.
+계급으로 합치기와 길 줄이기를 쓴 온전한 구현을 보이며
+거의 상수 시간의 모음 연산을 이룬다.
 """
 
 
-# === Union-Find data structure ===
+# === 합치기-찾기 자료 짜임 ===
 
 class UnionFind:
-    """Disjoint set forest with union by rank and path compression."""
+    """계급으로 합치기와 길 줄이기를 쓴, 서로 겹치지 않는 모음의 숲."""
 
     def __init__(self, n):
-        """Initialize n singleton sets {0}, {1}, ..., {n-1}."""
+        """홑원소 모음 {0}, {1}, ..., {n-1}의 첫값 잡기."""
         self.parent = list(range(n))
         self.rank = [0] * n
 
     def find(self, x):
-        """Return the root representative of x's set, with path halving."""
+        """길 반으로 줄이기로 x이 든 모음의 뿌리 대표를 돌려준다."""
         while self.parent[x] != x:
-            self.parent[x] = self.parent[self.parent[x]]  # path halving
+            self.parent[x] = self.parent[self.parent[x]]  # 길 반으로 줄이기
             x = self.parent[x]
         return x
 
     def union(self, a, b):
-        """Merge sets containing a and b. Return True if they were separate."""
+        """a과 b을 담은 모음 합치기. 따로였으면 True를 돌려준다."""
         root_a = self.find(a)
         root_b = self.find(b)
         if root_a == root_b:
-            return False  # already in the same set
-        # union by rank: attach smaller tree under larger
+            return False  # 이미 같은 모음에 있음
+        # 계급으로 합치기: 작은 나무를 큰 나무 아래에 붙인다
         if self.rank[root_a] < self.rank[root_b]:
             root_a, root_b = root_b, root_a
         self.parent[root_b] = root_a
@@ -59,23 +59,23 @@ class UnionFind:
         return True
 
 
-# === Kruskal's algorithm ===
+# === 크러스컬 알고리즘 ===
 
 def kruskal(n, edges):
     """
-    Compute the MST of a graph with n vertices.
+    꼭짓점이 n개인 그래프의 최소 뻗은 나무 셈하기.
 
-    Parameters
+    매개변수
     ----------
     n : int
-        Number of vertices (labeled 0 to n-1).
+        꼭짓점의 개수(0부터 n-1까지 이름 붙임).
     edges : list of (u, v, w)
-        Edge list with integer endpoints and numeric weight w.
+        양 끝이 정수이고 무게가 수인 변 목록 w.
 
-    Returns
+    반환값
     -------
     list of (u, v, w)
-        Edges in the MST, in the order they were added.
+        최소 뻗은 나무의 변을 더한 차례대로.
     """
     edges.sort(key=lambda e: e[2])
     uf = UnionFind(n)
@@ -84,11 +84,11 @@ def kruskal(n, edges):
         if uf.union(u, v):
             mst.append((u, v, w))
             if len(mst) == n - 1:
-                break  # MST complete
+                break  # 최소 뻗은 나무 완성
     return mst
 
 
-# === Example ===
+# === 보기 ===
 
 if __name__ == "__main__":
     #   0 ---4--- 1
@@ -109,45 +109,77 @@ if __name__ == "__main__":
     print(f"Total weight: {total}")
 ```
 
-**Output:**
+**출력:**
 ```
 MST edges: [(0, 2, 1), (1, 3, 2), (1, 2, 3)]
 Total weight: 6
 ```
 
-## Execution Trace
+## 돌아가는 자취
 
-The table below shows the Union-Find state as Kruskal's algorithm processes each edge:
+아래 표는 크러스컬 알고리즘이 변을 하나씩 다룰 때의 합치기-찾기 상태를 보여 준다:
 
-| Step | Edge | Weight | FIND(u) | FIND(v) | Action | Components |
+| 걸음 | 변 | 무게 | FIND(u) | FIND(v) | 할 일 | 조각 |
 |------|------|--------|---------|---------|--------|------------|
-| 1 | (0, 2) | 1 | 0 | 2 | Union | {0, 2}, {1}, {3} |
-| 2 | (1, 3) | 2 | 1 | 3 | Union | {0, 2}, {1, 3} |
-| 3 | (1, 2) | 3 | 1 | 0 | Union | {0, 1, 2, 3} |
-| 4 | (0, 1) | 4 | 0 | 0 | Skip | same component |
-| 5 | (2, 3) | 5 | 0 | 0 | Skip | same component |
+| 1 | (0, 2) | 1 | 0 | 2 | 합침 | {0, 2}, {1}, {3} |
+| 2 | (1, 3) | 2 | 1 | 3 | 합침 | {0, 2}, {1, 3} |
+| 3 | (1, 2) | 3 | 1 | 0 | 합침 | {0, 1, 2, 3} |
+| 4 | (0, 1) | 4 | 0 | 0 | 건너뜀 | 같은 조각 |
+| 5 | (2, 3) | 5 | 0 | 0 | 건너뜀 | 같은 조각 |
 
-At step 3, we have $n - 1 = 3$ MST edges, so the algorithm terminates.
+걸음 3에서 최소 뻗은 나무의 변이 $n - 1 = 3$개가 되므로 알고리즘이 멈춘다.
 
-## Complexity Analysis
+## 복잡도 분석
 
-The total cost breaks down as follows:
+전체 값은 다음처럼 나뉜다:
 
-**Sorting**: $O(E \log E)$. Since $E \le V^2$, this is also $O(E \log V)$.
+**정렬**: $O(E \log E)$이다. $E \le V^2$이므로 이는 $O(E \log V)$이기도 하다.
 
-**Union-Find operations**: the algorithm performs at most $2E$ `FIND` operations (two per edge) and at most $V - 1$ `UNION` operations. With union by rank and path compression, a sequence of $m$ operations on $n$ elements takes $O(m \cdot \alpha(n))$. Here $m = O(E)$ and $n = V$, giving $O(E \cdot \alpha(V))$.
+**합치기-찾기 연산**: 알고리즘은 `FIND` 연산을 많아야 $2E$번(변마다 두 번), `UNION` 연산을 많아야 $V - 1$번 한다. 계급으로 합치기와 길 줄이기를 쓰면 원소 $n$개에 대한 연산 $m$번의 늘어놓음이 $O(m \cdot \alpha(n))$이 든다. 여기서 $m = O(E)$이고 $n = V$이므로 $O(E \cdot \alpha(V))$이다.
 
-**Total time**:
+**전체 시간**:
 
 $$
 T(V, E) = O(E \log E + E \cdot \alpha(V)) = O(E \log E)
 $$
 
-The sorting step dominates because $\alpha(V) \le 4$ for all practical values of $V$ (up to $2^{65536}$).
+실전에서 다룰 만한 모든 $V$ 값에서($2^{65536}$까지) $\alpha(V) \le 4$이므로 정렬 걸음이 좌우한다.
 
-**Space**: $O(V + E)$ for the Union-Find arrays and the edge list.
+**공간**: 합치기-찾기 배열과 변 목록에 $O(V + E)$.
 
-## Reference
+## 참고 문헌
 
-- [Introduction to Algorithms (CLRS), Chapter 23](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- [Introduction to Algorithms (CLRS), 23장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Tarjan, R. E. (1975). Efficiency of a good but not linear set union algorithm. *JACM*, 22(2), 215--225.
+
+## 연습문제
+
+**연습문제 1.**
+합치기-찾기가 크러스컬 알고리즘에 왜 딱 맞는 자료 짜임인지 설명하여라. 크러스컬에는 어떤 연산이 필요한가?
+
+??? success "연습문제 1 풀이"
+    크러스컬에는 변마다 연산 둘이 필요하다. (1) **Find**: 양 끝이 어느 조각에 드는지 알아낸다(같은 조각인지 살피려고). (2) **Union**: 변을 받아들일 때 두 조각을 합친다. 합치기-찾기는 계급으로 합치기와 길 줄이기를 쓰면 둘 다 거의 $O(1)$인 고르게 친 시간(연산마다 $O(\alpha(V))$)에 받쳐 준다. 배열이나 어수룩한 모음은 연산마다 $O(V)$이 든다. 해시 모음도 합치는 데 $O(V)$이 든다. 합치기-찾기의 효율이 그것을 자연스러운 고름으로 만든다. $\square$
+
+---
+
+**연습문제 2.**
+합치기-찾기 없이 크러스컬 알고리즘의 조각 살피기를 어떻게 구현할 수 있는가? 시간 복잡도는 어떻게 되는가?
+
+??? success "연습문제 2 풀이"
+    조각 이름표 배열을 쓴다. 곧 `comp[v]`이 꼭짓점 $v$의 조각 번호를 담는다. $u$과 $v$이 같은 조각인지 살피려면 `comp[u]`과 `comp[v]`을 $O(1)$에 견준다. 조각을 합치려면 더 작은 조각의 꼭짓점을 모두 더 큰 조각의 번호로 고친다. 합칠 때마다 최악의 경우 $O(V)$이 들고 합침이 $V - 1$번 있으므로 합치는 데 모두 $O(V^2)$이 든다. "작은 것을 큰 것에" 넣는 전략을 쓰면 합치는 전체 값이 $O(V \log V)$이다(꼭짓점마다 이름표가 많아야 $\log V$번 바뀐다). 이는 합치기-찾기의 $O(E \cdot \alpha(V))$보다 나쁘다. $\square$
+
+---
+
+**연습문제 3.**
+합치기-찾기를 쓴 크러스컬 알고리즘에서 Find과 Union 연산의 전체 횟수는 얼마인가?
+
+??? success "연습문제 3 풀이"
+    변 $E$개마다 이어짐을 살피려고 Find 연산을 2번 한다(양 끝마다 한 번). 변을 받아들일 때(많아야 $V - 1$번) Union 연산을 1번 한다. 모두 합하면 Find 연산 $2E$번과 Union 연산 많아야 $V - 1$번이다. 계급으로 합치기와 길 줄이기를 쓰면 연산마다 고르게 친 $O(\alpha(V))$ 시간이 들어 합치기-찾기 연산에 모두 $O((2E + V) \cdot \alpha(V)) = O(E \cdot \alpha(V))$이 든다. $\square$
+
+---
+
+**연습문제 4.**
+변을 미리 모두 정렬하지 않고도 크러스컬 알고리즘을 구현할 수 있는가? 다른 길을 설명하여라.
+
+??? success "연습문제 4 풀이"
+    그렇다. 변을 모두 넣어 첫값을 잡은 최소 힙(우선순위 줄)을 쓴다. 무게가 가장 작은 변을 꺼내고 합치기-찾기로 이어짐을 살펴 받아들이거나 물리친다. 이러면 $O(E \log E)$의 온전한 정렬을 피할 수 있다. 변 $k$개를 꺼낸 뒤에 최소 뻗은 나무를 찾으면($k$이 $E$보다 훨씬 작을 수 있다) 힙 방식은 $O(E + k \log E)$이 든다. 곧 힙을 세우는 데 $O(E)$, 꺼내는 데 $O(k \log E)$이다. $k = V - 1 \ll E$인 빽빽한 그래프에서는 이것이 더 빠를 수 있다. 그러나 최악의 경우($k = E$)에는 정렬보다 나을 것이 없다. $\square$

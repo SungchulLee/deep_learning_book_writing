@@ -1,91 +1,91 @@
-# Jarvis March
+# 자비스 행진
 
-The **Jarvis march** (also called **gift wrapping**) builds the convex hull by starting from a point known to be on the hull and repeatedly selecting the point that makes the smallest counter-clockwise angle with the current edge. It wraps around the point set like wrapping paper around a gift. The time complexity is $O(nh)$, where $h$ is the number of hull vertices, making it output-sensitive — fast when $h$ is small relative to $n$.
+**자비스 행진**(**선물 포장**이라고도 한다)은 껍질 위에 있음이 알려진 점에서 시작해 지금 모서리와 이루는 반시계 각이 가장 작은 점을 거듭 골라 볼록 껍질을 세운다. 선물을 포장지로 감싸듯 점 모임을 감싼다. 시간 복잡도는 $O(nh)$이며 $h$은 껍질 꼭짓점의 수이다. 그래서 내놓기에 민감하며 $h$이 $n$에 견주어 작으면 빠르다.
 
-## Intuition
+## 직관
 
-Imagine standing at the leftmost point and looking rightward. Sweep your gaze counter-clockwise until it hits the first point — that point is the next hull vertex. Move there and repeat the sweep. When you return to the starting point, the hull is complete.
+가장 왼쪽 점에 서서 오른쪽을 본다고 떠올려 보라. 눈길을 반시계로 돌려 처음 닿는 점이 다음 껍질 꼭짓점이다. 그리로 옮겨 훑기를 되풀이한다. 출발점으로 돌아오면 껍질이 다 된 것이다.
 
-## Algorithm
+## 알고리즘
 
-1. Find the leftmost point $p_0$ (smallest $x$-coordinate; break ties by smallest $y$).
-2. Set the current point $p = p_0$.
-3. Repeat:
-    - For each candidate point $q$, determine which makes the most counter-clockwise turn from the current direction.
-    - The next hull vertex is the point $q^*$ such that all other points lie to the left of the line from $p$ to $q^*$ (or are collinear and farther away).
-    - Set $p = q^*$ and add it to the hull.
-    - Stop when $p = p_0$ (returned to start).
+1. 가장 왼쪽 점 $p_0$을 찾는다($x$자리값이 가장 작은 점. 같으면 가장 작은 $y$으로 가른다).
+2. 지금 점을 $p = p_0$으로 둔다.
+3. 되풀이한다:
+    - 후보 점 $q$마다 지금 방향에서 가장 반시계로 도는 것이 어느 것인지 가린다.
+    - 다음 껍질 꼭짓점은 다른 모든 점이 $p$에서 $q^*$으로 그은 선의 왼쪽에 놓이게(또는 한 줄에 놓이면서 더 멀게) 하는 점 $q^*$이다.
+    - $p = q^*$으로 두고 껍질에 더한다.
+    - $p = p_0$이면 멈춘다(출발점으로 돌아옴).
 
-The selection at each step uses the cross product:
+걸음마다의 고르기는 어긋 곱을 쓴다.
 
 $$
 \operatorname{cross}(p, q, r) = (q_x - p_x)(r_y - p_y) - (q_y - p_y)(r_x - p_x)
 $$
 
-Point $q$ is more counter-clockwise than $r$ (relative to $p$) when $\operatorname{cross}(p, q, r) > 0$.
+$\operatorname{cross}(p, q, r) > 0$이면 ($p$에 대해) 점 $q$이 $r$보다 더 반시계이다.
 
-## Complexity
+## 복잡도
 
-| Aspect | Value |
+| 갈래 | 값 |
 |---|---|
-| Time | $O(nh)$ where $h = $ number of hull vertices |
-| Space | $O(h)$ |
-| Best case | $O(n)$ when $h = O(1)$ |
-| Worst case | $O(n^2)$ when $h = O(n)$ |
+| 시간 | $O(nh)$, 여기서 $h = $ 껍질 꼭짓점의 수 |
+| 자리 | $O(h)$ |
+| 가장 좋은 경우 | $h = O(1)$일 때 $O(n)$ |
+| 가장 나쁜 경우 | $h = O(n)$일 때 $O(n^2)$ |
 
-!!! tip "Output-Sensitive Algorithms"
-    Jarvis march is **output-sensitive**: its running time depends on the output size $h$. When most points are interior ($h \ll n$), it outperforms $O(n \log n)$ algorithms like Graham scan. When most points are on the hull, Graham scan is faster.
+!!! tip "내놓기에 민감한 알고리즘"
+    자비스 행진은 **내놓기에 민감하다**. 곧 도는 시간이 내놓기 크기 $h$에 달렸다. 거의 모든 점이 안쪽이면($h \ll n$) 그레이엄 훑기 같은 $O(n \log n)$ 알고리즘보다 낫다. 거의 모든 점이 껍질 위에 있으면 그레이엄 훑기가 더 빠르다.
 
-## Correctness
+## 올바름
 
-At each step, the algorithm selects the point that all other points lie to the left of (or on) the directed line from the current vertex. This ensures:
+걸음마다 알고리즘은 지금 꼭짓점에서 그은 방향 있는 선의 왼쪽(또는 선 위)에 다른 모든 점이 놓이게 하는 점을 고른다. 그러면 다음이 보장된다.
 
-1. Every selected point is on the convex hull (no interior point can be "most counter-clockwise").
-2. No hull vertex is missed (if a hull vertex were skipped, some point would lie to the right of the current edge, contradicting the selection criterion).
-3. The process terminates after exactly $h$ steps.
+1. 고른 점은 모두 볼록 껍질 위에 있다(안쪽 점은 "가장 반시계"일 수 없다).
+2. 껍질 꼭짓점을 놓치지 않는다(껍질 꼭짓점을 건너뛰었다면 어떤 점이 지금 모서리의 오른쪽에 놓여 고르기 잣대에 어긋난다).
+3. 이 과정은 꼭 $h$ 걸음 뒤에 멈춘다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Jarvis March (Gift Wrapping) — Convex Hull in O(nh).
+자비스 행진(선물 포장) — O(nh) 볼록 껍질.
 
-Builds the convex hull by iteratively selecting the most
-counter-clockwise point, wrapping around the point set.
+가장 반시계인 점을 거듭 골라 점 모임을 감싸며
+볼록 껍질을 세운다.
 """
 
 from __future__ import annotations
 
 
-# === Cross Product ===
+# === 벡터곱 ===
 
 def cross(o: tuple[float, float],
           a: tuple[float, float],
           b: tuple[float, float]) -> float:
-    """Signed area of the parallelogram formed by vectors OA and OB."""
+    """벡터 OA과 OB이 이루는 평행사변형의 부호 있는 넓이."""
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
 
 def dist_sq(a: tuple[float, float], b: tuple[float, float]) -> float:
-    """Squared Euclidean distance between two points."""
+    """두 점 사이 유클리드 거리의 제곱."""
     return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
 
 
-# === Jarvis March ===
+# === 자비스 행진 ===
 
 def jarvis_march(
     points: list[tuple[float, float]]
 ) -> list[tuple[float, float]]:
-    """Return convex hull vertices in counter-clockwise order.
+    """볼록 껍질 꼭짓점을 반시계 차례로 돌려준다.
 
-    Uses the gift-wrapping algorithm in O(nh) time.
+    O(nh) 시간의 선물 포장 알고리즘을 쓴다.
     """
     pts = list(set(points))
     n = len(pts)
     if n <= 2:
         return pts
 
-    # Start from the leftmost point
+    # 가장 왼쪽 점에서 시작한다
     start = min(range(n), key=lambda i: (pts[i][0], pts[i][1]))
     hull = []
     current = start
@@ -98,17 +98,17 @@ def jarvis_march(
             if i == current:
                 continue
 
-            # If candidate == current, any other point is better
+            # 후보 == 지금 점이면 다른 어떤 점이든 낫다
             if candidate == current:
                 candidate = i
                 continue
 
             c = cross(pts[current], pts[candidate], pts[i])
             if c < 0:
-                # pts[i] is more counter-clockwise
+                # pts[i]이 더 반시계이다
                 candidate = i
             elif c == 0:
-                # Collinear: pick the farther point
+                # 한 줄에 놓임: 더 먼 점을 고른다
                 if dist_sq(pts[current], pts[i]) > dist_sq(pts[current], pts[candidate]):
                     candidate = i
 
@@ -119,7 +119,7 @@ def jarvis_march(
     return hull
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     sample = [(0, 0), (1, 1), (2, 2), (0, 2), (2, 0), (1, 0)]
@@ -128,44 +128,76 @@ if __name__ == "__main__":
     print(f"Hull:   {hull}")
     print(f"Hull vertices: {len(hull)}")
 
-    # Larger example with interior points
+    # 안쪽 점이 있는 더 큰 보기
     import random
     random.seed(42)
     pts = [(random.uniform(0, 10), random.uniform(0, 10)) for _ in range(20)]
     hull2 = jarvis_march(pts)
     print(f"\n{len(pts)} random points -> {len(hull2)} hull vertices")
-    # Output:
-    # Input:  [(0, 0), (1, 1), (2, 2), (0, 2), (2, 0), (1, 0)]
-    # Hull:   [(0, 0), (1, 0), (2, 0), (2, 2), (0, 2)]
-    # Hull vertices: 5
+    # 내임:
+    # 들임:  [(0, 0), (1, 1), (2, 2), (0, 2), (2, 0), (1, 0)]
+    # 껍질:   [(0, 0), (1, 0), (2, 0), (2, 2), (0, 2)]
+    # 껍질 꼭짓점: 5
     #
-    # 20 random points -> 7 hull vertices
+    # 아무 점 20개 -> 껍질 꼭짓점 7개
 ```
 
-## Worked Example
+## 풀이 예제
 
-For points $\{(0,0), (1,0), (2,0), (1,1), (2,2), (0,2)\}$:
+점 $\{(0,0), (1,0), (2,0), (1,1), (2,2), (0,2)\}$에 대해:
 
-1. **Start** at $(0,0)$ (leftmost).
-2. From $(0,0)$: most CCW point is $(1,0)$. But $(2,0)$ is collinear and farther. Select $(2,0)$.
-3. From $(2,0)$: most CCW point is $(2,2)$.
-4. From $(2,2)$: most CCW point is $(0,2)$.
-5. From $(0,2)$: most CCW point is $(0,0)$. Back to start.
+1. $(0,0)$에서 **시작한다**(가장 왼쪽).
+2. $(0,0)$에서: 가장 반시계인 점은 $(1,0)$이다. 하지만 $(2,0)$이 한 줄에 놓이면서 더 멀다. $(2,0)$을 고른다.
+3. $(2,0)$에서: 가장 반시계인 점은 $(2,2)$이다.
+4. $(2,2)$에서: 가장 반시계인 점은 $(0,2)$이다.
+5. $(0,2)$에서: 가장 반시계인 점은 $(0,0)$이다. 출발점으로 돌아왔다.
 
-Hull: $[(0,0), (2,0), (2,2), (0,2)]$ with $h = 4$ vertices. Points $(1,0)$ and $(1,1)$ are interior.
+껍질: 꼭짓점 $h = 4$개인 $[(0,0), (2,0), (2,2), (0,2)]$이다. 점 $(1,0)$과 $(1,1)$은 안쪽이다.
 
-## Comparison with Other Algorithms
+## 다른 알고리즘과의 견줌
 
-| Algorithm | Time | Output-sensitive? |
+| 알고리즘 | 시간 | 내놓기에 민감한가? |
 |---|---|---|
-| Jarvis march | $O(nh)$ | Yes |
-| Graham scan | $O(n \log n)$ | No |
-| Andrew's monotone chain | $O(n \log n)$ | No |
-| Chan's algorithm | $O(n \log h)$ | Yes |
+| 자비스 행진 | $O(nh)$ | 그렇다 |
+| 그레이엄 훑기 | $O(n \log n)$ | 아니다 |
+| 앤드루의 단조 사슬 | $O(n \log n)$ | 아니다 |
+| 챈 알고리즘 | $O(n \log h)$ | 그렇다 |
 
-Chan's algorithm combines the best of both worlds: it achieves $O(n \log h)$ by running Jarvis march on groups of $O(h)$ points, each pre-processed with Graham scan.
+챈 알고리즘은 두 세계의 좋은 점을 아우른다. 곧 그레이엄 훑기로 미리 다듬은 $O(h)$개 점 무리에 자비스 행진을 돌려 $O(n \log h)$을 이룬다.
 
-## Reference
+## 참고 문헌
 
 - Jarvis, R. A. (1973). On the identification of the convex hull of a finite set of points in the plane. *Information Processing Letters*, 2(1), 18-21.
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. (2008). *Computational Geometry* (3rd ed.). Springer.
+
+## 연습문제
+
+**연습문제 1.**
+자비스 행진의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    자비스 행진은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 자비스 행진을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+자비스 행진은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+자비스 행진을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 자비스 행진은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

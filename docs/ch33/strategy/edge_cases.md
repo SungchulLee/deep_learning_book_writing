@@ -1,117 +1,157 @@
-# Edge Cases
+# 가장자리 경우
 
-An algorithm that solves the general case correctly but fails on boundary inputs will receive a Wrong Answer verdict. Edge cases are the extreme or degenerate inputs that exercise corner conditions in the logic -- empty collections, single elements, maximum values, and structural degeneracies. Systematically generating and testing these inputs is one of the most reliable ways to improve submission accuracy.
+일반 경우는 옳게 풀지만 경계 들임에서 틀리는 알고리즘은 오답 판정을 받는다. 가장자리 경우는 논리의 구석 조건을 굴리는 극단이거나 퇴화한 들임이다. 빈 모임, 원소 하나, 최대값, 얼개의 퇴화가 그것이다. 이런 들임을 짜임 있게 만들어 시험하는 것이 제출의 맞음을 높이는 가장 믿을 만한 길 가운데 하나다.
 
-## Why Edge Cases Break Solutions
+## 가장자리 경우가 풀이를 깨는 까닭
 
-Most algorithms are designed with a "typical" input in mind. Edge cases violate the implicit assumptions behind that design.
+대부분의 알고리즘은 "여느" 들임을 생각하고 설계된다. 가장자리 경우는 그 설계 뒤에 숨은 여김을 어긴다.
 
-- **Empty input** ($n = 0$): Loops that assume at least one iteration produce undefined behavior.
-- **Single element** ($n = 1$): Comparisons between adjacent elements fail or become vacuously true.
-- **Identical values**: Sorting-based logic that assumes distinct elements may produce wrong partitions.
-- **Extreme values**: Arithmetic at $10^9$ or $10^{18}$ triggers integer overflow or precision loss.
+- **빈 들임**($n = 0$): 적어도 한 번은 돈다고 여기는 되돌이가 뜻 없는 움직임을 낸다.
+- **원소 하나**($n = 1$): 이웃 원소끼리의 견줌이 안 되거나 공허하게 참이 된다.
+- **같은 값**: 원소가 서로 다르다고 여기는 줄 세우기 바탕 논리가 잘못 가를 수 있다.
+- **극단 값**: $10^9$이나 $10^{18}$의 셈에서 정수 넘침이나 자릿수 잃음이 일어난다.
 
-## Systematic Edge Case Checklist
+## 짜임 있는 가장자리 경우 점검표
 
-### Numeric Edge Cases
+### 수의 가장자리 경우
 
-| Category | Specific cases to test |
+| 갈래 | 시험할 구체 경우 |
 |---|---|
-| Zero | $n = 0$, value $= 0$, empty array |
-| One | Single node, single edge, array of length 1 |
-| Two | Minimum case for pairwise operations |
-| Maximum | $n$ at constraint limit, values at $10^9$ or $10^{18}$ |
-| Negative | Negative values, negative indices, all-negative arrays |
-| Overflow | Products near $2^{31}$ or $2^{63}$, sums of large values |
+| 0 | $n = 0$, 값 $= 0$, 빈 배열 |
+| 1 | 마디 하나, 변 하나, 길이 1인 배열 |
+| 2 | 짝 연산의 최소 경우 |
+| 최대 | 매임 한도의 $n$, $10^9$이나 $10^{18}$인 값 |
+| 음수 | 음의 값, 음의 번호, 모두 음수인 배열 |
+| 넘침 | $2^{31}$이나 $2^{63}$ 언저리의 곱, 큰 값의 합 |
 
-### Structural Edge Cases
+### 얼개의 가장자리 경우
 
-| Category | Specific cases to test |
+| 갈래 | 시험할 구체 경우 |
 |---|---|
-| All same | Array of identical elements |
-| Sorted | Already sorted input (ascending and descending) |
-| Reverse sorted | Worst case for insertion sort, some pivot strategies |
-| Alternating | Values alternating high/low |
-| Star graph | One node connected to all others |
-| Path graph | Tree degenerating into a linked list |
-| Disconnected | Graph with multiple components or isolated nodes |
-| Self-loops | Edge from a node to itself |
-| Parallel edges | Multiple edges between the same pair of nodes |
+| 모두 같음 | 같은 원소의 배열 |
+| 줄 세워짐 | 이미 줄 세운 들임(오름과 내림) |
+| 거꾸로 줄 세워짐 | 끼움 정렬과 어떤 축 셈속의 가장 나쁜 경우 |
+| 번갈아 | 값이 높고 낮음을 번갈아 |
+| 별 그래프 | 한 마디가 나머지 모두에 이어짐 |
+| 길 그래프 | 나무가 이은 목록으로 퇴화 |
+| 끊김 | 조각이 여럿이거나 외톨이 마디가 있는 그래프 |
+| 스스로 이음 | 마디에서 자신으로 가는 변 |
+| 나란한 변 | 같은 마디 짝 사이의 변 여럿 |
 
-### String Edge Cases
+### 문자열의 가장자리 경우
 
-| Category | Specific cases to test |
+| 갈래 | 시험할 구체 경우 |
 |---|---|
-| Empty string | Length 0 |
-| Single character | Length 1 |
-| All same character | `"aaaaaa"` |
-| Palindrome | Even and odd length palindromes |
-| Maximum length | String at the constraint boundary |
+| 빈 문자열 | 길이 0 |
+| 글자 하나 | 길이 1 |
+| 모두 같은 글자 | `"aaaaaa"` |
+| 회문 | 길이가 짝수와 홀수인 회문 |
+| 최대 길이 | 매임 경계의 문자열 |
 
-## Edge Cases by Problem Type
+## 문제 갈래별 가장자리 경우
 
-### Arrays and Sequences
+### 배열과 차례
 
-- Array with one element: is the answer that element itself, or is it undefined?
-- All elements equal: does your algorithm handle duplicate keys correctly?
-- Array already sorted: does your algorithm perform in $O(n)$ or degenerate to $O(n^2)$?
-- Maximum and minimum values appearing at the boundaries (first or last position).
+- 원소가 하나인 배열: 답이 그 원소 자체인가, 뜻이 없는가?
+- 모든 원소가 같음: 알고리즘이 겹치는 열쇠를 옳게 다루는가?
+- 이미 줄 세운 배열: 알고리즘이 $O(n)$으로 도는가, $O(n^2)$으로 퇴화하는가?
+- 최대와 최소 값이 경계(첫 자리나 마지막 자리)에 나오는 경우.
 
-### Graphs
+### 그래프
 
-- Graph with no edges ($m = 0$): is the answer trivially defined?
-- Disconnected graph: does your BFS/DFS handle unreachable nodes?
-- Tree (connected, $n - 1$ edges): does your cycle-detection code handle acyclic graphs?
-- Complete graph ($m = \binom{n}{2}$): does the algorithm stay within time/space limits?
-- Bipartite vs non-bipartite: does the algorithm depend on this distinction?
+- 변이 없는 그래프($m = 0$): 답이 뻔하게 뜻매김되는가?
+- 끊긴 그래프: 너비/깊이 우선 찾기가 닿을 수 없는 마디를 다루는가?
+- 나무(이어졌고 변이 $n - 1$개): 돌이 찾기 코드가 돌이 없는 그래프를 다루는가?
+- 완전 그래프($m = \binom{n}{2}$): 알고리즘이 때와 공간 한도 안에 머무는가?
+- 두 쪽인지 아닌지: 알고리즘이 이 다름에 매이는가?
 
-### Dynamic Programming
+### 짜 넣기
 
-- Base case $n = 0$ or $n = 1$: is the DP table initialized correctly?
-- Target value $= 0$: is the empty selection valid?
-- All weights exceed capacity: is the answer correctly reported as 0 or impossible?
-- Negative values in the DP transition: does the recurrence still hold?
+- 바탕 경우 $n = 0$이나 $n = 1$: 동적 짜기 표의 첫 값이 옳은가?
+- 과녁 값 $= 0$: 아무것도 안 고르는 것이 올바른가?
+- 모든 무게가 담는 양을 넘음: 답이 0이나 불가능으로 옳게 나오는가?
+- 동적 짜기 옮김의 음수 값: 점화식이 여전히 성립하는가?
 
-### Geometry
+### 기하
 
-- Collinear points: do cross-product comparisons handle zero correctly?
-- Coincident points: two points at the same location.
-- Points on coordinate axes: $x = 0$ or $y = 0$.
-- Very large coordinates: potential overflow in distance or cross-product computations.
+- 한 직선 위의 점: 벡터곱 견줌이 0을 옳게 다루는가?
+- 겹친 점: 같은 자리의 점 둘.
+- 좌표축 위의 점: $x = 0$이나 $y = 0$.
+- 아주 큰 좌표: 거리나 벡터곱 셈에서 넘칠 수 있다.
 
-## Constructing Edge Cases
+## 가장자리 경우 짓기
 
-A systematic approach to constructing edge cases follows three principles.
+가장자리 경우를 짓는 짜임 있는 길은 원칙 셋을 따른다.
 
-**Principle 1 -- Boundary values.** For every variable with constraints $a \le x \le b$, test $x = a$ and $x = b$.
+**원칙 1 -- 경계 값.** 매임이 $a \le x \le b$인 변수마다 $x = a$과 $x = b$을 시험한다.
 
-**Principle 2 -- Empty and minimal.** If the problem accepts zero-length input, test it. If not, test the smallest valid input.
+**원칙 2 -- 비어 있음과 가장 작음.** 문제가 길이 0인 들임을 받으면 시험한다. 아니면 가장 작은 올바른 들임을 시험한다.
 
-**Principle 3 -- Degenerate structure.** For trees, test a path (depth $= n$) and a star (depth $= 1$). For strings, test single-character repetition. For numbers, test all-zero and all-maximum.
+**원칙 3 -- 퇴화한 얼개.** 나무에서는 길(깊이 $= n$)과 별(깊이 $= 1$)을 시험한다. 문자열에서는 글자 하나의 되풀이를 시험한다. 수에서는 모두 0과 모두 최대를 시험한다.
 
-## Worked Example
+## 풀이 예제
 
-**Problem**: Find the maximum subarray sum in an array of $n$ integers ($1 \le n \le 10^5$, $|a_i| \le 10^9$).
+**문제**: 정수 $n$개의 배열($1 \le n \le 10^5$, $|a_i| \le 10^9$)에서 최대 부분 배열 합을 찾아라.
 
-Edge cases to construct:
+지을 가장자리 경우:
 
-1. **$n = 1$**: The answer is $a_1$ itself. Kadane's algorithm must handle this.
-2. **All negative**: $[-3, -2, -5]$. The answer is $-2$ (the maximum single element). Some implementations incorrectly return 0 by starting with `max_sum = 0`.
-3. **All positive**: $[1, 2, 3]$. The answer is 6 (the entire array).
-4. **Overflow**: $n = 10^5$ with all $a_i = 10^9$. The sum is $10^{14}$, which exceeds 32-bit integer range. Use 64-bit integers.
-5. **Alternating signs**: $[10, -1, 10, -1, 10]$. The answer is 28 (the entire array). Tests that the algorithm correctly bridges small negatives.
+1. **$n = 1$**: 답이 $a_1$ 자체다. 카데인 알고리즘이 이를 다뤄야 한다.
+2. **모두 음수**: $[-3, -2, -5]$. 답은 $-2$(가장 큰 원소 하나)이다. 어떤 짜기는 `max_sum = 0`으로 시작해 잘못 0을 돌려준다.
+3. **모두 양수**: $[1, 2, 3]$. 답은 6(배열 전체)이다.
+4. **넘침**: $a_i$이 모두 $10^9$인 $n = 10^5$. 합이 $10^{14}$으로 32비트 정수 범위를 넘는다. 64비트 정수를 쓴다.
+5. **부호가 번갈아**: $[10, -1, 10, -1, 10]$. 답은 28(배열 전체)이다. 알고리즘이 작은 음수를 옳게 건너뛰는지 시험한다.
 
-## Anti-Patterns
+## 나쁜 무늬
 
-!!! danger "Assuming Distinct Values"
-    Many problems do not guarantee distinct input. If your algorithm uses a `set` or assumes unique keys in a sort, duplicates may cause incorrect behavior.
+!!! danger "값이 서로 다르다고 여기기"
+    많은 문제가 들임이 서로 다르다고 보장하지 않는다. 알고리즘이 `set`을 쓰거나 줄 세우기에서 열쇠가 하나뿐이라고 여기면 겹침이 잘못된 움직임을 낳을 수 있다.
 
-!!! danger "Forgetting the Zero Case"
-    If the problem allows $n = 0$ (check the constraints carefully), an unguarded access to `a[0]` causes a runtime error.
+!!! danger "0인 경우를 잊기"
+    문제가 $n = 0$을 허락하면(매임을 꼼꼼히 살펴라) 지키지 않은 `a[0]` 닿기가 돌림 어긋남을 낳는다.
 
-!!! danger "Hardcoding Small Cases"
-    Hardcoding returns for $n \le 2$ is fragile and error-prone. A robust algorithm handles small cases naturally through its general logic.
+!!! danger "작은 경우를 못 박기"
+    $n \le 2$의 답을 못 박는 것은 무르고 틀리기 쉽다. 튼튼한 알고리즘은 일반 논리로 작은 경우를 자연스럽게 다룬다.
 
-## Reference
+## 참고 문헌
 
-- [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf)
+음이 아닌 정수 $x$가 주어질 때 비트 셈만 써서 $x$의 가장 낮은 켜진 비트만 남기는 식을 적어라(곧 그 비트만 켜진 값을 만들어라). $x = 0$일 때 그 식은 무엇을 돌려주는가?
+
+## 연습문제
+
+**연습문제 1.**
+이어진 밑배열의 최대 합을 구하는 문제다. 내기 전에 시험할 가장자리 경우를 모두 늘어놓고, 저마다 어설픈 짜기가 낼 만한 틀린 내놓기를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    가장자리 경우: (1) $n = 1$ — 답은 그 하나뿐인 원소다. `max_sum = 0`으로 시작하는 풀이는 음수 값 대신 0을 돌려준다. (2) 모두 음수 — 답은 가장 덜 음수인 원소다. `max_sum = 0`으로 시작하는 카데인 알고리즘은 대신 0을 돌려준다. (3) 모두 0 — 답은 0이다. 깨질 낌새는 적지만 항등원 다루기를 시험한다. (4) 큰 음수에 둘러싸인 양수 하나 — 알고리즘이 밑배열을 너무 늘리지 않는지 시험한다. (5) $n = 10^5$에 값이 $\pm 10^9$ — 중간 합이 $\pm 10^{14}$에 이를 수 있어 64비트 정수가 필요하다. 32비트 `int`는 넘친다. (6) 양수와 음수가 갈마듦 — 카데인 알고리즘의 되돌리기 논리를 시험한다. (7) 모두 같은 값 — 양수 $v$면 답이 $n \cdot v$, 음수 $v$면 $v$인지 시험한다. $\square$
+
+---
+
+**연습문제 2.**
+들임이 마디 $n$개의 나무인 그래프 문제를 푼다. 시험해야 할 퇴화한 나무 얼개를 가려내고 저마다 어떤 알고리즘 여김을 어기는지 밝혀라.
+
+??? success "연습문제 2 풀이"
+    (1) **길 그래프**(곧은 사슬) — 깊이가 $n-1$이라 고른 깊이($O(\log n)$) 여김을 어긴다. 되돌이 깊이 먼저 훑기가 쌓기를 넘칠 수 있다. (2) **별 그래프**(가운데 하나가 잎 $n-1$개와 이어짐) — 마디 하나의 차수가 $n-1$이라 이웃 목록 훑기를 다그친다. 깊이가 1뿐이라 LCA 관련 논리가 퇴화할 수 있다. (3) **마디 하나**($n = 1$) — 변이 없다. 이웃을 훑는 알고리즘은 아무것도 다루지 않는다. (4) **마디 둘**($n = 2$) — 변 하나의 가장 작은 나무다. 어버이 매기기의 하나 어긋남을 시험한다. (5) **애벌레 나무** — 속마디마다 잎이 달린 길이다. 깊이가 섞인 움직임을 시험한다. (6) **꽉 찬 두 갈래 나무** — 알고리즘이 흔히 겨냥하는 "좋은" 경우다. 제정신 살피기에는 쓸모 있지만 벌레를 일으킬 낌새는 적다. $\square$
+
+---
+
+**연습문제 3.**
+"양의 정수 $n$개 배열의 최대공약수를 찾아라"는 문제의 옳은 풀이는 반드시 $n = 1$을 옳게 다뤄야 함을 증명하여라. 그런 다음 흔한 짜기 무늬가 $n = 0$에서 틀림을 보이고 고침을 내놓아라.
+
+??? success "연습문제 3 풀이"
+    $n = 1$이면 원소 하나 $a$의 최대공약수는 $a$ 자신이다. $a$가 $a$를 나누고 답을 옭아맬 다른 원소가 없기 때문이다. 옳은 풀이는 0이나 1이 아니라 $a$를 돌려주어야 한다. 흔한 무늬 `result = 0; for x in arr: result = gcd(result, x)`는 $\gcd(0, a) = a$이므로 된다. 그러나 $n = 0$(빈 배열)이면 되돌이 속이 한 번도 돌지 않아 0을 돌려준다. 이것이 "옳은"지는 관습에 달렸지만 수학으로는 빈 집합의 최대공약수가 뜻이 없고 0을 돌려주면 뒤에서 0으로 나누기 어긋남이 날 수 있다. 고침: `if n == 0`을 살펴 어긋남을 일으키거나 부르는 쪽에 맞는 표시 값을 돌려준다. 아니면 문제 매임이 $n \ge 1$을 보장해야 하며, 그때는 이 살피기가 지킴이다. $\square$
+
+---
+
+**연습문제 4.**
+두 갈래 찾기 풀이가 보기 들임에서는 되지만 채점기에서 틀린다. 이 찾기는 한 방향 조건 $f(x)$를 만족하는 $[1, 10^9]$ 안의 최소 값 $x$를 찾는다. 두 갈래 찾기의 가장자리 경우를 가려내고 저마다 어떻게 틀린 결과를 낼 수 있는지 밝혀라.
+
+??? success "연습문제 4 풀이"
+    (1) **답이 왼쪽 끝점**($x = 1$) — 되돌이가 `lo = 1, hi = 10^9`으로 시작하고 `mid = (lo + hi) / 2`를 쓰면 `lo`의 마지막 값이 1에 이를 수 있어야 한다. 고침(`lo = mid + 1`과 `lo = mid`)의 하나 어긋남이 이를 건너뛸 수 있다. (2) **답이 오른쪽 끝점**($x = 10^9$) — 마찬가지로 `hi`에 닿을 수 있어야 한다. (3) **올바른 $x$가 없음** — 모든 $x$에서 $f(x) = \text{false}$면 찾기가 "안 됨"을 알려야 하지만 많은 짜기가 `hi + 1`이나 쓰레기를 돌려준다. (4) **가운뎃값의 정수 넘침** — `lo + hi > 2^{31} - 1`이면 `(lo + hi) / 2`가 넘친다. 대신 `lo + (hi - lo) / 2`를 쓴다. (5) **되돌이 멈춤의 하나 어긋남** — `while lo < hi`와 `while lo <= hi`를 잘못된 고침 규칙과 엮으면 끝없는 되돌이나 건너뛴 값이 생긴다. 끝점에서만 참인 $f$로 시험하면 이 가운데 거의 다 잡힌다. $\square$
+
+---
+
+**연습 5.**
+문자열 문제의 가장자리 경우를 짜임 있게 만드는 셈속을 설계하여라. 그 셈속은 퇴화한 문자열을 적어도 다섯 갈래 덮고 저마다 뚜렷한 보기와 잡아내는 벌레 갈래를 담아야 한다.
+
+??? success "연습 5의 풀이"
+    (1) **빈 문자열**($s = $ "") — 길이를 살피지 않고 `s[0]`에 닿는 알고리즘은 번호 어긋남으로 죽는다. (2) **글자 하나**($s = $ "a") — 회문 살피기, 밑문자열 찾기, 가르기가 이를 다뤄야 한다. 하나 어긋남이 여기서 많이 드러난다. (3) **모두 같은 글자**($s = $ "aaaa...a") — 흩임 바탕 풀이가 흩임 부딪힘 때문에 $O(n^2)$으로 나빠질 수 있다. KMP 무늬 맞추기는 모든 자리가 맞는 경우를 다뤄야 한다. (4) **갈마드는 글자로 된 최대 길이**($|s| = 10^6$인 $s = $ "abab...ab") — 크기에서의 때 복잡도를 시험한다. 숨은 이차 움직임(보기로 파이썬의 어설픈 `string += char`)이 있는 알고리즘은 때 한도를 넘는다. (5) **특별한 글자나 극단 아스키 값이 든 문자열** — 문제가 `[a-z]` 밖의 글자를 허락하면 숫자, 빈칸, 글자 코드 0이나 127로 시험해 크기 26짜리 잦기 배열에 깃든 글자 범위 여김을 잡는다. $\square$

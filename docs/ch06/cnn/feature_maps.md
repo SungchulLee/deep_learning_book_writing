@@ -1,59 +1,54 @@
-# Feature Maps
+# 특징 맵
+## 들어가며
 
+**특징 맵**은 입력에 합성곱 필터를 적용한 결과로, 어떤 무늬(특징)가 어디에서 얼마나 강하게 잡혔는지를 나타내는 활성값의 공간 격자이다. 특징 맵은 CNN의 근본적인 중간 표현이며, 데이터가 신경망을 지날수록 점점 더 추상적인 정보를 담는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+특징 맵을 이해하는 일은 다음에 꼭 필요하다.
 
-## Introduction
-
-A **feature map** is the output of applying a convolutional filter to an input—it is a spatial grid of activation values that represents where and how strongly a particular pattern (feature) is detected. Feature maps are the fundamental intermediate representations in CNNs, encoding progressively more abstract information as data flows through the network.
-
-Understanding feature maps is essential for:
-
-1. **Architecture design**: Choosing appropriate channel dimensions and spatial resolutions at each layer
-2. **Parameter budgeting**: Computing memory and parameter requirements for a given architecture
-3. **Debugging and interpretation**: Visualizing what the network has learned at each stage
-4. **Performance optimization**: Identifying computational bottlenecks across layers
+1. **구조 설계**: 층마다 알맞은 채널 차원과 공간 해상도 고르기
+2. **자원 어림**: 주어진 구조에 필요한 메모리와 매개변수 계산하기
+3. **벌레잡이와 해석**: 단계마다 신경망이 무엇을 배웠는지 그려 보기
+4. **성능 최적화**: 층에 걸친 계산 병목 찾아내기
 
 ---
 
-## Feature Map Geometry
+## 특징 맵의 기하
 
-### Tensor Shape Convention
+### 텐서 모양의 관행
 
-In PyTorch, a feature map tensor has shape $(N, C, H, W)$:
+PyTorch에서 특징 맵 텐서의 모양은 $(N, C, H, W)$이다.
 
-| Dimension | Symbol | Meaning |
+| 차원 | 기호 | 뜻 |
 |-----------|--------|---------|
-| Batch | $N$ | Number of samples processed in parallel |
-| Channels | $C$ | Number of feature maps (depth) |
-| Height | $H$ | Spatial height |
-| Width | $W$ | Spatial width |
+| 배치 | $N$ | 한꺼번에 처리하는 표본의 수 |
+| 채널 | $C$ | 특징 맵의 수 (깊이) |
+| 높이 | $H$ | 공간적 높이 |
+| 너비 | $W$ | 공간적 너비 |
 
 ```python
 import torch
 import torch.nn as nn
 
-# A batch of 8 RGB images of size 224×224
+# 크기가 224×224인 RGB 이미지 8장의 배치
 x = torch.randn(8, 3, 224, 224)
 
-# After first conv layer: 64 feature maps of size 224×224
+# 첫 합성곱 층 뒤: 크기가 224×224인 특징 맵 64개
 conv1 = nn.Conv2d(3, 64, kernel_size=3, padding=1)
 feat1 = conv1(x)
 print(f"Input:  N={x.shape[0]}, C={x.shape[1]}, H={x.shape[2]}, W={x.shape[3]}")
 print(f"After conv1: N={feat1.shape[0]}, C={feat1.shape[1]}, H={feat1.shape[2]}, W={feat1.shape[3]}")
-# Input:  N=8, C=3, H=224, W=224
-# After conv1: N=8, C=64, H=224, W=224
+# 입력:  N=8, C=3, H=224, W=224
+# conv1 뒤: N=8, C=64, H=224, W=224
 ```
 
-### Spatial vs. Channel Dimensions
+### 공간 차원과 채널 차원
 
-Feature maps encode two distinct types of information:
+특징 맵은 서로 다른 두 종류의 정보를 담는다.
 
-- **Spatial dimensions** ($H \times W$): *Where* features are located in the image
-- **Channel dimension** ($C$): *What* features are detected at each location
+- **공간 차원** ($H \times W$): 특징이 이미지의 *어디*에 있는가
+- **채널 차원** ($C$): 자리마다 *어떤* 특징이 잡혔는가
 
-Each channel corresponds to a different learned filter, detecting a different pattern. The spatial grid preserves the relative positions of detected features.
+채널마다 서로 다른 학습된 필터에 대응하여 저마다 다른 무늬를 잡는다. 공간 격자는 잡아낸 특징들의 상대적인 자리를 지켜 준다.
 
 ```
 Feature Map Stack (C×H×W):
@@ -71,11 +66,11 @@ forms a local feature descriptor.
 
 ---
 
-## How Feature Maps Evolve Through a Network
+## 신경망을 지나며 특징 맵이 달라지는 방식
 
-### The Feature Hierarchy
+### 특징의 위계
 
-As data flows through a CNN, feature maps undergo a characteristic transformation:
+데이터가 CNN을 지나면 특징 맵이 특유의 변화를 겪는다.
 
 ```
 Input Image (3×224×224)
@@ -99,39 +94,39 @@ Input Image (3×224×224)
     Feature Vector ──→ 512 × 1 × 1
 ```
 
-The pattern is consistent: **spatial resolution decreases** while **channel count increases**. This reflects the transition from fine-grained spatial detail to rich semantic abstraction.
+그 방식은 한결같다. **공간 해상도는 낮아지고** **채널 수는 늘어난다**. 이는 세밀한 공간 정보에서 풍부한 의미적 추상으로 옮겨 가는 흐름을 드러낸다.
 
-### The Resolution-Semantics Trade-off
+### 해상도와 의미 사이의 맞바꿈
 
-| Property | Early Layers | Deep Layers |
+| 성질 | 앞쪽 층 | 깊은 층 |
 |----------|-------------|-------------|
-| Spatial resolution | High ($224 \times 224$) | Low ($7 \times 7$) |
-| Channel count | Low (64) | High (512+) |
-| Feature type | Low-level (edges, textures) | High-level (objects, scenes) |
-| Translation sensitivity | High (precise localization) | Low (position-invariant) |
-| Receptive field | Small (local context) | Large (global context) |
+| 공간 해상도 | 높음 ($224 \times 224$) | 낮음 ($7 \times 7$) |
+| 채널 수 | 적음 (64) | 많음 (512 이상) |
+| 특징의 종류 | 저수준 (모서리, 질감) | 고수준 (물체, 장면) |
+| 평행 이동에 대한 민감도 | 높음 (자리를 정확히 짚음) | 낮음 (위치에 무관) |
+| 수용 영역 | 작음 (지역 맥락) | 큼 (전역 맥락) |
 
 ---
 
-## Parameter and Memory Analysis
+## 매개변수와 메모리 분석
 
-### Parameter Count per Layer
+### 층마다의 매개변수 수
 
-For a convolutional layer with kernel size $K$:
+핵 크기가 $K$인 합성곱 층에 대해 다음과 같다.
 
 $$\text{Parameters} = C_{out} \times C_{in} \times K^2 + C_{out}$$
 
-### Activation Memory per Layer
+### 층마다의 활성값 메모리
 
-The memory required to store a feature map is:
+특징 맵 하나를 저장하는 데 드는 메모리는 다음과 같다.
 
 $$\text{Memory (elements)} = N \times C \times H \times W$$
 
 $$\text{Memory (bytes)} = N \times C \times H \times W \times \text{bytes per element}$$
 
-For float32 (4 bytes per element), a single $64 \times 224 \times 224$ feature map uses approximately $64 \times 224 \times 224 \times 4 \approx 12.3$ MB.
+float32(원소당 4바이트)에서는 $64 \times 224 \times 224$ 특징 맵 하나가 약 $64 \times 224 \times 224 \times 4 \approx 12.3$MB를 쓴다.
 
-### Layer-by-Layer Analysis
+### 층별 분석
 
 ```python
 import torch
@@ -139,7 +134,7 @@ import torch.nn as nn
 
 def analyze_feature_maps(model, input_shape=(1, 3, 224, 224)):
     """
-    Analyze feature map shapes, parameters, and memory through a model.
+    모델을 지나며 특징 맵의 모양과 매개변수와 메모리를 분석한다.
     """
     x = torch.randn(*input_shape)
     
@@ -148,7 +143,7 @@ def analyze_feature_maps(model, input_shape=(1, 3, 224, 224)):
     print(f"{'Input':<30} {str(list(x.shape)):<25} {'—':>12} {x.numel()*4/1e6:>12.2f}")
     
     total_params = 0
-    total_memory = x.numel() * 4  # Input memory
+    total_memory = x.numel() * 4  # 입력 메모리
     
     for name, layer in model.named_children():
         x = layer(x)
@@ -164,29 +159,28 @@ def analyze_feature_maps(model, input_shape=(1, 3, 224, 224)):
     
     return x
 
-
-# Example: VGG-style feature extractor
+# 예: VGG 방식 특징 추출기
 model = nn.Sequential(
-    nn.Conv2d(3, 64, 3, padding=1),    # Block 1
+    nn.Conv2d(3, 64, 3, padding=1),    # 블록 1
     nn.ReLU(inplace=True),
     nn.Conv2d(64, 64, 3, padding=1),
     nn.ReLU(inplace=True),
     nn.MaxPool2d(2, 2),
     
-    nn.Conv2d(64, 128, 3, padding=1),  # Block 2
+    nn.Conv2d(64, 128, 3, padding=1),  # 블록 2
     nn.ReLU(inplace=True),
     nn.Conv2d(128, 128, 3, padding=1),
     nn.ReLU(inplace=True),
     nn.MaxPool2d(2, 2),
     
-    nn.Conv2d(128, 256, 3, padding=1), # Block 3
+    nn.Conv2d(128, 256, 3, padding=1), # 블록 3
     nn.ReLU(inplace=True),
     nn.Conv2d(256, 256, 3, padding=1),
     nn.ReLU(inplace=True),
     nn.MaxPool2d(2, 2),
 )
 
-# Use named Sequential for cleaner output
+# 출력을 깔끔하게 하려고 이름 붙인 Sequential 사용
 named_model = nn.Sequential()
 names = ['conv1_1', 'relu1_1', 'conv1_2', 'relu1_2', 'pool1',
          'conv2_1', 'relu2_1', 'conv2_2', 'relu2_2', 'pool2',
@@ -199,27 +193,27 @@ analyze_feature_maps(named_model)
 
 ---
 
-## The "Double Channels, Halve Resolution" Pattern
+## "채널은 두 배, 해상도는 절반" 방식
 
-Modern CNN architectures follow a consistent design pattern: when spatial resolution is halved (via stride-2 convolution or pooling), the number of channels is doubled. This maintains roughly constant computational cost per layer:
+요즘 CNN 구조는 한결같은 설계 방식을 따른다. (보폭 2 합성곱이나 풀링으로) 공간 해상도가 절반이 되면 채널 수를 두 배로 늘린다. 그러면 층마다의 계산 비용이 대체로 일정하게 유지된다.
 
 $$\text{FLOPs} \propto C \times C \times K^2 \times H \times W$$
 
-Doubling $C$ while halving both $H$ and $W$:
+$C$을 두 배로 하고 $H$과 $W$을 각각 절반으로 하면 다음과 같다.
 
 $$2C \times 2C \times K^2 \times \frac{H}{2} \times \frac{W}{2} = C^2 K^2 HW$$
 
-The FLOPs remain approximately constant, creating a balanced computational profile across the network.
+부동소수점 연산 수가 거의 일정하게 남아 신경망 전체에 걸쳐 계산량이 고르게 퍼진다.
 
 ```python
 import torch.nn as nn
 
-# ResNet-style channel progression
+# ResNet 방식의 채널 변화
 stages = [
-    ("Stage 1", 64,  56, 56),   # After stem
-    ("Stage 2", 128, 28, 28),   # 2× channels, 0.5× resolution
-    ("Stage 3", 256, 14, 14),   # 4× channels, 0.25× resolution
-    ("Stage 4", 512, 7,  7),    # 8× channels, 0.125× resolution
+    ("Stage 1", 64,  56, 56),   # 줄기 뒤
+    ("Stage 2", 128, 28, 28),   # 채널 2배, 해상도 0.5배
+    ("Stage 3", 256, 14, 14),   # 채널 4배, 해상도 0.25배
+    ("Stage 4", 512, 7,  7),    # 채널 8배, 해상도 0.125배
 ]
 
 print(f"{'Stage':<12} {'Channels':>8} {'Resolution':>12} {'Elements':>12} {'Relative':>10}")
@@ -234,11 +228,11 @@ for name, c, h, w in stages:
 
 ---
 
-## Feature Map Visualization
+## 특징 맵 시각화
 
-### Visualizing Learned Features
+### 학습된 특징 그려 보기
 
-Examining feature maps helps understand what each layer detects:
+특징 맵을 살펴보면 층마다 무엇을 잡아내는지 알 수 있다.
 
 ```python
 import torch
@@ -248,34 +242,34 @@ import numpy as np
 
 def visualize_feature_maps(model, image, layer_name, max_channels=16):
     """
-    Visualize feature maps at a specific layer.
+    특정 층의 특징 맵을 그린다.
     
-    Args:
-        model: CNN model
-        image: Input tensor (1, C, H, W)
-        layer_name: Name of the layer to visualize
-        max_channels: Maximum number of channels to display
+    인수:
+        model: CNN 모델
+        image: 입력 텐서 (1, C, H, W)
+        layer_name: 그릴 층의 이름
+        max_channels: 보일 채널의 최대 개수
     """
-    # Register hook to capture feature maps
+    # 특징 맵을 붙잡으려고 훅 등록
     features = {}
     def hook(module, input, output):
         features['output'] = output.detach()
     
-    # Find and hook the target layer
+    # 대상 층을 찾아 훅 걸기
     for name, module in model.named_modules():
         if name == layer_name:
             handle = module.register_forward_hook(hook)
             break
     
-    # Forward pass
+    # 순전파
     model.eval()
     with torch.no_grad():
         _ = model(image)
     
     handle.remove()
     
-    # Visualize
-    feat = features['output'].squeeze(0)  # Remove batch dim
+    # 시각화한다
+    feat = features['output'].squeeze(0)  # 배치 차원 없애기
     num_channels = min(feat.shape[0], max_channels)
     
     rows = int(np.ceil(num_channels / 4))
@@ -287,7 +281,7 @@ def visualize_feature_maps(model, image, layer_name, max_channels=16):
         axes[i].set_title(f'Channel {i}')
         axes[i].axis('off')
     
-    # Hide unused subplots
+    # 쓰지 않는 부분 그림 감추기
     for i in range(num_channels, len(axes)):
         axes[i].axis('off')
     
@@ -298,13 +292,13 @@ def visualize_feature_maps(model, image, layer_name, max_channels=16):
     plt.show()
 ```
 
-### Channel Statistics
+### 채널의 통계량
 
 ```python
 def feature_map_statistics(model, loader, layer_name, num_batches=10):
     """
-    Compute activation statistics for a layer across the dataset.
-    Useful for diagnosing dead neurons, saturation, and distribution issues.
+    데이터셋 전체에 대해 한 층의 활성값 통계를 계산한다.
+    죽은 뉴런, 포화, 분포 문제를 살피는 데 쓸모가 있다.
     """
     features_list = []
     
@@ -325,10 +319,10 @@ def feature_map_statistics(model, loader, layer_name, num_batches=10):
     
     handle.remove()
     
-    # Concatenate and analyze
+    # 이어 붙인 뒤 분석
     all_features = torch.cat(features_list, dim=0)
     
-    # Per-channel statistics
+    # 채널별 통계량
     channel_means = all_features.mean(dim=(0, 2, 3))
     channel_stds = all_features.std(dim=(0, 2, 3))
     channel_sparsity = (all_features == 0).float().mean(dim=(0, 2, 3))
@@ -345,37 +339,37 @@ def feature_map_statistics(model, loader, layer_name, num_batches=10):
 
 ---
 
-## Feature Maps in Multi-Channel Convolution
+## 다채널 합성곱에서의 특징 맵
 
-### How a Single Convolution Produces a Feature Map
+### 합성곱 하나가 특징 맵을 만드는 방식
 
-Each output channel is produced by a different 3D kernel that spans all input channels. The kernel slides over the spatial dimensions, computing a dot product at each position:
+출력 채널마다 모든 입력 채널에 걸친 서로 다른 3차원 핵이 그것을 만든다. 핵이 공간 차원 위를 미끄러지며 자리마다 내적을 계산한다.
 
 $$\text{Feature Map}[o, i, j] = \sum_{c=0}^{C_{in}-1} \sum_{m,n} X[c, i+m, j+n] \cdot W[o, c, m, n] + b[o]$$
 
-Each of the $C_{out}$ kernels learns to detect a different spatial pattern across all input channels simultaneously.
+$C_{out}$개의 핵은 저마다 모든 입력 채널에 걸친 서로 다른 공간 무늬를 한꺼번에 잡는 법을 배운다.
 
-### The 1x1 Convolution as Channel Mixer
+### 채널을 섞는 1×1 합성곱
 
-A $1 \times 1$ convolution performs no spatial filtering—it operates purely on the channel dimension at each spatial position:
+$1 \times 1$ 합성곱은 공간적인 거르기를 전혀 하지 않고 공간 위치마다 채널 차원에만 작용한다.
 
 $$Y[o, i, j] = \sum_{c=0}^{C_{in}-1} X[c, i, j] \cdot W[o, c] + b[o]$$
 
-This is equivalent to applying a shared fully connected layer independently at each spatial position. Uses include:
+이는 공간 위치마다 공유된 완전 연결층을 따로 적용하는 것과 같다. 쓰임새는 다음과 같다.
 
-- **Channel reduction**: Reducing $C_{in}$ to a smaller $C_{out}$ (bottleneck)
-- **Channel expansion**: Increasing channel dimension
-- **Cross-channel learning**: Combining information across feature maps
-- **Adding non-linearity**: When followed by activation functions
+- **채널 줄이기**: $C_{in}$을 더 작은 $C_{out}$으로 줄인다 (병목)
+- **채널 늘리기**: 채널 차원을 키운다
+- **채널 사이의 학습**: 특징 맵에 걸친 정보를 엮는다
+- **비선형 더하기**: 뒤에 활성화 함수를 붙일 때
 
 ```python
-# 1×1 convolution: pure channel mixing
-channel_mixer = nn.Conv2d(256, 64, kernel_size=1)  # 256 → 64 channels
+# 1×1 합성곱: 채널만 섞기
+channel_mixer = nn.Conv2d(256, 64, kernel_size=1)  # 채널 256 → 64개
 
 x = torch.randn(1, 256, 14, 14)
 out = channel_mixer(x)
 print(f"Channel reduction: {x.shape} → {out.shape}")
-# Channel reduction: [1, 256, 14, 14] → [1, 64, 14, 14]
+# 채널 줄이기: [1, 256, 14, 14] → [1, 64, 14, 14]
 
 params = sum(p.numel() for p in channel_mixer.parameters())
 print(f"Parameters: {params:,}")  # 256×64 + 64 = 16,448
@@ -383,28 +377,28 @@ print(f"Parameters: {params:,}")  # 256×64 + 64 = 16,448
 
 ---
 
-## Feature Map Reuse: Skip Connections
+## 특징 맵 다시 쓰기: 건너뛰기 연결
 
-Skip (residual) connections allow feature maps from earlier layers to bypass intermediate layers and be added to or concatenated with later feature maps:
+건너뛰기(잔차) 연결은 앞쪽 층의 특징 맵이 중간 층을 건너뛰어 뒤쪽 특징 맵에 더해지거나 이어 붙게 해 준다.
 
-### Additive Skip (ResNet)
+### 더하는 건너뛰기 (ResNet)
 
 $$\mathbf{Y} = F(\mathbf{X}) + \mathbf{X}$$
 
-Requires matching spatial dimensions and channel counts.
+공간 차원과 채널 수가 맞아야 한다.
 
-### Concatenation Skip (DenseNet, U-Net)
+### 이어 붙이는 건너뛰기 (DenseNet, U-Net)
 
 $$\mathbf{Y} = [\mathbf{X}, F(\mathbf{X})]$$
 
-Concatenates along the channel dimension, creating increasingly rich feature representations.
+채널 차원을 따라 이어 붙여 갈수록 풍부한 특징 표현을 만든다.
 
 ```python
 import torch
 import torch.nn as nn
 
 class ResidualBlock(nn.Module):
-    """Additive skip: preserves feature map dimensions."""
+    """더하는 건너뛰기: 특징 맵의 차원을 지킨다."""
     def __init__(self, channels):
         super().__init__()
         self.conv1 = nn.Conv2d(channels, channels, 3, padding=1, bias=False)
@@ -416,11 +410,10 @@ class ResidualBlock(nn.Module):
         identity = x
         out = torch.relu(self.bn1(self.conv1(x)))
         out = self.bn2(self.conv2(out))
-        return torch.relu(out + identity)  # Feature map reuse
-
+        return torch.relu(out + identity)  # 특징 맵 다시 쓰기
 
 class DenseBlock(nn.Module):
-    """Concatenation skip: feature maps accumulate."""
+    """이어 붙이는 건너뛰기: 특징 맵이 쌓인다."""
     def __init__(self, in_channels, growth_rate, num_layers):
         super().__init__()
         self.layers = nn.ModuleList()
@@ -436,33 +429,33 @@ class DenseBlock(nn.Module):
         for layer in self.layers:
             out = layer(torch.cat(features, dim=1))
             features.append(out)
-        return torch.cat(features, dim=1)  # All feature maps concatenated
+        return torch.cat(features, dim=1)  # 모든 특징 맵을 이어 붙임
 ```
 
 ---
 
-## Summary
+## 요약
 
-| Concept | Description |
+| 개념 | 설명 |
 |---------|-------------|
-| **Shape** | $(N, C, H, W)$: batch, channels, height, width |
-| **Channels** | Each channel = one learned feature detector's spatial response |
-| **Hierarchy** | Early: edges/textures → Deep: objects/semantics |
-| **Design pattern** | Double channels when halving resolution |
-| **$1 \times 1$ conv** | Pure channel mixing, no spatial filtering |
-| **Skip connections** | Reuse earlier feature maps (add or concatenate) |
-| **Visualization** | Hook-based extraction reveals learned representations |
+| **모양** | $(N, C, H, W)$: 배치, 채널, 높이, 너비 |
+| **채널** | 채널 하나 = 학습된 특징 검출기 하나의 공간적 반응 |
+| **위계** | 앞쪽: 모서리와 질감 → 깊은 쪽: 물체와 의미 |
+| **설계 방식** | 해상도를 절반으로 할 때 채널을 두 배로 |
+| **$1 \times 1$ 합성곱** | 채널만 섞고 공간적 거르기는 하지 않음 |
+| **건너뛰기 연결** | 앞쪽 특징 맵을 다시 씀 (더하거나 이어 붙임) |
+| **시각화** | 훅으로 뽑아내면 학습된 표현이 드러남 |
 
-## Key Takeaways
+## 핵심 정리
 
-1. **Feature maps are 3D tensors** ($C \times H \times W$) where channels encode *what* and spatial dims encode *where*
-2. **Progressive abstraction**: Networks transform high-resolution, low-channel inputs into low-resolution, high-channel representations
-3. **The double-channels-halve-resolution pattern** maintains balanced computation across stages
-4. **$1 \times 1$ convolutions** enable efficient channel dimension manipulation without spatial computation
-5. **Activation memory often exceeds parameter memory**, especially for high-resolution inputs—this is a key concern for GPU memory budgeting
-6. **Feature map visualization** through hooks is an essential debugging and interpretability tool
+1. **특징 맵은 3차원 텐서**($C \times H \times W$)이며 채널은 *무엇*을, 공간 차원은 *어디*를 담는다
+2. **점진적인 추상화**: 신경망은 해상도가 높고 채널이 적은 입력을 해상도가 낮고 채널이 많은 표현으로 바꾼다
+3. **채널 두 배, 해상도 절반 방식**은 단계에 걸쳐 계산량을 고르게 지킨다
+4. **$1 \times 1$ 합성곱**은 공간 계산 없이 채널 차원을 효율적으로 다루게 해 준다
+5. **활성값 메모리가 매개변수 메모리를 넘어설 때가 많다.** 특히 해상도가 높은 입력에서 그러하며, GPU 메모리를 가늠할 때 중요한 문제이다
+6. 훅으로 하는 **특징 맵 시각화**는 벌레잡이와 해석에 꼭 필요한 도구이다
 
-## References
+## 참고 문헌
 
 1. Zeiler, M. D., & Fergus, R. (2014). "Visualizing and Understanding Convolutional Networks." *ECCV*.
 
@@ -470,6 +463,47 @@ class DenseBlock(nn.Module):
 
 3. Huang, G., Liu, Z., van der Maaten, L., & Weinberger, K. Q. (2017). "Densely Connected Convolutional Networks." *CVPR*.
 
-4. Lin, M., Chen, Q., & Yan, S. (2014). "Network In Network." *ICLR*. (Introduced 1×1 convolutions)
+4. Lin, M., Chen, Q., & Yan, S. (2014). "Network In Network." *ICLR*. (1×1 합성곱을 처음 소개한 논문)
 
 5. Simonyan, K., & Zisserman, A. (2015). "Very Deep Convolutional Networks for Large-Scale Image Recognition." *ICLR*.
+
+## 연습문제
+
+**연습문제 1.**
+CNN의 앞쪽 층과 깊은 층의 특징 맵이 나타내는 바가 어떻게 다른지 설명하라.
+
+??? success "연습문제 1 풀이"
+    앞쪽 층은 모서리, 꼭짓점, 색, 질감 같은 저수준 특징을 담는다. 중간 층은 저수준 특징이 모여 이루어진 부분(눈, 바퀴)을 담는다. 깊은 층은 얼굴이나 자동차 같은 고수준 의미 개념을 담는다. 이런 위계적인 특징 추출이 깊은 CNN의 핵심 강점이다.
+
+---
+
+**연습문제 2.**
+모양이 $(3, 224, 224)$인 입력이 필터 64개, 핵 $7\times7$, 보폭 2, 덧대기 3인 합성곱 층을 지난 뒤의 출력 특징 맵 차원을 계산하라.
+
+??? success "연습문제 2 풀이"
+    출력: $(64, \lfloor(224+6-7)/2\rfloor+1, \lfloor(224+6-7)/2\rfloor+1) = (64, 112, 112)$.
+
+---
+
+**연습문제 3.**
+순전파 훅을 써서 미리 학습된 CNN의 특징 맵 시각화를 구현하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    activations = {}
+    def hook(name):
+        def fn(module, input, output):
+            activations[name] = output.detach()
+        return fn
+    model.layer1.register_forward_hook(hook('layer1'))
+    model(img)
+    plt.imshow(activations['layer1'][0, 0].numpy())
+    ```
+
+---
+
+**연습문제 4.**
+$1 \times 1$ 합성곱(점별 합성곱)은 특징 맵을 어떻게 바꾸는가? 그 쓰임새는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    $1\times1$ 합성곱은 공간 차원을 바꾸지 않고 공간 위치마다 채널을 섞는다. (1) 채널 차원 줄이기(ResNet의 병목 층), (2) 채널 늘리기, (3) (활성화와 함께) 비선형 더하기에 쓰인다. 공간 위치마다 공유된 MLP를 따로 적용하는 것과 같다.

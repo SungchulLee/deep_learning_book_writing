@@ -1,93 +1,118 @@
-# 6.11.9 Case Studies and Real-World Examples
+# 6.11.9 사례 살피기와 실제 보기
+## 잘된 짜기
 
+이 절은 세 업계에 걸친 대화 인공지능의 실제 펼치기를 살피며 기술 방식, 잴 수 있는 결과, 얻은 가르침을 따져 본다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+### 사례 1: 금융 — 인공지능이 이끄는 고객 응대
 
-## Successful Implementations
+**배경.** 큰 금융 기관이 잔액, 거래 발자취, 사기 알림, 대출 앎 같은 판에 박힌 물음을 대량으로 다루려 ChatGPT 바탕 체계를 고객 응대 판에 넣었다.
 
-This section examines concrete deployments of conversational AI across three industries, analyzing the technical approaches, measurable outcomes, and lessons learned.
-
-### Case Study 1: Finance — AI-Driven Customer Support
-
-**Context.** A large financial institution integrated a ChatGPT-based system into its customer service platform to handle high volumes of routine inquiries: account balances, transaction history, fraud alerts, and loan information.
-
-**Technical approach.** The deployment used a **retrieval-augmented generation (RAG)** architecture. Customer queries were first processed by an intent classifier, then relevant information was retrieved from the bank's knowledge base (product documentation, policy manuals, account data via API) and passed to the language model as grounding context. A safety layer filtered responses for compliance with financial regulations before delivery.
+**기술 방식.** 이 펼치기는 **찾아 붙여 만들어 내기(RAG)** 얼개를 썼다. 고객의 물음을 먼저 뜻 갈래 매개가 다루고, 그다음 은행의 앎 곳간(상품 설명서, 규정 지침서, API로 얻는 계좌 자료)에서 맞닿는 앎을 찾아 말 모델에 뿌리내림 맥락으로 넘겼다. 안전 층이 내보내기 전에 금융 규제를 지키는지 답을 걸렀다.
 
 ```
 User Query → Intent Classification → Knowledge Retrieval → LLM Generation → Compliance Filter → Response
 ```
 
-**Outcomes.**
+**결과.**
 
-- Customer satisfaction scores improved by 18%, driven primarily by faster response times (average 3 seconds vs. 2+ minutes for human agents) and 24/7 availability.
-- Operational efficiency increased: the AI handled 65% of all incoming queries without human intervention.
-- Cost savings of approximately 30% in the first year, primarily from reduced staffing requirements for routine query handling.
-- Human agents were redeployed to complex cases (disputes, advisory services), improving service quality for high-value interactions.
+- 고객 만족도가 18% 올랐다. 주로 더 빠른 응답 시간(사람 상담원은 2분 넘게, 이쪽은 평균 3초)과 24시간 이용 덕분이다.
+- 운영 효율이 올랐다. 곧 들어오는 물음의 65%를 사람 손 없이 인공지능이 처리했다.
+- 첫해에 약 30%의 값을 아꼈다. 주로 판에 박힌 물음 처리에 필요한 인원이 줄어서이다.
+- 사람 상담원을 복잡한 경우(분쟁, 자문 서비스)로 옮겨 값진 응대의 좋음이 나아졌다.
 
 **Challenges encountered.** The model initially struggled with multi-account queries (e.g., "Transfer \$500 from my checking to my savings") that required coordinating across multiple backend systems. This required custom function-calling pipelines with explicit transaction validation steps.
 
-### Case Study 2: Healthcare — Virtual Health Assistants
+### 사례 2: 의료 — 가상 건강 도우미
 
-**Context.** A major hospital network deployed conversational AI to streamline patient interactions: appointment scheduling, pre-visit intake forms, symptom triage, post-visit follow-up instructions, and medication reminders.
+**배경.** 큰 병원 그물이 진료 예약, 방문 전 문진표, 증상 분류, 방문 뒤 안내, 약 알림 같은 환자 응대를 매끄럽게 하려 대화 인공지능을 펼쳤다.
 
-**Technical approach.** The system combined a fine-tuned language model with structured clinical knowledge graphs. For symptom triage, the model followed a decision-tree-guided dialogue flow, asking clarifying questions to narrow differential diagnoses before recommending urgency levels. All clinical recommendations passed through a rule-based verification layer aligned with established medical guidelines.
+**기술 방식.** 이 체계는 곱게 다듬은 말 모델과 짜임 있는 임상 앎 그래프를 아울렀다. 증상 분류에서는 결정 나무가 이끄는 대화 흐름을 따라, 급한 정도를 권하기 앞서 되묻는 물음으로 감별 진단을 좁혔다. 모든 임상 권고는 자리 잡은 의료 지침에 결을 맞춘 규칙 바탕 확인 층을 거쳤다.
 
-**Outcomes.**
+**결과.**
 
-- Patient engagement increased: appointment no-show rates dropped by 22% due to automated reminders and easy rescheduling.
-- Administrative staff workload decreased by approximately 40% for routine scheduling and intake tasks.
-- Patient feedback indicated high satisfaction with the 24/7 availability and the conversational interface for non-urgent inquiries.
+- 환자의 참여가 늘었다. 자동 알림과 쉬운 일정 바꾸기 덕에 예약 불참률이 22% 떨어졌다.
+- 판에 박힌 일정 잡기와 문진 일에서 행정 인력의 일이 약 40% 줄었다.
+- 환자 되먹임은 24시간 이용과 급하지 않은 물음의 대화 사이에 높은 만족을 보였다.
 
-**Challenges encountered.** Complex medical inquiries frequently exceeded the model's competence. The critical design decision was implementing a robust **escalation protocol**: the system was configured to detect uncertainty (based on the model's own confidence signals and the presence of trigger keywords) and route to human clinicians. Without this safeguard, incorrect triage recommendations could have caused serious patient harm.
+**마주친 어려움.** 복잡한 의료 물음은 흔히 모델의 힘을 넘어섰다. 결정적인 꾸밈 결정은 든든한 **넘기기 절차**를 짠 것이었다. 곧 (모델 스스로의 믿음도 신호와 방아쇠 낱말이 있는지에 바탕해) 흔들림을 알아채고 사람 임상의에게 넘기도록 자리매김했다. 이 안전장치가 없었다면 잘못된 분류 권고가 환자에게 큰 해를 끼칠 수 있었다.
 
-!!! warning "Healthcare Deployment Caveat"
-    Conversational AI in healthcare operates under strict regulatory requirements (HIPAA in the US, GDPR in the EU). Patient data handling must comply with privacy regulations, and the system must never serve as a replacement for professional medical judgment. All clinical recommendations should be verified by qualified healthcare providers.
+!!! warning "의료 펼치기에서 유의할 점"
+    의료의 대화 인공지능은 빡빡한 규제 요건(미국의 HIPAA, EU의 GDPR) 아래 돌아간다. 환자 자료 다루기는 사생활 규정을 지켜야 하고, 이 체계가 전문 의료 판단을 결코 갈음해서는 안 된다. 모든 임상 권고는 자격 있는 의료인이 확인해야 한다.
 
-### Case Study 3: E-Commerce — Customer Service Automation
+### 사례 3: 전자 상거래 — 고객 응대 자동화
 
-**Context.** A large e-commerce platform deployed a ChatGPT-powered chatbot to handle customer service inquiries: order status, return and refund processing, product information, and shipping questions.
+**배경.** 큰 전자 상거래 판이 주문 상태, 반품과 환불 처리, 상품 앎, 배송 물음 같은 고객 응대를 맡기려 ChatGPT 바탕 대화 로봇을 펼쳤다.
 
-**Technical approach.** The system used a combination of **intent classification**, **entity extraction** (order IDs, product names, dates), and **API integration** to pull real-time information from the platform's order management system. The language model generated natural-sounding responses based on the retrieved structured data.
+**기술 방식.** 이 체계는 **뜻 갈래 매기기**, **것 뽑기**(주문 번호, 상품 이름, 날짜), **API 아우르기**를 함께 써서 판의 주문 살림 체계에서 실시간 앎을 끌어왔다. 말 모델이 찾아온 짜임 있는 자료에 바탕해 자연스러운 답을 만들었다.
 
-**Outcomes.**
+**결과.**
 
-- Automated resolution of over 70% of customer inquiries without human intervention.
-- Average response time reduced from 4 minutes (human agents) to under 5 seconds.
-- Customer satisfaction scores remained stable or improved slightly, despite the shift from human to AI agents.
-- Significant cost reductions from reduced customer support staffing for routine queries.
+- 고객 물음의 70% 넘게를 사람 손 없이 자동으로 풀었다.
+- 평균 응답 시간이 (사람 상담원의) 4분에서 5초 아래로 줄었다.
+- 사람에서 인공지능으로 바뀌었는데도 고객 만족도는 그대로이거나 조금 올랐다.
+- 판에 박힌 물음에 드는 고객 응대 인력이 줄어 값을 크게 아꼈다.
 
-**Challenges encountered.** During testing, the model exhibited bias in product recommendations, systematically favoring higher-priced items. This was traced to training data distribution (reviews for expensive products tend to be more detailed and positive) and required explicit debiasing in the recommendation pipeline. Additionally, handling emotionally charged complaints (damaged items, delayed orders) required careful prompt engineering to ensure empathetic and constructive responses.
+**마주친 어려움.** 시험하는 동안 모델이 상품을 권할 때 값이 비싼 것을 줄곧 앞세우는 치우침을 보였다. 이는 익힘 자료의 분포(비싼 상품의 후기가 더 자세하고 긍정적인 편이다)에서 온 것이어서 권하기 물길에서 치우침을 드러내어 걷어내야 했다. 또 감정이 실린 불만(파손된 물건, 늦은 주문)을 다루려면 공감하고 도움되는 답이 나오도록 시킴말을 조심스레 빚어야 했다.
 
-## Lessons Learned
+## 얻은 가르침
 
-The case studies above reveal several recurring themes that generalize to conversational AI deployments across domains.
+위 사례는 분야를 넘어 대화 인공지능 펼치기에 두루 통하는, 거듭 나타나는 주제 몇을 드러낸다.
 
-### 1. Escalation Design Is Critical
+### 1. 넘기기 꾸밈이 결정적이다
 
-No current conversational AI system can handle all possible user queries. The quality of the **escalation mechanism** — detecting when the model has reached its competence boundary and routing to a human agent — often determines deployment success or failure more than the model's raw capabilities. Effective escalation requires:
+지금의 어떤 대화 인공지능 체계도 있을 수 있는 물음을 모두 다루지는 못한다. 모델이 제 힘의 테두리에 이르렀음을 알아채고 사람에게 넘기는 **넘기기 얼개**의 좋음이, 흔히 모델의 날 능력보다 펼치기의 성공과 실패를 더 크게 가른다. 잘 듣는 넘기기에는 다음이 필요하다:
 
-- Confidence calibration: the model must "know what it doesn't know."
-- Graceful handoff: users should experience a smooth transition from AI to human, with context preserved.
-- Clear triggers: both automatic (confidence below threshold, sensitive topic detection) and user-initiated ("I'd like to speak with a person") escalation paths.
+- 믿음도 눈금 맞추기: 모델이 "모르는 것을 알아야" 한다.
+- 매끄러운 넘김: 쓰는 이가 맥락을 잃지 않고 인공지능에서 사람으로 부드럽게 넘어가야 한다.
+- 또렷한 방아쇠: 자동(믿음도가 문턱값 아래, 민감한 주제 알아채기)과 쓰는 이가 여는("사람과 이야기하고 싶다") 넘기기 길이 모두 있어야 한다.
 
-### 2. Domain Grounding Prevents Hallucination
+### 2. 분야에 뿌리내리면 헛것 지어내기를 막는다
 
-Deployments that relied solely on the model's parametric knowledge encountered frequent hallucination issues. Successful implementations universally adopted some form of **knowledge grounding** — RAG, API integration, or structured knowledge bases — to ensure responses were factually anchored.
+모델의 매개변수 앎에만 기댄 펼치기는 헛것 지어내기 탈을 자주 겪었다. 잘된 짜기는 하나같이 답이 사실에 닻을 내리도록 어떤 꼴로든 **앎에 뿌리내리기**(찾아 붙여 만들어 내기, API 아우르기, 짜임 있는 앎 곳간)를 받아들였다.
 
-### 3. Bias Requires Proactive Monitoring
+### 3. 치우침은 미리 나서서 지켜봐야 한다
 
-Bias issues surfaced in every deployment, often in unexpected ways. The e-commerce recommendation bias and healthcare triage disparities were not predictable from the model's general-purpose evaluation metrics. Effective bias management requires domain-specific auditing protocols, including testing across demographic groups, price segments, and geographic regions relevant to the specific deployment context.
+치우침 탈은 모든 펼치기에서, 흔히 뜻밖의 방식으로 드러났다. 전자 상거래의 권하기 치우침과 의료 분류의 차이는 모델의 두루 쓰는 값매김 잣대로는 어림할 수 없었다. 치우침을 잘 다스리려면 그 펼치기 자리와 맞닿는 인구 무리, 값대, 지역에 걸친 시험을 비롯한 분야별 감사 절차가 필요하다.
 
-### 4. User Trust Must Be Earned Incrementally
+### 4. 쓰는 이의 믿음은 조금씩 얻어야 한다
 
-User acceptance was not immediate in any deployment. Trust was built through transparency (clearly labeling AI interactions), reliability (consistent quality over time), and providing easy access to human alternatives. Organizations that attempted full automation without these trust-building measures faced higher rejection rates and lower satisfaction scores.
+어느 펼치기에서도 쓰는 이가 곧바로 받아들이지는 않았다. 믿음은 투명함(인공지능과의 응대임을 또렷이 표시하기), 믿음성(때가 지나도 한결같은 좋음), 사람에게 쉽게 닿을 길을 주는 것으로 쌓였다. 이런 믿음 쌓기 없이 온전한 자동화를 꾀한 조직은 거부율이 높고 만족도가 낮았다.
 
-### 5. Continuous Monitoring Is Non-Negotiable
+### 5. 끊임없이 지켜보는 일은 타협할 수 없다
 
-All three deployments required ongoing monitoring and adjustment after launch. User behavior patterns, topic distributions, and failure modes all evolved over time. Static deployments that are not regularly updated will degrade in effectiveness as the gap between the model's training distribution and the actual query distribution widens.
+세 펼치기 모두 내놓은 뒤에도 이어지는 지켜보기와 고침이 필요했다. 쓰는 이의 몸짓 무늬, 주제 분포, 어그러지는 방식이 모두 때에 따라 바뀌었다. 정기적으로 고치지 않는 붙박이 펼치기는 모델의 익힘 분포와 실제 물음 분포 사이 틈이 벌어지면서 잘 듣지 않게 된다.
 
-!!! tip "Deployment Checklist"
-    Before deploying conversational AI in production: (1) implement robust escalation paths, (2) ground the model in domain-specific knowledge sources, (3) conduct domain-specific bias audits, (4) label AI interactions transparently, (5) establish continuous monitoring and retraining pipelines, and (6) define clear accountability frameworks for AI-generated content.
+!!! tip "펼치기 확인 목록"
+    실전에 대화 인공지능을 펼치기 앞서: (1) 든든한 넘기기 길을 짜고, (2) 모델을 분야별 앎 출처에 뿌리내리고, (3) 분야별 치우침 감사를 하고, (4) 인공지능 응대임을 투명하게 표시하고, (5) 끊임없는 지켜보기와 다시 익히기 물길을 세우고, (6) 인공지능이 만든 내용에 대한 또렷한 책임 얼거리를 정하여라.
 
+## 연습문제
 
+**연습문제 1.**
+ReAct 얼거리를 밝혀라. 따짐과 움직임을 번갈아 하면 큰 말 모델 몸소 움직이개의 성능이 왜 나아지는가?
+
+??? success "연습문제 1 풀이"
+    ReAct(따지고 움직이기)는 큰 말 모델이 **생각**(무엇을 할지 따지기), **행동**(연장 부르기나 API 요청 실행), **살핌**(결과 읽기)을 번갈아 하도록 시킨다. 이 번갈아 하기가 도움되는 까닭은 이렇다. (1) 따짐의 자취가 결정 과정을 읽어 내고 벌레잡기 쉽게 한다. (2) 모델이 살핀 것에 따라 계획을 그때그때 고칠 수 있다. (3) 답을 실제 연장의 내놓음에 뿌리내려 헛것 지어내기를 줄인다. (4) 짜임 있는 꼴이 모델이 걸음을 건너뛰거나 뒷받침 없는 주장을 하지 못하게 막는다.
+
+---
+
+**연습문제 2.**
+큰 말 모델 바탕 몸소 움직이개 체계의 핵심 조각은 무엇인가? 저마다의 몫을 설명하여라.
+
+??? success "연습문제 2 풀이"
+    핵심 조각: (1) **큰 말 모델 등뼈**: 시킴을 읽어 내고 계획을 만드는 따짐 엔진. (2) **연장 사이**: 몸소 움직이개가 부를 수 있는 API나 함수의 모음(찾기, 계산기, 코드 실행). (3) **기억**: 맥락을 담는 짧은 기억(대화 발자취, 메모장)과 긴 기억(벡터 데이터베이스, 앎 곳간). (4) **계획 단원**: 일을 작은 일로 쪼개는 전략(생각의 사슬, 생각의 나무, 일 쪼개기). (5) **행동 실행기**: 큰 말 모델의 내놓음을 짜임 있는 연장 부르기로 뜯어 읽고 실행을 다룬다.
+
+---
+
+**연습문제 3.**
+복잡한 일에서 하나가 움직이는 얼개와 여럿이 움직이는 얼개를 견주어라. 맞바꿈은 무엇인가?
+
+??? success "연습문제 3 풀이"
+    **하나가 움직이기**: 큰 말 모델 하나가 따짐, 계획, 연장 쓰기를 모두 맡는다. 세우고 벌레잡기가 더 쉽지만 맥락 창에 매이고 여러 분야의 전문성이 필요할 때 힘겨우며 무너지면 끝인 곳이 하나 있다. **여럿이 움직이기**: 특화된 몸소 움직이개 여럿(보기로 코드 짜는 이, 연구하는 이, 검토하는 이)이 저마다 좁힌 능력으로 어울린다. 여러 재주가 필요한 복잡한 일에 낫고 나란히 실행할 수 있으며 맡은 몫마다 특화된 시킴말을 쓸 수 있다. 맞바꿈: 여럿이 움직이는 체계는 지휘하기 어렵고 값이 비싸며(큰 말 모델을 여러 번 부른다) 서로 맞추기에 어그러지거나 몸소 움직이개끼리 몸짓이 어긋날 수 있다.
+
+---
+
+**연습문제 4.**
+연장을 쓸 수 있는 큰 말 모델 몸소 움직이개를 펼칠 때 어떤 안전 걱정거리가 생기는가? 어떻게 덜 수 있는가?
+
+??? success "연습문제 4 풀이"
+    걱정거리: (1) **뜻하지 않은 행동**: 잘못 읽어 내어 해로운 명령(파일 지우기, 전자우편 보내기)을 실행할 수 있다. (2) **시킴말 끼워넣기**: 찾아온 글월에 든 맞서는 들임이 몸소 움직이개의 몸짓을 가로챌 수 있다. (3) **끝나지 않는 되풀이**: 같은 행동을 되풀이하며 갇힐 수 있다. (4) **자료 새어 나감**: 연장을 부르며 민감한 앎을 뜻하지 않게 드러낼 수 있다. 덜어 내기: 모래상자 실행 환경, 민감한 행동에 사람의 확인 받기, 허용 목록, 내놓음 거르기, 횟수 제한, 최대 걸음 수, 모든 행동의 지켜보기와 기록 남기기.

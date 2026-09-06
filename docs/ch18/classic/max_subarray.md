@@ -1,10 +1,10 @@
-# Maximum Subarray
+# 최대 부분 배열
 
-Given an array of numbers that may include negative values, the **maximum subarray problem** asks for the contiguous subarray with the largest sum. This problem arises naturally in financial analysis (finding the most profitable trading period), signal processing (locating the strongest signal segment), and genomics (identifying regions of biological significance).
+음수가 들어 있을 수 있는 수의 배열이 주어질 때 **최대 부분 배열 문제**는 합이 가장 큰 잇닿은 부분 배열을 묻는다. 이 문제는 금융 살피기(가장 이득이 큰 거래 기간 찾기), 신호 다루기(가장 센 신호 토막 찾기), 유전체학(생물학적으로 뜻있는 자리 가려내기)에서 자연스레 나타난다.
 
 While Kadane's algorithm solves the problem in $O(n)$ time using dynamic programming, the divide-and-conquer approach provides an elegant $O(n \log n)$ solution that illustrates the paradigm's mechanics clearly, especially the combine step.
 
-## Problem Statement
+## 문제 서술
 
 Given an array $A[0 \,..\, n-1]$ of real numbers, find indices $i$ and $j$ with $0 \le i \le j \le n-1$ that maximize
 
@@ -12,9 +12,9 @@ $$
 \sum_{k=i}^{j} A[k]
 $$
 
-If all elements are negative, the maximum subarray is the single element with the largest value.
+원소가 모두 음수이면 최대 부분 배열은 값이 가장 큰 원소 하나이다.
 
-## Divide-and-Conquer Approach
+## 나누어 이기기 방식
 
 The key insight is that a maximum subarray of $A[\text{lo} \,..\, \text{hi}]$ must lie in exactly one of three positions relative to the midpoint $\text{mid} = \lfloor (\text{lo} + \text{hi}) / 2 \rfloor$:
 
@@ -22,9 +22,9 @@ The key insight is that a maximum subarray of $A[\text{lo} \,..\, \text{hi}]$ mu
 2. **Entirely in the right half**: $A[\text{mid}+1 \,..\, \text{hi}]$
 3. **Crossing the midpoint**: some $A[i \,..\, j]$ with $i \le \text{mid} < j$
 
-Cases 1 and 2 are subproblems of the same form (solved recursively). Case 3 requires a dedicated **combine** step.
+1번과 2번 경우는 같은 꼴의 작은 문제이다(되돌이로 푼다). 3번 경우는 따로 **아우르기** 단계가 필요하다.
 
-### Finding the Maximum Crossing Subarray
+### 최대 걸침 부분 배열 찾기
 
 A crossing subarray includes $A[\text{mid}]$ and extends left to some index $i$ and right to some index $j$. We find the best leftward extension and the best rightward extension independently, then combine them.
 
@@ -42,7 +42,7 @@ $$
 
 The maximum crossing sum is $\text{left\_sum} + \text{right\_sum}$, computed in $O(n)$ time with a single pass in each direction.
 
-### Algorithm
+### 알고리즘
 
 ```
 MAX-CROSSING-SUBARRAY(A, lo, mid, hi):
@@ -78,26 +78,26 @@ MAX-SUBARRAY(A, lo, hi):
     return the triple (li, ri, si) with the largest si
 ```
 
-### Python Implementation
+### 파이썬 구현
 
 ```python
 def max_crossing_subarray(arr, lo, mid, hi):
     """
-    Find the maximum subarray that crosses the midpoint.
+    가운뎃점을 걸치는 최대 부분 배열 찾기.
 
-    Parameters
+    매개변수
     ----------
     arr : list
-        The input array.
+        들임 배열.
     lo, mid, hi : int
-        The subarray bounds with lo <= mid < hi.
+        lo <= mid < hi인 부분 배열의 테두리.
 
-    Returns
+    반환값
     -------
     tuple
         (left_index, right_index, max_sum)
     """
-    # Extend left from mid
+    # 가운데에서 왼쪽으로 뻗기
     left_sum = float('-inf')
     total = 0
     max_left = mid
@@ -107,7 +107,7 @@ def max_crossing_subarray(arr, lo, mid, hi):
             left_sum = total
             max_left = i
 
-    # Extend right from mid + 1
+    # 가운데 + 1에서 오른쪽으로 뻗기
     right_sum = float('-inf')
     total = 0
     max_right = mid + 1
@@ -122,18 +122,18 @@ def max_crossing_subarray(arr, lo, mid, hi):
 
 def max_subarray_dc(arr, lo=None, hi=None):
     """
-    Find the maximum subarray using divide and conquer.
+    나누어 이기기로 최대 부분 배열 찾기.
 
-    Parameters
+    매개변수
     ----------
     arr : list
-        The input array of numbers.
+        수의 들임 배열.
     lo : int, optional
-        Left bound (default: 0).
+        왼쪽 테두리(붙박이: 0).
     hi : int, optional
-        Right bound (default: len(arr) - 1).
+        오른쪽 테두리(붙박이: len(arr) - 1).
 
-    Returns
+    반환값
     -------
     tuple
         (left_index, right_index, max_sum)
@@ -143,20 +143,20 @@ def max_subarray_dc(arr, lo=None, hi=None):
     if hi is None:
         hi = len(arr) - 1
 
-    # Base case: single element
+    # 바탕 경우: 원소 하나
     if lo == hi:
         return lo, hi, arr[lo]
 
     mid = (lo + hi) // 2
 
-    # Conquer: solve left and right subproblems
+    # 이기기: 왼쪽과 오른쪽의 작은 문제 풀기
     l1, r1, s1 = max_subarray_dc(arr, lo, mid)
     l2, r2, s2 = max_subarray_dc(arr, mid + 1, hi)
 
-    # Combine: find maximum crossing subarray
+    # 아우르기: 최대 걸침 부분 배열 찾기
     l3, r3, s3 = max_crossing_subarray(arr, lo, mid, hi)
 
-    # Return the best of the three
+    # 셋 가운데 가장 좋은 것 돌려주기
     if s1 >= s2 and s1 >= s3:
         return l1, r1, s1
     elif s2 >= s1 and s2 >= s3:
@@ -165,27 +165,27 @@ def max_subarray_dc(arr, lo=None, hi=None):
         return l3, r3, s3
 ```
 
-## Correctness
+## 올바름
 
 The algorithm is correct because it exhausts all possibilities for where the maximum subarray can lie. Every contiguous subarray of $A[\text{lo} \,..\, \text{hi}]$ either lies entirely in the left half, entirely in the right half, or crosses the midpoint. The recursive calls correctly handle the first two cases (by induction), and `MAX-CROSSING-SUBARRAY` correctly handles the third by independently optimizing the left and right extensions.
 
-## Complexity Analysis
+## 복잡도 분석
 
-### Recurrence
+### 점화식
 
-Let $T(n)$ denote the running time on an array of size $n$. The algorithm:
+$T(n)$을 크기 $n$인 배열에서의 도는 시간이라 하자. 이 알고리즘은:
 
-- Divides in $O(1)$ time (computing the midpoint).
-- Conquers by solving two subproblems of size $n/2$.
-- Combines in $O(n)$ time (the crossing subarray computation).
+- $O(1)$ 시간에 나눈다(가운뎃점 셈하기).
+- 크기 $n/2$인 작은 문제 둘을 풀어 이긴다.
+- $O(n)$ 시간에 아우른다(걸침 부분 배열 셈하기).
 
-The recurrence is
+되돌이 관계식은 다음과 같다
 
 $$
 T(n) = 2T\!\left(\frac{n}{2}\right) + \Theta(n)
 $$
 
-### Solving the Recurrence
+### 되돌이 관계식 풀기
 
 By the Master Theorem with $a = 2$, $b = 2$, and $f(n) = \Theta(n)$:
 
@@ -199,38 +199,70 @@ $$
 T(n) = \Theta(n \log n)
 $$
 
-### Space Complexity
+### 공간 복잡도
 
 The recursion depth is $O(\log n)$, and each level uses $O(1)$ auxiliary space (besides the recursive calls), giving $O(\log n)$ total space.
 
-## Worked Example
+## 풀이 예제
 
-Consider $A = [2, -4, 3, -1, 2, -5, 4]$ with $n = 7$.
+$n = 7$인 $A = [2, -4, 3, -1, 2, -5, 4]$을 보자.
 
 **Top-level call** on $A[0..6]$, $\text{mid} = 3$:
 
-- **Left** $A[0..3] = [2, -4, 3, -1]$: recursive call returns subarray $[3]$ with sum $3$.
-- **Right** $A[4..6] = [2, -5, 4]$: recursive call returns subarray $[4]$ with sum $4$.
-- **Crossing**: best left extension from index 3 is $A[2..3]$ with sum $2$; best right extension from index 4 is $A[4]$ with sum $2$. Crossing sum = $4$.
+- **왼쪽** $A[0..3] = [2, -4, 3, -1]$: 되돌이 부름이 합이 $3$인 부분 배열 $[3]$을 돌려준다.
+- **오른쪽** $A[4..6] = [2, -5, 4]$: 되돌이 부름이 합이 $4$인 부분 배열 $[4]$을 돌려준다.
+- **걸침**: 번호 3에서 왼쪽으로 가장 좋게 뻗은 것은 합이 $2$인 $A[2..3]$이고, 번호 4에서 오른쪽으로 가장 좋게 뻗은 것은 합이 $2$인 $A[4]$이다. 걸침 합 = $4$.
 
 Maximum of $\{3, 4, 4\} = 4$, achieved by either the right subarray $[4]$ or the crossing subarray $A[2..4] = [3, -1, 2]$.
 
-## Comparison with Kadane's Algorithm
+## 카데인 알고리즘과의 견줌
 
-| Property | Divide and Conquer | Kadane's Algorithm |
+| 성질 | 나누어 이기기 | 카데인 알고리즘 |
 |---|---|---|
 | Time complexity | $O(n \log n)$ | $O(n)$ |
 | Space complexity | $O(\log n)$ | $O(1)$ |
-| Paradigm | Divide and conquer | Dynamic programming |
-| Parallelizable | Yes (left and right halves) | No (sequential scan) |
-| Educational value | Illustrates D&C combine step | Illustrates DP and greedy |
+| 틀 | 나누어 이기기 | 동적 계획 |
+| 나란히 하기 | 가능(왼쪽과 오른쪽 반) | 불가(차례대로 훑음) |
+| 배움의 값 | 나누어 이기기의 아우르기 단계를 보여 준다 | 동적 계획과 욕심쟁이를 보여 준다 |
 
-Kadane's algorithm is strictly faster for the serial case, but the divide-and-conquer approach is more naturally parallelizable and serves as an excellent pedagogical example of the paradigm.
+차례대로 돌릴 때는 카데인 알고리즘이 엄밀히 더 빠르지만, 나누어 이기기 방식은 나란히 하기가 더 자연스럽고 이 틀을 가르치는 데 아주 좋은 보기가 된다.
 
-## Summary
+## 요약
 
 The divide-and-conquer solution to the maximum subarray problem splits the array at the midpoint, recursively finds the maximum subarrays in each half, and combines by finding the maximum crossing subarray in $O(n)$ time. The resulting $O(n \log n)$ algorithm is slower than Kadane's $O(n)$ solution but provides a clean illustration of all three divide-and-conquer steps, especially the combine step that handles the crossing case.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 4. MIT Press.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 4장. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+최대 부분 배열의 핵심 생각과 그 시간 복잡도를 설명하여라.
+
+??? success "연습문제 1 풀이"
+    Maximum Subarray applies the divide-and-conquer paradigm: split the problem into smaller subproblems, solve them recursively, and combine the results. The time complexity is determined by the recurrence relation governing the subproblem sizes and the combination cost. The Master Theorem or recursion tree analysis typically gives the closed-form complexity. $\square$
+
+---
+
+**연습문제 2.**
+최대 부분 배열의 되돌이 관계식을 쓰고 마스터 정리로 풀어라.
+
+??? success "연습문제 2 풀이"
+    The recurrence depends on the specific algorithm's division strategy (number of subproblems $a$, size reduction factor $b$, and combination cost $f(n)$). Apply the Master Theorem: compare $f(n)$ with $n^{\log_b a}$ to determine which case applies. If $f(n) = \Theta(n^{\log_b a})$ (case 2), $T(n) = \Theta(n^{\log_b a} \log n)$. $\square$
+
+---
+
+**연습문제 3.**
+최대 부분 배열이 막무가내 방식보다 나은 장면을 설명하여라. 얼마나 빨라지는지 수로 나타내어라.
+
+??? success "연습문제 3 풀이"
+    The brute-force approach typically runs in $O(n^2)$ or worse. The divide-and-conquer approach achieves a lower complexity by reducing redundant computation through recursive decomposition. For input size $n = 10^6$, the difference between $O(n^2) = 10^{12}$ and $O(n \log n) = 2 \times 10^7$ operations is a factor of $50{,}000$. $\square$
+
+---
+
+**연습문제 4.**
+최대 부분 배열의 바탕 경우는 무엇인가? 그것이 알고리즘 전체의 옳음에 어떤 영향을 주는가?
+
+??? success "연습문제 4 풀이"
+    Base cases handle inputs too small to subdivide further (typically $n \leq 1$ or $n \leq 2$). They must return correct results directly. Without proper base cases, the recursion never terminates. Choosing a larger base case (e.g., $n \leq 10$) and switching to a simpler algorithm can improve practical performance by reducing recursion overhead while maintaining the same asymptotic complexity. $\square$

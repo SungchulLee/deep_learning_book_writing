@@ -1,48 +1,34 @@
-# Johnson's Algorithm
+# 존슨의 알고리즘
 
-Floyd-Warshall runs in $\Theta(V^3)$ regardless of graph density.  For
-**sparse** graphs where $E \ll V^2$, running Dijkstra from every vertex would
-be faster — but Dijkstra requires non-negative weights.  Johnson's algorithm
-bridges this gap by **reweighting** edges to eliminate negative weights, then
-running Dijkstra from each vertex.  The result is an all-pairs shortest path
-algorithm that runs in $O(V^2 \log V + VE)$, which is faster than
-Floyd-Warshall on sparse graphs.
+플로이드-워셜은 그래프의 빽빽함과 상관없이 $\Theta(V^3)$에 돈다. $E \ll V^2$인 **성긴** 그래프에서는 꼭짓점마다 데이크스트라를 돌리는 편이 빠를 텐데, 데이크스트라는 무게가 음이 아니어야 한다. 존슨의 알고리즘은 변의 무게를 **다시 매겨** 음의 무게를 없앤 뒤 꼭짓점마다 데이크스트라를 돌려 이 틈을 잇는다. 그 결과는 $O(V^2 \log V + VE)$에 도는 모든 짝 최단 경로 알고리즘으로, 성긴 그래프에서 플로이드-워셜보다 빠르다.
 
-## The Reweighting Technique
+## 무게 다시 매기기 기법
 
-The core insight is that adding a carefully chosen value to each edge weight
-can make all weights non-negative without changing which paths are shortest.
+핵심 통찰은 변의 무게마다 잘 고른 값을 더하면 어느 길이 최단인지는 그대로 두고 무게를 모두 음이 아니게 만들 수 있다는 것이다.
 
-Given a weight function $w$ and a **potential function** $h: V \to \mathbb{R}$,
-define the reweighted edge weight:
+무게 함수 $w$과 **퍼텐셜 함수** $h: V \to \mathbb{R}$이 주어졌을 때 다시 매긴 변의 무게를 다음과 같이 정한다:
 
 $$
 \hat{w}(u, v) = w(u, v) + h(u) - h(v)
 $$
 
-This reweighting preserves shortest paths because for any path
-$p = \langle v_0, v_1, \dots, v_k \rangle$:
+이 다시 매기기는 최단 경로를 지킨다. 아무 길 $p = \langle v_0, v_1, \dots, v_k \rangle$에 대해 다음이 성립하기 때문이다:
 
 $$
 \hat{w}(p) = \sum_{i=0}^{k-1} \hat{w}(v_i, v_{i+1}) = \sum_{i=0}^{k-1} \left[w(v_i, v_{i+1}) + h(v_i) - h(v_{i+1})\right] = w(p) + h(v_0) - h(v_k)
 $$
 
-The telescoping sum means the reweighted path weight differs from the original
-by a constant $h(v_0) - h(v_k)$ that depends only on the endpoints.  Therefore,
-a shortest path under $w$ is also shortest under $\hat{w}$.
+망원경처럼 접히는 합은 다시 매긴 길 무게가 원래 것과 끝점에만 기대는 상수 $h(v_0) - h(v_k)$만큼 다르다는 뜻이다. 그러므로 $w$ 아래의 최단 경로는 $\hat{w}$ 아래에서도 최단이다.
 
-## Choosing the Potential Function
+## 퍼텐셜 함수 고르기
 
-To make all reweighted edges non-negative, Johnson's algorithm sets
-$h(v) = \delta(s', v)$ where $s'$ is a new vertex connected to every existing
-vertex with zero-weight edges:
+다시 매긴 변을 모두 음이 아니게 하려고 존슨의 알고리즘은 $h(v) = \delta(s', v)$으로 놓는다. 여기서 $s'$은 무게 0인 변으로 기존 꼭짓점 모두에 이어진 새 꼭짓점이다:
 
 1. Add a new vertex $s'$ to the graph.
 2. Add edges $(s', v)$ with weight $0$ for all $v \in V$.
 3. Run Bellman-Ford from $s'$ to compute $h(v) = \delta(s', v)$.
 
-By the triangle inequality, $\delta(s', v) \le \delta(s', u) + w(u, v)$ for
-every edge $(u, v)$.  Rearranging:
+삼각 부등식에 따라 변 $(u, v)$마다 $\delta(s', v) \le \delta(s', u) + w(u, v)$이다. 옮겨 쓰면 다음과 같다:
 
 $$
 \hat{w}(u, v) = w(u, v) + h(u) - h(v) = w(u, v) + \delta(s', u) - \delta(s', v) \ge 0
@@ -50,7 +36,7 @@ $$
 
 If Bellman-Ford detects a negative cycle, the algorithm reports it and stops.
 
-## Algorithm Steps
+## 알고리즘의 걸음
 
 ```
 JOHNSON(G, w):
@@ -67,78 +53,72 @@ JOHNSON(G, w):
     5. Return distance matrix d
 ```
 
-## Complexity
+## 복잡도
 
-| Step | Time |
+| 걸음 | 시간 |
 |---|---|
-| Bellman-Ford from $s'$ | $O(VE)$ |
-| Reweight all edges | $O(E)$ |
-| $V$ runs of Dijkstra (binary heap) | $O(V(V+E)\log V)$ |
-| Un-reweight distances | $O(V^2)$ |
-| **Total** | $O(V^2 \log V + VE)$ |
+| $s'$에서의 벨먼-포드 | $O(VE)$ |
+| 모든 변의 무게 다시 매기기 | $O(E)$ |
+| 데이크스트라 $V$번 돌리기(이진 힙) | $O(V(V+E)\log V)$ |
+| 거리 되돌리기 | $O(V^2)$ |
+| **합계** | $O(V^2 \log V + VE)$ |
 
-For sparse graphs ($E = O(V)$), this gives $O(V^2 \log V)$, which is
-significantly better than Floyd-Warshall's $\Theta(V^3)$.  For dense graphs
-($E = O(V^2)$), both algorithms are $\Theta(V^3)$, and Floyd-Warshall is
-simpler with lower constant factors.
+성긴 그래프($E = O(V)$)에서는 $O(V^2 \log V)$이 되어 플로이드-워셜의 $\Theta(V^3)$보다 훨씬 낫다. 빽빽한 그래프($E = O(V^2)$)에서는 두 알고리즘 모두 $\Theta(V^3)$이며, 플로이드-워셜이 더 단순하고 상수 인자가 작다.
 
-## When to Use Which
+## 어느 것을 언제 쓰나
 
-| Criterion | Floyd-Warshall | Johnson |
+| 잣대 | 플로이드-워셜 | 존슨 |
 |---|---|---|
-| Graph density | Dense ($E \approx V^2$) | Sparse ($E \ll V^2$) |
-| Negative edges | Supported | Supported |
-| Time | $\Theta(V^3)$ | $O(V^2\log V + VE)$ |
-| Implementation | Simpler | More complex |
+| 그래프의 빽빽함 | 빽빽함($E \approx V^2$) | 성김($E \ll V^2$) |
+| 음의 변 | 받쳐 줌 | 받쳐 줌 |
+| 시간 | $\Theta(V^3)$ | $O(V^2\log V + VE)$ |
+| 구현 | 더 단순함 | 더 복잡함 |
 
-## Worked Example
+## 풀이 예제
 
-Consider 4 vertices with edges including a negative weight:
+무게가 음인 변을 아우르는 꼭짓점 4개를 생각하자:
 
-| Edge | Weight |
+| 변 | 무게 |
 |---|---|
 | $(0, 1)$ | 1 |
 | $(0, 2)$ | 4 |
 | $(1, 2)$ | -3 |
 | $(2, 3)$ | 2 |
 
-**Step 1:** Add $s'$ with edges $(s', 0) = 0$, $(s', 1) = 0$, $(s', 2) = 0$,
-$(s', 3) = 0$.
+**걸음 1:** 변 $(s', 0) = 0$, $(s', 1) = 0$, $(s', 2) = 0$, $(s', 3) = 0$과 함께 $s'$을 더한다.
 
-**Step 2:** Bellman-Ford from $s'$: $h(0) = 0$, $h(1) = 0$, $h(2) = -3$,
-$h(3) = -1$.
+**걸음 2:** $s'$에서 벨먼-포드: $h(0) = 0$, $h(1) = 0$, $h(2) = -3$, $h(3) = -1$.
 
-**Step 3:** Reweight.
+**걸음 3:** 무게를 다시 매긴다.
 $\hat{w}(0,1) = 1 + 0 - 0 = 1$.
 $\hat{w}(0,2) = 4 + 0 - (-3) = 7$.
 $\hat{w}(1,2) = -3 + 0 - (-3) = 0$.
 $\hat{w}(2,3) = 2 + (-3) - (-1) = 0$.
 
-All reweighted edges are non-negative.
+다시 매긴 변은 모두 음이 아니다.
 
-**Step 4:** Run Dijkstra from each vertex with reweighted edges, then
-un-reweight: $d(u, v) = \hat{d}(u, v) - h(u) + h(v)$.
+**걸음 4:** 다시 매긴 변으로 꼭짓점마다 데이크스트라를 돌린 뒤 되돌린다. 곧 $d(u, v) = \hat{d}(u, v) - h(u) + h(v)$.
 
-## Implementation
+## 구현
 
 ```python
 """
-Johnson's algorithm for all-pairs shortest paths.
+모든 짝 최단 경로를 위한 존슨 알고리즘.
 
-Combines Bellman-Ford reweighting with Dijkstra to achieve
-O(V^2 log V + VE) time, which beats Floyd-Warshall on sparse graphs.
+벨먼-포드의 무게 다시 매기기와 데이크스트라를 어우러지게 하여
+O(V^2 log V + VE) 시간이 걸리며, 성긴 그래프에서 플로이드-워셜을 이긴다.
 """
 
 import heapq
 from math import inf
 
 
-# === Bellman-Ford for potential computation ==================================
+# === 퍼텐셜 셈하기를 위한 벨먼-포드 ==========================================
 
 def bellman_ford(vertices: list, edges: list, source) -> tuple[dict, bool]:
-    """Run Bellman-Ford and return distances and cycle status.
+    """벨먼-포드를 돌려 거리와 순환 상태 돌려주기.
 
-    Returns (dist, True) if no negative cycle, (dist, False) otherwise.
+    음의 순환이 없으면 (dist, True)을, 아니면 (dist, False)을 돌려준다.
     """
     dist = {v: inf for v in vertices}
     dist[source] = 0
@@ -148,7 +128,7 @@ def bellman_ford(vertices: list, edges: list, source) -> tuple[dict, bool]:
             if dist[u] != inf and dist[u] + w < dist[v]:
                 dist[v] = dist[u] + w
 
-    # Negative cycle check
+    # 음의 순환 살피기
     for u, v, w in edges:
         if dist[u] != inf and dist[u] + w < dist[v]:
             return dist, False
@@ -156,10 +136,10 @@ def bellman_ford(vertices: list, edges: list, source) -> tuple[dict, bool]:
     return dist, True
 
 
-# === Dijkstra ================================================================
+# === 데이크스트라 ============================================================
 
 def dijkstra(graph: dict, source) -> dict:
-    """Run Dijkstra from source, returning shortest distances."""
+    """근원에서 데이크스트라를 돌려 최단 거리 돌려주기."""
     dist = {v: inf for v in graph}
     dist[source] = 0
     pq = [(0, source)]
@@ -176,42 +156,42 @@ def dijkstra(graph: dict, source) -> dict:
     return dist
 
 
-# === Johnson's algorithm =====================================================
+# === 존슨 알고리즘 ===========================================================
 
 def johnson(vertices: list, edges: list) -> tuple[dict, bool]:
-    """Compute all-pairs shortest paths using Johnson's algorithm.
+    """존슨 알고리즘으로 모든 짝의 최단 경로 셈하기.
 
-    Parameters
+    매개변수
     ----------
     vertices : list
-        All vertex identifiers.
+        모든 꼭짓점 이름.
     edges : list of (u, v, w)
-        Directed edges with weights.
+        무게 있는 방향 변.
 
-    Returns
+    반환값
     -------
     dist : dict of dict
-        dist[u][v] = shortest path weight from u to v.
+        dist[u][v] = u에서 v까지 최단 경로의 무게.
     no_negative_cycle : bool
-        True if no negative cycle exists.
+        음의 순환이 없으면 True.
     """
-    # Step 1: Add virtual source s' with zero-weight edges to all vertices
+    # 걸음 1: 모든 꼭짓점으로 무게 0인 변을 갖는 가상 근원 s' 더하기
     s_prime = "__s_prime__"
     aug_vertices = vertices + [s_prime]
     aug_edges = edges + [(s_prime, v, 0) for v in vertices]
 
-    # Step 2: Bellman-Ford from s' to get potentials h
+    # 걸음 2: s'에서 벨먼-포드를 돌려 퍼텐셜 h 얻기
     h, ok = bellman_ford(aug_vertices, aug_edges, s_prime)
     if not ok:
         return {}, False
 
-    # Step 3: Reweight edges
+    # 걸음 3: 변의 무게 다시 매기기
     reweighted_graph = {v: [] for v in vertices}
     for u, v, w in edges:
         w_hat = w + h[u] - h[v]
         reweighted_graph[u].append((v, w_hat))
 
-    # Step 4: Run Dijkstra from each vertex and un-reweight
+    # 걸음 4: 꼭짓점마다 데이크스트라를 돌리고 무게 되돌리기
     dist = {}
     for u in vertices:
         d_hat = dijkstra(reweighted_graph, u)
@@ -225,7 +205,7 @@ def johnson(vertices: list, edges: list) -> tuple[dict, bool]:
     return dist, True
 
 
-# === Demo ====================================================================
+# === 보임 ====================================================================
 
 if __name__ == "__main__":
     vertices = [0, 1, 2, 3]
@@ -243,7 +223,7 @@ if __name__ == "__main__":
         print(f"  From {u}: {row}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 No negative cycle: True
@@ -255,9 +235,40 @@ All-pairs shortest distances:
   From 3: {0: 'inf', 1: 'inf', 2: 'inf', 3: 0}
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
   Algorithms* (4th ed.), Chapter 25.3: Johnson's Algorithm for Sparse Graphs.
-- Johnson, D. B. (1977). Efficient algorithms for shortest paths in sparse
-  networks. *Journal of the ACM*, 24(1), 1-13.
+- Johnson, D. B. (1977). Efficient algorithms for shortest paths in sparse networks. *Journal of the ACM*, 24(1), 1-13.
+
+## 연습문제
+
+**연습문제 1.**
+존슨 알고리즘의 무게 다시 매기기 걸음을 설명하여라. 퍼텐셜 함수 $h(v)$을 더하면 왜 최단 경로가 지켜지는가?
+
+??? success "연습문제 1 풀이"
+    존슨의 알고리즘은 새 무게를 $\hat{w}(u,v) = w(u,v) + h(u) - h(v)$으로 정한다. 여기서 $h(v) = \delta(s, v)$은 (벨먼-포드로 셈한) 보조 샘 $s$에서 $v$까지의 최단 경로 거리이다. $u$에서 $v$까지의 아무 길 $p$에 대해 새 무게는 $\hat{w}(p) = w(p) + h(u) - h(v)$이다. $h(u) - h(v)$은 모든 $u$-$v$ 길에 대해 상수이므로 $w(p)$이 가장 작은 길이 $\hat{w}(p)$도 가장 작다. 삼각 부등식 $h(v) \leq h(u) + w(u,v)$이 $\hat{w}(u,v) \geq 0$을 보장하여 데이크스트라를 쓸 수 있게 한다. $\square$
+
+---
+
+**연습문제 2.**
+존슨 알고리즘의 시간 복잡도는 얼마인가? 걸음별로 나누어 보여라.
+
+??? success "연습문제 2 풀이"
+    (1) 보조 꼭짓점과 무게 0인 변 더하기: $O(V)$. (2) 보조 꼭짓점에서의 벨먼-포드: $O(VE)$. (3) 모든 변의 무게 다시 매기기: $O(E)$. (4) 이진 힙으로 꼭짓점마다 데이크스트라 돌리기: $O(V(V + E)\log V)$. (5) 거리 바로잡기: $O(V^2)$. 합계: $O(VE + V(V+E)\log V)$. 성긴 그래프($E = O(V)$)에서는 $O(V^2 \log V)$으로 플로이드-워셜의 $O(V^3)$보다 훨씬 낫다. $\square$
+
+---
+
+**연습문제 3.**
+모든 변의 무게에 큰 상수를 더해 음이 아니게 만든 뒤 데이크스트라를 돌리면 왜 안 되는가?
+
+??? success "연습문제 3 풀이"
+    변마다 상수 $C$을 더하면 길의 무게가 $C \times (\text{길 안 변의 개수})$만큼 바뀐다. 변이 많은 길일수록 더 크게 벌을 받아 어느 길이 최단인지가 바뀔 수 있다. 이를테면 무게 1인 변 5개의 길(합 5)과 무게 4인 변 2개의 길(합 8)에 $C = 10$을 더하면 합이 $55$과 $28$이 되어 차례가 뒤집힌다. 존슨의 무게 다시 매기기는 어느 길에서나 서로 지워지는 꼭짓점 퍼텐셜을 써서 이를 피한다. $\square$
+
+---
+
+**연습문제 4.**
+그래프에 무게가 음인 고리가 있으면 존슨의 알고리즘은 무너진다. 이를 어떻게 알아내며 알고리즘은 무엇을 알려야 하는가?
+
+??? success "연습문제 4 풀이"
+    벨먼-포드 걸음(걸음 2)이 무게가 음인 고리를 알아낸다. $V - 1$바퀴 늦춘 뒤에도 늦출 수 있는 변이 있으면 음의 고리가 있다. 벨먼-포드가 `False`을 되돌리고, 존슨의 알고리즘은 (음의 고리를 지나는 길은 얼마든지 짧게 만들 수 있으므로) 최단 경로가 정해지지 않는다고 알려야 한다. 알고리즘은 데이크스트라 단계로 가지 않고 바로 멈춘다. $\square$

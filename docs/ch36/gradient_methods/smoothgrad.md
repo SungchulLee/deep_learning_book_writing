@@ -1,9 +1,4 @@
 # SmoothGrad
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Introduction
 
 **SmoothGrad** is a simple yet effective technique for reducing the visual noise inherent in gradient-based saliency maps. The core idea is counterintuitive: by **adding noise** to the input and averaging the resulting gradients, we obtain **sharper, cleaner** visualizations.
@@ -17,9 +12,7 @@ Introduced by Smilkov et al. (2017), SmoothGrad addresses one of the main practi
 Given an input $\mathbf{x}$, model $f$, and target class $c$, the SmoothGrad saliency is:
 
 $$
-
 \text{SG}(\mathbf{x}) = \frac{1}{n} \sum_{k=1}^{n} \frac{\partial f_c(\mathbf{x} + \boldsymbol{\epsilon}_k)}{\partial \mathbf{x}}
-
 $$
 
 where:
@@ -47,25 +40,19 @@ If a pixel is truly important for the prediction, it will consistently produce h
 SmoothGrad can be viewed as approximating the expected gradient:
 
 $$
-
 \text{SG}(\mathbf{x}) \approx \mathbb{E}_{\boldsymbol{\epsilon}}[\nabla_{\mathbf{x}} f_c(\mathbf{x} + \boldsymbol{\epsilon})]
-
 $$
 
 This is equivalent to computing the gradient of a **smoothed version** of the model:
 
 $$
-
 \tilde{f}_c(\mathbf{x}) = \mathbb{E}_{\boldsymbol{\epsilon}}[f_c(\mathbf{x} + \boldsymbol{\epsilon})] = \int f_c(\mathbf{x} + \boldsymbol{\epsilon}) p(\boldsymbol{\epsilon}) d\boldsymbol{\epsilon}
-
 $$
 
 Under certain conditions:
 
 $$
-
 \nabla_{\mathbf{x}} \tilde{f}_c(\mathbf{x}) = \mathbb{E}_{\boldsymbol{\epsilon}}[\nabla_{\mathbf{x}} f_c(\mathbf{x} + \boldsymbol{\epsilon})] = \text{SG}(\mathbf{x})
-
 $$
 
 This is the gradient of the model convolved with a Gaussian kernel—hence the smoothing effect.
@@ -271,9 +258,7 @@ def analyze_sample_convergence(
 Uses squared gradients before averaging (emphasizes high-magnitude gradients):
 
 $$
-
 \text{SG}^2(\mathbf{x}) = \frac{1}{n} \sum_{k=1}^{n} \left( \frac{\partial f_c(\mathbf{x} + \boldsymbol{\epsilon}_k)}{\partial \mathbf{x}} \right)^2
-
 $$
 
 ```python
@@ -314,9 +299,7 @@ def compute_smoothgrad_squared(
 Measures gradient variability rather than average:
 
 $$
-
 \text{VarGrad}(\mathbf{x}) = \text{Var}_{\boldsymbol{\epsilon}}\left[ \frac{\partial f_c(\mathbf{x} + \boldsymbol{\epsilon})}{\partial \mathbf{x}} \right]
-
 $$
 
 ```python
@@ -599,9 +582,7 @@ SmoothGrad provides a practical solution to the visual noise problem in gradient
 **Key equation:**
 
 $$
-
 \text{SG}(\mathbf{x}) = \frac{1}{n} \sum_{k=1}^{n} \frac{\partial f_c(\mathbf{x} + \boldsymbol{\epsilon}_k)}{\partial \mathbf{x}}, \quad \boldsymbol{\epsilon}_k \sim \mathcal{N}(\mathbf{0}, \sigma^2 \mathbf{I})
-
 $$
 
 **Key insights:**
@@ -622,3 +603,35 @@ $$
 2. Adebayo, J., et al. (2018). *Sanity Checks for Saliency Maps*. NeurIPS.
 
 3. Hooker, S., et al. (2019). *A Benchmark for Interpretability Methods in Deep Neural Networks*. NeurIPS.
+
+## Exercises
+
+**Exercise 1.**
+Apply the interpretability method described in this section to a 2-layer neural network with ReLU activations classifying XOR inputs. Compute the explanation for the input $x = [1, 1]$.
+
+??? success "Solution to Exercise 1"
+    For a trained XOR network with weights $W_1, b_1, W_2, b_2$, the output is $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$. The explanation method produces attributions for each input feature. For $x = [1, 1]$ (class 0), both features contribute to the negative classification. The specific attribution values depend on the method: gradient-based methods compute $\partial f / \partial x_i$; perturbation-based methods measure output change when features are masked. The XOR problem demonstrates that linear explanation methods can mislead because the decision boundary is non-linear. $\square$
+
+---
+
+**Exercise 2.**
+Prove or disprove that the explanation method in this section satisfies the completeness axiom: the sum of all feature attributions equals $f(x) - f(x_0)$ for some baseline $x_0$.
+
+??? success "Solution to Exercise 2"
+    The completeness axiom (also called efficiency in Shapley value theory) states that attributions sum to the difference between the model output at the input and at the baseline. Whether this method satisfies completeness depends on its formulation. Gradient methods do not satisfy completeness (gradients are local, not path-integrated). Integrated Gradients satisfies completeness by construction (fundamental theorem of calculus along the path). SHAP values satisfy efficiency by the Shapley axiom. Methods that violate completeness may over- or under-attribute, making the total attribution unreliable as a global explanation. $\square$
+
+---
+
+**Exercise 3.**
+Design an experiment to evaluate the faithfulness of the explanations produced by this method. Use insertion and deletion curves to measure whether highlighted features are truly important to the model.
+
+??? success "Solution to Exercise 3"
+    Protocol: (1) Compute feature attributions for each test image. (2) Deletion: progressively mask features in order of decreasing attribution, recording the model confidence drop. Faithful explanations cause rapid confidence decrease. (3) Insertion: progressively reveal features in order of decreasing attribution from a blank baseline, recording confidence increase. Faithful explanations cause rapid confidence increase. (4) Compute AUC for both curves. (5) Compare against random ordering (baseline) and other methods. A faithful method should have low deletion AUC and high insertion AUC. Repeat over 1000+ test samples for statistical reliability. $\square$
+
+---
+
+**Exercise 4.**
+Discuss how this interpretability method could be applied to a financial model predicting credit default. What regulatory requirements must the explanations satisfy?
+
+??? success "Solution to Exercise 4"
+    For credit models, regulations (ECOA, GDPR Article 22) require individualized explanations for adverse decisions. The method must produce: (1) the top factors contributing to the denial (adverse action reasons); (2) explanations that are consistent (similar applicants get similar explanations); (3) explanations that are actionable (the applicant understands what to change). The interpretability method from this section can identify feature importances, but must be validated for stability (small input changes should not drastically alter the explanation) and correctness (removing important features should change the prediction). Protected attributes must be handled carefully to avoid revealing proxy discrimination. $\square$

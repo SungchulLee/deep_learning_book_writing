@@ -1,108 +1,90 @@
-# Sweep-Line Paradigm
+# 훑는 선 틀
 
-Many geometric problems involve objects spread across the plane with no
-obvious ordering. The **sweep-line** (or plane sweep) paradigm imposes
-an ordering by moving an imaginary vertical line from left to right across
-the input, processing geometric events as the line encounters them. This
-reduces a 2D problem to a sequence of 1D problems, often dropping the
-complexity from $O(n^2)$ to $O(n \log n)$.
+많은 기하 문제는 뚜렷한 차례 없이 평면에 흩어진 것들을 다룬다. **훑는 선**(또는 면 훑기) 틀은 머릿속의 세로선을 들임 위에서 왼쪽에서 오른쪽으로 옮기며 선이 만나는 기하 사건을 다루어 차례를 매긴다. 이는 2차원 문제를 1차원 문제의 차례로 줄이며, 흔히 복잡도를 $O(n^2)$에서 $O(n \log n)$으로 낮춘다.
 
-## Core Components
+## 핵심 부품
 
-Every sweep-line algorithm has two data structures:
+모든 훑는 선 알고리즘에는 자료 짜임 둘이 있다.
 
-### Event Queue
+### 사건 줄
 
-A priority queue (typically a min-heap on $x$-coordinate) that stores
-the events where the sweep line must stop. Events are processed in
-left-to-right order. There are three common event types:
+훑는 선이 멈추어야 할 사건을 담는 우선 줄(흔히 $x$자리값에 대한 최소 무지개탑)이다. 사건은 왼쪽에서 오른쪽 차례로 다룬다. 흔한 사건 갈래는 셋이다.
 
-| Type | Trigger |
+| 갈래 | 일으키는 것 |
 |---|---|
-| **Start event** | Sweep line reaches the left endpoint of an object |
-| **End event** | Sweep line passes the right endpoint of an object |
-| **Interaction event** | Two objects interact (e.g., segments intersect) |
+| **시작 사건** | 훑는 선이 어떤 것의 왼쪽 끝점에 닿는다 |
+| **끝 사건** | 훑는 선이 어떤 것의 오른쪽 끝점을 지난다 |
+| **얽힘 사건** | 둘이 서로 얽힌다(예컨대 도막이 만난다) |
 
-Start and end events are known in advance. Interaction events are
-discovered dynamically and inserted into the queue during processing.
+시작과 끝 사건은 미리 안다. 서로 얽힘 사건은 다루는 동안 그때그때 찾아 줄에 넣는다.
 
-### Status Structure
+### 상태 짜임
 
-A balanced BST (or similar ordered container) that maintains the set of
-objects currently crossing the sweep line, ordered by their position along
-the line. As the sweep line moves, objects are inserted, deleted, or
-reordered in the status structure.
+지금 훑는 선을 가로지르는 것들의 모임을 선을 따라가는 자리 차례로 지키는 고른 이진 찾기 나무(또는 비슷한 차례 있는 그릇)이다. 훑는 선이 움직이면 상태 짜임에서 넣기, 지우기, 차례 다시 매기기가 일어난다.
 
-## Generic Sweep-Line Template
+## 일반 훑는 선 본
 
-1. Initialize the event queue with all known events (e.g., endpoints).
-2. Initialize an empty status structure.
-3. While the event queue is not empty:
-    - Extract the next event (smallest $x$-coordinate).
-    - Update the status structure (insert, delete, or swap).
-    - Check for new interaction events among neighbors in the status.
-    - Insert any newly discovered events into the queue.
+1. 이미 아는 모든 사건(예컨대 끝점)으로 사건 줄을 첫자리매김한다.
+2. 빈 상태 짜임을 첫자리매김한다.
+3. 사건 줄이 비지 않은 동안:
+    - 다음 사건($x$자리값이 가장 작은 것)을 꺼낸다.
+    - 상태 짜임을 새로 고친다(넣기, 지우기, 자리 바꾸기).
+    - 상태의 이웃 사이에서 새 얽힘 사건을 살핀다.
+    - 새로 찾은 사건을 줄에 넣는다.
 
-## Why It Works
+## 왜 통하는가
 
-The sweep-line paradigm works because geometric relationships are
-*local*: two objects far apart in the status structure cannot interact
-without first becoming neighbors. This locality means we only need to
-check $O(1)$ pairs per event, even though the total number of objects
-may be large.
+훑는 선 틀이 통하는 까닭은 기하의 관계가 *가까이에 매인* 것이기 때문이다. 곧 상태 짜임에서 멀리 떨어진 둘은 먼저 이웃이 되지 않고서는 서로 얽힐 수 없다. 이 가까움 덕분에 것들의 수가 많아도 사건마다 $O(1)$개 짝만 살피면 된다.
 
-## Complexity Pattern
+## 복잡도의 결
 
-Most sweep-line algorithms achieve the following:
+거의 모든 훑는 선 알고리즘은 다음을 이룬다.
 
 $$
 T(n) = O(n \log n + k \log n)
 $$
 
-where $n$ is the input size and $k$ is the output size (number of
-interactions). The $\log n$ factor comes from priority queue and BST
-operations.
+여기서 $n$은 들임 크기, $k$은 내놓기 크기(얽힘의 수)이다. $\log n$ 갑절은 우선 줄과 이진 찾기 나무 셈에서 온다.
 
-## Classic Applications
+## 옛부터의 쓰임새
 
-| Problem | Events | Status | Time |
+| 문제 | 사건 | 상태 | 시간 |
 |---|---|---|---|
-| Segment intersection | Endpoints + intersections | Segments by $y$ | $O((n+k) \log n)$ |
-| Rectangle union area | Left/right edges | Active intervals | $O(n \log n)$ |
-| Closest pair | Points by $x$ | Points by $y$ | $O(n \log n)$ |
-| Voronoi diagram | Sites + circle events | Beach line arcs | $O(n \log n)$ |
+| 도막 만남 | 끝점 + 만남 | $y$으로 정렬한 도막 | $O((n+k) \log n)$ |
+| 직사각형 합집합 넓이 | 왼쪽/오른쪽 모서리 | 살아 있는 구간 | $O(n \log n)$ |
+| 가장 가까운 짝 | $x$으로 정렬한 점 | $y$으로 정렬한 점 | $O(n \log n)$ |
+| 보로노이 그림 | 터 + 동그라미 사건 | 바닷가 선 활꼴 | $O(n \log n)$ |
 
-## Example: Counting Active Intervals
+## 보기: 살아 있는 구간 세기
 
-As a minimal example, consider counting the maximum number of overlapping
-intervals — a 1D sweep that captures the essence of the paradigm.
+가장 작은 보기로 겹치는 구간의 최대 수를 세는 것을 보자. 이 틀의 알맹이를 담은 1차원 훑기이다.
 
 ```python
 """
-Sweep-line paradigm: interval overlap counting.
+훑는 선 틀: 구간 겹침 세기.
 
-Demonstrates the sweep-line approach on a simple 1D problem:
-finding the maximum number of overlapping intervals.
+단순한 1차원 문제에서 훑는 선 방식을 보인다.
+곧 겹치는 구간의 최대 수 찾기이다.
 """
 
 import heapq
 
 
-# === Sweep-Line Interval Counter ===
+# === 훑는 선 구간 세개 ===
 
 def max_overlap(intervals):
-    """Find the maximum number of simultaneously active intervals.
+    """한꺼번에 살아 있는 구간의 최대 수를 찾는다.
 
-    Args:
-        intervals: list of (start, end) pairs.
+    인수:
+        intervals: (시작, 끝) 짝의 목록.
 
-    Returns:
-        The maximum overlap count.
+    반환값:
+        최대 겹침 수.
     """
     events = []
     for start, end in intervals:
-        events.append((start, 1))   # start event: +1
-        events.append((end, -1))    # end event: -1
+        events.append((start, 1))   # 시작 사건: +1
+        events.append((end, -1))    # 끝 사건: -1
 
     events.sort()
 
@@ -115,22 +97,22 @@ def max_overlap(intervals):
     return max_count
 
 
-# === 2D Sweep: Active Segments ===
+# === 2차원 훑기: 살아 있는 도막 ===
 
 def sweep_active_count(segments):
-    """Sweep left to right and report active segment counts at events.
+    """왼쪽에서 오른쪽으로 훑으며 사건마다 살아 있는 도막의 수를 알린다.
 
-    Args:
-        segments: list of ((x1, y1), (x2, y2)) with x1 <= x2.
+    인수:
+        segments: x1 <= x2인 ((x1, y1), (x2, y2))의 목록.
 
-    Returns:
-        List of (x, active_count) at each event.
+    반환값:
+        사건마다의 (x, 살아 있는 수) 목록.
     """
     events = []
     for i, ((x1, y1), (x2, y2)) in enumerate(segments):
         lx, rx = min(x1, x2), max(x1, x2)
-        events.append((lx, 0, i))   # 0 = start
-        events.append((rx, 1, i))   # 1 = end
+        events.append((lx, 0, i))   # 0 = 시작
+        events.append((rx, 1, i))   # 1 = 끝
 
     events.sort()
     active = set()
@@ -146,15 +128,15 @@ def sweep_active_count(segments):
     return result
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # 1D interval overlap
+    # 1차원 구간 겹침
     intervals = [(1, 5), (2, 7), (4, 6), (8, 10)]
     print(f"Intervals: {intervals}")
     print(f"Max overlap: {max_overlap(intervals)}")
 
-    # 2D segment sweep
+    # 2차원 도막 훑기
     segments = [
         ((1, 0), (5, 0)),
         ((2, 1), (7, 1)),
@@ -166,7 +148,7 @@ if __name__ == "__main__":
         print(f"  x={x}: {count} active")
 ```
 
-**Output:**
+**출력:**
 ```
 Intervals: [(1, 5), (2, 7), (4, 6), (8, 10)]
 Max overlap: 3
@@ -182,19 +164,47 @@ Segment sweep events:
   x=10: 0 active
 ```
 
-## Design Considerations
+## 설계에서의 고려
 
-!!! tip "Choosing the Sweep Direction"
-    While left-to-right is conventional, some problems benefit from a
-    top-to-bottom or radial sweep. The choice depends on which direction
-    reduces the problem to the simplest 1D subproblem.
+!!! tip "훑는 방향 고르기"
+    왼쪽에서 오른쪽이 흔하지만 어떤 문제는 위에서 아래로나 방사로 훑는 것이 낫다. 어느 방향이 문제를 가장 단순한 1차원 아래 문제로 줄이는지에 달렸다.
 
-!!! warning "Event Queue Discipline"
-    When two events share the same $x$-coordinate, the tie-breaking
-    order matters. A common convention is to process start events before
-    end events (or vice versa), depending on the problem semantics.
+!!! warning "사건 줄의 규율"
+    두 사건의 $x$자리값이 같으면 가르는 차례가 중요하다. 문제의 뜻에 따라 시작 사건을 끝 사건보다 먼저 다루는(또는 그 반대) 것이 흔한 약속이다.
 
-## Reference
+## 참고 문헌
 
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer, Chapter 2.
 - Preparata, F. P. & Shamos, M. I. *Computational Geometry: An Introduction*. Springer.
+
+## 연습문제
+
+**연습문제 1.**
+훑는 선 틀의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    훑는 선 틀은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 훑는 선 틀을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+훑는 선 틀은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+훑는 선 틀을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 훑는 선 틀은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

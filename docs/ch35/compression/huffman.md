@@ -201,3 +201,43 @@ so the optimal Huffman code is within one bit per symbol of the entropy bound.  
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
+
+## Exercises
+
+**Exercise 1.**
+Build a Huffman tree for the following symbol frequencies: A=45, B=13, C=12, D=16, E=9, F=5. List the code for each symbol and compute the expected bits per symbol.
+
+??? success "Solution to Exercise 1"
+    Build bottom-up: merge the two smallest frequencies at each step. Step 1: merge F(5) and E(9) into FE(14). Step 2: merge C(12) and B(13) into CB(25). Step 3: merge FE(14) and D(16) into FED(30). Step 4: merge CB(25) and FED(30) into CBFED(55). Step 5: merge A(45) and CBFED(55) into root(100). Codes (one possible assignment): A=0, C=100, B=101, F=1100, E=1101, D=111. Expected bits: $(45 \times 1 + 13 \times 3 + 12 \times 3 + 16 \times 3 + 9 \times 4 + 5 \times 4) / 100 = (45 + 39 + 36 + 48 + 36 + 20) / 100 = 224 / 100 = 2.24$ bits/symbol. The entropy is $H \approx 2.23$ bits, so Huffman is near-optimal here. $\square$
+
+---
+
+**Exercise 2.**
+Prove that Huffman coding produces an optimal prefix-free code (no other prefix-free code has a lower expected length).
+
+??? success "Solution to Exercise 2"
+    Proof by induction on the number of symbols $n$. Base case ($n = 2$): assign 0 and 1; both codes have length 1, which is optimal. Inductive step: assume Huffman is optimal for $n - 1$ symbols. For $n$ symbols, let $x$ and $y$ be the two symbols with the smallest frequencies $f_x \le f_y$. In any optimal code, $x$ and $y$ can be made siblings at the maximum depth (swapping with any deeper pair does not increase expected length). Huffman merges $x$ and $y$ into a new symbol $z$ with frequency $f_x + f_y$ and applies the algorithm to the resulting $n - 1$ symbols. By the inductive hypothesis, this produces an optimal code for the $n - 1$ symbols. Expanding $z$ back into $x$ and $y$ (appending 0 and 1) adds exactly $f_x + f_y$ to the total weighted length, which matches the cost of placing $x$ and $y$ as siblings at maximum depth. Therefore, the code is optimal for $n$ symbols. $\square$
+
+---
+
+**Exercise 3.**
+Explain the difference between static and adaptive (dynamic) Huffman coding. When is each approach used in practice?
+
+??? success "Solution to Exercise 3"
+    **Static Huffman**: the frequency table is computed from a first pass over the entire input, the tree is built, and the input is encoded in a second pass. The frequency table must be transmitted alongside the compressed data (overhead). Used when the input is available in full before compression (file compression). **Adaptive (dynamic) Huffman** (Vitter's algorithm): the encoder and decoder start with an empty tree and update it after each symbol, maintaining a valid Huffman tree incrementally. No frequency table needs to be transmitted. Used in streaming or online settings where the input arrives incrementally and two-pass processing is impractical. The tradeoff: static Huffman achieves slightly better compression (exact global frequencies) but requires two passes and frequency-table overhead. Adaptive Huffman is one-pass but has slightly suboptimal compression (early symbols are coded with poor estimates). $\square$
+
+---
+
+**Exercise 4.**
+A Huffman code for 256 byte values has maximum code length 30 bits. Explain why this could be problematic and how length-limited Huffman codes address the issue.
+
+??? success "Solution to Exercise 4"
+    A maximum code length of 30 bits means the decoder must buffer 30 bits before resolving a symbol, increasing latency and memory requirements for the decoding table. More critically, table-based decoders (which use a lookup table indexed by the next $L$ bits) require a table of size $2^L$. For $L = 30$, this is $2^{30} \approx 10^9$ entries -- impractically large. Length-limited Huffman codes constrain the maximum code length to $L$ (typically 15 or 16) while remaining as close to optimal as possible. The Kraft inequality ensures that a valid prefix-free code exists if the lengths satisfy $\sum 2^{-l_i} \le 1$. Algorithms like the package-merge algorithm find the optimal length-limited code in $O(nL)$ time. DEFLATE (used in gzip/zlib) limits code lengths to 15 bits. $\square$
+
+---
+
+**Exercise 5.**
+Compare Huffman coding with arithmetic coding in terms of compression ratio, computational cost, and implementation complexity.
+
+??? success "Solution to Exercise 5"
+    **Compression ratio**: Huffman coding assigns an integer number of bits per symbol, so it can waste up to 1 bit per symbol beyond the entropy (average waste $\approx 0.08$ bits for English text). Arithmetic coding encodes the entire message as a single fraction in $[0, 1)$, achieving compression within 1 bit of the total entropy regardless of symbol count. For skewed distributions (one symbol with probability 0.95), arithmetic coding dramatically outperforms Huffman. **Computational cost**: Huffman is faster -- encoding is a table lookup per symbol. Arithmetic coding requires multiplications and divisions per symbol, though fixed-point implementations make this fast in practice. **Complexity**: Huffman is simpler to implement (tree construction + table lookup). Arithmetic coding requires careful handling of precision, carry propagation, and interval renormalization, making it harder to implement correctly. Modern standards (JPEG, H.264) offer both options; arithmetic coding is used when maximum compression is needed, Huffman when speed matters. $\square$

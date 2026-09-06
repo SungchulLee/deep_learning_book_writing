@@ -1,9 +1,4 @@
 # Grad-CAM++: Improved Visual Explanations
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Introduction
 
 **Grad-CAM++** is an enhanced version of Grad-CAM that provides better localization, particularly when multiple instances of the same class appear in an image. While Grad-CAM uses global average pooling of gradients to compute importance weights, Grad-CAM++ employs a **weighted combination** that gives higher importance to pixels with larger positive influence on the class score.
@@ -17,9 +12,7 @@ Introduced by Chattopadhyay et al. (2018), Grad-CAM++ addresses key limitations 
 Grad-CAM computes importance weights via global average pooling:
 
 $$
-
 \alpha_k^c = \frac{1}{Z} \sum_i \sum_j \frac{\partial y^c}{\partial A_{ij}^k}
-
 $$
 
 This approach has several limitations:
@@ -34,9 +27,7 @@ This approach has several limitations:
 Grad-CAM++ addresses these by using **pixel-wise weights** instead of uniform averaging:
 
 $$
-
 w_k^c = \sum_i \sum_j \alpha_{ij}^{kc} \cdot \text{ReLU}\left(\frac{\partial y^c}{\partial A_{ij}^k}\right)
-
 $$
 
 where $\alpha_{ij}^{kc}$ are learned pixel-wise weights that account for the **relative importance** of each spatial location.
@@ -48,9 +39,7 @@ where $\alpha_{ij}^{kc}$ are learned pixel-wise weights that account for the **r
 Grad-CAM++ derives pixel-wise weights using second and third-order partial derivatives. Starting from the class score as a weighted sum of feature maps:
 
 $$
-
 y^c = \sum_k w_k^c \sum_i \sum_j A_{ij}^k
-
 $$
 
 where $w_k^c$ represents the importance of feature map $k$ for class $c$.
@@ -58,15 +47,11 @@ where $w_k^c$ represents the importance of feature map $k$ for class $c$.
 Taking successive partial derivatives:
 
 $$
-
 \frac{\partial y^c}{\partial A_{ij}^k} = w_k^c
-
 $$
 
 $$
-
 \frac{\partial^2 y^c}{\partial (A_{ij}^k)^2} = \frac{\partial w_k^c}{\partial A_{ij}^k}
-
 $$
 
 ### Pixel-wise Weight Computation
@@ -74,9 +59,7 @@ $$
 The pixel-wise weights are computed as:
 
 $$
-
 \alpha_{ij}^{kc} = \frac{\frac{\partial^2 y^c}{(\partial A_{ij}^k)^2}}{2 \cdot \frac{\partial^2 y^c}{(\partial A_{ij}^k)^2} + \sum_{a,b} A_{ab}^k \cdot \frac{\partial^3 y^c}{(\partial A_{ij}^k)^3}}
-
 $$
 
 ### Simplified Practical Computation
@@ -84,12 +67,11 @@ $$
 Since computing third-order derivatives explicitly is expensive, we use a simplified form based on gradient powers:
 
 $$
-
 \alpha_{ij}^{kc} = \frac{(g_{ij}^{kc})^2}{2(g_{ij}^{kc})^2 + \sum_{a,b} A_{ab}^k \cdot (g_{ij}^{kc})^3 + \epsilon}
-
 $$
 
 where:
+
 - $g_{ij}^{kc} = \frac{\partial y^c}{\partial A_{ij}^k}$ is the first-order gradient
 - $(g_{ij}^{kc})^2$ is the element-wise square (approximating second derivative)
 - $(g_{ij}^{kc})^3$ is the element-wise cube (approximating third derivative)
@@ -100,17 +82,13 @@ where:
 The Grad-CAM++ heatmap is:
 
 $$
-
 L^c_{\text{Grad-CAM++}} = \text{ReLU}\left(\sum_k w_k^c A^k\right)
-
 $$
 
 where the channel weights incorporate pixel-wise importance:
 
 $$
-
 w_k^c = \sum_i \sum_j \alpha_{ij}^{kc} \cdot \text{ReLU}\left(\frac{\partial y^c}{\partial A_{ij}^k}\right)
-
 $$
 
 **Key insight**: By applying ReLU to the gradients before weighting, Grad-CAM++ focuses only on pixels with **positive influence** on the class score.
@@ -633,12 +611,14 @@ def evaluate_faithfulness(model, dataloader, cam_method, device):
 ### 1. Higher Computational Cost
 
 Computing gradient powers (squared, cubed) adds overhead compared to Grad-CAM:
+
 - ~1.5-2x slower than Grad-CAM
 - Memory usage increases due to storing gradient powers
 
 ### 2. Numerical Stability
 
 The division in $\alpha_{ij}^{kc}$ computation can be unstable:
+
 - Small denominators cause numerical issues
 - Requires careful epsilon handling
 - May produce artifacts in low-gradient regions
@@ -646,6 +626,7 @@ The division in $\alpha_{ij}^{kc}$ computation can be unstable:
 ### 3. Diminishing Returns
 
 Improvement over Grad-CAM is marginal for:
+
 - Single-object images
 - Images where the object dominates the frame
 - Well-separated multi-class scenarios
@@ -665,25 +646,19 @@ Grad-CAM++ improves upon Grad-CAM by using **pixel-wise importance weights** der
 **Pixel-wise weights:**
 
 $$
-
 \alpha_{ij}^{kc} = \frac{(g_{ij}^{kc})^2}{2(g_{ij}^{kc})^2 + \sum_{a,b} A_{ab}^k \cdot (g_{ij}^{kc})^3 + \epsilon}
-
 $$
 
 **Channel weights:**
 
 $$
-
 w_k^c = \sum_{i,j} \alpha_{ij}^{kc} \cdot \text{ReLU}(g_{ij}^{kc})
-
 $$
 
 **Final heatmap:**
 
 $$
-
 L^c_{\text{Grad-CAM++}} = \text{ReLU}\left(\sum_k w_k^c A^k\right)
-
 $$
 
 ### Key Improvements over Grad-CAM
@@ -710,3 +685,35 @@ $$
 2. Selvaraju, R. R., Cogswell, M., Das, A., Vedantam, R., Parikh, D., & Batra, D. (2017). "Grad-CAM: Visual Explanations from Deep Networks via Gradient-based Localization." *ICCV 2017*.
 
 3. Zhang, J., Bargal, S. A., Lin, Z., Brandt, J., Shen, X., & Sclaroff, S. (2018). "Top-Down Neural Attention by Excitation Backprop." *International Journal of Computer Vision*.
+
+## Exercises
+
+**Exercise 1.**
+Apply the interpretability method described in this section to a 2-layer neural network with ReLU activations classifying XOR inputs. Compute the explanation for the input $x = [1, 1]$.
+
+??? success "Solution to Exercise 1"
+    For a trained XOR network with weights $W_1, b_1, W_2, b_2$, the output is $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$. The explanation method produces attributions for each input feature. For $x = [1, 1]$ (class 0), both features contribute to the negative classification. The specific attribution values depend on the method: gradient-based methods compute $\partial f / \partial x_i$; perturbation-based methods measure output change when features are masked. The XOR problem demonstrates that linear explanation methods can mislead because the decision boundary is non-linear. $\square$
+
+---
+
+**Exercise 2.**
+Prove or disprove that the explanation method in this section satisfies the completeness axiom: the sum of all feature attributions equals $f(x) - f(x_0)$ for some baseline $x_0$.
+
+??? success "Solution to Exercise 2"
+    The completeness axiom (also called efficiency in Shapley value theory) states that attributions sum to the difference between the model output at the input and at the baseline. Whether this method satisfies completeness depends on its formulation. Gradient methods do not satisfy completeness (gradients are local, not path-integrated). Integrated Gradients satisfies completeness by construction (fundamental theorem of calculus along the path). SHAP values satisfy efficiency by the Shapley axiom. Methods that violate completeness may over- or under-attribute, making the total attribution unreliable as a global explanation. $\square$
+
+---
+
+**Exercise 3.**
+Design an experiment to evaluate the faithfulness of the explanations produced by this method. Use insertion and deletion curves to measure whether highlighted features are truly important to the model.
+
+??? success "Solution to Exercise 3"
+    Protocol: (1) Compute feature attributions for each test image. (2) Deletion: progressively mask features in order of decreasing attribution, recording the model confidence drop. Faithful explanations cause rapid confidence decrease. (3) Insertion: progressively reveal features in order of decreasing attribution from a blank baseline, recording confidence increase. Faithful explanations cause rapid confidence increase. (4) Compute AUC for both curves. (5) Compare against random ordering (baseline) and other methods. A faithful method should have low deletion AUC and high insertion AUC. Repeat over 1000+ test samples for statistical reliability. $\square$
+
+---
+
+**Exercise 4.**
+Discuss how this interpretability method could be applied to a financial model predicting credit default. What regulatory requirements must the explanations satisfy?
+
+??? success "Solution to Exercise 4"
+    For credit models, regulations (ECOA, GDPR Article 22) require individualized explanations for adverse decisions. The method must produce: (1) the top factors contributing to the denial (adverse action reasons); (2) explanations that are consistent (similar applicants get similar explanations); (3) explanations that are actionable (the applicant understands what to change). The interpretability method from this section can identify feature importances, but must be validated for stability (small input changes should not drastically alter the explanation) and correctness (removing important features should change the prediction). Protected attributes must be handled carefully to avoid revealing proxy discrimination. $\square$

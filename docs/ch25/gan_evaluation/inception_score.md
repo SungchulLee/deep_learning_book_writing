@@ -1,9 +1,4 @@
 # Inception Score (IS)
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Overview
 
 The Inception Score (IS) is one of the most widely used metrics for evaluating generative models, particularly Generative Adversarial Networks (GANs). Introduced by Salimans et al. (2016), IS provides a single scalar value that captures both the quality and diversity of generated images.
@@ -579,6 +574,7 @@ $$
 - **$H(Y|X)$**: Average uncertainty in predictions (quality)
 
 Higher mutual information means:
+
 - The generated images carry more information about class labels
 - Both quality and diversity contribute positively
 
@@ -603,3 +599,39 @@ Higher mutual information means:
 2. Barratt, S., & Sharma, R. (2018). "A Note on the Inception Score." *ICML Workshop*.
 
 3. Borji, A. (2019). "Pros and Cons of GAN Evaluation Measures." *Computer Vision and Image Understanding*.
+
+## Exercises
+
+**Exercise 1.**
+Define the Frechet Inception Distance (FID) and explain why it is preferred over the Inception Score for evaluating GANs.
+
+??? success "Solution to Exercise 1"
+    FID models the Inception-v3 feature distributions of real and generated images as multivariate Gaussians $\mathcal{N}(\mu_r, \Sigma_r)$ and $\mathcal{N}(\mu_g, \Sigma_g)$, then computes:
+
+    $$\text{FID} = \|\mu_r - \mu_g\|^2 + \text{Tr}\left(\Sigma_r + \Sigma_g - 2(\Sigma_r \Sigma_g)^{1/2}\right)$$
+
+    FID is preferred because: (1) it compares generated images to real images (IS only evaluates generated images), (2) it detects mode collapse (different means/covariances), (3) it is more consistent with human judgment, and (4) lower FID correlates better with perceptual quality.
+
+---
+
+**Exercise 2.**
+What are the limitations of the Inception Score? Can a model achieve a high IS while producing poor samples?
+
+??? success "Solution to Exercise 2"
+    IS = $\exp(\mathbb{E}_x [D_{\text{KL}}(p(y|x) \| p(y))])$ where $p(y|x)$ is the Inception classifier's prediction for generated image $x$. Limitations: (1) only measures quality (sharp, classifiable) and diversity (spread across classes), not fidelity to the training data, (2) a model generating one perfect image per class scores high but ignores intra-class diversity, (3) sensitive to the Inception model's biases, (4) does not capture texture/style quality within classes. Yes, a model can achieve high IS by memorizing one representative image per ImageNet class.
+
+---
+
+**Exercise 3.**
+Explain how precision and recall metrics for generative models differ from their classification counterparts.
+
+??? success "Solution to Exercise 3"
+    In the generative setting (Kynkaanniemi et al., 2019): **Precision** measures the fraction of generated samples that fall within the support of the real data distribution (quality/fidelity). **Recall** measures the fraction of real data that falls within the support of the generated distribution (diversity/coverage). High precision + low recall = mode collapse (few modes, but realistic). Low precision + high recall = poor quality but diverse. Unlike classification P/R which count discrete matches, generative P/R uses $k$-nearest-neighbor distances in feature space to estimate distribution support.
+
+---
+
+**Exercise 4.**
+Why should multiple evaluation metrics be used together when assessing generative models?
+
+??? success "Solution to Exercise 4"
+    No single metric captures all aspects of generation quality. **FID** measures overall distributional similarity but conflates quality and diversity. **IS** captures quality and diversity but ignores fidelity to training data. **Precision/Recall** separates quality from diversity but depends on the choice of feature extractor and $k$. **Perceptual metrics** (LPIPS) measure image-level quality but not diversity. Using metrics together provides a complete picture: a model with low FID, high precision, and low recall has mode collapse; one with high recall but low precision generates diverse but low-quality samples. Human evaluation remains the gold standard for final assessment.

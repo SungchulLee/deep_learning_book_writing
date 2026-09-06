@@ -1,117 +1,101 @@
-# Cutout
+# 컷아웃
+## 개요
 
+컷아웃(무작위 지우기라고도 한다)은 학습 중에 입력 이미지의 정사각형 또는 직사각형 영역을 무작위로 가리는 데이터 증강 기법이다. 이미지의 일부를 가림으로써 모델이 변별적인 조각 하나에 매달리지 않고 더 넓은 범위의 공간 특징에 기대게 하여 견고성과 일반화를 높인다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 수학적 정식화
 
-## Overview
+### 핵심 연산
 
-Cutout (also known as Random Erasing) is a data augmentation technique that randomly masks out square or rectangular regions of input images during training. By occluding portions of the image, Cutout forces the model to rely on a wider range of spatial features rather than fixating on a single discriminative patch, improving robustness and generalization.
-
-## Mathematical Formulation
-
-### Core Operation
-
-Given an image $x \in \mathbb{R}^{C \times H \times W}$, Cutout generates a binary mask $\mathbf{M} \in \{0, 1\}^{H \times W}$ that is zero inside a randomly placed rectangular region and one elsewhere:
+이미지 $x \in \mathbb{R}^{C \times H \times W}$이 주어지면 컷아웃은 무작위로 놓인 직사각형 영역 안에서는 0이고 그 밖에서는 1인 이진 마스크 $\mathbf{M} \in \{0, 1\}^{H \times W}$을 만든다.
 
 $$
-
 \tilde{x} = \mathbf{M} \odot x
-
 $$
 
-where $\odot$ denotes element-wise multiplication broadcast across channels. The label $y$ remains unchanged — this distinguishes Cutout from CutMix, which also modifies the label.
+여기서 $\odot$은 채널 방향으로 방송되는 원소별 곱을 뜻한다. 레이블 $y$은 그대로 남는데, 이 점이 레이블까지 바꾸는 컷믹스와 컷아웃을 가른다.
 
-### Mask Generation
+### 마스크 만들기
 
-1. Sample the center of the mask uniformly: $(c_x, c_y) \sim \text{Uniform}([0, W] \times [0, H])$
-2. Define the mask size $s$ (fixed side length, or sampled from a range)
-3. Compute the bounding box, clipped to image boundaries:
+1. 마스크의 중심을 균등하게 뽑는다. $(c_x, c_y) \sim \text{Uniform}([0, W] \times [0, H])$
+2. 마스크의 크기 $s$을 정한다(변의 길이를 고정하거나 어떤 범위에서 뽑는다)
+3. 이미지 경계로 잘라 낸 경계 상자를 계산한다.
 
 $$
-
 x_1 = \max(0,\; c_x - \lfloor s/2 \rfloor), \quad x_2 = \min(W,\; c_x + \lfloor s/2 \rfloor)
-
 $$
 
 $$
-
 y_1 = \max(0,\; c_y - \lfloor s/2 \rfloor), \quad y_2 = \min(H,\; c_y + \lfloor s/2 \rfloor)
-
 $$
 
-4. Set $\mathbf{M}[y_1:y_2, x_1:x_2] = 0$; all other entries remain 1
+4. $\mathbf{M}[y_1:y_2, x_1:x_2] = 0$으로 두고 나머지 성분은 1로 남긴다
 
-Allowing the center to be sampled anywhere — including near or outside image boundaries — means the effective mask size varies, providing natural variation in occlusion strength.
+중심을 이미지 경계 근처나 바깥까지 포함해 어디서나 뽑을 수 있게 하면 실효 마스크 크기가 달라지므로 가림의 강도에 자연스러운 변이가 생긴다.
 
-### Fill Value
+### 채움값
 
-The original Cutout paper fills the masked region with zeros (mean pixel value after normalization). Random Erasing generalizes this to allow random pixel values, the per-channel mean, or a constant fill:
+원래 컷아웃 논문은 가려진 영역을 0(정규화 뒤의 평균 화소값)으로 채운다. 무작위 지우기는 이를 일반화하여 무작위 화소값, 채널별 평균, 또는 상수 채움을 허용한다.
 
 $$
-
 \tilde{x}_{c, y_1:y_2, x_1:x_2} = \begin{cases}
 0 & \text{(zero fill — original Cutout)} \\
 \mu_c & \text{(per-channel mean fill)} \\
 \text{Uniform}(0, 1) & \text{(random fill — Random Erasing)}
 \end{cases}
-
 $$
 
-### Comparison with Related Methods
+### 관련 방법들과의 비교
 
-| Method | Mask Target | Fill Value | Label Changed? | Key Benefit |
+| 방법 | 마스크의 대상 | 채움값 | 레이블이 바뀌는가? | 주된 이점 |
 |--------|------------|------------|----------------|-------------|
-| Cutout | Rectangle to zero/constant | Zeros or mean | No | Forces spatial robustness |
-| Random Erasing | Rectangle to random values | Random pixels | No | Prevents memorization of patches |
-| CutMix | Rectangle from another image | Content from another sample | Yes (proportional) | No wasted pixels |
-| Mixup | Global blend | Weighted sum of two images | Yes (proportional) | Smooth decision boundaries |
+| 컷아웃 | 직사각형을 0/상수로 | 0 또는 평균 | 아니다 | 공간적 견고성을 강제한다 |
+| 무작위 지우기 | 직사각형을 무작위 값으로 | 무작위 화소 | 아니다 | 조각을 외우는 것을 막는다 |
+| 컷믹스 | 다른 이미지의 직사각형 | 다른 표본의 내용 | 그렇다 (비례) | 낭비되는 화소가 없다 |
+| 믹스업 | 전역 혼합 | 두 이미지의 가중합 | 그렇다 (비례) | 매끄러운 결정 경계 |
 
-## Why Cutout Works
+## 컷아웃이 통하는 이유
 
-### Preventing Reliance on Local Patches
+### 국소 조각에 대한 의존 막기
 
-Neural networks can achieve high training accuracy by relying on a small set of highly discriminative local patches. Cutout randomly removes such patches, forcing the model to develop redundant representations that use the entire spatial extent of the input.
+신경망은 변별력이 아주 큰 국소 조각 몇 개에 기대는 것만으로도 높은 학습 정확도를 얻을 수 있다. 컷아웃은 그런 조각을 무작위로 지워 모델이 입력의 전체 공간 범위를 쓰는 중복된 표현을 갖추도록 강제한다.
 
-### Regularization Effect
+### 정칙화 효과
 
-Cutout can be viewed as a form of input noise injection. For a model $f$ trained with expected loss:
+컷아웃은 입력 잡음 주입의 한 형태로 볼 수 있다. 기대 손실로 학습하는 모델 $f$에 대해 다음과 같다.
 
 $$
-
 \mathcal{L}_{\text{cutout}} = \mathbb{E}_{\mathbf{M}}\left[\ell(f(\mathbf{M} \odot x), y)\right]
-
 $$
 
-This encourages the model to minimize loss under all possible occlusion patterns, penalizing over-reliance on any single spatial region.
+이는 모델이 가능한 모든 가림 형태 아래에서 손실을 최소화하도록 이끌어, 어느 한 공간 영역에 지나치게 기대는 것에 벌점을 준다.
 
-### Connection to Dropout
+### 드롭아웃과의 관계
 
-Cutout is sometimes described as "spatial dropout on the input." While standard dropout randomly zeros individual elements, Cutout zeros contiguous rectangular regions, which better matches the spatial structure of images. This is related to but distinct from `Dropout2d` (spatial dropout), which drops entire feature maps rather than spatial patches.
+컷아웃은 때때로 "입력에 대한 공간 드롭아웃"이라고 불린다. 표준 드롭아웃이 개별 원소를 무작위로 0으로 만드는 반면 컷아웃은 이어진 직사각형 영역을 0으로 만들어 이미지의 공간 구조에 더 잘 맞는다. 이는 공간 조각이 아니라 특징 맵 전체를 떨어뜨리는 `Dropout2d`(공간 드롭아웃)과 관련은 있지만 다르다.
 
-### Improved Object Localization
+### 개선된 물체 위치 파악
 
-By training with partial views of objects, the model learns to recognize objects from their parts. This has been shown to improve weakly supervised object localization, as the model cannot rely on a single most-discriminative region.
+물체의 부분적인 모습으로 학습하면 모델은 부위만 보고도 물체를 알아보도록 배운다. 모델이 가장 변별적인 영역 하나에 기댈 수 없으므로 약지도 물체 위치 파악이 개선됨이 알려져 있다.
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### Custom Cutout Transform
+### 컷아웃 변환 직접 만들기
 
 ```python
 import torch
 import numpy as np
 
-
 class Cutout:
     """
-    Randomly mask out one or more square patches from an image tensor.
+    이미지 텐서에서 정사각형 조각 하나 이상을 무작위로 가린다.
     
-    Reference: DeVries & Taylor, "Improved Regularization of CNNs with Cutout"
+    참고: DeVries & Taylor, "Improved Regularization of CNNs with Cutout"
     
-    Args:
-        n_holes: Number of patches to cut out
-        length: Side length of each square patch
-        fill_value: Value to fill the masked region (default: 0.0)
+    인수:
+        n_holes: 잘라 낼 조각의 수
+        length: 각 정사각형 조각의 변 길이
+        fill_value: 가려진 영역을 채울 값 (기본값: 0.0)
     """
     
     def __init__(self, n_holes: int = 1, length: int = 16, 
@@ -122,23 +106,23 @@ class Cutout:
     
     def __call__(self, img: torch.Tensor) -> torch.Tensor:
         """
-        Apply cutout to a tensor image.
+        텐서 이미지에 컷아웃을 적용한다.
         
-        Args:
-            img: Tensor image of shape (C, H, W)
+        인수:
+            img: 모양이 (C, H, W)인 텐서 이미지
             
-        Returns:
-            Image with cutout regions applied
+        반환값:
+            컷아웃 영역이 적용된 이미지
         """
         h, w = img.shape[-2:]
         mask = torch.ones_like(img)
         
         for _ in range(self.n_holes):
-            # Sample center
+            # 중심 뽑기
             cy = np.random.randint(h)
             cx = np.random.randint(w)
             
-            # Compute box (clipped)
+            # 상자 계산 (잘라 냄)
             y1 = max(0, cy - self.length // 2)
             y2 = min(h, cy + self.length // 2)
             x1 = max(0, cx - self.length // 2)
@@ -152,54 +136,53 @@ class Cutout:
             return img * mask + self.fill_value * (1 - mask)
 ```
 
-### Using PyTorch's Built-in RandomErasing
+### PyTorch의 내장 RandomErasing 쓰기
 
-PyTorch provides `transforms.RandomErasing` which generalizes Cutout with configurable fill and aspect ratios:
+PyTorch는 채움값과 가로세로비를 설정할 수 있게 컷아웃을 일반화한 `transforms.RandomErasing`을 제공한다.
 
 ```python
 import torchvision.transforms as T
 
-
-# Basic Cutout (zero fill)
+# 기본 컷아웃 (0으로 채움)
 cutout_transform = T.RandomErasing(
-    p=0.5,           # Probability of applying
-    scale=(0.02, 0.33),  # Fraction of image area to erase
-    ratio=(0.3, 3.3),    # Aspect ratio range
-    value=0,              # Fill value (0 = zero fill)
+    p=0.5,           # 적용할 확률
+    scale=(0.02, 0.33),  # 지울 이미지 넓이의 비율
+    ratio=(0.3, 3.3),    # 가로세로비의 범위
+    value=0,              # 채움값 (0 = 0으로 채움)
     inplace=False
 )
 
-# Random Erasing (random pixel fill)
+# 무작위 지우기 (무작위 화소로 채움)
 random_erasing_transform = T.RandomErasing(
     p=0.5,
     scale=(0.02, 0.33),
     ratio=(0.3, 3.3),
-    value='random'   # Fill with random pixel values
+    value='random'   # 무작위 화소값으로 채우기
 )
 
-# Complete training pipeline with Cutout
+# 컷아웃을 쓰는 완전한 학습 파이프라인
 train_transform = T.Compose([
     T.RandomCrop(32, padding=4),
     T.RandomHorizontalFlip(),
     T.ToTensor(),
     T.Normalize((0.4914, 0.4822, 0.4465), (0.2470, 0.2435, 0.2616)),
-    T.RandomErasing(p=0.5, scale=(0.02, 0.33), value=0),  # Applied after ToTensor
+    T.RandomErasing(p=0.5, scale=(0.02, 0.33), value=0),  # ToTensor 뒤에 적용된다
 ])
 ```
 
-### Configurable Cutout with Multiple Options
+### 여러 선택지를 갖는 설정 가능한 컷아웃
 
 ```python
 class FlexibleCutout:
     """
-    Cutout with configurable shape, fill, and application probability.
+    모양, 채움값, 적용 확률을 설정할 수 있는 컷아웃.
     
-    Args:
-        p: Probability of applying cutout
-        n_holes: Number of holes to cut
-        min_length: Minimum side length of each hole
-        max_length: Maximum side length of each hole
-        fill_mode: 'zero', 'mean', 'random', or a float value
+    인수:
+        p: 컷아웃을 적용할 확률
+        n_holes: 뚫을 구멍의 수
+        min_length: 각 구멍의 최소 변 길이
+        max_length: 각 구멍의 최대 변 길이
+        fill_mode: 'zero', 'mean', 'random', 또는 실수 값
     """
     
     def __init__(self, p: float = 0.5, n_holes: int = 1,
@@ -242,19 +225,19 @@ class FlexibleCutout:
         return result
 ```
 
-### Batch-Level Cutout
+### 배치 수준의 컷아웃
 
-Apply cutout at the batch level for efficiency:
+효율을 위해 배치 수준에서 컷아웃을 적용한다.
 
 ```python
 class BatchCutout:
     """
-    Apply cutout to an entire batch at once (GPU-friendly).
+    배치 전체에 한 번에 컷아웃을 적용한다 (GPU에 알맞다).
     
-    Args:
-        n_holes: Number of holes per image
-        length: Side length of each hole
-        p: Application probability per image
+    인수:
+        n_holes: 이미지마다의 구멍 수
+        length: 각 구멍의 변 길이
+        p: 이미지마다의 적용 확률
     """
     
     def __init__(self, n_holes: int = 1, length: int = 16, p: float = 0.5):
@@ -264,21 +247,21 @@ class BatchCutout:
     
     def __call__(self, batch: torch.Tensor) -> torch.Tensor:
         """
-        Args:
-            batch: (B, C, H, W) tensor
+        인수:
+            batch: (B, C, H, W) 텐서
             
-        Returns:
-            Batch with cutout applied
+        반환값:
+            컷아웃이 적용된 배치
         """
         B, C, H, W = batch.shape
         
-        # Decide which images get cutout
+        # 어떤 이미지에 컷아웃을 적용할지 정하기
         apply_mask = torch.rand(B, device=batch.device) < self.p
         
         result = batch.clone()
         
         for _ in range(self.n_holes):
-            # Random centers for the whole batch
+            # 배치 전체에 대한 무작위 중심
             cy = torch.randint(0, H, (B,), device=batch.device)
             cx = torch.randint(0, W, (B,), device=batch.device)
             
@@ -287,7 +270,7 @@ class BatchCutout:
             x1 = torch.clamp(cx - self.length // 2, 0, W)
             x2 = torch.clamp(cx + self.length // 2, 0, W)
             
-            # Create per-image masks
+            # 이미지마다 마스크 만들기
             mask = torch.ones(B, 1, H, W, device=batch.device)
             for b in range(B):
                 if apply_mask[b]:
@@ -298,14 +281,13 @@ class BatchCutout:
         return result
 ```
 
-## Training Example
+## 학습 예제
 
 ```python
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-
 
 def train_with_cutout(
     model: nn.Module,
@@ -315,16 +297,16 @@ def train_with_cutout(
     lr: float = 0.1
 ) -> dict:
     """
-    Train a CNN on CIFAR-10 with Cutout augmentation.
+    컷아웃 증강과 함께 CIFAR-10에서 CNN을 학습시킨다.
     
-    Args:
-        model: CNN model
-        cutout_length: Side length of cutout patches
-        cutout_n_holes: Number of patches per image
-        epochs: Training epochs
-        lr: Initial learning rate
+    인수:
+        model: CNN 모델
+        cutout_length: 컷아웃 조각의 변 길이
+        cutout_n_holes: 이미지마다의 조각 수
+        epochs: 학습 에포크 수
+        lr: 처음 학습률
     """
-    # Data pipeline with Cutout
+    # 컷아웃을 쓰는 데이터 파이프라인
     train_transform = transforms.Compose([
         transforms.RandomCrop(32, padding=4),
         transforms.RandomHorizontalFlip(),
@@ -356,7 +338,7 @@ def train_with_cutout(
     history = {'train_loss': [], 'val_acc': []}
     
     for epoch in range(epochs):
-        # Training
+        # 학습
         model.train()
         train_loss = 0
         for X_batch, y_batch in train_loader:
@@ -369,7 +351,7 @@ def train_with_cutout(
         
         scheduler.step()
         
-        # Validation
+        # 검증
         model.eval()
         correct, total = 0, 0
         with torch.no_grad():
@@ -389,49 +371,49 @@ def train_with_cutout(
     return history
 ```
 
-## Cutout vs. Random Erasing
+## 컷아웃과 무작위 지우기
 
-| Feature | Cutout (DeVries & Taylor) | Random Erasing (Zhong et al.) |
+| 특징 | 컷아웃 (DeVries & Taylor) | 무작위 지우기 (Zhong 등) |
 |---------|--------------------------|-------------------------------|
-| Shape | Fixed-size square | Variable size and aspect ratio |
-| Fill | Zero (constant) | Random pixel values |
-| Size control | Side length $s$ | Area ratio $[s_l, s_h]$ |
-| Aspect ratio | 1:1 (square) | Configurable range |
-| PyTorch built-in | No (custom transform) | `transforms.RandomErasing` |
+| 모양 | 크기가 고정된 정사각형 | 크기와 가로세로비가 변함 |
+| 채움 | 0 (상수) | 무작위 화소값 |
+| 크기 조절 | 변의 길이 $s$ | 넓이 비율 $[s_l, s_h]$ |
+| 가로세로비 | 1:1 (정사각형) | 설정 가능한 범위 |
+| PyTorch 내장 | 없음 (직접 만든 변환) | `transforms.RandomErasing` |
 
-Random Erasing is generally preferred in modern pipelines because the random fill prevents the model from learning to detect the erased region (which is easy when the fill is a constant like zero after normalization).
+무작위 채움은 모델이 지워진 영역을 알아내는 법을 배우지 못하게 하므로(정규화 뒤의 0처럼 채움값이 상수이면 알아내기 쉽다) 요즘 파이프라인에서는 대체로 무작위 지우기를 선호한다.
 
-## Hyperparameter Selection
+## 초매개변수 선택
 
-### Cutout Size
+### 컷아웃의 크기
 
-The mask size is the most important hyperparameter. Guidelines from the original paper:
+마스크의 크기가 가장 중요한 초매개변수이다. 원 논문의 지침은 다음과 같다.
 
-| Dataset | Image Size | Recommended Cutout Length |
+| 데이터셋 | 이미지 크기 | 권장 컷아웃 길이 |
 |---------|-----------|--------------------------|
-| CIFAR-10 | 32×32 | 16 (50% of image width) |
-| CIFAR-100 | 32×32 | 8 (25% of image width) |
-| SVHN | 32×32 | 20 (62.5% of image width) |
-| ImageNet | 224×224 | Use `RandomErasing` with `scale=(0.02, 0.33)` |
+| CIFAR-10 | 32×32 | 16 (이미지 너비의 50%) |
+| CIFAR-100 | 32×32 | 8 (이미지 너비의 25%) |
+| SVHN | 32×32 | 20 (이미지 너비의 62.5%) |
+| ImageNet | 224×224 | `scale=(0.02, 0.33)`으로 `RandomErasing`을 쓴다 |
 
-### Number of Holes
+### 구멍의 개수
 
-- **1 hole**: Standard setting, sufficient for most tasks
-- **2–3 holes**: Can provide additional regularization for very large or complex images
-- **Too many holes**: Destroys too much information, hurts training
+- **구멍 1개**: 표준 설정으로 대부분의 과제에 충분하다
+- **구멍 2~3개**: 아주 크거나 복잡한 이미지에 추가 정칙화를 줄 수 있다
+- **구멍이 너무 많으면**: 정보를 너무 많이 없애 학습을 해친다
 
-### Application Probability
+### 적용 확률
 
-- $p = 0.5$: Standard for `RandomErasing`
-- $p = 1.0$: Used in original Cutout paper (always applied)
-- Lower $p$ when combined with other strong augmentations
+- $p = 0.5$: `RandomErasing`의 표준값
+- $p = 1.0$: 원래 컷아웃 논문에서 쓴 값(언제나 적용)
+- 다른 강한 증강과 함께 쓸 때는 $p$을 낮춘다
 
-## Combining with Other Techniques
+## 다른 기법과 결합하기
 
-Cutout is complementary to most other regularization methods:
+컷아웃은 다른 대부분의 정칙화 방법과 서로 보완한다.
 
 ```python
-# Cutout + standard augmentation + weight decay + dropout
+# 컷아웃 + 표준 증강 + 가중치 감쇠 + 드롭아웃
 train_transform = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
     transforms.RandomHorizontalFlip(),
@@ -446,30 +428,75 @@ model = SomeCNN(dropout_rate=0.3)
 optimizer = optim.AdamW(model.parameters(), lr=1e-3, weight_decay=1e-2)
 ```
 
-When using CutMix, Cutout is typically not needed because CutMix subsumes the occlusion effect while additionally providing mixed labels and informative fill content. See **[CutMix](cutmix.md)** for details.
+컷믹스는 가림 효과를 포함하면서 섞인 레이블과 정보가 담긴 채움 내용까지 주므로, 컷믹스를 쓸 때에는 보통 컷아웃이 필요 없다. 자세한 내용은 **[컷믹스](cutmix.md)**를 보라.
 
-## Practical Guidelines
+## 실무 지침
 
-### When to Use Cutout
+### 컷아웃을 쓸 때
 
-1. **Image classification**: Strong baseline augmentation for CNNs
-2. **Small datasets**: Significant improvement when data is limited
-3. **Models relying on local features**: When you suspect the model overfits to specific patches
-4. **As part of a standard pipeline**: Low risk, easy to add
+1. **이미지 분류**: CNN을 위한 강력한 기본 증강이다
+2. **작은 데이터셋**: 데이터가 적을 때 크게 나아진다
+3. **국소 특징에 기대는 모델**: 모델이 특정 조각에 과적합한다고 의심될 때
+4. **표준 파이프라인의 일부로**: 위험이 적고 넣기 쉽다
 
-### When to Avoid Cutout
+### 컷아웃을 피할 때
 
-1. **Already using CutMix**: CutMix provides a superset of Cutout's benefits
-2. **Very small images**: If the image is already small, cutout may remove too much information
-3. **Tasks requiring full spatial information**: Where every pixel matters (e.g., dense prediction without careful handling)
+1. **이미 컷믹스를 쓰고 있을 때**: 컷믹스가 컷아웃의 이점을 모두 포함한다
+2. **아주 작은 이미지**: 이미지가 이미 작으면 컷아웃이 정보를 너무 많이 없앨 수 있다
+3. **온전한 공간 정보가 필요한 과제**: 모든 화소가 중요한 경우(예: 세심한 처리 없는 조밀 예측)
 
-### Evaluation
+### 평가
 
-Cutout is **never applied** during validation or testing. Always evaluate on clean, unmodified images.
+검증이나 시험 중에는 컷아웃을 **결코 적용하지 않는다**. 언제나 손대지 않은 깨끗한 이미지로 평가하라.
 
-## References
+## 참고 문헌
 
 1. DeVries, T., & Taylor, G. W. (2017). Improved Regularization of Convolutional Neural Networks with Cutout. *arXiv:1708.04552*.
 2. Zhong, Z., et al. (2020). Random Erasing Data Augmentation. *AAAI*.
 3. Yun, S., et al. (2019). CutMix: Regularization Strategy to Train Strong Classifiers with Localizable Features. *ICCV*.
 4. Singh, K. K., & Lee, Y. J. (2017). Hide-and-Seek: Forcing a Network to be Meticulous for Weakly-supervised Object and Action Localization. *ICCV*.
+
+## 연습문제
+
+**연습문제 1.**
+컷아웃 알고리즘과 그 초매개변수를 설명하라.
+
+??? success "연습문제 1 풀이"
+    컷아웃은 입력 이미지에서 크기가 $L \times L$인 정사각형 영역을 무작위로 골라 0(또는 평균 화소값)으로 채운다. 그 영역은 이미지 경계 바깥까지 뻗을 수 있다. 핵심 초매개변수는 조각의 크기 $L$이며, CIFAR-10에서는 보통 16(이미지 크기의 절반)이다.
+
+---
+
+**연습문제 2.**
+컷아웃을 `torchvision.transforms`의 사용자 정의 변환으로 구현하라.
+
+??? success "연습문제 2 풀이"
+    ```python
+    class Cutout:
+        def __init__(self, length):
+            self.length = length
+        def __call__(self, img):
+            h, w = img.size(1), img.size(2)
+            y, x = torch.randint(h, (1,)), torch.randint(w, (1,))
+            y1 = max(0, y - self.length//2)
+            y2 = min(h, y + self.length//2)
+            x1 = max(0, x - self.length//2)
+            x2 = min(w, x + self.length//2)
+            img[:, y1:y2, x1:x2] = 0
+            return img
+    ```
+
+---
+
+**연습문제 3.**
+정칙화 기법으로서 컷아웃과 드롭아웃의 관계를 설명하라.
+
+??? success "연습문제 3 풀이"
+    둘 다 표현의 일부를 무작위로 가린다. 드롭아웃은 개별 뉴런을, 컷아웃은 공간 영역을 가린다. 컷아웃은 공간 상관 때문에 개별 화소에 대한 드롭아웃이 너무 잘게 쪼개지는 이미지를 위해 설계되었다. 컷아웃은 신경망이 부분적인 관측에서 배우도록 강제하여 가림에 대한 견고성을 높인다.
+
+---
+
+**연습문제 4.**
+이미지 해상도가 다를 때 컷아웃의 조각 크기는 얼마로 해야 하는가?
+
+??? success "연습문제 4 풀이"
+    어림 규칙으로 조각의 크기는 이미지 한 변의 25~50%로 한다. CIFAR-10(32x32)은 $L=16$, ImageNet(224x224)은 $L=112$이다. 너무 작으면 정칙화 효과가 미미하고, 너무 크면 정보를 너무 많이 없애 학습 신호를 해친다.

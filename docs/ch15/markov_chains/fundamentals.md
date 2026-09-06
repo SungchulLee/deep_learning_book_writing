@@ -1,67 +1,62 @@
-# Markov Chain Fundamentals
+# 마르코프 사슬의 바탕
+## 들어가며
 
+마르코프 사슬은 모든 마르코프 사슬 몬테카를로(MCMC) 방법의 이론적 등뼈이다. 과녁 분포로 모이는 표집기를 짓기에 앞서, 마르코프 사슬이 어떻게 흘러가는지, 옮김 확률이 여러 걸음에 걸쳐 어떻게 이어지는지, 그리고 그 동역학이 행렬 하나에 어떻게 온전히 담기는지를 이해해야 한다. 이 마당은 18장의 나머지를 떠받치는 핵심 정의와 셈 도구를 세운다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 마르코프 성질
 
-## Introduction
+### 형식적 정의
 
-Markov chains are the theoretical backbone of all Markov Chain Monte Carlo (MCMC) methods. Before constructing samplers that converge to target distributions, we must understand the mechanics of how Markov chains evolve, how transition probabilities compose over multiple steps, and how the dynamics are fully encoded in a single matrix. This section establishes the core definitions and computational tools that underpin the rest of Chapter 18.
-
-## The Markov Property
-
-### Formal Definition
-
-A discrete-time stochastic process $\{X_n\}_{n \geq 0}$ with state space $S$ is a **Markov chain** if for all $n \geq 0$ and all states $i_0, i_1, \ldots, i_{n-1}, i, j \in S$:
+상태 공간이 $S$인 이산 시간 확률 과정 $\{X_n\}_{n \geq 0}$이 모든 $n \geq 0$과 모든 상태 $i_0, i_1, \ldots, i_{n-1}, i, j \in S$에 대해 다음을 만족하면 **마르코프 사슬**이다:
 
 $$P(X_{n+1} = j \mid X_n = i, X_{n-1} = i_{n-1}, \ldots, X_0 = i_0) = P(X_{n+1} = j \mid X_n = i)$$
 
-This is the **Markov property** (or memorylessness):
+이것이 **마르코프 성질**(기억 없음)이다:
 
-> *Given the present state, the future is conditionally independent of the past.*
+> *지금 상태가 주어지면 앞날은 지난날과 조건부 독립이다.*
 
-The property asserts that the current state $X_n = i$ encodes all information relevant for predicting $X_{n+1}$. The entire trajectory $(X_0, X_1, \ldots, X_{n-1})$ provides no additional predictive power beyond what $X_n$ already supplies.
+이 성질은 지금 상태 $X_n = i$이 $X_{n+1}$을 미리 알아보는 데 필요한 정보를 모두 담고 있다고 말한다. 자취 전체 $(X_0, X_1, \ldots, X_{n-1})$은 $X_n$이 이미 주는 것 말고 더 보태는 예측력이 없다.
 
-### Time-Homogeneity
+### 시간에 한결같음
 
-A Markov chain is **time-homogeneous** if transition probabilities do not depend on the time index:
+옮김 확률이 시간 첨자에 기대지 않으면 마르코프 사슬이 **시간에 한결같다**고 한다:
 
 $$P(X_{n+1} = j \mid X_n = i) = P(X_1 = j \mid X_0 = i) \quad \text{for all } n \geq 0$$
 
-Throughout this chapter, we assume time-homogeneity unless stated otherwise, writing:
+이 장에서는 따로 말하지 않는 한 시간에 한결같음을 놓고 다음과 같이 쓴다:
 
 $$P_{ij} = P(X_{n+1} = j \mid X_n = i)$$
 
-### State Space
+### 상태 공간
 
-The **state space** $S$ is the set of all values the chain can take:
+**상태 공간** $S$은 사슬이 가질 수 있는 모든 값의 묶음이다:
 
-| Type | State Space | Example |
+| 갈래 | 상태 공간 | 보기 |
 |------|------------|---------|
-| Finite | $S = \{0, 1, 2, \ldots, N-1\}$ | Credit ratings, weather states |
-| Countably infinite | $S = \mathbb{Z}^+ = \{0, 1, 2, \ldots\}$ | Queue lengths, random walks |
-| Continuous | $S = \mathbb{R}^d$ | MCMC on continuous parameter spaces |
+| 끝이 있음 | $S = \{0, 1, 2, \ldots, N-1\}$ | 신용 등급, 날씨 상태 |
+| 셀 수 있게 끝없음 | $S = \mathbb{Z}^+ = \{0, 1, 2, \ldots\}$ | 줄의 길이, 무작위 걸음 |
+| 이어짐 | $S = \mathbb{R}^d$ | 이어진 매개변수 공간에서의 MCMC |
 
-Sections 18.1–18.2 focus primarily on finite state spaces, while Section 18.3 (MCMC) extends to continuous spaces.
+18.1-18.2절은 주로 끝이 있는 상태 공간에 초점을 맞추고, 18.3절(MCMC)은 이어진 공간으로 넓힌다.
 
-## Transition Probabilities and Matrices
+## 옮김 확률과 옮김 행렬
 
-### One-Step Transition Probabilities
+### 한 걸음 옮김 확률
 
-The **one-step transition probability** from state $i$ to state $j$ is:
+상태 $i$에서 상태 $j$으로의 **한 걸음 옮김 확률**은 다음과 같다:
 
 $$P_{ij} = P(X_{n+1} = j \mid X_n = i)$$
 
-These must satisfy two constraints:
+이는 두 제약을 만족해야 한다:
 
-1. **Non-negativity**: $P_{ij} \geq 0$ for all $i, j \in S$
-2. **Normalization**: $\sum_{j \in S} P_{ij} = 1$ for all $i \in S$
+1. **음이 아님**: 모든 $i, j \in S$에 대해 $P_{ij} \geq 0$
+2. **고르게 하기**: 모든 $i \in S$에 대해 $\sum_{j \in S} P_{ij} = 1$
 
-Each row of transition probabilities forms a valid probability distribution over the next state.
+옮김 확률의 행마다 다음 상태에 걸친 올바른 확률 분포를 이룬다.
 
-### The Transition Matrix
+### 옮김 행렬
 
-For a finite state space with $N$ states, we arrange transition probabilities into an $N \times N$ **transition matrix** (or stochastic matrix):
+상태가 $N$개인 끝이 있는 상태 공간에서는 옮김 확률을 $N \times N$ **옮김 행렬**(확률 행렬)로 늘어놓는다:
 
 $$P = \begin{pmatrix}
 P_{00} & P_{01} & \cdots & P_{0,N-1} \\
@@ -70,85 +65,85 @@ P_{10} & P_{11} & \cdots & P_{1,N-1} \\
 P_{N-1,0} & P_{N-1,1} & \cdots & P_{N-1,N-1}
 \end{pmatrix}$$
 
-The transition matrix is **row-stochastic**: all entries are non-negative and each row sums to 1. The entry at position $(i, j)$ gives the probability of transitioning from state $i$ to state $j$, and the diagonal entry $P_{ii}$ gives the probability of remaining in state $i$.
+옮김 행렬은 **행 확률 행렬**이다. 곧 항목이 모두 음이 아니고 행마다 합이 1이다. 자리 $(i, j)$의 항목은 상태 $i$에서 상태 $j$으로 옮길 확률을 주고, 대각선 항목 $P_{ii}$은 상태 $i$에 머무를 확률을 준다.
 
-### Stochastic Matrix Properties
+### 확률 행렬의 성질
 
-A matrix $P$ is (row) stochastic if and only if $P_{ij} \geq 0$ for all $i,j$ and $P \mathbf{1} = \mathbf{1}$, where $\mathbf{1}$ is the all-ones column vector. Key consequences:
+행렬 $P$이 (행) 확률 행렬일 때 그리고 그때만 모든 $i,j$에 대해 $P_{ij} \geq 0$이고 $P \mathbf{1} = \mathbf{1}$이다. 여기서 $\mathbf{1}$은 모두 1인 열 벡터이다. 핵심 결과는 다음과 같다:
 
-- The product of two stochastic matrices is stochastic (closure under multiplication).
-- All eigenvalues of $P$ satisfy $|\lambda| \leq 1$.
-- $\lambda_1 = 1$ is always an eigenvalue, with right eigenvector $\mathbf{1}$.
+- 확률 행렬 둘의 곱도 확률 행렬이다(곱하기에 닫혀 있다).
+- $P$의 고유값은 모두 $|\lambda| \leq 1$을 만족한다.
+- $\lambda_1 = 1$은 늘 고유값이며 오른쪽 고유벡터가 $\mathbf{1}$이다.
 
-## n-Step Transition Probabilities
+## n 걸음 옮김 확률
 
-### Definition
+### 정의
 
-The **$n$-step transition probability** is the probability of reaching state $j$ from state $i$ in exactly $n$ steps:
+**$n$ 걸음 옮김 확률**은 상태 $i$에서 꼭 $n$ 걸음에 상태 $j$에 닿을 확률이다:
 
 $$P^{(n)}_{ij} = P(X_{n+m} = j \mid X_m = i)$$
 
-For time-homogeneous chains, this does not depend on $m$.
+시간에 한결같은 사슬에서는 이것이 $m$에 기대지 않는다.
 
-### Matrix Powers
+### 행렬의 거듭제곱
 
-**Theorem.** The $n$-step transition probabilities are given by the $n$-th power of the transition matrix:
+**정리.** $n$ 걸음 옮김 확률은 옮김 행렬의 $n$제곱으로 주어진다:
 
 $$P^{(n)}_{ij} = (P^n)_{ij}$$
 
-where $P^n = \underbrace{P \cdot P \cdots P}_{n \text{ times}}$ is ordinary matrix multiplication.
+여기서 $P^n = \underbrace{P \cdot P \cdots P}_{n \text{ times}}$은 보통의 행렬 곱하기이다.
 
-*Proof sketch.* By the law of total probability:
+*증명 얼개.* 전체 확률의 법칙에 따라:
 
 $$P^{(n)}_{ij} = \sum_{k \in S} P^{(n-1)}_{ik} P_{kj}$$
 
-This is exactly the definition of matrix multiplication applied to $P^{(n-1)}$ and $P$. By induction, $P^{(n)} = P^n$. $\square$
+이것이 바로 $P^{(n-1)}$과 $P$에 쓴 행렬 곱하기의 정의이다. 귀납으로 $P^{(n)} = P^n$이다. $\square$
 
-This result is profoundly useful: all multi-step dynamics are encoded in matrix powers of $P$.
+이 결과는 몹시 쓸모 있다. 곧 여러 걸음 동역학이 모두 $P$의 거듭제곱에 담겨 있다.
 
-## Chapman-Kolmogorov Equations
+## 채프먼-콜모고로프 방정식
 
-### Statement
+### 진술
 
-For any non-negative integers $m, n$:
+음이 아닌 아무 정수 $m, n$에 대해:
 
 $$P^{(m+n)}_{ij} = \sum_{k \in S} P^{(m)}_{ik} P^{(n)}_{kj}$$
 
-In matrix form:
+행렬 꼴로 쓰면:
 
 $$P^{m+n} = P^m \cdot P^n$$
 
-### Interpretation
+### 해석
 
-To go from state $i$ to state $j$ in $m + n$ steps, the chain must pass through some intermediate state $k$ at time $m$. The Chapman-Kolmogorov equations decompose the $(m+n)$-step transition as:
+상태 $i$에서 $m + n$ 걸음에 상태 $j$으로 가려면 사슬이 때 $m$에 어떤 가운데 상태 $k$을 지나야 한다. 채프먼-콜모고로프 방정식은 $(m+n)$ 걸음 옮김을 다음과 같이 쪼갠다:
 
 $$\underbrace{i \xrightarrow{m \text{ steps}} k}_{\text{probability } P^{(m)}_{ik}} \xrightarrow{n \text{ steps}} \underbrace{j}_{\text{probability } P^{(n)}_{kj}}$$
 
-summed over all possible intermediaries $k$.
+있을 수 있는 모든 가운데 상태 $k$에 걸쳐 합한다.
 
-## Distribution Evolution
+## 분포의 흐름
 
-### Initial Distribution
+### 첫 분포
 
-The **initial distribution** $\pi^{(0)}$ specifies the probability of starting in each state:
+**첫 분포** $\pi^{(0)}$은 상태마다 거기서 시작할 확률을 못 박는다:
 
 $$\pi^{(0)}_i = P(X_0 = i)$$
 
-### Propagation
+### 퍼뜨리기
 
-Given initial distribution $\pi^{(0)}$ (as a row vector), the distribution at time $n$ is:
+(행 벡터로 쓴) 첫 분포 $\pi^{(0)}$이 주어지면 때 $n$의 분포는 다음과 같다:
 
 $$\pi^{(n)} = \pi^{(0)} P^n$$
 
-Component-wise:
+성분별로 쓰면:
 
 $$\pi^{(n)}_j = P(X_n = j) = \sum_{i \in S} \pi^{(0)}_i P^{(n)}_{ij}$$
 
-This is the fundamental equation connecting the transition matrix to distributional evolution. For MCMC, the critical question becomes: *does $\pi^{(n)}$ converge to the target distribution $\pi$ as $n \to \infty$, regardless of the starting distribution $\pi^{(0)}$?*
+이것이 옮김 행렬과 분포의 흐름을 잇는 근본 방정식이다. MCMC에서 결정적인 물음은 이것이다. *첫 분포 $\pi^{(0)}$이 무엇이든 $n \to \infty$일 때 $\pi^{(n)}$이 과녁 분포 $\pi$으로 모이는가?*
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### Markov Chain Class
+### 마르코프 사슬 클래스
 
 ```python
 import torch
@@ -157,15 +152,15 @@ from typing import List, Optional, Union, Dict, Tuple
 
 class MarkovChain:
     """
-    Discrete-time Markov chain implementation in PyTorch.
+    PyTorch으로 구현한 띄엄띄엄한 시간 마르코프 사슬.
 
-    The Markov property states that:
+    마르코프 성질은 다음을 말한다:
     P(X_{n+1} = j | X_n = i, X_{n-1}, ..., X_0) = P(X_{n+1} = j | X_n = i)
 
-    Attributes:
-        P: Transition probability matrix (row-stochastic)
-        n_states: Number of states
-        state_names: Optional names for states
+    속성:
+        P: 옮김 확률 행렬(행 확률 행렬)
+        n_states: 상태의 개수
+        state_names: 상태의 이름(없어도 된다)
     """
 
     def __init__(
@@ -175,13 +170,13 @@ class MarkovChain:
         validate: bool = True
     ):
         """
-        Initialize Markov chain.
+        마르코프 사슬 첫값 잡기.
 
-        Args:
-            transition_matrix: N×N transition probability matrix
+        인수:
+            transition_matrix: N×N 옮김 확률 행렬
                 P[i,j] = P(X_{n+1} = j | X_n = i)
-            state_names: Optional list of state names
-            validate: Whether to validate the transition matrix
+            state_names: 상태 이름의 목록(없어도 된다)
+            validate: 옮김 행렬을 확인할지 여부
         """
         self.P = transition_matrix.clone()
         self.n_states = self.P.shape[0]
@@ -196,12 +191,12 @@ class MarkovChain:
 
     def _validate_transition_matrix(self):
         """
-        Validate that P is a proper stochastic matrix.
+        P이 제대로 된 확률 행렬인지 확인하기.
 
-        Requirements:
-        1. Square matrix
-        2. All entries in [0, 1]
-        3. Each row sums to 1
+        필요한 것:
+        1. 정사각 행렬
+        2. 성분이 모두 [0, 1] 안에 있다
+        3. 행마다 합이 1이다
         """
         if self.P.shape[0] != self.P.shape[1]:
             raise ValueError(
@@ -220,13 +215,13 @@ class MarkovChain:
 
     def step(self, current_state: int) -> int:
         """
-        Perform one step: sample X_{n+1} given X_n = current_state.
+        한 걸음 밟기: X_n = current_state일 때 X_{n+1} 표집.
 
-        Args:
-            current_state: Index of current state
+        인수:
+            current_state: 지금 상태의 번호
 
-        Returns:
-            Index of next state
+        반환값:
+            다음 상태의 번호
         """
         probs = self.P[current_state]
         return torch.multinomial(probs, num_samples=1).item()
@@ -238,15 +233,15 @@ class MarkovChain:
         initial_distribution: Optional[torch.Tensor] = None
     ) -> List[int]:
         """
-        Simulate the Markov chain for n steps.
+        마르코프 사슬을 n걸음 흉내내기.
 
-        Args:
-            n_steps: Number of transitions
-            initial_state: Starting state (if specified)
-            initial_distribution: Distribution to sample initial state from
+        인수:
+            n_steps: 옮김의 횟수
+            initial_state: 시작 상태(정했을 때)
+            initial_distribution: 첫 상태를 표집할 분포
 
-        Returns:
-            List of states visited (length n_steps + 1)
+        반환값:
+            들른 상태의 목록(길이 n_steps + 1)
         """
         if initial_state is not None:
             state = initial_state
@@ -267,7 +262,7 @@ class MarkovChain:
         from_state: Union[int, str],
         to_state: Union[int, str]
     ) -> float:
-        """Get P(from_state → to_state)."""
+        """P(from_state → to_state) 얻기."""
         if isinstance(from_state, str):
             from_state = self.state_names.index(from_state)
         if isinstance(to_state, str):
@@ -277,13 +272,13 @@ class MarkovChain:
 
 def create_stochastic_matrix(matrix: torch.Tensor) -> torch.Tensor:
     """
-    Convert any non-negative matrix to a row-stochastic matrix
-    by normalizing each row to sum to 1.
+    음이 아닌 아무 행렬이나 행 확률 행렬로 바꾼다
+    행마다 합이 1이 되도록 고르게 하여.
     """
     matrix = torch.relu(matrix)
     row_sums = matrix.sum(dim=1, keepdim=True)
 
-    # Handle zero rows: assign uniform distribution
+    # 0인 행 다루기: 고른 분포 주기
     zero_rows = (row_sums == 0).squeeze()
     if zero_rows.any():
         n = matrix.shape[1]
@@ -293,13 +288,13 @@ def create_stochastic_matrix(matrix: torch.Tensor) -> torch.Tensor:
     return matrix / row_sums
 ```
 
-### Transition Matrix Analyzer
+### 옮김 행렬 분석기
 
 ```python
 class TransitionMatrixAnalyzer:
     """
-    Tools for analyzing transition matrices and computing
-    multi-step transition probabilities.
+    옮김 행렬을 살피고 여러 걸음 옮김 확률을
+    셈하는 도구.
     """
 
     def __init__(
@@ -315,7 +310,7 @@ class TransitionMatrixAnalyzer:
         self._validate()
 
     def _validate(self):
-        """Validate stochastic matrix properties."""
+        """확률 행렬의 성질 확인하기."""
         assert self.P.shape[0] == self.P.shape[1], "Matrix must be square"
         assert torch.all(self.P >= 0), "All entries must be non-negative"
         row_sums = self.P.sum(dim=1)
@@ -324,7 +319,7 @@ class TransitionMatrixAnalyzer:
 
     def n_step_matrix(self, n: int) -> torch.Tensor:
         """
-        Compute n-step transition matrix P^n.
+        n걸음 옮김 행렬 P^n 셈하기.
 
         P^n[i,j] = P(X_n = j | X_0 = i)
         """
@@ -337,7 +332,7 @@ class TransitionMatrixAnalyzer:
     def n_step_probability(
         self, from_state: int, to_state: int, n: int
     ) -> float:
-        """Compute P^{(n)}_{ij}."""
+        """P^{(n)}_{ij} 셈하기."""
         P_n = self.n_step_matrix(n)
         return P_n[from_state, to_state].item()
 
@@ -347,10 +342,10 @@ class TransitionMatrixAnalyzer:
         n_steps: int
     ) -> torch.Tensor:
         """
-        Compute π^{(0)}, π^{(1)}, ..., π^{(n)} where π^{(k)} = π^{(0)} P^k.
+        π^{(k)} = π^{(0)} P^k일 때 π^{(0)}, π^{(1)}, ..., π^{(n)} 셈하기.
 
-        Returns:
-            Tensor of shape (n_steps+1, n_states)
+        반환값:
+            꼴이 (n_steps+1, n_states)인 텐서
         """
         distributions = torch.zeros(n_steps + 1, self.n_states)
         distributions[0] = initial_dist
@@ -365,14 +360,14 @@ class TransitionMatrixAnalyzer:
     def chapman_kolmogorov_verify(
         self, m: int, n: int, tol: float = 1e-6
     ) -> bool:
-        """Verify Chapman-Kolmogorov: P^{m+n} = P^m × P^n."""
+        """채프먼-콜모고로프 확인하기: P^{m+n} = P^m × P^n."""
         P_m = self.n_step_matrix(m)
         P_n = self.n_step_matrix(n)
         P_mn = self.n_step_matrix(m + n)
         return torch.allclose(P_mn, P_m @ P_n, atol=tol)
 ```
 
-### Convergence Analysis
+### 모임 분석
 
 ```python
 def analyze_convergence(
@@ -381,10 +376,10 @@ def analyze_convergence(
     tol: float = 1e-8
 ) -> Dict:
     """
-    Analyze convergence of P^n as n → ∞.
+    n → ∞일 때 P^n의 모임 살피기.
 
-    For ergodic chains, all rows of P^n converge to the
-    stationary distribution π.
+    에르고드 사슬에서 P^n의 모든 행은
+    멈춘 분포 π.
     """
     results = {
         'converged': False,
@@ -411,23 +406,23 @@ def analyze_convergence(
     return results
 ```
 
-## Example: Weather Model
+## 보기: 날씨 모형
 
-A three-state weather model illustrates the core concepts:
+상태 셋짜리 날씨 모형이 핵심 개념을 보여 준다:
 
 ```python
-# States: Sunny, Cloudy, Rainy
+# 상태: 맑음, 흐림, 비
 states = ["Sunny", "Cloudy", "Rainy"]
 
 P = torch.tensor([
-    [0.70, 0.25, 0.05],  # From Sunny
-    [0.30, 0.40, 0.30],  # From Cloudy
-    [0.10, 0.40, 0.50]   # From Rainy
+    [0.70, 0.25, 0.05],  # 맑음에서
+    [0.30, 0.40, 0.30],  # 흐림에서
+    [0.10, 0.40, 0.50]   # 비에서
 ])
 
 analyzer = TransitionMatrixAnalyzer(P, state_names=states)
 
-# Multi-step transition probabilities
+# 여러 걸음 옮김 확률
 print("Weather Model: Multi-Step Transition Probabilities")
 print("=" * 60)
 
@@ -445,8 +440,8 @@ for n in [1, 2, 5, 10, 50]:
         )
         print(row)
 
-# Distribution evolution from a deterministic start
-pi_0 = torch.tensor([1.0, 0.0, 0.0])  # Start Sunny
+# 정해진 시작점에서의 분포 흘러감
+pi_0 = torch.tensor([1.0, 0.0, 0.0])  # 맑음에서 시작
 
 print("\nDistribution evolution starting from Sunny:")
 for n in [0, 1, 2, 5, 10, 50]:
@@ -454,17 +449,17 @@ for n in [0, 1, 2, 5, 10, 50]:
     pi_n = pi_0 @ P_n
     print(f"  n={n:2d}: π = [{pi_n[0]:.6f}, {pi_n[1]:.6f}, {pi_n[2]:.6f}]")
 
-# Verify Chapman-Kolmogorov
+# 채프먼-콜모고로프 확인하기
 for m, n in [(2, 3), (5, 5), (10, 10)]:
     holds = analyzer.chapman_kolmogorov_verify(m, n)
     print(f"Chapman-Kolmogorov P^{m+n} = P^{m} · P^{n}: {holds}")
 ```
 
-As $n$ grows, every row of $P^n$ converges to the same vector—this is the **stationary distribution**, developed in the next section.
+$n$이 커지면 $P^n$의 모든 행이 같은 벡터로 모인다. 이것이 다음 마당에서 다룰 **멈춘 분포**이다.
 
-## Visualization
+## 시각화
 
-### Transition Matrix Heatmap
+### 옮김 행렬 열지도
 
 ```python
 import matplotlib.pyplot as plt
@@ -474,7 +469,7 @@ def plot_transition_matrix(
     state_names: List[str] = None,
     title: str = "Transition Matrix"
 ):
-    """Create heatmap visualization of transition matrix."""
+    """옮김 행렬의 열지도 그림 만들기."""
     n_states = P.shape[0]
     if state_names is None:
         state_names = [f"S{i}" for i in range(n_states)]
@@ -509,7 +504,7 @@ def plot_distribution_evolution(
     state_names: List[str] = None,
     title: str = "Distribution Evolution"
 ):
-    """Plot evolution of state distribution over time."""
+    """시간에 따른 상태 분포의 흘러감 그리기."""
     n_steps, n_states = distributions.shape
     if state_names is None:
         state_names = [f"S{i}" for i in range(n_states)]
@@ -531,45 +526,45 @@ def plot_distribution_evolution(
     return fig
 ```
 
-## Why This Matters for MCMC
+## 이것이 MCMC에 왜 중요한가
 
-The transition matrix framework established here directly enables MCMC:
+여기서 세운 옮김 행렬 얼개가 MCMC을 곧바로 가능하게 한다:
 
-| Markov Chain Concept | MCMC Application |
+| 마르코프 사슬 개념 | MCMC에서의 쓰임 |
 |---------------------|------------------|
-| Transition matrix $P$ | The MCMC kernel (proposal + accept/reject) |
-| $n$-step distribution $\pi^{(n)}$ | Distribution of the $n$-th MCMC sample |
-| Convergence $\pi^{(n)} \to \pi$ | MCMC samples approximate the target distribution |
-| Chapman-Kolmogorov | Justifies running chains for multiple steps |
+| 옮김 행렬 $P$ | MCMC 알맹이(제안 + 받아들임/물리침) |
+| $n$ 걸음 분포 $\pi^{(n)}$ | $n$번째 MCMC 표본의 분포 |
+| 모임 $\pi^{(n)} \to \pi$ | MCMC 표본이 과녁 분포를 어림한다 |
+| 채프먼-콜모고로프 | 사슬을 여러 걸음 돌리는 것을 뒷받침한다 |
 
-The key questions remaining—*when* does $\pi^{(n)}$ converge, to *what*, and *how fast*—are addressed by the stationary distribution theory and ergodicity results in the following sections.
+남은 핵심 물음, 곧 $\pi^{(n)}$이 *언제* 모이는지, *무엇으로* 모이는지, *얼마나 빨리* 모이는지는 다음 마당의 멈춘 분포 이론과 에르고드성 결과가 답한다.
 
-## Summary
+## 요약
 
-| Concept | Mathematical Form | Description |
+| 개념 | 수학 꼴 | 설명 |
 |---------|------------------|-------------|
-| **Markov Property** | $P(X_{n+1}=j \mid X_n=i, \ldots) = P(X_{n+1}=j \mid X_n=i)$ | Future depends only on present |
-| **Transition Matrix** | $P$ where $P_{ij} \geq 0$, $\sum_j P_{ij} = 1$ | Row-stochastic matrix encoding all one-step dynamics |
-| **$n$-Step Probability** | $P^{(n)}_{ij} = (P^n)_{ij}$ | Multi-step transitions via matrix powers |
-| **Chapman-Kolmogorov** | $P^{m+n} = P^m \cdot P^n$ | Decomposition over intermediate states |
-| **Distribution Evolution** | $\pi^{(n)} = \pi^{(0)} P^n$ | How state probabilities evolve over time |
+| **마르코프 성질** | $P(X_{n+1}=j \mid X_n=i, \ldots) = P(X_{n+1}=j \mid X_n=i)$ | 앞날은 지금에만 기댄다 |
+| **옮김 행렬** | $P_{ij} \geq 0$, $\sum_j P_{ij} = 1$인 $P$ | 한 걸음 동역학을 모두 담은 행 확률 행렬 |
+| **$n$ 걸음 확률** | $P^{(n)}_{ij} = (P^n)_{ij}$ | 행렬 거듭제곱으로 얻는 여러 걸음 옮김 |
+| **채프먼-콜모고로프** | $P^{m+n} = P^m \cdot P^n$ | 가운데 상태에 걸친 쪼개기 |
+| **분포의 흐름** | $\pi^{(n)} = \pi^{(0)} P^n$ | 상태 확률이 시간에 따라 흘러가는 모습 |
 
-## Exercises
+## 참고 문헌
 
-1. **Stochastic Closure.** Prove that if $P$ and $Q$ are both row-stochastic matrices of compatible dimensions, then $PQ$ is also row-stochastic.
+1. Lawler, G.F. *Introduction to Stochastic Processes*, 1장. Chapman & Hall/CRC, 2006.
+2. Norris, J.R. *Markov Chains*, 1장. Cambridge University Press, 1997.
+3. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, 3장. Springer-Verlag, 1976.
+4. Horn, R.A. & Johnson, C.R. *Matrix Analysis*, 8장. Cambridge University Press, 2012.
+5. Durrett, R. *Essentials of Stochastic Processes*, 1장. Springer, 2016.
 
-2. **Eigenvalue Bound.** Show that all eigenvalues $\lambda$ of a row-stochastic matrix satisfy $|\lambda| \leq 1$. (*Hint*: use the Gershgorin circle theorem.)
+## 연습문제
 
-3. **Board Game.** Create a Markov chain for a simplified board game where a player on a circular board of 6 positions moves forward 1–3 spaces with equal probability. Compute the 10-step transition matrix and verify that each row approaches a uniform distribution.
+1. **확률 행렬의 닫힘.** $P$과 $Q$이 크기가 맞는 행 확률 행렬이면 $PQ$도 행 확률 행렬임을 증명하여라.
 
-4. **Chapman-Kolmogorov Verification.** For the weather model above, manually compute $P^{(3)}_{0,2}$ (probability of Rainy after 3 days starting Sunny) both directly via $P^3$ and via the Chapman-Kolmogorov equation with $m=1, n=2$. Verify they agree.
+2. **고유값 한계.** 행 확률 행렬의 모든 고유값 $\lambda$이 $|\lambda| \leq 1$을 만족함을 보여라. (*힌트*: 게르슈고린 원 정리를 써라.)
 
-5. **Financial Application.** Model daily stock price movements as a Markov chain with states $\{$Down, Flat, Up$\}$. Estimate transition probabilities from historical data, and compute the distribution of the stock's state after 20 trading days.
+3. **판 놀이.** 자리 6개의 둥근 판에서 말이 같은 확률로 1-3칸 앞으로 나아가는 단순한 판 놀이의 마르코프 사슬을 만들어라. 10 걸음 옮김 행렬을 셈하고 행마다 고른 분포에 가까워지는지 확인하여라.
 
-## References
+4. **채프먼-콜모고로프 확인.** 위 날씨 모형에서 $P^{(3)}_{0,2}$(맑음에서 시작해 사흘 뒤 비 올 확률)을 $P^3$으로 곧바로, 그리고 $m=1, n=2$인 채프먼-콜모고로프 방정식으로 손수 셈하여라. 둘이 맞는지 확인하여라.
 
-1. Lawler, G.F. *Introduction to Stochastic Processes*, Chapter 1. Chapman & Hall/CRC, 2006.
-2. Norris, J.R. *Markov Chains*, Chapter 1. Cambridge University Press, 1997.
-3. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, Chapter 3. Springer-Verlag, 1976.
-4. Horn, R.A. & Johnson, C.R. *Matrix Analysis*, Chapter 8. Cambridge University Press, 2012.
-5. Durrett, R. *Essentials of Stochastic Processes*, Chapter 1. Springer, 2016.
+5. **금융에서의 쓰임새.** 날마다의 주가 움직임을 상태 $\{$내림, 그대로, 오름$\}$의 마르코프 사슬로 본떠라. 지난 자료에서 옮김 확률을 어림하고 거래일 20일 뒤 그 주식 상태의 분포를 셈하여라.

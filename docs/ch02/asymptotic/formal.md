@@ -1,76 +1,76 @@
-# Formal Definitions
+# 형식적 정의
 
-The preceding pages introduced Big-O, Big-Omega, and Big-Theta through examples and intuition.  This page collects all five asymptotic notations in one place, presents their precise set-based definitions, and discusses the notational conventions that textbooks use.  It serves as a quick-reference card for the entire asymptotic notation family.
+앞의 절들에서는 빅오, 빅오메가, 빅세타를 예제와 직관을 통해 소개했다. 이 절에서는 다섯 가지 점근 표기법을 한자리에 모아 집합에 기반한 정확한 정의를 제시하고, 교과서들이 사용하는 표기 관례를 논한다. 점근 표기법 전체에 대한 빠른 참조 카드 역할을 한다.
 
-## Notation as Sets
+## 집합으로서의 표기법
 
-Mathematically, each asymptotic notation defines a **set of functions**.  When we write $f(n) = O(g(n))$, the equals sign does not mean ordinary equality -- it means $f$ *belongs to* the set $O(g(n))$.  The standard convention uses $=$ instead of $\in$ for readability, but the set interpretation is the correct one.
+수학적으로 각 점근 표기법은 **함수들의 집합** 을 정의한다. $f(n) = O(g(n))$이라고 쓸 때 등호는 통상적인 상등을 뜻하지 않는다. $f$가 집합 $O(g(n))$에 *속한다* 는 뜻이다. 표준 관례는 읽기 쉽도록 $\in$ 대신 $=$를 쓰지만, 올바른 해석은 집합 해석이다.
 
-!!! warning "Abuse of notation"
+!!! warning "표기의 남용"
 
-    The expression $n^2 = O(n^3)$ is valid, but $O(n^3) = n^2$ is not.  The $=$ sign in asymptotic notation is **one-directional**: it means "is a member of," not "equals."  Always read it left to right.
+    $n^2 = O(n^3)$이라는 표현은 타당하지만 $O(n^3) = n^2$은 그렇지 않다. 점근 표기법의 $=$ 기호는 **단방향** 이다. "같다"가 아니라 "의 원소이다"라는 뜻이다. 항상 왼쪽에서 오른쪽으로 읽어야 한다.
 
-## The Five Definitions
+## 다섯 가지 정의
 
-Throughout this section, $f$ and $g$ are functions from $\mathbb{N}$ (or $\mathbb{R}^+$) to $\mathbb{R}_{\geq 0}$.
+이 절 전체에서 $f$와 $g$는 $\mathbb{N}$(또는 $\mathbb{R}^+$)에서 $\mathbb{R}_{\geq 0}$으로 가는 함수이다.
 
-### Big-O (Asymptotic Upper Bound)
+### 빅오(점근적 상계)
 
 $$
 O(g(n)) = \{ f(n) : \exists\, c > 0,\, n_0 > 0 \text{ such that } 0 \leq f(n) \leq c \cdot g(n) \;\forall\, n \geq n_0 \}
 $$
 
-$f(n) = O(g(n))$ means $f$ grows **at most as fast as** $g$, up to a constant factor.  See [Big-O Notation](big_o.md) for examples and proof techniques.
+$f(n) = O(g(n))$은 상수 인자를 무시하면 $f$가 $g$보다 **많아야 그만큼 빠르게** 증가한다는 뜻이다. 예제와 증명 기법은 [빅오 표기법](big_o.md)을 참고하라.
 
-### Big-Omega (Asymptotic Lower Bound)
+### 빅오메가(점근적 하계)
 
 $$
 \Omega(g(n)) = \{ f(n) : \exists\, c > 0,\, n_0 > 0 \text{ such that } 0 \leq c \cdot g(n) \leq f(n) \;\forall\, n \geq n_0 \}
 $$
 
-$f(n) = \Omega(g(n))$ means $f$ grows **at least as fast as** $g$.  See [Big-Omega Notation](big_omega.md).
+$f(n) = \Omega(g(n))$은 $f$가 $g$보다 **적어도 그만큼 빠르게** 증가한다는 뜻이다. [빅오메가 표기법](big_omega.md)을 참고하라.
 
-### Big-Theta (Asymptotically Tight Bound)
+### 빅세타(점근적으로 꽉 조인 경계)
 
 $$
 \Theta(g(n)) = \{ f(n) : \exists\, c_1, c_2 > 0,\, n_0 > 0 \text{ such that } c_1 \cdot g(n) \leq f(n) \leq c_2 \cdot g(n) \;\forall\, n \geq n_0 \}
 $$
 
-$f(n) = \Theta(g(n))$ means $f$ and $g$ grow at the **same rate**, up to constant factors.  Equivalently, $f(n) = O(g(n))$ and $f(n) = \Omega(g(n))$.  See [Big-Theta Notation](big_theta.md).
+$f(n) = \Theta(g(n))$은 상수 인자를 무시하면 $f$와 $g$가 **같은 속도로** 증가한다는 뜻이다. 이는 $f(n) = O(g(n))$이고 $f(n) = \Omega(g(n))$인 것과 동치이다. [빅세타 표기법](big_theta.md)을 참고하라.
 
-### Little-o (Strictly Slower Growth)
+### 리틀오(엄격히 느린 증가)
 
 $$
 o(g(n)) = \{ f(n) : \forall\, c > 0,\, \exists\, n_0 > 0 \text{ such that } 0 \leq f(n) < c \cdot g(n) \;\forall\, n \geq n_0 \}
 $$
 
-$f(n) = o(g(n))$ means $f$ grows **strictly slower** than $g$.  Equivalently, $\lim_{n \to \infty} f(n) / g(n) = 0$.  See [Little-o and Little-omega](little.md).
+$f(n) = o(g(n))$은 $f$가 $g$보다 **엄격히 느리게** 증가한다는 뜻이다. 이는 $\lim_{n \to \infty} f(n) / g(n) = 0$과 동치이다. [리틀오와 리틀오메가](little.md)를 참고하라.
 
-### Little-omega (Strictly Faster Growth)
+### 리틀오메가(엄격히 빠른 증가)
 
 $$
 \omega(g(n)) = \{ f(n) : \forall\, c > 0,\, \exists\, n_0 > 0 \text{ such that } 0 \leq c \cdot g(n) < f(n) \;\forall\, n \geq n_0 \}
 $$
 
-$f(n) = \omega(g(n))$ means $f$ grows **strictly faster** than $g$.  Equivalently, $\lim_{n \to \infty} f(n) / g(n) = \infty$.  See [Little-o and Little-omega](little.md).
+$f(n) = \omega(g(n))$은 $f$가 $g$보다 **엄격히 빠르게** 증가한다는 뜻이다. 이는 $\lim_{n \to \infty} f(n) / g(n) = \infty$와 동치이다. [리틀오와 리틀오메가](little.md)를 참고하라.
 
-## Key Differences at a Glance
+## 핵심 차이 한눈에 보기
 
-| Notation | Quantifier on $c$ | Inequality | Intuitive meaning |
+| 표기법 | $c$에 대한 한정사 | 부등식 | 직관적 의미 |
 |---|---|---|---|
-| $O$ | $\exists\, c > 0$ | $f \leq cg$ | Upper bound (possibly loose) |
-| $\Omega$ | $\exists\, c > 0$ | $f \geq cg$ | Lower bound (possibly loose) |
-| $\Theta$ | $\exists\, c_1, c_2 > 0$ | $c_1 g \leq f \leq c_2 g$ | Tight bound |
-| $o$ | $\forall\, c > 0$ | $f < cg$ | Strictly below |
-| $\omega$ | $\forall\, c > 0$ | $f > cg$ | Strictly above |
+| $O$ | $\exists\, c > 0$ | $f \leq cg$ | 상계(느슨할 수 있음) |
+| $\Omega$ | $\exists\, c > 0$ | $f \geq cg$ | 하계(느슨할 수 있음) |
+| $\Theta$ | $\exists\, c_1, c_2 > 0$ | $c_1 g \leq f \leq c_2 g$ | 꽉 조인 경계 |
+| $o$ | $\forall\, c > 0$ | $f < cg$ | 엄격히 아래 |
+| $\omega$ | $\forall\, c > 0$ | $f > cg$ | 엄격히 위 |
 
-The critical distinction between Big-O and little-o (and between Big-Omega and little-omega) is the quantifier on $c$: existential ($\exists$) for the "big" versions versus universal ($\forall$) for the "little" versions.
+빅오와 리틀오(그리고 빅오메가와 리틀오메가) 사이의 결정적인 차이는 $c$에 대한 한정사이다. "빅" 판본은 존재 한정사($\exists$)를, "리틀" 판본은 전칭 한정사($\forall$)를 쓴다.
 
-## Relationships Between the Notations
+## 표기법들 사이의 관계
 
-The five notations are related by inclusion and duality.
+다섯 표기법은 포함 관계와 쌍대성으로 연결된다.
 
-**Inclusion:**
+**포함 관계:**
 
 $$
 f(n) = \Theta(g(n)) \implies f(n) = O(g(n)) \text{ and } f(n) = \Omega(g(n))
@@ -84,7 +84,7 @@ $$
 f(n) = \omega(g(n)) \implies f(n) = \Omega(g(n)) \text{ but not } f(n) = \Theta(g(n))
 $$
 
-**Duality (transpose symmetry):**
+**쌍대성(전치 대칭성):**
 
 $$
 f(n) = O(g(n)) \iff g(n) = \Omega(f(n))
@@ -94,18 +94,51 @@ $$
 f(n) = o(g(n)) \iff g(n) = \omega(f(n))
 $$
 
-These dualities let us convert any upper-bound statement into a lower-bound statement by swapping $f$ and $g$.
+이 쌍대성 덕분에 $f$와 $g$를 맞바꾸는 것만으로 임의의 상계 서술을 하계 서술로 바꿀 수 있다.
 
-## Domain and Non-negativity Conventions
+## 정의역과 음이 아님에 관한 관례
 
-Different textbooks make slightly different assumptions about the domain of $f$ and $g$:
+교과서마다 $f$와 $g$의 정의역에 대한 가정이 조금씩 다르다.
 
-- **CLRS convention:** $f$ and $g$ are **asymptotically non-negative** -- they are non-negative for all sufficiently large $n$.  This ensures that the inequalities in the definitions are meaningful.
-- **Alternative convention:** Some sources allow $f$ to take negative values and define $O(g(n))$ as $|f(n)| \leq c \cdot g(n)$.  This is less common in algorithm analysis.
+- **CLRS 관례:** $f$와 $g$는 **점근적으로 음이 아니다.** 즉 충분히 큰 모든 $n$에 대해 음이 아니다. 이로써 정의에 나오는 부등식이 의미를 갖는다.
+- **다른 관례:** 어떤 문헌은 $f$가 음수 값을 갖는 것을 허용하고 $O(g(n))$을 $|f(n)| \leq c \cdot g(n)$으로 정의한다. 알고리즘 분석에서는 덜 흔하다.
 
-In this book, we follow the CLRS convention: $f(n) \geq 0$ and $g(n) > 0$ for all sufficiently large $n$.
+이 책에서는 CLRS 관례를 따른다. 즉 충분히 큰 모든 $n$에 대해 $f(n) \geq 0$이고 $g(n) > 0$이라고 가정한다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 3. MIT Press.
 - Knuth, D. E. (1976). Big Omicron and Big Omega and Big Theta. *SIGACT News*, 8(2), 18--24.
+
+
+## 연습문제
+
+**연습문제 1.**
+형식적 정의에서 다룬 점근 표기법을 적용하여 셀프 어텐션($n^2 d$번 연산)과 순방향 층($n d^2$번 연산)의 복잡도를 분류하라.
+
+??? success "연습문제 1 풀이"
+    셀프 어텐션: $O(n^2 d)$로 시퀀스 길이에 대해 이차이다. FFN: $O(nd^2)$로 시퀀스 길이에 대해서는 선형이지만 은닉 차원에 대해서는 이차이다. $n > d$이면 어텐션이 지배한다. $d > n$이면 FFN이 지배한다. 교차점은 $n = d$이다.
+
+---
+
+**연습문제 2.**
+형식적 정의에서 서술한 형식적 정의를 구체적인 상수 $c$와 $n_0$을 사용하여 증명하라.
+
+??? success "연습문제 2 풀이"
+    정의를 만족하는 $c$와 $n_0$의 구체적인 값을 고른다. 대수적 조작으로, 또는 각 항의 상계를 잡아서, 모든 $n \geq n_0$에 대해 부등식이 성립함을 검증한다.
+
+---
+
+**연습문제 3.**
+극한 판정법을 사용하여 형식적 정의와 관련된 두 함수 사이의 점근적 관계를 결정하라.
+
+??? success "연습문제 3 풀이"
+    $\lim_{n \to \infty} f(n)/g(n)$을 계산한다. 극한이 0이면 $f = o(g)$이다. 극한이 $\infty$이면 $f = \omega(g)$이다. 극한이 양의 상수이면 $f = \Theta(g)$이다.
+
+---
+
+**연습문제 4.**
+다음 함수들을 증가 속도 순으로 나열하라: $n$, $n \log n$, $n^2$, $2^n$, $\log n$. 인접한 각 쌍의 순서를 증명하라.
+
+??? success "연습문제 4 풀이"
+    $\log n \prec n \prec n\log n \prec n^2 \prec 2^n$. 증명: $\lim \log n / n = 0$(로피탈 정리), $\lim n/(n\log n) = 1/\log n \to 0$, $\lim n\log n / n^2 = \log n / n \to 0$, $\lim n^2/2^n = 0$(지수가 다항식을 지배한다). $\square$

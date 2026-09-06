@@ -195,3 +195,43 @@ Documents 1 and 3 rank highest because they contain both "fox" and "rabbit." Doc
 
 - Manning, C.D., Raghavan, P., and Schutze, H. *Introduction to Information Retrieval*. Cambridge University Press, 2008
 - Zobel, J. and Moffat, A. "Inverted Files for Text Search Engines." *ACM Computing Surveys*, 2006
+
+## Exercises
+
+**Exercise 1.**
+Build an inverted index for the following three documents: D1="the cat sat", D2="the dog sat", D3="cat and dog". Show the posting lists for each term.
+
+??? success "Solution to Exercise 1"
+    Terms and posting lists (document IDs): "the" -> [D1, D2], "cat" -> [D1, D3], "sat" -> [D1, D2], "dog" -> [D2, D3], "and" -> [D3]. To answer query "cat AND dog": intersect posting lists [D1, D3] and [D2, D3] = [D3]. Document D3 contains both terms. With TF (term frequency) augmentation: "the" -> [(D1,1), (D2,1)], "cat" -> [(D1,1), (D3,1)], etc. This supports TF-IDF ranking in addition to boolean queries. $\square$
+
+---
+
+**Exercise 2.**
+Describe an efficient algorithm for intersecting two sorted posting lists of lengths $m$ and $n$ ($m \le n$). What is the time complexity?
+
+??? success "Solution to Exercise 2"
+    Use a merge-based intersection: maintain two pointers, one for each list. Compare the current elements. If equal, add to the result and advance both pointers. If the left element is smaller, advance the left pointer. Otherwise, advance the right pointer. Time: $O(m + n)$. When $m \ll n$, a more efficient approach is binary search: for each element in the shorter list, binary search for it in the longer list. Time: $O(m \log n)$. This is better when $m \ll n / \log n$. An adaptive approach: use galloping search (exponential search + binary search): for each element in the short list, exponentially probe the long list to find the neighborhood, then binary search. Average case: $O(m \log(n/m))$, which smoothly interpolates between the two extremes. $\square$
+
+---
+
+**Exercise 3.**
+Explain how posting list compression reduces the storage size of an inverted index. Describe delta encoding and variable-byte encoding.
+
+??? success "Solution to Exercise 3"
+    Posting lists store sorted document IDs, which increase monotonically. **Delta encoding**: store the differences between consecutive IDs rather than absolute IDs. For list [3, 5, 20, 21, 23]: deltas are [3, 2, 15, 1, 2]. Deltas are smaller numbers, requiring fewer bits. **Variable-byte encoding**: encode each delta using a variable number of bytes. Use the high bit of each byte as a continuation flag (1 = more bytes, 0 = last byte). Small deltas (< 128) use 1 byte; larger deltas use 2--4 bytes. For the deltas [3, 2, 15, 1, 2]: each fits in 1 byte (7 data bits), total 5 bytes vs. 20 bytes for 32-bit integers. Compression ratio: typically 4--8x for web-scale indices. More aggressive schemes (PForDelta, Simple-9, SIMD-based) achieve better ratios with even faster decompression. $\square$
+
+---
+
+**Exercise 4.**
+A search engine indexes 10 billion documents. The term "the" appears in 8 billion documents. Discuss why this term should be treated specially and how stop-word handling affects index size and query performance.
+
+??? success "Solution to Exercise 4"
+    The posting list for "the" contains 8 billion entries, consuming $\sim$8 GB even with compression. This single term accounts for a disproportionate fraction of the index. Handling: (1) **Stop-word removal**: exclude "the" from the index entirely. Reduces index size significantly. Queries containing "the" ignore the term (e.g., "the matrix" becomes just "matrix"). This can cause incorrect results for queries where the stop word is meaningful (e.g., "The Who," "to be or not to be"). (2) **Tiered indexing**: index "the" but store it in a lower tier. For conjunctive queries (AND), skip the posting list for "the" because every document matches. Only access it for phrase queries or proximity queries where position matters. (3) **Frequency-based pruning**: keep only the top-ranked documents in "the"'s posting list (e.g., top 1 million by PageRank), since lower-ranked documents add no value to ranking. $\square$
+
+---
+
+**Exercise 5.**
+Compare inverted indexes with forward indexes. When is each appropriate, and how does a search engine use both?
+
+??? success "Solution to Exercise 5"
+    **Inverted index**: maps terms to documents. Efficient for finding which documents contain a query term ($O(1)$ lookup per term + posting list traversal). Essential for query processing. **Forward index**: maps documents to their terms (with positions, frequencies). Efficient for computing document-level features (e.g., document length, term frequency for a specific document). Essential for scoring and snippet generation. A search engine uses both: (1) the inverted index identifies candidate documents matching the query (retrieval phase). (2) The forward index computes detailed relevance scores for each candidate (ranking phase) and generates the snippet shown in search results. The inverted index is the larger structure ($\sim$100 TB for a web-scale engine) stored on disk/SSD. The forward index is smaller (only the subset of documents returned needs scoring) and is often memory-mapped. $\square$

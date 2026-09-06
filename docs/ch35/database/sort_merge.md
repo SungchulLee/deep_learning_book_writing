@@ -192,3 +192,43 @@ if __name__ == "__main__":
 - [Database System Concepts (Silberschatz, Korth, Sudarshan)](https://www.db-book.com/), Chapter 13
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 - Knuth, D. E. *The Art of Computer Programming*, Volume 3: Sorting and Searching
+
+## Exercises
+
+**Exercise 1.**
+A file has 1000 pages and the buffer pool has 5 pages. How many sorted runs are created in the first pass, and how many merge passes are needed?
+
+??? success "Solution to Exercise 1"
+    First pass: read 5 pages at a time, sort in memory, write back. Number of sorted runs: $\lceil 1000 / 5 \rceil = 200$. Each merge pass uses $B - 1 = 4$ buffer pages for input (one page per run) and 1 for output, merging 4 runs at a time. Number of merge passes: $\lceil \log_4(200) \rceil = \lceil 3.82 \rceil = 4$. Total passes: $1 + 4 = 5$. Total I/O: $2 \times 1000 \times 5 = 10{,}000$ page reads and writes. $\square$
+
+---
+
+**Exercise 2.**
+Explain the replacement-sort optimization for generating longer initial runs. When does it help?
+
+??? success "Solution to Exercise 2"
+    Replacement sort uses a priority queue (min-heap) of size $M$ (buffer pages). As data is read, elements are inserted into the heap. The minimum is output to the current run. When a new element is read, if it is $\ge$ the last output, it joins the current run. If it is smaller, it is marked for the next run and stays in the heap. On average, this produces initial runs of size $2M$ (twice the buffer size) for random input. For nearly-sorted input, runs can be much longer (up to the entire file). This reduces the number of initial runs, saving merge passes. It helps most when data has partial order or when $M$ is small relative to the file size, since longer runs reduce $\lceil \log_{B-1}(\text{runs}) \rceil$. $\square$
+
+---
+
+**Exercise 3.**
+Prove that external sort-merge with $B$ buffer pages requires $O(N \log_{B-1}(N/B))$ I/O operations for a file of $N$ pages.
+
+??? success "Solution to Exercise 3"
+    The sort phase produces $\lceil N/B \rceil$ sorted runs, each requiring $N$ page reads and $N$ page writes. Each merge phase reads all $N$ pages and writes $N$ pages, reducing the number of runs by a factor of $B - 1$. The number of merge passes is $\lceil \log_{B-1}(N/B) \rceil$. Total I/O: $2N \times (1 + \lceil \log_{B-1}(N/B) \rceil) = O(N \log_{B-1}(N/B))$. The $\log_{B-1}$ factor reflects the merge tree's fan-out: a wider merge (more buffer pages) reduces the number of passes. With $B = 101$ (100-way merge) and $N = 10^6$ pages, passes $= \lceil \log_{100}(10^4) \rceil = 2$, so total I/O $\approx 6 \times 10^6$. $\square$
+
+---
+
+**Exercise 4.**
+Describe how double buffering improves the I/O efficiency of external sort-merge. What hardware feature does it exploit?
+
+??? success "Solution to Exercise 4"
+    Without double buffering, the CPU is idle while waiting for a page to be read from disk, and the disk is idle while the CPU processes a page. Double buffering allocates two buffers per input stream: while the CPU processes data from buffer A, the disk prefetches the next page into buffer B. When the CPU finishes A, it switches to B (instantly), and the disk starts filling A. This overlaps I/O and computation, exploiting the fact that disk and CPU are independent hardware units that can operate concurrently. The cost is doubling the buffer space per stream: with $B$ buffer pages and double buffering, only $(B-1)/2$ merge streams can run simultaneously. The tradeoff is worth it when I/O latency dominates, which is typical for HDD-based systems. On SSDs with low latency, the benefit is smaller. $\square$
+
+---
+
+**Exercise 5.**
+Compare external sort-merge with external hash-based grouping for a `GROUP BY` query. When is each approach preferred?
+
+??? success "Solution to Exercise 5"
+    **External sort-merge**: sorts the data by the grouping key, then scans the sorted result to aggregate consecutive groups. Cost: $O(N \log_{B-1}(N/B))$ I/O. Produces sorted output (useful if `ORDER BY` is also needed). **External hash-based grouping**: partitions the data by hashing the grouping key, then aggregates each partition independently. Cost: $O(N)$ if partitions fit in memory; $O(3N)$ with one partitioning pass. Does not produce sorted output. Sorting is preferred when: (1) the query also requires sorted output; (2) the grouping key has few distinct values (sort + sequential scan is simple and cache-friendly). Hashing is preferred when: (1) no sorted output is needed; (2) the data is large and reducing I/O passes matters; (3) the number of groups is small enough that each partition's hash table fits in memory. Most modern databases use hashing for `GROUP BY` and sorting only when `ORDER BY` is also specified. $\square$

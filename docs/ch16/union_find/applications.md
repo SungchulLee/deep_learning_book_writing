@@ -1,48 +1,48 @@
-# Union-Find Applications
+# 합치기-찾기의 쓰임새
 
-Union-Find is one of those data structures that appears in unexpected places. Its ability to maintain dynamic connected components with near-constant-time operations makes it the backbone of algorithms in graph theory, image processing, network analysis, and many competitive programming problems. This page surveys the most important applications.
+합치기-찾기는 뜻밖의 곳에 나타나는 자료 짜임 가운데 하나이다. 거의 상수 시간 연산으로 바뀌는 이어진 조각을 지닐 수 있어 그래프 이론, 그림 다루기, 그물 살피기, 그리고 많은 겨루기 프로그래밍 문제에서 알고리즘의 등뼈가 된다. 이 쪽에서는 가장 중요한 쓰임새를 훑어본다.
 
-## Kruskal's MST Algorithm
+## 크러스컬의 최소 뻗은 나무 알고리즘
 
-The most classical application of Union-Find is in Kruskal's algorithm for minimum spanning trees. The algorithm processes edges in increasing weight order and adds an edge $(u, v)$ to the MST only if $u$ and $v$ are in different components. Union-Find makes this connectivity check efficient:
+합치기-찾기의 가장 고전적인 쓰임새는 최소 뻗은 나무를 구하는 크러스컬 알고리즘이다. 이 알고리즘은 변을 무게가 커지는 차례로 다루며 $u$과 $v$이 서로 다른 조각에 있을 때만 변 $(u, v)$을 최소 뻗은 나무에 더한다. 합치기-찾기는 이 이어짐 살피기를 효율적으로 만든다:
 
-- `find(u) != find(v)` determines whether the edge creates a cycle.
-- `union(u, v)` merges the two components when the edge is added.
+- `find(u) != find(v)`이 그 변이 순환을 만드는지 정한다.
+- 변을 더할 때 `union(u, v)`이 두 조각을 합친다.
 
-With Union-Find, Kruskal's algorithm runs in $O(m \log m)$ time (dominated by sorting edges), with the Union-Find operations contributing only $O(m \cdot \alpha(n))$.
+합치기-찾기를 쓰면 크러스컬 알고리즘은 (변 정렬이 좌우하는) $O(m \log m)$ 시간에 돌아가며, 합치기-찾기 연산은 $O(m \cdot \alpha(n))$만 보탠다.
 
-## Dynamic Connectivity
+## 바뀌는 이어짐
 
-Given a graph where edges are added one at a time, Union-Find answers "Are $u$ and $v$ connected?" after each addition. This is the online connected components problem, and Union-Find solves it optimally.
+변이 하나씩 더해지는 그래프에서 합치기-찾기는 더할 때마다 "$u$과 $v$이 이어져 있는가?"에 답한다. 이것이 흐름 속 이어진 조각 문제이며, 합치기-찾기가 이를 가장 좋게 푼다.
 
-## Cycle Detection in Undirected Graphs
+## 방향 없는 그래프에서 순환 알아내기
 
-When processing the edges of an undirected graph, an edge $(u, v)$ creates a cycle if and only if $u$ and $v$ are already in the same component. This gives an $O(m \cdot \alpha(n))$ cycle detection algorithm that is simpler than DFS-based approaches for some use cases.
+방향 없는 그래프의 변을 다룰 때 변 $(u, v)$은 $u$과 $v$이 이미 같은 조각에 있을 때 그리고 오직 그때만 순환을 만든다. 이로써 $O(m \cdot \alpha(n))$의 순환 알아내기 알고리즘을 얻으며, 어떤 쓰임새에서는 깊이 우선 찾기에 바탕을 둔 방식보다 단순하다.
 
-## Image Segmentation (Connected Components Labeling)
+## 그림 나누기(이어진 조각에 이름표 붙이기)
 
-In image processing, **connected component labeling** identifies connected regions of pixels sharing the same property (e.g., color or intensity). Union-Find processes pixels in raster order: when a pixel matches its neighbor, union them. After processing all pixels, each component has a unique label. This runs in near-linear time in the number of pixels.
+그림 다루기에서 **이어진 조각에 이름표 붙이기**는 같은 성질(이를테면 색이나 밝기)을 나눠 갖는 화소가 이어진 구역을 가려낸다. 합치기-찾기는 화소를 훑는 차례로 다루며, 화소가 이웃과 맞으면 둘을 합친다. 화소를 모두 다루고 나면 조각마다 오직 하나뿐인 이름표를 갖는다. 이는 화소 수에 거의 비례하는 시간에 돌아간다.
 
-## Network Percolation
+## 그물 스며듦
 
-In percolation theory, sites on a grid are randomly "opened" and we ask whether a path exists from top to bottom. Union-Find tracks connected clusters as sites are opened. By adding virtual top and bottom nodes, a single `connected(top, bottom)` query determines whether percolation has occurred.
+스며듦 이론에서는 격자의 자리를 무작위로 "열고" 위에서 아래로 가는 길이 있는지 묻는다. 합치기-찾기는 자리가 열릴 때마다 이어진 뭉치를 좇는다. 위와 아래에 가상 마디를 더하면 `connected(top, bottom)` 물음 한 번으로 스며듦이 일어났는지 정할 수 있다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Union-Find applications: Kruskal's MST and cycle detection.
+합치기-찾기의 쓰임새: 크러스컬의 최소 뻗은 나무와 순환 알아내기.
 
-Demonstrates two common uses of Union-Find in graph algorithms:
-building minimum spanning trees and detecting cycles in
-undirected graphs.
+그래프 알고리즘에서 합치기-찾기의 흔한 두 쓰임을 보인다:
+곧 방향 없는 그래프에서 최소 뻗은 나무를 세우는 것과
+순환을 알아내는 것이다.
 """
 
 
-# === Union-Find ===
+# === 합치기-찾기 ===
 
 class UnionFind:
-    """Union-Find with path compression and union by rank."""
+    """길 줄이기와 계급으로 합치기를 쓴 합치기-찾기."""
 
     def __init__(self, n: int):
         self.parent = list(range(n))
@@ -50,13 +50,13 @@ class UnionFind:
         self.components = n
 
     def find(self, x: int) -> int:
-        """Find root with path compression."""
+        """길 누르기로 뿌리를 찾는다."""
         if self.parent[x] != x:
             self.parent[x] = self.find(self.parent[x])
         return self.parent[x]
 
     def union(self, a: int, b: int) -> bool:
-        """Union by rank. Returns True if a merge occurred."""
+        """계급으로 합치기. 합침이 일어났으면 True를 돌려준다."""
         ra, rb = self.find(a), self.find(b)
         if ra == rb:
             return False
@@ -69,21 +69,21 @@ class UnionFind:
         return True
 
     def connected(self, a: int, b: int) -> bool:
-        """Check if a and b are in the same component."""
+        """a과 b이 같은 조각에 있는지 살핀다."""
         return self.find(a) == self.find(b)
 
 
-# === Kruskal's MST ===
+# === 크러스컬의 최소 뻗은 나무 ===
 
 def kruskal_mst(n: int, edges: list) -> list:
-    """Find MST using Kruskal's algorithm with Union-Find.
+    """합치기-찾기를 쓴 크러스컬 알고리즘으로 최소 뻗은 나무 찾기.
 
-    Args:
-        n: Number of vertices.
-        edges: List of (weight, u, v) tuples.
+    인수:
+        n: 꼭짓점의 개수.
+        edges: (무게, u, v) 짝의 목록.
 
-    Returns:
-        List of (weight, u, v) edges in the MST.
+    반환값:
+        최소 뻗은 나무의 (무게, u, v) 변 목록.
     """
     edges_sorted = sorted(edges)
     uf = UnionFind(n)
@@ -98,17 +98,17 @@ def kruskal_mst(n: int, edges: list) -> list:
     return mst
 
 
-# === Cycle Detection ===
+# === 고리 알아내기 ===
 
 def has_cycle(n: int, edges: list) -> bool:
-    """Detect if an undirected graph has a cycle using Union-Find.
+    """합치기-찾기로 방향 없는 그래프에 순환이 있는지 알아내기.
 
-    Args:
-        n: Number of vertices.
-        edges: List of (u, v) tuples.
+    인수:
+        n: 꼭짓점의 개수.
+        edges: (u, v) 짝의 목록.
 
-    Returns:
-        True if the graph contains a cycle.
+    반환값:
+        그래프에 순환이 있으면 True.
     """
     uf = UnionFind(n)
     for u, v in edges:
@@ -117,10 +117,10 @@ def has_cycle(n: int, edges: list) -> bool:
     return False
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
-    # Kruskal's MST
+    # 크러스컬의 최소 뻗은 나무
     edges = [
         (4, 0, 1), (8, 0, 7), (11, 1, 7), (8, 1, 2),
         (7, 2, 3), (4, 2, 5), (2, 2, 8), (9, 3, 4),
@@ -135,7 +135,7 @@ if __name__ == "__main__":
     print(f"Total MST weight: {total}")
     print()
 
-    # Cycle detection
+    # 순환 알아내기
     print("Cycle detection:")
     edges_no_cycle = [(0, 1), (1, 2), (2, 3)]
     print(f"  Tree edges {edges_no_cycle}: "
@@ -146,7 +146,7 @@ if __name__ == "__main__":
           f"has_cycle={has_cycle(4, edges_with_cycle)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Kruskal's MST:
   (6,7) weight=1
@@ -164,17 +164,49 @@ Cycle detection:
   Cycle edges [(0, 1), (1, 2), (2, 3), (3, 0)]: has_cycle=True
 ```
 
-## Summary of Applications
+## 응용 요약
 
-| Application | Union-Find Role | Total Time |
+| 쓰임새 | 합치기-찾기가 하는 일 | 전체 시간 |
 |-------------|----------------|------------|
-| Kruskal's MST | Cycle avoidance | $O(m \log m)$ |
-| Dynamic connectivity | Online component tracking | $O(m \cdot \alpha(n))$ |
-| Cycle detection | Same-component check | $O(m \cdot \alpha(n))$ |
-| Image segmentation | Pixel region merging | $O(\text{pixels} \cdot \alpha(\text{pixels}))$ |
-| Network percolation | Cluster tracking | $O(\text{sites} \cdot \alpha(\text{sites}))$ |
+| 크러스컬 최소 뻗은 나무 | 순환 피하기 | $O(m \log m)$ |
+| 바뀌는 이어짐 | 흐름 속 조각 좇기 | $O(m \cdot \alpha(n))$ |
+| 순환 알아내기 | 같은 조각인지 살피기 | $O(m \cdot \alpha(n))$ |
+| 그림 나누기 | 화소 구역 합치기 | $O(\text{pixels} \cdot \alpha(\text{pixels}))$ |
+| 그물 스며듦 | 뭉치 좇기 | $O(\text{sites} \cdot \alpha(\text{sites}))$ |
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapters 19, 21. MIT Press.
-- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.), Chapter 1.5. Addison-Wesley.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 19장과 21장. MIT Press.
+- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.), 1.5장. Addison-Wesley.
+
+## 연습문제
+
+**연습문제 1.**
+변이 하나씩 더해질 때 합치기-찾기가 방향 없는 그래프의 순환을 어떻게 알아내는지 설명하여라.
+
+??? success "연습문제 1 풀이"
+    꼭짓점마다 저마다의 모음으로 첫값을 잡는다. 변을 하나씩 다룬다. 곧 변 $(u, v)$에 대해 Find(u)과 Find(v)을 부른다. 같은 대표를 돌려주면 $u$과 $v$이 이미 이어져 있으므로 이 변을 더하면 순환이 생긴다. 다른 대표를 돌려주면 Union(u, v)을 불러 조각을 합친다. 이러면 순환을 처음 만드는 변을 $O(E \cdot \alpha(V))$ 시간에 알아낸다. $\square$
+
+---
+
+**연습문제 2.**
+최소 뻗은 나무를 세우는 크러스컬 알고리즘에서 합치기-찾기를 어떻게 쓰는지 설명하여라.
+
+??? success "연습문제 2 풀이"
+    변을 무게로 정렬한다. 꼭짓점마다 저마다의 모음으로 첫값을 잡는다. 변을 차례로 다룬다. 곧 변 $(u, v, w)$에 대해 Find(u) $\neq$ Find(v)이면 그 변을 최소 뻗은 나무에 더하고 Union(u, v)을 부른다. Find(u) $=$ Find(v)이면 (순환이 생기므로) 그 변을 건너뛴다. 변 $V - 1$개를 받아들이면 최소 뻗은 나무가 완성된다. 합치기-찾기는 변마다 이어짐 살피기를 거의 $O(1)$으로 만들므로 병목은 $O(E \log E)$의 정렬이다. $\square$
+
+---
+
+**연습문제 3.**
+변이 더해지기만 하고 없어지지는 않는 바뀌는 그래프에서 합치기-찾기로 이어진 조각의 개수를 어떻게 셀 수 있는가?
+
+??? success "연습문제 3 풀이"
+    세는 값 $c = V$으로 첫값을 잡는다(꼭짓점마다 저마다의 조각이다). 더해지는 변 $(u, v)$마다 Find(u) $\neq$ Find(v)이면 Union(u, v)을 부르고 $c$을 1 줄인다. 어느 때든 $c$이 지금의 이어진 조각 개수를 준다. Union마다 조각 딱 둘을 하나로 합쳐 개수를 1 줄이므로 이것이 통한다. 변을 모두 다루고 나면 $c$이 마지막 그래프의 이어진 조각 개수와 같다. $\square$
+
+---
+
+**연습문제 4.**
+방향 그래프에도 합치기-찾기를 쓸 수 있는가? 어떤 한계가 있는가?
+
+??? success "연습문제 4 풀이"
+    표준 합치기-찾기는 방향 없는 이어짐(대칭 관계)을 좇는다. 방향 그래프에서 닿음은 대칭이 아니다. 곧 $v$이 $u$에 닿지 못해도 $u$은 $v$에 닿을 수 있다. 합치기-찾기는 강한 이어짐이나 방향 있는 닿음을 곧바로 셈하지 못한다. 다만 밑에 깔린 방향 없는 그래프에 합치기-찾기를 써서 약한 이어짐은 살필 수 있다. 강한 조각에는 타잔이나 코사라주 같은 알고리즘이 필요하다. 방향 그래프의 비실시간 바뀌는 이어짐을 위한 합치기-찾기의 특수한 갈래가 있기는 하지만 훨씬 복잡하다. $\square$

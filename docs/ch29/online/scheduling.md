@@ -1,45 +1,45 @@
-# Online Scheduling
+# 온라인 일정 잡기
 
-In many real-world systems, tasks arrive over time and must be assigned to machines immediately without knowledge of future arrivals. A data center receives jobs from users and must assign them to servers; a GPU cluster receives training jobs and must allocate resources. **Online scheduling** studies how to make these irrevocable assignment decisions while minimizing objectives like the total completion time (makespan) or total weighted flow time, and competitive analysis provides the framework for measuring how well these decisions perform.
+실제 시스템에서는 일이 때에 따라 들어오고 앞으로 무엇이 올지 모른 채 곧바로 기계에 맡겨야 할 때가 많다. 자료 센터는 쓰는 이에게서 일감을 받아 일꾼에 맡겨야 하고, GPU 무리는 익히기 일감을 받아 밑감을 나누어야 한다. **온라인 일정 잡기**는 온 마침 때(마무리 때)나 온 무게 흐름 때 같은 목표를 가장 작게 하면서 이 되돌릴 수 없는 맡김 결정을 어떻게 할지 살피며, 겨룸 살피기가 이 결정이 얼마나 좋은지 재는 틀을 준다.
 
-## Problem Formulation
+## 문제 정식화
 
-In the **online load balancing** (or online makespan minimization) problem:
+**온라인 짐 고르기**(또는 온라인 마무리 때 가장 작게 하기) 문제에서는:
 
-- There are $m$ identical machines.
-- Jobs $j_1, j_2, \ldots, j_n$ arrive one at a time, each with processing time $p_j$.
-- Upon arrival, job $j$ must be irrevocably assigned to one of the $m$ machines.
-- The **makespan** is the maximum load across all machines:
+- 똑같은 기계가 $m$대 있다.
+- 일감 $j_1, j_2, \ldots, j_n$이 하나씩 오며 저마다 다루는 때 $p_j$을 가진다.
+- 오는 즉시 일감 $j$은 기계 $m$대 가운데 하나에 되돌릴 수 없이 맡겨져야 한다.
+- **마무리 때**는 모든 기계를 통틀어 가장 큰 짐이다:
 
 $$
 C_{\max} = \max_{i=1}^{m} \sum_{j \in M_i} p_j
 $$
 
-where $M_i$ is the set of jobs assigned to machine $i$.
+여기서 $M_i$은 기계 $i$에 맡겨진 일감의 모임이다.
 
-The goal is to minimize $C_{\max}$ relative to the offline optimal makespan $C_{\max}^*$.
+목표는 오프라인 최적 마무리 때 $C_{\max}^*$에 견주어 $C_{\max}$을 가장 작게 하는 것이다.
 
-## Greedy Algorithms
+## 욕심쟁이 알고리즘
 
-### List Scheduling (Graham, 1966)
+### 목록 일정 잡기(Graham, 1966)
 
-The simplest strategy assigns each arriving job to the **least loaded machine**:
+가장 단순한 셈속은 들어오는 일감마다 **짐이 가장 가벼운 기계**에 맡긴다:
 
 $$
 \text{Assign job } j \text{ to machine } i^* = \arg\min_{i} L_i
 $$
 
-where $L_i$ is the current load on machine $i$.
+여기서 $L_i$은 기계 $i$의 지금 짐이다.
 
-**Theorem (Graham).** List scheduling is $(2 - 1/m)$-competitive.
+**정리(Graham).** 목록 일정 잡기는 $(2 - 1/m)$겨룸이다.
 
-*Proof.* Let $j^*$ be the last job to finish on the most loaded machine. At the time $j^*$ was assigned, that machine had the minimum load, so its load before $j^*$ was at most the average load:
+*밝힘.* $j^*$을 짐이 가장 무거운 기계에서 마지막으로 끝나는 일감이라 하자. $j^*$을 맡길 때 그 기계는 짐이 가장 가벼웠으므로 $j^*$ 이전의 짐은 많아야 평균 짐이다:
 
 $$
 L_{i^*} - p_{j^*} \leq \frac{1}{m} \sum_{j} p_j \leq C_{\max}^*
 $$
 
-Since $p_{j^*} \leq C_{\max}^*$ (no single job can exceed the optimal makespan), we get:
+$p_{j^*} \leq C_{\max}^*$이므로(일감 하나가 최적 마무리 때를 넘을 수 없다) 다음을 얻는다:
 
 $$
 C_{\max} = L_{i^*} \leq C_{\max}^* + C_{\max}^* - \frac{C_{\max}^*}{m} = \left(2 - \frac{1}{m}\right) C_{\max}^*
@@ -47,65 +47,98 @@ $$
 
 $\square$
 
-!!! note "Tightness"
-    The bound $2 - 1/m$ is tight: an adversary can construct a sequence where list scheduling achieves exactly this ratio. However, it can be improved with additional information.
+!!! note "빈틈없음"
+    가둠 $2 - 1/m$은 빈틈없다. 맞수는 목록 일정 잡기가 꼭 이 비를 내는 차례를 지을 수 있다. 다만 앎을 더 주면 나아질 수 있다.
 
-### LPT (Longest Processing Time First)
+### LPT(다루는 때가 긴 것 먼저)
 
-If jobs can be sorted offline by decreasing processing time before assignment, the **LPT** rule achieves a better ratio:
+맡기기 전에 일감을 다루는 때의 내림차순으로 오프라인에서 줄 세울 수 있으면 **LPT** 규칙이 더 좋은 비를 이룬다:
 
 $$
 C_{\max}^{\text{LPT}} \leq \left(\frac{4}{3} - \frac{1}{3m}\right) C_{\max}^*
 $$
 
-LPT is an offline algorithm, but it motivates online variants where large jobs are prioritized.
+LPT은 오프라인 알고리즘이지만 큰 일감을 앞세우는 온라인 변형의 까닭이 된다.
 
-## Related Machines
+## 딸린 기계
 
-When machines have different speeds $s_1, s_2, \ldots, s_m$, job $j$ takes time $p_j / s_i$ on machine $i$. The competitive ratio depends on the speed ratios:
+기계마다 빠르기 $s_1, s_2, \ldots, s_m$이 다르면 일감 $j$은 기계 $i$에서 때 $p_j / s_i$이 걸린다. 겨룸 비는 빠르기 비에 매인다:
 
 $$
 \text{Greedy is } \Theta(\log m)\text{-competitive for related machines}
 $$
 
-More sophisticated algorithms using doubling techniques achieve $O(1)$-competitive ratios for related machines.
+두 배 늘리기 재주를 쓰는 더 정교한 알고리즘은 딸린 기계에서 $O(1)$겨룸 비를 이룬다.
 
-## Weighted Completion Time
+## 무게 매긴 마침 때
 
-Another common objective is minimizing the total weighted completion time:
+또 하나의 흔한 목표는 온 무게 매긴 마침 때를 가장 작게 하는 것이다:
 
 $$
 \sum_{j} w_j \cdot C_j
 $$
 
-where $w_j$ is the weight (priority) of job $j$ and $C_j$ is its completion time. Online algorithms for this objective use the **Weighted Shortest Job First (WSJF)** rule, processing jobs in decreasing order of $w_j / p_j$.
+여기서 $w_j$은 일감 $j$의 무게(앞섬)이고 $C_j$은 그 마침 때이다. 이 목표의 온라인 알고리즘은 **무게 매긴 짧은 일감 먼저(WSJF)** 규칙을 써서 $w_j / p_j$의 내림차순으로 일감을 다룬다.
 
-## Online Scheduling with Preemption
+## 가로채기가 있는 온라인 일정 잡기
 
-If jobs can be **preempted** (interrupted and resumed later), online algorithms gain significant power. Preemptive scheduling allows the algorithm to correct past decisions:
+일감을 **가로챌** 수 있으면(끊었다가 나중에 이어 가기) 온라인 알고리즘의 힘이 크게 는다. 가로채는 일정 잡기는 알고리즘이 지난 결정을 바로잡게 해 준다:
 
-- **SRPT (Shortest Remaining Processing Time)** is 1-competitive for minimizing total completion time on a single machine with preemption.
-- For makespan on $m$ machines, preemption does not improve the competitive ratio.
+- **SRPT(남은 다루는 때가 가장 짧은 것)**는 가로채기가 있는 기계 한 대에서 온 마침 때를 가장 작게 하는 데 1겨룸이다.
+- 기계 $m$대의 마무리 때에서는 가로채기가 겨룸 비를 좋게 하지 못한다.
 
-## Lower Bounds
+## 아래 한계
 
-**Theorem.** No deterministic online algorithm for makespan minimization on $m$ identical machines can achieve a competitive ratio better than $1.5$ for $m \geq 3$.
+**정리.** 똑같은 기계 $m$대의 마무리 때 가장 작게 하기에서 $m \geq 3$일 때 어떤 정해진 온라인 알고리즘도 겨룸 비를 $1.5$보다 좋게 할 수 없다.
 
-For $m = 2$, the tight bound is $3/2$. For general $m$, the lower bound is approximately $1.88$.
+$m = 2$이면 빈틈없는 가둠이 $3/2$이다. 일반 $m$에서는 아래 가둠이 대략 $1.88$이다.
 
-## Connection to Deep Learning
+## 딥러닝과의 관계
 
-Online scheduling appears naturally in deep learning infrastructure:
+온라인 일정 잡기는 깊은 배움의 바탕 시설에 자연스럽게 나타난다:
 
-- **Job scheduling on GPU clusters**: training jobs arrive continuously and must be assigned to available GPUs. The competitive ratio of the scheduling algorithm directly impacts cluster utilization.
-- **Pipeline parallelism**: in model parallelism, micro-batches are scheduled across pipeline stages, and load imbalance creates pipeline bubbles analogous to makespan overhead.
-- **Dynamic batching**: in inference serving, incoming requests must be batched and assigned to devices, balancing latency and throughput in an online manner.
+- **GPU 무리의 일감 일정 잡기**: 익히기 일감이 끊임없이 들어와 쓸 수 있는 GPU에 맡겨져야 한다. 일정 잡기 알고리즘의 겨룸 비가 무리의 쓰임새에 곧바로 영향을 준다.
+- **관 나란히 하기**: 모델 나란히 하기에서 잔 묶음이 관의 여러 마디에 걸쳐 일정 잡히며, 짐이 고르지 않으면 마무리 때 덧짐에 해당하는 관 거품이 생긴다.
+- **그때그때 묶기**: 헤아림 서비스에서 들어오는 요청을 묶어 장치에 맡겨야 하며 지체와 처리량을 온라인으로 저울질한다.
 
-## Summary
+## 요약
 
-Online scheduling studies how to assign jobs to machines without knowing future arrivals. Graham's list scheduling achieves the tight deterministic ratio of $2 - 1/m$ for identical machines, while LPT improves this offline to $4/3 - 1/(3m)$. Preemption, randomization, and resource augmentation provide avenues for improvement. The problem has direct applications in GPU cluster management and distributed training systems.
+온라인 일정 잡기는 앞으로 무엇이 올지 모른 채 일감을 기계에 맡기는 법을 살핀다. Graham의 목록 일정 잡기는 똑같은 기계에서 빈틈없는 정해진 비 $2 - 1/m$을 이루고, LPT은 오프라인에서 이를 $4/3 - 1/(3m)$으로 좋게 한다. 가로채기, 아무렇게 하기, 밑감 늘리기가 나아질 길을 준다. 이 문제는 GPU 무리 다루기와 나눠 익히기 시스템에 곧바로 쓰인다.
 
-## References
+## 참고 문헌
 
 - [Online Computation and Competitive Analysis (Borodin and El-Yaniv)](https://www.amazon.com/dp/0521619467)
 - [Data Streams: Algorithms and Applications (Muthukrishnan)](https://www.cs.rutgers.edu/~muthu/stream-1-1.ps)
+
+
+## 연습문제
+
+**연습문제 1.**
+똑같은 기계에서의 온라인 일정 잡기 문제와 목록 일정 잡기 어림짐작을 뜻매김하여라.
+
+??? success "연습문제 1 풀이"
+    온라인 일정 잡기: 다루는 때가 $p_j$인 일감 $n$개가 하나씩 온다. 저마다 똑같은 기계 $m$대 가운데 하나에 곧바로 맡겨져야 한다. 목표는 마무리 때(가장 늦은 마침 때)를 가장 작게 하는 것이다. 목록 일정 잡기(Graham, 1966): 일감마다 짐이 가장 가벼운 기계에 맡긴다. 이 욕심쟁이 어림짐작은 $(2 - 1/m)$겨룸이다.
+
+---
+
+**연습문제 2.**
+목록 일정 잡기가 겨룸 비 $2 - 1/m$을 이룸을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    $C_{\max}^{LS}$을 목록 일정 잡기의 마무리 때, $C_{\max}^*$을 최적이라 하자. 마지막으로 끝나는 일감(기계 $i$의 일감 $j$)은 짐이 $L_i - p_j$일 때 시작했다. $j$이 왔을 때 기계 $i$의 짐이 가장 가벼웠으므로 $L_i - p_j \leq \bar{L} = (\sum p_k - p_j)/(m)$이다. 또 $C_{\max}^* \geq \sum p_k / m$(짐 고르기 가둠)이고 $C_{\max}^* \geq p_j$(어떤 한 일감)이다. 따라서 $C_{\max}^{LS} = L_i = (L_i - p_j) + p_j \leq (\sum p_k - p_j)/m + p_j \leq C_{\max}^* \cdot (1 - 1/m) + C_{\max}^* = (2 - 1/m) C_{\max}^*$이다.
+
+---
+
+**연습문제 3.**
+오프라인 일정 잡기의 LPT(다루는 때가 가장 긴 것) 규칙과 그 어림 비를 밝혀라.
+
+??? success "연습문제 3 풀이"
+    LPT은 일감을 다루는 때의 내림차순으로 줄 세운 뒤 목록 일정 잡기를 쓴다. 이는 오프라인 알고리즘이다(모든 일감 크기를 미리 알아야 한다). Graham(1969)은 LPT의 마무리 때가 $\leq (4/3 - 1/(3m)) C_{\max}^*$임을 밝혔다. 목록 일정 잡기보다 나아진 까닭은 큰 일감을 먼저 놓아 여러 기계에 흩어지게 하기 때문이다. $m = 2$일 때 LPT의 비는 $7/6 \approx 1.17$이고 목록 일정 잡기는 $3/2 = 1.5$이다.
+
+---
+
+**연습문제 4.**
+온라인 일정 잡기는 나눠 하는 깊은 배움 익히기의 짐 고르기와 어떻게 이어지는가?
+
+??? success "연습문제 4 풀이"
+    자료 나란히 익히기에서는 작은 묶음이 여러 GPU에 흩어진다. 묶음 다루는 때가 제각각이면(길이가 다른 차례나 그때그때 바뀌는 셈 그래프 때문에) 어떤 GPU은 먼저 끝나고 가장 느린 쪽을 기다린다. 이는 일정 잡기 문제이다. 자료 표본을 GPU에 맡겨 마무리 때(맞춤 울타리 때)를 가장 작게 한다. 표본 다루는 때를 돌리기 전에 모른다는 점에서 온라인 성격이 생긴다. 셈속: (1) 고르게 나누기(때가 같다고 여김), (2) 그때그때 일정 잡기(노는 GPU에 새 표본을 맡김), (3) 통에 담기(길이가 비슷한 차례를 묶음).

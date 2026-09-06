@@ -1,22 +1,22 @@
-# Decision Tree Model
+# 결정 트리 모형
 
-How fast can sorting possibly be? To answer this question, we need a framework for reasoning about **all possible** comparison-based sorting algorithms simultaneously, not just the ones we know. The **decision tree model** provides exactly this framework. It abstracts any comparison-based sorting algorithm as a binary tree where each internal node represents a comparison and each leaf represents a final permutation of the input. By analyzing the structure of these trees, we can derive lower bounds that apply to every comparison-based sorting algorithm, known or unknown.
+정렬은 얼마나 빠를 수 있을까? 이 물음에 답하려면 우리가 아는 것만이 아니라 **있을 수 있는 모든** 비교 기반 정렬 알고리즘을 한꺼번에 따져 볼 틀이 필요하다. **결정 트리 모형**이 바로 그 틀을 준다. 어떤 비교 기반 정렬 알고리즘이든 내부 노드가 비교를, 잎이 입력의 마지막 순열을 나타내는 이진 트리로 추상화한다. 이런 트리의 짜임을 따져 우리가 알든 모르든 모든 비교 기반 정렬 알고리즘에 적용되는 아래 한계를 이끌어 낼 수 있다.
 
-## What Is a Decision Tree
+## 결정 트리란 무엇인가
 
-A **decision tree** for sorting $n$ elements is a full binary tree that models the execution of a comparison-based sorting algorithm on all possible inputs of size $n$. The tree has the following structure:
+원소 $n$개를 정렬하는 **결정 트리**는 크기 $n$의 가능한 모든 입력에 대한 비교 기반 정렬 알고리즘의 실행을 나타내는 포화 이진 트리이다. 그 짜임은 다음과 같다.
 
-- **Internal nodes.** Each internal node is labeled with a comparison $a_i \leq a_j$ for some indices $i$ and $j$. The left child corresponds to the outcome "yes" ($a_i \leq a_j$), and the right child corresponds to "no" ($a_i > a_j$).
+- **내부 노드.** 내부 노드마다 어떤 색인 $i$과 $j$에 대해 비교 $a_i \leq a_j$을 이름표로 단다. 왼쪽 자식은 "그렇다"($a_i \leq a_j$), 오른쪽 자식은 "아니다"($a_i > a_j$)에 해당한다.
 
-- **Leaves.** Each leaf is labeled with a permutation $\pi$ of $\{1, 2, \ldots, n\}$, indicating the final rearrangement that produces the sorted output.
+- **잎.** 잎마다 정렬된 출력을 내는 마지막 재배치를 나타내는 $\{1, 2, \ldots, n\}$의 순열 $\pi$을 이름표로 단다.
 
-- **Root-to-leaf paths.** Each path from the root to a leaf represents the sequence of comparisons made by the algorithm on a particular input. The length of this path is the number of comparisons performed.
+- **뿌리-잎 경로.** 뿌리에서 잎까지의 경로마다 특정 입력에 대해 알고리즘이 한 비교의 차례를 나타낸다. 그 경로의 길이가 한 비교의 횟수이다.
 
-For a given input, the algorithm starts at the root, evaluates the comparison at each internal node, follows the corresponding branch, and arrives at a leaf that specifies the correct output permutation.
+주어진 입력에 대해 알고리즘은 뿌리에서 시작해 내부 노드마다 비교를 셈하고 그에 맞는 가지를 따라가 올바른 출력 순열을 알려 주는 잎에 닿는다.
 
-## Example: Sorting Three Elements
+## 보기: 원소 셋 정렬하기
 
-Consider sorting $\langle a_1, a_2, a_3 \rangle$ using comparisons. The decision tree for insertion sort on three elements looks like:
+비교로 $\langle a_1, a_2, a_3 \rangle$을 정렬한다고 하자. 원소 셋에 대한 삽입 정렬의 결정 트리는 다음과 같다.
 
 ```
                     a1 ≤ a2?
@@ -34,51 +34,51 @@ Consider sorting $\langle a_1, a_2, a_3 \rangle$ using comparisons. The decision
          (1,3,2)  (3,1,2)   (2,3,1)    (3,2,1)
 ```
 
-This tree has $3! = 6$ leaves, one for each permutation of three elements. The height of the tree is $3$, meaning the worst case requires $3$ comparisons. Some inputs require only $2$ comparisons (e.g., the already-sorted input follows the leftmost path of length $2$).
+이 트리에는 원소 셋의 순열마다 하나씩 $3! = 6$개의 잎이 있다. 트리의 높이는 $3$이므로 최악의 경우 비교가 $3$번 든다. 어떤 입력은 비교가 $2$번뿐이다(이를테면 이미 정렬된 입력은 길이 $2$인 가장 왼쪽 경로를 따라간다).
 
-## Key Properties
+## 핵심 성질
 
-### Every Permutation Must Appear
+### 모든 순열이 나타나야 한다
 
-A correct sorting algorithm must handle every possible input ordering. Since there are $n!$ permutations of $n$ distinct elements, the decision tree must have **at least** $n!$ leaves. If any permutation were missing, there would exist an input for which the algorithm produces the wrong output.
+올바른 정렬 알고리즘은 가능한 모든 입력 순서를 다루어야 한다. 서로 다른 원소 $n$개의 순열이 $n!$개이므로 결정 트리에는 잎이 **적어도** $n!$개 있어야 한다. 어떤 순열이라도 빠지면 알고리즘이 틀린 출력을 내는 입력이 있게 된다.
 
-### Height Equals Worst-Case Comparisons
+### 높이가 최악의 비교 횟수와 같다
 
-The **height** $h$ of the decision tree equals the maximum number of comparisons the algorithm makes on any input. This is the algorithm's worst-case comparison count.
+결정 트리의 **높이** $h$은 알고리즘이 어떤 입력에서든 하는 비교의 최대 횟수와 같다. 이것이 그 알고리즘의 최악 비교 횟수이다.
 
-### Leaves Bound the Height
+### 잎이 높이를 한계 짓는다
 
-A binary tree of height $h$ has at most $2^h$ leaves. Since the decision tree must have at least $n!$ leaves:
+높이가 $h$인 이진 트리의 잎은 많아야 $2^h$개이다. 결정 트리에 잎이 적어도 $n!$개 있어야 하므로 다음과 같다.
 
 $$
 2^h \geq n!
 $$
 
-Taking logarithms:
+로그를 취하면 다음과 같다.
 
 $$
 h \geq \log_2(n!)
 $$
 
-This inequality is the foundation of the $\Omega(n \log n)$ lower bound, which is proved in detail on the [Proof](proof.md) page.
+이 부등식이 $\Omega(n \log n)$ 아래 한계의 바탕이며 [증명](proof.md) 쪽에서 자세히 증명한다.
 
-## Decision Trees for Specific Algorithms
+## 특정 알고리즘의 결정 트리
 
-Different sorting algorithms produce different decision trees for the same $n$, but all must satisfy the $n!$ leaf requirement.
+같은 $n$에서도 정렬 알고리즘마다 다른 결정 트리를 내지만 모두 잎이 $n!$개라는 요구를 만족해야 한다.
 
-### Insertion Sort
+### 삽입 정렬
 
-Insertion sort's decision tree is a left-skewed tree: when the input is already sorted, the algorithm follows the leftmost path (only $n - 1$ comparisons). When the input is reverse sorted, it follows the longest path ($n(n-1)/2$ comparisons). The tree has height $\Theta(n^2)$ — far above the $\Omega(n \log n)$ lower bound.
+삽입 정렬의 결정 트리는 왼쪽으로 기운 트리이다. 입력이 이미 정렬되었으면 알고리즘이 가장 왼쪽 경로를 따라간다(비교 $n - 1$번뿐이다). 거꾸로 정렬되었으면 가장 긴 경로를 따라간다(비교 $n(n-1)/2$번). 이 트리의 높이는 $\Theta(n^2)$으로 $\Omega(n \log n)$ 아래 한계보다 한참 높다.
 
-### Merge Sort
+### 병합 정렬
 
-Merge sort's decision tree is more balanced. Its height is $\Theta(n \log n)$, which matches the lower bound up to constant factors. This means merge sort is **asymptotically optimal** in the comparison model.
+병합 정렬의 결정 트리는 더 균형 잡혀 있다. 높이가 $\Theta(n \log n)$으로 상수 배 안에서 아래 한계와 맞먹는다. 곧 병합 정렬이 비교 모형에서 **점근적으로 최적**이라는 뜻이다.
 
-### Optimal Sorting Networks
+### 최적 정렬 회로망
 
-For small $n$, the minimum-height decision tree can be found by exhaustive search. The minimum number of comparisons needed to sort $n$ elements is known for small values:
+$n$이 작으면 높이가 가장 낮은 결정 트리를 모두 뒤져 찾을 수 있다. 원소 $n$개를 정렬하는 데 필요한 최소 비교 횟수는 작은 값에 대해 알려져 있다.
 
-| $n$ | Minimum comparisons |
+| $n$ | 최소 비교 횟수 |
 |-----|-------------------|
 | 2 | 1 |
 | 3 | 3 |
@@ -86,28 +86,61 @@ For small $n$, the minimum-height decision tree can be found by exhaustive searc
 | 5 | 7 |
 | 6 | 10 |
 
-For large $n$, the exact minimum is unknown, but it lies between $\lceil \log_2(n!) \rceil$ and the number of comparisons used by the best known algorithms.
+$n$이 크면 정확한 최솟값을 모르지만 $\lceil \log_2(n!) \rceil$과 가장 잘 알려진 알고리즘이 쓰는 비교 횟수 사이에 있다.
 
-## Assumptions of the Model
+## 이 모형의 가정
 
-The decision tree model makes several assumptions that are important to state explicitly:
+결정 트리 모형은 드러내어 밝혀 둘 만한 가정을 여럿 둔다.
 
-1. **Comparison-based.** The algorithm can only learn about the relative order of elements through pairwise comparisons. It cannot examine the bits of the keys, compute hash functions, or use arithmetic on the keys.
+1. **비교에 바탕한다.** 알고리즘은 쌍마다의 비교로만 원소의 상대 순서를 알 수 있다. 열쇠의 비트를 살피거나 해시 함수를 셈하거나 열쇠로 산술을 할 수 없다.
 
-2. **Deterministic.** Each comparison has a fixed outcome for a given input. Randomized algorithms can be modeled by considering the expected depth of a random root-to-leaf path.
+2. **결정론적이다.** 주어진 입력에 대해 비교마다 결과가 정해져 있다. 무작위 알고리즘은 무작위 뿌리-잎 경로의 기대 깊이를 따져 나타낼 수 있다.
 
-3. **Distinct elements.** The standard lower bound assumes all $n$ elements are distinct. With duplicates, the number of distinct permutations is less than $n!$, so the lower bound is weaker.
+3. **원소가 서로 다르다.** 표준 아래 한계는 원소 $n$개가 모두 다르다고 본다. 겹친 것이 있으면 서로 다른 순열의 수가 $n!$보다 적어 아래 한계가 약해진다.
 
-!!! warning "Model Limitations"
-    The decision tree model does not account for non-comparison operations. Algorithms like counting sort and radix sort bypass the $\Omega(n \log n)$ bound by exploiting the internal structure of keys (e.g., treating them as integers in a fixed range). These algorithms do not fit the decision tree framework because they use operations other than comparisons.
+!!! warning "모형의 한계"
+    결정 트리 모형은 비교가 아닌 연산을 셈에 넣지 않는다. 계수 정렬이나 기수 정렬 같은 알고리즘은 (정해진 범위의 정수로 다루는 것처럼) 열쇠의 속 짜임을 이용해 $\Omega(n \log n)$ 한계를 비껴간다. 이런 알고리즘은 비교가 아닌 연산을 쓰므로 결정 트리 틀에 맞지 않는다.
 
-## Connection to Information Theory
+## 정보 이론과의 이음
 
-The decision tree lower bound has an elegant information-theoretic interpretation. Before sorting, the algorithm has no information about which of the $n!$ permutations is the correct one. Each comparison is a yes/no question that provides at most $1$ bit of information. To distinguish among $n!$ possibilities, the algorithm needs at least $\log_2(n!)$ bits, which requires at least $\log_2(n!)$ comparisons.
+결정 트리의 아래 한계에는 우아한 정보 이론적 풀이가 있다. 정렬하기 전에 알고리즘은 $n!$개 순열 가운데 어느 것이 맞는지 아무 정보가 없다. 비교마다 많아야 $1$비트의 정보를 주는 예-아니오 물음이다. $n!$가지를 가려내려면 적어도 $\log_2(n!)$비트가 필요하고 따라서 비교도 적어도 $\log_2(n!)$번 필요하다.
 
-This connection to information theory explains why the lower bound is so robust: it does not depend on the specific algorithm, only on the number of possible outputs and the information gained per comparison.
+정보 이론과의 이 이음이 아래 한계가 그토록 튼튼한 까닭을 설명해 준다. 특정 알고리즘이 아니라 가능한 출력의 수와 비교마다 얻는 정보에만 매인다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Section 8.1.
 - Knuth, D. E. (1997). *The Art of Computer Programming, Volume 3: Sorting and Searching* (2nd ed.). Addison-Wesley. Section 5.3.
+
+
+## 연습문제
+
+**연습문제 1.**
+결정 트리 모형을 정식으로 정의하고 비교 기반 정렬에서의 뜻을 설명하라.
+
+??? success "연습문제 1 풀이"
+    정식 정의는 정렬 알고리즘 설계를 옥죄는 이론적 바탕을 세운다. 이 바탕을 이해하면 알고리즘을 고르는 데 길잡이가 되고 $\Omega(n\log n)$ 벽이 언제 적용되는지 드러난다.
+
+---
+
+**연습문제 2.**
+배열 $[38, 27, 43, 3, 9, 82, 10]$으로 결정 트리 모형을 보여라.
+
+??? success "연습문제 2 풀이"
+    그 개념을 주어진 배열에 적용하며 관련된 단계를 하나씩 보여라. 이 보기는 추상적인 정의를 손에 잡히게 하고 모서리 경우를 짚어야 한다.
+
+---
+
+**연습문제 3.**
+이 쪽에서 밝힌 주된 결과를 증명하라.
+
+??? success "연습문제 3 풀이"
+    설명한 증명 기법(결정 트리, 적수, 세기)을 쓰라. 주장을 밝히고 논증을 세운 뒤 빈틈없이 밀고 나가라. $\square$
+
+---
+
+**연습문제 4.**
+결정 트리 모형을 `torch.sort`의 구현에 어떤 실마리를 주는가?
+
+??? success "연습문제 4 풀이"
+    파이토치의 정렬 연산은 이 쪽의 이론적 제약을 지켜야 한다. GPU 정렬에서는 병렬성 요구가 알고리즘 선택을 더 옥죈다. 이론적 한계를 이해하면 데이터의 크기와 종류에 맞는 알고리즘을 고르는 데 도움이 된다.

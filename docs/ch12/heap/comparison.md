@@ -1,8 +1,8 @@
-# Heapsort Comparison with Other Sorts
+# 힙 정렬과 다른 정렬의 견줌
 
-Choosing a sorting algorithm involves balancing worst-case guarantees, average-case speed, memory usage, stability, and cache behavior.  Heapsort occupies a unique niche: it offers $O(n \log n)$ worst-case time with $O(1)$ auxiliary space, but its constant factors and cache performance make it slower in practice than quicksort for most inputs.  This page compares heapsort with the other major $O(n \log n)$ algorithms.
+정렬 알고리즘을 고르는 일은 최악의 경우 보장, 평균 속도, 기억 씀씀이, 안정성, 캐시 거동 사이에서 균형을 잡는 일이다. 힙 정렬은 남다른 자리를 차지한다. 도움 공간 $O(1)$으로 최악의 경우 $O(n \log n)$ 시간을 주지만, 상수 인자와 캐시 성능 탓에 대부분의 입력에서 실제로는 빠른 정렬보다 느리다. 이 쪽은 힙 정렬을 다른 주요 $O(n \log n)$ 알고리즘과 견준다.
 
-## Asymptotic Comparison
+## 점근 견줌
 
 $$
 \begin{array}{lcccc}
@@ -16,84 +16,84 @@ $$
 \end{array}
 $$
 
-All three $O(n \log n)$ algorithms match the comparison-based lower bound of $\Omega(n \log n)$, but they differ in which cases achieve the bound and how much extra memory they require.
+$O(n \log n)$인 세 알고리즘 모두 비교 기반 아래 한계 $\Omega(n \log n)$과 맞먹지만, 어떤 경우에 그 한계에 이르는지와 여분 기억을 얼마나 쓰는지가 다르다.
 
-## Heapsort vs Quicksort
+## 힙 정렬과 빠른 정렬
 
-Quicksort is typically 2-3 times faster than heapsort on random data despite sharing the same asymptotic average-case complexity.  The reasons are architectural rather than algorithmic:
+빠른 정렬은 평균의 경우 점근 복잡도가 같은데도 무작위 데이터에서 대개 힙 정렬보다 2~3배 빠르다. 까닭은 알고리즘이 아니라 하드웨어 구조에 있다.
 
-**Cache locality.**  Quicksort's partition scans the array sequentially, producing excellent spatial locality.  Heapsort's `sift_down` jumps between parent and child indices ($i \to 2i+1$), causing frequent cache misses on large arrays.
+**캐시 지역성.** 빠른 정렬의 나눔은 배열을 차례대로 훑어 공간 지역성이 아주 좋다. 힙 정렬의 `sift_down`은 어버이와 자식 첨자 사이를 뛰어다녀($i \to 2i+1$) 큰 배열에서 캐시가 자주 빗나간다.
 
-**Branch prediction.**  During partitioning, quicksort compares every element against the same pivot value, and the branch outcome is roughly random -- modern branch predictors handle this well.  Heapsort alternates between comparing children and comparing child with parent, producing a less predictable pattern.
+**가지 예측.** 나눌 때 빠른 정렬은 원소마다 같은 축 값과 견주고 가지의 결과가 거의 무작위인데, 오늘날의 가지 예측기는 이를 잘 다룬다. 힙 정렬은 자식끼리 견주기와 자식과 어버이 견주기를 오가므로 본새가 덜 내다보인다.
 
-**Swap count.**  Quicksort performs fewer swaps on average.  Heapsort moves every element at least once during the build-heap phase and again during extraction.
+**맞바꿈 횟수.** 빠른 정렬이 평균으로 더 적게 맞바꾼다. 힙 정렬은 힙 쌓기 단계에서 원소마다 적어도 한 번 옮기고 꺼내기 단계에서 또 옮긴다.
 
-!!! tip "When to prefer heapsort over quicksort"
-    Use heapsort when you need a guaranteed $O(n \log n)$ worst case without the $O(n)$ extra memory that merge sort requires.  Examples include real-time systems and embedded environments where both time and space budgets are strict.
+!!! tip "빠른 정렬보다 힙 정렬이 나을 때"
+    병합 정렬이 요구하는 $O(n)$ 여분 기억 없이 최악의 경우 $O(n \log n)$을 보장받아야 할 때 힙 정렬을 쓰라. 시간과 공간 예산이 모두 빠듯한 실시간 체계나 내장 환경이 그런 보기이다.
 
-## Heapsort vs Merge Sort
+## 힙 정렬과 병합 정렬
 
-Both algorithms guarantee $O(n \log n)$ worst-case time, but they make different trade-offs.
+두 알고리즘 모두 최악의 경우 $O(n \log n)$ 시간을 보장하지만 맞바꿈이 서로 다르다.
 
-| Property        | Heapsort       | Merge sort     |
+| 성질 | 힙 정렬 | 병합 정렬 |
 |-----------------|----------------|----------------|
-| Auxiliary space | $O(1)$         | $O(n)$         |
-| Stability       | Not stable     | Stable         |
-| Cache behavior  | Poor           | Good           |
-| Comparison count| ~$2n \log n$   | ~$n \log n$    |
-| Parallelism     | Hard to parallelize | Naturally parallel |
+| 도움 공간 | $O(1)$ | $O(n)$ |
+| 안정성 | 안정적이지 않음 | 안정적 |
+| 캐시 거동 | 나쁨 | 좋음 |
+| 견줌 횟수 | $2n \log n$ 남짓 | $n \log n$ 남짓 |
+| 병렬성 | 병렬로 만들기 어려움 | 저절로 병렬 |
 
-Merge sort performs roughly half as many comparisons as heapsort because each merge comparison places one element, whereas `sift_down` uses two comparisons per level.  When comparison cost is high (e.g., comparing long strings), merge sort has a clear advantage.
+병합 정렬은 힙 정렬의 대략 절반만 견준다. 병합에서는 한 번 견줄 때마다 원소 하나가 자리를 잡지만 `sift_down`은 층마다 두 번 견주기 때문이다. 견주는 비용이 클 때(이를테면 긴 문자열을 견줄 때) 병합 정렬이 뚜렷이 낫다.
 
-## Heapsort vs Timsort
+## 힙 정렬과 팀 정렬
 
-Timsort is the default sorting algorithm in Python (`sorted()` and `list.sort()`) and Java (`Arrays.sort()` for objects).  It exploits existing order in the input:
+팀 정렬은 파이썬(`sorted()`과 `list.sort()`)과 자바(객체용 `Arrays.sort()`)의 기본 정렬 알고리즘이다. 입력에 이미 있는 차례를 살려 쓴다.
 
-- **Already sorted data**: Timsort runs in $O(n)$; heapsort still takes $O(n \log n)$.
-- **Nearly sorted data**: Timsort detects natural runs and merges them efficiently.
-- **Random data**: Both are $O(n \log n)$, but Timsort's merge-based approach has better cache behavior.
+- **이미 정렬된 데이터**: 팀 정렬은 $O(n)$에 돌지만 힙 정렬은 여전히 $O(n \log n)$이 든다.
+- **거의 정렬된 데이터**: 팀 정렬은 자연 런을 알아채고 효율적으로 병합한다.
+- **무작위 데이터**: 둘 다 $O(n \log n)$이지만 병합에 바탕을 둔 팀 정렬이 캐시 거동이 낫다.
 
-Heapsort's advantage is its $O(1)$ space, whereas Timsort requires $O(n)$ auxiliary space for merging.
+힙 정렬의 이점은 $O(1)$ 공간이고, 팀 정렬은 병합에 $O(n)$ 도움 공간이 든다.
 
-## Stability
+## 안정성
 
-A sorting algorithm is **stable** if it preserves the relative order of elements with equal keys.
+열쇠가 같은 원소의 상대 차례를 지키면 그 정렬 알고리즘은 **안정적**이다.
 
-- **Heapsort**: Not stable.  During extraction, elements are swapped to the end of the array, disrupting the original order of equal elements.
-- **Merge sort**: Stable (when ties are broken by taking from the left subarray first).
-- **Quicksort**: Not stable in its standard form (Lomuto or Hoare partition both may reorder equal elements).
-- **Timsort**: Stable.
+- **힙 정렬**: 안정적이지 않다. 꺼낼 때 원소를 배열 끝으로 맞바꾸므로 같은 원소의 본디 차례가 흐트러진다.
+- **병합 정렬**: 안정적이다(같을 때 왼쪽 부분 배열에서 먼저 가져오면 그렇다).
+- **빠른 정렬**: 표준 꼴로는 안정적이지 않다(로무토 나눔이든 호어 나눔이든 같은 원소의 차례를 바꿀 수 있다).
+- **팀 정렬**: 안정적이다.
 
-When stability is a hard requirement, merge sort or Timsort should be preferred over heapsort.
+안정성이 꼭 필요하다면 힙 정렬보다 병합 정렬이나 팀 정렬을 골라야 한다.
 
-## Practical Hybrid Approaches
+## 실전의 섞은 접근법
 
-Modern sorting implementations rarely use a single algorithm.  Instead, they combine strengths:
+오늘날의 정렬 구현은 알고리즘 하나만 쓰는 일이 드물다. 그 대신 여러 강점을 합친다.
 
-- **Introsort** (used in C++ `std::sort`): starts with quicksort, switches to heapsort if the recursion depth exceeds $2 \lfloor \log_2 n \rfloor$, and uses insertion sort for small partitions.  This guarantees $O(n \log n)$ worst case while retaining quicksort's average-case speed.
-- **Timsort**: combines merge sort with insertion sort for small runs.
-- **Pattern-defeating quicksort (pdqsort)**: detects adversarial patterns and falls back to heapsort.
+- **인트로 정렬**(C++ `std::sort`에 쓰인다): 빠른 정렬로 시작해 되돌이 깊이가 $2 \lfloor \log_2 n \rfloor$을 넘으면 힙 정렬로 갈아타고, 작은 조각에는 끼워넣기 정렬을 쓴다. 이로써 빠른 정렬의 평균 속도를 지니면서도 최악의 경우 $O(n \log n)$을 보장한다.
+- **팀 정렬**: 병합 정렬에 작은 런을 위한 끼워넣기 정렬을 섞는다.
+- **본새 깨뜨리는 빠른 정렬(pdqsort)**: 적수 본새를 알아채고 힙 정렬로 물러선다.
 
-In all three hybrids, heapsort serves as the **safety net** that prevents worst-case degradation.
+이 세 섞은 방법 모두에서 힙 정렬은 최악의 경우로 무너지는 것을 막는 **안전그물** 노릇을 한다.
 
-## Python Demonstration
+## 파이썬 시연
 
 ```python
 """
-Comparison of sorting algorithm performance.
+정렬 알고리즘 성능의 견줌.
 
-Times heapsort, merge sort, and Python's built-in Timsort on random
-arrays to illustrate the practical constant-factor differences.
+무작위 배열에서 힙 정렬, 병합 정렬, 파이썬 붙박이 팀 정렬의 시간을 재어
+실전에서 상수 인자가 어떻게 다른지 보여 준다.
 """
 
 import random
 import time
 
 
-# === Heapsort =================================================================
+# === 힙 정렬 ==================================================================
 
 def heapsort(arr: list) -> list:
-    """In-place heapsort returning the sorted list."""
+    """정렬된 리스트를 되돌리는 제자리 힙 정렬."""
     a = arr[:]
     n = len(a)
 
@@ -116,10 +116,10 @@ def heapsort(arr: list) -> list:
     return a
 
 
-# === Merge sort ===============================================================
+# === 병합 정렬 ================================================================
 
 def merge_sort(arr: list) -> list:
-    """Top-down merge sort returning a new sorted list."""
+    """새 정렬된 리스트를 되돌리는 하향식 병합 정렬."""
     if len(arr) <= 1:
         return arr[:]
     mid = len(arr) // 2
@@ -139,16 +139,16 @@ def merge_sort(arr: list) -> list:
     return result
 
 
-# === Benchmark ================================================================
+# === 잣대 재기 ================================================================
 
 def benchmark(sort_fn, arr: list) -> float:
-    """Return the wall-clock time in milliseconds for sorting arr."""
+    """arr을 정렬하는 데 걸린 시간을 밀리초로 되돌린다."""
     start = time.perf_counter()
     sort_fn(arr)
     return (time.perf_counter() - start) * 1000
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     n = 10000
@@ -165,7 +165,7 @@ if __name__ == "__main__":
     print(f"Timsort:    {t_tim:8.2f} ms")
 ```
 
-**Output (typical, hardware-dependent):**
+**출력(흔한 예이며 하드웨어에 따라 달라진다):**
 ```
 n = 10000
 Heapsort:     18.42 ms
@@ -173,10 +173,43 @@ Merge sort:   12.65 ms
 Timsort:       1.23 ms
 ```
 
-Timsort's large advantage comes from being implemented in C within CPython, while heapsort and merge sort here are pure Python.  Even with equal implementation effort, however, heapsort's cache-unfriendly access pattern makes it consistently slower than the alternatives on modern hardware.
+팀 정렬이 크게 앞서는 것은 CPython 안에서 C로 구현되어 있기 때문이고, 여기의 힙 정렬과 병합 정렬은 순수 파이썬이다. 그러나 구현에 똑같이 공을 들이더라도 힙 정렬은 캐시에 불친절한 훑기 본새 탓에 오늘날 하드웨어에서 한결같이 더 느리다.
 
-## References
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Chapter 6.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 6장.
 - Musser, D. R. (1997). Introspective sorting and selection algorithms. *Software: Practice and Experience*, 27(8), 983-993.
-- Peters, T. (2002). Timsort description. CPython source: `Objects/listsort.txt`.
+- Peters, T. (2002). Timsort description. CPython 소스: `Objects/listsort.txt`.
+
+
+## 연습문제
+
+**연습문제 1.**
+$[38, 27, 43, 3, 9, 82, 10]$에서 힙 정렬과 다른 정렬의 견줌을 따라가며 큰 걸음마다의 상태를 보여라.
+
+??? success "연습문제 1 풀이"
+    알고리즘을 한 걸음씩 밟아라. 나누어 정복하는 정렬이라면 되돌이 나눔과 병합을 하나씩 보이고, 나눔 기반 정렬이라면 나눔마다와 축이 놓이는 자리를 보여라. 걸음마다 배열 전체의 상태를 내보여라.
+
+---
+
+**연습문제 2.**
+힙 정렬과 다른 정렬의 견줌의 최선, 최악, 평균의 경우 시간 복잡도를 끌어내라.
+
+??? success "연습문제 2 풀이"
+    경우마다 점화식을 써라. 최선의 경우는 가장 좋은 나눔이거나 미리 정렬된 입력이다. 최악의 경우는 일을 가장 크게 만드는 적수 입력이다. 평균의 경우는 무작위 순열에 대한 기대 성능이다. 점화식을 각각 풀어라.
+
+---
+
+**연습문제 3.**
+힙 정렬과 다른 정렬의 견줌은 안정적인가? 증명하거나 반례를 들어라.
+
+??? success "연습문제 3 풀이"
+    같은 원소가 본디 상대 차례를 지키면 그 정렬은 안정적이다. 모든 입력에서 이것이 성립함을 증명하거나, 정렬 도중 같은 원소 둘의 자리가 뒤바뀌는 구체적인 입력을 들어라.
+
+---
+
+**연습문제 4.**
+float32 학습 손실 값 1000만 개를 정렬할 때 힙 정렬과 다른 정렬의 견줌을 다른 두 방법과 견주어라. 시간, 공간, 캐시 거동, GPU 어울림을 살펴라.
+
+??? success "연습문제 4 풀이"
+    $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.

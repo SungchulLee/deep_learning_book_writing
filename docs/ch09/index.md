@@ -1,60 +1,57 @@
-# Chapter 9: Self-Supervised Learning
+# 9장: 자기 지도 학습
 
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Self-supervised learning (SSL) has emerged as the dominant paradigm for learning representations without human annotations. By creating supervision signals from the data itself, SSL methods leverage vast amounts of unlabeled data to learn features that transfer effectively to downstream tasks. This chapter traces the evolution from classical pretext tasks through contrastive learning and masked modeling to modern self-distillation methods.
+자기 지도 학습(SSL)은 사람이 붙인 이름표 없이 표현을 배우는 주된 방식으로 떠올랐다. 데이터 자체에서 지도 신호를 만들어 냄으로써 자기 지도 학습 방법은 이름표 없는 방대한 데이터를 써서 아래쪽 과제로 잘 옮겨 가는 특징을 배운다. 이 장은 고전적인 구실 과제에서 대조 학습과 가린 모형화를 거쳐 요즘의 자기 증류 방법에 이르는 흐름을 좇는다.
 
 ---
 
-## 9.1 Foundations
+## 9.1 바탕
 
-Core concepts, motivations, and the theoretical framework underlying self-supervised learning.
+자기 지도 학습의 바탕이 되는 핵심 개념과 동기와 이론적 틀.
 
-- SSL Overview -- The self-supervised learning framework, motivation, and comparison with supervised and semi-supervised paradigms
-- Pretext Tasks -- Auxiliary learning objectives that create supervision signals directly from input data structure
-- Pretext Task Taxonomy -- Classification of SSL methods into predictive, contrastive, and generative categories
-- SSL and Representation Learning -- Desirable representation properties, the collapse problem, and evaluation approaches
+- 자기 지도 학습 훑어보기 — 자기 지도 학습의 틀과 동기, 그리고 지도·반지도 방식과의 견줌
+- 구실 과제 — 입력 데이터의 짜임에서 곧바로 지도 신호를 만드는 보조 학습 목표
+- 구실 과제 분류 — 자기 지도 학습 방법을 예측·대조·생성 갈래로 나누기
+- 자기 지도 학습과 표현 학습 — 바람직한 표현의 성질, 무너짐 문제, 평가 방법
 
-## 9.2 Contrastive Learning
+## 9.2 대조 학습
 
-Methods that learn representations by pulling positive pairs together and pushing negative pairs apart in embedding space.
+임베딩 공간에서 양성 쌍은 끌어당기고 음성 쌍은 밀어내어 표현을 배우는 방법.
 
-- Contrastive Learning Tutorial -- Implementation collection covering SimCLR, MoCo, and MAE with augmentation strategies
-- Contrastive Learning -- The InfoNCE framework, positive and negative pairs, and information-theoretic foundations
-- SimCLR -- Simple contrastive framework with data augmentation composition and projection head
-- MoCo -- Momentum Contrast with dynamic dictionary and queue mechanism for efficient contrastive learning
-- BYOL -- Bootstrap Your Own Latent achieving strong representations without negative samples
-- SimSiam -- The simplest non-contrastive method using only stop-gradient for collapse prevention
-- Barlow Twins -- Learning by making the cross-correlation matrix of embeddings close to identity
+- 대조 학습 길잡이 — SimCLR, MoCo, MAE와 불리기 방법을 다루는 구현 모음
+- 대조 학습 — InfoNCE 틀, 양성 쌍과 음성 쌍, 정보 이론의 바탕
+- SimCLR — 데이터 불리기 짜맞춤과 사영 머리를 갖춘 간단한 대조 틀
+- MoCo — 효율적인 대조 학습을 위한 유동 사전과 큐 얼개를 갖춘 관성 대조
+- BYOL — 음성 표본 없이 좋은 표현을 이루는 Bootstrap Your Own Latent
+- SimSiam — 무너짐을 막는 데 기울기 멈춤만 쓰는 가장 간단한 비대조 방법
+- Barlow Twins — 임베딩의 교차 상관 행렬을 항등 행렬에 가깝게 만들어 배우기
 
-## 9.3 Masked Modeling
+## 9.3 가린 모형화
 
-Reconstruction-based methods that learn representations by predicting masked or corrupted portions of the input.
+입력의 가려지거나 망가진 부분을 맞혀 표현을 배우는 되살리기 기반 방법.
 
-- Masked Image Modeling Overview -- Framework for self-supervised learning through predicting masked image regions
-- Masked Autoencoders (MAE) -- Learning from heavily masked images with an asymmetric encoder-decoder architecture
-- BEiT -- BERT-style pre-training for images by predicting discrete visual tokens from a pretrained tokenizer
-- Data2Vec -- Unified cross-modal framework predicting latent representations from a momentum teacher
-- SimMIM -- Simple masked image modeling with direct pixel prediction and minimal design complexity
-- iBOT -- Image BERT pre-training with an online tokenizer learned jointly with the masking objective
+- 가린 이미지 모형화 훑어보기 — 가린 그림 영역을 맞혀 하는 자기 지도 학습의 틀
+- 가린 자동 부호기(MAE) — 비대칭 부호기-복호기 구조로 많이 가린 그림에서 배우기
+- BEiT — 사전 학습된 토크나이저의 띄엄띄엄한 시각 토큰을 맞히는 BERT 방식의 그림 사전 학습
+- Data2Vec — 관성 교사의 잠재 표현을 맞히는, 여러 양식을 아우르는 하나의 틀
+- SimMIM — 화소를 곧바로 맞히고 설계를 아주 간단히 한 가린 이미지 모형화
+- iBOT — 가림 목표와 함께 학습되는 온라인 토크나이저를 쓰는 이미지 BERT 사전 학습
 
-## 9.4 Self-Distillation
+## 9.4 자기 증류
 
-Teacher-student frameworks where models learn from themselves through knowledge distillation without labels.
+이름표 없이 지식 증류로 모형이 제 자신에게서 배우는 교사-학생 틀.
 
-- Self-Distillation Overview -- The self-distillation paradigm and its information-theoretic foundations
-- [Knowledge Distillation Basics](self_distillation/distillation_basics.md) -- Teacher-student framework fundamentals including dark knowledge and temperature scaling
-- [EMA Teacher](self_distillation/ema_teacher.md) -- Exponential moving average teacher mechanism for stable target models in self-distillation
-- DINO -- Self-distillation with no labels producing semantically meaningful attention maps from ViTs
-- DINOv2 -- Scaling self-distillation to produce universal visual features combining DINO with iBOT objectives
+- 자기 증류 훑어보기 — 자기 증류 방식과 그 정보 이론적 바탕
+- [지식 증류의 기초](self_distillation/distillation_basics.md) — 어둠의 지식과 온도 조정을 아우르는 교사-학생 틀의 기본
+- [EMA 교사](self_distillation/ema_teacher.md) — 자기 증류에서 안정된 목표 모형을 위한 지수 이동 평균 교사 얼개
+- DINO — 이름표 없는 자기 증류로 ViT에서 뜻있는 어텐션 지도를 얻기
+- DINOv2 — DINO와 iBOT 목표를 아울러 보편적인 시각 특징을 내도록 자기 증류를 키우기
 
-## 9.5 Evaluation
+## 9.5 평가
 
-Standard protocols for measuring the quality of self-supervised representations.
+자기 지도 표현의 질을 재는 표준 절차.
 
-- SSL Evaluation Protocols -- Overview of linear probing, k-NN evaluation, and standard evaluation practices
-- Linear Probing -- Training a linear classifier on frozen features to directly measure representation quality
-- Fine-Tuning Evaluation -- Measuring initialization quality by updating all parameters on downstream tasks
-- Transfer Benchmarks -- Standard vision and NLP benchmarks for evaluating cross-domain generalization
+- 자기 지도 학습 평가 절차 — 선형 탐침, k-최근접 이웃 평가, 표준 평가 관행 훑어보기
+- 선형 탐침 — 얼린 특징 위에 선형 분류기를 학습시켜 표현의 질을 곧바로 재기
+- 미세 조정 평가 — 아래쪽 과제에서 모든 매개변수를 갱신하여 초기화의 질 재기
+- 전이 성능 시험 — 분야를 넘나드는 일반화를 재는 표준 비전·자연어 처리 잣대

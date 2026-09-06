@@ -1,63 +1,54 @@
-# Experience Replay
+# 경험 되살리기
+## 들어가며
 
+**경험 되살리기**는 이어 배우기에서 가장 쓸모 있고 직관적인 방법에 든다. 핵심 생각은 단순하다. 앞선 과제의 보기를 담은 기억 버퍼를 지니고, 새 과제를 익히는 동안 그것을 되살려 쓴다. 옛 보기와 새 보기를 섞으면 모델이 새 과제를 배우면서도 앞선 과제의 솜씨를 지킨다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+!!! success "핵심 이점"
 
-## Introduction
+    - **직관적인 장치**: 옛 보기를 되뇌어 잊음을 곧바로 다룬다
+    - **든든한 성능**: 실전에서 가장 쓸모 있는 방법일 때가 많다
+    - **융통성**: 다른 이어 배우기 기법과 섞을 수 있다
+    - **단순함**: 구현하고 이해하기 쉽다
 
-**Experience Replay** is one of the most effective and intuitive approaches to continual learning. The core idea is simple: maintain a memory buffer of examples from previous tasks and replay them during training on new tasks. By mixing old and new examples, the model maintains competence on previous tasks while learning new ones.
+## 이론적 바탕
 
-!!! success "Key Advantages"
-    - **Intuitive mechanism**: Directly addresses forgetting by rehearsing old examples
-    - **Strong performance**: Often the most effective method in practice
-    - **Flexibility**: Can be combined with other continual learning techniques
-    - **Simplicity**: Straightforward to implement and understand
+### 되살리기가 통하는 까닭
 
-## Theoretical Foundation
-
-### Why Replay Works
-
-Consider the loss function during continual learning. Without replay, we minimize only the current task's loss:
+이어 배우는 동안의 손실 함수를 생각해 보자. 되살리기가 없으면 지금 과제의 손실만 가장 작게 한다.
 
 $$
-
 \mathcal{L}(\theta) = \mathcal{L}_\tau(\theta)
-
 $$
 
-With replay, we approximate joint training on all tasks:
+되살리기를 쓰면 모든 과제를 함께 익히는 것을 어림하게 된다.
 
 $$
-
 \mathcal{L}(\theta) = \mathcal{L}_\tau(\theta) + \sum_{k=1}^{\tau-1} \hat{\mathcal{L}}_k(\theta)
-
 $$
 
-where $\hat{\mathcal{L}}_k(\theta)$ is an estimate of the loss on task $k$ using memory samples.
+여기서 $\hat{\mathcal{L}}_k(\theta)$은 기억 표본으로 어림한 과제 $k$의 손실이다.
 
-### Connection to Joint Training
+### 함께 익히기와의 이음
 
-Experience replay can be viewed as an approximation to joint training. If we had unlimited memory and stored all previous examples, replay would be equivalent to training on all data simultaneously—which doesn't exhibit forgetting.
+경험 되살리기는 함께 익히기의 어림으로 볼 수 있다. 기억이 무한하여 앞선 보기를 모두 담아 둘 수 있다면, 되살리기는 모든 데이터를 한꺼번에 익히는 것과 같아지며 그때는 잊음이 없다.
 
-## Memory Buffer Strategies
+## 기억 버퍼 전략
 
-### Reservoir Sampling
+### 저수지 뽑기
 
-**Reservoir sampling** maintains a fixed-size buffer that uniformly represents all seen examples:
+**저수지 뽑기**는 지금까지 본 보기를 고르게 나타내는 붙박이 크기의 버퍼를 지닌다.
 
 ```python
 import random
 import torch
 from typing import List, Tuple, Optional
 
-
 class ReservoirBuffer:
     """
-    Reservoir sampling buffer for experience replay.
+    경험 되살리기를 위한 저수지 뽑기 버퍼.
     
-    Maintains a uniform sample over all seen examples,
-    regardless of arrival order.
+    도착한 차례와 상관없이 지금까지 본 보기 전체에 대한
+    고른 표본을 지닌다.
     """
     
     def __init__(self, max_size: int):
@@ -66,7 +57,7 @@ class ReservoirBuffer:
         self.seen_count = 0
     
     def add(self, example: torch.Tensor, label: int):
-        """Add example using reservoir sampling."""
+        """저수지 뽑기로 보기를 더한다."""
         self.seen_count += 1
         
         if len(self.buffer) < self.max_size:
@@ -79,7 +70,7 @@ class ReservoirBuffer:
     
     def sample(self, batch_size: int) -> Tuple[Optional[torch.Tensor], 
                                                 Optional[torch.Tensor]]:
-        """Sample a batch from buffer."""
+        """버퍼에서 배치를 뽑는다."""
         if len(self.buffer) == 0:
             return None, None
         
@@ -92,17 +83,17 @@ class ReservoirBuffer:
         return examples, labels
 ```
 
-### Class-Balanced Buffer
+### 부류를 고르게 맞춘 버퍼
 
-Maintains equal representation across classes:
+부류마다 똑같은 비중으로 담는다.
 
 ```python
 class ClassBalancedBuffer:
     """
-    Class-balanced memory buffer.
+    부류를 고르게 맞춘 기억 버퍼.
     
-    Ensures equal representation of all classes in memory,
-    important for class-incremental learning.
+    기억에서 모든 부류가 똑같은 비중을 갖게 하며,
+    부류 증분 학습에 중요하다.
     """
     
     def __init__(self, max_size: int):
@@ -110,7 +101,7 @@ class ClassBalancedBuffer:
         self.class_buffers: Dict[int, List[torch.Tensor]] = {}
     
     def add_task(self, examples: torch.Tensor, labels: torch.Tensor):
-        """Add examples from a new task."""
+        """새 과제의 보기를 더한다."""
         unique_classes = labels.unique().tolist()
         
         for cls in unique_classes:
@@ -121,7 +112,7 @@ class ClassBalancedBuffer:
         self._rebalance()
     
     def _rebalance(self):
-        """Rebalance buffer to maintain class equality."""
+        """부류가 고르도록 버퍼의 균형을 다시 잡는다."""
         num_classes = len(self.class_buffers)
         if num_classes == 0:
             return
@@ -138,7 +129,7 @@ class ClassBalancedBuffer:
                 ]
     
     def sample(self, batch_size: int) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Sample with class balance."""
+        """부류를 고르게 맞추어 뽑는다."""
         all_examples = []
         all_labels = []
         
@@ -157,7 +148,7 @@ class ClassBalancedBuffer:
                 torch.tensor([all_labels[i] for i in indices], dtype=torch.long))
 ```
 
-## Complete Experience Replay Implementation
+## 온전한 경험 되살리기 구현
 
 ```python
 import torch
@@ -167,15 +158,14 @@ from torch.utils.data import DataLoader
 import numpy as np
 from typing import List, Dict
 
-
 class ExperienceReplayLearner:
     """
-    Continual learner using experience replay.
+    경험 되살리기를 쓰는 이어 배우는 학습기.
     
-    Strategy:
-    1. Maintain a memory buffer of previous examples
-    2. During training, mix current task data with replay samples
-    3. Combined loss prevents forgetting while learning new tasks
+    전략:
+    1. 앞선 보기를 담은 기억 버퍼를 지닌다
+    2. 익히는 동안 지금 과제의 데이터와 되살린 표본을 섞는다
+    3. 합친 손실이 새 과제를 배우면서도 잊음을 막는다
     """
     
     def __init__(self,
@@ -186,15 +176,15 @@ class ExperienceReplayLearner:
                  replay_batch_ratio: float = 0.5,
                  learning_rate: float = 0.001):
         """
-        Initialize replay learner.
+        되살리기 학습기를 초기화한다.
         
-        Args:
-            model: Neural network model
-            device: Computation device
-            memory_size: Total memory buffer capacity
-            examples_per_task: Examples to store per task
-            replay_batch_ratio: Fraction of batch from replay
-            learning_rate: Learning rate for optimizer
+        인수:
+            model: 신경망 모델
+            device: 셈할 장치
+            memory_size: 기억 버퍼의 전체 용량
+            examples_per_task: 과제마다 담아 둘 보기 수
+            replay_batch_ratio: 배치에서 되살린 것의 비율
+            learning_rate: 최적화기의 학습률
         """
         self.model = model
         self.device = device
@@ -205,20 +195,20 @@ class ExperienceReplayLearner:
         
         self.criterion = nn.CrossEntropyLoss()
         
-        # Memory storage
+        # 기억 저장소
         self.memory_data: List[torch.Tensor] = []
         self.memory_labels: List[int] = []
     
     def add_to_memory(self, data_loader: DataLoader):
         """
-        Add examples from current task to memory.
+        지금 과제의 보기를 기억에 더한다.
         
-        Uses random selection to choose representative examples.
+        대표할 만한 보기를 무작위로 고른다.
         
-        Args:
-            data_loader: DataLoader for current task
+        인수:
+            data_loader: 지금 과제의 DataLoader
         """
-        # Collect all task data
+        # 과제의 데이터를 모두 모은다
         all_data, all_labels = [], []
         for data, labels in data_loader:
             all_data.append(data)
@@ -227,17 +217,17 @@ class ExperienceReplayLearner:
         all_data = torch.cat(all_data, dim=0)
         all_labels = torch.cat(all_labels, dim=0)
         
-        # Random selection
+        # 무작위로 고르기
         n_available = all_data.size(0)
         n_select = min(self.examples_per_task, n_available)
         indices = torch.randperm(n_available)[:n_select]
         
-        # Add to memory
+        # 기억에 더한다
         for idx in indices:
             self.memory_data.append(all_data[idx].clone())
             self.memory_labels.append(all_labels[idx].item())
         
-        # Trim if exceeds capacity
+        # 용량을 넘으면 잘라낸다
         if len(self.memory_data) > self.memory_size:
             self.memory_data = self.memory_data[-self.memory_size:]
             self.memory_labels = self.memory_labels[-self.memory_size:]
@@ -245,7 +235,7 @@ class ExperienceReplayLearner:
         print(f"  Memory size: {len(self.memory_data)} examples")
     
     def sample_memory(self, batch_size: int):
-        """Sample a batch from memory."""
+        """기억에서 배치를 뽑는다."""
         if len(self.memory_data) == 0:
             return None, None
         
@@ -262,15 +252,15 @@ class ExperienceReplayLearner:
                       epochs: int = 5,
                       verbose: bool = True) -> Dict:
         """
-        Train on a task with experience replay.
+        경험 되살리기를 곁들여 과제로 익힌다.
         
-        Args:
-            train_loader: Training data loader
-            epochs: Number of training epochs
-            verbose: Print progress
+        인수:
+            train_loader: 학습 데이터 로더
+            epochs: 학습 에포크 수
+            verbose: 진행 상황 출력 여부
         
-        Returns:
-            Training statistics
+        반환값:
+            학습 통계
         """
         optimizer = optim.Adam(self.model.parameters(), lr=self.learning_rate)
         
@@ -287,11 +277,11 @@ class ExperienceReplayLearner:
                 
                 optimizer.zero_grad()
                 
-                # Current task loss
+                # 지금 과제의 손실
                 output = self.model(data)
                 current_loss = self.criterion(output, target)
                 
-                # Replay loss
+                # 되살리기 손실
                 replay_loss = torch.tensor(0.0, device=self.device)
                 replay_size = int(batch_size * self.replay_batch_ratio)
                 
@@ -303,20 +293,20 @@ class ExperienceReplayLearner:
                     replay_output = self.model(replay_data)
                     replay_loss = self.criterion(replay_output, replay_labels)
                 
-                # Combined loss
+                # 결합된 손실
                 total_loss = current_loss + replay_loss
                 
-                # Backward and optimize
+                # 되돌리고 최적화한다
                 total_loss.backward()
                 optimizer.step()
                 
-                # Track losses
+                # 손실을 좇는다
                 epoch_losses['total'] += total_loss.item()
                 epoch_losses['current'] += current_loss.item()
                 epoch_losses['replay'] += replay_loss.item()
                 num_batches += 1
             
-            # Average losses
+            # 손실을 평균 낸다
             for key in epoch_losses:
                 losses[key].append(epoch_losses[key] / num_batches)
             
@@ -329,7 +319,7 @@ class ExperienceReplayLearner:
         return losses
     
     def evaluate(self, test_loader: DataLoader) -> float:
-        """Evaluate accuracy on a task."""
+        """과제에서 정확도를 평가한다."""
         self.model.eval()
         correct, total = 0, 0
         
@@ -348,15 +338,15 @@ class ExperienceReplayLearner:
                         test_loaders: List[DataLoader],
                         epochs_per_task: int = 5) -> Dict:
         """
-        Complete continual learning with replay.
+        되살리기로 이어 배우기를 온전히 한다.
         
-        Args:
-            train_loaders: List of training DataLoaders
-            test_loaders: List of test DataLoaders  
-            epochs_per_task: Training epochs per task
+        인수:
+            train_loaders: 학습 DataLoader 목록
+            test_loaders: 시험 DataLoader 목록
+            epochs_per_task: 과제마다의 학습 시대 수
         
-        Returns:
-            Dictionary with accuracy matrix
+        반환값:
+            정확도 행렬을 담은 사전
         """
         num_tasks = len(train_loaders)
         accuracy_matrix = np.zeros((num_tasks, num_tasks))
@@ -366,16 +356,16 @@ class ExperienceReplayLearner:
             print(f"Task {task_id}")
             print('='*60)
             
-            # Train on current task
+            # 지금 과제로 익힌다
             self.train_on_task(
                 train_loaders[task_id],
                 epochs=epochs_per_task
             )
             
-            # Add to memory AFTER training
+            # 익힌 **뒤에** 기억에 더한다
             self.add_to_memory(train_loaders[task_id])
             
-            # Evaluate on all tasks
+            # 모든 과제에서 평가한다
             print(f"\n  Evaluation:")
             for eval_id in range(task_id + 1):
                 acc = self.evaluate(test_loaders[eval_id])
@@ -392,23 +382,23 @@ class ExperienceReplayLearner:
         return {'accuracy_matrix': accuracy_matrix}
 ```
 
-## Hyperparameter Analysis
+## 초매개변수 분석
 
-### Memory Size Effect
+### 기억 크기의 효과
 
-| Memory Size | Effect | Trade-off |
+| 기억 크기 | 효과 | 맞바꿈 |
 |-------------|--------|-----------|
-| Small (100) | Limited protection | Memory efficient |
-| Medium (500-1000) | Good balance | Recommended |
-| Large (5000+) | Near-joint training | Memory intensive |
+| 작음(100) | 지킴이 약함 | 기억을 아낌 |
+| 보통(500~1000) | 균형이 좋음 | 권함 |
+| 큼(5000 이상) | 함께 익히기에 가까움 | 기억을 많이 씀 |
 
-### Examples Per Task
+### 과제마다의 보기 수
 
-The `examples_per_task` parameter controls task balance:
+`examples_per_task` 매개변수가 과제 사이의 균형을 다스린다.
 
 ```python
 def analyze_memory_parameters(train_loaders, test_loaders, device):
-    """Analyze effect of memory parameters."""
+    """기억 매개변수의 영향을 뜯어본다."""
     
     configs = [
         {'memory_size': 500, 'examples_per_task': 100},
@@ -439,19 +429,19 @@ def analyze_memory_parameters(train_loaders, test_loaders, device):
     return results
 ```
 
-## Advanced Replay Strategies
+## 한 걸음 나아간 되살리기 전략
 
-### Gradient-Based Selection
+### 기울기 기반 고르기
 
-Select examples that maximize gradient diversity:
+기울기의 다양함이 가장 커지는 보기를 고른다.
 
 ```python
 class GradientBasedBuffer:
     """
-    Select examples based on gradient information.
+    기울기 정보를 바탕으로 보기를 고른다.
     
-    Prioritizes examples with large or diverse gradients,
-    as these are most informative for training.
+    기울기가 크거나 서로 다른 보기에 우선순위를 주는데,
+    학습에 알맹이가 가장 많기 때문이다.
     """
     
     def __init__(self, model, max_size, device):
@@ -462,7 +452,7 @@ class GradientBasedBuffer:
         self.gradients = []
     
     def compute_gradient_score(self, example, label):
-        """Compute gradient magnitude for an example."""
+        """보기 하나의 기울기 크기를 셈한다."""
         self.model.zero_grad()
         example = example.unsqueeze(0).to(self.device)
         label = torch.tensor([label], device=self.device)
@@ -471,7 +461,7 @@ class GradientBasedBuffer:
         loss = F.cross_entropy(output, label)
         loss.backward()
         
-        # Sum of squared gradients
+        # 기울기 제곱의 합
         score = sum(p.grad.norm().item() ** 2 
                    for p in self.model.parameters() 
                    if p.grad is not None)
@@ -479,13 +469,13 @@ class GradientBasedBuffer:
         return score
     
     def add_task(self, examples, labels, num_select):
-        """Add examples prioritized by gradient score."""
+        """기울기 점수로 우선순위를 매겨 보기를 더한다."""
         scores = []
         for i in range(len(examples)):
             score = self.compute_gradient_score(examples[i], labels[i].item())
             scores.append((score, i))
         
-        # Select top examples by gradient
+        # 기울기 기준으로 위 보기를 고른다
         scores.sort(reverse=True)
         selected = [scores[i][1] for i in range(min(num_select, len(scores)))]
         
@@ -494,21 +484,21 @@ class GradientBasedBuffer:
                 self.buffer.append((examples[idx].clone(), labels[idx].item()))
 ```
 
-### Loss-Based Selection
+### 손실 기반 고르기
 
-Prioritize examples with high loss (hard examples):
+손실이 큰 보기(어려운 보기)에 우선순위를 준다.
 
 ```python
 class LossBasedBuffer:
     """
-    Select examples based on loss value.
+    손실 값을 바탕으로 보기를 고른다.
     
-    Hard examples (high loss) may be more valuable for 
-    maintaining decision boundaries.
+    어려운 보기(손실이 큰 것)가 판단 경계를 지키는 데
+    더 값질 수 있다.
     """
     
     def select_by_loss(self, examples, labels, model, num_select, device):
-        """Select examples with highest loss."""
+        """손실이 가장 큰 보기를 고른다."""
         model.eval()
         
         with torch.no_grad():
@@ -516,68 +506,70 @@ class LossBasedBuffer:
             losses = F.cross_entropy(outputs, labels.to(device), 
                                     reduction='none')
         
-        # Select highest loss examples
+        # 손실이 가장 큰 보기를 고른다
         _, indices = torch.topk(losses, min(num_select, len(losses)))
         
         return examples[indices.cpu()], labels[indices.cpu()]
 ```
 
-## Comparison with Other Methods
+## 다른 방법과의 견줌
 
-### Replay vs Regularization
+### 되살리기와 벌주기
 
-| Aspect | Experience Replay | EWC |
+| 갈래 | 경험 되살리기 | EWC |
 |--------|------------------|-----|
-| Memory | Stores examples | Stores Fisher + params |
-| Privacy | Lower (stores data) | Higher (no data) |
-| Performance | Generally better | Good, but limited |
-| Scalability | Memory grows or fixed | Linear in tasks |
-| Flexibility | Combines easily | Standalone |
+| 기억 | 보기를 담음 | 피셔와 매개변수를 담음 |
+| 사생활 | 낮음(데이터를 담음) | 높음(데이터 없음) |
+| 성능 | 대체로 더 좋음 | 좋지만 한계가 있음 |
+| 규모 확장성 | 기억이 커지거나 붙박임 | 과제 수에 선형 |
+| 융통성 | 섞기 쉬움 | 홀로 씀 |
 
-### Expected Results
+### 기대되는 결과
 
-On Split MNIST benchmark:
+Split MNIST 잣대에서는 다음과 같다.
 
-| Method | Avg Accuracy | BWT | Memory |
+| 방법 | 평균 정확도 | BWT | 기억 |
 |--------|--------------|-----|--------|
-| Naive | ~55% | -45% | 0 |
-| ER (1000) | ~92% | -6% | 1000 examples |
-| EWC | ~85% | -12% | 2×params |
+| 소박한 방법 | 55% 남짓 | -45% | 0 |
+| ER(1000) | 92% 남짓 | -6% | 보기 1000개 |
+| EWC | 85% 남짓 | -12% | 매개변수의 2배 |
 
-## Practical Considerations
+## 실용적인 고려
 
-### When to Use Experience Replay
+### 경험 되살리기를 언제 쓸까
 
-✓ **Good for:**
-- When memory storage is acceptable
-- Privacy is not a primary concern
-- Maximum performance is needed
-- Tasks are similar in nature
+✓ **알맞은 곳:**
 
-✗ **Avoid when:**
-- Strict privacy requirements
-- Very limited memory
-- Thousands of sequential tasks
+- 기억을 담아 두어도 괜찮을 때
+- 사생활이 큰 걱정거리가 아닐 때
+- 성능을 최대로 뽑아야 할 때
+- 과제의 성격이 서로 닮았을 때
 
-### Implementation Tips
+✗ **피할 곳:**
 
-1. **Buffer updates**: Add to memory after training each task
-2. **Sampling**: Random sampling usually sufficient
-3. **Batch mixing**: 50/50 current/replay is a good default
-4. **Data augmentation**: Apply same augmentation to replay samples
+- 사생활 요구가 빠듯할 때
+- 기억이 아주 빠듯할 때
+- 잇단 과제가 수천 개일 때
 
-## Summary
+### 구현 요령
 
-Experience Replay is a powerful and practical approach to continual learning:
+1. **버퍼 갱신**: 과제를 익힌 뒤 기억에 더한다
+2. **뽑기**: 대개 무작위 뽑기로 충분하다
+3. **배치 섞기**: 지금 것과 되살린 것을 반반으로 두는 것이 좋은 기본값이다
+4. **데이터 늘리기**: 되살린 표본에도 같은 늘리기를 쓴다
 
-- **Mechanism**: Store and replay previous examples
-- **Effectiveness**: Often the best-performing method
-- **Trade-off**: Requires memory storage
-- **Flexibility**: Easy to combine with other methods
+## 요약
 
-The method's simplicity and strong performance make it a go-to choice when memory constraints are not prohibitive.
+경험 되살리기는 이어 배우기에 힘 있고 실전에 맞는 방법이다.
 
-## References
+- **장치**: 앞선 보기를 담아 두고 되살린다
+- **쓸모**: 가장 좋은 성능을 내는 방법일 때가 많다
+- **맞바꿈**: 기억을 담아 두어야 한다
+- **융통성**: 다른 방법과 섞기 쉽다
+
+단순하고 성능이 든든해서 기억이 빠듯하지만 않다면 첫손에 꼽을 만하다.
+
+## 참고 문헌
 
 1. Robins, A. (1995). Catastrophic forgetting, rehearsal and pseudorehearsal. *Connection Science*.
 
@@ -586,3 +578,35 @@ The method's simplicity and strong performance make it a go-to choice when memor
 3. Chaudhry, A., et al. (2019). On tiny episodic memories in continual learning. *ICML Workshop*.
 
 4. Buzzega, P., et al. (2020). Dark experience for general continual learning: a strong, simple baseline. *NeurIPS*.
+
+## 연습문제
+
+**연습문제 1.**
+이 방법의 핵심 생각과 그것이 파국적 잊음을 어떻게 다루는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 방법은 새 과제를 배울 때 모델의 매개변수나 표현이 바뀌는 방식을 옥죄어 파국적 잊음을 누그러뜨린다. (벌주기, 되살리기, 증류, 구조 갈라두기로) 배운 함수의 중요한 대목을 지켜 냄으로써, 앞선 과제의 성능을 지키면서도 새 과제에 맞추어 갈 수 있게 한다.
+
+---
+
+**연습문제 2.**
+이 접근법의 셈과 기억 요구는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    요구는 변형마다 다르지만 대체로 (a) 매개변수의 중요도 무게, (b) 학습 보기의 일부, (c) 스승 모델의 출력, (d) 과제마다의 망 모듈 가운데 하나를 담아 두어야 한다. 기억 비용과 잊음 막기의 효과 사이에서 맞바꿈이 일어난다.
+
+---
+
+**연습문제 3.**
+이 방법을 효과와 셈 비용 면에서 EWC와 견주어라.
+
+??? success "연습문제 3 풀이"
+    EWC은 대각 피셔 정보로 중요한 가중치를 짚어낸다. 이 방법은 다른 맞바꿈을 준다. 옛 과제의 성능을 더 잘 지킬 수 있고, 기억 요구가 다르며, 과제 짜임에 대한 가정도 다르다. 실험으로 견주어 보면 잣대에 따라 서로 보완되는 강점을 보일 때가 많다.
+
+---
+
+**연습문제 4.**
+이 방법을 간추린 판으로 파이토치에 구현하라.
+
+??? success "연습문제 4 풀이"
+    구현은 대개 새 과제를 익히는 동안 보통의 교차 엔트로피 손실에 벌주기 항을 더한다. 핵심 부품은 (1) 앞선 과제 학습에서 제약을 셈하기, (2) 필요한 정보(가중치, 본보기, 스승 출력)를 담아 두기, (3) 새 과제 학습 중에 그 제약을 씌우기이다.

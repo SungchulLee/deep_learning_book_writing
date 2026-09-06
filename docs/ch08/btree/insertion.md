@@ -1,23 +1,23 @@
-# B-Tree Insertion and Splitting
+# B-트리의 삽입과 쪼개기
 
-Inserting a key into a [B-tree](definition.md) always adds the key to a **leaf node**.  If the leaf is not full (it has fewer than $2t - 1$ keys), the insertion simply places the key in sorted position.  The interesting case arises when the leaf is already full — the algorithm must **split** the node before (or during) insertion to maintain the B-tree properties.  A well-designed insertion procedure splits full nodes proactively on the way down, guaranteeing that the target leaf always has room for the new key.
+[B-트리](definition.md)에 열쇠를 넣으면 언제나 **잎 노드**에 더해진다. 잎이 꽉 차 있지 않으면(열쇠가 $2t - 1$개보다 적으면) 그냥 정렬된 자리에 열쇠를 놓는다. 재미있는 경우는 잎이 이미 꽉 찼을 때이다. B-트리 성질을 지키려면 알고리즘이 삽입 전에(또는 삽입 중에) 노드를 **쪼개야** 한다. 잘 만든 삽입 절차는 내려가면서 꽉 찬 노드를 미리 쪼개어, 표적 잎에 새 열쇠를 놓을 자리가 언제나 있게 한다.
 
-## Splitting a Full Node
+## 꽉 찬 노드 쪼개기
 
-Splitting is the fundamental structural operation in B-tree insertion.  When a node $y$ is full (contains $2t - 1$ keys), it is divided into two nodes around its **median key** $y.key_t$:
+쪼개기는 B-트리 삽입의 근본적인 구조 연산이다. 노드 $y$이 꽉 차면(열쇠가 $2t - 1$개면) **가운데 열쇠** $y.key_t$을 중심으로 두 노드로 나뉜다.
 
-1. The first $t - 1$ keys remain in $y$ (the left half).
-2. The last $t - 1$ keys move to a new node $z$ (the right half).
-3. The median key $y.key_t$ is **pushed up** into $y$'s parent.
+1. 앞의 $t - 1$개 열쇠가 $y$에 남는다(왼쪽 절반).
+2. 뒤의 $t - 1$개 열쇠가 새 노드 $z$으로 간다(오른쪽 절반).
+3. 가운데 열쇠 $y.key_t$이 $y$의 부모로 **밀려 올라간다**.
 
-After the split, the parent gains one additional key and one additional child pointer.
+쪼갠 뒤 부모는 열쇠 하나와 자식 포인터 하나를 더 얻는다.
 
 $$
 \underbrace{k_1, \ldots, k_{t-1}}_{\text{stay in } y}, \quad \underbrace{k_t}_{\text{pushed up}}, \quad \underbrace{k_{t+1}, \ldots, k_{2t-1}}_{\text{move to } z}
 $$
 
-??? example "Splitting a full node with t = 3"
-    A full node with $2t - 1 = 5$ keys:
+??? example "t = 3에서 꽉 찬 노드 쪼개기"
+    열쇠가 $2t - 1 = 5$개인 꽉 찬 노드이다.
 
     ```
     Parent: [..., P, ...]
@@ -25,7 +25,7 @@ $$
     Full child: [A, B, C, D, E]
     ```
 
-    After splitting on the median C:
+    가운데 값 C를 중심으로 쪼갠 뒤에는 다음과 같다.
 
     ```
     Parent: [..., P, C, ...]
@@ -33,44 +33,44 @@ $$
               [A, B]  [D, E]
     ```
 
-    The median C moves up to the parent, and the full child splits into two nodes with 2 keys each.
+    가운데 값 C가 부모로 올라가고 꽉 찬 자식이 열쇠 2개씩의 노드 둘로 쪼개진다.
 
-## Proactive Splitting (Single-Pass Insertion)
+## 미리 쪼개기 (한 번 훑는 삽입)
 
-The CLRS insertion algorithm uses a **single downward pass** from root to leaf.  As the algorithm descends, it splits any full node it encounters — even if the split is not immediately necessary.  This ensures that when a child needs to receive a pushed-up median key, the parent is guaranteed to have room.
+CLRS의 삽입 알고리즘은 뿌리에서 잎까지 **한 번만 내려간다**. 내려가면서 만나는 꽉 찬 노드를 당장 필요하지 않더라도 쪼갠다. 그러면 자식이 밀려 올라온 가운데 열쇠를 받아야 할 때 부모에 자리가 있음이 보장된다.
 
-The invariant is:
+불변식은 다음과 같다.
 
 $$
 \text{Every node on the path from root to leaf is non-full when first visited}
 $$
 
-**Special case: splitting the root.**  If the root itself is full, a new empty root is created, the old root becomes its only child, and then the old root is split.  This is the only operation that increases the height of a B-tree.
+**특수한 경우: 뿌리 쪼개기.** 뿌리 자체가 꽉 찼으면 빈 뿌리를 새로 만들어 옛 뿌리를 그 유일한 자식으로 삼은 뒤 옛 뿌리를 쪼갠다. B-트리의 높이를 늘리는 연산은 이것뿐이다.
 
-## Insertion Algorithm
+## 삽입 알고리즘
 
-Given a B-tree with minimum degree $t$ and a key $k$ to insert:
+최소 차수가 $t$인 B-트리와 넣을 열쇠 $k$이 주어졌을 때 다음과 같이 한다.
 
-1. If the root is full, create a new root, make the old root its child, and split the old root.
-2. Starting at the (now non-full) root, descend toward the leaf:
-      - At each internal node, find the child $c_i$ that should contain $k$.
-      - If $c_i$ is full, split it before descending.
-3. Insert $k$ into the leaf in sorted position.
+1. 뿌리가 꽉 찼으면 새 뿌리를 만들어 옛 뿌리를 그 자식으로 삼고 옛 뿌리를 쪼갠다.
+2. (이제 꽉 차지 않은) 뿌리에서 시작하여 잎으로 내려간다.
+      - 내부 노드마다 $k$을 품어야 하는 자식 $c_i$을 찾는다.
+      - $c_i$이 꽉 찼으면 내려가기 전에 쪼갠다.
+3. $k$을 잎의 정렬된 자리에 넣는다.
 
-Because every node encountered on the path is non-full by the time we process it, the insertion never needs to backtrack.
+경로에서 만나는 노드마다 처리할 때에는 꽉 차 있지 않으므로 삽입이 되짚어 올라갈 일이 없다.
 
-## Pseudocode
+## 의사코드
 
 ```
 B-TREE-INSERT(T, k):
     r = T.root
-    if r.n == 2t - 1:                  # root is full
-        s = new node                   # s becomes the new root
+    if r.n == 2t - 1:                  # 뿌리가 꽉 찼다
+        s = new node                   # s가 새 뿌리가 된다
         T.root = s
         s.leaf = false
         s.n = 0
         s.c[1] = r
-        B-TREE-SPLIT-CHILD(s, 1)       # split the old root
+        B-TREE-SPLIT-CHILD(s, 1)       # 옛 뿌리를 쪼갠다
         B-TREE-INSERT-NONFULL(s, k)
     else:
         B-TREE-INSERT-NONFULL(r, k)
@@ -78,37 +78,70 @@ B-TREE-INSERT(T, k):
 B-TREE-INSERT-NONFULL(x, k):
     i = x.n
     if x.leaf:
-        # Shift keys right and insert k
+        # 열쇠를 오른쪽으로 밀고 k를 넣는다
         while i >= 1 and k < x.key[i]:
             x.key[i+1] = x.key[i]
             i = i - 1
         x.key[i+1] = k
         x.n = x.n + 1
     else:
-        # Find the child to descend into
+        # 내려갈 자식을 찾는다
         while i >= 1 and k < x.key[i]:
             i = i - 1
         i = i + 1
-        if x.c[i].n == 2t - 1:        # child is full
+        if x.c[i].n == 2t - 1:        # 자식이 꽉 찼다
             B-TREE-SPLIT-CHILD(x, i)
             if k > x.key[i]:
                 i = i + 1
         B-TREE-INSERT-NONFULL(x.c[i], k)
 ```
 
-## Complexity
+## 복잡도
 
-| Operation | Time | Disk accesses |
+| 연산 | 시간 | 디스크 접근 |
 |-----------|------|---------------|
-| Insert | $O(t \log_t n)$ | $O(\log_t n)$ |
-| Split | $O(t)$ | $O(1)$ |
+| 삽입 | $O(t \log_t n)$ | $O(\log_t n)$ |
+| 쪼개기 | $O(t)$ | $O(1)$ |
 
-Each level of the tree requires at most one split ($O(t)$ work to copy keys and update pointers) and the tree has $O(\log_t n)$ levels.  The number of disk writes is at most $O(\log_t n)$ because at most one split occurs per level, and each split writes 3 nodes (the two halves and the parent).
+트리의 층마다 쪼개기가 많아야 한 번 필요하고(열쇠를 베끼고 포인터를 고치는 데 $O(t)$의 일이 든다) 트리의 층은 $O(\log_t n)$개이다. 층마다 쪼개기가 많아야 한 번 일어나고 쪼갤 때마다 노드 3개(두 절반과 부모)를 쓰므로 디스크 쓰기는 많아야 $O(\log_t n)$번이다.
 
-!!! tip "Amortized split cost"
-    Although the worst case involves a split at every level, this cannot happen frequently.  A node can only be split after $t - 1$ insertions fill it.  Over a sequence of $n$ insertions, the total number of splits is at most $n - 1$, giving an amortized cost of $O(1)$ splits per insertion.
+!!! tip "분할 상환으로 본 쪼개기 비용"
+    최악의 경우 층마다 쪼개기가 일어나지만 그런 일이 잦을 수는 없다. 노드는 삽입 $t - 1$번으로 채워진 뒤에야 쪼개진다. 삽입 $n$번에 걸쳐 쪼개기는 많아야 $n - 1$번이므로 삽입당 분할 상환 비용은 쪼개기 $O(1)$번이다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Section 18.2. MIT Press.
 - Bayer, R., & McCreight, E. (1972). Organization and maintenance of large ordered indexes. *Acta Informatica*, 1(3), 173–189.
+
+
+## 연습문제
+
+**연습문제 1.**
+B-트리의 삽입과 쪼개기의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 B-트리의 삽입과 쪼개기를 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+B-트리의 삽입과 쪼개기이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 B-트리의 삽입과 쪼개기를 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

@@ -1,89 +1,84 @@
-# Chapter 22: Variational Autoencoders (VAE)
+# 22장: 변분 자기 부호기(VAE)
+이 장은 변분 자기 부호기를 엄밀히 다루며 깊은 배움과 베이즈 추론을 잇는다. 확률의 바탕과 앎 이론에서 시작해 증거 하한 이끌어 내기, 다시 매개변수화 재주, 부호기-풀개 얼개를 세운다. 이어 주요 변분 자기 부호기 변형, 사후 분포 무너짐에 대한 익히기 전략, 값매김 잣대, 금융 자료 만들어 내기와 살피기에 쓰는 법을 다룬다.
 
+내용을 크게 셋으로 갈무리한다. **딱 맞는 하나 본 찾기**에는 막무가내 방법, 어긋남 함수를 쓴 커누스-모리스-프랫(KMP) 알고리즘, 나쁜 글자와 좋은 뒷가지 어림짐작을 쓴 보이어-무어 알고리즘, 라빈-카프의 구르는 흩는 값 방식, Z 알고리즘이 든다. **여러 본 찾기**는 어긋남 이음과 사전 이음을 갖춘 아호-코라식 자동 기계를 다룬다. **정규 표현 찾기**는 톰프슨 알고리즘으로 비결정 유한 자동 기계 세우기, 그것을 결정 유한 자동 기계로 바꾸는 부분 모임 세우기, 결정 유한 자동 기계 상태 줄이기를 들여온다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 바탕
 
-This chapter provides a rigorous treatment of Variational Autoencoders, bridging deep learning with Bayesian inference. Starting from probabilistic foundations and information theory, it develops the ELBO derivation, reparameterization trick, and encoder-decoder architecture. The chapter then covers major VAE variants, training strategies for posterior collapse, evaluation metrics, and applications to financial data generation and analysis.
+변분 자기 부호기의 바탕이 되는 확률과 앎 이론의 바탕.
 
-We organize the material into three major areas. **Exact single-pattern matching** includes the naive brute-force method, the Knuth-Morris-Pratt (KMP) algorithm with its failure function, the Boyer-Moore algorithm with its bad-character and good-suffix heuristics, the Rabin-Karp rolling-hash approach, and the Z-algorithm. **Multiple-pattern matching** covers the Aho-Corasick automaton together with its failure links and dictionary links. **Regular expression matching** introduces NFA construction via Thompson's algorithm, the subset construction for converting an NFA to a DFA, and DFA state minimization.
+- 변분 자기 부호기 들어가기 -- 확률로 만들어 내는 모델이 왜 필요하며 변분 자기 부호기가 깊은 배움과 베이즈 추론을 어떻게 잇는가
+- 숨은 변수 모델 -- 숨은 변수 꼴로 세운 변분 자기 부호기의 확률 바탕
+- 만들어 내는 모델과 가르는 모델 -- 확률 기계 배움의 근본 틀 둘
+- 앎 이론의 바탕 -- 엔트로피, KL 벌어짐, 눌러 담기의 수학 말
+- 서로 앎 -- 자료와 숨은 나타냄 사이의 앎 흐름
 
-## Foundations
+이 장에서는 따로 말하지 않는 한 글줄의 번호를 0부터 센다.
 
-Probabilistic and information-theoretic foundations underlying Variational Autoencoders.
+## 이론
 
-- Introduction to VAEs -- Why probabilistic generative models are needed and how VAEs bridge deep learning with Bayesian inference
-- Latent Variable Models -- Probabilistic foundation of VAEs with latent variable formulation
-- Generative vs Discriminative Models -- Two fundamental paradigms in probabilistic machine learning
-- Information Theory Foundations -- Entropy, KL divergence, and the mathematical language of compression
-- Mutual Information -- Information flow between data and latent representations
+변분 자기 부호기 목표 함수와 그 조각의 수학적 이끌어 내기.
 
-Throughout this chapter, we use 0-based indexing for strings unless otherwise noted.
-
-## Theory
-
-Mathematical derivations of the VAE objective function and its components.
-
-- ELBO Derivation -- Deriving the Evidence Lower Bound from first principles
-- [KL Divergence Term](theory/kl_term.md) -- Properties and computation of the KL regularization in VAEs
-- Reconstruction Term -- The likelihood component of the VAE objective
-- Reparameterization Trick -- Making stochastic sampling differentiable for backpropagation
+- 증거 하한 이끌어 내기 -- 첫 원리에서 증거 하한 이끌어 내기
+- [KL 벌어짐 항](theory/kl_term.md) -- 변분 자기 부호기에서 KL 벌주기의 성질과 셈하기
+- 다시 세우기 항 -- 변분 자기 부호기 목표의 가능도 조각
+- 다시 매개변수화 재주 -- 뒤먹임 퍼뜨리기를 위해 확률 뽑기를 미분할 수 있게 만들기
 
 ---
 
-## Architecture
+## 구조
 
-Neural network components and implementation of the VAE architecture.
+변분 자기 부호기 얼개의 신경망 조각과 짜기.
 
-- [Encoder Network](architecture/encoder.md) -- Amortized variational inference mapping data to approximate posteriors
-- Decoder Network -- Generative model mapping latent codes to data distributions
-- [Prior Selection](architecture/prior.md) -- Choosing and designing the prior distribution for the latent space
-- Posterior Collapse -- Understanding, diagnosing, and mitigating posterior collapse
-- PyTorch Implementation -- Complete VAE implementation with training pipeline and visualization
-- Autoencoder Basics for VAEs -- Foundational autoencoder tutorials as prerequisites for VAEs
-
----
-
-## Variants
-
-Major VAE variants with different latent representations and architectural innovations.
-
-- Beta-VAE -- Learning disentangled representations with weighted KL divergence
-- Conditional VAE -- Controlled generation through label conditioning
-- VQ-VAE -- Discrete latent representations through vector quantization
-- VQ-VAE-2 -- Multi-scale hierarchical discrete latent representations
-- Hierarchical VAE -- Multi-scale continuous latent representations at multiple levels
-- NVAE -- Deep hierarchical VAE achieving state-of-the-art generation quality
+- [부호기 그물](architecture/encoder.md) -- 자료를 어림 사후 분포에 옮기는 고르게 나눈 변분 추론
+- 풀개 그물 -- 숨은 부호를 자료 분포에 옮기는 만들어 내는 모델
+- [사전 분포 고르기](architecture/prior.md) -- 숨은 공간의 사전 분포를 고르고 설계하기
+- 사후 분포 무너짐 -- 사후 분포 무너짐을 이해하고 진단하고 누그러뜨리기
+- PyTorch 짜기 -- 익히기 물길과 그려 보기를 갖춘 온전한 변분 자기 부호기 짜기
+- 변분 자기 부호기를 위한 자기 부호기 기본 -- 변분 자기 부호기에 앞서 알아야 할 자기 부호기 길잡이
 
 ---
 
-## Training
+## 변형
 
-Practical training strategies and techniques for effective VAE optimization.
+숨은 나타냄과 얼개의 새것이 다른 주요 변분 자기 부호기 변형.
 
-- VAE Optimization -- Practical strategies for training VAEs effectively
-- KL Annealing -- Gradually introducing KL penalty to prevent posterior collapse
-- [Free Bits](training/free_bits.md) -- Guaranteeing minimum information per latent dimension
-- Batch Size Effects -- How batch size influences training dynamics and gradient estimation
-
----
-
-## Evaluation
-
-Metrics and methods for assessing VAE quality across reconstruction, generation, and latent space.
-
-- Reconstruction Quality -- Evaluating how well a trained VAE reconstructs input data
-- Generation Quality -- Assessing quality and diversity of generated samples (FID, IS)
-- Latent Space Quality -- Evaluating structure and properties of learned representations
-- Disentanglement Metrics -- Quantifying correspondence between latent dimensions and factors of variation
+- 베타 변분 자기 부호기 -- 무게 붙은 KL 벌어짐으로 얽힘 풀린 나타냄 배우기
+- 조건부 변분 자기 부호기 -- 이름표 조건으로 다스리는 만들어 내기
+- VQ-VAE -- 벡터 양자화로 얻는 따로 떨어진 숨은 나타냄
+- VQ-VAE-2 -- 여러 잣수의 층층 따로 떨어진 숨은 나타냄
+- 층층 변분 자기 부호기 -- 여러 층에 걸친 여러 잣수의 이어진 숨은 나타냄
+- NVAE -- 가장 앞선 만들어 내기 품질을 이룬 깊은 층층 변분 자기 부호기
 
 ---
 
-## Finance
+## 학습
 
-Applications of VAEs to quantitative finance for data generation, imputation, and risk analysis.
+변분 자기 부호기를 잘 가장 좋게 하는 실전 익히기 전략과 재주.
 
-- Synthetic Data Generation -- Generating realistic synthetic financial data for augmentation and privacy
-- Missing Data Imputation -- Filling in missing values using learned data distributions
-- Scenario Generation -- Generating market scenarios for stress testing and risk management
-- Anomaly Detection and Denoising -- Using reconstruction error and latent space for anomaly detection
+- 변분 자기 부호기 가장 좋게 하기 -- 잘 익히는 실전 전략
+- KL 달구고 식히기 -- 사후 분포 무너짐을 막으려 KL 벌주기를 차츰 들여오기
+- [공짜 비트](training/free_bits.md) -- 숨은 차원마다 최소 앎을 보장하기
+- 묶음 크기의 영향 -- 묶음 크기가 익히기의 움직임과 기울기 어림에 어떤 영향을 주는가
+
+---
+
+## 평가
+
+다시 세우기, 만들어 내기, 숨은 공간에 걸쳐 변분 자기 부호기의 품질을 가늠하는 잣대와 방법.
+
+- 다시 세우기 품질 -- 익힌 변분 자기 부호기가 들임 자료를 얼마나 잘 다시 세우는지 값매김하기
+- 만들어 내기 품질 -- 만든 표본의 품질과 다양함 가늠하기(FID, IS)
+- 숨은 공간 품질 -- 배운 나타냄의 짜임과 성질 값매김하기
+- 얽힘 풀기 잣대 -- 숨은 차원과 흔들림 요인의 맞닿음을 값으로 재기
+
+---
+
+## 금융
+
+자료 만들어 내기, 빠진 값 채우기, 위험 살피기를 위해 계량 금융에 변분 자기 부호기 쓰기.
+
+- 만든 자료 내기 -- 자료 부풀리기와 사생활을 위해 실제 같은 금융 자료 만들기
+- 빠진 자료 채우기 -- 배운 자료 분포로 빠진 값 채우기
+- 시나리오 만들기 -- 어지러움 시험과 위험 관리를 위한 시장 시나리오 만들기
+- 이상 알아내기와 잡음 없애기 -- 다시 세우기 어긋남과 숨은 공간으로 이상 알아내기

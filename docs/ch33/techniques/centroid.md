@@ -1,109 +1,109 @@
-# Centroid Decomposition
+# 무게 중심 쪼개기
 
-Centroid decomposition recursively splits a tree at balanced pivot nodes, producing
-an auxiliary tree of logarithmic depth that turns many hard path problems into
-straightforward divide-and-conquer solutions.
+무게 중심 쪼개기는 나무를 고루 나누는 축 마디에서 되돌이로 갈라
+깊이가 로그인 딸림 나무를 만들며, 어려운 길 문제 여럿을
+곧바른 나눠 다스리기 풀이로 바꾼다.
 
-## Intuition
+## 직관
 
-Consider counting the number of paths in a tree whose length is at most $k$.
-A brute-force approach takes $O(n^2)$, but if we can always split the tree into
-roughly equal halves, we handle each half recursively and merge in linear time —
-giving $O(n \log n)$ overall. The **centroid** of a tree is exactly the node that
-guarantees this balanced split.
+나무에서 길이가 $k$ 이하인 길의 수를 세는 일을 보자.
+힘으로 미는 길은 $O(n^2)$이 들지만, 나무를 늘 거의 같은 두 쪽으로
+가를 수 있다면 각 쪽을 되돌이로 다루고 선형 때에 합칠 수 있어
+모두 $O(n \log n)$이 된다. 나무의 **무게 중심**이 바로 이 고른 가름을
+보장하는 마디다.
 
-## Centroid of a Tree
+## 나무의 무게 중심
 
-**Definition.** A node $c$ in a tree $T$ with $n$ nodes is a **centroid** if every
-subtree formed by removing $c$ contains at most $\lfloor n/2 \rfloor$ nodes.
+**뜻매김.** 마디 $n$개의 나무 $T$에서 마디 $c$를 없앴을 때 생기는 모든 밑나무가
+마디를 $\lfloor n/2 \rfloor$개 이하로 담으면 $c$를 **무게 중심**이라 한다.
 
-**Theorem.** Every tree has at least one centroid, and at most two.
+**정리.** 모든 나무는 무게 중심을 적어도 하나, 많아야 둘 가진다.
 
-??? note "Proof sketch"
-    Start at any node and move toward the largest subtree. At each step the
-    largest-subtree size decreases while the "opposite" side grows. The process
-    terminates at a node where no subtree exceeds $\lfloor n/2 \rfloor$.
-    A second centroid can exist only when $n$ is even and two adjacent nodes
-    each split the tree into components of size exactly $n/2$.
+??? note "증명 개요"
+    아무 마디에서 시작해 가장 큰 밑나무 쪽으로 옮긴다. 걸음마다 가장 큰 밑나무의
+    크기는 줄고 "반대" 쪽은 커진다. 이 과정은 어떤 밑나무도
+    $\lfloor n/2 \rfloor$을 넘지 않는 마디에서 멈춘다.
+    둘째 무게 중심은 $n$이 짝수이고 이웃한 두 마디가 저마다 나무를 크기 정확히
+    $n/2$인 덩이로 가를 때에만 있을 수 있다.
 
-**Finding the centroid** requires two passes:
+**무게 중심 찾기**는 두 번 지나가야 한다:
 
-1. Root the tree at an arbitrary node and compute subtree sizes via DFS.
-2. For each node $v$, the largest component after removing $v$ is
+1. 아무 마디를 뿌리로 삼고 깊이 먼저 훑기로 밑나무 크기를 셈한다.
+2. 마디 $v$마다 $v$를 없앤 뒤 가장 큰 덩이는
 
 $$
 \max\!\bigl(\,n - \text{size}(v),\;\max_{u \in \text{children}(v)} \text{size}(u)\bigr)
 $$
 
-3. Return the node that minimizes this value (it will be $\le \lfloor n/2 \rfloor$).
+3. 이 값을 가장 작게 하는 마디를 돌려준다(그 값은 $\le \lfloor n/2 \rfloor$이다).
 
-## The Decomposition Algorithm
+## 쪼개기 알고리즘
 
-Centroid decomposition builds an auxiliary **centroid tree** $T^*$:
+무게 중심 쪼개기는 딸림 **무게 중심 나무** $T^*$을 짓는다:
 
-1. Find the centroid $c$ of the current tree.
-2. Mark $c$ as visited (logically remove it).
-3. For each subtree $T_i$ remaining after removing $c$, recurse to find its
-   centroid $c_i$.
-4. Make every $c_i$ a child of $c$ in $T^*$.
+1. 지금 나무의 무게 중심 $c$를 찾는다.
+2. $c$를 들렀다고 표시한다(논리로 없앤다).
+3. $c$를 없앤 뒤 남은 밑나무 $T_i$마다 되돌이로 그 무게 중심
+   $c_i$를 찾는다.
+4. $T^*$에서 모든 $c_i$를 $c$의 아이로 삼는다.
 
-The result is a rooted tree $T^*$ on the same $n$ nodes. Crucially, $T^*$ may have
-a completely different shape from $T$.
+그 결과는 같은 마디 $n$개 위의 뿌리 있는 나무 $T^*$이다. 중요한 것은 $T^*$이 $T$와
+아주 다른 꼴일 수 있다는 점이다.
 
-### Depth Bound
+### 깊이 가둠
 
-**Lemma.** The centroid tree $T^*$ has depth at most $\lfloor \log_2 n \rfloor$.
+**보조 정리.** 무게 중심 나무 $T^*$의 깊이는 많아야 $\lfloor \log_2 n \rfloor$이다.
 
-??? note "Proof"
-    Each time we remove a centroid from a component of size $m$, every remaining
-    subtree has size at most $\lfloor m/2 \rfloor$. After $d$ levels of recursion
-    the component sizes are at most $n / 2^d$, which reaches $1$ when
-    $d = \lfloor \log_2 n \rfloor$.
+??? note "증명"
+    크기 $m$인 덩이에서 무게 중심을 없앨 때마다 남는 밑나무는 모두 크기가
+    많아야 $\lfloor m/2 \rfloor$이다. 되돌이 $d$켜 뒤에는 덩이 크기가 많아야
+    $n / 2^d$이며, 이는 $d = \lfloor \log_2 n \rfloor$일 때 $1$에
+    이른다.
 
-### Time Complexity
+### 시간 복잡도
 
-At each level of the centroid tree the total work across all components is $O(n)$
-(every node is processed exactly once per level). With $O(\log n)$ levels, the
-overall construction time is $O(n \log n)$.
+무게 중심 나무의 켜마다 모든 덩이에 걸친 일감은 모두 $O(n)$이다
+(켜마다 마디가 꼭 한 번씩 다뤄진다). 켜가 $O(\log n)$개이므로
+짓는 데 드는 때는 모두 $O(n \log n)$이다.
 
-## Worked Example
+## 풀이 예제
 
-Consider a path graph $1 - 2 - 3 - 4 - 5 - 6 - 7$ with $n = 7$.
+$n = 7$인 길 그래프 $1 - 2 - 3 - 4 - 5 - 6 - 7$을 보자.
 
-| Step | Component | Centroid | Remaining subtrees |
+| 걸음 | 덩이 | 무게 중심 | 남은 밑나무 |
 |------|-----------|----------|--------------------|
 | 1 | $\{1,\dots,7\}$ | $4$ | $\{1,2,3\}$, $\{5,6,7\}$ |
 | 2 | $\{1,2,3\}$ | $2$ | $\{1\}$, $\{3\}$ |
 | 3 | $\{5,6,7\}$ | $6$ | $\{5\}$, $\{7\}$ |
 
-The centroid tree $T^*$ is rooted at $4$ with children $2$ and $6$;
-node $2$ has children $1, 3$; node $6$ has children $5, 7$. The depth is $2 = \lfloor \log_2 7 \rfloor$.
+무게 중심 나무 $T^*$은 $4$를 뿌리로 하고 아이가 $2$와 $6$이다.
+마디 $2$의 아이는 $1, 3$이고 마디 $6$의 아이는 $5, 7$이다. 깊이는 $2 = \lfloor \log_2 7 \rfloor$이다.
 
-## Applications
+## 응용
 
-- **Distance queries**: For every node, store its distance to each ancestor in $T^*$.
-  A path query between $u$ and $v$ can be answered by examining only their
-  $O(\log n)$ ancestors — giving $O(n \log n)$ preprocessing and $O(\log n)$ per query.
-- **Path counting**: Count paths satisfying a predicate (e.g., length $\le k$) in
-  $O(n \log n)$ by processing each centroid's component.
-- **Update queries**: Support point updates on nodes and answer path-aggregate
-  queries in $O(\log^2 n)$ by maintaining data structures at each centroid ancestor.
+- **거리 물음**: 마디마다 $T^*$의 조상까지의 거리를 갈무리한다.
+  $u$와 $v$ 사이의 길 물음은 그들의 조상 $O(\log n)$개만 살펴 답할 수 있어
+  미리 다듬기 $O(n \log n)$, 물음마다 $O(\log n)$이 된다.
+- **길 세기**: 어떤 조건(보기로 길이 $\le k$)을 만족하는 길을 무게 중심 덩이마다
+  다루어 $O(n \log n)$에 센다.
+- **고침 물음**: 무게 중심 조상마다 자료 얼개를 지녀 마디의 점 고침을 받치고
+  길 모음 물음에 $O(\log^2 n)$에 답한다.
 
-## Implementation
+## 구현
 
 ```python
-"""Centroid decomposition of an unrooted tree."""
+"""뿌리 없는 나무의 무게 중심 쪼개기."""
 
 import sys
 from collections import defaultdict
 
-# === Constants ===
+# === 상수 ===
 sys.setrecursionlimit(300_000)
 
 
-# === Subtree size computation ===
+# === 밑나무 크기 셈 ===
 def compute_sizes(adj, root, removed):
-    """Compute subtree sizes via iterative DFS."""
+    """되풀이 깊이 먼저 훑기로 밑나무 크기를 셈한다."""
     size = defaultdict(lambda: 1)
     parent = {root: -1}
     order = []
@@ -121,9 +121,9 @@ def compute_sizes(adj, root, removed):
     return size, len(order)
 
 
-# === Find centroid ===
+# === 무게 중심 찾기 ===
 def find_centroid(adj, root, removed):
-    """Return the centroid of the component containing *root*."""
+    """*root*가 든 덩이의 무게 중심을 돌려준다."""
     size, n = compute_sizes(adj, root, removed)
     best, best_val = root, n
     stack = [root]
@@ -141,9 +141,9 @@ def find_centroid(adj, root, removed):
     return best
 
 
-# === Build centroid tree ===
+# === 무게 중심 나무 짓기 ===
 def centroid_decomposition(adj, n):
-    """Build and return the centroid tree as a parent array."""
+    """무게 중심 나무를 어버이 배열로 지어 돌려준다."""
     removed = [False] * n
     ct_parent = [-1] * n
 
@@ -159,9 +159,9 @@ def centroid_decomposition(adj, n):
     return ct_parent
 
 
-# === Demo ===
+# === 시연 ===
 if __name__ == "__main__":
-    # Path graph: 0-1-2-3-4-5-6
+    # 길 그래프: 0-1-2-3-4-5-6
     n = 7
     adj = defaultdict(list)
     for i in range(n - 1):
@@ -170,21 +170,61 @@ if __name__ == "__main__":
 
     ct_parent = centroid_decomposition(adj, n)
     print("Centroid tree (parent array):", ct_parent)
-    # Expected root (centroid) has parent -1
+    # 바라는 뿌리(무게 중심)의 어버이는 -1
     root = ct_parent.index(-1)
     print(f"Root of centroid tree: {root}")
     print(f"Depth bound: {n.bit_length() - 1}")
 ```
 
-## Complexity Summary
+## 복잡도 요약
 
-| Operation | Time | Space |
+| 연산 | 시간 | 공간 |
 |-----------|------|-------|
-| Build centroid tree | $O(n \log n)$ | $O(n)$ |
-| Depth of centroid tree | $O(\log n)$ | — |
-| Distance query (with preprocessing) | $O(\log n)$ per query | $O(n \log n)$ |
+| 무게 중심 나무 짓기 | $O(n \log n)$ | $O(n)$ |
+| 무게 중심 나무의 깊이 | $O(\log n)$ | — |
+| 거리 물음(미리 다듬기 포함) | 물음마다 $O(\log n)$ | $O(n \log n)$ |
 
-## Reference
+## 참고 문헌
 
-- [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf)
+음이 아닌 정수 $x$가 주어질 때 비트 셈만 써서 $x$의 가장 낮은 켜진 비트만 남기는 식을 적어라(곧 그 비트만 켜진 값을 만들어라). $x = 0$일 때 그 식은 무엇을 돌려주는가?
 - Bentley, J. L. (1980). *Multidimensional Divide-and-Conquer*
+
+## 연습문제
+
+**연습문제 1.**
+마디 $n$개의 나무가 주어질 때 무게 중심을 $O(n)$ 때에 찾는 길을 밝혀라. 무게 중심을 없애면 나무가 저마다 크기 $\lfloor n/2 \rfloor$ 이하인 덩이로 갈라짐을 증명하여라.
+
+??? success "연습문제 1 풀이"
+    아무 마디를 뿌리로 삼고 깊이 먼저 훑기로 밑나무 크기를 셈한다. 무게 중심은 $c$의 모든 밑나무("위쪽" 덩이를 넣어)가 크기 $\lfloor n/2 \rfloor$ 이하인 마디 $c$이다. 찾는 길은 뿌리에서 시작해 밑나무 크기가 $> n/2$인 아이로 거듭 옮기는 것이다. 그런 아이는 많아야 하나이므로 $O(n)$에 멈춘다. 증명: $c$를 무게 중심이라 하자. 아이 밑나무마다 지음에 따라 $\text{sz}(v) \le \lfloor n/2 \rfloor$이다(아니라면 $v$로 옮겼을 것이다). "위쪽" 덩이의 크기는 $n - \text{sz}(c) \le n - 1 - \sum (\text{sz}(v) \text{ for children } v) \le \lfloor n/2 \rfloor$인데, $\text{sz}(c) \ge \lceil n/2 \rceil$이기 때문이다(더 작았다면 $c$의 어버이가 뽑혔을 것이다). $\square$
+
+---
+
+**연습문제 2.**
+무게 중심 쪼개기로 나무에서 변 무게 합이 정확히 $k$인 길의 수를 $O(n \log^2 n)$ 때에 세어라. 무게 중심마다의 나눠 다스리기 길을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    지금 나무의 무게 중심 $c$를 찾는다. 마디 $v$마다 $c$에서 $v$까지의 거리 $d(v)$를 셈한다. $c$를 지나는 길은 $c$의 밑나무마다 하나씩 있는 밑길 둘로 이뤄진다. 모든 거리를 줄 세운 배열에 모은다. 한 밑나무의 거리 $d$마다 다른 밑나무를 합친 목록에서 $k - d$를 두 갈래로 찾는다. 같은 밑나무 안의 길을 세지 않으려면 넣고 빼기를 쓴다. 모든 거리에서 합이 $k$인 짝을 세고, 밑나무마다 합이 $k$인 짝을 뺀다. 켜마다 세기는 $O(n \log n)$(줄 세우기와 두 갈래 찾기)이다. 무게 중심 쪼개기는 켜가 $O(\log n)$개이므로 모두 $O(n \log^2 n)$이다. 줄 세우기 대신 흩임 대응표를 쓰면 어림 $O(n \log n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 3.**
+무게 중심 쪼개기 나무의 깊이가 $O(\log n)$임을 증명하여라. 무게 중심 대신 아무 마디로 쪼개면 어떻게 되는가?
+
+??? success "연습문제 3 풀이"
+    켜마다 무게 중심 $c$를 없앤다. 남는 덩이는 모두 크기가 많아야 $\lfloor n/2 \rfloor$이다. 따라서 쪼개기 나무를 한 걸음 내려갈 때마다 덩이 크기가 적어도 반이 된다. $n$에서 시작해 $d$걸음 뒤 덩이 크기는 많아야 $n / 2^d$이다. 이는 $d = \lceil \log_2 n \rceil$일 때 1에 이르므로 깊이는 $O(\log n)$이다. 무게 중심 대신 아무 마디(보기로 잎)로 쪼개면 남는 덩이가 크기 $n - 1$일 수 있어 되돌이 깊이가 가장 나쁠 때 $O(n)$이 된다(길 그래프에서). 그러면 켜마다 $O(n \log n)$이던 처리가 모두 $O(n^2)$으로 나빠져 무게 중심 쪼개기의 큰 이점을 잃는다. $\square$
+
+---
+
+**연습문제 4.**
+나무에 마디가 $n$개 있고 마디마다 빛깔(빨강이나 파랑)이 있다. 무게 중심 쪼개기로 빛깔이 다른 가장 가까운 마디 짝을(변 수 기준) 찾는 $O(n \log n)$ 알고리즘을 설계하여라.
+
+??? success "연습문제 4 풀이"
+    무게 중심 쪼개기를 한다. 무게 중심 $c$마다 $c$에서 너비 먼저나 깊이 먼저 훑기를 돌려 지금 덩이의 모든 마디까지의 거리를 셈한다. 가장 가까운 빨강 마디까지의 거리와 가장 가까운 파랑 마디까지의 거리를 따로 지킨다. $c$를 지나는 가장 좋은 다른 빛깔 길의 길이는 두 마디가 다른 밑나무에 있을 때(또는 하나가 $c$일 때) $\min(\text{가장 가까운 빨강까지 거리}) + \min(\text{가장 가까운 파랑까지 거리})$이다. 같은 밑나무인 경우를 다루려면 밑나무를 하나씩 처리하면서 앞서 다룬 밑나무에서 본 최소 거리를 온 자리 기록으로 이어 간다. 무게 중심마다 온 자리 답을 고치고 밑덩이로 되돌이한다. 마디마다 쪼개기 켜마다 한 번씩 다뤄지므로 일감은 모두 $O(n \log n)$이다. $\square$
+
+---
+
+**연습 5.**
+길 문제에서 무게 중심 쪼개기를 왜 이따금 "묶음 처리"라 하는지 밝히고, 대신 "즉시 처리" 길(무거움-가벼움 쪼개기 같은)이 필요한 문제를 밝혀라.
+
+??? success "연습 5의 풀이"
+    무게 중심 쪼개기가 "묶음 처리"인 까닭은 나무 얼개 전체를 미리 다듬고 쪼개기 켜에 걸친 앎을 모아 물음에 답하기 때문이다. 나눠 다스리기가 길을 무게 중심을 지나는 것과 밑나무 안에 든 것으로 자연스레 가르므로 모든 길(또는 어떤 성질을 지닌 길)을 세거나 모으는 데 뛰어나다. 그러나 움직이는 고침을 자연스레 받치지 못한다. 변 무게나 마디 값이 바뀌면 미리 셈한 거리를 다시 셈해야 한다. 마디 값 고침과 길 물음이 섞이는 문제(보기로 "마디 $v$의 값을 고친 뒤 $u$에서 $w$까지 길의 최댓값을 물어라")는 사슬마다 토막 나무를 얹은 무거움-가벼움 쪼개기가 필요하며, 이는 물음과 고침을 모두 하나마다 $O(\log^2 n)$에 받친다. $\square$

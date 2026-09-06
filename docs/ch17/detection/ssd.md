@@ -1,45 +1,40 @@
-# SSD: Single Shot MultiBox Detector
+# SSD: 한 방 여러 상자 알아내개
+## 학습 목표
 
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+- SSD 얼개와 여러 잣수 알아내기 전략을 설명한다
+- 붙박이 상자(닻 앞선 것)와 SSD에서의 몫을 이해한다
+- 특징 지도 여럿을 쓰는 SSD 알아내기 머리를 짠다
+- 어려운 음성 캐기 전략과 그 중요함을 설명한다
+- SSD와 YOLO를 견주고 그 맞바꿈을 이해한다
 
-## Learning Objectives
+## 개요
 
-By the end of this section, you will be able to:
+SSD(한 방 여러 상자 알아내개)는 다음으로 YOLO의 빠르기와 자리 바탕 방법의 정확도 사이 균형을 잡는다:
 
-- Explain the SSD architecture and its multi-scale detection strategy
-- Understand default boxes (anchor priors) and their role in SSD
-- Implement the SSD detection head with multiple feature maps
-- Describe the hard negative mining strategy and its importance
-- Compare SSD with YOLO and understand their tradeoffs
+1. 제안 만들기 단계를 없앤다(한 방).
+2. 알아내기에 **여러 잣수 특징 지도**를 쓴다.
+3. 자리마다 **붙박이 상자**(닻 앞선 것)를 둔다.
 
-## Overview
+## 여러 잣수 특징 지도
 
-SSD (Single Shot MultiBox Detector) achieves a balance between the speed of YOLO and the accuracy of region-based methods by:
+SSD의 핵심 새로움은 점점 작아지는 특징 지도를 써서 여러 잣수에서 물체를 알아내는 것이다:
 
-1. Eliminating the proposal generation step (single-shot)
-2. Using **multi-scale feature maps** for detection
-3. Applying **default boxes** (anchor priors) at each location
-
-## Multi-Scale Feature Maps
-
-SSD's key innovation is detecting objects at multiple scales using progressively smaller feature maps:
-
-| Feature Map | Size | Receptive Field | Typical Objects |
+| 특징 지도 | 크기 | 받는 자리 | 흔한 물체 |
 |-------------|------|-----------------|-----------------|
-| Conv4_3 | 38×38 | Small | Small objects |
-| Conv7 | 19×19 | Medium | Medium objects |
-| Conv8_2 | 10×10 | Large | Large objects |
-| Conv9_2 | 5×5 | Very Large | Very large objects |
-| Conv10_2 | 3×3 | Huge | Largest objects |
-| Conv11_2 | 1×1 | Global | Scene-level |
+| Conv4_3 | 38×38 | 작음 | 작은 물체 |
+| Conv7 | 19×19 | 가운데 | 가운데 크기 물체 |
+| Conv8_2 | 10×10 | 큼 | 큰 물체 |
+| Conv9_2 | 5×5 | 아주 큼 | 아주 큰 물체 |
+| Conv10_2 | 3×3 | 엄청 큼 | 가장 큰 물체 |
+| Conv11_2 | 1×1 | 전체 | 장면 수준 |
 
-**Why Multi-Scale?**
+**왜 여러 잣수인가?**
 
-- **Small feature maps** have large receptive fields → detect large objects
-- **Large feature maps** preserve spatial detail → detect small objects
-- Different scales share the same backbone → efficient computation
+- **작은 특징 지도**는 받는 자리가 넓다 → 큰 물체를 알아낸다
+- **큰 특징 지도**는 자리의 세밀함을 지킨다 → 작은 물체를 알아낸다
+- 잣수가 달라도 같은 등뼈를 나눠 쓴다 → 셈이 효율적이다
 
 ```python
 import torch
@@ -50,7 +45,7 @@ from typing import List, Tuple
 
 class SSDExtraLayers(nn.Module):
     """
-    Extra convolutional layers after VGG base for multi-scale detection.
+    여러 잣수 알아내기를 위해 VGG 바탕 뒤에 붙인 덧누비기 층.
     """
     def __init__(self, in_channels: int = 1024):
         super().__init__()
@@ -93,15 +88,15 @@ class SSDExtraLayers(nn.Module):
         return features
 ```
 
-## Default Boxes (Anchor Priors)
+## 붙박이 상자(닻 앞선 것)
 
-At each location in each feature map, SSD places a set of **default boxes** with different aspect ratios and scales.
+특징 지도의 자리마다 SSD는 가로세로비와 잣수가 다른 **붙박이 상자** 한 벌을 놓는다.
 
-### Default Box Configuration
+### 붙박이 상자 자리매김
 
-For each feature map of size $f_k$:
+크기가 $f_k$인 특징 지도마다:
 
-**Scale**:
+**잣수**:
 
 $$s_k = s_{min} + \frac{s_{max} - s_{min}}{m - 1}(k - 1), \quad k \in [1, m]$$
 
@@ -111,7 +106,7 @@ where $s_{min} = 0.2$ and $s_{max} = 0.9$.
 
 ```python
 class DefaultBoxGenerator:
-    """Generate SSD default boxes."""
+    """SSD 붙박이 상자를 만든다."""
     def __init__(
         self,
         image_size: int = 300,
@@ -133,7 +128,7 @@ class DefaultBoxGenerator:
         else:
             self.aspect_ratios = aspect_ratios
         
-        # Calculate scales
+        # 잣수 셈하기
         m = len(feature_maps)
         self.scales = [0.2 + (0.9 - 0.2) * k / (m - 1) for k in range(m)]
         self.scales.append(1.0)
@@ -162,11 +157,11 @@ class DefaultBoxGenerator:
         return torch.tensor(default_boxes, device=device).clamp(0, 1)
 ```
 
-## Detection Head
+## 알아내기 머리
 
 ```python
 class SSDHead(nn.Module):
-    """SSD detection head for a single feature map."""
+    """특징 지도 하나를 위한 SSD 알아내기 머리."""
     def __init__(self, in_channels: int, num_boxes: int, num_classes: int):
         super().__init__()
         
@@ -184,15 +179,15 @@ class SSDHead(nn.Module):
         return loc, conf
 ```
 
-## SSD Loss Function
+## SSD 손실 함수
 
-SSD uses a multi-task loss with hard negative mining:
+SSD는 어려운 음성 캐기를 곁들인 여러 일 손실을 쓴다:
 
 $$L = \frac{1}{N}(L_{conf} + \alpha L_{loc})$$
 
-### Hard Negative Mining
+### 어려운 음의 보기 캐기
 
-The ratio of negatives to positives is kept at 3:1 by selecting the hardest negatives (highest loss).
+가장 어려운 음성(손실이 가장 큰 것)을 골라 음성과 양성의 비를 3:1로 지킨다.
 
 ```python
 class SSDLoss(nn.Module):
@@ -205,21 +200,21 @@ class SSDLoss(nn.Module):
         pos_mask = conf_target > 0
         num_pos = pos_mask.sum(dim=1)
         
-        # Localization loss
+        # 자리 잡기 손실
         loc_loss = F.smooth_l1_loss(
             loc_pred[pos_mask],
             loc_target[pos_mask],
             reduction='sum'
         )
         
-        # Confidence loss with hard negative mining
+        # 어려운 음성 캐기를 곁들인 믿음도 손실
         conf_loss_all = F.cross_entropy(
             conf_pred.view(-1, self.num_classes),
             conf_target.view(-1),
             reduction='none'
         ).view(conf_pred.size(0), -1)
         
-        # Hard negative mining
+        # 어려운 음성 캐기
         conf_loss_neg = conf_loss_all.clone()
         conf_loss_neg[pos_mask] = 0
         
@@ -235,7 +230,7 @@ class SSDLoss(nn.Module):
         return loc_loss / N, conf_loss / N
 ```
 
-## Using Pre-trained SSD
+## 미리 익힌 SSD 쓰기
 
 ```python
 import torchvision
@@ -252,27 +247,80 @@ scores = predictions[0]['scores']
 labels = predictions[0]['labels']
 ```
 
-## SSD vs YOLO Comparison
+## SSD와 YOLO 견줌
 
-| Aspect | SSD | YOLO |
+| 갈래 | SSD | YOLO |
 |--------|-----|------|
-| **Multi-scale** | Yes (6 scales) | v3+: Yes |
-| **Speed** | ~46 FPS | ~45 FPS |
-| **Small objects** | Better | Challenging |
-| **Architecture** | VGG-16 | Darknet |
+| **여러 잣수** | 그렇다(6가지 잣수) | v3 이후: 그렇다 |
+| **빠르기** | 초당 약 46틀 | 초당 약 45틀 |
+| **작은 물체** | 더 낫다 | 어렵다 |
+| **얼개** | VGG-16 | Darknet |
 
-## Summary
+## 요약
 
-SSD introduced key innovations for single-shot detection:
+SSD는 한 방 알아내기에 핵심적인 새로움을 들여왔다:
 
-1. **Multi-scale feature maps**: Detect objects at different scales efficiently
-2. **Default boxes**: Pre-defined anchor priors at each location
-3. **Hard negative mining**: Handle class imbalance
-4. **End-to-end training**: Single network for all predictions
+1. **여러 잣수 특징 지도**: 잣수가 다른 물체를 효율적으로 알아낸다
+2. **붙박이 상자**: 자리마다 미리 정해 둔 닻
+3. **어려운 음성 캐기**: 갈래 치우침을 다룬다
+4. **끝에서 끝까지 익히기**: 그물 하나로 모든 어림을 낸다
 
-SSD achieves a good balance between speed and accuracy, making it suitable for real-time applications.
+SSD는 빠르기와 정확도 사이 균형을 잘 잡아 실시간 쓰임새에 알맞다.
 
-## References
+## 참고 문헌
 
 1. Liu, W., et al. (2016). SSD: Single Shot MultiBox Detector. *ECCV*.
 2. Fu, C.Y., et al. (2017). DSSD: Deconvolutional Single Shot Detector. *arXiv*.
+
+## 연습문제
+
+**연습문제 1.**
+한 단계 알아내개와 두 단계 알아내개의 차이를 설명하여라. 빠르기와 정확도 사이의 근본 맞바꿈은 무엇인가?
+
+??? success "연습문제 1 풀이"
+    **두 단계 알아내개**(보기로 더 빠른 R-CNN)는 먼저 자리 제안을 만들고 제안마다 갈래를 매기고 다듬는다. 정확하지만 제안마다 다루기 때문에 느리다. **한 단계 알아내개**(보기로 YOLO, SSD)는 특징 지도에서 두름 상자와 갈래 확률을 한 번에 곧바로 어림하여 정확도를 조금 내주고 훨씬 빠른 미룸을 얻는다. 맞바꿈은 이렇다. 두 단계 알아내개는 작고 겹치는 물체를 잘 알아내지만 초당 5~15틀로 돌고, 한 단계 알아내개는 mAP가 조금 낮은 대신 초당 30~155틀 넘게 낸다.
+
+---
+
+**연습문제 2.**
+겹침 비(교집합 나누기 합집합) 식을 이끌어 내고 두름 상자를 값매김할 때 왜 단순한 L2 거리보다 낫게 여기는지 설명하여라.
+
+??? success "연습문제 2 풀이"
+    두 두름 상자 $A$과 $B$에 대해:
+
+    $$\text{IoU}(A, B) = \frac{|A \cap B|}{|A \cup B|} = \frac{|A \cap B|}{|A| + |B| - |A \cap B|}$$
+
+    겹침 비를 낫게 여기는 까닭은 이렇다. (1) 잣수에 안 바뀐다(화소 10개의 어긋남은 큰 물체보다 작은 물체에 더 크게 다가온다). (2) 자연스레 $[0, 1]$에 놓여 좋음 점수로 읽을 수 있다. (3) 상자 자리표 사이의 L2 거리는 겹침을 담아내지 못해 두 상자의 L2 거리가 작아도 겹침이 0일 수 있다(보기로 하나가 다른 하나 안에 있는 경우와 나란히 놓인 경우).
+
+---
+
+**연습문제 3.**
+최대가 아닌 것 누르기(NMS)를 짜고 알아내기 물길에서 그것이 하는 몫을 설명하여라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    import numpy as np
+
+    def nms(boxes, scores, iou_threshold=0.5):
+        order = scores.argsort()[::-1]
+        keep = []
+        while order.size > 0:
+            i = order[0]
+            keep.append(i)
+            if order.size == 1:
+                break
+            remaining = order[1:]
+            ious = compute_iou(boxes[i], boxes[remaining])
+            mask = ious <= iou_threshold
+            order = remaining[mask]
+        return keep
+    ```
+    NMS는 같은 물체를 거듭 알아낸 것을 없앤다. 후보 상자에 점수를 매긴 뒤 점수가 가장 높은 상자를 고르고 겹침 비가 문턱값을 넘는 상자(겹친 것일 가능성이 높다)를 모두 없애기를 되풀이한다.
+
+---
+
+**연습문제 4.**
+물체 알아내기의 갈래 치우침 문제와 초점 손실이 그것을 어떻게 다루는지 설명하여라.
+
+??? success "연습문제 4 풀이"
+    In one-stage detectors, most anchor boxes correspond to background (easy negatives), while only a few contain objects. Standard cross-entropy loss is dominated by the large number of easy negatives, drowning out the gradient signal from hard positives. **Focal Loss** adds a modulating factor: $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$. When $\gamma > 0$, easy examples (high $p_t$) are down-weighted exponentially, focusing training on hard examples. With $\gamma = 2$ and $\alpha = 0.25$, RetinaNet achieves accuracy comparable to two-stage detectors while maintaining one-stage speed.

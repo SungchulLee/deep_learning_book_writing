@@ -1,84 +1,80 @@
-# Chapter Overview
+# 장 개요
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-This chapter covers the complete landscape of sequence modeling, from representing words as dense vectors through recurrent architectures to the attention mechanisms that eventually led to the Transformer revolution. Each section builds on the previous, progressing from foundational representations to increasingly sophisticated sequence-to-sequence architectures.
+이 장은 낱말을 조밀한 벡터로 나타내는 일에서 시작하여 순환 구조를 거쳐 마침내 트랜스포머 혁명으로 이어진 어텐션 장치까지, 순차열 모형의 전체 지형을 다룬다. 각 절이 앞 절 위에 쌓이며 바탕이 되는 표현에서 점점 정교한 순차열 대 순차열 구조로 나아간다.
 
 ---
 
-## 7.1 Word Embeddings
+## 7.1 낱말 임베딩
 
-Dense vector representations that encode words in continuous space, capturing semantic relationships through geometric properties.
+낱말을 연속 공간에 담는 조밀한 벡터 표현으로, 기하적인 성질로 의미의 관계를 붙잡는다.
 
-- Word Embeddings Overview -- Comprehensive overview of embedding techniques from one-hot encoding to contextualized representations
-- Word Embeddings Tutorial -- Hands-on PyTorch tutorial package for learning word embedding techniques
-- Quick Start Guide -- Get started with word embeddings in 5 minutes
-- One-Hot Encoding -- Why sparse symbolic representations fail and how the distributional hypothesis motivates dense embeddings
-- Word2Vec -- The prediction-based framework that revolutionized NLP with Skip-gram and CBOW architectures
-- Skip-gram Model -- Predicting context words from a center word, with derivation and PyTorch implementation
-- CBOW Model -- Predicting the center word from surrounding context for fast large-scale training
-- Negative Sampling -- Efficient training by converting multi-class softmax into binary classification problems
-- GloVe -- Global Vectors combining matrix factorization with local context window methods
-- FastText -- Subword-aware embeddings using character n-grams for handling out-of-vocabulary words
-- Subword Embeddings -- Decomposing words into character n-grams for better generalization on rare and unseen words
-- Contextual Embeddings -- Dynamic representations from ELMo, BERT, and GPT that adapt to surrounding context
-- Embedding Visualization -- Visualizing high-dimensional embeddings with PCA, t-SNE, and UMAP
+- 낱말 임베딩 개요 — 원-핫 부호화에서 문맥 반영 표현까지 임베딩 기법의 종합 개관
+- 낱말 임베딩 실습 — 낱말 임베딩 기법을 익히는 PyTorch 실습 꾸러미
+- 빠른 시작 안내 — 5분 만에 낱말 임베딩 시작하기
+- 원-핫 부호화 — 성긴 기호 표현이 왜 통하지 않는지, 그리고 분포 가설이 어떻게 조밀한 임베딩을 이끌어 냈는지
+- Word2Vec — Skip-gram과 CBOW 구조로 자연어 처리를 뒤바꾼 예측 기반 틀
+- Skip-gram 모델 — 가운데 낱말에서 문맥 낱말을 예측하기, 유도와 PyTorch 구현
+- CBOW 모델 — 둘레 문맥에서 가운데 낱말을 예측하여 대규모로 빠르게 학습하기
+- 음성 표본 추출 — 다중 부류 소프트맥스를 이진 분류 문제로 바꾸어 효율적으로 학습하기
+- GloVe — 행렬 분해와 지역 문맥 창 방법을 결합한 전역 벡터
+- FastText — 글자 n-그램을 써서 어휘 밖 낱말을 다루는 하위 낱말 임베딩
+- 하위 낱말 임베딩 — 낱말을 글자 n-그램으로 쪼개어 드물거나 처음 보는 낱말에 더 잘 일반화하기
+- 문맥 임베딩 — 둘레 문맥에 맞추어 달라지는 ELMo, BERT, GPT의 동적 표현
+- 임베딩 시각화 — PCA, t-SNE, UMAP으로 고차원 임베딩 그려 보기
 
-## 7.2 Recurrent Neural Networks
+## 7.2 순환 신경망
 
-Sequential architectures that maintain hidden state across timesteps to model temporal dependencies.
+시각마다 숨은 상태를 이어 가며 시간적 의존을 다루는 순차 구조.
 
-- [RNN Fundamentals](rnn/rnn_fundamentals.md) -- From sequential data characteristics to the autoregressive factorization that motivates recurrence
-- RNN Tutorial Package -- Comprehensive PyTorch RNN tutorial from basics to advanced sequence modeling
-- [Vanilla RNN](rnn/vanilla_rnn.md) -- The Elman RNN architecture with tanh nonlinearity and from-scratch implementation
-- Hidden State Dynamics -- How the hidden state serves as memory and evolves across timesteps
-- [Backpropagation Through Time](rnn/bptt.md) -- Computing gradients through unrolled computational graphs
-- [Vanishing Gradients](rnn/vanishing_gradients.md) -- Why repeated multiplication causes gradients to shrink exponentially in long sequences
-- Exploding Gradients -- Catastrophic training failures from exponentially growing gradients
-- Gradient Clipping -- Limiting gradient magnitudes to prevent exploding gradients during RNN training
-- Bidirectional RNN -- Processing sequences in both directions for tasks requiring full context
-- Deep RNN -- Stacking multiple RNN layers for hierarchical representation learning
-- [Language Models](rnn/language_models.md) -- Using RNNs to assign probabilities to sequences via the chain rule decomposition
+- [RNN의 기초](rnn/rnn_fundamentals.md) — 순차 데이터의 성질에서 순환을 이끌어 내는 자기회귀 인수분해까지
+- RNN 실습 꾸러미 — 기초부터 고급 순차열 모형까지 다루는 종합 PyTorch RNN 실습
+- [기본 RNN](rnn/vanilla_rnn.md) — tanh 비선형을 쓰는 엘만 RNN 구조와 밑바닥부터의 구현
+- 숨은 상태의 동역학 — 숨은 상태가 어떻게 기억 노릇을 하며 시각마다 달라지는지
+- [시간을 거슬러 가는 역전파](rnn/bptt.md) — 펼친 계산 그래프에서 기울기 계산하기
+- [기울기 소실](rnn/vanishing_gradients.md) — 긴 순차열에서 곱셈이 되풀이되며 기울기가 지수적으로 작아지는 까닭
+- 기울기 폭발 — 기울기가 지수적으로 커지며 학습이 무너지는 현상
+- 기울기 자르기 — RNN 학습에서 기울기의 크기를 제한하여 폭발을 막기
+- 양방향 RNN — 온전한 문맥이 필요한 과제를 위해 순차열을 양쪽 방향으로 처리하기
+- 깊은 RNN — 위계적인 표현을 배우려고 RNN 층을 여러 겹 쌓기
+- [언어 모형](rnn/language_models.md) — 연쇄 법칙 분해로 순차열에 확률을 매기는 데 RNN 쓰기
 
-## 7.3 LSTM and GRU
+## 7.3 LSTM과 GRU
 
-Gated recurrent architectures that solve the vanishing gradient problem through dedicated memory pathways.
+따로 마련한 기억 통로로 기울기 소실 문제를 푸는 문 달린 순환 구조.
 
-- LSTM and GRU Overview -- Module overview covering LSTM and GRU theory, implementation, and comparison
-- [LSTM Architecture](lstm_gru/lstm_architecture.md) -- The cell state memory highway with forget, input, and output gates
-- LSTM Gates -- Detailed analysis of how forget, input, and output gates control information flow
-- [Cell State and Gradient Flow](lstm_gru/cell_state.md) -- Why the LSTM cell state enables stable gradient propagation over long sequences
-- [Peephole Connections](lstm_gru/peephole.md) -- Giving gates direct access to the cell state for more precise memory regulation
-- Stacked LSTM and GRU -- Multi-layer recurrent networks for hierarchical sequential representations
-- [GRU Architecture](lstm_gru/gru_architecture.md) -- The streamlined two-gate variant with merged cell and hidden state
-- [GRU vs LSTM Comparison](lstm_gru/gru_vs_lstm.md) -- Comprehensive comparison of architecture, parameters, and practical decision frameworks
+- LSTM과 GRU 개요 — LSTM과 GRU의 이론과 구현과 비교를 아우르는 모듈 개관
+- [LSTM 구조](lstm_gru/lstm_architecture.md) — 망각 문, 입력 문, 출력 문이 있는 세포 상태라는 기억의 고속도로
+- LSTM의 문들 — 망각 문과 입력 문과 출력 문이 정보의 흐름을 어떻게 다스리는지에 대한 자세한 분석
+- [세포 상태와 기울기의 흐름](lstm_gru/cell_state.md) — LSTM의 세포 상태가 긴 순차열에서 기울기를 안정되게 전파하는 까닭
+- [엿보기 연결](lstm_gru/peephole.md) — 문이 세포 상태에 곧바로 닿게 하여 기억을 더 정교하게 다스리기
+- 쌓은 LSTM과 GRU — 위계적인 순차 표현을 위한 여러 층의 순환 신경망
+- [GRU 구조](lstm_gru/gru_architecture.md) — 세포 상태와 숨은 상태를 하나로 합친 두 문짜리 간소한 변형
+- [GRU와 LSTM의 비교](lstm_gru/gru_vs_lstm.md) — 구조와 매개변수, 실무에서의 선택 기준을 두루 견주기
 
-## 7.4 Sequence-to-Sequence Models
+## 7.4 순차열 대 순차열 모델
 
-Encoder-decoder architectures that transform variable-length input sequences into variable-length output sequences.
+길이가 정해지지 않은 입력 순차열을 역시 길이가 정해지지 않은 출력 순차열로 바꾸는 부호기-복호기 구조.
 
-- Seq2Seq Overview -- The sequence transduction problem and the encoder-decoder framework
-- Seq2Seq Tutorial Package -- Complete implementation with multiple encoder architectures and attention mechanisms
-- Encoder-Decoder Framework -- The fundamental paradigm for mapping input sequences to output sequences
-- Context Vector -- The fixed-dimensional bridge between encoder and decoder and its information bottleneck
-- Teacher Forcing -- Accelerating training by feeding ground truth tokens, and the exposure bias problem
-- Beam Search -- Exploring multiple hypotheses simultaneously for higher-quality sequence generation
-- [Length Normalization](seq2seq/length_normalization.md) -- Correcting beam search bias toward shorter sequences
-- Scheduled Sampling -- Gradually transitioning from teacher forcing to free running during training
-- [Code: French to English Translation](seq2seq/seq2seq_code.md) -- Complete implementation of seq2seq translation with Bahdanau attention
+- Seq2Seq 개요 — 순차열 변환 문제와 부호기-복호기 틀
+- Seq2Seq 실습 꾸러미 — 여러 부호기 구조와 어텐션 장치를 갖춘 완전한 구현
+- 부호기-복호기 틀 — 입력 순차열을 출력 순차열로 보내는 근본적인 틀
+- 문맥 벡터 — 부호기와 복호기를 잇는 차원이 고정된 다리, 그리고 그 정보 병목
+- 교사 강요 — 정답 토큰을 넣어 학습을 빠르게 하기, 그리고 노출 편향 문제
+- 빔 탐색 — 여러 가설을 한꺼번에 살펴 더 나은 순차열을 만들기
+- [길이 정규화](seq2seq/length_normalization.md) — 빔 탐색이 짧은 순차열로 기우는 것을 바로잡기
+- 예정된 표본 추출 — 학습 도중 교사 강요에서 자유 실행으로 차츰 옮겨 가기
+- [코드: 프랑스어에서 영어로 번역](seq2seq/seq2seq_code.md) — 바다나우 어텐션을 쓰는 seq2seq 번역의 완전한 구현
 
-## 7.5 Attention Mechanisms
+## 7.5 어텐션 장치
 
-Dynamic focus mechanisms that allow models to selectively attend to relevant parts of the input.
+모델이 입력에서 쓸모 있는 부분을 골라 주목하게 해 주는 동적인 초점 장치.
 
-- [Attention Fundamentals](attention/attention_fundamentals.md) -- Attention as soft dictionary lookup and the query-key-value framework
-- Attention Mechanisms Tutorial -- Complete Python implementations from basic attention to multi-head self-attention
-- Bahdanau Attention -- The first attention mechanism for neural machine translation using additive scoring
-- Luong Attention -- Simplified multiplicative scoring functions and global vs local attention strategies
-- [Scaled Dot-Product Attention](attention/scaled_dot_product.md) -- The fundamental building block of the Transformer with scaling for stable gradients
-- [Self-Attention](attention/self_attention.md) -- Queries, keys, and values from the same sequence for modeling within-sequence dependencies
-- [Multi-Head Attention](attention/multi_head_attention.md) -- Parallel attention heads for attending to different representation subspaces
-- Attention Patterns -- Characteristic weight distributions across self-attention, cross-attention, and causal attention
-- Attention Visualization -- Practical tools for visualizing and interpreting attention matrices
+- [어텐션의 기초](attention/attention_fundamentals.md) — 부드러운 사전 찾기로 본 어텐션과 질의-열쇠-값 틀
+- 어텐션 장치 실습 — 기본 어텐션에서 다중 머리 자기 어텐션까지의 완전한 파이썬 구현
+- 바다나우 어텐션 — 덧셈 점수를 쓰는 신경망 기계 번역 최초의 어텐션 장치
+- 루옹 어텐션 — 간소한 곱셈 점수 함수와 전역 어텐션 대 지역 어텐션 전략
+- [배율 조정 내적 어텐션](attention/scaled_dot_product.md) — 기울기를 안정시키는 배율 조정을 갖춘 트랜스포머의 근본 구성 블록
+- [자기 어텐션](attention/self_attention.md) — 같은 순차열에서 질의와 열쇠와 값을 얻어 순차열 안의 의존을 다루기
+- [다중 머리 어텐션](attention/multi_head_attention.md) — 서로 다른 표현 부분공간에 주목하는 나란한 어텐션 머리들
+- 어텐션의 무늬 — 자기 어텐션, 교차 어텐션, 인과 어텐션에서 나타나는 특유의 가중치 분포
+- 어텐션 시각화 — 어텐션 행렬을 그리고 해석하는 실용적인 도구

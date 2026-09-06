@@ -1,42 +1,42 @@
-# Longest Increasing Subsequence
+# 가장 긴 늘어나는 부분 차례
 
-The longest increasing subsequence (LIS) problem asks for the length of the longest subsequence of a given array in which every element is strictly greater than the previous one.  This is one of the most studied problems in dynamic programming, with an elegant $O(n^2)$ DP solution and a faster $O(n \log n)$ algorithm that uses binary search.  The problem appears frequently in algorithm design and has applications in patience sorting, longest chain problems, and sequence alignment.
+가장 긴 늘어나는 부분 차례(LIS) 문제는 주어진 배열에서 원소마다 앞의 것보다 딱 잘라 큰, 가장 긴 부분 차례의 길이를 묻는다. 동적 짜기에서 가장 많이 다뤄진 문제 가운데 하나로, 산뜻한 $O(n^2)$ 동적 짜기 풀이와 이분 찾기를 쓰는 더 빠른 $O(n \log n)$ 알고리즘이 있다. 알고리즘 설계에 자주 나오며 인내심 정렬, 가장 긴 사슬 문제, 차례 맞추기에 쓰인다.
 
-## Problem Statement
+## 문제 서술
 
-Given an array $a[0..n-1]$ of integers, find the length of the longest subsequence $a[i_1], a[i_2], \ldots, a[i_k]$ such that $i_1 < i_2 < \cdots < i_k$ and $a[i_1] < a[i_2] < \cdots < a[i_k]$.
+정수 배열 $a[0..n-1]$이 주어질 때 $i_1 < i_2 < \cdots < i_k$이고 $a[i_1] < a[i_2] < \cdots < a[i_k]$인 가장 긴 부분 차례 $a[i_1], a[i_2], \ldots, a[i_k]$의 길이를 찾아라.
 
-**Example:** For $a = [10, 9, 2, 5, 3, 7, 101, 18]$, the LIS is $[2, 3, 7, 101]$ with length 4.
+**보기:** $a = [10, 9, 2, 5, 3, 7, 101, 18]$이면 가장 긴 늘어나는 부분 차례는 $[2, 3, 7, 101]$이고 길이는 4이다.
 
-## The O(n-squared) DP Approach
+## O(n 제곱) 동적 짜기 방식
 
-### Recurrence
+### 점화식
 
-Let $dp[i]$ denote the length of the longest increasing subsequence ending at index $i$.  For each $i$, consider all previous indices $j < i$ where $a[j] < a[i]$.  Extending the subsequence ending at $j$ by appending $a[i]$ gives a subsequence of length $dp[j] + 1$.  Taking the maximum over all valid $j$:
+$dp[i]$을 번호 $i$에서 끝나는 가장 긴 늘어나는 부분 차례의 길이라 하자. $i$마다 $a[j] < a[i]$인 앞선 번호 $j < i$을 모두 살핀다. $j$에서 끝나는 부분 차례에 $a[i]$을 붙이면 길이 $dp[j] + 1$인 부분 차례가 된다. 쓸 수 있는 모든 $j$에 걸쳐 최댓값을 취하면:
 
 $$
 dp[i] = 1 + \max_{\substack{0 \le j < i \\ a[j] < a[i]}} dp[j] \quad \text{for } 0 \le i < n
 $$
 
-If no valid $j$ exists (no smaller element before position $i$), then $dp[i] = 1$ since $a[i]$ alone forms a subsequence of length 1.
+쓸 수 있는 $j$이 없으면(자리 $i$ 앞에 더 작은 원소가 없으면) $a[i]$ 혼자 길이 1인 부분 차례를 이루므로 $dp[i] = 1$이다.
 
-The answer is $\max_{0 \le i < n} dp[i]$.
+답은 $\max_{0 \le i < n} dp[i]$이다.
 
-### Implementation
+### 구현
 
 ```python
 """
-Longest increasing subsequence: O(n^2) DP and O(n log n) binary search.
+가장 긴 늘어나는 부분 차례: O(n^2) 동적 짜기와 O(n log n) 이분 찾기.
 """
 
 from bisect import bisect_left
 
 
 # ===================================================================
-# Approach 1: O(n^2) DP
+# 방식 1: O(n^2) 동적 짜기
 # ===================================================================
 def lis_dp(nums: list[int]) -> int:
-    """LIS length using O(n^2) DP."""
+    """O(n^2) 동적 짜기로 얻는 길이."""
     if not nums:
         return 0
     n = len(nums)
@@ -50,29 +50,29 @@ def lis_dp(nums: list[int]) -> int:
     return max(dp)
 ```
 
-The outer loop runs $n$ times and the inner loop up to $i$ times, giving $O(n^2)$ time and $O(n)$ space.
+바깥 되풀이가 $n$번, 안쪽 되풀이가 최대 $i$번 돌아 시간은 $O(n^2)$, 공간은 $O(n)$이다.
 
-## The O(n log n) Approach
+## O(n log n) 방식
 
-### Key Idea
+### 핵심 생각
 
-Maintain an array $\text{tails}$ where $\text{tails}[k]$ stores the smallest possible tail element of an increasing subsequence of length $k + 1$ found so far.  This array is always sorted, which enables binary search.
+배열 $\text{tails}$을 둔다. $\text{tails}[k]$은 여태 찾은 길이 $k + 1$짜리 늘어나는 부분 차례의 가장 작은 꼬리 원소를 담는다. 이 배열은 늘 정렬되어 있어 이분 찾기를 쓸 수 있다.
 
-For each element $a[i]$:
+원소 $a[i]$마다:
 
-- If $a[i]$ is greater than all elements in $\text{tails}$, append it (extends the longest subsequence found).
-- Otherwise, find the smallest element in $\text{tails}$ that is $\ge a[i]$ and replace it with $a[i]$ (this keeps the tails as small as possible, maximizing future extension potential).
+- $a[i]$이 $\text{tails}$의 모든 원소보다 크면 뒤에 붙인다(찾은 가장 긴 부분 차례를 넓힌다).
+- 아니면 $\text{tails}$에서 $a[i]$ 이상인 가장 작은 원소를 찾아 $a[i]$으로 갈음한다(꼬리를 되도록 작게 지켜 앞으로 넓힐 여지를 가장 크게 한다).
 
-The length of the LIS equals the final length of $\text{tails}$.
+가장 긴 늘어나는 부분 차례의 길이는 $\text{tails}$의 마지막 길이와 같다.
 
-### Implementation
+### 구현
 
 ```python
 # ===================================================================
-# Approach 2: O(n log n) with binary search
+# 방식 2: 이분 찾기를 쓴 O(n log n)
 # ===================================================================
 def lis_binary_search(nums: list[int]) -> int:
-    """LIS length using patience sorting / binary search. O(n log n)."""
+    """인내심 정렬과 이분 찾기로 얻는 길이. O(n log n)."""
     tails: list[int] = []
 
     for num in nums:
@@ -85,25 +85,25 @@ def lis_binary_search(nums: list[int]) -> int:
     return len(tails)
 ```
 
-Each of the $n$ elements requires a binary search on $\text{tails}$ (length at most $n$), giving $O(n \log n)$ time and $O(n)$ space.
+원소 $n$개마다 $\text{tails}$(길이 최대 $n$)에서 이분 찾기를 하므로 시간은 $O(n \log n)$, 공간은 $O(n)$이다.
 
-### Correctness Sketch
+### 옳음의 얼개
 
-The invariant is that $\text{tails}$ is always sorted and $\text{tails}[k]$ is the minimum possible last element of any increasing subsequence of length $k+1$.  Each new element either extends the array (proving a longer IS exists) or reduces some tail value (preserving or improving future opportunities).  The length of $\text{tails}$ at the end equals the LIS length.
+불변량은 $\text{tails}$이 늘 정렬되어 있고 $\text{tails}[k]$이 길이 $k+1$인 어떤 늘어나는 부분 차례의 마지막 원소로 가능한 가장 작은 값이라는 것이다. 새 원소마다 배열을 넓히거나(더 긴 늘어나는 차례가 있음을 보임) 어떤 꼬리 값을 줄인다(앞으로의 기회를 지키거나 낫게 함). 끝났을 때 $\text{tails}$의 길이가 가장 긴 늘어나는 부분 차례의 길이와 같다.
 
-!!! warning "tails is not the LIS itself"
-    The array $\text{tails}$ at the end of the algorithm does not necessarily contain the actual LIS elements.  It contains the smallest possible tail for each length.  To reconstruct the actual LIS, additional bookkeeping (parent pointers or index tracking) is needed.
+!!! warning "tails는 가장 긴 늘어나는 부분 차례 그 자체가 아니다"
+    알고리즘이 끝난 뒤의 배열 $\text{tails}$이 반드시 실제 가장 긴 늘어나는 부분 차례의 원소를 담는 것은 아니다. 길이마다 가능한 가장 작은 꼬리를 담을 뿐이다. 실제 차례를 다시 세우려면 어버이 가리개나 번호 좇기 같은 딸림 기록이 필요하다.
 
-## Reconstructing the LIS
+## 가장 긴 늘어나는 부분 차례 다시 세우기
 
-To recover the actual subsequence, store the index of the predecessor for each element and the position where each element was placed in $\text{tails}$:
+실제 부분 차례를 되찾으려면 원소마다 앞선 것의 번호와 그 원소가 $\text{tails}$의 어느 자리에 놓였는지를 담는다:
 
 ```python
 # ===================================================================
-# Reconstruction of the actual LIS
+# 실제 가장 긴 늘어나는 부분 차례 다시 세우기
 # ===================================================================
 def lis_with_reconstruction(nums: list[int]) -> list[int]:
-    """Return the actual LIS (not just its length)."""
+    """길이뿐 아니라 실제 부분 차례를 돌려준다."""
     if not nums:
         return []
 
@@ -124,7 +124,7 @@ def lis_with_reconstruction(nums: list[int]) -> list[int]:
         pos[i] = p
         parent[i] = tails_idx[p - 1] if p > 0 else -1
 
-    # Backtrack from the last element of the longest subsequence
+    # 가장 긴 부분 차례의 마지막 원소에서 되짚는다
     lis_len = len(tails)
     result = [0] * lis_len
     idx = tails_idx[lis_len - 1]
@@ -135,17 +135,17 @@ def lis_with_reconstruction(nums: list[int]) -> list[int]:
     return result
 ```
 
-## Complexity Comparison
+## 복잡도 비교
 
-| Approach | Time | Space |
+| 방법 | 시간 | 공간 |
 |----------|------|-------|
-| DP | $O(n^2)$ | $O(n)$ |
-| Binary search | $O(n \log n)$ | $O(n)$ |
-| With reconstruction | $O(n \log n)$ | $O(n)$ |
+| 동적 짜기 | $O(n^2)$ | $O(n)$ |
+| 이분 찾기 | $O(n \log n)$ | $O(n)$ |
+| 다시 세우기 곁들임 | $O(n \log n)$ | $O(n)$ |
 
 ```python
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 if __name__ == "__main__":
     test_cases = [
@@ -160,13 +160,45 @@ if __name__ == "__main__":
         print(f"nums={nums}  LIS length={length_dp}  subsequence={subseq}")
 ```
 
-**Output:**
+**출력:**
 ```
 nums=[10, 9, 2, 5, 3, 7, 101, 18]  LIS length=4  subsequence=[2, 3, 7, 101]
 nums=[0, 1, 0, 3, 2, 3]  LIS length=4  subsequence=[0, 1, 2, 3]
 nums=[7, 7, 7, 7, 7]  LIS length=1  subsequence=[7]
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 14. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+가장 긴 늘어나는 부분 차례의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+가장 긴 늘어나는 부분 차례의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+가장 긴 늘어나는 부분 차례의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+가장 긴 늘어나는 부분 차례의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

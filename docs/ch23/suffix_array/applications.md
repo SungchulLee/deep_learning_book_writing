@@ -1,128 +1,128 @@
-# Suffix Array Applications
+# 뒷가지 배열의 쓰임새
 
-The suffix array, especially when augmented with the LCP array, serves as a versatile foundation for a wide range of string processing problems. Many tasks that traditionally required suffix trees -- such as finding longest repeated substrings, longest common substrings between two strings, and counting distinct substrings -- can be solved just as efficiently with suffix arrays while using far less memory. This section surveys the most important applications and provides concrete algorithms for each.
+뒷가지 배열은 특히 최장 공통 앞가지 배열을 곁들이면 갖가지 글줄 처리 문제의 두루 쓰는 바탕이 된다. 예전에는 뒷가지 나무가 필요하던 여러 일, 곧 가장 긴 되풀이 부분 글줄 찾기, 두 글줄의 최장 공통 부분 글줄 찾기, 서로 다른 부분 글줄 세기를 뒷가지 배열로도 똑같이 효율 좋게, 기억 공간은 훨씬 적게 풀 수 있다. 이 절은 가장 중요한 쓰임새를 훑고 저마다의 알고리즘을 준다.
 
-## Pattern Matching
+## 본 찾기
 
-The most fundamental application of suffix arrays is searching for all occurrences of a pattern $P[0..m-1]$ in a text $T[0..n-1]$.
+뒷가지 배열의 가장 바탕이 되는 쓰임새는 글월 $T[0..n-1]$에서 본 $P[0..m-1]$이 나오는 곳을 모두 찾는 것이다.
 
-### Binary Search Approach
+### 이분 찾기 방식
 
-Since the suffix array stores suffixes in sorted order, all suffixes that begin with $P$ form a contiguous range $[\ell, r]$ in the suffix array. Two binary searches find this range:
+뒷가지 배열이 뒷가지를 정렬해 담으므로 $P$으로 시작하는 뒷가지는 뒷가지 배열에서 잇닿은 범위 $[\ell, r]$을 이룬다. 이분 찾기를 두 번 해 이 범위를 찾는다:
 
-1. **Lower bound**: Find the smallest $\ell$ such that suffix($\text{SA}[\ell]$) has $P$ as a prefix
-2. **Upper bound**: Find the largest $r$ such that suffix($\text{SA}[r]$) has $P$ as a prefix
+1. **아래 경계**: suffix($\text{SA}[\ell]$)이 $P$을 앞가지로 갖는 가장 작은 $\ell$을 찾는다
+2. **위 경계**: suffix($\text{SA}[r]$)이 $P$을 앞가지로 갖는 가장 큰 $r$을 찾는다
 
-The number of occurrences is $r - \ell + 1$, and each occurrence position is $\text{SA}[k]$ for $k \in [\ell, r]$.
+나온 횟수는 $r - \ell + 1$이고 나온 자리는 $k \in [\ell, r]$마다 $\text{SA}[k]$이다.
 
-**Time complexity**: $O(m \log n)$ without the LCP array, or $O(m + \log n)$ with LCP-enhanced binary search.
+**시간 복잡도**: 최장 공통 앞가지 배열이 없으면 $O(m \log n)$, 그것으로 이분 찾기를 도우면 $O(m + \log n)$.
 
-??? example "Finding all occurrences of 'an' in 'banana'"
-    With $T = \texttt{banana\$}$ and $\text{SA} = [6, 5, 3, 1, 0, 4, 2]$:
+??? example "'banana'에서 'an'이 나오는 곳 모두 찾기"
+    $T = \texttt{banana\$}$이고 $\text{SA} = [6, 5, 3, 1, 0, 4, 2]$일 때:
 
-    - Lower bound binary search finds $\ell = 2$ (suffix `ana$` at $\text{SA}[2] = 3$)
-    - Upper bound binary search finds $r = 3$ (suffix `anana$` at $\text{SA}[3] = 1$)
-    - Pattern `an` occurs at positions 3 and 1
+    - 아래 경계 이분 찾기가 $\ell = 2$을 찾는다($\text{SA}[2] = 3$의 뒷가지 `ana$`)
+    - 위 경계 이분 찾기가 $r = 3$을 찾는다($\text{SA}[3] = 1$의 뒷가지 `anana$`)
+    - 본 `an`이 자리 3과 1에 나온다
 
-## Longest Repeated Substring
+## 가장 긴 되풀이 부분 글줄
 
-The **longest repeated substring (LRS)** is the longest string that appears at least twice in $T$. With the LCP array, this is simply the maximum value:
+**가장 긴 되풀이 부분 글줄(LRS)**은 $T$에 적어도 두 번 나오는 가장 긴 글줄이다. 최장 공통 앞가지 배열이 있으면 그저 최댓값이다:
 
 $$
 \text{LRS length} = \max_{1 \leq k \leq n} \text{LCP}[k]
 $$
 
-The actual substring is $T[\text{SA}[k^*] .. \text{SA}[k^*] + \text{LCP}[k^*] - 1]$, where $k^* = \arg\max_k \text{LCP}[k]$.
+실제 부분 글줄은 $k^* = \arg\max_k \text{LCP}[k]$일 때 $T[\text{SA}[k^*] .. \text{SA}[k^*] + \text{LCP}[k^*] - 1]$이다.
 
-**Time complexity**: $O(n)$ after the suffix array and LCP array are built.
+**시간 복잡도**: 뒷가지 배열과 최장 공통 앞가지 배열을 세운 뒤 $O(n)$.
 
-??? example "LRS of 'banana'"
-    For $T = \texttt{banana\$}$ with $\text{LCP} = [0, 0, 1, 3, 0, 0, 2]$:
+??? example "'banana'의 가장 긴 되풀이 부분 글줄"
+    $T = \texttt{banana\$}$이고 $\text{LCP} = [0, 0, 1, 3, 0, 0, 2]$일 때:
 
-    - Maximum LCP value is 3, occurring at position $k = 3$
-    - $\text{SA}[3] = 1$, so the LRS is $T[1..3] = \texttt{ana}$
-    - Indeed, `ana` appears at positions 1 and 3
+    - 최장 공통 앞가지 값의 최댓값은 3이고 자리 $k = 3$에 나온다
+    - $\text{SA}[3] = 1$이므로 가장 긴 되풀이 부분 글줄은 $T[1..3] = \texttt{ana}$이다
+    - 실제로 `ana`이 자리 1과 3에 나온다
 
-## Longest Common Substring of Two Strings
+## 두 글줄의 최장 공통 부분 글줄
 
-Given two strings $S_1$ and $S_2$, their **longest common substring (LCS)** can be found by concatenating them with a separator:
+글줄 $S_1$과 $S_2$이 주어질 때 **최장 공통 부분 글줄(LCS)**은 둘을 가르개로 이어 붙여 찾을 수 있다:
 
 $$
 T = S_1 \cdot \texttt{\#} \cdot S_2 \cdot \texttt{\$}
 $$
 
-where $\texttt{\#}$ and $\texttt{\$}$ are distinct sentinel characters not in either string. Build the suffix array and LCP array of $T$, then scan for the maximum LCP value between adjacent suffixes that originate from different strings.
+여기서 $\texttt{\#}$과 $\texttt{\$}$은 어느 글줄에도 없는 서로 다른 파수 글자이다. $T$의 뒷가지 배열과 최장 공통 앞가지 배열을 세운 뒤 서로 다른 글줄에서 온 이웃한 뒷가지 사이의 최장 공통 앞가지 최댓값을 훑는다.
 
-Formally, let $n_1 = |S_1|$. A suffix starting at position $i$ belongs to $S_1$ if $i < n_1$ and to $S_2$ if $i > n_1$. The LCS length is:
+엄밀히 $n_1 = |S_1|$이라 하자. 자리 $i$에서 시작하는 뒷가지는 $i < n_1$이면 $S_1$에, $i > n_1$이면 $S_2$에 든다. 최장 공통 부분 글줄의 길이는 다음과 같다:
 
 $$
-\text{LCS length} = \max_{\substack{1 \leq k \leq |T| \\ \text{SA}[k] \text{ and } \text{SA}[k-1] \\ \text{from different strings}}} \text{LCP}[k]
+\text{LCS 길이} = \max_{\substack{1 \leq k \leq |T| \\ \text{SA}[k] \text{ 와 } \text{SA}[k-1] \text{ 가} \\ \text{서로 다른 글줄에서 옴}}} \text{LCP}[k]
 $$
 
-**Time complexity**: $O(n_1 + n_2)$ total.
+**시간 복잡도**: 모두 $O(n_1 + n_2)$.
 
-## Counting Distinct Substrings
+## 서로 다른 부분 글줄 세기
 
-Every substring of $T$ is a prefix of some suffix. Suffix $\text{SA}[k]$ contributes $(n - \text{SA}[k])$ substrings (its prefixes of lengths 1 through $n - \text{SA}[k]$). However, $\text{LCP}[k]$ of these are shared with the previous suffix in sorted order. The total count of distinct substrings is:
+$T$의 모든 부분 글줄은 어떤 뒷가지의 앞가지이다. 뒷가지 $\text{SA}[k]$은 부분 글줄 $(n - \text{SA}[k])$개를 보탠다(길이 1부터 $n - \text{SA}[k]$까지의 앞가지). 다만 그 가운데 $\text{LCP}[k]$개는 정렬 차례에서 앞선 뒷가지와 나눠 갖는다. 서로 다른 부분 글줄의 총수는 다음과 같다:
 
 $$
 D = \sum_{k=0}^{n} (n - \text{SA}[k]) - \sum_{k=1}^{n} \text{LCP}[k]
 $$
 
-**Time complexity**: $O(n)$ after construction.
+**시간 복잡도**: 세운 뒤 $O(n)$.
 
-## Longest Common Prefix Queries
+## 최장 공통 앞가지 묻기
 
-The LCP of any two suffixes (not just adjacent ones in the suffix array) can be computed using the **range minimum query (RMQ)** property:
+(뒷가지 배열에서 이웃한 것뿐 아니라) 아무 두 뒷가지의 최장 공통 앞가지도 **구간 최소 묻기(RMQ)** 성질로 셈할 수 있다:
 
 $$
 \text{lcp}(\text{suffix}(\text{SA}[i]),\; \text{suffix}(\text{SA}[j])) = \min_{i < k \leq j} \text{LCP}[k]
 $$
 
-By building a sparse table over the LCP array in $O(n \log n)$ preprocessing time, each query can be answered in $O(1)$ time.
+최장 공통 앞가지 배열 위에 성긴 표를 $O(n \log n)$ 미리 다듬기 시간에 세우면 물음마다 $O(1)$ 시간에 답할 수 있다.
 
-!!! tip "RMQ with linear preprocessing"
-    Using the Bender-Farach-Colton algorithm for the special case of $\pm 1$ RMQ (which the LCP array satisfies after a reduction), preprocessing takes only $O(n)$ time while maintaining $O(1)$ query time.
+!!! tip "선형 미리 다듬기로 하는 구간 최소 묻기"
+    (줄이기를 거치면 최장 공통 앞가지 배열이 채우는) $\pm 1$ 구간 최소 묻기의 특별한 경우에 벤더-파라크-콜튼 알고리즘을 쓰면 미리 다듬기에 $O(n)$ 시간만 들면서 묻기 시간은 $O(1)$으로 지킨다.
 
-## Lexicographic Comparison of Substrings
+## 부분 글줄의 사전 차례 견줌
 
-Given two substrings $T[i..i+\ell_1-1]$ and $T[j..j+\ell_2-1]$, their lexicographic order can be determined in $O(1)$ time using:
+부분 글줄 $T[i..i+\ell_1-1]$과 $T[j..j+\ell_2-1]$이 주어질 때 다음으로 사전 차례를 $O(1)$ 시간에 정할 수 있다:
 
-1. Compute $L = \text{lcp}(\text{suffix}(i), \text{suffix}(j))$ via RMQ in $O(1)$
-2. If $L \geq \min(\ell_1, \ell_2)$, the shorter substring is lexicographically smaller (or they are equal if $\ell_1 = \ell_2$)
-3. Otherwise, compare $T[i + L]$ vs $T[j + L]$
+1. 구간 최소 묻기로 $L = \text{lcp}(\text{suffix}(i), \text{suffix}(j))$을 $O(1)$에 셈한다
+2. $L \geq \min(\ell_1, \ell_2)$이면 짧은 부분 글줄이 사전 차례로 앞선다($\ell_1 = \ell_2$이면 같다)
+3. 아니면 $T[i + L]$과 $T[j + L]$을 견준다
 
-This enables $O(1)$ comparison of arbitrary substrings after $O(n)$ preprocessing.
+그러면 $O(n)$ 미리 다듬기 뒤에 아무 부분 글줄이나 $O(1)$에 견줄 수 있다.
 
-## Counting Occurrences of a Pattern
+## 본이 나온 횟수 세기
 
-Beyond finding occurrences, we can **count** how many times a pattern $P$ occurs in $T$ by finding the range $[\ell, r]$ via binary search. The count is simply $r - \ell + 1$, without needing to enumerate all positions.
+나온 곳을 찾는 것을 넘어, 이분 찾기로 범위 $[\ell, r]$을 찾으면 본 $P$이 $T$에 몇 번 나오는지 **셀** 수 있다. 자리를 모두 세지 않아도 그 수는 $r - \ell + 1$이다.
 
-## Applications Summary
+## 쓰임새 간추리기
 
-| Problem | Data Structure | Time |
+| 문제 | 자료 짜임 | 시간 |
 |---------|---------------|------|
-| Pattern matching | SA | $O(m \log n)$ |
-| Pattern matching | SA + LCP | $O(m + \log n)$ |
-| Longest repeated substring | SA + LCP | $O(n)$ |
-| Longest common substring | SA + LCP | $O(n_1 + n_2)$ |
-| Count distinct substrings | SA + LCP | $O(n)$ |
-| LCP of any two suffixes | SA + LCP + RMQ | $O(1)$ query |
-| Lexicographic substring comparison | SA + LCP + RMQ | $O(1)$ query |
+| 본 찾기 | 뒷가지 배열 | $O(m \log n)$ |
+| 본 찾기 | 뒷가지 배열 + 최장 공통 앞가지 | $O(m + \log n)$ |
+| 가장 긴 되풀이 부분 글줄 | 뒷가지 배열 + 최장 공통 앞가지 | $O(n)$ |
+| 최장 공통 부분 글줄 | 뒷가지 배열 + 최장 공통 앞가지 | $O(n_1 + n_2)$ |
+| 서로 다른 부분 글줄 세기 | 뒷가지 배열 + 최장 공통 앞가지 | $O(n)$ |
+| 아무 두 뒷가지의 최장 공통 앞가지 | 뒷가지 배열 + 최장 공통 앞가지 + 구간 최소 묻기 | 묻기 $O(1)$ |
+| 부분 글줄 사전 차례 견줌 | 뒷가지 배열 + 최장 공통 앞가지 + 구간 최소 묻기 | 묻기 $O(1)$ |
 
-## Implementation
+## 구현
 
 ```python
 """
-Suffix array applications: pattern matching, longest repeated
-substring, and counting distinct substrings.
+뒷가지 배열의 쓰임새: 본 찾기, 가장 긴 되풀이 부분 글줄,
+서로 다른 부분 글줄 세기.
 """
 
 
-# === Suffix Array Construction ===
+# === 뒷가지 배열 세우기 ===
 
 def build_suffix_array(text: str) -> list[int]:
-    """Build suffix array using prefix doubling."""
+    """앞가지 곱절 늘리기로 뒷가지 배열을 세운다."""
     n = len(text)
     rank = [ord(c) for c in text]
     sa = list(range(n))
@@ -145,10 +145,10 @@ def build_suffix_array(text: str) -> list[int]:
     return sa
 
 
-# === Kasai's Algorithm ===
+# === 가사이 알고리즘 ===
 
 def build_lcp(text: str, sa: list[int]) -> list[int]:
-    """Compute LCP array using Kasai's algorithm."""
+    """가사이 알고리즘으로 최장 공통 앞가지 배열을 셈한다."""
     n = len(sa)
     rank = [0] * n
     for k in range(n):
@@ -168,14 +168,14 @@ def build_lcp(text: str, sa: list[int]) -> list[int]:
     return lcp
 
 
-# === Applications ===
+# === 쓰임새 ===
 
 def pattern_search(text: str, sa: list[int], pattern: str) -> list[int]:
-    """Find all occurrences of pattern in text using binary search on SA."""
+    """뒷가지 배열에 이분 찾기를 써서 글월에서 본이 나오는 곳을 모두 찾는다."""
     n = len(text)
     m = len(pattern)
 
-    # Lower bound
+    # 아래 경계
     lo, hi = 0, n - 1
     while lo < hi:
         mid = (lo + hi) // 2
@@ -186,7 +186,7 @@ def pattern_search(text: str, sa: list[int], pattern: str) -> list[int]:
             hi = mid
     left = lo
 
-    # Upper bound
+    # 위 경계
     lo, hi = left, n - 1
     while lo < hi:
         mid = (lo + hi + 1) // 2
@@ -204,7 +204,7 @@ def pattern_search(text: str, sa: list[int], pattern: str) -> list[int]:
 
 def longest_repeated_substring(text: str, sa: list[int],
                                 lcp: list[int]) -> str:
-    """Find the longest repeated substring."""
+    """가장 긴 되풀이 부분 글줄을 찾는다."""
     max_lcp = max(lcp)
     if max_lcp == 0:
         return ""
@@ -214,14 +214,14 @@ def longest_repeated_substring(text: str, sa: list[int],
 
 def count_distinct_substrings(text: str, sa: list[int],
                                lcp: list[int]) -> int:
-    """Count the number of distinct substrings."""
+    """서로 다른 부분 글줄의 수를 센다."""
     n = len(text)
     total = sum(n - sa[k] for k in range(n))
     duplicates = sum(lcp[k] for k in range(1, n))
     return total - duplicates
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     text = "banana$"
@@ -242,7 +242,39 @@ if __name__ == "__main__":
     print(f"Distinct substrings: {count}")
 ```
 
-## Reference
+## 참고 문헌
 
 - Manber, U. and Myers, G. (1993). *Suffix arrays: A new method for on-line string searches*. SIAM Journal on Computing, 22(5), 935-948.
 - Abouelhoda, M. I., Kurtz, S., and Ohlebusch, E. (2004). *Replacing suffix trees with enhanced suffix arrays*. Journal of Discrete Algorithms, 2(1), 53-86.
+
+## 연습문제
+
+**연습문제 1.**
+뒷가지 배열의 쓰임새의 핵심 자료 짜임이나 개념과 그 으뜸 쓰임새를 설명하라.
+
+??? success "연습문제 1 풀이"
+    뒷가지 배열의 쓰임새은 글줄이나 차례 자료를 미리 다듬고 묻는 효율 좋은 길을 준다. 으뜸 쓰임새는 부분 글줄, 본, 들임의 짜임 성질에 대한 되풀이되는 물음에 답하는 것이다. 미리 다듬기가 다룰 만한 시간에 자료 짜임을 세우고 나면 맨바닥에서 다시 다듬는 것보다 훨씬 빠르게 물음에 답할 수 있다. $\square$
+
+---
+
+**연습문제 2.**
+뒷가지 배열의 쓰임새을 세우는 시간 복잡도는 무엇인가? 으뜸 연산의 묻기 시간은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    세우는 시간은 쓰는 알고리즘에 달렸다. 흔한 한계는 $n$이 들임 크기일 때 $O(n)$에서 $O(n \log n)$ 사이이다. 묻기는 흔히 본 찾기에 $O(m)$($m$은 물음 길이), 미리 셈한 성질에 $O(1)$이 든다. 공간 복잡도는 흔히 $O(n)$이거나 $\sigma$이 글자 모임의 크기일 때 $O(n\sigma)$이다. $\square$
+
+---
+
+**연습문제 3.**
+뒷가지 배열의 쓰임새을 더 단순한 다른 방식과 견주어라. 더 정교한 짜임은 언제 값어치가 있는가?
+
+??? success "연습문제 3 풀이"
+    더 단순한 방식(예컨대 막무가내 훑기나 정렬)은 묻기 시간이 더 길지만 세우는 군더더기가 적다. 정교한 짜임은 다음일 때 값어치가 있다. (1) 같은 자료에 물음을 많이 던져 세우는 값이 고르게 나뉠 때, (2) 묻기 시간이 결정적일 때(실시간 쓰임새), (3) 자료가 커서 점근 나아짐이 실전에서 중요할 때이다. 작은 자료에 물음을 한 번 던지는 경우에는 상수 인수가 작은 단순한 방식이 더 빠를 수 있다. $\square$
+
+---
+
+**연습문제 4.**
+들임 글줄 "banana"에 대해 뒷가지 배열의 쓰임새을 세우는 것을 좇아라. 중간 걸음을 보여라.
+
+??? success "연습문제 4 풀이"
+    "banana"($n = 6$)에 대해: 글줄을 글자마다(또는 뒷가지마다) 처리하며 자료 짜임을 조금씩 세운다. 마지막 짜임은 뒷가지 "banana", "anana", "nana", "ana", "na", "a"을 모두 담는다. 결과의 핵심 성질을 확인할 수 있다. 곧 공통 앞가지를 나눠 쓰고, 뒷가지 차례가 지켜지며, 부분 글줄에 대한 모든 물음을 그 짜임에서 답할 수 있다. $\square$

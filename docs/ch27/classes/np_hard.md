@@ -1,106 +1,144 @@
-# NP-Hardness
+# NP 어려움
 
-NP-complete problems must satisfy two conditions: membership in NP and NP-hardness.  But what happens when a problem is at least as hard as every NP problem yet its solutions might not even be efficiently verifiable?  Such problems are **NP-hard** -- they capture the "hardness" requirement of NP-completeness without requiring membership in NP.  Understanding this distinction is essential because many important optimization and decision problems are NP-hard but lie outside NP entirely.
+NP 완전 문제는 두 조건을 만족해야 한다. NP에 듦과 NP 어려움이다. 그런데 어떤 문제가 모든 NP 문제보다 적어도 어렵지만 그 풀이를 효율 좋게 살필 수조차 없다면 어떻게 되는가? 그런 문제가 **NP 어려움**이며, NP에 들 것을 요구하지 않은 채 NP 완전성의 "어려움" 요구만 담는다. 중요한 가장 좋게 하기 문제와 가름 문제 가운데 NP 어려움이면서 NP을 아예 벗어난 것이 많으므로 이 가름을 이해하는 것이 꼭 필요하다.
 
-## Intuition
+## 직관
 
-Think of NP-hard as a one-sided hardness certificate.  An NP-complete problem lives precisely at the intersection of "hard" (NP-hard) and "verifiable" (in NP).  An NP-hard problem only needs to be hard -- it may be even harder than NP-complete because it might not have efficiently checkable solutions at all.
+NP 어려움을 한쪽만 보장하는 어려움 증서로 여기라. NP 완전 문제는 "어려움"(NP 어려움)과 "살필 수 있음"(NP에 듦)의 교집합에 꼭 놓인다. NP 어려움 문제는 어렵기만 하면 되며, 효율 좋게 살필 수 있는 풀이가 아예 없을 수도 있으므로 NP 완전보다 더 어려울 수도 있다.
 
-For example, the **halting problem** is NP-hard (every NP problem reduces to it), but it is undecidable, so it certainly is not in NP.  Similarly, many optimization problems (finding the *optimal* solution rather than just deciding existence) are NP-hard without belonging to NP.
+보기로 **멈춤 문제**는 NP 어려움이지만(모든 NP 문제가 그것으로 줄여진다) 가릴 수 없으므로 분명 NP에 들지 않는다. 마찬가지로 많은 가장 좋게 하기 문제(있음을 가리는 것이 아니라 *가장 좋은* 풀이를 찾는 것)는 NP에 들지 않으면서 NP 어려움이다.
 
-## Formal Definition
+## 엄밀한 정의
 
-A language $L$ is **NP-hard** if every language $A \in \mathbf{NP}$ is polynomial-time many-one reducible to $L$:
+모든 말 $A \in \mathbf{NP}$이 다항 시간 여럿 대 하나 줄임으로 $L$으로 줄여지면 말 $L$은 **NP 어려움**이다:
 
 $$
 L \text{ is NP-hard} \iff \forall\, A \in \mathbf{NP},\; A \leq_p L
 $$
 
-Note the critical difference from NP-completeness:
+NP 완전성과의 결정적 차이를 눈여겨보라:
 
 $$
 \text{NP-complete} = \mathbf{NP} \cap \text{NP-hard}
 $$
 
-An NP-hard problem need not be in NP, need not be decidable, and need not even be a decision problem.
+NP 어려움 문제는 NP에 들 필요도, 가릴 수 있을 필요도, 심지어 가름 문제일 필요도 없다.
 
-## Relationship to Other Classes
+## 다른 갈래와의 관계
 
-The following Venn diagram captures the structural relationship (assuming $\mathbf{P} \neq \mathbf{NP}$):
+다음 벤 그림이 얼개 관계를 담는다($\mathbf{P} \neq \mathbf{NP}$이라 가정한다):
 
 ```
 ┌─────────────────────────────────────────┐
-│              NP-hard                    │
+│              NP 어려움                  │
 │  ┌────────────────────────────────┐     │
 │  │           NP                   │     │
 │  │  ┌──────────────────────┐      │     │
 │  │  │         P            │      │     │
 │  │  └──────────────────────┘      │     │
 │  │         ┌───────────┐          │     │
-│  │         │NP-complete│          │     │
+│  │         │ NP 완전  │          │     │
 │  │         └───────────┘          │     │
 │  └────────────────────────────────┘     │
 │                                         │
-│  (NP-hard but not in NP: Halting, etc.) │
+│  (NP 어려움이나 NP는 아님: 멈춤 등)     │
 └─────────────────────────────────────────┘
 ```
 
-Key observations:
+눈여겨볼 점은 다음과 같다.
 
-- Every NP-complete problem is NP-hard.
-- Not every NP-hard problem is NP-complete (it may lie outside NP).
-- If $\mathbf{P} \neq \mathbf{NP}$, then no NP-hard problem is in P.
+- 모든 NP 완전 문제는 NP 어려움이다.
+- 모든 NP 어려움 문제가 NP 완전인 것은 아니다(NP 밖에 놓일 수 있다).
+- $\mathbf{P} \neq \mathbf{NP}$이면 어떤 NP 어려움 문제도 P에 들지 않는다.
 
-## Examples of NP-Hard Problems
+## NP 어려움 문제의 보기
 
-### NP-Hard and in NP (NP-Complete)
+### NP 어려움이면서 NP에 듦(NP 완전)
 
-These are the classical NP-complete problems: SAT, 3-SAT, CLIQUE, VERTEX COVER, HAMILTONIAN CYCLE, etc.  They are NP-hard *and* have efficiently verifiable solutions.
+이들이 고전 NP 완전 문제이다. SAT, 3-SAT, 덩어리, 꼭짓점 덮기, 해밀턴 돌이 등이다. 이들은 NP 어려움이면서 *또한* 효율 좋게 살필 수 있는 풀이를 가진다.
 
-### NP-Hard but Not in NP
+### NP 어려움이지만 NP에 들지 않음
 
-| Problem | Why NP-Hard | Why Not in NP |
+| 문제 | 왜 NP 어려움인가 | 왜 NP에 들지 않는가 |
 |---------|-------------|---------------|
-| Halting Problem | Every computable NP problem reduces to it | Undecidable |
-| QSAT (Quantified SAT) | SAT reduces to it | PSPACE-complete; no known short certificate |
-| Optimization TSP | Decision TSP reduces to it | Answer is a number, not yes/no |
-| Minimum Circuit Size | Related to SAT | Not known to have polynomial certificates |
+| 멈춤 문제 | 셈할 수 있는 모든 NP 문제가 그것으로 줄여진다 | 가릴 수 없다 |
+| QSAT(한정 SAT) | SAT이 그것으로 줄여진다 | PSPACE 완전이며 알려진 짧은 증서가 없다 |
+| 가장 좋게 하기 떠돌이 장수 문제 | 가름 판 떠돌이 장수 문제가 그것으로 줄여진다 | 답이 예/아니오가 아니라 수이다 |
+| 최소 회로 크기 | SAT과 이어져 있다 | 다항 증서가 있다고 알려져 있지 않다 |
 
-### Optimization vs. Decision
+### 가장 좋게 하기와 가름
 
-Many NP-hard problems arise as optimization versions of NP-complete decision problems:
+많은 NP 어려움 문제는 NP 완전 가름 문제의 가장 좋게 하기 판으로 나타난다:
 
-- **Decision TSP**: "Is there a tour of cost $\leq k$?" -- NP-complete.
-- **Optimization TSP**: "Find the shortest tour." -- NP-hard (at least as hard as the decision version, but the answer is a tour, not yes/no).
+- **가름 판 떠돌이 장수 문제**: "비용이 $\leq k$인 돌이가 있는가?" -- NP 완전이다.
+- **가장 좋게 하기 떠돌이 장수 문제**: "가장 짧은 돌이를 찾아라." -- NP 어려움이다(가름 판보다 적어도 어렵지만 답이 예/아니오가 아니라 돌이이다).
 
-??? info "Reducing decision to optimization"
-    If you can solve the optimization version, you can solve the decision version by comparing the optimal value to the threshold $k$.  Therefore the optimization version is at least as hard, making it NP-hard.  However, verifying that a tour is *optimal* requires proving no shorter tour exists, which may not be efficiently checkable.
+??? info "가름을 가장 좋게 하기로 줄이기"
+    가장 좋게 하기 판을 풀 수 있으면 가장 좋은 값을 문턱 $k$과 견주어 가름 판을 풀 수 있다. 따라서 가장 좋게 하기 판이 적어도 어렵고 NP 어려움이 된다. 그러나 어떤 돌이가 *가장 좋음*을 살피려면 더 짧은 돌이가 없음을 밝혀야 하는데 이는 효율 좋게 살필 수 없을 수 있다.
 
-## Proving NP-Hardness
+## NP 어려움 밝히기
 
-The standard approach mirrors proving NP-completeness, except step 1 (showing membership in NP) is omitted:
+여느 방식은 NP 완전성 밝히기와 같되 첫 걸음(NP에 듦을 보이기)만 빠진다:
 
-1. **Choose a known NP-hard problem $L'$** (typically an NP-complete problem).
-2. **Construct a polynomial-time reduction $L' \leq_p L$**.
-3. **Prove correctness** of the reduction.
-4. **Prove efficiency** (the reduction runs in polynomial time).
+1. **알려진 NP 어려움 문제 $L'$을 고른다**(보통 NP 완전 문제이다).
+2. **다항 시간 줄임 $L' \leq_p L$을 세운다**.
+3. 줄임이 **옳음을 밝힌다**.
+4. **효율을 밝힌다**(줄임이 다항 시간에 돈다).
 
-By transitivity of $\leq_p$, this establishes that $L$ is NP-hard.
+$\leq_p$의 옮김 성질에 따라 이는 $L$이 NP 어려움임을 세운다.
 
-!!! warning "NP-hard does not mean NP"
-    A common misconception is that "NP-hard" means the problem is in NP.  In fact, NP-hard problems can be arbitrarily harder than NP -- they can be PSPACE-complete, EXPTIME-complete, or even undecidable.  The label only guarantees a lower bound on difficulty.
+!!! warning "NP 어려움은 NP이라는 뜻이 아니다"
+    흔한 오해는 "NP 어려움"이 그 문제가 NP에 든다는 뜻이라고 여기는 것이다. 사실 NP 어려움 문제는 NP보다 얼마든지 더 어려울 수 있다. PSPACE 완전, EXPTIME 완전, 심지어 가릴 수 없을 수도 있다. 이 이름표는 어려움의 아래 한계만 보장한다.
 
-## Consequences of NP-Hardness
+## NP 어려움의 결과
 
-Establishing that a problem is NP-hard has immediate practical implications:
+어떤 문제가 NP 어려움임을 세우면 곧바로 실제에 뜻이 있다:
 
-- **No polynomial-time algorithm exists** (assuming $\mathbf{P} \neq \mathbf{NP}$).
-- **Approximation**: for optimization problems, one seeks algorithms with provable approximation ratios.
-- **Parameterized complexity**: the problem may be tractable when restricted to small parameter values (fixed-parameter tractability).
-- **Special structure**: many NP-hard problems become polynomial on restricted inputs (e.g., planar graphs, bounded treewidth).
+- **다항 시간 알고리즘이 없다**($\mathbf{P} \neq \mathbf{NP}$이라 가정할 때).
+- **어림**: 가장 좋게 하기 문제에서는 밝힐 수 있는 어림 비율을 지닌 알고리즘을 찾는다.
+- **매개변수 복잡도**: 매개변수 값이 작을 때로 제한하면 다룰 만할 수 있다(붙박이 매개변수 다룰 수 있음).
+- **특별한 얼개**: 많은 NP 어려움 문제가 제한된 들임(보기로 평면 그래프, 가둬진 나무 너비)에서는 다항이 된다.
 
-## Reference
+## 참고 문헌
 
 - Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
 - Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
 - Garey, M. R. and Johnson, D. S. *Computers and Intractability*. W. H. Freeman.
+
+## 연습문제
+
+**연습문제 1.**
+NP 어려움과 NP 완전의 차이를 밝혀라. NP 어려움이지만 NP에 든다고 알려지지 않은 문제의 보기를 들어라.
+
+??? success "연습문제 1 풀이"
+    모든 NP 문제가 다항 시간에 그것으로 줄여지면 그 문제는 NP 어려움이다. NP 어려움이면서 NP에 들면 NP 완전이다. 핵심 차이는 NP에 들 것을 요구하느냐이다. NP 어려움 문제는 NP에 들 필요가 없다(가릴 수 없거나 다항 시간을 넘는 살피기가 필요할 수 있다).
+
+    보기: 멈춤 문제는 NP 어려움이지만(SAT이 그것으로 줄여진다. 정해지지 않은 튜링 기계를 흉내 내면 된다) 가릴 수 없으므로 NP에 들지 않는다. 또 다른 보기: 가장 좋은 떠돌이 장수 돌이 찾기(가름 판이 아니라 가장 좋게 하기 판)는 NP 어려움이지만 여느 뜻의 가름 문제가 아니며, 가장 좋음을 살피는 것 자체가 NP 어려움 문제를 푸는 일이다.
+
+---
+
+**연습문제 2.**
+어떤 NP 어려움 문제를 다항 시간에 풀 수 있으면 $\mathbf{P} = \mathbf{NP}$임을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    $H$을 $H \in \mathbf{P}$인 NP 어려움 문제라 하고 다항 시간 알고리즘 $A_H$이 푼다고 하자. $L$을 NP의 아무 말이라 하자. NP 어려움에 따라 $x \in L \iff f(x) \in H$인 다항 시간 줄임 $f$이 있다. $L$을 가르려면 $f(x)$을 다항 시간에 셈한 뒤 $f(x)$에서 $A_H$을 다항 시간에 돌린다. 이어 붙인 것은 다항 시간에 돌고 $L$을 옳게 가른다. $L$이 아무거나였으므로 $\mathbf{NP} \subseteq \mathbf{P}$이다. $\mathbf{P} \subseteq \mathbf{NP}$과 합치면 $\mathbf{P} = \mathbf{NP}$을 얻는다.
+
+---
+
+**연습문제 3.**
+모든 NP 완전 문제가 NP 어려움이지만 모든 NP 어려움 문제가 NP 완전은 아님을 보여라. NP 완전일 수 없는 구체적인 NP 어려움 문제를 세워라.
+
+??? success "연습문제 3 풀이"
+    모든 NP 완전 문제는 뜻매김에 따라 NP 어려움이다(NP 완전 = NP 어려움 + NP에 듦). 거꾸로를 보려면 말 $L = \{(\phi, M, x) : \phi \in \text{SAT} \text{ or } M \text{ halts on } x\}$을 살펴보자. SAT이 그것으로 줄여지므로(어떤 붙박이 $M_0$에 대해 $\phi$을 $(\phi, M_0, \epsilon)$으로 옮긴다) 이는 NP 어려움이다. 그러나 $L$은 가릴 수 없으므로(멈춤 문제를 특별한 경우로 담는다) $L \notin \mathbf{NP}$이다(NP은 가릴 수 있는 말의 부분 모임이다). 따라서 $L$은 NP 어려움이지만 NP 완전이 아니다.
+
+---
+
+**연습문제 4.**
+NP 어려움 개념이 가장 좋게 하기 문제에 어떻게 쓰이는지 밝혀라. 복잡도 이론에서 가장 좋게 하기 문제의 가름 판을 보통 쓰는 까닭은 무엇인가?
+
+??? success "연습문제 4 풀이"
+    가장 좋게 하기 문제(보기로 "가장 작은 꼭짓점 덮기를 찾아라")는 예/아니오 답이 없으므로 말 알아보기 틀에 곧바로 들어맞지 않는다. 여느 방식은 한계를 들여와 가름 문제로 바꾸는 것이다. "크기가 $\leq k$인 꼭짓점 덮기가 있는가?"
+
+    가름 판은 NP에 들며(덮기가 증서이다) 가름 판의 NP 어려움은 가장 좋게 하기 판의 NP 어려움을 뜻한다. 자세히는, 가장 좋게 하기 판을 다항 시간에 풀 수 있다면 가장 좋은 값을 $k$과 견주어 가름 판을 풀 수 있다. 거꾸로 가름 판이 NP 어려움이면 가장 좋게 하기 판은 적어도 그만큼 어렵다.
+
+    나아가 $k$에 대한 이진 찾기와 스스로 줄여짐을 쓰면 가름 판의 다항 시간 알고리즘에서 보통 가장 좋게 하기 판의 다항 시간 알고리즘도 얻는다.

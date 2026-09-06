@@ -1,97 +1,126 @@
-# 29.1.3 Adjacency Matrix
+# 29.1.3 이웃 행렬
+## 들어가며
 
+이웃 행렬은 그래프의 가장 근본이 되는 행렬 나타냄이며 스펙트럼 그래프 이론, 그래프 신호 다루기, 많은 그래프 신경망 적기의 출발점이 된다. 이 마디는 이웃 행렬과 거기서 얻는 행렬을 깊이 살핀다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 정의
 
-## Introduction
-
-The adjacency matrix is the most fundamental matrix representation of a graph and serves as the starting point for spectral graph theory, graph signal processing, and many GNN formulations. This section provides a deep dive into the adjacency matrix and its derived matrices.
-
-## Definition
-
-Given a graph $G = (V, E)$ with $n = |V|$ nodes, the **adjacency matrix** $A \in \mathbb{R}^{n \times n}$ is defined as:
+마디가 $n = |V|$개인 그래프 $G = (V, E)$이 주어질 때 **이웃 행렬** $A \in \mathbb{R}^{n \times n}$은 다음과 같이 뜻매김된다:
 
 $$A_{ij} = \begin{cases} w_{ij} & \text{if } (i, j) \in E \\ 0 & \text{otherwise} \end{cases}$$
 
-For unweighted graphs, $A_{ij} \in \{0, 1\}$.
+무게 없는 그래프에서는 $A_{ij} \in \{0, 1\}$이다.
 
-## Properties
+## 성질
 
-### Symmetry
-For undirected graphs: $A = A^T$. This implies all eigenvalues are real.
+### 맞섬
+방향 없는 그래프에서는 $A = A^T$이다. 이는 고윳값이 모두 실수임을 뜻한다.
 
-### Degree Matrix
-The **degree matrix** $D$ is a diagonal matrix:
+### 차수 행렬
+**차수 행렬** $D$은 대각 행렬이다:
 
 $$D_{ii} = \sum_{j} A_{ij} = d(i)$$
 
-### Powers of the Adjacency Matrix
-The entry $(A^k)_{ij}$ counts the number of walks of length $k$ from node $i$ to node $j$.
+### 이웃 행렬의 거듭제곱
+칸 $(A^k)_{ij}$은 마디 $i$에서 마디 $j$까지 길이 $k$인 걸음의 개수를 센다.
 
-- $A^2_{ij}$: number of common neighbors of $i$ and $j$ (for unweighted undirected graphs)
-- $\text{tr}(A^3) / 6$: number of triangles in the graph
+- $A^2_{ij}$: $i$과 $j$의 공통 이웃 개수(무게 없는 방향 없는 그래프에서)
+- $\text{tr}(A^3) / 6$: 그래프의 삼각형 개수
 
-### Spectral Properties
-The eigenvalues $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n$ of $A$ satisfy:
-- The largest eigenvalue $\lambda_1$ is bounded: $d_{avg} \leq \lambda_1 \leq d_{max}$
-- For $d$-regular graphs: $\lambda_1 = d$
-- The number of connected components equals the multiplicity of $\lambda_1$
+### 스펙트럼 성질
+$A$의 고윳값 $\lambda_1 \geq \lambda_2 \geq \cdots \geq \lambda_n$은 다음을 만족한다:
 
-## Graph Laplacian
+- 가장 큰 고윳값 $\lambda_1$이 가둬져 있다: $d_{avg} \leq \lambda_1 \leq d_{max}$
+- $d$정규 그래프에서는 $\lambda_1 = d$이다
+- 이어진 조각의 개수는 $\lambda_1$의 겹침 수와 같다
 
-The **graph Laplacian** $L$ is defined as:
+## 그래프 라플라스
+
+**그래프 라플라스** $L$은 다음과 같이 뜻매김된다:
 
 $$L = D - A$$
 
-Properties:
-- $L$ is positive semi-definite
-- The smallest eigenvalue is always 0 (with eigenvector $\mathbf{1}$)
-- The multiplicity of eigenvalue 0 equals the number of connected components
-- $\mathbf{x}^T L \mathbf{x} = \frac{1}{2} \sum_{(i,j) \in E} w_{ij}(x_i - x_j)^2$ (smoothness measure)
+성질:
 
-## Normalized Laplacians
+- $L$은 반양정부호이다
+- 가장 작은 고윳값은 늘 0이다(고유 벡터는 $\mathbf{1}$)
+- 고윳값 0의 겹침 수는 이어진 조각의 개수와 같다
+- $\mathbf{x}^T L \mathbf{x} = \frac{1}{2} \sum_{(i,j) \in E} w_{ij}(x_i - x_j)^2$(매끄러움 잣대)
 
-### Symmetric Normalized Laplacian
+## 고르게 맞춘 라플라스
+
+### 맞섬 고르게 맞춘 라플라스
 
 $$\hat{L} = D^{-1/2} L D^{-1/2} = I - D^{-1/2} A D^{-1/2}$$
 
-Eigenvalues lie in $[0, 2]$. Used in spectral graph convolutions.
+고윳값이 $[0, 2]$에 있다. 스펙트럼 그래프 겹말기에 쓰인다.
 
-### Random Walk Normalized Laplacian
+### 아무 걸음 고르게 맞춘 라플라스
 
 $$L_{rw} = D^{-1}L = I - D^{-1}A$$
 
-$D^{-1}A$ is the transition matrix of a random walk on the graph.
+$D^{-1}A$은 그래프 위 아무 걸음의 옮김 행렬이다.
 
-## Normalized Adjacency Matrix
+## 고르게 맞춘 이웃 행렬
 
-The **symmetrically normalized adjacency matrix** used in GCN:
+그래프 겹말기 신경망에 쓰이는 **맞섬으로 고르게 맞춘 이웃 행렬**:
 
 $$\hat{A} = D^{-1/2} A D^{-1/2}$$
 
-With self-loops (renormalization trick):
+스스로 이음을 더하면(다시 고르게 맞추는 재주):
 
 $$\tilde{A} = A + I_n, \quad \tilde{D}_{ii} = \sum_j \tilde{A}_{ij}, \quad \hat{A} = \tilde{D}^{-1/2} \tilde{A} \tilde{D}^{-1/2}$$
 
-## Transition Matrix
+## 옮김 행렬
 
-The **row-normalized adjacency matrix** represents random walk transition probabilities:
+**줄로 고르게 맞춘 이웃 행렬**은 아무 걸음의 옮김 확률을 나타낸다:
 
 $$P = D^{-1}A, \quad P_{ij} = \frac{A_{ij}}{d(i)}$$
 
-$P_{ij}$ is the probability of walking from node $i$ to node $j$ in one step.
+$P_{ij}$은 한 걸음에 마디 $i$에서 마디 $j$으로 갈 확률이다.
 
-## Quantitative Finance: Correlation as Adjacency
+## 계량 금융: 이웃 관계로서의 얽힘
 
-In financial networks, the correlation matrix $C$ between assets can be transformed into an adjacency matrix:
+금융 그물에서 자산 사이의 얽힘 행렬 $C$을 이웃 행렬로 바꿀 수 있다:
 
-1. **Thresholding**: $A_{ij} = \mathbb{1}[|C_{ij}| > \tau]$
-2. **Soft weighting**: $A_{ij} = |C_{ij}|^p$ for some power $p > 0$
-3. **MST-based**: Extract the minimum spanning tree from distance matrix $d_{ij} = \sqrt{2(1 - C_{ij})}$
+1. **문턱 두기**: $A_{ij} = \mathbb{1}[|C_{ij}| > \tau]$
+2. **부드러운 무게 주기**: 어떤 거듭제곱 $p > 0$에 대해 $A_{ij} = |C_{ij}|^p$
+3. **최소 뻗은 나무 바탕**: 거리 행렬 $d_{ij} = \sqrt{2(1 - C_{ij})}$에서 최소 뻗은 나무를 뽑아낸다
 
-These transformations are crucial for building financial graph neural networks.
+이 바꿈들은 금융 그래프 신경망을 세우는 데 결정적이다.
 
-## Summary
+## 요약
 
-The adjacency matrix and its normalizations (Laplacian, normalized Laplacian, transition matrix) form the mathematical backbone of graph neural networks. Understanding their spectral properties is essential for both spectral and spatial GNN methods.
+이웃 행렬과 그 고르게 맞춘 판(라플라스, 고르게 맞춘 라플라스, 옮김 행렬)이 그래프 신경망의 수학 등뼈를 이룬다. 그 스펙트럼 성질을 이해하는 것은 스펙트럼 방법과 자리 방법 모두에 꼭 필요하다.
+
+## 연습문제
+
+**연습문제 1.**
+마디 5개와 돌이의 이웃 얼개를 가진 그래프를 살펴보자. 2차원 특징 벡터에서 이 마디에 적은 쪽지 건네기 고침 한 걸음을 손으로 셈하라.
+
+??? success "연습문제 1 풀이"
+    마디 $1, \ldots, 5$에 특징 벡터 $\mathbf{h}_i \in \mathbb{R}^2$을 붙인다. 돌이에서 마디마다 이웃이 꼭 둘이다. 마디마다 모으기(보기로 이웃의 평균)와 고침(보기로 선형 바꿈과 깨움)을 쓴다. 한 걸음 뒤 마디마다의 나타냄이 바로 옆 이웃의 영향을 받는다. 이 드러난 셈은 받아들이는 자리가 층마다 한 뜀씩 넓어짐을 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+평균 모으기와 합 모으기가 여럿 모임을 가르는 나타냄 힘에서 다름을 밝혀라. 평균 모으기로는 가릴 수 없지만 합 모으기로는 가릴 수 있는 여럿 모임 둘의 구체적인 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    $S_1 = \{1, 1, 1\}$과 $S_2 = \{1\}$을 살펴보자. 평균 모으기는 $\text{mean}(S_1) = 1 = \text{mean}(S_2)$을 주어 둘을 가르지 못한다. 합 모으기는 $\text{sum}(S_1) = 3 \neq 1 = \text{sum}(S_2)$을 준다. 더 넓게는 평균 모으기가 여럿 모임의 겹침 수에 대해 불변이므로 서로 낱값 배인 여럿 모임을 가를 수 없다. 그래서 그래프 동형 신경망은 1차 바이스파일러-레만 시험에 맞먹는 최대 나타냄 힘을 얻으려 합 모으기를 쓴다. $\square$
+
+---
+
+**연습문제 3.**
+최단 길 거리가 $k$일 때 마디 $u$의 앎이 마디 $v$에 닿으려면 쪽지 건네기 층이 몇 개 필요한가? $k$이 커지면 실제로 어떤 문제가 생기는가?
+
+??? success "연습문제 3 풀이"
+    층마다 앎을 한 뜀씩 퍼뜨리므로 꼭 $k$개가 필요하다. $k$이 커지면 받아들이는 자리가 지수로 넓어진다(마디마다 $k$뜀 안의 모든 마디에서 모은다). 이는 지나친 매끄러워짐을 낳는다. 층이 많아지면 마디마다 거의 온 그래프의 앎을 모았기에 모든 마디 나타냄이 가릴 수 없는 벡터로 모인다. 누그러뜨리는 셈속으로는 남은 이음, 건너뛰는 앎, 그래프 변환기가 있다. $\square$
+
+---
+
+**연습문제 4.**
+그래프 겹말기의 자리 방식과 스펙트럼 방식의 맞바꿈을 따져라. 각각은 어떤 조건에서 더 나은가?
+
+??? success "연습문제 4 풀이"
+    스펙트럼 방법(보기로 ChebNet)은 그래프 라플라스의 고유 분해로 겹말기를 뜻매김해 원리 있는 신호 다루기 틀을 주지만 고유 분해($O(n^3)$)가 필요하고 그래프 위상이 붙박여 있어야 한다. 자리 방법(보기로 GraphSAGE, 그래프 눈길 신경망)은 이웃 모으기로 겹말기를 뜻매김해 달라지는 그래프 얼개를 자연스럽게 다루고 작은 묶음으로 큰 그래프에도 키울 수 있다. 정확한 진동수 거르기가 중요한 작고 위상이 붙박인 그래프에는 스펙트럼 방법이, 귀납 배움이 필요한 크거나 바뀌거나 뒤섞인 그래프에는 자리 방법이 낫다. $\square$

@@ -1,58 +1,58 @@
-# Randomized Selection
+# 마구잡이 고르기
 
-Finding the $k$-th smallest element in an unsorted array is a fundamental problem. Sorting first takes $O(n \log n)$, but selection can be solved faster. **Randomized selection** (also called Randomized-Select or QuickSelect) uses the partitioning idea from quicksort with a random pivot to achieve $O(n)$ expected time — a significant improvement that demonstrates the power of randomization for avoiding worst-case partitions.
+정렬하지 않은 배열에서 $k$번째로 작은 낱개를 찾는 것은 바탕이 되는 문제이다. 먼저 정렬하면 $O(n \log n)$이 들지만 고르기는 더 빨리 풀 수 있다. **마구잡이 고르기**(Randomized-Select이나 QuickSelect이라고도 한다)는 빠른 정렬의 가르기 생각에 아무 축을 써서 기댓값 $O(n)$ 시간을 이룬다. 이는 가장 나쁜 가르기를 피하는 데 마구잡이가 얼마나 힘 있는지 보여 주는 큰 걸음이다.
 
-## Algorithm
+## 알고리즘
 
-Given an array $A[1 \ldots n]$ and a rank $k$ (where $1 \leq k \leq n$), randomized selection works as follows:
+배열 $A[1 \ldots n]$과 차례 $k$($1 \leq k \leq n$)이 주어질 때 마구잡이 고르기는 다음과 같이 된다.
 
-1. If $n = 1$, return $A[1]$.
-2. Choose a pivot index $q$ uniformly at random from $\{1, \ldots, n\}$.
-3. Partition $A$ around $A[q]$. Let $r$ be the rank of the pivot after partitioning.
-4. If $k = r$, return the pivot.
-5. If $k < r$, recurse on the left subarray (elements smaller than the pivot).
-6. If $k > r$, recurse on the right subarray seeking rank $k - r$.
+1. $n = 1$이면 $A[1]$을 돌려준다.
+2. $\{1, \ldots, n\}$에서 축 어깨수 $q$을 고르게 아무렇게나 고른다.
+3. $A[q]$을 가운데 두고 $A$을 가른다. $r$을 가른 뒤 축의 차례라 하자.
+4. $k = r$이면 축을 돌려준다.
+5. $k < r$이면 왼쪽 아래 배열(축보다 작은 낱개)에 되돌이한다.
+6. $k > r$이면 오른쪽 아래 배열에서 차례 $k - r$을 찾아 되돌이한다.
 
-Unlike quicksort, randomized selection recurses on only **one** side of the partition, which is the key to achieving linear expected time.
+빠른 정렬과 달리 마구잡이 고르기는 가른 것의 **한쪽**에만 되돌이하며, 이것이 선형 기댓값 시간을 이루는 열쇠이다.
 
-## Expected Running Time Analysis
+## 기댓값 도는 시간 살피기
 
-Let $T(n)$ denote the expected running time on an input of size $n$. After partitioning (which takes $\Theta(n)$ comparisons), the pivot lands at some rank $r$. By symmetry of the random choice, each rank is equally likely. The algorithm recurses on a subproblem of size $\max(r - 1, n - r)$ in the worst case.
+$T(n)$을 크기 $n$인 들임에서의 기댓값 도는 시간이라 하자. ($\Theta(n)$번 견주는) 가르기 뒤 축이 어떤 차례 $r$에 놓인다. 아무 고르기의 대칭에 따라 차례마다 가능성이 같다. 가장 나쁜 경우 알고리즘은 크기 $\max(r - 1, n - r)$인 아래 문제에 되돌이한다.
 
-For a more precise analysis, observe that a pivot is "good" if it lands in the middle half of the sorted order (ranks $n/4$ through $3n/4$). A good pivot reduces the subproblem size to at most $3n/4$. The probability of a good pivot is $1/2$.
+더 자세히 살피려면 축이 정렬한 차례의 가운데 절반(차례 $n/4$에서 $3n/4$까지)에 놓이면 "좋다"고 보자. 좋은 축은 아래 문제 크기를 많아야 $3n/4$으로 줄인다. 좋은 축이 나올 확률은 $1/2$이다.
 
-The expected number of comparisons before a good pivot is found follows a geometric distribution with mean 2. Each partitioning step costs at most $cn$ comparisons. After a good pivot, the subproblem has size at most $3n/4$. Thus
+좋은 축을 찾기까지의 기댓값 횟수는 평균이 2인 기하 분포를 따른다. 가르기 걸음마다 많아야 $cn$번 견준다. 좋은 축 뒤 아래 문제의 크기는 많아야 $3n/4$이다. 따라서
 
 $$
 E[T(n)] \leq E[T(3n/4)] + E[\text{cost of partitioning steps}]
 $$
 
-The expected partitioning cost per "phase" (until a good pivot is found) is at most $2cn$. This gives
+좋은 축을 찾을 때까지의 "단계"마다 기댓값 가르기 비용은 많아야 $2cn$이다. 이는 다음을 준다.
 
 $$
 E[T(n)] \leq E[T(3n/4)] + 2cn
 $$
 
-Expanding the recurrence,
+되돌이 관계식을 펼치면,
 
 $$
 E[T(n)] \leq 2cn + 2c \cdot \frac{3n}{4} + 2c \cdot \left(\frac{3}{4}\right)^2 n + \cdots = 2cn \sum_{i=0}^{\infty} \left(\frac{3}{4}\right)^i = 8cn
 $$
 
-Therefore $E[T(n)] = O(n)$.
+따라서 $E[T(n)] = O(n)$이다.
 
-## Precise Indicator Variable Analysis
+## 표시 변수로 자세히 살피기
 
-For a tighter constant, define indicator variables. Let $z_1 < z_2 < \cdots < z_n$ be the sorted elements, and suppose we seek rank $k$. Element $z_i$ is compared to the pivot if and only if $z_i$ is the first element chosen as pivot from the set of candidates that separates $z_i$ from $z_k$ (or includes both). The analysis yields
+상수를 더 빡빡하게 하려면 표시 변수를 둔다. $z_1 < z_2 < \cdots < z_n$을 정렬한 낱개라 하고 차례 $k$을 찾는다고 하자. 낱개 $z_i$이 축과 견주어지는 것과 $z_i$이 $z_i$을 $z_k$에서 가르는(또는 둘을 담는) 후보 모임에서 처음 축이 되는 것은 서로 같다. 살피면 다음이 나온다.
 
 $$
 E[\text{comparisons}] \leq 4n
 $$
 
-!!! tip "Single Recursion vs Double Recursion"
-    The key difference from quicksort is that selection recurses on only one subarray. This is why the recurrence sums a geometric series rather than two equal-sized subproblems, yielding $O(n)$ instead of $O(n \log n)$.
+!!! tip "한 번 되돌이와 두 번 되돌이"
+    빠른 정렬과의 핵심 차이는 고르기가 아래 배열 하나에만 되돌이한다는 것이다. 그래서 되돌이 관계식이 크기가 같은 아래 문제 둘이 아니라 등비 급수를 더하게 되어 $O(n \log n)$ 대신 $O(n)$이 나온다.
 
-## Implementation
+## 구현
 
 ```python
 """
@@ -63,7 +63,7 @@ Expected O(n) time via random pivot selection.
 
 import random
 
-# === Partition ===
+# === 나눔 ===
 
 def partition(arr, lo, hi):
     """Lomuto partition scheme around arr[hi]."""
@@ -76,7 +76,7 @@ def partition(arr, lo, hi):
     arr[i], arr[hi] = arr[hi], arr[i]
     return i
 
-# === Randomized Select ===
+# === 마구잡이 고르기 ===
 
 def randomized_select(arr, lo, hi, k):
     """Return the k-th smallest element in arr[lo..hi] (0-indexed k)."""
@@ -93,33 +93,65 @@ def randomized_select(arr, lo, hi, k):
     else:
         return randomized_select(arr, q + 1, hi, k - rank - 1)
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     data = [7, 10, 4, 3, 20, 15]
-    k = 3  # 0-indexed: 4th smallest
+    k = 3  # 0에서 세는 어깨수: 4번째로 작은 것
     result = randomized_select(data[:], 0, len(data) - 1, k)
     print(f"The {k+1}-th smallest element is {result}")
 ```
 
-**Output:**
+**출력:**
 ```
-The 4th smallest element is 10
+4번째로 작은 낱개는 10이다
 ```
 
-## Worst Case and Comparison to Deterministic Selection
+## 가장 나쁜 경우와 정해진 고르기와의 견줌
 
-The worst-case running time of randomized selection is $O(n^2)$, occurring when every pivot is the minimum or maximum. However, this event has exponentially small probability.
+마구잡이 고르기의 가장 나쁜 경우 도는 시간은 $O(n^2)$이며 축이 늘 가장 작거나 가장 클 때 일어난다. 그러나 그럴 확률은 지수만큼 작다.
 
-The deterministic **median-of-medians** algorithm guarantees $O(n)$ worst-case time, but with a larger constant factor (roughly $24n$ comparisons vs $4n$ expected for randomized selection). In practice, randomized selection is faster due to better cache behavior and simpler code.
+정해진 **가운데값의 가운데값** 알고리즘은 가장 나쁜 경우에도 $O(n)$을 보장하지만 상수 갑절이 더 크다(마구잡이 고르기의 기댓값 $4n$번에 견주어 대략 $24n$번 견준다). 실제로는 저장턱 움직임이 낫고 코드가 단순해 마구잡이 고르기가 더 빠르다.
 
-| Algorithm | Expected time | Worst-case time | Practical speed |
+| 알고리즘 | 기댓값 시간 | 가장 나쁜 경우 시간 | 실제 빠르기 |
 |---|---|---|---|
-| Randomized Select | $O(n)$ | $O(n^2)$ | Fast |
-| Median of Medians | $O(n)$ | $O(n)$ | Slower (larger constant) |
-| Sort then index | $O(n \log n)$ | $O(n \log n)$ | Moderate |
+| 마구잡이 고르기 | $O(n)$ | $O(n^2)$ | 빠르다 |
+| 가운데값의 가운데값 | $O(n)$ | $O(n)$ | 더 느리다(상수가 크다) |
+| 정렬 뒤 어깨수로 찾기 | $O(n \log n)$ | $O(n \log n)$ | 보통 |
 
-## Reference
+## 참고 문헌
 
 - Motwani, R. & Raghavan, P. *Randomized Algorithms*. Cambridge University Press, 1995.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L. & Stein, C. *Introduction to Algorithms*. MIT Press, 2022.
+
+## 연습문제
+
+**연습문제 1.**
+마구잡이 고르기의 핵심 마구잡이 재주와 그것이 정해진 방식보다 나은 까닭을 설명하라.
+
+??? success "연습문제 1 풀이"
+    마구잡이 고르기은 마구잡이를 써서 정해진 알고리즘이 마주칠 수 있는 가장 나쁜 들임을 피한다. 아무렇게나 고르므로 알고리즘의 솜씨가 들임의 짜임이 아니라 제 동전 던지기에 달린다. 그래서 모든 들임에 대해 참인 센 기댓값 시간이나 높은 확률의 보장을 흔히 얻으며, 짓궂거나 병리적인 경우를 걱정할 까닭이 없어진다. $\square$
+
+---
+
+**연습문제 2.**
+마구잡이 고르기의 기댓값 시간 복잡도는 얼마인가? 가장 나쁜 경우의 복잡도는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    기댓값 시간 복잡도는 흔히 $O(n)$이나 $O(n \log n)$이며 높은 확률로 이룬다. 가장 나쁜 경우는 다항식만큼 더 나쁠 수 있지만(예컨대 $O(n^2)$) 그럴 확률은 무시할 만큼 작다. 기댓값과 가장 나쁜 경우의 틈이 마구잡이의 값이며, 가장 나쁜 움직임이 일어날 확률은 들임 크기에 따라 지수로 줄어든다. $\square$
+
+---
+
+**연습문제 3.**
+마구잡이 고르기은 라스베이거스 알고리즘인가 몬테카를로 알고리즘인가? 그 차이를 설명하라.
+
+??? success "연습문제 3 풀이"
+    **라스베이거스**: 늘 옳은 결과를 내며 도는 시간이 아무 변수이다(기댓값이 다항식). **몬테카를로**: 늘 다항식 시간에 돌지만 결과가 어떤 가둔 확률로 틀릴 수 있다. 마구잡이 고르기은 옳음을 보장하느냐 도는 시간을 보장하느냐에 따라 이 가운데 하나에 든다. 이 가름이 어긋날 확률을 어떻게 다룰지 정한다. $\square$
+
+---
+
+**연습문제 4.**
+마구잡이 고르기에서 마구잡이를 없애거나 솜씨가 나쁠 확률을 줄이는 법을 설명하라.
+
+??? success "연습문제 4 풀이"
+    방책은 다음과 같다. (1) **거듭 해 보기**: 알고리즘을 여러 번 돌려 가장 좋거나 많은 쪽 결과를 택하면 어긋날 확률이 지수로 줄어든다. (2) **마구잡이 없애기**: 조건부 기댓값이나 흩는 함수 무리로 아무 고르기를 정해진 고르기로 바꾼다. (3) **키우기**: 몬테카를로 알고리즘에서는 $k$번 되풀이해 어긋남을 $2^{-k}$으로 줄인다. (4) **비슷 마구잡이 만들개**: 알고리즘이 보기에 "마구잡이처럼 보이는" 정해진 차례를 쓴다. $\square$

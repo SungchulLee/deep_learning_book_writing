@@ -1,126 +1,157 @@
-# 29.1.2 Graph Representations
+# 29.1.2 그래프 나타내기
+## 들어가며
 
+그래프를 어떻게 나타내느냐가 그래프 알고리즘과 신경망 모델의 효율과 나타냄 힘에 깊이 영향을 준다. 이 마디는 그래프를 나타내는 주요 자료 얼개와 그 수학 성질, 셈의 맞바꿈을 다룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 이웃 목록
 
-## Introduction
-
-The choice of graph representation profoundly affects both the efficiency and expressiveness of graph algorithms and neural network models. This section covers the principal data structures for representing graphs, their mathematical properties, and computational trade-offs.
-
-## Adjacency List
-
-The **adjacency list** representation stores, for each node, a list of its neighbors. For weighted graphs, each neighbor entry also includes the edge weight.
+**이웃 목록** 나타냄은 마디마다 그 이웃 목록을 담는다. 무게 그래프에서는 이웃 칸마다 변 무게도 담는다.
 
 $$\text{adj}[u] = \{(v, w_{uv}) : (u, v) \in E\}$$
 
-**Complexity**:
-- Space: $O(|V| + |E|)$
-- Check if edge exists: $O(d(u))$ where $d(u)$ is the degree of $u$
-- Iterate over neighbors: $O(d(u))$
+**복잡도**:
 
-Adjacency lists are the preferred representation for **sparse graphs** where $|E| \ll |V|^2$.
+- 공간: $O(|V| + |E|)$
+- 변이 있는지 살피기: $d(u)$이 $u$의 차수일 때 $O(d(u))$
+- 이웃 훑기: $O(d(u))$
 
-## Adjacency Matrix
+이웃 목록은 $|E| \ll |V|^2$인 **성긴 그래프**에 즐겨 쓰는 나타냄이다.
 
-The **adjacency matrix** $A \in \mathbb{R}^{|V| \times |V|}$ is defined as:
+## 이웃 행렬
+
+**이웃 행렬** $A \in \mathbb{R}^{|V| \times |V|}$은 다음과 같이 뜻매김된다:
 
 $$A_{ij} = \begin{cases} w_{ij} & \text{if } (i, j) \in E \\ 0 & \text{otherwise} \end{cases}$$
 
-For unweighted graphs, $A_{ij} \in \{0, 1\}$. For undirected graphs, $A$ is symmetric: $A = A^T$.
+무게 없는 그래프에서는 $A_{ij} \in \{0, 1\}$이다. 방향 없는 그래프에서 $A$은 맞섬이다: $A = A^T$.
 
-**Properties of the adjacency matrix**:
-- $A^k_{ij}$ counts the number of walks of length $k$ from node $i$ to node $j$
-- The eigenvalues of $A$ form the **spectrum** of the graph
-- The trace $\text{tr}(A^k)$ counts closed walks of length $k$
+**이웃 행렬의 성질**:
 
-**Complexity**:
-- Space: $O(|V|^2)$
-- Check if edge exists: $O(1)$
-- Iterate over neighbors: $O(|V|)$
+- $A^k_{ij}$은 마디 $i$에서 마디 $j$까지 길이 $k$인 걸음의 개수를 센다
+- $A$의 고윳값이 그래프의 **스펙트럼**을 이룬다
+- 대각합 $\text{tr}(A^k)$은 길이 $k$인 닫힌 걸음의 개수를 센다
 
-## Sparse Matrix Representations
+**복잡도**:
 
-For large sparse graphs, sparse matrix formats save memory and computation.
+- 공간: $O(|V|^2)$
+- 변이 있는지 살피기: $O(1)$
+- 이웃 훑기: $O(|V|)$
 
-### COO (Coordinate) Format
-Stores edges as three arrays: row indices, column indices, and values.
+## 성긴 행렬 나타내기
+
+크고 성긴 그래프에서는 성긴 행렬 꼴이 기억과 셈을 아낀다.
+
+### COO(자리) 꼴
+변을 배열 셋으로 담는다. 줄 번호, 열 번호, 값이다.
 
 $$\text{COO} = (\text{row}[], \text{col}[], \text{val}[])$$
 
-This is the format used by **PyTorch Geometric** for `edge_index`.
+이는 **PyTorch Geometric**이 `edge_index`에 쓰는 꼴이다.
 
-### CSR (Compressed Sparse Row) Format
-Stores the adjacency in a compressed row format using three arrays:
-- `indptr`: Row pointers (length $|V| + 1$)
-- `indices`: Column indices of non-zero entries
-- `data`: Values of non-zero entries
+### CSR(눌러 담은 성긴 줄) 꼴
+배열 셋으로 이웃 관계를 눌러 담은 줄 꼴로 담는다:
 
-**Complexity**: Space $O(|V| + |E|)$, row slicing $O(d(u))$.
+- `indptr`: 줄 가리개(길이 $|V| + 1$)
+- `indices`: 0이 아닌 칸의 열 번호
+- `data`: 0이 아닌 칸의 값
 
-### CSC (Compressed Sparse Column) Format
-Similar to CSR but compressed along columns. Efficient for column-based operations.
+**복잡도**: 공간 $O(|V| + |E|)$, 줄 자르기 $O(d(u))$.
 
-## Edge List
+### CSC(눌러 담은 성긴 열) 꼴
+CSR과 비슷하지만 열을 따라 눌러 담는다. 열 바탕 연산에 효율 좋다.
 
-The **edge list** representation stores edges as a list of tuples:
+## 변 목록
+
+**변 목록** 나타냄은 변을 짝의 목록으로 담는다:
 
 $$\text{edges} = [(u_1, v_1, w_1), (u_2, v_2, w_2), \ldots, (u_m, v_m, w_m)]$$
 
-**Complexity**: Space $O(|E|)$. Efficient for iterating over all edges.
+**복잡도**: 공간 $O(|E|)$. 모든 변을 훑기에 효율 좋다.
 
-## Incidence Matrix
+## 닿음 행렬
 
-The **incidence matrix** $B \in \mathbb{R}^{|V| \times |E|}$ relates nodes to edges:
+**닿음 행렬** $B \in \mathbb{R}^{|V| \times |E|}$은 마디와 변을 잇는다:
 
-For undirected graphs:
+방향 없는 그래프에서는:
 
 $$B_{ve} = \begin{cases} 1 & \text{if node } v \text{ is an endpoint of edge } e \\ 0 & \text{otherwise} \end{cases}$$
 
-For directed graphs:
+방향 그래프에서는:
 
 $$B_{ve} = \begin{cases} +1 & \text{if edge } e \text{ leaves node } v \\ -1 & \text{if edge } e \text{ enters node } v \\ 0 & \text{otherwise} \end{cases}$$
 
-The **graph Laplacian** can be expressed as $L = B B^T$ for undirected graphs.
+방향 없는 그래프에서 **그래프 라플라스**를 $L = B B^T$으로 적을 수 있다.
 
-## PyTorch Geometric Representation
+## PyTorch Geometric의 나타내기
 
-PyTorch Geometric (PyG) uses a specific representation optimized for GPU computation:
+PyTorch Geometric(PyG)은 GPU 셈에 맞춘 나타냄을 쓴다:
 
-- **`edge_index`**: A `[2, num_edges]` tensor in COO format. `edge_index[0]` contains source nodes and `edge_index[1]` contains target nodes.
-- **`x`**: Node feature matrix of shape `[num_nodes, num_node_features]`
-- **`edge_attr`**: Edge feature matrix of shape `[num_edges, num_edge_features]`
+- **`edge_index`**: COO 꼴의 `[2, num_edges]` 텐서. `edge_index[0]`은 출발 마디, `edge_index[1]`은 도착 마디를 담는다.
+- **`x`**: 꼴이 `[num_nodes, num_node_features]`인 마디 특징 행렬
+- **`edge_attr`**: 꼴이 `[num_edges, num_edge_features]`인 변 특징 행렬
 
-This representation is batching-friendly and supports efficient message passing on GPUs.
+이 나타냄은 묶기에 친하고 GPU에서 효율 좋은 쪽지 건네기를 받쳐 준다.
 
-## Comparison of Representations
+## 나타내기 견주기
 
-| Representation | Space | Edge Lookup | Neighbor Iteration | Best For |
+| 나타냄 | 공간 | 변 찾기 | 이웃 훑기 | 알맞은 곳 |
 |----------------|-------|-------------|-------------------|----------|
-| Adjacency List | $O(V + E)$ | $O(d)$ | $O(d)$ | Sparse graphs |
-| Adjacency Matrix | $O(V^2)$ | $O(1)$ | $O(V)$ | Dense, spectral methods |
-| Sparse COO | $O(E)$ | $O(E)$ | $O(E)$ | GPU computation, PyG |
-| Sparse CSR | $O(V + E)$ | $O(\log d)$ | $O(d)$ | Row-based operations |
-| Edge List | $O(E)$ | $O(E)$ | $O(E)$ | Edge-centric algorithms |
-| Incidence Matrix | $O(V \cdot E)$ | $O(1)$ | $O(E)$ | Theoretical analysis |
+| 이웃 목록 | $O(V + E)$ | $O(d)$ | $O(d)$ | 성긴 그래프 |
+| 이웃 행렬 | $O(V^2)$ | $O(1)$ | $O(V)$ | 빽빽한 그래프, 스펙트럼 방법 |
+| 성긴 COO | $O(E)$ | $O(E)$ | $O(E)$ | GPU 셈, PyG |
+| 성긴 CSR | $O(V + E)$ | $O(\log d)$ | $O(d)$ | 줄 바탕 연산 |
+| 변 목록 | $O(E)$ | $O(E)$ | $O(E)$ | 변 중심 알고리즘 |
+| 닿음 행렬 | $O(V \cdot E)$ | $O(1)$ | $O(E)$ | 이론으로 살피기 |
 
-## Conversion Between Representations
+## 나타내기 사이의 바꿈
 
-Converting between representations is a common operation:
+나타냄 사이를 바꾸는 것은 흔한 연산이다:
 
-- **Adjacency List → Matrix**: Fill matrix entries from neighbor lists, $O(|V| + |E|)$
-- **Matrix → Edge List**: Iterate non-zero entries, $O(|V|^2)$ for dense, $O(|E|)$ for sparse
-- **Edge List → COO**: Direct mapping of source and target arrays
+- **이웃 목록 → 행렬**: 이웃 목록에서 행렬 칸을 채운다, $O(|V| + |E|)$
+- **행렬 → 변 목록**: 0이 아닌 칸을 훑는다. 빽빽하면 $O(|V|^2)$, 성기면 $O(|E|)$
+- **변 목록 → COO**: 출발과 도착 배열을 곧바로 옮긴다
 
-## Quantitative Finance Considerations
+## 계량 금융에서 살필 것
 
-In financial applications, the choice of representation matters:
+금융 쓰임새에서 나타냄을 어떻게 고르느냐가 중요하다:
 
-- **Correlation matrices** are naturally dense → adjacency matrix or numpy/scipy operations
-- **Transaction networks** are typically sparse → adjacency list or COO format
-- **Order book graphs** change dynamically → efficient update operations favor adjacency lists
-- **Large-scale interbank networks** → sparse formats for scalability
+- **얽힘 행렬**은 본디 빽빽하다 → 이웃 행렬이나 numpy/scipy 연산
+- **거래 그물**은 보통 성기다 → 이웃 목록이나 COO 꼴
+- **호가창 그래프**는 그때그때 바뀐다 → 효율 좋은 고침 연산에는 이웃 목록이 낫다
+- **큰 규모의 은행 사이 그물** → 키울 수 있도록 성긴 꼴
 
-## Summary
+## 요약
 
-Graph representation is not merely a data structure choice but a computational design decision that impacts model performance, memory usage, and algorithmic capabilities. Modern GNN frameworks like PyTorch Geometric use COO-based sparse representations to balance flexibility and GPU efficiency.
+그래프 나타내기는 자료 얼개를 고르는 일에 그치지 않고 모델 성능, 기억 쓰임, 알고리즘의 힘에 영향을 주는 셈 설계의 결정이다. PyTorch Geometric 같은 요즘 그래프 신경망 틀은 너그러움과 GPU 효율의 균형을 잡으려 COO 바탕 성긴 나타냄을 쓴다.
+
+## 연습문제
+
+**연습문제 1.**
+마디 5개와 돌이의 이웃 얼개를 가진 그래프를 살펴보자. 2차원 특징 벡터에서 이 마디에 적은 쪽지 건네기 고침 한 걸음을 손으로 셈하라.
+
+??? success "연습문제 1 풀이"
+    마디 $1, \ldots, 5$에 특징 벡터 $\mathbf{h}_i \in \mathbb{R}^2$을 붙인다. 돌이에서 마디마다 이웃이 꼭 둘이다. 마디마다 모으기(보기로 이웃의 평균)와 고침(보기로 선형 바꿈과 깨움)을 쓴다. 한 걸음 뒤 마디마다의 나타냄이 바로 옆 이웃의 영향을 받는다. 이 드러난 셈은 받아들이는 자리가 층마다 한 뜀씩 넓어짐을 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+평균 모으기와 합 모으기가 여럿 모임을 가르는 나타냄 힘에서 다름을 밝혀라. 평균 모으기로는 가릴 수 없지만 합 모으기로는 가릴 수 있는 여럿 모임 둘의 구체적인 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    $S_1 = \{1, 1, 1\}$과 $S_2 = \{1\}$을 살펴보자. 평균 모으기는 $\text{mean}(S_1) = 1 = \text{mean}(S_2)$을 주어 둘을 가르지 못한다. 합 모으기는 $\text{sum}(S_1) = 3 \neq 1 = \text{sum}(S_2)$을 준다. 더 넓게는 평균 모으기가 여럿 모임의 겹침 수에 대해 불변이므로 서로 낱값 배인 여럿 모임을 가를 수 없다. 그래서 그래프 동형 신경망은 1차 바이스파일러-레만 시험에 맞먹는 최대 나타냄 힘을 얻으려 합 모으기를 쓴다. $\square$
+
+---
+
+**연습문제 3.**
+최단 길 거리가 $k$일 때 마디 $u$의 앎이 마디 $v$에 닿으려면 쪽지 건네기 층이 몇 개 필요한가? $k$이 커지면 실제로 어떤 문제가 생기는가?
+
+??? success "연습문제 3 풀이"
+    층마다 앎을 한 뜀씩 퍼뜨리므로 꼭 $k$개가 필요하다. $k$이 커지면 받아들이는 자리가 지수로 넓어진다(마디마다 $k$뜀 안의 모든 마디에서 모은다). 이는 지나친 매끄러워짐을 낳는다. 층이 많아지면 마디마다 거의 온 그래프의 앎을 모았기에 모든 마디 나타냄이 가릴 수 없는 벡터로 모인다. 누그러뜨리는 셈속으로는 남은 이음, 건너뛰는 앎, 그래프 변환기가 있다. $\square$
+
+---
+
+**연습문제 4.**
+그래프 겹말기의 자리 방식과 스펙트럼 방식의 맞바꿈을 따져라. 각각은 어떤 조건에서 더 나은가?
+
+??? success "연습문제 4 풀이"
+    스펙트럼 방법(보기로 ChebNet)은 그래프 라플라스의 고유 분해로 겹말기를 뜻매김해 원리 있는 신호 다루기 틀을 주지만 고유 분해($O(n^3)$)가 필요하고 그래프 위상이 붙박여 있어야 한다. 자리 방법(보기로 GraphSAGE, 그래프 눈길 신경망)은 이웃 모으기로 겹말기를 뜻매김해 달라지는 그래프 얼개를 자연스럽게 다루고 작은 묶음으로 큰 그래프에도 키울 수 있다. 정확한 진동수 거르기가 중요한 작고 위상이 붙박인 그래프에는 스펙트럼 방법이, 귀납 배움이 필요한 크거나 바뀌거나 뒤섞인 그래프에는 자리 방법이 낫다. $\square$

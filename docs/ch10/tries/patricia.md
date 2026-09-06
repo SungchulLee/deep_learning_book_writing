@@ -1,38 +1,71 @@
-# Compressed Tries (Patricia Tries)
+# 눌러 담은 트라이 (패트리샤 트라이)
 
-A standard trie can waste significant space when long strings share no common prefixes, because each character occupies its own node. A **compressed trie** (also called a **Patricia trie** or **radix tree**) eliminates this waste by merging chains of single-child nodes into a single edge labeled with the entire character sequence. This reduces the number of nodes from $O(\text{total characters})$ to $O(n)$, where $n$ is the number of stored strings.
+표준 트라이는 글자마다 노드를 하나씩 차지하므로 긴 문자열이 공통 접두사를 나누어 갖지 않을 때 공간을 크게 버릴 수 있다. **눌러 담은 트라이**(**패트리샤 트라이** 또는 **기수 트리**라고도 한다)는 자식이 하나뿐인 노드의 사슬을 글자 수열 전체를 이름표로 단 변 하나로 합쳐 이 낭비를 없앤다. 그러면 노드의 수가 $O(\text{전체 글자 수})$에서, 담긴 문자열의 수를 $n$이라 할 때 $O(n)$으로 준다.
 
-## Motivation
+## 왜 필요한가
 
-In a standard trie storing the words `{"romane", "romanus", "romulus", "rubens"}`, the path from the root through `r-o-m` consists of nodes with only one child each. A compressed trie collapses such chains into single edges, storing the substring on the edge label rather than spreading it across multiple nodes.
+낱말 `{"romane", "romanus", "romulus", "rubens"}`을 담은 표준 트라이에서 뿌리를 지나 `r-o-m`으로 가는 경로는 저마다 자식이 하나뿐인 노드로 이루어진다. 눌러 담은 트라이는 그런 사슬을 변 하나로 접어, 부분 문자열을 여러 노드에 펼치는 대신 변의 이름표에 담는다.
 
-## Structure
+## 구조
 
-Each edge in a compressed trie is labeled with a **string** (not just a single character). Internal nodes exist only at branching points -- positions where two or more stored strings diverge. This guarantees that every internal node has at least two children.
+눌러 담은 트라이의 변마다 (글자 하나가 아니라) **문자열**이 이름표로 붙는다. 내부 노드는 갈림점, 곧 담긴 문자열이 둘 이상 갈라지는 자리에만 있다. 그래서 내부 노드마다 자식이 적어도 둘임이 보장된다.
 
-**Key property**: A compressed trie storing $n$ strings has at most $2n - 1$ nodes (at most $n$ leaves and $n - 1$ internal nodes).
+**핵심 성질**: 문자열 $n$개를 담은 눌러 담은 트라이는 노드가 많아야 $2n - 1$개이다 (잎이 많아야 $n$개, 내부 노드가 $n - 1$개).
 
-## Operations
+## 연산
 
-Insertion, search, and deletion work similarly to a standard trie but must handle string-labeled edges:
+삽입과 찾기와 삭제는 표준 트라이와 비슷하게 돌지만 문자열 이름표가 붙은 변을 다루어야 한다.
 
-- **Search**: At each node, find the outgoing edge whose label is a prefix of the remaining query. If no such edge exists, the query is not in the trie.
-- **Insert**: Follow the query as far as possible. If the query diverges mid-edge, **split** the edge at the divergence point by introducing a new internal node.
-- **Delete**: Remove the leaf node. If its parent becomes a single-child internal node, merge the parent with its remaining child.
+- **찾기**: 노드마다 이름표가 남은 질의의 접두사인 나가는 변을 찾는다. 그런 변이 없으면 그 질의는 트라이에 없다.
+- **삽입**: 질의를 갈 수 있는 데까지 따라간다. 질의가 변 도중에 갈라지면 새 내부 노드를 넣어 그 갈림점에서 변을 **쪼갠다**.
+- **삭제**: 잎 노드를 없앤다. 그 부모가 자식이 하나뿐인 내부 노드가 되면 부모를 남은 자식과 합친다.
 
-## Complexity
+## 복잡도
 
-| Operation | Time | Space |
+| 연산 | 시간 | 공간 |
 |:---|:---:|:---:|
-| Search | $O(m)$ | -- |
-| Insert | $O(m)$ | $O(m)$ |
-| Delete | $O(m)$ | -- |
+| 찾기 | $O(m)$ | — |
+| 삽입 | $O(m)$ | $O(m)$ |
+| 삭제 | $O(m)$ | — |
 
-Here $m$ is the length of the query string. The overall space for $n$ strings of total length $L$ is $O(n + L)$ when edge labels are stored as substring references, compared to $O(L \cdot |\Sigma|)$ for a standard trie.
+여기서 $m$은 질의 문자열의 길이이다. 변의 이름표를 부분 문자열 참조로 담으면 전체 길이가 $L$인 문자열 $n$개의 전체 공간은 $O(n + L)$이며, 표준 트라이의 $O(L \cdot |\Sigma|)$과 견줄 만하다.
 
-!!! tip "When to Use Compressed Tries"
-    Compressed tries are most beneficial when the stored strings are long and share moderate prefixes. They are widely used in IP routing tables, dictionaries, and file system path lookups where memory efficiency matters.
+!!! tip "언제 눌러 담은 트라이를 쓰는가"
+    눌러 담은 트라이는 담긴 문자열이 길고 접두사를 어지간히 나누어 가질 때 가장 이롭다. 기억을 아껴야 하는 IP 경로 표, 사전, 파일 시스템 경로 찾기에 널리 쓰인다.
 
-## References
+## 참고 문헌
 
 [Introduction to Algorithms (CLRS), Chapter 14](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+눌러 담은 트라이(패트리샤 트라이)의 짜임을 설명하고 질의와 갱신의 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 짜임은 위계적 분해를 이용해 일차보다 빠른 질의 시간을 이룬다. 대개 질의와 갱신이 모두 $O(\log n)$이고 세우는 데 $O(n)$이나 $O(n\log n)$이 든다.
+
+---
+
+**연습문제 2.**
+입력 $[3, 1, 4, 1, 5, 9, 2, 6]$으로 눌러 담은 트라이(패트리샤 트라이)를 세워라. 마지막 짜임을 보여라.
+
+??? success "연습문제 2 풀이"
+    세우기 알고리즘을 적용하며 중간 상태를 보여라. 트리 짜임이면 트리를 그려라. 배열에 바탕한 짜임이면 부모-자식 관계를 덧붙여 배열의 내용을 보여라.
+
+---
+
+**연습문제 3.**
+질의 연산이 올바른 어떤 질의 범위에 대해서도 옳은 결과를 돌려줌을 증명하라.
+
+??? success "연습문제 3 풀이"
+    증명에는 대개 트리의 높이에 대한 귀납법을 쓴다. 노드마다 질의가 한 부분 트리 안에 온전히 들거나(재귀한다) 두 부분 트리에 걸친다(부분 결과를 모은다). 모으는 함수(합, 최솟값, 최댓값)가 결합적이므로 올바로 모아진다. $\square$
+
+---
+
+**연습문제 4.**
+눌러 담은 트라이(패트리샤 트라이)가 질의마다의 계산을 $O(n)$에서 $O(\log n)$으로 빠르게 하는 딥러닝 응용을 설명하라.
+
+??? success "연습문제 4 풀이"
+    응용으로는 누적 어텐션 가중치를 위한 접두사 합 질의, 길이가 제각각인 수열에서 효율적인 풀링을 위한 범위 질의, 검색 증강 생성을 위한 최근접 이웃 찾기, 3차원 딥러닝의 점 구름 처리를 위한 공간 색인이 있다.

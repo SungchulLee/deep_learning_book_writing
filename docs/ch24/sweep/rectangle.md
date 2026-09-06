@@ -1,64 +1,51 @@
-# Rectangle Union Area
+# 직사각형 합집합 넓이
 
-Computing the total area covered by a set of axis-aligned rectangles is a
-classic application of the sweep-line paradigm. Overlapping regions must be
-counted only once, so simply summing individual areas gives the wrong answer.
-A sweep-line combined with a segment tree (or simpler coordinate compression)
-computes the exact union area in $O(n \log n)$ time.
+축에 나란한 직사각형 모임이 덮는 온 넓이를 셈하는 것은 훑는 선 틀의 옛부터의 쓰임새이다. 겹치는 자리는 한 번만 세어야 하므로 낱낱의 넓이를 그냥 더하면 틀린 답이 나온다. 훑는 선을 구간 나무(또는 더 단순한 자리값 누르기)와 아우르면 온전한 합집합 넓이를 $O(n \log n)$ 시간에 셈한다.
 
-## Problem Statement
+## 문제 서술
 
-Given $n$ axis-aligned rectangles, each defined by its lower-left corner
-$(x_1, y_1)$ and upper-right corner $(x_2, y_2)$, compute the total area
-of their union.
+왼쪽 아래 모서리 $(x_1, y_1)$과 오른쪽 위 모서리 $(x_2, y_2)$으로 뜻매김한 축에 나란한 직사각형 $n$개가 주어질 때 그 합집합의 온 넓이를 셈하라.
 
-## Sweep-Line Strategy
+## 훑는 선 방책
 
-Sweep a vertical line from left to right. At each $x$-coordinate where a
-rectangle starts or ends, the set of active $y$-intervals changes.
+세로선을 왼쪽에서 오른쪽으로 훑는다. 직사각형이 시작하거나 끝나는 $x$자리값마다 살아 있는 $y$구간의 모임이 바뀐다.
 
-1. **Events:** For each rectangle, create two events:
-    - **Left edge** at $x = x_1$: add interval $[y_1, y_2]$.
-    - **Right edge** at $x = x_2$: remove interval $[y_1, y_2]$.
-2. **Sort** events by $x$-coordinate.
-3. **Between events:** The total covered length along the $y$-axis
-   (the union of active intervals) multiplied by $\Delta x$ gives the
-   area contribution.
+1. **사건:** 직사각형마다 사건 둘을 만든다.
+    - $x = x_1$의 **왼쪽 모서리**: 구간 $[y_1, y_2]$을 더한다.
+    - $x = x_2$의 **오른쪽 모서리**: 구간 $[y_1, y_2]$을 뺀다.
+2. 사건을 $x$자리값으로 **정렬한다**.
+3. **사건 사이:** $y$축을 따라 덮인 온 길이(살아 있는 구간의 합집합)에 $\Delta x$을 곱하면 넓이 몫이 된다.
 
-The key subproblem is maintaining the union length of active $y$-intervals
-efficiently. A segment tree achieves $O(\log n)$ per update.
+핵심 아래 문제는 살아 있는 $y$구간의 합집합 길이를 효율 좋게 지키는 것이다. 구간 나무는 고칠 때마다 $O(\log n)$을 이룬다.
 
-## Coordinate Compression
+## 자리값 누르기
 
-!!! tip "Reducing to Discrete Coordinates"
-    Since we only care about $y$-values that appear as rectangle boundaries,
-    we compress the $y$-coordinates to indices $0, 1, \ldots, m-1$ where $m$
-    is the number of distinct $y$-values. Each "cell" in the compressed grid
-    represents an interval between consecutive $y$-values.
+!!! tip "띄엄띄엄한 자리값으로 줄이기"
+    직사각형 가장자리로 나타나는 $y$값만 살피면 되므로 $y$자리값을 어깨수 $0, 1, \ldots, m-1$으로 누른다. 여기서 $m$은 서로 다른 $y$값의 수이다. 누른 격자의 각 "칸"은 잇닿은 $y$값 사이의 구간을 나타낸다.
 
-## Complexity
+## 복잡도
 
-| Component | Time |
+| 부품 | 시간 |
 |---|---|
-| Sorting events | $O(n \log n)$ |
-| Processing $2n$ events | $O(n \log n)$ with segment tree |
-| **Total** | $O(n \log n)$ |
+| 사건 정렬하기 | $O(n \log n)$ |
+| 사건 $2n$개 다루기 | 구간 나무로 $O(n \log n)$ |
+| **전체** | $O(n \log n)$ |
 
-Space: $O(n)$.
+자리: $O(n)$.
 
-## Worked Example
+## 풀이 예제
 
-Three rectangles:
-- $R_1$: $(1,1)$ to $(4,3)$ — area $= 6$
-- $R_2$: $(2,2)$ to $(5,5)$ — area $= 9$
-- $R_3$: $(3,0)$ to $(6,2)$ — area $= 6$
+직사각형 셋:
 
-Sum of individual areas $= 21$, but the union area is smaller due to overlaps.
+- $R_1$: $(1,1)$에서 $(4,3)$까지 — 넓이 $= 6$
+- $R_2$: $(2,2)$에서 $(5,5)$까지 — 넓이 $= 9$
+- $R_3$: $(3,0)$에서 $(6,2)$까지 — 넓이 $= 6$
 
-Events sorted by $x$: $x=1$ (add $R_1$), $x=2$ (add $R_2$), $x=3$ (add $R_3$),
-$x=4$ (remove $R_1$), $x=5$ (remove $R_2$), $x=6$ (remove $R_3$).
+낱낱의 넓이 합은 $= 21$이지만 겹침 때문에 합집합 넓이는 더 작다.
 
-| $x$-interval | Active intervals on $y$ | Union length | $\Delta x$ | Area |
+$x$으로 정렬한 사건: $x=1$($R_1$ 더하기), $x=2$($R_2$ 더하기), $x=3$($R_3$ 더하기), $x=4$($R_1$ 빼기), $x=5$($R_2$ 빼기), $x=6$($R_3$ 빼기).
+
+| $x$구간 | $y$의 살아 있는 구간 | 합집합 길이 | $\Delta x$ | 넓이 |
 |---|---|---|---|---|
 | $[1,2)$ | $[1,3]$ | $2$ | $1$ | $2$ |
 | $[2,3)$ | $[1,3] \cup [2,5]$ = $[1,5]$ | $4$ | $1$ | $4$ |
@@ -66,62 +53,62 @@ $x=4$ (remove $R_1$), $x=5$ (remove $R_2$), $x=6$ (remove $R_3$).
 | $[4,5)$ | $[2,5] \cup [0,2]$ = $[0,5]$ | $5$ | $1$ | $5$ |
 | $[5,6)$ | $[0,2]$ | $2$ | $1$ | $2$ |
 
-Union area $= 2 + 4 + 5 + 5 + 2 = 18$.
+합집합 넓이 $= 2 + 4 + 5 + 5 + 2 = 18$.
 
-## Implementation
+## 구현
 
 ```python
 """
-Rectangle union area via sweep line with coordinate compression.
+자리값 누르기를 갖춘 훑는 선으로 구한 직사각형 합집합 넓이.
 
-Sweeps left to right, maintaining a count array over compressed
-y-intervals to compute the total covered y-length at each step.
+왼쪽에서 오른쪽으로 훑으며 누른 y구간에 대한 세는 배열을 지켜
+걸음마다 덮인 온 y 길이를 셈한다.
 """
 
 
-# === Sweep-Line Rectangle Union ===
+# === 훑는 선 직사각형 합집합 ===
 
 def rectangle_union_area(rectangles):
-    """Compute the area of the union of axis-aligned rectangles.
+    """축에 나란한 직사각형 합집합의 넓이를 셈한다.
 
-    Args:
-        rectangles: list of (x1, y1, x2, y2) tuples.
+    인수:
+        rectangles: (x1, y1, x2, y2) 짝의 목록.
 
-    Returns:
-        Total union area.
+    반환값:
+        온 합집합 넓이.
     """
     if not rectangles:
         return 0
 
-    # Collect events
+    # 사건을 모은다
     events = []
     ys = set()
     for x1, y1, x2, y2 in rectangles:
-        events.append((x1, 0, y1, y2))  # 0 = left edge (add)
-        events.append((x2, 1, y1, y2))  # 1 = right edge (remove)
+        events.append((x1, 0, y1, y2))  # 0 = 왼쪽 모서리(더하기)
+        events.append((x2, 1, y1, y2))  # 1 = 오른쪽 모서리(빼기)
         ys.add(y1)
         ys.add(y2)
 
     events.sort()
     ys = sorted(ys)
     y_index = {y: i for i, y in enumerate(ys)}
-    m = len(ys) - 1  # number of intervals
+    m = len(ys) - 1  # 구간의 수
 
-    # Count array: how many rectangles cover each y-interval
+    # 세는 배열: y구간마다 직사각형 몇 개가 덮는가
     count = [0] * m
 
     total_area = 0.0
     prev_x = events[0][0]
 
     for x, etype, y1, y2 in events:
-        # Compute covered y-length
+        # 덮인 y 길이를 셈한다
         covered = sum(
             ys[i + 1] - ys[i] for i in range(m) if count[i] > 0
         )
         total_area += covered * (x - prev_x)
         prev_x = x
 
-        # Update counts
+        # 셈 고치기
         lo = y_index[y1]
         hi = y_index[y2]
         delta = 1 if etype == 0 else -1
@@ -131,7 +118,7 @@ def rectangle_union_area(rectangles):
     return total_area
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     rects = [
@@ -146,16 +133,16 @@ if __name__ == "__main__":
         print(f"  ({r[0]},{r[1]}) to ({r[2]},{r[3]})")
     print(f"Union area: {area}")
 
-    # Non-overlapping rectangles
+    # 겹치지 않는 직사각형
     rects2 = [(0, 0, 1, 1), (2, 2, 3, 3)]
     print(f"\nNon-overlapping: area = {rectangle_union_area(rects2)}")
 
-    # Fully overlapping rectangles
+    # 온전히 겹치는 직사각형
     rects3 = [(0, 0, 4, 4), (1, 1, 3, 3)]
     print(f"Fully overlapping: area = {rectangle_union_area(rects3)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Rectangles:
   (1,1) to (4,3)
@@ -167,18 +154,48 @@ Non-overlapping: area = 2.0
 Fully overlapping: area = 16.0
 ```
 
-## Optimization with Segment Tree
+## 구간 나무로 가장 좋게 하기
 
-The simple implementation above recomputes the covered length in $O(m)$
-per event, giving $O(nm)$ total. For large inputs, replace the count
-array with a segment tree that maintains:
+위의 단순한 짜기는 사건마다 덮인 길이를 $O(m)$에 다시 셈하므로 모두 $O(nm)$이다. 들임이 크면 세는 배열을 다음을 지키는 구간 나무로 바꾼다.
 
-- **count[node]:** number of full covers of this interval
-- **covered[node]:** total length of covered sub-intervals
+- **count[node]:** 이 구간을 온전히 덮은 수
+- **covered[node]:** 덮인 아래 구간의 온 길이
 
-Each update runs in $O(\log m)$, reducing the total to $O(n \log n)$.
+고칠 때마다 $O(\log m)$이 들어 모두 $O(n \log n)$으로 줄어든다.
 
-## Reference
+## 참고 문헌
 
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer.
 - Bentley, J. L. "Algorithms for Klee's Rectangle Problems." Unpublished manuscript, 1977.
+
+## 연습문제
+
+**연습문제 1.**
+직사각형 합집합 넓이의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    직사각형 합집합 넓이은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 직사각형 합집합 넓이을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+직사각형 합집합 넓이은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+직사각형 합집합 넓이을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 직사각형 합집합 넓이은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

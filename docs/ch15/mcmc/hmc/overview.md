@@ -1,298 +1,309 @@
-# Hamiltonian Monte Carlo
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Hamiltonian Monte Carlo (HMC) is one of the most powerful MCMC algorithms for sampling from continuous distributions. By borrowing ideas from classical mechanics, HMC achieves dramatically better exploration than random-walk methods, especially in high dimensions. This section develops the complete theory: Hamiltonian dynamics, phase space geometry, the leapfrog integrator, geometric interpretations, energy conservation, and why HMC can take multiple steps while Langevin cannot.
+# 해밀턴 몬테카를로
+해밀턴 몬테카를로(HMC)는 이어진 분포에서 표집하는 가장 힘센 MCMC 알고리즘 가운데 하나이다. 고전 역학의 생각을 빌려 와 HMC은 무작위 걸음 방법보다, 특히 차원이 높을 때, 훨씬 잘 살펴본다. 이 절에서는 온전한 이론을 펼친다. 곧 해밀턴 움직임, 위상 공간 기하, 개구리뜀 적분기, 기하로 풀이하기, 에너지 지킴, 그리고 랑주뱅은 못 하는데 HMC은 왜 여러 걸음을 뗄 수 있는지를 다룬다.
 
 ---
 
-## Why HMC Matters
+## HMC이 왜 중요한가
 
-### The Random-Walk Problem
+### 무작위 걸음 문제
 
-Standard Metropolis-Hastings proposes new states via random perturbations. In $d$ dimensions, the optimal proposal scale shrinks as $O(d^{-1/2})$, yielding distance traveled per step of $O(d^{-1/2})$. After $N$ steps, the chain has moved only $O(\sqrt{N} \cdot d^{-1/2})$ from its starting point—**diffusive** exploration that slows dramatically with dimension.
+표준 메트로폴리스-헤이스팅스는 무작위로 흔들어 새 상태를 내놓는다. $d$차원에서 최적 제안 규모는 $O(d^{-1/2})$으로 오그라들어 걸음마다 나아가는 거리가 $O(d^{-1/2})$이 된다. 걸음 $N$개 뒤에 사슬은 시작점에서 겨우 $O(\sqrt{N} \cdot d^{-1/2})$만큼 움직인다. 곧 차원이 커지면 크게 느려지는 **퍼짐꼴** 살펴보기이다.
 
-For Bayesian posterior inference in quantitative finance—where models routinely have hundreds of correlated parameters (stochastic volatility surfaces, multi-factor term structure models, hierarchical portfolio models)—random-walk MCMC becomes computationally infeasible.
+모형이 으레 서로 얽힌 매개변수를 수백 개 갖는 계량 금융의 베이즈 뒤확률 추론(확률 변동성 면, 여러 인자 기간 구조 모형, 층 포트폴리오 모형)에서는 무작위 걸음 MCMC이 셈으로 감당할 수 없게 된다.
 
-### HMC's Solution: Physics-Guided Proposals
+### HMC의 풀이: 물리가 이끄는 제안
 
-HMC introduces **auxiliary momentum variables** and simulates Hamiltonian dynamics from classical mechanics. The key insight is that by treating the negative log-posterior as a potential energy landscape, we can use deterministic physics to propose distant, high-probability states:
+HMC은 **도움 운동량 변수**를 들여와 고전 역학의 해밀턴 움직임을 흉내 낸다. 핵심 통찰은 로그 뒤확률의 음수를 퍼텐셜 에너지 지형으로 여기면, 정해진 물리를 써서 멀리 있으면서도 확률이 높은 상태를 내놓을 수 있다는 것이다:
 
 $$
-
 H(\mathbf{x}, \mathbf{v}) = \underbrace{U(\mathbf{x})}_{\text{potential}} + \underbrace{K(\mathbf{v})}_{\text{kinetic}} = -\log \tilde{p}(\mathbf{x}) + \frac{1}{2}\mathbf{v}^\top \mathbf{M}^{-1}\mathbf{v}
-
 $$
 
-The resulting **ballistic** motion covers distance $\propto L\epsilon$ (vs $\propto \sqrt{L\epsilon}$ for random walks), enabling efficient exploration of complex posteriors.
+이렇게 얻은 **탄도** 움직임은 거리 $\propto L\epsilon$을 지나가므로(무작위 걸음의 $\propto \sqrt{L\epsilon}$과 견주어) 복잡한 뒤확률을 효율적으로 살펴볼 수 있다.
 
 ---
 
-## The Hamiltonian Framework
+## 해밀턴 얼개
 
-### Augmenting the State Space
+### 상태 공간 넓히기
 
-HMC introduces **auxiliary momentum variables** $\mathbf{v}$ and defines the Hamiltonian:
+HMC은 **도움 운동량 변수** $\mathbf{v}$을 들여와 해밀턴 함수를 다음과 같이 정한다:
 
 $$
-
 H(\mathbf{x}, \mathbf{v}) = U(\mathbf{x}) + K(\mathbf{v})
-
 $$
 
-where:
+여기서 각 기호는 다음과 같다.
 
-- **Potential energy**: $U(\mathbf{x}) = -\log \tilde{p}(\mathbf{x})$ (negative log-density of the target)
-- **Kinetic energy**: $K(\mathbf{v}) = \frac{1}{2}\mathbf{v}^\top \mathbf{M}^{-1}\mathbf{v}$ (quadratic in momentum)
-- **Mass matrix**: $\mathbf{M}$ is a positive definite matrix (often diagonal or the identity)
+- **퍼텐셜 에너지**: $U(\mathbf{x}) = -\log \tilde{p}(\mathbf{x})$(과녁의 로그 밀도의 음수)
+- **운동 에너지**: $K(\mathbf{v}) = \frac{1}{2}\mathbf{v}^\top \mathbf{M}^{-1}\mathbf{v}$(운동량의 이차식)
+- **질량 행렬**: $\mathbf{M}$은 양의 정부호 행렬이다(흔히 대각 행렬이나 항등 행렬)
 
-### The Joint Distribution
+### 결합 분포
 
-The joint distribution on $(\mathbf{x}, \mathbf{v})$ is:
+$(\mathbf{x}, \mathbf{v})$의 결합 분포는 다음과 같다:
 
 $$
-
 \pi(\mathbf{x}, \mathbf{v}) \propto \exp(-H(\mathbf{x}, \mathbf{v})) = \exp(-U(\mathbf{x})) \exp(-K(\mathbf{v}))
-
 $$
 
-This factorizes:
+이는 다음처럼 인수로 나뉜다:
 
 $$
-
 \pi(\mathbf{x}, \mathbf{v}) = \pi(\mathbf{x}) \cdot \mathcal{N}(\mathbf{v}; \mathbf{0}, \mathbf{M})
-
 $$
 
-**Key property**: Marginalizing over $\mathbf{v}$ recovers the target $\pi(\mathbf{x})$. The momentum variables are purely auxiliary—they enable the dynamics but carry no information about the target.
+**핵심 성질**: $\mathbf{v}$에 걸쳐 주변으로 만들면 과녁 $\pi(\mathbf{x})$이 되돌아온다. 운동량 변수는 순전히 도움 변수여서 움직임을 가능하게 할 뿐 과녁에 대한 정보를 담지 않는다.
 
-### Hamilton's Equations
+### 해밀턴 방정식
 
-The dynamics are governed by Hamilton's equations:
+움직임은 해밀턴 방정식이 다스린다:
 
 $$
-
 \frac{d\mathbf{x}}{dt} = \frac{\partial H}{\partial \mathbf{v}} = \mathbf{M}^{-1}\mathbf{v}, \quad \frac{d\mathbf{v}}{dt} = -\frac{\partial H}{\partial \mathbf{x}} = \nabla \log p(\mathbf{x})
-
 $$
 
-These equations describe a particle moving on a surface defined by the potential energy, with the **score function** $\nabla \log p(\mathbf{x})$ acting as a force. High-probability regions exert an attractive force; the particle accelerates toward them but overshoots due to momentum.
+이 방정식은 퍼텐셜 에너지가 정하는 면 위에서 움직이는 알갱이를 그리며, **점수 함수** $\nabla \log p(\mathbf{x})$이 힘 노릇을 한다. 확률이 높은 구역이 끌어당기는 힘을 주어 알갱이가 그리로 빨라지지만 운동량 때문에 지나쳐 버린다.
 
 ---
 
-## Energy Conservation: Why HMC Samples Instead of Optimizes
+## 에너지 지킴: HMC이 왜 최적화가 아니라 표집을 하나
 
-### The Central Mystery
+### 한가운데의 수수께끼
 
-HMC follows gradients like gradient ascent and explores high-probability regions. Why doesn't it just converge to the mode?
+HMC은 기울기 오르기처럼 기울기를 따라가며 확률 높은 구역을 살펴본다. 그런데 왜 그냥 봉우리로 모이지 않는가?
 
-**Answer**: Energy conservation creates oscillatory trajectories that prevent convergence.
+**답**: 에너지 지킴이 흔들리는 자취를 만들어 모임을 막는다.
 
-### What Energy Conservation Means
+### 에너지 지킴이 뜻하는 것
 
-For exact (continuous-time) Hamiltonian dynamics:
+정확한(이어진 시간의) 해밀턴 움직임에서는:
 
 $$
-
 \frac{d}{dt}H(\mathbf{x}_t, \mathbf{v}_t) = 0
-
 $$
 
-**Proof**:
+**증명**:
 
 $$
-
 \frac{dH}{dt} = \frac{\partial H}{\partial \mathbf{x}}\frac{d\mathbf{x}}{dt} + \frac{\partial H}{\partial \mathbf{v}}\frac{d\mathbf{v}}{dt} = \nabla U \cdot \mathbf{M}^{-1}\mathbf{v} + \mathbf{M}^{-1}\mathbf{v} \cdot (-\nabla U) = 0
-
 $$
 
-The cross terms cancel exactly due to the antisymmetric structure of Hamilton's equations.
+해밀턴 방정식의 반대칭 짜임 덕분에 엇갈린 항이 정확히 지워진다.
 
-### The Oscillation Mechanism
+### 흔들림의 얼개
 
-**Without energy conservation** (gradient ascent):
+**에너지 지킴이 없으면**(기울기 오르기):
 
-1. Start anywhere with $\nabla \log p \neq 0$
-2. Follow gradient uphill
-3. Reach mode where $\nabla \log p = 0$
-4. **Stop** — no force to continue
+1. $\nabla \log p \neq 0$인 아무 데서나 시작한다
+2. 기울기를 따라 오르막을 간다
+3. $\nabla \log p = 0$인 봉우리에 이른다
+4. **멈춘다** — 더 갈 힘이 없다
 
-Result: **Optimization**, not sampling.
+결과: 표집이 아니라 **최적화**이다.
 
-**With energy conservation**:
+**에너지 지킴이 있으면**:
 
-Energy conservation requires $U(\mathbf{x}_t) + K(\mathbf{v}_t) = H_0 = \text{constant}$.
+에너지 지킴은 $U(\mathbf{x}_t) + K(\mathbf{v}_t) = H_0 = \text{constant}$을 요구한다.
 
-- **Climbing toward mode** (lower $U$): $K$ increases → particle speeds up
-- **At the mode**: $U$ is minimal → $K$ is **maximal** → particle moves fastest
-- **Past the mode**: $U$ increases → $K$ decreases → particle slows and turns around
-- **Result**: Oscillation through the mode
+- **봉우리 쪽으로 오름**($U$이 낮아짐): $K$이 커진다 → 알갱이가 빨라진다
+- **봉우리에서**: $U$이 가장 작다 → $K$이 **가장 크다** → 알갱이가 가장 빠르다
+- **봉우리를 지나면**: $U$이 커진다 → $K$이 작아진다 → 알갱이가 느려지다 되돌아선다
+- **결과**: 봉우리를 가로지르는 흔들림
 
-The particle cannot stop at the mode because it has residual kinetic energy.
+알갱이는 운동 에너지가 남아 있어 봉우리에서 멈출 수 없다.
 
-### Time Allocation and Correct Sampling
+### 시간 나눔과 올바른 표집
 
-Energy conservation creates the correct time allocation. Adding momentum plus a conservation law transforms optimization into sampling:
+에너지 지킴이 시간을 올바르게 나눈다. 운동량과 지킴 법칙을 더하면 최적화가 표집으로 바뀐다:
 
-| System | Energy | Behavior | Outcome |
+| 체계 | 에너지 | 하는 짓 | 결과 |
 |--------|--------|----------|---------|
-| Gradient ascent | $E(\mathbf{x}) = -\log p(\mathbf{x})$ | Minimize $E$ | Converge to mode |
-| Hamiltonian | $H(\mathbf{x},\mathbf{v}) = U + K$ | Conserve $H$ | Oscillate, sample |
+| 기울기 오르기 | $E(\mathbf{x}) = -\log p(\mathbf{x})$ | $E$을 가장 작게 함 | 봉우리로 모임 |
+| 해밀턴 | $H(\mathbf{x},\mathbf{v}) = U + K$ | $H$을 지킴 | 흔들리며 표집함 |
 
 ---
 
-## Why HMC Takes Multiple Steps but Langevin Cannot
+## HMC은 여러 걸음을 떼는데 랑주뱅은 왜 못 하나
 
-### The Fundamental Difference
+### 근본적인 차이
 
-- **HMC**: Runs $L$ leapfrog steps **before** MH correction
-- **Langevin (MALA)**: Must apply MH correction **after every step**
+- **HMC**: MH 바로잡기 **전에** 개구리뜀 걸음 $L$개를 돌린다
+- **랑주뱅(MALA)**: **걸음마다** MH 바로잡기를 해야 한다
 
-This is a fundamental consequence of the underlying dynamics.
+이는 밑바탕 움직임에서 나오는 근본적인 결과이다.
 
-### HMC: Energy Conservation Enables Chaining
+### HMC: 에너지 지킴이 걸음을 잇게 한다
 
-After $L$ leapfrog steps, energy error is bounded: $|\Delta H| = O(L\epsilon^3) = O(T\epsilon^2)$ where $T = L\epsilon$ is total integration time.
+개구리뜀 걸음 $L$개 뒤에 에너지 오차는 $|\Delta H| = O(L\epsilon^3) = O(T\epsilon^2)$으로 묶인다. 여기서 $T = L\epsilon$은 전체 적분 시간이다.
 
-For moderate $L$ and small $\epsilon$, acceptance remains high (typically 65–95%).
+$L$이 알맞고 $\epsilon$이 작으면 받아들임이 높게 남는다(보통 65–95%).
 
-### Why Langevin Cannot Chain Steps
+### 랑주뱅은 왜 걸음을 이을 수 없나
 
-Langevin dynamics has **no conserved quantity**:
+랑주뱅 움직임에는 **지켜지는 양이 없다**:
 
 $$
-
 d\mathbf{x}_t = \nabla \log p(\mathbf{x}_t) dt + \sqrt{2} dW_t
-
 $$
 
-Each step adds **independent** Gaussian noise. After $L$ steps, the proposal distribution is:
+걸음마다 **독립인** 가우스 잡음을 더한다. 걸음 $L$개 뒤에 제안 분포는 다음과 같다:
 
 $$
-
 q(\mathbf{x}^{(L)} | \mathbf{x}^{(0)}) = \int q(\mathbf{x}^{(1)} | \mathbf{x}^{(0)}) \cdots q(\mathbf{x}^{(L)} | \mathbf{x}^{(L-1)}) \, d\mathbf{x}^{(1)} \cdots d\mathbf{x}^{(L-1)}
-
 $$
 
-This **path integral** is intractable to compute, so we cannot evaluate the MH ratio after $L$ steps.
+이 **길 적분**은 셈할 수 없으므로 걸음 $L$개 뒤의 MH 비를 매길 수 없다.
 
-### Deterministic vs Stochastic Trajectories
+### 정해진 자취와 확률로 흔들리는 자취
 
-**HMC**: Trajectory is deterministic given $(\mathbf{x}, \mathbf{v})$. The proposal is a delta function, and reversibility + symplecticity give:
+**HMC**: $(\mathbf{x}, \mathbf{v})$이 주어지면 자취가 정해진다. 제안은 델타 함수이고, 되돌릴 수 있음과 심플렉틱함으로부터 다음을 얻는다:
 
 $$
-
 \alpha = \min(1, e^{-\Delta H})
-
 $$
 
-No path integral needed.
+길 적분이 필요 없다.
 
-**Langevin**: Trajectory is stochastic. Computing the proposal probability requires marginalizing over all intermediate states—intractable.
+**랑주뱅**: 자취가 확률로 흔들린다. 제안 확률을 셈하려면 중간 상태 모두에 걸쳐 주변으로 만들어야 하는데 이는 다룰 수 없다.
 
-### Coherent vs Diffusive Motion
+### 한 방향으로 이어지는 움직임과 퍼지는 움직임
 
-| Property | Langevin | HMC |
+| 성질 | 랑주뱅 | HMC |
 |----------|----------|-----|
-| Dynamics | First-order (dissipative) | Second-order (Hamiltonian) |
-| Conserved quantity | None | Energy $H$ |
-| Trajectory | Stochastic | Deterministic |
-| Exploration | Diffusive ($\sqrt{L\epsilon}$) | Ballistic ($L\epsilon$) |
-| Step chaining | ✗ (intractable) | ✓ (energy conservation) |
+| 움직임 | 일차(흩어 없앰) | 이차(해밀턴) |
+| 지켜지는 양 | 없음 | 에너지 $H$ |
+| 자취 | 확률로 흔들림 | 정해짐 |
+| 살펴보기 | 퍼짐꼴($\sqrt{L\epsilon}$) | 탄도꼴($L\epsilon$) |
+| 걸음 잇기 | ✗(다룰 수 없음) | ✓(에너지 지킴) |
 
 ---
 
-## HMC Preserves the Target Distribution
+## HMC은 과녁 분포를 지킨다
 
-### Three Mechanisms Working Together
+### 함께 굴러가는 세 얼개
 
-1. **Momentum resampling**: Creates the joint distribution $\pi(\mathbf{x}, \mathbf{v})$
-2. **Hamiltonian dynamics**: Preserves $\pi(\mathbf{x}, \mathbf{v})$ via energy conservation + volume preservation
-3. **MH correction**: Corrects for discretization errors
+1. **운동량 다시 표집하기**: 결합 분포 $\pi(\mathbf{x}, \mathbf{v})$을 만든다
+2. **해밀턴 움직임**: 에너지 지킴과 부피 지킴으로 $\pi(\mathbf{x}, \mathbf{v})$을 지킨다
+3. **MH 바로잡기**: 띄엄띄엄 나눈 데서 오는 오차를 바로잡는다
 
-### Why Each Step Preserves pi(x, v)
+### 걸음마다 pi(x, v)을 왜 지키나
 
-**Momentum resampling**: Given $\mathbf{x}^{(t)} \sim \pi(\mathbf{x})$, sample $\mathbf{v} \sim \mathcal{N}(\mathbf{0}, \mathbf{M})$. The pair $(\mathbf{x}^{(t)}, \mathbf{v}) \sim \pi(\mathbf{x}) \cdot \mathcal{N}(\mathbf{v}; \mathbf{0}, \mathbf{M}) = \pi(\mathbf{x}, \mathbf{v})$ ✓
+**운동량 다시 표집하기**: $\mathbf{x}^{(t)} \sim \pi(\mathbf{x})$이 주어졌을 때 $\mathbf{v} \sim \mathcal{N}(\mathbf{0}, \mathbf{M})$을 표집한다. 그러면 짝 $(\mathbf{x}^{(t)}, \mathbf{v}) \sim \pi(\mathbf{x}) \cdot \mathcal{N}(\mathbf{v}; \mathbf{0}, \mathbf{M}) = \pi(\mathbf{x}, \mathbf{v})$이다 ✓
 
-**Hamiltonian dynamics** (exact): Energy conservation ($H$ constant) + volume preservation ($|\det \mathbf{J}| = 1$) imply $\pi(\mathbf{x}_t, \mathbf{v}_t) = \exp(-H(\mathbf{x}_t, \mathbf{v}_t)) = \exp(-H(\mathbf{x}_0, \mathbf{v}_0)) = \pi(\mathbf{x}_0, \mathbf{v}_0)$ ✓
+**해밀턴 움직임**(정확할 때): 에너지 지킴($H$이 상수)과 부피 지킴($|\det \mathbf{J}| = 1$)에서 $\pi(\mathbf{x}_t, \mathbf{v}_t) = \exp(-H(\mathbf{x}_t, \mathbf{v}_t)) = \exp(-H(\mathbf{x}_0, \mathbf{v}_0)) = \pi(\mathbf{x}_0, \mathbf{v}_0)$이 따라 나온다 ✓
 
-**MH correction**: Symplecticity + reversibility ensure detailed balance. Acceptance probability $\alpha = \min(1, e^{-\Delta H})$ corrects for discretization error ✓
-
----
-
-## Practical Considerations
-
-### Hyperparameter Selection
-
-**Step size $\epsilon$**: Too large causes energy error growth and low acceptance; too small causes slow exploration. Target acceptance rate: 65–80%.
-
-**Number of steps $L$**: Too few gives random-walk behavior; too many wastes computation as the trajectory turns back. Rule of thumb: $L\epsilon \approx$ trajectory length covering the typical set.
-
-**Mass matrix $\mathbf{M}$**: Identity assumes isotropic distribution (rarely true). Diagonal adapts to marginal variances (practical default). Full covariance is optimal but expensive ($O(d^3)$). Best practice: $\mathbf{M} \approx \text{Cov}[\mathbf{x}]$ estimated from warmup.
-
-### When HMC Struggles
-
-- **Multimodal distributions**: Energy barriers prevent mode hopping
-- **Varying curvature**: Single $\mathbf{M}$ insufficient
-- **Discrete variables**: No gradients available
-- **Heavy tails**: Trajectories can escape to infinity
-
-**Remedies**: Tempering/annealing for multimodality, Riemannian HMC for varying curvature, discontinuous HMC for mixed discrete-continuous.
+**MH 바로잡기**: 심플렉틱함과 되돌릴 수 있음이 자세한 균형을 보장한다. 받아들임 확률 $\alpha = \min(1, e^{-\Delta H})$이 띄엄띄엄 나눈 데서 오는 오차를 바로잡는다 ✓
 
 ---
 
-## Comparison with Other Methods
+## 실용적인 고려
 
-| Method | Uses Gradient? | Uses Curvature? | Energy-Preserving? | Result |
+### 초매개변수 선택
+
+**걸음 크기 $\epsilon$**: 너무 크면 에너지 오차가 커지고 받아들임이 낮아지며, 너무 작으면 살펴보기가 느려진다. 목표 받아들임 비율은 65–80%이다.
+
+**걸음 수 $L$**: 너무 적으면 무작위 걸음처럼 굴고, 너무 많으면 자취가 되돌아서면서 셈을 버린다. 어림 규칙은 $L\epsilon \approx$ 전형 집합을 덮는 자취 길이이다.
+
+**질량 행렬 $\mathbf{M}$**: 항등 행렬은 방향에 고른 분포를 가정한다(참인 경우가 드물다). 대각 행렬은 주변 흩어짐에 맞춘다(실전 기본값). 온전한 공분산이 가장 좋지만 비싸다($O(d^3)$). 가장 좋은 방식은 달굼에서 어림한 $\mathbf{M} \approx \text{Cov}[\mathbf{x}]$을 쓰는 것이다.
+
+### HMC이 힘겨워할 때
+
+- **봉우리가 여럿인 분포**: 에너지 벽이 봉우리 사이 뛰어넘기를 막는다
+- **굽음이 달라짐**: $\mathbf{M}$ 하나로는 모자란다
+- **띄엄띄엄한 변수**: 기울기를 쓸 수 없다
+- **두꺼운 꼬리**: 자취가 무한으로 달아날 수 있다
+
+**손보기**: 봉우리가 여럿이면 온도 다루기나 담금질을, 굽음이 달라지면 리만 HMC을, 띄엄띄엄한 것과 이어진 것이 섞이면 끊긴 HMC을 쓴다.
+
+---
+
+## 다른 방법과의 견줌
+
+| 방법 | 기울기를 쓰나? | 굽음을 쓰나? | 에너지를 지키나? | 결과 |
 |--------|---------------|-----------------|-------------------|--------|
-| Random walk MH | No | No | No | Slow exploration |
-| Gradient descent | Yes | No | No | Optimization |
-| Newton's method | Yes | Yes | No | Fast optimization |
-| Langevin (MALA) | Yes | No | No (dissipative) | Sampling (diffusive) |
-| HMC | Yes | Via $\mathbf{M}$ | Yes | Efficient sampling |
+| 무작위 걸음 MH | 아니오 | 아니오 | 아니오 | 느린 살펴보기 |
+| 기울기 내리기 | 예 | 아니오 | 아니오 | 최적화 |
+| 뉴턴 방법 | 예 | 예 | 아니오 | 빠른 최적화 |
+| 랑주뱅(MALA) | 예 | 아니오 | 아니오(흩어 없앰) | 표집(퍼짐꼴) |
+| HMC | 예 | $\mathbf{M}$으로 | 예 | 효율적인 표집 |
 
-HMC uniquely combines gradient information with energy-preserving dynamics to achieve efficient sampling in high dimensions.
-
----
-
-## Application to Quantitative Finance
-
-### Bayesian Posterior Inference
-
-HMC is the backbone of modern Bayesian inference for complex financial models:
-
-- **Stochastic volatility models**: The Heston model posterior $p(\kappa, \theta, \sigma_v, \rho, v_{0:T} | y_{1:T})$ involves hundreds of latent volatility states plus 4–5 structural parameters. HMC efficiently explores this high-dimensional, correlated posterior.
-- **Term structure models**: Multi-factor affine models with latent state variables and observation parameters. The strong correlations between factor loadings make random-walk MCMC impractical.
-- **Bayesian neural networks for risk**: Posterior inference over network weights for uncertainty quantification in credit risk or tail risk estimation.
-
-### Why Gradients Are Available
-
-Automatic differentiation (PyTorch, JAX, Stan) computes exact gradients of the log-posterior with respect to all continuous parameters. This makes HMC applicable whenever the likelihood and prior are differentiable—which covers the vast majority of parametric financial models.
-
-### Practical Workflow
-
-Modern probabilistic programming frameworks (Stan, PyMC, NumPyro) implement HMC with NUTS as the default sampler, handling step size adaptation, mass matrix estimation, and diagnostics automatically. For most quantitative finance applications, the practitioner specifies the model and the framework handles the sampling.
+HMC은 기울기 정보와 에너지를 지키는 움직임을 남달리 어우러지게 하여 차원 높은 곳에서도 효율적으로 표집한다.
 
 ---
 
-## Summary
+## 계량 금융에서의 쓰임새
 
-| Component | Role | Key Property |
+### 베이즈 뒤확률 추론
+
+HMC은 복잡한 금융 모형에 대한 요즘 베이즈 추론의 등뼈이다:
+
+- **확률 변동성 모형**: 헤스턴 모형의 뒤확률 $p(\kappa, \theta, \sigma_v, \rho, v_{0:T} | y_{1:T})$에는 숨은 변동성 상태 수백 개와 구조 매개변수 네다섯 개가 들어 있다. HMC은 이 차원 높고 서로 얽힌 뒤확률을 효율적으로 살펴본다.
+- **기간 구조 모형**: 숨은 상태 변수와 관측 매개변수를 갖는 여러 인자 아핀 모형. 인자 적재량 사이의 강한 상관 때문에 무작위 걸음 MCMC은 쓸모가 없다.
+- **위험을 다루는 베이즈 신경망**: 신용 위험이나 꼬리 위험 어림에서 불확실함을 재려고 망 가중값에 대한 뒤확률을 추론한다.
+
+### 기울기를 왜 쓸 수 있나
+
+저절로 미분하기(PyTorch, JAX, Stan)는 이어진 매개변수 모두에 대해 로그 뒤확률의 정확한 기울기를 셈한다. 그래서 가능도와 앞확률이 미분할 수 있기만 하면 HMC을 쓸 수 있고, 이는 매개변수를 갖는 금융 모형의 대부분을 아우른다.
+
+### 실전 작업 흐름
+
+요즘 확률 프로그래밍 얼개(Stan, PyMC, NumPyro)는 NUTS을 붙인 HMC을 기본 표집기로 구현하여 걸음 크기 맞추기, 질량 행렬 어림, 진단을 저절로 처리한다. 대부분의 계량 금융 쓰임새에서 쓰는 사람은 모형만 적어 주고 표집은 얼개가 맡는다.
+
+---
+
+## 요약
+
+| 부품 | 하는 일 | 핵심 성질 |
 |-----------|------|--------------|
-| Momentum $\mathbf{v}$ | Auxiliary variable | Creates joint $\pi(\mathbf{x}, \mathbf{v})$ |
-| Hamiltonian $H$ | Total energy | $H = U + K$ |
-| Leapfrog | Numerical integrator | Symplectic + reversible |
-| Energy conservation | Prevents optimization | Creates oscillations |
-| MH correction | Fixes discretization | Ensures exact sampling |
+| 운동량 $\mathbf{v}$ | 도움 변수 | 결합 분포 $\pi(\mathbf{x}, \mathbf{v})$을 만든다 |
+| 해밀턴 함수 $H$ | 전체 에너지 | $H = U + K$ |
+| 개구리뜀 | 수치 적분기 | 심플렉틱하고 되돌릴 수 있음 |
+| 에너지 지킴 | 최적화를 막는다 | 흔들림을 만든다 |
+| MH 바로잡기 | 띄엄띄엄 나눔을 고친다 | 정확한 표집을 보장한다 |
 
-**Why HMC works**:
+**HMC이 되는 까닭**:
 
-1. **Gradient information** guides exploration toward high-probability regions
-2. **Energy conservation** prevents convergence to mode, enables oscillation
-3. **Coherent momentum** enables ballistic (not diffusive) exploration
-4. **Symplectic integration** preserves phase space volume
-5. **MH correction** ensures exact sampling despite discretization
+1. **기울기 정보**가 확률 높은 구역 쪽으로 살펴보기를 이끈다
+2. **에너지 지킴**이 봉우리로 모이는 것을 막고 흔들림을 가능하게 한다
+3. **한 방향으로 이어지는 운동량**이 퍼짐꼴이 아니라 탄도꼴 살펴보기를 가능하게 한다
+4. **심플렉틱 적분**이 위상 공간의 부피를 지킨다
+5. **MH 바로잡기**가 띄엄띄엄 나누었는데도 정확한 표집을 보장한다
 
-HMC sits at the intersection of statistical mechanics, differential geometry, and optimization—a synthesis that makes it the gold standard for sampling from continuous distributions in high dimensions.
+HMC은 통계 역학, 미분 기하, 최적화가 만나는 자리에 있다. 이 어우러짐이 HMC을 차원 높은 이어진 분포에서 표집하는 금과옥조로 만든다.
+
+## 연습문제
+
+**연습문제 1.**
+마르코프 사슬이 올바른 과녁 분포로 모이게 하는 데 받아들임 확률이 하는 몫을 설명하여라.
+
+??? success "연습문제 1 풀이"
+    받아들임 확률이 **자세한 균형** $\pi(x) T(x \to x') \alpha(x \to x') = \pi(x') T(x' \to x) \alpha(x' \to x)$을 보장한다. 여기서 $\pi$은 과녁 분포, $T$은 제안 분포, $\alpha$은 받아들임 확률이다. 자세한 균형은 $\pi$이 사슬의 멈춘 분포임을 뜻한다. 쪼갤 수 없음과 주기 없음까지 합치면 $\pi$으로의 에르고드 모임이 보장된다.
+
+---
+
+**연습문제 2.**
+제안 분포가 너무 좁은 상황과 너무 넓은 상황을 밝혀라. 저마다 표집 효율에 어떤 영향을 주는가?
+
+??? success "연습문제 2 풀이"
+    **너무 좁을 때:** 제안이 거의 늘 받아들여지지만(받아들임 비율이 높지만) 사슬이 아주 작은 걸음을 떼어 과녁 분포를 느리게 살펴본다. 그러면 자기상관이 높고 실효 표본 크기가 작아진다. **너무 넓을 때:** 제안이 확률이 낮은 구역에 자주 떨어져 물리쳐지므로(받아들임 비율이 낮으므로) 사슬이 여러 되풀이 동안 지금 상태에 갇혀 있게 된다. 두 극단 모두 효율을 떨어뜨린다. 높은 차원에서 무작위 걸음 메트로폴리스의 가장 좋은 받아들임 비율은 대략 0.234이다(Roberts 외, 1997).
+
+---
+
+**연습문제 3.**
+메트로폴리스-헤이스팅스 받아들임 비 $\alpha = \min\left(1, \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}\right)$이 $\pi$에 대해 자세한 균형을 만족함을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    일반성을 잃지 않고 $\pi(x') q(x|x') \leq \pi(x) q(x'|x)$이라 하자. 그러면 $\alpha(x \to x') = \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}$이고 $\alpha(x' \to x) = 1$이다. 자세한 균형 조건은 다음을 요구한다:
+
+    $$\pi(x) q(x'|x) \alpha(x \to x') = \pi(x) q(x'|x) \cdot \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)} = \pi(x') q(x|x')$$
+
+    그리고 $\pi(x') q(x|x') \alpha(x' \to x) = \pi(x') q(x|x') \cdot 1 = \pi(x') q(x|x')$이다. 양변이 같다. $\square$
+
+---
+
+**연습문제 4.**
+MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴지 어떻게 정하는가?
+
+??? success "연습문제 4 풀이"
+    태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.

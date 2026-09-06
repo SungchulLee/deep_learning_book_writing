@@ -1,128 +1,114 @@
-# Cache Performance
+# 캐시 성능
 
-Asymptotic complexity alone does not fully predict the real-world speed of
-data structure operations. A linked list traversal and an array traversal
-are both $O(n)$, yet the array version often runs several times faster in
-practice. The reason lies in how modern processors access memory: through a
-hierarchy of caches that reward **spatial locality** and **temporal
-locality**. This page explains why arrays are cache-friendly, why linked
-lists are cache-hostile, and how to reason about cache effects when choosing
-a data structure.
+점근적 복잡도만으로는 자료구조 연산의 실제 속도를 온전히 예측할 수 없다. 연결 리스트 순회와 배열 순회는 둘 다 $O(n)$이지만 실제로는 배열 쪽이 몇 배 빠른 경우가 많다. 그 까닭은 현대의 프로세서가 메모리에 접근하는 방식에 있다. **공간 지역성**과 **시간 지역성**에 상을 주는 캐시의 계층을 거치기 때문이다. 이 페이지는 배열이 캐시에 친화적인 이유, 연결 리스트가 캐시에 적대적인 이유, 그리고 자료구조를 고를 때 캐시 효과를 어떻게 따져 볼지를 설명한다.
 
-## The Memory Hierarchy
+## 메모리 계층
 
-Modern computers access memory through multiple levels of cache, each faster
-but smaller than the next:
+현대의 컴퓨터는 여러 단계의 캐시를 거쳐 메모리에 접근한다. 각 단계는 다음 단계보다 빠르지만 작다.
 
-| Level | Typical size | Access latency |
+| 단계 | 대표적인 크기 | 접근 지연 |
 |---|---|---|
-| L1 cache | 32--64 KB | ~1 ns |
-| L2 cache | 256 KB--1 MB | ~3--10 ns |
-| L3 cache | 4--32 MB | ~10--40 ns |
-| Main memory (DRAM) | 8--64 GB | ~50--100 ns |
+| L1 캐시 | 32--64 KB | 약 1 ns |
+| L2 캐시 | 256 KB--1 MB | 약 3--10 ns |
+| L3 캐시 | 4--32 MB | 약 10--40 ns |
+| 주기억장치 (DRAM) | 8--64 GB | 약 50--100 ns |
 
-When the CPU reads a single byte, it does not fetch just that byte. Instead,
-it loads an entire **cache line** (typically 64 bytes) into the cache. If the
-next memory access falls within the same cache line, it is served from the
-cache -- a **cache hit**. If it falls outside all cached lines, the CPU must
-wait for main memory -- a **cache miss**.
+CPU가 1바이트를 읽을 때 그 바이트만 가져오지 않는다. 대신 **캐시 라인** 전체(보통 64바이트)를 캐시로 올린다. 다음 메모리 접근이 같은 캐시 라인 안에 들어오면 캐시에서 처리되며, 이것이 **캐시 적중**이다. 캐시에 올라온 어떤 라인에도 들지 않으면 CPU가 주기억장치를 기다려야 하며, 이것이 **캐시 실패**이다.
 
-## Spatial Locality
+## 공간 지역성
 
-**Spatial locality** means that accesses to nearby memory addresses tend to
-occur close together in time. Arrays exploit spatial locality perfectly:
-elements are stored contiguously, so a single cache line prefetch loads
-multiple adjacent elements.
+**공간 지역성**이란 가까운 메모리 주소에 대한 접근이 시간적으로도 가깝게 일어나는 경향을 뜻한다. 배열은 공간 지역성을 완벽하게 살린다. 원소가 연속해서 저장되므로 캐시 라인을 한 번 미리 가져오면 이웃한 여러 원소가 함께 올라온다.
 
-Consider iterating over an array of 4-byte integers. A 64-byte cache line
-holds 16 integers. After the first access triggers a cache miss, the next
-15 accesses are cache hits -- a miss rate of only $1/16 \approx 6\%$.
+4바이트 정수 배열을 훑는다고 하자. 64바이트 캐시 라인에는 정수 16개가 들어간다. 첫 접근에서 캐시 실패가 난 뒤 이어지는 15번의 접근은 모두 캐시 적중이다. 실패율이 $1/16 \approx 6\%$에 지나지 않는다.
 
-In contrast, linked list nodes are allocated independently by the memory
-allocator. Successive nodes may reside on different cache lines or even
-different memory pages. Each `node = node.next` dereference potentially
-triggers a cache miss, approaching a miss rate of $100\%$ in the worst
-case.
+반면 연결 리스트의 노드는 메모리 할당기가 따로따로 할당한다. 이어지는 노드들이 서로 다른 캐시 라인, 심지어 서로 다른 메모리 페이지에 놓일 수 있다. `node = node.next` 역참조마다 캐시 실패가 날 수 있어 최악의 경우 실패율이 $100\%$에 다가간다.
 
-## Temporal Locality
+## 시간 지역성
 
-**Temporal locality** means that recently accessed memory is likely to be
-accessed again soon. Both arrays and linked lists benefit equally from
-temporal locality in repeated traversals -- the advantage of arrays is
-primarily spatial.
+**시간 지역성**이란 최근에 접근한 메모리에 곧 다시 접근할 가능성이 높다는 뜻이다. 되풀이되는 순회에서는 배열과 연결 리스트가 시간 지역성의 이득을 똑같이 본다. 배열의 이점은 주로 공간 쪽에 있다.
 
-However, arrays gain an indirect temporal benefit: because fewer cache
-lines are loaded (elements are packed densely), the working set stays
-smaller, and previously loaded data is less likely to be evicted before
-reuse.
+다만 배열은 간접적인 시간적 이득도 얻는다. (원소가 빽빽하게 들어차 있어) 올라오는 캐시 라인이 적으므로 작업 집합이 작게 유지되고, 앞서 올라온 데이터가 다시 쓰이기 전에 쫓겨날 가능성이 줄어든다.
 
-## Quantifying the Impact
+## 영향을 수치로 재기
 
-The practical speed gap between array and linked list traversal is
-significant. A rough model illustrates why.
+배열 순회와 연결 리스트 순회의 실제 속도 차이는 상당하다. 어림 모형으로 그 까닭을 보이자.
 
-Suppose each cache miss costs an extra 50 ns compared to a cache hit, and
-we traverse $n$ elements:
+캐시 실패가 적중보다 50 ns를 더 잡아먹고 원소 $n$개를 훑는다고 하자.
 
-- **Array**: approximately $n / 16$ cache misses (one per cache line of
-  4-byte integers).
-- **Linked list**: up to $n$ cache misses in the worst case.
+- **배열**: 캐시 실패가 대략 $n / 16$번이다(4바이트 정수의 캐시 라인마다 한 번).
+- **연결 리스트**: 최악의 경우 캐시 실패가 최대 $n$번이다.
 
-For $n = 10{,}000$ elements:
+원소가 $n = 10{,}000$개일 때 다음과 같다.
 
-- Array: ~625 misses $\times$ 50 ns = ~31 microseconds of miss penalty.
-- Linked list: ~10,000 misses $\times$ 50 ns = ~500 microseconds of
-  miss penalty.
+- 배열: 실패 약 625번 $\times$ 50 ns = 실패 대가 약 31마이크로초.
+- 연결 리스트: 실패 약 10,000번 $\times$ 50 ns = 실패 대가 약 500마이크로초.
 
-This is a $16\times$ difference in miss penalty alone, on top of identical
-$O(n)$ computation. In practice, hardware prefetchers further reduce array
-miss rates because they detect sequential access patterns automatically.
+똑같은 $O(n)$ 계산 위에서 실패 대가만 $16\times$ 차이가 나는 것이다. 실제로는 하드웨어 선반입기가 순차적인 접근 양상을 자동으로 알아채므로 배열의 실패율이 더욱 줄어든다.
 
-## Prefetching
+## 선반입
 
-Modern CPUs include hardware prefetchers that detect sequential memory
-access patterns and load cache lines ahead of the program's demand. Arrays
-benefit enormously from prefetching because their access pattern is
-perfectly sequential.
+현대의 CPU에는 순차적인 메모리 접근 양상을 알아채고 프로그램이 요구하기 전에 캐시 라인을 미리 올려 두는 하드웨어 선반입기가 들어 있다. 배열은 접근 양상이 완벽하게 순차적이라 선반입에서 큰 이득을 본다.
 
-Linked lists defeat prefetchers because the address of the next node is
-not known until the current node's pointer is dereferenced. This creates
-a **pointer-chasing** pattern that is inherently serial and
-unpredictable from the hardware's perspective.
+연결 리스트는 현재 노드의 포인터를 역참조하기 전에는 다음 노드의 주소를 알 수 없으므로 선반입기를 무력화한다. 이는 본질적으로 직렬적이고 하드웨어가 예측할 수 없는 **포인터 좇기** 양상을 만든다.
 
-## Practical Implications
+## 실무적 함의
 
-| Factor | Array | Linked list |
+| 요인 | 배열 | 연결 리스트 |
 |---|---|---|
-| Spatial locality | Excellent | Poor |
-| Hardware prefetching | Effective | Defeated |
-| Cache line utilization | High (data packed) | Low (pointers + fragmentation) |
-| TLB misses | Rare (contiguous pages) | Frequent (scattered pages) |
-| Branch prediction | N/A | Indirect jumps less predictable |
+| 공간 지역성 | 훌륭함 | 나쁨 |
+| 하드웨어 선반입 | 효과적 | 무력화됨 |
+| 캐시 라인 활용 | 높음 (데이터가 빽빽하다) | 낮음 (포인터 + 파편화) |
+| TLB 실패 | 드묾 (연속된 페이지) | 잦음 (흩어진 페이지) |
+| 분기 예측 | 해당 없음 | 간접 분기라 예측이 어렵다 |
 
-!!! tip "Rule of thumb"
-    If the workload is traversal-heavy, prefer arrays even when asymptotic
-    complexity suggests linked lists should be equivalent. The constant
-    factor hidden in $O(n)$ can differ by an order of magnitude due to
-    cache effects.
+!!! tip "경험칙"
+    순회가 많은 작업이라면 점근적 복잡도가 연결 리스트와 같다고 말하더라도 배열을 택하라. $O(n)$ 뒤에 숨은 상수 인수가 캐시 효과 때문에 자릿수만큼 차이 날 수 있다.
 
-## Mitigations for Linked Lists
+## 연결 리스트의 손해를 줄이는 방법
 
-When a linked list is structurally necessary, several techniques reduce
-cache misses:
+구조상 연결 리스트가 꼭 필요할 때 캐시 실패를 줄이는 방법이 몇 가지 있다.
 
-- **Pool allocation**: Allocate nodes from a pre-allocated contiguous
-  buffer so that nodes are physically close in memory.
-- **Unrolled linked lists**: Store multiple elements per node, combining
-  the structural flexibility of a linked list with the spatial locality
-  of an array within each node.
-- **Cache-oblivious layouts**: Rearrange nodes in memory order to match
-  traversal order (requires periodic reorganization).
+- **풀 할당**: 미리 할당해 둔 연속된 버퍼에서 노드를 가져와 노드들이 메모리에서 물리적으로 가깝게 놓이도록 한다.
+- **펼친 연결 리스트**: 노드마다 원소를 여러 개 저장하여, 연결 리스트의 구조적 유연성과 노드 안 배열의 공간 지역성을 함께 얻는다.
+- **캐시를 의식하지 않는 배치**: 순회 순서와 맞도록 노드를 메모리에서 다시 늘어놓는다(주기적인 재정리가 필요하다).
 
-These techniques narrow the performance gap but do not fully close it.
+이런 기법들은 성능 격차를 좁히기는 하지만 완전히 없애지는 못한다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C.
   *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
 - Drepper, U. *What Every Programmer Should Know About Memory*, 2007.
+
+
+## 연습문제
+
+**연습문제 1.**
+캐시 성능에 대해 삽입, 삭제, 탐색, 접근 연산의 시간 복잡도를 진술하라.
+
+??? success "연습문제 1 풀이"
+    복잡도는 구체적인 구현(배열 기반이냐 연결 기반이냐)에 달려 있다. 배열 기반은 접근이 $O(1)$이고 임의의 위치에서의 삽입·삭제가 $O(n)$이다. 연결 기반은 이미 아는 위치에서의 삽입·삭제가 $O(1)$이고 탐색·접근이 $O(n)$이다. 어떤 연산이 주를 이루느냐에 따라 선택이 갈린다.
+
+---
+
+**연습문제 2.**
+원소 6개로 캐시 성능을(를) 따라가며 각 연산 후의 자료구조 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    구조에 삽입, 접근, 삭제를 차례로 수행하라. 각 단계마다 (연결 구조라면) 포인터를, (배열 기반이라면) 배열의 내용을 보이며 구조가 불변식을 어떻게 유지하는지 나타내라.
+
+---
+
+**연습문제 3.**
+캐시 성능이(가) PyTorch의 텐서 저장과 어떻게 관련되는지 설명하라. 자료구조의 선택이 메모리 배치와 캐시 성능에 어떤 영향을 주는가?
+
+??? success "연습문제 3 풀이"
+    PyTorch 텐서는 캐시에 효율적으로 접근할 수 있도록 연속된 배열로 저장된다. 연결 구조는 autograd 그래프를 훑는 데 내부적으로 쓰인다. 이 선택은 메모리 사용량(배열에는 포인터 부담이 없다)과 접근 양상(캐시 지역성 덕분에 순차적인 배열 접근이 연결 리스트 순회보다 10~100배 빠르다)에 모두 영향을 준다.
+
+---
+
+**연습문제 4.**
+반복문 불변식을 사용하여 캐시 성능의 주요 연산의 시간 복잡도를 증명하라.
+
+??? success "연습문제 4 풀이"
+    알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$

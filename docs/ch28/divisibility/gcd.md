@@ -1,37 +1,37 @@
-# Greatest Common Divisor
+# 최대공약수
 
-Many problems in number theory, cryptography, and algorithm design require finding the largest factor shared by two integers. Simplifying fractions, computing modular inverses, and testing coprimality all reduce to computing the greatest common divisor. Euclid's algorithm solves this problem efficiently using a simple observation: the GCD of two numbers does not change when the larger number is replaced by its remainder upon division by the smaller.
+수론, 암호, 알고리즘 짜기의 많은 문제가 두 정수가 함께 가진 가장 큰 인수를 찾아야 한다. 분수 줄이기, 법 역원 셈하기, 서로 소인지 시험하기가 모두 최대 공약수 셈하기로 줄어든다. 유클리드 알고리즘은 단순한 살핌으로 이 문제를 효율 좋게 푼다. 큰 수를 작은 수로 나눈 나머지로 바꾸어도 두 수의 최대 공약수는 바뀌지 않는다.
 
-## Definition
+## 정의
 
-For integers $a$ and $b$, not both zero, the **greatest common divisor** $\gcd(a, b)$ is the largest positive integer $d$ such that $d \mid a$ and $d \mid b$.
+둘 다 0은 아닌 정수 $a$과 $b$의 **최대 공약수** $\gcd(a, b)$은 $d \mid a$이고 $d \mid b$인 가장 큰 양의 정수 $d$이다.
 
-Two basic properties follow immediately from the definition:
+뜻매김에서 기본 성질 둘이 곧바로 따라 나온다:
 
-- $\gcd(a, 0) = |a|$ for any nonzero integer $a$, since every integer divides $0$
-- $\gcd(a, b) = \gcd(b, a)$ (commutativity)
+- 모든 정수가 $0$을 나누므로 0이 아닌 어떤 정수 $a$에 대해서도 $\gcd(a, 0) = |a|$이다
+- $\gcd(a, b) = \gcd(b, a)$이다(자리 바꿈)
 
-When $\gcd(a, b) = 1$, we say $a$ and $b$ are **coprime** (or **relatively prime**).
+$\gcd(a, b) = 1$이면 $a$과 $b$이 **서로 소**라고 한다.
 
-## The Division Algorithm Foundation
+## 나눗셈 알고리즘이라는 바탕
 
-The key insight behind Euclid's algorithm is the following lemma.
+유클리드 알고리즘의 핵심 통찰은 다음 도움 정리이다.
 
-!!! info "GCD Reduction Lemma"
+!!! info "최대 공약수 줄임 도움 정리"
 
-    For any integers $a$ and $b$ with $b > 0$,
+    $b > 0$인 어떤 정수 $a$과 $b$에 대해서도,
 
     $$
     \gcd(a, b) = \gcd(b, a \bmod b)
     $$
 
-**Proof.** Let $d = \gcd(a, b)$. Write $a = qb + r$ where $r = a \bmod b$ and $0 \le r < b$. Since $d \mid a$ and $d \mid b$, we have $d \mid (a - qb) = r$, so $d$ divides both $b$ and $r$. Conversely, any common divisor of $b$ and $r$ also divides $qb + r = a$, so it divides both $a$ and $b$. Therefore, the set of common divisors of $(a, b)$ equals the set of common divisors of $(b, r)$, and their greatest elements coincide. $\square$
+**증명.** $d = \gcd(a, b)$이라 하자. $r = a \bmod b$이고 $0 \le r < b$일 때 $a = qb + r$이라 적는다. $d \mid a$이고 $d \mid b$이므로 $d \mid (a - qb) = r$이고 따라서 $d$이 $b$과 $r$을 모두 나눈다. 거꾸로 $b$과 $r$의 공약수는 $qb + r = a$도 나누므로 $a$과 $b$을 모두 나눈다. 그러므로 $(a, b)$의 공약수 모임과 $(b, r)$의 공약수 모임이 같고 그 최댓값도 같다. $\square$
 
-## Euclid's Algorithm
+## 유클리드 알고리즘
 
-The reduction lemma suggests a recursive strategy: repeatedly replace $(a, b)$ with $(b, a \bmod b)$ until the remainder reaches zero. At that point, the nonzero element is the GCD.
+줄임 도움 정리는 되돌이 셈속을 알려 준다. 나머지가 0이 될 때까지 $(a, b)$을 $(b, a \bmod b)$으로 되풀이해 바꾼다. 그때 0이 아닌 원소가 최대 공약수이다.
 
-### Iterative Version
+### 되풀이 판
 
 ```
 EUCLID(a, b):
@@ -40,66 +40,66 @@ EUCLID(a, b):
     return a
 ```
 
-### Worked Example
+### 풀이 예제
 
-Computing $\gcd(48, 18)$ step by step:
+$\gcd(48, 18)$을 걸음마다 셈한다:
 
-| Step | $a$ | $b$ | $a \bmod b$ |
+| 걸음 | $a$ | $b$ | $a \bmod b$ |
 |------|-----|-----|-------------|
 | 1    | 48  | 18  | 12          |
 | 2    | 18  | 12  | 6           |
 | 3    | 12  | 6   | 0           |
 
-When $b = 0$, we return $a = 6$. Therefore $\gcd(48, 18) = 6$.
+$b = 0$이면 $a = 6$을 돌려준다. 따라서 $\gcd(48, 18) = 6$이다.
 
-## Correctness
+## 올바름
 
-**Termination.** At each step, the second argument $b$ is replaced by $a \bmod b$, which satisfies $0 \le a \bmod b < b$. Since $b$ is a strictly decreasing sequence of nonnegative integers, the algorithm terminates.
+**멈춤.** 걸음마다 둘째 인자 $b$이 $0 \le a \bmod b < b$을 만족하는 $a \bmod b$으로 바뀐다. $b$이 음이 아닌 정수의 엄격히 줄어드는 차례이므로 알고리즘이 멈춘다.
 
-**Partial correctness.** By the GCD Reduction Lemma, each replacement preserves the GCD. When the algorithm terminates with $b = 0$, we have $\gcd(a, 0) = a$, which is the correct answer.
+**부분 옳음.** 최대 공약수 줄임 도움 정리에 따라 바꿈마다 최대 공약수를 지킨다. 알고리즘이 $b = 0$으로 멈추면 $\gcd(a, 0) = a$이며 이것이 옳은 답이다.
 
-## Complexity Analysis
+## 복잡도 분석
 
-!!! tip "Time Complexity of Euclid's Algorithm"
+!!! tip "유클리드 알고리즘의 시간 복잡도"
 
-    Euclid's algorithm computes $\gcd(a, b)$ in $O(\log(\min(a, b)))$ division steps.
+    유클리드 알고리즘은 $\gcd(a, b)$을 $O(\log(\min(a, b)))$번의 나눗셈 걸음에 셈한다.
 
-The key observation is that the remainder decreases by at least a factor of two every two steps. Specifically, for $b > 0$:
+핵심 살핌은 두 걸음마다 나머지가 적어도 절반으로 준다는 것이다. 자세히는 $b > 0$에 대해:
 
 $$
 a \bmod b < \frac{a}{2}
 $$
 
-This holds because if $b \le a/2$, then $a \bmod b < b \le a/2$, and if $b > a/2$, then $a \bmod b = a - b < a/2$.
+$b \le a/2$이면 $a \bmod b < b \le a/2$이고 $b > a/2$이면 $a \bmod b = a - b < a/2$이므로 성립한다.
 
-After two iterations, the value of $b$ is replaced by a number less than half its original value. Therefore, the algorithm performs at most $2\lfloor \log_2(\min(a, b)) \rfloor + 2$ division steps, giving $O(\log(\min(a, b)))$ time complexity.
+두 번 되풀이하면 $b$의 값이 본디 값의 절반보다 작은 수로 바뀐다. 따라서 알고리즘은 많아야 $2\lfloor \log_2(\min(a, b)) \rfloor + 2$번의 나눗셈 걸음을 하며 시간 복잡도는 $O(\log(\min(a, b)))$이다.
 
-!!! note "Connection to Fibonacci Numbers"
+!!! note "피보나치 수와의 이음"
 
-    The worst-case inputs for Euclid's algorithm are consecutive Fibonacci numbers. Computing $\gcd(F_{n+1}, F_n)$ requires exactly $n$ division steps, confirming the $\Theta(\log(\min(a, b)))$ bound since $F_n = \Theta(\varphi^n)$ where $\varphi = (1 + \sqrt{5})/2$ is the golden ratio.
+    유클리드 알고리즘의 가장 나쁜 들임은 잇단 피보나치 수이다. $\gcd(F_{n+1}, F_n)$을 셈하려면 꼭 $n$번의 나눗셈 걸음이 필요하며, $\varphi = (1 + \sqrt{5})/2$이 황금비일 때 $F_n = \Theta(\varphi^n)$이므로 $\Theta(\log(\min(a, b)))$ 한계를 확인해 준다.
 
-## Implementation
+## 구현
 
 ```python
 """
 Greatest Common Divisor via Euclid's Algorithm.
 
 Demonstrates the iterative Euclidean algorithm for computing GCD,
-including correctness verification on several test cases.
+시험 사례 몇 가지에서 옳음을 확인하는 것을 담는다.
 """
 
 
-# === Euclidean Algorithm ===
+# === 유클리드 알고리즘 ===
 
 def gcd(a: int, b: int) -> int:
-    """Compute gcd(a, b) using the iterative Euclidean algorithm.
+    """되풀이 유클리드 알고리즘으로 gcd(a, b)을 셈한다.
 
-    Args:
-        a: First nonnegative integer.
-        b: Second nonnegative integer.
+    인수:
+        a: 첫째 음이 아닌 정수.
+        b: 둘째 음이 아닌 정수.
 
-    Returns:
-        The greatest common divisor of a and b.
+    반환값:
+        a과 b의 최대 공약수.
     """
     a, b = abs(a), abs(b)
     while b:
@@ -107,33 +107,33 @@ def gcd(a: int, b: int) -> int:
     return a
 
 
-# === Recursive Version ===
+# === 되돌이 판 ===
 
 def gcd_recursive(a: int, b: int) -> int:
-    """Compute gcd(a, b) using the recursive Euclidean algorithm."""
+    """되돌이 유클리드 알고리즘으로 gcd(a, b)을 셈한다."""
     a, b = abs(a), abs(b)
     if b == 0:
         return a
     return gcd_recursive(b, a % b)
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Basic examples
+    # 기본 보기
     print(f"gcd(48, 18) = {gcd(48, 18)}")
     print(f"gcd(270, 192) = {gcd(270, 192)}")
     print(f"gcd(17, 13) = {gcd(17, 13)}")
 
-    # Edge cases
+    # 모서리 경우
     print(f"gcd(0, 5) = {gcd(0, 5)}")
     print(f"gcd(7, 0) = {gcd(7, 0)}")
 
-    # Verify iterative matches recursive
+    # 되풀이 판이 되돌이 판과 맞는지 확인한다
     print(f"gcd_recursive(48, 18) = {gcd_recursive(48, 18)}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 gcd(48, 18) = 6
@@ -144,16 +144,49 @@ gcd(7, 0) = 7
 gcd_recursive(48, 18) = 6
 ```
 
-## Applications
+## 응용
 
-The GCD computation appears throughout mathematics and computer science:
+최대 공약수 셈하기는 수학과 셈 과학 곳곳에 나타난다:
 
-- **Fraction simplification**: reduce $a/b$ by dividing both by $\gcd(a, b)$
-- **Modular inverse**: finding $a^{-1} \pmod{m}$ requires $\gcd(a, m) = 1$ (see [Modular Inverse](../modular/inverse.md))
-- **Bezout's identity**: expressing $\gcd(a, b) = ax + by$ via the extended Euclidean algorithm (see [Bezout's Identity](bezout.md))
-- **RSA cryptography**: key generation requires coprimality checks
-- **LCM computation**: $\operatorname{lcm}(a, b) = |ab| / \gcd(a, b)$ (see [LCM](lcm.md))
+- **분수 줄이기**: $a/b$을 둘 다 $\gcd(a, b)$으로 나누어 줄인다
+- **법 역원**: $a^{-1} \pmod{m}$을 찾으려면 $\gcd(a, m) = 1$이어야 한다([법 역원](../modular/inverse.md)을 보라)
+- **베주 항등식**: 넓힌 유클리드 알고리즘으로 $\gcd(a, b) = ax + by$을 적는다([베주 항등식](bezout.md)을 보라)
+- **RSA 암호**: 열쇠를 만들 때 서로 소인지 살펴야 한다
+- **최소 공배수 셈하기**: $\operatorname{lcm}(a, b) = |ab| / \gcd(a, b)$([최소 공배수](lcm.md)를 보라)
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
+
+
+## 연습문제
+
+**연습문제 1.**
+유클리드 알고리즘으로 $\gcd(252, 105)$을 셈하라. 걸음마다 보여라.
+
+??? success "연습문제 1 풀이"
+    $252 = 2 \cdot 105 + 42$, $105 = 2 \cdot 42 + 21$, $42 = 2 \cdot 21 + 0$이다. 따라서 $\gcd(252, 105) = 21$이다.
+
+---
+
+**연습문제 2.**
+$b > 0$에 대해 $\gcd(a, b) = \gcd(b, a \bmod b)$임을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    $d = \gcd(a, b)$이고 $d' = \gcd(b, a \bmod b)$이라 하자. $r = a \bmod b$일 때 $a = qb + r$이라 적는다. $d | a$이고 $d | b$이므로 $d | (a - qb) = r$이고 따라서 $d | \gcd(b, r) = d'$이다. 거꾸로 $d' | b$이고 $d' | r$이므로 $d' | (qb + r) = a$이고 $d' | \gcd(a, b) = d$이다. 그러므로 $d = d'$이다.
+
+---
+
+**연습문제 3.**
+유클리드 알고리즘이 많아야 $2\log_2(\min(a,b)) + 1$걸음이 들어 $O(\log n)$번의 나눗셈을 함을 보여라.
+
+??? success "연습문제 3 풀이"
+    주장: 모든 $i$에 대해 $r_{i+2} < r_i / 2$이다. $r_{i+1} \leq r_i/2$이면 $r_{i+2} < r_{i+1} \leq r_i/2$이다. $r_{i+1} > r_i/2$이면 몫이 1이고 $r_{i+2} = r_i - r_{i+1} < r_i/2$이다. 어느 쪽이든 두 걸음마다 나머지가 절반이 된다. $r_0 = \min(a,b)$에서 시작해 $2k$걸음 뒤 $r_{2k} < r_0/2^k$이다. $r = 0$이면 멈추므로 $k \leq \log_2(r_0)$이고 많아야 $2\log_2(\min(a,b)) + 1$걸음이다.
+
+---
+
+**연습문제 4.**
+$F_n$이 $n$번째 피보나치 수일 때 $\gcd(F_{n+1}, F_n)$을 셈하라. 잇단 피보나치 수가 유클리드 알고리즘에 가장 나쁜 경우인 까닭은 무엇인가?
+
+??? success "연습문제 4 풀이"
+    $\gcd(F_{n+1}, F_n) = \gcd(F_n, F_{n-1}) = \cdots = \gcd(F_2, F_1) = \gcd(1, 1) = 1$이다. $F_{n+1} = 1 \cdot F_n + F_{n-1}$이므로 몫이 늘 1이고 걸음마다 피보나치 번호가 꼭 하나씩 줄어든다. 곧 알고리즘이 $n - 1$걸음 걸린다. 라메 정리에 따라 $k$걸음이 필요한 들임은 $b \geq F_{k+1}$을 만족하고, $\phi = (1+\sqrt{5})/2$일 때 $F_k \sim \phi^k/\sqrt{5}$이다. 따라서 $b < N$에서 최대 걸음 수는 약 $\log_\phi N \approx 2.08 \log_2 N$이다. 피보나치 짝이 이 한계를 이룬다.

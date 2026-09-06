@@ -1,105 +1,81 @@
-# Randomized Treaps
+# 마구잡이 트립
 
-A treap (tree + heap) is a randomized binary search tree that maintains
-BST order on keys and heap order on randomly assigned priorities.
-By choosing priorities uniformly at random, the treap's structure is
-equivalent to a random BST — giving $O(\log n)$ expected height and
-$O(\log n)$ expected time for search, insertion, and deletion, without
-the complex rebalancing logic of AVL or red-black trees.
+트립(나무 + 무지개탑)은 열쇠에는 이진 찾기 나무 차례를, 마구잡이로 매긴 우선값에는 무지개탑 차례를 지키는 마구잡이 이진 찾기 나무이다. 우선값을 고르게 아무렇게나 고르면 트립의 짜임은 마구잡이 이진 찾기 나무와 같아져, AVL이나 붉은-검은 나무의 복잡한 다시 고르기 논리 없이도 기댓값 높이 $O(\log n)$과 찾기, 넣기, 지우기의 기댓값 시간 $O(\log n)$을 준다.
 
-## Definition
+## 정의
 
-A **treap** is a binary tree where each node stores a key-priority pair
-$(k, p)$ satisfying two properties simultaneously:
+**트립**은 마디마다 열쇠-우선값 짝 $(k, p)$을 담고 두 성질을 함께 채우는 이진 나무이다.
 
-1. **BST property on keys:** For every node, all keys in the left subtree
-   are smaller, and all keys in the right subtree are larger.
-2. **Min-heap property on priorities:** Each node's priority is less than
-   or equal to the priorities of its children.
+1. **열쇠의 이진 찾기 나무 성질:** 마디마다 왼쪽 아래 나무의 열쇠는 모두 작고 오른쪽 아래 나무의 열쇠는 모두 크다.
+2. **우선값의 최소 무지개탑 성질:** 마디마다 우선값이 그 자식의 우선값보다 작거나 같다.
 
-!!! note "Unique Structure"
-    Given $n$ distinct keys and $n$ distinct priorities, there is exactly
-    one treap satisfying both properties. The structure is uniquely
-    determined by the priority ordering.
+!!! note "하나뿐인 짜임"
+    서로 다른 열쇠 $n$개와 서로 다른 우선값 $n$개가 주어지면 두 성질을 모두 채우는 트립은 꼭 하나뿐이다. 짜임은 우선값의 차례로 하나뿐이게 정해진다.
 
-## Why Random Priorities Work
+## 아무 우선값이 통하는 까닭
 
-Assigning each key a uniformly random priority produces a treap whose
-structure is identical (in distribution) to a **random BST** — a BST
-built by inserting the keys in random order. A random BST has expected
-depth $O(\log n)$ and expected height $\Theta(\log n)$.
+열쇠마다 고르게 아무 우선값을 매기면 짜임이 (분포로) **마구잡이 이진 찾기 나무**, 곧 열쇠를 아무 차례로 넣어 세운 이진 찾기 나무와 똑같은 트립이 나온다. 마구잡이 이진 찾기 나무의 기댓값 깊이는 $O(\log n)$이고 기댓값 높이는 $\Theta(\log n)$이다.
 
-**Key insight:** The node with the smallest priority becomes the root.
-Its key splits the remaining nodes into left and right subtrees, and
-the process recurses. This is exactly like choosing a random insertion
-order.
+**핵심 통찰:** 우선값이 가장 작은 마디가 뿌리가 된다. 그 열쇠가 남은 마디를 왼쪽과 오른쪽 아래 나무로 가르고 이 과정이 되돌이된다. 이는 아무 넣기 차례를 고르는 것과 똑같다.
 
-## Expected Height
+## 기대 높이
 
-**Theorem.** The expected depth of any node in a treap with $n$ elements
-is $O(\log n)$.
+**정리.** 낱개 $n$개인 트립에서 어느 마디든 기댓값 깊이는 $O(\log n)$이다.
 
-For a node with rank $i$ (the $i$-th smallest key), the expected depth is:
+차례 $i$인 마디($i$번째로 작은 열쇠)의 기댓값 깊이는 다음과 같다.
 
 $$
 E[\text{depth}(i)] = H_i + H_{n - i + 1} - 1
 $$
 
-where $H_k = \sum_{j=1}^{k} 1/j$ is the $k$-th harmonic number.
-Since $H_k = O(\log k)$, the expected depth is $O(\log n)$.
+여기서 $H_k = \sum_{j=1}^{k} 1/j$은 $k$번째 조화수이다. $H_k = O(\log k)$이므로 기댓값 깊이는 $O(\log n)$이다.
 
-## Rotations
+## 돌리기
 
-Treap operations use **rotations** to restore the heap property after
-BST insertions and deletions:
+트립 셈은 이진 찾기 나무의 넣기와 지우기 뒤 무지개탑 성질을 되살리려 **돌리기**를 쓴다.
 
-- **Right rotation** at node $x$: lifts $x$'s left child to $x$'s position.
-- **Left rotation** at node $x$: lifts $x$'s right child to $x$'s position.
+- 마디 $x$에서 **오른쪽 돌리기**: $x$의 왼쪽 자식을 $x$의 자리로 올린다.
+- 마디 $x$에서 **왼쪽 돌리기**: $x$의 오른쪽 자식을 $x$의 자리로 올린다.
 
-Rotations preserve the BST property while allowing us to move a
-higher-priority node upward.
+돌리기는 이진 찾기 나무 성질을 지키면서 우선값이 더 높은 마디를 위로 올릴 수 있게 한다.
 
-## Operations
+## 연산
 
-### Search
+### 찾기
 
-Search works exactly as in a standard BST — ignore priorities and
-follow the key ordering. Expected time: $O(\log n)$.
+찾기는 여느 이진 찾기 나무와 똑같이 된다. 곧 우선값을 무시하고 열쇠 차례를 따른다. 기댓값 시간: $O(\log n)$.
 
-### Insertion
+### 삽입
 
-1. Insert the new node as a leaf using standard BST insertion.
-2. Assign a random priority.
-3. While the node's priority is smaller than its parent's, rotate it
-   upward (right rotation if it's a left child, left rotation if right).
+1. 여느 이진 찾기 나무 넣기로 새 마디를 잎으로 넣는다.
+2. 아무 우선값을 매긴다.
+3. 마디의 우선값이 어버이보다 작은 동안 위로 돌린다(왼쪽 자식이면 오른쪽 돌리기, 오른쪽 자식이면 왼쪽 돌리기).
 
-### Deletion
+### 지우기
 
-1. Find the node to delete.
-2. Rotate it downward (toward the child with smaller priority) until
-   it becomes a leaf.
-3. Remove the leaf.
+1. 지울 마디를 찾는다.
+2. 잎이 될 때까지 (우선값이 더 작은 자식 쪽으로) 아래로 돌린다.
+3. 그 잎을 없앤다.
 
-Alternatively, set the node's priority to $\infty$ and let it sink to a
-leaf position through rotations.
+아니면 마디의 우선값을 $\infty$으로 두고 돌리기로 잎 자리까지 가라앉게 한다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Randomized treap: BST + heap with random priorities.
+마구잡이 트립: 아무 우선값을 갖춘 이진 찾기 나무 + 무지개탑.
 
 Supports search, insert, and delete in O(log n) expected time
-using rotations to maintain the heap property on priorities.
+돌리기로 우선값의 무지개탑 성질을 지킨다.
 """
 
 import random
 
 
-# === Treap Node ===
+# === 트립 마디 ===
 
 class TreapNode:
-    """A node in the treap."""
+    """트립의 마디."""
 
     def __init__(self, key, priority=None):
         self.key = key
@@ -108,10 +84,10 @@ class TreapNode:
         self.right = None
 
 
-# === Rotations ===
+# === 회전 ===
 
 def rotate_right(node):
-    """Right rotation: lift node's left child."""
+    """오른쪽 돌리기: 마디의 왼쪽 자식을 올린다."""
     new_root = node.left
     node.left = new_root.right
     new_root.right = node
@@ -119,19 +95,19 @@ def rotate_right(node):
 
 
 def rotate_left(node):
-    """Left rotation: lift node's right child."""
+    """왼쪽 돌리기: 마디의 오른쪽 자식을 올린다."""
     new_root = node.right
     node.right = new_root.left
     new_root.left = node
     return new_root
 
 
-# === Insert ===
+# === 삽입 ===
 
 def insert(root, key):
-    """Insert a key into the treap.
+    """트립에 열쇠를 넣는다.
 
-    Returns the new root of the subtree.
+    부분 트리의 새 뿌리를 돌려준다.
     """
     if root is None:
         return TreapNode(key)
@@ -148,12 +124,12 @@ def insert(root, key):
     return root
 
 
-# === Delete ===
+# === 지우기 ===
 
 def delete(root, key):
-    """Delete a key from the treap.
+    """트립에서 열쇠를 지운다.
 
-    Returns the new root of the subtree.
+    부분 트리의 새 뿌리를 돌려준다.
     """
     if root is None:
         return None
@@ -163,13 +139,13 @@ def delete(root, key):
     elif key > root.key:
         root.right = delete(root.right, key)
     else:
-        # Found the node to delete
+        # 지울 노드를 찾음
         if root.left is None:
             return root.right
         elif root.right is None:
             return root.left
         else:
-            # Rotate toward the child with smaller priority
+            # 우선값이 더 작은 자식 쪽으로 돌린다
             if root.left.priority < root.right.priority:
                 root = rotate_right(root)
                 root.right = delete(root.right, key)
@@ -180,10 +156,10 @@ def delete(root, key):
     return root
 
 
-# === Search ===
+# === 찾기 ===
 
 def search(root, key):
-    """Search for a key in the treap."""
+    """트립에서 열쇠를 찾는다."""
     if root is None:
         return False
     if key == root.key:
@@ -194,25 +170,25 @@ def search(root, key):
         return search(root.right, key)
 
 
-# === Inorder Traversal ===
+# === 중위 순회 ===
 
 def inorder(root):
-    """Return keys in sorted order."""
+    """열쇠를 정렬한 차례로 돌려준다."""
     if root is None:
         return []
     return inorder(root.left) + [root.key] + inorder(root.right)
 
 
-# === Tree Height ===
+# === 나무 높이 ===
 
 def height(root):
-    """Compute the height of the treap."""
+    """트립의 높이를 셈한다."""
     if root is None:
         return -1
     return 1 + max(height(root.left), height(root.right))
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     random.seed(42)
@@ -227,17 +203,17 @@ if __name__ == "__main__":
     print(f"Height:   {height(root)}")
     print(f"Root:     key={root.key}, priority={root.priority:.4f}")
 
-    # Search
+    # 탐색
     for k in [4, 10]:
         print(f"Search {k}: {search(root, k)}")
 
-    # Delete
+    # 지우기
     root = delete(root, 5)
     print(f"\nAfter deleting 5:")
     print(f"Inorder:  {inorder(root)}")
     print(f"Height:   {height(root)}")
 
-    # Average height over many treaps
+    # 여러 트립에 걸친 평균 높이
     total_height = 0
     n = 1000
     trials = 100
@@ -251,29 +227,58 @@ if __name__ == "__main__":
     print(f"Expected O(log n) = {2 * 13.8:.1f} (2 * ln 1000)")
 ```
 
-## Split and Merge
+## 가르기와 합치기
 
-Treaps support efficient **split** and **merge** operations, making them
-useful for implementing sequences and interval operations.
+트립은 효율 좋은 **가르기**와 **합치기** 셈을 받쳐 주므로 차례와 구간 셈을 짜는 데 쓸모 있다.
 
-**Split(T, k):** Split treap $T$ into $T_1$ (keys $\le k$) and $T_2$
-(keys $> k$) in $O(\log n)$ expected time.
+**Split(T, k):** 트립 $T$을 $T_1$(열쇠 $\le k$)과 $T_2$(열쇠 $> k$)으로 기댓값 $O(\log n)$ 시간에 가른다.
 
-**Merge(T_1, T_2):** Merge two treaps where all keys in $T_1$ are
-smaller than all keys in $T_2$, in $O(\log n)$ expected time.
+**Merge(T_1, T_2):** $T_1$의 열쇠가 모두 $T_2$의 열쇠보다 작은 두 트립을 기댓값 $O(\log n)$ 시간에 합친다.
 
-## Complexity Summary
+## 복잡도 요약
 
-| Operation | Expected | Worst Case |
+| 셈 | 기댓값 | 가장 나쁜 경우 |
 |---|---|---|
-| Search | $O(\log n)$ | $O(n)$ |
-| Insert | $O(\log n)$ | $O(n)$ |
-| Delete | $O(\log n)$ | $O(n)$ |
-| Split | $O(\log n)$ | $O(n)$ |
-| Merge | $O(\log n)$ | $O(n)$ |
-| Space | $O(n)$ | $O(n)$ |
+| 찾기 | $O(\log n)$ | $O(n)$ |
+| 삽입 | $O(\log n)$ | $O(n)$ |
+| 삭제 | $O(\log n)$ | $O(n)$ |
+| 쪼개기 | $O(\log n)$ | $O(n)$ |
+| 합치기 | $O(\log n)$ | $O(n)$ |
+| 자리 | $O(n)$ | $O(n)$ |
 
-## Reference
+## 참고 문헌
 
 - Aragon, C. R. & Seidel, R. "Randomized Search Trees." *Algorithmica*, 1996.
 - Motwani, R. & Raghavan, P. *Randomized Algorithms*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+마구잡이 트립의 핵심 마구잡이 재주와 그것이 정해진 방식보다 나은 까닭을 설명하라.
+
+??? success "연습문제 1 풀이"
+    마구잡이 트립은 마구잡이를 써서 정해진 알고리즘이 마주칠 수 있는 가장 나쁜 들임을 피한다. 아무렇게나 고르므로 알고리즘의 솜씨가 들임의 짜임이 아니라 제 동전 던지기에 달린다. 그래서 모든 들임에 대해 참인 센 기댓값 시간이나 높은 확률의 보장을 흔히 얻으며, 짓궂거나 병리적인 경우를 걱정할 까닭이 없어진다. $\square$
+
+---
+
+**연습문제 2.**
+마구잡이 트립의 기댓값 시간 복잡도는 얼마인가? 가장 나쁜 경우의 복잡도는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    기댓값 시간 복잡도는 흔히 $O(n)$이나 $O(n \log n)$이며 높은 확률로 이룬다. 가장 나쁜 경우는 다항식만큼 더 나쁠 수 있지만(예컨대 $O(n^2)$) 그럴 확률은 무시할 만큼 작다. 기댓값과 가장 나쁜 경우의 틈이 마구잡이의 값이며, 가장 나쁜 움직임이 일어날 확률은 들임 크기에 따라 지수로 줄어든다. $\square$
+
+---
+
+**연습문제 3.**
+마구잡이 트립은 라스베이거스 알고리즘인가 몬테카를로 알고리즘인가? 그 차이를 설명하라.
+
+??? success "연습문제 3 풀이"
+    **라스베이거스**: 늘 옳은 결과를 내며 도는 시간이 아무 변수이다(기댓값이 다항식). **몬테카를로**: 늘 다항식 시간에 돌지만 결과가 어떤 가둔 확률로 틀릴 수 있다. 마구잡이 트립은 옳음을 보장하느냐 도는 시간을 보장하느냐에 따라 이 가운데 하나에 든다. 이 가름이 어긋날 확률을 어떻게 다룰지 정한다. $\square$
+
+---
+
+**연습문제 4.**
+마구잡이 트립에서 마구잡이를 없애거나 솜씨가 나쁠 확률을 줄이는 법을 설명하라.
+
+??? success "연습문제 4 풀이"
+    방책은 다음과 같다. (1) **거듭 해 보기**: 알고리즘을 여러 번 돌려 가장 좋거나 많은 쪽 결과를 택하면 어긋날 확률이 지수로 줄어든다. (2) **마구잡이 없애기**: 조건부 기댓값이나 흩는 함수 무리로 아무 고르기를 정해진 고르기로 바꾼다. (3) **키우기**: 몬테카를로 알고리즘에서는 $k$번 되풀이해 어긋남을 $2^{-k}$으로 줄인다. (4) **비슷 마구잡이 만들개**: 알고리즘이 보기에 "마구잡이처럼 보이는" 정해진 차례를 쓴다. $\square$

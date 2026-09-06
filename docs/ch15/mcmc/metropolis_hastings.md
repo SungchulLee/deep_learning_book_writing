@@ -1,530 +1,505 @@
-# The Metropolis-Hastings Algorithm
+# 메트로폴리스-헤이스팅스 알고리즘
+메트로폴리스-헤이스팅스(MH) 알고리즘은 고르게 하는 상수만큼의 차이를 빼고 알려진 분포에서 표집할 수 있게 해 주는 MCMC의 밑바탕 방법이다. 이 절에서는 온전한 이론을 펼친다. 곧 MH이 다룰 수 없는 적분을 셈하지 않고도 왜 되는지, 좋은 제안을 어떻게 짜는지, 최적 맞추기에 대한 놀라운 이론 결과가 무엇인지 살펴본다.
 
+## 근본 문제: 다룰 수 없는 고르게 하기
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-The Metropolis-Hastings (MH) algorithm is the foundational MCMC method that enables sampling from distributions known only up to a normalizing constant. This section develops the complete theory: why MH works without computing intractable integrals, how to design effective proposals, and the remarkable theoretical results on optimal tuning.
-
-## The Fundamental Problem: Intractable Normalization
-
-In Bayesian inference, we want to sample from the posterior:
+베이즈 추론에서 우리는 뒤확률에서 표집하고자 한다:
 
 $$
-
 \pi(\theta | \mathbf{X}) = \frac{p(\mathbf{X} | \theta) p(\theta)}{p(\mathbf{X})}
-
 $$
 
-where $p(\mathbf{X} | \theta)$ is the likelihood (computable), $p(\theta)$ is the prior (computable), but
+여기서 $p(\mathbf{X} | \theta)$은 가능도(셈할 수 있음)이고 $p(\theta)$은 앞확률(셈할 수 있음)이지만
 
 $$
-
 p(\mathbf{X}) = \int p(\mathbf{X} | \theta) p(\theta) \, d\theta
-
 $$
 
-is the marginal likelihood—an integral over the entire parameter space that is almost always **intractable**.
+은 주변 가능도, 곧 매개변수 공간 전체에 걸친 적분으로 거의 언제나 **다룰 수 없다**.
 
-More generally, we encounter distributions of the form:
+더 널리 보면 다음 꼴의 분포를 만난다:
 
 $$
-
 \pi(\theta) = \frac{\tilde{p}(\theta)}{Z}, \quad Z = \int \tilde{p}(\theta) \, d\theta
-
 $$
 
-where $\tilde{p}(\theta)$ is an **unnormalized density** we can evaluate pointwise, but $Z$ is a normalization constant we cannot compute.
+여기서 $\tilde{p}(\theta)$은 점마다 값을 매길 수 있는 **고르게 하지 않은 밀도**이지만 $Z$은 우리가 셈할 수 없는 고르게 하는 상수이다.
 
-The profound insight of Metropolis-Hastings is that we can sample from $\pi$ without ever computing $Z$.
+메트로폴리스-헤이스팅스의 깊은 통찰은 $Z$을 한 번도 셈하지 않고 $\pi$에서 표집할 수 있다는 것이다.
 
-## The Ratio Trick: Why We Don't Need Z
+## 비의 재주: Z이 왜 필요 없나
 
-### The MH Acceptance Probability
+### MH의 받아들임 확률
 
-The Metropolis-Hastings algorithm proposes moves according to a proposal distribution $q(\theta' | \theta)$ and accepts with probability:
+메트로폴리스-헤이스팅스 알고리즘은 제안 분포 $q(\theta' | \theta)$을 따라 움직임을 내놓고 다음 확률로 받아들인다:
 
 $$
-
 \alpha(\theta, \theta') = \min\left(1, \frac{\pi(\theta') q(\theta | \theta')}{\pi(\theta) q(\theta' | \theta)}\right)
-
 $$
 
-Substituting $\pi(\theta) = \tilde{p}(\theta)/Z$:
+$\pi(\theta) = \tilde{p}(\theta)/Z$을 넣으면:
 
 $$
-
 \alpha = \min\left(1, \frac{\tilde{p}(\theta')/Z \cdot q(\theta | \theta')}{\tilde{p}(\theta)/Z \cdot q(\theta' | \theta)}\right) = \min\left(1, \frac{\tilde{p}(\theta')}{\tilde{p}(\theta)} \cdot \frac{q(\theta | \theta')}{q(\theta' | \theta)}\right)
-
 $$
 
-**The $Z$ terms cancel!** We only need the **ratio** of unnormalized densities.
+**$Z$ 항이 지워진다!** 고르게 하지 않은 밀도의 **비**만 있으면 된다.
 
-### Why Ratios Eliminate Constants
+### 비가 왜 상수를 없애나
 
-This cancellation is not accidental—it follows from a fundamental principle. For any constant $c$ and function $f$:
+이렇게 지워지는 것은 우연이 아니라 근본 원리에서 따라 나온다. 아무 상수 $c$과 함수 $f$에 대해:
 
 $$
-
 \frac{c \cdot f(\theta')}{c \cdot f(\theta)} = \frac{f(\theta')}{f(\theta)}
-
 $$
 
-The normalization constant $Z = \int \tilde{p}(\theta) \, d\theta$ is precisely such a constant: it depends on the global shape of $\tilde{p}$ but not on the specific value of $\theta$. In any ratio of densities, this constant cancels.
+고르게 하는 상수 $Z = \int \tilde{p}(\theta) \, d\theta$이 바로 그런 상수이다. 이는 $\tilde{p}$의 전체 꼴에는 달렸지만 $\theta$의 낱낱 값에는 달리지 않는다. 밀도의 어떤 비에서든 이 상수는 지워진다.
 
-### Concrete Example: Bayesian Posterior
+### 구체적인 보기: 베이즈 뒤확률
 
-For the posterior $\pi(\theta | \mathbf{X}) = p(\mathbf{X}|\theta)p(\theta)/p(\mathbf{X})$, the acceptance ratio becomes:
+뒤확률 $\pi(\theta | \mathbf{X}) = p(\mathbf{X}|\theta)p(\theta)/p(\mathbf{X})$에서 받아들임 비는 다음이 된다:
 
 $$
-
 \frac{\pi(\theta' | \mathbf{X})}{\pi(\theta | \mathbf{X})} = \frac{p(\mathbf{X}|\theta')p(\theta')/p(\mathbf{X})}{p(\mathbf{X}|\theta)p(\theta)/p(\mathbf{X})} = \frac{p(\mathbf{X}|\theta')p(\theta')}{p(\mathbf{X}|\theta)p(\theta)}
-
 $$
 
-The intractable marginal likelihood $p(\mathbf{X})$ vanishes. The MH acceptance probability:
+다룰 수 없는 주변 가능도 $p(\mathbf{X})$이 사라진다. MH의 받아들임 확률은
 
 $$
-
 \alpha = \min\left(1, \frac{p(\mathbf{X}|\theta')p(\theta')}{p(\mathbf{X}|\theta)p(\theta)} \cdot \frac{q(\theta|\theta')}{q(\theta'|\theta)}\right)
-
 $$
 
-involves only quantities we can compute: the likelihood, prior, and proposal density.
+우리가 셈할 수 있는 양, 곧 가능도, 앞확률, 제안 밀도만 담고 있다.
 
-## Detailed Balance: Why MH Converges to the Target
+## 자세한 균형: MH이 왜 과녁으로 모이나
 
-### The Detailed Balance Condition
+### 자세한 균형 조건
 
-For a Markov chain with transition kernel $T(\theta' | \theta)$ to have $\pi$ as its stationary distribution, it suffices to satisfy **detailed balance**:
+옮김 알맹이가 $T(\theta' | \theta)$인 마르코프 사슬이 $\pi$을 멈춘 분포로 갖게 하려면 **자세한 균형**을 만족하면 넉넉하다:
 
 $$
-
 \pi(\theta) T(\theta' | \theta) = \pi(\theta') T(\theta | \theta')
-
 $$
 
-This says the probability flux from $\theta$ to $\theta'$ equals the flux from $\theta'$ to $\theta$—the chain is "reversible" with respect to $\pi$.
+이는 $\theta$에서 $\theta'$로 가는 확률 흐름이 $\theta'$에서 $\theta$로 가는 흐름과 같다는 뜻이다. 곧 사슬이 $\pi$에 대해 "되돌릴 수 있다".
 
-### MH Satisfies Detailed Balance
+### MH은 자세한 균형을 만족한다
 
-For Metropolis-Hastings, the transition kernel is:
+메트로폴리스-헤이스팅스에서 옮김 알맹이는 다음과 같다:
 
 $$
-
 T(\theta' | \theta) = q(\theta' | \theta) \alpha(\theta, \theta')
-
 $$
 
-With the acceptance probability $\alpha(\theta, \theta') = \min\left(1, \frac{\pi(\theta') q(\theta | \theta')}{\pi(\theta) q(\theta' | \theta)}\right)$, detailed balance holds by construction.
+받아들임 확률이 $\alpha(\theta, \theta') = \min\left(1, \frac{\pi(\theta') q(\theta | \theta')}{\pi(\theta) q(\theta' | \theta)}\right)$이면 자세한 균형은 만든 방식 그대로 성립한다.
 
-**Proof**: Consider the case where $\frac{\pi(\theta') q(\theta | \theta')}{\pi(\theta) q(\theta' | \theta)} < 1$. Then:
+**증명**: $\frac{\pi(\theta') q(\theta | \theta')}{\pi(\theta) q(\theta' | \theta)} < 1$인 경우를 보자. 그러면:
 
 $$
-
 \alpha(\theta, \theta') = \frac{\pi(\theta') q(\theta | \theta')}{\pi(\theta) q(\theta' | \theta)}, \quad \alpha(\theta', \theta) = 1
-
 $$
 
-The left side of detailed balance:
+자세한 균형의 왼쪽 변은:
 
 $$
-
 \pi(\theta) q(\theta' | \theta) \cdot \frac{\pi(\theta') q(\theta | \theta')}{\pi(\theta) q(\theta' | \theta)} = \pi(\theta') q(\theta | \theta')
-
 $$
 
-The right side:
+오른쪽 변은:
 
 $$
-
 \pi(\theta') q(\theta | \theta') \cdot 1 = \pi(\theta') q(\theta | \theta')
-
 $$
 
-They match. The symmetric case ($\alpha(\theta', \theta) < 1$) follows identically.
+둘이 맞는다. 대칭인 경우($\alpha(\theta', \theta) < 1$)도 똑같이 따라 나온다.
 
-### The Key Insight
+### 핵심 통찰
 
-The acceptance ratio was **designed** so that:
+받아들임 비는 다음이 되도록 **일부러 짠** 것이다:
 
 $$
-
 \frac{\alpha(\theta, \theta')}{\alpha(\theta', \theta)} = \frac{\pi(\theta') q(\theta | \theta')}{\pi(\theta) q(\theta' | \theta)}
-
 $$
 
-This ratio automatically adjusts transition probabilities to satisfy detailed balance. Crucially, only **ratios** of $\pi$ appear, so constants like $Z$ cancel.
+이 비는 자세한 균형을 만족하도록 옮김 확률을 저절로 다듬는다. 결정적으로 $\pi$의 **비**만 나타나므로 $Z$ 같은 상수는 지워진다.
 
-## Why Ratios Are Fundamental
+## 비가 왜 근본인가
 
-### Invariance Properties
+### 변하지 않는 성질
 
-Using ratios rather than absolute values provides essential invariances:
+절댓값 대신 비를 쓰면 꼭 필요한 불변성을 얻는다:
 
-**Dimensionless**: The ratio $\pi(\theta')/\pi(\theta)$ is dimensionless—units cancel.
+**단위가 없음**: 비 $\pi(\theta')/\pi(\theta)$에는 단위가 없다. 곧 단위가 지워진다.
 
-**Reparametrization invariant**: Under a change of variables $\phi = g(\theta)$, the Jacobians in the density transformation cancel in the ratio.
+**매개변수를 바꿔도 변하지 않음**: 변수 바꿈 $\phi = g(\theta)$ 아래에서 밀도 바꿈의 야코비 행렬식이 비에서 지워진다.
 
-**Scale invariant**: Multiplying $\tilde{p}$ by any constant doesn't change the ratio.
+**크기를 바꿔도 변하지 않음**: $\tilde{p}$에 아무 상수를 곱해도 비는 바뀌지 않는다.
 
-### What Would Go Wrong with Absolute Probabilities?
+### 절대 확률을 쓰면 무엇이 잘못되나?
 
-A naive algorithm using $\alpha = \min(1, \pi(\theta'))$ would fail because:
+$\alpha = \min(1, \pi(\theta'))$을 쓰는 어수룩한 알고리즘은 다음 까닭으로 무너진다:
 
-1. It's not dimensionally consistent (comparing density to probability)
-2. It's not parametrization invariant
-3. It doesn't satisfy detailed balance: $\pi(\theta)\min(1, \pi(\theta')) \neq \pi(\theta')\min(1, \pi(\theta))$ in general
+1. 단위가 맞지 않는다(밀도를 확률과 견준다)
+2. 매개변수를 바꾸면 변한다
+3. 자세한 균형을 만족하지 않는다. 곧 대체로 $\pi(\theta)\min(1, \pi(\theta')) \neq \pi(\theta')\min(1, \pi(\theta))$이다
 
-## Examples Where Z Is Intractable
+## Z을 다룰 수 없는 보기
 
-### Bayesian Logistic Regression
+### 베이즈 로지스틱 회귀
 
-For the model $y_i | \mathbf{x}_i, \boldsymbol{\beta} \sim \text{Bernoulli}(\sigma(\mathbf{x}_i^T \boldsymbol{\beta}))$ where $\sigma$ is the logistic function:
+$\sigma$이 로지스틱 함수일 때 모형 $y_i | \mathbf{x}_i, \boldsymbol{\beta} \sim \text{Bernoulli}(\sigma(\mathbf{x}_i^T \boldsymbol{\beta}))$에 대해:
 
 $$
-
 \tilde{p}(\boldsymbol{\beta}) = \prod_{i=1}^n \sigma(\mathbf{x}_i^T \boldsymbol{\beta})^{y_i} (1 - \sigma(\mathbf{x}_i^T \boldsymbol{\beta}))^{1-y_i} \cdot p(\boldsymbol{\beta})
-
 $$
 
-The marginal likelihood $p(\mathcal{D}) = \int \tilde{p}(\boldsymbol{\beta}) \, d\boldsymbol{\beta}$ has no closed form, but MH doesn't need it.
+주변 가능도 $p(\mathcal{D}) = \int \tilde{p}(\boldsymbol{\beta}) \, d\boldsymbol{\beta}$에는 닫힌 꼴이 없지만 MH에는 그것이 필요 없다.
 
-### Gaussian Mixture Models
+### 가우스 섞음 모형
 
-For a mixture of $K$ Gaussians with parameters $\boldsymbol{\theta} = (\boldsymbol{\pi}, \boldsymbol{\mu}, \boldsymbol{\Sigma})$:
+매개변수가 $\boldsymbol{\theta} = (\boldsymbol{\pi}, \boldsymbol{\mu}, \boldsymbol{\Sigma})$인 가우스 $K$개의 섞음에 대해:
 
 $$
-
 p(\mathbf{X} | \boldsymbol{\theta}) = \prod_{i=1}^n \sum_{k=1}^K \pi_k \mathcal{N}(\mathbf{x}_i | \boldsymbol{\mu}_k, \boldsymbol{\Sigma}_k)
-
 $$
 
-The posterior normalization requires integrating over $K(d + d^2/2 + 1)$ parameters—intractable, but unnecessary for MH.
+뒤확률을 고르게 하려면 매개변수 $K(d + d^2/2 + 1)$개에 걸쳐 적분해야 한다. 이는 다룰 수 없지만 MH에는 필요 없다.
 
-### Ising Model (Statistical Physics)
+### 이징 모형(통계 물리)
 
-The Boltzmann distribution $\pi(\mathbf{s}) = Z^{-1}\exp(-\beta E(\mathbf{s}))$ has partition function:
+볼츠만 분포 $\pi(\mathbf{s}) = Z^{-1}\exp(-\beta E(\mathbf{s}))$의 나눔 함수는 다음과 같다:
 
 $$
-
 Z = \sum_{\mathbf{s} \in \{-1,+1\}^N} \exp(-\beta E(\mathbf{s}))
-
 $$
 
-This sum over $2^N$ configurations is exponentially large, yet the Metropolis algorithm samples from $\pi$ by using only energy **differences** $\Delta E = E(\mathbf{s}') - E(\mathbf{s})$.
+$2^N$가지 꼴에 걸친 이 합은 지수로 커지지만, 메트로폴리스 알고리즘은 에너지 **차이** $\Delta E = E(\mathbf{s}') - E(\mathbf{s})$만 써서 $\pi$에서 표집한다.
 
 ---
 
-## Proposal Design: The Exploration-Exploitation Trade-off
+## 제안 짜기: 살펴보기와 써먹기의 주고받음
 
-The proposal distribution $q(\theta'|\theta)$ is the only tunable component in MH. Its design involves a fundamental tension:
+제안 분포 $q(\theta'|\theta)$은 MH에서 유일하게 맞출 수 있는 부품이다. 이를 짜는 데는 근본적인 팽팽함이 있다:
 
-**Large steps** (exploration): Cover more ground per iteration, but often land in low-probability regions and get rejected.
+**큰 걸음**(살펴보기): 되풀이마다 더 넓게 돌아다니지만 확률이 낮은 구역에 떨어져 물리쳐지는 일이 잦다.
 
-**Small steps** (exploitation): Almost always accepted, but explore the space very slowly.
+**작은 걸음**(써먹기): 거의 늘 받아들여지지만 공간을 아주 느리게 살펴본다.
 
-The optimal proposal balances these competing demands.
+가장 좋은 제안은 이 다투는 요구를 저울질한다.
 
-### Random Walk Proposals
+### 무작위 걸음 제안
 
-The most common proposal is a symmetric random walk:
+가장 흔한 제안은 대칭인 무작위 걸음이다:
 
 $$
-
 \theta' = \theta + \epsilon \eta, \quad \eta \sim \mathcal{N}(0, I)
-
 $$
 
-equivalently $q(\theta'|\theta) = \mathcal{N}(\theta, \epsilon^2 I)$. The step size $\epsilon$ controls the scale.
+같은 말로 $q(\theta'|\theta) = \mathcal{N}(\theta, \epsilon^2 I)$이다. 걸음 크기 $\epsilon$이 규모를 다스린다.
 
-**Small $\epsilon$**: Proposals stay close to current state, acceptance rate $\approx 95\%$+, but exploration is glacially slow.
+**작은 $\epsilon$**: 제안이 지금 상태 가까이 머물러 받아들임 비율이 $\approx 95\%$ 넘게 되지만 살펴보기가 빙하처럼 느리다.
 
-**Large $\epsilon$**: Proposals venture far, acceptance rate $\approx 5\%$, most computation is wasted on rejections.
+**큰 $\epsilon$**: 제안이 멀리 나아가 받아들임 비율이 $\approx 5\%$이 되고 셈의 대부분이 물리침에 버려진다.
 
-**Moderate $\epsilon$**: Balanced trade-off, acceptance rate $\approx 20$-$50\%$, best mixing.
+**알맞은 $\epsilon$**: 주고받음이 저울질되어 받아들임 비율이 $\approx 20$-$50\%$이 되고 섞임이 가장 좋다.
 
-### Symmetric Proposals: The Original Metropolis Algorithm
+### 대칭 제안: 본래의 메트로폴리스 알고리즘
 
-When the proposal is symmetric, $q(\theta'|\theta) = q(\theta|\theta')$, the Hastings ratio cancels:
+제안이 대칭이어서 $q(\theta'|\theta) = q(\theta|\theta')$이면 헤이스팅스 비가 지워진다:
 
 $$
-
 \alpha = \min\left(1, \frac{\pi(\theta')}{\pi(\theta)}\right)
-
 $$
 
-This is the original **Metropolis algorithm** (1953). Accept if the proposal has higher density; if lower, accept with probability equal to the density ratio.
+이것이 1953년의 본래 **메트로폴리스 알고리즘**이다. 제안의 밀도가 더 높으면 받아들이고, 더 낮으면 밀도 비와 같은 확률로 받아들인다.
 
-### Independent Proposals
+### 독립 제안
 
-An independent proposal $q(\theta'|\theta) = g(\theta')$ doesn't depend on the current state:
+독립 제안 $q(\theta'|\theta) = g(\theta')$은 지금 상태에 달려 있지 않다:
 
 $$
-
 \alpha = \min\left(1, \frac{\pi(\theta')g(\theta)}{\pi(\theta)g(\theta')}\right)
-
 $$
 
-This works well when $g$ is a good approximation to $\pi$, but if $g$ is poor, acceptance rate collapses.
+$g$이 $\pi$을 잘 어림하면 잘 듣지만, $g$이 나쁘면 받아들임 비율이 무너진다.
 
-### Gradient-Informed Proposals: MALA
+### 기울기를 쓴 제안: MALA
 
-The Metropolis-Adjusted Langevin Algorithm uses gradient information:
+메트로폴리스로 다듬은 랑주뱅 알고리즘은 기울기 정보를 쓴다:
 
 $$
-
 q(\theta'|\theta) = \mathcal{N}\left(\theta + \frac{\epsilon^2}{2}\nabla \log \pi(\theta), \epsilon^2 I\right)
-
 $$
 
-Proposals drift toward high-probability regions. This is asymmetric, so the full Hastings correction is needed. The benefit is much better scaling with dimension.
+제안이 확률 높은 구역 쪽으로 쏠린다. 이는 대칭이 아니므로 온전한 헤이스팅스 바로잡기가 필요하다. 그 대신 차원이 커질 때 훨씬 잘 견딘다.
 
 ---
 
-## Optimal Acceptance Rates: The Roberts-Gelman-Gilks Theory
+## 최적 받아들임 비율: 로버츠-겔먼-길크스 이론
 
-### The Remarkable 23.4% Result
+### 놀라운 23.4% 결과
 
-For a $d$-dimensional Gaussian target with random walk proposal, Roberts, Gelman, and Gilks (1997) proved:
+무작위 걸음 제안을 쓰는 $d$차원 가우스 과녁에 대해 로버츠, 겔먼, 길크스(1997)는 다음을 증명했다:
 
-**Optimal acceptance rate**: $\alpha_{\text{opt}} \approx 0.234$ (23.4%)
+**최적 받아들임 비율**: $\alpha_{\text{opt}} \approx 0.234$(23.4%)
 
-**Optimal step size**: $\sigma_{\text{opt}} \approx 2.38/\sqrt{d}$
+**최적 걸음 크기**: $\sigma_{\text{opt}} \approx 2.38/\sqrt{d}$
 
-This means we should accept only about 1 in 4 proposals!
+곧 제안 넷 가운데 하나쯤만 받아들여야 한다는 뜻이다!
 
-### Why Not 50%?
+### 왜 50%이 아닌가?
 
-The intuition that "50% acceptance is optimal" (half accepted, half rejected) is wrong. The key is that exploration speed depends on both acceptance rate **and** step size:
+"받아들임 50%이 최적"(반은 받아들이고 반은 물리침)이라는 직관은 틀렸다. 핵심은 살펴보는 빠르기가 받아들임 비율**과** 걸음 크기 둘 다에 달렸다는 데 있다:
 
 $$
-
 \text{Speed} \propto \sigma \cdot \alpha(\sigma)
-
 $$
 
-For Gaussian targets, the acceptance rate decays exponentially with step size in high dimensions:
+가우스 과녁에서 차원이 높으면 받아들임 비율이 걸음 크기에 따라 지수로 사그라든다:
 
 $$
-
 \alpha(\sigma) \approx 2\Phi\left(-\frac{c\sigma\sqrt{d}}{2}\right)
-
 $$
 
-where $\Phi$ is the standard normal CDF. The product $\sigma \cdot \alpha(\sigma)$ is maximized at an intermediate value yielding 23.4% acceptance.
+여기서 $\Phi$은 표준 정규 누적분포함수이다. 곱 $\sigma \cdot \alpha(\sigma)$은 받아들임이 23.4%이 되는 중간값에서 가장 커진다.
 
-### The Derivation (Sketch)
+### 이끌어 내기(밑그림)
 
-In the limit $d \to \infty$ with appropriately scaled proposals, the MH chain converges to a diffusion process. The efficiency of this diffusion (measured by its speed constant) is:
+제안의 크기를 알맞게 잡고 $d \to \infty$의 끝을 보면 MH 사슬은 퍼짐 과정으로 모인다. 이 퍼짐의 효율(빠르기 상수로 잰다)은 다음과 같다:
 
 $$
-
 h(\ell) = 2\ell^2 \Phi(-\ell\sqrt{I}/2)
-
 $$
 
-where $\ell$ is the scaled step size and $I$ is Fisher information. Maximizing $h(\ell)$ gives:
+여기서 $\ell$은 크기를 맞춘 걸음 크기이고 $I$은 피셔 정보이다. $h(\ell)$을 가장 크게 하면 다음을 얻는다:
 
 $$
-
 \ell^* \approx 2.38, \quad \alpha^* = 2\Phi(-\ell^*\sqrt{I}/2) \approx 0.234
-
 $$
 
-### Robustness Beyond Gaussians
+### 가우스 너머에서도 튼튼함
 
-This result extends to targets beyond Gaussians. For "smooth" targets with approximately independent components, the 23.4% rule holds in high dimensions. "Smooth" means continuous, differentiable, with reasonably Gaussian-like tails.
+이 결과는 가우스가 아닌 과녁으로도 넓혀진다. 성분이 대체로 독립인 "매끄러운" 과녁이라면 차원이 높을 때 23.4% 규칙이 성립한다. "매끄럽다"는 것은 이어져 있고 미분할 수 있으며 꼬리가 웬만큼 가우스 같다는 뜻이다.
 
-### MALA: 57.4% Optimal Acceptance
+### MALA: 최적 받아들임 57.4%
 
-For the Metropolis-Adjusted Langevin Algorithm:
+메트로폴리스로 다듬은 랑주뱅 알고리즘에서는:
 
-**Optimal acceptance rate**: $\alpha_{\text{opt}} \approx 0.574$ (57.4%)
+**최적 받아들임 비율**: $\alpha_{\text{opt}} \approx 0.574$(57.4%)
 
-**Optimal step size**: $\epsilon_{\text{opt}} \sim d^{-1/6}$
+**최적 걸음 크기**: $\epsilon_{\text{opt}} \sim d^{-1/6}$
 
-The higher optimal acceptance reflects that gradient-informed proposals are more efficient—more proposals go in the right direction, so we can afford to accept more.
+최적 받아들임이 더 높은 것은 기울기를 쓴 제안이 더 효율적임을 나타낸다. 곧 옳은 쪽으로 가는 제안이 더 많으므로 더 많이 받아들여도 된다.
 
-### HMC: 60-80% Typical
+### HMC: 보통 60-80%
 
-Hamiltonian Monte Carlo has different characteristics because it uses long trajectories before the MH step. Typical acceptance rates are 60-80%, but the algorithm is less sensitive to precise tuning because energy conservation keeps acceptance high over a wide range.
+해밀턴 몬테카를로는 MH 걸음 앞에 긴 자취를 쓰므로 성질이 다르다. 보통 받아들임 비율은 60-80%이지만, 에너지가 지켜지는 덕분에 넓은 범위에서 받아들임이 높게 남아 정밀한 맞추기에 덜 예민하다.
 
-## Dimension Scaling: The Curse and Its Amelioration
+## 차원에 따른 크기 변화: 저주와 그 누그러뜨림
 
-### The Random Walk Bottleneck
+### 무작위 걸음의 병목
 
-For random walk MH in dimension $d$:
+차원 $d$에서 무작위 걸음 MH에 대해:
 
-**Optimal step size**: $\sigma_{\text{opt}} = 2.38/\sqrt{d}$
+**최적 걸음 크기**: $\sigma_{\text{opt}} = 2.38/\sqrt{d}$
 
-As dimension increases, we must take ever smaller steps:
+차원이 커질수록 걸음을 점점 더 작게 떼어야 한다:
 
-| Dimension | Optimal $\sigma$ |
+| 차원 | 최적 $\sigma$ |
 |-----------|------------------|
 | 1 | 2.38 |
 | 100 | 0.238 |
 | 10,000 | 0.0238 |
 
-**Mixing time scales as** $\mathcal{O}(d^2)$ for random walk MH—quadratic in dimension.
+무작위 걸음 MH에서 **섞임 시간은** $\mathcal{O}(d^2)$**으로 커진다**. 곧 차원의 이차이다.
 
-### Why Gradient Methods Win
+### 기울기 방법이 왜 이기나
 
-Different algorithms have different scaling:
+알고리즘마다 커지는 모양이 다르다:
 
-| Method | Mixing Time | Step Size Scaling |
+| 방법 | 섞임 시간 | 걸음 크기 변화 |
 |--------|-------------|-------------------|
-| Random Walk MH | $\mathcal{O}(d^2)$ | $d^{-1/2}$ |
+| 무작위 걸음 MH | $\mathcal{O}(d^2)$ | $d^{-1/2}$ |
 | MALA | $\mathcal{O}(d^{5/3})$ | $d^{-1/6}$ |
-| HMC | $\mathcal{O}(d^{5/4})$ or better | $d^{-1/4}$ |
+| HMC | $\mathcal{O}(d^{5/4})$ 또는 그보다 나음 | $d^{-1/4}$ |
 
-Gradient-based methods exploit the geometry of the target, enabling much larger effective steps. This is why HMC dominates in high-dimensional problems.
+기울기에 바탕을 둔 방법은 과녁의 기하를 써먹어 실효 걸음을 훨씬 크게 만든다. HMC이 차원 높은 문제에서 앞서는 까닭이 이것이다.
 
-## Practical Tuning Guidelines
+## 실전 맞추기 지침
 
-### Acceptance Rate Targets
+### 받아들임 비율 목표
 
-| Method | Target Rate | If Too High | If Too Low |
+| 방법 | 목표 비율 | 너무 높으면 | 너무 낮으면 |
 |--------|-------------|-------------|------------|
-| Random Walk MH (high-d) | 20-25% | Increase $\epsilon$ | Decrease $\epsilon$ |
-| Random Walk MH (low-d) | 40-50% | Increase $\epsilon$ | Decrease $\epsilon$ |
-| MALA | 55-60% | Increase $\epsilon$ | Decrease $\epsilon$ |
-| HMC | 60-80% | Increase $\epsilon$ | Decrease $\epsilon$ |
+| 무작위 걸음 MH(높은 차원) | 20-25% | $\epsilon$ 키우기 | $\epsilon$ 줄이기 |
+| 무작위 걸음 MH(낮은 차원) | 40-50% | $\epsilon$ 키우기 | $\epsilon$ 줄이기 |
+| MALA | 55-60% | $\epsilon$ 키우기 | $\epsilon$ 줄이기 |
+| HMC | 60-80% | $\epsilon$ 키우기 | $\epsilon$ 줄이기 |
 
-### Adaptive Tuning During Warmup
+### 달굼 동안 맞춰 가기
 
-Modern MCMC software adapts step sizes automatically during warmup:
+요즘 MCMC 소프트웨어는 달굼 동안 걸음 크기를 저절로 맞춘다:
 
 ```python
 def adapt_step_size(sigma, acceptance_rate, target_rate=0.234):
     if acceptance_rate > target_rate:
-        sigma *= 1.1  # Increase step size
+        sigma *= 1.1  # 걸음 크기 키우기
     else:
-        sigma *= 0.9  # Decrease step size
+        sigma *= 0.9  # 걸음 크기 줄이기
     return sigma
 ```
 
-More sophisticated methods like **dual averaging** (used in Stan) provide robust, theoretically-grounded adaptation.
+(Stan에서 쓰는) **쌍대 평균내기** 같은 더 정교한 방법은 이론에 바탕을 둔 튼튼한 맞추기를 준다.
 
-### Covariance Adaptation
+### 공분산 맞춰 가기
 
-When the target has different scales in different directions, an isotropic proposal is inefficient. **Adaptive Metropolis** (Haario et al., 2001) learns the proposal covariance:
+과녁이 방향마다 규모가 다르면 방향에 고른 제안은 효율이 낮다. **맞춰 가는 메트로폴리스**(하리오 외, 2001)는 제안의 공분산을 배운다:
 
-1. Start with $q(\theta'|\theta) = \mathcal{N}(\theta, \sigma^2 I)$
-2. After $N$ samples, estimate $\hat{\Sigma} = \text{Cov}(\text{samples})$
-3. Switch to $q(\theta'|\theta) = \mathcal{N}(\theta, (2.38^2/d)\hat{\Sigma})$
+1. $q(\theta'|\theta) = \mathcal{N}(\theta, \sigma^2 I)$으로 시작한다
+2. 표본 $N$개 뒤에 $\hat{\Sigma} = \text{Cov}(\text{samples})$을 어림한다
+3. $q(\theta'|\theta) = \mathcal{N}(\theta, (2.38^2/d)\hat{\Sigma})$으로 바꾼다
 
-This matches the proposal geometry to the target, dramatically improving efficiency.
+이는 제안의 기하를 과녁에 맞추어 효율을 크게 끌어올린다.
 
-**Important**: Adaptation must stop before final sampling to preserve the Markov property.
+**중요**: 마르코프 성질을 지키려면 마지막 표집 전에 맞춰 가기를 멈춰야 한다.
 
-### Preconditioning with Known Structure
+### 알려진 짜임으로 미리 다듬기
 
-If you have prior knowledge of the target's covariance structure:
+과녁의 공분산 짜임을 미리 안다면:
 
 $$
-
 q(\theta'|\theta) = \mathcal{N}(\theta, (2.38^2/d)\Sigma)
-
 $$
 
-where $\Sigma \approx \text{Cov}(\pi)$ or $\Sigma \approx [-\nabla^2 \log \pi(\theta_{\text{MAP}})]^{-1}$ (inverse Hessian at the mode).
+여기서 $\Sigma \approx \text{Cov}(\pi)$이거나 $\Sigma \approx [-\nabla^2 \log \pi(\theta_{\text{MAP}})]^{-1}$(봉우리에서의 헤세 행렬의 역행렬)이다.
 
-## When Standard Theory Breaks Down
+## 표준 이론이 무너질 때
 
-### Multimodality
+### 봉우리가 여럿임
 
-Well-separated modes present a fundamental challenge. The chain must make rare, large jumps to switch between modes. These jumps have very low acceptance probability, while within-mode moves have normal acceptance.
+잘 떨어진 봉우리는 근본적인 어려움이다. 사슬이 봉우리를 옮겨 다니려면 드물고 큰 뜀을 해야 한다. 이런 뜀은 받아들임 확률이 아주 낮은 반면, 봉우리 안의 움직임은 받아들임이 보통이다.
 
-**Solutions**: Parallel tempering, replica exchange, multi-modal proposals.
+**풀이**: 병렬 온도 다루기, 복제 맞바꾸기, 봉우리 여럿 제안.
 
-### Heavy Tails
+### 두꺼운 꼬리
 
-Targets with heavy tails need different step sizes in the center versus the tails. A single $\sigma$ can't work everywhere.
+꼬리가 두꺼운 과녁은 가운데와 꼬리에서 걸음 크기가 달라야 한다. $\sigma$ 하나로는 어디서나 잘 들을 수 없다.
 
-**Solutions**: Adaptive proposals, $t$-distributed proposals, slice sampling.
+**풀이**: 맞춰 가는 제안, $t$ 분포 제안, 조각 표집.
 
-### Strong Correlations
+### 강한 상관
 
-When parameters are highly correlated, the optimal step size differs dramatically across directions. Isotropic proposals waste most effort on rejected moves.
+매개변수의 상관이 크면 최적 걸음 크기가 방향마다 크게 달라진다. 방향에 고른 제안은 힘의 대부분을 물리쳐지는 움직임에 버린다.
 
-**Solutions**: Covariance adaptation, reparametrization, Gibbs sampling.
+**풀이**: 공분산 맞춰 가기, 매개변수 바꾸기, 깁스 표집.
 
-## The Ideal Proposal: Sampling from the Target
+## 이상적인 제안: 과녁에서 표집하기
 
-The theoretically optimal proposal is $q(\theta'|\theta) = \pi(\theta')$—propose from the target itself:
+이론상 가장 좋은 제안은 $q(\theta'|\theta) = \pi(\theta')$, 곧 과녁 자체에서 내놓는 것이다:
 
 $$
-
 \alpha = \min\left(1, \frac{\pi(\theta') \cdot \pi(\theta)}{\pi(\theta) \cdot \pi(\theta')}\right) = 1
-
 $$
 
-Every proposal is accepted! But of course, if we could sample from $\pi$ directly, we wouldn't need MCMC.
+제안이 모두 받아들여진다! 그러나 물론 $\pi$에서 곧바로 표집할 수 있다면 MCMC이 필요 없을 것이다.
 
-This explains why **Gibbs sampling** is so powerful when applicable: it proposes from exact conditionals $\pi(\theta_j | \theta_{-j})$, achieving 100% acceptance for each coordinate update.
+이는 **깁스 표집**이 쓸 수 있을 때 왜 그토록 힘센지를 말해 준다. 곧 정확한 조건부 $\pi(\theta_j | \theta_{-j})$에서 내놓아 좌표를 새로 고칠 때마다 받아들임이 100%이 된다.
 
-## Effective Sample Size and Diagnostics
+## 실효 표본 크기와 진단
 
-### Effective Sample Size (ESS)
+### 실효 표본 크기(ESS)
 
-MCMC samples are correlated. The effective sample size measures how many independent samples the chain provides:
+MCMC 표본은 서로 얽혀 있다. 실효 표본 크기는 사슬이 독립 표본 몇 개만큼을 주는지 잰다:
 
 $$
-
 \text{ESS} = \frac{N}{1 + 2\sum_{k=1}^\infty \rho_k}
-
 $$
 
-where $N$ is the number of samples and $\rho_k$ is the autocorrelation at lag $k$.
+여기서 $N$은 표본의 개수이고 $\rho_k$은 뒤짐 $k$에서의 자기상관이다.
 
-**Goal**: Maximize ESS per unit computational time.
+**목표**: 셈 시간 한 단위당 ESS을 가장 크게 하기.
 
-### Key Diagnostics
+### 핵심 진단
 
-**Acceptance rate**: First check—should be in target range.
+**받아들임 비율**: 가장 먼저 살핀다. 목표 범위 안에 있어야 한다.
 
-**Trace plots**: Visual inspection of chain behavior.
+**자취 그림**: 사슬이 어떻게 움직이는지 눈으로 살핀다.
 
-**$\hat{R}$ statistic**: Gelman-Rubin diagnostic comparing within-chain and between-chain variance. Should be $< 1.01$.
+**$\hat{R}$ 통계량**: 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단이다. $< 1.01$이어야 한다.
 
-**ESS**: Should be large enough for reliable estimates (typically $> 100$ per parameter).
+**ESS**: 미더운 어림에 넉넉히 커야 한다(보통 매개변수마다 $> 100$).
 
-## Summary: The MH Algorithm in Full
+## 간추림: MH 알고리즘 전체
 
-The Metropolis-Hastings algorithm is elegant in its simplicity:
+메트로폴리스-헤이스팅스 알고리즘은 단순해서 우아하다:
 
-1. **Initialize**: Start at some $\theta^{(0)}$
-2. **Propose**: Generate $\theta' \sim q(\theta' | \theta^{(t)})$
-3. **Compute acceptance ratio**:
+1. **첫값 잡기**: 어떤 $\theta^{(0)}$에서 시작한다
+2. **내놓기**: $\theta' \sim q(\theta' | \theta^{(t)})$을 만든다
+3. **받아들임 비 셈하기**:
 
 $$
-
 r = \frac{\tilde{p}(\theta')}{\tilde{p}(\theta^{(t)})} \cdot \frac{q(\theta^{(t)} | \theta')}{q(\theta' | \theta^{(t)})}
-
 $$
 
-4. **Accept/reject**: With probability $\min(1, r)$, set $\theta^{(t+1)} = \theta'$; otherwise $\theta^{(t+1)} = \theta^{(t)}$
-5. **Iterate**: Repeat steps 2-4
+4. **받아들이기/물리치기**: 확률 $\min(1, r)$으로 $\theta^{(t+1)} = \theta'$으로 두고, 그렇지 않으면 $\theta^{(t+1)} = \theta^{(t)}$으로 둔다
+5. **되풀이하기**: 2에서 4까지의 걸음을 되풀이한다
 
-**What makes it work**:
-- Only **ratios** of unnormalized densities are needed—$Z$ cancels
-- The acceptance formula is **designed** to satisfy detailed balance
-- Samples converge to the target distribution (exact in the limit)
+**무엇이 이를 되게 하나**:
 
-**Practical success requires**:
-- Target acceptance rate $\approx 23.4\%$ for high-dimensional random walk
-- Step size scaling as $\sigma \propto 1/\sqrt{d}$
-- Covariance matching when target has anisotropic structure
-- Gradient information (MALA, HMC) for high-dimensional problems
+- 고르게 하지 않은 밀도의 **비**만 있으면 된다. 곧 $Z$이 지워진다
+- 받아들임 공식은 자세한 균형을 만족하도록 **일부러 짠** 것이다
+- 표본이 과녁 분포로 모인다(끝에서는 정확하다)
 
-The genius of Metropolis-Hastings is turning an intractable problem (computing $Z$) into a tractable algorithm (accept/reject based on ratios). This single insight—**use ratios**—transformed Bayesian inference from a theoretical framework into a practical computational method.
+**실전에서 잘되려면**:
 
-| Quantity | Computable? | Needed for MH? |
+- 차원 높은 무작위 걸음에서는 받아들임 비율의 목표를 $\approx 23.4\%$으로 잡는다
+- 걸음 크기를 $\sigma \propto 1/\sqrt{d}$으로 잡는다
+- 과녁이 방향마다 다른 짜임을 가지면 공분산을 맞춘다
+- 차원 높은 문제에는 기울기 정보(MALA, HMC)를 쓴다
+
+메트로폴리스-헤이스팅스의 천재성은 다룰 수 없는 문제($Z$ 셈하기)를 다룰 수 있는 알고리즘(비에 바탕을 둔 받아들임/물리침)으로 바꾼 데 있다. **비를 쓰라**는 이 하나의 통찰이 베이즈 추론을 이론 얼개에서 쓸모 있는 셈 방법으로 바꾸어 놓았다.
+
+| 양 | 셈할 수 있나? | MH에 필요한가? |
 |----------|-------------|----------------|
-| $\tilde{p}(\theta)$ (unnormalized) | ✓ | ✓ |
+| $\tilde{p}(\theta)$(고르게 하지 않음) | ✓ | ✓ |
 | $Z = \int \tilde{p}(\theta) \, d\theta$ | ✗ | ✗ |
 | $\pi(\theta) = \tilde{p}(\theta)/Z$ | ✗ | ✗ |
-| $\tilde{p}(\theta')/\tilde{p}(\theta)$ (ratio) | ✓ | ✓ |
+| $\tilde{p}(\theta')/\tilde{p}(\theta)$(비) | ✓ | ✓ |
 
-We only need what we **can** compute—and that's enough.
+우리는 셈할 **수 있는** 것만 있으면 되고, 그것으로 넉넉하다.
+
+## 연습문제
+
+**연습문제 1.**
+마르코프 사슬이 올바른 과녁 분포로 모이게 하는 데 받아들임 확률이 하는 몫을 설명하여라.
+
+??? success "연습문제 1 풀이"
+    받아들임 확률이 **자세한 균형** $\pi(x) T(x \to x') \alpha(x \to x') = \pi(x') T(x' \to x) \alpha(x' \to x)$을 보장한다. 여기서 $\pi$은 과녁 분포, $T$은 제안 분포, $\alpha$은 받아들임 확률이다. 자세한 균형은 $\pi$이 사슬의 멈춘 분포임을 뜻한다. 쪼갤 수 없음과 주기 없음까지 합치면 $\pi$으로의 에르고드 모임이 보장된다.
+
+---
+
+**연습문제 2.**
+제안 분포가 너무 좁은 상황과 너무 넓은 상황을 밝혀라. 저마다 표집 효율에 어떤 영향을 주는가?
+
+??? success "연습문제 2 풀이"
+    **너무 좁을 때:** 제안이 거의 늘 받아들여지지만(받아들임 비율이 높지만) 사슬이 아주 작은 걸음을 떼어 과녁 분포를 느리게 살펴본다. 그러면 자기상관이 높고 실효 표본 크기가 작아진다. **너무 넓을 때:** 제안이 확률이 낮은 구역에 자주 떨어져 물리쳐지므로(받아들임 비율이 낮으므로) 사슬이 여러 되풀이 동안 지금 상태에 갇혀 있게 된다. 두 극단 모두 효율을 떨어뜨린다. 높은 차원에서 무작위 걸음 메트로폴리스의 가장 좋은 받아들임 비율은 대략 0.234이다(Roberts 외, 1997).
+
+---
+
+**연습문제 3.**
+메트로폴리스-헤이스팅스 받아들임 비 $\alpha = \min\left(1, \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}\right)$이 $\pi$에 대해 자세한 균형을 만족함을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    일반성을 잃지 않고 $\pi(x') q(x|x') \leq \pi(x) q(x'|x)$이라 하자. 그러면 $\alpha(x \to x') = \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}$이고 $\alpha(x' \to x) = 1$이다. 자세한 균형 조건은 다음을 요구한다:
+
+    $$\pi(x) q(x'|x) \alpha(x \to x') = \pi(x) q(x'|x) \cdot \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)} = \pi(x') q(x|x')$$
+
+    그리고 $\pi(x') q(x|x') \alpha(x' \to x) = \pi(x') q(x|x') \cdot 1 = \pi(x') q(x|x')$이다. 양변이 같다. $\square$
+
+---
+
+**연습문제 4.**
+MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴지 어떻게 정하는가?
+
+??? success "연습문제 4 풀이"
+    태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.

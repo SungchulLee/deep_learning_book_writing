@@ -1,156 +1,190 @@
-# Recurrence from Divide and Conquer
+# 분할 정복으로부터의 점화식
 
-When analyzing a recursive algorithm, we rarely know its running time directly. Instead, we express the time to solve a problem of size $n$ in terms of the time to solve smaller subproblems. The resulting equation is called a **recurrence relation**, and deriving it correctly is the first step toward understanding an algorithm's efficiency. This page shows how to translate a divide-and-conquer algorithm into a recurrence and identifies the key components that determine the recurrence's structure.
+재귀 알고리즘을 분석할 때 그 실행 시간을 곧바로 아는 경우는 드물다. 대신 크기 $n$인 문제를 푸는 시간을 더 작은 부분문제를 푸는 시간으로 표현한다. 그렇게 얻어지는 식을 **점화식(recurrence relation)** 이라 하며, 이를 올바르게 유도하는 것이 알고리즘의 효율을 이해하는 첫걸음이다. 이 절에서는 분할 정복 알고리즘을 점화식으로 옮기는 방법을 보이고, 점화식의 구조를 결정하는 핵심 요소들을 짚는다.
 
-## The Divide-and-Conquer Paradigm
+## 분할 정복 방식
 
-A divide-and-conquer algorithm follows three steps:
+분할 정복 알고리즘은 세 단계를 따른다.
 
-1. **Divide**: Split the problem of size $n$ into $a$ subproblems, each of size roughly $n/b$
-2. **Conquer**: Solve each subproblem recursively (or directly if the subproblem is small enough)
-3. **Combine**: Merge the subproblem solutions into a solution for the original problem
+1. **분할**: 크기 $n$인 문제를 각각 대략 $n/b$ 크기인 부분문제 $a$개로 나눈다
+2. **정복**: 각 부분문제를 재귀적으로 푼다(부분문제가 충분히 작으면 직접 푼다)
+3. **결합**: 부분문제의 해들을 합쳐 원래 문제의 해를 만든다
 
-Each of these steps contributes to the total running time, and the recurrence captures that contribution precisely.
+각 단계가 전체 실행 시간에 기여하며, 점화식은 그 기여를 정확히 포착한다.
 
-## Deriving the General Recurrence
+## 일반적인 점화식 유도
 
-Let $T(n)$ denote the running time of a divide-and-conquer algorithm on an input of size $n$. The three steps contribute:
+크기 $n$인 입력에 대한 분할 정복 알고리즘의 실행 시간을 $T(n)$이라 하자. 세 단계는 다음과 같이 기여한다.
 
-- **Divide cost** $D(n)$: the time to split the input
-- **Conquer cost**: $a$ recursive calls, each on a problem of size $n/b$, costing $a \cdot T(n/b)$
-- **Combine cost** $C(n)$: the time to merge solutions
+- **분할 비용** $D(n)$: 입력을 나누는 시간
+- **정복 비용**: 각각 크기 $n/b$인 문제에 대한 재귀 호출 $a$번으로 $a \cdot T(n/b)$
+- **결합 비용** $C(n)$: 해들을 합치는 시간
 
-The total running time satisfies:
+전체 실행 시간은 다음을 만족한다.
 
 $$
 T(n) = \begin{cases} \Theta(1) & \text{if } n \leq n_0 \\[4pt] a \, T(n/b) + D(n) + C(n) & \text{if } n > n_0 \end{cases}
 $$
 
-where $n_0$ is the base-case threshold. The sum $f(n) = D(n) + C(n)$ is often called the **toll function** or **driving function**, representing the non-recursive work at each level.
+여기서 $n_0$은 기저 사례의 문턱값이다. 합 $f(n) = D(n) + C(n)$은 흔히 **통행료 함수(toll function)** 또는 **구동 함수(driving function)** 라 불리며, 각 층에서 재귀가 아닌 일을 나타낸다.
 
-## Identifying the Parameters
+## 매개변수 알아내기
 
-To write down a recurrence for a specific algorithm, answer these four questions:
+특정 알고리즘의 점화식을 적으려면 다음 네 가지 질문에 답하면 된다.
 
-| Parameter | Question | Typical values |
+| 매개변수 | 질문 | 흔한 값 |
 |-----------|----------|----------------|
-| $a$ | How many recursive calls does each invocation make? | 1, 2, 4, 7, ... |
-| $b$ | By what factor does the problem size shrink? | 2, 3, 4, ... |
-| $D(n)$ | How much work does the divide step take? | $\Theta(1)$, $\Theta(n)$ |
-| $C(n)$ | How much work does the combine step take? | $\Theta(1)$, $\Theta(n)$, $\Theta(n^2)$ |
+| $a$ | 호출 한 번이 재귀 호출을 몇 번 하는가? | 1, 2, 4, 7, ... |
+| $b$ | 문제 크기가 몇 배로 줄어드는가? | 2, 3, 4, ... |
+| $D(n)$ | 분할 단계에 얼마나 일이 드는가? | $\Theta(1)$, $\Theta(n)$ |
+| $C(n)$ | 결합 단계에 얼마나 일이 드는가? | $\Theta(1)$, $\Theta(n)$, $\Theta(n^2)$ |
 
-The parameters $a$ and $b$ determine the shape of the recursion tree, while $D(n) + C(n)$ determines the work done at each node.
+매개변수 $a$와 $b$가 재귀 트리의 모양을 정하고, $D(n) + C(n)$이 각 노드에서 수행되는 일을 정한다.
 
-## Classic Examples
+## 고전적인 예
 
-### Merge Sort
+### 병합 정렬
 
-Merge sort divides an array of $n$ elements into two halves, recursively sorts each half, and merges the sorted halves.
+병합 정렬은 원소 $n$개짜리 배열을 두 절반으로 나누고, 각 절반을 재귀적으로 정렬한 뒤, 정렬된 절반들을 병합한다.
 
-- **Divide**: Split the array at the midpoint. Cost: $D(n) = \Theta(1)$
-- **Conquer**: Two recursive calls on arrays of size $n/2$
-- **Combine**: Merge two sorted halves by scanning both. Cost: $C(n) = \Theta(n)$
+- **분할**: 배열을 중간점에서 나눈다. 비용: $D(n) = \Theta(1)$
+- **정복**: 크기 $n/2$인 배열에 대한 재귀 호출 두 번
+- **결합**: 정렬된 두 절반을 훑으며 병합한다. 비용: $C(n) = \Theta(n)$
 
-Recurrence:
+점화식:
 
 $$
 T(n) = 2T(n/2) + \Theta(n)
 $$
 
-Solution: $T(n) = \Theta(n \log n)$, derived via the Master theorem or the recursion tree method.
+해: $T(n) = \Theta(n \log n)$이며, 마스터 정리나 재귀 트리 방법으로 유도된다.
 
-### Binary Search
+### 이진 탐색
 
-Binary search compares the target with the middle element and recurses on one half.
+이진 탐색은 목표 값을 중간 원소와 비교한 뒤 한쪽 절반에 재귀한다.
 
-- **Divide**: Compute the midpoint. Cost: $D(n) = \Theta(1)$
-- **Conquer**: One recursive call on an array of size $n/2$
-- **Combine**: No merging needed. Cost: $C(n) = \Theta(1)$
+- **분할**: 중간점을 계산한다. 비용: $D(n) = \Theta(1)$
+- **정복**: 크기 $n/2$인 배열에 대한 재귀 호출 한 번
+- **결합**: 병합이 필요 없다. 비용: $C(n) = \Theta(1)$
 
-Recurrence:
+점화식:
 
 $$
 T(n) = T(n/2) + \Theta(1)
 $$
 
-Solution: $T(n) = \Theta(\log n)$.
+해: $T(n) = \Theta(\log n)$.
 
-### Strassen's Matrix Multiplication
+### Strassen의 행렬 곱
 
-Strassen's algorithm multiplies two $n \times n$ matrices by reducing the problem from eight recursive multiplications to seven, at the cost of additional additions.
+Strassen의 알고리즘은 재귀적 곱셈을 여덟 번에서 일곱 번으로 줄이는 대신 덧셈을 더 함으로써 두 $n \times n$ 행렬을 곱한다.
 
-- **Divide**: Partition each matrix into four $n/2 \times n/2$ submatrices. Cost: $D(n) = \Theta(1)$ (index arithmetic only)
-- **Conquer**: Seven recursive multiplications on $n/2 \times n/2$ matrices
-- **Combine**: Compute the result submatrices from the seven products using $\Theta(n^2)$ additions
+- **분할**: 각 행렬을 네 개의 $n/2 \times n/2$ 부분행렬로 나눈다. 비용: $D(n) = \Theta(1)$(인덱스 계산만)
+- **정복**: $n/2 \times n/2$ 행렬에 대한 재귀적 곱셈 일곱 번
+- **결합**: 일곱 개의 곱으로부터 $\Theta(n^2)$번의 덧셈을 사용해 결과 부분행렬을 계산한다
 
-Recurrence:
+점화식:
 
 $$
 T(n) = 7T(n/2) + \Theta(n^2)
 $$
 
-Solution: $T(n) = \Theta(n^{\log_2 7}) \approx \Theta(n^{2.807})$, which improves on the naive $\Theta(n^3)$.
+해: $T(n) = \Theta(n^{\log_2 7}) \approx \Theta(n^{2.807})$이며, 소박한 $\Theta(n^3)$을 개선한다.
 
-### Maximum Subarray (Divide and Conquer)
+### 최대 부분배열(분할 정복)
 
-Find the contiguous subarray with the largest sum by splitting the array in half and considering three cases: the maximum subarray lies entirely in the left half, entirely in the right half, or crosses the midpoint.
+배열을 반으로 나누고 세 가지 경우, 즉 최대 부분배열이 왼쪽 절반에 온전히 들어가거나, 오른쪽 절반에 온전히 들어가거나, 중간점을 가로지르는 경우를 고려하여 합이 가장 큰 연속 부분배열을 찾는다.
 
-- **Divide**: Split at midpoint. Cost: $D(n) = \Theta(1)$
-- **Conquer**: Two recursive calls on arrays of size $n/2$
-- **Combine**: Find the best crossing subarray by scanning left and right from the midpoint. Cost: $C(n) = \Theta(n)$
+- **분할**: 중간점에서 나눈다. 비용: $D(n) = \Theta(1)$
+- **정복**: 크기 $n/2$인 배열에 대한 재귀 호출 두 번
+- **결합**: 중간점에서 좌우로 훑어 가장 좋은 가로지르는 부분배열을 찾는다. 비용: $C(n) = \Theta(n)$
 
-Recurrence:
+점화식:
 
 $$
 T(n) = 2T(n/2) + \Theta(n)
 $$
 
-Solution: $T(n) = \Theta(n \log n)$, the same structure as merge sort.
+해: $T(n) = \Theta(n \log n)$으로 병합 정렬과 같은 구조이다.
 
-## Handling Floors and Ceilings
+## 바닥 함수와 천장 함수 다루기
 
-In practice, $n/b$ is not always an integer. For merge sort on an odd-length array, one half has $\lfloor n/2 \rfloor$ elements and the other has $\lceil n/2 \rceil$. The exact recurrence is:
+실제로 $n/b$가 항상 정수인 것은 아니다. 길이가 홀수인 배열에 대한 병합 정렬에서는 한쪽 절반이 $\lfloor n/2 \rfloor$개, 다른 쪽이 $\lceil n/2 \rceil$개의 원소를 갖는다. 정확한 점화식은 다음과 같다.
 
 $$
 T(n) = T(\lfloor n/2 \rfloor) + T(\lceil n/2 \rceil) + \Theta(n)
 $$
 
-For asymptotic analysis, floors and ceilings do not affect the solution. The standard practice is to write $T(n) = 2T(n/2) + \Theta(n)$ with the understanding that this represents the asymptotic behavior. The [Akra-Bazzi method](akra_bazzi.md) provides a rigorous justification for ignoring floors and ceilings.
+점근적 분석에서는 바닥과 천장이 해에 영향을 주지 않는다. 표준적인 관행은 이것이 점근적 거동을 나타낸다는 이해 아래 $T(n) = 2T(n/2) + \Theta(n)$으로 쓰는 것이다. [Akra-Bazzi 방법](akra_bazzi.md)이 바닥과 천장을 무시해도 되는 엄밀한 근거를 제공한다.
 
-## Unequal Subproblem Sizes
+## 크기가 다른 부분문제
 
-Some algorithms split the input into subproblems of different sizes. The select algorithm (median of medians) produces the recurrence:
+어떤 알고리즘은 입력을 크기가 서로 다른 부분문제로 나눈다. 선택 알고리즘(중앙값의 중앙값)은 다음 점화식을 낳는다.
 
 $$
 T(n) = T(n/5) + T(7n/10) + \Theta(n)
 $$
 
-This does not fit the standard $T(n) = aT(n/b) + f(n)$ form because the two subproblems have different size ratios. The [Akra-Bazzi method](akra_bazzi.md) handles such recurrences directly.
+두 부분문제의 크기 비가 다르므로 이는 표준적인 $T(n) = aT(n/b) + f(n)$ 형태에 들어맞지 않는다. [Akra-Bazzi 방법](akra_bazzi.md)이 이런 점화식을 직접 다룬다.
 
-## From Recurrence to Solution
+## 점화식에서 해로
 
-Once a recurrence has been derived, several methods can solve it:
+점화식을 유도하고 나면 여러 방법으로 풀 수 있다.
 
-| Method | Best suited for | Page |
+| 방법 | 적합한 경우 | 절 |
 |--------|----------------|------|
-| Substitution | Verifying a guessed solution | [Substitution Method](substitution.md) |
-| Recursion tree | Building intuition, guessing the answer | [Recursion Tree Method](recursion_tree.md) |
-| Master theorem | Standard $T(n) = aT(n/b) + f(n)$ form | [Master Theorem](master.md) |
-| Extended Master | Logarithmic factors in $f(n)$ | [Extended Master Theorem](extended_master.md) |
-| Akra-Bazzi | Unequal subproblem sizes | [Akra-Bazzi Method](akra_bazzi.md) |
-| Generating functions | Non-standard or full exact solutions | [Generating Functions](generating.md) |
+| 치환 | 추측한 해를 검증할 때 | [치환 방법](substitution.md) |
+| 재귀 트리 | 직관을 얻고 답을 추측할 때 | [재귀 트리 방법](recursion_tree.md) |
+| 마스터 정리 | 표준 $T(n) = aT(n/b) + f(n)$ 형태일 때 | [마스터 정리](master.md) |
+| 확장 마스터 정리 | $f(n)$에 로그 인자가 있을 때 | [확장 마스터 정리](extended_master.md) |
+| Akra-Bazzi | 부분문제 크기가 서로 다를 때 | [Akra-Bazzi 방법](akra_bazzi.md) |
+| 생성함수 | 비표준적이거나 완전한 정확해가 필요할 때 | [생성함수](generating.md) |
 
-The choice depends on the recurrence's form and the level of detail needed.
+무엇을 고를지는 점화식의 형태와 필요한 세부 수준에 달려 있다.
 
-## Common Pitfalls
+## 흔한 함정
 
-!!! warning "Pitfalls When Deriving Recurrences"
-    - **Forgetting the base case**: Every recurrence needs $T(n) = \Theta(1)$ for $n \leq n_0$. Without it, the recurrence is not well-defined.
-    - **Miscounting recursive calls**: Count the number of recursive invocations, not the number of subproblems created by the divide step. Strassen creates many submatrices but makes exactly seven recursive calls.
-    - **Ignoring the combine cost**: The combine step often dominates. Merge sort's $\Theta(n \log n)$ comes from the $\Theta(n)$ merge at each level, not from the divide step.
-    - **Confusing $a$ and $b$**: The parameter $a$ is the number of subproblems; $b$ is the factor by which the problem size shrinks. For merge sort, $a = 2$ and $b = 2$.
+!!! warning "점화식을 유도할 때의 함정"
 
-## References
+    - **기저 사례를 잊는 것**: 모든 점화식에는 $n \leq n_0$에 대한 $T(n) = \Theta(1)$이 필요하다. 이것이 없으면 점화식이 잘 정의되지 않는다.
+    - **재귀 호출을 잘못 세는 것**: 분할 단계가 만들어 내는 부분문제의 개수가 아니라 재귀 호출의 횟수를 세어야 한다. Strassen은 많은 부분행렬을 만들지만 재귀 호출은 정확히 일곱 번 한다.
+    - **결합 비용을 무시하는 것**: 결합 단계가 지배하는 경우가 많다. 병합 정렬의 $\Theta(n \log n)$은 분할 단계가 아니라 각 층에서의 $\Theta(n)$ 병합에서 나온다.
+    - **$a$와 $b$를 혼동하는 것**: 매개변수 $a$는 부분문제의 개수이고 $b$는 문제 크기가 줄어드는 배수이다. 병합 정렬에서는 $a = 2$이고 $b = 2$이다.
+
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapters 2 and 4. MIT Press.
 - Kleinberg, J., & Tardos, E. (2005). *Algorithm Design*, Chapter 5. Pearson.
+
+
+## 연습문제
+
+**연습문제 1.**
+분할 정복으로부터의 점화식에서 다룬 점화식 풀이 기법을 점화식 $T(n) = 2T(n/2) + n$에 적용하라.
+
+??? success "연습문제 1 풀이"
+    이 절에서 설명한 방법을 사용한다. 핵심 매개변수를 찾고 기법을 적용하면 $T(n) = \Theta(n \log n)$을 얻는다. 이것이 병합 정렬의 점화식이며, 일이 층마다 고르게 분포되는 균형 잡힌 경우를 나타낸다.
+
+---
+
+**연습문제 2.**
+분할 정복으로부터의 점화식을 사용하여 $T(n) = 4T(n/2) + n$을 풀어라. 어느 경우에 해당하는가?
+
+??? success "연습문제 2 풀이"
+    $a = 4, b = 2, \log_b a = 2$이다. $f(n) = n = O(n^{2-1})$이다. 재귀 비용이 지배하므로 $T(n) = \Theta(n^2)$이다.
+
+---
+
+**연습문제 3.**
+길이 $n$인 시퀀스를 두 절반으로 나누어 각각을 재귀적으로 처리한 뒤 $O(n)$의 교차 어텐션으로 결합하는 트랜스포머 층의 점화식을 쓰고 풀어라.
+
+??? success "연습문제 3 풀이"
+    $T(n) = 2T(n/2) + O(n)$이다. 이는 $T(n) = \Theta(n \log n)$을 주며 병합 정렬과 같다. 실제로 트랜스포머는 이런 재귀 구조를 쓰지 않지만, (Longformer 같은) 계층적 어텐션 기법이 이를 근사한다.
+
+---
+
+**연습문제 4.**
+분할 정복으로부터의 점화식에 나오는 점화식의 해를 치환 방법으로 검증하라. 귀납 가정을 서술하고 증명을 수행하라.
+
+??? success "연습문제 4 풀이"
+    이 절의 기법으로 닫힌 형태를 추측한다. 모든 $k < n$에 대해 $T(k) \leq ck^p$(또는 적절한 형태)를 가정한다. 이를 점화식에 대입하여 $T(n) \leq cn^p$임을 검증한다. 기저 사례는 따로 처리한다. $\square$

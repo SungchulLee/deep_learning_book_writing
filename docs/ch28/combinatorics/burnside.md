@@ -1,61 +1,61 @@
-# Burnside's Lemma
+# 번사이드 도움 정리
 
-Burnside's lemma (also called the Cauchy-Frobenius lemma) answers a fundamental counting question: how many truly distinct objects exist when some objects are "the same" under symmetry? For instance, how many distinct necklaces can be made from colored beads when rotations are considered identical?
+번사이드 도움 정리(코시-프로베니우스 도움 정리라고도 한다)는 근본 세기 물음에 답한다. 맞섬 아래에서 어떤 것들이 "같다"고 할 때 참으로 서로 다른 것은 몇 개인가? 보기로 돌림을 같다고 볼 때 색 구슬로 서로 다른 목걸이를 몇 개 만들 수 있는가?
 
-## Intuition
+## 직관
 
-Naive counting over-counts objects that are related by symmetry. Burnside's lemma corrects this by averaging the number of objects fixed by each symmetry operation. The key insight is that the number of distinct objects equals the average number of fixed points across all symmetries in the group.
+순진하게 세면 맞섬으로 이어진 것을 더 세게 된다. 번사이드 도움 정리는 맞섬 연산마다 붙박이로 두는 것의 개수를 평균 내어 이를 바로잡는다. 핵심 통찰은 서로 다른 것의 개수가 무리의 모든 맞섬에 걸친 붙박이점 개수의 평균과 같다는 것이다.
 
-## Prerequisites
+## 미리 알아야 할 것
 
-**Group action.** A group $G$ acts on a set $X$ if there is a mapping $G \times X \to X$, written $(g, x) \mapsto g \cdot x$, satisfying:
+**무리 작용.** 다음을 만족하는 옮김 $G \times X \to X$($(g, x) \mapsto g \cdot x$이라 적는다)이 있으면 무리 $G$이 모임 $X$에 작용한다고 한다:
 
-1. $e \cdot x = x$ for the identity $e \in G$ and all $x \in X$
-2. $(gh) \cdot x = g \cdot (h \cdot x)$ for all $g, h \in G$ and $x \in X$
+1. 항등원 $e \in G$과 모든 $x \in X$에 대해 $e \cdot x = x$
+2. 모든 $g, h \in G$과 $x \in X$에 대해 $(gh) \cdot x = g \cdot (h \cdot x)$
 
-**Orbit.** The orbit of $x \in X$ under $G$ is $\text{Orb}(x) = \{g \cdot x : g \in G\}$. Two objects in the same orbit are considered equivalent.
+**돌이 자리.** $G$ 아래에서 $x \in X$의 돌이 자리는 $\text{Orb}(x) = \{g \cdot x : g \in G\}$이다. 같은 돌이 자리에 있는 둘은 같다고 본다.
 
-**Fixed-point set.** For each $g \in G$, define:
+**붙박이점 모임.** 각 $g \in G$에 대해 다음을 뜻매김한다:
 
 $$
 \text{Fix}(g) = \{x \in X : g \cdot x = x\}
 $$
 
-This is the set of objects left unchanged by the symmetry $g$.
+이는 맞섬 $g$이 바꾸지 않고 두는 것의 모임이다.
 
-## Statement
+## 진술
 
-Let $G$ be a finite group acting on a finite set $X$. The number of distinct orbits is:
+$G$을 유한 모임 $X$에 작용하는 유한 무리라 하자. 서로 다른 돌이 자리의 개수는 다음과 같다:
 
 $$
 |X / G| = \frac{1}{|G|} \sum_{g \in G} |\text{Fix}(g)|
 $$
 
-In words: the number of distinct objects under symmetry equals the average number of fixed points over all group elements.
+말로 하면, 맞섬 아래에서 서로 다른 것의 개수는 모든 무리 원소에 걸친 붙박이점 개수의 평균과 같다.
 
-## Proof
+## 증명
 
-Define the set $S = \{(g, x) \in G \times X : g \cdot x = x\}$ and count $|S|$ in two ways.
+모임 $S = \{(g, x) \in G \times X : g \cdot x = x\}$을 뜻매김하고 $|S|$을 두 가지로 센다.
 
-**Counting by group elements:** For each $g \in G$, the elements $x$ with $g \cdot x = x$ form $\text{Fix}(g)$, so:
+**무리 원소로 세기:** 각 $g \in G$에 대해 $g \cdot x = x$인 원소 $x$이 $\text{Fix}(g)$을 이루므로:
 
 $$
 |S| = \sum_{g \in G} |\text{Fix}(g)|
 $$
 
-**Counting by set elements:** For each $x \in X$, the elements $g$ with $g \cdot x = x$ form the stabilizer $\text{Stab}(x)$, so:
+**모임 원소로 세기:** 각 $x \in X$에 대해 $g \cdot x = x$인 원소 $g$이 붙박이개 $\text{Stab}(x)$을 이루므로:
 
 $$
 |S| = \sum_{x \in X} |\text{Stab}(x)|
 $$
 
-By the orbit-stabilizer theorem, $|\text{Stab}(x)| = |G| / |\text{Orb}(x)|$. Substituting:
+돌이 자리-붙박이개 정리에 따라 $|\text{Stab}(x)| = |G| / |\text{Orb}(x)|$이다. 넣으면:
 
 $$
 |S| = \sum_{x \in X} \frac{|G|}{|\text{Orb}(x)|} = |G| \sum_{x \in X} \frac{1}{|\text{Orb}(x)|}
 $$
 
-Each orbit $O$ contributes $|O|$ terms of $1/|O|$, which sum to $1$. So the right side equals $|G| \cdot (\text{number of orbits})$. Combining:
+돌이 자리 $O$마다 $1/|O|$인 항을 $|O|$개 보태며 그 합은 $1$이다. 따라서 오른쪽은 $|G| \cdot (\text{number of orbits})$과 같다. 합치면:
 
 $$
 \sum_{g \in G} |\text{Fix}(g)| = |G| \cdot |X/G|
@@ -65,28 +65,28 @@ $$
 |X/G| = \frac{1}{|G|} \sum_{g \in G} |\text{Fix}(g)|
 $$
 
-## Example: Coloring a Square
+## 보기: 정사각형 칠하기
 
-**Problem.** How many distinct colorings of the vertices of a square exist using 2 colors, where two colorings are the same if one can be rotated into the other?
+**문제.** 색 2가지로 정사각형의 꼭짓점을 칠할 때 하나를 돌려 다른 하나가 되면 같다고 볼 경우 서로 다른 칠하기는 몇 가지인가?
 
-The rotation group of the square is $G = \{r_0, r_{90}, r_{180}, r_{270}\}$ with $|G| = 4$. The total set of colorings has $|X| = 2^4 = 16$ elements.
+정사각형의 돌림 무리는 $G = \{r_0, r_{90}, r_{180}, r_{270}\}$이고 $|G| = 4$이다. 온 칠하기 모임은 원소가 $|X| = 2^4 = 16$개이다.
 
-| Rotation $g$ | Description | $\lvert\text{Fix}(g)\rvert$ | Reason |
+| 돌림 $g$ | 풀이 | $\lvert\text{Fix}(g)\rvert$ | 까닭 |
 |---|---|---|---|
-| $r_0$ (identity) | No rotation | 16 | Every coloring is fixed |
-| $r_{90}$ | 90 degrees | 2 | All 4 vertices must match |
-| $r_{180}$ | 180 degrees | 4 | Opposite pairs must match |
-| $r_{270}$ | 270 degrees | 2 | All 4 vertices must match |
+| $r_0$(항등) | 돌리지 않음 | 16 | 모든 칠하기가 붙박인다 |
+| $r_{90}$ | 90도 | 2 | 꼭짓점 4개가 모두 같아야 한다 |
+| $r_{180}$ | 180도 | 4 | 마주 보는 짝이 같아야 한다 |
+| $r_{270}$ | 270도 | 2 | 꼭짓점 4개가 모두 같아야 한다 |
 
-Applying Burnside's lemma:
+번사이드 도움 정리를 쓰면:
 
 $$
 |X/G| = \frac{1}{4}(16 + 2 + 4 + 2) = \frac{24}{4} = 6
 $$
 
-There are **6** distinct colorings under rotation.
+돌림 아래에서 서로 다른 칠하기는 **6**가지이다.
 
-## Implementation
+## 구현
 
 ```python
 from collections.abc import Callable
@@ -98,13 +98,13 @@ def burnside_count(
 ) -> int:
     """Count distinct objects under a group action using Burnside's lemma.
 
-    Args:
-        elements: List of all objects in set X.
-        group: List of functions, each mapping an element to its image
-               under that group action.
+    인수:
+        elements: 모임 X의 모든 대상 목록.
+        group: 원소를 그 상으로 옮기는 함수의 목록
+               그 무리 작용 아래에서.
 
-    Returns:
-        Number of distinct orbits.
+    반환값:
+        서로 다른 돌이 자리의 개수.
     """
     total_fixed = 0
     for action in group:
@@ -114,7 +114,7 @@ def burnside_count(
 
 
 if __name__ == "__main__":
-    # === Square vertex colorings with 2 colors under rotation ===
+    # === 돌림 아래 색 2가지로 정사각형 꼭짓점 칠하기 ===
     from itertools import product
 
     colorings = list(product(range(2), repeat=4))
@@ -134,23 +134,55 @@ if __name__ == "__main__":
     rotations = [rotate_0, rotate_90, rotate_180, rotate_270]
     distinct = burnside_count(colorings, rotations)
     print(f"Distinct square colorings (2 colors, rotations): {distinct}")
-    # Output: 6
+    # 내놓기: 6
 ```
 
-## Complexity
+## 복잡도
 
-Computing Burnside's count requires evaluating $|\text{Fix}(g)|$ for each $g \in G$. If $|G| = m$ and $|X| = n$, the brute-force approach runs in $O(mn)$ time. In many applications (necklaces, grid colorings), the structure of $G$ allows computing $|\text{Fix}(g)|$ analytically, reducing the work to $O(m)$.
+번사이드 세기를 셈하려면 각 $g \in G$에 대해 $|\text{Fix}(g)|$을 매겨야 한다. $|G| = m$이고 $|X| = n$이면 막무가내 방식은 $O(mn)$ 시간에 돈다. 많은 쓰임새(목걸이, 격자 칠하기)에서는 $G$의 얼개 덕에 $|\text{Fix}(g)|$을 닫힌 꼴로 셈할 수 있어 일이 $O(m)$으로 줄어든다.
 
-## Applications
+## 응용
 
-| Problem | Group $G$ | Set $X$ |
+| 문제 | 무리 $G$ | 모임 $X$ |
 |---|---|---|
-| Necklace colorings | Cyclic group $C_n$ (rotations) | $k^n$ color assignments |
-| Bracelet colorings | Dihedral group $D_n$ (rotations + reflections) | $k^n$ color assignments |
-| Chemical isomer counting | Molecular symmetry group | Atom arrangements |
-| Rubik's cube patterns | Cube rotation group | Face colorings |
+| 목걸이 칠하기 | 돌이 무리 $C_n$(돌림) | 색 매김 $k^n$가지 |
+| 팔찌 칠하기 | 이면체 무리 $D_n$(돌림 + 되비침) | 색 매김 $k^n$가지 |
+| 화학 이성질체 세기 | 분자 맞섬 무리 | 원자 배치 |
+| 루빅 정육면체 무늬 | 정육면체 돌림 무리 | 면 칠하기 |
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 31.
 - Burnside, W. (1897). *Theory of Groups of Finite Order*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+구슬 4개를 저마다 빨강이나 파랑으로 칠하고 돌림을 같다고 볼 때 서로 다른 목걸이는 몇 가지인가?
+
+??? success "연습문제 1 풀이"
+    돌림 무리는 구슬 자리 4개에 작용하는 $\mathbb{Z}_4 = \{r^0, r^1, r^2, r^3\}$이다. 돌림마다 붙박이는 칠하기를 센다. $r^0$(항등): $2^4 = 16$가지가 모두 붙박인다. $r^1$(90도): 구슬이 모두 같은 색이어야 하므로 $2$가지. $r^2$(180도): 자리 $(1,3)$이 같고 $(2,4)$이 같아야 하므로 $2^2 = 4$가지. $r^3$(270도): $r^1$과 같아 $2$가지. 번사이드에 따라 $(16 + 2 + 4 + 2)/4 = 24/4 = 6$가지 목걸이이다.
+
+---
+
+**연습문제 2.**
+색 2가지로 정육면체의 면을 칠할 때 돌림 맞섬 아래에서 서로 다른 칠하기를 세어라.
+
+??? success "연습문제 2 풀이"
+    정육면체의 돌림 무리는 원소가 24개이다. 돌림마다 그것이 붙박이로 두는 면 6개의 칠하기를 센다. 항등(1개): $2^6 = 64$. 면 축 90도와 270도 돌림(6개): 저마다 $2^3 = 8$을 붙박이므로 $6 \times 8 = 48$. 면 축 180도 돌림(3개): 저마다 $2^4 = 16$이므로 $3 \times 16 = 48$. 꼭짓점 축 120도와 240도 돌림(8개): 저마다 $2^2 = 4$이므로 $8 \times 4 = 32$. 모서리 축 180도 돌림(6개): 저마다 $2^3 = 8$이므로 $6 \times 8 = 48$. 온 합: $(64 + 48 + 48 + 32 + 48)/24 = 240/24 = 10$가지이다.
+
+---
+
+**연습문제 3.**
+폴리아 세기 정리를 적고 그것이 번사이드 도움 정리를 어떻게 넓히는지 밝혀라.
+
+??? success "연습문제 3 풀이"
+    폴리아 정리는 색마다 몇 번 쓰였는지를 좇아 번사이드를 넓힌다. 붙박이점만 세는 대신 무리 $G$의 돌이 지표 다항식 $Z_G$을 쓴다. 돌이 지표가 $Z_G(s_1, s_2, \ldots, s_n)$이고 색이 $k$가지이면 서로 다른 칠하기의 개수는 $Z_G(k, k, \ldots, k)$이다. 색 쓰임을 좇는 무게 있는 세기에는 $s_i = \sum_j x_j^i$을 넣는다. 그러면 $x_1^{a_1} \cdots x_k^{a_k}$의 계수가 맞섬을 빼고 색 $j$을 꼭 $a_j$번 쓴 칠하기를 세는 만들개 함수가 된다. 번사이드 도움 정리는 온 개수만 알고 싶은 특별한 경우이다.
+
+---
+
+**연습문제 4.**
+돌림 맞섬을 빼고 색 3가지로 정삼각형의 꼭짓점을 칠하는 서로 다른 방법은 몇 가지인가?
+
+??? success "연습문제 4 풀이"
+    삼각형의 돌림 무리는 $\mathbb{Z}_3 = \{r^0, r^1, r^2\}$이다. 붙박이는 칠하기: $r^0$: $3^3 = 27$가지 모두. $r^1$(120도): 꼭짓점 셋이 모두 같은 색이어야 하므로 $3$가지. $r^2$(240도): 마찬가지로 $3$가지. 번사이드에 따라 $(27 + 3 + 3)/3 = 33/3 = 11$가지이다.

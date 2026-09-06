@@ -105,3 +105,43 @@ A 45-minute interview leaves no room for backtracking on approach.
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - McDowell, G. *Cracking the Coding Interview*. 6th ed. CareerCup, 2015.
+
+## Exercises
+
+**Exercise 1.**
+You are given an unsorted array of $n$ integers and asked to find the $k$-th smallest element. Describe two approaches with different time-space tradeoffs.
+
+??? success "Solution to Exercise 1"
+    **Approach 1 -- Sort**: sort the array in $O(n \log n)$, return the $k$-th element. Simple, uses $O(1)$ extra space (in-place sort). **Approach 2 -- Quickselect**: partition the array around a pivot (like quicksort). If the pivot's position equals $k$, return it. Otherwise, recurse on the relevant half. Expected time: $O(n)$ (each recursion halves the problem on average). Worst case: $O(n^2)$ (bad pivots). The Median of Medians algorithm guarantees $O(n)$ worst case but has a large constant. For interviews, Quickselect is the expected answer: it demonstrates understanding of partitioning, expected-time analysis, and the tradeoff between simplicity and worst-case guarantees. $\square$
+
+---
+
+**Exercise 2.**
+During an interview, you realize your initial approach is $O(n^2)$ but the expected complexity is $O(n \log n)$. Describe how to communicate this transition to the interviewer.
+
+??? success "Solution to Exercise 2"
+    Say: "My current approach is $O(n^2)$ because [explain the nested loop or repeated scan]. I can improve this by [specific technique: sorting, using a hash map, binary search on the answer, divide and conquer]. Let me walk through the optimized approach." Key principles: (1) Acknowledge the suboptimal solution before the interviewer asks -- it shows awareness. (2) Explain *why* it is slow (identify the bottleneck). (3) State the target complexity and the technique that achieves it. (4) Ask if the interviewer wants you to code the brute force first or jump to the optimized solution. Never silently abandon your first approach; the transition demonstrates algorithmic thinking, which is what the interview evaluates. $\square$
+
+---
+
+**Exercise 3.**
+Given a binary tree, find the lowest common ancestor (LCA) of two nodes. Describe the recursive algorithm, its time complexity, and the edge cases to handle.
+
+??? success "Solution to Exercise 3"
+    Recursive algorithm: if the current node is null, return null. If the current node equals either target, return it. Recurse on left and right children. If both return non-null, the current node is the LCA. If only one returns non-null, propagate it upward. Time: $O(n)$ (visit each node once). Space: $O(h)$ for recursion stack where $h$ is the tree height. Edge cases: (1) one node is an ancestor of the other -- the ancestor itself is the LCA; (2) one or both nodes are not in the tree -- the algorithm may return incorrect results; add a check by verifying both nodes were found; (3) tree has only one node; (4) both target nodes are the same -- the LCA is the node itself. $\square$
+
+---
+
+**Exercise 4.**
+Explain the "STAR" method (Situation, Task, Action, Result) for answering behavioral questions in technical interviews. Give an example related to debugging a performance issue.
+
+??? success "Solution to Exercise 4"
+    **Situation**: "Our production system's response time spiked from 50ms to 2 seconds during peak hours." **Task**: "I was responsible for identifying and fixing the performance regression before the next trading session." **Action**: "I profiled the application and found that a new feature was performing N+1 database queries (one per item in a list of 10,000 items). I refactored the code to batch queries using a single JOIN, added an index on the lookup column, and implemented response caching with a 5-second TTL." **Result**: "Response time dropped to 30ms (below the original baseline), database load decreased by 95%, and the fix was deployed within 4 hours." The STAR method structures the answer so the interviewer can follow the reasoning, and the quantified result demonstrates impact. $\square$
+
+---
+
+**Exercise 5.**
+You are stuck on an interview problem after 10 minutes. List four strategies for making progress without asking for a direct hint.
+
+??? success "Solution to Exercise 5"
+    (1) **Work through small examples**: manually solve the problem for $n = 1, 2, 3, 4$. Patterns often emerge from concrete instances. (2) **Consider related problems**: "This looks like a variant of [known problem]. In that problem, we use [technique]. Can I adapt it here?" This shows breadth of knowledge. (3) **Simplify the problem**: solve a restricted version first (e.g., assume sorted input, or $k = 1$), then generalize. (4) **Think about the output structure**: what does the answer look like? If it is a subset, consider DP or greedy. If it is a sequence, consider sorting or BFS/DFS. If it is a count, consider combinatorics or DP. Verbalize your thought process throughout -- interviewers give credit for structured reasoning even without a complete solution. Saying "I am considering approach X because..." is better than silent thinking. $\square$

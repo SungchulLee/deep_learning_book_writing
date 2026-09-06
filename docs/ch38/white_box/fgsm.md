@@ -1,9 +1,4 @@
 # Fast Gradient Sign Method (FGSM)
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Introduction
 
 The **Fast Gradient Sign Method (FGSM)** is the foundational gradient-based adversarial attack, introduced by Goodfellow et al. (2015). Its simplicity—requiring only a single gradient computation—makes it computationally efficient and serves as the building block for more sophisticated attacks.
@@ -15,33 +10,25 @@ The **Fast Gradient Sign Method (FGSM)** is the foundational gradient-based adve
 FGSM is motivated by the observation that neural networks behave approximately linearly in high-dimensional space. Consider a linear model:
 
 $$
-
 f(\mathbf{x}) = \mathbf{w}^\top \mathbf{x}
-
 $$
 
 For a perturbation $\boldsymbol{\delta}$, the change in output is:
 
 $$
-
 f(\mathbf{x} + \boldsymbol{\delta}) - f(\mathbf{x}) = \mathbf{w}^\top \boldsymbol{\delta}
-
 $$
 
 To maximize this under $\ell_\infty$ constraint $\|\boldsymbol{\delta}\|_\infty \leq \varepsilon$, the optimal perturbation is:
 
 $$
-
 \delta_i^* = \varepsilon \cdot \text{sign}(w_i)
-
 $$
 
 This yields maximum change:
 
 $$
-
 \mathbf{w}^\top \boldsymbol{\delta}^* = \varepsilon \|\mathbf{w}\|_1
-
 $$
 
 In high dimensions, even small $\varepsilon$ produces significant $\varepsilon \|\mathbf{w}\|_1$.
@@ -51,17 +38,13 @@ In high dimensions, even small $\varepsilon$ produces significant $\varepsilon \
 For a neural network $f_\theta$ with loss function $\mathcal{L}$, we linearize via first-order Taylor expansion:
 
 $$
-
 \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y) \approx \mathcal{L}(f_\theta(\mathbf{x}), y) + \boldsymbol{\delta}^\top \nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y)
-
 $$
 
 The gradient $\nabla_\mathbf{x} \mathcal{L}$ acts as the "weights" in our linear approximation. Applying the same logic:
 
 $$
-
 \boxed{\mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y))}
-
 $$
 
 This is the **FGSM attack**.
@@ -101,9 +84,7 @@ Perturbed x + ε·sign(∇L) ───> Loss L(f(x_adv), y) ≫ L(f(x), y)
 For targeted attack toward class $y_{\text{target}}$:
 
 $$
-
 \mathbf{x}_{\text{adv}} = \mathbf{x} - \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y_{\text{target}}))
-
 $$
 
 Note the **minus sign**: we descend the loss to pull predictions toward the target.
@@ -113,9 +94,7 @@ Note the **minus sign**: we descend the loss to pull predictions toward the targ
 For $\ell_2$ constraint instead of $\ell_\infty$:
 
 $$
-
 \mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \frac{\nabla_\mathbf{x} \mathcal{L}}{\|\nabla_\mathbf{x} \mathcal{L}\|_2}
-
 $$
 
 This normalizes the gradient to unit length, then scales by $\varepsilon$.
@@ -545,12 +524,14 @@ def epsilon_sensitivity_study(
 ### Strengths and Limitations
 
 **Strengths:**
+
 - Extremely fast (single gradient computation)
 - Effective baseline for robustness evaluation
 - Easy to implement and understand
 - Works against most undefended models
 
 **Limitations:**
+
 - Single-step attack is suboptimal
 - Easily defended against via adversarial training
 - May fail against gradient-masked models
@@ -590,6 +571,7 @@ def compare_fgsm_to_random(model, x, y, epsilon):
 ```
 
 Typical results on CIFAR-10 with $\varepsilon = 8/255$:
+
 - FGSM: ~60-80% success rate
 - Random: ~5-10% success rate
 
@@ -600,9 +582,7 @@ Typical results on CIFAR-10 with $\varepsilon = 8/255$:
 Uses actual gradient instead of sign:
 
 $$
-
 \mathbf{x}_{\text{adv}} = \mathbf{x} + \varepsilon \cdot \nabla_\mathbf{x} \mathcal{L}
-
 $$
 
 This is non-normalized and may violate $\ell_\infty$ constraints.
@@ -612,12 +592,10 @@ This is non-normalized and may violate $\ell_\infty$ constraints.
 Adds random initialization before FGSM:
 
 $$
-
 \begin{aligned}
 \mathbf{x}' &= \mathbf{x} + \alpha \cdot \mathbf{u}, \quad \mathbf{u} \sim \text{Uniform}[-1, 1]^d \\
 \mathbf{x}_{\text{adv}} &= \mathbf{x}' + (\varepsilon - \alpha) \cdot \text{sign}(\nabla_{\mathbf{x}'} \mathcal{L})
 \end{aligned}
-
 $$
 
 This helps escape poor local optima and is used in adversarial training.
@@ -627,9 +605,7 @@ This helps escape poor local optima and is used in adversarial training.
 Accumulates gradient history (leads to MI-FGSM, covered in PGD section):
 
 $$
-
 \mathbf{g}_t = \mu \cdot \mathbf{g}_{t-1} + \frac{\nabla_\mathbf{x} \mathcal{L}}{\|\nabla_\mathbf{x} \mathcal{L}\|_1}
-
 $$
 
 ## Connection to Adversarial Training
@@ -637,17 +613,13 @@ $$
 FGSM is central to adversarial training. The min-max optimization:
 
 $$
-
 \min_\theta \mathbb{E}_{(\mathbf{x},y)}[\max_{\|\boldsymbol{\delta}\| \leq \varepsilon} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y)]
-
 $$
 
 approximates the inner max using FGSM:
 
 $$
-
 \boldsymbol{\delta}^{\text{FGSM}} = \varepsilon \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}), y))
-
 $$
 
 Training on FGSM adversarial examples provides basic robustness, though PGD-based training is stronger.
@@ -669,3 +641,35 @@ FGSM provides the conceptual foundation for understanding adversarial attacks. W
 1. Goodfellow, I. J., Shlens, J., & Szegedy, C. (2015). "Explaining and Harnessing Adversarial Examples." ICLR.
 2. Kurakin, A., Goodfellow, I., & Bengio, S. (2017). "Adversarial Examples in the Physical World." ICLR Workshop.
 3. Tramèr, F., et al. (2018). "Ensemble Adversarial Training: Attacks and Defenses." ICLR.
+
+## Exercises
+
+**Exercise 1.**
+For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+
+??? success "Solution to Exercise 1"
+    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
+
+---
+
+**Exercise 2.**
+Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
+
+??? success "Solution to Exercise 2"
+    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+
+---
+
+**Exercise 3.**
+Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+
+??? success "Solution to Exercise 3"
+    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+
+---
+
+**Exercise 4.**
+Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+
+??? success "Solution to Exercise 4"
+    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$

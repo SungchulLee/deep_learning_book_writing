@@ -1,9 +1,4 @@
 # Dropout Rate Selection for MC Dropout
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Overview
 
 The dropout rate $p$ (probability of dropping a unit) is a critical hyperparameter that affects both training regularization and the quality of uncertainty estimates. This document provides principled approaches to dropout rate selection for Monte Carlo Dropout applications.
@@ -15,9 +10,7 @@ The dropout rate $p$ (probability of dropping a unit) is a critical hyperparamet
 From the variational inference perspective, the dropout rate $p$ implicitly specifies a prior over the weights. The relationship between dropout rate, weight decay $\lambda$, and the prior is:
 
 $$
-
 \lambda = \frac{p \ell^2}{2N\tau}
-
 $$
 
 where:
@@ -36,23 +29,17 @@ where:
 For a weight $w$ with learned mean $m$, the dropout distribution has:
 
 $$
-
 \mathbb{E}[w] = (1-p) \cdot m
-
 $$
 
 $$
-
 \text{Var}[w] = p(1-p) \cdot m^2
-
 $$
 
 The coefficient of variation:
 
 $$
-
 \text{CV}[w] = \frac{\sqrt{\text{Var}[w]}}{\mathbb{E}[w]} = \sqrt{\frac{p}{1-p}}
-
 $$
 
 | $p$ | CV |
@@ -70,9 +57,7 @@ Higher $p$ induces greater weight variability and thus wider predictive distribu
 For a single layer $y = \sigma(Wx + b)$ with dropout rate $p$, the variance propagates approximately as:
 
 $$
-
 \text{Var}[y_j] \approx \frac{p}{1-p} \cdot \mathbb{E}[y_j]^2 + (1-p) \cdot \text{Var}[\text{pre-activation}]
-
 $$
 
 For deep networks, this compounds across layers, making deeper layers particularly sensitive to dropout rate.
@@ -151,9 +136,7 @@ def get_recommended_dropout_rates(architecture: str) -> dict:
 Larger datasets require less regularization:
 
 $$
-
 p_{\text{optimal}} \propto \frac{1}{\sqrt{N}}
-
 $$
 
 **Empirical guidelines:**
@@ -170,9 +153,7 @@ $$
 Larger models need more regularization:
 
 $$
-
 p_{\text{optimal}} \propto \log(\text{num\_params})
-
 $$
 
 ```python
@@ -216,9 +197,7 @@ The dropout rate directly affects uncertainty calibration. Too low → overconfi
 **Expected Calibration Error (ECE):**
 
 $$
-
 \text{ECE} = \sum_{b=1}^{B} \frac{n_b}{N} |\text{acc}(b) - \text{conf}(b)|
-
 $$
 
 where $\text{acc}(b)$ is accuracy in bin $b$ and $\text{conf}(b)$ is mean confidence.
@@ -355,9 +334,7 @@ def evaluate_calibration(
 **Sharpness** measures how concentrated the predictive distribution is:
 
 $$
-
 \text{Sharpness} = -\mathbb{E}[\mathbb{H}[\hat{p}]] = \mathbb{E}\left[\sum_c \hat{p}_c \log \hat{p}_c\right]
-
 $$
 
 Higher dropout → less sharp (wider) distributions.
@@ -473,9 +450,7 @@ Instead of treating $p$ as a hyperparameter, we can learn it during training. Co
 The Concrete (or Gumbel-Softmax) relaxation:
 
 $$
-
 z = \sigma\left( \frac{1}{\tau} \left( \log \frac{p}{1-p} + \log \frac{u}{1-u} \right) \right)
-
 $$
 
 where $u \sim \text{Uniform}(0, 1)$ and $\tau$ is the temperature.
@@ -735,3 +710,35 @@ def train_concrete_dropout(
 3. Guo, C., et al. (2017). On Calibration of Modern Neural Networks. *ICML*.
 
 4. Gal, Y. (2016). Uncertainty in Deep Learning. *PhD Thesis*.
+
+## Exercises
+
+**Exercise 1.**
+For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+
+??? success "Solution to Exercise 1"
+    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
+
+---
+
+**Exercise 2.**
+Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
+
+??? success "Solution to Exercise 2"
+    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+
+---
+
+**Exercise 3.**
+Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+
+??? success "Solution to Exercise 3"
+    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+
+---
+
+**Exercise 4.**
+Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+
+??? success "Solution to Exercise 4"
+    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$

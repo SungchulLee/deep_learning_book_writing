@@ -1,58 +1,58 @@
-# Christofides Algorithm for Metric TSP
+# 잣대 떠돌이 장수 문제를 위한 크리스토피데스 알고리즘
 
-The Traveling Salesman Problem (TSP) asks for the shortest tour visiting every city exactly once and returning to the start. While general TSP is NP-hard and inapproximable, the **metric** variant --- where distances satisfy the triangle inequality --- admits constant-factor approximation. The Christofides-Serdyukov algorithm achieves the best known ratio of $3/2$ for metric TSP, a bound that stood since 1976.
+떠돌이 장수 문제는 모든 고을을 꼭 한 번씩 들르고 출발점으로 돌아오는 가장 짧은 나들이를 묻는다. 일반 떠돌이 장수 문제는 NP-어려움이고 어림도 할 수 없지만 거리가 삼각 부등식을 채우는 **잣대** 변형은 상수 갑절 어림을 받아들인다. 크리스토피데스-세르듀코프 알고리즘은 잣대 떠돌이 장수 문제에서 알려진 가장 좋은 비율 $3/2$을 이루며, 이 한계는 1976년부터 이어졌다.
 
-## Problem Definition
+## 문제의 정의
 
-Given a complete graph $G = (V, E)$ with edge weights $w : E \to \mathbb{R}_{\geq 0}$ satisfying the **triangle inequality**:
+**삼각 부등식**을 채우는 모서리 무게 $w : E \to \mathbb{R}_{\geq 0}$을 지닌 온전 그래프 $G = (V, E)$이 주어질 때:
 
 $$
 w(u, v) \leq w(u, x) + w(x, v) \quad \forall\, u, v, x \in V
 $$
 
-find a Hamiltonian cycle (tour) of minimum total weight. Let $\text{OPT}$ denote the cost of an optimal tour.
+온 무게가 가장 작은 해밀턴 돌기(나들이)를 찾아라. $\text{OPT}$을 가장 좋은 나들이의 비용이라 하자.
 
-## Algorithm Steps
+## 알고리즘의 걸음
 
-The Christofides algorithm combines three graph-theoretic ingredients: minimum spanning trees, minimum-weight perfect matchings, and Eulerian circuits.
+크리스토피데스 알고리즘은 그래프 이론의 재료 셋, 곧 최소 뻗음 나무, 무게가 가장 작은 온전 짝짓기, 오일러 돌기를 아우른다.
 
-**Input:** Complete graph $G = (V, E)$ with metric weights $w$.
+**들임:** 잣대 무게 $w$을 지닌 온전 그래프 $G = (V, E)$.
 
-1. **Minimum Spanning Tree.** Compute a minimum spanning tree $T$ of $G$.
-2. **Odd-Degree Vertices.** Let $O \subseteq V$ be the set of vertices with odd degree in $T$. By the handshaking lemma, $|O|$ is even.
-3. **Minimum-Weight Perfect Matching.** Compute a minimum-weight perfect matching $M$ on the complete subgraph induced by $O$.
-4. **Eulerian Multigraph.** Form the multigraph $H = T \cup M$. Every vertex in $H$ has even degree, so $H$ is Eulerian.
-5. **Euler Tour.** Find an Eulerian circuit of $H$.
-6. **Shortcutting.** Convert the Euler tour to a Hamiltonian cycle by skipping previously visited vertices (the triangle inequality ensures this does not increase cost).
+1. **최소 뻗음 나무.** $G$의 최소 뻗음 나무 $T$을 셈한다.
+2. **홀수 차수 꼭짓점.** $O \subseteq V$을 $T$에서 차수가 홀수인 꼭짓점 모임이라 하자. 악수 보조 정리에 따라 $|O|$은 짝수이다.
+3. **무게가 가장 작은 온전 짝짓기.** $O$이 이끄는 온전 아래 그래프에서 무게가 가장 작은 온전 짝짓기 $M$을 셈한다.
+4. **오일러 겹그래프.** 겹그래프 $H = T \cup M$을 만든다. $H$의 모든 꼭짓점은 차수가 짝수이므로 $H$은 오일러 그래프이다.
+5. **오일러 나들이.** $H$의 오일러 돌기를 찾는다.
+6. **건너뛰기.** 이미 들른 꼭짓점을 건너뛰어 오일러 나들이를 해밀턴 돌기로 바꾼다(삼각 부등식이 비용이 늘지 않음을 보장한다).
 
-**Output:** A Hamiltonian cycle whose cost is at most $\frac{3}{2} \cdot \text{OPT}$.
+**내놓기:** 비용이 많아야 $\frac{3}{2} \cdot \text{OPT}$인 해밀턴 돌기.
 
-## Approximation Guarantee
+## 어림 보장
 
-!!! tip "Theorem (Christofides 1976, Serdyukov 1978)"
-    The Christofides algorithm is a $\frac{3}{2}$-approximation for metric TSP.
+!!! tip "정리(Christofides 1976, Serdyukov 1978)"
+    크리스토피데스 알고리즘은 잣대 떠돌이 장수 문제의 $\frac{3}{2}$ 어림이다.
 
-**Proof.** We bound the costs of $T$ and $M$ separately.
+**밝힘.** $T$과 $M$의 비용을 따로 가둔다.
 
-**Step 1: Bounding $w(T)$.** Removing any edge from the optimal tour $\text{OPT}$ yields a spanning tree. Since $T$ is a *minimum* spanning tree:
+**걸음 1: $w(T)$ 가두기.** 가장 좋은 나들이 $\text{OPT}$에서 아무 모서리나 없애면 뻗음 나무가 된다. $T$은 *최소* 뻗음 나무이므로:
 
 $$
 w(T) \leq \text{OPT}
 $$
 
-**Step 2: Bounding $w(M)$.** Consider the optimal tour restricted to the odd-degree vertices $O = \{o_1, o_2, \ldots, o_{2k}\}$ in tour order. The shortcut tour on $O$ has cost at most $\text{OPT}$ (by the triangle inequality). This shortcut tour decomposes into two perfect matchings:
+**걸음 2: $w(M)$ 가두기.** 나들이 차례로 홀수 차수 꼭짓점 $O = \{o_1, o_2, \ldots, o_{2k}\}$으로 줄인 가장 좋은 나들이를 보자. $O$ 위의 건너뛴 나들이는 (삼각 부등식에 따라) 비용이 많아야 $\text{OPT}$이다. 이 건너뛴 나들이는 온전 짝짓기 둘로 나뉜다.
 
 $$
 M_1 = \{(o_1, o_2), (o_3, o_4), \ldots\}, \quad M_2 = \{(o_2, o_3), (o_4, o_5), \ldots\}
 $$
 
-Since $w(M_1) + w(M_2) \leq \text{OPT}$, the cheaper matching satisfies:
+$w(M_1) + w(M_2) \leq \text{OPT}$이므로 더 싼 짝짓기는 다음을 채운다.
 
 $$
 w(M) \leq \min(w(M_1), w(M_2)) \leq \frac{\text{OPT}}{2}
 $$
 
-**Step 3: Combining.** The Euler tour on $H = T \cup M$ has cost $w(T) + w(M)$. Shortcutting does not increase cost (triangle inequality), so the final tour costs at most:
+**걸음 3: 아우르기.** $H = T \cup M$ 위의 오일러 나들이는 비용이 $w(T) + w(M)$이다. 건너뛰기는 (삼각 부등식에 따라) 비용을 늘리지 않으므로 마지막 나들이의 비용은 많아야 다음과 같다.
 
 $$
 w(T) + w(M) \leq \text{OPT} + \frac{\text{OPT}}{2} = \frac{3}{2} \cdot \text{OPT}
@@ -60,34 +60,34 @@ $$
 
 $\square$
 
-## Tightness of the Bound
+## 한계가 빈틈없는가
 
-The $3/2$ ratio is tight. Consider a path graph with $n$ vertices and unit-weight edges, completed into a metric by shortest-path distances. The MST cost is $n - 1$, the matching cost approaches $(n-1)/2$, and the optimal tour costs $n$. As $n$ grows, the ratio approaches $3/2$.
+$3/2$ 비율은 빡빡하다. 꼭짓점 $n$개와 무게 1인 모서리를 지닌 길 그래프를 최단 거리로 잣대 그래프로 채운 것을 보자. 최소 뻗음 나무 비용은 $n - 1$, 짝짓기 비용은 $(n-1)/2$에 가까워지고 가장 좋은 나들이 비용은 $n$이다. $n$이 커지면 비율이 $3/2$에 가까워진다.
 
-## Running Time
+## 도는 시간
 
-| Step | Algorithm | Time |
+| 걸음 | 알고리즘 | 시간 |
 |------|-----------|------|
-| MST | Prim / Kruskal | $O(n^2 \log n)$ |
+| 최소 뻗음 나무 | 프림 / 크러스컬 | $O(n^2 \log n)$ |
 | Odd vertices | Degree scan | $O(n)$ |
 | Matching | Edmonds' blossom | $O(n^3)$ |
-| Euler tour | Hierholzer | $O(n)$ |
-| Shortcutting | Linear scan | $O(n)$ |
+| 오일러 나들이 | 히어홀처 | $O(n)$ |
+| 건너뛰기 | 훑어보기 | $O(n)$ |
 
-The bottleneck is the minimum-weight perfect matching step, giving overall complexity $O(n^3)$.
+병목은 무게가 가장 작은 온전 짝짓기 걸음이며 전체 복잡도는 $O(n^3)$이다.
 
-## Comparison with Other Approaches
+## 다른 길과 견주기
 
-| Algorithm | Ratio | Time | Notes |
+| 알고리즘 | 비율 | 시간 | 참고 |
 |-----------|-------|------|-------|
-| Nearest Neighbor | Unbounded (for metric: $O(\log n)$) | $O(n^2)$ | Greedy heuristic |
-| Double-Tree | $2$ | $O(n^2 \log n)$ | MST + shortcut |
-| Christofides | $3/2$ | $O(n^3)$ | Best classical ratio |
+| 가장 가까운 이웃 | 가둬지지 않음(잣대에서는 $O(\log n)$) | $O(n^2)$ | 욕심쟁이 어림잡기 |
+| 두 겹 나무 | $2$ | $O(n^2 \log n)$ | 최소 뻗음 나무 + 건너뛰기 |
+| 크리스토피데스 | $3/2$ | $O(n^3)$ | 옛부터의 가장 좋은 비율 |
 
-The double-tree algorithm uses the MST directly (traverse and shortcut) to achieve a 2-approximation. Christofides improves this by adding the matching step to handle odd-degree vertices more efficiently.
+두 겹 나무 알고리즘은 최소 뻗음 나무를 곧바로 써서(훑고 건너뛰어) 2 어림을 이룬다. 크리스토피데스는 짝짓기 걸음을 더해 홀수 차수 꼭짓점을 더 효율 좋게 다루어 이를 개선한다.
 
-??? example "Worked Example: 5-City Instance"
-    Consider 5 cities with distances forming a metric space:
+??? example "풀어 본 보기: 고을 다섯 개"
+    거리가 잣대 공간을 이루는 고을 다섯 개를 보자.
 
     | | A | B | C | D | E |
     |---|---|---|---|---|---|
@@ -97,22 +97,54 @@ The double-tree algorithm uses the MST directly (traverse and shortcut) to achie
     | D | 7 | 6 | 3 | 0 | 4 |
     | E | 3 | 4 | 5 | 4 | 0 |
 
-    **Step 1:** MST edges: $\{(A,B,2), (B,C,4), (C,D,3), (A,E,3)\}$, cost = 12.
+    **걸음 1:** 최소 뻗음 나무 모서리: $\{(A,B,2), (B,C,4), (C,D,3), (A,E,3)\}$, 비용 = 12.
 
-    **Step 2:** Odd-degree vertices: $O = \{C, D, E, B\}$ (each with degree 1 or 3).
+    **걸음 2:** 홀수 차수 꼭짓점: $O = \{C, D, E, B\}$(저마다 차수가 1이나 3이다).
 
-    **Step 3:** Minimum matching on $O$: $\{(B,C,4), (D,E,4)\}$, cost = 8.
+    **걸음 3:** $O$ 위의 최소 짝짓기: $\{(B,C,4), (D,E,4)\}$, 비용 = 8.
 
-    **Step 4:** Eulerian multigraph $H$ has edges from both $T$ and $M$.
+    **걸음 4:** 오일러 겹그래프 $H$은 $T$과 $M$의 모서리를 모두 가진다.
 
-    **Step 5:** Euler tour: $A \to B \to C \to B \to C \to D \to E \to A$ (traversing all edges).
+    **걸음 5:** 오일러 나들이: $A \to B \to C \to B \to C \to D \to E \to A$(모든 모서리를 지난다).
 
-    **Step 6:** Shortcut: $A \to B \to C \to D \to E \to A$, cost = $2 + 4 + 3 + 4 + 3 = 16$.
+    **걸음 6:** 건너뛰기: $A \to B \to C \to D \to E \to A$, 비용 = $2 + 4 + 3 + 4 + 3 = 16$.
 
-    The algorithm produces a tour of cost 16. The bound gives $\frac{3}{2} \cdot \text{OPT}$, confirming the approximation guarantee.
+    이 알고리즘은 비용 16인 나들이를 낸다. 한계는 $\frac{3}{2} \cdot \text{OPT}$을 주어 어림 보장을 굳혀 준다.
 
-## Reference
+## 참고 문헌
 
 - Christofides, N. (1976). *Worst-case analysis of a new heuristic for the travelling salesman problem*. Technical Report 388, Graduate School of Industrial Administration, CMU.
 - Serdyukov, A. I. (1978). On some extremal walks in graphs. *Upravlyaemye Sistemy*, 17, 76--79.
 - Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.
+
+## 연습문제
+
+**연습문제 1.**
+Describe the approximation algorithm for Christofides Algorithm for Metric TSP and state its approximation guarantee.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 다항식 시간에 돌며 가장 좋은 값의 밝힐 수 있는 갑절 안에 드는 풀이를 낸다. 어림 비율은 알고리즘이 내놓은 것을 가장 좋은 값의 아래 한계(가장 작게 하기)나 위 한계(가장 크게 하기), 곧 선형 계획 느슨하게 하기 값이나 조합 한계, 문제의 짜임 성질과 이어 밝힌다. $\square$
+
+---
+
+**연습문제 2.**
+What lower bound technique is used to prove the approximation ratio for Christofides Algorithm for Metric TSP?
+
+??? success "연습문제 2 풀이"
+    밝힘은 흔히 알고리즘의 풀이를 느슨하게 한 한계(선형 계획 느슨하게 하기, 분수 풀이, 조합 아래 한계)와 견준다. 가장 작게 하기에서는 $ALG \leq \rho \cdot LP^* \leq \rho \cdot OPT$이다. 가장 크게 하기에서는 $ALG \geq OPT / \rho$이다. 아래 한계는 효율 좋게 셈할 수 있고 쓸모 있는 비율을 줄 만큼 빡빡해야 한다. $\square$
+
+---
+
+**연습문제 3.**
+Can the approximation ratio for Christofides Algorithm for Metric TSP be improved? What are the known hardness results?
+
+??? success "연습문제 3 풀이"
+    어림 비율이 얼마나 빡빡한지는 복잡도 이론의 가정(P $\neq$ NP, 하나뿐인 놀이 추측 등)에 달렸다. 어떤 문제에서는 단순한 욕심쟁이나 반올림 알고리즘이 여느 가정 아래 이미 가장 좋다. 다른 문제에서는 가장 좋은 알고리즘과 가장 센 어려움 결과 사이에 틈이 있어 아직 풀리지 않은 연구 문제로 남아 있다. $\square$
+
+---
+
+**연습문제 4.**
+Apply Christofides Algorithm for Metric TSP to a concrete instance and verify the approximation ratio holds.
+
+??? success "연습문제 4 풀이"
+    작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$

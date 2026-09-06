@@ -1,19 +1,19 @@
-# The Merge Procedure
+# 병합 절차
 
-Merge sort's power lies in a single, elegant subroutine: the **merge** procedure.  Given two sorted arrays, merge combines them into one sorted array in linear time by scanning both arrays from left to right and always choosing the smaller element.  This $O(n)$ merge step is the workhorse of the entire algorithm -- every recursive call ultimately relies on it, and its efficiency is what makes merge sort achieve $O(n \log n)$ overall.
+병합 정렬의 힘은 우아한 부분 절차 하나, 곧 **병합** 절차에 있다. 정렬된 배열 둘이 주어지면 병합은 두 배열을 왼쪽에서 오른쪽으로 훑으며 늘 더 작은 원소를 골라, 선형 시간에 정렬된 배열 하나로 합친다. 이 $O(n)$짜리 병합 걸음이 알고리즘 전체의 일꾼이다. 되돌이 부름마다 결국 여기에 기대며, 그 효율 덕분에 병합 정렬이 전체로 $O(n \log n)$을 이룬다.
 
-## How Merge Works
+## 병합이 굴러가는 얼개
 
-Given two sorted subarrays $L[0..p-1]$ and $R[0..q-1]$, the merge procedure produces a single sorted array $A[0..p+q-1]$:
+정렬된 부분 배열 $L[0..p-1]$과 $R[0..q-1]$이 주어지면 병합 절차는 정렬된 배열 하나 $A[0..p+q-1]$을 낸다.
 
-1. Maintain three indices: $i$ into $L$, $j$ into $R$, and $k$ into $A$.
-2. Compare $L[i]$ with $R[j]$. Place the smaller value into $A[k]$.
-3. Advance the index of whichever subarray contributed the element, and advance $k$.
-4. When one subarray is exhausted, copy the remainder of the other subarray into $A$.
+1. 첨자 셋을 지닌다. $L$을 가리키는 $i$, $R$을 가리키는 $j$, $A$을 가리키는 $k$이다.
+2. $L[i]$과 $R[j]$을 견주어 더 작은 값을 $A[k]$에 놓는다.
+3. 원소를 내놓은 쪽 부분 배열의 첨자를 하나 밀고 $k$도 하나 민다.
+4. 한쪽 부분 배열이 다하면 다른 쪽의 나머지를 $A$에 그대로 옮긴다.
 
-Because both subarrays are sorted, each comparison places exactly one element in its correct position.
+두 부분 배열이 모두 정렬되어 있으므로 견줄 때마다 원소 하나가 제자리에 꼭 놓인다.
 
-## Pseudocode
+## 의사코드
 
 ```
 MERGE(A, left, mid, right):
@@ -34,38 +34,38 @@ MERGE(A, left, mid, right):
     copy remaining elements of R (if any) into A[k..]
 ```
 
-!!! tip "Stability through tie-breaking"
-    The `<=` comparison (rather than `<`) ensures that when $L[i] = R[j]$, the element from the left subarray is chosen first.  This preserves the original relative order of equal elements, making merge sort **stable**.
+!!! tip "같을 때 가려 안정성 지키기"
+    (`<`가 아니라) `<=`으로 견주므로 $L[i] = R[j]$일 때 왼쪽 부분 배열의 원소가 먼저 뽑힌다. 그래서 같은 원소의 본디 상대 차례가 지켜지고 병합 정렬이 **안정적**이 된다.
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Time complexity.**  Each element is compared at most once and copied exactly once.  With $p + q = n$ total elements:
+**시간 복잡도.** 원소마다 많아야 한 번 견주어지고 꼭 한 번 옮겨진다. 원소가 모두 $p + q = n$개이면 다음과 같다.
 
 $$
 T_{\text{merge}}(n) = O(n)
 $$
 
-Precisely, the merge performs at most $n - 1$ comparisons (when the last comparison exhausts one subarray) and exactly $n$ assignments.
+정확히는 병합이 많아야 $n - 1$번 견주고(마지막 견줌에서 한쪽 부분 배열이 다할 때) 꼭 $n$번 값을 넣는다.
 
-**Space complexity.**  The procedure requires $O(n)$ auxiliary space for the temporary copies $L$ and $R$.  This is the primary cost of merge sort compared to in-place algorithms like heapsort.
+**공간 복잡도.** 이 절차는 임시 사본 $L$과 $R$에 $O(n)$ 도움 공간이 든다. 이것이 힙 정렬 같은 제자리 알고리즘에 견준 병합 정렬의 주된 비용이다.
 
-## Step-by-Step Example
+## 한 걸음씩 보는 예
 
-Merge $L = [3, 9, 27]$ and $R = [10, 38, 43]$:
+$L = [3, 9, 27]$과 $R = [10, 38, 43]$을 병합해 보자.
 
-| Step | $L[i]$ | $R[j]$ | Choice | $A$ so far |
+| 걸음 | $L[i]$ | $R[j]$ | 고른 것 | 지금까지의 $A$ |
 |------|---------|---------|--------|------------|
-| 1    | 3       | 10      | 3 (L)  | $[3]$ |
-| 2    | 9       | 10      | 9 (L)  | $[3, 9]$ |
-| 3    | 27      | 10      | 10 (R) | $[3, 9, 10]$ |
-| 4    | 27      | 38      | 27 (L) | $[3, 9, 10, 27]$ |
-| 5    | --      | 38      | copy R | $[3, 9, 10, 27, 38, 43]$ |
+| 1 | 3 | 10 | 3 (L) | $[3]$ |
+| 2 | 9 | 10 | 9 (L) | $[3, 9]$ |
+| 3 | 27 | 10 | 10 (R) | $[3, 9, 10]$ |
+| 4 | 27 | 38 | 27 (L) | $[3, 9, 10, 27]$ |
+| 5 | -- | 38 | R 옮김 | $[3, 9, 10, 27, 38, 43]$ |
 
-Total: 4 comparisons for 6 elements.
+모두: 원소 6개에 견줌 4번.
 
-## Sentinel Technique
+## 파수병 기법
 
-CLRS presents a variant using **sentinel values** ($\infty$) appended to $L$ and $R$.  This eliminates the need to check whether either subarray is exhausted during the main loop:
+CLRS은 $L$과 $R$ 끝에 **파수병 값**($\infty$)을 붙이는 변형을 내보인다. 그러면 주 되돌이에서 어느 쪽 부분 배열이 다했는지 확인할 필요가 없어진다.
 
 ```
 MERGE-WITH-SENTINELS(A, left, mid, right):
@@ -82,38 +82,38 @@ MERGE-WITH-SENTINELS(A, left, mid, right):
             j = j + 1
 ```
 
-The sentinel values ensure that whenever one subarray is exhausted, every remaining comparison selects from the other subarray.  The asymptotic complexity is unchanged, but the inner loop has one fewer branch.
+파수병 값 덕분에 한쪽 부분 배열이 다하면 남은 견줌은 모두 다른 쪽에서 고른다. 점근 복잡도는 그대로지만 안쪽 되돌이의 가지가 하나 줄어든다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-The merge procedure for merge sort.
+병합 정렬의 병합 절차.
 
-Demonstrates both the standard two-pointer merge and the sentinel
-variant.  The merge operation combines two sorted sequences into
-one sorted sequence in O(n) time.
+보통의 두 가리개 병합과 파수병 변형을 모두 보여 준다.
+병합 연산은 정렬된 두 수열을 O(n) 시간에
+정렬된 수열 하나로 합친다.
 """
 
 
-# === Standard merge ===========================================================
+# === 보통의 병합 ==============================================================
 
 def merge(left: list, right: list) -> list:
-    """Merge two sorted lists into a single sorted list.
+    """정렬된 리스트 둘을 정렬된 리스트 하나로 병합한다.
 
-    Uses the two-pointer technique.  The <= comparison ensures stability.
+    두 가리개 기법을 쓴다. <=으로 견주므로 안정성이 지켜진다.
 
-    Parameters
+    매개변수
     ----------
     left : list
-        First sorted list.
+        첫 정렬된 리스트.
     right : list
-        Second sorted list.
+        둘째 정렬된 리스트.
 
-    Returns
+    반환값
     -------
     list
-        Merged sorted list of length len(left) + len(right).
+        길이가 len(left) + len(right)인 병합된 정렬 리스트.
     """
     result = []
     i = j = 0
@@ -129,24 +129,24 @@ def merge(left: list, right: list) -> list:
     return result
 
 
-# === Sentinel merge ===========================================================
+# === 파수병 병합 ==============================================================
 
 def merge_sentinel(left: list, right: list) -> list:
-    """Merge two sorted lists using sentinel values.
+    """파수병 값을 써서 정렬된 리스트 둘을 병합한다.
 
-    Appends float('inf') to both lists to eliminate boundary checks.
+    두 리스트에 float('inf')을 붙여 경계 살피기를 없앤다.
 
-    Parameters
+    매개변수
     ----------
     left : list
-        First sorted list.
+        첫 정렬된 리스트.
     right : list
-        Second sorted list.
+        둘째 정렬된 리스트.
 
-    Returns
+    반환값
     -------
     list
-        Merged sorted list.
+        병합된 정렬 리스트.
     """
     left_s = left + [float("inf")]
     right_s = right + [float("inf")]
@@ -162,7 +162,7 @@ def merge_sentinel(left: list, right: list) -> list:
     return result
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     L = [3, 9, 27]
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     print("Sentinel merge:")
     print(f"  merge({L}, {R}) = {merge_sentinel(L, R)}")
 
-    # Stability demonstration: merge records with equal keys
+    # 안정성 보여 주기: 열쇠가 같은 레코드를 병합한다
     records_l = [(1, "a"), (3, "b"), (5, "c")]
     records_r = [(1, "d"), (3, "e"), (4, "f")]
     merged = merge(records_l, records_r)
@@ -182,7 +182,7 @@ if __name__ == "__main__":
     print("  (1,'a') appears before (1,'d') -- stable")
 ```
 
-**Output:**
+**출력:**
 ```
 Standard merge:
   merge([3, 9, 27], [10, 38, 43]) = [3, 9, 10, 27, 38, 43]
@@ -193,7 +193,40 @@ Stability test: [(1, 'a'), (1, 'd'), (3, 'b'), (3, 'e'), (4, 'f'), (5, 'c')]
   (1,'a') appears before (1,'d') -- stable
 ```
 
-## References
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Section 2.3.1.
-- Knuth, D. E. (1998). *The Art of Computer Programming, Vol. 3: Sorting and Searching* (2nd ed.). Addison-Wesley, Section 5.2.4.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 2.3.1절.
+- Knuth, D. E. (1998). *The Art of Computer Programming, Vol. 3: Sorting and Searching* (2nd ed.). Addison-Wesley, 5.2.4절.
+
+
+## 연습문제
+
+**연습문제 1.**
+$[38, 27, 43, 3, 9, 82, 10]$에서 병합 절차를 따라가며 큰 걸음마다의 상태를 보여라.
+
+??? success "연습문제 1 풀이"
+    알고리즘을 한 걸음씩 밟아라. 나누어 정복하는 정렬이라면 되돌이 나눔과 병합을 하나씩 보이고, 나눔 기반 정렬이라면 나눔마다와 축이 놓이는 자리를 보여라. 걸음마다 배열 전체의 상태를 내보여라.
+
+---
+
+**연습문제 2.**
+병합 절차의 최선, 최악, 평균의 경우 시간 복잡도를 끌어내라.
+
+??? success "연습문제 2 풀이"
+    경우마다 점화식을 써라. 최선의 경우는 가장 좋은 나눔이거나 미리 정렬된 입력이다. 최악의 경우는 일을 가장 크게 만드는 적수 입력이다. 평균의 경우는 무작위 순열에 대한 기대 성능이다. 점화식을 각각 풀어라.
+
+---
+
+**연습문제 3.**
+병합 절차는 안정적인가? 증명하거나 반례를 들어라.
+
+??? success "연습문제 3 풀이"
+    같은 원소가 본디 상대 차례를 지키면 그 정렬은 안정적이다. 모든 입력에서 이것이 성립함을 증명하거나, 정렬 도중 같은 원소 둘의 자리가 뒤바뀌는 구체적인 입력을 들어라.
+
+---
+
+**연습문제 4.**
+float32 학습 손실 값 1000만 개를 정렬할 때 병합 절차를 다른 두 방법과 견주어라. 시간, 공간, 캐시 거동, GPU 어울림을 살펴라.
+
+??? success "연습문제 4 풀이"
+    $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.

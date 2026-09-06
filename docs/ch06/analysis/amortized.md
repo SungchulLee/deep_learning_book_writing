@@ -1,72 +1,72 @@
-# Amortized Cost
+# 상각 비용
 
-A single insertion into a hash table with dynamic resizing occasionally triggers a full rehash of all $n$ elements, costing $\Theta(n)$ time. This seems to contradict the claim that hash table operations run in $O(1)$ time. Amortized analysis resolves this apparent contradiction by showing that the expensive rehash operations occur so rarely that, averaged over any sequence of $n$ insertions, the cost per insertion is $O(1)$.
+크기를 동적으로 조정하는 해시 테이블에서 삽입 한 번이 이따금 원소 $n$개 전체의 재해싱을 일으켜 $\Theta(n)$ 시간이 든다. 이는 해시 테이블의 연산이 $O(1)$이라는 주장과 어긋나 보인다. 상각 분석은 값비싼 재해싱이 아주 드물게 일어나므로 삽입 $n$번의 어떤 열에 대해서도 평균 비용이 $O(1)$임을 보여 이 어긋남을 푼다.
 
-## Motivation
+## 왜 필요한가
 
-Consider building a hash table from scratch by inserting $n$ elements one at a time. The table starts with a small capacity and doubles whenever the load factor exceeds a threshold (typically $\alpha > 0.75$). Most insertions are cheap -- they compute a hash and append to a chain in $O(1)$ time. But each doubling copies all existing elements to the new table, costing $\Theta(n_i)$ time where $n_i$ is the number of elements at the time of the $i$-th resize. Despite these occasional expensive operations, we will prove that the total cost of $n$ insertions is $O(n)$, giving an amortized cost of $O(1)$ per insertion.
+원소 $n$개를 하나씩 넣어 해시 테이블을 처음부터 만든다고 하자. 테이블은 작은 용량으로 시작하여 적재율이 문턱값(보통 $\alpha > 0.75$)을 넘을 때마다 두 배가 된다. 대부분의 삽입은 값싸다. 해시를 계산하고 사슬에 덧붙이는 데 $O(1)$이 든다. 그러나 두 배로 늘릴 때마다 기존 원소를 모두 새 테이블로 옮기므로 $i$번째 크기 조정 시점의 원소 수를 $n_i$이라 할 때 $\Theta(n_i)$이 든다. 이런 값비싼 연산이 이따금 있어도 삽입 $n$번의 전체 비용이 $O(n)$이어서 삽입당 상각 비용이 $O(1)$임을 증명할 것이다.
 
-## Aggregate Method
+## 총합법
 
-The aggregate method computes the total cost of $n$ operations and divides by $n$.
+총합법은 연산 $n$번의 전체 비용을 구한 뒤 $n$으로 나눈다.
 
-**Setup.** Start with a table of size $m_0 = 1$. Double the table size whenever the table becomes full ($n = m$). After $n$ insertions, the table has been doubled $\lfloor \log_2 n \rfloor$ times.
+**설정.** 크기가 $m_0 = 1$인 테이블에서 시작한다. 테이블이 가득 찰 때마다($n = m$) 크기를 두 배로 늘린다. 삽입을 $n$번 하면 테이블은 $\lfloor \log_2 n \rfloor$번 두 배가 되었다.
 
-**Total cost.** Each insertion has a basic cost of 1 (computing the hash and storing the element). The $i$-th doubling occurs after $2^i$ insertions and copies $2^i$ elements. The total cost of $n$ insertions is:
+**전체 비용.** 삽입마다 기본 비용 1이 든다(해시를 계산하고 원소를 저장한다). $i$번째 두 배 늘리기는 삽입 $2^i$번 뒤에 일어나 원소 $2^i$개를 복사한다. 삽입 $n$번의 전체 비용은 다음과 같다.
 
 $$
 T(n) = n + \sum_{i=0}^{\lfloor \log_2 n \rfloor} 2^i
 $$
 
-The first term $n$ counts the basic cost of each insertion. The summation counts the copying cost of all doublings. Evaluating the geometric series:
+첫 항 $n$은 삽입마다의 기본 비용을 센다. 합은 모든 두 배 늘리기의 복사 비용을 센다. 등비급수를 계산하면 다음과 같다.
 
 $$
 \sum_{i=0}^{\lfloor \log_2 n \rfloor} 2^i = 2^{\lfloor \log_2 n \rfloor + 1} - 1 \leq 2n - 1
 $$
 
-Therefore:
+따라서 다음이 성립한다.
 
 $$
 T(n) \leq n + 2n - 1 = 3n - 1
 $$
 
-The amortized cost per insertion is:
+삽입당 상각 비용은 다음과 같다.
 
 $$
 \hat{c} = \frac{T(n)}{n} \leq \frac{3n - 1}{n} < 3 = O(1)
 $$
 
-## Potential Method
+## 잠재 함수 방법
 
-The potential method assigns a potential $\Phi$ to the data structure at each step. The amortized cost of an operation is its actual cost plus the change in potential:
+퍼텐셜법은 각 단계에서 자료 구조에 퍼텐셜 $\Phi$을 매긴다. 연산의 상각 비용은 실제 비용에 퍼텐셜의 변화를 더한 것이다.
 
 $$
 \hat{c}_i = c_i + \Phi_i - \Phi_{i-1}
 $$
 
-**Potential function.** Define the potential after $i$ insertions as:
+**퍼텐셜 함수.** 삽입 $i$번 뒤의 퍼텐셜을 다음과 같이 정의한다.
 
 $$
 \Phi_i = 2n_i - m_i
 $$
 
-where $n_i$ is the number of elements and $m_i$ is the table size after the $i$-th operation. This potential tracks how close the table is to needing a resize.
+여기서 $n_i$은 $i$번째 연산 뒤의 원소 수이고 $m_i$은 테이블의 크기이다. 이 퍼텐셜은 테이블이 크기 조정에 얼마나 가까운지를 나타낸다.
 
-**Initial condition.** $\Phi_0 = 2 \cdot 0 - m_0 = -m_0$. We can assume $m_0 = 1$ and $n_0 = 0$, giving $\Phi_0 = -1$. For the analysis, we want $\Phi_i \geq \Phi_0$ for all $i$, which holds since $n_i / m_i \leq 1$ implies $2n_i \geq m_i$ whenever $n_i \geq m_i / 2$.
+**처음 조건.** $\Phi_0 = 2 \cdot 0 - m_0 = -m_0$이다. $m_0 = 1$, $n_0 = 0$이라 두면 $\Phi_0 = -1$이다. 분석을 위해 모든 $i$에 대해 $\Phi_i \geq \Phi_0$이기를 바라는데, $n_i \geq m_i / 2$일 때 $n_i / m_i \leq 1$이 $2n_i \geq m_i$을 함의하므로 성립한다.
 
-**Case 1: Insertion without resize.** The actual cost is $c_i = 1$. The table size does not change ($m_i = m_{i-1}$), and the count increases by 1 ($n_i = n_{i-1} + 1$):
+**경우 1: 크기 조정 없는 삽입.** 실제 비용은 $c_i = 1$이다. 테이블의 크기는 그대로이고($m_i = m_{i-1}$) 개수가 1 늘어난다($n_i = n_{i-1} + 1$).
 
 $$
 \hat{c}_i = 1 + (2n_i - m_i) - (2n_{i-1} - m_{i-1}) = 1 + 2 = 3
 $$
 
-**Case 2: Insertion with resize.** The table is full ($n_{i-1} = m_{i-1}$), so the new table size is $m_i = 2m_{i-1}$ and the new count is $n_i = n_{i-1} + 1$. The actual cost is $c_i = 1 + n_{i-1}$ (insert plus copy all existing elements):
+**경우 2: 크기 조정을 동반한 삽입.** 테이블이 가득 차 있으므로($n_{i-1} = m_{i-1}$) 새 크기는 $m_i = 2m_{i-1}$이고 새 개수는 $n_i = n_{i-1} + 1$이다. 실제 비용은 $c_i = 1 + n_{i-1}$이다(삽입에 기존 원소를 모두 복사).
 
 $$
 \hat{c}_i = (1 + n_{i-1}) + (2n_i - m_i) - (2n_{i-1} - m_{i-1})
 $$
 
-Substituting $n_i = n_{i-1} + 1$ and $m_i = 2m_{i-1} = 2n_{i-1}$:
+$n_i = n_{i-1} + 1$과 $m_i = 2m_{i-1} = 2n_{i-1}$을 대입하면 다음과 같다.
 
 $$
 \hat{c}_i = (1 + n_{i-1}) + (2(n_{i-1} + 1) - 2n_{i-1}) - (2n_{i-1} - n_{i-1})
@@ -76,44 +76,44 @@ $$
 = (1 + n_{i-1}) + 2 - n_{i-1} = 3
 $$
 
-In both cases, the amortized cost is exactly 3, confirming $O(1)$ amortized cost per insertion.
+두 경우 모두 상각 비용이 정확히 3이므로 삽입당 상각 비용이 $O(1)$임이 확인된다.
 
-## Accounting Method
+## 회계 방법
 
-The accounting method assigns each operation a fixed "charge" (the amortized cost) and saves any excess as credit stored in the data structure.
+회계법은 연산마다 정해진 "요금"(상각 비용)을 매기고 남는 것을 자료 구조에 적립금으로 저장한다.
 
-**Charge each insertion \$3:**
+**삽입마다 \$3을 매긴다:**
 
-- \$1 pays for the insertion itself.
-- \$1 is saved as credit on the newly inserted element.
-- \$1 is saved as credit on one element that was present at the last resize.
+- \$1은 삽입 자체에 쓴다.
+- \$1은 새로 넣은 원소에 적립한다.
+- \$1은 지난 크기 조정 때 있던 원소 하나에 적립한다.
 
-When a resize occurs, every element in the table has accumulated \$1 of credit. Since the table has $n$ elements and the resize costs $\Theta(n)$, the stored credits exactly pay for the copying.
+크기 조정이 일어나면 테이블의 모든 원소에 \$1의 적립금이 쌓여 있다. 테이블에 원소가 $n$개이고 크기 조정에 $\Theta(n)$이 드므로 적립금이 복사 비용을 정확히 치른다.
 
-**Credit invariant.** At all times, every element inserted since the last resize has \$1 of credit. When the table is full ($n = m$), the total credit is $n$, which pays for the $\Theta(n)$ resize cost.
+**적립금 불변식.** 언제나 지난 크기 조정 뒤에 넣은 모든 원소가 \$1의 적립금을 갖는다. 테이블이 가득 차면($n = m$) 전체 적립금이 $n$이 되어 $\Theta(n)$의 크기 조정 비용을 치른다.
 
-??? example "Amortized Cost Trace"
+??? example "상각 비용 따라가기"
 
-    Track a table starting at size 1, doubling when full:
+    크기 1에서 시작하여 가득 차면 두 배로 늘리는 테이블을 따라가 보자.
 
-    | Operation | $n$ | $m$ | Actual cost | Credit change | Amortized cost |
+    | 연산 | $n$ | $m$ | 실제 비용 | 적립금 변화 | 상각 비용 |
     |---|---|---|---|---|---|
-    | Insert 1 | 1 | 1 | 1 (insert) | +2 | 3 |
-    | Insert 2 | 2 | 2 | 2 (resize + insert) | -1 + 2 = +1 | 3 |
-    | Insert 3 | 3 | 4 | 3 (resize + insert) | -2 + 2 = 0 | 3 |
-    | Insert 4 | 4 | 4 | 1 (insert) | +2 | 3 |
-    | Insert 5 | 5 | 8 | 5 (resize + insert) | -4 + 2 = -2 | 3 |
-    | Insert 6 | 6 | 8 | 1 (insert) | +2 | 3 |
-    | Insert 7 | 7 | 8 | 1 (insert) | +2 | 3 |
-    | Insert 8 | 8 | 8 | 1 (insert) | +2 | 3 |
+    | 1 넣기 | 1 | 1 | 1 (삽입) | +2 | 3 |
+    | 2 넣기 | 2 | 2 | 2 (크기 조정 + 삽입) | -1 + 2 = +1 | 3 |
+    | 3 넣기 | 3 | 4 | 3 (크기 조정 + 삽입) | -2 + 2 = 0 | 3 |
+    | 4 넣기 | 4 | 4 | 1 (삽입) | +2 | 3 |
+    | 5 넣기 | 5 | 8 | 5 (크기 조정 + 삽입) | -4 + 2 = -2 | 3 |
+    | 6 넣기 | 6 | 8 | 1 (삽입) | +2 | 3 |
+    | 7 넣기 | 7 | 8 | 1 (삽입) | +2 | 3 |
+    | 8 넣기 | 8 | 8 | 1 (삽입) | +2 | 3 |
 
-    Total actual cost: $1 + 2 + 3 + 1 + 5 + 1 + 1 + 1 = 15$. Total amortized cost: $8 \times 3 = 24$. The amortized total always exceeds the actual total, confirming the analysis.
+    실제 비용의 합은 $1 + 2 + 3 + 1 + 5 + 1 + 1 + 1 = 15$이다. 상각 비용의 합은 $8 \times 3 = 24$이다. 상각 합이 언제나 실제 합을 넘으므로 분석이 옳음을 확인할 수 있다.
 
-## Amortized Deletion
+## 삭제의 상각
 
-Deletion with table shrinking (halving when the load factor drops below $1/4$) also admits $O(1)$ amortized analysis using the same techniques. The asymmetric thresholds (double at $\alpha = 1$, halve at $\alpha = 1/4$) prevent thrashing -- a pathological pattern where alternating insertions and deletions near a boundary repeatedly trigger resizes.
+테이블을 줄이는 삭제(적재율이 $1/4$ 아래로 떨어지면 절반으로 줄이기)도 같은 기법으로 상각 $O(1)$임을 보일 수 있다. 비대칭 문턱값($\alpha = 1$에서 두 배, $\alpha = 1/4$에서 절반)은 스래싱을 막는다. 스래싱은 경계 근처에서 삽입과 삭제를 번갈아 하며 크기 조정이 되풀이되는 병적인 양상이다.
 
-The potential function for the combined insert/delete case is:
+삽입과 삭제를 함께 다루는 경우의 퍼텐셜 함수는 다음과 같다.
 
 $$
 \Phi_i =
@@ -123,13 +123,46 @@ m_i / 2 - n_i & \text{if } n_i < m_i / 2
 \end{cases}
 $$
 
-This potential is zero when the table is half full and increases as the table approaches either full or quarter-full, accumulating enough credit to pay for the next resize in either direction.
+이 퍼텐셜은 테이블이 절반 찼을 때 0이고, 가득 차거나 4분의 1만 찬 쪽으로 갈수록 커져 어느 방향의 다음 크기 조정이든 치를 만큼 적립금을 모은다.
 
-## Summary
+## 요약
 
-Amortized analysis of hash table resizing shows that each insertion costs $O(1)$ amortized time, despite occasional $\Theta(n)$ resize operations. The aggregate method directly computes the total cost as $O(n)$. The potential method confirms a constant amortized cost of 3 per insertion by tracking the gap between twice the element count and the table size. The accounting method provides an intuitive interpretation: each insertion saves enough credit to pay for its share of the next resize.
+해시 테이블 크기 조정의 상각 분석은 이따금 $\Theta(n)$의 크기 조정이 있어도 삽입마다 상각 $O(1)$ 시간이 듦을 보인다. 총합법은 전체 비용이 $O(n)$임을 곧바로 계산한다. 퍼텐셜법은 원소 수의 두 배와 테이블 크기의 차이를 따라가 삽입당 상각 비용이 상수 3임을 확인해 준다. 회계법은 직관적인 해석을 준다. 삽입마다 다음 크기 조정에서 자기 몫을 치를 만큼 적립금을 모아 둔다는 것이다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - [Introduction to Algorithms (CLRS), Chapter 16 — Amortized Analysis](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+상각 비용에 대해, 적재율이 $\alpha = 0.75$일 때 삽입과 조회의 기대 시간과 최악의 경우 시간을 계산하라.
+
+??? success "연습문제 1 풀이"
+    기대 시간은 충돌 해결 전략에 달렸으며 균등 해싱을 가정한다. 체이닝에서는 기대 시간이 $O(1 + \alpha) = O(1.75)$이다. 개방 주소법에서는 탐색에 실패할 때 기대 탐사 횟수가 $\approx 1/(1-\alpha) = 4$이다. 최악의 경우는 모든 키가 같은 칸으로 해시될 때의 $O(n)$이다.
+
+---
+
+**연습문제 2.**
+상각 비용을(를) 써서 키 10, 22, 31, 4, 15, 28, 17을 크기가 7인 해시 테이블에 넣어라. 최종 테이블의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    해시 함수 $h(k) = k \bmod 7$을 적용하고 이 쪽의 방법으로 충돌을 처리한다. 키마다 해시를 계산하고 충돌을 해결한 뒤 키를 놓는다. 최종 테이블의 내용을 보인다.
+
+---
+
+**연습문제 3.**
+상각 비용은(는) 딥러닝의 임베딩 테이블에서 어떻게 쓰이는가? 토큰 $V = 50{,}000$개의 어휘를 $m = 30{,}000$개의 버킷에 대응시킬 때 충돌의 양상을 분석하라.
+
+??? success "연습문제 3 풀이"
+    $V/m \approx 1.67$이므로 비둘기집 원리에 의해 충돌이 반드시 생긴다. 버킷마다 평균 1.67개의 토큰이 같은 임베딩을 나누어 쓴다. 충돌률과 그것이 모델의 품질에 미치는 영향은 해시 함수의 품질과 임베딩의 차원에 달렸다(차원이 높을수록 충돌을 더 잘 견딘다).
+
+---
+
+**연습문제 4.**
+$\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 상각 비용이 $O(1)$으로 유지됨을 증명하라.
+
+??? success "연습문제 4 풀이"
+    크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$

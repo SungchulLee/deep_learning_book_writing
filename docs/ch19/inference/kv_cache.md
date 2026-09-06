@@ -1,32 +1,27 @@
-# KV-Cache and Inference Optimization
+# 열쇠-값 곳간과 미룸 다듬기
+## 들어가며
 
+열쇠-값 곳간은 앞선 토막의 열쇠와 값 텐서를 갈무리해 겹치는 셈을 없애는, 자기되돌리기 글 만들어 내기의 근본 다듬기 재주이다. 만드는 토막마다의 미룸 시간을 O(N²)에서 O(N)으로 줄인다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 겹치는 셈 문제
 
-## Introduction
+### 열쇠-값 곳간이 없을 때
 
-KV-Cache (Key-Value Cache) is a fundamental optimization technique for autoregressive text generation that eliminates redundant computation by caching key and value tensors from previous tokens. This reduces inference time from O(N²) to O(N) per generated token.
-
-## The Redundant Computation Problem
-
-### Without KV-Cache
-
-During autoregressive generation, each new token requires recomputing attention for the entire sequence:
+자기되돌리기로 만들어 낼 때 새 토막마다 온 차례의 눈길을 다시 셈해야 한다:
 
 ```
 Generate token 1: Compute attention for [prompt]
-Generate token 2: Compute attention for [prompt, token1]  # Recomputes prompt!
-Generate token 3: Compute attention for [prompt, token1, token2]  # Recomputes both!
+Generate token 2: Compute attention for [prompt, token1]  # 시킴말을 다시 셈한다!
+Generate token 3: Compute attention for [prompt, token1, token2]  # 둘 다 다시 셈한다!
 ...
 Generate token N: Compute attention for entire sequence
 ```
 
-**Total attention operations**: O(N³)
+**전체 눈길 연산**: O(N³)
 
-### With KV-Cache
+### 열쇠-값 곳간이 있을 때
 
-Cache K and V from previous positions, only compute for new token:
+앞선 자리의 K와 V를 갈무리하고 새 토막만 셈한다:
 
 ```
 Generate token 1: Compute K, V for [prompt], cache them
@@ -35,14 +30,13 @@ Generate token 3: Load cached K, V; compute only for token2
 ...
 ```
 
-**Total attention operations**: O(N²)
+**전체 눈길 연산**: O(N²)
 
-## Mathematical Foundation
+## 수학적 바탕
 
 At timestep $t$, given new token $x_t$ and cached $K_{1:t-1}$, $V_{1:t-1}$:
 
 $$
-
 \begin{aligned}
 q_t &= x_t W^Q \\
 k_t &= x_t W^K \\
@@ -51,10 +45,9 @@ K_{1:t} &= [K_{1:t-1}; k_t] \\
 V_{1:t} &= [V_{1:t-1}; v_t] \\
 \text{out}_t &= \text{softmax}\left(\frac{q_t K_{1:t}^T}{\sqrt{d_k}}\right)V_{1:t}
 \end{aligned}
-
 $$
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
@@ -66,7 +59,7 @@ from dataclasses import dataclass
 
 @dataclass
 class KVCache:
-    """Container for cached key-value pairs."""
+    """갈무리한 열쇠-값 짝을 담는 그릇."""
     key: torch.Tensor
     value: torch.Tensor
     
@@ -76,7 +69,7 @@ class KVCache:
 
 
 class AttentionWithKVCache(nn.Module):
-    """Causal self-attention with KV-cache."""
+    """열쇠-값 곳간을 곁들인 인과 스스로 눈길."""
     
     def __init__(self, d_model: int, num_heads: int, dropout: float = 0.0):
         super().__init__()
@@ -97,23 +90,23 @@ class AttentionWithKVCache(nn.Module):
     ) -> Tuple[torch.Tensor, Optional[KVCache]]:
         batch_size, seq_len, _ = x.shape
         
-        # Compute Q, K, V
+        # Q, K, V를 셈한다
         qkv = self.qkv_proj(x)
         qkv = qkv.view(batch_size, seq_len, 3, self.num_heads, self.head_dim)
         qkv = qkv.permute(2, 0, 3, 1, 4)
         q, k, v = qkv[0], qkv[1], qkv[2]
         
-        # Update cache
+        # 곳간을 새로 고친다
         if kv_cache is not None:
             k = torch.cat([kv_cache.key, k], dim=2)
             v = torch.cat([kv_cache.value, v], dim=2)
         
         new_cache = KVCache(k, v) if use_cache else None
         
-        # Attention
+        # 어텐션
         attn_scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # Causal mask (only for multiple tokens)
+        # 인과 가림막(토막이 여럿일 때만)
         if seq_len > 1:
             total_len = k.size(2)
             mask = torch.triu(torch.ones(seq_len, total_len, device=x.device), 
@@ -128,7 +121,7 @@ class AttentionWithKVCache(nn.Module):
 
 
 class GPTWithKVCache(nn.Module):
-    """GPT model with KV-cache for generation."""
+    """만들어 내기를 위해 열쇠-값 곳간을 갖춘 GPT 모델."""
     
     def __init__(self, vocab_size: int, d_model: int, num_heads: int, 
                  num_layers: int, d_ff: int, max_len: int = 2048):
@@ -198,7 +191,7 @@ class GPTWithKVCache(nn.Module):
         return generated
 
 
-# Example
+# 예
 if __name__ == "__main__":
     model = GPTWithKVCache(vocab_size=1000, d_model=256, num_heads=4, 
                            num_layers=4, d_ff=1024)
@@ -208,54 +201,86 @@ if __name__ == "__main__":
     print(f"Generated: {prompt.shape} -> {generated.shape}")
 ```
 
-## Memory Considerations
+## 기억 공간에서 헤아릴 점
 
-### Cache Size per Layer
+### 층마다의 곳간 크기
 
 $$
-
 \text{Size} = 2 \times B \times H \times L \times d_h \times \text{bytes}
-
 $$
 
-Where $B$ = batch, $H$ = heads, $L$ = sequence length, $d_h$ = head dimension.
+여기서 $B$ = 묶음, $H$ = 머리, $L$ = 차례 길이, $d_h$ = 머리 차원이다.
 
-### Example: LLaMA-7B
+### 보기: LLaMA-7B
 
-| Sequence Length | Cache Size |
+| 차례 길이 | 곳간 크기 |
 |-----------------|------------|
-| 2K | ~1 GB |
-| 8K | ~4 GB |
-| 32K | ~16 GB |
+| 2K | 약 1 GB |
+| 8K | 약 4 GB |
+| 32K | 약 16 GB |
 
-## Advanced Optimizations
+## 앞선 다듬기
 
-### PagedAttention (vLLM)
+### 쪽 나눈 눈길(vLLM)
 
-Manages KV-cache like virtual memory pages:
-- Non-contiguous memory allocation
-- Memory sharing across sequences
-- Reduces memory fragmentation
+열쇠-값 곳간을 가상 기억 공간의 쪽처럼 다스린다:
 
-### Grouped Query Attention (GQA)
+- 잇닿지 않은 기억 공간 나눠 주기
+- 차례끼리 기억 공간 나눠 쓰기
+- 기억 공간 조각남을 줄인다
 
-Shares KV heads across multiple query heads:
-- Reduces cache size by factor of group size
-- Used in LLaMA 2, Mistral
+### 묶은 물음 눈길(GQA)
 
-### Sliding Window Cache
+여러 물음 머리가 열쇠-값 머리를 나눠 쓴다:
 
-Only cache recent tokens for long sequences.
+- 곳간 크기를 묶음 크기만큼 줄인다
+- LLaMA 2, Mistral이 쓴다
 
-## Summary
+### 미끄러지는 창 곳간
 
-KV-Cache is essential for efficient LLM inference:
+긴 차례에서는 최근 토막만 갈무리한다.
 
-1. **Eliminates redundant computation**: O(N²) total instead of O(N³)
-2. **Memory trade-off**: Faster inference but requires more memory
-3. **Foundation for optimization**: Enables batching, speculative decoding
+## 요약
 
-## References
+열쇠-값 곳간은 효율적인 큰 말 모델 미룸에 꼭 필요하다:
+
+1. **겹치는 셈을 없앤다**: 전체가 O(N³)이 아니라 O(N²)
+2. **기억 공간 맞바꿈**: 미룸은 빨라지지만 기억 공간이 더 든다
+3. **다듬기의 바탕**: 묶음 짓기, 미리 짚어 풀기를 가능하게 한다
+
+## 참고 문헌
 
 1. Pope, R., et al. (2022). "Efficiently Scaling Transformer Inference."
 2. Kwon, W., et al. (2023). "Efficient Memory Management for LLM Serving with PagedAttention."
+
+## 연습문제
+
+**연습문제 1.**
+열쇠-값 곳간이 자기되돌리기 풀기를 어떻게 빠르게 하는지 밝혀라. 기억 공간의 맞바꿈은 무엇인가?
+
+??? success "연습문제 1 풀이"
+    During autoregressive generation, each new token attends to all previous tokens. Without caching, generating token $t$ recomputes the key and value projections for all $t-1$ previous tokens, giving $O(t^2)$ total computation for a sequence of length $T$. With KV-caching, keys and values from previous steps are stored and reused, so only the new token's K/V are computed at each step, reducing computation to $O(T)$ total. The trade-off: KV-cache memory grows as $O(T \cdot L \cdot d)$ where $L$ is the number of layers and $d$ is the hidden dimension. For long sequences with large models, this can consume significant GPU memory.
+
+---
+
+**연습문제 2.**
+플래시 눈길의 고갱이 생각을 설명하여라. 수학으로는 같은 셈을 하는데 왜 빨라지는가?
+
+??? success "연습문제 2 풀이"
+    Flash Attention exploits the GPU memory hierarchy. Standard attention materializes the $N \times N$ attention matrix in HBM (slow GPU memory), causing memory-bound computation. Flash Attention tiles the computation into blocks that fit in SRAM (fast on-chip memory), computing attention block-by-block without ever materializing the full attention matrix. It uses online softmax (tracking running max and sum) to compute exact attention incrementally. The speedup comes from reduced HBM reads/writes (IO complexity drops from $O(N^2 d)$ to $O(N^2 d^2 / M)$ where $M$ is SRAM size), not from fewer FLOPs. This provides 2-4x wall-clock speedup and $O(N)$ memory.
+
+---
+
+**연습문제 3.**
+미리 짚어 풀기란 무엇이며 내놓는 분포를 바꾸지 않고 어떻게 미룸을 빠르게 하는가?
+
+??? success "연습문제 3 풀이"
+    미리 짚어 풀기는 작고 빠른 "밑그림" 모델로 후보 토막 $K$개를 만든 뒤 큰 "목표" 모델로 그 $K$개를 나란히 확인한다. 목표 모델이 밑그림의 어림에 동의하면 목표 모델 앞먹임 한 번으로 $K$개를 모두 받아들인다(차례차례 $K$번 대신). 어긋나면 물리치기 표집으로 다룬다. 곧 처음 물리친 토막을 맞춘 분포에서 다시 뽑아 내놓는 분포가 목표 모델의 것과 같게 한다. 빨라짐은 밑그림 모델의 받아들임 비율에 달렸고, 좋은 밑그림 모델이면 2~3배가 보통이다. 핵심 눈썰미는 확인은 나란히 되지만 만들어 내기는 차례차례라는 것이다.
+
+---
+
+**연습문제 4.**
+익힌 뒤 양자화(PTQ)와 양자화를 헤아린 익히기(QAT)를 견주어라. 저마다 언제 쓰는 것이 좋은가?
+
+??? success "연습문제 4 풀이"
+    **익힌 뒤 양자화**는 더 익히지 않고 눈금 맞추기 자료로 잣수 인자를 정해 미리 익힌 모델의 무게(그리고 원하면 깨어남)를 양자화한다. 빠르고 단순하지만 특히 8비트 아래에서는 정확도가 떨어질 수 있다. **양자화를 헤아린 익히기**는 기울기에 곧바로 지나가기 어림개를 써서 익히는 동안 양자화를 흉내내어 모델이 낮은 정밀도에 맞춰지게 한다. 낮은 자릿수(4비트, 2비트)에서 정확도가 더 낫지만 온전한 익히기를 한 번 더 돌려야 한다. 빠르기가 중요하고 8비트면 넉넉한 (펼치기) 장면에서는 **익힌 뒤 양자화가 낫다**. 4비트처럼 세게 양자화해야 하고 익힐 자원이 있으면 **양자화를 헤아린 익히기가 낫다**.

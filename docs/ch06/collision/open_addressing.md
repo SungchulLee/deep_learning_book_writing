@@ -1,99 +1,132 @@
-# Open Addressing
+# 개방 주소법
 
-In chaining, each slot holds a pointer to an external data structure that stores colliding keys. Open addressing takes the opposite approach: all keys reside directly inside the table array. When a collision occurs at slot $h(k)$, the algorithm **probes** alternative slots within the same array following a deterministic sequence until an empty position is found. This eliminates pointer overhead and improves cache locality, at the cost of more complex deletion and degraded performance as the table fills.
+체이닝에서는 각 칸이 충돌한 키를 담는 바깥 자료 구조의 포인터를 갖는다. 개방 주소법은 그 반대이다. 모든 키가 테이블 배열 안에 곧바로 놓인다. 칸 $h(k)$에서 충돌이 일어나면 알고리즘은 정해진 열을 따라 같은 배열 안의 다른 칸을 **탐사**하며 빈 자리를 찾는다. 이로써 포인터의 부담이 사라지고 캐시 지역성이 좋아지지만, 삭제가 복잡해지고 테이블이 찰수록 성능이 나빠진다.
 
-## General Probe Sequence
+## 일반적인 탐사 열
 
-An open-addressed hash table of size $m$ defines a **probe sequence** for each key $k$ as a permutation of $\{0, 1, \ldots, m-1\}$:
+크기가 $m$인 개방 주소 해시 테이블은 키 $k$마다 $\{0, 1, \ldots, m-1\}$의 순열인 **탐사 열**을 정의한다.
 
 $$
 \langle\, h(k, 0),\; h(k, 1),\; \ldots,\; h(k, m-1) \,\rangle
 $$
 
-The function $h : U \times \{0, \ldots, m-1\} \to \{0, \ldots, m-1\}$ takes both a key and a probe number, and for each fixed $k$ it must produce a permutation of all $m$ slot indices. This ensures that every slot is eventually examined.
+함수 $h : U \times \{0, \ldots, m-1\} \to \{0, \ldots, m-1\}$은 키와 탐사 번호를 함께 받으며, 고정된 $k$마다 $m$개 칸 인덱스 전체의 순열을 내놓아야 한다. 그래야 결국 모든 칸을 살피게 된다.
 
-## Uniform Hashing Assumption
+## 균등 해싱 가정
 
-The **uniform hashing assumption** states that each key's probe sequence is equally likely to be any of the $m!$ permutations of $\{0, 1, \ldots, m-1\}$. This is a theoretical ideal --- no practical hashing scheme achieves it exactly --- but it provides tight bounds on expected performance.
+**균등 해싱 가정**은 각 키의 탐사 열이 $\{0, 1, \ldots, m-1\}$의 $m!$개 순열 가운데 무엇이든 같은 확률로 될 수 있다고 본다. 이는 이론적인 이상이며 실제 해싱 방식 가운데 이를 정확히 이루는 것은 없지만, 기대 성능의 빡빡한 한계를 준다.
 
-Under uniform hashing with load factor $\alpha = n/m < 1$:
+적재율이 $\alpha = n/m < 1$인 균등 해싱 아래에서 다음과 같다.
 
-**Unsuccessful search (or insertion):**
+**탐색 실패 (또는 삽입):**
 
 $$
 E[\text{probes}] \le \frac{1}{1 - \alpha}
 $$
 
-**Successful search:**
+**탐색 성공:**
 
 $$
 E[\text{probes}] \le \frac{1}{\alpha} \ln \frac{1}{1 - \alpha}
 $$
 
-??? note "Derivation sketch for unsuccessful search"
-    The probability that the first probe finds an occupied slot is $\alpha = n/m$. Given that the first slot is occupied, the conditional probability that the second slot is also occupied is at most $(n-1)/(m-1) \le \alpha$. Continuing this argument, the expected number of probes is bounded by
+??? note "탐색 실패의 유도 개요"
+    첫 탐사가 찬 칸을 만날 확률은 $\alpha = n/m$이다. 첫 칸이 찼다는 조건에서 둘째 칸도 찼을 조건부 확률은 많아야 $(n-1)/(m-1) \le \alpha$이다. 이 논법을 이어 가면 기대 탐사 횟수의 한계는 다음과 같다.
 
     $$
     \sum_{i=0}^{\infty} \alpha^i = \frac{1}{1 - \alpha}
     $$
 
-## Probing Strategies
+## 탐사 전략
 
-Different choices of $h(k, i)$ yield different tradeoffs between simplicity, clustering behavior, and approximation to uniform hashing.
+$h(k, i)$을 어떻게 고르느냐에 따라 단순함, 뭉침의 양상, 균등 해싱에 대한 근사 사이의 절충이 달라진다.
 
-| Strategy | Probe formula | Distinct sequences | Clustering |
+| 전략 | 탐사 식 | 서로 다른 열의 수 | 뭉침 |
 |---|---|---|---|
-| Linear | $(h'(k) + i) \bmod m$ | $m$ | Primary |
-| Quadratic | $(h'(k) + c_1 i + c_2 i^2) \bmod m$ | $m$ | Secondary |
-| Double | $(h_1(k) + i \cdot h_2(k)) \bmod m$ | $m^2$ | None |
+| 선형 | $(h'(k) + i) \bmod m$ | $m$ | 일차 |
+| 이차 | $(h'(k) + c_1 i + c_2 i^2) \bmod m$ | $m$ | 이차 |
+| 이중 | $(h_1(k) + i \cdot h_2(k)) \bmod m$ | $m^2$ | 없음 |
 
-Linear probing produces only $m$ distinct probe sequences (one per initial hash value), quadratic probing also produces $m$ sequences, and double hashing produces $\Theta(m^2)$ sequences --- the closest practical approximation to the $m!$ ideal.
+선형 탐사는 (첫 해시값마다 하나씩) 서로 다른 탐사 열을 $m$개만 만들고, 이차 탐사도 $m$개를 만들며, 이중 해싱은 $\Theta(m^2)$개를 만든다. 이것이 $m!$이라는 이상에 실무에서 가장 가까운 근사이다.
 
-## Insertion and Search
+## 삽입과 탐색
 
-**Insertion** of key $k$:
+키 $k$의 **삽입**:
 
-1. Compute $h(k, 0)$. If the slot is empty (or marked as deleted), place $k$ there.
-2. Otherwise compute $h(k, 1)$, then $h(k, 2)$, and so on until an empty or deleted slot is found.
-3. If all $m$ slots have been examined without finding an empty one, the table is full.
+1. $h(k, 0)$을 계산한다. 칸이 비었거나 삭제 표시가 되어 있으면 거기에 $k$을 놓는다.
+2. 그렇지 않으면 $h(k, 1)$, $h(k, 2)$을 차례로 계산하며 비었거나 삭제된 칸을 찾는다.
+3. 칸 $m$개를 모두 살펴도 빈 칸이 없으면 테이블이 가득 찬 것이다.
 
-**Search** for key $k$:
+키 $k$의 **탐색**:
 
-1. Compute $h(k, 0)$. If the slot contains $k$, return it.
-2. If the slot is empty, $k$ is not in the table.
-3. If the slot contains a different key (or a tombstone), continue to $h(k, 1)$, etc.
+1. $h(k, 0)$을 계산한다. 그 칸에 $k$이 있으면 돌려준다.
+2. 칸이 비어 있으면 $k$은 테이블에 없다.
+3. 다른 키(또는 묘비)가 있으면 $h(k, 1)$으로 이어 간다.
 
-## The Deletion Problem
+## 삭제 문제
 
-Naive deletion --- setting a slot to empty --- breaks the probe chain for any key whose insertion probed past the now-empty slot. Two solutions exist:
+칸을 그냥 비우는 소박한 삭제는, 넣을 때 그 칸을 지나 탐사했던 키의 탐사 사슬을 끊는다. 해결책이 두 가지 있다.
 
-**Tombstones**: mark deleted slots with a special sentinel value. Search treats tombstones as occupied (continues probing), while insertion treats them as empty (reusable). The downside is that tombstones never disappear without rehashing, causing the effective load factor to increase over time.
+**묘비**: 삭제한 칸을 특별한 표지값으로 표시한다. 탐색은 묘비를 찬 칸으로 보고 계속 탐사하며, 삽입은 빈 칸으로 보고 다시 쓴다. 단점은 재해싱 없이는 묘비가 사라지지 않아 실효 적재율이 시간이 갈수록 올라간다는 것이다.
 
-**Rehashing on delete**: after deleting a key, reinsert all keys in the same cluster. This maintains a tombstone-free table but costs $O(n)$ in the worst case per deletion.
+**삭제할 때 재해싱**: 키를 지운 뒤 같은 뭉치의 키를 모두 다시 넣는다. 묘비 없는 테이블을 유지하지만 삭제마다 최악의 경우 $O(n)$이 든다.
 
-## Load Factor Constraints
+## 적재율의 제약
 
-Because open addressing stores all entries within the table itself, the load factor is bounded by
+개방 주소법은 모든 항목을 테이블 안에 담으므로 적재율에 다음 한계가 있다.
 
 $$
 0 \le \alpha = \frac{n}{m} \le 1
 $$
 
-In practice, performance degrades rapidly above $\alpha \approx 0.7$. Most implementations trigger a resize (typically doubling $m$) when $\alpha$ exceeds a threshold, keeping the amortized cost of all operations at $O(1)$.
+실무에서는 $\alpha \approx 0.7$을 넘으면 성능이 빠르게 나빠진다. 대부분의 구현은 $\alpha$이 문턱값을 넘으면 (보통 $m$을 두 배로) 크기를 조정하여 모든 연산의 상각 비용을 $O(1)$으로 지킨다.
 
-## Open Addressing vs Chaining
+## 개방 주소법과 체이닝
 
-| Aspect | Open addressing | Chaining |
+| 항목 | 개방 주소법 | 체이닝 |
 |---|---|---|
-| Memory layout | All entries in array | Array + linked lists |
-| Cache behavior | Excellent (sequential) | Poor (pointer chasing) |
-| Max load factor | $\alpha < 1$ (practically ${\le}0.7$) | Unbounded |
-| Deletion | Tombstones or rehash | Simple pointer removal |
-| Worst-case search | $O(n)$ | $O(n)$ |
-| Extra memory | None | One pointer per entry |
+| 메모리 배치 | 모든 항목이 배열 안에 | 배열과 연결 리스트 |
+| 캐시 거동 | 아주 좋음 (차례대로 읽는다) | 나쁨 (포인터를 좇는다) |
+| 최대 적재율 | $\alpha < 1$ (실무에서는 ${\le}0.7$) | 제한 없음 |
+| 삭제 | 묘비 또는 재해싱 | 포인터만 떼면 된다 |
+| 최악의 경우 탐색 | $O(n)$ | $O(n)$ |
+| 추가 메모리 | 없음 | 항목마다 포인터 하나 |
 
-Open addressing is preferred when memory is tight and deletions are infrequent. Chaining is preferred when the load factor is unpredictable or deletions are frequent.
+메모리가 빠듯하고 삭제가 드물면 개방 주소법을 선호한다. 적재율을 예측할 수 없거나 삭제가 잦으면 체이닝을 선호한다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+개방 주소법에 대해, 적재율이 $\alpha = 0.75$일 때 삽입과 조회의 기대 시간과 최악의 경우 시간을 계산하라.
+
+??? success "연습문제 1 풀이"
+    기대 시간은 충돌 해결 전략에 달렸으며 균등 해싱을 가정한다. 체이닝에서는 기대 시간이 $O(1 + \alpha) = O(1.75)$이다. 개방 주소법에서는 탐색에 실패할 때 기대 탐사 횟수가 $\approx 1/(1-\alpha) = 4$이다. 최악의 경우는 모든 키가 같은 칸으로 해시될 때의 $O(n)$이다.
+
+---
+
+**연습문제 2.**
+개방 주소법을(를) 써서 키 10, 22, 31, 4, 15, 28, 17을 크기가 7인 해시 테이블에 넣어라. 최종 테이블의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    해시 함수 $h(k) = k \bmod 7$을 적용하고 이 쪽의 방법으로 충돌을 처리한다. 키마다 해시를 계산하고 충돌을 해결한 뒤 키를 놓는다. 최종 테이블의 내용을 보인다.
+
+---
+
+**연습문제 3.**
+개방 주소법은(는) 딥러닝의 임베딩 테이블에서 어떻게 쓰이는가? 토큰 $V = 50{,}000$개의 어휘를 $m = 30{,}000$개의 버킷에 대응시킬 때 충돌의 양상을 분석하라.
+
+??? success "연습문제 3 풀이"
+    $V/m \approx 1.67$이므로 비둘기집 원리에 의해 충돌이 반드시 생긴다. 버킷마다 평균 1.67개의 토큰이 같은 임베딩을 나누어 쓴다. 충돌률과 그것이 모델의 품질에 미치는 영향은 해시 함수의 품질과 임베딩의 차원에 달렸다(차원이 높을수록 충돌을 더 잘 견딘다).
+
+---
+
+**연습문제 4.**
+$\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 상각 비용이 $O(1)$으로 유지됨을 증명하라.
+
+??? success "연습문제 4 풀이"
+    크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$

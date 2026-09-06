@@ -1,115 +1,102 @@
-# Simulated Annealing Fundamentals
+# 흉내낸 담금질의 바탕
+흉내낸 담금질(SA)은 표집이 아니라 **최적화**를 위해 만든 **멈추지 않는 메트로폴리스-헤이스팅스 갈래**이다. 표준 MCMC은 붙박인 분포를 과녁으로 삼지만, SA은 과녁 분포를 조금씩 바꾸어 전체 최적점에 몰리게 한다. 이 방법의 이름과 직관은 쇠붙이를 다스려 식혀 에너지가 낮은 결정 짜임을 얻는 야금의 담금질에서 왔다.
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Simulated annealing (SA) is a **non-stationary variant of Metropolis-Hastings** designed for **optimization** rather than sampling. While standard MCMC targets a fixed distribution, SA gradually changes its target distribution to concentrate on global optima. The method draws its name and intuition from metallurgical annealing, where controlled cooling of metals produces low-energy crystalline structures.
-
-This section develops the Boltzmann distribution foundation, the core SA algorithm, and the key distinctions from standard MCMC.
+이 절에서는 볼츠만 분포라는 바탕, SA의 핵심 알고리즘, 표준 MCMC과의 결정적인 차이를 펼친다.
 
 ---
 
-## The Boltzmann Distribution
+## 볼츠만 분포
 
-### Statistical Mechanics Origin
+### 통계 역학에서의 뿌리
 
-In statistical mechanics, the probability of a system being in state $x$ with energy $E(x)$ at temperature $T$ is given by the **Boltzmann distribution**:
+통계 역학에서 온도 $T$일 때 체계가 에너지 $E(x)$인 상태 $x$에 있을 확률은 **볼츠만 분포**로 주어진다:
 
 $$
-
 p_T(x) = \frac{1}{Z_T} \exp\left(-\frac{E(x)}{T}\right)
-
 $$
 
-where $Z_T = \int \exp(-E(x)/T) \, dx$ is the **partition function** (normalization constant).
+여기서 $Z_T = \int \exp(-E(x)/T) \, dx$은 **나눔 함수**(고르게 하는 상수)이다.
 
-**Inverse temperature notation**: Setting $\beta = 1/T$:
+**거꿀 온도로 쓰기**: $\beta = 1/T$으로 두면:
 
 $$
-
 p_\beta(x) = \frac{1}{Z_\beta} \exp(-\beta E(x))
-
 $$
 
-### Temperature Limits
+### 온도의 끝
 
-At **absolute zero** ($T \to 0$, $\beta \to \infty$):
+**절대 영도**($T \to 0$, $\beta \to \infty$)에서는:
 
-- System occupies minimum energy state
-- All probability mass concentrates at global minimum
-- Zero thermal fluctuations
-- Distribution becomes a Dirac delta at $\arg\min E(x)$
+- 체계가 에너지가 가장 낮은 상태에 놓인다
+- 확률이 모두 전체 최솟값에 몰린다
+- 열 흔들림이 없다
+- 분포가 $\arg\min E(x)$에서의 디랙 델타가 된다
 
-At **high temperature** ($T \to \infty$, $\beta \to 0$):
+**높은 온도**($T \to \infty$, $\beta \to 0$)에서는:
 
-- All energy states equally likely
-- Maximum disorder (entropy)
-- Distribution approaches uniform
-- Pure thermal noise dominates
+- 모든 에너지 상태가 똑같이 그럴듯하다
+- 어지러움(엔트로피)이 가장 크다
+- 분포가 고른 분포로 다가간다
+- 순전한 열 잡음이 판친다
 
-**Temperature controls the trade-off between energy and entropy.** This principle underlies all temperature-based methods in machine learning.
+**온도가 에너지와 엔트로피의 주고받음을 다스린다.** 이 원리가 기계 학습에서 온도를 쓰는 모든 방법의 밑바탕이다.
 
-### Free Energy and the Energy-Entropy Trade-off
+### 자유 에너지와 에너지-엔트로피 주고받음
 
-The **Helmholtz free energy** at temperature $T$ is:
+온도 $T$에서 **헬름홀츠 자유 에너지**는 다음과 같다:
 
 $$
-
 F_T = -T \log Z_T = \langle E \rangle_T - T S_T
-
 $$
 
-where $\langle E \rangle_T = \mathbb{E}_{p_T}[E(x)]$ is the expected energy and $S_T = -\mathbb{E}_{p_T}[\log p_T(x)]$ is the entropy.
+여기서 $\langle E \rangle_T = \mathbb{E}_{p_T}[E(x)]$은 기댓값 에너지이고 $S_T = -\mathbb{E}_{p_T}[\log p_T(x)]$은 엔트로피이다.
 
-This decomposition reveals:
+이 쪼갬은 다음을 드러낸다:
 
-- **Low $T$**: Free energy $\approx$ minimum energy (entropy negligible)
-- **High $T$**: Free energy dominated by entropy (energy less important)
+- **$T$이 낮으면**: 자유 에너지 $\approx$ 가장 낮은 에너지(엔트로피는 무시할 만하다)
+- **$T$이 높으면**: 자유 에너지를 엔트로피가 좌우한다(에너지는 덜 중요하다)
 
-Minimizing free energy at different temperatures traces a path through the energy landscape—the foundation of annealing methods.
+온도를 달리하며 자유 에너지를 가장 작게 하면 에너지 지형을 가로지르는 길이 그려진다. 이것이 담금질 방법의 바탕이다.
 
 ---
 
-## The Simulated Annealing Algorithm
+## 흉내낸 담금질 알고리즘
 
-### MCMC for Optimization
+### 최적화를 위한 MCMC
 
-The key distinction between SA and standard MCMC:
+SA과 표준 MCMC의 결정적인 차이는 이렇다:
 
-| Property | Standard MCMC | Simulated Annealing |
+| 성질 | 표준 MCMC | 흉내낸 담금질 |
 |----------|---------------|---------------------|
-| Target | Fixed $\pi(x)$ | Time-varying $\pi_{T(t)}(x)$ |
-| Goal | Sample from $\pi$ | Find $\arg\max \pi$ (or $\arg\min E$) |
-| Stationary? | Yes | No |
-| Convergence | To distribution | To point (global optimum) |
-| Output | Samples for inference | Single optimal solution |
+| 과녁 | 붙박인 $\pi(x)$ | 시간에 따라 달라지는 $\pi_{T(t)}(x)$ |
+| 목표 | $\pi$에서 표집하기 | $\arg\max \pi$(또는 $\arg\min E$) 찾기 |
+| 멈춰 있나? | 예 | 아니오 |
+| 모임 | 분포로 | 점으로(전체 최적점) |
+| 내임 | 추론에 쓸 표본 | 최적 풀이 하나 |
 
-At iteration $t$, the target distribution is:
+되풀이 $t$에서 과녁 분포는 다음과 같다:
 
 $$
-
 \pi_{T(t)}(x) = \frac{1}{Z_{T(t)}} \exp\left(-\frac{E(x)}{T(t)}\right)
-
 $$
 
-where $T(t)$ is a **cooling schedule** with $T(t) \to 0$ as $t \to \infty$.
+여기서 $T(t)$은 $t \to \infty$일 때 $T(t) \to 0$이 되는 **식힘 일정**이다.
 
-### The Algorithm
+### 알고리즘
 
 ```python
 def simulated_annealing(E, x0, T_schedule, proposal, max_iter):
-    """Simulated annealing for global optimization.
+    """전체 최적화를 위한 흉내낸 담금질.
     
-    Args:
-        E: Energy function to minimize
-        x0: Initial state
-        T_schedule: Callable mapping iteration to temperature
-        proposal: Callable generating proposal given current state
-        max_iter: Maximum number of iterations
+    인수:
+        E: 가장 작게 할 에너지 함수
+        x0: 첫 상태
+        T_schedule: 되풀이를 온도로 잇는 호출 가능 객체
+        proposal: 지금 상태에서 제안을 만드는 호출 가능 객체
+        max_iter: 최대 되풀이 횟수
         
-    Returns:
-        Best state found and its energy
+    반환값:
+        찾은 가장 좋은 상태와 그 에너지
     """
     x = x0
     E_best, x_best = E(x), x
@@ -119,7 +106,7 @@ def simulated_annealing(E, x0, T_schedule, proposal, max_iter):
         x_prop = proposal(x)
         delta_E = E(x_prop) - E(x)
         
-        # Metropolis acceptance at temperature T
+        # 온도 T에서의 메트로폴리스 받아들임
         if delta_E < 0 or np.random.rand() < np.exp(-delta_E / T):
             x = x_prop
             if E(x) < E_best:
@@ -128,130 +115,156 @@ def simulated_annealing(E, x0, T_schedule, proposal, max_iter):
     return x_best, E_best
 ```
 
-### Why Temperature Enables Global Optimization
+### 온도가 왜 전체 최적화를 가능하게 하나
 
-**High Temperature (Exploration)**:
+**높은 온도(살펴보기)**:
 
-When $T$ is large, even uphill moves ($\Delta E > 0$) are accepted with high probability:
+$T$이 크면 오르막 움직임($\Delta E > 0$)조차 높은 확률로 받아들여진다:
 
 $$
-
 \Pr(\text{accept uphill move}) = \exp\left(-\frac{\Delta E}{T}\right) \approx 1 - \frac{\Delta E}{T} + O(T^{-2})
-
 $$
 
-This allows the algorithm to **escape local minima** and explore the global landscape.
+덕분에 알고리즘이 **그 자리 최솟값에서 벗어나** 전체 지형을 살펴볼 수 있다.
 
-**Low Temperature (Exploitation)**:
+**낮은 온도(써먹기)**:
 
-When $T$ is small:
+$T$이 작으면:
 
 $$
-
 \alpha = \min\left(1, \exp\left(-\frac{\Delta E}{T}\right)\right) \approx \begin{cases}
 1 & \text{if } \Delta E < 0 \\
 0 & \text{if } \Delta E > 0
 \end{cases}
-
 $$
 
-The algorithm becomes **greedy descent**, accepting only improvements and converging to whichever local minimum it currently occupies.
+알고리즘이 **욕심쟁이 내리기**가 되어 나아지는 것만 받아들이고 지금 있는 그 자리 최솟값으로 모인다.
 
-**Annealing**: By gradually decreasing $T$:
+**담금질**: $T$을 조금씩 낮추면:
 
-1. **High $T$**: Explore widely, find the basin of the global minimum
-2. **Moderate $T$**: Transition between nearby basins, refine location
-3. **Low $T$**: Settle into the deepest accessible basin
+1. **$T$이 높을 때**: 널리 살펴보아 전체 최솟값의 웅덩이를 찾는다
+2. **$T$이 알맞을 때**: 가까운 웅덩이 사이를 오가며 자리를 다듬는다
+3. **$T$이 낮을 때**: 닿을 수 있는 가장 깊은 웅덩이에 자리 잡는다
 
-If cooling is sufficiently slow, the algorithm ends at the **global** minimum.
+식힘이 넉넉히 느리면 알고리즘은 **전체** 최솟값에서 끝난다.
 
-### Phase Transitions and Failure Modes
+### 상 바뀜과 무너지는 꼴
 
-**Too-fast cooling**: System gets trapped in local minimum before finding the global basin.
+**너무 빠른 식힘**: 전체 웅덩이를 찾기 전에 체계가 그 자리 최솟값에 갇힌다.
 
-**Phase transitions**: At critical temperature $T_c$, the optimal basin may switch discontinuously. Cooling too quickly through $T_c$ can trap the algorithm in the wrong basin. In the traveling salesman problem, for example, small temperature changes near critical points can dramatically alter the optimal tour structure.
+**상 바뀜**: 임계 온도 $T_c$에서 최적 웅덩이가 뚝 끊기듯 바뀔 수 있다. $T_c$을 너무 빨리 지나며 식히면 알고리즘이 엉뚱한 웅덩이에 갇힐 수 있다. 이를테면 떠돌이 장사꾼 문제에서는 임계점 가까이의 작은 온도 변화가 최적 경로의 짜임을 크게 바꿔 놓을 수 있다.
 
 ---
 
-## Comparison with Gradient-Based Methods
+## 기울기에 바탕을 둔 방법과 견주기
 
-**Gradient descent** is purely deterministic:
+**기울기 내리기**는 순전히 정해진 것이다:
 
 $$
-
 x_{t+1} = x_t - \eta \nabla E(x_t)
-
 $$
 
-It is fast but **trapped** in the first local minimum encountered.
+빠르지만 처음 만난 그 자리 최솟값에 **갇힌다**.
 
-**Simulated annealing** uses controlled randomness via the exploration-exploitation trade-off controlled by temperature. Early iterations provide high randomness enabling global exploration, while late iterations provide low randomness ensuring local convergence.
+**흉내낸 담금질**은 온도가 다스리는 살펴보기와 써먹기의 주고받음으로 무작위성을 다스려 쓴다. 앞선 되풀이에서는 무작위성이 커서 전체를 살펴볼 수 있고, 뒤의 되풀이에서는 무작위성이 작아 그 자리로 모이게 된다.
 
-For continuous domains, SA with small step sizes approximates the time-inhomogeneous Langevin diffusion:
+이어진 영역에서 걸음 크기가 작은 SA은 시간에 따라 고르지 않은 랑주뱅 퍼짐을 어림한다:
 
 $$
-
 dX_t = -\nabla E(X_t) \, dt + \sqrt{2T(t)} \, dW_t
-
 $$
 
-As $T(t) \to 0$, this reduces to gradient descent. The noise term $\sqrt{2T(t)} \, dW_t$ provides the thermal fluctuations that enable barrier crossing.
+$T(t) \to 0$이면 이는 기울기 내리기가 된다. 잡음 항 $\sqrt{2T(t)} \, dW_t$이 벽을 넘게 해 주는 열 흔들림을 준다.
 
 ---
 
-## Applications
+## 응용
 
-**Combinatorial optimization**:
+**조합 최적화**:
 
-- Traveling salesman problem (state: tour permutation, energy: total distance)
-- Graph coloring (state: color assignment, energy: number of conflicts)
-- Circuit design, scheduling, resource allocation
+- 떠돌이 장사꾼 문제(상태: 경로 자리바꿈, 에너지: 전체 거리)
+- 그래프 물들이기(상태: 색 배정, 에너지: 부딪힘의 개수)
+- 회로 짜기, 일정 짜기, 자원 나누기
 
-**Continuous optimization**:
+**이어진 최적화**:
 
-- Multimodal functions (Rastrigin, Rosenbrock)
-- Neural architecture search
-- Hyperparameter tuning
+- 봉우리가 여럿인 함수(라스트리진, 로젠브록)
+- 신경망 얼개 찾기
+- 초매개변수 조율
 
-**Quantitative finance applications**:
+**계량 금융에서의 쓰임새**:
 
-- Portfolio optimization with discrete constraints (integer share counts, cardinality constraints)
-- Calibration of models with multiple local optima (stochastic volatility, jump-diffusion)
-- Optimal execution scheduling with non-convex transaction cost structures
+- 띄엄띄엄한 제약이 있는 포트폴리오 최적화(정수 주식 수, 개수 제약)
+- 그 자리 최적점이 여럿인 모형 맞추기(확률 변동성, 뜀 퍼짐)
+- 볼록하지 않은 거래 비용 짜임 아래에서의 최적 체결 일정
 
 ---
 
-## Practical Guidelines
+## 실무 지침
 
-### Choosing Initial Temperature
+### 첫 온도 고르기
 
-Set $T_0$ so that the initial acceptance rate is approximately 80%. A useful rule of thumb:
+첫 받아들임 비율이 80%쯤 되도록 $T_0$을 잡아라. 쓸모 있는 어림 규칙은 다음과 같다:
 
 $$
-
 T_0 \approx \text{std}(\Delta E)
-
 $$
 
-computed over random proposal moves from the initial state.
+이는 첫 상태에서 무작위로 내놓은 움직임에 대해 셈한다.
 
-### Common Pitfalls
+### 흔히 빠지는 함정
 
-**Confusing temperature and learning rate**: Temperature controls noise/exploration; learning rate controls step size. Both affect exploration but are distinct concepts.
+**온도와 배움률을 헷갈림**: 온도는 잡음과 살펴보기를 다스리고, 배움률은 걸음 크기를 다스린다. 둘 다 살펴보기에 영향을 주지만 서로 다른 개념이다.
 
-**Using constant temperature**: For optimization, annealing ($T \to 0$) is essential. Constant high $T$ gives exploration but the wrong distribution; constant low $T$ gives poor exploration.
+**온도를 일정하게 둠**: 최적화에는 담금질($T \to 0$)이 꼭 필요하다. $T$을 높게 붙박아 두면 살펴보기는 되지만 분포가 틀리고, 낮게 붙박아 두면 살펴보기가 나쁘다.
 
-**Wrong scaling**: The correct Langevin SDE at temperature $T$ is $dx = -\nabla E(x) \, dt + \sqrt{2T} \, dW$, **not** $dx = T \nabla E(x) \, dt + \sqrt{2} \, dW$. Temperature scales the noise, not the drift.
+**크기를 잘못 잡음**: 온도 $T$에서 올바른 랑주뱅 확률 미분방정식은 $dx = -\nabla E(x) \, dt + \sqrt{2T} \, dW$이지 $dx = T \nabla E(x) \, dt + \sqrt{2} \, dW$이 **아니다**. 온도는 쏠림이 아니라 잡음의 크기를 잡는다.
 
 ---
 
-## Summary
+## 요약
 
-| Concept | Description |
+| 개념 | 설명 |
 |---------|-------------|
-| **Boltzmann distribution** | $p_T(x) \propto \exp(-E(x)/T)$, foundation of temperature methods |
-| **Free energy** | $F_T = \langle E \rangle - TS$, energy-entropy trade-off |
-| **Simulated annealing** | Non-stationary MH with $T(t) \to 0$ for optimization |
-| **High $T$** | Exploration: accepts uphill moves, escapes local minima |
-| **Low $T$** | Exploitation: greedy descent into current basin |
-| **Annealing path** | Gradual cooling traces path from easy to hard problem |
+| **볼츠만 분포** | $p_T(x) \propto \exp(-E(x)/T)$, 온도를 쓰는 방법의 바탕 |
+| **자유 에너지** | $F_T = \langle E \rangle - TS$, 에너지와 엔트로피의 주고받음 |
+| **흉내낸 담금질** | 최적화를 위해 $T(t) \to 0$으로 두는 멈추지 않는 MH |
+| **높은 $T$** | 살펴보기: 오르막 움직임을 받아들여 그 자리 최솟값에서 벗어난다 |
+| **낮은 $T$** | 써먹기: 지금 웅덩이로 욕심껏 내려간다 |
+| **담금질 길** | 조금씩 식히며 쉬운 문제에서 어려운 문제로 이어지는 길을 그린다 |
+
+## 연습문제
+
+**연습문제 1.**
+마르코프 사슬이 올바른 과녁 분포로 모이게 하는 데 받아들임 확률이 하는 몫을 설명하여라.
+
+??? success "연습문제 1 풀이"
+    받아들임 확률이 **자세한 균형** $\pi(x) T(x \to x') \alpha(x \to x') = \pi(x') T(x' \to x) \alpha(x' \to x)$을 보장한다. 여기서 $\pi$은 과녁 분포, $T$은 제안 분포, $\alpha$은 받아들임 확률이다. 자세한 균형은 $\pi$이 사슬의 멈춘 분포임을 뜻한다. 쪼갤 수 없음과 주기 없음까지 합치면 $\pi$으로의 에르고드 모임이 보장된다.
+
+---
+
+**연습문제 2.**
+제안 분포가 너무 좁은 상황과 너무 넓은 상황을 밝혀라. 저마다 표집 효율에 어떤 영향을 주는가?
+
+??? success "연습문제 2 풀이"
+    **너무 좁을 때:** 제안이 거의 늘 받아들여지지만(받아들임 비율이 높지만) 사슬이 아주 작은 걸음을 떼어 과녁 분포를 느리게 살펴본다. 그러면 자기상관이 높고 실효 표본 크기가 작아진다. **너무 넓을 때:** 제안이 확률이 낮은 구역에 자주 떨어져 물리쳐지므로(받아들임 비율이 낮으므로) 사슬이 여러 되풀이 동안 지금 상태에 갇혀 있게 된다. 두 극단 모두 효율을 떨어뜨린다. 높은 차원에서 무작위 걸음 메트로폴리스의 가장 좋은 받아들임 비율은 대략 0.234이다(Roberts 외, 1997).
+
+---
+
+**연습문제 3.**
+메트로폴리스-헤이스팅스 받아들임 비 $\alpha = \min\left(1, \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}\right)$이 $\pi$에 대해 자세한 균형을 만족함을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    일반성을 잃지 않고 $\pi(x') q(x|x') \leq \pi(x) q(x'|x)$이라 하자. 그러면 $\alpha(x \to x') = \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}$이고 $\alpha(x' \to x) = 1$이다. 자세한 균형 조건은 다음을 요구한다:
+
+    $$\pi(x) q(x'|x) \alpha(x \to x') = \pi(x) q(x'|x) \cdot \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)} = \pi(x') q(x|x')$$
+
+    그리고 $\pi(x') q(x|x') \alpha(x' \to x) = \pi(x') q(x|x') \cdot 1 = \pi(x') q(x|x')$이다. 양변이 같다. $\square$
+
+---
+
+**연습문제 4.**
+MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴지 어떻게 정하는가?
+
+??? success "연습문제 4 풀이"
+    태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.

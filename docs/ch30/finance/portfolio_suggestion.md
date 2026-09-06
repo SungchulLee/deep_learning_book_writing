@@ -1,266 +1,304 @@
-# Portfolio Suggestion Using Recommender Systems
+# 추천 시스템으로 하는 꾸러미 권하기
+## 들어가며
 
+사람마다 맞춘 꾸러미 추천은 추천 시스템과 계량 금융을 아우르는 최전선의 쓰임새다. 자산이나 펀드 하나하나를 권하는 대신, 꾸러미 권하기 시스템은 투자자마다의 됨됨이, 위험 취향, 매임에 맞춘 온전한 나눔을 내놓는다. 그런 시스템은 서로 겨루는 여러 목표를 저울질해야 한다. 꾸러미 벌이(쓰는 이 취향에 맞음), 갈라 담기(여러 자산 갈래를 덮음), 위험 다루기(알맞음 매임), 새로움(개인 투자자에게 뻔하지 않은 효율 좋은 나눔 찾기)이 그것이다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+꾸러미 추천은 여느 물건 추천과 근본에서 다르다. 위험 다루기가 고를 수 있는 것이 아니라 반드시 해야 할 일이고, 규제 매임(알맞음 요구)이 걸리며, 잘못되면 돈으로 값을 치른다. 이런 요구 때문에 추천 시스템 재주에 꾸러미 가장 좋게 하기, 위험 나타내기, 규제 난간을 더한 섞은 길이 필요하다.
 
-## Introduction
+이 마디는 꾸러미 권하기의 실제 시스템을 세우고 규제 매임을 다루며 자동 상담과 재산 다루기 쓰임새의 짜기를 보여 준다.
 
-Personalized portfolio recommendations represent a frontier application combining recommender systems with quantitative finance. Rather than recommending individual assets or funds, portfolio suggestion systems propose complete allocations tailored to individual investor profiles, risk preferences, and constraints. Such systems must balance multiple competing objectives: portfolio returns (accuracy to user preferences), diversification (coverage across asset classes), risk management (suitability constraints), and novelty (discovery of efficient allocations not obvious to retail investors).
+## 핵심 개념
 
-Portfolio recommendation differs fundamentally from traditional product recommendations: risk management is mandatory rather than optional, regulatory constraints (suitability requirements) apply, and failures carry financial consequences. These requirements necessitate hybrid approaches combining recommender system techniques with portfolio optimization, risk modeling, and regulatory guardrails.
+### 꾸러미 추천의 목표
+- **벌이 맞추기**: 권한 꾸러미의 벌이가 쓰는 이의 기대에 맞는다
+- **위험 알맞음**: 꾸러미 위험(흔들림, 꺾임)이 쓰는 이가 견딜 만큼이다
+- **갈라 담기**: 나눔이 여러 자산 갈래와 지역에 걸친다
+- **규제 지킴**: 추천이 알맞음과 알림 요구를 채운다
+- **실행**: 거래 비용과 세금 영향을 가장 작게 한다
 
-This section develops practical systems for portfolio suggestion, addresses regulatory constraints, and demonstrates implementations for robo-advisory and wealth management applications.
+### 쓰는 이 됨됨이 그리기
+- **위험 견딤**: 투자자가 흔들림을 받아들이려는 정도
+- **때 지평**: 투자 기간(몇 달에서 몇십 년)
+- **현금화 필요**: 언제든 쓸 수 있어야 하는 꾸러미의 몫
+- **가치/매임**: ESG 취향, 윤리로 뺄 것
+- **돈 형편**: 벌이, 이미 가진 자산, 목표
 
-## Key Concepts
+## 수학적 틀
 
-### Portfolio Recommendation Objectives
-- **Return Alignment**: Recommended portfolio returns match user expectations
-- **Risk Suitability**: Portfolio risk (volatility, drawdown) matches user tolerance
-- **Diversification**: Allocations span multiple asset classes and geographies
-- **Regulatory Compliance**: Recommendations meet suitability and disclosure requirements
-- **Implementation**: Minimize trading costs and tax impact
+### 함께 거르기로 본 꾸러미 추천
 
-### User Profiling
-- **Risk Tolerance**: Investor's willingness to accept volatility
-- **Time Horizon**: Investment duration (months to decades)
-- **Liquidity Needs**: Portion of portfolio needed accessible
-- **Values/Constraints**: ESG preferences, ethical exclusions
-- **Financial Situation**: Income, existing assets, goals
-
-## Mathematical Framework
-
-### Portfolio Recommendation as Collaborative Filtering
-
-Frame portfolio allocation as recommendation problem:
+꾸러미 나눔을 추천 문제로 적는다:
 
 $$\text{Score}(u, p) = w_1 \cdot \text{Risk Match}(u, p) + w_2 \cdot \text{Return Match}(u, p) + w_3 \cdot \text{Novelty}(p)$$
 
-where:
-- u = user (investor)
-- p = portfolio (allocation)
-- Risk Match: How portfolio risk aligns with user tolerance
-- Return Match: How expected returns align with expectations
-- Novelty: How different allocation is from standard recommendations
+여기서 각 기호는 다음과 같다.
 
-### User-Portfolio Similarity
+- u = 쓰는 이(투자자)
+- p = 꾸러미(나눔)
+- 위험 맞음: 꾸러미 위험이 쓰는 이의 견딤과 얼마나 맞는가
+- 벌이 맞음: 기대 벌이가 기대와 얼마나 맞는가
+- 새로움: 나눔이 여느 추천과 얼마나 다른가
 
-Define similarity between user u and portfolio p:
+### 쓰는 이와 꾸러미의 닮음
+
+쓰는 이 u과 꾸러미 p의 닮음을 뜻매김한다:
 
 $$\text{Sim}(u, p) = -\sqrt{(\text{var}_u - \text{var}_p)^2 + (\mathbb{E}[r_u] - \mathbb{E}[r_p])^2}$$
 
-Negative sign: similarity decreases with mismatch. Recommend portfolios with highest similarity.
+음의 부호: 어긋날수록 닮음이 줄어든다. 닮음이 가장 큰 꾸러미를 권한다.
 
-### Optimal Portfolio Given Preferences
+### 취향이 주어졌을 때 가장 좋은 꾸러미
 
-Constrained Markowitz optimization incorporating user preferences:
+쓰는 이의 취향을 담은 매인 마코위츠 가장 좋게 하기:
 
 $$\max_w w^T \mu - \lambda \cdot w^T \Sigma w - \gamma \|\mu_w - \mu_{\text{target}}\|^2$$
 
-subject to:
+다음 아래서:
 
 $$\sum_i w_i = 1, \quad \text{var}(w^T r) \leq \sigma_{\text{max}}^2$$
 
 $$w_i \in [0, w_i^{\text{max}}], \quad \sum_j w_j \text{ESG}_j \geq \text{ESG}_{\text{min}}$$
 
-Last constraint: ESG score exceeds minimum threshold.
+마지막 매임: ESG 점수가 최소 문턱을 넘는다.
 
-## Portfolio Construction Methods
+## 꾸러미 짜기 방법
 
-### Risk-Based Segmentation
+### 위험 바탕 나누기
 
-Segment users by risk profile; recommend standardized portfolios:
+쓰는 이를 위험 됨됨이로 나누고 표준 꾸러미를 권한다:
 
-| Risk Profile | Equity | Bonds | Commodities | Real Estate |
+| 위험 됨됨이 | 주식 | 채권 | 원자재 | 부동산 |
 |--------------|--------|-------|------------|------------|
-| Conservative | 20% | 60% | 10% | 10% |
-| Moderate | 50% | 30% | 10% | 10% |
-| Aggressive | 75% | 10% | 10% | 5% |
+| 조심스러움 | 20% | 60% | 10% | 10% |
+| 알맞음 | 50% | 30% | 10% | 10% |
+| 거셈 | 75% | 10% | 10% | 5% |
 
-Simple, easy to explain, scales well. Disadvantage: limited personalization.
+단순하고 밝히기 쉬우며 잘 커진다. 흠: 사람마다 맞추기가 좁다.
 
-### Collaborative Filtering Approach
+### 함께 거르기의 길
 
-Learn implicit user embeddings; recommend portfolios similar to successful users:
+숨은 쓰는 이 박아 넣기를 배워 잘된 쓰는 이와 닮은 꾸러미를 권한다:
 
 $$\text{score}(u, p) = \langle u_{\text{embedding}}, p_{\text{embedding}} \rangle$$
 
-Train on historical portfolio performance + user satisfaction. Enables discovery of non-obvious allocations.
+지난 꾸러미 성과와 쓰는 이 만족으로 익힌다. 뻔하지 않은 나눔을 찾아낼 수 있게 한다.
 
-### Hybrid Optimization Approach
+### 섞은 가장 좋게 하기의 길
 
-Combine optimization with user preferences:
+가장 좋게 하기와 쓰는 이의 취향을 합친다:
 
-1. **Collect Preferences**: Quiz user on risk tolerance, constraints, goals
-2. **Estimate Parameters**: Infer expected returns, covariance from preferences
-3. **Optimize**: Solve Markowitz with constraints
-4. **Refine**: Adjust allocations for trading cost, tax efficiency, implementation
+1. **취향 모으기**: 위험 견딤, 매임, 목표를 쓰는 이에게 묻는다
+2. **잡 어림하기**: 취향에서 기대 벌이와 함께 흩어짐을 미루어 안다
+3. **가장 좋게 하기**: 매임과 함께 마코위츠를 푼다
+4. **다듬기**: 거래 비용, 세금 효율, 실행을 보아 나눔을 손본다
 
-Balances principled optimization with user input.
+원칙 있는 가장 좋게 하기와 쓰는 이의 들임을 저울질한다.
 
-## Risk Management and Suitability
+## 위험 다루기와 알맞음
 
-### Regulatory Suitability Constraints
+### 규제의 알맞음 매임
 
-Financial advisors must ensure recommendations "suitable" for client:
+금융 상담자는 추천이 손님에게 "알맞은지" 확인해야 한다:
 
 $$\text{Suitability Score} = \mathbb{1}[\text{Risk}_{\text{portfolio}} \leq \text{Risk}_{\text{tolerance}}]$$
 
-AND constraints:
-- Portfolio volatility ≤ client-stated tolerance
-- Expected drawdown ≤ client acceptance
-- Asset concentrations ≤ limits (no >30% single position)
-- Complexity ≤ client sophistication
+그리고 매임:
 
-Failure to meet any constraint = unsuitable; recommendation rejected regardless of expected return.
+- 꾸러미 흔들림 ≤ 손님이 밝힌 견딤
+- 기대 꺾임 ≤ 손님이 받아들이는 정도
+- 자산 쏠림 ≤ 한도(한 자리에 30% 넘지 않기)
+- 복잡함 ≤ 손님의 이해 수준
 
-### Recommendation Confidence
+어떤 매임이든 못 채우면 알맞지 않다. 기대 벌이와 상관없이 추천이 물리쳐진다.
 
-Quantify uncertainty in recommendations:
+### 추천의 믿음 정도
+
+추천의 알 수 없음을 수량으로 나타낸다:
 
 $$\text{Confidence} = 1 - \frac{\text{Forecast Error}}{|\text{Expected Return}|}$$
 
-Low confidence (high relative error) → recommend more conservative portfolio.
+믿음이 낮으면(상대 어긋남이 크면) 더 조심스러운 꾸러미를 권한다.
 
-### Backtesting Suitability
+### 알맞음 되짚어 시험하기
 
-Verify historical suitability:
+지난 알맞음을 확인한다:
 
-1. Recommend portfolios to past users with known preferences
-2. Compare actual performance to client constraints
-3. Measure suitability violations (% recommendations that exceeded risk tolerance)
+1. 취향을 아는 지난 쓰는 이에게 꾸러미를 권한다
+2. 실제 성과를 손님의 매임과 견준다
+3. 알맞음 어김을 잰다(위험 견딤을 넘은 추천의 %)
 
-Target: < 5% violation rate.
+과녁: 어김 비율 < 5%.
 
-## Practical Implementation
+## 실전 구현
 
-### Data Collection
+### 자료 모으기
 
-**Explicit Feedback**:
-- Investor questionnaire (risk tolerance, time horizon, constraints)
-- Statement of financial goals and values
-- Regulatory required disclosures
+**드러난 되먹임**:
 
-**Implicit Feedback**:
-- Past investment decisions (bought which assets)
-- Portfolio changes (rebalancing patterns)
-- Engagement (which allocations reviewed, time spent)
+- 투자자 물음지(위험 견딤, 때 지평, 매임)
+- 돈 목표와 가치의 밝힘
+- 규제가 요구하는 알림
 
-### Feature Engineering
+**숨은 되먹임**:
 
-Create features capturing user preferences:
+- 지난 투자 결정(어느 자산을 샀는가)
+- 꾸러미 바꿈(다시 고르기 무늬)
+- 눈여겨봄(어느 나눔을 살폈고 얼마나 머물렀는가)
+
+### 특징 만들기
+
+쓰는 이의 취향을 담은 특징을 만든다:
 
 $$u = [r_{\text{target}}, \sigma_{\text{target}}, \text{equity\_preference}, \text{dividend\_preference}, \text{ESG\_score}]$$
 
-Create features for portfolios:
+꾸러미의 특징을 만든다:
 
 $$p = [\mu_p, \sigma_p, \text{sharpe}_p, \text{drawdown}_p, \text{turnover}, \text{implementation\_cost}]$$
 
-### Recommendation Ranking
+### 추천 매기기
 
-Rank candidate portfolios by score:
+후보 꾸러미를 점수로 매긴다:
 
 $$\text{Score}(p) = w_1 \cdot \text{Risk Match} + w_2 \cdot \text{Suitability} + w_3 \cdot \text{Diversification} + w_4 \cdot \text{Novelty}$$
 
-Typical weights:
-- w_Suitability = 1.0 (mandatory)
-- w_Risk Match = 0.7
-- w_Diversification = 0.3
-- w_Novelty = 0.2
+흔한 무게:
 
-### Explanation and Transparency
+- w_알맞음 = 1.0(반드시)
+- w_위험 맞음 = 0.7
+- w_갈라 담기 = 0.3
+- w_새로움 = 0.2
 
-For each recommendation, explain:
+### 밝힘과 훤함
 
-1. **Why This Portfolio**: "Selected for your moderate risk tolerance and 10-year horizon"
-2. **Key Characteristics**: "Expected annual return 6%, volatility 12%, maximum drawdown -15%"
-3. **Risks**: "Emerging market exposure may increase volatility in downturns"
-4. **Alternatives**: Show 2-3 alternatives with different risk/return profiles
+추천마다 다음을 밝힌다:
 
-Transparency builds trust and aids user decision-making.
+1. **왜 이 꾸러미인가**: "알맞은 위험 견딤과 10년 지평에 맞추어 골랐습니다"
+2. **핵심 성질**: "해마다 기대 벌이 6%, 흔들림 12%, 가장 큰 꺾임 -15%"
+3. **위험**: "떠오르는 시장에 걸친 몫이 내림세에서 흔들림을 키울 수 있습니다"
+4. **다른 길**: 위험과 벌이가 다른 대안 2~3개를 보인다
 
-## Comparison: Portfolio Recommendation vs Traditional Approaches
+훤함이 믿음을 쌓고 쓰는 이의 결정을 돕는다.
 
-### Robo-Advisory (Algorithm-Driven)
+## 견주기: 꾸러미 추천과 여느 길
 
-**Advantages**:
-- Objective, rule-based
-- Low cost (minimal human involvement)
-- Scalable to many clients
+### 자동 상담(알고리즘이 이끎)
 
-**Disadvantages**:
-- Limited to pre-defined portfolio templates
-- May miss client-specific preferences
-- Regulatory liability if poor recommendations
+**좋은 점**:
 
-### Human Advisor (Human-Driven)
+- 객관적이고 규칙 바탕
+- 값이 싸다(사람 손이 거의 안 든다)
+- 손님이 많아도 커진다
 
-**Advantages**:
-- Personalized attention
-- Flexibility for complex situations
-- Client relationship and trust
+**나쁜 점**:
 
-**Disadvantages**:
-- High cost
-- Scalability limited
-- Potential for bias and conflicts of interest
+- 미리 정한 꾸러미 틀에 갇힌다
+- 손님마다의 취향을 놓칠 수 있다
+- 추천이 나쁘면 규제 책임이 따른다
 
-### Hybrid Recommender System
+### 사람 상담자(사람이 이끎)
 
-**Advantages**:
-- Data-driven but incorporates domain knowledge
-- Scalable personalization
-- Explainable recommendations
-- Optimal for risk-aware recommendations
+**좋은 점**:
 
-**Disadvantages**:
-- Requires quality user data
-- Model training and maintenance overhead
-- Regulatory responsibility for recommendations
+- 사람마다 살펴 준다
+- 복잡한 상황에 너그럽다
+- 손님과의 관계와 믿음
 
-## Evaluation Metrics for Portfolio Recommendations
+**나쁜 점**:
 
-### Financial Metrics
+- 값이 비싸다
+- 커지기 어렵다
+- 치우침과 이해 다툼이 생길 수 있다
 
-**Expected Return Accuracy**:
+### 섞은 추천 시스템
+
+**좋은 점**:
+
+- 자료가 이끌되 마당 앎을 담는다
+- 커지는 사람마다 맞추기
+- 밝힐 수 있는 추천
+- 위험을 살피는 추천에 가장 알맞다
+
+**나쁜 점**:
+
+- 좋은 쓰는 이 자료가 있어야 한다
+- 모델 익히기와 건사에 덧짐이 든다
+- 추천에 대한 규제 책임이 따른다
+
+## 꾸러미 추천의 따지기 잣대
+
+### 돈 잣대
+
+**기대 벌이 맞음**:
 
 $$\text{Error}_{\text{return}} = |\hat{\mu}_p - \mu_p^{\text{realized}}|$$
 
-**Risk Tolerance Match**:
+**위험 견딤 맞음**:
 
 $$\text{Suitability} = \mathbb{1}[\sigma_p^{\text{actual}} \leq \sigma_{\text{user}}^{\text{stated}}]$$
 
-**Recommendation Diversification**:
+**추천의 갈라 담기**:
 
 $$\text{Herfindahl} = \sum_i w_i^2 \quad \text{(lower = more diversified)}$$
 
-### User Engagement Metrics
+### 쓰는 이 눈여겨봄 잣대
 
-**Adoption Rate**: % users following recommendation
-**Retention**: % users keeping recommended allocation
-**Satisfaction**: User survey scores
-**Engagement**: Frequency of rebalancing vs recommendation changes
+**따름 비율**: 추천을 따르는 쓰는 이의 %
+**남음**: 권한 나눔을 지키는 쓰는 이의 %
+**만족**: 쓰는 이 설문 점수
+**눈여겨봄**: 다시 고르기 잦음과 추천 바뀜의 견줌
 
-## Case Study: Robo-Advisory Implementation
+## 사례 살피기: 자동 상담 짜기
 
-### System Architecture
+### 시스템 얼개
 
-1. **Data Collection**: Questionnaire + account data
-2. **User Profiling**: Extract risk tolerance, constraints
-3. **Portfolio Optimization**: Solve efficient frontier subject to constraints
-4. **Recommendation**: Select portfolio on efficient frontier aligned with risk profile
-5. **Rebalancing**: Monitor drift; recommend rebalancing when allocations exceed thresholds
+1. **자료 모으기**: 물음지 + 계좌 자료
+2. **쓰는 이 됨됨이 그리기**: 위험 견딤과 매임을 뽑아낸다
+3. **꾸러미 가장 좋게 하기**: 매임 아래 효율 앞자락을 푼다
+4. **추천**: 효율 앞자락에서 위험 됨됨이에 맞는 꾸러미를 고른다
+5. **다시 고르기**: 떠내려감을 지켜보고 나눔이 문턱을 넘으면 다시 고르기를 권한다
 
-### Example Flow
+### 보기 흐름
 
-User States: Moderate risk, 15-year horizon, no ESG constraints
+쓰는 이가 밝힘: 알맞은 위험, 15년 지평, ESG 매임 없음
 
-System:
-1. Infers: σ_target ≈ 10-12%, μ_target ≈ 5-6%
-2. Optimizes: Solves Markowitz for efficient frontier
-3. Recommends: [40% US Stocks, 30% Intl Stocks, 25% Bonds, 5% Alternatives]
-4. Explains: "Expected return 5.8%, volatility 11%, suitable for your 15-year horizon"
+시스템:
 
-!!! note "Portfolio Recommendation"
-    Portfolio recommender systems must prioritize suitability and risk management above all else. While accuracy and novelty matter, regulatory constraints and investor protection are non-negotiable. Hybrid systems combining collaborative filtering with portfolio optimization provide best balance of personalization and financial soundness.
+1. 미루어 앎: σ_과녁 ≈ 10~12%, μ_과녁 ≈ 5~6%
+2. 가장 좋게 함: 효율 앞자락을 얻으려 마코위츠를 푼다
+3. 권함: [미국 주식 40%, 해외 주식 30%, 채권 25%, 대체 자산 5%]
+4. 밝힘: "기대 벌이 5.8%, 흔들림 11%, 15년 지평에 알맞습니다"
 
+!!! note "꾸러미 추천"
+    꾸러미 추천 시스템은 무엇보다 알맞음과 위험 다루기를 앞세워야 한다. 맞음과 새로움도 중요하지만 규제 매임과 투자자 보호는 흥정할 수 없다. 함께 거르기와 꾸러미 가장 좋게 하기를 아우른 섞은 시스템이 사람마다 맞추기와 재무 건전성의 균형을 가장 잘 잡는다.
+
+## 연습문제
+
+**연습문제 1.**
+이 길에서 차가운 출발 문제가 새 쓰는 이와 새 물건에 어떻게 다르게 나타나는지 밝혀라. 경우마다 누그러뜨릴 셈속을 하나씩 내놓아라.
+
+??? success "연습문제 1 풀이"
+    새 쓰는 이는 취향을 배울 주고받음 지난 일이 없어 함께 거르기 신호를 쓸 수 없다. 누그러뜨리기: 내용 바탕 특징(인구 특성, 밝힌 취향)으로 쓰는 이 박아 넣기의 첫 값을 잡는다. 새 물건은 아직 주고받은 쓰는 이가 없어 함께 거르기로 매길 수 없다. 누그러뜨리기: 물건 내용 특징(밝힘, 갈래)으로 그 물건을 박아 넣기 자리에서 닮은 물건 곁에 놓는다. 두 셈속 모두 주고받음이 넉넉히 쌓일 때까지 차가운 낱것을 띄워 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 밝힌 잡의 기울기 고침을 이끌어 내어라. 어느 항이 셈하기에 가장 비싼지 가려내고 어림을 내놓아라.
+
+??? success "연습문제 2 풀이"
+    기울기에는 고르게 맞추려 온 물건 목록에 대한 기댓값을 셈하는 일이 든다. 물건 수에 선형으로 늘어나므로 가장 비싼 항이다. 음의 뽑기는 온 목록 대신 음의 물건 가운데 아무 작은 부분 모임만 더해 이를 어림하여, 고침마다 비용을 $O(|\mathcal{I}|)$에서 $O(k)$으로 줄인다. 여기서 $k$은 음의 표본 수(보통 5~20)이다. 중요도 뽑기가 이 어림에 치우치지 않은 어림개를 준다. $\square$
+
+---
+
+**연습문제 3.**
+이 추천 방식이 인기 바탕 밑그림보다 쓰는 이의 눈여겨봄을 높이는지 따질 A/B 시험을 설계하여라. 아무 나누기 단위, 으뜸 잣대, 최소 표본 크기 셈을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    아무 나누기 단위: 쓰는 이(서로 섞이지 않도록 세션이 아님). 으뜸 잣대: 추천의 누름 비율. 밑그림 누름 비율이 5%이고 알아챌 최소 효과가 0.5%포인트(상대 10% 오름)일 때, 뜻 있음 수준 $\alpha = 0.05$과 힘 $1 - \beta = 0.80$에서 무리마다 필요한 표본 크기는 $n = 2(z_{\alpha/2} + z_\beta)^2 \cdot p(1-p) / \delta^2 \approx 15{,}000$명이다. 주마다의 무늬를 담으려 적어도 2주 돌린다. 난간: 벌이와 다양함 잣대를 딸린 결과로 지켜본다. $\square$
+
+---
+
+**연습문제 4.**
+이 추천 방법의 따지기가 오프라인(지난 자료)과 온라인(실제 오감) 자리에서 어떻게 다른지 밝혀라. 오프라인 따지기에서 어떤 치우침이 생길 수 있는가?
+
+??? success "연습문제 4 풀이"
+    오프라인 따지기는 때로 나눈 지난 주고받음을 쓴다(지난 것으로 익히고 앞으로의 것으로 시험). 치우침에는 다음이 있다. (1) 고름 치우침 -- 쓰는 이는 보여 준 물건과만 주고받았으므로 보지 않은 물건이 참으로 음인 것은 아니다. (2) 인기 치우침 -- 인기 물건이 시험 모임을 지배한다. (3) 자리 치우침 -- 위쪽에 놓인 물건이 알맞음과 상관없이 더 눌린다. 온라인 따지기(A/B 시험)는 고름 치우침을 피하지만 비싸고 느리다. 치우치지 않은 오프라인 따지기 방법으로는 보여 줄 확률로 봄에 다시 무게를 주는 거꿀 성향 점수 매기기가 있다. $\square$

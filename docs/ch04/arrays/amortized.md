@@ -1,104 +1,104 @@
-# Amortized Growth
+# 상각 성장
 
-A static array cannot grow beyond its initial capacity, so dynamic arrays must periodically allocate a larger block and copy all existing elements when the current block fills up. A single copy-everything operation costs $O(n)$ time, which seems expensive. However, these costly resizes happen infrequently enough that the **average cost per append**, measured over a long sequence of operations, is only $O(1)$. This is the essence of amortized analysis applied to array growth: occasional expensive operations are "paid for" by the many cheap operations that precede them.
+정적 배열은 처음 용량을 넘어 커질 수 없으므로, 동적 배열은 현재 덩어리가 가득 차면 이따금 더 큰 덩어리를 할당하고 기존 원소를 모두 복사해야 한다. 전부 복사하는 연산 한 번에는 $O(n)$ 시간이 들어 비싸 보인다. 그러나 이런 값비싼 크기 조정은 충분히 드물게 일어나서, 긴 연산 열에 걸쳐 잰 **덧붙이기 한 번당 평균 비용**은 $O(1)$에 지나지 않는다. 이것이 배열 성장에 적용된 상각 분석의 요체이다. 이따금 나오는 비싼 연산의 값을 그 앞에 있던 수많은 싼 연산이 "치러 준다".
 
-## The Doubling Strategy
+## 배로 늘리기 전략
 
-The most common growth policy doubles the array capacity each time it fills up. Starting with capacity $c = 1$, the array grows through capacities $1, 2, 4, 8, 16, \ldots$ as elements are appended.
+가장 흔한 성장 정책은 배열이 가득 찰 때마다 용량을 두 배로 늘리는 것이다. 용량 $c = 1$에서 시작하여 원소가 덧붙여짐에 따라 배열의 용량은 $1, 2, 4, 8, 16, \ldots$으로 커진다.
 
-**Resize rule:** when the number of elements $n$ equals the current capacity $c$, allocate a new array of capacity $2c$, copy all $n$ elements, and free the old array.
+**크기 조정 규칙:** 원소의 개수 $n$이 현재 용량 $c$과 같아지면 용량이 $2c$인 배열을 새로 할당하고 $n$개의 원소를 모두 복사한 뒤 옛 배열을 해제한다.
 
-The cost of each append operation is:
+덧붙이기 연산 하나의 비용은 다음과 같다.
 
-- **No resize needed:** $O(1)$ to write the new element into the next open slot.
-- **Resize needed:** $O(n)$ to copy $n$ elements to the new array, plus $O(1)$ to write the new element.
+- **크기 조정이 필요 없을 때:** 다음 빈자리에 새 원소를 쓰는 데 $O(1)$이다.
+- **크기 조정이 필요할 때:** 새 배열로 $n$개의 원소를 복사하는 데 $O(n)$, 새 원소를 쓰는 데 $O(1)$이 든다.
 
-## Aggregate Analysis
+## 총계 분석
 
-The aggregate method computes the total cost of $n$ appends and divides by $n$.
+총계 방법은 덧붙이기 $n$번의 총비용을 구한 뒤 $n$으로 나눈다.
 
-Consider appending $n$ elements to an initially empty array. Resizes occur when the size reaches powers of 2. At size $2^k$, the array copies $2^k$ elements. The total copying cost over $n$ appends is
+처음에 비어 있던 배열에 원소 $n$개를 덧붙인다고 하자. 크기가 2의 거듭제곱에 이를 때마다 크기 조정이 일어난다. 크기가 $2^k$일 때 배열은 $2^k$개의 원소를 복사한다. 덧붙이기 $n$번에 걸친 총 복사 비용은 다음과 같다.
 
 $$
 \sum_{k=0}^{\lfloor \log_2 n \rfloor} 2^k = 2^{\lfloor \log_2 n \rfloor + 1} - 1 < 2n
 $$
 
-Each append also pays $O(1)$ for the write itself, contributing $n$ to the total. Therefore the total cost for $n$ operations is at most $3n$, giving an amortized cost per operation of
+덧붙이기마다 쓰기 자체에도 $O(1)$이 들어 총합에 $n$을 보탠다. 따라서 연산 $n$번의 총비용은 많아야 $3n$이고, 연산당 상각 비용은 다음과 같다.
 
 $$
 \frac{3n}{n} = 3 = O(1)
 $$
 
-## Accounting Method
+## 회계 방법
 
-The accounting method assigns each operation a fixed **amortized charge** and shows that the accumulated credits always cover the actual costs.
+회계 방법은 각 연산에 고정된 **상각 요금**을 매기고, 쌓인 적립금이 언제나 실제 비용을 감당함을 보인다.
 
-Assign each append an amortized charge of **3 units**:
+덧붙이기마다 **3단위**의 상각 요금을 매긴다.
 
-- **1 unit** pays for writing the new element.
-- **1 unit** is saved as credit on the new element itself.
-- **1 unit** is saved as credit on an earlier element that has not yet been copied in this growth phase.
+- **1단위**는 새 원소를 쓰는 값을 치른다.
+- **1단위**는 새 원소 자신에 적립금으로 쌓인다.
+- **1단위**는 이번 성장 단계에서 아직 복사되지 않은 앞선 원소에 적립금으로 쌓인다.
 
-When a resize doubles from capacity $c$ to $2c$, there are $c$ elements that need copying. Since the last resize (or the start), exactly $c/2$ new elements were appended, each contributing 2 credits (1 for itself, 1 for an older element). This provides $c/2 \times 2 = c$ credits, which is exactly enough to pay for copying all $c$ elements.
+용량이 $c$에서 $2c$로 두 배가 되는 크기 조정에서는 복사해야 할 원소가 $c$개이다. 직전 크기 조정(또는 시작) 이후 정확히 $c/2$개의 새 원소가 덧붙여졌고 각각 2단위(자기 몫 1, 오래된 원소 몫 1)를 보탰다. 이로써 $c/2 \times 2 = c$단위의 적립금이 생기며, 이는 $c$개의 원소를 모두 복사하는 값을 치르기에 딱 맞는다.
 
-!!! tip "Intuition Behind the Charges"
+!!! tip "요금 뒤에 있는 직관"
 
-    The key insight is that each new element pays not only for its own future relocation but also sponsors the relocation of one older element. By the time the array fills up, enough credits have accumulated to cover the entire copy operation.
+    핵심은 새 원소가 장차 자기가 옮겨질 값뿐 아니라 오래된 원소 하나가 옮겨질 값까지 대신 낸다는 점이다. 배열이 가득 찰 무렵이면 복사 연산 전체를 감당할 만큼 적립금이 쌓여 있다.
 
-## Potential Method
+## 잠재 함수 방법
 
-The potential method defines a potential function $\Phi$ on the data structure state and expresses the amortized cost as
+잠재 함수 방법은 자료구조의 상태에 대한 잠재 함수 $\Phi$을 정의하고 상각 비용을 다음과 같이 나타낸다.
 
 $$
 \hat{c}_i = c_i + \Phi(D_i) - \Phi(D_{i-1})
 $$
 
-where $c_i$ is the actual cost of operation $i$, and $D_i$ is the state after operation $i$.
+여기서 $c_i$은 연산 $i$의 실제 비용이고 $D_i$은 연산 $i$ 이후의 상태이다.
 
-Define the potential function as
+잠재 함수를 다음과 같이 정의한다.
 
 $$
 \Phi(D) = 2n - c
 $$
 
-where $s$ is the current number of elements and $c$ is the current capacity. Initially the array is empty with $s = 0$ and $c = 1$, so $\Phi(D_0) = 0$. After every resize the array is exactly half full ($s = c/2 + 1$), so $\Phi \ge 0$ always holds.
+여기서 $s$은 현재 원소의 개수이고 $c$은 현재 용량이다. 처음에 배열은 비어 있어 $s = 0$, $c = 1$이므로 $\Phi(D_0) = 0$이다. 크기 조정 직후마다 배열은 정확히 절반만 차 있으므로($s = c/2 + 1$) 언제나 $\Phi \ge 0$이 성립한다.
 
-**Case 1: Normal append** ($s < c$). The actual cost is 1. The potential increases by 2:
+**경우 1: 보통의 덧붙이기** ($s < c$). 실제 비용은 1이다. 잠재값은 2만큼 늘어난다.
 
 $$
 \hat{c} = 1 + \bigl[2(s+1) - c\bigr] - \bigl[2s - c\bigr] = 1 + 2 = 3
 $$
 
-**Case 2: Resize append** ($s = c$). The actual cost is $s + 1$ (copy $s$ elements plus write). Before the operation, $\Phi_{\text{before}} = 2s - c = 2s - s = s$. After the resize, the capacity doubles to $2s$ and the size becomes $s + 1$, giving $\Phi_{\text{after}} = 2(s + 1) - 2s = 2$. Thus
+**경우 2: 크기 조정을 동반한 덧붙이기** ($s = c$). 실제 비용은 $s + 1$이다($s$개를 복사하고 쓰기 한 번). 연산 전에는 $\Phi_{\text{before}} = 2s - c = 2s - s = s$이다. 크기 조정 후 용량이 $2s$로 두 배가 되고 크기는 $s + 1$이 되므로 $\Phi_{\text{after}} = 2(s + 1) - 2s = 2$이다. 따라서 다음과 같다.
 
 $$
 \hat{c} = (s + 1) + (2 - s) = 3
 $$
 
-In both cases the amortized cost is exactly 3, confirming $O(1)$ amortized per append.
+두 경우 모두 상각 비용이 정확히 3이므로 덧붙이기당 상각 $O(1)$이 확인된다.
 
-## Growth Factor Tradeoffs
+## 성장 인수의 절충
 
-The doubling strategy uses a growth factor of 2, but other factors work as well. Any constant factor $\alpha > 1$ yields $O(1)$ amortized appends, but the choice affects the constant and memory waste.
+배로 늘리기 전략은 성장 인수 2를 쓰지만 다른 인수도 통한다. 1보다 큰 어떤 상수 $\alpha$이든 상각 $O(1)$ 덧붙이기를 주지만, 무엇을 고르느냐가 상수와 메모리 낭비에 영향을 준다.
 
-| Growth Factor $\alpha$ | Max Wasted Space | Amortized Cost Constant | Used By          |
+| 성장 인수 $\alpha$ | 최대 낭비 공간 | 상각 비용 상수 | 쓰는 곳          |
 |------------------------|------------------|-------------------------|------------------|
 | 2                      | 50%              | 3                       | Java ArrayList   |
-| 1.5                    | 33%              | Higher                  | C++ std::vector  |
-| $\approx 1.125$        | 12.5%            | Higher                  | Python list      |
+| 1.5                    | 33%              | 더 큼                  | C++ std::vector  |
+| $\approx 1.125$        | 12.5%            | 더 큼            | Python list      |
 
-!!! warning "Additive Growth is Not Amortized O(1)"
+!!! warning "덧셈식 성장은 상각 O(1)이 아니다"
 
-    Growing by a fixed additive constant (e.g., adding 10 slots each time) results in $O(n)$ amortized cost per append, not $O(1)$. The geometric (multiplicative) growth policy is essential for the amortized constant-time guarantee.
+    고정된 상수를 더하며 키우면(예: 매번 자리 10개씩 추가) 덧붙이기당 상각 비용이 $O(1)$이 아니라 $O(n)$이 된다. 상각 상수 시간을 보장하려면 기하급수적인(곱셈식) 성장 정책이 반드시 필요하다.
 
-## Python Demonstration
+## 파이썬 시연
 
 ```python
-"""Demonstrate amortized growth by tracking capacity changes in a Python list."""
+"""파이썬 리스트의 용량 변화를 추적하여 상각 성장을 보인다."""
 
 import sys
 
-# === Track capacity growth ===
+# === 용량 증가 추적 ===
 sizes = []
 data = []
 
@@ -114,7 +114,7 @@ for length, size in sizes:
     print(f"  {length:4d} | {size}")
 ```
 
-**Output:**
+**출력:**
 ```
 Length | sys.getsizeof (bytes)
 -------|---------------------
@@ -128,8 +128,41 @@ Length | sys.getsizeof (bytes)
     53 | 568
 ```
 
-The output shows that Python does not double exactly but uses a growth factor of approximately 1.125, trading a higher amortized constant for lower memory waste.
+출력을 보면 파이썬은 정확히 두 배로 늘리지 않고 약 1.125의 성장 인수를 쓰는데, 상각 상수를 조금 키우는 대신 메모리 낭비를 줄인 것이다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+상각 성장에 대해 삽입, 삭제, 탐색, 접근 연산의 시간 복잡도를 진술하라.
+
+??? success "연습문제 1 풀이"
+    복잡도는 구체적인 구현(배열 기반이냐 연결 기반이냐)에 달려 있다. 배열 기반은 접근이 $O(1)$이고 임의의 위치에서의 삽입·삭제가 $O(n)$이다. 연결 기반은 이미 아는 위치에서의 삽입·삭제가 $O(1)$이고 탐색·접근이 $O(n)$이다. 어떤 연산이 주를 이루느냐에 따라 선택이 갈린다.
+
+---
+
+**연습문제 2.**
+원소 6개로 상각 성장을(를) 따라가며 각 연산 후의 자료구조 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    구조에 삽입, 접근, 삭제를 차례로 수행하라. 각 단계마다 (연결 구조라면) 포인터를, (배열 기반이라면) 배열의 내용을 보이며 구조가 불변식을 어떻게 유지하는지 나타내라.
+
+---
+
+**연습문제 3.**
+상각 성장이(가) PyTorch의 텐서 저장과 어떻게 관련되는지 설명하라. 자료구조의 선택이 메모리 배치와 캐시 성능에 어떤 영향을 주는가?
+
+??? success "연습문제 3 풀이"
+    PyTorch 텐서는 캐시에 효율적으로 접근할 수 있도록 연속된 배열로 저장된다. 연결 구조는 autograd 그래프를 훑는 데 내부적으로 쓰인다. 이 선택은 메모리 사용량(배열에는 포인터 부담이 없다)과 접근 양상(캐시 지역성 덕분에 순차적인 배열 접근이 연결 리스트 순회보다 10~100배 빠르다)에 모두 영향을 준다.
+
+---
+
+**연습문제 4.**
+반복문 불변식을 사용하여 상각 성장의 주요 연산의 시간 복잡도를 증명하라.
+
+??? success "연습문제 4 풀이"
+    알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$

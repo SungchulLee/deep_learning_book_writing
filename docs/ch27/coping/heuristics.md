@@ -1,126 +1,181 @@
-# Heuristics for NP-Hard Problems
+# NP 어려움 문제의 어림짐작
 
-When provable approximation guarantees are unavailable or the approximation ratio is too loose, **heuristic methods** offer practical alternatives. These algorithms sacrifice worst-case guarantees for empirical performance, often finding near-optimal solutions on real-world instances. While heuristics lack formal approximation ratios, they are the workhorse of combinatorial optimization in practice.
+밝힐 수 있는 어림 보장이 없거나 어림 비율이 너무 헐거울 때 **어림짐작 방법**이 실제로 쓸 만한 대안을 준다. 이 알고리즘은 가장 나쁜 경우의 보장을 경험 성능과 맞바꾸며 실제 사례에서 흔히 거의 가장 좋은 풀이를 찾는다. 어림짐작에는 엄밀한 어림 비율이 없지만 실제 얽음 가장 좋게 하기의 일꾼이다.
 
-## Local Search
+## 그 자리 찾기
 
-**Local search** starts with a feasible solution and iteratively improves it by exploring **neighbors** --- solutions reachable by small modifications.
+**그 자리 찾기**는 쓸 수 있는 풀이에서 시작해 **이웃**, 곧 작은 고침으로 닿을 수 있는 풀이를 살피며 되풀이해 낫게 한다.
 
-### Framework
+### 틀
 
-1. Start with an initial feasible solution $s_0$.
-2. Define a **neighborhood** $N(s)$ for each solution $s$.
-3. While $N(s)$ contains an improving neighbor:
-    - Move to the best (or any) improving neighbor.
-4. Return $s$ (a **local optimum**).
+1. 처음의 쓸 수 있는 풀이 $s_0$에서 시작한다.
+2. 풀이 $s$마다 **이웃 자리** $N(s)$을 뜻매김한다.
+3. $N(s)$에 나아지게 하는 이웃이 있는 동안:
+    - 가장 좋은(또는 아무) 나아지게 하는 이웃으로 옮긴다.
+4. $s$을 돌려준다(**그 자리의 가장 좋은 풀이**).
 
-### Neighborhood Design
+### 이웃 자리 짜기
 
-The choice of neighborhood determines the algorithm's quality:
+이웃 자리를 어떻게 고르느냐가 알고리즘의 품질을 정한다:
 
-| Problem | Neighborhood | Move |
+| 문제 | 이웃 자리 | 옮김 |
 |---------|-------------|------|
-| TSP | 2-opt | Swap two edges in the tour |
-| TSP | 3-opt | Replace three edges |
-| Graph Partition | Swap | Exchange one vertex between parts |
-| SAT | Flip | Flip one variable |
+| 떠돌이 장수 문제 | 2-opt | 돌이에서 변 둘을 맞바꾼다 |
+| 떠돌이 장수 문제 | 3-opt | 변 셋을 바꾼다 |
+| 그래프 가르기 | 맞바꿈 | 쪽 사이에 꼭짓점 하나를 바꾼다 |
+| SAT | 뒤집기 | 변수 하나를 뒤집는다 |
 
-Larger neighborhoods explore more solutions per step but cost more to search.
+이웃 자리가 넓을수록 걸음마다 더 많은 풀이를 살피지만 찾는 비용이 커진다.
 
-### Limitations
+### 한계
 
-Local search can get stuck at **local optima** far from the global optimum. The solution landscape may have many local optima separated by deep valleys.
+그 자리 찾기는 온 자리의 가장 좋은 풀이에서 멀리 떨어진 **그 자리의 가장 좋은 풀이**에 갇힐 수 있다. 풀이 풍경에는 깊은 골짜기로 갈린 그 자리의 최적점이 많을 수 있다.
 
-## Simulated Annealing
+## 흉내 식힘
 
-**Simulated annealing (SA)** escapes local optima by accepting worse solutions with a probability that decreases over time, mimicking the physical process of metal cooling.
+**흉내 식힘(SA)**은 쇠가 식는 물리 과정을 흉내 내어, 때가 갈수록 줄어드는 확률로 더 나쁜 풀이를 받아들여 그 자리의 최적점에서 벗어난다.
 
-### Algorithm
+### 알고리즘
 
-1. Start with solution $s$ and initial temperature $T_0$.
-2. At each step, generate a random neighbor $s'$ from $N(s)$.
-3. If $s'$ is better, accept it.
-4. If $s'$ is worse, accept it with probability:
+1. 풀이 $s$과 처음 온도 $T_0$에서 시작한다.
+2. 걸음마다 $N(s)$에서 아무 이웃 $s'$을 만든다.
+3. $s'$이 더 좋으면 받아들인다.
+4. $s'$이 더 나쁘면 다음 확률로 받아들인다:
 
 $$
 \Pr[\text{accept}] = \exp\left(-\frac{\Delta f}{T}\right)
 $$
 
-where $\Delta f = f(s') - f(s) > 0$ is the cost increase.
+여기서 $\Delta f = f(s') - f(s) > 0$은 비용이 늘어난 양이다.
 
-5. Decrease $T$ according to a **cooling schedule** (e.g., $T_{k+1} = \alpha T_k$ with $\alpha \approx 0.95$).
-6. Stop when $T$ drops below a threshold or time runs out.
+5. **식힘 차례표**에 따라 $T$을 낮춘다(보기로 $\alpha \approx 0.95$인 $T_{k+1} = \alpha T_k$).
+6. $T$이 문턱 아래로 떨어지거나 시간이 다하면 멈춘다.
 
-### Convergence
+### 모임
 
-Under a sufficiently slow cooling schedule ($T_k = c / \log k$), SA converges to the global optimum with probability 1. However, this theoretical schedule is impractically slow --- it requires exponential time.
+넉넉히 느린 식힘 차례표($T_k = c / \log k$) 아래에서 흉내 식힘은 확률 1로 온 자리의 가장 좋은 풀이로 모인다. 그러나 이 이론상의 차례표는 지수 시간이 들어 실제로는 너무 느리다.
 
-In practice, geometric cooling ($T_{k+1} = \alpha T_k$) with $\alpha \in [0.9, 0.99]$ works well.
+실제로는 $\alpha \in [0.9, 0.99]$인 등비 식힘($T_{k+1} = \alpha T_k$)이 잘 듣는다.
 
-## Genetic Algorithms
+## 유전 알고리즘
 
-**Genetic algorithms (GAs)** maintain a **population** of solutions and evolve them through selection, crossover, and mutation, inspired by biological evolution.
+**유전 알고리즘(GA)**은 생물의 진화에서 실마리를 얻어 풀이의 **무리**를 이어 가며 고르기, 엇갈리기, 돌연변이로 진화시킨다.
 
-### Components
+### 부품
 
-1. **Encoding:** Represent each solution as a chromosome (e.g., a bitstring for subset problems, a permutation for TSP).
-2. **Fitness function:** Evaluate solution quality.
-3. **Selection:** Choose parents proportional to fitness (tournament, roulette wheel).
-4. **Crossover:** Combine two parents to produce offspring (e.g., one-point crossover, order crossover for permutations).
-5. **Mutation:** Randomly modify offspring with small probability (e.g., bit flip, swap two positions).
-6. **Replacement:** Form the next generation from offspring and (possibly) surviving parents.
+1. **적기:** 풀이마다 염색체로 나타낸다(보기로 부분 모임 문제에는 비트 글줄, 떠돌이 장수 문제에는 자리바꿈).
+2. **적합도 함수:** 풀이 품질을 매긴다.
+3. **고르기:** 적합도에 비례해 부모를 고른다(맞겨루기, 룰렛 바퀴).
+4. **엇갈리기:** 부모 둘을 합쳐 자식을 만든다(보기로 한 점 엇갈리기, 자리바꿈의 차례 엇갈리기).
+5. **돌연변이:** 작은 확률로 자식을 아무렇게나 고친다(보기로 비트 뒤집기, 자리 둘 맞바꾸기).
+6. **바꿔 넣기:** 자식과 (때로는) 살아남은 부모로 다음 세대를 이룬다.
 
-### Advantages and Limitations
+### 장점과 한계
 
-- **Advantages:** Explores diverse regions of the search space simultaneously; works well when the fitness landscape has multiple basins.
-- **Limitations:** Many hyperparameters to tune (population size, mutation rate, crossover type); no convergence guarantees; often slow compared to tailored heuristics.
+- **장점:** 찾기 공간의 여러 자리를 한꺼번에 살핀다. 적합도 풍경에 웅덩이가 여럿일 때 잘 듣는다.
+- **한계:** 맞출 윗매개변수가 많다(무리 크기, 돌연변이 빠르기, 엇갈리기 갈래). 모임 보장이 없다. 맞춤 어림짐작에 견주어 흔히 느리다.
 
-## Tabu Search
+## 금기 찾기
 
-**Tabu search** enhances local search by maintaining a **tabu list** of recently visited solutions (or moves), preventing the algorithm from cycling back.
+**금기 찾기**는 최근에 들른 풀이(또는 옮김)의 **금기 목록**을 지녀 알고리즘이 되돌아 맴돌지 못하게 하여 그 자리 찾기를 낫게 한다.
 
-### Key Ideas
+### 핵심 생각
 
-1. At each step, move to the best neighbor even if it worsens the objective.
-2. Maintain a list of recent moves (length $\ell$); these moves are **tabu** (forbidden).
-3. **Aspiration criterion:** Override the tabu status if a move leads to a solution better than the best known.
+1. 걸음마다 목표가 나빠지더라도 가장 좋은 이웃으로 옮긴다.
+2. 최근 옮김의 목록(길이 $\ell$)을 지닌다. 이 옮김은 **금기**(막힘)이다.
+3. **바람 잣대:** 어떤 옮김이 알려진 가장 좋은 풀이보다 나은 풀이로 이어지면 금기를 무시한다.
 
-The tabu list prevents cycling and forces exploration beyond local optima.
+금기 목록은 맴돎을 막고 그 자리의 최적점 너머를 살피게 한다.
 
-## Comparison of Heuristic Methods
+## 어림짐작 방법 견주기
 
-| Method | Escapes Local Optima | Memory | Parameters | Best For |
+| 방법 | 그 자리 최적점 벗어나기 | 기억 | 매개변수 | 알맞은 곳 |
 |--------|---------------------|--------|-----------|---------|
-| Local Search | No | $O(1)$ | Neighborhood choice | Quick baseline |
-| Simulated Annealing | Yes (probabilistic) | $O(1)$ | Temperature schedule | Continuous landscapes |
-| Genetic Algorithm | Yes (population) | $O(\text{pop})$ | Many | Diverse landscapes |
-| Tabu Search | Yes (memory) | $O(\ell)$ | Tabu tenure $\ell$ | Discrete optimization |
+| 그 자리 찾기 | 못 함 | $O(1)$ | 이웃 자리 고르기 | 빠른 바탕선 |
+| 흉내 식힘 | 함(확률로) | $O(1)$ | 온도 차례표 | 이어진 풍경 |
+| 유전 알고리즘 | 함(무리로) | $O(\text{pop})$ | 많음 | 다양한 풍경 |
+| 금기 찾기 | 함(기억으로) | $O(\ell)$ | 금기 기간 $\ell$ | 띄엄띄엄한 가장 좋게 하기 |
 
-## When to Use Heuristics
+## 어림짐작을 언제 쓰는가
 
-!!! warning "No Guarantees"
-    Heuristics provide no worst-case approximation guarantees. Use them when:
+!!! warning "보장 없음"
+    어림짐작은 가장 나쁜 경우의 어림 보장을 주지 않는다. 다음일 때 쓴다:
 
-    - The problem has no known constant-factor approximation.
-    - Instance-specific performance matters more than worst-case bounds.
-    - The search space has exploitable structure (smoothness, decomposability).
-    - Exact or approximation algorithms are too slow for the required instance size.
+    - 알려진 상수 배 어림이 없을 때.
+    - 가장 나쁜 경우의 한계보다 사례별 성능이 더 중요할 때.
+    - 찾기 공간에 써먹을 얼개(매끄러움, 나눌 수 있음)가 있을 때.
+    - 필요한 사례 크기에 정확한 알고리즘이나 어림 알고리즘이 너무 느릴 때.
 
-??? example "Example: 2-Opt for TSP"
-    **Instance:** 5 cities with an initial tour $A \to B \to C \to D \to E \to A$ of cost 25.
+??? example "보기: 떠돌이 장수 문제의 2-opt"
+    **사례:** 도시 5개와 비용 25인 처음 돌이 $A \to B \to C \to D \to E \to A$.
 
-    **2-opt neighborhood:** Remove two edges and reconnect the tour. For example, remove $(B,C)$ and $(D,E)$, reconnect as $A \to B \to D \to C \to E \to A$.
+    **2-opt 이웃 자리:** 변 둘을 지우고 돌이를 다시 잇는다. 보기로 $(B,C)$과 $(D,E)$을 지우고 $A \to B \to D \to C \to E \to A$으로 다시 잇는다.
 
-    **Iteration 1:** The reconnection reduces cost to 22. Accept.
+    **되풀이 1:** 다시 이으니 비용이 22으로 줄어든다. 받아들인다.
 
-    **Iteration 2:** Try all 2-opt swaps on the new tour. The best swap reduces cost to 20. Accept.
+    **되풀이 2:** 새 돌이에 2-opt 맞바꿈을 모두 시험한다. 가장 좋은 맞바꿈이 비용을 20으로 줄인다. 받아들인다.
 
-    **Iteration 3:** No improving 2-opt swap exists. Return tour of cost 20.
+    **되풀이 3:** 나아지게 하는 2-opt 맞바꿈이 없다. 비용 20인 돌이를 돌려준다.
 
-    The 2-opt local optimum may not be globally optimal, but it is typically within a few percent of OPT on real instances.
+    2-opt의 그 자리 최적점이 온 자리에서 가장 좋지 않을 수 있지만 실제 사례에서는 보통 최적값의 몇 퍼센트 안에 든다.
 
-## Reference
+## 참고 문헌
 
 - Aarts, E., & Lenstra, J. K. (2003). *Local Search in Combinatorial Optimization*. Princeton University Press.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
 - Talbi, E.-G. (2009). *Metaheuristics: From Design to Implementation*. Wiley.
+
+## 연습문제
+
+**연습문제 1.**
+떠돌이 장수 문제의 흉내 식힘 메타 어림짐작을 적어라. 온도 매개변수와 식힘 차례표의 몫을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    흉내 식힘은 처음 돌이에서 시작해 아무 고침(보기로 2-opt 맞바꿈)을 되풀이해 내놓는다. 걸음마다 (1) 지금 풀이 $s$에서 이웃 풀이 $s'$을 만들고, (2) $\Delta = \text{cost}(s') - \text{cost}(s)$을 셈하고, (3) $\Delta < 0$이면(나아짐) $s'$을 받아들이고, 그 밖에는 확률 $e^{-\Delta/T}$으로 $s'$을 받아들인다.
+
+    온도 $T$은 높게 시작해(대부분의 옮김을 받아들여 살펴보기를 가능하게 한다) 때가 갈수록 낮아진다(더 까다로워져 그 자리의 최적점으로 모인다). 식힘 차례표가 $T$이 어떻게 낮아지는지 정한다. 흔한 고르기는 등비($\alpha \approx 0.99$인 $T \leftarrow \alpha T$)나 로그($T = c/\log(t)$)이다.
+
+    이론상 보장: 넉넉히 느린 식힘 차례표(로그)에서 흉내 식힘은 확률 1로 온 자리의 가장 좋은 풀이로 모인다. 실제로는 가장 좋음을 빠르기와 맞바꾸어 더 빠른 차례표를 쓴다.
+
+---
+
+**연습문제 2.**
+배낭 문제에서 욕심쟁이 세움 어림짐작과 그 자리 찾기를 견주어라. 각각 언제 잘 듣는가?
+
+??? success "연습문제 2 풀이"
+    **욕심쟁이 세움:** 물건을 값 대 무게 비 $v_i/w_i$의 내림차순으로 줄 세운다. 들어가는 동안 욕심껏 물건을 넣는다. 이는 $O(n \log n)$에 돌며 0/1 배낭에 2 어림을 이룬다(욕심쟁이 풀이와 들어가는 가장 값진 물건 하나 가운데 나은 쪽을 고른다).
+
+    **그 자리 찾기:** 아무 쓸 수 있는 풀이에서 시작한다. 물건 하나를 넣고 하나를 빼는(또는 물건 하나를 넣거나 빼는) 것으로 이웃을 뜻매김한다. 나아지게 하는 이웃이 없을 때까지 되풀이한다.
+
+    물건이 많고 담이에 견주어 작을 때(분수 느슨하게 하기가 빠듯할 때) 욕심쟁이가 뛰어나다. 무게 때문에 욕심쟁이 풀이가 값진 물건 몇 개를 놓칠 때는 그 자리 찾기가 뛰어나다. 실제로는 둘을 합치면(욕심쟁이로 첫자리매김한 뒤 그 자리 찾기) 흔히 어느 하나보다 낫다.
+
+---
+
+**연습문제 3.**
+어림짐작 찾기에서 적합도 풍경 개념을 밝혀라. 그 자리 찾기가 그 자리의 최적점에 갇힐 수 있는 까닭과 메타 어림짐작이 이를 어떻게 다루는지 밝혀라.
+
+??? success "연습문제 3 풀이"
+    적합도 풍경은 풀이마다 그 목표 값으로 옮기며 풀이들은 이웃 관계로 이어진다. 그 자리 찾기는 기울기(나아지게 하는 이웃)를 따라가 그 자리의 최적점, 곧 모든 이웃보다 나은 풀이로 모인다. 풍경에 "골짜기"로 갈린 그 자리의 최적점이 여럿이면 그 자리 찾기는 먼저 닿은 봉우리에 갇힌다.
+
+    메타 어림짐작은 여러 얼개로 이를 다룬다:
+
+    - **흉내 식힘:** 줄어드는 확률로 더 나쁜 풀이를 받아들여 찾기 초반에 그 자리의 최적점에서 벗어나게 한다.
+    - **유전 알고리즘:** 풀이 무리를 지니고 엇갈리기로 합쳐 골짜기를 건너뛸 수 있게 한다.
+    - **금기 찾기:** 최근에 들른 풀이의 목록을 지니고 되돌아가는 것을 막아 새 자리를 살피게 한다.
+    - **아무 데서 다시 시작:** 여러 아무 시작점에서 그 자리 찾기를 돌리고 가장 좋은 결과를 돌려준다.
+
+---
+
+**연습문제 4.**
+그래프 칠하기 문제의 유전 알고리즘을 짜라. 나타냄, 엇갈리기 연산, 돌연변이 연산, 적합도 함수를 밝혀라.
+
+??? success "연습문제 4 풀이"
+    **나타냄:** 개체마다 벡터 $c = (c_1, \ldots, c_n)$이며 $c_i \in \{1, \ldots, k\}$은 꼭짓점 $i$에 매긴 색이다.
+
+    **적합도 함수:** $f(c) = -(\text{number of monochromatic edges})$, 곧 $c_u = c_v$인 변 $(u,v)$의 개수에 음을 붙인 것이다. 제대로 된 $k$색 칠하기는 적합도가 0이다(최대).
+
+    **엇갈리기(고른 방식):** 부모 $c^{(1)}$과 $c^{(2)}$이 주어지면 꼭짓점 $i$마다 $c^{(1)}_i$이나 $c^{(2)}_i$ 가운데 하나를 같은 확률로 서로 얽매이지 않게 고른다.
+
+    **돌연변이:** 꼭짓점 $i$마다 확률 $p_m$(보기로 $1/n$)으로 $c_i$을 $\{1, \ldots, k\}$에서 고른 아무 색으로 바꾼다. 또는 겨냥한 돌연변이로 같은 색 변을 아무거나 골라 한 끝점을 다시 칠한다.
+
+    **고르기:** 크기 3~5의 맞겨루기 고르기, 또는 적합도에 비례하는 룰렛 바퀴. 적합도가 0에 이르거나 세대 수가 최대에 이르면 알고리즘이 끝난다.

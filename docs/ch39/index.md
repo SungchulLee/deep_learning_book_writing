@@ -1,9 +1,5 @@
 # Chapter 39: Model Uncertainty
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 This chapter provides a comprehensive treatment of uncertainty quantification in deep learning, covering the theoretical foundations of Bayesian inference, practical methods including MC Dropout and deep ensembles, calibration techniques, out-of-distribution detection, and evaluation frameworks. Understanding and measuring model uncertainty is critical for deploying neural networks in high-stakes domains such as quantitative finance, where overconfident predictions can lead to catastrophic losses.
 
 ---

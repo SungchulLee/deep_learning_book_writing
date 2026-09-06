@@ -1,29 +1,24 @@
-# Transposed Convolutions
+# 전치 합성곱
+## 들어가며
 
+**전치 합성곱**(**분수 보폭 합성곱**, 또는 흔히 **역합성곱**이라고도 한다)은 보통 합성곱을 입력에 대해 미분한 연산이다. 표준 합성곱이 대체로 공간 차원을 줄이는 데 반해 전치 합성곱은 이를 **늘리므로**, 신경망에서 학습 가능한 상향 표본화의 대표적인 방법이 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+전치 합성곱은 다음에서 꼭 필요한 부품이다.
 
-## Introduction
+- 의미 분할을 위한 **부호기-복호기 구조** (U-Net, SegNet)
+- 이미지 합성을 위한 **생성 모델** (GAN, VAE)
+- 이미지를 키우는 **초해상도 신경망**
+- 여러 규모의 물체 탐지를 위한 **특징 피라미드 신경망**
 
-**Transposed convolution** (also called **fractionally strided convolution** or, informally, **deconvolution**) is the gradient operation of regular convolution with respect to its input. While standard convolution typically reduces spatial dimensions, transposed convolution **increases** them, making it the primary learnable upsampling method in neural networks.
-
-Transposed convolutions are essential components of:
-
-- **Encoder-decoder architectures** (U-Net, SegNet) for semantic segmentation
-- **Generative models** (GANs, VAEs) for image synthesis
-- **Super-resolution networks** for upscaling images
-- **Feature pyramid networks** for multi-scale object detection
-
-> **Terminology Note**: The name "deconvolution" is technically incorrect (deconvolution is a specific signal processing operation that inverts convolution). "Transposed convolution" is the mathematically precise term, referring to multiplication by the transpose of the convolution's Toeplitz matrix.
+> **용어에 대한 참고**: "역합성곱"이라는 이름은 엄밀히 말하면 틀렸다(역합성곱은 합성곱을 되돌리는 신호 처리의 특정 연산이다). 수학적으로 정확한 말은 "전치 합성곱"이며, 합성곱의 퇴플리츠 행렬을 전치한 것을 곱한다는 뜻이다.
 
 ---
 
-## Mathematical Foundation
+## 수학적 바탕
 
-### Convolution as Matrix Multiplication
+### 행렬 곱으로 본 합성곱
 
-To understand transposed convolution, we first express standard convolution as matrix multiplication. For a 1D input $\mathbf{x} \in \mathbb{R}^5$ and kernel $\mathbf{k} = [k_0, k_1, k_2]$, the valid convolution $\mathbf{y} = \mathbf{C}\mathbf{x}$ uses:
+전치 합성곱을 이해하려면 먼저 표준 합성곱을 행렬 곱으로 나타내야 한다. 1차원 입력 $\mathbf{x} \in \mathbb{R}^5$과 핵 $\mathbf{k} = [k_0, k_1, k_2]$에 대해 유효 합성곱 $\mathbf{y} = \mathbf{C}\mathbf{x}$은 다음을 쓴다.
 
 $$\mathbf{C} = \begin{bmatrix}
 k_0 & k_1 & k_2 & 0 & 0 \\
@@ -31,11 +26,11 @@ k_0 & k_1 & k_2 & 0 & 0 \\
 0 & 0 & k_0 & k_1 & k_2
 \end{bmatrix}$$
 
-This maps $\mathbb{R}^5 \to \mathbb{R}^3$ (downsampling).
+이는 $\mathbb{R}^5 \to \mathbb{R}^3$으로 보낸다(하향 표본화).
 
-### The Transposed Operation
+### 전치한 연산
 
-The **transposed convolution** uses $\mathbf{C}^\top$:
+**전치 합성곱**은 $\mathbf{C}^\top$을 쓴다.
 
 $$\mathbf{C}^\top = \begin{bmatrix}
 k_0 & 0 & 0 \\
@@ -45,47 +40,47 @@ k_2 & k_1 & k_0 \\
 0 & 0 & k_2
 \end{bmatrix}$$
 
-This maps $\mathbb{R}^3 \to \mathbb{R}^5$ (upsampling). The same kernel weights are used, but the connectivity pattern is reversed.
+이는 $\mathbb{R}^3 \to \mathbb{R}^5$으로 보낸다(상향 표본화). 핵의 가중치는 같지만 이어지는 방식이 뒤집힌다.
 
-### Key Insight: Gradient of Convolution
+### 핵심 착상: 합성곱의 기울기
 
-The backward pass of convolution w.r.t. its input is exactly a transposed convolution:
+입력에 대한 합성곱의 역전파가 바로 전치 합성곱이다.
 
 $$\frac{\partial L}{\partial \mathbf{x}} = \mathbf{C}^\top \frac{\partial L}{\partial \mathbf{y}}$$
 
-This is why transposed convolution naturally arises in backpropagation:
+그래서 역전파에서 전치 합성곱이 자연스럽게 나타난다.
 
 ```python
 import torch
 import torch.nn.functional as F
 
-# Forward: conv2d
+# 순전파: conv2d
 x = torch.randn(1, 3, 8, 8, requires_grad=True)
 w = torch.randn(16, 3, 3, 3, requires_grad=True)
 y = F.conv2d(x, w, padding=1)
 
-# Backward: equivalent to conv_transpose2d
+# 역전파: conv_transpose2d와 같다
 grad_output = torch.randn_like(y)
 y.backward(grad_output)
 
-# Manual verification
+# 손수 확인
 grad_input_manual = F.conv_transpose2d(grad_output, w, padding=1)
 print(f"Gradient match: {torch.allclose(x.grad, grad_input_manual, atol=1e-5)}")
 ```
 
 ---
 
-## How Transposed Convolution Works
+## 전치 합성곱이 움직이는 방식
 
-### The Upsampling Mechanism
+### 상향 표본화 장치
 
-Transposed convolution can be understood as:
+전치 합성곱은 다음과 같이 이해할 수 있다.
 
-1. **Insert zeros** between input elements (if stride > 1)
-2. **Pad** the input
-3. Apply a **standard convolution** with the same kernel
+1. (보폭이 1보다 크면) 입력 원소 사이에 **0을 끼워 넣는다**
+2. 입력을 **덧댄다**
+3. 같은 핵으로 **표준 합성곱**을 적용한다
 
-For stride-2 transposed convolution with a 3×3 kernel:
+3×3 핵을 쓰는 보폭 2 전치 합성곱에서는 다음과 같다.
 
 ```
 Input (2×2):       Insert zeros (3×3):      Pad (5×5):           Convolve (4×4 output):
@@ -102,60 +97,61 @@ Input (2×2):       Insert zeros (3×3):      Pad (5×5):           Convolve (4�
                                            └───┴───┴───┴───┴───┘
 ```
 
-### Output Size Formula
+### 출력 크기 공식
 
-For transposed convolution:
+전치 합성곱에 대해 다음과 같다.
 
 $$H_{out} = (H_{in} - 1) \times s - 2p + d(K - 1) + p_{out} + 1$$
 
-where:
-- $H_{in}$: Input height
-- $s$: Stride
-- $p$: Padding
-- $d$: Dilation
-- $K$: Kernel size
-- $p_{out}$: Output padding (resolves ambiguity)
+여기서 각 기호는 다음과 같다.
 
-For the common case of stride-2 upsampling with 3×3 kernel:
+- $H_{in}$: 입력의 높이
+- $s$: 보폭
+- $p$: 덧대기
+- $d$: 팽창률
+- $K$: 핵 크기
+- $p_{out}$: 출력 덧대기 (모호함을 없앤다)
+
+3×3 핵으로 보폭 2 상향 표본화를 하는 흔한 경우에는 다음과 같다.
 
 $$H_{out} = (H_{in} - 1) \times 2 - 2 \times 1 + 3 + 1 = 2 \times H_{in}$$
 
 ---
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### Basic Usage
+### 기본 사용법
 
 ```python
 import torch
 import torch.nn as nn
 
-# Regular convolution (downsample)
+# 보통 합성곱 (하향 표본화)
 conv = nn.Conv2d(64, 32, kernel_size=3, stride=2, padding=1)
 
-# Transposed convolution (upsample)
+# 전치 합성곱 (상향 표본화)
 conv_transpose = nn.ConvTranspose2d(32, 64, kernel_size=3, stride=2, 
                                      padding=1, output_padding=1)
 
 x = torch.randn(1, 64, 32, 32)
 
-# Downsample
+# 하향 표본화
 y = conv(x)
 print(f"Conv: {x.shape} → {y.shape}")  # [1, 64, 32, 32] → [1, 32, 16, 16]
 
-# Upsample
+# 상향 표본화
 z = conv_transpose(y)
 print(f"ConvT: {y.shape} → {z.shape}")  # [1, 32, 16, 16] → [1, 64, 32, 32]
 ```
 
-### The `output_padding` Parameter
+### `output_padding` 매개변수
 
-When stride > 1, multiple input sizes can produce the same output size under regular convolution. For example, both 31×31 and 32×32 inputs with stride 2 produce 16×16 output. `output_padding` resolves this ambiguity:
+보폭이 1보다 크면 보통 합성곱에서 여러 입력 크기가 같은 출력 크기를 낼 수 있다. 이를테면 보폭 2에서는 31×31 입력과 32×32 입력이 모두 16×16 출력을 낸다. `output_padding`이 이 모호함을 없앤다.
 
 ```python
-# Without output_padding: might get 31×31 instead of 32×32
+# output_padding이 없으면 32×32가 아니라 31×31이 될 수 있다
 conv_t_no_op = nn.ConvTranspose2d(32, 64, 3, stride=2, padding=1)
-# With output_padding=1: guarantees 32×32
+# output_padding=1이면 32×32가 보장된다
 conv_t_with_op = nn.ConvTranspose2d(32, 64, 3, stride=2, padding=1, output_padding=1)
 
 y = torch.randn(1, 32, 16, 16)
@@ -163,29 +159,29 @@ print(f"Without output_padding: {conv_t_no_op(y).shape}")     # [1, 64, 31, 31]
 print(f"With output_padding=1: {conv_t_with_op(y).shape}")    # [1, 64, 32, 32]
 ```
 
-### Parameter Count
+### 매개변수의 수
 
-Transposed convolution has the same parameter count as regular convolution with swapped input/output channels:
+전치 합성곱은 입력 채널과 출력 채널을 맞바꾼 보통 합성곱과 매개변수 수가 같다.
 
 ```python
-# Regular: maps 64 → 32 channels
+# 보통: 채널 64개 → 32개
 conv = nn.Conv2d(64, 32, 3, bias=False)
 print(f"Conv2d params: {sum(p.numel() for p in conv.parameters()):,}")
 # 32 × 64 × 3 × 3 = 18,432
 
-# Transposed: maps 32 → 64 channels  
+# 전치: 채널 32개 → 64개
 conv_t = nn.ConvTranspose2d(32, 64, 3, bias=False)
 print(f"ConvTranspose2d params: {sum(p.numel() for p in conv_t.parameters()):,}")
-# 32 × 64 × 3 × 3 = 18,432 (same!)
+# 32 × 64 × 3 × 3 = 18,432 (같다!)
 ```
 
 ---
 
-## The Checkerboard Artifact Problem
+## 바둑판 무늬 흠 문제
 
-### The Issue
+### 무엇이 문제인가
 
-Transposed convolutions with stride > 1 are notorious for producing **checkerboard artifacts**—a grid-like pattern in the output caused by uneven overlap of the kernel:
+보폭이 1보다 큰 전치 합성곱은 **바둑판 무늬 흠**을 만드는 것으로 악명 높다. 이는 핵이 고르지 않게 겹쳐 출력에 격자 같은 무늬가 생기는 것이다.
 
 ```
 Stride-2 ConvTranspose with 3×3 kernel:
@@ -202,30 +198,30 @@ Contribution count at each output position:
 └───┴───┴───┴───┴───┴───┘
 ```
 
-### Solution 1: Kernel Size Divisible by Stride
+### 해법 1: 핵 크기를 보폭의 배수로
 
-Use kernel sizes that are evenly divisible by the stride:
+보폭으로 딱 나누어떨어지는 핵 크기를 쓴다.
 
 ```python
-# Bad: stride=2, kernel=3 → uneven overlap
+# 나쁨: stride=2, kernel=3 → 고르지 않은 겹침
 bad = nn.ConvTranspose2d(64, 32, kernel_size=3, stride=2, padding=1, output_padding=1)
 
-# Better: stride=2, kernel=4 → even overlap
+# 나음: stride=2, kernel=4 → 고른 겹침
 better = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1)
 
-# Also good: stride=2, kernel=2 → no overlap
+# 이것도 좋음: stride=2, kernel=2 → 겹침 없음
 good = nn.ConvTranspose2d(64, 32, kernel_size=2, stride=2)
 ```
 
-### Solution 2: Resize + Convolution (Recommended)
+### 해법 2: 크기 조정 뒤 합성곱 (권장)
 
-A cleaner alternative avoids transposed convolution entirely by separating upsampling from convolution:
+상향 표본화와 합성곱을 떼어 놓아 전치 합성곱을 아예 쓰지 않는 더 깔끔한 방법이다.
 
 ```python
 class UpsampleConv(nn.Module):
     """
-    Upsample via interpolation + convolution.
-    Avoids checkerboard artifacts from transposed convolution.
+    보간 뒤 합성곱으로 상향 표본화한다.
+    전치 합성곱에서 오는 바둑판 무늬 흠을 피한다.
     """
     def __init__(self, in_channels, out_channels, kernel_size=3, 
                  scale_factor=2, mode='bilinear'):
@@ -239,31 +235,30 @@ class UpsampleConv(nn.Module):
         x = self.upsample(x)
         return self.conv(x)
 
-
-# Comparison
+# 비교
 x = torch.randn(1, 64, 16, 16)
 
-# Transposed convolution
+# 전치 합성곱
 conv_t = nn.ConvTranspose2d(64, 32, 4, stride=2, padding=1)
 
-# Resize + conv (artifact-free)
+# 크기 조정 뒤 합성곱 (흠 없음)
 resize_conv = UpsampleConv(64, 32, scale_factor=2)
 
 print(f"ConvTranspose: {conv_t(x).shape}")     # [1, 32, 32, 32]
 print(f"Resize+Conv:   {resize_conv(x).shape}") # [1, 32, 32, 32]
 ```
 
-### Solution 3: Sub-Pixel Convolution (PixelShuffle)
+### 해법 3: 부화소 합성곱 (PixelShuffle)
 
-Used in super-resolution, this rearranges channels into spatial dimensions:
+초해상도에서 쓰는 방법으로, 채널을 공간 차원으로 다시 늘어놓는다.
 
 ```python
 class SubPixelUpsample(nn.Module):
     """
-    Sub-pixel convolution (PixelShuffle) for efficient upsampling.
+    효율적인 상향 표본화를 위한 부화소 합성곱(PixelShuffle).
     
-    Produces r² channels via regular conv, then rearranges to 
-    increase spatial resolution by factor r.
+    보통 합성곱으로 채널을 r²개 만든 뒤 다시 늘어놓아
+    공간 해상도를 r배로 키운다.
     """
     def __init__(self, in_channels, out_channels, upscale_factor=2):
         super().__init__()
@@ -275,8 +270,7 @@ class SubPixelUpsample(nn.Module):
         x = self.conv(x)
         return self.shuffle(x)
 
-
-# Example
+# 예
 sub_pixel = SubPixelUpsample(64, 32, upscale_factor=2)
 x = torch.randn(1, 64, 16, 16)
 out = sub_pixel(x)
@@ -285,9 +279,9 @@ print(f"Sub-pixel: {x.shape} → {out.shape}")  # [1, 64, 16, 16] → [1, 32, 32
 
 ---
 
-## Encoder-Decoder Architectures
+## 부호기-복호기 구조
 
-### Simple Autoencoder
+### 단순한 자기부호기
 
 ```python
 import torch
@@ -295,12 +289,12 @@ import torch.nn as nn
 
 class ConvAutoencoder(nn.Module):
     """
-    Convolutional autoencoder using transposed convolutions for decoding.
+    복호에 전치 합성곱을 쓰는 합성곱 자기부호기.
     """
     def __init__(self):
         super().__init__()
         
-        # Encoder: progressively downsample
+        # 부호기: 차츰 하향 표본화
         self.encoder = nn.Sequential(
             nn.Conv2d(3, 64, 3, stride=2, padding=1),    # 224 → 112
             nn.BatchNorm2d(64),
@@ -313,7 +307,7 @@ class ConvAutoencoder(nn.Module):
             nn.ReLU(inplace=True),
         )
         
-        # Decoder: progressively upsample
+        # 복호기: 차츰 상향 표본화
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(256, 128, 4, stride=2, padding=1),  # 28 → 56
             nn.BatchNorm2d(128),
@@ -322,13 +316,12 @@ class ConvAutoencoder(nn.Module):
             nn.BatchNorm2d(64),
             nn.ReLU(inplace=True),
             nn.ConvTranspose2d(64, 3, 4, stride=2, padding=1),     # 112 → 224
-            nn.Sigmoid(),  # Output in [0, 1]
+            nn.Sigmoid(),  # 출력은 [0, 1]
         )
     
     def forward(self, x):
         z = self.encoder(x)
         return self.decoder(z)
-
 
 model = ConvAutoencoder()
 x = torch.randn(2, 3, 224, 224)
@@ -338,24 +331,24 @@ print(f"Reconstruction: {reconstruction.shape}")
 print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-### U-Net Style (with Skip Connections)
+### U-Net 방식 (건너뛰기 연결이 있는)
 
 ```python
 class UNetDecoder(nn.Module):
     """
-    U-Net decoder block with skip connections from encoder.
+    부호기에서 오는 건너뛰기 연결이 있는 U-Net 복호기 블록.
     
-    Upsamples the feature map and concatenates with the corresponding
-    encoder features, then applies convolutions.
+    특징 맵을 상향 표본화하여 짝이 되는 부호기 특징과 이어 붙인 뒤
+    합성곱을 적용한다.
     """
     def __init__(self, in_channels, skip_channels, out_channels):
         super().__init__()
         
-        # Upsample (either transposed conv or resize+conv)
+        # 상향 표본화 (전치 합성곱 또는 크기 조정 뒤 합성곱)
         self.up = nn.ConvTranspose2d(in_channels, in_channels // 2,
                                       kernel_size=4, stride=2, padding=1)
         
-        # After concatenation: (in_channels//2 + skip_channels) → out_channels
+        # 이어 붙인 뒤: (in_channels//2 + skip_channels) → out_channels
         self.conv = nn.Sequential(
             nn.Conv2d(in_channels // 2 + skip_channels, out_channels, 3, padding=1),
             nn.BatchNorm2d(out_channels),
@@ -368,31 +361,31 @@ class UNetDecoder(nn.Module):
     def forward(self, x, skip):
         x = self.up(x)
         
-        # Handle size mismatches (can occur with odd dimensions)
+        # 크기가 어긋나는 경우 처리 (차원이 홀수일 때 생길 수 있다)
         if x.shape != skip.shape:
             x = nn.functional.interpolate(x, size=skip.shape[2:])
         
-        x = torch.cat([x, skip], dim=1)  # Concatenate along channels
+        x = torch.cat([x, skip], dim=1)  # 채널을 따라 이어 붙이기
         return self.conv(x)
 ```
 
 ---
 
-## Comparison of Upsampling Methods
+## 상향 표본화 방법 견주기
 
-| Method | Learnable | Artifacts | Parameters | Speed |
+| 방법 | 학습 가능 | 흠 | 매개변수 | 속도 |
 |--------|-----------|-----------|------------|-------|
-| **ConvTranspose2d** | Yes | Checkerboard (if K % s ≠ 0) | $C_{in} \times C_{out} \times K^2$ | Fast |
-| **Bilinear + Conv** | Partially | Clean | $C_{in} \times C_{out} \times K^2$ | Medium |
-| **Nearest + Conv** | Partially | Block-like | $C_{in} \times C_{out} \times K^2$ | Medium |
-| **PixelShuffle** | Yes | Clean | $C_{in} \times C_{out} \times r^2 \times K^2$ | Fast |
-| **Bilinear only** | No | Smooth (blurry) | 0 | Very fast |
+| **ConvTranspose2d** | 그렇다 | 바둑판 무늬 (K % s ≠ 0일 때) | $C_{in} \times C_{out} \times K^2$ | 빠름 |
+| **쌍선형 보간 뒤 합성곱** | 일부 | 깨끗함 | $C_{in} \times C_{out} \times K^2$ | 보통 |
+| **최근접 보간 뒤 합성곱** | 일부 | 네모진 무늬 | $C_{in} \times C_{out} \times K^2$ | 보통 |
+| **PixelShuffle** | 그렇다 | 깨끗함 | $C_{in} \times C_{out} \times r^2 \times K^2$ | 빠름 |
+| **쌍선형 보간만** | 아니다 | 매끈함 (흐릿함) | 0 | 매우 빠름 |
 
 ```python
 import torch
 import torch.nn as nn
 
-# All methods: 64 channels, 16×16 → 32×32
+# 모든 방법: 채널 64개, 16×16 → 32×32
 
 x = torch.randn(1, 64, 16, 16)
 
@@ -417,12 +410,12 @@ for name, module in methods.items():
 
 ---
 
-## 1D Transposed Convolution
+## 1차원 전치 합성곱
 
-Transposed convolutions also work in 1D for temporal upsampling:
+전치 합성곱은 시간 방향 상향 표본화를 위해 1차원에서도 쓸 수 있다.
 
 ```python
-# 1D transposed convolution for temporal upsampling
+# 시간 방향 상향 표본화를 위한 1차원 전치 합성곱
 conv_t1d = nn.ConvTranspose1d(
     in_channels=64,
     out_channels=32,
@@ -431,34 +424,34 @@ conv_t1d = nn.ConvTranspose1d(
     padding=1
 )
 
-x = torch.randn(1, 64, 50)  # 50 time steps
+x = torch.randn(1, 64, 50)  # 시각 50개
 out = conv_t1d(x)
 print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 ```
 
 ---
 
-## Summary
+## 요약
 
-| Aspect | Description |
+| 항목 | 설명 |
 |--------|-------------|
-| **Operation** | Transpose of the convolution matrix—maps low-res to high-res |
-| **Relationship to conv** | Gradient of conv2d w.r.t. input |
-| **Output size** | $(H_{in}-1) \times s - 2p + d(K-1) + p_{out} + 1$ |
-| **Common use** | Decoder networks, GANs, segmentation, super-resolution |
-| **Main pitfall** | Checkerboard artifacts when $K \% s \neq 0$ |
-| **Best practice** | Use $K$ divisible by $s$, or prefer resize + conv |
+| **연산** | 합성곱 행렬의 전치로, 낮은 해상도를 높은 해상도로 보낸다 |
+| **합성곱과의 관계** | 입력에 대한 conv2d의 기울기 |
+| **출력 크기** | $(H_{in}-1) \times s - 2p + d(K-1) + p_{out} + 1$ |
+| **흔한 쓰임** | 복호기 신경망, GAN, 분할, 초해상도 |
+| **주된 함정** | $K \% s \neq 0$일 때의 바둑판 무늬 흠 |
+| **모범 관행** | $s$으로 나누어떨어지는 $K$을 쓰거나 크기 조정 뒤 합성곱을 쓴다 |
 
-## Key Takeaways
+## 핵심 정리
 
-1. **Transposed convolution is the transpose of the convolution matrix**, not its inverse—it does not undo convolution
-2. **It arises naturally as the gradient** of regular convolution w.r.t. the input during backpropagation
-3. **Checkerboard artifacts** are caused by uneven overlap when kernel size is not divisible by stride—use $K = 2s$ or $K = s$ to avoid them
-4. **Resize + convolution** (bilinear interpolation followed by regular conv) is often preferred for artifact-free upsampling
-5. **PixelShuffle** (sub-pixel convolution) provides efficient, artifact-free upsampling by rearranging channels
-6. **output_padding** resolves the ambiguity when multiple input sizes map to the same output size under regular convolution
+1. **전치 합성곱은 합성곱 행렬의 역행렬이 아니라 전치**이다. 합성곱을 되돌리지 않는다
+2. 역전파에서 입력에 대한 보통 합성곱의 **기울기로 자연스럽게 나타난다**
+3. **바둑판 무늬 흠**은 핵 크기가 보폭으로 나누어떨어지지 않아 겹침이 고르지 않을 때 생긴다. $K = 2s$이나 $K = s$을 쓰면 피할 수 있다
+4. 흠 없는 상향 표본화에는 **크기 조정 뒤 합성곱**(쌍선형 보간 뒤 보통 합성곱)이 나을 때가 많다
+5. **PixelShuffle**(부화소 합성곱)은 채널을 다시 늘어놓아 효율적이고 흠 없는 상향 표본화를 준다
+6. **output_padding**은 보통 합성곱에서 여러 입력 크기가 같은 출력 크기로 갈 때 생기는 모호함을 없앤다
 
-## References
+## 참고 문헌
 
 1. Dumoulin, V., & Visin, F. (2016). "A guide to convolution arithmetic for deep learning." *arXiv preprint arXiv:1603.07285*.
 
@@ -469,3 +462,43 @@ print(f"1D ConvTranspose: {x.shape} → {out.shape}")  # [1, 32, 100]
 4. Shi, W., et al. (2016). "Real-Time Single Image and Video Super-Resolution Using an Efficient Sub-Pixel Convolutional Neural Network." *CVPR*.
 
 5. Ronneberger, O., Fischer, P., & Brox, T. (2015). "U-Net: Convolutional Networks for Biomedical Image Segmentation." *MICCAI*.
+
+## 연습문제
+
+**연습문제 1.**
+전치 합성곱의 출력 크기 공식 $o = (i-1) \times s - 2p + k + \text{output\_padding}$을 유도하라.
+
+??? success "연습문제 1 풀이"
+    전치 합성곱은 보통 합성곱의 공간 변환을 되짚는다. 보통 합성곱이 크기 $i$을 $o = (i+2p-k)/s + 1$으로 보낸다면 전치 합성곱은 $o$을 다시 $i$으로 보낸다. $i$에 대해 풀면 $i = (o-1)s - 2p + k$이다. 출력 덧대기는 순방향 합성곱에서 여러 입력 크기가 같은 출력으로 갈 때의 모호함을 처리한다.
+
+---
+
+**연습문제 2.**
+전치 합성곱이 바둑판 무늬 흠을 만들 수 있는 까닭과 그것을 피하는 방법을 설명하라.
+
+??? success "연습문제 2 풀이"
+    보폭이 1보다 크면 전치 합성곱이 보폭만큼 떨어진 자리에 값을 놓고 틈을 메우므로 겹침이 고르지 않은 무늬(바둑판)가 생긴다. 해법: (1) 대신 최근접 이웃 상향 표본화 뒤 보통 합성곱을 쓴다, (2) 핵 크기가 보폭으로 나누어떨어지게 한다, (3) 쌍선형 상향 표본화 뒤 합성곱을 쓴다.
+
+---
+
+**연습문제 3.**
+(가) 전치 합성곱과 (나) 쌍선형 보간 뒤 합성곱으로 상향 표본화 모듈을 각각 구현하고 결과를 견주어라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    # 방법 (가)
+    up_a = nn.ConvTranspose2d(64, 32, kernel_size=4, stride=2, padding=1)
+    # 방법 (나)
+    up_b = nn.Sequential(
+        nn.Upsample(scale_factor=2, mode='bilinear', align_corners=False),
+        nn.Conv2d(64, 32, kernel_size=3, padding=1)
+    )
+    ```
+
+---
+
+**연습문제 4.**
+전치 합성곱은 어떤 구조에서 흔히 쓰이는가?
+
+??? success "연습문제 4 풀이"
+    복호기 신경망에서 쓰인다. U-Net(분할), 자기부호기, GAN(생성기의 상향 표본화), 초해상도 신경망이 그 예이다. 고정된 상향 표본화 방법의 학습 가능한 짝으로, 신경망이 알맞은 상향 표본화 필터를 배우게 해 준다.

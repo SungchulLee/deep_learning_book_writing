@@ -1,61 +1,61 @@
-# BFS Preview
+# 너비 우선 탐색 맛보기
 
-Breadth-first search (BFS) is the most important algorithmic application of the queue data structure. Given a graph and a starting vertex, BFS explores all vertices at distance 1 before any vertex at distance 2, all vertices at distance 2 before distance 3, and so on. This level-by-level exploration arises directly from the queue's FIFO property: vertices discovered earlier are explored earlier. BFS finds shortest paths in unweighted graphs and serves as a building block for many other graph algorithms. This page provides a preview of BFS to motivate the study of queues; the full treatment appears in the graph algorithms chapter.
+너비 우선 탐색(BFS)은 큐 자료 구조의 가장 중요한 알고리즘적 응용이다. 그래프와 출발 꼭짓점이 주어지면 BFS는 거리가 2인 꼭짓점을 하나라도 살피기 전에 거리가 1인 꼭짓점을 모두 살피고, 거리가 3인 꼭짓점보다 거리가 2인 꼭짓점을 먼저 살피는 식으로 나아간다. 이러한 층별 탐색은 큐의 선입선출 성질에서 곧바로 나온다. 먼저 찾은 꼭짓점을 먼저 살피기 때문이다. BFS는 가중치 없는 그래프에서 최단 경로를 찾으며 다른 여러 그래프 알고리즘의 밑돌이 된다. 이 쪽은 큐를 공부할 까닭을 보이려고 BFS를 맛보기로 소개한다. 온전한 다룸은 그래프 알고리즘 장에 있다.
 
-## Why a Queue Produces Level-Order Exploration
+## 큐가 층별 탐색을 만들어 내는 까닭
 
-When BFS visits a vertex $v$, it enqueues all of $v$'s unvisited neighbors. Because the queue is FIFO, these neighbors will be explored only after all vertices that were already in the queue. Those earlier vertices are all at the same distance from the source (or one level closer), so BFS naturally processes vertices in order of their distance from the source.
+BFS가 꼭짓점 $v$을 방문하면 아직 방문하지 않은 $v$의 이웃을 모두 큐에 넣는다. 큐가 선입선출이므로 이 이웃들은 이미 큐에 있던 꼭짓점을 모두 살핀 뒤에야 살펴진다. 앞서 들어 있던 꼭짓점들은 모두 출발점에서 같은 거리이거나 한 층 가까우므로, BFS는 자연스럽게 출발점에서의 거리 순으로 꼭짓점을 처리한다.
 
-This is the fundamental insight: **FIFO ordering guarantees breadth-first exploration**. If we replaced the queue with a stack (LIFO), we would get depth-first search instead.
+이것이 핵심 통찰이다. **선입선출 순서가 너비 우선 탐색을 보장한다.** 큐를 스택(후입선출)으로 바꾸면 깊이 우선 탐색이 된다.
 
-## BFS Algorithm
+## 너비 우선 탐색 알고리즘
 
-The algorithm maintains three pieces of state:
+이 알고리즘은 세 가지 상태를 관리한다.
 
-1. A **visited** set to track which vertices have been seen
-2. A **queue** of vertices to explore
-3. A **distance** dictionary recording each vertex's distance from the source
+1. 어떤 꼭짓점을 이미 보았는지 기록하는 **방문** 집합
+2. 살펴볼 꼭짓점의 **큐**
+3. 꼭짓점마다 출발점에서의 거리를 적어 두는 **거리** 사전
 
-**Procedure:**
+**절차:**
 
-1. Mark the source vertex as visited with distance 0 and enqueue it
-2. While the queue is non-empty:
-    - Dequeue a vertex $u$
-    - For each neighbor $v$ of $u$:
-        - If $v$ has not been visited, mark it as visited with distance $d(u) + 1$ and enqueue it
+1. 출발 꼭짓점을 거리 0으로 방문 표시하고 큐에 넣는다
+2. 큐가 비어 있지 않은 동안:
+    - 꼭짓점 $u$을 뺀다
+    - $u$의 각 이웃 $v$에 대해:
+        - $v$을 아직 방문하지 않았다면 거리 $d(u) + 1$으로 방문 표시하고 큐에 넣는다
 
-## Complexity
+## 복잡도
 
-BFS visits each vertex exactly once and examines each edge exactly once (for directed graphs) or twice (for undirected graphs), giving a time complexity of:
+BFS는 각 꼭짓점을 정확히 한 번 방문하고 각 변을 (유향 그래프에서는) 한 번, (무향 그래프에서는) 두 번 살피므로 시간 복잡도는 다음과 같다.
 
 $$
 T(V, E) = O(V + E)
 $$
 
-The space complexity is $O(V)$ for the visited set, distance dictionary, and queue.
+공간 복잡도는 방문 집합, 거리 사전, 큐를 합해 $O(V)$이다.
 
 ```python
 """
-BFS preview — breadth-first search as a queue application.
+너비 우선 탐색 맛보기 — 큐의 응용으로서의 너비 우선 탐색.
 
-Demonstrates how the queue's FIFO property produces level-order
-graph exploration, finding shortest paths in unweighted graphs.
+큐의 선입선출 성질이 층별 그래프 탐색을 만들어 내어 가중치 없는
+그래프의 최단 경로를 찾는 모습을 보인다.
 """
 from collections import deque
 
 
-# === BFS Implementation =======================================================
+# === 너비 우선 탐색 구현 =======================================================
 
 def bfs(graph, source):
     """Breadth-first search from a source vertex.
 
-    Returns:
-        visited_order: list of vertices in BFS visit order.
-        distances: dict mapping each vertex to its distance from source.
-        parent: dict mapping each vertex to its BFS parent (for path reconstruction).
+    반환값:
+        visited_order: 너비 우선 탐색이 방문한 차례의 꼭짓점 목록.
+        distances: 꼭짓점마다 출발점에서의 거리를 담은 사전.
+        parent: 꼭짓점마다 너비 우선 탐색에서의 부모를 담은 사전 (경로 복원용).
 
-    Time:  O(V + E)
-    Space: O(V)
+    시간:  O(V + E)
+    공간: O(V)
     """
     visited = {source}
     distances = {source: 0}
@@ -77,7 +77,7 @@ def bfs(graph, source):
 
 
 def reconstruct_path(parent, target):
-    """Reconstruct the shortest path from the source to the target."""
+    """출발점에서 목표까지의 최단 경로를 복원한다."""
     path = []
     current = target
     while current is not None:
@@ -86,13 +86,13 @@ def reconstruct_path(parent, target):
     return list(reversed(path))
 
 
-# === BFS with Level Tracking ==================================================
+# === 층을 기록하는 너비 우선 탐색 ==================================================
 
 def bfs_by_level(graph, source):
     """BFS that explicitly tracks and prints each level.
 
-    Shows the level-by-level exploration pattern that makes BFS
-    useful for shortest path computation.
+    너비 우선 탐색을 최단 경로 계산에 쓸모 있게 만드는 층별 탐색
+    양상을 보인다.
     """
     visited = {source}
     queue = deque([source])
@@ -116,10 +116,10 @@ def bfs_by_level(graph, source):
     return levels
 
 
-# === Demonstration ============================================================
+# === 시연 ============================================================
 
 if __name__ == "__main__":
-    # Example graph (undirected, represented as adjacency list)
+    # 예시 그래프 (무향, 인접 리스트로 나타냄)
     #     A --- B --- E
     #     |     |
     #     C --- D --- F
@@ -132,19 +132,19 @@ if __name__ == "__main__":
         "F": ["D"],
     }
 
-    # Basic BFS
+    # 기본 너비 우선 탐색
     print("BFS from vertex 'A':")
     order, dist, parent = bfs(graph, "A")
     print(f"  Visit order: {order}")
     print(f"  Distances:   {dist}")
     print()
 
-    # Level-by-level BFS
+    # 층별 너비 우선 탐색
     print("BFS levels from vertex 'A':")
     bfs_by_level(graph, "A")
     print()
 
-    # Shortest path reconstruction
+    # 최단 경로 복원
     print("Shortest paths from 'A':")
     for target in sorted(graph.keys()):
         if target != "A":
@@ -152,7 +152,7 @@ if __name__ == "__main__":
             print(f"  A → {target}: {' → '.join(path)} (distance {dist[target]})")
 ```
 
-**Output:**
+**출력:**
 ```
 BFS from vertex 'A':
   Visit order: ['A', 'B', 'C', 'D', 'E', 'F']
@@ -172,18 +172,51 @@ Shortest paths from 'A':
   A → F: A → F (distance 3)
 ```
 
-The level-by-level output confirms that BFS explores all vertices at distance $d$ before any vertex at distance $d+1$. The shortest path from A to F passes through two intermediate vertices, giving distance 3.
+층별 출력은 BFS가 거리 $d+1$인 꼭짓점을 하나라도 살피기 전에 거리 $d$인 꼭짓점을 모두 살핌을 확인해 준다. A에서 F까지의 최단 경로는 중간 꼭짓점 두 개를 거치므로 거리가 3이다.
 
-## BFS Produces Shortest Paths
+## 너비 우선 탐색이 최단 경로를 준다
 
-In an unweighted graph, BFS computes shortest paths from the source to every reachable vertex. This follows from two facts:
+가중치 없는 그래프에서 BFS는 출발점에서 닿을 수 있는 모든 꼭짓점까지의 최단 경로를 계산한다. 이는 두 가지 사실에서 따라 나온다.
 
-1. **Monotonicity**: the distances assigned by BFS are non-decreasing. If vertex $u$ is dequeued before vertex $v$, then $d(u) \leq d(v)$.
-2. **Optimality**: when BFS first discovers vertex $v$ through vertex $u$, the path from the source through $u$ to $v$ has exactly $d(u) + 1$ edges, which equals the true shortest path length.
+1. **단조성**: BFS가 매기는 거리는 줄어들지 않는다. 꼭짓점 $u$이 $v$보다 먼저 빠진다면 $d(u) \leq d(v)$이다.
+2. **최적성**: BFS가 꼭짓점 $u$을 거쳐 $v$을 처음 찾을 때, 출발점에서 $u$을 거쳐 $v$에 이르는 경로의 변은 정확히 $d(u) + 1$개이며 이것이 참 최단 경로의 길이와 같다.
 
-!!! tip "When BFS Does Not Find Shortest Paths"
-    BFS finds shortest paths only in **unweighted** graphs (or equivalently, graphs where all edges have the same weight). For weighted graphs, Dijkstra's algorithm or Bellman-Ford must be used instead.
+!!! tip "너비 우선 탐색이 최단 경로를 주지 못할 때"
+    BFS는 **가중치 없는** 그래프(또는 모든 변의 가중치가 같은 그래프)에서만 최단 경로를 찾는다. 가중치가 있는 그래프에서는 데이크스트라 알고리즘이나 벨먼-포드를 써야 한다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 22. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+너비 우선 탐색 맛보기의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+너비 우선 탐색 맛보기을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+너비 우선 탐색 맛보기을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+너비 우선 탐색 맛보기을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

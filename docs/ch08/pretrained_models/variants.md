@@ -1,20 +1,15 @@
-# Transformer Variants
+# 트랜스포머의 변형
+## 개요
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-| Architecture | Parallelization | Long-range | Complexity | Inductive Bias |
+| 구조 | 병렬화 | 먼 거리 | 복잡도 | 귀납 편향 |
 |--------------|-----------------|------------|------------|----------------|
-| RNN/LSTM | Sequential | Difficult | O(n) | Temporal |
-| CNN | Parallel | Limited | O(n) | Local patterns |
-| Transformer | Parallel | Easy | O(n²) | None (learned) |
+| 순환 신경망/LSTM | 차례대로 | 어렵다 | O(n) | 시간 |
+| 합성곱 신경망 | 병렬 | 제한적 | O(n) | 국소 무늬 |
+| 트랜스포머 | 병렬 | 쉽다 | O(n²) | 없음 (배운다) |
 
-## RNN/LSTM
+## 순환 신경망/LSTM
 
-### Architecture
+### 구조
 
 ```
 x₁ → [h₁] → x₂ → [h₂] → x₃ → [h₃] → ...
@@ -22,7 +17,7 @@ x₁ → [h₁] → x₂ → [h₂] → x₃ → [h₃] → ...
        y₁        y₂        y₃
 ```
 
-### Characteristics
+### 성질
 
 ```python
 import torch.nn as nn
@@ -40,19 +35,21 @@ class LSTMModel(nn.Module):
         return self.fc(out)
 ```
 
-**Pros:**
-- O(n) complexity
-- Good inductive bias for sequences
-- Memory efficient
+**좋은 점:**
 
-**Cons:**
-- Sequential processing (slow training)
-- Vanishing gradients for long sequences
-- Difficult to parallelize
+- O(n) 복잡도
+- 수열에 좋은 귀납 편향
+- 기억을 아낀다
 
-## CNN for Sequences
+**나쁜 점:**
 
-### Architecture
+- 차례대로 처리한다 (학습이 느리다)
+- 긴 수열에서 기울기가 사라진다
+- 병렬로 하기 어렵다
+
+## 수열을 위한 합성곱 신경망
+
+### 구조
 
 ```
 [x₁ x₂ x₃ x₄ x₅]
@@ -63,7 +60,7 @@ class LSTMModel(nn.Module):
          ...
 ```
 
-### Characteristics
+### 성질
 
 ```python
 class CNNModel(nn.Module):
@@ -83,18 +80,20 @@ class CNNModel(nn.Module):
         return self.fc(torch.cat(pooled, dim=1))
 ```
 
-**Pros:**
-- Fully parallelizable
-- Good for local patterns
-- Efficient for fixed-size contexts
+**좋은 점:**
 
-**Cons:**
-- Limited receptive field (need many layers)
-- Not ideal for very long dependencies
+- 온전히 병렬로 할 수 있다
+- 국소 무늬에 좋다
+- 크기가 고정된 맥락에 효율적이다
 
-## Transformer
+**나쁜 점:**
 
-### Architecture
+- 받는 영역이 좁다 (층이 많이 필요하다)
+- 아주 먼 의존에는 알맞지 않다
+
+## 트랜스포머
+
+### 구조
 
 ```
 [x₁ x₂ x₃ x₄ x₅]
@@ -104,7 +103,7 @@ Self-Attention (all-to-all)
 [y₁ y₂ y₃ y₄ y₅]
 ```
 
-### Characteristics
+### 성질
 
 ```python
 class TransformerModel(nn.Module):
@@ -122,37 +121,39 @@ class TransformerModel(nn.Module):
         return self.fc(self.transformer(x))
 ```
 
-**Pros:**
-- Fully parallelizable
-- Direct long-range connections
-- Highly expressive
+**좋은 점:**
 
-**Cons:**
-- O(n²) complexity
-- No inherent sequential bias
-- Memory intensive for long sequences
+- 온전히 병렬로 할 수 있다
+- 먼 거리를 곧바로 잇는다
+- 표현력이 매우 좋다
 
-## Detailed Comparison
+**나쁜 점:**
 
-### Complexity Analysis
+- O(n²) 복잡도
+- 차례에 대한 붙박이 편향이 없다
+- 긴 수열에서 기억을 많이 쓴다
 
-| Operation | RNN | CNN | Transformer |
+## 자세히 견주기
+
+### 복잡도 분석
+
+| 연산 | 순환 신경망 | 합성곱 신경망 | 트랜스포머 |
 |-----------|-----|-----|-------------|
-| Sequential ops | O(n) | O(1) | O(1) |
-| Per-layer complexity | O(n·d²) | O(k·n·d²) | O(n²·d) |
-| Max path length | O(n) | O(log_k(n)) | O(1) |
+| 차례로 하는 연산 | O(n) | O(1) | O(1) |
+| 층마다의 복잡도 | O(n·d²) | O(k·n·d²) | O(n²·d) |
+| 최대 경로 길이 | O(n) | O(log_k(n)) | O(1) |
 
-### Memory Usage
+### 기억 사용
 
-For sequence length n, dimension d:
+수열 길이가 n이고 차원이 d일 때 다음과 같다.
 
-| Model | Training Memory | Inference Memory |
+| 모형 | 학습 기억 | 추론 기억 |
 |-------|-----------------|------------------|
-| RNN | O(n·d) | O(d) |
-| CNN | O(n·d) | O(n·d) |
-| Transformer | O(n²·h + n·d) | O(n²·h) with KV-cache |
+| 순환 신경망 | O(n·d) | O(d) |
+| 합성곱 신경망 | O(n·d) | O(n·d) |
+| 트랜스포머 | O(n²·h + n·d) | KV 캐시를 쓰면 O(n²·h) |
 
-### Performance by Sequence Length
+### 수열 길이에 따른 성능
 
 ```
 Short (< 512):    Transformer ≈ CNN > RNN
@@ -161,56 +162,56 @@ Long (2K-8K):     Efficient Transformers > CNN > RNN
 Very Long (>8K):  State Space Models / Linear Attention
 ```
 
-## Benchmarks (Approximate)
+## 성능 수치 (어림값)
 
-### Language Modeling (Perplexity, lower is better)
+### 언어 모형화 (당혹도, 낮을수록 좋다)
 
-| Model | WikiText-103 | Parameters |
+| 모형 | WikiText-103 | 매개변수 |
 |-------|--------------|------------|
-| LSTM | ~35 | 150M |
-| Transformer | ~18 | 150M |
-| GPT-2 | ~15 | 1.5B |
+| LSTM | 약 35 | 1억 5000만 |
+| 트랜스포머 | 약 18 | 1억 5000만 |
+| GPT-2 | 약 15 | 15억 |
 
-### Text Classification (Accuracy)
+### 글 분류 (정확도)
 
-| Model | IMDB | SST-2 |
+| 모형 | IMDB | SST-2 |
 |-------|------|-------|
 | LSTM | 89% | 87% |
-| CNN | 90% | 88% |
+| 합성곱 신경망 | 90% | 88% |
 | BERT | 95% | 94% |
 
-### Machine Translation (BLEU)
+### 기계 번역 (BLEU)
 
-| Model | WMT En-De |
+| 모형 | WMT 영어-독일어 |
 |-------|-----------|
-| LSTM Seq2Seq | 28.4 |
-| Transformer | 34.4 |
+| LSTM 수열 대 수열 | 28.4 |
+| 트랜스포머 | 34.4 |
 
-## Hybrid Approaches
+## 혼합형 접근
 
-### Transformer + CNN
+### 트랜스포머와 합성곱 신경망
 
 ```python
 class ConvTransformer(nn.Module):
-    """Local convolution + global attention."""
+    """국소 합성곱과 전역 주의."""
     def __init__(self, d_model, num_heads, kernel_size=3):
         super().__init__()
         self.local_conv = nn.Conv1d(d_model, d_model, kernel_size, padding=kernel_size//2)
         self.attention = nn.MultiheadAttention(d_model, num_heads, batch_first=True)
     
     def forward(self, x):
-        # Local features
+        # 국소 특징
         local = self.local_conv(x.transpose(1, 2)).transpose(1, 2)
-        # Global attention
+        # 전역 주의
         global_out, _ = self.attention(x, x, x)
         return local + global_out
 ```
 
-### Transformer + RNN
+### 트랜스포머와 순환 신경망
 
 ```python
 class TransformerWithRecurrence(nn.Module):
-    """Transformer with recurrent memory."""
+    """되풀이 기억을 갖춘 트랜스포머."""
     def __init__(self, d_model, num_heads, memory_size):
         super().__init__()
         self.attention = nn.MultiheadAttention(d_model, num_heads, batch_first=True)
@@ -218,60 +219,60 @@ class TransformerWithRecurrence(nn.Module):
         self.memory = None
     
     def forward(self, x):
-        # Update memory
+        # 기억을 고친다
         if self.memory is not None:
             x = torch.cat([self.memory, x], dim=1)
         out, _ = self.attention(x, x, x)
-        # Compress to memory
+        # 기억으로 눌러 담는다
         self.memory, _ = self.memory_rnn(out)
         return out[:, -x.size(1):, :]
 ```
 
-## When to Use Each
+## 언제 무엇을 쓰는가
 
-### Use RNN When:
-- Streaming data (online processing)
-- Very memory constrained
-- Sequence order is crucial
-- Short sequences (<100)
+### 순환 신경망을 쓸 때
+- 흘러드는 데이터 (실시간 처리)
+- 기억이 매우 빠듯할 때
+- 수열의 차례가 매우 중요할 때
+- 짧은 수열 (100 미만)
 
-### Use CNN When:
-- Local patterns matter most
-- Fixed-size classification
-- Fast inference needed
-- Moderate sequence length
+### 합성곱 신경망을 쓸 때
+- 국소 무늬가 가장 중요할 때
+- 크기가 고정된 분류
+- 빠른 추론이 필요할 때
+- 수열 길이가 어지간할 때
 
-### Use Transformer When:
-- Long-range dependencies important
-- Parallel training available
-- State-of-the-art needed
-- Pre-trained models available
+### 트랜스포머를 쓸 때
+- 먼 거리 의존이 중요할 때
+- 병렬 학습을 할 수 있을 때
+- 최고 수준이 필요할 때
+- 사전 학습된 모형을 쓸 수 있을 때
 
-## Modern Alternatives
+## 요즘의 대안
 
-For very long sequences, several architectures offer linear complexity while retaining Transformer-like performance:
+아주 긴 수열에서는 트랜스포머 같은 성능을 지키면서 일차 복잡도를 주는 구조가 여럿 있다.
 
-| Model | Complexity | Approach | Key Innovation |
+| 모형 | 복잡도 | 방식 | 핵심 혁신 |
 |-------|------------|----------|----------------|
-| Linear Attention | $O(n)$ | Kernel approximation of softmax | Replaces $\text{softmax}(QK^T)V$ with $\phi(Q)(\phi(K)^TV)$ |
-| Mamba/S4 | $O(n)$ | Selective state space models | Data-dependent state transitions with hardware-aware scanning |
-| RWKV | $O(n)$ | RNN with Transformer-like training | Linear attention formulation that can be computed recurrently |
-| Longformer | $O(n \cdot w)$ | Sparse attention with local + global | Sliding window attention with task-specific global tokens |
-| Hyena | $O(n \log n)$ | Long convolutions | Replaces attention with implicitly parameterized convolutions |
+| 선형 주의 | $O(n)$ | 소프트맥스의 핵 어림 | $\text{softmax}(QK^T)V$을 $\phi(Q)(\phi(K)^TV)$으로 바꾼다 |
+| Mamba/S4 | $O(n)$ | 가려 뽑는 상태 공간 모형 | 하드웨어를 고려한 훑기와 데이터에 따른 상태 전이 |
+| RWKV | $O(n)$ | 트랜스포머처럼 학습하는 순환 신경망 | 되풀이로 셈할 수 있는 선형 주의 정식화 |
+| Longformer | $O(n \cdot w)$ | 국소와 전역을 섞은 성긴 주의 | 과제에 맞는 전역 토큰을 곁들인 미끄러지는 창 주의 |
+| Hyena | $O(n \log n)$ | 긴 합성곱 | 주의를 암묵적으로 매개변수화한 합성곱으로 바꾼다 |
 
-These approaches are particularly important as context windows extend to 100K+ tokens, where standard Transformer attention becomes impractical.
+맥락 창이 토큰 10만 개 이상으로 늘어 표준 트랜스포머 주의를 쓰기 어려워지는 지금 이 방법들이 특히 중요하다.
 
-## Summary
+## 요약
 
-The three architectures represent different design philosophies for sequence modeling:
+이 세 구조는 수열 모형화에 대한 서로 다른 설계 철학을 나타낸다.
 
-- **RNNs**: Built on the inductive bias that sequences are inherently temporal. Their sequential nature preserves ordering naturally but creates computation and gradient flow bottlenecks. Still relevant for streaming applications.
-- **CNNs**: Apply local receptive field patterns efficiently through parallel convolution. Excel at pattern detection but require many stacked layers for long-range dependencies.
-- **Transformers**: Make no assumptions about sequence structure, learning all relationships through attention. Most capable and scalable, at the cost of quadratic complexity.
+- **순환 신경망**: 수열이 본디 시간을 따른다는 귀납 편향 위에 세워졌다. 차례를 따르는 성질이 순서를 자연스레 지키지만 계산과 기울기 흐름에 병목을 만든다. 흘러드는 데이터를 다루는 응용에는 여전히 쓸모 있다.
+- **합성곱 신경망**: 병렬 합성곱으로 국소 수용 영역의 무늬를 효율적으로 적용한다. 무늬 찾기에 뛰어나지만 먼 거리 의존에는 층을 많이 쌓아야 한다.
+- **트랜스포머**: 수열의 짜임에 대해 아무 가정도 하지 않고 모든 관계를 주의로 배운다. 이차 복잡도를 대가로 가장 힘 있고 잘 커진다.
 
-The field has largely converged on Transformers, but understanding all three architectures helps choose the right tool for specific constraints (latency, memory, sequence length).
+이 분야는 대체로 트랜스포머로 모였지만, 세 구조를 모두 이해하면 특정 제약(지연, 기억, 수열 길이)에 맞는 연장을 고르는 데 도움이 된다.
 
-## References
+## 참고 문헌
 
 1. Vaswani, A., et al. (2017). "Attention Is All You Need."
 2. Hochreiter, S., & Schmidhuber, J. (1997). "Long Short-Term Memory."
@@ -280,79 +281,73 @@ The field has largely converged on Transformers, but understanding all three arc
 
 ---
 
-## Sparse Attention Patterns
+## 성긴 주의 무늬
 
-The key insight is that full attention matrices are empirically sparse—most attention weight concentrates on a small subset of positions. Sparse attention formalizes this by restricting the attention pattern a priori, avoiding the computation of low-weight entries entirely.
+핵심 통찰은 온전한 주의 행렬이 경험상 성기다는 것이다. 주의 가중치 대부분이 자리의 작은 일부에 몰린다. 성긴 주의는 주의 무늬를 미리 제한하여 이를 정식화하고, 가중치가 낮은 항목의 계산을 아예 건너뛴다.
 
-##### The Complexity Problem
+##### 복잡도 문제
 
-For sequence length $N$ and model dimension $d$:
+수열 길이가 $N$이고 모형 차원이 $d$일 때 다음과 같다.
 
-| Component | Time Complexity | Memory |
+| 부품 | 시간 복잡도 | 기억 |
 |-----------|----------------|--------|
-| Full Attention | O(N²d) | O(N²) |
-| **Goal** | O(Nd) or O(N log N · d) | O(N) |
+| 온전한 주의 | O(N²d) | O(N²) |
+| **목표** | O(Nd) 또는 O(N log N · d) | O(N) |
 
-For a sequence of $N = 16{,}384$ tokens (a modest document), the full attention matrix has $2.7 \times 10^8$ entries. At 32-bit precision, just storing this matrix for a single head requires ~1 GB.
+(어지간한 문서인) 토큰 $N = 16{,}384$개의 수열에서 온전한 주의 행렬의 항목은 $2.7 \times 10^8$개이다. 32비트 정밀도라면 머리 하나에 대한 이 행렬을 담아 두는 데만 약 1GB가 든다.
 
-##### Common Sparse Patterns
+##### 흔한 성긴 무늬
 
-##### 1. Local (Sliding Window) Attention
+##### 1. 국소(미끄러지는 창) 주의
 
-Each position attends only to nearby positions within a window:
+자리마다 창 안의 가까운 자리에만 주의한다.
 
 $$
-
 \text{Attend}(i) = \{j : |i - j| \leq w\}
-
 $$
 
-**Complexity**: O(Nw) where $w$ is window size
+**복잡도**: O(Nw)이며 여기서 $w$은 창 크기이다
 
 ```
 Window size = 3:
 Position 5 attends to: [2, 3, 4, 5, 6, 7, 8]
 ```
 
-**Rationale**: Most natural language dependencies are local. Sliding window captures these while ignoring distant positions that rarely receive significant attention weight.
+**까닭**: 자연어의 의존 대부분은 국소적이다. 미끄러지는 창은 이를 잡아내면서 뚜렷한 주의 가중치를 좀처럼 받지 않는 먼 자리를 무시한다.
 
-##### 2. Dilated (Strided) Attention
+##### 2. 팽창(걸음 있는) 주의
 
-Attend to positions at fixed intervals, enabling long-range coverage without full attention:
+정해진 간격의 자리에 주의하여 온전한 주의 없이도 먼 거리를 아우른다.
 
 $$
-
 \text{Attend}(i) = \{j : (i - j) \mod d = 0, |i-j| \leq w \cdot d\}
-
 $$
 
-**Complexity**: O(Nw)
+**복잡도**: O(Nw)
 
 ```
 Dilation = 2, Window = 3:
 Position 6 attends to: [0, 2, 4, 6, 8, 10, 12]
 ```
 
-**Rationale**: Analogous to dilated convolutions. By attending to every $d$-th position, the effective receptive field grows by a factor of $d$ without increasing computation.
+**까닭**: 팽창 합성곱과 비슷하다. $d$번째 자리마다 주의하면 계산을 늘리지 않고도 실효 수용 영역이 $d$배로 커진다.
 
-##### 3. Global Attention
+##### 3. 전역 주의
 
-Designate certain positions as "global" that attend to/from all positions:
+어떤 자리를 모든 자리와 서로 주의하는 "전역"으로 정한다.
 
 $$
-
 \text{Attend}(i) = \begin{cases}
 \{1, ..., N\} & \text{if } i \in \mathcal{G} \\
 \mathcal{G} \cup \text{Local}(i) & \text{otherwise}
 \end{cases}
-
 $$
 
-Used in Longformer, BigBird. Typical global tokens include `[CLS]`, task-specific tokens, or the first/last tokens of each segment.
+Longformer와 BigBird가 쓴다. 흔한 전역 토큰으로는 `[CLS]`, 과제에 맞는 토큰, 구간마다의 첫 토큰이나 마지막 토큰이 있다.
 
-##### 4. Block Sparse Attention
+##### 4. 블록 성긴 주의
 
-Divide sequence into blocks and attend within/between specific blocks:
+수열을 블록으로 나누고 정해진 블록 안에서 또는 블록 사이에서 주의한다.
 
 ```
 Block pattern:
@@ -363,46 +358,44 @@ Block pattern:
 [■ □ □ ■ ■]
 ```
 
-##### 5. Random Attention
+##### 5. 무작위 주의
 
-Each position randomly attends to a fixed number of other positions:
+자리마다 정해진 수의 다른 자리에 무작위로 주의한다.
 
 $$
-
 \text{Attend}(i) = \text{Random}(k) \cup \text{Local}(i)
-
 $$
 
-**Theoretical significance**: Random attention ensures that the expected path length between any two tokens is $O(\log N)$, providing theoretical guarantees on information propagation (graph expansion properties).
+**이론적인 뜻**: 무작위 주의는 두 토큰 사이의 기대 경로 길이를 $O(\log N)$으로 만들어 정보가 퍼지는 데 대한 이론적 보장(그래프 팽창 성질)을 준다.
 
-##### 6. Hierarchical (Multi-Scale) Attention
+##### 6. 위계(여러 크기) 주의
 
-Organize attention across multiple levels of granularity:
+주의를 여러 알갱이 수준에 걸쳐 짜 놓는다.
 
-**Level 1**: Token-level local attention within segments
-**Level 2**: Segment-level attention between segment summaries
-**Level 3**: Document-level attention between document summaries
+**1수준**: 구간 안의 토큰 수준 국소 주의
+**2수준**: 구간 요약 사이의 구간 수준 주의
+**3수준**: 문서 요약 사이의 문서 수준 주의
 
-This creates a hierarchical information flow:
+이는 위계를 이루는 정보 흐름을 만든다.
 
 $$\text{Local tokens} \to \text{Segment summaries} \to \text{Global representation}$$
 
-Hierarchical attention naturally handles documents with structure (sections, paragraphs) and reduces complexity to $O(N \sqrt{N})$ or better by processing fine-grained information locally and coarse-grained information globally.
+위계 주의는 (절, 문단 같은) 짜임이 있는 문서를 자연스레 다루며, 잔 정보는 국소로 굵은 정보는 전역으로 처리하여 복잡도를 $O(N \sqrt{N})$ 이하로 줄인다.
 
-**Sparse Transformer** (Child et al., 2019) pioneered this approach by factorizing the attention pattern into two sparse components: one attending to local context and one attending to strided positions, achieving $O(N\sqrt{N})$ complexity.
+**Sparse Transformer**(Child 외, 2019)는 주의 무늬를 성긴 부분 둘, 곧 국소 맥락에 주의하는 것과 걸음 있는 자리에 주의하는 것으로 인수분해하여 $O(N\sqrt{N})$ 복잡도를 이루며 이 길을 열었다.
 
-##### Combining Patterns
+##### 무늬 섞기
 
-The most effective sparse attention methods combine multiple patterns. The BigBird theoretical result (Zaheer et al., 2020) proves that combining random, local, and global attention is sufficient for universal approximation—the sparse model can simulate any full-attention Transformer.
+가장 잘 통하는 성긴 주의 방법은 여러 무늬를 섞는다. BigBird의 이론 결과(Zaheer 외, 2020)는 무작위와 국소와 전역 주의를 함께 쓰면 보편 근사에 넉넉함을 증명한다. 성긴 모형이 어떤 온전한 주의 트랜스포머든 흉내 낼 수 있다.
 
-| Component | Purpose | Alone Sufficient? |
+| 부품 | 목적 | 홀로 넉넉한가 |
 |-----------|---------|-------------------|
-| Local | Capture adjacent dependencies | No (misses long-range) |
-| Global | Aggregate full-sequence information | No (too few positions) |
-| Random | Ensure short expected path length | No (misses structure) |
-| **Combined** | **All of the above** | **Yes (Turing-complete)** |
+| 국소 | 이웃한 의존을 잡아낸다 | 아니다 (먼 거리를 놓친다) |
+| 전역 | 수열 전체의 정보를 모은다 | 아니다 (자리가 너무 적다) |
+| 무작위 | 기대 경로 길이를 짧게 한다 | 아니다 (짜임을 놓친다) |
+| **섞기** | **위의 모두** | **그렇다 (튜링 완전)** |
 
-##### PyTorch Implementation
+##### 파이토치 구현
 
 ```python
 import torch
@@ -411,35 +404,33 @@ import torch.nn.functional as F
 import math
 from typing import Optional, Tuple, List
 
-
 def create_local_attention_mask(
     seq_len: int,
     window_size: int,
     device: torch.device = None
 ) -> torch.Tensor:
     """
-    Create sliding window attention mask.
+    미끄러지는 창 주의 가림을 만든다.
     
-    Args:
-        seq_len: Sequence length
-        window_size: Size of attention window (one side)
-        device: Device for tensor
+    인수:
+        seq_len: 수열 길이
+        window_size: 주의 창의 크기(한쪽)
+        device: 텐서를 둘 장치
         
-    Returns:
-        Mask [seq_len, seq_len] where True = masked (don't attend)
+    반환값:
+        가림 [seq_len, seq_len]. True면 가린다(주의하지 않는다)
     """
-    # Create position indices
+    # 자리 번호를 만든다
     rows = torch.arange(seq_len, device=device).unsqueeze(1)
     cols = torch.arange(seq_len, device=device).unsqueeze(0)
     
-    # Compute distances
+    # 거리를 셈한다
     distance = torch.abs(rows - cols)
     
-    # Mask positions outside window
+    # 창 바깥의 자리를 가린다
     mask = distance > window_size
     
     return mask
-
 
 def create_dilated_attention_mask(
     seq_len: int,
@@ -448,27 +439,26 @@ def create_dilated_attention_mask(
     device: torch.device = None
 ) -> torch.Tensor:
     """
-    Create dilated (strided) attention mask.
+    팽창(걸음 있는) 주의 가림을 만든다.
     
-    Args:
-        seq_len: Sequence length
-        window_size: Number of positions to attend to
-        dilation: Stride between attended positions
-        device: Device for tensor
+    인수:
+        seq_len: 수열 길이
+        window_size: 주의할 자리의 개수
+        dilation: 주의하는 자리 사이의 걸음
+        device: 텐서를 둘 장치
     """
     rows = torch.arange(seq_len, device=device).unsqueeze(1)
     cols = torch.arange(seq_len, device=device).unsqueeze(0)
     
-    # Distance in dilated space
+    # 팽창 공간에서의 거리
     distance = torch.abs(rows - cols)
     
-    # Valid if: within dilated window AND aligned with dilation
+    # 팽창 창 안에 있고 팽창 간격에 맞으면 쓸 수 있다
     within_window = distance <= window_size * dilation
     aligned = (rows - cols) % dilation == 0
     
     mask = ~(within_window & aligned)
     return mask
-
 
 def create_block_sparse_mask(
     seq_len: int,
@@ -477,13 +467,13 @@ def create_block_sparse_mask(
     device: torch.device = None
 ) -> torch.Tensor:
     """
-    Create block sparse attention mask.
+    블록 성긴 주의 가림을 만든다.
     
-    Each block attends to itself, adjacent blocks, and random blocks.
+    블록마다 제 자신과 이웃한 블록과 무작위 블록에 주의한다.
     """
     num_blocks = (seq_len + block_size - 1) // block_size
     
-    # Initialize mask (all masked)
+    # 가림을 시작한다 (모두 가림)
     mask = torch.ones(seq_len, seq_len, dtype=torch.bool, device=device)
     
     for i in range(num_blocks):
@@ -494,23 +484,22 @@ def create_block_sparse_mask(
             j_start = j * block_size
             j_end = min((j + 1) * block_size, seq_len)
             
-            # Self block and adjacent blocks
+            # 제 블록과 이웃한 블록
             if abs(i - j) <= 1:
                 mask[i_start:i_end, j_start:j_end] = False
             
-            # Random blocks
+            # 무작위 블록
             elif torch.rand(1).item() < num_random_blocks / num_blocks:
                 mask[i_start:i_end, j_start:j_end] = False
     
     return mask
 
-
 class LocalAttention(nn.Module):
     """
-    Local (Sliding Window) Attention.
+    국소(미끄러지는 창) 주의.
     
-    Each position attends only to positions within a fixed window.
-    Complexity: O(N * window_size * d)
+    자리마다 정해진 창 안의 자리에만 주의한다.
+    복잡도: O(N * window_size * d)
     """
     
     def __init__(
@@ -539,56 +528,55 @@ class LocalAttention(nn.Module):
     
     def forward(self, x: torch.Tensor, causal: bool = True) -> torch.Tensor:
         """
-        Forward pass with local attention.
+        국소 주의를 쓰는 앞먹임.
         
-        Args:
-            x: Input [batch, seq_len, d_model]
-            causal: Apply causal masking within window
+        인수:
+            x: 입력 [batch, seq_len, d_model]
+            causal: 창 안에서 인과 가림을 적용할지 여부
         """
         batch_size, seq_len, _ = x.shape
         
-        # Project Q, K, V
+        # Q, K, V를 사영한다
         q = self.q_proj(x)
         k = self.k_proj(x)
         v = self.v_proj(x)
         
-        # Reshape for multi-head
+        # 다중 머리에 맞게 꼴을 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         
-        # Compute full attention scores
+        # 온전한 주의 점수를 셈한다
         scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # Create local attention mask
+        # 국소 주의 가림을 만든다
         local_mask = create_local_attention_mask(seq_len, self.window_size, x.device)
         
-        # Apply causal mask if needed
+        # 필요하면 인과 가림을 적용한다
         if causal:
             causal_mask = torch.triu(torch.ones(seq_len, seq_len, device=x.device), diagonal=1).bool()
             local_mask = local_mask | causal_mask
         
-        # Apply mask
+        # 가림을 적용한다
         scores = scores.masked_fill(local_mask, float('-inf'))
         
-        # Softmax and apply to values
+        # 소프트맥스를 하고 값에 적용한다
         attn_weights = F.softmax(scores, dim=-1)
         attn_weights = self.dropout(attn_weights)
         
         output = torch.matmul(attn_weights, v)
         
-        # Reshape and project
+        # 꼴을 바꾸고 사영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         return self.o_proj(output)
 
-
 class LongformerAttention(nn.Module):
     """
-    Longformer-style attention combining:
-    1. Local sliding window attention (for all tokens)
-    2. Global attention (for designated tokens like [CLS])
+    다음을 아우르는 Longformer 방식 주의:
+    1. 국소 미끄러지는 창 주의 (모든 토큰에)
+    2. 전역 주의 ([CLS] 같은 정해진 토큰에)
     
-    Complexity: O(N * (w + g)) where w = window, g = global tokens
+    복잡도: O(N * (w + g)). 여기서 w는 창, g는 전역 토큰이다
     """
     
     def __init__(
@@ -608,12 +596,12 @@ class LongformerAttention(nn.Module):
         self.window_size = window_size
         self.scale = self.head_dim ** -0.5
         
-        # Local attention projections
+        # 국소 주의 사영
         self.q_local = nn.Linear(d_model, d_model)
         self.k_local = nn.Linear(d_model, d_model)
         self.v_local = nn.Linear(d_model, d_model)
         
-        # Global attention projections (separate parameters)
+        # 전역 주의 사영 (따로 둔 매개변수)
         self.q_global = nn.Linear(d_model, d_model)
         self.k_global = nn.Linear(d_model, d_model)
         self.v_global = nn.Linear(d_model, d_model)
@@ -627,67 +615,66 @@ class LongformerAttention(nn.Module):
         global_attention_mask: torch.Tensor = None
     ) -> torch.Tensor:
         """
-        Args:
-            x: Input [batch, seq_len, d_model]
-            global_attention_mask: Boolean [batch, seq_len], True for global tokens
+        인수:
+            x: 입력 [batch, seq_len, d_model]
+            global_attention_mask: 참거짓 [batch, seq_len]. 전역 토큰이 True
         """
         batch_size, seq_len, _ = x.shape
         
-        # Local projections
+        # 국소 사영
         q_local = self.q_local(x).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k_local = self.k_local(x).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v_local = self.v_local(x).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         
-        # Global projections
+        # 전역 사영
         q_global = self.q_global(x).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k_global = self.k_global(x).view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         
-        # Compute local attention scores
+        # 국소 주의 점수를 셈한다
         local_scores = torch.matmul(q_local, k_local.transpose(-2, -1)) * self.scale
         
-        # Apply local mask
+        # 국소 가림을 적용한다
         local_mask = create_local_attention_mask(seq_len, self.window_size, x.device)
         local_scores = local_scores.masked_fill(local_mask, float('-inf'))
         
-        # For global positions: compute attention to all positions
-        # For other positions: add attention to global positions
+        # 전역 자리는 모든 자리에 대한 주의를 셈한다
+        # 다른 자리는 전역 자리에 대한 주의를 더한다
         global_indices = global_attention_mask.nonzero(as_tuple=True)
         
         if len(global_indices[0]) > 0:
-            # Global positions can attend to everything
+            # 전역 자리는 모든 것에 주의할 수 있다
             for b, idx in zip(global_indices[0], global_indices[1]):
                 local_scores[b, :, idx, :] = torch.matmul(
                     q_global[b, :, idx:idx+1, :],
                     k_global[b].transpose(-2, -1)
                 ) * self.scale
                 
-                # All positions can attend to global positions
+                # 모든 자리가 전역 자리에 주의할 수 있다
                 local_scores[b, :, :, idx] = torch.matmul(
                     q_local[b],
                     k_global[b, :, idx:idx+1, :].transpose(-2, -1)
                 ).squeeze(-1) * self.scale
         
-        # Softmax
+        # 소프트맥스
         attn_weights = F.softmax(local_scores, dim=-1)
         attn_weights = self.dropout(attn_weights)
         
-        # Compute output
+        # 출력을 셈한다
         output = torch.matmul(attn_weights, v_local)
         
-        # Reshape and project
+        # 꼴을 바꾸고 사영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         return self.o_proj(output)
 
-
 class BigBirdAttention(nn.Module):
     """
-    BigBird-style attention combining:
-    1. Random attention
-    2. Window (local) attention
-    3. Global attention
+    다음을 아우르는 BigBird 방식 주의:
+    1. 무작위 주의
+    2. 창(국소) 주의
+    3. 전역 주의
     
-    Achieves O(N) complexity.
-    Theoretically proven to be a universal approximator of sequence functions.
+    O(N) 복잡도를 이룬다.
+    수열 함수의 보편 근사기임이 이론으로 증명되었다.
     """
     
     def __init__(
@@ -721,27 +708,27 @@ class BigBirdAttention(nn.Module):
         seq_len: int,
         device: torch.device
     ) -> torch.Tensor:
-        """Create BigBird sparse attention mask."""
+        """BigBird 성긴 주의 가림을 만든다."""
         
-        # Start with all masked
+        # 모두 가린 채로 시작한다
         mask = torch.ones(seq_len, seq_len, dtype=torch.bool, device=device)
         
-        # 1. Global tokens (first num_global_tokens positions)
+        # 1. 전역 토큰 (앞의 num_global_tokens개 자리)
         mask[:self.num_global_tokens, :] = False
         mask[:, :self.num_global_tokens] = False
         
-        # 2. Local/sliding window (within block and adjacent blocks)
+        # 2. 국소·미끄러지는 창 (제 블록과 이웃한 블록 안)
         num_blocks = (seq_len + self.block_size - 1) // self.block_size
         
         for i in range(seq_len):
             block_i = i // self.block_size
             
-            # Attend to same block
+            # 같은 블록에 주의한다
             start = block_i * self.block_size
             end = min((block_i + 1) * self.block_size, seq_len)
             mask[i, start:end] = False
             
-            # Attend to adjacent blocks
+            # 이웃한 블록에 주의한다
             if block_i > 0:
                 prev_start = (block_i - 1) * self.block_size
                 mask[i, prev_start:start] = False
@@ -749,11 +736,11 @@ class BigBirdAttention(nn.Module):
                 next_end = min((block_i + 2) * self.block_size, seq_len)
                 mask[i, end:next_end] = False
         
-        # 3. Random attention
+        # 3. 무작위 주의
         for i in range(0, seq_len, self.block_size):
             block_end = min(i + self.block_size, seq_len)
             
-            # Select random blocks
+            # 무작위 블록을 고른다
             valid_blocks = [b for b in range(num_blocks) 
                           if abs(b - i // self.block_size) > 1]
             
@@ -770,39 +757,38 @@ class BigBirdAttention(nn.Module):
         return mask
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Forward pass with BigBird attention."""
+        """BigBird 주의를 쓰는 앞먹임."""
         batch_size, seq_len, _ = x.shape
         
-        # Project
+        # 사영한다
         q = self.q_proj(x)
         k = self.k_proj(x)
         v = self.v_proj(x)
         
-        # Reshape
+        # 꼴을 바꾼다
         q = q.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.num_heads, self.head_dim).transpose(1, 2)
         
-        # Compute scores
+        # 점수를 셈한다
         scores = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # Apply BigBird mask
+        # BigBird 가림을 적용한다
         mask = self._create_bigbird_mask(seq_len, x.device)
         scores = scores.masked_fill(mask, float('-inf'))
         
-        # Softmax and apply
+        # 소프트맥스를 하고 적용한다
         attn_weights = F.softmax(scores, dim=-1)
         attn_weights = self.dropout(attn_weights)
         
         output = torch.matmul(attn_weights, v)
         
-        # Reshape and project
+        # 꼴을 바꾸고 사영한다
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.d_model)
         return self.o_proj(output)
 
-
 def visualize_sparse_patterns(seq_len: int = 64):
-    """Visualize different sparse attention patterns."""
+    """여러 성긴 주의 무늬를 그려 본다."""
     import matplotlib.pyplot as plt
     
     fig, axes = plt.subplots(2, 3, figsize=(15, 10))
@@ -816,20 +802,20 @@ def visualize_sparse_patterns(seq_len: int = 64):
          torch.triu(torch.ones(seq_len, seq_len), diagonal=1).bool()),
     ]
     
-    # BigBird pattern
+    # BigBird 무늬
     bigbird = BigBirdAttention(64, 1, block_size=16, num_global_tokens=2)
     bigbird_mask = bigbird._create_bigbird_mask(seq_len, torch.device('cpu'))
     patterns.append(("BigBird", bigbird_mask))
     
     for idx, (name, mask) in enumerate(patterns):
         ax = axes[idx // 3, idx % 3]
-        # Invert mask for visualization (white = attend, black = masked)
+        # 그림으로 보려고 가림을 뒤집는다 (흰색은 주의, 검은색은 가림)
         ax.imshow(~mask.float().numpy(), cmap='gray', aspect='auto')
         ax.set_title(name)
         ax.set_xlabel('Key Position')
         ax.set_ylabel('Query Position')
         
-        # Count attending pairs
+        # 주의하는 쌍의 수를 센다
         attending = (~mask).sum().item()
         density = attending / (seq_len * seq_len) * 100
         ax.text(0.02, 0.98, f'Density: {density:.1f}%', 
@@ -841,8 +827,7 @@ def visualize_sparse_patterns(seq_len: int = 64):
     plt.savefig('sparse_attention_patterns.png', dpi=150)
     plt.close()
 
-
-# Example usage
+# 사용 예
 if __name__ == "__main__":
     d_model = 256
     num_heads = 4
@@ -851,64 +836,64 @@ if __name__ == "__main__":
     
     x = torch.randn(batch_size, seq_len, d_model)
     
-    # Test Local Attention
+    # 국소 주의를 시험한다
     print("--- Local Attention ---")
     local_attn = LocalAttention(d_model, num_heads, window_size=32)
     out_local = local_attn(x)
     print(f"Input: {x.shape}, Output: {out_local.shape}")
     
-    # Test Longformer Attention
+    # Longformer 주의를 시험한다
     print("\n--- Longformer Attention ---")
     longformer_attn = LongformerAttention(d_model, num_heads, window_size=32)
     out_longformer = longformer_attn(x)
     print(f"Input: {x.shape}, Output: {out_longformer.shape}")
     
-    # Test BigBird Attention
+    # BigBird 주의를 시험한다
     print("\n--- BigBird Attention ---")
     bigbird_attn = BigBirdAttention(d_model, num_heads, block_size=32)
     out_bigbird = bigbird_attn(x)
     print(f"Input: {x.shape}, Output: {out_bigbird.shape}")
     
-    # Visualize patterns
+    # 무늬를 그려 본다
     visualize_sparse_patterns(64)
     print("\nVisualization saved to 'sparse_attention_patterns.png'")
 ```
 
-##### Complexity Comparison
+##### 복잡도 견주기
 
-| Method | Time | Memory | Global Context |
+| 방법 | 시간 | 기억 | 전역 맥락 |
 |--------|------|--------|----------------|
-| Full Attention | O(N²) | O(N²) | ✓ Complete |
-| Local Window | O(Nw) | O(Nw) | ✗ Limited |
-| Dilated | O(Nw) | O(Nw) | ✗ Limited (wider) |
-| Sparse Transformer | O(N√N) | O(N√N) | ✓ Via strided pattern |
-| Longformer | O(Nw + Ng) | O(N) | ✓ Via global |
-| BigBird | O(N) | O(N) | ✓ Random + global |
+| 온전한 주의 | O(N²) | O(N²) | ✓ 온전함 |
+| 국소 창 | O(Nw) | O(Nw) | ✗ 제한적 |
+| 팽창 | O(Nw) | O(Nw) | ✗ 제한적 (더 넓다) |
+| Sparse Transformer | O(N√N) | O(N√N) | ✓ 걸음 있는 무늬로 |
+| Longformer | O(Nw + Ng) | O(N) | ✓ 전역으로 |
+| BigBird | O(N) | O(N) | ✓ 무작위와 전역으로 |
 
-##### Relationship to Efficient Attention
+##### 효율적인 주의와의 관계
 
-Sparse attention (structured sparsity in the attention matrix) is one of several approaches to efficient attention. The landscape includes:
+성긴 주의(주의 행렬의 짜임 있는 성김)는 효율적인 주의를 얻는 여러 길 가운데 하나이다. 그 지형은 다음과 같다.
 
-| Approach | Strategy | Examples |
+| 길 | 방법 | 보기 |
 |----------|----------|----------|
-| **Sparse patterns** | Restrict which pairs compute attention | Longformer, BigBird, Sparse Transformer |
-| **Low-rank approximation** | Approximate attention matrix with low-rank factorization | Linformer, Nyström |
-| **Kernel methods** | Approximate softmax with linearizable kernels | Performer, Random Feature Attention |
-| **IO-aware computation** | Optimize memory access patterns | FlashAttention |
+| **성긴 무늬** | 어느 쌍이 주의를 셈할지 제한한다 | Longformer, BigBird, Sparse Transformer |
+| **낮은 계수 어림** | 주의 행렬을 낮은 계수로 인수분해해 어림한다 | Linformer, Nyström |
+| **핵 방법** | 소프트맥스를 선형화할 수 있는 핵으로 어림한다 | Performer, Random Feature Attention |
+| **입출력을 고려한 계산** | 기억 접근 방식을 다듬는다 | FlashAttention |
 
-Sparse attention and these other approaches are complementary—for example, FlashAttention can accelerate sparse patterns, and low-rank methods can be combined with local windows.
+성긴 주의와 이 다른 길들은 서로를 채워 준다. 이를테면 FlashAttention이 성긴 무늬를 빠르게 할 수 있고 낮은 계수 방법을 국소 창과 함께 쓸 수 있다.
 
-##### Summary
+##### 간추림
 
-Sparse attention patterns enable efficient processing of long sequences:
+성긴 주의 무늬는 긴 수열을 효율적으로 처리하게 해 준다.
 
-1. **Local attention**: Fast but limited context
-2. **Global tokens**: Maintain full-sequence information
-3. **Random attention**: Theoretical expressiveness guarantees
-4. **Hierarchical attention**: Multi-scale information flow
-5. **Combined patterns**: Best of all approaches, provably universal
+1. **국소 주의**: 빠르지만 맥락이 좁다
+2. **전역 토큰**: 수열 전체의 정보를 지킨다
+3. **무작위 주의**: 표현력에 대한 이론적 보장
+4. **위계 주의**: 여러 크기의 정보 흐름
+5. **섞은 무늬**: 모든 길의 좋은 점을 모으며 보편적임을 증명할 수 있다
 
-##### References
+##### 참고 문헌
 
 1. Beltagy, I., et al. (2020). "Longformer: The Long-Document Transformer."
 2. Zaheer, M., et al. (2020). "Big Bird: Transformers for Longer Sequences." NeurIPS.
@@ -918,118 +903,112 @@ Sparse attention patterns enable efficient processing of long sequences:
 
 ---
 
-## Scaling Transformers
+## 트랜스포머 키우기
 
-##### Training Large-Scale Models
+##### 큰 규모 모형 학습하기
 
 ##### GPT-3
 
-GPT-3, developed by OpenAI, demonstrated that scaling decoder-only Transformers yields strong few-shot learning capabilities.
+OpenAI가 만든 GPT-3은 디코더 전용 트랜스포머를 키우면 강한 소수 예시 학습 능력이 나옴을 보였다.
 
-**Architecture**: Decoder-only Transformer with 175 billion parameters, using 96 layers, 12,288 hidden dimensions, and 96 attention heads.
+**구조**: 매개변수 1750억의 디코더 전용 트랜스포머로 층 96개, 숨은 차원 12,288, 주의 머리 96개를 쓴다.
 
-**Training data**: A filtered subset of Common Crawl combined with curated datasets (WebText, Books, Wikipedia), totaling approximately 300 billion tokens. Diversity of training data is critical for generalization across tasks.
+**학습 데이터**: 걸러 낸 Common Crawl의 일부에 고른 데이터셋(WebText, Books, 위키백과)을 더해 모두 약 3000억 토큰이다. 학습 데이터의 다양함이 과제에 걸친 일반화에 매우 중요하다.
 
-**Training compute**: GPT-3 required approximately 3.14 × 10²³ FLOPs, trained across thousands of GPUs using model and data parallelism.
+**학습 계산**: GPT-3에는 약 3.14 × 10²³ FLOP이 들었고 모형 병렬과 데이터 병렬로 GPU 수천 개에 걸쳐 학습했다.
 
-**Key insight**: GPT-3's in-context learning ability—performing tasks from a few examples in the prompt without gradient updates—emerged at scale and was not observed in smaller models.
+**핵심 통찰**: 기울기 갱신 없이 프롬프트의 몇몇 예만으로 과제를 해내는 GPT-3의 맥락 안 학습 능력은 규모가 커지며 창발했고 작은 모형에서는 보이지 않았다.
 
 ##### PaLM
 
-PaLM (Pathways Language Model), developed by Google, scaled to 540 billion parameters with several architectural refinements.
+구글이 만든 PaLM(경로 언어 모형)은 몇 가지 구조를 다듬어 매개변수 5400억까지 키웠다.
 
-**Architecture**: Decoder-only Transformer with SwiGLU activation, parallel attention and FFN computation, multi-query attention, and RoPE positional encodings.
+**구조**: SwiGLU 활성, 주의와 순전파의 병렬 계산, 다중 질의 주의, RoPE 위치 인코딩을 쓰는 디코더 전용 트랜스포머이다.
 
-**Training data**: A multilingual corpus of 780 billion tokens spanning web documents, books, code, and conversational data.
+**학습 데이터**: 웹 문서, 책, 코드, 대화 데이터에 걸친 토큰 7800억 개의 여러 언어 말뭉치이다.
 
-**Training infrastructure**: PaLM was trained across 6,144 TPU v4 chips using the Pathways system, which efficiently orchestrates computation across multiple TPU pods.
+**학습 기반**: PaLM은 여러 TPU 묶음에 걸친 계산을 효율적으로 지휘하는 Pathways 체계로 TPU v4 칩 6,144개에 걸쳐 학습했다.
 
-**Key insight**: PaLM exhibited "breakthrough" capabilities on reasoning tasks (e.g., chain-of-thought prompting) that appeared discontinuously as model scale increased.
+**핵심 통찰**: PaLM은 모형 규모가 커지며 뚝 끊긴 듯 나타나는 추론 과제(이를테면 생각의 사슬 프롬프트)의 "돌파" 능력을 보였다.
 
 ##### LLaMA
 
-LLaMA (Large Language Model Meta AI) demonstrated that smaller, well-trained models can match or exceed the performance of much larger models when given sufficient data.
+LLaMA(메타 AI의 대형 언어 모형)는 데이터가 넉넉하면 더 작지만 잘 학습된 모형이 훨씬 큰 모형의 성능과 맞먹거나 앞설 수 있음을 보였다.
 
-**Architecture**: Decoder-only Transformer using pre-normalization (RMSNorm), SwiGLU activations, and RoPE, with model sizes from 7B to 65B parameters.
+**구조**: 앞 정규화(RMSNorm), SwiGLU 활성, RoPE를 쓰는 디코더 전용 트랜스포머이며 모형 크기는 매개변수 70억에서 650억까지이다.
 
-**Training data**: 1.4 trillion tokens from publicly available data only, trained for more tokens than typical for the model size.
+**학습 데이터**: 공개된 데이터만으로 1.4조 토큰이며, 그 모형 크기에 흔한 것보다 더 많은 토큰으로 학습했다.
 
-**Key insight**: The optimal compute-efficient model is trained on significantly more tokens than its parameter count, challenging earlier scaling law assumptions that favored larger models trained on fewer tokens (Chinchilla scaling).
+**핵심 통찰**: 계산을 가장 아끼는 모형은 제 매개변수 수보다 훨씬 많은 토큰으로 학습되며, 이는 토큰을 적게 쓰고 모형을 키우는 쪽을 편들던 앞선 규모 법칙 가정에 맞선다(친칠라 규모 법칙).
 
-##### Scaling Laws
+##### 규모 법칙
 
-Kaplan et al. (2020) and Hoffmann et al. (2022) established empirical relationships between model performance and compute budget.
+Kaplan 외(2020)와 Hoffmann 외(2022)는 모형 성능과 계산 예산 사이의 경험적 관계를 밝혔다.
 
-##### Kaplan Scaling Laws
+##### 캐플런 규모 법칙
 
-Performance (measured by cross-entropy loss $L$) follows power laws with model size $N$, dataset size $D$, and compute $C$:
+(교차 엔트로피 손실 $L$으로 잰) 성능은 모형 크기 $N$, 데이터셋 크기 $D$, 계산 $C$에 대해 거듭제곱 법칙을 따른다.
 
 $$
-
 L(N) \approx \left(\frac{N_c}{N}\right)^{\alpha_N}, \quad
 L(D) \approx \left(\frac{D_c}{D}\right)^{\alpha_D}, \quad
 L(C) \approx \left(\frac{C_c}{C}\right)^{\alpha_C}
-
 $$
 
-where $\alpha_N \approx 0.076$, $\alpha_D \approx 0.095$, and $\alpha_C \approx 0.050$.
+여기서 $\alpha_N \approx 0.076$, $\alpha_D \approx 0.095$, $\alpha_C \approx 0.050$이다.
 
-##### Chinchilla Scaling (Hoffmann et al.)
+##### 친칠라 규모 법칙 (Hoffmann 외)
 
-The compute-optimal approach allocates a fixed compute budget $C$ by scaling both model size $N$ and data size $D$ equally:
+계산 최적 방식은 정해진 계산 예산 $C$을 모형 크기 $N$과 데이터 크기 $D$을 똑같이 키우며 나눈다.
 
 $$
-
 N_{\text{opt}} \propto C^{0.5}, \quad D_{\text{opt}} \propto C^{0.5}
-
 $$
 
-Practically, the optimal token count is approximately 20× the parameter count. A 10B parameter model should be trained on ~200B tokens.
+실제로 가장 좋은 토큰 수는 매개변수 수의 약 20배이다. 매개변수 100억짜리 모형은 토큰 약 2000억 개로 학습해야 한다.
 
-##### Challenges of Training at Scale
+##### 큰 규모 학습의 어려움
 
-##### Data Challenges
+##### 데이터의 어려움
 
-**Volume and quality**: Large models require trillions of high-quality tokens. Web-crawled data must be carefully filtered for quality, deduplicated, and balanced across domains. Data contamination (overlap with evaluation benchmarks) must be detected and removed.
+**양과 질**: 큰 모형에는 질 좋은 토큰이 수조 개 필요하다. 웹에서 긁은 데이터는 질을 따져 꼼꼼히 거르고 겹친 것을 없애고 분야에 걸쳐 고르게 해야 한다. 데이터 오염(평가 잣대와 겹침)을 찾아내어 없애야 한다.
 
-**Preprocessing at scale**: Tokenization, filtering, and shuffling of terabyte-scale datasets requires distributed data pipelines. Training data must be served to thousands of accelerators without becoming a bottleneck.
+**큰 규모의 앞처리**: 테라바이트 규모 데이터셋의 토큰 나누기와 거르기와 뒤섞기에는 분산 데이터 파이프라인이 필요하다. 학습 데이터를 병목 없이 가속기 수천 개에 대어 주어야 한다.
 
-##### Compute Challenges
+##### 계산의 어려움
 
-**Cost**: Training GPT-3 is estimated to have cost several million dollars in compute. The cost scales roughly linearly with total FLOPs, which grows as $O(N \cdot D)$ where $N$ is parameters and $D$ is tokens.
+**비용**: GPT-3 학습에는 계산에만 수백만 달러가 들었다고 어림된다. 비용은 전체 FLOP에 대략 비례하는데, FLOP은 매개변수 $N$과 토큰 $D$에 대해 $O(N \cdot D)$으로 는다.
 
-**Training stability**: Large models are prone to loss spikes—sudden increases in training loss that can derail training. Mitigation strategies include lower learning rates, gradient clipping, and careful initialization.
+**학습 안정성**: 큰 모형은 학습 손실이 갑자기 치솟아 학습을 어그러뜨리는 손실 튐이 잦다. 학습률을 낮추기, 기울기 자르기, 조심스러운 초기화로 누그러뜨린다.
 
-**Reproducibility**: Training runs on thousands of accelerators introduce non-determinism from floating-point order of operations, making exact reproducibility difficult.
+**되풀이 가능성**: 가속기 수천 개에서 도는 학습은 부동소수점 연산 순서에서 오는 비결정성을 낳아 똑같이 되풀이하기 어렵게 만든다.
 
-##### Memory Bottlenecks
+##### 기억의 병목
 
-For a model with $N$ parameters trained with Adam in float32:
+float32으로 Adam을 써서 학습하는 매개변수 $N$개의 모형에서는 다음과 같다.
 
-| Component | Memory per Parameter | Total (175B params) |
+| 부품 | 매개변수당 기억 | 모두 (매개변수 1750억) |
 |-----------|---------------------|---------------------|
-| Parameters | 4 bytes | 700 GB |
-| Gradients | 4 bytes | 700 GB |
-| Adam optimizer states ($m$, $v$) | 8 bytes | 1,400 GB |
-| **Total** | **16 bytes** | **~2.8 TB** |
+| 매개변수 | 4바이트 | 700GB |
+| 기울기 | 4바이트 | 700GB |
+| Adam 최적화기 상태 ($m$, $v$) | 8바이트 | 1,400GB |
+| **모두** | **16바이트** | **약 2.8TB** |
 
-This exceeds the memory of any single accelerator (typically 40–80 GB), necessitating parallelism strategies.
+이는 (대개 40~80GB인) 어떤 가속기 하나의 기억도 넘어서므로 병렬화 방법이 필요해진다.
 
-##### Parallelism Strategies
+##### 병렬화 방법
 
-##### Data Parallelism
+##### 데이터 병렬
 
-Each worker holds a complete copy of the model and processes a different data shard. Gradients are averaged across workers via all-reduce:
+일꾼마다 모형을 통째로 하나씩 지니고 서로 다른 데이터 조각을 처리한다. 기울기는 all-reduce로 일꾼들에 걸쳐 평균 낸다.
 
 $$
-
 g_{\text{avg}} = \frac{1}{K} \sum_{k=1}^{K} g_k
-
 $$
 
-where $K$ is the number of workers and $g_k$ is the gradient from worker $k$.
+여기서 $K$은 일꾼의 수이고 $g_k$은 일꾼 $k$의 기울기이다.
 
-**Limitation**: Each worker must store the full model, so data parallelism alone cannot handle models that exceed single-device memory.
+**한계**: 일꾼마다 모형 전체를 담아야 하므로 데이터 병렬만으로는 장치 하나의 기억을 넘는 모형을 다룰 수 없다.
 
 ```python
 import torch
@@ -1037,47 +1016,43 @@ import torch.nn as nn
 import torch.distributed as dist
 from torch.nn.parallel import DistributedDataParallel as DDP
 
-
 def setup_data_parallel(rank: int, world_size: int):
-    """Initialize distributed process group for data parallelism."""
+    """데이터 병렬을 위해 분산 프로세스 묶음을 시작한다."""
     dist.init_process_group("nccl", rank=rank, world_size=world_size)
     torch.cuda.set_device(rank)
 
-
 def train_with_ddp(rank: int, world_size: int, model: nn.Module):
     """
-    Wrap model in DistributedDataParallel for multi-GPU training.
+    여러 GPU 학습을 위해 모형을 DistributedDataParallel으로 감싼다.
     
-    Each GPU processes a different mini-batch; gradients are
-    automatically averaged via all-reduce before optimizer.step().
+    GPU마다 다른 작은 배치를 처리하고, 기울기는 optimizer.step() 전에
+    all-reduce로 저절로 평균 낸다.
     """
     setup_data_parallel(rank, world_size)
     
     model = model.to(rank)
-    model = DDP(model, device_ids=[rank])           # Wraps model for gradient sync
+    model = DDP(model, device_ids=[rank])           # 기울기를 맞추려고 모형을 감싼다
     
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
     
-    # Each rank gets a different data shard via DistributedSampler
-    # Gradients are averaged automatically across ranks
+    # DistributedSampler로 순위마다 다른 데이터 조각을 받는다
+    # 기울기는 순위에 걸쳐 저절로 평균 낸다
     for batch in dataloader:
         optimizer.zero_grad()
         loss = model(batch).loss
-        loss.backward()                              # Gradient all-reduce happens here
+        loss.backward()                              # 여기서 기울기 all-reduce가 일어난다
         optimizer.step()
 ```
 
-##### Gradient Accumulation
+##### 기울기 모으기
 
-When the desired effective batch size exceeds GPU memory, gradient accumulation simulates larger batches by accumulating gradients across multiple forward-backward passes before updating parameters:
+바라는 실효 배치 크기가 GPU 기억을 넘으면, 기울기 모으기가 매개변수를 갱신하기 전에 앞먹임과 역전파를 여러 번 하며 기울기를 쌓아 더 큰 배치를 흉내 낸다.
 
 $$
-
 g_{\text{accumulated}} = \frac{1}{A} \sum_{a=1}^{A} g_a
-
 $$
 
-where $A$ is the number of accumulation steps.
+여기서 $A$은 모으기 단계의 수이다.
 
 ```python
 def train_with_gradient_accumulation(
@@ -1088,18 +1063,18 @@ def train_with_gradient_accumulation(
     max_grad_norm: float = 1.0
 ):
     """
-    Training loop with gradient accumulation.
+    기울기 모으기를 쓰는 학습 고리.
     
-    Effective batch size = micro_batch_size × accumulation_steps × num_gpus
-    For example: 4 × 8 × 4 GPUs = 128 effective batch size.
+    실효 배치 크기 = micro_batch_size × accumulation_steps × num_gpus
+    이를테면 4 × 8 × GPU 4개 = 실효 배치 크기 128.
     """
     model.train()
     optimizer.zero_grad()
     
     for step, batch in enumerate(dataloader):
-        # Forward + backward (gradients accumulate in .grad)
+        # 앞먹임과 역전파 (기울기가 .grad에 쌓인다)
         loss = model(**batch).loss
-        loss = loss / accumulation_steps              # Normalize by accumulation steps
+        loss = loss / accumulation_steps              # 모으기 단계 수로 나눈다
         loss.backward()
         
         if (step + 1) % accumulation_steps == 0:
@@ -1108,79 +1083,70 @@ def train_with_gradient_accumulation(
             optimizer.zero_grad()
 ```
 
-##### Model Parallelism (Tensor Parallelism)
+##### 모형 병렬 (텐서 병렬)
 
-Individual layers are split across devices. For a linear layer $Y = XW$, the weight matrix $W$ is partitioned column-wise across $K$ devices:
+층 하나하나를 여러 장치에 나눈다. 선형 층 $Y = XW$에서는 가중치 행렬 $W$을 열 방향으로 장치 $K$개에 나눈다.
 
 $$
-
 W = [W_1 \mid W_2 \mid \cdots \mid W_K]
-
 $$
 
-Each device computes $Y_k = X W_k$ and the results are concatenated (or reduced, depending on the partition strategy). This is the approach used by Megatron-LM.
+장치마다 $Y_k = X W_k$을 셈하고 그 결과를 (나누는 방식에 따라) 이어 붙이거나 줄인다. Megatron-LM이 쓰는 방식이다.
 
-##### Pipeline Parallelism
+##### 파이프라인 병렬
 
-Different layers are assigned to different devices. Input micro-batches flow through the pipeline:
+층마다 다른 장치를 맡긴다. 입력 작은 배치가 파이프라인을 따라 흐른다.
 
 $$
-
 \text{Device 1: Layers 1–24} \rightarrow \text{Device 2: Layers 25–48} \rightarrow \text{Device 3: Layers 49–72} \rightarrow \text{Device 4: Layers 73–96}
-
 $$
 
-**Challenge**: Naive pipeline parallelism creates "pipeline bubbles" where devices idle while waiting for forward or backward passes. Micro-batching (GPipe) and interleaved scheduling (PipeDream) reduce idle time.
+**어려움**: 순진한 파이프라인 병렬은 장치가 앞먹임이나 역전파를 기다리며 노는 "파이프라인 거품"을 만든다. 작은 배치로 나누기(GPipe)와 엇갈린 일정 짜기(PipeDream)가 노는 시간을 줄인다.
 
-##### 3D Parallelism
+##### 3차원 병렬
 
-Large-scale training combines all three strategies:
+큰 규모 학습은 세 방법을 모두 아우른다.
 
-- **Data parallelism** across groups of devices
-- **Tensor parallelism** within each group (typically within a single node)
-- **Pipeline parallelism** across groups
+- 장치 묶음에 걸친 **데이터 병렬**
+- 묶음 안(대개 노드 하나 안)의 **텐서 병렬**
+- 묶음에 걸친 **파이프라인 병렬**
 
-For example, Megatron-Turing NLG (530B) uses 8-way tensor parallelism within each node, 35-way pipeline parallelism across nodes, and data parallelism across pipeline replicas.
+이를테면 Megatron-Turing NLG(5300억)는 노드마다 8갈래 텐서 병렬, 노드에 걸쳐 35갈래 파이프라인 병렬, 파이프라인 복제본에 걸쳐 데이터 병렬을 쓴다.
 
-##### Emerging Architectures for Efficient Scaling
+##### 효율적으로 키우기 위해 떠오르는 구조
 
 ##### Megatron-LM
 
-Megatron-LM (NVIDIA) provides efficient tensor parallelism for Transformer layers by partitioning the attention and FFN computations:
+Megatron-LM(엔비디아)은 주의와 순전파 계산을 나누어 트랜스포머 층을 위한 효율적인 텐서 병렬을 준다.
 
-- **Attention**: $Q$, $K$, $V$ projections are split column-wise across devices. Each device computes attention independently. The output projection is split row-wise, and results are summed via all-reduce.
-- **FFN**: The first linear layer is split column-wise; the second is split row-wise. A single all-reduce synchronizes outputs.
+- **주의**: $Q$, $K$, $V$ 사영을 열 방향으로 장치에 나눈다. 장치마다 따로 주의를 셈한다. 출력 사영은 행 방향으로 나누고 결과를 all-reduce로 더한다.
+- **순전파**: 첫 선형 층은 열 방향으로, 둘째는 행 방향으로 나눈다. all-reduce 한 번으로 출력을 맞춘다.
 
-This approach requires only two all-reduce operations per Transformer layer, keeping communication overhead low.
+이 방식은 트랜스포머 층마다 all-reduce가 두 번만 필요하여 주고받는 짐이 가볍다.
 
-##### Mixture of Experts (MoE)
+##### 전문가 섞기 (MoE)
 
-Mixture of Experts models, such as Switch Transformers, activate only a subset of parameters for each input token, enabling much larger total model capacity with sublinear compute cost.
+Switch Transformer 같은 전문가 섞기 모형은 입력 토큰마다 매개변수의 일부만 켜서, 계산 비용은 덜 늘리면서 모형 전체의 그릇을 훨씬 크게 한다.
 
-The gating mechanism selects the top-$k$ experts for each token:
+문 얼개가 토큰마다 상위 $k$명의 전문가를 고른다.
 
 $$
-
 G(x) = \text{TopK}\left(\text{softmax}(x \cdot W_g)\right)
-
 $$
 
 $$
-
 \text{MoE}(x) = \sum_{i \in \text{TopK}} G(x)_i \cdot E_i(x)
-
 $$
 
-where $E_i$ is the $i$-th expert (typically an FFN) and $G(x)_i$ is the gating weight.
+여기서 $E_i$은 $i$번째 전문가(대개 순전파 신경망)이고 $G(x)_i$은 문 가중치이다.
 
 ```python
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 class Expert(nn.Module):
-    """Single expert: a standard position-wise FFN."""
+    """전문가 하나: 표준 자리별 순전파 신경망."""
     
     def __init__(self, d_model: int, d_ff: int, dropout: float = 0.1):
         super().__init__()
@@ -1194,14 +1160,13 @@ class Expert(nn.Module):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         return self.ffn(x)
 
-
 class TopKGatingMoE(nn.Module):
     """
-    Mixture of Experts layer with Top-K gating.
+    상위 K 문을 갖춘 전문가 섞기 층.
     
-    Replaces the standard FFN in a Transformer block.
-    Each token is routed to the top-k experts based on
-    a learned gating function.
+    트랜스포머 블록의 표준 순전파 신경망을 대신한다.
+    토큰마다 학습되는 문 함수에 따라 상위 k명의 전문가에게
+    보내진다.
     """
     
     def __init__(
@@ -1216,10 +1181,10 @@ class TopKGatingMoE(nn.Module):
         self.num_experts = num_experts
         self.top_k = top_k
         
-        # Gating network: projects input to expert scores
+        # 문 신경망: 입력을 전문가 점수로 사영한다
         self.gate = nn.Linear(d_model, num_experts, bias=False)
         
-        # Expert networks
+        # 전문가 신경망
         self.experts = nn.ModuleList([
             Expert(d_model, d_ff, dropout)
             for _ in range(num_experts)
@@ -1227,29 +1192,29 @@ class TopKGatingMoE(nn.Module):
     
     def forward(self, x: torch.Tensor) -> tuple:
         """
-        Args:
+        인수:
             x: [batch_size, seq_len, d_model]
         
-        Returns:
+        반환값:
             output: [batch_size, seq_len, d_model]
-            aux_loss: Load balancing loss (scalar)
+            aux_loss: 부하를 고르게 하는 손실(스칼라)
         """
         batch_size, seq_len, d_model = x.shape
         x_flat = x.view(-1, d_model)                  # [B*S, d_model]
         
-        # Compute gating scores
+        # 문 점수를 셈한다
         gate_logits = self.gate(x_flat)                # [B*S, num_experts]
         gate_probs = F.softmax(gate_logits, dim=-1)    # [B*S, num_experts]
         
-        # Select top-k experts per token
+        # 토큰마다 상위 k명의 전문가를 고른다
         top_k_probs, top_k_indices = torch.topk(       # [B*S, top_k] each
             gate_probs, self.top_k, dim=-1
         )
         
-        # Normalize selected probabilities
+        # 고른 확률을 정규화한다
         top_k_probs = top_k_probs / top_k_probs.sum(dim=-1, keepdim=True)
         
-        # Compute expert outputs (simplified; production uses scatter/gather)
+        # 전문가의 출력을 셈한다 (간추린 것. 실제로는 scatter/gather를 쓴다)
         output = torch.zeros_like(x_flat)              # [B*S, d_model]
         for k in range(self.top_k):
             expert_idx = top_k_indices[:, k]           # [B*S]
@@ -1262,9 +1227,9 @@ class TopKGatingMoE(nn.Module):
                     expert_output = self.experts[i](expert_input)
                     output[mask] += weight[mask] * expert_output
         
-        # Load balancing auxiliary loss
-        # f_i: fraction of tokens routed to expert i
-        # p_i: average gating probability for expert i
+        # 부하를 고르게 하는 보조 손실
+        # f_i: 전문가 i에게 간 토큰의 비율
+        # p_i: 전문가 i의 평균 문 확률
         f = torch.zeros(self.num_experts, device=x.device)
         for k in range(self.top_k):
             for i in range(self.num_experts):
@@ -1277,48 +1242,46 @@ class TopKGatingMoE(nn.Module):
         return output.view(batch_size, seq_len, d_model), aux_loss
 ```
 
-**Switch Transformer**: Uses $k=1$ (route to a single expert), achieving up to 7× speedup over dense models of equivalent quality. A Switch Transformer with 1.6 trillion total parameters uses only ~100B parameters per forward pass.
+**Switch Transformer**: $k=1$(전문가 하나로 보냄)을 써서 같은 질의 빽빽한 모형보다 최대 7배 빠르다. 전체 매개변수 1.6조인 Switch Transformer가 앞먹임마다 쓰는 매개변수는 약 1000억뿐이다.
 
-**Load balancing**: Expert routing can lead to uneven load distribution. The auxiliary loss above encourages balanced expert utilization:
+**부하 고르기**: 전문가에게 보내는 일이 고르지 않을 수 있다. 위의 보조 손실이 전문가를 고르게 쓰도록 북돋운다.
 
 $$
-
 \mathcal{L}_{\text{aux}} = \alpha \cdot N_E \sum_{i=1}^{N_E} f_i \cdot p_i
-
 $$
 
-where $f_i$ is the fraction of tokens routed to expert $i$, $p_i$ is the average gating probability for expert $i$, and $N_E$ is the number of experts.
+여기서 $f_i$은 전문가 $i$에게 간 토큰의 비율, $p_i$은 전문가 $i$의 평균 문 확률, $N_E$은 전문가의 수이다.
 
-##### Efficient Scaling Techniques
+##### 효율적으로 키우는 기법
 
-**Quantization**: Reducing parameter precision from float32 to int8 or int4 cuts memory by 4–8× with minimal quality loss. Post-training quantization (GPTQ, AWQ) and quantization-aware training (QAT) are both used.
+**양자화**: 매개변수의 정밀도를 float32에서 int8이나 int4로 낮추면 질을 거의 잃지 않고 기억이 4~8배 준다. 학습 뒤 양자화(GPTQ, AWQ)와 양자화를 고려한 학습(QAT)을 모두 쓴다.
 
-**Pruning**: Removing redundant weights reduces model size. Structured pruning (removing entire attention heads or FFN dimensions) is more hardware-friendly than unstructured (individual weight) pruning.
+**가지치기**: 군더더기 가중치를 없애면 모형이 작아진다. 짜임 있는 가지치기(주의 머리나 순전파 차원을 통째로 없앰)가 짜임 없는(가중치 하나하나) 가지치기보다 하드웨어에 잘 맞는다.
 
-**Distillation**: Training a smaller "student" model to mimic a larger "teacher" model. DistilBERT achieves 97% of BERT's performance with 40% fewer parameters and 60% faster inference.
+**증류**: 더 작은 "학생" 모형이 더 큰 "스승" 모형을 흉내 내도록 학습시킨다. DistilBERT는 매개변수를 40% 줄이고 추론을 60% 빠르게 하면서 BERT 성능의 97%를 낸다.
 
-##### Training Infrastructure Comparison
+##### 학습 기반 견주기
 
-| System | Model Size | Hardware | Parallelism | Training Time |
+| 시스템 | 모형 크기 | 하드웨어 | 병렬화 | 학습 시간 |
 |--------|-----------|----------|-------------|---------------|
-| GPT-3 | 175B | V100 GPUs | Data + Model | Months |
-| PaLM | 540B | TPU v4 (6144 chips) | Data + Model + Pipeline | Weeks |
-| LLaMA-65B | 65B | A100 GPUs (2048) | Data + Tensor + Pipeline | ~21 days |
-| Chinchilla | 70B | TPU v3/v4 | Data + Model | Weeks |
+| GPT-3 | 1750억 | V100 GPU | 데이터와 모형 | 몇 달 |
+| PaLM | 5400억 | TPU v4 (칩 6144개) | 데이터와 모형과 파이프라인 | 몇 주 |
+| LLaMA-65B | 650억 | A100 GPU (2048개) | 데이터와 텐서와 파이프라인 | 약 21일 |
+| Chinchilla | 700억 | TPU v3/v4 | 데이터와 모형 | 몇 주 |
 
-##### Summary
+##### 간추림
 
-Scaling Transformers involves navigating a complex trade-off space across data, compute, and memory:
+트랜스포머를 키우는 일은 데이터와 계산과 기억에 걸친 복잡한 맞바꿈의 공간을 헤쳐 가는 일이다.
 
-1. **Scaling laws** provide guidance on optimal allocation of compute between model size and training data.
-2. **Parallelism strategies** (data, tensor, pipeline) enable training models that exceed single-device memory.
-3. **Mixture of Experts** achieves parameter efficiency by activating only a subset of the model per token.
-4. **Post-training efficiency** techniques (quantization, pruning, distillation) make large models practical for deployment.
-5. **Training stability** requires careful learning rate scheduling, gradient clipping, and initialization.
+1. **규모 법칙**은 계산을 모형 크기와 학습 데이터에 어떻게 나누는 것이 가장 좋은지 길잡이를 준다.
+2. **병렬화 방법**(데이터, 텐서, 파이프라인)은 장치 하나의 기억을 넘는 모형을 학습할 수 있게 한다.
+3. **전문가 섞기**는 토큰마다 모형의 일부만 켜서 매개변수를 아낀다.
+4. **학습 뒤 효율** 기법(양자화, 가지치기, 증류)은 큰 모형을 실제로 쓸 만하게 만든다.
+5. **학습 안정성**에는 조심스러운 학습률 일정과 기울기 자르기와 초기화가 필요하다.
 
-The field continues to evolve rapidly, with new architectures and training methodologies emerging regularly.
+이 분야는 빠르게 흘러가고 있으며 새로운 구조와 학습 방법이 꾸준히 나오고 있다.
 
-##### References
+##### 참고 문헌
 
 1. Brown, T., et al. (2020). "Language Models are Few-Shot Learners." NeurIPS. (GPT-3)
 2. Chowdhery, A., et al. (2022). "PaLM: Scaling Language Modeling with Pathways." arXiv.
@@ -1327,3 +1290,35 @@ The field continues to evolve rapidly, with new architectures and training metho
 5. Hoffmann, J., et al. (2022). "Training Compute-Optimal Large Language Models." NeurIPS. (Chinchilla)
 6. Shoeybi, M., et al. (2020). "Megatron-LM: Training Multi-Billion Parameter Language Models Using Model Parallelism." arXiv.
 7. Fedus, W., et al. (2022). "Switch Transformers: Scaling to Trillion Parameter Models." JMLR.
+
+## 연습문제
+
+**연습문제 1.**
+구조, 사전 학습, 잘 맞는 쓰임새의 면에서 BERT, GPT, T5, XLNet을 견주어라.
+
+??? success "연습문제 1 풀이"
+    BERT는 인코더만 쓰고 가린 언어 모형화를 하며 이해 과제(분류, 개체명 인식)에 가장 좋다. GPT는 디코더만 쓰고 자기 회귀 언어 모형화를 하며 생성에 가장 좋다. T5는 인코더-디코더에 구간 망가뜨리기를 쓰며 수열 대 수열 과제에 가장 좋다. XLNet은 순열 언어 모형을 쓰는 디코더로 자기 회귀이면서도 양방향 맥락을 잡아낸다. 저마다 이해와 생성 사이의 다른 맞바꿈을 나타낸다.
+
+---
+
+**연습문제 2.**
+BERT에 견준 RoBERTa의 핵심 혁신을 설명하라.
+
+??? success "연습문제 2 풀이"
+    RoBERTa(Liu 외, 2019)는 (1) (도움이 안 된다고 밝혀진) NSP 목표를 없애고, (2) 더 많은 데이터로 더 오래 학습하고, (3) 동적 가리기(세대마다 다른 가림)를 쓰고, (4) 배치를 더 크게 하고, (5) WordPiece 대신 바이트 쌍 부호화를 써서 BERT를 낫게 한다. 구조는 바꾸지 않고 학습 조리법만 낫게 한 것이다.
+
+---
+
+**연습문제 3.**
+ALBERT와 BERT의 차이는 무엇인가? ALBERT는 어떻게 매개변수를 줄이는가?
+
+??? success "연습문제 3 풀이"
+    ALBERT는 (1) 인수분해한 임베딩($V \times H$ 대신 $V \times E + E \times H$으로, $E \ll H$일 때 매개변수를 아낀다)과 (2) 층끼리 매개변수 함께 쓰기(모든 층이 같은 가중치를 쓴다)로 매개변수를 약 10배 줄이면서 BERT 성능의 대부분을 지킨다.
+
+---
+
+**연습문제 4.**
+'사전 학습한 뒤 미세 조정하기'라는 개념과 그것이 어떻게 흘러왔는지 설명하라.
+
+??? success "연습문제 4 풀이"
+    본디 방식은 큰 말뭉치로 사전 학습한 뒤 과제 데이터로 미세 조정하는 것이다. 그 뒤 (1) 어댑터는 작은 학습 모듈을 더하고 사전 학습된 가중치는 얼려 둔다. (2) 프롬프트 조정은 학습되는 프롬프트 토큰을 더하고 모형은 얼려 둔다. (3) 맥락 안 학습(GPT-3)은 매개변수를 갱신하지 않고 프롬프트에 예만 준다. 흐름은 사전 학습된 모형을 덜 건드리는 쪽이다.

@@ -1,36 +1,36 @@
-# Problem Specification
+# 문제 명세
 
-A precise problem specification prevents wasted effort from solving the wrong problem. In deep learning, the specification defines the input domain, output format, loss function, and evaluation metric before any model is designed.
+정확한 문제 명세(problem specification)는 엉뚱한 문제를 푸느라 노력을 낭비하는 일을 막아준다. 딥러닝에서 명세는 모델을 설계하기 전에 입력 영역, 출력 형식, 손실 함수, 평가 지표를 정의한다.
 
-## Definition
+## 정의
 
-A problem specification is the formal triple:
+문제 명세는 다음과 같은 형식적 세 쌍이다.
 
 $$
-\text{Problem} = (\mathcal{X},\; \mathcal{Y},\; \text{Objective})
+\text{문제} = (\mathcal{X},\; \mathcal{Y},\; \text{Objective})
 $$
 
-where $\mathcal{X}$ is the input space, $\mathcal{Y}$ is the output space, and the objective defines what constitutes a correct or optimal solution.
+여기서 $\mathcal{X}$는 입력 공간, $\mathcal{Y}$는 출력 공간이며, 목적함수는 무엇이 올바르거나 최적인 해인지를 정의한다.
 
-## Explanation
+## 설명
 
-In deep learning, a complete specification requires:
+딥러닝에서 완전한 명세는 다음을 요구한다.
 
-- **Input specification**: Tensor shape, dtype, value range, and preprocessing. Example: "RGB images of shape $(3, 224, 224)$, pixel values in $[0, 1]$, normalized by ImageNet statistics."
-- **Output specification**: What the model should produce. Classification logits? Bounding boxes? Generated text? The output format determines the model architecture's final layer.
-- **Loss function**: The differentiable objective that training minimizes. Cross-entropy for classification, MSE for regression, etc.
-- **Evaluation metric**: The non-differentiable metric that matters in practice (accuracy, F1, BLEU). Often differs from the loss.
-- **Constraints**: Latency budget, model size limit, minimum accuracy threshold.
+- **입력 명세**: 텐서 모양, 자료형, 값의 범위, 전처리. 예: "$(3, 224, 224)$ 모양의 RGB 이미지, 픽셀 값은 $[0, 1]$ 범위, ImageNet 통계로 정규화."
+- **출력 명세**: 모델이 무엇을 만들어야 하는가. 분류 로짓인가? 경계 상자인가? 생성된 텍스트인가? 출력 형식이 모델 구조의 마지막 층을 결정한다.
+- **손실 함수**: 학습이 최소화하는 미분 가능한 목적함수. 분류에는 교차 엔트로피, 회귀에는 MSE 등.
+- **평가 지표**: 실무에서 중요한, 미분 불가능한 지표(정확도, F1, BLEU). 손실과 다른 경우가 많다.
+- **제약 조건**: 지연 시간 예산, 모델 크기 한계, 최소 정확도 기준.
 
-A common failure mode is misalignment between the loss and the evaluation metric. For example, training with MSE loss but evaluating with accuracy on a classification task will produce suboptimal results.
+흔한 실패 유형은 손실과 평가 지표가 서로 어긋나는 것이다. 예를 들어 분류 과제에서 MSE 손실로 학습하고 정확도로 평가하면 최적에 미치지 못하는 결과가 나온다.
 
-## Examples
+## 예제
 
 ```python
 import torch
 import torch.nn as nn
 
-# Complete problem specification for binary classification
+# 이진 분류를 위한 완전한 문제 명세
 spec = {
     "input": "tensor of shape (batch, 10), float32, standardized",
     "output": "tensor of shape (batch, 1), logits",
@@ -41,23 +41,63 @@ spec = {
 for k, v in spec.items():
     print(f"  {k}: {v}")
 
-# Implement according to spec
+# 명세에 따라 구현한다
 model = nn.Sequential(nn.Linear(10, 16), nn.ReLU(), nn.Linear(16, 1))
 n_params = sum(p.numel() for p in model.parameters())
 print(f"\nParameters: {n_params} (limit: 10000)")
 
-# Verify input/output contract
+# 입출력 계약을 검증한다
 x = torch.randn(4, 10)
 logits = model(x)
 assert logits.shape == (4, 1), f"Output shape {logits.shape} != (4, 1)"
 
-# Loss matches specification
+# 손실이 명세와 일치한다
 y = torch.tensor([1.0, 0.0, 1.0, 0.0]).unsqueeze(1)
 loss = nn.functional.binary_cross_entropy_with_logits(logits, y)
 print(f"Loss: {loss.item():.4f}")
 
-# Metric matches specification
+# 지표가 명세와 일치한다
 preds = (torch.sigmoid(logits) > 0.5).float()
 accuracy = (preds == y).float().mean()
 print(f"Accuracy: {accuracy.item():.2f}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+영화 리뷰를 긍정 또는 부정으로 분류하는 감성 분석 모델의 완전한 문제 명세를 작성하라. 입력 공간, 출력 공간, 손실 함수, 평가 지표, 그리고 적어도 하나의 제약 조건을 포함하라.
+
+??? success "연습문제 1 풀이"
+    **입력** $\mathcal{X}$: 최대 길이 256의 토큰화된 텍스트 수열로, 어휘 크기 30,000인 정수 텐서 $(B, 256)$로 표현된다. **출력** $\mathcal{Y}$: 스칼라 로짓 $(B, 1)$ — 양수 값은 긍정 감성을 나타낸다. **손실**: 로짓에 대한 이진 교차 엔트로피 $\ell = -[y \ln\sigma(z) + (1-y)\ln(1-\sigma(z))]$. **지표**: 검증용 테스트 집합에서의 분류 정확도, 보조 지표로 F1 점수. **제약 조건**: 단일 GPU에서 리뷰당 추론 지연 시간 $< 10$ ms, 모바일 배포를 위해 모델 크기 $< 50$ MB.
+
+---
+
+**연습문제 2.**
+어떤 팀이 MSE 손실로 회귀 모델을 학습하고 평균 절대 오차(MAE)로 평가한다. 이러한 손실-지표 불일치가 최적에 미치지 못하는 결과를 낳는 이유를 설명하고 해결책을 제안하라.
+
+??? success "연습문제 2 풀이"
+    MSE는 $\mathbb{E}[(y - \hat{y})^2]$을 최소화하며, 그 최적 예측은 조건부 평균 $\mathbb{E}[y|x]$이다. MAE는 $\mathbb{E}[|y - \hat{y}|]$을 측정하며, 그 최적 예측은 조건부 중앙값이다. 목표 분포가 치우쳐 있으면(예: 소득, 주택 가격) 평균과 중앙값이 다르므로, MSE로 학습한 모델은 MAE 기준으로 최적이 아닌 예측을 낸다. 해결: MAE를 직접 최적화하는 L1 손실(안정성을 위해 Huber 손실)로 학습한다. 또는 중앙값을 목표로 하는 분위수 회귀 손실을 사용한다.
+
+---
+
+**연습문제 3.**
+어떤 문제 명세가 "출력: 1000개 클래스에 대한 확률 분포"라고 되어 있다. 이 명세가 마지막 층의 구조를 제약하는 이유는 무엇인가? 이 제약을 만족하는 마지막 층과 활성화 함수는 무엇인가?
+
+??? success "연습문제 3 풀이"
+    확률 분포는 (1) 모든 출력이 $\geq 0$이고 (2) 출력의 합이 1일 것을 요구한다. 마지막 층은 1000개의 로짓을 만드는 `nn.Linear(d, 1000)`이어야 하며, 그 뒤에 정규화를 위한 `softmax`가 온다. 실무에서는 수치적 안정성을 위해 소프트맥스를 손실 함수 안으로 접어 넣는다(`nn.CrossEntropyLoss`는 로짓을 직접 받는다). 소프트맥스가 없다면 출력은 임의의 실수가 되어 두 제약을 모두 위배한다.
+
+---
+
+**연습문제 4.**
+객체 검출을 위한 두 명세를 비교하라. (a) 경계 상자를 $(x, y, w, h)$로 출력, (b) 경계 상자를 $(x_1, y_1, x_2, y_2)$로 출력. 실무에서 어느 쪽이 더 흔하며 그 이유는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    형식 (a)는 중심 좌표와 크기 $(x_{\text{center}}, y_{\text{center}}, \text{width}, \text{height})$를 사용한다. 형식 (b)는 모서리 좌표 $(x_{\min}, y_{\min}, x_{\max}, y_{\max})$를 사용한다. 둘 다 쓰인다. YOLO는 앵커 박스 중심으로부터의 변위를 예측하기에 자연스럽기 때문에 형식 (a)를 쓰고, COCO 평가와 많은 손실 함수는 IoU 계산이 더 간단하기 때문에 형식 (b)를 쓴다. IoU $= \text{교집합}/\text{합집합}$인데, 교집합 계산에 모서리에 대한 $\max/\min$ 연산이 필요하다. 대부분의 프레임워크가 변환 유틸리티를 제공한다. 이 선택은 손실 함수 설계에 영향을 주므로 파이프라인 전체에서 일관되어야 한다.
+
+---
+
+**연습문제 5.**
+어떤 명세가 모델이 정확도 $> 90\%$를 달성하면서 추론 지연 시간이 $< 5$ ms여야 한다고 요구한다. 가장 정확한 모델이 너무 느릴 때 이 제약들은 충돌한다. 이를 제약 최적화 문제로 형식화하고 파레토 경계를 설명하라.
+
+??? success "연습문제 5 풀이"
+    형식화: $\text{latency}(\theta) < 5\;\text{ms}$ 제약 아래 $\max_\theta \text{accuracy}(\theta)$. 파레토 경계는 지연 시간을 늘리지 않고서는 정확도를 개선할 수 없는(그 역도 성립하는) 구조/설정들의 집합이다. 경계 위의 점들은 최적의 절충을 나타낸다. 예: MobileNetV3(빠르고 중간 정확도) 대 EfficientNet-B7(느리고 높은 정확도). 경계를 찾으려면 크기가 다양한 여러 구조를 평가하여 정확도 대 지연 시간을 그려본다. 명세는 두 제약을 모두 만족하는 경계 위의 점을 선택하거나, 실현 가능한 점이 없다고 판단하여 제약 중 하나를 완화하도록 요구한다.

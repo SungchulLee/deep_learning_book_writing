@@ -1,118 +1,95 @@
-# Voronoi-Delaunay Duality
+# 보로노이-들로네 짝됨
 
-The Voronoi diagram and the Delaunay triangulation encode the same
-geometric information in dual forms. Understanding this duality lets us
-compute one from the other in $O(n)$ time and transfer properties freely
-between the two structures. This connection is one of the most elegant
-relationships in computational geometry.
+보로노이 그림과 들로네 삼각 나누기는 같은 기하의 앎을 서로 짝이 되는 꼴로 담는다. 이 짝됨을 알면 하나에서 다른 하나를 $O(n)$ 시간에 셈하고 두 짜임 사이에서 성질을 자유로이 옮길 수 있다. 이 이음은 셈 기하에서 가장 아름다운 관계 가운데 하나이다.
 
-## The Duality Correspondence
+## 짝됨의 대응
 
-Given $n$ sites $P = \{p_1, \ldots, p_n\}$, the **Voronoi diagram**
-$\text{Vor}(P)$ and the **Delaunay triangulation** $DT(P)$ are related
-by the following mappings:
+터 $n$개 $P = \{p_1, \ldots, p_n\}$이 주어질 때 **보로노이 그림** $\text{Vor}(P)$과 **들로네 삼각 나누기** $DT(P)$은 다음 옮김으로 이어진다.
 
-| Voronoi | Delaunay |
+| 보로노이 | 들로네 |
 |---|---|
-| Region $V(p_i)$ | Vertex $p_i$ |
-| Edge between $V(p_i)$ and $V(p_j)$ | Edge $\overline{p_i p_j}$ |
-| Vertex (meeting point of 3+ edges) | Triangle (circumscribed by 3+ sites) |
+| 자리 $V(p_i)$ | 꼭짓점 $p_i$ |
+| $V(p_i)$과 $V(p_j)$ 사이의 모서리 | 모서리 $\overline{p_i p_j}$ |
+| 꼭짓점(모서리 셋 이상이 만나는 점) | 삼각형(터 셋 이상이 둘레를 이룸) |
 
-In short: faces become vertices, edges stay edges, and vertices become faces.
+간추리면 면은 꼭짓점이 되고 모서리는 모서리로 남으며 꼭짓점은 면이 된다.
 
-## Formal Statement
+## 엄밀한 서술
 
-**Theorem.** Two sites $p_i$ and $p_j$ are connected by a Delaunay edge if
-and only if their Voronoi regions share a boundary edge.
+**정리.** 두 터 $p_i$과 $p_j$이 들로네 모서리로 이어지는 것과 그 보로노이 자리가 가장자리 모서리를 나누어 가지는 것은 서로 같다.
 
-**Proof sketch.** If $V(p_i)$ and $V(p_j)$ share an edge $e$, then every
-point on $e$ is equidistant from $p_i$ and $p_j$ and farther from all other
-sites. The midpoint of $e$ (or any point on $e$) is the center of a circle
-passing through $p_i$ and $p_j$ with no other site inside. This is exactly
-the empty circumcircle condition for the Delaunay edge
-$\overline{p_i p_j}$. $\square$
+**밝힘 밑그림.** $V(p_i)$과 $V(p_j)$이 모서리 $e$을 나누어 가지면 $e$ 위의 모든 점은 $p_i$과 $p_j$에서 같은 거리에 있고 다른 모든 터보다는 멀다. $e$의 가운데 점(또는 $e$ 위 아무 점)은 $p_i$과 $p_j$을 지나면서 안에 다른 터가 없는 동그라미의 중심이다. 이것이 바로 들로네 모서리 $\overline{p_i p_j}$의 빈 둘레 동그라미 조건이다. $\square$
 
-## Vertex-Triangle Correspondence
+## 꼭짓점과 삼각형의 대응
 
-A Voronoi vertex $v$ where three regions $V(p_i)$, $V(p_j)$, $V(p_k)$ meet
-is equidistant from $p_i$, $p_j$, $p_k$. Therefore $v$ is the circumcenter
-of $\triangle p_i p_j p_k$, and this triangle appears in $DT(P)$.
+세 자리 $V(p_i)$, $V(p_j)$, $V(p_k)$이 만나는 보로노이 꼭짓점 $v$은 $p_i$, $p_j$, $p_k$에서 같은 거리에 있다. 따라서 $v$은 $\triangle p_i p_j p_k$의 둘레 중심이고 이 삼각형은 $DT(P)$에 나타난다.
 
 $$
 \|v - p_i\| = \|v - p_j\| = \|v - p_k\| = r
 $$
 
-where $r$ is the circumradius. The empty circumcircle property guarantees
-that no other site lies inside the circle of radius $r$ centered at $v$.
+여기서 $r$은 둘레 반지름이다. 빈 둘레 동그라미 성질은 $v$을 중심으로 반지름 $r$인 동그라미 안에 다른 터가 없음을 보장한다.
 
-## Constructing One from the Other
+## 하나에서 다른 하나 세우기
 
-### Delaunay from Voronoi
+### 보로노이에서 들로네로
 
-Given $\text{Vor}(P)$:
+$\text{Vor}(P)$이 주어질 때:
 
-1. For each Voronoi edge separating $V(p_i)$ and $V(p_j)$, add edge
-   $\overline{p_i p_j}$ to $DT(P)$.
+1. $V(p_i)$과 $V(p_j)$을 가르는 보로노이 모서리마다 모서리 $\overline{p_i p_j}$을 $DT(P)$에 더한다.
 
-This takes $O(n)$ time since the Voronoi diagram has $O(n)$ edges.
+보로노이 그림의 모서리가 $O(n)$개이므로 $O(n)$ 시간이 든다.
 
-### Voronoi from Delaunay
+### 들로네에서 보로노이로
 
-Given $DT(P)$:
+$DT(P)$이 주어질 때:
 
-1. For each Delaunay triangle, compute its circumcenter — this is a
-   Voronoi vertex.
-2. Connect circumcenters of adjacent triangles (those sharing a Delaunay
-   edge) — these connections form Voronoi edges.
+1. 들로네 삼각형마다 둘레 중심을 셈한다. 이것이 보로노이 꼭짓점이다.
+2. 이웃한 삼각형(들로네 모서리를 나누어 가진 것)의 둘레 중심을 잇는다. 이 이음이 보로노이 모서리를 이룬다.
 
-This also takes $O(n)$ time.
+이 또한 $O(n)$ 시간이 든다.
 
-## Properties Transferred by Duality
+## 짝됨으로 옮겨 가는 성질
 
-!!! note "What Carries Over"
-    Many properties have natural dual interpretations:
+!!! note "무엇이 옮겨 가는가"
+    많은 성질이 자연스러운 짝 풀이를 갖는다.
 
-    - The **nearest neighbor** of $p_i$ (a Delaunay property) corresponds
-      to the Voronoi region sharing the longest boundary with $V(p_i)$.
-    - The **Euclidean MST** is a subgraph of $DT(P)$, so it can be found
-      in $O(n \log n)$ time by computing $DT(P)$ first.
-    - **Convex hull edges** of $P$ correspond to unbounded Voronoi edges.
+    - $p_i$의 **가장 가까운 이웃**(들로네 성질)은 $V(p_i)$과 가장 긴 가장자리를 나누어 가진 보로노이 자리에 맞물린다.
+    - **유클리드 최소 뻗음 나무**는 $DT(P)$의 아래 그래프이므로 $DT(P)$을 먼저 셈하여 $O(n \log n)$ 시간에 찾을 수 있다.
+    - $P$의 **볼록 껍질 모서리**는 끝이 열린 보로노이 모서리에 맞물린다.
 
-## Worked Example
+## 풀이 예제
 
-Consider four sites: $p_1 = (0, 0)$, $p_2 = (4, 0)$, $p_3 = (4, 4)$,
-$p_4 = (0, 4)$.
+터 넷을 보자: $p_1 = (0, 0)$, $p_2 = (4, 0)$, $p_3 = (4, 4)$, $p_4 = (0, 4)$.
 
-**Delaunay triangulation** has two triangles: $\triangle p_1 p_2 p_3$
-and $\triangle p_1 p_3 p_4$ (using diagonal $\overline{p_1 p_3}$).
+**들로네 삼각 나누기**에는 삼각형 둘이 있다: $\triangle p_1 p_2 p_3$과 $\triangle p_1 p_3 p_4$(대각선 $\overline{p_1 p_3}$을 쓴다).
 
-**Voronoi vertices** are the circumcenters:
-- $\triangle p_1 p_2 p_3$: circumcenter at $(2, 2)$
-- $\triangle p_1 p_3 p_4$: circumcenter at $(2, 2)$
+**보로노이 꼭짓점**은 둘레 중심이다.
 
-Since the four points are cocircular (all on a circle of radius $2\sqrt{2}$
-centered at $(2, 2)$), both circumcenters coincide at $(2, 2)$, and this
-single Voronoi vertex is where all four regions meet.
+- $\triangle p_1 p_2 p_3$: 둘레 중심은 $(2, 2)$
+- $\triangle p_1 p_3 p_4$: 둘레 중심은 $(2, 2)$
 
-## Implementation
+네 점이 한 동그라미 위에 있으므로($(2, 2)$을 중심으로 반지름 $2\sqrt{2}$인 동그라미) 두 둘레 중심이 $(2, 2)$에서 겹치고, 이 하나뿐인 보로노이 꼭짓점에서 네 자리가 모두 만난다.
+
+## 구현
 
 ```python
 """
-Voronoi-Delaunay duality: converting between the two structures.
+보로노이-들로네 짝됨: 두 짜임 사이의 바꾸기.
 
-Demonstrates the correspondence between Voronoi vertices and Delaunay
-triangles via circumcenter computation.
+보로노이 꼭짓점과 들로네 삼각형 사이의 대응을
+둘레 중심 셈하기로 보인다.
 """
 
 import math
 
 
-# === Circumcenter ===
+# === 둘레 중심 ===
 
 def circumcenter(a, b, c):
-    """Compute the circumcenter of triangle abc.
+    """삼각형 abc의 둘레 중심을 셈한다.
 
-    The circumcenter is the Voronoi vertex dual to this Delaunay triangle.
+    둘레 중심은 이 들로네 삼각형에 짝이 되는 보로노이 꼭짓점이다.
     """
     ax, ay = a
     bx, by = b
@@ -129,13 +106,13 @@ def circumcenter(a, b, c):
     return (ux, uy)
 
 
-# === Duality Extraction ===
+# === 짝됨 뽑아내기 ===
 
 def delaunay_to_voronoi_vertices(triangles, points):
-    """Extract Voronoi vertices from Delaunay triangles.
+    """들로네 삼각형에서 보로노이 꼭짓점을 뽑아낸다.
 
-    Each Delaunay triangle corresponds to exactly one Voronoi vertex
-    (its circumcenter).
+    들로네 삼각형은 저마다 정확히 보로노이 꼭짓점 하나에 맞물리며
+    (그 둘레 중심).
     """
     vertices = []
     for tri in triangles:
@@ -147,12 +124,12 @@ def delaunay_to_voronoi_vertices(triangles, points):
 
 
 def voronoi_edges_from_delaunay(triangles, points):
-    """Extract Voronoi edges from adjacent Delaunay triangles.
+    """이웃한 들로네 삼각형에서 보로노이 모서리를 뽑아낸다.
 
-    Two Delaunay triangles sharing an edge produce a Voronoi edge
-    connecting their circumcenters.
+    모서리를 나누어 가진 두 들로네 삼각형은 그 둘레 중심을 이어
+    보로노이 모서리를 낸다.
     """
-    # Build adjacency: edge -> list of triangle indices
+    # 이웃 관계 세우기: 모서리 -> 삼각형 어깨수 목록
     edge_to_tri = {}
     for idx, tri in enumerate(triangles):
         for i in range(3):
@@ -171,13 +148,13 @@ def voronoi_edges_from_delaunay(triangles, points):
     return voronoi_edges
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Five points
+    # 점 다섯
     points = [(0, 0), (4, 0), (4, 4), (0, 4), (2, 2)]
 
-    # A valid Delaunay triangulation (indices into points)
+    # 올바른 들로네 삼각 나누기(점의 어깨수)
     triangles = [
         (0, 1, 4),
         (1, 2, 4),
@@ -188,13 +165,13 @@ if __name__ == "__main__":
     print("Points:", points)
     print("Delaunay triangles:", triangles)
 
-    # Voronoi vertices
+    # 보로노이 꼭짓점
     vv = delaunay_to_voronoi_vertices(triangles, points)
     print("\nVoronoi vertices (circumcenters):")
     for i, v in enumerate(vv):
         print(f"  Triangle {triangles[i]} -> ({v[0]:.3f}, {v[1]:.3f})")
 
-    # Voronoi edges
+    # 보로노이 모서리
     ve = voronoi_edges_from_delaunay(triangles, points)
     print(f"\nVoronoi edges ({len(ve)} edges):")
     for v1, v2 in ve:
@@ -203,15 +180,43 @@ if __name__ == "__main__":
               f"  length={length:.3f}")
 ```
 
-## Lifting to 3D
+## 3차원으로 들어 올리기
 
-The duality has an elegant geometric interpretation via the **paraboloid
-lifting**. Map each point $(x, y)$ to $(x, y, x^2 + y^2)$ on the paraboloid
-$z = x^2 + y^2$. The lower convex hull of the lifted points projects down
-to the Delaunay triangulation, while tangent planes to the paraboloid
-correspond to Voronoi regions.
+이 짝됨에는 **포물면 들어 올리기**를 거친 아름다운 기하 풀이가 있다. 각 점 $(x, y)$을 포물면 $z = x^2 + y^2$ 위의 $(x, y, x^2 + y^2)$으로 옮긴다. 들어 올린 점의 아래 볼록 껍질을 내리쏘면 들로네 삼각 나누기가 되고, 포물면에 닿는 평면은 보로노이 자리에 이어진다.
 
-## Reference
+## 참고 문헌
 
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. *Computational Geometry: Algorithms and Applications*. Springer, Chapter 7 and 9.
 - Edelsbrunner, H. & Seidel, R. "Voronoi Diagrams and Arrangements." *Discrete & Computational Geometry*, 1986.
+
+## 연습문제
+
+**연습문제 1.**
+보로노이-들로네 짝됨의 핵심 기하 통찰과 그 시간 복잡도를 설명하라.
+
+??? success "연습문제 1 풀이"
+    보로노이-들로네 짝됨은 기하의 성질(방향, 거리, 각 차례, 훑는 선 사건)을 이용해 점이나 선, 다각형의 모임을 효율 좋게 다룬다. 시간 복잡도는 흔히 $O(n \log n)$(견줌에 바탕한 기하 문제에서 가장 좋다)에서, 본디 이차 짜임을 지닌 문제의 $O(n^2)$까지이다. 핵심 통찰은 기하 문제를 여느 알고리즘이 풀 수 있는 조합 문제로 줄이는 것이다. $\square$
+
+---
+
+**연습문제 2.**
+작은 점 모임 $\{(0,0), (1,3), (3,1), (4,4), (2,2)\}$에서 보로노이-들로네 짝됨을 좇아라.
+
+??? success "연습문제 2 풀이"
+    알고리즘의 방책(자리값으로 정렬하기, 각으로 훑기, 사건에 따라 다루기)에 따라 점을 다룬다. 걸음마다 기하 짜임(볼록 껍질, 만남 목록, 보로노이 칸 등)을 새로 고친다. 마지막 결과가 이 들임에 대한 알고리즘의 내놓기이다. 손으로 셈한 것과 견주어 기하의 성질을 살펴 옳음을 확인하라. $\square$
+
+---
+
+**연습문제 3.**
+보로노이-들로네 짝됨은 어떤 찌그러진 경우를 다루어야 하는가? 흔히 어떻게 푸는가?
+
+??? success "연습문제 3 풀이"
+    흔한 찌그러진 경우는 이렇다. (1) **한 줄에 놓인 점**: 셋 이상이 한 선 위에 있으면 방향 살피기가 애매해진다. (2) **겹친 점**: 자리값이 똑같다. (3) **세로선**: 기울기 셈에서 0으로 나누게 된다. (4) **한 동그라미 위의 점**: 네 점이 한 동그라미 위에 있으면 들로네 삼각 나누기에 영향을 준다. 푸는 방책은 튼튼한 판정(정확한 셈)을 쓰거나, 기호로 살짝 흔들거나(일반 자리를 흉내 냄), 찌그러진 경우를 따로 다루는 코드를 두는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+보로노이-들로네 짝됨을 막무가내 방식과 견주어라. 점 $n = 10^6$개에서 얼마나 빨라지는지 수로 나타내라.
+
+??? success "연습문제 4 풀이"
+    막무가내 방식은 짝이나 세 짝을 모두 살피므로 흔히 $O(n^2)$이나 $O(n^3)$이 든다. 보로노이-들로네 짝됨은 $O(n \log n)$ 또는 그보다 좋다. $n = 10^6$이면 막무가내는 셈이 $10^{12}$번이나 $10^{18}$번(몇 시간에서 몇 해) 필요하지만 효율 좋은 알고리즘은 $\approx 2 \times 10^7$번(몇 초)이면 된다. 빨라지는 갑절은 $10^5$에서 $10^{11}$이므로 들임이 클 때는 효율 좋은 알고리즘이 꼭 필요하다. $\square$

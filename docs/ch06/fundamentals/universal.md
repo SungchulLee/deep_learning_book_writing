@@ -1,80 +1,80 @@
-# Universal Hashing
+# 보편 해싱
 
-Any fixed hash function is vulnerable to adversarial inputs: an attacker who knows the hash function can choose keys that all collide, degrading every operation to $O(n)$. Universal hashing defends against this threat by randomly selecting a hash function from a carefully designed family at initialization time. Because the adversary does not know which function was chosen, no fixed input set can consistently cause poor performance.
+고정된 해시 함수는 어떤 것이든 적대적인 입력에 약하다. 해시 함수를 아는 공격자는 모두 충돌하는 키를 골라 모든 연산을 $O(n)$으로 떨어뜨릴 수 있다. 보편 해싱은 초기화 시점에 세심하게 설계된 족에서 해시 함수를 무작위로 골라 이 위협을 막는다. 어떤 함수가 골라졌는지 공격자가 모르므로 고정된 입력 집합으로는 성능을 한결같이 나쁘게 만들 수 없다.
 
-## Motivation
+## 왜 필요한가
 
-Consider a web server that stores session data in a hash table using a fixed hash function $h$. An attacker who discovers $h$ (e.g., by reading the source code) can craft $n$ requests whose session IDs all satisfy $h(k_i) = 0$, forcing every operation into a single chain of length $n$. Universal hashing eliminates this vulnerability: the hash function is chosen randomly at startup, so the attacker cannot predict which inputs will collide.
+고정된 해시 함수 $h$을 쓰는 해시 테이블에 세션 데이터를 담는 웹 서버를 생각해 보자. (소스 코드를 읽는 등으로) $h$을 알아낸 공격자는 세션 ID가 모두 $h(k_i) = 0$을 만족하는 요청을 $n$개 만들어 모든 연산을 길이 $n$의 사슬 하나로 몰아넣을 수 있다. 보편 해싱은 이 약점을 없앤다. 시작할 때 해시 함수를 무작위로 고르므로 공격자는 어떤 입력이 충돌할지 미리 알 수 없다.
 
-## Definition
+## 정의
 
-A family $\mathcal{H}$ of hash functions from universe $U$ to $\{0, 1, \ldots, m-1\}$ is **universal** if for every pair of distinct keys $k_1, k_2 \in U$ with $k_1 \neq k_2$:
+전체 집합 $U$에서 $\{0, 1, \ldots, m-1\}$으로 가는 해시 함수의 족 $\mathcal{H}$이 서로 다른 모든 키 쌍 $k_1, k_2 \in U$($k_1 \neq k_2$)에 대해 다음을 만족하면 **보편**이라고 한다.
 
 $$
 \Pr_{h \in \mathcal{H}}[h(k_1) = h(k_2)] \leq \frac{1}{m}
 $$
 
-where the probability is over the uniform random choice of $h$ from $\mathcal{H}$. Intuitively, the collision probability for any two distinct keys is no worse than what a truly random function would achieve.
+여기서 확률은 $\mathcal{H}$에서 $h$을 고르게 무작위로 고르는 데 대한 것이다. 직관적으로, 서로 다른 두 키의 충돌 확률이 참으로 무작위인 함수가 낼 값보다 나쁘지 않다는 뜻이다.
 
-This definition says nothing about any single hash function in $\mathcal{H}$. Individual functions may have poor distribution. The guarantee is that a **randomly chosen** function from $\mathcal{H}$ has low collision probability for any fixed pair of keys.
+이 정의는 $\mathcal{H}$의 개별 해시 함수에 대해서는 아무 말도 하지 않는다. 개별 함수의 분포는 나쁠 수 있다. 보장하는 것은 $\mathcal{H}$에서 **무작위로 고른** 함수가 어떤 고정된 키 쌍에 대해서도 충돌 확률이 낮다는 것이다.
 
-## Expected Performance
+## 기대 성능
 
-Universal hashing provides concrete performance guarantees for hash tables with chaining.
+보편 해싱은 체이닝을 쓰는 해시 테이블에 구체적인 성능 보장을 준다.
 
-**Theorem.** Let $h$ be chosen uniformly at random from a universal family $\mathcal{H}$, and let $n$ keys be stored in a hash table with $m$ slots using chaining. For any key $k$, the expected length of the chain containing $k$ is at most:
+**정리.** 보편 족 $\mathcal{H}$에서 $h$을 고르게 무작위로 고르고, 체이닝을 쓰는 칸 $m$개짜리 해시 테이블에 키 $n$개를 저장한다고 하자. 어떤 키 $k$에 대해서도 $k$이 든 사슬의 기대 길이는 많아야 다음과 같다.
 
 $$
 \mathbb{E}[\text{chain length at } h(k)] \leq 1 + \frac{n - 1}{m} = 1 + \alpha - \frac{1}{m}
 $$
 
-where $\alpha = n/m$ is the load factor.
+여기서 $\alpha = n/m$은 적재율이다.
 
-*Proof sketch.* For a stored key $k$, define indicator random variables $X_i = \mathbf{1}[h(k_i) = h(k)]$ for each other key $k_i$. The chain length is $1 + \sum_{i \neq k} X_i$. By the universal property, $\mathbb{E}[X_i] \leq 1/m$, so by linearity of expectation:
+*증명 개요.* 저장된 키 $k$에 대해 다른 키 $k_i$마다 지시 확률변수 $X_i = \mathbf{1}[h(k_i) = h(k)]$을 정의한다. 사슬의 길이는 $1 + \sum_{i \neq k} X_i$이다. 보편성에 의해 $\mathbb{E}[X_i] \leq 1/m$이므로 기댓값의 선형성에 의해 다음이 성립한다.
 
 $$
 \mathbb{E}\left[\sum_{i \neq k} X_i\right] \leq \frac{n-1}{m}
 $$
 
-This gives $O(1)$ expected time for all operations when $\alpha = O(1)$, matching the performance of simple uniform hashing but now with a **provable** guarantee that holds for any input.
+따라서 $\alpha = O(1)$일 때 모든 연산이 기대 $O(1)$ 시간에 끝난다. 단순 균등 해싱과 같은 성능이지만 이제는 어떤 입력에도 통하는 **증명 가능한** 보장이 붙는다.
 
-## The Carter-Wegman Family
+## 카터-웨그먼 족
 
-Carter and Wegman (1979) constructed the first universal hash family. Choose a prime $p \geq |U|$ (the size of the key universe), and define:
+카터와 웨그먼(1979)은 최초의 보편 해시 족을 만들었다. 키 전체 집합의 크기 $|U|$ 이상인 소수 $p$을 고르고 다음과 같이 정의한다.
 
 $$
 h_{a,b}(k) = ((ak + b) \bmod p) \bmod m
 $$
 
-where $a \in \{1, 2, \ldots, p-1\}$ and $b \in \{0, 1, \ldots, p-1\}$. The family is:
+여기서 $a \in \{1, 2, \ldots, p-1\}$이고 $b \in \{0, 1, \ldots, p-1\}$이다. 이 족은 다음과 같다.
 
 $$
 \mathcal{H}_{p,m} = \{h_{a,b} : a \in \{1, \ldots, p-1\},\ b \in \{0, \ldots, p-1\}\}
 $$
 
-This family has $p(p-1)$ members and is universal.
+이 족의 원소는 $p(p-1)$개이며 보편이다.
 
-**Proof of universality.** For distinct keys $k_1 \neq k_2$, the values $r_1 = (ak_1 + b) \bmod p$ and $r_2 = (ak_2 + b) \bmod p$ are distinct (since $a \neq 0$ and arithmetic is in $\mathbb{Z}_p$, a field). As $(a, b)$ ranges over all valid pairs, the pair $(r_1, r_2)$ takes each of the $p(p-1)$ possible values of distinct pairs in $\mathbb{Z}_p$ exactly once. The number of pairs $(r_1, r_2)$ with $r_1 \bmod m = r_2 \bmod m$ is at most:
+**보편성의 증명.** 서로 다른 키 $k_1 \neq k_2$에 대해 $r_1 = (ak_1 + b) \bmod p$과 $r_2 = (ak_2 + b) \bmod p$은 서로 다르다($a \neq 0$이고 연산이 체 $\mathbb{Z}_p$에서 이루어지기 때문이다). $(a, b)$이 유효한 모든 쌍을 훑을 때 쌍 $(r_1, r_2)$은 $\mathbb{Z}_p$의 서로 다른 쌍 $p(p-1)$개를 정확히 한 번씩 취한다. $r_1 \bmod m = r_2 \bmod m$인 쌍 $(r_1, r_2)$의 수는 많아야 다음과 같다.
 
 $$
 p(p-1) \cdot \frac{1}{m} \cdot \frac{m}{m} \leq \frac{p(p-1)}{m}
 $$
 
-Dividing by the total number of hash functions $p(p-1)$ gives:
+전체 해시 함수의 수 $p(p-1)$으로 나누면 다음을 얻는다.
 
 $$
 \Pr[h_{a,b}(k_1) = h_{a,b}(k_2)] \leq \frac{1}{m}
 $$
 
-??? example "Carter-Wegman Hash Family in Action"
+??? example "카터-웨그먼 해시 족의 실제"
 
-    Let $p = 17$, $m = 6$, and suppose we randomly select $a = 3$, $b = 4$:
+    $p = 17$, $m = 6$이라 하고 $a = 3$, $b = 4$을 무작위로 골랐다고 하자.
 
     $$
     h_{3,4}(k) = ((3k + 4) \bmod 17) \bmod 6
     $$
 
-    For keys $\{5, 10, 15, 20, 25, 30\}$:
+    키 $\{5, 10, 15, 20, 25, 30\}$에 대해 다음과 같다.
 
     $$
     \begin{array}{rcl}
@@ -87,34 +87,67 @@ $$
     \end{array}
     $$
 
-    The 6 keys spread across 5 of 6 slots (one collision between 15 and 30), demonstrating good distribution.
+    키 6개가 칸 6개 가운데 5개에 흩어진다(15와 30이 한 번 충돌한다). 분포가 좋음을 보여 준다.
 
-## Stronger Universality
+## 더 강한 보편성
 
-A family $\mathcal{H}$ is **strongly universal** (or 2-independent) if for all distinct $k_1, k_2 \in U$ and all $j_1, j_2 \in \{0, \ldots, m-1\}$:
+족 $\mathcal{H}$이 서로 다른 모든 $k_1, k_2 \in U$과 모든 $j_1, j_2 \in \{0, \ldots, m-1\}$에 대해 다음을 만족하면 **강한 보편**(또는 2-독립)이라고 한다.
 
 $$
 \Pr_{h \in \mathcal{H}}[h(k_1) = j_1 \text{ and } h(k_2) = j_2] = \frac{1}{m^2}
 $$
 
-Strong universality implies universality (set $j_1 = j_2$ and sum over $j_1$), but provides additional guarantees useful for variance analysis and perfect hashing constructions. The Carter-Wegman family over $\mathbb{Z}_p$ when $m = p$ (no second modular reduction) is strongly universal.
+강한 보편성은 보편성을 함의하며($j_1 = j_2$으로 두고 $j_1$에 대해 합하면 된다), 분산 분석과 완전 해싱 구성에 쓸모 있는 보장을 더해 준다. $m = p$일 때(두 번째 나머지 연산이 없을 때) $\mathbb{Z}_p$ 위의 카터-웨그먼 족은 강한 보편이다.
 
-## Universal Hashing vs Fixed Hash Functions
+## 보편 해싱과 고정된 해시 함수
 
-| Property | Fixed Hash Function | Universal Hashing |
+| 성질 | 고정된 해시 함수 | 보편 해싱 |
 |---|---|---|
-| Adversarial resistance | None | Guaranteed |
-| Expected chain length | Depends on input | $\leq 1 + \alpha$ for any input |
-| Per-lookup overhead | One hash computation | One hash computation |
-| Initialization | None | Random selection of $a, b$ |
-| Space overhead | None | Store $a, b$ ($O(1)$) |
+| 적대적 입력에 대한 저항 | 없음 | 보장됨 |
+| 기대 사슬 길이 | 입력에 달렸다 | 어떤 입력에도 $\leq 1 + \alpha$ |
+| 조회당 부담 | 해시 계산 한 번 | 해시 계산 한 번 |
+| 초기화 | 없음 | $a, b$을 무작위로 고름 |
+| 공간 부담 | 없음 | $a, b$ 저장 ($O(1)$) |
 
-The only cost of universal hashing is storing the random parameters $a$ and $b$, which is negligible. The performance guarantees hold for **any** input set, not just "typical" inputs.
+보편 해싱의 유일한 비용은 무작위 매개변수 $a$과 $b$을 저장하는 것이며 무시할 만하다. 성능 보장은 "흔한" 입력만이 아니라 **어떤** 입력 집합에도 성립한다.
 
-## Summary
+## 요약
 
-Universal hashing provides provable $O(1)$ expected-time guarantees for hash table operations against any input, including adversarial inputs. By randomly selecting a hash function from a universal family at initialization, the collision probability for any pair of keys is bounded by $1/m$. The Carter-Wegman construction $h_{a,b}(k) = ((ak + b) \bmod p) \bmod m$ provides a concrete, efficient universal family that is widely used in practice and forms the foundation for perfect hashing schemes.
+보편 해싱은 적대적인 입력을 포함해 어떤 입력에 대해서도 해시 테이블 연산이 기대 $O(1)$ 시간임을 증명 가능하게 보장한다. 초기화 시점에 보편 족에서 해시 함수를 무작위로 고르면 어떤 키 쌍의 충돌 확률도 $1/m$ 이하가 된다. 카터-웨그먼 구성 $h_{a,b}(k) = ((ak + b) \bmod p) \bmod m$은 실무에서 널리 쓰이는 구체적이고 효율적인 보편 족을 주며 완전 해싱 방식의 바탕이 된다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+보편 해싱에 대해, 적재율이 $\alpha = 0.75$일 때 삽입과 조회의 기대 시간과 최악의 경우 시간을 계산하라.
+
+??? success "연습문제 1 풀이"
+    기대 시간은 충돌 해결 전략에 달렸으며 균등 해싱을 가정한다. 체이닝에서는 기대 시간이 $O(1 + \alpha) = O(1.75)$이다. 개방 주소법에서는 탐색에 실패할 때 기대 탐사 횟수가 $\approx 1/(1-\alpha) = 4$이다. 최악의 경우는 모든 키가 같은 칸으로 해시될 때의 $O(n)$이다.
+
+---
+
+**연습문제 2.**
+보편 해싱을(를) 써서 키 10, 22, 31, 4, 15, 28, 17을 크기가 7인 해시 테이블에 넣어라. 최종 테이블의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    해시 함수 $h(k) = k \bmod 7$을 적용하고 이 쪽의 방법으로 충돌을 처리한다. 키마다 해시를 계산하고 충돌을 해결한 뒤 키를 놓는다. 최종 테이블의 내용을 보인다.
+
+---
+
+**연습문제 3.**
+보편 해싱은(는) 딥러닝의 임베딩 테이블에서 어떻게 쓰이는가? 토큰 $V = 50{,}000$개의 어휘를 $m = 30{,}000$개의 버킷에 대응시킬 때 충돌의 양상을 분석하라.
+
+??? success "연습문제 3 풀이"
+    $V/m \approx 1.67$이므로 비둘기집 원리에 의해 충돌이 반드시 생긴다. 버킷마다 평균 1.67개의 토큰이 같은 임베딩을 나누어 쓴다. 충돌률과 그것이 모델의 품질에 미치는 영향은 해시 함수의 품질과 임베딩의 차원에 달렸다(차원이 높을수록 충돌을 더 잘 견딘다).
+
+---
+
+**연습문제 4.**
+$\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 상각 비용이 $O(1)$으로 유지됨을 증명하라.
+
+??? success "연습문제 4 풀이"
+    크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$

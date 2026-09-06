@@ -1,99 +1,127 @@
-# 29.1.1 Graph Basics
+# 29.1.1 그래프 바탕
+## 들어가며
 
+**그래프**는 대상 사이의 짝 관계를 나타내는 데 쓰는 수학 얼개이다. 엄밀히는 그래프 $G = (V, E)$이 **마디**(꼭짓점)의 모임 $V$과 마디 짝을 잇는 **변**의 모임 $E \subseteq V \times V$으로 이루어진다. 그래프는 사회의 이음, 분자 결합, 금융 거래, 그물 위상에 이르기까지 여러 마당의 관계 자료를 자연스럽게 나타낸다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 엄밀한 뜻매김
 
-## Introduction
+### 방향 없는 그래프
 
-A **graph** is a mathematical structure used to model pairwise relationships between objects. Formally, a graph $G = (V, E)$ consists of a set of **nodes** (or vertices) $V$ and a set of **edges** $E \subseteq V \times V$ connecting pairs of nodes. Graphs provide a natural representation for relational data across domains—social connections, molecular bonds, financial transactions, and network topologies.
-
-## Formal Definitions
-
-### Undirected Graphs
-
-An **undirected graph** is a graph where edges have no orientation. If $(u, v) \in E$, then $(v, u) \in E$. The edge represents a symmetric relationship between nodes $u$ and $v$.
+**방향 없는 그래프**는 변에 방향이 없는 그래프이다. $(u, v) \in E$이면 $(v, u) \in E$이다. 변은 마디 $u$과 $v$ 사이의 맞섬 관계를 나타낸다.
 
 $$G = (V, E), \quad E \subseteq \{\{u, v\} : u, v \in V\}$$
 
-### Directed Graphs (Digraphs)
+### 방향 그래프
 
-A **directed graph** (digraph) has edges with orientation. An edge $(u, v) \in E$ indicates a directed relationship from $u$ to $v$, which does not imply $(v, u) \in E$.
+**방향 그래프**는 변에 방향이 있다. 변 $(u, v) \in E$은 $u$에서 $v$으로 가는 방향 관계를 가리키며 $(v, u) \in E$을 뜻하지 않는다.
 
 $$G = (V, E), \quad E \subseteq \{(u, v) : u, v \in V\}$$
 
-### Weighted Graphs
+### 무게 그래프
 
-A **weighted graph** assigns a real-valued weight to each edge via a weight function $w: E \rightarrow \mathbb{R}$. Weights can represent distances, costs, strengths of connections, or transaction amounts.
+**무게 그래프**는 무게 함수 $w: E \rightarrow \mathbb{R}$으로 변마다 실수 무게를 매긴다. 무게는 거리, 비용, 이음의 세기, 거래 금액을 나타낼 수 있다.
 
-### Multigraphs
+### 여러 변 그래프
 
-A **multigraph** allows multiple edges between the same pair of nodes (parallel edges) and may include self-loops (edges from a node to itself).
+**여러 변 그래프**는 같은 마디 짝 사이에 변을 여럿(나란한 변) 허락하고 스스로 이음(마디에서 자신으로 가는 변)도 담을 수 있다.
 
-## Key Terminology
+## 핵심 말
 
-| Term | Definition |
+| 용어 | 정의 |
 |------|-----------|
-| **Degree** | Number of edges incident to a node. For directed graphs: in-degree and out-degree |
-| **Neighbor** | Node $v$ is a neighbor of $u$ if $(u, v) \in E$. The neighborhood $\mathcal{N}(u) = \{v \in V : (u, v) \in E\}$ |
-| **Path** | Sequence of nodes $(v_1, v_2, \ldots, v_k)$ where each consecutive pair is connected by an edge |
-| **Cycle** | Path that starts and ends at the same node |
-| **Connected** | An undirected graph is connected if there exists a path between every pair of nodes |
-| **Subgraph** | A graph $G' = (V', E')$ where $V' \subseteq V$ and $E' \subseteq E \cap (V' \times V')$ |
-| **Clique** | A complete subgraph where every pair of nodes is connected |
-| **Bipartite** | A graph whose nodes can be divided into two disjoint sets such that edges only connect nodes from different sets |
+| **차수** | 마디에 닿는 변의 개수. 방향 그래프에서는 들어오는 차수와 나가는 차수 |
+| **이웃** | $(u, v) \in E$이면 마디 $v$은 $u$의 이웃이다. 이웃 자리는 $\mathcal{N}(u) = \{v \in V : (u, v) \in E\}$ |
+| **길** | 잇단 짝마다 변으로 이어진 마디의 차례 $(v_1, v_2, \ldots, v_k)$ |
+| **돌이** | 같은 마디에서 시작해 끝나는 길 |
+| **이어짐** | 모든 마디 짝 사이에 길이 있으면 방향 없는 그래프가 이어져 있다 |
+| **부분 그래프** | $V' \subseteq V$이고 $E' \subseteq E \cap (V' \times V')$인 그래프 $G' = (V', E')$ |
+| **덩어리** | 모든 마디 짝이 이어진 완전 부분 그래프 |
+| **두 쪽** | 마디를 겹치지 않는 모임 둘로 나누어 변이 서로 다른 모임의 마디만 잇게 할 수 있는 그래프 |
 
-## Degree Distribution
+## 차수 분포
 
-The **degree** of node $v$ is:
+마디 $v$의 **차수**는 다음과 같다:
 
 $$d(v) = |\mathcal{N}(v)|$$
 
-For directed graphs:
-- **In-degree**: $d_{in}(v) = |\{u : (u, v) \in E\}|$
-- **Out-degree**: $d_{out}(v) = |\{u : (v, u) \in E\}|$
+방향 그래프에서는:
 
-The **degree matrix** $D$ is a diagonal matrix where $D_{ii} = d(v_i)$.
+- **들어오는 차수**: $d_{in}(v) = |\{u : (u, v) \in E\}|$
+- **나가는 차수**: $d_{out}(v) = |\{u : (v, u) \in E\}|$
 
-The **Handshaking Lemma** states:
+**차수 행렬** $D$은 $D_{ii} = d(v_i)$인 대각 행렬이다.
+
+**악수 도움 정리**는 이렇게 말한다:
 
 $$\sum_{v \in V} d(v) = 2|E|$$
 
-## Common Graph Types
+## 흔한 그래프 갈래
 
-### Complete Graph K_n
-Every pair of nodes is connected. Has $\binom{n}{2} = \frac{n(n-1)}{2}$ edges.
+### 완전 그래프 K_n
+모든 마디 짝이 이어져 있다. 변이 $\binom{n}{2} = \frac{n(n-1)}{2}$개이다.
 
-### Star Graph S_n
-One central node connected to $n-1$ peripheral nodes.
+### 별 그래프 S_n
+가운데 마디 하나가 바깥 마디 $n-1$개에 이어져 있다.
 
-### Tree
-A connected acyclic graph with exactly $|V| - 1$ edges.
+### 나무
+변이 꼭 $|V| - 1$개인 이어지고 돌이 없는 그래프.
 
-### DAG (Directed Acyclic Graph)
-A directed graph with no directed cycles. Used extensively in dependency modeling and causal inference.
+### 방향 있고 돌이 없는 그래프(DAG)
+방향 돌이가 없는 방향 그래프. 매임 나타내기와 인과 추론에 널리 쓰인다.
 
-## Graph Data Structures
+## 그래프 자료 얼개
 
-Graphs can be stored using several data structures, each with trade-offs:
+그래프는 여러 자료 얼개로 담을 수 있으며 저마다 맞바꿈이 있다:
 
-1. **Adjacency List**: For each node, store a list of its neighbors. Memory-efficient for sparse graphs: $O(|V| + |E|)$.
-2. **Adjacency Matrix**: $|V| \times |V|$ matrix. Simple but memory-intensive: $O(|V|^2)$.
-3. **Edge List**: List of all edges as pairs $(u, v)$. Compact: $O(|E|)$.
-4. **Incidence Matrix**: $|V| \times |E|$ matrix relating nodes to edges.
+1. **이웃 목록**: 마디마다 그 이웃 목록을 담는다. 성긴 그래프에서 기억을 아낀다: $O(|V| + |E|)$.
+2. **이웃 행렬**: $|V| \times |V|$ 행렬. 단순하지만 기억을 많이 쓴다: $O(|V|^2)$.
+3. **변 목록**: 모든 변을 짝 $(u, v)$으로 담은 목록. 간결하다: $O(|E|)$.
+4. **닿음 행렬**: 마디와 변을 잇는 $|V| \times |E|$ 행렬.
 
-## Quantitative Finance Context
+## 계량 금융의 맥락
 
-Graphs naturally arise in quantitative finance:
+그래프는 계량 금융에서 자연스럽게 나타난다:
 
-- **Correlation Networks**: Nodes are assets; edge weights are pairwise correlations
-- **Transaction Networks**: Nodes are accounts; directed edges represent money flows
-- **Supply Chain Graphs**: Nodes are companies; edges represent supplier-customer relationships
-- **Interbank Networks**: Nodes are banks; edges represent lending relationships
-- **Options Market Graphs**: Nodes are options contracts; edges connect contracts on the same underlying
+- **얽힘 그물**: 마디가 자산이고 변 무게가 짝별 얽힘이다
+- **거래 그물**: 마디가 계좌이고 방향 변이 돈의 흐름을 나타낸다
+- **공급 사슬 그래프**: 마디가 회사이고 변이 공급자와 고객의 관계를 나타낸다
+- **은행 사이 그물**: 마디가 은행이고 변이 빌려주는 관계를 나타낸다
+- **옵션 시장 그래프**: 마디가 옵션 계약이고 변이 같은 기초 자산의 계약을 잇는다
 
-Understanding graph structure enables analysis of systemic risk, fraud detection, portfolio construction, and market microstructure.
+그래프 얼개를 이해하면 체계 위험 살피기, 속임수 찾기, 꾸러미 짜기, 시장 미시 얼개 살피기를 할 수 있다.
 
-## Summary
+## 요약
 
-Graphs provide a flexible and powerful formalism for representing relational data. The choice of graph type (directed, weighted, etc.) and storage representation depends on the application domain and computational requirements. In the following sections, we formalize these representations mathematically and implement them using modern deep learning libraries.
+그래프는 관계 자료를 나타내는 너그럽고 힘센 틀을 준다. 그래프 갈래(방향, 무게 등)와 담는 방식을 어떻게 고르느냐는 쓰임새 마당과 셈 요구에 매인다. 다음 마디에서 이 나타냄을 수학으로 엄밀히 적고 요즘 깊은 배움 꾸러미로 짠다.
+
+## 연습문제
+
+**연습문제 1.**
+마디 5개와 돌이의 이웃 얼개를 가진 그래프를 살펴보자. 2차원 특징 벡터에서 이 마디에 적은 쪽지 건네기 고침 한 걸음을 손으로 셈하라.
+
+??? success "연습문제 1 풀이"
+    마디 $1, \ldots, 5$에 특징 벡터 $\mathbf{h}_i \in \mathbb{R}^2$을 붙인다. 돌이에서 마디마다 이웃이 꼭 둘이다. 마디마다 모으기(보기로 이웃의 평균)와 고침(보기로 선형 바꿈과 깨움)을 쓴다. 한 걸음 뒤 마디마다의 나타냄이 바로 옆 이웃의 영향을 받는다. 이 드러난 셈은 받아들이는 자리가 층마다 한 뜀씩 넓어짐을 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+평균 모으기와 합 모으기가 여럿 모임을 가르는 나타냄 힘에서 다름을 밝혀라. 평균 모으기로는 가릴 수 없지만 합 모으기로는 가릴 수 있는 여럿 모임 둘의 구체적인 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    $S_1 = \{1, 1, 1\}$과 $S_2 = \{1\}$을 살펴보자. 평균 모으기는 $\text{mean}(S_1) = 1 = \text{mean}(S_2)$을 주어 둘을 가르지 못한다. 합 모으기는 $\text{sum}(S_1) = 3 \neq 1 = \text{sum}(S_2)$을 준다. 더 넓게는 평균 모으기가 여럿 모임의 겹침 수에 대해 불변이므로 서로 낱값 배인 여럿 모임을 가를 수 없다. 그래서 그래프 동형 신경망은 1차 바이스파일러-레만 시험에 맞먹는 최대 나타냄 힘을 얻으려 합 모으기를 쓴다. $\square$
+
+---
+
+**연습문제 3.**
+최단 길 거리가 $k$일 때 마디 $u$의 앎이 마디 $v$에 닿으려면 쪽지 건네기 층이 몇 개 필요한가? $k$이 커지면 실제로 어떤 문제가 생기는가?
+
+??? success "연습문제 3 풀이"
+    층마다 앎을 한 뜀씩 퍼뜨리므로 꼭 $k$개가 필요하다. $k$이 커지면 받아들이는 자리가 지수로 넓어진다(마디마다 $k$뜀 안의 모든 마디에서 모은다). 이는 지나친 매끄러워짐을 낳는다. 층이 많아지면 마디마다 거의 온 그래프의 앎을 모았기에 모든 마디 나타냄이 가릴 수 없는 벡터로 모인다. 누그러뜨리는 셈속으로는 남은 이음, 건너뛰는 앎, 그래프 변환기가 있다. $\square$
+
+---
+
+**연습문제 4.**
+그래프 겹말기의 자리 방식과 스펙트럼 방식의 맞바꿈을 따져라. 각각은 어떤 조건에서 더 나은가?
+
+??? success "연습문제 4 풀이"
+    스펙트럼 방법(보기로 ChebNet)은 그래프 라플라스의 고유 분해로 겹말기를 뜻매김해 원리 있는 신호 다루기 틀을 주지만 고유 분해($O(n^3)$)가 필요하고 그래프 위상이 붙박여 있어야 한다. 자리 방법(보기로 GraphSAGE, 그래프 눈길 신경망)은 이웃 모으기로 겹말기를 뜻매김해 달라지는 그래프 얼개를 자연스럽게 다루고 작은 묶음으로 큰 그래프에도 키울 수 있다. 정확한 진동수 거르기가 중요한 작고 위상이 붙박인 그래프에는 스펙트럼 방법이, 귀납 배움이 필요한 크거나 바뀌거나 뒤섞인 그래프에는 자리 방법이 낫다. $\square$

@@ -1,94 +1,94 @@
-# Memory Usage
+# 메모리 사용량
 
-Algorithm analysis typically focuses on time complexity, but memory is often the binding constraint in practice. A GPU has limited VRAM, a mobile device has limited RAM, and even a data center server cannot hold an arbitrarily large dataset in memory at once. Space complexity analysis quantifies how an algorithm's memory consumption grows with input size, enabling informed choices between algorithms when memory is scarce.
+알고리즘 분석은 보통 시간 복잡도에 초점을 맞추지만, 실무에서 구속력을 갖는 제약은 메모리인 경우가 많다. GPU의 VRAM은 한정되어 있고, 모바일 기기의 RAM도 한정되어 있으며, 데이터 센터 서버조차 임의로 큰 데이터셋을 한꺼번에 메모리에 담을 수 없다. 공간 복잡도 분석은 알고리즘의 메모리 소비가 입력 크기에 따라 어떻게 증가하는지를 정량화하여, 메모리가 부족할 때 알고리즘을 근거 있게 고를 수 있게 해 준다.
 
-## Space Complexity
+## 공간 복잡도
 
-The **space complexity** $S(n)$ of an algorithm is the total amount of memory it requires as a function of the input size $n$. This includes:
+알고리즘의 **공간 복잡도** $S(n)$은 입력 크기 $n$의 함수로서 필요한 메모리의 총량이다. 여기에는 다음이 포함된다.
 
-1. **Input space**: Memory to store the input itself
-2. **Auxiliary space**: Extra memory allocated during execution (temporary variables, data structures, stack frames)
-3. **Output space**: Memory for the result, if separate from the input
+1. **입력 공간**: 입력 자체를 저장하는 메모리
+2. **보조 공간**: 실행 중 할당되는 여분의 메모리(임시 변수, 자료구조, 스택 프레임)
+3. **출력 공간**: 결과를 담는 메모리(입력과 별개인 경우)
 
 $$
 S(n) = S_{\text{input}}(n) + S_{\text{aux}}(n) + S_{\text{output}}(n)
 $$
 
-In most analyses, we focus on [auxiliary space](auxiliary.md) because the input and output sizes are determined by the problem specification, not the algorithm.
+대부분의 분석에서는 [보조 공간](auxiliary.md)에 초점을 맞춘다. 입력과 출력의 크기는 알고리즘이 아니라 문제 명세가 결정하기 때문이다.
 
-## Measuring Memory
+## 메모리 재기
 
-### Units of Space
+### 공간의 단위
 
-Space complexity can be measured at different levels of abstraction:
+공간 복잡도는 여러 추상화 수준에서 잴 수 있다.
 
-| Level | Unit | Example |
-|-------|------|---------|
-| Abstract | Words | Each variable, pointer, or array element counts as one word |
-| Machine | Bytes | Each `int32` takes 4 bytes, each `float64` takes 8 bytes |
-| System | Pages | Memory is allocated in pages (typically 4 KB) |
+| 수준 | 단위 | 예 |
+|-------|------|-----|
+| 추상 | 워드 | 각 변수, 포인터, 배열 원소가 한 워드로 계산된다 |
+| 기계 | 바이트 | `int32` 하나가 4바이트, `float64` 하나가 8바이트 |
+| 시스템 | 페이지 | 메모리가 페이지 단위(보통 4 KB)로 할당된다 |
 
-Algorithm analysis typically uses the **word model**: we count the number of words (machine-sized integers or pointers) used, where each word can hold a value up to $O(n)$ in $O(\log n)$ bits.
+알고리즘 분석에서는 보통 **워드 모형** 을 쓴다. 사용하는 워드(기계 크기의 정수 또는 포인터)의 개수를 세며, 각 워드는 $O(\log n)$비트로 $O(n)$까지의 값을 담을 수 있다.
 
-### Peak vs Cumulative
+### 최대 사용량과 누적 사용량
 
-Space complexity measures **peak usage** -- the maximum amount of memory in use at any single point during execution. If an algorithm allocates an $O(n)$ array, frees it, then allocates another $O(n)$ array, the space complexity is $O(n)$, not $O(2n)$.
+공간 복잡도는 **최대 사용량** 을 잰다. 즉 실행 중 어느 한 시점에서 사용 중인 메모리의 최댓값이다. 알고리즘이 $O(n)$ 배열을 할당하고 해제한 뒤 또 다른 $O(n)$ 배열을 할당하면 공간 복잡도는 $O(2n)$이 아니라 $O(n)$이다.
 
-This differs from time complexity, which is cumulative: every operation counts, whether or not it overlaps with other operations.
+이는 누적적인 시간 복잡도와 다르다. 시간 복잡도에서는 다른 연산과 겹치든 말든 모든 연산이 계산된다.
 
-## Common Space Complexity Classes
+## 흔한 공간 복잡도 부류
 
-| Class | Description | Examples |
+| 부류 | 설명 | 예 |
 |-------|-------------|---------|
-| $O(1)$ | Constant space | In-place sorting (insertion sort, heapsort) |
-| $O(\log n)$ | Logarithmic | Balanced recursion (quicksort expected), binary search recursive |
-| $O(n)$ | Linear | Merge sort auxiliary array, hash table, BFS queue |
-| $O(n \log n)$ | Log-linear | Some divide-and-conquer with full recursion tree stored |
-| $O(n^2)$ | Quadratic | Adjacency matrix, dynamic programming table for LCS |
-| $O(2^n)$ | Exponential | Memoization table for subset problems |
+| $O(1)$ | 상수 공간 | 제자리 정렬(삽입 정렬, 힙 정렬) |
+| $O(\log n)$ | 로그 | 균형 잡힌 재귀(퀵 정렬 기댓값), 재귀 이진 탐색 |
+| $O(n)$ | 선형 | 병합 정렬의 보조 배열, 해시 테이블, BFS 큐 |
+| $O(n \log n)$ | 로그선형 | 재귀 트리 전체를 저장하는 일부 분할 정복 |
+| $O(n^2)$ | 이차 | 인접 행렬, LCS를 위한 동적 계획법 표 |
+| $O(2^n)$ | 지수 | 부분집합 문제를 위한 메모화 표 |
 
-## Sources of Memory Usage
+## 메모리 사용의 원인
 
-### Stack Space
+### 스택 공간
 
-Every function call pushes a frame onto the call stack containing local variables, parameters, and the return address. Recursive algorithms accumulate stack frames proportional to the recursion depth.
+함수 호출마다 지역 변수, 매개변수, 반환 주소를 담은 프레임이 호출 스택에 쌓인다. 재귀 알고리즘은 재귀 깊이에 비례하는 스택 프레임을 누적한다.
 
 $$
 S_{\text{stack}}(n) = O(d) \cdot O(f)
 $$
 
-where $d$ is the maximum recursion depth and $f$ is the space per frame. For most algorithms, $f = O(1)$, so stack space is $O(d)$.
+여기서 $d$는 최대 재귀 깊이이고 $f$는 프레임당 공간이다. 대부분의 알고리즘에서 $f = O(1)$이므로 스택 공간은 $O(d)$이다.
 
-| Algorithm | Recursion depth | Stack space |
+| 알고리즘 | 재귀 깊이 | 스택 공간 |
 |-----------|----------------|-------------|
-| Binary search | $O(\log n)$ | $O(\log n)$ |
-| Merge sort | $O(\log n)$ | $O(\log n)$ |
-| Quicksort (expected) | $O(\log n)$ | $O(\log n)$ |
-| Quicksort (worst case) | $O(n)$ | $O(n)$ |
-| Tree traversal | $O(h)$ | $O(h)$ |
-| DFS on a graph | $O(V)$ | $O(V)$ |
+| 이진 탐색 | $O(\log n)$ | $O(\log n)$ |
+| 병합 정렬 | $O(\log n)$ | $O(\log n)$ |
+| 퀵 정렬(기댓값) | $O(\log n)$ | $O(\log n)$ |
+| 퀵 정렬(최악의 경우) | $O(n)$ | $O(n)$ |
+| 트리 순회 | $O(h)$ | $O(h)$ |
+| 그래프에서의 DFS | $O(V)$ | $O(V)$ |
 
-### Heap Allocations
+### 힙 할당
 
-Explicit data structures allocated during execution consume heap memory. The size depends on the algorithm:
+실행 중 할당되는 명시적 자료구조는 힙 메모리를 소비한다. 크기는 알고리즘에 따라 다르다.
 
-- A temporary array of size $n$ for merge sort: $O(n)$
-- A hash table with $n$ entries: $O(n)$
-- A priority queue for Dijkstra's algorithm: $O(V)$
-- A memoization table for dynamic programming: depends on state space
+- 병합 정렬을 위한 크기 $n$의 임시 배열: $O(n)$
+- 항목이 $n$개인 해시 테이블: $O(n)$
+- 다익스트라 알고리즘을 위한 우선순위 큐: $O(V)$
+- 동적 계획법을 위한 메모화 표: 상태 공간에 따라 다름
 
-### Hidden Memory Costs
+### 숨은 메모리 비용
 
-Some operations allocate memory that is not immediately obvious:
+곧바로 드러나지 않는 메모리를 할당하는 연산들이 있다.
 
-- **String concatenation** in languages like Python creates a new string object each time
-- **List comprehensions** allocate a new list
-- **Tensor operations** in PyTorch allocate new tensors for the result (unless in-place variants are used)
-- **Autograd graph**: PyTorch stores the computational graph during the forward pass, consuming memory proportional to the number of operations
+- 파이썬 같은 언어에서의 **문자열 이어 붙이기** 는 매번 새 문자열 객체를 만든다
+- **리스트 컴프리헨션** 은 새 리스트를 할당한다
+- PyTorch의 **텐서 연산** 은 (제자리 변형을 쓰지 않는 한) 결과를 담을 새 텐서를 할당한다
+- **Autograd 그래프**: PyTorch는 순전파 중 계산 그래프를 저장하며, 연산 개수에 비례하는 메모리를 소비한다
 
-## Analyzing Space Complexity: Examples
+## 공간 복잡도 분석: 예제
 
-### Example 1: Iterative Sum
+### 예제 1: 반복적 합
 
 ```python
 def array_sum(arr):
@@ -98,11 +98,11 @@ def array_sum(arr):
     return total
 ```
 
-- Input space: $O(n)$ for the array
-- Auxiliary space: $O(1)$ -- only the variable `total` and loop iterator
-- Total: $O(n)$
+- 입력 공간: 배열을 위한 $O(n)$
+- 보조 공간: $O(1)$ — 변수 `total`과 반복자만
+- 총합: $O(n)$
 
-### Example 2: Merge Sort
+### 예제 2: 병합 정렬
 
 ```python
 def merge_sort(arr):
@@ -114,58 +114,91 @@ def merge_sort(arr):
     return merge(left, right)
 ```
 
-- Input space: $O(n)$
-- Auxiliary space: $O(n)$ for the temporary arrays created during slicing, plus $O(\log n)$ for the recursion stack
-- Total: $O(n)$
+- 입력 공간: $O(n)$
+- 보조 공간: 슬라이싱으로 만들어지는 임시 배열을 위한 $O(n)$에 재귀 스택을 위한 $O(\log n)$
+- 총합: $O(n)$
 
-### Example 3: Dynamic Programming (Knapsack)
+### 예제 3: 동적 계획법(배낭 문제)
 
-A 2D DP table for the 0/1 knapsack problem with $n$ items and capacity $W$:
+물건이 $n$개이고 용량이 $W$인 0/1 배낭 문제를 위한 2차원 DP 표는 다음과 같다.
 
-- Table size: $n \times W$
-- Auxiliary space: $O(nW)$
+- 표 크기: $n \times W$
+- 보조 공간: $O(nW)$
 
-With space optimization (keeping only two rows), auxiliary space reduces to $O(W)$.
+공간 최적화(두 행만 유지)를 하면 보조 공간이 $O(W)$로 줄어든다.
 
-## Space Optimization Techniques
+## 공간 최적화 기법
 
-### Rolling Arrays
+### 롤링 배열
 
-When a dynamic programming algorithm only depends on the previous row (or a constant number of previous rows), keep only those rows in memory instead of the full table.
+동적 계획법 알고리즘이 직전 행(또는 상수 개의 직전 행)에만 의존한다면, 표 전체 대신 그 행들만 메모리에 유지한다.
 
-### Streaming Algorithms
+### 스트리밍 알고리즘
 
-Process the input one element at a time without storing the entire input. Examples include computing the mean, finding the minimum, or maintaining a running histogram.
+입력 전체를 저장하지 않고 한 번에 원소 하나씩 처리한다. 평균 계산, 최솟값 찾기, 누적 히스토그램 유지 등이 그 예이다.
 
-### Generators and Iterators
+### 제너레이터와 반복자
 
-In Python, generators yield values one at a time instead of materializing the entire sequence in memory. This reduces space from $O(n)$ to $O(1)$ for many iteration patterns.
+파이썬에서 제너레이터는 수열 전체를 메모리에 만들어 두는 대신 값을 하나씩 내어 준다. 많은 반복 패턴에서 공간을 $O(n)$에서 $O(1)$로 줄인다.
 
-### Memory-Mapped Files
+### 메모리 사상 파일
 
-For datasets too large to fit in RAM, memory-mapped files provide the illusion of in-memory access while the OS pages data in and out of disk.
+RAM에 다 들어가지 않는 데이터셋에 대해, 메모리 사상 파일은 운영체제가 데이터를 디스크와 주고받는 동안 메모리에 있는 것처럼 접근할 수 있게 해 준다.
 
-## Memory Usage in Deep Learning
+## 딥러닝에서의 메모리 사용량
 
-Deep learning introduces unique memory challenges:
+딥러닝은 독특한 메모리 문제를 안고 있다.
 
-| Component | Memory | Scale |
+| 구성 요소 | 메모리 | 규모 |
 |-----------|--------|-------|
-| Model parameters | $O(P)$ | $P =$ number of parameters |
-| Gradients | $O(P)$ | One gradient per parameter |
-| Optimizer state | $O(P)$ to $O(3P)$ | Adam stores $m$ and $v$ per parameter |
-| Activations | $O(B \cdot L \cdot d)$ | $B =$ batch size, $L =$ layers, $d =$ width |
-| Input batch | $O(B \cdot D)$ | $D =$ input dimension |
+| 모델 매개변수 | $O(P)$ | $P =$ 매개변수 개수 |
+| 경사 | $O(P)$ | 매개변수마다 경사 하나 |
+| 최적화기 상태 | $O(P)$부터 $O(3P)$ | Adam은 매개변수마다 $m$과 $v$를 저장한다 |
+| 활성값 | $O(B \cdot L \cdot d)$ | $B =$ 배치 크기, $L =$ 층 수, $d =$ 너비 |
+| 입력 배치 | $O(B \cdot D)$ | $D =$ 입력 차원 |
 
-For a model with 1 billion parameters in float32, the parameters alone consume approximately 4 GB. Gradients add another 4 GB, and Adam's optimizer state adds 8 GB more, totaling 16 GB before any activations are stored.
+float32로 매개변수가 10억 개인 모델이라면 매개변수만으로 대략 4 GB를 소비한다. 경사가 4 GB를 더하고 Adam의 최적화기 상태가 8 GB를 더해, 활성값을 저장하기도 전에 총 16 GB가 된다.
 
-## Connections to Other Topics
+## 다른 주제와의 연결
 
-- **[Auxiliary Space](auxiliary.md)**: The extra memory beyond the input
-- **[In-Place Algorithms](in_place.md)**: Algorithms designed to minimize auxiliary space to $O(1)$
-- **[Space-Time Tradeoffs](tradeoffs.md)**: How increasing space can reduce time and vice versa
+- **[보조 공간](auxiliary.md)**: 입력을 넘어선 여분의 메모리
+- **[제자리 알고리즘](in_place.md)**: 보조 공간을 $O(1)$로 최소화하도록 설계된 알고리즘
+- **[공간-시간 절충](tradeoffs.md)**: 공간을 늘리면 시간이 줄고 그 반대도 성립하는 문제
 
-## References
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapters 2-4. MIT Press.
 - Goodfellow, I., Bengio, Y., & Courville, A. (2016). *Deep Learning*, Chapter 8. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+메모리 사용량에서 기술한 공간 복잡도를 매개변수 $P$개, 배치 크기 $B$, 은닉 차원 $d$, 층 $L$개인 신경망에 대해 분석하라.
+
+??? success "연습문제 1 풀이"
+    매개변수: $O(P)$. 활성값(역전파를 위해 저장): $O(BdL)$. 경사: $O(P)$. 최적화기 상태(Adam): $O(2P)$. 총합: $O(P + BdL)$. 큰 모델에서는 활성값 메모리($BdL$)가 지배하는 경우가 많다.
+
+---
+
+**연습문제 2.**
+메모리 사용량에서 다룬 기법의 공간 요구량을 경사 체크포인팅을 쓸 때와 쓰지 않을 때로 나누어 비교하라.
+
+??? success "연습문제 2 풀이"
+    체크포인팅 없이: $O(BdL)$의 활성값 메모리. 체크포인팅 사용($\sqrt{L}$개 층마다): $O(Bd\sqrt{L})$의 활성값 메모리. 절감: $\sqrt{L}$배. 비용: 역전파 중 대략 순전파 한 번 분량이 추가된다. $L = 100$이면 메모리가 $10\times$ 줄어든다.
+
+---
+
+**연습문제 3.**
+메모리 사용량에 대한 공간 복잡도의 하계를 증명하라. 즉 올바른 구현이라면 적어도 명시된 만큼의 메모리를 써야 함을 보여라.
+
+??? success "연습문제 3 풀이"
+    하계는 정보 이론적 논증에서 따라 나온다. 알고리즘은 임의의 입력에 대해 올바른 출력을 만들어 낼 만큼의 정보를 저장해야 한다. 이는 적어도 $\Omega(\text{출력 크기})$의 공간을 요구한다. 여기에 더해 정확성을 위해 필요한 중간 결과들도 하계에 기여한다. $\square$
+
+---
+
+**연습문제 4.**
+대규모 언어 모델 학습의 맥락에서 메모리 사용량과 관련된 실용적인 공간-시간 절충을 기술하라.
+
+??? success "연습문제 4 풀이"
+    대규모 언어 모델은 심각한 메모리 제약에 직면한다. 모델 매개변수, 최적화기 상태, 활성값, 경사가 한정된 GPU 메모리를 두고 경쟁한다. 이 절의 절충이 그대로 적용된다. 경사 체크포인팅, 혼합 정밀도, 모델 병렬화 같은 기법은 계산이나 복잡성을 대가로 메모리 사용량을 줄여, 그렇지 않으면 들어가지 않을 모델의 학습을 가능하게 한다.

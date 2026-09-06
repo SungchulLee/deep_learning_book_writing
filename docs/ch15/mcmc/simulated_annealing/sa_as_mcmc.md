@@ -1,261 +1,230 @@
-# SA as Non-Stationary MCMC
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Simulated annealing can be understood as a non-stationary variant of the Metropolis-Hastings algorithm where the target distribution changes over time. This perspective clarifies the theoretical foundations, explains why convergence guarantees require slow cooling, and reveals the precise relationship to standard MCMC methods.
+# 멈추지 않는 MCMC으로 본 SA
+흉내낸 담금질은 과녁 분포가 시간에 따라 바뀌는, 메트로폴리스-헤이스팅스의 멈추지 않는 갈래로 이해할 수 있다. 이렇게 보면 이론의 바탕이 뚜렷해지고, 모임 보장에 왜 느린 식힘이 필요한지 밝혀지며, 표준 MCMC 방법과의 관계가 또렷이 드러난다.
 
 ---
 
-## The Non-Stationary MCMC Framework
+## 멈추지 않는 MCMC 얼개
 
-### Standard MCMC Review
+### 표준 MCMC 되짚기
 
-In standard MCMC, we construct a Markov chain with a **fixed** stationary distribution $\pi(x)$:
+표준 MCMC에서는 멈춘 분포가 $\pi(x)$으로 **붙박인** 마르코프 사슬을 만든다:
 
 $$
-
 \pi(x) = \int \pi(y) K(x | y) \, dy
-
 $$
 
-where $K(x | y)$ is the transition kernel. The chain converges to $\pi$ regardless of initialization (under mild conditions).
+여기서 $K(x | y)$은 옮김 알맹이이다. (너그러운 조건 아래에서) 사슬은 첫값과 상관없이 $\pi$으로 모인다.
 
-### Non-Stationary MCMC
+### 멈추지 않는 MCMC
 
-In **non-stationary MCMC**, the target distribution changes with time:
+**멈추지 않는 MCMC**에서는 과녁 분포가 시간에 따라 바뀐다:
 
 $$
-
 \pi_t(x) \propto \exp\left(-\frac{E(x)}{T(t)}\right)
-
 $$
 
-At each step $t$, we apply a transition kernel $K_t$ that would have $\pi_t$ as its stationary distribution—but before equilibrium is reached, we change to $\pi_{t+1}$.
+걸음 $t$마다 $\pi_t$을 멈춘 분포로 갖게 될 옮김 알맹이 $K_t$을 쓰지만, 평형에 이르기 전에 $\pi_{t+1}$으로 바꿔 버린다.
 
-**Key distinction**: The chain never equilibrates to any single distribution. Instead, it tracks a moving target.
+**결정적인 차이**: 사슬은 어느 한 분포로도 평형에 이르지 못한다. 그 대신 움직이는 과녁을 뒤쫓는다.
 
-### The Simulated Annealing Chain
+### 흉내낸 담금질 사슬
 
-Simulated annealing uses Metropolis-Hastings transitions with time-varying acceptance:
+흉내낸 담금질은 시간에 따라 달라지는 받아들임을 갖는 메트로폴리스-헤이스팅스 옮김을 쓴다:
 
 $$
-
 \alpha_t(x' | x) = \min\left(1, \frac{\pi_t(x') q(x | x')}{\pi_t(x) q(x' | x)}\right) = \min\left(1, \exp\left(-\frac{E(x') - E(x)}{T(t)}\right) \cdot \frac{q(x | x')}{q(x' | x)}\right)
-
 $$
 
-For symmetric proposals $q(x' | x) = q(x | x')$:
+대칭 제안 $q(x' | x) = q(x | x')$에서는:
 
 $$
-
 \alpha_t(x' | x) = \min\left(1, \exp\left(-\frac{\Delta E}{T(t)}\right)\right)
-
 $$
 
 ---
 
-## Detailed Balance at Each Step
+## 걸음마다의 자세한 균형
 
-### Instantaneous Detailed Balance
+### 그 순간의 자세한 균형
 
-At each time $t$, the transition kernel satisfies detailed balance with respect to $\pi_t$:
+시간 $t$마다 옮김 알맹이는 $\pi_t$에 대해 자세한 균형을 만족한다:
 
 $$
-
 \pi_t(x) K_t(x' | x) = \pi_t(x') K_t(x | x')
-
 $$
 
-**Proof**: This follows directly from the Metropolis-Hastings construction. The acceptance probability is designed to ensure:
+**증명**: 이는 메트로폴리스-헤이스팅스를 만든 방식에서 곧바로 따라 나온다. 받아들임 확률은 다음이 되도록 일부러 짠 것이다:
 
 $$
-
 \pi_t(x) q(x' | x) \alpha_t(x' | x) = \pi_t(x') q(x | x') \alpha_t(x | x')
-
 $$
 
-### Non-Equilibrium Dynamics
+### 평형이 아닌 움직임
 
-Although detailed balance holds instantaneously, the chain is **not in equilibrium** because:
+자세한 균형이 그 순간에는 성립하지만 사슬은 다음 까닭으로 **평형에 있지 않다**:
 
-1. The distribution of $X_t$ is not $\pi_t$ (it is the result of the previous step)
-2. By the time the chain could equilibrate to $\pi_t$, the target has changed to $\pi_{t+1}$
-3. The actual distribution of $X_t$ depends on the entire history of temperatures
+1. $X_t$의 분포가 $\pi_t$이 아니다(앞선 걸음의 결과이다)
+2. 사슬이 $\pi_t$으로 평형에 이를 즈음이면 과녁이 이미 $\pi_{t+1}$으로 바뀌어 있다
+3. $X_t$의 실제 분포는 온도의 지난 내력 전체에 달려 있다
 
 ---
 
-## The Cooling Schedule as Time Transformation
+## 시간 바꿈으로 본 식힘 일정
 
-### Continuous-Time Interpretation
+### 이어진 시간으로 풀이하기
 
-Consider the cooling schedule $T(t)$ as defining a "time" transformation. The chain experiences:
+식힘 일정 $T(t)$을 "시간" 바꿈을 정하는 것으로 보자. 사슬은 다음을 겪는다:
 
-- **Subjective time**: The iteration count $t$
-- **Physical time**: Related to how far from equilibrium the chain is
+- **속시간**: 되풀이 횟수 $t$
+- **물리 시간**: 사슬이 평형에서 얼마나 멀리 있는지와 이어져 있다
 
-Fast cooling compresses "physical time"—the chain does not have time to equilibrate.
+빠른 식힘은 "물리 시간"을 짓눌러 사슬이 평형에 이를 겨를을 주지 않는다.
 
-### Adiabatic Limit
+### 단열 끝
 
-In the **adiabatic limit** (infinitely slow cooling), the chain remains in quasi-equilibrium:
+**단열 끝**(끝없이 느린 식힘)에서 사슬은 거의 평형에 머문다:
 
 $$
-
 \text{Distribution of } X_t \approx \pi_{T(t)} \quad \text{for slow cooling}
-
 $$
 
-The system tracks the instantaneous Boltzmann distribution as temperature changes.
+온도가 바뀌는 동안 체계는 그 순간의 볼츠만 분포를 뒤쫓는다.
 
-### Quasi-Static Process
+### 거의 멈춘 듯한 과정
 
-Borrowing from thermodynamics, a **quasi-static process** is one slow enough that the system remains in equilibrium at each instant.
+열역학에서 빌려 오면 **거의 멈춘 듯한 과정**이란 체계가 매 순간 평형에 머물 만큼 느린 과정이다.
 
-**Simulated annealing is quasi-static if and only if** cooling is logarithmic ($T(t) = c/\log(t)$) and the chain has time to mix before temperature changes significantly.
+**흉내낸 담금질이 거의 멈춘 듯한 과정이 되려면 그리고 그때만** 식힘이 로그꼴($T(t) = c/\log(t)$)이고 온도가 크게 바뀌기 전에 사슬이 섞일 겨를이 있어야 한다.
 
 ---
 
-## Inhomogeneous Markov Chain Analysis
+## 고르지 않은 마르코프 사슬 살피기
 
-### Time-Inhomogeneous Chains
+### 시간에 따라 고르지 않은 사슬
 
-Simulated annealing defines a **time-inhomogeneous** Markov chain with transition matrices $P_1, P_2, \ldots$
+흉내낸 담금질은 옮김 행렬이 $P_1, P_2, \ldots$인 **시간에 따라 고르지 않은** 마르코프 사슬을 정한다
 
-The distribution after $n$ steps is:
+걸음 $n$개 뒤의 분포는 다음과 같다:
 
 $$
-
 \mu_n = \mu_0 P_1 P_2 \cdots P_n
-
 $$
 
-This is **not** a simple power of a single matrix—the standard spectral gap analysis for homogeneous chains does not directly apply.
+이는 행렬 하나의 거듭제곱이 **아니다**. 곧 고른 사슬에 쓰는 표준 스펙트럼 틈 살피기를 그대로 쓸 수 없다.
 
-### Weak Ergodicity
+### 약한 에르고드성
 
-A sequence of transition matrices is **weakly ergodic** if:
+다음이면 옮김 행렬의 늘어놓음이 **약하게 에르고드적**이라 한다:
 
 $$
-
 \lim_{n \to \infty} \sup_{x, x'} \| P_n P_{n+1} \cdots P_m (x, \cdot) - P_n P_{n+1} \cdots P_m (x', \cdot) \|_{TV} = 0
-
 $$
 
-for all $m > n$.
+여기서 $m > n$인 모든 경우에 대해서이다.
 
-Weak ergodicity means the chain "forgets" its initial condition, even though there is no fixed stationary distribution.
+약한 에르고드성은 붙박인 멈춘 분포가 없는데도 사슬이 첫 조건을 "잊는다"는 뜻이다.
 
-### Strong Ergodicity
+### 강한 에르고드성
 
-**Strong ergodicity** requires convergence to a specific limit:
+**강한 에르고드성**은 정해진 끝으로 모임을 요구한다:
 
 $$
-
 \lim_{n \to \infty} \mu_n = \delta_{x^*}
-
 $$
 
-where $x^*$ is the global minimum (or uniform over global minima if multiple exist).
+여기서 $x^*$은 전체 최솟점이다(여럿이면 전체 최솟점 위의 고른 분포이다).
 
-**Logarithmic cooling achieves strong ergodicity** to the global minimum.
+**로그 식힘은 전체 최솟점으로의 강한 에르고드성을 이룬다**.
 
 ---
 
-## The Mixing Time Challenge
+## 섞임 시간의 어려움
 
-At temperature $T$, the Metropolis chain has a mixing time $\tau_{\text{mix}}(T)$—the time to approach $\pi_T$.
+온도 $T$에서 메트로폴리스 사슬은 $\pi_T$에 다가가는 데 드는 섞임 시간 $\tau_{\text{mix}}(T)$을 갖는다.
 
-**Key observation**: $\tau_{\text{mix}}(T) \to \infty$ as $T \to 0$.
+**핵심 살핌**: $T \to 0$이면 $\tau_{\text{mix}}(T) \to \infty$이다.
 
-At low temperatures, acceptance probability for uphill moves approaches zero, the chain becomes nearly deterministic (greedy descent), and mixing between basins becomes exponentially slow.
+온도가 낮으면 오르막 움직임의 받아들임 확률이 0으로 다가가고, 사슬이 거의 정해진 것(욕심쟁이 내리기)이 되며, 웅덩이 사이의 섞임이 지수로 느려진다.
 
-### The Fundamental Trade-off
+### 근본적인 주고받음
 
-**Fast cooling**: Spend little time at each temperature, but the chain does not equilibrate → may get stuck in wrong basin.
+**빠른 식힘**: 온도마다 시간을 조금만 쓰지만 사슬이 평형에 이르지 못한다 → 엉뚱한 웅덩이에 갇힐 수 있다.
 
-**Slow cooling**: Chain equilibrates at each temperature, but takes very long → computationally expensive.
+**느린 식힘**: 온도마다 사슬이 평형에 이르지만 아주 오래 걸린다 → 셈이 비싸다.
 
-The logarithmic cooling theorem (see [Convergence Theory](convergence.md)) resolves this by specifying the precise rate at which this trade-off is optimally balanced.
+로그 식힘 정리([모임 이론](convergence.md) 참고)는 이 주고받음이 가장 잘 저울질되는 빠르기를 정확히 짚어 이를 풀어낸다.
 
 ---
 
-## Acceptance Probability Analysis
+## 받아들임 확률 살피기
 
-### Energy-Dependent Acceptance
+### 에너지에 달린 받아들임
 
-At temperature $T$, the acceptance probability for a move with energy change $\Delta E$ is:
+온도 $T$에서 에너지 변화가 $\Delta E$인 움직임의 받아들임 확률은 다음과 같다:
 
 $$
-
 \alpha(\Delta E, T) = \min(1, e^{-\Delta E / T})
-
 $$
 
-**Downhill moves** ($\Delta E < 0$): Always accepted ($\alpha = 1$).
+**내리막 움직임**($\Delta E < 0$): 늘 받아들여진다($\alpha = 1$).
 
-**Uphill moves** ($\Delta E > 0$):
+**오르막 움직임**($\Delta E > 0$):
 
 $$
-
 \alpha = e^{-\Delta E / T} = \begin{cases}
 \approx 1 & \text{if } T \gg \Delta E \\
 \approx 0 & \text{if } T \ll \Delta E
 \end{cases}
-
 $$
 
-### Expected Acceptance Rate
+### 기댓값 받아들임 비율
 
-If $\Delta E$ has distribution $F$ under the proposal, the expected acceptance rate is:
+제안 아래에서 $\Delta E$의 분포가 $F$이면 기댓값 받아들임 비율은 다음과 같다:
 
 $$
-
 \bar{\alpha}(T) = \int_{-\infty}^{0} dF(\Delta E) + \int_{0}^{\infty} e^{-\Delta E / T} dF(\Delta E)
-
 $$
 
-**High $T$**: $\bar{\alpha} \to 1$ (accept everything). **Low $T$**: $\bar{\alpha} \to P(\Delta E < 0)$ (accept only improvements).
+**$T$이 높으면**: $\bar{\alpha} \to 1$(모두 받아들인다). **$T$이 낮으면**: $\bar{\alpha} \to P(\Delta E < 0)$(나아지는 것만 받아들인다).
 
-### Monitoring Acceptance Rate
+### 받아들임 비율 지켜보기
 
-The acceptance rate provides a diagnostic for the cooling schedule:
+받아들임 비율은 식힘 일정을 진단하는 잣대가 된다:
 
-| Acceptance Rate | Interpretation | Action |
+| 받아들임 비율 | 풀이 | 할 일 |
 |-----------------|----------------|--------|
-| > 90% | Temperature too high | Cool faster |
-| 20-50% | Good exploration-exploitation balance | Continue |
-| < 10% | Temperature too low | Cool slower or stop |
+| > 90% | 온도가 너무 높다 | 더 빨리 식혀라 |
+| 20-50% | 살펴보기와 써먹기의 균형이 좋다 | 이어 가라 |
+| < 10% | 온도가 너무 낮다 | 더 느리게 식히거나 멈춰라 |
 
 ---
 
-## Comparison with Stationary MCMC
+## 멈춘 MCMC과 견주기
 
-### Parallel Tempering vs. Simulated Annealing
+### 병렬 온도 다루기와 흉내낸 담금질의 견줌
 
-| Aspect | Simulated Annealing | Parallel Tempering |
+| 살필 점 | 흉내낸 담금질 | 병렬 온도 다루기 |
 |--------|--------------------|--------------------|
-| Target | Time-varying $\pi_{T(t)}$ | Multiple fixed $\pi_{T_k}$ |
-| Chains | Single chain | Multiple parallel chains |
-| Temperature | Decreasing over time | Fixed per chain, swaps |
-| Goal | Optimization | Sampling |
-| Stationary? | No | Yes (product distribution) |
-| Output | Single optimum | Samples from $\pi$ |
+| 과녁 | 시간에 따라 달라지는 $\pi_{T(t)}$ | 붙박인 $\pi_{T_k}$ 여럿 |
+| 사슬 | 사슬 하나 | 나란한 사슬 여럿 |
+| 온도 | 시간에 따라 낮아짐 | 사슬마다 붙박이며 맞바꿈 |
+| 목표 | 최적화 | 표집 |
+| 멈춰 있나? | 아니오 | 예(곱 분포) |
+| 내임 | 최적점 하나 | $\pi$에서 뽑은 표본 |
 
-### When to Use Which
+### 어느 쪽을 언제 쓰나
 
-**Use simulated annealing when** the goal is finding the global optimum, posterior samples are not needed, the cooling schedule budget is affordable, and the landscape has deep local minima.
+**흉내낸 담금질을 쓸 때**: 목표가 전체 최적점 찾기이고, 뒤확률 표본이 필요 없으며, 식힘 일정의 예산을 감당할 수 있고, 지형에 깊은 그 자리 최솟점이 있을 때.
 
-**Use MCMC/parallel tempering when** the goal is posterior inference, uncertainty quantification is needed, multiple samples are required, or stationary distribution guarantees matter.
+**MCMC이나 병렬 온도 다루기를 쓸 때**: 목표가 뒤확률 추론이고, 불확실함을 재야 하며, 표본이 여럿 필요하거나, 멈춘 분포의 보장이 중요할 때.
 
 ---
 
-## SA Variants as Non-Stationary MCMC
+## 멈추지 않는 MCMC으로 본 SA의 갈래
 
-### Adaptive Simulated Annealing
+### 맞춰 가는 흉내낸 담금질
 
-Adjust the cooling schedule based on observed acceptance:
+지켜본 받아들임에 따라 식힘 일정을 다듬는다:
 
 ```python
 def adaptive_sa(E, x0, T0, target_accept=0.4):
@@ -263,99 +232,89 @@ def adaptive_sa(E, x0, T0, target_accept=0.4):
     x = x0
     
     for t in range(max_iter):
-        # Metropolis step
+        # 메트로폴리스 걸음
         x_new = propose(x)
         accept = np.random.rand() < min(1, np.exp(-(E(x_new) - E(x)) / T))
         if accept:
             x = x_new
         
-        # Adapt temperature based on recent acceptance
+        # 최근 받아들임에 따라 온도 맞추기
         recent_accept_rate = compute_recent_rate()
         if recent_accept_rate > target_accept:
-            T *= 0.99  # Cool faster
+            T *= 0.99  # 더 빠르게 식힘
         else:
-            T *= 1.01  # Warm slightly
+            T *= 1.01  # 살짝 데움
     
     return x
 ```
 
-This is non-stationary MCMC with **adaptive** target distribution.
+이는 과녁 분포가 **맞춰 가는** 멈추지 않는 MCMC이다.
 
-### Threshold Accepting
+### 문턱값 받아들이기
 
-A deterministic variant that accepts if $\Delta E < \tau(t)$ for decreasing threshold $\tau(t)$:
+낮아지는 문턱값 $\tau(t)$에 대해 $\Delta E < \tau(t)$이면 받아들이는 정해진 갈래이다:
 
 $$
-
 \alpha(\Delta E, t) = \mathbf{1}[\Delta E < \tau(t)]
-
 $$
 
-This is the $T \to 0$ limit of SA with threshold $\tau(t) \sim T(t) \log(\text{const})$.
+이는 문턱값이 $\tau(t) \sim T(t) \log(\text{const})$인 SA의 $T \to 0$ 끝이다.
 
-### Great Deluge Algorithm
+### 큰 홍수 알고리즘
 
-Accept if the new energy is below a "water level" $W(t)$ that slowly rises:
+새 에너지가 천천히 차오르는 "물 높이" $W(t)$ 아래이면 받아들인다:
 
 $$
-
 \alpha(x', t) = \mathbf{1}[E(x') < W(t)]
-
 $$
 
-where $W(t)$ increases from $E_{\min}$ toward some target level.
+여기서 $W(t)$은 $E_{\min}$에서 어떤 목표 높이 쪽으로 올라간다.
 
 ---
 
-## Theoretical Connections
+## 이론적 이음
 
-### Large Deviation Theory
+### 큰 벗어남 이론
 
-The probability of being in a "wrong" basin at low temperature follows large deviation asymptotics:
+낮은 온도에서 "엉뚱한" 웅덩이에 있을 확률은 큰 벗어남의 점근 꼴을 따른다:
 
 $$
-
 P(X_t \notin \mathcal{X}^*) \sim \exp\left(-\frac{\Delta F}{T(t)}\right)
-
 $$
 
-where $\Delta F$ is a free energy difference between the global basin and local basins.
+여기서 $\Delta F$은 전체 웅덩이와 그 자리 웅덩이 사이의 자유 에너지 차이이다.
 
-### Metastability
+### 어중간한 안정
 
-At intermediate temperatures, the chain exhibits **metastability**: rapid mixing within each basin, rare transitions between basins, and effective dynamics described by basin-to-basin jumps. This separation of timescales is key to understanding SA behavior.
+중간 온도에서 사슬은 **어중간한 안정**을 보인다. 곧 웅덩이 안에서는 빠르게 섞이고, 웅덩이 사이의 옮김은 드물며, 실효 움직임이 웅덩이에서 웅덩이로 뛰는 것으로 그려진다. 이 시간 규모의 갈림이 SA의 굶을 이해하는 열쇠이다.
 
-### Connection to Gradient Flow
+### 기울기 흐름과의 이음
 
-As $T \to 0$, simulated annealing becomes gradient descent:
+$T \to 0$이면 흉내낸 담금질은 기울기 내리기가 된다:
 
 $$
-
 X_{t+1} - X_t \approx -\eta \nabla E(X_t) + \sqrt{2T(t)} \, \xi_t
-
 $$
 
-The noise term $\sqrt{2T(t)} \, \xi_t$ vanishes, leaving deterministic optimization.
+잡음 항 $\sqrt{2T(t)} \, \xi_t$이 사라지고 정해진 최적화만 남는다.
 
 ---
 
-## Finite-Time Behavior
+## 끝이 있는 시간에서의 굶
 
-### Practical Convergence
+### 실전에서의 모임
 
-In practice, we run for finite time $T_{\text{total}}$ and want:
+실전에서는 끝이 있는 시간 $T_{\text{total}}$ 동안 돌리며 다음을 바란다:
 
 $$
-
 P(X_{T_{\text{total}}} \in \mathcal{X}^*) \geq 1 - \epsilon
-
 $$
 
-For logarithmic cooling, this requires $T_{\text{total}} = O(e^{d^*/\epsilon})$—often impractical.
+로그 식힘에서는 $T_{\text{total}} = O(e^{d^*/\epsilon})$이 들며, 이는 흔히 쓸 수 없다.
 
-### Multiple Restarts
+### 여러 번 다시 시작하기
 
-A practical strategy: run multiple independent annealing chains and take the best:
+실전에서 쓰는 방법은 이렇다. 독립인 담금질 사슬을 여럿 돌리고 가장 좋은 것을 고른다:
 
 ```python
 def multi_start_sa(E, n_restarts, schedule, max_iter):
@@ -370,19 +329,55 @@ def multi_start_sa(E, n_restarts, schedule, max_iter):
     return best_x, best_E
 ```
 
-With $k$ restarts, the probability of missing the global basin decreases as $(1 - p)^k$ where $p$ is the per-run success probability.
+$k$번 다시 시작하면 전체 웅덩이를 놓칠 확률이 $(1 - p)^k$으로 줄어든다. 여기서 $p$은 한 번 돌릴 때의 성공 확률이다.
 
 ---
 
-## Summary
+## 요약
 
-| Concept | Description |
+| 개념 | 설명 |
 |---------|-------------|
-| **Non-stationary MCMC** | Target distribution $\pi_t$ changes with time |
-| **Instantaneous detailed balance** | Each step satisfies detailed balance for current $\pi_t$ |
-| **Quasi-static limit** | Infinitely slow cooling maintains equilibrium |
-| **Weak ergodicity** | Chain forgets initial condition despite changing target |
-| **Strong ergodicity** | Convergence to global optimum under logarithmic cooling |
-| **Metastability** | Fast intra-basin mixing, slow inter-basin transitions |
+| **멈추지 않는 MCMC** | 과녁 분포 $\pi_t$이 시간에 따라 바뀐다 |
+| **그 순간의 자세한 균형** | 걸음마다 지금의 $\pi_t$에 대해 자세한 균형을 만족한다 |
+| **거의 멈춘 듯한 끝** | 끝없이 느린 식힘이 평형을 지킨다 |
+| **약한 에르고드성** | 과녁이 바뀌는데도 사슬이 첫 조건을 잊는다 |
+| **강한 에르고드성** | 로그 식힘 아래에서 전체 최적점으로 모인다 |
+| **어중간한 안정** | 웅덩이 안은 빠르게 섞이고 웅덩이 사이는 느리게 옮긴다 |
 
-Understanding simulated annealing as non-stationary MCMC clarifies why it works (instantaneous detailed balance), why convergence is slow (mixing time grows at low $T$), why guarantees require logarithmic cooling (quasi-static process), and how it relates to standard MCMC methods.
+흉내낸 담금질을 멈추지 않는 MCMC으로 이해하면 왜 되는지(그 순간의 자세한 균형), 왜 모임이 느린지($T$이 낮으면 섞임 시간이 커짐), 왜 보장에 로그 식힘이 필요한지(거의 멈춘 듯한 과정), 표준 MCMC 방법과 어떻게 이어지는지가 뚜렷해진다.
+
+## 연습문제
+
+**연습문제 1.**
+마르코프 사슬이 올바른 과녁 분포로 모이게 하는 데 받아들임 확률이 하는 몫을 설명하여라.
+
+??? success "연습문제 1 풀이"
+    받아들임 확률이 **자세한 균형** $\pi(x) T(x \to x') \alpha(x \to x') = \pi(x') T(x' \to x) \alpha(x' \to x)$을 보장한다. 여기서 $\pi$은 과녁 분포, $T$은 제안 분포, $\alpha$은 받아들임 확률이다. 자세한 균형은 $\pi$이 사슬의 멈춘 분포임을 뜻한다. 쪼갤 수 없음과 주기 없음까지 합치면 $\pi$으로의 에르고드 모임이 보장된다.
+
+---
+
+**연습문제 2.**
+제안 분포가 너무 좁은 상황과 너무 넓은 상황을 밝혀라. 저마다 표집 효율에 어떤 영향을 주는가?
+
+??? success "연습문제 2 풀이"
+    **너무 좁을 때:** 제안이 거의 늘 받아들여지지만(받아들임 비율이 높지만) 사슬이 아주 작은 걸음을 떼어 과녁 분포를 느리게 살펴본다. 그러면 자기상관이 높고 실효 표본 크기가 작아진다. **너무 넓을 때:** 제안이 확률이 낮은 구역에 자주 떨어져 물리쳐지므로(받아들임 비율이 낮으므로) 사슬이 여러 되풀이 동안 지금 상태에 갇혀 있게 된다. 두 극단 모두 효율을 떨어뜨린다. 높은 차원에서 무작위 걸음 메트로폴리스의 가장 좋은 받아들임 비율은 대략 0.234이다(Roberts 외, 1997).
+
+---
+
+**연습문제 3.**
+메트로폴리스-헤이스팅스 받아들임 비 $\alpha = \min\left(1, \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}\right)$이 $\pi$에 대해 자세한 균형을 만족함을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    일반성을 잃지 않고 $\pi(x') q(x|x') \leq \pi(x) q(x'|x)$이라 하자. 그러면 $\alpha(x \to x') = \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}$이고 $\alpha(x' \to x) = 1$이다. 자세한 균형 조건은 다음을 요구한다:
+
+    $$\pi(x) q(x'|x) \alpha(x \to x') = \pi(x) q(x'|x) \cdot \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)} = \pi(x') q(x|x')$$
+
+    그리고 $\pi(x') q(x|x') \alpha(x' \to x) = \pi(x') q(x|x') \cdot 1 = \pi(x') q(x|x')$이다. 양변이 같다. $\square$
+
+---
+
+**연습문제 4.**
+MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴지 어떻게 정하는가?
+
+??? success "연습문제 4 풀이"
+    태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.

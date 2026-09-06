@@ -1,68 +1,68 @@
-# Queue Applications
+# 큐의 응용
 
-The FIFO property of queues makes them the natural choice whenever fairness matters: tasks should be processed in the order they arrive. Operating systems use queues for process scheduling and I/O request buffering. Network routers queue packets waiting for transmission. Graph algorithms use queues to explore nodes level by level. This page surveys the most important algorithmic applications of queues, with concrete examples and complexity analyses.
+큐의 선입선출 성질은 공평함이 중요한 곳이라면 어디서나 자연스러운 선택이 된다. 작업은 도착한 순서대로 처리되어야 한다. 운영체제는 프로세스 배정과 입출력 요청 버퍼링에 큐를 쓴다. 네트워크 라우터는 보내기를 기다리는 패킷을 큐에 담는다. 그래프 알고리즘은 마디를 층별로 살피는 데 큐를 쓴다. 이 쪽은 큐의 중요한 알고리즘적 응용을 구체적인 예와 복잡도 분석과 함께 훑어본다.
 
-## Producer-Consumer Buffer
+## 생산자-소비자 버퍼
 
-In concurrent systems, a **producer** generates data and a **consumer** processes it, often at different speeds. A queue acts as a buffer between them: the producer enqueues items and the consumer dequeues them. This decouples the two processes and allows them to operate at their own pace. If the queue is bounded (fixed maximum size), the producer blocks when the queue is full and the consumer blocks when it is empty.
+동시성 시스템에서는 **생산자**가 데이터를 만들고 **소비자**가 그것을 처리하는데, 속도가 서로 다른 일이 많다. 큐가 그 사이의 버퍼 구실을 한다. 생산자는 항목을 넣고 소비자는 뺀다. 이로써 두 과정이 서로 떨어져 저마다의 속도로 움직일 수 있다. 큐의 크기가 정해져 있으면 큐가 가득 찼을 때 생산자가 멈추고, 비었을 때 소비자가 멈춘다.
 
-## Hot Potato Simulation
+## 뜨거운 감자 흉내 내기
 
-The "hot potato" (or Josephus) problem illustrates circular elimination. Players stand in a circle and pass an item. After a fixed number of passes, the player holding the item is eliminated. Using a queue, each pass dequeues the front player and re-enqueues them at the rear. After the specified count, the front player is eliminated (dequeued without re-enqueuing).
+"뜨거운 감자"(또는 요세푸스) 문제는 원형 제거를 보여 준다. 참가자들이 둥글게 서서 물건을 넘긴다. 정해진 횟수만큼 넘긴 뒤 물건을 든 사람이 빠진다. 큐를 쓰면 넘길 때마다 앞의 참가자를 빼서 뒤에 다시 넣는다. 정해진 횟수가 되면 앞의 참가자를 (다시 넣지 않고) 빼서 제거한다.
 
-## Level-Order Traversal
+## 층별 순회
 
-Trees and graphs are often explored level by level. A queue naturally produces this ordering: start by enqueuing the root, then repeatedly dequeue a node, process it, and enqueue its children. The result is a breadth-first traversal. This is covered in more detail on the BFS Preview sibling page.
+나무와 그래프는 흔히 층별로 살핀다. 큐는 자연스럽게 이 순서를 만들어 낸다. 뿌리를 넣고 시작한 뒤, 마디를 하나 빼서 처리하고 그 자식들을 넣기를 되풀이한다. 그 결과가 너비 우선 순회이다. 자세한 내용은 이웃 쪽인 너비 우선 탐색 맛보기에서 다룬다.
 
 ```python
 """
-Queue applications — common algorithmic uses of the queue data structure.
+큐의 응용 — 큐 자료 구조의 흔한 알고리즘적 쓰임.
 
-Demonstrates producer-consumer simulation, hot potato elimination,
-and level-order tree traversal, all powered by the FIFO property.
+선입선출 성질에 기댄 생산자-소비자 모의실험, 뜨거운 감자 제거,
+나무의 층별 순회를 보인다.
 """
 from collections import deque
 
 
-# === Application 1: Producer-Consumer Simulation ==============================
+# === 응용 1: 생산자-소비자 모의실험 ==============================
 
 def producer_consumer(tasks, process_time):
     """Simulate a producer-consumer buffer using a queue.
 
-    The producer enqueues all tasks first, then the consumer processes
-    them in FIFO order, each taking `process_time` units.
+    생산자가 작업을 모두 넣은 뒤 소비자가 선입선출 차례로 처리하며,
+    작업마다 `process_time` 단위가 걸린다.
     """
     queue = deque()
     clock = 0
 
-    # Producer phase
+    # 생산 단계
     for task in tasks:
         queue.append(task)
         clock += 1
         print(f"  t={clock:>2}: Producer enqueued '{task}' → queue={list(queue)}")
 
-    # Consumer phase
+    # 소비 단계
     while queue:
         task = queue.popleft()
         clock += process_time
         print(f"  t={clock:>2}: Consumer processed '{task}' → queue={list(queue)}")
 
 
-# === Application 2: Hot Potato Elimination ====================================
+# === 응용 2: 뜨거운 감자 제거 ====================================
 
 def hot_potato(players, num_passes):
     """Simulate the hot potato game using a queue.
 
-    Players stand in a circle. After `num_passes` passes, the player
-    holding the potato is eliminated. Last player standing wins.
-    Time: O(n * k) where n = players, k = passes per round.
+    참가자들이 둥글게 선다. `num_passes`번 넘긴 뒤 감자를 든 사람이
+    빠진다. 마지막까지 남은 사람이 이긴다.
+    시간: O(n * k), 여기서 n은 참가자 수, k는 한 판에 넘기는 횟수이다.
     """
     queue = deque(players)
     print(f"  Starting players: {list(queue)}")
 
     while len(queue) > 1:
         for _ in range(num_passes):
-            queue.append(queue.popleft())  # pass the potato
+            queue.append(queue.popleft())  # 감자를 넘긴다
         eliminated = queue.popleft()
         print(f"  Eliminated: {eliminated:<10s} Remaining: {list(queue)}")
 
@@ -71,10 +71,10 @@ def hot_potato(players, num_passes):
     return winner
 
 
-# === Application 3: Level-Order Tree Traversal ================================
+# === 응용 3: 나무의 층별 순회 ================================
 
 class TreeNode:
-    """Simple binary tree node."""
+    """간단한 이진 나무의 노드."""
 
     def __init__(self, val, left=None, right=None):
         self.val = val
@@ -85,8 +85,8 @@ class TreeNode:
 def level_order_traversal(root):
     """Traverse a binary tree level by level using a queue.
 
-    Time: O(n) — each node is enqueued and dequeued exactly once.
-    Space: O(w) where w is the maximum width of the tree.
+    시간: O(n) — 각 마디가 정확히 한 번 들어가고 한 번 나온다.
+    공간: O(w), 여기서 w는 나무의 최대 너비이다.
     """
     if root is None:
         return []
@@ -108,20 +108,20 @@ def level_order_traversal(root):
     return result
 
 
-# === Demonstration ============================================================
+# === 시연 ============================================================
 
 if __name__ == "__main__":
-    # Producer-consumer
+    # 생산자-소비자
     print("Producer-Consumer Simulation:")
     producer_consumer(["email", "report", "backup"], process_time=2)
     print()
 
-    # Hot potato
+    # 뜨거운 감자
     print("Hot Potato Game (3 passes per round):")
     hot_potato(["Alice", "Bob", "Carol", "Dave", "Eve"], num_passes=3)
     print()
 
-    # Level-order traversal
+    # 층별 순회
     #         1
     #        / \
     #       2   3
@@ -137,7 +137,7 @@ if __name__ == "__main__":
         print(f"  Level {i}: {level}")
 ```
 
-**Output:**
+**출력:**
 ```
 Producer-Consumer Simulation:
   t= 1: Producer enqueued 'email' → queue=['email']
@@ -161,22 +161,55 @@ Level-Order Traversal:
   Level 2: [4, 5, 6]
 ```
 
-The producer-consumer simulation shows FIFO ordering: tasks are consumed in the order they were produced. The hot potato game uses the queue's circular rotation property (dequeue from front, enqueue at rear) to simulate passing. Level-order traversal processes all nodes at depth $d$ before any nodes at depth $d+1$.
+생산자-소비자 흉내 내기는 선입선출 순서를 보여 준다. 작업이 만들어진 순서대로 소비된다. 뜨거운 감자 놀이는 큐의 원형 회전 성질(앞에서 빼서 뒤에 넣기)로 넘기기를 흉내 낸다. 층별 순회는 깊이가 $d+1$인 마디를 하나라도 처리하기 전에 깊이가 $d$인 마디를 모두 처리한다.
 
-## Summary of Applications
+## 응용 요약
 
-| Application | Queue Role | Time | Space |
+| 응용 | 큐의 구실 | 시간 | 공간 |
 |---|---|---|---|
-| Producer-consumer buffer | Decouple producer and consumer speeds | $O(1)$ per op | $O(n)$ |
-| Hot potato / Josephus | Circular elimination | $O(n \cdot k)$ | $O(n)$ |
-| Level-order tree traversal | Process nodes by depth | $O(n)$ | $O(w)$ |
-| Breadth-first search (BFS) | Explore graph level by level | $O(V + E)$ | $O(V)$ |
-| Task scheduling (FCFS) | Serve tasks in arrival order | $O(1)$ per op | $O(n)$ |
+| 생산자-소비자 버퍼 | 생산과 소비의 속도를 떼어 놓는다 | 연산당 $O(1)$ | $O(n)$ |
+| 뜨거운 감자 / 요세푸스 | 원형 제거 | $O(n \cdot k)$ | $O(n)$ |
+| 나무의 층별 순회 | 마디를 깊이 순으로 처리한다 | $O(n)$ | $O(w)$ |
+| 너비 우선 탐색 (BFS) | 그래프를 층별로 살핀다 | $O(V + E)$ | $O(V)$ |
+| 작업 스케줄링 (FCFS) | 도착 순서대로 처리한다 | 연산당 $O(1)$ | $O(n)$ |
 
-Here $n$ denotes the number of elements, $k$ the passes per round, $w$ the maximum tree width, and $V$, $E$ the vertices and edges of a graph.
+여기서 $n$은 원소의 수, $k$은 한 판에 넘기는 횟수, $w$은 나무의 최대 너비, $V$과 $E$은 그래프의 꼭짓점과 변의 수이다.
 
-Detailed treatments of BFS and task scheduling appear on their respective sibling pages.
+너비 우선 탐색과 작업 스케줄링은 각각의 이웃 쪽에서 자세히 다룬다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+큐의 응용의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+큐의 응용을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+큐의 응용을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+큐의 응용을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

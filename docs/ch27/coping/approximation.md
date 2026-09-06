@@ -1,120 +1,168 @@
-# Approximation Algorithms Overview
+# 어림 알고리즘 살펴보기
 
-When an NP-hard problem must be solved in practice, exact algorithms require exponential time. **Approximation algorithms** offer a middle ground: polynomial-time algorithms with provable guarantees on solution quality. This page surveys the key ideas, contrasts approximation with other coping strategies, and summarizes the landscape of approximability.
+NP 어려움 문제를 실제로 풀어야 할 때 정확한 알고리즘에는 지수 시간이 든다. **어림 알고리즘**은 가운데 길을 준다. 풀이 품질에 밝힐 수 있는 보장을 지닌 다항 시간 알고리즘이다. 이 쪽은 핵심 생각을 살피고 어림을 다른 대처 셈속과 견주며 어림할 수 있음의 풍경을 간추린다.
 
-## The Approximation Approach
+## 어림하는 방식
 
-An approximation algorithm for an optimization problem:
+가장 좋게 하기 문제의 어림 알고리즘은:
 
-1. Runs in **polynomial time**.
-2. Always produces a **feasible** solution.
-3. Guarantees the solution value is within a **bounded ratio** of the optimum.
+1. **다항 시간**에 돈다.
+2. 늘 **쓸 수 있는** 풀이를 내놓는다.
+3. 풀이 값이 가장 좋은 값의 **가둬진 비율** 안에 있음을 보장한다.
 
-For a minimization problem with algorithm output $A(I)$ and optimum $\text{OPT}(I)$:
+알고리즘 내놓기가 $A(I)$이고 가장 좋은 값이 $\text{OPT}(I)$인 가장 작게 하기 문제에서:
 
 $$
 A(I) \leq \rho \cdot \text{OPT}(I)
 $$
 
-For maximization:
+가장 크게 하기에서:
 
 $$
 A(I) \geq \frac{1}{\rho} \cdot \text{OPT}(I)
 $$
 
-The ratio $\rho \geq 1$ is the **approximation ratio**. Smaller $\rho$ means better quality.
+비율 $\rho \geq 1$이 **어림 비율**이다. $\rho$이 작을수록 품질이 좋다.
 
-## Design Techniques
+## 짜는 재주
 
-### Greedy Algorithms
+### 욕심쟁이 알고리즘
 
-The simplest approach: make locally optimal choices. Often yields constant-factor approximations.
+가장 단순한 방식은 그 자리에서 가장 좋은 고르기를 하는 것이다. 흔히 상수 배 어림을 준다.
 
-- **Vertex Cover:** Pick any edge, add both endpoints, remove incident edges. Achieves ratio 2.
-- **Set Cover:** Greedily pick the set covering the most uncovered elements. Achieves ratio $H_n = \ln n + O(1)$.
+- **꼭짓점 덮기:** 아무 변이나 골라 양 끝점을 넣고 닿는 변을 지운다. 비율 2을 이룬다.
+- **모임 덮기:** 아직 덮이지 않은 원소를 가장 많이 덮는 모임을 욕심껏 고른다. 비율 $H_n = \ln n + O(1)$을 이룬다.
 
-### LP Relaxation and Rounding
+### 선형 계획 느슨하게 하기와 반올림
 
-Formulate the problem as an integer linear program, solve the LP relaxation, then round the fractional solution to integers.
+문제를 정수 선형 계획으로 적고 선형 계획 느슨하게 하기를 푼 뒤 분수 풀이를 정수로 반올림한다.
 
-- **Threshold rounding:** Round $x_j^* \geq \theta$ to 1. Vertex cover with $\theta = 1/2$ gives ratio 2.
-- **Randomized rounding:** Set $x_j = 1$ with probability $x_j^*$. MAX-SAT achieves ratio $(1 - 1/e)$.
+- **문턱 반올림:** $x_j^* \geq \theta$을 1으로 반올림한다. $\theta = 1/2$인 꼭짓점 덮기는 비율 2을 준다.
+- **마구잡이 반올림:** 확률 $x_j^*$으로 $x_j = 1$으로 둔다. MAX-SAT은 비율 $(1 - 1/e)$을 이룬다.
 
-### Primal-Dual Method
+### 원문제-쌍대 방법
 
-Build primal and dual solutions simultaneously. The dual provides a lower bound, and the primal-dual gap bounds the approximation ratio.
+원문제와 쌍대 풀이를 한꺼번에 세운다. 쌍대가 아래 한계를 주고 원문제-쌍대 틈이 어림 비율을 가둔다.
 
-### Local Search
+### 그 자리 찾기
 
-Start with a feasible solution and iteratively improve it through local modifications. For MAX-CUT, flipping vertices to increase the cut gives a $1/2$-approximation (ratio 2).
+쓸 수 있는 풀이에서 시작해 그 자리에서 고쳐 가며 되풀이해 낫게 한다. 최대 자르기에서는 자름을 늘리도록 꼭짓점을 뒤집으면 $1/2$ 어림(비율 2)을 얻는다.
 
-## Approximability Landscape
+## 어림할 수 있음의 풍경
 
-Problems fall into distinct categories based on their best achievable approximation ratio:
+문제는 이룰 수 있는 가장 좋은 어림 비율에 따라 뚜렷한 갈래로 나뉜다:
 
-| Category | Best Ratio | Examples |
+| 갈래 | 가장 좋은 비율 | 보기 |
 |----------|-----------|---------|
-| Exact in P | 1 | Shortest paths, matching, MST |
-| FPTAS | $(1 + \epsilon)$ for any $\epsilon$ | Knapsack |
-| PTAS | $(1 + \epsilon)$ for any $\epsilon$ | Euclidean TSP |
-| Constant-factor (APX) | Fixed $\rho$ | Vertex Cover (2), Metric TSP (3/2) |
-| Logarithmic | $O(\log n)$ | Set Cover |
-| Polynomial | $O(n^c)$ | Independent Set (planar graphs) |
-| Inapproximable | No finite ratio | General TSP, Chromatic Number ($n^{1-\epsilon}$) |
+| P에서 정확 | 1 | 최단 길, 짝짓기, 최소 뻗은 나무 |
+| FPTAS | 어떤 $\epsilon$에도 $(1 + \epsilon)$ | 배낭 |
+| PTAS | 어떤 $\epsilon$에도 $(1 + \epsilon)$ | 유클리드 떠돌이 장수 문제 |
+| 상수 배(APX) | 붙박이 $\rho$ | 꼭짓점 덮기(2), 잣대 떠돌이 장수 문제(3/2) |
+| 로그 | $O(\log n)$ | 모임 덮기 |
+| 다항 | $O(n^c)$ | 독립 모임(평면 그래프) |
+| 어림할 수 없음 | 유한 비율 없음 | 일반 떠돌이 장수 문제, 색칠 수($n^{1-\epsilon}$) |
 
-## Key Results Summary
+## 핵심 결과 간추림
 
-| Problem | Algorithm | Ratio | Lower Bound |
+| 문제 | 알고리즘 | 비율 | 아래 한계 |
 |---------|-----------|-------|-------------|
-| Vertex Cover | Maximal Matching | 2 | $2 - \epsilon$ (UGC) |
-| Set Cover | Greedy | $\ln n$ | $(1-\epsilon) \ln n$ |
-| Metric TSP | Christofides | 3/2 | Open (no better than APX-hard) |
-| MAX-CUT | Goemans-Williamson | $\approx 0.878$ | $\approx 0.878$ (UGC) |
-| MAX-3SAT | Semidefinite | 7/8 | $7/8 + \epsilon$ |
-| Knapsack | FPTAS | $1 + \epsilon$ | No FPTAS for strongly NP-hard |
+| 꼭짓점 덮기 | 최대 짝짓기 | 2 | $2 - \epsilon$(고유 놀이 추측) |
+| 모임 덮기 | 욕심쟁이 | $\ln n$ | $(1-\epsilon) \ln n$ |
+| 잣대 떠돌이 장수 문제 | 크리스토피데스 | 3/2 | 열림(APX 어려움보다 나은 것 없음) |
+| 최대 자르기 | 괴만스-윌리엄슨 | $\approx 0.878$ | $\approx 0.878$(고유 놀이 추측) |
+| MAX-3SAT | 반정부호 | 7/8 | $7/8 + \epsilon$ |
+| 배낭 | FPTAS | $1 + \epsilon$ | 강한 NP 어려움에는 FPTAS 없음 |
 
-## Approximation vs Other Coping Strategies
+## 어림과 다른 대처 셈속
 
-| Strategy | Guarantee | Trade-off |
+| 셈속 | 보장 | 맞바꿈 |
 |----------|-----------|-----------|
-| **Approximation** | Provable ratio on solution quality | Worst-case ratio may be loose |
-| **Parameterized** | Exact solution, FPT in parameter | Exponential in parameter |
-| **Heuristic** | No worst-case guarantee | Often works well in practice |
-| **Exponential exact** | Optimal solution | Exponential time |
-| **Pseudo-polynomial** | Exact for bounded inputs | Not truly polynomial |
+| **어림** | 풀이 품질에 대한 밝힐 수 있는 비율 | 가장 나쁜 경우의 비율이 헐거울 수 있다 |
+| **매개변수** | 정확한 풀이, 매개변수에 대해 붙박이 매개변수 다룰 수 있음 | 매개변수에 대해 지수 |
+| **어림짐작** | 가장 나쁜 경우의 보장 없음 | 실제로는 흔히 잘 듣는다 |
+| **지수 정확** | 가장 좋은 풀이 | 지수 시간 |
+| **거짓 다항** | 가둬진 들임에서는 정확 | 참으로 다항은 아님 |
 
-Approximation is the preferred approach when a provable quality guarantee matters and the problem admits a reasonable ratio.
+밝힐 수 있는 품질 보장이 중요하고 문제가 그럴듯한 비율을 허락할 때는 어림이 즐겨 쓰이는 방식이다.
 
-## When Approximation Fails
+## 어림이 통하지 않을 때
 
-Some problems resist approximation entirely:
+어떤 문제는 어림을 아예 받아들이지 않는다:
 
-!!! warning "Inapproximability Examples"
-    - **General TSP:** No finite approximation ratio unless P = NP.
-    - **Clique:** Cannot be approximated within $n^{1-\epsilon}$ for any $\epsilon > 0$ unless P = NP.
-    - **Chromatic Number:** Same hardness as Clique.
+!!! warning "어림할 수 없음의 보기"
 
-For these problems, other coping strategies (heuristics, parameterized algorithms, special-case structure) are necessary.
+    - **일반 떠돌이 장수 문제:** P = NP이 아닌 한 유한한 어림 비율이 없다.
+    - **덩어리:** P = NP이 아닌 한 어떤 $\epsilon > 0$에 대해서도 $n^{1-\epsilon}$ 안으로 어림할 수 없다.
+    - **색칠 수:** 덩어리와 같은 어려움이다.
 
-??? example "Example: Greedy Set Cover"
-    **Universe:** $U = \{1, 2, 3, 4, 5, 6\}$.
+이런 문제에는 다른 대처 셈속(어림짐작, 매개변수 알고리즘, 특별한 경우의 얼개)이 필요하다.
 
-    **Sets:** $S_1 = \{1, 2, 3\}$, $S_2 = \{2, 4, 5\}$, $S_3 = \{3, 5, 6\}$, $S_4 = \{1, 6\}$.
+??? example "보기: 욕심쟁이 모임 덮기"
+    **온 모임:** $U = \{1, 2, 3, 4, 5, 6\}$.
 
-    **Greedy execution:**
+    **모임들:** $S_1 = \{1, 2, 3\}$, $S_2 = \{2, 4, 5\}$, $S_3 = \{3, 5, 6\}$, $S_4 = \{1, 6\}$.
 
-    1. $S_1$ covers 3 elements (most). Select $S_1$. Uncovered: $\{4, 5, 6\}$.
-    2. $S_2$ covers $\{4, 5\}$ (2 elements), $S_3$ covers $\{5, 6\}$ (2 elements). Pick $S_2$. Uncovered: $\{6\}$.
-    3. $S_3$ covers $\{6\}$. Select $S_3$.
+    **욕심쟁이 실행:**
 
-    **Greedy solution:** $\{S_1, S_2, S_3\}$, size 3.
+    1. $S_1$이 원소 3개를 덮는다(가장 많다). $S_1$을 고른다. 덮이지 않음: $\{4, 5, 6\}$.
+    2. $S_2$이 $\{4, 5\}$(원소 2개)을, $S_3$이 $\{5, 6\}$(원소 2개)을 덮는다. $S_2$을 고른다. 덮이지 않음: $\{6\}$.
+    3. $S_3$이 $\{6\}$을 덮는다. $S_3$을 고른다.
 
-    **Optimal:** $\{S_1, S_3\}$ covers everything, size 2.
+    **욕심쟁이 풀이:** $\{S_1, S_2, S_3\}$, 크기 3.
 
-    **Ratio:** $3/2 = 1.5 \leq H_6 \approx 2.45$. Guarantee holds.
+    **가장 좋은 풀이:** $\{S_1, S_3\}$이 모두 덮으며 크기는 2이다.
 
-## Reference
+    **비율:** $3/2 = 1.5 \leq H_6 \approx 2.45$이다. 보장이 성립한다.
+
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Chapter 35.
 - Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.
 - Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+꼭짓점 덮기의 욕심쟁이 2 어림(변을 되풀이해 고르고 양 끝점을 넣고 덮인 변을 지운다)이 꼭 비율 2을 이룸을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    $M$을 욕심쟁이 알고리즘이 고른 변의 모임이라 하자. 이 변들은 짝짓기를 이룬다(고른 뒤 양 끝점을 지우므로 두 변이 끝점을 함께 갖지 않는다). 알고리즘은 꼭짓점 $2|M|$개를 넣는다. 어떤 꼭짓점 덮기도 $M$의 변마다 적어도 한 끝점을 담아야 하므로($M$이 짝짓기이므로 이 꼭짓점들은 서로 다르다) $\text{OPT} \geq |M|$이다. 따라서 알고리즘은 크기 $2|M| \leq 2 \cdot \text{OPT}$인 덮기를 내놓는다.
+
+    이 한계는 빠듯하다. 완전 두 쪽 그래프 $K_{n,n}$을 살펴보자. 가장 좋은 꼭짓점 덮기는 크기가 $n$(한쪽)이지만 욕심쟁이 알고리즘은 완벽 짝짓기의 변 $n$개를 골라 꼭짓점 $2n$개를 모두 넣을 수 있다.
+
+---
+
+**연습문제 2.**
+$\mathbf{P} = \mathbf{NP}$이 아닌 한 어떤 상수 $\epsilon > 0$에 대해서도 일반 떠돌이 장수 문제에 다항 시간 $(1 + \epsilon)$ 어림이 없음을 보여라.
+
+??? success "연습문제 2 풀이"
+    해밀턴 돌이에서 줄인다. 그래프 $G = (V, E)$이 주어지면 같은 꼭짓점 위에 완전 무게 그래프 $G'$을 세우되 변 무게를 이렇게 둔다. $(u,v) \in E$이면 $w(u,v) = 1$이고 그 밖에는 $w(u,v) = n \cdot (1 + \epsilon) + 1$이다.
+
+    $G$에 해밀턴 돌이가 있으면 $G'$의 가장 좋은 떠돌이 장수 돌이는 비용이 $n$이다. $G$에 해밀턴 돌이가 없으면 어떤 돌이도 무거운 변을 적어도 하나 쓰므로 돌이 비용은 적어도 $n - 1 + n(1+\epsilon) + 1 > n(1 + \epsilon)$이다.
+
+    $(1+\epsilon)$ 어림이라면 OPT $= n$일 때 비용 $\leq n(1+\epsilon)$인 돌이를 돌려주고 그 밖에는 $n(1+\epsilon)$보다 큰 값을 돌려준다. 이는 두 경우를 갈라 주어 해밀턴 돌이를 다항 시간에 풀게 되며 $\mathbf{P} \neq \mathbf{NP}$과 어긋난다.
+
+---
+
+**연습문제 3.**
+배낭 문제의 PTAS(다항 시간 어림 얼거리)을 적어라. $n$과 $1/\epsilon$의 함수로 도는 시간은 얼마인가?
+
+??? success "연습문제 3 풀이"
+    이 PTAS은 물건 값을 잣수 맞추고 반올림한다. 값 $v_i$과 무게 $w_i$을 가진 물건, 담이 $W$, 매개변수 $\epsilon$이 주어질 때:
+
+    1. $v_{\max} = \max_i v_i$이라 하고 잣수 인자를 $K = \frac{\epsilon \cdot v_{\max}}{n}$으로 둔다.
+    2. 반올림한 값 $\hat{v}_i = \lfloor v_i / K \rfloor$을 뜻매김한다.
+    3. 값 $\hat{v}_i$으로 배낭 문제를 짜 넣기로 정확히 푼다. $\hat{v}_i \leq n/\epsilon$이므로 짜 넣기 표의 크기는 $O(n \cdot n/\epsilon)$이다.
+    4. 고른 물건을 돌려준다.
+
+    도는 시간: $O(n^2 \cdot n/\epsilon) = O(n^3/\epsilon)$이다. 물건마다 반올림 어긋남이 많아야 $K$이고 많아야 물건 $n$개를 고르므로 온 값 손실은 많아야 $nK = \epsilon \cdot v_{\max} \leq \epsilon \cdot \text{OPT}$이다. 풀이 값은 $\geq (1-\epsilon) \cdot \text{OPT}$이다.
+
+---
+
+**연습문제 4.**
+$\mathbf{P} = \mathbf{NP}$이 아닌 한 모임 덮기를 $\ln n$보다 잘 어림할 수 없는 까닭을 밝히고 욕심쟁이 알고리즘이 이 한계를 이룸을 보여라.
+
+??? success "연습문제 4 풀이"
+    모임 덮기의 욕심쟁이 알고리즘은 덮이지 않은 원소를 가장 많이 덮는 모임을 되풀이해 고른다. 가장 좋은 풀이가 모임 $k$개를 쓰면 욕심쟁이 걸음마다 덮이지 않은 원소 수가 적어도 $1/k$만큼 줄어든다(비둘기집 원리로 어떤 최적 모임이 남은 원소의 $\geq 1/k$을 덮는다). $k \ln n$ 걸음 뒤 덮이지 않은 수가 $n \cdot (1 - 1/k)^{k \ln n} < n \cdot e^{-\ln n} = 1$보다 작아지므로 모든 원소가 덮인다. 욕심쟁이 알고리즘은 많아야 모임 $k \cdot H_n \leq k(\ln n + 1)$개를 써서 $H_n$ 어림을 준다.
+
+    디누르와 슈토이러(2014)는 어떤 $\epsilon > 0$에 대해서도 $(1-\epsilon)\ln n$보다 나은 비율을 이루는 것이 NP 어려움임을 확률 살핌 밝힘 정리와 이름표 덮기의 어려움을 이어 밝혔다. 따라서 욕심쟁이 알고리즘은 사실상 가장 좋다.

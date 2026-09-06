@@ -1,79 +1,78 @@
-# Task Distribution Design for Meta-Learning
+# 메타 학습을 위한 과제 분포 설계
+## 들어가며
 
+과제 분포의 질과 성격이 메타 학습의 성패를 근본에서 가른다. 메타 학습 이론은 이상적인 과제 분포를 쓸 수 있다고 놓지만, 실무자는 현실 상황을 비추고 효율적인 메타 학습이 되게 하며 시험 과제로의 일반화를 보장하는 과제 분포를 손수 설계해야 한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+계량 금융에서 과제 분포 설계는 거래 체계의 튼튼함을 곧바로 좌우한다. 서로 다른 시장 기간, 자산 갈래, 국면에서 메타 학습 과제를 짜면 새로운 시장 상황에도 매끄럽게 맞추어 가는 메타 학습기를 기를 수 있다. 과제 분포를 꼼꼼히 설계하면 지난 본새에 지나치게 맞추어지는 것을 막으면서 현실에 맞는 맞춤 요구를 담을 수 있다.
 
-## Introduction
+## 핵심 개념
 
-The quality and characteristics of the task distribution fundamentally determine meta-learning success. While meta-learning theory assumes access to an ideal task distribution, practitioners must design task distributions that reflect real-world scenarios, enable efficient meta-training, and ensure generalization to test tasks.
+- **과제 복잡도**: 낱낱 과제와 메타 학습 목표의 어려움
+- **과제 다양성**: 과제의 성격과 문제 종류의 다름
+- **영역 아우름**: 과제 분포가 현실 상황을 얼마나 담는가
+- **차례 설계**: 메타 학습을 돕도록 과제의 차례를 매기기
+- **메타 일반화**: 학습 과제 분포가 주어졌을 때 시험 과제의 성능
 
-In quantitative finance, task distribution design directly impacts trading system robustness. By constructing meta-training tasks from diverse market periods, asset classes, and regimes, practitioners develop meta-learners that gracefully adapt to novel market conditions. Careful task distribution design prevents overfitting to historical patterns while ensuring realistic adaptation requirements.
+## 메타 학습에서 과제의 정의
 
-## Key Concepts
+### 정식 과제 명세
 
-- **Task Complexity**: Difficulty of individual tasks and meta-learning objectives
-- **Task Diversity**: Variation in task characteristics and problem types
-- **Domain Coverage**: Representation of real-world conditions in task distribution
-- **Curriculum Design**: Ordering of tasks to facilitate meta-learning
-- **Meta-Generalization**: Test task performance given training task distribution
-
-## Task Definition in Meta-Learning
-
-### Formal Task Specification
-
-A task consists of:
+과제는 다음으로 이루어진다.
 
 $$\mathcal{T} = \{\mathcal{D}_{\text{train}}, \mathcal{D}_{\text{test}}, \ell(\cdot)\}$$
 
-where:
-- $\mathcal{D}_{\text{train}} = \{(\mathbf{x}_i, y_i)\}_{i=1}^k$ is support set
-- $\mathcal{D}_{\text{test}} = \{(\mathbf{x}_j, y_j)\}_{j=1}^q$ is query set
-- $\ell(\cdot)$ is task-specific loss function
+여기서 각 기호는 다음과 같다.
 
-### Task Similarity
+- $\mathcal{D}_{\text{train}} = \{(\mathbf{x}_i, y_i)\}_{i=1}^k$은 받침 집합이다
+- $\mathcal{D}_{\text{test}} = \{(\mathbf{x}_j, y_j)\}_{j=1}^q$은 물음 집합이다
+- $\ell(\cdot)$은 과제마다의 손실 함수이다
 
-Measure similarity between tasks:
+### 과제의 닮음
 
-$$\text{Sim}(\mathcal{T}_i, \mathcal{T}_j) = \frac{1}{1 + \text{distance}(\mathcal{T}_i, \mathcal{T}_j)}$$
+과제 사이의 닮음을 잰다.
 
-where distance measures:
-- Distributional divergence: $\text{KL}(P_i \| P_j)$
-- Task performance correlation
-- Feature space overlap
+$$\text{Sim}(\mathcal{T}_i, \mathcal{T}_j) = \frac{1}{1 + \text{거리}(\mathcal{T}_i, \mathcal{T}_j)}$$
 
-## Task Distribution Characteristics
+여기서 거리는 다음을 잰다.
 
-### Diversity Dimensions
+- 분포의 벌어짐: $\text{KL}(P_i \| P_j)$
+- 과제 성능의 상관
+- 특징 공간의 겹침
 
-High-quality task distributions vary along multiple axes:
+## 과제 분포의 성격
 
-| Dimension | Purpose | Example |
+### 다양성의 축
+
+질 좋은 과제 분포는 여러 축을 따라 달라진다.
+
+| 축 | 목적 | 보기 |
 |-----------|---------|---------|
-| **Input Distribution** | Feature variation | Different market regimes |
-| **Task Difficulty** | Convergence rates | Easy vs. hard predictions |
-| **Output Structure** | Objective variety | Classification, regression |
-| **Noise Levels** | Robustness | Clean vs. noisy signals |
-| **Temporal Structure** | Temporal reasoning | Static vs. sequential |
+| **입력 분포** | 특징의 다름 | 서로 다른 시장 국면 |
+| **과제 난이도** | 모이는 속도 | 쉬운 예측과 어려운 예측 |
+| **출력 짜임** | 목표의 다양함 | 분류, 회귀 |
+| **잡음 수준** | 튼튼함 | 깨끗한 신호와 잡음 낀 신호 |
+| **때의 짜임** | 때에 대한 추론 | 멈춘 것과 잇단 것 |
 
-### Complexity-Difficulty Balance
+### 복잡도와 난이도의 균형
 
-!!! tip "Curriculum Design"
-    Balance task distribution complexity for efficient meta-learning:
-    - Too easy: Insufficient learning signal
-    - Too hard: Unstable meta-training
-    - Mixed: Optimal meta-generalization
+!!! tip "차례 설계"
+    효율적인 메타 학습을 위해 과제 분포의 복잡도를 알맞게 맞춘다.
 
-## Financial Task Distribution Design
+    - 너무 쉬우면 배울 신호가 모자라다
+    - 너무 어려우면 메타 학습이 흔들린다
+    - 섞으면 메타 일반화가 가장 좋다
 
-### Asset-Based Partitioning
+## 금융 과제 분포 설계
 
-Create tasks from different securities and instrument classes:
+### 자산 기준 나누기
 
-**Financial Task Example**:
-- **Support Set**: Historical returns for Stock A from January-March
-- **Query Set**: April returns for Stock A (unlabeled during training)
-- **Loss**: Prediction error on April returns
+서로 다른 증권과 상품 갈래에서 과제를 만든다.
+
+**금융 과제 보기**:
+
+- **받침 집합**: 1월부터 3월까지 주식 A의 지난 수익률
+- **물음 집합**: 주식 A의 4월 수익률(학습 중에는 이름표가 없다)
+- **손실**: 4월 수익률에 대한 예측 오차
 
 ```
 Tasks = {
@@ -85,122 +84,125 @@ Tasks = {
 }
 ```
 
-Meta-learning discovers how to predict across different assets.
+메타 학습은 여러 자산에 걸쳐 예측하는 법을 찾아낸다.
 
-### Temporal Partitioning
+### 때 기준 나누기
 
-Create tasks from different time periods:
+서로 다른 기간에서 과제를 만든다.
 
-**Regime-Based Tasks**:
-- Bull market periods
-- Bear market periods
-- Sideways/consolidation periods
-- Transition periods
-- High volatility periods
-- Low volatility periods
+**국면 기준 과제**:
 
-Meta-learning develops regime-specific adaptations.
+- 오름장 기간
+- 내림장 기간
+- 옆걸음, 곧 다지기 기간
+- 넘어가는 기간
+- 변동성이 큰 기간
+- 변동성이 작은 기간
 
-### Market Condition Partitioning
+메타 학습은 국면마다의 맞춤을 길러 낸다.
 
-Group tasks by market characteristics:
+### 시장 상황 기준 나누기
 
-| Market Condition | Task Characteristics |
+시장의 성격으로 과제를 묶는다.
+
+| 시장 상황 | 과제의 성격 |
 |-----------------|----------------------|
-| **High Liquidity** | Low spreads, tight bid-ask |
-| **Low Liquidity** | Wide spreads, execution challenges |
-| **High Volatility** | Large returns, uncertain forecasts |
-| **Low Volatility** | Stable patterns, predictable |
-| **Trending** | Directional bias, momentum |
-| **Mean-Reverting** | Range-bound, reversion signal |
+| **높은 유동성** | 좁은 스프레드, 촘촘한 호가 |
+| **낮은 유동성** | 넓은 스프레드, 체결의 어려움 |
+| **높은 변동성** | 큰 수익률, 불확실한 예보 |
+| **낮은 변동성** | 한결같은 본새, 내다보기 쉬움 |
+| **추세장** | 방향 치우침, 운동량 |
+| **평균 회귀** | 범위에 갇힘, 되돌림 신호 |
 
-## Constructing Task Distributions
+## 과제 분포 짜기
 
-### Sampling Strategy
+### 뽑기 전략
 
-**Uniform Sampling**: Equal probability for each task type (simplest)
+**고른 뽑기**: 과제 종류마다 같은 확률(가장 단순하다)
 
-**Weighted Sampling**: Emphasize important or difficult task types:
+**가중 뽑기**: 중요하거나 어려운 과제 종류에 힘을 싣는다.
 
-$$P(\mathcal{T}) \propto \text{Importance}(\mathcal{T})$$
+$$P(\mathcal{T}) \propto \text{중요도}(\mathcal{T})$$
 
-**Curriculum**: Gradually increase difficulty:
+**차례 밟기**: 난이도를 차츰 올린다.
 
-$$P(\mathcal{T}) = P_{\text{curriculum}}(\text{Difficulty}(t))$$
+$$P(\mathcal{T}) = P_{\text{curriculum}}(\text{난이도}(t))$$
 
-where difficulty increases with meta-training iteration $t$.
+여기서 난이도는 메타 학습 되풀이 $t$에 따라 올라간다.
 
-### Support-Query Split Strategy
+### 받침-물음 쪼갬 전략
 
-**Few-Shot Setting**: 5 examples per class, 15 queries per class (standard)
+**소수 예시 얼개**: 부류마다 보기 5개, 물음 15개(표준)
 
-**Different Data Regimes**:
-- Ultra-low data: 1-5 support examples
-- Low data: 5-10 support examples
-- Moderate data: 10-50 support examples
-- High data: 50+ support examples
+**서로 다른 데이터 상황**:
 
-**Financial Recommendation**: Use 10-20 trading days as support set (2-4 weeks), 5-10 days as query set (1-2 weeks) for daily trading.
+- 데이터가 극히 적음: 받침 보기 1~5개
+- 데이터가 적음: 받침 보기 5~10개
+- 데이터가 보통: 받침 보기 10~50개
+- 데이터가 많음: 받침 보기 50개 넘음
 
-## Avoiding Task Distribution Pitfalls
+**금융에서의 권고**: 일별 거래라면 거래일 10~20일(2~4주)을 받침 집합으로, 5~10일(1~2주)을 물음 집합으로 쓰라.
 
-### Avoiding Distribution Mismatch
+## 과제 분포의 함정 피하기
 
-!!! warning "Meta-Test Mismatch"
-    If test tasks come from different distribution than meta-training tasks, meta-generalization fails.
+### 분포 어긋남 피하기
 
-**Solution**: Ensure task distribution reflects real-world test scenarios.
+!!! warning "메타 시험 어긋남"
+    시험 과제가 메타 학습 과제와 다른 분포에서 오면 메타 일반화가 무너진다.
 
-**Financial Example**: If testing on 2024 data, meta-train on 2020-2023 market conditions.
+**해법**: 과제 분포가 현실의 시험 상황을 비추게 하라.
 
-### Handling Task Contamination
+**금융 보기**: 2024년 데이터로 시험한다면 2020~2023년 시장 상황으로 메타 학습하라.
 
-Prevent information leakage between support and query sets:
+### 과제 오염 다루기
+
+받침 집합과 물음 집합 사이로 정보가 새지 않게 막는다.
 
 $$\mathcal{D}_{\text{train}} \cap \mathcal{D}_{\text{test}} = \emptyset$$
 
-Strict separation prevents memorization.
+빈틈없이 갈라 두면 외우기를 막는다.
 
-### Avoiding Trivial Tasks
+### 시시한 과제 피하기
 
-Some task distributions are too easy, not providing learning signal:
+어떤 과제 분포는 너무 쉬워서 배울 신호를 주지 못한다.
 
-**Example (Bad)**: All tasks are MNIST with same distribution
-**Example (Good)**: MNIST tasks with varying rotation, scale, style
+**보기(나쁨)**: 모든 과제가 같은 분포의 MNIST이다
+**보기(좋음)**: 회전, 크기, 모양새가 달라지는 MNIST 과제
 
-For financial data:
-- **Bad**: All tasks from same asset in same regime
-- **Good**: Mix assets, regimes, time periods
+금융 데이터라면 다음과 같다.
 
-## Measuring Task Distribution Quality
+- **나쁨**: 모든 과제가 같은 국면의 같은 자산에서 온다
+- **좋음**: 자산, 국면, 기간을 섞는다
 
-### Task Diversity Metrics
+## 과제 분포의 질 재기
 
-**Average Pairwise Distance**:
+### 과제 다양성 지표
+
+**쌍마다의 평균 거리**:
 
 $$\bar{d} = \frac{1}{\binom{|T|}{2}} \sum_{i<j} d(\mathcal{T}_i, \mathcal{T}_j)$$
 
-Higher distance indicates more diverse task distribution.
+거리가 클수록 과제 분포가 더 다양하다.
 
-**Spectrum Analysis**: Principal component analysis on task descriptors reveals dominant variation directions.
+**스펙트럼 분석**: 과제 서술자에 주성분 분석을 하면 으뜸가는 변화 방향이 드러난다.
 
-**Distribution Entropy**: How uniform is task distribution?
+**분포 엔트로피**: 과제 분포가 얼마나 고른가?
 
 $$H = -\sum_i P(\mathcal{T}_i) \log P(\mathcal{T}_i)$$
 
-### Meta-Generalization Evaluation
+### 메타 일반화 평가
 
-**Oracle Performance**: Test meta-learner on test tasks from same distribution (upper bound).
+**신탁 성능**: 같은 분포에서 온 시험 과제로 메타 학습기를 시험한다(위 한계).
 
-**Distribution Shift Performance**: Test on tasks from different distribution (realistic evaluation).
+**분포 이동 성능**: 다른 분포에서 온 과제로 시험한다(현실에 가까운 평가).
 
-**Convergence Behavior**: Does meta-learner converge smoothly, or experience sudden performance drops?
+**모임 거동**: 메타 학습기가 매끄럽게 모이는가, 아니면 성능이 갑자기 떨어지는가?
 
-## Advanced Task Distribution Design
+## 한 걸음 나아간 과제 분포 설계
 
-### Curriculum Learning
+### 차례 학습
 
-Progressive difficulty increase during meta-training:
+메타 학습 중에 난이도를 차츰 올린다.
 
 ```
 Phase 1 (Iterations 1-1000): Easy tasks only
@@ -209,27 +211,27 @@ Phase 3 (Iterations 3001-5000): All difficulty levels
 Phase 4 (Iterations 5001+): Hard tasks emphasized
 ```
 
-Benefits: Faster convergence, better final performance, more stable training.
+이점: 더 빨리 모이고, 마지막 성능이 좋아지며, 학습이 더 안정된다.
 
-### Adversarial Task Generation
+### 적수 과제 만들기
 
-Automatically generate difficult tasks that stress-test meta-learner:
+메타 학습기를 몰아붙여 시험하는 어려운 과제를 알아서 만들어 낸다.
 
-$$\mathcal{T}_{\text{adv}} = \arg\max_{\mathcal{T}} \text{Error}_{\text{meta-learner}}(\mathcal{T})$$
+$$\mathcal{T}_{\text{adv}} = \arg\max_{\mathcal{T}} \text{오차}_{\text{meta-learner}}(\mathcal{T})$$
 
-Iteratively add challenging tasks to distribution.
+어려운 과제를 되풀이하여 분포에 더한다.
 
-### Adaptive Task Weighting
+### 맞추어 가는 과제 가중
 
-Weight tasks by meta-learner's uncertainty:
+메타 학습기의 불확실성으로 과제에 무게를 준다.
 
-$$w_i(t) = 1 - \text{Confidence}(\mathcal{T}_i, \text{meta-learner at iteration } t)$$
+$$w_i(t) = 1 - \text{자신감}(\mathcal{T}_i, \text{되풀이 } t \text{의 메타 학습기})$$
 
-Focus on tasks where meta-learner struggles most.
+메타 학습기가 가장 힘겨워하는 과제에 집중한다.
 
-## Financial Implementation Examples
+## 금융 구현 보기
 
-### Daily Trading System Task Distribution
+### 일별 거래 체계의 과제 분포
 
 ```
 Tasks = {
@@ -241,9 +243,9 @@ Tasks = {
 }
 ```
 
-Meta-learner learns to adapt across different assets and market regimes.
+메타 학습기는 여러 자산과 시장 국면에 걸쳐 맞추어 가는 법을 배운다.
 
-### Multi-Asset Portfolio Task Distribution
+### 여러 자산 포트폴리오의 과제 분포
 
 ```
 Tasks = {
@@ -254,12 +256,57 @@ Tasks = {
 }
 ```
 
-Meta-learner learns cross-asset patterns.
+메타 학습기는 자산을 넘나드는 본새를 배운다.
 
-## Related Topics
+## 관련 주제
 
-- Meta-Learning Overview (Chapter 11.1)
-- Learned Optimizers (Chapter 11.2)
-- Few-Shot Learning Theory
-- Curriculum Learning
-- Task Clustering and Selection
+- 메타 학습 훑어보기(11.1절)
+- 배운 최적화기(11.2절)
+- 소수 예시 학습 이론
+- 차례 학습
+- 과제 무리 짓기와 고르기
+
+## 연습문제
+
+**연습문제 1.**
+과제 분포가 메타 학습 성능에 왜 결정적인지 설명하라.
+
+??? success "연습문제 1 풀이"
+    메타 학습은 과제 분포에서 배우는 법을 배운다. 시험 과제가 이 분포 밖에 있으면(이를테면 그림 과제로 익히고 글로 시험하면) 성능이 떨어진다. 과제 분포는 모델이 '어떤 종류의 문제'를 풀 수 있는지를 정한다. 다양하고 대표성 있는 과제 분포일수록 더 두루 쓰이는 메타 학습기로 이어진다.
+
+---
+
+**연습문제 2.**
+소수 예시 그림 분류를 위한 과제 분포는 어떻게 설계하는가?
+
+??? success "연습문제 2 풀이"
+    큰 웅덩이에서 부류 $N$개를 뽑는다(이를테면 miniImageNet은 부류가 100개이다). 에피소드마다 부류 $N$개를 아무렇게나 고르고 부류마다 받침 보기 $K$개와 물음 보기 $Q$개를 뽑는다. 튼튼하게 하려면 학습 중에 $N$과 $K$을 바꾸어 가며 쓴다. 참으로 새로운 부류로의 일반화를 재려면 학습·검증·시험 부류가 서로 겹치지 않게 하라.
+
+---
+
+**연습문제 3.**
+과제 수준 일반화와 사례 수준 일반화의 차이는 무엇인가?
+
+??? success "연습문제 3 풀이"
+    사례 수준: 본 부류의 새 보기로 일반화한다(보통의 기계 학습). 과제 수준: 새 과제(새 부류, 새 영역)로 일반화한다. 메타 학습은 과제 수준 일반화를 노리는데, 모델이 아주 적은 보기에서 과제의 짜임을 미루어 알아내야 하므로 더 어렵다.
+
+---
+
+**연습문제 4.**
+Omniglot 소수 예시 분류를 위한 과제 뽑개를 구현하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    class TaskSampler:
+        def __init__(self, labels, n_way, k_shot, q_query):
+            self.label_to_indices = {l: (labels==l).nonzero().squeeze() for l in labels.unique()}
+            self.n_way, self.k_shot, self.q_query = n_way, k_shot, q_query
+        def sample(self):
+            classes = random.sample(list(self.label_to_indices.keys()), self.n_way)
+            support, query = [], []
+            for c in classes:
+                idx = self.label_to_indices[c][torch.randperm(len(self.label_to_indices[c]))]
+                support.append(idx[:self.k_shot])
+                query.append(idx[self.k_shot:self.k_shot+self.q_query])
+            return torch.cat(support), torch.cat(query)
+    ```

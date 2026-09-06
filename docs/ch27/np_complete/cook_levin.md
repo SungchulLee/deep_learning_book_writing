@@ -1,112 +1,174 @@
-# Cook-Levin Theorem
+# 쿡-레빈 정리
 
-How do we know that NP-complete problems exist at all?  Before 1971, it was conceivable that no single problem could be "hardest" in NP.  The **Cook-Levin theorem** settled this by proving that SAT is NP-complete -- the first problem ever shown to have this property.  The proof works by encoding the computation of *any* nondeterministic Turing machine as a Boolean formula, establishing that SAT is a universal target for polynomial-time reductions from all of NP.
+NP 완전 문제가 있기는 한지 우리는 어떻게 아는가? 1971년 이전에는 NP에서 "가장 어려운" 문제가 하나도 없을 수도 있다고 여길 만했다. **쿡-레빈 정리**는 SAT이 NP 완전임을 밝혀 이를 매듭지었다. 이 성질이 밝혀진 첫 문제이다. 이 밝힘은 *어떤* 정해지지 않은 튜링 기계의 셈도 부울 식으로 적어, SAT이 NP 전체에서 오는 다항 시간 줄임의 두루 쓰는 과녁임을 세운다.
 
-## Theorem Statement
+## 정리의 진술
 
-**Theorem (Cook, 1971; Levin, 1973).** The Boolean satisfiability problem (SAT) is NP-complete.
+**정리(쿡, 1971; 레빈, 1973).** 부울 만족 가능성 문제(SAT)는 NP 완전이다.
 
-This asserts two things:
+이는 두 가지를 주장한다:
 
-1. SAT $\in$ NP (easy: a satisfying assignment is a polynomial-length certificate).
-2. Every language $L \in$ NP is polynomial-time many-one reducible to SAT.
+1. SAT $\in$ NP이다(쉽다. 만족시키는 매김이 다항 길이 증서이다).
+2. NP의 모든 말 $L$이 다항 시간 여럿 대 하나 줄임으로 SAT으로 줄여진다.
 
-The second claim is the substantial part: *any* NP computation can be expressed as a question about Boolean satisfiability.
+둘째 주장이 알맹이이다. *어떤* NP 셈도 부울 만족 가능성에 대한 물음으로 적을 수 있다.
 
-## Proof Strategy
+## 밝힘 얼개
 
-The proof constructs a polynomial-time reduction from an arbitrary NP language $L$ to SAT.  Since $L \in$ NP, there exists a nondeterministic Turing machine $N$ that decides $L$ in time $p(n)$ for some polynomial $p$.  The reduction encodes $N$'s computation on input $x$ as a Boolean formula $\phi_x$ such that:
+이 밝힘은 아무 NP 말 $L$에서 SAT으로 가는 다항 시간 줄임을 세운다. $L \in$ NP이므로 어떤 다항식 $p$에 대해 $L$을 시간 $p(n)$에 가르는 정해지지 않은 튜링 기계 $N$이 있다. 이 줄임은 들임 $x$에서 $N$의 셈을 다음을 만족하는 부울 식 $\phi_x$으로 적는다:
 
 $$
 x \in L \iff \phi_x \text{ is satisfiable}
 $$
 
-## Proof Sketch
+## 증명의 얼개
 
-### Step 1: Computation Tableau
+### 걸음 1: 셈 표
 
-A nondeterministic TM $N$ running on input $x$ of length $n$ in time $T = p(n)$ can be described by a **tableau** -- a $T \times T$ grid where:
+길이 $n$인 들임 $x$에서 시간 $T = p(n)$에 도는 정해지지 않은 튜링 기계 $N$은 **표**, 곧 $T \times T$ 격자로 적을 수 있다:
 
-- Row $i$ represents the configuration at time step $i$.
-- Column $j$ represents tape cell $j$.
-- Each cell contains a symbol from a finite alphabet $\Gamma' = \Gamma \cup (Q \times \Gamma)$, where $Q$ is the state set and $\Gamma$ is the tape alphabet.  A cell $(i, j)$ containing $(q, a)$ means the head is at position $j$ in state $q$ reading symbol $a$ at time $i$.
+- $i$번째 줄은 때 걸음 $i$의 자리 얽이를 나타낸다.
+- $j$번째 열은 띠 칸 $j$을 나타낸다.
+- 칸마다 유한 낱자 모임 $\Gamma' = \Gamma \cup (Q \times \Gamma)$의 기호를 담는다. 여기서 $Q$은 상태 모임이고 $\Gamma$은 띠 낱자 모임이다. 칸 $(i, j)$이 $(q, a)$을 담으면 때 $i$에 머리가 자리 $j$에서 상태 $q$으로 기호 $a$을 읽고 있다는 뜻이다.
 
-### Step 2: Boolean Variables
+### 걸음 2: 부울 변수
 
-Introduce Boolean variables to encode the tableau:
+표를 적을 부울 변수를 들여온다:
 
 $$
 \text{cell}[i, j, s] \quad \text{for } 0 \leq i, j \leq T-1, \; s \in \Gamma'
 $$
 
-Variable $\text{cell}[i, j, s] = 1$ means "cell $(i, j)$ contains symbol $s$."
+변수 $\text{cell}[i, j, s] = 1$은 "칸 $(i, j)$이 기호 $s$을 담는다"는 뜻이다.
 
-### Step 3: Formula Construction
+### 걸음 3: 식 세우기
 
-The formula $\phi_x$ is the conjunction of four types of constraints:
+식 $\phi_x$은 네 갈래 제약의 논리곱이다:
 
-**Cell consistency.** Each cell contains exactly one symbol:
+**칸 어긋남 없음.** 칸마다 기호를 꼭 하나 담는다:
 
 $$
 \phi_{\text{cell}} = \bigwedge_{i,j} \left[ \left(\bigvee_{s \in \Gamma'} \text{cell}[i,j,s]\right) \;\wedge\; \bigwedge_{s \neq s'} \left(\neg \text{cell}[i,j,s] \vee \neg \text{cell}[i,j,s']\right) \right]
 $$
 
-**Initial configuration.** Row 0 encodes the starting configuration: $N$ is in start state $q_0$, input $x$ is on the tape, and remaining cells are blank.
+**처음 자리 얽이.** 0번째 줄이 시작 자리 얽이를 적는다. $N$이 시작 상태 $q_0$에 있고 들임 $x$이 띠에 있으며 나머지 칸은 비어 있다.
 
-**Acceptance.** At least one cell in the tableau contains an accepting state $q_{\text{acc}}$.
+**받아들임.** 표의 칸 가운데 적어도 하나가 받아들이는 상태 $q_{\text{acc}}$을 담는다.
 
-**Transition consistency.** Every $2 \times 3$ window of the tableau is consistent with $N$'s transition function.  For each pair of adjacent rows, every group of three consecutive cells in row $i$ must produce valid successor cells in row $i + 1$.  This is encoded as a disjunction over all valid local patterns (called **legal windows**).
+**옮김 어긋남 없음.** 표의 모든 $2 \times 3$ 창이 $N$의 옮김 함수와 어긋나지 않는다. 이웃한 줄 짝마다 $i$번째 줄의 잇단 칸 셋이 $i + 1$번째 줄에 올바른 다음 칸을 만들어야 한다. 이는 올바른 그 자리 무늬(**적법한 창**이라 부른다) 모두에 대한 논리합으로 적는다.
 
-### Step 4: Correctness
+### 걸음 4: 옳음
 
-- **If $x \in L$**: some computation path of $N$ accepts, defining a valid tableau.  Setting variables according to this tableau satisfies $\phi_x$.
-- **If $x \notin L$**: no computation path accepts, so no valid accepting tableau exists, and $\phi_x$ is unsatisfiable.
+- **$x \in L$이면**: $N$의 어떤 셈 길이 받아들여 올바른 표를 뜻매김한다. 이 표에 따라 변수를 두면 $\phi_x$이 만족된다.
+- **$x \notin L$이면**: 어떤 셈 길도 받아들이지 않으므로 올바른 받아들임 표가 없고 $\phi_x$은 만족 불가능하다.
 
-### Step 5: Polynomial Size
+### 걸음 5: 다항 크기
 
-The tableau is $T \times T$ with $|\Gamma'|$ choices per cell, giving $O(T^2 \cdot |\Gamma'|)$ variables.  Since $|\Gamma'|$ is constant (determined by $N$) and $T = p(n)$, the number of variables is $O(p(n)^2)$, which is polynomial in $n$.  The formula size is also polynomial because each constraint involves a constant number of variables per window.
+표는 $T \times T$이고 칸마다 고르기가 $|\Gamma'|$가지이므로 변수가 $O(T^2 \cdot |\Gamma'|)$개이다. $|\Gamma'|$은 ($N$이 정하는) 상수이고 $T = p(n)$이므로 변수의 개수는 $O(p(n)^2)$으로 $n$에 대해 다항이다. 제약마다 창당 변수 개수가 상수이므로 식의 크기도 다항이다.
 
 $\square$
 
-## Key Observations
+## 핵심 관찰
 
-### Why This Proof Works
+### 이 밝힘이 통하는 까닭
 
-The brilliance of the Cook-Levin proof lies in its universality.  The encoding does not depend on the specific NP language $L$ -- it works for *any* NP language because it directly encodes TM computation.  The only problem-specific part is the choice of $N$ and its time bound $p(n)$.
+쿡-레빈 밝힘의 빛나는 점은 두루 쓰임에 있다. 이 적기는 특정한 NP 말 $L$에 매이지 않는다. 튜링 기계의 셈을 곧바로 적으므로 *어떤* NP 말에도 통한다. 문제마다 다른 부분은 $N$과 그 시간 한계 $p(n)$을 고르는 것뿐이다.
 
-### The Tableau Method
+### 표 방법
 
-The tableau technique is reused throughout complexity theory:
+표 재주는 복잡도 이론 곳곳에서 다시 쓰인다:
 
-- Proving PSPACE-completeness of QSAT.
-- Showing undecidability results.
-- Establishing completeness results for other complexity classes.
+- QSAT의 PSPACE 완전성 밝히기.
+- 가릴 수 없음 결과 보이기.
+- 다른 복잡도 갈래의 완전성 결과 세우기.
 
-??? info "Cook vs. Levin"
-    Stephen Cook presented his proof at STOC 1971 using Turing reductions.  Independently, Leonid Levin proved a similar result in the Soviet Union in 1973 using many-one reductions and a more general framework of "universal search problems."  The theorem is named for both.
+??? info "쿡과 레빈"
+    스티븐 쿡은 1971년 STOC에서 튜링 줄임을 써서 밝힘을 내놓았다. 이와 따로 레오니트 레빈은 1973년 소련에서 여럿 대 하나 줄임과 "두루 쓰는 찾기 문제"라는 더 넓은 틀로 비슷한 결과를 밝혔다. 정리 이름은 두 사람을 딴 것이다.
 
-## Consequences
+## 결과
 
-The Cook-Levin theorem unlocked the entire theory of NP-completeness:
+쿡-레빈 정리는 NP 완전성 이론 전체의 문을 열었다:
 
-1. **First NP-complete problem**: SAT became the anchor from which all other NP-completeness proofs derive.
-2. **Reduction cascade**: by reducing SAT to 3-SAT, then 3-SAT to CLIQUE, VERTEX COVER, etc., Karp (1972) established NP-completeness for 21 problems.
-3. **Structural complexity**: the theorem shows that NP has a notion of "hardest problems," giving the class internal structure.
-4. **P vs NP significance**: if any polynomial-time algorithm for SAT were found, $\mathbf{P} = \mathbf{NP}$ would follow.
+1. **첫 NP 완전 문제**: SAT이 다른 모든 NP 완전성 밝힘이 나오는 닻이 되었다.
+2. **줄임의 잇달음**: SAT을 3-SAT으로, 다시 3-SAT을 덩어리, 꼭짓점 덮기 등으로 줄여 카프(1972)가 21개 문제의 NP 완전성을 세웠다.
+3. **얼개 복잡도**: 이 정리는 NP에 "가장 어려운 문제"라는 개념이 있음을 보여 그 갈래에 속 얼개를 준다.
+4. **P 대 NP에서의 뜻**: SAT의 다항 시간 알고리즘이 하나라도 나오면 $\mathbf{P} = \mathbf{NP}$이 따라 나온다.
 
-## From SAT to 3-SAT
+## SAT에서 3-SAT으로
 
-The Cook-Levin construction produces formulas that may have large clauses.  The standard next step is to reduce SAT to 3-SAT:
+쿡-레빈의 세움은 절이 큰 식을 낼 수 있다. 여느 다음 걸음은 SAT을 3-SAT으로 줄이는 것이다:
 
-**Theorem.** 3-SAT is NP-complete.
+**정리.** 3-SAT은 NP 완전이다.
 
-The reduction replaces each clause $(l_1 \vee l_2 \vee \cdots \vee l_k)$ with $k > 3$ by introducing $k - 3$ fresh variables and producing $k - 2$ clauses of width 3.  This preserves satisfiability and runs in polynomial time.
+이 줄임은 $k > 3$인 절 $(l_1 \vee l_2 \vee \cdots \vee l_k)$마다 새 변수 $k - 3$개를 들여와 너비 3인 절 $k - 2$개로 바꾼다. 이는 만족 가능성을 지키며 다항 시간에 돈다.
 
-3-SAT then serves as the standard starting point for NP-completeness reductions because its fixed clause width simplifies gadget constructions.
+그다음부터 3-SAT은 NP 완전성 줄임의 여느 출발점 노릇을 한다. 절 너비가 붙박여 있어 장치 세우기가 간단해지기 때문이다.
 
-## Reference
+## 참고 문헌
 
 - Cook, S. "The Complexity of Theorem-Proving Procedures." *STOC*, 1971.
 - Levin, L. "Universal Sequential Search Problems." *Problems of Information Transmission*, 1973.
 - Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
 - Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+아무 NP 말에서 SAT으로 가는 쿡-레빈 줄임의 주요 걸음을 그려라. 표는 무엇을 나타내는가?
+
+??? success "연습문제 1 풀이"
+    $T = p(n)$ 걸음에 도는 다항 시간 살피개 $V$을 가진 NP 말 $L$이 주어질 때 $x \in L$일 때에만 만족 가능한 부울 식 $\phi$을 세운다.
+
+    표는 $T \times T$ 격자이고 칸 $(i, j)$은 때 걸음 $i$에서 띠 칸 $j$의 내용을 나타낸다. 변수는 (1) 칸마다의 기호, (2) 머리 자리, (3) 걸음마다의 상태를 적는다.
+
+    식 $\phi$은 다음을 보장하는 절의 논리곱이다. (가) 첫 줄이 들임 $x$과 어림잡은 증서를 적는다, (나) 줄마다 옮김 함수에 따라 앞 줄에서 따라 나온다(크기 $2 \times 3$인 "창"으로 그 자리의 어긋남 없음), (다) 마지막 줄에서 기계가 받아들이는 상태에 있다, (라) 칸마다 기호가 많아야 하나이고 걸음마다 상태가 하나이다.
+
+    이 식은 변수가 $O(T^2)$개, 절이 $O(T^2)$개이며 다항 시간에 세울 수 있다.
+
+---
+
+**연습문제 2.**
+쿡-레빈 정리가 왜 SAT이 NP 어려움일 뿐 아니라 NP 완전임을 뜻하는지 밝혀라.
+
+??? success "연습문제 2 풀이"
+    이 정리는 두 가지를 보여야 한다. (1) SAT이 NP에 듦, (2) SAT이 NP 어려움임.
+
+    SAT은 NP에 든다. 식 $\phi$과 후보 매김 $\sigma$이 주어지면 절마다 매겨 $\sigma$이 $\phi$을 만족하는지 살핀다. 이는 $O(|\phi|)$ 시간이 들며 다항이다.
+
+    SAT은 NP 어려움이다. 쿡-레빈 줄임은 모든 NP 말 $L$이 SAT으로 줄여짐을 보인다. 어떤 $x$에 대해서도 이 줄임은 $x \in L \iff \phi_x \in \text{SAT}$이 되도록 $\phi_x$을 다항 시간에 세운다.
+
+    두 조건이 합쳐져 NP 완전성을 세운다. NP에 든다는 부분은 간단하지만 꼭 필요하다. 그것이 없으면 SAT은 NP 어려움이면서 (멈춤 문제처럼) 가릴 수 없을 수도 있다.
+
+---
+
+**연습문제 3.**
+쿡-레빈 줄임은 일반 SAT 식을 낸다. SAT을 다항 시간에 3-SAT으로 더 줄이는 법을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    SAT 식의 절마다 리터럴 3개짜리 절의 논리곱으로 바꾼다:
+
+    1. **리터럴 1개짜리 절** $(l_1)$: 새 변수 $y_1, y_2$을 써서 $(l_1 \vee y_1 \vee y_2) \wedge (l_1 \vee y_1 \vee \bar{y}_2) \wedge (l_1 \vee \bar{y}_1 \vee y_2) \wedge (l_1 \vee \bar{y}_1 \vee \bar{y}_2)$으로 바꾼다.
+
+    2. **리터럴 2개짜리 절** $(l_1 \vee l_2)$: 새 변수 $y$을 써서 $(l_1 \vee l_2 \vee y) \wedge (l_1 \vee l_2 \vee \bar{y})$으로 바꾼다.
+
+    3. **리터럴 3개짜리 절**: 그대로 둔다.
+
+    4. **리터럴 $k > 3$개짜리 절** $(l_1 \vee \cdots \vee l_k)$: 새 변수 $y_1, \ldots, y_{k-3}$을 들여와 $(l_1 \vee l_2 \vee y_1) \wedge (\bar{y}_1 \vee l_3 \vee y_2) \wedge \cdots \wedge (\bar{y}_{k-3} \vee l_{k-1} \vee l_k)$을 만든다.
+
+    바꿈마다 만족 가능성을 지키며 절 길이에 대해 다항이다. 온 줄임은 시간과 크기가 다항이다.
+
+---
+
+**연습문제 4.**
+쿡-레빈 정리가 깊은 배움에 지니는 뜻을 따져라. 셈으로 다룰 수 없음이 신경망 익히기와 추론에 어떤 영향을 주는가?
+
+??? success "연습문제 4 풀이"
+    쿡-레빈 정리는 깊은 배움에서 나타나는 많은 얽음 문제가 NP 어려움임을 세운다:
+
+    1. **익히기:** 단순한 신경망에서조차 가장 좋은 무게를 찾는 것은 NP 어려움이다(신경망을 세워 부분 모임 합에서 줄일 수 있다). 기울기 내려가기는 그 자리의 최솟값을 찾는 어림짐작이며 온 자리의 가장 좋은 값을 보장하지 않는다.
+
+    2. **얼개 찾기:** 신경망 얼개 찾기(NAS)는 얼개 공간에서의 얽음 가장 좋게 하기이며 일반으로 NP 어려움이다. 실제 방법은 어림짐작(진화 알고리즘, 강화 배움)을 쓴다.
+
+    3. **그림 모델의 추론:** 일반 그림 모델(에너지 바탕 모델이 넓힌 것)에서 정확한 가장자리 분포나 최대 사후 어림을 셈하는 것은 NP 어려움이며 이것이 변분 추론과 마르코프 사슬 몬테카를로 같은 어림 추론의 까닭이 된다.
+
+    4. **살피기:** 신경망의 성질(튼튼함, 안전함)을 살피는 일은 만족 가능성 문제로 적을 수 있고 일반으로 NP 완전이어서 실제로 쓰이는 모델의 엄밀한 보장을 제한한다.

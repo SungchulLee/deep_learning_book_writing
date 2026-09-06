@@ -1,9 +1,5 @@
 # Chapter 35: RL for Quantitative Finance
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 This chapter bridges the gap between reinforcement learning theory and practical quantitative finance applications. We explore how to formulate financial decision-making problems -- portfolio management, trading execution, market making, and risk management -- as Markov Decision Processes and solve them using modern deep RL algorithms. Financial markets present unique challenges for RL agents, including non-stationarity, regime changes, low signal-to-noise ratios, and the critical importance of transaction costs and risk constraints.
 
 ---

@@ -1,9 +1,4 @@
 # Knowledge Distillation
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Overview
 
 Knowledge distillation transfers knowledge from a large, high-capacity "teacher" model to a smaller, efficient "student" model. The student learns not just from hard labels but from the teacher's soft probability distributions, capturing richer information about class relationships and decision boundaries. This enables deployment of high-performance models in resource-constrained environments.
@@ -69,6 +64,7 @@ Hinton et al. termed this additional information "dark knowledge"—the knowledg
 **The Problem with Hard Labels:**
 
 Hard labels (one-hot) lose critical information:
+
 - "Cat" with 99% confidence → [0, 0, 1, 0, 0]
 - "Cat" with 51% confidence → [0, 0, 1, 0, 0]
 
@@ -83,6 +79,7 @@ $$p_i(T) = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}$$
 where $z_i$ are the logits and $T$ is the temperature.
 
 **Effect of temperature:**
+
 - $T = 1$: Standard softmax (peaked distribution)
 - $T > 1$: Softer distribution, more information about class relationships
 - $T \to \infty$: Uniform distribution
@@ -1086,6 +1083,7 @@ Knowledge distillation enables deployment of efficient models:
 5. **Temperature**: Higher values for larger architecture gaps
 
 Key recommendations:
+
 - Start with temperature 4-8 and alpha 0.5
 - Use feature distillation for similar architectures
 - Validate that student matches teacher behavior
@@ -1100,3 +1098,35 @@ Key recommendations:
 4. Zhang, Y., et al. "Deep Mutual Learning." CVPR 2018.
 5. Furlanello, T., et al. "Born-Again Neural Networks." ICML 2018.
 6. Gou, J., et al. "Knowledge Distillation: A Survey." IJCV 2021.
+
+## Exercises
+
+**Exercise 1.**
+Describe the trade-offs between the optimization techniques discussed in this section in terms of accuracy loss, inference speedup, and implementation complexity.
+
+??? success "Solution to Exercise 1"
+    Each technique has a different trade-off profile. Quantization (INT8) typically achieves 2--4x speedup with < 1% accuracy loss and moderate implementation effort (supported by frameworks). Pruning achieves variable speedup depending on sparsity pattern (structured pruning is more hardware-friendly) with 1--3% accuracy loss. Knowledge distillation maintains the original architecture's inference cost but uses a smaller student, achieving 2--10x compression with 1--5% accuracy loss. NAS finds optimal architectures but requires massive search compute (thousands of GPU-hours). For financial applications, the acceptable accuracy loss depends on the cost of errors. $\square$
+
+---
+
+**Exercise 2.**
+Implement post-training quantization (INT8) for a simple feedforward network and measure the accuracy degradation and inference speedup on a benchmark dataset.
+
+??? success "Solution to Exercise 2"
+    Using PyTorch's quantization API: (1) train a float32 model to baseline accuracy; (2) apply `torch.quantization.quantize_dynamic` for dynamic quantization or calibrate with representative data for static quantization; (3) measure inference time (average over 1000 batches) and accuracy on test set. Typical results: 1.5--3x speedup on CPU, < 0.5% accuracy drop for dynamic quantization, < 0.2% for calibrated static quantization. The model size reduction is approximately 4x (FP32 to INT8). Key: static quantization requires a calibration dataset representative of deployment data. $\square$
+
+---
+
+**Exercise 3.**
+Design a production monitoring system for a deployed model that detects data drift, concept drift, and model degradation. Specify the metrics and alerting thresholds.
+
+??? success "Solution to Exercise 3"
+    Monitor three levels: (1) Data drift: track input feature distributions using KS test or PSI (Population Stability Index). Alert if PSI > 0.2 for any feature. (2) Concept drift: track prediction distribution shift and ground-truth label distribution (when available). Alert if prediction mean shifts by > 2 standard deviations from the baseline period. (3) Model degradation: track live accuracy/loss metrics with a rolling window. Alert if accuracy drops > 3% from baseline or latency exceeds SLA (e.g., p99 > 50ms). Implement dashboards with Grafana, store metrics in Prometheus, and send alerts via PagerDuty. $\square$
+
+---
+
+**Exercise 4.**
+Explain why latency requirements in financial trading systems are fundamentally different from web serving. How does this affect the deployment optimization strategy?
+
+??? success "Solution to Exercise 4"
+    Web serving tolerates 100--500ms latency with occasional spikes; trading systems require deterministic sub-millisecond latency (often < 100 microseconds for HFT). This changes the optimization strategy: (1) avoid garbage collection pauses (use C++ inference, not Python); (2) pre-allocate all memory (no dynamic allocation); (3) pin threads to cores (avoid context switches); (4) use FPGA or ASIC for the most latency-critical path; (5) quantization is essential but must not introduce non-deterministic rounding. Batch inference is not applicable (each decision is latency-critical). The deployment stack prioritizes worst-case latency (p99.9) over throughput. $\square$

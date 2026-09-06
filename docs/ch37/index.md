@@ -1,9 +1,5 @@
 # Chapter 37: Bias and Fairness
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 This chapter addresses the ethical, legal, and technical challenges of ensuring machine learning systems do not discriminate against individuals or groups based on protected characteristics. We cover the mathematical foundations of fairness definitions, impossibility theorems that constrain what fairness criteria can be simultaneously achieved, and practical mitigation techniques spanning pre-processing, in-processing, and post-processing approaches. Special attention is given to fairness in financial applications where regulatory requirements are particularly stringent.
 
 ---

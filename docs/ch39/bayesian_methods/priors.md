@@ -1,9 +1,4 @@
 # Prior Distributions on Neural Network Weights
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 The **prior distribution** over neural network weights encodes our beliefs about plausible parameter values before observing data. In Bayesian neural networks, the choice of prior profoundly affects both the induced function space and the resulting uncertainty estimates. This chapter explores principled approaches to specifying priors that lead to well-behaved posterior inference.
 
 ---
@@ -15,20 +10,17 @@ The **prior distribution** over neural network weights encodes our beliefs about
 In standard neural networks, weights are point estimates found by optimization:
 
 $$
-
 \hat{\theta} = \arg\max_\theta \log p(\mathcal{D} \mid \theta)
-
 $$
 
 In Bayesian neural networks, we maintain a distribution:
 
 $$
-
 p(\theta \mid \mathcal{D}) \propto p(\mathcal{D} \mid \theta) \, p(\theta)
-
 $$
 
 The prior $p(\theta)$ determines:
+
 1. **Regularization strength**: Constrains weight magnitudes
 2. **Function space properties**: Smoothness, periodicity, length scales
 3. **Epistemic uncertainty**: How uncertainty behaves away from data
@@ -37,14 +29,17 @@ The prior $p(\theta)$ determines:
 ### Challenges Specific to Neural Networks
 
 **High dimensionality**: Modern networks have millions of parameters
+
 - Simple independent priors may not capture complex dependencies
 - Correlations between weights in same layer often important
 
 **Non-identifiability**: Multiple weight configurations yield identical functions
+
 - Permutation symmetry: Swapping hidden units
 - Scaling symmetry: Rescaling weights between layers
 
 **Overparameterization**: More parameters than data points
+
 - Prior becomes dominant in posterior
 - Need priors that induce sensible function behavior
 
@@ -53,17 +48,13 @@ The prior $p(\theta)$ determines:
 **Key insight**: We care about functions, not weights.
 
 $$
-
 \text{Prior on weights } p(\theta) \implies \text{Prior on functions } p(f)
-
 $$
 
 A simple prior on weights can induce complex behavior in function space:
 
 $$
-
 f(x) = W_L \sigma(W_{L-1} \sigma(\cdots \sigma(W_1 x)))
-
 $$
 
 The challenge is to specify $p(\theta)$ such that $p(f)$ has desirable properties.
@@ -77,17 +68,13 @@ The challenge is to specify $p(\theta)$ such that $p(f)$ has desirable propertie
 The most common choice is independent Gaussians:
 
 $$
-
 \boxed{p(\theta) = \prod_{l=1}^L \prod_{i,j} \mathcal{N}(w_{ij}^{(l)} \mid 0, \sigma_l^2)}
-
 $$
 
 **Equivalently** in matrix form:
 
 $$
-
 p(W^{(l)}) = \mathcal{N}(\text{vec}(W^{(l)}) \mid 0, \sigma_l^2 I)
-
 $$
 
 ### Connection to L2 Regularization
@@ -95,9 +82,7 @@ $$
 The MAP estimate with Gaussian prior equals L2-regularized MLE:
 
 $$
-
 \hat{\theta}_{\text{MAP}} = \arg\max_\theta \left[ \log p(\mathcal{D} \mid \theta) - \frac{1}{2\sigma^2} \|\theta\|^2 \right]
-
 $$
 
 **Regularization strength**: $\lambda = 1/(2\sigma^2)$
@@ -112,9 +97,7 @@ $$
 Different layers may need different prior variances:
 
 $$
-
 p(W^{(l)}) = \mathcal{N}(0, \sigma_l^2 I)
-
 $$
 
 **Common choices**:
@@ -122,33 +105,25 @@ $$
 **1. Constant variance**:
 
 $$
-
 \sigma_l^2 = \sigma^2 \quad \forall l
-
 $$
 
 **2. Fan-in scaling** (Xavier/Glorot-like):
 
 $$
-
 \sigma_l^2 = \frac{1}{n_{l-1}}
-
 $$
 
 **3. Fan-out scaling**:
 
 $$
-
 \sigma_l^2 = \frac{1}{n_l}
-
 $$
 
 **4. Fan-average scaling**:
 
 $$
-
 \sigma_l^2 = \frac{2}{n_{l-1} + n_l}
-
 $$
 
 where $n_l$ is the width of layer $l$.
@@ -160,17 +135,13 @@ The prior variance should account for the activation function:
 **ReLU activations**:
 
 $$
-
 \sigma_l^2 = \frac{2}{n_{l-1}}
-
 $$
 
 **Tanh/Sigmoid activations**:
 
 $$
-
 \sigma_l^2 = \frac{1}{n_{l-1}}
-
 $$
 
 **Rationale**: Maintain stable variance of activations across layers at initialization.
@@ -186,25 +157,19 @@ Neal showed that infinitely wide neural networks with specific priors converge t
 **Setup**: Single hidden layer network with $H$ hidden units:
 
 $$
-
 f(x) = \sum_{h=1}^H v_h \, \sigma(w_h^\top x + b_h)
-
 $$
 
 **Prior**:
 
 $$
-
 v_h \sim \mathcal{N}(0, \sigma_v^2/H), \quad w_h \sim \mathcal{N}(0, \sigma_w^2 I), \quad b_h \sim \mathcal{N}(0, \sigma_b^2)
-
 $$
 
 **Result**: As $H \to \infty$, $f(x) \to \mathcal{GP}(0, k(x, x'))$ where:
 
 $$
-
 k(x, x') = \sigma_v^2 \, \mathbb{E}_{w, b}[\sigma(w^\top x + b) \, \sigma(w^\top x' + b)]
-
 $$
 
 ### Neural Network Gaussian Process (NNGP) Kernel
@@ -212,14 +177,13 @@ $$
 For ReLU activation, the kernel has closed form:
 
 $$
-
 k(x, x') = \frac{\sigma_v^2}{\pi} \|x\| \|x'\| \left( \sin\phi + (\pi - \phi)\cos\phi \right)
-
 $$
 
 where $\phi = \cos^{-1}\left(\frac{x^\top x'}{\|x\| \|x'\|}\right)$.
 
 **Implications**:
+
 - Prior on weights induces specific function smoothness
 - Deep networks induce compositional kernels
 - Provides principled initialization guidance
@@ -231,17 +195,13 @@ For deep networks, variance must be scaled carefully:
 **Without scaling**: Variance explodes or vanishes
 
 $$
-
 \text{Var}[f(x)] \propto \prod_{l=1}^L \text{Var}[W^{(l)}]
-
 $$
 
 **With proper scaling**: Variance remains $O(1)$
 
 $$
-
 \sigma_l^2 = \frac{c}{n_{l-1}}
-
 $$
 
 where $c$ depends on the activation function.
@@ -253,6 +213,7 @@ where $c$ depends on the activation function.
 ### Motivation for Sparsity
 
 **Benefits of sparse networks**:
+
 1. Reduced overfitting
 2. Improved interpretability
 3. Computational efficiency
@@ -261,12 +222,11 @@ where $c$ depends on the activation function.
 ### Laplace Prior (L1 Regularization)
 
 $$
-
 p(w) = \frac{\lambda}{2} \exp(-\lambda |w|)
-
 $$
 
 **Properties**:
+
 - Mode at zero (promotes exact sparsity in MAP)
 - Heavier tails than Gaussian
 - MAP equivalent to L1 regularization (Lasso)
@@ -278,12 +238,11 @@ $$
 A mixture of a point mass at zero and a continuous distribution:
 
 $$
-
 \boxed{p(w) = \pi \, \delta_0(w) + (1-\pi) \, \mathcal{N}(w \mid 0, \sigma^2)}
-
 $$
 
 **Parameters**:
+
 - $\pi$: Prior probability of weight being exactly zero
 - $\sigma^2$: Variance of non-zero weights
 
@@ -294,12 +253,11 @@ $$
 **Horseshoe prior**:
 
 $$
-
 w \mid \lambda \sim \mathcal{N}(0, \lambda^2), \quad \lambda \sim \text{Half-Cauchy}(0, \tau)
-
 $$
 
 **Properties**:
+
 - Continuous (no point mass)
 - Heavy tails allow large weights
 - Strong shrinkage toward zero
@@ -308,9 +266,7 @@ $$
 **Regularized horseshoe**:
 
 $$
-
 w \mid \lambda, c \sim \mathcal{N}(0, \tilde{\lambda}^2), \quad \tilde{\lambda}^2 = \frac{c^2 \lambda^2}{c^2 + \lambda^2}
-
 $$
 
 Bounds the maximum variance at $c^2$.
@@ -320,15 +276,11 @@ Bounds the maximum variance at $c^2$.
 Per-input or per-feature precision:
 
 $$
-
 p(w_j \mid \alpha_j) = \mathcal{N}(w_j \mid 0, \alpha_j^{-1})
-
 $$
 
 $$
-
 p(\alpha_j) = \text{Gamma}(\alpha_j \mid a_0, b_0)
-
 $$
 
 **Effect**: Features with large $\alpha_j$ are effectively pruned.
@@ -346,26 +298,21 @@ $$
 ### Two-Level Hierarchy
 
 $$
-
 p(\theta \mid \sigma^2) = \mathcal{N}(\theta \mid 0, \sigma^2 I)
-
 $$
 
 $$
-
 p(\sigma^2) = \text{Inv-Gamma}(\sigma^2 \mid \alpha_0, \beta_0)
-
 $$
 
 **Marginal prior** (after integrating out $\sigma^2$):
 
 $$
-
 p(\theta) = \int p(\theta \mid \sigma^2) \, p(\sigma^2) \, d\sigma^2 = \text{Student-}t(\theta \mid 0, \frac{\beta_0}{\alpha_0}, 2\alpha_0)
-
 $$
 
 **Properties**:
+
 - Heavier tails than Gaussian
 - More robust to outliers
 - Data-adaptive regularization
@@ -375,18 +322,15 @@ $$
 Different variance for each layer:
 
 $$
-
 p(W^{(l)} \mid \sigma_l^2) = \mathcal{N}(0, \sigma_l^2 I)
-
 $$
 
 $$
-
 p(\sigma_l^2) = \text{Inv-Gamma}(\alpha_0, \beta_0)
-
 $$
 
 **Advantages**:
+
 - Each layer learns appropriate regularization
 - Adapts to varying layer complexities
 - Reduces sensitivity to initialization
@@ -396,17 +340,13 @@ $$
 **Per-neuron variance**:
 
 $$
-
 p(w_{:j}^{(l)} \mid \sigma_{lj}^2) = \mathcal{N}(0, \sigma_{lj}^2 I)
-
 $$
 
 **Per-filter variance** (for CNNs):
 
 $$
-
 p(W_k^{(l)} \mid \sigma_{lk}^2) = \mathcal{N}(0, \sigma_{lk}^2 I)
-
 $$
 
 This enables automatic pruning of entire neurons or filters.
@@ -420,9 +360,7 @@ This enables automatic pruning of entire neurons or filters.
 Many useful priors can be written as:
 
 $$
-
 p(w) = \int \mathcal{N}(w \mid 0, \sigma^2) \, p(\sigma^2) \, d\sigma^2
-
 $$
 
 | Mixing distribution $p(\sigma^2)$ | Resulting $p(w)$ |
@@ -435,12 +373,11 @@ $$
 ### Student-t Prior
 
 $$
-
 p(w) = \frac{\Gamma(\frac{\nu+1}{2})}{\Gamma(\frac{\nu}{2})\sqrt{\nu\pi\sigma^2}} \left(1 + \frac{w^2}{\nu\sigma^2}\right)^{-\frac{\nu+1}{2}}
-
 $$
 
 **Degrees of freedom** $\nu$ controls tail heaviness:
+
 - $\nu = 1$: Cauchy (very heavy tails)
 - $\nu \to \infty$: Approaches Gaussian
 - $\nu = 3$-$7$: Good compromise
@@ -448,9 +385,7 @@ $$
 **As scale mixture**:
 
 $$
-
 w \mid \tau \sim \mathcal{N}(0, \tau), \quad \tau \sim \text{Inv-Gamma}(\nu/2, \nu\sigma^2/2)
-
 $$
 
 ### Benefits of Heavy Tails
@@ -466,6 +401,7 @@ $$
 ### Beyond Independence
 
 Independent priors ignore structure:
+
 - Weights connecting to same unit may be related
 - Spatial structure in convolutional filters
 - Temporal structure in recurrent networks
@@ -475,12 +411,11 @@ Independent priors ignore structure:
 For weight matrix $W \in \mathbb{R}^{m \times n}$:
 
 $$
-
 p(W) = \mathcal{MN}(W \mid M, U, V)
-
 $$
 
 where:
+
 - $M$ is the mean matrix
 - $U \in \mathbb{R}^{m \times m}$ captures row correlations
 - $V \in \mathbb{R}^{n \times n}$ captures column correlations
@@ -488,9 +423,7 @@ where:
 **Equivalently**:
 
 $$
-
 \text{vec}(W) \sim \mathcal{N}(\text{vec}(M), V \otimes U)
-
 $$
 
 ### Low-Rank Priors
@@ -498,9 +431,7 @@ $$
 Encourage weight matrices to be approximately low-rank:
 
 $$
-
 W = UV^\top + E
-
 $$
 
 where $U \in \mathbb{R}^{m \times r}$, $V \in \mathbb{R}^{n \times r}$, $r \ll \min(m,n)$.
@@ -508,12 +439,11 @@ where $U \in \mathbb{R}^{m \times r}$, $V \in \mathbb{R}^{n \times r}$, $r \ll \
 **Prior**:
 
 $$
-
 p(U) = \mathcal{N}(0, I), \quad p(V) = \mathcal{N}(0, I), \quad p(E) = \mathcal{N}(0, \sigma_E^2 I)
-
 $$
 
 **Benefits**:
+
 - Reduces effective parameter count
 - Encourages compression
 - May improve generalization
@@ -525,9 +455,7 @@ For convolutional layers, priors can respect spatial structure:
 **Local smoothness**: Nearby filter weights should be similar
 
 $$
-
 p(W) \propto \exp\left(-\frac{1}{2\sigma^2} \sum_{i,j} (w_{ij} - w_{i+1,j})^2 + (w_{ij} - w_{i,j+1})^2 \right)
-
 $$
 
 **Translation equivariance**: Already built into CNN architecture.
@@ -541,18 +469,18 @@ $$
 Use data to estimate prior hyperparameters:
 
 $$
-
 \hat{\eta} = \arg\max_\eta \log p(\mathcal{D} \mid \eta) = \arg\max_\eta \log \int p(\mathcal{D} \mid \theta) \, p(\theta \mid \eta) \, d\theta
-
 $$
 
 **Type II Maximum Likelihood**: Maximizes marginal likelihood.
 
 **Pros**:
+
 - Data-adaptive
 - Can improve posterior accuracy
 
 **Cons**:
+
 - Uses data twice (for prior and posterior)
 - May underestimate uncertainty
 - Computationally expensive
@@ -562,9 +490,7 @@ $$
 Use posteriors from related tasks as priors:
 
 $$
-
 p(\theta) \approx p(\theta \mid \mathcal{D}_{\text{source}})
-
 $$
 
 **Approaches**:
@@ -572,25 +498,19 @@ $$
 **1. Mean-field approximation**:
 
 $$
-
 p(\theta) = \mathcal{N}(\theta \mid \mu_{\text{source}}, \sigma_{\text{source}}^2 I)
-
 $$
 
 **2. Mixture of pre-trained models**:
 
 $$
-
 p(\theta) = \sum_{k} \pi_k \, p(\theta \mid \mathcal{D}_k)
-
 $$
 
 **3. Centered prior** (L2-SP):
 
 $$
-
 p(\theta) = \mathcal{N}(\theta \mid \theta_{\text{pretrained}}, \sigma^2 I)
-
 $$
 
 ### Functional Priors
@@ -598,14 +518,13 @@ $$
 Specify priors directly in function space:
 
 $$
-
 p(f) = \mathcal{GP}(m(x), k(x, x'))
-
 $$
 
 Then find $p(\theta)$ that induces approximately this $p(f)$.
 
 **Challenges**:
+
 - No closed-form relationship $p(\theta) \to p(f)$ for finite networks
 - Requires sampling-based approaches
 - Active research area
@@ -617,23 +536,20 @@ Then find $p(\theta)$ that induces approximately this $p(f)$.
 ### Choosing Prior Variances
 
 **Rule of thumb**: Initialize such that:
+
 - Pre-activations have variance $\approx 1$
 - Gradients have variance $\approx 1$
 
 **For fully connected layers**:
 
 $$
-
 \sigma_W^2 = \frac{2}{n_{\text{in}} + n_{\text{out}}}, \quad \sigma_b^2 = 0.01
-
 $$
 
 **For convolutional layers** with kernel size $k \times k$ and $c$ channels:
 
 $$
-
 \sigma_W^2 = \frac{2}{k^2 \cdot c_{\text{in}}}
-
 $$
 
 ### Bias Priors
@@ -643,9 +559,7 @@ $$
 **1. Zero-centered Gaussian**:
 
 $$
-
 p(b) = \mathcal{N}(0, \sigma_b^2)
-
 $$
 
 Use small $\sigma_b^2$ (e.g., $0.01$-$0.1$).
@@ -653,9 +567,7 @@ Use small $\sigma_b^2$ (e.g., $0.01$-$0.1$).
 **2. Fixed at zero**:
 
 $$
-
 p(b) = \delta_0(b)
-
 $$
 
 Reduces parameters; sometimes works well.
@@ -688,6 +600,7 @@ f_prior = network(x_test, theta_prior)
 ```
 
 **What to check**:
+
 - Output scale: Are predictions in reasonable range?
 - Smoothness: Are functions too wiggly or too flat?
 - Extrapolation: What happens far from training region?
@@ -1601,12 +1514,11 @@ if __name__ == "__main__":
 ### Hierarchical Priors
 
 $$
-
 p(w \mid \sigma^2) = \mathcal{N}(0, \sigma^2), \quad p(\sigma^2) = \text{Inv-Gamma}(\alpha, \beta)
-
 $$
 
 **Benefits**:
+
 - Data-adaptive regularization
 - Heavier tails than Gaussian
 - Reduced sensitivity to hyperparameters
@@ -1635,3 +1547,35 @@ $$
 - Louizos, C., et al. (2017). Bayesian compression for deep learning. *NeurIPS*.
 - Fortuin, V. (2022). Priors in Bayesian deep learning: A review. *International Statistical Review*.
 - Wenzel, F., et al. (2020). How good is the Bayes posterior in deep neural networks really? *ICML*.
+
+## Exercises
+
+**Exercise 1.**
+For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+
+??? success "Solution to Exercise 1"
+    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
+
+---
+
+**Exercise 2.**
+Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
+
+??? success "Solution to Exercise 2"
+    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+
+---
+
+**Exercise 3.**
+Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+
+??? success "Solution to Exercise 3"
+    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+
+---
+
+**Exercise 4.**
+Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+
+??? success "Solution to Exercise 4"
+    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$

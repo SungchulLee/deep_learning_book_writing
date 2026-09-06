@@ -1,27 +1,27 @@
-# Overlapping Subproblems
+# 겹치는 아래 문제
 
-A recursive algorithm for an optimization problem often solves the same subproblem many times.  When this redundancy is present, the problem has **overlapping subproblems** — the second of two key properties (alongside optimal substructure) that make dynamic programming effective.  Understanding this property explains why naive recursion is exponential while memoization and tabulation reduce the work to polynomial time.
+가장 좋게 하는 문제의 되돌이 알고리즘은 흔히 같은 아래 문제를 여러 번 푼다. 이런 겹침이 있으면 그 문제는 **겹치는 아래 문제**를 갖춘 것이며, 이는 동적 짜기가 잘 듣게 하는 두 핵심 성질 가운데 (가장 좋은 아래 짜임과 나란한) 둘째이다. 이 성질을 알면 막무가내 되돌이가 왜 지수인지, 적어 두기와 표 채우기가 왜 일감을 다항 시간으로 줄이는지 알 수 있다.
 
-## Definition
+## 정의
 
-A problem has **overlapping subproblems** if a recursive algorithm for the problem solves the same subproblems repeatedly rather than always generating new ones.
+어떤 문제의 되돌이 알고리즘이 늘 새 아래 문제를 만들지 않고 같은 아래 문제를 되풀이해 풀면 그 문제는 **겹치는 아래 문제**를 갖춘다.
 
-This stands in contrast to divide-and-conquer algorithms, where each recursive call works on a disjoint portion of the input:
+이는 되돌이 부름마다 들임의 서로 겹치지 않는 몫을 다루는 나누어 이기기 알고리즘과 견주어진다:
 
-| Paradigm | Subproblem overlap | Example |
+| 틀 | 아래 문제 겹침 | 보기 |
 |----------|-------------------|---------|
-| Divide and conquer | Subproblems are disjoint | Merge sort splits the array into non-overlapping halves |
-| Dynamic programming | Subproblems recur many times | Fibonacci recursion recomputes $F(k)$ exponentially often |
+| 나누어 이기기 | 아래 문제가 겹치지 않는다 | 어울러 정렬은 배열을 겹치지 않는 반쪽으로 가른다 |
+| 동적 짜기 | 아래 문제가 여러 번 되풀이된다 | 피보나치 되돌이는 $F(k)$을 지수만큼 자주 다시 셈한다 |
 
-## Fibonacci as a Case Study
+## 사례로 보는 피보나치
 
-The Fibonacci recurrence provides the clearest illustration.  The naive recursive definition is
+피보나치 되돌이 관계식이 가장 또렷한 보기이다. 막무가내 되돌이 정의는 다음과 같다
 
 $$
 F(n) = F(n-1) + F(n-2), \quad F(0) = 0, \quad F(1) = 1
 $$
 
-Drawing the recursion tree for $F(5)$ reveals massive redundancy:
+$F(5)$의 되돌이 나무를 그려 보면 엄청난 겹침이 드러난다:
 
 ```
                     F(5)
@@ -35,41 +35,73 @@ Drawing the recursion tree for $F(5)$ reveals massive redundancy:
  F(1) F(0)
 ```
 
-In this tree, $F(2)$ is computed 3 times, $F(1)$ is computed 5 times, and $F(0)$ is computed 3 times.  The total number of calls grows as $O(\phi^n)$ where $\phi = (1 + \sqrt{5})/2 \approx 1.618$, even though there are only $n + 1$ distinct subproblems: $F(0), F(1), \ldots, F(n)$.
+이 나무에서 $F(2)$은 3번, $F(1)$은 5번, $F(0)$은 3번 셈된다. 서로 다른 아래 문제는 $F(0), F(1), \ldots, F(n)$의 $n + 1$개뿐인데도 부름의 총수는 $\phi = (1 + \sqrt{5})/2 \approx 1.618$일 때 $O(\phi^n)$으로 는다.
 
-## Counting Distinct Subproblems
+## 서로 다른 아래 문제 세기
 
-The gap between the number of **distinct** subproblems and the number of **total** recursive calls determines how much dynamic programming helps.
+**서로 다른** 아래 문제의 수와 되돌이 부름의 **총수** 사이 벌어짐이 동적 짜기가 얼마나 도움이 되는지 정한다.
 
-| Problem | Distinct subproblems | Naive recursive calls | Speedup from DP |
+| 문제 | 서로 다른 아래 문제 | 막무가내 되돌이 부름 | 동적 짜기로 빨라짐 |
 |---------|--------------------|-----------------------|-----------------|
-| Fibonacci | $n + 1$ | $O(\phi^n)$ | Exponential to linear |
-| Rod cutting of length $n$ | $n$ | $O(2^n)$ | Exponential to quadratic |
-| LCS of strings of length $m, n$ | $O(mn)$ | $O(2^{m+n})$ | Exponential to polynomial |
+| 피보나치 | $n + 1$ | $O(\phi^n)$ | 지수에서 선형으로 |
+| 길이 $n$ 막대 자르기 | $n$ | $O(2^n)$ | 지수에서 이차로 |
+| 길이 $m, n$ 글줄의 최장 공통 부분 차례 | $O(mn)$ | $O(2^{m+n})$ | 지수에서 다항으로 |
 
-When the number of distinct subproblems is polynomial but naive recursion makes exponentially many calls, dynamic programming provides an exponential speedup.
+서로 다른 아래 문제의 수는 다항인데 막무가내 되돌이가 지수만큼 부르면 동적 짜기가 지수만큼 빠르게 해 준다.
 
-## Overlap vs No Overlap
+## 겹침이 있을 때와 없을 때
 
-Not every recursive problem benefits from dynamic programming.  Consider binary search: at each step, the algorithm recurses on exactly one half of the array.  No subproblem is ever revisited, so there is no overlap and no benefit from memoization.
+모든 되돌이 문제가 동적 짜기의 덕을 보지는 않는다. 이분 찾기를 보자. 걸음마다 알고리즘은 배열의 딱 한쪽 반에서만 되돌이한다. 어떤 아래 문제도 다시 찾지 않으므로 겹침이 없고 적어 두기의 덕도 없다.
 
-Similarly, merge sort divides the array into two halves, recursively sorts each, and merges the results.  Each recursive call operates on a distinct subarray.  The subproblems never overlap, so merge sort is a divide-and-conquer algorithm, not a dynamic programming algorithm.
+마찬가지로 어울러 정렬은 배열을 두 반쪽으로 나누어 저마다 되돌이로 정렬한 뒤 결과를 어울러 붙인다. 되돌이 부름마다 서로 다른 아래 배열을 다룬다. 아래 문제가 결코 겹치지 않으므로 어울러 정렬은 동적 짜기가 아니라 나누어 이기기 알고리즘이다.
 
-The key diagnostic question is: **does the recursion tree contain repeated nodes?**  If yes, the problem has overlapping subproblems and is a candidate for dynamic programming.
+핵심 진단 물음은 이것이다: **되돌이 나무에 되풀이되는 마디가 있는가?** 그렇다면 그 문제는 겹치는 아래 문제를 갖췄고 동적 짜기 후보이다.
 
-## How Dynamic Programming Eliminates Redundancy
+## 동적 짜기가 겹침을 없애는 법
 
-Once overlapping subproblems are identified, two strategies eliminate the redundant computation:
+겹치는 아래 문제를 가려내고 나면 두 전략으로 겹치는 셈을 없앤다:
 
-**Memoization (top-down)** keeps the recursive structure but stores each result in a lookup table.  Before computing a subproblem, the algorithm checks whether the answer is already cached.  Each distinct subproblem is solved exactly once.
+**적어 두기(위에서 아래로)**는 되돌이 짜임을 지키되 결과를 찾아보기 표에 담는다. 아래 문제를 셈하기 앞서 답이 이미 곳간에 있는지 살핀다. 서로 다른 아래 문제를 저마다 꼭 한 번만 푼다.
 
-**Tabulation (bottom-up)** iterates through all subproblems in a fixed order, filling a table from the smallest subproblems upward.  When a subproblem is needed, its answer is already in the table.
+**표 채우기(아래에서 위로)**는 모든 아래 문제를 정해진 차례로 되풀이하며 가장 작은 아래 문제부터 표를 채운다. 어떤 아래 문제가 필요할 때 그 답은 이미 표에 있다.
 
-Both approaches reduce the total work from the number of recursive calls to the number of *distinct* subproblems, multiplied by the work per subproblem.
+두 방식 모두 전체 일감을 되돌이 부름의 수에서 *서로 다른* 아래 문제의 수에 아래 문제마다의 일감을 곱한 것으로 줄인다.
 
-!!! tip "Identifying overlap in practice"
-    When analyzing a new recurrence, draw the recursion tree for a small input.  If you see the same function arguments appearing at multiple nodes, the problem has overlapping subproblems.  The number of distinct argument tuples gives the size of the DP table.
+!!! tip "실전에서 겹침 가려내기"
+    새 되돌이 관계식을 살필 때 작은 들임에 대해 되돌이 나무를 그려라. 같은 함수 인자가 여러 마디에 나타나면 그 문제는 겹치는 아래 문제를 갖춘 것이다. 서로 다른 인자 짝의 수가 동적 짜기 표의 크기를 준다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 14. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+겹치는 아래 문제의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+겹치는 아래 문제의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+겹치는 아래 문제의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+겹치는 아래 문제의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

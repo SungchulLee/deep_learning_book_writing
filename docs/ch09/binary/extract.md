@@ -1,16 +1,16 @@
-# Extract Min/Max
+# 최솟값·최댓값 꺼내기
 
-The **extract** operation removes and returns the root element of a heap -- the minimum in a min-heap or the maximum in a max-heap. This is the central operation that makes heaps useful as priority queues: it always delivers the highest-priority element in $O(\log n)$ time. Understanding extract also clarifies why heapsort works, since heapsort is simply repeated extraction.
+**꺼내기** 연산은 힙의 뿌리 원소, 곧 최소 힙에서는 최솟값을, 최대 힙에서는 최댓값을 없애고 돌려준다. 이것이 힙을 우선순위 큐로 쓸모 있게 만드는 중심 연산이다. 언제나 우선순위가 가장 높은 원소를 $O(\log n)$ 시간에 준다. 힙 정렬이 그저 되풀이되는 꺼내기이므로, 꺼내기를 이해하면 힙 정렬이 왜 통하는지도 또렷해진다.
 
-## Algorithm
+## 알고리즘
 
-Extracting the root directly would leave a gap at index 0 and potentially break the complete binary tree shape. The standard approach avoids this by using a three-step procedure:
+뿌리를 그냥 꺼내면 색인 0에 빈틈이 생기고 완전 이진 트리의 모양이 깨질 수 있다. 표준 방법은 세 단계 절차로 이를 피한다.
 
-1. **Save** the root value (the element to return).
-2. **Move** the last element in the array to the root position, reducing the heap size by one. This preserves the complete binary tree shape.
-3. **Sift down** the new root to restore the heap property.
+1. 뿌리 값(돌려줄 원소)을 **저장한다**.
+2. 배열의 마지막 원소를 뿌리 자리로 **옮기고** 힙의 크기를 하나 줄인다. 이는 완전 이진 트리의 모양을 지킨다.
+3. 새 뿌리를 **아래로 내려** 힙 성질을 되살린다.
 
-### Pseudocode for Extract-Max
+### 최댓값 꺼내기의 의사 코드
 
 ```
 EXTRACT-MAX(A):
@@ -23,9 +23,9 @@ EXTRACT-MAX(A):
     return max_val
 ```
 
-## Step-by-Step Example
+## 한 걸음씩 보는 예
 
-Extract the maximum from the max-heap `[16, 14, 10, 8, 7, 9, 3, 2, 4, 1]`:
+최대 힙 `[16, 14, 10, 8, 7, 9, 3, 2, 4, 1]`에서 최댓값을 꺼내 보자.
 
 ```
 Step 1: Save root value 16.
@@ -70,52 +70,52 @@ Step 3: Sift down 1.
 Result: returned 16, heap is [14, 8, 10, 4, 7, 9, 3, 2, 1].
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
-The sift-down procedure traverses at most one path from the root to a leaf. In a heap of $n$ elements, the height is $\lfloor \log_2 n \rfloor$, so sift-down performs at most $\lfloor \log_2 n \rfloor$ comparisons and swaps.
+아래로 내리기 절차는 뿌리에서 잎까지의 경로를 많아야 하나 훑는다. 원소가 $n$개인 힙의 높이가 $\lfloor \log_2 n \rfloor$이므로 아래로 내리기는 비교와 자리바꿈을 많아야 $\lfloor \log_2 n \rfloor$번 한다.
 
-| Operation | Time Complexity |
+| 연산 | 시간 복잡도 |
 |-----------|----------------|
-| Save root | $O(1)$ |
-| Move last to root | $O(1)$ |
-| Sift down | $O(\log n)$ |
-| **Total** | $O(\log n)$ |
+| 뿌리 저장하기 | $O(1)$ |
+| 마지막을 뿌리로 옮기기 | $O(1)$ |
+| 아래로 내리기 | $O(\log n)$ |
+| **합계** | $O(\log n)$ |
 
-The space complexity is $O(1)$ for the iterative version, or $O(\log n)$ for the recursive version due to the call stack.
+공간 복잡도는 되풀이 판이 $O(1)$이고, 재귀 판은 호출 스택 때문에 $O(\log n)$이다.
 
-## Peek Without Extraction
+## 꺼내지 않고 엿보기
 
-Sometimes we need to inspect the minimum or maximum without removing it. Since the root always holds the extreme element, peeking is a simple $O(1)$ array access:
+최솟값이나 최댓값을 없애지 않고 살펴야 할 때가 있다. 뿌리가 언제나 끝값 원소를 지니므로 엿보기는 간단한 $O(1)$ 배열 접근이다.
 
 $$
 \text{peek}(A) = A[0]
 $$
 
-## Implementation
+## 구현
 
 ```python
 """
-Extract-min and extract-max operations for binary heaps.
+이진 힙의 최솟값·최댓값 꺼내기 연산.
 
-Demonstrates removal of the root element with sift-down
-to restore the heap property in O(log n) time.
+아래로 내리기로 뿌리 원소를 없애고 힙 성질을
+O(log n) 시간에 되살리는 것을 보인다.
 """
 
 
-# === Max-Heap Extract ===
+# === 최대 힙에서 꺼내기 ===
 
 class MaxHeap:
-    """A max-heap supporting insert, extract-max, and peek."""
+    """삽입과 최댓값 꺼내기와 엿보기를 받쳐 주는 최대 힙."""
 
     def __init__(self, items=None):
-        """Build a max-heap from an optional list of items."""
+        """선택으로 주어진 항목 리스트로 최대 힙을 세운다."""
         self.heap = list(items) if items else []
-        # Build heap using bottom-up sift-down
+        # 아래에서 위로 내리기로 힙을 세운다
         for i in range(len(self.heap) // 2 - 1, -1, -1):
             self._sift_down(i)
 
     def _sift_down(self, i):
-        """Move element at index i down to restore heap property."""
+        """힙 성질을 되살리려고 색인 i의 원소를 아래로 옮긴다."""
         n = len(self.heap)
         while True:
             largest = i
@@ -133,7 +133,7 @@ class MaxHeap:
             i = largest
 
     def _sift_up(self, i):
-        """Move element at index i up to restore heap property."""
+        """힙 성질을 되살리려고 색인 i의 원소를 위로 옮긴다."""
         while i > 0:
             parent = (i - 1) // 2
             if self.heap[i] > self.heap[parent]:
@@ -143,24 +143,24 @@ class MaxHeap:
                 break
 
     def insert(self, val):
-        """Insert a value into the heap. O(log n)."""
+        """힙에 값을 넣는다. O(log n)."""
         self.heap.append(val)
         self._sift_up(len(self.heap) - 1)
 
     def peek(self):
-        """Return the maximum without removing it. O(1)."""
+        """최댓값을 없애지 않고 돌려준다. O(1)."""
         if not self.heap:
             raise IndexError("peek from empty heap")
         return self.heap[0]
 
     def extract_max(self):
-        """Remove and return the maximum element. O(log n)."""
+        """최댓값 원소를 없애고 돌려준다. O(log n)."""
         if not self.heap:
             raise IndexError("extract from empty heap")
 
         max_val = self.heap[0]
 
-        # Move last element to root
+        # 마지막 원소를 뿌리로 옮긴다
         last = self.heap.pop()
         if self.heap:
             self.heap[0] = last
@@ -175,15 +175,15 @@ class MaxHeap:
         return f"MaxHeap({self.heap})"
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
-    # Build a max-heap
+    # 최대 힙을 세운다
     h = MaxHeap([4, 1, 3, 2, 16, 9, 10, 14, 8, 7])
     print(f"Initial heap: {h.heap}")
     print(f"Peek: {h.peek()}")
 
-    # Extract elements one by one (produces sorted order descending)
+    # 원소를 하나씩 꺼낸다 (내림차순으로 정렬된다)
     print("\nExtracting elements:")
     extracted = []
     while len(h) > 0:
@@ -193,7 +193,7 @@ if __name__ == "__main__":
 
     print(f"\nExtracted in order: {extracted}")
 
-    # Demonstrate insert + extract interleaving
+    # 삽입과 꺼내기를 번갈아 하는 것을 보인다
     print("\n--- Insert and Extract ---")
     h2 = MaxHeap()
     for val in [5, 3, 8]:
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     print(f"  Extract max: {h2.extract_max()}, heap: {h2.heap}")
 ```
 
-**Output:**
+**출력:**
 ```
 Initial heap: [16, 14, 10, 8, 7, 9, 3, 2, 4, 1]
 Peek: 16
@@ -234,10 +234,43 @@ Extracted in order: [16, 14, 10, 9, 8, 7, 4, 3, 2, 1]
   Extract max: 10, heap: [5, 3]
 ```
 
-## Correctness Argument
+## 올바름의 논증
 
-After moving the last element to the root, both subtrees of the root are still valid heaps (they were not modified). The only potential violation is at the root itself. Sift-down restores the heap property by repeatedly swapping the root with its largest child until the element reaches a position where it is at least as large as both children (or becomes a leaf). This is exactly the precondition that `MAX-HEAPIFY` requires: both subtrees are valid heaps, and only the root may violate the property.
+마지막 원소를 뿌리로 옮긴 뒤에도 뿌리의 두 부분 트리는 (건드리지 않았으므로) 여전히 올바른 힙이다. 어긋날 수 있는 곳은 뿌리뿐이다. 아래로 내리기는 그 원소가 두 자식 이상으로 큰 자리에 닿거나 잎이 될 때까지 뿌리를 가장 큰 자식과 되풀이해 맞바꾸어 힙 성질을 되살린다. 이것이 바로 `MAX-HEAPIFY`가 요구하는 조건이다. 두 부분 트리는 올바른 힙이고 뿌리만 성질을 어길 수 있다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., and Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 6.2 and 6.5: Maintaining the heap property and Priority queues. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+최솟값·최댓값 꺼내기의 힙 성질을 밝히고 최솟값·최댓값 원소가 언제나 뿌리에 있음을 증명하라.
+
+??? success "연습문제 1 풀이"
+    힙 성질은 노드마다 열쇠가 자식보다 작거나 같거나(최소 힙) 크거나 같다(최대 힙)는 것이다. 뿌리에서 잎까지의 어떤 경로에서도 추이성이 성립하므로 뿌리가 모든 원소의 최솟값(또는 최댓값)이다.
+
+---
+
+**연습문제 2.**
+배열 $[4, 7, 2, 9, 1, 5, 3]$에서 최솟값·최댓값 꺼내기를 따라가라. 단계마다와 그 결과로 나오는 힙을 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽의 연산을 주어진 배열에 적용하라. 단계마다 배열과 그것이 나타내는 트리를 보여라. 비교와 자리바꿈을 짚어라.
+
+---
+
+**연습문제 3.**
+최솟값·최댓값 꺼내기의 시간 복잡도를 증명하라. 그 한계는 빡빡한가?
+
+??? success "연습문제 3 풀이"
+    이 연산은 뿌리에서 잎까지 또는 잎에서 뿌리까지의 경로를 훑으며 층마다 $O(1)$의 일을 한다. 완전 이진 트리의 높이는 $\lfloor\log_2 n\rfloor$이므로 모두 $O(\log n)$이다. 이 한계는 빡빡하다. 높이 전체를 훑도록 강요하는 입력이 있다. $\square$
+
+---
+
+**연습문제 4.**
+$k = 5$이고 어휘가 $n = 32{,}000$인 빔 탐색에서 힙으로 뽑기(원소 $n$개에서 상위 $k$개)와 정렬을 견주어라.
+
+??? success "연습문제 4 풀이"
+    정렬은 $O(n\log n) = O(32000 \times 15) \approx 48만$번의 연산이 든다. 힙(크기 $k$인 최소 힙)은 $O(n\log k) = O(32000 \times 2.3) \approx 7만 4천$번이다. 힙이 약 $6.5$배 빠르다. 아니면 `torch.topk`가 GPU에 맞추어 다듬은 부분 정렬 알고리즘을 쓴다.

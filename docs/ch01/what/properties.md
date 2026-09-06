@@ -1,46 +1,46 @@
-# Properties of Algorithms
+# 알고리즘의 성질
 
-Every algorithm possesses fundamental properties that determine its reliability and usefulness. Understanding these properties helps distinguish well-designed deep learning systems from fragile ones.
+모든 알고리즘은 그 신뢰성과 유용성을 결정하는 기본적인 성질을 가진다. 이 성질들을 이해하면 잘 설계된 딥러닝 시스템과 취약한 시스템을 구별할 수 있다.
 
-## Definition
+## 정의
 
-The five essential properties of an algorithm are:
+알고리즘의 다섯 가지 핵심 성질은 다음과 같다.
 
 $$
 \begin{array}{ll}
-\text{Correctness} & \text{Produces the right output for every valid input} \\
-\text{Efficiency} & \text{Uses time and space wisely as input grows} \\
-\text{Finiteness} & \text{Terminates after a finite number of steps} \\
-\text{Definiteness} & \text{Each step is precisely defined} \\
-\text{Generality} & \text{Solves a class of problems, not just one instance}
+\text{정확성} & \text{모든 유효한 입력에 대해 올바른 출력을 낸다} \\
+\text{효율성} & \text{입력이 커질 때 시간과 공간을 효율적으로 사용한다} \\
+\text{유한성} & \text{유한한 단계 후에 종료된다} \\
+\text{명확성} & \text{각 단계가 정확하게 정의되어 있다} \\
+\text{일반성} & \text{하나의 사례가 아니라 문제의 부류를 해결한다}
 \end{array}
 $$
 
-## Explanation
+## 설명
 
-In deep learning, these properties take specific forms:
+딥러닝에서 이 성질들은 구체적인 형태로 나타난다.
 
-- **Correctness**: A training algorithm is correct if it converges to a (local) minimum of the loss. Verification involves gradient checking, loss curve monitoring, and evaluation on held-out data.
-- **Efficiency**: Training and inference must complete within resource budgets. Efficient architectures (e.g., depthwise separable convolutions) trade minimal accuracy for large speedups.
-- **Finiteness**: Training must terminate. This requires explicit stopping criteria: maximum epochs, early stopping on validation loss, or learning rate reaching a minimum threshold.
-- **Definiteness**: Every operation must be unambiguous. Floating-point non-determinism (different GPU results across runs) violates strict definiteness but is acceptable in practice.
-- **Generality**: A good architecture (ResNet, Transformer) generalizes across tasks. A model overfit to one dataset lacks generality.
+- **정확성(correctness)**: 학습 알고리즘이 손실의 (국소) 최솟값으로 수렴하면 정확하다. 검증은 경사 확인, 손실 곡선 관찰, 검증 데이터 평가를 통해 이루어진다.
+- **효율성(efficiency)**: 학습과 추론이 주어진 자원 예산 안에서 끝나야 한다. 효율적인 구조(예: 깊이별 분리 합성곱)는 정확도를 아주 조금 희생하는 대신 큰 속도 향상을 얻는다.
+- **유한성(finiteness)**: 학습은 반드시 종료되어야 한다. 이를 위해 최대 에폭 수, 검증 손실 기준 조기 종료, 학습률의 최소 임계값 도달 같은 명시적 정지 조건이 필요하다.
+- **명확성(definiteness)**: 모든 연산이 모호하지 않아야 한다. 부동소수점 비결정성(실행마다 GPU 결과가 달라짐)은 엄밀한 의미의 명확성을 위배하지만 실무에서는 허용된다.
+- **일반성(generality)**: 좋은 구조(ResNet, 트랜스포머)는 여러 과제에 걸쳐 일반화된다. 하나의 데이터셋에 과적합된 모델은 일반성이 부족하다.
 
-**Deterministic vs stochastic**: Classical algorithms are deterministic. Neural network training is stochastic (random initialization, mini-batch sampling, dropout). The stochasticity is deliberate -- it provides regularization and enables exploration of the loss landscape.
+**결정적 대 확률적**: 고전적 알고리즘은 결정적이다. 신경망 학습은 확률적이다(무작위 초기화, 미니배치 표본 추출, 드롭아웃). 이 확률성은 의도적인 것으로, 정칙화 효과를 주고 손실 지형의 탐색을 가능하게 한다.
 
-## Examples
+## 예제
 
 ```python
 import torch
 import torch.nn as nn
 
-# Demonstrate finiteness: early stopping
+# 유한성 시연: 조기 종료
 model = nn.Linear(10, 1)
 optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
 x, y = torch.randn(50, 10), torch.randn(50, 1)
 
 best_loss, patience, wait = float("inf"), 5, 0
-for epoch in range(1000):  # max epochs ensures finiteness
+for epoch in range(1000):  # 최대 에폭 수가 유한성을 보장한다
     loss = nn.functional.mse_loss(model(x), y)
     optimizer.zero_grad(); loss.backward(); optimizer.step()
     if loss.item() < best_loss - 1e-4:
@@ -52,7 +52,7 @@ for epoch in range(1000):  # max epochs ensures finiteness
         print(f"Early stopping at epoch {epoch}, loss={loss.item():.4f}")
         break
 
-# Demonstrate determinism vs stochasticity
+# 결정성과 확률성 시연
 torch.manual_seed(42)
 a = torch.randn(3)
 torch.manual_seed(42)
@@ -63,3 +63,43 @@ torch.manual_seed(0)
 c = torch.randn(3)
 print(f"Different seed -> different output: {not torch.equal(a, c)}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+다음 각각이 알고리즘의 다섯 가지 성질(정확성, 효율성, 유한성, 명확성, 일반성) 중 무엇을 위배하는지 분류하고, 어떻게 고칠 수 있는지 설명하라. (a) 정지 조건이 없는 학습 루프, (b) 특정 데이터셋 하나에 과적합된 모델, (c) 이따금 NaN을 만들어내는 순전파.
+
+??? success "연습문제 1 풀이"
+    (a) **유한성** 위배 — 루프가 종료되지 않는다. 해결: `max_epochs`, 조기 종료, 또는 최소 학습률 임계값을 추가한다. (b) **일반성** 위배 — 모델이 문제의 부류가 아니라 하나의 사례만 해결한다. 해결: 정칙화(드롭아웃, 가중치 감쇠), 데이터 증강, 또는 더 일반적인 구조를 사용한다. (c) **명확성** 위배 — NaN은 출력이 정의되지 않았다는 뜻이다. 해결: 경사 클리핑을 추가하고, 수치적으로 안정한 연산(log-sum-exp)을 사용하며, 오버플로를 막기 위해 학습률을 낮춘다.
+
+---
+
+**연습문제 2.**
+조기 종료는 검증 손실을 관찰하다가 더 이상 개선되지 않으면 학습을 중단한다. 조기 종료가 유한성을 보장한다는 것을 형식화하라. 인내(patience)가 $p$이고 최대 에폭이 $E$일 때 최대 학습 단계 수는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    에폭당 학습 단계 수를 $n$이라 하자. 조기 종료는 검증 손실이 연속 $p$ 에폭 동안 개선되지 않으면 종료한다. 최대 단계 수는 마지막 $p$ 에폭을 제외한 모든 에폭에서 손실이 개선될 때 나타나며, 이때 $E \cdot n$ 단계(최대 에폭에 먼저 도달)가 된다. 또는 어떤 $t$에 대해 $t + p$ 에폭 후에 조기 종료가 발동한다. 보장되는 상한은 $\min(E, t^* + p) \cdot n$ 단계이며, 여기서 $t^*$는 마지막으로 개선이 일어난 에폭이다. $E$와 $p$가 모두 유한하므로 총 단계 수는 항상 유한하고 종료가 보장된다.
+
+---
+
+**연습문제 3.**
+ImageNet으로 학습한 ResNet-50이 ImageNet에서는 top-1 정확도 76%를 달성하지만 의료 영상 데이터셋에서는 40%에 그친다. 이것이 일반성 성질을 위배하는가? 답을 정당화하라.
+
+??? success "연습문제 3 풀이"
+    아니다, 일반성을 위배하지 않는다. 일반성 성질은 알고리즘이 $\mathcal{X}$의 임의의 유효한 입력을 받아 유효한 출력을 낼 수 있다는 뜻이며, 모든 분포에 대해 출력이 옳아야 한다는 요구는 아니다. ResNet-50은 임의의 $(3, 224, 224)$ 이미지를 처리하여 클래스 확률을 낼 수 있으므로 알고리즘으로서는 일반적이다. 의료 영상에서의 낮은 정확도는 영역 간 통계적 일반화(분포 이동)가 나쁘다는 것을 반영하며, 이는 학습된 모델의 성질이지 알고리즘의 정의적 일반성 문제가 아니다.
+
+---
+
+**연습문제 4.**
+부동소수점 비결정성 때문에 같은 모델을 다른 GPU에서 실행하면 출력이 조금씩 달라질 수 있다. 이것이 명확성을 위배하는가? 실무자들은 운영 환경에서 이를 어떻게 다루는가?
+
+??? success "연습문제 4 풀이"
+    엄밀히 말하면 각 개별 연산은 잘 정의되어 있지만, 부동소수점 덧셈의 순서(하드웨어에 의존)가 결합법칙이 성립하지 않는 부동소수점 연산의 특성 때문에 결과에 영향을 준다. 이는 명확성의 진정한 위배라기보다 실용적 완화이다. 알고리즘 명세가 구현이 정하는 순서를 허용하기 때문이다. 실무자들은 다음과 같이 대응한다. (1) 정확한 재현성이 필요하면 `torch.use_deterministic_algorithms(True)`를 설정한다(성능 손실 감수). (2) 재현 가능한 무작위 연산을 위해 `torch.manual_seed()`를 사용한다. (3) 허용 오차 기반 동등성 검사를 통해 운영 환경에서 작은 수치 차이($< 10^{-6}$)를 받아들인다.
+
+---
+
+**연습문제 5.**
+효율적인 두 알고리즘(각각 $O(n)$)의 합성은 그 자체로 효율적($O(n)$)임을 증명하라. 반면 정확한 두 알고리즘의 합성은 입출력 계약이 호환되지 않으면 정확하지 않을 수 있음을 보여라. 딥러닝 예를 들라.
+
+??? success "연습문제 5 풀이"
+    **효율성**: $f$가 $O(n)$에 실행되고 $g$가 $O(n)$에 실행되면 $g \circ f$는 $O(n) + O(n) = O(n)$에 실행된다. $\square$ **정확성**: 알고리즘 $f$는 형식 $A$의 출력을 내는데 알고리즘 $g$는 형식 $B \neq A$의 입력을 기대할 수 있다. 예: 특징 추출기 $f$는 정규화되지 않은 임베딩 $\in \mathbb{R}^d$을 출력하는데, 코사인 유사도 분류기 $g$는 단위 정규화된 입력 $\in S^{d-1}$을 가정한다. 중간 출력을 정규화하지 않고 $g \circ f$를 합성하면 잘못된 유사도 점수가 나온다. 각 알고리즘은 자신의 명세된 계약 안에서는 개별적으로 정확하지만, 합성은 $g$의 입력 전제조건을 위배한다.

@@ -1,142 +1,138 @@
-# Overview of Regularization-Based Continual Learning
+# 벌주기 기반 이어 배우기 훑어보기
+## 들어가며
 
+벌주기 기반 이어 배우기는 새 과제를 배우는 동안 중요한 매개변수의 갱신을 옥죄어 파국적 잊음을 막는다. 구조를 고치거나 드러내 놓고 되살리는 대신, 이 방법들은 앞선 과제에 결정적이었던 매개변수를 짚어낸 다음 새 과제를 익히는 동안 그 매개변수가 크게 바뀌면 벌을 준다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+계량 금융에서 벌주기 기반 방법은 우아한 해법을 준다. 시장 미시구조에 대한 앎(주문 흐름 본새, 변동성 국면)은 때가 흘러도 한결같을 때가 많으므로, 이 매개변수를 가려 지키면서 나머지는 자유롭게 고치면 새 상품이나 시장에 재빨리 맞추어 갈 수 있다. 이렇게 하면 오늘의 본새를 배우면서도 근본적인 시장 관계에 대한 앎을 지킨다.
 
-## Introduction
+## 핵심 개념
 
-Regularization-based continual learning prevents catastrophic forgetting by constraining updates to important parameters during new task learning. Rather than architectural modifications or explicit replay, these methods identify which parameters were critical to previous tasks, then penalize large changes to those parameters during new task training.
+- **매개변수 중요도**: 앞선 과제의 성능에 어떤 매개변수가 가장 크게 이바지했는지 잰다
+- **피셔 정보**: 매개변수 중요도를 재는 정보 이론의 잣대
+- **탄성 가중치 다지기**: 중요도로 무게 준 매개변수 변화에 이차 벌 주기
+- **시냅스 중요도**: 가중치 변화에 바탕을 둔 다른 중요도 재기
+- **성긴 기울기**: 기울기 분석으로 결정적인 매개변수를 짚어내기
+- **차례 학습**: 벌주기 제약을 곁들여 과제를 차례대로 배우기
 
-In quantitative finance, regularization-based methods offer elegant solutions: market microstructure knowledge (order flow patterns, volatility regimes) often remains stable across time, and selectively protecting these parameters while freely updating others enables rapid adaptation to new instruments or markets. This approach maintains knowledge about fundamental market relationships while learning contemporary patterns.
+## 근본 틀
 
-## Key Concepts
+### 벌주기의 원리
 
-- **Parameter Importance**: Measure which parameters contributed most to previous task performance
-- **Fisher Information**: Information-theoretic measure of parameter importance
-- **Elastic Weight Consolidation**: Quadratic penalty on parameter changes weighted by importance
-- **Synaptic Importance**: Alternative importance measures based on weight changes
-- **Sparse Gradients**: Identify critical parameters through gradient analysis
-- **Sequential Learning**: Learn tasks in sequence with regularization constraints
-
-## Fundamental Framework
-
-### Regularization Principle
-
-Constrain task $t$ learning to preserve previous task performance:
+앞선 과제의 성능을 지키도록 과제 $t$의 배움을 옥죈다.
 
 $$\mathcal{L}_t = \mathcal{L}_{\text{task}_t}(\theta) + \lambda \sum_i \Omega_i (\theta_i - \theta_i^*)$$
 
-where:
-- $\mathcal{L}_{\text{task}_t}$ is current task loss
-- $\Omega_i$ measures importance of parameter $i$
-- $\theta_i^*$ is previously learned parameter value
-- $\lambda$ controls regularization strength
+여기서 각 기호는 다음과 같다.
 
-### Parameter Importance Estimation
+- $\mathcal{L}_{\text{task}_t}$은 지금 과제의 손실이다
+- $\Omega_i$은 매개변수 $i$의 중요도를 잰다
+- $\theta_i^*$은 앞서 배운 매개변수 값이다
+- $\lambda$은 벌주기 세기를 다스린다
 
-Key challenge: Which parameters matter for previous tasks?
+### 매개변수 중요도 어림하기
 
-**Fisher Information** (information-theoretic):
+핵심 어려움은 이것이다. 앞선 과제에 어떤 매개변수가 중요한가?
+
+**피셔 정보**(정보 이론):
 
 $$F_i = \mathbb{E}[(\partial \log p(y|\mathbf{x}, \theta))^2 / \partial \theta_i]$$
 
-**Gradient Magnitude** (empirical):
+**기울기 크기**(실험):
 
 $$G_i = |\partial \mathcal{L} / \partial \theta_i|$$
 
-**Weight Change** (synaptic):
+**가중치 변화**(시냅스):
 
 $$S_i = |\Delta \theta_i|$$
 
-## Regularization Method Taxonomy
+## 벌주기 방법의 갈래
 
-### Elastic Weight Consolidation (EWC)
+### 탄성 가중치 다지기(EWC)
 
 $$\mathcal{L}_{\text{EWC}} = \mathcal{L}_{\text{task}_t} + \frac{\lambda}{2} \sum_i F_i (\theta_i - \theta_i^*)^2$$
 
-- Uses Fisher information as importance
-- Quadratic penalty on parameter changes
-- Computationally efficient (diagonal Fisher approximation)
+- 피셔 정보를 중요도로 쓴다
+- 매개변수 변화에 이차 벌을 준다
+- 셈이 효율적이다(대각 피셔 어림)
 
-### Synaptic Intelligence
+### 시냅스 지능
 
 $$\mathcal{L}_{\text{SI}} = \mathcal{L}_{\text{task}_t} + \lambda \sum_i \frac{S_i}{(\omega_i + \epsilon)^2} (\theta_i - \theta_i^*)^2$$
 
-- Importance based on synaptic relevance
-- Accumulates importance across task sequence
-- Small parameter changes affect learned importance
+- 중요도를 시냅스 관련도로 잡는다
+- 잇단 과제에 걸쳐 중요도를 쌓는다
+- 매개변수가 조금만 바뀌어도 배운 중요도가 달라진다
 
-### Memory Aware Synapses (MAS)
+### 기억을 아는 시냅스(MAS)
 
 $$\mathcal{L}_{\text{MAS}} = \mathcal{L}_{\text{task}_t} + \lambda \sum_i M_i (\theta_i - \theta_i^*)^2$$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$M_i = \left| \frac{\partial f(\mathbf{x})}{\partial \theta_i} \right|$$
 
-- Directly uses output gradient magnitude
-- More computationally tractable than Fisher
-- Task-agnostic importance estimation
+- 출력 기울기의 크기를 곧바로 쓴다
+- 피셔보다 셈으로 다루기 쉽다
+- 과제를 가리지 않는 중요도 어림
 
-## Comparative Analysis
+## 비교 분석
 
-| Method | Importance Metric | Computation | Accuracy | Scalability |
+| 방법 | 중요도 재기 | 셈 | 정확도 | 규모 확장성 |
 |--------|------------------|-----------|----------|------------|
-| **EWC** | Fisher Info | Medium | High | Good |
-| **Synaptic** | Weight Change | Low | Medium | Excellent |
-| **MAS** | Output Gradient | Low | High | Good |
-| **Simple Penalty** | Uniform | None | Low | Excellent |
+| **EWC** | 피셔 정보 | 보통 | 높음 | 좋음 |
+| **시냅스** | 가중치 변화 | 낮음 | 보통 | 매우 좋음 |
+| **MAS** | 출력 기울기 | 낮음 | 높음 | 좋음 |
+| **단순 벌** | 한결같음 | 없음 | 낮음 | 매우 좋음 |
 
-!!! note "Trade-offs"
-    Sophisticated importance estimation improves performance but increases computational cost and hyperparameter tuning complexity.
+!!! note "맞바꿈"
+    중요도를 정교하게 어림하면 성능은 좋아지지만 셈 비용과 초매개변수 손질의 복잡함이 늘어난다.
 
-## Advantages and Limitations
+## 장점과 한계
 
-### Advantages
+### 이점
 
-**Theoretical Grounding**: Information-theoretic foundations for parameter importance
+**이론적 뿌리**: 매개변수 중요도에 대한 정보 이론의 바탕
 
-**Interpretability**: Identify which parameters support which tasks
+**풀이 가능성**: 어떤 매개변수가 어떤 과제를 받치는지 짚어낸다
 
-**Flexibility**: Compatible with any optimizer and architecture
+**융통성**: 어떤 최적화기와 구조에도 어울린다
 
-**Simplicity**: Straightforward implementation
+**단순함**: 구현이 쉽다
 
-### Limitations
+### 한계
 
-!!! warning "Regularization-Based Challenges"
+!!! warning "벌주기 기반 방법의 어려움"
     
-    - **Parameter Importance Estimation**: Inaccurate importance leads to poor performance
-    - **Task Sequence**: Performance degrades with many tasks (compounding errors)
-    - **Task Diversity**: Similar tasks may have overlapping importance, causing conflicts
-    - **Interference**: Highly connected parameters may be important to multiple tasks
+    - **매개변수 중요도 어림**: 중요도가 부정확하면 성능이 나빠진다
+    - **과제 차례**: 과제가 많아지면 성능이 떨어진다(오차가 겹겹이 쌓인다)
+    - **과제의 다양함**: 닮은 과제끼리 중요도가 겹쳐 부딪칠 수 있다
+    - **방해**: 이음이 많은 매개변수는 여러 과제에 중요할 수 있다
 
-## Information-Theoretic Foundation
+## 정보 이론의 바탕
 
-### Fisher Information Matrix
+### 피셔 정보 행렬
 
-The Fisher Information Matrix (FIM) provides optimal importance measure:
+피셔 정보 행렬(FIM)이 가장 좋은 중요도 재기를 준다.
 
 $$F = \mathbb{E}_{y \sim p(y|\mathbf{x}, \theta)} \left[ \nabla_\theta \log p(y|\mathbf{x}, \theta) \nabla_\theta \log p(y|\mathbf{x}, \theta)^T \right]$$
 
-For neural networks:
+신경망에서는 다음과 같다.
 
 $$F_i \approx \mathbb{E}[\frac{\partial \mathcal{L}}{\partial \theta_i}]^2$$
 
-High Fisher information indicates parameter significantly affects predictions.
+피셔 정보가 크면 그 매개변수가 예측에 크게 영향을 준다는 뜻이다.
 
-### Diagonal Approximation
+### 대각 어림
 
-Full FIM is prohibitively expensive (dimension²). Diagonal approximation:
+온전한 FIM은 (차원의 제곱이라) 감당할 수 없이 값비싸다. 대각 어림은 다음과 같다.
 
 $$F_i \approx \mathbb{E}\left[\left(\frac{\partial \mathcal{L}}{\partial \theta_i}\right)^2\right]$$
 
-assumes parameter changes are independent (ignores parameter correlations).
+매개변수의 변화가 서로 독립이라고 놓는다(매개변수 사이의 상관을 무시한다).
 
-## Training Dynamics
+## 학습의 움직임
 
-### Task Learning with Regularization
+### 벌주기를 곁들인 과제 배우기
 
 ```
 for each task t:
@@ -152,38 +148,39 @@ for each task t:
     Ω_t ← compute_importance(θ)
 ```
 
-### Stability-Plasticity Dilemma
+### 안정성과 말랑함의 딜레마
 
-!!! warning "Stability vs. Learning"
-    Increasing $\lambda$ (regularization strength):
-    - Improves stability (preserves previous tasks)
-    - Reduces plasticity (harder to learn new tasks)
-    - Optimal $\lambda$ task and data-dependent
+!!! warning "안정성과 배움"
+    $\lambda$(벌주기 세기)을 키우면 다음과 같다.
 
-## Financial Applications
+    - 안정성이 좋아진다(앞선 과제를 지킨다)
+    - 말랑함이 줄어든다(새 과제를 배우기 어려워진다)
+    - 가장 좋은 $\lambda$은 과제와 데이터에 달렸다
 
-**Market Microstructure**: Protect parameters learning order book dynamics
+## 금융에서의 쓰임
 
-**Volatility Regimes**: Regularize parameters capturing regime-specific volatility
+**시장 미시구조**: 호가창의 움직임을 배우는 매개변수를 지킨다
 
-**Cross-Asset Relationships**: Preserve correlations while learning asset-specific patterns
+**변동성 국면**: 국면마다의 변동성을 담는 매개변수에 벌을 준다
 
-### Multi-Asset Continual Learning
+**자산을 넘나드는 관계**: 자산마다의 본새를 배우면서 상관은 지킨다
 
-1. Train on Asset 1 (equities), compute importance
-2. Learn Asset 2 (bonds) with regularization protecting Asset 1 knowledge
-3. Learn Asset 3 (commodities) protecting both previous assets
-4. Maintain cross-asset relationships through regularization
+### 여러 자산 이어 배우기
 
-## Hyperparameter Selection
+1. 자산 1(주식)로 익히고 중요도를 셈한다
+2. 자산 1의 앎을 지키는 벌주기를 곁들여 자산 2(채권)를 배운다
+3. 앞선 두 자산을 모두 지키며 자산 3(원자재)을 배운다
+4. 벌주기로 자산을 넘나드는 관계를 지킨다
 
-| Parameter | Role | Tuning |
+## 초매개변수 선택
+
+| 매개변수 | 몫 | 손질 |
 |-----------|------|--------|
-| **$\lambda$** | Regularization strength | Increase if forgetting, decrease if slow learning |
-| **Epochs** | Per-task training | Longer training for complex tasks |
-| **Importance Scale** | Normalization factor | Prevent overflow in early layers |
+| **$\lambda$** | 벌주기 세기 | 잊으면 키우고 배움이 더디면 줄인다 |
+| **시대 수** | 과제마다의 학습 | 복잡한 과제일수록 오래 익힌다 |
+| **중요도 눈금** | 고르기 인자 | 앞쪽 층에서 넘침을 막는다 |
 
-### Cross-Validation for lambda
+### lambda를 위한 교차 검증
 
 ```
 for λ in [0.1, 0.5, 1.0, 2.0, 5.0]:
@@ -194,36 +191,69 @@ for λ in [0.1, 0.5, 1.0, 2.0, 5.0]:
 λ* = argmax Score[λ]
 ```
 
-## Advanced Extensions
+## 한 걸음 나아간 넓히기
 
-### Continual Learning with Shared and Task-Specific Parameters
+### 함께 쓰는 매개변수와 과제마다의 매개변수를 둔 이어 배우기
 
-Separate parameters into:
-- **Shared**: Used by all tasks (protect strongly)
-- **Task-Specific**: Used by single task (flexible)
+매개변수를 다음으로 가른다.
 
-Different regularization for each:
+- **함께 씀**: 모든 과제가 쓴다(세게 지킨다)
+- **과제마다**: 과제 하나만 쓴다(자유롭게 둔다)
+
+각각에 다른 벌주기를 쓴다.
 
 $$\mathcal{L} = \mathcal{L}_{\text{task}} + \lambda_s \text{Reg}_{\text{shared}} + \lambda_t \text{Reg}_{\text{task-specific}}$$
 
-### Online EWC
+### 온라인 EWC
 
-Update importance estimates during task training, not just after:
+과제를 마친 뒤만이 아니라 익히는 도중에도 중요도 어림을 고친다.
 
 $$F_i^{(t)} \leftarrow (1-\rho) F_i^{(t-1)} + \rho \left(\frac{\partial \mathcal{L}}{\partial \theta_i}\right)^2$$
 
-Smoother importance evolution, better adaptation.
+중요도가 더 매끄럽게 바뀌고 더 잘 맞추어 간다.
 
-## Research Directions
+## 연구의 방향
 
-- Improved importance estimation for parameters
-- Combining multiple importance metrics
-- Scalable Fisher information computation for modern networks
-- Theoretical analysis of regularization-based continual learning
+- 매개변수 중요도 어림 개선하기
+- 여러 중요도 재기를 섞기
+- 오늘날의 망을 위한 규모 확장 가능한 피셔 정보 셈하기
+- 벌주기 기반 이어 배우기의 이론적 분석
 
-## Related Topics
+## 관련 주제
 
-- Elastic Weight Consolidation (Chapter 12.3.2)
-- Online EWC (Chapter 12.3.3)
-- Replay-Based Methods (Chapter 12.4)
-- Architecture-Based Methods (Chapter 12.1)
+- 탄성 가중치 다지기(12.3.2절)
+- 온라인 EWC(12.3.3절)
+- 되살리기 기반 방법(12.4절)
+- 구조 기반 방법(12.1절)
+
+## 연습문제
+
+**연습문제 1.**
+이 방법의 핵심 생각과 그것이 파국적 잊음을 어떻게 다루는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 방법은 새 과제를 배울 때 모델의 매개변수나 표현이 바뀌는 방식을 옥죄어 파국적 잊음을 누그러뜨린다. (벌주기, 되살리기, 증류, 구조 갈라두기로) 배운 함수의 중요한 대목을 지켜 냄으로써, 앞선 과제의 성능을 지키면서도 새 과제에 맞추어 갈 수 있게 한다.
+
+---
+
+**연습문제 2.**
+이 접근법의 셈과 기억 요구는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    요구는 변형마다 다르지만 대체로 (a) 매개변수의 중요도 무게, (b) 학습 보기의 일부, (c) 스승 모델의 출력, (d) 과제마다의 망 모듈 가운데 하나를 담아 두어야 한다. 기억 비용과 잊음 막기의 효과 사이에서 맞바꿈이 일어난다.
+
+---
+
+**연습문제 3.**
+이 방법을 효과와 셈 비용 면에서 EWC와 견주어라.
+
+??? success "연습문제 3 풀이"
+    EWC은 대각 피셔 정보로 중요한 가중치를 짚어낸다. 이 방법은 다른 맞바꿈을 준다. 옛 과제의 성능을 더 잘 지킬 수 있고, 기억 요구가 다르며, 과제 짜임에 대한 가정도 다르다. 실험으로 견주어 보면 잣대에 따라 서로 보완되는 강점을 보일 때가 많다.
+
+---
+
+**연습문제 4.**
+이 방법을 간추린 판으로 파이토치에 구현하라.
+
+??? success "연습문제 4 풀이"
+    구현은 대개 새 과제를 익히는 동안 보통의 교차 엔트로피 손실에 벌주기 항을 더한다. 핵심 부품은 (1) 앞선 과제 학습에서 제약을 셈하기, (2) 필요한 정보(가중치, 본보기, 스승 출력)를 담아 두기, (3) 새 과제 학습 중에 그 제약을 씌우기이다.

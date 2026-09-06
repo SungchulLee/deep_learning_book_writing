@@ -1,49 +1,98 @@
-# Python for Deep Learning
+# 딥러닝을 위한 파이썬
 
-Python is the dominant language for deep learning research and development. This page explains why Python became the standard and introduces the core language features that matter most for numerical computing.
+파이썬은 딥러닝 연구와 개발에서 압도적으로 많이 쓰이는 언어이다. 이 절에서는 파이썬이 표준이 된 이유를 설명하고, 수치 계산에서 가장 중요한 핵심 언어 기능을 소개한다.
 
-## Definition
+## 정의
 
-Python is a dynamically typed, interpreted language with a rich ecosystem of scientific computing libraries. In deep learning, Python serves as the high-level interface while performance-critical operations execute in compiled backends (C++, CUDA, Fortran). The key libraries are NumPy for array computation, PyTorch and TensorFlow for differentiable programming, and scikit-learn for classical machine learning.
+파이썬은 동적 타입의 인터프리터 언어로, 과학 계산 라이브러리 생태계가 풍부하다. 딥러닝에서 파이썬은 고수준 인터페이스 역할을 하고, 성능이 중요한 연산은 컴파일된 백엔드(C++, CUDA, 포트란)에서 실행된다. 핵심 라이브러리로는 배열 계산을 위한 NumPy, 미분 가능 프로그래밍을 위한 PyTorch와 TensorFlow, 고전적 기계학습을 위한 scikit-learn이 있다.
 
-## Explanation
+## 설명
 
-Python dominates deep learning for three reasons:
+파이썬이 딥러닝을 지배하는 이유는 세 가지이다.
 
-- **Minimal boilerplate**: Python's clean syntax lets researchers express complex models in few lines. A fully connected layer, loss function, and training loop fit on a single screen.
-- **Ecosystem depth**: PyTorch, NumPy, pandas, and Hugging Face Transformers provide production-grade implementations of nearly every technique in modern deep learning.
-- **Interactive workflow**: Jupyter notebooks enable the exploratory, iterative style of work that deep learning research demands -- train for a few epochs, inspect gradients, adjust, repeat.
+- **최소한의 상용구**: 파이썬의 간결한 문법 덕분에 연구자는 복잡한 모델을 몇 줄로 표현할 수 있다. 완전연결 층, 손실 함수, 학습 루프가 한 화면에 들어간다.
+- **깊이 있는 생태계**: PyTorch, NumPy, pandas, Hugging Face Transformers가 현대 딥러닝의 거의 모든 기법에 대해 실무 수준의 구현을 제공한다.
+- **대화형 작업 흐름**: 주피터 노트북은 딥러닝 연구가 요구하는 탐색적이고 반복적인 작업 방식을 가능하게 한다. 몇 에폭 학습하고, 경사를 살펴보고, 조정하고, 반복한다.
 
-The key Python features for deep learning code are:
+딥러닝 코드에서 중요한 파이썬 기능은 다음과 같다.
 
-- **List comprehensions and generators** for data pipeline transformations
-- **Slicing and broadcasting** via NumPy/PyTorch tensor semantics
-- **Context managers** (`with torch.no_grad():`) for controlling autograd behavior
-- **Decorators** (`@torch.jit.script`, `@torch.compile`) for compilation and optimization
+- 데이터 파이프라인 변환을 위한 **리스트 컴프리헨션과 제너레이터**
+- NumPy/PyTorch 텐서 의미론에 따른 **슬라이싱과 브로드캐스팅**
+- autograd 동작을 제어하는 **컨텍스트 관리자**(`with torch.no_grad():`)
+- 컴파일과 최적화를 위한 **데코레이터**(`@torch.jit.script`, `@torch.compile`)
 
-## Examples
+## 예제
 
 ```python
 import torch
 import numpy as np
 
-# NumPy: foundation of Python's numerical ecosystem
+# NumPy: 파이썬 수치 생태계의 기반
 x_np = np.random.randn(3, 4)
 print(f"NumPy array shape: {x_np.shape}")
 
-# PyTorch: NumPy-like API with autograd and GPU support
+# PyTorch: autograd와 GPU를 지원하는 NumPy 유사 API
 x = torch.randn(3, 4, requires_grad=True)
 y = (x ** 2).sum()
 y.backward()
 print(f"Gradient shape: {x.grad.shape}")
 print(f"Gradient (should be 2*x):\n{x.grad}")
 
-# List comprehension for batch processing
+# 배치 처리를 위한 리스트 컴프리헨션
 batch_sizes = [2 ** i for i in range(4, 8)]
 print(f"Batch sizes: {batch_sizes}")
 
-# Context manager to disable gradient tracking during inference
+# 추론 중 경사 추적을 끄는 컨텍스트 관리자
 with torch.no_grad():
     pred = torch.sigmoid(torch.randn(5))
     print(f"Predictions: {pred}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+`requires_grad=True`인 $(B, D)$ 모양의 텐서 `x`가 주어졌을 때, $\mathbf{y} = \mathbf{x}^2$에 대한 야코비안 행렬 $\partial \mathbf{y} / \partial \mathbf{x}$를 계산하는 PyTorch 표현식을 작성하라. 이 야코비안의 구조는 어떠할 것으로 예상되는가?
+
+??? success "연습문제 1 풀이"
+    $y_i = x_i^2$은 원소별 연산이므로 야코비안은 대각 성분이 $\partial y_i / \partial x_i = 2x_i$인 대각 행렬이다. PyTorch에서는 다음과 같다.
+    ```python
+    x = torch.randn(1, 4, requires_grad=True)
+    y = x ** 2
+    J = torch.autograd.functional.jacobian(lambda x: x ** 2, x)
+    ```
+    야코비안의 모양은 $(1, 4, 1, 4)$이며, $(4, 4)$로 모양을 바꾸면 대각선에 $2x_i$가 있는 대각 행렬이다.
+
+---
+
+**연습문제 2.**
+`torch.no_grad()`가 무엇을 하는지, 그리고 추론 시에 왜 쓰이는지 설명하라. 매개변수가 1억 개인 모델에서 이를 쓰지 않고 추론하면 메모리 사용량은 어떻게 되는가?
+
+??? success "연습문제 2 풀이"
+    `torch.no_grad()`는 경사 추적을 끄는 컨텍스트 관리자이다. 추론 시에는 경사가 필요 없으므로 계산 그래프를 기록하는 것은 메모리 낭비이다. `torch.no_grad()`가 없으면 PyTorch는 역전파에 필요한 모든 중간 활성값을 저장한다. 매개변수 1억 개에 층이 여럿인 모델이라면 모든 중간 텐서가 유지되므로 메모리 사용량이 쉽게 두세 배가 된다. 예를 들어 시퀀스 길이 512, 은닉 크기 768인 트랜스포머 층 12개를 통과하는 순전파는 층마다 활성값을 저장하여 불필요하게 수 GB의 메모리를 더 소모한다.
+
+---
+
+**연습문제 3.**
+$lr \in \{10^{-2}, 10^{-3}, 10^{-4}\}$이고 $wd \in \{0, 10^{-4}, 10^{-2}\}$인 모든 $(lr, wd)$ 하이퍼파라미터 쌍을 생성하는 리스트 컴프리헨션을 작성하라. 전체 조합은 몇 가지인가?
+
+??? success "연습문제 3 풀이"
+    ```python
+    configs = [(lr, wd) for lr in [1e-2, 1e-3, 1e-4] for wd in [0, 1e-4, 1e-2]]
+    ```
+    조합은 $3 \times 3 = 9$가지이다. 이는 두 하이퍼파라미터 격자의 데카르트 곱이다. 곱의 법칙에 의해 전체 개수는 $|\text{lr 값의 수}| \times |\text{wd 값의 수}|$이다.
+
+---
+
+**연습문제 4.**
+NumPy 브로드캐스팅은 모양이 다른 배열 사이의 연산을 허용한다. 모양이 $(3, 1)$인 배열 `A`와 $(1, 4)$인 배열 `B`가 주어질 때 `A + B`의 모양은 무엇인가? 이 경우 브로드캐스팅이 외적 연산과 동등함을 증명하라.
+
+??? success "연습문제 4 풀이"
+    결과의 모양은 $(3, 4)$이다. 브로드캐스팅은 `A`의 유일한 열을 4번 반복하여 $(3, 4)$로 확장하고, `B`의 유일한 행을 3번 반복하여 $(3, 4)$로 확장한다. 결과의 $(i, j)$ 성분은 $A_i + B_j$이다. 이는 외합의 정의 $(A \oplus B)_{ij} = A_i + B_j$와 정확히 같다. 좀 더 형식적으로, $\tilde{A}_{ij} = A_i$, $\tilde{B}_{ij} = B_j$라 두면 $(\tilde{A} + \tilde{B})_{ij} = A_i + B_j$이며 이것이 외합이다. $\square$
+
+---
+
+**연습문제 5.**
+어떤 연구자가 모델에 `@torch.compile`(PyTorch 2.0 이상)을 적용했더니 추론 속도가 2배 빨라졌지만 첫 호출에서는 속도 향상이 없었다. JIT 컴파일과 추적 캐싱의 관점에서 이 현상을 설명하라.
+
+??? success "연습문제 5 풀이"
+    `@torch.compile`은 **TorchDynamo** 로 계산 그래프를 포착하고 **TorchInductor** 로 최적화된 코드(융합 커널, 메모리 배치 최적화)를 생성한다. 첫 호출이 느린 이유는 컴파일러가 파이썬 코드를 추적하여 그래프를 뽑아내고, 최적화 패스를 적용하고, 백엔드 코드를 생성/컴파일해야 하기 때문이다. 이후 호출은 캐시된 컴파일 그래프를 재사용하고 최적화된 커널을 바로 실행하여 2배의 속도 향상을 낸다. 입력 모양이 바뀌면 재컴파일이 유발되어 다시 느린 호출이 발생할 수 있다. 이것이 고전적인 JIT 컴파일의 절충, 즉 여러 번의 호출에 걸쳐 컴파일 비용을 분산하는 방식이다.

@@ -1,46 +1,46 @@
-# Vertex Cover Approximation
+# 꼭짓점 덮기 어림
 
-Given a graph, a **vertex cover** is a set of vertices that touches every edge. Finding a minimum vertex cover is NP-hard, yet a simple greedy algorithm achieves a 2-approximation --- and this ratio is essentially the best possible unless P = NP. This page presents the matching-based algorithm and an LP-relaxation approach, both achieving ratio 2.
+그래프가 주어질 때 **꼭짓점 덮기**는 모든 모서리에 닿는 꼭짓점 모임이다. 최소 꼭짓점 덮기를 찾는 것은 NP-어려움이지만 단순한 욕심쟁이 알고리즘이 2 어림을 이루며, 이 비율은 P = NP이 아니라면 사실상 가장 좋다. 이 쪽에서는 짝짓기에 바탕한 알고리즘과 선형 계획 느슨하게 하기 방식을 보이며 둘 다 비율 2을 이룬다.
 
-## Problem Definition
+## 문제의 정의
 
-Given an undirected graph $G = (V, E)$, a **vertex cover** is a subset $S \subseteq V$ such that for every edge $(u, v) \in E$, at least one of $u$ or $v$ belongs to $S$. The **Minimum Vertex Cover** problem asks for a vertex cover of minimum cardinality $|S|$.
+방향 없는 그래프 $G = (V, E)$이 주어질 때 **꼭짓점 덮기**는 모든 모서리 $(u, v) \in E$에 대해 $u$이나 $v$ 가운데 적어도 하나가 드는 부분 모임 $S \subseteq V$이다. **최소 꼭짓점 덮기** 문제는 크기 $|S|$가 가장 작은 꼭짓점 덮기를 묻는다.
 
-Let $\text{OPT}$ denote the size of an optimal vertex cover.
+$\text{OPT}$을 가장 좋은 꼭짓점 덮기의 크기라 하자.
 
-## Matching-Based 2-Approximation
+## 짝짓기에 바탕한 2 어림
 
-The key insight is that a **maximal matching** --- a matching to which no edge can be added --- immediately yields a vertex cover. Every matched edge requires at least one of its endpoints in any cover, but we take both, at most doubling the optimal.
+핵심 통찰은 **더 키울 수 없는 짝짓기**, 곧 모서리를 더 넣을 수 없는 짝짓기가 곧바로 꼭짓점 덮기를 준다는 것이다. 짝지은 모서리마다 어떤 덮기에도 끝점 하나는 들어야 하는데 우리는 둘 다 넣으므로 많아야 가장 좋은 값의 두 배가 된다.
 
-### Algorithm
+### 알고리즘
 
-**Input:** Undirected graph $G = (V, E)$.
+**들임:** 방향 없는 그래프 $G = (V, E)$.
 
-1. Initialize $C \leftarrow \emptyset$ and $E' \leftarrow E$.
-2. While $E' \neq \emptyset$:
-    - Pick any edge $(u, v) \in E'$.
-    - Add both $u$ and $v$ to $C$.
-    - Remove from $E'$ all edges incident to $u$ or $v$.
-3. Return $C$.
+1. $C \leftarrow \emptyset$과 $E' \leftarrow E$으로 첫자리매김한다.
+2. $E' \neq \emptyset$인 동안:
+    - 아무 모서리 $(u, v) \in E'$을 고른다.
+    - $u$과 $v$을 모두 $C$에 더한다.
+    - $u$이나 $v$에 닿는 모서리를 모두 $E'$에서 뺀다.
+3. $C$을 돌려준다.
 
-### Correctness
+### 올바름
 
-Every edge in $E$ is either picked in step 2 (and both endpoints are in $C$) or is incident to a vertex already in $C$ (removed in the same step). Therefore $C$ is a vertex cover.
+$E$의 모든 모서리는 걸음 2에서 골리거나(그러면 두 끝점이 $C$에 있다) 이미 $C$에 있는 꼭짓점에 닿는다(같은 걸음에서 빠진다). 따라서 $C$은 꼭짓점 덮기이다.
 
-### Approximation Ratio
+### 어림 비율
 
-!!! tip "Theorem: 2-Approximation"
-    The matching-based algorithm returns a vertex cover $C$ with $|C| \leq 2 \cdot \text{OPT}$.
+!!! tip "정리: 2 어림"
+    짝짓기에 바탕한 알고리즘은 $|C| \leq 2 \cdot \text{OPT}$인 꼭짓점 덮기 $C$을 돌려준다.
 
-**Proof.** Let $M$ be the set of edges picked by the algorithm. These edges form a matching (no two share an endpoint, since we remove all incident edges after each pick). The algorithm outputs $|C| = 2|M|$.
+**밝힘.** $M$을 알고리즘이 고른 모서리 모임이라 하자. 이 모서리는 짝짓기를 이룬다(고를 때마다 닿는 모서리를 모두 없애므로 둘이 끝점을 나누어 가지지 않는다). 알고리즘은 $|C| = 2|M|$을 내놓는다.
 
-Any vertex cover must include at least one endpoint of every edge in $M$ (since no two edges in $M$ share an endpoint). Therefore:
+어떤 꼭짓점 덮기도 $M$의 모든 모서리에서 끝점 하나는 담아야 한다($M$의 두 모서리가 끝점을 나누어 가지지 않으므로). 따라서:
 
 $$
 \text{OPT} \geq |M|
 $$
 
-Combining:
+아우르면:
 
 $$
 |C| = 2|M| \leq 2 \cdot \text{OPT}
@@ -48,41 +48,41 @@ $$
 
 $\square$
 
-The algorithm runs in $O(|V| + |E|)$ time --- simply scan the edge list once.
+이 알고리즘은 $O(|V| + |E|)$ 시간에 돈다. 곧 모서리 목록을 한 번 훑기만 하면 된다.
 
-## LP Relaxation Approach
+## 선형 계획 느슨하게 하기 방식
 
-An alternative path to the same ratio uses linear programming.
+같은 비율에 이르는 다른 길은 선형 계획을 쓴다.
 
-### Integer Program Formulation
+### 정수 계획으로 적기
 
-Assign a variable $x_v \in \{0, 1\}$ to each vertex. The minimum vertex cover is:
+꼭짓점마다 변수 $x_v \in \{0, 1\}$을 매긴다. 최소 꼭짓점 덮기는 다음과 같다.
 
 $$
 \min \sum_{v \in V} x_v \quad \text{subject to} \quad x_u + x_v \geq 1 \;\; \forall (u,v) \in E, \quad x_v \in \{0, 1\}
 $$
 
-### LP Relaxation
+### 선형 계획 느슨하게 하기
 
-Relax the integrality constraint to $x_v \in [0, 1]$:
+정수 조건을 $x_v \in [0, 1]$으로 느슨하게 한다.
 
 $$
 \min \sum_{v \in V} x_v \quad \text{subject to} \quad x_u + x_v \geq 1 \;\; \forall (u,v) \in E, \quad 0 \leq x_v \leq 1
 $$
 
-Let $\text{OPT}_{\text{LP}}$ denote the LP optimum. Since the LP is a relaxation, $\text{OPT}_{\text{LP}} \leq \text{OPT}$.
+$\text{OPT}_{\text{LP}}$을 선형 계획의 가장 좋은 값이라 하자. 선형 계획은 느슨하게 한 것이므로 $\text{OPT}_{\text{LP}} \leq \text{OPT}$이다.
 
-### Rounding
+### 반올림
 
-Solve the LP and round:
+선형 계획을 풀고 반올림한다.
 
 $$
 \hat{x}_v = \begin{cases} 1 & \text{if } x_v^* \geq 1/2 \\ 0 & \text{otherwise} \end{cases}
 $$
 
-**Correctness.** For every edge $(u, v)$, the constraint $x_u^* + x_v^* \geq 1$ ensures at least one of $x_u^*, x_v^* \geq 1/2$, so at least one endpoint is rounded to 1.
+**올바름.** 모든 모서리 $(u, v)$에서 조건 $x_u^* + x_v^* \geq 1$이 $x_u^*, x_v^*$ 가운데 적어도 하나가 $\geq 1/2$이게 하므로 끝점 하나는 1으로 반올림된다.
 
-**Ratio.** Each $\hat{x}_v \leq 2 x_v^*$, so:
+**비율.** $\hat{x}_v \leq 2 x_v^*$이므로:
 
 $$
 \sum_{v} \hat{x}_v \leq 2 \sum_{v} x_v^* = 2 \cdot \text{OPT}_{\text{LP}} \leq 2 \cdot \text{OPT}
@@ -90,32 +90,64 @@ $$
 
 $\square$
 
-## Integrality Gap
+## 정수 틈
 
-The integrality gap of the vertex cover LP equals 2, achieved by the complete graph $K_n$ on odd $n$. The LP optimum assigns $x_v = 1/2$ for all vertices, giving $\text{OPT}_{\text{LP}} = n/2$, while the integer optimum is $\text{OPT} = (n-1)/2 \cdot 2/(n-1) \cdot \lceil (n-1)/2 \rceil = n - 1$ for $K_n$.
+꼭짓점 덮기 선형 계획의 정수 틈은 2이며 홀수 $n$의 온전 그래프 $K_n$에서 이룬다. 선형 계획의 가장 좋은 값은 모든 꼭짓점에 $x_v = 1/2$을 매겨 $\text{OPT}_{\text{LP}} = n/2$이 되고, $K_n$의 정수 가장 좋은 값은 $\text{OPT} = (n-1)/2 \cdot 2/(n-1) \cdot \lceil (n-1)/2 \rceil = n - 1$이다.
 
-This means no rounding scheme for this LP can beat ratio 2.
+곧 이 선형 계획의 어떤 반올림 얼개도 비율 2을 넘지 못한다.
 
-## Hardness of Improvement
+## 개선의 어려움
 
-!!! warning "Inapproximability"
-    Under the Unique Games Conjecture, no polynomial-time algorithm achieves a ratio better than $2 - \epsilon$ for any constant $\epsilon > 0$. Unconditionally, it is NP-hard to approximate within a factor of $1.3606$ (Dinur and Safra, 2005).
+!!! warning "어림할 수 없음"
+    하나뿐인 놀이 추측 아래서는 어떤 다항식 시간 알고리즘도 아무 상수 $\epsilon > 0$에 대해 $2 - \epsilon$보다 좋은 비율을 이루지 못한다. 조건 없이도 $1.3606$ 갑절 안으로 어림하는 것은 NP-어려움이다(Dinur와 Safra, 2005).
 
-??? example "Worked Example"
-    Consider the graph with $V = \{1, 2, 3, 4, 5\}$ and edges $E = \{(1,2), (2,3), (3,4), (4,5), (1,3)\}$.
+??? example "풀이 예"
+    $V = \{1, 2, 3, 4, 5\}$이고 모서리가 $E = \{(1,2), (2,3), (3,4), (4,5), (1,3)\}$인 그래프를 보자.
 
-    **Matching-based algorithm:**
+    **짝짓기에 바탕한 알고리즘:**
 
-    1. Pick edge $(1,2)$: add $\{1, 2\}$ to $C$. Remove edges $(1,2), (2,3), (1,3)$.
-    2. Remaining: $\{(3,4), (4,5)\}$. Pick $(3,4)$: add $\{3, 4\}$ to $C$. Remove $(3,4), (4,5)$.
-    3. $E' = \emptyset$. Return $C = \{1, 2, 3, 4\}$, $|C| = 4$.
+    1. 모서리 $(1,2)$을 고른다. $\{1, 2\}$을 $C$에 더한다. 모서리 $(1,2), (2,3), (1,3)$을 없앤다.
+    2. 남은 것: $\{(3,4), (4,5)\}$. $(3,4)$을 고른다. $\{3, 4\}$을 $C$에 더한다. $(3,4), (4,5)$을 없앤다.
+    3. $E' = \emptyset$이다. $C = \{1, 2, 3, 4\}$, $|C| = 4$을 돌려준다.
 
-    **Optimal:** $C^* = \{2, 3, 4\}$ covers all edges with $|C^*| = 3$.
+    **가장 좋은 값:** $C^* = \{2, 3, 4\}$이 $|C^*| = 3$으로 모든 모서리를 덮는다.
 
-    **Ratio:** $4/3 \approx 1.33 \leq 2$. The guarantee holds.
+    **비율:** $4/3 \approx 1.33 \leq 2$이다. 보장이 참이다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press.
 - Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.
 - Dinur, I., & Safra, S. (2005). On the hardness of approximating minimum vertex cover. *Annals of Mathematics*, 162(1), 439--485.
+
+## 연습문제
+
+**연습문제 1.**
+꼭짓점 덮기의 2 어림 알고리즘을 설명하고 그 어림 비율을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    **알고리즘**: 더 키울 수 없는 짝짓기 $M$을 찾는다(모서리를 욕심껏 고르고 닿는 모서리를 없앤다). $M$의 모든 끝점을 돌려준다. **밝힘**: $|M| = k$이라 하면 꼭짓점 덮기에는 꼭짓점이 $2k$개 있다. 어떤 꼭짓점 덮기도 짝지은 모서리마다 끝점 하나는 담아야 한다(짝지은 모서리는 서로 매이지 않으므로). 따라서 $OPT \geq k$이며 어림 비율은 $2k/k = 2$이다. $\square$
+
+---
+
+**연습문제 2.**
+아무 $\epsilon > 0$에 대해 꼭짓점 덮기의 $(2 - \epsilon)$ 어림이 알려져 있는가? 이는 이 문제에 대해 무엇을 말해 주는가?
+
+??? success "연습문제 2 풀이"
+    하나뿐인 놀이 추측 아래서는 어떤 다항식 시간 알고리즘도 아무 $\epsilon > 0$에 대해 $(2 - \epsilon)$ 어림을 이루지 못한다. 이는 단순한 짝짓기 알고리즘이 사실상 가장 좋음을 뜻한다. 이 추측 없이 알려진 가장 센 어려움은 $\approx 1.36$이다(PCP 정리에서). 1.36과 2 사이의 틈을 메우는 것은 큰 미해결 문제이다. $\square$
+
+---
+
+**연습문제 3.**
+꼭짓점이 $\{A,B,C,D,E\}$이고 모서리가 $\{(A,B),(B,C),(C,D),(D,E),(A,C)\}$인 그래프에 2 어림 알고리즘을 써라.
+
+??? success "연습문제 3 풀이"
+    더 키울 수 없는 짝짓기를 찾는다. $(A,B)$을 고르고 $A$과 $B$에 닿는 모서리를 없앤다. 남은 것: $(C,D),(D,E)$. $(C,D)$을 고르고 없앤다. 남은 것: $(D,E)$ — 그러나 $D$은 이미 덮였다. $(D,E)$을 고른다. 더 키울 수 없는 짝짓기: $\{(A,B),(C,D)\}$(차례에 따라 $\{(A,B),(D,E)\}$일 수도 있다). 꼭짓점 덮기: $\{A,B,C,D\}$(꼭짓점 4개). 가장 좋은 값은 $\{B,C,D\}$(꼭짓점 3개)일 수 있다. 비율: 4/3 < 2. $\square$
+
+---
+
+**연습문제 4.**
+꼭짓점 덮기 어림을 선형 계획 느슨하게 하기 방식과 견주어라. 선형 계획 반올림이 2 갑절보다 잘할 수 있는가?
+
+??? success "연습문제 4 풀이"
+    선형 계획 느슨하게 하기는 꼭짓점마다 $x_v \in [0,1]$을 매기고 모서리마다 $x_u + x_v \geq 1$ 아래서 $\sum x_v$을 가장 작게 한다. $x_v \geq 0.5$을 1으로 반올림하면 2 어림이 된다(짝짓기와 같은 비율). 선형 계획의 정수 틈이 정확히 2이므로(홀수 돌기에서 이룬다) 선형 계획 반올림은 2 갑절을 넘지 못한다. 두 방식 모두 비율 2에서 빡빡하다. 다만 선형 계획 느슨하게 하기는 가지 뻗어 묶는 정확한 풀개에 쓸모 있는 분수 아래 한계를 준다. $\square$

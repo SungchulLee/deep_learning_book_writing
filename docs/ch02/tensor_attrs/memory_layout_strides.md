@@ -1,32 +1,27 @@
-# Memory Layout and Strides
+# 메모리 배치와 스트라이드
+## 학습 목표
 
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Learning Objectives
-
-By the end of this section, you will be able to:
-
-- Understand how tensors are stored in memory using the storage-stride model
-- Explain the difference between row-major and column-major ordering
-- Calculate memory offsets from multi-dimensional indices using strides
-- Predict whether operations create views or copies
-- Optimize tensor operations by leveraging memory layout knowledge
+- 저장소-스트라이드 모형으로 텐서가 메모리에 어떻게 저장되는지 이해한다
+- 행 우선 순서와 열 우선 순서의 차이를 설명한다
+- 스트라이드를 사용해 다차원 인덱스로부터 메모리 오프셋을 계산한다
+- 어떤 연산이 뷰를 만들고 어떤 연산이 복사본을 만드는지 예측한다
+- 메모리 배치에 대한 지식을 활용해 텐서 연산을 최적화한다
 
 ---
 
-## Overview
+## 개요
 
-Understanding how PyTorch stores tensors in memory is crucial for writing efficient code and avoiding subtle bugs. PyTorch tensors are multi-dimensional arrays stored in contiguous blocks of memory. The **stride** mechanism determines how multi-dimensional indices map to positions in this linear memory block. Understanding strides is fundamental to efficient tensor manipulation and explains many behaviors of reshaping and view operations.
+PyTorch가 텐서를 메모리에 어떻게 저장하는지 이해하는 것은 효율적인 코드를 쓰고 미묘한 버그를 피하는 데 결정적이다. PyTorch 텐서는 연속된 메모리 블록에 저장되는 다차원 배열이다. **스트라이드(stride)** 기법이 다차원 인덱스를 이 선형 메모리 블록의 위치로 어떻게 대응시킬지 결정한다. 스트라이드를 이해하는 것은 효율적인 텐서 조작의 기본이며, 재구성과 뷰 연산의 여러 동작을 설명해 준다.
 
 ---
 
-## The Storage-Stride Model
+## 저장소-스트라이드 모형
 
-### Storage: The Raw Data
+### 저장소: 원시 데이터
 
-Every PyTorch tensor is backed by a **Storage** object—a flat, one-dimensional array of typed elements:
+모든 PyTorch 텐서는 **Storage** 객체, 즉 자료형이 정해진 원소들의 평평한 1차원 배열이 뒷받침한다.
 
 ```python
 import torch
@@ -34,89 +29,85 @@ import torch
 x = torch.tensor([[1, 2, 3],
                   [4, 5, 6]])
 
-# View the underlying storage
+# 바탕 저장소 살펴보기
 print(x.storage())        # [1, 2, 3, 4, 5, 6]
 print(len(x.storage()))   # 6 elements total
 print(type(x.storage()))  # torch.storage.TypedStorage
 print(x.storage().data_ptr())  # Memory address
 ```
 
-Multiple tensors can share the same storage:
+여러 텐서가 같은 저장소를 공유할 수 있다.
 
 ```python
 t = torch.arange(6).reshape(2, 3)
 t_view = t[0]  # First row
 
-# Both point to the same underlying data
+# 둘 다 같은 바탕 데이터를 가리킨다
 print(t.storage().data_ptr() == t_view.storage().data_ptr())  # True
 ```
 
-### Strides: The Access Pattern
+### 스트라이드: 접근 패턴
 
-**Strides** specify how many elements to skip in storage to move one position along each dimension:
+**스트라이드** 는 각 차원을 따라 한 칸 이동하기 위해 저장소에서 원소를 몇 개 건너뛰어야 하는지를 지정한다.
 
 ```python
 x = torch.tensor([[1, 2, 3],
                   [4, 5, 6]])
 
 print(x.stride())  # (3, 1)
-# stride[0] = 3: skip 3 elements to move to next row
-# stride[1] = 1: skip 1 element to move to next column
+# stride[0] = 3: 다음 행으로 가려면 원소 3개를 건너뛴다
+# stride[1] = 1: 다음 열로 가려면 원소 1개를 건너뛴다
 ```
 
-The element at position $(i, j)$ is located at:
+위치 $(i, j)$의 원소는 다음 위치에 있다.
 
 $$
-
 \text{storage\_index} = \text{offset} + i \times \text{stride}[0] + j \times \text{stride}[1]
-
 $$
 
-More generally, for an $n$-dimensional tensor:
+좀 더 일반적으로 $n$차원 텐서에 대해서는 다음과 같다.
 
 $$
-
 \text{storage\_index} = \text{offset} + \sum_{k=0}^{n-1} \text{index}_k \times \text{stride}_k
-
 $$
 
-**Example verification:**
+**예제로 확인하기:**
 
 ```python
 x = torch.tensor([[1, 2, 3],
                   [4, 5, 6]])
 
-# Access x[1, 2] manually: offset(0) + 1*3 + 2*1 = 5
+# x[1, 2]에 직접 접근하기: offset(0) + 1*3 + 2*1 = 5
 print(x.storage()[5])  # 6
 print(x[1, 2])         # 6
 
-# Another example
+# 또 다른 예
 t = torch.arange(12).reshape(3, 4)
 print(f"Shape: {t.shape}")     # torch.Size([3, 4])
 print(f"Stride: {t.stride()}")  # (4, 1)
 
-# t[1, 2] is at position 1*4 + 2*1 = 6
+# t[1, 2]는 위치 1*4 + 2*1 = 6에 있다
 print(f"t[1, 2] = {t[1, 2]}")  # tensor(6)
 ```
 
 ---
 
-## Row-Major vs Column-Major Order
+## 행 우선 순서와 열 우선 순서
 
-### Row-Major (C-style) Order
+### 행 우선(C 방식) 순서
 
-PyTorch uses **row-major** ordering by default, where elements of the same row are stored contiguously:
+PyTorch는 기본적으로 **행 우선** 순서를 쓰며, 같은 행의 원소들이 연속으로 저장된다.
 
 ```python
 x = torch.tensor([[1, 2, 3],
                   [4, 5, 6]])
-# Storage: [1, 2, 3, 4, 5, 6]
+# 저장소: [1, 2, 3, 4, 5, 6]
 #          |row 0 | row 1 |
 
 print(x.stride())  # (3, 1) - row stride > column stride
 ```
 
-Visual representation:
+그림으로 나타내면 다음과 같다.
 
 ```
 Memory:  [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
@@ -130,32 +121,32 @@ Shape (3, 4):
 - stride[1] = 1 (jump 1 to next column)
 ```
 
-### Column-Major (Fortran-style) Order
+### 열 우선(포트란 방식) 순서
 
-Some libraries (NumPy with `order='F'`, MATLAB) use column-major ordering:
+일부 라이브러리(`order='F'`를 쓰는 NumPy, MATLAB)는 열 우선 순서를 쓴다.
 
 ```python
 import numpy as np
 
-# NumPy column-major array
+# NumPy 열 우선 배열
 arr_f = np.array([[1, 2, 3], [4, 5, 6]], order='F')
-# Memory: [1, 4, 2, 5, 3, 6]
+# 메모리: [1, 4, 2, 5, 3, 6]
 #         |c0| |c1| |c2|
 
-# Convert to PyTorch (maintains memory layout)
+# PyTorch로 변환(메모리 배치를 유지한다)
 x_f = torch.from_numpy(arr_f)
 print(x_f.stride())  # (1, 2) - column stride > row stride
 ```
 
-### Contiguity
+### 연속성
 
-A tensor is **contiguous** if its memory layout matches the expected row-major pattern:
+텐서의 메모리 배치가 기대되는 행 우선 패턴과 일치하면 그 텐서는 **연속(contiguous)** 이다.
 
 ```python
 x = torch.randn(3, 4)
 print(x.is_contiguous())  # True
 
-# Transpose changes strides but not storage
+# 전치는 스트라이드를 바꾸지만 저장소는 바꾸지 않는다
 x_t = x.t()
 print(x_t.stride())         # (1, 4) instead of (4, 1)
 print(x_t.is_contiguous())  # False
@@ -163,27 +154,27 @@ print(x_t.is_contiguous())  # False
 
 ---
 
-## Views vs Copies
+## 뷰와 복사본
 
-### Views Share Memory
+### 뷰는 메모리를 공유한다
 
-Many operations return **views** that share the underlying data:
+많은 연산이 바탕 데이터를 공유하는 **뷰** 를 반환한다.
 
 ```python
 original = torch.arange(12).reshape(3, 4)
 
-# reshape() returns a view if possible
+# reshape()는 가능하면 뷰를 반환한다
 reshaped = original.reshape(4, 3)
 
-# Verify they share storage
+# 저장소를 공유하는지 확인
 print(original.storage().data_ptr() == reshaped.storage().data_ptr())  # True
 
-# Modifying one affects the other!
+# 한쪽을 수정하면 다른 쪽도 바뀐다!
 original[0, 0] = 99
 print(reshaped[0, 0])  # tensor(99)
 ```
 
-### Transposition Creates Non-Contiguous Views
+### 전치는 비연속 뷰를 만든다
 
 ```python
 mat = torch.arange(6).reshape(2, 3)
@@ -191,14 +182,14 @@ print(f"Original:\n{mat}")
 print(f"Original stride: {mat.stride()}")       # (3, 1)
 print(f"Original contiguous: {mat.is_contiguous()}")  # True
 
-# Transpose creates a view with different strides
+# 전치는 스트라이드가 다른 뷰를 만든다
 mat_T = mat.T
 print(f"\nTransposed:\n{mat_T}")
 print(f"Transposed stride: {mat_T.stride()}")       # (1, 3)
 print(f"Transposed contiguous: {mat_T.is_contiguous()}")  # False
 ```
 
-The transposed tensor is **not contiguous** because the strides don't follow the expected pattern for its shape. The elements are still accessed from the same memory, just in a different order:
+전치된 텐서는 그 모양에 대해 기대되는 패턴을 스트라이드가 따르지 않으므로 **연속이 아니다.** 원소들은 여전히 같은 메모리에서 읽히지만 순서만 다를 뿐이다.
 
 ```
 Original memory: [0, 1, 2, 3, 4, 5]
@@ -211,7 +202,7 @@ Transposed view: [[0, 3],    (same memory, different access pattern)
                   [2, 5]]
 ```
 
-Detailed memory layout visualization:
+메모리 배치를 자세히 그리면 다음과 같다.
 
 ```
 Tensor x (2x3):
@@ -236,60 +227,60 @@ x_t[2,0]=storage[2]   x_t[2,1]=storage[5]
 
 ---
 
-## How Operations Affect Strides
+## 연산이 스트라이드에 미치는 영향
 
-### Operations That Preserve Strides (Views)
+### 스트라이드를 보존하는 연산(뷰)
 
-These operations create new tensors sharing the same storage:
+다음 연산들은 같은 저장소를 공유하는 새 텐서를 만든다.
 
 ```python
 x = torch.arange(24).reshape(4, 6)
 
-# Slicing
+# 슬라이싱
 y = x[1:3, 2:5]
 print(y.stride())  # Same as x: (6, 1)
 print(y.storage().data_ptr() == x.storage().data_ptr())  # True
 
-# Reshape (when contiguous)
+# 재구성(연속일 때)
 z = x.reshape(2, 12)
 print(z.storage().data_ptr() == x.storage().data_ptr())  # True
 ```
 
-### Operations That Change Strides
+### 스트라이드를 바꾸는 연산
 
 ```python
 x = torch.arange(12).reshape(3, 4)
 print(f"Original: shape={x.shape}, stride={x.stride()}")
-# Original: shape=torch.Size([3, 4]), stride=(4, 1)
+# 원본: shape=torch.Size([3, 4]), stride=(4, 1)
 
-# Transpose reverses strides
+# 전치는 스트라이드를 뒤집는다
 x_t = x.t()
 print(f"Transposed: shape={x_t.shape}, stride={x_t.stride()}")
-# Transposed: shape=torch.Size([4, 3]), stride=(1, 4)
+# 전치 후: shape=torch.Size([4, 3]), stride=(1, 4)
 
-# Permute reorders strides
+# permute는 스트라이드의 순서를 바꾼다
 y = torch.randn(2, 3, 4)
 y_p = y.permute(2, 0, 1)
 print(f"Permuted: stride {y.stride()} -> {y_p.stride()}")
-# Permuted: stride (12, 4, 1) -> (1, 12, 4)
+# permute 후: 스트라이드 (12, 4, 1) -> (1, 12, 4)
 ```
 
-### Slicing and Storage Offset
+### 슬라이싱과 저장소 오프셋
 
-Slicing preserves strides and adjusts the storage offset:
+슬라이싱은 스트라이드를 보존하고 저장소 오프셋을 조정한다.
 
 ```python
 x = torch.arange(20).reshape(4, 5)
-# Storage: [0, 1, 2, ..., 19]
+# 저장소: [0, 1, 2, ..., 19]
 
 y = x[1:3, 2:4]  # 2x2 slice
 print(f"Offset: {y.storage_offset()}")  # 7 (position of x[1,2])
 print(f"Stride: {y.stride()}")          # (5, 1) - unchanged
 ```
 
-### Adding Dimensions
+### 차원 추가
 
-`unsqueeze` inserts dimensions with adjusted strides:
+`unsqueeze`는 스트라이드를 조정하면서 차원을 끼워 넣는다.
 
 ```python
 x = torch.randn(3, 4)
@@ -304,9 +295,9 @@ print(y.shape)     # (3, 1, 4)
 print(y.stride())  # (4, 4, 1) - note repeated stride
 ```
 
-### Broadcasting and Expand
+### 브로드캐스팅과 expand
 
-`expand` uses stride 0 to repeat data without copying:
+`expand`는 스트라이드 0을 사용하여 데이터를 복사하지 않고 반복한다.
 
 ```python
 x = torch.tensor([1, 2, 3])
@@ -316,124 +307,125 @@ y = x.expand(4, 3)  # Repeat to 4x3
 print(y.shape)     # (4, 3)
 print(y.stride())  # (0, 1) - stride 0 means "don't move in storage"
 
-# All rows point to same data
+# 모든 행이 같은 데이터를 가리킨다
 print(y[0].data_ptr() == y[1].data_ptr())  # True
 ```
 
 ---
 
-## The `view()` vs `reshape()` Distinction
+## `view()`와 `reshape()`의 차이
 
-### `view()` - Requires Contiguity
+### `view()` - 연속성을 요구한다
 
 ```python
 t = torch.arange(6).reshape(2, 3)
 t_T = t.T  # Non-contiguous
 
-# view() fails on non-contiguous tensors
+# view()는 비연속 텐서에서 실패한다
 try:
     flat = t_T.view(-1)
 except RuntimeError as e:
     print(f"Error: view() requires contiguous tensor")
 ```
 
-### `reshape()` - Works Always
+### `reshape()` - 언제나 동작한다
 
 ```python
-# reshape() handles non-contiguous tensors by copying if needed
+# reshape()는 필요하면 복사하여 비연속 텐서를 처리한다
 flat = t_T.reshape(-1)  # Works!
 print(f"Reshaped: {flat}")
 
-# But it may create a copy
+# 다만 복사본이 만들어질 수 있다
 print(t.storage().data_ptr() == flat.storage().data_ptr())  # False - a copy was made
 ```
 
-### Making Tensors Contiguous
+### 텐서를 연속으로 만들기
 
 ```python
 t_T_contiguous = t_T.contiguous()
 print(f"Now contiguous: {t_T_contiguous.is_contiguous()}")  # True
 
-# Now view() works
+# 이제 view()가 동작한다
 flat_view = t_T_contiguous.view(-1)
 ```
 
-!!! tip "When to Use Which"
-    - Use `view()` when you know the tensor is contiguous (faster, no copy)
-    - Use `reshape()` when you're unsure (safer, may copy)
-    - Call `contiguous()` explicitly when you need guaranteed contiguous memory
+!!! tip "무엇을 언제 쓸 것인가"
+
+    - 텐서가 연속임을 알고 있으면 `view()`를 쓴다(더 빠르고 복사가 없다)
+    - 확신이 없으면 `reshape()`를 쓴다(더 안전하며 복사할 수 있다)
+    - 연속된 메모리가 반드시 필요하면 `contiguous()`를 명시적으로 호출한다
 
 ---
 
-## Clone vs Detach
+## clone과 detach
 
-### `clone()` - Copy Data
+### `clone()` - 데이터 복사
 
 ```python
 original = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
 
-# clone() creates a copy with same gradient tracking
+# clone()은 같은 경사 추적을 가진 복사본을 만든다
 cloned = original.clone()
 
 print(f"Same storage: {original.storage().data_ptr() == cloned.storage().data_ptr()}")
-# False - different memory
+# False - 메모리가 다르다
 
 print(f"Clone requires_grad: {cloned.requires_grad}")  # True
 ```
 
-### `detach()` - Remove from Graph
+### `detach()` - 그래프에서 떼어내기
 
 ```python
 original = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
 
-# detach() creates a view without gradient tracking
+# detach()는 경사 추적이 없는 뷰를 만든다
 detached = original.detach()
 
 print(f"Detached requires_grad: {detached.requires_grad}")  # False
 print(f"Same storage: {original.storage().data_ptr() == detached.storage().data_ptr()}")
-# True - same memory!
+# True - 같은 메모리이다!
 ```
 
-### Common Pattern: `detach().clone()`
+### 흔한 패턴: `detach().clone()`
 
-When you need an independent copy without gradient tracking:
+경사 추적 없이 독립적인 복사본이 필요할 때 쓴다.
 
 ```python
-# Creates independent copy without gradient graph
+# 경사 그래프 없이 독립적인 복사본을 만든다
 independent = original.detach().clone()
 ```
 
 ---
 
-## In-Place Operations
+## 제자리 연산
 
-In-place operations modify tensors directly and end with an underscore:
+제자리 연산은 텐서를 직접 수정하며 이름이 밑줄로 끝난다.
 
 ```python
 t = torch.tensor([1.0, 2.0, 3.0])
 print(f"Original id: {id(t)}")
 
-# In-place addition
+# 제자리 덧셈
 t.add_(10)
 print(f"After add_: {t}")
 print(f"Same id: {id(t)}")  # Same object
 
-# Out-of-place addition
+# 제자리가 아닌 덧셈
 t2 = t.add(10)
 print(f"After add: original {t}, new {t2}")  # Original unchanged
 ```
 
-!!! warning "In-Place Operations and Autograd"
-    In-place operations can break gradient computation if they modify
-    tensors that are needed for backward pass. Use with caution during training.
+!!! warning "제자리 연산과 Autograd"
+    제자리 연산이 역전파에 필요한 텐서를 수정하면 경사 계산을 망가뜨릴 수 있다.
+    학습 중에는 조심해서 사용해야 한다.
 
 ---
 
-## Performance Implications
+## 성능에 미치는 영향
 
-### Contiguous Access is Faster
+### 연속 접근이 더 빠르다
 
-Modern CPUs optimize for sequential memory access:
+현대 CPU는 순차적인 메모리 접근에 최적화되어 있다.
 
 ```python
 import time
@@ -454,57 +446,57 @@ print(f"Contiguous: {t_contig:.4f}s")
 print(f"Non-contiguous: {t_noncontig:.4f}s")
 ```
 
-### When to Call `.contiguous()`
+### `.contiguous()`를 언제 호출할 것인가
 
 ```python
-# Required: operations that need contiguous memory
+# 필수: 연속된 메모리를 요구하는 연산
 x_t = x.t()
 x_view = x_t.contiguous().view(-1)
 
-# Optional: performance optimization
-# Only if you'll perform many operations on the tensor
+# 선택 사항: 성능 최적화
+# 그 텐서에 연산을 많이 수행할 때에만 그렇다
 x_fast = x_t.contiguous()
 
-# Unnecessary: reshape handles non-contiguous
+# 불필요하다: reshape가 비연속을 알아서 처리한다
 x_flat = x_t.reshape(-1)  # Works without .contiguous()
 ```
 
-### Efficient Batch Processing
+### 효율적인 배치 처리
 
 ```python
-# Bad: Creates many small tensors
+# 나쁜 예: 작은 텐서를 많이 만든다
 batch_bad = [torch.randn(224, 224) for _ in range(32)]
 
-# Good: One contiguous tensor
+# 좋은 예: 연속된 텐서 하나
 batch_good = torch.randn(32, 224, 224)
 
-# Access individual images via views (no copy)
+# 뷰로 개별 이미지에 접근한다(복사 없음)
 first_image = batch_good[0]  # View into batch
 ```
 
-### Avoiding Unnecessary Copies
+### 불필요한 복사 피하기
 
 ```python
-# Scenario: Normalize data
+# 상황: 데이터 정규화
 data = torch.randn(1000, 100)
 
-# Method 1: Creates intermediate copies
+# 방법 1: 중간 복사본이 생긴다
 mean = data.mean(dim=0)
 std = data.std(dim=0)
 normalized_v1 = (data - mean) / std  # Creates copies
 
-# Method 2: In-place (if data can be modified)
+# 방법 2: 제자리(데이터를 수정할 수 있는 경우)
 data.sub_(data.mean(dim=0))
 data.div_(data.std(dim=0))  # Modifies data in-place
 ```
 
 ---
 
-## Memory Inspection Utilities
+## 메모리 검사 도구
 
 ```python
 def inspect_tensor(t, name="tensor"):
-    """Display comprehensive tensor memory information."""
+    """텐서의 메모리 정보를 종합적으로 보여준다."""
     print(f"=== {name} ===")
     print(f"  Shape: {t.shape}")
     print(f"  Stride: {t.stride()}")
@@ -514,7 +506,7 @@ def inspect_tensor(t, name="tensor"):
     print(f"  Data pointer: {t.storage().data_ptr()}")
     print()
 
-# Example usage
+# 사용 예
 x = torch.arange(12).reshape(3, 4)
 inspect_tensor(x, "Original")
 inspect_tensor(x.T, "Transposed")
@@ -524,57 +516,124 @@ inspect_tensor(x[:, ::2], "Strided slice")
 
 ---
 
-## Common Issues and Solutions
+## 흔한 문제와 해결책
 
-| Symptom | Cause | Solution |
+| 증상 | 원인 | 해결책 |
 |---------|-------|----------|
-| `view()` fails | Non-contiguous tensor | Use `.contiguous().view()` or `.reshape()` |
-| Unexpected data modification | Tensors share storage | Use `.clone()` for independent copy |
-| Slow operations | Non-contiguous access | Call `.contiguous()` if many operations follow |
+| `view()`가 실패한다 | 비연속 텐서 | `.contiguous().view()`나 `.reshape()`를 쓴다 |
+| 데이터가 뜻하지 않게 바뀐다 | 텐서들이 저장소를 공유한다 | 독립적인 복사본을 위해 `.clone()`을 쓴다 |
+| 연산이 느리다 | 비연속 접근 | 이후 연산이 많다면 `.contiguous()`를 호출한다 |
 
 ---
 
-## Exercises
+## 요약
 
-1. **Stride Prediction**: Given a 3D tensor of shape `(2, 3, 4)`, predict the strides. Then verify using PyTorch.
-
-2. **View vs Reshape**: Create scenarios where `view()` fails but `reshape()` succeeds. Explain why.
-
-3. **Memory Detective**: Create two tensors that appear different but share the same storage. Modify one and observe the effect on the other.
-
-4. **Performance Comparison**: Benchmark the same operation on contiguous vs non-contiguous tensors of various sizes.
-
----
-
-## Summary
-
-| Concept | Description |
+| 개념 | 설명 |
 |---------|-------------|
-| Storage | Flat 1D array holding actual tensor data |
-| Stride | Steps to skip in storage for each dimension |
-| Contiguous | Elements in memory match row-major iteration order |
-| View | Shares memory with original tensor |
-| Copy | Independent memory allocation |
-| `view()` | Reshape contiguous tensors only (fast, no copy) |
-| `reshape()` | Reshape any tensor (may copy if needed) |
-| `clone()` | Create independent copy with gradient tracking |
-| `detach()` | Remove from computation graph (shares memory) |
-| `contiguous()` | Make tensor contiguous (copies if needed) |
+| 저장소 | 실제 텐서 데이터를 담는 평평한 1차원 배열 |
+| 스트라이드 | 각 차원에 대해 저장소에서 건너뛸 칸 수 |
+| 연속 | 메모리의 원소가 행 우선 순회 순서와 일치함 |
+| 뷰 | 원래 텐서와 메모리를 공유함 |
+| 복사본 | 독립적인 메모리 할당 |
+| `view()` | 연속 텐서만 재구성(빠르고 복사 없음) |
+| `reshape()` | 임의의 텐서를 재구성(필요하면 복사) |
+| `clone()` | 경사 추적을 유지한 독립적인 복사본 생성 |
+| `detach()` | 계산 그래프에서 떼어냄(메모리는 공유) |
+| `contiguous()` | 텐서를 연속으로 만듦(필요하면 복사) |
 
-The stride mechanism is PyTorch's way of mapping multi-dimensional tensor indices to linear memory positions. Understanding strides explains why some operations create views (sharing memory) while others require copies. Key takeaways:
+스트라이드 기법은 PyTorch가 다차원 텐서 인덱스를 선형 메모리 위치로 대응시키는 방식이다. 스트라이드를 이해하면 왜 어떤 연산은 (메모리를 공유하는) 뷰를 만들고 어떤 연산은 복사본을 필요로 하는지 알 수 있다. 핵심은 다음과 같다.
 
-- Strides determine how many storage elements to skip per dimension
-- Row-major order means row stride > column stride
-- Transpose and permute change strides without copying data
-- Contiguous tensors have strides matching row-major expectations
-- Non-contiguous tensors may need `.contiguous()` for certain operations
+- 스트라이드는 차원마다 저장소에서 건너뛸 원소의 개수를 결정한다
+- 행 우선 순서는 행 스트라이드가 열 스트라이드보다 크다는 뜻이다
+- 전치와 permute는 데이터를 복사하지 않고 스트라이드를 바꾼다
+- 연속 텐서는 스트라이드가 행 우선 기대와 일치한다
+- 비연속 텐서는 특정 연산을 위해 `.contiguous()`가 필요할 수 있다
 
 ---
 
-## See Also
+## 함께 보기
 
-- Dtype and Device — Data type and device attributes
-- Reshaping and Views — Detailed reshaping operations
-- Broadcasting Rules — Implicit tensor expansion
-- Shape Manipulation — Indexing, concatenation, and splitting
-- Memory Management — Views, copies, and GPU memory
+- 자료형과 장치 — 자료형 및 장치 속성
+- 재구성과 뷰 — 재구성 연산 자세히 보기
+- 브로드캐스팅 규칙 — 암묵적 텐서 확장
+- 모양 조작 — 인덱싱, 이어 붙이기, 나누기
+- 메모리 관리 — 뷰, 복사본, GPU 메모리
+
+## 연습문제
+
+**연습문제 1.**
+행 우선(C 연속) 순서로 된 모양 `(2, 3, 4)`의 3차원 텐서가 주어졌을 때 스트라이드를 예측하고 PyTorch로 확인하라.
+
+??? success "연습문제 1 풀이"
+    모양 $(d_0, d_1, d_2) = (2, 3, 4)$에 대해 행 우선 순서의 스트라이드는 다음과 같다.
+
+    - 0번 차원의 스트라이드: $d_1 \times d_2 = 3 \times 4 = 12$
+    - 1번 차원의 스트라이드: $d_2 = 4$
+    - 2번 차원의 스트라이드: $1$
+
+    스트라이드: `(12, 4, 1)`.
+
+    ```python
+    import torch
+    t = torch.randn(2, 3, 4)
+    print(t.stride())  # (12, 4, 1)
+    ```
+
+---
+
+**연습문제 2.**
+`view()`는 실패하지만 `reshape()`는 성공하는 상황을 만들어라. 메모리 연속성의 관점에서 그 이유를 설명하라.
+
+??? success "연습문제 2 풀이"
+    ```python
+    import torch
+    t = torch.randn(3, 4)
+    t_transposed = t.T  # shape (4, 3), strides (1, 4) -- non-contiguous
+    # t_transposed.view(12)  # RuntimeError!
+    t_reshaped = t_transposed.reshape(12)  # Works -- copies data
+    ```
+    `view()`는 데이터를 옮기지 않고 모양 메타데이터만 바꾸므로 연속된 메모리를 요구한다. 전치 후에는 스트라이드가 연속인 `(3, 1)`이 아니라 `(1, 4)`이므로 원소들이 행 우선 순서가 아니다. `reshape()`는 이를 감지하여 재구성 전에 연속 복사본을 만든다.
+
+---
+
+**연습문제 3.**
+겉보기에는 다르지만 같은 바탕 저장소를 공유하는 두 텐서를 만들어라. 한쪽을 수정하고 다른 쪽에 미치는 영향을 관찰하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    import torch
+    a = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0, 6.0])
+    b = a[::2]   # b = [1, 3, 5], stride = (2,)
+    c = a[1:4]   # c = [2, 3, 4], stride = (1,)
+
+    b[0] = 99.0
+    print(a)  # tensor([99.,  2.,  3.,  4.,  5.,  6.])
+    # 저장소를 공유하므로 b를 수정하면 a도 수정된다
+    print(a.data_ptr() == b.data_ptr())  # True
+    ```
+
+---
+
+**연습문제 4.**
+모양 `(1000, 1000)`인 연속 텐서와 비연속 텐서에서 원소별 곱셈의 성능을 측정하라. 시간 차이를 재고 그 이유를 설명하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    import torch, time
+
+    t = torch.randn(1000, 1000)
+    t_nc = t.T  # non-contiguous
+
+    # 연속
+    start = time.perf_counter()
+    for _ in range(100):
+        _ = t * t
+    print(f"Contiguous: {time.perf_counter() - start:.4f}s")
+
+    # 비연속
+    start = time.perf_counter()
+    for _ in range(100):
+        _ = t_nc * t_nc
+    print(f"Non-contiguous: {time.perf_counter() - start:.4f}s")
+    ```
+    비연속 연산은 순차적인 메모리 접근 패턴을 활용할 수 없으므로 더 느리다. CPU는 연속된 캐시 라인을 미리 가져오는데, 스트라이드 접근은 캐시 미스를 일으킨다.

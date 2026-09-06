@@ -1,48 +1,43 @@
-# Learning Rate and Step Size
+# 학습률과 이동 폭
+## 들어가며
 
+**학습률**(흔히 $\eta$, $\alpha$, `lr`로 표기)은 경사 기반 최적화에서 아마도 가장 중요한 하이퍼파라미터일 것이다. 매개변수 갱신의 크기를 조절하며, 수렴 속도와 애초에 수렴하는지 여부 모두에 깊이 영향을 준다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+이 절에서는 학습률의 역할, 최적화 동역학에 미치는 영향, 그리고 선택과 조정을 위한 실용적인 전략을 살펴본다.
 
-## Introduction
+## 학습률의 역할
 
-The **learning rate** (often denoted $\eta$, $\alpha$, or `lr`) is arguably the most important hyperparameter in gradient-based optimization. It controls the magnitude of parameter updates and profoundly affects both the speed of convergence and whether convergence happens at all.
+### 갱신 규칙 다시 보기
 
-This chapter explores the learning rate's role, its effects on optimization dynamics, and practical strategies for selection and tuning.
-
-## The Role of Learning Rate
-
-### Update Rule Revisited
-
-The gradient descent update rule is:
+경사 하강법의 갱신 규칙은 다음과 같다.
 
 $$\theta_{t+1} = \theta_t - \eta \nabla_\theta L(\theta_t)$$
 
-The learning rate $\eta$ **scales** the gradient:
+학습률 $\eta$는 경사의 **크기를 조정한다.**
 
-- **Large $\eta$**: Big steps in parameter space
-- **Small $\eta$**: Small, cautious steps
+- **큰 $\eta$**: 매개변수 공간에서 큰 걸음
+- **작은 $\eta$**: 작고 조심스러운 걸음
 
-### Physical Analogy
+### 물리적 비유
 
-Imagine descending a mountain in fog:
+안개 속에서 산을 내려온다고 상상해 보자.
 
-- **Large learning rate**: Running downhill—fast but risky (might overshoot valley or fall off cliff)
-- **Small learning rate**: Shuffling slowly—safe but tedious (might not reach base camp before nightfall)
-- **Optimal learning rate**: Brisk walking—efficient progress while maintaining control
+- **큰 학습률**: 뛰어 내려가기 — 빠르지만 위험하다(골짜기를 지나치거나 절벽에서 떨어질 수 있다)
+- **작은 학습률**: 발을 끌며 천천히 가기 — 안전하지만 지루하다(해 지기 전에 베이스캠프에 못 갈 수 있다)
+- **최적의 학습률**: 빠르게 걷기 — 통제를 유지하면서 효율적으로 나아간다
 
-## Effects of Different Learning Rates
+## 학습률에 따른 효과
 
-### Too Small (eta << 1)
+### 너무 작을 때 (eta << 1)
 
-**Symptoms**:
+**증상:**
 
-- Very slow convergence
-- Many iterations required
-- May get stuck in shallow local minima
-- Training takes excessively long
+- 수렴이 매우 느리다
+- 많은 반복이 필요하다
+- 얕은 국소 최솟값에 갇힐 수 있다
+- 학습이 지나치게 오래 걸린다
 
-**Example trajectory** (1D):
+**궤적 예시**(1차원):
 ```
 Loss ↑
      │╲
@@ -56,16 +51,16 @@ Loss ↑
      └──────────────────────→ Iterations
 ```
 
-### Too Large (eta >> 1)
+### 너무 클 때 (eta >> 1)
 
-**Symptoms**:
+**증상:**
 
-- Oscillation around minimum
-- Overshooting optimal values
-- May diverge completely (loss increases to infinity)
-- Training becomes unstable
+- 최솟값 주위에서 진동한다
+- 최적값을 지나친다
+- 완전히 발산할 수 있다(손실이 무한대로 커진다)
+- 학습이 불안정해진다
 
-**Example trajectory** (1D):
+**궤적 예시**(1차원):
 ```
 Parameter
      │    ╱╲    ╱╲
@@ -77,16 +72,16 @@ Parameter
      └──────────────────→ Iterations
 ```
 
-### Just Right
+### 적당할 때
 
-**Symptoms**:
+**증상:**
 
-- Steady decrease in loss
-- Smooth convergence
-- Parameters stabilize at good values
-- Efficient training time
+- 손실이 꾸준히 감소한다
+- 수렴이 매끄럽다
+- 매개변수가 좋은 값에서 안정된다
+- 학습 시간이 효율적이다
 
-**Example trajectory** (1D):
+**궤적 예시**(1차원):
 ```
 Loss ↑
      │╲
@@ -97,57 +92,57 @@ Loss ↑
      └──────────────────────→ Iterations
 ```
 
-## Mathematical Analysis
+## 수학적 분석
 
-### Convergence Condition
+### 수렴 조건
 
-For a **quadratic loss** $L(\theta) = \frac{1}{2}a(\theta - \theta^*)^2$, the update becomes:
+**이차 손실** $L(\theta) = \frac{1}{2}a(\theta - \theta^*)^2$에 대해 갱신은 다음과 같이 된다.
 
 $$\theta_{t+1} = \theta_t - \eta \cdot a(\theta_t - \theta^*)$$
 
-Rearranging:
+정리하면 다음과 같다.
 
 $$\theta_{t+1} - \theta^* = (1 - \eta a)(\theta_t - \theta^*)$$
 
-For convergence, we need $|1 - \eta a| < 1$, which requires:
+수렴하려면 $|1 - \eta a| < 1$이어야 하며, 이는 다음을 요구한다.
 
 $$0 < \eta < \frac{2}{a}$$
 
-### Optimal Learning Rate
+### 최적 학습률
 
-The fastest convergence occurs when $1 - \eta a = 0$, giving:
+$1 - \eta a = 0$일 때 가장 빠르게 수렴하며, 이때 다음을 얻는다.
 
 $$\eta^* = \frac{1}{a}$$
 
-In this ideal case, convergence happens in **one step**!
+이 이상적인 경우에는 **한 단계** 만에 수렴한다!
 
-### General Case: Lipschitz Gradients
+### 일반적인 경우: 립시츠 경사
 
-For functions with **$L$-Lipschitz continuous gradients**:
+**$L$-립시츠 연속인 경사** 를 가진 함수에 대해 다음이 성립한다.
 
 $$\|\nabla f(\mathbf{x}) - \nabla f(\mathbf{y})\| \leq L\|\mathbf{x} - \mathbf{y}\|$$
 
-Convergence is guaranteed for:
+다음 조건에서 수렴이 보장된다.
 
 $$\eta \leq \frac{1}{L}$$
 
-## Practical Learning Rate Selection
+## 실무에서의 학습률 선택
 
-### Rule of Thumb Values
+### 어림 규칙 값
 
-| Problem Type | Starting Learning Rate |
+| 문제 유형 | 시작 학습률 |
 |--------------|----------------------|
-| Linear regression | 0.01 - 0.1 |
-| Logistic regression | 0.01 - 0.1 |
-| Simple neural networks | 0.001 - 0.01 |
-| Deep networks (SGD) | 0.01 - 0.1 |
-| Deep networks (Adam) | 0.0001 - 0.001 |
-| Transformers | 0.00001 - 0.0001 |
-| Fine-tuning pretrained | 0.00001 - 0.00005 |
+| 선형 회귀 | 0.01 - 0.1 |
+| 로지스틱 회귀 | 0.01 - 0.1 |
+| 간단한 신경망 | 0.001 - 0.01 |
+| 심층 신경망(SGD) | 0.01 - 0.1 |
+| 심층 신경망(Adam) | 0.0001 - 0.001 |
+| 트랜스포머 | 0.00001 - 0.0001 |
+| 사전학습 모델 미세 조정 | 0.00001 - 0.00005 |
 
-### Learning Rate Finder
+### 학습률 탐색기
 
-A systematic approach to find good learning rates:
+좋은 학습률을 찾는 체계적인 방법이다.
 
 ```python
 def learning_rate_finder(model, train_loader, criterion, 
@@ -156,10 +151,10 @@ def learning_rate_finder(model, train_loader, criterion,
     Find optimal learning rate by gradually increasing it
     and monitoring loss.
     """
-    # Store original state
+    # 원래 상태 저장
     model_state = copy.deepcopy(model.state_dict())
     
-    # Exponentially increase learning rate
+    # 학습률을 지수적으로 늘린다
     lr_schedule = np.logspace(np.log10(lr_min), np.log10(lr_max), num_iter)
     
     losses = []
@@ -171,11 +166,11 @@ def learning_rate_finder(model, train_loader, criterion,
         if i >= num_iter:
             break
             
-        # Set learning rate
+        # 학습률 설정
         for param_group in optimizer.param_groups:
             param_group['lr'] = lr_schedule[i]
         
-        # Training step
+        # 학습 단계
         optimizer.zero_grad()
         output = model(data)
         loss = criterion(output, target)
@@ -185,31 +180,31 @@ def learning_rate_finder(model, train_loader, criterion,
         losses.append(loss.item())
         lrs.append(lr_schedule[i])
         
-        # Stop if loss explodes
+        # 손실이 폭발하면 멈춘다
         if loss.item() > 4 * losses[0]:
             break
     
-    # Restore original model
+    # 원래 모델 복원
     model.load_state_dict(model_state)
     
-    # Find LR where loss decreases fastest
-    # (steepest negative slope on log-log plot)
+    # 손실이 가장 빠르게 줄어드는 학습률 찾기
+    # (로그-로그 그래프에서 기울기가 가장 가파르게 음수인 지점)
     return lrs, losses
 ```
 
-**Usage**:
+**사용법:**
 ```python
 lrs, losses = learning_rate_finder(model, train_loader, criterion)
 plt.semilogx(lrs, losses)
 plt.xlabel('Learning Rate')
 plt.ylabel('Loss')
 plt.title('Learning Rate Finder')
-# Choose LR where loss is still decreasing (before it explodes)
+# 손실이 아직 줄어드는 구간(폭발하기 전)의 학습률을 고른다
 ```
 
-### Grid Search
+### 격자 탐색
 
-Simple but effective:
+단순하지만 효과적이다.
 
 ```python
 learning_rates = [0.0001, 0.001, 0.01, 0.1]
@@ -225,9 +220,9 @@ for lr in learning_rates:
 best_lr = min(results, key=results.get)
 ```
 
-## Visualization: Learning Rate Effects
+## 시각화: 학습률의 효과
 
-### 1D Loss Landscape
+### 1차원 손실 지형
 
 ```python
 import torch
@@ -245,14 +240,14 @@ def run_gd(w_init, lr, n_steps):
         trajectory.append(w)
     return trajectory
 
-# Different learning rates
+# 서로 다른 학습률
 learning_rates = [0.1, 0.5, 0.9, 1.1]
 w_init = 7.0
 n_steps = 15
 
 fig, axes = plt.subplots(2, 2, figsize=(12, 10))
 
-# Loss landscape
+# 손실 지형
 w_vals = np.linspace(-2, 8, 100)
 loss_vals = (w_vals - 3) ** 2
 
@@ -273,15 +268,15 @@ plt.tight_layout()
 plt.show()
 ```
 
-### 2D Loss Landscape
+### 2차원 손실 지형
 
 ```python
-# Visualize optimization path on 2D loss surface
+# 2차원 손실 곡면 위의 최적화 경로 시각화
 def compute_loss_2d(w, b, X, y):
     y_pred = w * X + b
     return torch.mean((y_pred - y) ** 2).item()
 
-# Create contour plot
+# 등고선 그림 생성
 w_range = np.linspace(1, 5, 50)
 b_range = np.linspace(0, 4, 50)
 W, B = np.meshgrid(w_range, b_range)
@@ -290,22 +285,22 @@ Z = np.array([[compute_loss_2d(w, b, X, y) for w, b in zip(row_w, row_b)]
 
 plt.contour(W, B, Z, levels=20)
 plt.colorbar(label='Loss')
-# Overlay optimization trajectory
+# 최적화 궤적을 겹쳐 그리기
 plt.plot(w_history, b_history, 'r.-', label='GD path')
 plt.xlabel('Weight w')
 plt.ylabel('Bias b')
 ```
 
-## Learning Rate Schedules
+## 학습률 스케줄
 
-### Why Decay Learning Rate?
+### 왜 학습률을 줄이는가?
 
-- **Early training**: Large LR explores parameter space quickly
-- **Late training**: Small LR enables fine-tuning near minimum
+- **학습 초기**: 큰 학습률이 매개변수 공간을 빠르게 탐색한다
+- **학습 후기**: 작은 학습률이 최솟값 근처에서 미세 조정을 가능하게 한다
 
-### Common Schedules
+### 흔히 쓰는 스케줄
 
-**Step Decay**:
+**계단식 감쇠:**
 
 $$\eta_t = \eta_0 \cdot \gamma^{\lfloor t/s \rfloor}$$
 
@@ -315,7 +310,7 @@ scheduler = torch.optim.lr_scheduler.StepLR(
 )
 ```
 
-**Exponential Decay**:
+**지수 감쇠:**
 
 $$\eta_t = \eta_0 \cdot \gamma^t$$
 
@@ -325,7 +320,7 @@ scheduler = torch.optim.lr_scheduler.ExponentialLR(
 )
 ```
 
-**Cosine Annealing**:
+**코사인 어닐링:**
 
 $$\eta_t = \eta_{min} + \frac{1}{2}(\eta_{max} - \eta_{min})(1 + \cos(\frac{t\pi}{T}))$$
 
@@ -335,18 +330,18 @@ scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
 )
 ```
 
-**ReduceLROnPlateau** (adaptive):
+**ReduceLROnPlateau**(적응형):
 ```python
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     optimizer, mode='min', factor=0.5, patience=5
 )
-# In training loop:
+# 학습 루프 안에서:
 scheduler.step(validation_loss)
 ```
 
-### Warmup
+### 워밍업
 
-Start with small LR and increase:
+작은 학습률로 시작해 점점 늘린다.
 
 ```python
 def warmup_lambda(epoch):
@@ -359,71 +354,71 @@ scheduler = torch.optim.lr_scheduler.LambdaLR(
 )
 ```
 
-## Learning Rate and Batch Size
+## 학습률과 배치 크기
 
-### Linear Scaling Rule
+### 선형 비례 규칙
 
-When increasing batch size by factor $k$, scale learning rate by $k$:
+배치 크기를 $k$배로 늘릴 때 학습률도 $k$배로 조정한다.
 
 $$\eta_{new} = k \cdot \eta_{original}$$
 
-**Intuition**: Larger batches provide more accurate gradient estimates, allowing larger steps.
+**직관**: 배치가 클수록 더 정확한 경사 추정을 주므로 더 큰 걸음이 가능하다.
 
-### Practical Limits
+### 실무적 한계
 
-- Very large batch sizes may require warmup
-- Beyond certain batch sizes, generalization may suffer
-- Memory constraints often limit batch size
+- 배치 크기가 아주 크면 워밍업이 필요할 수 있다
+- 어떤 배치 크기를 넘어서면 일반화 성능이 나빠질 수 있다
+- 메모리 제약이 배치 크기를 제한하는 경우가 많다
 
-## Adaptive Learning Rates
+## 적응적 학습률
 
-### Per-Parameter Learning Rates
+### 매개변수별 학습률
 
-Algorithms like **Adam**, **RMSprop**, and **AdaGrad** maintain separate learning rates for each parameter:
+**Adam**, **RMSprop**, **AdaGrad** 같은 알고리즘은 매개변수마다 별도의 학습률을 유지한다.
 
 $$\theta_{j,t+1} = \theta_{j,t} - \frac{\eta}{\sqrt{v_{j,t}} + \epsilon} \cdot m_{j,t}$$
 
-**Benefits**:
+**장점:**
 
-- Automatically adapts to different gradient magnitudes
-- Works well with sparse gradients
-- Less sensitive to initial learning rate choice
+- 서로 다른 경사 크기에 자동으로 적응한다
+- 희소한 경사에서도 잘 동작한다
+- 초기 학습률 선택에 덜 민감하다
 
-**See**: [Adam Optimizer](../../ch05/optimizers/adam.md), [RMSprop](../../ch05/optimizers/rmsprop.md)
+**참고**: [Adam 최적화기](../../ch05/optimizers/adam.md), [RMSprop](../../ch05/optimizers/rmsprop.md)
 
-## Debugging Learning Rate Issues
+## 학습률 문제 진단하기
 
-### Signs of Too Large LR
+### 학습률이 너무 클 때의 징후
 
-- Loss increases or oscillates wildly
-- `nan` or `inf` values appear
-- Gradients explode
+- 손실이 증가하거나 심하게 진동한다
+- `nan`이나 `inf` 값이 나타난다
+- 경사가 폭발한다
 
-**Fix**: Reduce LR by factor of 10
+**해결**: 학습률을 10분의 1로 줄인다
 
-### Signs of Too Small LR
+### 학습률이 너무 작을 때의 징후
 
-- Loss decreases extremely slowly
-- Validation loss plateaus early
-- Training takes unreasonably long
+- 손실이 지나치게 느리게 감소한다
+- 검증 손실이 일찍 정체된다
+- 학습이 비합리적으로 오래 걸린다
 
-**Fix**: Increase LR by factor of 2-10
+**해결**: 학습률을 2~10배로 늘린다
 
-### Diagnostic Code
+### 진단 코드
 
 ```python
 def diagnose_lr(train_losses, val_losses):
-    # Check for divergence
+    # 발산 여부 확인
     if any(np.isnan(train_losses)) or any(np.isinf(train_losses)):
         return "LR too high: NaN/Inf detected"
     
-    # Check for oscillation
+    # 진동 여부 확인
     if len(train_losses) > 10:
         recent = train_losses[-10:]
         if max(recent) > 2 * min(recent):
             return "LR too high: Significant oscillation"
     
-    # Check for slow convergence
+    # 느린 수렴 여부 확인
     if len(train_losses) > 50:
         improvement = (train_losses[0] - train_losses[-1]) / train_losses[0]
         if improvement < 0.1:
@@ -432,44 +427,81 @@ def diagnose_lr(train_losses, val_losses):
     return "LR appears reasonable"
 ```
 
-## Key Takeaways
+## 핵심 요점
 
-1. **Learning rate scales gradient updates**: Controls step size
-2. **Too large**: Oscillation, divergence, instability
-3. **Too small**: Slow convergence, wasted computation
-4. **Use learning rate finder**: Systematic approach to selection
-5. **Learning rate schedules**: Decay over training for best results
-6. **Adaptive methods**: Adam etc. reduce LR sensitivity
-7. **Scale with batch size**: Larger batches can use larger LR
+1. **학습률은 경사 갱신의 크기를 조정한다**: 이동 폭을 조절한다
+2. **너무 크면**: 진동, 발산, 불안정
+3. **너무 작으면**: 느린 수렴, 낭비되는 계산
+4. **학습률 탐색기를 쓴다**: 체계적인 선택 방법
+5. **학습률 스케줄**: 학습이 진행됨에 따라 줄이면 결과가 가장 좋다
+6. **적응적 방법**: Adam 등이 학습률 민감도를 낮춘다
+7. **배치 크기에 맞춰 조정한다**: 배치가 크면 더 큰 학습률을 쓸 수 있다
 
-## Connections to Other Topics
+## 다른 주제와의 연결
 
-- **Optimizers**: See Optimizer Fundamentals
-- **Schedulers**: Detailed in Learning Rate Schedulers
-- **Adam**: Per-parameter LR in [Adam Optimizer](../../ch05/optimizers/adam.md)
-- **Batch Size**: Related to [Batch, Mini-Batch, and SGD](batch_minibatch_sgd.md)
+- **최적화기**: 최적화기의 기초 참고
+- **스케줄러**: 학습률 스케줄러에서 자세히 다룬다
+- **Adam**: [Adam 최적화기](../../ch05/optimizers/adam.md)의 매개변수별 학습률
+- **배치 크기**: [배치, 미니배치, SGD](batch_minibatch_sgd.md)와 관련된다
 
-## Exercises
-
-1. **Convergence analysis**: For $L(w) = (w-5)^2$, starting at $w_0 = 0$:
-   - Compute 10 iterations with $\eta = 0.1, 0.5, 1.0, 1.5$
-   - Plot the trajectories
-   - Determine which learning rates converge
-
-2. **Learning rate finder**: Implement and apply the learning rate finder to a simple neural network on MNIST. Plot the loss vs. learning rate curve.
-
-3. **Schedule comparison**: Train the same model with:
-   - Constant LR
-   - StepLR (decay every 10 epochs)
-   - CosineAnnealingLR
-   - ReduceLROnPlateau
-   
-   Compare final accuracy and convergence speed.
-
-4. **Batch size scaling**: Train with batch sizes 32, 64, 128, 256. Apply linear scaling to LR. Does the scaling rule hold?
-
-## References
+## 참고 문헌
 
 - Smith, L. N. (2017). Cyclical learning rates for training neural networks. WACV.
 - Goyal, P., et al. (2017). Accurate, large minibatch SGD: Training ImageNet in 1 hour. arXiv:1706.02677.
 - You, Y., et al. (2019). Large batch optimization for deep learning: Training BERT in 76 minutes. arXiv:1904.00962.
+
+## 연습문제
+
+**연습문제 1.**
+$L(w) = (w-5)^2$에 대해 $w_0 = 0$에서 시작하여 $\eta = 0.1$일 때와 $\eta = 1.0$일 때 처음 5회 반복을 계산하라. 어느 쪽이 수렴하는가?
+
+??? success "연습문제 1 풀이"
+    경사는 $\nabla L = 2(w - 5)$이므로 갱신 규칙은 $w_{t+1} = w_t - 2\eta(w_t - 5)$이다.
+
+    $\eta = 0.1$일 때: $w_0=0, w_1=1, w_2=1.8, w_3=2.44, w_4=2.952, w_5=3.362$. $w^*=5$를 향해 매끄럽게 수렴한다.
+
+    $\eta = 1.0$일 때: $w_0=0, w_1=10, w_2=0, w_3=10, w_4=0, w_5=10$. 진동하며 결코 수렴하지 않는다. 임계 문턱은 경사의 립시츠 상수가 $L=2$일 때 $\eta < 1/L$이므로 $\eta < 0.5$이다.
+
+---
+
+**연습문제 2.**
+이차 함수 $f(x) = \frac{1}{2}x^\top A x - b^\top x$에 대한 경사 하강법이 수렴할 필요충분조건이 $\eta < \frac{2}{\lambda_{\max}(A)}$임을 증명하라. 여기서 $\lambda_{\max}$는 가장 큰 고윳값이다.
+
+??? success "연습문제 2 풀이"
+    경사는 $\nabla f = Ax - b$이다. 갱신은 $x_{t+1} = x_t - \eta(Ax_t - b) = (I - \eta A)x_t + \eta b$가 된다. $x^* = A^{-1}b$일 때 $e_t = x_t - x^*$라 두면 $e_{t+1} = (I - \eta A)e_t$이다.
+
+    $A$의 고유기저에서 각 성분은 $e_t^{(i)} = (1 - \eta \lambda_i)^t e_0^{(i)}$로 변화한다. 수렴하려면 모든 $i$에 대해 $|1 - \eta \lambda_i| < 1$이어야 하며 이는 $0 < \eta < 2/\lambda_i$를 준다. 구속력을 갖는 조건은 가장 큰 고윳값에서 나온다. 즉 $\eta < 2/\lambda_{\max}$이다. $\square$
+
+---
+
+**연습문제 3.**
+PyTorch로 코사인 어닐링 스케줄을 구현하고 100 에폭 동안의 학습률을 그려라. 2층 MLP로 MNIST를 학습하며 상수 학습률과 손실 곡선을 비교하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    import torch
+    import torch.nn as nn
+    from torch.optim.lr_scheduler import CosineAnnealingLR
+
+    model = nn.Sequential(nn.Linear(784, 128), nn.ReLU(), nn.Linear(128, 10))
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.1)
+    scheduler = CosineAnnealingLR(optimizer, T_max=100)
+
+    lrs = []
+    for epoch in range(100):
+        lrs.append(scheduler.get_last_lr()[0])
+        # ... 학습 단계 ...
+        scheduler.step()
+    # lrs는 다음을 따른다: lr_t = lr_min + 0.5*(lr_max - lr_min)*(1 + cos(pi*t/T_max))
+    ```
+    코사인 스케줄은 수렴 근처에서 작은 학습률로 더 많은 에폭을 보내며 세밀한 최적화를 가능하게 하므로 대개 더 낮은 최종 손실을 달성한다.
+
+---
+
+**연습문제 4.**
+(학습률을 배치 크기에 비례하여 조정하는) 선형 비례 규칙이 미니배치 간 경사가 비슷할 때 성립하는 근사임을 보여라. 이 근사는 언제 무너지는가?
+
+??? success "연습문제 4 풀이"
+    학습률 $\eta$, 배치 크기 $B$로 미니배치 단계를 $k$번 밟는다고 하자. 전체 매개변수 변화는 $\Delta \theta = -\eta \sum_{i=1}^{k} g_i$이며 $g_i$는 각 미니배치의 경사이다. 배치 크기 $kB$, 학습률 $k\eta$로 한 단계를 밟으면 $\bar{g} = \frac{1}{k}\sum g_i$일 때 $\Delta \theta' = -k\eta \bar{g}$이다.
+
+    이 둘은 같다. $\Delta \theta' = -\eta \sum g_i = \Delta \theta$이다. 다만 이는 결합된 갱신에 걸쳐 손실 지형이 선형이라고 가정한 것이며, (1) 곡률에 비해 학습률이 크거나, (2) 배치 정규화 통계가 배치 크기에 따라 달라지거나, (3) 손실 곡면이 매우 비이차적일 때 무너진다.

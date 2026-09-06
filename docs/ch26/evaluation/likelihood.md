@@ -1,87 +1,72 @@
-# Likelihood-Based Evaluation
+# 가능도에 바탕한 따지기
+## 개요
 
+가능도에 바탕한 따지기는 만들어 내는 모델이 실제 자료에 얼마나 잘 확률을 매기는지 잰다. 표본에 바탕한 잣대(FID, 인셉션 점수)와 달리 가능도 잣대는 원칙 있는 앎 이론의 따지기를 준다. 이 마디는 음의 로그 가능도, 차원마다 비트, 헷갈림도를 다룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-Likelihood-based evaluation measures how well a generative model assigns probability to real data. Unlike sample-based metrics (FID, IS), likelihood metrics provide a principled, information-theoretic assessment of model quality. This section covers Negative Log-Likelihood (NLL), Bits Per Dimension (BPD), and Perplexity.
-
-!!! info "Learning Objectives"
-    By the end of this section, you will be able to:
+!!! info "배움 목표"
+    이 절을 마치면 다음을 할 수 있게 된다.
     
-    - Understand the mathematical foundation of likelihood-based metrics
-    - Implement NLL, BPD, and Perplexity computations in PyTorch
-    - Interpret likelihood metrics and understand their limitations
-    - Choose appropriate metrics for different generative models
-    - Recognize the likelihood vs. sample quality tradeoff
+    - 가능도 잣대의 수학 바탕을 이해한다
+    - 음의 로그 가능도, 차원마다 비트, 헷갈림도 셈하기를 PyTorch으로 짠다
+    - 가능도 잣대를 풀이하고 그 한계를 이해한다
+    - 만들어 내는 모델마다 알맞은 잣대를 고른다
+    - 가능도와 표본 품질의 맞바꿈을 안다
 
-## Mathematical Foundation
+## 수학적 바탕
 
-### Likelihood as a Measure of Fit
+### 맞음의 잣대로서의 가능도
 
-For a generative model $p_\theta(x)$ and data distribution $p_{\text{data}}(x)$, the **log-likelihood** measures how much probability mass the model assigns to the data:
+만들어 내는 모델 $p_\theta(x)$과 자료 분포 $p_{\text{data}}(x)$에 대해 **로그 가능도**는 모델이 자료에 확률 무게를 얼마나 매기는지 잰다.
 
 $$
-
 \mathcal{L}(\theta) = \mathbb{E}_{x \sim p_{\text{data}}}[\log p_\theta(x)]
-
 $$
 
-Higher likelihood indicates better fit to the data distribution.
+가능도가 클수록 자료 분포에 더 잘 맞는다.
 
-### Connection to Cross-Entropy
+### 어긋 엔트로피와의 이음
 
-The negative log-likelihood equals the cross-entropy between data and model:
+음의 로그 가능도는 자료와 모델 사이의 어긋 엔트로피와 같다.
 
 $$
-
 \text{NLL} = -\mathcal{L}(\theta) = H(p_{\text{data}}, p_\theta) = -\mathbb{E}_{x \sim p_{\text{data}}}[\log p_\theta(x)]
-
 $$
 
-This decomposes as:
+이는 다음으로 나뉜다.
 
 $$
-
 H(p_{\text{data}}, p_\theta) = H(p_{\text{data}}) + D_{\text{KL}}(p_{\text{data}} \| p_\theta)
-
 $$
 
-Since $H(p_{\text{data}})$ is constant, minimizing NLL is equivalent to minimizing KL divergence.
+$H(p_{\text{data}})$은 상수이므로 음의 로그 가능도를 가장 작게 하는 것은 쿨백-라이블러 벌어짐을 가장 작게 하는 것과 같다.
 
-### Connection to Optimal Compression
+### 가장 좋은 누르기와의 이음
 
-From information theory, the expected code length for encoding data from $p_{\text{data}}$ using a code optimized for $p_\theta$ is:
+앎 이론에 따라 $p_\theta$에 맞춘 부호로 $p_{\text{data}}$의 자료를 담을 때 기댓값 부호 길이는 다음과 같다.
 
 $$
-
 \mathbb{E}[\text{code length}] = H(p_{\text{data}}, p_\theta)
-
 $$
 
-**Interpretation**: NLL measures how many bits are needed on average to encode real data using the model as a compression scheme.
+**풀이**: 음의 로그 가능도는 모델을 누르기 얼개로 삼아 실제 자료를 담는 데 평균 몇 비트가 필요한지 잰다.
 
-## Negative Log-Likelihood (NLL)
+## 음의 로그 가능도(NLL)
 
-### Definition
+### 정의
 
-Given a dataset $\mathcal{D} = \{x_1, ..., x_N\}$:
+자료 묶음 $\mathcal{D} = \{x_1, ..., x_N\}$이 주어질 때:
 
 $$
-
 \text{NLL} = -\frac{1}{N} \sum_{i=1}^{N} \log p_\theta(x_i)
-
 $$
 
-**Properties:**
+**성질:**
 
-- Lower NLL = Better model fit
-- NLL ≥ 0 for proper probability distributions
-- Theoretically, NLL = 0 only if model perfectly matches data (impossible in practice)
+- 음의 로그 가능도가 낮을수록 모델이 잘 맞는다
+- 올바른 확률 분포에서는 음의 로그 가능도 ≥ 0이다
+- 이론으로는 모델이 자료와 완벽히 맞을 때만 음의 로그 가능도 = 0이다(실제로는 불가능하다)
 
-### PyTorch Implementation
+### PyTorch 구현
 
 ```python
 import torch
@@ -92,12 +77,12 @@ from typing import Tuple, Optional, Union
 
 class NLLEvaluator:
     """
-    Negative Log-Likelihood evaluator for generative models.
+    만들어 내는 모델의 음의 로그 가능도 따지개.
     
-    NLL measures how much probability a model assigns to real data.
-    Lower NLL indicates better model fit to the data distribution.
+    음의 로그 가능도는 모델이 실제 자료에 확률을 얼마나 매기는지 잰다.
+    음의 로그 가능도가 낮을수록 모델이 자료 분포에 잘 맞는다.
     
-    Mathematical Definition:
+    수학의 뜻매김:
         NLL = -E_{x~p_data}[log p_model(x)]
            = -(1/N) Σ log p_model(x_i)
     """
@@ -105,16 +90,16 @@ class NLLEvaluator:
     @staticmethod
     def compute_nll(log_probs: torch.Tensor) -> float:
         """
-        Compute NLL from log probabilities.
+        로그 확률에서 음의 로그 가능도를 셈한다.
         
-        Args:
+        인수:
             log_probs: Log probabilities for each sample [N]
                        These come from model.log_prob(x)
         
-        Returns:
+        반환값:
             NLL value (scalar, lower is better)
         """
-        # NLL is negative of mean log probability
+        # 음의 로그 가능도는 평균 로그 확률의 음수이다
         nll = -torch.mean(log_probs)
         return nll.item()
     
@@ -122,15 +107,15 @@ class NLLEvaluator:
     def compute_nll_with_ci(log_probs: torch.Tensor,
                            confidence: float = 0.95) -> Tuple[float, float, float]:
         """
-        Compute NLL with confidence interval.
+        믿음 구간과 함께 음의 로그 가능도를 셈한다.
         
-        Uses standard error of the mean to estimate uncertainty.
+        흐릿함을 어림하려 평균의 표준 오차를 쓴다.
         
-        Args:
+        인수:
             log_probs: Log probabilities [N]
             confidence: Confidence level (default 95%)
         
-        Returns:
+        반환값:
             Tuple of (NLL, lower_bound, upper_bound)
         """
         from scipy import stats
@@ -138,16 +123,16 @@ class NLLEvaluator:
         n = len(log_probs)
         nll = -torch.mean(log_probs).item()
         
-        # Standard error = std / sqrt(n)
+        # 표준 오차 = 표준 편차 / sqrt(n)
         std = torch.std(log_probs).item()
         se = std / np.sqrt(n)
         
-        # Z-score for confidence interval
+        # 믿음 구간의 Z 점수
         alpha = 1 - confidence
         z = stats.norm.ppf(1 - alpha / 2)
         
-        # Confidence interval for NLL
-        # Note: We negate because NLL = -mean(log_probs)
+        # 음의 로그 가능도의 믿음 구간
+        # 참고: NLL = -mean(log_probs)이므로 음수를 취한다
         lower = nll - z * se
         upper = nll + z * se
         
@@ -158,15 +143,15 @@ class NLLEvaluator:
                       test_data: torch.Tensor,
                       batch_size: int = 64) -> dict:
         """
-        Evaluate a generative model using NLL.
+        음의 로그 가능도로 만들어 내는 모델을 따진다.
         
-        Args:
+        인수:
             model: Generative model with .log_prob() method
             test_data: Test data [N, ...]
-            batch_size: Batch size for evaluation
+            batch_size: 따질 묶음 크기
         
-        Returns:
-            Dictionary with NLL and statistics
+        반환값:
+            음의 로그 가능도와 통계를 담은 사전
         """
         model.eval()
         all_log_probs = []
@@ -190,9 +175,9 @@ class NLLEvaluator:
         }
 
 
-# Example: Gaussian model
+# 보기: 정규 분포 모델
 class GaussianModel(nn.Module):
-    """Simple Gaussian model for demonstration."""
+    """보여 주기를 위한 단순한 정규 분포 모델."""
     
     def __init__(self, dim: int):
         super().__init__()
@@ -201,46 +186,46 @@ class GaussianModel(nn.Module):
     
     def log_prob(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Compute log probability under Gaussian.
+        정규 분포에서 로그 확률을 셈한다.
         
         log N(x|μ,σ²) = -0.5 * [(x-μ)²/σ² + log(2πσ²)]
         """
         sigma = torch.exp(self.log_sigma)
         
-        # Compute log probability
+        # 로그 확률 셈하기
         log_prob = -0.5 * (
             ((x - self.mu) / sigma) ** 2 +
             2 * self.log_sigma +
             np.log(2 * np.pi)
         )
         
-        # Sum over dimensions, shape: [batch_size]
+        # 차원에 걸쳐 더한다, 꼴: [묶음 크기]
         return log_prob.sum(dim=-1)
 
 
 def demonstrate_nll():
-    """Demonstrate NLL computation."""
+    """음의 로그 가능도 셈하기를 보여 준다."""
     print("=" * 70)
     print("Negative Log-Likelihood Demonstration")
     print("=" * 70)
     
-    # Generate test data from N(0, 1)
+    # N(0, 1)에서 시험 자료를 만든다
     test_data = torch.randn(1000, 10)
     
-    # Model 1: Correct distribution
+    # 모델 1: 올바른 분포
     model_correct = GaussianModel(dim=10)
     model_correct.mu.data.fill_(0.0)
-    model_correct.log_sigma.data.fill_(0.0)  # sigma = 1
+    model_correct.log_sigma.data.fill_(0.0)  # 시그마 = 1
     
-    # Model 2: Wrong mean
+    # 모델 2: 틀린 평균
     model_wrong_mean = GaussianModel(dim=10)
     model_wrong_mean.mu.data.fill_(2.0)
     model_wrong_mean.log_sigma.data.fill_(0.0)
     
-    # Model 3: Wrong variance
+    # 모델 3: 틀린 흩어짐
     model_wrong_var = GaussianModel(dim=10)
     model_wrong_var.mu.data.fill_(0.0)
-    model_wrong_var.log_sigma.data.fill_(1.0)  # sigma = e ≈ 2.72
+    model_wrong_var.log_sigma.data.fill_(1.0)  # 시그마 = e ≈ 2.72
     
     evaluator = NLLEvaluator()
     
@@ -260,99 +245,98 @@ def demonstrate_nll():
 demonstrate_nll()
 ```
 
-## Bits Per Dimension (BPD)
+## 차원마다 비트(BPD)
 
-### Why Normalize?
+### 왜 고르게 맞추는가?
 
-Raw NLL values depend on data dimensionality:
+날 음의 로그 가능도 값은 자료 차원에 매인다.
 
-- MNIST (28×28×1 = 784 dimensions): NLL ≈ 1000
-- CIFAR-10 (32×32×3 = 3072 dimensions): NLL ≈ 4000
-- ImageNet (256×256×3 = 196608 dimensions): NLL ≈ 300000
+- MNIST(28×28×1 = 784차원): 음의 로그 가능도 ≈ 1000
+- CIFAR-10(32×32×3 = 3072차원): 음의 로그 가능도 ≈ 4000
+- ImageNet(256×256×3 = 196608차원): 음의 로그 가능도 ≈ 300000
 
-**BPD normalizes for fair comparison across different data sizes.**
+**차원마다 비트는 자료 크기가 달라도 공정히 견줄 수 있게 고르게 맞춘다.**
 
-### Definition
+### 정의
 
 $$
-
 \text{BPD} = \frac{\text{NLL}}{D \cdot \ln(2)}
-
 $$
 
-where:
-- $D$ is the total dimensionality of the data
-- $\ln(2) \approx 0.693$ converts from nats to bits
+여기서 각 기호는 다음과 같다.
 
-**Interpretation**: Average number of bits needed to encode one dimension.
+- $D$은 자료의 온 차원이다
+- $\ln(2) \approx 0.693$이 내트를 비트로 바꾼다
 
-### Typical Values for Images
+**풀이**: 차원 하나를 담는 데 필요한 평균 비트 수.
 
-| Model Type | Dataset | BPD |
+### 그림에서의 흔한 값
+
+| 모델 갈래 | 자료 묶음 | 차원마다 비트 |
 |------------|---------|-----|
-| Uniform (8-bit) | Any | 8.0 |
-| PixelCNN++ | CIFAR-10 | ~2.9 |
-| Glow | CIFAR-10 | ~3.3 |
-| DDPM | CIFAR-10 | ~3.7 |
-| Real images | Natural | ~1-2 (estimated) |
+| 고른 분포(8비트) | 아무거나 | 8.0 |
+| PixelCNN++ | CIFAR-10 | 약 2.9 |
+| Glow | CIFAR-10 | 약 3.3 |
+| DDPM | CIFAR-10 | 약 3.7 |
+| 실제 그림 | 자연 | 약 1-2(어림) |
 
-### PyTorch Implementation
+### PyTorch 구현
 
 ```python
 class BPDCalculator:
     """
-    Bits Per Dimension calculator for normalized likelihood comparison.
+    고르게 맞춘 가능도 견줌을 위한 차원마다 비트 셈개.
     
     BPD = NLL / (D × ln(2))
     
-    where D is data dimensionality and ln(2) converts nats to bits.
+    여기서 D은 자료의 차원이고 ln(2)이 내트를 비트로 바꾼다.
     
-    Why BPD?
-    1. Normalizes for data dimensionality
+    왜 차원마다 비트인가?
+    1. 자료 차원에 맞게 고르게 맞춘다
     2. Information-theoretic interpretation (bits per pixel)
-    3. Enables fair comparison across datasets
+    3. 자료 묶음에 걸쳐 공정한 견줌을 가능하게 한다
     """
     
     @staticmethod
     def nll_to_bpd(nll: float, dimensions: int) -> float:
         """
-        Convert NLL to BPD.
+        음의 로그 가능도를 차원마다 비트로 바꾼다.
         
-        Args:
+        인수:
             nll: Negative log-likelihood (in nats)
-            dimensions: Total data dimensionality
+            dimensions: 온 자료 차원
                        (e.g., 28*28=784 for MNIST, 32*32*3=3072 for CIFAR)
         
-        Returns:
-            BPD value
+        반환값:
+            차원마다 비트 값
         """
         return nll / (dimensions * np.log(2))
     
     @staticmethod
     def bpd_to_nll(bpd: float, dimensions: int) -> float:
         """
-        Convert BPD back to NLL.
+        차원마다 비트를 음의 로그 가능도로 되돌린다.
         
-        Args:
-            bpd: Bits per dimension
-            dimensions: Data dimensionality
+        인수:
+            bpd: 차원마다 비트
+            dimensions: 자료의 차원
         
-        Returns:
-            NLL value
+        반환값:
+            음의 로그 가능도 값
         """
         return bpd * dimensions * np.log(2)
     
     @staticmethod
     def compute_bpd(log_probs: torch.Tensor, dimensions: int) -> float:
         """
-        Compute BPD directly from log probabilities.
+        로그 확률에서 곧바로 차원마다 비트를 셈한다.
         
-        Args:
+        인수:
             log_probs: Log probabilities [N]
-            dimensions: Data dimensionality
+            dimensions: 자료의 차원
         
-        Returns:
-            BPD value
+        반환값:
+            차원마다 비트 값
         """
         nll = -torch.mean(log_probs).item()
         return nll / (dimensions * np.log(2))
@@ -362,17 +346,17 @@ class BPDCalculator:
                             images: torch.Tensor,
                             batch_size: int = 64) -> dict:
         """
-        Evaluate an image generative model with BPD.
+        차원마다 비트로 그림 만들어 내는 모델을 따진다.
         
-        Args:
+        인수:
             model: Generative model with .log_prob() method
             images: Test images [N, C, H, W]
-            batch_size: Batch size
+            batch_size: 묶음 크기
         
-        Returns:
-            Dictionary with BPD and related metrics
+        반환값:
+            차원마다 비트와 관련 잣대를 담은 사전
         """
-        # Get dimensions
+        # 차원을 얻는다
         _, c, h, w = images.shape
         dimensions = c * h * w
         
@@ -400,13 +384,13 @@ class BPDCalculator:
     @staticmethod
     def interpret_bpd(bpd: float) -> str:
         """
-        Interpret BPD value for natural images.
+        자연 그림의 차원마다 비트 값을 풀이한다.
         
-        Args:
-            bpd: Bits per dimension
+        인수:
+            bpd: 차원마다 비트
         
-        Returns:
-            Interpretation string
+        반환값:
+            풀이 글자열
         """
         if bpd > 8.0:
             return "Worse than uniform (8-bit) - model is wrong"
@@ -423,13 +407,13 @@ class BPDCalculator:
 
 
 def demonstrate_bpd():
-    """Demonstrate BPD computation and comparison."""
+    """차원마다 비트 셈하기와 견주기를 보여 준다."""
     print("=" * 70)
     print("Bits Per Dimension Demonstration")
     print("=" * 70)
     
-    # Simulate log probabilities for different scenarios
-    # For demonstration, we'll compute what BPD values mean
+    # 여러 상황의 로그 확률을 흉내 낸다
+    # 보여 주려 차원마다 비트 값이 뜻하는 바를 셈한다
     
     dimensions = {
         'MNIST': 28 * 28,
@@ -463,50 +447,48 @@ def demonstrate_bpd():
 demonstrate_bpd()
 ```
 
-## Perplexity
+## 헷갈림도
 
-### Definition for Language Models
+### 말 모델에서의 뜻매김
 
-Perplexity is the standard metric for language models:
+헷갈림도는 말 모델의 여느 잣대이다.
 
 $$
-
 \text{PPL} = \exp\left(-\frac{1}{T}\sum_{t=1}^{T} \log p(w_t | w_{<t})\right) = \exp(\text{NLL per token})
-
 $$
 
-where $T$ is the sequence length.
+여기서 $T$은 차례의 길이이다.
 
-### Intuitive Interpretation
+### 직관적인 해석
 
-Perplexity represents the **effective vocabulary size** at each position:
+헷갈림도는 자리마다 **실제로 쓰이는 낱말 수**를 나타낸다.
 
-- PPL = 100: Model is as uncertain as choosing from 100 equally likely words
-- PPL = 10: Model has narrowed down to ~10 likely words
-- PPL = 1: Model is perfectly certain (only theoretically achievable)
+- 헷갈림도 = 100: 모델이 똑같이 그럴듯한 낱말 100개에서 고르는 만큼 헷갈려 한다
+- 헷갈림도 = 10: 모델이 그럴듯한 낱말 약 10개로 좁혔다
+- 헷갈림도 = 1: 모델이 온전히 확신한다(이론으로만 이룰 수 있다)
 
-### Typical Values
+### 흔한 값
 
-| Model | Dataset | Perplexity |
+| 모델 | 자료 묶음 | 헷갈림도 |
 |-------|---------|------------|
-| Random | Any | Vocabulary size |
-| N-gram | PTB | ~150 |
-| LSTM | PTB | ~60 |
-| Transformer | PTB | ~25 |
-| GPT-2 | WikiText-103 | ~18 |
-| GPT-3 | Various | ~15 |
+| 마구잡이 | 아무거나 | 낱말 수 |
+| N-그램 | PTB | 약 150 |
+| 긴 짧은 기억 | PTB | 약 60 |
+| 변환기 | PTB | 약 25 |
+| GPT-2 | WikiText-103 | 약 18 |
+| GPT-3 | 여러 가지 | 약 15 |
 
-### PyTorch Implementation
+### PyTorch 구현
 
 ```python
 class PerplexityCalculator:
     """
-    Perplexity calculator for language models.
+    말 모델의 헷갈림도 셈개.
     
     Perplexity = exp(NLL per token)
                = exp(-1/T Σ log p(w_t | w_{<t}))
     
-    Intuition: Effective vocabulary size at each position.
+    직관: 자리마다 실제로 쓰이는 낱말 수.
     Lower perplexity = More confident predictions.
     """
     
@@ -514,17 +496,17 @@ class PerplexityCalculator:
     def compute_perplexity(log_probs: torch.Tensor,
                           lengths: Optional[torch.Tensor] = None) -> float:
         """
-        Compute perplexity from token log probabilities.
+        토큰 로그 확률에서 헷갈림도를 셈한다.
         
-        Args:
+        인수:
             log_probs: Log probabilities [batch, seq_len] or [total_tokens]
-            lengths: Optional sequence lengths for variable-length batches
+            lengths: 길이가 다른 묶음을 위한 차례 길이(있으면)
         
-        Returns:
-            Perplexity value
+        반환값:
+            헷갈림도 값
         """
         if lengths is not None:
-            # Variable length sequences
+            # 길이가 다른 차례
             total_log_prob = 0.0
             total_tokens = 0
             
@@ -534,7 +516,7 @@ class PerplexityCalculator:
             
             avg_nll = -total_log_prob / total_tokens
         else:
-            # Fixed length or flattened
+            # 붙박인 길이거나 펼친 것
             avg_nll = -torch.mean(log_probs).item()
         
         perplexity = np.exp(avg_nll)
@@ -546,16 +528,16 @@ class PerplexityCalculator:
                                attention_mask: Optional[torch.Tensor] = None,
                                batch_size: int = 16) -> dict:
         """
-        Evaluate a language model with perplexity.
+        헷갈림도로 말 모델을 따진다.
         
-        Args:
-            model: Language model with forward() returning logits
+        인수:
+            model: forward()이 로짓을 돌려주는 말 모델
             input_ids: Token IDs [N, seq_len]
             attention_mask: Attention mask [N, seq_len]
-            batch_size: Batch size
+            batch_size: 묶음 크기
         
-        Returns:
-            Dictionary with perplexity and statistics
+        반환값:
+            헷갈림도와 통계를 담은 사전
         """
         model.eval()
         total_log_prob = 0.0
@@ -570,24 +552,24 @@ class PerplexityCalculator:
                 else:
                     batch_mask = torch.ones_like(batch_ids)
                 
-                # Forward pass
-                logits = model(batch_ids)  # [batch, seq_len, vocab]
+                # 순전파
+                logits = model(batch_ids)  # [묶음, 차례 길이, 낱말 수]
                 
-                # Shift for causal LM: predict next token
+                # 인과 말 모델을 위해 옮긴다: 다음 토큰을 헤아린다
                 shift_logits = logits[:, :-1, :]
                 shift_labels = batch_ids[:, 1:]
                 shift_mask = batch_mask[:, 1:]
                 
-                # Compute log probabilities
+                # 로그 확률을 셈한다
                 log_probs = torch.log_softmax(shift_logits, dim=-1)
                 
-                # Gather log probs for actual tokens
+                # 실제 토큰의 로그 확률을 모은다
                 gathered = log_probs.gather(
                     dim=-1,
                     index=shift_labels.unsqueeze(-1)
                 ).squeeze(-1)
                 
-                # Apply mask and accumulate
+                # 가림막을 쓰고 쌓는다
                 masked_log_probs = gathered * shift_mask
                 total_log_prob += masked_log_probs.sum().item()
                 total_tokens += shift_mask.sum().item()
@@ -607,14 +589,14 @@ class PerplexityCalculator:
     @staticmethod
     def interpret_perplexity(ppl: float, vocab_size: int = 50000) -> str:
         """
-        Interpret perplexity value.
+        헷갈림도 값을 풀이한다.
         
-        Args:
-            ppl: Perplexity value
-            vocab_size: Vocabulary size for reference
+        인수:
+            ppl: 헷갈림도 값
+            vocab_size: 견줄 낱말 수
         
-        Returns:
-            Interpretation string
+        반환값:
+            풀이 글자열
         """
         if ppl >= vocab_size:
             return "Random baseline - model learns nothing"
@@ -631,7 +613,7 @@ class PerplexityCalculator:
 
 
 def demonstrate_perplexity():
-    """Demonstrate perplexity computation."""
+    """헷갈림도 셈하기를 보여 준다."""
     print("=" * 70)
     print("Perplexity Demonstration")
     print("=" * 70)
@@ -642,7 +624,7 @@ def demonstrate_perplexity():
     print(f"\nLanguage model with vocabulary size: {vocab_size}")
     print("-" * 50)
     
-    # Scenario 1: Random baseline
+    # 상황 1: 아무 바탕
     print("\nScenario 1: Random Baseline (uniform predictions)")
     random_log_prob = np.log(1.0 / vocab_size)
     random_ppl = np.exp(-random_log_prob)
@@ -650,7 +632,7 @@ def demonstrate_perplexity():
     print(f"  Perplexity: {random_ppl:.1f}")
     print(f"  Interpretation: Effectively choosing from all {vocab_size} words")
     
-    # Scenario 2: Moderate model
+    # 상황 2: 보통 모델
     print("\nScenario 2: Moderate Model (~1% probability per token)")
     moderate_log_prob = np.log(0.01)
     moderate_ppl = np.exp(-moderate_log_prob)
@@ -658,7 +640,7 @@ def demonstrate_perplexity():
     print(f"  Perplexity: {moderate_ppl:.1f}")
     print(f"  Interpretation: Effectively choosing from ~{int(moderate_ppl)} words")
     
-    # Scenario 3: Good model
+    # 상황 3: 좋은 모델
     print("\nScenario 3: Good Model (~20% probability per token)")
     good_log_prob = np.log(0.2)
     good_ppl = np.exp(-good_log_prob)
@@ -674,32 +656,34 @@ def demonstrate_perplexity():
 demonstrate_perplexity()
 ```
 
-## The Likelihood vs. Sample Quality Tradeoff
+## 가능도와 표본 품질의 맞바꿈
 
-### A Critical Limitation
+### 결정적인 한계
 
-!!! warning "Important"
-    **High likelihood does NOT guarantee good samples!**
+!!! warning "중요"
+    **가능도가 높다고 좋은 표본이 보장되지는 않는다!**
 
-This is one of the most important insights in generative modeling evaluation.
+이는 만들어 내는 모델 따지기에서 가장 중요한 통찰 가운데 하나이다.
 
-### Why the Tradeoff Exists
+### 맞바꿈이 있는 까닭
 
-**Case 1: High Likelihood, Poor Samples**
+**경우 1: 높은 가능도, 나쁜 표본**
 
-A model can achieve high likelihood by:
-- Covering all modes (including unlikely ones)
-- Having high variance/uncertainty
-- "Playing it safe" with blurry predictions
+모델은 다음으로 높은 가능도를 이룰 수 있다.
 
-**Case 2: Low Likelihood, Good Samples**
+- 모든 봉우리를 덮는다(그럴듯하지 않은 것까지)
+- 흩어짐과 흐릿함이 크다
+- 흐릿한 헤아림으로 "안전하게 간다"
 
-A model can generate great samples while:
-- Missing some modes (mode collapse)
-- Being overconfident
-- Ignoring rare but valid data points
+**경우 2: 낮은 가능도, 좋은 표본**
 
-### Demonstration
+모델은 다음이면서도 좋은 표본을 만들 수 있다.
+
+- 봉우리 몇을 놓친다(봉우리 무너짐)
+- 지나치게 자신 있다
+- 드물지만 올바른 자료 점을 무시한다
+
+### 보여 주기
 
 ```python
 def demonstrate_likelihood_sample_tradeoff():
@@ -710,23 +694,23 @@ def demonstrate_likelihood_sample_tradeoff():
     print("Likelihood vs. Sample Quality Tradeoff")
     print("=" * 70)
     
-    # True distribution: bimodal
-    # Mode 1: N(-3, 1), weight 0.5
-    # Mode 2: N(+3, 1), weight 0.5
+    # 참 분포: 봉우리 둘
+    # 봉우리 1: N(-3, 1), 무게 0.5
+    # 봉우리 2: N(+3, 1), 무게 0.5
     
     print("\nTrue distribution: Mixture of two Gaussians")
     print("  Mode 1: N(-3, 1) with 50% weight")
     print("  Mode 2: N(+3, 1) with 50% weight")
     
-    # Generate test data from true distribution
+    # 참 분포에서 시험 자료를 만든다
     n_samples = 1000
     test_data = np.concatenate([
         np.random.randn(n_samples // 2) - 3,
         np.random.randn(n_samples // 2) + 3
     ])
     
-    # Model A: Single Gaussian (mode collapse)
-    # Only captures one mode but with high precision
+    # 모델 A: 정규 분포 하나(봉우리 무너짐)
+    # 봉우리 하나만 담지만 정밀도는 높다
     print("\n" + "-" * 50)
     print("Model A: Single Gaussian N(-3, 1)")
     print("  - High quality samples (realistic)")
@@ -738,7 +722,7 @@ def demonstrate_likelihood_sample_tradeoff():
     
     print(f"  NLL: {nll_a:.4f}")
     
-    # Model B: Wide Gaussian (covers both modes but blurry)
+    # 모델 B: 넓은 정규 분포(두 봉우리를 덮지만 흐릿하다)
     print("\n" + "-" * 50)
     print("Model B: Wide Gaussian N(0, 5)")
     print("  - LOW quality samples (blurry)")
@@ -750,13 +734,13 @@ def demonstrate_likelihood_sample_tradeoff():
     
     print(f"  NLL: {nll_b:.4f}")
     
-    # Model C: True mixture (ideal)
+    # 모델 C: 참 섞기(가장 좋다)
     print("\n" + "-" * 50)
     print("Model C: True Mixture (ideal)")
     print("  - High quality samples")
     print("  - Full coverage")
     
-    # Log probability under mixture
+    # 섞기에서의 로그 확률
     log_prob_mode1 = -0.5 * ((test_data + 3) ** 2) - 0.5 * np.log(2*np.pi)
     log_prob_mode2 = -0.5 * ((test_data - 3) ** 2) - 0.5 * np.log(2*np.pi)
     log_probs_c = np.logaddexp(log_prob_mode1 + np.log(0.5), log_prob_mode2 + np.log(0.5))
@@ -764,7 +748,7 @@ def demonstrate_likelihood_sample_tradeoff():
     
     print(f"  NLL: {nll_c:.4f}")
     
-    # Summary
+    # 요약
     print("\n" + "=" * 70)
     print("Summary:")
     print("=" * 70)
@@ -782,41 +766,41 @@ def demonstrate_likelihood_sample_tradeoff():
 demonstrate_likelihood_sample_tradeoff()
 ```
 
-## When to Use Likelihood Metrics
+## 언제 가능도 잣대를 쓸까
 
-### Models with Tractable Likelihood
+### 가능도를 다룰 수 있는 모델
 
-| Model Type | Likelihood Computable? | Recommended Metric |
+| 모델 갈래 | 가능도를 셈할 수 있는가? | 권하는 잣대 |
 |------------|------------------------|-------------------|
-| VAE | ELBO (lower bound) | ELBO, Reconstruction NLL |
-| Normalizing Flows | Exact | NLL, BPD |
-| Autoregressive | Exact | NLL, BPD, Perplexity |
-| Diffusion | Approximate (via ELBO) | BPD, FID |
-| GAN | **No** | FID, IS only |
-| Energy-Based | Intractable | FID, other metrics |
+| 변분 자기 부호기 | 증거 하한(아래 한계) | 증거 하한, 되짓기 음의 로그 가능도 |
+| 고르게 하는 흐름 | 정확함 | 음의 로그 가능도, 차원마다 비트 |
+| 자기 되돌이 | 정확함 | 음의 로그 가능도, 차원마다 비트, 헷갈림도 |
+| 퍼짐 | 어림(증거 하한으로) | 차원마다 비트, FID |
+| 맞겨루기 만들개 | **아니다** | FID과 인셉션 점수만 |
+| 에너지 바탕 | 다룰 수 없다 | FID과 그 밖의 잣대 |
 
-### Practical Guidelines
+### 실제의 길잡이
 
-1. **Use BPD for images**: Enables comparison across resolutions
-2. **Use Perplexity for text**: Standard metric for language models
-3. **Report confidence intervals**: Uncertainty matters
-4. **Combine with sample metrics**: FID, IS, Precision/Recall
+1. **그림에는 차원마다 비트를 쓰라**: 해상도에 걸쳐 견줄 수 있다
+2. **글에는 헷갈림도를 쓰라**: 말 모델의 여느 잣대이다
+3. **믿음 구간을 알려라**: 흐릿함이 중요하다
+4. **표본 잣대와 아울러라**: FID, 인셉션 점수, 정밀도와 재현율
 
-## Summary
+## 요약
 
-!!! success "Key Takeaways"
+!!! success "핵심 간추리기"
     
-    1. **NLL measures fit**: Lower NLL = model assigns more probability to data
+    1. **음의 로그 가능도는 맞음을 잰다**: 낮을수록 모델이 자료에 더 큰 확률을 매긴다
     
-    2. **BPD normalizes for dimensionality**: Enables fair comparison across datasets
+    2. **차원마다 비트는 차원에 맞게 고르게 맞춘다**: 자료 묶음에 걸쳐 공정히 견줄 수 있다
     
-    3. **Perplexity for language**: Represents "effective vocabulary size"
+    3. **말에는 헷갈림도**: "실제로 쓰이는 낱말 수"를 나타낸다
     
-    4. **Critical limitation**: High likelihood ≠ good samples
+    4. **결정적인 한계**: 높은 가능도 ≠ 좋은 표본
     
-    5. **Best practice**: Always combine with sample-based metrics (FID, IS)
+    5. **가장 좋은 방식**: 늘 표본 바탕 잣대(FID, 인셉션 점수)와 아울러라
 
-## References
+## 참고 문헌
 
 1. Theis, L., van den Oord, A., & Bethge, M. (2016). "A Note on the Evaluation of Generative Models." *ICLR*.
 
@@ -825,3 +809,41 @@ demonstrate_likelihood_sample_tradeoff()
 3. Salimans, T., et al. (2016). "Improved Techniques for Training GANs." *NeurIPS*.
 
 4. Kingma, D. P., & Dhariwal, P. (2018). "Glow: Generative Flow with Invertible 1×1 Convolutions." *NeurIPS*.
+
+## 연습문제
+
+**연습문제 1.**
+Explain why log-likelihood is a useful metric for evaluating diffusion models. What are its limitations?
+
+??? success "연습문제 1 풀이"
+    Log-likelihood measures how well the model assigns probability to held-out test data: $\mathcal{L} = \frac{1}{N}\sum_i \log p_\theta(x_i)$. It is useful because: (1) it is a proper scoring rule (maximized by the true distribution), (2) it provides a single number for model comparison, (3) it penalizes both poor sample quality and mode collapse. **Limitations**: (1) models with high likelihood can produce poor samples (e.g., mixtures that assign mass to unrealistic regions), (2) exact computation is often intractable for diffusion models (requires the ELBO or expensive ODE-based evaluation), (3) it does not directly measure perceptual quality.
+
+---
+
+**연습문제 2.**
+Compare FID, Inception Score, and log-likelihood as evaluation metrics for generative models.
+
+??? success "연습문제 2 풀이"
+    | Metric | Measures | Requires Real Data | Detects Mode Collapse | Perceptual Quality |
+    |--------|---------|-------------------|----------------------|-------------------|
+    | **FID** | 분포의 닮음 | 그렇다 | 그렇다 | 좋음 |
+    | **인셉션 점수** | 품질 + 다양함 | 아니다 | 일부 | 보통 |
+    | **로그 가능도** | 밀도의 정확함 | 그렇다(시험 묶음) | 그렇다 | 여림 |
+
+    FID은 사람의 판단과 잘 이어지고 품질과 다양함을 모두 담아 가장 널리 쓰인다. 인셉션 점수는 만든 표본만 따진다. 로그 가능도는 이론으로 원칙이 있지만 느낌의 품질과 어긋날 수 있다. 가장 좋은 방식은 셋 다 알리는 것이다.
+
+---
+
+**연습문제 3.**
+차원마다 비트(BPD) 잣대란 무엇인가? 퍼짐 모델에서 어떻게 셈하는가?
+
+??? success "연습문제 3 풀이"
+    차원마다 비트는 음의 로그 가능도를 자료 차원으로 고르게 맞추고 비트로 바꾼다. 곧 $\text{BPD} = -\frac{\log_2 p(x)}{d}$이며 $d$은 차원의 수이다(예컨대 CIFAR-10은 $3 \times 32 \times 32 = 3072$). 퍼짐 모델에서 로그 가능도는 증거 하한으로 가둬진다. 곧 $\log p(x) \geq \text{ELBO} = -\sum_t L_t$이며 $L_t$은 쿨백-라이블러 벌어짐 항이다. 정확한 셈은 확률 흐름 상미분 방정식과 순간 변수 바꿈 공식을 쓴다. 차원마다 비트가 낮을수록 좋은 모델이다. 최고 수준의 퍼짐 모델은 CIFAR-10에서 약 2.5을 이룬다.
+
+---
+
+**연습문제 4.**
+FID이 뛰어난 만들어 내는 모델이 왜 실제 쓰임새에서 실패할 수 있는가? 어떤 따지기를 더 해야 하는가?
+
+??? success "연습문제 4 풀이"
+    FID은 평균 분포 품질을 재지만 다음을 놓친다. (1) **꼬리 움직임**: 드물지만 중요한 잘못됨(흠, 불쾌한 내용)이 평균에 묻힌다. (2) **조건 충실함**: FID을 흔히 조건 없이 셈하는데 갈래나 글 조건 FID은 다를 수 있다. (3) **외우기**: 익히기 자료를 외운 모델은 FID이 낮지만 만들어 내기에는 쓸모없다. (4) **조건 안의 다양함**: 비슷한 채근에 같은 그림을 내도 FID이 낮을 수 있다. 더 따질 것: 정밀도와 재현율 곡선, 갈래마다 FID, 외우기 알아내기(익히기 묶음까지의 가장 가까운 이웃 거리), 품질과 다양함에 대한 사람 따지기, 쓰임새에 맞춘 잣대(예컨대 글에서 그림으로 모델의 글과 그림 맞음).

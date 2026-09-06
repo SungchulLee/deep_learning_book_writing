@@ -1,51 +1,51 @@
-# Chapter 28: Neural ODEs
+# 28장: 신경 상미분 방정식
 
-Standard neural networks transform data through a fixed sequence of discrete layers. **Neural Ordinary Differential Equations** (Neural ODEs) replace this discrete sequence with a continuous-time dynamical system: the network's hidden state evolves according to an ODE parameterized by a neural network. This continuous-depth perspective generalizes residual networks to infinite depth, enables adaptive computation through ODE solver tolerances, and provides memory-efficient training via the **adjoint method**.
+여느 신경망은 붙박인 띄엄띄엄한 층의 차례로 자료를 바꾼다. **신경 상미분 방정식**(Neural ODE)은 이 띄엄띄엄한 차례를 이어진 때의 움직임 계로 바꾼다. 신경망의 숨은 상태가 신경망으로 매개변수화한 상미분 방정식에 따라 바뀐다. 이 이어진 깊이 관점은 남은 이음 신경망을 끝없는 깊이로 넓히고, 상미분 방정식 풀개의 허용 오차로 셈을 맞추어 갈 수 있게 하며, **딸림 방법**으로 기억을 아끼는 익히기를 준다.
 
-The core idea is simple. A residual network computes $\mathbf{h}_{t+1} = \mathbf{h}_t + f(\mathbf{h}_t, \theta)$. In the limit of infinitely many infinitesimal layers, this becomes
+핵심 생각은 단순하다. 남은 이음 신경망은 $\mathbf{h}_{t+1} = \mathbf{h}_t + f(\mathbf{h}_t, \theta)$을 셈한다. 아주 얇은 층이 끝없이 많은 끝에서 이는 다음이 된다
 
 $$
 \frac{d\mathbf{h}(t)}{dt} = f\!\bigl(\mathbf{h}(t), t, \theta\bigr)
 $$
 
-The output is obtained by integrating this ODE from time $t_0$ to $t_1$ using a numerical solver, and gradients are computed by solving a backward ODE (the adjoint equation) without storing intermediate activations.
+내놓기는 수치 풀개로 이 상미분 방정식을 때 $t_0$에서 $t_1$까지 적분해 얻고, 기울기는 중간 깨움을 담아 두지 않고 뒤로 도는 상미분 방정식(딸림 방정식)을 풀어 셈한다.
 
-This chapter covers the mathematical foundations, continuous normalizing flows, advanced extensions including Neural SDEs and latent ODEs, evaluation methodology, and applications to quantitative finance.
+이 장은 수학 바탕, 이어진 고르게 맞추는 흐름, 신경 확률 미분 방정식과 숨은 상미분 방정식을 아우르는 나아간 넓힘, 따지는 방법, 계량 금융에서의 쓰임새를 다룬다.
 
 ---
 
-## Neural ODE Foundations
+## 신경 상미분 방정식의 바탕
 
-- [ODE Fundamentals](neural_ode_foundations/fundamentals.md) -- Ordinary differential equations as continuous-time dynamical systems with numerical integration and the ResNet-ODE connection
-- Neural ODEs Overview -- Comprehensive tutorial package covering continuous-depth networks, adjoint methods, and generative modeling
-- Getting Started -- Quick start guide with installation, torchdiffeq setup, and a first Neural ODE example
-- Module Index -- Complete overview of all tutorial modules from beginner ODE basics to advanced applications
-- Adjoint Sensitivity Method -- Memory-efficient gradient computation by solving a backward ODE instead of storing all activations
-- [Numerical Solvers](neural_ode_foundations/numerical_solvers.md) -- Euler, Runge-Kutta, and adaptive solvers with their accuracy, cost, and memory tradeoffs
-- Forward vs Adjoint Sensitivity -- Comparing forward sensitivity and adjoint methods for gradient computation through ODE solves
-- Computational Cost Analysis -- Understanding cost structure, number of function evaluations, and practical deployment considerations
+- [상미분 방정식 바탕](neural_ode_foundations/fundamentals.md) -- 수치 적분과 남은 이음 신경망-상미분 방정식 이음을 갖춘 이어진 때의 움직임 계로서의 상미분 방정식
+- 신경 상미분 방정식 살펴보기 -- 이어진 깊이 신경망, 딸림 방법, 만들어 내기를 두루 다루는 익힘 꾸러미
+- 시작하기 -- 설치, torchdiffeq 갖추기, 첫 신경 상미분 방정식 보기를 담은 빠른 시작 안내
+- 단원 차례 -- 처음의 상미분 방정식 바탕에서 나아간 쓰임새까지 모든 익힘 단원의 온전한 살펴보기
+- 딸림 민감도 방법 -- 깨움을 모두 담아 두는 대신 뒤로 도는 상미분 방정식을 풀어 기억을 아끼는 기울기 셈하기
+- [수치 풀개](neural_ode_foundations/numerical_solvers.md) -- 오일러, 룽게-쿠타, 맞추어 가는 풀개와 그 정확도·비용·기억의 맞바꿈
+- 앞 민감도와 딸림 민감도 -- 상미분 방정식 풀이를 거친 기울기 셈하기에서 앞 민감도와 딸림 방법 견주기
+- 셈 비용 살피기 -- 비용 얼개, 함수 매김 횟수, 실제로 펼칠 때 살필 것 이해하기
 
-## Continuous Flows
+## 이어진 흐름
 
-- Continuous Normalizing Flows -- Generalizing normalizing flows from discrete to continuous transformations with the instantaneous change of variables formula
-- FFJORD -- Making CNFs practical with Hutchinson's stochastic trace estimator for unrestricted architectures
-- Augmented Neural ODEs -- Overcoming topological limitations of standard Neural ODEs by augmenting the state space
+- 이어진 고르게 맞추는 흐름 -- 순간 변수 바꿈 공식으로 고르게 맞추는 흐름을 띄엄띄엄한 바꿈에서 이어진 바꿈으로 넓히기
+- FFJORD -- 제한 없는 얼개에 허친슨의 확률 대각합 어림개를 써서 이어진 고르게 맞추는 흐름을 쓸 만하게 만들기
+- 늘린 신경 상미분 방정식 -- 상태 공간을 늘려 여느 신경 상미분 방정식의 위상 한계를 넘어서기
 
-## Advanced Extensions
+## 한 걸음 나아간 넓히기
 
-- Neural SDEs -- Extending Neural ODEs with learnable diffusion terms for modeling stochastic processes and uncertainty
-- [Latent ODEs for Time Series](advanced/latent_odes.md) -- Combining Neural ODEs with variational autoencoders for irregularly-sampled time series modeling
-- Regularization Techniques -- Encouraging simpler dynamics through kinetic energy and Jacobian regularization to reduce computational cost
+- 신경 확률 미분 방정식 -- 확률 과정과 흐릿함을 나타내려 배울 수 있는 퍼짐 항으로 신경 상미분 방정식 넓히기
+- [때 차례를 위한 숨은 상미분 방정식](advanced/latent_odes.md) -- 고르지 않게 뽑힌 때 차례를 나타내려 신경 상미분 방정식과 변분 자기 부호기 합치기
+- 규칙 세우기 재주 -- 셈 비용을 줄이려 운동 에너지와 야코비 규칙 세우기로 더 단순한 움직임을 이끌기
 
-## Evaluation
+## 평가
 
-- Accuracy vs Speed Tradeoffs -- Fundamental tradeoffs between solver tolerance, number of function evaluations, and solution accuracy
-- Comparison with Discrete Models -- How Neural ODEs compare with ResNets and RNNs in accuracy, efficiency, and applicability
-- Benchmarks -- Standardized benchmarking practices across computational, numerical, and practical evaluation dimensions
-- [Solver Selection Guide](evaluation/solver_selection.md) -- Practical guidance on choosing ODE solvers for different application domains and accuracy requirements
+- 정확도와 빠르기의 맞바꿈 -- 풀개 허용 오차, 함수 매김 횟수, 풀이 정확도 사이의 근본 맞바꿈
+- 띄엄띄엄한 모델과 견주기 -- 정확도, 효율, 쓸 수 있음에서 신경 상미분 방정식이 남은 이음 신경망 및 되돌이 신경망과 어떻게 견주어지는가
+- 견줌 시험 -- 셈, 수치, 실제 따지기 차원에 걸친 표준 견줌 시험 방식
+- [풀개 고르기 안내](evaluation/solver_selection.md) -- 쓰임새 마당과 정확도 요구에 따라 상미분 방정식 풀개를 고르는 실제 안내
 
-## Finance Applications
+## 금융에서의 쓰임새
 
-- Continuous Dynamics in Finance -- Neural ODEs for continuous-time financial modeling with irregular time series and physics-informed constraints
-- [Term Structure Dynamics](finance_applications/term_structure.md) -- Modeling yield curve evolution as continuous-time processes learned from market data
-- Volatility Surface Modeling -- Modeling implied volatility surface dynamics as continuous-time processes respecting no-arbitrage constraints
+- 금융의 이어진 움직임 -- 고르지 않은 때 차례와 물리를 담은 제약을 갖춘 이어진 때의 금융 나타내기를 위한 신경 상미분 방정식
+- [기간 얼개 움직임](finance_applications/term_structure.md) -- 시장 자료에서 배운 이어진 때의 과정으로 수익률 곡선의 바뀜 나타내기
+- 변동성 면 나타내기 -- 차익 없음 제약을 지키는 이어진 때의 과정으로 내재 변동성 면의 움직임 나타내기

@@ -1,73 +1,62 @@
-# GPT: Generative Pre-trained Transformer
+# GPT: 생성 사전 학습 트랜스포머
+## 들어가며
 
+GPT(생성 사전 학습 트랜스포머)는 자기 회귀 언어 모형화를 위해 설계된 디코더 전용 트랜스포머 구조이다. BERT의 양방향 방식과 달리 GPT는 한 방향(왼쪽에서 오른쪽) 주의를 써서 글 생성 과제에 자연스레 맞는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## GPT의 흐름
 
-## Introduction
-
-GPT (Generative Pre-trained Transformer) is a decoder-only Transformer architecture designed for autoregressive language modeling. Unlike BERT's bidirectional approach, GPT uses unidirectional (left-to-right) attention, making it naturally suited for text generation tasks.
-
-## Evolution of GPT
-
-| Model | Parameters | Training Data | Context Length |
+| 모형 | 매개변수 | 학습 데이터 | 맥락 길이 |
 |-------|------------|---------------|----------------|
 | GPT-1 (2018) | 117M | BooksCorpus | 512 |
 | GPT-2 (2019) | 1.5B | WebText | 1024 |
 | GPT-3 (2020) | 175B | 300B tokens | 2048 |
 | GPT-4 (2023) | ~1.8T* | Undisclosed | 8K-128K |
 
-*Estimated from reports
+*보도에 바탕한 어림
 
-## Architecture
+## 구조
 
-GPT uses a stack of decoder-only Transformer blocks with causal self-attention:
+GPT는 인과 자기 주의를 갖춘 디코더 전용 트랜스포머 블록의 더미를 쓴다.
 
 $$
-
 \text{GPT} = \text{TransformerDecoder}^L
-
 $$
 
-### Key Differences from BERT
+### BERT와의 핵심 차이
 
-| Aspect | GPT | BERT |
+| 측면 | GPT | BERT |
 |--------|-----|------|
-| Architecture | Decoder-only | Encoder-only |
-| Attention | Causal (unidirectional) | Bidirectional |
-| Pre-training | Next token prediction | Masked language modeling |
-| Primary use | Generation | Understanding |
+| 구조 | 디코더만 | 인코더만 |
+| 주의 | 인과 (한 방향) | 양방향 |
+| 사전 학습 | 다음 토큰 맞히기 | 가린 언어 모형화 |
+| 주된 쓰임 | 생성 | 이해 |
 
-### Model Configuration (GPT-2)
+### 모형 설정 (GPT-2)
 
-| Model | Layers | Heads | $d_{\text{model}}$ | Parameters |
+| 모형 | 층 | 머리 | $d_{\text{model}}$ | 매개변수 |
 |-------|--------|-------|---------|------------|
-| Small | 12 | 12 | 768 | 117M |
-| Medium | 24 | 16 | 1024 | 345M |
-| Large | 36 | 20 | 1280 | 762M |
-| XL | 48 | 25 | 1600 | 1.5B |
+| 작음 | 12 | 12 | 768 | 1억 1700만 |
+| 중간 | 24 | 16 | 1024 | 3억 4500만 |
+| 큼 | 36 | 20 | 1280 | 7억 6200만 |
+| 아주 큼 | 48 | 25 | 1600 | 15억 |
 
-## Pre-training Objective
+## 사전 학습 목표
 
-GPT uses standard language modeling (next token prediction):
+GPT는 표준 언어 모형화(다음 토큰 맞히기)를 쓴다.
 
 $$
-
 \mathcal{L} = -\sum_{t=1}^{T} \log P(x_t | x_1, \ldots, x_{t-1}; \theta)
-
 $$
 
-Where the probability is computed via softmax over the vocabulary:
+여기서 확률은 어휘에 대한 소프트맥스로 셈한다.
 
 $$
-
 P(x_t | x_{<t}) = \text{softmax}(h_t W_e^T)
-
 $$
 
-Here $h_t$ is the hidden state at position $t$ and $W_e$ is the embedding matrix (weight tying).
+여기서 $h_t$은 자리 $t$의 숨은 상태이고 $W_e$은 임베딩 행렬이다(가중치 묶기).
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
@@ -76,9 +65,8 @@ import torch.nn.functional as F
 import math
 from typing import Optional, Dict, Tuple, List
 
-
 class GPTConfig:
-    """GPT model configuration."""
+    """GPT 모형 설정."""
     
     def __init__(
         self,
@@ -100,9 +88,8 @@ class GPTConfig:
         self.dropout = dropout
         self.layer_norm_epsilon = layer_norm_epsilon
 
-
 class CausalSelfAttention(nn.Module):
-    """Multi-head causal self-attention."""
+    """다중 머리 인과 자기 주의."""
     
     def __init__(self, config: GPTConfig):
         super().__init__()
@@ -114,14 +101,14 @@ class CausalSelfAttention(nn.Module):
         self.head_dim = config.n_embd // config.n_head
         self.scale = self.head_dim ** -0.5
         
-        # Combined QKV projection
+        # QKV를 한데 모은 사영
         self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd)
         self.c_proj = nn.Linear(config.n_embd, config.n_embd)
         
         self.attn_dropout = nn.Dropout(config.dropout)
         self.resid_dropout = nn.Dropout(config.dropout)
         
-        # Causal mask
+        # 인과 가림
         self.register_buffer(
             'bias',
             torch.tril(torch.ones(config.n_positions, config.n_positions))
@@ -134,19 +121,19 @@ class CausalSelfAttention(nn.Module):
         layer_past: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
-        """Forward pass with optional KV-cache."""
+        """KV 캐시를 선택으로 쓰는 앞먹임."""
         batch_size, seq_len, _ = x.shape
         
-        # Compute Q, K, V
+        # Q, K, V를 셈한다
         qkv = self.c_attn(x)
         q, k, v = qkv.split(self.n_embd, dim=-1)
         
-        # Reshape for multi-head attention
+        # 다중 머리 주의에 맞게 꼴을 바꾼다
         q = q.view(batch_size, seq_len, self.n_head, self.head_dim).transpose(1, 2)
         k = k.view(batch_size, seq_len, self.n_head, self.head_dim).transpose(1, 2)
         v = v.view(batch_size, seq_len, self.n_head, self.head_dim).transpose(1, 2)
         
-        # Handle cached KV
+        # 담아 둔 KV를 다룬다
         if layer_past is not None:
             past_k, past_v = layer_past
             k = torch.cat([past_k, k], dim=2)
@@ -154,18 +141,18 @@ class CausalSelfAttention(nn.Module):
         
         present = (k, v) if use_cache else None
         
-        # Attention
+        # 어텐션
         kv_seq_len = k.size(2)
         attn_weights = torch.matmul(q, k.transpose(-2, -1)) * self.scale
         
-        # Apply causal mask
+        # 인과 가림을 적용한다
         causal_mask = self.bias[:, :, kv_seq_len - seq_len:kv_seq_len, :kv_seq_len]
         attn_weights = attn_weights.masked_fill(causal_mask == 0, float('-inf'))
         
         attn_weights = F.softmax(attn_weights, dim=-1)
         attn_weights = self.attn_dropout(attn_weights)
         
-        # Apply to values
+        # 값에 적용한다
         output = torch.matmul(attn_weights, v)
         output = output.transpose(1, 2).contiguous().view(batch_size, seq_len, self.n_embd)
         output = self.c_proj(output)
@@ -173,9 +160,8 @@ class CausalSelfAttention(nn.Module):
         
         return output, present
 
-
 class GPTBlock(nn.Module):
-    """Single GPT Transformer block."""
+    """GPT 트랜스포머 블록 하나."""
     
     def __init__(self, config: GPTConfig):
         super().__init__()
@@ -197,32 +183,31 @@ class GPTBlock(nn.Module):
         layer_past: Optional[Tuple[torch.Tensor, torch.Tensor]] = None,
         use_cache: bool = False
     ) -> Tuple[torch.Tensor, Optional[Tuple[torch.Tensor, torch.Tensor]]]:
-        """Forward pass with pre-norm architecture."""
+        """앞 정규화 구조의 앞먹임."""
         attn_output, present = self.attn(self.ln_1(x), layer_past, use_cache)
         x = x + attn_output
         x = x + self.mlp(self.ln_2(x))
         return x, present
 
-
 class GPTModel(nn.Module):
-    """GPT Language Model."""
+    """GPT 언어 모형."""
     
     def __init__(self, config: GPTConfig):
         super().__init__()
         self.config = config
         
-        # Embeddings
+        # 임베딩
         self.wte = nn.Embedding(config.vocab_size, config.n_embd)
         self.wpe = nn.Embedding(config.n_positions, config.n_embd)
         self.drop = nn.Dropout(config.dropout)
         
-        # Transformer blocks
+        # 트랜스포머 블록
         self.h = nn.ModuleList([GPTBlock(config) for _ in range(config.n_layer)])
         
-        # Final layer norm
+        # 마지막 층 정규화
         self.ln_f = nn.LayerNorm(config.n_embd, eps=config.layer_norm_epsilon)
         
-        # LM head (weight tied)
+        # 언어 모형 머리 (가중치를 묶었다)
         self.lm_head = nn.Linear(config.n_embd, config.vocab_size, bias=False)
         self.lm_head.weight = self.wte.weight
         
@@ -244,7 +229,7 @@ class GPTModel(nn.Module):
         use_cache: bool = False,
         labels: Optional[torch.Tensor] = None
     ) -> Dict[str, torch.Tensor]:
-        """Forward pass."""
+        """앞먹임."""
         device = input_ids.device
         batch_size, seq_len = input_ids.shape
         
@@ -256,10 +241,10 @@ class GPTModel(nn.Module):
                 dtype=torch.long, device=device
             ).unsqueeze(0)
         
-        # Embeddings
+        # 임베딩
         hidden_states = self.drop(self.wte(input_ids) + self.wpe(position_ids))
         
-        # Blocks
+        # 블록
         presents = [] if use_cache else None
         for i, block in enumerate(self.h):
             layer_past = past_key_values[i] if past_key_values else None
@@ -292,7 +277,7 @@ class GPTModel(nn.Module):
         top_p: Optional[float] = None,
         do_sample: bool = True
     ) -> torch.Tensor:
-        """Generate text autoregressively."""
+        """자기 회귀로 글을 짓는다."""
         past_key_values = None
         
         for _ in range(max_new_tokens):
@@ -302,12 +287,12 @@ class GPTModel(nn.Module):
             logits = outputs['logits'][:, -1, :] / temperature
             past_key_values = outputs['past_key_values']
             
-            # Top-k filtering
+            # 상위 k 거르기
             if top_k is not None:
                 indices_to_remove = logits < torch.topk(logits, top_k)[0][..., -1, None]
                 logits = logits.masked_fill(indices_to_remove, float('-inf'))
             
-            # Top-p filtering
+            # 상위 p 거르기
             if top_p is not None:
                 sorted_logits, sorted_indices = torch.sort(logits, descending=True)
                 cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
@@ -317,7 +302,7 @@ class GPTModel(nn.Module):
                 indices_to_remove = sorted_indices_to_remove.scatter(1, sorted_indices, sorted_indices_to_remove)
                 logits = logits.masked_fill(indices_to_remove, float('-inf'))
             
-            # Sample
+            # 뽑기
             if do_sample:
                 next_token = torch.multinomial(F.softmax(logits, dim=-1), num_samples=1)
             else:
@@ -327,25 +312,24 @@ class GPTModel(nn.Module):
         
         return input_ids
 
-
-# Sampling strategies
+# 표집 방법
 class SamplingStrategies:
-    """Text generation sampling strategies."""
+    """글 생성의 표집 방법."""
     
     @staticmethod
     def greedy(logits: torch.Tensor) -> torch.Tensor:
-        """Greedy decoding."""
+        """탐욕 디코딩."""
         return torch.argmax(logits, dim=-1, keepdim=True)
     
     @staticmethod
     def temperature_sampling(logits: torch.Tensor, temperature: float = 1.0) -> torch.Tensor:
-        """Temperature sampling."""
+        """온도 표집."""
         probs = F.softmax(logits / temperature, dim=-1)
         return torch.multinomial(probs, num_samples=1)
     
     @staticmethod
     def top_k_sampling(logits: torch.Tensor, k: int = 50, temperature: float = 1.0) -> torch.Tensor:
-        """Top-k sampling."""
+        """상위 k 표집."""
         logits = logits / temperature
         values, indices = torch.topk(logits, k, dim=-1)
         logits_filtered = torch.full_like(logits, float('-inf'))
@@ -355,7 +339,7 @@ class SamplingStrategies:
     
     @staticmethod
     def nucleus_sampling(logits: torch.Tensor, p: float = 0.9, temperature: float = 1.0) -> torch.Tensor:
-        """Nucleus (top-p) sampling."""
+        """핵(상위 p) 표집."""
         logits = logits / temperature
         sorted_logits, sorted_indices = torch.sort(logits, descending=True, dim=-1)
         cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
@@ -367,8 +351,7 @@ class SamplingStrategies:
         probs = F.softmax(logits, dim=-1)
         return torch.multinomial(probs, num_samples=1)
 
-
-# Example usage
+# 사용 예
 if __name__ == "__main__":
     config = GPTConfig(vocab_size=50257, n_positions=1024, n_embd=768, n_layer=12, n_head=12)
     model = GPTModel(config)
@@ -384,17 +367,17 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## In-Context Learning
+## 맥락 안 학습
 
-GPT-3 introduced in-context learning where the model adapts to tasks through examples in the prompt:
+GPT-3은 모형이 프롬프트 안의 예를 보고 과제에 맞추어 가는 맥락 안 학습을 들여왔다.
 
-### Zero-Shot
+### 영 예시
 ```
 Translate English to French:
 sea otter =>
 ```
 
-### Few-Shot
+### 소수 예시
 ```
 Translate English to French:
 sea otter => loutre de mer
@@ -402,64 +385,62 @@ peppermint => menthe poivrée
 cheese =>
 ```
 
-## Scaling Laws
+## 규모 법칙
 
-GPT-3 demonstrated predictable scaling:
+GPT-3은 규모가 커질 때의 변화를 내다볼 수 있음을 보였다.
 
 $$
-
 L(N) = \left(\frac{N_c}{N}\right)^{\alpha_N}
-
 $$
 
-Where $N$ is parameters, suggesting larger models are more sample-efficient.
+여기서 $N$은 매개변수이며, 큰 모형일수록 표본을 더 아낌을 뜻한다.
 
-### Chinchilla Scaling (Hoffmann et al., 2022)
+### 친칠라 규모 법칙 (Hoffmann 외, 2022)
 
-Later work showed that the GPT-3 scaling recipe was suboptimal. The Chinchilla scaling law predicts that the number of training tokens should scale linearly with model parameters:
+나중 연구는 GPT-3의 규모 조리법이 최선이 아니었음을 보였다. 친칠라 규모 법칙은 학습 토큰의 수가 모형 매개변수에 비례해 늘어야 한다고 내다본다.
 
 $$N_{\text{opt}} \approx 20 \cdot D$$
 
-where $N_{\text{opt}}$ is the optimal number of parameters and $D$ is the data budget. This implies GPT-3 (175B parameters, 300B tokens) was significantly undertrained—a compute-optimal model at that FLOP budget would have ~70B parameters trained on ~1.4T tokens.
+여기서 $N_{\text{opt}}$은 가장 좋은 매개변수 수이고 $D$은 데이터 예산이다. 이는 GPT-3(매개변수 1750억, 토큰 3000억)이 크게 덜 학습되었음을 뜻한다. 그 연산 예산에서 계산 최적 모형이라면 매개변수 약 700억으로 토큰 약 1.4조 개를 학습했을 것이다.
 
-## Emergent Capabilities
+## 창발하는 능력
 
-As GPT models scale, qualitatively new capabilities emerge that are not present in smaller models:
+GPT 모형의 규모가 커지면 작은 모형에는 없던 질적으로 새로운 능력이 창발한다.
 
-| Capability | First Observed | Scale |
+| 능력 | 처음 관찰된 곳 | 규모 |
 |------------|---------------|-------|
-| Few-shot learning | GPT-3 (175B) | >10B parameters |
-| Chain-of-thought reasoning | ~100B parameters | >60B |
-| Code generation | Codex (~12B) | >10B |
-| Instruction following | InstructGPT (1.3B+) | With RLHF |
+| 소수 예시 학습 | GPT-3 (1750억) | 매개변수 100억 초과 |
+| 생각의 사슬 추론 | 매개변수 약 1000억 | 600억 초과 |
+| 코드 생성 | Codex (약 120억) | 100억 초과 |
+| 지시 따르기 | InstructGPT (13억 이상) | 인간 피드백 강화 학습과 함께 |
 
-The mechanism behind emergence remains debated—it may reflect a phase transition in the loss landscape or simply improved resolution on evaluation metrics.
+창발의 얼개는 아직 논란거리이다. 손실 지형의 상전이를 나타낼 수도 있고 그저 평가 지표의 해상도가 좋아진 것일 수도 있다.
 
-## From GPT to ChatGPT: Alignment
+## GPT에서 ChatGPT로: 정렬
 
-GPT models are trained to predict the next token, which doesn't always align with being helpful, harmless, and honest. The path from GPT to ChatGPT involves:
+GPT 모형은 다음 토큰을 맞히도록 학습되는데, 그것이 늘 도움이 되고 해롭지 않고 정직한 것과 들어맞지는 않는다. GPT에서 ChatGPT로 가는 길은 다음으로 이루어진다.
 
-1. **Supervised Fine-Tuning (SFT)**: Train on human-written demonstrations of desired behavior
-2. **Reward Model**: Train a model to predict human preferences between outputs
-3. **Reinforcement Learning from Human Feedback (RLHF)**: Optimize the policy to maximize the reward model using PPO
+1. **지도 미세 조정(SFT)**: 바라는 행동을 사람이 써 보인 예로 학습한다
+2. **보상 모형**: 출력들 사이의 사람의 선호를 맞히는 모형을 학습한다
+3. **인간 피드백 강화 학습(RLHF)**: PPO로 보상 모형을 가장 크게 하도록 정책을 다듬는다
 
-This alignment process transforms a next-token predictor into an instruction-following assistant.
+이 정렬 과정이 다음 토큰 예측기를 지시를 따르는 도우미로 바꾼다.
 
-## Summary
+## 요약
 
-GPT established the autoregressive language modeling paradigm:
+GPT는 자기 회귀 언어 모형화 방식을 자리 잡게 했다.
 
-1. **Decoder-Only Architecture**: Simpler than encoder-decoder, scales cleanly
-2. **Causal Attention**: Natural for generation, enables KV-caching for efficient inference
-3. **Scaling**: Larger models show emergent capabilities not present at smaller scales
-4. **In-Context Learning**: Task adaptation without fine-tuning via prompt examples
-5. **Weight Tying**: Sharing the embedding matrix $W_e$ between the input embedding layer and the output projection ($P(x_t | x_{<t}) = \text{softmax}(h_t W_e^T)$) reduces parameters and improves consistency
+1. **디코더 전용 구조**: 인코더-디코더보다 간단하고 깔끔하게 커진다
+2. **인과 주의**: 생성에 자연스럽고 효율적인 추론을 위한 KV 캐싱을 가능케 한다
+3. **규모**: 큰 모형은 작은 규모에는 없던 창발 능력을 보인다
+4. **맥락 안 학습**: 프롬프트의 예로 미세 조정 없이 과제에 맞춘다
+5. **가중치 묶기**: 입력 임베딩 층과 출력 사영이 임베딩 행렬 $W_e$을 함께 쓰면($P(x_t | x_{<t}) = \text{softmax}(h_t W_e^T)$) 매개변수가 줄고 한결같음이 나아진다
 
-### Why Decoder-Only Became Dominant
+### 디코더 전용이 주류가 된 까닭
 
-GPT's decoder-only approach became the dominant paradigm for large language models because every parameter contributes to every prediction. In an encoder-decoder model, the encoder parameters are idle during generation. Additionally, the unified next-token prediction objective is simple, data-efficient (every position provides a training signal), and naturally supports both understanding and generation at scale.
+GPT의 디코더 전용 방식이 대형 언어 모형의 주류가 된 것은 매개변수마다 모든 예측에 이바지하기 때문이다. 인코더-디코더 모형에서는 생성 중에 인코더의 매개변수가 놀고 있다. 게다가 하나로 모은 다음 토큰 맞히기 목표는 간단하고 데이터를 아끼며(자리마다 학습 신호를 준다) 큰 규모에서 이해와 생성을 자연스레 함께 받친다.
 
-## References
+## 참고 문헌
 
 1. Radford, A., et al. (2018). "Improving Language Understanding by Generative Pre-Training." (GPT-1)
 2. Radford, A., et al. (2019). "Language Models are Unsupervised Multitask Learners." (GPT-2)
@@ -469,9 +450,9 @@ GPT's decoder-only approach became the dominant paradigm for large language mode
 
 ---
 
-## Text Generation with GPT
+## GPT로 하는 글 생성
 
-#### Generation Process
+#### 생성 과정
 
 ```
 Prompt: "The quick brown"
@@ -482,7 +463,7 @@ Step 3: P(over|...) → "over"
 ...
 ```
 
-#### PyTorch Implementation
+#### 파이토치 구현
 
 ```python
 import torch
@@ -490,9 +471,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Optional, List, Callable
 
-
 class GPTGenerator:
-    """Text generation with GPT models."""
+    """GPT 모형으로 하는 글 생성."""
     
     def __init__(self, model, tokenizer, device='cuda'):
         self.model = model.to(device)
@@ -512,24 +492,24 @@ class GPTGenerator:
         stop_tokens: Optional[List[int]] = None
     ) -> str:
         """
-        Generate text from prompt.
+        프롬프트에서 글을 짓는다.
         
-        Args:
-            prompt: Input text
-            max_new_tokens: Maximum tokens to generate
-            temperature: Sampling temperature (higher = more random)
-            top_k: Sample from top k tokens
-            top_p: Nucleus sampling threshold
-            repetition_penalty: Penalty for repeating tokens
-            stop_tokens: Token IDs that stop generation
+        인수:
+            prompt: 입력 글
+            max_new_tokens: 만들 토큰의 최대 개수
+            temperature: 표본 추출의 온도 (높을수록 더 무작위)
+            top_k: 상위 k개 토큰에서 뽑는다
+            top_p: 핵 표집의 문턱값
+            repetition_penalty: 토큰을 되풀이할 때의 벌점
+            stop_tokens: 생성을 멈추는 토큰 번호
         """
-        # Encode prompt
+        # 프롬프트를 인코딩한다
         input_ids = self.tokenizer.encode(prompt, return_tensors='pt').to(self.device)
         generated = input_ids
         past_kv = None
         
         for _ in range(max_new_tokens):
-            # Get model output
+            # 모형의 출력을 얻는다
             if past_kv is not None:
                 outputs = self.model(generated[:, -1:], past_key_values=past_kv, use_cache=True)
             else:
@@ -538,20 +518,20 @@ class GPTGenerator:
             logits = outputs.logits[:, -1, :]
             past_kv = outputs.past_key_values
             
-            # Apply repetition penalty
+            # 되풀이 벌점을 적용한다
             if repetition_penalty != 1.0:
                 for token_id in set(generated[0].tolist()):
                     logits[0, token_id] /= repetition_penalty
             
-            # Apply temperature
+            # 온도를 적용한다
             logits = logits / temperature
             
-            # Apply top-k filtering
+            # 상위 k 거르기를 적용한다
             if top_k is not None:
                 indices_to_remove = logits < torch.topk(logits, top_k)[0][..., -1, None]
                 logits[indices_to_remove] = float('-inf')
             
-            # Apply top-p (nucleus) filtering
+            # 상위 p(핵) 거르기를 적용한다
             if top_p is not None:
                 sorted_logits, sorted_indices = torch.sort(logits, descending=True)
                 cumulative_probs = torch.cumsum(F.softmax(sorted_logits, dim=-1), dim=-1)
@@ -563,11 +543,11 @@ class GPTGenerator:
                 indices_to_remove = sorted_indices_to_remove.scatter(1, sorted_indices, sorted_indices_to_remove)
                 logits[indices_to_remove] = float('-inf')
             
-            # Sample
+            # 뽑기
             probs = F.softmax(logits, dim=-1)
             next_token = torch.multinomial(probs, num_samples=1)
             
-            # Check for stop tokens
+            # 멈춤 토큰인지 살핀다
             if stop_tokens and next_token.item() in stop_tokens:
                 break
             
@@ -584,10 +564,10 @@ class GPTGenerator:
         length_penalty: float = 1.0,
         early_stopping: bool = True
     ) -> str:
-        """Generate using beam search."""
+        """빔 탐색으로 짓는다."""
         input_ids = self.tokenizer.encode(prompt, return_tensors='pt').to(self.device)
         
-        # Initialize beams: (log_prob, sequence)
+        # 빔을 시작한다: (로그 확률, 수열)
         beams = [(0.0, input_ids)]
         
         for _ in range(max_new_tokens):
@@ -598,22 +578,22 @@ class GPTGenerator:
                 logits = outputs.logits[:, -1, :]
                 log_probs = F.log_softmax(logits, dim=-1)
                 
-                # Get top k tokens
+                # 상위 k개 토큰을 얻는다
                 topk_log_probs, topk_indices = torch.topk(log_probs, num_beams)
                 
                 for i in range(num_beams):
                     new_log_prob = log_prob + topk_log_probs[0, i].item()
                     new_seq = torch.cat([seq, topk_indices[:, i:i+1]], dim=-1)
                     
-                    # Length penalty
+                    # 길이 벌점
                     score = new_log_prob / (len(new_seq[0]) ** length_penalty)
                     all_candidates.append((score, new_log_prob, new_seq))
             
-            # Select top beams
+            # 상위 빔을 고른다
             all_candidates.sort(key=lambda x: x[0], reverse=True)
             beams = [(c[1], c[2]) for c in all_candidates[:num_beams]]
         
-        # Return best sequence
+        # 가장 좋은 수열을 돌려준다
         best_seq = beams[0][1]
         return self.tokenizer.decode(best_seq[0], skip_special_tokens=True)
     
@@ -626,9 +606,9 @@ class GPTGenerator:
         alpha: float = 0.6
     ) -> str:
         """
-        Contrastive search: balance quality and diversity.
+        대조 탐색: 질과 다양함의 균형을 잡는다.
         
-        score = (1-α) * prob - α * max_sim_to_context
+        점수 = (1-α) * 확률 - α * 맥락과의 최대 비슷함
         """
         input_ids = self.tokenizer.encode(prompt, return_tensors='pt').to(self.device)
         generated = input_ids
@@ -636,9 +616,9 @@ class GPTGenerator:
         for _ in range(max_new_tokens):
             outputs = self.model(generated, output_hidden_states=True)
             logits = outputs.logits[:, -1, :]
-            hidden = outputs.hidden_states[-1][:, -1, :]  # Last layer, last token
+            hidden = outputs.hidden_states[-1][:, -1, :]  # 마지막 층, 마지막 토큰
             
-            # Get top-k candidates
+            # 상위 k개 후보를 얻는다
             top_probs, top_indices = torch.topk(F.softmax(logits, dim=-1), k)
             
             best_score = float('-inf')
@@ -648,13 +628,13 @@ class GPTGenerator:
                 token_id = top_indices[0, i]
                 prob = top_probs[0, i].item()
                 
-                # Get hidden state for this token
+                # 이 토큰의 숨은 상태를 얻는다
                 candidate_seq = torch.cat([generated, token_id.unsqueeze(0).unsqueeze(0)], dim=-1)
                 candidate_out = self.model(candidate_seq, output_hidden_states=True)
                 candidate_hidden = candidate_out.hidden_states[-1][:, -1, :]
                 
-                # Compute max similarity to previous context
-                context_hiddens = outputs.hidden_states[-1][0, :-1, :]  # All except last
+                # 앞선 맥락과의 최대 비슷함을 셈한다
+                context_hiddens = outputs.hidden_states[-1][0, :-1, :]  # 마지막만 뺀 전부
                 similarities = F.cosine_similarity(
                     candidate_hidden.expand(context_hiddens.size(0), -1),
                     context_hiddens,
@@ -662,7 +642,7 @@ class GPTGenerator:
                 )
                 max_sim = similarities.max().item()
                 
-                # Contrastive score
+                # 대조 점수
                 score = (1 - alpha) * prob - alpha * max_sim
                 
                 if score > best_score:
@@ -673,10 +653,9 @@ class GPTGenerator:
         
         return self.tokenizer.decode(generated[0], skip_special_tokens=True)
 
-
-# Streaming generation
+# 흘려보내며 생성하기
 class StreamingGenerator:
-    """Generator that yields tokens as they're generated."""
+    """만들어지는 대로 토큰을 내보내는 생성기."""
     
     def __init__(self, model, tokenizer, device='cuda'):
         self.model = model.to(device)
@@ -691,7 +670,7 @@ class StreamingGenerator:
         temperature: float = 1.0,
         top_k: int = 50
     ):
-        """Yield tokens one at a time."""
+        """토큰을 하나씩 내보낸다."""
         input_ids = self.tokenizer.encode(prompt, return_tensors='pt').to(self.device)
         past_kv = None
         
@@ -704,7 +683,7 @@ class StreamingGenerator:
             logits = outputs.logits[:, -1, :] / temperature
             past_kv = outputs.past_key_values
             
-            # Top-k sampling
+            # 상위 k 표집
             if top_k:
                 indices_to_remove = logits < torch.topk(logits, top_k)[0][..., -1, None]
                 logits[indices_to_remove] = float('-inf')
@@ -714,14 +693,13 @@ class StreamingGenerator:
             
             input_ids = torch.cat([input_ids, next_token], dim=-1)
             
-            # Decode and yield the new token
+            # 새 토큰을 풀어 내보낸다
             token_str = self.tokenizer.decode(next_token[0])
             yield token_str
 
-
-# Constrained generation
+# 제약을 둔 생성
 class ConstrainedGenerator:
-    """Generate with constraints (e.g., must include certain words)."""
+    """제약을 두고 짓는다(이를테면 어떤 낱말을 꼭 넣어야 한다)."""
     
     def __init__(self, model, tokenizer, device='cuda'):
         self.model = model.to(device)
@@ -736,10 +714,10 @@ class ConstrainedGenerator:
         max_new_tokens: int = 100,
         temperature: float = 1.0
     ) -> str:
-        """Generate text that must include given keywords."""
+        """주어진 열쇳말을 꼭 담는 글을 짓는다."""
         input_ids = self.tokenizer.encode(prompt, return_tensors='pt').to(self.device)
         
-        # Encode keywords
+        # 열쇳말을 인코딩한다
         keyword_ids = [self.tokenizer.encode(kw, add_special_tokens=False) for kw in keywords]
         remaining_keywords = set(range(len(keywords)))
         
@@ -747,16 +725,16 @@ class ConstrainedGenerator:
             outputs = self.model(input_ids)
             logits = outputs.logits[:, -1, :] / temperature
             
-            # Boost probability of keyword tokens if not yet used
-            if remaining_keywords and step < max_new_tokens - 10:  # Leave room for completion
+            # 아직 쓰지 않은 열쇳말 토큰의 확률을 올린다
+            if remaining_keywords and step < max_new_tokens - 10:  # 이어 쓸 자리를 남긴다
                 for kw_idx in remaining_keywords:
                     for token_id in keyword_ids[kw_idx]:
-                        logits[0, token_id] += 5.0  # Boost
+                        logits[0, token_id] += 5.0  # 올린다
             
             probs = F.softmax(logits, dim=-1)
             next_token = torch.multinomial(probs, num_samples=1)
             
-            # Check if keyword was generated
+            # 열쇳말이 나왔는지 살핀다
             for kw_idx in list(remaining_keywords):
                 if next_token.item() in keyword_ids[kw_idx]:
                     remaining_keywords.discard(kw_idx)
@@ -765,12 +743,11 @@ class ConstrainedGenerator:
         
         return self.tokenizer.decode(input_ids[0], skip_special_tokens=True)
 
-
-# Example usage
+# 사용 예
 if __name__ == "__main__":
     from transformers import GPT2LMHeadModel, GPT2Tokenizer
     
-    # Load model
+    # 모델을 불러온다
     model = GPT2LMHeadModel.from_pretrained('gpt2')
     tokenizer = GPT2Tokenizer.from_pretrained('gpt2')
     
@@ -778,7 +755,7 @@ if __name__ == "__main__":
     
     prompt = "The future of artificial intelligence"
     
-    # Different sampling strategies
+    # 여러 가지 표집 방법
     print("=== Sampling Strategies ===\n")
     
     print("Greedy (temperature=0.1):")
@@ -794,33 +771,78 @@ if __name__ == "__main__":
     print(generator.generate(prompt, max_new_tokens=50, top_p=0.9, repetition_penalty=1.2))
 ```
 
-#### Sampling Strategies Comparison
+#### 표집 방법 견주기
 
-| Strategy | Pros | Cons | Use Case |
+| 방법 | 좋은 점 | 나쁜 점 | 쓰임새 |
 |----------|------|------|----------|
-| Greedy | Deterministic | Repetitive | Factual output |
-| Temperature | Simple control | Can be incoherent | Creative writing |
-| Top-k | Limits bad tokens | Fixed cutoff | General use |
-| Nucleus (top-p) | Dynamic cutoff | May cut good tokens | Most versatile |
-| Beam Search | Optimal under model | Generic output | Translation |
-| Contrastive | Diverse, coherent | Slower | High quality |
+| 탐욕 | 결정론적 | 되풀이됨 | 사실을 내야 할 때 |
+| 온도 | 다스리기 간단 | 앞뒤가 안 맞을 수 있음 | 창작 |
+| 상위 k | 나쁜 토큰을 막음 | 자르는 지점이 고정됨 | 두루 쓰기 |
+| 핵 (상위 p) | 자르는 지점이 유동적 | 좋은 토큰을 자를 수 있음 | 가장 두루 쓰인다 |
+| 빔 탐색 | 모형 기준 최적 | 뻔한 출력 | 번역 |
+| 대조 | 다양하고 앞뒤 맞음 | 느림 | 질이 높아야 할 때 |
 
-#### Best Practices
+#### 좋은 방법
 
-1. **Temperature 0.7-0.9** for creative tasks
-2. **Top-p 0.9-0.95** as default
-3. **Repetition penalty 1.1-1.3** to reduce loops
-4. **Combine top-k and top-p** for best results
+1. 창작 과제에는 **온도 0.7~0.9**
+2. 기본으로 **상위 p 0.9~0.95**
+3. 고리를 줄이려면 **되풀이 벌점 1.1~1.3**
+4. 가장 좋은 결과를 얻으려면 **상위 k와 상위 p를 함께**
 
-#### Summary
+#### 간추림
 
-GPT generation involves:
-1. Process prompt through model
-2. Sample next token from distribution
-3. Apply sampling strategy (temperature, top-k, top-p)
-4. Append token and repeat
+GPT의 생성은 다음으로 이루어진다.
 
-#### References
+1. 프롬프트를 모형에 넣어 처리한다
+2. 분포에서 다음 토큰을 뽑는다
+3. 표집 방법(온도, 상위 k, 상위 p)을 적용한다
+4. 토큰을 덧붙이고 되풀이한다
+
+#### 참고 문헌
 
 1. Holtzman, A., et al. (2020). "The Curious Case of Neural Text Degeneration."
 2. Su, Y., et al. (2022). "A Contrastive Framework for Neural Text Generation."
+
+## 연습문제
+
+**연습문제 1.**
+GPT의 자기 회귀 사전 학습 목표를 설명하고 BERT의 MLM과 어떻게 다른지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    GPT는 인과(왼쪽에서 오른쪽) 주의로 $\sum_t \log P(x_t | x_{<t})$을 가장 크게 한다. BERT의 MLM은 양방향 맥락으로 가린 토큰을 맞힌다. GPT의 목표는 글 생성을, BERT의 목표는 이해를 자연스레 받친다. GPT는 토큰마다 왼쪽 맥락을 보고, BERT는 가린 자리에 대해 왼쪽과 오른쪽 맥락을 모두 본다.
+
+---
+
+**연습문제 2.**
+규모와 능력의 면에서 GPT-1에서 GPT-4까지의 흐름을 설명하라.
+
+??? success "연습문제 2 풀이"
+    GPT-1(2018)은 매개변수 1억 1700만으로 사전 학습과 미세 조정을 통한 전이 학습을 보였다. GPT-2(2019)는 15억으로 프롬프트를 통한 영 예시 과제 수행을 보였다. GPT-3(2020)은 1750억으로 소수 예시 맥락 안 학습을 들여왔다. GPT-4(2023)는 여러 양식(글과 그림)을 다루며 추론이 크게 나아졌다.
+
+---
+
+**연습문제 3.**
+파이토치에서 간단한 GPT 방식 디코더 블록을 구현하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    class GPTBlock(nn.Module):
+        def __init__(self, d, h):
+            super().__init__()
+            self.ln1 = nn.LayerNorm(d)
+            self.attn = nn.MultiheadAttention(d, h, batch_first=True)
+            self.ln2 = nn.LayerNorm(d)
+            self.ffn = nn.Sequential(nn.Linear(d, 4*d), nn.GELU(), nn.Linear(4*d, d))
+        def forward(self, x, mask):
+            x = x + self.attn(self.ln1(x), self.ln1(x), self.ln1(x), attn_mask=mask)[0]
+            x = x + self.ffn(self.ln2(x))
+            return x
+    ```
+
+---
+
+**연습문제 4.**
+대형 언어 모형의 '창발 능력' 개념을 설명하라.
+
+??? success "연습문제 4 풀이"
+    창발 능력이란 모형의 규모가 커질 때 갑자기 나타나며 작은 모형에는 없는 능력이다. 생각의 사슬 추론(매개변수 약 1000억), 소수 예시 학습(약 100억), 지시 따르기가 그 보기이다. 그 얼개는 논란거리이다. 매끄러운 능력 곡선을 끊긴 지표로 잰 탓이라는 주장도 있다(Schaeffer 외, 2023).

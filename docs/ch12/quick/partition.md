@@ -1,18 +1,18 @@
-# The Partition Procedure
+# 나눔 절차
 
-Quicksort's performance depends entirely on a single subroutine: **partition**.  Given a **pivot** element, partition rearranges the array so that all elements smaller than the pivot appear before it and all elements larger appear after it.  After partitioning, the pivot is in its final sorted position, and the algorithm recurses on the two sides independently.  The efficiency of quicksort -- its $O(n \log n)$ average case and $O(n^2)$ worst case -- is determined by how well the partition divides the array.
+빠른 정렬의 성능은 오로지 부분 절차 하나, 곧 **나눔**에 달렸다. **축** 원소가 주어지면 나눔은 축보다 작은 원소는 모두 앞에, 큰 원소는 모두 뒤에 오도록 배열을 다시 늘어놓는다. 나눈 뒤 축은 정렬된 마지막 자리에 놓이고, 알고리즘은 양쪽에서 따로 되돌이한다. 빠른 정렬의 효율, 곧 평균 $O(n \log n)$과 최악 $O(n^2)$은 나눔이 배열을 얼마나 잘 가르느냐로 정해진다.
 
-## The Partition Contract
+## 나눔의 약속
 
-Given an array $A[\ell..r]$ and a pivot value $p$, the partition procedure returns an index $q$ such that:
+배열 $A[\ell..r]$과 축 값 $p$이 주어지면 나눔 절차는 다음을 만족하는 첨자 $q$을 되돌린다.
 
-- $A[i] \leq p$ for all $i \in [\ell, q-1]$
-- $A[q] = p$
-- $A[j] > p$ for all $j \in [q+1, r]$
+- 모든 $i \in [\ell, q-1]$에 대해 $A[i] \leq p$이다
+- $A[q] = p$이다
+- 모든 $j \in [q+1, r]$에 대해 $A[j] > p$이다
 
-After partition, $A[q]$ is in its correct sorted position and never moves again.  The two subarrays $A[\ell..q-1]$ and $A[q+1..r]$ can then be sorted independently.
+나눈 뒤 $A[q]$은 정렬된 제자리에 있고 다시는 움직이지 않는다. 그러면 부분 배열 $A[\ell..q-1]$과 $A[q+1..r]$을 따로 정렬할 수 있다.
 
-## How Quicksort Uses Partition
+## 빠른 정렬이 나눔을 쓰는 얼개
 
 ```
 QUICKSORT(A, left, right):
@@ -22,78 +22,78 @@ QUICKSORT(A, left, right):
         QUICKSORT(A, q + 1, right)
 ```
 
-The recursion has no combine step -- once both sides are sorted, the entire array is sorted because the pivot is already in place.  This makes quicksort a **conquer-then-divide** algorithm rather than the traditional divide-and-conquer pattern of merge sort.
+이 되돌이에는 합치는 걸음이 없다. 양쪽이 정렬되면 축은 이미 제자리에 있으므로 배열 전체가 정렬된다. 그래서 빠른 정렬은 병합 정렬의 여느 나누어 정복하기 본새가 아니라 **정복하고 나누는** 알고리즘이 된다.
 
-## Partition Variants
+## 나눔의 변형
 
-Several partition schemes exist, each with different trade-offs:
+나눔 방식은 여럿이며 저마다 맞바꿈이 다르다.
 
-| Scheme      | Pivot position | Pointer movement | Swaps | Stable |
+| 방식 | 축의 자리 | 가리개 움직임 | 맞바꿈 | 안정성 |
 |-------------|---------------|------------------|-------|--------|
-| Lomuto      | Last element  | One pointer left-to-right | More | No |
-| Hoare       | First element | Two pointers inward | Fewer | No |
-| Three-way   | Any           | Three regions | Handles duplicates | No |
-| Dual-pivot  | Two pivots    | Three pointers | Three regions | No |
+| 로무토 | 마지막 원소 | 가리개 하나가 왼쪽에서 오른쪽으로 | 많음 | 아니오 |
+| 호어 | 첫 원소 | 가리개 둘이 안쪽으로 | 적음 | 아니오 |
+| 세 갈래 | 아무 원소 | 세 자리 | 같은 값을 잘 다룸 | 아니오 |
+| 두 축 | 축 둘 | 가리개 셋 | 세 자리 | 아니오 |
 
-Each variant is covered in detail on its own page.
+변형마다 제 쪽에서 자세히 다룬다.
 
-## Partition Quality and Quicksort Performance
+## 나눔의 질과 빠른 정렬의 성능
 
-The quality of a partition is measured by how evenly it splits the array.  Let $q$ be the partition index for an array of size $n$:
+나눔의 질은 배열을 얼마나 고르게 쪼개느냐로 잰다. 크기 $n$인 배열의 나눔 첨자를 $q$이라 하자.
 
-**Balanced partition** ($q \approx n/2$): both subarrays have roughly $n/2$ elements, giving $O(\log n)$ recursion depth and $O(n \log n)$ total time.
+**고른 나눔**($q \approx n/2$): 두 부분 배열의 원소가 대략 $n/2$개씩이라 되돌이 깊이가 $O(\log n)$이고 전체 시간이 $O(n \log n)$이다.
 
-**Unbalanced partition** ($q = 0$ or $q = n-1$): one subarray is empty and the other has $n-1$ elements, giving $O(n)$ recursion depth and $O(n^2)$ total time.
+**치우친 나눔**($q = 0$이거나 $q = n-1$): 한쪽은 비고 다른 쪽에 원소가 $n-1$개라 되돌이 깊이가 $O(n)$이고 전체 시간이 $O(n^2)$이다.
 
-Even a constant-fraction split (e.g., 10%/90%) still gives $O(n \log n)$ time, because the recursion tree has $O(\log n)$ levels:
+일정한 비율로만 쪼개져도(이를테면 10%/90%) 되돌이 트리의 층이 $O(\log n)$개이므로 여전히 $O(n \log n)$ 시간이다.
 
 $$
 T(n) = T(n/10) + T(9n/10) + O(n) = O(n \log n)
 $$
 
-The worst case occurs only when **every** partition produces the maximally unbalanced split.
+최악의 경우는 나눔**마다** 가장 치우친 쪼갬이 나올 때에만 일어난다.
 
-!!! warning "Worst-case triggers"
-    A naive pivot choice (always first or last element) hits $O(n^2)$ on already-sorted or reverse-sorted input.  Randomized pivot selection or median-of-three avoids this in practice.
+!!! warning "최악의 경우를 부르는 것"
+    소박하게 축을 고르면(늘 첫 원소나 마지막 원소) 이미 정렬되었거나 거꾸로 정렬된 입력에서 $O(n^2)$에 부딪친다. 무작위 축 고르기나 셋의 중앙값이 실전에서 이를 피한다.
 
-## Step-by-Step Partition Example
+## 한 걸음씩 보는 나눔 보기
 
-Partition $A = [7, 2, 1, 6, 8, 5, 3, 4]$ using pivot $p = A[7] = 4$ (Lomuto-style, last element):
+축 $p = A[7] = 4$(로무토식, 마지막 원소)으로 $A = [7, 2, 1, 6, 8, 5, 3, 4]$을 나누어 보자.
 
-| Step | Compare | Action                  | Array state              | $i$ |
+| 걸음 | 견줌 | 하는 일 | 배열 상태 | $i$ |
 |------|---------|-------------------------|--------------------------|-----|
-| 1    | $7 > 4$ | skip                    | $[7, 2, 1, 6, 8, 5, 3, 4]$ | 0 |
-| 2    | $2 \leq 4$ | swap $A[0]$ and $A[1]$ | $[2, 7, 1, 6, 8, 5, 3, 4]$ | 1 |
-| 3    | $1 \leq 4$ | swap $A[1]$ and $A[2]$ | $[2, 1, 7, 6, 8, 5, 3, 4]$ | 2 |
-| 4    | $6 > 4$ | skip                    | $[2, 1, 7, 6, 8, 5, 3, 4]$ | 2 |
-| 5    | $8 > 4$ | skip                    | $[2, 1, 7, 6, 8, 5, 3, 4]$ | 2 |
-| 6    | $5 > 4$ | skip                    | $[2, 1, 7, 6, 8, 5, 3, 4]$ | 2 |
-| 7    | $3 \leq 4$ | swap $A[2]$ and $A[6]$ | $[2, 1, 3, 6, 8, 5, 7, 4]$ | 3 |
-| Final| --      | swap pivot into position | $[2, 1, 3, \mathbf{4}, 8, 5, 7, 6]$ | 3 |
+| 1 | $7 > 4$ | 건너뜀 | $[7, 2, 1, 6, 8, 5, 3, 4]$ | 0 |
+| 2 | $2 \leq 4$ | $A[0]$과 $A[1]$ 맞바꿈 | $[2, 7, 1, 6, 8, 5, 3, 4]$ | 1 |
+| 3 | $1 \leq 4$ | $A[1]$과 $A[2]$ 맞바꿈 | $[2, 1, 7, 6, 8, 5, 3, 4]$ | 2 |
+| 4 | $6 > 4$ | 건너뜀 | $[2, 1, 7, 6, 8, 5, 3, 4]$ | 2 |
+| 5 | $8 > 4$ | 건너뜀 | $[2, 1, 7, 6, 8, 5, 3, 4]$ | 2 |
+| 6 | $5 > 4$ | 건너뜀 | $[2, 1, 7, 6, 8, 5, 3, 4]$ | 2 |
+| 7 | $3 \leq 4$ | $A[2]$과 $A[6]$ 맞바꿈 | $[2, 1, 3, 6, 8, 5, 7, 4]$ | 3 |
+| 마지막 | -- | 축을 제자리로 맞바꿈 | $[2, 1, 3, \mathbf{4}, 8, 5, 7, 6]$ | 3 |
 
-The pivot 4 is now at index 3, with all smaller elements to its left and all larger elements to its right.
+이제 축 4가 첨자 3에 있고, 더 작은 원소는 모두 왼쪽에, 더 큰 원소는 모두 오른쪽에 있다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-The partition procedure for quicksort.
+빠른 정렬의 나눔 절차.
 
-Demonstrates how partition rearranges an array around a pivot element,
-placing the pivot in its final sorted position.  Includes both
-Lomuto-style and a simple list-comprehension variant for clarity.
+나눔이 축 원소를 중심으로 배열을 다시 늘어놓아 축을 정렬된 마지막
+자리에 놓는 모습을 보여 준다. 또렷이 보이도록 로무토식과
+단순한 리스트 축약 변형을 모두 담았다.
 """
 
 
-# === Lomuto partition =========================================================
+# === 로무토 나눔 ==============================================================
 
 def lomuto_partition(arr: list, left: int, right: int) -> int:
-    """Partition arr[left..right] using the last element as pivot.
+    """마지막 원소를 축으로 삼아 arr[left..right]을 나눈다.
 
-    Returns the final index of the pivot element.
+    축 원소의 마지막 첨자를 되돌린다.
 
-    All elements at indices < pivot_index are <= pivot.
-    All elements at indices > pivot_index are > pivot.
+    첨자가 pivot_index보다 작은 원소는 모두 축보다 작거나 같다.
+    첨자가 pivot_index보다 큰 원소는 모두 축보다 크다.
     """
     pivot = arr[right]
     i = left
@@ -105,10 +105,10 @@ def lomuto_partition(arr: list, left: int, right: int) -> int:
     return i
 
 
-# === Quicksort using partition ================================================
+# === 나눔을 쓰는 빠른 정렬 ====================================================
 
 def quicksort(arr: list, left: int = 0, right: int = None) -> None:
-    """Sort arr[left..right] in place using quicksort with Lomuto partition."""
+    """로무토 나눔을 쓰는 빠른 정렬로 arr[left..right]을 제자리에서 정렬한다."""
     if right is None:
         right = len(arr) - 1
     if left < right:
@@ -117,10 +117,10 @@ def quicksort(arr: list, left: int = 0, right: int = None) -> None:
         quicksort(arr, pivot_idx + 1, right)
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
-    # Demonstrate partition
+    # 나눔을 보여 준다
     data = [7, 2, 1, 6, 8, 5, 3, 4]
     print(f"Before partition: {data}")
     pivot_pos = lomuto_partition(data, 0, len(data) - 1)
@@ -128,14 +128,14 @@ if __name__ == "__main__":
     print(f"Pivot index: {pivot_pos}, pivot value: {data[pivot_pos]}")
     print()
 
-    # Full quicksort
+    # 온전한 빠른 정렬
     data2 = [38, 27, 43, 3, 9, 82, 10]
     print(f"Before sort: {data2}")
     quicksort(data2)
     print(f"After sort:  {data2}")
 ```
 
-**Output:**
+**출력:**
 ```
 Before partition: [7, 2, 1, 6, 8, 5, 3, 4]
 After partition:  [2, 1, 3, 4, 8, 5, 7, 6]
@@ -145,8 +145,41 @@ Before sort: [38, 27, 43, 3, 9, 82, 10]
 After sort:  [3, 9, 10, 27, 38, 43, 82]
 ```
 
-## References
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Section 7.1.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, 7.1절.
 - Hoare, C. A. R. (1962). Quicksort. *The Computer Journal*, 5(1), 10-16.
-- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, Section 2.3.
+- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, 2.3절.
+
+
+## 연습문제
+
+**연습문제 1.**
+$[38, 27, 43, 3, 9, 82, 10]$에서 나눔 절차를 따라가며 큰 걸음마다의 상태를 보여라.
+
+??? success "연습문제 1 풀이"
+    알고리즘을 한 걸음씩 밟아라. 나누어 정복하는 정렬이라면 되돌이 나눔과 병합을 하나씩 보이고, 나눔 기반 정렬이라면 나눔마다와 축이 놓이는 자리를 보여라. 걸음마다 배열 전체의 상태를 내보여라.
+
+---
+
+**연습문제 2.**
+나눔 절차의 최선, 최악, 평균의 경우 시간 복잡도를 끌어내라.
+
+??? success "연습문제 2 풀이"
+    경우마다 점화식을 써라. 최선의 경우는 가장 좋은 나눔이거나 미리 정렬된 입력이다. 최악의 경우는 일을 가장 크게 만드는 적수 입력이다. 평균의 경우는 무작위 순열에 대한 기대 성능이다. 점화식을 각각 풀어라.
+
+---
+
+**연습문제 3.**
+나눔 절차는 안정적인가? 증명하거나 반례를 들어라.
+
+??? success "연습문제 3 풀이"
+    같은 원소가 본디 상대 차례를 지키면 그 정렬은 안정적이다. 모든 입력에서 이것이 성립함을 증명하거나, 정렬 도중 같은 원소 둘의 자리가 뒤바뀌는 구체적인 입력을 들어라.
+
+---
+
+**연습문제 4.**
+float32 학습 손실 값 1000만 개를 정렬할 때 나눔 절차를 다른 두 방법과 견주어라. 시간, 공간, 캐시 거동, GPU 어울림을 살펴라.
+
+??? success "연습문제 4 풀이"
+    $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.

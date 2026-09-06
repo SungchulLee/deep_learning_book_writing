@@ -1,48 +1,43 @@
-# Transformer Machine Translation
+# 변환기 기계 옮김
+## 학습 목표
 
+- 기계 옮김의 여러 머리 스스로 눈길을 이해한다
+- 변환기가 왜 되돌이 그물 바탕 기계 옮김을 갈음했는지 헤아린다
+- WMT 잣대 결과를 살펴본다
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 되돌이 그물에서 변환기로
 
-## Learning Objectives
+되돌이 그물 바탕 기계 옮김은 토막을 차례차례 다루므로 익히는 동안 나란히 할 수 없다. 변환기(Vaswani 외, 2017)는 되돌이를 스스로 눈길로 아예 갈음해 온전히 나란히 할 수 있게 한다.
 
-- Understand multi-head self-attention for MT
-- Appreciate why Transformers replaced RNN-based MT
-- Review WMT benchmark results
+## 여러 머리 스스로 눈길
 
-## From RNNs to Transformers
-
-RNN-based MT processes tokens sequentially, preventing parallelization during training. The Transformer (Vaswani et al., 2017) replaces recurrence entirely with self-attention, enabling full parallelism.
-
-## Multi-Head Self-Attention
-
-### Scaled Dot-Product Attention
+### 배율 조정 내적 어텐션
 
 $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
 
-### Multi-Head Attention
+### 여러 머리 눈길
 
 $$\text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O$$
 
-where each head applies attention with different learned projections:
+여기서 머리마다 서로 다른 배운 내리쬐기로 눈길을 준다:
 
 $$\text{head}_i = \text{Attention}(QW_i^Q, KW_i^K, VW_i^V)$$
 
-Multiple heads allow the model to attend to different aspects simultaneously — one head might capture syntactic structure while another captures semantic similarity.
+머리가 여럿이면 모델이 여러 면에 한꺼번에 눈길을 줄 수 있다. 곧 한 머리는 월의 짜임을, 다른 머리는 뜻의 닮음을 담아낼 수 있다.
 
-## Transformer Architecture for MT
+## 기계 옮김을 위한 변환기 얼개
 
-### Encoder
+### 부호기
 
-Each layer contains: multi-head self-attention + feed-forward network, with residual connections and layer normalization:
+층마다 여러 머리 스스로 눈길과 앞먹임 그물이 있고, 잔차 이음과 층 고르게 맞추기가 함께 있다:
 
 $$\mathbf{h}' = \text{LayerNorm}(\mathbf{h} + \text{MultiHead}(\mathbf{h}, \mathbf{h}, \mathbf{h}))$$
 
 $$\mathbf{h}'' = \text{LayerNorm}(\mathbf{h}' + \text{FFN}(\mathbf{h}'))$$
 
-### Decoder
+### 풀개
 
-Each layer adds **cross-attention** over encoder outputs:
+층마다 부호기의 내놓음에 대한 **엇갈린 눈길**을 더한다:
 
 $$\mathbf{s}' = \text{LayerNorm}(\mathbf{s} + \text{MaskedMultiHead}(\mathbf{s}, \mathbf{s}, \mathbf{s}))$$
 
@@ -50,43 +45,75 @@ $$\mathbf{s}'' = \text{LayerNorm}(\mathbf{s}' + \text{MultiHead}(\mathbf{s}', \m
 
 $$\mathbf{s}''' = \text{LayerNorm}(\mathbf{s}'' + \text{FFN}(\mathbf{s}''))$$
 
-Masked self-attention prevents the decoder from attending to future positions during training.
+가린 스스로 눈길은 익히는 동안 풀개가 앞으로 올 자리에 눈길을 주지 못하게 막는다.
 
-## Key Innovations
+## 핵심 혁신
 
-### Positional Encoding
+### 자리 부호
 
-Since self-attention is permutation-invariant, positional encodings inject sequence order:
+스스로 눈길은 자리바꿈에 안 바뀌므로 자리 부호가 차례의 순서를 넣어 준다:
 
 $$PE_{(pos, 2i)} = \sin(pos / 10000^{2i/d_{\text{model}}})$$
 
 $$PE_{(pos, 2i+1)} = \cos(pos / 10000^{2i/d_{\text{model}}})$$
 
-### Label Smoothing
+### 레이블 평활화
 
-Softens the training target from one-hot to a smoothed distribution, improving generalization:
+익힘 목표를 원핫에서 부드러운 분포로 누그러뜨려 두루 통함을 낫게 한다:
 
 $$q(k) = (1 - \epsilon) \cdot \mathbf{1}[k = y] + \frac{\epsilon}{|\mathcal{V}|}$$
 
-## WMT Benchmark Results
+## WMT 잣대 결과
 
-| Model | EN-DE BLEU | EN-FR BLEU | Parameters |
+| 모델 | 영-독 BLEU | 영-불 BLEU | 매개변수 |
 |-------|-----------|-----------|------------|
-| Transformer Base | 27.3 | 38.1 | 65M |
-| Transformer Big | 28.4 | 41.0 | 213M |
-| mBART | 30.5 | -- | 680M |
-| NLLB-200 | 31.2 | 43.5 | 3.3B |
+| 변환기 기본 | 27.3 | 38.1 | 6500만 |
+| 변환기 대형 | 28.4 | 41.0 | 2억 1300만 |
+| mBART | 30.5 | -- | 6억 8000만 |
+| NLLB-200 | 31.2 | 43.5 | 33억 |
 
-## Advantages Over RNN-Based MT
+## 되돌이 그물 바탕 기계 옮김보다 나은 점
 
-| Aspect | RNN | Transformer |
+| 갈래 | 되돌이 그물 | 변환기 |
 |--------|-----|-------------|
-| Parallelism | Sequential | Fully parallel |
-| Long-range deps | Gradient issues | Direct attention |
-| Training speed | Slow | Fast |
+| 나란함 | 차례차례 | 온전히 나란히 |
+| 먼 거리 얽힘 | 기울기 탈 | 곧바른 눈길 |
+| 익히기 빠르기 | 느림 | 빠름 |
 | Memory | O(1) per step | O(n^2) attention |
 
-## References
+## 참고 문헌
 
 1. Vaswani, A., et al. (2017). Attention Is All You Need. *NeurIPS*.
 2. Ott, M., et al. (2018). Scaling Neural Machine Translation. *WMT*.
+
+## 연습문제
+
+**연습문제 1.**
+신경 기계 옮김의 부호기-풀개 얼개와 눈길의 몫을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    부호기는 원문 월을 숨은 상태의 차례로 다룬다. 풀개는 원문의 알맞은 부분에 눈길을 주며 목표 월을 토막 하나씩 만들어 낸다. 눈길이 없으면 풀개는 오직 붙박이 길이의 맥락 벡터(부호기의 마지막 숨은 상태)에만 기대게 되어 긴 월에서 병목이 생긴다. **눈길**은 풀기 걸음마다 모든 부호기 상태의 무게 합을 셈하며, 그 무게는 원문의 자리마다 지금 목표 자리와 얼마나 맞닿는지를 나타낸다. 덕분에 모델이 원문 토막과 목표 토막을 그때그때 맞출 수 있다.
+
+---
+
+**연습문제 2.**
+변환기 얼개는 기계 옮김에서 되돌이 그물 바탕 차례에서 차례로 모델을 어떻게 낫게 하는가?
+
+??? success "연습문제 2 풀이"
+    핵심 나아짐: (1) **나란히 하기**: 차례차례 다루는 되돌이 그물과 달리 스스로 눈길은 모든 자리를 한꺼번에 다루어 GPU에서 훨씬 빨리 익힌다. (2) **먼 거리 얽힘**: 눈길은 어느 두 자리든 $O(1)$번의 연산으로 잇는데(되돌이 그물은 $O(n)$), 먼 거리 관계를 더 잘 담아낸다. (3) **여러 머리 눈길**: 머리마다 서로 다른 면(월의 짜임, 뜻)에 한꺼번에 눈길을 줄 수 있다. (4) **자리 부호**: 되돌이 없이 차례의 순서를 넣어 준다. 변환기는 익히는 시간을 크게 줄이면서 더 높은 BLEU 점수를 얻는다.
+
+---
+
+**연습문제 3.**
+BLEU 점수를 정의하여라. 기계 옮김 잣대로서 알려진 한계는 무엇인가?
+
+??? success "연습문제 3 풀이"
+    BLEU computes modified $n$-gram precision (clipped to reference counts) for $n = 1, \ldots, N$ and combines them geometrically with a brevity penalty: $\text{BLEU} = BP \cdot \exp\left(\sum_{n=1}^N w_n \log p_n\right)$. **Limitations**: (1) only measures precision, ignoring recall (a translation can score high by being very short), (2) treats all $n$-grams equally regardless of semantic importance, (3) does not handle synonyms or paraphrases, (4) correlates poorly with human judgments at the sentence level, and (5) the brevity penalty is a crude proxy for adequacy.
+
+---
+
+**연습문제 4.**
+자기되돌리기 기계 옮김의 드러남 치우침 문제란 무엇인가? 빔 찾기는 이를 어떻게 얼마간 다루는가?
+
+??? success "연습문제 4 풀이"
+    익히는 동안 풀개는 참값 토막을 들임으로 본다(스승이 이끌기). 그러나 미룸 때에는 (틀렸을 수도 있는) 제 어림에 조건을 건다. 이 어긋남이 **드러남 치우침**이다. 곧 모델이 제 잘못에서 돌아오는 법을 배운 적이 없어 어긋남이 쌓인다. **빔 찾기**는 걸음마다 옮김 후보 $k$개를 지니고 점수가 가장 높은 온전한 차례를 골라, 잘못된 길 하나에 붙들릴 가능성을 줄여 이를 얼마간 덜어 준다. 그러나 빔 찾기는 익히기와 미룸 사이의 밑바탕 어긋남을 풀지 못한다. 일정에 따른 표집이나 북돋움 배움 같은 재주가 더 곧바른 풀이를 준다.

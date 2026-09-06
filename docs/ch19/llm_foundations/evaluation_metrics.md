@@ -1,55 +1,50 @@
-# Evaluation Metrics
+# 값매김 잣대
+## 개요
 
+큰 말 모델의 값매김은 유난히 어렵다. 사실 물음 답하기부터 창작 글쓰기, 코드 만들기, 여러 차례 대화까지 엄청나게 넓은 일에 쓰이는데 그 모두에 걸쳐 좋음을 담아내는 잣대는 하나도 없기 때문이다. 이 절은 값매김의 세 기둥을 다룬다. 곧 말 나타내기의 좋음을 재는 **내재 잣대**, 특정 능력의 성능을 재는 **일별 잣대**, 자동 잣대가 놓치는 미묘한 좋음의 갈래를 담아내는 **사람의 값매김** 절차이다. 또 갈수록 커지는 **큰 말 모델을 심판으로 쓰기**의 몫과 모델을 견주는 데 쓰는 주요 **잣대**도 다룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-Evaluating large language models is uniquely challenging because LLMs are used for an enormous range of tasks — from factual question answering to creative writing, code generation to multi-turn dialogue — and no single metric captures quality across all of them. This section covers the three pillars of LLM evaluation: **intrinsic metrics** that measure language modeling quality, **task-specific metrics** that assess performance on particular capabilities, and **human evaluation** protocols that capture the nuanced quality dimensions that automatic metrics miss. We also cover the growing role of **LLM-as-judge** evaluation and the major **benchmarks** used to compare models.
-
-The evaluation methods here apply to base language models (assessed during [pretraining](pretraining_objectives.md)), to instruction-tuned models (assessed on [prompting](../prompting/prompting_overview.md) tasks), and to aligned assistants (assessed on the alignment objectives of helpfulness, harmlessness, and honesty).
+여기의 값매김 방법은 (미리 익히는 동안 살피는) [바탕 말 모델](pretraining_objectives.md), ([시킴말](../prompting/prompting_overview.md) 일로 살피는) 시킴에 맞춰 다듬은 모델, 도움됨·해롭지 않음·정직함이라는 결 맞추기 목표로 살피는 결 맞춘 도우미에 모두 쓴다.
 
 ---
 
-## 1. Intrinsic Metrics
+## 1. 내재 잣대
 
-Intrinsic metrics evaluate the language model's core capability: predicting text.
+내재 잣대는 말 모델의 고갱이 능력, 곧 글을 어림하는 힘을 값매김한다.
 
-### 1.1 Perplexity
+### 1.1 헷갈림도
 
-**Perplexity (PPL)** is the standard intrinsic metric for language models. It measures how well the model predicts a held-out test set, defined as the exponentiated average negative log-likelihood:
+**헷갈림도(PPL)**는 말 모델의 표준 내재 잣대이다. 모델이 남겨 둔 시험 뭉치를 얼마나 잘 어림하는지 재며, 평균 음의 로그 가능도의 지수로 정의한다:
 
 $$\text{PPL} = \exp\!\left(-\frac{1}{T}\sum_{t=1}^{T} \log p_\theta(x_t \mid x_{<t})\right)$$
 
-where $T$ is the total number of tokens in the test set.
+여기서 $T$은 시험 뭉치의 전체 토막 수이다.
 
-**Interpretation**: Perplexity equals the effective vocabulary size the model is "choosing from" at each step. A perplexity of 20 means the model is, on average, as uncertain as if choosing uniformly among 20 equally likely tokens. Lower is better.
+**읽는 법**: 헷갈림도는 모델이 걸음마다 "고르는" 실효 낱말 곳간의 크기와 같다. 헷갈림도 20은 모델이 평균적으로 똑같이 그럴듯한 토막 20개에서 고르게 고르는 것만큼 흔들린다는 뜻이다. 낮을수록 좋다.
 
 **Relationship to cross-entropy**: Perplexity is $2^H$ where $H$ is the cross-entropy in bits per token, or equivalently $e^{H'}$ where $H'$ is cross-entropy in nats. The [scaling laws](../scaling/scaling_overview.md) predict that perplexity decreases as a power law with model size and training data.
 
-**Bits per byte (BPB)**: Because perplexity depends on the tokenizer (models with larger vocabularies tend to have lower perplexity per token), **bits per byte** provides a tokenizer-independent comparison:
+**바이트당 비트(BPB)**: 헷갈림도는 토막내개에 달렸으므로(곳간이 큰 모델은 토막당 헷갈림도가 낮은 편이다) **바이트당 비트**가 토막내개에 매이지 않는 견줌을 준다:
 
 $$\text{BPB} = \frac{\text{total cross-entropy (bits)}}{\text{total bytes in test set}}$$
 
-This normalizes by the raw data size rather than the number of tokens. BPB is used in the Chinchilla scaling analysis for fair comparison across models with different tokenizers (see Tokenization and Scale).
+이는 토막의 수가 아니라 날 자료의 크기로 고르게 맞춘다. 바이트당 비트는 토막내개가 다른 모델을 공정하게 견주려 친칠라 규모 살피기에 쓰인다(토막내기와 규모를 보라).
 
-### 1.2 Limitations of Perplexity
+### 1.2 헷갈림도의 한계
 
-| Limitation | Explanation |
+| 한계 | 풀이 |
 |-----------|-------------|
-| Doesn't measure task quality | Low perplexity ≠ helpful, safe, or accurate responses |
-| Tokenizer-dependent | Different tokenizers produce different perplexity values for the same model quality |
-| Distribution-dependent | Perplexity on one test set may not predict performance on another domain |
-| Not comparable across architectures | Decoder-only, encoder-only, and encoder-decoder models have different likelihood formulations |
+| 일의 좋음을 재지 않는다 | 낮은 헷갈림도 ≠ 도움되고 안전하고 정확한 답 |
+| 토막내개에 매인다 | 모델의 좋음이 같아도 토막내개가 다르면 헷갈림도 값이 다르다 |
+| 분포에 매인다 | 한 시험 뭉치의 헷갈림도가 다른 분야의 성능을 어림하지 못할 수 있다 |
+| 얼개가 다르면 견줄 수 없다 | 풀개만, 부호기만, 부호기-풀개 모델은 가능도 세우기가 다르다 |
 
-Perplexity is essential for monitoring [pretraining](pretraining_objectives.md) progress and validating [scaling laws](../scaling/model_vs_data.md), but insufficient for evaluating the downstream usefulness of an LLM.
+헷갈림도는 [미리 익히기](pretraining_objectives.md)의 나아감을 지켜보고 [규모 법칙](../scaling/model_vs_data.md)을 확인하는 데 꼭 필요하지만, 큰 말 모델이 뒤따르는 일에 얼마나 쓸모 있는지를 값매김하기에는 모자란다.
 
 ---
 
-## 2. Reference-Based Text Metrics
+## 2. 견줄 글에 바탕한 잣대
 
-These metrics compare generated text against one or more reference outputs. They were developed for tasks like machine translation and summarization where reference answers exist.
+이 잣대는 만든 글을 하나 이상의 견줄 내놓음과 견준다. 견줄 답이 있는 기계 옮김이나 간추리기 같은 일을 위해 나왔다.
 
 ### 2.1 BLEU
 
@@ -57,19 +52,19 @@ These metrics compare generated text against one or more reference outputs. They
 
 $$\text{BLEU} = \text{BP} \cdot \exp\!\left(\sum_{n=1}^{N} w_n \log p_n\right)$$
 
-where $p_n$ is the modified $n$-gram precision (each $n$-gram counted at most as many times as it appears in the reference), $w_n = 1/N$ are uniform weights, and BP is the **brevity penalty**:
+여기서 $p_n$은 고친 $n$-그램 정밀도이고(각 $n$-그램은 견줄 글에 나오는 횟수까지만 센다), $w_n = 1/N$은 고른 무게이며, BP는 **짧음 벌주기**이다:
 
 $$\text{BP} = \begin{cases} 1 & \text{if } |\hat{y}| \geq |y| \\ \exp(1 - |y|/|\hat{y}|) & \text{if } |\hat{y}| < |y| \end{cases}$$
 
 ### 2.2 ROUGE
 
-**ROUGE** (Recall-Oriented Understudy for Gisting Evaluation; Lin, 2004) emphasizes recall. The most common variants:
+**ROUGE**(Lin, 2004)는 재현율을 앞세운다. 가장 흔한 변종은 다음과 같다:
 
-| Variant | Measures | Best For |
+| 변종 | 재는 것 | 알맞은 곳 |
 |---------|----------|----------|
-| ROUGE-1 | Unigram overlap | Content coverage |
-| ROUGE-2 | Bigram overlap | Fluency + content |
-| ROUGE-L | Longest common subsequence | Sequence-level structure |
+| ROUGE-1 | 유니그램 겹침 | 내용 덮음 |
+| ROUGE-2 | 바이그램 겹침 | 매끄러움 + 내용 |
+| ROUGE-L | 가장 긴 공통 부분 차례 | 차례 수준의 짜임 |
 
 $$\text{ROUGE-L} = \frac{(1 + \beta^2) \cdot P_{\text{lcs}} \cdot R_{\text{lcs}}}{R_{\text{lcs}} + \beta^2 \cdot P_{\text{lcs}}}$$
 
@@ -77,112 +72,112 @@ where $R_{\text{lcs}} = \text{LCS}(\hat{y}, y) / |y|$ and $P_{\text{lcs}} = \tex
 
 ### 2.3 BERTScore
 
-**BERTScore** (Zhang et al., 2020) computes semantic similarity in a learned embedding space, addressing the lexical mismatch problem of BLEU and ROUGE:
+**BERTScore**(Zhang 외, 2020)는 배운 묻힘 공간에서 뜻의 닮음을 셈해 BLEU와 ROUGE의 낱말 어긋남 문제를 다룬다:
 
 $$P_{\text{BERT}} = \frac{1}{|\hat{y}|}\sum_{i} \max_{j}\cos(\hat{\mathbf{e}}_i, \mathbf{e}_j), \quad R_{\text{BERT}} = \frac{1}{|y|}\sum_{j} \max_{i}\cos(\hat{\mathbf{e}}_i, \mathbf{e}_j)$$
 
 $$F_{\text{BERT}} = 2 \cdot \frac{P_{\text{BERT}} \cdot R_{\text{BERT}}}{P_{\text{BERT}} + R_{\text{BERT}}}$$
 
-BERTScore correlates more strongly with human judgments than $n$-gram metrics because semantically equivalent but lexically different outputs receive high scores.
+뜻은 같지만 낱말이 다른 내놓음도 높은 점수를 받으므로 BERTScore는 $n$-그램 잣대보다 사람의 판단과 더 잘 맞물린다.
 
-### 2.4 When Reference-Based Metrics Fail
+### 2.4 견줄 글 바탕 잣대가 어그러질 때
 
-All reference-based metrics share a fundamental limitation for LLM evaluation: **many valid outputs exist for any given prompt**. In open-ended generation, dialogue, or creative tasks, comparing against a single reference penalizes valid alternative responses. This is why LLM evaluation has shifted toward reference-free approaches (LLM-as-judge, human pairwise comparison).
+견줄 글 바탕 잣대는 큰 말 모델 값매김에서 근본 한계를 함께 지닌다. 곧 **어떤 시킴말에도 올바른 내놓음이 여럿 있다**. 열린 만들어 내기, 대화, 창작 일에서 견줄 글 하나와만 견주면 올바른 다른 답에 벌을 준다. 그래서 큰 말 모델 값매김은 견줄 글 없는 방식(큰 말 모델을 심판으로 쓰기, 사람의 짝 견줌)으로 옮겨 갔다.
 
 ---
 
-## 3. Task-Specific Evaluation
+## 3. 일별 값매김
 
-### 3.1 Knowledge and Reasoning Benchmarks
+### 3.1 앎과 따짐 잣대
 
-| Benchmark | Tasks | Format | What It Measures |
+| 잣대 | 일 | 꼴 | 재는 것 |
 |-----------|-------|--------|-----------------|
-| **MMLU** | 57 subjects (STEM, humanities, social sciences) | 4-way multiple choice | Breadth of factual knowledge |
-| **ARC** | Grade-school science questions | Multiple choice | Scientific reasoning |
-| **HellaSwag** | Sentence completion | Multiple choice | Commonsense reasoning |
-| **WinoGrande** | Pronoun disambiguation | Binary choice | Commonsense + coreference |
-| **TruthfulQA** | Questions that elicit common misconceptions | Open-ended + multiple choice | Truthfulness, resistance to common errors |
-| **GSM8K** | Grade-school math word problems | Open-ended (numeric answer) | Multi-step mathematical reasoning |
-| **MATH** | Competition-level mathematics | Open-ended (formal answer) | Advanced mathematical reasoning |
-| **BBH** (BIG-Bench Hard) | 23 challenging tasks | Mixed | Diverse reasoning capabilities |
+| **MMLU** | 57개 과목(과학기술, 인문, 사회과학) | 4지선다 | 사실 앎의 넓이 |
+| **ARC** | 초등 과학 문제 | 객관식 | 과학의 따져 봄 |
+| **HellaSwag** | 문장 이어 쓰기 | 객관식 | 상식의 따져 봄 |
+| **WinoGrande** | 대명사 가리키기 가리기 | 두 갈래 고르기 | 상식 + 같은 것 가리키기 |
+| **TruthfulQA** | 흔한 오해를 끌어내는 물음 | 열린 답 + 객관식 | 참됨, 흔한 잘못에 견딤 |
+| **GSM8K** | 초등 수학 서술형 문제 | 열린 답(수치) | 여러 걸음의 수학 따져 봄 |
+| **MATH** | 경시 수준 수학 | 열린 답(엄밀한 답) | 앞선 수학 따져 봄 |
+| **BBH**(BIG-Bench Hard) | 어려운 일 23가지 | 섞임 | 다양한 따져 봄 능력 |
 
-These benchmarks evaluate the model after [pretraining](pretraining_objectives.md) and are the primary comparison point in the [scaling laws](../scaling/scaling_overview.md) literature. Performance on many of these tasks shows [emergent abilities](../scaling/emergent_abilities.md) — sudden jumps in capability at critical model scales.
+이 잣대들은 [미리 익히기](pretraining_objectives.md) 뒤의 모델을 값매김하며 [잣수 맞추기 법칙](../scaling/scaling_overview.md) 문헌에서 으뜸가는 견줌 기준이다. 이 가운데 여러 일에서의 성능은 [떠오르는 능력](../scaling/emergent_abilities.md), 곧 결정적인 모델 규모에서 능력이 갑자기 뛰는 것을 보여 준다.
 
-### 3.2 Code Generation
+### 3.2 코드 만들기
 
-| Benchmark | Format | Metric |
+| 잣대 | 꼴 | 잣대 |
 |-----------|--------|--------|
-| **HumanEval** | Python function completion | pass@$k$ (fraction of problems solved in $k$ attempts) |
-| **MBPP** | Python function from description | pass@$k$ |
-| **SWE-bench** | Real GitHub issues → patches | Resolved rate |
+| **HumanEval** | 파이썬 함수 이어 쓰기 | pass@$k$($k$번 시도로 푼 문제의 비율) |
+| **MBPP** | 설명으로 파이썬 함수 짓기 | pass@$k$ |
+| **SWE-bench** | 실제 GitHub 이슈 → 고침 | 해결 비율 |
 
-The **pass@$k$** metric samples $k$ completions and checks if any passes the test suite:
+**pass@$k$** 잣대는 이어 쓴 것 $k$개를 뽑아 그중 하나라도 시험을 통과하는지 살핀다:
 
 $$\text{pass@}k = 1 - \frac{\binom{n-c}{k}}{\binom{n}{k}}$$
 
-where $n$ is the total number of samples and $c$ is the number that pass. This accounts for the stochastic nature of sampling (see decoding strategies in Decoder Architecture).
+여기서 $n$은 전체 표본 수, $c$은 통과한 수이다. 이는 뽑기가 확률에 맡겨진다는 점을 헤아린다(풀개 얼개의 풀기 전략을 보라).
 
-### 3.3 Instruction Following
+### 3.3 시킴 따르기
 
-| Benchmark | Format | Evaluation Method |
+| 잣대 | 꼴 | 값매김 방법 |
 |-----------|--------|------------------|
-| **MT-Bench** | 80 multi-turn questions across 8 categories | GPT-4 as judge (1–10 score) |
-| **AlpacaEval** | 805 instructions | GPT-4 pairwise comparison vs. reference |
-| **IFEval** | Verifiable instruction constraints | Automatic (did the output follow formatting rules?) |
-| **Arena-Hard** | 500 challenging user queries | GPT-4 pairwise comparison |
+| **MT-Bench** | 8갈래에 걸친 여러 차례 물음 80개 | 심판으로서의 GPT-4(1~10점) |
+| **AlpacaEval** | 시킴말 805개 | 참고와의 GPT-4 둘씩 견줌 |
+| **IFEval** | 확인할 수 있는 시킴말 제약 | 저절로(내놓기가 꾸밈 규칙을 따랐는가?) |
+| **Arena-Hard** | 어려운 쓰는 이 물음 500개 | GPT-4 둘씩 견줌 |
 
-These benchmarks evaluate instruction-tuned and aligned models — the output of the [alignment pipeline](../alignment/training_pipeline.md). They use **LLM-as-judge** evaluation (Section 5) rather than reference matching.
+이 잣대는 시킴에 맞춰 다듬고 결을 맞춘 모델, 곧 [결 맞추기 물길](../alignment/training_pipeline.md)의 내놓음을 값매김한다. 견줄 글 맞추기가 아니라 **큰 말 모델을 심판으로 쓰는** 값매김(5절)을 쓴다.
 
-### 3.4 Safety and Alignment
+### 3.4 안전과 결 맞추기
 
-| Benchmark | What It Tests |
+| 잣대 | 시험하는 것 |
 |-----------|--------------|
-| **ToxiGen** | Toxic content generation across demographics |
-| **BBQ** | Social bias in question answering |
-| **XSTest** | Exaggerated safety refusals (over-refusal) |
-| **HarmBench** | Resistance to adversarial attacks |
+| **ToxiGen** | 인구 특성에 걸친 해로운 내용 만들기 |
+| **BBQ** | 물음 답하기의 사회적 치우침 |
+| **XSTest** | 지나친 안전 거절(과잉 거절) |
+| **HarmBench** | 맞서는 공격에 견디는 힘 |
 
-Safety evaluation is integral to the alignment process. See Constitutional AI for how safety principles are formalized.
+안전 값매김은 결 맞추기 과정에 꼭 들어간다. 안전 원리를 어떻게 엄밀히 세우는지는 헌법 인공지능을 보라.
 
 ---
 
-## 4. Human Evaluation
+## 4. 사람의 값매김
 
-### 4.1 Evaluation Dimensions
+### 4.1 값매김의 갈래
 
-Human evaluation captures qualities that automatic metrics miss. The standard dimensions:
+사람의 값매김은 자동 잣대가 놓치는 좋음을 담아낸다. 표준 갈래는 다음과 같다:
 
-| Dimension | Definition | Discriminative Power |
+| 갈래 | 정의 | 가르는 힘 |
 |-----------|-----------|---------------------|
-| **Helpfulness** | Does the response accomplish the user's goal? | High — primary differentiator |
-| **Harmlessness** | Is the response free of harmful content? | High for safety-critical applications |
-| **Honesty** | Is the response factually accurate and appropriately uncertain? | High — captures hallucination |
-| **Coherence** | Is the response logically consistent with the conversation? | Medium — modern LLMs rarely fail here |
-| **Fluency** | Is the response grammatically correct and natural? | Low — modern LLMs almost always succeed |
+| **도움됨** | 답이 쓰는 이의 목표를 이루는가? | 높음 — 으뜸으로 가른다 |
+| **해롭지 않음** | 답에 해로운 내용이 없는가? | 안전이 결정적인 쓰임새에서 높음 |
+| **정직함** | 답이 사실에 맞고 알맞게 조심하는가? | 높음 — 헛것 지어내기를 담아낸다 |
+| **조리** | 답이 대화와 논리로 어긋나지 않는가? | 가운데 — 요즘 모델은 여기서 잘 어그러지지 않는다 |
+| **매끄러움** | 답이 말법에 맞고 자연스러운가? | 낮음 — 요즘 모델은 거의 늘 잘한다 |
 
-The "HHH" criteria (helpfulness, harmlessness, honesty) from Askell et al. (2021) are the guiding framework for RLHF and reward model training.
+Askell 외(2021)의 "HHH" 잣대(도움됨, 해롭지 않음, 정직함)가 사람 되먹임 북돋움 배움과 갚음 모델 익히기를 이끄는 얼거리이다.
 
-### 4.2 Evaluation Protocols
+### 4.2 값매김 절차
 
-**Likert scale rating**: Annotators rate each response on a 1–5 scale per dimension. Simple to implement but suffers from inter-annotator variance and scale calibration drift.
+**리커트 잣대 매기기**: 표시하는 사람이 갈래마다 답을 1~5로 매긴다. 짜기 쉽지만 사람마다 흩어지고 잣대의 눈금이 흘러가는 탈이 있다.
 
-**Pairwise comparison**: Annotators see two responses (from different models) side by side and select which is better. More reliable than absolute rating because comparative judgments are cognitively easier. Pairwise preferences are aggregated using the Bradley-Terry model:
+**짝 견줌**: 표시하는 사람이 (서로 다른 모델의) 답 둘을 나란히 보고 어느 쪽이 나은지 고른다. 견주는 판단이 머리 쓰기에 더 쉬우므로 절대 매김보다 믿음직하다. 짝의 뜻은 브래들리-테리 모델로 모은다:
 
 $$P(y_A \succ y_B \mid x) = \frac{\exp(R_A)}{\exp(R_A) + \exp(R_B)}$$
 
-which is the same model used to train reward models from human preferences.
+이는 사람의 뜻으로 갚음 모델을 익힐 때 쓰는 것과 같은 모델이다.
 
-**Elo rating**: Platforms like **Chatbot Arena** (Zheng et al., 2023) use crowdsourced pairwise comparisons to compute Elo ratings:
+**엘로 점수**: **Chatbot Arena**(Zheng 외, 2023) 같은 곳은 여럿이 참여한 짝 견줌으로 엘로 점수를 셈한다:
 
 $$E_A = \frac{1}{1 + 10^{(R_B - R_A)/400}}, \quad R_A' = R_A + K(S_A - E_A)$$
 
 where $R_A, R_B$ are current ratings, $E_A$ is the expected win probability, $S_A \in \{0, 0.5, 1\}$ is the outcome, and $K$ is the update step size. As of 2024, Chatbot Arena is widely considered the most reliable public ranking of LLM quality due to its large-scale, blind, user-driven evaluation.
 
-### 4.3 Inter-Annotator Agreement
+### 4.3 표시하는 사람들 사이의 일치
 
-Human evaluation requires measuring agreement to ensure reliability. Common metrics:
+사람의 값매김은 믿을 만한지 보려 일치를 재야 한다. 흔한 잣대는 다음과 같다:
 
-| Metric | Formula | Interpretation |
+| 잣대 | 식 | 읽는 법 |
 |--------|---------|---------------|
 | Cohen's $\kappa$ | $\kappa = (p_o - p_e)/(1 - p_e)$ | Chance-corrected agreement between 2 raters |
 | Fleiss' $\kappa$ | Generalization to $n$ raters | Multi-rater agreement |
@@ -192,172 +187,148 @@ Typical values for dialogue quality annotation: $\kappa \in [0.4, 0.7]$ (moderat
 
 ---
 
-## 5. LLM-as-Judge
+## 5. 큰 말 모델을 심판으로 쓰기
 
-### 5.1 Motivation
+### 5.1 왜 하는가
 
 Human evaluation is expensive (∼\$1–5 per evaluation), slow (days to weeks), and difficult to scale. **LLM-as-judge** uses a strong model (typically GPT-4) to evaluate outputs from other models, enabling fast, cheap, and reproducible evaluation.
 
-### 5.2 Approaches
+### 5.2 방식
 
-| Approach | Prompt Structure | Output |
+| 방식 | 시킴말의 짜임 | 내놓음 |
 |----------|-----------------|--------|
-| **Pointwise scoring** | "Rate this response 1–10 on helpfulness" | Single score |
-| **Pairwise comparison** | "Which response is better: A or B?" | Winner + explanation |
-| **Reference-guided** | "Compare the response to this reference answer" | Score relative to reference |
-| **Rubric-based** | "Evaluate using these specific criteria: ..." | Structured scores per criterion |
+| **낱낱 점수 매기기** | "이 답의 도움됨을 1~10으로 매겨라" | 점수 하나 |
+| **짝 견줌** | "A와 B 중 어느 답이 나은가?" | 이긴 쪽 + 풀이 |
+| **견줄 답을 준 견줌** | "이 견줄 답과 답을 견주어라" | 견줄 답 기준 점수 |
+| **채점표 바탕** | "다음 잣대로 값매김하여라: ..." | 잣대마다의 짜임 있는 점수 |
 
-### 5.3 Reliability
+### 5.3 믿음성
 
-LLM-as-judge correlates well with human evaluation (typically $r > 0.8$ for GPT-4 judging on MT-Bench) but has known biases:
+큰 말 모델을 심판으로 쓰면 사람의 값매김과 잘 맞물리지만(MT-Bench에서 GPT-4 심판은 대개 $r > 0.8$) 알려진 치우침이 있다:
 
-| Bias | Description | Mitigation |
+| 치우침 | 설명 | 덜어 내기 |
 |------|------------|-----------|
-| **Position bias** | Prefers the first response in A/B comparisons | Swap positions and average |
-| **Verbosity bias** | Prefers longer, more detailed responses | Include length control in rubric |
-| **Self-preference** | GPT-4 may prefer GPT-4 outputs | Use diverse judges |
-| **Style over substance** | Prefers well-formatted outputs regardless of accuracy | Include factuality criteria explicitly |
+| **자리 치우침** | A/B 견줌에서 첫 답을 낫게 본다 | 자리를 맞바꿔 고루낸다 |
+| **길이 치우침** | 더 길고 자세한 답을 낫게 본다 | 채점표에 길이 다스림을 넣는다 |
+| **제 편 들기** | GPT-4가 GPT-4의 내놓음을 낫게 볼 수 있다 | 여러 갈래의 심판을 쓴다 |
+| **알맹이보다 겉모습** | 정확도와 상관없이 꼴이 좋은 내놓음을 낫게 본다 | 사실다움 잣대를 드러내어 넣는다 |
 
-### 5.4 Best Practices
+### 5.4 좋은 버릇
 
-- Use **pairwise comparison** (more reliable than pointwise scoring)
-- **Swap positions** (present A-B and B-A, require consistent judgment)
-- Provide a **detailed rubric** with specific criteria
-- Use **multiple judge models** when possible
-- **Calibrate** against human judgments on a held-out subset
-- Report **confidence intervals** from bootstrap resampling
+- **짝 견줌**을 쓴다(낱낱 점수 매기기보다 믿음직하다)
+- **자리를 맞바꾼다**(A-B와 B-A로 내놓고 한결같은 판단을 요구한다)
+- 구체적인 잣대를 담은 **자세한 채점표**를 준다
+- 될 수 있으면 **심판 모델을 여럿** 쓴다
+- 남겨 둔 부분 모음에서 사람의 판단에 **눈금을 맞춘다**
+- 부트스트랩 다시 뽑기로 얻은 **믿음 구간**을 함께 알린다
 
 ---
 
-## 6. RAG Evaluation
+## 6. 찾아 붙여 만들어 내기 값매김
 
-Retrieval-augmented generation requires evaluating both the retrieval component and the generation component:
+찾아 붙여 만들어 내기는 찾기 조각과 만들어 내기 조각을 모두 값매김해야 한다:
 
-### 6.1 Retrieval Metrics
+### 6.1 찾기 잣대
 
-| Metric | Definition | What It Measures |
+| 잣대 | 정의 | 재는 것 |
 |--------|-----------|-----------------|
-| Recall@$k$ | Fraction of relevant documents in top-$k$ results | Coverage |
+| Recall@$k$ | 상위 $k$개 결과에 든 알맞은 글월의 몫 | 덮음 |
 | MRR | $1/\text{rank of first relevant result}$ | Ranking quality |
-| NDCG@$k$ | Normalized discounted cumulative gain | Graded relevance |
+| NDCG@$k$ | 고르게 맞춘 깎은 누적 이득 | 등급 매긴 맞닿음 |
 
-### 6.2 End-to-End RAG Metrics
+### 6.2 끝에서 끝까지의 잣대
 
-| Metric | Definition |
+| 지표 | 정의 |
 |--------|-----------|
-| **Faithfulness** | Is the answer supported by the retrieved documents? |
-| **Answer relevance** | Does the answer address the original question? |
-| **Context relevance** | Are the retrieved passages relevant to the question? |
+| **충실함** | 답이 찾아온 글월로 뒷받침되는가? |
+| **답의 맞닿음** | 답이 본디 물음을 다루는가? |
+| **맥락의 맞닿음** | 찾아온 글월이 물음과 맞닿는가? |
 
-The RAGAS framework (Shahul et al., 2023) provides automated evaluation of these dimensions using LLM-as-judge. For full treatment, see RAG Evaluation.
+RAGAS 얼거리(Shahul 외, 2023)는 큰 말 모델을 심판으로 써서 이 갈래를 자동으로 값매김한다. 온전한 이야기는 찾아 붙여 만들어 내기 값매김을 보라.
 
 ---
 
-## 7. Production Metrics
+## 7. 실전 잣대
 
-In deployed systems, model quality is ultimately measured by user behavior:
+펼친 체계에서 모델의 좋음은 끝내 쓰는 이의 몸짓으로 잰다:
 
-### 7.1 Explicit Feedback
+### 7.1 드러난 되먹임
 
-| Signal | Collection Method | Strength |
+| 신호 | 모으는 방법 | 세기 |
 |--------|------------------|----------|
-| Thumbs up/down | In-interface buttons | Direct but sparse; binary |
-| Star ratings | Post-interaction survey | More granular; low response rate |
-| Free-text feedback | Comment boxes | Rich but unstructured |
-| Escalation to human | Transfer requests | Strong negative signal |
+| 좋아요/싫어요 | 화면 안 단추 | 곧바르지만 성기다. 두 값 |
+| 별점 | 대화 뒤 설문 | 결이 더 곱지만 응답률이 낮다 |
+| 자유 글 되먹임 | 의견 칸 | 풍부하지만 짜임이 없다 |
+| 사람에게 넘김 | 넘겨 달라는 요청 | 센 음성 신호 |
 
-### 7.2 Implicit Feedback
+### 7.2 숨은 되먹임
 
-| Signal | What It Indicates |
+| 신호 | 가리키는 것 |
 |--------|------------------|
-| Session length | Engagement (but ambiguous: could indicate confusion) |
-| Return rate | Overall satisfaction |
-| Task completion rate | Functional quality |
-| Regeneration rate | Dissatisfaction with specific responses |
-| Copy/paste rate | Perceived output utility |
-| Abandonment rate | Failure to engage |
+| 대화 길이 | 몰입(다만 아리송하다. 헷갈림일 수도 있다) |
+| 다시 옴 | 전체 만족도 |
+| 일 끝냄 비율 | 제 구실의 좋음 |
+| 다시 만들기 비율 | 특정 답에 대한 불만 |
+| 베껴 붙이기 비율 | 내놓음의 쓸모에 대한 느낌 |
+| 버리고 떠남 비율 | 몰입에 어그러짐 |
 
-### 7.3 Feedback Integration
+### 7.3 되먹임 아우르기
 
-Production feedback drives model improvement through:
+실전의 되먹임은 다음으로 모델을 낫게 한다:
 
-- **Reward model updates**: Real user preferences supplement annotator data
-- **Active learning**: Prioritize uncertain or low-rated interactions for human review
-- **Continued fine-tuning**: Retrain on newly collected high-quality interactions
-- **Failure analysis**: Systematic review of low-rated responses to identify patterns
+- **갚음 모델 고치기**: 실제 쓰는 이의 뜻이 표시하는 사람의 자료를 채워 준다
+- **골라 배우기**: 흔들리거나 낮게 매겨진 대화를 사람이 살피도록 앞세운다
+- **이어지는 곱게 다듬기**: 새로 모은 좋은 대화로 다시 익힌다
+- **어그러짐 살피기**: 낮게 매겨진 답을 짜임새 있게 살펴 무늬를 가려낸다
 
 ---
 
-## 8. Evaluation Strategy by Use Case
+## 8. 쓰임새별 값매김 전략
 
-| Use Case | Primary Metrics | Secondary Metrics | Reference |
+| 쓰임새 | 으뜸 잣대 | 딸린 잣대 | 참고 |
 |----------|----------------|-------------------|-----------|
-| Pretraining validation | Perplexity, BPB | MMLU (zero-shot), HellaSwag | [Pretraining Objectives](pretraining_objectives.md) |
-| Scaling law analysis | Perplexity, BPB | Downstream benchmarks | [Scaling Laws](../scaling/scaling_overview.md) |
-| Instruction tuning | MT-Bench, AlpacaEval | IFEval, Arena-Hard | [Prompting](../prompting/prompting_overview.md) |
-| Alignment | Chatbot Arena Elo, human pairwise | ToxiGen, XSTest, TruthfulQA | Alignment |
-| Code generation | HumanEval pass@$k$, SWE-bench | MBPP | LLM Applications |
-| RAG | RAGAS (faithfulness, relevance), recall@$k$ | BERTScore, human eval | RAG Evaluation |
-| Production deployment | User satisfaction, task completion | Regeneration rate, retention | Conversational AI |
+| 미리 익히기 검증 | 헷갈림도, BPB | MMLU(맨몸), HellaSwag | [미리 익히기 목표](pretraining_objectives.md) |
+| 잣수 맞추기 법칙 분석 | 헷갈림도, BPB | 뒤따르는 잣대 | [잣수 맞추기 법칙](../scaling/scaling_overview.md) |
+| 시킴말 다듬기 | MT-Bench, AlpacaEval | IFEval, Arena-Hard | [시킴말 쓰기](../prompting/prompting_overview.md) |
+| 결 맞추기 | Chatbot Arena Elo, 사람 둘씩 견줌 | ToxiGen, XSTest, TruthfulQA | 결 맞추기 |
+| 부호 만들어 내기 | HumanEval pass@$k$, SWE-bench | MBPP | 큰 말 모델 쓰임새 |
+| 찾아 붙여 만들어 내기 | RAGAS(충실도, 관련성), recall@$k$ | BERTScore, 사람 값매김 | 찾아 붙여 만들어 내기 값매김 |
+| 실전 펼치기 | 쓰는 이 만족, 일 마침 | 다시 만들기 비율, 머무름 | 이야기 인공지능 |
 
 ---
 
-## 9. Finance-Specific Evaluation
+## 9. 금융에 맞춘 값매김
 
-| Dimension | Metric / Approach | Why It Matters |
+| 갈래 | 잣대 / 방식 | 왜 중요한가 |
 |-----------|------------------|----------------|
-| Numerical accuracy | Exact match on extracted figures | Financial data errors have material consequences |
-| Temporal reasoning | Correct date/period attribution | "Q3 2024 revenue" vs. "Q3 2023 revenue" confusion |
-| Source attribution | Citation accuracy against retrieved documents | Auditability for regulatory compliance |
-| Hallucination rate | Factual verification against known databases | Critical for advisory and research applications |
-| Bias auditing | Demographic parity across customer segments | Fair lending and treatment compliance |
-| Latency | End-to-end response time | Real-time trading and client-facing applications |
+| 수의 정확도 | 뽑아낸 수치의 딱 맞음 | 금융 자료의 어긋남은 실질적인 결과를 낳는다 |
+| 때 따지기 | 올바른 날짜·기간 매김 | "2024년 3분기 매출"과 "2023년 3분기 매출"의 헷갈림 |
+| 출처 밝히기 | 찾아온 글월 대비 인용의 정확도 | 규제 지킴을 위한 감사 가능함 |
+| 헛것 지어내기 비율 | 알려진 데이터베이스와 견준 사실 확인 | 자문과 연구 쓰임새에 결정적 |
+| 치우침 감사 | 고객 무리에 걸친 인구 특성 균형 | 공정한 대출과 대우의 지킴 |
+| 늦음 | 끝에서 끝까지의 응답 시간 | 실시간 거래와 고객 응대 쓰임새 |
 
-Financial LLM evaluation should combine standard benchmarks with **domain-specific test suites** covering financial terminology, numerical reasoning, regulatory knowledge, and market-specific factual accuracy.
-
----
-
-## 10. Key Takeaways
-
-1. **No single metric captures LLM quality**: evaluation requires combining intrinsic metrics (perplexity), task benchmarks (MMLU, HumanEval), and human/LLM-as-judge evaluation.
-
-2. **Perplexity measures modeling quality, not usefulness**: it is essential for pretraining and scaling law analysis but tells us nothing about helpfulness, safety, or alignment.
-
-3. **Reference-based metrics (BLEU, ROUGE) are ill-suited for LLMs**: open-ended generation has many valid outputs, making reference comparison misleading. BERTScore partially addresses this via semantic similarity.
-
-4. **Human pairwise comparison is the gold standard** for overall quality assessment. Elo-based systems like Chatbot Arena provide the most reliable public model rankings.
-
-5. **LLM-as-judge scales evaluation** but requires careful bias mitigation (position swapping, rubric design, multi-judge aggregation). It correlates well with human judgment when properly implemented.
-
-6. **Evaluation strategy should match the use case**: pretraining → perplexity; instruction tuning → MT-Bench; alignment → Chatbot Arena; RAG → faithfulness metrics; production → user behavior signals.
+금융 큰 말 모델 값매김은 표준 잣대에, 금융 용어·수 따지기·규제 앎·시장 특유의 사실 정확도를 다루는 **분야별 시험 꾸러미**를 아울러야 한다.
 
 ---
 
-## Exercises
+## 10. 핵심 되새김
 
-### Exercise 1: Perplexity and Bits Per Byte
+1. **잣대 하나로 큰 말 모델의 좋음을 담아낼 수 없다**: 내재 잣대(헷갈림도), 일 잣대(MMLU, HumanEval), 사람과 큰 말 모델 심판의 값매김을 아울러야 한다.
 
-A model achieves a test perplexity of 8.5 using a BPE tokenizer that averages 1.3 tokens per word and 4.5 bytes per token. Compute (a) the cross-entropy in bits per token, (b) the bits per byte, and (c) the equivalent perplexity for a character-level model (1 byte = 1 token). Why is BPB a fairer comparison metric than perplexity?
+2. **헷갈림도는 나타내기의 좋음을 재지 쓸모를 재지 않는다**: 미리 익히기와 규모 법칙 살피기에 꼭 필요하지만 도움됨, 안전, 결 맞춤에 대해서는 아무것도 말해 주지 않는다.
 
-### Exercise 2: BERTScore vs. BLEU
+3. **견줄 글 바탕 잣대(BLEU, ROUGE)는 큰 말 모델에 잘 맞지 않는다**: 열린 만들어 내기에는 올바른 내놓음이 여럿이라 견줄 글과의 견줌이 오해를 부른다. BERTScore가 뜻의 닮음으로 이를 얼마간 다룬다.
 
-Consider the reference "The Federal Reserve raised interest rates by 25 basis points" and two candidate responses: (a) "The Fed increased rates by a quarter percentage point" and (b) "Interest rates basis points Federal Reserve raised 25." Predict which has higher BLEU and which has higher BERTScore. Verify computationally using the `bert_score` and `sacrebleu` Python packages.
+4. 전체 좋음을 재는 데는 **사람의 짝 견줌이 으뜸 잣대**이다. Chatbot Arena 같은 엘로 바탕 체계가 가장 믿음직한 공개 모델 순위를 준다.
 
-### Exercise 3: LLM-as-Judge Bias
+5. **큰 말 모델을 심판으로 쓰면 값매김의 규모를 키울 수 있지만** 치우침을 조심스레 덜어 내야 한다(자리 맞바꾸기, 채점표 꾸미기, 여러 심판 모으기). 제대로 짜면 사람의 판단과 잘 맞물린다.
 
-Design an experiment to measure position bias in GPT-4 as a judge. Take 50 response pairs, evaluate each in both orderings (A-B and B-A), and compute the disagreement rate. What disagreement rate would you expect from a perfectly unbiased judge?
-
-### Exercise 4: Chatbot Arena Elo
-
-Two models have Elo ratings $R_A = 1200$ and $R_B = 1100$. Compute (a) the expected win probability for each, (b) the updated ratings after model A wins with $K = 32$, and (c) how many consecutive wins model B would need to surpass model A's rating.
-
-### Exercise 5: Financial Evaluation Suite
-
-Design a 20-question evaluation suite for testing an LLM's financial knowledge. Include questions covering: numerical extraction from earnings statements, temporal reasoning about fiscal periods, regulatory knowledge (e.g., Basel III requirements), and market terminology. For each question, specify the evaluation criterion (exact match, semantic equivalence, or factual accuracy).
+6. **값매김 전략은 쓰임새에 맞춰야 한다**: 미리 익히기 → 헷갈림도, 시킴에 맞춰 다듬기 → MT-Bench, 결 맞추기 → Chatbot Arena, 찾아 붙여 만들어 내기 → 충실함 잣대, 실전 → 쓰는 이의 몸짓 신호.
 
 ---
 
-## References
+## 참고 문헌
 
 1. Papineni, K., Roukos, S., Ward, T., & Zhu, W.-J. (2002). BLEU: A Method for Automatic Evaluation of Machine Translation. *Proceedings of the 40th Annual Meeting of the ACL*.
 2. Lin, C.-Y. (2004). ROUGE: A Package for Automatic Evaluation of Summaries. *Text Summarization Branches Out*.
@@ -368,3 +339,27 @@ Design a 20-question evaluation suite for testing an LLM's financial knowledge. 
 7. Askell, A., Bai, Y., Chen, A., et al. (2021). A General Language Assistant as a Laboratory for Alignment. *arXiv preprint arXiv:2112.00861*.
 8. Shahul, E., James, J., Thirunavukarasu, A., & Aman, D. (2023). RAGAS: Automated Evaluation of Retrieval Augmented Generation. *arXiv preprint arXiv:2309.15217*.
 9. Li, X., Zhang, T., Dubois, Y., et al. (2023). AlpacaEval: An Automatic Evaluator of Instruction-Following Models. *GitHub Repository*.
+
+## 연습문제
+
+### 익힘 1: 헷갈림도와 바이트당 비트
+
+낱말당 평균 1.3토막, 토막당 평균 4.5바이트인 BPE 토막내개로 모델이 시험 헷갈림도 8.5를 얻었다. (가) 토막당 비트로 나타낸 엇갈린 엔트로피, (나) 바이트당 비트, (다) 글자 수준 모델(1바이트 = 1토막)의 맞먹는 헷갈림도를 셈하여라. 바이트당 비트가 헷갈림도보다 왜 더 공정한 견줌 잣대인가?
+
+### 익힘 2: BERTScore와 BLEU
+
+견줄 글 "The Federal Reserve raised interest rates by 25 basis points"과 두 후보 답 (가) "The Fed increased rates by a quarter percentage point", (나) "Interest rates basis points Federal Reserve raised 25."를 보자. 어느 쪽의 BLEU가 높고 어느 쪽의 BERTScore가 높을지 어림하여라. `bert_score`와 `sacrebleu` 파이썬 꾸러미로 셈해 확인하여라.
+
+### 익힘 3: 큰 말 모델 심판의 치우침
+
+심판으로 쓰는 GPT-4의 자리 치우침을 재는 실험을 꾸며라. 답 짝 50개를 두 차례(A-B와 B-A)로 값매김하고 어긋나는 비율을 셈하여라. 치우침이 전혀 없는 심판이라면 어긋나는 비율이 얼마이겠는가?
+
+### 익힘 4: Chatbot Arena 엘로
+
+모델 둘의 엘로 점수가 $R_A = 1200$, $R_B = 1100$이다. (가) 저마다의 기대 이김 확률, (나) $K = 32$일 때 모델 A가 이긴 뒤의 고친 점수, (다) 모델 B가 모델 A의 점수를 넘으려면 몇 번을 잇달아 이겨야 하는지를 셈하여라.
+
+### 익힘 5: 금융 값매김 꾸러미
+
+큰 말 모델의 금융 앎을 시험하는 20문항 값매김 꾸러미를 꾸며라. 실적 보고서에서 수 뽑기, 회계 기간에 대한 때 따지기, 규제 앎(보기로 바젤 III 요건), 시장 용어를 다루는 물음을 넣어라. 물음마다 값매김 잣대(딱 맞음, 뜻이 같음, 사실 정확도)를 밝혀라.
+
+---

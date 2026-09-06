@@ -1,68 +1,51 @@
-# N-Queens Problem
+# N-여왕 문제
 
-The N-Queens problem asks whether $n$ queens can be placed on an $n \times n$
-chessboard so that no two queens threaten each other.  Two queens threaten each
-other if they share a row, a column, or a diagonal.  This problem is the most
-widely used example of backtracking because the constraint structure — three
-independent conflict types — maps directly onto the feasibility-check framework,
-and the state space tree is easy to visualize.
+N-여왕 문제는 여왕 $n$개를 $n \times n$ 체스판에 서로 위협하지 않도록 놓을 수 있는지 묻는다. 두 여왕이 같은 가로줄, 세로줄, 대각선에 있으면 서로 위협한다. 제약의 짜임, 곧 서로 얽히지 않는 부딪침 세 갈래가 될 수 있는지 살피기 얼거리에 그대로 맞닿고 상태 공간 나무를 그려 보기 쉬워, 이 문제는 되짚기의 가장 널리 쓰이는 보기이다.
 
-## Problem Statement
+## 문제 서술
 
-**Input.** A positive integer $n$.
+**들임.** 양의 정수 $n$.
 
-**Output.** An arrangement of $n$ queens on an $n \times n$ board such that no two
-queens occupy the same row, column, or diagonal, or a report that no such
-arrangement exists.
+**내놓기.** 어느 두 여왕도 같은 가로줄, 세로줄, 대각선에 놓이지 않는 $n \times n$ 판 위의 여왕 $n$개 배치, 또는 그런 배치가 없다는 알림.
 
-Because each row must contain exactly one queen, the problem reduces to finding a
-permutation $(c_1, c_2, \ldots, c_n)$ of column indices such that no two queens
-share a column or diagonal.
+가로줄마다 여왕이 꼭 하나여야 하므로, 문제는 어느 두 여왕도 세로줄이나 대각선을 함께 쓰지 않는 세로줄 번호의 자리 바꿈 $(c_1, c_2, \ldots, c_n)$을 찾는 것으로 줄어든다.
 
-## Backtracking Formulation
+## 되짚기로 세우기
 
-### State Space Tree
+### 상태 공간 나무
 
-- **Decision $k$** ($k = 1, \ldots, n$): choose the column $c_k \in \{1, \ldots, n\}$
-  for the queen in row $k$.
+- **결정 $k$**($k = 1, \ldots, n$): 가로줄 $k$의 여왕이 놓일 세로줄 $c_k \in \{1, \ldots, n\}$을 고른다.
 - **Branching factor**: $n$ at every level (before pruning).
-- **Full tree size**: $n^n$ leaves without pruning; $n!$ leaves if column uniqueness
-  is enforced.
+- **온전한 나무 크기**: 가지치기가 없으면 잎이 $n^n$개, 세로줄이 겹치지 않게 하면 $n!$개.
 
-### Feasibility Check
+### 될 수 있는지 살피기
 
-After placing the queen in row $k$ at column $c_k$, check against every previously
-placed queen in row $j$ ($1 \leq j < k$):
+가로줄 $k$의 세로줄 $c_k$에 여왕을 놓은 뒤 앞서 놓은 가로줄 $j$($1 \leq j < k$)의 여왕마다 견주어 살핀다:
 
-1. **Column conflict**: $c_k = c_j$.
-2. **Diagonal conflict**: $|c_k - c_j| = |k - j|$.
+1. **세로줄 부딪침**: $c_k = c_j$.
+2. **대각선 부딪침**: $|c_k - c_j| = |k - j|$.
 
-If either condition holds for any $j$, the placement is infeasible and the subtree
-is pruned.
+어떤 $j$에 대해서든 두 조건 가운데 하나가 성립하면 그 놓기는 될 수 없고 그 아래 나무를 쳐 낸다.
 
-The column check ensures that no two queens share a column.  The diagonal check
-uses the fact that two cells $(r_1, c_1)$ and $(r_2, c_2)$ lie on the same diagonal
-if and only if
+세로줄 살피기는 어느 두 여왕도 세로줄을 함께 쓰지 않게 한다. 대각선 살피기는 두 칸 $(r_1, c_1)$과 $(r_2, c_2)$이 같은 대각선에 있을 필요충분조건이 다음이라는 사실을 쓴다
 
 $$
 |r_1 - r_2| = |c_1 - c_2|
 $$
 
-### Constant-Time Feasibility with Auxiliary Arrays
+### 딸림 배열로 하는 상수 시간 될 수 있는지 살피기
 
-The naive feasibility check iterates over all $k - 1$ previously placed queens,
-giving $O(k)$ per node.  Three Boolean arrays reduce this to $O(1)$:
+막무가내로 될 수 있는지 살피면 앞서 놓은 여왕 $k - 1$개를 모두 되풀이해 마디마다 $O(k)$이 든다. 참거짓 배열 셋을 쓰면 이를 $O(1)$으로 줄인다:
 
-| Array | Indices | Meaning |
+| 배열 | 번호 | 뜻 |
 |-------|---------|---------|
-| `col_used[c]` | $c \in \{1, \ldots, n\}$ | Column $c$ is occupied |
-| `diag1[k - c + n - 1]` | main diagonal index | The $\searrow$ diagonal through $(k, c)$ is occupied |
-| `diag2[k + c]` | anti-diagonal index | The $\swarrow$ diagonal through $(k, c)$ is occupied |
+| `col_used[c]` | $c \in \{1, \ldots, n\}$ | 세로줄 $c$이 차 있다 |
+| `diag1[k - c + n - 1]` | 으뜸 대각선 번호 | $(k, c)$을 지나는 $\searrow$ 대각선이 차 있다 |
+| `diag2[k + c]` | 반대 대각선 번호 | $(k, c)$을 지나는 $\swarrow$ 대각선이 차 있다 |
 
-At row $k$, column $c$ is feasible if and only if all three arrays are False at the
-corresponding indices.  Updates during `make_move` and `undo_move` are $O(1)$.
+가로줄 $k$에서 세로줄 $c$이 될 수 있을 필요충분조건은 세 배열이 그에 맞는 번호에서 모두 거짓인 것이다. `make_move`과 `undo_move`에서의 새로 고침은 $O(1)$이다.
 
-## Algorithm
+## 알고리즘
 
 ```
 QUEENS(k, n):
@@ -81,35 +64,35 @@ QUEENS(k, n):
     return False   // no valid column for row k — backtrack
 ```
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-N-Queens solver using backtracking with O(1) feasibility checks.
+O(1)에 될 수 있는지 살피는 되짚기를 쓴 N-여왕 풀개.
 
-Places n queens on an n x n board so that no two queens share
-a row, column, or diagonal.
+어느 두 여왕도 가로줄, 세로줄, 대각선을 함께 쓰지 않도록
+n x n 판에 여왕 n개를 놓는다.
 """
 
 
-# === Solver ===================================================================
+# === 풀개 ===================================================================
 
 def solve_n_queens(n, find_all=False):
-    """Return one (or all) solutions to the n-queens problem.
+    """n-여왕 문제의 풀이 하나(또는 모두)를 돌려준다.
 
-    Each solution is a list of length n where solution[i] is the column
-    (0-indexed) of the queen in row i.
+    풀이마다 길이 n인 목록이며 solution[i]은 가로줄 i의 여왕이 놓인
+    세로줄이다(0부터 셈).
     """
     solutions = []
     placement = [0] * n
     col_used = [False] * n
-    diag1 = [False] * (2 * n - 1)   # main diagonals  (row - col + n - 1)
-    diag2 = [False] * (2 * n - 1)   # anti-diagonals  (row + col)
+    diag1 = [False] * (2 * n - 1)   # 으뜸 대각선  (row - col + n - 1)
+    diag2 = [False] * (2 * n - 1)   # 반대 대각선  (row + col)
 
     def backtrack(row):
         if row == n:
             solutions.append(placement[:])
-            return not find_all          # True = stop after first
+            return not find_all          # True = 처음 하나 뒤에 멈춘다
 
         for col in range(n):
             d1 = row - col + n - 1
@@ -127,10 +110,10 @@ def solve_n_queens(n, find_all=False):
     return solutions
 
 
-# === Display ==================================================================
+# === 보이기 ==================================================================
 
 def print_board(solution):
-    """Print a chessboard with queens marked as Q."""
+    """여왕을 Q로 표시한 체스판을 찍는다."""
     n = len(solution)
     for row in range(n):
         line = ["."] * n
@@ -139,23 +122,23 @@ def print_board(solution):
     print()
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     n = 8
 
-    # Find one solution
+    # 풀이 하나를 찾는다
     results = solve_n_queens(n, find_all=False)
     if results:
         print(f"One solution for {n}-queens:")
         print_board(results[0])
 
-    # Count all solutions
+    # 풀이를 모두 센다
     all_results = solve_n_queens(n, find_all=True)
     print(f"Total solutions for {n}-queens: {len(all_results)}")
 ```
 
-**Output:**
+**출력:**
 ```
 One solution for 8-queens:
 Q . . . . . . .
@@ -170,26 +153,21 @@ Q . . . . . . .
 Total solutions for 8-queens: 92
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Time complexity.** The state space tree has at most $n!$ leaves (since column
-reuse is pruned), and the feasibility check at each node is $O(1)$.  The total work
-is bounded by
+**시간 복잡도.** 세로줄을 다시 쓰는 것을 쳐 내므로 상태 공간 나무의 잎은 많아야 $n!$개이고 마디마다 될 수 있는지 살피기는 $O(1)$이다. 전체 일감은 다음 이하이다
 
 $$
 T(n) = O(n!)
 $$
 
-In practice, diagonal pruning reduces the tree far below $n!$.  Empirical studies
-show that the number of nodes explored grows roughly as $O(c^n)$ for a constant
-$c \approx 2.5$, though no closed-form expression for the exact count is known.
+실전에서 대각선 가지치기가 나무를 $n!$보다 훨씬 아래로 줄인다. 겪어 살핀 연구에 따르면 살핀 마디의 수는 대략 상수 $c \approx 2.5$에 대해 $O(c^n)$으로 늘지만 정확한 수의 닫힌 꼴은 알려져 있지 않다.
 
-**Space complexity.** The recursion depth is $n$, and the auxiliary arrays use
-$O(n)$ space, giving $O(n)$ total.
+**공간 복잡도.** 되돌이 깊이가 $n$이고 딸림 배열이 $O(n)$ 공간을 쓰므로 모두 $O(n)$이다.
 
-## Known Results
+## 알려진 결과
 
-| $n$ | Solutions | Distinct (up to symmetry) |
+| $n$ | 풀이 수 | 서로 다른 것(대칭을 빼고) |
 |-----|-----------|--------------------------|
 | 1   | 1         | 1                        |
 | 4   | 2         | 1                        |
@@ -197,11 +175,40 @@ $O(n)$ space, giving $O(n)$ total.
 | 12  | 14200     | 1787                     |
 | 14  | 365596    | 45752                    |
 
-No closed-form formula for the number of solutions is known.  The problem is
-NP-hard in the general form of placing $n$ non-attacking queens on an $n \times n$
-board with some cells pre-occupied, but the standard unconstrained version has a
-solution for every $n \geq 4$ (and for $n = 1$).
+풀이 수의 닫힌 꼴 공식은 알려져 있지 않다. 몇몇 칸이 미리 차 있는 $n \times n$ 판에 서로 공격하지 않는 여왕 $n$개를 놓는 두루 쓰는 꼴에서는 NP 어려움이지만, 제약 없는 여느 판에서는 $n \geq 4$인 모든 $n$(과 $n = 1$)에 풀이가 있다.
 
-## Reference
+## 참고 문헌
 
 - Garey and Johnson, *Computers and Intractability*, 1979
+
+## 연습문제
+
+**연습문제 1.**
+N-여왕 문제의 고갱이 생각과 그것이 풀이 공간을 어떻게 짜임새 있게 살피는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    N-여왕 문제은 풀이 공간을 나무로 보고 살피며 마디마다 어중간한 풀이를 뜻한다. 마디마다 알고리즘은 어중간한 풀이를 넓히고 될 수 있는지 제약을 살핀다. 어중간한 풀이가 제약을 어기거나 (가장 좋거나 옳은 온전한 풀이로 이어질 수 없음이 밝혀지면) 알고리즘은 **가지를 쳐**(되짚어) 그 아래 나무 전체를 살피지 않는다. 가지치기가 찾기 공간의 큰 몫을 없애므로 막무가내보다 효율이 좋다. $\square$
+
+---
+
+**연습문제 2.**
+N-여왕 문제의 최악의 경우 시간 복잡도는 무엇인가? 가지치기는 언제 찾기 공간을 크게 줄이는가?
+
+??? success "연습문제 2 풀이"
+    최악의 경우(가지치기가 없으면) 알고리즘이 풀이 공간 전체를 살피며 이는 흔히 지수나 계승이다. 곧 갈래 수가 $b$이고 깊이가 $d$이면 $O(b^d)$, 자리 바꿈 문제이면 $O(n!)$이다. 가지치기는 다음일 때 찾기를 크게 줄인다. (1) 제약이 빡빡해 될 수 없는 갈래가 많을 때, (2) 좋은 묶음이 갈래를 일찍 없앨 때, (3) 차례를 매기는 어림짐작이 그럴듯한 갈래를 먼저 살필 때이다. 실전에서 가지치기는 도는 시간을 자릿수만큼 줄일 수 있다. $\square$
+
+---
+
+**연습문제 3.**
+N-여왕 문제의 가지치기 조건을 적어라. 무엇이 좋은 가지치기 잣대를 만드는가?
+
+??? success "연습문제 3 풀이"
+    가지치기 잣대는 어중간한 풀이를 언제 버릴지 정한다. 좋은 잣대는 다음과 같다. (1) **될 수 있음**: 어중간한 풀이가 이미 제약을 어긴다. (2) **묶음**: 어중간한 풀이를 가장 좋게 마무리해도 여태 가장 좋은 풀이보다 나을 수 없다. (3) **누름**: 다른 어중간한 풀이가 적어도 그만큼 좋음이 밝혀진다. 잘 듣는 가지치기 잣대는 따지기 값싸고 큰 아래 나무를 없앤다. $\square$
+
+---
+
+**연습문제 4.**
+작은 경우에 N-여왕 문제을 짜고 살핀 마디의 수를 전체 찾기 공간의 크기와 견주어 세어라.
+
+??? success "연습문제 4 풀이"
+    작은 경우(예컨대 N-여왕에서 $n = 8$, 배낭에서 담이 20)에는 전체 찾기 공간에 마디가 수백만 개일 수 있지만 가지치기가 잘 들면 수천 개만 살핀다. (살핀 수 / 전체) 비가 가지치기가 얼마나 잘 드는지 값으로 나타낸다. 제약이 잘 걸린 문제에서는 이 비가 1% 아래일 수 있어 되짚기가 막무가내보다 힘이 셈을 보여 준다. $\square$

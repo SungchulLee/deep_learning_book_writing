@@ -1,27 +1,27 @@
-# Treap Structure
+# 트립의 짜임
 
-Balanced binary search trees like AVL trees and red-black trees maintain balance through explicit invariants (height difference, node coloring) and complex rebalancing code.  A **treap** (tree + heap) achieves balance through a completely different mechanism: each node carries a **random priority**, and the tree simultaneously satisfies BST order on keys and heap order on priorities.  The resulting structure is provably equivalent to a random BST, giving expected $O(\log n)$ height with remarkably simple code.
+AVL 트리나 적흑 트리 같은 균형 이진 탐색 트리는 드러난 불변식(높이 차, 노드 색칠)과 까다로운 균형 되잡기 코드로 균형을 지킨다. **트립**(tree + heap)은 아주 다른 얼개로 균형을 이룬다. 노드마다 **무작위 우선순위**를 지니고, 트리가 열쇠의 이진 탐색 트리 순서와 우선순위의 힙 순서를 동시에 만족한다. 그렇게 나온 짜임은 무작위 이진 탐색 트리와 같음을 증명할 수 있어, 놀랄 만큼 간단한 코드로 기댓값 $O(\log n)$의 높이를 얻는다.
 
-## Definition
+## 정의
 
-A treap is a binary tree where each node stores a pair $(k, p)$ — a **key** $k$ and a **priority** $p$ — satisfying two simultaneous ordering constraints:
+트립은 노드마다 쌍 $(k, p)$, 곧 **열쇠** $k$과 **우선순위** $p$을 담는 이진 트리로, 두 순서 조건을 동시에 만족한다.
 
-1. **BST property on keys:** for every node $x$, all keys in $x$'s left subtree are less than $x.key$, and all keys in the right subtree are greater.
-2. **Heap property on priorities:** for every node $x$ with parent $y$, we have $x.priority \le y.priority$ (max-heap convention).
+1. **열쇠의 이진 탐색 트리 성질:** 노드 $x$마다 $x$의 왼쪽 부분 트리의 모든 열쇠가 $x.key$보다 작고 오른쪽 부분 트리의 모든 열쇠가 더 크다.
+2. **우선순위의 힙 성질:** 부모가 $y$인 노드 $x$마다 $x.priority \le y.priority$이다(최대 힙 관례).
 
-The name "treap" comes from combining "tree" (for BST) and "heap."
+"트립"이라는 이름은 (이진 탐색 트리를 가리키는) "tree"와 "heap"을 합친 데서 왔다.
 
-## Uniqueness
+## 유일성
 
-!!! note "Uniqueness theorem"
-    For a set of $n$ key–priority pairs with distinct keys and distinct priorities, there exists exactly one treap.
+!!! note "유일성 정리"
+    열쇠도 우선순위도 서로 다른 열쇠-우선순위 쌍 $n$개의 집합에 대해 트립은 꼭 하나 있다.
 
-**Proof.**  The node with the highest priority must be the root (heap property).  Its key $k^*$ partitions the remaining pairs into those with keys $< k^*$ (forming the left subtree) and those with keys $> k^*$ (forming the right subtree).  By induction on $n$, each subtree has a unique treap structure.  The base case $n = 0$ is trivially unique. $\square$
+**증명.** (힙 성질에 따라) 우선순위가 가장 높은 노드가 뿌리여야 한다. 그 열쇠 $k^*$이 남은 쌍을 열쇠가 $k^*$보다 작은 것들(왼쪽 부분 트리를 이룬다)과 큰 것들(오른쪽 부분 트리를 이룬다)로 가른다. $n$에 대한 귀납법으로 부분 트리마다 트립의 짜임이 유일하다. 밑칸인 $n = 0$은 자명하게 유일하다. $\square$
 
-??? example "A treap with 5 nodes"
-    Key–priority pairs: $(3, 7),\; (1, 5),\; (5, 6),\; (2, 1),\; (4, 3)$
+??? example "노드가 5개인 트립"
+    열쇠-우선순위 쌍: $(3, 7),\; (1, 5),\; (5, 6),\; (2, 1),\; (4, 3)$
 
-    The node with the highest priority is $(3, 7)$, which becomes the root.  Keys less than 3 are $\{1, 2\}$; keys greater than 3 are $\{4, 5\}$.
+    우선순위가 가장 높은 노드는 $(3, 7)$이고 이것이 뿌리가 된다. 3보다 작은 열쇠는 $\{1, 2\}$이고 3보다 큰 열쇠는 $\{4, 5\}$이다.
 
     ```
             (3, 7)
@@ -31,63 +31,96 @@ The name "treap" comes from combining "tree" (for BST) and "heap."
         (2, 1)  (4, 3)
     ```
 
-    - BST order: inorder traversal gives keys 1, 2, 3, 4, 5.
-    - Heap order: every child has a lower priority than its parent.
+    - 이진 탐색 트리 순서: 중위 순회가 열쇠 1, 2, 3, 4, 5를 준다.
+    - 힙 순서: 자식마다 부모보다 우선순위가 낮다.
 
-## Node Structure
+## 노드 구조
 
-Each treap node contains:
+트립의 노드마다 다음을 담는다.
 
-| Field | Description |
+| 칸 | 설명 |
 |-------|-------------|
-| `key` | The search key (determines BST ordering) |
-| `priority` | Random value (determines heap ordering) |
-| `left` | Pointer to left child |
-| `right` | Pointer to right child |
+| `key` | 찾기 열쇠 (이진 탐색 트리 순서를 정한다) |
+| `priority` | 무작위 값 (힙 순서를 정한다) |
+| `left` | 왼쪽 자식을 가리키는 포인터 |
+| `right` | 오른쪽 자식을 가리키는 포인터 |
 
-Priorities are assigned at node creation and never change.  They are typically drawn uniformly at random from a large range (e.g., 64-bit integers or floating-point values in $[0, 1]$).
+우선순위는 노드를 만들 때 매기고 결코 바뀌지 않는다. 대체로 큰 범위(예: 64비트 정수나 $[0, 1]$의 부동소수점 값)에서 고르게 무작위로 뽑는다.
 
-## Connection to Random BSTs
+## 무작위 이진 탐색 트리와의 이음
 
-The central insight behind treaps is their equivalence to random BSTs.  When priorities are drawn independently from a continuous distribution:
+트립의 핵심 통찰은 무작위 이진 탐색 트리와 같다는 점이다. 우선순위를 연속 분포에서 서로 독립으로 뽑으면 다음과 같다.
 
-- The node with the highest priority becomes the root, and each of the $n$ nodes is equally likely to have the highest priority.
-- This is exactly the same as inserting keys in a random order, where each key is equally likely to be inserted first.
+- 우선순위가 가장 높은 노드가 뿌리가 되고, $n$개 노드 각각이 가장 높은 우선순위를 가질 확률이 같다.
+- 이는 열쇠마다 처음 들어갈 확률이 같은, 무작위 차례로 열쇠를 넣는 것과 똑같다.
 
-Therefore, treaps inherit all statistical properties of random BSTs, including:
+그러므로 트립은 무작위 이진 탐색 트리의 모든 통계적 성질을 물려받는다. 이를테면 다음과 같다.
 
-- **Expected height:** $O(\log n)$
-- **Expected search time:** $O(\log n)$
-- **Expected number of rotations per insert:** less than 2
+- **기대 높이:** $O(\log n)$
+- **기대 찾기 시간:** $O(\log n)$
+- **삽입당 기대 회전 횟수:** 2보다 작다
 
-See [randomized priorities](priorities.md) for the detailed analysis.
+자세한 분석은 [무작위 우선순위](priorities.md)를 보라.
 
-## Operations Overview
+## 연산 훑어보기
 
-All treap operations maintain both the BST and heap properties:
+모든 트립 연산이 이진 탐색 트리 성질과 힙 성질을 함께 지킨다.
 
 | Operation | Approach | Expected time |
 |-----------|----------|---------------|
-| Search | Standard BST search (ignore priorities) | $O(\log n)$ |
-| Insert | BST insert + rotate up to restore heap order | $O(\log n)$ |
-| Delete | Rotate down to a leaf, then remove | $O(\log n)$ |
-| [Split](split_merge.md) | Recursive decomposition by key | $O(\log n)$ |
-| [Merge](split_merge.md) | Recursive combination by priority | $O(\log n)$ |
+| 찾기 | 표준 이진 탐색 트리 찾기 (우선순위 무시) | $O(\log n)$ |
+| 삽입 | 이진 탐색 트리 삽입 뒤 힙 순서를 되살리도록 위로 회전 | $O(\log n)$ |
+| 삭제 | 잎까지 아래로 회전한 뒤 없애기 | $O(\log n)$ |
+| [쪼개기](split_merge.md) | 열쇠에 따른 재귀적 분해 | $O(\log n)$ |
+| [합치기](split_merge.md) | 우선순위에 따른 재귀적 결합 | $O(\log n)$ |
 
-!!! tip "Two implementation styles"
-    Treaps can be implemented using either **(1) rotations** (insert via BST insert + rotate up, delete via rotate down) or **(2) split/merge** (all operations decompose into split and merge). The split/merge style is often preferred for its simplicity and natural extension to implicit treaps.
+!!! tip "두 가지 구현 방식"
+    트립은 **(1) 회전**(이진 탐색 트리 삽입 뒤 위로 회전으로 삽입, 아래로 회전으로 삭제)으로도, **(2) 쪼개기·합치기**(모든 연산을 쪼개기와 합치기로 분해)로도 구현할 수 있다. 간단하고 암묵 트립으로 자연스럽게 넓어지므로 쪼개기·합치기 방식을 흔히 더 좋아한다.
 
-## Comparison with Other Balanced BSTs
+## 다른 균형 이진 탐색 트리와 견주기
 
-| Property | Treap | AVL | Red-black | Splay |
+| 성질 | 트립 | AVL | 적흑 | 스플레이 |
 |----------|-------|-----|-----------|-------|
-| Balance type | Probabilistic | Strict | Strict | Amortized |
-| Height guarantee | Expected $O(\log n)$ | $\le 1.44 \log n$ | $\le 2 \log n$ | Amortized $O(\log n)$ |
-| Implementation | Simple | Moderate | Complex | Simple |
-| Persistent version | Easy (split/merge) | Moderate | Hard | Hard |
-| Worst case | $O(n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
+| 균형의 종류 | 확률적 | 엄격 | 엄격 | 분할 상환 |
+| 높이 보장 | 기댓값 $O(\log n)$ | $\le 1.44 \log n$ | $\le 2 \log n$ | 분할 상환 $O(\log n)$ |
+| 구현 | 간단 | 보통 | 까다로움 | 간단 |
+| 영속 판 | 쉬움 (쪼개기·합치기) | 보통 | 어려움 | 어려움 |
+| 최악의 경우 | $O(n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
 
-## Reference
+## 참고 문헌
 
 - Aragon, C. R., & Seidel, R. (1989). Randomized search trees. *30th IEEE Symposium on Foundations of Computer Science*, 540–545.
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Problem 13-4. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+트립의 구조의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 트립의 구조를 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+트립의 구조이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 트립의 구조를 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

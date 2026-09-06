@@ -1,54 +1,54 @@
-# 3-Dimensional Matching
+# 3차원 짝짓기
 
-While 2D matching (bipartite matching) is solvable in polynomial time, extending to three dimensions makes the problem NP-complete. **3-Dimensional Matching (3DM)** is one of Karp's original 21 NP-complete problems and serves as a key stepping stone in NP-completeness reductions, particularly toward problems like Partition and Subset Sum.
+2차원 짝짓기(두 쪽 짝짓기)는 다항 시간에 풀 수 있지만 3차원으로 넓히면 문제가 NP 완전이 된다. **3차원 짝짓기(3DM)**는 카프가 처음 든 21개 NP 완전 문제 가운데 하나이며 특히 나누기나 부분 모임 합 같은 문제로 가는 NP 완전성 줄임의 핵심 디딤돌 노릇을 한다.
 
-## Problem Definition
+## 문제의 정의
 
-!!! tip "Definition: 3-Dimensional Matching"
-    Given three disjoint sets $X$, $Y$, $Z$, each of size $n$, and a set of triples $T \subseteq X \times Y \times Z$, a **3-dimensional matching** is a subset $M \subseteq T$ of size $n$ such that every element of $X \cup Y \cup Z$ appears in exactly one triple of $M$.
+!!! tip "뜻매김: 3차원 짝짓기"
+    크기가 저마다 $n$인 서로 겹치지 않는 모임 $X$, $Y$, $Z$과 세 쌍 모임 $T \subseteq X \times Y \times Z$이 주어질 때, **3차원 짝짓기**는 $X \cup Y \cup Z$의 모든 원소가 $M$의 세 쌍 가운데 꼭 하나에 나오는 크기 $n$의 부분 모임 $M \subseteq T$이다.
 
-    The **3DM decision problem** asks: does a perfect 3D matching exist?
+    **3차원 짝짓기 가름 문제**는 묻는다. 완벽한 3차원 짝짓기가 있는가?
 
-## Contrast with 2D Matching
+## 2차원 짝짓기와의 대조
 
-In bipartite matching, we have two sets $X$ and $Y$ and edges $E \subseteq X \times Y$. A perfect matching pairs each element of $X$ with a distinct element of $Y$. This is solvable in $O(\sqrt{n} \cdot m)$ time (Hopcroft-Karp).
+두 쪽 짝짓기에서는 모임 $X$과 $Y$, 그리고 변 $E \subseteq X \times Y$이 있다. 완벽 짝짓기는 $X$의 원소마다 $Y$의 서로 다른 원소와 짝짓는다. 이는 $O(\sqrt{n} \cdot m)$ 시간에 풀 수 있다(홉크로프트-카프).
 
-The jump from 2 to 3 dimensions fundamentally changes the problem's complexity. The extra dimension prevents the flow-based techniques that make 2D matching tractable.
+2차원에서 3차원으로 건너뛰면 문제의 복잡도가 근본으로 바뀐다. 늘어난 차원이 2차원 짝짓기를 다룰 만하게 하는 흐름 바탕 재주를 막는다.
 
-## NP-Completeness
+## NP 완전성
 
-!!! tip "Theorem (Karp, 1972)"
-    3-Dimensional Matching is NP-complete.
+!!! tip "정리(카프, 1972)"
+    3차원 짝짓기는 NP 완전이다.
 
-**Membership in NP.** A matching $M$ of size $n$ is a certificate. Verification checks that $|M| = n$ and every element of $X \cup Y \cup Z$ appears exactly once, taking $O(n)$ time.
+**NP에 듦.** 크기 $n$인 짝짓기 $M$이 증서이다. 살피기는 $|M| = n$인지와 $X \cup Y \cup Z$의 모든 원소가 꼭 한 번 나오는지 확인하며 $O(n)$ 시간이 든다.
 
-**NP-Hardness: Reduction from 3-SAT.** Given a 3-SAT formula with variables $x_1, \ldots, x_p$ and clauses $C_1, \ldots, C_q$:
+**NP 어려움: 3-SAT에서 줄이기.** 변수 $x_1, \ldots, x_p$과 절 $C_1, \ldots, C_q$을 가진 3-SAT 식이 주어질 때:
 
-### Construction
+### 만들기
 
-1. **Variable gadgets.** For each variable $x_i$, create $2q$ triples arranged in a cycle that allows selecting either "true" or "false" triples (but not both). The true triples correspond to setting $x_i = 1$ and the false triples to $x_i = 0$.
+1. **변수 장치.** 변수 $x_i$마다 "참" 세 쌍이나 "거짓" 세 쌍 가운데 하나만(둘 다는 안 된다) 고를 수 있도록 돌이로 배치한 세 쌍 $2q$개를 만든다. 참 세 쌍은 $x_i = 1$으로 두는 것에, 거짓 세 쌍은 $x_i = 0$에 해당한다.
 
-2. **Clause gadgets.** For each clause $C_j$, introduce fresh $Y$- and $Z$-elements that must be matched. Connect them to triples corresponding to the clause's literals. At least one literal must be "true" to complete the matching.
+2. **절 장치.** 절 $C_j$마다 짝지어져야 하는 새 $Y$ 원소와 $Z$ 원소를 들여온다. 이들을 그 절의 리터럴에 해당하는 세 쌍에 잇는다. 짝짓기를 마치려면 리터럴 가운데 적어도 하나가 "참"이어야 한다.
 
-3. **Cleanup gadgets.** Add triples to ensure all remaining unmatched elements can be covered.
+3. **뒷정리 장치.** 남은 짝지어지지 않은 원소를 모두 덮을 수 있도록 세 쌍을 더한다.
 
-The total construction is polynomial. A satisfying assignment yields a 3D matching by selecting the corresponding truth/false triples, and vice versa. $\square$
+온 세움은 다항이다. 만족시키는 매김이 있으면 그에 해당하는 참·거짓 세 쌍을 골라 3차원 짝짓기를 얻고 거꾸로도 마찬가지이다. $\square$
 
-## Related Problems
+## 이어진 문제
 
-### Exact Cover by 3-Sets
+### 3원소 모임의 정확한 덮기
 
-A closely related problem where we have a universe $U$ with $|U| = 3n$ and a collection $\mathcal{S}$ of 3-element subsets. We ask: can we select $n$ sets from $\mathcal{S}$ that partition $U$?
+가까이 이어진 문제로, $|U| = 3n$인 온 모임 $U$과 3원소 부분 모임의 모음 $\mathcal{S}$이 있다. 묻는다. $\mathcal{S}$에서 $U$을 나누는 모임 $n$개를 고를 수 있는가?
 
-This is a generalization of 3DM (which requires the partition structure across three dimensions) and is also NP-complete.
+이는 (세 차원에 걸친 나눔 얼개를 요구하는) 3차원 짝짓기를 넓힌 것이며 이 또한 NP 완전이다.
 
-### Numerical 3DM
+### 수치 3차원 짝짓기
 
-A restricted version where elements have numerical values and triples must sum to a target. This variant is **strongly NP-complete** and is used to prove hardness of problems like 3-Partition.
+원소에 수 값이 있고 세 쌍의 합이 목표가 되어야 하는 제한된 판이다. 이 변형은 **강한 NP 완전**이며 3 나누기 같은 문제의 어려움을 밝히는 데 쓰인다.
 
-## Applications and Reductions
+## 쓰임새와 줄임
 
-3DM serves as a critical intermediate problem in the NP-completeness reduction chain:
+3차원 짝짓기는 NP 완전성 줄임 사슬에서 결정적인 중간 문제 노릇을 한다:
 
 $$
 \text{3-SAT} \to \text{3DM} \to \text{Partition} \to \text{Subset Sum}
@@ -58,56 +58,107 @@ $$
 \text{3-SAT} \to \text{3DM} \to \text{Exact Cover} \to \text{Set Cover}
 $$
 
-### Reduction to Partition
+### 나누기로 줄이기
 
-Given a 3DM instance, construct integers such that a subset summing to half the total exists if and only if a perfect 3D matching exists. This uses the classic technique of encoding set membership in the binary representation of carefully chosen integers.
+3차원 짝짓기 사례가 주어지면, 온 합의 절반이 되는 부분 모임이 있을 필요충분조건이 완벽한 3차원 짝짓기가 있는 것이 되도록 정수를 세운다. 이는 조심스레 고른 정수의 이진 나타냄에 모임에 듦을 적는 고전 재주를 쓴다.
 
-## Tractable Special Cases
+## 다룰 만한 특별한 경우
 
-While 3DM is NP-complete in general, restricted versions are tractable:
+3차원 짝짓기는 일반으로 NP 완전이지만 제한된 판은 다룰 만하다:
 
-| Restriction | Complexity | Notes |
+| 제한 | 복잡도 | 비고 |
 |-------------|-----------|-------|
-| Bounded occurrences ($\leq 3$ per element) | NP-complete | Still hard |
-| Bounded occurrences ($\leq 2$ per element) | P | Reduces to 2-SAT |
-| Planar instances | NP-complete | Geometric restrictions do not help |
+| 나옴 횟수 가둠(원소마다 $\leq 3$) | NP 완전 | 여전히 어렵다 |
+| 나옴 횟수 가둠(원소마다 $\leq 2$) | P | 2-SAT으로 줄여진다 |
+| 평면 사례 | NP 완전 | 기하 제한이 도움이 되지 않는다 |
 
-## Algorithms
+## 알고리즘
 
-### Exact Algorithms
+### 정확한 알고리즘
 
-| Algorithm | Time | Notes |
+| 알고리즘 | 시간 | 참고 |
 |-----------|------|-------|
-| Brute force | $O(\binom{|T|}{n})$ | Try all size-$n$ subsets |
-| Inclusion-exclusion | $O(2^n \cdot |T|)$ | Count matching covers |
-| Color-coding | $O(2^{3n} \cdot |T|)$ | Randomized FPT |
+| 막무가내 | $O(\binom{|T|}{n})$ | 크기 $n$인 모든 부분 모임을 시험한다 |
+| 넣고 빼기 | $O(2^n \cdot |T|)$ | 짝짓기 덮기를 센다 |
+| 색 매기기 | $O(2^{3n} \cdot |T|)$ | 마구잡이 붙박이 매개변수 |
 
-### Heuristics
+### 어림짐작
 
-For practical instances, **greedy matching** (select triples that cover the most unmatched elements) combined with **backtracking** often finds solutions quickly, though without worst-case guarantees.
+실제 사례에서는 **욕심쟁이 짝짓기**(짝지어지지 않은 원소를 가장 많이 덮는 세 쌍을 고른다)와 **되돌아가기**를 합치면 가장 나쁜 경우의 보장은 없어도 흔히 풀이를 빨리 찾는다.
 
-??? example "Example: Small 3DM Instance"
-    **Sets:** $X = \{x_1, x_2\}$, $Y = \{y_1, y_2\}$, $Z = \{z_1, z_2\}$.
+??? example "보기: 작은 3차원 짝짓기 사례"
+    **모임:** $X = \{x_1, x_2\}$, $Y = \{y_1, y_2\}$, $Z = \{z_1, z_2\}$.
 
-    **Triples:**
+    **세 쌍:**
 
     - $t_1 = (x_1, y_1, z_1)$
     - $t_2 = (x_1, y_2, z_2)$
     - $t_3 = (x_2, y_1, z_2)$
     - $t_4 = (x_2, y_2, z_1)$
 
-    **Solution:** Select $\{t_1, t_3\}$: covers $x_1, y_1, z_1$ and $x_2, y_1, z_2$. But $y_1$ appears twice --- invalid.
+    **풀이:** $\{t_1, t_3\}$을 고르면 $x_1, y_1, z_1$과 $x_2, y_1, z_2$을 덮는다. 그런데 $y_1$이 두 번 나오므로 올바르지 않다.
 
-    Try $\{t_2, t_3\}$: covers $x_1, y_2, z_2$ and $x_2, y_1, z_2$. But $z_2$ appears twice --- invalid.
+    $\{t_2, t_3\}$을 시험하면 $x_1, y_2, z_2$과 $x_2, y_1, z_2$을 덮는다. 그런데 $z_2$이 두 번 나오므로 올바르지 않다.
 
-    Try $\{t_1, t_4\}$: covers $x_1, y_1, z_1$ and $x_2, y_2, z_1$. But $z_1$ appears twice --- invalid.
+    $\{t_1, t_4\}$을 시험하면 $x_1, y_1, z_1$과 $x_2, y_2, z_1$을 덮는다. 그런데 $z_1$이 두 번 나오므로 올바르지 않다.
 
-    Try $\{t_2, t_4\}$: covers $x_1, y_2, z_2$ and $x_2, y_2, z_1$. But $y_2$ appears twice --- invalid.
+    $\{t_2, t_4\}$을 시험하면 $x_1, y_2, z_2$과 $x_2, y_2, z_1$을 덮는다. 그런데 $y_2$이 두 번 나오므로 올바르지 않다.
 
-    **No perfect matching exists** for this instance. Every pair of triples shares an element.
+    이 사례에는 **완벽 짝짓기가 없다**. 세 쌍의 어느 짝이나 원소를 함께 가진다.
 
-## Reference
+## 참고 문헌
 
 - Karp, R. M. (1972). Reducibility among combinatorial problems. In *Complexity of Computer Computations*, Plenum Press.
 - Garey, M. R., & Johnson, D. S. (1979). *Computers and Intractability*. W. H. Freeman.
 - Sipser, M. (2012). *Introduction to the Theory of Computation* (3rd ed.). Cengage Learning.
+
+## 연습문제
+
+**연습문제 1.**
+2차원 짝짓기(두 쪽 짝짓기, 다항 시간에 풀 수 있다)와 3차원 짝짓기(NP 완전)의 차이를 밝혀라. 늘어난 차원이 왜 문제를 어렵게 만드는가?
+
+??? success "연습문제 1 풀이"
+    2차원 짝짓기에는 서로 겹치지 않는 모임 $X, Y$과 그 사이의 변이 있다. 완벽 짝짓기를 찾는 것은 늘림 길 알고리즘(홉크로프트-카프, $O(\sqrt{n} \cdot m)$)으로 P에 든다.
+
+    3차원 짝짓기에는 크기 $n$인 서로 겹치지 않는 모임 $X, Y, Z$ 셋과 세 쌍 모임 $T \subseteq X \times Y \times Z$이 있다. 목표는 원소마다 꼭 한 번 덮는 세 쌍 $n$개를 찾는 것이다. 늘어난 차원이 2차원 짝짓기를 다룰 만하게 하는 매트로이드와 흐름 얼개를 없앤다. 2차원 짝짓기에서는 두 쪽 그래프의 늘림 길이 깔끔하게 번갈아 나타나는 얼개를 가진다. 3차원에는 그에 해당하는 다항 시간 늘림 셈속이 없다.
+
+    NP 완전성 밝힘은 3-SAT에서 줄인다. 변수는 어긋나지 않는 참 값 매김을 강제하는 세 쌍 고르기로 적고, 절의 만족은 세 차원에 걸친 덮기 요구로 적는다.
+
+---
+
+**연습문제 2.**
+3차원 짝짓기가 NP에 듦을 보여라.
+
+??? success "연습문제 2 풀이"
+    크기가 저마다 $n$인 모임 $X, Y, Z$, 세 쌍 모음 $T \subseteq X \times Y \times Z$, 후보 짝짓기 $M \subseteq T$이 주어질 때 다음을 살핀다:
+
+    1. $|M| = n$(짝짓기에 세 쌍이 꼭 $n$개 있다).
+    2. $X$의 모든 원소가 $M$의 세 쌍 가운데 꼭 하나에 나온다.
+    3. $Y$의 모든 원소가 $M$의 세 쌍 가운데 꼭 하나에 나온다.
+    4. $Z$의 모든 원소가 $M$의 세 쌍 가운데 꼭 하나에 나온다.
+
+    $M$을 훑으며 원소를 표시하면 모든 살피기를 $O(n)$ 시간에 할 수 있다. 증서 $M$의 크기는 $O(n)$으로 다항이다. 따라서 3차원 짝짓기 $\in$ NP이다.
+
+---
+
+**연습문제 3.**
+3차원 짝짓기를 3원소 모임의 정확한 덮기(X3C)로 줄여라. X3C도 NP 완전인 까닭을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    X3C: $|U| = 3q$인 온 모임 $U$과 $U$의 3원소 부분 모임 모음 $\mathcal{S}$이 주어질 때 $U$을 나누는 꼭 $q$개의 모임으로 이루어진 부분 모음이 있는가?
+
+    3차원 짝짓기에서 줄이기: $|X| = |Y| = |Z| = n$인 $(X, Y, Z, T)$이 주어지면 $|U| = 3n$인 $U = X \cup Y \cup Z$이라 하자. 세 쌍 $(x, y, z) \in T$마다 모임 $\{x, y, z\} \in \mathcal{S}$을 만든다. 그러면 (원소마다 한 번 덮는) 3차원 짝짓기가 서로 겹치지 않는 3원소 모임 $n$개로 $U$을 정확히 덮는 것과 꼭 대응한다.
+
+    이 줄임은 하찮게 다항이다(이름표만 바꾼다). 3차원 짝짓기가 NP 완전이고 X3C으로 줄여지며 X3C이 NP에 들므로($O(|U|)$에 살필 수 있는 부분 모음이 증서이다) X3C은 NP 완전이다.
+
+---
+
+**연습문제 4.**
+일정 짜기나 배정 문제에서 3차원 짝짓기의 실제 쓰임새를 적어라.
+
+??? success "연습문제 4 풀이"
+    학생을 (과제, 시간대) 짝에 배정하는 경우를 살펴보자. 학생이 $n$명, 과제가 $n$개, 시간대가 $n$개이다. 쓸 수 있는 배정마다 받아들일 만한 얽음 모임에서 온 (학생, 과제, 시간대) 세 쌍이다. 목표는 학생마다 과제 하나와 시간대 하나에 꼭 배정하되 과제와 시간대도 꼭 한 번씩 쓰이게 하는 것이다.
+
+    이것이 바로 3차원 짝짓기이다. 실제 보기로는 (1) 장기 이식 짝짓기(주는 이, 받는 이, 병원), (2) 근무 일정 짜기(일꾼, 일감, 근무 시간), (3) 강의 일정 짜기(교수, 강의, 강의실과 시간)가 있다.
+
+    3차원 짝짓기가 NP 완전이므로 이런 일정 문제는 일반으로 다룰 수 없다. 실제로는 정수 선형 계획 풀개, 제약 계획, 또는 실제 사례의 특별한 얼개를 써먹는 어림짐작으로 푼다.

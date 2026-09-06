@@ -1,9 +1,4 @@
 # Inception Score (IS) for Diffusion Models
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 The Inception Score evaluates generated image quality and diversity using a pre-trained Inception-v3 classifier. For the full mathematical derivation, implementation, and limitations analysis, see [IS in §25.6](../../ch25/gan_evaluation/inception_score.md). This page covers diffusion-specific usage.
 
 ## Definition Recap
@@ -74,3 +69,41 @@ See the comprehensive IS treatment in [§25.6](../../ch25/gan_evaluation/incepti
 1. Salimans, T., et al. (2016). "Improved Techniques for Training GANs." *NeurIPS*.
 2. Ho, J., Jain, A., & Abbeel, P. (2020). "Denoising Diffusion Probabilistic Models." *NeurIPS*.
 3. Dhariwal, P., & Nichol, A. (2021). "Diffusion Models Beat GANs on Image Synthesis." *NeurIPS*.
+
+## Exercises
+
+**Exercise 1.**
+Explain why log-likelihood is a useful metric for evaluating diffusion models. What are its limitations?
+
+??? success "Solution to Exercise 1"
+    Log-likelihood measures how well the model assigns probability to held-out test data: $\mathcal{L} = \frac{1}{N}\sum_i \log p_\theta(x_i)$. It is useful because: (1) it is a proper scoring rule (maximized by the true distribution), (2) it provides a single number for model comparison, (3) it penalizes both poor sample quality and mode collapse. **Limitations**: (1) models with high likelihood can produce poor samples (e.g., mixtures that assign mass to unrealistic regions), (2) exact computation is often intractable for diffusion models (requires the ELBO or expensive ODE-based evaluation), (3) it does not directly measure perceptual quality.
+
+---
+
+**Exercise 2.**
+Compare FID, Inception Score, and log-likelihood as evaluation metrics for generative models.
+
+??? success "Solution to Exercise 2"
+    | Metric | Measures | Requires Real Data | Detects Mode Collapse | Perceptual Quality |
+    |--------|---------|-------------------|----------------------|-------------------|
+    | **FID** | Distributional similarity | Yes | Yes | Good |
+    | **IS** | Quality + diversity | No | Partially | Moderate |
+    | **Log-likelihood** | Density accuracy | Yes (test set) | Yes | Weak |
+
+    FID is the most widely used because it correlates well with human judgment and captures both quality and diversity. IS only evaluates generated samples. Log-likelihood is theoretically principled but can disagree with perceptual quality. Best practice: report all three.
+
+---
+
+**Exercise 3.**
+What is the bits-per-dimension (BPD) metric? How is it computed for diffusion models?
+
+??? success "Solution to Exercise 3"
+    BPD normalizes the negative log-likelihood by the data dimensionality and converts to bits: $\text{BPD} = -\frac{\log_2 p(x)}{d}$ where $d$ is the number of dimensions (e.g., $3 \times 32 \times 32 = 3072$ for CIFAR-10). For diffusion models, the log-likelihood is bounded by the ELBO: $\log p(x) \geq \text{ELBO} = -\sum_t L_t$ where $L_t$ are the KL divergence terms. Exact computation uses the probability flow ODE and the instantaneous change of variables formula. Lower BPD indicates a better model. State-of-the-art diffusion models achieve $\sim$2.5 BPD on CIFAR-10.
+
+---
+
+**Exercise 4.**
+Why can a generative model with excellent FID still fail in production applications? What additional evaluations are needed?
+
+??? success "Solution to Exercise 4"
+    FID measures average distributional quality but misses: (1) **Tail behavior**: rare but important failure modes (artifacts, offensive content) are averaged out, (2) **Conditional fidelity**: FID is typically computed unconditionally; class-conditional or text-conditional FID may differ, (3) **Memorization**: a model that memorizes training data achieves low FID but is useless for generation, (4) **Diversity within conditions**: FID may be low even if the model generates the same image for similar prompts. Additional evaluations: precision/recall curves, per-class FID, memorization detection (nearest-neighbor distance to training set), human evaluation for quality and diversity, and application-specific metrics (e.g., text-image alignment for text-to-image models).

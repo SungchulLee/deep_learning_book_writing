@@ -1,114 +1,109 @@
-# Stationary Distribution
+# 멈춘 분포
+## 들어가며
 
+멈춘 분포는 마르코프 사슬 이론과 MCMC 표집을 잇는 중심 대상이다. 이는 사슬의 긴 눈으로 본 평형, 곧 시작 상태와 상관없이 사슬이 모여 가는 분포를 나타낸다. MCMC 얼개에서 하려는 일은 그 멈춘 분포가 주어진 과녁 $\pi$과 같은 사슬을 짓는 것이며, 그러면 사슬을 넉넉히 오래 돌려 $\pi$의 어림 표본을 얻는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 정의와 성질
 
-## Introduction
+### 수학적 정의
 
-The stationary distribution is the central object connecting Markov chain theory to MCMC sampling. It represents the long-run equilibrium of a chain—the distribution to which the chain converges regardless of its starting state. In the MCMC framework, the entire point is to construct a chain whose stationary distribution equals a given target $\pi$, so that running the chain long enough yields approximate samples from $\pi$.
-
-## Definition and Properties
-
-### Mathematical Definition
-
-A probability distribution $\pi = (\pi_0, \pi_1, \ldots, \pi_{N-1})$ is a **stationary distribution** (or invariant distribution, equilibrium distribution) for a Markov chain with transition matrix $P$ if:
+확률 분포 $\pi = (\pi_0, \pi_1, \ldots, \pi_{N-1})$이 다음을 만족하면 옮김 행렬이 $P$인 마르코프 사슬의 **멈춘 분포**(불변 분포, 평형 분포)이다:
 
 $$\pi = \pi P$$
 
-Component-wise:
+성분별로 쓰면:
 
 $$\pi_j = \sum_{i \in S} \pi_i P_{ij} \quad \text{for all } j \in S$$
 
-### Why "Stationary"
+### 왜 "멈춘"인가
 
-If the chain starts with distribution $\pi$—that is, $P(X_0 = i) = \pi_i$—then at every subsequent time:
+사슬이 분포 $\pi$으로 시작하면, 곧 $P(X_0 = i) = \pi_i$이면 그 뒤 어느 때에도 다음이 성립한다:
 
 $$P(X_n = j) = \sum_{i \in S} \pi_i P^{(n)}_{ij} = (\pi P^n)_j = \pi_j$$
 
-The distribution is preserved under the dynamics: once in equilibrium, the chain stays in equilibrium. The fixed-point equation $\pi = \pi P$ encodes this invariance.
+동역학이 분포를 지킨다. 곧 한번 평형에 들면 사슬은 평형에 머문다. 고정점 방정식 $\pi = \pi P$이 이 불변함을 담는다.
 
-### Physical Interpretations
+### 물리적인 풀이
 
-For ergodic chains, $\pi_i$ admits three equivalent interpretations:
+에르고드 사슬에서 $\pi_i$은 같은 뜻의 풀이 셋을 갖는다:
 
-1. **Long-run proportion**: the fraction of time spent in state $i$ as $n \to \infty$
-2. **Limiting probability**: $\lim_{n \to \infty} P(X_n = i)$ regardless of starting state
-3. **Reciprocal of mean return time**: $\pi_i = 1/\mathbb{E}[T_i]$ where $T_i = \min\{n \geq 1 : X_n = i \mid X_0 = i\}$
+1. **긴 눈으로 본 몫**: $n \to \infty$일 때 상태 $i$에서 보내는 시간의 비율
+2. **극한 확률**: 시작 상태와 상관없는 $\lim_{n \to \infty} P(X_n = i)$
+3. **평균 돌아옴 때의 역수**: $T_i = \min\{n \geq 1 : X_n = i \mid X_0 = i\}$일 때 $\pi_i = 1/\mathbb{E}[T_i]$
 
-The third interpretation is especially useful for MCMC: states with higher stationary probability are visited more frequently (shorter expected return time), which is exactly what we want when sampling from $\pi$.
+셋째 풀이가 MCMC에 특히 쓸모 있다. 곧 멈춘 확률이 높은 상태를 더 자주 들르며(기대 돌아옴 때가 짧으며), 이것이 바로 $\pi$에서 표집할 때 우리가 바라는 바이다.
 
-## Existence and Uniqueness
+## 있음과 하나뿐임
 
-### Existence
+### 있음
 
-**Theorem.** Every finite Markov chain has at least one stationary distribution.
+**정리.** 끝이 있는 마르코프 사슬마다 멈춘 분포가 적어도 하나 있다.
 
-*Proof sketch.* The set of probability distributions on $S$ is compact (closed and bounded in $\mathbb{R}^N$), and the mapping $\mu \mapsto \mu P$ is continuous. By the Brouwer fixed-point theorem, a fixed point exists.
+*증명 얼개.* $S$ 위 확률 분포의 묶음은 옹골지고($\mathbb{R}^N$에서 닫혀 있고 유계이고) 사상 $\mu \mapsto \mu P$은 이어져 있다. 브라우어 고정점 정리에 따라 고정점이 있다.
 
-### Uniqueness
+### 하나뿐임
 
-**Theorem.** An **irreducible** Markov chain has exactly one stationary distribution.
+**정리.** **쪼갤 수 없는** 마르코프 사슬에는 멈춘 분포가 꼭 하나 있다.
 
-Irreducibility (all states communicate) is sufficient for uniqueness but not for convergence. For convergence we additionally need aperiodicity—this is the content of the ergodicity theorems in the next section.
+쪼갤 수 없음(모든 상태가 통함)은 하나뿐임에는 넉넉하지만 모임에는 그렇지 않다. 모임을 얻으려면 주기 없음이 더 필요하며, 이것이 다음 마당의 에르고드성 정리가 다루는 내용이다.
 
-### Summary of Conditions
+### 조건 간추림
 
-| Condition | Unique $\pi$? | Convergence $P^n \to \mathbf{1}\pi$? |
+| 조건 | $\pi$이 하나뿐인가? | $P^n \to \mathbf{1}\pi$으로 모이는가? |
 |-----------|:---:|:---:|
-| Irreducible only | Yes | Not guaranteed (may oscillate) |
-| Aperiodic only | May have multiple | Depends |
-| **Ergodic** (irreducible + aperiodic) | **Yes** | **Yes** |
-| Reducible | Multiple possible | No (depends on start) |
+| 쪼갤 수 없음만 | 예 | 보장되지 않음(흔들릴 수 있음) |
+| 주기 없음만 | 여럿일 수 있음 | 경우에 따라 다름 |
+| **에르고드**(쪼갤 수 없음 + 주기 없음) | **예** | **예** |
+| 쪼갤 수 있음 | 여럿일 수 있음 | 아니오(시작에 따라 다름) |
 
-## Four Methods for Computing pi
+## $\pi$을 셈하는 네 가지 방법
 
-### Method 1: Eigenvector Method
+### 방법 1: 고유벡터 방법
 
-Since $\pi P = \pi$, transposing gives $P^T \pi^T = \pi^T$. So $\pi^T$ is a right eigenvector of $P^T$ with eigenvalue $\lambda = 1$.
+$\pi P = \pi$이므로 옮겨 놓으면 $P^T \pi^T = \pi^T$이다. 곧 $\pi^T$은 고유값 $\lambda = 1$에 대한 $P^T$의 오른쪽 고유벡터이다.
 
-**Algorithm:**
+**알고리즘:**
 
-1. Compute eigenvalues and eigenvectors of $P^T$
-2. Find the eigenvector corresponding to eigenvalue 1
-3. Normalize to sum to 1
+1. $P^T$의 고유값과 고유벡터를 셈한다
+2. 고유값 1에 해당하는 고유벡터를 찾는다
+3. 합이 1이 되도록 고르게 한다
 
-### Method 2: Linear System
+### 방법 2: 선형 얼개
 
-The equation $\pi(P - I) = \mathbf{0}$ defines a homogeneous linear system. We replace one equation with the normalization constraint $\sum_i \pi_i = 1$ to obtain a unique solution.
+방정식 $\pi(P - I) = \mathbf{0}$은 동차 선형 얼개를 이룬다. 식 하나를 고르게 하기 제약 $\sum_i \pi_i = 1$으로 바꾸면 하나뿐인 풀이를 얻는다.
 
-**Algorithm:**
+**알고리즘:**
 
-1. Form the matrix $A = P^T - I$
-2. Replace the last row of $A$ with $[1, 1, \ldots, 1]$
-3. Set right-hand side $b = [0, 0, \ldots, 0, 1]^T$
-4. Solve $A \pi^T = b$
+1. 행렬 $A = P^T - I$을 만든다
+2. $A$의 마지막 행을 $[1, 1, \ldots, 1]$으로 바꾼다
+3. 오른쪽 변을 $b = [0, 0, \ldots, 0, 1]^T$으로 놓는다
+4. $A \pi^T = b$을 푼다
 
-### Method 3: Power Iteration
+### 방법 3: 거듭제곱 되풀이
 
-For ergodic chains, repeatedly multiplying any initial distribution by $P$ converges to $\pi$.
+에르고드 사슬에서는 아무 첫 분포에 $P$을 되풀이해 곱하면 $\pi$으로 모인다.
 
-**Algorithm:**
+**알고리즘:**
 
-1. Start with any distribution $\pi^{(0)}$
-2. Iterate: $\pi^{(k+1)} = \pi^{(k)} P$
-3. Stop when $\|\pi^{(k+1)} - \pi^{(k)}\| < \epsilon$
+1. 아무 분포 $\pi^{(0)}$으로 시작한다
+2. 되풀이한다: $\pi^{(k+1)} = \pi^{(k)} P$
+3. $\|\pi^{(k+1)} - \pi^{(k)}\| < \epsilon$이면 멈춘다
 
-This is conceptually the simplest method and directly mirrors what MCMC does: run the chain and wait for convergence.
+개념으로는 가장 단순한 방법이며 MCMC이 하는 일을 곧바로 비춘다. 곧 사슬을 돌리고 모이기를 기다리는 것이다.
 
-### Method 4: Simulation (Ergodic Theorem)
+### 방법 4: 흉내내기(에르고드 정리)
 
-For ergodic chains, the time-average of indicator functions converges to the space-average.
+에르고드 사슬에서는 지시 함수의 시간 평균이 공간 평균으로 모인다.
 
-**Algorithm:**
+**알고리즘:**
 
-1. Simulate the chain for $T$ steps (with burn-in)
-2. Count visits to each state: $N_i = \sum_{t=0}^{T} \mathbf{1}\{X_t = i\}$
-3. Estimate: $\hat{\pi}_i = N_i / T$
+1. 사슬을 $T$ 걸음 흉내 낸다(태우기를 두고)
+2. 상태마다 들른 횟수를 센다: $N_i = \sum_{t=0}^{T} \mathbf{1}\{X_t = i\}$
+3. 어림한다: $\hat{\pi}_i = N_i / T$
 
-This is essentially what MCMC does in practice—the method foreshadows the ergodic theorem that justifies all MCMC estimators.
+이것이 실전에서 MCMC이 하는 일과 다름없다. 이 방법은 모든 MCMC 어림자를 뒷받침하는 에르고드 정리를 미리 보여 준다.
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
@@ -117,10 +112,10 @@ from typing import Dict, Tuple, Optional
 
 class StationaryDistributionAnalyzer:
     """
-    Compute stationary distributions using multiple methods.
+    여러 방법으로 멈춘 분포 셈하기.
 
-    A stationary distribution π satisfies: π = πP
-    Equivalently, π^T is a right eigenvector of P^T with eigenvalue 1.
+    멈춘 분포 π은 π = πP을 만족한다
+    같은 말로 π^T은 고윳값이 1인 P^T의 오른쪽 고유벡터이다.
     """
 
     def __init__(
@@ -136,7 +131,7 @@ class StationaryDistributionAnalyzer:
 
     def via_eigenvector(self) -> torch.Tensor:
         """
-        Method 1: Eigenvector of P^T with eigenvalue 1.
+        방법 1: 고윳값이 1인 P^T의 고유벡터.
 
         πP = π  ⟹  P^T π^T = π^T
         """
@@ -149,9 +144,9 @@ class StationaryDistributionAnalyzer:
 
     def via_linear_system(self) -> torch.Tensor:
         """
-        Method 2: Solve (P^T - I)π^T = 0 with normalization.
+        방법 2: 고르게 하기 제약 아래에서 (P^T - I)π^T = 0 풀기.
 
-        Replace last equation with Σπ_i = 1.
+        마지막 식을 Σπ_i = 1으로 바꾸기.
         """
         A = self.P.T - torch.eye(self.n_states, dtype=self.P.dtype)
         A[-1, :] = torch.ones(self.n_states, dtype=self.P.dtype)
@@ -166,7 +161,7 @@ class StationaryDistributionAnalyzer:
         tol: float = 1e-10
     ) -> Tuple[torch.Tensor, int]:
         """
-        Method 3: Iterate π^{(k+1)} = π^{(k)} P until convergence.
+        방법 3: 모일 때까지 π^{(k+1)} = π^{(k)} P 되풀이하기.
         """
         P_n = self.P.clone()
         for n in range(1, max_iter + 1):
@@ -184,7 +179,7 @@ class StationaryDistributionAnalyzer:
         burn_in: int = 1000
     ) -> torch.Tensor:
         """
-        Method 4: Estimate π via long-run simulation (ergodic theorem).
+        방법 4: 오래 돌리는 흉내내기로 π 어림하기(에르고드 정리).
 
         lim_{T→∞} (1/T) Σ_{t=0}^{T} 1{X_t = j} = π_j
         """
@@ -203,7 +198,7 @@ class StationaryDistributionAnalyzer:
         self,
         n_simulation_steps: int = 100000
     ) -> Dict[str, torch.Tensor]:
-        """Compute π using all four methods for comparison."""
+        """견주려고 네 방법 모두로 π 셈하기."""
         results = {}
         results['eigenvector'] = self.via_eigenvector()
         results['linear_system'] = self.via_linear_system()
@@ -219,9 +214,9 @@ class StationaryDistributionAnalyzer:
         tol: float = 1e-6
     ) -> Dict:
         """
-        Verify that π is a valid stationary distribution.
+        π이 올바른 멈춘 분포인지 확인하기.
 
-        Checks: (1) valid probability distribution, (2) πP = π.
+        살피기: (1) 올바른 확률 분포인가, (2) πP = π인가.
         """
         results = {}
         results['is_non_negative'] = torch.all(pi >= -tol).item()
@@ -233,11 +228,11 @@ class StationaryDistributionAnalyzer:
         return results
 ```
 
-### Demonstration: Method Comparison
+### 보여 주기: 방법 견주기
 
 ```python
 def demonstrate_stationary_distribution():
-    """Compare all four methods on a three-state weather model."""
+    """세 상태 날씨 모형에서 네 방법 모두 견주기."""
     states = ['Sunny', 'Cloudy', 'Rainy']
     P = torch.tensor([
         [0.7, 0.25, 0.05],
@@ -268,12 +263,12 @@ def demonstrate_stationary_distribution():
     print(f"\nPower iteration converged in "
           f"{results['power_iterations_count']} iterations")
 
-    # Verify
+    # 확인
     verification = analyzer.verify_stationary(results['eigenvector'])
     print(f"\nVerification: ||πP - π|| = "
           f"{verification['fixed_point_error']:.2e}")
 
-    # Interpretation
+    # 해석
     pi = results['eigenvector']
     print("\nLong-run interpretation:")
     for i, state in enumerate(states):
@@ -286,21 +281,21 @@ def demonstrate_stationary_distribution():
 demonstrate_stationary_distribution()
 ```
 
-## Convergence to Stationary Distribution
+## 멈춘 분포로 모이기
 
-### Rate of Convergence
+### 모임 속도
 
-For ergodic chains, the convergence rate is controlled by the **spectral gap**:
+에르고드 사슬에서 모임 속도는 **스펙트럼 틈**이 다스린다:
 
 $$\gamma = 1 - |\lambda_2|$$
 
-where $\lambda_2$ is the second-largest eigenvalue of $P$ in absolute value. The total variation distance between the distribution at time $n$ and the stationary distribution decays exponentially:
+여기서 $\lambda_2$은 절댓값으로 둘째로 큰 $P$의 고유값이다. 때 $n$의 분포와 멈춘 분포 사이의 총 변동 거리는 지수로 사그라든다:
 
 $$\|P^n_{i,\cdot} - \pi\|_{TV} \leq C \cdot |\lambda_2|^n$$
 
-A larger spectral gap means faster convergence—the chain "forgets" its starting state more quickly.
+스펙트럼 틈이 클수록 빨리 모인다. 곧 사슬이 시작 상태를 더 빨리 "잊는다".
 
-### Visualization
+### 눈으로 보기
 
 ```python
 import matplotlib.pyplot as plt
@@ -310,7 +305,7 @@ def visualize_convergence_to_stationary(
     state_names: list = None,
     max_steps: int = 50
 ):
-    """Visualize how distributions converge to stationary."""
+    """분포가 멈춘 분포로 어떻게 모이는지 그려 보기."""
     n_states = P.shape[0]
     if state_names is None:
         state_names = [f"S{i}" for i in range(n_states)]
@@ -320,7 +315,7 @@ def visualize_convergence_to_stationary(
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
 
-    # Left: TV distance to stationary (log scale)
+    # 왼쪽: 멈춘 분포까지의 TV 거리(로그 눈금)
     ax1 = axes[0]
     for start_state in range(n_states):
         dist = torch.zeros(n_states)
@@ -344,7 +339,7 @@ def visualize_convergence_to_stationary(
     ax1.legend()
     ax1.grid(True, alpha=0.3)
 
-    # Right: Component-wise evolution from state 0
+    # 오른쪽: 상태 0에서의 성분별 흘러감
     ax2 = axes[1]
     dist = torch.zeros(n_states)
     dist[0] = 1.0
@@ -372,60 +367,60 @@ def visualize_convergence_to_stationary(
     return fig
 ```
 
-## Detailed Balance and Reversibility
+## 자세한 균형과 뒤집힘
 
-A Markov chain satisfies **detailed balance** with respect to distribution $\pi$ if:
+마르코프 사슬이 분포 $\pi$에 대해 다음을 만족하면 **자세한 균형**을 만족한다:
 
 $$\pi_i P_{ij} = \pi_j P_{ji} \quad \text{for all } i, j$$
 
-This says the probability flow from $i$ to $j$ equals the flow from $j$ to $i$ in equilibrium. A chain satisfying detailed balance is called **reversible**.
+이는 평형에서 $i$에서 $j$으로 흐르는 확률과 $j$에서 $i$으로 흐르는 확률이 같다는 말이다. 자세한 균형을 만족하는 사슬을 **뒤집을 수 있다**고 한다.
 
-**Proposition.** If $\pi$ satisfies detailed balance with $P$, then $\pi$ is a stationary distribution for $P$.
+**명제.** $\pi$이 $P$과 자세한 균형을 만족하면 $\pi$은 $P$의 멈춘 분포이다.
 
-*Proof.* Summing the detailed balance equation over $i$:
+*증명.* 자세한 균형 식을 $i$에 걸쳐 합하면:
 
 $$\sum_i \pi_i P_{ij} = \sum_i \pi_j P_{ji} = \pi_j \sum_i P_{ji} = \pi_j$$
 
-which is exactly $\pi = \pi P$. $\square$
+이것이 바로 $\pi = \pi P$이다. $\square$
 
-Detailed balance is *sufficient* but not *necessary* for stationarity. However, it is the primary tool for designing MCMC algorithms: the Metropolis-Hastings algorithm (Section 18.3) constructs transition kernels that satisfy detailed balance with respect to the target distribution.
+자세한 균형은 멈춤에 *넉넉하지만* *꼭 있어야 하는 것*은 아니다. 그러나 MCMC 알고리즘을 짜는 으뜸 도구이다. 메트로폴리스-헤이스팅스 알고리즘(18.3절)은 과녁 분포에 대해 자세한 균형을 만족하는 옮김 알맹이를 짓는다.
 
-## Connection to MCMC Design
+## MCMC 설계와의 이음
 
-The stationary distribution theory provides the blueprint for MCMC:
+멈춘 분포 이론이 MCMC의 밑그림을 준다:
 
-| Theory | MCMC Application |
+| 이론 | MCMC에서의 쓰임 |
 |--------|-----------------|
-| $\pi = \pi P$ (fixed point) | Design $P$ so that $\pi$ is its stationary distribution |
-| Uniqueness (irreducibility) | Ensure the MCMC chain can reach all states |
-| Convergence (ergodicity) | Guarantee samples eventually approximate $\pi$ |
-| Detailed balance | Primary tool for constructing valid MCMC kernels |
-| Spectral gap | Determines how long to run the chain (burn-in) |
+| $\pi = \pi P$(고정점) | $\pi$이 멈춘 분포가 되도록 $P$을 짠다 |
+| 하나뿐임(쪼갤 수 없음) | MCMC 사슬이 모든 상태에 닿을 수 있게 한다 |
+| 모임(에르고드성) | 표본이 언젠가 $\pi$을 어림함을 보장한다 |
+| 자세한 균형 | 올바른 MCMC 알맹이를 짓는 으뜸 도구 |
+| 스펙트럼 틈 | 사슬을 얼마나 돌릴지(태우기)를 정한다 |
 
-## Summary
+## 요약
 
-| Method | Computation | Pros | Cons |
+| 방법 | 셈하기 | 좋은 점 | 나쁜 점 |
 |--------|-------------|------|------|
-| **Eigenvector** | $P^T v = v$, normalize | Exact, fast for small matrices | Numerical issues for large $N$ |
-| **Linear System** | $(P^T - I)\pi^T = 0$ + normalization | Exact, numerically stable | Requires matrix factorization |
-| **Power Iteration** | $\pi^{(k+1)} = \pi^{(k)}P$ | Simple, intuitive | Slow for small spectral gap |
-| **Simulation** | Count state visits | Scales to large state spaces | Approximate, needs long runs |
+| **고유벡터** | $P^T v = v$ 뒤 고르게 하기 | 정확하고 작은 행렬에 빠름 | $N$이 크면 수치 문제 |
+| **선형 얼개** | $(P^T - I)\pi^T = 0$ + 고르게 하기 | 정확하고 수치로 안정 | 행렬 분해가 필요 |
+| **거듭제곱 되풀이** | $\pi^{(k+1)} = \pi^{(k)}P$ | 단순하고 알아보기 쉬움 | 스펙트럼 틈이 작으면 느림 |
+| **흉내내기** | 상태 들름 횟수 세기 | 큰 상태 공간까지 감당 | 어림이고 오래 돌려야 함 |
 
-## Exercises
+## 참고 문헌
 
-1. **Multiple Stationary Distributions.** Construct a reducible Markov chain with two distinct stationary distributions and verify that both satisfy $\pi = \pi P$.
+1. Levin, D.A., Peres, Y., & Wilmer, E.L. *Markov Chains and Mixing Times*, 1-4장. AMS, 2017.
+2. Norris, J.R. *Markov Chains*, 1장. Cambridge University Press, 1997.
+3. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, 4장. Springer-Verlag, 1976.
+4. Robert, C.P. & Casella, G. *Monte Carlo Statistical Methods*, 6장. Springer, 2004.
 
-2. **Detailed Balance.** For the transition matrix $P = \begin{pmatrix} 0.7 & 0.3 \\ 0.4 & 0.6 \end{pmatrix}$, find the stationary distribution $\pi$ and verify that detailed balance holds.
+## 연습문제
 
-3. **Convergence Rate.** Compute the spectral gap for the weather model. Verify empirically that the TV distance decays at rate $|\lambda_2|^n$.
+1. **멈춘 분포가 여럿.** 서로 다른 멈춘 분포 둘을 갖는, 쪼갤 수 있는 마르코프 사슬을 지어라. 둘 다 $\pi = \pi P$을 만족하는지 확인하여라.
 
-4. **Customer Loyalty.** Model customer behavior with states $\{$Loyal, Neutral, Churned$\}$. Compute the long-run proportion of customers in each state and the expected time for a Neutral customer to become Loyal.
+2. **자세한 균형.** 옮김 행렬 $P = \begin{pmatrix} 0.7 & 0.3 \\ 0.4 & 0.6 \end{pmatrix}$의 멈춘 분포 $\pi$을 찾고 자세한 균형이 성립하는지 확인하여라.
 
-5. **Numerical Stability.** Compare the four methods on a nearly-reducible chain where some transition probabilities are close to 0. Which method is most robust?
+3. **모임 속도.** 날씨 모형의 스펙트럼 틈을 셈하여라. 총 변동 거리가 $|\lambda_2|^n$의 속도로 사그라드는지 겪어 보고 확인하여라.
 
-## References
+4. **손님의 충실함.** 손님의 굴러감을 상태 $\{$충실, 그저 그럼, 떠남$\}$으로 본떠라. 상태마다 긴 눈으로 본 손님의 몫과, 그저 그런 손님이 충실해지기까지의 기대 시간을 셈하여라.
 
-1. Levin, D.A., Peres, Y., & Wilmer, E.L. *Markov Chains and Mixing Times*, Chapters 1–4. AMS, 2017.
-2. Norris, J.R. *Markov Chains*, Chapter 1. Cambridge University Press, 1997.
-3. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, Chapter 4. Springer-Verlag, 1976.
-4. Robert, C.P. & Casella, G. *Monte Carlo Statistical Methods*, Chapter 6. Springer, 2004.
+5. **수치 안정성.** 어떤 옮김 확률이 0에 가까운, 거의 쪼갤 수 있는 사슬에서 네 방법을 견주어라. 어느 방법이 가장 튼튼한가?

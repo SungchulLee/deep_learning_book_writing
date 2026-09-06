@@ -1,9 +1,4 @@
 # Saliency Maps and Vanilla Gradients
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Introduction
 
 **Saliency maps** are visualization techniques that reveal which parts of an input are most important for a neural network's prediction. At their core, saliency methods answer a fundamental question: *"Which input features does the model rely on to make this decision?"*
@@ -19,9 +14,7 @@ This chapter introduces the mathematical foundations, implementation details, an
 Given a classification function $f: \mathbb{R}^{n} \rightarrow \mathbb{R}^{C}$ (mapping $n$-dimensional inputs to $C$ class scores), the saliency map for class $c$ and input $\mathbf{x}$ is:
 
 $$
-
 S_c(\mathbf{x}) = \left| \frac{\partial f_c(\mathbf{x})}{\partial \mathbf{x}} \right|
-
 $$
 
 where $|\cdot|$ denotes element-wise absolute value.
@@ -40,9 +33,7 @@ The gradient $\frac{\partial f_c}{\partial x_i}$ measures the **sensitivity** of
 The gradient-based saliency has a natural interpretation through first-order Taylor expansion. For a small perturbation $\boldsymbol{\epsilon}$:
 
 $$
-
 f_c(\mathbf{x} + \boldsymbol{\epsilon}) \approx f_c(\mathbf{x}) + \boldsymbol{\epsilon}^\top \nabla_{\mathbf{x}} f_c(\mathbf{x})
-
 $$
 
 This reveals that:
@@ -57,9 +48,7 @@ This reveals that:
 For RGB images with shape $(3, H, W)$, we compute gradients with respect to all channels and aggregate:
 
 $$
-
 \mathbf{G} = \frac{\partial y_c}{\partial \mathbf{x}} \in \mathbb{R}^{3 \times H \times W}
-
 $$
 
 Common aggregation strategies include:
@@ -215,9 +204,7 @@ def compute_signed_saliency(
 Multiplying gradients by input values can sharpen the attribution by highlighting features that both **exist** and are **important**:
 
 $$
-
 \text{Gradient} \times \text{Input} = \mathbf{x} \odot \frac{\partial f_c}{\partial \mathbf{x}}
-
 $$
 
 ```python
@@ -557,9 +544,7 @@ def demonstrate_noise():
 For saturating nonlinearities (sigmoid, tanh) or with ReLU networks:
 
 $$
-
 \frac{\partial \text{ReLU}(x)}{\partial x} = \begin{cases} 1 & x > 0 \\ 0 & x \leq 0 \end{cases}
-
 $$
 
 When activations are in the "dead" region, gradients become zero regardless of input importance. For highly confident predictions, softmax gradients also become very small.
@@ -616,9 +601,7 @@ def sensitivity_test(model, input_tensor, device, noise_scale=0.01):
 SmoothGrad addresses the noise problem by averaging gradients over noisy copies of the input:
 
 $$
-
 \hat{S}_c(\mathbf{x}) = \frac{1}{N} \sum_{i=1}^{N} \left| \frac{\partial f_c(\mathbf{x} + \mathcal{N}(0, \sigma^2))}{\partial \mathbf{x}} \right|
-
 $$
 
 ```python
@@ -806,6 +789,7 @@ Vanilla gradients serve as the foundation for more sophisticated methods:
 ### When to Use Vanilla Gradients
 
 **Suitable for:**
+
 - Quick debugging and sanity checks
 - Understanding gradient flow
 - Baseline comparisons with other methods
@@ -813,6 +797,7 @@ Vanilla gradients serve as the foundation for more sophisticated methods:
 - Initial exploration
 
 **Not recommended for:**
+
 - Publication-quality visualizations (too noisy)
 - Production explainability (use smoother methods)
 - High-stakes decisions (combine with other evidence)
@@ -837,33 +822,25 @@ Vanilla gradient saliency provides the conceptual foundation for understanding g
 **Basic Saliency:**
 
 $$
-
 S(\mathbf{x}) = \left| \frac{\partial f_c(\mathbf{x})}{\partial \mathbf{x}} \right|
-
 $$
 
 **Aggregated Saliency (for multi-channel inputs):**
 
 $$
-
 S_{i,j} = \max_{k} |G_{k,i,j}| \quad \text{or} \quad \sqrt{\sum_k G_{k,i,j}^2}
-
 $$
 
 **Gradient × Input:**
 
 $$
-
 S(\mathbf{x}) = \left| \mathbf{x} \odot \frac{\partial f_c(\mathbf{x})}{\partial \mathbf{x}} \right|
-
 $$
 
 **SmoothGrad:**
 
 $$
-
 \hat{S}(\mathbf{x}) = \frac{1}{N} \sum_{i=1}^{N} \left| \frac{\partial f_c(\mathbf{x} + \epsilon_i)}{\partial \mathbf{x}} \right|, \quad \epsilon_i \sim \mathcal{N}(0, \sigma^2)
-
 $$
 
 ### Key Takeaways
@@ -885,3 +862,35 @@ $$
 4. Adebayo, J., Gilmer, J., Muelly, M., Goodfellow, I., Hardt, M., & Kim, B. (2018). "Sanity Checks for Saliency Maps." *NeurIPS*.
 
 5. Baehrens, D., Schroeter, T., Harmeling, S., Kawanabe, M., Hansen, K., & Müller, K. R. (2010). "How to Explain Individual Classification Decisions." *Journal of Machine Learning Research*.
+
+## Exercises
+
+**Exercise 1.**
+Apply the interpretability method described in this section to a 2-layer neural network with ReLU activations classifying XOR inputs. Compute the explanation for the input $x = [1, 1]$.
+
+??? success "Solution to Exercise 1"
+    For a trained XOR network with weights $W_1, b_1, W_2, b_2$, the output is $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$. The explanation method produces attributions for each input feature. For $x = [1, 1]$ (class 0), both features contribute to the negative classification. The specific attribution values depend on the method: gradient-based methods compute $\partial f / \partial x_i$; perturbation-based methods measure output change when features are masked. The XOR problem demonstrates that linear explanation methods can mislead because the decision boundary is non-linear. $\square$
+
+---
+
+**Exercise 2.**
+Prove or disprove that the explanation method in this section satisfies the completeness axiom: the sum of all feature attributions equals $f(x) - f(x_0)$ for some baseline $x_0$.
+
+??? success "Solution to Exercise 2"
+    The completeness axiom (also called efficiency in Shapley value theory) states that attributions sum to the difference between the model output at the input and at the baseline. Whether this method satisfies completeness depends on its formulation. Gradient methods do not satisfy completeness (gradients are local, not path-integrated). Integrated Gradients satisfies completeness by construction (fundamental theorem of calculus along the path). SHAP values satisfy efficiency by the Shapley axiom. Methods that violate completeness may over- or under-attribute, making the total attribution unreliable as a global explanation. $\square$
+
+---
+
+**Exercise 3.**
+Design an experiment to evaluate the faithfulness of the explanations produced by this method. Use insertion and deletion curves to measure whether highlighted features are truly important to the model.
+
+??? success "Solution to Exercise 3"
+    Protocol: (1) Compute feature attributions for each test image. (2) Deletion: progressively mask features in order of decreasing attribution, recording the model confidence drop. Faithful explanations cause rapid confidence decrease. (3) Insertion: progressively reveal features in order of decreasing attribution from a blank baseline, recording confidence increase. Faithful explanations cause rapid confidence increase. (4) Compute AUC for both curves. (5) Compare against random ordering (baseline) and other methods. A faithful method should have low deletion AUC and high insertion AUC. Repeat over 1000+ test samples for statistical reliability. $\square$
+
+---
+
+**Exercise 4.**
+Discuss how this interpretability method could be applied to a financial model predicting credit default. What regulatory requirements must the explanations satisfy?
+
+??? success "Solution to Exercise 4"
+    For credit models, regulations (ECOA, GDPR Article 22) require individualized explanations for adverse decisions. The method must produce: (1) the top factors contributing to the denial (adverse action reasons); (2) explanations that are consistent (similar applicants get similar explanations); (3) explanations that are actionable (the applicant understands what to change). The interpretability method from this section can identify feature importances, but must be validated for stability (small input changes should not drastically alter the explanation) and correctness (removing important features should change the prediction). Protected attributes must be handled carefully to avoid revealing proxy discrimination. $\square$

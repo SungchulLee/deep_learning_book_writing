@@ -1,18 +1,13 @@
-# Siamese Networks for One-Shot Learning
+# 한 예시 학습을 위한 샴 망
+## 들어가며
 
+샴 망은 한 예시 학습을 노리고 설계된 첫 신경망 구조에 든다. Bromley 외(1993)가 서명 검증을 위해 들여왔고 Koch 외(2015)가 한 예시 그림 알아보기로 널리 알렸다. 이 망은 배운 표현을 견주어 두 입력이 같은 부류에 드는지를 가려내는 법을 배운다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 구조 개관
 
-## Introduction
+### 쌍둥이 망 설계
 
-Siamese networks were among the first neural network architectures specifically designed for one-shot learning. Introduced by Bromley et al. (1993) for signature verification and popularized for one-shot image recognition by Koch et al. (2015), these networks learn to determine whether two inputs belong to the same class by comparing their learned representations.
-
-## Architecture Overview
-
-### The Twin Network Design
-
-A Siamese network consists of two identical subnetworks (twins) that share the same weights. Each subnetwork processes one input, and their outputs are compared to determine similarity:
+샴 망은 같은 가중치를 나누어 쓰는 똑같은 부분 망 둘(쌍둥이)로 이루어진다. 부분 망마다 입력 하나를 다루고, 그 출력을 견주어 닮음을 가린다.
 
 ```
 Input 1 ──→ [Encoder f_θ] ──→ Embedding 1 ──┐
@@ -21,47 +16,47 @@ Input 2 ──→ [Encoder f_θ] ──→ Embedding 2 ──┘
         (shared weights)
 ```
 
-The key insight is **weight sharing**: both inputs pass through the exact same network, ensuring that similar inputs produce similar embeddings regardless of which branch processes them.
+핵심 통찰은 **가중치 나누어 쓰기**이다. 두 입력이 똑같은 망을 지나므로 어느 가지가 다루든 닮은 입력은 닮은 묻힘을 낸다.
 
-### Mathematical Formulation
+### 수식으로 나타내기
 
-Given two inputs $x_1$ and $x_2$, the Siamese network computes:
+두 입력 $x_1$과 $x_2$이 주어지면 샴 망은 다음을 셈한다.
 
-**Embeddings**:
+**묻힘**:
 
 $$z_1 = f_\theta(x_1), \quad z_2 = f_\theta(x_2)$$
 
-**Similarity/Distance**:
+**닮음과 거리**:
 
 $$s(x_1, x_2) = g(|z_1 - z_2|)$$
 
-where $f_\theta$ is the encoder network, $|z_1 - z_2|$ computes element-wise absolute difference, and $g$ is typically a learned function mapping the difference to a similarity score.
+여기서 $f_\theta$은 부호기 망이고, $|z_1 - z_2|$은 성분마다의 절대 차이를 셈하며, $g$은 대개 그 차이를 닮음 점수로 옮기는 배운 함수이다.
 
-### Why Weight Sharing Matters
+### 가중치 나누어 쓰기가 중요한 까닭
 
-Weight sharing ensures that the learned embedding function is:
-1. **Symmetric**: The same transformation is applied regardless of input order
-2. **Consistent**: Similar inputs always map to similar regions
-3. **Efficient**: Only one network needs to be stored and trained
+가중치를 나누어 쓰면 배운 묻힘 함수가 다음을 갖추게 된다.
 
-## Encoder Architectures
+1. **대칭적**: 입력의 차례와 상관없이 같은 변환이 쓰인다
+2. **한결같음**: 닮은 입력은 늘 닮은 자리로 옮겨진다
+3. **효율적**: 망을 하나만 담아 두고 익히면 된다
 
-### Convolutional Encoder for Images
+## 부호기 구조
 
-The original Koch et al. architecture for Omniglot:
+### 그림을 위한 합성곱 부호기
+
+Omniglot을 위한 Koch 외의 본디 구조는 다음과 같다.
 
 ```python
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-
 class SiameseConvEncoder(nn.Module):
     """
-    Convolutional encoder for Siamese networks.
+    샴 망을 위한 합성곱 부호기.
     
-    Architecture follows Koch et al. (2015) with modifications
-    for different input sizes.
+    구조는 Koch 외(2015)를 따르되
+    입력 크기에 맞추어 손질했다.
     """
     
     def __init__(
@@ -72,37 +67,37 @@ class SiameseConvEncoder(nn.Module):
         embedding_dim: int = 4096
     ):
         """
-        Args:
-            input_channels: Number of input channels (1 for grayscale)
-            input_size: Input image size (assumes square images)
-            hidden_dim: Base number of convolutional filters
-            embedding_dim: Final embedding dimension
+        인수:
+            input_channels: 입력 채널 수(흑백이면 1)
+            input_size: 입력 그림 크기(정사각 그림으로 놓는다)
+            hidden_dim: 합성곱 거르개의 바탕 개수
+            embedding_dim: 마지막 묻힘 차원
         """
         super().__init__()
         
-        # Convolutional layers with increasing filter sizes
+        # 거르개 크기가 커지는 합성곱 층
         self.conv1 = nn.Conv2d(input_channels, hidden_dim, kernel_size=10)
         self.conv2 = nn.Conv2d(hidden_dim, hidden_dim * 2, kernel_size=7)
         self.conv3 = nn.Conv2d(hidden_dim * 2, hidden_dim * 2, kernel_size=4)
         self.conv4 = nn.Conv2d(hidden_dim * 2, hidden_dim * 4, kernel_size=4)
         
-        # Calculate flattened size after convolutions
+        # 합성곱 뒤의 편 크기를 셈한다
         self._conv_output_size = self._get_conv_output_size(
             input_channels, input_size
         )
         
-        # Fully connected layer to embedding
+        # 묻힘으로 가는 온연결 층
         self.fc = nn.Linear(self._conv_output_size, embedding_dim)
     
     def _get_conv_output_size(self, channels: int, size: int) -> int:
-        """Calculate output size after conv layers."""
+        """합성곱 층 뒤의 출력 크기를 셈한다."""
         with torch.no_grad():
             dummy = torch.zeros(1, channels, size, size)
             dummy = self._conv_forward(dummy)
             return dummy.view(1, -1).size(1)
     
     def _conv_forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Apply convolutional layers."""
+        """합성곱 층을 씌운다."""
         x = F.relu(self.conv1(x))
         x = F.max_pool2d(x, 2)
         
@@ -118,12 +113,12 @@ class SiameseConvEncoder(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Compute embedding for input.
+        입력의 묻힘을 셈한다.
         
-        Args:
-            x: Input images (batch, channels, height, width)
+        인수:
+            x: 입력 그림 (batch, channels, height, width)
         
-        Returns:
+        반환값:
             embeddings: (batch, embedding_dim)
         """
         x = self._conv_forward(x)
@@ -133,15 +128,14 @@ class SiameseConvEncoder(nn.Module):
         return x
 ```
 
-### Modern Encoder with ResNet Backbone
+### ResNet 등뼈를 쓴 오늘날의 부호기
 
 ```python
 import torchvision.models as models
 
-
 class ResNetSiameseEncoder(nn.Module):
     """
-    Siamese encoder using pre-trained ResNet backbone.
+    미리 학습된 ResNet 등뼈를 쓰는 샴 부호기.
     """
     
     def __init__(
@@ -151,13 +145,13 @@ class ResNetSiameseEncoder(nn.Module):
     ):
         super().__init__()
         
-        # Load pre-trained ResNet
+        # 미리 학습된 ResNet을 불러온다
         resnet = models.resnet18(pretrained=pretrained)
         
-        # Remove final classification layer
+        # 마지막 가려내기 층을 없앤다
         self.backbone = nn.Sequential(*list(resnet.children())[:-1])
         
-        # Projection head to embedding space
+        # 묻힘 공간으로 쏘아 넣는 머리
         self.projection = nn.Sequential(
             nn.Linear(512, embedding_dim),
             nn.BatchNorm1d(embedding_dim),
@@ -168,45 +162,45 @@ class ResNetSiameseEncoder(nn.Module):
         self.embedding_dim = embedding_dim
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Compute embedding."""
+        """묻힘을 셈한다."""
         features = self.backbone(x)
         features = features.view(features.size(0), -1)
         embeddings = self.projection(features)
         
-        # L2 normalize embeddings
+        # 묻힘을 L2로 고른다
         embeddings = F.normalize(embeddings, p=2, dim=1)
         
         return embeddings
 ```
 
-## Complete Siamese Network
+## 온전한 샴 망
 
-### Standard Implementation
+### 표준 구현
 
 ```python
 class SiameseNetwork(nn.Module):
     """
-    Complete Siamese Network for similarity learning.
+    닮음 학습을 위한 온전한 샴 망.
     
-    Computes whether two inputs belong to the same class
-    by comparing their learned embeddings.
+    배운 묻힘을 견주어 두 입력이
+    같은 부류에 드는지를 셈한다.
     """
     
     def __init__(self, encoder: nn.Module, use_distance: bool = True):
         """
-        Args:
-            encoder: Shared encoder network
-            use_distance: If True, output distance; else output similarity
+        인수:
+            encoder: 나누어 쓰는 부호기 망
+            use_distance: True이면 거리를 내고, 아니면 닮음을 낸다
         """
         super().__init__()
         self.encoder = encoder
         self.use_distance = use_distance
         
-        # Optional: learn a function on top of the distance
+        # 선택: 거리 위에 함수를 하나 더 배운다
         if hasattr(encoder, 'embedding_dim'):
             embed_dim = encoder.embedding_dim
         else:
-            embed_dim = 4096  # Default
+            embed_dim = 4096  # 기본값
         
         self.similarity_network = nn.Sequential(
             nn.Linear(embed_dim, 1),
@@ -214,7 +208,7 @@ class SiameseNetwork(nn.Module):
         )
     
     def forward_one(self, x: torch.Tensor) -> torch.Tensor:
-        """Encode single input."""
+        """입력 하나를 부호로 바꾼다."""
         return self.encoder(x)
     
     def forward(
@@ -223,26 +217,26 @@ class SiameseNetwork(nn.Module):
         x2: torch.Tensor
     ) -> torch.Tensor:
         """
-        Compute similarity between two inputs.
+        두 입력 사이의 닮음을 셈한다.
         
-        Args:
-            x1: First input batch (batch, *input_shape)
-            x2: Second input batch (batch, *input_shape)
+        인수:
+            x1: 첫 입력 배치 (batch, *input_shape)
+            x2: 둘째 입력 배치 (batch, *input_shape)
         
-        Returns:
-            If use_distance: L2 distance (batch,)
-            Else: similarity score in [0, 1] (batch,)
+        반환값:
+            use_distance이면 L2 거리 (batch,)
+            아니면 [0, 1] 안의 닮음 점수 (batch,)
         """
-        # Encode both inputs
+        # 두 입력을 모두 부호로 바꾼다
         z1 = self.encoder(x1)
         z2 = self.encoder(x2)
         
         if self.use_distance:
-            # L2 distance
+            # L2 거리
             distance = F.pairwise_distance(z1, z2, p=2)
             return distance
         else:
-            # Learned similarity on absolute difference
+            # 절대 차이 위에서 배운 닮음
             diff = torch.abs(z1 - z2)
             similarity = self.similarity_network(diff)
             return similarity.squeeze(-1)
@@ -254,14 +248,14 @@ class SiameseNetwork(nn.Module):
         threshold: float = 0.5
     ) -> torch.Tensor:
         """
-        Predict whether inputs are from same class.
+        입력이 같은 부류에서 왔는지 맞힌다.
         
-        Args:
-            x1, x2: Input batches
-            threshold: Decision threshold
+        인수:
+            x1, x2: 입력 배치
+            threshold: 판단 문턱값
         
-        Returns:
-            predictions: Boolean tensor (batch,)
+        반환값:
+            predictions: 참거짓 텐서 (batch,)
         """
         if self.use_distance:
             distances = self.forward(x1, x2)
@@ -271,29 +265,29 @@ class SiameseNetwork(nn.Module):
             return similarities > threshold
 ```
 
-## Loss Functions
+## 손실 함수
 
-### Contrastive Loss
+### 대조 손실
 
-The standard loss for training Siamese networks:
+샴 망을 익히는 표준 손실은 다음과 같다.
 
 $$\mathcal{L}(z_1, z_2, y) = (1-y) \cdot \frac{1}{2} d^2 + y \cdot \frac{1}{2} \max(0, m - d)^2$$
 
-where $y=0$ for similar pairs and $y=1$ for dissimilar pairs.
+여기서 닮은 쌍이면 $y=0$이고 닮지 않은 쌍이면 $y=1$이다.
 
 ```python
 class ContrastiveLoss(nn.Module):
     """
-    Contrastive loss for Siamese networks.
+    샴 망을 위한 대조 손실.
     
-    Pulls similar pairs together and pushes dissimilar pairs apart
-    beyond a margin.
+    닮은 쌍은 끌어당기고 닮지 않은 쌍은
+    여백 너머로 밀어낸다.
     """
     
     def __init__(self, margin: float = 1.0):
         """
-        Args:
-            margin: Minimum distance for dissimilar pairs
+        인수:
+            margin: 닮지 않은 쌍의 가장 작은 거리
         """
         super().__init__()
         self.margin = margin
@@ -305,33 +299,32 @@ class ContrastiveLoss(nn.Module):
         y: torch.Tensor
     ) -> torch.Tensor:
         """
-        Compute contrastive loss.
+        대조 손실을 셈한다.
         
-        Args:
-            z1: First embeddings (batch, embed_dim)
-            z2: Second embeddings (batch, embed_dim)
-            y: Labels - 0 for similar, 1 for dissimilar
+        인수:
+            z1: 첫 묻힘 (batch, embed_dim)
+            z2: 둘째 묻힘 (batch, embed_dim)
+            y: 이름표 - 닮으면 0, 닮지 않으면 1
         
-        Returns:
-            loss: Scalar loss value
+        반환값:
+            loss: 스칼라 손실 값
         """
-        # Compute Euclidean distance
+        # 유클리드 거리를 셈한다
         distance = F.pairwise_distance(z1, z2, p=2)
         
-        # Loss for similar pairs: minimize distance
+        # 닮은 쌍의 손실: 거리를 가장 작게 한다
         similar_loss = (1 - y) * 0.5 * distance ** 2
         
-        # Loss for dissimilar pairs: maximize distance up to margin
+        # 닮지 않은 쌍의 손실: 여백까지 거리를 가장 크게 한다
         dissimilar_loss = y * 0.5 * F.relu(self.margin - distance) ** 2
         
         loss = similar_loss + dissimilar_loss
         
         return loss.mean()
 
-
 class MarginContrastiveLoss(nn.Module):
     """
-    Variant with separate margins for similar and dissimilar pairs.
+    닮은 쌍과 닮지 않은 쌍에 따로 여백을 두는 변형.
     """
     
     def __init__(
@@ -351,26 +344,26 @@ class MarginContrastiveLoss(nn.Module):
     ) -> torch.Tensor:
         distance = F.pairwise_distance(z1, z2, p=2)
         
-        # Similar pairs should be closer than pos_margin
+        # 닮은 쌍은 pos_margin보다 가까워야 한다
         pos_loss = (1 - y) * F.relu(distance - self.pos_margin) ** 2
         
-        # Dissimilar pairs should be farther than neg_margin
+        # 닮지 않은 쌍은 neg_margin보다 멀어야 한다
         neg_loss = y * F.relu(self.neg_margin - distance) ** 2
         
         return (pos_loss + neg_loss).mean()
 ```
 
-### Binary Cross-Entropy Loss
+### 이진 교차 엔트로피 손실
 
-Alternative loss treating similarity as binary classification:
+닮음을 이진 분류로 다루는 다른 손실이다.
 
 ```python
 class SiameseBCELoss(nn.Module):
     """
-    Binary cross-entropy loss for Siamese similarity prediction.
+    샴 닮음 예측을 위한 이진 교차 엔트로피 손실.
     
-    Treats the problem as binary classification:
-    is this pair from the same class?
+    문제를 이진 분류로 다룬다.
+    이 쌍은 같은 부류에서 왔는가?
     """
     
     def __init__(self, label_smoothing: float = 0.0):
@@ -383,22 +376,22 @@ class SiameseBCELoss(nn.Module):
         y: torch.Tensor
     ) -> torch.Tensor:
         """
-        Args:
-            similarity: Predicted similarity in [0, 1]
-            y: Labels - 1 for same class, 0 for different
+        인수:
+            similarity: [0, 1] 안의 맞힌 닮음
+            y: 이름표 - 같은 부류면 1, 다르면 0
         """
-        # Optional label smoothing
+        # 선택: 이름표 매끄럽게 하기
         if self.label_smoothing > 0:
             y = y * (1 - self.label_smoothing) + 0.5 * self.label_smoothing
         
         return F.binary_cross_entropy(similarity, y.float())
 ```
 
-## One-Shot Classification
+## 한 예시 분류
 
-### Classification by Comparison
+### 견주어 가려내기
 
-For one-shot classification, we compare a query image against one example from each class:
+한 예시 분류에서는 물음 그림을 부류마다의 보기 하나와 견준다.
 
 ```python
 def one_shot_classify(
@@ -409,17 +402,17 @@ def one_shot_classify(
     device: str = 'cuda'
 ) -> torch.Tensor:
     """
-    Perform one-shot classification using a Siamese network.
+    샴 망으로 한 예시 분류를 한다.
     
-    Args:
-        model: Trained Siamese network
-        support_set: One example per class (n_classes, *input_shape)
-        support_labels: Class labels (n_classes,)
-        query: Query images to classify (n_query, *input_shape)
-        device: Computation device
+    인수:
+        model: 익힌 샴 망
+        support_set: 부류마다 보기 하나 (n_classes, *input_shape)
+        support_labels: 부류 이름표 (n_classes,)
+        query: 가려낼 물음 그림 (n_query, *input_shape)
+        device: 셈할 장치
     
-    Returns:
-        predictions: Predicted class labels (n_query,)
+    반환값:
+        predictions: 맞힌 부류 이름표 (n_query,)
     """
     model.eval()
     model = model.to(device)
@@ -433,13 +426,13 @@ def one_shot_classify(
     predictions = []
     
     with torch.no_grad():
-        # Encode support set once
+        # 받침 집합을 한 번만 부호로 바꾼다
         support_embeddings = model.forward_one(support_set)
         
         for i in range(n_query):
             query_embedding = model.forward_one(query[i:i+1])
             
-            # Compute distance to each support example
+            # 받침 보기마다의 거리를 셈한다
             distances = []
             for j in range(n_classes):
                 dist = F.pairwise_distance(
@@ -448,12 +441,11 @@ def one_shot_classify(
                 )
                 distances.append(dist.item())
             
-            # Predict class with minimum distance
+            # 거리가 가장 작은 부류를 내놓는다
             pred_idx = np.argmin(distances)
             predictions.append(support_labels[pred_idx].item())
     
     return torch.tensor(predictions, device=device)
-
 
 def one_shot_classify_efficient(
     model: SiameseNetwork,
@@ -462,7 +454,7 @@ def one_shot_classify_efficient(
     query: torch.Tensor
 ) -> torch.Tensor:
     """
-    Efficient one-shot classification using batched operations.
+    배치 연산을 쓰는 효율적인 한 예시 분류.
     """
     model.eval()
     
@@ -470,35 +462,34 @@ def one_shot_classify_efficient(
     n_query = query.size(0)
     
     with torch.no_grad():
-        # Encode all examples
+        # 모든 보기를 부호로 바꾼다
         support_embeddings = model.forward_one(support_set)  # (C, D)
         query_embeddings = model.forward_one(query)  # (Q, D)
         
-        # Compute all pairwise distances
-        # (Q, C) distance matrix
+        # 모든 쌍별 거리 계산
+        # (Q, C) 거리 행렬
         distances = torch.cdist(query_embeddings, support_embeddings, p=2)
         
-        # Get nearest support example for each query
+        # 물음마다 가장 가까운 받침 보기를 얻는다
         nearest_idx = distances.argmin(dim=1)
         predictions = support_labels[nearest_idx]
     
     return predictions
 ```
 
-## Training Strategies
+## 학습 전략
 
-### Pair Sampling
+### 쌍 뽑기
 
-Effective training requires balanced sampling of similar and dissimilar pairs:
+제대로 익히려면 닮은 쌍과 닮지 않은 쌍을 고르게 뽑아야 한다.
 
 ```python
 import random
 from collections import defaultdict
 
-
 class PairSampler:
     """
-    Sample balanced pairs for Siamese network training.
+    샴 망 학습을 위해 고르게 쌍을 뽑는다.
     """
     
     def __init__(
@@ -507,14 +498,14 @@ class PairSampler:
         positive_ratio: float = 0.5
     ):
         """
-        Args:
-            labels: All class labels
-            positive_ratio: Fraction of similar pairs to sample
+        인수:
+            labels: 모든 부류 이름표
+            positive_ratio: 뽑을 닮은 쌍의 비율
         """
         self.labels = labels
         self.positive_ratio = positive_ratio
         
-        # Build class-to-indices mapping
+        # 부류에서 첨자로 가는 대응을 만든다
         self.class_indices = defaultdict(list)
         for idx, label in enumerate(labels):
             self.class_indices[label.item()].append(idx)
@@ -523,34 +514,34 @@ class PairSampler:
     
     def sample_pairs(self, batch_size: int):
         """
-        Sample a batch of pairs.
+        쌍의 배치를 뽑는다.
         
-        Returns:
-            idx1, idx2: Indices of paired examples
-            labels: 0 for same class, 1 for different class
+        반환값:
+            idx1, idx2: 짝지은 보기의 첨자
+            labels: 같은 부류면 0, 다른 부류면 1
         """
         idx1, idx2, pair_labels = [], [], []
         
         n_positive = int(batch_size * self.positive_ratio)
         n_negative = batch_size - n_positive
         
-        # Sample positive pairs (same class)
+        # 양의 쌍을 뽑는다(같은 부류)
         for _ in range(n_positive):
-            # Choose a class with at least 2 examples
+            # 보기가 둘 이상인 부류를 고른다
             valid_classes = [c for c in self.classes 
                           if len(self.class_indices[c]) >= 2]
             cls = random.choice(valid_classes)
             
-            # Sample two different examples from this class
+            # 이 부류에서 서로 다른 보기 둘을 뽑는다
             i1, i2 = random.sample(self.class_indices[cls], 2)
             
             idx1.append(i1)
             idx2.append(i2)
-            pair_labels.append(0)  # Same class
+            pair_labels.append(0)  # 같은 부류
         
-        # Sample negative pairs (different classes)
+        # 음의 쌍을 뽑는다(다른 부류)
         for _ in range(n_negative):
-            # Choose two different classes
+            # 서로 다른 부류 둘을 고른다
             cls1, cls2 = random.sample(self.classes, 2)
             
             i1 = random.choice(self.class_indices[cls1])
@@ -558,9 +549,9 @@ class PairSampler:
             
             idx1.append(i1)
             idx2.append(i2)
-            pair_labels.append(1)  # Different classes
+            pair_labels.append(1)  # 다른 부류
         
-        # Shuffle
+        # 뒤섞는다
         combined = list(zip(idx1, idx2, pair_labels))
         random.shuffle(combined)
         idx1, idx2, pair_labels = zip(*combined)
@@ -571,10 +562,9 @@ class PairSampler:
             torch.tensor(pair_labels)
         )
 
-
 class HardPairMiner:
     """
-    Online hard pair mining for more effective training.
+    더 야무진 학습을 위한 실시간 어려운 쌍 캐기.
     """
     
     def __init__(self, model: SiameseNetwork, margin: float = 0.5):
@@ -587,26 +577,26 @@ class HardPairMiner:
         labels: torch.Tensor
     ):
         """
-        Find hard positive and negative pairs.
+        어려운 양의 쌍과 음의 쌍을 찾는다.
         
-        Hard positives: Same class but far apart
-        Hard negatives: Different class but close together
+        어려운 양의 쌍: 같은 부류인데 멀리 떨어져 있다
+        어려운 음의 쌍: 다른 부류인데 가까이 있다
         """
         n = embeddings.size(0)
         
-        # Compute all pairwise distances
+        # 모든 쌍별 거리 계산
         distances = torch.cdist(embeddings, embeddings, p=2)
         
-        # Create label masks
+        # 이름표 가리개를 만든다
         labels_eq = labels.unsqueeze(0) == labels.unsqueeze(1)
         
         hard_pos_pairs = []
         hard_neg_pairs = []
         
         for i in range(n):
-            # Hard positive: same class, max distance
+            # 어려운 양의 보기: 같은 부류에서 거리가 가장 먼 것
             pos_mask = labels_eq[i].clone()
-            pos_mask[i] = False  # Exclude self
+            pos_mask[i] = False  # 자기 자신 제외
             
             if pos_mask.any():
                 pos_distances = distances[i][pos_mask]
@@ -615,7 +605,7 @@ class HardPairMiner:
                 if distances[i, hardest_pos_idx] > self.margin:
                     hard_pos_pairs.append((i, hardest_pos_idx.item(), 0))
             
-            # Hard negative: different class, min distance
+            # 어려운 음의 보기: 다른 부류에서 거리가 가장 가까운 것
             neg_mask = ~labels_eq[i]
             
             if neg_mask.any():
@@ -628,12 +618,12 @@ class HardPairMiner:
         return hard_pos_pairs, hard_neg_pairs
 ```
 
-### Complete Training Loop
+### 완전한 학습 루프
 
 ```python
 class SiameseTrainer:
     """
-    Training loop for Siamese networks.
+    샴 망의 학습 되돌이.
     """
     
     def __init__(
@@ -661,7 +651,7 @@ class SiameseTrainer:
         log_interval: int = 100
     ):
         """
-        Train for one epoch.
+        한 세대를 학습한다.
         """
         self.model.train()
         total_loss = 0
@@ -669,28 +659,28 @@ class SiameseTrainer:
         total = 0
         
         for iteration in range(n_iterations):
-            # Sample pairs
+            # 쌍을 뽑는다
             idx1, idx2, labels = self.pair_sampler.sample_pairs(batch_size)
             
             x1 = self.train_data[idx1]
             x2 = self.train_data[idx2]
             labels = labels.float().to(self.device)
             
-            # Forward pass
+            # 순전파
             z1 = self.model.encoder(x1)
             z2 = self.model.encoder(x2)
             
-            # Compute loss
+            # 손실을 계산한다
             loss = self.loss_fn(z1, z2, labels)
             
-            # Backward pass
+            # 역전파
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
             
             total_loss += loss.item()
             
-            # Compute accuracy (for monitoring)
+            # 정확도를 셈한다(살펴보기용)
             with torch.no_grad():
                 distances = F.pairwise_distance(z1, z2)
                 predictions = (distances > 0.5).float()
@@ -716,25 +706,25 @@ class SiameseTrainer:
         n_episodes: int = 100
     ):
         """
-        Evaluate one-shot classification performance.
+        한 예시 분류 성능을 평가한다.
         """
         self.model.eval()
         
         test_data = test_data.to(self.device)
         test_labels = test_labels.to(self.device)
         
-        # Get unique classes
+        # 서로 다른 부류를 얻는다
         unique_classes = torch.unique(test_labels)
         
         accuracies = []
         
         for _ in range(n_episodes):
-            # Sample n_way classes
+            # n_way개의 부류를 뽑는다
             episode_classes = unique_classes[
                 torch.randperm(len(unique_classes))[:n_way]
             ]
             
-            # Sample 1 support and 1 query per class
+            # 부류마다 받침 1개와 물음 1개를 뽑는다
             support_data = []
             query_data = []
             query_labels = []
@@ -756,7 +746,7 @@ class SiameseTrainer:
             query_labels = torch.tensor(query_labels, device=self.device)
             support_labels = torch.arange(n_way, device=self.device)
             
-            # Classify
+            # 분류
             predictions = one_shot_classify_efficient(
                 self.model, support, support_labels, query
             )
@@ -770,16 +760,16 @@ class SiameseTrainer:
         return mean_acc, std_acc
 ```
 
-## Variants and Extensions
+## 변형과 확장
 
-### Triplet Siamese Networks
+### 세쌍 샴 망
 
-Combine Siamese architecture with triplet loss:
+샴 구조에 세쌍 손실을 곁들인다.
 
 ```python
 class TripletSiameseNetwork(nn.Module):
     """
-    Siamese network trained with triplet loss.
+    세쌍 손실로 익힌 샴 망.
     """
     
     def __init__(self, encoder: nn.Module):
@@ -793,7 +783,7 @@ class TripletSiameseNetwork(nn.Module):
         negative: torch.Tensor
     ):
         """
-        Compute embeddings for triplet.
+        세쌍의 묻힘을 셈한다.
         """
         z_a = self.encoder(anchor)
         z_p = self.encoder(positive)
@@ -808,7 +798,7 @@ class TripletSiameseNetwork(nn.Module):
         negative: torch.Tensor,
         margin: float = 0.2
     ):
-        """Compute triplet loss."""
+        """세쌍 손실을 셈한다."""
         z_a, z_p, z_n = self.forward(anchor, positive, negative)
         
         d_ap = F.pairwise_distance(z_a, z_p)
@@ -819,17 +809,17 @@ class TripletSiameseNetwork(nn.Module):
         return loss.mean()
 ```
 
-### Cross-Domain Siamese Networks
+### 영역을 넘나드는 샴 망
 
-For domain adaptation scenarios:
+영역 적응 상황을 위한 것이다.
 
 ```python
 class CrossDomainSiamese(nn.Module):
     """
-    Siamese network with domain-specific encoders.
+    영역마다 따로 부호기를 두는 샴 망.
     
-    Useful when comparing examples from different domains
-    (e.g., sketch to photo matching).
+    서로 다른 영역의 보기를 견줄 때 쓸모 있다
+    (이를테면 스케치와 사진 맞추기).
     """
     
     def __init__(
@@ -842,41 +832,84 @@ class CrossDomainSiamese(nn.Module):
         self.encoder_a = encoder_a
         self.encoder_b = encoder_b
         
-        # Project to shared space
+        # 함께 쓰는 공간으로 쏘아 넣는다
         self.project_a = nn.Linear(encoder_a.embedding_dim, shared_dim)
         self.project_b = nn.Linear(encoder_b.embedding_dim, shared_dim)
     
     def forward(self, x_a: torch.Tensor, x_b: torch.Tensor):
         """
-        Compare examples from two domains.
+        두 영역의 보기를 견준다.
         """
         z_a = self.project_a(self.encoder_a(x_a))
         z_b = self.project_b(self.encoder_b(x_b))
         
-        # L2 normalize
+        # L2로 고른다
         z_a = F.normalize(z_a, p=2, dim=1)
         z_b = F.normalize(z_b, p=2, dim=1)
         
         return z_a, z_b
 ```
 
-## Summary
+## 요약
 
-Siamese networks provide a foundational approach to one-shot learning by:
+샴 망은 다음으로 한 예시 학습의 바탕이 되는 접근법을 준다.
 
-1. **Learning similarity through comparison**: Twin networks with shared weights
-2. **Enabling nearest-neighbor classification**: Query classified by finding most similar support example
-3. **Transferring to novel classes**: Similarity function generalizes beyond training classes
+1. **견주어 닮음 배우기**: 가중치를 나누어 쓰는 쌍둥이 망
+2. **최근접 이웃 가려내기**: 가장 닮은 받침 보기를 찾아 물음을 가려낸다
+3. **새 부류로 옮겨 가기**: 닮음 함수가 학습 부류 너머로 일반화된다
 
-Key implementation considerations:
-- Balance positive and negative pairs during training
-- Use hard negative mining for more effective learning
-- Consider using pre-trained backbones for better representations
-- Monitor both contrastive loss and one-shot accuracy during training
+구현에서 살펴야 할 핵심은 다음과 같다.
 
-## References
+- 학습 중에 양의 쌍과 음의 쌍을 고르게 맞추라
+- 더 야무진 학습을 위해 어려운 음의 보기 캐기를 쓰라
+- 더 나은 표현을 위해 미리 학습된 등뼈를 쓰는 것을 생각해 보라
+- 학습 중에 대조 손실과 한 예시 정확도를 함께 살피라
+
+## 참고 문헌
 
 1. Bromley, J., et al. "Signature Verification using a Siamese Time Delay Neural Network." NeurIPS 1993.
 2. Koch, G., et al. "Siamese Neural Networks for One-shot Image Recognition." ICML Deep Learning Workshop 2015.
 3. Chopra, S., et al. "Learning a Similarity Metric Discriminatively, with Application to Face Verification." CVPR 2005.
 4. Schroff, F., et al. "FaceNet: A Unified Embedding for Face Recognition and Clustering." CVPR 2015.
+
+## 연습문제
+
+**연습문제 1.**
+샴 망 구조와 대조 손실을 설명하라.
+
+??? success "연습문제 1 풀이"
+    샴 망은 두 입력을 (가중치를 나누어 쓰는) 똑같은 망으로 다루어 묻힘 $f(x_1), f(x_2)$을 낸다. 대조 손실은 $L = y\|f(x_1)-f(x_2)\|^2 + (1-y)\max(0, m - \|f(x_1)-f(x_2)\|)^2$이며, 같은 부류면 $y=1$, 다른 부류면 $y=0$이고 $m$은 여백이다.
+
+---
+
+**연습문제 2.**
+거리 학습에서 대조 손실과 세쌍 손실을 견주어라.
+
+??? success "연습문제 2 풀이"
+    대조 손실: 보기의 쌍을 쓰며 같은 부류는 끌어당기고 다른 부류는 밀어낸다. 세쌍 손실: (닻, 양, 음) 세쌍을 쓰며 $L = \max(0, d(a,p) - d(a,n) + m)$이다. 세쌍 손실은 상대 거리를 살피므로 더 나은 묻힘을 낼 때가 많지만, 알맹이 있는 세쌍을 조심스레 캐내야 한다.
+
+---
+
+**연습문제 3.**
+파이토치로 한 예시 검증을 위한 샴 망을 구현하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    class SiameseNet(nn.Module):
+        def __init__(self, backbone):
+            super().__init__()
+            self.backbone = backbone
+        def forward(self, x1, x2):
+            e1, e2 = self.backbone(x1), self.backbone(x2)
+            return F.pairwise_distance(e1, e2)
+    # 대조 손실
+    loss = y * dist**2 + (1-y) * F.relu(margin - dist)**2
+    ```
+
+---
+
+**연습문제 4.**
+어려운 음의 보기 캐기란 무엇이며 샴 망을 익히는 데 왜 중요한가?
+
+??? success "연습문제 4 풀이"
+    어려운 음의 보기란 묻힘 공간에서 가까이 놓인 다른 부류의 쌍이다(모델이 헷갈려 한다). 아무렇게나 고른 음의 보기는 너무 쉬워서 기울기 신호를 거의 주지 못할 때가 많다. 어려운 음의 보기 캐기는 알맹이가 가장 많은 음의 보기를 골라 학습 효율을 크게 끌어올린다. 전략으로는 실시간 어려운 캐기(배치 안에서 가장 어려운 것), 반쯤 어려운 캐기(여백 안), 미리 해 두는 캐기가 있다.

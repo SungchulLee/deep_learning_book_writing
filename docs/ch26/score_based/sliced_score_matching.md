@@ -1,161 +1,141 @@
-# Sliced Score Matching
+# 저민 점수 맞추기
+## 들어가며
 
+**저민 점수 맞추기(SSM)**는 아무 쏘기를 써서 온전한 야코비 셈을 피하는, 드러난 점수 맞추기의 대안이다. 잡음 없애는 점수 맞추기의 잡음 흔들기를 받아들일 수 없을 때 점수 신경망을 익히는, 키울 수 있고 **치우치지 않은** 길을 준다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+!!! info "핵심 생각"
+    비싼 온전 야코비 대각합(뒤먹임 $D$번)을 셈하는 대신 모델 점수와 자료 점수를 아무 방향에 쏘고 허친슨 대각합 어림개로 이 1차원 쏘기를 맞춘다.
 
-## Introduction
+## 학습 목표
 
-**Sliced Score Matching (SSM)** is an alternative to explicit score matching that avoids computing full Jacobians by using random projections. It provides a scalable, **unbiased** way to train score networks when denoising score matching's noise perturbation is not acceptable.
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! info "Core Idea"
-    Instead of computing the expensive full Jacobian trace ($D$ backward passes), project both the model and data scores onto random directions and match these 1D projections using Hutchinson's trace estimator.
+1. 드러난 점수 맞추기의 셈 병목을 이해한다
+2. 허친슨 대각합 어림개로 저민 점수 맞추기를 이끌어 낸다
+3. 벡터-야코비 곱으로 저민 점수 맞추기를 효율 좋게 짠다
+4. 저민 점수 맞추기를 드러난 점수 맞추기, 잡음 없애는 점수 맞추기와 견주어 언제 무엇을 쓸지 안다
+5. 알맞은 쏘기 분포와 쏘기 횟수를 고른다
 
-## Learning Objectives
+## 미리 알아야 할 것
 
-By the end of this section, you will be able to:
-
-1. Understand the computational bottleneck of explicit score matching
-2. Derive sliced score matching using Hutchinson's trace estimator
-3. Implement SSM efficiently using vector-Jacobian products (VJP)
-4. Compare SSM with ESM and DSM, understanding when to use each
-5. Choose appropriate projection distributions and number of projections
-
-## Prerequisites
-
-- Explicit score matching objective
-- Vector calculus (Jacobians, trace)
-- PyTorch autograd mechanics
+- 드러난 점수 맞추기의 목표
+- 벡터 미적분(야코비, 대각합)
+- PyTorch 자동 미분의 얼개
 
 ---
 
-## 1. The Trace Estimation Problem
+## 1. 대각합 어림 문제
 
-### 1.1 ESM Requires Expensive Jacobian Computation
+### 1.1 드러난 점수 맞추기는 비싼 야코비 셈이 필요하다
 
-The explicit score matching objective:
+드러난 점수 맞추기의 목표:
 
 $$
-
 \mathcal{L}_{\text{ESM}}(\theta) = \mathbb{E}_{p_{\text{data}}}\left[\frac{1}{2}\|\mathbf{s}_\theta(\mathbf{x})\|^2 + \text{tr}(\nabla_{\mathbf{x}} \mathbf{s}_\theta(\mathbf{x}))\right]
-
 $$
 
-The trace term requires computing diagonal elements of the Jacobian:
+대각합 항은 야코비의 대각 낱개를 셈해야 한다.
 
 $$
-
 \text{tr}(\nabla_{\mathbf{x}} \mathbf{s}_\theta) = \sum_{i=1}^D \frac{\partial s_{\theta,i}}{\partial x_i}
-
 $$
 
-This requires **$D$ backward passes**—prohibitively expensive for high-dimensional data!
+이는 **뒤먹임 $D$번**이 필요해 차원 높은 자료에서는 감당할 수 없이 비싸다!
 
-| Data Type | Dimension $D$ | ESM Backward Passes |
+| 자료 갈래 | 차원 $D$ | 드러난 점수 맞추기의 뒤먹임 횟수 |
 |-----------|---------------|---------------------|
-| 2D toy | 2 | 2 |
-| Tabular | 100 | 100 |
+| 2차원 장난감 | 2 | 2 |
+| 표 자료 | 100 | 100 |
 | MNIST | 784 | 784 |
 | CIFAR-10 | 3,072 | 3,072 |
 
-### 1.2 The Solution: Random Projection
+### 1.2 풀이: 아무 쏘기
 
-Instead of computing all $D$ diagonal elements, **estimate the trace** using random projections. This is the key insight of SSM.
+대각 낱개 $D$개를 모두 셈하는 대신 아무 쏘기로 **대각합을 어림한다**. 이것이 저민 점수 맞추기의 핵심 통찰이다.
 
 ---
 
-## 2. Hutchinson's Trace Estimator
+## 2. 허친슨 대각합 어림개
 
-### 2.1 The Theorem
+### 2.1 정리
 
-For any square matrix $\mathbf{A}$ and random vector $\mathbf{v}$ with $\mathbb{E}[\mathbf{v}\mathbf{v}^\top] = \mathbf{I}$:
+아무 정사각 행렬 $\mathbf{A}$과 $\mathbb{E}[\mathbf{v}\mathbf{v}^\top] = \mathbf{I}$인 아무 벡터 $\mathbf{v}$에 대해:
 
 $$
-
 \boxed{\text{tr}(\mathbf{A}) = \mathbb{E}_{\mathbf{v}}[\mathbf{v}^\top \mathbf{A} \mathbf{v}]}
-
 $$
 
-**Proof:**
+**증명:**
 
 $$
-
 \mathbb{E}[\mathbf{v}^\top \mathbf{A} \mathbf{v}] = \mathbb{E}\left[\sum_{i,j} v_i A_{ij} v_j\right] = \sum_{i,j} A_{ij} \mathbb{E}[v_i v_j] = \sum_{i,j} A_{ij} \delta_{ij} = \sum_i A_{ii} = \text{tr}(\mathbf{A})
-
 $$
 
-### 2.2 Valid Projection Distributions
+### 2.2 올바른 쏘기 분포
 
-Any distribution satisfying $\mathbb{E}[\mathbf{v}\mathbf{v}^\top] = \mathbf{I}$:
+$\mathbb{E}[\mathbf{v}\mathbf{v}^\top] = \mathbf{I}$을 채우는 아무 분포:
 
-| Distribution | Formula | Variance | Recommendation |
+| 분포 | 공식 | 흩어짐 | 권함 |
 |--------------|---------|----------|----------------|
-| **Rademacher** | $v_i \in \{-1, +1\}$ uniformly | Lower | ✅ Preferred |
-| **Gaussian** | $\mathbf{v} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ | Higher | Good default |
-| **Uniform on sphere** | $\mathbf{v} \sim \text{Uniform}(\mathbb{S}^{D-1})$ | Lowest | More complex |
+| **라데마허** | $v_i \in \{-1, +1\}$을 고르게 | 더 작다 | ✅ 낫다 |
+| **정규 분포** | $\mathbf{v} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ | 더 크다 | 좋은 기본값 |
+| **구면에 고르게** | $\mathbf{v} \sim \text{Uniform}(\mathbb{S}^{D-1})$ | 가장 작다 | 더 복잡하다 |
 
-Rademacher vectors typically give lower variance estimates and are computationally cheaper.
+라데마허 벡터는 흔히 흩어짐이 더 작은 어림을 주고 셈도 더 싸다.
 
 ---
 
-## 3. The SSM Objective
+## 3. 저민 점수 맞추기의 목표
 
-### 3.1 Derivation
+### 3.1 이끌어 내기
 
-Applying Hutchinson's estimator to the ESM trace term:
+드러난 점수 맞추기의 대각합 항에 허친슨 어림개를 쓰면:
 
 $$
-
 \text{tr}(\nabla_{\mathbf{x}} \mathbf{s}_\theta) \approx \mathbf{v}^\top \nabla_{\mathbf{x}} \mathbf{s}_\theta(\mathbf{x}) \mathbf{v}
-
 $$
 
-Substituting into ESM:
+드러난 점수 맞추기에 넣으면:
 
 $$
-
 \boxed{\mathcal{L}_{\text{SSM}}(\theta) = \mathbb{E}_{\mathbf{x} \sim p_{\text{data}}} \mathbb{E}_{\mathbf{v}}\left[\frac{1}{2}(\mathbf{v}^\top \mathbf{s}_\theta(\mathbf{x}))^2 + \mathbf{v}^\top \nabla_{\mathbf{x}} \mathbf{s}_\theta(\mathbf{x}) \, \mathbf{v}\right]}
-
 $$
 
-### 3.2 Efficient Computation via VJP
+### 3.2 벡터-야코비 곱으로 효율 좋게 셈하기
 
-The key computational insight:
+셈의 핵심 통찰:
 
 $$
-
 \mathbf{v}^\top \nabla_{\mathbf{x}} \mathbf{s}_\theta(\mathbf{x}) \, \mathbf{v} = \mathbf{v}^\top \nabla_{\mathbf{x}}(\mathbf{v}^\top \mathbf{s}_\theta(\mathbf{x}))
-
 $$
 
-The right-hand side is a **vector-Jacobian product (VJP)**:
-1. Compute the scalar $\mathbf{v}^\top \mathbf{s}_\theta(\mathbf{x})$
-2. Take its gradient with respect to $\mathbf{x}$
-3. Dot product with $\mathbf{v}$
+오른쪽은 **벡터-야코비 곱(VJP)**이다.
 
-This requires only **one backward pass** per projection vector!
+1. 낱값 $\mathbf{v}^\top \mathbf{s}_\theta(\mathbf{x})$을 셈한다
+2. $\mathbf{x}$에 대한 기울기를 구한다
+3. $\mathbf{v}$과 점곱한다
 
-### 3.3 Multiple Projections
+이는 쏘기 벡터마다 **뒤먹임 한 번**이면 된다!
 
-Using $M$ projection vectors reduces variance:
+### 3.3 여러 번 쏘기
+
+쏘기 벡터 $M$개를 쓰면 흩어짐이 줄어든다.
 
 $$
-
 \mathcal{L}_{\text{SSM}}(\theta) \approx \frac{1}{M} \sum_{m=1}^M \left[\frac{1}{2}(\mathbf{v}_m^\top \mathbf{s}_\theta)^2 + \mathbf{v}_m^\top \nabla_{\mathbf{x}} \mathbf{s}_\theta \, \mathbf{v}_m\right]
-
 $$
 
-| Projections $M$ | Variance | Backward Passes | Typical Use |
+| 쏘기 횟수 $M$ | 흩어짐 | 뒤먹임 횟수 | 흔한 쓰임 |
 |-----------------|----------|-----------------|-------------|
-| 1 | High | 1 | Fast training |
-| 2-4 | Medium | 2-4 | Good balance |
-| 8-16 | Low | 8-16 | High accuracy |
+| 1 | 크다 | 1 | 빠른 익히기 |
+| 2-4 | 보통 | 2-4 | 좋은 균형 |
+| 8-16 | 작다 | 8-16 | 높은 정확도 |
 
 ---
 
-## 4. PyTorch Implementation
+## 4. PyTorch 짜기
 
-### 4.1 Basic SSM Loss
+### 4.1 기본 저민 점수 맞추기 손실
 
 ```python
 import torch
@@ -163,7 +143,7 @@ import torch.nn as nn
 from typing import Literal
 
 def sample_rademacher(shape: tuple, device: torch.device) -> torch.Tensor:
-    """Sample Rademacher random vectors (+1 or -1 with equal probability)."""
+    """라데마허 아무 벡터를 뽑는다(+1이나 -1이 같은 확률)."""
     return torch.randint(0, 2, shape, device=device).float() * 2 - 1
 
 
@@ -174,41 +154,41 @@ def ssm_loss(
     projection_type: Literal['rademacher', 'gaussian'] = 'rademacher'
 ) -> torch.Tensor:
     """
-    Sliced Score Matching loss.
+    저민 점수 맞추기 손실.
     
     L_SSM = E_x,v [(v·s(x))²/2 + v·∇_x(v·s(x))]
     
-    Args:
-        score_model: Score network s_θ: R^D → R^D
+    인수:
+        score_model: 점수 신경망 s_θ: R^D → R^D
         samples: Data samples, shape (N, D)
-        n_projections: Number of random projections M
+        n_projections: 아무 쏘기 횟수 M
         projection_type: 'rademacher' (recommended) or 'gaussian'
     
-    Returns:
-        Scalar loss
+    반환값:
+        낱값 손실
     """
     samples = samples.requires_grad_(True)
     N, D = samples.shape
     device = samples.device
     
-    # Compute scores once
+    # 점수를 한 번 셈한다
     scores = score_model(samples)  # (N, D)
     
     total_loss = 0.0
     
     for _ in range(n_projections):
-        # Sample random projection vector
+        # 아무 쏘기 벡터를 뽑는다
         if projection_type == 'rademacher':
             v = sample_rademacher((N, D), device)
         else:
             v = torch.randn(N, D, device=device)
         
-        # Term 1: (v·s(x))² / 2
+        # 항 1: (v·s(x))² / 2
         score_proj = torch.sum(v * scores, dim=1)  # (N,)
         squared_term = 0.5 * score_proj ** 2
         
-        # Term 2: v·∇_x(v·s(x)) via VJP
-        # Gradient of scalar (v·s) w.r.t. x gives v·∇s
+        # 항 2: 벡터-야코비 곱으로 구한 v·∇_x(v·s(x))
+        # 낱값 (v·s)의 x에 대한 기울기가 v·∇s을 준다
         vjp = torch.autograd.grad(
             outputs=score_proj.sum(),
             inputs=samples,
@@ -224,7 +204,7 @@ def ssm_loss(
     return total_loss / n_projections
 ```
 
-### 4.2 Memory-Efficient Version
+### 4.2 기억을 아끼는 판
 
 ```python
 def ssm_loss_memory_efficient(
@@ -233,8 +213,8 @@ def ssm_loss_memory_efficient(
     n_projections: int = 1
 ) -> torch.Tensor:
     """
-    Memory-efficient SSM that recomputes scores for each projection.
-    Use when GPU memory is limited.
+    쏘기마다 점수를 다시 셈해 기억을 아끼는 저민 점수 맞추기.
+    GPU 기억이 모자랄 때 쓴다.
     """
     samples = samples.requires_grad_(True)
     N, D = samples.shape
@@ -243,16 +223,16 @@ def ssm_loss_memory_efficient(
     total_loss = 0.0
     
     for _ in range(n_projections):
-        # Recompute scores (trades compute for memory)
+        # 점수를 다시 셈한다(기억 대신 셈을 쓴다)
         scores = score_model(samples)
         
-        # Rademacher projection
+        # 라데마허 쏘기
         v = sample_rademacher((N, D), device)
         
-        # Projected score
+        # 쏜 점수
         score_proj = torch.sum(v * scores, dim=1)
         
-        # SSM terms
+        # 저민 점수 맞추기 항
         squared_term = 0.5 * score_proj ** 2
         
         vjp = torch.autograd.grad(
@@ -263,17 +243,17 @@ def ssm_loss_memory_efficient(
         
         total_loss += torch.mean(squared_term + trace_term)
         
-        # Clear intermediate tensors
+        # 중간 텐서를 비운다
         del scores, score_proj, vjp
     
     return total_loss / n_projections
 ```
 
-### 4.3 SSM Trainer Class
+### 4.3 저민 점수 맞추기 익히개 갈래
 
 ```python
 class SlicedScoreMatchingTrainer:
-    """Complete trainer for sliced score matching."""
+    """저민 점수 맞추기의 온전한 익히개."""
     
     def __init__(
         self,
@@ -288,7 +268,7 @@ class SlicedScoreMatchingTrainer:
         self.projection_type = projection_type
         
     def train_step(self, x: torch.Tensor) -> dict:
-        """Single training step."""
+        """익히기 걸음 하나."""
         self.score_net.train()
         self.optimizer.zero_grad()
         
@@ -308,7 +288,7 @@ class SlicedScoreMatchingTrainer:
         n_epochs: int = 1000,
         batch_size: int = 256
     ) -> list:
-        """Full training loop."""
+        """온전한 익히기 되풀이."""
         losses = []
         N = len(data)
         
@@ -327,60 +307,58 @@ class SlicedScoreMatchingTrainer:
 
 ---
 
-## 5. Comparison with Other Methods
+## 5. 다른 방법과 견주기
 
-### 5.1 Computational Comparison
+### 5.1 셈 견주기
 
-| Method | Jacobian Cost | Backward Passes | Random Vectors |
+| 방법 | 야코비 비용 | 뒤먹임 횟수 | 아무 벡터 |
 |--------|---------------|-----------------|----------------|
-| **ESM** | Full diagonal | $O(D)$ | No |
-| **SSM** | Projected | $O(M)$ | Yes ($M$ vectors) |
-| **DSM** | None | $O(1)$ | No |
+| **드러난 점수 맞추기** | 온전한 대각 | $O(D)$ | 아니다 |
+| **저민 점수 맞추기** | 쏜 것 | $O(M)$ | 그렇다(벡터 $M$개) |
+| **잡음 없애는 점수 맞추기** | 없음 | $O(1)$ | 아니다 |
 
-### 5.2 Statistical Properties
+### 5.2 통계의 성질
 
-| Aspect | ESM | SSM | DSM |
+| 갈래 | 드러난 점수 맞추기 | 저민 점수 맞추기 | 잡음 없애는 점수 맞추기 |
 |--------|-----|-----|-----|
-| **Bias** | None | None | $O(\sigma^2)$ |
-| **Variance** | N/A | Higher (depends on $M$) | Lower |
-| **Consistency** | Yes | Yes | Yes (as $\sigma \to 0$) |
+| **치우침** | 없음 | 없음 | $O(\sigma^2)$ |
+| **흩어짐** | 해당 없음 | 더 크다($M$에 달렸다) | 더 작다 |
+| **한결같음** | 그렇다 | 그렇다 | 그렇다($\sigma \to 0$일 때) |
 
-### 5.3 When to Use Each Method
+### 5.3 언제 어느 방법을 쓸까
 
-| Scenario | Recommended Method |
+| 장면 | 권하는 방법 |
 |----------|-------------------|
-| Low-dimensional ($D < 10$) | ESM (exact) |
-| Moderate-dimensional ($D \sim 10$-$100$) | SSM or DSM |
-| High-dimensional (images) | DSM ✅ |
-| Noise perturbation unacceptable | SSM |
-| Need exact score matching guarantees | SSM |
-| Training efficiency critical | DSM |
-| General use | DSM ✅ |
+| 차원 낮음($D < 10$) | 드러난 점수 맞추기(정확) |
+| 차원 보통($D \sim 10$-$100$) | 저민 점수 맞추기나 잡음 없애는 점수 맞추기 |
+| 차원 높음(그림) | 잡음 없애는 점수 맞추기 ✅ |
+| 잡음 흔들기를 받아들일 수 없음 | 저민 점수 맞추기 |
+| 정확한 점수 맞추기 보장이 필요함 | 저민 점수 맞추기 |
+| 익히기 효율이 결정적임 | 잡음 없애는 점수 맞추기 |
+| 두루 쓰기 | 잡음 없애는 점수 맞추기 ✅ |
 
-!!! tip "Practical Recommendation"
-    **Use DSM for most applications.** SSM is primarily useful when you cannot add noise to data (e.g., discrete data, certain physics applications) or need unbiased estimates.
+!!! tip "실무적인 권고"
+    **거의 모든 쓰임새에는 잡음 없애는 점수 맞추기를 쓰라.** 저민 점수 맞추기는 주로 자료에 잡음을 더할 수 없거나(예컨대 띄엄띄엄한 자료, 어떤 물리 쓰임새) 치우치지 않은 어림이 필요할 때 쓸모 있다.
 
 ---
 
-## 6. Variance Reduction Techniques
+## 6. 흩어짐 줄이기 재주
 
-### 6.1 More Projections
+### 6.1 더 많이 쏘기
 
-Increasing $M$ reduces variance proportionally to $1/M$:
+$M$을 늘리면 흩어짐이 $1/M$에 비례해 줄어든다.
 
 $$
-
 \text{Var}[\hat{\mathcal{L}}_{\text{SSM}}] \propto \frac{1}{M}
-
 $$
 
-### 6.2 Antithetic Sampling
+### 6.2 맞짝 뽑기
 
-Use paired projections $(\mathbf{v}, -\mathbf{v})$ to reduce variance:
+흩어짐을 줄이려 짝지은 쏘기 $(\mathbf{v}, -\mathbf{v})$을 쓴다.
 
 ```python
 def ssm_loss_antithetic(score_model, samples, n_projections=1):
-    """SSM with antithetic sampling for variance reduction."""
+    """흩어짐을 줄이려 맞짝 뽑기를 쓴 저민 점수 맞추기."""
     samples = samples.requires_grad_(True)
     scores = score_model(samples)
     
@@ -389,39 +367,39 @@ def ssm_loss_antithetic(score_model, samples, n_projections=1):
     for _ in range(n_projections):
         v = sample_rademacher(samples.shape, samples.device)
         
-        # Forward projection
+        # 앞 쏘기
         score_proj_pos = torch.sum(v * scores, dim=1)
         vjp_pos = torch.autograd.grad(score_proj_pos.sum(), samples, 
                                        create_graph=True, retain_graph=True)[0]
         loss_pos = 0.5 * score_proj_pos**2 + torch.sum(vjp_pos * v, dim=1)
         
-        # Antithetic projection (-v)
+        # 맞짝 쏘기(-v)
         score_proj_neg = torch.sum(-v * scores, dim=1)
         vjp_neg = torch.autograd.grad(score_proj_neg.sum(), samples,
                                        create_graph=True, retain_graph=True)[0]
         loss_neg = 0.5 * score_proj_neg**2 + torch.sum(vjp_neg * (-v), dim=1)
         
-        # Average reduces variance
+        # 평균이 흩어짐을 줄인다
         total_loss += torch.mean((loss_pos + loss_neg) / 2)
     
     return total_loss / n_projections
 ```
 
-### 6.3 Control Variates
+### 6.3 다스림 변량
 
-For very low variance, use control variates based on known score functions (advanced technique).
+흩어짐을 아주 작게 하려면 아는 점수 함수에 바탕한 다스림 변량을 쓴다(앞선 재주).
 
 ---
 
-## 7. Example: Training on 2D Data
+## 7. 보기: 2차원 자료로 익히기
 
 ```python
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Generate mixture of Gaussians
+# 정규 분포 섞기를 만든다
 def sample_mog(n, n_components=4):
-    """Sample from mixture of Gaussians."""
+    """정규 분포 섞기에서 뽑는다."""
     angles = np.linspace(0, 2*np.pi, n_components, endpoint=False)
     centers = 2.0 * np.stack([np.cos(angles), np.sin(angles)], axis=1)
     
@@ -429,7 +407,7 @@ def sample_mog(n, n_components=4):
     samples = centers[idx] + 0.3 * np.random.randn(n, 2)
     return torch.tensor(samples, dtype=torch.float32)
 
-# Simple score network
+# 단순한 점수 신경망
 class ScoreNet(nn.Module):
     def __init__(self, dim=2, hidden=128):
         super().__init__()
@@ -444,13 +422,13 @@ class ScoreNet(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-# Train with SSM
+# 저민 점수 맞추기로 익힌다
 data = sample_mog(5000)
 model = ScoreNet()
 trainer = SlicedScoreMatchingTrainer(model, lr=1e-3, n_projections=4)
 losses = trainer.train(data, n_epochs=2000, batch_size=256)
 
-# Visualize learned score field
+# 배운 점수 마당을 그려 본다
 def plot_scores(model, data, title="Learned Score Field"):
     x = torch.linspace(-4, 4, 20)
     y = torch.linspace(-4, 4, 20)
@@ -475,45 +453,46 @@ plot_scores(model, data)
 
 ---
 
-## 8. Summary
+## 8. 간추리기
 
-| Aspect | Description |
+| 항목 | 설명 |
 |--------|-------------|
-| **Objective** | $\mathcal{L}_{\text{SSM}} = \mathbb{E}_{\mathbf{x}, \mathbf{v}}[\frac{1}{2}(\mathbf{v}^\top \mathbf{s}_\theta)^2 + \mathbf{v}^\top \nabla_{\mathbf{x}} \mathbf{s}_\theta \, \mathbf{v}]$ |
-| **Key trick** | Hutchinson's trace estimator: $\text{tr}(\mathbf{A}) = \mathbb{E}[\mathbf{v}^\top \mathbf{A} \mathbf{v}]$ |
-| **Computation** | VJP gives $\mathbf{v}^\top \nabla \mathbf{s} \, \mathbf{v}$ in one backward pass |
-| **Complexity** | $O(M)$ backward passes instead of $O(D)$ |
-| **Bias** | Unbiased (unlike DSM) |
-| **Best for** | When noise perturbation is problematic |
+| **목표** | $\mathcal{L}_{\text{SSM}} = \mathbb{E}_{\mathbf{x}, \mathbf{v}}[\frac{1}{2}(\mathbf{v}^\top \mathbf{s}_\theta)^2 + \mathbf{v}^\top \nabla_{\mathbf{x}} \mathbf{s}_\theta \, \mathbf{v}]$ |
+| **핵심 재주** | 허친슨 대각합 어림개: $\text{tr}(\mathbf{A}) = \mathbb{E}[\mathbf{v}^\top \mathbf{A} \mathbf{v}]$ |
+| **셈** | 벡터-야코비 곱이 뒤먹임 한 번에 $\mathbf{v}^\top \nabla \mathbf{s} \, \mathbf{v}$을 준다 |
+| **복잡도** | $O(D)$ 대신 $O(M)$번 뒤먹임 |
+| **치우침** | 치우치지 않음(잡음 없애는 점수 맞추기와 달리) |
+| **알맞은 곳** | 잡음 흔들기가 문제일 때 |
 
-!!! tip "Key Takeaways"
-    1. **SSM uses random projections** to estimate the Jacobian trace efficiently
-    2. **Hutchinson's estimator** converts $O(D)$ to $O(M)$ backward passes
-    3. **VJP trick** computes $\mathbf{v}^\top \nabla \mathbf{s} \, \mathbf{v}$ in one backward pass
-    4. **Rademacher vectors** typically give lower variance than Gaussian
-    5. **Use DSM for most cases**; SSM when noise perturbation is unacceptable
+!!! tip "핵심 간추리기"
 
----
-
-## Exercises
-
-1. **Projection comparison**: Compare Rademacher vs Gaussian projections on a 2D Gaussian mixture. Measure variance of the loss estimate.
-
-2. **Number of projections**: Plot final loss vs $M \in \{1, 2, 4, 8, 16\}$. What's the sweet spot for compute vs accuracy?
-
-3. **SSM vs DSM**: Train both methods on the same 2D data. Compare:
-   - Training curves
-   - Final score field quality
-   - Training time per epoch
-
-4. **Antithetic sampling**: Implement and compare variance with/without antithetic sampling.
-
-5. **High-dimensional scaling**: Test SSM on data with $D \in \{10, 50, 100, 500\}$. At what dimension does it become impractical?
+    1. **저민 점수 맞추기는 아무 쏘기를 써서** 야코비 대각합을 효율 좋게 어림한다
+    2. **허친슨 어림개**가 $O(D)$번 뒤먹임을 $O(M)$번으로 바꾼다
+    3. **벡터-야코비 곱 재주**가 뒤먹임 한 번에 $\mathbf{v}^\top \nabla \mathbf{s} \, \mathbf{v}$을 셈한다
+    4. **라데마허 벡터**가 흔히 정규 분포보다 흩어짐이 작다
+    5. **거의 모든 경우에 잡음 없애는 점수 맞추기를 쓰라.** 잡음 흔들기를 받아들일 수 없을 때 저민 점수 맞추기를 쓴다
 
 ---
 
-## References
+## 참고 문헌
 
 1. Song, Y., et al. (2019). "Sliced Score Matching: A Scalable Approach to Density and Score Estimation." *UAI*.
 2. Hutchinson, M. F. (1989). "A Stochastic Estimator of the Trace of the Influence Matrix for Laplacian Smoothing Splines." *Communications in Statistics*.
 3. Song, Y., & Ermon, S. (2019). "Generative Modeling by Estimating Gradients of the Data Distribution." *NeurIPS*.
+
+## 연습문제
+
+1. **쏘기 견주기**: 2차원 정규 분포 섞기에서 라데마허 쏘기와 정규 분포 쏘기를 견주어라. 손실 어림의 흩어짐을 재라.
+
+2. **쏘기 횟수**: $M \in \{1, 2, 4, 8, 16\}$에 따른 마지막 손실을 그려라. 셈과 정확도의 알맞은 자리는 어디인가?
+
+3. **저민 점수 맞추기와 잡음 없애는 점수 맞추기**: 같은 2차원 자료로 두 방법을 익혀라. 다음을 견주어라.
+   - 익히기 곡선
+   - 마지막 점수 마당의 품질
+   - 바퀴마다 익히기 시간
+
+4. **맞짝 뽑기**: 맞짝 뽑기를 쓸 때와 쓰지 않을 때의 흩어짐을 짜서 견주어라.
+
+5. **차원 높은 곳에서 키우기**: $D \in \{10, 50, 100, 500\}$인 자료에서 저민 점수 맞추기를 시험하라. 어느 차원부터 쓸 수 없게 되는가?
+
+---

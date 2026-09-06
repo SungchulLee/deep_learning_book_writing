@@ -1,94 +1,94 @@
-# Accounting Method
+# 회계 방법
 
-When analyzing a sequence of operations on a data structure, some operations are cheap while others are expensive. The aggregate method assigns the same amortized cost to every operation, but this can be too coarse. The accounting method provides a finer-grained analysis by assigning different amortized costs to different operations, allowing cheap operations to overpay and store credit that subsidizes future expensive operations.
+자료구조에 대한 연산 수열을 분석할 때 어떤 연산은 싸고 어떤 연산은 비싸다. 총계 방법은 모든 연산에 같은 분할 상환 비용을 배정하지만 이는 너무 거칠 수 있다. 회계 방법(accounting method)은 서로 다른 연산에 서로 다른 분할 상환 비용을 배정하여 더 세밀한 분석을 제공한다. 싼 연산이 비용을 더 내어 신용을 쌓아 두었다가 나중의 비싼 연산을 보조하게 한다.
 
-## Definition
+## 정의
 
-In the accounting method, each operation $i$ receives an **amortized cost** $\hat{c}_i$ that may differ from its actual cost $c_i$. The fundamental requirement is that the total amortized cost is an upper bound on the total actual cost:
+회계 방법에서 각 연산 $i$는 실제 비용 $c_i$와 다를 수 있는 **분할 상환 비용** $\hat{c}_i$를 받는다. 근본적인 요구조건은 전체 분할 상환 비용이 전체 실제 비용의 상계여야 한다는 것이다.
 
 $$
 \sum_{i=1}^{n} \hat{c}_i \geq \sum_{i=1}^{n} c_i
 $$
 
-When an operation's amortized cost $\hat{c}_i$ exceeds its actual cost $c_i$, the difference $\hat{c}_i - c_i$ is deposited as **credit** on the data structure. When an operation's actual cost exceeds its amortized cost, the shortfall is paid from accumulated credit.
+어떤 연산의 분할 상환 비용 $\hat{c}_i$가 실제 비용 $c_i$를 넘으면 그 차이 $\hat{c}_i - c_i$가 자료구조에 **신용(credit)** 으로 예치된다. 어떤 연산의 실제 비용이 분할 상환 비용을 넘으면 그 부족분은 쌓인 신용에서 지불된다.
 
-The key invariant is that the total accumulated credit must remain non-negative after every operation:
+핵심 불변식은 매 연산 후에도 전체 누적 신용이 음이 아니어야 한다는 것이다.
 
 $$
 \text{Credit after operation } j = \sum_{i=1}^{j} (\hat{c}_i - c_i) \geq 0 \quad \text{for all } j = 1, 2, \ldots, n
 $$
 
-This non-negativity constraint ensures that the amortized costs never undercount the actual costs for any prefix of operations.
+이 음이 아님 제약이 연산 수열의 어떤 앞부분에 대해서도 분할 상환 비용이 실제 비용보다 적게 세어지지 않도록 보장한다.
 
-## How It Works
+## 어떻게 동작하는가
 
-The accounting method proceeds in three steps:
+회계 방법은 세 단계로 진행된다.
 
-1. **Choose amortized costs.** Assign $\hat{c}_i$ to each type of operation. This choice requires insight into the data structure's behavior.
-2. **Track credit.** After each operation, compute the credit as $\hat{c}_i - c_i$. Credit may be associated with specific elements or locations in the data structure.
-3. **Verify non-negativity.** Prove that the accumulated credit never drops below zero across any sequence of operations.
+1. **분할 상환 비용을 고른다.** 각 종류의 연산에 $\hat{c}_i$를 배정한다. 이 선택에는 자료구조의 동작에 대한 통찰이 필요하다.
+2. **신용을 추적한다.** 각 연산 후에 신용을 $\hat{c}_i - c_i$로 계산한다. 신용은 자료구조의 특정 원소나 위치에 결부될 수 있다.
+3. **음이 아님을 검증한다.** 어떤 연산 수열에서도 누적 신용이 0 아래로 떨어지지 않음을 증명한다.
 
-Unlike the aggregate method (which assigns a uniform cost), the accounting method allows different operation types to carry different amortized costs. Unlike the potential method (which defines a global potential function), the accounting method tracks credit at a local, per-element level.
+(균일한 비용을 배정하는) 총계 방법과 달리 회계 방법은 연산 종류마다 다른 분할 상환 비용을 허용한다. (전역 퍼텐셜 함수를 정의하는) 퍼텐셜 방법과 달리 회계 방법은 원소 단위의 지역적인 수준에서 신용을 추적한다.
 
-## Example: Stack with Multipop
+## 예: Multipop이 있는 스택
 
-Consider a stack supporting three operations: `PUSH`, `POP`, and `MULTIPOP(k)`, where `MULTIPOP(k)` pops the top $\min(k, s)$ elements from a stack of size $s$.
+`PUSH`, `POP`, `MULTIPOP(k)` 세 연산을 지원하는 스택을 생각하자. `MULTIPOP(k)`는 크기 $s$인 스택에서 위쪽 $\min(k, s)$개의 원소를 꺼낸다.
 
-**Actual costs:**
+**실제 비용:**
 
 - `PUSH`: $c = 1$
 - `POP`: $c = 1$
 - `MULTIPOP(k)`: $c = \min(k, s)$
 
-A single `MULTIPOP` can cost up to $O(n)$, so a naive worst-case analysis of $n$ operations gives $O(n^2)$.
+`MULTIPOP` 한 번이 최대 $O(n)$이 될 수 있으므로 $n$개 연산에 대한 소박한 최악의 경우 분석은 $O(n^2)$을 준다.
 
-**Amortized costs (accounting method):**
+**분할 상환 비용(회계 방법):**
 
-Assign the following amortized costs:
+다음과 같이 분할 상환 비용을 배정한다.
 
-- `PUSH`: $\hat{c} = 2$ (overpays by 1; the extra unit is deposited as credit on the pushed element)
-- `POP`: $\hat{c} = 0$ (paid by the credit stored on the popped element)
-- `MULTIPOP(k)`: $\hat{c} = 0$ (each popped element pays for itself using its stored credit)
+- `PUSH`: $\hat{c} = 2$(1만큼 더 낸다. 남는 한 단위는 밀어 넣은 원소에 신용으로 예치된다)
+- `POP`: $\hat{c} = 0$(꺼내진 원소에 저장된 신용으로 지불한다)
+- `MULTIPOP(k)`: $\hat{c} = 0$(꺼내지는 각 원소가 자기 신용으로 스스로 지불한다)
 
-**Credit invariant:** Each element on the stack carries exactly 1 unit of credit, deposited when it was pushed. Since every element that gets popped (by either `POP` or `MULTIPOP`) was previously pushed, there is always sufficient credit to pay for the removal. The total credit equals the stack size, which is always non-negative.
+**신용 불변식:** 스택 위의 각 원소는 밀어 넣어질 때 예치된 정확히 1단위의 신용을 지니고 있다. (`POP`이든 `MULTIPOP`이든) 꺼내지는 모든 원소는 이전에 밀어 넣어졌으므로, 제거 비용을 지불할 신용이 항상 충분하다. 전체 신용은 스택 크기와 같으며 언제나 음이 아니다.
 
-**Result:** The total amortized cost of $n$ operations is at most $2n$ (since each operation costs at most $\hat{c} = 2$), giving an amortized cost of $O(1)$ per operation.
+**결과:** $n$개 연산의 전체 분할 상환 비용은 (각 연산이 많아야 $\hat{c} = 2$이므로) 많아야 $2n$이며, 연산당 분할 상환 비용은 $O(1)$이다.
 
-## Example: Dynamic Array
+## 예: 동적 배열
 
-Consider a dynamic array that doubles its capacity when full. The `APPEND` operation has two cases:
+가득 차면 용량을 두 배로 늘리는 동적 배열을 생각하자. `APPEND` 연산에는 두 가지 경우가 있다.
 
-- **No resize:** Insert the element in $O(1)$.
-- **Resize:** Allocate a new array of double the capacity, copy all $s$ existing elements, then insert. The actual cost is $s + 1$.
+- **크기 조정 없음:** 원소를 $O(1)$에 삽입한다.
+- **크기 조정:** 용량이 두 배인 새 배열을 할당하고 기존 원소 $s$개를 모두 복사한 뒤 삽입한다. 실제 비용은 $s + 1$이다.
 
-**Amortized costs (accounting method):**
+**분할 상환 비용(회계 방법):**
 
-Assign $\hat{c} = 3$ for every `APPEND`:
+모든 `APPEND`에 $\hat{c} = 3$을 배정한다.
 
-- 1 unit pays for inserting the element itself
-- 1 unit is stored as credit on the newly inserted element
-- 1 unit is stored as credit on the element at position $s/2$ (an element that was present before the last resize but has not yet "saved" for the next one)
+- 1단위는 원소 자체를 삽입하는 데 쓴다
+- 1단위는 새로 삽입된 원소에 신용으로 저장한다
+- 1단위는 위치 $s/2$의 원소에 신용으로 저장한다(직전 크기 조정 전부터 있었지만 아직 다음 조정을 위해 "저축"하지 못한 원소이다)
 
-When a resize occurs at size $s$, the $s$ elements each carry 1 unit of credit, providing exactly enough to pay for copying them into the new array.
+크기 $s$에서 크기 조정이 일어나면 $s$개의 원소가 각각 1단위의 신용을 지니고 있으므로, 이들을 새 배열로 복사하는 비용을 정확히 감당할 수 있다.
 
-**Result:** The total amortized cost of $n$ appends is at most $3n$, giving an amortized cost of $O(1)$ per append.
+**결과:** $n$번의 추가에 대한 전체 분할 상환 비용은 많아야 $3n$이며, 추가당 분할 상환 비용은 $O(1)$이다.
 
-## Python Example
+## 파이썬 예제
 
 ```python
 """
-Accounting method demonstration for a dynamic array.
+동적 배열에 대한 회계 방법 시연.
 
-Shows how assigning an amortized cost of 3 per append covers all
-actual costs including expensive resizing operations.
+추가당 분할 상환 비용 3을 배정하면 비싼 크기 조정 연산을 포함한
+모든 실제 비용을 감당할 수 있음을 보인다.
 """
 
 
 # ===================================================================
-# Dynamic Array with Credit Tracking
+# 신용을 추적하는 동적 배열
 # ===================================================================
 class DynamicArray:
-    """Dynamic array that tracks actual cost and credit per element."""
+    """원소별 실제 비용과 신용을 추적하는 동적 배열."""
 
     def __init__(self):
         self.capacity = 1
@@ -99,12 +99,12 @@ class DynamicArray:
         self.credit = 0
 
     def append(self, value):
-        """Append with amortized cost tracking."""
-        amortized = 3  # accounting method charge
-        actual = 1     # cost for the insertion itself
+        """분할 상환 비용을 추적하며 추가한다."""
+        amortized = 3  # 회계 방법에서 부과하는 비용
+        actual = 1     # 삽입 자체의 비용
 
         if self.size == self.capacity:
-            # Resize: copy all elements (actual cost += size)
+            # 크기 조정: 모든 원소를 복사한다(실제 비용 += size)
             actual += self.size
             new_data = [None] * (2 * self.capacity)
             for i in range(self.size):
@@ -120,7 +120,7 @@ class DynamicArray:
         self.credit += (amortized - actual)
 
     def stats(self):
-        """Return cost statistics."""
+        """비용 통계를 반환한다."""
         return {
             "size": self.size,
             "capacity": self.capacity,
@@ -131,7 +131,7 @@ class DynamicArray:
 
 
 # ===================================================================
-# Demonstration
+# 시연
 # ===================================================================
 if __name__ == "__main__":
     arr = DynamicArray()
@@ -154,17 +154,50 @@ if __name__ == "__main__":
     print(f"Average actual cost:  {avg:.2f}")
 ```
 
-## Comparison with Other Methods
+## 다른 방법과의 비교
 
-| Aspect | Aggregate | Accounting | Potential |
+| 측면 | 총계 | 회계 | 퍼텐셜 |
 |--------|-----------|------------|-----------|
-| Cost assignment | Same for all operations | Different per operation type | Derived from potential function |
-| Credit tracking | Not explicit | Per-element credit | Global potential function |
-| Flexibility | Low | Medium | High |
-| Best for | Simple uniform analysis | Per-operation cost bounds | Complex multi-operation analysis |
+| 비용 배정 | 모든 연산에 동일 | 연산 종류마다 다름 | 퍼텐셜 함수로부터 유도 |
+| 신용 추적 | 명시적이지 않음 | 원소별 신용 | 전역 퍼텐셜 함수 |
+| 유연성 | 낮음 | 중간 | 높음 |
+| 적합한 경우 | 단순하고 균일한 분석 | 연산별 비용 경계 | 복잡한 다중 연산 분석 |
 
-The accounting method is especially useful when credit can be naturally associated with specific elements in the data structure, as in the stack and dynamic array examples above.
+회계 방법은 위의 스택과 동적 배열 예처럼 신용을 자료구조의 특정 원소에 자연스럽게 결부시킬 수 있을 때 특히 유용하다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 16: Amortized Analysis. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+회계 방법에서 설명한 방법을 사용하여 $n$개 연산의 수열을 분석하고 연산당 분할 상환 비용을 구하라.
+
+??? success "연습문제 1 풀이"
+    이 절의 구체적인 기법(총계, 회계, 퍼텐셜)을 적용하여 $n$개 연산의 전체 비용에 상계를 준다. 이를 $n$으로 나누면 연산당 분할 상환 비용을 얻는다. 핵심 통찰은 비싼 연산이 충분히 드물어서 그 비용이 수많은 싼 연산에 흩어진다는 것이다.
+
+---
+
+**연습문제 2.**
+회계 방법의 분할 상환 패턴, 즉 싼 연산들이 이따금 비싼 연산 하나를 촉발하는 패턴에 대응하는 딥러닝 상황을 찾아라.
+
+??? success "연습문제 2 풀이"
+    예로는 경사 누적(싼 마이크로배치 순전파, 비싼 매개변수 갱신), 모델 체크포인팅(싼 학습 단계, 비싼 저장), 동적 배치에서의 해시 테이블 크기 조정(싼 삽입, 비싼 재해싱)이 있다. 이따금 비싼 연산이 있어도 단계당 분할 상환 비용은 일정하게 유지된다.
+
+---
+
+**연습문제 3.**
+회계 방법으로 유도한 분할 상환 경계가 꽉 조여 있음을, 그 경계를 달성하는 연산 수열을 구성하여 증명하라.
+
+??? success "연습문제 3 풀이"
+    전체 실제 비용을 연산 횟수로 나눈 비를 최대화하는 수열을 구성한다. 보통 퍼텐셜을 쌓는 연산과 그것을 방출하는 연산을 번갈아 수행하는 형태가 된다. 이 구성으로 분할 상환 경계를 더 개선할 수 없음이 확인된다. $\square$
+
+---
+
+**연습문제 4.**
+회계 방법의 분할 상환 분석을 최악의 경우 분석과 비교하라. 분할 상환 경계는 최악의 경우보다 몇 배나 개선되는가?
+
+??? success "연습문제 4 풀이"
+    최악의 경우 분석은 비싼 연산 앞에 싼 연산이 많이 온다는 사실을 무시하고 각 연산에 가능한 최대 비용을 부과한다. 개선 배수는 최악의 경우 비용을 분할 상환 비용으로 나눈 값이다. 전형적인 자료구조에서는 $O(n)$ 대 $O(1)$로 $n$배 개선된다.

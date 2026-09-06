@@ -1,58 +1,52 @@
-# Chapter 33: Value-Based Deep RL
+# 33장: 값 바탕 깊은 힘 북돋우는 배움
 
+값 바탕 깊은 힘 북돋우는 배움은 표로 된 Q 함수를 신경망으로 바꾸어 차원이 높은 상태 자리의 둘레에서도 배울 수 있게 한다. 이 장은 깊은 Q 그물과 그 여러 좋게 하기, 벗어난 방침 자료를 위한 여러 걸음 배움 바로잡기, 이어진 움직임으로의 넓힘, 붙박인 자료 뭉치에서 배우는 오프라인 힘 북돋우는 배움 방법, 따지기의 가장 좋은 방식을 다룬다. 주문 실행, 시장 만들기, 띄엄띄엄한 거래 셈속 같은 금융 쓰임새를 곳곳에서 펼친다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 차례
 
-This chapter covers **Competition Programming**.
+### 33.1 깊은 Q 그물
 
-Value-based deep RL replaces tabular Q-functions with neural networks, enabling reinforcement learning in environments with high-dimensional state spaces. This chapter covers the Deep Q-Network (DQN) and its many improvements, multi-step learning corrections for off-policy data, extensions to continuous actions, offline RL methods that learn from fixed datasets, and evaluation best practices. Financial applications including order execution, market making, and discrete trading strategies are developed throughout.
+- DQN의 바탕 -- 표로 된 Q 배우기에서 때 차이 손실을 쓰는 신경망 함수 어림으로
+- 겪음 되돌려 보기 -- 되돌려 보기 버퍼에 옮김을 담고 뽑아 때 얽힘을 끊고 자료 효율을 높이기
+- 과녁 그물 -- 온라인 그물을 때때로 고치는 과녁 그물에서 떼어 놓아 익히기를 안정시키기
+- DQN 짜기 -- Q 배우기, 겪음 되돌려 보기, 과녁 그물을 아우른 온전한 DQN 알고리즘과 헛코드
+- [DQN의 웃잡](dqn/hyperparameters.md) -- 배움 빠르기, 깎기 인수, 버퍼 크기, 살펴보기 일정 손보기를 두루 안내
 
-## Contents
+### 33.2 DQN 좋게 하기
 
-### 33.1 Deep Q-Networks
+- 두 겹 DQN -- 움직임 고르기와 따지기를 떼어 놓아 Q 값 지나친 어림 다루기
+- 맞겨루기 DQN -- 배움을 효율 좋게 하려 Q 값을 상태 값과 이점 갈래로 쪼개기
+- 앞섬 겪음 되돌려 보기 -- 중요도 뽑기 바로잡기와 함께 때 차이 어긋남의 크기에 비례해 옮김 뽑기
+- 잡소리 그물 -- 그물 무게의 잡 잡소리로 하는 상태에 매인 배우는 살펴보기
+- 분포 힘 북돋우는 배움 -- 기댓값 대신 C51 갈래 원자로 돌아옴의 온 분포 나타내기
+- [무지개](improvements/rainbow.md) -- 서로 어긋나지 않는 DQN 좋게 하기 여섯을 성능 좋은 부림꾼 하나로 아우르기
 
-- DQN Fundamentals -- From tabular Q-learning to neural network function approximation with the TD loss formulation
-- Experience Replay -- Breaking temporal correlations and improving data efficiency by storing and sampling transitions from a replay buffer
-- Target Networks -- Stabilizing training by separating the online network from a periodically updated target network
-- DQN Implementation -- Complete DQN algorithm combining Q-learning, experience replay, and target networks with pseudocode
-- [DQN Hyperparameters](dqn/hyperparameters.md) -- Comprehensive guide to learning rate, discount factor, buffer size, and exploration schedule tuning
+### 33.3 여러 걸음 배움
 
-### 33.2 DQN Improvements
+- [n걸음 돌아옴](multi_step/n_step_returns.md) -- 치우침과 흩어짐을 맞바꾸며 띄워 올리기 전에 실제 보상을 여럿 써서 공 돌리기를 낫게 하기
+- Retrace(람다) -- 잘라 낸 중요도 뽑기 비로 여러 걸음 과녁을 안전하게 벗어난 방침 바로잡기
+- V-Trace -- 잘라 낸 중요도 무게로 나눠진 배우-배움이 얼개의 방침 늦음 바로잡기
 
-- Double DQN -- Addressing Q-value overestimation by decoupling action selection from action evaluation
-- Dueling DQN -- Decomposing Q-values into state value and advantage streams for more efficient learning
-- Prioritized Experience Replay -- Sampling transitions proportional to TD error magnitude with importance sampling correction
-- Noisy Networks -- Learned state-dependent exploration through parametric noise in network weights
-- Distributional RL -- Modeling the full return distribution with C51 categorical atoms instead of expected values
-- [Rainbow](improvements/rainbow.md) -- Integrating six orthogonal DQN improvements into a single high-performance agent
+### 33.4 이어진 움직임 자리
 
-### 33.3 Multi-Step Learning
+- [고르게 맞춘 이점 함수(NAF)](continuous/naf.md) -- 이어진 움직임 DQN에서 손으로 argmax을 셈하게 하는 이차 Q 함수 쪼개기
+- QT-Opt -- 어떤 Q 그물 얼개에서도 움직임을 어림으로 가장 좋게 하는 교차 엔트로피 방법
 
-- [N-Step Returns](multi_step/n_step_returns.md) -- Using multiple actual rewards before bootstrapping for better credit assignment with bias-variance trade-offs
-- Retrace(lambda) -- Safe off-policy correction for multi-step targets using truncated importance sampling ratios
-- V-Trace -- Correcting for policy lag in distributed actor-learner architectures with truncated importance weights
+### 33.5 오프라인 힘 북돋우는 배움
 
-### 33.4 Continuous Action Spaces
+- 오프라인 힘 북돋우는 배움의 바탕 -- 둘레와 주고받지 않고 붙박인 자료 뭉치에서 배우기, 분포가 옮겨 가는 문제, 여느 DQN이 안 되는 까닭
+- [조심스러운 Q 배우기(CQL)](offline/cql.md) -- 분포 밖 움직임의 참값을 아래로 가두는 비관 Q 값 어림
+- 묶음에 매인 Q 배우기(BCQ) -- 오프라인 자료 뭉치에 있는 것과 닮은 움직임만 고르도록 방침을 매기
+- [숨은 Q 배우기(IQL)](offline/iql.md) -- 기대분위 되돌이 맞춤으로 분포 밖 움직임 묻기를 아예 피하기
 
-- [Normalized Advantage Functions (NAF)](continuous/naf.md) -- Quadratic Q-function decomposition enabling analytical argmax for continuous action DQN
-- QT-Opt -- Cross-entropy method for approximate action optimization with arbitrary Q-network architectures
+### 33.6 따지기
 
-### 33.5 Offline RL
+- 익히기 굽은 줄 -- 판마다의 돌아옴과 진단 잣대를 지켜보고 건강한 익히기와 그렇지 않은 익히기를 가려내기
+- 잣대 시험 -- 고전 다스리기와 아타리에서 이어진 다스리기 꾸러미에 이르는 여느 힘 북돋우는 배움 따지기 둘레
+- 통계 시험 -- 믿을 만한 알고리즘 견주기를 위한 웰치 t 시험, 만-휘트니 U, 믿음 구간
 
-- Offline RL Fundamentals -- Learning from fixed datasets without environment interaction, the distribution shift problem, and why standard DQN fails
-- [Conservative Q-Learning (CQL)](offline/cql.md) -- Pessimistic Q-value estimation that lower-bounds true values for out-of-distribution actions
-- Batch-Constrained Q-Learning (BCQ) -- Constraining the policy to only select actions similar to those in the offline dataset
-- [Implicit Q-Learning (IQL)](offline/iql.md) -- Avoiding out-of-distribution action queries entirely using expectile regression
+### 33.7 금융 쓰임새
 
-### 33.6 Evaluation
-
-- Training Curves -- Monitoring episode returns, diagnostic metrics, and interpreting healthy vs unhealthy training behavior
-- Benchmarks -- Standard RL evaluation environments from Classic Control and Atari to continuous control suites
-- Statistical Testing -- Welch's t-test, Mann-Whitney U, and confidence intervals for reliable algorithm comparison
-
-### 33.7 Financial Applications
-
-- Order Execution -- Optimal liquidation of large positions using DQN to minimize market impact costs
-- [Market Making](finance/market_making.md) -- Learning optimal bid-ask quoting strategies with inventory risk management via DQN
-- [Discrete Trading](finance/discrete_trading.md) -- Buy/sell/hold decision-making with DQN using technical features and transaction cost penalties
+- 주문 실행 -- 시장 충격 비용을 가장 작게 하려 DQN으로 큰 자리를 가장 좋게 처분하기
+- [시장 만들기](finance/market_making.md) -- DQN으로 재고 위험을 다루며 가장 좋은 호가 셈속 배우기
+- [띄엄띄엄한 거래](finance/discrete_trading.md) -- 기술 특징과 거래 비용 벌을 쓰는 DQN으로 사기/팔기/쥐기 결정하기

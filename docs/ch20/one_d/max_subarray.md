@@ -1,49 +1,49 @@
-# Maximum Subarray
+# 최대 부분 배열
 
-The maximum subarray problem asks for the contiguous subarray within a one-dimensional array of numbers that has the largest sum.  This problem is a foundational exercise in dynamic programming and is solved optimally by Kadane's algorithm in $O(n)$ time.  The key insight is that the decision at each position reduces to a simple choice: extend the current subarray or start a new one.
+최대 부분 배열 문제는 1차원 수 배열 안에서 합이 가장 큰 잇닿은 부분 배열을 묻는다. 동적 짜기의 바탕이 되는 연습으로 카데인 알고리즘이 $O(n)$ 시간에 가장 좋게 푼다. 핵심 눈썰미는 자리마다의 결정이 단순한 고름 하나로 줄어든다는 것이다. 곧 지금 부분 배열을 넓히느냐 새로 시작하느냐이다.
 
-## Problem Statement
+## 문제 서술
 
-Given an array $a[0..n-1]$ of integers (possibly negative), find
+(음수일 수도 있는) 정수 배열 $a[0..n-1]$이 주어질 때 다음을 찾아라
 
 $$
 \max_{0 \le l \le r < n} \sum_{k=l}^{r} a[k]
 $$
 
-That is, find the contiguous subarray $a[l..r]$ whose elements have the largest sum.
+곧 원소의 합이 가장 큰 잇닿은 부분 배열 $a[l..r]$을 찾아라.
 
-**Example:** For $a = [-2, 1, -3, 4, -1, 2, 1, -5, 4]$, the maximum subarray is $[4, -1, 2, 1]$ with sum 6.
+**보기:** $a = [-2, 1, -3, 4, -1, 2, 1, -5, 4]$이면 최대 부분 배열은 $[4, -1, 2, 1]$이고 합은 6이다.
 
-## Recurrence (Kadane's Algorithm)
+## 되돌이 관계식(카데인 알고리즘)
 
-Let $dp[i]$ denote the maximum sum of a subarray **ending at** index $i$.  At position $i$, there are two choices:
+$dp[i]$을 번호 $i$**에서 끝나는** 부분 배열의 최대 합이라 하자. 자리 $i$에서 고름은 둘이다:
 
-1. **Extend** the subarray ending at $i-1$ by including $a[i]$: the sum is $dp[i-1] + a[i]$.
-2. **Start fresh** at $i$: the sum is just $a[i]$.
+1. $a[i]$을 넣어 $i-1$에서 끝나는 부분 배열을 **넓힌다**: 합은 $dp[i-1] + a[i]$이다.
+2. $i$에서 **새로 시작한다**: 합은 $a[i]$뿐이다.
 
-Taking the better option:
+더 나은 쪽을 취하면:
 
 $$
 dp[i] = \max\bigl(a[i],\; dp[i-1] + a[i]\bigr) \quad \text{for } i \ge 1
 $$
 
-with base case $dp[0] = a[0]$.  The answer is $\max_{0 \le i < n} dp[i]$.
+바탕 경우는 $dp[0] = a[0]$이다. 답은 $\max_{0 \le i < n} dp[i]$이다.
 
-The recurrence works because if the maximum subarray ending at $i-1$ has negative sum, it is better to discard it and start anew at $i$.
+$i-1$에서 끝나는 최대 부분 배열의 합이 음수이면 그것을 버리고 $i$에서 새로 시작하는 편이 낫기 때문에 이 되돌이 관계식이 통한다.
 
-## Tabulation
+## 표 채우기
 
 ```python
 """
-Maximum subarray sum using Kadane's algorithm.
+카데인 알고리즘으로 얻는 최대 부분 배열 합.
 """
 
 
 # ===================================================================
-# Approach 1: Tabulation
+# 방식 1: 표 채우기
 # ===================================================================
 def max_subarray_tabulation(nums: list[int]) -> int:
-    """Maximum subarray sum with explicit DP table. Time: O(n), Space: O(n)."""
+    """동적 짜기 표를 써서 얻는 최대 부분 배열 합. 시간: O(n), 공간: O(n)."""
     n = len(nums)
     dp = [0] * n
     dp[0] = nums[0]
@@ -54,16 +54,16 @@ def max_subarray_tabulation(nums: list[int]) -> int:
     return max(dp)
 ```
 
-## Space-Optimized (Kadane's Algorithm)
+## 공간 줄임(카데인 알고리즘)
 
-Since $dp[i]$ depends only on $dp[i-1]$, a single variable suffices:
+$dp[i]$이 $dp[i-1]$에만 기대므로 변수 하나면 넉넉하다:
 
 ```python
 # ===================================================================
-# Approach 2: Kadane's algorithm (space-optimized)
+# 방식 2: 카데인 알고리즘(공간 줄임)
 # ===================================================================
 def kadane(nums: list[int]) -> int:
-    """Maximum subarray sum. Time: O(n), Space: O(1)."""
+    """최대 부분 배열 합. 시간: O(n), 공간: O(1)."""
     current_sum = nums[0]
     best_sum = nums[0]
 
@@ -74,16 +74,16 @@ def kadane(nums: list[int]) -> int:
     return best_sum
 ```
 
-## Reconstructing the Subarray
+## 부분 배열 다시 세우기
 
-To find the actual subarray (not just the sum), track the start and end indices:
+합뿐 아니라 실제 부분 배열을 찾으려면 시작과 끝 번호를 좇는다:
 
 ```python
 # ===================================================================
-# Approach 3: With reconstruction
+# 방식 3: 다시 세우기 곁들임
 # ===================================================================
 def kadane_with_indices(nums: list[int]) -> tuple[int, int, int]:
-    """Return (max_sum, start_index, end_index)."""
+    """(최대 합, 시작 번호, 끝 번호)를 돌려준다."""
     current_sum = nums[0]
     best_sum = nums[0]
     start = 0
@@ -105,23 +105,23 @@ def kadane_with_indices(nums: list[int]) -> tuple[int, int, int]:
     return best_sum, start, end
 ```
 
-## Correctness Argument
+## 올바름의 논증
 
-Kadane's algorithm considers every possible ending position $i$ and computes the best subarray ending there.  By taking the maximum over all ending positions, it considers every possible subarray (since every subarray ends somewhere).  The recurrence correctly computes the best subarray ending at $i$ because extending a negative-sum prefix is always worse than starting fresh.
+카데인 알고리즘은 끝날 수 있는 자리 $i$마다 거기서 끝나는 가장 좋은 부분 배열을 셈한다. 모든 끝자리에 걸쳐 최댓값을 취하므로 가능한 모든 부분 배열을 살피는 셈이다(부분 배열은 저마다 어딘가에서 끝나므로). 합이 음수인 앞머리를 넓히는 것은 늘 새로 시작하는 것보다 나쁘므로 이 되돌이 관계식이 $i$에서 끝나는 가장 좋은 부분 배열을 옳게 셈한다.
 
-## Complexity
+## 복잡도
 
-| Approach | Time | Space |
+| 방법 | 시간 | 공간 |
 |----------|------|-------|
-| Brute force (all pairs) | $O(n^2)$ | $O(1)$ |
-| Divide and conquer | $O(n \log n)$ | $O(\log n)$ |
-| Kadane's algorithm | $O(n)$ | $O(1)$ |
+| 막무가내(모든 짝) | $O(n^2)$ | $O(1)$ |
+| 나누어 이기기 | $O(n \log n)$ | $O(\log n)$ |
+| 카데인 알고리즘 | $O(n)$ | $O(1)$ |
 
-Kadane's algorithm is optimal because any algorithm must read every element at least once, giving an $\Omega(n)$ lower bound.
+어떤 알고리즘이든 원소를 적어도 한 번씩은 읽어야 해 $\Omega(n)$ 하한이 있으므로 카데인 알고리즘이 가장 좋다.
 
 ```python
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 if __name__ == "__main__":
     test_cases = [
@@ -136,7 +136,7 @@ if __name__ == "__main__":
         print(f"  max sum = {total}, subarray = {nums[start:end+1]}")
 ```
 
-**Output:**
+**출력:**
 ```
 nums=[-2, 1, -3, 4, -1, 2, 1, -5, 4]
   max sum = 6, subarray = [4, -1, 2, 1]
@@ -148,10 +148,42 @@ nums=[-1, -2, -3]
   max sum = -1, subarray = [-1]
 ```
 
-!!! note "All-negative arrays"
-    When all elements are negative, the maximum subarray consists of the single least-negative element.  Kadane's algorithm handles this correctly because `current_sum` always starts fresh when extending would make the sum worse.
+!!! note "모두 음수인 배열"
+    원소가 모두 음수이면 최대 부분 배열은 가장 덜 음수인 원소 하나로 이루어진다. 넓히면 합이 나빠질 때 `current_sum`이 늘 새로 시작하므로 카데인 알고리즘이 이를 옳게 다룬다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 4. MIT Press.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 4장. MIT Press.
 - Kadane, J. B. (1984). Maximum sum subarray problem.
+
+## 연습문제
+
+**연습문제 1.**
+최대 부분 배열의 상태, 옮아감, 바탕 경우를 가려내어라.
+
+??? success "연습문제 1 풀이"
+    **상태**는 아래 문제를 적는 데 필요한 앎을 담는다. **옮아감**(되돌이 관계식)은 어떤 상태의 가장 좋은 값을 더 작은 상태로 나타낸다. **바탕 경우**는 곧바로 풀 수 있는 가장 작은 아래 문제의 값을 준다. 이 셋이 함께 동적 짜기 풀이를 온전히 정한다. $\square$
+
+---
+
+**연습문제 2.**
+최대 부분 배열의 위에서 아래로(적어 두기) 짜기와 아래에서 위로(표 채우기) 짜기를 견주어라. 어느 쪽이 나으며 왜 그런가?
+
+??? success "연습문제 2 풀이"
+    **위에서 아래로**: 곳간을 곁들인 되돌이. 정말 필요한 아래 문제만 셈한다(게으른 값매김). 되돌이 관계식에서 옮겨 적기 쉽다. 되돌이 깊이 문제가 생길 수 있다. **아래에서 위로**: 되풀이로 기댐 차례에 따라 표를 채운다. 필요 없는 것까지 모든 아래 문제를 셈한다. 되돌이 군더더기가 없다. 공간을 줄이기 쉽다. 이 문제에서는 아래 문제가 모두 필요하면 아래에서 위로가 흔히 낫고, 닿지 않는 아래 문제가 많으면 위에서 아래로가 낫다. $\square$
+
+---
+
+**연습문제 3.**
+최대 부분 배열의 시간 복잡도와 공간 복잡도는 무엇인가? 공간을 더 줄일 수 있는가?
+
+??? success "연습문제 3 풀이"
+    시간 복잡도는 상태의 수에 상태마다의 옮아감 값을 곱한 것으로 정해진다. 공간은 담아 두는 상태의 수와 같다. 옮아감이 앞선 상태 가운데 한정된 몇 개에만 기대면(예컨대 2차원 표의 바로 앞 가로줄) 그 상태만 기억 공간에 두어 공간을 줄일 수 있으며, 흔히 $O(n^2)$에서 $O(n)$으로 줄어든다. $\square$
+
+---
+
+**연습문제 4.**
+최대 부분 배열의 알고리즘을 네가 고른 작은 보기에 대해 좇아라. 동적 짜기 표의 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    작은 들임(예컨대 $n = 5$이나 짧은 글줄/배열)을 골라라. 동적 짜기 표를 한 걸음씩 채우면서 각 칸이 앞서 셈한 칸에서 어떻게 나오는지 보여라. 마지막 답을 막무가내로 다 세어 본 것과 견주어 확인하라. 이렇게 좇아 보면 되돌이 관계식이 옳음을 확인하고 알고리즘에 대한 직관이 선다. $\square$

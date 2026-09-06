@@ -160,3 +160,43 @@ Both algorithms produce identical shortest-path distances, confirming that dista
 
 - Kurose, J.F. and Ross, K.W. *Computer Networking: A Top-Down Approach*. Pearson
 - Cormen, T.H., Leiserson, C.E., Rivest, R.L., and Stein, C. *Introduction to Algorithms*. MIT Press
+
+## Exercises
+
+**Exercise 1.**
+Model a 6-router network as a weighted graph and compute the shortest-path routing table for one router using Dijkstra's algorithm. Show the forwarding decisions.
+
+??? success "Solution to Exercise 1"
+    Network: R1-R2(2), R1-R3(5), R2-R3(1), R2-R4(3), R3-R5(2), R4-R5(1), R4-R6(4), R5-R6(2). Dijkstra from R1: dist[R1]=0, dist[R2]=2 (via R2), dist[R3]=3 (via R2-R3), dist[R4]=5 (via R2-R4), dist[R5]=5 (via R2-R3-R5), dist[R6]=7 (via R2-R3-R5-R6). Forwarding table at R1: R2$\to$direct, R3$\to$R2, R4$\to$R2, R5$\to$R2, R6$\to$R2. All traffic leaves through the R1-R2 link because R2 is on all shortest paths. This is common in topologies where one neighbor provides the best gateway. $\square$
+
+---
+
+**Exercise 2.**
+Compare distance-vector and link-state routing paradigms. What algorithmic property of each determines its convergence behavior?
+
+??? success "Solution to Exercise 2"
+    **Distance-vector** (Bellman-Ford): each router knows only its own distances to destinations and shares these with neighbors. Convergence requires iterative relaxation: information propagates one hop per round. Convergence time is $O(V)$ rounds, where each round can take 30 seconds (RIP). Vulnerable to count-to-infinity because routers act on potentially stale information from neighbors. **Link-state** (Dijkstra): each router knows the complete network topology via flooding. Convergence requires two phases: flooding ($O(\text{diameter})$ time, typically milliseconds) and local Dijkstra computation ($O(V \log V + E)$, microseconds). The complete-information property ensures a single computation produces correct results -- no iterative convergence needed. The key algorithmic difference: Bellman-Ford is distributed and iterative; Dijkstra is local but requires global state. $\square$
+
+---
+
+**Exercise 3.**
+Explain how routing loops form and describe three mechanisms used in routing protocols to prevent or mitigate them.
+
+??? success "Solution to Exercise 3"
+    A routing loop occurs when router A forwards packets for destination D to router B, and B forwards them back to A (directly or through intermediate routers). Packets circulate until their TTL expires. Loops form when routing tables are inconsistent during convergence. Mechanisms: (1) **TTL (Time to Live)**: each packet's TTL is decremented at every hop. When it reaches 0, the packet is dropped. This limits the damage of loops but does not prevent them. (2) **Split horizon / poison reverse**: a router does not advertise a route back to the neighbor from which it was learned (or advertises it with infinity). This prevents simple two-node loops. (3) **Hold-down timers**: after a route is withdrawn, the router refuses to accept new routes to that destination for a hold-down period, preventing stale information from creating loops during convergence. $\square$
+
+---
+
+**Exercise 4.**
+A network has equal-cost multiple paths (ECMP) between two endpoints. Explain how ECMP routing works and what benefits it provides.
+
+??? success "Solution to Exercise 4"
+    ECMP occurs when multiple shortest paths of equal cost exist between a source and destination. Instead of choosing one path, the router distributes traffic across all equal-cost paths. Distribution methods: (1) **Per-packet**: each packet is independently assigned to a path (e.g., round-robin). This maximizes bandwidth utilization but can cause packet reordering. (2) **Per-flow**: a hash of the flow identifier (source IP, destination IP, port, protocol) determines the path. All packets in a flow follow the same path, avoiding reordering. This is the standard approach. Benefits: (1) increased aggregate bandwidth (multiple paths share the load); (2) fault tolerance (if one path fails, traffic shifts to remaining paths); (3) better utilization of network links (prevents bottlenecks on a single path). $\square$
+
+---
+
+**Exercise 5.**
+Software-defined networking (SDN) separates the control plane from the data plane. How does this change the routing paradigm, and what advantages does it offer over distributed routing protocols?
+
+??? success "Solution to Exercise 5"
+    In traditional routing, each router independently computes routes using distributed protocols (OSPF, BGP). In SDN, a centralized controller maintains the global network view and computes routes for all routers, then installs forwarding rules in each router's flow table. Advantages: (1) **Global optimization**: the controller can compute globally optimal paths (e.g., minimizing congestion, maximizing throughput) rather than relying on shortest-path heuristics. (2) **Rapid innovation**: new routing policies are software changes in the controller, not firmware updates on every router. (3) **Traffic engineering**: the controller can reroute flows dynamically based on real-time load, which distributed protocols cannot do efficiently. (4) **Simplified routers**: data-plane devices only forward packets based on rules; they need no routing protocol software. Disadvantage: the controller is a single point of failure (mitigated by controller replication) and must scale to handle topology changes and flow requests for the entire network. $\square$

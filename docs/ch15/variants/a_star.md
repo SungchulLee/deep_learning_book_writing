@@ -1,88 +1,88 @@
-# A* Search
+# A* 찾기
 
-Dijkstra's algorithm explores vertices in all directions equally, which can be wasteful when the goal is to reach a specific target. A* search improves on Dijkstra by incorporating a **heuristic function** that estimates the remaining distance to the target, guiding the search toward the goal and often exploring far fewer vertices. A* is the standard algorithm for pathfinding in games, robotics, and route planning.
+데이크스트라 알고리즘은 모든 방향으로 고르게 꼭짓점을 살펴보는데, 특정한 과녁에 닿는 것이 목표라면 이는 헤플 수 있다. A* 찾기는 과녁까지 남은 거리를 어림하는 **어림짐작 함수**를 넣어 데이크스트라를 낫게 만든다. 그러면 찾기가 목표 쪽으로 이끌리고 살펴보는 꼭짓점이 훨씬 적어지곤 한다. A*은 놀이, 로봇, 길 찾기에서 표준 알고리즘이다.
 
-## The A* Evaluation Function
+## A*의 값 매기기 함수
 
-A* maintains a priority queue ordered by the evaluation function
+A*은 값 매기기 함수로 차례 매긴 우선순위 줄을 지킨다
 
 $$
 f(n) = g(n) + h(n)
 $$
 
-where $g(n)$ is the actual cost of the cheapest known path from the source $s$ to vertex $n$, and $h(n)$ is a heuristic estimate of the cost from $n$ to the target $t$. The algorithm always expands the vertex with the smallest $f$ value.
+여기서 $g(n)$은 샘 $s$에서 꼭짓점 $n$까지 알려진 가장 싼 길의 실제 값이고, $h(n)$은 $n$에서 과녁 $t$까지 값의 어림짐작이다. 이 알고리즘은 늘 $f$ 값이 가장 작은 꼭짓점을 넓힌다.
 
-- When $h(n) = 0$ for all $n$, A* degenerates to Dijkstra's algorithm.
-- When $h(n)$ accurately reflects the true remaining cost, A* heads straight toward the target.
+- 모든 $n$에 대해 $h(n) = 0$이면 A*은 데이크스트라 알고리즘으로 주저앉는다.
+- $h(n)$이 남은 참값을 정확히 비추면 A*은 과녁으로 곧장 나아간다.
 
-## Admissibility and Optimality
+## 받아들일 만함과 가장 좋음
 
-A heuristic $h$ is **admissible** if it never overestimates the true cost to the goal:
+어림짐작 $h$이 목표까지의 참값을 결코 넘겨 어림하지 않으면 **받아들일 만하다**고 한다:
 
 $$
 h(n) \leq h^*(n) \quad \text{for all } n
 $$
 
-where $h^*(n)$ is the true shortest-path cost from $n$ to $t$.
+여기서 $h^*(n)$은 $n$에서 $t$까지의 참된 최단 경로 값이다.
 
-!!! tip "Admissibility guarantees optimality"
-    If $h$ is admissible, A* is guaranteed to find an optimal (shortest) path from $s$ to $t$. This follows because any suboptimal path to $t$ has $f > f^*$ (the optimal cost), so A* will expand the optimal path first.
+!!! tip "받아들일 만하면 가장 좋음이 보장된다"
+    $h$이 받아들일 만하면 A*은 $s$에서 $t$까지 가장 좋은(최단) 길을 찾음이 보장된다. $t$까지의 덜 좋은 길은 모두 $f > f^*$(가장 좋은 값)이므로 A*이 가장 좋은 길을 먼저 넓히기 때문이다.
 
-## Consistency (Monotonicity)
+## 한결같음(단조성)
 
-A heuristic $h$ is **consistent** (also called monotone) if for every edge $(u, v)$ with cost $w(u, v)$:
+값이 $w(u, v)$인 변 $(u, v)$마다 다음이 성립하면 어림짐작 $h$이 **한결같다**(단조라고도 한다)고 한다:
 
 $$
 h(u) \leq w(u, v) + h(v)
 $$
 
-Consistency implies admissibility (but not vice versa). With a consistent heuristic, the $f$ values along any path are non-decreasing, and A* never needs to re-open a closed vertex. This makes the algorithm more efficient in practice.
+한결같으면 받아들일 만하다(거꾸로는 아니다). 한결같은 어림짐작을 쓰면 어느 길에서나 $f$ 값이 줄지 않고, A*은 닫힌 꼭짓점을 다시 열 필요가 없다. 그래서 실전에서 더 효율적이다.
 
-## Algorithm
+## 알고리즘
 
-1. Initialize: set $g(s) = 0$, $f(s) = h(s)$, and add $s$ to the priority queue.
-2. While the priority queue is not empty:
-    - Extract the vertex $n$ with the smallest $f(n)$.
-    - If $n = t$, reconstruct and return the path.
-    - For each neighbor $v$ of $n$: if $g(n) + w(n, v) < g(v)$, update $g(v)$ and $f(v) = g(v) + h(v)$, and add $v$ to the queue.
-3. If the queue empties without reaching $t$, no path exists.
+1. 첫걸음: $g(s) = 0$, $f(s) = h(s)$으로 놓고 $s$을 우선순위 줄에 넣는다.
+2. 우선순위 줄이 비지 않은 동안:
+    - $f(n)$이 가장 작은 꼭짓점 $n$을 꺼낸다.
+    - $n = t$이면 길을 되살려 되돌린다.
+    - $n$의 이웃 $v$마다: $g(n) + w(n, v) < g(v)$이면 $g(v)$과 $f(v) = g(v) + h(v)$을 새로 고치고 $v$을 줄에 넣는다.
+3. $t$에 닿지 못한 채 줄이 비면 길이 없다.
 
-## Complexity
+## 복잡도
 
-With a consistent heuristic, A* expands each vertex at most once. In the worst case (uninformative heuristic), A* expands all $V$ vertices and examines all $E$ edges, giving the same $O((V + E) \log V)$ complexity as Dijkstra with a binary heap. In practice, a good heuristic dramatically reduces the number of expanded vertices.
+한결같은 어림짐작을 쓰면 A*은 꼭짓점마다 많아야 한 번 넓힌다. 최악의 경우(알려 주는 바 없는 어림짐작) A*은 꼭짓점 $V$개를 모두 넓히고 변 $E$개를 모두 살펴, 이진 힙을 쓴 데이크스트라와 같은 $O((V + E) \log V)$ 복잡도가 된다. 실전에서 좋은 어림짐작은 넓히는 꼭짓점의 개수를 크게 줄인다.
 
-## Implementation
+## 구현
 
 ```python
 """
-A* search algorithm for weighted graphs.
+무게 그래프를 위한 A* 찾기 알고리즘.
 
-Uses a heuristic function to guide search toward the target,
-reducing the number of vertices explored compared to Dijkstra.
+어림짐작 함수로 찾기를 과녁 쪽으로 이끌어,
+데이크스트라보다 살펴보는 꼭짓점 수를 줄인다.
 """
 
 import heapq
 
-# === A* search ================================================================
+# === A* 찾기 ==================================================================
 
 def a_star(graph, source, target, heuristic):
-    """Find the shortest path using A* search.
+    """A* 찾기로 최단 경로 찾기.
 
-    Parameters
+    매개변수
     ----------
     graph : dict[int, list[tuple[int, float]]]
-        Adjacency list with (neighbor, weight) pairs.
+        (이웃, 무게) 짝을 담은 이웃 목록.
     source : int
-        Starting vertex.
+        시작 꼭짓점.
     target : int
-        Goal vertex.
+        목표 꼭짓점.
     heuristic : dict[int, float]
-        Estimated cost from each vertex to the target.
+        꼭짓점마다 과녁까지의 어림 값.
 
-    Returns
+    반환값
     -------
     tuple[list[int], float] | tuple[None, float]
-        (path, cost) if found, (None, inf) otherwise.
+        찾으면 (경로, 값), 아니면 (None, inf).
     """
     g_cost = {source: 0.0}
     f_cost = {source: heuristic.get(source, 0.0)}
@@ -118,10 +118,10 @@ def a_star(graph, source, target, heuristic):
     return None, float("inf")
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
-    # Weighted graph: vertex -> [(neighbor, weight), ...]
+    # 무게 그래프: 꼭짓점 -> [(이웃, 무게), ...]
     graph = {
         0: [(1, 1.0), (2, 4.0)],
         1: [(2, 2.0), (3, 5.0)],
@@ -129,7 +129,7 @@ if __name__ == "__main__":
         3: [],
     }
 
-    # Heuristic: estimated distance from each vertex to target (vertex 3)
+    # 어림짐작: 꼭짓점마다 과녁(꼭짓점 3)까지의 어림 거리
     h = {0: 3.0, 1: 2.0, 2: 1.0, 3: 0.0}
 
     path, cost = a_star(graph, 0, 3, h)
@@ -137,15 +137,47 @@ if __name__ == "__main__":
     print(f"Total cost: {cost}")
 ```
 
-**Output:**
+**출력:**
 ```
 A* path: [0, 1, 2, 3]
 Total cost: 4.0
 ```
 
-The heuristic guides A* to find the optimal path $0 \to 1 \to 2 \to 3$ with cost 4.0 without exploring the expensive direct edge $0 \to 2$.
+어림짐작이 A*을 이끌어 비싼 곧바른 변 $0 \to 2$을 살펴보지 않고도 값 4.0의 가장 좋은 길 $0 \to 1 \to 2 \to 3$을 찾게 한다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapters 24-25. MIT Press.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 24-25장. MIT Press.
 - Hart, P. E., Nilsson, N. J., & Raphael, B. (1968). A formal basis for the heuristic determination of minimum cost paths. *IEEE Transactions on Systems Science and Cybernetics*, 4(2), 100-107.
+
+## 연습문제
+
+**연습문제 1.**
+어림짐작 함수 $h$의 받아들일 만함과 한결같음을 정의하여라. 한결같으면 받아들일 만함을 증명하여라.
+
+??? success "연습문제 1 풀이"
+    모든 $v$에 대해 $h(v) \leq \delta(v, t)$이면(목표 $t$까지의 참값을 결코 넘겨 어림하지 않으면) 어림짐작 $h$이 **받아들일 만하다**. 변 $(u,v)$마다 $h(u) \leq w(u,v) + h(v)$이고 $h(t) = 0$이면 어림짐작이 **한결같다**(단조이다). 한결같으면 받아들일 만함을 증명하자. $p = v_0, v_1, \ldots, v_k = t$을 $v_0$에서 $t$까지의 최단 경로라 하자. 한결같음에 따라 $h(v_i) \leq w(v_i, v_{i+1}) + h(v_{i+1})$이다. 망원경처럼 접으면 $h(v_0) \leq \sum_{i=0}^{k-1} w(v_i, v_{i+1}) + h(t) = \delta(v_0, t) + 0 = \delta(v_0, t)$이다. $\square$
+
+---
+
+**연습문제 2.**
+값이 고른 격자 그래프에서 맨해튼 거리 어림짐작을 쓸 때 A*, 데이크스트라, BFS이 넓히는 마디의 개수를 견주어라.
+
+??? success "연습문제 2 풀이"
+    값이 고른 격자에서는 (값이 모두 같으므로) BFS과 데이크스트라가 같은 마디를 넓히며 거의 둥근 앞자락을 살펴본다. 거리 $d$의 과녁이면 마디 $O(d^2)$개이다. 맨해튼 거리 어림짐작을 쓴 A*은 찾기를 목표 쪽으로 모아, 샘과 과녁 사이의 마름모꼴 구역쯤을 넓히므로 마디가 훨씬 적다. 트인 격자에서 A*은 넓히는 마디가 $O(d)$에 가까워질 수 있다. 걸림돌이 없을 때 나아짐이 가장 극적이고, 걸림돌이 많으면 A*이 데이크스트라의 개수에 가까워질 수 있다. $\square$
+
+---
+
+**연습문제 3.**
+어림짐작이 참된 거리를 넘겨 어림하면 어떻게 되는가? 그래도 A*이 가장 좋은 길을 찾음이 보장되는가?
+
+??? success "연습문제 3 풀이"
+    $h$이 넘겨 어림하면(받아들일 만하지 않으면) A*이 덜 좋은 길을 찾을 수 있다. 어떤 가운데 꼭짓점에서 남은 값을 어림짐작이 낮게 매겨 $f = g + h$이 작아 보이는 덜 좋은 길로 목표 마디를 넓힐 수 있다. 특히 가장 좋은 길이 $h$이 너무 높은 꼭짓점을 지나면 A*이 그것을 뒤로 미룬다. 무게 준 A*은 일부러 $\epsilon > 1$인 $f = g + \epsilon \cdot h$을 써서 가장 좋음을 내주고 빠르기를 얻으며, 가장 좋은 값의 $\epsilon$배 안에 드는 길을 보장한다. $\square$
+
+---
+
+**연습문제 4.**
+한결같은 어림짐작을 쓴 A*이 닫힌(확정된) 마디를 결코 다시 열지 않음을 증명하여라.
+
+??? success "연습문제 4 풀이"
+    꼭짓점 $u$이 $f(u) = g(u) + h(u)$으로 확정되었다고 하자. 나중에 변 $(v, u)$과 함께 찾은 아무 꼭짓점 $v$에 대해 $g'(u) = g(v) + w(v, u)$이다. 한결같음에 따라 $h(v) \leq w(v, u) + h(u)$이므로 $f(v) = g(v) + h(v) \leq g(v) + w(v, u) + h(u) = g'(u) + h(u) = f'(u)$이다. $v$은 $u$보다 나중에 다뤄졌으므로 $f(v) \geq f(u)$이고, 따라서 $f'(u) \geq f(v) \geq f(u)$이며 $g'(u) + h(u) \geq g(u) + h(u)$, 곧 $g'(u) \geq g(u)$이다. $v$을 거치는 새 길이 더 짧지 않으므로 다시 열 필요가 없다. $\square$

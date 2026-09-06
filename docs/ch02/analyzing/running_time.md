@@ -1,60 +1,57 @@
-# Running Time
+# 실행 시간
 
-How long does an algorithm take? Measuring wall-clock time on a particular machine
-gives a number that depends on the processor, the programming language, the compiler,
-and even what other programs are running. To compare algorithms independently of these
-factors, we define **running time** as a mathematical function of the input size,
-counted in terms of elementary operations.
+알고리즘은 얼마나 오래 걸리는가? 특정 기계에서 실제 시간을 재면 프로세서, 프로그래밍 언어,
+컴파일러, 심지어 함께 돌아가고 있는 다른 프로그램에 따라 달라지는 값이 나온다. 이러한
+요인들과 무관하게 알고리즘을 비교하기 위해, 우리는 **실행 시간** 을 기본 연산의 횟수로 센
+입력 크기의 수학적 함수로 정의한다.
 
-## Input Size
+## 입력 크기
 
-The **input size** $n$ is a measure of the amount of data the algorithm receives.
-What constitutes "size" depends on the problem:
+**입력 크기** $n$은 알고리즘이 받는 데이터의 양을 나타내는 척도이다.
+무엇이 "크기"인지는 문제에 따라 다르다.
 
-| Problem | Input Size $n$ |
+| 문제 | 입력 크기 $n$ |
 |---|---|
-| Sorting an array | Number of elements |
-| Multiplying two integers | Number of digits (or bits) |
-| Graph algorithms | Number of vertices $|V|$ and edges $|E|$ |
-| Matrix operations | Dimension (e.g., $n \times n$) |
+| 배열 정렬 | 원소의 개수 |
+| 두 정수의 곱셈 | 자릿수(또는 비트 수) |
+| 그래프 알고리즘 | 정점의 수 $|V|$와 간선의 수 $|E|$ |
+| 행렬 연산 | 차원(예: $n \times n$) |
 
-Some problems have multiple parameters. For graph algorithms, the running time is
-often expressed as a function of both $|V|$ and $|E|$, such as $O(|V| + |E|)$.
+어떤 문제는 매개변수가 여럿이다. 그래프 알고리즘의 실행 시간은 흔히 $|V|$와 $|E|$
+둘 다의 함수로, 예를 들어 $O(|V| + |E|)$처럼 표현된다.
 
-## The RAM Model
+## RAM 모형
 
-To reason about running time without specifying hardware, we adopt the **Random Access
-Machine (RAM) model**:
+하드웨어를 지정하지 않고 실행 시간을 따지기 위해 우리는 **임의 접근 기계(RAM) 모형** 을
+채택한다.
 
-- The machine has an unbounded number of memory cells, each holding a single value.
-- Each **primitive operation** takes exactly one time step:
-    - Arithmetic: addition, subtraction, multiplication, division, modulus
-    - Comparison: $<$, $\leq$, $=$, $\geq$, $>$
-    - Data movement: assignment, array access by index
-    - Control flow: branch, function call, return
-- Memory access is uniform: reading cell $i$ costs the same as reading cell $j$.
+- 기계는 값을 하나씩 담는 메모리 셀을 무한히 많이 가진다.
+- 각 **기본 연산** 은 정확히 한 시간 단계를 차지한다.
+    - 산술: 덧셈, 뺄셈, 곱셈, 나눗셈, 나머지
+    - 비교: $<$, $\leq$, $=$, $\geq$, $>$
+    - 데이터 이동: 대입, 인덱스에 의한 배열 접근
+    - 제어 흐름: 분기, 함수 호출, 반환
+- 메모리 접근은 균일하다. 셀 $i$를 읽는 비용과 셀 $j$를 읽는 비용이 같다.
 
-!!! note "Limitations of the RAM Model"
+!!! note "RAM 모형의 한계"
 
-    The RAM model ignores cache effects, memory hierarchy, and parallelism. Despite
-    this simplification, it predicts real-world performance remarkably well for most
-    algorithms. Cache-aware analysis and external memory models address the cases
-    where it falls short.
+    RAM 모형은 캐시 효과, 메모리 계층, 병렬성을 무시한다. 이러한 단순화에도 불구하고
+    대부분의 알고리즘에 대해 실제 성능을 놀랍도록 잘 예측한다. 이 모형이 부족한
+    경우는 캐시를 고려한 분석과 외부 메모리 모형이 다룬다.
 
-## Running Time as a Function
+## 함수로서의 실행 시간
 
-The **running time** $T(n)$ of an algorithm is the number of primitive operations it
-executes on an input of size $n$. Since different inputs of the same size may cause
-different operation counts, $T(n)$ is often qualified as a best-case, worst-case, or
-average-case quantity.
+알고리즘의 **실행 시간** $T(n)$은 크기 $n$인 입력에 대해 수행하는 기본 연산의 횟수이다.
+같은 크기의 입력이라도 연산 횟수가 달라질 수 있으므로, $T(n)$은 흔히 최선의 경우,
+최악의 경우, 평균적인 경우 중 어느 것인지를 밝혀 쓴다.
 
-For a concrete algorithm, $T(n)$ is determined by:
+구체적인 알고리즘에 대해 $T(n)$은 다음으로 결정된다.
 
-1. **Counting operations** line by line.
-2. **Summing** the counts over all executed lines.
-3. **Expressing** the sum as a function of $n$.
+1. 줄마다 **연산을 센다.**
+2. 수행되는 모든 줄에 대해 그 횟수를 **더한다.**
+3. 그 합을 $n$의 함수로 **표현한다.**
 
-??? example "Running Time of Linear Search"
+??? example "선형 탐색의 실행 시간"
 
     ```
     LinearSearch(A, n, target):
@@ -64,54 +61,85 @@ For a concrete algorithm, $T(n)$ is determined by:
     4.  return -1
     ```
 
-    - Line 1 (loop test): executes up to $n + 1$ times.
-    - Line 2 (comparison): executes up to $n$ times.
-    - Line 3 (return): executes at most 1 time.
-    - Line 4 (return): executes at most 1 time.
+    - 1번 줄(반복 판정): 많아야 $n + 1$번 수행된다.
+    - 2번 줄(비교): 많아야 $n$번 수행된다.
+    - 3번 줄(반환): 많아야 1번 수행된다.
+    - 4번 줄(반환): 많아야 1번 수행된다.
 
-    In the **worst case** (target absent), lines 1-2 execute $n$ and $n$ times
-    respectively, so $T(n) = 2n + 2 = \Theta(n)$.
+    **최악의 경우**(찾는 값이 없는 경우) 1번 줄과 2번 줄이 각각 $n$번, $n$번
+    수행되므로 $T(n) = 2n + 2 = \Theta(n)$이다.
 
-## Why Not Measure Wall-Clock Time?
+## 왜 실제 시간을 재지 않는가?
 
-Empirical timing is useful for benchmarking implementations, but it cannot serve as a
-general performance metric because:
+경험적 시간 측정은 구현을 벤치마킹하는 데는 유용하지만 일반적인 성능 척도가 될 수는
+없다. 이유는 다음과 같다.
 
-- **Machine dependence:** The same algorithm runs faster on a newer CPU.
-- **Input dependence:** A single timing measurement applies only to that specific
-  input.
-- **Implementation dependence:** Language choice, compiler optimizations, and data
-  structure selection all affect timing without changing the algorithm itself.
+- **기계 의존성:** 같은 알고리즘도 최신 CPU에서 더 빠르게 실행된다.
+- **입력 의존성:** 한 번의 시간 측정은 그 특정 입력에만 해당한다.
+- **구현 의존성:** 언어 선택, 컴파일러 최적화, 자료구조 선택이 모두 알고리즘 자체를
+  바꾸지 않으면서 시간에 영향을 준다.
 
-The mathematical function $T(n)$ abstracts away all these factors, allowing us to
-compare algorithms on equal footing.
+수학적 함수 $T(n)$은 이 모든 요인을 추상화하여 알고리즘을 동등한 기준에서 비교할 수
+있게 해 준다.
 
-## From Exact Counts to Asymptotic Notation
+## 정확한 횟수에서 점근 표기법으로
 
-Exact operation counts like $T(n) = 3n^2 + 7n + 4$ are cumbersome to compute and
-difficult to compare. Asymptotic notation ($O$, $\Omega$, $\Theta$) simplifies the
-analysis by focusing on the growth rate as $n$ becomes large:
+$T(n) = 3n^2 + 7n + 4$ 같은 정확한 연산 횟수는 계산하기 번거롭고 비교하기도
+어렵다. 점근 표기법($O$, $\Omega$, $\Theta$)은 $n$이 커질 때의 증가 속도에
+집중함으로써 분석을 단순화한다.
 
 $$
 T(n) = 3n^2 + 7n + 4 = \Theta(n^2)
 $$
 
-The constant factors $3$, $7$, and $4$ — which depend on the specific machine and
-implementation — are absorbed. What remains is the essential information: doubling the
-input size quadruples the running time.
+특정 기계와 구현에 의존하는 상수 인자 $3$, $7$, $4$는 흡수된다. 남는 것은
+본질적인 정보이다. 입력 크기를 두 배로 하면 실행 시간이 네 배가 된다.
 
-!!! tip "The Analysis Pipeline"
+!!! tip "분석의 흐름"
 
-    The full pipeline for analyzing an algorithm's running time is:
+    알고리즘의 실행 시간을 분석하는 전체 흐름은 다음과 같다.
 
-    1. **Define input size** $n$.
-    2. **Choose a computational model** (typically RAM).
-    3. **Count operations** to obtain $T(n)$.
-    4. **Identify the case** (best, worst, or average).
-    5. **Simplify** using asymptotic notation.
+    1. **입력 크기** $n$을 정의한다.
+    2. **계산 모형을 고른다**(보통 RAM).
+    3. **연산을 세어** $T(n)$을 얻는다.
+    4. **경우를 밝힌다**(최선, 최악, 평균).
+    5. 점근 표기법으로 **단순화한다.**
 
-    The subsequent pages in this section cover steps 3-5 in detail.
+    이 절의 이후 페이지들은 3-5단계를 자세히 다룬다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapters 2-4](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+실행 시간에서 다룬 분석 기법을 너비 $d$인 층 $L$개로 이루어진 신경망의 순전파에 적용하라.
+
+??? success "연습문제 1 풀이"
+    각 층은 행렬 곱($O(d^2)$)과 활성화($O(d)$)를 수행한다. 이 절의 기법을 사용하여 층당 비용을 $L$개 층에 걸쳐 결합하면 전체 순전파 복잡도를 얻는다.
+
+---
+
+**연습문제 2.**
+실행 시간의 분석 방법을 적용하여 작은 예제($n = 6$)를 따라가 보라. 정확한 연산 횟수를 세어라.
+
+??? success "연습문제 2 풀이"
+    $n = 6$에 대해 알고리즘이 수행하는 각 연산을 열거한다. 곱셈, 덧셈, 비교, 대입을 각각 따로 센다. 이를 합해 총합을 구한 뒤 빅오 표기법으로 표현한다.
+
+---
+
+**연습문제 3.**
+실행 시간의 분석을 사용하여 학습 루프의 어느 단계(순전파, 역전파, 최적화기 갱신)가 전체 실행 시간을 지배하는지 판단하라.
+
+??? success "연습문제 3 풀이"
+    각 단계에 분석을 따로 적용한다. 순전파 $O(BPL)$, 역전파 $O(BPL)$, 최적화기 갱신 $O(P)$. 복잡도가 가장 큰 단계가 지배한다. 배치 크기가 크고 층이 많으면 순전파와 역전파(각각 $O(BPL)$)가 최적화기 갱신($O(P)$)을 지배한다.
+
+---
+
+**연습문제 4.**
+실행 시간의 분석 기법이 논의된 알고리즘에 대해 꽉 조인 경계(상계와 하계가 일치)를 준다는 것을 증명하라.
+
+??? success "연습문제 4 풀이"
+    최악의 경우를 분석하여 상계를 보인다. 알고리즘이 최대 횟수의 연산을 수행하도록 강제하는 입력을 구성하여 하계를 보인다. 두 경계가 일치하면 분석이 꽉 조인 것이다($\Theta$ 표기법). $\square$

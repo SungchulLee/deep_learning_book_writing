@@ -1,61 +1,62 @@
-# Red-Black Properties
+# 레드-블랙 성질
 
-AVL trees enforce balance by explicitly tracking height differences at every node. Red-black trees take a different approach: they assign a **color** (red or black) to each node and enforce a small set of coloring rules. These rules do not directly mention height, yet they guarantee that no root-to-leaf path is more than twice as long as any other, bounding the tree height to $O(\log n)$. The elegance of this approach is that maintaining the coloring rules during insertion and deletion requires fewer rotations on average than AVL trees.
+AVL 트리는 노드마다 높이 차이를 대놓고 좇아 균형을 지킨다. 레드-블랙 트리는 다르게 접근한다. 노드마다 **색**(빨강 또는 검정)을 주고 몇 가지 색칠 규칙을 지키게 한다. 이 규칙은 높이를 직접 말하지 않지만, 뿌리에서 잎까지의 어떤 경로도 다른 경로의 두 배를 넘지 않게 하여 트리의 높이를 $O(\log n)$으로 묶는다. 이 방식이 우아한 까닭은 삽입과 삭제에서 색칠 규칙을 지키는 데 드는 회전이 평균적으로 AVL 트리보다 적다는 데 있다.
 
-## The Five Properties
+## 다섯 가지 성질
 
-A red-black tree is a binary search tree where every node carries a color bit --- red or black --- and the following five properties hold:
+레드-블랙 트리는 노드마다 빨강이나 검정이라는 색 비트를 지니고 다음 다섯 성질이 성립하는 이진 탐색 트리이다.
 
-!!! info "Red-Black Tree Properties"
-    1. **Node color**: Every node is either red or black.
-    2. **Root property**: The root is black.
-    3. **Leaf property**: Every leaf (NIL sentinel) is black.
-    4. **Red property**: If a node is red, then both its children are black. (Equivalently, no two red nodes are adjacent on any path.)
-    5. **Black-height property**: For each node, all simple paths from that node to descendant leaves contain the same number of black nodes.
+!!! info "레드-블랙 트리의 성질"
 
-Property 3 uses **NIL sentinels** --- external null nodes treated as black leaves. Every internal node has exactly two children (possibly NIL), which simplifies the statements and algorithms. In implementations, a single sentinel node `T.nil` is often shared across the tree.
+    1. **노드의 색**: 노드는 붉거나 검다.
+    2. **뿌리의 성질**: 뿌리는 검다.
+    3. **잎의 성질**: 모든 잎(NIL 보초)은 검다.
+    4. **빨강의 성질**: 노드가 붉으면 두 자식이 모두 검다. (같은 말로, 어떤 경로에서도 붉은 노드가 잇닿지 않는다.)
+    5. **검은 높이의 성질**: 노드마다 그 노드에서 자손 잎까지 가는 모든 단순 경로에 검은 노드가 똑같이 있다.
 
-## Understanding Each Property
+성질 3은 검은 잎으로 다루는 바깥의 널 노드, 곧 **NIL 보초**를 쓴다. 내부 노드마다 (NIL일 수도 있는) 자식이 꼭 둘이므로 서술과 알고리즘이 간단해진다. 구현할 때는 보초 노드 `T.nil` 하나를 트리 전체가 나누어 쓰는 일이 많다.
 
-### Property 1: Binary coloring
+## 성질 하나하나 이해하기
 
-Each node stores one extra bit. This is the only additional space cost compared to a standard BST.
+### 성질 1: 두 가지 색
 
-### Property 2: Black root
+노드마다 비트 하나를 더 담는다. 표준 이진 탐색 트리에 견주어 더 드는 공간은 이것뿐이다.
 
-The root must be black. If an insertion or rotation produces a red root, simply recolor it to black. Changing the root to black adds one black node to every root-to-leaf path, preserving Property 5.
+### 성질 2: 검은 뿌리
 
-### Property 3: Black leaves (NIL sentinels)
+뿌리는 검어야 한다. 삽입이나 회전으로 붉은 뿌리가 생기면 그냥 검게 칠하면 된다. 뿌리를 검게 바꾸면 뿌리에서 잎까지의 모든 경로에 검은 노드가 하나씩 더해지므로 성질 5가 지켜진다.
 
-External null pointers are modeled as black leaf nodes. This convention ensures that every internal node has exactly two children, eliminating null-pointer edge cases in the algorithms.
+### 성질 3: 검은 잎 (NIL 보초)
 
-### Property 4: No two consecutive red nodes
+바깥의 널 포인터를 검은 잎 노드로 본다. 이 규약 덕분에 내부 노드마다 자식이 꼭 둘이 되어 알고리즘에서 널 포인터의 경계 상황이 사라진다.
 
-A red node must have black children. Equivalently, on any path from root to leaf, red nodes cannot be adjacent. This limits how many red nodes can appear on a path: between any two red nodes there must be at least one black node.
+### 성질 4: 붉은 노드가 잇따르지 않는다
 
-### Property 5: Uniform black-height
+붉은 노드의 자식은 검어야 한다. 같은 말로, 뿌리에서 잎까지의 어떤 경로에서도 붉은 노드가 잇닿을 수 없다. 그러면 경로에 붉은 노드가 얼마나 나올 수 있는지가 제한된다. 붉은 노드 둘 사이에는 검은 노드가 적어도 하나 있어야 한다.
 
-Every path from a given node down to any leaf passes through the same number of black nodes. This number is the **black-height** of the node, denoted $\text{bh}(x)$.
+### 성질 5: 한결같은 검은 높이
 
-## Why These Properties Guarantee Balance
+어떤 노드에서 어느 잎으로 내려가든 지나는 검은 노드의 수가 같다. 이 수가 그 노드의 **검은 높이**이며 $\text{bh}(x)$으로 적는다.
 
-The key insight comes from combining Properties 4 and 5:
+## 이 성질들이 균형을 보장하는 까닭
 
-- Property 5 ensures that every root-to-leaf path has the same number of black nodes, say $b$.
-- Property 4 ensures that red nodes cannot be consecutive, so between consecutive black nodes there is at most one red node.
-- Therefore, the shortest possible root-to-leaf path has $b$ nodes (all black), and the longest has at most $2b$ nodes (alternating red and black).
+핵심 착상은 성질 4와 5를 함께 쓰는 데서 나온다.
 
-This gives the **longest-path/shortest-path ratio** of at most 2, which implies:
+- 성질 5는 뿌리에서 잎까지의 모든 경로에 검은 노드가 똑같이 $b$개 있게 한다.
+- 성질 4는 붉은 노드가 잇따를 수 없게 하므로 잇따른 검은 노드 사이에 붉은 노드가 많아야 하나 있다.
+- 따라서 가장 짧은 경로에는 노드가 $b$개(모두 검정) 있고 가장 긴 경로에는 많아야 $2b$개(빨강과 검정이 번갈아) 있다.
+
+그러면 **가장 긴 경로와 가장 짧은 경로의 비**가 많아야 2가 되고, 다음이 따라 나온다.
 
 $$
 h \leq 2 \cdot \text{bh}(\text{root})
 $$
 
-Combined with the bound $\text{bh}(\text{root}) \leq \log_2(n+1)$ (proved in the Height Bound section), this yields $h \leq 2\log_2(n+1)$, confirming $O(\log n)$ height.
+여기에 (높이의 한계 절에서 증명하는) $\text{bh}(\text{root}) \leq \log_2(n+1)$을 더하면 $h \leq 2\log_2(n+1)$이 되어 높이가 $O(\log n)$임이 확인된다.
 
-## Example
+## 예
 
-Consider this red-black tree (R = red, B = black):
+다음 레드-블랙 트리를 보자 (R = 빨강, B = 검정).
 
 ```
             8(B)
@@ -68,30 +69,63 @@ Consider this red-black tree (R = red, B = black):
    (B)(B)(B)(B)(B)(B)(B)(B)
 ```
 
-Verification of properties:
+성질을 확인해 보자.
 
-- **Property 1**: Every node is colored (check).
-- **Property 2**: Root (8) is black (check).
-- **Property 3**: All NIL children of leaves are black (implicit).
-- **Property 4**: Red nodes 4 and 12 have only black children (check).
-- **Property 5**: Every path from root to a NIL leaf passes through exactly 3 black nodes (check). For example: 8(B) -> 4(R) -> 2(B) -> 1(B) -> NIL has black nodes {8, 2, 1} = 3.
+- **성질 1**: 노드마다 색이 있다 (확인).
+- **성질 2**: 뿌리(8)가 검다 (확인).
+- **성질 3**: 잎의 모든 NIL 자식이 검다 (암묵적).
+- **성질 4**: 붉은 노드 4와 12의 자식이 모두 검다 (확인).
+- **성질 5**: 뿌리에서 NIL 잎까지의 모든 경로가 검은 노드를 꼭 3개 지난다 (확인). 예를 들어 8(B) -> 4(R) -> 2(B) -> 1(B) -> NIL의 검은 노드는 {8, 2, 1}으로 3개이다.
 
-The black-height of the root is 3 (counting from root to leaf, including the leaf, but excluding the root by some conventions --- we adopt the convention that $\text{bh}(x)$ counts black nodes on any path from $x$ down to a leaf, not including $x$ itself). Under this convention, $\text{bh}(8) = 2$, and $h = 3 \leq 2 \cdot 2 + 1$.
+뿌리의 검은 높이는 3이다(뿌리에서 잎까지 세되 잎은 넣고 규약에 따라 뿌리는 뺀다. 여기서는 $\text{bh}(x)$이 $x$에서 잎까지 가는 경로의 검은 노드를 세되 $x$은 세지 않는다는 규약을 쓴다). 이 규약에서는 $\text{bh}(8) = 2$이고 $h = 3 \leq 2 \cdot 2 + 1$이다.
 
-## Comparison with AVL Trees
+## AVL 트리와 견주기
 
-| Property | AVL Tree | Red-Black Tree |
+| 성질 | AVL 트리 | 레드-블랙 트리 |
 |:--|:--|:--|
-| Balance criterion | Height difference $\leq 1$ | Coloring rules (5 properties) |
-| Height bound | $h \leq 1.44 \log_2 n$ | $h \leq 2 \log_2(n+1)$ |
-| Extra storage per node | Height (integer) | Color (1 bit) |
-| Rotations per insertion | $\leq 2$ | $\leq 2$ |
-| Rotations per deletion | $O(\log n)$ | $\leq 3$ |
-| Lookup speed | Slightly faster (shorter) | Slightly slower (taller) |
-| Insert/delete speed | Slightly slower (more rotations) | Slightly faster (fewer rotations) |
+| 균형의 기준 | 높이 차이 $\leq 1$ | 색칠 규칙 (성질 5개) |
+| 높이의 한계 | $h \leq 1.44 \log_2 n$ | $h \leq 2 \log_2(n+1)$ |
+| 노드당 추가 공간 | 높이 (정수) | 색 (1비트) |
+| 삽입당 회전 | $\leq 2$ | $\leq 2$ |
+| 삭제당 회전 | $O(\log n)$ | $\leq 3$ |
+| 찾기 속도 | 조금 빠름 (더 낮다) | 조금 느림 (더 높다) |
+| 삽입·삭제 속도 | 조금 느림 (회전이 많다) | 조금 빠름 (회전이 적다) |
 
-Red-black trees allow taller trees (up to $2\log_2 n$ vs $1.44\log_2 n$) but compensate with fewer rotations during modifications. This trade-off makes red-black trees the preferred choice for language standard libraries (e.g., C++ `std::map`, Java `TreeMap`).
+레드-블랙 트리는 더 높은 트리를 허용하지만($1.44\log_2 n$이 아니라 $2\log_2 n$까지) 고칠 때 회전이 적어 그것을 메운다. 이런 맞바꿈 때문에 언어의 표준 라이브러리(C++의 `std::map`, 자바의 `TreeMap` 따위)가 레드-블랙 트리를 즐겨 쓴다.
 
-## Reference
+## 참고 문헌
 
-- [Introduction to Algorithms (CLRS), Chapter 13](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- [Introduction to Algorithms (CLRS), 13장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+레드-블랙 성질의 균형 불변식을 밝히고 그것이 높이 $O(\log n)$을 보장함을 증명하라.
+
+??? success "연습문제 1 풀이"
+    각 구조의 불변식(균형 인수, 색의 성질, 차수 제약)이 경로 길이의 치우침을 묶는다. 높이의 한계는 그 불변식에서 따라 나온다. 트리의 층마다 (불변식이 정하는) 최소한의 노드가 있어야 하므로 전체 노드 수 $n$이 높이에 따라 지수적으로 늘고, 따라서 $h = O(\log n)$이다.
+
+---
+
+**연습문제 2.**
+구조를 다시 짜야 하는(회전, 색 바꾸기, 쪼개기·합치기) 트리에서 레드-블랙 성질을 따라가라. 앞뒤의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    이 쪽에서 설명한 재구성 상황을 일으키는 트리를 하나 만들어라. 어긋난 곳을 보이고, 어느 경우에 해당하는지 가리고, 고친 뒤, 불변식이 되살아났는지 확인하라.
+
+---
+
+**연습문제 3.**
+레드-블랙 성질이(가) 구조를 다시 짜는 연산을 많아야 $O(\log n)$번 필요로 함을 증명하라.
+
+??? success "연습문제 3 풀이"
+    구조를 다시 짤 때마다 어긋난 곳이 뿌리에 한 층 가까워지거나 해소된다. 트리의 층이 $O(\log n)$개이므로 재구성은 많아야 $O(\log n)$번 필요하다. 레드-블랙 삽입 같은 연산에서는 회전 2번과 색 바꾸기 $O(\log n)$번이면 충분하다. $\square$
+
+---
+
+**연습문제 4.**
+최악의 높이, 연산마다의 회전 횟수, 구현의 까다로움 면에서 레드-블랙 성질을 다른 균형 트리 구조와 견주어라.
+
+??? success "연습문제 4 풀이"
+    AVL은 높이가 $1.44\log n$ 이하이고 삭제마다 회전이 $O(\log n)$번까지 든다. 레드-블랙은 높이가 $2\log n$ 이하이고 연산마다 회전이 많아야 3번이다. B-트리는 높이가 $O(\log_B n)$이며 디스크 입출력에 맞추어져 있다. 스플레이 트리는 분할 상환으로 $O(\log n)$이지만 최악은 $O(n)$이다.

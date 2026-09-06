@@ -1,25 +1,20 @@
-# BiLSTM for Named Entity Recognition
+# 이름 알아보기를 위한 두 방향 LSTM
+## 학습 목표
 
+- 이름 알아보기에서 두 방향 맥락이 왜 중요한지 이해한다
+- 두 방향 LSTM 바탕 차례 이름표 붙이기 모델을 짠다
+- 꼴 특징을 위해 글자 수준 묻힘을 넣는다
+- 가장 좋은 성능을 위해 두 방향 LSTM과 CRF를 아우른다
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 이름 알아보기에 왜 두 방향 LSTM인가?
 
-## Learning Objectives
+이름 있는 것을 정확히 알아보려면 **두 방향 맥락**이 필요하다:
 
-- Understand why bidirectional context matters for NER
-- Implement BiLSTM-based sequence labeling models
-- Integrate character-level embeddings for morphological features
-- Combine BiLSTM with CRF for optimal performance
+- **왼쪽 맥락**: "CEO **Satya Nadella**" — 직함이 사람임을 가리킨다
+- **오른쪽 맥락**: "**Microsoft** announced" — 움직씨가 조직임을 가리킨다
+- **두 방향 모두**: "The **New York** Times" — 마디 전체가 필요하다
 
-## Why BiLSTM for NER?
-
-Named entities require **bidirectional context** for accurate recognition:
-
-- **Left context**: "CEO **Satya Nadella**" - title indicates person
-- **Right context**: "**Microsoft** announced" - verb indicates organization  
-- **Both directions**: "The **New York** Times" - full phrase needed
-
-## Architecture
+## 구조
 
 ```
 Word: "Apple"  "Inc"  "announced"  "profits"
@@ -36,29 +31,29 @@ Word: "Apple"  "Inc"  "announced"  "profits"
       B-ORG    I-ORG      O           O
 ```
 
-## Mathematical Formulation
+## 수학적 정식화
 
-### Forward and Backward LSTMs
+### 앞 방향 LSTM과 뒤 방향 LSTM
 
-**Forward LSTM** processes left-to-right:
+**앞 방향 LSTM**은 왼쪽에서 오른쪽으로 다룬다:
 
 $$\overrightarrow{h}_t = \text{LSTM}(x_t, \overrightarrow{h}_{t-1})$$
 
-**Backward LSTM** processes right-to-left:
+**뒤 방향 LSTM**은 오른쪽에서 왼쪽으로 다룬다:
 
 $$\overleftarrow{h}_t = \text{LSTM}(x_t, \overleftarrow{h}_{t+1})$$
 
-### Concatenated Representation
+### 이어 붙인 나타냄
 
 $$h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t] \in \mathbb{R}^{2d}$$
 
-### Emission Scores
+### 내보냄 점수
 
 $$e_t = W_o \cdot h_t + b_o \in \mathbb{R}^{|L|}$$
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### Basic BiLSTM NER
+### 기본 두 방향 LSTM 이름 알아보기
 
 ```python
 import torch
@@ -67,7 +62,7 @@ from typing import Optional
 
 class BiLSTMNER(nn.Module):
     """
-    BiLSTM for Named Entity Recognition.
+    이름 알아보기를 위한 두 방향 LSTM.
     """
     
     def __init__(
@@ -88,7 +83,7 @@ class BiLSTMNER(nn.Module):
         
         self.lstm = nn.LSTM(
             input_size=embedding_dim,
-            hidden_size=hidden_dim // 2,  # Bidirectional doubles this
+            hidden_size=hidden_dim // 2,  # 두 방향이면 이것이 두 배
             num_layers=num_layers,
             batch_first=True,
             bidirectional=True,
@@ -106,11 +101,11 @@ class BiLSTMNER(nn.Module):
         attention_mask: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None
     ):
-        # Embed tokens
+        # 토큰 임베딩
         embeds = self.embedding(input_ids)
         embeds = self.dropout(embeds)
         
-        # BiLSTM encoding
+        # 두 방향 LSTM 부호화
         if attention_mask is not None:
             lengths = attention_mask.sum(dim=1).cpu()
             packed = nn.utils.rnn.pack_padded_sequence(
@@ -125,10 +120,10 @@ class BiLSTMNER(nn.Module):
         
         lstm_out = self.dropout(lstm_out)
         
-        # Classification
+        # 분류
         logits = self.classifier(lstm_out)
         
-        # Compute loss if labels provided
+        # 이름표가 있으면 손실을 셈한다
         loss = None
         if labels is not None:
             loss_fn = nn.CrossEntropyLoss(ignore_index=-100)
@@ -145,13 +140,13 @@ class BiLSTMNER(nn.Module):
             return torch.argmax(outputs['logits'], dim=-1)
 ```
 
-### BiLSTM with Character Embeddings
+### 글자 묻힘을 갖춘 두 방향 LSTM
 
-Character-level features capture morphology (prefixes, suffixes, capitalization):
+글자 수준 특징은 꼴(앞가지, 뒷가지, 대문자 쓰기)을 담아낸다:
 
 ```python
 class CharLSTM(nn.Module):
-    """Character-level LSTM encoder."""
+    """글자 수준 LSTM 부호기."""
     
     def __init__(
         self,
@@ -174,20 +169,20 @@ class CharLSTM(nn.Module):
     
     def forward(self, char_ids: torch.Tensor) -> torch.Tensor:
         """
-        Args:
+        인수:
             char_ids: (batch, max_words, max_chars)
-        Returns:
+        반환값:
             char_repr: (batch, max_words, char_hidden_dim)
         """
         batch_size, max_words, max_chars = char_ids.shape
         
-        # Reshape for processing
+        # 다루기 위해 꼴 바꾸기
         char_ids = char_ids.view(-1, max_chars)
         
         char_embeds = self.char_embedding(char_ids)
         _, (h_n, _) = self.char_lstm(char_embeds)
         
-        # Concatenate forward and backward final states
+        # 앞 방향과 뒤 방향의 마지막 상태 이어 붙이기
         char_repr = torch.cat([h_n[0], h_n[1]], dim=-1)
         char_repr = char_repr.view(batch_size, max_words, -1)
         
@@ -195,7 +190,7 @@ class CharLSTM(nn.Module):
 
 
 class BiLSTMCharNER(nn.Module):
-    """BiLSTM NER with character-level embeddings."""
+    """글자 수준 묻힘을 갖춘 두 방향 LSTM 이름 알아보기."""
     
     def __init__(
         self,
@@ -215,7 +210,7 @@ class BiLSTMCharNER(nn.Module):
             char_vocab_size, char_embedding_dim, char_hidden_dim
         )
         
-        # Concatenate word + char embeddings
+        # 낱말 묻힘과 글자 묻힘 이어 붙이기
         lstm_input_dim = word_embedding_dim + char_hidden_dim
         
         self.lstm = nn.LSTM(
@@ -236,21 +231,21 @@ class BiLSTMCharNER(nn.Module):
         attention_mask: Optional[torch.Tensor] = None,
         labels: Optional[torch.Tensor] = None
     ):
-        # Word embeddings
+        # 낱말 묻힘
         word_embeds = self.word_embedding(word_ids)
         
-        # Character-level representations
+        # 글자 수준 나타냄
         char_repr = self.char_encoder(char_ids)
         
-        # Concatenate
+        # 이어 붙인다
         combined = torch.cat([word_embeds, char_repr], dim=-1)
         combined = self.dropout(combined)
         
-        # BiLSTM
+        # 두 방향 LSTM
         lstm_out, _ = self.lstm(combined)
         lstm_out = self.dropout(lstm_out)
         
-        # Classify
+        # 분류
         logits = self.classifier(lstm_out)
         
         loss = None
@@ -261,11 +256,11 @@ class BiLSTMCharNER(nn.Module):
         return {'loss': loss, 'logits': logits}
 ```
 
-### BiLSTM-CRF
+### 두 방향 LSTM-CRF
 
 ```python
 class BiLSTMCRF(nn.Module):
-    """BiLSTM with CRF layer for NER."""
+    """이름 알아보기를 위해 CRF 층을 얹은 두 방향 LSTM."""
     
     def __init__(
         self,
@@ -289,7 +284,7 @@ class BiLSTMCRF(nn.Module):
         self.dropout = nn.Dropout(dropout)
         self.hidden2tag = nn.Linear(hidden_dim, num_tags)
         
-        # CRF layer (transitions learned)
+        # CRF 층(넘어가기를 배운다)
         self.transitions = nn.Parameter(torch.randn(num_tags, num_tags))
         self.start_transitions = nn.Parameter(torch.randn(num_tags))
         self.end_transitions = nn.Parameter(torch.randn(num_tags))
@@ -305,7 +300,7 @@ class BiLSTMCRF(nn.Module):
     def forward(self, input_ids, attention_mask, labels):
         emissions = self._get_emissions(input_ids, attention_mask)
         
-        # CRF forward: compute log partition and gold score
+        # CRF 앞먹임: 로그 나눔 함수와 참값 점수 셈하기
         gold_score = self._score_sentence(emissions, labels, attention_mask)
         partition = self._forward_algorithm(emissions, attention_mask)
         
@@ -313,10 +308,10 @@ class BiLSTMCRF(nn.Module):
         return {'loss': loss, 'emissions': emissions}
     
     def _forward_algorithm(self, emissions, mask):
-        """Compute log partition function."""
+        """로그 나눔 함수 셈하기."""
         batch_size, seq_len, num_tags = emissions.shape
         
-        # Initialize
+        # 초기화한다
         alpha = self.start_transitions + emissions[:, 0]
         
         for t in range(1, seq_len):
@@ -337,7 +332,7 @@ class BiLSTMCRF(nn.Module):
         return torch.logsumexp(alpha + self.end_transitions, dim=1)
     
     def _score_sentence(self, emissions, tags, mask):
-        """Compute score of gold sequence."""
+        """참값 차례의 점수 셈하기."""
         batch_size, seq_len, _ = emissions.shape
         
         score = self.start_transitions[tags[:, 0]]
@@ -348,7 +343,7 @@ class BiLSTMCRF(nn.Module):
             trans = self.transitions[tags[:, t], tags[:, t-1]]
             score += (emit + trans) * mask[:, t].float()
         
-        # End transitions
+        # 끝 넘어가기
         seq_lens = mask.sum(dim=1).long()
         last_tags = tags.gather(1, (seq_lens - 1).unsqueeze(1)).squeeze(1)
         score += self.end_transitions[last_tags]
@@ -356,12 +351,12 @@ class BiLSTMCRF(nn.Module):
         return score
     
     def decode(self, input_ids, attention_mask):
-        """Viterbi decoding."""
+        """비터비 풀기."""
         emissions = self._get_emissions(input_ids, attention_mask)
         return self._viterbi_decode(emissions, attention_mask)
     
     def _viterbi_decode(self, emissions, mask):
-        """Find best tag sequence."""
+        """가장 좋은 이름표 차례 찾기."""
         batch_size, seq_len, num_tags = emissions.shape
         
         score = self.start_transitions + emissions[:, 0]
@@ -379,7 +374,7 @@ class BiLSTMCRF(nn.Module):
         
         score += self.end_transitions
         
-        # Backtrack
+        # 되짚기
         best_tags = []
         for idx in range(batch_size):
             seq_len_i = mask[idx].sum().int().item()
@@ -394,30 +389,78 @@ class BiLSTMCRF(nn.Module):
         return best_tags
 ```
 
-## Comparison: BiLSTM vs Transformers
+## 견줌: 두 방향 LSTM과 변환기
 
-| Aspect | BiLSTM | Transformer |
+| 갈래 | 두 방향 LSTM | 변환기 |
 |--------|--------|-------------|
-| Training data needed | Less | More |
-| Training speed | Faster | Slower |
-| Inference speed | Slower | Faster (batched) |
-| Performance | Good | Best |
-| Character features | Easy to add | Subwords handle this |
-| Pre-training benefit | GloVe/Word2Vec | BERT/RoBERTa |
+| 필요한 익힘 자료 | 적다 | 많다 |
+| 익히기 빠르기 | 더 빠르다 | 더 느리다 |
+| 미룸 빠르기 | 더 느리다 | 더 빠르다(묶음) |
+| 성능 | 좋다 | 가장 좋다 |
+| 글자 특징 | 더하기 쉽다 | 아래낱말이 다룬다 |
+| 미리 익힘의 이점 | GloVe/Word2Vec | BERT/RoBERTa |
 
-## Best Practices
+## 모범 사례
 
-1. **Use pre-trained word embeddings** (GloVe, fastText)
-2. **Add character-level features** for morphology
-3. **Combine with CRF** for structured prediction
-4. **Apply dropout** between layers (0.3-0.5)
-5. **Gradient clipping** (max norm 1.0-5.0)
-6. **Early stopping** on validation F1
+1. **미리 익힌 낱말 묻힘을 쓴다**(GloVe, fastText)
+2. 꼴을 위해 **글자 수준 특징을 더한다**
+3. 짜임 있는 어림을 위해 **CRF와 아우른다**
+4. 층 사이에 **떨구기를 쓴다**(0.3~0.5)
+5. **기울기 자르기**(최대 노름 1.0~5.0)
+6. 검증 F1을 보고 **일찍 멈추기**
 
-## Summary
+## 요약
 
-BiLSTM models remain a strong baseline for NER:
-- Capture bidirectional context effectively
-- Work well with limited training data
-- Easy to extend with character features
-- CRF layer improves boundary detection
+두 방향 LSTM 모델은 여전히 이름 알아보기의 센 바탕이다:
+
+- 두 방향 맥락을 잘 담아낸다
+- 익힘 자료가 적어도 잘 된다
+- 글자 특징으로 넓히기 쉽다
+- CRF 층이 경계 찾기를 낫게 한다
+
+## 연습문제
+
+**연습문제 1.**
+BIO 이름표 방식을 설명하여라. 월 "Barack Obama visited New York City"에 이름표를 어떻게 붙이겠는가?
+
+??? success "연습문제 1 풀이"
+    BIO 이름표에서 **B-X**는 갈래 X인 것의 시작을, **I-X**는 것의 안쪽(이어짐)을, **O**는 어느 것에도 들지 않는 토막을 나타낸다.
+
+    | 토막 | 이름표 |
+    |-------|-----|
+    | Barack | B-PER |
+    | Obama | I-PER |
+    | visited | O |
+    | New | B-LOC |
+    | York | I-LOC |
+    | City | I-LOC |
+
+    B 이름표는 같은 갈래의 것이 잇달아 나올 때(보기로 "Obama Trump"를 서로 다른 PER 둘로) 가리는 데 꼭 필요하다.
+
+---
+
+**연습문제 2.**
+차례 이름표 붙이기에서 자리마다 따로 소프트맥스로 갈래를 매기는 대신 두 방향 LSTM 위에 CRF 층을 얹는 까닭은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    Independent softmax treats each position's label independently, ignoring transition constraints. For example, it might predict I-PER following O, which is invalid in BIO tagging. A CRF layer models the joint probability of the entire label sequence, learning a transition matrix $A_{ij}$ that captures which tag transitions are valid. The CRF score for a sequence is $s(x, y) = \sum_t (E_{y_t, t} + A_{y_t, y_{t+1}})$, where $E$ is the emission score from BiLSTM. This ensures globally consistent predictions via Viterbi decoding.
+
+---
+
+**연습문제 3.**
+것 수준에서의 이름 알아보기 값매김에 쓰는 정밀도, 재현율, F1 점수를 설명하여라. 것 수준 값매김이 토막 수준보다 왜 더 빡빡한가?
+
+??? success "연습문제 3 풀이"
+    **Entity-level** evaluation requires both the entity boundary and type to be exactly correct. Precision = (correctly predicted entities) / (total predicted entities). Recall = (correctly predicted entities) / (total gold entities). $F_1 = 2 \cdot \frac{P \cdot R}{P + R}$. This is stricter than token-level because: a prediction "New York" when the gold entity is "New York City" gets partial credit at the token level (2/3 tokens correct) but zero credit at the entity level (boundary mismatch). Entity-level metrics better reflect real-world utility.
+
+---
+
+**연습문제 4.**
+두 방향 LSTM은 양쪽 방향의 맥락을 어떻게 담아내는가? 자리 $t$에서의 숨은 상태 셈을 적어라.
+
+??? success "연습문제 4 풀이"
+    A BiLSTM consists of a forward LSTM processing $x_1, \ldots, x_T$ and a backward LSTM processing $x_T, \ldots, x_1$:
+
+    $$\overrightarrow{h}_t = \text{LSTM}_{\text{fwd}}(x_t, \overrightarrow{h}_{t-1}), \quad \overleftarrow{h}_t = \text{LSTM}_{\text{bwd}}(x_t, \overleftarrow{h}_{t+1})$$
+
+    The final representation at position $t$ is the concatenation $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$, which captures both left context (through $\overrightarrow{h}_t$) and right context (through $\overleftarrow{h}_t$). This is critical for NER since entity recognition often depends on surrounding words in both directions.

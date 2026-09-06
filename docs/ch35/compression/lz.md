@@ -175,3 +175,43 @@ Lempel and Ziv proved that both LZ77 and LZ78 are **asymptotically optimal**: fo
 - [A Universal Algorithm for Sequential Data Compression (Ziv & Lempel, 1977)](https://ieeexplore.ieee.org/document/1055714)
 - [Compression of Individual Sequences via Variable-Rate Coding (Ziv & Lempel, 1978)](https://ieeexplore.ieee.org/document/1055934)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
+
+## Exercises
+
+**Exercise 1.**
+Trace LZ77 encoding on the string "abcabcabc" with a search buffer of size 6 and a lookahead buffer of size 4. List all output tokens.
+
+??? success "Solution to Exercise 1"
+    Position 0: no match in search buffer. Output (0, 0, 'a'). Position 1: no match. Output (0, 0, 'b'). Position 2: no match. Output (0, 0, 'c'). Position 3: "abca" matches at offset 3 with length 3 (then next char 'a'). Output (3, 3, 'a'). Position 7: "bc" matches at offset 6 with length 2 (then end of input or next char). Output (6, 2, end). Total tokens: (0,0,'a'), (0,0,'b'), (0,0,'c'), (3,3,'a'), (6,2,end). The repeated "abc" pattern is captured by back-references, compressing 9 characters into fewer tokens. $\square$
+
+---
+
+**Exercise 2.**
+Explain the key difference between LZ77 and LZ78. What are the advantages of each approach?
+
+??? success "Solution to Exercise 2"
+    **LZ77** uses a sliding window: it references previously seen data by (offset, length) pairs pointing back into the search buffer. The dictionary is implicit -- it is the content of the sliding window. **LZ78** builds an explicit dictionary: each new pattern extends an existing dictionary entry by one character, and the output is (dictionary index, next character). Advantages of LZ77: no explicit dictionary overhead; the window naturally "forgets" old data, adapting to changing content. Good for streaming. Advantages of LZ78: dictionary entries grow incrementally and can represent longer patterns earlier; decompression is simpler (just look up dictionary entries). Disadvantage of LZ77: matching against the sliding window can be slow ($O(n \cdot w)$ naive, improved with hash chains or suffix arrays). Disadvantage of LZ78: the dictionary can grow without bound and may need resetting. $\square$
+
+---
+
+**Exercise 3.**
+Prove that LZ77 is asymptotically optimal: for any ergodic source, the compression ratio of LZ77 converges to the entropy rate as the input length goes to infinity.
+
+??? success "Solution to Exercise 3"
+    Ziv and Lempel (1977) proved that for a stationary ergodic source with entropy rate $h$, the LZ77 compression ratio $\rho_n$ satisfies $\rho_n \to h$ as $n \to \infty$ almost surely. The intuition: as the window grows, longer and longer matches are found, and the number of bits to encode each match (offset + length) amortizes to the entropy rate. Formally, the average codeword length per source symbol is bounded above by $h + \epsilon(n)$ where $\epsilon(n) \to 0$. The proof uses the fact that for large $n$, the probability of seeing any particular pattern of length $L$ is approximately $2^{-hL}$, so match lengths grow proportionally to $\log n$, and the encoding cost per symbol approaches $h$. This makes LZ77 a universal compressor -- it achieves optimal compression without knowing the source distribution. $\square$
+
+---
+
+**Exercise 4.**
+Modern compressors like zstd and lz4 are based on LZ77 but achieve different speed/compression tradeoffs. Describe two techniques they use to improve upon basic LZ77.
+
+??? success "Solution to Exercise 4"
+    (1) **Hash chains / hash tables for match finding**: instead of searching the entire sliding window for matches (which is slow), modern compressors hash the next 3--4 bytes at each position and use the hash to quickly find candidate match positions. This reduces match-finding from $O(w)$ to expected $O(1)$ per position, dramatically improving compression speed. lz4 uses a single hash table with no chaining (greedy, fastest), while zstd uses multi-level hash tables and optimal parsing for better compression. (2) **Entropy coding of literals and match lengths**: basic LZ77 outputs raw (offset, length, literal) triples. Modern compressors apply Huffman or finite-state entropy (FSE/tANS) coding to the literal bytes, match lengths, and offsets separately, compressing each stream according to its distribution. zstd interleaves FSE-coded streams for high throughput, achieving near-arithmetic-coding compression at speeds close to lz4. $\square$
+
+---
+
+**Exercise 5.**
+A financial system logs 100 million trade records per day, each roughly 200 bytes. Estimate the compression ratio achievable with LZ77-based compression and discuss whether real-time compression is feasible.
+
+??? success "Solution to Exercise 5"
+    Trade records are highly structured: each has fields like timestamp, symbol, price, quantity in a predictable format. Field values are often repetitive (same symbol appears in many trades, prices vary by small deltas). LZ77-based compressors exploit these repetitions: the symbol "AAPL" appearing thousands of times is encoded once and back-referenced. Typical compression ratios for structured log data: 5:1 to 10:1, reducing 20 GB/day to 2--4 GB. For real-time compression: lz4 compresses at 400+ MB/s on modern hardware. At $200 \times 10^8 / 86400 \approx 231$ KB/s average write rate, even a single core handles compression with $< 0.1\%$ CPU utilization. Peak rates of 10x average ($\approx 2.3$ MB/s) are still trivial. zstd at level 1 compresses at $\sim$500 MB/s with better ratios. Real-time compression is entirely feasible and is standard practice for financial log storage. $\square$

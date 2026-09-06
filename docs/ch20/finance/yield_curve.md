@@ -1,213 +1,261 @@
-# Yield Curve Decomposition Using PCA
+# 주성분 분석으로 하는 수익률 곡선 쪼개기
+## 들어가며
 
+수익률 곡선, 곧 채권 수익률과 만기의 관계는 앞날의 금리, 경제 성장, 물가 오름에 대한 시장의 기대를 담은 가장 중요한 금융 도구 가운데 하나이다. 그러나 수익률 곡선의 움직임을 보려면 만기 수십 가지(3개월, 6개월, 1년, 2년, ..., 30년)를 지켜봐야 해 차원이 높은 어림 문제가 생긴다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+주성분 분석은 산뜻한 풀이를 준다. 곧 수익률 곡선의 움직임을 경제로 풀이할 수 있는 요인에 맞닿는 주성분 셋만으로 아낌없이 적을 수 있음을 보인다. 그 셋은 높이(모든 금리가 나란히 움직임), 기울기(장기와 단기 금리 차의 바뀜), 굽음(중간 만기의 나란하지 않은 바뀜)이다. 이렇게 쪼개면 자산 꾸러미 관리자가 수익률 곡선에 얼마나 드러나 있는지 가늠하고 듀레이션과 볼록도를 어림하며 효율 좋은 울타리 치기 전략을 짤 수 있다.
 
-## Introduction
+이 절은 주성분 분석 바탕 수익률 곡선 살피기의 이론과 실전 바탕을 세우고, 성분을 어떻게 풀이하는지 보이며, 고정 수익 자산 꾸러미 관리에 쓰는 법을 살핀다.
 
-The yield curve—the relationship between bond yields and maturity—is one of the most important financial instruments, encoding market expectations about future interest rates, economic growth, and inflation. However, observing yield curve dynamics requires monitoring dozens of maturities (3 months, 6 months, 1 year, 2 years, ..., 30 years), creating a high-dimensional estimation problem.
+## 핵심 개념
 
-Principal Component Analysis provides an elegant solution, revealing that yield curve movements can be parsimoniously described by just three principal components that correspond to economically interpretable factors: the level (parallel shift in all rates), the slope (change in the spread between long and short rates), and the curvature (non-parallel changes in intermediate maturities). This decomposition enables portfolio managers to characterize yield curve exposure, estimate duration and convexity, and implement efficient hedging strategies.
+### 수익률 곡선의 특징
+- **높이**: 곡선의 전체 높이. 만기에 걸친 평균 금리를 비춘다
+- **기울기**: 장기와 단기 금리의 차. 기간 웃돈을 잡아낸다
+- **굽음**: 가운데가 볼록하거나 오목함. 금리 기대를 비춘다
+- **출렁임**: 수익률 바뀜의 표준 편차. 만기에 따라 다르다
 
-This section develops the theoretical and practical foundations of PCA-based yield curve analysis, demonstrates component interpretation, and explores applications to fixed income portfolio management.
+### 만기 나타내기
+- **짧은 끝**: 3개월, 6개월, 1년 금리. 정책 금리에 가장 민감하다
+- **가운데**: 2년, 5년, 7년 금리. 앞날 금리 기대를 비춘다
+- **긴 끝**: 10년, 20년, 30년 금리. 물가 기대와 기간 웃돈을 담는다
 
-## Key Concepts
+## 수학적 틀
 
-### Yield Curve Characteristics
-- **Level**: Overall height of curve; reflects average interest rate across maturities
-- **Slope**: Difference between long and short rates; captures term premium
-- **Curvature**: Humped or inverted middle section; reflects rate expectations
-- **Volatility**: Standard deviation of yield changes; maturity-dependent
+### 벡터로 본 수익률 곡선
 
-### Maturity Representation
-- **Short End**: 3M, 6M, 1Y rates; most sensitive to policy rates
-- **Intermediate**: 2Y, 5Y, 7Y rates; reflect expectations of future rates
-- **Long End**: 10Y, 20Y, 30Y rates; embody inflation expectations and term premium
-
-## Mathematical Framework
-
-### Yield Curve as Vector
-
-Represent yield curve at time t as vector of yields across K maturities:
+때 t의 수익률 곡선을 만기 K개의 수익률 벡터로 나타낸다:
 
 $$y_t = [y_t(m_1), y_t(m_2), \ldots, y_t(m_K)]^T$$
 
-where $y_t(m)$ is the yield at time t for maturity m. Typically K = 8-13 standard maturities.
+여기서 $y_t(m)$은 때 t에 만기 m의 수익률이다. 흔히 표준 만기 K = 8~13개를 쓴다.
 
-### Change Vector and Covariance
+### 바뀜 벡터와 공분산
 
-Define yield changes:
+수익률의 바뀜을 정한다:
 
 $$\Delta y_t = y_t - y_{t-1}$$
 
-The covariance matrix of yield changes:
+수익률 바뀜의 공분산 행렬:
 
 $$\Sigma = \text{Cov}(\Delta y) = \frac{1}{T}\sum_{t=1}^{T} \Delta y_t \Delta y_t^T$$
 
-captures the correlation structure across maturities.
+은 만기에 걸친 상관 짜임을 잡아낸다.
 
-### PCA Decomposition
+### 주성분 쪼개기
 
-Eigendecomposition yields:
+고윳값 쪼개기는 다음을 준다:
 
 $$\Sigma = V \Lambda V^T$$
 
-Principal components represent yield curve movements:
+주성분은 수익률 곡선의 움직임을 나타낸다:
 
 $$\text{PC}_k(t) = V_{:,k}^T \Delta y_t$$
 
-The yield curve evolves as:
+수익률 곡선은 다음처럼 나아간다:
 
 $$\Delta y_t \approx \sum_{k=1}^{3} \text{PC}_k(t) \cdot V_{:,k}$$
 
-### Variance Explained
+### 설명하는 흩어짐
 
-Typical decomposition for U.S. Treasuries:
+미국 국채의 흔한 쪼개기:
 
-- **PC1 (Level)**: 80-90% of variance
-- **PC2 (Slope)**: 8-12% of variance  
-- **PC3 (Curvature)**: 2-4% of variance
+- **주성분1(높이)**: 흩어짐의 80~90%
+- **주성분2(기울기)**: 흩어짐의 8~12%
+- **주성분3(굽음)**: 흩어짐의 2~4%
 
-Three components together explain 95%+ of yield curve variance.
+성분 셋을 합치면 수익률 곡선 흩어짐의 95% 넘게 설명한다.
 
-## Principal Component Interpretation
+## 주성분 풀이하기
 
-### First Component: Level (Parallel Shift)
+### 첫째 성분: 높이(나란한 옮김)
 
-PC1 has approximately equal loadings across all maturities:
+주성분1은 모든 만기에 걸쳐 실림이 거의 같다:
 
 $$V_{:,1} \approx \frac{1}{\sqrt{K}}[1, 1, 1, \ldots, 1]^T$$
 
-Represents parallel shift in yield curve; driven by:
-- Monetary policy changes
-- Risk appetite shifts
-- Inflation expectations
+수익률 곡선이 나란히 옮겨 감을 나타낸다. 다음이 몰고 간다:
 
-### Second Component: Slope (Twist)
+- 통화 정책의 바뀜
+- 위험을 받아들이는 마음의 바뀜
+- 물가 오름 기대
 
-PC2 has negative loading at short end, positive at long end:
+### 둘째 성분: 기울기(비틀림)
+
+주성분2은 짧은 끝에서 실림이 음수, 긴 끝에서 양수이다:
 
 $$V_{:,2} \approx \text{sign}(m - m_{\text{pivot}})} \cdot |m - m_{\text{pivot}}|^{1/2}$$
 
-Captures steepening/flattening movements; driven by:
-- Expected rate path changes
-- Term premium fluctuations
-- Recession probability shifts
+가팔라지고 평평해지는 움직임을 잡아낸다. 다음이 몰고 간다:
 
-### Third Component: Curvature (Butterfly)
+- 기대 금리 길의 바뀜
+- 기간 웃돈의 출렁임
+- 경기 뒷걸음 확률의 바뀜
 
-PC3 exhibits hump shape at intermediate maturities:
+### 셋째 성분: 굽음(나비)
+
+주성분3은 가운데 만기에서 봉우리 꼴을 보인다:
 
 $$V_{:,3} \approx \begin{cases}
+
 + & \text{if } m \text{ near 2-5Y} \\
 - & \text{if } m \text{ short or long}
 \end{cases}$$
 
-Represents changes in curve shape; driven by:
-- Supply/demand imbalances at specific maturities
-- Forward rate expectations
-- Optionality effects in bond pricing
+곡선 꼴의 바뀜을 나타낸다. 다음이 몰고 간다:
 
-## Dynamics of Yield Curve Factors
+- 특정 만기의 공급과 수요 불균형
+- 선도 금리 기대
+- 채권 값 매김의 선택권 효과
 
-### Univariate Models for Factor Dynamics
+## 수익률 곡선 요인의 움직임
 
-Each principal component typically follows AR(1) process:
+### 요인 움직임의 한 변수 모델
+
+주성분마다 흔히 AR(1) 과정을 따른다:
 
 $$\text{PC}_k(t) = \rho_k \text{PC}_k(t-1) + \epsilon_{k,t}$$
 
-with characteristics:
+특징은 다음과 같다:
 
-| Factor | Mean | Std Dev | AR(1) | Half-Life |
+| 요인 | 평균 | 표준 편차 | AR(1) | 반감기 |
 |--------|------|---------|-------|-----------|
-| PC1 (Level) | 0 | 0.60% | 0.98 | 35 days |
-| PC2 (Slope) | 0 | 0.45% | 0.94 | 12 days |
-| PC3 (Curvature) | 0 | 0.30% | 0.85 | 5 days |
+| 주성분1(높이) | 0 | 0.60% | 0.98 | 35일 |
+| 주성분2(기울기) | 0 | 0.45% | 0.94 | 12일 |
+| 주성분3(굽음) | 0 | 0.30% | 0.85 | 5일 |
 
-PC1 is most persistent; PC3 mean-reverts rapidly.
+주성분1이 가장 오래가고 주성분3은 평균으로 빨리 돌아온다.
 
-### Correlation Between Components
+### 성분 사이의 상관
 
-Typically low correlation between components:
+성분 사이 상관은 흔히 낮다:
 
 $$\text{Corr}(\text{PC}_1, \text{PC}_2) \approx 0.1-0.2$$
 
 $$\text{Corr}(\text{PC}_2, \text{PC}_3) \approx -0.15$$
 
-Enables independent modeling and hedging of different yield curve movements.
+서로 다른 수익률 곡선 움직임을 따로 나타내고 따로 울타리 칠 수 있게 한다.
 
-## Applications to Fixed Income Portfolio Management
+## 고정 수익 자산 꾸러미 관리에 쓰기
 
-### Portfolio Decomposition
+### 자산 꾸러미 쪼개기
 
-Express portfolio duration and convexity in terms of principal components:
+자산 꾸러미의 듀레이션과 볼록도를 주성분으로 나타낸다:
 
 $$\text{Duration} = \sum_{k=1}^{3} \beta_k \cdot \text{Duration}_k$$
 
-where $\beta_k$ measures exposure to factor k, enabling targeted risk management.
+여기서 $\beta_k$은 요인 k에 얼마나 드러나 있는지를 재며, 겨냥한 위험 관리를 할 수 있게 한다.
 
-### Factor Hedging
+### 요인 울타리 치기
 
-Isolate and hedge specific yield curve exposures:
+특정 수익률 곡선 노출을 떼어 내어 울타리를 친다:
 
-1. Long bonds with positive level exposure, short bonds with negative exposure
-2. Create butterfly trades to isolate curvature movements
-3. Match short/long positions to control duration
+1. 높이 노출이 양수인 채권은 사고 음수인 채권은 판다
+2. 굽음 움직임만 떼어 내려 나비 거래를 만든다
+3. 사고파는 자리를 맞추어 듀레이션을 다스린다
 
-### Relative Value Identification
+### 상대 값어치 가려내기
 
-Compare empirical PCA loadings to theoretical expectations:
+겪어 얻은 주성분 실림을 이론이 말하는 값과 견준다:
 
-- Bonds with loading mismatch represent relative value opportunities
-- Anomalous curvature factor loading suggests mispricing
-- Level factor exposure identifies "rich" vs "cheap" curve segments
+- 실림이 어긋나는 채권은 상대 값어치의 기회이다
+- 굽음 요인 실림이 별나면 값이 잘못 매겨졌음을 뜻한다
+- 높이 요인 노출로 곡선에서 "비싼" 구간과 "싼" 구간을 가려낸다
 
-### Factor-Based Bond Indexing
+### 요인 바탕 채권 지수 따라가기
 
-Construct bond portfolio using only principal components:
+주성분만으로 채권 자산 꾸러미를 세운다:
 
 $$\min_w \left\|w - w_{\text{index}}\right\|^2 \text{ subject to } |w_i| \leq c$$
 
-Dramatically reduces number of holdings while tracking index factor exposures.
+지수의 요인 노출을 따라가면서도 들고 있는 종목 수를 크게 줄인다.
 
-## Time-Varying Yield Curve Factor Loadings
+## 때에 따라 달라지는 수익률 곡선 요인 실림
 
-### Rolling PCA
+### 굴리는 주성분 분석
 
-Update principal components with rolling window (e.g., 252 trading days):
+굴리는 창(예컨대 거래일 252일)으로 주성분을 새로 고친다:
 
-1. Compute covariance of yield changes in each window
-2. Extract eigenvalues and eigenvectors
-3. Track changes in factor loadings over time
+1. 창마다 수익률 바뀜의 공분산을 셈한다
+2. 고윳값과 고유벡터를 뽑는다
+3. 요인 실림이 때에 따라 어떻게 바뀌는지 좇는다
 
-Reveals whether factor structure remains stable across interest rate regimes.
+금리 국면이 바뀌어도 요인 짜임이 그대로인지 드러내 준다.
 
-### Eigenvalue Stability
+### 고윳값의 안정
 
-Monitor dominant eigenvalue ratio:
+으뜸 고윳값 비를 지켜본다:
 
 $$\text{Ratio} = \frac{\lambda_1}{\lambda_1 + \lambda_2 + \lambda_3}$$
 
-High ratio indicates stable level factor dominance; decreasing ratio suggests increasing complexity in yield curve movements.
+비가 높으면 높이 요인이 꾸준히 으뜸이라는 뜻이고, 비가 줄면 수익률 곡선 움직임이 점점 복잡해진다는 뜻이다.
 
-## Real-World Considerations
+## 실제 세상에서 헤아릴 점
 
-### Data Preparation
+### 자료 마련하기
 
-1. Use liquid yields (on-the-run Treasuries)
-2. Transform non-uniformly-spaced maturities to standardized grid via interpolation
-3. Remove outliers (settlements, option-adjusted spreads)
-4. Use yield changes (not levels) for stationarity
+1. 잘 거래되는 수익률을 쓴다(갓 발행한 국채)
+2. 고르지 않게 벌어진 만기를 사이 끼움으로 표준 격자에 옮긴다
+3. 동떨어진 값을 없앤다(결제일, 선택권 조정 스프레드)
+4. 정상성을 위해 수준이 아니라 수익률의 바뀜을 쓴다
 
-### Parameter Estimation
+### 매개변수 어림하기
 
-For robust estimation:
+튼튼히 어림하려면:
 
-- Minimum 5 years of daily data (1,260 observations)
-- Quarterly reestimation to capture regime changes
-- Cross-validation on hold-out data to verify stability
+- 적어도 5년 치 일별 자료(관측 1,260개)
+- 국면 바뀜을 잡으려 분기마다 다시 어림하기
+- 안정을 확인하려 남겨 둔 자료로 엇갈려 검증하기
 
-!!! warning "Non-Stationarity"
-    Yield curve factor structure exhibits regime-dependent behavior. During policy rate near-zero lower bounds or abnormal market conditions (e.g., COVID), traditional three-factor decomposition may require augmentation or regime-specific estimation.
+!!! warning "정상성이 없음"
+    수익률 곡선의 요인 짜임은 국면에 따라 달리 움직인다. 정책 금리가 0에 가까운 하한에 있거나 시장이 별난 상태일 때(예컨대 코로나)는 여느 세 요인 쪼개기에 무언가를 더하거나 국면마다 따로 어림해야 할 수 있다.
 
+## 연습문제
+
+**연습문제 1.**
+주성분 분석으로 수익률 곡선의 움직임을 어떻게 쪼개는지 설명하라. 앞선 주성분 셋은 흔히 무엇을 나타내는가?
+
+??? success "연습문제 1 풀이"
+    지난 수익률 곡선의 행렬(가로줄 = 날짜, 세로줄 = 만기)에 주성분 분석을 쓰면 흔들림의 으뜸 결을 뽑아낸다. 흔히 **주성분1**(흩어짐의 $\sim$85~90%)은 **높이** 옮김(곡선 전체가 나란히 오르내림)을, **주성분2**($\sim$5~10%)은 **기울기** 바뀜(단기 금리가 장기 금리와 반대로 움직여 가팔라지거나 평평해짐)을, **주성분3**($\sim$2~3%)은 **굽음**(중기 금리가 짧은 끝과 긴 끝에 견주어 움직이는 나비 움직임)을 나타낸다. 이 셋을 합치면 수익률 곡선 흔들림의 $>$95%를 설명한다.
+
+---
+
+**연습문제 2.**
+계량 금융에서 차원 줄이기가 왜 쓸모 있는가? 수익률 곡선 살피기 말고 다른 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    금융에서 차원 줄이기가 도움이 되는 까닭은 이렇다. (1) **위험 관리**: 자산 꾸러미 수익률에 주성분 분석을 쓰면 으뜸 위험 요인을 가려내어 아낌없이 울타리를 칠 수 있다. (2) **주식 요인**: 주식 수익률에 주성분 분석을 쓰면 파마-프렌치 요인(시장, 규모, 가치)과 비슷한 숨은 요인을 되찾는다. (3) **상관 줄이기**: 주성분 분석이 회귀 모델의 특징에서 상관을 없애 다중공선성을 줄인다. (4) **선택권 값 매김**: 내재 출렁임 면에 주성분 분석을 쓰면 흔들림의 핵심 결을 가려낸다. (5) **잡음 줄이기**: 흩어짐이 작은 성분을 버리면 금융 시계열에서 잡음이 걷힌다.
+
+---
+
+**연습문제 3.**
+만기별 지난 수익률 행렬이 주어질 때 간단한 수익률 곡선 주성분 쪼개기를 짜라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    import numpy as np
+
+    def yield_curve_pca(yields, n_components=3):
+        # 자료의 가운데를 맞춘다
+        mean_curve = yields.mean(axis=0)
+        centered = yields - mean_curve
+        # 공분산 행렬
+        cov = np.cov(centered.T)
+        # 고윳값 쪼개기
+        eigenvalues, eigenvectors = np.linalg.eigh(cov)
+        # 고윳값 내림차순으로 정렬한다
+        idx = np.argsort(eigenvalues)[::-1]
+        eigenvalues = eigenvalues[idx]
+        eigenvectors = eigenvectors[:, idx]
+        # 설명하는 흩어짐
+        explained = eigenvalues / eigenvalues.sum()
+        return eigenvectors[:, :n_components], explained[:n_components]
+    ```
+
+---
+
+**연습문제 4.**
+수익률 곡선의 주성분 쪼개기를 써서 채권 자산 꾸러미의 울타리 치기 전략을 어떻게 세우겠는가?
+
+??? success "연습문제 4 풀이"
+    주성분 요인이 으뜸 위험 노출을 정한다. 자산 꾸러미의 채권마다 요인 실림(주성분1, 2, 3에 대한 민감도)을 셈한다. 자산 꾸러미가 요인마다 얼마나 드러나 있는지는 낱낱의 실림을 무게 붙여 더한 것이다. 울타리를 치려면 (1) 요인 실림을 아는, 잘 거래되는 도구(선물, 스왑)를 고르고, (2) 주성분마다 자산 꾸러미의 노출을 0으로 만드는 울타리 비를 푼다. 주성분1만 막아도 흩어짐의 $\sim$90%를 잡고, 주성분2와 3까지 막으면 수익률 곡선 움직임에 거의 온전히 면역이 된다. 주성분 요인이 서로 직교하므로 듀레이션과 볼록도로 막는 것보다 효율이 좋다.

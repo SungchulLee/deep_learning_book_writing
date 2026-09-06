@@ -1,34 +1,34 @@
-# Brute Force Search
+# 완전 탐색
 
-Brute force exhaustively enumerates all candidate solutions. In deep learning, brute force provides the conceptual baseline that motivates smarter approaches like gradient descent, random search over hyperparameter grids, and learned heuristics.
+완전 탐색(brute force)은 가능한 모든 후보 해를 남김없이 열거한다. 딥러닝에서 완전 탐색은 경사 하강법, 하이퍼파라미터 격자에 대한 무작위 탐색, 학습된 발견법 같은 더 영리한 접근을 동기 부여하는 개념적 기준선을 제공한다.
 
-## Definition
+## 정의
 
-A brute force algorithm evaluates every element of the solution space and selects the best. Its time complexity is:
+완전 탐색 알고리즘은 해 공간의 모든 원소를 평가하여 가장 좋은 것을 선택한다. 시간 복잡도는 다음과 같다.
 
 $$
 T(n) = |\text{Solution Space}| \times \text{Cost per evaluation}
 $$
 
-The solution space is often exponential ($2^n$ subsets, $n!$ permutations), making brute force infeasible for large inputs.
+해 공간은 흔히 지수적이며($2^n$개의 부분집합, $n!$개의 순열), 따라서 큰 입력에 대해서는 완전 탐색이 실행 불가능하다.
 
-## Explanation
+## 설명
 
-Brute force is valuable in three situations:
+완전 탐색은 다음 세 가지 상황에서 가치가 있다.
 
-- **Correctness baseline**: When developing an optimized algorithm, a brute force implementation serves as a reference to verify correctness. In deep learning, a naive forward pass computation verifies that an optimized CUDA kernel produces correct results.
-- **Small search spaces**: Hyperparameter grid search with few parameters is brute force that remains practical because the space is small.
-- **Understanding the problem**: Writing the brute force solution first clarifies the structure of the problem and reveals patterns that suggest optimization.
+- **정확성 기준선**: 최적화된 알고리즘을 개발할 때 완전 탐색 구현은 정확성을 검증하는 기준 역할을 한다. 딥러닝에서는 소박한 순전파 계산이 최적화된 CUDA 커널이 올바른 결과를 내는지 검증해 준다.
+- **작은 탐색 공간**: 매개변수가 몇 개뿐인 하이퍼파라미터 격자 탐색은 공간이 작기 때문에 실용성을 유지하는 완전 탐색이다.
+- **문제 이해**: 완전 탐색 해법을 먼저 작성해 보면 문제의 구조가 분명해지고, 최적화를 시사하는 패턴이 드러난다.
 
-The transition from brute force to gradient-based optimization is foundational to deep learning: instead of evaluating all possible weight configurations (intractable), we follow the gradient to iteratively improve a single configuration.
+완전 탐색에서 경사 기반 최적화로의 전환은 딥러닝의 근간이다. 가능한 모든 가중치 조합을 평가하는(다루기 불가능한) 대신, 경사를 따라가며 하나의 조합을 반복적으로 개선한다.
 
-## Examples
+## 예제
 
 ```python
 import torch
 
-# Brute force: find the weight that minimizes loss
-# (intractable for real networks, but illustrative)
+# 완전 탐색: 손실을 최소화하는 가중치 찾기
+# (실제 신경망에서는 불가능하지만 설명에 유용하다)
 x = torch.tensor([1.0, 2.0, 3.0])
 y = torch.tensor([2.0, 4.0, 6.0])
 
@@ -39,7 +39,7 @@ for w in torch.linspace(-5, 5, 1000):
         best_w, best_loss = w.item(), loss
 print(f"Brute force: w={best_w:.4f}, loss={best_loss:.6f}")
 
-# Gradient descent: finds the same answer efficiently
+# 경사 하강법: 같은 답을 효율적으로 찾는다
 w = torch.tensor(0.0, requires_grad=True)
 optimizer = torch.optim.SGD([w], lr=0.01)
 for _ in range(200):
@@ -49,3 +49,43 @@ for _ in range(200):
     optimizer.step()
 print(f"Gradient descent: w={w.item():.4f}, loss={loss.item():.6f}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+어떤 하이퍼파라미터 격자에 학습률 3개, 배치 크기 4개, 가중치 감쇠 값 5개가 있다. 전체 조합의 개수를 계산하라. 각 평가에 2시간이 걸린다면 완전 탐색에는 얼마나 걸리는가?
+
+??? success "연습문제 1 풀이"
+    전체 조합: $3 \times 4 \times 5 = 60$. 완전 탐색 시간: $60 \times 2 = 120$시간 $= 5$일. 같은 예산(60회 시행)의 무작위 탐색은 같은 개수의 조합을 탐색하지만 각 하이퍼파라미터를 연속 범위 전체에서 추출하므로, 이산 격자에 얽매이지 않아 더 좋은 결과를 찾는 경우가 많다.
+
+---
+
+**연습문제 2.**
+매개변수 $P$개를 각각 $q$개 수준으로 양자화한 신경망에서 가능한 모든 가중치 배정에 대한 완전 탐색의 해 공간은 $q^P$이다. $P = 100$, $q = 256$(int8)일 때 이를 계산하라. 경사 하강법이 필요한 이유는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    해 공간: $256^{100} = (2^8)^{100} = 2^{800} \approx 10^{240}$. 초당 $10^{15}$개의 조합을 평가한다 해도(어떤 컴퓨터도 미치지 못하는 속도) $10^{225}$초가 걸리며, 이는 우주의 나이($\approx 4 \times 10^{17}$초)보다 압도적으로 길다. 경사 하강법은 이를 다룰 수 있는 순차 탐색으로 줄인다. 각 단계에서 국소 경사를 이용해 손실이 낮은 방향으로 이동하며, $10^{240}$번이 아니라 수천에서 수백만 단계 만에 수렴한다.
+
+---
+
+**연습문제 3.**
+딥러닝에서 완전 탐색이 여전히 정확성 기준선으로 유용한 이유를 설명하라. 경사 계산을 검증하기 위해 완전 탐색을 사용하는 구체적인 검사 상황을 기술하라.
+
+??? success "연습문제 3 풀이"
+    완전 탐색 방식의 수치적 경사 확인: 각 매개변수 $\theta_i$에 대해 $g_i \approx (\ell(\theta_i + \epsilon) - \ell(\theta_i - \epsilon)) / (2\epsilon)$을 계산한다. 이 유한 차분 근사는 역전파보다 $O(P)$배 느리지만 연쇄 법칙 구현이 필요 없다. 사용자 정의 autograd 함수가 올바른 경사를 계산하는지 검증할 때, 역전파 경사와 수치적 경사를 비교하여 $\|g_{\text{backprop}} - g_{\text{numerical}}\| / (\|g_{\text{backprop}}\| + \|g_{\text{numerical}}\|) < 10^{-5}$인지 확인하면 된다.
+
+---
+
+**연습문제 4.**
+이산 공간에 대한 완전 탐색은 항상 전역 최적해를 찾지만, 비볼록 손실에 대한 경사 하강법은 그렇지 않을 수 있음을 증명하라.
+
+??? success "연습문제 4 풀이"
+    완전 탐색은 해 공간의 모든 원소를 평가하여 손실이 최소인 것을 선택한다. 전역 최적해가 해 공간 안에 있고 평가되므로 반드시 찾아진다. $\square$ 경사 하강법은 초기점에서 출발하여 음의 경사를 따라간다. 비볼록 손실 지형에서는 국소 최솟값과 전역 최솟값 모두에서 경사가 0이다. 경사 하강법은 초기점의 흡인 영역에 속하는 임계점으로 수렴한다. 초기점이 (전역이 아닌) 국소 최솟값의 흡인 영역에 있으면 경사 하강법은 그곳으로 수렴하고 전역 최솟값을 결코 발견하지 못한다.
+
+---
+
+**연습문제 5.**
+하이퍼파라미터 최적화에서 무작위 탐색이 격자 탐색보다 낫다는 것이 알려져 있다. 각 하이퍼파라미터 차원의 실효 탐색 범위 관점에서 그 이유를 설명하라.
+
+??? success "연습문제 5 풀이"
+    격자 탐색은 $d$개의 하이퍼파라미터를 각각 $k$개 값으로 덮기 위해 $k^d$번의 평가를 배정한다. 그런데 많은 문제에서는 하이퍼파라미터 중 일부만 성능에 큰 영향을 준다. 격자 탐색은 전체 예산과 무관하게 각 차원에 사영했을 때 서로 다른 값이 $k$개뿐이다. 같은 $k^d$번 예산의 무작위 탐색은 각 하이퍼파라미터를 연속 분포에서 독립적으로 추출하므로 중요한 차원마다 서로 다른 값이 $k^d$개 생긴다. 예를 들어 하이퍼파라미터가 2개이고 총 9번 평가할 때, 격자 탐색은 $3 \times 3$개의 서로 다른 값을 주지만 무작위 탐색은 차원마다 9개의 서로 다른 값을 준다. 차원당 이 $3\times$의 개선은 중요한 차원이 적을수록 누적 효과가 커진다.

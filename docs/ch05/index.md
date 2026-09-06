@@ -1,156 +1,153 @@
-# Chapter Overview
+# 장 개요
 
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+이 장은 데이터 적재부터 모델 배포까지 PyTorch 학습 파이프라인 전체를 다룬다. 각 절은 중요한 단계 하나씩을 맡는다. 데이터셋과 변환, 데이터 로더, 학습 루프, 손실 함수, 최적화기, 학습률 스케줄러, 과적합 진단, 평가 지표, 초매개변수 조율, 모델 저장이다. 이들을 합치면 딥러닝 모델을 학습시키고 평가하고 배포하는 처음부터 끝까지의 작업 흐름이 된다.
 
-This chapter covers the complete PyTorch training pipeline from data loading through model deployment. Each section addresses a critical stage: datasets and transforms, data loaders, the training loop, loss functions, optimizers, learning rate schedulers, overfitting diagnostics, evaluation metrics, hyperparameter tuning, and model saving. Together, these components form the end-to-end workflow for training, evaluating, and deploying deep learning models.
+## 데이터셋
 
-## Datasets
+PyTorch의 Dataset 추상으로 데이터를 불러오고 변환하고 증강하기.
 
-Loading, transforming, and augmenting data with PyTorch's Dataset abstraction.
+- 데이터셋 개요 — Dataset과 DataLoader 예제 16개를 담은 튜토리얼 꾸러미
+- Dataset 클래스 — `torch.utils.data.Dataset` 인터페이스와 그 핵심 메서드 두 개
+- 내장 데이터셋 — torchvision, torchaudio, torchtext가 제공하는 바로 쓸 수 있는 데이터셋
+- 사용자 정의 데이터셋 — CSV, 이미지, 분야 특화 형식을 위한 데이터셋 구현하기
+- 데이터 변환 — `torchvision.transforms`과 `Compose`로 만드는 변환 파이프라인
+- 사용자 정의 변환 — 호출 가능한 클래스로 분야 특화 변환 작성하기
+- 증강의 기초 — 정칙화와 불변성 학습을 위한 무작위 변환
 
-- Datasets Overview -- Tutorial package covering 16 Dataset and DataLoader examples
-- Dataset Class -- The `torch.utils.data.Dataset` interface and its two core methods
-- Built-in Datasets -- Ready-to-use datasets from torchvision, torchaudio, and torchtext
-- Custom Datasets -- Implementing datasets for CSV, images, and domain-specific data formats
-- Data Transforms -- Transform pipelines with `torchvision.transforms` and `Compose`
-- Custom Transforms -- Writing domain-specific transforms as callable classes
-- Augmentation Basics -- Random transformations for regularization and invariance learning
+## 데이터로더
 
-## DataLoaders
+효율적인 학습을 위한 배치 묶기, 섞기, 표집, 병렬 적재.
 
-Batching, shuffling, sampling, and parallel loading for efficient training.
+- 데이터로더 개요 — 기초부터 분산 학습까지 아우르는 튜토리얼 꾸러미
+- 빠른 시작 — 5분 만에 DataLoader 시작하기
+- 꾸러미 요약 — 튜토리얼 꾸러미의 내용과 구성 훑어보기
+- DataLoader 기초 — 핵심 인터페이스, 매개변수 개관, 기본적인 반복 양식
+- 배치 전략 — 배치 크기가 학습 동역학, 수렴, 일반화에 미치는 영향
+- 섞기와 표집 — 표본 순서를 무작위로 하기와 내장 표집기 쓰기
+- 사용자 정의 표집기 — 응용에 맞는 전략을 위해 `Sampler` 인터페이스 구현하기
+- 가중 표집 — 클래스 불균형을 다루는 `WeightedRandomSampler`
+- 병합 함수 — 길이가 변하거나 중첩된 데이터를 배치로 묶기
+- 다중 프로세스 적재 — `num_workers`으로 데이터 준비를 병렬화하기
+- 메모리 고정 — CPU에서 GPU로의 전송을 빠르게 하는 페이지 고정 메모리
 
-- DataLoaders Overview -- Complete tutorial package from fundamentals to distributed training
-- Quick Start -- Get started with DataLoader in five minutes
-- Package Summary -- Overview of the tutorial package contents and structure
-- DataLoader Basics -- Core interface, parameter overview, and basic iteration patterns
-- Batching Strategies -- Batch size effects on training dynamics, convergence, and generalization
-- Shuffling and Sampling -- Randomizing sample order and using built-in samplers
-- Custom Samplers -- Implementing the `Sampler` interface for application-specific strategies
-- Weighted Sampling -- `WeightedRandomSampler` for handling class imbalance
-- Collate Functions -- Merging samples into batches for variable-length and nested data
-- Multi-Process Loading -- Using `num_workers` to parallelize data preparation
-- Memory Pinning -- Page-locked memory for accelerated CPU-to-GPU transfers
+## 학습
 
-## Training
+학습 루프, 검증, 기록, 그리고 학습 기법.
 
-The training loop, validation, logging, and training techniques.
+- 학습 개요 — TensorBoard 시각화와 함께하는 MNIST 학습 튜토리얼
+- 빠른 시작 — 5분 설치와 첫 학습 실행
+- 학습 루프 — PyTorch의 표준 순전파-역전파-갱신 양식
+- 검증 루프 — 기울기를 계산하지 않고 일반화 성능 평가하기
+- 지표 기록 — 시간에 따른 손실, 정확도, 기울기 통계 남기기
+- TensorBoard — `SummaryWriter`로 하는 대화형 시각화
+- Weights & Biases — 클라우드 기반 실험 기록, 스윕, 협업 대시보드
+- 기울기 자르기 — 기울기 폭발을 막기 위해 기울기의 크기를 제한하기
+- 혼합 정밀도 학습 — 속도와 메모리를 아끼려고 FP32 주 가중치와 함께 FP16/BF16으로 계산하기
+- 재현성 — 난수 씨앗, 결정적 연산, 그리고 같은 결과를 다시 얻기
 
-- Training Overview -- MNIST training with TensorBoard visualization tutorial
-- Quick Start -- Five-minute installation and first training run
-- Training Loop -- The standard forward-backward-update pattern in PyTorch
-- Validation Loop -- Evaluating generalization performance without gradient computation
-- Metrics Tracking -- Recording losses, accuracies, and gradient statistics over time
-- TensorBoard -- Interactive visualization with `SummaryWriter`
-- Weights & Biases -- Cloud-hosted experiment tracking, sweeps, and collaborative dashboards
-- Gradient Clipping -- Bounding gradient magnitudes to prevent exploding gradients
-- Mixed Precision Training -- FP16/BF16 computation with FP32 master weights for speed and memory savings
-- Reproducibility -- Seeding, deterministic operations, and ensuring repeatable results
+## 손실 함수
 
-## Loss Functions
+3장에서 다룬 기본을 넘어서는 특수한 손실 함수들.
 
-Specialized loss functions beyond the basics covered in Chapter 3.
+- 손실과 최적화기 개요 — 손실 함수, 최적화기, 스케줄링을 다루는 튜토리얼 꾸러미
+- 시작하기 — 설치와 PyTorch 손실 함수 첫걸음
+- 빠른 참조 — 꼭 필요한 임포트와 흔한 손실/최적화기 양식 요약
+- [손실 함수 선택 안내](loss/loss_selection.md) — 과제와 데이터의 성격에 따라 손실 함수를 고르는 체계적인 틀
+- [초점 손실](loss/focal_loss.md) — 쉬운 예의 비중을 낮추어 어렵고 잘못 분류된 표본에 집중하기
+- [후버 손실](loss/huber_loss.md) — MSE의 정밀함과 MAE의 이상점 견고성을 결합한 매끄러운 L1 손실
+- 힌지 손실 — SVM 방식 분류를 위한 최대 여백 손실
+- 사용자 정의 손실 함수 — 분할, 다중 과제 등에 맞는 분야 특화 목적 함수 설계하기
 
-- Loss and Optimizer Overview -- Tutorial package covering loss functions, optimizers, and scheduling
-- Getting Started -- Installation and first steps with loss functions in PyTorch
-- Quick Reference -- Essential imports and cheat sheet for common loss/optimizer patterns
-- [Loss Selection Guide](loss/loss_selection.md) -- Systematic framework for choosing loss functions by task and data characteristics
-- [Focal Loss](loss/focal_loss.md) -- Down-weighting easy examples to focus on hard, misclassified samples
-- [Huber Loss](loss/huber_loss.md) -- Smooth L1 loss combining MSE precision with MAE robustness to outliers
-- Hinge Loss -- Maximum-margin loss for SVM-style classification
-- Custom Loss Functions -- Designing domain-specific objectives for segmentation, multi-task, and beyond
+## 최적화기
 
-## Optimizers
+기본 SGD부터 요즘의 적응형 방법까지 이르는 매개변수 갱신 알고리즘.
 
-Parameter update algorithms from vanilla SGD through modern adaptive methods.
+- 최적화기 개요 — Adam, RMSprop, Adagrad 구현을 위한 튜토리얼 꾸러미
+- 최적화기 개관 — 최적화 문제, PyTorch 최적화기 인터페이스, 매개변수 묶음
+- SGD — 기본 확률적 경사 하강법
+- [모멘텀](optimizers/momentum.md) — 더 빠른 수렴을 위한 지수 감쇠 기울기 평균
+- [네스테로프 가속 경사](optimizers/nesterov.md) — 최적점 근처의 수렴을 개선하는 미리 보기 기울기 계산
+- [Adagrad](optimizers/adagrad.md) — 지난 기울기에 기반한 매개변수별 적응형 학습률
+- [Adadelta](optimizers/adadelta.md) — 처음 학습률 없이도 되는 감쇠 기울기 누적
+- [RMSprop](optimizers/rmsprop.md) — 적응형 학습률을 위한 기울기 제곱의 지수 감쇠 평균
+- [Adam](optimizers/adam.md) — 모멘텀과 적응형 학습률에 편향 보정을 더한 방법
+- [AdamW](optimizers/adamw.md) — 적응형 최적화기에서 제대로 정칙화하기 위한 분리된 가중치 감쇠
+- AMSGrad — Adam의 수렴 문제를 바로잡는 이차 모멘트 최댓값 추적
+- NAdam — Adam의 틀에 네스테로프 모멘텀을 녹여 넣은 방법
+- RAdam — 분산을 살펴 워밍업을 전환하는 교정된 Adam
+- [LAMB](optimizers/lamb.md) — 안정적인 큰 배치 학습을 위한 층별 적응형 학습률
+- L-BFGS — 제한된 메모리로 헤세 역행렬을 근사하는 준뉴턴 방법
+- 최적화기 비교 — 수렴, 메모리, 일반화에 걸친 체계적인 비교
+- 선택 안내 — 최적화기를 고르기 위한 실용적인 판단의 틀
+- 실전 예제 — 이미지 분류와 자연어 처리를 위한 완전히 실행되는 예제
 
-- Optimizers Overview -- Tutorial package for Adam, RMSprop, and Adagrad implementations
-- Optimizer Overview -- The optimization problem, PyTorch optimizer interface, and parameter groups
-- SGD -- Vanilla stochastic gradient descent
-- [Momentum](optimizers/momentum.md) -- Exponentially decaying gradient average for faster convergence
-- [Nesterov Accelerated Gradient](optimizers/nesterov.md) -- Look-ahead gradient computation for improved convergence near optima
-- [Adagrad](optimizers/adagrad.md) -- Per-parameter adaptive learning rates based on historical gradients
-- [Adadelta](optimizers/adadelta.md) -- Decaying gradient accumulation without requiring an initial learning rate
-- [RMSprop](optimizers/rmsprop.md) -- Exponentially decaying average of squared gradients for adaptive rates
-- [Adam](optimizers/adam.md) -- Combined momentum and adaptive learning rates with bias correction
-- [AdamW](optimizers/adamw.md) -- Decoupled weight decay for proper regularization with adaptive optimizers
-- AMSGrad -- Maximum second-moment tracking to fix Adam's convergence issue
-- NAdam -- Nesterov momentum integrated into the Adam framework
-- RAdam -- Rectified Adam with variance-aware warmup switching
-- [LAMB](optimizers/lamb.md) -- Layer-wise adaptive rates for stable large-batch training
-- L-BFGS -- Quasi-Newton method using limited-memory inverse Hessian approximation
-- Optimizer Comparison -- Systematic comparison across convergence, memory, and generalization
-- Selection Guide -- Practical decision framework for choosing an optimizer
-- Practical Examples -- Complete runnable examples for image classification and NLP
+## 스케줄러
 
-## Schedulers
+수렴과 최종 모델의 품질을 높이는 학습률 스케줄링 전략.
 
-Learning rate scheduling strategies for improved convergence and final model quality.
+- 스케줄러 개요 — 스케줄링 구현을 위한 튜토리얼 꾸러미 개관
+- 스케줄러 개관 — 왜 필요한가, 고정 학습률의 딜레마, 스케줄링의 지형
+- 빠른 시작 — 2분 준비와 첫 스케줄러 예제
+- 스케줄러 안내 — 비교표, 판단 나무, 수식을 담은 완전한 안내
+- 통합 안내 — 내장 스케줄러와 사용자 정의 스케줄러를 함께 쓰기
+- Step LR — 일정 간격마다 곱셈으로 줄이기
+- Multi-Step LR — 지정한 에포크 이정표에서 줄이기
+- Exponential LR — 에포크마다 일정한 비율로 줄이기
+- 코사인 어닐링 — 낮은 학습률에 더 오래 머무는 매끄러운 코사인 감쇠
+- 워밍업 전략 — 학습 초반을 안정시키기 위해 학습률을 서서히 올리기
+- ReduceLROnPlateau — 검증 성능이 멈추면 반응하여 줄이기
+- OneCycleLR — 학습률과 모멘텀을 함께 조절하는 Smith의 1cycle 정책
+- 사용자 정의 스케줄러 — 분야에 맞는 정책을 위한 `LambdaLR`과 `LRScheduler` 기반 클래스
 
-- Schedulers Overview -- Tutorial package overview for scheduling implementations
-- Scheduler Overview -- Motivation, the fixed-rate tension, and the scheduling landscape
-- Quick Start -- Two-minute setup and first scheduler example
-- Scheduler Guide -- Complete guide with comparison table, decision tree, and formulas
-- Combined Guide -- Integrating built-in and custom schedulers together
-- Step LR -- Fixed-interval multiplicative decay
-- Multi-Step LR -- Decay at specified epoch milestones
-- Exponential LR -- Constant multiplicative decay every epoch
-- Cosine Annealing -- Smooth cosine decay spending more time at low learning rates
-- Warmup Strategies -- Gradual learning rate ramp-up for stable early training
-- ReduceLROnPlateau -- Reactive decay when validation performance stalls
-- OneCycleLR -- Smith's 1cycle policy with learning rate and momentum co-scheduling
-- Custom Schedulers -- `LambdaLR` and the `LRScheduler` base class for domain-specific policies
+## 과적합과 일반화
 
-## Overfitting and Generalization
+편향-분산의 관점에서 과적합을 진단하고 다루기.
 
-Diagnosing and addressing overfitting through the bias-variance lens.
+- 과적합 개요 — 다항 회귀 시연을 담은 튜토리얼 꾸러미
+- 과적합과 과소적합 — 정의, 증상, 그리고 학습의 두 가지 실패 방식
+- 과적합 탐지 — 학습-검증 간격 분석과 조기 경보 신호
+- 편향-분산 절충 — 모델의 단순함과 유연함 사이의 근본적인 긴장
+- 편향-분산 분해 — 형식적 분해와 편향·분산의 경험적 추정
+- 수학적 유도 — 첫 원리에서 시작하는 엄밀한 단계별 분해 유도
+- 교차 검증 — 튼튼한 일반화 추정을 위한 K겹 교차 검증
+- 학습-검증-시험 분할 — 매개변수 최적화, 선택, 평가를 위한 세 갈래 분할
 
-- Overfitting Overview -- Tutorial package with polynomial regression demonstrations
-- Overfitting and Underfitting -- Definitions, symptoms, and the two failure modes of learning
-- Overfitting Detection -- Training-validation gap analysis and early warning signals
-- Bias-Variance Tradeoff -- The fundamental tension between model simplicity and flexibility
-- Bias-Variance Decomposition -- Formal decomposition and empirical estimation of bias and variance
-- Mathematical Derivation -- Rigorous step-by-step derivation of the decomposition from first principles
-- Cross-Validation -- K-fold cross-validation for robust generalization estimates
-- Train-Val-Test Split -- Three-way splitting for parameter optimization, selection, and evaluation
+## 평가
 
-## Evaluation
+분류 모델과 회귀 모델의 성능을 수치로 나타내는 지표들.
 
-Metrics for quantifying classification and regression model performance.
+- 평가 개요 — 핵심 모듈을 갖춘 종합 평가 꾸러미
+- 지표 개관 — 문제의 목표에 맞는 지표 고르기
+- 분류 지표 — 정확도, 정밀도, 재현율, F1, 그리고 문턱값에 따라 달라지는 척도들
+- 회귀 지표 — MSE, MAE, 결정계수, 그리고 이상점 민감도 분석
+- 혼동 행렬 — 예측과 실제 레이블을 표로 정리하기
+- ROC와 AUC — 수신자 조작 특성 곡선과 곡선 아래 넓이
+- 정밀도-재현율 곡선 — 양성이 드문 불균형 데이터셋을 위한 PR 곡선
+- 보정 — 확률의 품질을 재는 기대 보정 오차와 신뢰도 도표
 
-- Evaluation Overview -- Comprehensive evaluation package with core modules
-- Metrics Overview -- Choosing metrics aligned with problem objectives
-- Classification Metrics -- Accuracy, precision, recall, F1, and threshold-dependent measures
-- Regression Metrics -- MSE, MAE, R-squared, and outlier sensitivity analysis
-- Confusion Matrix -- Tabular summary of predictions vs actual labels
-- ROC and AUC -- Receiver operating characteristic curves and area under the curve
-- Precision-Recall Curves -- PR curves for imbalanced datasets where positives are rare
-- Calibration -- Expected calibration error and reliability diagrams for probability quality
+## 초매개변수
 
-## Hyperparameters
+초매개변수를 찾고 분석하는 체계적인 방법.
 
-Systematic approaches to hyperparameter search and analysis.
+- 초매개변수 조율 개요 — 조율 기법을 위한 튜토리얼 꾸러미
+- 빠른 시작 — 설치와 첫 초매개변수 탐색
+- 격자 탐색 — 모든 매개변수 조합을 남김없이 평가하기
+- 무작위 탐색 — 초매개변수 분포에서 효율적으로 뽑기
+- 베이즈 최적화 — 값비싼 평가를 위해 대리 모델이 이끄는 탐색
+- 학습률 일정 — 학습률 범위 시험과 최적 일정 찾기
+- 중요도 분석 — fANOVA로 어떤 초매개변수가 가장 중요한지 가려내기
 
-- Hyperparameter Tuning Overview -- Tutorial package for tuning techniques
-- Quick Start -- Installation and first hyperparameter search
-- Grid Search -- Exhaustive evaluation of all parameter combinations
-- Random Search -- Efficient sampling from hyperparameter distributions
-- Bayesian Optimization -- Surrogate-model-guided search for expensive evaluations
-- Learning Rate Schedules -- Learning rate range test and optimal schedule discovery
-- Importance Analysis -- Identifying which hyperparameters matter most with fANOVA
+## 저장과 불러오기
 
-## Save and Load
+모델 저장, 검사점, 그리고 배포 형식.
 
-Model persistence, checkpointing, and deployment formats.
-
-- Save and Load Overview -- Complete tutorial collection for model saving and deployment
-- Quick Start -- Quick setup for model deployment workflows
-- State Dict -- PyTorch's recommended serialization format for portable model persistence
-- Checkpointing -- Saving complete training state for resumable long-running experiments
-- ONNX Export -- Cross-framework model format for production deployment
-- TorchScript -- Serializing models for C++ and non-Python execution environments
-- Save Best Model Example -- Complete training pipeline with checkpointing on Hymenoptera dataset
-- Model Deployment Overview -- Complete deployment pipeline: serialization, APIs, and containerization
-- Deployment Basics -- ONNX conversion, quantization, and inference optimization techniques
+- 저장과 불러오기 개요 — 모델 저장과 배포를 위한 완전한 튜토리얼 모음
+- 빠른 시작 — 모델 배포 작업 흐름을 위한 빠른 준비
+- 상태 사전 — 옮겨 쓸 수 있는 모델 저장을 위해 PyTorch가 권하는 직렬화 형식
+- 검사점 저장 — 오래 걸리는 실험을 이어 갈 수 있도록 학습 상태 전체 저장하기
+- ONNX 내보내기 — 실전 배포를 위한 프레임워크 간 모델 형식
+- TorchScript — C++을 비롯한 파이썬 밖의 실행 환경을 위한 모델 직렬화
+- 최적 모델 저장 예제 — Hymenoptera 데이터셋에서 검사점 저장을 갖춘 완전한 학습 파이프라인
+- 모델 배포 개요 — 직렬화, API, 컨테이너화에 이르는 완전한 배포 파이프라인
+- 배포의 기초 — ONNX 변환, 양자화, 추론 최적화 기법

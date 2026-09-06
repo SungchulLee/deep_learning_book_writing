@@ -1,35 +1,35 @@
-# Recursive vs Iterative
+# 재귀와 반복
 
-Any problem that can be solved recursively can also be solved iteratively, and vice versa. The choice between the two approaches involves trade-offs in clarity, performance, and space usage. Understanding when each approach is preferable is a fundamental skill in algorithm design.
+재귀로 풀 수 있는 문제는 반복으로도 풀 수 있고 그 반대도 마찬가지이다. 두 접근법 사이의 선택에는 명료함, 성능, 공간 사용의 절충이 따른다. 각 접근법이 언제 더 나은지 아는 것은 알고리즘 설계의 기본 기술이다.
 
-## Side-by-Side Comparison
+## 나란히 비교하기
 
-Consider computing the factorial $n! = n \times (n-1) \times \cdots \times 1$:
+계승 $n! = n \times (n-1) \times \cdots \times 1$을 계산하는 경우를 생각해 보자.
 
 ```python
-"""Comparing recursive and iterative approaches to factorial."""
+"""계승에 대한 재귀적 접근과 반복적 접근 비교."""
 
 
-# === Recursive Factorial ===
+# === 재귀적 계승 ===
 
 def factorial_recursive(n):
-    """Compute n! recursively."""
+    """n!을 재귀적으로 계산한다."""
     if n <= 1:
         return 1
     return n * factorial_recursive(n - 1)
 
 
-# === Iterative Factorial ===
+# === 반복적 계승 ===
 
 def factorial_iterative(n):
-    """Compute n! iteratively."""
+    """n!을 반복적으로 계산한다."""
     result = 1
     for i in range(2, n + 1):
         result *= i
     return result
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     for n in [0, 1, 5, 10]:
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         print(f"{n}! = {r} (recursive) = {i} (iterative)")
 ```
 
-**Output:**
+**출력:**
 ```
 0! = 1 (recursive) = 1 (iterative)
 1! = 1 (recursive) = 1 (iterative)
@@ -46,21 +46,54 @@ if __name__ == "__main__":
 10! = 3628800 (recursive) = 3628800 (iterative)
 ```
 
-## Trade-offs
+## 절충
 
-| Aspect | Recursive | Iterative |
+| 측면 | 재귀 | 반복 |
 |---|---|---|
-| Clarity | Natural for tree/divide-and-conquer problems | Natural for sequential processing |
-| Space | $O(n)$ stack frames | $O(1)$ extra space (typically) |
-| Overhead | Function call overhead per recursion | Loop overhead (minimal) |
-| Stack overflow risk | Yes, for deep recursion | No |
+| 명료함 | 트리/분할 정복 문제에 자연스럽다 | 순차 처리에 자연스럽다 |
+| 공간 | $O(n)$개의 스택 프레임 | (보통) $O(1)$의 여분 공간 |
+| 부담 | 재귀마다 함수 호출 부담 | 반복문 부담(미미하다) |
+| 스택 넘침 위험 | 깊은 재귀에서는 있다 | 없다 |
 
-## When to Prefer Each
+## 각각을 언제 선호할 것인가
 
-**Recursion** is often clearer for problems with recursive structure: tree traversals, divide-and-conquer algorithms, and problems naturally defined by recurrences.
+**재귀** 는 재귀적 구조를 가진 문제에서 더 명료한 경우가 많다. 트리 순회, 분할 정복 알고리즘, 점화식으로 자연스럽게 정의되는 문제가 그렇다.
 
-**Iteration** is often more efficient for simple sequential computations where recursion adds unnecessary overhead and stack usage.
+**반복** 은 재귀가 불필요한 부담과 스택 사용을 더하는 단순한 순차 계산에서 더 효율적인 경우가 많다.
 
-## Reference
+## 참고 자료
 
 [Recursion의 개념과 기본 예제들](https://www.youtube.com/watch?v=tuzf1yLPgRI&list=PL52K_8WQO5oUuH06MLOrah4h05TZ4n38l&index=2)
+
+
+## 연습문제
+
+**연습문제 1.**
+재귀와 반복에 대해 기저 사례와 재귀 사례를 찾아라. 모든 유효한 입력에 대해 재귀가 종료됨을 증명하라.
+
+??? success "연습문제 1 풀이"
+    기저 사례는 가장 작은 유효한 입력을 직접 처리한다. 재귀 사례는 호출마다 감소하는 잘 정의된 척도로 문제 크기를 줄인다. 이 척도가 (기저 사례의 문턱값으로) 아래로 유계이면서 엄격히 감소하므로 재귀는 반드시 유한한 단계 안에 종료된다.
+
+---
+
+**연습문제 2.**
+재귀와 반복의 시간 복잡도에 대한 점화식을 유도하고 풀어라.
+
+??? success "연습문제 2 풀이"
+    $T(n)$을 재귀 호출과 호출당 일의 함수로 표현한다. 이 점화식은 분기 계수, 부분문제 크기의 감소, 결합 비용을 담는다. 펼치기, 마스터 정리, 치환 중 하나로 풀어 닫힌 형태를 얻는다.
+
+---
+
+**연습문제 3.**
+$n = 8$일 때 재귀와 반복의 재귀 트리를 그려라. 각 층에서의 일과 전체 일을 계산하라.
+
+??? success "연습문제 3 풀이"
+    트리의 깊이는 입력이 기저 사례까지 얼마나 빨리 줄어드는지로 정해진다. 각 층에서 모든 노드의 일을 더한다. 모든 층에 걸친 총합이 실행 시간을 준다. $n = 8$이면 트리가 작아서 전부 열거할 수 있다.
+
+---
+
+**연습문제 4.**
+재귀 구현을 반복 버전으로 변환하라. 공간 복잡도를 비교하라.
+
+??? success "연습문제 4 풀이"
+    호출 스택을 명시적 스택이나 반복 변수로 대체한다. 꼬리 재귀 형태는 while 반복문으로 곧바로 바뀐다. 꼬리가 아닌 형태는 호출 스택을 흉내 내기 위해 명시적 스택이 필요하다. 반복 버전은 보통 $O(\text{depth})$의 스택 공간을 아낀다.

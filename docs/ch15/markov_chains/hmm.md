@@ -1,102 +1,97 @@
-# Hidden Markov Models
+# 숨은 마르코프 모형
+## 들어가며
 
+지금까지 살펴본 마르코프 사슬에서는 상태 $X_n$을 곧바로 관측한다. 그러나 실제 세상의 여러 얼개에서는 바탕 상태가 **숨어** 있고 우리는 그것에 기댄 시끄러운 신호만 본다. **숨은 마르코프 모형(HMM)**은 숨은 마르코프 사슬과 관측 모형을 묶어 이를 엄밀하게 담는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+HMM은 마르코프 사슬 이론과 통계 추론을 잇는다. 곧 숨은 사슬이 시간의 짜임을 주고, 관측 모형은 관측 자료에서 숨은 상태를 되찾는 추론 문제를 만든다. 그래서 HMM은 더 일반적인 숨은 변수 모형의 추론을 다루는 MCMC 방법(18.3절)으로 가는 자연스러운 디딤돌이 된다.
 
-## Introduction
+## 수학적 틀
 
-In the Markov chains studied so far, the state $X_n$ is directly observed. In many real-world systems, however, the underlying state is **hidden** (or latent) and we observe only a noisy signal that depends on it. **Hidden Markov Models (HMMs)** formalize this by coupling a latent Markov chain with an observation model.
+### 모형의 정의
 
-HMMs bridge Markov chain theory and statistical inference: the latent chain provides temporal structure, while the observation model creates an inference problem—recovering the hidden states from observed data. This makes HMMs a natural stepping stone toward MCMC methods (Section 18.3), which tackle inference in more general latent variable models.
+HMM은 세 부분으로 이루어진다:
 
-## Mathematical Framework
-
-### Model Definition
-
-An HMM consists of three components:
-
-1. **Hidden state process** $\{Z_t\}_{t=1}^T$ — a Markov chain with transition matrix $A$:
+1. **숨은 상태 과정** $\{Z_t\}_{t=1}^T$ — 옮김 행렬이 $A$인 마르코프 사슬:
 
 $$A_{ij} = P(Z_t = j \mid Z_{t-1} = i)$$
 
-2. **Observation process** $\{X_t\}_{t=1}^T$ — conditionally independent given the hidden states:
+2. **관측 과정** $\{X_t\}_{t=1}^T$ — 숨은 상태가 주어지면 조건부 독립:
 
 $$P(X_t = x \mid Z_t = k) = B_k(x)$$
 
-where $B_k$ is the **emission distribution** for state $k$.
+여기서 $B_k$은 상태 $k$의 **방출 분포**이다.
 
-3. **Initial distribution** $\boldsymbol{\pi}$:
+3. **첫 분포** $\boldsymbol{\pi}$:
 
 $$\pi_k = P(Z_1 = k)$$
 
-### Conditional Independence Structure
+### 조건부 독립의 짜임
 
-The joint probability of hidden states $\mathbf{z} = (z_1, \ldots, z_T)$ and observations $\mathbf{x} = (x_1, \ldots, x_T)$ factorizes as:
+숨은 상태 $\mathbf{z} = (z_1, \ldots, z_T)$과 관측 $\mathbf{x} = (x_1, \ldots, x_T)$의 결합 확률은 다음처럼 쪼개진다:
 
 $$P(\mathbf{z}, \mathbf{x}) = \pi_{z_1} B_{z_1}(x_1) \prod_{t=2}^{T} A_{z_{t-1}, z_t} B_{z_t}(x_t)$$
 
-### The Three Fundamental Problems
+### 근본이 되는 세 문제
 
-| Problem | Question | Algorithm |
+| 문제 | 물음 | 알고리즘 |
 |---------|----------|-----------|
-| **Evaluation** | $P(\mathbf{x} \mid \theta)$ — likelihood of observations? | Forward algorithm |
-| **Decoding** | $\arg\max_{\mathbf{z}} P(\mathbf{z} \mid \mathbf{x}, \theta)$ — most likely hidden sequence? | Viterbi algorithm |
-| **Learning** | $\arg\max_\theta P(\mathbf{x} \mid \theta)$ — best model parameters? | Baum-Welch (EM) |
+| **값 매기기** | $P(\mathbf{x} \mid \theta)$ — 관측의 가능도는? | 앞 알고리즘 |
+| **풀어내기** | $\arg\max_{\mathbf{z}} P(\mathbf{z} \mid \mathbf{x}, \theta)$ — 가장 그럴듯한 숨은 차례는? | 비터비 알고리즘 |
+| **배우기** | $\arg\max_\theta P(\mathbf{x} \mid \theta)$ — 가장 좋은 모형 매개변수는? | 바움-웰치(EM) |
 
-## The Forward-Backward Algorithm
+## 앞뒤 알고리즘
 
-### Forward Variables
+### 앞 변수
 
-The **forward variable** $\alpha_t(j) = P(X_1 = x_1, \ldots, X_t = x_t, Z_t = j)$ is the joint probability of observing the first $t$ emissions and being in hidden state $j$ at time $t$.
+**앞 변수** $\alpha_t(j) = P(X_1 = x_1, \ldots, X_t = x_t, Z_t = j)$은 처음 $t$개의 방출을 관측하고 때 $t$에 숨은 상태 $j$에 있을 결합 확률이다.
 
-**Recursion:**
+**되돌이:**
 
 $$\alpha_1(j) = \pi_j B_j(x_1)$$
 
 $$\alpha_t(j) = \left[\sum_{i=1}^{K} \alpha_{t-1}(i) A_{ij}\right] B_j(x_t), \quad t = 2, \ldots, T$$
 
-The total observation likelihood is $P(\mathbf{x}) = \sum_{j=1}^{K} \alpha_T(j)$.
+관측 전체의 가능도는 $P(\mathbf{x}) = \sum_{j=1}^{K} \alpha_T(j)$이다.
 
-**Complexity:** $O(K^2 T)$ versus $O(K^T)$ for brute-force enumeration over all possible state sequences.
+**복잡도:** 있을 수 있는 상태 차례를 마구잡이로 다 세면 $O(K^T)$인데 견주어 $O(K^2 T)$이다.
 
-### Backward Variables
+### 뒤 변수
 
-The **backward variable** $\beta_t(i) = P(X_{t+1}, \ldots, X_T \mid Z_t = i)$ satisfies:
+**뒤 변수** $\beta_t(i) = P(X_{t+1}, \ldots, X_T \mid Z_t = i)$은 다음을 만족한다:
 
 $$\beta_T(i) = 1, \qquad \beta_t(i) = \sum_{j=1}^{K} A_{ij} B_j(x_{t+1}) \beta_{t+1}(j)$$
 
-### Posterior State Probabilities
+### 뒤확률 상태 확률
 
-Combining forward and backward variables:
+앞 변수와 뒤 변수를 합치면:
 
 $$\gamma_t(j) = P(Z_t = j \mid \mathbf{x}) = \frac{\alpha_t(j) \beta_t(j)}{P(\mathbf{x})}$$
 
 $$\xi_t(i, j) = P(Z_t = i, Z_{t+1} = j \mid \mathbf{x}) = \frac{\alpha_t(i) A_{ij} B_j(x_{t+1}) \beta_{t+1}(j)}{P(\mathbf{x})}$$
 
-## The Viterbi Algorithm
+## 비터비 알고리즘
 
-The Viterbi algorithm finds the most likely hidden state sequence via dynamic programming in log-space.
+비터비 알고리즘은 로그 공간에서 동적 계획법으로 가장 그럴듯한 숨은 상태 차례를 찾는다.
 
-Define $\delta_t(j) = \max_{z_1, \ldots, z_{t-1}} P(z_1, \ldots, z_{t-1}, Z_t = j, x_1, \ldots, x_t)$.
+$\delta_t(j) = \max_{z_1, \ldots, z_{t-1}} P(z_1, \ldots, z_{t-1}, Z_t = j, x_1, \ldots, x_t)$으로 정한다.
 
-**Recursion:**
+**되돌이:**
 
 $$\delta_1(j) = \pi_j B_j(x_1), \qquad \delta_t(j) = \max_{i} [\delta_{t-1}(i) A_{ij}] \cdot B_j(x_t)$$
 
-**Backtracking** from $z_T^* = \arg\max_j \delta_T(j)$ recovers the optimal path.
+$z_T^* = \arg\max_j \delta_T(j)$에서 **거슬러 가면** 가장 좋은 길이 되살아난다.
 
-## The Baum-Welch Algorithm
+## 바움-웰치 알고리즘
 
-Baum-Welch is EM for HMMs. Each iteration:
+바움-웰치는 HMM을 위한 EM이다. 되풀이마다:
 
-**E-step:** Compute $\gamma_t(j)$ and $\xi_t(i,j)$ via forward-backward.
+**E-걸음:** 앞뒤 알고리즘으로 $\gamma_t(j)$과 $\xi_t(i,j)$을 셈한다.
 
-**M-step:** Update parameters:
+**M-걸음:** 매개변수를 새로 고친다:
 
 $$\hat{\pi}_j = \gamma_1(j), \qquad \hat{A}_{ij} = \frac{\sum_{t=1}^{T-1} \xi_t(i, j)}{\sum_{t=1}^{T-1} \gamma_t(i)}, \qquad \hat{B}_j(v) = \frac{\sum_{t : x_t = v} \gamma_t(j)}{\sum_{t=1}^{T} \gamma_t(j)}$$
 
-## PyTorch Implementation
+## PyTorch 구현
 
 ```python
 import torch
@@ -104,12 +99,12 @@ from typing import Dict, List, Tuple, Optional
 
 class HiddenMarkovModel:
     """
-    Hidden Markov Model with discrete emissions.
+    띄엄띄엄한 내보냄을 갖는 숨은 마르코프 모형.
 
-    Components:
-    - A: K×K transition matrix for hidden states
-    - B: K×V emission matrix (B[k,v] = P(obs=v | state=k))
-    - pi: K-dim initial state distribution
+    성분:
+    - A: 숨은 상태의 K×K 옮김 행렬
+    - B: K×V 내보냄 행렬(B[k,v] = P(obs=v | state=k))
+    - pi: K차원 첫 상태 분포
     """
 
     def __init__(
@@ -132,10 +127,10 @@ class HiddenMarkovModel:
         self, observations: torch.Tensor
     ) -> Tuple[torch.Tensor, float]:
         """
-        Compute forward variables α_t(j) and log P(x).
+        앞쪽 변수 α_t(j)과 log P(x) 셈하기.
 
-        Returns:
-            (alpha, log_likelihood) where alpha is (T, K)
+        반환값:
+            (alpha, log_likelihood), 여기서 alpha은 (T, K)
         """
         T = len(observations)
         alpha = torch.zeros(T, self.K, dtype=torch.float64)
@@ -150,7 +145,7 @@ class HiddenMarkovModel:
     def backward_algorithm(
         self, observations: torch.Tensor
     ) -> torch.Tensor:
-        """Compute backward variables β_t(i). Returns (T, K) tensor."""
+        """뒤쪽 변수 β_t(i) 셈하기. (T, K) 텐서를 돌려준다."""
         T = len(observations)
         beta = torch.zeros(T, self.K, dtype=torch.float64)
         beta[-1] = 1.0
@@ -163,7 +158,7 @@ class HiddenMarkovModel:
     def posterior_states(
         self, observations: torch.Tensor
     ) -> torch.Tensor:
-        """Compute γ_t(j) = P(Z_t = j | x). Returns (T, K) tensor."""
+        """γ_t(j) = P(Z_t = j | x) 셈하기. (T, K) 텐서를 돌려준다."""
         alpha, _ = self.forward_algorithm(observations)
         beta = self.backward_algorithm(observations)
         gamma = alpha * beta
@@ -173,9 +168,9 @@ class HiddenMarkovModel:
         self, observations: torch.Tensor
     ) -> Tuple[List[int], float]:
         """
-        Find most likely hidden state sequence (log-space).
+        가장 그럴듯한 숨은 상태 늘어놓음 찾기(로그 공간).
 
-        Returns:
+        반환값:
             (best_path, log_probability)
         """
         T = len(observations)
@@ -209,12 +204,12 @@ class HiddenMarkovModel:
         max_iter: int = 100,
         tol: float = 1e-6
     ) -> Dict:
-        """Baum-Welch (EM) for parameter estimation."""
+        """매개변수 어림을 위한 바움-웰치(EM)."""
         T = len(observations)
         log_likelihoods = []
 
         for iteration in range(max_iter):
-            # E-step
+            # E 걸음
             alpha, ll = self.forward_algorithm(observations)
             beta = self.backward_algorithm(observations)
             log_likelihoods.append(ll)
@@ -234,7 +229,7 @@ class HiddenMarkovModel:
                 )
                 xi[t] = numerator / numerator.sum()
 
-            # M-step
+            # M 걸음
             self.pi = gamma[0]
             self.A = xi.sum(dim=0) / gamma[:-1].sum(dim=0).unsqueeze(1)
 
@@ -250,7 +245,7 @@ class HiddenMarkovModel:
         }
 
     def simulate(self, n_steps: int) -> Tuple[List[int], List[int]]:
-        """Simulate hidden states and observations."""
+        """숨은 상태와 관측 흉내내기."""
         states, observations = [], []
         state = torch.multinomial(self.pi.float(), 1).item()
 
@@ -263,12 +258,12 @@ class HiddenMarkovModel:
         return states, observations
 ```
 
-## Application: Market Regime Detection
+## 쓰임새: 시장 국면 찾기
 
 ```python
 def demonstrate_hmm_regime_detection():
     """
-    Detect bull/bear market regimes from observed price movements.
+    관측한 값 움직임으로 강세장과 약세장 국면 알아내기.
     """
     print("HMM: Market Regime Detection")
     print("=" * 70)
@@ -277,19 +272,19 @@ def demonstrate_hmm_regime_detection():
     obs_names = ['Up', 'Flat', 'Down']
 
     A = torch.tensor([
-        [0.95, 0.05],   # Bull: 95% persist
-        [0.10, 0.90]    # Bear: 90% persist
+        [0.95, 0.05],   # 강세장: 95% 이어짐
+        [0.10, 0.90]    # 약세장: 90% 이어짐
     ])
 
     B = torch.tensor([
-        [0.60, 0.30, 0.10],  # Bull: mostly Up
-        [0.15, 0.25, 0.60]   # Bear: mostly Down
+        [0.60, 0.30, 0.10],  # 강세장: 대체로 오름
+        [0.15, 0.25, 0.60]   # 약세장: 대체로 내림
     ])
 
     pi = torch.tensor([0.7, 0.3])
     hmm = HiddenMarkovModel(A, B, pi, state_names, obs_names)
 
-    # Simulate and decode
+    # 흉내내고 풀어내기
     true_states, observations = hmm.simulate(200)
     obs_tensor = torch.tensor(observations)
 
@@ -300,10 +295,10 @@ def demonstrate_hmm_regime_detection():
     print(f"Viterbi decoding accuracy: {accuracy:.1%}")
     print(f"Log-likelihood: {log_prob:.2f}")
 
-    # Posterior state probabilities
+    # 뒤확률 상태 확률
     gamma = hmm.posterior_states(obs_tensor)
 
-    # Expected regime durations
+    # 국면이 이어지는 기댓값 길이
     bull_duration = 1.0 / (1.0 - A[0, 0].item())
     bear_duration = 1.0 / (1.0 - A[1, 1].item())
     print(f"\nExpected regime durations:")
@@ -314,22 +309,22 @@ def demonstrate_hmm_regime_detection():
 demonstrate_hmm_regime_detection()
 ```
 
-## Absorbing HMMs and Credit Risk
+## 흡수 HMM과 신용 위험
 
-When the hidden Markov chain includes **absorbing states**, the model captures systems that eventually settle into terminal conditions. Credit rating migration is the canonical financial example: ratings transition stochastically over time, with Default as an absorbing state.
+숨은 마르코프 사슬에 **흡수 상태**가 있으면 그 모형은 언젠가 끝 상태에 자리 잡는 얼개를 담는다. 신용 등급의 옮겨 감이 금융의 대표적인 보기이다. 등급은 시간에 따라 확률적으로 옮겨 가며 부도가 흡수 상태이다.
 
-### Absorbing Chain Analysis
+### 흡수 사슬 분석
 
 ```python
 class AbsorbingMarkovChain:
     """
-    Analysis of absorbing Markov chains.
+    흡수 마르코프 사슬 살피기.
 
-    Canonical form: P = [[Q, R], [0, I]]
-    Key results:
-    - Fundamental matrix: N = (I - Q)^{-1}
-    - Expected absorption time: t = N·1
-    - Absorption probabilities: B = N·R
+    정준 꼴: P = [[Q, R], [0, I]]
+    핵심 결과:
+    - 바탕 행렬: N = (I - Q)^{-1}
+    - 흡수까지의 기댓값 시간: t = N·1
+    - 흡수 확률: B = N·R
     """
 
     def __init__(
@@ -346,7 +341,7 @@ class AbsorbingMarkovChain:
         self._build_canonical_form()
 
     def _classify_states(self):
-        """Identify absorbing (P[i,i]=1) and transient states."""
+        """흡수 상태(P[i,i]=1)와 지나가는 상태 가려내기."""
         self.absorbing_indices = []
         self.transient_indices = []
         for i in range(self.n_states):
@@ -367,7 +362,7 @@ class AbsorbingMarkovChain:
                                 for i in self.absorbing_indices]
 
     def _build_canonical_form(self):
-        """Extract Q and R sub-matrices."""
+        """Q과 R 부분 행렬 뽑아내기."""
         reordered = self.transient_indices + self.absorbing_indices
         P_c = self.P[torch.tensor(reordered)][:, torch.tensor(reordered)]
         t = self.n_transient
@@ -412,13 +407,13 @@ class AbsorbingMarkovChain:
                 for i, n in enumerate(self.transient_names)}
 ```
 
-### Credit Rating Transitions
+### 신용 등급의 옮겨 감
 
 ```python
 class CreditRatingModel:
     """
-    Credit rating migration as an absorbing Markov chain.
-    Default (D) is the absorbing state.
+    흡수 마르코프 사슬로 본 신용 등급 옮김.
+    부도(D)가 흡수 상태이다.
     """
 
     def __init__(self, transition_matrix: torch.Tensor, ratings: List[str]):
@@ -430,7 +425,7 @@ class CreditRatingModel:
     def cumulative_default_prob(
         self, initial_rating: str, max_horizon: int = 10
     ) -> torch.Tensor:
-        """P(Default by time t | Rating_0 = initial_rating)."""
+        """P(시간 t까지 부도 | Rating_0 = initial_rating)."""
         idx = self.ratings.index(initial_rating)
         cum_probs = torch.zeros(max_horizon)
         for t in range(1, max_horizon + 1):
@@ -442,7 +437,7 @@ class CreditRatingModel:
         self, portfolio: Dict[str, float], horizon: int,
         lgd: float = 0.6, n_simulations: int = 10000
     ) -> Dict:
-        """Credit Value at Risk via Monte Carlo."""
+        """몬테카를로로 구하는 신용 위험 가치."""
         losses = []
         for _ in range(n_simulations):
             total_loss = 0
@@ -467,7 +462,7 @@ class CreditRatingModel:
 
 
 def demonstrate_credit_transitions():
-    """Credit rating model with default probabilities and VaR."""
+    """부도 확률과 VaR을 갖는 신용 등급 모형."""
     print("\nCredit Rating Transition Model")
     print("=" * 70)
 
@@ -485,7 +480,7 @@ def demonstrate_credit_transitions():
 
     model = CreditRatingModel(P, ratings)
 
-    # Cumulative default probabilities
+    # 쌓인 부도 확률
     print("\nCumulative Default Probabilities:")
     print("-" * 50)
     header = "Rating  " + "  ".join(f"Year {t}" for t in range(1, 6))
@@ -495,14 +490,14 @@ def demonstrate_credit_transitions():
         row = f"{rating:6}  " + "  ".join(f"{pd:6.2%}" for pd in cum_pds)
         print(row)
 
-    # Absorbing chain analysis
+    # 흡수 사슬 살피기
     chain = AbsorbingMarkovChain(P, state_names=ratings)
     times = chain.expected_absorption_time()
     print("\nExpected Years to Default (from transient states):")
     for state, t in times.items():
         print(f"  {state}: {t:.1f} years")
 
-    # Portfolio VaR
+    # 포트폴리오 VaR
     portfolio = {
         'AAA': 10e6, 'AA': 25e6, 'A': 35e6,
         'BBB': 20e6, 'BB': 8e6, 'B': 2e6
@@ -518,23 +513,23 @@ def demonstrate_credit_transitions():
 demonstrate_credit_transitions()
 ```
 
-### Gambler's Ruin Example
+### 노름꾼의 파산 보기
 
-The classic gambler's ruin problem illustrates absorbing chain analysis:
+고전적인 노름꾼의 파산 문제가 흡수 사슬 분석을 보여 준다:
 
 ```python
 def demonstrate_gamblers_ruin():
-    """Gambler's ruin as an absorbing Markov chain."""
+    """흡수 마르코프 사슬로 본 노름꾼의 파산."""
     print("\nGambler's Ruin (Target = \$4)")
     print("=" * 70)
 
     states = ['$0 (Broke)', '\$1', '\$2', '\$3', '\$4 (Win)']
     P = torch.tensor([
-        [1.0, 0.0, 0.0, 0.0, 0.0],  # \$0: absorbing
+        [1.0, 0.0, 0.0, 0.0, 0.0],  # \$0: 흡수
         [0.5, 0.0, 0.5, 0.0, 0.0],  # \$1
         [0.0, 0.5, 0.0, 0.5, 0.0],  # \$2
         [0.0, 0.0, 0.5, 0.0, 0.5],  # \$3
-        [0.0, 0.0, 0.0, 0.0, 1.0]   # \$4: absorbing
+        [0.0, 0.0, 0.0, 0.0, 1.0]   # \$4: 흡수
     ])
 
     chain = AbsorbingMarkovChain(P, state_names=states)
@@ -554,17 +549,17 @@ def demonstrate_gamblers_ruin():
 demonstrate_gamblers_ruin()
 ```
 
-## Regime-Switching Return Models
+## 국면 전환 수익률 모형
 
-Combining HMMs with continuous emissions gives **regime-switching models** widely used in quantitative finance:
+HMM에 이어진 방출을 합치면 계량 금융에서 널리 쓰는 **국면 전환 모형**이 된다:
 
 ```python
 import numpy as np
 
 class RegimeSwitchingModel:
     """
-    Regime-switching model: hidden Markov chain drives
-    regime-specific return distributions.
+    국면 바뀜 모형: 숨은 마르코프 사슬이
+    국면마다 다른 수익 분포를 이끈다.
 
     r_t | S_t = k ~ N(μ_k, σ_k²)
     """
@@ -594,7 +589,7 @@ class RegimeSwitchingModel:
     def simulate(
         self, n_periods: int, initial_regime: int = None
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Simulate returns and regime labels."""
+        """수익과 국면 이름표 흉내내기."""
         if initial_regime is None:
             initial_regime = torch.multinomial(
                 self.stationary.float(), 1
@@ -622,18 +617,18 @@ class RegimeSwitchingModel:
         return {'mean': mean.item(), 'std': var.sqrt().item()}
 
     def regime_duration(self) -> Dict[str, float]:
-        """E[duration] = 1/(1 - P[k,k])."""
+        """E[이어지는 길이] = 1/(1 - P[k,k])."""
         return {self.regime_names[k]: 1 / (1 - self.P[k, k].item())
                 for k in range(self.n_regimes)}
 
 
 def demonstrate_regime_switching():
-    """Two-regime bull/bear model for daily returns."""
+    """날마다의 수익을 다루는 두 국면 강세장/약세장 모형."""
     print("\nRegime-Switching Return Model")
     print("=" * 70)
 
     P = torch.tensor([[0.95, 0.05], [0.10, 0.90]])
-    means = torch.tensor([0.0005, -0.0003])    # Daily
+    means = torch.tensor([0.0005, -0.0003])    # 날마다
     stds = torch.tensor([0.01, 0.025])
 
     model = RegimeSwitchingModel(P, means, stds, ['Bull', 'Bear'])
@@ -653,47 +648,47 @@ def demonstrate_regime_switching():
 demonstrate_regime_switching()
 ```
 
-## Connection to MCMC
+## MCMC과의 이음
 
-HMMs motivate the transition from exact inference to MCMC:
+HMM은 정확한 추론에서 MCMC으로 넘어가는 까닭을 준다:
 
-| HMM Inference | Limitation | MCMC Solution |
+| HMM 추론 | 한계 | MCMC의 풀이 |
 |--------------|------------|---------------|
-| Forward-backward | Requires discrete, finite hidden states | MCMC handles continuous latent variables |
-| Viterbi | MAP only, no uncertainty quantification | MCMC provides full posterior samples |
-| Baum-Welch | Local optima, point estimates | MCMC explores full parameter posterior |
-| Exact computation | $O(K^2 T)$ per sequence | MCMC scales to high-dimensional latents |
+| 앞뒤 알고리즘 | 숨은 상태가 이산이고 끝이 있어야 한다 | MCMC은 이어진 숨은 변수를 다룬다 |
+| 비터비 | MAP만 주고 불확실함을 재지 않는다 | MCMC은 온전한 뒤확률 표본을 준다 |
+| 바움-웰치 | 국소 최적점, 점 어림값 | MCMC은 매개변수 뒤확률 전체를 살펴본다 |
+| 정확한 셈하기 | 차례마다 $O(K^2 T)$ | MCMC은 차원 높은 숨은 변수까지 감당한다 |
 
-When the latent space becomes continuous or high-dimensional, the exact dynamic programming algorithms of HMMs no longer apply, and we must turn to MCMC sampling—the subject of Section 18.3.
+숨은 공간이 이어져 있거나 차원이 높아지면 HMM의 정확한 동적 계획법 알고리즘을 더는 쓸 수 없고, 18.3절에서 다루는 MCMC 표집으로 돌아서야 한다.
 
-## Summary
+## 요약
 
-| Concept | Key Equation | Complexity |
+| 개념 | 핵심 식 | 복잡도 |
 |---------|-------------|-----------|
-| **Forward algorithm** | $\alpha_t(j) = [\sum_i \alpha_{t-1}(i) A_{ij}] B_j(x_t)$ | $O(K^2 T)$ |
-| **Backward algorithm** | $\beta_t(i) = \sum_j A_{ij} B_j(x_{t+1}) \beta_{t+1}(j)$ | $O(K^2 T)$ |
-| **Viterbi** | $\delta_t(j) = \max_i [\delta_{t-1}(i) A_{ij}] B_j(x_t)$ | $O(K^2 T)$ |
-| **Baum-Welch** | EM with $\gamma_t, \xi_t$ from forward-backward | $O(K^2 T)$ per iter |
-| **Fundamental matrix** | $N = (I - Q)^{-1}$ | $O(K^3)$ |
-| **Absorption probabilities** | $B = NR$ | $O(K^2 r)$ |
+| **앞 알고리즘** | $\alpha_t(j) = [\sum_i \alpha_{t-1}(i) A_{ij}] B_j(x_t)$ | $O(K^2 T)$ |
+| **뒤 알고리즘** | $\beta_t(i) = \sum_j A_{ij} B_j(x_{t+1}) \beta_{t+1}(j)$ | $O(K^2 T)$ |
+| **비터비** | $\delta_t(j) = \max_i [\delta_{t-1}(i) A_{ij}] B_j(x_t)$ | $O(K^2 T)$ |
+| **바움-웰치** | 앞뒤 알고리즘에서 얻은 $\gamma_t, \xi_t$을 쓴 EM | 되풀이마다 $O(K^2 T)$ |
+| **근본 행렬** | $N = (I - Q)^{-1}$ | $O(K^3)$ |
+| **흡수 확률** | $B = NR$ | $O(K^2 r)$ |
 
-## Exercises
-
-1. **Weather HMM.** Construct an HMM where hidden states are $\{$High Pressure, Low Pressure$\}$ and observations are $\{$Sunny, Cloudy, Rainy$\}$. Simulate data, then recover the hidden states using Viterbi decoding.
-
-2. **Baum-Welch Convergence.** Starting from random parameters, run Baum-Welch on simulated HMM data. Plot the log-likelihood over iterations and verify monotonic increase.
-
-3. **Credit Migration HMM.** Extend the credit rating model so that ratings are hidden and observed signals are financial ratios (discretized). Use the forward algorithm to compute the likelihood of an observed sequence of ratios.
-
-4. **Absorption Analysis.** For a disease progression model with states $\{$Healthy, Mild, Severe, Recovered, Deceased$\}$ (last two absorbing), compute the probability of recovery vs. death starting from each transient state.
-
-5. **Regime Detection on Real Data.** Fit a two-regime HMM to S&P 500 daily returns (discretized as Up/Flat/Down). Compare the detected regimes with known market events.
-
-## References
+## 참고 문헌
 
 1. Rabiner, L.R. "A Tutorial on Hidden Markov Models and Selected Applications in Speech Recognition." *Proceedings of the IEEE*, 77(2), 1989.
-2. Bishop, C.M. *Pattern Recognition and Machine Learning*, Chapter 13. Springer, 2006.
+2. Bishop, C.M. *Pattern Recognition and Machine Learning*, 13장. Springer, 2006.
 3. Hamilton, J.D. "A New Approach to the Economic Analysis of Nonstationary Time Series." *Econometrica*, 57(2), 1989.
-4. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, Chapter 3. Springer-Verlag, 1976.
+4. Kemeny, J.G. & Snell, J.L. *Finite Markov Chains*, 3장. Springer-Verlag, 1976.
 5. Lando, D. *Credit Risk Modeling*. Princeton University Press, 2004.
 6. Jarrow, R.A., Lando, D., & Turnbull, S.M. "A Markov Model for the Term Structure of Credit Risk Spreads." *Review of Financial Studies*, 10(2), 1997.
+
+## 연습문제
+
+1. **날씨 HMM.** 숨은 상태가 $\{$고기압, 저기압$\}$이고 관측이 $\{$맑음, 흐림, 비$\}$인 HMM을 지어라. 자료를 흉내 내어 만든 뒤 비터비 풀어내기로 숨은 상태를 되찾아라.
+
+2. **바움-웰치의 모임.** 무작위 매개변수에서 시작해 흉내 낸 HMM 자료에 바움-웰치를 돌려라. 되풀이에 따른 로그 가능도를 그리고 한결같이 커지는지 확인하여라.
+
+3. **신용 옮겨 감 HMM.** 등급이 숨어 있고 관측 신호가 (이산으로 나눈) 재무 비율이 되도록 신용 등급 모형을 넓혀라. 앞 알고리즘으로 관측한 비율 차례의 가능도를 셈하여라.
+
+4. **흡수 분석.** 상태가 $\{$건강, 가벼움, 심함, 회복, 사망$\}$인(뒤 둘이 흡수 상태) 질병 진행 모형에서, 스쳐 지나감 상태마다 회복할 확률과 사망할 확률을 셈하여라.
+
+5. **실제 자료에서 국면 찾기.** S&P 500의 날마다 수익률(오름/그대로/내림으로 이산화)에 두 국면 HMM을 맞춰라. 찾아낸 국면을 알려진 시장 사건과 견주어라.

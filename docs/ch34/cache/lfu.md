@@ -171,3 +171,43 @@ The $O(1)$ bound relies on hash map lookups and doubly-linked list operations wi
 ## Reference
 
 - Shah, K., Mitra, A., and Matani, D. (2010). "An O(1) algorithm for implementing the LFU cache eviction scheme." *Technical Report*.
+
+## Exercises
+
+**Exercise 1.**
+Describe the data structures needed to implement LFU with $O(1)$ get and put operations. What role does each structure play?
+
+??? success "Solution to Exercise 1"
+    Three structures are required: (1) A **hash map** from key to node, enabling $O(1)$ lookup of any cached item. (2) A **hash map** from frequency to a doubly-linked list (frequency bucket), where each bucket holds all items with that access count, in insertion order. (3) A **min-frequency tracker** storing the current minimum frequency in the cache. On `get(key)`: look up the node, remove it from its current frequency bucket, increment its frequency, insert into the next frequency bucket, update min-frequency if the old bucket is now empty. On `put(key, value)` when full: evict the LRU item from the min-frequency bucket (the tail of that doubly-linked list), reset min-frequency to 1 for the new item. All operations are pointer manipulations and hash lookups, each $O(1)$. $\square$
+
+---
+
+**Exercise 2.**
+Trace through an LFU cache of capacity 3 on the access sequence: put(A,1), put(B,2), put(C,3), get(B), put(D,4). Which item is evicted and why?
+
+??? success "Solution to Exercise 2"
+    After put(A,1): cache = {A:1}, frequencies: A=1, min_freq=1. After put(B,2): cache = {A:1, B:2}, frequencies: A=1, B=1, min_freq=1. After put(C,3): cache = {A:1, B:2, C:3}, frequencies: A=1, B=1, C=1, min_freq=1. After get(B): B's frequency increases to 2. Cache = {A:1, B:2, C:3}, frequencies: A=1, C=1, B=2, min_freq=1. After put(D,4): cache is full, evict the LRU item at min_freq=1. The frequency-1 bucket contains [A, C] in insertion order. The LRU (oldest) is A. Evict A. Insert D with frequency 1. Final cache = {B:2, C:3, D:4}, frequencies: C=1, D=1, B=2, min_freq=1. $\square$
+
+---
+
+**Exercise 3.**
+Explain the "frequency pollution" problem in LFU caches and propose a mitigation strategy.
+
+??? success "Solution to Exercise 3"
+    Frequency pollution occurs when items that were heavily accessed in the past but are no longer relevant accumulate high frequency counts. These "stale popular" items are nearly impossible to evict because their counts exceed those of newly inserted items (which start at frequency 1). This blocks fresh, currently relevant items from remaining in the cache. Mitigation strategies: (1) **Aging/decay**: periodically halve all frequency counts (e.g., every $T$ accesses), allowing stale items to lose their advantage. (2) **Windowed LFU**: track frequency only within a sliding window of the last $W$ accesses rather than over the entire lifetime. (3) **Hybrid policies**: combine LFU with LRU (as in LRFU or ARC) to balance frequency and recency, preventing purely frequency-based decisions from dominating. $\square$
+
+---
+
+**Exercise 4.**
+Prove that maintaining a min-frequency variable can be updated in $O(1)$ during both get and put operations without scanning all frequency buckets.
+
+??? success "Solution to Exercise 4"
+    The min-frequency variable `min_freq` changes only in two situations: (1) **put (new item)**: a new item always enters with frequency 1, so `min_freq = 1`. This is $O(1)$. (2) **get (existing item)**: the item moves from frequency $f$ to $f+1$. If $f =$ `min_freq` and the frequency-$f$ bucket becomes empty after removal, then `min_freq` must increase. Crucially, it increases to exactly $f + 1$ (not higher), because the item we just moved is now at frequency $f + 1$, guaranteeing that the $f+1$ bucket is non-empty. No scanning is needed: we simply check whether the old bucket is empty and, if so, increment `min_freq` by 1. If $f >$ `min_freq` or the old bucket is non-empty, `min_freq` is unchanged. Both cases are $O(1)$. $\square$
+
+---
+
+**Exercise 5.**
+Compare LFU and LRU on a workload consisting of $n$ items with Zipfian frequency distribution (item $i$ accessed with probability proportional to $1/i$). For a cache of size $k \ll n$, which policy achieves a higher hit rate and why?
+
+??? success "Solution to Exercise 5"
+    Under a Zipfian distribution, a small number of items account for most accesses (item 1 is accessed most, item 2 roughly half as often, etc.). LFU is better suited here because it directly identifies and retains the most frequently accessed items. After a warm-up period, LFU's cache contains items 1 through $k$ (approximately), achieving the optimal hit rate of $\sum_{i=1}^{k} 1/i \,/\, \sum_{i=1}^{n} 1/i$. LRU also performs well on Zipfian workloads because popular items are accessed recently with high probability, but it is susceptible to occasional accesses of rare items displacing popular ones. For highly skewed Zipf parameters ($\alpha > 1$), LFU's advantage grows because the gap between popular and unpopular items widens. For $\alpha$ near 0 (near-uniform), both policies perform similarly. $\square$

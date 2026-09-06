@@ -270,3 +270,43 @@ if __name__ == "__main__":
 - Selinger, P. G. et al. "Access Path Selection in a Relational Database Management System." *SIGMOD*, 1979
 - [Database System Concepts (Silberschatz, Korth, Sudarshan)](https://www.db-book.com/)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
+
+## Exercises
+
+**Exercise 1.**
+Explain the three main stages of query optimization in a relational database: parsing, logical optimization, and physical optimization.
+
+??? success "Solution to Exercise 1"
+    (1) **Parsing**: the SQL string is parsed into an abstract syntax tree (AST) and validated against the schema (table names, column types, constraints). The result is a logical query tree of relational algebra operators. (2) **Logical optimization**: the query tree is transformed using equivalence rules to reduce the expected cost. Key transformations include pushing selections below joins (reduces intermediate sizes), reordering joins (different orders have vastly different costs), and eliminating redundant projections. The optimizer explores equivalent plans and prunes suboptimal ones. (3) **Physical optimization**: each logical operator is assigned a physical implementation (e.g., hash join vs. sort-merge join, index scan vs. sequential scan). The optimizer estimates the cost of each combination using statistics (table sizes, index selectivity, histogram distributions) and selects the cheapest plan. $\square$
+
+---
+
+**Exercise 2.**
+The query `SELECT * FROM orders WHERE customer_id = 42 AND total > 100` has two predicates. Explain how the optimizer decides the order of filter application.
+
+??? success "Solution to Exercise 2"
+    The optimizer estimates the selectivity of each predicate: `customer_id = 42` might match 0.1% of rows (if there are 1000 customers), while `total > 100` might match 30%. Applying the more selective predicate first (customer_id = 42) reduces the intermediate result size more aggressively. If an index exists on `customer_id`, the optimizer uses an index scan to directly retrieve the $\approx 0.1\%$ matching rows, then applies the `total > 100` filter. Without an index, the optimizer applies both predicates during a sequential scan. The estimated result size is $|orders| \times 0.001 \times 0.3$. The optimizer assumes independence between predicates (which may be inaccurate if customer spending patterns are correlated) unless multi-column statistics or histograms indicate otherwise. $\square$
+
+---
+
+**Exercise 3.**
+A query plan uses a nested-loop join but EXPLAIN shows the optimizer chose a hash join instead. What factors might cause this choice?
+
+??? success "Solution to Exercise 3"
+    The optimizer likely estimated that hash join is cheaper based on: (1) the inner table is too large for the buffer pool, making repeated scans in nested-loop prohibitively expensive; (2) no index exists on the join column of the inner table, so each probe in nested-loop requires a sequential scan; (3) the join is an equi-join (hash join only works for equality predicates); (4) the smaller relation fits in memory after hashing, making the hash join a single pass over each table. The optimizer compares estimated I/O costs: nested-loop is $O(|R| \times |S|)$ without an index, while hash join is $O(|R| + |S|)$. For $|R| = 10{,}000$ pages and $|S| = 5{,}000$ pages, nested-loop costs $50 \times 10^6$ I/Os vs. hash join's $15{,}000$ I/Os. $\square$
+
+---
+
+**Exercise 4.**
+Explain cardinality estimation errors and how they can cause the optimizer to choose a suboptimal plan. Give a concrete example.
+
+??? success "Solution to Exercise 4"
+    The optimizer estimates the number of rows (cardinality) at each stage using statistics (histograms, distinct counts). If these estimates are wrong, the cost model selects the wrong plan. Example: a query joins `orders` and `products` with a filter `WHERE product.category = 'electronics'`. The optimizer estimates 1000 electronics products (based on a uniform distribution assumption), so it plans a hash join building a hash table on the filtered products. But actually, 100,000 products are electronics (the distribution is skewed). The hash table exceeds memory, causing spilling to disk, and the "cheap" hash join becomes expensive. A better plan would have been a sort-merge join (which handles large intermediates gracefully). Common causes of estimation errors: correlated columns assumed independent, outdated statistics, skewed distributions approximated as uniform, and multi-join error accumulation (errors multiply across joins). $\square$
+
+---
+
+**Exercise 5.**
+Modern query optimizers use "adaptive query execution." Describe this approach and explain how it mitigates cardinality estimation errors.
+
+??? success "Solution to Exercise 5"
+    Adaptive query execution monitors actual cardinalities during execution and adjusts the plan mid-flight. Instead of committing to a single plan before execution, the optimizer inserts "check points" where it compares actual row counts to estimates. If the actual count diverges significantly (e.g., 10x more rows than expected), the optimizer re-optimizes the remaining portion of the plan. Example (Spark AQE): after a shuffle stage, the system observes that one partition is 100x larger than expected. It dynamically switches from a broadcast join to a sort-merge join for that partition, or coalesces small partitions to reduce overhead. This mitigates cardinality errors because the plan adapts to reality rather than relying entirely on pre-execution estimates. The cost is additional runtime overhead for monitoring and replanning, but this is usually small compared to executing a severely suboptimal plan. $\square$

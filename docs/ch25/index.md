@@ -1,77 +1,72 @@
-# Chapter 25: Generative Adversarial Networks (GAN)
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Generative Adversarial Networks leverage a game-theoretic framework where a generator network learns to produce realistic samples by competing against a discriminator network that distinguishes real from fake data. GANs have driven major advances in image synthesis, style transfer, and data augmentation, though their training dynamics present unique challenges. This chapter covers GAN theory, architectures from DCGAN to StyleGAN2, loss functions, training stabilization techniques, conditional generation, evaluation metrics, and applications in finance and beyond.
+# 25장: 맞겨루기 만들개(GAN)
+맞겨루기 만들개는 만들개 신경망이 실제 자료와 가짜 자료를 가르는 가름개 신경망과 겨루며 그럴듯한 표본 내는 법을 배우는 놀이 이론 틀을 쓴다. 맞겨루기 만들개는 그림 만들기, 결결이 옮기기, 자료 불리기에서 큰 걸음을 이끌었으나 그 익히기 움직임에는 저만의 어려움이 있다. 이 장은 맞겨루기 만들개 이론, DCGAN에서 StyleGAN2까지의 얼개, 손실 함수, 익히기 안정시키기 재주, 조건 만들어 내기, 따지기 잣대, 돈살림을 비롯한 쓰임새를 다룬다.
 
 ---
 
-## GAN Foundations
+## 맞겨루기 만들개의 바탕
 
-- Introduction to Generative Adversarial Networks -- Overview of the GAN framework with generator-discriminator competition and core intuition.
-- [Adversarial Training](gan_foundations/adversarial.md) -- The adversarial framework, historical context, and how competition drives both networks to improve.
-- Minimax Objective -- The value function formulating generative modeling as a minimax game with binary cross-entropy.
-- [Nash Equilibrium](gan_foundations/nash.md) -- Game-theoretic analysis of GAN convergence and the conditions for equilibrium.
+- 맞겨루기 만들개 들어가기 -- 만들개와 가름개의 겨룸과 핵심 직관으로 맞겨루기 만들개 틀을 살펴본다.
+- [맞겨루기 익히기](gan_foundations/adversarial.md) -- 맞겨루기 틀, 역사의 맥락, 겨룸이 두 신경망을 어떻게 나아지게 하는지.
+- 최소최대 목표 -- 만들어 내는 모델을 두값 어긋 엔트로피를 쓴 최소최대 놀이로 적는 값 함수.
+- [내시 균형](gan_foundations/nash.md) -- 맞겨루기 만들개의 모임과 균형 조건에 대한 놀이 이론 살피기.
 
-## GAN Architectures
+## 맞겨루기 만들개 얼개
 
-- DCGAN -- Architectural guidelines for stable training of convolutional GANs that remain foundational today.
-- Progressive GAN -- Training from low to high resolution progressively for stable high-resolution image generation.
-- StyleGAN -- Style-based generation with mapping network and adaptive instance normalization for attribute control.
-- StyleGAN2 -- Refinements addressing StyleGAN artifacts through weight demodulation and improved architecture.
-- BigGAN -- Scaling up GANs with larger batch sizes and more parameters for state-of-the-art class-conditional generation.
+- DCGAN -- 오늘날에도 바탕이 되는, 겹말기 맞겨루기 만들개를 안정되게 익히기 위한 얼개 지침.
+- 차츰 키우는 맞겨루기 만들개 -- 해상도 높은 그림을 안정되게 만들려 낮은 해상도에서 높은 해상도로 차츰 익힌다.
+- StyleGAN -- 속성을 다스리려 옮김 신경망과 맞추어 가는 낱개 고르게 맞추기를 쓴 결결이 바탕 만들어 내기.
+- StyleGAN2 -- 무게 되돌림과 나아진 얼개로 StyleGAN의 흠을 다룬 다듬기.
+- BigGAN -- 묶음 크기와 매개변수를 키워 최고 수준의 갈래 조건 만들어 내기를 이룬다.
 
-## GAN Training
+## 맞겨루기 만들개 익히기
 
-- Training Dynamics -- How generator and discriminator evolve during training, common failure modes, and monitoring strategies.
-- Gradient Penalties -- Enforcing Lipschitz constraints by penalizing discriminator gradients for stable training.
-- Spectral Normalization -- Constraining the discriminator's Lipschitz constant by normalizing weight matrices by their spectral norm.
-- Two-Timescale Update Rule (TTUR) -- Using different learning rates for generator and discriminator with convergence guarantees.
-- Mode Collapse -- Diagnosis and mitigation of the most common GAN failure mode where the generator produces limited variety.
+- 익히기 움직임 -- 익히는 동안 만들개와 가름개가 어떻게 바뀌는지, 흔한 잘못됨, 지켜보는 방책.
+- 기울기 벌점 -- 안정된 익히기를 위해 가름개 기울기에 벌을 주어 립시츠 묶음을 지키게 한다.
+- 스펙트럼 고르게 맞추기 -- 무게 행렬을 그 스펙트럼 잣대로 고르게 맞추어 가름개의 립시츠 상수를 묶는다.
+- 두 시간 잣수 고침 규칙(TTUR) -- 만들개와 가름개에 서로 다른 배움 빠르기를 써서 모임을 보장한다.
+- 봉우리 무너짐 -- 만들개가 다양함을 잃는 가장 흔한 잘못됨을 짚어내고 누그러뜨리기.
 
-## GAN Losses
+## 맞겨루기 만들개 손실
 
-- [Original GAN Loss](gan_losses/original.md) -- The original minimax game formulation with binary cross-entropy classification.
-- Wasserstein Loss (WGAN) -- Replacing Jensen-Shannon divergence with the Wasserstein distance for stable training and meaningful loss values.
-- WGAN-GP -- Improving WGAN by replacing weight clipping with gradient penalty for the Lipschitz constraint.
-- Least Squares GAN -- Replacing cross-entropy with mean squared error for more stable gradients and higher quality samples.
-- Hinge Loss -- Simple and effective loss used in Spectral Normalization GAN and BigGAN.
+- [본디 맞겨루기 만들개 손실](gan_losses/original.md) -- 두값 어긋 엔트로피 가르기를 쓴 본디 최소최대 놀이의 적기.
+- 바서슈타인 손실(WGAN) -- 안정된 익히기와 뜻있는 손실 값을 위해 젠슨-섀넌 벌어짐을 바서슈타인 거리로 바꾼다.
+- WGAN-GP -- 립시츠 묶음에 무게 자르기 대신 기울기 벌점을 써서 WGAN을 개선한다.
+- 최소 제곱 맞겨루기 만들개 -- 더 안정된 기울기와 품질 높은 표본을 위해 어긋 엔트로피를 평균 제곱 어긋남으로 바꾼다.
+- 경첩 손실 -- 스펙트럼 고르게 맞추기 맞겨루기 만들개와 BigGAN에 쓰는 단순하고 잘 듣는 손실.
 
-## Conditional GAN
+## 조건 맞겨루기 만들개
 
-- Class-Conditional GAN -- Extending GANs to generate data conditioned on class labels or other attributes.
-- Pix2Pix -- Conditional GAN for paired image-to-image translation using U-Net generator and PatchGAN discriminator.
-- CycleGAN -- Unpaired image-to-image translation using cycle consistency loss.
-- SPADE -- Spatially-adaptive normalization for high-quality image synthesis from semantic segmentation maps.
+- 갈래 조건 맞겨루기 만들개 -- 갈래 이름표나 다른 속성을 조건으로 자료를 만들도록 맞겨루기 만들개를 넓힌다.
+- Pix2Pix -- U-Net 만들개와 PatchGAN 가름개를 쓴 짝지은 그림에서 그림으로 옮기기용 조건 맞겨루기 만들개.
+- CycleGAN -- 돌기 한결같음 손실을 쓴 짝짓지 않은 그림에서 그림으로 옮기기.
+- SPADE -- 뜻 나누기 지도에서 품질 높은 그림을 만들기 위한 공간 맞춤 고르게 맞추기.
 
-## GAN Evaluation
+## 맞겨루기 만들개 따지기
 
-- Generative Model Evaluation Overview -- Comprehensive guide to evaluating generative models covering likelihood-based and perceptual metrics.
-- [Frechet Inception Distance (FID)](gan_evaluation/fid.md) -- The most widely adopted metric measuring distribution distance in Inception feature space.
-- [Inception Score (IS)](gan_evaluation/inception_score.md) -- Scalar metric capturing both quality and diversity of generated images.
-- [Precision and Recall](gan_evaluation/precision_recall.md) -- Separately measuring fidelity and diversity to diagnose mode collapse and quality issues.
-- Usage Guide -- Practical guide for running evaluation code and examples.
-- Quick Reference -- Cheat sheet of evaluation metrics with formulas, ranges, and use cases.
+- 만들어 내는 모델 따지기 살펴보기 -- 가능도 바탕 잣대와 느낌 잣대를 아우르는 두루 갖춘 길잡이.
+- [프레셰 인셉션 거리(FID)](gan_evaluation/fid.md) -- 인셉션 특징 공간에서 분포 거리를 재는 가장 널리 쓰이는 잣대.
+- [인셉션 점수(IS)](gan_evaluation/inception_score.md) -- 만든 그림의 품질과 다양함을 모두 담는 낱값 잣대.
+- [정밀도와 재현율](gan_evaluation/precision_recall.md) -- 봉우리 무너짐과 품질 문제를 짚어내려 충실함과 다양함을 따로 잰다.
+- 쓰기 길잡이 -- 따지기 코드와 보기를 돌리는 쓸모 있는 길잡이.
+- 빠른 참고 -- 공식, 범위, 쓰임새를 담은 따지기 잣대 요약표.
 
-## Finance Applications
+## 금융에서의 쓰임새
 
-- Market Data Generation -- GAN-based scenario generation, market simulation, and synthetic data for financial institutions.
-- Tail Risk Modeling -- Modeling extreme events and tail risks where traditional parametric models fail.
+- 저자 자료 만들어 내기 -- 맞겨루기 만들개에 바탕한 시나리오 만들기, 저자 흉내 내기, 돈살림 기관을 위한 인공 자료.
+- 꼬리 위험 나타내기 -- 예전의 매개변수 모델이 통하지 않는 끝값 사건과 꼬리 위험을 나타낸다.
 
-## Advanced Topics
+## 더 깊은 주제
 
-- High-Dimensional Data Synthesis -- Extending GANs beyond 2D images to audio, video, 3D shapes, and other complex data.
-- GANs in Reinforcement Learning -- Connections between adversarial training and RL including imitation learning and world models.
-- Self-Supervised Learning in GANs -- Auxiliary self-supervised tasks for improved training stability, sample quality, and diversity.
-- Broader GAN Applications -- Applications in image super-resolution, healthcare, scientific research, and beyond.
+- 차원 높은 자료 만들기 -- 맞겨루기 만들개를 2차원 그림 너머 소리, 영상, 3차원 모양, 그 밖의 복잡한 자료로 넓힌다.
+- 강화 배움에서의 맞겨루기 만들개 -- 흉내 배움과 세상 모델을 비롯해 맞겨루기 익히기와 강화 배움의 이음.
+- 맞겨루기 만들개에서의 스스로 이끄는 배움 -- 익히기의 안정, 표본 품질, 다양함을 높이는 곁 스스로 이끄는 과제.
+- 더 넓은 맞겨루기 만들개 쓰임새 -- 그림 해상도 높이기, 건강 돌봄, 과학 연구를 비롯한 쓰임새.
 
-## GAN Applications and Training
+## 맞겨루기 만들개의 쓰임새와 익히기
 
-- Mode Collapse (Practical) -- Practical diagnosis and mitigation strategies for mode collapse in GAN training.
+- 봉우리 무너짐(실제) -- 맞겨루기 만들개 익히기에서 봉우리 무너짐을 짚어내고 누그러뜨리는 실제 방책.
 
-## Adversarial Robustness
+## 맞겨루기 튼튼함
 
-- [Adversarial Attacks](adversarial_robustness/attacks.md) -- Fundamentals of adversarial attacks that manipulate models with imperceptible perturbations.
-- Defense Mechanisms -- Techniques to defend neural networks against adversarial attacks including adversarial training and certified defenses.
+- [맞겨루기 공격](adversarial_robustness/attacks.md) -- 알아챌 수 없는 흔들림으로 모델을 주무르는 맞겨루기 공격의 바탕.
+- 막기 얼개 -- 맞겨루기 익히기와 보증된 막기를 비롯해 맞겨루기 공격에서 신경망을 지키는 재주.

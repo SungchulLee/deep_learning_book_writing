@@ -1,88 +1,90 @@
-# Generalized Zero-Shot Learning
+# 일반화된 영 예시 학습
+## 개요
 
+일반화된 영 예시 학습(GZSL)은 여느 ZSL을, 시험 사례가 본 부류에서도 못 본 부류에서도 올 수 있는 더 현실에 가까운 상황으로 넓힌다. 이 절은 GZSL의 문제 정식화, 평가 지표, 그리고 본 부류 쪽 치우침을 다루는 기법을 살핀다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 문제 정식화
 
-## Overview
+### 여느 ZSL과 GZSL
 
-Generalized Zero-Shot Learning (GZSL) extends conventional ZSL to a more realistic setting where test instances may come from either seen or unseen classes. This section covers the GZSL problem formulation, evaluation metrics, and techniques to address the bias toward seen classes.
+**여느 ZSL:**
 
-## Problem Formulation
+- 학습: 본 부류 $\mathcal{Y}^s$으로 배운다
+- 시험: 못 본 부류 $\mathcal{Y}^u$에서만 맞힌다
+- 가정: 시험 사례가 못 본 부류에서 왔음을 안다
 
-### Conventional ZSL vs GZSL
+**일반화된 ZSL:**
 
-**Conventional ZSL:**
-- Training: Learn on seen classes $\mathcal{Y}^s$
-- Testing: Predict only on unseen classes $\mathcal{Y}^u$
-- Assumption: Test instances are known to be from unseen classes
+- 학습: 본 부류 $\mathcal{Y}^s$으로 배운다
+- 시험: 모든 부류 $\mathcal{Y}^s \cup \mathcal{Y}^u$에서 맞힌다
+- 시험 사례가 어느 영역에 드는지에 대한 가정이 없다
 
-**Generalized ZSL:**
-- Training: Learn on seen classes $\mathcal{Y}^s$
-- Testing: Predict on all classes $\mathcal{Y}^s \cup \mathcal{Y}^u$
-- No assumption about which domain test instances belong to
+### 형식적 정의
 
-### Formal Definition
+다음이 주어졌다고 하자.
 
-Given:
-- Training set: $\mathcal{D}^{tr} = \{(\mathbf{x}_i, y_i) : y_i \in \mathcal{Y}^s\}$
-- Test set: $\mathcal{D}^{te} = \{(\mathbf{x}_j, y_j) : y_j \in \mathcal{Y}^s \cup \mathcal{Y}^u\}$
-- Semantic embeddings for all classes
+- 학습 집합: $\mathcal{D}^{tr} = \{(\mathbf{x}_i, y_i) : y_i \in \mathcal{Y}^s\}$
+- 시험 집합: $\mathcal{D}^{te} = \{(\mathbf{x}_j, y_j) : y_j \in \mathcal{Y}^s \cup \mathcal{Y}^u\}$
+- 모든 부류에 대한 뜻 묻힘
 
-Goal: Learn a classifier $f: \mathcal{X} \rightarrow \mathcal{Y}^s \cup \mathcal{Y}^u$
+목표: 가려내개 $f: \mathcal{X} \rightarrow \mathcal{Y}^s \cup \mathcal{Y}^u$을 배운다
 
-### The Bias Problem
+### 치우침 문제
 
-Models trained on seen classes exhibit strong **bias toward seen classes**:
+본 부류로 익힌 모델은 **본 부류 쪽으로 크게 치우친다**.
 
 $$P(\hat{y} \in \mathcal{Y}^s | y \in \mathcal{Y}^u) >> P(\hat{y} \in \mathcal{Y}^u | y \in \mathcal{Y}^u)$$
 
-**Causes:**
-1. Seen class features are in-distribution for the trained model
-2. Compatibility scores are naturally higher for seen classes
-3. Visual features may be more discriminative for seen classes
+**까닭:**
 
-**Example:**
-- Seen accuracy: 85%
-- Unseen accuracy: 5%
-- Model almost always predicts seen classes!
+1. 본 부류의 특징은 익힌 모델에게 분포 안에 있다
+2. 어울림 점수가 본 부류에서 자연스레 더 높다
+3. 시각 특징이 본 부류에서 더 가름 힘이 있을 수 있다
 
-## Evaluation Metrics
+**예:**
 
-### Per-Domain Accuracy
+- 본 부류 정확도: 85%
+- 못 본 부류 정확도: 5%
+- 모델이 거의 늘 본 부류를 내놓는다!
 
-**Accuracy on seen classes:**
+## 평가 지표
+
+### 영역마다의 정확도
+
+**본 부류에서의 정확도:**
 
 $$\text{acc}^s = \frac{1}{|\mathcal{D}^{te}_s|} \sum_{(\mathbf{x}, y) \in \mathcal{D}^{te}_s} \mathbb{1}[f(\mathbf{x}) = y]$$
 
-**Accuracy on unseen classes:**
+**못 본 부류에서의 정확도:**
 
 $$\text{acc}^u = \frac{1}{|\mathcal{D}^{te}_u|} \sum_{(\mathbf{x}, y) \in \mathcal{D}^{te}_u} \mathbb{1}[f(\mathbf{x}) = y]$$
 
-### Harmonic Mean (Primary GZSL Metric)
+### 조화 평균(GZSL의 으뜸 지표)
 
 $$H = \frac{2 \times \text{acc}^s \times \text{acc}^u}{\text{acc}^s + \text{acc}^u}$$
 
-**Properties:**
-- Penalizes imbalance between seen and unseen performance
-- $H = 0$ if either $\text{acc}^s = 0$ or $\text{acc}^u = 0$
-- $H = 1$ only if both accuracies are perfect
-- Symmetric: treats seen and unseen equally
+**성질:**
 
-**Why Harmonic Mean?**
-- Arithmetic mean would allow a model predicting all seen to score well
-- Harmonic mean forces balance between domains
-- Reflects real-world utility where both domains matter
+- 본 부류와 못 본 부류의 성능이 치우치면 벌을 준다
+- $\text{acc}^s = 0$이거나 $\text{acc}^u = 0$이면 $H = 0$이다
+- 두 정확도가 모두 완벽할 때만 $H = 1$이다
+- 대칭적이다. 본 부류와 못 본 부류를 똑같이 다룬다
 
-### Area Under Seen-Unseen Curve (AUSUC)
+**왜 조화 평균인가?**
 
-Plot $\text{acc}^s$ vs $\text{acc}^u$ for different calibration parameters:
+- 산술 평균이라면 모두 본 부류로 내놓는 모델도 좋은 점수를 받을 수 있다
+- 조화 평균은 두 영역 사이의 균형을 강요한다
+- 두 영역이 모두 중요한 현실의 쓸모를 비춘다
+
+### 본 부류-못 본 부류 곡선 아래 넓이(AUSUC)
+
+눈금 맞춤 매개변수를 바꾸어 가며 $\text{acc}^s$과 $\text{acc}^u$을 그린다.
 
 $$\text{AUSUC} = \int_0^1 \text{acc}^s(\text{acc}^u) \, d(\text{acc}^u)$$
 
-This captures the full tradeoff space, not just a single operating point.
+이는 한 작동점만이 아니라 맞바꿈 공간 전체를 담아낸다.
 
-### Evaluation Code
+### 평가 코드
 
 ```python
 import numpy as np
@@ -90,38 +92,38 @@ from collections import defaultdict
 
 def evaluate_gzsl(predictions, labels, seen_classes, unseen_classes):
     """
-    Comprehensive GZSL evaluation.
+    GZSL을 두루 평가하기.
     
-    Args:
-        predictions: Predicted class names
-        labels: True class names
-        seen_classes: List of seen class names
-        unseen_classes: List of unseen class names
+    인수:
+        predictions: 맞힌 부류 이름
+        labels: 참 부류 이름
+        seen_classes: 본 부류 이름 목록
+        unseen_classes: 못 본 부류 이름 목록
     
-    Returns:
-        Dictionary with all metrics
+    반환값:
+        모든 지표를 담은 사전
     """
     predictions = np.array(predictions)
     labels = np.array(labels)
     
-    # Masks for seen and unseen test samples
+    # 본 부류와 못 본 부류 시험 표본의 가리개
     seen_mask = np.isin(labels, seen_classes)
     unseen_mask = np.isin(labels, unseen_classes)
     
-    # Per-domain accuracy
+    # 영역별 정확도
     acc_seen = np.mean(predictions[seen_mask] == labels[seen_mask]) if seen_mask.sum() > 0 else 0
     acc_unseen = np.mean(predictions[unseen_mask] == labels[unseen_mask]) if unseen_mask.sum() > 0 else 0
     
-    # Harmonic mean
+    # 조화 평균
     if acc_seen + acc_unseen > 0:
         harmonic = 2 * acc_seen * acc_unseen / (acc_seen + acc_unseen)
     else:
         harmonic = 0
     
-    # Overall accuracy
+    # 전체 정확도
     overall = np.mean(predictions == labels)
     
-    # Per-class accuracy
+    # 클래스별 정확도
     per_class_acc = {}
     for cls in np.unique(labels):
         cls_mask = labels == cls
@@ -136,40 +138,40 @@ def evaluate_gzsl(predictions, labels, seen_classes, unseen_classes):
     }
 ```
 
-## Calibration Techniques
+## 눈금 맞춤 기법
 
-### Threshold Calibration
+### 문턱값 눈금 맞춤
 
-Add a constant offset to unseen class scores:
+못 본 부류의 점수에 상수를 더한다.
 
 $$\text{score}^{calib}_c = \begin{cases}
-\text{score}_c & \text{if } c \in \mathcal{Y}^s \\
-\text{score}_c + \gamma & \text{if } c \in \mathcal{Y}^u
+\text{score}_c & (c \in \mathcal{Y}^s) \\
+\text{score}_c + \gamma & (c \in \mathcal{Y}^u)
 \end{cases}$$
 
-where $\gamma$ is a calibration parameter optimized on validation data.
+여기서 $\gamma$은 검증 데이터로 최적화한 눈금 맞춤 매개변수이다.
 
 ```python
 def calibrated_prediction(scores_seen, scores_unseen, calibration):
     """
-    Predict with calibration.
+    눈금을 맞추어 맞힌다.
     
-    Args:
-        scores_seen: (batch, n_seen) scores for seen classes
-        scores_unseen: (batch, n_unseen) scores for unseen classes
-        calibration: Offset added to unseen scores
+    인수:
+        scores_seen: (batch, n_seen) 본 부류의 점수
+        scores_unseen: (batch, n_unseen) 못 본 부류의 점수
+        calibration: 못 본 부류 점수에 더하는 값
     
-    Returns:
-        predictions, domain (seen/unseen)
+    반환값:
+        predictions, domain(본 부류/못 본 부류)
     """
-    # Apply calibration
+    # 눈금 맞춤을 씌운다
     scores_unseen_calib = scores_unseen + calibration
     
-    # Combine scores
+    # 점수를 합친다
     max_seen = scores_seen.max(dim=1)
     max_unseen = scores_unseen_calib.max(dim=1)
     
-    # Decide domain
+    # 영역을 정한다
     predict_unseen = max_unseen.values > max_seen.values
     
     predictions = torch.where(
@@ -181,43 +183,43 @@ def calibrated_prediction(scores_seen, scores_unseen, calibration):
     return predictions, predict_unseen
 ```
 
-### Temperature Scaling
+### 온도 눈금 조절
 
-Divide seen class scores by temperature $T > 1$:
+본 부류의 점수를 온도 $T > 1$으로 나눈다.
 
 $$\text{score}^{scaled}_c = \begin{cases}
-\text{score}_c / T & \text{if } c \in \mathcal{Y}^s \\
-\text{score}_c & \text{if } c \in \mathcal{Y}^u
+\text{score}_c / T & (c \in \mathcal{Y}^s) \\
+\text{score}_c & (c \in \mathcal{Y}^u)
 \end{cases}$$
 
-This makes seen class probabilities more uniform, reducing confidence.
+이는 본 부류의 확률을 더 고르게 만들어 자신감을 낮춘다.
 
-### Finding Optimal Calibration
+### 가장 좋은 눈금 맞춤 찾기
 
 ```python
 def find_optimal_calibration(model, val_loader, class_embeddings,
                              seen_classes, unseen_classes,
                              calibration_range=np.arange(-2, 2, 0.1)):
     """
-    Find calibration that maximizes harmonic mean on validation set.
+    검증 집합에서 조화 평균을 가장 크게 하는 눈금 맞춤을 찾는다.
     """
     model.eval()
     
-    # Get all predictions and scores
+    # 모든 예측과 점수를 얻는다
     all_scores_seen = []
     all_scores_unseen = []
     all_labels = []
     
     with torch.no_grad():
         for batch_x, batch_y in val_loader:
-            # Compute scores for seen classes
+            # 본 부류의 점수를 셈한다
             seen_embs = torch.stack([
                 torch.tensor(class_embeddings[c], dtype=torch.float32)
                 for c in seen_classes
             ])
             scores_seen = model(batch_x, seen_embs)
             
-            # Compute scores for unseen classes
+            # 못 본 부류의 점수를 셈한다
             unseen_embs = torch.stack([
                 torch.tensor(class_embeddings[c], dtype=torch.float32)
                 for c in unseen_classes
@@ -232,24 +234,24 @@ def find_optimal_calibration(model, val_loader, class_embeddings,
     scores_unseen = torch.cat(all_scores_unseen)
     labels = np.array(all_labels)
     
-    # Search for optimal calibration
+    # 가장 좋은 눈금 맞춤을 찾는다
     best_harmonic = 0
     best_calibration = 0
     
     results = []
     
     for calib in calibration_range:
-        # Apply calibration
+        # 눈금 맞춤을 씌운다
         scores_unseen_calib = scores_unseen + calib
         
-        # Predict
+        # 예측한다
         all_scores = torch.cat([scores_seen, scores_unseen_calib], dim=1)
         all_classes = seen_classes + unseen_classes
         
         pred_indices = all_scores.argmax(dim=1).numpy()
         predictions = [all_classes[i] for i in pred_indices]
         
-        # Evaluate
+        # 평가한다
         metrics = evaluate_gzsl(predictions, labels, seen_classes, unseen_classes)
         
         results.append({
@@ -264,31 +266,32 @@ def find_optimal_calibration(model, val_loader, class_embeddings,
     return best_calibration, results
 ```
 
-## Gating Mechanisms
+## 문 장치
 
-### Concept
+### 개념
 
-Train a gating network to predict whether an instance belongs to seen or unseen domain:
+사례가 본 부류 영역에 드는지 못 본 부류 영역에 드는지를 맞히는 문 망을 익힌다.
 
-$$g(\mathbf{x}) = P(\text{domain} = \text{unseen} | \mathbf{x})$$
+$$g(\mathbf{x}) = P(\text{영역} = \text{못 본 부류} | \mathbf{x})$$
 
-Then route prediction:
-- If $g(\mathbf{x}) > 0.5$: Predict from unseen classes
-- Otherwise: Predict from seen classes
+그런 다음 예측의 길을 나눈다.
 
-### Implementation
+- $g(\mathbf{x}) > 0.5$이면 못 본 부류에서 맞힌다
+- 그렇지 않으면 본 부류에서 맞힌다
+
+### 구현
 
 ```python
 class GatedGZSL(nn.Module):
     """
-    GZSL model with learned gating mechanism.
+    배운 문 장치를 갖춘 GZSL 모델.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int,
                  embedding_dim: int = 256):
         super().__init__()
         
-        # Visual-semantic compatibility model
+        # 시각-뜻 어울림 모델
         self.visual_encoder = nn.Sequential(
             nn.Linear(visual_dim, 1024),
             nn.BatchNorm1d(1024),
@@ -299,7 +302,7 @@ class GatedGZSL(nn.Module):
         
         self.semantic_encoder = nn.Linear(semantic_dim, embedding_dim)
         
-        # Gating network: predicts seen vs unseen
+        # 문 망: 본 부류인지 못 본 부류인지 맞힌다
         self.gate = nn.Sequential(
             nn.Linear(visual_dim, 512),
             nn.ReLU(),
@@ -325,47 +328,46 @@ class GatedGZSL(nn.Module):
         return torch.sum(v_enc * s_enc, dim=1)
     
     def predict_gate(self, visual):
-        """Predict probability of unseen domain."""
+        """못 본 부류 영역일 확률을 맞힌다."""
         return self.gate(visual)
     
     def gated_predict(self, visual, seen_embeddings, unseen_embeddings,
                       seen_classes, unseen_classes):
         """
-        Predict with gating mechanism.
+        문 장치로 맞힌다.
         """
-        # Get gate predictions
+        # 문의 예측을 얻는다
         gate_prob = self.predict_gate(visual).squeeze()
         
-        # Get compatibility scores
+        # 어울림 점수를 얻는다
         scores_seen = self.compatibility(visual, seen_embeddings)
         scores_unseen = self.compatibility(visual, unseen_embeddings)
         
-        # Gated prediction
+        # 문을 거친 예측
         predictions = []
         for i in range(len(visual)):
             if gate_prob[i] > 0.5:
-                # Predict from unseen
+                # 못 본 부류에서 맞힌다
                 pred_idx = scores_unseen[i].argmax().item()
                 predictions.append(unseen_classes[pred_idx])
             else:
-                # Predict from seen
+                # 본 부류에서 맞힌다
                 pred_idx = scores_seen[i].argmax().item()
                 predictions.append(seen_classes[pred_idx])
         
         return predictions
 
-
 def train_gated_gzsl(model, train_loader, class_embeddings, 
                      seen_classes, unseen_classes, epochs=50):
     """
-    Train GZSL model with gating.
+    문을 갖춘 GZSL 모델을 익힌다.
     
-    Note: Gate training requires some unseen class samples,
-    typically from a validation split or generated features.
+    참고: 문을 익히려면 못 본 부류 표본이 조금 필요하며,
+    대개 검증 쪼갬이나 지어낸 특징에서 얻는다.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
     
-    # Prepare embeddings
+    # 묻힘을 마련한다
     seen_embs = torch.stack([
         torch.tensor(class_embeddings[c], dtype=torch.float32)
         for c in seen_classes
@@ -376,13 +378,13 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
         total_loss = 0
         
         for batch_x, batch_y in train_loader:
-            # Compatibility loss (ranking)
+            # 어울림 손실(순위)
             pos_emb = torch.stack([
                 torch.tensor(class_embeddings[y], dtype=torch.float32)
                 for y in batch_y
             ])
             
-            # Random negative
+            # 아무렇게나 고른 음의 보기
             neg_idx = torch.randint(0, len(seen_classes), (len(batch_y),))
             neg_emb = seen_embs[neg_idx]
             
@@ -391,11 +393,11 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
             
             ranking_loss = torch.clamp(0.2 - pos_score + neg_score, min=0).mean()
             
-            # Gate loss (all training samples are from seen domain)
+            # 문 손실(학습 표본은 모두 본 부류 영역에서 온다)
             gate_pred = model.predict_gate(batch_x)
             gate_loss = F.binary_cross_entropy(gate_pred, torch.zeros_like(gate_pred))
             
-            # Combined loss
+            # 결합된 손실
             loss = ranking_loss + 0.5 * gate_loss
             
             optimizer.zero_grad()
@@ -408,28 +410,28 @@ def train_gated_gzsl(model, train_loader, class_embeddings,
             print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(train_loader):.4f}")
 ```
 
-## Generative Approaches
+## 생성 접근법
 
-### Concept
+### 개념
 
-Generate synthetic visual features for unseen classes, then train a standard classifier:
+못 본 부류의 시각 특징을 지어낸 다음 보통의 가려내개를 익힌다.
 
 $$G: \mathcal{S} \times \mathcal{Z} \rightarrow \mathcal{V}$$
 
-where $\mathcal{Z}$ is a noise distribution.
+여기서 $\mathcal{Z}$은 잡음 분포이다.
 
-### Feature Generation with VAE
+### VAE로 특징 지어내기
 
 ```python
 class FeatureVAE(nn.Module):
     """
-    VAE for generating visual features from semantic embeddings.
+    뜻 묻힘에서 시각 특징을 지어내는 VAE.
     """
     
     def __init__(self, visual_dim: int, semantic_dim: int, latent_dim: int = 64):
         super().__init__()
         
-        # Encoder: visual + semantic -> latent
+        # 부호기: 시각 + 뜻 -> 숨은 값
         self.encoder = nn.Sequential(
             nn.Linear(visual_dim + semantic_dim, 512),
             nn.ReLU(),
@@ -439,7 +441,7 @@ class FeatureVAE(nn.Module):
         self.fc_mu = nn.Linear(256, latent_dim)
         self.fc_var = nn.Linear(256, latent_dim)
         
-        # Decoder: latent + semantic -> visual
+        # 복호기: 숨은 값 + 뜻 -> 시각
         self.decoder = nn.Sequential(
             nn.Linear(latent_dim + semantic_dim, 256),
             nn.ReLU(),
@@ -469,14 +471,13 @@ class FeatureVAE(nn.Module):
         return recon, mu, logvar
     
     def generate(self, semantic, n_samples=1):
-        """Generate visual features for given semantic embedding."""
+        """주어진 뜻 묻힘의 시각 특징을 지어낸다."""
         z = torch.randn(n_samples, self.fc_mu.out_features)
         semantic_expanded = semantic.unsqueeze(0).expand(n_samples, -1)
         return self.decode(z, semantic_expanded)
 
-
 def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
-    """Train feature VAE."""
+    """특징 VAE를 익힌다."""
     optimizer = torch.optim.Adam(vae.parameters(), lr=0.001)
     
     for epoch in range(epochs):
@@ -491,10 +492,10 @@ def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
             
             recon, mu, logvar = vae(batch_v, batch_s)
             
-            # Reconstruction loss
+            # 되살림 손실
             recon_loss = F.mse_loss(recon, batch_v)
             
-            # KL divergence
+            # KL 벌어짐
             kl_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
             kl_loss = kl_loss / batch_v.shape[0]
             
@@ -509,10 +510,9 @@ def train_feature_vae(vae, train_loader, class_embeddings, epochs=100):
         if (epoch + 1) % 20 == 0:
             print(f"Epoch {epoch+1}/{epochs}, Loss: {total_loss/len(train_loader):.4f}")
 
-
 def generate_unseen_features(vae, class_embeddings, unseen_classes, 
                               n_per_class=100):
-    """Generate synthetic features for unseen classes."""
+    """못 본 부류의 특징을 지어낸다."""
     vae.eval()
     
     X_gen = []
@@ -529,35 +529,35 @@ def generate_unseen_features(vae, class_embeddings, unseen_classes,
     return torch.cat(X_gen), y_gen
 ```
 
-## Transductive GZSL
+## 전달적 GZSL
 
-### Concept
+### 개념
 
-Leverage unlabeled test data during training to adapt to unseen class distributions.
+학습 중에 이름표 없는 시험 데이터를 끌어 써서 못 본 부류의 분포에 맞추어 간다.
 
-### Self-Training Approach
+### 스스로 익히기 접근법
 
 ```python
 def transductive_gzsl(model, train_loader, test_loader, 
                       class_embeddings, seen_classes, unseen_classes,
                       iterations=5, confidence_threshold=0.9):
     """
-    Transductive GZSL with self-training.
+    스스로 익히기를 쓰는 전달적 GZSL.
     """
-    # Initial training on seen classes
+    # 본 부류로 처음 익히기
     train_model(model, train_loader, class_embeddings, seen_classes)
     
     for iteration in range(iterations):
         print(f"\nTransductive iteration {iteration + 1}/{iterations}")
         
-        # Predict on test data
+        # 시험 데이터에서 맞힌다
         model.eval()
         pseudo_X = []
         pseudo_y = []
         
         with torch.no_grad():
             for batch_x, _ in test_loader:
-                # Get predictions with confidence
+                # 자신감과 함께 예측을 얻는다
                 all_classes = seen_classes + unseen_classes
                 all_embs = torch.stack([
                     torch.tensor(class_embeddings[c], dtype=torch.float32)
@@ -569,7 +569,7 @@ def transductive_gzsl(model, train_loader, test_loader,
                 
                 max_probs, pred_indices = probs.max(dim=1)
                 
-                # Keep high-confidence predictions on unseen classes
+                # 못 본 부류에 대한 자신감 높은 예측만 남긴다
                 for i in range(len(batch_x)):
                     if max_probs[i] > confidence_threshold:
                         pred_class = all_classes[pred_indices[i]]
@@ -580,26 +580,59 @@ def transductive_gzsl(model, train_loader, test_loader,
         if len(pseudo_X) > 0:
             print(f"  Added {len(pseudo_X)} pseudo-labeled unseen samples")
             
-            # Combine with training data
-            # ... (create combined dataset and retrain)
+            # 학습 데이터와 합친다
+            # ... (합친 데이터셋을 만들고 다시 익힌다)
         else:
             print("  No confident predictions on unseen classes")
             break
 ```
 
-## Summary
+## 요약
 
-Generalized Zero-Shot Learning presents significant challenges beyond conventional ZSL:
+일반화된 영 예시 학습은 여느 ZSL을 넘어서는 큰 어려움을 안긴다.
 
-1. **Bias toward seen classes** is the primary obstacle in GZSL
-2. **Harmonic mean** is the standard evaluation metric, penalizing imbalanced performance
-3. **Calibration techniques** (threshold, temperature) can adjust the seen-unseen balance
-4. **Gating mechanisms** learn to route predictions to the appropriate domain
-5. **Generative approaches** synthesize features for unseen classes, converting GZSL to supervised learning
-6. **Transductive methods** leverage unlabeled test data for domain adaptation
+1. **본 부류 쪽 치우침**이 GZSL의 으뜸가는 걸림돌이다
+2. **조화 평균**이 표준 평가 지표이며 치우친 성능에 벌을 준다
+3. **눈금 맞춤 기법**(문턱값, 온도)으로 본 부류와 못 본 부류의 균형을 손볼 수 있다
+4. **문 장치**는 예측을 알맞은 영역으로 보내는 법을 배운다
+5. **생성 접근법**은 못 본 부류의 특징을 지어내어 GZSL을 지도 학습으로 바꾼다
+6. **전달적 방법**은 영역 적응을 위해 이름표 없는 시험 데이터를 끌어 쓴다
 
-Best practices:
-- Always evaluate using harmonic mean, not just overall accuracy
-- Cross-validate calibration parameters on a held-out validation set
-- Consider generative approaches when bias is severe
-- Report the full seen-unseen tradeoff curve (AUSUC)
+좋은 버릇은 다음과 같다.
+
+- 전체 정확도만이 아니라 늘 조화 평균으로 평가하라
+- 따로 떼어 둔 검증 집합에서 눈금 맞춤 매개변수를 교차 검증하라
+- 치우침이 심하면 생성 접근법을 생각해 보라
+- 본 부류와 못 본 부류의 맞바꿈 곡선 전체(AUSUC)를 알려라
+
+## 연습문제
+
+**연습문제 1.**
+영 예시 학습을 정의하고 소수 예시 학습과 어떻게 다른지 설명하라.
+
+??? success "연습문제 1 풀이"
+    영 예시 학습은 학습 중에 한 번도 보지 못한 부류의 사례를, 본 부류와 못 본 부류를 잇는 딸린 정보(속성, 글 설명, 낱말 묻힘)를 써서 가려낸다. 소수 예시 학습은 이름표 붙은 보기를 몇 개 쓴다. 영 예시 학습은 대상 부류의 보기가 아예 없어도 되며 오로지 뜻 표현을 거친 앎의 옮김에 기댄다.
+
+---
+
+**연습문제 2.**
+영 예시 학습의 중심 쏠림 문제와 그 다루는 법을 설명하라.
+
+??? success "연습문제 2 풀이"
+    차원이 높은 공간에서는 어떤 점('중심점')이 참 부류와 상관없이 다른 많은 점의 최근접 이웃이 된다. 그래서 최근접 이웃 기반 영 예시 분류에서 어떤 부류가 너무 자주 예측된다. 해법: 묻힘을 고르거나, 눈금 맞춘 점수 매기기를 쓰거나, 전용 거리 재기를 배운다.
+
+---
+
+**연습문제 3.**
+영 예시 학습의 속성 기반 접근법과 묻힘 기반 접근법을 견주어라.
+
+??? success "연습문제 3 풀이"
+    속성 기반: 부류마다 이진이나 이어진 속성 벡터로 그려진다(이를테면 '줄무늬가 있다', '털이 있다'). 모델은 속성을 맞히는 법을 배운 다음 부류 원형과 맞춘다. 묻힘 기반: 시각 특징과 부류 설명(이를테면 부류 이름의 word2vec)을 함께 쓰는 공간으로 옮긴다. 묻힘 방법이 규모를 키우기 쉽고 손 표시가 덜 든다.
+
+---
+
+**연습문제 4.**
+일반화된 영 예시 학습(GZSL)의 치우침 문제란 무엇인가?
+
+??? success "연습문제 4 풀이"
+    GZSL에서는 시험 때 본 부류와 못 본 부류가 함께 나온다. 모델은 본 부류로 익혔으므로 그쪽으로 치우친다. 해법: 눈금 맞춘 쌓기(본 부류 점수에서 치우침을 빼기), 본 부류와 못 본 부류를 가르는 분포 밖 알아채기, 또는 못 본 부류의 특징을 지어내는 생성 접근법.

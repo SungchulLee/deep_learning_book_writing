@@ -1,10 +1,10 @@
-# Mutual Recursion
+# 상호 재귀
 
-Mutual recursion occurs when two or more functions call each other in a cycle: function A calls function B, which in turn calls function A. This pattern appears when a problem naturally decomposes into alternating phases — such as parsing nested expressions, or determining parity.
+상호 재귀는 둘 이상의 함수가 순환하며 서로를 호출할 때 나타난다. 함수 A가 함수 B를 호출하고 B가 다시 A를 호출하는 식이다. 이 패턴은 문제가 자연스럽게 번갈아 가는 국면으로 분해될 때 나타난다. 중첩된 식을 파싱하거나 홀짝을 판정하는 경우가 그렇다.
 
-## Structure
+## 구조
 
-In mutual recursion, no single function is self-recursive. Instead, the recursion emerges from the interaction between functions:
+상호 재귀에서는 어떤 함수도 스스로를 호출하지 않는다. 재귀는 함수들 사이의 상호작용에서 생겨난다.
 
 ```
 function A(n):
@@ -16,38 +16,38 @@ function B(n):
     return ... A(n - 1) ...
 ```
 
-## Example: Even and Odd
+## 예제: 짝수와 홀수
 
-The simplest mutual recursion determines whether a number is even or odd. A number $n$ is even if $n - 1$ is odd, and $n$ is odd if $n - 1$ is even:
+가장 단순한 상호 재귀는 수가 짝수인지 홀수인지 판정한다. $n - 1$이 홀수이면 $n$은 짝수이고, $n - 1$이 짝수이면 $n$은 홀수이다.
 
 ```python
-"""Mutual recursion demonstrated with even/odd determination."""
+"""짝수/홀수 판정으로 보여주는 상호 재귀."""
 
 
-# === Mutually Recursive Even/Odd ===
+# === 상호 재귀적인 짝수/홀수 ===
 
 def is_even(n):
-    """Return True if n is even, using mutual recursion with is_odd."""
+    """is_odd와의 상호 재귀로 n이 짝수이면 True를 반환한다."""
     if n == 0:
         return True
     return is_odd(n - 1)
 
 
 def is_odd(n):
-    """Return True if n is odd, using mutual recursion with is_even."""
+    """is_even과의 상호 재귀로 n이 홀수이면 True를 반환한다."""
     if n == 0:
         return False
     return is_even(n - 1)
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     for i in range(6):
         print(f"{i}: even={is_even(i)}, odd={is_odd(i)}")
 ```
 
-**Output:**
+**출력:**
 ```
 0: even=True, odd=False
 1: even=False, odd=True
@@ -57,10 +57,43 @@ if __name__ == "__main__":
 5: even=False, odd=True
 ```
 
-## Complexity
+## 복잡도
 
-Each call to `is_even` or `is_odd` reduces $n$ by 1, making a total of $n$ calls. Time and space are both $O(n)$. While this example is better solved with `n % 2`, mutual recursion becomes genuinely useful in recursive descent parsers and state-machine simulations.
+`is_even`이나 `is_odd`를 호출할 때마다 $n$이 1씩 줄어 총 $n$번 호출된다. 시간과 공간 모두 $O(n)$이다. 이 예제는 `n % 2`로 푸는 편이 낫지만, 상호 재귀는 재귀 하향 파서와 상태 기계 시뮬레이션에서 진짜로 유용해진다.
 
-## Reference
+## 참고 문헌
 
 [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+상호 재귀에 대해 기저 사례와 재귀 사례를 찾아라. 모든 유효한 입력에 대해 재귀가 종료됨을 증명하라.
+
+??? success "연습문제 1 풀이"
+    기저 사례는 가장 작은 유효한 입력을 직접 처리한다. 재귀 사례는 호출마다 감소하는 잘 정의된 척도로 문제 크기를 줄인다. 이 척도가 (기저 사례의 문턱값으로) 아래로 유계이면서 엄격히 감소하므로 재귀는 반드시 유한한 단계 안에 종료된다.
+
+---
+
+**연습문제 2.**
+상호 재귀의 시간 복잡도에 대한 점화식을 유도하고 풀어라.
+
+??? success "연습문제 2 풀이"
+    $T(n)$을 재귀 호출과 호출당 일의 함수로 표현한다. 이 점화식은 분기 계수, 부분문제 크기의 감소, 결합 비용을 담는다. 펼치기, 마스터 정리, 치환 중 하나로 풀어 닫힌 형태를 얻는다.
+
+---
+
+**연습문제 3.**
+$n = 8$일 때 상호 재귀의 재귀 트리를 그려라. 각 층에서의 일과 전체 일을 계산하라.
+
+??? success "연습문제 3 풀이"
+    트리의 깊이는 입력이 기저 사례까지 얼마나 빨리 줄어드는지로 정해진다. 각 층에서 모든 노드의 일을 더한다. 모든 층에 걸친 총합이 실행 시간을 준다. $n = 8$이면 트리가 작아서 전부 열거할 수 있다.
+
+---
+
+**연습문제 4.**
+재귀 구현을 반복 버전으로 변환하라. 공간 복잡도를 비교하라.
+
+??? success "연습문제 4 풀이"
+    호출 스택을 명시적 스택이나 반복 변수로 대체한다. 꼬리 재귀 형태는 while 반복문으로 곧바로 바뀐다. 꼬리가 아닌 형태는 호출 스택을 흉내 내기 위해 명시적 스택이 필요하다. 반복 버전은 보통 $O(\text{depth})$의 스택 공간을 아낀다.

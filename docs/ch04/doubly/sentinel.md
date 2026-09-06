@@ -1,67 +1,53 @@
-# Sentinel Nodes
+# 감시 노드
 
-Every doubly linked list operation -- insert at head, delete the tail, remove
-an arbitrary node -- must handle boundary cases: "Is the list empty?", "Is
-this the head?", "Is this the tail?". These checks clutter the code and
-create opportunities for bugs. A **sentinel node** (also called a dummy node)
-is a special node that sits at the boundary of the list, carrying no real
-data, whose sole purpose is to guarantee that every real node always has both
-a predecessor and a successor. This section shows how sentinels simplify
-doubly linked list code by eliminating every `None` check.
+머리에 삽입하기, 꼬리 지우기, 임의의 노드 없애기 등 이중 연결 리스트의 모든 연산은 "리스트가 비었는가?", "이것이 머리인가?", "이것이 꼬리인가?" 같은 경계 사례를 다뤄야 한다. 이런 검사는 코드를 어수선하게 만들고 버그가 생길 틈을 준다. **감시 노드**(더미 노드라고도 한다)는 리스트의 경계에 놓여 진짜 데이터를 담지 않는 특별한 노드로, 모든 진짜 노드가 언제나 앞 노드와 뒤 노드를 함께 갖도록 보장하는 것만이 그 목적이다. 이 절은 감시 노드가 모든 `None` 검사를 없애 이중 연결 리스트 코드를 어떻게 간단하게 만드는지 보여준다.
 
-## The Problem Without Sentinels
+## 감시 노드가 없을 때의 문제
 
-Consider inserting a new node after a given node `x` in a standard doubly
-linked list. Without sentinels, the code must handle two special cases:
+보통의 이중 연결 리스트에서 주어진 노드 `x` 뒤에 새 노드를 넣는 경우를 생각하자. 감시 노드가 없으면 코드가 두 가지 특별한 경우를 다뤄야 한다.
 
 ```python
-# Without sentinels -- boundary checks required
+# 보초가 없으면 -- 경계 검사가 필요하다
 def insert_after(x, new_node):
     new_node.prev = x
     new_node.next = x.next
-    if x.next is not None:        # special case: x is the tail
+    if x.next is not None:        # 특수한 경우: x가 꼬리일 때
         x.next.prev = new_node
     x.next = new_node
 ```
 
-Similarly, deletion requires checking whether the deleted node is the head or
-the tail. Every operation carries this overhead.
+마찬가지로 삭제할 때도 지울 노드가 머리인지 꼬리인지 확인해야 한다. 모든 연산이 이런 부담을 진다.
 
-## Sentinel Design
+## 감시 노드를 쓰는 설계
 
-A sentinel-based doubly linked list uses a single sentinel node `s` that
-represents both the beginning and the end of the list. The sentinel is
-connected in a circular fashion:
+감시 노드를 쓰는 이중 연결 리스트는 리스트의 시작과 끝을 함께 나타내는 감시 노드 `s` 하나를 둔다. 이 감시 노드는 원형으로 이어진다.
 
-- `s.next` points to the first real node (or back to `s` if the list is
-  empty).
-- `s.prev` points to the last real node (or back to `s` if the list is
-  empty).
+- `s.next`는 첫 번째 진짜 노드를 가리킨다(리스트가 비어 있으면 `s` 자신을 되가리킨다).
+- `s.prev`는 마지막 진짜 노드를 가리킨다(리스트가 비어 있으면 `s` 자신을 되가리킨다).
 
-An empty list is simply the sentinel pointing to itself in both directions:
+빈 리스트는 그저 감시 노드가 양쪽 방향으로 자기 자신을 가리키는 것이다.
 
 $$
 s.\text{next} = s \quad \text{and} \quad s.\text{prev} = s
 $$
 
-The sentinel is **never removed** and **never carries user data**. It exists
-purely as a structural element.
+감시 노드는 **결코 지워지지 않으며** **사용자 데이터를 담지도 않는다**. 오직 구조를 위한 요소로만 존재한다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Doubly linked list with a sentinel node.
+보초 노드를 갖는 이중 연결 리스트.
 
-The sentinel eliminates all None checks for boundary conditions,
-making insertion and deletion code uniform and concise.
+보초는 경계 조건에 대한 None 검사를 모두 없애어
+삽입과 삭제 코드를 한결같고 간결하게 만든다.
 """
 
 
-# === Node Definition ===
+# === 노드 정의 ===
 
 class Node:
-    """A node in a sentinel-based doubly linked list."""
+    """보초를 쓰는 이중 연결 리스트의 노드."""
 
     def __init__(self, data=None):
         self.data = data
@@ -69,13 +55,13 @@ class Node:
         self.next = None
 
 
-# === Sentinel-Based Doubly Linked List ===
+# === 보초를 쓰는 이중 연결 리스트 ===
 
 class SentinelDLL:
-    """Doubly linked list using a sentinel node."""
+    """보초 노드를 쓰는 이중 연결 리스트."""
 
     def __init__(self):
-        self.sentinel = Node()          # dummy node, no real data
+        self.sentinel = Node()          # 허수아비 노드, 실제 데이터 없음
         self.sentinel.next = self.sentinel
         self.sentinel.prev = self.sentinel
 
@@ -83,32 +69,32 @@ class SentinelDLL:
         return self.sentinel.next is self.sentinel
 
     def insert_after(self, x, data):
-        """Insert a new node with 'data' immediately after node x."""
+        """'data'를 담은 새 노드를 노드 x 바로 뒤에 넣는다."""
         new_node = Node(data)
         new_node.prev = x
         new_node.next = x.next
-        x.next.prev = new_node         # no None check needed
+        x.next.prev = new_node         # None 검사가 필요 없다
         x.next = new_node
         return new_node
 
     def insert_front(self, data):
-        """Insert at the front of the list (after the sentinel)."""
+        """리스트의 맨 앞(보초 뒤)에 넣는다."""
         return self.insert_after(self.sentinel, data)
 
     def insert_back(self, data):
-        """Insert at the back of the list (before the sentinel)."""
+        """리스트의 맨 뒤(보초 앞)에 넣는다."""
         return self.insert_after(self.sentinel.prev, data)
 
     def delete(self, x):
-        """Remove node x from the list. x must not be the sentinel."""
-        x.prev.next = x.next           # no None check needed
+        """리스트에서 노드 x를 없앤다. x는 보초여서는 안 된다."""
+        x.prev.next = x.next           # None 검사가 필요 없다
         x.next.prev = x.prev
         x.prev = None
         x.next = None
         return x.data
 
     def to_list(self):
-        """Return all data values as a Python list (forward order)."""
+        """모든 데이터 값을 파이썬 리스트로 돌려준다(정방향)."""
         result = []
         current = self.sentinel.next
         while current is not self.sentinel:
@@ -117,7 +103,7 @@ class SentinelDLL:
         return result
 
     def to_list_reverse(self):
-        """Return all data values in reverse order."""
+        """모든 데이터 값을 역순으로 돌려준다."""
         result = []
         current = self.sentinel.prev
         while current is not self.sentinel:
@@ -126,29 +112,29 @@ class SentinelDLL:
         return result
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     dll = SentinelDLL()
 
-    # Insert elements
+    # 원소 삽입
     dll.insert_back(10)
     dll.insert_back(20)
     dll.insert_back(30)
     print("Forward: ", dll.to_list())
     print("Backward:", dll.to_list_reverse())
 
-    # Insert at front
+    # 앞에 삽입
     dll.insert_front(5)
     print("After insert_front(5):", dll.to_list())
 
-    # Delete the second element (value 10)
+    # 두 번째 원소(값 10) 삭제
     node_10 = dll.sentinel.next.next   # 5 -> 10 -> 20 -> 30
     dll.delete(node_10)
     print("After deleting 10:    ", dll.to_list())
 ```
 
-**Output:**
+**출력:**
 
 ```
 Forward:  [10, 20, 30]
@@ -157,43 +143,65 @@ After insert_front(5): [5, 10, 20, 30]
 After deleting 10:     [5, 20, 30]
 ```
 
-## Why Sentinels Work
+## 감시 노드가 통하는 이유
 
-The sentinel guarantees a key invariant: **every real node has a non-sentinel
-predecessor and successor that are valid `Node` objects**. More precisely,
-for every real node $x$:
+감시 노드는 핵심 불변식 하나를 보장한다. **모든 진짜 노드는 유효한 `Node` 객체인 앞 노드와 뒤 노드를 갖는다.** 더 정확히 말해 모든 진짜 노드 $x$에 대해 다음이 성립한다.
 
-- $x.\text{prev}$ is either another real node or the sentinel.
-- $x.\text{next}$ is either another real node or the sentinel.
+- $x.\text{prev}$은 또 다른 진짜 노드이거나 감시 노드이다.
+- $x.\text{next}$은 또 다른 진짜 노드이거나 감시 노드이다.
 
-Because the sentinel is a real `Node` object (not `None`), the
-assignments `x.next.prev = ...` and `x.prev.next = ...` are always safe.
-This transforms insertion and deletion from multi-branch conditional code
-into a fixed sequence of four pointer updates.
+감시 노드는 (`None`이 아니라) 실제 `Node` 객체이므로 `x.next.prev = ...`과 `x.prev.next = ...` 같은 대입이 언제나 안전하다. 이로써 삽입과 삭제가 여러 갈래의 조건문에서 포인터를 네 번 고치는 정해진 순서로 바뀐다.
 
-## Complexity
+## 복잡도
 
-Sentinels do not change the asymptotic complexity of any operation. They
-eliminate constant-time conditional branches:
+감시 노드는 어떤 연산의 점근적 복잡도도 바꾸지 않는다. 다만 상수 시간의 조건 분기를 없앤다.
 
-| Operation | Without sentinel | With sentinel |
+| 연산 | 감시 노드 없이 | 감시 노드와 함께 |
 |---|---|---|
-| Insert after node | $O(1)$ with branch | $O(1)$ branchless |
-| Delete given node | $O(1)$ with branch | $O(1)$ branchless |
-| Search | $O(n)$ | $O(n)$ |
-| Space overhead | 0 | 1 extra node |
+| 노드 뒤에 삽입 | 분기 있는 $O(1)$ | 분기 없는 $O(1)$ |
+| 주어진 노드 삭제 | 분기 있는 $O(1)$ | 분기 없는 $O(1)$ |
+| 탐색 | $O(n)$ | $O(n)$ |
+| 추가 공간 | 0 | 노드 1개 |
 
-The practical benefit is simpler, less error-prone code rather than faster
-asymptotic performance.
+실질적인 이득은 점근적으로 더 빠른 성능이 아니라 더 간단하고 실수가 덜한 코드이다.
 
-!!! tip "When to use sentinels"
-    Sentinels shine when insertion and deletion are the dominant operations
-    and the list is frequently modified. For read-heavy workloads or very
-    short lists, the extra sentinel node is unnecessary overhead. CLRS uses
-    sentinels throughout its linked-list presentation as the standard
-    implementation approach.
+!!! tip "감시 노드를 언제 쓸 것인가"
+    감시 노드는 삽입과 삭제가 주된 연산이고 리스트가 자주 바뀔 때 빛을 발한다. 읽기가 많은 작업이나 아주 짧은 리스트에서는 여분의 감시 노드가 불필요한 부담이다. CLRS는 연결 리스트를 설명하는 내내 감시 노드를 표준적인 구현 방식으로 쓴다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C.
   *Introduction to Algorithms* (4th ed.), Chapter 10.3. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+감시 노드에 대해 삽입, 삭제, 탐색, 접근 연산의 시간 복잡도를 진술하라.
+
+??? success "연습문제 1 풀이"
+    복잡도는 구체적인 구현(배열 기반이냐 연결 기반이냐)에 달려 있다. 배열 기반은 접근이 $O(1)$이고 임의의 위치에서의 삽입·삭제가 $O(n)$이다. 연결 기반은 이미 아는 위치에서의 삽입·삭제가 $O(1)$이고 탐색·접근이 $O(n)$이다. 어떤 연산이 주를 이루느냐에 따라 선택이 갈린다.
+
+---
+
+**연습문제 2.**
+원소 6개로 감시 노드을(를) 따라가며 각 연산 후의 자료구조 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    구조에 삽입, 접근, 삭제를 차례로 수행하라. 각 단계마다 (연결 구조라면) 포인터를, (배열 기반이라면) 배열의 내용을 보이며 구조가 불변식을 어떻게 유지하는지 나타내라.
+
+---
+
+**연습문제 3.**
+감시 노드이(가) PyTorch의 텐서 저장과 어떻게 관련되는지 설명하라. 자료구조의 선택이 메모리 배치와 캐시 성능에 어떤 영향을 주는가?
+
+??? success "연습문제 3 풀이"
+    PyTorch 텐서는 캐시에 효율적으로 접근할 수 있도록 연속된 배열로 저장된다. 연결 구조는 autograd 그래프를 훑는 데 내부적으로 쓰인다. 이 선택은 메모리 사용량(배열에는 포인터 부담이 없다)과 접근 양상(캐시 지역성 덕분에 순차적인 배열 접근이 연결 리스트 순회보다 10~100배 빠르다)에 모두 영향을 준다.
+
+---
+
+**연습문제 4.**
+반복문 불변식을 사용하여 감시 노드의 주요 연산의 시간 복잡도를 증명하라.
+
+??? success "연습문제 4 풀이"
+    알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$

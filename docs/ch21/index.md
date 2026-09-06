@@ -1,52 +1,47 @@
-# Chapter Overview
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-This chapter provides a comprehensive treatment of autoencoders for unsupervised learning and dimensionality reduction. Starting from the basic encoder-decoder framework, it covers architecture design, training procedures, loss functions, and major variants including sparse, denoising, contractive, and convolutional autoencoders. The chapter also explores latent space analysis and applications to quantitative finance.
+# 장 개요
+이 장은 이끌리지 않은 배움과 차원 줄이기를 위한 자기 부호기를 두루 다룬다. 기본 부호기-풀개 얼거리에서 시작해 얼개 설계, 익히기 절차, 손실 함수, 그리고 성긴 것, 잡음 없애는 것, 오그리는 것, 누비기 자기 부호기 같은 주요 변형을 다룬다. 숨은 공간 살피기와 계량 금융 쓰임새도 살핀다.
 
 ---
 
-## Autoencoder Fundamentals
+## 자기 부호기의 바탕
 
-Core concepts, architecture design, and training procedures for standard autoencoders.
+여느 자기 부호기의 고갱이 개념, 얼개 설계, 익히기 절차.
 
-- Introduction to Autoencoders -- Unsupervised learning, dimensionality reduction, and the bridge from PCA to VAEs
-- Architecture -- Encoder-decoder design from basic to convolutional and deep variants
-- Training -- Training procedures, evaluation methods, and practical applications
-- [Loss Functions](ae/loss_functions.md) -- Reconstruction losses, regularization objectives, and specialized criteria
-- Bottleneck Design -- Information compression, dimensionality selection, and capacity trade-offs
-- [Reconstruction Analysis](ae/reconstruction_analysis.md) -- Assessing reconstruction quality with per-sample and feature-wise diagnostics
-
----
-
-## Variants
-
-Autoencoder variants with different regularization strategies and architectural designs.
-
-- Undercomplete and Overcomplete -- How latent vs input dimensionality shapes learning dynamics
-- Sparse Autoencoder -- Penalizing hidden unit activations for interpretable features
-- Denoising Autoencoder -- Reconstructing clean data from corrupted inputs for robust representations
-- [Contractive Autoencoder](variants/contractive.md) -- Penalizing encoder sensitivity to input perturbations
-- Convolutional Autoencoder -- Preserving spatial structure in image data with convolutional layers
+- 자기 부호기 들어가기 -- 이끌리지 않은 배움, 차원 줄이기, 주성분 분석에서 변분 자기 부호기로 가는 다리
+- 얼개 -- 기본에서 누비기와 깊은 변형까지의 부호기-풀개 설계
+- 익히기 -- 익히기 절차, 값매김 방법, 실전 쓰임새
+- [손실 함수](ae/loss_functions.md) -- 다시 세우기 손실, 벌주기 목표, 특화된 잣대
+- 병목 설계 -- 앎 눌러 담기, 차원 고르기, 담이 맞바꿈
+- [다시 세우기 살피기](ae/reconstruction_analysis.md) -- 표본마다와 특징마다의 진단으로 다시 세우기 품질 가늠하기
 
 ---
 
-## Representation Learning
+## 변형
 
-Analyzing and understanding learned latent representations.
+벌주기 전략과 얼개 설계가 다른 자기 부호기 변형.
 
-- Latent Space -- Geometry, structure, and information-theoretic properties of latent representations
-- Disentanglement -- Learning dimensions that correspond to independent factors of variation
-- Interpolation and Latent Arithmetic -- Vector arithmetic, smooth interpolation, and semantic direction discovery
+- 모자란 것과 넘치는 것 -- 숨은 차원과 들임 차원이 배움의 움직임을 어떻게 빚는가
+- 성긴 자기 부호기 -- 풀이할 수 있는 특징을 얻으려 숨은 단위의 깨어남에 벌주기
+- 잡음 없애는 자기 부호기 -- 튼튼한 나타냄을 얻으려 망가뜨린 들임에서 깨끗한 자료 다시 세우기
+- [오그리는 자기 부호기](variants/contractive.md) -- 들임의 흔들림에 대한 부호기의 민감함에 벌주기
+- 누비기 자기 부호기 -- 누비기 층으로 그림 자료의 공간 짜임 지키기
 
 ---
 
-## Finance
+## 나타냄 배우기
 
-Applications of autoencoders to quantitative finance problems.
+배운 숨은 나타냄을 살피고 이해하기.
 
-- Anomaly Detection -- Using reconstruction error to detect market anomalies and fraudulent activity
-- Factor Discovery -- Unsupervised extraction of latent risk factors from market data
-- Portfolio Compression -- Dimensionality reduction for portfolio management and risk decomposition
+- 숨은 공간 -- 숨은 나타냄의 기하, 짜임, 앎 이론의 성질
+- 얽힘 풀기 -- 서로 얽히지 않은 흔들림 요인에 맞닿는 차원 배우기
+- 사이 끼움과 숨은 셈 -- 벡터 셈, 매끄러운 사이 끼움, 뜻 있는 방향 찾기
+
+---
+
+## 금융
+
+계량 금융 문제에 자기 부호기 쓰기.
+
+- 이상 알아내기 -- 다시 세우기 어긋남으로 시장의 이상과 속임을 알아내기
+- 요인 찾기 -- 시장 자료에서 숨은 위험 요인을 이끌림 없이 뽑기
+- 자산 꾸러미 눌러 담기 -- 자산 꾸러미 관리와 위험 쪼개기를 위한 차원 줄이기

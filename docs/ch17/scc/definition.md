@@ -1,82 +1,82 @@
-# Strongly Connected Components
+# 강하게 이어진 조각
 
-In an undirected graph, connected components capture the natural clusters of reachable vertices. For directed graphs, reachability is asymmetric -- vertex $u$ may reach $v$ without $v$ being able to reach $u$. Strongly connected components (SCCs) identify the maximal groups of vertices with mutual reachability, revealing the deep structure hidden within directed graphs.
+방향 없는 그래프에서 이어진 조각은 서로 닿는 꼭짓점의 자연스러운 무리를 담아낸다. 방향 그래프에서는 닿음이 대칭이 아니다. 곧 $v$이 $u$에 닿지 못해도 꼭짓점 $u$은 $v$에 닿을 수 있다. 강하게 이어진 조각은 서로 닿는 꼭짓점의 가장 큰 묶음을 가려내어 방향 그래프 속에 숨은 깊은 짜임을 드러낸다.
 
-## Definition
+## 정의
 
-Two vertices $u$ and $v$ in a directed graph $G = (V, E)$ are **strongly connected** if there exists a directed path from $u$ to $v$ and a directed path from $v$ to $u$.
+방향 그래프 $G = (V, E)$의 두 꼭짓점 $u$과 $v$ 사이에 $u$에서 $v$으로 가는 방향 경로와 $v$에서 $u$으로 가는 방향 경로가 모두 있으면 둘이 **강하게 이어졌다**고 한다.
 
-!!! note "Formal Definition"
-    A **strongly connected component** of a directed graph $G = (V, E)$ is a maximal set $C \subseteq V$ such that for every pair of vertices $u, v \in C$, there exists a directed path from $u$ to $v$ and a directed path from $v$ to $u$.
+!!! note "엄밀한 정의"
+    방향 그래프 $G = (V, E)$의 **강하게 이어진 조각**은 모든 꼭짓점 짝 $u, v \in C$에 대해 $u$에서 $v$으로 가는 방향 경로와 $v$에서 $u$으로 가는 방향 경로가 있는, 가장 큰 모음 $C \subseteq V$이다.
 
-The word **maximal** is critical: an SCC cannot be enlarged by adding another vertex while maintaining the mutual reachability property. Every vertex belongs to exactly one SCC, so the SCCs partition $V$.
+**가장 크다**는 말이 결정적이다. 곧 서로 닿음을 지키면서 꼭짓점을 더 넣어 조각을 키울 수 없다. 꼭짓점마다 정확히 하나의 조각에 들므로 조각들이 $V$을 나눈다.
 
-## Equivalence Relation
+## 동치 관계
 
-Strong connectivity defines an equivalence relation on the vertex set $V$:
+강한 이어짐은 꼭짓점 모음 $V$ 위의 동치 관계를 정한다:
 
-- **Reflexive:** Every vertex $u$ reaches itself via the trivial path.
-- **Symmetric:** If $u$ reaches $v$ and $v$ reaches $u$, then $v$ reaches $u$ and $u$ reaches $v$.
-- **Transitive:** If $u$ reaches $v$ (and $v$ reaches $u$) and $v$ reaches $w$ (and $w$ reaches $v$), then $u$ reaches $w$ via $v$, and $w$ reaches $u$ via $v$.
+- **반사:** 꼭짓점 $u$마다 아무것도 아닌 경로로 자기 자신에 닿는다.
+- **대칭:** $u$이 $v$에 닿고 $v$이 $u$에 닿으면 $v$이 $u$에 닿고 $u$이 $v$에 닿는다.
+- **이행:** $u$이 $v$에 닿고($v$이 $u$에 닿고) $v$이 $w$에 닿으면($w$이 $v$에 닿으면) $u$은 $v$을 거쳐 $w$에 닿고 $w$은 $v$을 거쳐 $u$에 닿는다.
 
-Since strong connectivity is an equivalence relation, it partitions $V$ into equivalence classes -- these are exactly the strongly connected components.
+강한 이어짐이 동치 관계이므로 $V$을 동치류로 나누며, 그것이 바로 강하게 이어진 조각이다.
 
-## Properties
+## 성질
 
-**Uniqueness of decomposition.** Every directed graph has a unique SCC decomposition. This follows directly from the equivalence relation property.
+**쪼갬이 하나뿐임.** 방향 그래프마다 강한 이음 조각 쪼갬이 하나뿐이다. 이는 동치 관계라는 성질에서 곧바로 따라 나온다.
 
-**Single-vertex SCCs.** A vertex with no path to or from any other vertex forms a singleton SCC by itself. In a DAG, every vertex is its own SCC.
+**꼭짓점 하나짜리 조각.** 다른 어느 꼭짓점으로도 오가는 경로가 없는 꼭짓점은 혼자서 홑원소 조각을 이룬다. 유향 비순환 그래프에서는 꼭짓점마다 저마다의 조각이다.
 
-**Relationship to DAGs.** The [condensation graph](condensation.md) -- formed by contracting each SCC into a single super-vertex -- is always a DAG. This connection makes SCCs a fundamental tool for understanding the structure of directed graphs.
+**유향 비순환 그래프와의 관계.** 조각마다 큰 꼭짓점 하나로 오그려 만든 [오그린 그래프](condensation.md)는 늘 유향 비순환 그래프이다. 이 이음 덕분에 강한 이음 조각은 방향 그래프의 짜임을 이해하는 근본 도구가 된다.
 
-**Component graph.** If we define $G^{SCC} = (V^{SCC}, E^{SCC})$ where each SCC is a vertex and there is an edge between two SCC vertices if any edge in $G$ connects them, then $G^{SCC}$ contains no directed cycle. If it did, the vertices in the cycle would form a single larger SCC, contradicting maximality.
+**조각 그래프.** 조각마다 꼭짓점으로 삼고 $G$의 어떤 변이 둘을 이으면 그 두 조각 꼭짓점 사이에 변을 두는 $G^{SCC} = (V^{SCC}, E^{SCC})$을 정하면, $G^{SCC}$에는 방향 순환이 없다. 있다면 그 순환의 꼭짓점들이 더 큰 조각 하나를 이루어 가장 큼에 어긋난다.
 
-## Worked Example
+## 풀이 예제
 
-Consider the directed graph with vertices $\{0, 1, 2, 3, 4, 5, 6, 7\}$ and edges:
+꼭짓점이 $\{0, 1, 2, 3, 4, 5, 6, 7\}$이고 변이 다음과 같은 방향 그래프를 보자:
 
 $$
 0 \to 1,\quad 1 \to 2,\quad 2 \to 0,\quad 1 \to 3,\quad 3 \to 4,\quad 4 \to 5,\quad 5 \to 3,\quad 6 \to 5,\quad 6 \to 7
 $$
 
-The strongly connected components are:
+강하게 이어진 조각은 다음과 같다:
 
-- $C_1 = \{0, 1, 2\}$: the cycle $0 \to 1 \to 2 \to 0$ makes all three mutually reachable.
-- $C_2 = \{3, 4, 5\}$: the cycle $3 \to 4 \to 5 \to 3$ makes all three mutually reachable.
-- $C_3 = \{6\}$: vertex 6 can reach other vertices but nothing reaches 6.
-- $C_4 = \{7\}$: vertex 7 is reachable from 6 but cannot reach any other vertex.
+- $C_1 = \{0, 1, 2\}$: 순환 $0 \to 1 \to 2 \to 0$이 셋을 서로 닿게 한다.
+- $C_2 = \{3, 4, 5\}$: 순환 $3 \to 4 \to 5 \to 3$이 셋을 서로 닿게 한다.
+- $C_3 = \{6\}$: 꼭짓점 6은 다른 꼭짓점에 닿을 수 있지만 6에 닿는 것은 없다.
+- $C_4 = \{7\}$: 꼭짓점 7은 6에서 닿을 수 있지만 다른 어느 꼭짓점에도 닿지 못한다.
 
 ```python
 """
-Visualizing strongly connected components in a directed graph.
+방향 그래프의 강하게 이어진 조각 그려 보기.
 
-Uses a brute-force approach (checking all-pairs reachability) to
-identify SCCs, illustrating the definition before introducing
-efficient algorithms.
+막무가내 방식(모든 짝의 닿음 살피기)으로
+강한 이음 조각을 가려내어, 효율적인 알고리즘을 들이기 앞서 정의를 보여 준다
+효율적인 알고리즘.
 """
 
 from collections import deque
 
 
-# === Brute-Force SCC Detection ===
+# === 막무가내 강한 이음 조각 찾기 ===
 def find_sccs_brute(graph, n):
     """
-    Find SCCs by checking all-pairs reachability.
+    모든 짝의 닿음을 살펴 강한 이음 조각을 찾는다.
 
-    This O(V * (V + E)) approach is for illustration only.
-    See Kosaraju's and Tarjan's algorithms for O(V + E) solutions.
+    이 O(V * (V + E)) 방식은 설명용일 뿐이다.
+    O(V + E) 풀이는 코사라주와 타잔 알고리즘을 보라.
 
-    Parameters
+    매개변수
     ----------
     graph : dict[int, list[int]]
-        Adjacency list of a directed graph.
+        방향 그래프의 이웃 목록.
     n : int
-        Number of vertices.
+        꼭짓점의 개수.
 
-    Returns
+    반환값
     -------
     list[set[int]]
-        List of strongly connected components.
+        강하게 이어진 조각의 목록.
     """
     def reachable(start):
         visited = set()
@@ -109,7 +109,7 @@ def find_sccs_brute(graph, n):
     return components
 
 
-# === Main ===
+# === 메인 ===
 if __name__ == "__main__":
     graph = {
         0: [1], 1: [2, 3], 2: [0], 3: [4],
@@ -121,7 +121,7 @@ if __name__ == "__main__":
         print(f"  C{i+1} = {sorted(scc)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Strongly connected components:
   C1 = [0, 1, 2]
@@ -130,17 +130,49 @@ Strongly connected components:
   C4 = [7]
 ```
 
-The brute-force approach above has $O(V \cdot (V + E))$ complexity. Efficient algorithms by [Kosaraju](kosaraju.md) and [Tarjan](tarjan.md) compute SCCs in $O(V + E)$ time.
+위의 막무가내 방식은 복잡도가 $O(V \cdot (V + E))$이다. [코사라주](kosaraju.md)와 [타잔](tarjan.md)의 효율적인 알고리즘은 강한 이음 조각을 $O(V + E)$ 시간에 셈한다.
 
-## Applications
+## 응용
 
-Strongly connected components appear in many practical contexts:
+강하게 이어진 조각은 실전의 여러 곳에 나타난다:
 
-- **Web graph analysis:** pages in the same SCC are mutually reachable via hyperlinks.
-- **Compiler optimization:** SCCs in a call graph identify mutually recursive functions.
-- **Social networks:** SCCs in a follow graph reveal tightly connected communities.
-- **2-SAT solving:** the satisfiability of a [2-SAT formula](two_sat.md) can be determined by examining the SCCs of its implication graph.
+- **웹 그래프 살피기:** 같은 조각의 쪽들은 이음줄로 서로 닿을 수 있다.
+- **컴파일러 최적화:** 부름 그래프의 조각은 서로 되돌이하는 함수를 가려낸다.
+- **사회 그물:** 팔로 그래프의 조각은 촘촘히 이어진 무리를 드러낸다.
+- **2-SAT 풀기:** [2-SAT 식](two_sat.md)의 충족 가능성은 그 함의 그래프의 조각을 살펴 정할 수 있다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 20.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 20장.
+
+## 연습문제
+
+**연습문제 1.**
+강하게 이어진 조각을 또렷이 정의하여라. 그것이 방향 그래프를 어떻게 나누는가?
+
+??? success "연습문제 1 풀이"
+    방향 그래프 $G$의 **강하게 이어진 조각**은 모든 짝 $u, v \in C$에 대해 $u$에서 $v$으로, $v$에서 $u$으로 가는 방향 경로가 있는 가장 큰 꼭짓점 모음 $C$이다. 조각들이 꼭짓점 모음을 나눈다. 곧 꼭짓점마다 정확히 하나의 조각에 든다(서로 닿음이 동치 관계이기 때문이다. 반사이고, 정의상 대칭이며, 경로를 이어 붙이면 이행이다). $\square$
+
+---
+
+**연습문제 2.**
+방향 그래프에서 강한 이어짐과 약한 이어짐을 가려라.
+
+??? success "연습문제 2 풀이"
+    모든 꼭짓점 짝 $u, v$에 대해 $u$에서 $v$으로 가는 방향 경로가 있으면(서로 닿으면) 그 방향 그래프는 **강하게 이어졌다**고 한다. 변의 방향을 무시한 밑바탕 방향 없는 그래프가 이어져 있으면 **약하게 이어졌다**고 한다. 강한 이어짐에서 약한 이어짐이 따라 나오지만 그 반대는 아니다. 보기: $A \to B \to C$은 약하게 이어졌지만 강하게 이어지지는 않았다($C$이 $A$에 닿지 못한다). $\square$
+
+---
+
+**연습문제 3.**
+방향 그래프가 강하게 이어진 것은 강한 이음 조각이 하나뿐일 때 그리고 오직 그때뿐임을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    $(\Rightarrow)$ $G$이 강하게 이어졌으면 모든 꼭짓점 짝이 서로 닿으므로 모든 꼭짓점이 한 조각에 든다. $(\Leftarrow)$ $G$에 조각이 하나뿐이면 정의상 모든 꼭짓점 짝이 서로 닿으므로 $G$은 강하게 이어졌다. 두 조건은 같다. $\square$
+
+---
+
+**연습문제 4.**
+꼭짓점 6개의 방향 그래프에 강한 이음 조각 $\{0,1,2\}$, $\{3,4\}$, $\{5\}$이 있다. 가능한 본디 그래프와 그 오그린 그래프를 그려라.
+
+??? success "연습문제 4 풀이"
+    본디 그래프: 변 $\{(0,1),(1,2),(2,0),(3,4),(4,3),(2,3),(4,5)\}$. 조각 $\{0,1,2\}$: 순환 $0 \to 1 \to 2 \to 0$. 조각 $\{3,4\}$: 순환 $3 \to 4 \to 3$. 조각 $\{5\}$: 홑원소. 오그린 그래프: 꼭짓점 3개 $A = \{0,1,2\}$, $B = \{3,4\}$, $C = \{5\}$. 변: (변 $2 \to 3$에서 온) $A \to B$, (변 $4 \to 5$에서 온) $B \to C$. 오그린 그래프는 유향 비순환 그래프 $A \to B \to C$이다. $\square$

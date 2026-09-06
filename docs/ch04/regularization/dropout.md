@@ -1,117 +1,100 @@
-# Dropout
+# 드롭아웃
+## 개요
 
+드롭아웃은 학습 중에 뉴런 활성화의 일부를 무작위로 0으로 만드는 정칙화 기법이다. 이는 뉴런의 공적응을 막고, 다른 뉴런들의 여러 무작위 부분집합과 함께 쓸 때에도 쓸모 있는 더 견고한 특징을 배우도록 신경망을 이끈다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 수학적 정식화
 
-## Overview
+### 기본적인 드롭아웃 연산
 
-Dropout is a regularization technique that randomly sets a fraction of neuron activations to zero during training. This prevents co-adaptation of neurons and forces the network to learn more robust features that are useful in conjunction with many different random subsets of other neurons.
-
-## Mathematical Formulation
-
-### Basic Dropout Operation
-
-During training, for a layer with activation vector $h \in \mathbb{R}^d$ and dropout probability $p$:
+학습 중에 활성화 벡터가 $h \in \mathbb{R}^d$이고 드롭아웃 확률이 $p$인 층에 대해 다음과 같다.
 
 $$
-
 \tilde{h}_i = \begin{cases}
 0 & \text{with probability } p \\
 \frac{h_i}{1-p} & \text{with probability } 1-p
 \end{cases}
-
 $$
 
-The scaling by $\frac{1}{1-p}$ (called **inverted dropout**) ensures the expected value remains unchanged:
+$\frac{1}{1-p}$을 곱해 배율을 조정하면(**역 드롭아웃**이라 한다) 기댓값이 그대로 유지된다.
 
 $$
-
 \mathbb{E}[\tilde{h}_i] = p \cdot 0 + (1-p) \cdot \frac{h_i}{1-p} = h_i
-
 $$
 
-### Mask Formulation
+### 마스크로 나타내기
 
-Using a binary mask $m \sim \text{Bernoulli}(1-p)^d$:
+이진 마스크 $m \sim \text{Bernoulli}(1-p)^d$을 쓰면 다음과 같다.
 
 $$
-
 \tilde{h} = \frac{m \odot h}{1-p}
-
 $$
 
-where $\odot$ denotes element-wise multiplication.
+여기서 $\odot$은 원소별 곱을 뜻한다.
 
-### Forward Pass with Dropout
+### 드롭아웃을 쓰는 순전파
 
-For a feedforward layer with weights $W$, bias $b$, and activation $\sigma$:
+가중치가 $W$, 편향이 $b$, 활성화가 $\sigma$인 순방향 층에 대해 다음과 같다.
 
-**Training:**
+**학습 시:**
 
 $$
-
 y = \sigma\left( W \cdot \frac{m \odot x}{1-p} + b \right)
-
 $$
 
-**Inference:**
+**추론 시:**
 
 $$
-
 y = \sigma(Wx + b)
-
 $$
 
-No dropout is applied during inference due to the inverted dropout scaling during training.
+학습 중에 역 드롭아웃으로 배율을 조정했으므로 추론에서는 드롭아웃을 적용하지 않는다.
 
-## Theoretical Interpretation
+## 이론적 해석
 
-### Ensemble Interpretation
+### 앙상블로서의 해석
 
-Dropout can be viewed as training an exponential ensemble of neural networks:
+드롭아웃은 지수적으로 많은 신경망의 앙상블을 학습시키는 것으로 볼 수 있다.
 
-- For a network with $d$ units, there are $2^d$ possible dropout masks
-- Each training step samples one sub-network from this ensemble
-- At test time, the full network approximates the ensemble's average prediction
+- 단위가 $d$개인 신경망에는 가능한 드롭아웃 마스크가 $2^d$개 있다
+- 학습의 각 단계는 이 앙상블에서 부분 신경망 하나를 뽑는다
+- 시험 시점에 전체 신경망이 앙상블의 평균 예측을 근사한다
 
-### Bayesian Interpretation
+### 베이즈적 해석
 
-Dropout approximates Bayesian inference in deep learning. Gal & Ghahramani (2016) showed that dropout training minimizes an approximation to the KL divergence between an approximate posterior and the true posterior over weights.
+드롭아웃은 딥러닝에서 베이즈 추론을 근사한다. Gal과 Ghahramani(2016)는 드롭아웃 학습이 근사 사후분포와 가중치에 대한 참 사후분포 사이의 KL 발산의 근사를 최소화함을 보였다.
 
-!!! info "See Also: Monte Carlo Dropout for Uncertainty Estimation"
-    The Bayesian interpretation of dropout enables **Monte Carlo Dropout**, a powerful technique for uncertainty quantification. By keeping dropout active during inference and running multiple forward passes, we can estimate predictive uncertainty. See **Chapter 33.2: Monte Carlo Dropout** for:
+!!! info "함께 볼 것: 불확실성 추정을 위한 몬테카를로 드롭아웃"
+    드롭아웃의 베이즈적 해석은 불확실성 정량화의 강력한 기법인 **몬테카를로 드롭아웃**을 가능하게 한다. 추론 중에도 드롭아웃을 켠 채 순전파를 여러 번 돌리면 예측의 불확실성을 추정할 수 있다. 다음 내용은 **33.2절 몬테카를로 드롭아웃**을 보라.
     
-    - Full variational inference derivation ([Theory](../../ch39/mc_dropout/theory.md))
-    - Production implementation patterns (Implementation)
-    - Sample convergence analysis ([Convergence](../../ch39/mc_dropout/convergence.md))
-    - Dropout rate selection for calibration ([Dropout Rate](../../ch39/mc_dropout/dropout_rate.md))
+    - 변분 추론의 전체 유도 ([이론](../../ch39/mc_dropout/theory.md))
+    - 실전 구현 방식 (구현)
+    - 표본 수렴 분석 ([수렴](../../ch39/mc_dropout/convergence.md))
+    - 보정을 위한 드롭아웃 비율 선택 ([드롭아웃 비율](../../ch39/mc_dropout/dropout_rate.md))
 
-### Noise Injection View
+### 잡음 주입의 관점
 
-Dropout injects multiplicative noise into the network:
+드롭아웃은 신경망에 곱셈적 잡음을 넣는다.
 
 $$
-
 \tilde{h} = h \odot \epsilon, \quad \epsilon_i \sim \begin{cases}
 \frac{1}{1-p} & \text{with prob } 1-p \\
 0 & \text{with prob } p
 \end{cases}
-
 $$
 
-This multiplicative noise has variance $\text{Var}[\epsilon_i] = \frac{p}{1-p}$.
+이 곱셈적 잡음의 분산은 $\text{Var}[\epsilon_i] = \frac{p}{1-p}$이다.
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### Built-in Dropout
+### 내장 드롭아웃
 
 ```python
 import torch
 import torch.nn as nn
 
 class NetworkWithDropout(nn.Module):
-    """Standard network with dropout layers."""
+    """드롭아웃 층을 갖춘 표준 신경망."""
     
     def __init__(self, input_dim, hidden_dims, output_dim, dropout_rate=0.5):
         super().__init__()
@@ -133,18 +116,17 @@ class NetworkWithDropout(nn.Module):
     def forward(self, x):
         return self.network(x)
 
-
-# Training vs evaluation mode
+# 학습 모드와 평가 모드
 model = NetworkWithDropout(784, [512, 256], 10, dropout_rate=0.5)
-model.train()  # Dropout active
-model.eval()   # Dropout disabled
+model.train()  # 드롭아웃 켜짐
+model.eval()   # 드롭아웃 꺼짐
 ```
 
-### Custom Dropout Implementation
+### 드롭아웃 직접 구현하기
 
 ```python
 class CustomDropout(nn.Module):
-    """Custom dropout implementation showing the internals."""
+    """내부 동작을 보이는 직접 구현한 드롭아웃."""
     
     def __init__(self, p: float = 0.5):
         super().__init__()
@@ -156,34 +138,34 @@ class CustomDropout(nn.Module):
         if not self.training or self.p == 0:
             return x
         
-        # Generate binary mask (1 = keep, 0 = drop)
+        # 이진 마스크 생성 (1 = 남김, 0 = 떨어뜨림)
         mask = torch.bernoulli(torch.full_like(x, 1 - self.p))
         
-        # Apply mask with inverted dropout scaling
+        # 역 드롭아웃 배율 조정과 함께 마스크 적용
         return x * mask / (1 - self.p)
 ```
 
-### Dropout Variants
+### 드롭아웃의 변형
 
 ```python
-# 1D Dropout - for sequences (drops entire channels)
-dropout_1d = nn.Dropout1d(p=0.5)  # Input: (batch, channels, length)
+# 1차원 드롭아웃 - 순차열용 (채널 전체를 떨어뜨린다)
+dropout_1d = nn.Dropout1d(p=0.5)  # 입력: (batch, 채널, 길이)
 
-# 2D Spatial Dropout - for images (drops entire feature maps)  
-dropout_2d = nn.Dropout2d(p=0.5)  # Input: (batch, channels, H, W)
+# 2차원 공간 드롭아웃 - 이미지용 (특징 맵 전체를 떨어뜨린다)
+dropout_2d = nn.Dropout2d(p=0.5)  # 입력: (batch, 채널, H, W)
 
-# 3D Spatial Dropout - for video/3D data
-dropout_3d = nn.Dropout3d(p=0.5)  # Input: (batch, channels, D, H, W)
+# 3차원 공간 드롭아웃 - 비디오/3차원 데이터용
+dropout_3d = nn.Dropout3d(p=0.5)  # 입력: (batch, 채널, D, H, W)
 
-# Alpha Dropout - for SELU activations (Self-Normalizing Networks)
+# 알파 드롭아웃 - SELU 활성화용 (자기 정규화 신경망)
 alpha_dropout = nn.AlphaDropout(p=0.5)
 ```
 
-### Monte Carlo Dropout for Uncertainty
+### 불확실성을 위한 몬테카를로 드롭아웃
 
 ```python
 class MCDropoutModel(nn.Module):
-    """Model supporting Monte Carlo Dropout for uncertainty estimation."""
+    """불확실성 추정을 위한 몬테카를로 드롭아웃을 지원하는 모델."""
     
     def __init__(self, input_dim, hidden_dims, output_dim, dropout_rate=0.5):
         super().__init__()
@@ -205,13 +187,13 @@ class MCDropoutModel(nn.Module):
     
     def predict_with_uncertainty(self, x, n_samples=100):
         """
-        Make predictions with uncertainty using MC Dropout.
+        MC 드롭아웃으로 불확실성과 함께 예측한다.
         
-        Returns:
-            mean: Mean prediction
-            std: Standard deviation (epistemic uncertainty)
+        반환값:
+            mean: 평균 예측
+            std: 표준편차 (인식적 불확실성)
         """
-        self.train()  # Keep dropout active
+        self.train()  # 드롭아웃을 켠 채로 둔다
         
         predictions = []
         with torch.no_grad():
@@ -226,21 +208,21 @@ class MCDropoutModel(nn.Module):
         return mean, std
 ```
 
-## Training with Dropout
+## 드롭아웃을 쓰는 학습
 
 ```python
 import torch.optim as optim
 from torch.utils.data import DataLoader
 
 def train_with_dropout(model, train_loader, val_loader, epochs=100, lr=0.001):
-    """Train a model with dropout regularization."""
+    """드롭아웃 정칙화로 모델을 학습시킨다."""
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
     
     history = {'train_loss': [], 'val_loss': [], 'train_acc': [], 'val_acc': []}
     
     for epoch in range(epochs):
-        # Training phase - dropout ACTIVE
+        # 학습 단계 - 드롭아웃 켜짐
         model.train()
         train_loss, train_correct, train_total = 0, 0, 0
         
@@ -256,7 +238,7 @@ def train_with_dropout(model, train_loader, val_loader, epochs=100, lr=0.001):
             train_total += y_batch.size(0)
             train_correct += predicted.eq(y_batch).sum().item()
         
-        # Validation phase - dropout DISABLED
+        # 검증 단계 - 드롭아웃 꺼짐
         model.eval()
         val_loss, val_correct, val_total = 0, 0, 0
         
@@ -278,17 +260,17 @@ def train_with_dropout(model, train_loader, val_loader, epochs=100, lr=0.001):
     return history
 ```
 
-## Advanced Techniques
+## 심화 기법
 
-### DropConnect
+### 드롭커넥트
 
-DropConnect generalizes dropout by randomly zeroing individual *weights* rather than entire activations. See **[DropConnect](dropconnect.md)** for the full mathematical formulation, implementation, and comparison with standard dropout.
+드롭커넥트는 활성화 전체가 아니라 개별 *가중치*를 무작위로 0으로 만들어 드롭아웃을 일반화한다. 전체 수학적 정식화, 구현, 표준 드롭아웃과의 비교는 **[드롭커넥트](dropconnect.md)**를 보라.
 
-### Spatial Dropout for CNNs
+### CNN을 위한 공간 드롭아웃
 
 ```python
 class CNNWithSpatialDropout(nn.Module):
-    """CNN using spatial dropout (drops entire feature maps)."""
+    """공간 드롭아웃을 쓰는 CNN (특징 맵 전체를 떨어뜨린다)."""
     
     def __init__(self, dropout_rate=0.3):
         super().__init__()
@@ -296,7 +278,7 @@ class CNNWithSpatialDropout(nn.Module):
             nn.Conv2d(1, 32, 3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2),
-            nn.Dropout2d(p=dropout_rate),  # Spatial dropout
+            nn.Dropout2d(p=dropout_rate),  # 공간 드롭아웃
             
             nn.Conv2d(32, 64, 3, padding=1),
             nn.ReLU(),
@@ -306,7 +288,7 @@ class CNNWithSpatialDropout(nn.Module):
         self.classifier = nn.Sequential(
             nn.Linear(64 * 7 * 7, 128),
             nn.ReLU(),
-            nn.Dropout(p=dropout_rate),  # Regular dropout
+            nn.Dropout(p=dropout_rate),  # 보통의 드롭아웃
             nn.Linear(128, 10)
         )
     
@@ -316,11 +298,11 @@ class CNNWithSpatialDropout(nn.Module):
         return self.classifier(x)
 ```
 
-### Dropout in Transformers
+### 트랜스포머에서의 드롭아웃
 
 ```python
 class TransformerBlockWithDropout(nn.Module):
-    """Transformer block with dropout in standard positions."""
+    """표준 위치에 드롭아웃을 둔 트랜스포머 블록."""
     
     def __init__(self, d_model, n_heads, d_ff, dropout=0.1):
         super().__init__()
@@ -344,44 +326,44 @@ class TransformerBlockWithDropout(nn.Module):
         return x
 ```
 
-## Practical Guidelines
+## 실무 지침
 
-### Recommended Dropout Rates
+### 권장 드롭아웃 비율
 
-| Architecture | Location | Typical Rate |
+| 구조 | 위치 | 대표적인 비율 |
 |--------------|----------|--------------|
-| Fully connected | Hidden layers | 0.5 |
-| CNNs | After conv layers | 0.2 - 0.3 |
-| CNNs | Before final FC | 0.5 |
-| RNNs/LSTMs | Between layers | 0.2 - 0.5 |
-| Transformers | Attention/FFN | 0.1 |
+| 완전 연결 | 은닉층 | 0.5 |
+| CNN | 합성곱 층 뒤 | 0.2 - 0.3 |
+| CNN | 마지막 완전 연결층 앞 | 0.5 |
+| RNN/LSTM | 층 사이 | 0.2 - 0.5 |
+| 트랜스포머 | 어텐션/FFN | 0.1 |
 
-### When to Use Dropout
+### 드롭아웃을 쓸 때
 
-1. **Large networks** with many parameters
-2. **Limited training data**
-3. **Clear overfitting** (train >> val performance)
-4. **Dense layers** (more effective than conv layers)
+1. 매개변수가 많은 **큰 신경망**
+2. **학습 데이터가 적을 때**
+3. **뚜렷한 과적합** (학습 성능이 검증 성능보다 훨씬 좋을 때)
+4. **밀집층** (합성곱 층보다 효과가 크다)
 
-### When NOT to Use Dropout
+### 드롭아웃을 쓰지 말아야 할 때
 
-1. **Very small networks** - may hurt performance
-2. **With batch normalization** - use lower dropout rates
-3. **Sufficient data** - may not be needed
-4. **Already using strong augmentation**
+1. **아주 작은 신경망** — 성능을 해칠 수 있다
+2. **배치 정규화와 함께 쓸 때** — 드롭아웃 비율을 낮게 쓴다
+3. **데이터가 충분할 때** — 필요 없을 수 있다
+4. **이미 강한 증강을 쓰고 있을 때**
 
-### Common Mistakes
+### 흔한 실수
 
-1. **Forgetting mode switching**: Always use `model.train()` and `model.eval()`
-2. **Dropout after output**: Never put dropout before final layer
-3. **Same rate everywhere**: Different layers may need different rates
-4. **Rate too high**: Start with 0.2-0.3, increase if needed
+1. **모드 전환을 잊기**: 언제나 `model.train()`과 `model.eval()`을 쓰라
+2. **출력 뒤의 드롭아웃**: 마지막 층 앞에 드롭아웃을 두지 마라
+3. **어디서나 같은 비율**: 층마다 다른 비율이 필요할 수 있다
+4. **비율이 너무 높음**: 0.2~0.3에서 시작하고 필요하면 올린다
 
-## Combining with Other Regularization
+## 다른 정칙화와 결합하기
 
 ```python
 class RegularizedNetwork(nn.Module):
-    """Network combining dropout with batch norm and weight decay."""
+    """드롭아웃에 배치 정규화와 가중치 감쇠를 결합한 신경망."""
     
     def __init__(self, input_dim, hidden_dim, output_dim, dropout_rate=0.3):
         super().__init__()
@@ -402,13 +384,51 @@ class RegularizedNetwork(nn.Module):
     def forward(self, x):
         return self.network(x)
 
-# Use with weight decay (L2)
+# 가중치 감쇠(L2)와 함께 쓰기
 model = RegularizedNetwork(784, 256, 10)
 optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 ```
 
-## References
+## 참고 문헌
 
 1. Srivastava, N., et al. (2014). Dropout: A Simple Way to Prevent Neural Networks from Overfitting. *JMLR*, 15(1), 1929-1958.
 2. Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation. *ICML*.
 3. Wan, L., et al. (2013). Regularization of Neural Networks using DropConnect. *ICML*.
+
+## 연습문제
+
+**연습문제 1.**
+학습 중 드롭아웃 확률이 $p$인 뉴런의 기대 출력을 유도하고, 시험 시점의 배율 인수를 설명하라.
+
+??? success "연습문제 1 풀이"
+    학습 중에는 드롭아웃 전 출력을 $y$이라 할 때 $\mathbb{E}[\tilde{y}] = (1-p)y$이다. 시험 시점에는 이에 맞추려고 $(1-p)$을 곱한다. $y_{\text{test}} = (1-p)y$이다. 동등하게, 역 드롭아웃(학습 중에 $1-p$으로 나눈다)을 쓰면 시험 시점에 배율을 조정할 필요가 없다.
+
+---
+
+**연습문제 2.**
+역 드롭아웃을 PyTorch로 바닥부터 구현하라.
+
+??? success "연습문제 2 풀이"
+    ```python
+    def inverted_dropout(x, p=0.5, training=True):
+        if not training:
+            return x
+        mask = (torch.rand_like(x) > p).float()
+        return x * mask / (1 - p)
+    ```
+
+---
+
+**연습문제 3.**
+앙상블 평균의 관점에서 드롭아웃의 정칙화 효과를 설명하라.
+
+??? success "연습문제 3 풀이"
+    드롭아웃 마스크마다 서로 다른 부분 신경망이 정해진다. 드롭아웃으로 학습하면 지수적으로 많은 부분 신경망(뉴런이 $d$개면 $2^d$개)을 동시에 학습시키는 셈이다. 시험 시점에 모든 뉴런을 쓰면 이 부분 신경망들의 기하평균을 근사하게 되며, 이는 모델 앙상블과 비슷하다.
+
+---
+
+**연습문제 4.**
+드롭아웃 비율의 선택은 층의 너비에 어떻게 달려 있는가? 대표적인 출발점은 무엇인가?
+
+??? success "연습문제 4 풀이"
+    대표적으로 은닉층에는 $p=0.5$(Srivastava 등, 2014), 입력층에는 $p=0.2$을 쓴다. 넓은 층일수록 (중복이 많아) 더 높은 드롭아웃을 견딜 수 있다. 최적 비율은 층의 용량과 데이터셋의 크기에 달려 있으므로 교차 검증을 권한다.

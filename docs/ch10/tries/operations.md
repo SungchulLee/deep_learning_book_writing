@@ -1,26 +1,26 @@
-# Trie Insertion and Search
+# 트라이의 삽입과 찾기
 
-The two fundamental operations on a trie are **insertion** (adding a word to the data structure) and **search** (checking whether a word is present). Both operations traverse the trie character by character, following or creating edges as needed. Their time complexity is $O(m)$ where $m$ is the length of the word -- independent of how many words the trie contains.
+트라이의 근본 되는 연산 둘은 **삽입**(자료 구조에 낱말 더하기)과 **찾기**(낱말이 있는지 살피기)이다. 두 연산 모두 글자 하나씩 트라이를 훑으며 필요에 따라 변을 따라가거나 만든다. 시간 복잡도는 낱말의 길이를 $m$이라 할 때 $O(m)$이며 트라이에 낱말이 몇 개 있든 상관없다.
 
-## Insertion
+## 삽입
 
-To insert a word, start at the root and walk one character at a time. If the next character already has a child node, follow it. If not, create a new node. After processing the last character, mark the final node as a word endpoint.
+낱말을 넣으려면 뿌리에서 시작해 한 글자씩 걸어간다. 다음 글자에 이미 자식 노드가 있으면 따라간다. 없으면 새 노드를 만든다. 마지막 글자를 처리한 뒤 그 노드를 낱말의 끝점으로 표시한다.
 
-## Search
+## 찾기
 
-To search for a word, follow the same path from the root. If at any point the next character has no corresponding child, the word is not in the trie. If the path exists but the final node is not marked as a word endpoint, the word is also absent (it may be a proper prefix of another word).
+낱말을 찾으려면 뿌리에서 같은 경로를 따라간다. 어느 지점에서든 다음 글자에 해당하는 자식이 없으면 그 낱말은 트라이에 없다. 경로는 있지만 마지막 노드가 낱말의 끝점으로 표시되어 있지 않아도 그 낱말은 없다(다른 낱말의 진부분 접두사일 수 있다).
 
-## Implementation
+## 구현
 
 ```python
-"""Trie insertion and search operations.
+"""트라이의 삽입과 찾기 연산.
 
-Demonstrates the two core operations on a trie data structure,
-including the distinction between prefix existence and word existence.
+접두사가 있는 것과 낱말이 있는 것의 차이를 아우르며
+트라이 자료 구조의 핵심 연산 둘을 보인다.
 """
 
 
-# === Trie Node and Trie ===
+# === 트라이 노드와 트라이 ===
 class TrieNode:
     def __init__(self):
         self.children = {}
@@ -32,7 +32,7 @@ class Trie:
         self.root = TrieNode()
 
     def insert(self, word):
-        """Insert a word into the trie. Time: O(m), Space: O(m)."""
+        """트라이에 낱말을 넣는다. 시간 O(m), 공간 O(m)."""
         node = self.root
         for c in word:
             if c not in node.children:
@@ -41,7 +41,7 @@ class Trie:
         node.end = True
 
     def search(self, word):
-        """Return True if the exact word is in the trie."""
+        """그 낱말이 그대로 트라이에 있으면 True를 돌려준다."""
         node = self.root
         for c in word:
             if c not in node.children:
@@ -50,7 +50,7 @@ class Trie:
         return node.end
 
 
-# === Main ===
+# === 메인 ===
 if __name__ == "__main__":
     t = Trie()
     for w in ["apple", "app", "bat"]:
@@ -59,7 +59,7 @@ if __name__ == "__main__":
         print(f"{w}: {t.search(w)}")
 ```
 
-**Output:**
+**출력:**
 ```
 app: True
 ap: False
@@ -67,17 +67,50 @@ bat: True
 bad: False
 ```
 
-Note that `"ap"` returns `False` even though the path `a -> p` exists in the trie. The prefix is present, but it was never inserted as a complete word (its node's `end` flag is `False`).
+트라이에 경로 `a -> p`이 있는데도 `"ap"`이 `False`를 돌려줌에 유의하라. 접두사는 있지만 온전한 낱말로 넣은 적이 없다(그 노드의 `end` 깃발이 `False`이다).
 
-## Complexity
+## 복잡도
 
-| Operation | Time | Space |
+| 연산 | 시간 | 공간 |
 |:---|:---:|:---:|
-| Insert | $O(m)$ | $O(m)$ worst case (new nodes) |
-| Search | $O(m)$ | $O(1)$ |
+| 삽입 | $O(m)$ | 최악의 경우 $O(m)$ (새 노드) |
+| 찾기 | $O(m)$ | $O(1)$ |
 
-Here $m$ is the length of the word. Both operations are independent of the total number of words $n$ stored in the trie.
+여기서 $m$은 낱말의 길이이다. 두 연산 모두 트라이에 담긴 낱말의 총 개수 $n$과 무관하다.
 
-## References
+## 참고 문헌
 
 [Introduction to Algorithms (CLRS), Chapter 14](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+트라이의 삽입과 찾기의 짜임을 설명하고 질의와 갱신의 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 짜임은 위계적 분해를 이용해 일차보다 빠른 질의 시간을 이룬다. 대개 질의와 갱신이 모두 $O(\log n)$이고 세우는 데 $O(n)$이나 $O(n\log n)$이 든다.
+
+---
+
+**연습문제 2.**
+입력 $[3, 1, 4, 1, 5, 9, 2, 6]$으로 트라이의 삽입과 찾기를 세워라. 마지막 짜임을 보여라.
+
+??? success "연습문제 2 풀이"
+    세우기 알고리즘을 적용하며 중간 상태를 보여라. 트리 짜임이면 트리를 그려라. 배열에 바탕한 짜임이면 부모-자식 관계를 덧붙여 배열의 내용을 보여라.
+
+---
+
+**연습문제 3.**
+질의 연산이 올바른 어떤 질의 범위에 대해서도 옳은 결과를 돌려줌을 증명하라.
+
+??? success "연습문제 3 풀이"
+    증명에는 대개 트리의 높이에 대한 귀납법을 쓴다. 노드마다 질의가 한 부분 트리 안에 온전히 들거나(재귀한다) 두 부분 트리에 걸친다(부분 결과를 모은다). 모으는 함수(합, 최솟값, 최댓값)가 결합적이므로 올바로 모아진다. $\square$
+
+---
+
+**연습문제 4.**
+트라이의 삽입과 찾기가 질의마다의 계산을 $O(n)$에서 $O(\log n)$으로 빠르게 하는 딥러닝 응용을 설명하라.
+
+??? success "연습문제 4 풀이"
+    응용으로는 누적 어텐션 가중치를 위한 접두사 합 질의, 길이가 제각각인 수열에서 효율적인 풀링을 위한 범위 질의, 검색 증강 생성을 위한 최근접 이웃 찾기, 3차원 딥러닝의 점 구름 처리를 위한 공간 색인이 있다.

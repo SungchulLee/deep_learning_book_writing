@@ -1,103 +1,136 @@
-# Reservoir Sampling
+# 저수지 뽑기
 
-When data arrives as a stream of unknown length, maintaining a uniform random sample is non-trivial: we cannot simply pick elements with probability $k/n$ because $n$ is unknown in advance. **Reservoir sampling** solves this problem elegantly, maintaining a sample of exactly $k$ elements such that at every point in the stream, each element seen so far has equal probability of being in the sample. This technique is fundamental to streaming algorithms and has direct applications in data loading for machine learning.
+길이를 모르는 흐름으로 자료가 올 때 고른 아무 표본을 지니기는 만만치 않다. $n$을 미리 모르니 확률 $k/n$으로 원소를 고를 수가 없다. **저수지 뽑기**는 이 문제를 우아하게 풀어, 흐름의 어느 시점에서든 그때까지 본 원소가 모두 같은 확률로 표본에 들도록 꼭 $k$개의 표본을 지닌다. 이 재주는 흐름 알고리즘의 바탕이며 기계 배움의 자료 불러오기에 곧바로 쓰인다.
 
-## Problem Statement
+## 문제 서술
 
-Given a stream $\sigma = a_1, a_2, \ldots$ of unknown length, maintain a **reservoir** $R$ of size $k$ such that after processing $n$ elements, each element $a_i$ for $i \leq n$ is in $R$ with probability exactly $k/n$.
+길이를 모르는 흐름 $\sigma = a_1, a_2, \ldots$이 주어질 때, 원소 $n$개를 다룬 뒤 $i \leq n$인 원소 $a_i$마다 꼭 확률 $k/n$으로 $R$에 들도록 크기 $k$의 **저수지** $R$을 지녀라.
 
-The key challenge is that $n$ is not known in advance, so the inclusion probability must be maintained dynamically as new elements arrive.
+핵심 어려움은 $n$을 미리 모른다는 것이다. 그래서 새 원소가 올 때마다 들 확률을 그때그때 지켜야 한다.
 
-## Algorithm R (Vitter, 1985)
+## 알고리즘 R(Vitter, 1985)
 
-The classic algorithm, due to Vitter, processes each element as follows:
+Vitter이 내놓은 고전 알고리즘은 원소마다 다음과 같이 다룬다:
 
-1. **Initialization**: for $i = 1, 2, \ldots, k$, place $a_i$ directly into $R[i]$.
-2. **Sampling phase**: for each subsequent element $a_i$ (where $i > k$):
-    - Generate a random integer $j$ uniformly from $\{1, 2, \ldots, i\}$.
-    - If $j \leq k$, replace $R[j]$ with $a_i$.
-    - Otherwise, discard $a_i$.
+1. **첫 값 두기**: $i = 1, 2, \ldots, k$에 대해 $a_i$을 곧바로 $R[i]$에 넣는다.
+2. **뽑기 마당**: 그 뒤의 원소 $a_i$($i > k$)마다:
+    - $\{1, 2, \ldots, i\}$에서 고르게 아무 정수 $j$을 뽑는다.
+    - $j \leq k$이면 $R[j]$을 $a_i$으로 바꾼다.
+    - 그렇지 않으면 $a_i$을 버린다.
 
-!!! note "Space Complexity"
-    The algorithm uses $O(k)$ space for the reservoir plus $O(1)$ additional space for the counter and random number generation.
+!!! note "공간 복잡도"
+    알고리즘은 저수지에 공간 $O(k)$을 쓰고 셈틀과 아무 수 만들기에 $O(1)$을 더 쓴다.
 
-## Correctness Proof
+## 옳음의 증명
 
-**Theorem.** After processing $n$ elements, each element $a_i$ (for $i \leq n$) is in the reservoir with probability exactly $k/n$.
+**정리.** 원소 $n$개를 다룬 뒤 ($i \leq n$인) 원소 $a_i$마다 꼭 확률 $k/n$으로 저수지에 있다.
 
-*Proof by induction on $n$.*
+*$n$에 대한 귀납으로 밝힌다.*
 
-**Base case**: $n = k$. All $k$ elements are in the reservoir, each with probability $k/k = 1$.
+**바탕 경우**: $n = k$. 원소 $k$개가 모두 저수지에 있으며 저마다 확률 $k/k = 1$이다.
 
-**Inductive step**: assume after processing $n - 1$ elements, each is in $R$ with probability $k/(n-1)$. When element $a_n$ arrives:
+**귀납 걸음**: 원소 $n - 1$개를 다룬 뒤 저마다 확률 $k/(n-1)$으로 $R$에 있다고 하자. 원소 $a_n$이 오면:
 
-- $a_n$ is included with probability $k/n$ (since $j \leq k$ with probability $k/n$).
-- For any previous element $a_i$ (with $i < n$), it remains in $R$ if it was in $R$ after step $n - 1$ **and** it is not replaced by $a_n$:
+- $a_n$은 확률 $k/n$으로 든다(확률 $k/n$으로 $j \leq k$이기 때문이다).
+- 앞선 원소 $a_i$($i < n$)은 걸음 $n - 1$ 뒤에 $R$에 있었고 **또한** $a_n$으로 바뀌지 않으면 $R$에 남는다:
 
 $$
 P(a_i \in R \text{ after step } n) = \frac{k}{n-1} \cdot \left(1 - \frac{1}{n}\right) = \frac{k}{n-1} \cdot \frac{n-1}{n} = \frac{k}{n}
 $$
 
-The second factor accounts for the probability that, if $a_n$ replaces an element, it does not replace $a_i$ specifically: it replaces $a_i$ with probability $1/k \cdot k/n = 1/n$, so it does not replace $a_i$ with probability $(n-1)/n$.  $\square$
+둘째 인수는 $a_n$이 어떤 원소를 바꾸더라도 하필 $a_i$을 바꾸지는 않을 확률을 셈에 넣는다. $a_i$을 바꿀 확률은 $1/k \cdot k/n = 1/n$이므로 바꾸지 않을 확률은 $(n-1)/n$이다. $\square$
 
-## Weighted Reservoir Sampling
+## 무게 붙인 저수지 뽑기
 
-When elements have weights $w_i$ and we want the inclusion probability proportional to the weight, the **A-Res** (Algorithm with Reservoir) method works as follows:
+원소마다 무게 $w_i$이 있고 드는 확률이 무게에 비례하기를 바랄 때 **A-Res**(저수지 알고리즘) 방법은 다음과 같이 돈다:
 
-1. For each element $a_i$ with weight $w_i$, compute a key $k_i = u_i^{1/w_i}$ where $u_i \sim \text{Uniform}(0, 1)$.
-2. Maintain the $k$ elements with the largest keys.
+1. 무게가 $w_i$인 원소 $a_i$마다 $u_i \sim \text{Uniform}(0, 1)$일 때 열쇠 $k_i = u_i^{1/w_i}$을 셈한다.
+2. 열쇠가 가장 큰 원소 $k$개를 지닌다.
 
-**Theorem (Efraimidis and Spirakis, 2006).** A-Res produces a weighted random sample without replacement, where each element's inclusion probability is proportional to its weight.
+**정리(Efraimidis와 Spirakis, 2006).** A-Res은 되돌려 놓지 않는 무게 매긴 아무 표본을 내놓으며 원소가 들 확률이 그 무게에 비례한다.
 
-## Optimized Variants
+## 다듬은 변형
 
-### Algorithm L (Vitter, 1985)
+### 알고리즘 L(Vitter, 1985)
 
-Algorithm R generates a random number for every element in the stream, which is wasteful when $n \gg k$. Algorithm L computes the **gap** (number of elements to skip) directly:
+알고리즘 R은 흐름의 원소마다 아무 수를 만드는데 $n \gg k$이면 낭비다. 알고리즘 L은 **틈**(건너뛸 원소 개수)을 곧바로 셈한다:
 
-1. After including the current element, generate the next gap $G$:
+1. 지금 원소를 넣은 뒤 다음 틈 $G$을 만든다:
 
 $$
 G = \left\lfloor \frac{\ln(U)}{\ln(1 - k/n)} \right\rfloor
 $$
 
-where $U \sim \text{Uniform}(0, 1)$ and $n$ is the current stream position.
+여기서 $U \sim \text{Uniform}(0, 1)$이고 $n$은 지금 흐름 자리이다.
 
-2. Skip $G$ elements, then replace a random reservoir element with the next element.
+2. 원소 $G$개를 건너뛴 뒤 저수지의 아무 원소를 다음 원소로 바꾼다.
 
-This reduces the expected number of random numbers generated from $O(n)$ to $O(k(1 + \ln(n/k)))$.
+이는 만드는 아무 수의 기대 개수를 $O(n)$에서 $O(k(1 + \ln(n/k)))$으로 줄인다.
 
-### Merge-Based Reservoir Sampling
+### 합치기 바탕 저수지 뽑기
 
-For distributed streams, each node maintains a local reservoir. Merging two reservoirs of size $k$ from streams of lengths $n_1$ and $n_2$ produces a valid reservoir for the combined stream by:
+나눠진 흐름에서는 마디마다 그 자리 저수지를 지닌다. 길이가 $n_1$과 $n_2$인 흐름에서 온 크기 $k$의 저수지 둘을 다음과 같이 합치면 합친 흐름의 올바른 저수지가 된다:
 
-1. Combine both reservoirs into a pool of $2k$ candidates.
-2. Sample $k$ elements from the pool, where elements from stream $i$ are included with probability proportional to $n_i$.
+1. 두 저수지를 후보 $2k$개의 못으로 합친다.
+2. 못에서 원소 $k$개를 뽑되 흐름 $i$의 원소는 $n_i$에 비례하는 확률로 든다.
 
-## Applications
+## 응용
 
-### Streaming Data Analysis
+### 흐름 자료 살피기
 
-When the full dataset cannot fit in memory, reservoir sampling provides a representative sample for:
+온 자료 뭉치가 기억에 다 들어가지 않을 때 저수지 뽑기는 다음을 위한 대표 표본을 준다:
 
-- Estimating statistics (mean, variance, quantiles)
-- Training approximate models
-- Generating visualizations
+- 통계 어림하기(평균, 흩어짐, 분위)
+- 어림 모델 익히기
+- 그림 만들기
 
-### Experience Replay in Reinforcement Learning
+### 힘 북돋우는 배움의 겪음 되돌려 보기
 
-In reinforcement learning, the **experience replay buffer** stores transitions $(s, a, r, s')$ sampled from the agent's interactions. Reservoir sampling provides a principled way to maintain a uniform sample from the entire training history when the buffer has a fixed size.
+힘 북돋우는 배움에서 **겪음 되돌려 보기 버퍼**는 부림꾼의 주고받음에서 뽑은 옮김 $(s, a, r, s')$을 담는다. 버퍼 크기가 붙박였을 때 저수지 뽑기는 익힘의 온 지난 일에서 고른 표본을 지니는 원칙 있는 길을 준다.
 
-### Data Loading for Deep Learning
+### 깊은 배움의 자료 불러오기
 
-- **Shuffled sampling**: reservoir sampling can produce a shuffled subset of training data when the dataset is too large to shuffle in memory.
-- **Active learning**: when selecting data points for labeling from a stream, reservoir sampling ensures unbiased candidate selection.
+- **섞은 뽑기**: 자료 뭉치가 너무 커서 기억에서 섞을 수 없을 때 저수지 뽑기로 익히기 자료의 섞인 부분 모임을 만들 수 있다.
+- **골라 배우기**: 흐름에서 이름표를 붙일 자료 점을 고를 때 저수지 뽑기가 치우치지 않은 후보 고름을 보장한다.
 
-## Summary
+## 요약
 
-Reservoir sampling maintains a uniform random sample of $k$ elements from a stream of unknown length using $O(k)$ space. The inclusion probability $k/n$ is maintained exactly as new elements arrive. Weighted variants handle non-uniform sampling, and gap-based optimizations reduce the number of random number generations. The algorithm's simplicity and strong theoretical guarantees make it a cornerstone of streaming computation.
+저수지 뽑기는 공간 $O(k)$으로 길이를 모르는 흐름에서 원소 $k$개의 고른 아무 표본을 지닌다. 새 원소가 올 때마다 드는 확률 $k/n$이 정확히 지켜진다. 무게 매긴 변형은 고르지 않은 뽑기를 다루고, 틈 바탕 다듬기는 아무 수를 만드는 횟수를 줄인다. 단순하면서도 이론 보장이 튼튼해 흐름 셈의 주춧돌이 된다.
 
-## References
+## 참고 문헌
 
 - [Random Sampling with a Reservoir (Vitter, 1985)](https://doi.org/10.1145/3147.3165)
 - [Data Streams: Algorithms and Applications (Muthukrishnan)](https://www.cs.rutgers.edu/~muthu/stream-1-1.ps)
+
+
+## 연습문제
+
+**연습문제 1.**
+흐름에서 크기 $k$의 고른 아무 표본을 지니는 저수지 뽑기 알고리즘을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    저수지 $R$을 처음 $k$개 원소로 채운다. $i$번째 원소($i > k$)에 대해 확률 $k/i$으로 $R$의 고르게 아무 원소를 새 원소로 바꾼다. 원소 $n$개를 다 다루면 원소마다 꼭 확률 $k/n$으로 $R$에 있다. 공간 $O(k)$과 원소마다 때 $O(1)$이 든다(아무 수 하나와 바꿈 한 번 가능).
+
+---
+
+**연습문제 2.**
+저수지 뽑기가 고른 표본을 지님을 밝혀라. 곧 원소마다 저수지에 들 확률이 똑같이 $k/n$임을 보여라.
+
+??? success "연습문제 2 풀이"
+    귀납으로 보인다. 원소 $k$개 뒤: 모두 확률 1 = $k/k$으로 저수지에 있다. 원소 $i-1$개 뒤에 저마다 확률 $k/(i-1)$으로 저수지에 있다고 하자. 원소 $i$은 확률 $k/i$으로 든다. 이미 있던 원소 $j$이 걸음 $i$을 넘기는 것은 원소 $i$이 들지 않거나($1 - k/i$) 들되 다른 것을 바꿀 때($k/i \cdot (k-1)/k$)이며 그때뿐이다. 살아남을 확률: $1 - k/i + k/i \cdot (k-1)/k = 1 - 1/i$. 걸음 $i$ 뒤 원소 $j$의 확률: $k/(i-1) \cdot (1 - 1/i) = k/i$. 원소 $i$의 확률: $k/i$. 귀납이 끝났다.
+
+---
+
+**연습문제 3.**
+원소마다 드는 확률이 다른 무게 매긴 저수지 뽑기는 어떻게 하는가?
+
+??? success "연습문제 3 풀이"
+    Efraimidis와 Spirakis 알고리즘: 무게가 $w_i$인 원소 $i$마다 $u_i \sim \text{Uniform}(0,1)$일 때 열쇠 $u_i^{1/w_i}$을 셈한다. 열쇠가 가장 큰 원소 $k$개를 최소 더미에 지닌다. 새 원소마다 열쇠를 셈해 더미의 최소 열쇠보다 크면 최소를 바꾼다. 이는 드는 확률이 무게에 비례하는 무게 매긴 아무 표본을 낸다. 때: 더미 연산으로 원소마다 $O(\log k)$.
+
+---
+
+**연습문제 4.**
+온라인 배움이나 자료 흐름 다루기에서 저수지 뽑기의 쓰임새를 들어라.
+
+??? success "연습문제 4 풀이"
+    온라인 A/B 시험에서 저수지 뽑기는 자세히 살피려 쓰는 이의 주고받음 가운데 아무 부분 모임을 지닌다. 수백만 사건이 흘러들 때 자료를 모두 지니기는 될 일이 아니다. 크기 $k = 10{,}000$의 저수지가 잣대(바뀜 비율, 평균 머무름 길이)를 다스려진 어긋남 안에서 셈할 통계 대표 표본을 준다. 흐름 길이나 때 무늬와 상관없이 표본은 치우치지 않는다.

@@ -1,66 +1,61 @@
-# Prototypical Networks
+# 원형 망
+## 들어가며
 
+Snell 외(2017)가 들여온 원형 망은 소수 예시 학습에서 가장 우아하고 쓸모 있는 접근법에 든다. 핵심 통찰은 놀랍도록 단순하다. 부류는 그 받침 묻힘의 평균(원형)으로 나타낼 수 있고, 가려내기는 가장 가까운 원형을 찾는 것으로 이루어진다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 핵심 개념
 
-## Introduction
+### 원형이라는 생각
 
-Prototypical Networks, introduced by Snell et al. (2017), are among the most elegant and effective approaches to few-shot learning. The key insight is remarkably simple: classes can be represented by the mean (prototype) of their support embeddings, and classification is performed by finding the nearest prototype.
-
-## Core Concept
-
-### The Prototype Idea
-
-Given an embedding function $f_\theta$ and a support set $\mathcal{S}_c = \{(x_1^c, y_1^c), \ldots, (x_{K}^c, y_K^c)\}$ for class $c$, the **prototype** for class $c$ is:
+묻힘 함수 $f_\theta$과 부류 $c$의 받침 집합 $\mathcal{S}_c = \{(x_1^c, y_1^c), \ldots, (x_{K}^c, y_K^c)\}$이 주어지면 부류 $c$의 **원형**은 다음과 같다.
 
 $$\mathbf{c}_c = \frac{1}{|\mathcal{S}_c|} \sum_{(x_i, y_i) \in \mathcal{S}_c} f_\theta(x_i)$$
 
-This is simply the centroid of class embeddings in the learned representation space.
+이는 그저 배운 표현 공간에서 부류 묻힘의 무게중심이다.
 
-### Classification via Distance
+### 거리로 가려내기
 
-Given a query $x$, classification is performed by computing distances to all prototypes and applying softmax:
+물음 $x$이 주어지면 모든 원형까지의 거리를 셈하고 소프트맥스를 씌워 가려낸다.
 
 $$p(y = c | x) = \frac{\exp(-d(f_\theta(x), \mathbf{c}_c))}{\sum_{c'} \exp(-d(f_\theta(x), \mathbf{c}_{c'}))}$$
 
-where $d$ is a distance function (typically squared Euclidean distance).
+여기서 $d$은 거리 함수이다(대개 유클리드 거리의 제곱이다).
 
-### Why Prototypes Work
+### 원형이 통하는 까닭
 
-The effectiveness of prototypical networks can be understood through several lenses:
+원형 망의 쓸모는 여러 렌즈로 이해할 수 있다.
 
-**Bregman Divergence Perspective**: Snell et al. (2017) show that for any Bregman divergence, the optimal classification is achieved by comparing to cluster means. Squared Euclidean distance is a Bregman divergence.
+**브레그만 벌어짐의 눈**: Snell 외(2017)는 어떤 브레그만 벌어짐에서든 무리의 평균과 견주는 것이 가장 좋은 가려내기임을 보였다. 유클리드 거리의 제곱은 브레그만 벌어짐이다.
 
-**Mixup Interpretation**: Computing prototypes can be viewed as a form of data augmentation through averaging, improving generalization.
+**섞기 풀이**: 원형을 셈하는 것은 평균 내기로 데이터를 늘리는 한 가지 꼴로 볼 수 있어 일반화를 좋게 한다.
 
-**Robustness**: Averaging multiple examples reduces the impact of noisy or atypical support examples.
+**튼튼함**: 여러 보기를 평균 내면 잡음 끼거나 별난 받침 보기의 영향이 줄어든다.
 
-## Mathematical Foundation
+## 수학적 바탕
 
-### Bregman Divergences
+### 브레그만 벌어짐
 
-A Bregman divergence associated with a strictly convex, differentiable function $\phi$ is:
+엄밀히 볼록하고 미분할 수 있는 함수 $\phi$에 딸린 브레그만 벌어짐은 다음과 같다.
 
 $$d_\phi(z, z') = \phi(z) - \phi(z') - (z - z')^T \nabla\phi(z')$$
 
-**Theorem**: For exponential family mixture models with Bregman divergence $d_\phi$, the optimal cluster representative minimizing expected divergence is the cluster mean.
+**정리**: 브레그만 벌어짐 $d_\phi$을 쓰는 지수족 섞음 모델에서 기대 벌어짐을 가장 작게 하는 무리 대표는 무리의 평균이다.
 
-The squared Euclidean distance is a Bregman divergence with $\phi(z) = \|z\|_2^2$:
+유클리드 거리의 제곱은 $\phi(z) = \|z\|_2^2$에 딸린 브레그만 벌어짐이다.
 
 $$d_{\phi}(z, z') = \|z\|^2 - \|z'\|^2 - 2z'^T(z - z') = \|z - z'\|^2$$
 
-### Connection to Gaussian Mixture Models
+### 가우스 섞음 모델과의 이음
 
-Prototypical networks can be viewed as learning a mixture of Gaussians with shared covariance:
+원형 망은 공분산을 나누어 쓰는 가우스 섞음을 배우는 것으로 볼 수 있다.
 
 $$p(x | c) = \mathcal{N}(f_\theta(x); \mu_c, \sigma^2 I)$$
 
-where $\mu_c$ is the prototype and $\sigma^2$ is shared across classes. Under this model, the posterior over classes is exactly the softmax over negative squared distances.
+여기서 $\mu_c$은 원형이고 $\sigma^2$은 부류들이 나누어 쓴다. 이 모델 아래에서 부류 위의 뒤확률은 거리 제곱의 음수에 씌운 소프트맥스와 정확히 같다.
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### Complete Prototypical Network
+### 온전한 원형 망
 
 ```python
 import torch
@@ -68,12 +63,11 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Tuple, Optional
 
-
 class PrototypicalNetwork(nn.Module):
     """
-    Prototypical Networks for Few-Shot Learning.
+    소수 예시 학습을 위한 원형 망.
     
-    Reference: Snell et al. "Prototypical Networks for Few-shot Learning" 
+    참고: Snell 외, "Prototypical Networks for Few-shot Learning"
     NeurIPS 2017
     """
     
@@ -84,10 +78,10 @@ class PrototypicalNetwork(nn.Module):
         temperature: float = 1.0
     ):
         """
-        Args:
-            encoder: Embedding network f_θ
-            distance: 'euclidean' or 'cosine'
-            temperature: Scaling factor for logits
+        인수:
+            encoder: 묻힘 망 f_θ
+            distance: 'euclidean' 또는 'cosine'
+            temperature: 로짓의 눈금 인자
         """
         super().__init__()
         self.encoder = encoder
@@ -100,13 +94,13 @@ class PrototypicalNetwork(nn.Module):
         support_labels: torch.Tensor
     ) -> torch.Tensor:
         """
-        Compute class prototypes from support embeddings.
+        받침 묻힘에서 부류 원형을 셈한다.
         
-        Args:
+        인수:
             support_embeddings: (n_support, embed_dim)
-            support_labels: (n_support,) with values in {0, ..., n_way-1}
+            support_labels: 값이 {0, ..., n_way-1}에 드는 (n_support,)
         
-        Returns:
+        반환값:
             prototypes: (n_way, embed_dim)
         """
         n_way = support_labels.max().item() + 1
@@ -126,17 +120,17 @@ class PrototypicalNetwork(nn.Module):
         prototypes: torch.Tensor
     ) -> torch.Tensor:
         """
-        Compute distances from queries to prototypes.
+        물음에서 원형까지의 거리를 셈한다.
         
-        Args:
+        인수:
             query_embeddings: (n_query, embed_dim)
             prototypes: (n_way, embed_dim)
         
-        Returns:
+        반환값:
             distances: (n_query, n_way)
         """
         if self.distance == 'euclidean':
-            # Squared Euclidean: ||q - p||^2 = ||q||^2 + ||p||^2 - 2*q^T*p
+            # 유클리드 거리의 제곱: ||q - p||^2 = ||q||^2 + ||p||^2 - 2*q^T*p
             query_norm = (query_embeddings ** 2).sum(dim=1, keepdim=True)
             proto_norm = (prototypes ** 2).sum(dim=1, keepdim=True).t()
             cross_term = torch.mm(query_embeddings, prototypes.t())
@@ -161,33 +155,33 @@ class PrototypicalNetwork(nn.Module):
         query: torch.Tensor
     ) -> torch.Tensor:
         """
-        Compute classification logits for query examples.
+        물음 보기의 가려내기 로짓을 셈한다.
         
-        Args:
-            support: Support set images (n_support, *input_shape)
-            support_labels: Support labels (n_support,)
-            query: Query images (n_query, *input_shape)
+        인수:
+            support: 받침 집합 그림 (n_support, *input_shape)
+            support_labels: 받침 이름표 (n_support,)
+            query: 물음 그림 (n_query, *input_shape)
         
-        Returns:
-            logits: (n_query, n_way) classification logits
+        반환값:
+            logits: (n_query, n_way) 가려내기 로짓
         """
         n_support = support.size(0)
         
-        # Concatenate for efficient batch encoding
+        # 효율적인 배치 부호화를 위해 이어 붙인다
         all_images = torch.cat([support, query], dim=0)
         all_embeddings = self.encoder(all_images)
         
-        # Split back
+        # 다시 쪼갠다
         support_embeddings = all_embeddings[:n_support]
         query_embeddings = all_embeddings[n_support:]
         
-        # Compute prototypes
+        # 원형을 셈한다
         prototypes = self.compute_prototypes(support_embeddings, support_labels)
         
-        # Compute distances
+        # 거리를 셈한다
         distances = self.compute_distances(query_embeddings, prototypes)
         
-        # Convert to logits (negative distance)
+        # 로짓으로 바꾼다(거리의 음수)
         logits = -distances / self.temperature
         
         return logits
@@ -200,11 +194,11 @@ class PrototypicalNetwork(nn.Module):
         query_labels: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
-        Compute loss and accuracy for an episode.
+        에피소드의 손실과 정확도를 셈한다.
         
-        Returns:
-            loss: Cross-entropy loss
-            accuracy: Classification accuracy
+        반환값:
+            loss: 교차 엔트로피 손실
+            accuracy: 가려내기 정확도
         """
         logits = self.forward(support, support_labels, query)
         loss = F.cross_entropy(logits, query_labels)
@@ -215,12 +209,12 @@ class PrototypicalNetwork(nn.Module):
         return loss, accuracy
 ```
 
-### Standard Encoder Architecture
+### 표준 부호기 구조
 
 ```python
 class Conv4Encoder(nn.Module):
     """
-    4-layer convolutional encoder commonly used in few-shot learning.
+    소수 예시 학습에서 흔히 쓰는 4층 합성곱 부호기.
     """
     
     def __init__(self, in_channels: int = 1, hidden_dim: int = 64):
@@ -247,9 +241,9 @@ class Conv4Encoder(nn.Module):
         return F.adaptive_avg_pool2d(features, 1).view(features.size(0), -1)
 ```
 
-## Training Procedure
+## 학습 절차
 
-### Episodic Training Loop
+### 에피소드 학습 되돌이
 
 ```python
 def train_prototypical_network(
@@ -263,14 +257,14 @@ def train_prototypical_network(
     device: str = 'cuda'
 ):
     """
-    Train prototypical network for one epoch.
+    원형 망을 한 시대 동안 익힌다.
     """
     model.train()
     total_loss = 0
     total_acc = 0
     
     for episode in range(n_episodes):
-        # Sample episode
+        # 에피소드를 뽑는다
         support, support_labels, query, query_labels = sample_episode(
             train_dataset, n_way, k_shot, n_query
         )
@@ -280,7 +274,7 @@ def train_prototypical_network(
         query = query.to(device)
         query_labels = query_labels.to(device)
         
-        # Forward and backward
+        # 앞먹임과 되돌림
         optimizer.zero_grad()
         loss, acc = model.loss(support, support_labels, query, query_labels)
         loss.backward()
@@ -292,32 +286,32 @@ def train_prototypical_network(
     return total_loss / n_episodes, total_acc / n_episodes
 ```
 
-### Training Configuration
+### 학습 설정
 
-Key hyperparameters for prototypical networks:
+원형 망의 주요 초매개변수는 다음과 같다.
 
-| Parameter | Typical Value | Notes |
+| 매개변수 | 흔한 값 | 비고 |
 |-----------|--------------|-------|
-| N-way (train) | 20-60 | Higher N during training often helps |
-| K-shot (train) | 5-15 | More shots than test |
-| Query per class | 15 | Standard choice |
-| Learning rate | 1e-3 | With Adam optimizer |
-| Embedding dim | 64-1600 | Depends on complexity |
-| Episodes per epoch | 100-1000 | More for complex tasks |
+| N-갈래(학습) | 20~60 | 학습 때 N을 키우면 도움이 될 때가 많다 |
+| K-예시(학습) | 5~15 | 시험 때보다 예시를 많이 |
+| 부류마다 물음 | 15 | 표준 선택 |
+| 학습률 | 1e-3 | Adam 최적화기와 함께 |
+| 묻힘 차원 | 64~1600 | 복잡도에 달렸다 |
+| 시대마다 에피소드 | 100~1000 | 복잡한 과제일수록 더 많이 |
 
-**Training Trick**: Train with higher N-way than test. Training 30-way and testing 5-way often improves performance.
+**학습 요령**: 시험 때보다 큰 N-갈래로 익혀라. 30-갈래로 익히고 5-갈래로 시험하면 성능이 좋아질 때가 많다.
 
-## Variants and Extensions
+## 변형과 확장
 
-### Infinite Mixture Prototypes
+### 무한 섞음 원형
 
-Handle class uncertainty by modeling each class with multiple prototypes:
+부류마다 원형을 여럿 두어 부류의 불확실성을 다룬다.
 
 ```python
 class InfiniteMixturePrototypes(nn.Module):
     """
-    Represent each class with multiple prototypes using
-    a mixture model.
+    섞음 모델을 써서 부류마다
+    원형을 여럿 두어 나타낸다.
     """
     
     def __init__(self, encoder: nn.Module, n_prototypes: int = 3):
@@ -331,7 +325,7 @@ class InfiniteMixturePrototypes(nn.Module):
         support_labels: torch.Tensor
     ):
         """
-        Use k-means to find multiple prototypes per class.
+        k-평균으로 부류마다 원형을 여럿 찾는다.
         """
         from sklearn.cluster import KMeans
         
@@ -357,7 +351,7 @@ class InfiniteMixturePrototypes(nn.Module):
                 kmeans.fit(class_embeddings)
                 prototypes = kmeans.cluster_centers_
                 
-                # Weight by cluster size
+                # 무리 크기로 무게를 준다
                 labels = kmeans.labels_
                 weights = [(labels == k).sum() / len(labels) 
                           for k in range(n_clusters)]
@@ -374,21 +368,21 @@ class InfiniteMixturePrototypes(nn.Module):
         )
 ```
 
-### Task-Adaptive Prototypes
+### 과제에 맞추어 가는 원형
 
-Adapt prototypes based on query information:
+물음 정보를 바탕으로 원형을 맞추어 간다.
 
 ```python
 class TaskAdaptivePrototypes(nn.Module):
     """
-    Refine prototypes using attention over support-query pairs.
+    받침-물음 쌍 위의 주의로 원형을 다듬는다.
     """
     
     def __init__(self, encoder: nn.Module, embed_dim: int = 64):
         super().__init__()
         self.encoder = encoder
         
-        # Attention mechanism
+        # 어텐션 장치
         self.query_attention = nn.MultiheadAttention(
             embed_dim=embed_dim,
             num_heads=4,
@@ -399,22 +393,22 @@ class TaskAdaptivePrototypes(nn.Module):
         n_support = support.size(0)
         n_way = support_labels.max().item() + 1
         
-        # Encode
+        # 부호화
         all_images = torch.cat([support, query], dim=0)
         all_embeddings = self.encoder(all_images)
         
         support_embeddings = all_embeddings[:n_support]
         query_embeddings = all_embeddings[n_support:]
         
-        # Initial prototypes
+        # 처음 원형
         prototypes = []
         for c in range(n_way):
             mask = support_labels == c
             prototypes.append(support_embeddings[mask].mean(dim=0))
         prototypes = torch.stack(prototypes)  # (n_way, embed_dim)
         
-        # Refine with attention to queries
-        # Query: prototypes, Key/Value: all support
+        # 물음에 주의를 주어 다듬는다
+        # 물음: 원형, 열쇠와 값: 받침 전체
         refined_prototypes, _ = self.query_attention(
             prototypes.unsqueeze(0),
             support_embeddings.unsqueeze(0),
@@ -422,23 +416,23 @@ class TaskAdaptivePrototypes(nn.Module):
         )
         refined_prototypes = refined_prototypes.squeeze(0)
         
-        # Combine original and refined
+        # 본디 것과 다듬은 것을 합친다
         prototypes = 0.5 * prototypes + 0.5 * refined_prototypes
         
-        # Compute distances
+        # 거리를 셈한다
         distances = torch.cdist(query_embeddings, prototypes, p=2) ** 2
         
         return -distances
 ```
 
-### Semi-Supervised Prototypical Networks
+### 반 지도 원형 망
 
-Use unlabeled data to refine prototypes:
+이름표 없는 데이터로 원형을 다듬는다.
 
 ```python
 class SemiSupervisedProtoNet(nn.Module):
     """
-    Incorporate unlabeled examples through soft assignment.
+    부드러운 배정으로 이름표 없는 보기를 아우른다.
     """
     
     def __init__(self, encoder: nn.Module, n_refine_steps: int = 3):
@@ -453,28 +447,28 @@ class SemiSupervisedProtoNet(nn.Module):
         query: torch.Tensor,
         unlabeled: Optional[torch.Tensor] = None
     ):
-        # Encode all
+        # 모두 부호로 바꾼다
         support_emb = self.encoder(support)
         query_emb = self.encoder(query)
         
         n_way = support_labels.max().item() + 1
         
-        # Initial prototypes from labeled support
+        # 이름표 붙은 받침에서 얻은 처음 원형
         prototypes = self._compute_prototypes(support_emb, support_labels, n_way)
         
         if unlabeled is not None:
             unlabeled_emb = self.encoder(unlabeled)
             
-            # Iteratively refine prototypes
+            # 원형을 되풀이하여 다듬는다
             for _ in range(self.n_refine_steps):
-                # Soft assign unlabeled to prototypes
+                # 이름표 없는 것을 원형에 부드럽게 배정한다
                 distances = torch.cdist(unlabeled_emb, prototypes, p=2) ** 2
                 soft_labels = F.softmax(-distances, dim=1)  # (n_unlabeled, n_way)
                 
-                # Recompute prototypes
+                # 원형을 다시 셈한다
                 new_prototypes = []
                 for c in range(n_way):
-                    # Weighted mean including unlabeled
+                    # 이름표 없는 것까지 넣은 무게 준 평균
                     labeled_mask = support_labels == c
                     labeled_contrib = support_emb[labeled_mask].sum(dim=0)
                     labeled_count = labeled_mask.sum()
@@ -488,7 +482,7 @@ class SemiSupervisedProtoNet(nn.Module):
                 
                 prototypes = torch.stack(new_prototypes)
         
-        # Final classification
+        # 마지막 가려내기
         distances = torch.cdist(query_emb, prototypes, p=2) ** 2
         return -distances
     
@@ -500,60 +494,62 @@ class SemiSupervisedProtoNet(nn.Module):
         return torch.stack(prototypes)
 ```
 
-## Theoretical Analysis
+## 이론적 분석
 
-### Sample Complexity
+### 표본 복잡도
 
-For prototypical networks with $K$ support examples per class and embedding dimension $d$:
+부류마다 받침 보기 $K$개를 쓰고 묻힘 차원이 $d$인 원형 망에서는 다음과 같다.
 
-**Prototype Estimation Error**:
+**원형 어림의 오차**:
 
 $$\mathbb{E}\left[\|\hat{\mathbf{c}}_c - \mathbf{c}_c^*\|_2^2\right] = O\left(\frac{\sigma^2}{K}\right)$$
 
-where $\sigma^2$ is the variance of class embeddings.
+여기서 $\sigma^2$은 부류 묻힘의 흩어짐이다.
 
-**Classification Error**: Under mild assumptions, the excess classification risk decreases as $O(1/\sqrt{K})$.
+**가려내기 오차**: 너그러운 가정 아래에서 남는 가려내기 위험은 $O(1/\sqrt{K})$으로 줄어든다.
 
-### Comparison with Other Methods
+### 다른 방법과의 견줌
 
-| Method | Prototype Computation | Classification | Complexity |
+| 방법 | 원형 셈하기 | 가려내기 | 복잡도 |
 |--------|----------------------|----------------|------------|
-| Prototypical | Mean | Nearest centroid | $O(NK)$ |
-| Matching Networks | Identity | Attention-weighted | $O(NK \cdot Q)$ |
-| Relation Networks | Mean | Learned relation | $O(N \cdot Q)$ |
+| 원형 망 | 평균 | 가장 가까운 무게중심 | $O(NK)$ |
+| 맞춤 망 | 항등 | 주의로 무게 준 값 | $O(NK \cdot Q)$ |
+| 관계 망 | 평균 | 배운 관계 | $O(N \cdot Q)$ |
 
-## Practical Recommendations
+## 실전 권고
 
-### Distance Function Selection
+### 거리 함수 고르기
 
-**Euclidean** (default):
-- Works well with L2-normalized embeddings
-- Better for high-dimensional spaces
-- Computationally efficient
+**유클리드**(기본값):
 
-**Cosine**:
-- Scale-invariant
-- Works well without normalization
-- May help with varying embedding magnitudes
+- L2로 고른 묻힘과 잘 맞는다
+- 차원이 높은 공간에서 더 낫다
+- 셈이 효율적이다
 
-### Embedding Normalization
+**코사인**:
+
+- 크기에 흔들리지 않는다
+- 고르기 없이도 잘 굴러간다
+- 묻힘의 크기가 들쭉날쭉할 때 도움이 될 수 있다
+
+### 묻힘 고르기
 
 ```python
 def forward_with_normalization(self, support, support_labels, query):
-    # Encode
+    # 부호화
     support_emb = self.encoder(support)
     query_emb = self.encoder(query)
     
-    # L2 normalize (often improves performance)
+    # L2로 고른다(성능이 좋아질 때가 많다)
     support_emb = F.normalize(support_emb, p=2, dim=1)
     query_emb = F.normalize(query_emb, p=2, dim=1)
     
-    # Rest of forward pass...
+    # 앞먹임의 나머지...
 ```
 
-### Data Augmentation
+### 데이터 늘리기
 
-Strong augmentation during episodic training:
+에피소드 학습 중에 세게 늘린다.
 
 ```python
 train_transform = transforms.Compose([
@@ -566,34 +562,73 @@ train_transform = transforms.Compose([
 ])
 ```
 
-## Experimental Results
+## 실험 결과
 
-### Benchmark Performance (5-way accuracy)
+### 잣대 성능(5-갈래 정확도)
 
-| Method | Omniglot 1-shot | Omniglot 5-shot | mini-ImageNet 1-shot | mini-ImageNet 5-shot |
+| 방법 | Omniglot 1-예시 | Omniglot 5-예시 | mini-ImageNet 1-예시 | mini-ImageNet 5-예시 |
 |--------|-----------------|-----------------|---------------------|---------------------|
-| Matching Networks | 98.1% | 98.9% | 43.6% | 55.3% |
-| **Prototypical Networks** | **98.8%** | **99.7%** | **49.4%** | **68.2%** |
+| 맞춤 망 | 98.1% | 98.9% | 43.6% | 55.3% |
+| **원형 망** | **98.8%** | **99.7%** | **49.4%** | **68.2%** |
 | MAML | 98.7% | 99.9% | 48.7% | 63.1% |
 
-## Summary
+## 요약
 
-Prototypical Networks offer:
+원형 망은 다음을 준다.
 
-1. **Simplicity**: Just compute class means and nearest-neighbor classify
-2. **Efficiency**: No iterative optimization at test time
-3. **Strong Performance**: Competitive with more complex methods
-4. **Theoretical Foundation**: Grounded in Bregman divergence theory
+1. **단순함**: 부류의 평균을 셈하고 최근접 이웃으로 가려내면 그만이다
+2. **효율**: 시험 때 되풀이 최적화가 없다
+3. **든든한 성능**: 더 복잡한 방법과 겨룰 만하다
+4. **이론적 바탕**: 브레그만 벌어짐 이론에 뿌리를 둔다
 
-Key insights for practitioners:
-- Train with higher N-way than test
-- Use squared Euclidean distance with normalized embeddings
-- Consider multiple prototypes for complex classes
-- Data augmentation is crucial for generalization
+실무자를 위한 핵심 통찰은 다음과 같다.
 
-## References
+- 시험 때보다 큰 N-갈래로 익혀라
+- 고른 묻힘에 유클리드 거리의 제곱을 쓰라
+- 복잡한 부류에는 원형을 여럿 두는 것을 생각해 보라
+- 일반화에는 데이터 늘리기가 매우 중요하다
+
+## 참고 문헌
 
 1. Snell, J., et al. "Prototypical Networks for Few-shot Learning." NeurIPS 2017.
 2. Fort, S. "Gaussian Prototypical Networks for Few-Shot Learning on Omniglot." CVPR Workshop 2017.
 3. Allen, K., et al. "Infinite Mixture Prototypes for Few-Shot Learning." ICML 2019.
 4. Ren, M., et al. "Meta-Learning for Semi-Supervised Few-Shot Classification." ICLR 2018.
+
+## 연습문제
+
+**연습문제 1.**
+원형 망의 가려내기 규칙을 끌어내라.
+
+??? success "연습문제 1 풀이"
+    부류 원형을 셈한다. 곧 $c_k = \frac{1}{|S_k|}\sum_{(x,y)\in S_k} f_\phi(x)$이다. 물음 $x$을 원형까지의 거리로 가려낸다. 곧 $p(y=k|x) = \frac{\exp(-d(f_\phi(x), c_k))}{\sum_j \exp(-d(f_\phi(x), c_j))}$이며 $d$은 대개 유클리드 거리의 제곱이다.
+
+---
+
+**연습문제 2.**
+유클리드 거리의 제곱을 쓰는 원형 망이 묻힘 공간의 선형 가려내기와 같음을 증명하라.
+
+??? success "연습문제 2 풀이"
+    로그 확률은 $\log p(y=k|x) = -\|f(x) - c_k\|^2 + \text{const} = 2c_k^\top f(x) - \|c_k\|^2 + \text{const}$이다. 이는 가중치가 $w_k = 2c_k$이고 편향이 $b_k = -\|c_k\|^2$인 $f(x)$의 선형 함수이다. 그러므로 원형 망은 선형 가려내기만으로 충분한 표현을 배운다. $\square$
+
+---
+
+**연습문제 3.**
+파이토치로 원형 망을 구현하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    def prototypical_loss(support_emb, support_labels, query_emb, query_labels, n_way):
+        prototypes = [support_emb[support_labels == k].mean(0) for k in range(n_way)]
+        prototypes = torch.stack(prototypes)  # (N, D)
+        dists = torch.cdist(query_emb, prototypes)  # (Q, N)
+        return F.cross_entropy(-dists, query_labels)
+    ```
+
+---
+
+**연습문제 4.**
+원형 망을 맞춤 망, 관계 망과 견주어라.
+
+??? success "연습문제 4 풀이"
+    원형 망: 부류 무게중심을 셈하고 유클리드 거리와 소프트맥스를 쓴다. 단순하고 쓸모 있다. 맞춤 망: 받침 집합 위에서 주의로 무게 준 kNN을 쓰며 받침 집합 전체를 쓴다. 관계 망: 신경망으로 거리 함수를 배운다. 원형 망은 단순해서 가장 널리 쓰이고, 관계 망이 가장 두루 쓰이며, 맞춤 망은 받침 집합의 크기가 바뀔 때 가장 잘 다룬다.

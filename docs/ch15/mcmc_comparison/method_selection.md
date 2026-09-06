@@ -1,43 +1,38 @@
-# Practical Method Selection
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Choosing the right MCMC method for a given problem is part science, part art. This section provides practical guidance for method selection based on problem characteristics, computational constraints, and diagnostic outcomes.
+# 실전에서 방법 고르기
+주어진 문제에 알맞은 MCMC 방법을 고르는 일은 반은 과학이고 반은 기예이다. 이 마당은 문제의 성격, 셈의 제약, 진단 결과에 기대어 방법을 고르는 실전 길잡이를 준다.
 
 ---
 
-## Decision Framework
+## 판단의 틀
 
-### The Key Questions
+### 핵심 물음
 
-Before selecting a method, answer these questions:
+방법을 고르기에 앞서 다음 물음에 답하여라:
 
-1. **Is the target differentiable?**
-   - Yes → Gradient-based methods (MALA, HMC) are available
-   - No → Must use gradient-free (MH, Gibbs)
+1. **과녁을 미분할 수 있는가?**
+   - 그렇다 → 기울기 기반 방법(MALA, HMC)을 쓸 수 있다
+   - 아니다 → 기울기 없는 방법(MH, 깁스)을 써야 한다
 
-2. **What is the dimension?**
-   - $d < 20$ → Most methods work
-   - $20 < d < 200$ → MALA or HMC preferred
-   - $d > 200$ → HMC/NUTS essential (or specialized methods)
+2. **차원이 얼마인가?**
+   - $d < 20$ → 대부분의 방법이 잘 굴러간다
+   - $20 < d < 200$ → MALA이나 HMC이 낫다
+   - $d > 200$ → HMC/NUTS이 꼭 필요하다(또는 특화된 방법)
 
-3. **Are full conditionals tractable?**
-   - Yes → Gibbs is an option
-   - Partially → Metropolis-within-Gibbs
-   - No → Full MH or gradient-based
+3. **온전한 조건부 분포를 다룰 수 있는가?**
+   - 그렇다 → 깁스를 고를 수 있다
+   - 얼마쯤 → 깁스 안의 메트로폴리스
+   - 아니다 → 온전한 MH이나 기울기 기반
 
-4. **Is the target multimodal?**
-   - Yes → Consider tempering, multiple chains
-   - No → Standard methods likely sufficient
+4. **과녁의 봉우리가 여럿인가?**
+   - 그렇다 → 온도 다루기와 여러 사슬을 생각해 보아라
+   - 아니다 → 표준 방법으로 넉넉할 듯하다
 
-5. **What are the computational constraints?**
-   - Gradient expensive → RWM or Gibbs
-   - Parallel resources → Multiple chains
-   - Real-time → Fast-mixing required
+5. **셈의 제약은 무엇인가?**
+   - 기울기가 비싸다 → 무작위 걸음 MH이나 깁스
+   - 병렬 밑천이 있다 → 여러 사슬
+   - 실시간이다 → 빨리 섞여야 한다
 
-### Decision Tree
+### 결정 나무
 
 ```
 Start
@@ -63,80 +58,88 @@ Start
 
 ---
 
-## Method Profiles
+## 방법마다의 됨됨이
 
-### Random Walk Metropolis-Hastings
+### 무작위 걸음 메트로폴리스-헤이스팅스
 
-**Best for**:
-- Low dimensions ($d < 20$)
-- Non-differentiable targets
-- Quick prototyping
-- Discrete components in mixed models
+**가장 알맞은 곳**:
 
-**Avoid when**:
-- $d > 50$ (mixing becomes prohibitive)
-- Strong correlations (without reparameterization)
-- Real-time applications
+- 낮은 차원($d < 20$)
+- 미분할 수 없는 과녁
+- 빠른 시제품 만들기
+- 섞인 모형의 이산 성분
 
-**Tuning**:
+**피해야 할 때**:
+
+- $d > 50$(섞임을 감당할 수 없다)
+- 강한 상관(매개변수를 바꾸지 않았을 때)
+- 실시간 쓰임새
+
+**맞추기**:
 ```python
-# Start with this, adjust based on acceptance
+# 이것으로 시작해 받아들임에 따라 다듬기
 sigma = 2.4 * np.std(initial_samples, axis=0) / np.sqrt(d)
-# Target: 20-25% acceptance in high d, up to 50% in low d
+# 목표: 차원이 높으면 받아들임 20-25%, 낮으면 50%까지
 ```
 
-**Red flags**:
-- Acceptance rate < 10% or > 50%
-- Trace plots show "stickiness"
-- ESS per iteration < 0.01
+**빨간불**:
 
-### Gibbs Sampling
+- 받아들임 비율이 10% 미만이거나 50% 초과
+- 자취 그림이 "들러붙음"을 보인다
+- 되풀이마다의 ESS이 0.01 미만
 
-**Best for**:
-- Conjugate models (Bayesian linear regression, GMMs)
-- Conditionals are standard distributions
-- Hierarchical models with conjugate priors
-- High dimension with sparse structure
+### 깁스 표집
 
-**Avoid when**:
-- Strong correlations between variables
-- Conditionals are non-standard
-- All-at-once updates would be more efficient
+**가장 알맞은 곳**:
 
-**Tuning**: Generally parameter-free, but:
+- 켤레 모형(베이즈 선형 회귀, 가우스 섞음 모형)
+- 조건부 분포가 표준 분포이다
+- 켤레 앞확률을 갖는 층 모형
+- 성긴 짜임의 높은 차원
+
+**피해야 할 때**:
+
+- 변수 사이의 강한 상관
+- 조건부 분포가 표준이 아니다
+- 한꺼번에 새로 고치는 편이 더 효율적이다
+
+**맞추기**: 대체로 맞출 것이 없지만:
 ```python
-# Random scan can help with correlations
-scan_order = np.random.permutation(d)  # Each iteration
+# 무작위 훑기는 상관이 있을 때 도움이 된다
+scan_order = np.random.permutation(d)  # 되풀이마다
 
-# Block Gibbs for correlated groups
-blocks = [[0, 1, 2], [3, 4, 5], ...]  # Group correlated variables
+# 서로 얽힌 묶음에 쓰는 덩어리 깁스
+blocks = [[0, 1, 2], [3, 4, 5], ...]  # 서로 얽힌 변수 묶기
 ```
 
-**Red flags**:
-- Extremely slow mixing in some coordinates
-- High autocorrelation despite 100% acceptance
-- Conditional sampling is slow/complex
+**빨간불**:
 
-### MALA (Metropolis-Adjusted Langevin)
+- 어떤 좌표에서 섞임이 몹시 느리다
+- 받아들임이 100%인데도 자기상관이 높다
+- 조건부 표집이 느리거나 복잡하다
 
-**Best for**:
-- Moderate dimensions ($20 < d < 200$)
-- Smooth, differentiable log-densities
-- When gradients are cheap
-- As a step up from RWM
+### MALA(메트로폴리스 바로잡은 랑주뱅)
 
-**Avoid when**:
-- Target has discontinuities
-- Gradient is expensive or unavailable
-- Very high dimensions (HMC better)
-- Heavy tails (gradient unreliable)
+**가장 알맞은 곳**:
 
-**Tuning**:
+- 중간 차원($20 < d < 200$)
+- 매끄럽고 미분할 수 있는 로그 밀도
+- 기울기가 쌀 때
+- 무작위 걸음 MH에서 한 걸음 올라설 때
+
+**피해야 할 때**:
+
+- 과녁에 끊긴 곳이 있다
+- 기울기가 비싸거나 없다
+- 차원이 아주 높다(HMC이 낫다)
+- 꼬리가 무겁다(기울기가 미덥지 않다)
+
+**맞추기**:
 ```python
-# Initial step size
+# 첫 걸음 크기
 epsilon = 1.0 / d**(1/6)
 
-# Adapt to target ~57% acceptance
+# 받아들임 57%쯤을 목표로 맞추기
 def adapt_epsilon(epsilon, accept_rate, target=0.574):
     if accept_rate > target + 0.05:
         return epsilon * 1.1
@@ -145,57 +148,60 @@ def adapt_epsilon(epsilon, accept_rate, target=0.574):
     return epsilon
 ```
 
-**Red flags**:
-- Acceptance rate far from 57%
-- Gradient evaluations returning NaN/Inf
-- Much worse than RWM (indicates gradient issues)
+**빨간불**:
 
-### Hamiltonian Monte Carlo
+- 받아들임 비율이 57%에서 멀다
+- 기울기 값 매기기가 NaN이나 Inf을 되돌린다
+- 무작위 걸음 MH보다 훨씬 나쁘다(기울기에 문제가 있다는 뜻이다)
 
-**Best for**:
-- High dimensions ($d > 50$)
-- Smooth, log-concave (or mildly multimodal) targets
-- When gradient cost is acceptable
-- When high ESS is needed
+### 해밀턴 몬테카를로
 
-**Avoid when**:
-- Target is non-differentiable
-- Discrete parameters present
-- Multimodal with high barriers
-- Gradient is very expensive
+**가장 알맞은 곳**:
 
-**Tuning**:
+- 높은 차원($d > 50$)
+- 매끄럽고 로그 오목한(또는 봉우리가 살짝 여럿인) 과녁
+- 기울기 값이 감당할 만할 때
+- 높은 ESS이 필요할 때
+
+**피해야 할 때**:
+
+- 과녁을 미분할 수 없다
+- 이산 매개변수가 있다
+- 봉우리가 여럿이고 벽이 높다
+- 기울기가 아주 비싸다
+
+**맞추기**:
 ```python
-# Use NUTS to avoid tuning L
-# For manual HMC:
+# L을 맞추지 않으려고 NUTS 쓰기
+# 손수 하는 HMC에서는:
 epsilon = 0.1 / d**(1/4)
 L = int(np.ceil(np.sqrt(d)))
 
-# Mass matrix: start diagonal, consider dense for correlations
+# 질량 행렬: 대각으로 시작하고 상관이 있으면 빽빽한 행렬 생각해 보기
 M = np.diag(1.0 / np.var(warmup_samples, axis=0))
 ```
 
-**Red flags**:
-- Divergent transitions (energy errors > 1000)
-- Tree depth hitting maximum (in NUTS)
-- Low E-BFMI (< 0.2)
-- Acceptance rate outside 50-80%
+**빨간불**:
+
+- 갈라져 나가는 옮김(에너지 오차 > 1000)
+- (NUTS에서) 나무 깊이가 최대에 부딪힌다
+- 낮은 E-BFMI(< 0.2)
+- 받아들임 비율이 50-80% 밖이다
 
 ---
 
-## Problem-Specific Recommendations
+## 문제마다의 권함
 
-### Bayesian Linear Regression
+### 베이즈 선형 회귀
 
 $$
-
 y = X\beta + \epsilon, \quad \beta \sim \mathcal{N}(0, \sigma_\beta^2 I), \quad \epsilon \sim \mathcal{N}(0, \sigma^2 I)
-
 $$
 
-**Recommendation**: **Gibbs Sampling**
+**권함**: **깁스 표집**
 
-**Why**: Full conditionals are available:
+**왜**: 온전한 조건부 분포를 쓸 수 있다:
+
 - $\beta | y, \sigma^2 \sim \mathcal{N}(\cdot, \cdot)$
 - $\sigma^2 | y, \beta \sim \text{Inverse-Gamma}(\cdot, \cdot)$
 
@@ -205,18 +211,18 @@ def gibbs_linear_regression(y, X, n_samples, prior_var=100):
     XtX = X.T @ X
     Xty = X.T @ y
     
-    # Initialize
+    # 초기화한다
     sigma2 = 1.0
     beta = np.zeros(p)
     
     samples = []
     for _ in range(n_samples):
-        # Sample beta | y, sigma2
+        # beta | y, sigma2 표집
         V_post = np.linalg.inv(XtX / sigma2 + np.eye(p) / prior_var)
         m_post = V_post @ (Xty / sigma2)
         beta = np.random.multivariate_normal(m_post, V_post)
         
-        # Sample sigma2 | y, beta
+        # sigma2 | y, beta 표집
         resid = y - X @ beta
         a_post = n / 2
         b_post = np.sum(resid**2) / 2
@@ -227,20 +233,19 @@ def gibbs_linear_regression(y, X, n_samples, prior_var=100):
     return samples
 ```
 
-### Bayesian Logistic Regression
+### 베이즈 로지스틱 회귀
 
 $$
-
 y_i \sim \text{Bernoulli}(\sigma(x_i^T\beta)), \quad \beta \sim \mathcal{N}(0, \sigma_\beta^2 I)
-
 $$
 
-**Recommendation**: **HMC / NUTS**
+**권함**: **HMC / NUTS**
 
-**Why**: 
-- No conjugacy (Gibbs not applicable)
-- Gradient is cheap: $\nabla \log p(\beta|y) = X^T(y - \hat{y}) - \beta/\sigma_\beta^2$
-- Dimension can be moderate to high
+**왜**:
+
+- 켤레가 아니다(깁스를 쓸 수 없다)
+- 기울기가 싸다: $\nabla \log p(\beta|y) = X^T(y - \hat{y}) - \beta/\sigma_\beta^2$
+- 차원이 중간에서 높음까지일 수 있다
 
 ```python
 def logistic_regression_nuts(y, X, n_samples):
@@ -249,7 +254,7 @@ def logistic_regression_nuts(y, X, n_samples):
     def log_prob(beta):
         logits = X @ beta
         ll = np.sum(y * logits - np.log(1 + np.exp(logits)))
-        prior = -0.5 * np.sum(beta**2) / 100  # Prior variance 100
+        prior = -0.5 * np.sum(beta**2) / 100  # 앞확률 흩어짐 100
         return ll + prior
     
     def grad_log_prob(beta):
@@ -261,39 +266,37 @@ def logistic_regression_nuts(y, X, n_samples):
     return nuts_sample(log_prob, grad_log_prob, np.zeros(p), n_samples)
 ```
 
-### Gaussian Mixture Model
+### 가우스 섞음 모형
 
 $$
-
 p(x|\theta) = \sum_{k=1}^K \pi_k \mathcal{N}(x|\mu_k, \Sigma_k)
-
 $$
 
-**Recommendation**: **Gibbs Sampling** (with latent assignments)
+**권함**: **깁스 표집**(숨은 배정과 함께)
 
-**Why**: Conditionals are tractable with data augmentation.
+**왜**: 자료를 덧붙이면 조건부 분포를 다룰 수 있다.
 
 ```python
 def gmm_gibbs(X, K, n_samples):
     n, d = X.shape
     
-    # Initialize
-    z = np.random.randint(0, K, n)  # Assignments
+    # 초기화한다
+    z = np.random.randint(0, K, n)  # 배정
     
     samples = []
     for _ in range(n_samples):
-        # Count assignments
+        # 배정 세기
         N_k = np.bincount(z, minlength=K)
         
-        # Sample pi | z
+        # pi | z 표집
         pi = np.random.dirichlet(1 + N_k)
         
-        # Sample mu_k, Sigma_k | z, X
+        # mu_k, Sigma_k | z, X 표집
         mu, Sigma = [], []
         for k in range(K):
             X_k = X[z == k]
             if len(X_k) > d:
-                mu_k = X_k.mean(axis=0)  # Simplified; use proper posterior
+                mu_k = X_k.mean(axis=0)  # 간추림, 제대로 된 뒤확률을 쓸 것
                 Sigma_k = np.cov(X_k.T)
             else:
                 mu_k = np.zeros(d)
@@ -301,7 +304,7 @@ def gmm_gibbs(X, K, n_samples):
             mu.append(mu_k)
             Sigma.append(Sigma_k)
         
-        # Sample z | pi, mu, Sigma, X
+        # z | pi, mu, Sigma, X 표집
         for i in range(n):
             log_probs = np.log(pi) + np.array([
                 multivariate_normal.logpdf(X[i], mu[k], Sigma[k]) 
@@ -315,30 +318,28 @@ def gmm_gibbs(X, K, n_samples):
     return samples
 ```
 
-### Hierarchical Model
+### 층 모형
 
 $$
-
 y_{ij} \sim \mathcal{N}(\mu + \alpha_j, \sigma^2), \quad \alpha_j \sim \mathcal{N}(0, \tau^2)
-
 $$
 
-**Recommendation**: **HMC with non-centered parameterization** or **Gibbs**
+**권함**: **가운데를 벗긴 매개변수화를 쓴 HMC** 또는 **깁스**
 
-**Why centered fails**: The "funnel" geometry causes problems.
+**가운데를 둔 것이 왜 무너지나**: "깔때기" 기하가 말썽을 일으킨다.
 
 ```python
-# CENTERED (problematic)
+# 가운데 맞춤(말썽 있음)
 # alpha_j ~ N(0, tau^2)
 # y_ij ~ N(mu + alpha_j, sigma^2)
 
-# NON-CENTERED (better)
+# 가운데 벗김(더 나음)
 # eta_j ~ N(0, 1)
 # alpha_j = tau * eta_j
 # y_ij ~ N(mu + tau * eta_j, sigma^2)
 
 def hierarchical_hmc_noncentered(y, groups, n_samples):
-    """Non-centered parameterization for hierarchical model."""
+    """층 모형을 위한, 가운데를 벗긴 매개변수화."""
     J = len(np.unique(groups))
     
     def log_prob(params):
@@ -346,14 +347,14 @@ def hierarchical_hmc_noncentered(y, groups, n_samples):
         sigma, tau = np.exp(log_sigma), np.exp(log_tau)
         alpha = tau * eta
         
-        # Likelihood
+        # 가능도
         means = mu + alpha[groups]
         ll = norm.logpdf(y, means, sigma).sum()
         
-        # Priors
-        lp = norm.logpdf(eta, 0, 1).sum()  # Standard normal on eta
+        # 앞확률
+        lp = norm.logpdf(eta, 0, 1).sum()  # eta에 표준 정규
         lp += norm.logpdf(mu, 0, 10)
-        lp += norm.logpdf(log_sigma, 0, 1)  # Log-normal prior
+        lp += norm.logpdf(log_sigma, 0, 1)  # 로그 정규 앞확률
         lp += norm.logpdf(log_tau, 0, 1)
         
         return ll + lp
@@ -361,50 +362,48 @@ def hierarchical_hmc_noncentered(y, groups, n_samples):
     return hmc_sample(log_prob, grad_log_prob, init_params, n_samples)
 ```
 
-### High-Dimensional Sparse Regression
+### 차원 높은 성긴 회귀
 
 $$
-
 y = X\beta + \epsilon, \quad \beta_j \sim (1-\pi)\delta_0 + \pi \mathcal{N}(0, \sigma_\beta^2)
-
 $$
 
-**Recommendation**: **Gibbs with spike-and-slab** or **Variational inference**
+**권함**: **못과 판을 쓴 깁스** 또는 **변분 추론**
 
-**Why**: Discrete inclusion indicators require Gibbs-style updates.
+**왜**: 이산 포함 지시자가 깁스식 새로 고치기를 요구한다.
 
 ---
 
-## Hybrid and Adaptive Strategies
+## 섞음 전략과 알아서 맞추는 전략
 
-### Metropolis-within-Gibbs
+### 깁스 안의 메트로폴리스
 
-Combine Gibbs (for tractable conditionals) with MH (for others):
+(다룰 수 있는 조건부 분포에는) 깁스를, (나머지에는) MH을 섞어 쓴다:
 
 ```python
 def metropolis_within_gibbs(current, conditionals, mh_params):
     """
-    conditionals: dict mapping param names to sampling functions
-    mh_params: dict mapping param names to MH proposal params
+    conditionals: 매개변수 이름을 표집 함수로 잇는 사전
+    mh_params: 매개변수 이름을 MH 제안 매개변수로 잇는 사전
     """
     for param in current.keys():
         if param in conditionals:
-            # Gibbs step
+            # 깁스 걸음
             current[param] = conditionals[param](current)
         else:
-            # Metropolis step
+            # 메트로폴리스 걸음
             current[param] = mh_step(current, param, mh_params[param])
     
     return current
 ```
 
-### Block Updates
+### 덩이 새로 고치기
 
-Group correlated parameters:
+얽힌 매개변수를 묶는다:
 
 ```python
 def identify_blocks(correlation_matrix, threshold=0.5):
-    """Identify blocks of correlated parameters."""
+    """서로 얽힌 매개변수의 덩어리 가려내기."""
     import networkx as nx
     
     G = nx.Graph()
@@ -419,9 +418,9 @@ def identify_blocks(correlation_matrix, threshold=0.5):
     return list(nx.connected_components(G))
 ```
 
-### Adaptive MCMC
+### 알아서 맞추는 MCMC
 
-Adapt proposal parameters during warmup:
+달굼 동안 제안 매개변수를 알아서 맞춘다:
 
 ```python
 class AdaptiveMCMC:
@@ -433,15 +432,15 @@ class AdaptiveMCMC:
         self.n_adapt = 0
         
     def step(self, x, adapt=True):
-        # Propose from adapted distribution
+        # 맞춰 간 분포에서 내놓기
         x_prop = np.random.multivariate_normal(x, 2.4**2 / self.d * self.Sigma)
         
-        # Accept/reject
+        # 받아들이거나 물리치기
         log_alpha = self.log_prob(x_prop) - self.log_prob(x)
         if np.log(np.random.rand()) < log_alpha:
             x = x_prop
         
-        # Adapt
+        # 맞춰 가기
         if adapt:
             self.n_adapt += 1
             self.update_moments(x)
@@ -449,7 +448,7 @@ class AdaptiveMCMC:
         return x
     
     def update_moments(self, x):
-        """Online update of mean and covariance."""
+        """평균과 공분산의 흐름 속 새로 고치기."""
         n = self.n_adapt
         delta = x - self.mu
         self.mu += delta / n
@@ -459,44 +458,47 @@ class AdaptiveMCMC:
 
 ---
 
-## Diagnostics-Based Selection
+## 진단에 기댄 고르기
 
-### When to Switch Methods
+### 방법을 언제 바꾸나
 
-**Switch from RWM to MALA/HMC if**:
-- ESS/iteration < 0.01
-- Mixing time > 10,000 iterations
-- Trace plots show strong autocorrelation
+**다음이면 무작위 걸음 MH에서 MALA/HMC으로 바꿔라**:
 
-**Switch from MALA to HMC if**:
-- ESS/gradient < 0.1
-- Optimal step size is very small
-- Target is ill-conditioned
+- ESS/되풀이 < 0.01
+- 섞임 시간 > 되풀이 10,000회
+- 자취 그림이 강한 자기상관을 보인다
 
-**Switch from HMC to other methods if**:
-- Many divergent transitions
-- Gradient computation dominates runtime
-- Discrete parameters prevent gradient use
+**다음이면 MALA에서 HMC으로 바꿔라**:
 
-### Diagnostic Checklist
+- ESS/기울기 < 0.1
+- 가장 좋은 걸음 크기가 아주 작다
+- 과녁의 조건이 나쁘다
+
+**다음이면 HMC에서 다른 방법으로 바꿔라**:
+
+- 갈라져 나가는 옮김이 많다
+- 기울기 셈하기가 도는 시간을 좌우한다
+- 이산 매개변수 때문에 기울기를 쓸 수 없다
+
+### 진단 점검표
 
 ```python
 def diagnose_chain(samples, target='hmc'):
-    """Comprehensive chain diagnostics."""
+    """사슬을 두루 진단하기."""
     diagnostics = {}
     
-    # Basic statistics
+    # 기본 통계량
     diagnostics['mean'] = np.mean(samples, axis=0)
     diagnostics['std'] = np.std(samples, axis=0)
     
-    # Effective sample size
+    # 실효 표본 크기
     diagnostics['ess'] = compute_ess(samples)
     diagnostics['ess_per_sample'] = diagnostics['ess'] / len(samples)
     
-    # R-hat (if multiple chains)
+    # R-hat(사슬이 여럿이면)
     # diagnostics['rhat'] = compute_rhat(chains)
     
-    # Method-specific
+    # 방법마다 다름
     if target == 'hmc':
         diagnostics['target_accept'] = 0.65
     elif target == 'mala':
@@ -504,7 +506,7 @@ def diagnose_chain(samples, target='hmc'):
     elif target == 'rwm':
         diagnostics['target_accept'] = 0.234
     
-    # Recommendations
+    # 권하는 바
     if diagnostics['ess_per_sample'] < 0.01:
         diagnostics['recommendation'] = 'Consider switching to HMC/NUTS'
     elif diagnostics['ess_per_sample'] > 0.5:
@@ -517,75 +519,75 @@ def diagnose_chain(samples, target='hmc'):
 
 ---
 
-## Quick Reference Guide
+## 빠른 참고 길잡이
 
-### By Problem Type
+### 문제 갈래별
 
-| Problem Type | First Choice | Second Choice |
+| 문제 갈래 | 첫째 고름 | 둘째 고름 |
 |--------------|--------------|---------------|
-| Low-d, conjugate | Gibbs | RWM |
-| Low-d, non-conjugate | MALA | RWM |
-| High-d, smooth | HMC/NUTS | MALA |
-| High-d, sparse | Gibbs + MH | Variational |
-| Hierarchical | NUTS (non-centered) | Gibbs |
-| Mixture model | Gibbs | EM + bootstrap |
-| Discrete params | Gibbs/MH | — |
-| Multimodal | Parallel tempering | Multiple chains |
+| 낮은 차원, 켤레 | 깁스 | 무작위 걸음 MH |
+| 낮은 차원, 켤레 아님 | MALA | 무작위 걸음 MH |
+| 높은 차원, 매끄러움 | HMC/NUTS | MALA |
+| 높은 차원, 성김 | 깁스 + MH | 변분 |
+| 층 모형 | NUTS(가운데 벗김) | 깁스 |
+| 섞음 모형 | 깁스 | EM + 부트스트랩 |
+| 이산 매개변수 | 깁스/MH | — |
+| 봉우리 여럿 | 병렬 온도 다루기 | 여러 사슬 |
 
-### By Computational Constraint
+### 셈의 제약별
 
-| Constraint | Recommendation |
+| 제약 | 권함 |
 |------------|----------------|
-| No gradients | RWM or Gibbs |
-| Expensive gradients | RWM, Gibbs, or mini-batch |
-| Limited memory | Single chain, thinning |
-| Parallel hardware | Multiple chains, vectorize |
-| Real-time | Pre-tuned HMC, short chains |
+| 기울기 없음 | 무작위 걸음 MH이나 깁스 |
+| 비싼 기울기 | 무작위 걸음 MH, 깁스, 또는 작은 묶음 |
+| 기억 공간 빠듯함 | 사슬 하나, 솎아내기 |
+| 병렬 하드웨어 | 여러 사슬, 벡터로 만들기 |
+| 실시간 | 미리 맞춘 HMC, 짧은 사슬 |
 
-### By Diagnostic Outcome
+### 진단 결과별
 
-| Diagnostic | Action |
+| 진단 | 할 일 |
 |------------|--------|
-| Low ESS | Increase samples, switch method |
-| High R-hat | Run longer, check convergence |
-| Many divergences | Reduce step size, reparameterize |
-| Low acceptance | Reduce step size |
-| High acceptance | Increase step size |
+| 낮은 ESS | 표본을 늘리거나 방법을 바꾼다 |
+| 높은 R-hat | 더 오래 돌리고 모임을 살핀다 |
+| 갈라져 나감이 많음 | 걸음 크기를 줄이고 매개변수를 바꾼다 |
+| 낮은 받아들임 | 걸음 크기를 줄인다 |
+| 높은 받아들임 | 걸음 크기를 키운다 |
 
 ---
 
-## Summary
+## 요약
 
-**The meta-algorithm for method selection**:
+**방법 고르기의 메타 알고리즘**:
 
-1. **Characterize the problem**: dimension, differentiability, structure
-2. **Start simple**: Try the simplest applicable method
-3. **Diagnose**: Check ESS, R-hat, trace plots
-4. **Iterate**: Switch methods or tune based on diagnostics
-5. **Validate**: Compare multiple approaches if unsure
+1. **문제의 성격 밝히기**: 차원, 미분 가능함, 짜임
+2. **단순하게 시작하기**: 쓸 수 있는 가장 단순한 방법을 해 본다
+3. **진단하기**: ESS, R-hat, 자취 그림을 살핀다
+4. **되풀이하기**: 진단에 기대어 방법을 바꾸거나 맞춘다
+5. **확인하기**: 미덥지 않으면 여러 길을 견준다
 
-**When in doubt**: For continuous, differentiable targets in $d > 20$, **NUTS is the default choice**. It automatically tunes trajectory length and has become the standard in modern probabilistic programming (Stan, PyMC, NumPyro).
-
----
-
-## Exercises
-
-1. **Decision tree application**. For each of the following problems, use the decision tree to select a method: (a) 5-parameter nonlinear regression, (b) 500-dimensional Gaussian process, (c) 20-component mixture model, (d) Ising model on a 10×10 grid.
-
-2. **Method comparison**. Implement RWM, Gibbs, MALA, and HMC for Bayesian linear regression. Compare ESS per second for $d \in \{10, 50, 100\}$.
-
-3. **Diagnostic-driven tuning**. Start with a poorly-tuned HMC (wrong step size, wrong trajectory length). Use diagnostics to iteratively improve until ESS/iteration > 0.1.
-
-4. **Hybrid sampler**. Design a Metropolis-within-Gibbs sampler for a model with both continuous and discrete parameters. Compare to a pure MH approach.
-
-5. **Failure mode identification**. Intentionally create scenarios where each method fails: (a) RWM in high-d, (b) Gibbs with strong correlations, (c) MALA with discontinuities, (d) HMC with multimodality.
+**망설여지면**: $d > 20$인 이어지고 미분할 수 있는 과녁에는 **NUTS이 기본 고름**이다. 자취 길이를 스스로 맞추며 요즘의 확률 프로그래밍(Stan, PyMC, NumPyro)에서 표준이 되었다.
 
 ---
 
-## References
+## 참고 문헌
 
 1. Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). CRC Press.
 2. Carpenter, B., et al. (2017). "Stan: A Probabilistic Programming Language." *Journal of Statistical Software*.
 3. Hoffman, M. D., & Gelman, A. (2014). "The No-U-Turn Sampler." *JMLR*.
 4. Robert, C. P., & Casella, G. (2004). *Monte Carlo Statistical Methods*. Springer.
 5. Brooks, S., et al. (2011). *Handbook of Markov Chain Monte Carlo*. CRC Press.
+
+## 연습문제
+
+1. **결정 나무 써 보기.** 다음 문제마다 결정 나무로 방법을 골라라. (a) 매개변수 5개의 비선형 회귀, (b) 500차원 가우스 과정, (c) 성분 20개의 섞음 모형, (d) 10×10 격자의 이징 모형.
+
+2. **방법 견주기.** 베이즈 선형 회귀에 무작위 걸음 MH, 깁스, MALA, HMC을 구현하여라. $d \in \{10, 50, 100\}$에서 초당 ESS을 견주어라.
+
+3. **진단으로 맞추기.** 잘못 맞춘 HMC(걸음 크기와 자취 길이가 틀린 것)에서 시작하여라. ESS/되풀이 > 0.1이 될 때까지 진단으로 되풀이해 낫게 하여라.
+
+4. **섞음 표집기.** 이어진 매개변수와 이산 매개변수를 함께 갖는 모형에 깁스 안의 메트로폴리스 표집기를 짜라. 순수 MH 길과 견주어라.
+
+5. **무너지는 모습 가려내기.** 방법마다 무너지는 상황을 일부러 만들어라. (a) 높은 차원의 무작위 걸음 MH, (b) 강한 상관에서의 깁스, (c) 끊긴 곳이 있는 MALA, (d) 봉우리가 여럿일 때의 HMC.
+
+---

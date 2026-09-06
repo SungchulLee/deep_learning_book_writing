@@ -196,3 +196,43 @@ if __name__ == "__main__":
 - Mitzenmacher, M. "The Power of Two Choices in Randomized Load Balancing." *IEEE TPDS*, 2001
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 - Karger, D. et al. "Consistent Hashing and Random Trees." *STOC*, 1997
+
+## Exercises
+
+**Exercise 1.**
+Compare round-robin, least-connections, and consistent hashing load balancing strategies. What workload characteristics favor each?
+
+??? success "Solution to Exercise 1"
+    **Round-robin**: distributes requests cyclically across servers. Simple, stateless, $O(1)$. Best when requests have uniform processing time and servers are homogeneous. Fails when requests vary widely in cost (some servers get expensive requests while idle ones wait). **Least-connections**: routes to the server with fewest active connections. Adapts to varying request costs. Best for heterogeneous workloads where request duration varies (e.g., database queries vs. static file serving). Requires tracking connection counts ($O(1)$ with a min-heap). **Consistent hashing**: hashes the request key to a ring position, routing to the nearest server. Provides session affinity (same user always hits the same server) and minimal disruption when servers join/leave. Best for caches and stateful services. $\square$
+
+---
+
+**Exercise 2.**
+Prove that consistent hashing with $k$ virtual nodes per server achieves a load imbalance factor of $O(\log n / k)$ among $n$ servers.
+
+??? success "Solution to Exercise 2"
+    With $k$ virtual nodes per server, the hash ring has $kn$ total nodes. Each server's share of the ring is approximately $k$ arcs out of $kn$. By a balls-into-bins analysis (each request is a "ball" hashed to a random position), the expected load per server is $1/n$ of total. The maximum load, by Chernoff bounds, is at most $(1 + \sqrt{c \ln(n)/k}) / n$ of total load with high probability, where $c$ is a constant. The imbalance ratio (max load / average load) is $1 + O(\sqrt{\ln n / k})$. For $k = O(\log n)$, this gives a constant imbalance factor. With $k = 100$--$200$ virtual nodes per server and $n = 100$ servers, the maximum load is within $\sim$10\% of the average. $\square$
+
+---
+
+**Exercise 3.**
+A load balancer routes traffic to 10 servers. One server is 2x faster than the others. How should weighted round-robin be configured, and what is the resulting load distribution?
+
+??? success "Solution to Exercise 3"
+    Assign weight 2 to the fast server and weight 1 to each of the 9 normal servers. Total weight: $2 + 9 \times 1 = 11$. The fast server receives $2/11 \approx 18.2\%$ of traffic, and each normal server receives $1/11 \approx 9.1\%$. In weighted round-robin, the dispatch sequence for one cycle of 11 requests sends 2 to the fast server and 1 to each of the others. If requests have uniform processing time, the fast server completes its 2 requests in the same time the normal servers complete 1, so all servers finish simultaneously. If the fast server handles 2x the requests in the same time, throughput increases by $1/11 \approx 9\%$ compared to unweighted round-robin (where the fast server is underutilized). $\square$
+
+---
+
+**Exercise 4.**
+Explain the "power of two choices" load balancing strategy and why it dramatically reduces maximum load compared to random assignment.
+
+??? success "Solution to Exercise 4"
+    Instead of hashing each request to one random server, sample two servers uniformly at random and route the request to the less loaded one. Analysis (Azar et al., 1999): with $n$ servers and $n$ requests, random assignment gives a maximum load of $\Theta(\log n / \log \log n)$. With two choices, the maximum load drops to $\Theta(\log \log n)$ -- an exponential improvement. Intuition: the second choice provides an "escape" from overloaded servers. Even though each individual request still involves randomness, the option to avoid the more loaded server prevents load from piling up. Going from 1 to 2 choices provides the largest marginal benefit; additional choices (3, 4, ...) improve by only constant factors. This strategy is widely used in practice because it requires minimal state (just current load counts) and achieves near-optimal balance. $\square$
+
+---
+
+**Exercise 5.**
+A financial exchange processes 10 million orders per second across 50 servers. Design a load balancing scheme that ensures orders for the same instrument are processed in sequence (to maintain order book consistency).
+
+??? success "Solution to Exercise 5"
+    Use **key-based routing** (partitioning): hash the instrument symbol to a server. All orders for instrument $I$ are routed to server $h(I) \mod 50$. This ensures sequential processing per instrument (orders arrive at one server in network order) while distributing different instruments across servers. Challenges: (1) popular instruments (e.g., AAPL, SPY) concentrate load on one server. Mitigate by splitting hot instruments across multiple "partitions" within a server using internal queues. (2) Server failure: use consistent hashing so that failure of one server redistributes only its instruments to neighbors. (3) Load imbalance: monitor per-server throughput and rebalance instrument-to-server mappings dynamically, migrating cold instruments from hot servers to cold ones. This scheme is standard in exchange matching engines (e.g., LMAX, Nasdaq) where per-instrument ordering is a correctness requirement. $\square$

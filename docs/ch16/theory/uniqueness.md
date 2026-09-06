@@ -1,81 +1,113 @@
-# MST Uniqueness
+# 최소 뻗은 나무가 하나뿐임
 
-Do different MST algorithms always produce the same tree? If a graph has multiple spanning trees of the same minimum weight, does it matter which one an algorithm returns? Understanding when the MST is unique -- and when it is not -- clarifies what we can expect from any MST algorithm and simplifies correctness arguments.
+서로 다른 최소 뻗은 나무 알고리즘은 늘 같은 나무를 내놓는가? 한 그래프에 최소 무게가 같은 뻗은 나무가 여럿 있으면 알고리즘이 어느 것을 돌려주든 상관없는가? 최소 뻗은 나무가 언제 하나뿐이고 언제 아닌지를 이해하면 어떤 최소 뻗은 나무 알고리즘에서 무엇을 기대할 수 있는지가 뚜렷해지고 옳음을 따지는 일도 단순해진다.
 
-## Uniqueness Theorem
+## 하나뿐임 정리
 
-**Theorem.** If all edge weights in a connected, undirected graph $G = (V, E)$ are distinct, then $G$ has exactly one minimum spanning tree.
+**정리.** 이어진 방향 없는 그래프 $G = (V, E)$에서 변의 무게가 모두 다르면 $G$의 최소 뻗은 나무는 정확히 하나이다.
 
-## Proof
+## 증명
 
-Suppose for contradiction that $G$ has two distinct MSTs $T_1$ and $T_2$ with all edge weights distinct. Since $T_1 \ne T_2$, there exists at least one edge in $T_1 \setminus T_2$. Let $e = (u, v)$ be the edge of minimum weight in the symmetric difference $T_1 \triangle T_2 = (T_1 \setminus T_2) \cup (T_2 \setminus T_1)$.
+어긋남을 이끌어 내려고 변의 무게가 모두 다른데도 $G$에 서로 다른 최소 뻗은 나무 $T_1$과 $T_2$이 있다고 하자. $T_1 \ne T_2$이므로 $T_1 \setminus T_2$에 변이 적어도 하나 있다. $e = (u, v)$을 대칭 차이 $T_1 \triangle T_2 = (T_1 \setminus T_2) \cup (T_2 \setminus T_1)$에서 무게가 가장 작은 변이라 하자.
 
-Without loss of generality, assume $e \in T_1 \setminus T_2$. Adding $e$ to $T_2$ creates a unique cycle $C$ in $T_2 \cup \{e\}$. Since $T_1$ is a tree (acyclic), not all edges of $C$ belong to $T_1$, so there exists an edge $e' \in C$ with $e' \in T_2 \setminus T_1$.
+일반성을 잃지 않고 $e \in T_1 \setminus T_2$이라 놓자. $T_2$에 $e$을 더하면 $T_2 \cup \{e\}$에 오직 하나뿐인 순환 $C$이 생긴다. $T_1$은 (순환이 없는) 나무이므로 $C$의 변이 모두 $T_1$에 들지는 않으며, 따라서 $e' \in T_2 \setminus T_1$인 변 $e' \in C$이 있다.
 
-Since $e' \in T_2 \setminus T_1 \subseteq T_1 \triangle T_2$ and $e$ has minimum weight in $T_1 \triangle T_2$, we have
+$e' \in T_2 \setminus T_1 \subseteq T_1 \triangle T_2$이고 $e$이 $T_1 \triangle T_2$에서 무게가 가장 작으므로 다음이 성립한다
 
 $$
 w(e) \le w(e')
 $$
 
-Because all edge weights are distinct, if $w(e) = w(e')$ then $e = e'$, which contradicts $e \in T_1 \setminus T_2$ and $e' \in T_2 \setminus T_1$. Therefore $w(e) < w(e')$.
+변의 무게가 모두 다르므로 $w(e) = w(e')$이면 $e = e'$이 되는데 이는 $e \in T_1 \setminus T_2$과 $e' \in T_2 \setminus T_1$에 어긋난다. 그러므로 $w(e) < w(e')$이다.
 
-Now consider
+이제 다음을 보자
 
 $$
 T_2' = T_2 \setminus \{e'\} \cup \{e\}
 $$
 
-This is a spanning tree (removing $e'$ from the cycle $C$ in $T_2 \cup \{e\}$ keeps connectivity) with weight
+이것은 ($T_2 \cup \{e\}$의 순환 $C$에서 $e'$을 없애도 이어짐이 지켜지므로) 뻗은 나무이며 그 무게는 다음과 같다
 
 $$
 w(T_2') = w(T_2) - w(e') + w(e) < w(T_2)
 $$
 
-This contradicts $T_2$ being an MST. $\square$
+이는 $T_2$이 최소 뻗은 나무라는 데 어긋난다. $\square$
 
-## Alternative Proof via the Cut Property
+## 자름 성질로 하는 다른 증명
 
-A shorter proof follows directly from the cut property. In a graph with distinct edge weights, for every cut $(S, V \setminus S)$ there is a unique lightest crossing edge. The cut property forces this edge into every MST. Since each edge's inclusion or exclusion is uniquely determined, all MSTs must be identical.
+자름 성질에서 더 짧은 증명이 곧바로 따라 나온다. 변의 무게가 모두 다른 그래프에서는 자름 $(S, V \setminus S)$마다 가장 가벼운 가로지르는 변이 오직 하나이다. 자름 성질은 이 변을 모든 최소 뻗은 나무에 넣도록 강제한다. 변마다 들어가는지 빠지는지가 오직 하나로 정해지므로 모든 최소 뻗은 나무는 같아야 한다.
 
-## When Uniqueness Fails
+## 하나뿐임이 무너질 때
 
-If edge weights are not distinct, multiple MSTs can exist. They will always share the same total weight, but may differ in which edges they include.
+변의 무게가 모두 다르지 않으면 최소 뻗은 나무가 여럿 있을 수 있다. 그것들의 전체 무게는 늘 같지만 담는 변은 다를 수 있다.
 
-**Example.** Consider a triangle with vertices $\{A, B, C\}$ and edges:
+**보기.** 꼭짓점이 $\{A, B, C\}$이고 변이 다음과 같은 삼각형을 보자:
 
-| Edge | Weight |
+| 변 | 무게 |
 |------|--------|
 | (A, B) | 1 |
 | (B, C) | 1 |
 | (A, C) | 1 |
 
-Every pair of edges forms a spanning tree with total weight 2. There are three distinct MSTs:
+어느 두 변을 골라도 전체 무게 2인 뻗은 나무가 된다. 서로 다른 최소 뻗은 나무가 셋 있다:
 
 - $\{(A, B), (B, C)\}$
 - $\{(A, B), (A, C)\}$
 - $\{(B, C), (A, C)\}$
 
-All three have the same total weight, but different edge sets.
+셋 다 전체 무게는 같지만 변의 모음이 다르다.
 
-## MST Weight is Always Unique
+## 최소 뻗은 나무의 무게는 늘 하나뿐이다
 
-Even when multiple MSTs exist, an important invariant holds.
+최소 뻗은 나무가 여럿 있어도 중요한 불변식이 성립한다.
 
-**Theorem.** All MSTs of a graph $G$ have the same total weight.
+**정리.** 그래프 $G$의 모든 최소 뻗은 나무는 전체 무게가 같다.
 
-This follows immediately from the definition: if two spanning trees $T_1$ and $T_2$ are both minimum, then $w(T_1) \le w(T_2)$ and $w(T_2) \le w(T_1)$, so $w(T_1) = w(T_2)$.
+이는 정의에서 곧바로 나온다. 뻗은 나무 $T_1$과 $T_2$이 모두 최소이면 $w(T_1) \le w(T_2)$이고 $w(T_2) \le w(T_1)$이므로 $w(T_1) = w(T_2)$이다.
 
-??? note "Stronger result: edge-weight multiset"
-    In fact, all MSTs share the same multiset of edge weights -- not just the same total. This stronger result means that the sorted sequence of edge weights is identical across all MSTs. The proof uses the matroid intersection theory or can be shown by an exchange argument on weight classes.
+??? note "더 센 결과: 변 무게의 다중 모음"
+    사실 모든 최소 뻗은 나무는 전체 무게만 같은 것이 아니라 변 무게의 다중 모음까지 같다. 이 더 센 결과는 변 무게를 정렬한 늘어놓음이 모든 최소 뻗은 나무에서 똑같다는 뜻이다. 증명은 매트로이드 교차 이론을 쓰거나 무게 갈래에 대한 맞바꿈 논증으로 보일 수 있다.
 
-## Practical Implications
+## 실무적 함의
 
-1. **Algorithm independence**: when edge weights are distinct, Kruskal's, Prim's, and Boruvka's algorithms all produce the same tree, regardless of tie-breaking rules.
-2. **Perturbation for uniqueness**: if uniqueness is desired but weights have ties, a standard technique adds infinitesimal perturbations (e.g., $w'(e_i) = w(e_i) + i \cdot \epsilon$ for a sufficiently small $\epsilon$) to break all ties without changing the relative order of edges with distinct weights.
-3. **Verification**: to check whether a given spanning tree is the unique MST, verify that every non-tree edge is the unique heaviest edge in the cycle it creates with the tree. If any non-tree edge ties with a tree edge in its cycle, another MST exists.
+1. **알고리즘에 상관없음**: 변의 무게가 모두 다르면 크러스컬, 프림, 보루브카 알고리즘은 비김을 가르는 규칙과 상관없이 모두 같은 나무를 내놓는다.
+2. **하나뿐이게 하려는 흔들기**: 하나뿐이기를 바라는데 무게가 비기면, 아주 작은 흔들림을 더하는 표준 기법을 쓴다(이를테면 넉넉히 작은 $\epsilon$에 대해 $w'(e_i) = w(e_i) + i \cdot \epsilon$). 이러면 무게가 다른 변들의 상대 차례를 바꾸지 않고 모든 비김을 가를 수 있다.
+3. **확인하기**: 주어진 뻗은 나무가 오직 하나뿐인 최소 뻗은 나무인지 살피려면, 나무 밖의 변마다 그것이 나무와 만드는 순환에서 오직 하나뿐인 가장 무거운 변인지 확인한다. 나무 밖의 어떤 변이 그 순환의 나무 변과 비기면 다른 최소 뻗은 나무가 있는 것이다.
 
-## Reference
+## 참고 문헌
 
-- [Introduction to Algorithms (CLRS), Chapter 23](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- [Introduction to Algorithms (CLRS), 23장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Whitney, H. (1935). On the abstract properties of linear dependence. *American Journal of Mathematics*, 57(3), 509--533.
+
+## 연습문제
+
+**연습문제 1.**
+이어진 그래프에서 변의 무게가 모두 다르면 최소 뻗은 나무가 하나뿐임을 증명하여라.
+
+??? success "연습문제 1 풀이"
+    최소 뻗은 나무 $T_1 \neq T_2$이 있다고 하자. $e$을 대칭 차이 $T_1 \triangle T_2$에서 가장 가벼운 변이라 하고, 일반성을 잃지 않고 $e \in T_1 \setminus T_2$이라 하자. $T_2$에 $e$을 더하면 순환 $C$이 생긴다. 어떤 변 $e' \in C$은 $T_2 \setminus T_1$에 있어야 한다(그러지 않으면 $C \subseteq T_1$이 되어 $T_1$이 나무라는 데 어긋난다). $e'$도 $T_1 \triangle T_2$에 있고 $e$이 가장 가벼우므로 (무게가 모두 다르니) $w(e) < w(e')$이다. $T_2$에서 $e'$을 $e$으로 바꾸면 무게가 $w(T_2) - w(e') + w(e) < w(T_2)$인 뻗은 나무가 되어 $T_2$이 최소 뻗은 나무라는 데 어긋난다. $\square$
+
+---
+
+**연습문제 2.**
+변 둘의 무게가 같아도 최소 뻗은 나무가 하나뿐일 수 있는가? 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    그렇다. 무게가 $(A,B,1), (B,C,1)$인 길 그래프 $A - B - C$을 보자. 두 변의 무게가 모두 1이지만 뻗은 나무는 무게 2인 $\{(A,B), (B,C)\}$ 하나뿐이다. 두 변 모두 다리이므로(없애면 그래프가 끊기므로) 둘 다 들어가야 하고, 따라서 최소 뻗은 나무는 하나뿐이다. 무게가 같다고 해서 최소 뻗은 나무가 여럿이 되는 것은 아니며, 그래프의 짜임에 달렸다. $\square$
+
+---
+
+**연습문제 3.**
+주어진 최소 뻗은 나무가 그래프의 오직 하나뿐인 최소 뻗은 나무인지 살피는 $O(E \log V)$ 알고리즘을 설명하여라.
+
+??? success "연습문제 3 풀이"
+    무게가 $w(e)$인 나무 밖의 변 $e = (u,v)$마다 최소 뻗은 나무에서 $u$부터 $v$까지의 길 위에서 무게가 가장 큰 변을 찾는다. $w(e) =$ 그 길의 최대 무게이면 맞바꾸어 전체 무게가 같은 다른 최소 뻗은 나무를 만들 수 있으므로 최소 뻗은 나무가 하나뿐이 아니다. 나무 밖의 모든 변에 대해 $w(e) >$ 길의 최대 무게이면 최소 뻗은 나무는 하나뿐이다. 길의 최대 무게는 최소 공통 조상(LCA) 앞처리를 $O(V \log V)$에 하고 물음마다 $O(\log V)$에 답해 찾을 수 있다. 모두 합하면 $O(E \log V)$이다. $\square$
+
+---
+
+**연습문제 4.**
+최소 뻗은 나무가 하나뿐이 아니면 서로 다른 최소 뻗은 나무가 딱 둘 있음을 증명하거나 반증하여라.
+
+??? success "연습문제 4 풀이"
+    반례로 반증한다. 변의 무게가 모두 1인 꼭짓점 4개의 순환 $A-B-C-D-A$을 보자. 뻗은 나무는 $\{AB, BC, CD\}$, $\{AB, BC, DA\}$, $\{AB, CD, DA\}$, $\{BC, CD, DA\}$이다. 모두 무게가 3이다. 서로 다른 최소 뻗은 나무가 2개가 아니라 4개 있다. 일반적으로 최소 뻗은 나무의 개수는 $V$에 대해 지수로 커질 수 있다. $\square$

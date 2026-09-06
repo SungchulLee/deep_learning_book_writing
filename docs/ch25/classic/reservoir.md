@@ -1,37 +1,31 @@
-# Reservoir Sampling
+# 저수지 뽑기
 
-In many applications — processing log streams, analyzing network traffic,
-or sampling from a database query — data arrives one element at a time and
-the total size is unknown in advance. We need to maintain a random sample
-of exactly $k$ elements from the stream, using only $O(k)$ memory.
-**Reservoir sampling** solves this problem: it guarantees that at every
-point in the stream, each element seen so far has equal probability of
-being in the sample.
+기록 흐름 다루기, 그물 오감 살피기, 자료터 물음에서 뽑기 같은 많은 쓰임새에서 자료는 낱개 하나씩 들어오고 온 크기는 미리 알 수 없다. 이때 $O(k)$ 기억만 써서 흐름에서 꼭 $k$개 낱개의 아무 표본을 지켜야 한다. **저수지 뽑기**가 이 문제를 푼다. 곧 흐름의 어느 시점에서든 지금까지 본 낱개가 표본에 들 확률이 같음을 보장한다.
 
-## Algorithm R (Vitter, 1985)
+## 알고리즘 R(Vitter, 1985)
 
-Maintain a reservoir array $R[1 \ldots k]$. Process the stream elements $s_1, s_2, \ldots$ one at a time:
+저수지 배열 $R[1 \ldots k]$을 지킨다. 흐름의 낱개 $s_1, s_2, \ldots$을 하나씩 다룬다.
 
-1. **Initialization**: Place the first $k$ elements into the reservoir: $R[i] = s_i$ for $i = 1, \ldots, k$.
-2. **Streaming phase**: For each subsequent element $s_j$ (where $j > k$):
-    - Generate a random integer $r$ uniformly from $\{1, 2, \ldots, j\}$.
-    - If $r \leq k$, replace $R[r]$ with $s_j$. Otherwise, discard $s_j$.
+1. **첫자리매김**: 처음 $k$개 낱개를 저수지에 넣는다. 곧 $i = 1, \ldots, k$에 대해 $R[i] = s_i$이다.
+2. **흐름 단계**: 뒤따르는 낱개 $s_j$마다($j > k$):
+    - $\{1, 2, \ldots, j\}$에서 고르게 아무 정수 $r$을 만든다.
+    - $r \leq k$이면 $R[r]$을 $s_j$으로 바꾼다. 아니면 $s_j$을 버린다.
 
-## Correctness Proof
+## 옳음의 증명
 
-**Claim.** After processing $n$ elements, each element $s_i$ (for $i = 1, \ldots, n$) is in the reservoir with probability exactly $k/n$.
+**주장.** 낱개 $n$개를 다룬 뒤 낱개 $s_i$($i = 1, \ldots, n$)이 저수지에 있을 확률은 정확히 $k/n$이다.
 
-*Proof by induction on $n$.*
+*$n$에 대한 귀납으로 밝힌다.*
 
-**Base case** ($n = k$): All $k$ elements are in the reservoir, each with probability $k/k = 1$.
+**바탕 경우**($n = k$): 낱개 $k$개가 모두 저수지에 있으며 저마다 확률이 $k/k = 1$이다.
 
-**Inductive step**: Assume after processing $n - 1$ elements, each is in the reservoir with probability $k/(n-1)$. When element $s_n$ arrives:
+**귀납 걸음**: 낱개 $n - 1$개를 다룬 뒤 저마다 확률 $k/(n-1)$으로 저수지에 있다고 하자. 낱개 $s_n$이 들어오면:
 
-- $s_n$ enters the reservoir with probability $k/n$ (it replaces a random position if $r \leq k$, which happens with probability $k/n$).
+- $s_n$은 확률 $k/n$으로 저수지에 든다($r \leq k$이면 아무 자리를 바꾸는데 이는 확률 $k/n$으로 일어난다).
 
-- For any element $s_i$ already in the reservoir, it survives if $s_n$ does not replace it. The probability that $s_i$ is replaced is $(k/n) \cdot (1/k) = 1/n$. So $s_i$ survives with probability $1 - 1/n = (n-1)/n$.
+- 이미 저수지에 있는 낱개 $s_i$은 $s_n$이 그것을 바꾸지 않으면 살아남는다. $s_i$이 바뀔 확률은 $(k/n) \cdot (1/k) = 1/n$이다. 따라서 $s_i$은 확률 $1 - 1/n = (n-1)/n$으로 살아남는다.
 
-- The probability that $s_i$ is in the reservoir after step $n$ is
+- 걸음 $n$ 뒤에 $s_i$이 저수지에 있을 확률은 다음과 같다.
 
 $$
 \frac{k}{n-1} \cdot \frac{n-1}{n} = \frac{k}{n}
@@ -39,20 +33,20 @@ $$
 
 $\square$
 
-## Implementation
+## 구현
 
 ```python
 """
-Reservoir sampling: maintain a uniform random sample of k elements
+저수지 뽑기: 낱개 k개의 고른 아무 표본을 지킨다
 from a stream of unknown length.
 """
 
 import random
 
-# === Reservoir Sampling ===
+# === 저수지 뽑기 ===
 
 def reservoir_sample(stream, k):
-    """Return a list of k elements sampled uniformly from the stream."""
+    """흐름에서 고르게 뽑은 낱개 k개의 목록을 돌려준다."""
     reservoir = []
     for i, element in enumerate(stream):
         if i < k:
@@ -63,15 +57,15 @@ def reservoir_sample(stream, k):
                 reservoir[j] = element
     return reservoir
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     random.seed(42)
-    stream = range(1, 101)  # Stream of 1 to 100
+    stream = range(1, 101)  # 1에서 100까지의 흐름
     sample = reservoir_sample(stream, 5)
     print(f"Sample of 5 from 1..100: {sample}")
 
-    # Verify uniformity: each element should appear ~k/n fraction of time
+    # 고름을 확인한다: 낱개마다 ~k/n의 몫으로 나타나야 한다
     from collections import Counter
     counts = Counter()
     trials = 100000
@@ -84,43 +78,75 @@ if __name__ == "__main__":
         print(f"  Element {elem}: freq={freq:.3f}")
 ```
 
-**Output:**
+**출력:**
 ```
 Sample of 5 from 1..100: [68, 99, 80, 58, 87]
 ```
 
-(Output varies across runs due to randomness.)
+(마구잡이 때문에 돌릴 때마다 내놓기가 달라진다.)
 
-## Time and Space Complexity
+## 시간과 공간 복잡도
 
-| Operation | Complexity |
+| 연산 | 복잡도 |
 |---|---|
-| Time per element | $O(1)$ |
-| Total time for $n$ elements | $O(n)$ |
-| Space | $O(k)$ |
+| 낱개마다 시간 | $O(1)$ |
+| 낱개 $n$개의 온 시간 | $O(n)$ |
+| 자리 | $O(k)$ |
 
-The algorithm makes a single pass over the stream, requires no knowledge of $n$ in advance, and uses only $O(k)$ memory regardless of stream length.
+이 알고리즘은 흐름을 한 번만 지나가며 $n$을 미리 알 필요가 없고 흐름 길이와 상관없이 $O(k)$ 기억만 쓴다.
 
-## Weighted Reservoir Sampling
+## 무게 붙인 저수지 뽑기
 
-When elements have non-uniform weights $w_i$, we want element $s_i$ to appear in the sample with probability proportional to $w_i$. The **Efraimidis-Spirakis algorithm** achieves this:
+낱개마다 고르지 않은 무게 $w_i$이 있으면 낱개 $s_i$이 $w_i$에 비례하는 확률로 표본에 들기를 바란다. **에프라이미디스-스피라키스 알고리즘**이 이를 이룬다.
 
-1. For each element $s_i$, compute a key $u_i^{1/w_i}$ where $u_i \sim \text{Uniform}(0, 1)$.
-2. Keep the $k$ elements with the largest keys.
+1. 낱개 $s_i$마다 $u_i \sim \text{Uniform}(0, 1)$일 때 열쇠 $u_i^{1/w_i}$을 셈한다.
+2. 열쇠가 가장 큰 낱개 $k$개를 남긴다.
 
-This can be implemented in a single pass using a min-heap of size $k$.
+이는 크기 $k$인 최소 무지개탑으로 한 번에 짤 수 있다.
 
-!!! tip "Practical Considerations"
-    In practice, generating a random number for every stream element is expensive for large streams. Vitter's Algorithm Z computes the number of elements to skip between replacements, reducing the expected number of random variates from $n$ to $O(k(1 + \log(n/k)))$.
+!!! tip "실제에서 살필 것"
+    실제로 흐름 낱개마다 아무 수를 만드는 것은 큰 흐름에서는 비싸다. 비터의 알고리즘 Z은 바꿈 사이에 건너뛸 낱개 수를 셈해 아무 값의 기댓값 개수를 $n$에서 $O(k(1 + \log(n/k)))$으로 줄인다.
 
-## Applications
+## 응용
 
-- **Database sampling**: SELECT queries on large tables without knowing the row count.
-- **Stream analytics**: Maintaining representative samples of network packets or log entries.
-- **Machine learning**: Stochastic gradient descent with uniform mini-batch sampling from a data stream.
-- **A/B testing**: Randomly assigning users to treatment groups in a streaming setting.
+- **자료터 뽑기**: 가로줄 수를 모른 채 큰 표에 SELECT 묻기를 한다.
+- **흐름 살피기**: 그물 꾸러미나 기록 항목의 대표 표본을 지킨다.
+- **기계 배움**: 자료 흐름에서 고르게 작은 묶음을 뽑는 확률 기울기 내려가기.
+- **A/B 시험**: 흐름 상황에서 사용자를 처치 무리에 마구잡이로 매긴다.
 
-## Reference
+## 참고 문헌
 
 - Vitter, J. S. "Random Sampling with a Reservoir." *ACM Transactions on Mathematical Software*, 1985.
 - Efraimidis, P. S. & Spirakis, P. G. "Weighted Random Sampling with a Reservoir." *Information Processing Letters*, 2006.
+
+## 연습문제
+
+**연습문제 1.**
+저수지 뽑기의 핵심 마구잡이 재주와 그것이 정해진 방식보다 나은 까닭을 설명하라.
+
+??? success "연습문제 1 풀이"
+    저수지 뽑기은 마구잡이를 써서 정해진 알고리즘이 마주칠 수 있는 가장 나쁜 들임을 피한다. 아무렇게나 고르므로 알고리즘의 솜씨가 들임의 짜임이 아니라 제 동전 던지기에 달린다. 그래서 모든 들임에 대해 참인 센 기댓값 시간이나 높은 확률의 보장을 흔히 얻으며, 짓궂거나 병리적인 경우를 걱정할 까닭이 없어진다. $\square$
+
+---
+
+**연습문제 2.**
+저수지 뽑기의 기댓값 시간 복잡도는 얼마인가? 가장 나쁜 경우의 복잡도는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    기댓값 시간 복잡도는 흔히 $O(n)$이나 $O(n \log n)$이며 높은 확률로 이룬다. 가장 나쁜 경우는 다항식만큼 더 나쁠 수 있지만(예컨대 $O(n^2)$) 그럴 확률은 무시할 만큼 작다. 기댓값과 가장 나쁜 경우의 틈이 마구잡이의 값이며, 가장 나쁜 움직임이 일어날 확률은 들임 크기에 따라 지수로 줄어든다. $\square$
+
+---
+
+**연습문제 3.**
+저수지 뽑기은 라스베이거스 알고리즘인가 몬테카를로 알고리즘인가? 그 차이를 설명하라.
+
+??? success "연습문제 3 풀이"
+    **라스베이거스**: 늘 옳은 결과를 내며 도는 시간이 아무 변수이다(기댓값이 다항식). **몬테카를로**: 늘 다항식 시간에 돌지만 결과가 어떤 가둔 확률로 틀릴 수 있다. 저수지 뽑기은 옳음을 보장하느냐 도는 시간을 보장하느냐에 따라 이 가운데 하나에 든다. 이 가름이 어긋날 확률을 어떻게 다룰지 정한다. $\square$
+
+---
+
+**연습문제 4.**
+저수지 뽑기에서 마구잡이를 없애거나 솜씨가 나쁠 확률을 줄이는 법을 설명하라.
+
+??? success "연습문제 4 풀이"
+    방책은 다음과 같다. (1) **거듭 해 보기**: 알고리즘을 여러 번 돌려 가장 좋거나 많은 쪽 결과를 택하면 어긋날 확률이 지수로 줄어든다. (2) **마구잡이 없애기**: 조건부 기댓값이나 흩는 함수 무리로 아무 고르기를 정해진 고르기로 바꾼다. (3) **키우기**: 몬테카를로 알고리즘에서는 $k$번 되풀이해 어긋남을 $2^{-k}$으로 줄인다. (4) **비슷 마구잡이 만들개**: 알고리즘이 보기에 "마구잡이처럼 보이는" 정해진 차례를 쓴다. $\square$

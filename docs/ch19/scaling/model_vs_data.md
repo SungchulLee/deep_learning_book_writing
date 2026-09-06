@@ -1,55 +1,50 @@
-# Model Size vs. Data Trade-offs
+# 모델 크기와 자료의 맞바꿈
+## 학습 목표
 
+- 모델 크기와 익힘 자료 양 사이의 맞바꿈을 살핀다
+- 규모 키우기의 세 갈래와 그 실전 뜻을 가려낸다
+- 자료 되풀이의 효과를 이해한다
+- 규모 눈썰미를 펼치기 결정에 쓴다
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 규모 키우기의 세 갈래
 
-## Learning Objectives
+### 1. 덜 익힌 갈래(D/N < 10)
 
-- Analyze the trade-off between model size and training data volume
-- Identify three scaling regimes and their practical implications
-- Understand data repetition effects
-- Apply scaling insights to deployment decisions
+모델의 담는 힘이 자료가 떠받칠 수 있는 것보다 크다. 증상: 지나치게 맞춰짐, 두루 통하지 못함, 매개변수 낭비.
 
-## Three Scaling Regimes
+보기: GPT-3(매개변수 1750억, 토막 3000억, $D/N = 1.7$), Gopher(매개변수 2800억, 토막 3000억, $D/N = 1.1$)
 
-### 1. Under-Trained Regime (D/N < 10)
+### 2. 친칠라 최적 갈래(D/N 약 20)
 
-The model has more capacity than the data can support. Symptoms: overfitting, poor generalization, wasted parameters.
+셈이 정해졌을 때 익힘 손실을 가장 작게 한다. 모델과 자료가 균형을 이룬다.
 
-Examples: GPT-3 (175B params, 300B tokens, $D/N = 1.7$), Gopher (280B params, 300B tokens, $D/N = 1.1$)
+보기: 친칠라(매개변수 700억, 토막 1.4조), LLaMA-65B(매개변수 650억, 토막 1.4조)
 
-### 2. Chinchilla-Optimal Regime (D/N approx 20)
+### 3. 지나치게 익힌 갈래(D/N > 50)
 
-Minimizes training loss for fixed compute. Model and data are balanced.
-
-Examples: Chinchilla (70B params, 1.4T tokens), LLaMA-65B (65B params, 1.4T tokens)
-
-### 3. Over-Trained Regime (D/N > 50)
-
-Not compute-optimal for training loss but can be optimal for deployment:
+익힘 손실로 보면 셈에 최적이 아니지만 펼치기에는 가장 좋을 수 있다:
 
 $$\text{Total Cost} = C_{\text{train}}(N, D) + K \cdot C_{\text{inference}}(N)$$
 
 Examples: LLaMA-7B ($D/N = 143$), Mistral-7B ($D/N \approx 285$)
 
-## Practical Implications
+## 실무적 함의
 
-| Regime | When to Use | Finance Application |
+| 갈래 | 쓸 때 | 금융 쓰임새 |
 |--------|------------|-------------------|
-| Under-trained | Never (unless compute-constrained) | - |
-| Chinchilla-optimal | Research, one-off analysis | Large-scale research models |
-| Over-trained | Production deployment | Real-time trading signals, API services |
+| 덜 익힘 | 결코(셈이 빠듯할 때가 아니면) | - |
+| 친칠라 최적 | 연구, 한 번뿐인 살피기 | 큰 규모 연구 모델 |
+| 지나치게 익힘 | 실전 펼치기 | 실시간 거래 신호, API 서비스 |
 
-## Data Repetition Effects
+## 자료 되풀이의 효과
 
-Muennighoff et al. (2023) found:
+Muennighoff 외(2023)는 다음을 찾아냈다:
 
-1. **Diminishing returns**: Each additional epoch provides less benefit
-2. **Quality sensitivity**: Higher-quality data tolerates more repetition
-3. **Practical guideline**: Degradation noticeable after ~4 epochs on web data
+1. **줄어드는 이득**: 세대를 더할수록 이득이 줄어든다
+2. **좋음에 민감함**: 자료가 좋을수록 되풀이를 더 견딘다
+3. **실전 지침**: 웹 자료에서는 약 4세대가 지나면 나빠짐이 눈에 띈다
 
-## Scaling Decisions for Finance
+## 금융에서의 규모 결정
 
 ```python
 def recommend_model_size(
@@ -68,15 +63,47 @@ def recommend_model_size(
                 "note": "Good balance for most finance workloads"}
 ```
 
-## Key Takeaways
+## 핵심 정리
 
-1. **Chinchilla-optimal is not deployment-optimal**: Over-training smaller models is more cost-effective for serving
-2. **Data quality matters more than scaling laws suggest**: Curated financial text shifts the optimal allocation
-3. **The frontier moves toward smaller, better-trained models**: Mistral-7B and Phi demonstrate architecture + data quality compensating for fewer parameters
-4. **For finance**: High query volume and low latency strongly favor the over-trained regime
+1. **친칠라 최적이 펼치기 최적은 아니다**: 작은 모델을 지나치게 익히는 편이 내놓기에 값싸다
+2. **자료의 좋음이 규모 법칙이 말하는 것보다 중요하다**: 골라 뽑은 금융 글이 가장 좋은 나눔을 옮긴다
+3. **최전선은 더 작고 더 잘 익힌 모델 쪽으로 옮겨 간다**: Mistral-7B와 Phi는 얼개와 자료의 좋음이 적은 매개변수를 메움을 보여 준다
+4. **금융에서는**: 물음이 많고 늦음이 적어야 하므로 지나치게 익힌 갈래가 훨씬 낫다
 
-## References
+## 참고 문헌
 
 1. Hoffmann, J., et al. (2022). "Training Compute-Optimal Large Language Models."
 2. Muennighoff, N., et al. (2023). "Scaling Data-Constrained Language Models."
 3. Sardana, N., et al. (2023). "Beyond Chinchilla-Optimal: Accounting for Inference."
+
+## 연습문제
+
+**연습문제 1.**
+친칠라 규모 법칙을 말하여라. 이는 모델 크기와 익힘 토막 사이의 가장 좋은 셈 나눔을 어떻게 바꾸는가?
+
+??? success "연습문제 1 풀이"
+    The Chinchilla scaling law (Hoffmann et al., 2022) states that for compute-optimal training, model size $N$ and training tokens $D$ should scale equally: $N \propto C^{0.5}$ and $D \propto C^{0.5}$ where $C$ is the compute budget. This implies the optimal ratio is roughly $D \approx 20N$ (20 tokens per parameter). Previous practice (GPT-3, etc.) undertrained large models: GPT-3 (175B params) was trained on 300B tokens, while the Chinchilla-optimal approach trains a 70B model on 1.4T tokens, achieving better performance with the same compute.
+
+---
+
+**연습문제 2.**
+큰 말 모델의 떠오르는 능력이란 무엇인가? 이 생각은 왜 논쟁거리인가?
+
+??? success "연습문제 2 풀이"
+    떠오르는 능력이란 모델 크기가 어떤 문턱을 넘으면 갑자기 나타나고 작은 모델에는 없어 보이는 능력이다. 보기로 여러 자리 셈하기, 생각의 사슬 따지기, 낱말 풀어내기가 있다. 논쟁은 이렇다. Schaeffer 외(2023)는 "떠오름"이 끊긴 잣대(딱 맞음 정확도)를 쓴 데서 온 찌꺼기라고 주장한다. 매끄러운 잣대(토막 수준 로그 확률)로 재면 성능이 규모에 따라 차츰 어림할 수 있게 나아진다. 논쟁의 고갱이는 떠오름이 모델의 성질인지 값매김 방법의 성질인지이다. 두 관점 모두 일리가 있다. 곧 질적인 능력의 문턱은 있지만 그것이 밑바탕의 매끄러운 나아짐으로 어림될 수도 있다.
+
+---
+
+**연습문제 3.**
+큰 모델을 익힐 때의 모델 나란히 하기, 자료 나란히 하기, 물길 나란히 하기의 차이를 밝혀라.
+
+??? success "연습문제 3 풀이"
+    **자료 나란히 하기**: GPU마다 온전한 모델 복사본을 지니고 서로 다른 자료 묶음을 다루며, 기울기를 모두 모으기로 맞춘다. 모델이 GPU 하나에 들어가야 한다는 제한이 있다. **모델/텐서 나란히 하기**: 층을 GPU에 나눠 쪼갠다(보기로 눈길 머리 쪼개기). 더 큰 모델을 쓸 수 있지만 대역폭이 넓은 이음이 필요하다. **물길 나란히 하기**: 잇닿은 층을 GPU에 나눈다. GPU마다 단계별로 서로 다른 작은 묶음을 다룬다. 주고받기가 줄지만 물길 거품(노는 때)이 생긴다. 요즘 체계(Megatron-LM, DeepSpeed)는 셋을 모두 아우른다. 곧 마디 안에서는 텐서 나란히 하기, 마디 사이에는 물길 나란히 하기, 묶음 사이에는 자료 나란히 하기를 쓴다.
+
+---
+
+**연습문제 4.**
+If you had a fixed compute budget of $10^{23}$ FLOPs, how would you allocate it between model size and training data? Justify your answer using scaling laws.
+
+??? success "연습문제 4 풀이"
+    Using the Chinchilla scaling law with $C = 6ND$ (approximate FLOPs for transformer training): $10^{23} = 6ND$, with optimal $D \approx 20N$. Substituting: $10^{23} = 6N \cdot 20N = 120N^2$, so $N \approx \sqrt{10^{23}/120} \approx 2.9 \times 10^{10} \approx 29B$ parameters. Training tokens: $D = 10^{23}/(6 \times 29 \times 10^9) \approx 575B$ tokens. This allocation follows the compute-optimal ratio and would outperform both a larger undertrained model (e.g., 175B on 96B tokens) and a smaller overtrained model (e.g., 7B on 2.4T tokens) at the same compute budget.

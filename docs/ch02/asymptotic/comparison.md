@@ -1,130 +1,163 @@
-# Growth Rate Comparison
+# 증가 속도 비교
 
-After cataloguing the standard growth-rate classes (see [Common Growth Rates](growth_rates.md)), the next step is to develop techniques for *comparing* two functions and deciding which grows faster.  This page presents the standard hierarchy, the limit-based comparison method, and worked examples that illustrate how to rank functions asymptotically.
+표준적인 증가 속도 부류를 정리한 뒤([흔한 증가 속도](growth_rates.md) 참고), 다음 단계는 두 함수를 *비교하여* 어느 쪽이 더 빠르게 증가하는지 판단하는 기법을 익히는 것이다. 이 절에서는 표준 계층, 극한을 이용한 비교 방법, 그리고 함수를 점근적으로 순서 짓는 방법을 보여주는 풀이 예제를 제시한다.
 
-## The Standard Hierarchy
+## 표준 계층
 
-The following chain orders common growth rates from slowest to fastest.  Each function on the left is $o$ (little-o) of the function on its right, meaning it grows strictly slower.
+다음 사슬은 흔한 증가 속도를 느린 것부터 빠른 것 순으로 나열한 것이다. 왼쪽의 각 함수는 오른쪽 함수의 $o$(리틀오)이며, 이는 엄격히 느리게 증가한다는 뜻이다.
 
 $$
 1 \;\ll\; \log \log n \;\ll\; \log n \;\ll\; \sqrt{n} \;\ll\; n \;\ll\; n \log n \;\ll\; n^2 \;\ll\; n^3 \;\ll\; 2^n \;\ll\; n! \;\ll\; n^n
 $$
 
-Here $f \ll g$ is shorthand for $f(n) = o(g(n))$, that is, $\lim_{n \to \infty} f(n)/g(n) = 0$.
+여기서 $f \ll g$는 $f(n) = o(g(n))$, 즉 $\lim_{n \to \infty} f(n)/g(n) = 0$의 줄임 표기이다.
 
-!!! tip "Rule of thumb"
+!!! tip "어림 규칙"
 
-    Logarithmic beats polynomial, polynomial beats exponential, and exponential beats factorial.  Within the polynomial class, the exponent determines the ranking.
+    로그가 다항을 이기고, 다항이 지수를 이기고, 지수가 계승을 이긴다. 다항 부류 안에서는 지수가 순위를 결정한다.
 
-## Limit-Based Comparison
+## 극한을 이용한 비교
 
-The most powerful technique for comparing two functions is to evaluate the limit of their ratio.
+두 함수를 비교하는 가장 강력한 기법은 그 비의 극한을 계산하는 것이다.
 
-!!! info "Theorem -- Limit comparison"
+!!! info "정리 -- 극한 비교"
 
-    Let $f(n) > 0$ and $g(n) > 0$ for sufficiently large $n$.  Define
+    충분히 큰 $n$에 대해 $f(n) > 0$이고 $g(n) > 0$이라 하자. 다음과 같이 정의한다.
 
     $$
     L = \lim_{n \to \infty} \frac{f(n)}{g(n)}
     $$
 
-    Then:
+    그러면 다음이 성립한다.
 
-    - If $L = 0$, then $f(n) = o(g(n))$, so $f$ grows strictly slower than $g$.
-    - If $0 < L < \infty$, then $f(n) = \Theta(g(n))$, so $f$ and $g$ grow at the same rate.
-    - If $L = \infty$, then $f(n) = \omega(g(n))$, so $f$ grows strictly faster than $g$.
+    - $L = 0$이면 $f(n) = o(g(n))$이므로 $f$가 $g$보다 엄격히 느리게 증가한다.
+    - $0 < L < \infty$이면 $f(n) = \Theta(g(n))$이므로 $f$와 $g$가 같은 속도로 증가한다.
+    - $L = \infty$이면 $f(n) = \omega(g(n))$이므로 $f$가 $g$보다 엄격히 빠르게 증가한다.
 
-When the limit does not exist (e.g., the ratio oscillates), this technique does not apply directly.  In such cases, fall back to the definition with explicit constants.
+극한이 존재하지 않으면(예를 들어 비가 진동하면) 이 기법을 곧바로 적용할 수 없다. 그런 경우에는 명시적인 상수를 사용하는 정의로 돌아가야 한다.
 
-## Useful Limit Tools
+## 유용한 극한 도구
 
-Two standard results handle the most common comparisons.
+두 가지 표준적인 결과가 가장 흔한 비교를 처리해 준다.
 
-### L'Hopital's Rule
+### 로피탈 정리
 
-When both $f(n)$ and $g(n)$ tend to infinity, L'Hopital's rule (applied to the continuous extension) gives:
+$f(n)$과 $g(n)$이 모두 무한대로 갈 때, (연속 확장에 적용한) 로피탈 정리는 다음을 준다.
 
 $$
 \lim_{n \to \infty} \frac{f(n)}{g(n)} = \lim_{n \to \infty} \frac{f'(n)}{g'(n)}
 $$
 
-provided the right-hand limit exists.  This is especially useful for comparing logarithmic and polynomial functions.
+단 우변의 극한이 존재해야 한다. 로그 함수와 다항 함수를 비교할 때 특히 유용하다.
 
-### Stirling's Approximation
+### 스털링 근사
 
-For factorials, Stirling's formula provides:
+계승에 대해서는 스털링 공식이 다음을 제공한다.
 
 $$
 n! \approx \sqrt{2\pi n} \left(\frac{n}{e}\right)^n
 $$
 
-This shows that $n!$ grows faster than any exponential $c^n$ but slower than $n^n$.
+이로부터 $n!$이 어떤 지수함수 $c^n$보다도 빠르게 증가하지만 $n^n$보다는 느리게 증가함을 알 수 있다.
 
-## Examples
+## 예제
 
-### Example 1 -- Logarithm vs Polynomial
+### 예제 1 -- 로그 대 다항
 
-Compare $f(n) = \log n$ and $g(n) = n^{0.1}$.
+$f(n) = \log n$과 $g(n) = n^{0.1}$을 비교하자.
 
 $$
 \lim_{n \to \infty} \frac{\log n}{n^{0.1}}
 $$
 
-Both numerator and denominator tend to infinity, so apply L'Hopital's rule (using natural log):
+분자와 분모가 모두 무한대로 가므로 로피탈 정리를 적용한다(자연로그 사용).
 
 $$
 \lim_{n \to \infty} \frac{1/n}{0.1 \, n^{-0.9}} = \lim_{n \to \infty} \frac{1}{0.1 \, n^{0.1}} = 0
 $$
 
-Since $L = 0$, we conclude $\log n = o(n^{0.1})$.  Logarithms grow slower than *any* positive power of $n$.
+$L = 0$이므로 $\log n = o(n^{0.1})$이다. 로그는 $n$의 *어떤* 양의 거듭제곱보다도 느리게 증가한다.
 
-### Example 2 -- Polynomial vs Exponential
+### 예제 2 -- 다항 대 지수
 
-Compare $f(n) = n^{10}$ and $g(n) = 2^n$.
+$f(n) = n^{10}$과 $g(n) = 2^n$을 비교하자.
 
 $$
 \lim_{n \to \infty} \frac{n^{10}}{2^n} = 0
 $$
 
-This follows by applying L'Hopital's rule 10 times (each application reduces the polynomial degree by one while the denominator remains exponential).  Therefore $n^{10} = o(2^n)$.
+로피탈 정리를 10번 적용하면 얻어진다(적용할 때마다 다항식의 차수가 하나씩 줄지만 분모는 여전히 지수함수이다). 따라서 $n^{10} = o(2^n)$이다.
 
-### Example 3 -- Same Growth Rate
+### 예제 3 -- 같은 증가 속도
 
-Compare $f(n) = 5n^2 + 3n$ and $g(n) = n^2$.
+$f(n) = 5n^2 + 3n$과 $g(n) = n^2$을 비교하자.
 
 $$
 \lim_{n \to \infty} \frac{5n^2 + 3n}{n^2} = \lim_{n \to \infty} \left(5 + \frac{3}{n}\right) = 5
 $$
 
-Since $0 < 5 < \infty$, we conclude $5n^2 + 3n = \Theta(n^2)$.
+$0 < 5 < \infty$이므로 $5n^2 + 3n = \Theta(n^2)$이다.
 
-## Analogy with Real-Number Comparisons
+## 실수 비교와의 유비
 
-Asymptotic notation has a natural analogy with comparing real numbers.
+점근 표기법은 실수를 비교하는 것과 자연스러운 유비 관계에 있다.
 
-| Asymptotic | Analogy | Meaning |
+| 점근 | 유비 | 의미 |
 |---|---|---|
-| $f = O(g)$ | $a \leq b$ | $f$ grows no faster than $g$ |
-| $f = \Omega(g)$ | $a \geq b$ | $f$ grows no slower than $g$ |
-| $f = \Theta(g)$ | $a = b$ | $f$ and $g$ grow at the same rate |
-| $f = o(g)$ | $a < b$ | $f$ grows strictly slower than $g$ |
-| $f = \omega(g)$ | $a > b$ | $f$ grows strictly faster than $g$ |
+| $f = O(g)$ | $a \leq b$ | $f$가 $g$보다 빠르게 증가하지 않는다 |
+| $f = \Omega(g)$ | $a \geq b$ | $f$가 $g$보다 느리게 증가하지 않는다 |
+| $f = \Theta(g)$ | $a = b$ | $f$와 $g$가 같은 속도로 증가한다 |
+| $f = o(g)$ | $a < b$ | $f$가 $g$보다 엄격히 느리게 증가한다 |
+| $f = \omega(g)$ | $a > b$ | $f$가 $g$보다 엄격히 빠르게 증가한다 |
 
-!!! warning "Limits of the analogy"
+!!! warning "유비의 한계"
 
-    Unlike real numbers, not all functions are asymptotically comparable.  For example, $f(n) = n^{1 + \sin n}$ oscillates between $1$ and $n^2$, so it is neither $O(n)$ nor $\Omega(n^2)$.
+    실수와 달리 모든 함수가 점근적으로 비교 가능한 것은 아니다. 예를 들어 $f(n) = n^{1 + \sin n}$은 $1$과 $n^2$ 사이를 진동하므로 $O(n)$도 아니고 $\Omega(n^2)$도 아니다.
 
-## Practical Guidelines
+## 실무 지침
 
-When comparing growth rates in algorithm analysis:
+알고리즘 분석에서 증가 속도를 비교할 때는 다음과 같이 한다.
 
-1. **Identify the dominant term** in each expression by dropping lower-order terms and constant factors.
-2. **Use the hierarchy** to order the dominant terms.
-3. **Apply the limit test** when the hierarchy is not immediately clear (e.g., $n^{1.5}$ vs $n \log^3 n$).
-4. **Check for edge cases** such as oscillating functions where the limit may not exist.
+1. 낮은 차수의 항과 상수 인자를 버려 각 식의 **지배항을 찾는다.**
+2. **계층을 이용하여** 지배항의 순서를 정한다.
+3. 계층으로 바로 판단되지 않으면(예: $n^{1.5}$ 대 $n \log^3 n$) **극한 판정법을 적용한다.**
+4. 극한이 존재하지 않을 수 있는 진동 함수 같은 **예외적인 경우를 확인한다.**
 
-For a catalogue of individual growth-rate classes and their properties, see [Common Growth Rates](growth_rates.md).  For the formal definitions of all five asymptotic notations used in comparisons, see [Formal Definitions](formal.md).
+개별 증가 속도 부류와 그 성질의 목록은 [흔한 증가 속도](growth_rates.md)를 참고하라. 비교에 쓰이는 다섯 가지 점근 표기법의 형식적 정의는 [형식적 정의](formal.md)를 참고하라.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 3. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+증가 속도 비교에서 다룬 점근 표기법을 적용하여 셀프 어텐션($n^2 d$번 연산)과 순방향 층($n d^2$번 연산)의 복잡도를 분류하라.
+
+??? success "연습문제 1 풀이"
+    셀프 어텐션: $O(n^2 d)$로 시퀀스 길이에 대해 이차이다. FFN: $O(nd^2)$로 시퀀스 길이에 대해서는 선형이지만 은닉 차원에 대해서는 이차이다. $n > d$이면 어텐션이 지배한다. $d > n$이면 FFN이 지배한다. 교차점은 $n = d$이다.
+
+---
+
+**연습문제 2.**
+증가 속도 비교에서 서술한 형식적 정의를 구체적인 상수 $c$와 $n_0$을 사용하여 증명하라.
+
+??? success "연습문제 2 풀이"
+    정의를 만족하는 $c$와 $n_0$의 구체적인 값을 고른다. 대수적 조작으로, 또는 각 항의 상계를 잡아서, 모든 $n \geq n_0$에 대해 부등식이 성립함을 검증한다.
+
+---
+
+**연습문제 3.**
+극한 판정법을 사용하여 증가 속도 비교와 관련된 두 함수 사이의 점근적 관계를 결정하라.
+
+??? success "연습문제 3 풀이"
+    $\lim_{n \to \infty} f(n)/g(n)$을 계산한다. 극한이 0이면 $f = o(g)$이다. 극한이 $\infty$이면 $f = \omega(g)$이다. 극한이 양의 상수이면 $f = \Theta(g)$이다.
+
+---
+
+**연습문제 4.**
+다음 함수들을 증가 속도 순으로 나열하라: $n$, $n \log n$, $n^2$, $2^n$, $\log n$. 인접한 각 쌍의 순서를 증명하라.
+
+??? success "연습문제 4 풀이"
+    $\log n \prec n \prec n\log n \prec n^2 \prec 2^n$. 증명: $\lim \log n / n = 0$(로피탈 정리), $\lim n/(n\log n) = 1/\log n \to 0$, $\lim n\log n / n^2 = \log n / n \to 0$, $\lim n^2/2^n = 0$(지수가 다항식을 지배한다). $\square$

@@ -1,105 +1,138 @@
-# Stability
+# 안정성
 
-When sorting a list of records by one field, we often want to preserve the existing order among records that share the same key value. For example, if students are already sorted alphabetically and we re-sort by grade, a **stable** sort keeps students with the same grade in alphabetical order. An **unstable** sort might scramble that alphabetical order arbitrarily. This distinction seems minor at first glance, but it has deep practical consequences for multi-key sorting, database operations, and algorithm composition.
+레코드 목록을 한 칸으로 정렬할 때 같은 열쇠 값을 나누어 가진 레코드 사이의 이미 있는 순서를 지키고 싶을 때가 많다. 이를테면 학생이 이미 이름순으로 정렬되어 있고 성적으로 다시 정렬한다면, **안정적인** 정렬은 같은 성적의 학생을 이름순으로 지킨다. **안정적이지 않은** 정렬은 그 이름순을 제멋대로 흩뜨릴 수 있다. 얼핏 사소해 보이지만 여러 열쇠 정렬과 데이터베이스 연산과 알고리즘 짜맞춤에 깊은 실용적 결과를 낳는다.
 
-## Formal Definition
+## 엄밀한 정의
 
-A sorting algorithm is **stable** if, whenever two elements $a_i$ and $a_j$ have equal keys and $a_i$ appears before $a_j$ in the input, then $a_i$ also appears before $a_j$ in the output.
+두 원소 $a_i$과 $a_j$의 열쇠가 같고 입력에서 $a_i$이 $a_j$보다 앞설 때마다 출력에서도 $a_i$이 $a_j$보다 앞서면 그 정렬 알고리즘은 **안정적**이다.
 
-More precisely, let $\langle a_1, a_2, \ldots, a_n \rangle$ be the input and let $\text{key}(a_i)$ denote the sort key of element $a_i$. A sorting algorithm produces a permutation $\pi$ such that
+더 정확히, $\langle a_1, a_2, \ldots, a_n \rangle$을 입력이라 하고 $\text{key}(a_i)$을 원소 $a_i$의 정렬 열쇠라 하자. 정렬 알고리즘은 다음을 만족하는 순열 $\pi$을 낸다.
 
 $$
-\text{key}(a_{\pi(1)}) \leq \text{key}(a_{\pi(2)}) \leq \cdots \leq \text{key}(a_{\pi(n)})
+\text{열쇠}(a_{\pi(1)}) \leq \text{열쇠}(a_{\pi(2)}) \leq \cdots \leq \text{열쇠}(a_{\pi(n)})
 $$
 
-The algorithm is **stable** if, additionally, for all $i < j$ with $\text{key}(a_i) = \text{key}(a_j)$, we have $\pi^{-1}(i) < \pi^{-1}(j)$. In other words, equal-key elements retain their original relative order.
+여기에 더해 $\text{key}(a_i) = \text{key}(a_j)$인 모든 $i < j$에 대해 $\pi^{-1}(i) < \pi^{-1}(j)$이면 그 알고리즘은 **안정적**이다. 달리 말해 열쇠가 같은 원소가 본디 상대 순서를 지킨다.
 
-## Why Stability Matters
+## 안정성이 중요한 까닭
 
-### Multi-Key Sorting
+### 여러 열쇠 정렬
 
-The most important application of stability is **multi-key sorting**: sorting by a primary key and then by a secondary key. With a stable sort, we can achieve this by sorting twice:
+안정성의 가장 중요한 쓰임은 **여러 열쇠 정렬**, 곧 주 열쇠로 정렬한 뒤 부 열쇠로 정렬하는 것이다. 안정적인 정렬이면 두 번 정렬해서 이를 이룰 수 있다.
 
-1. First, sort by the secondary key.
-2. Then, sort by the primary key using a stable algorithm.
+1. 먼저 부 열쇠로 정렬한다.
+2. 그다음 안정적인 알고리즘으로 주 열쇠로 정렬한다.
 
-After step 2, elements with the same primary key remain in the order established by step 1 — that is, sorted by the secondary key. This generalizes to any number of keys, and it is exactly the principle behind **radix sort**, which sorts by the least significant digit first and works upward.
+2단계 뒤에 주 열쇠가 같은 원소는 1단계에서 잡힌 순서, 곧 부 열쇠 순서로 남는다. 이는 열쇠가 몇 개든 그대로 통하며, 가장 낮은 자릿수부터 정렬해 위로 올라가는 **기수 정렬**의 원리가 바로 이것이다.
 
-!!! example "Sorting Students by Grade, Then Name"
-    Consider students with (name, grade) pairs:
+!!! example "성적으로, 그다음 이름으로 학생 정렬하기"
+    (이름, 성적) 쌍의 학생을 생각하자.
 
-    | Input order | Name | Grade |
+    | 입력 순서 | 이름 | 성적 |
     |---|---|---|
     | 1 | Alice | B |
     | 2 | Bob | A |
     | 3 | Carol | B |
     | 4 | Dave | A |
 
-    **Stable sort by grade** produces: Bob (A), Dave (A), Alice (B), Carol (B).
-    Among the A students, Bob appears before Dave (preserving input order). Among the B students, Alice appears before Carol.
+    **성적으로 안정적으로 정렬하면** Bob (A), Dave (A), Alice (B), Carol (B)이 나온다.
+    A인 학생 가운데 Bob이 Dave보다 앞선다(입력 순서를 지킨다). B인 학생 가운데 Alice가 Carol보다 앞선다.
 
-    **Unstable sort by grade** might produce: Dave (A), Bob (A), Carol (B), Alice (B).
-    The relative order within each grade group is unpredictable.
+    **성적으로 안정적이지 않게 정렬하면** Dave (A), Bob (A), Carol (B), Alice (B)가 나올 수 있다.
+    성적 묶음 안의 상대 순서를 내다볼 수 없다.
 
-### Database Operations
+### 데이터베이스 연산
 
-Database systems rely on stability when executing `ORDER BY` with multiple columns. A stable sort ensures that the tie-breaking behavior is predictable and consistent, which is essential for pagination (displaying results across multiple pages).
+데이터베이스 체계는 여러 열로 `ORDER BY`를 할 때 안정성에 기댄다. 안정적인 정렬은 같은 값을 가르는 방식을 내다볼 수 있고 한결같게 하는데, (결과를 여러 쪽에 나누어 보여 주는) 쪽 나누기에 꼭 필요하다.
 
-### Composability
+### 짜맞춤
 
-Stable sorts compose well. If a sequence has already been sorted by one criterion, applying a stable sort by a different criterion produces a result sorted by the second criterion with ties broken by the first. Unstable sorts destroy the prior ordering, making composition unreliable.
+안정적인 정렬은 잘 짜맞춰진다. 수열이 이미 한 기준으로 정렬되어 있으면 다른 기준으로 안정적으로 정렬할 때 둘째 기준으로 정렬되고 같은 값은 첫 기준으로 갈린 결과가 나온다. 안정적이지 않은 정렬은 앞선 순서를 부수어 짜맞춤을 믿을 수 없게 한다.
 
-## Classifying Sorting Algorithms
+## 정렬 알고리즘 나누기
 
-| Algorithm | Stable | Notes |
+| 알고리즘 | 안정성 | 비고 |
 |-----------|--------|-------|
-| Bubble sort | Yes | Equal elements are never swapped |
-| Insertion sort | Yes | Equal elements are not moved past each other |
-| Merge sort | Yes | When merging, take from left subarray on ties |
-| Counting sort | Yes | By construction, preserves input order |
-| Radix sort | Yes | Requires a stable subroutine (typically counting sort) |
-| Selection sort | No | Swaps can move equal elements past each other |
-| Heapsort | No | Heap extraction does not preserve input order |
-| Quicksort | No | Partitioning moves equal elements unpredictably |
-| Shell sort | No | Long-range swaps can disrupt relative order |
+| 거품 정렬 | 그렇다 | 같은 원소는 결코 맞바꾸지 않는다 |
+| 삽입 정렬 | 그렇다 | 같은 원소가 서로를 지나치지 않는다 |
+| 병합 정렬 | 그렇다 | 합칠 때 같으면 왼쪽 부분 배열에서 가져온다 |
+| 계수 정렬 | 그렇다 | 만드는 방식상 입력 순서를 지킨다 |
+| 기수 정렬 | 그렇다 | 안정적인 부프로그램(대개 계수 정렬)이 필요하다 |
+| 선택 정렬 | 아니다 | 자리바꿈이 같은 원소를 서로 지나치게 할 수 있다 |
+| 힙 정렬 | 아니다 | 힙에서 꺼내는 것이 입력 순서를 지키지 않는다 |
+| 퀵 정렬 | 아니다 | 나누기가 같은 원소를 예측할 수 없게 옮긴다 |
+| 셸 정렬 | 아니다 | 멀리 떨어진 자리바꿈이 상대 순서를 흐트러뜨릴 수 있다 |
 
-### Why Some Algorithms Are Unstable
+### 어떤 알고리즘이 안정적이지 않은 까닭
 
-An algorithm becomes unstable when it performs **long-range swaps** that can move an element past another element with an equal key. Consider selection sort: when it finds the minimum and swaps it into position, the swapped element jumps over potentially many equal-key elements.
+알고리즘은 원소를 열쇠가 같은 다른 원소 너머로 옮길 수 있는 **멀리 떨어진 자리바꿈**을 할 때 안정적이지 않게 된다. 선택 정렬을 생각해 보자. 최솟값을 찾아 제자리로 맞바꿀 때 맞바뀐 원소가 열쇠가 같은 여러 원소를 건너뛸 수 있다.
 
-!!! example "Selection Sort Instability"
-    Input: $\langle 3_a, 3_b, 1 \rangle$ (subscripts distinguish equal keys).
+!!! example "선택 정렬의 불안정성"
+    입력: $\langle 3_a, 3_b, 1 \rangle$ (아래 첨자로 같은 열쇠를 가른다).
 
-    Selection sort finds the minimum ($1$) and swaps it with the first element ($3_a$):
+    선택 정렬이 최솟값($1$)을 찾아 첫 원소($3_a$)와 맞바꾼다.
 
     $\langle 1, 3_b, 3_a \rangle$
 
-    Now $3_b$ appears before $3_a$, but in the input $3_a$ appeared first. The sort is unstable.
+    이제 $3_b$이 $3_a$보다 앞서지만 입력에서는 $3_a$이 먼저였다. 이 정렬은 안정적이지 않다.
 
-### Making Unstable Algorithms Stable
+### 안정적이지 않은 알고리즘을 안정적으로 만들기
 
-Any sorting algorithm can be made stable by augmenting each key with the element's original index. Instead of comparing keys $k_i$ and $k_j$ alone, compare the pairs $(k_i, i)$ and $(k_j, j)$ lexicographically. Since indices are unique, ties in the original key are broken by input position, guaranteeing stability.
+어떤 정렬 알고리즘이든 열쇠마다 원소의 본디 색인을 덧붙여 안정적으로 만들 수 있다. 열쇠 $k_i$과 $k_j$만 견주는 대신 쌍 $(k_i, i)$과 $(k_j, j)$을 사전식으로 견준다. 색인이 저마다 다르므로 본디 열쇠가 같으면 입력 자리로 갈리고 안정성이 보장된다.
 
-This transformation has a cost: storing the original indices requires $O(n)$ extra space, and the comparisons are slightly more expensive. For this reason, algorithms that are naturally stable are generally preferred when stability is needed.
+이 바꿈에는 대가가 있다. 본디 색인을 담는 데 여분 공간 $O(n)$이 들고 비교가 조금 더 비싸다. 그래서 안정성이 필요하면 본디부터 안정적인 알고리즘을 흔히 더 좋아한다.
 
-## Stability in Python
+## 파이썬에서의 안정성
 
-Python's built-in `sorted()` function and the `list.sort()` method both use **Timsort**, which is a stable sorting algorithm. This guarantee is part of the language specification, not just an implementation detail. As a result, the multi-key sorting pattern works reliably in Python:
+파이썬의 붙박이 `sorted()` 함수와 `list.sort()` 메서드는 모두 안정적인 정렬 알고리즘인 **팀 정렬**을 쓴다. 이 보장은 구현의 세부가 아니라 언어 명세의 일부이다. 그래서 여러 열쇠 정렬 방식이 파이썬에서 믿을 만하게 통한다.
 
 ```python
-# Sort by grade (primary), then by name (secondary)
+# 등급(으뜸 열쇠)으로, 그다음 이름(버금 열쇠)으로 정렬한다
 students = [("Carol", "B"), ("Alice", "B"), ("Bob", "A"), ("Dave", "A")]
 
-# Step 1: sort by name (secondary key)
+# 1단계: 이름(버금 열쇠)으로 정렬한다
 students.sort(key=lambda s: s[0])
 
-# Step 2: sort by grade (primary key) — stable, so name order is preserved
+# 2단계: 등급(으뜸 열쇠)으로 정렬한다 — 안정적이므로 이름 차례가 지켜진다
 students.sort(key=lambda s: s[1])
 
-# Result: [('Bob', 'A'), ('Dave', 'A'), ('Alice', 'B'), ('Carol', 'B')]
+# 결과: [('Bob', 'A'), ('Dave', 'A'), ('Alice', 'B'), ('Carol', 'B')]
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 8.
-- Python Documentation. [Sorting HOW TO](https://docs.python.org/3/howto/sorting.html).
+- 파이썬 문서. [정렬 방법 안내](https://docs.python.org/3/howto/sorting.html).
+
+
+## 연습문제
+
+**연습문제 1.**
+안정성을 정식으로 정의하고 비교 기반 정렬에서의 뜻을 설명하라.
+
+??? success "연습문제 1 풀이"
+    정식 정의는 정렬 알고리즘 설계를 옥죄는 이론적 바탕을 세운다. 이 바탕을 이해하면 알고리즘을 고르는 데 길잡이가 되고 $\Omega(n\log n)$ 벽이 언제 적용되는지 드러난다.
+
+---
+
+**연습문제 2.**
+배열 $[38, 27, 43, 3, 9, 82, 10]$으로 안정성을 보여라.
+
+??? success "연습문제 2 풀이"
+    그 개념을 주어진 배열에 적용하며 관련된 단계를 하나씩 보여라. 이 보기는 추상적인 정의를 손에 잡히게 하고 모서리 경우를 짚어야 한다.
+
+---
+
+**연습문제 3.**
+이 쪽에서 밝힌 주된 결과를 증명하라.
+
+??? success "연습문제 3 풀이"
+    설명한 증명 기법(결정 트리, 적수, 세기)을 쓰라. 주장을 밝히고 논증을 세운 뒤 빈틈없이 밀고 나가라. $\square$
+
+---
+
+**연습문제 4.**
+안정성을 `torch.sort`의 구현에 어떤 실마리를 주는가?
+
+??? success "연습문제 4 풀이"
+    파이토치의 정렬 연산은 이 쪽의 이론적 제약을 지켜야 한다. GPU 정렬에서는 병렬성 요구가 알고리즘 선택을 더 옥죈다. 이론적 한계를 이해하면 데이터의 크기와 종류에 맞는 알고리즘을 고르는 데 도움이 된다.

@@ -1,26 +1,26 @@
-# Natural Merge Sort
+# 자연 병합 정렬
 
-Standard merge sort ignores any pre-existing order in the input: it always divides the array at the midpoint, producing $\lceil \log_2 n \rceil$ levels of merging even when the data is nearly sorted.  **Natural merge sort** instead identifies maximal sorted subsequences -- called **runs** -- already present in the input and merges them directly.  On nearly sorted data this can reduce the number of merge passes dramatically, approaching $O(n)$ in the best case while retaining $O(n \log n)$ worst-case behavior.
+보통의 병합 정렬은 입력에 이미 있는 차례를 아랑곳하지 않는다. 늘 배열을 한가운데서 나누므로 데이터가 거의 정렬되어 있어도 병합 층이 $\lceil \log_2 n \rceil$개 생긴다. 그 대신 **자연 병합 정렬**은 입력에 이미 있는 가장 긴 정렬된 부분 수열, 곧 **런**을 짚어내어 곧바로 병합한다. 거의 정렬된 데이터에서는 병합 훑기 수가 크게 줄어, 최악의 경우 $O(n \log n)$ 거동을 지니면서도 최선의 경우 $O(n)$에 다가간다.
 
-## Key Concept: Runs
+## 핵심 개념: 런
 
-A **run** is a maximal contiguous non-decreasing subsequence of the input array.  For example, in the array $[3, 7, 8, 2, 5, 1, 4, 6]$:
+**런**이란 입력 배열에서 감소하지 않으며 이어진 가장 긴 부분 수열이다. 이를테면 배열 $[3, 7, 8, 2, 5, 1, 4, 6]$에서는 다음과 같다.
 
-- Run 1: $[3, 7, 8]$
-- Run 2: $[2, 5]$
-- Run 3: $[1, 4, 6]$
+- 런 1: $[3, 7, 8]$
+- 런 2: $[2, 5]$
+- 런 3: $[1, 4, 6]$
 
-Natural merge sort detects these runs in a single $O(n)$ scan, then iteratively merges adjacent runs until only one run (the fully sorted array) remains.
+자연 병합 정렬은 $O(n)$짜리 훑기 한 번으로 이 런들을 찾아낸 다음, 런이 하나(온전히 정렬된 배열)만 남을 때까지 이웃한 런을 되풀이하여 병합한다.
 
-## Algorithm
+## 알고리즘
 
-1. **Scan** the array left-to-right to identify all natural runs and record their boundaries.
-2. **Merge** adjacent pairs of runs, replacing each pair with a single merged run.
-3. **Repeat** until only one run remains.
+1. 배열을 왼쪽에서 오른쪽으로 **훑어** 자연 런을 모두 짚어내고 그 경계를 적는다.
+2. 이웃한 런 쌍을 **병합**하여 쌍마다 병합된 런 하나로 바꾼다.
+3. 런이 하나만 남을 때까지 **되풀이한다**.
 
-Each merge pass reduces the number of runs by roughly half, so the number of passes is $\lceil \log_2 r \rceil$ where $r$ is the initial number of runs.
+병합 훑기마다 런의 수가 대략 반으로 줄므로, 처음 런의 수를 $r$이라 하면 훑기의 수는 $\lceil \log_2 r \rceil$이다.
 
-## Pseudocode
+## 의사코드
 
 ```
 NATURAL-MERGE-SORT(A, n):
@@ -44,81 +44,83 @@ FIND-RUNS(A, n):
     return runs
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
-**Best case.** The array is already sorted: one run is found, zero merges needed.
+**최선의 경우.** 배열이 이미 정렬되어 있다. 런이 하나 나오고 병합은 필요 없다.
 
 $$
 T_{\text{best}}(n) = O(n)
 $$
 
-The $O(n)$ cost is just the initial scan to detect that the array is a single run.
+$O(n)$의 비용은 배열이 런 하나임을 알아내는 첫 훑기뿐이다.
 
-**Worst case.** The array is sorted in reverse: every element starts a new run ($r = n$).  Merging $n$ singleton runs requires $\lceil \log_2 n \rceil$ passes of $O(n)$ work each:
+**최악의 경우.** 배열이 거꾸로 정렬되어 있다. 원소마다 새 런을 시작한다($r = n$). 원소 하나짜리 런 $n$개를 병합하려면 $O(n)$짜리 훑기가 $\lceil \log_2 n \rceil$번 필요하다.
 
 $$
 T_{\text{worst}}(n) = O(n \log n)
 $$
 
-**General case.** With $r$ initial runs:
+**일반의 경우.** 처음 런이 $r$개이면 다음과 같다.
 
 $$
 T(n) = O(n \log r)
 $$
 
-Since $1 \leq r \leq n$, this interpolates between $O(n)$ (sorted input) and $O(n \log n)$ (random input).
+$1 \leq r \leq n$이므로 이는 $O(n)$(정렬된 입력)과 $O(n \log n)$(무작위 입력) 사이를 메운다.
 
-**Space complexity.** The merge procedure requires $O(n)$ auxiliary space, the same as standard merge sort.
+**공간 복잡도.** 병합 절차는 보통의 병합 정렬과 마찬가지로 $O(n)$ 도움 공간이 든다.
 
-## Comparison with Standard Merge Sort
+## 보통의 병합 정렬과의 견줌
 
-| Property            | Standard merge sort | Natural merge sort    |
+| 성질 | 보통의 병합 정렬 | 자연 병합 정렬 |
 |---------------------|--------------------|-----------------------|
-| Best-case time      | $O(n \log n)$      | $O(n)$               |
-| Worst-case time     | $O(n \log n)$      | $O(n \log n)$        |
-| Adaptive            | No                 | Yes                   |
-| Extra scan overhead | None               | $O(n)$ per pass       |
-| Run detection       | N/A                | $O(n)$ initial scan   |
-| Space               | $O(n)$             | $O(n)$               |
+| 최선의 경우 시간 | $O(n \log n)$ | $O(n)$ |
+| 최악의 경우 시간 | $O(n \log n)$ | $O(n \log n)$ |
+| 적응성 | 없음 | 있음 |
+| 여분 훑기 짐 | 없음 | 훑기마다 $O(n)$ |
+| 런 찾기 | 해당 없음 | 첫 훑기 $O(n)$ |
+| 공간 | $O(n)$ | $O(n)$ |
 
-!!! tip "Natural merge sort as a foundation for Timsort"
-    Timsort, used in Python and Java, extends natural merge sort with several optimizations: minimum run lengths enforced via insertion sort, a merge stack with invariants that control merge order, and galloping mode to speed up merges with unequal-sized runs.  Understanding natural merge sort is essential background for studying Timsort.
+!!! tip "팀 정렬의 바탕이 되는 자연 병합 정렬"
+    파이썬과 자바가 쓰는 팀 정렬은 자연 병합 정렬에 여러 손질을 더해 넓힌 것이다. 끼워넣기 정렬로 최소 런 길이를 맞추고, 병합 차례를 다스리는 불변식을 갖춘 병합 더미를 쓰며, 크기가 다른 런의 병합을 빠르게 하는 질주 모드를 쓴다. 자연 병합 정렬을 이해하는 것이 팀 정렬을 공부하는 데 꼭 필요한 바탕이다.
 
-## Step-by-Step Example
+## 한 걸음씩 보는 예
 
-Sort $[3, 7, 8, 2, 5, 1, 4, 6]$:
+$[3, 7, 8, 2, 5, 1, 4, 6]$을 정렬해 보자.
 
-**Initial scan** identifies 3 runs: $[3,7,8]$, $[2,5]$, $[1,4,6]$.
+**첫 훑기**에서 런 3개를 짚어낸다. $[3,7,8]$, $[2,5]$, $[1,4,6]$이다.
 
-**Pass 1:** merge adjacent run pairs.
-- Merge $[3,7,8]$ and $[2,5]$: result $[2,3,5,7,8]$.
-- Run $[1,4,6]$ has no partner; it passes through unchanged.
+**훑기 1:** 이웃한 런 쌍을 병합한다.
 
-Runs after pass 1: $[2,3,5,7,8]$, $[1,4,6]$.
+- $[3,7,8]$과 $[2,5]$을 병합한다: 결과는 $[2,3,5,7,8]$.
+- 런 $[1,4,6]$은 짝이 없어 그대로 지나간다.
 
-**Pass 2:** merge the two remaining runs.
-- Merge $[2,3,5,7,8]$ and $[1,4,6]$: result $[1,2,3,4,5,6,7,8]$.
+훑기 1 뒤의 런: $[2,3,5,7,8]$, $[1,4,6]$.
 
-Total merge passes: 2 (compared to $\lceil \log_2 8 \rceil = 3$ for standard merge sort).
+**훑기 2:** 남은 런 둘을 병합한다.
 
-## Python Implementation
+- $[2,3,5,7,8]$과 $[1,4,6]$을 병합한다: 결과는 $[1,2,3,4,5,6,7,8]$.
+
+병합 훑기는 모두 2번이다(보통의 병합 정렬은 $\lceil \log_2 8 \rceil = 3$번).
+
+## 파이썬 구현
 
 ```python
 """
-Natural merge sort.
+자연 병합 정렬.
 
-Identifies existing sorted runs in the input and merges them,
-adapting to pre-existing order for better performance on nearly
-sorted data.
+입력에 이미 있는 정렬된 런을 짚어내어 병합하며,
+이미 있는 차례에 맞추어 거의 정렬된 데이터에서
+더 좋은 성능을 낸다.
 """
 
 
-# === Find natural runs ========================================================
+# === 자연 런 찾기 =============================================================
 
 def find_runs(arr: list) -> list[tuple[int, int]]:
-    """Identify maximal non-decreasing runs in arr.
+    """arr에서 감소하지 않는 가장 긴 런을 짚어낸다.
 
-    Returns a list of (start, end) index pairs for each run.
+    런마다 (시작, 끝) 첨자 짝의 목록을 되돌린다.
     """
     n = len(arr)
     if n == 0:
@@ -133,10 +135,10 @@ def find_runs(arr: list) -> list[tuple[int, int]]:
     return runs
 
 
-# === Merge procedure ==========================================================
+# === 병합 절차 ================================================================
 
 def merge(arr: list, left: int, mid: int, right: int) -> None:
-    """Merge sorted subarrays arr[left..mid] and arr[mid+1..right]."""
+    """정렬된 부분 배열 arr[left..mid]과 arr[mid+1..right]을 병합한다."""
     left_half = arr[left:mid + 1]
     right_half = arr[mid + 1:right + 1]
     i = j = 0
@@ -161,13 +163,13 @@ def merge(arr: list, left: int, mid: int, right: int) -> None:
         k += 1
 
 
-# === Natural merge sort =======================================================
+# === 자연 병합 정렬 ===========================================================
 
 def natural_merge_sort(arr: list) -> None:
-    """Sort arr in place using natural merge sort.
+    """자연 병합 정렬로 arr을 제자리에서 정렬한다.
 
-    Detects existing sorted runs and merges them, achieving O(n)
-    on already-sorted input and O(n log n) in the worst case.
+    이미 있는 정렬된 런을 찾아 병합하여, 이미 정렬된 입력에서는 O(n)을,
+    최악의 경우에는 O(n log n)을 이룬다.
     """
     n = len(arr)
     if n <= 1:
@@ -176,8 +178,8 @@ def natural_merge_sort(arr: list) -> None:
     while True:
         runs = find_runs(arr)
         if len(runs) == 1:
-            return  # fully sorted
-        # Merge adjacent pairs of runs
+            return  # 온전히 정렬됨
+        # 이웃한 런 쌍을 병합한다
         i = 0
         while i + 1 < len(runs):
             left = runs[i][0]
@@ -187,7 +189,7 @@ def natural_merge_sort(arr: list) -> None:
             i += 2
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     data = [3, 7, 8, 2, 5, 1, 4, 6]
@@ -197,7 +199,7 @@ if __name__ == "__main__":
     natural_merge_sort(data)
     print(f"After:  {data}")
 
-    # Already sorted -- should detect 1 run
+    # 이미 정렬됨 -- 런 1개를 찾아야 한다
     sorted_data = [1, 2, 3, 4, 5]
     runs_sorted = find_runs(sorted_data)
     print(f"\nSorted input runs: {len(runs_sorted)} run(s)")
@@ -205,7 +207,7 @@ if __name__ == "__main__":
     print(f"Result: {sorted_data}")
 ```
 
-**Output:**
+**출력:**
 ```
 Before: [3, 7, 8, 2, 5, 1, 4, 6]
 Runs:   [[3, 7, 8], [2, 5], [1, 4, 6]]
@@ -215,8 +217,41 @@ Sorted input runs: 1 run(s)
 Result: [1, 2, 3, 4, 5]
 ```
 
-## References
+## 참고 문헌
 
-- Knuth, D. E. (1998). *The Art of Computer Programming, Vol. 3: Sorting and Searching* (2nd ed.). Addison-Wesley, Section 5.2.4.
-- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, Section 2.2.
-- Peters, T. (2002). Timsort description. CPython source: `Objects/listsort.txt`.
+- Knuth, D. E. (1998). *The Art of Computer Programming, Vol. 3: Sorting and Searching* (2nd ed.). Addison-Wesley, 5.2.4절.
+- Sedgewick, R., & Wayne, K. (2011). *Algorithms* (4th ed.). Addison-Wesley, 2.2절.
+- Peters, T. (2002). Timsort description. CPython 소스: `Objects/listsort.txt`.
+
+
+## 연습문제
+
+**연습문제 1.**
+$[38, 27, 43, 3, 9, 82, 10]$에서 자연 병합 정렬을 따라가며 큰 걸음마다의 상태를 보여라.
+
+??? success "연습문제 1 풀이"
+    알고리즘을 한 걸음씩 밟아라. 나누어 정복하는 정렬이라면 되돌이 나눔과 병합을 하나씩 보이고, 나눔 기반 정렬이라면 나눔마다와 축이 놓이는 자리를 보여라. 걸음마다 배열 전체의 상태를 내보여라.
+
+---
+
+**연습문제 2.**
+자연 병합 정렬의 최선, 최악, 평균의 경우 시간 복잡도를 끌어내라.
+
+??? success "연습문제 2 풀이"
+    경우마다 점화식을 써라. 최선의 경우는 가장 좋은 나눔이거나 미리 정렬된 입력이다. 최악의 경우는 일을 가장 크게 만드는 적수 입력이다. 평균의 경우는 무작위 순열에 대한 기대 성능이다. 점화식을 각각 풀어라.
+
+---
+
+**연습문제 3.**
+자연 병합 정렬은 안정적인가? 증명하거나 반례를 들어라.
+
+??? success "연습문제 3 풀이"
+    같은 원소가 본디 상대 차례를 지키면 그 정렬은 안정적이다. 모든 입력에서 이것이 성립함을 증명하거나, 정렬 도중 같은 원소 둘의 자리가 뒤바뀌는 구체적인 입력을 들어라.
+
+---
+
+**연습문제 4.**
+float32 학습 손실 값 1000만 개를 정렬할 때 자연 병합 정렬을 다른 두 방법과 견주어라. 시간, 공간, 캐시 거동, GPU 어울림을 살펴라.
+
+??? success "연습문제 4 풀이"
+    $n = 10^7$에서는 실제 선택이 하드웨어에 달렸다. CPU에서는 캐시 친화적인 알고리즘(병합 정렬, 인트로 정렬)이 앞선다. GPU에서는 병렬에 어울리는 알고리즘(바이토닉 정렬, 기수 정렬)이 낫다. 기억이 빠듯하면 제자리 정렬이 $O(n)$ 공간을 아낀다. 이 쪽의 이론적 분석이 그 고름에 길잡이가 된다.

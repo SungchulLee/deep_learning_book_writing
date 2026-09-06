@@ -1,8 +1,8 @@
-# Matroid Greedy Algorithm
+# 매트로이드 욕심쟁이 알고리즘
 
-Greedy algorithms make locally optimal choices at each step, hoping this leads to a global optimum. For most optimization problems, this hope is unfounded. However, for problems with matroid structure, the greedy approach is provably optimal. The **matroid greedy theorem** gives a precise characterization: a greedy algorithm that always selects the best available element produces an optimal solution if and only if the feasibility constraint forms a matroid. This theorem unifies the correctness proofs for Kruskal's MST algorithm, optimal scheduling, and many other greedy successes.
+욕심쟁이 알고리즘은 걸음마다 그 자리에서 가장 좋은 고름을 하며 이것이 전체 최적으로 이어지기를 바란다. 대부분의 가장 좋게 하기 문제에서 이 바람은 근거가 없다. 그러나 매트로이드 짜임을 지닌 문제에서는 욕심쟁이 방식이 가장 좋음을 증명할 수 있다. **매트로이드 욕심쟁이 정리**가 또렷한 특징지음을 준다. 곧 쓸 수 있는 가장 좋은 원소를 늘 고르는 욕심쟁이 알고리즘이 가장 좋은 풀이를 내는 것은, 될 수 있음의 제약이 매트로이드를 이룰 때 그리고 오직 그때뿐이다. 이 정리는 크러스컬의 최소 뻗은 나무 알고리즘, 가장 좋은 일정 짜기 등 여러 욕심쟁이 성공의 옳음 증명을 하나로 묶는다.
 
-## The Algorithm
+## 알고리즘
 
 Given a weighted matroid $M = (S, \mathcal{I})$ with a weight function $w : S \to \mathbb{R}_{\ge 0}$, the goal is to find an independent set of maximum total weight:
 
@@ -10,12 +10,12 @@ $$
 \max_{A \in \mathcal{I}} \sum_{x \in A} w(x)
 $$
 
-The greedy algorithm is remarkably simple:
+욕심쟁이 알고리즘은 놀랍도록 단순하다:
 
 1. Sort elements of $S$ in decreasing order of weight: $w(x_1) \ge w(x_2) \ge \cdots \ge w(x_n)$.
 2. Initialize $A \leftarrow \emptyset$.
 3. For each $x_i$ in sorted order: if $A \cup \{x_i\} \in \mathcal{I}$, set $A \leftarrow A \cup \{x_i\}$.
-4. Return $A$.
+4. $A$을 돌려준다.
 
 ```text
 GREEDY-MATROID(M, w):
@@ -27,22 +27,22 @@ GREEDY-MATROID(M, w):
     return A
 ```
 
-The algorithm greedily adds the heaviest element that maintains independence. It never removes an element once added.
+이 알고리즘은 얽히지 않음을 지키는 가장 무거운 원소를 욕심껏 더한다. 한 번 더한 원소는 결코 없애지 않는다.
 
-## Optimality Theorem
+## 가장 좋음 정리
 
-!!! note "Matroid Greedy Theorem"
+!!! note "매트로이드 욕심쟁이 정리"
     Let $M = (S, \mathcal{I})$ be a matroid and $w : S \to \mathbb{R}_{\ge 0}$ a weight function. The greedy algorithm returns an independent set $A$ of maximum weight. Moreover, $A$ is a base (maximal independent set) whenever all weights are positive.
 
-## Proof of Correctness
+## 정확성 증명
 
-**Claim.** The greedy algorithm produces a maximum-weight independent set.
+**주장.** 욕심쟁이 알고리즘은 무게가 가장 큰 얽히지 않는 모음을 낸다.
 
 **Proof.** Let $A = \{a_1, a_2, \dots, a_k\}$ be the greedy solution in the order elements were added, and let $O = \{o_1, o_2, \dots, o_m\}$ be an optimal solution with elements sorted by decreasing weight.
 
 We show $w(a_i) \ge w(o_i)$ for all $i \le k$, which implies $w(A) \ge w(O)$.
 
-Suppose for contradiction that $i$ is the first index where $w(a_i) < w(o_i)$. Consider:
+어긋남을 이끌어 내려고 $w(a_i) < w(o_i)$인 첫 번호가 $i$이라고 하자. 다음을 보자:
 
 - $A_{i-1} = \{a_1, \dots, a_{i-1}\}$ (the first $i-1$ greedy choices).
 - $O_i = \{o_1, \dots, o_i\}$ (the first $i$ elements of the optimal solution).
@@ -55,44 +55,44 @@ Therefore $w(a_i) \ge w(o_i)$ for all $i$, and since $k \ge m$ would follow from
 
 $\square$
 
-## Converse: Matroids Characterize Greedy Optimality
+## 거꿀: 매트로이드가 욕심쟁이의 가장 좋음을 특징짓는다
 
-The matroid greedy theorem has a remarkable converse:
+매트로이드 욕심쟁이 정리에는 놀라운 거꿀이 있다:
 
-!!! note "Converse Theorem (Edmonds, Rado)"
+!!! note "거꿀 정리(에드먼즈, 라도)"
     Let $(S, \mathcal{I})$ be a non-empty hereditary set system (satisfying Axioms 1 and 2). The greedy algorithm finds a maximum-weight independent set for **every** weight function $w : S \to \mathbb{R}_{\ge 0}$ if and only if $(S, \mathcal{I})$ is a matroid.
 
-This means matroids are not just sufficient for greedy optimality --- they are the **exact** characterization. If a hereditary set system is not a matroid (fails the exchange property), there exists some weight function for which greedy fails.
+곧 매트로이드는 욕심쟁이가 가장 좋기 위한 충분조건일 뿐 아니라 **정확한** 특징지음이다. 물려받는 모음 체계가 매트로이드가 아니면(맞바꿈 성질이 어그러지면) 욕심쟁이가 어그러지는 무게 함수가 있다.
 
 **Proof sketch of the converse.** Suppose $\mathcal{I}$ is hereditary but violates the exchange property: there exist $A, B \in \mathcal{I}$ with $|A| < |B|$ such that $A \cup \{x\} \notin \mathcal{I}$ for all $x \in B \setminus A$. Assign weights so that elements in $A$ have slightly higher weight than elements in $B \setminus A$, and all other elements have weight 0. The greedy algorithm selects all of $A$ first, then gets stuck with a smaller independent set than $B$, proving greedy is suboptimal.
 
-## Applications
+## 응용
 
-### Minimum Spanning Tree (Kruskal's Algorithm)
+### 최소 뻗은 나무(크러스컬 알고리즘)
 
-In the graphic matroid, edges are elements and forests are independent sets. Sorting edges by weight and adding each edge that does not create a cycle is exactly the matroid greedy algorithm. The theorem guarantees this produces a minimum spanning tree (using minimum weight, which is equivalent to negating weights and maximizing).
+그래프 매트로이드에서 변이 원소이고 숲이 얽히지 않는 모음이다. 변을 무게로 정렬하고 순환을 만들지 않는 변을 더하는 것이 바로 매트로이드 욕심쟁이 알고리즘이다. 정리는 이것이 최소 뻗은 나무를 냄을 보장한다(최소 무게를 쓰는데, 이는 무게의 부호를 뒤집어 가장 크게 하는 것과 같다).
 
-### Weighted Job Scheduling
+### 무게 있는 일 일정 짜기
 
-Given $n$ unit-time jobs with deadlines $d_i$ and profits $p_i$, define a set of jobs as independent if they can all be scheduled to meet their deadlines. This forms a matroid, and the greedy algorithm (schedule highest-profit jobs first) is optimal.
+마감이 $d_i$이고 이익이 $p_i$인 단위 시간 일 $n$개가 주어질 때, 모두 마감을 맞추도록 일정을 짤 수 있으면 그 일 모음을 얽히지 않는다고 하자. 이는 매트로이드를 이루며 욕심쟁이 알고리즘(이익이 큰 일부터 일정을 짜기)이 가장 좋다.
 
-### Minimum-Weight Base
+### 무게가 가장 작은 기저
 
-For any matroid, sorting by increasing weight and greedily adding elements that preserve independence yields a minimum-weight base. This generalizes both Kruskal's algorithm and optimal scheduling.
+어떤 매트로이드에서든 무게가 커지는 차례로 정렬하고 얽히지 않음을 지키는 원소를 욕심껏 더하면 무게가 가장 작은 기저가 나온다. 이는 크러스컬 알고리즘과 가장 좋은 일정 짜기를 함께 넓힌 것이다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Matroid greedy algorithm with applications.
+매트로이드 욕심쟁이 알고리즘과 그 쓰임새.
 
-Demonstrates the generic matroid greedy algorithm and its application
-to weighted job scheduling and minimum spanning trees.
+두루 쓰는 매트로이드 욕심쟁이 알고리즘과 그것을 무게 붙은 일 차례 짜기와
+최소 뻗음 나무에 쓰는 법을 보인다.
 """
 
 from typing import Callable
 
-# === Generic Matroid Greedy ===
+# === 두루 쓰는 매트로이드 욕심쟁이 ===
 
 def matroid_greedy(
     elements: list,
@@ -100,17 +100,17 @@ def matroid_greedy(
     is_independent: Callable[[list], bool],
     maximize: bool = True
 ) -> list:
-    """Generic matroid greedy algorithm.
+    """두루 쓰는 매트로이드 욕심쟁이 알고리즘.
 
-    Args:
-        elements: Ground set elements.
-        weight: Function mapping element to its weight.
-        is_independent: Function checking if a list of elements is independent.
-        maximize: If True, find max-weight independent set;
-                  if False, find min-weight base.
+    인수:
+        elements: 바탕 모임의 원소.
+        weight: 원소를 그 무게에 대응시키는 함수.
+        is_independent: 원소의 목록이 홀로서기인지 살피는 함수.
+        maximize: 참이면 무게가 가장 큰 홀로서기 모임을 찾고,
+                  거짓이면 무게가 가장 작은 바탕을 찾는다.
 
-    Returns:
-        Optimal independent set (a base if all elements have positive weight).
+    반환값:
+        가장 좋은 홀로서기 모임(모든 원소의 무게가 양수이면 바탕이 된다).
     """
     sorted_elems = sorted(elements, key=weight, reverse=maximize)
     result = []
@@ -123,25 +123,25 @@ def matroid_greedy(
     return result
 
 
-# === Application: Weighted Job Scheduling ===
+# === 쓰임새: 무게 붙은 일 차례 짜기 ===
 
 def schedule_jobs(
     jobs: list[tuple[str, int, int]]
 ) -> tuple[list[str], int]:
-    """Schedule unit-time jobs to maximize profit using matroid greedy.
+    """매트로이드 욕심쟁이로 단위 시간 일의 이익을 가장 크게 하도록 차례를 짠다.
 
-    Args:
-        jobs: List of (name, deadline, profit) tuples.
-              Deadlines are 1-indexed.
+    인수:
+        jobs: (이름, 마감, 이익) 짝의 목록.
+              마감은 1부터 센다.
 
-    Returns:
-        Tuple of (scheduled job names, total profit).
+    반환값:
+        (차례에 넣은 일의 이름, 전체 이익)의 짝.
     """
     def is_feasible(selected_jobs: list[tuple[str, int, int]]) -> bool:
-        """Check if selected jobs can all meet their deadlines."""
+        """고른 일이 모두 마감을 지킬 수 있는지 살핀다."""
         deadlines = sorted(j[1] for j in selected_jobs)
         for i, d in enumerate(deadlines):
-            if d < i + 1:  # slot i+1 needed but deadline is earlier
+            if d < i + 1:  # 칸 i+1이 필요하나 마감이 더 이르다
                 return False
         return True
 
@@ -156,20 +156,20 @@ def schedule_jobs(
     return names, profit
 
 
-# === Application: MST via Matroid Greedy ===
+# === 쓰임새: 매트로이드 욕심쟁이로 세우는 최소 뻗음 나무 ===
 
 def mst_matroid(
     n: int,
     edges: list[tuple[int, int, float]]
 ) -> list[tuple[int, int, float]]:
-    """Find MST using the matroid greedy algorithm.
+    """매트로이드 욕심쟁이 알고리즘으로 최소 뻗음 나무를 찾는다.
 
-    Args:
-        n: Number of vertices.
-        edges: List of (u, v, weight) tuples.
+    인수:
+        n: 꼭짓점의 개수.
+        edges: (u, v, 무게) 짝의 목록.
 
-    Returns:
-        List of MST edges.
+    반환값:
+        최소 뻗음 나무 변의 목록.
     """
     class UnionFind:
         def __init__(self, size):
@@ -208,10 +208,10 @@ def mst_matroid(
     )
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
-    # Job scheduling
+    # 일 차례 짜기
     jobs = [
         ("a", 2, 100),
         ("b", 1, 19),
@@ -225,7 +225,7 @@ if __name__ == "__main__":
     print(f"Scheduled: {scheduled}")
     print(f"Total profit: {profit}")
 
-    # MST
+    # 최소 뻗음 나무
     edges = [
         (0, 1, 1), (0, 2, 4), (1, 2, 2),
         (1, 3, 3), (2, 3, 5),
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     print(f"Total weight: {sum(w for _, _, w in mst)}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 === Weighted Job Scheduling ===
@@ -249,11 +249,11 @@ MST edges: [(0, 1, 1), (1, 2, 2), (1, 3, 3)]
 Total weight: 6
 ```
 
-The job scheduler greedily picks the highest-profit jobs ($a$ with profit 100, then $d$ with profit 25, then $e$ with profit 15), skipping jobs that would violate deadline feasibility. The MST application greedily picks lowest-weight edges that keep the forest acyclic.
+일 일정 짜개는 마감을 지킬 수 없게 하는 일은 건너뛰며 이익이 가장 큰 일(이익 100인 $a$, 다음에 25인 $d$, 다음에 15인 $e$)을 욕심껏 고른다. 최소 뻗은 나무 쓰임새에서는 숲에 순환이 생기지 않게 하는 무게가 가장 작은 변을 욕심껏 고른다.
 
-## Complexity
+## 복잡도
 
-| Aspect | Cost |
+| 항목 | 비용 |
 |--------|:----:|
 | Sorting | $O(n \log n)$ |
 | Independence checks | $O(n \cdot f(n))$ |
@@ -261,8 +261,40 @@ The job scheduler greedily picks the highest-profit jobs ($a$ with profit 100, t
 
 Here $f(n)$ is the cost of one independence check. For graphic matroids with union-find, $f(n) \approx O(\alpha(n))$, giving $O(n \log n)$ total. For general matroids, $f(n)$ depends on the specific independence oracle.
 
-## Reference
+## 참고 문헌
 
 - Edmonds, J. (1971). Matroids and the greedy algorithm. *Mathematical Programming*, 1(1), 127--136.
 - Rado, R. (1957). Note on independence functions. *Proceedings of the London Mathematical Society*, 7(1), 300--320.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), Chapter 16: Greedy Algorithms.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to Algorithms* (4th ed.), 16장: Greedy Algorithms.
+
+## 연습문제
+
+**연습문제 1.**
+매트로이드 욕심쟁이 알고리즘에서 욕심쟁이 고름이 무엇인지 가려내고 왜 가장 좋은 풀이로 이어지는지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    The greedy choice selects the locally optimal option at each step. For Matroid Greedy Algorithm, this choice satisfies the greedy choice property: there exists an optimal solution that includes this greedy selection. Combined with optimal substructure (the remaining subproblem after the greedy choice is also optimally solvable by the same strategy), the greedy algorithm produces a globally optimal solution. $\square$
+
+---
+
+**연습문제 2.**
+매트로이드 욕심쟁이 알고리즘이 가장 좋은 아래 짜임을 갖는지 증명하거나 반증하여라.
+
+??? success "연습문제 2 풀이"
+    Optimal substructure means that an optimal solution to the problem contains optimal solutions to its subproblems. For Matroid Greedy Algorithm, after making the greedy choice, the remaining problem is a smaller instance of the same type. If the subproblem solution were not optimal, we could improve the overall solution by replacing it — contradicting overall optimality. Therefore optimal substructure holds. $\square$
+
+---
+
+**연습문제 3.**
+매트로이드 욕심쟁이 알고리즘의 시간 복잡도는 무엇인가? 가장 값비싼 단계를 가려내어라.
+
+??? success "연습문제 3 풀이"
+    The time complexity depends on the sorting step (if required) and the greedy selection loop. Sorting typically dominates at $O(n \log n)$. The greedy loop processes each element once in $O(n)$. Total: $O(n \log n)$. If the input is pre-sorted, the algorithm runs in $O(n)$. $\square$
+
+---
+
+**연습문제 4.**
+(매트로이드 욕심쟁이 알고리즘에서 쓴 것이 아닌) 다른 욕심쟁이 전략은 가장 좋은 풀이를 내지 못함을 보이는 반례를 들어라.
+
+??? success "연습문제 4 풀이"
+    Consider an alternative greedy criterion that does not align with the problem's structure. This alternative may select an element that blocks better future choices. The counterexample demonstrates that the wrong greedy criterion can produce a suboptimal result, highlighting why the specific greedy choice property must be proven for each problem. $\square$

@@ -1,71 +1,67 @@
-# Chapter Overview
+# 29장: 그래프 신경망
 
+이 장은 **그래프 신경망**을 다룬다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+그래프 신경망은 깊은 배움을 유클리드가 아닌 자료 얼개, 곧 그래프로 넓혀 관계 자료 위에서 힘센 나타냄 배움을 할 수 있게 한다. 사회 그물과 분자 얼개에서 금융 거래 그물과 앎 바탕에 이르기까지 그래프는 실제 쓰임새 어디에나 있다. 이 장은 그래프 신경망의 이론, 얼개, 쓰임새를 두루 다룬다.
 
-This chapter covers **Online and Streaming**.
+## 차례
 
-Graph Neural Networks (GNNs) extend deep learning to non-Euclidean data structures -- graphs -- enabling powerful representation learning on relational data. From social networks and molecular structures to financial transaction networks and knowledge bases, graphs are ubiquitous in real-world applications. This chapter provides a comprehensive treatment of GNN theory, architectures, and applications.
+### 29.1 그래프 바탕
 
-## Contents
+- [그래프 바탕](foundations/graph_basics.md) -- 그래프의 엄밀한 뜻매김, 방향 있는 판과 없는 판, 바탕이 되는 그래프 말
+- [그래프 나타내기](foundations/representations.md) -- 이웃 목록, 행렬, 변 목록을 비롯한 그래프 나타내기 자료 얼개와 셈의 맞바꿈
+- [이웃 행렬](foundations/adjacency_matrix.md) -- 이웃 행렬과 거기서 얻는 행렬, 스펙트럼 그래프 이론과 그래프 신경망 적기에서의 구실을 깊이 살핌
+- 마디와 변의 특징 -- 마디 속성과 변 성질을 그래프 신경망 들임용 특징 행렬로 담기
+- [그래프의 성질](foundations/graph_properties.md) -- 이어짐, 거리 잣대, 뭉침을 비롯한 핵심 위상과 얼개 성질
+- PyTorch Geometric 바탕 -- PyG의 Data 대상, 자료 불러오기, 그래프 다루기 연장 소개
 
-### 29.1 Graph Foundations
+### 29.2 쪽지 건네기
 
-- [Graph Basics](foundations/graph_basics.md) -- Formal definitions of graphs, directed and undirected variants, and foundational graph terminology
-- [Graph Representations](foundations/representations.md) -- Data structures for representing graphs including adjacency lists, matrices, and edge lists with computational trade-offs
-- [Adjacency Matrix](foundations/adjacency_matrix.md) -- Deep dive into adjacency matrices, derived matrices, and their role in spectral graph theory and GNN formulations
-- Node and Edge Features -- Encoding node attributes and edge properties as feature matrices for GNN input
-- [Graph Properties](foundations/graph_properties.md) -- Key topological and structural properties including connectivity, distance measures, and clustering
-- PyTorch Geometric Basics -- Introduction to PyG's Data objects, data loading, and graph manipulation utilities
+- 쪽지 건네기 틀 -- 하나로 아우른 MPNN 틀: 쪽지 셈하기, 모으기, 고치기 걸음
+- 모으기 함수 -- 자리바꿈에 안 바뀌는 모으기 연산자(합, 평균, 최대)와 그 나타냄 힘
+- [고치기 함수](message_passing/update.md) -- 스스로의 앎과 모은 이웃 쪽지를 합쳐 새 마디 박아 넣기를 만들기
+- [MPNN](message_passing/mpnn.md) -- 그래프 신경망 얼개를 하나로 아우른 Gilmer 등의 쪽지 건네기 신경망 적기
 
-### 29.2 Message Passing
+### 29.3 그래프 겹말기
 
-- Message Passing Framework -- The unified MPNN paradigm: message computation, aggregation, and update steps
-- Aggregation Functions -- Permutation-invariant aggregation operators (sum, mean, max) and their expressiveness properties
-- [Update Functions](message_passing/update.md) -- Combining self-information with aggregated neighborhood messages to produce new node embeddings
-- [MPNN](message_passing/mpnn.md) -- The Message Passing Neural Network formulation by Gilmer et al. unifying GNN architectures
+- [스펙트럼 그래프 이론](convolutions/spectral_theory.md) -- 그래프 라플라스 고유 분해, 그래프 신호, 스펙트럼 겹말기의 수학 바탕
+- 그래프 푸리에 변환 -- 라플라스 고유 벡터로 푸리에 변환을 그래프 얼개 자료로 넓히기
+- ChebNet -- 그래프 라플라스 거르개의 체비쇼프 다항식 어림으로 효율 좋게 스펙트럼 거르기
+- 그래프 겹말기 신경망(GCN) -- 맞섬으로 고르게 맞춘 Kipf와 Welling의 1차 스펙트럼 겹말기
+- [GraphSAGE](convolutions/graphsage.md) -- 이웃 뽑기와 여러 모으개 변형으로 하는 귀납 그래프 배움
+- 그래프 눈길 신경망(GAT) -- 자료에 따라 달라지는 이웃 중요도 무게를 배우는 눈길 바탕 그래프 신경망
+- [그래프 같은 꼴 신경망(GIN)](convolutions/gin.md) -- 1차 바이스파일러-레만 같은 꼴 시험만큼 힘셈이 밝혀진, 나타냄 힘이 가장 센 쪽지 건네기 그래프 신경망
 
-### 29.3 Graph Convolutions
+### 29.4 나아간 그래프 신경망 방법
 
-- [Spectral Graph Theory](convolutions/spectral_theory.md) -- Graph Laplacian eigendecomposition, graph signals, and the mathematical foundation for spectral convolutions
-- Graph Fourier Transform -- Generalizing the Fourier transform to graph-structured data using Laplacian eigenvectors
-- ChebNet -- Efficient spectral filtering via Chebyshev polynomial approximation of graph Laplacian filters
-- Graph Convolutional Network (GCN) -- Kipf and Welling's first-order spectral convolution with symmetric normalization
-- [GraphSAGE](convolutions/graphsage.md) -- Inductive graph learning through neighborhood sampling and aggregation with multiple aggregator variants
-- Graph Attention Network (GAT) -- Attention-based GNNs that learn adaptive, data-dependent neighbor importance weights
-- [Graph Isomorphism Network (GIN)](convolutions/gin.md) -- Maximally expressive message passing GNN provably as powerful as the 1-WL isomorphism test
+- 깊은 그래프 신경망 -- 지나친 매끄러워짐에 맞서려는 나머지 이음과 고르게 맞추기를 비롯해 더 깊은 그래프 신경망을 세우는 재주
+- 지나친 매끄러워짐 -- 깊은 그래프 신경망에서 마디 나타냄이 한곳으로 모이는 것을 살피고 누그러뜨리는 셈속
+- 뛰어넘는 앎 신경망 -- 마디마다 가장 알맞은 받는 자리 깊이를 고르게 하는 맞춤형 여러 층 모으기
+- [그래프 트랜스포머](advanced/graph_transformers.md) -- 온 자리 앎을 주고받으려 트랜스포머의 스스로 눈길을 그래프에 쓰기(Graphormer, GPS)
+- [섞인 갈래 그래프](advanced/heterogeneous.md) -- RGCN과 HAN 얼개로 마디와 변의 갈래가 여럿인 그래프를 다루는 그래프 신경망
+- [때 따라 바뀌는 그래프](advanced/temporal.md) -- 띄엄띄엄한 때와 이어진 때의 길로 바뀌는 얼개를 다루는 그래프 신경망
+- [넘 그래프](advanced/hypergraphs.md) -- 넘 변이 아무 개수의 마디를 한꺼번에 잇는 넘 그래프 위의 신경망
 
-### 29.4 Advanced GNN Methods
+### 29.5 그래프 켜의 일
 
-- Deep GNNs -- Techniques for building deeper GNNs including residual connections and normalization to combat over-smoothing
-- Over-Smoothing -- Analysis of node representation convergence in deep GNNs and mitigation strategies
-- Jumping Knowledge Networks -- Adaptive multi-layer aggregation enabling each node to select its optimal receptive field depth
-- [Graph Transformers](advanced/graph_transformers.md) -- Applying transformer self-attention to graphs for global information exchange (Graphormer, GPS)
-- [Heterogeneous Graphs](advanced/heterogeneous.md) -- GNNs for graphs with multiple node and edge types using RGCN and HAN architectures
-- [Temporal Graphs](advanced/temporal.md) -- Dynamic graph neural networks for evolving structures with discrete-time and continuous-time approaches
-- [Hypergraphs](advanced/hypergraphs.md) -- Neural networks on hypergraphs where hyperedges connect arbitrary numbers of nodes simultaneously
+- 그래프 가름 -- 그래프 신경망 층, 읽어내기 함수, 여러 층 신경망 가름개로 그래프 전체에 이름표 매기기
+- 그래프 되돌이 맞춤 -- 양자 화학과 분자 녹음성에 쓰이는, 그래프 전체의 이어진 값 헤아리기
+- [그래프 모으기](graph_tasks/pooling.md) -- 마디 박아 넣기를 그래프 나타냄으로 누르는 납작한 모으기 방법(합, 평균, 최대, 눈길 무게)
+- 켜진 모으기 -- 여러 눈금의 나타냄을 얻으려 DiffPool, TopKPool, SAGPool으로 그래프를 차츰 성글게 하기
+- Set2Set -- 단순한 모으기보다 나타냄 힘이 센, 차례에 안 바뀌는 그래프 나타냄을 내놓는 눈길 바탕 장단기 기억망 읽어내기
 
-### 29.5 Graph-Level Tasks
+### 29.6 마디와 이음의 일
 
-- Graph Classification -- Assigning labels to entire graphs using GNN layers, readout functions, and MLP classifiers
-- Graph Regression -- Predicting continuous values for whole graphs with applications in quantum chemistry and molecular solubility
-- [Graph Pooling](graph_tasks/pooling.md) -- Flat pooling methods (sum, mean, max, attention-weighted) for compressing node embeddings into graph representations
-- Hierarchical Pooling -- Progressive graph coarsening with DiffPool, TopKPool, and SAGPool for multi-resolution representations
-- Set2Set -- Attention-based LSTM readout producing order-invariant graph representations more expressive than simple pooling
+- 마디 가름 -- 옮김과 귀납 자리에서 그래프 얼개와 특징으로 하는 반쯤 스승 있는 마디 이름표 매기기
+- [이음 헤아리기](node_link/link_prediction.md) -- 점수 바탕 방법과 음의 뽑기로 빠진 변이나 앞으로의 변을 헤아리기
+- 마디 박아 넣기 -- DeepWalk, Node2Vec, LINE, 견줌 그래프 신경망 방법으로 하는 스승 없는 마디 나타냄 배움
+- 무리 찾기 -- 그래프 신경망 바탕 뭉치기와 무리도 가장 좋게 하기로 빽빽하게 이어진 마디 무리 찾아내기
 
-### 29.6 Node and Link Tasks
+### 29.7 그래프 신경망의 쓰임새
 
-- Node Classification -- Semi-supervised node labeling using graph structure and features in transductive and inductive settings
-- [Link Prediction](node_link/link_prediction.md) -- Predicting missing or future edges using score-based methods and negative sampling
-- Node Embedding -- Unsupervised node representation learning with DeepWalk, Node2Vec, LINE, and contrastive GNN methods
-- Community Detection -- Identifying densely connected node groups using GNN-based clustering and modularity optimization
-
-### 29.7 GNN Applications
-
-- Molecular Property Prediction -- Predicting chemical properties from molecular graphs with atom and bond features
-- Drug Discovery -- GNNs for virtual screening, drug-drug interaction prediction, and ADMET property estimation
-- Social Network Analysis -- Community detection, influence prediction, cascade modeling, and bot detection in social graphs
-- Recommendation Systems -- GNN-based collaborative filtering on user-item bipartite graphs with LightGCN and PinSage
-- Knowledge Graphs -- Entity and relation embedding with R-GCN, CompGCN, and scoring functions for link prediction
-- Financial Networks -- Portfolio optimization, systemic risk propagation, contagion modeling, and fraud detection on financial graphs
+- 분자 성질 헤아리기 -- 원자와 결합 특징이 담긴 분자 그래프에서 화학 성질 헤아리기
+- 약 찾기 -- 가상 걸러내기, 약과 약의 서로 작용 헤아리기, ADMET 성질 어림에 쓰는 그래프 신경망
+- 사회 그물 살피기 -- 사회 그래프에서 무리 찾기, 영향 헤아리기, 번짐 나타내기, 로봇 계정 찾기
+- 추천 시스템 -- LightGCN과 PinSage로 쓰는 이-물건 두 쪽 그래프 위의 그래프 신경망 바탕 함께 거르기
+- 앎 그래프 -- 이음 헤아리기를 위한 R-GCN, CompGCN, 점수 함수로 하는 낱것과 관계 박아 넣기
+- 금융 그물 -- 금융 그래프 위의 꾸러미 가장 좋게 하기, 체계 위험 퍼짐, 옮아감 나타내기, 속임수 찾기

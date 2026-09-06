@@ -1,110 +1,152 @@
-# Clique
+# 덩어리
 
-In a social network, a **clique** is a group of people who all know each other -- every pair is connected.  Finding the largest such group, or even determining whether one of a given size exists, turns out to be computationally hard.  The CLIQUE problem is one of Karp's original 21 NP-complete problems and serves as a key source for reductions to other graph problems like INDEPENDENT SET and VERTEX COVER.
+사회 그물에서 **덩어리**란 서로 모두 아는 사람들의 무리, 곧 어느 짝이나 이어져 있는 무리이다. 그런 가장 큰 무리를 찾는 일은 물론이고 주어진 크기의 것이 있는지 가리는 일조차 셈으로 어렵다. 덩어리 문제는 카프가 처음 든 21개 NP 완전 문제 가운데 하나이며 독립 모임이나 꼭짓점 덮기 같은 다른 그래프 문제로 줄이는 핵심 출발점이 된다.
 
-## Problem Definition
+## 문제의 정의
 
-Let $G = (V, E)$ be an undirected graph.  A **clique** in $G$ is a subset $S \subseteq V$ such that every pair of vertices in $S$ is connected by an edge:
+$G = (V, E)$을 방향 없는 그래프라 하자. $G$의 **덩어리**는 $S$의 모든 꼭짓점 짝이 변으로 이어진 부분 모임 $S \subseteq V$이다:
 
 $$
 \forall\, u, v \in S,\; u \neq v \implies \{u, v\} \in E
 $$
 
-A clique of size $k$ is called a **$k$-clique**.
+크기 $k$인 덩어리를 **$k$ 덩어리**라 부른다.
 
-**CLIQUE (decision problem):**
+**덩어리(가름 문제):**
 
-- **Input:** An undirected graph $G = (V, E)$ and a positive integer $k$.
-- **Question:** Does $G$ contain a clique of size $\geq k$?
+- **들임:** 방향 없는 그래프 $G = (V, E)$과 양의 정수 $k$.
+- **물음:** $G$에 크기 $\geq k$인 덩어리가 있는가?
 
-**MAX-CLIQUE (optimization problem):**
+**최대 덩어리(가장 좋게 하기 문제):**
 
-- **Input:** An undirected graph $G = (V, E)$.
-- **Output:** The size of the largest clique in $G$, denoted $\omega(G)$.
+- **들임:** 방향 없는 그래프 $G = (V, E)$.
+- **내놓기:** $G$의 가장 큰 덩어리의 크기, $\omega(G)$이라 적는다.
 
-## CLIQUE is in NP
+## 덩어리는 NP에 든다
 
-A certificate for a yes-instance is a set $S \subseteq V$ with $|S| \geq k$.  Verification checks:
+예 사례의 증서는 $|S| \geq k$인 모임 $S \subseteq V$이다. 살피기는 다음을 확인한다:
 
 1. $|S| \geq k$ -- $O(1)$.
-2. Every pair in $S$ is an edge -- $O(k^2) \subseteq O(n^2)$.
+2. $S$의 모든 짝이 변인지 -- $O(k^2) \subseteq O(n^2)$.
 
-Total verification time: $O(n^2)$, which is polynomial.
+온 살피기 시간: $O(n^2)$으로 다항이다.
 
-## NP-Completeness: 3-SAT Reduces to CLIQUE
+## NP 완전성: 3-SAT이 덩어리로 줄여진다
 
-**Theorem.** CLIQUE is NP-complete.
+**정리.** 덩어리는 NP 완전이다.
 
-*Proof.* We reduce 3-SAT to CLIQUE.  Given a 3-CNF formula $\phi = C_1 \wedge C_2 \wedge \cdots \wedge C_m$ with $m$ clauses over $n$ variables, construct a graph $G$ as follows.
+*증명.* 3-SAT을 덩어리로 줄인다. 변수 $n$개 위에 절 $m$개를 가진 3-논리곱 표준형 식 $\phi = C_1 \wedge C_2 \wedge \cdots \wedge C_m$이 주어질 때 그래프 $G$을 다음과 같이 세운다.
 
-**Construction.** For each clause $C_j = (\ell_{j,1} \vee \ell_{j,2} \vee \ell_{j,3})$, create three vertices, one per literal.  Label vertex $(j, r)$ with literal $\ell_{j,r}$.
+**세움.** 절 $C_j = (\ell_{j,1} \vee \ell_{j,2} \vee \ell_{j,3})$마다 리터럴 하나에 꼭짓점 하나씩 셋을 만든다. 꼭짓점 $(j, r)$에 리터럴 $\ell_{j,r}$의 이름표를 붙인다.
 
-Add an edge between $(j, r)$ and $(j', r')$ if and only if:
+다음일 때에만 $(j, r)$과 $(j', r')$ 사이에 변을 더한다:
 
-1. $j \neq j'$ (vertices are from different clauses), and
-2. $\ell_{j,r}$ and $\ell_{j',r'}$ are not complementary (i.e., $\ell_{j,r} \neq \neg \ell_{j',r'}$).
+1. $j \neq j'$(꼭짓점이 서로 다른 절에서 왔다), 그리고
+2. $\ell_{j,r}$과 $\ell_{j',r'}$이 서로 반대가 아니다(곧 $\ell_{j,r} \neq \neg \ell_{j',r'}$).
 
-Set $k = m$ (the number of clauses).
+$k = m$(절의 개수)으로 둔다.
 
-**Forward direction ($\phi$ satisfiable $\Rightarrow$ $G$ has $m$-clique).** Given a satisfying assignment, pick one true literal from each clause.  The corresponding $m$ vertices form a clique: they come from different clauses (condition 1), and since the assignment is consistent, no two selected literals are complementary (condition 2).
+**앞 방향($\phi$이 만족 가능 $\Rightarrow$ $G$에 $m$ 덩어리가 있음).** 만족시키는 매김이 주어지면 절마다 참인 리터럴을 하나씩 고른다. 그에 해당하는 꼭짓점 $m$개가 덩어리를 이룬다. 서로 다른 절에서 왔고(조건 1) 매김이 어긋나지 않으므로 고른 리터럴 가운데 서로 반대인 것이 없다(조건 2).
 
-**Reverse direction ($G$ has $m$-clique $\Rightarrow$ $\phi$ satisfiable).** An $m$-clique must contain exactly one vertex from each clause (since vertices within the same clause are not connected).  The selected literals are pairwise non-complementary, so they can be consistently assigned true.  This assignment satisfies at least one literal per clause, satisfying $\phi$.
+**뒤 방향($G$에 $m$ 덩어리가 있음 $\Rightarrow$ $\phi$이 만족 가능).** $m$ 덩어리는 절마다 꼭짓점을 꼭 하나씩 담아야 한다(같은 절 안의 꼭짓점은 이어져 있지 않기 때문이다). 고른 리터럴은 짝마다 서로 반대가 아니므로 어긋남 없이 모두 참으로 매길 수 있다. 이 매김은 절마다 리터럴을 적어도 하나 만족시켜 $\phi$을 만족시킨다.
 
-**Efficiency.** The graph has $3m$ vertices and at most $O(m^2)$ edges.  The construction runs in polynomial time.
+**효율.** 그래프는 꼭짓점이 $3m$개이고 변이 많아야 $O(m^2)$개이다. 이 세움은 다항 시간에 돈다.
 
 $\square$
 
-??? example "Worked example"
-    Consider $\phi = (x_1 \vee \neg x_2 \vee x_3) \wedge (\neg x_1 \vee x_2 \vee x_3) \wedge (x_1 \vee x_2 \vee \neg x_3)$.
+??? example "풀어 본 보기"
+    $\phi = (x_1 \vee \neg x_2 \vee x_3) \wedge (\neg x_1 \vee x_2 \vee x_3) \wedge (x_1 \vee x_2 \vee \neg x_3)$을 살펴보자.
 
-    The graph has 9 vertices (3 per clause).  Edges connect vertices from different clauses whose literals are compatible.  For instance, $x_1$ from clause 1 connects to $x_2$ and $x_3$ from clause 2 (but not $\neg x_1$).
+    그래프는 꼭짓점이 9개(절마다 3개)이다. 변은 리터럴이 서로 어울리는 다른 절의 꼭짓점을 잇는다. 보기로 1번 절의 $x_1$은 2번 절의 $x_2$과 $x_3$에 이어지지만 $\neg x_1$에는 이어지지 않는다.
 
-    With $k = 3$, we seek a 3-clique.  The assignment $x_1 = 1, x_2 = 1, x_3 = 1$ satisfies all clauses, and selecting $x_1$ from clause 1, $x_2$ from clause 2, and $x_1$ from clause 3 gives a 3-clique.
+    $k = 3$으로 3 덩어리를 찾는다. 매김 $x_1 = 1, x_2 = 1, x_3 = 1$이 모든 절을 만족시키며 1번 절에서 $x_1$, 2번 절에서 $x_2$, 3번 절에서 $x_1$을 고르면 3 덩어리가 된다.
 
-## Relationship to Other Problems
+## 다른 문제와의 관계
 
-CLIQUE connects to several other NP-complete graph problems through simple reductions:
+덩어리는 단순한 줄임으로 다른 여러 NP 완전 그래프 문제와 이어진다:
 
-### CLIQUE and INDEPENDENT SET
+### 덩어리와 독립 모임
 
-$S$ is a clique in $G$ if and only if $S$ is an independent set in the complement graph $\overline{G}$.  Therefore:
+$S$이 $G$의 덩어리일 필요충분조건은 $S$이 여 그래프 $\overline{G}$의 독립 모임인 것이다. 따라서:
 
 $$
 \text{CLIQUE} \leq_p \text{INDEPENDENT SET}
 $$
 
-The reduction simply computes the complement graph: $(G, k) \mapsto (\overline{G}, k)$.
+이 줄임은 그저 여 그래프를 셈한다: $(G, k) \mapsto (\overline{G}, k)$.
 
-### CLIQUE and VERTEX COVER
+### 덩어리와 꼭짓점 덮기
 
-$S$ is an independent set in $G$ if and only if $V \setminus S$ is a vertex cover in $G$.  Combined with the above:
+$S$이 $G$의 독립 모임일 필요충분조건은 $V \setminus S$이 $G$의 꼭짓점 덮기인 것이다. 위와 합치면:
 
 $$
 \text{CLIQUE} \leq_p \text{INDEPENDENT SET} \leq_p \text{VERTEX COVER}
 $$
 
-## Inapproximability
+## 어림할 수 없음
 
-CLIQUE is not only NP-hard to solve exactly but also extremely hard to approximate.
+덩어리는 정확히 풀기가 NP 어려움일 뿐 아니라 어림하기도 몹시 어렵다.
 
-**Theorem (Hastad, 1999; Zuckerman, 2007).** Unless $\mathbf{P} = \mathbf{NP}$, there is no polynomial-time algorithm that approximates MAX-CLIQUE within a factor of $n^{1-\epsilon}$ for any $\epsilon > 0$.
+**정리(호스타드, 1999; 저커먼, 2007).** $\mathbf{P} = \mathbf{NP}$이 아닌 한 어떤 $\epsilon > 0$에 대해서도 최대 덩어리를 $n^{1-\epsilon}$ 배 안으로 어림하는 다항 시간 알고리즘은 없다.
 
-This makes CLIQUE one of the hardest NP-hard problems to approximate -- in contrast to problems like VERTEX COVER, which admits a 2-approximation.
+이 때문에 덩어리는 어림하기 가장 어려운 NP 어려움 문제 가운데 하나가 된다. 2 어림을 허락하는 꼭짓점 덮기 같은 문제와 대조된다.
 
-## Special Cases
+## 특별한 경우
 
-While CLIQUE is NP-complete in general, it can be solved efficiently on restricted graph classes:
+덩어리는 일반으로 NP 완전이지만 제한된 그래프 갈래에서는 효율 좋게 풀 수 있다:
 
-| Graph Class | Complexity | Algorithm |
+| 그래프 갈래 | 복잡도 | 알고리즘 |
 |-------------|-----------|-----------|
-| Perfect graphs | Polynomial | Semidefinite programming |
-| Chordal graphs | Polynomial | Perfect elimination ordering |
-| Interval graphs | Polynomial | Greedy on sorted intervals |
-| Planar graphs | Polynomial | Clique size $\leq 4$ |
-| General graphs | NP-complete | Exhaustive search |
+| 완벽 그래프 | 다항 | 반정부호 계획 |
+| 현 그래프 | 다항 | 완벽 없애기 차례 |
+| 구간 그래프 | 다항 | 줄 세운 구간에 욕심쟁이 |
+| 평면 그래프 | 다항 | 덩어리 크기 $\leq 4$ |
+| 일반 그래프 | NP 완전 | 샅샅이 뒤지기 |
 
-## Reference
+## 참고 문헌
 
 - Karp, R. M. "Reducibility Among Combinatorial Problems." 1972.
 - Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
 - Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+다항 시간 줄임을 세워 덩어리 $\leq_p$ 독립 모임임을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    $G = (V, E)$인 덩어리 사례 $(G, k)$이 주어지면 $\bar{E} = \{(u,v) : u \neq v, (u,v) \notin E\}$인 여 그래프 $\bar{G} = (V, \bar{E})$을 세운다. $(\bar{G}, k)$을 내놓는다.
+
+    옳음: $S \subseteq V$이 $G$의 덩어리일 필요충분조건은 $S$이 $\bar{G}$의 독립 모임인 것이다. 따라서 $G$에 $k$ 덩어리가 있을 필요충분조건은 $\bar{G}$에 크기 $k$인 독립 모임이 있는 것이다.
+
+    효율: $\bar{G}$을 셈하는 데 $O(n^2)$ 시간이 들며 이는 다항이다.
+
+---
+
+**연습문제 2.**
+피터슨 그래프의 최대 덩어리를 찾거나 그 덩어리 수가 2임을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    피터슨 그래프는 꼭짓점 10개와 변 15개를 가진 3정규 그래프(모든 꼭짓점의 차수가 3)이다. 그 덩어리 수는 2이며 이는 삼각형이 없다는 뜻이다.
+
+    증명: 피터슨 그래프에는 삼각형이 없다. 확인하려면 피터슨 그래프의 둘레가 5임(가장 짧은 돌이의 길이가 5)을 보면 된다. 삼각형은 길이 3인 돌이이고 가장 짧은 돌이의 길이가 5 > 3이므로 삼각형이 없다. 변마다 크기 2인 덩어리를 이루므로 덩어리 수는 꼭 2이다.
+
+---
+
+**연습문제 3.**
+덩어리 문제를 어림하기 어려운 까닭을 밝혀라. 어림할 수 없음 결과와 확률 살핌 밝힘 정리와의 이음을 적어라.
+
+??? success "연습문제 3 풀이"
+    호스타드와 저커먼은 $\mathbf{P} = \mathbf{NP}$이 아닌 한 어떤 $\epsilon > 0$에 대해서도 최대 덩어리를 $n^{1-\epsilon}$ 안으로 어림할 수 없음을 보였다. 곧 어떤 다항 시간 알고리즘도 최댓값의 $n^{0.99}$ 배 안에 드는 덩어리조차 찾을 수 없다.
+
+    이 밝힘은 틈 키우기를 주는 확률 살핌 밝힘 정리에 기댄다. 3-SAT에서 시작해 확률 살핌 밝힘 바탕 줄임은 만족 가능한 사례에서 큰 덩어리(크기 $n^c$)를, 만족 불가능한 사례에서 아주 작은 최대 덩어리(크기 $n^\epsilon$)를 갖는 그래프를 만든다. 두 경우의 틈은 $n^{c - \epsilon}$이며 되풀이해 키우면 $n^1$에 가까워진다. $n^{1-\epsilon}$보다 나은 어림 비율이면 두 경우를 갈라 3-SAT을 풀게 된다.
+
+---
+
+**연습문제 4.**
+차수가 $d$으로 가둬진 그래프에서 덩어리 문제를 다항 시간에 풀 수 있음을 보여라.
+
+??? success "연습문제 4 풀이"
+    모든 꼭짓점의 차수가 많아야 $d$이면 어떤 덩어리도 크기가 많아야 $d + 1$이다(덩어리의 꼭짓점은 다른 모든 꼭짓점과 이웃해야 한다). 꼭짓점 $v$마다 이웃 자리 $N(v)$의 꼭짓점은 $|N(v)| \leq d$개이다. $v$을 담은 덩어리는 $\{v\} \cup N(v)$의 부분 모임이며 이는 꼭짓점이 많아야 $d + 1$개이다. 후보 크기 $k$과 꼭짓점 $v$마다 $\binom{d+1}{k}$가지 부분 모임을 모두 늘어놓는다.
+
+    $d$이 붙박이이면 꼭짓점마다 부분 모임의 개수는 $\sum_{k=0}^{d+1} \binom{d+1}{k} = 2^{d+1}$으로 상수이다. 꼭짓점 $n$개에 걸쳐 붙박이 $d$에 대해 $O(n \cdot 2^{d+1} \cdot d^2) = O(n)$이다. $d$이 상수일 때 이 알고리즘은 $n$에 대해 다항(사실은 선형)이다.

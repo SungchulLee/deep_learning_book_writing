@@ -1,84 +1,84 @@
-# Testing and Debugging
+# 시험하기와 벌레잡기
 
-Even experienced competitive programmers rarely submit correct solutions on the first attempt. A systematic testing and debugging workflow catches errors before submission, reducing penalty time and wrong-answer frustration. This section presents a layered testing strategy -- from manual tracing through automated stress testing -- along with debugging techniques for quickly isolating faults.
+익숙한 겨루기 짜기 사람도 첫 시도에 옳은 풀이를 내는 일은 드물다. 짜임 있는 시험과 벌레잡기 흐름이 제출 전에 어긋남을 잡아 벌점 때와 오답의 답답함을 줄인다. 이 마디는 손으로 짚기부터 저절로 하는 마구 시험까지 켜진 시험 셈속과 흠을 빨리 가려내는 벌레잡기 재주를 보인다.
 
-## The Testing Pyramid
+## 시험의 피라미드
 
-Testing proceeds from cheap and fast checks to expensive and thorough ones.
+시험은 싸고 빠른 살피기에서 비싸고 꼼꼼한 살피기로 나아간다.
 
 ```
         ┌──────────┐
-        │  Stress  │   Automated random testing
-       ─┤  Testing ├─
+        │  마구  │   저절로 하는 아무 시험
+       ─┤  시험  ├─
       ┌─┴──────────┴─┐
-      │  Edge Cases  │   Boundary and degenerate inputs
+      │  가장자리 경우  │   경계와 퇴화한 들임
      ─┤              ├─
     ┌─┴──────────────┴─┐
     │  Sample Cases    │   Problem's provided examples
    ─┤                  ├─
   ┌─┴──────────────────┴─┐
-  │  Manual Tracing       │   Dry-run on paper
+  │  손으로 짚기       │   종이에 헛돌리기
   └───────────────────────┘
 ```
 
-### Level 1 -- Manual Tracing
+### 1켜 -- 손으로 짚기
 
-Before running any code, trace your algorithm on the first sample input by hand. Walk through each variable, each loop iteration, and each recursive call. This catches logical errors in the algorithm design before implementation details obscure them.
+코드를 돌리기 전에 첫 보기 들임에서 알고리즘을 손으로 짚는다. 변수마다, 되돌이마다, 되돌이 부름마다 따라간다. 이는 짜기의 세부에 가려지기 전에 알고리즘 설계의 논리 어긋남을 잡는다.
 
-### Level 2 -- Sample Cases
+### 2켜 -- 보기 사례
 
-Run your code on all provided sample inputs. Verify not just correctness but exact output format -- spacing, newlines, and precision.
+주어진 보기 들임에서 코드를 모두 돌린다. 옳음뿐 아니라 정확한 내놓기 꼴, 곧 띄어쓰기, 줄 바꿈, 자릿수까지 확인한다.
 
-!!! warning "Samples Are Necessary but Not Sufficient"
-    Problem setters design samples to illustrate the problem, not to test edge cases. Passing all samples provides no guarantee of correctness.
+!!! warning "보기는 필요하지만 넉넉하지 않다"
+    문제를 내는 이는 가장자리 경우를 시험하려고가 아니라 문제를 보여 주려고 보기를 만든다. 보기를 다 지난다고 옳음이 보장되지는 않는다.
 
-### Level 3 -- Edge Cases
+### 3켜 -- 가장자리 경우
 
-Construct the boundary inputs identified in the edge case analysis (see the [Edge Cases](edge_cases.md) section). Focus on:
+가장자리 경우 살피기에서 가려낸 경계 들임을 짓는다([가장자리 경우](edge_cases.md) 마디 참고). 다음에 집중한다:
 
-- Minimum valid input size.
-- Maximum valid input size (test for TLE and MLE).
-- Degenerate structures (sorted arrays, star graphs, single-character strings).
-- Values at integer boundaries ($0$, $-1$, $2^{31} - 1$, $10^{18}$).
+- 올바른 최소 들임 크기.
+- 올바른 최대 들임 크기(때 초과와 기억 초과를 시험).
+- 퇴화한 얼개(줄 세운 배열, 별 그래프, 글자 하나의 문자열).
+- 정수 경계의 값($0$, $-1$, $2^{31} - 1$, $10^{18}$).
 
-### Level 4 -- Stress Testing
+### 4켜 -- 마구 시험하기
 
-Stress testing automates the search for counterexamples by comparing an optimized solution against a known-correct brute-force solution on random inputs.
+마구 시험하기는 아무 들임에서 다듬은 풀이를 옳음이 알려진 힘으로 미는 풀이와 견주어 반례 찾기를 저절로 한다.
 
 ```python
 """
-Stress testing framework for competitive programming.
+겨루기 짜기를 위한 마구 시험 얼개.
 
-Generates random inputs, runs both a brute-force and an optimized
-solution, and reports the first input where outputs differ.
+아무 들임을 만들어 힘으로 미는 풀이와 다듬은 풀이를 모두 돌리고
+내놓기가 다른 첫 들임을 알린다.
 """
 
 import random
 import subprocess
 
 # ===================================================================
-# Configuration
+# 설정
 # ===================================================================
 
-MAX_N = 20       # Keep small so brute force finishes quickly
+MAX_N = 20       # 힘으로 밀기가 빨리 끝나게 작게 둠
 NUM_TESTS = 1000
 
 # ===================================================================
-# Random Input Generator
+# 아무 들임 만들개
 # ===================================================================
 
 def generate_input():
-    """Generate a random test case as a string."""
+    """아무 시험 사례를 문자열로 만든다."""
     n = random.randint(1, MAX_N)
     arr = [random.randint(-100, 100) for _ in range(n)]
     return f"{n}\n{' '.join(map(str, arr))}\n"
 
 # ===================================================================
-# Solution Runners
+# 풀이 돌리개
 # ===================================================================
 
 def run_solution(executable, input_data):
-    """Run a compiled solution and return its stdout."""
+    """번역한 풀이를 돌려 그 stdout을 돌려준다."""
     result = subprocess.run(
         [executable],
         input=input_data,
@@ -89,7 +89,7 @@ def run_solution(executable, input_data):
     return result.stdout.strip()
 
 # ===================================================================
-# Stress Test Loop
+# 마구 시험 되돌이
 # ===================================================================
 
 if __name__ == "__main__":
@@ -110,87 +110,127 @@ if __name__ == "__main__":
         print(f"All {NUM_TESTS} tests passed.")
 ```
 
-## Debugging Techniques
+## 벌레잡기 재주
 
-When a test fails, the following techniques help isolate the bug.
+시험이 틀리면 다음 재주가 벌레를 가려내는 데 도움이 된다.
 
-### Print Debugging
+### 찍어 보기
 
-Insert targeted print statements at decision points -- not everywhere. Focus on:
+여기저기가 아니라 결정 지점에 겨냥한 찍기를 넣는다. 다음에 집중한다:
 
-- **Loop invariants**: Print the state at the start of each loop iteration.
-- **Recursive calls**: Print arguments and return values.
-- **Conditional branches**: Print which branch was taken and why.
+- **되돌이 불변량**: 되풀이마다 시작 상태를 찍는다.
+- **되돌이 부름**: 넘긴 값과 돌려준 값을 찍는다.
+- **조건 갈래**: 어느 갈래로 갔고 왜 그랬는지 찍는다.
 
-!!! tip "Use stderr for Debug Output"
-    Print debug output to `stderr` so it does not interfere with the judge's output comparison. In C++: `cerr << "x=" << x << endl;`. In Python: `print(x, file=sys.stderr)`.
+!!! tip "벌레잡기 내놓기는 stderr으로"
+    채점기의 내놓기 견주기를 방해하지 않도록 벌레잡기 내놓기를 `stderr`으로 찍는다. C++에서는 `cerr << "x=" << x << endl;`, 파이썬에서는 `print(x, file=sys.stderr)`.
 
-### Binary Search on Bugs
+### 벌레에 두 갈래 찾기
 
-If the input that causes failure is large, use a binary search strategy:
+틀림을 일으키는 들임이 크면 두 갈래 찾기 셈속을 쓴다:
 
-1. Remove the second half of the input. Does the bug persist?
-2. If yes, the bug is in the first half. Recurse.
-3. If no, the bug is triggered by the second half. Restore it and remove the first half.
+1. 들임의 뒤 반을 뺀다. 벌레가 남아 있는가?
+2. 그렇다면 벌레가 앞 반에 있다. 되돌이한다.
+3. 아니라면 뒤 반이 벌레를 일으킨다. 되살리고 앞 반을 뺀다.
 
-This reduces a failing input of size $n$ to a minimal failing input in $O(\log n)$ steps.
+이는 크기 $n$의 틀린 들임을 $O(\log n)$걸음에 가장 작은 틀린 들임으로 줄인다.
 
-### Delta Debugging
+### 차이 벌레잡기
 
-A more systematic variant of binary search on bugs:
+벌레에 두 갈래 찾기를 더 짜임 있게 한 변형:
 
-1. Start with the full failing input.
-2. Try removing chunks of decreasing size ($n/2$, $n/4$, ...).
-3. Keep any removal that preserves the failure.
-4. Repeat until no single element can be removed without fixing the bug.
+1. 온전한 틀린 들임에서 시작한다.
+2. 크기를 줄여 가며 토막($n/2$, $n/4$, ...)을 빼 본다.
+3. 틀림이 남는 뺌은 그대로 둔다.
+4. 원소 하나도 뺄 수 없을 때까지 되풀이한다.
 
-The resulting minimal input makes the root cause obvious.
+이렇게 얻은 가장 작은 들임이 근본 까닭을 뻔하게 드러낸다.
 
-### Assertion-Based Debugging
+### 단언 바탕 벌레잡기
 
-Add assertions to verify invariants that your algorithm assumes.
+알고리즘이 여기는 불변량을 확인하는 단언을 넣는다.
 
-- After sorting: assert the array is non-decreasing.
-- After Dijkstra: assert all distances are non-negative.
-- After DP: assert the recurrence holds for a few random states.
+- 줄 세운 뒤: 배열이 줄지 않음을 단언한다.
+- 데이크스트라 뒤: 모든 거리가 음이 아님을 단언한다.
+- 동적 짜기 뒤: 아무 상태 몇 개에서 점화식이 성립함을 단언한다.
 
-Assertions catch silent corruption early, before it propagates to produce a wrong final answer.
+단언은 소리 없는 망가짐이 퍼져 마지막 답을 틀리게 하기 전에 일찍 잡아낸다.
 
-## Common Debugging Scenarios
+## 흔한 벌레잡기 상황
 
-### Wrong Answer on Hidden Tests
+### 숨은 시험에서의 오답
 
-1. Run stress tests with the brute-force comparison.
-2. Check edge cases systematically.
-3. Verify integer types (32-bit vs 64-bit).
-4. Verify modular arithmetic (is the modulus $10^9 + 7$ or $998244353$?).
+1. 힘으로 미는 풀이와 견주는 마구 시험을 돌린다.
+2. 가장자리 경우를 짜임 있게 살핀다.
+3. 정수 갈래를 확인한다(32비트인지 64비트인지).
+4. 법 셈을 확인한다(법이 $10^9 + 7$인가 $998244353$인가?).
 
-### Time Limit Exceeded
+### 때 한도 초과
 
-1. Verify that your complexity matches the constraint analysis.
-2. Check for accidental $O(n^2)$ behavior (e.g., string concatenation in a loop, `vector::erase` from the front).
-3. Profile: is I/O the bottleneck? Switch to fast I/O.
-4. Check for infinite loops -- add iteration counters.
+1. 복잡도가 매임 살피기와 맞는지 확인한다.
+2. 뜻하지 않은 $O(n^2)$ 움직임을 살핀다(보기로 되돌이에서 문자열 이어 붙이기, 앞에서 `vector::erase`).
+3. 살펴본다. 들고남이 병목인가? 빠른 들고남으로 바꾼다.
+4. 끝없는 되돌이를 살핀다. 되풀이 셈틀을 넣는다.
 
-### Runtime Error
+### 돌림 어긋남
 
-1. Check array bounds -- are you accessing index $-1$ or index $n$?
-2. Check division by zero.
-3. Check stack overflow from deep recursion.
-4. Check null pointer dereference (especially in graph/tree code).
+1. 배열 범위를 살핀다. 번호 $-1$이나 $n$에 닿고 있는가?
+2. 0으로 나누는지 살핀다.
+3. 깊은 되돌이의 쌓기 넘침을 살핀다.
+4. 빈 가리개를 따라가는지 살핀다(특히 그래프와 나무 코드에서).
 
-## Testing Workflow Summary
+## 시험 흐름 간추림
 
-| Step | Action | Time cost |
+| 걸음 | 할 일 | 드는 때 |
 |---|---|---|
-| 1 | Trace first sample by hand | 2--5 min |
-| 2 | Run all sample cases | 1 min |
-| 3 | Construct and run edge cases | 3--5 min |
-| 4 | Stress test (if time permits) | 5--10 min |
-| 5 | Submit | -- |
+| 1 | 첫 보기를 손으로 짚기 | 2~5분 |
+| 2 | 보기 사례 모두 돌리기 | 1분 |
+| 3 | 가장자리 경우 짓고 돌리기 | 3~5분 |
+| 4 | 마구 시험(때가 되면) | 5~10분 |
+| 5 | 제출 | -- |
 
-In a contest, allocate roughly 25% of your time per problem to testing. This investment pays off through fewer wrong submissions and lower penalty time.
+대회에서는 문제마다 때의 25%쯤을 시험에 쓴다. 이 품이 틀린 제출을 줄이고 벌점 때를 낮춰 되돌아온다.
 
-## Reference
+## 참고 문헌
 
-- [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf)
+음이 아닌 정수 $x$가 주어질 때 비트 셈만 써서 $x$의 가장 낮은 켜진 비트만 남기는 식을 적어라(곧 그 비트만 켜진 값을 만들어라). $x = 0$일 때 그 식은 무엇을 돌려주는가?
+
+## 연습문제
+
+**연습문제 1.**
+보기 시험 사례를 모두 지나는 풀이가 있다. 내기 전에 쓸 짜임 있는 네 걸음 시험 절차를 빠른 것부터 꼼꼼한 것 차례로 밝혀라.
+
+??? success "연습문제 1 풀이"
+    (1) **손으로 짚기**(1~2분): 가장 작은 보기 사례에서 알고리즘을 손으로 짚으며 중간 값을 하나씩 확인한다. 이는 알고리즘 설계 자체의 논리 어긋남을 잡는다. (2) **가장자리 경우 시험**(2~3분): 퇴화한 들임에서 풀이를 돌린다. $n = 0, 1, 2$, 모두 같은 원소, 최대 값, 줄 세운 들임과 거꾸로 줄 세운 들임. 이는 경계 벌레를 잡는다. (3) **손수 만든 중간 사례**(2~3분): 손이나 다른 방법으로 답을 셈할 수 있는 중간 크기($n = 10$~$20$) 들임 2~3개를 짓는다. 이는 보기 사례(흔히 $n \le 5$)가 놓치는 보통 경우의 논리 어긋남을 잡는다. (4) **마구 시험**(5~10분): 작은 크기의 아무 들임 $10^3$~$10^4$개로 힘으로 미는 풀이와 견준다. 이는 손수 만든 사례가 놓치는 드문 벌레를 잡는다. 모두 10~18분이 들며, 틀린 제출 뒤의 20분 넘는 벌레잡기를 흔히 막아 준다. $\square$
+
+---
+
+**연습문제 2.**
+기하 문제 풀이가 바라는 답과 조금 다른 실수 내놓기를 낸다. 문제는 "절대 또는 상대 어긋남 $10^{-6}$ 이내로 답을 찍어라"라고 한다. 내 내놓기가 정말 옳은지 가리는 길을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    "절대 또는 상대 어긋남 $10^{-6}$ 이내"는 $|y - y^*| \le 10^{-6}$(절대 어긋남)이거나 $|y - y^*| / |y^*| \le 10^{-6}$($y^* \ne 0$일 때 상대 어긋남) 가운데 하나만 성립하면 내놓기 $y$가 받아들여진다는 뜻이다. 제 자리에서 살피려면 두 어긋남을 모두 셈한다. 실수 견주기는 `abs(y - y_expected) < 1e-6 or abs(y - y_expected) < 1e-6 * abs(y_expected)`로 한다. 흔한 함정: (1) 소수 자리를 모자라게 찍기 — `%.9f`나 `{:.9f}`로 아홉 자리를 내놓는다. (2) 거의 같은 큰 수를 빼면서 생기는 중간 자릿수 잃기(엄청난 지워짐). (3) `double`(64비트, 15자리) 대신 `float`(32비트, 7자리) 쓰기. 그래도 어긋나면 문제의 살피개가 "또는" 조건(하나만 성립)인지 "그리고" 조건(둘 다 성립)인지 확인한다. $\square$
+
+---
+
+**연습문제 3.**
+그래프 알고리즘 풀이가 시험 100개 가운데 47번에서 오답이 난다. 그 시험 들임은 볼 수 없다. 틀린 들임을 보지 않고 벌레를 가려내는 셈속 셋을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    (1) **아무 그래프로 마구 시험**: 빽빽함, 크기($n$을 1에서 100까지), 변 무게를 달리한 아무 그래프를 만들어 힘으로 미는 풀이와 견준다. 아무 만들개는 성긴 그래프($m \approx n$), 빽빽한 그래프($m \approx n^2$), 나무, 제 고리가 있는 그래프(허락된다면), 이어지지 않은 그래프를 덮어야 한다. (2) **경계 더듬기**: 시험 100개 가운데 47번이라면 어느 정도 크거나 얼개가 특이한 들임일 낌새가 있으므로 중간 크기($n = 50$~$500$)와 심술궂은 얼개, 곧 꽉 찬 그래프, 두 쪽 그래프, 변 무게가 모두 같은 그래프, 음의 무게가 있는 그래프(허락된다면), 최단 길이 변을 많이 쓰는 그래프에 집중한다. (3) **불변량 살피기와 코드 되짚기**: 불변량을 확인하는 단언을 넣는다(보기로 데이크스트라에서 거리가 음이 아님, 들른 마디를 다시 다루지 않음, 너비 먼저 훑기 줄이 거리에서 한 방향으로 줄지 않음). 단언을 켜고 아무 들임에서 돌리면 마지막 내놓기가 우연히 맞더라도 어긴 불변량이 벌레를 짚어 준다. $\square$
+
+---
+
+**연습문제 4.**
+풀이가 제 기계에서는 옳은데 온라인 채점기에서는 돌림 어긋남이 나는 까닭을 밝혀라. 판에 딸린 까닭을 적어도 넷 늘어놓아라.
+
+??? success "연습문제 4 풀이"
+    (1) **쌓기 크기**: 제 기계는 쌓기가 8MB 넘을 수 있지만 채점기는 1~2MB일 수 있다. 제 자리에서 되던 깊은 되돌이가 채점기에서는 쌓기를 넘친다. (2) **처음 값 없는 기억**: 제 자리 번역기(벌레잡기 갈래)는 기억을 0으로 채워 줄 수 있지만 채점기 번역기(내놓기 갈래)는 그대로 두어 값이 들쭉날쭉해진다. (3) **배열 범위**: 배열 끝을 하나 넘겨 닿아도 제 자리에서는 우연히 될 수 있지만(그 기억이 마침 올바름) 기억 배치가 다른 채점기에서는 자리 어긋남이 난다. (4) **다른 번역기와 판**: 길이가 바뀌는 배열(`int arr[n]`) 같은 GCC 덧붙임은 GCC에서는 되지만 MSVC에서는 어긋난다. `__int128`은 GCC와 Clang에는 있지만 MSVC에는 없다. (5) **내놓기 끝의 줄 바꿈**: 어떤 채점기는 끝 줄 바꿈을 요구하며, 없으면 살피개에 따라 오답이나 돌림 어긋남으로 읽히는 보임새 어긋남이 날 수 있다. $\square$
+
+---
+
+**연습 5.**
+주고받는 문제(풀이가 물음으로 채점 프로그램과 이야기하는 문제)의 시험 흐름을 설계하여라. 주고받음은 보통 문제에 견주어 어떤 어려움을 더하는가?
+
+??? success "연습 5의 풀이"
+    흐름: (1) 채점기를 흉내 내는 **제 자리 주고받개**를 적는다. 주고받개는 숨은 답을 받아 풀이의 물음을 받고 문제 밝힘대로 답한다. (2) 여러 숨은 답으로 풀이를 주고받개에 돌리며 모든 물음과 답을 적는다. (3) 풀이가 물음 한도 안에 머물고 옳은 마지막 답을 내는지 확인한다. 더해지는 어려움: (가) **흘려보내기**: 물음마다 내놓기를 흘려보내야 한다(C++에서는 `cout.flush()`나 `endl`, 파이썬에서는 `sys.stdout.flush()`). 흘려보내기를 잊으면 채점기가 끝없이 기다려 뜻있는 어긋남 대신 때 초과가 난다. (나) **맞춰 가는 심술꾼**: 어떤 주고받는 문제는 풀이의 물음에 따라 답을 고르는 맞춰 가는 채점기를 쓰므로 고정된 숨은 답으로 시험하면 심술궂은 움직임을 놓칠 수 있다. (다) **물음 살림**: 옳음뿐 아니라 가장 나쁠 때의 물음 수도 시험해야 한다. (라) **벌레잡기의 어려움**: 찍어 보는 벌레잡기가 주고받기 규약을 방해하므로 벌레잡기 내놓기는 `stderr`으로 보내야 한다. $\square$

@@ -1,9 +1,4 @@
 # Theoretical Foundation of Monte Carlo Dropout
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
 ## Overview
 
 Monte Carlo (MC) Dropout provides a principled Bayesian interpretation of dropout as approximate variational inference. This document develops the theoretical foundations rigorously, establishing the connection between dropout training and posterior inference over neural network weights.
@@ -15,9 +10,7 @@ Monte Carlo (MC) Dropout provides a principled Bayesian interpretation of dropou
 Consider a neural network with weights $\omega$ and a dataset $\mathcal{D} = \{(\mathbf{x}_i, \mathbf{y}_i)\}_{i=1}^N$. The Bayesian approach seeks the posterior distribution:
 
 $$
-
 p(\omega | \mathcal{D}) = \frac{p(\mathcal{D} | \omega) p(\omega)}{p(\mathcal{D})}
-
 $$
 
 where:
@@ -33,38 +26,30 @@ The evidence integral is intractable for neural networks due to the high dimensi
 We seek an approximating distribution $q_\theta(\omega)$ from a tractable family parameterized by $\theta$. The goal is to minimize the Kullback-Leibler (KL) divergence:
 
 $$
-
 \text{KL}(q_\theta(\omega) \| p(\omega | \mathcal{D})) = \int q_\theta(\omega) \log \frac{q_\theta(\omega)}{p(\omega | \mathcal{D})} \, d\omega
-
 $$
 
 **Expanding the KL divergence:**
 
 $$
-
 \begin{aligned}
 \text{KL}(q_\theta \| p(\cdot | \mathcal{D})) &= \int q_\theta(\omega) \log q_\theta(\omega) \, d\omega - \int q_\theta(\omega) \log p(\omega | \mathcal{D}) \, d\omega \\
 &= \int q_\theta(\omega) \log q_\theta(\omega) \, d\omega - \int q_\theta(\omega) \log \frac{p(\mathcal{D} | \omega) p(\omega)}{p(\mathcal{D})} \, d\omega \\
 &= \int q_\theta(\omega) \log q_\theta(\omega) \, d\omega - \int q_\theta(\omega) \log p(\mathcal{D} | \omega) \, d\omega \\
 &\quad - \int q_\theta(\omega) \log p(\omega) \, d\omega + \log p(\mathcal{D})
 \end{aligned}
-
 $$
 
 Rearranging for the log evidence:
 
 $$
-
 \log p(\mathcal{D}) = \text{KL}(q_\theta \| p(\cdot | \mathcal{D})) + \mathcal{L}(\theta)
-
 $$
 
 where the **Evidence Lower Bound (ELBO)** is:
 
 $$
-
 \mathcal{L}(\theta) = \mathbb{E}_{q_\theta(\omega)}[\log p(\mathcal{D} | \omega)] - \text{KL}(q_\theta(\omega) \| p(\omega))
-
 $$
 
 Since $\text{KL} \geq 0$, we have $\log p(\mathcal{D}) \geq \mathcal{L}(\theta)$. Maximizing the ELBO is equivalent to minimizing the KL divergence to the true posterior.
@@ -89,9 +74,7 @@ Gal & Ghahramani (2016) showed that dropout defines an implicit variational dist
 For each row $\mathbf{w}_k$ of $\mathbf{W}$ (corresponding to the $k$-th input unit):
 
 $$
-
 q(\mathbf{w}_k) = p \cdot \delta_{\mathbf{0}}(\mathbf{w}_k) + (1-p) \cdot \delta_{\mathbf{m}_k}(\mathbf{w}_k)
-
 $$
 
 where:
@@ -103,17 +86,13 @@ where:
 This can be written using a binary mask $z_k \sim \text{Bernoulli}(1-p)$:
 
 $$
-
 \mathbf{w}_k = z_k \cdot \mathbf{m}_k
-
 $$
 
 **For the full weight matrix:**
 
 $$
-
 \mathbf{W} = \text{diag}(\mathbf{z}) \cdot \mathbf{M}
-
 $$
 
 where $\mathbf{z} \in \{0, 1\}^K$ is the mask vector and $\mathbf{M} \in \mathbb{R}^{K \times Q}$ contains the variational parameters.
@@ -123,9 +102,7 @@ where $\mathbf{z} \in \{0, 1\}^K$ is the mask vector and $\mathbf{M} \in \mathbb
 For a deep network with $L$ layers, the weights are $\omega = \{\mathbf{W}_1, \ldots, \mathbf{W}_L\}$. The variational distribution factorizes:
 
 $$
-
 q_\theta(\omega) = \prod_{\ell=1}^{L} q(\mathbf{W}_\ell)
-
 $$
 
 where $\theta = \{\mathbf{M}_1, \ldots, \mathbf{M}_L\}$ are the variational parameters (the weight matrices we actually learn).
@@ -133,9 +110,7 @@ where $\theta = \{\mathbf{M}_1, \ldots, \mathbf{M}_L\}$ are the variational para
 Each sample from $q_\theta(\omega)$ corresponds to:
 
 $$
-
 \mathbf{W}_\ell = \text{diag}(\mathbf{z}_\ell) \cdot \mathbf{M}_\ell, \quad \mathbf{z}_\ell \sim \text{Bernoulli}(1-p)^{K_\ell}
-
 $$
 
 This is exactly what dropout does during training.
@@ -145,9 +120,7 @@ This is exactly what dropout does during training.
 **Theorem (Gal & Ghahramani, 2016):** Minimizing the dropout training objective:
 
 $$
-
 \mathcal{L}_{\text{dropout}}(\theta) = \frac{1}{N} \sum_{i=1}^{N} \mathbb{E}_{\mathbf{z}} \left[ \mathcal{L}(f_{\mathbf{z}}(\mathbf{x}_i; \theta), \mathbf{y}_i) \right] + \lambda \sum_{\ell=1}^{L} \|\mathbf{M}_\ell\|_F^2
-
 $$
 
 is equivalent to maximizing the ELBO with a specific prior.
@@ -157,25 +130,19 @@ is equivalent to maximizing the ELBO with a specific prior.
 1. **Likelihood term:** For regression with Gaussian noise $p(\mathbf{y} | f(\mathbf{x}), \sigma^2) = \mathcal{N}(\mathbf{y}; f(\mathbf{x}), \sigma^2 \mathbf{I})$:
 
 $$
-
 \log p(\mathcal{D} | \omega) = -\frac{1}{2\sigma^2} \sum_{i=1}^{N} \|\mathbf{y}_i - f(\mathbf{x}_i; \omega)\|^2 + \text{const}
-
 $$
 
 2. **Prior:** With a Gaussian prior $p(\omega) = \prod_\ell \mathcal{N}(\text{vec}(\mathbf{W}_\ell); \mathbf{0}, \sigma_p^2 \mathbf{I})$:
 
 $$
-
 \log p(\omega) = -\frac{1}{2\sigma_p^2} \sum_{\ell} \|\mathbf{W}_\ell\|_F^2 + \text{const}
-
 $$
 
 3. **KL term:** For the dropout variational family:
 
 $$
-
 \text{KL}(q_\theta(\omega) \| p(\omega)) \propto \sum_\ell \|\mathbf{M}_\ell\|_F^2
-
 $$
 
 (The exact expression involves entropy of the Bernoulli, but it's constant w.r.t. $\theta$.)
@@ -183,9 +150,7 @@ $$
 4. **Combining:** The ELBO becomes:
 
 $$
-
 \mathcal{L}(\theta) = -\frac{1}{2\sigma^2} \mathbb{E}_{q_\theta} \left[ \sum_i \|\mathbf{y}_i - f(\mathbf{x}_i; \omega)\|^2 \right] - \frac{1}{2\sigma_p^2} \sum_\ell \|\mathbf{M}_\ell\|_F^2
-
 $$
 
 Setting $\lambda = \frac{\sigma^2}{N \sigma_p^2}$ recovers the dropout objective. $\square$
@@ -195,9 +160,7 @@ Setting $\lambda = \frac{\sigma^2}{N \sigma_p^2}$ recovers the dropout objective
 The correspondence between weight decay and the prior is:
 
 $$
-
 \lambda = \frac{p \ell^2}{2N \tau}
-
 $$
 
 where:
@@ -216,17 +179,13 @@ This provides a principled way to set weight decay given dropout rate and prior 
 The Bayesian predictive distribution for a new input $\mathbf{x}^*$ is:
 
 $$
-
 p(\mathbf{y}^* | \mathbf{x}^*, \mathcal{D}) = \int p(\mathbf{y}^* | \mathbf{x}^*, \omega) p(\omega | \mathcal{D}) \, d\omega
-
 $$
 
 Using the variational approximation $q_\theta(\omega) \approx p(\omega | \mathcal{D})$:
 
 $$
-
 p(\mathbf{y}^* | \mathbf{x}^*, \mathcal{D}) \approx \int p(\mathbf{y}^* | \mathbf{x}^*, \omega) q_\theta(\omega) \, d\omega = \mathbb{E}_{q_\theta(\omega)} [p(\mathbf{y}^* | \mathbf{x}^*, \omega)]
-
 $$
 
 ### Monte Carlo Approximation
@@ -234,9 +193,7 @@ $$
 The expectation over $q_\theta(\omega)$ is approximated via Monte Carlo sampling:
 
 $$
-
 \mathbb{E}_{q_\theta(\omega)} [f(\mathbf{x}^*; \omega)] \approx \frac{1}{T} \sum_{t=1}^{T} f(\mathbf{x}^*; \hat{\omega}_t)
-
 $$
 
 where $\hat{\omega}_t \sim q_\theta(\omega)$ corresponds to sampling dropout masks.
@@ -244,9 +201,7 @@ where $\hat{\omega}_t \sim q_\theta(\omega)$ corresponds to sampling dropout mas
 **For the predictive mean (regression):**
 
 $$
-
 \mathbb{E}[\mathbf{y}^* | \mathbf{x}^*, \mathcal{D}] \approx \frac{1}{T} \sum_{t=1}^{T} f(\mathbf{x}^*; \hat{\omega}_t)
-
 $$
 
 **For the predictive variance:**
@@ -254,17 +209,13 @@ $$
 Using the law of total variance:
 
 $$
-
 \text{Var}[\mathbf{y}^* | \mathbf{x}^*, \mathcal{D}] = \underbrace{\mathbb{E}_{q_\theta}[\text{Var}[\mathbf{y}^* | \mathbf{x}^*, \omega]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{q_\theta}[\mathbb{E}[\mathbf{y}^* | \mathbf{x}^*, \omega]]}_{\text{epistemic}}
-
 $$
 
 The MC approximation gives:
 
 $$
-
 \text{Var}[\mathbf{y}^* | \mathbf{x}^*, \mathcal{D}] \approx \sigma^2 \mathbf{I} + \frac{1}{T} \sum_{t=1}^{T} f(\mathbf{x}^*; \hat{\omega}_t) f(\mathbf{x}^*; \hat{\omega}_t)^\top - \bar{f}(\mathbf{x}^*) \bar{f}(\mathbf{x}^*)^\top
-
 $$
 
 where $\bar{f}(\mathbf{x}^*) = \frac{1}{T} \sum_t f(\mathbf{x}^*; \hat{\omega}_t)$.
@@ -276,25 +227,19 @@ where $\bar{f}(\mathbf{x}^*) = \frac{1}{T} \sum_t f(\mathbf{x}^*; \hat{\omega}_t
 For $C$-class classification with softmax outputs:
 
 $$
-
 p(\mathbf{y} = c | \mathbf{x}, \omega) = \text{softmax}(f(\mathbf{x}; \omega))_c = \frac{\exp(f_c(\mathbf{x}; \omega))}{\sum_{c'} \exp(f_{c'}(\mathbf{x}; \omega))}
-
 $$
 
 The predictive distribution is:
 
 $$
-
 p(\mathbf{y}^* = c | \mathbf{x}^*, \mathcal{D}) \approx \frac{1}{T} \sum_{t=1}^{T} \text{softmax}(f(\mathbf{x}^*; \hat{\omega}_t))_c
-
 $$
 
 **Important:** Average the softmax outputs, not the logits:
 
 $$
-
 \bar{p}_c = \frac{1}{T} \sum_{t=1}^{T} p_c^{(t)} \quad \text{where } p_c^{(t)} = \text{softmax}(f(\mathbf{x}^*; \hat{\omega}_t))_c
-
 $$
 
 ### Uncertainty Quantification for Classification
@@ -302,25 +247,19 @@ $$
 **Predictive entropy** measures total uncertainty:
 
 $$
-
 \mathbb{H}[\mathbf{y}^* | \mathbf{x}^*, \mathcal{D}] = -\sum_{c=1}^{C} \bar{p}_c \log \bar{p}_c
-
 $$
 
 **Mutual information** (epistemic uncertainty):
 
 $$
-
 \mathbb{I}[\mathbf{y}^*, \omega | \mathbf{x}^*, \mathcal{D}] = \mathbb{H}[\mathbf{y}^* | \mathbf{x}^*, \mathcal{D}] - \mathbb{E}_{q_\theta(\omega)}[\mathbb{H}[\mathbf{y}^* | \mathbf{x}^*, \omega]]
-
 $$
 
 MC approximation:
 
 $$
-
 \mathbb{I}[\mathbf{y}^*, \omega | \mathbf{x}^*, \mathcal{D}] \approx -\sum_c \bar{p}_c \log \bar{p}_c + \frac{1}{T} \sum_{t=1}^{T} \sum_c p_c^{(t)} \log p_c^{(t)}
-
 $$
 
 ## Limitations of the Theory
@@ -348,9 +287,7 @@ $$
 If we use multiplicative Gaussian noise instead of Bernoulli:
 
 $$
-
 \mathbf{w}_k = \mathbf{m}_k \odot \boldsymbol{\epsilon}_k, \quad \boldsymbol{\epsilon}_k \sim \mathcal{N}(\mathbf{1}, \alpha \mathbf{I})
-
 $$
 
 This corresponds to a different variational family with continuous support. The variance $\alpha$ relates to dropout rate via $\alpha = \frac{p}{1-p}$.
@@ -372,3 +309,35 @@ While not strictly Bayesian, deep ensembles (training multiple networks with dif
 3. Blundell, C., et al. (2015). Weight Uncertainty in Neural Networks. *ICML*.
 
 4. Gal, Y. (2016). Uncertainty in Deep Learning. *PhD Thesis, University of Cambridge*.
+
+## Exercises
+
+**Exercise 1.**
+For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+
+??? success "Solution to Exercise 1"
+    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
+
+---
+
+**Exercise 2.**
+Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
+
+??? success "Solution to Exercise 2"
+    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+
+---
+
+**Exercise 3.**
+Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+
+??? success "Solution to Exercise 3"
+    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+
+---
+
+**Exercise 4.**
+Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+
+??? success "Solution to Exercise 4"
+    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$

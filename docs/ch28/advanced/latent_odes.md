@@ -1,52 +1,79 @@
-# Latent ODEs for Time Series
+# 때 차례를 위한 숨은 상미분 방정식
+## 개요
 
+숨은 상미분 방정식(루바노바 외, 2019)은 고르지 않게 뽑힌 때 차례를 다루려 신경 상미분 방정식 틀과 변분 자기 부호기를 합친다. 이어져 바뀌는 숨은 자취를 배워 아무 때 점에서나 헤아릴 수 있게 한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-Latent ODEs (Rubanova et al., 2019) combine the Neural ODE framework with variational autoencoders for irregularly-sampled time series. They learn a latent trajectory that evolves continuously, allowing prediction at arbitrary time points.
-
-## Architecture
+## 구조
 
 ```
 Observations → RNN Encoder → z₀ ~ q(z₀|x) → ODE Solver → z(t) → Decoder → x̂(t)
 ```
 
-1. **Encoder**: an RNN (run backward in time) maps observations to a distribution over initial latent states $q(z_0 \mid x_{1:T})$
-2. **ODE dynamics**: $dz/dt = f_\theta(z(t))$ evolves the latent state continuously
-3. **Decoder**: maps latent state to observation space at query times
+1. **부호기**: (때를 거꾸로 돌린) 되돌이 신경망이 관측을 처음 숨은 상태의 분포 $q(z_0 \mid x_{1:T})$으로 옮긴다
+2. **상미분 방정식 움직임**: $dz/dt = f_\theta(z(t))$이 숨은 상태를 이어져 바꾼다
+3. **풀개**: 물어본 때에 숨은 상태를 관측 공간으로 옮긴다
 
-## Key Advantage: Irregular Sampling
+## 핵심 이점: 고르지 않은 뽑기
 
-Unlike RNNs and standard time series models that require fixed time steps, Latent ODEs naturally handle irregular sampling:
+붙박이 때 걸음이 필요한 되돌이 신경망이나 여느 때 차례 모델과 달리 숨은 상미분 방정식은 고르지 않은 뽑기를 자연스럽게 다룬다:
 
-- Observations can arrive at arbitrary times
-- Missing data requires no imputation
-- Predictions can be made at any continuous time point
+- 관측이 아무 때나 올 수 있다
+- 빠진 자료를 메울 필요가 없다
+- 이어진 어느 때 점에서나 헤아릴 수 있다
 
-This is critical for financial data where trading activity varies (weekends, holidays, variable-frequency tick data).
+이는 거래가 들쭉날쭉한 금융 자료(주말, 공휴일, 빈도가 달라지는 틱 자료)에 결정적이다.
 
-## Training
+## 학습
 
-Trained with the ELBO:
+증거 아래 한계로 익힌다:
 
 $$\mathcal{L} = \mathbb{E}_{q(z_0|x)}\left[\sum_t \log p(x_t \mid z(t))\right] - D_{\text{KL}}(q(z_0 \mid x) \| p(z_0))$$
 
-## ODE-RNN Variant
+## 상미분 방정식-되돌이 신경망 변형
 
-A simpler approach: use an ODE to model dynamics between observations, and an RNN update at each observation:
+더 단순한 방식: 관측 사이의 움직임은 상미분 방정식으로 나타내고 관측마다 되돌이 신경망으로 고친다:
 
 $$z_{t^-} = \text{ODESolve}(z_{t_{\text{prev}}}, t_{\text{prev}}, t)$$
 
 $$z_t = \text{RNNCell}(z_{t^-}, x_t)$$
 
-This hybrid approach is more computationally efficient and often performs comparably.
+이 뒤섞은 방식은 셈이 더 효율 좋고 흔히 성능도 비슷하다.
 
-## Applications in Finance
+## 금융에서의 쓰임새
 
-- Modeling irregularly-spaced trade data
-- Forecasting with missing observations (holidays, halts)
-- Multi-frequency data fusion (daily + intraday)
-- Continuous-time portfolio dynamics
+- 간격이 고르지 않은 거래 자료 나타내기
+- 관측이 빠진 채로 내다보기(공휴일, 거래 정지)
+- 여러 빈도 자료 합치기(일별 + 장중)
+- 이어진 때의 꾸러미 움직임
+
+## 연습문제
+
+**연습문제 1.**
+사전 움직임이 $dz/dt = f_\theta(z, t)$이고 어림 사후 분포를 때를 거꾸로 도는 상미분 방정식 부호기로 매개변수화한 숨은 상미분 방정식 모델의 증거 아래 한계(ELBO)를 이끌어 내라.
+
+??? success "연습문제 1 풀이"
+    증거 아래 한계는 $\mathcal{L} = \mathbb{E}_{q_\phi(z_0 | x)}[\log p_\psi(x | z_{0:T})] - \text{KL}(q_\phi(z_0 | x) \| p(z_0))$으로 나뉜다. 정해진 상미분 방정식의 경우 상미분 방정식 흐름이 정해진 일대일 대응이므로 자취 수준의 쿨백-라이블러 벌어짐이 처음 상태 분포 사이의 것으로 줄어든다. 사후 떠돎 $u_\phi$과 사전 떠돎 $f_\theta$을 가진 확률 미분 방정식으로 넓히면 그 벌어짐은 $\text{KL}(q \| p) = \frac{1}{2}\int_0^T \mathbb{E}_q[\|u_\phi(z_t, t) - f_\theta(z_t, t)\|^2]\,dt$이 된다. 부호기는 상미분 방정식-되돌이 신경망으로 관측을 거꾸로 다루며 관측된 때 점에서 숨은 상태를 고친다. $\square$
+
+---
+
+**연습문제 2.**
+숨은 상미분 방정식이 값이 빠진 고르지 않은 때 차례를 어떻게 자연스럽게 다루는지 밝혀라. 되돌이 신경망 방식과 견주어라.
+
+??? success "연습문제 2 풀이"
+    상미분 방정식 풀개는 틈이 얼마이든 어느 두 때 점 사이에서도 $dz/dt = f_\theta(z, t)$을 이어져 적분한다. 빠진 값은 알아보기 신경망이 다루며, 이는 관측된 때에만 게이트 되돌이 단위로 고치고 상미분 방정식 움직임이 그 틈을 잇는다. 되돌이 신경망은 붙박이 때 걸음이 필요하므로 고르지 않은 뽑기에는 사이 메우기나 채우기가 있어야 한다. 숨은 상미분 방정식의 비용은 관측 밀도가 아니라 움직임의 복잡함에 매이므로 성기고 고르지 않은 자료에 더 효율 좋다. $\square$
+
+---
+
+**연습문제 3.**
+고르게 놓인 관측 $T$개의 때 차례에서 숨은 상미분 방정식과 여느 변분 자기 부호기를 익히는 셈 비용을 견주어라.
+
+??? success "연습문제 3 풀이"
+    여느 변분 자기 부호기는 앞먹임마다 비용이 $O(T \cdot d)$이다. 맞추어 가는 풀개를 쓴 숨은 상미분 방정식은 비용이 $O(N_{\text{eval}} \cdot d)$이며 $N_{\text{eval}}$은 움직임의 뻣뻣함에 매인다(보통 50~500). 풀개 비용이 관측 개수가 아니라 매끄러움에 매이므로 때 범위에 견주어 관측이 성길 때 숨은 상미분 방정식이 더 효율 좋다. 빽빽하게 뽑은 매끄러운 움직임에서는 변분 자기 부호기가 더 쌀 수 있다. 딸림 방법은 뒤로 한 번 더 풀어 셈을 대략 두 배로 늘리지만 기억은 $O(d)$으로 지킨다. $\square$
+
+---
+
+**연습문제 4.**
+상미분 방정식으로 적는 것이 물리 계를 나타내는 데 주는 귀납 치우침을 따져라. 이것이 어떤 위상 한계를 지우는가?
+
+??? success "연습문제 4 풀이"
+    상미분 방정식은 이어지고 매끄러운 움직임 $dz/dt = f_\theta(z, t)$을 가정하며 이는 미분 방정식이 다스리는 물리 계와 맞는다. 이는 매끄러운 자취 보장, 정확한 되돌릴 수 있음, 고르지 않은 때 걸음의 자연스러운 다룸을 준다. 위상 한계는 상미분 방정식 흐름이 위상 동형을 뜻매김한다는 것이다. 상태 공간의 위상을 바꿀 수 없다(이어진 조각을 가를 수도, 떨어진 조각을 합칠 수도 없다). 이는 위상 얼개가 복잡한 분포의 나타냄 힘을 제한하며 차원을 더하는 늘린 신경 상미분 방정식이 이를 다룬다. $\square$

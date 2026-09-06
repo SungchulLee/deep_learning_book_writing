@@ -1,15 +1,15 @@
-# Job Scheduling
+# 일 일정 짜기
 
-In many real-world settings --- manufacturing plants, operating systems, project management --- a set of jobs must be processed on a single machine, each with a deadline. Missing a deadline incurs a penalty, so the scheduler wants to arrange jobs to minimize the worst-case tardiness. The greedy solution, **Earliest Deadline First (EDF)**, simply processes jobs in order of their deadlines. Despite its simplicity, EDF is provably optimal for minimizing maximum lateness, and the proof illustrates the exchange argument beautifully.
+공장, 운영 체제, 기획 살림 같은 실제 여러 자리에서, 저마다 마감이 있는 일 모음을 기계 하나로 다뤄야 한다. 마감을 놓치면 벌이 따르므로 일정 짜개는 가장 나쁜 경우의 늦음을 가장 작게 하도록 일을 늘어놓고자 한다. 욕심쟁이 풀이인 **가장 이른 마감 먼저(EDF)**는 그저 마감 차례로 일을 다룬다. 단순한데도 EDF는 최대 늦음을 가장 작게 하는 데 가장 좋음을 증명할 수 있고, 그 증명이 맞바꿈 논증을 아름답게 보여 준다.
 
-## Problem Statement: Minimizing Maximum Lateness
+## 문제 진술: 최대 늦음 가장 작게 하기
 
 **Input.** A set of $n$ jobs $\{1, 2, \ldots, n\}$. Job $i$ has:
 
-- Processing time $p_i > 0$ (the time required to complete it).
-- Deadline $d_i$ (the time by which it should ideally finish).
+- 다루는 시간 $p_i > 0$(끝내는 데 드는 시간).
+- 마감 $d_i$(이때까지 끝나면 좋은 시각).
 
-**Constraints.** A single machine processes one job at a time. All jobs are available at time 0. No preemption (once started, a job runs to completion). No idle time.
+**제약.** 기계 하나가 한 번에 일 하나를 다룬다. 모든 일은 때 0에 쓸 수 있다. 가로채기가 없다(한 번 시작한 일은 끝까지 돈다). 노는 때가 없다.
 
 **Schedule.** A permutation $\sigma$ of $\{1, 2, \ldots, n\}$. Job $\sigma(j)$ is the $j$-th job processed. Its completion time is:
 
@@ -17,37 +17,38 @@ $$
 C_{\sigma(j)} = \sum_{k=1}^{j} p_{\sigma(k)}
 $$
 
-**Lateness.** The lateness of job $i$ is $L_i = C_i - d_i$. A positive value means the job finishes after its deadline.
+**늦음.** 일 $i$의 늦음은 $L_i = C_i - d_i$이다. 양수이면 그 일이 마감 뒤에 끝난다는 뜻이다.
 
-**Objective.** Minimize the **maximum lateness**:
+**목표.** **최대 늦음**을 가장 작게 한다:
 
 $$
 L_{\max} = \max_{1 \leq i \leq n} (C_i - d_i)
 $$
 
-## Greedy Algorithm: Earliest Deadline First
+## 욕심쟁이 알고리즘: 가장 이른 마감 먼저
 
-!!! note "EDF Scheduling"
+!!! note "EDF 일정 짜기"
+
     1. Sort jobs by deadline: $d_1 \leq d_2 \leq \cdots \leq d_n$.
-    2. Process jobs in this order with no idle time.
+    2. 노는 때 없이 이 차례로 일을 다룬다.
     3. The $j$-th job completes at time $C_j = \sum_{k=1}^{j} p_k$.
 
-The algorithm ignores processing times entirely when determining the order --- only deadlines matter.
+이 알고리즘은 차례를 정할 때 다루는 시간을 아예 헤아리지 않는다. 오직 마감만 본다.
 
-## Worked Example
+## 풀이 예제
 
-Consider four jobs:
+일 넷을 보자:
 
-| Job | $p_i$ | $d_i$ |
+| 일 | $p_i$ | $d_i$ |
 |-----|--------|--------|
 | 1   | 3      | 6      |
 | 2   | 2      | 8      |
 | 3   | 1      | 9      |
 | 4   | 4      | 9      |
 
-**EDF order** (sorted by deadline): $1, 2, 3, 4$.
+**EDF 차례**(마감으로 정렬): $1, 2, 3, 4$.
 
-| Position | Job | $C_i$ | $d_i$ | $L_i = C_i - d_i$ |
+| 자리 | 일 | $C_i$ | $d_i$ | $L_i = C_i - d_i$ |
 |----------|-----|--------|--------|--------------------|
 | 1        | 1   | 3      | 6      | $-3$               |
 | 2        | 2   | 5      | 8      | $-3$               |
@@ -58,9 +59,9 @@ $$
 L_{\max} = 1
 $$
 
-**Alternative order** $2, 1, 3, 4$:
+**다른 차례** $2, 1, 3, 4$:
 
-| Position | Job | $C_i$ | $d_i$ | $L_i$ |
+| 자리 | 일 | $C_i$ | $d_i$ | $L_i$ |
 |----------|-----|--------|--------|--------|
 | 1        | 2   | 2      | 8      | $-6$   |
 | 2        | 1   | 5      | 6      | $-1$   |
@@ -69,37 +70,37 @@ $$
 
 This also gives $L_{\max} = 1$, which matches EDF. But no schedule achieves $L_{\max} < 1$, since the total processing time is 10 and the latest deadline is 9.
 
-## Correctness Proof
+## 옳음의 증명
 
 **Theorem.** EDF minimizes the maximum lateness $L_{\max}$.
 
 The proof uses the exchange argument, showing that any **inversion** in the schedule can be removed without increasing $L_{\max}$.
 
-**Definition.** An **inversion** in a schedule is a pair of adjacent jobs $(i, j)$ where job $i$ is scheduled before job $j$ but $d_i > d_j$.
+**정의.** 일정에서 **뒤바뀜**이란 일 $i$이 일 $j$보다 앞에 놓였는데 $d_i > d_j$인 이웃한 일 짝 $(i, j)$이다.
 
-**Claim 1.** There exists an optimal schedule with no idle time.
+**주장 1.** 노는 때가 없는 가장 좋은 일정이 있다.
 
 *Proof.* Removing idle time shifts jobs earlier, which can only decrease lateness. $\square$
 
-**Claim 2.** There exists an optimal schedule with no inversions.
+**주장 2.** 뒤바뀜이 없는 가장 좋은 일정이 있다.
 
-??? example "Proof by Exchange"
+??? example "맞바꿈에 의한 증명"
     Suppose schedule $\sigma$ has an inversion: job $i$ immediately precedes job $j$ with $d_i > d_j$. Let $\sigma'$ be the schedule obtained by swapping $i$ and $j$.
 
-    Before the swap, both jobs start at the same time $t$:
+    맞바꾸기 앞에 두 일 모두 같은 때 $t$에 시작한다:
 
     - In $\sigma$: $C_i = t + p_i$, $C_j = t + p_i + p_j$
     - In $\sigma'$: $C_j' = t + p_j$, $C_i' = t + p_j + p_i$
 
-    The completion times of all other jobs are unchanged.
+    다른 모든 일의 마침 시각은 그대로이다.
 
-    **Job $j$ improves:** $C_j' = t + p_j < t + p_i + p_j = C_j$, so $L_j' < L_j$.
+    **일 $j$이 나아진다:** $C_j' = t + p_j < t + p_i + p_j = C_j$이므로 $L_j' < L_j$이다.
 
-    **Job $i$'s new lateness:** $L_i' = t + p_i + p_j - d_i$.
+    **일 $i$의 새 늦음:** $L_i' = t + p_i + p_j - d_i$.
 
-    **Key comparison:** Before the swap, $L_j = t + p_i + p_j - d_j$. After the swap, $L_i' = t + p_i + p_j - d_i$. Since $d_i > d_j$, we have $L_i' < L_j$.
+    **핵심 견줌:** 맞바꾸기 앞에는 $L_j = t + p_i + p_j - d_j$이다. 맞바꾼 뒤에는 $L_i' = t + p_i + p_j - d_i$이다. $d_i > d_j$이므로 $L_i' < L_j$이다.
 
-    Therefore:
+    따라서 다음이 성립한다.
 
     $$
     L_{\max}(\sigma') = \max(L_j', L_i', \ldots) \leq \max(L_j, \ldots) = L_{\max}(\sigma)
@@ -107,34 +108,34 @@ The proof uses the exchange argument, showing that any **inversion** in the sche
 
     Swapping the inversion does not increase $L_{\max}$. $\square$
 
-**Claim 3.** A schedule with no inversions processes jobs in EDF order.
+**주장 3.** 뒤바뀜이 없는 일정은 일을 EDF 차례로 다룬다.
 
 **Conclusion.** Since inversions can be eliminated without increasing $L_{\max}$, and a schedule with no inversions is the EDF schedule, EDF is optimal.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Job scheduling to minimize maximum lateness using Earliest Deadline First.
+마감 이른 것 먼저로 최대 늦음을 가장 작게 하는 일 차례 짜기.
 
-Demonstrates that sorting jobs by deadline minimizes the worst-case
-tardiness on a single machine with no preemption.
+가로채기 없는 기계 하나에서 마감으로 일을 정렬하면 최악의
+늦음이 가장 작아짐을 보인다.
 """
 
 
-# === EDF Scheduling ===
+# === 마감 이른 것 먼저 차례 짜기 ===
 
 def edf_schedule(jobs):
-    """Schedule jobs by Earliest Deadline First.
+    """마감 이른 것 먼저로 일의 차례를 짠다.
 
-    Args:
-        jobs: list of (processing_time, deadline) tuples
+    인수:
+        jobs: (처리 시간, 마감) 짝의 목록
 
-    Returns:
-        Tuple of (schedule, max_lateness) where schedule is a list of
-        (job_index, completion_time, lateness) tuples
+    반환값:
+        (차례, 최대 늦음)의 짝. 여기서 차례는
+        (일 번호, 마친 때, 늦음) 짝의 목록이다
     """
-    # Sort by deadline, keep original indices
+    # 마감으로 정렬하되 본디 번호를 지닌다
     indexed_jobs = sorted(enumerate(jobs), key=lambda x: x[1][1])
 
     schedule = []
@@ -150,7 +151,7 @@ def edf_schedule(jobs):
 
 
 if __name__ == "__main__":
-    # Example: (processing_time, deadline)
+    # 보기: (처리 시간, 마감)
     jobs = [(3, 6), (2, 8), (1, 9), (4, 9)]
 
     schedule, max_lateness = edf_schedule(jobs)
@@ -164,7 +165,7 @@ if __name__ == "__main__":
     print(f"\nMaximum lateness: {max_lateness}")
 ```
 
-**Output:**
+**출력:**
 ```
 EDF Schedule:
  Job    C_i    d_i    L_i
@@ -177,21 +178,53 @@ EDF Schedule:
 Maximum lateness: 1
 ```
 
-## Complexity Analysis
+## 복잡도 분석
 
 - **Sorting:** $O(n \log n)$.
-- **Scheduling:** $O(n)$ single pass.
+- **일정 짜기:** 한 번 훑기로 $O(n)$.
 - **Total:** $O(n \log n)$.
 
-## Variant: Minimizing Weighted Completion Time
+## 변종: 무게를 준 마침 시각 가장 작게 하기
 
 A related problem minimizes the **total weighted completion time** $\sum_{i=1}^{n} w_i C_i$, where $w_i$ is the weight (priority) of job $i$.
 
-**Greedy rule.** Process jobs in decreasing order of $w_i / p_i$ (weight-to-processing-time ratio).
+**욕심쟁이 규칙.** 일을 $w_i / p_i$(무게 대 다루는 시간 비)의 내림차순으로 다룬다.
 
-This variant is also solvable by a greedy algorithm, with correctness proved by an adjacent-swap exchange argument: swapping two adjacent jobs $i$ and $j$ with $w_i/p_i < w_j/p_j$ strictly improves the objective.
+이 변종도 욕심쟁이 알고리즘으로 풀 수 있으며, 옳음은 이웃 맞바꿈 논증으로 증명한다. 곧 $w_i/p_i < w_j/p_j$인 이웃한 일 $i$과 $j$을 맞바꾸면 목표가 엄밀히 나아진다.
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 16. MIT Press.
-- Kleinberg, J. & Tardos, E. (2006). *Algorithm Design*, Chapter 4.2. Pearson.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 16장. MIT Press.
+- Kleinberg, J. & Tardos, E. (2006). *Algorithm Design*, 4.2절. Pearson.
+
+## 연습문제
+
+**연습문제 1.**
+일 일정 짜기에서 욕심쟁이 고름이 무엇인지 가려내고 왜 가장 좋은 풀이로 이어지는지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    The greedy choice selects the locally optimal option at each step. For Job Scheduling, this choice satisfies the greedy choice property: there exists an optimal solution that includes this greedy selection. Combined with optimal substructure (the remaining subproblem after the greedy choice is also optimally solvable by the same strategy), the greedy algorithm produces a globally optimal solution. $\square$
+
+---
+
+**연습문제 2.**
+일 일정 짜기이 가장 좋은 아래 짜임을 갖는지 증명하거나 반증하여라.
+
+??? success "연습문제 2 풀이"
+    Optimal substructure means that an optimal solution to the problem contains optimal solutions to its subproblems. For Job Scheduling, after making the greedy choice, the remaining problem is a smaller instance of the same type. If the subproblem solution were not optimal, we could improve the overall solution by replacing it — contradicting overall optimality. Therefore optimal substructure holds. $\square$
+
+---
+
+**연습문제 3.**
+일 일정 짜기의 시간 복잡도는 무엇인가? 가장 값비싼 단계를 가려내어라.
+
+??? success "연습문제 3 풀이"
+    The time complexity depends on the sorting step (if required) and the greedy selection loop. Sorting typically dominates at $O(n \log n)$. The greedy loop processes each element once in $O(n)$. Total: $O(n \log n)$. If the input is pre-sorted, the algorithm runs in $O(n)$. $\square$
+
+---
+
+**연습문제 4.**
+(일 일정 짜기에서 쓴 것이 아닌) 다른 욕심쟁이 전략은 가장 좋은 풀이를 내지 못함을 보이는 반례를 들어라.
+
+??? success "연습문제 4 풀이"
+    Consider an alternative greedy criterion that does not align with the problem's structure. This alternative may select an element that blocks better future choices. The counterexample demonstrates that the wrong greedy criterion can produce a suboptimal result, highlighting why the specific greedy choice property must be proven for each problem. $\square$

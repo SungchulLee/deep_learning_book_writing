@@ -1,134 +1,129 @@
-# LSTM Architecture
+# LSTM 구조
+## 들어가며
 
+장단기 기억(LSTM) 신경망은 순차 데이터의 먼 거리 의존을 붙잡으려고 만든 특수한 순환 신경망이다. 1997년 Hochreiter와 Schmidhuber가 내놓았으며, 먼 시각에서 배우지 못하게 하는 기울기 소실 문제라는 기본 RNN의 근본적인 한계를 푼다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+LSTM의 핵심 혁신은 **세포 상태**에 있다. 정보가 거의 변형되지 않고 여러 시각을 가로질러 흐르는 전용 기억 통로이다. 이 "기억의 고속도로" 덕분에 LSTM은 수백, 때로는 수천 시각 동안 정보를 골라 기억할 수 있다.
 
-## Introduction
+**구조의 핵심 착상:** LSTM은 상태 벡터 두 개를 지닌다.
 
-Long Short-Term Memory (LSTM) networks are a specialized form of recurrent neural networks designed to capture long-range dependencies in sequential data. Introduced by Hochreiter and Schmidhuber in 1997, LSTMs address the fundamental limitation of vanilla RNNs: the vanishing gradient problem that prevents learning from distant time steps.
+- **숨은 상태** $h_t$: 단기 기억이며 세포의 출력이다
+- **세포 상태** $c_t$: 장기 기억이며 정보의 고속도로이다
 
-The key innovation of LSTM lies in its **cell state**—a dedicated memory pathway that allows information to flow across many time steps with minimal transformation. This "memory highway" enables LSTMs to selectively remember information for hundreds or even thousands of time steps.
+학습 가능한 문 세 개가 정보의 흐름을 다스린다.
 
-**Core architectural insight:** LSTM maintains two state vectors:
-
-- **Hidden state** $h_t$: Short-term memory, the output of the cell
-- **Cell state** $c_t$: Long-term memory, the information highway
-
-Three learnable gates regulate information flow:
-
-- **Forget gate** $f_t$: What to discard from cell state
-- **Input gate** $i_t$: What new information to store
-- **Output gate** $o_t$: What to output from cell state
+- **망각 문** $f_t$: 세포 상태에서 무엇을 버릴지
+- **입력 문** $i_t$: 어떤 새 정보를 담을지
+- **출력 문** $o_t$: 세포 상태에서 무엇을 내보낼지
 
 ---
 
-## The Vanishing Gradient Problem
+## 기울기 소실 문제
 
-Before understanding LSTM architecture, we must appreciate the problem it solves.
+LSTM의 구조를 이해하기에 앞서 그것이 푸는 문제를 알아야 한다.
 
-### The Problem in Vanilla RNNs
+### 기본 RNN의 문제
 
-In a vanilla RNN, the hidden state update follows:
+기본 RNN에서 숨은 상태는 다음과 같이 갱신된다.
 
 $$h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b_h)$$
 
-During backpropagation through time (BPTT), gradients flow through this recurrence:
+시간을 거슬러 가는 역전파(BPTT)에서 기울기는 이 순환을 타고 흐른다.
 
 $$\frac{\partial h_t}{\partial h_0} = \prod_{k=1}^{t} \frac{\partial h_k}{\partial h_{k-1}} = \prod_{k=1}^{t} W_{hh}^\top \cdot \text{diag}(\tanh'(z_k))$$
 
-**Two compounding problems:**
+**겹치는 문제가 둘 있다.**
 
-1. **Activation saturation:** Since $|\tanh'(x)| \leq 1$ (with equality only at $x=0$), repeated multiplication through saturated activations drives gradients toward zero.
+1. **활성화의 포화:** $|\tanh'(x)| \leq 1$이고 등호는 $x=0$에서만 성립하므로, 포화된 활성화를 거듭 곱하면 기울기가 0으로 간다.
 
-2. **Spectral properties of $W_{hh}$:** If the largest singular value $\sigma_{\max}(W_{hh}) < 1$, gradients vanish exponentially. If $\sigma_{\max}(W_{hh}) > 1$, gradients explode.
+2. **$W_{hh}$의 스펙트럼 성질:** 가장 큰 특잇값이 $\sigma_{\max}(W_{hh}) < 1$이면 기울기가 지수적으로 사라지고, $\sigma_{\max}(W_{hh}) > 1$이면 폭발한다.
 
-**Consequence:** For a sequence of length $T$, the gradient contribution from time step $t$ to the loss at time $T$ decays as $O(\lambda^{T-t})$ where $\lambda < 1$. Information from distant past is effectively invisible during training.
+**결과:** 길이가 $T$인 순차열에서 시각 $t$이 시각 $T$의 손실에 이바지하는 기울기는 $\lambda < 1$일 때 $O(\lambda^{T-t})$으로 줄어든다. 먼 과거의 정보는 학습 중에 사실상 보이지 않는다.
 
-### LSTM's Solution: Additive Updates
+### LSTM의 해법: 덧셈 갱신
 
-LSTM replaces the multiplicative recurrence with an **additive** cell state update:
+LSTM은 곱셈 순환을 **덧셈** 세포 상태 갱신으로 바꾼다.
 
 $$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$$
 
-The gradient through the cell state pathway:
+세포 상태 통로를 지나는 기울기는 다음과 같다.
 
 $$\frac{\partial c_t}{\partial c_{t-1}} = f_t$$
 
-When $f_t \approx 1$ (forget gate open), gradients flow **unchanged**:
+$f_t \approx 1$이면(망각 문이 열리면) 기울기가 **그대로** 흐른다.
 
 $$\frac{\partial \mathcal{L}}{\partial c_{t-k}} = \frac{\partial \mathcal{L}}{\partial c_t} \cdot \prod_{i=t-k}^{t-1} f_{i+1}$$
 
-Unlike vanilla RNNs where gradients pass through weight matrices and saturating activations, LSTM gradients pass through learned gates that can remain near 1. This is the "constant error carousel"—gradients can flow for hundreds of steps without vanishing.
+기울기가 가중치 행렬과 포화하는 활성화를 지나는 기본 RNN과 달리, LSTM에서는 1 가까이 머무를 수 있는 학습된 문을 지난다. 이것이 "일정 오차 회전목마"이며, 기울기가 수백 걸음을 사라지지 않고 흐를 수 있다.
 
-!!! note "The Key Insight"
-    LSTM doesn't eliminate gradient issues entirely—it provides a **learnable bypass** around them. The network learns when to remember ($f_t \approx 1$) and when to forget ($f_t \approx 0$), allowing task-relevant gradients to flow while discarding irrelevant information.
+!!! note "핵심 착상"
+    LSTM이 기울기 문제를 아예 없애는 것은 아니다. 그것을 에두르는 **학습 가능한 우회로**를 줄 뿐이다. 신경망은 언제 기억할지($f_t \approx 1$)와 언제 잊을지($f_t \approx 0$)를 배워, 쓸모없는 정보는 버리면서 과제에 필요한 기울기는 흐르게 한다.
 
 ---
 
-## LSTM Cell Architecture
+## LSTM 세포의 구조
 
-An LSTM cell contains four main components: three gates (forget, input, output) and a cell state update mechanism.
+LSTM 세포에는 주요 부품이 네 가지 있다. 문 세 개(망각, 입력, 출력)와 세포 상태 갱신 장치이다.
 
-### Complete Mathematical Formulation
+### 온전한 수식
 
-For time step $t$, given input $x_t \in \mathbb{R}^{d}$, previous hidden state $h_{t-1} \in \mathbb{R}^{n}$, and previous cell state $c_{t-1} \in \mathbb{R}^{n}$:
+시각 $t$에서 입력 $x_t \in \mathbb{R}^{d}$, 이전 숨은 상태 $h_{t-1} \in \mathbb{R}^{n}$, 이전 세포 상태 $c_{t-1} \in \mathbb{R}^{n}$이 주어졌을 때 다음과 같다.
 
-**Forget Gate** — determines what information to discard from the cell state:
+**망각 문** — 세포 상태에서 어떤 정보를 버릴지 정한다.
 
 $$f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + b_f)$$
 
-When $f_t \approx 0$, the gate forgets; when $f_t \approx 1$, it remembers.
+$f_t \approx 0$이면 잊고, $f_t \approx 1$이면 기억한다.
 
-**Input Gate** — determines what new information to store:
+**입력 문** — 어떤 새 정보를 담을지 정한다.
 
 $$i_t = \sigma(W_i \cdot [h_{t-1}, x_t] + b_i)$$
 
-**Cell Candidate** — creates candidate values to add to the cell state:
+**세포 후보** — 세포 상태에 더할 후보 값을 만든다.
 
 $$\tilde{c}_t = \tanh(W_c \cdot [h_{t-1}, x_t] + b_c)$$
 
-**Cell State Update** — combines old memory (gated by forget) with new information (gated by input):
+**세포 상태 갱신** — (망각 문이 조절한) 옛 기억과 (입력 문이 조절한) 새 정보를 엮는다.
 
 $$c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$$
 
-**Output Gate** — determines what to output based on the cell state:
+**출력 문** — 세포 상태를 바탕으로 무엇을 내보낼지 정한다.
 
 $$o_t = \sigma(W_o \cdot [h_{t-1}, x_t] + b_o)$$
 
-**Hidden State** — filtered version of the cell state:
+**숨은 상태** — 세포 상태를 걸러 낸 것이다.
 
 $$h_t = o_t \odot \tanh(c_t)$$
 
-Where:
+여기서:
 
-- $\sigma$ is the sigmoid function: $\sigma(x) = \frac{1}{1 + e^{-x}}$
-- $\odot$ denotes element-wise (Hadamard) product
-- $[h_{t-1}, x_t]$ denotes concatenation along feature dimension
-- $W_f, W_i, W_c, W_o \in \mathbb{R}^{n \times (n+d)}$ are weight matrices
-- $b_f, b_i, b_c, b_o \in \mathbb{R}^{n}$ are bias vectors
+- $\sigma$은 시그모이드 함수 $\sigma(x) = \frac{1}{1 + e^{-x}}$이다
+- $\odot$은 성분별(아다마르) 곱을 뜻한다
+- $[h_{t-1}, x_t]$은 특징 차원을 따라 이어 붙인 것을 뜻한다
+- $W_f, W_i, W_c, W_o \in \mathbb{R}^{n \times (n+d)}$은 가중치 행렬이다
+- $b_f, b_i, b_c, b_o \in \mathbb{R}^{n}$은 편향 벡터이다
 
-### Why These Specific Nonlinearities?
+### 왜 하필 이 비선형인가
 
-The choice of activation functions is deliberate:
+활성화 함수의 선택에는 뜻이 있다.
 
-| Component | Activation | Range | Rationale |
+| 부품 | 활성화 | 범위 | 근거 |
 |-----------|------------|-------|-----------|
-| Gates ($f_t, i_t, o_t$) | Sigmoid | $(0, 1)$ | Soft binary switches; smooth interpolation between "off" and "on" |
-| Cell candidate ($\tilde{c}_t$) | Tanh | $(-1, 1)$ | Centered at zero; allows both positive and negative updates |
-| Output transform | Tanh | $(-1, 1)$ | Normalizes cell state before gating |
+| 문 ($f_t, i_t, o_t$) | 시그모이드 | $(0, 1)$ | 부드러운 이진 스위치. "꺼짐"과 "켜짐" 사이를 매끄럽게 잇는다 |
+| 세포 후보 ($\tilde{c}_t$) | tanh | $(-1, 1)$ | 0을 중심으로 하며 양수와 음수 갱신을 모두 허용한다 |
+| 출력 변환 | tanh | $(-1, 1)$ | 문을 지나기 전에 세포 상태를 정규화한다 |
 
-**Why sigmoid for gates?** Gates need to make soft binary decisions. Sigmoid provides smooth gradients everywhere while approximating a switch.
+**왜 문에 시그모이드를 쓰는가?** 문은 부드러운 이진 결정을 내려야 한다. 시그모이드는 스위치를 흉내 내면서도 어디서나 매끄러운 기울기를 준다.
 
-**Why tanh for content?** The cell state can accumulate over time. Tanh bounds new contributions to $[-1, 1]$, preventing unbounded growth while allowing both additive and subtractive updates.
+**왜 내용에 tanh를 쓰는가?** 세포 상태는 시간이 지나며 쌓일 수 있다. tanh는 새로 더해지는 몫을 $[-1, 1]$으로 묶어 끝없이 커지는 것을 막으면서도 더하고 빼는 갱신을 모두 허용한다.
 
 ---
 
-## Information Flow Visualization
+## 정보 흐름 그려 보기
 
-The LSTM can be understood as having two parallel pathways:
+LSTM에는 나란한 통로가 두 개 있다고 볼 수 있다.
 
-### Cell State Pathway (Memory Highway)
+### 세포 상태 통로 (기억의 고속도로)
 
 ```
 c_{t-1} ──[×f_t]──[+]── c_t ──→
@@ -138,66 +133,66 @@ c_{t-1} ──[×f_t]──[+]── c_t ──→
            c̃_t (candidate)
 ```
 
-The cell state undergoes only element-wise operations—no matrix multiplications, no activation functions in the main pathway. This is the "information highway" that preserves gradients.
+세포 상태는 성분별 연산만 거친다. 주 통로에는 행렬 곱도 활성화 함수도 없다. 이것이 기울기를 지키는 "정보의 고속도로"이다.
 
-### Hidden State Pathway (Output)
+### 숨은 상태 통로 (출력)
 
 ```
 c_t ──[tanh]──[×o_t]── h_t ──→ output
 ```
 
-The hidden state is a filtered, transformed view of the cell state. It goes through nonlinearities because it's used for:
+숨은 상태는 세포 상태를 걸러 변형한 모습이다. 다음에 쓰이므로 비선형을 거친다.
 
-1. Computing the current output/prediction
-2. Informing the next timestep's gate computations
+1. 지금의 출력이나 예측을 계산하기
+2. 다음 시각의 문 계산에 정보를 주기
 
-**Design insight:** The cell state stores raw information; the hidden state presents a task-relevant view of that information.
+**설계의 착상:** 세포 상태는 날 정보를 담고, 숨은 상태는 그 정보를 과제에 맞게 보여 준다.
 
 ---
 
-## Dimensionality Analysis
+## 차원 분석
 
-For an LSTM with input dimension $d$ and hidden dimension $n$:
+입력 차원이 $d$이고 숨은 차원이 $n$인 LSTM에 대해 다음과 같다.
 
-| Component | Shape | Description |
+| 부품 | 모양 | 설명 |
 |-----------|-------|-------------|
-| $x_t$ | $(d,)$ | Input vector |
-| $h_{t-1}, h_t$ | $(n,)$ | Hidden states |
-| $c_{t-1}, c_t$ | $(n,)$ | Cell states |
-| $[h_{t-1}, x_t]$ | $(n+d,)$ | Concatenated input |
-| $W_f, W_i, W_c, W_o$ | $(n, n+d)$ | Weight matrices |
-| $b_f, b_i, b_c, b_o$ | $(n,)$ | Bias vectors |
-| $f_t, i_t, o_t$ | $(n,)$ | Gate activations |
-| $\tilde{c}_t$ | $(n,)$ | Cell candidate |
+| $x_t$ | $(d,)$ | 입력 벡터 |
+| $h_{t-1}, h_t$ | $(n,)$ | 숨은 상태 |
+| $c_{t-1}, c_t$ | $(n,)$ | 세포 상태 |
+| $[h_{t-1}, x_t]$ | $(n+d,)$ | 이어 붙인 입력 |
+| $W_f, W_i, W_c, W_o$ | $(n, n+d)$ | 가중치 행렬 |
+| $b_f, b_i, b_c, b_o$ | $(n,)$ | 편향 벡터 |
+| $f_t, i_t, o_t$ | $(n,)$ | 문의 활성값 |
+| $\tilde{c}_t$ | $(n,)$ | 세포 후보 |
 
-### Parameter Count
+### 매개변수의 수
 
-**Total parameters:**
+**매개변수 총수:**
 
 $$\text{Parameters} = 4 \times [n \times (n + d) + n] = 4n^2 + 4nd + 4n = 4n(n + d + 1)$$
 
-**Example:** For $d = 100$ (input) and $n = 256$ (hidden):
+**예:** $d = 100$(입력)이고 $n = 256$(숨은 차원)이면 다음과 같다.
 
 $$\text{Parameters} = 4 \times 256 \times (256 + 100 + 1) = 4 \times 256 \times 357 = 365{,}568$$
 
-### Comparison with Other Architectures
+### 다른 구조와 견주기
 
-| Architecture | Parameters | Relative to RNN |
+| 구조 | 매개변수 | RNN에 대한 비 |
 |--------------|------------|-----------------|
-| Vanilla RNN | $n^2 + nd + n$ | 1× |
-| GRU | $3(n^2 + nd + n)$ | 3× |
-| LSTM | $4(n^2 + nd + n)$ | 4× |
+| 기본 RNN | $n^2 + nd + n$ | 1배 |
+| GRU | $3(n^2 + nd + n)$ | 3배 |
+| LSTM | $4(n^2 + nd + n)$ | 4배 |
 
-The 4× increase comes from the four weight matrices (forget, input, cell, output), each with the same dimensions as the single RNN weight matrix.
+4배로 늘어나는 까닭은 가중치 행렬이 네 개(망각, 입력, 세포, 출력)이고 저마다 RNN의 가중치 행렬 하나와 크기가 같기 때문이다.
 
-!!! tip "Computational Trade-off"
-    LSTM's 4× parameter increase yields dramatically better gradient flow. In practice, you can often use smaller hidden dimensions with LSTM than vanilla RNN while achieving better performance, partially offsetting the parameter cost.
+!!! tip "계산의 맞바꿈"
+    LSTM은 매개변수가 4배로 늘어나는 대신 기울기의 흐름이 훨씬 좋아진다. 실제로 기본 RNN보다 작은 숨은 차원으로도 더 나은 성능을 낼 때가 많아 매개변수의 부담을 얼마간 덜어 준다.
 
 ---
 
-## PyTorch Implementation from Scratch
+## PyTorch로 밑바닥부터 구현하기
 
-### LSTM Cell
+### LSTM 세포
 
 ```python
 import torch
@@ -206,10 +201,10 @@ import numpy as np
 
 class LSTMCell(nn.Module):
     """
-    Manual LSTM cell implementation for educational purposes.
+    배움을 위해 손수 만든 LSTM 세포 구현.
     
-    Implements the standard LSTM equations with combined weight matrices
-    for computational efficiency.
+    계산 효율을 위해 가중치 행렬을 합쳐 표준 LSTM 식을 구현한다.
+    
     """
     
     def __init__(self, input_size: int, hidden_size: int):
@@ -217,10 +212,10 @@ class LSTMCell(nn.Module):
         self.input_size = input_size
         self.hidden_size = hidden_size
         
-        # Combined weights for efficiency: [W_i, W_f, W_c, W_o] stacked
-        # This allows computing all gates in a single matrix multiplication
-        # Shape: (4 * hidden_size, input_size) for input weights
-        # Shape: (4 * hidden_size, hidden_size) for hidden weights
+        # 효율을 위해 가중치를 합침: [W_i, W_f, W_c, W_o]를 쌓았다
+        # 그러면 모든 문을 행렬 곱 한 번으로 계산할 수 있다
+        # 모양: 입력 가중치는 (4 * hidden_size, input_size)
+        # 모양: 숨은 가중치는 (4 * hidden_size, hidden_size)
         self.weight_ih = nn.Parameter(
             torch.randn(4 * hidden_size, input_size) / np.sqrt(input_size)
         )
@@ -229,20 +224,20 @@ class LSTMCell(nn.Module):
         )
         self.bias = nn.Parameter(torch.zeros(4 * hidden_size))
         
-        # Initialize forget gate bias to 1 (critical for gradient flow)
+        # 망각 문의 편향을 1로 초기화 (기울기의 흐름에 매우 중요)
         self._init_forget_gate_bias()
     
     def _init_forget_gate_bias(self):
         """
-        Initialize forget gate bias to 1.
+        망각 문의 편향을 1로 초기화한다.
         
-        This encourages the model to remember by default at the start of 
-        training, preventing early gradient vanishing before the network
-        learns what to forget.
+        그러면 학습 초반에 모델이 기본적으로 기억하게 되어, 무엇을 잊어야
+        할지 배우기 전에 기울기가 일찍 사라지는 것을 막는다.
+        
         """
         with torch.no_grad():
-            # Gates are ordered: [input, forget, cell, output]
-            # Forget gate bias is in the second quarter
+            # 문의 순서: [입력, 망각, 세포, 출력]
+            # 망각 문의 편향은 두 번째 사분면에 있다
             n = self.hidden_size
             self.bias[n:2*n].fill_(1.0)
     
@@ -252,54 +247,53 @@ class LSTMCell(nn.Module):
         state: tuple[torch.Tensor, torch.Tensor] | None = None
     ) -> tuple[torch.Tensor, torch.Tensor]:
         """
-        Forward pass for a single timestep.
+        한 시각의 순전파.
         
-        Args:
-            x: Input tensor of shape (batch_size, input_size)
-            state: Tuple of (h_prev, c_prev), each (batch_size, hidden_size)
-                   If None, initializes to zeros.
+        인수:
+            x: 모양이 (배치 크기, input_size)인 입력 텐서
+            state: (h_prev, c_prev)의 쌍이며 각각 (배치 크기, hidden_size)
+                   None이면 0으로 초기화한다.
         
-        Returns:
-            h_new: New hidden state (batch_size, hidden_size)
-            c_new: New cell state (batch_size, hidden_size)
+        반환값:
+            h_new: 새 숨은 상태 (배치 크기, hidden_size)
+            c_new: 새 세포 상태 (배치 크기, hidden_size)
         """
         batch_size = x.size(0)
         
-        # Initialize states if not provided
+        # 상태가 주어지지 않았으면 초기화
         if state is None:
             h_prev = torch.zeros(batch_size, self.hidden_size, device=x.device)
             c_prev = torch.zeros(batch_size, self.hidden_size, device=x.device)
         else:
             h_prev, c_prev = state
         
-        # Compute all gates in one matrix multiplication for efficiency
+        # 효율을 위해 행렬 곱 한 번으로 모든 문 계산
         # gates = W_ih @ x + W_hh @ h_prev + bias
         gates = (x @ self.weight_ih.t() + 
                  h_prev @ self.weight_hh.t() + 
                  self.bias)
         
-        # Split into individual gates
+        # 문마다 나누기
         n = self.hidden_size
-        i_gate = torch.sigmoid(gates[:, 0*n:1*n])      # Input gate
-        f_gate = torch.sigmoid(gates[:, 1*n:2*n])      # Forget gate
-        c_tilde = torch.tanh(gates[:, 2*n:3*n])        # Cell candidate
-        o_gate = torch.sigmoid(gates[:, 3*n:4*n])      # Output gate
+        i_gate = torch.sigmoid(gates[:, 0*n:1*n])      # 입력 문
+        f_gate = torch.sigmoid(gates[:, 1*n:2*n])      # 망각 문
+        c_tilde = torch.tanh(gates[:, 2*n:3*n])        # 세포 후보
+        o_gate = torch.sigmoid(gates[:, 3*n:4*n])      # 출력 문
         
-        # Cell state update: c_t = f_t ⊙ c_{t-1} + i_t ⊙ c̃_t
+        # 세포 상태 갱신: c_t = f_t ⊙ c_{t-1} + i_t ⊙ c̃_t
         c_new = f_gate * c_prev + i_gate * c_tilde
         
-        # Hidden state: h_t = o_t ⊙ tanh(c_t)
+        # 숨은 상태: h_t = o_t ⊙ tanh(c_t)
         h_new = o_gate * torch.tanh(c_new)
         
         return h_new, c_new
 
-
 class LSTM(nn.Module):
     """
-    Full LSTM layer processing sequences.
+    순차열을 처리하는 온전한 LSTM 층.
     
-    Supports multiple stacked layers and returns all hidden states
-    for downstream processing.
+    여러 층을 쌓는 것을 지원하며 뒤따르는 처리를 위해 모든 숨은 상태를
+    돌려준다.
     """
     
     def __init__(
@@ -314,14 +308,14 @@ class LSTM(nn.Module):
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         
-        # Create cells for each layer
-        # First layer takes input_size, subsequent layers take hidden_size
+        # 층마다 세포 만들기
+        # 첫 층은 input_size를, 뒤 층은 hidden_size를 받는다
         self.cells = nn.ModuleList([
             LSTMCell(input_size if i == 0 else hidden_size, hidden_size)
             for i in range(num_layers)
         ])
         
-        # Dropout between layers (not after final layer)
+        # 층 사이의 드롭아웃 (마지막 층 뒤에는 없다)
         self.dropout = nn.Dropout(dropout) if dropout > 0 else None
     
     def forward(
@@ -330,21 +324,21 @@ class LSTM(nn.Module):
         state: tuple[torch.Tensor, torch.Tensor] | None = None
     ) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
         """
-        Process an entire sequence through the LSTM.
+        순차열 전체를 LSTM으로 처리한다.
         
-        Args:
-            x: Input sequence (batch_size, seq_len, input_size)
-            state: Initial states as tuple of:
-                   - h_0: (num_layers, batch_size, hidden_size)
-                   - c_0: (num_layers, batch_size, hidden_size)
+        인수:
+            x: 입력 순차열 (배치 크기, seq_len, input_size)
+            state: 처음 상태의 쌍:
+                   - h_0: (num_layers, 배치 크기, hidden_size)
+                   - c_0: (num_layers, 배치 크기, hidden_size)
         
-        Returns:
-            output: All hidden states from top layer (batch_size, seq_len, hidden_size)
-            (h_n, c_n): Final states for all layers, same shape as input states
+        반환값:
+            output: 맨 위 층의 모든 숨은 상태 (배치 크기, seq_len, hidden_size)
+            (h_n, c_n): 모든 층의 마지막 상태이며 입력 상태와 모양이 같다
         """
         batch_size, seq_len, _ = x.size()
         
-        # Initialize states for all layers
+        # 모든 층의 상태 초기화
         if state is None:
             h = [torch.zeros(batch_size, self.hidden_size, device=x.device) 
                  for _ in range(self.num_layers)]
@@ -354,63 +348,63 @@ class LSTM(nn.Module):
             h = [state[0][i] for i in range(self.num_layers)]
             c = [state[1][i] for i in range(self.num_layers)]
         
-        # Process sequence timestep by timestep
+        # 순차열을 시각마다 처리
         outputs = []
         for t in range(seq_len):
             layer_input = x[:, t, :]
             
-            # Pass through each layer
+            # 층마다 통과
             for layer_idx, cell in enumerate(self.cells):
                 h[layer_idx], c[layer_idx] = cell(
                     layer_input, (h[layer_idx], c[layer_idx])
                 )
                 layer_input = h[layer_idx]
                 
-                # Apply dropout between layers (not after final layer)
+                # 층 사이에 드롭아웃 적용 (마지막 층 뒤에는 없다)
                 if self.dropout is not None and layer_idx < self.num_layers - 1:
                     layer_input = self.dropout(layer_input)
             
-            outputs.append(h[-1])  # Collect output from top layer
+            outputs.append(h[-1])  # 맨 위 층의 출력 모으기
         
-        # Stack outputs and states
-        output = torch.stack(outputs, dim=1)  # (batch, seq_len, hidden)
-        h_n = torch.stack(h, dim=0)           # (num_layers, batch, hidden)
-        c_n = torch.stack(c, dim=0)           # (num_layers, batch, hidden)
+        # 출력과 상태 쌓기
+        output = torch.stack(outputs, dim=1)  # (배치, seq_len, hidden)
+        h_n = torch.stack(h, dim=0)           # (num_layers, 배치, hidden)
+        c_n = torch.stack(c, dim=0)           # (num_layers, 배치, hidden)
         
         return output, (h_n, c_n)
 ```
 
-### Verification Against PyTorch
+### PyTorch와 견주어 확인하기
 
 ```python
 def verify_implementation():
-    """Verify our implementation matches PyTorch's."""
+    """우리 구현이 PyTorch와 맞는지 확인한다."""
     torch.manual_seed(42)
     
     batch_size, seq_len, input_size, hidden_size = 4, 10, 8, 16
     
-    # Our implementation
+    # 우리 구현
     our_lstm = LSTM(input_size, hidden_size, num_layers=1)
     
-    # PyTorch's implementation
+    # PyTorch의 구현
     torch_lstm = nn.LSTM(input_size, hidden_size, num_layers=1, batch_first=True)
     
-    # Copy weights (accounting for different ordering)
+    # 가중치 옮기기 (순서가 다른 점을 감안)
     with torch.no_grad():
-        # PyTorch orders gates as [i, f, g, o], we use same ordering
+        # PyTorch는 문의 순서를 [i, f, g, o]로 두며 우리도 같게 쓴다
         torch_lstm.weight_ih_l0.copy_(our_lstm.cells[0].weight_ih)
         torch_lstm.weight_hh_l0.copy_(our_lstm.cells[0].weight_hh)
         torch_lstm.bias_ih_l0.copy_(our_lstm.cells[0].bias)
-        torch_lstm.bias_hh_l0.zero_()  # We combine biases; PyTorch splits them
+        torch_lstm.bias_hh_l0.zero_()  # 우리는 편향을 합치고 PyTorch는 나눈다
     
-    # Test input
+    # 시험 입력
     x = torch.randn(batch_size, seq_len, input_size)
     
-    # Forward pass
+    # 순전파
     our_output, (our_h, our_c) = our_lstm(x)
     torch_output, (torch_h, torch_c) = torch_lstm(x)
     
-    # Compare
+    # 비교
     print(f"Output close: {torch.allclose(our_output, torch_output, atol=1e-5)}")
     print(f"Hidden close: {torch.allclose(our_h, torch_h, atol=1e-5)}")
     print(f"Cell close: {torch.allclose(our_c, torch_c, atol=1e-5)}")
@@ -420,51 +414,51 @@ def verify_implementation():
 
 ---
 
-## Using PyTorch's Built-in LSTM
+## PyTorch 내장 LSTM 쓰기
 
 ```python
 import torch
 import torch.nn as nn
 
-# Create LSTM layer
+# LSTM 층 만들기
 lstm = nn.LSTM(
-    input_size=100,      # Dimension of input features
-    hidden_size=256,     # Dimension of hidden/cell state
-    num_layers=2,        # Number of stacked LSTM layers
-    batch_first=True,    # Input shape: (batch, seq, features)
-    dropout=0.3,         # Dropout between layers (only if num_layers > 1)
-    bidirectional=False  # Process forward only
+    input_size=100,      # 입력 특징의 차원
+    hidden_size=256,     # 숨은 상태와 세포 상태의 차원
+    num_layers=2,        # 쌓은 LSTM 층의 수
+    batch_first=True,    # 입력의 모양: (배치, seq, 특징)
+    dropout=0.3,         # 층 사이의 드롭아웃 (num_layers > 1일 때만)
+    bidirectional=False  # 순방향만 처리
 )
 
-# Input: (batch_size, sequence_length, input_size)
+# 입력: (배치 크기, sequence_length, input_size)
 x = torch.randn(32, 50, 100)
 
-# Forward pass
+# 순전파
 output, (h_n, c_n) = lstm(x)
 
 print(f"Output shape: {output.shape}")     # (32, 50, 256)
-print(f"Final hidden: {h_n.shape}")        # (2, 32, 256) - one per layer
-print(f"Final cell: {c_n.shape}")          # (2, 32, 256) - one per layer
+print(f"Final hidden: {h_n.shape}")        # (2, 32, 256) — 층마다 하나
+print(f"Final cell: {c_n.shape}")          # (2, 32, 256) — 층마다 하나
 
-# Accessing outputs for downstream tasks
-last_output = output[:, -1, :]    # Last timestep: (32, 256)
-last_hidden = h_n[-1]             # Final layer's hidden: (32, 256)
-# Note: last_output == last_hidden for unidirectional LSTM
+# 뒤따르는 과제를 위해 출력에 접근
+last_output = output[:, -1, :]    # 마지막 시각: (32, 256)
+last_hidden = h_n[-1]             # 마지막 층의 숨은 상태: (32, 256)
+# 참고: 단방향 LSTM에서는 last_output == last_hidden이다
 ```
 
 ---
 
-## Practical Applications
+## 실전 응용
 
-### Sequence Classification
+### 순차열 분류
 
 ```python
 class LSTMClassifier(nn.Module):
     """
-    LSTM for sequence classification (sentiment analysis, spam detection, etc.)
+    순차열 분류를 위한 LSTM (감성 분석, 스팸 판정 등).
     
-    Uses the final hidden state as a fixed-dimensional representation
-    of the entire sequence for classification.
+    마지막 숨은 상태를 순차열 전체의 차원 고정 표현으로 삼아
+    분류한다.
     """
     
     def __init__(
@@ -495,56 +489,55 @@ class LSTMClassifier(nn.Module):
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Args:
-            x: Token indices (batch_size, seq_len)
+        인수:
+            x: 토큰 색인 (배치 크기, seq_len)
         
-        Returns:
-            logits: Classification logits (batch_size, num_classes)
+        반환값:
+            logits: 분류 로짓 (배치 크기, num_classes)
         """
-        # Embed tokens
-        embedded = self.embedding(x)  # (batch, seq_len, embed_dim)
+        # 토큰 임베딩
+        embedded = self.embedding(x)  # (배치, seq_len, embed_dim)
         embedded = self.dropout(embedded)
         
-        # LSTM forward pass
+        # LSTM 순전파
         lstm_out, (h_n, c_n) = self.lstm(embedded)
         
-        # Use final hidden state for classification
-        # h_n shape: (num_layers, batch, hidden_size)
-        # Take the last layer's hidden state
-        final_hidden = h_n[-1]  # (batch, hidden_size)
+        # 분류에 마지막 숨은 상태 쓰기
+        # h_n의 모양: (num_layers, 배치, hidden_size)
+        # 마지막 층의 숨은 상태 가져오기
+        final_hidden = h_n[-1]  # (배치, hidden_size)
         final_hidden = self.dropout(final_hidden)
         
-        # Classify
-        logits = self.fc(final_hidden)  # (batch, num_classes)
+        # 분류
+        logits = self.fc(final_hidden)  # (배치, num_classes)
         
         return logits
 
-
-# Example usage
+# 사용 예
 model = LSTMClassifier(
     vocab_size=30000,
     embed_dim=128,
     hidden_size=256,
-    num_classes=2,  # Binary classification
+    num_classes=2,  # 이진 분류
     num_layers=2,
     dropout=0.5
 )
 
-# Input: batch of 32 sequences, each with 100 tokens
+# 입력: 토큰 100개짜리 순차열 32개의 배치
 x = torch.randint(0, 30000, (32, 100))
 logits = model(x)  # (32, 2)
 probs = torch.softmax(logits, dim=-1)
 ```
 
-### Sequence Generation (Language Model)
+### 순차열 생성 (언어 모형)
 
 ```python
 class LSTMLanguageModel(nn.Module):
     """
-    LSTM for autoregressive text generation.
+    자기회귀 텍스트 생성을 위한 LSTM.
     
-    Predicts the next token given previous tokens, enabling
-    text generation through iterative sampling.
+    앞선 토큰이 주어졌을 때 다음 토큰을 예측하여, 되풀이 표본 추출로
+    텍스트를 만들 수 있게 한다.
     """
     
     def __init__(
@@ -571,10 +564,10 @@ class LSTMLanguageModel(nn.Module):
             dropout=dropout if num_layers > 1 else 0
         )
         
-        # Project hidden state to vocabulary
+        # 숨은 상태를 어휘로 사영
         self.fc = nn.Linear(hidden_size, vocab_size)
         
-        # Optionally tie embedding and output weights
+        # 선택적으로 임베딩과 출력 가중치를 묶기
         if tie_weights and embed_dim == hidden_size:
             self.fc.weight = self.embedding.weight
     
@@ -584,13 +577,13 @@ class LSTMLanguageModel(nn.Module):
         hidden: tuple[torch.Tensor, torch.Tensor] | None = None
     ) -> tuple[torch.Tensor, tuple[torch.Tensor, torch.Tensor]]:
         """
-        Args:
-            x: Token indices (batch_size, seq_len)
-            hidden: Previous (h, c) states
+        인수:
+            x: 토큰 색인 (배치 크기, seq_len)
+            hidden: 이전의 (h, c) 상태
         
-        Returns:
-            logits: Next-token logits (batch_size, seq_len, vocab_size)
-            hidden: Updated (h, c) states
+        반환값:
+            logits: 다음 토큰의 로짓 (배치 크기, seq_len, vocab_size)
+            hidden: 갱신된 (h, c) 상태
         """
         embedded = self.dropout(self.embedding(x))
         lstm_out, hidden = self.lstm(embedded, hidden)
@@ -600,7 +593,7 @@ class LSTMLanguageModel(nn.Module):
         return logits, hidden
     
     def init_hidden(self, batch_size: int, device: torch.device):
-        """Initialize hidden states to zeros."""
+        """숨은 상태를 0으로 초기화한다."""
         h = torch.zeros(self.num_layers, batch_size, self.hidden_size, device=device)
         c = torch.zeros(self.num_layers, batch_size, self.hidden_size, device=device)
         return (h, c)
@@ -614,16 +607,16 @@ class LSTMLanguageModel(nn.Module):
         top_k: int | None = None
     ) -> list[int]:
         """
-        Generate tokens autoregressively.
+        자기회귀적으로 토큰을 만든다.
         
-        Args:
-            start_tokens: Initial token indices (seq_len,)
-            max_new_tokens: Number of new tokens to generate
-            temperature: Sampling temperature (higher = more random)
-            top_k: If set, sample only from top-k most likely tokens
+        인수:
+            start_tokens: 처음 토큰의 색인 (seq_len,)
+            max_new_tokens: 만들 새 토큰의 수
+            temperature: 표본 추출의 온도 (높을수록 더 무작위)
+            top_k: 정하면 가장 그럴듯한 상위 k개 토큰에서만 뽑는다
         
-        Returns:
-            List of generated token indices
+        반환값:
+            만들어진 토큰 색인의 목록
         """
         self.eval()
         device = next(self.parameters()).device
@@ -631,18 +624,18 @@ class LSTMLanguageModel(nn.Module):
         tokens = start_tokens.tolist()
         hidden = self.init_hidden(1, device)
         
-        # Process prompt
+        # 프롬프트 처리
         x = torch.tensor([tokens], device=device)
         _, hidden = self.forward(x, hidden)
         
-        # Generate new tokens
+        # 새 토큰 만들기
         current_token = torch.tensor([[tokens[-1]]], device=device)
         
         for _ in range(max_new_tokens):
             logits, hidden = self.forward(current_token, hidden)
             logits = logits[0, -1, :] / temperature  # (vocab_size,)
             
-            # Optional top-k filtering
+            # 선택적인 상위 k개 거르기
             if top_k is not None:
                 top_k_logits, top_k_indices = torch.topk(logits, top_k)
                 probs = torch.softmax(top_k_logits, dim=-1)
@@ -658,24 +651,24 @@ class LSTMLanguageModel(nn.Module):
         return tokens
 ```
 
-### Time Series Forecasting
+### 시계열 예측
 
 ```python
 class LSTMForecaster(nn.Module):
     """
-    LSTM for multivariate time series forecasting.
+    다변량 시계열 예측을 위한 LSTM.
     
-    Given a sequence of observations, predicts future values
-    for a specified forecast horizon.
+    관측의 순차열이 주어지면 정해진 예측 지평의 미래 값을
+    예측한다.
     """
     
     def __init__(
         self,
-        input_size: int,     # Number of input features
+        input_size: int,     # 입력 특징의 수
         hidden_size: int,
         num_layers: int,
-        output_size: int,    # Number of output features
-        horizon: int = 1,    # Forecast horizon (steps ahead)
+        output_size: int,    # 출력 특징의 수
+        horizon: int = 1,    # 예측 지평 (앞을 내다보는 걸음 수)
         dropout: float = 0.2
     ):
         super().__init__()
@@ -690,31 +683,30 @@ class LSTMForecaster(nn.Module):
             dropout=dropout if num_layers > 1 else 0
         )
         
-        # Predict all horizon steps at once
+        # 예측 지평의 모든 걸음을 한꺼번에 예측
         self.fc = nn.Linear(hidden_size, output_size * horizon)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-        Args:
-            x: Input sequence (batch_size, seq_len, input_size)
+        인수:
+            x: 입력 순차열 (배치 크기, seq_len, input_size)
         
-        Returns:
-            predictions: Forecast (batch_size, horizon, output_size)
+        반환값:
+            predictions: 예측 (배치 크기, horizon, output_size)
         """
-        # Process sequence
+        # 순차열 처리
         lstm_out, (h_n, c_n) = self.lstm(x)
         
-        # Use final hidden state for prediction
-        final_hidden = h_n[-1]  # (batch, hidden_size)
+        # 예측에 마지막 숨은 상태 쓰기
+        final_hidden = h_n[-1]  # (배치, hidden_size)
         
-        # Predict all steps
-        predictions = self.fc(final_hidden)  # (batch, output_size * horizon)
+        # 모든 걸음 예측
+        predictions = self.fc(final_hidden)  # (배치, output_size * horizon)
         predictions = predictions.view(-1, self.horizon, self.output_size)
         
         return predictions
 
-
-# Example: Predict next 5 steps of 3 features from 20 historical steps
+# 예: 지난 20걸음으로 특징 3개의 다음 5걸음 예측
 model = LSTMForecaster(
     input_size=3,
     hidden_size=128,
@@ -723,67 +715,67 @@ model = LSTMForecaster(
     horizon=5
 )
 
-x = torch.randn(32, 20, 3)  # 32 samples, 20 timesteps, 3 features
+x = torch.randn(32, 20, 3)  # 표본 32개, 시각 20개, 특징 3개
 predictions = model(x)       # (32, 5, 3)
 ```
 
 ---
 
-## Initialization and Training Best Practices
+## 초기화와 학습의 모범 관행
 
-### Weight Initialization
+### 가중치 초기화
 
 ```python
 def init_lstm_weights(lstm: nn.LSTM):
     """
-    Initialize LSTM weights following best practices.
+    모범 관행에 따라 LSTM의 가중치를 초기화한다.
     
-    - Input-hidden weights: Xavier/Glorot uniform
-    - Hidden-hidden weights: Orthogonal (preserves gradient norm)
-    - Biases: Zero, except forget gate bias = 1
+    - 입력에서 숨은 상태로 가는 가중치: 자비에르(글로럿) 균등
+    - 숨은 상태끼리의 가중치: 직교 (기울기의 노름을 지킨다)
+    - 편향: 0, 다만 망각 문의 편향은 1
     """
     for name, param in lstm.named_parameters():
         if 'weight_ih' in name:
-            # Input-hidden weights: Xavier uniform
+            # 입력에서 숨은 상태로 가는 가중치: 자비에르 균등
             nn.init.xavier_uniform_(param)
         elif 'weight_hh' in name:
-            # Hidden-hidden weights: Orthogonal
-            # This helps maintain gradient magnitude through recurrence
+            # 숨은 상태끼리의 가중치: 직교
+            # 그러면 순환을 지나도 기울기의 크기가 지켜진다
             nn.init.orthogonal_(param)
         elif 'bias' in name:
-            # Biases: mostly zero
+            # 편향: 대체로 0
             nn.init.zeros_(param)
-            # But set forget gate bias to 1
+            # 다만 망각 문의 편향은 1로 둔다
             n = param.size(0) // 4
             param.data[n:2*n].fill_(1.0)
 ```
 
-### Why Forget Gate Bias = 1?
+### 망각 문의 편향을 왜 1로 두는가
 
-At initialization with random weights, gate activations are approximately 0.5 (sigmoid of small random values). This means the model starts by forgetting ~50% of information at each timestep—problematic for learning long-range dependencies.
+무작위 가중치로 초기화하면 문의 활성값이 (작은 무작위 값의 시그모이드라) 약 0.5이다. 곧 모델이 시각마다 정보의 절반쯤을 잊으며 시작하는데, 먼 거리 의존을 배우기에 좋지 않다.
 
-Setting $b_f = 1$ biases the forget gate sigmoid input, so:
+$b_f = 1$으로 두면 망각 문 시그모이드의 입력이 치우쳐 다음과 같이 된다.
 
 $$f_t = \sigma(W_f \cdot [h_{t-1}, x_t] + 1) \approx \sigma(1) \approx 0.73$$
 
-This "remember by default" initialization allows gradients to flow early in training. The network can then learn to forget specific information as needed.
+이 "기본은 기억" 초기화 덕분에 학습 초반에도 기울기가 흐른다. 그다음에 신경망이 필요에 따라 특정 정보를 잊는 법을 배운다.
 
-### Gradient Clipping
+### 기울기 자르기
 
 ```python
-# During training, clip gradients to prevent explosion
+# 학습 중에는 폭발을 막으려고 기울기를 자른다
 optimizer.zero_grad()
 loss.backward()
 torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=5.0)
 optimizer.step()
 ```
 
-LSTM addresses vanishing gradients but can still suffer from exploding gradients, especially early in training. Gradient clipping is standard practice.
+LSTM은 기울기 소실을 다루지만 특히 학습 초반에는 기울기 폭발을 겪을 수 있다. 기울기 자르기가 표준 관행이다.
 
-### Learning Rate Scheduling
+### 학습률 스케줄링
 
 ```python
-# Reduce learning rate when validation loss plateaus
+# 검증 손실이 정체되면 학습률을 줄인다
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     optimizer, 
     mode='min', 
@@ -791,29 +783,29 @@ scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
     patience=5
 )
 
-# After each epoch
+# 세대마다
 scheduler.step(val_loss)
 ```
 
 ---
 
-## LSTM Variants
+## LSTM의 변형
 
-### Coupled Forget-Input Gates
+### 망각 문과 입력 문 묶기
 
-Observation: If we're forgetting old information, we're usually adding new information, and vice versa. Coupling the gates:
+관찰: 옛 정보를 잊을 때는 대개 새 정보를 넣고, 그 반대도 마찬가지이다. 두 문을 묶으면 다음과 같다.
 
 $$c_t = f_t \odot c_{t-1} + (1 - f_t) \odot \tilde{c}_t$$
 
-This reduces parameters and enforces the constraint that total "information mass" is conserved.
+이렇게 하면 매개변수가 줄고 전체 "정보의 양"이 보존된다는 제약이 걸린다.
 
-### GRU (Gated Recurrent Unit)
+### GRU (문 달린 순환 단위)
 
-GRU simplifies LSTM by:
+GRU는 다음과 같이 LSTM을 간소화한다.
 
-1. Merging cell state and hidden state
-2. Combining forget and input gates into an "update gate"
-3. Using a "reset gate" instead of output gate
+1. 세포 상태와 숨은 상태를 하나로 합친다
+2. 망각 문과 입력 문을 "갱신 문" 하나로 엮는다
+3. 출력 문 대신 "재설정 문"을 쓴다
 
 $$z_t = \sigma(W_z \cdot [h_{t-1}, x_t])$$
 
@@ -823,58 +815,58 @@ $$\tilde{h}_t = \tanh(W_h \cdot [r_t \odot h_{t-1}, x_t])$$
 
 $$h_t = (1 - z_t) \odot h_{t-1} + z_t \odot \tilde{h}_t$$
 
-**Trade-off:** Fewer parameters (3× vs 4×), similar performance on many tasks, but less flexible memory control.
+**맞바꿈:** 매개변수가 적고(4배가 아니라 3배) 많은 과제에서 성능이 비슷하지만 기억을 다스리는 유연함은 덜하다.
 
 ---
 
-## When to Use LSTM
+## 언제 LSTM을 쓸까
 
-### LSTM Strengths
+### LSTM의 강점
 
-- **Long sequences**: Effective up to hundreds of timesteps
-- **Variable-length sequences**: Natural handling via recurrence
-- **Online/streaming processing**: Can process one timestep at a time
-- **Sequential inductive bias**: Explicit modeling of temporal order
+- **긴 순차열**: 시각 수백 개까지 효과적이다
+- **길이가 다양한 순차열**: 순환으로 자연스럽게 다룬다
+- **실시간·흐름 처리**: 한 시각씩 처리할 수 있다
+- **순차적 귀납 편향**: 시간 순서를 명시적으로 다룬다
 
-### When to Consider Alternatives
+### 다른 것을 생각해 볼 때
 
-| Situation | Alternative | Reason |
+| 상황 | 대안 | 까닭 |
 |-----------|-------------|--------|
-| Very long sequences (1000+) | Transformer | Better parallelization, attention over full context |
-| Simple short sequences | GRU | Fewer parameters, faster |
-| Massive parallelism needed | 1D CNN, Transformer | LSTM is inherently sequential |
-| Global dependencies | Transformer | Self-attention captures long-range directly |
-| Edge deployment | GRU or custom | Lower memory footprint |
+| 아주 긴 순차열 (1000 이상) | 트랜스포머 | 병렬 처리가 낫고 문맥 전체에 어텐션을 준다 |
+| 단순하고 짧은 순차열 | GRU | 매개변수가 적고 빠르다 |
+| 대규모 병렬 처리가 필요할 때 | 1차원 CNN, 트랜스포머 | LSTM은 본디 순차적이다 |
+| 전역적인 의존 | 트랜스포머 | 자기 어텐션이 먼 거리를 곧바로 붙잡는다 |
+| 말단 장치 배포 | GRU나 맞춤 구조 | 메모리를 덜 쓴다 |
 
-### Modern Context
+### 요즘의 자리
 
-While Transformers have largely superseded LSTMs for NLP tasks, LSTMs remain competitive or superior for:
+자연어 처리에서는 트랜스포머가 LSTM을 거의 대체했지만, 다음에서는 LSTM이 여전히 겨룰 만하거나 낫다.
 
-- Time series with strong sequential structure
-- Low-latency streaming applications
-- Small dataset regimes (less prone to overfitting)
-- Edge deployment (predictable memory usage)
+- 순차 구조가 뚜렷한 시계열
+- 지연이 적어야 하는 흐름 처리 응용
+- 데이터가 적은 상황 (과적합에 덜 빠진다)
+- 말단 장치 배포 (메모리 사용이 예측 가능하다)
 
 ---
 
-## Debugging Common Issues
+## 흔한 문제 잡기
 
-### Symptoms and Solutions
+### 증상과 해법
 
-| Symptom | Likely Cause | Solution |
+| 징후 | 짐작되는 원인 | 해결책 |
 |---------|--------------|----------|
-| Loss doesn't decrease | Learning rate too high/low | Try 1e-3, then adjust |
-| Loss oscillates wildly | Exploding gradients | Add gradient clipping |
-| Model outputs constant | Dead neurons or vanishing gradients | Check forget gate bias = 1 |
-| Poor long-range performance | Insufficient hidden size | Increase hidden_size |
-| Overfitting | Model too large or no regularization | Add dropout, reduce size |
-| Slow training | Sequence too long | Use truncated BPTT |
+| 손실이 줄지 않는다 | 학습률이 너무 높거나 낮다 | 1e-3으로 해 보고 조정한다 |
+| 손실이 크게 요동친다 | 기울기 폭발 | 기울기 자르기를 더한다 |
+| 모델의 출력이 늘 같다 | 죽은 뉴런이나 기울기 소실 | 망각 문의 편향이 1인지 확인한다 |
+| 먼 거리 성능이 나쁘다 | 숨은 차원이 모자라다 | hidden_size를 키운다 |
+| 과적합 | 모델이 너무 크거나 규제가 없다 | 드롭아웃을 더하고 크기를 줄인다 |
+| 학습이 느리다 | 순차열이 너무 길다 | 잘라 낸 BPTT를 쓴다 |
 
-### Diagnostic Code
+### 진단 코드
 
 ```python
 def diagnose_lstm(model, dataloader, device):
-    """Run diagnostics on LSTM training."""
+    """LSTM 학습을 진단한다."""
     model.eval()
     
     with torch.no_grad():
@@ -882,7 +874,7 @@ def diagnose_lstm(model, dataloader, device):
             x, y = batch
             x = x.to(device)
             
-            # Check gradient magnitudes
+            # 기울기의 크기 확인
             model.train()
             output, _ = model(x)
             loss = output.sum()
@@ -898,34 +890,34 @@ def diagnose_lstm(model, dataloader, device):
 
 ---
 
-## Summary
+## 요약
 
-LSTM networks solve the vanishing gradient problem through:
+LSTM 신경망은 다음으로 기울기 소실 문제를 푼다.
 
-1. **Cell state**: Additive information highway that preserves gradients
-2. **Forget gate**: Learns what information to discard
-3. **Input gate**: Learns what new information to store
-4. **Output gate**: Learns what information to output
+1. **세포 상태**: 기울기를 지키는 덧셈 방식 정보 고속도로
+2. **망각 문**: 어떤 정보를 버릴지 배운다
+3. **입력 문**: 어떤 새 정보를 담을지 배운다
+4. **출력 문**: 어떤 정보를 내보낼지 배운다
 
-**Key properties:**
+**핵심 성질:**
 
-- Gradients flow through cell state without multiplicative decay
-- Gates learn task-specific information flow patterns
-- Captures dependencies over hundreds of timesteps
-- 4× parameters vs vanilla RNN, but dramatically better gradient flow
+- 기울기가 곱셈으로 줄어들지 않고 세포 상태를 타고 흐른다
+- 문이 과제에 맞는 정보 흐름의 방식을 배운다
+- 시각 수백 개에 걸친 의존을 붙잡는다
+- 기본 RNN보다 매개변수가 4배지만 기울기의 흐름이 훨씬 낫다
 
-**Best practices:**
+**모범 관행:**
 
-- Initialize forget gate bias to 1
-- Use gradient clipping
-- Apply dropout between layers
-- Consider GRU if parameters are constrained
+- 망각 문의 편향을 1로 초기화한다
+- 기울기 자르기를 쓴다
+- 층 사이에 드롭아웃을 적용한다
+- 매개변수에 제약이 있으면 GRU를 생각해 본다
 
-The architecture adds computational cost but enables learning from much longer sequences—essential for most practical sequence modeling tasks.
+이 구조는 계산 비용을 더하지만 훨씬 긴 순차열에서 배울 수 있게 해 주며, 이는 실제 순차열 모형 과제 대부분에 꼭 필요하다.
 
 ---
 
-## References
+## 참고 문헌
 
 1. Hochreiter, S., & Schmidhuber, J. (1997). Long Short-Term Memory. *Neural Computation*, 9(8), 1735-1780.
 
@@ -936,3 +928,41 @@ The architecture adds computational cost but enables learning from much longer s
 4. Jozefowicz, R., Zaremba, W., & Sutskever, I. (2015). An Empirical Exploration of Recurrent Network Architectures. *ICML*.
 
 5. Cho, K., Van Merriënboer, B., Gulcehre, C., Bahdanau, D., Bougares, F., Schwenk, H., & Bengio, Y. (2014). Learning Phrase Representations using RNN Encoder-Decoder for Statistical Machine Translation. *EMNLP*.
+
+## 연습문제
+
+**연습문제 1.**
+LSTM의 식을 적고 각 문의 구실을 설명하라.
+
+??? success "연습문제 1 풀이"
+    망각 문: $f_t = \sigma(W_f[h_{t-1}, x_t] + b_f)$ — 세포 상태에서 무엇을 버릴지.
+    입력 문: $i_t = \sigma(W_i[h_{t-1}, x_t] + b_i)$ — 어떤 새 정보를 담을지.
+    후보: $\tilde{c}_t = \tanh(W_c[h_{t-1}, x_t] + b_c)$ — 새 후보 값.
+    세포 갱신: $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$.
+    출력 문: $o_t = \sigma(W_o[h_{t-1}, x_t] + b_o)$ — 무엇을 내보낼지.
+    숨은 상태: $h_t = o_t \odot \tanh(c_t)$.
+
+---
+
+**연습문제 2.**
+세포 상태 $c_t$이 기울기 소실을 덜어 주는 '컨베이어 벨트' 노릇을 하는 방식을 설명하라.
+
+??? success "연습문제 2 풀이"
+    세포 상태 갱신 $c_t = f_t \odot c_{t-1} + i_t \odot \tilde{c}_t$은 (잔차 연결처럼) 덧셈이다. 기울기는 $\frac{\partial c_T}{\partial c_t} = \prod_{k=t+1}^T f_k$으로 흐른다. 망각 문이 1에 가까우면 기울기가 그대로 지나가므로 시각 수백 개에 걸쳐 배울 수 있다.
+
+---
+
+**연습문제 3.**
+입력 차원이 300이고 숨은 차원이 512인 LSTM의 매개변수 수를 계산하라.
+
+??? success "연습문제 3 풀이"
+    LSTM에는 문이 넷이고 저마다 입력용과 숨은 상태용 가중치 행렬이 있다.
+    $4 \times (300 \times 512 + 512 \times 512 + 512) = 4 \times (153{,}600 + 262{,}144 + 512) = 4 \times 416{,}256 = 1{,}665{,}024$개의 매개변수이다.
+
+---
+
+**연습문제 4.**
+망각 문의 편향을 0이 아니라 1로 초기화하는 일이 잦은 까닭은 무엇인가?
+
+??? success "연습문제 4 풀이"
+    편향이 0이면 망각 문이 $\sigma(0) = 0.5$이어서 세포 상태가 걸음마다 절반으로 준다. 편향을 1로 두면 $\sigma(1) \approx 0.73$이 되어 대체로 '기억하는' 상태에서 출발한다. 그러면 LSTM이 무엇을 잊어야 할지 배우기도 전에 중요한 정보를 잊는 일을 막는다(Jozefowicz 등, 2015).

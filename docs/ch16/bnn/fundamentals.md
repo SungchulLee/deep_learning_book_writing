@@ -1,166 +1,183 @@
-# Bayesian Neural Network Fundamentals
+# 베이즈 신경망의 바탕
+## 개요
 
+**베이즈 신경망(BNN)**은 점 어림값을 배우는 대신 가중값에 확률 분포를 두어 표준 신경망을 넓힌다. 이로써 원리 있게 불확실함을 잴 수 있고, 모형이 자료에 대해 모르는 것(우연 불확실함)과 모형이 자기 자신에 대해 모르는 것(앎 불확실함)을 가려낼 수 있다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Overview
-
-**Bayesian neural networks (BNNs)** extend standard neural networks by placing probability distributions over weights rather than learning point estimates. This enables principled uncertainty quantification, distinguishing between what the model doesn't know about the data (aleatoric uncertainty) and what the model doesn't know about itself (epistemic uncertainty).
-
-!!! note "Comprehensive Coverage"
-    For full implementation details, benchmarks, and advanced methods (SWAG, Laplace, deep ensembles), see **Ch39: Model Uncertainty — Bayesian Methods**.
+!!! note "두루 다루기"
+    온전한 구현의 세부, 잣대 실험, 앞선 방법(SWAG, 라플라스, 깊은 앙상블)은 **39장: 모형 불확실함 — 베이즈 방법**을 보아라.
 
 ---
 
-## Why Bayesian Neural Networks?
+## 왜 베이즈 신경망인가?
 
-Standard neural networks produce point predictions:
+표준 신경망은 점 미리봄을 내놓는다:
 
 $$
-
 \hat{y} = f_{\hat{\theta}}(x)
-
 $$
 
-Bayesian neural networks maintain a posterior distribution:
+베이즈 신경망은 뒤확률 분포를 지닌다:
 
 $$
-
 p(\theta \mid \mathcal{D}) \propto p(\mathcal{D} \mid \theta) \, p(\theta)
-
 $$
 
-This enables:
+이로써 다음이 가능해진다:
 
-- **Predictive distributions** instead of point estimates
-- **Uncertainty decomposition** (aleatoric vs epistemic)
-- **Principled regularization** through priors
-- **Better calibration** and out-of-distribution detection
-- **Active learning** — knowing what to query next
+- 점 어림값 대신 **미리봄 분포**
+- **불확실함 쪼개기**(우연과 앎)
+- 앞확률로 하는 **원리 있는 벌주기**
+- **더 나은 눈금 맞추기**와 분포 밖 알아내기
+- **적극 배움** — 다음에 무엇을 물을지 아는 것
 
-### Predictive Distribution
+### 예측 분포
 
-The Bayesian predictive distribution integrates over all plausible parameter values:
+베이즈 미리봄 분포는 그럴듯한 매개변수 값 모두에 걸쳐 적분한다:
 
 $$
-
 p(y^* \mid x^*, \mathcal{D}) = \int p(y^* \mid x^*, \theta) \, p(\theta \mid \mathcal{D}) \, d\theta
-
 $$
 
-This integral is generally intractable for neural networks, motivating the approximate inference methods of this chapter.
+신경망에서 이 적분은 대체로 다룰 수 없으며, 그래서 이 장의 어림 추론 방법이 필요해진다.
 
 ---
 
-## Types of Uncertainty
+## 불확실함의 갈래
 
 $$
-
 \boxed{\text{Total Uncertainty} = \text{Aleatoric Uncertainty} + \text{Epistemic Uncertainty}}
-
 $$
 
-| Type | Source | Reducible? | Example |
+| 갈래 | 근원 | 줄일 수 있나? | 보기 |
 |------|--------|------------|---------|
-| **Aleatoric** | Inherent data noise | No | Measurement noise, market microstructure |
-| **Epistemic** | Limited training data | Yes (with more data) | Novel market conditions, unseen asset classes |
+| **우연** | 자료에 본디 있는 잡음 | 아니오 | 재기의 잡음, 시장 미시 짜임 |
+| **앎** | 익힘 자료가 모자람 | 예(자료가 늘면) | 처음 보는 시장 상황, 겪지 못한 자산 갈래 |
 
-### Uncertainty Decomposition (Regression)
+### 불확실함 쪼개기(회귀)
 
 $$
-
 \underbrace{\text{Var}[y^*]}_{\text{Total}} = \underbrace{\mathbb{E}_\theta[\sigma^2_\theta(x^*)]}_{\text{Aleatoric}} + \underbrace{\text{Var}_\theta[\mu_\theta(x^*)]}_{\text{Epistemic}}
-
 $$
 
-### Uncertainty Decomposition (Classification)
+### 불확실함 쪼개기(가르기)
 
-Using mutual information:
+상호 정보를 쓰면:
 
 $$
-
 \underbrace{\mathbb{H}[\bar{p}]}_{\text{Total}} = \underbrace{\mathbb{I}[y; \theta]}_{\text{Epistemic}} + \underbrace{\mathbb{E}_\theta[\mathbb{H}[p_\theta]]}_{\text{Aleatoric}}
-
 $$
 
 ---
 
-## The Inference Challenge
+## 추론의 어려움
 
-For a neural network with $D$ parameters, the posterior is defined over a $D$-dimensional space with highly complex geometry:
+매개변수가 $D$개인 신경망에서 뒤확률은 기하가 몹시 복잡한 $D$차원 공간 위에서 정해진다:
 
-1. **Non-convex loss landscape**: Multiple modes separated by high-loss barriers
-2. **High dimensionality**: Modern networks have millions to billions of parameters
-3. **Non-identifiability**: Weight space symmetries create equivalent parameterizations
-4. **No conjugacy**: Neural network likelihoods are not conjugate to any standard prior
+1. **볼록하지 않은 손실 지형**: 손실이 높은 벽으로 갈린 봉우리 여럿
+2. **높은 차원**: 요즘 망은 매개변수가 수백만에서 수십억 개다
+3. **가려낼 수 없음**: 가중값 공간의 대칭이 같은 값의 매개변수화를 만든다
+4. **켤레가 없음**: 신경망의 가능도는 어떤 표준 앞확률과도 켤레가 아니다
 
-### Inference Method Landscape
+### 추론 방법의 지형
 
-| Method | Accuracy | Scalability | Simplicity |
+| 방법 | 정확도 | 규모 키우기 | 단순함 |
 |--------|----------|-------------|------------|
-| HMC | High | Low | Low |
-| SGLD | Medium-High | High | Medium |
-| Variational (Bayes by Backprop) | Medium | High | Medium |
-| Laplace Approximation | Medium | Medium-High | High |
-| MC Dropout | Low-Medium | Very High | Very High |
-| Deep Ensembles | Medium-High | Medium | High |
+| HMC | 높음 | 낮음 | 낮음 |
+| SGLD | 중간에서 높음 | 높음 | 중간 |
+| 변분(되짚음으로 하는 베이즈) | 중간 | 높음 | 중간 |
+| 라플라스 어림 | 중간 | 중간에서 높음 | 높음 |
+| 몬테카를로 떨구기 | 낮음에서 중간 | 아주 높음 | 아주 높음 |
+| 깊은 앙상블 | 중간에서 높음 | 중간 | 높음 |
 
 ---
 
-## Connection to Regularization
+## 벌주기와의 이음
 
-Bayesian inference with specific priors corresponds to familiar regularization techniques:
+어떤 앞확률을 쓰는 베이즈 추론은 낯익은 벌주기 기법과 맞대응된다:
 
-| Prior | Regularization | MAP Objective |
+| 앞확률 | 벌주기 | MAP 목표 |
 |-------|---------------|---------------|
-| $\mathcal{N}(0, \sigma^2 I)$ | L2 / Weight decay | $\mathcal{L}(\theta) + \frac{\lambda}{2}\|\theta\|_2^2$ |
-| Laplace$(0, b)$ | L1 | $\mathcal{L}(\theta) + \lambda\|\theta\|_1$ |
-| Spike-and-Slab | Structured sparsity | Pruning |
-| Dropout | Approximate variational inference | MC Dropout |
+| $\mathcal{N}(0, \sigma^2 I)$ | L2 / 가중값 사그라뜨리기 | $\mathcal{L}(\theta) + \frac{\lambda}{2}\|\theta\|_2^2$ |
+| 라플라스$(0, b)$ | L1 | $\mathcal{L}(\theta) + \lambda\|\theta\|_1$ |
+| 못과 판 | 짜임새 있는 성김 | 가지치기 |
+| 떨구기 | 어림 변분 추론 | 몬테카를로 떨구기 |
 
-The key difference: MAP estimation gives a **point estimate** with regularization, while full Bayesian inference maintains the **entire posterior** distribution.
+핵심 차이는 이렇다. MAP 어림은 벌주기를 붙인 **점 어림값**을 주지만, 온전한 베이즈 추론은 **뒤확률 분포 전체**를 지닌다.
 
 ---
 
-## Practical Considerations for Finance
+## 금융에서 살필 점
 
-BNNs are particularly valuable in quantitative finance where:
+베이즈 신경망은 다음과 같은 계량 금융에서 특히 값지다:
 
-1. **Data is limited**: Financial time series are short relative to model complexity
-2. **Non-stationarity**: Market regimes change, making uncertainty awareness critical
-3. **Cost of errors is asymmetric**: Overconfident predictions lead to excessive position sizing
-4. **Model risk management**: Regulators increasingly require uncertainty quantification
+1. **자료가 모자란다**: 금융 시계열은 모형의 복잡함에 견주어 짧다
+2. **멈춰 있지 않다**: 시장 국면이 바뀌므로 불확실함을 아는 것이 결정적이다
+3. **틀림의 값이 한쪽으로 치우친다**: 지나치게 자신하는 미리봄은 자리를 너무 크게 잡게 한다
+4. **모형 위험 다루기**: 규제 기관이 불확실함 재기를 점점 더 요구한다
 
-### Position Sizing with Uncertainty
+### 불확실함을 쓴 자리 크기 정하기
 
-A natural application: scale positions inversely with epistemic uncertainty:
+자연스러운 쓰임새로 자리의 크기를 앎 불확실함에 반비례하게 잡는다:
 
 $$
-
 w_i \propto \frac{\hat{\alpha}_i}{\hat{\sigma}_i^{\text{epistemic}}}
-
 $$
 
-This automatically reduces exposure when the model is unsure — a principled risk management approach.
+이러면 모형이 확신하지 못할 때 노출이 저절로 줄어든다. 원리 있는 위험 다루기이다.
 
 ---
 
-## Summary
+## 요약
 
-| Concept | Key Point |
+| 개념 | 핵심 |
 |---------|-----------|
-| **BNN definition** | Distributions over weights instead of point estimates |
-| **Aleatoric uncertainty** | Irreducible data noise |
-| **Epistemic uncertainty** | Reducible model uncertainty (decreases with more data) |
-| **Predictive distribution** | Integrates over posterior — requires approximate inference |
-| **Connection to regularization** | MAP with prior = regularized MLE; full Bayesian goes further |
+| **베이즈 신경망의 정의** | 점 어림값 대신 가중값에 둔 분포 |
+| **우연 불확실함** | 줄일 수 없는 자료의 잡음 |
+| **앎 불확실함** | 줄일 수 있는 모형의 불확실함(자료가 늘면 줄어든다) |
+| **미리봄 분포** | 뒤확률에 걸쳐 적분한다. 어림 추론이 필요하다 |
+| **벌주기와의 이음** | 앞확률을 쓴 MAP = 벌준 최대 가능도 어림, 온전한 베이즈는 그보다 더 나아간다 |
 
 ---
 
-## References
+## 참고 문헌
 
 - Blundell, C., Cornebise, J., Kavukcuoglu, K., & Wierstra, D. (2015). Weight Uncertainty in Neural Networks. *ICML*.
 - Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian Approximation: Representing Model Uncertainty in Deep Learning. *ICML*.
 - MacKay, D. J. C. (1992). A Practical Bayesian Framework for Backpropagation Networks. *Neural Computation*, 4(3), 448-472.
 - Wilson, A. G., & Izmailov, P. (2020). Bayesian Deep Learning and a Probabilistic Perspective of Generalization. *NeurIPS*.
+
+## 연습문제
+
+**연습문제 1.**
+베이즈 신경망이 앎 불확실함을 어떻게 재는지 설명하여라. 이는 우연 불확실함과 어떻게 다른가?
+
+??? success "연습문제 1 풀이"
+    베이즈 신경망은 점 어림값 하나가 아니라 가중값에 대한 뒤확률 분포 $p(w | \mathcal{D})$을 지닌다. **앎 불확실함**(모형의 불확실함)은 자료가 모자라서 생기며 뒤확률의 퍼짐으로 담긴다. 곧 자료가 성긴 구역에서는 뒤확률이 넓어 다양한 미리봄이 나온다. **우연 불확실함**(자료의 잡음)은 자료에 본디 있으며 내임 분포 $p(y|x,w)$으로 담긴다. 앎 불확실함은 자료가 늘면 줄지만 우연 불확실함은 줄지 않는다. 베이즈 신경망은 미리봄 흩어짐으로 앎 불확실함을 잰다: $\text{Var}[y|x] = \underbrace{\mathbb{E}_w[\text{Var}[y|x,w]]}_{\text{aleatoric}} + \underbrace{\text{Var}_w[\mathbb{E}[y|x,w]]}_{\text{epistemic}}$.
+
+---
+
+**연습문제 2.**
+ELBO 목표에 대한, 되짚음으로 하는 베이즈의 기울기 어림꼴을 이끌어 내어라.
+
+??? success "연습문제 2 풀이"
+    ELBO은 $\mathcal{L}(\theta) = \mathbb{E}_{q_\theta(w)}[\log p(\mathcal{D}|w)] - D_{\text{KL}}(q_\theta(w) \| p(w))$이다. $w = \mu + \sigma \odot \epsilon$, $\epsilon \sim \mathcal{N}(0, I)$인 매개변수 바꾸기 재주를 쓰면:
+
+    $$\nabla_\theta \mathcal{L} = \nabla_\theta \left[ \log p(\mathcal{D}|w) + \log p(w) - \log q_\theta(w) \right]_{w = \mu + \sigma \odot \epsilon}$$
+
+    이는 $\epsilon$을 표집하고 정해진 바꿈을 거쳐 기울기를 셈해 어림한다. $q$과 $p$이 가우스이면 KL 항은 흔히 닫힌 꼴로 셈할 수 있다.
+
+---
+
+**연습문제 3.**
+베이즈 신경망에서 몬테카를로 떨구기와 드러난 변분 추론을 구현의 복잡함과 눈금 맞추기의 질로 견주어라.
+
+??? success "연습문제 3 풀이"
+    **몬테카를로 떨구기**는 시험할 때도 떨구기를 쓰고 앞먹임 $T$번의 평균을 낸다. 구현이 단순하지만(떨구기를 넣고 앞먹임을 여러 번 돌린다) 좁은 변분 집안(베르누이 곱 잡음)에 맞대응되어 눈금이 잘 맞지 않는 불확실함이 나오는 일이 잦다. **드러난 변분 추론**(이를테면 되짚음으로 하는 베이즈)은 매개변수를 곱절로 늘리고(가중값마다 $\mu$과 $\sigma$) 꼼꼼한 최적화가 필요하지만 더 풍성한 뒤확률 어림과 대체로 눈금이 더 잘 맞는 불확실함 어림값을 준다. 불확실함을 빠르게 어림하려면 몬테카를로 떨구기가, 눈금 맞추기가 중요하면 드러난 변분 추론이 낫다.
+
+---
+
+**연습문제 4.**
+베이즈 신경망에서 앞확률 $p(w)$을 고르는 일이 왜 중요하며, 표준 가우스 앞확률과 크기 섞음 앞확률 사이의 주고받음은 무엇인가?
+
+??? success "연습문제 4 풀이"
+    앞확률은 뒤확률에 벌을 주며 익힘의 움직임과 미리봄의 불확실함에 모두 영향을 준다. **표준 가우스** $\mathcal{N}(0, \sigma^2 I)$은 단순하고 L2 벌주기에 맞대응되지만 모든 가중값에 똑같이 벌을 주어 너무 옭아맬 수 있다. **크기 섞음** 앞확률(이를테면 $\pi \mathcal{N}(0, \sigma_1^2) + (1-\pi) \mathcal{N}(0, \sigma_2^2)$)은 어떤 가중값은 크게(신호) 두면서 다른 가중값은 0에 가깝게(잡음) 몰아 맞춰 가는 성김을 준다. 주고받음은 이렇다. 크기 섞음은 표현력이 더 좋지만 최적화가 더 어렵고 웃매개변수가 늘어난다.

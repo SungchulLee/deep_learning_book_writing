@@ -1,234 +1,216 @@
-# Mass Matrix
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-The mass matrix $\mathbf{M}$ is a critical tuning parameter in HMC that controls how momentum translates to velocity. This section covers the role of the mass matrix, its geometric interpretation, estimation strategies, and the connection to preconditioning.
+# 질량 행렬
+질량 행렬 $\mathbf{M}$은 운동량이 속도로 어떻게 바뀌는지를 다스리는, HMC의 결정적인 맞춤 매개변수이다. 이 절에서는 질량 행렬이 하는 일, 기하로 풀이하기, 어림하는 방법, 미리 다듬기와의 이음을 다룬다.
 
 ---
 
-## Role of the Mass Matrix
+## 질량 행렬이 하는 일
 
-### Definition and Basic Mechanics
+### 정의와 기본 얼개
 
-The mass matrix $\mathbf{M}$ appears in the kinetic energy:
+질량 행렬 $\mathbf{M}$은 운동 에너지에 나타난다:
 
 $$
-
 K(\mathbf{v}) = \frac{1}{2}\mathbf{v}^T \mathbf{M}^{-1} \mathbf{v}
-
 $$
 
-and in Hamilton's equations:
+그리고 해밀턴 방정식에도 나타난다:
 
 $$
-
 \frac{d\mathbf{x}}{dt} = \mathbf{M}^{-1}\mathbf{v}, \quad \frac{d\mathbf{v}}{dt} = -\nabla U(\mathbf{x})
-
 $$
 
-The mass matrix determines:
-1. **Momentum distribution**: $\mathbf{v} \sim \mathcal{N}(\mathbf{0}, \mathbf{M})$
-2. **Velocity from momentum**: $\dot{\mathbf{x}} = \mathbf{M}^{-1}\mathbf{v}$
-3. **Effective step sizes** in different directions
+질량 행렬은 다음을 정한다:
 
-### Physical Interpretation
+1. **운동량 분포**: $\mathbf{v} \sim \mathcal{N}(\mathbf{0}, \mathbf{M})$
+2. **운동량에서 나오는 속도**: $\dot{\mathbf{x}} = \mathbf{M}^{-1}\mathbf{v}$
+3. 방향마다의 **실효 걸음 크기**
 
-In classical mechanics, mass determines inertia—how much an object resists acceleration. Similarly:
+### 물리로 풀이하기
 
-- **Large mass** in direction $i$: Slow response to forces, small velocity for given momentum
-- **Small mass** in direction $i$: Fast response, large velocity for given momentum
+고전 역학에서 질량은 관성, 곧 물체가 빨라짐에 얼마나 버티는지를 정한다. 이와 마찬가지로:
 
-For sampling, we want the "mass" to match the "stiffness" of the potential in each direction.
+- 방향 $i$의 **질량이 크면**: 힘에 느리게 반응하고 같은 운동량에서 속도가 작다
+- 방향 $i$의 **질량이 작으면**: 빠르게 반응하고 같은 운동량에서 속도가 크다
 
-### The Identity Mass Matrix
+표집에서는 방향마다 "질량"이 퍼텐셜의 "뻣뻣함"에 맞기를 바란다.
 
-The simplest choice $\mathbf{M} = \mathbf{I}$ gives:
+### 항등 질량 행렬
+
+가장 단순한 고름인 $\mathbf{M} = \mathbf{I}$은 다음을 준다:
 
 $$
-
 K(\mathbf{v}) = \frac{1}{2}|\mathbf{v}|^2, \quad \mathbf{v} \sim \mathcal{N}(\mathbf{0}, \mathbf{I})
-
 $$
 
-This works well when the target distribution has similar scales in all directions. It fails when:
-- Variances differ greatly across dimensions
-- Strong correlations exist between variables
-- The posterior is "narrow" in some directions
+과녁 분포의 규모가 모든 방향에서 엇비슷하면 잘 듣는다. 다음일 때는 무너진다:
+
+- 차원마다 흩어짐이 크게 다를 때
+- 변수 사이에 강한 상관이 있을 때
+- 뒤확률이 어떤 방향으로 "좁을" 때
 
 ---
 
-## Geometric Interpretation
+## 기하학적 해석
 
-### Metric on Position Space
+### 자리 공간의 거리 재는 법
 
-The inverse mass matrix $\mathbf{M}^{-1}$ defines a **Riemannian metric** on position space. The kinetic energy becomes:
+질량 행렬의 역행렬 $\mathbf{M}^{-1}$이 자리 공간의 **리만 계량**을 정한다. 운동 에너지는 다음이 된다:
 
 $$
-
 K(\mathbf{v}) = \frac{1}{2}\|\mathbf{v}\|_{\mathbf{M}^{-1}}^2
-
 $$
 
-where $\|\mathbf{v}\|_{\mathbf{M}^{-1}}^2 = \mathbf{v}^T \mathbf{M}^{-1} \mathbf{v}$ is the squared norm under this metric.
+여기서 $\|\mathbf{v}\|_{\mathbf{M}^{-1}}^2 = \mathbf{v}^T \mathbf{M}^{-1} \mathbf{v}$은 이 계량 아래의 노름의 제곱이다.
 
-### Momentum Space Geometry
+### 운동량 공간의 기하
 
-The mass matrix $\mathbf{M}$ defines the metric on momentum space:
+질량 행렬 $\mathbf{M}$이 운동량 공간의 계량을 정한다:
 
 $$
-
 \|\mathbf{p}\|_{\mathbf{M}}^2 = \mathbf{p}^T \mathbf{M} \mathbf{p}
-
 $$
 
-Position and momentum spaces are **dual** under these metrics.
+이 계량 아래에서 자리 공간과 운동량 공간은 서로 **쌍대**이다.
 
-### Energy Surfaces
+### 에너지 면
 
-For a quadratic potential $U(\mathbf{x}) = \frac{1}{2}\mathbf{x}^T \mathbf{A} \mathbf{x}$, energy surfaces are ellipsoids:
+이차 퍼텐셜 $U(\mathbf{x}) = \frac{1}{2}\mathbf{x}^T \mathbf{A} \mathbf{x}$에서 에너지 면은 타원체이다:
 
 $$
-
 H = \frac{1}{2}\mathbf{x}^T \mathbf{A} \mathbf{x} + \frac{1}{2}\mathbf{v}^T \mathbf{M}^{-1} \mathbf{v} = E
-
 $$
 
-**Optimal choice**: When $\mathbf{M} = \mathbf{A}^{-1}$, the energy surfaces become spherical in appropriately scaled coordinates, and the dynamics become isotropic.
+**가장 좋은 고름**: $\mathbf{M} = \mathbf{A}^{-1}$이면 크기를 알맞게 맞춘 좌표에서 에너지 면이 구면이 되고 움직임이 방향에 고르게 된다.
 
 ---
 
-## The Matching Principle
+## 맞추기 원리
 
-### Why Matching Matters
+### 맞추기가 왜 중요한가
 
-Consider a 2D target where $x_1$ has variance 1 and $x_2$ has variance 0.01:
+$x_1$의 흩어짐이 1이고 $x_2$의 흩어짐이 0.01인 2차원 과녁을 보자:
 
-**With $\mathbf{M} = \mathbf{I}$**:
-- Momentum in both directions has variance 1
-- Velocity $\dot{x}_2 = v_2$ is "too fast" for the narrow $x_2$ direction
-- Large step size causes instability in $x_2$
-- Small step size causes slow exploration in $x_1$
+**$\mathbf{M} = \mathbf{I}$일 때**:
 
-**With $\mathbf{M} = \text{diag}(1, 100)$**:
-- Momentum variance in $x_2$ is 100, but velocity $\dot{x}_2 = v_2/100$ is small
-- Effective step sizes match the scales
-- Exploration is balanced
+- 두 방향 모두 운동량의 흩어짐이 1이다
+- 좁은 $x_2$ 방향에 견주어 속도 $\dot{x}_2 = v_2$이 "너무 빠르다"
+- 걸음 크기가 크면 $x_2$에서 흔들린다
+- 걸음 크기가 작으면 $x_1$에서 살펴보기가 느리다
 
-### The Optimal Mass Matrix
+**$\mathbf{M} = \text{diag}(1, 100)$일 때**:
 
-**Theorem**: For a Gaussian target $\pi(\mathbf{x}) = \mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\Sigma})$, the optimal mass matrix is:
+- $x_2$의 운동량 흩어짐은 100이지만 속도 $\dot{x}_2 = v_2/100$은 작다
+- 실효 걸음 크기가 규모에 맞는다
+- 살펴보기가 고르게 된다
+
+### 가장 좋은 질량 행렬
+
+**정리**: 가우스 과녁 $\pi(\mathbf{x}) = \mathcal{N}(\boldsymbol{\mu}, \boldsymbol{\Sigma})$에서 가장 좋은 질량 행렬은 다음과 같다:
 
 $$
-
 \mathbf{M}^* = \boldsymbol{\Sigma}^{-1}
-
 $$
 
-**Why?** With this choice:
-1. The Hamiltonian becomes $H = \frac{1}{2}(\mathbf{x} - \boldsymbol{\mu})^T\boldsymbol{\Sigma}^{-1}(\mathbf{x} - \boldsymbol{\mu}) + \frac{1}{2}\mathbf{v}^T\boldsymbol{\Sigma}\mathbf{v}$
-2. In standardized coordinates $\mathbf{z} = \boldsymbol{\Sigma}^{-1/2}(\mathbf{x} - \boldsymbol{\mu})$, both terms are isotropic
-3. Trajectories explore all directions equally efficiently
+**왜 그런가?** 이렇게 고르면:
 
-### For Non-Gaussian Targets
+1. 해밀턴 함수가 $H = \frac{1}{2}(\mathbf{x} - \boldsymbol{\mu})^T\boldsymbol{\Sigma}^{-1}(\mathbf{x} - \boldsymbol{\mu}) + \frac{1}{2}\mathbf{v}^T\boldsymbol{\Sigma}\mathbf{v}$이 된다
+2. 표준화한 좌표 $\mathbf{z} = \boldsymbol{\Sigma}^{-1/2}(\mathbf{x} - \boldsymbol{\mu})$에서 두 항이 모두 방향에 고르다
+3. 자취가 모든 방향을 똑같이 효율적으로 살펴본다
 
-For general targets, set:
+### 가우스가 아닌 과녁에서
+
+일반 과녁에서는 다음으로 둔다:
 
 $$
-
 \mathbf{M} \approx \text{Cov}[\mathbf{x}]^{-1} = \mathbb{E}[(\mathbf{x} - \boldsymbol{\mu})(\mathbf{x} - \boldsymbol{\mu})^T]^{-1}
-
 $$
 
-This is the **inverse posterior covariance**, estimated from samples.
+이는 표본에서 어림한 **뒤확률 공분산의 역행렬**이다.
 
 ---
 
-## Types of Mass Matrices
+## 질량 행렬의 갈래
 
-### Scalar (Isotropic)
+### 스칼라(방향에 고름)
 
 $$
-
 \mathbf{M} = m \mathbf{I}
-
 $$
 
-- **1 parameter** to tune
-- Assumes all directions have equal scale
-- Rarely appropriate in practice
+- 맞출 매개변수가 **1개**
+- 모든 방향의 규모가 같다고 놓는다
+- 실전에서 알맞은 경우가 드물다
 
-### Diagonal
+### 대각
 
 $$
-
 \mathbf{M} = \text{diag}(m_1, \ldots, m_d)
-
 $$
 
-- **$d$ parameters** to tune
-- Adapts to different marginal variances
-- Ignores correlations
-- **Default choice** in most software (Stan, PyMC)
+- 맞출 매개변수가 **$d$개**
+- 주변 흩어짐이 다른 것에 맞춘다
+- 상관을 무시한다
+- 대부분의 소프트웨어(Stan, PyMC)에서 **기본 고름**이다
 
-**Estimation**: $m_i = 1/\text{Var}[x_i]$, estimated from warmup samples.
+**어림하기**: 달굼 표본에서 어림한 $m_i = 1/\text{Var}[x_i]$을 쓴다.
 
-### Full (Dense)
+### 온전한(빽빽한) 행렬
 
 $$
-
 \mathbf{M} = \text{any positive definite matrix}
-
 $$
 
-- **$d(d+1)/2$ parameters**
-- Captures correlations
-- More expensive: $O(d^2)$ storage, $O(d^3)$ for Cholesky
-- Can dramatically improve sampling for correlated targets
+- 매개변수가 **$d(d+1)/2$개**
+- 상관을 잡아낸다
+- 더 비싸다. 곧 저장에 $O(d^2)$, 촐레스키에 $O(d^3)$이 든다
+- 서로 얽힌 과녁에서 표집을 크게 낫게 할 수 있다
 
-**Estimation**: $\mathbf{M} = \text{Cov}[\mathbf{x}]^{-1}$, but requires many samples to estimate well.
+**어림하기**: $\mathbf{M} = \text{Cov}[\mathbf{x}]^{-1}$을 쓰지만 잘 어림하려면 표본이 많이 필요하다.
 
-### Comparison
+### 견줌
 
-| Type | Parameters | Captures Correlations | Cost per Step | Best For |
+| 갈래 | 매개변수 | 상관을 잡나 | 걸음당 값 | 어디에 좋은가 |
 |------|------------|----------------------|---------------|----------|
-| Scalar | 1 | No | $O(d)$ | Isotropic targets |
-| Diagonal | $d$ | No | $O(d)$ | Different scales |
-| Full | $d(d+1)/2$ | Yes | $O(d^2)$ | Correlated targets |
+| 스칼라 | 1 | 아니오 | $O(d)$ | 방향에 고른 과녁 |
+| 대각 | $d$ | 아니오 | $O(d)$ | 규모가 다를 때 |
+| 온전함 | $d(d+1)/2$ | 예 | $O(d^2)$ | 서로 얽힌 과녁 |
 
 ---
 
-## Adaptation During Warmup
+## 달굼 동안 맞춰 가기
 
-### The Adaptation Problem
+### 맞춰 가기 문제
 
-We need $\mathbf{M} \approx \text{Cov}[\mathbf{x}]^{-1}$, but we don't know $\text{Cov}[\mathbf{x}]$ until we've sampled. This chicken-and-egg problem is solved by **adaptive warmup**.
+$\mathbf{M} \approx \text{Cov}[\mathbf{x}]^{-1}$이 필요한데 표집을 해 봐야 $\text{Cov}[\mathbf{x}]$을 안다. 이 닭과 달걀 같은 문제는 **맞춰 가는 달굼**으로 푼다.
 
-### Warmup Strategy
+### 달굼 전략
 
-**Phase 1: Initial exploration** (iterations 1–75)
-- Use $\mathbf{M} = \mathbf{I}$
-- Adapt step size $\epsilon$ aggressively
-- Goal: Find the typical set
+**1단계: 첫 살펴보기**(되풀이 1–75)
 
-**Phase 2: Covariance estimation** (iterations 76–900)
-- Estimate $\hat{\boldsymbol{\Sigma}}$ from samples
-- Update $\mathbf{M} = \hat{\boldsymbol{\Sigma}}^{-1}$ periodically
-- Continue adapting $\epsilon$
+- $\mathbf{M} = \mathbf{I}$을 쓴다
+- 걸음 크기 $\epsilon$을 세게 맞춘다
+- 목표: 전형 집합 찾기
 
-**Phase 3: Final tuning** (iterations 901–1000)
-- Fix $\mathbf{M}$
-- Final adaptation of $\epsilon$
-- Verify stability
+**2단계: 공분산 어림하기**(되풀이 76–900)
 
-**Sampling phase**: (iterations 1001+)
-- No more adaptation
-- Collect samples for inference
+- 표본에서 $\hat{\boldsymbol{\Sigma}}$을 어림한다
+- $\mathbf{M} = \hat{\boldsymbol{\Sigma}}^{-1}$을 이따금 새로 고친다
+- $\epsilon$을 계속 맞춰 간다
 
-### Welford's Online Algorithm
+**3단계: 마지막 맞추기**(되풀이 901–1000)
 
-For efficient online covariance estimation:
+- $\mathbf{M}$을 붙박아 둔다
+- $\epsilon$을 마지막으로 맞춘다
+- 안정한지 확인한다
+
+**표집 단계**: (되풀이 1001 이상)
+
+- 더는 맞추지 않는다
+- 추론에 쓸 표본을 모은다
+
+### 웰퍼드의 흐름 알고리즘
+
+공분산을 흐름으로 효율적으로 어림하려면:
 
 ```python
 class OnlineCovariance:
@@ -250,88 +232,84 @@ class OnlineCovariance:
         return self.M2 / (self.n - 1)
 ```
 
-### Regularization
+### 벌주기
 
-With few samples, $\hat{\boldsymbol{\Sigma}}$ may be poorly conditioned or singular. Regularize:
+표본이 적으면 $\hat{\boldsymbol{\Sigma}}$의 조건이 나쁘거나 특이할 수 있다. 벌주어 다듬어라:
 
 $$
-
 \hat{\boldsymbol{\Sigma}}_{\text{reg}} = (1 - \alpha)\hat{\boldsymbol{\Sigma}} + \alpha \cdot \text{diag}(\hat{\boldsymbol{\Sigma}})
-
 $$
 
-or add a ridge:
+또는 능선 항을 더한다:
 
 $$
-
 \hat{\boldsymbol{\Sigma}}_{\text{reg}} = \hat{\boldsymbol{\Sigma}} + \lambda \mathbf{I}
-
 $$
 
 ---
 
-## Implementation Details
+## 구현의 세부
 
-### Cholesky Factorization
+### 촐레스키 분해
 
-For efficient computation, store the Cholesky factor $\mathbf{L}$ where $\mathbf{M} = \mathbf{L}\mathbf{L}^T$:
+효율적으로 셈하려면 $\mathbf{M} = \mathbf{L}\mathbf{L}^T$인 촐레스키 인수 $\mathbf{L}$을 저장한다:
 
-**Sampling momentum**:
+**운동량 표집하기**:
 ```python
 v = L @ np.random.randn(d)  # v ~ N(0, M)
 ```
 
-**Computing kinetic energy**:
+**운동 에너지 셈하기**:
 ```python
 z = solve_triangular(L, v, lower=True)  # L z = v
 K = 0.5 * np.dot(z, z)  # K = ½ vᵀ M⁻¹ v = ½ |z|²
 ```
 
-**Velocity from momentum**:
+**운동량에서 속도 얻기**:
 ```python
 # M⁻¹ v = (L Lᵀ)⁻¹ v = L⁻ᵀ L⁻¹ v
 z = solve_triangular(L, v, lower=True)
 velocity = solve_triangular(L.T, z, lower=False)
 ```
 
-### For Diagonal Mass Matrix
+### 대각 질량 행렬에서
 
-When $\mathbf{M} = \text{diag}(m_1, \ldots, m_d)$:
+$\mathbf{M} = \text{diag}(m_1, \ldots, m_d)$일 때:
 
 ```python
-# Store diagonal and its square root
+# 대각과 그 제곱근 저장
 m_diag = np.array([m1, m2, ..., md])
 sqrt_m = np.sqrt(m_diag)
 inv_m = 1.0 / m_diag
 
-# Sample momentum
+# 운동량 표집
 v = sqrt_m * np.random.randn(d)
 
-# Kinetic energy
+# 운동 에너지
 K = 0.5 * np.sum(v**2 * inv_m)
 
-# Velocity
+# 속도
 velocity = v * inv_m
 ```
 
-### Numerical Stability
+### 수치적 안정성
 
-When inverting the estimated covariance:
+어림한 공분산의 역행렬을 구할 때:
 
 ```python
 def safe_inverse(Sigma, min_var=1e-6):
-    """Safely invert covariance matrix."""
-    # Ensure minimum variance
+    """공분산 행렬을 안전하게 뒤집기."""
+    # 최소 흩어짐 지키기
     Sigma = Sigma.copy()
     np.fill_diagonal(Sigma, np.maximum(np.diag(Sigma), min_var))
     
-    # Use pseudo-inverse for near-singular matrices
+    # 거의 특이한 행렬에는 유사 역행렬 쓰기
     try:
         M = np.linalg.inv(Sigma)
     except np.linalg.LinAlgError:
         M = np.linalg.pinv(Sigma)
     
-    # Ensure symmetry
+    # 대칭 지키기
     M = 0.5 * (M + M.T)
     
     return M
@@ -339,134 +317,124 @@ def safe_inverse(Sigma, min_var=1e-6):
 
 ---
 
-## Connection to Preconditioning
+## 미리 다듬기와의 이음
 
-### HMC as Preconditioned Gradient Descent
+### 미리 다듬은 기울기 내리기로 본 HMC
 
-The leapfrog momentum update is:
+개구리뜀의 운동량 새로 고치기는 다음과 같다:
 
 $$
-
 \mathbf{v}_{n+1/2} = \mathbf{v}_n + \frac{\epsilon}{2}\nabla \log \pi(\mathbf{x}_n)
-
 $$
 
-The position update is:
+자리 새로 고치기는 다음과 같다:
 
 $$
-
 \mathbf{x}_{n+1} = \mathbf{x}_n + \epsilon \mathbf{M}^{-1}\mathbf{v}_{n+1/2}
-
 $$
 
-Combining (approximately, for one step):
+(한 걸음에 대해 어림해서) 합치면:
 
 $$
-
 \mathbf{x}_{n+1} \approx \mathbf{x}_n + \frac{\epsilon^2}{2}\mathbf{M}^{-1}\nabla \log \pi(\mathbf{x}_n)
-
 $$
 
-This is **preconditioned gradient ascent** with preconditioner $\mathbf{M}^{-1}$.
+이는 미리 다듬는 행렬이 $\mathbf{M}^{-1}$인 **미리 다듬은 기울기 오르기**이다.
 
-### Optimal Preconditioning
+### 가장 좋은 미리 다듬기
 
-For optimization, the optimal preconditioner is the inverse Hessian (Newton's method):
+최적화에서 가장 좋은 미리 다듬는 행렬은 헤세 행렬의 역행렬이다(뉴턴 방법):
 
 $$
-
 \mathbf{P}^* = (-\nabla^2 \log \pi)^{-1} = \boldsymbol{\Sigma}
-
 $$
 
-For HMC sampling, this suggests $\mathbf{M}^{-1} = \boldsymbol{\Sigma}$, i.e., $\mathbf{M} = \boldsymbol{\Sigma}^{-1}$.
+HMC 표집에서는 이것이 $\mathbf{M}^{-1} = \boldsymbol{\Sigma}$, 곧 $\mathbf{M} = \boldsymbol{\Sigma}^{-1}$을 넌지시 일러 준다.
 
-### Condition Number
+### 조건수
 
-The **condition number** of the preconditioned system determines convergence:
+미리 다듬은 체계의 **조건수**가 모임을 정한다:
 
 $$
-
 \kappa = \frac{\lambda_{\max}(\mathbf{M}^{-1}\mathbf{A})}{\lambda_{\min}(\mathbf{M}^{-1}\mathbf{A})}
-
 $$
 
-where $\mathbf{A} = -\nabla^2 \log \pi$ is the Hessian.
+여기서 $\mathbf{A} = -\nabla^2 \log \pi$은 헤세 행렬이다.
 
-- **Without preconditioning** ($\mathbf{M} = \mathbf{I}$): $\kappa = \lambda_{\max}(\mathbf{A})/\lambda_{\min}(\mathbf{A})$
-- **With optimal preconditioning** ($\mathbf{M} = \mathbf{A}$): $\kappa = 1$
+- **미리 다듬지 않으면**($\mathbf{M} = \mathbf{I}$): $\kappa = \lambda_{\max}(\mathbf{A})/\lambda_{\min}(\mathbf{A})$
+- **가장 좋게 미리 다듬으면**($\mathbf{M} = \mathbf{A}$): $\kappa = 1$
 
-Lower condition number → faster mixing.
+조건수가 낮을수록 → 섞임이 빠르다.
 
 ---
 
-## Riemannian HMC (Preview)
+## 리만 HMC(맛보기)
 
-### Position-Dependent Mass
+### 자리에 달린 질량
 
-Standard HMC uses constant $\mathbf{M}$. **Riemannian HMC** allows $\mathbf{M}(\mathbf{x})$ to vary with position:
+표준 HMC은 $\mathbf{M}$을 상수로 쓴다. **리만 HMC**은 $\mathbf{M}(\mathbf{x})$이 자리에 따라 달라지도록 한다:
 
 $$
-
 H(\mathbf{x}, \mathbf{v}) = U(\mathbf{x}) + \frac{1}{2}\mathbf{v}^T\mathbf{M}(\mathbf{x})^{-1}\mathbf{v} + \frac{1}{2}\log|\mathbf{M}(\mathbf{x})|
-
 $$
 
-The extra log-determinant term is required for the correct marginal.
+올바른 주변 분포를 얻으려면 로그 행렬식 항이 더 필요하다.
 
-### Benefits
+### 좋은 점
 
-- Adapts to local geometry
-- Can handle varying curvature
-- Particularly useful for funnel-shaped distributions
+- 그 자리 기하에 맞춘다
+- 굽음이 달라져도 다룬다
+- 특히 깔때기 꼴 분포에 쓸모 있다
 
-### Challenges
+### 어려움
 
-- Hamiltonian is no longer separable
-- Leapfrog doesn't directly apply
-- Requires implicit or generalized integrators
-- More expensive per step
+- 해밀턴 함수가 더 이상 나뉘지 않는다
+- 개구리뜀을 그대로 쓸 수 없다
+- 넌지시 푸는 적분기나 넓힌 적분기가 필요하다
+- 걸음마다 더 비싸다
 
 ---
 
-## Practical Recommendations
+## 실전 권고
 
-### Default Strategy
+### 기본 전략
 
-1. **Start with diagonal**: Use $\mathbf{M} = \text{diag}(1/\hat{\sigma}_1^2, \ldots, 1/\hat{\sigma}_d^2)$
-2. **Adapt during warmup**: Estimate marginal variances from samples
-3. **Consider full matrix** if:
-   - Strong correlations expected
-   - Diagonal adaptation gives poor results
-   - Dimension is moderate ($d < 100$)
+1. **대각으로 시작하기**: $\mathbf{M} = \text{diag}(1/\hat{\sigma}_1^2, \ldots, 1/\hat{\sigma}_d^2)$을 쓴다
+2. **달굼 동안 맞춰 가기**: 표본에서 주변 흩어짐을 어림한다
+3. 다음이면 **온전한 행렬을 생각해 보기**:
+   - 강한 상관이 있으리라 여겨질 때
+   - 대각으로 맞춰 가기가 나쁜 결과를 줄 때
+   - 차원이 알맞을 때($d < 100$)
 
-### When to Use Full Mass Matrix
+### 온전한 질량 행렬을 언제 쓰나
 
-✓ **Use full matrix when**:
-- Parameters are highly correlated (|ρ| > 0.8)
-- Dimension is not too large (d < 100-200)
-- You have enough warmup samples (> 100d)
+✓ **다음일 때 온전한 행렬을 써라**:
 
-✗ **Stick with diagonal when**:
-- High dimension (d > 200)
-- Parameters are approximately independent
-- Limited computational budget
-- Warmup samples are few
+- 매개변수의 상관이 클 때(|ρ| > 0.8)
+- 차원이 그리 크지 않을 때(d < 100-200)
+- 달굼 표본이 넉넉할 때(> 100d)
 
-### Diagnostics
+✗ **다음일 때는 대각을 지켜라**:
 
-**Check adaptation worked**:
+- 차원이 높을 때(d > 200)
+- 매개변수가 거의 독립일 때
+- 계산 예산이 적을 때
+- 달굼 표본이 적을 때
+
+### 진단
+
+**맞춰 가기가 잘되었는지 살피기**:
 ```python
-# After warmup
+# 달굼 뒤
 estimated_cov = np.cov(warmup_samples.T)
 M_inv = np.linalg.inv(M)
 
-# Should be approximately identity
-whitened = estimated_cov @ M  # ≈ I if well-adapted
-print("Whitening check:", np.diag(whitened))  # Should be ≈ 1
+# 거의 항등 행렬이어야 한다
+whitened = estimated_cov @ M  # 잘 맞춰졌으면 ≈ I
+print("Whitening check:", np.diag(whitened))  # ≈ 1이어야 함
 ```
 
-**Check for poor conditioning**:
+**조건이 나쁜지 살피기**:
 ```python
 cond_number = np.linalg.cond(M)
 if cond_number > 1e6:
@@ -475,38 +443,38 @@ if cond_number > 1e6:
 
 ---
 
-## Summary
+## 요약
 
-| Aspect | Recommendation |
+| 살필 점 | 권하는 바 |
 |--------|----------------|
-| **Role** | Preconditions dynamics to match target geometry |
-| **Optimal choice** | $\mathbf{M} = \text{Cov}[\mathbf{x}]^{-1}$ |
-| **Default** | Diagonal, adapted during warmup |
-| **Full matrix** | When correlations are strong and $d$ is moderate |
-| **Adaptation** | Estimate from warmup samples using online algorithm |
-| **Regularization** | Add ridge or blend with diagonal for stability |
+| **하는 일** | 과녁의 기하에 맞도록 움직임을 미리 다듬는다 |
+| **가장 좋은 고름** | $\mathbf{M} = \text{Cov}[\mathbf{x}]^{-1}$ |
+| **기본값** | 대각, 달굼 동안 맞춰 감 |
+| **온전한 행렬** | 상관이 강하고 $d$이 알맞을 때 |
+| **맞춰 가기** | 흐름 알고리즘으로 달굼 표본에서 어림한다 |
+| **벌주기** | 안정을 위해 능선 항을 더하거나 대각과 섞는다 |
 
-The mass matrix transforms HMC from a method that struggles with ill-conditioned targets to one that can efficiently explore complex posterior geometries. Proper adaptation is essential for practical performance.
-
----
-
-## Exercises
-
-1. **Effect of mass matrix**. Sample from a 2D Gaussian with covariance $\begin{pmatrix} 1 & 0.9 \\ 0.9 & 1 \end{pmatrix}$ using (a) $\mathbf{M} = \mathbf{I}$, (b) diagonal $\mathbf{M}$, (c) full $\mathbf{M} = \boldsymbol{\Sigma}^{-1}$. Compare acceptance rates and ESS.
-
-2. **Online adaptation**. Implement warmup with online covariance estimation. Plot how the estimated covariance converges to the true covariance over iterations.
-
-3. **Condition number experiment**. For targets with varying condition numbers (1, 10, 100, 1000), compare HMC performance with and without mass matrix adaptation.
-
-4. **High-dimensional diagonal**. For a 100-dimensional target with different marginal variances, implement diagonal mass matrix adaptation and verify it improves sampling efficiency.
-
-5. **Regularization comparison**. Compare different regularization strategies (ridge, shrinkage toward diagonal) for mass matrix estimation with limited samples.
+질량 행렬은 조건이 나쁜 과녁 앞에서 힘겨워하던 HMC을 복잡한 뒤확률 기하를 효율적으로 살펴보는 방법으로 바꾼다. 실전 성능에는 제대로 맞춰 가는 것이 꼭 필요하다.
 
 ---
 
-## References
+## 참고 문헌
 
 1. Neal, R. M. (2011). "MCMC Using Hamiltonian Dynamics." In *Handbook of Markov Chain Monte Carlo*.
 2. Betancourt, M. (2017). "A Conceptual Introduction to Hamiltonian Monte Carlo." arXiv:1701.02434.
 3. Girolami, M., & Calderhead, B. (2011). "Riemann Manifold Langevin and Hamiltonian Monte Carlo Methods." *JRSS-B*.
 4. Stan Development Team. "Stan Reference Manual: HMC Algorithm Parameters."
+
+## 연습문제
+
+1. **질량 행렬의 효과**. 공분산이 $\begin{pmatrix} 1 & 0.9 \\ 0.9 & 1 \end{pmatrix}$인 2차원 가우스에서 (가) $\mathbf{M} = \mathbf{I}$, (나) 대각 $\mathbf{M}$, (다) 온전한 $\mathbf{M} = \boldsymbol{\Sigma}^{-1}$으로 표집하여라. 받아들임 비율과 ESS을 견주어라.
+
+2. **흐름으로 맞춰 가기**. 공분산을 흐름으로 어림하는 달굼을 구현하여라. 되풀이가 늘면서 어림한 공분산이 참 공분산으로 어떻게 모이는지 그려라.
+
+3. **조건수 실험**. 조건수가 여러 가지(1, 10, 100, 1000)인 과녁에 대해 질량 행렬을 맞춰 갈 때와 아닐 때의 HMC 성능을 견주어라.
+
+4. **차원 높은 대각 행렬**. 주변 흩어짐이 서로 다른 100차원 과녁에 대해 대각 질량 행렬 맞춰 가기를 구현하고 표집 효율이 나아지는지 확인하여라.
+
+5. **벌주기 견주기**. 표본이 적을 때 질량 행렬을 어림하는 여러 벌주기 전략(능선, 대각 쪽으로 오그라들기)을 견주어라.
+
+---

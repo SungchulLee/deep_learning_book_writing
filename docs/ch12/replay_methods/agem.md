@@ -1,53 +1,48 @@
-# Averaged Gradient Episodic Memory (A-GEM)
+# 평균 기울기 에피소드 기억(A-GEM)
+## 들어가며
 
+평균 기울기 에피소드 기억(A-GEM)은 지난 과제의 본보기를 담은 작은 기억 버퍼를 두고, 앞선 과제와 어긋나지 않도록 기울기 갱신을 옥죄어 이어 배우기를 다룬다. 새 과제의 기울기가 담아 둔 본보기의 평균 기울기 위로 음이 아니게 쏘아지도록 하여, A-GEM은 셈 효율과 적은 기억으로도 파국적 잊음을 막는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+계량 금융에서 A-GEM은 포트폴리오 운용에 우아한 틀을 준다. 중요한 시장 상황(위기, 오름장, 변동성 국면)의 본보기를 지니고, 지금 성능을 높이는 모델 갱신이 이 결정적인 지난 상황의 예측을 해치지 않도록 한다.
 
-## Introduction
+## 핵심 개념
 
-Averaged Gradient Episodic Memory (A-GEM) addresses continual learning by storing a small memory buffer of past task exemplars and constraining gradient updates to maintain consistency with previous tasks. By ensuring that gradients on new tasks have non-negative projection onto average gradients on stored exemplars, A-GEM prevents catastrophic forgetting while maintaining computational efficiency and minimal memory requirements.
+- **본보기 버퍼**: 앞선 과제의 대표 표본을 담아 둔다
+- **기울기 쏘아 넣기**: 새 과제의 기울기를 옥죈다
+- **가능한 기울기 원뿔**: 갱신 방향이 지난 과제의 성능을 거스르지 않아야 한다
+- **셈 효율**: 본보기 m개에 기억 O(m)
+- **과제를 가리지 않음**: 과제의 경계 없이도 굴러간다
+- **빈틈없는 기울기 제약**: 파국적 잊음을 막는다
 
-In quantitative finance, A-GEM provides an elegant framework for portfolio management: maintain exemplars of important market conditions (crises, bull runs, volatility regimes), and ensure that model updates improving current performance don't negatively impact predictions for these critical historical scenarios.
+## 수학적 틀
 
-## Key Concepts
+### 핵심 원리
 
-- **Exemplar Buffer**: Store representative samples from previous tasks
-- **Gradient Projection**: Constrain new task gradients
-- **Feasible Gradient Cone**: Update direction must respect past task performance
-- **Computational Efficiency**: O(m) memory for m exemplars
-- **Task-Agnostic**: Works without task boundaries
-- **Strict Gradient Constraint**: Prevents catastrophic forgetting
-
-## Mathematical Framework
-
-### Core Principle
-
-For new task gradient $\mathbf{g}_t$ and average gradient on past exemplars $\bar{\mathbf{g}}$:
+새 과제의 기울기 $\mathbf{g}_t$과 지난 본보기의 평균 기울기 $\bar{\mathbf{g}}$에 대해 다음이 성립해야 한다.
 
 $$\mathbf{g}_t \cdot \bar{\mathbf{g}} \geq 0$$
 
-This orthogonal constraint ensures forward progress on new task while maintaining past task performance.
+이 직교 제약이 지난 과제의 성능을 지키면서 새 과제에서 앞으로 나아가게 한다.
 
-### Average Gradient Computation
+### 평균 기울기 셈하기
 
-Compute reference gradient from memory buffer $\mathcal{M}$:
+기억 버퍼 $\mathcal{M}$에서 참조 기울기를 셈한다.
 
 $$\bar{\mathbf{g}} = \frac{1}{|\mathcal{M}|} \sum_{(\mathbf{x}, y) \in \mathcal{M}} \nabla_\theta \mathcal{L}(\theta, \mathbf{x}, y)$$
 
-This represents "average direction" that improves past task performance.
+이는 지난 과제의 성능을 높이는 "평균 방향"을 나타낸다.
 
-### Gradient Constraint
+### 기울기 제약
 
-If new gradient violates constraint ($\mathbf{g}_t \cdot \bar{\mathbf{g}} < 0$), project:
+새 기울기가 제약을 어기면($\mathbf{g}_t \cdot \bar{\mathbf{g}} < 0$) 다음과 같이 쏘아 넣는다.
 
 $$\mathbf{g}_t^{\text{projected}} = \mathbf{g}_t - \frac{\mathbf{g}_t \cdot \bar{\mathbf{g}}}{\|\bar{\mathbf{g}}\|^2} \bar{\mathbf{g}}$$
 
-This removes the component opposing past task performance.
+이는 지난 과제의 성능에 맞서는 성분을 없앤다.
 
-## A-GEM Algorithm
+## A-GEM 알고리즘
 
-### Training Procedure
+### 학습 절차
 
 ```
 procedure A-GEM(tasks, memory_size M):
@@ -73,33 +68,33 @@ procedure A-GEM(tasks, memory_size M):
     return θ, buffer
 ```
 
-### Exemplar Selection
+### 본보기 고르기
 
-Select which samples to store from task $t$:
+과제 $t$에서 어떤 표본을 담아 둘지 고른다.
 
-**Random Sampling**:
+**무작위 뽑기**:
 
 $$\mathcal{M}_t = \text{RandomSample}(\mathcal{D}_t, m)$$
 
-Simple and unbiased.
+단순하고 치우침이 없다.
 
-**Uncertainty-Based**:
+**불확실성 기반**:
 
 $$\text{Priority}_i = H(p(\hat{y}|\mathbf{x}_i))$$
 
-Store uncertain samples.
+아리송한 표본을 담아 둔다.
 
-**Herding**:
+**몰이(herding)**:
 
 $$\mathcal{M}_t = \arg\min_S \left\| \frac{1}{m} \sum_{\mathbf{x} \in S} \phi(\mathbf{x}) - \bar{\phi}(D_t) \right\|$$
 
-Match feature statistics to full dataset.
+특징 통계를 데이터셋 전체에 맞춘다.
 
-## Gradient Projection Mechanics
+## 기울기 쏘아 넣기의 얼개
 
-### Projection Visualization
+### 쏘아 넣기 그려 보기
 
-In gradient space, new gradient $\mathbf{g}_t$ and past gradient $\bar{\mathbf{g}}$ define feasible cone:
+기울기 공간에서 새 기울기 $\mathbf{g}_t$과 지난 기울기 $\bar{\mathbf{g}}$이 가능한 원뿔을 정한다.
 
 ```
         g_t (new task)
@@ -113,122 +108,128 @@ In gradient space, new gradient $\mathbf{g}_t$ and past gradient $\bar{\mathbf{g
               \__g_t_projected
 ```
 
-If $\mathbf{g}_t$ points against $\bar{\mathbf{g}}$ (violates constraint), project into feasible region.
+$\mathbf{g}_t$이 $\bar{\mathbf{g}}$에 맞서면(제약을 어기면) 가능한 자리로 쏘아 넣는다.
 
-### Projection Formula Derivation
+### 쏘아 넣기 식 끌어내기
 
-Minimize $\|\mathbf{g}' - \mathbf{g}\|^2$ subject to $\mathbf{g}' \cdot \bar{\mathbf{g}} \geq 0$:
+$\mathbf{g}' \cdot \bar{\mathbf{g}} \geq 0$이라는 조건 아래 $\|\mathbf{g}' - \mathbf{g}\|^2$을 가장 작게 한다.
 
 $$\mathbf{g}' = \mathbf{g} - \text{max}(0, \frac{\mathbf{g} \cdot \bar{\mathbf{g}}}{\|\bar{\mathbf{g}}\|^2}) \bar{\mathbf{g}}$$
 
-Removes only the problematic component, preserves orthogonal directions.
+말썽인 성분만 없애고 직교하는 방향은 그대로 둔다.
 
-## Memory Management
+## 기억 다스리기
 
-### Fixed Memory Budget
+### 붙박이 기억 예산
 
-With memory constraint, decide when to add exemplars:
+기억이 빠듯할 때 본보기를 언제 더할지 정한다.
 
-**Strategy 1: Reservoir Sampling**
-- Maintain random sample of all past data
-- Equal probability for all exemplars
+**전략 1: 저수지 뽑기**
 
-**Strategy 2: Importance-Based**
-- Prioritize important exemplars
-- Expensive computationally
+- 지난 데이터 전체의 무작위 표본을 지닌다
+- 본보기마다 확률이 같다
 
-**Strategy 3: Task-Based Allocation**
+**전략 2: 중요도 기반**
+
+- 중요한 본보기에 우선순위를 준다
+- 셈이 값비싸다
+
+**전략 3: 과제 기준 배분**
 
 $$m_t = \frac{M}{\text{num\_tasks}}$$
 
-Equal allocation per task.
+과제마다 똑같이 나눈다.
 
-!!! tip "Memory Refresh"
-    Periodically refresh buffer with current predictions:
+!!! tip "기억 새로 고치기"
+    지금의 예측으로 버퍼를 이따금 새로 고친다.
     
     $$\text{Keep exemplar if } \text{model\_uncertainty}(\mathbf{x}) > \text{threshold}$$
     
-    Replace outdated exemplars with currently-difficult samples.
+    낡은 본보기를 지금 어려운 표본으로 갈아 끼운다.
 
-## Convergence Analysis
+## 모임 분석
 
-### Constraint Satisfaction
+### 제약 지키기
 
-With A-GEM, constraint is always satisfied:
+A-GEM에서는 제약이 늘 지켜진다.
 
 $$\mathbf{g}_{\text{updated}} \cdot \bar{\mathbf{g}} \geq 0$$
 
-This is enforced by design through projection.
+쏘아 넣기를 통해 설계로 강제된다.
 
-### Convergence Rate
+### 수렴 속도
 
-Under convexity assumptions:
+볼록성을 놓으면 다음과 같다.
 
 $$\mathbb{E}[\mathcal{L}(T)] \leq \mathcal{L}(0) - c \cdot T + O(\sigma^2/\sqrt{T})$$
 
-where:
-- $c$ is step size dependent convergence rate
-- $\sigma$ is gradient variance
-- $T$ is training steps
+여기서 각 기호는 다음과 같다.
 
-Convergence slightly slower than standard SGD due to projection overhead.
+- $c$은 걸음 크기에 달린 모임 속도이다
+- $\sigma$은 기울기의 흩어짐이다
+- $T$은 학습 걸음 수이다
 
-## Comparison with Related Methods
+쏘아 넣기의 짐 때문에 보통의 SGD보다 조금 느리게 모인다.
 
-| Method | Memory | Computation | Forgetting | Theory |
+## 이웃한 방법과의 견줌
+
+| 방법 | 기억 | 셈 | 잊음 | 이론 |
 |--------|--------|------------|-----------|--------|
-| **A-GEM** | Low | Low | Very Low | Strong |
-| **EWC** | None | Medium | Moderate | Strong |
-| **Replay** | High | Low | Very Low | Medium |
-| **SI** | None | Low | Moderate | Medium |
+| **A-GEM** | 낮음 | 낮음 | 아주 적음 | 튼튼함 |
+| **EWC** | 없음 | 보통 | 보통 | 튼튼함 |
+| **되살리기** | 높음 | 낮음 | 아주 적음 | 보통 |
+| **SI** | 없음 | 낮음 | 보통 | 보통 |
 
-A-GEM balances memory efficiency with strong theoretical guarantees.
+A-GEM은 기억 효율과 든든한 이론적 보장 사이의 균형을 잡는다.
 
-## Practical Considerations
+## 실용적인 고려
 
-### Memory Buffer Size Selection
+### 기억 버퍼 크기 고르기
 
-How many exemplars needed? Empirical analysis:
+본보기가 몇 개나 필요할까? 실험으로 뜯어보자.
 
-| Buffer Size | Forgetting | Computation |
+| 버퍼 크기 | 잊음 | 셈 |
 |------------|-----------|------------|
-| 100 | 8% | 1.2x |
-| 500 | 3% | 1.6x |
-| 1000 | 1.5% | 2.1x |
-| 5000 | 0.5% | 4.5x |
+| 100 | 8% | 1.2배 |
+| 500 | 3% | 1.6배 |
+| 1000 | 1.5% | 2.1배 |
+| 5000 | 0.5% | 4.5배 |
 
-Diminishing returns beyond 1000 exemplars for most problems.
+대부분의 문제에서 본보기 1000개를 넘으면 얻는 것이 줄어든다.
 
-### Computational Overhead
+### 셈의 짐
 
-Gradient projection cost:
+기울기 쏘아 넣기의 비용은 다음과 같다.
 
-**Per-batch overhead**:
-- Compute new gradient: $O(n_{\theta})$
-- Compute average gradient: $O(m \cdot n_{\theta})$ where $m$ is buffer size
-- Projection: $O(n_{\theta})$
-- **Total**: $O((1+m) n_{\theta})$
+**배치마다의 짐**:
 
-For $m=100, n_{\theta}=10^6$: ~10% overhead.
+- 새 기울기 셈하기: $O(n_{\theta})$
+- 평균 기울기 셈하기: $O(m \cdot n_{\theta})$이며 $m$은 버퍼 크기이다
+- 쏘아 넣기: $O(n_{\theta})$
+- **모두**: $O((1+m) n_{\theta})$
 
-## Financial Applications
+$m=100, n_{\theta}=10^6$이면 짐이 10% 남짓이다.
 
-!!! warning "Crisis-Aware Portfolio Learning"
+## 금융에서의 쓰임
+
+!!! warning "위기를 아는 포트폴리오 배우기"
     
-    Maintain episodic memory of crisis scenarios:
-    - 2008 Financial Crisis returns
-    - 2020 COVID Crash patterns
-    - Prior bull market peaks
+    위기 상황의 에피소드 기억을 지닌다.
+
+    - 2008년 금융 위기의 수익률
+    - 2020년 코로나 폭락의 본새
+    - 지난 오름장의 꼭대기
     
-    When optimizing new portfolio:
-    1. Compute gradient for current market
-    2. Compute average gradient for crisis scenarios
-    3. Ensure portfolio changes don't hurt crisis performance
-    4. Result: Robust to regime changes
+    새 포트폴리오를 최적화할 때는 다음과 같이 한다.
 
-### Asset-Specific A-GEM
+    1. 지금 시장의 기울기를 셈한다
+    2. 위기 상황의 평균 기울기를 셈한다
+    3. 포트폴리오를 바꾸어도 위기 때의 성능이 나빠지지 않게 한다
+    4. 결과: 국면이 바뀌어도 튼튼하다
 
-Store exemplars per asset class:
+### 자산마다의 A-GEM
+
+자산 갈래마다 본보기를 담아 둔다.
 
 ```
 Equities Buffer: Historical equity returns + crashes
@@ -236,29 +237,29 @@ Bonds Buffer: Interest rate moves, credit events
 Commodities Buffer: Supply shocks, seasonal patterns
 ```
 
-Learn new trading strategy while maintaining knowledge of each asset's behavior.
+자산마다의 거동에 대한 앎을 지키면서 새 거래 전략을 배운다.
 
-## Advanced Topics
+## 더 깊은 주제
 
-### Importance-Weighted A-GEM
+### 중요도로 무게 준 A-GEM
 
-Weight exemplars by importance rather than uniform:
+본보기에 한결같은 무게 대신 중요도로 무게를 준다.
 
 $$\bar{\mathbf{g}} = \frac{\sum_i w_i \nabla \mathcal{L}_i}{\sum_i w_i}$$
 
-where $w_i$ measures exemplar importance.
+여기서 $w_i$은 본보기의 중요도를 잰다.
 
-### Task-Aware Memory Management
+### 과제를 아는 기억 다스리기
 
-Dynamically adjust memory allocation based on task:
+과제에 따라 기억 배분을 움직여 가며 손본다.
 
 $$m(t) = f(\text{task\_properties}_t)$$
 
-Allocate more memory to difficult/important tasks.
+어렵거나 중요한 과제에 기억을 더 준다.
 
-### Distributed A-GEM
+### 흩어진 A-GEM
 
-For federated learning or distributed training:
+연합 학습이나 흩어진 학습을 위한 것이다.
 
 ```
 Local A-GEM on each client
@@ -266,18 +267,50 @@ Share exemplars (not raw data) across clients
 Global gradient projection
 ```
 
-Maintains privacy while enabling continual learning.
+사생활을 지키면서 이어 배우기를 할 수 있게 한다.
 
-## Research Directions
+## 연구의 방향
 
-- Adaptive buffer size selection
-- Optimal exemplar selection strategies
-- Theoretical convergence with projection
-- Combining A-GEM with other methods
+- 맞추어 가는 버퍼 크기 고르기
+- 가장 좋은 본보기 고르기 전략
+- 쏘아 넣기를 곁들인 이론적 모임
+- A-GEM을 다른 방법과 섞기
 
-## Related Topics
+## 관련 주제
 
-- Replay Methods Overview (Chapter 12.4.1)
-- Dark Experience Replay (Chapter 12.4.3)
-- Gradient-Based Continual Learning
-- Episodic Memory Systems
+- 되살리기 방법 훑어보기(12.4.1절)
+- 어두운 경험 되살리기(12.4.3절)
+- 기울기 기반 이어 배우기
+- 에피소드 기억 체계
+
+## 연습문제
+
+**연습문제 1.**
+이 방법의 핵심 생각과 그것이 파국적 잊음을 어떻게 다루는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 방법은 새 과제를 배울 때 모델의 매개변수나 표현이 바뀌는 방식을 옥죄어 파국적 잊음을 누그러뜨린다. (벌주기, 되살리기, 증류, 구조 갈라두기로) 배운 함수의 중요한 대목을 지켜 냄으로써, 앞선 과제의 성능을 지키면서도 새 과제에 맞추어 갈 수 있게 한다.
+
+---
+
+**연습문제 2.**
+이 접근법의 셈과 기억 요구는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    요구는 변형마다 다르지만 대체로 (a) 매개변수의 중요도 무게, (b) 학습 보기의 일부, (c) 스승 모델의 출력, (d) 과제마다의 망 모듈 가운데 하나를 담아 두어야 한다. 기억 비용과 잊음 막기의 효과 사이에서 맞바꿈이 일어난다.
+
+---
+
+**연습문제 3.**
+이 방법을 효과와 셈 비용 면에서 EWC와 견주어라.
+
+??? success "연습문제 3 풀이"
+    EWC은 대각 피셔 정보로 중요한 가중치를 짚어낸다. 이 방법은 다른 맞바꿈을 준다. 옛 과제의 성능을 더 잘 지킬 수 있고, 기억 요구가 다르며, 과제 짜임에 대한 가정도 다르다. 실험으로 견주어 보면 잣대에 따라 서로 보완되는 강점을 보일 때가 많다.
+
+---
+
+**연습문제 4.**
+이 방법을 간추린 판으로 파이토치에 구현하라.
+
+??? success "연습문제 4 풀이"
+    구현은 대개 새 과제를 익히는 동안 보통의 교차 엔트로피 손실에 벌주기 항을 더한다. 핵심 부품은 (1) 앞선 과제 학습에서 제약을 셈하기, (2) 필요한 정보(가중치, 본보기, 스승 출력)를 담아 두기, (3) 새 과제 학습 중에 그 제약을 씌우기이다.

@@ -1,99 +1,99 @@
-# Cuckoo Hashing
+# 뻐꾸기 해싱
 
-Most collision resolution strategies accept that lookup may degrade to $O(n)$ in the worst case. Cuckoo hashing takes a fundamentally different approach: it guarantees $O(1)$ worst-case lookup and deletion by using two hash functions and displacing existing keys when a collision occurs --- much like a cuckoo bird evicts other eggs from a nest.
+대부분의 충돌 해결 전략은 최악의 경우 조회가 $O(n)$으로 떨어질 수 있음을 받아들인다. 뻐꾸기 해싱은 근본적으로 다른 길을 간다. 해시 함수 두 개를 쓰고 충돌이 일어나면 기존 키를 밀어내어 최악의 경우에도 $O(1)$ 조회와 삭제를 보장한다. 뻐꾸기가 둥지에서 다른 알을 밀어내는 모습과 비슷하다.
 
-## Two-Table Scheme
+## 두 테이블 방식
 
-Cuckoo hashing maintains two tables $T_1$ and $T_2$, each of size $m$, with independent hash functions $h_1$ and $h_2$. Every key $k$ resides in exactly one of two possible locations:
+뻐꾸기 해싱은 크기가 각각 $m$인 테이블 $T_1$과 $T_2$을 두고 독립인 해시 함수 $h_1$과 $h_2$을 쓴다. 모든 키 $k$은 있을 수 있는 두 자리 가운데 정확히 하나에 놓인다.
 
 $$
 T_1[h_1(k)] \quad \text{or} \quad T_2[h_2(k)]
 $$
 
-Because each key has at most two candidate positions and each position holds at most one key, lookups and deletions inspect exactly two slots.
+키마다 후보 자리가 많아야 둘이고 자리마다 키가 많아야 하나이므로 조회와 삭제는 정확히 두 칸만 살핀다.
 
-## Lookup and Deletion
+## 조회와 삭제
 
-**Lookup** for key $k$: check $T_1[h_1(k)]$ and $T_2[h_2(k)]$. If either contains $k$, return it; otherwise report "not found." This runs in $O(1)$ worst-case time.
+키 $k$ **조회**: $T_1[h_1(k)]$과 $T_2[h_2(k)]$을 확인한다. 어느 한쪽에 $k$이 있으면 돌려주고, 없으면 "찾지 못함"을 알린다. 최악의 경우에도 $O(1)$이다.
 
-**Deletion** of key $k$: locate $k$ with the same two-slot check and remove it. Again $O(1)$ worst case.
+키 $k$ **삭제**: 같은 두 칸 확인으로 $k$을 찾아 없앤다. 이 또한 최악의 경우에도 $O(1)$이다.
 
-## Insertion Algorithm
+## 삽입 알고리즘
 
-Insertion is where cuckoo hashing becomes interesting. To insert key $k$:
+뻐꾸기 해싱이 흥미로워지는 것은 삽입에서다. 키 $k$을 넣으려면 다음과 같이 한다.
 
-1. If $T_1[h_1(k)]$ is empty, place $k$ there and return.
-2. Otherwise, evict the current occupant $k'$ from $T_1[h_1(k)]$ and place $k$ there.
-3. Try to place $k'$ in $T_2[h_2(k')]$. If that slot is empty, place $k'$ and return.
-4. Otherwise, evict the occupant from $T_2[h_2(k')]$ and repeat the displacement process.
-5. If displacements exceed a threshold (typically $O(\log n)$ steps), declare a **cycle** and **rehash** --- choose new hash functions $h_1, h_2$ and reinsert all keys.
+1. $T_1[h_1(k)]$이 비어 있으면 거기에 $k$을 놓고 끝낸다.
+2. 그렇지 않으면 $T_1[h_1(k)]$에 있던 $k'$을 밀어내고 그 자리에 $k$을 놓는다.
+3. $k'$을 $T_2[h_2(k')]$에 놓으려 한다. 그 칸이 비어 있으면 $k'$을 놓고 끝낸다.
+4. 그렇지 않으면 $T_2[h_2(k')]$의 주인을 밀어내고 밀어내기를 되풀이한다.
+5. 밀어내기가 문턱값(보통 $O(\log n)$ 걸음)을 넘으면 **순환**으로 보고 **재해싱**한다. 새 해시 함수 $h_1, h_2$을 골라 모든 키를 다시 넣는다.
 
-The displacement chain can be visualized as a sequence of "kicks":
+밀어내기의 사슬은 "차내기"의 열로 그려 볼 수 있다.
 
 $$
 k \xrightarrow{\text{evicts}} k_1 \xrightarrow{\text{evicts}} k_2 \xrightarrow{\text{evicts}} \cdots
 $$
 
-## Cycle Detection and Rehashing
+## 순환 탐지와 재해싱
 
-A displacement cycle occurs when the eviction chain returns to a key that was already displaced. With random hash functions and a load factor below $50\%$, cycles are rare. When one is detected, the entire table is rebuilt with fresh hash functions.
+밀어내기의 사슬이 이미 밀려난 키로 되돌아오면 순환이 생긴 것이다. 무작위 해시 함수를 쓰고 적재율이 $50\%$ 아래이면 순환은 드물다. 순환이 탐지되면 새 해시 함수로 테이블 전체를 다시 세운다.
 
-The maximum displacement chain length before triggering a rehash is typically set to
+재해싱을 일으키기 전의 최대 밀어내기 사슬 길이는 보통 다음과 같이 정한다.
 
 $$
 \text{MaxKicks} = c \cdot \log n
 $$
 
-for a small constant $c$, which balances between unnecessary rehashes and excessively long insertion chains.
+여기서 $c$은 작은 상수이며, 쓸데없는 재해싱과 지나치게 긴 삽입 사슬 사이의 균형을 맞춘다.
 
-## Analysis
+## 분석
 
-Under the assumption that $h_1$ and $h_2$ are drawn from a universal hash family:
+$h_1$과 $h_2$을 보편 해시 족에서 뽑았다고 가정하면 다음과 같다.
 
-| Operation | Time |
+| 연산 | 시간 |
 |---|---|
-| Lookup | $O(1)$ worst case |
-| Delete | $O(1)$ worst case |
-| Insert | $O(1)$ amortized expected |
+| 조회 | 최악의 경우 $O(1)$ |
+| 삭제 | 최악의 경우 $O(1)$ |
+| 삽입 | 기대 상각 $O(1)$ |
 
-The expected amortized cost of insertion is $O(1)$ when the load factor satisfies
+적재율이 다음을 만족할 때 삽입의 기대 상각 비용이 $O(1)$이다.
 
 $$
 \alpha = \frac{n}{2m} < \frac{1}{2}
 $$
 
-where $n$ is the number of stored keys and $2m$ is the total number of slots across both tables. Above this threshold, the probability of cycles increases sharply.
+여기서 $n$은 저장된 키의 수이고 $2m$은 두 테이블을 합한 칸의 수이다. 이 문턱값을 넘으면 순환의 확률이 급격히 커진다.
 
-The space utilization of basic cuckoo hashing is at most $50\%$, which is less efficient than linear probing or chaining. Extensions such as **bucketized cuckoo hashing** (multiple slots per bucket) can achieve load factors above $90\%$.
+기본 뻐꾸기 해싱의 공간 활용률은 많아야 $50\%$이어서 선형 탐사나 체이닝보다 효율이 낮다. 버킷마다 칸을 여럿 두는 **버킷화 뻐꾸기 해싱** 같은 확장은 적재율을 $90\%$ 넘게 올릴 수 있다.
 
-## Comparison with Other Strategies
+## 다른 전략과의 비교
 
-| Property | Chaining | Linear probing | Cuckoo |
+| 성질 | 체이닝 | 선형 탐사 | 뻐꾸기 |
 |---|---|---|---|
-| Worst-case lookup | $O(n)$ | $O(n)$ | $O(1)$ |
-| Space overhead | Pointer per entry | None | Two tables |
-| Maximum load factor | Unbounded | ${\sim}70\%$ practical | ${\sim}50\%$ basic |
-| Cache behavior | Poor | Excellent | Moderate |
+| 최악의 경우 조회 | $O(n)$ | $O(n)$ | $O(1)$ |
+| 공간 부담 | 항목마다 포인터 | 없음 | 테이블 두 개 |
+| 최대 적재율 | 제한 없음 | 실무에서 ${\sim}70\%$ | 기본형 ${\sim}50\%$ |
+| 캐시 거동 | 나쁨 | 아주 좋음 | 보통 |
 
-The $O(1)$ worst-case guarantee makes cuckoo hashing attractive for real-time systems and hardware implementations where predictable latency is critical.
+최악의 경우에도 $O(1)$이라는 보장 덕분에 뻐꾸기 해싱은 지연을 예측할 수 있어야 하는 실시간 시스템과 하드웨어 구현에서 매력적이다.
 
-## Python Implementation
+## 파이썬 구현
 
 ```python
 """
-Cuckoo hashing implementation with two tables.
+표 두 개를 쓰는 뻐꾸기 해싱 구현.
 
-Demonstrates the displacement-based insertion that guarantees
-O(1) worst-case lookup and deletion.
+찾기와 지우기의 최악 시간이 O(1)임을 보장하는
+밀어내기 방식 삽입을 보인다.
 """
 
 
-# === Cuckoo Hash Table ===
+# === 뻐꾸기 해시 표 ===
 
 class CuckooHashTable:
-    """Hash table using cuckoo hashing with two independent tables."""
+    """서로 독립인 표 두 개로 뻐꾸기 해싱을 하는 해시 표."""
 
-    MAX_KICKS = 50  # displacement limit before rehash
+    MAX_KICKS = 50  # 다시 해싱하기 전 밀어내기의 한계
 
     def __init__(self, capacity=8):
         self.capacity = capacity
@@ -110,7 +110,7 @@ class CuckooHashTable:
         return hash((key, self._seed2)) % self.capacity
 
     def lookup(self, key):
-        """O(1) worst-case lookup."""
+        """최악의 경우에도 O(1)인 찾기."""
         pos1 = self._h1(key)
         if self.table1[pos1] is not None and self.table1[pos1][0] == key:
             return self.table1[pos1][1]
@@ -120,7 +120,7 @@ class CuckooHashTable:
         return None
 
     def delete(self, key):
-        """O(1) worst-case deletion."""
+        """최악의 경우에도 O(1)인 지우기."""
         pos1 = self._h1(key)
         if self.table1[pos1] is not None and self.table1[pos1][0] == key:
             self.table1[pos1] = None
@@ -134,36 +134,36 @@ class CuckooHashTable:
         return False
 
     def insert(self, key, value):
-        """Insert with cuckoo displacement. Rehashes on cycle."""
-        # Check if key already exists
+        """뻐꾸기 밀어내기로 삽입한다. 순환이 생기면 다시 해싱한다."""
+        # 열쇠가 이미 있는지 확인
         if self.lookup(key) is not None:
             self.delete(key)
 
         item = (key, value)
         for _ in range(self.MAX_KICKS):
-            # Try table 1
+            # 1번 표에 시도
             pos1 = self._h1(item[0])
             if self.table1[pos1] is None:
                 self.table1[pos1] = item
                 self.size += 1
                 return
-            # Evict from table 1
+            # 1번 표에서 내보내기
             item, self.table1[pos1] = self.table1[pos1], item
 
-            # Try table 2
+            # 2번 표에 시도
             pos2 = self._h2(item[0])
             if self.table2[pos2] is None:
                 self.table2[pos2] = item
                 self.size += 1
                 return
-            # Evict from table 2
+            # 2번 표에서 내보내기
             item, self.table2[pos2] = self.table2[pos2], item
 
-        # Cycle detected — rehash with new seeds
+        # 순환 발견 — 새 씨앗으로 다시 해싱
         self._rehash(item)
 
     def _rehash(self, pending_item):
-        """Rebuild both tables with new hash functions."""
+        """새 해시 함수로 두 표를 다시 만든다."""
         self._seed1 += 2
         self._seed2 += 2
         old_items = []
@@ -180,7 +180,7 @@ class CuckooHashTable:
         self.insert(pending_item[0], pending_item[1])
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     ct = CuckooHashTable(capacity=8)
@@ -197,7 +197,7 @@ if __name__ == "__main__":
     print(f"Size: {ct.size}")
 ```
 
-**Output:**
+**출력:**
 ```
 lookup('alpha'): 1
 lookup('beta'): 2
@@ -208,7 +208,40 @@ After delete, lookup('gamma'): None
 Size: 4
 ```
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Pagh, R. and Rodler, F. F. "Cuckoo Hashing." *Journal of Algorithms*, 51(2), 2004.
+
+
+## 연습문제
+
+**연습문제 1.**
+뻐꾸기 해싱에 대해, 적재율이 $\alpha = 0.75$일 때 삽입과 조회의 기대 시간과 최악의 경우 시간을 계산하라.
+
+??? success "연습문제 1 풀이"
+    기대 시간은 충돌 해결 전략에 달렸으며 균등 해싱을 가정한다. 체이닝에서는 기대 시간이 $O(1 + \alpha) = O(1.75)$이다. 개방 주소법에서는 탐색에 실패할 때 기대 탐사 횟수가 $\approx 1/(1-\alpha) = 4$이다. 최악의 경우는 모든 키가 같은 칸으로 해시될 때의 $O(n)$이다.
+
+---
+
+**연습문제 2.**
+뻐꾸기 해싱을(를) 써서 키 10, 22, 31, 4, 15, 28, 17을 크기가 7인 해시 테이블에 넣어라. 최종 테이블의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    해시 함수 $h(k) = k \bmod 7$을 적용하고 이 쪽의 방법으로 충돌을 처리한다. 키마다 해시를 계산하고 충돌을 해결한 뒤 키를 놓는다. 최종 테이블의 내용을 보인다.
+
+---
+
+**연습문제 3.**
+뻐꾸기 해싱은(는) 딥러닝의 임베딩 테이블에서 어떻게 쓰이는가? 토큰 $V = 50{,}000$개의 어휘를 $m = 30{,}000$개의 버킷에 대응시킬 때 충돌의 양상을 분석하라.
+
+??? success "연습문제 3 풀이"
+    $V/m \approx 1.67$이므로 비둘기집 원리에 의해 충돌이 반드시 생긴다. 버킷마다 평균 1.67개의 토큰이 같은 임베딩을 나누어 쓴다. 충돌률과 그것이 모델의 품질에 미치는 영향은 해시 함수의 품질과 임베딩의 차원에 달렸다(차원이 높을수록 충돌을 더 잘 견딘다).
+
+---
+
+**연습문제 4.**
+$\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 상각 비용이 $O(1)$으로 유지됨을 증명하라.
+
+??? success "연습문제 4 풀이"
+    크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$

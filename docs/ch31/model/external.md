@@ -1,50 +1,50 @@
-# External Memory Model
+# 바깥 기억 모형
 
-Algorithms that operate on datasets too large for main memory face a fundamental bottleneck: the time to transfer data between disk and RAM dwarfs the time for in-memory computation. A single random disk access can take millions of CPU cycles, so the number of disk reads and writes -- not the number of comparisons or additions -- determines practical performance. The **external memory model** (also called the disk-access model or I/O model) formalizes this reality by counting only block transfers between two storage levels.
+으뜸 기억에 담기 너무 큰 자료 뭉치를 다루는 알고리즘은 근본 병목을 마주한다. 원반과 램 사이의 자료 옮김 때가 기억 속 셈 때를 압도한다. 아무 원반 닿기 한 번에 CPU 주기 수백만이 들 수 있으므로 견줌이나 더하기의 횟수가 아니라 원반 읽기와 적기의 횟수가 실제 성능을 정한다. **바깥 기억 모형**(원반 닿기 모형 또는 들고남 모형이라고도 한다)은 저장 켜 둘 사이의 덩이 옮김만 세어 이 현실을 엄밀히 적는다.
 
-## The Two-Level Storage Hierarchy
+## 두 켜의 저장 계층
 
-The model assumes exactly two levels of storage:
+이 모형은 저장 켜가 꼭 둘이라고 여긴다:
 
-1. **Internal memory (RAM):** fast but limited, holding at most $M$ data elements.
-2. **External storage (disk):** slow but unlimited, holding the full dataset of $N$ elements.
+1. **안쪽 기억(램):** 빠르지만 좁다. 많아야 자료 원소 $M$개를 담는다.
+2. **바깥 저장(원반):** 느리지만 제한이 없다. 원소 $N$개의 온 자료 뭉치를 담는다.
 
-Computation can only be performed on data that resides in internal memory. When the algorithm needs data that is on disk, it must execute an **I/O operation** that transfers a contiguous **block** of $B$ elements between disk and memory.
+셈은 안쪽 기억에 있는 자료에서만 할 수 있다. 알고리즘이 원반의 자료가 필요하면 원반과 기억 사이에서 이어진 원소 $B$개의 **덩이**를 옮기는 **들고남**을 해야 한다.
 
-## Formal Definition
+## 엄밀한 정의
 
-The external memory model is parameterized by three quantities:
+바깥 기억 모형은 세 양으로 잡을 정한다:
 
-| Parameter | Symbol | Meaning |
+| 잡 | 기호 | 뜻 |
 |---|---|---|
-| Problem size | $N$ | Total number of data elements |
-| Memory size | $M$ | Elements that fit in internal memory |
-| Block size | $B$ | Elements transferred per I/O operation |
+| 문제 크기 | $N$ | 온 자료 원소 개수 |
+| 기억 크기 | $M$ | 안쪽 기억에 들어가는 원소 수 |
+| 덩이 크기 | $B$ | 들고남마다 옮기는 원소 수 |
 
-These satisfy the constraint:
+이들은 다음 매임을 만족한다:
 
 $$
 1 \le B \le M \le N
 $$
 
-An **I/O operation** (or block transfer) moves one block of $B$ contiguous elements between disk and memory. The **I/O complexity** of an algorithm is the total number of such operations it performs in the worst case.
+**들고남**(또는 덩이 옮김)은 원반과 기억 사이에서 이어진 원소 $B$개의 덩이 하나를 나른다. 알고리즘의 **들고남 복잡도**는 가장 나쁜 경우 그런 연산을 몇 번 하는지의 온 횟수다.
 
-## Why Not Just Count Operations?
+## 왜 연산 횟수만 세지 않는가
 
-Consider sorting $N = 10^9$ integers when $M = 10^6$ fit in memory. An in-memory sort would need $O(N \log N) \approx 3 \times 10^{10}$ comparisons -- fast on a modern CPU. But if each comparison requires a random disk access, the wall-clock time is dominated by roughly $10^9$ disk seeks at 5 ms each, totaling over 50 days. An I/O-efficient sort reduces disk accesses to $O((N/B) \log_{M/B}(N/B))$, which with $B = 4096$ takes only minutes. The external memory model captures this distinction by measuring only block transfers.
+기억에 $M = 10^6$개가 들어갈 때 정수 $N = 10^9$개를 줄 세운다고 하자. 기억 속 줄 세우기는 견줌이 $O(N \log N) \approx 3 \times 10^{10}$번 필요하며 요즘 CPU에서는 빠르다. 그러나 견줌마다 아무 원반 닿기가 필요하면 걸리는 때는 5밀리초짜리 원반 찾기 약 $10^9$번이 지배해 50일이 넘는다. 들고남을 아끼는 줄 세우기는 원반 닿기를 $O((N/B) \log_{M/B}(N/B))$으로 줄이며 $B = 4096$이면 몇 분이면 된다. 바깥 기억 모형은 덩이 옮김만 재어 이 차이를 담는다.
 
-## The I/O Operation
+## 들고남 연산
 
-Each I/O operation performs one of two actions:
+들고남마다 다음 둘 가운데 하나를 한다:
 
-- **Read:** Transfer a block of $B$ elements from a specified disk location into memory.
-- **Write:** Transfer a block of $B$ elements from memory to a specified disk location.
+- **읽기:** 밝힌 원반 자리에서 원소 $B$개의 덩이를 기억으로 옮긴다.
+- **적기:** 기억에서 밝힌 원반 자리로 원소 $B$개의 덩이를 옮긴다.
 
-Between I/O operations, the algorithm may perform any amount of internal computation on the data in memory at zero cost. This reflects the practical reality that CPU time is negligible compared to disk transfer time.
+들고남 사이에 알고리즘은 기억의 자료에 대해 안쪽 셈을 아무리 해도 비용이 0이다. 이는 CPU 때가 원반 옮김 때에 견주면 하찮다는 실제를 비춘다.
 
-## Key Derived Quantities
+## 핵심 파생 양
 
-Several ratios of the model parameters appear repeatedly in I/O complexity bounds:
+모형 잡의 여러 비가 들고남 복잡도 가둠에 거듭 나온다:
 
 $$
 \frac{N}{B} \quad \text{(number of blocks in the dataset)}
@@ -54,65 +54,65 @@ $$
 \frac{M}{B} \quad \text{(number of blocks that fit in memory)}
 $$
 
-The ratio $M/B$ is especially important because it determines the **fan-out** of merge-based algorithms: during an external merge sort, we can merge up to $M/B - 1$ sorted runs simultaneously.
+비 $M/B$은 합침 바탕 알고리즘의 **퍼짐**을 정하므로 특히 중요하다. 바깥 기억 합침 정렬에서 줄 세운 줄기를 한꺼번에 많아야 $M/B - 1$개 합칠 수 있다.
 
-## Comparison with Other Models
+## 다른 모형과 견주기
 
-| Model | Cost Metric | Strengths |
+| 모형 | 비용 잣대 | 강점 |
 |---|---|---|
-| RAM model | Arithmetic operations | Simple analysis, captures CPU work |
-| External memory | Block transfers | Captures disk I/O bottleneck |
-| Cache-oblivious | Block transfers (all $B$, $M$) | No parameter tuning needed |
+| RAM 모형 | 셈 연산 | 살피기가 단순하고 CPU 일을 담는다 |
+| 바깥 기억 | 덩이 옮김 | 원반 들고남 병목을 담는다 |
+| 두름을 모르는 | 덩이 옮김(모든 $B$, $M$) | 잡을 손볼 필요가 없다 |
 
-The external memory model requires the algorithm to know $B$ and $M$ explicitly and optimize for those specific values. The cache-oblivious model, by contrast, achieves optimal I/O complexity for all values of $B$ and $M$ without knowing them -- a stronger guarantee explored on the [Cache-Oblivious B-Trees](../structures/cache_oblivious.md) page.
+바깥 기억 모형은 알고리즘이 $B$과 $M$을 드러나게 알고 그 값에 맞춰 다듬기를 요구한다. 반면 두름을 모르는 모형은 $B$과 $M$을 모른 채로 모든 값에서 가장 좋은 들고남 복잡도를 이룬다. 이 더 센 보장은 [두름을 모르는 B 나무](../structures/cache_oblivious.md) 쪽에서 살핀다.
 
-## Example: Scanning vs Random Access
+## 보기: 훑기와 아무 닿기
 
-The following example contrasts sequential scanning (I/O-efficient) with random access (I/O-inefficient) to demonstrate why the external memory model matters.
+다음 보기는 차례 훑기(들고남 효율 좋음)와 아무 닿기(들고남 효율 나쁨)를 견주어 바깥 기억 모형이 왜 중요한지 보여 준다.
 
 ```python
 """
-External memory model simulation.
+바깥 기억 모형 흉내내기.
 
-Compares sequential scanning versus random access patterns
-to illustrate the importance of block-aligned I/O.
+차례 훑기와 아무 닿기 무늬를 견주어 덩이에 줄 맞춘 들고남이
+왜 중요한지 보여 준다.
 """
 
 import math
 import random
 
 # ===================================================================
-# I/O cost calculations
+# 들고남 비용 셈하기
 # ===================================================================
 
 def sequential_scan_ios(n: int, b: int) -> int:
-    """I/O operations for a full sequential scan of N elements."""
+    """원소 N개를 차례로 온전히 훑는 들고남 횟수."""
     return math.ceil(n / b)
 
 
 def random_access_ios(n: int, num_accesses: int) -> int:
     """
-    Worst-case I/O operations for random element accesses.
+    원소에 아무렇게 닿을 때 가장 나쁜 경우의 들고남 횟수.
 
-    Each random access may hit a different block, costing 1 I/O each.
+    아무 닿기마다 다른 덩이에 닿을 수 있어 저마다 들고남 1번이 든다.
     """
-    return min(num_accesses, math.ceil(n / 1))  # 1 I/O per access worst case
+    return min(num_accesses, math.ceil(n / 1))  # 가장 나쁜 경우 닿기마다 들고남 1번
 
 
 def external_sort_ios(n: int, m: int, b: int) -> int:
-    """I/O operations for external merge sort."""
+    """바깥 기억 합침 정렬의 들고남 횟수."""
     if n <= m:
-        return sequential_scan_ios(n, b)  # Fits in memory
+        return sequential_scan_ios(n, b)  # 기억에 들어간다
     blocks = math.ceil(n / b)
     fan_out = m // b
     if fan_out <= 1:
         return float('inf')
     passes = math.ceil(math.log(blocks) / math.log(fan_out))
-    return 2 * blocks * passes  # Each pass reads and writes all blocks
+    return 2 * blocks * passes  # 지나기마다 모든 덩이를 읽고 적는다
 
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
@@ -138,10 +138,10 @@ if __name__ == "__main__":
     print(f"  N random accesses: {rand:>11,}")
 ```
 
-??? example "Sample Output"
+??? example "보기 내놓기"
 
     ```
-    External Memory Model Parameters
+    바깥 기억 모형의 잡
       N =  100,000,000  (problem size)
       M =    1,000,000  (memory size)
       B =        4,096  (block size)
@@ -149,18 +149,51 @@ if __name__ == "__main__":
       M/B =        244  (blocks in memory)
 
     Operation costs (I/O operations):
-      Sequential scan:       24,415
-      External sort:         97,660
-      N random accesses: 100,000,000
+      차례 훑기:       24,415
+      바깥 줄 세우기:         97,660
+      아무 닿기 N번: 100,000,000
     ```
 
-    Sequential scanning is roughly 4,000 times more I/O-efficient than random access, which is why the external memory model focuses on block transfer patterns.
+    차례 훑기는 아무 닿기보다 들고남 효율이 대략 4,000배 좋으며, 이것이 바깥 기억 모형이 덩이 옮김 무늬에 집중하는 까닭이다.
 
-## Connection to Other Pages
+## 다른 쪽과의 이음
 
-The block size parameter $B$ is discussed in detail on the [Block Size](block.md) page. The I/O complexity bounds for fundamental operations -- scanning, sorting, and searching -- are derived on the [I/O Complexity](io_complexity.md) page.
+덩이 크기 잡 $B$은 [덩이 크기](block.md) 쪽에서 자세히 다룬다. 훑기, 줄 세우기, 찾기 같은 근본 연산의 들고남 복잡도 가둠은 [들고남 복잡도](io_complexity.md) 쪽에서 이끌어 낸다.
 
-## Reference
+## 참고 문헌
 
 - Aggarwal, A. & Vitter, J. S. "The Input/Output Complexity of Sorting and Related Problems," *Communications of the ACM*, 31(9), 1988.
 - Vitter, J. S. *Algorithms and Data Structures for External Memory*, Foundations and Trends in Theoretical Computer Science, 2008.
+
+
+## 연습문제
+
+**연습문제 1.**
+바깥 기억 모형(아가왈-비터 모형)과 그 잡을 뜻매김하여라.
+
+??? success "연습문제 1 풀이"
+    이 모형은 원소 $M$개 크기의 기억, 크기 제한이 없는 원반, 덩이 크기 $B$(들고남마다 원소 수)을 가진다. 셈은 공짜이고 비용 = 들고남 횟수다. 들고남 하나가 원반과 기억 사이에서 이어진 원소 $B$개의 덩이 하나를 읽거나 적는다. 잡: $N$(들임 크기), $M$(기억 크기), $B$(덩이 크기). 핵심 여김: $1 \leq B \leq M < N$. 이 모형은 들고남이 셈보다 자릿수만큼 느린 실제 시스템의 성능 병목을 담는다.
+
+---
+
+**연습문제 2.**
+훑기, 줄 세우기, 찾기의 근본 들고남 복잡도는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    원소 $N$개 훑기: 들고남 $O(N/B)$번(가장 좋다. 자료를 다 읽어야 한다). 줄 세우기: 들고남 $O(N/B \cdot \log_{M/B}(N/B))$번. 찾기(B 나무): 묻기마다 들고남 $O(\log_B N)$번. 줄 세우기 가둠은 훑기($O(N/B)$)와 어수룩한 값($O(N \log N)$) 사이에 있다. 흔한 잡($M/B = 10^4$, $N/B = 10^8$)에서 줄 세우기는 들고남 약 $2 \times N/B$번, 곧 훑기의 두 배쯤이다.
+
+---
+
+**연습문제 3.**
+요즘 시스템에 램이 많은데도 바깥 기억 모형이 왜 중요한가?
+
+??? success "연습문제 3 풀이"
+    램이 1TB여도 많은 자료 뭉치가 이를 넘는다. 웹 규모 그래프(10TB 넘음), 유전체 자료 바탕(페타바이트), 익히기 말뭉치(Common Crawl: 300TB 넘음)가 그렇다. 게다가 이 모형은 다른 기억 계층에도 쓰인다. L1 두름(64KB), L2(1MB), L3(32MB), 램(GB)이 그것이다. $M$과 $B$을 모른 채 설계한 두름을 모르는 알고리즘은 모든 켜에서 한꺼번에 잘 돈다. '아무 닿기를 줄이고 차례 닿기를 늘려라'는 원칙은 어디에나 통한다.
+
+---
+
+**연습문제 4.**
+바깥 기억 모형은 깊은 배움 자료 불러오기 시스템 설계에 어떤 실마리를 주는가?
+
+??? success "연습문제 4 풀이"
+    자료 불러오개는 바깥 기억 원칙을 따른다. (1) 미리 가져오기: GPU이 지금 묶음을 다루는 동안 다음 묶음을 올린다(들고남과 셈을 겹친다), (2) 차례 닿기: 익히기 자료를 큰 차례 파일(TFRecord, WebDataset)에 담아 $O(N/B)$ 훑기를 한다, (3) 버퍼 섞기: 크기 $M$의 섞기 버퍼를 지니고 거기서 뽑아 아무 들고남 없이 아무 닿기를 어림한다, (4) 나란한 들고남: 일꾼 실 여럿이 서로 다른 조각을 한꺼번에 읽어 실제 대역을 늘린다.

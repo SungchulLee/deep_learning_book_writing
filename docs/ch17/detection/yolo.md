@@ -1,27 +1,22 @@
-# YOLO: You Only Look Once
+# YOLO: 한 번만 본다
+## 학습 목표
 
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+- YOLO의 철학과 두 단계 알아내개와의 차이를 설명한다
+- 격자 바탕 알아내기와 닻 상자 어림을 이해한다
+- YOLOv1에서 YOLOv8까지의 흐름을 좇는다
+- YOLO 방식의 알아내기 머리와 손실 함수를 짠다
+- 미리 익힌 YOLO 모델을 미룸과 곱게 다듬기에 쓴다
+- 실시간 쓰임새에 맞게 YOLO 모델을 다듬는다
 
-## Learning Objectives
+## YOLO의 철학
 
-By the end of this section, you will be able to:
+YOLO(한 번만 본다)는 물체 알아내기를 되돌리기 문제 하나로 세워, 온 그림에서 두름 상자와 갈래 확률을 한 번의 값매김으로 곧바로 어림하며 판을 뒤집었다.
 
-- Explain the YOLO philosophy and how it differs from two-stage detectors
-- Understand grid-based detection and anchor box predictions
-- Trace the evolution from YOLOv1 through YOLOv8
-- Implement YOLO-style detection heads and loss functions
-- Use pre-trained YOLO models for inference and fine-tuning
-- Optimize YOLO models for real-time applications
+### 핵심 통찰
 
-## The YOLO Philosophy
-
-YOLO (You Only Look Once) revolutionized object detection by framing it as a single regression problem, directly predicting bounding boxes and class probabilities from full images in one evaluation.
-
-### Key Insight
-
-Instead of proposing regions and classifying them separately, YOLO divides the image into a grid and predicts all boxes and classes simultaneously:
+자리를 제안하고 따로 갈래를 매기는 대신, YOLO는 그림을 격자로 나누고 모든 상자와 갈래를 한꺼번에 어림한다:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -49,25 +44,26 @@ Instead of proposing regions and classifying them separately, YOLO divides the i
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Advantages Over Two-Stage Detectors
+### 두 단계 알아내개보다 나은 점
 
-| Aspect | YOLO | Two-Stage (Faster R-CNN) |
+| 갈래 | YOLO | 두 단계(더 빠른 R-CNN) |
 |--------|------|--------------------------|
-| **Speed** | 45-155+ FPS | 5-15 FPS |
-| **Global Context** | Sees full image | Sees only proposals |
-| **Architecture** | Simpler, unified | Complex, multi-component |
-| **Background Errors** | Fewer false positives | More background confusion |
-| **Small Objects** | More challenging | Better with FPN |
+| **빠르기** | 초당 45~155틀 이상 | 초당 5~15틀 |
+| **전체 맥락** | 온 그림을 본다 | 제안만 본다 |
+| **얼개** | 더 단순하고 하나로 묶임 | 복잡하고 조각이 여럿 |
+| **뒷바탕 어긋남** | 헛양성이 적다 | 뒷바탕을 더 헷갈린다 |
+| **작은 물체** | 더 어렵다 | FPN을 쓰면 더 낫다 |
 
-## Grid-Based Detection
+## 격자 바탕 알아내기
 
-YOLO divides the input image into an S×S grid. Each grid cell is responsible for detecting objects whose center falls within that cell.
+YOLO는 들임 그림을 S×S 격자로 나눈다. 격자 칸마다 가운데점이 그 칸 안에 떨어지는 물체를 알아낼 몫을 맡는다.
 
-### Cell Predictions
+### 칸의 어림
 
-For each grid cell, YOLO predicts:
-- **B bounding boxes**: Each with (x, y, w, h, confidence)
-- **C class probabilities**: P(class_i | object)
+격자 칸마다 YOLO는 다음을 어림한다:
+
+- **두름 상자 B개**: 저마다 (x, y, w, h, 믿음도)를 갖는다
+- **갈래 확률 C개**: P(갈래_i | 물체)
 
 ```
 Grid Cell Output:
@@ -83,13 +79,13 @@ Total predictions per cell: B × 5 + C
 Total output tensor: S × S × (B × 5 + C)
 ```
 
-### Coordinate Encoding
+### 자리표 부호화
 
-YOLO uses normalized coordinates relative to the grid cell:
+YOLO는 격자 칸을 기준으로 고르게 맞춘 자리표를 쓴다:
 
-- **(x, y)**: Offset from grid cell corner, normalized to [0, 1]
-- **(w, h)**: Relative to image size, normalized to [0, 1]
-- **confidence**: P(object) × IoU(pred, truth)
+- **(x, y)**: 격자 칸 모서리에서의 어긋남, [0, 1]로 맞춤
+- **(w, h)**: 그림 크기에 대한 상대값, [0, 1]로 맞춤
+- **믿음도**: P(물체) × IoU(어림, 참값)
 
 ```python
 import torch
@@ -102,21 +98,21 @@ def decode_yolo_boxes(
     image_size: int
 ) -> torch.Tensor:
     """
-    Decode YOLO predictions to absolute box coordinates.
+    YOLO의 어림을 절대 상자 자리표로 푼다.
     
-    Args:
-        predictions: (batch, S, S, B*5+C) raw predictions
-        grid_size: S (grid dimension)
-        num_boxes: B (boxes per cell)
-        image_size: Input image dimension
+    인수:
+        predictions: (batch, S, S, B*5+C) 날 어림
+        grid_size: S(격자 차원)
+        num_boxes: B(칸마다의 상자 수)
+        image_size: 들임 그림 차원
         
-    Returns:
-        boxes: (batch, S*S*B, 4) in xyxy format
+    반환값:
+        boxes: xyxy 꼴의 (batch, S*S*B, 4)
     """
     batch_size = predictions.shape[0]
     cell_size = image_size / grid_size
     
-    # Create grid offsets
+    # 격자 어긋남 만들기
     grid_y, grid_x = torch.meshgrid(
         torch.arange(grid_size),
         torch.arange(grid_size),
@@ -129,19 +125,19 @@ def decode_yolo_boxes(
     for b in range(num_boxes):
         start_idx = b * 5
         
-        # Extract predictions
-        x = predictions[..., start_idx + 0]      # Relative x in cell
-        y = predictions[..., start_idx + 1]      # Relative y in cell
-        w = predictions[..., start_idx + 2]      # Width relative to image
-        h = predictions[..., start_idx + 3]      # Height relative to image
+        # 어림 뽑아내기
+        x = predictions[..., start_idx + 0]      # 칸 안의 상대 x
+        y = predictions[..., start_idx + 1]      # 칸 안의 상대 y
+        w = predictions[..., start_idx + 2]      # 그림에 대한 상대 너비
+        h = predictions[..., start_idx + 3]      # 그림에 대한 상대 높이
         
-        # Convert to absolute coordinates
+        # 절대 자리표로 바꾸기
         x_abs = (grid_x + x) * cell_size
         y_abs = (grid_y + y) * cell_size
         w_abs = w * image_size
         h_abs = h * image_size
         
-        # Convert to xyxy format
+        # xyxy 꼴로 바꾸기
         x1 = x_abs - w_abs / 2
         y1 = y_abs - h_abs / 2
         x2 = x_abs + w_abs / 2
@@ -153,37 +149,40 @@ def decode_yolo_boxes(
     return torch.cat(boxes, dim=1)
 ```
 
-## YOLO Evolution
+## YOLO의 흐름
 
-### YOLOv1 (2015)
+### YOLOv1(2015)
 
-The original YOLO introduced the single-shot detection paradigm:
+처음의 YOLO는 한 방 알아내기라는 틀을 들여왔다:
 
-- 7×7 grid, 2 boxes per cell, 20 classes (PASCAL VOC)
-- Output: 7×7×30 tensor
-- 24 convolutional layers + 2 fully connected layers
-- 45 FPS on GPU
+- 7×7 격자, 칸마다 상자 2개, 갈래 20개(PASCAL VOC)
+- 내놓음: 7×7×30 텐서
+- 누비기 층 24개 + 온전히 이은 층 2개
+- GPU에서 초당 45틀
 
-**Limitations**:
-- Struggles with small objects and objects in groups
-- Limited to 2 boxes per cell
-- Spatial constraints on predictions
+**한계**:
 
-### YOLOv2/YOLO9000 (2016)
+- 작은 물체와 무리 지은 물체에 약하다
+- 칸마다 상자 2개로 제한된다
+- 어림에 자리 제약이 있다
 
-Key improvements:
-- **Batch normalization** on all conv layers
-- **High-resolution classifier**: Fine-tune at 448×448
-- **Anchor boxes**: Learn box priors from data using k-means
-- **Passthrough layer**: Fine-grained features from earlier layers
-- **Multi-scale training**: Train on multiple resolutions
+### YOLOv2/YOLO9000(2016)
 
-### YOLOv3 (2018)
+핵심 나아진 점:
 
-Major architectural changes:
-- **Darknet-53 backbone**: 53-layer residual network
-- **Multi-scale predictions**: Detect at 3 different scales
-- **Independent logistic classifiers**: Better for multi-label
+- 모든 누비기 층에 **묶음 고르게 맞추기**
+- **높은 해상도 갈래 매개**: 448×448에서 곱게 다듬기
+- **닻 상자**: k-평균으로 자료에서 상자의 앞선 것을 배운다
+- **지나침 층**: 앞선 층에서 온 결이 고운 특징
+- **여러 잣수 익히기**: 여러 해상도로 익힌다
+
+### YOLOv3(2018)
+
+얼개의 큰 바뀜:
+
+- **Darknet-53 등뼈**: 53층 잔차 그물
+- **여러 잣수 어림**: 3가지 잣수에서 알아낸다
+- **서로 얽히지 않은 로지스틱 갈래 매개**: 여러 이름표에 더 낫다
 
 ```python
 import torch.nn as nn
@@ -191,7 +190,7 @@ import torch.nn as nn
 
 class DarknetBlock(nn.Module):
     """
-    Darknet residual block.
+    Darknet 잔차 덩이.
     """
     def __init__(self, in_channels: int):
         super().__init__()
@@ -214,7 +213,7 @@ class DarknetBlock(nn.Module):
 
 class YOLOv3Head(nn.Module):
     """
-    YOLOv3 detection head for one scale.
+    잣수 하나를 위한 YOLOv3 알아내기 머리.
     """
     def __init__(
         self,
@@ -224,7 +223,7 @@ class YOLOv3Head(nn.Module):
     ):
         super().__init__()
         
-        # Each anchor predicts: 4 coords + 1 objectness + num_classes
+        # 닻마다 어림: 자리표 4 + 물체다움 1 + 갈래 수
         out_channels = num_anchors * (5 + num_classes)
         
         self.conv = nn.Sequential(
@@ -239,7 +238,7 @@ class YOLOv3Head(nn.Module):
     
     def forward(self, x):
         """
-        Returns:
+        반환값:
             (batch, num_anchors, H, W, 5 + num_classes)
         """
         out = self.conv(x)
@@ -251,62 +250,66 @@ class YOLOv3Head(nn.Module):
         return out
 ```
 
-### YOLOv4 (2020)
+### YOLOv4(2020)
 
-Incorporated state-of-the-art techniques:
-- **CSPDarknet53 backbone**: Cross Stage Partial connections
-- **SPP (Spatial Pyramid Pooling)**: Multi-scale feature aggregation
-- **PANet neck**: Path Aggregation Network
-- **Advanced augmentation**: Mosaic, CutMix, Self-Adversarial Training
+그때의 가장 앞선 재주를 아울렀다:
 
-### YOLOv5 (2020)
+- **CSPDarknet53 등뼈**: 단계를 가로지르는 부분 이음
+- **SPP(자리 피라미드 모으기)**: 여러 잣수 특징 모으기
+- **PANet 목**: 경로 모으기 그물
+- **앞선 자료 불리기**: 모자이크, CutMix, 스스로 맞서 익히기
 
-PyTorch reimplementation with focus on usability:
-- Clean PyTorch codebase
-- Easy training and deployment
-- Multiple model sizes (n, s, m, l, x)
-- Built-in data augmentation
+### YOLOv5(2020)
 
-### YOLOv6 (2022)
+쓰기 편함에 초점을 둔 PyTorch 다시 짜기:
 
-Industrial-focused improvements:
-- EfficientRep backbone
-- Rep-PAN neck
-- Optimized for deployment
+- 깔끔한 PyTorch 코드 바탕
+- 익히기와 펼치기가 쉽다
+- 여러 모델 크기(n, s, m, l, x)
+- 안에 갖춘 자료 불리기
 
-### YOLOv7 (2022)
+### YOLOv6(2022)
 
-Training innovations:
-- Extended efficient layer aggregation (E-ELAN)
-- Planned re-parameterized convolution
-- Compound scaling for different sizes
+산업에 초점을 둔 나아짐:
 
-### YOLOv8 (2023)
+- EfficientRep 등뼈
+- Rep-PAN 목
+- 펼치기에 맞게 다듬음
 
-Latest generation with anchor-free detection:
+### YOLOv7(2022)
+
+익히기의 새로움:
+
+- 넓힌 효율적 층 모으기(E-ELAN)
+- 계획된 매개변수 다시 매기기 누비기
+- 크기가 다를 때의 겹친 잣수 맞추기
+
+### YOLOv8(2023)
+
+닻 없는 알아내기를 쓰는 최신 세대:
 
 ```python
-# Using ultralytics YOLOv8
+# ultralytics YOLOv8 쓰기
 from ultralytics import YOLO
 
-# Load pre-trained model
-model = YOLO('yolov8n.pt')  # nano model
+# 미리 익힌 모델 읽어 들이기
+model = YOLO('yolov8n.pt')  # 나노 모델
 
-# Inference
+# 추론
 results = model('image.jpg')
 
-# Training
+# 학습
 model.train(data='coco.yaml', epochs=100, imgsz=640)
 
-# Export
+# 내보내기
 model.export(format='onnx')
 ```
 
-## YOLOv8 Architecture
+## YOLOv8 얼개
 
-### Backbone: CSPDarknet
+### 등뼈: CSPDarknet
 
-The backbone uses Cross Stage Partial (CSP) connections:
+등뼈는 단계를 가로지르는 부분 이음(CSP)을 쓴다:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -344,31 +347,31 @@ The backbone uses Cross Stage Partial (CSP) connections:
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-### Neck: FPN + PAN
+### 목: FPN + PAN
 
-Feature Pyramid Network with Path Aggregation:
+경로 모으기를 곁들인 특징 피라미드 그물:
 
 ```python
 class PANNeck(nn.Module):
     """
-    Path Aggregation Network neck for multi-scale feature fusion.
+    여러 잣수 특징을 녹여 붙이는 경로 모으기 그물 목.
     """
     def __init__(self, in_channels_list, out_channels):
         super().__init__()
         
-        # Top-down path (FPN)
+        # 위에서 아래로 가는 길(FPN)
         self.lateral_convs = nn.ModuleList([
             nn.Conv2d(ch, out_channels, 1)
             for ch in in_channels_list
         ])
         
-        # Bottom-up path (PAN)
+        # 아래에서 위로 가는 길(PAN)
         self.downsample_convs = nn.ModuleList([
             nn.Conv2d(out_channels, out_channels, 3, stride=2, padding=1)
             for _ in range(len(in_channels_list) - 1)
         ])
         
-        # Fusion convs
+        # 녹여 붙이는 누비기
         self.fusion_convs = nn.ModuleList([
             nn.Conv2d(out_channels * 2, out_channels, 3, padding=1)
             for _ in range(len(in_channels_list) - 1)
@@ -376,23 +379,23 @@ class PANNeck(nn.Module):
     
     def forward(self, features):
         """
-        Args:
-            features: List of feature maps [P3, P4, P5]
+        인수:
+            features: 특징 지도의 목록 [P3, P4, P5]
             
-        Returns:
-            List of fused features at each scale
+        반환값:
+            잣수마다 녹여 붙인 특징의 목록
         """
-        # Lateral connections
+        # 옆 이음
         laterals = [conv(f) for conv, f in zip(self.lateral_convs, features)]
         
-        # Top-down pathway
+        # 위에서 아래로 가는 길
         for i in range(len(laterals) - 1, 0, -1):
             upsampled = nn.functional.interpolate(
                 laterals[i], scale_factor=2, mode='nearest'
             )
             laterals[i-1] = laterals[i-1] + upsampled
         
-        # Bottom-up pathway
+        # 아래에서 위로 가는 길
         outputs = [laterals[0]]
         for i in range(len(laterals) - 1):
             downsampled = self.downsample_convs[i](outputs[-1])
@@ -402,14 +405,14 @@ class PANNeck(nn.Module):
         return outputs
 ```
 
-### Anchor-Free Detection Head
+### 닻 없는 알아내기 머리
 
-YOLOv8 uses an anchor-free approach with decoupled heads:
+YOLOv8은 머리를 떼어 놓은 닻 없는 방식을 쓴다:
 
 ```python
 class YOLOv8Head(nn.Module):
     """
-    Anchor-free detection head with decoupled classification and regression.
+    갈래 매기기와 되돌리기를 떼어 놓은 닻 없는 알아내기 머리.
     """
     def __init__(
         self,
@@ -422,7 +425,7 @@ class YOLOv8Head(nn.Module):
         self.num_classes = num_classes
         self.reg_max = reg_max
         
-        # Classification branch
+        # 갈래 매기기 가지
         self.cls_conv = nn.Sequential(
             nn.Conv2d(in_channels, in_channels, 3, padding=1),
             nn.BatchNorm2d(in_channels),
@@ -433,7 +436,7 @@ class YOLOv8Head(nn.Module):
         )
         self.cls_pred = nn.Conv2d(in_channels, num_classes, 1)
         
-        # Regression branch
+        # 되돌리기 가지
         self.reg_conv = nn.Sequential(
             nn.Conv2d(in_channels, in_channels, 3, padding=1),
             nn.BatchNorm2d(in_channels),
@@ -442,12 +445,12 @@ class YOLOv8Head(nn.Module):
             nn.BatchNorm2d(in_channels),
             nn.SiLU(inplace=True),
         )
-        # Distribution Focal Loss: predict 4 × reg_max values
+        # 분포 초점 손실: 4 × reg_max개의 값을 어림
         self.reg_pred = nn.Conv2d(in_channels, 4 * reg_max, 1)
     
     def forward(self, x):
         """
-        Returns:
+        반환값:
             cls_out: (batch, num_classes, H, W)
             reg_out: (batch, 4*reg_max, H, W)
         """
@@ -460,25 +463,25 @@ class YOLOv8Head(nn.Module):
         return cls_out, reg_out
 ```
 
-## YOLO Loss Function
+## YOLO 손실 함수
 
-YOLO uses a multi-part loss function:
+YOLO는 여러 조각으로 된 손실 함수를 쓴다:
 
-### YOLOv1-v3 Loss
+### YOLOv1~v3의 손실
 
 $$L = \lambda_{coord} L_{coord} + L_{conf} + L_{cls}$$
 
-**Coordinate Loss** (only for cells with objects):
+**자리표 손실**(물체가 있는 칸에만):
 
 $$L_{coord} = \sum_{i=0}^{S^2} \sum_{j=0}^{B} \mathbb{1}_{ij}^{obj} \left[ (x_i - \hat{x}_i)^2 + (y_i - \hat{y}_i)^2 \right]$$
 
 $$+ \sum_{i=0}^{S^2} \sum_{j=0}^{B} \mathbb{1}_{ij}^{obj} \left[ (\sqrt{w_i} - \sqrt{\hat{w}_i})^2 + (\sqrt{h_i} - \sqrt{\hat{h}_i})^2 \right]$$
 
-**Confidence Loss**:
+**믿음도 손실**:
 
 $$L_{conf} = \sum_{i=0}^{S^2} \sum_{j=0}^{B} \mathbb{1}_{ij}^{obj} (C_i - \hat{C}_i)^2 + \lambda_{noobj} \sum_{i=0}^{S^2} \sum_{j=0}^{B} \mathbb{1}_{ij}^{noobj} (C_i - \hat{C}_i)^2$$
 
-**Classification Loss** (only for cells with objects):
+**갈래 매기기 손실**(물체가 있는 칸에만):
 
 $$L_{cls} = \sum_{i=0}^{S^2} \mathbb{1}_{i}^{obj} \sum_{c \in classes} (p_i(c) - \hat{p}_i(c))^2$$
 
@@ -496,20 +499,20 @@ def yolo_loss(
     lambda_noobj: float = 0.5
 ) -> torch.Tensor:
     """
-    YOLOv1-style loss function.
+    YOLOv1 방식의 손실 함수.
     
-    Args:
+    인수:
         predictions: (batch, S, S, B*5 + C)
-        targets: (batch, S, S, 5 + C) with [x, y, w, h, obj, classes...]
-        num_classes: Number of classes C
-        num_boxes: Number of boxes per cell B
+        targets: [x, y, w, h, obj, classes...]를 담은 (batch, S, S, 5 + C)
+        num_classes: 갈래의 개수 C
+        num_boxes: 칸마다의 상자 개수 B
         
-    Returns:
-        Total loss
+    반환값:
+        전체 손실
     """
     batch_size, S, _, _ = predictions.shape
     
-    # Parse predictions
+    # 어림 뜯어 읽기
     pred_boxes = []
     pred_confs = []
     for b in range(num_boxes):
@@ -519,16 +522,16 @@ def yolo_loss(
     
     pred_classes = predictions[..., num_boxes*5:]
     
-    # Parse targets
+    # 목표 뜯어 읽기
     target_box = targets[..., :4]
     target_obj = targets[..., 4:5]
     target_classes = targets[..., 5:]
     
-    # Object mask
+    # 물체 마스크
     obj_mask = target_obj.squeeze(-1) == 1  # (batch, S, S)
     noobj_mask = target_obj.squeeze(-1) == 0
     
-    # Find responsible predictor (highest IoU with target)
+    # 맡은 어림개 찾기(목표와의 겹침 비가 가장 큰 것)
     ious = []
     for pred_box in pred_boxes:
         iou = compute_iou(pred_box, target_box)  # (batch, S, S)
@@ -537,7 +540,7 @@ def yolo_loss(
     ious = torch.stack(ious, dim=-1)  # (batch, S, S, B)
     best_box = ious.argmax(dim=-1)  # (batch, S, S)
     
-    # Coordinate loss (responsible predictor only)
+    # 자리표 손실(맡은 어림개만)
     coord_loss = 0
     for b in range(num_boxes):
         responsible = (best_box == b) & obj_mask
@@ -545,10 +548,10 @@ def yolo_loss(
             pred = pred_boxes[b][responsible]
             target = target_box[responsible]
             
-            # xy loss
+            # xy 손실
             coord_loss += F.mse_loss(pred[:, :2], target[:, :2], reduction='sum')
             
-            # wh loss (sqrt for scale invariance)
+            # 너비·높이 손실(잣수에 안 바뀌도록 제곱근)
             coord_loss += F.mse_loss(
                 torch.sqrt(pred[:, 2:4].abs() + 1e-6),
                 torch.sqrt(target[:, 2:4].abs() + 1e-6),
@@ -557,18 +560,18 @@ def yolo_loss(
     
     coord_loss *= lambda_coord
     
-    # Confidence loss
+    # 믿음도 손실
     conf_loss = 0
     for b in range(num_boxes):
         responsible = (best_box == b) & obj_mask
         
-        # Object confidence
+        # 물체 믿음도
         if responsible.sum() > 0:
             pred_conf = pred_confs[b][responsible]
             target_iou = ious[..., b][responsible]
             conf_loss += F.mse_loss(pred_conf.squeeze(-1), target_iou, reduction='sum')
         
-        # No-object confidence
+        # 물체 없음 믿음도
         not_responsible = ~responsible & noobj_mask
         if not_responsible.sum() > 0:
             pred_conf = pred_confs[b][not_responsible]
@@ -578,7 +581,7 @@ def yolo_loss(
                 reduction='sum'
             )
     
-    # Classification loss
+    # 갈래 매기기 손실
     if obj_mask.sum() > 0:
         cls_loss = F.mse_loss(
             pred_classes[obj_mask],
@@ -588,19 +591,19 @@ def yolo_loss(
     else:
         cls_loss = 0
     
-    # Total loss normalized by batch size
+    # 묶음 크기로 고르게 맞춘 전체 손실
     total_loss = (coord_loss + conf_loss + cls_loss) / batch_size
     
     return total_loss
 ```
 
-### Modern YOLO Losses
+### 요즘 YOLO의 손실
 
-YOLOv5+ use more sophisticated losses:
+YOLOv5 이후는 더 정교한 손실을 쓴다:
 
-- **CIoU Loss** for bounding box regression
-- **Binary Cross-Entropy** for objectness and classification
-- **Focal Loss** to handle class imbalance
+- 두름 상자 되돌리기에 **CIoU 손실**
+- 물체다움과 갈래 매기기에 **두 갈래 엇갈린 엔트로피**
+- 갈래 치우침을 다루는 **초점 손실**
 
 ```python
 def modern_yolo_loss(
@@ -615,18 +618,18 @@ def modern_yolo_loss(
     cls_weight: float = 0.5
 ) -> dict:
     """
-    Modern YOLO loss with CIoU and BCE.
+    CIoU와 두 갈래 엇갈린 엔트로피를 쓴 요즘 YOLO 손실.
     """
-    # Box loss (CIoU)
+    # 상자 손실(CIoU)
     ciou = compute_ciou(pred_boxes, target_boxes)
     box_loss = (1 - ciou).mean()
     
-    # Objectness loss (BCE with logits)
+    # 물체다움 손실(로짓을 쓴 두 갈래 엇갈린 엔트로피)
     obj_loss = F.binary_cross_entropy_with_logits(
         pred_obj, target_obj, reduction='mean'
     )
     
-    # Classification loss (BCE with logits)
+    # 갈래 매기기 손실(로짓을 쓴 두 갈래 엇갈린 엔트로피)
     cls_loss = F.binary_cross_entropy_with_logits(
         pred_cls, target_cls, reduction='mean'
     )
@@ -645,7 +648,7 @@ def modern_yolo_loss(
     }
 ```
 
-## Using YOLO in Practice
+## 실전에서 YOLO 쓰기
 
 ### Ultralytics YOLOv8
 
@@ -653,17 +656,17 @@ def modern_yolo_loss(
 from ultralytics import YOLO
 import torch
 
-# Load models (downloads automatically)
-model_nano = YOLO('yolov8n.pt')    # Fastest
+# 모델 읽어 들이기(저절로 내려받는다)
+model_nano = YOLO('yolov8n.pt')    # 가장 빠름
 model_small = YOLO('yolov8s.pt')
 model_medium = YOLO('yolov8m.pt')
 model_large = YOLO('yolov8l.pt')
-model_xlarge = YOLO('yolov8x.pt')  # Most accurate
+model_xlarge = YOLO('yolov8x.pt')  # 가장 정확함
 
-# Inference
+# 추론
 results = model_nano('image.jpg')
 
-# Process results
+# 결과 다루기
 for result in results:
     boxes = result.boxes.xyxy.cpu().numpy()
     scores = result.boxes.conf.cpu().numpy()
@@ -672,71 +675,71 @@ for result in results:
     for box, score, cls in zip(boxes, scores, classes):
         print(f"Class {int(cls)}: {score:.2f} at {box}")
 
-# Batch inference
+# 묶음 미룸
 results = model_nano(['img1.jpg', 'img2.jpg', 'img3.jpg'])
 
-# Inference with options
+# 고름을 준 미룸
 results = model_nano(
     'image.jpg',
-    conf=0.25,        # Confidence threshold
-    iou=0.45,         # NMS IoU threshold
-    max_det=300,      # Max detections
-    classes=[0, 2],   # Filter classes (person, car)
+    conf=0.25,        # 믿음도 문턱값
+    iou=0.45,         # NMS 겹침 비 문턱값
+    max_det=300,      # 최대 알아냄 수
+    classes=[0, 2],   # 갈래 거르기(person, car)
     device='cuda:0'
 )
 ```
 
-### Training Custom Model
+### 맞춤 모델 익히기
 
 ```python
 from ultralytics import YOLO
 
-# Start from pre-trained model
+# 미리 익힌 모델에서 시작
 model = YOLO('yolov8n.pt')
 
-# Train on custom dataset
+# 맞춤 자료 뭉치로 익히기
 results = model.train(
-    data='custom_data.yaml',  # Dataset config
+    data='custom_data.yaml',  # 자료 뭉치 자리매김
     epochs=100,
     imgsz=640,
     batch=16,
     workers=8,
     device='cuda',
-    patience=50,         # Early stopping
+    patience=50,         # 일찍 멈추기
     save=True,
     project='runs/detect',
     name='custom_yolo'
 )
 
-# Validate
+# 검증
 metrics = model.val()
 print(f"mAP50: {metrics.box.map50}")
 print(f"mAP50-95: {metrics.box.map}")
 
-# Export
+# 내보내기
 model.export(format='onnx', dynamic=True)
 model.export(format='torchscript')
 model.export(format='tensorrt', half=True)
 ```
 
-### Dataset Configuration (custom_data.yaml)
+### 자료 뭉치 자리매김(custom_data.yaml)
 
 ```yaml
 # custom_data.yaml
 path: /path/to/dataset
 train: images/train
 val: images/val
-test: images/test  # Optional
+test: images/test  # 있어도 되고 없어도 됨
 
-nc: 3  # Number of classes
+nc: 3  # 갈래 수
 names: ['class1', 'class2', 'class3']
 ```
 
-## Model Comparison
+## 모형 견줌
 
-### YOLOv8 Variants
+### YOLOv8 변종
 
-| Model | Params | FLOPs | mAP@50 | mAP@50:95 | Speed (T4) |
+| 모델 | 매개변수 | FLOPs | mAP@50 | mAP@50:95 | 빠르기(T4) |
 |-------|--------|-------|--------|-----------|------------|
 | YOLOv8n | 3.2M | 8.7G | 52.6% | 37.3% | 0.99ms |
 | YOLOv8s | 11.2M | 28.6G | 61.8% | 44.9% | 1.20ms |
@@ -744,7 +747,7 @@ names: ['class1', 'class2', 'class3']
 | YOLOv8l | 43.7M | 165.2G | 69.8% | 52.9% | 2.39ms |
 | YOLOv8x | 68.2M | 257.8G | 71.0% | 53.9% | 3.53ms |
 
-### Choosing Model Size
+### 모델 크기 고르기
 
 ```
 Use Case                    Recommended Model
@@ -756,28 +759,82 @@ High accuracy required      YOLOv8l, YOLOv8x
 Research/Benchmarking       YOLOv8x
 ```
 
-## Summary
+## 요약
 
-YOLO revolutionized object detection with its single-shot approach:
+YOLO는 한 방 방식으로 물체 알아내기의 판을 뒤집었다:
 
-1. **Single Network**: One forward pass for all detections
-2. **Grid-Based**: Image divided into cells, each predicting boxes
-3. **End-to-End**: Direct regression from pixels to boxes
-4. **Real-Time**: 30-155+ FPS depending on model size
-5. **Evolving**: YOLOv8 uses anchor-free detection with modern training
+1. **그물 하나**: 앞먹임 한 번으로 모든 알아냄을 낸다
+2. **격자 바탕**: 그림을 칸으로 나누고 칸마다 상자를 어림한다
+3. **끝에서 끝까지**: 화소에서 상자로 곧바로 되돌린다
+4. **실시간**: 모델 크기에 따라 초당 30~155틀 이상
+5. **끊임없이 나아감**: YOLOv8은 요즘 익히기와 닻 없는 알아내기를 쓴다
 
-Key implementation details:
-- Multi-scale prediction at different feature levels
-- Anchor boxes (v2-v7) or anchor-free (v8) predictions
-- CIoU loss for accurate box regression
-- Strong data augmentation (Mosaic, MixUp)
+핵심 짜기 세부 사항:
 
-YOLO models provide the best speed-accuracy tradeoff for real-time applications.
+- 특징 켜마다 여러 잣수로 어림하기
+- 닻 상자(v2~v7) 또는 닻 없는(v8) 어림
+- 정확한 상자 되돌리기를 위한 CIoU 손실
+- 센 자료 불리기(모자이크, MixUp)
 
-## References
+YOLO 모델은 실시간 쓰임새에서 빠르기와 정확도의 맞바꿈이 가장 좋다.
+
+## 참고 문헌
 
 1. Redmon, J., et al. (2016). You Only Look Once: Unified, Real-Time Object Detection. *CVPR*.
 2. Redmon, J., & Farhadi, A. (2017). YOLO9000: Better, Faster, Stronger. *CVPR*.
 3. Redmon, J., & Farhadi, A. (2018). YOLOv3: An Incremental Improvement. *arXiv*.
 4. Bochkovskiy, A., et al. (2020). YOLOv4: Optimal Speed and Accuracy of Object Detection. *arXiv*.
 5. Jocher, G. (2020-2023). Ultralytics YOLOv5/YOLOv8. *GitHub*.
+
+## 연습문제
+
+**연습문제 1.**
+한 단계 알아내개와 두 단계 알아내개의 차이를 설명하여라. 빠르기와 정확도 사이의 근본 맞바꿈은 무엇인가?
+
+??? success "연습문제 1 풀이"
+    **두 단계 알아내개**(보기로 더 빠른 R-CNN)는 먼저 자리 제안을 만들고 제안마다 갈래를 매기고 다듬는다. 정확하지만 제안마다 다루기 때문에 느리다. **한 단계 알아내개**(보기로 YOLO, SSD)는 특징 지도에서 두름 상자와 갈래 확률을 한 번에 곧바로 어림하여 정확도를 조금 내주고 훨씬 빠른 미룸을 얻는다. 맞바꿈은 이렇다. 두 단계 알아내개는 작고 겹치는 물체를 잘 알아내지만 초당 5~15틀로 돌고, 한 단계 알아내개는 mAP가 조금 낮은 대신 초당 30~155틀 넘게 낸다.
+
+---
+
+**연습문제 2.**
+겹침 비(교집합 나누기 합집합) 식을 이끌어 내고 두름 상자를 값매김할 때 왜 단순한 L2 거리보다 낫게 여기는지 설명하여라.
+
+??? success "연습문제 2 풀이"
+    두 두름 상자 $A$과 $B$에 대해:
+
+    $$\text{IoU}(A, B) = \frac{|A \cap B|}{|A \cup B|} = \frac{|A \cap B|}{|A| + |B| - |A \cap B|}$$
+
+    겹침 비를 낫게 여기는 까닭은 이렇다. (1) 잣수에 안 바뀐다(화소 10개의 어긋남은 큰 물체보다 작은 물체에 더 크게 다가온다). (2) 자연스레 $[0, 1]$에 놓여 좋음 점수로 읽을 수 있다. (3) 상자 자리표 사이의 L2 거리는 겹침을 담아내지 못해 두 상자의 L2 거리가 작아도 겹침이 0일 수 있다(보기로 하나가 다른 하나 안에 있는 경우와 나란히 놓인 경우).
+
+---
+
+**연습문제 3.**
+최대가 아닌 것 누르기(NMS)를 짜고 알아내기 물길에서 그것이 하는 몫을 설명하여라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    import numpy as np
+
+    def nms(boxes, scores, iou_threshold=0.5):
+        order = scores.argsort()[::-1]
+        keep = []
+        while order.size > 0:
+            i = order[0]
+            keep.append(i)
+            if order.size == 1:
+                break
+            remaining = order[1:]
+            ious = compute_iou(boxes[i], boxes[remaining])
+            mask = ious <= iou_threshold
+            order = remaining[mask]
+        return keep
+    ```
+    NMS는 같은 물체를 거듭 알아낸 것을 없앤다. 후보 상자에 점수를 매긴 뒤 점수가 가장 높은 상자를 고르고 겹침 비가 문턱값을 넘는 상자(겹친 것일 가능성이 높다)를 모두 없애기를 되풀이한다.
+
+---
+
+**연습문제 4.**
+물체 알아내기의 갈래 치우침 문제와 초점 손실이 그것을 어떻게 다루는지 설명하여라.
+
+??? success "연습문제 4 풀이"
+    In one-stage detectors, most anchor boxes correspond to background (easy negatives), while only a few contain objects. Standard cross-entropy loss is dominated by the large number of easy negatives, drowning out the gradient signal from hard positives. **Focal Loss** adds a modulating factor: $\text{FL}(p_t) = -\alpha_t (1 - p_t)^\gamma \log(p_t)$. When $\gamma > 0$, easy examples (high $p_t$) are down-weighted exponentially, focusing training on hard examples. With $\gamma = 2$ and $\alpha = 0.25$, RetinaNet achieves accuracy comparable to two-stage detectors while maintaining one-stage speed.

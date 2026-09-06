@@ -1,99 +1,99 @@
-# Weighted Graphs
+# 무게 있는 그래프
 
-Many real-world networks carry numerical information on their connections: road networks have distances, communication networks have bandwidth capacities, and financial networks have transaction amounts. Weighted graphs formalize this by attaching a numerical value to each edge, transforming the question "is there a connection?" into "how strong, costly, or long is the connection?" This simple extension opens the door to shortest-path algorithms, minimum spanning trees, and network flow problems.
+실제 세상의 망 가운데 많은 것이 이음에 숫자 정보를 지닌다. 도로 망에는 거리가, 통신 망에는 대역폭이, 금융 망에는 거래 금액이 있다. 무게 있는 그래프는 변마다 숫자 값을 붙여 이를 엄밀하게 담으며, "이음이 있는가?"라는 물음을 "그 이음이 얼마나 세거나 비싸거나 긴가?"로 바꾼다. 이 단순한 넓힘이 최단 경로 알고리즘, 최소 뻗음 나무, 망 흐름 문제로 가는 문을 연다.
 
-## Definition
+## 정의
 
-A **weighted graph** is a graph $G = (V, E)$ together with a weight function $w : E \to \mathbb{R}$ that assigns a real number to each edge. The triple $(V, E, w)$ fully specifies the weighted graph.
+**무게 있는 그래프**는 변마다 실수를 주는 무게 함수 $w : E \to \mathbb{R}$을 함께 갖는 그래프 $G = (V, E)$이다. 세 쌍 $(V, E, w)$이 무게 있는 그래프를 온전히 못 박는다.
 
-For an edge $e = (u, v)$ or $e = \{u, v\}$, the value $w(e)$ is called the **weight** (or cost, length, capacity) of the edge.
+변 $e = (u, v)$이나 $e = \{u, v\}$에서 값 $w(e)$을 그 변의 **무게**(또는 값, 길이, 그릇 크기)라 한다.
 
-An **unweighted graph** can be viewed as a special case where every edge has weight 1:
+**무게 없는 그래프**는 변마다 무게가 1인 특별한 경우로 볼 수 있다:
 
 $$
 w(e) = 1 \quad \text{for all } e \in E
 $$
 
-## Types of Weights
+## 무게의 갈래
 
-Different problem domains assign different interpretations to edge weights.
+분야마다 변의 무게에 다른 뜻을 매긴다.
 
-| Interpretation | Example | Optimization Goal |
+| 뜻 | 보기 | 최적화 목표 |
 |---|---|---|
-| Distance | Road network | Minimize total path weight |
-| Cost | Transportation pricing | Minimize cost |
-| Capacity | Network bandwidth | Maximize flow |
-| Similarity | Correlation between assets | Maximize total weight |
-| Probability | Reliability network | Maximize product of weights |
+| 거리 | 도로 망 | 경로 무게의 합을 가장 작게 |
+| 값 | 운송 요금 | 값을 가장 작게 |
+| 그릇 크기 | 망 대역폭 | 흐름을 가장 크게 |
+| 닮음 | 자산 사이의 상관 | 무게의 합을 가장 크게 |
+| 확률 | 미더움 망 | 무게의 곱을 가장 크게 |
 
-!!! warning "Negative Weights"
-    When edges can have negative weights, algorithms like Dijkstra's fail because they assume adding an edge never decreases path cost. The [Bellman-Ford algorithm](../../ch15/single/bellman_ford.md) handles negative weights correctly, but negative-weight **cycles** make shortest paths undefined (path cost can be decreased indefinitely).
+!!! warning "음의 무게"
+    변이 음의 무게를 가질 수 있으면 데이크스트라 같은 알고리즘은 무너진다. 변을 더해도 경로 값이 결코 줄지 않는다고 놓기 때문이다. [벨먼-포드 알고리즘](../../ch15/single/bellman_ford.md)은 음의 무게를 맞게 다루지만, 무게가 음인 **고리**가 있으면 최단 경로가 정해지지 않는다(경로 값을 끝없이 줄일 수 있다).
 
-## Weighted Path Length
+## 무게 있는 경로의 길이
 
-In an unweighted graph, the length of a path is simply the number of edges. In a weighted graph, the **weighted path length** (or path cost) sums the weights of all edges along the path.
+무게 없는 그래프에서 경로의 길이는 그저 변의 개수이다. 무게 있는 그래프에서 **무게 있는 경로의 길이**(또는 경로 값)는 경로를 따라 놓인 모든 변의 무게를 더한다.
 
-For a path $p = v_0, v_1, \ldots, v_k$:
+경로 $p = v_0, v_1, \ldots, v_k$에 대해:
 
 $$
 w(p) = \sum_{i=0}^{k-1} w(v_i, v_{i+1})
 $$
 
-The **shortest-path distance** from $u$ to $v$ in a weighted graph is
+무게 있는 그래프에서 $u$에서 $v$까지의 **최단 경로 거리**는 다음과 같다
 
 $$
 \delta(u, v) = \min\{w(p) : p \text{ is a path from } u \text{ to } v\}
 $$
 
-If no path exists, $\delta(u, v) = \infty$.
+길이 없으면 $\delta(u, v) = \infty$이다.
 
-## Representation
+## 표현
 
-Weighted graphs require storing weights alongside the edge structure. The three standard representations each handle weights differently.
+무게 있는 그래프는 변 짜임과 함께 무게도 저장해야 한다. 표준 표현 셋이 저마다 다르게 무게를 다룬다.
 
-### Adjacency Matrix
+### 이웃 행렬
 
-For a weighted graph on $n$ vertices, the adjacency matrix $A$ stores weights directly:
+꼭짓점 $n$개의 무게 있는 그래프에서 이웃 행렬 $A$은 무게를 곧바로 저장한다:
 
 $$
 A[i][j] = \begin{cases} w(i, j) & \text{if } (i, j) \in E \\ \infty \text{ (or 0)} & \text{if } (i, j) \notin E \end{cases}
 $$
 
-The choice between $\infty$ and 0 for non-edges depends on the algorithm. Shortest-path algorithms use $\infty$ (non-edge means infinite distance), while some matrix-based algorithms use 0.
+변이 아닌 자리에 $\infty$을 쓸지 0을 쓸지는 알고리즘에 달렸다. 최단 경로 알고리즘은 $\infty$을 쓰고(변이 아니면 거리가 끝없다는 뜻이다), 행렬 기반 알고리즘 가운데 일부는 0을 쓴다.
 
-### Adjacency List
+### 이웃 목록
 
-Each adjacency list entry stores a pair (neighbor, weight):
+이웃 목록의 항목마다 (이웃, 무게) 짝을 저장한다:
 
 $$
 \text{adj}[u] = [(v_1, w_1), (v_2, w_2), \ldots]
 $$
 
-This is the most common representation for sparse weighted graphs.
+이것이 성기고 무게 있는 그래프에 가장 흔한 표현이다.
 
-### Edge List
+### 변 목록
 
-Each edge is stored as a triple $(u, v, w)$. This representation is natural for algorithms that process edges one at a time, such as [Kruskal's MST algorithm](../../ch16/algorithms/kruskal.md).
+변마다 세 쌍 $(u, v, w)$으로 저장한다. 이 표현은 [크러스컬의 MST 알고리즘](../../ch16/algorithms/kruskal.md)처럼 변을 하나씩 다루는 알고리즘에 자연스럽다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Weighted graph representation and basic operations.
+무게 있는 그래프의 표현과 기본 연산.
 
-Demonstrates adjacency list and adjacency matrix representations
-for weighted graphs, along with weighted path computation.
+무게 있는 그래프의 이웃 목록과 이웃 행렬 표현을,
+무게 있는 경로 셈하기와 함께 보인다.
 """
 
 
-# === Adjacency List (Weighted) ===
+# === 이웃 목록(무게 있음) ===
 
 def build_weighted_adj_list(n, edges):
     """
-    Build a weighted adjacency list.
+    무게 있는 이웃 목록을 쌓는다.
 
-    Each edge is (u, v, w) representing an undirected edge
-    from u to v with weight w.
+    변마다 (u, v, w)이며 u에서 v까지 무게 w인
+    무방향 변을 나타낸다.
     """
     adj = [[] for _ in range(n)]
     for u, v, w in edges:
@@ -102,14 +102,14 @@ def build_weighted_adj_list(n, edges):
     return adj
 
 
-# === Adjacency Matrix (Weighted) ===
+# === 이웃 행렬(무게 있음) ===
 
 def build_weighted_matrix(n, edges):
     """
-    Build a weighted adjacency matrix.
+    무게 있는 이웃 행렬을 쌓는다.
 
-    Non-edges are represented as float('inf').
-    Diagonal entries are 0 (distance from a vertex to itself).
+    변이 아닌 자리는 float('inf')으로 나타낸다.
+    대각선 항목은 0이다(꼭짓점에서 자기까지의 거리).
     """
     INF = float('inf')
     matrix = [[INF] * n for _ in range(n)]
@@ -121,14 +121,14 @@ def build_weighted_matrix(n, edges):
     return matrix
 
 
-# === Path Weight ===
+# === 경로 무게 ===
 
 def path_weight(adj, path):
     """
-    Compute the total weight of a path given as a vertex list.
+    꼭짓점 목록으로 주어진 경로의 무게 합을 셈한다.
 
-    Returns the sum of edge weights along the path, or None if
-    any edge in the path does not exist.
+    경로를 따라 놓인 변 무게의 합을 되돌리고, 경로의 변 가운데
+    없는 것이 있으면 None을 되돌린다.
     """
     total = 0
     for i in range(len(path) - 1):
@@ -144,37 +144,37 @@ def path_weight(adj, path):
     return total
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Weighted graph: 4 vertices, 5 edges
+    # 무게 있는 그래프: 꼭짓점 4개, 변 5개
     edges = [
         (0, 1, 4), (0, 2, 1), (1, 2, 2),
         (1, 3, 5), (2, 3, 8)
     ]
     n = 4
 
-    # Adjacency list
+    # 이웃 목록
     adj = build_weighted_adj_list(n, edges)
     print("Weighted adjacency list:")
     for v in range(n):
         print(f"  {v}: {adj[v]}")
 
-    # Adjacency matrix
+    # 이웃 행렬
     matrix = build_weighted_matrix(n, edges)
     print("\nWeighted adjacency matrix:")
     for row in matrix:
         print(f"  {[x if x != float('inf') else 'inf' for x in row]}")
 
-    # Path weights
-    path1 = [0, 1, 3]  # weight = 4 + 5 = 9
-    path2 = [0, 2, 1, 3]  # weight = 1 + 2 + 5 = 8
+    # 경로 무게
+    path1 = [0, 1, 3]  # 무게 = 4 + 5 = 9
+    path2 = [0, 2, 1, 3]  # 무게 = 1 + 2 + 5 = 8
     print(f"\nPath {path1} weight: {path_weight(adj, path1)}")
     print(f"Path {path2} weight: {path_weight(adj, path2)}")
     print(f"Shorter path: {path2}")
 ```
 
-**Output:**
+**출력:**
 ```
 Weighted adjacency list:
   0: [(1, 4), (2, 1)]
@@ -191,15 +191,59 @@ Path [0, 2, 1, 3] weight: 8
 Shorter path: [0, 2, 1, 3]
 ```
 
-## Key Algorithms for Weighted Graphs
+## 무게 있는 그래프의 핵심 알고리즘
 
-| Algorithm | Problem | Time Complexity |
+| 알고리즘 | 문제 | 시간 복잡도 |
 |---|---|---|
-| [Dijkstra](../../ch15/single/dijkstra.md) | Single-source shortest paths (non-negative weights) | $O((V + E) \log V)$ |
-| [Bellman-Ford](../../ch15/single/bellman_ford.md) | Single-source shortest paths (any weights) | $O(VE)$ |
-| [Floyd-Warshall](../../ch15/all_pairs/floyd_warshall.md) | All-pairs shortest paths | $O(V^3)$ |
-| [Prim](../../ch16/algorithms/prim.md) / [Kruskal](../../ch16/algorithms/kruskal.md) | Minimum spanning tree | $O(E \log V)$ |
+| [데이크스트라](../../ch15/single/dijkstra.md) | 한 샘 최단 경로(무게가 음이 아님) | $O((V + E) \log V)$ |
+| [벨먼-포드](../../ch15/single/bellman_ford.md) | 한 샘 최단 경로(무게 아무거나) | $O(VE)$ |
+| [플로이드-워셜](../../ch15/all_pairs/floyd_warshall.md) | 모든 짝 최단 경로 | $O(V^3)$ |
+| [프림](../../ch16/algorithms/prim.md) / [크러스컬](../../ch16/algorithms/kruskal.md) | 최소 뻗음 나무 | $O(E \log V)$ |
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapters 22-25.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. 22-25장.
+
+## 연습문제
+
+**연습문제 1.**
+무게 있는 그래프에 꼭짓점 5개와 다음 변 무게가 있다: $(0,1,4)$, $(0,2,1)$, $(1,2,2)$, $(1,3,5)$, $(2,3,8)$, $(3,4,3)$. 이 그래프를 이웃 행렬과 무게 있는 이웃 목록 둘 다로 저장하여라. 저마다 공간 복잡도는 얼마인가?
+
+??? success "연습문제 1 풀이"
+    **이웃 행렬** $W$: 변이 있으면 $W[i][j] = \text{weight}$, 없으면 $\infty$, 그리고 $W[i][i] = 0$. 공간: $O(V^2) = O(25)$.
+
+    **이웃 목록**: 꼭짓점마다 (이웃, 무게) 짝의 목록을 저장한다. 꼭짓점 0: $[(1,4), (2,1)]$, 꼭짓점 1: $[(0,4), (2,2), (3,5)]$, 꼭짓점 2: $[(0,1), (1,2), (3,8)]$, 꼭짓점 3: $[(1,5), (2,8), (4,3)]$, 꼭짓점 4: $[(3,3)]$. 공간: $O(V + E) = O(5 + 6) = O(11)$.
+
+    성긴 그래프에서는 이웃 목록이 공간을 덜 쓰고, 행렬은 변의 무게를 $O(1)$에 찾게 해 준다. $\square$
+
+---
+
+**연습문제 2.**
+무게 없는 그래프의 최단 경로가 왜 변마다 무게가 1인 무게 있는 그래프의 최단 경로와 같은지 설명하여라. 어떤 알고리즘이 이를 푸는가?
+
+??? success "연습문제 2 풀이"
+    변마다 무게가 1이면 경로 무게의 합이 경로 안 변의 개수와 같다. 그러므로 무게의 합을 가장 작게 하는 일은 뛴 횟수를 가장 작게 하는 일과 같고, 이것이 바로 BFS이 셈하는 것이다. BFS은 최단 경로를 $O(V + E)$ 시간에 찾는다. 무게가 1인 그래프에 데이크스트라 알고리즘을 써도 되지만 우선순위 줄의 짐 때문에 $O((V + E) \log V)$이 들어 덜 효율적이다. $\square$
+
+---
+
+**연습문제 3.**
+(그래프가 이어져 있다고 놓고) 무게 있는 그래프의 최소 뻗음 나무가 많아야 변 $V - 1$개를 쓰고 모든 꼭짓점을 잇는다는 것을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    꼭짓점 $V$개의 이어진 그래프 $G$의 뻗음 나무는 모든 꼭짓점을 걸치는, 이어져 있고 고리 없는 부분 그래프이다. 나무이므로 변이 꼭 $V - 1$개이다. 최소 뻗음 나무(MST)는 변 무게의 합이 가장 작은 뻗음 나무이다. 나무이므로 변을 꼭 $V - 1$개 쓰고, 정의에 따라 꼭짓점 $V$개를 모두 잇는다. $\square$
+
+---
+
+**연습문제 4.**
+변 무게 가운데 일부가 음인(그러나 음의 고리는 없는) 무게 있는 그래프를 생각하여라. 데이크스트라 알고리즘이 그래도 올바른 최단 경로를 찾을 수 있는가? 답을 뒷받침하여라.
+
+??? success "연습문제 4 풀이"
+    찾을 수 없다. 데이크스트라 알고리즘은 꼭짓점이 한번 확정되면(우선순위 줄에서 꺼내지면) 그 최단 경로 거리가 맞다는 욕심 성질에 기댄다. 이 성질은 변 무게가 음이 아닐 때만 성립한다. 무게가 음이면 변이 더 많은 긴 경로가 무게의 합은 더 작을 수 있는데, 가운데 꼭짓점이 이미 더 큰 거리로 확정되어 데이크스트라는 그것을 결코 찾아내지 못한다. 대신 벨먼-포드 알고리즘을 써야 한다. 이는 음의 무게를(음의 고리는 아니지만) $O(VE)$ 시간에 다룬다. $\square$
+
+---
+
+**연습 5.**
+무게 있는 방향 그래프가 주어졌을 때 벨먼-포드 알고리즘으로 무게가 음인 고리를 알아내는 법을 밝혀라.
+
+??? success "연습 5의 풀이"
+    변 늦추기를 $V - 1$바퀴 돌린다(표준 벨먼-포드 절차). 그다음 한 바퀴($V$번째)를 더 돌린다. 이 덧바퀴에서 거리 값이 하나라도 줄면 샘에서 닿을 수 있는 곳에 무게가 음인 고리가 있다. 음의 고리가 없는 그래프에서는 (최단 경로의 변이 많아야 $V - 1$개이므로) $V - 1$바퀴면 최단 경로에 넉넉하기 때문에 이렇게 된다. 더 나아질 수 있다면 어떤 경로가 변을 더 쓸수록 계속 짧아진다는 뜻이고, 이는 음의 고리가 있어야만 일어난다. $\square$

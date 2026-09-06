@@ -1,19 +1,19 @@
-# Tree Terminology
+# 트리 용어
 
-Before studying tree algorithms, we need a precise vocabulary. Trees appear throughout computer science -- in file systems, parsing, decision-making, and search -- and every tree algorithm description relies on the terms defined here. This page establishes the core terminology that the rest of the chapter builds upon.
+트리 알고리즘을 공부하기에 앞서 정확한 낱말이 필요하다. 트리는 파일 시스템과 구문 분석, 의사 결정, 탐색 등 컴퓨터 과학 곳곳에 나타나며, 모든 트리 알고리즘 설명이 여기서 정의하는 말에 기댄다. 이 쪽은 이 장의 나머지가 딛고 설 핵심 용어를 세운다.
 
-## Recursive Definition
+## 재귀적 정의
 
-A **rooted tree** $T$ is defined recursively:
+**뿌리 있는 트리** $T$을 재귀적으로 정의한다.
 
-- An **empty tree** has no nodes.
-- A **non-empty tree** consists of a distinguished node $r$ called the **root**, together with zero or more non-empty subtrees $T_1, T_2, \ldots, T_k$, each of whose roots is connected to $r$ by an edge.
+- **빈 트리**에는 노드가 없다.
+- **비어 있지 않은 트리**는 **뿌리**라 부르는 특별한 노드 $r$과, 비어 있지 않은 부분 트리 $T_1, T_2, \ldots, T_k$ 0개 이상으로 이루어지며, 각 부분 트리의 뿌리는 $r$과 변으로 이어져 있다.
 
-This recursive structure is what makes trees natural for recursive algorithms.
+이 재귀적인 짜임 덕분에 트리는 재귀 알고리즘과 잘 맞는다.
 
-## Core Terms
+## 핵심 용어
 
-Consider the following example tree:
+다음 예제 트리를 생각해 보자.
 
 ```
             A             <- root
@@ -25,78 +25,78 @@ Consider the following example tree:
          H   I            <- children of F
 ```
 
-### Nodes and Edges
+### 노드와 변
 
-| Term | Definition |
+| 용어 | 정의 |
 |------|-----------|
-| **Node** (vertex) | A fundamental unit of a tree that stores data. Nodes $A$ through $I$ above. |
-| **Edge** | A connection between a parent and a child. A tree with $n$ nodes has exactly $n - 1$ edges. |
-| **Root** | The topmost node with no parent. Node $A$ in the example. |
+| **노드** (꼭짓점) | 데이터를 담는 트리의 기본 단위. 위의 $A$부터 $I$까지. |
+| **변** | 부모와 자식을 잇는 연결. 노드가 $n$개인 트리에는 변이 꼭 $n - 1$개 있다. |
+| **뿌리** | 부모가 없는 가장 위의 노드. 예에서는 노드 $A$. |
 
-### Family Relationships
+### 가족 관계
 
-| Term | Definition |
+| 용어 | 정의 |
 |------|-----------|
-| **Parent** | The node directly above a given node. $B$ is the parent of $E$ and $F$. |
-| **Child** | A node directly below a given node. $E$ and $F$ are children of $B$. |
-| **Sibling** | Nodes that share the same parent. $B$, $C$, and $D$ are siblings. |
-| **Ancestor** | Any node on the path from a node to the root (inclusive). The ancestors of $H$ are $H$, $F$, $B$, $A$. |
-| **Descendant** | Any node reachable by following edges downward from a node. The descendants of $B$ are $E$, $F$, $H$, $I$. |
+| **부모** | 어떤 노드 바로 위의 노드. $B$은 $E$과 $F$의 부모이다. |
+| **자식** | 어떤 노드 바로 아래의 노드. $E$과 $F$은 $B$의 자식이다. |
+| **형제** | 부모가 같은 노드들. $B$, $C$, $D$은 형제이다. |
+| **조상** | 어떤 노드에서 뿌리까지의 경로 위에 있는 노드(자기 자신 포함). $H$의 조상은 $H$, $F$, $B$, $A$이다. |
+| **자손** | 어떤 노드에서 변을 따라 아래로 내려가 닿을 수 있는 노드. $B$의 자손은 $E$, $F$, $H$, $I$이다. |
 
-### Classification of Nodes
+### 노드의 갈래
 
-| Term | Definition |
+| 용어 | 정의 |
 |------|-----------|
-| **Leaf** (external node) | A node with no children. Nodes $E$, $H$, $I$, $C$, $G$ are leaves. |
-| **Internal node** | A node with at least one child. Nodes $A$, $B$, $D$, $F$ are internal. |
-| **Degree** of a node | The number of children of that node. $\text{degree}(A) = 3$, $\text{degree}(B) = 2$, $\text{degree}(C) = 0$. |
+| **잎** (외부 노드) | 자식이 없는 노드. $E$, $H$, $I$, $C$, $G$이 잎이다. |
+| **내부 노드** | 자식이 하나 이상인 노드. $A$, $B$, $D$, $F$이 내부 노드이다. |
+| 노드의 **차수** | 그 노드의 자식 수. $\text{degree}(A) = 3$, $\text{degree}(B) = 2$, $\text{degree}(C) = 0$. |
 
-### Structural Terms
+### 구조에 관한 용어
 
-| Term | Definition |
+| 용어 | 정의 |
 |------|-----------|
-| **Subtree** | The tree formed by a node and all its descendants. The subtree rooted at $B$ contains $\{B, E, F, H, I\}$. |
-| **Path** | A sequence of nodes $v_1, v_2, \ldots, v_k$ where consecutive nodes are connected by edges. |
-| **Level** | The set of all nodes at the same depth. Level 0 contains only the root. |
-| **Depth** | The number of edges from the root to a node. See [Height and Depth](height_depth.md). |
-| **Height** | The number of edges on the longest path from a node to a leaf. See [Height and Depth](height_depth.md). |
+| **부분 트리** | 어떤 노드와 그 모든 자손이 이루는 트리. $B$을 뿌리로 하는 부분 트리는 $\{B, E, F, H, I\}$이다. |
+| **경로** | 잇따른 노드가 변으로 이어진 노드의 나열 $v_1, v_2, \ldots, v_k$. |
+| **레벨** | 깊이가 같은 모든 노드의 모임. 레벨 0에는 뿌리만 있다. |
+| **깊이** | 뿌리에서 어떤 노드까지의 변의 수. [높이와 깊이](height_depth.md)를 보라. |
+| **높이** | 어떤 노드에서 잎까지 가장 긴 경로의 변의 수. [높이와 깊이](height_depth.md)를 보라. |
 
-## Key Properties
+## 핵심 성질
 
-Several fundamental properties follow directly from the recursive definition:
+재귀적 정의에서 근본적인 성질 몇 가지가 곧바로 따라 나온다.
 
-1. **Edge count**: A tree with $n$ nodes has exactly $n - 1$ edges.
-2. **Unique path**: There is exactly one path between any two nodes in a tree.
-3. **Connected and acyclic**: A tree is a connected graph with no cycles. Removing any edge disconnects the tree; adding any edge creates a cycle.
+1. **변의 수**: 노드가 $n$개인 트리에는 변이 꼭 $n - 1$개 있다.
+2. **유일한 경로**: 트리 안 어떤 두 노드 사이에도 경로가 꼭 하나 있다.
+3. **연결되어 있고 순환이 없음**: 트리는 순환이 없는 연결 그래프이다. 어떤 변을 없애도 트리가 끊어지고, 어떤 변을 더해도 순환이 생긴다.
 
-!!! tip "Binary Tree Specialization"
-    In a **binary tree**, every node has at most two children, designated as the **left child** and the **right child**. The left and right subtrees are themselves binary trees (possibly empty). Most of this chapter focuses on binary trees, but the terminology above applies to trees of any degree.
+!!! tip "이진 트리라는 특수한 경우"
+    **이진 트리**에서는 노드마다 자식이 많아야 둘이고 각각 **왼쪽 자식**과 **오른쪽 자식**이라 부른다. 왼쪽과 오른쪽 부분 트리도 (비어 있을 수 있는) 이진 트리이다. 이 장은 대부분 이진 트리를 다루지만 위의 용어는 차수에 상관없이 모든 트리에 통한다.
 
-## Degree of a Tree
+## 트리의 차수
 
-The **degree of a tree** is the maximum degree of any node in the tree:
+**트리의 차수**는 트리 안 노드의 차수 중 최댓값이다.
 
 $$
 \text{degree}(T) = \max_{v \in T} \text{degree}(v)
 $$
 
-A binary tree has degree at most 2. A ternary tree has degree at most 3.
+이진 트리의 차수는 많아야 2이다. 삼진 트리의 차수는 많아야 3이다.
 
-## Example in Python
+## 파이썬 예제
 
 ```python
 """
-Tree terminology demonstration.
+트리 용어 시연.
 
-Illustrates core tree concepts: root, parent, child, leaf,
-internal node, depth, height, degree, subtree size, and ancestors.
+뿌리, 부모, 자식, 잎, 내부 노드, 깊이, 높이, 차수, 부분 트리의 크기,
+조상 같은 핵심 개념을 보인다.
 """
 
 
-# === Node definition ===
+# === 노드 정의 ===
 
 class TreeNode:
-    """A node in a general tree (arbitrary number of children)."""
+    """일반 트리의 노드 (자식의 수에 제한이 없다)."""
 
     def __init__(self, key):
         self.key = key
@@ -104,24 +104,24 @@ class TreeNode:
         self.parent = None
 
     def add_child(self, child_node):
-        """Add a child and set its parent pointer."""
+        """자식을 더하고 그 부모 포인터를 지정한다."""
         child_node.parent = self
         self.children.append(child_node)
 
     def is_leaf(self):
-        """A leaf has no children."""
+        """잎에는 자식이 없다."""
         return len(self.children) == 0
 
     def is_root(self):
-        """The root has no parent."""
+        """뿌리에는 부모가 없다."""
         return self.parent is None
 
     def degree(self):
-        """Number of children."""
+        """자식의 수."""
         return len(self.children)
 
     def depth(self):
-        """Number of edges from root to this node."""
+        """뿌리에서 이 노드까지의 변의 수."""
         d = 0
         current = self.parent
         while current is not None:
@@ -130,7 +130,7 @@ class TreeNode:
         return d
 
     def ancestors(self):
-        """Return list of ancestors from self to root."""
+        """자기 자신에서 뿌리까지의 조상 목록을 돌려준다."""
         result = [self.key]
         current = self.parent
         while current is not None:
@@ -142,10 +142,10 @@ class TreeNode:
         return f"TreeNode({self.key})"
 
 
-# === Tree queries ===
+# === 트리 질의 ===
 
 def subtree_size(node):
-    """Return the number of nodes in the subtree rooted at node."""
+    """node를 뿌리로 하는 부분 트리의 노드 수를 돌려준다."""
     if node is None:
         return 0
     count = 1
@@ -155,16 +155,16 @@ def subtree_size(node):
 
 
 def tree_height(node):
-    """Return the height of the subtree rooted at node."""
+    """node를 뿌리로 하는 부분 트리의 높이를 돌려준다."""
     if node is None or node.is_leaf():
         return 0
     return 1 + max(tree_height(c) for c in node.children)
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
-    # Build the example tree
+    # 예제 트리 만들기
     A = TreeNode("A")
     B, C, D = TreeNode("B"), TreeNode("C"), TreeNode("D")
     E, F, G = TreeNode("E"), TreeNode("F"), TreeNode("G")
@@ -188,7 +188,7 @@ if __name__ == "__main__":
     print(f"Edge count: {len(nodes) - 1}")
 ```
 
-**Output:**
+**출력:**
 ```
 Node   Depth  Degree  Leaf?  Subtree size
 ---------------------------------------------
@@ -207,6 +207,39 @@ Ancestors of H: ['H', 'F', 'B', 'A']
 Edge count: 8
 ```
 
-## Reference
+## 참고 문헌
 
-- [Introduction to Algorithms (CLRS), Chapter 12](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- [Introduction to Algorithms (CLRS), 12장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+트리 용어에 대해 트리의 높이 $h$으로 시간 복잡도를 밝혀라. $h = O(\log n)$이 되는 것은 언제인가?
+
+??? success "연습문제 1 풀이"
+    이 연산은 $O(h)$ 시간이 걸린다. 균형 잡힌 트리에서는 $h = O(\log n)$이다(무작위 삽입 순서에서는 기댓값이 $O(\log n)$이고, 균형 이진 탐색 트리 계열은 이를 보장한다). 한쪽으로 치우친 트리에서는 $h = O(n)$이다(정렬된 순서로 넣은 경우).
+
+---
+
+**연습문제 2.**
+열쇠 5, 3, 7, 1, 4, 6, 8을 차례로 넣어 만든 이진 탐색 트리에 트리 용어을(를) 적용하라. 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    차례로 넣어 트리를 만든 뒤 이 쪽의 연산을 적용한다. 단계마다 트리의 모습을 보이고 들르거나 고친 노드를 표시한다.
+
+---
+
+**연습문제 3.**
+이진 탐색 트리의 높이를 $h$이라 할 때 트리 용어이(가) $O(h)$ 시간에 끝남을 증명하라.
+
+??? success "연습문제 3 풀이"
+    이 연산은 뿌리에서 잎으로 가는 경로(또는 그 일부)를 따라가며 노드마다 $O(1)$의 일을 한다. 경로의 길이는 많아야 $h$이다. 따라서 모두 $O(h)$이다. $\square$
+
+---
+
+**연습문제 4.**
+이진 탐색 트리의 연산은 딥러닝에서 정렬된 데이터를 다루는 일(예를 들어 빔 탐색에서 상위 $k$개의 점수를 유지하는 일)과 어떤 관계가 있는가?
+
+??? success "연습문제 4 풀이"
+    빔 탐색은 가장 좋은 가설 $k$개를 유지하므로 새 후보를 넣고 가장 나쁜 것을 빼는 일을 효율적으로 해야 한다. 이진 탐색 트리는 둘 다 $O(\log k)$에 해낸다. 실제로는 더 간단하고 상수가 작은 힙을 즐겨 쓰지만, 이진 탐색 트리는 범위 검색이나 순위 같은 더 풍부한 질의를 지원한다.

@@ -1,90 +1,122 @@
-# MST Algorithm Comparison
+# 최소 뻗은 나무 알고리즘 견주기
 
-Kruskal's, Prim's, and Boruvka's algorithms all solve the same problem -- finding a minimum spanning tree -- but they differ in strategy, data structure requirements, and performance characteristics. Choosing the right algorithm depends on the graph's density, representation, and whether parallelism is available. This page consolidates the trade-offs to guide algorithm selection.
+크러스컬, 프림, 보루브카 알고리즘은 모두 최소 뻗은 나무를 찾는 같은 문제를 풀지만 전략, 필요한 자료 짜임, 성능의 성격이 다르다. 알맞은 알고리즘을 고르는 일은 그래프의 빽빽함, 나타냄, 나란히 할 수 있는지에 달렸다. 이 쪽에서는 알고리즘을 고르는 데 도움이 되도록 주고받음을 한데 모은다.
 
-## Complexity Summary
+## 복잡도 요약
 
-| Algorithm | Time | Space | Data Structure |
+| 알고리즘 | 시간 | 공간 | 자료 짜임 |
 |-----------|------|-------|----------------|
-| Kruskal's | $O(E \log E)$ | $O(V + E)$ | Union-Find |
-| Prim's (array) | $O(V^2)$ | $O(V)$ | Array |
-| Prim's (binary heap) | $O(E \log V)$ | $O(V + E)$ | Binary heap |
-| Prim's (Fibonacci heap) | $O(E + V \log V)$ | $O(V + E)$ | Fibonacci heap |
-| Boruvka's | $O(E \log V)$ | $O(V + E)$ | Union-Find |
+| 크러스컬 | $O(E \log E)$ | $O(V + E)$ | 합치기-찾기 |
+| 프림(배열) | $O(V^2)$ | $O(V)$ | 배열 |
+| 프림(이진 힙) | $O(E \log V)$ | $O(V + E)$ | 이진 힙 |
+| 프림(피보나치 힙) | $O(E + V \log V)$ | $O(V + E)$ | 피보나치 힙 |
+| 보루브카 | $O(E \log V)$ | $O(V + E)$ | 합치기-찾기 |
 
-Since $\log E = O(\log V)$ for simple graphs (because $E \le V^2$), Kruskal's $O(E \log E)$ and $O(E \log V)$ are asymptotically equivalent.
+단순 그래프에서는 ($E \le V^2$이므로) $\log E = O(\log V)$이니 크러스컬의 $O(E \log E)$과 $O(E \log V)$은 점근으로 같다.
 
-## Strategy Comparison
+## 전략 견주기
 
-| Aspect | Kruskal's | Prim's | Boruvka's |
+| 살필 점 | 크러스컬 | 프림 | 보루브카 |
 |--------|-----------|--------|-----------|
-| Growth model | Edge-centric: merge forest | Vertex-centric: grow one tree | Component-centric: all grow simultaneously |
-| Edge processing | Global sorted order | Local neighbors of tree | All edges per round |
-| Number of passes | 1 pass over sorted edges | $V$ extractions | $O(\log V)$ rounds |
-| Greedy choice | Lightest edge not forming a cycle | Lightest edge leaving the tree | Lightest edge leaving each component |
-| Theoretical basis | Cut property (forest components) | Cut property (tree vs. non-tree) | Cut property (all components) |
+| 자라는 방식 | 변 중심: 숲을 합침 | 꼭짓점 중심: 나무 하나를 키움 | 조각 중심: 모두 한꺼번에 자람 |
+| 변 다루기 | 전체를 정렬한 차례 | 나무의 가까운 이웃 | 판마다 모든 변 |
+| 훑는 횟수 | 정렬한 변을 한 번 훑음 | 꺼내기 $V$번 | 판 $O(\log V)$번 |
+| 욕심쟁이 고름 | 순환을 만들지 않는 가장 가벼운 변 | 나무를 떠나는 가장 가벼운 변 | 조각마다 떠나는 가장 가벼운 변 |
+| 이론의 바탕 | 자름 성질(숲의 조각) | 자름 성질(나무와 나무 밖) | 자름 성질(모든 조각) |
 
-## Performance by Graph Density
+## 그래프의 빽빽함에 따른 성능
 
-The best algorithm depends on the relationship between $|E|$ and $|V|$:
+가장 좋은 알고리즘은 $|E|$과 $|V|$의 관계에 달렸다:
 
-**Sparse graphs** ($E = O(V)$ or $E = O(V \log V)$):
+**성긴 그래프**($E = O(V)$이나 $E = O(V \log V)$):
 
-- Kruskal's: $O(V \log V)$ -- fast because sorting few edges is cheap.
-- Prim's (binary heap): $O(V \log^2 V)$ or $O(V \log V)$ -- competitive.
-- **Recommendation**: Kruskal's or Prim's with binary heap.
+- 크러스컬: $O(V \log V)$. 변이 적어 정렬이 싸므로 빠르다.
+- 프림(이진 힙): $O(V \log^2 V)$이나 $O(V \log V)$. 견줄 만하다.
+- **권함**: 크러스컬이나 이진 힙을 쓴 프림.
 
-**Medium-density graphs** ($E = \Theta(V^{1.5})$):
+**중간쯤 빽빽한 그래프**($E = \Theta(V^{1.5})$):
 
-- Kruskal's: $O(V^{1.5} \log V)$.
-- Prim's (Fibonacci heap): $O(V^{1.5} + V \log V) = O(V^{1.5})$.
-- **Recommendation**: Prim's with Fibonacci heap has the best asymptotic bound.
+- 크러스컬: $O(V^{1.5} \log V)$.
+- 프림(피보나치 힙): $O(V^{1.5} + V \log V) = O(V^{1.5})$.
+- **권함**: 피보나치 힙을 쓴 프림이 점근 경계가 가장 좋다.
 
-**Dense graphs** ($E = \Theta(V^2)$):
+**빽빽한 그래프**($E = \Theta(V^2)$):
 
-- Kruskal's: $O(V^2 \log V)$ -- dominated by sorting.
-- Prim's (array): $O(V^2)$ -- optimal for this density.
-- Prim's (Fibonacci heap): $O(V^2 + V \log V) = O(V^2)$ -- same as array but higher constants.
-- **Recommendation**: Prim's with simple array implementation.
+- 크러스컬: $O(V^2 \log V)$. 정렬이 좌우한다.
+- 프림(배열): $O(V^2)$. 이 빽빽함에서는 최적이다.
+- 프림(피보나치 힙): $O(V^2 + V \log V) = O(V^2)$. 배열과 같지만 상수가 더 크다.
+- **권함**: 단순한 배열로 구현한 프림.
 
-## Practical Considerations
+## 실용적인 고려
 
-Beyond asymptotic complexity, several practical factors influence the choice:
+점근 복잡도 말고도 여러 실전 요소가 고름에 영향을 준다:
 
-### Input format
-- **Edge list**: Kruskal's is natural (sort and iterate). Prim's requires building an adjacency list first.
-- **Adjacency list/matrix**: Prim's works directly. Kruskal's requires extracting all edges.
+### 들임의 꼴
+- **변 목록**: 크러스컬이 자연스럽다(정렬하고 훑는다). 프림은 먼저 이웃 목록을 세워야 한다.
+- **이웃 목록이나 이웃 행렬**: 프림이 곧바로 돌아간다. 크러스컬은 변을 모두 뽑아내야 한다.
 
-### Implementation simplicity
-- Kruskal's with Union-Find is straightforward to implement correctly.
-- Prim's with a binary heap requires careful DECREASE-KEY handling (or lazy deletion).
-- Fibonacci heaps are complex to implement and rarely justify their theoretical advantage.
-- Boruvka's requires careful deduplication of edges selected by multiple components.
+### 구현의 단순함
+- 합치기-찾기를 쓴 크러스컬은 올바로 구현하기가 어렵지 않다.
+- 이진 힙을 쓴 프림은 DECREASE-KEY을 꼼꼼히 다뤄야 한다(아니면 게으른 지우기를 쓴다).
+- 피보나치 힙은 구현이 복잡해서 이론의 강점이 값어치를 하는 경우가 드물다.
+- 보루브카는 여러 조각이 고른 변의 겹침을 꼼꼼히 없애야 한다.
 
-### Parallelism
-- **Boruvka's** is the most parallelizable: each round processes all edges independently.
-- **Kruskal's** is inherently sequential (edges must be processed in sorted order).
-- **Prim's** is inherently sequential (each step depends on the previous extraction).
+### 나란히 하기
+- **보루브카**가 가장 잘 나란해진다. 곧 판마다 모든 변을 따로 다룬다.
+- **크러스컬**은 본디 차례차례이다(변을 정렬한 차례로 다뤄야 한다).
+- **프림**도 본디 차례차례이다(걸음마다 앞선 꺼내기에 달렸다).
 
-### Pre-sorted edges
-- If edges arrive pre-sorted (e.g., from a database index), Kruskal's runs in $O(E \cdot \alpha(V))$, which is nearly linear.
+### 미리 정렬된 변
+- (이를테면 데이터베이스 색인에서) 변이 이미 정렬되어 오면 크러스컬은 거의 선형인 $O(E \cdot \alpha(V))$에 돌아간다.
 
-## Decision Guide
+## 고르기 길잡이
 
-The following flowchart summarizes the selection process:
+다음 흐름도가 고르는 과정을 간추린다:
 
-1. **Is the graph dense** ($E = \Theta(V^2)$)? Use **Prim's with array** -- $O(V^2)$.
-2. **Are edges pre-sorted?** Use **Kruskal's** -- nearly $O(E)$.
-3. **Is parallelism available?** Use **Boruvka's** -- $O((E \log V) / p)$ with $p$ processors.
-4. **Is implementation simplicity paramount?** Use **Kruskal's with Union-Find**.
-5. **Otherwise**: use **Prim's with binary heap** -- $O(E \log V)$ with good cache behavior.
+1. **그래프가 빽빽한가**($E = \Theta(V^2)$)? **배열을 쓴 프림**을 써라. $O(V^2)$.
+2. **변이 미리 정렬되어 있나?** **크러스컬**을 써라. 거의 $O(E)$이다.
+3. **나란히 할 수 있나?** **보루브카**를 써라. 처리기 $p$개로 $O((E \log V) / p)$이다.
+4. **구현의 단순함이 가장 중요한가?** **합치기-찾기를 쓴 크러스컬**을 써라.
+5. **그 밖의 경우**: **이진 힙을 쓴 프림**을 써라. 캐시 굶이 좋은 $O(E \log V)$이다.
 
-## Lower Bound
+## 아래 한계
 
-The MST problem has a known lower bound of $\Omega(E)$ in the comparison model (every edge must be examined). The best known deterministic algorithm achieves $O(E \cdot \alpha(V))$ using a combination of Boruvka phases and edge contraction (Chazelle, 2000). A randomized algorithm by Karger, Klein, and Tarjan (1995) achieves expected $O(E)$ time.
+최소 뻗은 나무 문제는 견줌 모형에서 아래 경계가 $\Omega(E)$임이 알려져 있다(변을 모두 살펴야 한다). 알려진 가장 좋은 정해진 알고리즘은 보루브카 판과 변 오그리기를 어우러지게 하여 $O(E \cdot \alpha(V))$을 이룬다(샤젤, 2000). 카거, 클라인, 타잔(1995)의 무작위 알고리즘은 기댓값으로 $O(E)$ 시간을 이룬다.
 
-## Reference
+## 참고 문헌
 
-- [Introduction to Algorithms (CLRS), Chapter 23](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+- [Introduction to Algorithms (CLRS), 23장](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Chazelle, B. (2000). A minimum spanning tree algorithm with inverse-Ackermann type complexity. *JACM*, 47(6), 1028--1047.
 - Karger, D. R., Klein, P. N., & Tarjan, R. E. (1995). A randomized linear-time algorithm to find minimum spanning trees. *JACM*, 42(2), 321--328.
+
+## 연습문제
+
+**연습문제 1.**
+$V = 10{,}000$, $E = 20{,}000$인 그래프에는 어떤 최소 뻗은 나무 알고리즘을 권하겠는가? 왜인가?
+
+??? success "연습문제 1 풀이"
+    이 그래프는 성기다($E = 2V$). 합치기-찾기를 쓴 크러스컬 알고리즘이 딱 맞다. 곧 변 $20{,}000$개를 정렬하는 데 $O(E \log E) = O(20{,}000 \times 15) \approx 300{,}000$번의 연산이 들고 합치기-찾기 연산은 거의 $O(E)$이다. 이진 힙을 쓴 프림은 $O(E \log V) = O(20{,}000 \times 14) \approx 280{,}000$으로 견줄 만하다. 이웃 행렬을 쓴 프림($O(V^2) = 10^8$)은 훨씬 느릴 것이다. 이 성긴 그래프에는 크러스컬이나 힙을 쓴 프림이 모두 좋으며 크러스컬이 구현하기 조금 더 단순하다. $\square$
+
+---
+
+**연습문제 2.**
+$V = 1{,}000$, $E = 400{,}000$인 빽빽한 그래프에서 크러스컬, 배열을 쓴 프림, 힙을 쓴 프림의 돌아가는 시간을 견주어라.
+
+??? success "연습문제 2 풀이"
+    **크러스컬**: $O(E \log E) = O(400{,}000 \times 19) \approx 7.6 \times 10^6$. **배열을 쓴 프림**: $O(V^2) = O(10^6)$. **힙을 쓴 프림**: $O(E \log V) = O(400{,}000 \times 10) = 4 \times 10^6$. 이 빽빽한 그래프에서는 정렬의 덧짐과 힙 연산을 피하는 배열을 쓴 프림이 가장 빠르다. $E = \Omega(V^2 / \log V)$일 때 $O(V^2)$ 경계가 이긴다. $\square$
+
+---
+
+**연습문제 3.**
+최소 뻗은 나무 알고리즘이 끊긴 그래프를 다룰 수 있는가? 무엇을 돌려주어야 하는가?
+
+??? success "연습문제 3 풀이"
+    끊긴 그래프에는 뻗은 나무가 없다(나무는 모든 꼭짓점을 이어야 한다). 최소 뻗은 나무 알고리즘은 **최소 뻗은 숲**, 곧 이어진 조각마다의 최소 뻗은 나무를 모두 합친 것을 돌려줄 수 있다. 크러스컬 알고리즘은 자연스럽게 숲을 만든다. 곧 변을 무게 차례로 다루며 같은 조각 안의 변은 건너뛴다. 프림 알고리즘은 조각 하나의 최소 뻗은 나무를 찾으므로 숲을 찾으려면 아직 들르지 않은 꼭짓점마다 다시 돌린다. 그 숲의 변은 $V - c$개이며 $c$은 조각의 수이다. $\square$
+
+---
+
+**연습문제 4.**
+변의 무게가 모두 다를 때 고전 최소 뻗은 나무 알고리즘 셋(크러스컬, 프림, 보루브카)이 같은 최소 뻗은 나무를 내놓음을 증명하여라.
+
+??? success "연습문제 4 풀이"
+    변의 무게가 모두 다르면 최소 뻗은 나무는 하나뿐이다(하나뿐임 정리에 따라, 최소 뻗은 나무 둘이 다르면 순환 성질로 나눠 갖지 않은 변을 맞바꿔 더 가벼운 최소 뻗은 나무를 만들 수 있어 최적임에 어긋난다). 세 알고리즘 모두 (저마다 자름 성질이나 순환 성질로 옳음이 증명된) 올바른 최소 뻗은 나무를 내놓고 최소 뻗은 나무가 하나뿐이므로 셋 다 같은 나무를 내놓아야 한다. 무게가 모두 다르지 않으면 알고리즘마다 다른 최소 뻗은 나무를 내놓을 수 있지만 전체 무게는 모두 같다. $\square$

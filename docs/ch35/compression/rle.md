@@ -116,6 +116,7 @@ Match    : True
 ## When RLE Helps and When It Hurts
 
 !!! tip "Best-case scenarios for RLE"
+
     - **Binary images**: large regions of black or white pixels produce long runs.
     - **Sparse data**: matrices with many repeated zeros compress well.
     - **Preprocessing step**: RLE after the Burrows-Wheeler Transform (BWT) exploits the clustering BWT creates.
@@ -134,3 +135,43 @@ Match    : True
 
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+## Exercises
+
+**Exercise 1.**
+Encode the string "AAABBBCCCCDDDA" using RLE. Then decode "5X2Y1Z" back to the original string.
+
+??? success "Solution to Exercise 1"
+    Encoding "AAABBBCCCCDDDA": run of 3 A's, 3 B's, 4 C's, 3 D's, 1 A. RLE output: "3A3B4C3D1A". Decoding "5X2Y1Z": 5 X's, 2 Y's, 1 Z. Original string: "XXXXXYYZ". $\square$
+
+---
+
+**Exercise 2.**
+Prove that RLE can expand the data. Give an example where the RLE-encoded output is longer than the input, and derive the worst-case expansion ratio.
+
+??? success "Solution to Exercise 2"
+    Consider the string "ABCDEF" (no repeated characters). RLE output: "1A1B1C1D1E1F" -- 12 characters for a 6-character input, a 2:1 expansion. In general, a string of $n$ distinct characters produces $2n$ output characters (count + symbol for each). The worst-case expansion ratio is 2:1 when every run has length 1. For binary encoding, if counts are stored as fixed-width integers ($b$ bits) alongside each symbol ($s$ bits), a single character costs $b + s$ bits vs. $s$ bits uncompressed. With $b = 8$ bits for count and $s = 8$ bits for symbol, each non-repeating byte costs 16 bits (vs. 8), a 2x expansion. This is why RLE is typically combined with other methods (BWT + MTF + RLE) rather than used alone. $\square$
+
+---
+
+**Exercise 3.**
+RLE is used in bitmap image compression (e.g., BMP format). Explain why it is effective for simple graphics but poor for photographic images.
+
+??? success "Solution to Exercise 3"
+    Simple graphics (icons, diagrams, screenshots) have large regions of uniform color. A solid blue rectangle of 1000 pixels compresses to a single (1000, blue) pair -- a 1000:1 ratio for that region. Edges between regions produce short runs, but most pixels are in uniform areas. Photographic images have continuous tonal variation: adjacent pixels differ slightly due to gradients, noise, and texture. Runs of identical pixels are rare -- most runs have length 1 or 2. RLE expands the data in this case (each pixel becomes a count-value pair). This is why photographs use DCT-based compression (JPEG), which exploits spatial frequency rather than exact repetition, while simple graphics use RLE or PNG (which applies filtering to create artificial runs). $\square$
+
+---
+
+**Exercise 4.**
+Design a variant of RLE that handles the worst case better by using an escape mechanism. Describe the encoding format and analyze when it outperforms basic RLE.
+
+??? success "Solution to Exercise 4"
+    Escape-based RLE: choose an escape byte $E$ (e.g., 0xFF). Non-repeating bytes are output verbatim. Runs of length $\ge 3$ are encoded as $E$, count, byte. Occurrences of $E$ in the literal data are encoded as $E$, 0 (escape followed by zero count means literal $E$). For non-repeating data: each byte costs 1 byte (no overhead unless $E$ appears), vs. 2 bytes in basic RLE. For runs: a run of length $L$ costs 3 bytes ($E$, $L$, byte) vs. 2 bytes in basic RLE. The escape variant outperforms basic RLE when the data is mostly non-repeating with occasional long runs: the majority of bytes pass through at 1 byte each, while runs still compress well. Basic RLE is better only when the entire input is runs. This is the approach used in PackBits (TIFF) encoding. $\square$
+
+---
+
+**Exercise 5.**
+A column-oriented database stores a column of 10 million boolean values (0 or 1). The column has long runs (average run length 500). Compare the storage size with: (a) raw storage, (b) RLE, and (c) bitmap encoding. Which is most efficient?
+
+??? success "Solution to Exercise 5"
+    (a) **Raw storage**: 1 bit per value $= 10^7$ bits $= 1.25$ MB. (b) **RLE**: with average run length 500, there are approximately $10^7 / 500 = 20{,}000$ runs. Each run requires a count (e.g., 16 bits for counts up to 65535) and a value (1 bit, or just alternate between 0 and 1). Total: $20{,}000 \times 16 = 320{,}000$ bits $= 40$ KB. Compression ratio: $1.25 \text{ MB} / 40 \text{ KB} \approx 31:1$. (c) **Bitmap encoding** (store positions of 1s): if half the values are 1, there are 5 million 1s, each needing a 24-bit position index: $5 \times 10^6 \times 24 = 1.2 \times 10^8$ bits $= 15$ MB -- worse than raw. RLE is the clear winner because the data has long runs. For data without runs, bitmap encoding with compression (roaring bitmaps) would be better. $\square$

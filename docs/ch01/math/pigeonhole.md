@@ -1,35 +1,35 @@
-# Pigeonhole Principle
+# 비둘기집 원리
 
-The pigeonhole principle is a simple but powerful counting argument. In machine learning, it underpins hash collision analysis, proves existence of duplicate representations in finite-precision systems, and bounds the capacity of discrete models.
+비둘기집 원리는 단순하지만 강력한 계수 논증이다. 기계학습에서는 해시 충돌 분석의 바탕이 되고, 유한 정밀도 체계에서 중복 표현이 존재함을 증명하며, 이산 모델의 표현 용량에 상계를 준다.
 
-## Definition
+## 정의
 
-If $n$ items are placed into $m$ containers and $n > m$, then at least one container holds more than one item. More precisely:
+$n$개의 물건을 $m$개의 상자에 넣을 때 $n > m$이면 적어도 한 상자에는 물건이 두 개 이상 들어간다. 더 정확히는 다음과 같다.
 
 $$
-n \text{ items into } m \text{ containers} \implies \exists \text{ container with } \geq \lceil n/m \rceil \text{ items}
+n \text{개를 } m \text{개 상자에} \implies \exists \text{ 물건이 } \geq \lceil n/m \rceil \text{개인 상자}
 $$
 
-## Explanation
+## 설명
 
-The principle is a direct consequence of counting. If every container held at most one item, we could accommodate at most $m$ items, contradicting $n > m$.
+이 원리는 세기의 직접적인 귀결이다. 모든 상자에 물건이 최대 하나씩 들어 있다면 최대 $m$개만 담을 수 있는데, 이는 $n > m$과 모순이다.
 
-Applications in deep learning and computing:
+딥러닝과 컴퓨팅에서의 응용은 다음과 같다.
 
-- **Hash collisions**: When mapping $n$ items to $m$ hash buckets with $n > m$, collisions are unavoidable. This affects hash-based embedding tables used in recommendation systems.
-- **Finite precision**: With 32-bit floats, there are $2^{32}$ representable values. Any mapping of more than $2^{32}$ real numbers to float32 must produce collisions (rounding). This is why numerical stability matters in deep learning.
-- **Quantization**: When quantizing neural network weights from float32 to int8 (256 values), the pigeonhole principle guarantees that many distinct weights map to the same quantized value.
+- **해시 충돌**: $n > m$인 상황에서 $n$개의 항목을 $m$개의 해시 버킷으로 대응시키면 충돌은 피할 수 없다. 이는 추천 시스템에 쓰이는 해시 기반 임베딩 테이블에 영향을 준다.
+- **유한 정밀도**: 32비트 부동소수점은 $2^{32}$개의 표현 가능한 값을 가진다. $2^{32}$개를 넘는 실수를 float32로 대응시키면 반드시 충돌(반올림)이 생긴다. 딥러닝에서 수치적 안정성이 중요한 이유이다.
+- **양자화**: 신경망 가중치를 float32에서 int8(256개 값)로 양자화하면, 비둘기집 원리에 의해 서로 다른 많은 가중치가 같은 양자화 값으로 대응됨이 보장된다.
 
-## Examples
+## 예제
 
 ```python
 import torch
 
-# Pigeonhole in quantization: many float values map to same int8 bucket
-weights = torch.randn(1000)  # 1000 distinct float32 values
+# 양자화에서의 비둘기집: 많은 float 값이 같은 int8 버킷으로 간다
+weights = torch.randn(1000)  # 서로 다른 float32 값 1000개
 num_int8_buckets = 256
 
-# Simulate uniform quantization to int8
+# int8로의 균등 양자화를 흉내 낸다
 w_min, w_max = weights.min(), weights.max()
 scale = (w_max - w_min) / (num_int8_buckets - 1)
 quantized = torch.round((weights - w_min) / scale).to(torch.int32)
@@ -41,10 +41,50 @@ print(f"Occupied buckets: {unique_buckets}")
 print(f"Pigeonhole: at least {weights.numel()} / {num_int8_buckets} "
       f"= {weights.numel() // num_int8_buckets} values share a bucket")
 
-# Verify: find the most crowded bucket
+# 확인: 가장 붐비는 버킷을 찾는다
 counts = torch.zeros(num_int8_buckets, dtype=torch.int32)
 for q in quantized:
     counts[q.item()] += 1
 print(f"Max bucket occupancy: {counts.max().item()}")
 print(f"Theoretical minimum max: {-(-(weights.numel()) // num_int8_buckets)}")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+해시 기반 임베딩 테이블이 사용자 ID $n = 10^6$개를 $m = 2^{17}$개의 버킷으로 대응시킨다. 비둘기집 원리를 사용하여 어느 한 버킷에서 발생하는 최대 충돌 횟수의 하계를 구하라.
+
+??? success "연습문제 1 풀이"
+    비둘기집 원리에 의해 적어도 한 버킷에는 $\lceil n/m \rceil = \lceil 10^6 / 131072 \rceil = \lceil 7.63 \rceil = 8$개의 사용자 ID가 들어간다. 즉 그 버킷에서 적어도 7번의 충돌이 일어난다. 실무에서 임베딩 테이블의 해시 충돌은 서로 다른 사용자가 같은 임베딩 벡터를 공유한다는 뜻이며, 추천에 잡음을 더한다.
+
+---
+
+**연습문제 2.**
+Float16은 $2^{16} = 65{,}536$개의 표현 가능한 값을 가진다. 어떤 신경망이 float32 가중치 값을 $10^7$개 가진다면, 양자화 시 몇 개의 서로 다른 float32 값이 같은 float16 값으로 대응되어야 하는가? 모델 정확도에 미치는 실질적 영향은 무엇인가?
+
+??? success "연습문제 2 풀이"
+    비둘기집 원리에 의해 적어도 $\lceil 10^7 / 65536 \rceil = \lceil 152.59 \rceil = 153$개의 서로 다른 float32 값이 같은 float16 값으로 대응되어야 한다. 실질적 영향은 가중치의 분포에 달려 있다. (가중치 감쇠로 학습한 뒤 흔히 그렇듯) 가중치가 좁은 범위에 몰려 있으면 가중치당 양자화 오차가 작고 신경망 전체에 누적된 오차도 견딜 만하다. 경험적으로 대부분의 구조에서 FP16 추론은 정확도 손실이 0.1% 미만이다.
+
+---
+
+**연습문제 3.**
+각 성분을 $q$개 수준 중 하나로 반올림한 $\mathbb{R}^d$의 벡터 집합에서 서로 다른 벡터의 최대 개수가 $q^d$임을 증명하라. $d = 768$이고 $q = 2$(이진 양자화)일 때, 이를 데이터베이스 벡터 $n = 10^9$개와 비교하면 어떠한가?
+
+??? success "연습문제 3 풀이"
+    각 벡터는 성분이 $d$개이고 각 성분이 $q$개 값 중 하나를 가지므로 가능한 서로 다른 벡터는 $q^d$개이다. $d = 768$, $q = 2$이면 $2^{768}$개이며 이는 $10^9$보다 천문학적으로 크다. $10^9 \ll 2^{768}$이므로 768차원에서 $10^9$개 벡터를 이진 양자화하면 충돌이 매우 적을 것이다. 그러나 실제로는 벡터가 균등하게 분포하지 않고 저차원 부분공간에 뭉쳐 있어서, 이 최악의 경우 상계가 시사하는 것보다 충돌이 훨씬 잘 일어난다.
+
+---
+
+**연습문제 4.**
+$B = 256$개의 학습 표본으로 이루어진 배치를 $G = 8$개의 GPU에 배정한다. 적어도 한 GPU가 $\lceil B/G \rceil = 32$개 이상의 표본을 받음을 비둘기집 원리로 증명하라. 데이터 병렬 학습에서 균등 분배가 중요한 이유는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    모든 GPU가 $\lceil 256/8 \rceil = 32$개보다 적게 받는다면 각각 최대 31개를 받아 총 최대 $8 \times 31 = 248 < 256$개가 된다. 이는 256개 표본을 모두 배정해야 한다는 요구와 모순이다. 따라서 적어도 한 GPU는 32개 이상을 받는다. 균등 분배가 중요한 이유는 데이터 병렬 학습이 매 단계마다 GPU 간 경사를 동기화하기 때문이다. 가장 느린 GPU(표본을 가장 많이 받은 GPU)가 단계 시간을 결정하므로, 분배가 고르지 않으면 빠른 GPU들이 놀면서 시간을 낭비한다.
+
+---
+
+**연습문제 5.**
+$d$차원 은닉층을 가진 ReLU 신경망이 서로 다른 입력을 $n > 2^d$개 처리하면, 적어도 두 입력이 같은 ReLU 활성화 패턴(같은 뉴런이 활성/비활성)을 공유함을 증명하라.
+
+??? success "연습문제 5 풀이"
+    주어진 입력에 대해 각 은닉 뉴런은 활성(출력 $> 0$)이거나 비활성(출력 $= 0$)이므로 뉴런당 2가지 상태를 가진다. 뉴런이 $d$개이면 서로 다른 활성화 패턴은 최대 $2^d$개이다. 비둘기집 원리에 의해 서로 다른 입력 $n > 2^d$개를 이 층에 통과시키면 적어도 둘은 같은 활성화 패턴을 공유해야 한다. 같은 패턴 안에서는 (같은 뉴런이 활성이므로) 신경망이 두 입력에 대해 동일한 아핀 함수로 작동하며, 이는 두 입력이 이 조각별 선형 함수의 같은 선형 영역에 놓임을 뜻한다. $\square$

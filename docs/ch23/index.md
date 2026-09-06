@@ -1,49 +1,49 @@
-# Chapter 23: Normalizing Flows
+# 23장: 고르게 하는 흐름
 
-Generative models aim to learn the probability distribution underlying observed data so that new, realistic samples can be drawn from it. **Normalizing flows** approach this problem by transforming a simple base distribution (typically a standard Gaussian) through a sequence of invertible, differentiable mappings until the transformed distribution matches the data. Because every transformation is invertible and its Jacobian determinant is tractable, normalizing flows provide two properties that many other generative models lack simultaneously: **exact log-likelihood computation** and **efficient single-pass sampling**.
+만들어 내는 모델은 관측한 자료 밑에 깔린 확률 분포를 배워 거기서 새롭고 그럴듯한 표본을 뽑는 것을 노린다. **고르게 하는 흐름**은 단순한 바탕 분포(흔히 표준 정규 분포)를 뒤집을 수 있고 미분할 수 있는 대응의 차례로 바꾸어 그 분포가 자료와 맞을 때까지 몰고 가 이 문제를 다룬다. 바꿈마다 뒤집을 수 있고 야코비 행렬식을 다룰 수 있으므로, 고르게 하는 흐름은 다른 만들어 내는 모델이 한꺼번에 갖추지 못한 성질 둘, 곧 **정확한 로그 가능도 셈하기**와 **한 번에 하는 효율 좋은 뽑기**를 준다.
 
-The change-of-variables formula is the mathematical engine behind flows. If $z \sim p_Z(z)$ and $x = f(z)$ where $f$ is a diffeomorphism, then
+변수 바꿈 식이 흐름 뒤의 수학 기관이다. $z \sim p_Z(z)$이고 $f$이 미분 동형일 때 $x = f(z)$이면
 
 $$
 p_X(x) = p_Z\!\bigl(f^{-1}(x)\bigr)\,\left|\det \frac{\partial f^{-1}}{\partial x}\right|
 $$
 
-This chapter covers the mathematical foundations, discrete and continuous flow architectures, training methods, and applications to quantitative finance.
+이 장은 수학의 바탕, 따로 떨어진 흐름과 이어진 흐름의 얼개, 익히기 방법, 계량 금융에 쓰는 법을 다룬다.
 
 ---
 
-## Flow Foundations
+## 흐름의 바탕
 
-- Introduction to Normalizing Flows -- Overview of normalizing flows as generative models with exact density estimation and efficient sampling
-- Change of Variables -- The mathematical foundation describing how probability density transforms under invertible mappings
-- Invertibility and Flow Composition -- Requirements for bijective transformations and how simple invertible layers compose into expressive models
-- Jacobian Determinant -- Computational aspects of the Jacobian determinant, the central bottleneck in normalizing flows
+- 고르게 하는 흐름 들어가기 -- 정확한 밀도 어림과 효율 좋은 뽑기를 갖춘 만들어 내는 모델로서의 살펴보기
+- 변수 바꿈 -- 뒤집을 수 있는 대응에서 확률 밀도가 어떻게 바뀌는지 적는 수학의 바탕
+- 뒤집을 수 있음과 흐름 아우르기 -- 일대일 대응 바꿈의 요건과 단순한 뒤집을 수 있는 층이 어떻게 표현력 있는 모델로 아우러지는가
+- 야코비 행렬식 -- 고르게 하는 흐름의 고갱이 병목인 야코비 행렬식의 셈하기 측면
 
-## Flow Architectures
+## 흐름 얼개
 
-- Planar, Radial, and Simple Flows -- Early normalizing flow architectures using simple, analytically tractable transformations
-- [RealNVP and Coupling Layers](flow_architectures/realnvp.md) -- Affine coupling layers that guarantee invertibility by construction with efficient Jacobian computation
-- Autoregressive Flows -- MAF and IAF architectures exploiting the chain rule of probability for triangular Jacobians
-- Glow -- Refinements to RealNVP including ActNorm, invertible 1x1 convolutions, and systematic multi-scale architecture
-- Neural Spline Flows -- Monotonic rational quadratic splines that dramatically increase per-layer expressiveness beyond affine transforms
+- 평면, 방사, 단순 흐름 -- 손으로 다룰 수 있는 단순한 바꿈을 쓴 초기 고르게 하는 흐름 얼개
+- [RealNVP과 짝지음 층](flow_architectures/realnvp.md) -- 세우는 방식 자체로 뒤집을 수 있음을 보장하고 야코비를 효율 좋게 셈하는 아핀 짝지음 층
+- 자기되돌리기 흐름 -- 세모 야코비를 얻으려 확률의 사슬 규칙을 써먹는 MAF와 IAF 얼개
+- Glow -- ActNorm, 뒤집을 수 있는 1x1 누비기, 짜임새 있는 여러 잣수 얼개를 넣어 RealNVP을 다듬은 것
+- 신경 스플라인 흐름 -- 아핀 바꿈 너머로 층마다의 표현력을 크게 높이는 한쪽으로만 가는 유리 이차 스플라인
 
-## Continuous Flows
+## 이어진 흐름
 
-- Continuous Normalizing Flows -- Generalization of discrete flows to continuous-time transformations defined by ordinary differential equations
-- CNF Fundamentals -- Core theory of continuous normalizing flows including density evolution via the instantaneous change of variables
-- Hutchinson Trace Estimator -- Stochastic method for estimating matrix traces that makes FFJORD and other continuous flows practical
-- FFJORD: Free-Form Continuous Dynamics -- Making continuous normalizing flows practical with unrestricted architectures and trace estimation
+- 이어진 고르게 하는 흐름 -- 따로 떨어진 흐름을 상미분 방정식으로 정하는 이어진 때의 바꿈으로 넓힌 것
+- 이어진 흐름의 바탕 -- 순간 변수 바꿈으로 밀도가 나아가는 것을 포함한 이어진 고르게 하는 흐름의 고갱이 이론
+- 허친슨 대각합 어림개 -- FFJORD와 다른 이어진 흐름을 쓸 만하게 만드는, 행렬 대각합을 어림하는 확률 방법
+- FFJORD: 자유로운 꼴의 이어진 움직임 -- 얽매이지 않은 얼개와 대각합 어림으로 이어진 고르게 하는 흐름을 쓸 만하게 만들기
 
-## Training and Evaluation
+## 익히기와 값매김
 
-- Training and Evaluation -- Maximum likelihood training, base distribution choices, dequantization, and evaluation metrics for flows
-- MLE Training -- Maximum likelihood estimation objective and training loop for normalizing flows
-- Density Estimation Metrics -- Metrics for evaluating learned densities including log-likelihood, bits per dimension, and comparisons
-- Sample Quality Evaluation -- FID, precision-recall, and other metrics for assessing the quality of generated samples
+- 익히기와 값매김 -- 최대 가능도 익히기, 바탕 분포 고름, 양자화 되돌리기, 흐름의 값매김 잣대
+- 최대 가능도 익히기 -- 고르게 하는 흐름의 최대 가능도 어림 목표와 익히기 되풀이
+- 밀도 어림 잣대 -- 로그 가능도, 차원마다의 비트, 견줌을 포함해 배운 밀도를 값매김하는 잣대
+- 표본 품질 값매김 -- 만든 표본의 품질을 가늠하는 FID, 정밀도-재현율, 그 밖의 잣대
 
-## Finance Applications
+## 금융에서의 쓰임새
 
-- Finance Applications of Normalizing Flows -- Return distribution modeling, risk measurement, option pricing, and portfolio optimization using flows
-- Density Estimation for Risk -- Exact density estimation for high-dimensional financial data enabling accurate risk assessment
-- Tail Risk Modeling -- Modeling heavy-tailed financial return distributions for extreme loss probability estimation
-- Scenario Generation -- Generating realistic multi-dimensional financial scenarios for risk management and stress testing
+- 고르게 하는 흐름의 금융 쓰임새 -- 흐름으로 하는 수익률 분포 나타내기, 위험 재기, 선택권 값 매김, 자산 꾸러미 가장 좋게 하기
+- 위험을 위한 밀도 어림 -- 정확한 위험 가늠을 되게 하는 차원 높은 금융 자료의 정확한 밀도 어림
+- 꼬리 위험 나타내기 -- 극단 손실 확률을 어림하려 꼬리가 두꺼운 금융 수익률 분포를 나타내기
+- 시나리오 만들기 -- 위험 관리와 어지러움 시험을 위해 실제 같은 여러 차원 금융 시나리오 만들기

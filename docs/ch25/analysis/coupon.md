@@ -1,114 +1,146 @@
-# Coupon Collector
+# 쿠폰 모으개
 
-Imagine collecting trading cards: each pack contains one card drawn uniformly at random from $n$ types. How many packs must you buy before you have at least one of every type? The **coupon collector problem** shows that the answer is $\Theta(n \ln n)$ — substantially more than $n$ because the last few missing types become increasingly hard to find. This problem models hashing completeness, randomized covering, and the performance of randomized algorithms that must "hit" every element.
+딱지 모으기를 떠올려 보라. 꾸러미마다 $n$가지에서 고르게 아무렇게나 뽑은 딱지 한 장이 들어 있다. 모든 가지를 적어도 하나씩 가지려면 꾸러미를 몇 개 사야 할까? **쿠폰 모으개 문제**는 답이 $\Theta(n \ln n)$임을 보인다. 이는 $n$보다 훨씬 큰데, 마지막에 빠진 몇 가지를 찾기가 점점 어려워지기 때문이다. 이 문제는 흩기의 온전함, 마구잡이 덮기, 모든 낱개를 "맞혀야" 하는 마구잡이 알고리즘의 솜씨를 나타낸다.
 
-## Problem Setup
+## 문제 설정
 
-A collector draws coupons one at a time, each independently and uniformly from $n$ types. Let $T$ denote the number of draws until all $n$ types have been collected at least once.
+모으개가 쿠폰을 하나씩 뽑되 저마다 $n$가지에서 서로 매이지 않게 고르게 뽑는다. $T$을 $n$가지를 모두 적어도 한 번씩 모을 때까지의 뽑기 횟수라 하자.
 
-We decompose $T$ into phases. **Phase $i$** begins when exactly $i - 1$ distinct types have been collected and ends when the $i$-th new type appears, for $i = 1, 2, \ldots, n$. Let $T_i$ denote the number of draws during phase $i$. Then
+$T$을 단계로 나눈다. $i = 1, 2, \ldots, n$에 대해 **단계 $i$**은 서로 다른 가지를 꼭 $i - 1$가지 모았을 때 시작해 $i$번째 새 가지가 나타날 때 끝난다. $T_i$을 단계 $i$ 동안의 뽑기 횟수라 하자. 그러면
 
 $$
 T = \sum_{i=1}^{n} T_i
 $$
 
-## Analysis of Each Phase
+## 단계마다의 살피기
 
-During phase $i$, exactly $i - 1$ types have been seen, so $n - (i - 1) = n - i + 1$ types remain unseen. Each draw independently hits an unseen type with probability
+단계 $i$ 동안 꼭 $i - 1$가지를 보았으므로 $n - (i - 1) = n - i + 1$가지가 아직 보이지 않았다. 뽑기마다 서로 매이지 않게 다음 확률로 못 본 가지를 맞힌다.
 
 $$
 p_i = \frac{n - i + 1}{n}
 $$
 
-Since draws are independent and each has success probability $p_i$, the number of draws $T_i$ follows a geometric distribution with parameter $p_i$:
+뽑기가 서로 매이지 않았고 저마다 성공 확률이 $p_i$이므로 뽑기 횟수 $T_i$은 매개변수 $p_i$인 기하 분포를 따른다.
 
 $$
 E[T_i] = \frac{1}{p_i} = \frac{n}{n - i + 1}
 $$
 
-## Expected Collection Time
+## 기댓값 모으기 시간
 
-By linearity of expectation,
+기댓값의 선형성에 따라,
 
 $$
 E[T] = \sum_{i=1}^{n} E[T_i] = \sum_{i=1}^{n} \frac{n}{n - i + 1} = n \sum_{j=1}^{n} \frac{1}{j} = n H_n
 $$
 
-where $H_n = \sum_{j=1}^{n} 1/j$ is the $n$-th harmonic number. Since $H_n = \ln n + \gamma + O(1/n)$ where $\gamma \approx 0.5772$ is the Euler-Mascheroni constant,
+여기서 $H_n = \sum_{j=1}^{n} 1/j$은 $n$번째 조화수이다. $\gamma \approx 0.5772$을 오일러-마스케로니 상수라 할 때 $H_n = \ln n + \gamma + O(1/n)$이므로,
 
 $$
 E[T] = n \ln n + \gamma n + O(1)
 $$
 
-??? example "Numerical Example"
-    For $n = 100$ coupon types, the expected number of draws is
+??? example "수로 보는 보기"
+    쿠폰이 $n = 100$가지이면 기댓값 뽑기 횟수는 다음과 같다.
 
     $$
     E[T] = 100 \cdot H_{100} \approx 100 \cdot 5.187 = 518.7
     $$
 
-    To collect all 100 types, you need about 519 draws on average — roughly 5 times the number of types.
+    100가지를 모두 모으려면 평균 약 519번 뽑아야 하며, 이는 가짓수의 대략 5배이다.
 
-## Variance and Concentration
+## 흩어짐과 모임
 
-The variance of $T$ is
+$T$의 흩어짐은 다음과 같다.
 
 $$
 \text{Var}(T) = \sum_{i=1}^{n} \text{Var}(T_i) = \sum_{i=1}^{n} \frac{1 - p_i}{p_i^2} = n^2 \sum_{j=1}^{n} \frac{1}{j^2} - n \sum_{j=1}^{n} \frac{1}{j}
 $$
 
-Since $\sum_{j=1}^{\infty} 1/j^2 = \pi^2/6$,
+$\sum_{j=1}^{\infty} 1/j^2 = \pi^2/6$이므로,
 
 $$
 \text{Var}(T) \leq \frac{\pi^2}{6} n^2
 $$
 
-The standard deviation is $O(n)$, which is small relative to the mean of $\Theta(n \log n)$.
+표준 편차는 $O(n)$이며 이는 평균 $\Theta(n \log n)$에 견주면 작다.
 
-!!! tip "Tail Bound"
-    By Markov's inequality, $\Pr[T \geq 2n \ln n] \leq 1/2$. A sharper bound uses the independence of the $T_i$: for $c > 0$,
+!!! tip "꼬리 한계"
+    마르코프 부등식에 따라 $\Pr[T \geq 2n \ln n] \leq 1/2$이다. 더 날카로운 한계는 $T_i$이 서로 매이지 않음을 쓴다. 곧 $c > 0$에 대해,
 
     $$
     \Pr[T \geq n \ln n + cn] \leq e^{-c}
     $$
 
-    This shows that the collection time concentrates around its mean with exponential tails.
+    이는 모으기 시간이 지수 꼬리를 가지고 평균 둘레에 모임을 보인다.
 
-## The Last Few Coupons
+## 마지막 몇 쿠폰
 
-The expected time to collect the last coupon (when $n - 1$ types are known) is $n$. The second-to-last costs $n/2$ in expectation. More generally, the last $k$ coupons require
+마지막 쿠폰을 모으는 데 걸리는 기댓값 시간($n - 1$가지를 이미 알 때)은 $n$이다. 끝에서 둘째는 기댓값으로 $n/2$이 든다. 더 일반으로 마지막 $k$개 쿠폰에는 다음이 필요하다.
 
 $$
 \sum_{j=1}^{k} \frac{n}{j} = n H_k \approx n \ln k
 $$
 
-draws in expectation. This logarithmic blowup in the final stages is the essence of the coupon collector phenomenon.
+기댓값 뽑기 횟수이다. 마지막 단계에서 로그만큼 부풀어 오르는 것이 쿠폰 모으개 현상의 알맹이이다.
 
-## Applications
+## 응용
 
-### Hashing Completeness
+### 흩기의 온전함
 
-When randomly assigning $n$ items to $n$ hash buckets, the coupon collector result governs how many items must be inserted before every bucket has at least one item: $\Theta(n \ln n)$ items are needed.
+낱개 $n$개를 흩는 통 $n$개에 아무렇게나 매길 때 통마다 적어도 낱개 하나를 가지려면 낱개를 몇 개 넣어야 하는지는 쿠폰 모으개 결과가 다스린다. 곧 $\Theta(n \ln n)$개가 필요하다.
 
-### Randomized Broadcasting
+### 마구잡이 알림 퍼뜨리기
 
-In a network with $n$ nodes, if each round a random node receives a message, all nodes receive it after $\Theta(n \ln n)$ rounds in expectation.
+마디 $n$개인 그물에서 바퀴마다 아무 마디가 알림을 받으면 기댓값으로 $\Theta(n \ln n)$바퀴 뒤에 모든 마디가 받는다.
 
-### Testing Coverage
+### 시험 덮기
 
-Random testing of $n$ code paths requires $\Theta(n \ln n)$ random test cases to cover every path at least once.
+코드 길 $n$개를 마구잡이로 시험할 때 모든 길을 적어도 한 번 덮으려면 아무 시험 경우가 $\Theta(n \ln n)$개 필요하다.
 
-## Generalization: Collecting Multiple Copies
+## 넓히기: 여러 벌 모으기
 
-If each type must be collected at least $k$ times, the expected number of draws is
+가지마다 적어도 $k$번 모아야 한다면 기댓값 뽑기 횟수는 다음과 같다.
 
 $$
 E[T_k] = n H_n + (k-1) n \ln \ln n + O(n)
 $$
 
-for $k$ growing slowly with $n$. For fixed $k$, the leading term remains $n \ln n$.
+$k$이 $n$에 따라 천천히 커질 때 그렇다. $k$이 붙박이면 으뜸 항은 여전히 $n \ln n$이다.
 
-## Reference
+## 참고 문헌
 
 - Motwani, R. & Raghavan, P. *Randomized Algorithms*. Cambridge University Press, 1995.
 - Mitzenmacher, M. & Upfal, E. *Probability and Computing*. Cambridge University Press, 2017.
+
+## 연습문제
+
+**연습문제 1.**
+쿠폰 모으개의 핵심 마구잡이 재주와 그것이 정해진 방식보다 나은 까닭을 설명하라.
+
+??? success "연습문제 1 풀이"
+    쿠폰 모으개은 마구잡이를 써서 정해진 알고리즘이 마주칠 수 있는 가장 나쁜 들임을 피한다. 아무렇게나 고르므로 알고리즘의 솜씨가 들임의 짜임이 아니라 제 동전 던지기에 달린다. 그래서 모든 들임에 대해 참인 센 기댓값 시간이나 높은 확률의 보장을 흔히 얻으며, 짓궂거나 병리적인 경우를 걱정할 까닭이 없어진다. $\square$
+
+---
+
+**연습문제 2.**
+쿠폰 모으개의 기댓값 시간 복잡도는 얼마인가? 가장 나쁜 경우의 복잡도는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    기댓값 시간 복잡도는 흔히 $O(n)$이나 $O(n \log n)$이며 높은 확률로 이룬다. 가장 나쁜 경우는 다항식만큼 더 나쁠 수 있지만(예컨대 $O(n^2)$) 그럴 확률은 무시할 만큼 작다. 기댓값과 가장 나쁜 경우의 틈이 마구잡이의 값이며, 가장 나쁜 움직임이 일어날 확률은 들임 크기에 따라 지수로 줄어든다. $\square$
+
+---
+
+**연습문제 3.**
+쿠폰 모으개은 라스베이거스 알고리즘인가 몬테카를로 알고리즘인가? 그 차이를 설명하라.
+
+??? success "연습문제 3 풀이"
+    **라스베이거스**: 늘 옳은 결과를 내며 도는 시간이 아무 변수이다(기댓값이 다항식). **몬테카를로**: 늘 다항식 시간에 돌지만 결과가 어떤 가둔 확률로 틀릴 수 있다. 쿠폰 모으개은 옳음을 보장하느냐 도는 시간을 보장하느냐에 따라 이 가운데 하나에 든다. 이 가름이 어긋날 확률을 어떻게 다룰지 정한다. $\square$
+
+---
+
+**연습문제 4.**
+쿠폰 모으개에서 마구잡이를 없애거나 솜씨가 나쁠 확률을 줄이는 법을 설명하라.
+
+??? success "연습문제 4 풀이"
+    방책은 다음과 같다. (1) **거듭 해 보기**: 알고리즘을 여러 번 돌려 가장 좋거나 많은 쪽 결과를 택하면 어긋날 확률이 지수로 줄어든다. (2) **마구잡이 없애기**: 조건부 기댓값이나 흩는 함수 무리로 아무 고르기를 정해진 고르기로 바꾼다. (3) **키우기**: 몬테카를로 알고리즘에서는 $k$번 되풀이해 어긋남을 $2^{-k}$으로 줄인다. (4) **비슷 마구잡이 만들개**: 알고리즘이 보기에 "마구잡이처럼 보이는" 정해진 차례를 쓴다. $\square$

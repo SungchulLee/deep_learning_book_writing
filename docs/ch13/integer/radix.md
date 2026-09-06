@@ -1,34 +1,24 @@
-# Radix Sort
+# 기수 정렬
 
-Counting sort runs in $\Theta(n + k)$ time, which is excellent when the range $k$ is
-small.  But when keys span a large range -- say, 32-bit integers with $k = 2^{32} - 1$
--- allocating a count array of that size is prohibitive.  **Radix sort** solves this
-problem by decomposing each key into $d$ digits in some base $r$ (the *radix*) and
-sorting one digit at a time using a stable subroutine such as counting sort.  Because
-each digit lies in $\{0, 1, \dots, r-1\}$, the per-pass cost stays manageable.
+세기 정렬은 $\Theta(n + k)$ 시간에 도는데, 범위 $k$이 작을 때는 아주 좋다. 그러나 열쇠가 넓은 범위에 걸치면, 이를테면 $k = 2^{32} - 1$인 32비트 정수라면 그 크기의 세기 배열을 잡는 일이 어림없다. **기수 정렬**은 열쇠마다 어떤 밑 $r$(*기수*)의 $d$자리로 쪼개고, 세기 정렬 같은 안정한 부분 절차로 한 자리씩 정렬하여 이 문제를 푼다. 자리마다 $\{0, 1, \dots, r-1\}$에 들므로 훑기마다의 비용이 다룰 만하게 남는다.
 
-## How Radix Sort Works
+## 기수 정렬이 굴러가는 얼개
 
 Given $n$ integers, each with at most $d$ digits in base $r$:
 
-1. For $i = 1$ to $d$ (least significant digit to most significant):
-    - Sort the array by the $i$-th digit using a **stable** sort.
+1. $i = 1$부터 $d$까지(최하위 자리에서 최상위 자리로) 다음을 한다. - **안정한** 정렬로 $i$번째 자리에 따라 배열을 정렬한다.
 
-Stability is the key invariant.  After pass $i$, the array is sorted with respect to
-the $i$ least significant digits.  The stable subroutine in pass $i+1$ preserves the
-order among elements whose $(i+1)$-th digit is equal, so the invariant is maintained.
+안정성이 핵심 불변식이다. 훑기 $i$ 뒤에 배열은 아래쪽 $i$자리에 대해 정렬되어 있다. 훑기 $i+1$의 안정한 부분 절차가 $(i+1)$번째 자리가 같은 원소들의 차례를 지켜 주므로 불변식이 이어진다.
 
-## Complexity
+## 복잡도
 
-Let $n$ be the number of elements, $d$ the number of digits, and $r$ the radix (base).
-Using counting sort as the stable subroutine, each pass takes $\Theta(n + r)$ time.
+원소 수를 $n$, 자리의 개수를 $d$, 기수(밑)를 $r$이라 하자. 안정한 부분 절차로 세기 정렬을 쓰면 훑기마다 $\Theta(n + r)$ 시간이 든다.
 
 $$
 T(n, d, r) = \Theta\bigl(d\,(n + r)\bigr)
 $$
 
-If the integers lie in $\{0, 1, \dots, k\}$, then $d = \lfloor \log_r k \rfloor + 1$.
-Choosing $r = \Theta(n)$ yields:
+정수가 $\{0, 1, \dots, k\}$에 들면 $d = \lfloor \log_r k \rfloor + 1$이다. $r = \Theta(n)$으로 고르면 다음이 나온다.
 
 $$
 T = \Theta\!\left(\frac{\log k}{\log n} \cdot n\right)
@@ -38,80 +28,72 @@ When $k = O(n^c)$ for a constant $c$, this simplifies to $\Theta(n)$.
 
 **Space:** $\Theta(n + r)$ for the counting-sort auxiliary arrays.
 
-## Worked Example
+## 풀이 예제
 
-Sort $A = [170, 45, 75, 90, 802, 24, 2, 66]$ using radix 10 ($r = 10$).
+기수 10($r = 10$)으로 $A = [170, 45, 75, 90, 802, 24, 2, 66]$을 정렬해 보자.
 
-| Pass | Digit | Sorted array |
+| 훑기 | 자리 | 정렬된 배열 |
 |------|-------|-------------|
-| 1 | Ones | $[170, 90, 802, 2, 24, 45, 75, 66]$ |
-| 2 | Tens | $[802, 2, 24, 45, 66, 170, 75, 90]$ |
-| 3 | Hundreds | $[2, 24, 45, 66, 75, 90, 170, 802]$ |
+| 1 | 일의 자리 | $[170, 90, 802, 2, 24, 45, 75, 66]$ |
+| 2 | 십의 자리 | $[802, 2, 24, 45, 66, 170, 75, 90]$ |
+| 3 | 백의 자리 | $[2, 24, 45, 66, 75, 90, 170, 802]$ |
 
-After the final pass, the array is fully sorted.  Notice how stability ensures that
-after pass 2, the order $170 < 75$ (established by their ones digits in pass 1 where
-$0 < 5$) is preserved among elements with equal tens digit.
+마지막 훑기 뒤에 배열이 온전히 정렬된다. 안정성 덕분에 훑기 2 뒤에도 (훑기 1에서 일의 자리 $0 < 5$으로 세워진) 차례 $170 < 75$이 십의 자리가 같은 원소들 사이에서 지켜지는 것을 눈여겨보라.
 
-## Choosing the Radix
+## 기수 고르기
 
-The radix $r$ controls the trade-off between the number of passes $d$ and the per-pass
-cost $\Theta(n + r)$.
+기수 $r$은 훑기의 수 $d$과 훑기마다의 비용 $\Theta(n + r)$ 사이의 맞바꿈을 다스린다.
 
-| Choice | Passes $d$ | Per-pass cost | Total |
+| 선택 | 훑기 $d$ | 훑기마다의 비용 | 모두 |
 |--------|-----------|---------------|-------|
 | $r = 2$ | $\log_2 k$ | $\Theta(n)$ | $\Theta(n \log k)$ |
 | $r = 10$ | $\log_{10} k$ | $\Theta(n)$ | $\Theta(n \log_{10} k)$ |
 | $r = n$ | $\log_n k$ | $\Theta(n)$ | $\Theta(n \log_n k)$ |
-| $r = k$ | $1$ | $\Theta(n + k)$ | Reduces to counting sort |
+| $r = k$ | $1$ | $\Theta(n + k)$ | 세기 정렬이 된다 |
 
-In practice, $r = 256$ (byte-level) is popular because it fits cache lines well and
-limits the number of passes to 4 for 32-bit integers.
+실전에서는 $r = 256$(바이트 단위)이 널리 쓰이는데, 캐시 줄에 잘 맞고 32비트 정수에서 훑기를 4번으로 묶기 때문이다.
 
-## LSD vs MSD
+## LSD과 MSD
 
-Radix sort comes in two variants:
+기수 정렬에는 변형이 둘 있다.
 
-- **LSD (Least Significant Digit first):** processes digits from the rightmost to the
-  leftmost.  Requires a stable subroutine.  Naturally iterative and the most common
-  variant.
-- **MSD (Most Significant Digit first):** processes digits from the leftmost to the
-  rightmost.  Recursively sorts sub-buckets.  Can short-circuit when buckets have a
-  single element.  Does not require overall stability.
+- **LSD(최하위 자리 먼저):** 가장 오른쪽에서 가장 왼쪽으로 자리를 다룬다. 안정한 부분 절차가 필요하다. 저절로 되풀이 꼴이 되며 가장 흔한 변형이다.
+- **MSD(최상위 자리 먼저):** 가장 왼쪽에서 가장 오른쪽으로 자리를 다룬다. 부분 양동이를 되돌이로 정렬한다. 양동이에 원소가 하나면 바로 끝낼 수 있다. 전체 안정성은 필요하지 않다.
 
-The implementation below uses the LSD approach.
+아래 구현은 LSD 방식을 쓴다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Radix sort -- LSD variant using counting sort as stable subroutine.
+기수 정렬 — 안정한 하위 절차로 세기 정렬을 쓰는 LSD 판.
 
-Sorts an array of non-negative integers.
-Time:  Theta(d * (n + r))  where d = number of digits, r = radix
-Space: Theta(n + r)
+음이 아닌 정수 배열을 정렬한다.
+시간:  Theta(d * (n + r)), 여기서 d = 자릿수의 개수, r = 기수
+공간: Theta(n + r)
 """
 
-# === Stable counting sort by a specific digit ===============================
+# === 특정 자릿수별 안정 세기 정렬 ============================================
 
 def _counting_sort_by_digit(arr: list[int], exp: int, radix: int = 10) -> list[int]:
-    """Sort *arr* by the digit at position *exp* using counting sort.
+    """세기 정렬을 써서 자리 *exp*의 자릿수로 *arr*을 정렬한다.
 
-    The digit extracted from element x is (x // exp) % radix.
+    원소 x에서 뽑는 자릿수는 (x // exp) % radix이다.
     """
     n = len(arr)
     output = [0] * n
     count = [0] * radix
 
-    # Count occurrences of each digit
+    # 자릿수마다 나타난 횟수 세기
     for x in arr:
         digit = (x // exp) % radix
         count[digit] += 1
 
-    # Cumulative counts
+    # 누적 세기
     for i in range(1, radix):
         count[i] += count[i - 1]
 
-    # Place elements (right-to-left for stability)
+    # 원소 놓기(안정을 위해 오른쪽에서 왼쪽으로)
     for i in range(n - 1, -1, -1):
         digit = (arr[i] // exp) % radix
         count[digit] -= 1
@@ -120,22 +102,22 @@ def _counting_sort_by_digit(arr: list[int], exp: int, radix: int = 10) -> list[i
     return output
 
 
-# === Radix sort (LSD) =======================================================
+# === 기수 정렬(LSD) =========================================================
 
 def radix_sort(arr: list[int], radix: int = 10) -> list[int]:
-    """Sort non-negative integers using LSD radix sort.
+    """LSD 기수 정렬로 음이 아닌 정수를 정렬한다.
 
-    Parameters
+    매개변수
     ----------
     arr : list[int]
-        Input array of non-negative integers.
+        음이 아닌 정수의 입력 배열.
     radix : int
-        Base for digit extraction (default 10).
+        자릿수를 뽑을 밑(기본값 10).
 
-    Returns
+    반환값
     -------
     list[int]
-        Sorted array.
+        정렬된 배열.
     """
     if not arr:
         return arr
@@ -149,7 +131,7 @@ def radix_sort(arr: list[int], radix: int = 10) -> list[int]:
     return arr
 
 
-# === Demo ===================================================================
+# === 시연 ===================================================================
 
 if __name__ == "__main__":
     data = [170, 45, 75, 90, 802, 24, 2, 66]
@@ -158,13 +140,45 @@ if __name__ == "__main__":
     print(f"Sorted: {sorted_data}")
 ```
 
-**Output:**
+**출력:**
 ```
 Input:  [170, 45, 75, 90, 802, 24, 2, 66]
 Sorted: [2, 24, 45, 66, 75, 90, 170, 802]
 ```
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022).
-  *Introduction to Algorithms* (4th ed.), Chapter 8. MIT Press.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 8장. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+기수 정렬의 핵심 생각과 그 시간·공간 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 견줌 너머의 성질(정수 열쇠, 바깥 저장 장치, 병렬 하드웨어)을 살려 써서 비교 기반 정렬이 따라올 수 없는 성능을 이룬다. 구체적인 복잡도 한계는 이 쪽에서 뜯어본다.
+
+---
+
+**연습문제 2.**
+작은 입력에서 기수 정렬을 따라가라. 훑기나 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    원소 6~8개에 알고리즘을 적용하며 훑을 때마다의 상태를 보여라. 이 따라가기가 알고리즘의 얼개를 드러내고 옳음을 눈에 보이게 한다.
+
+---
+
+**연습문제 3.**
+어떤 조건에서 비교 기반 정렬보다 기수 정렬이 나은가?
+
+??? success "연습문제 3 풀이"
+    다음일 때 낫다. 입력의 정수 범위가 묶여 있을 때(세기 정렬과 기수 정렬), 데이터가 램을 넘칠 때(바깥 정렬), 병렬 하드웨어를 쓸 수 있을 때(병렬 정렬). 이런 조건에서는 알고리즘이 비교 기반의 아래 한계 $\Omega(n\log n)$을 비껴갈 수 있다.
+
+---
+
+**연습문제 4.**
+기수 정렬이 실전에서 이득을 주는 깊은 학습 응용을 서술하라.
+
+??? success "연습문제 4 풀이"
+    응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.

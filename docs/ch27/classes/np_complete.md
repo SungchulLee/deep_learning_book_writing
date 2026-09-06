@@ -1,65 +1,65 @@
-# NP-Completeness
+# NP 완전성
 
-Among the thousands of problems known to lie in NP, a remarkable subset stands out: problems that are *at least as hard as every other problem in NP*.  These are the **NP-complete** problems.  If a polynomial-time algorithm were found for any single NP-complete problem, then *every* problem in NP would be solvable in polynomial time, collapsing the P vs NP question entirely.  This makes NP-completeness the central concept in computational complexity theory.
+NP에 든다고 알려진 수천 개의 문제 가운데 눈에 띄는 무리가 있다. *NP의 다른 모든 문제보다 적어도 어려운* 문제들이다. 이들이 **NP 완전** 문제이다. NP 완전 문제 가운데 어느 하나라도 다항 시간 알고리즘이 나오면 NP의 *모든* 문제를 다항 시간에 풀 수 있게 되어 P 대 NP 물음이 아예 무너진다. 그래서 NP 완전성은 셈 복잡도 이론의 한가운데 개념이다.
 
-## Intuition
+## 직관
 
-Imagine a vast network of problems, each potentially reducible to another.  An NP-complete problem sits at the "hardest" end of NP: every problem in NP can be efficiently transformed into it.  Solving one NP-complete problem efficiently would provide an efficient back-door to every problem in NP.
+서로 줄여질 수 있는 문제들의 거대한 그물을 그려 보라. NP 완전 문제는 NP의 "가장 어려운" 끝에 놓인다. NP의 모든 문제를 효율 좋게 그것으로 바꿀 수 있다. NP 완전 문제 하나를 효율 좋게 풀면 NP의 모든 문제로 가는 효율 좋은 뒷문이 열린다.
 
-The concept rests on two pillars: the problem must be (1) hard enough that every NP problem reduces to it, and (2) not so hard that it escapes NP entirely -- its solutions must still be efficiently verifiable.
+이 개념은 두 기둥에 기댄다. 문제는 (1) 모든 NP 문제가 그것으로 줄여질 만큼 어려워야 하고, (2) NP을 아예 벗어날 만큼 어렵지는 않아야 한다. 즉 그 풀이는 여전히 효율 좋게 살필 수 있어야 한다.
 
-## Formal Definition
+## 엄밀한 정의
 
-A language $L$ is **NP-complete** if it satisfies two conditions:
+다음 두 조건을 만족하면 말 $L$은 **NP 완전**이다:
 
-1. **$L \in \mathbf{NP}$**: there exists a polynomial-time verifier for $L$.
-2. **$L$ is NP-hard**: for every language $A \in \mathbf{NP}$, there exists a polynomial-time many-one reduction $A \leq_p L$.
+1. **$L \in \mathbf{NP}$**: $L$의 다항 시간 살피개가 있다.
+2. **$L$은 NP 어려움**: 모든 말 $A \in \mathbf{NP}$에 대해 다항 시간 여럿 대 하나 줄임 $A \leq_p L$이 있다.
 
 $$
 L \text{ is NP-complete} \iff L \in \mathbf{NP} \;\wedge\; \forall\, A \in \mathbf{NP},\; A \leq_p L
 $$
 
-??? info "Many-one reduction"
-    A polynomial-time **many-one reduction** from $A$ to $L$ is a function $f : \Sigma^* \to \Sigma^*$ computable in polynomial time such that for every $x$:
+??? info "여럿 대 하나 줄임"
+    $A$에서 $L$으로 가는 다항 시간 **여럿 대 하나 줄임**은 모든 $x$에 대해 다음을 만족하는, 다항 시간에 셈할 수 있는 함수 $f : \Sigma^* \to \Sigma^*$이다:
 
     $$
     x \in A \iff f(x) \in L
     $$
 
-    This transforms instances of $A$ into instances of $L$ while preserving yes/no answers.
+    이는 예와 아니오 답을 지키면서 $A$의 사례를 $L$의 사례로 바꾼다.
 
-## Significance
+## 무엇이 중요한가
 
-### The Linchpin of P vs NP
+### P 대 NP의 쐐기
 
-The definition immediately yields a fundamental theorem:
+이 뜻매김에서 곧바로 근본 정리가 나온다:
 
-**Theorem.** If any NP-complete problem $L$ has a polynomial-time algorithm, then $\mathbf{P} = \mathbf{NP}$.
+**정리.** 어떤 NP 완전 문제 $L$에 다항 시간 알고리즘이 있으면 $\mathbf{P} = \mathbf{NP}$이다.
 
-*Proof sketch.* Let $A$ be any language in NP.  By NP-hardness, $A \leq_p L$ via some polynomial-time reduction $f$.  If $L \in \mathbf{P}$, then composing $f$ with the polynomial-time algorithm for $L$ yields a polynomial-time algorithm for $A$.  Since $A$ was arbitrary, $\mathbf{NP} \subseteq \mathbf{P}$.  Combined with $\mathbf{P} \subseteq \mathbf{NP}$, we get $\mathbf{P} = \mathbf{NP}$. $\square$
+*증명 얼개.* $A$을 NP의 아무 말이라 하자. NP 어려움에 따라 어떤 다항 시간 줄임 $f$으로 $A \leq_p L$이다. $L \in \mathbf{P}$이면 $f$과 $L$의 다항 시간 알고리즘을 이어 붙여 $A$의 다항 시간 알고리즘을 얻는다. $A$이 아무거나였으므로 $\mathbf{NP} \subseteq \mathbf{P}$이다. $\mathbf{P} \subseteq \mathbf{NP}$과 합치면 $\mathbf{P} = \mathbf{NP}$을 얻는다. $\square$
 
-### The Contrapositive
+### 대우
 
-Equivalently: if $\mathbf{P} \neq \mathbf{NP}$, then *no* NP-complete problem has a polynomial-time algorithm.  This gives a powerful tool for establishing intractability -- once you show a problem is NP-complete, the widespread belief that $\mathbf{P} \neq \mathbf{NP}$ provides strong evidence that no efficient algorithm exists.
+같은 말로 $\mathbf{P} \neq \mathbf{NP}$이면 *어떤* NP 완전 문제에도 다항 시간 알고리즘이 없다. 이는 다루기 어려움을 세우는 힘센 도구가 된다. 어떤 문제가 NP 완전임을 보이면 $\mathbf{P} \neq \mathbf{NP}$이라는 널리 퍼진 믿음이 효율 좋은 알고리즘이 없다는 강한 증거가 된다.
 
-## Proving NP-Completeness
+## NP 완전성 밝히기
 
-The first NP-complete problem (SAT) was established directly by Cook and Levin, who showed that any NP computation can be encoded as a Boolean formula.  For subsequent problems, the standard technique is **reduction from a known NP-complete problem**.
+첫 NP 완전 문제(SAT)는 쿡과 레빈이 곧바로 세웠으며 이들은 어떤 NP 셈도 부울 식으로 적을 수 있음을 보였다. 그 뒤의 문제에는 **알려진 NP 완전 문제에서 줄이기**가 여느 재주이다.
 
-**Recipe for proving $L$ is NP-complete:**
+**$L$이 NP 완전임을 밝히는 차례:**
 
-1. **Show $L \in \mathbf{NP}$**: describe a certificate and a polynomial-time verifier.
-2. **Choose a known NP-complete problem $L'$**.
-3. **Construct a polynomial-time reduction $L' \leq_p L$**: design a function $f$ computable in polynomial time such that $x \in L' \iff f(x) \in L$.
-4. **Prove correctness**: show both directions of the equivalence.
-5. **Prove efficiency**: show $f$ runs in polynomial time.
+1. **$L \in \mathbf{NP}$임을 보인다**: 증서와 다항 시간 살피개를 적는다.
+2. **알려진 NP 완전 문제 $L'$을 고른다**.
+3. **다항 시간 줄임 $L' \leq_p L$을 세운다**: $x \in L' \iff f(x) \in L$을 만족하는, 다항 시간에 셈할 수 있는 함수 $f$을 짠다.
+4. **옳음을 밝힌다**: 같음의 양쪽 방향을 보인다.
+5. **효율을 밝힌다**: $f$이 다항 시간에 돎을 보인다.
 
-!!! tip "Direction of reduction"
-    A common mistake is to reduce in the wrong direction.  To prove $L$ is NP-hard, you must reduce *from* a known hard problem *to* $L$, not the other way around.  The reduction $L' \leq_p L$ says "solving $L$ is at least as hard as solving $L'$."
+!!! tip "줄임의 방향"
+    흔한 잘못은 방향을 거꾸로 줄이는 것이다. $L$이 NP 어려움임을 밝히려면 알려진 어려운 문제*에서* $L$*으로* 줄여야 하며 그 반대가 아니다. 줄임 $L' \leq_p L$은 "$L$을 푸는 것은 $L'$을 푸는 것보다 적어도 어렵다"는 뜻이다.
 
-## The Web of Reductions
+## 줄임의 그물
 
-Once the Cook-Levin theorem established SAT as NP-complete, a cascade of reductions proved NP-completeness for many other problems:
+쿡-레빈 정리가 SAT을 NP 완전으로 세우자 줄임이 잇달아 이어지며 많은 다른 문제의 NP 완전성이 밝혀졌다:
 
 ```
 SAT
@@ -76,35 +76,92 @@ SAT
 └── 3D MATCHING
 ```
 
-Each arrow represents a polynomial-time reduction.  The tree shows one possible chain; many alternative reduction paths exist.
+화살표마다 다항 시간 줄임을 나타낸다. 이 나무는 있을 수 있는 사슬 하나를 보이며 다른 줄임 길도 많다.
 
-## Canonical NP-Complete Problems
+## 으뜸 NP 완전 문제
 
-| Problem | Input | Question |
+| 문제 | 들임 | 물음 |
 |---------|-------|----------|
-| SAT | Boolean formula $\phi$ | Is $\phi$ satisfiable? |
-| 3-SAT | CNF formula, $\leq 3$ literals/clause | Is $\phi$ satisfiable? |
-| CLIQUE | Graph $G$, integer $k$ | Does $G$ have a $k$-clique? |
-| VERTEX COVER | Graph $G$, integer $k$ | Is there a vertex cover of size $\leq k$? |
-| INDEPENDENT SET | Graph $G$, integer $k$ | Is there an independent set of size $\geq k$? |
-| HAMILTONIAN CYCLE | Graph $G$ | Does $G$ have a Hamiltonian cycle? |
-| SUBSET SUM | Set $S$, target $t$ | Is there $S' \subseteq S$ with $\sum S' = t$? |
-| 3-COLORING | Graph $G$ | Is $G$ 3-colorable? |
+| SAT | 부울 식 $\phi$ | $\phi$이 만족 가능한가? |
+| 3-SAT | 논리곱 표준형, 절마다 리터럴 $\leq 3$개 | $\phi$이 만족 가능한가? |
+| 덩어리 | 그래프 $G$, 정수 $k$ | $G$에 $k$ 덩어리가 있는가? |
+| 꼭짓점 덮기 | 그래프 $G$, 정수 $k$ | 크기 $\leq k$인 꼭짓점 덮기가 있는가? |
+| 독립 모임 | 그래프 $G$, 정수 $k$ | 크기 $\geq k$인 독립 모임이 있는가? |
+| 해밀턴 돌이 | 그래프 $G$ | $G$에 해밀턴 돌이가 있는가? |
+| 부분 모임 합 | 모임 $S$, 목표 $t$ | $\sum S' = t$인 $S' \subseteq S$이 있는가? |
+| 3색 칠하기 | 그래프 $G$ | $G$을 3색으로 칠할 수 있는가? |
 
-## Implications for Algorithm Design
+## 알고리즘 설계에 대한 함의
 
-When a problem is shown to be NP-complete, the practical response is to abandon the search for exact polynomial-time algorithms and instead pursue:
+어떤 문제가 NP 완전으로 밝혀지면 실제로는 정확한 다항 시간 알고리즘 찾기를 접고 대신 다음을 좇는다:
 
-- **Approximation algorithms** that find near-optimal solutions with provable guarantees.
-- **Parameterized algorithms** that are efficient when a structural parameter is small.
-- **Heuristics** (simulated annealing, genetic algorithms) that work well in practice without worst-case guarantees.
-- **Special cases** where the problem structure admits polynomial-time solutions (e.g., 2-SAT is in P though 3-SAT is NP-complete).
+- 밝힐 수 있는 보장과 함께 거의 가장 좋은 풀이를 찾는 **어림 알고리즘**.
+- 얼개 매개변수가 작을 때 효율 좋은 **매개변수 알고리즘**.
+- 가장 나쁜 경우의 보장 없이도 실제로 잘 듣는 **어림짐작**(흉내 식힘, 유전 알고리즘).
+- 문제 얼개가 다항 시간 풀이를 허락하는 **특별한 경우**(보기로 3-SAT은 NP 완전이지만 2-SAT은 P에 든다).
 
-!!! warning "NP-complete does not mean unsolvable"
-    NP-completeness is a *worst-case* statement.  Many NP-complete problems are routinely solved on practical instances using SAT solvers, integer programming, or constraint programming.  Modern SAT solvers handle industrial instances with millions of variables.
+!!! warning "NP 완전은 풀 수 없다는 뜻이 아니다"
+    NP 완전성은 *가장 나쁜 경우*에 대한 글월이다. 많은 NP 완전 문제가 SAT 풀개, 정수 계획, 제약 계획으로 실제 사례에서 늘 풀린다. 요즘 SAT 풀개는 변수가 수백만 개인 산업 사례를 다룬다.
 
-## Reference
+## 참고 문헌
 
 - Sipser, M. *Introduction to the Theory of Computation*. Cengage Learning.
 - Arora, S. and Barak, B. *Computational Complexity: A Modern Approach*. Cambridge University Press.
 - Garey, M. R. and Johnson, D. S. *Computers and Intractability: A Guide to the Theory of NP-Completeness*. W. H. Freeman.
+
+## 연습문제
+
+**연습문제 1.**
+문제 $L$이 NP 완전이 되는 데 필요한 두 조건을 적어라. 두 조건이 모두 필요한 까닭을 밝혀라.
+
+??? success "연습문제 1 풀이"
+    문제 $L$이 NP 완전인 것은 (1) $L \in \mathbf{NP}$이고 (2) NP의 모든 문제가 다항 시간에 $L$으로 줄여질 때이다(즉 $L$이 NP 어려움일 때).
+
+    조건 (1)만으로는 P의 쉬운 문제까지 담아 NP 전체를 적는다. 조건 (2)만으로는 가릴 수조차 없을지 모르는 NP 어려움 문제를 적는다(보기로 멈춤 문제는 NP 어려움이지만 NP에 들지 않는다). 둘을 합치면 "NP에서 가장 어려운 문제"를 꼭 그 테두리에서 집어낸다. 어떤 NP 완전 문제에 다항 시간 알고리즘이 있으면 모든 NP 문제가 그것으로 줄여지므로 $\mathbf{P} = \mathbf{NP}$이다.
+
+---
+
+**연습문제 2.**
+3-SAT의 다항 시간 알고리즘을 찾았다고 하자. 복잡도 풍경에 곧바로 따르는 결과는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    3-SAT은 NP 완전이므로 그 다항 시간 알고리즘은 $\mathbf{P} = \mathbf{NP}$을 뜻한다. 곧바로 따르는 결과:
+
+    1. NP의 모든 문제에 (3-SAT으로 줄여) 다항 시간 알고리즘이 있다.
+    2. $\mathbf{NP} = \mathbf{co\text{-}NP}$이다($\mathbf{P} = \mathbf{co\text{-}P}$이므로).
+    3. 다항 켜가 무너진다: $\mathbf{PH} = \mathbf{P}$이다.
+    4. NP 어려움 가정(인수 분해, 이산 로그)에 바탕한 암호 얼개가 깨진다.
+    5. 떠돌이 장수 문제, 그래프 칠하기, 일정 짜기 같은 가장 좋게 하기 문제를 효율 좋게 풀 수 있게 된다.
+    6. 모든 NP 문제의 찾기 판을 다항 시간에 풀 수 있게 된다(스스로 줄여짐).
+
+---
+
+**연습문제 3.**
+$A$이 NP 완전이고 $B \in \mathbf{NP}$인 채로 $A \leq_p B$이면 $B$이 NP 완전임을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    $B$이 NP 어려움임을 보이면 된다(조건 $B \in \mathbf{NP}$은 주어졌다). $C$을 NP의 아무 말이라 하자. $A$이 NP 완전이므로 $x \in C \iff f(x) \in A$인 다항 시간 줄임 $f$이 있다. $A \leq_p B$이므로 $y \in A \iff g(y) \in B$인 다항 시간 줄임 $g$이 있다. 이어 붙인 $h = g \circ f$은 다항 시간에 셈할 수 있고 $x \in C \iff f(x) \in A \iff g(f(x)) \in B$을 만족한다. 따라서 $C \leq_p B$이다. $C$이 아무거나였으므로 $B$은 NP 어려움이다. $B \in \mathbf{NP}$과 합치면 $B$은 NP 완전이다.
+
+---
+
+**연습문제 4.**
+NP 완전성이 가장 나쁜 경우의 개념인 까닭을 밝혀라. 대부분의 사례에서 풀기 쉬운 NP 완전 문제의 보기를 들어라.
+
+??? success "연습문제 4 풀이"
+    NP 완전성은 ($\mathbf{P} = \mathbf{NP}$이 아닌 한) 어떤 다항 시간 알고리즘도 모든 사례를 풀 수 없음을 보장하지만, 흔한 사례나 얼개를 갖춘 사례의 어려움에 대해서는 아무 말도 하지 않는다.
+
+    보기: 3-SAT은 NP 완전이지만 어려운 사례는 만족 가능성 문턱(변수마다 절 $\alpha \approx 4.267$개) 언저리의 아무 3-SAT 식이다. 문턱보다 훨씬 아래(제약이 모자란 곳)에서는 아무 사례가 거의 늘 만족 가능하고 욕심쟁이 알고리즘이 풀이를 빨리 찾는다. 문턱보다 훨씬 위(제약이 넘치는 곳)에서는 사례가 거의 늘 만족 불가능하고 단위 퍼뜨리기가 어긋남을 빨리 이끌어 낸다. 요즘 SAT 풀개(CDCL)는 가장 나쁜 경우의 사례에는 없는 얼개를 써서 변수 수백만 개의 산업 3-SAT 사례를 늘 푼다.
+
+---
+
+**연습 5.**
+NP 완전 문제의 여 문제가 여 NP 완전임을 보여라.
+
+??? success "연습 5의 풀이"
+    $L$을 NP 완전이라 하자. $\bar{L}$이 여 NP 완전임을 보인다.
+
+    먼저 $\bar{L} \in \mathbf{co\text{-}NP}$이다. $L \in \mathbf{NP}$이므로 뜻매김에 따라 $\bar{L} \in \mathbf{co\text{-}NP}$이다.
+
+    다음으로 $\bar{L}$은 여 NP 어려움이다. $A \in \mathbf{co\text{-}NP}$을 아무거나 잡자. 그러면 $\bar{A} \in \mathbf{NP}$이다. $L$이 NP 어려움이므로 어떤 줄임 $f$으로 $\bar{A} \leq_p L$이다. 이는 $x \in \bar{A} \iff f(x) \in L$을 뜻하고 이는 $x \in A \iff f(x) \in \bar{L}$과 같다. 따라서 $A \leq_p \bar{L}$이다. $A$이 아무 여 NP 말이었으므로 $\bar{L}$은 여 NP 어려움이다.
+
+    둘을 합치면 $\bar{L}$은 여 NP 완전이다.

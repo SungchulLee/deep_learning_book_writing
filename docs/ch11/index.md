@@ -1,50 +1,48 @@
-# Chapter 11: Few-Shot & Zero-Shot Learning
+# 11장: 소수 예시 학습과 영 예시 학습
 
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
 
-This chapter explores learning paradigms that operate with minimal or no labeled examples per class. Few-shot learning develops algorithms that generalize from just a handful of examples, while zero-shot learning leverages semantic knowledge to recognize classes never seen during training. Together, these approaches address one of deep learning's most significant limitations: the dependence on massive labeled datasets.
+이 장은 부류마다 이름표 붙은 보기가 아주 적거나 아예 없는 상황에서 굴러가는 학습 틀을 살핀다. 소수 예시 학습은 보기 몇 개만으로 일반화하는 알고리즘을 기르고, 영 예시 학습은 뜻에 관한 앎을 끌어 써서 학습 중에 한 번도 보지 못한 부류를 알아본다. 이 둘은 함께 깊은 학습의 가장 큰 한계 가운데 하나인 엄청난 양의 이름표 붙은 데이터에 매달리는 문제를 다룬다.
 
 ---
 
-## Few-Shot Learning
+## 소수 예시 학습
 
-- Few-Shot Learning Examples -- Collection of Python implementations covering prototypical networks, matching networks, MAML, and more
-- [Few-Shot Learning Fundamentals](few_shot/few_shot_overview.md) -- Problem formulation, formal definitions, and the distinction between training on seen classes and testing on novel classes
-- N-way K-shot Setup -- The standard evaluation protocol structuring tasks around support and query sets with common configurations
-- Episode-Based Training -- Simulating few-shot conditions during training through episodic sampling of support and query sets
-- Data Augmentation for Few-Shot -- Feature-space and image-space augmentation strategies tailored to low-data regimes
+- 소수 예시 학습 보기 -- 원형 망, 맞춤 망, MAML 등을 아우르는 파이썬 구현 모음
+- [소수 예시 학습의 기초](few_shot/few_shot_overview.md) -- 문제의 정식화, 정식 정의, 그리고 본 부류로 익히는 것과 새 부류로 시험하는 것의 차이
+- N-갈래 K-예시 얼개 -- 흔한 설정으로 받침 집합과 물음 집합을 중심으로 과제를 짜는 표준 평가 규약
+- 에피소드 기반 학습 -- 받침 집합과 물음 집합을 에피소드 방식으로 뽑아 학습 중에 소수 예시 상황을 흉내 내기
+- 소수 예시를 위한 데이터 늘리기 -- 데이터가 적은 상황에 맞춘 특징 공간과 그림 공간의 늘리기 전략
 
-## Metric Learning
+## 거리 학습
 
-- [Siamese Networks](metric_learning/siamese.md) -- Twin-network architecture for one-shot learning through pairwise similarity comparison
-- [Prototypical Networks](metric_learning/prototypical.md) -- Classification via nearest class prototypes (centroids) in a learned embedding space
-- Matching Networks -- Attention-based weighted nearest-neighbour classification with episodic training
-- Relation Networks -- Replacing fixed distance metrics with a learned neural similarity function
+- [샴 망](metric_learning/siamese.md) -- 쌍마다의 닮음 견줌으로 한 예시 학습을 하는 쌍둥이 망 구조
+- [원형 망](metric_learning/prototypical.md) -- 배운 묻힘 공간에서 가장 가까운 부류 원형(무게중심)으로 가려내기
+- 맞춤 망 -- 에피소드 학습을 곁들인 주의 기반 가중 최근접 이웃 분류
+- 관계 망 -- 붙박이 거리 재기를 배운 신경 닮음 함수로 갈아 끼우기
 
-## Meta-Learning
+## 메타 학습
 
-- Overview of Meta-Learning -- Introduction to "learning to learn" paradigms including optimization-based, metric-based, and model-based approaches
-- [MAML](meta_learning/maml.md) -- Model-Agnostic Meta-Learning that finds initializations enabling rapid adaptation via a few gradient steps
-- Reptile -- A simpler first-order meta-learning alternative to MAML using only standard gradient descent
-- Meta-SGD -- Extension of MAML that additionally learns per-parameter learning rates and update directions
-- [Learned Optimizers](meta_learning/learned_optimizers.md) -- Meta-learning the optimization process itself, replacing fixed update rules with learned functions
-- [Task Distribution Design](meta_learning/task_distribution.md) -- Principles and strategies for constructing task distributions that ensure meta-learning generalization
+- 메타 학습 훑어보기 -- 최적화 기반, 거리 기반, 모델 기반 접근법을 아우르는 "배우는 법 배우기" 틀의 들머리
+- [MAML](meta_learning/maml.md) -- 기울기 걸음 몇 번으로 재빨리 맞추어 갈 수 있게 하는 초기화를 찾는 모델 가리지 않는 메타 학습
+- Reptile -- 보통의 기울기 내려가기만 쓰는, MAML보다 단순한 일차 메타 학습 대안
+- Meta-SGD -- 매개변수마다의 학습률과 갱신 방향까지 배우는 MAML의 확장
+- [배운 최적화기](meta_learning/learned_optimizers.md) -- 최적화 과정 자체를 메타 학습하여 붙박이 갱신 규칙을 배운 함수로 갈아 끼우기
+- [과제 분포 설계](meta_learning/task_distribution.md) -- 메타 학습의 일반화를 보장하는 과제 분포를 짜는 원칙과 전략
 
-## Few-Shot Benchmarks
+## 소수 예시 잣대
 
-- Benchmark Datasets -- Survey of standard datasets including Omniglot, mini-ImageNet, tiered-ImageNet, and CUB-200
-- Meta-Dataset -- Large-scale benchmark spanning 10 diverse image domains with variable-way variable-shot episodes
-- Evaluation Protocols -- Standard protocols, backbone impact analysis, and common pitfalls in few-shot evaluation
+- 잣대 데이터셋 -- Omniglot, mini-ImageNet, tiered-ImageNet, CUB-200 같은 표준 데이터셋 훑어보기
+- Meta-Dataset -- 갈래 수와 예시 수가 바뀌는 에피소드로 서로 다른 그림 영역 10가지에 걸친 큰 규모의 잣대
+- 평가 규약 -- 표준 규약, 등뼈 망의 영향 분석, 그리고 소수 예시 평가에서 흔히 빠지는 함정
 
-## Zero-Shot Learning
+## 영 예시 학습
 
-- Zero-Shot Learning Overview -- Comprehensive overview of ZSL theory, semantic relationships, and transfer from seen to unseen classes
-- [Zero-Shot Fundamentals](zero_shot/zero_shot_overview.md) -- Formal problem definition, training/testing protocols, and mathematical foundations for all ZSL methods
-- [Attribute-Based Methods](zero_shot/attribute_based.md) -- Direct and indirect attribute prediction approaches using semantic attribute vectors per class
-- [Semantic Embedding Methods](zero_shot/embedding_based.md) -- Replacing manual attributes with continuous word embeddings learned from text corpora
-- [Zero-Shot Classification](zero_shot/classification.md) -- Visual-semantic embedding models including DeViSE and bilinear compatibility architectures
-- [Generalized Zero-Shot Learning](zero_shot/generalized.md) -- Extended setting where test instances may come from either seen or unseen classes
-- CLIP for Zero-Shot Learning -- Leveraging contrastive language-image pretraining for open-vocabulary zero-shot classification
-- Zero-Shot Segmentation -- Extending zero-shot learning to dense pixel-level prediction using vision-language models
+- 영 예시 학습 훑어보기 -- ZSL 이론, 뜻의 관계, 본 부류에서 못 본 부류로의 전이를 두루 훑어보기
+- [영 예시 학습의 기초](zero_shot/zero_shot_overview.md) -- 정식 문제 정의, 학습·시험 규약, 그리고 모든 ZSL 방법의 수학적 바탕
+- [속성 기반 방법](zero_shot/attribute_based.md) -- 부류마다의 뜻 속성 벡터를 쓰는 곧은 속성 예측과 에두른 속성 예측 접근법
+- [뜻 묻힘 방법](zero_shot/embedding_based.md) -- 손으로 매긴 속성을 글 뭉치에서 배운 이어진 낱말 묻힘으로 갈아 끼우기
+- [영 예시 분류](zero_shot/classification.md) -- DeViSE와 겹선형 어울림 구조를 아우르는 시각-뜻 묻힘 모델
+- [일반화된 영 예시 학습](zero_shot/generalized.md) -- 시험 사례가 본 부류에서도 못 본 부류에서도 올 수 있는 넓힌 상황
+- 영 예시 학습을 위한 CLIP -- 열린 어휘 영 예시 분류를 위해 대조 언어-그림 미리 학습을 끌어 쓰기
+- 영 예시 분할 -- 시각-언어 모델로 영 예시 학습을 촘촘한 화소 수준 예측으로 넓히기

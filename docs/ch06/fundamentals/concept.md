@@ -1,12 +1,12 @@
-# Hash Function Concept
+# 해시 함수의 개념
 
-Searching for a specific element in a collection is one of the most frequent operations in computing. Linear search examines every element in $O(n)$ time, and binary search on a sorted array improves this to $O(\log n)$. A natural question arises: can we do even better? Hash functions answer this question affirmatively by mapping keys directly to storage locations, achieving $O(1)$ **expected** time for lookups under reasonable assumptions.
+모음에서 특정 원소를 찾는 것은 계산에서 가장 자주 하는 일 가운데 하나이다. 선형 탐색은 모든 원소를 살펴 $O(n)$이 걸리고, 정렬된 배열의 이진 탐색은 이를 $O(\log n)$으로 줄인다. 자연스러운 물음이 떠오른다. 더 잘할 수는 없을까? 해시 함수는 키를 저장 위치로 곧바로 보내어 이 물음에 그렇다고 답하며, 합리적인 가정 아래 조회를 **기대** $O(1)$ 시간에 해낸다.
 
-## Motivation
+## 왜 필요한가
 
-Consider a university registrar that needs to look up student records by student ID. With $n = 50{,}000$ students, a linear scan examines up to 50,000 records per query, while binary search requires about 16 comparisons on a sorted list. A hash table, however, computes the storage location directly from the student ID, typically resolving the query in a single step. This dramatic speedup makes hashing indispensable in databases, compilers, caches, and nearly every large-scale system.
+학번으로 학생 기록을 찾아야 하는 대학 학적과를 생각해 보자. 학생이 $n = 50{,}000$명이면 선형 훑기는 질의마다 최대 50,000개의 기록을 살피고, 정렬된 목록의 이진 탐색은 약 16번 비교한다. 그러나 해시 테이블은 학번에서 저장 위치를 곧바로 계산하여 보통 한 걸음에 질의를 끝낸다. 이렇게 크게 빨라지므로 해싱은 데이터베이스, 컴파일러, 캐시를 비롯한 거의 모든 대규모 시스템에서 없어서는 안 된다.
 
-The following table summarizes the search performance of common data access strategies:
+다음 표는 흔한 데이터 접근 전략의 탐색 성능을 요약한다.
 
 $$
 \begin{array}{lll}
@@ -18,57 +18,57 @@ $$
 \end{array}
 $$
 
-The $O(1)$ figure for hash tables is an **expected-case** bound that relies on the assumption of simple uniform hashing. In the worst case, all keys may collide into a single slot, degrading performance to $O(n)$. The design of good hash functions and collision resolution strategies (covered in subsequent sections) ensures that the worst case arises with negligibly small probability.
+해시 테이블의 $O(1)$은 단순 균등 해싱 가정에 기댄 **기대값** 한계이다. 최악의 경우 모든 키가 한 칸으로 충돌하여 성능이 $O(n)$으로 떨어질 수 있다. 좋은 해시 함수와 충돌 해결 전략(뒤의 절에서 다룬다)을 설계하면 최악의 경우가 일어날 확률을 무시할 만큼 작게 만들 수 있다.
 
-## Definition
+## 정의
 
-A **hash function** is a mapping $h : U \to \{0, 1, \ldots, m-1\}$ from a universe $U$ of possible keys to a set of $m$ integer indices called **slots** or **buckets**. Given a key $k \in U$, the value $h(k)$ determines the position in the hash table where $k$ (or its associated data) is stored.
+**해시 함수**는 있을 수 있는 키의 전체 집합 $U$에서 **칸** 또는 **버킷**이라 부르는 정수 인덱스 $m$개의 집합으로 가는 사상 $h : U \to \{0, 1, \ldots, m-1\}$이다. 키 $k \in U$이 주어지면 값 $h(k)$이 해시 테이블에서 $k$(또는 그에 딸린 데이터)을 저장할 자리를 정한다.
 
-Formally, a hash table $T$ of size $m$ stores each key-value pair $(k, v)$ at index $h(k)$:
+형식적으로, 크기가 $m$인 해시 테이블 $T$은 키-값 쌍 $(k, v)$을 인덱스 $h(k)$에 저장한다.
 
 $$
 T[h(k)] \leftarrow (k, v)
 $$
 
-Since $|U|$ is typically much larger than $m$, the mapping $h$ is not injective in general. When two distinct keys $k_1 \neq k_2$ satisfy $h(k_1) = h(k_2)$, a **collision** occurs. Managing collisions is a central challenge in hash table design.
+보통 $|U|$이 $m$보다 훨씬 크므로 사상 $h$은 일반적으로 단사가 아니다. 서로 다른 두 키 $k_1 \neq k_2$이 $h(k_1) = h(k_2)$을 만족하면 **충돌**이 일어난다. 충돌을 다루는 것이 해시 테이블 설계의 핵심 과제이다.
 
-## Simple Uniform Hashing Assumption
+## 단순 균등 해싱 가정
 
-The theoretical analysis of hash tables often relies on the **Simple Uniform Hashing Assumption (SUHA)**: each key is equally likely to hash to any of the $m$ slots, independently of where other keys have hashed. Under SUHA, for a hash table with $n$ stored keys and $m$ slots, the expected number of keys per slot is:
+해시 테이블의 이론적 분석은 흔히 **단순 균등 해싱 가정(SUHA)**에 기댄다. 각 키가 다른 키가 어디로 갔는지와 무관하게 $m$개의 칸 어디로든 같은 확률로 해시된다는 가정이다. 이 가정 아래 키가 $n$개 저장된 칸 $m$개짜리 해시 테이블에서 칸마다의 기대 키 수는 다음과 같다.
 
 $$
 \alpha = \frac{n}{m}
 $$
 
-This ratio $\alpha$ is called the **load factor**. When $\alpha$ remains bounded by a constant, each slot contains $O(1)$ keys on average, which is why lookups take $O(1)$ expected time.
+이 비 $\alpha$을 **적재율**이라 한다. $\alpha$이 어떤 상수로 유계이면 칸마다 평균 $O(1)$개의 키가 들어 있으므로 조회가 기대 $O(1)$ 시간에 끝난다.
 
-## Desirable Properties
+## 갖추어야 할 성질
 
-A well-designed hash function should satisfy three key properties:
+잘 설계된 해시 함수는 다음 세 가지 성질을 만족해야 한다.
 
-**Determinism.** For a given key $k$, the function $h(k)$ always returns the same value. Without determinism, a stored key could not be retrieved.
+**결정성.** 주어진 키 $k$에 대해 $h(k)$은 언제나 같은 값을 돌려준다. 결정적이지 않으면 저장한 키를 다시 찾을 수 없다.
 
-**Uniformity.** The hash values should be distributed as uniformly as possible across the $m$ slots. If $n$ keys are inserted and each slot receives approximately $n/m$ keys, collisions are minimized. Formally, under SUHA:
+**균등성.** 해시값이 $m$개의 칸에 되도록 고르게 흩어져야 한다. 키 $n$개를 넣었을 때 칸마다 대략 $n/m$개씩 들어가면 충돌이 가장 적다. 형식적으로, 단순 균등 해싱 가정 아래 다음이 성립한다.
 
 $$
 \Pr[h(k) = j] = \frac{1}{m} \quad \text{for all } k \in U,\ j \in \{0, 1, \ldots, m-1\}
 $$
 
-**Efficiency.** Computing $h(k)$ should take $O(1)$ time (or at worst $O(|k|)$ time for variable-length keys, where $|k|$ denotes the length of the key representation). A hash function that is expensive to evaluate defeats the purpose of constant-time lookup.
+**효율성.** $h(k)$의 계산이 $O(1)$ 시간에 끝나야 한다(길이가 변하는 키라면 표현의 길이를 $|k|$이라 할 때 많아야 $O(|k|)$). 계산이 비싼 해시 함수는 상수 시간 조회라는 목적을 무너뜨린다.
 
-## How Hashing Works
+## 해싱의 작동 방식
 
-The basic operations on a hash table are **insert**, **search**, and **delete**:
+해시 테이블의 기본 연산은 **삽입**, **탐색**, **삭제**이다.
 
-1. **Insert** $(k, v)$: Compute $h(k)$ and store the pair at slot $T[h(k)]$.
-2. **Search** $k$: Compute $h(k)$ and examine slot $T[h(k)]$ for the key.
-3. **Delete** $k$: Compute $h(k)$, locate $k$ in slot $T[h(k)]$, and remove it.
+1. **삽입** $(k, v)$: $h(k)$을 계산하여 그 쌍을 칸 $T[h(k)]$에 저장한다.
+2. **탐색** $k$: $h(k)$을 계산하여 칸 $T[h(k)]$에서 키를 찾는다.
+3. **삭제** $k$: $h(k)$을 계산하고 칸 $T[h(k)]$에서 $k$을 찾아 없앤다.
 
-Each operation begins with computing the hash, which takes $O(1)$ time. The remaining cost depends on how many keys occupy the same slot, which is governed by the load factor and the collision resolution strategy.
+각 연산은 해시를 계산하는 것으로 시작하며 여기에 $O(1)$이 든다. 나머지 비용은 같은 칸에 키가 몇 개나 있느냐에 달렸고, 이는 적재율과 충돌 해결 전략이 좌우한다.
 
-??? example "Integer Hashing with the Modulo Operator"
+??? example "나머지 연산으로 하는 정수 해싱"
 
-    The simplest hash function for integer keys uses the modulo operator. Given a table of size $m = 10$ and keys $\{12, 25, 37, 42, 58\}$, the hash values are:
+    정수 키에 대한 가장 간단한 해시 함수는 나머지 연산을 쓴다. 크기가 $m = 10$인 테이블과 키 $\{12, 25, 37, 42, 58\}$에 대해 해시값은 다음과 같다.
 
     $$
     \begin{array}{rcl}
@@ -80,25 +80,58 @@ Each operation begins with computing the hash, which takes $O(1)$ time. The rema
     \end{array}
     $$
 
-    Keys 12 and 42 both map to slot 2, producing a collision. The collision resolution strategy (chaining, open addressing, etc.) determines how both keys coexist in the table.
+    키 12와 42가 모두 칸 2로 가서 충돌한다. 두 키가 테이블에 어떻게 함께 있을지는 충돌 해결 전략(체이닝, 개방 주소법 등)이 정한다.
 
-## Hash Functions for Non-Integer Keys
+## 정수가 아닌 키의 해시 함수
 
-Real-world keys are often strings, floating-point numbers, or composite objects rather than simple integers. To hash such keys, we first convert them into an integer representation and then apply a standard integer hash function.
+실제 키는 단순한 정수가 아니라 문자열, 부동소수점 수, 복합 객체일 때가 많다. 그런 키를 해시하려면 먼저 정수 표현으로 바꾼 뒤 표준적인 정수 해시 함수를 적용한다.
 
-**String hashing.** A common approach treats each character as a digit in a positional number system. For a string $s = s_0 s_1 \cdots s_{L-1}$ of length $L$, a polynomial hash computes:
+**문자열 해싱.** 흔한 방법은 각 문자를 자릿수 체계의 한 자리로 보는 것이다. 길이가 $L$인 문자열 $s = s_0 s_1 \cdots s_{L-1}$에 대해 다항 해시는 다음을 계산한다.
 
 $$
 h(s) = \left( \sum_{i=0}^{L-1} s_i \cdot r^{L-1-i} \right) \bmod m
 $$
 
-where $r$ is a chosen radix (often a small prime like 31 or 37) and $s_i$ is the numeric value of the $i$-th character. This formula ensures that strings with the same characters in different orders produce different hash values.
+여기서 $r$은 고른 밑(흔히 31이나 37 같은 작은 소수)이고 $s_i$은 $i$번째 문자의 수치이다. 이 식 덕분에 같은 문자를 다른 순서로 배열한 문자열이 서로 다른 해시값을 갖는다.
 
-## Summary
+## 요약
 
-A hash function maps keys from a large universe to a fixed range of table indices, enabling $O(1)$ expected-time operations under the simple uniform hashing assumption. The subsequent sections in this chapter explore specific hash function constructions (division method, multiplication method), strategies to handle the inevitable collisions, and techniques to maintain performance guarantees as the table grows.
+해시 함수는 큰 전체 집합의 키를 정해진 범위의 테이블 인덱스로 보내어, 단순 균등 해싱 가정 아래 기대 $O(1)$ 시간의 연산을 가능하게 한다. 이 장의 뒤 절들은 구체적인 해시 함수 구성(나눗셈법, 곱셈법), 피할 수 없는 충돌을 다루는 전략, 테이블이 커져도 성능 보장을 지키는 기법을 살펴본다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 11](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - [Hashing Technique - Simplified](https://www.youtube.com/watch?v=mFY0J5W8Udk&list=PLDN4rrl48XKpZkf03iYFl-O29szjTrs_O&index=79)
+
+
+## 연습문제
+
+**연습문제 1.**
+해시 함수의 개념에 대해, 적재율이 $\alpha = 0.75$일 때 삽입과 조회의 기대 시간과 최악의 경우 시간을 계산하라.
+
+??? success "연습문제 1 풀이"
+    기대 시간은 충돌 해결 전략에 달렸으며 균등 해싱을 가정한다. 체이닝에서는 기대 시간이 $O(1 + \alpha) = O(1.75)$이다. 개방 주소법에서는 탐색에 실패할 때 기대 탐사 횟수가 $\approx 1/(1-\alpha) = 4$이다. 최악의 경우는 모든 키가 같은 칸으로 해시될 때의 $O(n)$이다.
+
+---
+
+**연습문제 2.**
+해시 함수의 개념을(를) 써서 키 10, 22, 31, 4, 15, 28, 17을 크기가 7인 해시 테이블에 넣어라. 최종 테이블의 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    해시 함수 $h(k) = k \bmod 7$을 적용하고 이 쪽의 방법으로 충돌을 처리한다. 키마다 해시를 계산하고 충돌을 해결한 뒤 키를 놓는다. 최종 테이블의 내용을 보인다.
+
+---
+
+**연습문제 3.**
+해시 함수의 개념은(는) 딥러닝의 임베딩 테이블에서 어떻게 쓰이는가? 토큰 $V = 50{,}000$개의 어휘를 $m = 30{,}000$개의 버킷에 대응시킬 때 충돌의 양상을 분석하라.
+
+??? success "연습문제 3 풀이"
+    $V/m \approx 1.67$이므로 비둘기집 원리에 의해 충돌이 반드시 생긴다. 버킷마다 평균 1.67개의 토큰이 같은 임베딩을 나누어 쓴다. 충돌률과 그것이 모델의 품질에 미치는 영향은 해시 함수의 품질과 임베딩의 차원에 달렸다(차원이 높을수록 충돌을 더 잘 견딘다).
+
+---
+
+**연습문제 4.**
+$\alpha > 0.75$일 때 해시 테이블의 크기를 다시 잡으면 삽입의 상각 비용이 $O(1)$으로 유지됨을 증명하라.
+
+??? success "연습문제 4 풀이"
+    크기를 다시 잡는 사이(용량 $m$에서 $2m$까지)에 삽입이 $m/4$번 일어난다(적재율이 $0.375$에서 $0.75$로 간다). 크기 조정에는 $O(m)$이 든다. 삽입 하나당 상각된 크기 조정 비용은 $O(m)/(m/4) = O(4) = O(1)$이다. 여기에 (균등 해싱 아래) 삽입마다의 기대 비용 $O(1)$을 더하면 전체 상각 비용은 $O(1)$이다. $\square$

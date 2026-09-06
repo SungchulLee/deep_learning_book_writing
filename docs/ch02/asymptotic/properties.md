@@ -1,126 +1,159 @@
-# Properties of Asymptotic Notation
+# 점근 표기법의 성질
 
-Asymptotic notations obey a number of algebraic properties that make them practical to work with.  Instead of returning to the formal definition every time we need to combine or manipulate bounds, we can apply these properties as rewrite rules.  This page collects the most important ones: transitivity, reflexivity, symmetry, transpose symmetry, and the sum and product rules.
+점근 표기법은 다루기 편하게 해 주는 여러 대수적 성질을 만족한다. 경계를 결합하거나 조작할 때마다 형식적 정의로 되돌아가는 대신, 이 성질들을 다시 쓰기 규칙처럼 적용할 수 있다. 이 절에서는 가장 중요한 성질들, 즉 추이성, 반사성, 대칭성, 전치 대칭성, 합 규칙과 곱 규칙을 정리한다.
 
-## Transitivity
+## 추이성
 
-All five asymptotic notations are transitive: if the relationship holds from $f$ to $g$ and from $g$ to $h$, then it holds from $f$ to $h$.
+다섯 가지 점근 표기법은 모두 추이적이다. $f$에서 $g$로 관계가 성립하고 $g$에서 $h$로도 성립하면 $f$에서 $h$로도 성립한다.
 
-!!! info "Property -- Transitivity"
+!!! info "성질 -- 추이성"
 
-    - $f(n) = O(g(n))$ and $g(n) = O(h(n))$ imply $f(n) = O(h(n))$
-    - $f(n) = \Omega(g(n))$ and $g(n) = \Omega(h(n))$ imply $f(n) = \Omega(h(n))$
-    - $f(n) = \Theta(g(n))$ and $g(n) = \Theta(h(n))$ imply $f(n) = \Theta(h(n))$
-    - $f(n) = o(g(n))$ and $g(n) = o(h(n))$ imply $f(n) = o(h(n))$
-    - $f(n) = \omega(g(n))$ and $g(n) = \omega(h(n))$ imply $f(n) = \omega(h(n))$
+    - $f(n) = O(g(n))$이고 $g(n) = O(h(n))$이면 $f(n) = O(h(n))$이다
+    - $f(n) = \Omega(g(n))$이고 $g(n) = \Omega(h(n))$이면 $f(n) = \Omega(h(n))$이다
+    - $f(n) = \Theta(g(n))$이고 $g(n) = \Theta(h(n))$이면 $f(n) = \Theta(h(n))$이다
+    - $f(n) = o(g(n))$이고 $g(n) = o(h(n))$이면 $f(n) = o(h(n))$이다
+    - $f(n) = \omega(g(n))$이고 $g(n) = \omega(h(n))$이면 $f(n) = \omega(h(n))$이다
 
-Transitivity is what lets us chain comparisons.  For example, knowing $n = O(n \log n)$ and $n \log n = O(n^2)$ immediately gives $n = O(n^2)$.
+추이성 덕분에 비교를 사슬처럼 이어 갈 수 있다. 예를 들어 $n = O(n \log n)$이고 $n \log n = O(n^2)$임을 알면 곧바로 $n = O(n^2)$을 얻는다.
 
-??? example "Proof sketch for Big-O transitivity"
+??? example "빅오 추이성의 증명 개요"
 
-    Suppose $f(n) \leq c_1 \cdot g(n)$ for $n \geq n_1$ and $g(n) \leq c_2 \cdot h(n)$ for $n \geq n_2$.  Then for $n \geq \max(n_1, n_2)$:
+    $n \geq n_1$에 대해 $f(n) \leq c_1 \cdot g(n)$이고 $n \geq n_2$에 대해 $g(n) \leq c_2 \cdot h(n)$이라고 하자. 그러면 $n \geq \max(n_1, n_2)$에 대해
 
     $$
     f(n) \leq c_1 \cdot g(n) \leq c_1 c_2 \cdot h(n)
     $$
 
-    Choose $c = c_1 c_2$ and $n_0 = \max(n_1, n_2)$.  $\square$
+    $c = c_1 c_2$, $n_0 = \max(n_1, n_2)$로 두면 된다. $\square$
 
-## Reflexivity
+## 반사성
 
-A function is always bounded by itself.
+함수는 언제나 자기 자신으로 유계이다.
 
-!!! info "Property -- Reflexivity"
+!!! info "성질 -- 반사성"
 
     - $f(n) = O(f(n))$
     - $f(n) = \Omega(f(n))$
     - $f(n) = \Theta(f(n))$
 
-Reflexivity holds because we can choose $c = 1$ (or $c_1 = c_2 = 1$) and $n_0 = 1$.  Note that little-o and little-omega are **not reflexive**: $f(n) \neq o(f(n))$ and $f(n) \neq \omega(f(n))$, because a function cannot grow strictly slower (or faster) than itself.
+$c = 1$(또는 $c_1 = c_2 = 1$)과 $n_0 = 1$을 택할 수 있으므로 반사성이 성립한다. 리틀오와 리틀오메가는 **반사적이지 않다** 는 점에 유의하라. 어떤 함수도 자기 자신보다 엄격히 느리게(또는 빠르게) 증가할 수 없으므로 $f(n) \neq o(f(n))$이고 $f(n) \neq \omega(f(n))$이다.
 
-## Symmetry
+## 대칭성
 
-Among the five notations, only $\Theta$ is symmetric.
+다섯 표기법 중 $\Theta$만이 대칭적이다.
 
-!!! info "Property -- Symmetry"
+!!! info "성질 -- 대칭성"
 
     $$
     f(n) = \Theta(g(n)) \iff g(n) = \Theta(f(n))
     $$
 
-This follows from the sandwich definition: if $c_1 g \leq f \leq c_2 g$, then $(1/c_2) f \leq g \leq (1/c_1) f$.
+이는 샌드위치 정의에서 따라 나온다. $c_1 g \leq f \leq c_2 g$이면 $(1/c_2) f \leq g \leq (1/c_1) f$이다.
 
-Big-O and Big-Omega are not symmetric.  For example, $n = O(n^2)$ but $n^2 \neq O(n)$.
+빅오와 빅오메가는 대칭적이지 않다. 예를 들어 $n = O(n^2)$이지만 $n^2 \neq O(n)$이다.
 
-## Transpose Symmetry
+## 전치 대칭성
 
-Although Big-O and Big-Omega are not symmetric, they are related by swapping $f$ and $g$.
+빅오와 빅오메가는 대칭적이지 않지만 $f$와 $g$를 맞바꾸면 서로 연결된다.
 
-!!! info "Property -- Transpose symmetry"
+!!! info "성질 -- 전치 대칭성"
 
     - $f(n) = O(g(n)) \iff g(n) = \Omega(f(n))$
     - $f(n) = o(g(n)) \iff g(n) = \omega(f(n))$
 
-This duality converts any upper-bound statement into a lower-bound statement and vice versa.  It is the asymptotic analogue of the fact that $a \leq b$ is equivalent to $b \geq a$.
+이 쌍대성은 임의의 상계 서술을 하계 서술로, 또 그 반대로 바꿔 준다. 이는 $a \leq b$가 $b \geq a$와 동치라는 사실의 점근적 대응물이다.
 
-## Sum Rule
+## 합 규칙
 
-When two functions are added, the faster-growing one dominates.
+두 함수를 더하면 더 빠르게 증가하는 쪽이 지배한다.
 
-!!! info "Property -- Sum rule"
+!!! info "성질 -- 합 규칙"
 
-    If $f_1(n) = O(g_1(n))$ and $f_2(n) = O(g_2(n))$, then
+    $f_1(n) = O(g_1(n))$이고 $f_2(n) = O(g_2(n))$이면
 
     $$
     f_1(n) + f_2(n) = O(\max(g_1(n), g_2(n)))
     $$
 
-The analogous rules hold for $\Omega$, $\Theta$, $o$, and $\omega$.
+$\Omega$, $\Theta$, $o$, $\omega$에 대해서도 같은 규칙이 성립한다.
 
-In practice, this rule is the reason we can drop lower-order terms: $3n^2 + 7n + 4 = O(n^2)$ because $n^2$ dominates $n$ and the constant.
+실무에서 이 규칙은 낮은 차수의 항을 버릴 수 있는 근거가 된다. $n^2$이 $n$과 상수를 지배하므로 $3n^2 + 7n + 4 = O(n^2)$이다.
 
-??? example "Application"
+??? example "적용"
 
-    Suppose algorithm A takes $O(n \log n)$ time and algorithm B takes $O(n^2)$ time.  Running both sequentially takes $O(n \log n + n^2) = O(n^2)$ time, since $n^2$ is the dominant term.
+    알고리즘 A가 $O(n \log n)$ 시간, 알고리즘 B가 $O(n^2)$ 시간이 걸린다고 하자. 둘을 차례로 실행하면 $n^2$이 지배항이므로 $O(n \log n + n^2) = O(n^2)$ 시간이 걸린다.
 
-## Product Rule
+## 곱 규칙
 
-Constants and other factors multiply through asymptotic bounds.
+상수를 비롯한 여러 인자는 점근적 경계를 관통해 곱해진다.
 
-!!! info "Property -- Product rule"
+!!! info "성질 -- 곱 규칙"
 
-    If $f_1(n) = O(g_1(n))$ and $f_2(n) = O(g_2(n))$, then
+    $f_1(n) = O(g_1(n))$이고 $f_2(n) = O(g_2(n))$이면
 
     $$
     f_1(n) \cdot f_2(n) = O(g_1(n) \cdot g_2(n))
     $$
 
-A common special case: if $f(n) = O(g(n))$ and $k > 0$ is a constant, then $k \cdot f(n) = O(g(n))$.  This is why we ignore constant factors in asymptotic analysis.
+흔한 특수한 경우로, $f(n) = O(g(n))$이고 $k > 0$이 상수이면 $k \cdot f(n) = O(g(n))$이다. 점근적 분석에서 상수 인자를 무시하는 이유가 바로 이것이다.
 
-??? example "Application"
+??? example "적용"
 
-    A loop that runs $n$ times, each iteration doing $O(\log n)$ work, takes $O(n) \cdot O(\log n) = O(n \log n)$ total time.
+    $n$번 도는 반복문에서 각 반복이 $O(\log n)$의 일을 한다면 전체는 $O(n) \cdot O(\log n) = O(n \log n)$ 시간이 걸린다.
 
-## Constant Factors and Lower-Order Terms
+## 상수 인자와 낮은 차수의 항
 
-Two rules that follow directly from the sum and product rules:
+합 규칙과 곱 규칙에서 곧바로 따라 나오는 두 규칙이 있다.
 
-1. **Constant factors can be dropped.** $c \cdot f(n) = \Theta(f(n))$ for any constant $c > 0$.
-2. **Lower-order terms can be dropped.** If $f(n) = o(g(n))$, then $f(n) + g(n) = \Theta(g(n))$.
+1. **상수 인자는 버릴 수 있다.** 임의의 상수 $c > 0$에 대해 $c \cdot f(n) = \Theta(f(n))$이다.
+2. **낮은 차수의 항은 버릴 수 있다.** $f(n) = o(g(n))$이면 $f(n) + g(n) = \Theta(g(n))$이다.
 
-These rules justify the informal practice of simplifying $5n^2 + 3n \log n + 7$ to $\Theta(n^2)$.
+이 규칙들이 $5n^2 + 3n \log n + 7$을 $\Theta(n^2)$으로 간단히 하는 관행을 정당화한다.
 
-## Summary Table
+## 요약 표
 
-| Property | $O$ | $\Omega$ | $\Theta$ | $o$ | $\omega$ |
+| 성질 | $O$ | $\Omega$ | $\Theta$ | $o$ | $\omega$ |
 |---|---|---|---|---|---|
-| Transitive | Yes | Yes | Yes | Yes | Yes |
-| Reflexive | Yes | Yes | Yes | No | No |
-| Symmetric | No | No | Yes | No | No |
-| Transpose symmetric | $O \leftrightarrow \Omega$ | $\Omega \leftrightarrow O$ | -- | $o \leftrightarrow \omega$ | $\omega \leftrightarrow o$ |
+| 추이적 | 예 | 예 | 예 | 예 | 예 |
+| 반사적 | 예 | 예 | 예 | 아니오 | 아니오 |
+| 대칭적 | 아니오 | 아니오 | 예 | 아니오 | 아니오 |
+| 전치 대칭적 | $O \leftrightarrow \Omega$ | $\Omega \leftrightarrow O$ | -- | $o \leftrightarrow \omega$ | $\omega \leftrightarrow o$ |
 
-For the formal definitions of all five notations, see [Formal Definitions](formal.md).  For techniques to compare specific functions, see [Growth Rate Comparison](comparison.md).
+다섯 표기법의 형식적 정의는 [형식적 정의](formal.md)를 참고하라. 구체적인 함수를 비교하는 기법은 [증가 속도 비교](comparison.md)를 참고하라.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 3. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+점근 표기법의 성질에서 다룬 점근 표기법을 적용하여 셀프 어텐션($n^2 d$번 연산)과 순방향 층($n d^2$번 연산)의 복잡도를 분류하라.
+
+??? success "연습문제 1 풀이"
+    셀프 어텐션: $O(n^2 d)$로 시퀀스 길이에 대해 이차이다. FFN: $O(nd^2)$로 시퀀스 길이에 대해서는 선형이지만 은닉 차원에 대해서는 이차이다. $n > d$이면 어텐션이 지배한다. $d > n$이면 FFN이 지배한다. 교차점은 $n = d$이다.
+
+---
+
+**연습문제 2.**
+점근 표기법의 성질에서 서술한 형식적 정의를 구체적인 상수 $c$와 $n_0$을 사용하여 증명하라.
+
+??? success "연습문제 2 풀이"
+    정의를 만족하는 $c$와 $n_0$의 구체적인 값을 고른다. 대수적 조작으로, 또는 각 항의 상계를 잡아서, 모든 $n \geq n_0$에 대해 부등식이 성립함을 검증한다.
+
+---
+
+**연습문제 3.**
+극한 판정법을 사용하여 점근 표기법의 성질과 관련된 두 함수 사이의 점근적 관계를 결정하라.
+
+??? success "연습문제 3 풀이"
+    $\lim_{n \to \infty} f(n)/g(n)$을 계산한다. 극한이 0이면 $f = o(g)$이다. 극한이 $\infty$이면 $f = \omega(g)$이다. 극한이 양의 상수이면 $f = \Theta(g)$이다.
+
+---
+
+**연습문제 4.**
+다음 함수들을 증가 속도 순으로 나열하라: $n$, $n \log n$, $n^2$, $2^n$, $\log n$. 인접한 각 쌍의 순서를 증명하라.
+
+??? success "연습문제 4 풀이"
+    $\log n \prec n \prec n\log n \prec n^2 \prec 2^n$. 증명: $\lim \log n / n = 0$(로피탈 정리), $\lim n/(n\log n) = 1/\log n \to 0$, $\lim n\log n / n^2 = \log n / n \to 0$, $\lim n^2/2^n = 0$(지수가 다항식을 지배한다). $\square$

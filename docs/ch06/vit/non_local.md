@@ -1,127 +1,171 @@
-# Non-Local Neural Networks
+# 비국소 신경망
+## 들어가며
 
+비국소 연산은 특징 맵의 모든 공간·시간 위치에 걸친 가중 평균으로 반응을 계산하여 지역 합성곱의 개념을 넓힌다. 합성곱을 쌓지 않고도 먼 거리의 의존을 곧바로 붙잡으므로, 비국소 신경망은 합성곱 구조의 근본적인 한계, 곧 알맞은 깊이로는 전역 맥락을 효율적으로 다루지 못한다는 점을 해결한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+비국소 연산의 동기는 물체 탐지에서 의미 분할까지 많은 시각 과제가 멀리 떨어진 이미지 영역 사이의 관계를 이해해야 한다는 인식에서 나온다. 비국소 장치는 층을 깊이 쌓아 수용 영역을 차츰 넓히지 않고도 그런 관계를 곧바로 계산하는 길을 준다.
 
-## Introduction
+## 핵심 개념
 
-Non-local operations generalize the concept of local convolutions by computing responses as weighted averages over all spatial and temporal locations in feature maps. By explicitly capturing long-range dependencies without relying on stacked convolutions, non-local networks address a fundamental limitation of convolutional architectures: their inability to efficiently model global context with reasonable depth.
+- **먼 거리 의존**: 특징 맵 전체에 걸친 특징 사이 관계를 곧바로 계산
+- **어텐션 같은 장치**: 모든 위치의 특징이 얼마나 이바지할지 학습으로 가중
+- **계산 효율**: O(HW)개의 합성곱을 쌓는 것을 대신할 만한 실현 가능한 방법
+- **영상 이해**: 시간적 관계를 붙잡는 데 특히 효과적
+- **일반성**: 공간 차원과 시간 차원 모두에 적용 가능
 
-The motivation for non-local operations stems from recognition that many vision tasks—from object detection to semantic segmentation—require understanding relationships between distant image regions. Non-local mechanisms provide a mechanism to compute such relationships directly without requiring progressively enlarged receptive fields through deep stacking.
+## 수학적 틀
 
-## Key Concepts
+### 비국소 연산
 
-- **Long-Range Dependencies**: Direct computation of feature relationships across entire feature maps
-- **Attention-Like Mechanisms**: Learned weighting of feature contributions from all locations
-- **Computational Efficiency**: Feasible alternatives to O(HW) stacked convolutions
-- **Video Understanding**: Particularly effective for capturing temporal relationships
-- **Generality**: Applicable to both spatial and temporal dimensions
-
-## Mathematical Framework
-
-### Non-Local Operations
-
-A non-local operation computes the response at position $\mathbf{x}_i$ as:
+비국소 연산은 위치 $\mathbf{x}_i$에서의 반응을 다음과 같이 계산한다.
 
 $$\mathbf{y}_i = \frac{1}{C(x)} \sum_{j} f(\mathbf{x}_i, \mathbf{x}_j) \cdot g(\mathbf{x}_j)$$
 
-where:
-- $f(\mathbf{x}_i, \mathbf{x}_j)$ computes pairwise relationships
-- $g(\mathbf{x}_j)$ projects features
-- $C(x)$ is a normalization factor
+여기서 각 기호는 다음과 같다.
 
-### Pairwise Relation Functions
+- $f(\mathbf{x}_i, \mathbf{x}_j)$은 쌍마다의 관계를 계산한다
+- $g(\mathbf{x}_j)$은 특징을 사영한다
+- $C(x)$은 정규화 인수이다
 
-Common instantiations include:
+### 쌍 관계 함수
 
-**Dot-Product (Scaled Attention)**:
+흔히 쓰는 형태는 다음과 같다.
+
+**내적 (배율 조정 어텐션)**:
 
 $$f(\mathbf{x}_i, \mathbf{x}_j) = \theta(\mathbf{x}_i)^T \phi(\mathbf{x}_j)$$
 
-**Gaussian (RBF Kernel)**:
+**가우스 (RBF 핵)**:
 
 $$f(\mathbf{x}_i, \mathbf{x}_j) = e^{\theta(\mathbf{x}_i)^T \phi(\mathbf{x}_j)}$$
 
-**Concatenation-Based**:
+**이어 붙이기 기반**:
 
 $$f(\mathbf{x}_i, \mathbf{x}_j) = \text{ReLU}(\mathbf{w}^T[\theta(\mathbf{x}_i) \oplus \phi(\mathbf{x}_j)])$$
 
-where $\oplus$ denotes concatenation.
+여기서 $\oplus$은 이어 붙이기를 뜻한다.
 
-## Implementation Architecture
+## 구현 구조
 
-### Building Block Structure
+### 구성 블록의 짜임
 
-A non-local block typically includes:
+비국소 블록은 대체로 다음을 품는다.
 
 $$\text{NL}(\mathbf{X}) = \text{Conv}_{1\times 1}(\text{Attention}(\mathbf{X})) + \mathbf{X}$$
 
-where attention is computed via:
+여기서 어텐션은 다음으로 계산한다.
 
 $$\text{Attention}(\mathbf{X})_{i} = \text{softmax}(f(\mathbf{x}_i, \{\mathbf{x}_j\})) \cdot g(\mathbf{X})$$
 
-### Computational Complexity
+### 계산 복잡도
 
-Computing full pairwise interactions requires $O((HW)^2 \times C)$ operations:
+모든 쌍의 상호작용을 계산하려면 $O((HW)^2 \times C)$번의 연산이 든다.
 
 $$\text{Flops} = HW \times HW \times C = (HW)^2 C$$
 
-For memory-efficient variants, spatial downsampling reduces complexity:
+메모리를 아끼는 변형에서는 공간 하향 표본화가 복잡도를 줄여 준다.
 
 $$\text{Flops}_{\text{downsampled}} = HW \times \frac{H'W'}{r^2} \times C$$
 
-where $r$ is the downsampling rate.
+여기서 $r$은 하향 표본화 비율이다.
 
-## Advantages Over Stacked Convolutions
+## 합성곱을 쌓는 방식보다 나은 점
 
-!!! tip "Depth vs. Receptive Field"
-    A single non-local operation achieves global receptive field equivalent to O(log HW) convolutional layers, enabling shallower architectures with better gradient flow.
+!!! tip "깊이와 수용 영역"
+    비국소 연산 하나가 합성곱 층 O(log HW)개에 맞먹는 전역 수용 영역을 이루므로, 더 얕으면서도 기울기가 잘 흐르는 구조를 만들 수 있다.
 
-**Direct Relationship Modeling**: Non-local operations directly model relationships between distant locations without intermediate layers.
+**관계를 곧바로 모형화**: 비국소 연산은 중간 층 없이 멀리 떨어진 위치 사이의 관계를 곧바로 다룬다.
 
-**Learnable Relevance**: Unlike convolution which uses fixed kernels, non-local operations learn task-specific importance weights.
+**학습 가능한 관련성**: 고정된 핵을 쓰는 합성곱과 달리 비국소 연산은 과제에 맞는 중요도 가중치를 배운다.
 
-**Symmetry Properties**: Non-local operations are naturally symmetric in the locations compared, contrasting with asymmetric convolutions.
+**대칭성**: 비국소 연산은 견주는 두 위치에 대해 자연스럽게 대칭인데, 이는 비대칭인 합성곱과 대조된다.
 
-## Applications in Computer Vision
+## 컴퓨터 비전에서의 활용
 
-### Video Understanding
+### 영상 이해
 
-Non-local networks excel at capturing temporal relationships:
+비국소 신경망은 시간적 관계를 붙잡는 데 뛰어나다.
 
 $$\text{Response}_{t,i,j} = \sum_{t',i',j'} w(t,i,j,t',i',j') \cdot \mathbf{x}_{t',i',j'}$$
 
-enabling models to recognize actions that depend on temporal correlations.
+이로써 모델이 시간적 상관에 기대는 동작을 알아볼 수 있다.
 
-### Fine-Grained Recognition
+### 세밀한 인식
 
-For tasks requiring subtle spatial relationships, non-local mechanisms identify discriminative inter-region connections.
+미묘한 공간 관계가 필요한 과제에서 비국소 장치는 구별에 도움이 되는 영역 사이의 연결을 찾아낸다.
 
-### 3D Point Cloud Processing
+### 3차원 점구름 처리
 
-Non-local operations naturally extend to unstructured point cloud data through learned metric spaces.
+비국소 연산은 학습된 거리 공간을 거쳐 짜임이 없는 점구름 데이터로 자연스럽게 넓혀진다.
 
-## Integration with CNNs
+## CNN과의 결합
 
-Modern architectures integrate non-local blocks strategically:
+요즘 구조는 비국소 블록을 전략적으로 끼워 넣는다.
 
-- **Early Layers**: Preserve computational efficiency with local convolutions
-- **Mid Layers**: Insert non-local blocks to capture semantic relationships
-- **Later Layers**: Focus on classification with semantic features
+- **앞쪽 층**: 지역 합성곱으로 계산 효율을 지킨다
+- **중간 층**: 의미적 관계를 붙잡으려고 비국소 블록을 넣는다
+- **뒤쪽 층**: 의미적 특징으로 분류에 집중한다
 
-## Computational Optimization Strategies
+## 계산을 줄이는 전략
 
-**Bottleneck Design**: Reduce channel dimension before computing pairwise interactions:
+**병목 설계**: 쌍의 상호작용을 계산하기 전에 채널 차원을 줄인다.
 
 $$\text{Cost} = HW \times HW \times \frac{C}{r} \ll HW \times HW \times C$$
 
-**Spatial Downsampling**: Compute attention on downsampled feature maps.
+**공간 하향 표본화**: 하향 표본화한 특징 맵 위에서 어텐션을 계산한다.
 
-**Grouped Non-Local**: Apply non-local operations within spatial regions before combining.
+**묶음 비국소**: 공간 영역 안에서 비국소 연산을 적용한 뒤에 합친다.
 
-## Related Topics
+## 관련 주제
 
-- Attention Mechanisms in CNNs (Chapter 6.1.1)
-- Vision Transformer Architecture (Chapter 6.2)
-- Temporal Modeling in Videos (Chapter 16)
+- CNN의 어텐션 장치 (6.1.1절)
+- 비전 트랜스포머 구조 (6.2절)
+- 영상의 시간 모형화 (16장)
+
+## 연습문제
+
+**연습문제 1.**
+비국소 연산의 식 $y_i = \frac{1}{C(x)}\sum_j f(x_i, x_j)g(x_j)$을 유도하고 각 부분을 설명하라.
+
+??? success "연습문제 1 풀이"
+    $f(x_i, x_j)$은 쌍의 유사도(내적, 가우스 등)를 잰다. $g(x_j)$은 입력을 변환한다. $C(x)$은 정규화한다. 출력 $y_i$은 모든 위치의 가중합이며 가중치는 쌍의 유사도에 달려 있다. $f$이 배율 조정 내적일 때 이는 자기 어텐션과 같다.
+
+---
+
+**연습문제 2.**
+공간 차원이 $H \times W$일 때 비국소 블록과 표준 합성곱의 계산 비용을 견주어라.
+
+??? success "연습문제 2 풀이"
+    비국소는 $O((HW)^2 \cdot C)$으로 공간 크기에 대해 이차이다. 표준 합성곱($k \times k$)은 $O(HW \cdot k^2 \cdot C^2)$으로 공간 크기에 대해 선형이다. 특징 맵이 크면 비국소가 훨씬 비싸므로 대체로 해상도가 낮은 곳에만 넣는다.
+
+---
+
+**연습문제 3.**
+비국소 블록을 PyTorch로 구현하라.
+
+??? success "연습문제 3 풀이"
+    ```python
+    class NonLocal(nn.Module):
+        def __init__(self, c):
+            super().__init__()
+            self.theta = nn.Conv2d(c, c//2, 1)
+            self.phi = nn.Conv2d(c, c//2, 1)
+            self.g = nn.Conv2d(c, c//2, 1)
+            self.out = nn.Conv2d(c//2, c, 1)
+        def forward(self, x):
+            B, C, H, W = x.shape
+            theta = self.theta(x).view(B, -1, H*W)  # B, C/2, N
+            phi = self.phi(x).view(B, -1, H*W)      # B, C/2, N
+            g = self.g(x).view(B, -1, H*W)          # B, C/2, N
+            attn = torch.softmax(theta.transpose(1,2) @ phi, dim=-1)
+            y = (g @ attn.transpose(1,2)).view(B, -1, H, W)
+            return x + self.out(y)  # 잔차
+    ```
+
+---
+
+**연습문제 4.**
+비국소 블록을 신경망의 맨 앞이 아니라 합성곱 층 여러 개 뒤에 두는 까닭은 무엇인가?
+
+??? success "연습문제 4 풀이"
+    앞쪽 층은 공간 차원이 커서($224 \times 224$) $O(N^2)$의 비용을 감당할 수 없다. $14 \times 14$ 이하로 하향 표본화한 뒤라야 비용을 감당할 만하다. 게다가 앞쪽 특징은 모서리 같은 저수준이라 지역 합성곱이 더 알맞고, 전역 맥락은 고수준 특징에 더 쓸모가 있다.

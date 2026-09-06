@@ -1,35 +1,35 @@
-# KD-Tree Construction
+# kd 트리 세우기
 
-A **kd-tree** (k-dimensional tree) partitions $k$-dimensional space by recursively splitting along alternating coordinate axes.  Each internal node defines a splitting hyperplane that divides the point set into two halves, and the recursion continues until each leaf contains at most one point.  The construction algorithm produces a balanced tree of height $O(\log n)$ that supports efficient [range queries](range.md) and [nearest-neighbor searches](nearest.md).
+**kd 트리**(k차원 트리)는 좌표축을 번갈아 가며 재귀적으로 쪼개어 $k$차원 공간을 나눈다. 내부 노드마다 점 집합을 반으로 가르는 쪼개기 초평면을 정하고, 잎마다 점이 많아야 하나가 될 때까지 재귀가 이어진다. 세우기 알고리즘은 [범위 질의](range.md)와 [최근접 이웃 찾기](nearest.md)를 효율적으로 받쳐 주는 높이 $O(\log n)$의 균형 트리를 낸다.
 
-## Splitting Strategy
+## 쪼개는 방법
 
-At each level of the tree, the algorithm selects a **splitting dimension** and a **splitting value**:
+트리의 층마다 알고리즘이 **쪼개는 차원**과 **쪼개는 값**을 고른다.
 
-- **Dimension selection:** the simplest approach cycles through dimensions in round-robin order.  At depth $d$, split along dimension $d \bmod k$.
-- **Splitting value:** use the **median** point along the chosen dimension.  This ensures that each split divides the points as evenly as possible, producing a balanced tree.
+- **차원 고르기:** 가장 간단한 방법은 차원을 돌아가며 차례로 쓰는 것이다. 깊이 $d$에서 차원 $d \bmod k$을 따라 쪼갠다.
+- **쪼개는 값:** 고른 차원에서의 **중앙값** 점을 쓴다. 그러면 쪼갤 때마다 점이 되도록 고르게 갈려 균형 트리가 나온다.
 
-For $n$ points in $\mathbb{R}^k$, the recursive construction is:
+$\mathbb{R}^k$의 점 $n$개에 대해 재귀적으로 세우는 법은 다음과 같다.
 
-1. If $n = 0$, return a nil node.
-2. Choose splitting dimension $d$ (typically depth mod $k$).
-3. Find the median point $p$ along dimension $d$.
-4. Create a node storing $p$.
-5. Recursively build the left subtree from all points with coordinate $< p[d]$.
-6. Recursively build the right subtree from all points with coordinate $\ge p[d]$ (excluding $p$).
+1. $n = 0$이면 nil 노드를 돌려준다.
+2. 쪼개는 차원 $d$을 고른다 (대개 깊이 mod $k$).
+3. 차원 $d$에서 중앙값 점 $p$을 찾는다.
+4. $p$을 담는 노드를 만든다.
+5. 좌표가 $p[d]$보다 작은 모든 점으로 왼쪽 부분 트리를 재귀적으로 세운다.
+6. ($p$을 빼고) 좌표가 $p[d]$ 이상인 모든 점으로 오른쪽 부분 트리를 재귀적으로 세운다.
 
-## Construction Algorithm
+## 세우기 알고리즘
 
 ```python
-"""KD-tree construction from a set of points."""
+"""점 집합으로 kd 트리 세우기."""
 
 from __future__ import annotations
 
 
-# === Node Definition ===
+# === 노드 정의 ===
 
 class KDNode:
-    """Node in a kd-tree storing a point and splitting dimension."""
+    """점과 쪼개는 차원을 담는 kd 트리의 노드."""
 
     def __init__(self, point: list[float], axis: int):
         self.point = point
@@ -38,21 +38,21 @@ class KDNode:
         self.right: KDNode | None = None
 
 
-# === Construction ===
+# === 세우기 ===
 
 def build_kdtree(points: list[list[float]], depth: int = 0) -> KDNode | None:
-    """Build a balanced kd-tree from a list of points.
+    """점 목록으로 균형 잡힌 kd 트리를 세운다.
 
-    Points are split along alternating dimensions.  The median
-    point on the current axis becomes the root of the subtree.
+    차원을 번갈아 가며 점을 쪼갠다. 지금 축의 중앙값 점이
+    부분 트리의 뿌리가 된다.
     """
     if not points:
         return None
 
-    k = len(points[0])  # number of dimensions
+    k = len(points[0])  # 차원의 수
     axis = depth % k
 
-    # Sort by the current axis and pick the median
+    # 지금 축으로 정렬하고 중앙값을 고른다
     points.sort(key=lambda p: p[axis])
     median_idx = len(points) // 2
 
@@ -62,14 +62,14 @@ def build_kdtree(points: list[list[float]], depth: int = 0) -> KDNode | None:
     return node
 
 
-# === Demonstration ===
+# === 시연 ===
 
 if __name__ == "__main__":
     pts = [[2, 3], [5, 4], [9, 6], [4, 7], [8, 1], [7, 2]]
     root = build_kdtree(pts)
 
     def print_tree(node: KDNode | None, indent: int = 0) -> None:
-        """Print the kd-tree structure."""
+        """kd 트리의 짜임을 찍는다."""
         if node is None:
             return
         print(" " * indent + f"{node.point} (axis={node.axis})")
@@ -79,54 +79,87 @@ if __name__ == "__main__":
     print_tree(root)
 ```
 
-## Height Analysis
+## 높이 분석
 
-When the median is used as the splitting value, each level halves the point set.  The resulting tree has height:
+중앙값을 쪼개는 값으로 쓰면 층마다 점 집합이 반으로 준다. 그렇게 나온 트리의 높이는 다음과 같다.
 
 $$
 h = O(\log_2 n)
 $$
 
-The tree is perfectly balanced (or within one level of balanced), containing exactly $n$ nodes.
+트리는 완벽히 (또는 한 층 안으로) 균형 잡히고 노드가 꼭 $n$개이다.
 
-## Construction Cost
+## 세우는 비용
 
-| Method | Time | Space |
+| 방법 | 시간 | 공간 |
 |--------|------|-------|
-| Sorting at each level | $O(n \log^2 n)$ | $O(n)$ |
-| Median-of-medians | $O(n \log n)$ | $O(n)$ |
-| Pre-sorted lists | $O(n \log n)$ | $O(n \log n)$ |
+| 층마다 정렬하기 | $O(n \log^2 n)$ | $O(n)$ |
+| 중앙값의 중앙값 | $O(n \log n)$ | $O(n)$ |
+| 미리 정렬한 목록 | $O(n \log n)$ | $O(n \log n)$ |
 
-The $O(n \log^2 n)$ bound comes from sorting $n$ points at each of the $O(\log n)$ levels.  The $O(n \log n)$ bound uses a linear-time median selection algorithm (e.g., median-of-medians) to find the splitting point at each level.
+$O(n \log^2 n)$ 한계는 $O(\log n)$개 층마다 점 $n$개를 정렬하는 데서 온다. $O(n \log n)$ 한계는 층마다 쪼개는 점을 찾는 데 (중앙값의 중앙값 같은) 일차 시간 중앙값 고르기 알고리즘을 쓴다.
 
-!!! tip "Practical optimization"
-    The $O(n \log^2 n)$ sorting-based approach is simple and fast enough for most applications.  For very large point sets, the $O(n \log n)$ method using pre-sorted point lists (one sorted list per dimension) avoids repeated sorting.
+!!! tip "실제로 다듬기"
+    정렬에 바탕한 $O(n \log^2 n)$ 방법은 간단하고 대부분의 응용에 충분히 빠르다. 아주 큰 점 집합에서는 (차원마다 하나씩) 미리 정렬한 점 목록을 쓰는 $O(n \log n)$ 방법이 되풀이 정렬을 피한다.
 
-## Dimension Selection Variants
+## 차원 고르기의 변형
 
-The round-robin dimension selection is simple but not always optimal.  Alternative strategies include:
+돌아가며 차원을 고르는 것은 간단하지만 늘 최선은 아니다. 다른 방법은 다음과 같다.
 
-**Maximum-spread axis:** at each node, choose the dimension with the largest range (max - min) of point coordinates.  This tends to produce more balanced spatial partitions.
+**가장 넓게 퍼진 축:** 노드마다 점 좌표의 범위(최댓값 - 최솟값)가 가장 큰 차원을 고른다. 공간이 더 고르게 나뉘는 편이다.
 
-**Maximum-variance axis:** choose the dimension with the largest variance.  This is common in computational geometry applications.
+**분산이 가장 큰 축:** 분산이 가장 큰 차원을 고른다. 계산 기하학 응용에서 흔하다.
 
-| Strategy | Pros | Cons |
+| 방법 | 좋은 점 | 나쁜 점 |
 |----------|------|------|
-| Round-robin | Simple, deterministic | May produce elongated cells |
-| Max-spread | Better spatial balance | $O(kn)$ extra work per node |
-| Max-variance | Adapts to data distribution | $O(kn)$ extra work per node |
+| 돌아가며 | 간단하고 결정론적이다 | 길쭉한 칸이 나올 수 있다 |
+| 가장 넓게 퍼진 축 | 공간 균형이 낫다 | 노드마다 $O(kn)$의 일이 더 든다 |
+| 분산이 가장 큰 축 | 데이터 분포에 맞추어 간다 | 노드마다 $O(kn)$의 일이 더 든다 |
 
-## Properties of the Constructed Tree
+## 세운 트리의 성질
 
-- **Balanced:** height $O(\log n)$ when using median splits.
-- **Space partitioning:** each node implicitly defines an axis-aligned bounding box.
-- **No rebalancing:** kd-trees are typically built once from a static point set.  Dynamic insertions and deletions can degrade balance.
-- **Leaf size:** the construction can stop early and store multiple points in a leaf (a "bucket kd-tree"), which improves cache performance.
+- **균형 잡힘:** 중앙값으로 쪼개면 높이가 $O(\log n)$이다.
+- **공간 나누기:** 노드마다 축에 나란한 테두리 상자를 은근히 정한다.
+- **균형을 되잡지 않음:** kd 트리는 대개 고정된 점 집합에서 한 번 세운다. 그때그때 넣고 지우면 균형이 나빠질 수 있다.
+- **잎의 크기:** 세우기를 일찍 멈추고 잎에 점을 여럿 담을 수 있는데("양동이 kd 트리") 캐시 성능이 좋아진다.
 
-!!! warning "Dynamic kd-trees"
-    Inserting or deleting points from a kd-tree without rebuilding can make it highly unbalanced.  For dynamic point sets, consider using a balanced structure like a **kd-B-tree** or rebuild the tree periodically.
+!!! warning "동적 kd 트리"
+    다시 세우지 않고 kd 트리에 점을 넣거나 지우면 크게 기울 수 있다. 그때그때 바뀌는 점 집합에는 **kd-B-트리** 같은 균형 짜임을 쓰거나 트리를 이따금 다시 세우는 것을 생각해 보라.
 
-## Reference
+## 참고 문헌
 
 - Bentley, J. L. (1975). Multidimensional binary search trees used for associative searching. *Communications of the ACM*, 18(9), 509–517.
 - de Berg, M., Cheong, O., van Kreveld, M., & Overmars, M. (2008). *Computational Geometry: Algorithms and Applications* (3rd ed.), Chapter 5. Springer.
+
+
+## 연습문제
+
+**연습문제 1.**
+kd 트리 세우기의 짜임을 설명하고 질의와 갱신의 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 짜임은 위계적 분해를 이용해 일차보다 빠른 질의 시간을 이룬다. 대개 질의와 갱신이 모두 $O(\log n)$이고 세우는 데 $O(n)$이나 $O(n\log n)$이 든다.
+
+---
+
+**연습문제 2.**
+입력 $[3, 1, 4, 1, 5, 9, 2, 6]$으로 kd 트리 세우기를 세워라. 마지막 짜임을 보여라.
+
+??? success "연습문제 2 풀이"
+    세우기 알고리즘을 적용하며 중간 상태를 보여라. 트리 짜임이면 트리를 그려라. 배열에 바탕한 짜임이면 부모-자식 관계를 덧붙여 배열의 내용을 보여라.
+
+---
+
+**연습문제 3.**
+질의 연산이 올바른 어떤 질의 범위에 대해서도 옳은 결과를 돌려줌을 증명하라.
+
+??? success "연습문제 3 풀이"
+    증명에는 대개 트리의 높이에 대한 귀납법을 쓴다. 노드마다 질의가 한 부분 트리 안에 온전히 들거나(재귀한다) 두 부분 트리에 걸친다(부분 결과를 모은다). 모으는 함수(합, 최솟값, 최댓값)가 결합적이므로 올바로 모아진다. $\square$
+
+---
+
+**연습문제 4.**
+kd 트리 세우기가 질의마다의 계산을 $O(n)$에서 $O(\log n)$으로 빠르게 하는 딥러닝 응용을 설명하라.
+
+??? success "연습문제 4 풀이"
+    응용으로는 누적 어텐션 가중치를 위한 접두사 합 질의, 길이가 제각각인 수열에서 효율적인 풀링을 위한 범위 질의, 검색 증강 생성을 위한 최근접 이웃 찾기, 3차원 딥러닝의 점 구름 처리를 위한 공간 색인이 있다.

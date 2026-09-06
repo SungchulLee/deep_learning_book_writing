@@ -197,3 +197,50 @@ Deletion works correctly: removing `banana` does not affect `apple` or `cherry`,
 
 - Fan, B., Andersen, D.G., Kaminsky, M., and Mitzenmacher, M. "Cuckoo Filter: Practically Better Than Bloom." *CoNEXT*, 2014
 - Pagh, R. and Rodler, F.F. "Cuckoo Hashing." *ESA*, 2001
+
+## Exercises
+
+**Exercise 1.**
+Describe the structure of a cuckoo filter. How are elements stored, and how does a membership query work?
+
+??? success "Solution to Exercise 1"
+    A cuckoo filter stores **fingerprints** (compact hashes) of elements in a cuckoo hash table with $m$ buckets, each holding $b$ slots (typically $b = 4$). For element $x$: compute fingerprint $f = \text{fingerprint}(x)$ and two candidate bucket indices $i_1 = h(x)$ and $i_2 = i_1 \oplus h(f)$ (XOR-based alternate location). Insert $f$ into an available slot in $i_1$ or $i_2$. If both are full, evict a random existing fingerprint and relocate it to its alternate bucket, repeating up to a maximum number of kicks. A membership query computes $f$ and checks both $i_1$ and $i_2$: if $f$ is found in either bucket, return "present" (possibly a false positive); otherwise, return "absent." False positives occur when a different element's fingerprint collides with $f$ in one of the two candidate buckets. $\square$
+
+---
+
+**Exercise 2.**
+Explain the "partial-key cuckoo hashing" trick that allows computing the alternate bucket location using only the fingerprint, without storing the original key.
+
+??? success "Solution to Exercise 2"
+    In standard cuckoo hashing, the two bucket locations are computed from the full key: $i_1 = h_1(x)$, $i_2 = h_2(x)$. During eviction, relocating a fingerprint requires knowing the original key (to compute the alternate location), which the filter does not store. Partial-key cuckoo hashing resolves this by defining $i_2 = i_1 \oplus h(f)$, where $f$ is the stored fingerprint. This relationship is symmetric: $i_1 = i_2 \oplus h(f)$. Given a fingerprint $f$ currently at bucket $i$, its alternate bucket is $i \oplus h(f)$ -- computable from $i$ and $f$ alone, without the original key. This trick makes eviction possible in the filter setting. The constraint is that the fingerprint must be sufficiently random for $h(f)$ to distribute evicted items across the table uniformly. $\square$
+
+---
+
+**Exercise 3.**
+A cuckoo filter with 8-bit fingerprints and bucket size 4 is loaded to 95% capacity with $n = 10^6$ elements. Compute the false positive rate and total memory usage.
+
+??? success "Solution to Exercise 3"
+    With 8-bit fingerprints, two elements collide in a given bucket position with probability $1/2^8 = 1/256$. A query checks two buckets of size 4 each, so it examines up to $2b = 8$ fingerprints. The FPR is approximately $2b / 2^f = 8 / 256 = 3.125\%$ where $f = 8$ is the fingerprint size. At 95% load, the number of buckets is $n / (b \times 0.95) = 10^6 / (4 \times 0.95) \approx 263{,}158$. Total memory: $263{,}158 \times 4 \times 8$ bits $= 8{,}421{,}056$ bits $\approx 1.03$ MB, or about 8.4 bits per element. For comparison, a standard Bloom filter at 3.125% FPR uses $-(n \ln 0.03125) / (\ln 2)^2 \approx 7.2 \times 10^6$ bits $= 0.88$ MB (7.2 bits/element). The cuckoo filter uses slightly more space but supports deletion. $\square$
+
+---
+
+**Exercise 4.**
+Describe the deletion operation in a cuckoo filter. Under what circumstances can deletion cause false negatives?
+
+??? success "Solution to Exercise 4"
+    Deletion: compute $f = \text{fingerprint}(x)$ and check buckets $i_1$ and $i_2$. If $f$ is found in either bucket, remove one copy. If not found, the element was not present (or was already deleted). False negatives can occur if two different elements $x$ and $y$ have the same fingerprint $f$ and share a bucket. If $x$ is inserted first and $y$ is inserted second (both with fingerprint $f$ in overlapping bucket $i$), and then $x$ is deleted, the deletion removes one copy of $f$ from bucket $i$. If it happens to remove the copy that $y$ also relies on (because they share the exact same fingerprint and bucket), a subsequent query for $y$ finds $f$ missing and returns "absent" -- a false negative. This can only happen when two elements have identical fingerprints and overlap in a candidate bucket. The probability is very low (proportional to $1/2^f$) but non-zero. $\square$
+
+---
+
+**Exercise 5.**
+Compare cuckoo filters, Bloom filters, and counting Bloom filters across four dimensions: space per element, deletion support, lookup speed, and worst-case insert time.
+
+??? success "Solution to Exercise 5"
+    | Dimension | Bloom | Counting Bloom | Cuckoo |
+    |---|---|---|---|
+    | Space (1% FPR) | 9.6 bits/elem | 38.4 bits/elem | 12.6 bits/elem |
+    | Deletion | No | Yes | Yes |
+    | Lookup | $k$ random reads | $k$ random reads | 2 sequential reads |
+    | Insert (worst) | $O(k)$ | $O(k)$ | $O(1/\epsilon)$ amortized |
+
+    Bloom filters are the most space-efficient and have predictable insertion cost but lack deletion. Counting Bloom filters support deletion at 4x space cost. Cuckoo filters provide the best combination: moderate space, native deletion, and cache-friendly lookups (two buckets vs. $k$ scattered positions). However, cuckoo filter insertion can fail at high load factors, requiring table resizing, while Bloom filters never fail to insert. For write-heavy workloads at high load, Bloom filters are more predictable. $\square$

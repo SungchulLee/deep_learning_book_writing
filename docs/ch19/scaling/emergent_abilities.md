@@ -1,59 +1,55 @@
-# Emergent Abilities in Large Language Models
+# 큰 말 모델의 떠오르는 능력
+## 학습 목표
 
+- 큰 말 모델에서의 떠오름을 정의하고 매끄러운 규모 키우기와 가른다
+- 핵심 떠오르는 능력과 그것이 나타나는 규모를 가려낸다
+- 떠오름이 재기의 찌꺼기인지 참된 현상인지를 둘러싼 논쟁을 이해한다
+- 능력 어림과 인공지능 안전에 미치는 뜻을 살핀다
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 들어가며
 
-## Learning Objectives
+떠오르는 능력이란 크기에 따라 차츰 나아지는 것이 아니라, 큰 말 모델이 어떤 규모 문턱을 넘는 순간 갑자기 나타나는 능력이다. 작은 모델에는 없거나 거의 마구잡이 수준이지만 큰 모델에서는 놀라운 힘으로 나타난다.
 
-- Define emergence in the context of LLMs and distinguish from smooth scaling
-- Identify key emergent capabilities and the scales at which they appear
-- Understand the debate around emergence as measurement artifact vs genuine phenomenon
-- Analyze implications for capability prediction and AI safety
+## 떠오름 정의하기
 
-## Introduction
+### 형식적 정의
 
-Emergent abilities are capabilities that appear suddenly in large language models once they cross certain scale thresholds, rather than improving gradually with size. These abilities are absent or near-random in smaller models but appear with surprising capability in larger ones.
+다음을 채우면 그 능력을 **떠오른다**고 한다:
 
-## Defining Emergence
+1. 작은 모델에는 없다
+2. 큰 모델에는 있다
+3. 그 바뀜이 **끊긴다**(차츰이 아니다)
 
-### Formal Definition
-
-An ability is **emergent** if it:
-1. Is not present in smaller models
-2. Is present in larger models  
-3. The transition is **discontinuous** (not gradual)
-
-Mathematically, for performance metric $P$ as a function of scale $S$:
+수학으로 보면, 규모 $S$의 함수인 성능 잣대 $P$에 대해:
 
 $$\frac{dP}{dS} \approx 0 \text{ for } S < S_{threshold}$$
 
 $$\frac{dP}{dS} \gg 0 \text{ for } S \approx S_{threshold}$$
 
-### Contrast with Predictable Scaling
+### 어림할 수 있는 규모 키우기와의 대비
 
-| Behavior | Loss Scaling | Emergent Capabilities |
+| 몸짓 | 손실의 규모 키우기 | 떠오르는 능력 |
 |----------|--------------|----------------------|
-| Pattern | Smooth power law | Step function |
-| Predictability | High | Low |
-| Examples | Perplexity | Chain-of-thought |
+| 무늬 | 매끄러운 거듭제곱 법칙 | 계단 함수 |
+| 어림할 수 있음 | 높음 | 낮음 |
+| 보기 | 헷갈림도 | 생각의 사슬 |
 
-## Documented Emergent Abilities
+## 기록된 떠오르는 능력
 
-### BIG-Bench Analysis
+### BIG-Bench 살피기
 
-Wei et al. (2022) identified emergence across 200+ tasks:
+Wei 외(2022)는 200개가 넘는 일에서 떠오름을 가려냈다:
 
-| Capability | Emergence Scale | Example Tasks |
+| 능력 | 떠오르는 규모 | 보기 일 |
 |------------|-----------------|---------------|
-| Arithmetic | ~10B parameters | 3-digit addition |
-| Chain-of-thought | ~100B parameters | Multi-step reasoning |
-| Word unscrambling | ~10B parameters | ANAGRAM solving |
-| Persian QA | ~100B parameters | Cross-lingual transfer |
+| 셈하기 | 매개변수 약 100억 | 세 자리 덧셈 |
+| 생각의 사슬 | 매개변수 약 1000억 | 여러 걸음 따짐 |
+| 낱말 풀어내기 | 매개변수 약 100억 | 글자 바꾸기 풀기 |
+| 페르시아어 물음 답하기 | 매개변수 약 1000억 | 말을 넘나드는 옮김 |
 
-### Key Emergent Capabilities
+### 핵심 떠오르는 능력
 
-**1. Few-Shot In-Context Learning**
+**1. 몇 발 맥락 안에서 배우기**
 ```
 Small models: Random guessing regardless of examples
 Large models: Learn from examples without gradient updates
@@ -66,7 +62,7 @@ GPT-2 (1.5B): Random
 GPT-3 (175B): "positive" (correct)
 ```
 
-**2. Chain-of-Thought Reasoning**
+**2. 생각의 사슬 따지기**
 ```
 Question: "Roger has 5 tennis balls. He buys 2 cans of 3 balls each. 
            How many does he have now?"
@@ -77,7 +73,7 @@ With CoT (large): "Roger starts with 5 balls.
                    5 + 6 = 11 balls." (correct)
 ```
 
-**3. Instruction Following**
+**3. 시킴 따르기**
 ```
 Instruction: "Translate to French without using the letter 'e'"
 
@@ -85,17 +81,18 @@ Small models: Ignore constraints
 Large models: Follow complex instructions
 ```
 
-## The Phase Transition Model
+## 상 바뀜 모델
 
-### Statistical Mechanics Analogy
+### 통계 역학과의 비유
 
-Emergence resembles phase transitions in physics:
+떠오름은 물리의 상 바뀜을 닮았다:
 
 $$P(capability) = \frac{1}{1 + e^{-\beta(S - S_c)}}$$
 
-Where:
-- $S$ = model scale
-- $S_c$ = critical scale (threshold)
+여기서:
+
+- $S$ = 모델의 규모
+- $S_c$ = 결정적 규모(문턱값)
 - $\beta$ = sharpness of transition
 
 ```python
@@ -103,10 +100,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def emergence_curve(scale, critical_scale, sharpness=1.0):
-    """Model emergent capability as sigmoid phase transition."""
+    """떠오르는 능력을 S자 상전이로 나타낸다."""
     return 1 / (1 + np.exp(-sharpness * (np.log10(scale) - np.log10(critical_scale))))
 
-scales = np.logspace(8, 12, 100)  # 100M to 1T parameters
+scales = np.logspace(8, 12, 100)  # 매개변수 1억에서 1조까지
 
 plt.figure(figsize=(10, 6))
 for task, s_c, beta in [
@@ -124,46 +121,46 @@ plt.legend()
 plt.grid(True, alpha=0.3)
 ```
 
-## The Emergence Debate
+## 떠오름 논쟁
 
-### "Emergence is a Mirage" (Schaeffer et al., 2023)
+### "떠오름은 신기루다"(Schaeffer 외, 2023)
 
-**Argument**: Emergence may be an artifact of:
+**주장**: 떠오름은 다음에서 온 찌꺼기일 수 있다:
 
-1. **Nonlinear metrics**: Accuracy is 0 until threshold, then jumps
-2. **Insufficient resolution**: Not enough model sizes tested
-3. **Task discretization**: Binary success/failure hides gradual improvement
+1. **비선형 잣대**: 문턱값 전까지 정확도가 0이다가 튀어 오른다
+2. **모자란 해상도**: 시험한 모델 크기가 넉넉하지 않다
+3. **일을 띄엄띄엄 나눔**: 되고 안 되고의 두 값이 차츰 나아짐을 가린다
 
-**Evidence**:
+**증거**:
 ```python
 def smooth_capability(scale, alpha=0.3):
-    """Underlying smooth improvement."""
+    """바탕에 깔린 매끄러운 나아짐."""
     return (scale / 1e12) ** alpha
 
 def discrete_metric(capability, threshold=0.5):
-    """Binary metric creates apparent emergence."""
+    """두 값 잣대가 겉보기 떠오름을 만든다."""
     return 1.0 if capability > threshold else 0.0
 
-# Same underlying capability, different metrics
+# 바탕 능력은 같고 잣대만 다르다
 scales = np.logspace(9, 12, 50)
 smooth = [smooth_capability(s) for s in scales]
 discrete = [discrete_metric(c) for c in smooth]
 
-# smooth shows gradual improvement
-# discrete shows sudden "emergence"
+# smooth는 차츰 나아짐을 보인다
+# discrete는 갑작스러운 "떠오름"을 보인다
 ```
 
-### Counter-Arguments
+### 맞선 주장
 
-1. **Some metrics are naturally discrete**: Multi-step reasoning requires all steps correct
-2. **Generalization patterns**: New capability types, not just performance
-3. **Qualitative differences**: Not just "better" but "different"
+1. **본디 띄엄띄엄한 잣대도 있다**: 여러 걸음 따짐은 모든 걸음이 맞아야 한다
+2. **두루 통함의 무늬**: 성능만이 아니라 새로운 능력의 갈래이다
+3. **질의 차이**: 그저 "더 나은" 것이 아니라 "다른" 것이다
 
-## Implications
+## 시사하는 것
 
-### For Capability Prediction
+### 능력 어림에 대해
 
-**Challenge**: Emergent abilities are hard to predict before they appear
+**어려움**: 떠오르는 능력은 나타나기 전에 어림하기 어렵다
 
 ```python
 def capability_forecast_uncertainty(
@@ -172,13 +169,13 @@ def capability_forecast_uncertainty(
     known_emergent_thresholds: list
 ) -> dict:
     """
-    Estimate uncertainty in capability forecasting.
+    능력 내다보기의 불확실함을 어림한다.
     
-    More uncertainty when crossing potential emergence thresholds.
+    떠오름 문턱이 될 만한 곳을 넘을 때 불확실함이 커진다.
     """
     scale_ratio = target_scale / current_scale
     
-    # Check for potential emergence thresholds in range
+    # 범위 안에서 떠오름 문턱이 될 만한 곳을 살핀다
     potential_emergences = [
         t for t in known_emergent_thresholds 
         if current_scale < t <= target_scale
@@ -191,23 +188,23 @@ def capability_forecast_uncertainty(
     }
 ```
 
-### For AI Safety
+### 인공지능 안전에 대해
 
-1. **Unpredictable capabilities**: Dangerous abilities might emerge suddenly
-2. **Evaluation gaps**: Can't test for abilities that don't yet exist
-3. **Control challenges**: Behaviors may change qualitatively at scale
+1. **어림할 수 없는 능력**: 위험한 능력이 갑자기 떠오를 수 있다
+2. **값매김의 틈**: 아직 없는 능력은 시험할 수 없다
+3. **다스리기의 어려움**: 규모가 커지면 몸짓이 질적으로 바뀔 수 있다
 
-### For Training Decisions
+### 익히기 결정에 대해
 
-| Consideration | Implication |
+| 헤아릴 점 | 뜻하는 바 |
 |---------------|-------------|
-| Emergence uncertainty | Build in safety margins |
-| Capability testing | Test at intermediate scales |
-| Compute allocation | May need to reach threshold for ROI |
+| 떠오름의 흔들림 | 안전 여유를 둔다 |
+| 능력 시험 | 가운데 규모에서 시험한다 |
+| 셈 나누기 | 본전을 뽑으려면 문턱값에 이르러야 할 수 있다 |
 
-## Measuring Emergence
+## 떠오름 재기
 
-### Quantifying Emergence Strength
+### 떠오름의 세기 수로 나타내기
 
 ```python
 def emergence_score(
@@ -216,38 +213,38 @@ def emergence_score(
     random_baseline: float = 0.0
 ) -> float:
     """
-    Quantify how "emergent" a capability is.
+    능력이 얼마나 "떠오르는" 것인지 재어 값으로 나타낸다.
     
-    Higher scores = more sudden transition.
+    점수가 높을수록 더 갑작스러운 옮아감이다.
     
-    Args:
-        performances: Task performance at each scale
-        scales: Model scales (parameters)
-        random_baseline: Performance of random guessing
+    인수:
+        performances: 규모마다의 일 성능
+        scales: 모델 규모(매개변수)
+        random_baseline: 아무렇게나 찍었을 때의 성능
         
-    Returns:
-        Emergence score (0 = smooth, 1 = step function)
+    반환값:
+        떠오름 점수(0 = 매끄러움, 1 = 계단 함수)
     """
-    # Normalize performances
+    # 성능을 고르게 한다
     perf_range = max(performances) - random_baseline
     if perf_range == 0:
         return 0.0
     
     normalized = [(p - random_baseline) / perf_range for p in performances]
     
-    # Compute "step-ness" via derivative variance
+    # 미분의 흩어짐으로 "계단다움"을 셈한다
     derivatives = np.diff(normalized) / np.diff(np.log10(scales))
     
-    # High variance in derivatives = sudden jump = emergence
+    # 미분의 흩어짐이 크다 = 갑작스러운 뜀 = 떠오름
     if np.mean(np.abs(derivatives)) == 0:
         return 0.0
     
     return np.std(derivatives) / np.mean(np.abs(derivatives))
 ```
 
-### Multi-Metric Evaluation
+### 여러 잣대 값매김
 
-To distinguish true emergence from metric artifacts:
+참된 떠오름과 잣대의 찌꺼기를 가리려면:
 
 ```python
 def evaluate_emergence_robustness(
@@ -255,10 +252,10 @@ def evaluate_emergence_robustness(
     scales: list
 ) -> dict:
     """
-    Evaluate same capability with multiple metrics.
+    같은 능력을 여러 잣대로 값매김한다.
     
-    If all metrics show emergence → likely genuine
-    If only discrete metrics show emergence → likely artifact
+    모든 잣대가 떠오름을 보이면 → 참일 가능성이 크다
+    따로 떨어진 잣대만 떠오름을 보이면 → 헛것일 가능성이 크다
     """
     metrics = {
         'accuracy': lambda x: x['correct'] / x['total'],
@@ -278,41 +275,73 @@ def evaluate_emergence_robustness(
     }
 ```
 
-## Emergent Abilities Catalog
+## 떠오르는 능력 목록
 
-### Confirmed Emergent (Multiple Studies)
+### 떠오름이 확인됨(여러 연구)
 
-| Ability | Approximate Threshold | Evidence Strength |
+| 능력 | 어림 문턱값 | 증거의 세기 |
 |---------|----------------------|-------------------|
-| Multi-step arithmetic | 10-100B | Strong |
-| Chain-of-thought | 60-100B | Strong |
-| Code generation | 10B+ | Moderate |
-| Word analogies | 10-50B | Moderate |
+| 여러 걸음 셈하기 | 100억~1000억 | 셈 |
+| 생각의 사슬 | 600억~1000억 | 셈 |
+| 코드 만들기 | 100억 이상 | 보통 |
+| 낱말 유추 | 100억~500억 | 보통 |
 
-### Debated / Metric-Dependent
+### 논쟁 중 / 잣대에 매임
 
-| Ability | Notes |
+| 능력 | 비고 |
 |---------|-------|
-| Truthfulness | May improve gradually with better metrics |
-| Common sense | Definition-dependent |
-| Instruction following | Depends on instruction complexity |
+| 참됨 | 더 나은 잣대로 보면 차츰 나아질 수 있다 |
+| 상식 | 정의에 매인다 |
+| 시킴 따르기 | 시킴의 복잡도에 매인다 |
 
-## Summary
+## 요약
 
-1. **Emergence** = capabilities appearing suddenly at scale
-2. **Examples**: Chain-of-thought, complex arithmetic, instruction following
-3. **Debate**: Some emergence may be metric artifacts
-4. **Implications**: Prediction difficulty, safety concerns
-5. **Best practice**: Use multiple metrics, test intermediate scales
+1. **떠오름** = 규모에서 갑자기 나타나는 능력
+2. **보기**: 생각의 사슬, 복잡한 셈하기, 시킴 따르기
+3. **논쟁**: 어떤 떠오름은 잣대의 찌꺼기일 수 있다
+4. **뜻하는 바**: 어림의 어려움, 안전의 걱정거리
+5. **좋은 버릇**: 잣대를 여럿 쓰고 가운데 규모에서 시험한다
 
-## Key Insight
+## 핵심 통찰
 
 $$\boxed{\text{Emergence} = \text{Qualitative change, not just quantitative improvement}}$$
 
-Whether emergence is "real" or an artifact, the practical implication remains: **capabilities can change unexpectedly with scale**.
+떠오름이 "참된" 것이든 찌꺼기이든, 실전에서 뜻하는 바는 그대로다. 곧 **규모가 커지면 능력이 뜻밖에 바뀔 수 있다**.
 
-## References
+## 참고 문헌
 
 1. Wei, J., et al. (2022). Emergent Abilities of Large Language Models. *TMLR*.
 2. Schaeffer, R., et al. (2023). Are Emergent Abilities of Large Language Models a Mirage? *NeurIPS*.
 3. Ganguli, D., et al. (2022). Predictability and Surprise in Large Generative Models. *FAccT*.
+
+## 연습문제
+
+**연습문제 1.**
+친칠라 규모 법칙을 말하여라. 이는 모델 크기와 익힘 토막 사이의 가장 좋은 셈 나눔을 어떻게 바꾸는가?
+
+??? success "연습문제 1 풀이"
+    The Chinchilla scaling law (Hoffmann et al., 2022) states that for compute-optimal training, model size $N$ and training tokens $D$ should scale equally: $N \propto C^{0.5}$ and $D \propto C^{0.5}$ where $C$ is the compute budget. This implies the optimal ratio is roughly $D \approx 20N$ (20 tokens per parameter). Previous practice (GPT-3, etc.) undertrained large models: GPT-3 (175B params) was trained on 300B tokens, while the Chinchilla-optimal approach trains a 70B model on 1.4T tokens, achieving better performance with the same compute.
+
+---
+
+**연습문제 2.**
+큰 말 모델의 떠오르는 능력이란 무엇인가? 이 생각은 왜 논쟁거리인가?
+
+??? success "연습문제 2 풀이"
+    떠오르는 능력이란 모델 크기가 어떤 문턱을 넘으면 갑자기 나타나고 작은 모델에는 없어 보이는 능력이다. 보기로 여러 자리 셈하기, 생각의 사슬 따지기, 낱말 풀어내기가 있다. 논쟁은 이렇다. Schaeffer 외(2023)는 "떠오름"이 끊긴 잣대(딱 맞음 정확도)를 쓴 데서 온 찌꺼기라고 주장한다. 매끄러운 잣대(토막 수준 로그 확률)로 재면 성능이 규모에 따라 차츰 어림할 수 있게 나아진다. 논쟁의 고갱이는 떠오름이 모델의 성질인지 값매김 방법의 성질인지이다. 두 관점 모두 일리가 있다. 곧 질적인 능력의 문턱은 있지만 그것이 밑바탕의 매끄러운 나아짐으로 어림될 수도 있다.
+
+---
+
+**연습문제 3.**
+큰 모델을 익힐 때의 모델 나란히 하기, 자료 나란히 하기, 물길 나란히 하기의 차이를 밝혀라.
+
+??? success "연습문제 3 풀이"
+    **자료 나란히 하기**: GPU마다 온전한 모델 복사본을 지니고 서로 다른 자료 묶음을 다루며, 기울기를 모두 모으기로 맞춘다. 모델이 GPU 하나에 들어가야 한다는 제한이 있다. **모델/텐서 나란히 하기**: 층을 GPU에 나눠 쪼갠다(보기로 눈길 머리 쪼개기). 더 큰 모델을 쓸 수 있지만 대역폭이 넓은 이음이 필요하다. **물길 나란히 하기**: 잇닿은 층을 GPU에 나눈다. GPU마다 단계별로 서로 다른 작은 묶음을 다룬다. 주고받기가 줄지만 물길 거품(노는 때)이 생긴다. 요즘 체계(Megatron-LM, DeepSpeed)는 셋을 모두 아우른다. 곧 마디 안에서는 텐서 나란히 하기, 마디 사이에는 물길 나란히 하기, 묶음 사이에는 자료 나란히 하기를 쓴다.
+
+---
+
+**연습문제 4.**
+If you had a fixed compute budget of $10^{23}$ FLOPs, how would you allocate it between model size and training data? Justify your answer using scaling laws.
+
+??? success "연습문제 4 풀이"
+    Using the Chinchilla scaling law with $C = 6ND$ (approximate FLOPs for transformer training): $10^{23} = 6ND$, with optimal $D \approx 20N$. Substituting: $10^{23} = 6N \cdot 20N = 120N^2$, so $N \approx \sqrt{10^{23}/120} \approx 2.9 \times 10^{10} \approx 29B$ parameters. Training tokens: $D = 10^{23}/(6 \times 29 \times 10^9) \approx 575B$ tokens. This allocation follows the compute-optimal ratio and would outperform both a larger undertrained model (e.g., 175B on 96B tokens) and a smaller overtrained model (e.g., 7B on 2.4T tokens) at the same compute budget.

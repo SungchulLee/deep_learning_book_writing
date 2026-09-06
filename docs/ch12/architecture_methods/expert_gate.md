@@ -1,144 +1,142 @@
-# Expert Gate for Continual Learning
+# 이어 배우기를 위한 전문가 문
+## 들어가며
 
+전문가 문 장치는 저마다 특정 과제 분포에서 뛰어나도록 익힌 전문가 모듈 여럿과, 데이터를 알맞은 전문가에게 보내는 배운 문 망을 함께 써서 이어 배우기를 가능하게 한다. 이 접근법은 새 과제 갈래에 새 전문가를 붙이고 배운 본새를 맡은 앞선 전문가는 그대로 두어, 파국적 잊음 없이 새 과제를 다루게 한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+계량 금융에서 전문가 문은 실제 거래장의 짜임을 그대로 비춘다. 전문 트레이더가 특정 자산 갈래나 거래 전략에 집중하는 동안, 포트폴리오 매니저(문 장치)가 들어오는 기회를 알맞은 전문가에게 보낸다. 이 구조 덕분에 금융 모델은 여러 시장 상황에 걸친 전문성을 지키면서도 새로 떠오르는 상품이나 전략에 맞추어 전문가를 넉넉히 더할 수 있다.
 
-## Introduction
+## 핵심 개념
 
-The Expert Gate mechanism enables continual learning through a collection of specialized expert modules, each trained to excel on specific task distributions, combined with a learned gating network that routes data to appropriate experts. This approach allows models to handle new tasks without catastrophic forgetting by allocating new experts to novel task categories while maintaining previous experts for learned patterns.
+- **전문가 모듈**: 과제마다의 데이터로 익힌 전문 망
+- **문 망**: 입력에서 전문가로 가는 길을 배운다
+- **부드러운 배정**: 딱 잘라 고르지 않고 확률로 길을 나눈다
+- **전문가 활용**: 전문화와 효율 사이의 균형
+- **전문가 늘리기**: 새 과제에 맞추어 전문가 웅덩이를 키운다
+- **겨룸**: 전문가는 드러나지 않는 과제 겨룸으로 전문화된다
 
-In quantitative finance, expert gating mirrors real-world trading floor organization: specialized traders focus on specific asset classes or trading strategies, while a portfolio manager (gating mechanism) routes incoming opportunities to appropriate specialists. This architecture enables financial models to maintain expertise across diverse market conditions while flexibly adding new specialists for emerging instruments or strategies.
+## 수학적 정식화
 
-## Key Concepts
+### 전문가 섞음의 출력
 
-- **Expert Modules**: Specialized networks trained on task-specific data
-- **Gating Network**: Learns routing from inputs to experts
-- **Soft Assignment**: Probabilistic routing rather than hard selection
-- **Expert Utilization**: Balance between expert specialization and efficiency
-- **Dynamic Expert Addition**: Grow expert pool for new tasks
-- **Competition**: Experts specialize through implicit task competition
-
-## Mathematical Formulation
-
-### Mixture of Experts Output
-
-The output combines expert predictions through gating:
+출력은 문을 거쳐 전문가의 예측을 합친다.
 
 $$\mathbf{y} = \sum_{e=1}^{E} g_e(\mathbf{x}) \cdot \mathbf{E}_e(\mathbf{x})$$
 
-where:
-- $\mathbf{E}_e(\cdot)$ is expert $e$'s prediction network
-- $g_e(\mathbf{x}) = \frac{\exp(\text{score}_e(\mathbf{x}))}{\sum_{e'} \exp(\text{score}_{e'}(\mathbf{x}))}$ are soft gating weights
-- $g_e(\mathbf{x}) \in [0, 1]$ and $\sum_e g_e(\mathbf{x}) = 1$
+여기서 각 기호는 다음과 같다.
 
-### Gate Function
+- $\mathbf{E}_e(\cdot)$은 전문가 $e$의 예측 망이다
+- $g_e(\mathbf{x}) = \frac{\exp(\text{score}_e(\mathbf{x}))}{\sum_{e'} \exp(\text{score}_{e'}(\mathbf{x}))}$은 부드러운 문 무게이다
+- $g_e(\mathbf{x}) \in [0, 1]$이고 $\sum_e g_e(\mathbf{x}) = 1$이다
 
-The gating network produces routing scores:
+### 문 함수
+
+문 망은 길잡이 점수를 낸다.
 
 $$\text{score}_e(\mathbf{x}) = W_e^T \mathbf{x} + b_e$$
 
-or more expressively:
+또는 더 넉넉하게 나타내면 다음과 같다.
 
 $$\text{score}_e(\mathbf{x}) = \text{MLP}_{\text{gate}}([\mathbf{x}, \mathbf{z}])_e$$
 
-where $\mathbf{z}$ are learned expert embeddings.
+여기서 $\mathbf{z}$은 배운 전문가 묻힘이다.
 
-### Loss Function with Expert Regularization
+### 전문가 벌주기를 곁들인 손실 함수
 
-Basic loss balances task performance with expert utilization:
+기본 손실은 과제 성능과 전문가 활용 사이의 균형을 잡는다.
 
 $$\mathcal{L} = \mathcal{L}_{\text{task}} + \lambda \mathcal{L}_{\text{regularization}}$$
 
-Task loss encourages accurate predictions; regularization prevents expert collapse.
+과제 손실은 정확한 예측을 북돋우고, 벌주기는 전문가가 한쪽으로 무너지는 것을 막는다.
 
-## Expert Specialization
+## 전문가의 전문화
 
-### Load Balancing
+### 짐 고르게 나누기
 
-Without regularization, all data routes to one expert (collapse). Prevent through:
+벌주기가 없으면 모든 데이터가 전문가 하나로 몰린다(무너짐). 다음으로 막는다.
 
-**Auxiliary Loss** (sparse mixture):
+**딸린 손실**(성긴 섞음):
 
 $$\mathcal{L}_{\text{balance}} = \alpha \sum_e (\bar{g}_e)^2$$
 
-where $\bar{g}_e = \frac{1}{N} \sum_i g_e(\mathbf{x}_i)$ is average gating weight.
+여기서 $\bar{g}_e = \frac{1}{N} \sum_i g_e(\mathbf{x}_i)$은 평균 문 무게이다.
 
-Penalizes unequal expert utilization, encouraging all experts to handle data.
+전문가 활용이 치우치면 벌을 주어 모든 전문가가 데이터를 다루도록 북돋운다.
 
-**Load-Balanced Gating**:
+**짐을 고르게 나눈 문**:
 
 $$g_e(\mathbf{x}) \approx \frac{\text{softmax}(\text{score}_e) + \text{uniform noise}}{\text{normalization}}$$
 
-Add noise to gating to prevent deterministic routing.
+문에 잡음을 더해 길이 한 갈래로 굳는 것을 막는다.
 
-### Expert Division of Labor
+### 전문가의 일 나누기
 
-!!! tip "Task-Aware Expert Organization"
-    In continual learning, experts naturally specialize:
-    - **Expert 1**: Handles Task 1 data primarily
-    - **Expert 2**: Specializes in Task 2
-    - **Expert 3**: Learns Task 3
-    - **Meta-Expert**: Handles task combinations
+!!! tip "과제를 아는 전문가 짜임"
+    이어 배우기에서 전문가는 자연스럽게 전문화된다.
 
-Specialization emerges without explicit supervision through loss gradients.
+    - **전문가 1**: 주로 과제 1의 데이터를 맡는다
+    - **전문가 2**: 과제 2에 전문화된다
+    - **전문가 3**: 과제 3을 배운다
+    - **메타 전문가**: 과제의 조합을 맡는다
 
-## Continual Learning with Expert Gates
+전문화는 드러난 지도 없이 손실 기울기를 거쳐 저절로 나타난다.
 
-### Learning New Tasks
+## 전문가 문을 쓰는 이어 배우기
 
-When task $t+1$ arrives:
+### 새 과제 배우기
 
-1. **Initialize**: Add new expert $\mathbf{E}_{t+1}$ initialized from random or previous expert
-2. **Train**: Only update new expert and gating network
-3. **Protect**: Previous experts remain frozen or use small learning rates
-4. **Adapt**: Gating network learns to route new task data appropriately
+과제 $t+1$이 도착하면 다음과 같이 한다.
 
-### Task Identification
+1. **초기화**: 아무렇게나 또는 앞선 전문가에서 초기화한 새 전문가 $\mathbf{E}_{t+1}$을 더한다
+2. **학습**: 새 전문가와 문 망만 고친다
+3. **지키기**: 앞선 전문가는 얼려 두거나 작은 학습률을 쓴다
+4. **맞추기**: 문 망이 새 과제 데이터를 알맞게 보내는 법을 배운다
 
-Expert gates can operate in two scenarios:
+### 과제 알아내기
 
-**With Task ID** (simpler):
+전문가 문은 두 가지 상황에서 굴러갈 수 있다.
+
+**과제 번호가 있을 때**(더 쉽다):
 
 $$\mathbf{y} = \sum_e g_e([\mathbf{x}, t]) \cdot \mathbf{E}_e(\mathbf{x})$$
 
-Gate conditions on known task ID to select appropriate experts.
+문은 알려진 과제 번호를 조건으로 삼아 알맞은 전문가를 고른다.
 
-**Without Task ID** (realistic):
+**과제 번호가 없을 때**(현실에 가깝다):
 
 $$\mathbf{y} = \sum_e g_e(\mathbf{x}) \cdot \mathbf{E}_e(\mathbf{x})$$
 
-Gate must infer which experts apply from input features alone.
+문은 입력 특징만으로 어느 전문가가 맞는지 미루어 알아내야 한다.
 
-## Theoretical Properties
+## 이론적 성질
 
-### Expert Capacity
+### 전문가 용량
 
-Total network capacity:
+망의 전체 용량은 다음과 같다.
 
 $$\text{Capacity} = n_{\text{shared}} + E \cdot n_{\text{expert}}$$
 
-where:
-- $n_{\text{shared}}$ is shared component size
-- $E$ is number of experts
-- $n_{\text{expert}}$ is expert size
+여기서 각 기호는 다음과 같다.
 
-Grows linearly with number of tasks but sublinearly if experts specialize.
+- $n_{\text{shared}}$은 나누어 쓰는 부품의 크기이다
+- $E$은 전문가의 개수이다
+- $n_{\text{expert}}$은 전문가의 크기이다
 
-### Gradient Flow Analysis
+과제 개수에 따라 선형으로 커지지만, 전문가가 전문화되면 선형보다 느리게 커진다.
 
-During backpropagation, experts receive gradients weighted by gating:
+### 기울기 흐름 분석
+
+거꾸로 퍼뜨릴 때 전문가는 문으로 무게 준 기울기를 받는다.
 
 $$\frac{\partial \mathcal{L}}{\partial \mathbf{E}_e} = g_e(\mathbf{x}) \cdot \frac{\partial \mathcal{L}}{\partial \mathbf{y}}$$
 
-Experts receiving low gating weights $g_e$ have small gradients, reducing updates.
+문 무게 $g_e$이 작은 전문가는 기울기가 작아 갱신도 적다.
 
-!!! note "Specialization Mechanism"
-    This gating-weighted gradient flow enables natural specialization: experts handling task-relevant data receive larger updates.
+!!! note "전문화 장치"
+    문으로 무게 준 이 기울기 흐름이 자연스러운 전문화를 낳는다. 과제와 맞닿은 데이터를 맡은 전문가일수록 크게 갱신된다.
 
-## Practical Implementation
+## 실전 구현
 
-### Architecture Design
+### 구조 설계
 
 ```
 Input
@@ -158,93 +156,126 @@ Gating Network ─────────────────────�
                            Output
 ```
 
-### Expert Initialization
+### 전문가 초기화
 
-**Random Initialization**: Fast but may require more training
+**무작위 초기화**: 빠르지만 더 오래 익혀야 할 수 있다
 
-**Previous Expert Copy**: Transfer learning accelerates new expert learning
+**앞선 전문가 복사**: 전이 학습이 새 전문가의 배움을 빠르게 한다
 
-**Mixed Strategy**: Initialize from mixture of previous experts
+**섞은 전략**: 앞선 전문가들의 섞음에서 초기화한다
 
-### Gating Softmax Temperature
+### 문 소프트맥스의 온도
 
-Control routing sharpness with temperature parameter:
+온도 매개변수로 길 나눔의 날카로움을 다스린다.
 
 $$g_e(\mathbf{x}) = \frac{\exp(\text{score}_e(\mathbf{x}) / T)}{\sum_{e'} \exp(\text{score}_{e'}(\mathbf{x}) / T)}$$
 
-**Low Temperature** ($T < 1$): Sharp routing, selective expert use
+**낮은 온도**($T < 1$): 날카로운 길 나눔, 전문가를 가려 쓴다
 
-**High Temperature** ($T > 1$): Soft routing, multiple experts active
+**높은 온도**($T > 1$): 부드러운 길 나눔, 전문가 여럿이 함께 움직인다
 
-## Learning Dynamics in Continual Settings
+## 이어 배우는 상황에서의 학습 움직임
 
-### Forward Transfer
+### 앞으로의 옮김
 
-New experts benefit from shared structure:
+새 전문가는 나누어 쓰는 짜임에서 이득을 본다.
 
 $$\mathbf{E}_{\text{new}} \gets \mathbf{E}_{\text{previous}} + \text{adaptation}$$
 
-Copy previous expert as initialization, fine-tune for new task.
+앞선 전문가를 복사해 초기값으로 삼고 새 과제에 맞추어 미세 조정한다.
 
-### Backward Transfer
+### 뒤로의 옮김
 
-!!! warning "Protecting Previous Knowledge"
-    When adding new experts, prevent modification of existing ones:
+!!! warning "앞선 앎 지키기"
+    새 전문가를 더할 때 이미 있는 전문가가 바뀌지 않게 막는다.
     
     $$\theta_{\text{previous}} \gets \text{freeze}$$
     
-    Alternatively, use low learning rates for old experts if joint training needed.
+    함께 익혀야 한다면 옛 전문가에는 낮은 학습률을 쓰라.
 
-### Task Confusion
+### 과제 헷갈림
 
-In continual learning without task IDs, confusion between similar tasks:
+과제 번호가 없는 이어 배우기에서는 닮은 과제끼리 헷갈린다.
 
-**Example**: Two bond trading strategies may have overlapping gating regions
+**보기**: 채권 거래 전략 둘이 문의 영역에서 겹칠 수 있다
 
-**Solution**: Train gating to maximize task-specific expert utilization
+**해법**: 과제마다의 전문가 활용이 가장 커지도록 문을 익힌다
 
-## Comparison with Other Architecture Methods
+## 다른 구조 방법과의 견줌
 
-| Method | Experts | Expert Size | Gating | Scalability |
+| 방법 | 전문가 | 전문가 크기 | 문 | 규모 확장성 |
 |--------|---------|------------|--------|------------|
-| **Multi-Head** | 1 (shared) | Full | Task ID | Linear |
-| **Progressive** | 1 per column | Full | Skip connections | O(T²) |
-| **Expert Gate** | Multiple | Medium | Learned | O(T) |
-| **Adapter** | 1 (shared) | Tiny | Task ID | O(T) |
+| **여러 머리** | 1개(함께 씀) | 전체 | 과제 번호 | 선형 |
+| **점진 확장** | 기둥마다 1개 | 전체 | 건너뛰는 이음 | O(T²) |
+| **전문가 문** | 여럿 | 중간 | 배움 | O(T) |
+| **어댑터** | 1개(함께 씀) | 아주 작음 | 과제 번호 | O(T) |
 
-## Financial Applications
+## 금융에서의 쓰임
 
-!!! warning "Multi-Strategy Expert Gates"
+!!! warning "여러 전략 전문가 문"
     
-    Maintain expert modules for:
-    - **Mean Reversion Expert**: Active in sideways markets
-    - **Momentum Expert**: Specializes in trending markets
-    - **Volatility Expert**: Activates in high-volatility regimes
-    - **Liquidity Expert**: Routes illiquid assets through appropriate strategy
+    다음을 맡는 전문가 모듈을 둔다.
+
+    - **평균 회귀 전문가**: 옆걸음 장에서 움직인다
+    - **추세 전문가**: 추세장에 전문화된다
+    - **변동성 전문가**: 변동성이 큰 국면에서 켜진다
+    - **유동성 전문가**: 유동성이 낮은 자산을 알맞은 전략으로 보낸다
     
-    Gating network learns to route each instrument/market state to best expert.
+    문 망은 상품과 시장 상태마다 가장 알맞은 전문가로 보내는 법을 배운다.
 
-### Cross-Asset Routing
+### 자산을 넘나드는 길 나눔
 
-Route different assets through appropriate experts:
+서로 다른 자산을 알맞은 전문가로 보낸다.
 
-**Input**: Asset features (volatility, sector, market cap)
+**입력**: 자산의 특징(변동성, 업종, 시가총액)
 
-**Gating**: Learn which asset classes (equities, bonds, commodities) are best suited
+**문**: 어느 자산 갈래(주식, 채권, 원자재)가 가장 잘 맞는지 배운다
 
-**Output**: Ensemble prediction combining selected experts
+**출력**: 고른 전문가를 합친 앙상블 예측
 
-## Research Directions
+## 연구의 방향
 
-- Automatic expert splitting/merging for optimal specialization
-- Theoretical bounds on expert gate performance
-- Mixture of experts with hierarchical structures
-- Addressing task confusion without explicit task IDs
-- Efficient gating with high-dimensional inputs
+- 가장 좋은 전문화를 위해 전문가를 알아서 쪼개고 합치기
+- 전문가 문 성능의 이론적 한계
+- 층층 짜임을 갖춘 전문가 섞음
+- 드러난 과제 번호 없이 과제 헷갈림 다루기
+- 차원이 높은 입력에서 효율적인 문
 
-## Related Topics
+## 관련 주제
 
-- Architecture-Based Continual Learning Overview (Chapter 12.1.1)
-- Supermask in Superposition (Chapter 12.1.3)
-- Mixture of Experts
-- Progressive Neural Networks
+- 구조 기반 이어 배우기 훑어보기(12.1.1절)
+- 겹쳐 놓은 초가리개(12.1.3절)
+- 전문가 섞음
+- 점진 확장 신경망
+
+## 연습문제
+
+**연습문제 1.**
+이 방법의 핵심 생각과 그것이 파국적 잊음을 어떻게 다루는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 방법은 새 과제를 배울 때 모델의 매개변수나 표현이 바뀌는 방식을 옥죄어 파국적 잊음을 누그러뜨린다. (벌주기, 되살리기, 증류, 구조 갈라두기로) 배운 함수의 중요한 대목을 지켜 냄으로써, 앞선 과제의 성능을 지키면서도 새 과제에 맞추어 갈 수 있게 한다.
+
+---
+
+**연습문제 2.**
+이 접근법의 셈과 기억 요구는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    요구는 변형마다 다르지만 대체로 (a) 매개변수의 중요도 무게, (b) 학습 보기의 일부, (c) 스승 모델의 출력, (d) 과제마다의 망 모듈 가운데 하나를 담아 두어야 한다. 기억 비용과 잊음 막기의 효과 사이에서 맞바꿈이 일어난다.
+
+---
+
+**연습문제 3.**
+이 방법을 효과와 셈 비용 면에서 EWC와 견주어라.
+
+??? success "연습문제 3 풀이"
+    EWC은 대각 피셔 정보로 중요한 가중치를 짚어낸다. 이 방법은 다른 맞바꿈을 준다. 옛 과제의 성능을 더 잘 지킬 수 있고, 기억 요구가 다르며, 과제 짜임에 대한 가정도 다르다. 실험으로 견주어 보면 잣대에 따라 서로 보완되는 강점을 보일 때가 많다.
+
+---
+
+**연습문제 4.**
+이 방법을 간추린 판으로 파이토치에 구현하라.
+
+??? success "연습문제 4 풀이"
+    구현은 대개 새 과제를 익히는 동안 보통의 교차 엔트로피 손실에 벌주기 항을 더한다. 핵심 부품은 (1) 앞선 과제 학습에서 제약을 셈하기, (2) 필요한 정보(가중치, 본보기, 스승 출력)를 담아 두기, (3) 새 과제 학습 중에 그 제약을 씌우기이다.

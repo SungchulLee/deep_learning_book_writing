@@ -1,94 +1,127 @@
-# Competitive Analysis
+# 겨룸 살피기
 
-When designing algorithms for real-world systems, decisions often must be made without knowledge of future inputs. A web cache decides which pages to keep without knowing future requests; an operating system scheduler assigns tasks without knowing what arrives next. **Competitive analysis** provides a rigorous framework for evaluating such **online algorithms** by comparing their performance against an omniscient optimal offline algorithm that sees the entire input sequence in advance.
+실제 시스템의 알고리즘을 설계할 때는 앞으로 올 들임을 모른 채 결정해야 할 때가 많다. 웹 두름은 앞으로 올 요청을 모른 채 어느 쪽을 남길지 정하고, 운영 체제의 일정잡이는 다음에 무엇이 올지 모른 채 일을 맡긴다. **겨룸 살피기**는 그런 **온라인 알고리즘**의 성능을 온 들임 차례를 미리 다 보는 다 아는 최적 오프라인 알고리즘과 견주어 따지는 엄밀한 틀을 준다.
 
-## Online vs Offline Algorithms
+## 온라인과 오프라인 알고리즘
 
-An **online algorithm** receives input elements one at a time and must make irrevocable decisions after each element, without knowledge of future elements. An **offline algorithm** receives the entire input sequence upfront and can compute the globally optimal solution.
+**온라인 알고리즘**은 들임 원소를 하나씩 받고 앞으로 올 원소를 모른 채 원소마다 되돌릴 수 없는 결정을 해야 한다. **오프라인 알고리즘**은 온 들임 차례를 먼저 다 받아 온 자리에서 가장 좋은 답을 셈할 수 있다.
 
-!!! example "Online vs Offline Intuition"
-    Consider a ski resort scenario: each day you decide whether to rent skis (\$50) or buy them (\$500). An online algorithm decides day by day. An offline algorithm knows in advance how many days you will ski and chooses the cheapest strategy from the start.
+!!! example "온라인과 오프라인의 느낌"
+    스키장 상황을 생각해 보자. 날마다 스키를 빌릴지(\$50) 살지(\$500) 정한다. 온라인 알고리즘은 날마다 정한다. 오프라인 알고리즘은 며칠이나 스키를 탈지 미리 알고 처음부터 가장 싼 셈속을 고른다.
 
-Formally, let $\sigma = \sigma_1, \sigma_2, \ldots, \sigma_n$ be a request sequence. An online algorithm $A$ processes $\sigma_i$ before seeing $\sigma_{i+1}, \ldots, \sigma_n$, producing a cost $C_A(\sigma)$. The optimal offline algorithm $\text{OPT}$ produces cost $C_{\text{OPT}}(\sigma)$.
+엄밀히 $\sigma = \sigma_1, \sigma_2, \ldots, \sigma_n$을 요청 차례라 하자. 온라인 알고리즘 $A$은 $\sigma_{i+1}, \ldots, \sigma_n$을 보기 전에 $\sigma_i$을 다루어 비용 $C_A(\sigma)$을 낸다. 최적 오프라인 알고리즘 $\text{OPT}$은 비용 $C_{\text{OPT}}(\sigma)$을 낸다.
 
-## The Competitive Ratio
+## 겨룸 비
 
-The **competitive ratio** of an online algorithm $A$ is the smallest constant $c$ such that for every request sequence $\sigma$,
+온라인 알고리즘 $A$의 **겨룸 비**는 모든 요청 차례 $\sigma$에 대해 다음을 만족하는 가장 작은 상수 $c$이다,
 
 $$
 C_A(\sigma) \leq c \cdot C_{\text{OPT}}(\sigma) + b
 $$
 
-where $b$ is a constant independent of $\sigma$. Algorithm $A$ is called **$c$-competitive**.
+여기서 $b$은 $\sigma$과 무관한 상수이다. 알고리즘 $A$을 **$c$겨룸**이라 부른다.
 
-When $b = 0$, the algorithm is **strictly $c$-competitive**. The competitive ratio captures the worst-case multiplicative overhead of not knowing the future.
+$b = 0$이면 알고리즘이 **엄밀히 $c$겨룸**이다. 겨룸 비는 앞을 모름이 낳는 가장 나쁜 경우의 곱셈 덧짐을 담는다.
 
-!!! tip "Additive Constant"
-    The additive constant $b$ accounts for startup costs or boundary effects. For most analyses, $b$ can be ignored because it becomes negligible for long request sequences.
+!!! tip "더하기 상수"
+    더하기 상수 $b$은 처음 드는 비용이나 가장자리 효과를 셈에 넣는다. 요청 차례가 길면 하찮아지므로 대부분의 살피기에서 $b$은 무시할 수 있다.
 
-## Deterministic vs Randomized Competitive Ratios
+## 정해진 겨룸 비와 아무 겨룸 비
 
-For **deterministic** online algorithms, the competitive ratio is defined over worst-case input sequences:
+**정해진** 온라인 알고리즘에서 겨룸 비는 가장 나쁜 들임 차례에 대해 뜻매김된다:
 
 $$
 c = \sup_{\sigma} \frac{C_A(\sigma)}{C_{\text{OPT}}(\sigma)}
 $$
 
-For **randomized** online algorithms, the cost $C_A(\sigma)$ becomes a random variable and we take the expectation:
+**아무** 온라인 알고리즘에서는 비용 $C_A(\sigma)$이 확률 변수가 되고 기댓값을 잡는다:
 
 $$
 \mathbb{E}[C_A(\sigma)] \leq c \cdot C_{\text{OPT}}(\sigma) + b
 $$
 
-Randomization often yields strictly better competitive ratios than any deterministic algorithm. The adversary model matters:
+아무렇게 하기는 어떤 정해진 알고리즘보다도 엄밀히 더 좋은 겨룸 비를 낼 때가 많다. 맞수 모형이 중요하다:
 
-- **Oblivious adversary**: chooses the request sequence without seeing the algorithm's random choices. This is the standard model for randomized competitive analysis.
-- **Adaptive adversary**: observes the algorithm's decisions and adapts future requests accordingly. Against an adaptive adversary, randomization provides no benefit.
+- **눈감은 맞수**: 알고리즘의 아무 고름을 보지 않고 요청 차례를 고른다. 아무 겨룸 살피기의 여느 모형이다.
+- **맞춰 가는 맞수**: 알고리즘의 결정을 보고 앞으로의 요청을 거기에 맞춘다. 맞춰 가는 맞수 앞에서는 아무렇게 하기가 도움이 되지 않는다.
 
-## Lower Bounds via Adversary Arguments
+## 맞수 논증으로 얻는 아래 가둠
 
-To prove that no online algorithm can achieve a competitive ratio better than $c$, one constructs an **adversary strategy** that forces any algorithm to pay at least $c$ times the offline optimum.
+어떤 온라인 알고리즘도 겨룸 비를 $c$보다 좋게 할 수 없음을 밝히려면, 어떤 알고리즘이든 오프라인 최적의 적어도 $c$배를 치르게 하는 **맞수 셈속**을 짓는다.
 
-??? example "Lower Bound Technique"
-    The adversary adaptively constructs a request sequence based on the algorithm's decisions, always choosing the request that maximizes the ratio $C_A(\sigma) / C_{\text{OPT}}(\sigma)$. If the adversary can guarantee this ratio is at least $c$ for every deterministic algorithm, then $c$ is a lower bound on the deterministic competitive ratio.
+??? example "아래 가둠 재주"
+    맞수는 알고리즘의 결정에 맞추어 요청 차례를 지으며 늘 비 $C_A(\sigma) / C_{\text{OPT}}(\sigma)$을 가장 크게 하는 요청을 고른다. 맞수가 모든 정해진 알고리즘에 대해 이 비가 적어도 $c$임을 보장할 수 있으면 $c$은 정해진 겨룸 비의 아래 가둠이다.
 
-    For randomized algorithms against an oblivious adversary, **Yao's minimax principle** provides lower bounds: any lower bound on the expected cost of deterministic algorithms against a random input distribution also lower-bounds the competitive ratio of randomized algorithms.
+    눈감은 맞수를 상대하는 아무 알고리즘에는 **야오의 최소최대 원리**가 아래 가둠을 준다. 아무 들임 분포를 상대하는 정해진 알고리즘의 기대 비용에 대한 어떤 아래 가둠도 아무 알고리즘의 겨룸 비를 아래로 가둔다.
 
-## Amortized Competitive Analysis
+## 고루 나눈 겨룸 살피기
 
-Some analyses use a **potential function** $\Phi$ to compare the online algorithm's state to the offline optimum's state. Define the amortized cost of serving request $\sigma_i$ as:
+어떤 살피기는 온라인 알고리즘의 상태를 오프라인 최적의 상태와 견주려 **잠재 함수** $\Phi$을 쓴다. 요청 $\sigma_i$을 처리하는 고루 나눈 비용을 다음과 같이 뜻매김한다:
 
 $$
 a_i = c_i + \Phi(s_i) - \Phi(s_{i-1})
 $$
 
-where $c_i$ is the actual cost and $s_i$ is the algorithm's state after request $i$. If we can show $a_i \leq c \cdot c_i^*$ for the offline cost $c_i^*$ at each step, and $\Phi$ is non-negative with $\Phi(s_0) = 0$, then the algorithm is $c$-competitive.
+여기서 $c_i$은 실제 비용이고 $s_i$은 요청 $i$ 뒤 알고리즘의 상태이다. 걸음마다 오프라인 비용 $c_i^*$에 대해 $a_i \leq c \cdot c_i^*$임을 보이고 $\Phi$이 음이 아니며 $\Phi(s_0) = 0$이면 알고리즘은 $c$겨룸이다.
 
-## Example: Deterministic List Accessing
+## 보기: 정해진 목록 닿기
 
-Consider a linked list of $n$ elements serving access requests. Each access to element $x$ at position $i$ costs $i$. After an access, the algorithm may rearrange the list by moving $x$ toward the front.
+닿기 요청을 처리하는 원소 $n$개의 이은 목록을 생각하자. 자리 $i$에 있는 원소 $x$에 닿을 때마다 비용이 $i$이다. 닿은 뒤 알고리즘은 $x$을 앞쪽으로 옮겨 목록을 다시 늘어놓을 수 있다.
 
-The **Move-to-Front (MTF)** strategy moves the accessed element to position 1 after every access. Using amortized analysis with an appropriate potential function:
+**맨 앞으로 옮기기(MTF)** 셈속은 닿을 때마다 그 원소를 1번 자리로 옮긴다. 알맞은 잠재 함수로 고루 나눈 살피기를 하면:
 
 $$
 \text{MTF is 2-competitive}
 $$
 
-This means MTF never pays more than twice the cost of the optimal offline list arrangement strategy.
+이는 MTF이 최적 오프라인 목록 늘어놓기 셈속 비용의 두 배를 결코 넘지 않음을 뜻한다.
 
-## Connection to Deep Learning
+## 딥러닝과의 관계
 
-Competitive analysis concepts appear in several deep learning contexts:
+겨룸 살피기 개념은 깊은 배움의 여러 자리에 나타난다:
 
-- **Online learning** algorithms like online gradient descent are analyzed via regret bounds, the online learning analogue of competitive ratios
-- **Caching and prefetching** in GPU memory management use online algorithms whose quality is measured by competitive analysis
-- **Adaptive learning rate schedules** make irrevocable decisions about step sizes, trading off exploration and exploitation in a manner analogous to online algorithms
+- 온라인 기울기 내려가기 같은 **온라인 배움** 알고리즘은 겨룸 비에 해당하는 온라인 배움의 잣대인 뉘우침 가둠으로 살핀다
+- GPU 기억 다루기의 **두르기와 미리 가져오기**는 겨룸 살피기로 품질을 재는 온라인 알고리즘을 쓴다
+- **맞춰 가는 배움 빠르기 일정**은 걸음 크기를 되돌릴 수 없이 정하며 온라인 알고리즘과 비슷하게 살펴보기와 써먹기를 맞바꾼다
 
-## Summary
+## 요약
 
-Competitive analysis measures how much an online algorithm's lack of future knowledge costs compared to an omniscient offline optimum. The competitive ratio provides worst-case guarantees that hold for any input sequence, making it particularly valuable for systems where adversarial or unpredictable inputs are the norm. Randomization, potential functions, and adversary arguments form the core toolkit for establishing and proving competitive ratios.
+겨룸 살피기는 온라인 알고리즘이 앞을 모르는 탓에 다 아는 오프라인 최적에 견주어 얼마를 더 치르는지 잰다. 겨룸 비는 어떤 들임 차례에도 들어맞는 가장 나쁜 경우의 보장을 주므로, 맞수 같거나 헤아릴 수 없는 들임이 흔한 시스템에 특히 값지다. 아무렇게 하기, 잠재 함수, 맞수 논증이 겨룸 비를 세우고 밝히는 핵심 연장이다.
 
-## References
+## 참고 문헌
 
 - [Online Computation and Competitive Analysis (Borodin and El-Yaniv)](https://www.amazon.com/dp/0521619467)
 - [Data Streams: Algorithms and Applications (Muthukrishnan)](https://www.cs.rutgers.edu/~muthu/stream-1-1.ps)
+
+
+## 연습문제
+
+**연습문제 1.**
+온라인 알고리즘의 겨룸 살피기와 겨룸 비를 뜻매김하여라.
+
+??? success "연습문제 1 풀이"
+    겨룸 살피기는 같은 들임에서 온라인 알고리즘의 비용을 최적 오프라인 알고리즘의 비용과 견준다. 온라인 알고리즘 $A$의 겨룸 비는 모든 들임 차례 $\sigma$에 대해 $\rho = \sup_{\sigma} \frac{\text{cost}_A(\sigma)}{\text{cost}_{OPT}(\sigma)}$이다. 비용이 많아야 최적의 $\rho$배에 더하기 상수를 더한 값이면 $A$은 $\rho$겨룸이다. 낮을수록 좋다. 1겨룸 알고리즘은 최적과 같다. 대부분의 온라인 문제는 앞을 모르기에 겨룸 비가 $> 1$이다.
+
+---
+
+**연습문제 2.**
+스키 빌리기 문제의 어떤 정해진 온라인 알고리즘도 겨룸 비를 2보다 좋게 할 수 없음을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    스키 빌리기에서 빌리기는 하루 \$1이고 사기는 \$B이다. 알고리즘이 $d$일째에 사면 비용 = $d - 1 + B$이다. 스키를 $T$일 탄다면 OPT = $\min(T, B)$이다. $T = d - 1$이면(맞수가 사기 직전에 멈춤) 알고리즘 비용 = $d - 1 + B$, OPT = $d - 1$이다. 비 = $(d - 1 + B)/(d - 1) = 1 + B/(d-1)$. $T = \infty$이고 알고리즘이 끝내 사지 않으면 알고리즘 비용 = $T \to \infty$, OPT = $B$이므로 비 $\to \infty$이다. 가장 좋은 정해진 셈속은 $B$일째에 사는 것이다. 가장 나쁜 경우는 $T = B$으로 비용 $2B - 1$, OPT $= B$, 비 $\to 2$이다. 어떤 정해진 셈속도 더 낫게 할 수 없다.
+
+---
+
+**연습문제 3.**
+아무렇게 하기가 겨룸 비를 어떻게 좋게 하는지 밝히고 보기를 들어라.
+
+??? success "연습문제 3 풀이"
+    아무 알고리즘은 눈감은 맞수(알고리즘의 아무 고름을 보지 못하는 맞수) 앞에서 더 좋은 겨룸 비를 이룰 수 있다. 스키 빌리기에서는 지수와 비슷한 분포에서 아무 날 $d$을 뽑아 그날 산다. 기대 비용이 많아야 OPT의 $e/(e-1) \approx 1.58$배로 정해진 비 2보다 낫다. 더 넓게는 야오의 최소최대 원리가 아무 겨룸 비는 가장 나쁜 들임 분포를 상대하는 가장 좋은 정해진 알고리즘의 비와 같다고 말한다.
+
+---
+
+**연습문제 4.**
+겨룸 살피기는 깊은 배움을 펼칠 때의 결정과 어떻게 이어지는가?
+
+??? success "연습문제 4 풀이"
+    겨룸 살피기는 온라인 기계 배움의 결정에 쓰인다. (1) 모델 다시 익히기: 자료가 떠내려갈 때 언제 다시 익힐지(스키 빌리기와 비슷하다 --- 다시 익히기에 들일지 지금 모델을 지킬지), (2) 밑감 나누기: 앞으로의 수요를 모른 채 요청 처리에 GPU 밑감을 나누기, (3) 두르기: 어느 모델 무게를 GPU 기억에 남길지 정하기(쪽 넘기기/두르기 문제), (4) 온라인 배움: 추천 시스템의 맥락 노름꾼에서 살펴보기와 써먹기의 균형 잡기.

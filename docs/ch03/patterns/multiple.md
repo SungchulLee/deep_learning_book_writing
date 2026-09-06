@@ -1,10 +1,10 @@
-# Multiple Recursion
+# 다중 재귀
 
-Multiple recursion occurs when a function makes **three or more** recursive calls per invocation. While binary recursion splits a problem in two, multiple recursion handles cases where the problem naturally decomposes into many subproblems — as seen in backtracking over multiple choices or traversing trees with arbitrary branching factor.
+다중 재귀는 함수가 호출마다 재귀 호출을 **세 번 이상** 할 때 나타난다. 이진 재귀가 문제를 둘로 쪼개는 반면, 다중 재귀는 문제가 자연스럽게 여러 부분문제로 분해되는 경우를 다룬다. 여러 선택지를 되짚어 가며 탐색하거나 분기 계수가 임의인 트리를 순회할 때가 그렇다.
 
-## Structure
+## 구조
 
-A multiply recursive function makes $k \geq 3$ recursive calls:
+다중 재귀 함수는 $k \geq 3$번의 재귀 호출을 한다.
 
 ```
 function f(problem):
@@ -14,38 +14,38 @@ function f(problem):
         f(sub)
 ```
 
-The call graph forms a tree with branching factor $k$, leading to exponential growth in the number of calls.
+호출 그래프는 분기 계수가 $k$인 트리를 이루며, 호출 횟수가 지수적으로 늘어난다.
 
-## Example: Generating All Subsets
+## 예제: 모든 부분집합 생성하기
 
-Generating all subsets of a set is a natural multiple recursion problem. At each position, the function branches into "include" and "exclude" paths, but when generalized to $k$-ary choices, the branching factor exceeds two:
+집합의 모든 부분집합을 생성하는 것은 자연스러운 다중 재귀 문제이다. 각 위치에서 함수는 "포함"과 "제외"의 두 갈래로 나뉘지만, $k$개의 선택지로 일반화하면 분기 계수가 둘을 넘는다.
 
 ```python
-"""Multiple recursion demonstrated with subset generation."""
+"""부분집합 생성으로 보여주는 다중 재귀."""
 
 
-# === Generate Subsets ===
+# === 부분집합 생성 ===
 
 def subsets(arr, index=0, current=None):
-    """Generate all subsets of arr using recursion."""
+    """재귀로 arr의 모든 부분집합을 생성한다."""
     if current is None:
         current = []
     if index == len(arr):
         print(current)
         return
-    # Exclude current element
+    # 현재 원소를 제외한다
     subsets(arr, index + 1, current)
-    # Include current element
+    # 현재 원소를 포함한다
     subsets(arr, index + 1, current + [arr[index]])
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     subsets([1, 2, 3])
 ```
 
-**Output:**
+**출력:**
 ```
 []
 [3]
@@ -57,10 +57,43 @@ if __name__ == "__main__":
 [1, 2, 3]
 ```
 
-## Complexity
+## 복잡도
 
-For a problem with branching factor $k$ and depth $d$, multiple recursion generates $O(k^d)$ calls. Subset generation with $n$ elements has $k = 2$ and $d = n$, giving $O(2^n)$ subsets — which is expected, since a set of size $n$ has exactly $2^n$ subsets.
+분기 계수가 $k$이고 깊이가 $d$인 문제에서 다중 재귀는 $O(k^d)$번의 호출을 만든다. 원소가 $n$개인 부분집합 생성은 $k = 2$, $d = n$이므로 $O(2^n)$개의 부분집합을 준다. 크기 $n$인 집합의 부분집합이 정확히 $2^n$개이므로 예상되는 결과이다.
 
-## Reference
+## 참고 문헌
 
 [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+다중 재귀에 대해 기저 사례와 재귀 사례를 찾아라. 모든 유효한 입력에 대해 재귀가 종료됨을 증명하라.
+
+??? success "연습문제 1 풀이"
+    기저 사례는 가장 작은 유효한 입력을 직접 처리한다. 재귀 사례는 호출마다 감소하는 잘 정의된 척도로 문제 크기를 줄인다. 이 척도가 (기저 사례의 문턱값으로) 아래로 유계이면서 엄격히 감소하므로 재귀는 반드시 유한한 단계 안에 종료된다.
+
+---
+
+**연습문제 2.**
+다중 재귀의 시간 복잡도에 대한 점화식을 유도하고 풀어라.
+
+??? success "연습문제 2 풀이"
+    $T(n)$을 재귀 호출과 호출당 일의 함수로 표현한다. 이 점화식은 분기 계수, 부분문제 크기의 감소, 결합 비용을 담는다. 펼치기, 마스터 정리, 치환 중 하나로 풀어 닫힌 형태를 얻는다.
+
+---
+
+**연습문제 3.**
+$n = 8$일 때 다중 재귀의 재귀 트리를 그려라. 각 층에서의 일과 전체 일을 계산하라.
+
+??? success "연습문제 3 풀이"
+    트리의 깊이는 입력이 기저 사례까지 얼마나 빨리 줄어드는지로 정해진다. 각 층에서 모든 노드의 일을 더한다. 모든 층에 걸친 총합이 실행 시간을 준다. $n = 8$이면 트리가 작아서 전부 열거할 수 있다.
+
+---
+
+**연습문제 4.**
+재귀 구현을 반복 버전으로 변환하라. 공간 복잡도를 비교하라.
+
+??? success "연습문제 4 풀이"
+    호출 스택을 명시적 스택이나 반복 변수로 대체한다. 꼬리 재귀 형태는 while 반복문으로 곧바로 바뀐다. 꼬리가 아닌 형태는 호출 스택을 흉내 내기 위해 명시적 스택이 필요하다. 반복 버전은 보통 $O(\text{depth})$의 스택 공간을 아낀다.

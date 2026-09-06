@@ -1,134 +1,131 @@
-# Online Elastic Weight Consolidation
+# 온라인 탄성 가중치 다지기
+## 들어가며
 
+온라인 탄성 가중치 다지기(온라인 EWC)는 과제를 마친 뒤에만이 아니라 과제를 배우는 내내 매개변수 중요도 어림을 고쳐 가며 바탕이 되는 탄성 가중치 다지기를 넓힌다. 이렇게 중요도 무게를 실시간으로 다듬으면 결정적인 매개변수를 더 정확히 짚어내고 긴 과제 차례에 걸쳐 앎을 더 매끄럽게 지킬 수 있다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+계량 금융에서 온라인 EWC은 쉼 없이 배우는 적응 체계에 특히 값지다. 시장 상황이 차츰 바뀌면 온라인 중요도 어림이 달라지는 매개변수의 쓸모에 맞추어 가며, 지금 결정적인 매개변수는 지키고 낡은 앎은 덮어쓰게 한다.
 
-## Introduction
+## 핵심 개념
 
-Online Elastic Weight Consolidation (Online EWC) extends the foundational Elastic Weight Consolidation approach by updating parameter importance estimates continuously during task learning, rather than only after task completion. This online refinement of importance weights enables more accurate identification of critical parameters and smoother knowledge preservation across long task sequences.
+- **흐르는 중요도 어림**: 배우는 도중에 피셔 정보를 고친다
+- **운동량 기반 갱신**: 중요도 재기의 지수 이동 평균
+- **차츰 이루어지는 전문화**: 학습이 나아가면서 매개변수가 저절로 전문화된다
+- **줄어든 파국적 잊음**: 중요도가 더 정확해 지나친 벌을 막는다
+- **셈 효율**: 학습 중에 한 번 훑으며 중요도를 셈한다
 
-In quantitative finance, online EWC proves particularly valuable for adaptive systems that learn continuously: as market conditions evolve gradually, online importance estimation adapts to shifting parameter relevance, protecting currently-critical parameters while allowing obsolete knowledge to be overwritten.
+## 수학적 틀
 
-## Key Concepts
+### 보통의 EWC 밑금
 
-- **Streaming Importance Estimates**: Update Fisher information during learning
-- **Momentum-Based Updates**: Exponential moving average of importance measures
-- **Gradual Specialization**: Parameters specialize dynamically as training progresses
-- **Reduced Catastrophic Forgetting**: More accurate importance prevents excessive penalties
-- **Computational Efficiency**: Single-pass importance computation during training
-
-## Mathematical Framework
-
-### Standard EWC Baseline
-
-Elastic Weight Consolidation computes importance after task completion:
+탄성 가중치 다지기는 과제를 마친 뒤에 중요도를 셈한다.
 
 $$\mathcal{L}_{\text{EWC}} = \mathcal{L}_{\text{task}} + \frac{\lambda}{2} \sum_i F_i^{(t-1)} (\theta_i - \theta_i^*)^2$$
 
-where importance $F_i^{(t-1)}$ is computed after Task $t-1$ completes.
+여기서 중요도 $F_i^{(t-1)}$은 과제 $t-1$을 마친 뒤에 셈한다.
 
-**Limitation**: Importance estimates become stale during Task $t$ learning, potentially protecting wrong parameters.
+**한계**: 과제 $t$을 배우는 동안 중요도 어림이 낡아, 엉뚱한 매개변수를 지킬 수 있다.
 
-### Online EWC Formulation
+### 온라인 EWC의 정식화
 
-Update importance estimates during learning through exponential moving average:
+배우는 도중에 지수 이동 평균으로 중요도 어림을 고친다.
 
 $$F_i^{(t)}(b) = (1 - \rho) F_i^{(t)}(b-1) + \rho \left(\frac{\partial \mathcal{L}}{\partial \theta_i}\right)_b^2$$
 
-where:
-- $\rho \in [0, 1]$ is decay rate (typically 0.9-0.99)
-- $b$ denotes mini-batch index
-- $(\cdot)_b$ is gradient computed on batch $b$
+여기서 각 기호는 다음과 같다.
 
-### Consolidated Loss Function
+- $\rho \in [0, 1]$은 감쇠율이다(대개 0.9~0.99)
+- $b$은 미니배치 첨자이다
+- $(\cdot)_b$은 배치 $b$에서 셈한 기울기이다
+
+### 다진 손실 함수
 
 $$\mathcal{L}_{\text{total}} = \mathcal{L}_{\text{task}_t}(\theta) + \frac{\lambda}{2} \sum_i F_i^{(t-1)} (\theta_i - \theta_i^*)^2$$
 
-where regularization uses importance from previous task $t-1$.
+여기서 벌주기는 앞선 과제 $t-1$의 중요도를 쓴다.
 
-## Importance Update Mechanics
+## 중요도 갱신의 얼개
 
-### Per-Batch Update
+### 배치마다의 갱신
 
-At each mini-batch:
+미니배치마다 다음과 같이 한다.
 
 $$F_i(b) = (1-\rho) F_i(b-1) + \rho g_i(b)^2$$
 
-where $g_i(b) = \frac{\partial \mathcal{L}}{\partial \theta_i}\big|_b$ is gradient on batch $b$.
+여기서 $g_i(b) = \frac{\partial \mathcal{L}}{\partial \theta_i}\big|_b$은 배치 $b$에서의 기울기이다.
 
-**Benefits**:
-- Continuous refinement of importance
-- Adapts to changing gradient patterns
-- Smooth evolution of estimates
+**이점**:
 
-### Decay Rate Selection
+- 중요도를 쉼 없이 다듬는다
+- 바뀌는 기울기 본새에 맞추어 간다
+- 어림값이 매끄럽게 바뀐다
 
-The decay rate $\rho$ controls importance update speed:
+### 감쇠율 고르기
+
+감쇠율 $\rho$은 중요도가 고쳐지는 속도를 다스린다.
 
 $$F_i^{(t)}(b) = \sum_{b'=0}^{b} (1-\rho)^{b-b'} \rho g_i(b')^2$$
 
-Recent gradients exponentially weighted higher.
+최근 기울기일수록 지수로 더 큰 무게를 받는다.
 
-| $\rho$ | Characteristics | Use Case |
+| $\rho$ | 성격 | 쓰임새 |
 |---|---|---|
-| **0.5** | Fast updates | Rapidly changing gradients |
-| **0.9** | Moderate | Standard scenarios |
-| **0.99** | Slow updates | Stable gradient patterns |
-| **0.999** | Very slow | Long-term trends |
+| **0.5** | 빠른 갱신 | 기울기가 재빨리 바뀔 때 |
+| **0.9** | 보통 | 흔한 상황 |
+| **0.99** | 느린 갱신 | 기울기 본새가 한결같을 때 |
+| **0.999** | 아주 느림 | 오랜 흐름 |
 
-!!! tip "Data-Dependent Selection"
-    Choose $\rho$ based on gradient statistics from mini-batches.
+!!! tip "데이터에 따라 고르기"
+    미니배치의 기울기 통계를 보고 $\rho$을 고르라.
 
-## Addressing Importance Stability
+## 중요도의 한결같음 다루기
 
-### Early Training Volatility
+### 학습 초반의 출렁임
 
-Gradients fluctuate significantly early in training. Mitigate through:
+학습 초반에는 기울기가 크게 출렁인다. 다음으로 누그러뜨린다.
 
-**Warm-Up**: Disable online update for first epochs
+**예열**: 처음 몇 시대는 온라인 갱신을 끈다
 
 $$\text{Update only if } b > b_{\text{warmup}}$$
 
-**Clipping**: Clip gradient magnitudes to prevent outlier influence
+**자르기**: 튀는 값의 영향을 막도록 기울기의 크기를 자른다
 
 $$g_i^{\text{clipped}} = \min(g_i^2, g_{\text{max}}^2)$$
 
-### Importance Scaling
+### 중요도 눈금 맞추기
 
-Ensure importance estimates remain stable in magnitude:
+중요도 어림의 크기가 한결같도록 한다.
 
 $$F_i \gets \frac{F_i}{\max(F_i) + \epsilon}$$
 
-Prevents numerical issues with very large or small importance values.
+중요도 값이 아주 크거나 작을 때 생기는 수치 문제를 막는다.
 
-## Convergence Analysis
+## 모임 분석
 
-### Importance Estimate Convergence
+### 중요도 어림의 모임
 
-Under stationary gradient distribution $p(g)$:
+기울기 분포 $p(g)$이 멈춰 있으면 다음과 같다.
 
 $$\mathbb{E}[F_i(\infty)] = \mathbb{E}[g_i^2]$$
 
-Online estimates converge to true expected squared gradients.
+온라인 어림값은 참 기대 기울기 제곱으로 모인다.
 
-**Convergence Rate**: $O((1-\rho)^{-1})$ batches to converge
+**모이는 속도**: 모이는 데 배치 $O((1-\rho)^{-1})$번
 
-For $\rho = 0.9$: Convergence in approximately 10 batch updates
+$\rho = 0.9$이면 배치 갱신 10번 남짓에 모인다
 
-### Variance of Online Estimates
+### 온라인 어림값의 흩어짐
 
-Online estimates have higher variance than batch estimates:
+온라인 어림값은 배치 어림값보다 흩어짐이 크다.
 
 $$\text{Var}(F_i^{\text{online}}) > \text{Var}(F_i^{\text{batch}})$$
 
-due to variance in individual batch gradients.
+배치마다의 기울기가 흩어지기 때문이다.
 
-**Mitigation**: Use lower decay rate $\rho$ (more averaging) to reduce variance.
+**누그러뜨리기**: 흩어짐을 줄이려면 감쇠율 $\rho$을 낮추어(더 많이 평균 내어) 쓰라.
 
-## Training Procedure
+## 학습 절차
 
-### Algorithm
+### 알고리즘
 
 ```
 procedure OnlineEWC(tasks T, λ, ρ):
@@ -155,120 +152,154 @@ procedure OnlineEWC(tasks T, λ, ρ):
     return θ, F
 ```
 
-## Comparison with Standard EWC
+## 보통의 EWC과의 견줌
 
-### Performance Over Task Sequences
+### 잇단 과제에서의 성능
 
-| Task | EWC | Online EWC | Improvement |
+| 과제 | EWC | 온라인 EWC | 나아짐 |
 |------|-----|-----------|------------|
-| **Task 1** | 95% | 95% | - |
-| **Task 2** | 89% | 91% | +2% |
-| **Task 3** | 82% | 85% | +3% |
-| **Task 4** | 74% | 79% | +5% |
-| **Task 5** | 65% | 73% | +8% |
+| **과제 1** | 95% | 95% | - |
+| **과제 2** | 89% | 91% | +2% |
+| **과제 3** | 82% | 85% | +3% |
+| **과제 4** | 74% | 79% | +5% |
+| **과제 5** | 65% | 73% | +8% |
 
-Online EWC maintains better cumulative performance, especially in long sequences.
+온라인 EWC은 쌓인 성능을 더 잘 지키며, 특히 차례가 길 때 그렇다.
 
-## Computational Considerations
+## 계산에 대한 고려
 
-### Overhead Analysis
+### 짐 분석
 
-Online EWC adds minimal overhead per batch:
+온라인 EWC은 배치마다 아주 적은 짐만 더한다.
 
-**Standard EWC**:
-- Post-task importance computation: $O(n)$ parameters (one-time)
+**보통의 EWC**:
 
-**Online EWC**:
-- Per-batch importance update: $O(n)$ parameters (every batch)
+- 과제를 마친 뒤 중요도 셈하기: 매개변수 $O(n)$개(한 번)
 
-For typical mini-batch training, additional cost ≈ 10% of gradient computation.
+**온라인 EWC**:
 
-### Memory Requirements
+- 배치마다 중요도 고치기: 매개변수 $O(n)$개(배치마다)
 
-Store importance estimates:
+흔한 미니배치 학습에서 더 드는 비용은 기울기 셈의 10% 남짓이다.
+
+### 기억 요구
+
+중요도 어림값을 담아 둔다.
 
 $$\text{Memory} = \text{Model Size} + \text{Importance Size}$$
 
-Importance matrix same dimension as model: doubles parameter memory.
+중요도 행렬이 모델과 같은 차원이라 매개변수 기억이 두 배가 된다.
 
-**Optimization**: Use single-precision (float32) for importance, float16 for computation.
+**손질**: 중요도에는 단정밀도(float32)를, 셈에는 float16을 쓰라.
 
-## Hyperparameter Interaction
+## 초매개변수의 얽힘
 
-### lambda and rho Trade-offs
+### 람다와 로의 맞바꿈
 
-| Scenario | $\rho$ | $\lambda$ | Effect |
+| 상황 | $\rho$ | $\lambda$ | 효과 |
 |----------|-------|----------|--------|
-| **Stable Gradients** | High (0.99) | Moderate | Smooth learning |
-| **Noisy Gradients** | Low (0.9) | High | Robust to noise |
-| **Long Sequences** | Medium (0.95) | High | Prevent accumulation |
-| **Fast Adaptation** | High (0.99) | Low | Allow plasticity |
+| **기울기가 한결같음** | 높음(0.99) | 보통 | 매끄러운 배움 |
+| **기울기에 잡음이 많음** | 낮음(0.9) | 높음 | 잡음에 튼튼함 |
+| **긴 차례** | 중간(0.95) | 높음 | 쌓임을 막음 |
+| **빠른 맞춤** | 높음(0.99) | 낮음 | 말랑함을 허용 |
 
-### Joint Tuning Strategy
+### 함께 손질하는 전략
 
-1. **Fix $\rho = 0.9$** (reasonable default)
-2. **Sweep $\lambda$** from 0.01 to 5.0
-3. **Evaluate** on task sequence (1-5 tasks)
-4. **Select $\lambda$** maximizing validation accuracy across all tasks
-5. **Refine $\rho$** if needed based on gradient statistics
+1. **$\rho = 0.9$으로 붙박아라**(그럴듯한 기본값)
+2. 0.01에서 5.0까지 **$\lambda$을 훑어라**
+3. 잇단 과제(1~5개)에서 **평가하라**
+4. 모든 과제에 걸친 검증 정확도를 가장 크게 하는 **$\lambda$을 고르라**
+5. 필요하면 기울기 통계를 보고 **$\rho$을 다듬어라**
 
-## Financial Applications
+## 금융에서의 쓰임
 
-!!! warning "Adaptive Financial Systems"
+!!! warning "맞추어 가는 금융 체계"
     
-    Use Online EWC for continuous learning from streaming market data:
+    흐르는 시장 데이터로 쉼 없이 배우려면 온라인 EWC을 쓰라.
     
-    **Hour 1**: Learn current market patterns, compute importance
-    **Hour 2-24**: Continuous online importance updates as market evolves
-    **Day 2**: Introduce new asset class, online EWC protects learned market knowledge
+    **1시간째**: 지금 시장의 본새를 배우고 중요도를 셈한다
+    **2~24시간째**: 시장이 바뀌는 동안 중요도를 쉼 없이 온라인으로 고친다
+    **둘째 날**: 새 자산 갈래를 들여오면 온라인 EWC이 배운 시장 앎을 지킨다
     
-    Online importance captures which market features remain critical as conditions change.
+    온라인 중요도는 상황이 바뀌어도 어떤 시장 특징이 계속 결정적인지 담아낸다.
 
-### Multi-Frequency Trading Adaptation
+### 여러 주기 거래에 맞추기
 
-Adapt trading models as market liquidity and volatility change:
+시장의 유동성과 변동성이 바뀌는 대로 거래 모델을 맞추어 간다.
 
-1. **Training Period**: Initialize on recent market data
-2. **Trading Period**: Continue online importance updates during live trading
-3. **Regime Shift**: When new regime detected, learn new patterns with protection from online importance
-4. **Continuous Adaptation**: Market-aware parameter importance guides learning
+1. **학습 기간**: 최근 시장 데이터로 초기화한다
+2. **거래 기간**: 실거래 중에도 온라인 중요도 갱신을 이어 간다
+3. **국면 바뀜**: 새 국면을 알아채면 온라인 중요도의 보호를 받으며 새 본새를 배운다
+4. **끊임없는 맞춤**: 시장을 아는 매개변수 중요도가 배움에 길잡이가 된다
 
-## Gradient-Based Importance Variants
+## 기울기 기반 중요도의 변형
 
-### Alternative Importance Measures
+### 다른 중요도 재기
 
-Instead of squared gradients, use:
+기울기 제곱 대신 다음을 쓴다.
 
-**Absolute Gradients**:
+**절댓값 기울기**:
 
 $$F_i = (1-\rho) F_i + \rho |g_i|$$
 
-More robust to sign flips, less sensitive to magnitude.
+부호가 뒤집혀도 더 튼튼하고 크기에 덜 민감하다.
 
-**Exponential Moving Standard Deviation**:
+**지수 이동 표준편차**:
 
 $$F_i = (1-\rho) F_i + \rho \sqrt{g_i^2 - \bar{g}_i^2}$$
 
-Captures gradient variance more directly.
+기울기의 흩어짐을 더 곧바로 담아낸다.
 
-### Adaptive Decay
+### 맞추어 가는 감쇠
 
-Adjust $\rho$ based on gradient statistics:
+기울기 통계를 보고 $\rho$을 손본다.
 
 $$\rho(b) = \rho_0 + (1-\rho_0) \cdot \text{softmax}(\text{gradient\_entropy})$$
 
-Higher entropy (uncertain gradients) → lower $\rho$ (more averaging)
+엔트로피가 높으면(기울기가 아리송하면) → $\rho$을 낮춘다(더 많이 평균 낸다)
 
-## Research Directions
+## 연구의 방향
 
-- Optimal decay rate selection from data
-- Combining online EWC with other continual learning methods
-- Scalable online importance computation for massive networks
-- Theoretical convergence guarantees for online estimates
+- 데이터에서 가장 좋은 감쇠율 고르기
+- 온라인 EWC을 다른 이어 배우기 방법과 섞기
+- 거대한 망을 위한 규모 확장 가능한 온라인 중요도 셈하기
+- 온라인 어림값의 이론적 모임 보장
 
-## Related Topics
+## 관련 주제
 
-- Elastic Weight Consolidation (Chapter 12.3.2)
-- Regularization Overview (Chapter 12.3.1)
-- Synaptic Intelligence
-- Memory Aware Synapses
+- 탄성 가중치 다지기(12.3.2절)
+- 벌주기 훑어보기(12.3.1절)
+- 시냅스 지능
+- 기억을 아는 시냅스
+
+## 연습문제
+
+**연습문제 1.**
+이 방법의 핵심 생각과 그것이 파국적 잊음을 어떻게 다루는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    이 방법은 새 과제를 배울 때 모델의 매개변수나 표현이 바뀌는 방식을 옥죄어 파국적 잊음을 누그러뜨린다. (벌주기, 되살리기, 증류, 구조 갈라두기로) 배운 함수의 중요한 대목을 지켜 냄으로써, 앞선 과제의 성능을 지키면서도 새 과제에 맞추어 갈 수 있게 한다.
+
+---
+
+**연습문제 2.**
+이 접근법의 셈과 기억 요구는 무엇인가?
+
+??? success "연습문제 2 풀이"
+    요구는 변형마다 다르지만 대체로 (a) 매개변수의 중요도 무게, (b) 학습 보기의 일부, (c) 스승 모델의 출력, (d) 과제마다의 망 모듈 가운데 하나를 담아 두어야 한다. 기억 비용과 잊음 막기의 효과 사이에서 맞바꿈이 일어난다.
+
+---
+
+**연습문제 3.**
+이 방법을 효과와 셈 비용 면에서 EWC와 견주어라.
+
+??? success "연습문제 3 풀이"
+    EWC은 대각 피셔 정보로 중요한 가중치를 짚어낸다. 이 방법은 다른 맞바꿈을 준다. 옛 과제의 성능을 더 잘 지킬 수 있고, 기억 요구가 다르며, 과제 짜임에 대한 가정도 다르다. 실험으로 견주어 보면 잣대에 따라 서로 보완되는 강점을 보일 때가 많다.
+
+---
+
+**연습문제 4.**
+이 방법을 간추린 판으로 파이토치에 구현하라.
+
+??? success "연습문제 4 풀이"
+    구현은 대개 새 과제를 익히는 동안 보통의 교차 엔트로피 손실에 벌주기 항을 더한다. 핵심 부품은 (1) 앞선 과제 학습에서 제약을 셈하기, (2) 필요한 정보(가중치, 본보기, 스승 출력)를 담아 두기, (3) 새 과제 학습 중에 그 제약을 씌우기이다.

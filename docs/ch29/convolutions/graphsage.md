@@ -1,14 +1,9 @@
 # 29.3.5 GraphSAGE
+## 들어가며
 
+해밀턴 외(2017)의 **GraphSAGE**(뽑고 모으기)는 마디의 그 자리 이웃에서 특징을 뽑아 모아 마디 박아 넣기를 만드는 **귀납** 그래프 배움 틀을 내놓는다. 그래프 겹말기 신경망과 달리 GraphSAGE은 본 적 없는 마디와 그래프로도 넓혀진다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Introduction
-
-**GraphSAGE** (SAmple and aggreGatE) by Hamilton et al. (2017) introduces an **inductive** graph learning framework that generates node embeddings by sampling and aggregating features from a node's local neighborhood. Unlike GCN, GraphSAGE can generalize to unseen nodes and graphs.
-
-## GraphSAGE Layer
+## GraphSAGE 층
 
 $$\mathbf{h}_{\mathcal{N}(v)}^{(l)} = \text{AGG}^{(l)}\left(\{\mathbf{h}_u^{(l-1)} : u \in \mathcal{N}_s(v)\}\right)$$
 
@@ -16,44 +11,78 @@ $$\mathbf{h}_v^{(l)} = \sigma\left(W^{(l)} \cdot [\mathbf{h}_v^{(l-1)} \| \mathb
 
 $$\mathbf{h}_v^{(l)} = \frac{\mathbf{h}_v^{(l)}}{\|\mathbf{h}_v^{(l)}\|_2}$$
 
-Key features:
-- $\mathcal{N}_s(v)$: **sampled** subset of neighbors (fixed-size)
-- Self-information explicitly separated via concatenation
-- Optional L2 normalization of output embeddings
+주요 기능:
 
-## Aggregation Variants
+- $\mathcal{N}_s(v)$: 이웃 가운데 **뽑은** 부분 모임(크기가 붙박여 있다)
+- 스스로의 앎을 이어 붙이기로 드러나게 떼어 놓는다
+- 내놓기 박아 넣기의 L2 고르게 맞추기(쓸 수 있음)
 
-**Mean Aggregator**: $\text{AGG} = \text{mean}(\{\mathbf{h}_u\})$ — element-wise mean of neighbor features.
+## 모으기 변형
 
-**Max-Pool Aggregator**: $\text{AGG} = \max(\{\sigma(W_{pool}\mathbf{h}_u + \mathbf{b})\})$ — applies MLP then element-wise max.
+**평균 모으개**: $\text{AGG} = \text{mean}(\{\mathbf{h}_u\})$ — 이웃 특징의 원소마다 평균.
 
-**LSTM Aggregator**: $\text{AGG} = \text{LSTM}(\pi(\{\mathbf{h}_u\}))$ — processes neighbors through LSTM with random permutation $\pi$.
+**최대 모으개**: $\text{AGG} = \max(\{\sigma(W_{pool}\mathbf{h}_u + \mathbf{b})\})$ — 여러 층 신경망을 쓴 뒤 원소마다 최대.
 
-## Neighbor Sampling
+**장단기 기억망 모으개**: $\text{AGG} = \text{LSTM}(\pi(\{\mathbf{h}_u\}))$ — 아무 자리바꿈 $\pi$과 함께 이웃을 장단기 기억망으로 다룬다.
 
-GraphSAGE samples a fixed number of neighbors per node per layer, creating a computation tree:
-- Layer 1: sample $S_1$ neighbors for each node
-- Layer 2: sample $S_2$ neighbors for each of those
+## 이웃 뽑기
 
-Total computation: $O(S_1 \cdot S_2 \cdot \ldots)$ per target node. Typical values: $S_1 = 25$, $S_2 = 10$.
+GraphSAGE은 층마다 마디마다 이웃을 붙박인 개수만큼 뽑아 셈 나무를 만든다:
 
-## Training
+- 1층: 마디마다 이웃 $S_1$개를 뽑는다
+- 2층: 그 각각에 대해 이웃 $S_2$개를 뽑는다
 
-### Supervised Loss
-Standard cross-entropy for node classification.
+온 셈: 과녁 마디마다 $O(S_1 \cdot S_2 \cdot \ldots)$. 흔한 값: $S_1 = 25$, $S_2 = 10$.
 
-### Unsupervised Loss
+## 학습
+
+### 스승 있는 손실
+마디 가름의 여느 교차 엔트로피.
+
+### 스승 없는 손실
 
 $$J(v) = -\log(\sigma(\mathbf{z}_u^T \mathbf{z}_v)) - Q \cdot \mathbb{E}_{v_n \sim P_n} [\log(\sigma(-\mathbf{z}_{v_n}^T \mathbf{z}_v))]$$
 
-Nearby nodes should have similar embeddings; random nodes should be dissimilar.
+가까운 마디는 박아 넣기가 비슷해야 하고 아무 마디는 달라야 한다.
 
-## Key Advantages over GCN
+## 그래프 겹말기 신경망보다 나은 점
 
-1. **Inductive**: Generalizes to new nodes/graphs without retraining
-2. **Scalable**: Neighbor sampling avoids full-graph computation
-3. **Mini-batch training**: Natural mini-batch support via sampling
+1. **귀납**: 다시 익히지 않고도 새 마디와 그래프로 넓혀진다
+2. **키울 수 있음**: 이웃 뽑기가 온 그래프 셈을 피한다
+3. **작은 묶음 익히기**: 뽑기로 작은 묶음을 자연스럽게 받쳐 준다
 
-## Summary
+## 요약
 
-GraphSAGE is foundational for scalable, inductive graph learning. Its sampling strategy and explicit self/neighbor separation make it particularly suitable for large-scale and dynamic graphs common in financial applications.
+GraphSAGE은 키울 수 있는 귀납 그래프 배움의 바탕이다. 그 뽑기 셈속과 스스로와 이웃을 드러나게 떼어 놓는 방식 덕에 금융 쓰임새에 흔한 큰 규모의 바뀌는 그래프에 특히 알맞다.
+
+## 연습문제
+
+**연습문제 1.**
+마디 5개와 돌이의 이웃 얼개를 가진 그래프를 살펴보자. 2차원 특징 벡터에서 이 마디에 적은 쪽지 건네기 고침 한 걸음을 손으로 셈하라.
+
+??? success "연습문제 1 풀이"
+    마디 $1, \ldots, 5$에 특징 벡터 $\mathbf{h}_i \in \mathbb{R}^2$을 붙인다. 돌이에서 마디마다 이웃이 꼭 둘이다. 마디마다 모으기(보기로 이웃의 평균)와 고침(보기로 선형 바꿈과 깨움)을 쓴다. 한 걸음 뒤 마디마다의 나타냄이 바로 옆 이웃의 영향을 받는다. 이 드러난 셈은 받아들이는 자리가 층마다 한 뜀씩 넓어짐을 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+평균 모으기와 합 모으기가 여럿 모임을 가르는 나타냄 힘에서 다름을 밝혀라. 평균 모으기로는 가릴 수 없지만 합 모으기로는 가릴 수 있는 여럿 모임 둘의 구체적인 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    $S_1 = \{1, 1, 1\}$과 $S_2 = \{1\}$을 살펴보자. 평균 모으기는 $\text{mean}(S_1) = 1 = \text{mean}(S_2)$을 주어 둘을 가르지 못한다. 합 모으기는 $\text{sum}(S_1) = 3 \neq 1 = \text{sum}(S_2)$을 준다. 더 넓게는 평균 모으기가 여럿 모임의 겹침 수에 대해 불변이므로 서로 낱값 배인 여럿 모임을 가를 수 없다. 그래서 그래프 동형 신경망은 1차 바이스파일러-레만 시험에 맞먹는 최대 나타냄 힘을 얻으려 합 모으기를 쓴다. $\square$
+
+---
+
+**연습문제 3.**
+최단 길 거리가 $k$일 때 마디 $u$의 앎이 마디 $v$에 닿으려면 쪽지 건네기 층이 몇 개 필요한가? $k$이 커지면 실제로 어떤 문제가 생기는가?
+
+??? success "연습문제 3 풀이"
+    층마다 앎을 한 뜀씩 퍼뜨리므로 꼭 $k$개가 필요하다. $k$이 커지면 받아들이는 자리가 지수로 넓어진다(마디마다 $k$뜀 안의 모든 마디에서 모은다). 이는 지나친 매끄러워짐을 낳는다. 층이 많아지면 마디마다 거의 온 그래프의 앎을 모았기에 모든 마디 나타냄이 가릴 수 없는 벡터로 모인다. 누그러뜨리는 셈속으로는 남은 이음, 건너뛰는 앎, 그래프 변환기가 있다. $\square$
+
+---
+
+**연습문제 4.**
+그래프 겹말기의 자리 방식과 스펙트럼 방식의 맞바꿈을 따져라. 각각은 어떤 조건에서 더 나은가?
+
+??? success "연습문제 4 풀이"
+    스펙트럼 방법(보기로 ChebNet)은 그래프 라플라스의 고유 분해로 겹말기를 뜻매김해 원리 있는 신호 다루기 틀을 주지만 고유 분해($O(n^3)$)가 필요하고 그래프 위상이 붙박여 있어야 한다. 자리 방법(보기로 GraphSAGE, 그래프 눈길 신경망)은 이웃 모으기로 겹말기를 뜻매김해 달라지는 그래프 얼개를 자연스럽게 다루고 작은 묶음으로 큰 그래프에도 키울 수 있다. 정확한 진동수 거르기가 중요한 작고 위상이 붙박인 그래프에는 스펙트럼 방법이, 귀납 배움이 필요한 크거나 바뀌거나 뒤섞인 그래프에는 자리 방법이 낫다. $\square$

@@ -166,3 +166,43 @@ Page 2 has the highest PageRank because it receives links from three other pages
 
 - Page, L., Brin, S., Motwani, R., and Winograd, T. "The PageRank Citation Ranking: Bringing Order to the Web." Stanford Technical Report, 1998
 - Langville, A.N. and Meyer, C.D. *Google's PageRank and Beyond*. Princeton University Press, 2006
+
+## Exercises
+
+**Exercise 1.**
+Compute the PageRank of a 4-page web with links: A->B, A->C, B->C, C->A, D->C. Use damping factor $d = 0.85$ and iterate until convergence (3 iterations).
+
+??? success "Solution to Exercise 1"
+    Initialize: $PR(A) = PR(B) = PR(C) = PR(D) = 0.25$. Iteration 1: $PR(A) = (1-0.85)/4 + 0.85 \times PR(C)/1 = 0.0375 + 0.85 \times 0.25 = 0.25$. $PR(B) = 0.0375 + 0.85 \times PR(A)/2 = 0.0375 + 0.85 \times 0.125 = 0.144$. $PR(C) = 0.0375 + 0.85 \times (PR(A)/2 + PR(B)/1 + PR(D)/1) = 0.0375 + 0.85 \times (0.125 + 0.25 + 0.25) = 0.0375 + 0.531 = 0.569$. $PR(D) = 0.0375 + 0$ (no incoming links) $= 0.0375$. After 3 iterations, values stabilize near: $PR(C) \approx 0.46$ (highest, receives 3 incoming links), $PR(A) \approx 0.28$ (linked from C), $PR(B) \approx 0.16$, $PR(D) \approx 0.04$ (no incoming links, only receives the $(1-d)/N$ baseline). $\square$
+
+---
+
+**Exercise 2.**
+Explain the damping factor $d$ in the PageRank formula and what happens at the extremes $d = 0$ and $d = 1$.
+
+??? success "Solution to Exercise 2"
+    The PageRank formula is $PR(i) = (1-d)/N + d \sum_{j \to i} PR(j) / L(j)$ where $L(j)$ is the number of outgoing links from $j$, and $N$ is the total number of pages. At $d = 0$: $PR(i) = 1/N$ for all $i$. All pages have equal rank regardless of link structure. The random surfer never follows links. At $d = 1$: no random jumps. The surfer always follows links. PageRank becomes the stationary distribution of a pure random walk on the link graph. Problem: if the graph has absorbing components (dangling nodes with no outlinks, or closed cycles), the walk gets trapped and PageRank does not converge or is not unique. $d = 0.85$ (the standard value) balances: 85% of the time follow links (link structure matters), 15% teleport to a random page (ensures convergence and prevents rank sinks). $\square$
+
+---
+
+**Exercise 3.**
+Prove that the PageRank power iteration converges for any web graph when $0 < d < 1$.
+
+??? success "Solution to Exercise 3"
+    The PageRank equation can be written in matrix form: $\mathbf{r} = (1-d)/N \cdot \mathbf{1} + d \cdot M \mathbf{r}$ where $M$ is the column-stochastic transition matrix (with dangling nodes handled by redistributing their rank uniformly). The matrix $G = (1-d)/N \cdot \mathbf{1}\mathbf{1}^T + d \cdot M$ is the Google matrix. It is stochastic (columns sum to 1), irreducible (the $(1-d)$ teleportation connects all nodes), and aperiodic (self-loops via teleportation). By the Perron-Frobenius theorem, a stochastic, irreducible, aperiodic matrix has a unique stationary distribution, and power iteration converges to it. The convergence rate is governed by the second-largest eigenvalue, which is at most $d = 0.85$. Therefore, the error decreases by a factor of at least $0.85$ per iteration, and $\sim$50 iterations suffice for convergence to machine precision ($0.85^{50} \approx 10^{-4}$). $\square$
+
+---
+
+**Exercise 4.**
+Dangling nodes (pages with no outgoing links) are problematic for PageRank. Explain why and describe how they are handled.
+
+??? success "Solution to Exercise 4"
+    A dangling node absorbs rank: it receives PageRank from incoming links but has no outgoing links to distribute it. In the matrix formulation, its column in $M$ is all zeros, making $M$ non-stochastic (column does not sum to 1). This causes the total rank to "leak" -- each iteration reduces the total PageRank. Solution: treat dangling nodes as if they link to all pages (uniform redistribution). Replace the zero column with $1/N$ in every entry. This makes $M$ stochastic. The adjusted formula becomes: for dangling node $j$, $PR(j)$'s rank is distributed uniformly to all $N$ pages. Equivalently: after each iteration, compute the total leaked rank from all dangling nodes and redistribute it uniformly. This is a rank-one correction to the matrix and does not change the $O(N)$ per-iteration cost. $\square$
+
+---
+
+**Exercise 5.**
+PageRank can be manipulated by "link farms" (networks of pages linking to a target page to boost its rank). Describe how search engines detect and mitigate this manipulation.
+
+??? success "Solution to Exercise 5"
+    Detection: (1) **Graph analysis**: link farms create dense bipartite subgraphs (many pages in the farm linking to one target). Algorithms like TrustRank identify suspicious graph patterns by propagating trust from a small set of manually verified "seed" pages. Pages receiving high PageRank but low TrustRank are suspicious. (2) **Statistical anomalies**: link farms produce unnatural patterns: many links from new/low-quality domains, links without reciprocal edges, pages with no content but many outlinks. Machine learning classifiers detect these features. Mitigation: (1) **Discount or ignore** links from identified farm pages. (2) **TrustRank**: weight links from trusted pages more heavily than unknown pages. (3) **Penalties**: demote pages that receive links from known spam networks. (4) **Content-based signals**: reduce reliance on link-based ranking, incorporating content quality, user engagement, and other signals that are harder to manipulate. $\square$

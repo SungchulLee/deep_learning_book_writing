@@ -1,39 +1,39 @@
-# Fibonacci
+# 피보나치
 
-The Fibonacci sequence is the simplest and most widely used example for introducing dynamic programming.  Computing Fibonacci numbers with naive recursion leads to exponential time, while memoization and tabulation each reduce this to linear time.  This progression from exponential to linear illustrates the core benefit of dynamic programming and serves as a template for approaching more complex problems.
+피보나치 차례는 동적 짜기를 들여올 때 가장 단순하고 가장 널리 쓰이는 보기이다. 막무가내 되돌이로 피보나치 수를 셈하면 지수 시간이 들지만 적어 두기와 표 채우기는 저마다 이를 선형 시간으로 줄인다. 지수에서 선형으로 가는 이 흐름이 동적 짜기의 고갱이 이점을 보여 주고 더 복잡한 문제에 다가가는 본이 된다.
 
-## Recurrence Definition
+## 되돌이 관계식의 정의
 
-The Fibonacci sequence is defined by the recurrence
+피보나치 차례는 다음 되돌이 관계식으로 정의된다
 
 $$
 F(n) = F(n-1) + F(n-2), \quad F(0) = 0, \quad F(1) = 1
 $$
 
-The first several values are $0, 1, 1, 2, 3, 5, 8, 13, 21, 34, \ldots$
+처음 몇 값은 $0, 1, 1, 2, 3, 5, 8, 13, 21, 34, \ldots$이다
 
-## Approach 1: Naive Recursion
+## 방식 1: 막무가내 되돌이
 
-The most direct implementation translates the mathematical recurrence into code.  Each call spawns two recursive calls, producing an exponentially growing recursion tree.
+가장 곧바른 짜기는 수학의 되돌이 관계식을 그대로 부호로 옮긴다. 부름마다 되돌이 부름 둘을 낳아 되돌이 나무가 지수로 커진다.
 
 ```python
 """
-Three approaches to computing Fibonacci numbers: naive recursion,
-memoization (top-down DP), and tabulation (bottom-up DP).
+피보나치 수를 셈하는 세 방식: 막무가내 되돌이,
+적어 두기(위에서 아래로), 표 채우기(아래에서 위로).
 """
 
 
 # ===================================================================
-# Approach 1: Naive recursion
+# 방식 1: 막무가내 되돌이
 # ===================================================================
 def fib_recursive(n: int) -> int:
-    """Compute F(n) using naive recursion. Time: O(phi^n), Space: O(n)."""
+    """막무가내 되돌이로 F(n)을 셈한다. 시간: O(phi^n), 공간: O(n)."""
     if n <= 1:
         return n
     return fib_recursive(n - 1) + fib_recursive(n - 2)
 ```
 
-The recursion tree for $F(5)$ reveals the redundancy:
+$F(5)$의 되돌이 나무가 겹침을 드러낸다:
 
 ```
                     F(5)
@@ -47,18 +47,18 @@ The recursion tree for $F(5)$ reveals the redundancy:
  F(1) F(0)
 ```
 
-The number of calls $T(n)$ satisfies $T(n) = T(n-1) + T(n-2) + 1$, which grows as $O(\phi^n)$ where $\phi = (1+\sqrt{5})/2 \approx 1.618$.  The space complexity is $O(n)$ due to the maximum depth of the call stack.
+부름의 수 $T(n)$은 $T(n) = T(n-1) + T(n-2) + 1$을 채우며 $\phi = (1+\sqrt{5})/2 \approx 1.618$일 때 $O(\phi^n)$으로 는다. 부름 쌓임의 최대 깊이 때문에 공간 복잡도는 $O(n)$이다.
 
-## Approach 2: Memoization (Top-Down)
+## 방식 2: 적어 두기(위에서 아래로)
 
-Memoization preserves the recursive structure but caches each result so that no subproblem is solved more than once.
+적어 두기는 되돌이 짜임을 지키되 결과를 곳간에 담아 어떤 아래 문제도 두 번 넘게 풀지 않게 한다.
 
 ```python
 # ===================================================================
-# Approach 2: Memoization (top-down DP)
+# 방식 2: 적어 두기(위에서 아래로 가는 동적 짜기)
 # ===================================================================
 def fib_memo(n: int, memo: dict[int, int] | None = None) -> int:
-    """Compute F(n) using memoization. Time: O(n), Space: O(n)."""
+    """적어 두기로 F(n)을 셈한다. 시간: O(n), 공간: O(n)."""
     if memo is None:
         memo = {}
     if n in memo:
@@ -69,18 +69,18 @@ def fib_memo(n: int, memo: dict[int, int] | None = None) -> int:
     return memo[n]
 ```
 
-Each of the $n + 1$ distinct subproblems $F(0), F(1), \ldots, F(n)$ is computed exactly once and each computation takes $O(1)$ time, giving total time $O(n)$ and space $O(n)$ for the memoization table plus the call stack.
+서로 다른 아래 문제 $F(0), F(1), \ldots, F(n)$ $n + 1$개를 저마다 꼭 한 번 셈하고 셈마다 $O(1)$이 들어, 전체 시간은 $O(n)$이고 적어 두기 표와 부름 쌓임에 $O(n)$ 공간이 든다.
 
-## Approach 3: Tabulation (Bottom-Up)
+## 방식 3: 표 채우기(아래에서 위로)
 
-Tabulation eliminates recursion entirely by filling a table from the smallest subproblems upward.
+표 채우기는 가장 작은 아래 문제부터 표를 채워 되돌이를 아예 없앤다.
 
 ```python
 # ===================================================================
-# Approach 3: Tabulation (bottom-up DP)
+# 방식 3: 표 채우기(아래에서 위로 가는 동적 짜기)
 # ===================================================================
 def fib_tabulation(n: int) -> int:
-    """Compute F(n) using tabulation. Time: O(n), Space: O(n)."""
+    """표 채우기로 F(n)을 셈한다. 시간: O(n), 공간: O(n)."""
     if n <= 1:
         return n
     dp = [0] * (n + 1)
@@ -90,18 +90,18 @@ def fib_tabulation(n: int) -> int:
     return dp[n]
 ```
 
-The table is filled left to right in a single pass, so the time is $O(n)$ and the space is $O(n)$ for the array.
+표를 왼쪽에서 오른쪽으로 한 번에 채우므로 시간은 $O(n)$이고 배열에 $O(n)$ 공간이 든다.
 
-## Space Optimization
+## 공간 줄이기
 
-Since $F(n)$ depends only on the two preceding values, the table can be replaced by two variables, reducing space to $O(1)$.
+$F(n)$이 앞선 두 값에만 기대므로 표를 변수 둘로 갈음해 공간을 $O(1)$으로 줄일 수 있다.
 
 ```python
 # ===================================================================
-# Space-optimized tabulation
+# 공간을 줄인 표 채우기
 # ===================================================================
 def fib_optimized(n: int) -> int:
-    """Compute F(n) with O(1) space. Time: O(n), Space: O(1)."""
+    """O(1) 공간으로 F(n)을 셈한다. 시간: O(n), 공간: O(1)."""
     if n <= 1:
         return n
     prev2, prev1 = 0, 1
@@ -110,18 +110,18 @@ def fib_optimized(n: int) -> int:
     return prev1
 ```
 
-## Complexity Comparison
+## 복잡도 비교
 
-| Approach | Time | Space | Notes |
+| 방식 | 시간 | 공간 | 비고 |
 |----------|------|-------|-------|
-| Naive recursion | $O(\phi^n)$ | $O(n)$ | Exponential due to overlapping subproblems |
-| Memoization | $O(n)$ | $O(n)$ | Each subproblem solved once; call stack depth $n$ |
-| Tabulation | $O(n)$ | $O(n)$ | No recursion overhead; simple loop |
-| Space-optimized | $O(n)$ | $O(1)$ | Only two variables needed |
+| 막무가내 되돌이 | $O(\phi^n)$ | $O(n)$ | 겹치는 아래 문제 탓에 지수 |
+| 적어 두기 | $O(n)$ | $O(n)$ | 아래 문제를 한 번씩만 푼다. 부름 쌓임 깊이 $n$ |
+| 표 채우기 | $O(n)$ | $O(n)$ | 되돌이 군더더기 없음. 단순한 되풀이 |
+| 공간 줄임 | $O(n)$ | $O(1)$ | 변수 둘이면 된다 |
 
 ```python
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 if __name__ == "__main__":
     for n in [5, 10, 20]:
@@ -133,16 +133,48 @@ if __name__ == "__main__":
         print(f"F({n}) = {o}")
 ```
 
-**Output:**
+**출력:**
 ```
 F(5) = 5
 F(10) = 55
 F(20) = 6765
 ```
 
-!!! tip "Pattern for DP problems"
-    The Fibonacci example establishes a workflow that applies to nearly every DP problem: (1) write the recurrence, (2) identify overlapping subproblems, (3) add memoization or convert to tabulation, and (4) optimize space if only a few previous states are needed.
+!!! tip "동적 짜기 문제의 결"
+    피보나치 보기는 거의 모든 동적 짜기 문제에 쓰이는 흐름을 세운다. (1) 되돌이 관계식을 쓰고, (2) 겹치는 아래 문제를 가려내고, (3) 적어 두기를 붙이거나 표 채우기로 바꾸고, (4) 앞선 상태 몇 개만 필요하면 공간을 줄인다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 14. MIT Press.
+
+## 연습문제
+
+**연습문제 1.**
+막무가내 되돌이, 적어 두기, 표 채우기로 $F(n)$을 셈할 때의 시간 복잡도를 견주어라.
+
+??? success "연습문제 1 풀이"
+    **막무가내 되돌이**: $T(n) = T(n-1) + T(n-2) + O(1)$이라 $O(2^n)$(지수)이다. **적어 두기**: 아래 문제 $F(0), \ldots, F(n)$을 한 번씩 셈하므로 $O(n)$ 시간, $O(n)$ 공간이다. **표 채우기**: $F(0)$부터 $F(n)$까지 배열을 채우므로 $O(n)$ 시간, $O(n)$ 공간이다(변수 둘이면 $O(1)$ 공간). 모든 동적 짜기 방식이 같은 $O(n)$ 시간을 이루며, 실전에서는 공간을 줄인 표 채우기가 가장 낫다. $\square$
+
+---
+
+**연습문제 2.**
+피보나치를 $O(\log n)$ 시간에 셈할 수 있는가? 그 방식을 적어라.
+
+??? success "연습문제 2 풀이"
+    그렇다. 행렬 거듭제곱을 쓰면 된다. 되돌이 관계식 $F(n) = F(n-1) + F(n-2)$은 $\begin{pmatrix} F(n+1) \\ F(n) \end{pmatrix} = \begin{pmatrix} 1 & 1 \\ 1 & 0 \end{pmatrix}^n \begin{pmatrix} F(1) \\ F(0) \end{pmatrix}$으로 쓸 수 있다. 되풀이 제곱으로 행렬 거듭제곱을 셈하면 행렬 곱이 $O(\log n)$번 들고 $2 \times 2$ 행렬이라 곱마다 $O(1)$이다. 모두 $O(\log n)$이다. $\square$
+
+---
+
+**연습문제 3.**
+되돌이 나무 논증으로 막무가내 되돌이 피보나치가 왜 지수 시간인지 설명하라.
+
+??? success "연습문제 3 풀이"
+    $F(n)$의 되돌이 나무는 잎이 $F(n+1)$개이고 깊이가 $n$이다. 마디마다 되돌이 부름을 둘 해서 두 갈래 나무처럼 뻗는다. 다만 꽉 찬 두 갈래 나무는 아니다. 한 갈래($n-1$)가 다른 갈래($n-2$)보다 깊다. 부름의 총수가 피보나치와 같은 되돌이 관계식을 채워 $\phi = (1+\sqrt{5})/2 \approx 1.618$일 때 $\Theta(\phi^n)$이 된다. 겹침이 엄청나다. $F(3)$이 $F(n-3)$번 다시 셈된다. $\square$
+
+---
+
+**연습문제 4.**
+공간을 줄인 표 채우기 방식으로 $F(10)$을 셈하라. 중간 값을 보여라.
+
+??? success "연습문제 4 풀이"
+    변수 둘 $a = F(0) = 0, b = F(1) = 1$을 쓴다. 되풀이: $a, b = b, a+b$. 걸음: $(0,1) \to (1,1) \to (1,2) \to (2,3) \to (3,5) \to (5,8) \to (8,13) \to (13,21) \to (21,34) \to (34,55)$. 9번 되풀이한 뒤 $b = F(10) = 55$이다. 공간: $O(1)$, 시간: $O(n)$. $\square$

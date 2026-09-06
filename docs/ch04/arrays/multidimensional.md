@@ -1,96 +1,96 @@
-# Multi-Dimensional Arrays
+# 다차원 배열
 
-Many computational tasks involve data organized along more than one axis: a grayscale image is a 2D grid of pixel intensities, a color image adds a channel dimension, and a training batch adds yet another. Multi-dimensional arrays store such data in a single contiguous block of memory, just like a 1D array, but provide access through multiple indices. The key design decision is how to flatten the multi-dimensional structure into a linear sequence of memory addresses, and this choice -- row-major vs. column-major order -- has significant consequences for performance.
+많은 계산 작업이 축이 둘 이상인 데이터를 다룬다. 회색조 이미지는 화소 밝기의 2차원 격자이고, 컬러 이미지는 채널 차원을 더하며, 학습 배치는 거기에 하나를 더 붙인다. 다차원 배열은 1차원 배열과 마찬가지로 그런 데이터를 연속된 한 덩어리의 메모리에 저장하되 여러 인덱스로 접근하게 해 준다. 핵심적인 설계 결정은 다차원 구조를 어떻게 선형적인 메모리 주소의 열로 펼치느냐이며, 행 우선이냐 열 우선이냐 하는 이 선택이 성능에 큰 영향을 준다.
 
-## Row-Major Order (C Order)
+## 행 우선 순서 (C 순서)
 
-In **row-major order**, elements of the same row are stored contiguously. For a 2D array with $m$ rows and $n$ columns, the element at position $(i, j)$ is stored at the linear offset
+**행 우선 순서**에서는 같은 행의 원소들이 연속해서 저장된다. 행이 $m$개, 열이 $n$개인 2차원 배열에서 위치 $(i, j)$의 원소는 다음 선형 오프셋에 저장된다.
 
 $$
 \text{offset}(i, j) = i \cdot n + j
 $$
 
-and its memory address is $b + (i \cdot n + j) \cdot w$, where $b$ is the base address and $w$ is the element size in bytes.
+그리고 그 메모리 주소는 $b + (i \cdot n + j) \cdot w$이며, 여기서 $b$은 기준 주소이고 $w$은 원소의 바이트 크기이다.
 
-??? example "Row-Major Layout for a 3 x 4 Matrix"
+??? example "3 x 4 행렬의 행 우선 배치"
 
-    Consider the matrix
+    다음 행렬을 생각하자.
 
     $$
     A = \begin{pmatrix} 1 & 2 & 3 & 4 \\ 5 & 6 & 7 & 8 \\ 9 & 10 & 11 & 12 \end{pmatrix}
     $$
 
-    In row-major order, memory contains: `[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]`.
+    행 우선 순서에서 메모리에는 `[1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]`이 담긴다.
 
-    | Index $(i,j)$ | Offset $= i \cdot 4 + j$ | Value |
+    | 인덱스 $(i,j)$ | 오프셋 $= i \cdot 4 + j$ | 값 |
     |---------------|--------------------------|-------|
     | $(0, 0)$      | 0                        | 1     |
     | $(0, 3)$      | 3                        | 4     |
     | $(1, 0)$      | 4                        | 5     |
     | $(2, 2)$      | 10                       | 11    |
 
-Row-major order is used by C, C++, Python (NumPy default), and PyTorch.
+행 우선 순서는 C, C++, 파이썬(NumPy의 기본값), PyTorch가 쓴다.
 
-## Column-Major Order (Fortran Order)
+## 열 우선 순서 (Fortran 순서)
 
-In **column-major order**, elements of the same column are stored contiguously. The linear offset for an $m \times n$ array becomes
+**열 우선 순서**에서는 같은 열의 원소들이 연속해서 저장된다. $m \times n$ 배열의 선형 오프셋은 다음이 된다.
 
 $$
 \text{offset}(i, j) = j \cdot m + i
 $$
 
-The same matrix $A$ in column-major order is stored as: `[1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12]`.
+같은 행렬 $A$을 열 우선 순서로 저장하면 `[1, 5, 9, 2, 6, 10, 3, 7, 11, 4, 8, 12]`이 된다.
 
-Column-major order is used by Fortran, MATLAB, R, and Julia.
+열 우선 순서는 Fortran, MATLAB, R, Julia가 쓴다.
 
-## General d-Dimensional Address Computation
+## 일반적인 d차원 주소 계산
 
-For a $d$-dimensional array with shape $(n_0, n_1, \ldots, n_{d-1})$, the element at index $(i_0, i_1, \ldots, i_{d-1})$ has a linear offset computed using **strides**. The stride $s_k$ for dimension $k$ gives the number of elements to skip when incrementing index $k$ by 1.
+모양이 $(n_0, n_1, \ldots, n_{d-1})$인 $d$차원 배열에서 인덱스 $(i_0, i_1, \ldots, i_{d-1})$의 원소가 갖는 선형 오프셋은 **스트라이드**로 계산한다. 차원 $k$의 스트라이드 $s_k$은 인덱스 $k$을 1만큼 늘릴 때 건너뛸 원소의 개수를 준다.
 
-**Row-major strides:**
+**행 우선 스트라이드:**
 
 $$
 s_k = \prod_{j=k+1}^{d-1} n_j \qquad \text{with } s_{d-1} = 1
 $$
 
-**Column-major strides:**
+**열 우선 스트라이드:**
 
 $$
 s_k = \prod_{j=0}^{k-1} n_j \qquad \text{with } s_0 = 1
 $$
 
-The linear offset in either case is
+어느 경우든 선형 오프셋은 다음과 같다.
 
 $$
 \text{offset}(i_0, i_1, \ldots, i_{d-1}) = \sum_{k=0}^{d-1} i_k \cdot s_k
 $$
 
-??? example "Strides for a 3D Tensor"
+??? example "3차원 텐서의 스트라이드"
 
-    A tensor of shape $(2, 3, 4)$ in row-major order has strides:
+    모양이 $(2, 3, 4)$인 텐서를 행 우선 순서로 두면 스트라이드는 다음과 같다.
 
     - $s_2 = 1$
     - $s_1 = n_2 = 4$
     - $s_0 = n_1 \cdot n_2 = 3 \cdot 4 = 12$
 
-    So element $(1, 2, 3)$ has offset $1 \cdot 12 + 2 \cdot 4 + 3 \cdot 1 = 23$.
+    따라서 원소 $(1, 2, 3)$의 오프셋은 $1 \cdot 12 + 2 \cdot 4 + 3 \cdot 1 = 23$이다.
 
-## Performance Implications
+## 성능에 미치는 영향
 
-The choice of memory layout determines which access patterns are cache-friendly. Traversing along the contiguous dimension accesses sequential memory addresses, which exploits spatial locality and results in few cache misses. Traversing along a non-contiguous dimension causes a cache miss every few elements.
+메모리 배치의 선택이 어떤 접근 양상이 캐시에 친화적인지를 결정한다. 연속된 차원을 따라 훑으면 메모리 주소를 차례대로 접근하므로 공간 지역성을 살려 캐시 실패가 적다. 연속되지 않은 차원을 따라 훑으면 몇 원소마다 캐시 실패가 난다.
 
-!!! warning "Traversal Order Matters"
+!!! warning "순회 순서가 중요하다"
 
-    For a row-major $m \times n$ matrix, iterating as `for i in range(m): for j in range(n)` (row by row) accesses memory sequentially. The reversed order `for j in range(n): for i in range(m)` jumps by $n$ elements at each step, which can be 10x slower for large arrays due to cache misses.
+    행 우선인 $m \times n$ 행렬에서 `for i in range(m): for j in range(n)`처럼 (행 단위로) 순회하면 메모리를 차례대로 접근한다. 순서를 뒤집은 `for j in range(n): for i in range(m)`은 매 단계 $n$개의 원소를 건너뛰므로, 큰 배열에서는 캐시 실패 때문에 10배까지 느려질 수 있다.
 
-## NumPy and PyTorch Demonstration
+## NumPy와 PyTorch로 확인하기
 
 ```python
-"""Demonstrate multi-dimensional array memory layout with NumPy."""
+"""NumPy로 다차원 배열의 메모리 배치를 보인다."""
 
 import numpy as np
 
-# === Row-major (C order) vs Column-major (Fortran order) ===
+# === 행 우선(C 순서)과 열 우선(포트란 순서) ===
 a = np.array([[1, 2, 3, 4],
               [5, 6, 7, 8],
               [9, 10, 11, 12]])
@@ -101,19 +101,19 @@ print(f"Strides (elements): {tuple(s // a.itemsize for s in a.strides)}")
 print(f"Row-major flat: {a.ravel(order='C').tolist()}")
 print(f"Col-major flat: {a.ravel(order='F').tolist()}")
 
-# === 3D tensor strides ===
+# === 3차원 텐서의 보폭 ===
 t = np.zeros((2, 3, 4), dtype=np.float32)
 print(f"\n3D shape: {t.shape}")
 print(f"3D strides (elements): {tuple(s // t.itemsize for s in t.strides)}")
 
-# === Contiguous checks ===
+# === 연속성 확인 ===
 print(f"\nC-contiguous: {a.flags['C_CONTIGUOUS']}")
 col_a = np.asfortranarray(a)
 print(f"F-contiguous: {col_a.flags['F_CONTIGUOUS']}")
 print(f"F-order strides (elements): {tuple(s // col_a.itemsize for s in col_a.strides)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Shape: (3, 4)
 Strides (bytes): (32, 8)
@@ -129,12 +129,45 @@ F-contiguous: True
 F-order strides (elements): (1, 3, 9)
 ```
 
-The strides output confirms the formulas: for the $(3, 4)$ array in C order, the row stride is 4 and the column stride is 1, meaning moving one row jumps over 4 elements while moving one column jumps by 1.
+스트라이드 출력이 공식을 확인해 준다. C 순서의 $(3, 4)$ 배열에서 행 스트라이드는 4이고 열 스트라이드는 1인데, 이는 행을 하나 옮기면 원소 4개를 건너뛰고 열을 하나 옮기면 1개를 건너뛴다는 뜻이다.
 
-## Connection to Deep Learning Tensors
+## 딥러닝 텐서와의 관계
 
-PyTorch tensors are multi-dimensional arrays with the stride-based addressing described above. Operations like `transpose`, `view`, and `permute` modify strides without copying data, creating different "views" of the same memory block. Understanding strides explains why some operations require a `contiguous()` call before reshaping and why certain memory layouts lead to faster GPU kernel execution. Chapter 2 covers tensor strides and memory layout in detail.
+PyTorch 텐서는 위에서 설명한 스트라이드 기반 주소 지정을 쓰는 다차원 배열이다. `transpose`, `view`, `permute` 같은 연산은 데이터를 복사하지 않고 스트라이드만 바꾸어 같은 메모리 덩어리에 대한 서로 다른 "뷰"를 만든다. 스트라이드를 이해하면 어떤 연산이 재구성 전에 `contiguous()` 호출을 요구하는 이유와, 특정 메모리 배치가 GPU 커널을 더 빠르게 실행시키는 이유를 알 수 있다. 텐서의 스트라이드와 메모리 배치는 2장에서 자세히 다룬다.
 
-## Reference
+## 참고 문헌
 
 - [Introduction to Algorithms (CLRS), Chapter 10](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
+
+
+## 연습문제
+
+**연습문제 1.**
+다차원 배열에 대해 삽입, 삭제, 탐색, 접근 연산의 시간 복잡도를 진술하라.
+
+??? success "연습문제 1 풀이"
+    복잡도는 구체적인 구현(배열 기반이냐 연결 기반이냐)에 달려 있다. 배열 기반은 접근이 $O(1)$이고 임의의 위치에서의 삽입·삭제가 $O(n)$이다. 연결 기반은 이미 아는 위치에서의 삽입·삭제가 $O(1)$이고 탐색·접근이 $O(n)$이다. 어떤 연산이 주를 이루느냐에 따라 선택이 갈린다.
+
+---
+
+**연습문제 2.**
+원소 6개로 다차원 배열을(를) 따라가며 각 연산 후의 자료구조 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    구조에 삽입, 접근, 삭제를 차례로 수행하라. 각 단계마다 (연결 구조라면) 포인터를, (배열 기반이라면) 배열의 내용을 보이며 구조가 불변식을 어떻게 유지하는지 나타내라.
+
+---
+
+**연습문제 3.**
+다차원 배열이(가) PyTorch의 텐서 저장과 어떻게 관련되는지 설명하라. 자료구조의 선택이 메모리 배치와 캐시 성능에 어떤 영향을 주는가?
+
+??? success "연습문제 3 풀이"
+    PyTorch 텐서는 캐시에 효율적으로 접근할 수 있도록 연속된 배열로 저장된다. 연결 구조는 autograd 그래프를 훑는 데 내부적으로 쓰인다. 이 선택은 메모리 사용량(배열에는 포인터 부담이 없다)과 접근 양상(캐시 지역성 덕분에 순차적인 배열 접근이 연결 리스트 순회보다 10~100배 빠르다)에 모두 영향을 준다.
+
+---
+
+**연습문제 4.**
+반복문 불변식을 사용하여 다차원 배열의 주요 연산의 시간 복잡도를 증명하라.
+
+??? success "연습문제 4 풀이"
+    알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$

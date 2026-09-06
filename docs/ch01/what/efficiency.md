@@ -1,47 +1,47 @@
-# Efficiency
+# 효율성
 
-Efficiency measures how computational resources (time, memory, energy) scale with problem size. In deep learning, efficiency determines whether a model can be trained in days versus years and whether it can run inference within a latency budget.
+효율성(efficiency)은 계산 자원(시간, 메모리, 에너지)이 문제 크기에 따라 어떻게 증가하는지를 나타낸다. 딥러닝에서 효율성은 모델을 며칠 만에 학습할 수 있는지 몇 년이 걸리는지를 결정하고, 주어진 지연 시간 예산 안에서 추론을 수행할 수 있는지를 결정한다.
 
-## Definition
+## 정의
 
-The efficiency of an algorithm is characterized by its time complexity $T(n)$ and space complexity $S(n)$ as functions of input size $n$. For neural networks, the relevant quantities are:
+알고리즘의 효율성은 입력 크기 $n$의 함수인 시간 복잡도 $T(n)$과 공간 복잡도 $S(n)$으로 특징지어진다. 신경망에서 관련된 양은 다음과 같다.
 
 $$
-\text{Training cost} = O(\text{epochs} \times n \times d \times L) \qquad \text{Inference cost} = O(d^2 \times L)
+\text{학습 비용} = O(\text{epochs} \times n \times d \times L) \qquad \text{추론 비용} = O(d^2 \times L)
 $$
 
-where $n$ is the dataset size, $d$ is the hidden dimension, and $L$ is the number of layers.
+여기서 $n$은 데이터셋 크기, $d$는 은닉 차원, $L$은 층의 개수이다.
 
-## Explanation
+## 설명
 
-Efficiency improvements often matter more than algorithmic novelty. The key complexity classes relevant to deep learning:
+효율성 개선은 알고리즘적 참신함보다 더 중요한 경우가 많다. 딥러닝과 관련된 주요 복잡도 부류는 다음과 같다.
 
-| Complexity | Example | Feasibility |
+| 복잡도 | 예 | 실현 가능성 |
 |---|---|---|
-| $O(1)$ | Hash lookup, cached embedding | Instant |
-| $O(n)$ | Linear scan, single forward pass | Fast |
-| $O(n \log n)$ | Sorting, FFT-based convolution | Practical |
-| $O(n^2)$ | Self-attention (standard Transformer) | Limits sequence length |
-| $O(n^3)$ | Matrix inversion, naive attention | Only small $n$ |
+| $O(1)$ | 해시 조회, 캐시된 임베딩 | 즉시 |
+| $O(n)$ | 선형 탐색, 단일 순전파 | 빠름 |
+| $O(n \log n)$ | 정렬, FFT 기반 합성곱 | 실용적 |
+| $O(n^2)$ | 셀프 어텐션(표준 트랜스포머) | 시퀀스 길이 제한 |
+| $O(n^3)$ | 행렬 역변환, 소박한 어텐션 | 작은 $n$에만 가능 |
 
-The Transformer's $O(n^2)$ attention complexity explains why standard models cap sequence length at a few thousand tokens. Linear attention variants and sparse attention reduce this to $O(n)$ or $O(n \log n)$, enabling much longer sequences.
+트랜스포머의 $O(n^2)$ 어텐션 복잡도는 표준 모델이 시퀀스 길이를 수천 토큰으로 제한하는 이유를 설명한다. 선형 어텐션 변형과 희소 어텐션은 이를 $O(n)$ 또는 $O(n \log n)$으로 줄여 훨씬 긴 시퀀스를 가능하게 한다.
 
-Memory efficiency is equally critical: training a model that fits in GPU memory requires techniques like gradient checkpointing, mixed-precision training, and gradient accumulation.
+메모리 효율성도 마찬가지로 중요하다. GPU 메모리에 들어가는 모델을 학습하려면 경사 체크포인팅, 혼합 정밀도 학습, 경사 누적 같은 기법이 필요하다.
 
-## Examples
+## 예제
 
 ```python
 import torch
 import time
 
-# Compare O(n^2) attention vs O(n) linear scan
+# O(n^2) 어텐션과 O(n) 선형 탐색 비교
 def quadratic_attention(Q, K, V):
-    """Standard dot-product attention: O(n^2 d)."""
+    """표준 내적 어텐션: O(n^2 d)."""
     scores = Q @ K.transpose(-2, -1) / Q.shape[-1] ** 0.5
     weights = torch.softmax(scores, dim=-1)
     return weights @ V
 
-# Measure scaling
+# 증가 양상 측정
 for n in [128, 512, 2048]:
     d = 64
     Q = K = V = torch.randn(1, n, d)
@@ -51,11 +51,51 @@ for n in [128, 512, 2048]:
     elapsed = (time.time() - start) / 10
     print(f"n={n:>5d}: attention time={elapsed*1000:.2f}ms")
 
-# Memory: estimate model size
+# 메모리: 모델 크기 추정
 def model_memory_mb(params):
-    return params * 4 / (1024 ** 2)  # float32 = 4 bytes
+    return params * 4 / (1024 ** 2)  # float32 = 4바이트
 
-d, L = 768, 12  # BERT-base dimensions
-params = L * (4 * d * d + 4 * d)  # approximate
+d, L = 768, 12  # BERT-base 차원
+params = L * (4 * d * d + 4 * d)  # 근사값
 print(f"\nBERT-base-like: ~{params:,} params = {model_memory_mb(params):.1f} MB")
 ```
+
+## 연습문제
+
+**연습문제 1.**
+표준 셀프 어텐션의 복잡도는 $O(n^2 d)$이다. $n = 4096$, $d = 512$일 때 총 연산 횟수를 계산하라. 선형 어텐션 변형은 $O(nd^2)$를 달성한다. $n/d$ 비율이 얼마일 때 선형 어텐션이 더 빨라지는가?
+
+??? success "연습문제 1 풀이"
+    표준: $n^2 d = 4096^2 \times 512 = 16{,}777{,}216 \times 512 = 8.59 \times 10^9$. 선형: $nd^2 = 4096 \times 512^2 = 4096 \times 262{,}144 = 1.07 \times 10^9$. 선형 어텐션은 $nd^2 < n^2 d$일 때, 즉 $d < n$일 때, 다시 말해 $n/d > 1$일 때 더 빠르다. $n = 4096, d = 512$인 경우 비율은 $8$이고 선형 어텐션이 $8\times$ 빠르다. 시퀀스 길이가 은닉 차원에 비해 커질수록 선형 어텐션의 이점은 점점 커진다.
+
+---
+
+**연습문제 2.**
+경사 체크포인팅은 계산을 늘리는 대신 메모리를 아낀다. $L$개 층의 활성값을 모두 저장하는 대신 $\sqrt{L}$개 층마다 활성값을 저장하고 나머지는 역전파 중에 다시 계산한다. $L = 100$일 때 메모리 절감량과 추가 계산량을 구하라.
+
+??? success "연습문제 2 풀이"
+    체크포인팅 없이: $L = 100$개의 활성값을 저장한다. 체크포인팅 사용: $\sqrt{100} = 10$개의 체크포인트 활성값을 저장한다. 역전파 중에는 체크포인트 사이의 각 구간(10개 층씩 10개 구간)마다 10개의 중간 활성값을 다시 계산한다. 최대 메모리: $\sqrt{L} + \sqrt{L} = 2\sqrt{L} = 20$개의 활성값(체크포인트 + 한 구간). 메모리 절감: $100/20 = 5\times$. 추가 계산: 역전파 중 각 구간마다 순전파를 한 번 더 수행하므로, 전체 계산량이 순전파 $\sim 2$회(순전파 + 역전파)에서 $\sim 3$회로 대략 늘어난다.
+
+---
+
+**연습문제 3.**
+혼합 정밀도 학습은 순전파/역전파에는 FP16을, 매개변수 갱신에는 FP32를 사용한다. 매개변수가 $P = 10^8$개인 모델에 대한 메모리 절감 효과를 설명하고, 손실 스케일러가 필요한 이유를 설명하라.
+
+??? success "연습문제 3 풀이"
+    FP32 매개변수: $10^8 \times 4\;\text{바이트} = 400\;\text{MB}$. FP16 활성값은 FP32의 절반 메모리를 쓰므로 활성값 메모리(대형 모델에서 지배적인 비용)가 대략 절반이 된다. 전체 학습 메모리 절감은 대략 $1.5\times$–$2\times$이다. 손실 스케일러가 필요한 이유는 FP16의 표현 범위가 제한적($\sim 5.96 \times 10^{-8}$부터 $6.55 \times 10^4$까지)이기 때문이다. 깊은 신경망에서 흔한 작은 경사는 FP16에서 0으로 언더플로될 수 있다. 손실 스케일러는 역전파 전에 손실에 큰 배수를 곱해 경사를 표현 가능한 범위로 올린 뒤, FP32 매개변수 갱신 전에 경사를 다시 나눈다.
+
+---
+
+**연습문제 4.**
+은닉 차원 $d = 768$, 층 수 $L = 12$인 트랜스포머 모델은 어텐션과 FFN 가중치를 위해 대략 $12 \times 4d^2 \approx 28.3\text{M}$개의 매개변수를 필요로 한다. 길이 $n = 512$인 시퀀스에 대한 단일 순전파의 FLOPs를 계산하라.
+
+??? success "연습문제 4 풀이"
+    층당: (1) QKV 사영: $3 \times 2nd^2 = 6nd^2$. (2) 어텐션: $2n^2 d$ ($QK^\top$와 어텐션$\times V$). (3) 출력 사영: $2nd^2$. (4) FFN: $2 \times 2n(4d)d = 16nd^2$ (4배 확장을 가진 선형 층 2개). 층당 총합: $6nd^2 + 2n^2d + 2nd^2 + 16nd^2 = 24nd^2 + 2n^2d$. $L$개 층 전체: $L(24nd^2 + 2n^2d) = 12(24 \times 512 \times 768^2 + 2 \times 512^2 \times 768) = 12(7.24 \times 10^9 + 4.03 \times 10^8) \approx 9.17 \times 10^{10}$ FLOPs $\approx 91.7$ GFLOPs.
+
+---
+
+**연습문제 5.**
+배치 정규화가 없다고 가정할 때, 크기 $B/k$인 마이크로배치 $k$개에 대한 경사 누적이 배치 크기 $B$인 단일 경사 단계와 수학적으로 동등함을 증명하라.
+
+??? success "연습문제 5 풀이"
+    크기 $B$인 배치에 대한 손실의 경사는 $g = \frac{1}{B}\sum_{i=1}^{B}\nabla\ell_i$이다. 경사 누적을 사용하면 크기 $B/k$인 마이크로배치 $k$개로 분할한다. 마이크로배치 $j$에 대해 $g_j = \frac{1}{B/k}\sum_{i \in S_j}\nabla\ell_i = \frac{k}{B}\sum_{i \in S_j}\nabla\ell_i$이다. ($k$로 나누지 않고) 누적한 뒤 $k$로 나누면 $\frac{1}{k}\sum_{j=1}^{k} g_j = \frac{1}{k}\sum_{j=1}^{k}\frac{k}{B}\sum_{i \in S_j}\nabla\ell_i = \frac{1}{B}\sum_{i=1}^{B}\nabla\ell_i = g$이다. 누적된 경사는 전체 배치 경사와 같다. 단 배치 정규화는 마이크로배치마다 통계를 계산하므로 불일치를 일으킨다는 점에 유의해야 한다. $\square$

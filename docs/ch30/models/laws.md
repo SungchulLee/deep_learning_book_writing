@@ -1,123 +1,123 @@
-# Amdahl's and Gustafson's Laws
+# 암달과 구스타프슨의 법칙
 
-Adding more processors does not always make a program faster.  The serial
-fraction---the part that cannot be parallelized---limits the achievable
-speedup.  Amdahl's Law quantifies this ceiling, while Gustafson's Law
-reframes the analysis to show that parallel computing shines when we scale
-the problem size with the machine.
+셈틀을 더 붙인다고 프로그램이 늘 빨라지지는 않는다. 나란히 할 수 없는 부분,
+곧 차례 몫이 얻을 수 있는 빨라짐을 가둔다. 암달의 법칙이 이 천장을 수량으로
+나타내고, 구스타프슨의 법칙은 문제 크기를 기계와 함께 키울 때 나란히 셈하기가
+빛난다는 것을 보이도록 살피기를 다시
+짠다.
 
-## Amdahl's Law
+## 암달의 법칙
 
-Let $s$ be the fraction of a program's execution time that is inherently
-serial, and $p$ be the number of processors.  The **speedup** from
-parallelization is:
+$s$을 프로그램 돌림 때 가운데 본디 차례로만 할 수 있는 몫, $p$을 셈틀 수라
+하자. 나란히 하기로 얻는 **빨라짐**은 다음과
+같다:
 
 $$
 S(p) = \frac{1}{s + \dfrac{1 - s}{p}}
 $$
 
-### Derivation
+### 유도
 
-- Sequential time: $T_1 = T_s + T_p$ where $T_s$ is serial time and $T_p$
-  is parallelizable time.
-- With $p$ processors: $T_p = T_s + T_p / p$.
-- Speedup: $S = T_1 / T_p = (T_s + T_p) / (T_s + T_p / p)$.
-- Dividing numerator and denominator by $T_1$ and letting $s = T_s / T_1$
-  gives the formula above.
+- 차례 때: $T_1 = T_s + T_p$이며 $T_s$은 차례 때, $T_p$은 나란히 할 수 있는
+  때이다.
+- 셈틀 $p$개로: $T_p = T_s + T_p / p$.
+- 빨라짐: $S = T_1 / T_p = (T_s + T_p) / (T_s + T_p / p)$.
+- 분자와 분모를 $T_1$으로 나누고 $s = T_s / T_1$으로 두면 위 식이
+  나온다.
 
-### Key Implication
+### 핵심 뜻
 
-As $p \to \infty$:
+$p \to \infty$일 때:
 
 $$
 \lim_{p \to \infty} S(p) = \frac{1}{s}
 $$
 
-Even with infinitely many processors, speedup is bounded by $1/s$.  If
-$10\%$ of the program is serial ($s = 0.1$), the maximum speedup is $10$.
+셈틀이 끝없이 많아도 빨라짐은 $1/s$에 가둬진다. 프로그램의 $10\%$이
+차례라면($s = 0.1$) 가장 큰 빨라짐은 $10$이다.
 
-!!! example "Numerical Example"
-    With $s = 0.05$ (5% serial) and $p = 32$ processors:
+!!! example "수치 보기"
+    $s = 0.05$(차례 5%)이고 셈틀이 $p = 32$개일 때:
 
     $$
     S(32) = \frac{1}{0.05 + \frac{0.95}{32}} = \frac{1}{0.05 + 0.0297} = \frac{1}{0.0797} \approx 12.55
     $$
 
-    Despite using 32 processors, the speedup is only about 12.5x.
+    셈틀을 32개나 쓰지만 빨라짐은 12.5배쯤에 그친다.
 
-## Gustafson's Law
+## 구스타프슨의 법칙
 
-Amdahl's Law assumes a **fixed problem size**.  In practice, users often
-increase the problem size as more processors become available.
-Gustafson's Law accounts for this by fixing the parallel execution time
-rather than the total work.
+암달의 법칙은 **문제 크기가 붙박였다**고 여긴다. 실제로는 셈틀이 늘면 문제 크기도
+키우는 일이 많다.
+구스타프슨의 법칙은 온 일 대신 나란히 돌리는 때를 붙박아 이를 셈에
+넣는다.
 
-Let $s'$ be the fraction of the *parallel* execution time spent on serial
-work.  The **scaled speedup** is:
+$s'$을 *나란히* 돌리는 때 가운데 차례 일에 쓰는 몫이라 하자. **잣수 맞춘 빨라짐**은
+다음과 같다:
 
 $$
 S_G(p) = p - s'(p - 1)
 $$
 
-### Derivation
+### 유도
 
-- Parallel execution time: $T_p = T_s + T_{\text{par}}$.
-- If the problem is scaled so that $T_p$ stays constant, the sequential
-  time for the scaled problem is $T_1 = T_s + p \cdot T_{\text{par}}$.
-- Speedup: $S_G = T_1 / T_p = (T_s + p \cdot T_{\text{par}}) / (T_s + T_{\text{par}})$.
-- With $s' = T_s / T_p$: $S_G = s' + p(1 - s') = p - s'(p - 1)$.
+- 나란히 돌리는 때: $T_p = T_s + T_{\text{par}}$.
+- $T_p$이 그대로이도록 문제를 키우면 그 문제의 차례 때는
+  $T_1 = T_s + p \cdot T_{\text{par}}$이다.
+- 빨라짐: $S_G = T_1 / T_p = (T_s + p \cdot T_{\text{par}}) / (T_s + T_{\text{par}})$.
+- $s' = T_s / T_p$으로 두면 $S_G = s' + p(1 - s') = p - s'(p - 1)$.
 
-### Key Implication
+### 핵심 뜻
 
-Gustafson's speedup grows **linearly** with $p$:
+구스타프슨의 빨라짐은 $p$에 따라 **선형으로** 늘어난다:
 
 $$
 S_G(p) \approx p \quad \text{when } s' \ll 1
 $$
 
-This is much more optimistic than Amdahl's bound because real workloads
-often grow with available compute.
+실제 일감은 쓸 수 있는 셈과 함께 커지는 일이 많으므로 이는 암달의 가둠보다
+훨씬 밝다.
 
-## Comparison
+## 비교
 
-| Aspect | Amdahl's Law | Gustafson's Law |
+| 갈래 | 암달의 법칙 | 구스타프슨의 법칙 |
 |---|---|---|
-| Assumption | Fixed problem size | Fixed parallel time |
-| Speedup limit | $1/s$ (constant) | $\sim p$ (linear) |
-| Perspective | Pessimistic for large $p$ | Optimistic for large $p$ |
-| Best describes | Latency-sensitive tasks | Throughput-oriented tasks |
+| 여김 | 붙박인 문제 크기 | 붙박인 나란히 돌리는 때 |
+| 빨라짐 한도 | $1/s$(상수) | $\sim p$(선형) |
+| 관점 | $p$이 클 때 어둡다 | $p$이 클 때 밝다 |
+| 잘 맞는 일 | 지체에 민감한 일 | 처리량을 앞세우는 일 |
 
-## Visualization
+## 시각화
 
 ```python
 """
 Visualization of Amdahl's and Gustafson's Laws.
 
-Shows how speedup scales with the number of processors.
+셈틀 수에 따라 빨라짐이 어떻게 커지는지 보인다.
 """
 
 import math
 
 
-# === Amdahl's Law ===
+# === 암달의 법칙 ===
 def amdahl_speedup(s: float, p: int) -> float:
     """Compute Amdahl's speedup for serial fraction s and p processors."""
     return 1.0 / (s + (1.0 - s) / p)
 
 
-# === Gustafson's Law ===
+# === 구스타프슨의 법칙 ===
 def gustafson_speedup(s_prime: float, p: int) -> float:
     """Compute Gustafson's scaled speedup."""
     return p - s_prime * (p - 1)
 
 
-# === Efficiency ===
+# === 효율 ===
 def efficiency(speedup: float, p: int) -> float:
     """Parallel efficiency = speedup / p."""
     return speedup / p
 
 
-# === Example ===
+# === 보기 ===
 if __name__ == "__main__":
     serial_fractions = [0.01, 0.05, 0.10, 0.25]
     processors = [1, 2, 4, 8, 16, 32, 64, 128]
@@ -147,19 +147,52 @@ if __name__ == "__main__":
         print()
 ```
 
-## Practical Implications
+## 실무적 함의
 
-- **Amdahl's Law** motivates optimizing the serial bottleneck: even a
-  small reduction in $s$ can significantly raise the speedup ceiling.
-- **Gustafson's Law** justifies building larger parallel systems: as long
-  as the problem scales, near-linear speedup is achievable.
-- **Efficiency** $E = S/p$ measures how well processors are utilized.
-  Amdahl-limited workloads have $E \to 0$ as $p$ grows; Gustafson-scaled
-  workloads maintain constant $E$.
+- **암달의 법칙**은 차례 병목을 다듬을 까닭을 준다. $s$을 조금만 줄여도
+  빨라짐의 천장이 크게 올라간다.
+- **구스타프슨의 법칙**은 더 큰 나란한 시스템을 세울 명분을 준다. 문제가
+  함께 커지는 한 거의 선형인 빨라짐을 얻을 수 있다.
+- **효율** $E = S/p$은 셈틀을 얼마나 잘 쓰는지 잰다.
+  암달에 가둬진 일감은 $p$이 커지면 $E \to 0$이고, 구스타프슨처럼 키운
+  일감은 $E$을 그대로 지킨다.
 
-## Reference
+## 참고 문헌
 
 - Amdahl, G. M. "Validity of the Single Processor Approach to Achieving
   Large Scale Computing Capabilities." AFIPS 1967.
 - Gustafson, J. L. "Reevaluating Amdahl's Law." *Communications of the
   ACM*, 31(5), 1988.
+
+
+## 연습문제
+
+**연습문제 1.**
+암달의 법칙을 말하고 프로그램의 90%를 나란히 할 수 있을 때 가장 큰 빨라짐을 셈하여라.
+
+??? success "연습문제 1 풀이"
+    암달의 법칙: $f$이 나란히 할 수 있는 몫, $p$이 셈틀 수일 때 $S(p) = 1 / ((1-f) + f/p)$이다. $f = 0.9$이고 $p \to \infty$이면 $S = 1/(1-0.9) = 10$이다. 셈틀이 아무리 많아도 차례인 10%가 빨라짐을 10배로 가둔다. $p = 100$이면 $S = 1/(0.1 + 0.9/100) = 1/0.109 \approx 9.17$이다.
+
+---
+
+**연습문제 2.**
+구스타프슨의 법칙을 말하고 그것이 나란히 하기를 왜 더 밝게 보는지 밝혀라.
+
+??? success "연습문제 2 풀이"
+    구스타프슨의 법칙: $\alpha$이 차례 몫일 때 $S(p) = p - \alpha(p - 1)$이다. (문제 크기가 붙박인) 암달과 달리 구스타프슨은 문제 크기가 $p$과 함께 커진다고 여긴다(더 큰 기계로 더 큰 문제를 푼다). $\alpha = 0.1$이고 $p = 100$이면 $S = 100 - 0.1 \cdot 99 = 90.1$이다. 나란한 일이 커질수록 차례 몫이 상대로 줄어들기에 훨씬 밝다. 구스타프슨의 관점은 실제 고성능 셈의 모습과 맞는다. 학자들은 같은 문제를 더 빨리 풀려고가 아니라 더 큰 문제를 풀려고 더 큰 기계를 쓴다.
+
+---
+
+**연습문제 3.**
+깊은 배움에서 암달의 법칙과 구스타프슨의 법칙은 각각 언제 들어맞는가?
+
+??? success "연습문제 3 풀이"
+    암달은 크기가 붙박인 헤아림에 들어맞는다. 그림 하나를 신경망에 넣는 일에는 붙박인 차례 조각(자료 불러오기, 뒷손질)이 있다. 행렬 곱하기의 나란함은 차례 덧짐에 가둬진다. 구스타프슨은 익히기에 들어맞는다. GPU이 늘면 묶음 크기를 키우거나(자료 나란히 하기) 모델 크기를 키워(모델 나란히 하기) 문제를 키운다. 묶음이 커질수록 차례 몫(맞추기, 기울기 모으기)이 상대로 작아진다. GPU을 1대에서 1000대로 늘릴 때 익히기는 거의 선형으로 빨라지지만 표본 하나의 헤아림은 별로 빨라지지 않는 까닭이 이것이다.
+
+---
+
+**연습문제 4.**
+암달의 법칙에서 오는 수확 체감을 보아 가장 좋은 셈틀 수를 이끌어 내어라.
+
+??? success "연습문제 4 풀이"
+    암달의 법칙에서 셈틀마다의 빨라짐은 $\partial S / \partial p = f / ((1-f) + f/p)^2 \cdot 1/p^2$이다. 셈틀을 하나 더 붙이는 한계 비용이 그 한계 빨라짐의 값어치와 같아야 한다. 셈틀마다 비용이 $c$이고 빨라짐의 값어치가 $v$이면 $v \cdot \partial S / \partial p = c$이다. $f = 0.95$일 때 $p = 20$에서 빨라짐은 10.3(최대의 51.5%), $p = 100$에서 16.8(84%), $p = 1000$에서 19.6(98%)이다. 값을 하는 구간은 대개 $p \leq 1/(1-f)^2$이며 그 너머로는 수확이 가파르게 준다.

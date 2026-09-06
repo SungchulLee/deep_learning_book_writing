@@ -1,58 +1,53 @@
-# Video Basics: Loading and Processing
+# 영상 기초: 읽어 들이고 다루기
+## 학습 목표
 
+이 절을 마치면 다음을 할 수 있게 된다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+- 영상 자료를 틀의 때 차례로 나타내는 법을 이해한다
+- 여러 뒷단(torchvision, OpenCV)으로 영상을 읽어 들이고 다룬다
+- 서로 다른 영상 텐서 꼴 사이를 옮긴다
+- 틀 뽑기와 표집 전략을 짠다
+- 영상 신경망에 알맞은 앞손질을 한다
 
-## Learning Objectives
+## 수학적 바탕
 
-By the end of this section, you will be able to:
+### 때 차례로서의 영상
 
-- Understand video data representation as temporal sequences of frames
-- Load and process videos using multiple backends (torchvision, OpenCV)
-- Convert between different video tensor formats
-- Implement frame extraction and sampling strategies
-- Apply appropriate preprocessing for video neural networks
-
-## Mathematical Foundation
-
-### Video as Temporal Sequence
-
-A video $V$ is fundamentally a sequence of $T$ frames:
+영상 $V$은 근본적으로 틀 $T$개의 차례이다:
 
 $$V = \{I_1, I_2, \ldots, I_T\}$$
 
 where each frame $I_t \in \mathbb{R}^{H \times W \times C}$ represents an image at time $t$ with height $H$, width $W$, and $C$ channels (typically 3 for RGB).
 
-### Tensor Representation
+### 텐서로 나타내기
 
-In PyTorch, videos are represented as 4D or 5D tensors:
+PyTorch에서 영상은 4차원이나 5차원 텐서로 나타낸다:
 
-**Single video (4D):**
+**영상 하나(4차원):**
 
 $$V \in \mathbb{R}^{T \times C \times H \times W}$$
 
-**Batch of videos (5D):**
+**영상 묶음(5차원):**
 
 $$V \in \mathbb{R}^{B \times T \times C \times H \times W}$$
 
-where $B$ is the batch size.
+여기서 $B$은 묶음 크기이다.
 
-### Frame Rate and Duration
+### 틀 비율과 길이
 
-The relationship between temporal properties:
+때에 관한 성질 사이의 관계:
 
 $$\text{Duration (seconds)} = \frac{T}{\text{FPS}}$$
 
 $$T = \text{Duration} \times \text{FPS}$$
 
-where FPS (frames per second) determines temporal resolution.
+여기서 초당 틀 수(FPS)가 때의 해상도를 정한다.
 
-## Video Loading Backends
+## 영상 읽어 들이기 뒷단
 
-### OpenCV Backend
+### OpenCV 뒷단
 
-OpenCV provides flexible, production-ready video loading:
+OpenCV는 유연하고 실전에 쓸 수 있는 영상 읽어 들이기를 준다:
 
 ```python
 import cv2
@@ -60,22 +55,22 @@ import numpy as np
 import torch
 
 class VideoLoader:
-    """Comprehensive video loading utility."""
+    """두루 쓰는 영상 읽어 들이기 도구."""
     
     def __init__(self, video_path: str):
         self.video_path = video_path
         
     def load_video_opencv(self):
         """
-        Load video using OpenCV backend.
+        OpenCV 뒷단으로 영상을 읽어 들인다.
         
-        Returns:
-            frames: NumPy array of shape (T, H, W, C)
-            info: Dictionary with video metadata
+        반환값:
+            frames: 꼴이 (T, H, W, C)인 NumPy 배열
+            info: 영상 메타자료를 담은 사전
         """
         cap = cv2.VideoCapture(self.video_path)
         
-        # Extract video properties
+        # 영상의 성질 뽑아내기
         fps = cap.get(cv2.CAP_PROP_FPS)
         frame_count = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -86,13 +81,13 @@ class VideoLoader:
             ret, frame = cap.read()
             if not ret:
                 break
-            # Convert BGR (OpenCV default) to RGB
+            # BGR(OpenCV 붙박이)을 RGB로 바꾸기
             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             frames.append(frame)
         
         cap.release()
         
-        frames = np.array(frames)  # Shape: (T, H, W, 3)
+        frames = np.array(frames)  # 꼴: (T, H, W, 3)
         
         info = {
             'fps': fps,
@@ -105,133 +100,133 @@ class VideoLoader:
         return frames, info
 ```
 
-### Torchvision Backend
+### Torchvision 뒷단
 
-Native PyTorch integration with torchvision:
+torchvision으로 PyTorch에 곧바로 녹아든다:
 
 ```python
 from torchvision.io import read_video, write_video
 
 def load_video_torchvision(video_path: str):
     """
-    Load video using torchvision backend.
+    torchvision 뒷단으로 영상을 읽어 들인다.
     
-    Returns:
-        video: Tensor of shape (T, H, W, C) with values in [0, 255]
-        audio: Audio tensor if present
-        info: Dictionary with video metadata
+    반환값:
+        video: 값이 [0, 255]이고 꼴이 (T, H, W, C)인 텐서
+        audio: 있으면 소리 텐서
+        info: 영상 메타자료를 담은 사전
     """
     video, audio, info = read_video(
         video_path,
-        pts_unit='sec'  # Use seconds for timestamps
+        pts_unit='sec'  # 때 도장에 초를 쓴다
     )
     
     return video, audio, info
 ```
 
-### Format Conversion
+### 꼴 바꾸기
 
-Converting between formats is essential for different frameworks:
+틀이 다를 때는 꼴 사이를 옮기는 일이 꼭 필요하다:
 
 ```python
 def convert_to_pytorch_format(frames: np.ndarray) -> torch.Tensor:
     """
-    Convert NumPy video to PyTorch tensor format.
+    NumPy 영상을 PyTorch 텐서 꼴로 바꾼다.
     
-    Args:
-        frames: NumPy array (T, H, W, C) with values [0, 255]
+    인수:
+        frames: 값이 [0, 255]인 NumPy 배열 (T, H, W, C)
         
-    Returns:
-        video_tensor: PyTorch tensor (T, C, H, W) with values [0, 1]
+    반환값:
+        video_tensor: 값이 [0, 1]인 PyTorch 텐서 (T, C, H, W)
     """
-    # Convert to tensor
+    # 텐서로 바꾸기
     video_tensor = torch.from_numpy(frames).float()
     
-    # Rearrange dimensions: (T, H, W, C) → (T, C, H, W)
+    # 차원 다시 늘어놓기: (T, H, W, C) → (T, C, H, W)
     video_tensor = video_tensor.permute(0, 3, 1, 2)
     
-    # Normalize to [0, 1]
+    # [0, 1]로 고르게 맞추기
     video_tensor = video_tensor / 255.0
     
     return video_tensor
 ```
 
-## Frame Sampling Strategies
+## 틀 표집 전략
 
-Sampling strategies determine which frames to process, balancing computational cost with temporal coverage.
+표집 전략은 어떤 틀을 다룰지 정하며, 셈 값과 때의 덮음 사이 균형을 잡는다.
 
-### Uniform Sampling
+### 고른 표집
 
-Sample frames evenly distributed across the video:
+영상 전체에 고루 퍼지도록 틀을 뽑는다:
 
 $$i_k = \left\lfloor \frac{k \cdot T}{n} \right\rfloor \quad \text{for } k = 0, 1, \ldots, n-1$$
 
-where $n$ is the number of frames to sample.
+여기서 $n$은 뽑을 틀의 개수이다.
 
 ```python
 def uniform_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
     """
-    Sample frames uniformly across the video.
+    영상 전체에서 틀을 고루 뽑는다.
     
-    Args:
-        video: Input tensor (T, C, H, W)
-        num_frames: Number of frames to sample
+    인수:
+        video: 들임 텐서 (T, C, H, W)
+        num_frames: 뽑을 틀의 개수
         
-    Returns:
-        Sampled tensor (num_frames, C, H, W)
+    반환값:
+        뽑은 텐서 (num_frames, C, H, W)
     """
     T = video.shape[0]
     indices = torch.linspace(0, T - 1, num_frames).long()
     return video[indices]
 ```
 
-### Temporal Stride Sampling
+### 때 성큼 표집
 
-Sample every $s$-th frame:
+$s$번째 틀마다 뽑는다:
 
 ```python
 def stride_sampling(video: torch.Tensor, stride: int) -> torch.Tensor:
     """
-    Sample frames with fixed temporal stride.
+    붙박이 때 성큼으로 틀을 뽑는다.
     
-    Args:
-        video: Input tensor (T, C, H, W)
-        stride: Temporal stride (skip every stride-1 frames)
+    인수:
+        video: 들임 텐서 (T, C, H, W)
+        stride: 때 성큼(stride-1개 틀씩 건너뛴다)
         
-    Returns:
-        Sampled tensor with reduced temporal dimension
+    반환값:
+        때 차원을 줄여 뽑은 텐서
     """
     return video[::stride]
 ```
 
-### Dense Sampling
+### 촘촘한 표집
 
-Extract multiple overlapping clips for temporal networks:
+때 그물을 위해 겹치는 토막을 여럿 뽑는다:
 
 ```python
 def dense_sampling(video: torch.Tensor, 
                    clip_length: int, 
                    num_clips: int) -> list:
     """
-    Extract multiple clips from video for dense predictions.
+    촘촘한 어림을 위해 영상에서 토막을 여럿 뽑는다.
     
-    Args:
-        video: Input tensor (T, C, H, W)
-        clip_length: Number of frames per clip
-        num_clips: Number of clips to extract
+    인수:
+        video: 들임 텐서 (T, C, H, W)
+        clip_length: 토막마다의 틀 개수
+        num_clips: 뽑을 토막의 개수
         
-    Returns:
-        List of clip tensors, each (clip_length, C, H, W)
+    반환값:
+        토막 텐서의 목록. 저마다 (clip_length, C, H, W)
     """
     T = video.shape[0]
     
     if T < clip_length:
-        # Pad if video is shorter than clip length
+        # 영상이 토막 길이보다 짧으면 덧대기
         padding = torch.zeros(clip_length - T, *video.shape[1:])
         video = torch.cat([video, padding], dim=0)
         T = clip_length
     
-    # Calculate clip start positions
+    # 토막 시작 자리 셈하기
     max_start = T - clip_length
     if num_clips == 1:
         starts = [max_start // 2]
@@ -242,87 +237,87 @@ def dense_sampling(video: torch.Tensor,
     return clips
 ```
 
-### Random Sampling
+### 마구잡이 표집
 
-Useful for data augmentation during training:
+익히는 동안 자료 불리기에 쓸모 있다:
 
 ```python
 def random_sampling(video: torch.Tensor, num_frames: int) -> torch.Tensor:
     """
-    Randomly sample frames (for data augmentation).
+    틀을 마구잡이로 뽑는다(자료 불리기용).
     
-    Args:
-        video: Input tensor (T, C, H, W)
-        num_frames: Number of frames to sample
+    인수:
+        video: 들임 텐서 (T, C, H, W)
+        num_frames: 뽑을 틀의 개수
         
-    Returns:
-        Sampled tensor (num_frames, C, H, W)
+    반환값:
+        뽑은 텐서 (num_frames, C, H, W)
     """
     T = video.shape[0]
     
-    # Random indices, then sort to maintain temporal order
+    # 마구잡이 번호를 뽑고 때 차례를 지키려 정렬
     indices = torch.randint(0, T, (num_frames,))
     indices, _ = torch.sort(indices)
     
     return video[indices]
 ```
 
-## Video Preprocessing
+## 영상 앞손질
 
-### Normalization
+### 고르게 맞추기
 
-Apply ImageNet normalization for transfer learning:
+옮겨 배우기를 위해 ImageNet 방식으로 고르게 맞춘다:
 
 ```python
 class VideoPreprocessor:
-    """Preprocessing utilities for video data."""
+    """영상 자료를 위한 앞손질 도구."""
     
-    # ImageNet statistics
+    # ImageNet 통계량
     MEAN = torch.tensor([0.485, 0.456, 0.406])
     STD = torch.tensor([0.229, 0.224, 0.225])
     
     def normalize(self, video: torch.Tensor) -> torch.Tensor:
         """
-        Apply ImageNet normalization to video.
+        영상에 ImageNet 방식 고르게 맞추기를 쓴다.
         
-        Args:
-            video: Input tensor (T, C, H, W) with values in [0, 1]
+        인수:
+            video: 값이 [0, 1]인 들임 텐서 (T, C, H, W)
             
-        Returns:
-            Normalized tensor with zero mean and unit variance
+        반환값:
+            평균 0, 흩어짐 1로 고르게 맞춘 텐서
         """
-        # Reshape for broadcasting: (1, C, 1, 1)
+        # 퍼뜨리기를 위해 꼴 바꾸기: (1, C, 1, 1)
         mean = self.MEAN.view(1, -1, 1, 1)
         std = self.STD.view(1, -1, 1, 1)
         
         return (video - mean) / std
     
     def denormalize(self, video: torch.Tensor) -> torch.Tensor:
-        """Reverse normalization for visualization."""
+        """그려 보려고 고르게 맞추기를 되돌린다."""
         mean = self.MEAN.view(1, -1, 1, 1)
         std = self.STD.view(1, -1, 1, 1)
         
         return video * std + mean
 ```
 
-### Spatial Cropping
+### 자리 잘라내기
 
-Apply consistent spatial crops across all frames:
+모든 틀에 한결같은 자리 잘라내기를 한다:
 
 ```python
 def spatial_crop(video: torch.Tensor, 
                  crop_size: tuple,
                  position: str = 'center') -> torch.Tensor:
     """
-    Perform spatial crop on all frames.
+    모든 틀에 자리 잘라내기를 한다.
     
-    Args:
-        video: Input tensor (T, C, H, W)
+    인수:
+        video: 들임 텐서 (T, C, H, W)
         crop_size: (crop_h, crop_w)
-        position: 'center', 'random', or 'top_left'
+        position: 'center', 'random', 또는 'top_left'
         
-    Returns:
-        Cropped tensor (T, C, crop_h, crop_w)
+    반환값:
+        잘라낸 텐서 (T, C, crop_h, crop_w)
     """
     T, C, H, W = video.shape
     crop_h, crop_w = crop_size
@@ -339,9 +334,9 @@ def spatial_crop(video: torch.Tensor,
     return video[:, :, top:top+crop_h, left:left+crop_w]
 ```
 
-### Resizing
+### 크기 바꾸기
 
-Resize frames to target resolution:
+틀을 목표 해상도로 바꾼다:
 
 ```python
 import torch.nn.functional as F
@@ -349,22 +344,22 @@ import torch.nn.functional as F
 def resize_video(video: torch.Tensor, 
                  target_size: tuple) -> torch.Tensor:
     """
-    Resize all frames to target size.
+    모든 틀을 목표 크기로 바꾼다.
     
-    Args:
-        video: Input tensor (T, C, H, W)
+    인수:
+        video: 들임 텐서 (T, C, H, W)
         target_size: (target_h, target_w)
         
-    Returns:
-        Resized tensor (T, C, target_h, target_w)
+    반환값:
+        크기를 바꾼 텐서 (T, C, target_h, target_w)
     """
     T, C, H, W = video.shape
     target_h, target_w = target_size
     
-    # Reshape for batch processing
+    # 묶음 처리를 위해 꼴 바꾸기
     video_flat = video.view(T, C, H, W)
     
-    # Use bilinear interpolation
+    # 두 줄 사이 끼움 쓰기
     resized = F.interpolate(
         video_flat,
         size=(target_h, target_w),
@@ -375,20 +370,20 @@ def resize_video(video: torch.Tensor,
     return resized
 ```
 
-## Visualization
+## 시각화
 
-### Frame Display
+### 틀 보여 주기
 
 ```python
 import matplotlib.pyplot as plt
 
 def visualize_frames(video: torch.Tensor, num_frames: int = 8):
     """
-    Display sampled frames from video.
+    영상에서 뽑은 틀을 보여 준다.
     
-    Args:
-        video: Video tensor (T, C, H, W)
-        num_frames: Number of frames to display
+    인수:
+        video: 영상 텐서 (T, C, H, W)
+        num_frames: 보여 줄 틀의 개수
     """
     T = video.shape[0]
     indices = torch.linspace(0, T - 1, num_frames).long()
@@ -407,20 +402,58 @@ def visualize_frames(video: torch.Tensor, num_frames: int = 8):
     plt.show()
 ```
 
-## Summary
+## 요약
 
-| Aspect | Key Points |
+| 살필 점 | 핵심 |
 |--------|------------|
 | **Video Format** | $V \in \mathbb{R}^{T \times C \times H \times W}$ in PyTorch |
-| **Loading** | OpenCV for flexibility, torchvision for native PyTorch |
-| **Sampling** | Uniform for even coverage, random for augmentation |
-| **Preprocessing** | ImageNet normalization for transfer learning |
-| **Considerations** | Maintain temporal consistency across all frames |
+| **읽어 들이기** | 유연함에는 OpenCV, PyTorch에 곧바로 쓰려면 torchvision |
+| **표집** | 고루 덮으려면 고른 표집, 불리기에는 마구잡이 |
+| **앞손질** | 옮겨 배우기에는 ImageNet 방식 고르게 맞추기 |
+| **헤아릴 점** | 모든 틀에서 때의 한결같음을 지킨다 |
 
-## Next Steps
+## 다음 걸음
 
-With video basics established, we can now explore:
+영상 기초를 다졌으니 이제 다음을 살펴볼 수 있다:
 
-1. **3D Convolutions** - Spatiotemporal feature extraction
-2. **Temporal Modeling** - Understanding motion and dynamics
-3. **Two-Stream Networks** - Combining appearance and motion
+1. **3차원 누비기** — 자리와 때에 걸친 특징 뽑기
+2. **때 나타내기** — 움직임과 흐름 이해하기
+3. **두 갈래 그물** — 겉모습과 움직임 아우르기
+
+## 연습문제
+
+**연습문제 1.**
+영상 이해를 위한 두 갈래 그물의 핵심 눈썰미를 밝히고, 날 틀 위의 한 갈래만으로는 왜 모자란지 설명하여라.
+
+??? success "연습문제 1 풀이"
+    두 갈래 그물은 **자리**(겉모습) 앎과 **때**(움직임) 앎을 서로 다른 갈래에서 다룬다. RGB 한 갈래만으로도 겉모습은 담아내지만 움직임에는 약한데, 그 까닭은 이렇다. (1) 때의 무늬는 여러 틀에 걸쳐 있어 넓은 받는 자리가 필요하다. (2) 움직임은 화소 바뀜 속에 숨어 있어 날 자료에서 배우기 어렵다. 빛 흐름 갈래는 움직임을 드러내어 부호로 담아 서로 채워 주는 신호를 준다. 두 갈래는 보통 (늦게 또는 중간에서) 녹여 붙여 겉모습과 움직임 이해를 아우르며, 한 갈래 방식보다 훨씬 낫다.
+
+---
+
+**연습문제 2.**
+느림빠름 얼개를 설명하여라. 영상을 두 가지 틀 비율로 다루면 왜 알아보기가 나아지는가?
+
+??? success "연습문제 2 풀이"
+    SlowFast uses two pathways: a **Slow** pathway operating at low frame rate (e.g., 2 FPS) with a large channel capacity for detailed spatial semantics, and a **Fast** pathway at high frame rate (e.g., 16 FPS) with fewer channels for capturing rapid temporal dynamics. This design is efficient because: spatial semantics change slowly (don't need high frame rate), while motion occurs at fine temporal scales. The Fast pathway is lightweight ($\sim$20% of computation) and provides temporal resolution, while the Slow pathway provides spatial richness. Lateral connections fuse information between pathways.
+
+---
+
+**연습문제 3.**
+그림 가르기 얼개(보기로 ResNet)를 영상 이해로 넓힐 때의 주된 어려움은 무엇인가?
+
+??? success "연습문제 3 풀이"
+    Key challenges: (1) **Computational cost**: adding a temporal dimension increases data by $T\times$ ($T$ frames), making 3D convolutions expensive; (2) **Temporal modeling**: 2D convolutions only see individual frames and miss temporal patterns; naively inflating 2D kernels to 3D (e.g., I3D) is expensive; (3) **Variable-length inputs**: videos vary in duration, requiring temporal pooling or sampling strategies; (4) **Long-range dependencies**: important events may span hundreds of frames, exceeding the receptive field of local convolutions; (5) **Training data**: video datasets are smaller than image datasets, making overfitting a concern.
+
+---
+
+**연습문제 4.**
+영상을 나타내는 데 쓰는 3차원 누비기, (2+1)차원으로 쪼갠 누비기, 때에 걸친 스스로 눈길을 견주어라.
+
+??? success "연습문제 4 풀이"
+    | 방식 | 셈 | 때의 범위 | 익히기 |
+    |----------|-------------|----------------|----------|
+    | **3D Conv** | $O(k^3 C^2 THW)$ | Local ($k$ frames) | Expensive, needs pretraining |
+    | **(2+1)D Conv** | $O(k^2 C^2 THW + k C^2 THW)$ | Local | Easier to optimize, fewer params |
+    | **Temporal Attention** | $O(T^2 CHW)$ | Global | Quadratic in $T$, flexible |
+
+    3차원 누비기는 힘세지만 값이 비싸다. (2+1)차원 쪼개기는 자리 다루기와 때 다루기를 갈라 정확도를 지키면서 매개변수를 줄인다. 때에 걸친 스스로 눈길은 멀리 떨어진 얽힘을 담아내지만 차례 길이의 제곱으로 늘어난다. 요즘 얼개(보기로 Video Swin Transformer)는 흔히 가까운 자리의 눈길과 층진 꾸밈을 아우른다.

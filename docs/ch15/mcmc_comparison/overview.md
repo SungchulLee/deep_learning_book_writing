@@ -1,50 +1,44 @@
-# MCMC Methods Comparison
+# MCMC 방법의 견줌
+MCMC 방법은 모두 과녁 분포 $\pi(x)$에서 표집하려 하지만, 근본적으로 다른 전략을 쓰며 저마다 다른 주고받음이 있다. 이 마당은 바탕이 되는 네 방법, 곧 메트로폴리스-헤이스팅스, 깁스 표집, 랑주뱅 동역학, 해밀턴 몬테카를로를 두루 견주고 방법 고르기의 실전 길잡이를 준다.
 
+## 네 방법 훑어보기
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+### 메트로폴리스-헤이스팅스(MH)
 
-All MCMC methods aim to sample from a target distribution $\pi(x)$, but they employ fundamentally different strategies with distinct trade-offs. This section provides a comprehensive comparison of the four foundational methods—Metropolis-Hastings, Gibbs sampling, Langevin dynamics, and Hamiltonian Monte Carlo—along with practical guidance for method selection.
+**제안**: 아무 분포 $q(x'|x)$
 
-## Overview of the Four Methods
+**새로 고치기 규칙**:
 
-### Metropolis-Hastings (MH)
+1. $x' \sim q(\cdot|x)$을 내놓는다
+2. 확률 $\alpha = \min\left(1, \frac{\pi(x')q(x|x')}{\pi(x)q(x'|x)}\right)$으로 받아들인다
 
-**Proposal**: Any distribution $q(x'|x)$
+**가장 단순한 판**: $q(x'|x) = \mathcal{N}(x, \sigma^2 I)$인 무작위 걸음
 
-**Update rule**:
-1. Propose $x' \sim q(\cdot|x)$
-2. Accept with probability $\alpha = \min\left(1, \frac{\pi(x')q(x|x')}{\pi(x)q(x'|x)}\right)$
+### 깁스 표집
 
-**Simplest variant**: Random walk with $q(x'|x) = \mathcal{N}(x, \sigma^2 I)$
+**제안**: 온전한 조건부 분포 $\pi(x_i | x_{-i})$
 
-### Gibbs Sampling
-
-**Proposal**: Full conditional distributions $\pi(x_i | x_{-i})$
-
-**Update rule**:
+**새로 고치기 규칙**:
 ```
 For each coordinate i = 1, ..., d:
     Sample x_i ~ π(x_i | x_{-i})
 ```
 
-**Key property**: Acceptance probability is always 1 (by construction).
+**핵심 성질**: 짜임새 덕분에 받아들임 확률이 늘 1이다.
 
-### Langevin Dynamics (MALA)
+### 랑주뱅 동역학(MALA)
 
-**Proposal**: Gradient-guided with noise
+**제안**: 잡음을 곁들여 기울기가 이끄는 것
 
 $$
-
 x' = x + \frac{\epsilon^2}{2}\nabla \log \pi(x) + \epsilon \eta, \quad \eta \sim \mathcal{N}(0, I)
-
 $$
 
-**Update rule**: Apply Metropolis-Hastings correction with this asymmetric proposal.
+**새로 고치기 규칙**: 이 비대칭 제안에 메트로폴리스-헤이스팅스 바로잡기를 쓴다.
 
-### Hamiltonian Monte Carlo (HMC)
+### 해밀턴 몬테카를로(HMC)
 
-**Proposal**: $L$ leapfrog steps with auxiliary momentum
+**제안**: 보조 운동량과 함께 개구리뜀 $L$ 걸음
 ```
 1. Resample momentum: v ~ N(0, M)
 2. Simulate Hamiltonian dynamics: (x, v) → (x', v') via L leapfrog steps
@@ -52,315 +46,321 @@ $$
 4. Accept with probability: α = min(1, exp(-ΔH))
 ```
 
-## Master Comparison Table
+## 큰 견줌 표
 
-| Aspect | MH (Random Walk) | Gibbs | MALA | HMC |
+| 결 | MH(무작위 걸음) | 깁스 | MALA | HMC |
 |--------|------------------|-------|------|-----|
-| **Information order** | 0th (density only) | 0th (conditionals) | 1st (gradient) | 1st (gradient) |
-| **Gradient required?** | No | No | Yes | Yes |
-| **Auxiliary variables** | None | None | None | Momentum $v$ |
-| **Typical acceptance** | 20–40% | 100% | 50–70% | 60–80% |
-| **Optimal acceptance** | 23.4% | 100% | 57.4% | ~65% |
-| **Tuning parameters** | Step size $\sigma$ | None | Step size $\epsilon$ | $\epsilon$, $L$, $M$ |
-| **Cost per iteration** | $\mathcal{O}(1)$ | $\mathcal{O}(d)$ | $\mathcal{O}(d)$ | $\mathcal{O}(Ld)$ |
-| **Mixing time** | $\mathcal{O}(d^2)$ | $\mathcal{O}(d)$ to $\mathcal{O}(d^2)$ | $\mathcal{O}(d^{5/3})$ | $\mathcal{O}(d^{5/4})$ |
-| **Step size scaling** | $\sigma \sim d^{-1/2}$ | N/A | $\epsilon \sim d^{-1/6}$ | $\epsilon \sim d^{-1/4}$ |
-| **Handles discrete?** | Yes | Yes | No | No |
-| **Correlation sensitivity** | High | Very high | Medium | Low |
-| **Implementation complexity** | Simple | Simple | Medium | Complex |
+| **정보의 차수** | 0차(밀도만) | 0차(조건부 분포) | 1차(기울기) | 1차(기울기) |
+| **기울기가 필요한가?** | 아니오 | 아니오 | 예 | 예 |
+| **보조 변수** | 없음 | 없음 | 없음 | 운동량 $v$ |
+| **흔한 받아들임** | 20-40% | 100% | 50-70% | 60-80% |
+| **가장 좋은 받아들임** | 23.4% | 100% | 57.4% | 약 65% |
+| **맞출 매개변수** | 걸음 크기 $\sigma$ | 없음 | 걸음 크기 $\epsilon$ | $\epsilon$, $L$, $M$ |
+| **되풀이마다의 값** | $\mathcal{O}(1)$ | $\mathcal{O}(d)$ | $\mathcal{O}(d)$ | $\mathcal{O}(Ld)$ |
+| **섞임 시간** | $\mathcal{O}(d^2)$ | $\mathcal{O}(d)$에서 $\mathcal{O}(d^2)$ | $\mathcal{O}(d^{5/3})$ | $\mathcal{O}(d^{5/4})$ |
+| **걸음 크기 커짐새** | $\sigma \sim d^{-1/2}$ | 해당 없음 | $\epsilon \sim d^{-1/6}$ | $\epsilon \sim d^{-1/4}$ |
+| **이산을 다루나?** | 예 | 예 | 아니오 | 아니오 |
+| **상관에 대한 민감함** | 높음 | 아주 높음 | 보통 | 낮음 |
+| **구현의 복잡함** | 단순 | 단순 | 보통 | 복잡 |
 
-## Information Hierarchy
+## 정보의 층위
 
-The methods form a hierarchy based on how much information about the target they exploit:
+이 방법들은 과녁에 대한 정보를 얼마나 써먹느냐에 따라 층위를 이룬다:
 
-**0th order** (MH, Gibbs):
-- Can evaluate $\pi(x)$ at any point
-- Don't know which direction increases $\pi$
-- Must explore blindly or use problem structure
+**0차**(MH, 깁스):
 
-**1st order** (Langevin, HMC):
-- Can evaluate both $\pi(x)$ and $\nabla \log \pi(x)$
-- Know which direction increases $\pi$
-- Can guide proposals toward high-probability regions
+- 어느 점에서든 $\pi(x)$의 값을 매길 수 있다
+- 어느 방향이 $\pi$을 키우는지 모른다
+- 눈 감고 살펴보거나 문제의 짜임을 써야 한다
 
-**Why more information helps**: Random walk MH tries all directions equally, while gradient-based methods focus on promising directions. The result is faster mixing with fewer wasted proposals.
+**1차**(랑주뱅, HMC):
 
-## Detailed Pairwise Comparisons
+- $\pi(x)$과 $\nabla \log \pi(x)$의 값을 모두 매길 수 있다
+- 어느 방향이 $\pi$을 키우는지 안다
+- 제안을 확률이 높은 구역으로 이끌 수 있다
 
-### Random Walk MH vs. Langevin
+**정보가 많으면 왜 나은가**: 무작기 걸음 MH은 모든 방향을 고르게 해 보지만 기울기 기반 방법은 그럴듯한 방향에 초점을 맞춘다. 그러면 버려지는 제안이 줄고 더 빨리 섞인다.
 
-Both make local proposals, but Langevin uses gradient information.
+## 둘씩 자세히 견주기
 
-**Random Walk MH**:
+### 무작위 걸음 MH과 랑주뱅
+
+둘 다 그 자리 둘레에서 제안하지만 랑주뱅은 기울기 정보를 쓴다.
+
+**무작위 걸음 MH**:
 
 $$
-
 x' = x + \sigma \eta, \quad \eta \sim \mathcal{N}(0, I)
-
 $$
 
-- Proposal is **uninformed** (doesn't use $\nabla \log \pi$)
-- Isotropic exploration in all directions
-- Works for non-differentiable targets
+- 제안이 **아는 바 없다**($\nabla \log \pi$을 쓰지 않는다)
+- 모든 방향으로 고르게 살펴본다
+- 미분할 수 없는 과녁에서도 굴러간다
 
-**Langevin (MALA)**:
+**랑주뱅(MALA)**:
 
 $$
-
 x' = x + \frac{\epsilon^2}{2}\nabla \log \pi(x) + \epsilon \eta
-
 $$
 
-- Proposal is **informed** (uses gradient)
-- Anisotropic exploration (follows gradient direction)
-- Requires differentiable target
+- 제안이 **아는 바 있다**(기울기를 쓴다)
+- 방향에 따라 다르게 살펴본다(기울기 방향을 따른다)
+- 미분할 수 있는 과녁이 필요하다
 
-**Performance comparison** (steps to convergence):
+**성능 견줌**(모이기까지의 걸음):
 
-| Dimension | Random Walk | Langevin | Speedup |
+| 차원 | 무작위 걸음 | 랑주뱅 | 빨라짐 |
 |-----------|-------------|----------|---------|
-| $d = 10$ | 1,000 | 500 | 2× |
-| $d = 100$ | 100,000 | 5,000 | 20× |
-| $d = 1000$ | 10,000,000 | 100,000 | 100× |
+| $d = 10$ | 1,000 | 500 | 2배 |
+| $d = 100$ | 100,000 | 5,000 | 20배 |
+| $d = 1000$ | 10,000,000 | 100,000 | 100배 |
 
-Langevin scales as $\mathcal{O}(d^{5/3})$ vs. $\mathcal{O}(d^2)$ for random walk mixing time.
+섞임 시간이 랑주뱅은 $\mathcal{O}(d^{5/3})$, 무작위 걸음은 $\mathcal{O}(d^2)$으로 커진다.
 
-### Gibbs vs. Metropolis-Hastings
+### 깁스와 메트로폴리스-헤이스팅스
 
-**Use Gibbs when**:
-- All conditionals $\pi(x_i|x_{-i})$ are tractable (easy to sample)
-- Examples: Gaussian models, conjugate priors, many hierarchical models
+**다음일 때 깁스를 써라**:
 
-**Use MH when**:
-- Conditionals are intractable
-- Examples: Logistic regression, neural network parameters
+- 조건부 분포 $\pi(x_i|x_{-i})$을 모두 다룰 수 있을 때(표집하기 쉬울 때)
+- 보기: 가우스 모형, 켤레 앞확률, 여러 층 모형
 
-**Hybrid approach** (Metropolis-within-Gibbs):
+**다음일 때 MH을 써라**:
+
+- 조건부 분포를 다룰 수 없을 때
+- 보기: 로지스틱 회귀, 신경망 매개변수
+
+**섞음 길**(깁스 안의 메트로폴리스):
 ```python
 for i in range(d):
     if conditional_tractable[i]:
-        x[i] = sample_from_conditional(x, i)  # Gibbs
+        x[i] = sample_from_conditional(x, i)  # 깁스
     else:
         x[i] = metropolis_update(x, i)  # MH
 ```
 
-**Example**: Bayesian logistic regression with shrinkage prior
+**보기**: 오그라들기 앞확률을 쓴 베이즈 로지스틱 회귀
 
 $$
-
 \pi(\beta, \tau | y) \propto p(y|\beta) \cdot \mathcal{N}(\beta|0, \tau^{-1}I) \cdot \text{Gamma}(\tau|a, b)
-
 $$
 
-- $\tau | \beta, y$ has Gamma conditional → **Gibbs**
-- $\beta | \tau, y$ is intractable → **Metropolis**
+- $\tau | \beta, y$의 조건부가 감마이다 → **깁스**
+- $\beta | \tau, y$은 다룰 수 없다 → **메트로폴리스**
 
-### Langevin vs. HMC
+### 랑주뱅과 HMC
 
-Both use gradients, but HMC adds momentum for ballistic (rather than diffusive) motion.
+둘 다 기울기를 쓰지만 HMC은 운동량을 더해 (퍼지는 대신) 탄도처럼 움직인다.
 
-**Langevin**:
-- First-order dynamics: $\dot{x} = \nabla \log \pi + \text{noise}$
-- No momentum variable
-- Diffusive motion (random walk with drift)
-- Each step requires MH correction
+**랑주뱅**:
+
+- 1차 동역학: $\dot{x} = \nabla \log \pi + \text{noise}$
+- 운동량 변수가 없다
+- 퍼지는 움직임(흐름이 있는 무작위 걸음)
+- 걸음마다 MH 바로잡기가 필요하다
 
 **HMC**:
-- Second-order dynamics: $\dot{x} = v$, $\dot{v} = \nabla \log \pi$
-- Auxiliary momentum variable $v$
-- Ballistic motion (inertia carries particle)
-- Single MH correction after $L$ steps
 
-**Trajectory comparison** (same number of gradient evaluations):
+- 2차 동역학: $\dot{x} = v$, $\dot{v} = \nabla \log \pi$
+- 보조 운동량 변수 $v$
+- 탄도 움직임(관성이 알갱이를 나른다)
+- $L$ 걸음 뒤 MH 바로잡기 한 번
 
-*Langevin ($L$ single-step MALA)*:
+**자취 견줌**(기울기 값 매기기 횟수가 같을 때):
+
+*랑주뱅(한 걸음짜리 MALA $L$번)*:
 ```
 x₀ → x₁ → x₂ → x₃ → ... → xₗ
      MH   MH   MH        MH
 ```
-Total distance: $\mathcal{O}(\sqrt{L}\epsilon)$ (diffusive scaling)
+전체 거리: $\mathcal{O}(\sqrt{L}\epsilon)$(퍼짐 커짐새)
 
-*HMC (one $L$-step trajectory)*:
+*HMC($L$ 걸음짜리 자취 하나)*:
 ```
 x₀ → x₁ → x₂ → x₃ → ... → xₗ
                               MH
 ```
-Total distance: $\mathcal{O}(L\epsilon)$ (ballistic scaling)
+전체 거리: $\mathcal{O}(L\epsilon)$(탄도 커짐새)
 
-**HMC explores $\sqrt{L}$ times more efficiently per gradient evaluation!**
+**HMC은 기울기 값 매기기 한 번마다 $\sqrt{L}$배 더 효율적으로 살펴본다!**
 
-## Scaling with Dimension
+## 차원에 따른 커짐새
 
-How does the cost to obtain one effective (independent) sample scale with dimension $d$?
+실효(독립) 표본 하나를 얻는 값이 차원 $d$에 따라 어떻게 커지는가?
 
-| Method | Mixing Time | Cost per Iteration | Cost per Effective Sample |
+| 방법 | 섞임 시간 | 되풀이마다의 값 | 실효 표본마다의 값 |
 |--------|-------------|--------------------|-----------------------------|
-| Random Walk MH | $\mathcal{O}(d^2)$ | $\mathcal{O}(1)$ | $\mathcal{O}(d^2)$ |
-| Gibbs | $\mathcal{O}(d)$ to $\mathcal{O}(d^2)$ | $\mathcal{O}(d)$ | $\mathcal{O}(d^2)$ to $\mathcal{O}(d^3)$ |
+| 무작위 걸음 MH | $\mathcal{O}(d^2)$ | $\mathcal{O}(1)$ | $\mathcal{O}(d^2)$ |
+| 깁스 | $\mathcal{O}(d)$에서 $\mathcal{O}(d^2)$ | $\mathcal{O}(d)$ | $\mathcal{O}(d^2)$에서 $\mathcal{O}(d^3)$ |
 | MALA | $\mathcal{O}(d^{5/3})$ | $\mathcal{O}(d)$ | $\mathcal{O}(d^{8/3})$ |
 | HMC | $\mathcal{O}(d^{5/4})$ | $\mathcal{O}(Ld)$ | $\mathcal{O}(Ld^{9/4})$ |
 
-**With optimal tuning**, HMC can achieve $\mathcal{O}(d)$ or even $\mathcal{O}(\sqrt{d})$ cost per effective sample—far better than other methods.
+**가장 좋게 맞추면** HMC은 실효 표본마다의 값이 $\mathcal{O}(d)$, 나아가 $\mathcal{O}(\sqrt{d})$까지 될 수 있어 다른 방법보다 훨씬 낫다.
 
-### Why HMC Scales Better
+### HMC의 커짐새가 왜 더 나은가
 
-**Random walk**: Each dimension needs independent exploration → quadratic scaling.
+**무작위 걸음**: 차원마다 따로 살펴봐야 한다 → 제곱으로 커진다.
 
-**Langevin**: Gradient provides direction but motion is still diffusive.
+**랑주뱅**: 기울기가 방향을 주지만 움직임은 여전히 퍼진다.
 
-**HMC**: Momentum enables coherent motion across many dimensions simultaneously. The particle "surfs" along level sets of the Hamiltonian.
+**HMC**: 운동량 덕분에 여러 차원에서 한꺼번에 결이 맞는 움직임이 된다. 알갱이가 해밀토니안의 등위 집합을 따라 "파도를 탄다".
 
-**Example**: $d$-dimensional standard Gaussian
+**보기**: $d$차원 표준 가우스
 
-| Method | Mixing Time |
+| 방법 | 섞임 시간 |
 |--------|-------------|
-| Random walk | $\sim d^2$ |
-| Langevin | $\sim d^{5/3}$ |
-| HMC (well-tuned) | $\sim 1$ (nearly dimension-independent!) |
+| 무작위 걸음 | $\sim d^2$ |
+| 랑주뱅 | $\sim d^{5/3}$ |
+| HMC(잘 맞춘 것) | $\sim 1$(차원과 거의 상관없다!) |
 
-## Handling Correlations
+## 상관 다루기
 
-Consider a bivariate Gaussian with correlation $\rho = 0.99$:
+상관이 $\rho = 0.99$인 두 변량 가우스를 생각하자:
 
 $$
-
 \pi(x) = \mathcal{N}\left(0, \begin{pmatrix} 1 & 0.99 \\ 0.99 & 1 \end{pmatrix}\right)
-
 $$
 
-**Random Walk MH**:
-- Proposes in all directions equally
-- Most proposals rejected (miss the narrow ridge)
-- Mixing time $\sim 1/(1-\rho)^2 \approx 10{,}000$
+**무작위 걸음 MH**:
 
-**Gibbs Sampling**:
-- Updates $x_1 | x_2$ (narrow conditional), then $x_2 | x_1$
-- Zig-zags slowly along the ridge
-- Mixing time $\sim 1/(1-\rho) \approx 100$
+- 모든 방향으로 고르게 제안한다
+- 제안 대부분이 물리쳐진다(좁은 능선을 놓친다)
+- 섞임 시간 $\sim 1/(1-\rho)^2 \approx 10{,}000$
 
-**Langevin**:
-- Gradient points along the ridge
-- Drifts toward mode more efficiently
-- Mixing time $\sim 1/(1-\rho)^{2/3} \approx 20$
+**깁스 표집**:
+
+- $x_1 | x_2$(좁은 조건부)을 새로 고친 뒤 $x_2 | x_1$을 새로 고친다
+- 능선을 따라 느리게 지그재그로 간다
+- 섞임 시간 $\sim 1/(1-\rho) \approx 100$
+
+**랑주뱅**:
+
+- 기울기가 능선을 따라 가리킨다
+- 봉우리 쪽으로 더 효율적으로 흘러간다
+- 섞임 시간 $\sim 1/(1-\rho)^{2/3} \approx 20$
 
 **HMC**:
-- Momentum carries particle along the ridge
-- With proper mass matrix $M \approx \Sigma^{-1}$: nearly independent of $\rho$
-- Mixing time $\sim 1$ (well-tuned)
 
-**Winner**: HMC with adaptive mass matrix.
+- 운동량이 알갱이를 능선을 따라 나른다
+- 알맞은 질량 행렬 $M \approx \Sigma^{-1}$을 쓰면 $\rho$과 거의 상관없다
+- 섞임 시간 $\sim 1$(잘 맞췄을 때)
 
-## Multimodal Distributions
+**이기는 쪽**: 알아서 맞추는 질량 행렬을 쓴 HMC.
 
-**Challenge**: Target has multiple well-separated modes with deep valleys between them.
+## 봉우리가 여럿인 분포
 
-**All standard methods struggle!**
+**어려움**: 과녁에 뚜렷이 갈라진 봉우리가 여럿 있고 그 사이에 깊은 골짜기가 있다.
 
-| Method | Behavior |
+**표준 방법이 모두 애를 먹는다!**
+
+| 방법 | 굴러감 |
 |--------|----------|
-| Random Walk / Gibbs | Trapped in one mode; exponentially unlikely to jump |
-| Langevin | Gradient points to nearest mode; occasional jumps via noise |
-| HMC | Energy conservation helps traverse low-probability regions; still struggles with well-separated modes |
+| 무작위 걸음 / 깁스 | 봉우리 하나에 갇히며 건너뛸 확률이 지수로 작다 |
+| 랑주뱅 | 기울기가 가장 가까운 봉우리를 가리키며 이따금 잡음으로 건너뛴다 |
+| HMC | 에너지 보존이 확률 낮은 구역을 건너는 데 도움이 되지만, 뚜렷이 갈라진 봉우리에는 여전히 애를 먹는다 |
 
-**Solutions**:
-- **Parallel tempering**: Run chains at multiple temperatures; hot chains explore, cold chains refine
-- **Simulated annealing**: For optimization (finding the highest mode)
-- **Variational inference**: Optimization-based alternative to sampling
-- **Normalizing flows**: Learn a transformation to a simple distribution
+**풀이**:
 
-## Non-Differentiable Targets
+- **병렬 온도 다루기**: 여러 온도로 사슬을 돌린다. 뜨거운 사슬은 살펴보고 차가운 사슬은 다듬는다
+- **흉내 담금질**: 최적화용(가장 높은 봉우리 찾기)
+- **변분 추론**: 표집 대신 쓰는 최적화 기반 길
+- **고르게 하는 흐름**: 단순한 분포로 가는 바꿈을 배운다
 
-When $\nabla \log \pi$ doesn't exist (discrete variables, discontinuities):
+## 미분할 수 없는 과녁
 
-**Can use**:
-- Metropolis-Hastings (any proposal)
-- Gibbs (if conditionals are tractable)
+$\nabla \log \pi$이 없을 때(이산 변수, 끊긴 곳):
 
-**Cannot use**:
-- Langevin (MALA)
+**쓸 수 있는 것**:
+
+- 메트로폴리스-헤이스팅스(아무 제안)
+- 깁스(조건부 분포를 다룰 수 있으면)
+
+**쓸 수 없는 것**:
+
+- 랑주뱅(MALA)
 - HMC
-- Any gradient-based method
+- 기울기 기반 방법 전부
 
-**Hybrid strategy** for mixed discrete-continuous models:
+이산과 이어짐이 섞인 모형을 위한 **섞음 전략**:
 ```python
-# Gibbs for discrete variables
+# 띄엄띄엄한 변수에 쓰는 깁스
 z = sample_categorical(p(z | theta, data))
 
-# HMC for continuous variables
+# 이어진 변수에 쓰는 HMC
 theta = hmc_step(theta, z, data)
 ```
 
-## Acceptance Rates and Optimal Tuning
+## 받아들임 비율과 가장 좋게 맞추기
 
-| Method | Optimal Acceptance | Source |
+| 방법 | 가장 좋은 받아들임 | 출처 |
 |--------|-------------------|--------|
-| Random Walk MH | 23.4% (high-d) | Roberts et al. (1997) |
-| Gibbs | 100% | By construction |
+| 무작위 걸음 MH | 23.4%(높은 차원) | Roberts et al. (1997) |
+| 깁스 | 100% | 짜임새 덕분 |
 | MALA | 57.4% | Roberts & Rosenthal (1998) |
-| HMC | ~65% | Empirical |
-| NUTS | Variable | Auto-tunes |
+| HMC | 약 65% | 겪어 본 값 |
+| NUTS | 달라짐 | 스스로 맞춤 |
 
-**Why 23.4% for random walk?** Balances exploration (large steps, low acceptance) vs. efficiency (small steps, high acceptance). The optimal trade-off yields this specific rate.
+**무작위 걸음은 왜 23.4%인가?** 살펴보기(큰 걸음, 낮은 받아들임)와 효율(작은 걸음, 높은 받아들임)의 균형을 잡기 때문이다. 가장 좋은 주고받음이 바로 이 값을 낸다.
 
-**Why 57.4% for MALA?** Higher than random walk because gradient-informed proposals are more likely to be accepted, so optimal step size is larger.
+**MALA은 왜 57.4%인가?** 기울기를 담은 제안이 받아들여질 가능성이 높아 가장 좋은 걸음 크기가 크므로 무작위 걸음보다 높다.
 
-**Why ~65% for HMC?** With $L$ leapfrog steps, we want high acceptance for the entire trajectory. Empirically, 65% works well across problems.
+**HMC은 왜 약 65%인가?** 개구리뜀 $L$ 걸음에서 자취 전체가 높은 받아들임을 얻기를 바라기 때문이다. 겪어 보면 여러 문제에서 65%가 잘 듣는다.
 
-## Tuning Requirements
+## 맞춰야 할 것
 
-| Method | Parameters | Difficulty |
+| 방법 | 매개변수 | 어려움 |
 |--------|------------|------------|
-| Random Walk MH | Step size $\sigma$ | Easy (target 23% acceptance) |
-| Gibbs | None | None (if conditionals are tractable) |
-| MALA | Step size $\epsilon$ | Easy (target 57% acceptance) |
-| HMC | $\epsilon$, $L$, $M$ | Hard (three interacting parameters) |
-| NUTS | $\epsilon$, $M$ | Medium (auto-tunes $L$) |
+| 무작위 걸음 MH | 걸음 크기 $\sigma$ | 쉬움(받아들임 23%을 겨냥) |
+| 깁스 | 없음 | 없음(조건부 분포를 다룰 수 있으면) |
+| MALA | 걸음 크기 $\epsilon$ | 쉬움(받아들임 57%을 겨냥) |
+| HMC | $\epsilon$, $L$, $M$ | 어려움(서로 얽힌 매개변수 셋) |
+| NUTS | $\epsilon$, $M$ | 보통($L$을 스스로 맞춤) |
 
-**NUTS** (No-U-Turn Sampler) automatically determines trajectory length by detecting when the particle starts to turn back. Combined with dual averaging for $\epsilon$ and warmup adaptation for $M$, it requires minimal manual tuning.
+**NUTS**(U턴 없는 표집기)는 알갱이가 되돌아서기 시작하는 때를 알아채 자취 길이를 스스로 정한다. $\epsilon$의 이중 평균 내기와 $M$의 달굼 맞추기까지 더하면 손으로 맞출 것이 거의 없다.
 
-## Memory Requirements
+## 기억 공간 씀씀이
 
-| Method | Memory |
+| 방법 | 기억 공간 |
 |--------|--------|
-| Random Walk, Gibbs, MALA | $\mathcal{O}(d)$ |
-| HMC (diagonal $M$) | $\mathcal{O}(d)$ |
-| HMC (full $M$) | $\mathcal{O}(d^2)$ |
+| 무작위 걸음, 깁스, MALA | $\mathcal{O}(d)$ |
+| HMC(대각선 $M$) | $\mathcal{O}(d)$ |
+| HMC(온전한 $M$) | $\mathcal{O}(d^2)$ |
 
-For very high dimensions ($d > 10^6$), use diagonal mass matrix or switch to MALA.
+차원이 아주 높으면($d > 10^6$) 대각선 질량 행렬을 쓰거나 MALA으로 바꿔라.
 
-## Parallelization
+## 병렬로 돌리기
 
-**Between chains**: All methods support running $K$ independent chains in parallel. Combine samples and check convergence with Gelman-Rubin $\hat{R}$.
+**사슬끼리**: 모든 방법이 서로 독립인 사슬 $K$개를 나란히 돌릴 수 있다. 표본을 합치고 겔먼-루빈 $\hat{R}$으로 모임을 살펴라.
 
-**Within chains**:
-- MH, Gibbs, MALA: Sequential by nature
-- HMC: Can parallelize gradient computation if target factorizes
+**사슬 안에서**:
 
-**Parallel tempering**: Run chains at different temperatures, occasionally swap states. Helps with multimodality.
+- MH, 깁스, MALA: 본디 차례대로 굴러간다
+- HMC: 과녁이 쪼개지면 기울기 셈하기를 병렬로 돌릴 수 있다
 
-## Computational Cost Analysis
+**병렬 온도 다루기**: 서로 다른 온도로 사슬을 돌리며 이따금 상태를 맞바꾼다. 봉우리가 여럿일 때 도움이 된다.
 
-**Per-iteration costs** (assuming gradient costs $\mathcal{O}(d)$):
+## 셈 값 분석
 
-| Method | Density Evals | Gradient Evals | Total |
+**되풀이마다의 값**(기울기 값이 $\mathcal{O}(d)$이라고 놓고):
+
+| 방법 | 밀도 값 매기기 | 기울기 값 매기기 | 합계 |
 |--------|---------------|----------------|-------|
-| Random Walk MH | 2 | 0 | $\mathcal{O}(1)$ |
-| Gibbs | $d$ | 0 | $\mathcal{O}(d)$ |
+| 무작위 걸음 MH | 2 | 0 | $\mathcal{O}(1)$ |
+| 깁스 | $d$ | 0 | $\mathcal{O}(d)$ |
 | MALA | 2 | 1 | $\mathcal{O}(d)$ |
 | HMC | 1 | $L$ | $\mathcal{O}(Ld)$ |
 
-**Effective cost** (per independent sample):
+**실효 값**(독립 표본 하나마다):
 
-| Method | Iterations Needed | Total Cost |
+| 방법 | 필요한 되풀이 | 전체 값 |
 |--------|-------------------|------------|
-| Random Walk MH | $\mathcal{O}(d^2)$ | $\mathcal{O}(d^2)$ |
-| Gibbs | $\mathcal{O}(d)$ | $\mathcal{O}(d^2)$ |
+| 무작위 걸음 MH | $\mathcal{O}(d^2)$ | $\mathcal{O}(d^2)$ |
+| 깁스 | $\mathcal{O}(d)$ | $\mathcal{O}(d^2)$ |
 | MALA | $\mathcal{O}(d^{5/3})$ | $\mathcal{O}(d^{8/3})$ |
 | HMC | $\mathcal{O}(d^{5/4})$ | $\mathcal{O}(Ld^{9/4})$ |
 
-**Conclusion**: Despite higher per-iteration cost, HMC is most efficient for large $d$.
+**맺음**: 되풀이마다의 값은 크지만 $d$이 크면 HMC이 가장 효율적이다.
 
-## Practical Decision Tree
+## 실전 결정 나무
 
 ```
 Start
@@ -393,109 +393,154 @@ Start
        └─ No → Custom implementation ✓
 ```
 
-## Practical Scenarios
+## 실전 상황
 
-### Scenario 1: Bayesian Logistic Regression
+### 상황 1: 베이즈 로지스틱 회귀
 
-**Target**: $\pi(\beta|y,X) \propto p(y|\beta,X)p(\beta)$
+**과녁**: $\pi(\beta|y,X) \propto p(y|\beta,X)p(\beta)$
 
-**Properties**: Smooth, differentiable, unimodal, correlated parameters
+**성질**: 매끄럽고, 미분할 수 있고, 봉우리가 하나이며, 매개변수가 서로 얽혀 있다
 
-**Recommendations**:
-1. **HMC** (best): Fast mixing, handles correlations
-2. **MALA** (good): Simpler, still uses gradients
-3. **Random Walk MH** (slow): Works but inefficient
-4. **Gibbs** (impossible): Conditionals intractable
+**권함**:
 
-### Scenario 2: Gaussian Mixture Model
+1. **HMC**(가장 좋음): 빨리 섞이고 상관을 다룬다
+2. **MALA**(좋음): 더 단순하고 여전히 기울기를 쓴다
+3. **무작위 걸음 MH**(느림): 굴러가지만 비효율적이다
+4. **깁스**(불가능): 조건부 분포를 다룰 수 없다
 
-**Target**: $\pi(\mu, \Sigma, \pi, z | X)$ (parameters + latent assignments)
+### 상황 2: 가우스 섞음 모형
 
-**Properties**: Discrete latents $z$, continuous parameters, conjugacy available
+**과녁**: $\pi(\mu, \Sigma, \pi, z | X)$(매개변수 + 숨은 배정)
 
-**Recommendations**:
-1. **Gibbs** (best): Sample $z|\text{params}$ and $\text{params}|z$ from conjugate conditionals
-2. **MH** (okay): For parameters, enumerate for $z$
-3. **HMC** (impossible for $z$): Can't handle discrete latents
+**성질**: 이산 숨은 변수 $z$, 이어진 매개변수, 켤레를 쓸 수 있음
 
-### Scenario 3: High-Dimensional Gaussian (d = 1000)
+**권함**:
 
-**Properties**: Smooth, unimodal, known covariance structure
+1. **깁스**(가장 좋음): 켤레 조건부에서 $z|\text{params}$과 $\text{params}|z$을 표집한다
+2. **MH**(그럭저럭): 매개변수에 쓰고 $z$은 낱낱이 센다
+3. **HMC**($z$에는 불가능): 이산 숨은 변수를 다루지 못한다
 
-**Recommendations**:
-1. **HMC with $M = \Sigma^{-1}$** (best): $\mathcal{O}(1)$ mixing!
-2. **MALA with preconditioner** (good): Still fast
-3. **Random Walk with matched proposal** (okay): Works
-4. **Gibbs** (slow): Coordinate updates very slow if correlated
+### 상황 3: 차원 높은 가우스(d = 1000)
 
-### Scenario 4: Multimodal Distribution
+**성질**: 매끄럽고, 봉우리가 하나이며, 공분산 짜임을 안다
 
-**Target**: Mixture of well-separated Gaussians
+**권함**:
 
-**Recommendations**:
-1. **Parallel tempering** (best): Hot chains explore, cold chains refine
-2. **None of basic methods work well**: All get trapped
-3. **Consider alternatives**: Variational inference, normalizing flows
+1. **$M = \Sigma^{-1}$을 쓴 HMC**(가장 좋음): $\mathcal{O}(1)$ 섞임!
+2. **미리 다듬개를 쓴 MALA**(좋음): 여전히 빠르다
+3. **맞춘 제안을 쓴 무작위 걸음**(그럭저럭): 굴러간다
+4. **깁스**(느림): 서로 얽혀 있으면 좌표별 새로 고치기가 아주 느리다
 
-## Software Recommendations
+### 상황 4: 봉우리가 여럿인 분포
 
-**For general Bayesian inference**:
-- **Stan**: Excellent NUTS implementation, automatic tuning
-- **PyMC**: Python interface, NUTS + other samplers
-- **NumPyro**: JAX-based, very fast HMC/NUTS
+**과녁**: 뚜렷이 갈라진 가우스의 섞음
 
-**For custom models**:
-- **TensorFlow Probability**: Flexible, GPU support
-- **PyTorch + custom**: Full control for research
+**권함**:
 
-**For simple problems**:
-- **Emcee**: Affine-invariant ensemble MCMC
-- **PyMC**: Simple syntax for quick prototyping
+1. **병렬 온도 다루기**(가장 좋음): 뜨거운 사슬은 살펴보고 차가운 사슬은 다듬는다
+2. **기본 방법은 어느 것도 잘 안 된다**: 모두 갇힌다
+3. **다른 길을 생각해 보아라**: 변분 추론, 고르게 하는 흐름
 
-## Method Selection Summary
+## 소프트웨어 권함
 
-| Situation | Recommended Method |
+**일반 베이즈 추론에는**:
+
+- **Stan**: 뛰어난 NUTS 구현, 스스로 맞추기
+- **PyMC**: 파이썬 얼굴, NUTS과 다른 표집기
+- **NumPyro**: JAX 기반, 아주 빠른 HMC/NUTS
+
+**손수 만든 모형에는**:
+
+- **TensorFlow Probability**: 유연하고 GPU을 받쳐 준다
+- **PyTorch + 손수 짜기**: 연구에 온전한 다스림
+
+**단순한 문제에는**:
+
+- **Emcee**: 아핀 불변 앙상블 MCMC
+- **PyMC**: 빠른 시제품에 알맞은 단순한 문법
+
+## 방법 고르기 간추림
+
+| 상황 | 권하는 방법 |
 |-----------|-------------------|
-| Conjugate Bayesian model | Gibbs |
-| Non-conjugate, low-d | MALA |
-| Non-conjugate, high-d | HMC/NUTS |
-| Non-differentiable target | Metropolis-Hastings |
-| Highly correlated | HMC with adaptive $M$ |
-| Multimodal | Parallel tempering |
-| Want minimal tuning | NUTS (via Stan) |
-| Need fast results | HMC on GPU |
-| Mixed discrete + continuous | Gibbs (discrete) + HMC (continuous) |
+| 켤레 베이즈 모형 | 깁스 |
+| 켤레 아님, 낮은 차원 | MALA |
+| 켤레 아님, 높은 차원 | HMC/NUTS |
+| 미분할 수 없는 과녁 | 메트로폴리스-헤이스팅스 |
+| 몹시 얽혀 있음 | 알아서 맞추는 $M$을 쓴 HMC |
+| 봉우리 여럿 | 병렬 온도 다루기 |
+| 맞출 것을 줄이고 싶음 | NUTS(Stan을 거쳐) |
+| 빠른 결과가 필요함 | GPU에서 도는 HMC |
+| 이산과 이어짐이 섞임 | 깁스(이산) + HMC(이어짐) |
 
-## The Modern Consensus
+## 요즘의 합의
 
-For most Bayesian inference problems today:
+요즘 베이즈 추론 문제 대부분에서는:
 
-**Use NUTS (via Stan or PyMC) unless you have a specific reason not to.**
+**따로 그러지 않을 까닭이 없다면 (Stan이나 PyMC을 거쳐) NUTS을 써라.**
 
-NUTS provides:
-- Automatic tuning of trajectory length (no U-turns)
-- Adaptive step size via dual averaging
-- Adaptive mass matrix during warmup
-- Works well across a wide range of problems
+NUTS은 다음을 준다:
 
-**When to use something else**:
-- Conjugate models → Gibbs (faster, simpler)
-- Very high dimensions ($d > 10^6$) → MALA or diagonal HMC
-- Multimodal → Add tempering
-- Non-differentiable → Metropolis-Hastings
-- Research / special structure → Custom implementation
+- 자취 길이를 스스로 맞추기(U턴 없음)
+- 이중 평균 내기로 걸음 크기를 알아서 맞추기
+- 달굼 동안 질량 행렬을 알아서 맞추기
+- 여러 문제에 두루 잘 듣는다
 
-## Summary: The Evolution of MCMC
+**다른 것을 쓸 때**:
 
-The development of MCMC methods reflects increasing exploitation of problem structure:
+- 켤레 모형 → 깁스(더 빠르고 단순하다)
+- 아주 높은 차원($d > 10^6$) → MALA이나 대각선 HMC
+- 봉우리 여럿 → 온도 다루기를 더한다
+- 미분할 수 없음 → 메트로폴리스-헤이스팅스
+- 연구나 특별한 짜임 → 손수 구현
 
-1. **Metropolis-Hastings**: Uses only $\pi(x)$ (density values)
-2. **Gibbs**: Uses $\pi(x_i|x_{-i})$ (conditional structure)
-3. **Langevin**: Uses $\nabla \log \pi(x)$ (gradient information)
-4. **HMC**: Uses $\nabla \log \pi(x)$ + Hamiltonian dynamics (geometric structure)
+## 간추림: MCMC의 나아감
 
-**General principle**: More structure → better performance, but stricter requirements on the target.
+MCMC 방법이 발전해 온 길은 문제의 짜임을 점점 더 써먹어 온 자취이다:
 
-**The no-free-lunch reality**: No single method dominates all others. Method choice depends on problem structure, and hybrid approaches often work best in practice.
+1. **메트로폴리스-헤이스팅스**: $\pi(x)$(밀도 값)만 쓴다
+2. **깁스**: $\pi(x_i|x_{-i})$(조건부 짜임)을 쓴다
+3. **랑주뱅**: $\nabla \log \pi(x)$(기울기 정보)을 쓴다
+4. **HMC**: $\nabla \log \pi(x)$과 해밀턴 동역학(기하 짜임)을 쓴다
 
-The field has largely converged on HMC/NUTS as the default workhorse for continuous Bayesian computation, with Gibbs remaining essential for conjugate subproblems and MH as the fallback for non-differentiable targets. Understanding all four methods—their mechanisms, trade-offs, and failure modes—is essential for effective probabilistic programming.
+**일반 원칙**: 짜임을 더 쓸수록 성능이 좋아지지만 과녁에 요구하는 조건이 까다로워진다.
+
+**공짜 점심은 없다는 현실**: 다른 모두를 누르는 방법은 없다. 방법 고르기는 문제의 짜임에 달렸고, 실전에서는 섞음 방식이 가장 잘 듣는 경우가 많다.
+
+이 분야는 이어진 베이즈 셈하기의 기본 일꾼으로 HMC/NUTS에 대체로 모였다. 깁스는 켤레 부분 문제에 여전히 꼭 필요하고, MH은 미분할 수 없는 과녁의 물러설 자리로 남는다. 네 방법의 장치, 주고받음, 무너지는 모습을 모두 이해하는 일이 확률 프로그래밍을 잘하는 데 꼭 필요하다.
+
+## 연습문제
+
+**연습문제 1.**
+마르코프 사슬이 올바른 과녁 분포로 모이게 하는 데 받아들임 확률이 하는 몫을 설명하여라.
+
+??? success "연습문제 1 풀이"
+    받아들임 확률이 **자세한 균형** $\pi(x) T(x \to x') \alpha(x \to x') = \pi(x') T(x' \to x) \alpha(x' \to x)$을 보장한다. 여기서 $\pi$은 과녁 분포, $T$은 제안 분포, $\alpha$은 받아들임 확률이다. 자세한 균형은 $\pi$이 사슬의 멈춘 분포임을 뜻한다. 쪼갤 수 없음과 주기 없음까지 합치면 $\pi$으로의 에르고드 모임이 보장된다.
+
+---
+
+**연습문제 2.**
+제안 분포가 너무 좁은 상황과 너무 넓은 상황을 밝혀라. 저마다 표집 효율에 어떤 영향을 주는가?
+
+??? success "연습문제 2 풀이"
+    **너무 좁을 때:** 제안이 거의 늘 받아들여지지만(받아들임 비율이 높지만) 사슬이 아주 작은 걸음을 떼어 과녁 분포를 느리게 살펴본다. 그러면 자기상관이 높고 실효 표본 크기가 작아진다. **너무 넓을 때:** 제안이 확률이 낮은 구역에 자주 떨어져 물리쳐지므로(받아들임 비율이 낮으므로) 사슬이 여러 되풀이 동안 지금 상태에 갇혀 있게 된다. 두 극단 모두 효율을 떨어뜨린다. 높은 차원에서 무작위 걸음 메트로폴리스의 가장 좋은 받아들임 비율은 대략 0.234이다(Roberts 외, 1997).
+
+---
+
+**연습문제 3.**
+메트로폴리스-헤이스팅스 받아들임 비 $\alpha = \min\left(1, \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}\right)$이 $\pi$에 대해 자세한 균형을 만족함을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    일반성을 잃지 않고 $\pi(x') q(x|x') \leq \pi(x) q(x'|x)$이라 하자. 그러면 $\alpha(x \to x') = \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}$이고 $\alpha(x' \to x) = 1$이다. 자세한 균형 조건은 다음을 요구한다:
+
+    $$\pi(x) q(x'|x) \alpha(x \to x') = \pi(x) q(x'|x) \cdot \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)} = \pi(x') q(x|x')$$
+
+    그리고 $\pi(x') q(x|x') \alpha(x' \to x) = \pi(x') q(x|x') \cdot 1 = \pi(x') q(x|x')$이다. 양변이 같다. $\square$
+
+---
+
+**연습문제 4.**
+MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴지 어떻게 정하는가?
+
+??? success "연습문제 4 풀이"
+    태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.

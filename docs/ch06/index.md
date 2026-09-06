@@ -1,57 +1,54 @@
-# Chapter 6: Convolutional Neural Networks
+# 6장: 합성곱 신경망
 
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-This chapter covers the foundational architectures for processing spatially structured data, primarily images but also time series and other grid-like inputs. We progress from classical convolutional neural networks through residual architectures to modern Vision Transformers, tracing the evolution from hand-crafted inductive biases toward learned representations.
+이 장은 공간적으로 짜인 데이터, 주로 이미지이지만 시계열을 비롯한 격자 모양 입력까지 다루는 바탕 구조를 살펴본다. 고전적인 합성곱 신경망에서 잔차 구조를 거쳐 요즘의 비전 트랜스포머까지 나아가며, 사람이 손으로 넣은 귀납 편향에서 학습된 표현으로 옮겨 가는 흐름을 따라간다.
 
 ---
 
-## 6.1 Convolutional Neural Networks
+## 6.1 합성곱 신경망
 
-Core CNN concepts from the convolution operation through specialized variants for efficiency and expanded receptive fields.
+합성곱 연산에서 시작하여 효율과 넓은 수용 영역을 위한 특수한 변형에 이르는 CNN의 핵심 개념.
 
-- CNN Overview -- High-level introduction to CNNs, their structural priors, and core concepts at a glance
-- Convolutional Neural Networks Overview -- PyTorch CNN tutorial package with progressively challenging examples
-- [Convolution Operation](cnn/convolution.md) -- Mathematical foundations of discrete convolution and cross-correlation for feature extraction
-- [Feature Maps](cnn/feature_maps.md) -- Geometry, computation, and interpretation of feature map tensors in CNNs
-- Padding and Stride -- Controlling output dimensions and downsampling behavior with padding and stride
-- Pooling Layers -- Spatial downsampling via max pooling, average pooling, and their role in building hierarchical representations
-- [Receptive Field](cnn/receptive_field.md) -- Mathematical analysis of how much spatial context each neuron can access
-- [1D Convolutions](cnn/conv1d.md) -- Applying convolutions to sequential data such as time series, audio, and text
-- [Dilated Convolutions](cnn/dilated_convolutions.md) -- Expanding receptive fields without increasing parameters using atrous convolution
-- [Grouped and Depthwise Separable Convolution](cnn/depthwise_separable.md) -- Efficient convolution factorizations used in MobileNet, EfficientNet, and ShuffleNet
-- [Transposed Convolutions](cnn/transposed_conv.md) -- Learnable upsampling for encoder-decoder architectures, GANs, and super-resolution
+- CNN 개관 — CNN과 그 구조적 사전 지식, 핵심 개념을 한눈에 소개
+- 합성곱 신경망 개요 — 갈수록 어려워지는 예제로 이루어진 PyTorch CNN 튜토리얼 꾸러미
+- [합성곱 연산](cnn/convolution.md) — 특징 추출을 위한 이산 합성곱과 상호상관의 수학적 바탕
+- [특징 맵](cnn/feature_maps.md) — CNN에서 특징 맵 텐서의 기하, 계산, 해석
+- 덧대기와 보폭 — 덧대기와 보폭으로 출력의 차원과 하향 표본화를 조절하기
+- 풀링 층 — 최댓값 풀링과 평균 풀링으로 하는 공간 하향 표본화, 그리고 계층적 표현을 세우는 데서의 구실
+- [수용 영역](cnn/receptive_field.md) — 뉴런마다 얼마만큼의 공간적 맥락에 닿을 수 있는지에 대한 수학적 분석
+- [1차원 합성곱](cnn/conv1d.md) — 시계열, 음향, 텍스트 같은 순차 데이터에 합성곱 적용하기
+- [팽창 합성곱](cnn/dilated_convolutions.md) — 매개변수를 늘리지 않고 수용 영역을 넓히는 아트루스 합성곱
+- [묶음 합성곱과 깊이별 분리 합성곱](cnn/depthwise_separable.md) — MobileNet, EfficientNet, ShuffleNet이 쓰는 효율적인 합성곱 분해
+- [전치 합성곱](cnn/transposed_conv.md) — 부호기-복호기 구조, GAN, 초해상도를 위한 학습 가능한 상향 표본화
 
-## 6.2 Residual Connections
+## 6.2 잔차 연결
 
-Skip connections and residual learning that enable training of very deep networks by providing direct gradient pathways.
+기울기가 곧바로 흐르는 길을 내어 아주 깊은 신경망의 학습을 가능하게 하는 건너뛰기 연결과 잔차 학습.
 
-- Residual Connections Overview -- Comprehensive educational module on residual connections and ResNets
-- Skip Connections -- The degradation problem and how shortcut connections solve it
-- [Identity Mapping](residual/identity_mapping.md) -- Pre-activation block design for pure identity shortcuts and cleaner gradient flow
-- Gradient Flow Analysis -- Rigorous mathematical analysis of gradient propagation with and without skip connections
-- ResNet Architecture -- The ResNet family of architectures from ResNet-18 to ResNet-152 with basic and bottleneck blocks
-- Dense Connections -- DenseNet's concatenative dense connectivity for maximal feature reuse
-- Highway Networks -- Gated information flow with learned transform and carry gates
-- Exercises -- Hands-on exercises for implementing and experimenting with residual connections
+- 잔차 연결 개요 — 잔차 연결과 ResNet에 대한 종합 교육 모듈
+- 건너뛰기 연결 — 성능 퇴화 문제와 지름길 연결이 그것을 푸는 방식
+- [항등 사상](residual/identity_mapping.md) — 순수한 항등 지름길과 깨끗한 기울기 흐름을 위한 사전 활성화 블록 설계
+- 기울기 흐름 분석 — 건너뛰기 연결이 있을 때와 없을 때의 기울기 전파에 대한 엄밀한 수학적 분석
+- ResNet 구조 — 기본 블록과 병목 블록을 쓰는 ResNet-18부터 ResNet-152까지의 계열
+- 조밀 연결 — 특징을 최대로 다시 쓰는 DenseNet의 이어 붙이기 방식 조밀 연결
+- 하이웨이 신경망 — 학습된 변환 문과 운반 문으로 조절하는 정보의 흐름
+- 연습문제 — 잔차 연결을 직접 구현하고 실험해 보는 문제
 
-## 6.3 Vision Transformers
+## 6.3 비전 트랜스포머
 
-Applying transformer architectures to vision tasks by treating images as sequences of patches.
+이미지를 조각의 순차열로 다루어 트랜스포머 구조를 시각 과제에 적용하기.
 
-- CNN Limitations -- Fundamental architectural constraints of CNNs that motivate alternative approaches
-- [Bridge: From CNNs to Vision Transformers](vit/cnn_to_vit_bridge.md) -- The evolutionary path from locality-based to attention-based processing
-- Attention Mechanisms in CNNs -- Channel and spatial attention modules (SE, CBAM) that augment CNNs
-- [Squeeze-and-Excitation Networks](vit/squeeze_excitation.md) -- Adaptive channel recalibration with minimal computational overhead
-- [Non-Local Neural Networks](vit/non_local.md) -- Computing long-range dependencies directly without stacked convolutions
-- Global Average Pooling -- Spatial aggregation as an alternative to fully connected layers
-- ViT Overview -- Introduction to Vision Transformers and the paradigm shift from convolutions to patch sequences
-- Patch Embedding -- Converting 2D images into 1D sequences of token embeddings
-- Position Embeddings for Images -- Encoding 2D spatial relationships for permutation-equivariant transformers
-- CLS Token -- The learnable classification token mechanism for image-level representation
-- ViT Architecture -- Complete end-to-end Vision Transformer architecture and scaling behavior
-- DeiT -- Data-efficient Image Transformers that achieve competitive results with only ImageNet-1K
-- Swin Transformer -- Hierarchical vision transformer with shifted window attention and linear complexity
-- Hybrid Architectures -- Combining convolutional and transformer components for the best of both worlds
+- CNN의 한계 — 대안을 찾게 만드는 CNN의 근본적인 구조적 제약
+- [다리: CNN에서 비전 트랜스포머로](vit/cnn_to_vit_bridge.md) — 지역성 기반에서 어텐션 기반 처리로 나아간 길
+- CNN의 어텐션 장치 — CNN을 보강하는 채널 및 공간 어텐션 모듈 (SE, CBAM)
+- [압축-여기 신경망](vit/squeeze_excitation.md) — 계산 부담을 거의 늘리지 않는 적응형 채널 재보정
+- [비국소 신경망](vit/non_local.md) — 합성곱을 쌓지 않고 먼 거리의 의존을 곧바로 계산하기
+- 전역 평균 풀링 — 완전 연결층을 대신하는 공간 집계
+- ViT 개관 — 비전 트랜스포머 소개와 합성곱에서 조각 순차열로의 전환
+- 조각 임베딩 — 2차원 이미지를 토큰 임베딩의 1차원 순차열로 바꾸기
+- 이미지의 위치 임베딩 — 순열 동변인 트랜스포머를 위해 2차원 공간 관계를 담기
+- CLS 토큰 — 이미지 수준의 표현을 위한 학습 가능한 분류 토큰 장치
+- ViT 구조 — 처음부터 끝까지의 비전 트랜스포머 구조와 규모에 따른 거동
+- DeiT — ImageNet-1K만으로도 경쟁력 있는 결과를 내는 데이터 효율적인 이미지 트랜스포머
+- 스윈 트랜스포머 — 옮긴 창 어텐션과 선형 복잡도를 갖춘 계층적 비전 트랜스포머
+- 혼합 구조 — 두 세계의 장점을 모으려고 합성곱과 트랜스포머 부품을 결합하기

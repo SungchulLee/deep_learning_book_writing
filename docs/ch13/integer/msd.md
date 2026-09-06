@@ -1,58 +1,44 @@
-# MSD Radix Sort
+# MSD 기수 정렬
 
-LSD radix sort processes digits from the least significant to the most significant and
-requires a stable subroutine.  **Most Significant Digit (MSD) radix sort** works in the
-opposite direction: it partitions elements by their most significant digit first, then
-recursively sorts each bucket by the next digit.  This top-down approach mirrors how
-humans sort alphanumerically -- first by the leading character, then by the second, and
-so on.  MSD is the natural choice for variable-length strings and offers early
-termination when buckets contain a single element.
+LSD 기수 정렬은 최하위 자리에서 최상위 자리로 나아가며 안정한 부분 절차가 필요하다. **최상위 자리(MSD) 기수 정렬**은 반대 방향으로 굴러간다. 곧 최상위 자리로 원소를 먼저 나눈 다음, 양동이마다 다음 자리로 되돌이하며 정렬한다. 이 하향식 방법은 사람이 글자와 숫자를 정렬하는 모습, 곧 첫 글자로 먼저 가르고 그다음 둘째 글자로 가르는 방식을 그대로 비춘다. MSD은 길이가 들쭉날쭉한 문자열에 자연스러운 선택이며, 양동이에 원소가 하나만 남으면 일찍 끝낼 수 있다.
 
-## Algorithm Overview
+## 알고리즘 훑어보기
 
 Given $n$ elements with at most $d$ digit positions in base $r$:
 
-1. **Partition** the array into $r$ buckets according to the current (most significant
-   remaining) digit.
-2. **Recurse** on each bucket that contains more than one element, moving to the next
-   digit position.
-3. **Base case:** a bucket with zero or one element is already sorted; a bucket that
-   has exhausted all $d$ digits contains elements that are identical (up to $d$ digits).
+1. 지금(남은 자리 가운데 최상위) 자리에 따라 배열을 양동이 $r$개로 **나눈다**.
+2. 원소가 둘 이상인 양동이마다 다음 자리로 옮겨 가며 **되돌이한다**.
+3. **바닥 경우:** 원소가 0개나 1개인 양동이는 이미 정렬되어 있다. $d$자리를 모두 쓴 양동이에는 ($d$자리까지) 똑같은 원소가 들어 있다.
 
-The recursion tree has depth at most $d$, and each level processes every element
-exactly once.
+되돌이 트리의 깊이는 많아야 $d$이고, 층마다 원소를 꼭 한 번씩 다룬다.
 
-## Complexity
+## 복잡도
 
 $$
 T(n, d, r) = \Theta\bigl(d\,(n + r)\bigr), \qquad S(n, d, r) = \Theta(n + d \cdot r)
 $$
 
-The time complexity matches LSD radix sort.  The space includes $\Theta(n)$ for the
-output array and $\Theta(d \cdot r)$ for the count arrays across all $d$ recursion
-levels (or $\Theta(r)$ per level times depth $d$).
+시간 복잡도는 LSD 기수 정렬과 같다. 공간에는 출력 배열의 $\Theta(n)$과, 되돌이 층 $d$개에 걸친 세기 배열의 $\Theta(d \cdot r)$(층마다 $\Theta(r)$에 깊이 $d$을 곱한 값)이 든다.
 
-In practice, MSD can be faster than LSD when many buckets reduce to a single element
-early, skipping further digit processing.
+실전에서 MSD은 여러 양동이가 일찍 원소 하나로 줄어 뒤 자리를 건너뛸 수 있을 때 LSD보다 빠를 수 있다.
 
-## Worked Example
+## 풀이 예제
 
-Sort $A = [170, 045, 075, 090, 802, 024, 002, 066]$ using MSD with radix 10.
-All numbers are zero-padded to 3 digits.
+기수 10의 MSD으로 $A = [170, 045, 075, 090, 802, 024, 002, 066]$을 정렬해 보자. 모든 수는 0을 채워 세 자리로 맞춘다.
 
-**Level 1 -- hundreds digit:**
+**층 1 -- 백의 자리:**
 
-| Digit | Bucket contents |
+| 자리 | 양동이의 내용 |
 |-------|----------------|
 | 0 | $045, 075, 090, 024, 002, 066$ |
 | 1 | $170$ |
 | 8 | $802$ |
 
-Buckets with one element ($170$, $802$) are done.
+원소가 하나인 양동이($170$, $802$)는 끝났다.
 
-**Level 2 -- tens digit of bucket 0:**
+**층 2 -- 양동이 0의 십의 자리:**
 
-| Digit | Bucket contents |
+| 자리 | 양동이의 내용 |
 |-------|----------------|
 | 0 | $002$ |
 | 2 | $024$ |
@@ -61,63 +47,58 @@ Buckets with one element ($170$, $802$) are done.
 | 7 | $075$ |
 | 9 | $090$ |
 
-All sub-buckets have one element, so recursion stops.
+부분 양동이마다 원소가 하나뿐이라 되돌이가 멈춘다.
 
-**Final result:** $[002, 024, 045, 066, 075, 090, 170, 802]$.
+**마지막 결과:** $[002, 024, 045, 066, 075, 090, 170, 802]$.
 
-## MSD-Specific Advantages
+## MSD만의 이점
 
-1. **Early termination.** Buckets with a single element need no further processing.
-   For data with many distinct prefixes, this yields significant speedups.
-2. **Variable-length keys.** MSD naturally handles strings of different lengths by
-   treating shorter strings as having trailing "empty" characters that sort before
-   any real character.
-3. **In-place variants.** American Flag Sort is an in-place MSD radix sort that uses
-   two passes per digit (count, then swap), avoiding the auxiliary output array.
+1. **일찍 끝내기.** 원소가 하나인 양동이는 더 다룰 필요가 없다. 서로 다른 앞머리가 많은 데이터에서는 크게 빨라진다.
+2. **길이가 들쭉날쭉한 열쇠.** MSD은 짧은 문자열의 뒤에 실제 글자보다 앞서는 "빈" 글자가 있다고 다루어 길이가 다른 문자열을 자연스럽게 처리한다.
+3. **제자리 변형.** 미국 국기 정렬은 자리마다 두 번 훑어(세고 나서 맞바꾸어) 도움 출력 배열 없이 제자리에서 도는 MSD 기수 정렬이다.
 
-## Handling Variable-Length Strings
+## 길이가 들쭉날쭉한 문자열 다루기
 
-For strings, the digit at position $i$ of string $s$ is:
+문자열에서는 문자열 $s$의 자리 $i$의 값이 다음과 같다.
 
-- $s[i]$ if $i < \text{len}(s)$
+- $i < \text{len}(s)$이면 $s[i]$
 - A sentinel value $-1$ (sorting before all real characters) if $i \ge \text{len}(s)$
 
-This ensures that "cat" sorts before "cats" (the shorter string's sentinel sorts
-before 's').
+그래서 "cat"이 "cats"보다 앞선다(짧은 문자열의 파수병이 's'보다 앞선다).
 
-## Implementation
+## 구현
 
 ```python
 """
-MSD radix sort -- processes digits from most to least significant.
+MSD 기수 정렬 — 자릿수를 높은 자리부터 낮은 자리로 다룬다.
 
-Uses recursive bucket partitioning. Suitable for both integers and strings.
-Time:  Theta(d * (n + r))
-Space: Theta(n + d * r)
+되돌이 양동이 나눔을 쓴다. 정수와 문자열 모두에 알맞다.
+시간:  Theta(d * (n + r))
+공간: Theta(n + d * r)
 """
 
-# === MSD radix sort =========================================================
+# === MSD 기수 정렬 ==========================================================
 
 def msd_radix_sort(arr: list[int], radix: int = 10) -> list[int]:
-    """Sort non-negative integers using MSD radix sort.
+    """MSD 기수 정렬로 음이 아닌 정수를 정렬한다.
 
-    Parameters
+    매개변수
     ----------
     arr : list[int]
-        Input array of non-negative integers.
+        음이 아닌 정수의 입력 배열.
     radix : int
-        Base for digit extraction (default 10).
+        자릿수를 뽑을 밑(기본값 10).
 
-    Returns
+    반환값
     -------
     list[int]
-        Sorted array.
+        정렬된 배열.
     """
     if not arr:
         return arr
 
     max_val = max(arr)
-    # Find the highest digit position
+    # 가장 높은 자릿수 자리 찾기
     max_exp = 1
     while max_val // (max_exp * radix) > 0:
         max_exp *= radix
@@ -130,33 +111,33 @@ def msd_radix_sort(arr: list[int], radix: int = 10) -> list[int]:
 def _msd_sort(
     arr: list[int], lo: int, hi: int, exp: int, radix: int
 ) -> None:
-    """Recursively sort arr[lo..hi] by digit at position *exp*."""
+    """자리 *exp*의 자릿수로 arr[lo..hi]을 되돌이로 정렬한다."""
     if lo >= hi or exp < 1:
         return
 
-    # Count occurrences of each digit
+    # 자릿수마다 나타난 횟수 세기
     count = [0] * (radix + 1)
     for i in range(lo, hi + 1):
         digit = (arr[i] // exp) % radix
         count[digit + 1] += 1
 
-    # Cumulative counts -- count[d] = start index for digit d
+    # 누적 세기 — count[d] = 자릿수 d의 시작 첨자
     for d in range(radix):
         count[d + 1] += count[d]
 
-    # Distribute into auxiliary array
+    # 보조 배열로 나눠 담기
     aux = [0] * (hi - lo + 1)
     for i in range(lo, hi + 1):
         digit = (arr[i] // exp) % radix
         aux[count[digit]] = arr[i]
         count[digit] += 1
 
-    # Copy back
+    # 도로 베끼기
     for i in range(lo, hi + 1):
         arr[i] = aux[i - lo]
 
-    # Recurse on each bucket
-    # Reset count for bucket boundaries
+    # 양동이마다 되돌이
+    # 양동이 경계를 위해 세기 되돌리기
     count = [0] * (radix + 1)
     for i in range(lo, hi + 1):
         digit = (arr[i] // exp) % radix
@@ -171,7 +152,7 @@ def _msd_sort(
             _msd_sort(arr, bucket_lo, bucket_hi, exp // radix, radix)
 
 
-# === Demo ===================================================================
+# === 시연 ===================================================================
 
 if __name__ == "__main__":
     data = [170, 45, 75, 90, 802, 24, 2, 66]
@@ -185,7 +166,7 @@ if __name__ == "__main__":
     print(f"Sorted: {sorted_data2}")
 ```
 
-**Output:**
+**출력:**
 ```
 Input:  [170, 45, 75, 90, 802, 24, 2, 66]
 Sorted: [2, 24, 45, 66, 75, 90, 170, 802]
@@ -194,20 +175,52 @@ Input:  [329, 457, 657, 839, 436, 720, 355]
 Sorted: [329, 355, 436, 457, 657, 720, 839]
 ```
 
-## MSD vs LSD Comparison
+## MSD과 LSD의 견줌
 
-| Property | MSD | LSD |
+| 성질 | MSD | LSD |
 |----------|-----|-----|
-| Processing order | Left to right | Right to left |
-| Strategy | Recursive (divide and conquer) | Iterative (multi-pass) |
-| Stability | Not inherently stable | Stable (with stable subroutine) |
-| Early termination | Yes | No |
-| Variable-length keys | Natural | Requires padding |
-| Cache behavior | Worse (scattered sub-buckets) | Better (sequential passes) |
-| In-place variant | American Flag Sort | Uncommon |
+| 다루는 차례 | 왼쪽에서 오른쪽 | 오른쪽에서 왼쪽 |
+| 전략 | 되돌이(나누어 정복하기) | 되풀이(여러 번 훑기) |
+| 안정성 | 본디 안정적이지 않음 | 안정적(안정한 부분 절차와 함께) |
+| 일찍 끝내기 | 예 | 아니오 |
+| 길이가 들쭉날쭉한 열쇠 | 자연스러움 | 채워 넣어야 함 |
+| 캐시 거동 | 나쁨(부분 양동이가 흩어짐) | 좋음(차례대로 훑음) |
+| 제자리 변형 | 미국 국기 정렬 | 드묾 |
 
-## Reference
+## 참고 문헌
 
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022).
-  *Introduction to Algorithms* (4th ed.), Chapter 8. MIT Press.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 8장. MIT Press.
 - Sedgewick, R. & Wayne, K. (2011). *Algorithms* (4th ed.), Section 5.1. Addison-Wesley.
+
+
+## 연습문제
+
+**연습문제 1.**
+MSD 기수 정렬의 핵심 생각과 그 시간·공간 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 견줌 너머의 성질(정수 열쇠, 바깥 저장 장치, 병렬 하드웨어)을 살려 써서 비교 기반 정렬이 따라올 수 없는 성능을 이룬다. 구체적인 복잡도 한계는 이 쪽에서 뜯어본다.
+
+---
+
+**연습문제 2.**
+작은 입력에서 MSD 기수 정렬을 따라가라. 훑기나 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    원소 6~8개에 알고리즘을 적용하며 훑을 때마다의 상태를 보여라. 이 따라가기가 알고리즘의 얼개를 드러내고 옳음을 눈에 보이게 한다.
+
+---
+
+**연습문제 3.**
+어떤 조건에서 비교 기반 정렬보다 MSD 기수 정렬이 나은가?
+
+??? success "연습문제 3 풀이"
+    다음일 때 낫다. 입력의 정수 범위가 묶여 있을 때(세기 정렬과 기수 정렬), 데이터가 램을 넘칠 때(바깥 정렬), 병렬 하드웨어를 쓸 수 있을 때(병렬 정렬). 이런 조건에서는 알고리즘이 비교 기반의 아래 한계 $\Omega(n\log n)$을 비껴갈 수 있다.
+
+---
+
+**연습문제 4.**
+MSD 기수 정렬이 실전에서 이득을 주는 깊은 학습 응용을 서술하라.
+
+??? success "연습문제 4 풀이"
+    응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.

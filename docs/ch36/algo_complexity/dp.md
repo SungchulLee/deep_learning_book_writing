@@ -114,3 +114,43 @@ $$
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Kleinberg, J. and Tardos, E. *Algorithm Design*. Pearson, 2005.
+
+## Exercises
+
+**Exercise 1.**
+Compare the time and space complexities of the 0/1 knapsack problem and the unbounded knapsack problem. Why does the unbounded version have a simpler recurrence?
+
+??? success "Solution to Exercise 1"
+    **0/1 knapsack**: each item can be used at most once. State: $dp[i][w]$ = max value using items $1 \ldots i$ with capacity $w$. Time: $O(nW)$ where $n$ is the number of items and $W$ is the capacity. Space: $O(nW)$, reducible to $O(W)$ with rolling array. **Unbounded knapsack**: each item can be used unlimited times. State: $dp[w]$ = max value with capacity $w$ (no item dimension needed). Time: $O(nW)$. Space: $O(W)$. The unbounded version is simpler because the decision at capacity $w$ does not depend on which items were previously used -- we can always consider every item again. This eliminates the item dimension from the state, reducing the recurrence to $dp[w] = \max_i(dp[w - w_i] + v_i)$. $\square$
+
+---
+
+**Exercise 2.**
+The longest common subsequence (LCS) of two strings of lengths $m$ and $n$ can be computed in $O(mn)$ time and $O(mn)$ space. Describe how to reduce the space to $O(\min(m, n))$ while maintaining $O(mn)$ time.
+
+??? success "Solution to Exercise 2"
+    The standard DP table is $dp[i][j]$ where $dp[i][j]$ depends only on $dp[i-1][j]$, $dp[i][j-1]$, and $dp[i-1][j-1]$. Since row $i$ depends only on row $i-1$, we need only two rows at a time: the current row and the previous row. Keep two 1D arrays of size $\min(m, n) + 1$ (iterate over the longer string in the outer loop). At each step, compute the current row from the previous row, then swap. Space: $O(\min(m, n))$. This gives only the LCS length, not the actual subsequence. To reconstruct the LCS in reduced space, use Hirschberg's algorithm: divide the problem in half along the longer dimension, find the midpoint of the LCS using two forward/backward passes with $O(\min(m,n))$ space each, and recurse. Total time remains $O(mn)$; space is $O(\min(m,n))$. $\square$
+
+---
+
+**Exercise 3.**
+Explain why the edit distance DP has $O(mn)$ time complexity and describe when this is too slow in practice.
+
+??? success "Solution to Exercise 3"
+    Edit distance between strings of length $m$ and $n$ fills an $(m+1) \times (n+1)$ table, with each cell computed in $O(1)$ from three neighbors. Total: $O(mn)$. This is too slow when both strings are long: for DNA sequences with $m = n = 10^6$, the DP requires $10^{12}$ operations ($\sim$hours). Alternatives for such cases: (1) banded DP -- if the edit distance is known to be small ($d \ll m$), only compute cells within distance $d$ of the diagonal, giving $O(md)$ time. (2) Approximate algorithms -- locality-sensitive hashing for approximate nearest neighbor in edit distance space. (3) For exact computation on very long strings, four-Russians speedup achieves $O(mn / \log^2 n)$. $\square$
+
+---
+
+**Exercise 4.**
+The matrix chain multiplication problem has $O(n^3)$ time and $O(n^2)$ space. Derive these complexities from the recurrence $dp[i][j] = \min_{i \le k < j} (dp[i][k] + dp[k+1][j] + p_{i-1} p_k p_j)$.
+
+??? success "Solution to Exercise 4"
+    The state space has $O(n^2)$ entries: all pairs $(i, j)$ with $1 \le i \le j \le n$, giving $\binom{n}{2} + n = O(n^2)$ entries. Each entry $dp[i][j]$ requires trying $O(j - i)$ split points $k$, each costing $O(1)$. The total work is $\sum_{i=1}^{n} \sum_{j=i}^{n} (j - i) = \sum_{l=0}^{n-1} l(n - l) = O(n^3)$ (where $l = j - i$ is the chain length). Space: the DP table has $O(n^2)$ entries, each storing one value. Therefore, time is $O(n^3)$ and space is $O(n^2)$. Knuth's optimization (the optimal split point $k^*[i][j]$ is monotone) reduces the time to $O(n^2)$ for this specific problem. $\square$
+
+---
+
+**Exercise 5.**
+Describe the tradeoff between top-down (memoized) and bottom-up (tabulation) DP. When does each approach outperform the other?
+
+??? success "Solution to Exercise 5"
+    **Top-down (memoization)**: recursion with caching. Only computes states that are actually needed. Overhead: function call stack and hash map lookups. **Bottom-up (tabulation)**: iterates through all states in dependency order. Computes all states, even those not needed for the answer. Overhead: none (simple loops and array access). Top-down wins when: (1) the state space is sparse -- many states are unreachable, so memoization avoids computing them (e.g., knapsack with large $W$ but few feasible weight combinations); (2) the dependency order is complex and hard to determine statically. Bottom-up wins when: (1) most states are visited -- the overhead of recursion and hash lookups is wasted; (2) cache locality matters -- sequential array access is faster than random memoization table access; (3) the state space is dense and small. In practice, bottom-up is preferred for standard DP problems (knapsack, LCS, edit distance); top-down is preferred for problems with irregular state spaces (game tree search, sparse DP). $\square$

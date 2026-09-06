@@ -1,47 +1,40 @@
-# MCMC Diagnostics
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-Running an MCMC sampler produces a sequence of correlated samples, but there is no automatic guarantee that these samples faithfully represent the target posterior. Diagnostics are essential for assessing convergence, mixing quality, and the reliability of posterior summaries.
+# MCMC 진단
+MCMC 표집기를 돌리면 서로 얽힌 표본의 늘어놓음이 나오지만, 그 표본이 과녁 뒤확률을 충실히 나타낸다는 보장은 저절로 생기지 않는다. 모임, 섞임의 질, 뒤확률 간추림의 미더움을 살피는 데 진단이 꼭 필요하다.
 
 ---
 
-## The Fundamental Problem
+## 근본 문제
 
-MCMC provides **asymptotic** guarantees: as the number of samples $T \to \infty$, the empirical distribution converges to the target. But in practice we have finite samples, and we must assess whether:
+MCMC은 **점근** 보장을 준다. 곧 표본의 개수가 $T \to \infty$이면 경험 분포가 과녁으로 모인다. 그러나 실전에서는 표본이 끝이 있으므로 다음을 살펴야 한다:
 
-1. The chain has **converged** to the stationary distribution (burn-in complete)
-2. The chain is **mixing** well (exploring the full posterior efficiently)
-3. We have **enough effective samples** for reliable inference
+1. 사슬이 멈춘 분포로 **모였는가**(태우기가 끝났는가)
+2. 사슬이 잘 **섞이는가**(뒤확률 전체를 효율적으로 살펴보는가)
+3. 미더운 추론에 **실효 표본이 넉넉한가**
 
 ---
 
-## Convergence Diagnostics
+## 모임 진단
 
-### Split-R-hat (Gelman-Rubin)
+### 쪼갠 R-hat(겔먼-루빈)
 
-The gold-standard convergence diagnostic compares **between-chain** and **within-chain** variance. Run $M$ chains from dispersed starting points:
+금과옥조로 여기는 모임 진단은 **사슬 사이** 흩어짐과 **사슬 안** 흩어짐을 견준다. 흩어진 시작점에서 사슬 $M$개를 돌린다:
 
 $$
-
 \hat{R} = \sqrt{\frac{\hat{\text{Var}}^+(\theta \mid \mathcal{D})}{W}}
-
 $$
 
-where $W$ is the within-chain variance and $\hat{\text{Var}}^+$ is the pooled variance estimate.
+여기서 $W$은 사슬 안 흩어짐이고 $\hat{\text{Var}}^+$은 모아 어림한 흩어짐이다.
 
-| $\hat{R}$ Value | Interpretation |
+| $\hat{R}$ 값 | 풀이 |
 |------------------|---------------|
-| < 1.01 | Converged (recommended threshold) |
-| 1.01 - 1.05 | Marginal — run longer |
-| > 1.05 | Not converged — do not use results |
-| > 1.1 | Serious convergence failure |
+| < 1.01 | 모였다(권하는 문턱값) |
+| 1.01 - 1.05 | 아슬아슬하다 — 더 오래 돌려라 |
+| > 1.05 | 모이지 않았다 — 결과를 쓰지 마라 |
+| > 1.1 | 심각한 모임 실패 |
 
-**Split-$\hat{R}$** (recommended): Split each chain in half and treat the halves as separate chains, detecting within-chain non-stationarity.
+**쪼갠 $\hat{R}$**(권함): 사슬마다 반으로 쪼개 각 반쪽을 따로 된 사슬로 다루어 사슬 안의 멈추지 않음을 알아낸다.
 
-### Implementation
+### 구현
 
 ```python
 import torch
@@ -49,20 +42,20 @@ import torch
 
 def split_rhat(chains: torch.Tensor) -> torch.Tensor:
     """
-    Compute split-R-hat for convergence assessment.
+    모임을 살피려고 쪼갠 R-hat 셈하기.
     
-    Parameters
+    매개변수
     ----------
     chains : Tensor of shape (M, N, d)
-        M chains, N samples each, d parameters
+        사슬 M개, 사슬마다 표본 N개, 매개변수 d개
     
-    Returns
+    반환값
     -------
     rhat : Tensor of shape (d,)
     """
     M, N, d = chains.shape
     
-    # Split each chain in half
+    # 사슬마다 반으로 쪼개기
     N_half = N // 2
     split_chains = torch.cat([
         chains[:, :N_half, :],
@@ -72,15 +65,15 @@ def split_rhat(chains: torch.Tensor) -> torch.Tensor:
     m = split_chains.shape[0]  # 2M
     n = N_half
     
-    # Within-chain variance
+    # 사슬 안 흩어짐
     chain_vars = split_chains.var(dim=1)  # (2M, d)
     W = chain_vars.mean(dim=0)  # (d,)
     
-    # Between-chain variance
+    # 사슬 사이 흩어짐
     chain_means = split_chains.mean(dim=1)  # (2M, d)
     B = n * chain_means.var(dim=0)  # (d,)
     
-    # Pooled variance estimate
+    # 모아 어림한 흩어짐
     var_hat = (n - 1) / n * W + B / n
     
     rhat = torch.sqrt(var_hat / W)
@@ -89,57 +82,55 @@ def split_rhat(chains: torch.Tensor) -> torch.Tensor:
 
 ---
 
-## Effective Sample Size (ESS)
+## 실효 표본 크기(ESS)
 
-### Definition
+### 정의
 
-Due to autocorrelation, $N$ MCMC samples contain the information of fewer independent samples:
+자기상관 때문에 MCMC 표본 $N$개에 담긴 정보는 그보다 적은 독립 표본만큼이다:
 
 $$
-
 \text{ESS} = \frac{MN}{1 + 2\sum_{k=1}^{K} \hat{\rho}_k}
-
 $$
 
-where $\hat{\rho}_k$ is the estimated autocorrelation at lag $k$, and the sum is truncated when autocorrelations become noisy.
+여기서 $\hat{\rho}_k$은 뒤짐 $k$에서 어림한 자기상관이며, 자기상관이 시끄러워지면 합을 끊는다.
 
-### Bulk and Tail ESS
+### 몸통 ESS과 꼬리 ESS
 
-- **Bulk ESS**: Effective samples for estimating the central posterior (mean, median)
-- **Tail ESS**: Effective samples for estimating tail quantities (95% credible intervals)
+- **몸통 ESS**: 뒤확률의 가운데(평균, 중앙값)를 어림하는 실효 표본
+- **꼬리 ESS**: 꼬리의 양(95% 믿음 구간)을 어림하는 실효 표본
 
-Both should be monitored — it is possible to have good bulk ESS but poor tail ESS.
+둘 다 지켜봐야 한다. 몸통 ESS은 좋은데 꼬리 ESS은 나쁠 수 있다.
 
-### Rules of Thumb
+### 어림 규칙
 
-| ESS | Reliability |
+| ESS | 미더움 |
 |-----|-------------|
-| > 400 per chain | Good for most summaries |
-| > 100 per chain | Acceptable minimum |
-| < 100 per chain | Unreliable — run longer or reparameterize |
+| 사슬마다 > 400 | 대부분의 간추림에 좋다 |
+| 사슬마다 > 100 | 받아들일 만한 최소 |
+| 사슬마다 < 100 | 미덥지 않다 — 더 오래 돌리거나 매개변수를 바꿔라 |
 
-### Implementation
+### 구현
 
 ```python
 def effective_sample_size(samples: torch.Tensor, max_lag: int = None) -> float:
     """
-    Estimate ESS using initial positive sequence estimator.
+    처음의 양수 늘어놓음 어림꼴로 ESS 어림하기.
     
-    Parameters
+    매개변수
     ----------
-    samples : Tensor of shape (N,) — single chain, single parameter
+    samples : 꼴 (N,)의 텐서 — 사슬 하나, 매개변수 하나
     """
     N = len(samples)
     if max_lag is None:
         max_lag = N // 2
     
-    # Compute autocorrelation via FFT
+    # FFT로 자기상관 셈하기
     x = samples - samples.mean()
     fft_result = torch.fft.rfft(x, n=2 * N)
     acf = torch.fft.irfft(fft_result * fft_result.conj())[:N]
     acf = acf / acf[0]
     
-    # Sum autocorrelations using initial positive sequence
+    # 처음의 양수 늘어놓음으로 자기상관 더하기
     tau = 1.0
     for k in range(1, max_lag, 2):
         rho_pair = acf[k] + acf[k + 1] if k + 1 < max_lag else acf[k]
@@ -152,55 +143,56 @@ def effective_sample_size(samples: torch.Tensor, max_lag: int = None) -> float:
 
 ---
 
-## Visual Diagnostics
+## 눈으로 보는 진단
 
-### Trace Plots
+### 자취 그림
 
-The most basic diagnostic — plot parameter values against iteration number.
+가장 기본적인 진단이다. 매개변수 값을 되풀이 번호에 대해 그린다.
 
-| Pattern | Interpretation |
+| 무늬 | 풀이 |
 |---------|---------------|
-| Stationary "hairy caterpillar" | Good mixing ✓ |
-| Trends or drifts | Not converged ✗ |
-| Flat regions (stuck) | Poor mixing ✗ |
-| Multiple chains overlapping | Agreement ✓ |
+| 멈춰 있는 "털북숭이 애벌레" | 좋은 섞임 ✓ |
+| 흐름이나 쏠림 | 모이지 않음 ✗ |
+| 평평한 구간(갇힘) | 나쁜 섞임 ✗ |
+| 여러 사슬이 겹침 | 서로 맞음 ✓ |
 
-### Autocorrelation Plots
+### 자기상관 그림
 
-Plot $\hat{\rho}_k$ vs lag $k$. Rapid decay indicates good mixing; slow decay indicates high autocorrelation.
+$\hat{\rho}_k$을 뒤짐 $k$에 대해 그린다. 빨리 사그라들면 섞임이 좋고, 느리게 사그라들면 자기상관이 높다.
 
-### Rank Plots
+### 차례 그림
 
-Plot the histogram of within-chain ranks across chains. For converged chains, these should be approximately uniform.
+사슬에 걸친 사슬 안 차례의 막대그림을 그린다. 모인 사슬이라면 대체로 고르게 나와야 한다.
 
-### Pair Plots
+### 짝 그림
 
-For multivariate posteriors, scatter plots of parameter pairs reveal correlations and multimodality.
-
----
-
-## NUTS-Specific Diagnostics
-
-### Divergent Transitions
-
-Divergences indicate the leapfrog integrator encountered problematic geometry. **Any divergences invalidate the inference.**
-
-**Solutions:**
-1. Increase `adapt_delta` (e.g., 0.95 → 0.99) — smaller step size
-2. Reparameterize the model (non-centered parameterization)
-3. Use stronger priors to eliminate pathological regions
-
-### Tree Depth
-
-If many iterations hit the maximum tree depth, NUTS is unable to find efficient trajectories. This often indicates high posterior curvature or funnel geometry.
-
-### Energy Diagnostic (E-BFMI)
-
-The Bayesian fraction of missing information compares the marginal energy distribution to the energy transition distribution. E-BFMI < 0.3 suggests the sampler has difficulty exploring the target.
+다변량 뒤확률에서는 매개변수 짝의 흩뿌림 그림이 상관과 봉우리 여럿을 드러낸다.
 
 ---
 
-## Practical Workflow
+## NUTS에만 있는 진단
+
+### 갈라져 나가는 옮김
+
+갈라져 나감은 개구리뜀 적분기가 말썽 있는 기하를 만났다는 뜻이다. **갈라져 나감이 하나라도 있으면 추론이 못 쓰게 된다.**
+
+**풀이:**
+
+1. `adapt_delta`을 키운다(이를테면 0.95 → 0.99). 곧 걸음 크기를 줄인다
+2. 모형의 매개변수를 바꾼다(가운데를 벗긴 매개변수화)
+3. 더 센 앞확률로 병든 구역을 없앤다
+
+### 나무 깊이
+
+되풀이 가운데 많은 것이 최대 나무 깊이에 부딪히면 NUTS이 효율적인 자취를 찾지 못하는 것이다. 흔히 뒤확률의 굽음이 크거나 깔때기 기하라는 뜻이다.
+
+### 에너지 진단(E-BFMI)
+
+빠진 정보의 베이즈 몫은 주변 에너지 분포와 에너지 옮김 분포를 견준다. E-BFMI < 0.3이면 표집기가 과녁을 살펴보는 데 애를 먹는다는 뜻이다.
+
+---
+
+## 실전 일머리
 
 ```
 1. Run 4+ chains from dispersed starting points
@@ -218,161 +210,193 @@ The Bayesian fraction of missing information compares the marginal energy distri
 
 ---
 
-## Summary
+## 요약
 
-| Diagnostic | What It Checks | Threshold |
+| 진단 | 무엇을 살피나 | 문턱값 |
 |-----------|----------------|-----------|
-| **Split-$\hat{R}$** | Between/within-chain agreement | < 1.01 |
-| **Bulk ESS** | Effective samples for central summaries | > 400 |
-| **Tail ESS** | Effective samples for interval estimates | > 400 |
-| **Divergences** | Numerical integration failures | = 0 |
-| **Tree depth** | Sampler efficiency | Not hitting max |
-| **Trace plots** | Visual convergence and mixing | Stationary, well-mixed |
+| **쪼갠 $\hat{R}$** | 사슬 사이/안의 맞음 | < 1.01 |
+| **몸통 ESS** | 가운데 간추림의 실효 표본 | > 400 |
+| **꼬리 ESS** | 구간 어림의 실효 표본 | > 400 |
+| **갈라져 나감** | 수치 적분의 무너짐 | = 0 |
+| **나무 깊이** | 표집기의 효율 | 최대에 부딪히지 않음 |
+| **자취 그림** | 눈으로 보는 모임과 섞임 | 멈춰 있고 잘 섞임 |
 
 ---
 
-## References
+## 참고 문헌
 
 - Vehtari, A., Gelman, A., Simpson, D., Carpenter, B., & Bürkner, P.-C. (2021). Rank-normalization, folding, and localization: An improved $\hat{R}$ for assessing convergence of MCMC. *Bayesian Analysis*, 16(2), 667-718.
-- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). CRC Press. Chapter 11.
+- Gelman, A., et al. (2013). *Bayesian Data Analysis* (3rd ed.). CRC Press. 11장.
 - Betancourt, M. (2017). A conceptual introduction to Hamiltonian Monte Carlo. *arXiv:1701.02434*.
 
 ---
 
-## Additional Diagnostics
+## 덧붙이는 진단
 
-### Geweke Diagnostic
+### 게웨키 진단
 
-Compares means from early and late parts of the chain.
+사슬의 앞부분과 뒷부분의 평균을 견준다.
 
-- First 10% of samples: $\bar{x}_A$
-- Last 50% of samples: $\bar{x}_B$
+- 처음 10%의 표본: $\bar{x}_A$
+- 마지막 50%의 표본: $\bar{x}_B$
 
-**Z-score**:
+**Z 점수**:
 
 $$
-
 Z = \frac{\bar{x}_A - \bar{x}_B}{\sqrt{\text{Var}(\bar{x}_A) + \text{Var}(\bar{x}_B)}}
-
 $$
 
-$|Z| < 2$: No evidence of non-convergence. $|Z| > 2$: Chain still drifting.
+$|Z| < 2$: 모이지 않았다는 낌새가 없다. $|Z| > 2$: 사슬이 아직 쏠리고 있다.
 
-### Heidelberger-Welch Test
+### 하이델베르거-웰치 검정
 
-Two-part test:
+두 부분으로 된 검정:
 
-1. **Stationarity test**: Cramér-von Mises test on first 10%, 20%, ..., 50%
-2. **Half-width test**: Is the MCMC error small enough? Pass if half-width of 95% CI is < 10% of estimate.
+1. **멈춤 검정**: 처음 10%, 20%, ..., 50%에 크라메르-폰미제스 검정을 쓴다
+2. **반폭 검정**: MCMC 오차가 넉넉히 작은가? 95% 믿음 구간의 반폭이 어림값의 10%보다 작으면 통과한다.
 
-### Monte Carlo Standard Error (MCSE)
+### 몬테카를로 표준 오차(MCSE)
 
 $$
-
 \text{MCSE}(\bar{\theta}) = \frac{\sigma_\theta}{\sqrt{\text{ESS}}}
-
 $$
 
-**Rule of thumb**: Want $\text{MCSE} < 0.05 \cdot \sigma$ (5% of posterior SD).
+**어림 규칙**: $\text{MCSE} < 0.05 \cdot \sigma$(뒤확률 표준편차의 5%)을 바란다.
 
 ---
 
-## Sample Size Requirements
+## 필요한 표본 크기
 
-| Use Case | Minimum ESS |
+| 쓰임새 | 최소 ESS |
 |----------|-------------|
-| Point estimates | 100 |
-| Standard errors | 400 |
-| Quantiles (median, 95% CI) | 1000 |
-| Tail probabilities | 2000-4000 |
-| High precision | 10,000+ |
+| 점 어림값 | 100 |
+| 표준 오차 | 400 |
+| 분위수(중앙값, 95% 믿음 구간) | 1000 |
+| 꼬리 확률 | 2000-4000 |
+| 높은 정밀도 | 10,000 이상 |
 
 ---
 
-## Thinning: Should You?
+## 솎아내기: 해야 하나?
 
-**Modern consensus**: **Don't thin** (usually).
+**요즘의 합의**: (대개) **솎아내지 마라**.
 
-- Wastes information
-- Doesn't improve ESS (just reduces $N$ proportionally)
-- Modern diagnostics account for autocorrelation
+- 정보를 버린다
+- ESS을 낫게 하지 않는다(그저 $N$을 비례해 줄일 뿐이다)
+- 요즘 진단은 자기상관을 헤아린다
 
-**When to thin**: Storage constraints, need uncorrelated samples for downstream analysis, computational cost of processing samples is high.
-
----
-
-## Diagnosing Common Problems
-
-### High R-hat (> 1.1)
-
-**Causes**: Burn-in too short, multiple modes (chains stuck in different modes), very slow mixing.
-
-**Solutions**: Run longer, check trace plots, try different initial values, use better sampler (HMC instead of MH).
-
-### Low ESS (< 100)
-
-**Causes**: High autocorrelation, poor sampler tuning.
-
-**Solutions**: Run longer, tune sampler (step size, mass matrix), reparameterize model.
-
-### Multimodal Posterior
-
-**Symptoms**: Different chains converge to different modes, high $\hat{R}$ even with long runs.
-
-**Solutions**: Use parallel tempering, initialize chains near each mode, consider if multimodality is real or artifact.
+**솎아낼 때**: 저장 공간이 빠듯할 때, 뒤이은 분석에 얽히지 않은 표본이 필요할 때, 표본을 다루는 셈 값이 클 때.
 
 ---
 
-## Burn-In Period
+## 흔한 말썽 진단하기
 
-**Conservative approach**: Discard first 50% of samples.
+### 높은 R-hat(> 1.1)
 
-**Modern practice** (Stan): Run warmup phase (adapt step size, mass matrix), discard entire warmup, only keep post-adaptation samples.
+**까닭**: 태우기가 너무 짧음, 봉우리가 여럿(사슬이 서로 다른 봉우리에 갇힘), 섞임이 아주 느림.
+
+**풀이**: 더 오래 돌리기, 자취 그림 살피기, 다른 첫 값 써 보기, 더 좋은 표집기 쓰기(MH 대신 HMC).
+
+### 낮은 ESS(< 100)
+
+**까닭**: 높은 자기상관, 표집기를 잘못 맞춤.
+
+**풀이**: 더 오래 돌리기, 표집기 맞추기(걸음 크기, 질량 행렬), 모형의 매개변수 바꾸기.
+
+### 봉우리가 여럿인 뒤확률
+
+**증상**: 사슬마다 다른 봉우리로 모이고, 오래 돌려도 $\hat{R}$이 높다.
+
+**풀이**: 병렬 온도 다루기 쓰기, 봉우리마다 가까이에서 사슬 시작하기, 봉우리가 여럿인 것이 참인지 허물인지 따져 보기.
 
 ---
 
-## Software Tools
+## 태우기 기간
 
-**ArviZ** (Python):
+**깐깐한 길**: 처음 50%의 표본을 버린다.
+
+**요즘 방식**(Stan): 달굼 단계를 돌리고(걸음 크기와 질량 행렬을 맞추고) 달굼 전체를 버린 뒤 맞춘 다음의 표본만 남긴다.
+
+---
+
+## 소프트웨어 도구
+
+**ArviZ**(파이썬):
 ```python
 import arviz as az
 
-# Comprehensive summary
+# 두루 간추리기
 az.summary(samples, hdi_prob=0.95)
-# Includes: mean, sd, hdi, ess_bulk, ess_tail, r_hat
+# 담긴 것: mean, sd, hdi, ess_bulk, ess_tail, r_hat
 ```
 
 **Stan**:
 ```python
 fit = stan.build(model, data=data)
-fit.summary()  # Includes R-hat, ESS
-fit.diagnose()  # Warnings for problems
+fit.summary()  # R-hat과 ESS를 담음
+fit.diagnose()  # 말썽에 대한 경고
 ```
 
 ---
 
-## Extended Checklist
+## 넓힌 점검표
 
-Before trusting your MCMC samples, verify:
+MCMC 표본을 믿기 전에 다음을 확인하여라:
 
-- [ ] Ran at least 4 chains from dispersed initial values
-- [ ] All $\hat{R} < 1.01$
-- [ ] All ESS > 400 (preferably 1000+)
-- [ ] Trace plots look stationary ("hairy caterpillar")
-- [ ] Autocorrelation decays to near-zero within ~20 lags
-- [ ] Running mean stabilizes
-- [ ] No systematic trends or drift
-- [ ] Bulk and tail ESS both sufficient
-- [ ] MCSE < 5% of posterior SD
-- [ ] 0 divergences (for NUTS/HMC)
+- [ ] 흩어진 첫 값에서 적어도 사슬 4개를 돌렸다
+- [ ] 모든 $\hat{R} < 1.01$이다
+- [ ] 모든 ESS > 400이다(되도록 1000 이상)
+- [ ] 자취 그림이 멈춰 보인다("털북숭이 애벌레")
+- [ ] 자기상관이 뒤짐 20쯤 안에 0에 가깝게 사그라든다
+- [ ] 달리는 평균이 안정된다
+- [ ] 뚜렷한 흐름이나 쏠림이 없다
+- [ ] 몸통 ESS과 꼬리 ESS이 모두 넉넉하다
+- [ ] MCSE이 뒤확률 표준편차의 5%보다 작다
+- [ ] 갈라져 나감이 0이다(NUTS/HMC에서)
 
-**Golden rule**: When in doubt, run longer. Computation is cheap; wrong inferences are expensive.
+**금과옥조**: 망설여지면 더 오래 돌려라. 셈은 싸지만 틀린 추론은 비싸다.
 
 ---
 
-## Further Reading
+## 더 읽을거리
 
-- Gelman & Rubin (1992): $\hat{R}$ statistic
-- Geweke (1992): Time series diagnostics
-- Vehtari et al. (2021): Rank-normalized $\hat{R}$, ESS recommendations
-- Gelman et al. (2013): Bayesian Data Analysis (Chapter 11)
+- Gelman & Rubin (1992): $\hat{R}$ 통계량
+- Geweke (1992): 시계열 진단
+- Vehtari et al. (2021): 차례로 고르게 한 $\hat{R}$, ESS 권고
+- Gelman et al. (2013): Bayesian Data Analysis(11장)
+
+## 연습문제
+
+**연습문제 1.**
+마르코프 사슬이 올바른 과녁 분포로 모이게 하는 데 받아들임 확률이 하는 몫을 설명하여라.
+
+??? success "연습문제 1 풀이"
+    받아들임 확률이 **자세한 균형** $\pi(x) T(x \to x') \alpha(x \to x') = \pi(x') T(x' \to x) \alpha(x' \to x)$을 보장한다. 여기서 $\pi$은 과녁 분포, $T$은 제안 분포, $\alpha$은 받아들임 확률이다. 자세한 균형은 $\pi$이 사슬의 멈춘 분포임을 뜻한다. 쪼갤 수 없음과 주기 없음까지 합치면 $\pi$으로의 에르고드 모임이 보장된다.
+
+---
+
+**연습문제 2.**
+제안 분포가 너무 좁은 상황과 너무 넓은 상황을 밝혀라. 저마다 표집 효율에 어떤 영향을 주는가?
+
+??? success "연습문제 2 풀이"
+    **너무 좁을 때:** 제안이 거의 늘 받아들여지지만(받아들임 비율이 높지만) 사슬이 아주 작은 걸음을 떼어 과녁 분포를 느리게 살펴본다. 그러면 자기상관이 높고 실효 표본 크기가 작아진다. **너무 넓을 때:** 제안이 확률이 낮은 구역에 자주 떨어져 물리쳐지므로(받아들임 비율이 낮으므로) 사슬이 여러 되풀이 동안 지금 상태에 갇혀 있게 된다. 두 극단 모두 효율을 떨어뜨린다. 높은 차원에서 무작위 걸음 메트로폴리스의 가장 좋은 받아들임 비율은 대략 0.234이다(Roberts 외, 1997).
+
+---
+
+**연습문제 3.**
+메트로폴리스-헤이스팅스 받아들임 비 $\alpha = \min\left(1, \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}\right)$이 $\pi$에 대해 자세한 균형을 만족함을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    일반성을 잃지 않고 $\pi(x') q(x|x') \leq \pi(x) q(x'|x)$이라 하자. 그러면 $\alpha(x \to x') = \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)}$이고 $\alpha(x' \to x) = 1$이다. 자세한 균형 조건은 다음을 요구한다:
+
+    $$\pi(x) q(x'|x) \alpha(x \to x') = \pi(x) q(x'|x) \cdot \frac{\pi(x') q(x|x')}{\pi(x) q(x'|x)} = \pi(x') q(x|x')$$
+
+    그리고 $\pi(x') q(x|x') \alpha(x' \to x) = \pi(x') q(x|x') \cdot 1 = \pi(x') q(x|x')$이다. 양변이 같다. $\square$
+
+---
+
+**연습문제 4.**
+MCMC에서 태우기 기간이란 무엇이며, 처음 표본을 언제 버릴지 어떻게 정하는가?
+
+??? success "연습문제 4 풀이"
+    태우기 기간은 마르코프 사슬에서 아직 멈춘 분포로 모이지 않은 처음 부분이다. 치우침을 줄이려고 이 기간의 표본을 버린다. 태우기를 정하는 길은 다음과 같다. (1) 자취 그림으로 사슬이 언제 안정되는지 눈으로 살핀다. (2) 여러 사슬에서 사슬 안 흩어짐과 사슬 사이 흩어짐을 견주는 겔먼-루빈 진단($\hat{R}$)을 쓰며 $\hat{R} < 1.01$이면 모였다고 본다. (3) 실효 표본 크기(ESS) 어림값을 쓴다. (4) 흩어진 시작점에서 여러 사슬을 돌려 서로 맞는지 살핀다.

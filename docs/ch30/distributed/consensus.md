@@ -1,127 +1,160 @@
-# Consensus
+# 뜻 모으기
 
-In a distributed system, processes must sometimes agree on a single value
-despite communication delays and potential failures.  This is the
-**consensus** problem, fundamental to replicated state machines, atomic
-broadcast, and blockchain protocols.  Its impossibility in certain models
-(the FLP result) is one of the most important theorems in distributed
-computing.
+나눠진 시스템에서 여러 일꾼이 주고받기 늦음과 고장이 있는데도 값 하나에
+뜻을 모아야 할 때가 있다. 이것이 **뜻 모으기** 문제이며 되풀이 놓인 상태 기계,
+원자 널리 알리기, 사슬 장부 규약의 바탕이 된다. 어떤 모형에서 이것이
+불가능하다는 것(FLP 결과)은 나눠 하는 셈에서 가장 중요한 정리 가운데
+하나이다.
+.
 
-## Problem Definition
+## 문제의 정의
 
-A set of $n$ processes, each starting with an **input value** $v_i$, must
-satisfy three properties:
+저마다 **들임 값** $v_i$으로 시작하는 일꾼 $n$개의 모임은 다음 세 성질을
+만족해야 한다:
 
-1. **Agreement.**  All non-faulty processes decide the same value.
-2. **Validity.**  The decided value is some process's input value.
-3. **Termination.**  Every non-faulty process eventually decides.
+1. **뜻 맞음.** 고장 나지 않은 모든 일꾼이 같은 값을 정한다.
+2. **올바름.** 정해진 값은 어떤 일꾼의 들임 값이다.
+3. **끝남.** 고장 나지 않은 모든 일꾼이 끝내는 정한다.
 
-## Failure Models
+## 고장 모형
 
-The difficulty of consensus depends on the failure model:
+뜻 모으기의 어려움은 고장 모형에 매인다:
 
-| Model | Description | Consensus solvable? |
+| 모형 | 밝힘 | 뜻 모으기가 되는가? |
 |---|---|---|
-| No failures | All processes are correct | Trivially yes |
-| Crash failures | A process may stop permanently | Yes (synchronous), No (async, FLP) |
-| Byzantine failures | A process may behave arbitrarily | Yes if $n > 3f$ |
+| 고장 없음 | 모든 일꾼이 옳다 | 당연히 예 |
+| 멈춤 고장 | 일꾼이 아주 멈출 수 있다 | 예(맞춘 판), 아니오(맞추지 않은 판, FLP) |
+| 배신 고장 | 일꾼이 제멋대로 굴 수 있다 | $n > 3f$이면 예 |
 
-Here $f$ denotes the maximum number of faulty processes.
+여기서 $f$은 고장 난 일꾼의 최대 개수를 뜻한다.
 
-## FLP Impossibility
+## FLP 불가능성
 
-Fischer, Lynch, and Paterson (1985) proved:
+Fischer, Lynch, Paterson(1985)이 밝혔다:
 
-> **Theorem (FLP).**  In an asynchronous message-passing system, there is no
-> deterministic consensus protocol that tolerates even a single crash failure.
+> **정리(FLP).** 맞추지 않은 쪽지 건네기 시스템에서는 멈춤 고장 하나조차
+> 견디는 정해진 뜻 모으기 규약이 없다.
 
-### Proof Intuition
+### 밝힘의 느낌
 
-The proof shows that any deterministic protocol has a **bivalent** initial
-configuration---one from which both $0$ and $1$ are still possible
-decisions.  Because message delivery order is arbitrary in an asynchronous
-system, an adversarial scheduler can always delay the critical message that
-would tip the system to a decision, keeping it bivalent forever.
+밝힘은 어떤 정해진 규약에도 $0$과 $1$ 둘 다 아직 정해질 수 있는
+**두 값 가능** 첫 짜임이 있음을 보인다. 맞추지 않은 시스템에서는 쪽지가
+닿는 차례가 제멋대로이므로, 맞수 같은 일정잡이가 결정을 가르는 쪽지를 늘
+늦춰 시스템을 두 값 가능인 채로 영원히 붙들어 둘 수
+있다.
 
-!!! warning "FLP Does Not Mean Consensus Is Impossible in Practice"
-    FLP rules out *deterministic* protocols in *purely asynchronous* systems.
-    Practical systems circumvent it via partial synchrony assumptions
-    (Paxos, Raft), randomization, or failure detectors.
+!!! warning "FLP은 실제로 뜻 모으기가 불가능하다는 뜻이 아니다"
+    FLP은 *온전히 맞추지 않은* 시스템의 *정해진* 규약을 막을 뿐이다.
+    실제 시스템은 얼마간 맞춤을 여기거나(Paxos, Raft) 아무렇게 하기,
+    고장 찾개로 이를 비껴간다.
 
-## Synchronous Consensus
+## 맞춘 뜻 모으기
 
-In a synchronous system with at most $f$ crash failures, consensus can be
-solved in $f + 1$ rounds.
+멈춤 고장이 많아야 $f$개인 맞춘 시스템에서는 $f + 1$바퀴에 뜻 모으기를
+풀 수 있다.
 
-### Algorithm (Flood-Set)
+### 알고리즘(물 대기 모임)
 
-Each process maintains a set $W_i$ of values it has seen.
+일꾼마다 본 값의 모임 $W_i$을 지닌다.
 
-1. Initialize $W_i = \{v_i\}$.
-2. For $f + 1$ rounds: broadcast $W_i$ to all processes, then set
-   $W_i = W_i \cup \bigcup_{j} W_j$ (where $W_j$ are received sets).
-3. Decide $\min(W_i)$.
+1. $W_i = \{v_i\}$으로 시작한다.
+2. $f + 1$바퀴 동안: $W_i$을 모든 일꾼에 널리 알린 뒤
+   $W_i = W_i \cup \bigcup_{j} W_j$으로 둔다($W_j$은 받은 모임).
+3. $\min(W_i)$으로 정한다.
 
-After $f + 1$ rounds, at least one round had no failures (pigeonhole: $f$
-failures across $f + 1$ rounds), so in that round all surviving processes
-received identical sets.
+$f + 1$바퀴 뒤에는 고장이 없던 바퀴가 적어도 하나 있고(비둘기집: $f + 1$바퀴에
+고장 $f$개), 그 바퀴에서 살아남은 모든 일꾼이 똑같은 모임을
+받았다.
 
-**Complexity:**  $f + 1$ rounds, $O(n^2 f)$ messages.
+**복잡도:** $f + 1$바퀴, 쪽지 $O(n^2 f)$개.
 
-## Paxos (Partial Synchrony)
+## Paxos(얼마간 맞춤)
 
-Lamport's Paxos protocol achieves consensus under partial synchrony---the
-system is eventually synchronous after some unknown time $T$.
+Lamport의 Paxos 규약은 얼마간 맞춤 아래에서 뜻 모으기를 이룬다. 곧 알 수 없는
+어떤 때 $T$ 뒤에 시스템이 끝내 맞춰진다.
 
-### Roles
+### 맡은 몫
 
-- **Proposers** suggest values.
-- **Acceptors** vote on proposals.
-- **Learners** learn the decided value.
+- **내미는 이**가 값을 내놓는다.
+- **받는 이**가 내놓은 것에 표를 던진다.
+- **배우는 이**가 정해진 값을 안다.
 
-### Two Phases
+### 두 마당
 
-**Phase 1 (Prepare).**  A proposer selects a proposal number $n$ and sends
-`PREPARE(n)` to a majority of acceptors.  Each acceptor replies with the
-highest-numbered proposal it has accepted (if any) and promises not to
-accept proposals with numbers less than $n$.
+**1마당(채비).** 내미는 이가 내놓기 번호 $n$을 골라 받는 이의 과반에
+`PREPARE(n)`을 보낸다. 받는 이마다 자기가 받아들인 것 가운데 번호가 가장 큰
+것을(있다면) 답하고 $n$보다 작은 번호의 내놓기는 받지 않겠다고
+약속한다.
 
-**Phase 2 (Accept).**  If the proposer receives promises from a majority,
-it sends `ACCEPT(n, v)` where $v$ is the value from the highest-numbered
-accepted proposal (or the proposer's own value if none).  Acceptors accept
-the proposal if they have not promised a higher number.
+**2마당(받기).** 내미는 이가 과반의 약속을 받으면 `ACCEPT(n, v)`을 보낸다.
+여기서 $v$은 번호가 가장 큰 받아들인 내놓기의 값이다(없으면 내미는 이 자신의
+값). 받는 이는 더 큰 번호를 약속하지 않았다면 그 내놓기를
+받아들인다.
 
-A value is **decided** when a majority of acceptors accept it.
+받는 이의 과반이 받아들이면 값이 **정해진다**.
 
-!!! note "Safety and Liveness"
-    Paxos guarantees **safety** (agreement and validity) in all executions.
-    **Liveness** (termination) requires eventual synchrony; competing
-    proposers can livelock without a leader election mechanism.
+!!! note "안전함과 살아 있음"
+    Paxos은 모든 돌림에서 **안전함**(뜻 맞음과 올바름)을 보장한다.
+    **살아 있음**(끝남)에는 끝내 맞춰짐이 필요하다. 우두머리 뽑기 얼개가 없으면
+    겨루는 내미는 이들이 살아 있는 채 멈출 수 있다.
 
-## Byzantine Consensus
+## 배신 뜻 모으기
 
-When up to $f$ processes may behave arbitrarily (send conflicting messages,
-lie, etc.), consensus requires $n > 3f$ processes.
+많아야 $f$개의 일꾼이 제멋대로 굴 수 있을 때(어긋나는 쪽지를 보내거나
+거짓말을 하는 등) 뜻 모으기에는 일꾼이 $n > 3f$개 필요하다.
 
-### Lower Bound
+### 아래 한계
 
-**Theorem.**  No protocol solves Byzantine consensus with $n \le 3f$.
+**정리.** $n \le 3f$에서 배신 뜻 모으기를 푸는 규약은 없다.
 
-**Proof sketch (for $n = 3, f = 1$).**  Consider three processes $A$, $B$,
-$C$ where one is Byzantine.  If $A$ proposes $0$ and $C$ proposes $1$, the
-Byzantine process $B$ can tell $A$ it proposes $0$ and tell $C$ it proposes
-$1$.  Neither $A$ nor $C$ can distinguish this from a legitimate scenario,
-making agreement impossible.
+**밝힘 밑그림($n = 3, f = 1$).** 하나가 배신자인 일꾼 $A$, $B$, $C$을
+보자. $A$이 $0$을, $C$이 $1$을 내놓으면 배신자 $B$은 $A$에게는 $0$을,
+$C$에게는 $1$을 내놓는다고 말할 수 있다. $A$도 $C$도 이를 올바른 상황과
+가려낼 수 없으므로 뜻 맞음이
+불가능해진다.
 
-### Practical Byzantine Fault Tolerance (PBFT)
+### 실제 배신 고장 견딤(PBFT)
 
-PBFT (Castro & Liskov, 1999) achieves Byzantine consensus with $n = 3f + 1$
-in a partially synchronous network using three communication phases:
-pre-prepare, prepare, and commit.
+PBFT(Castro & Liskov, 1999)은 얼마간 맞춘 그물에서 앞채비, 채비, 새김의
+주고받기 세 마당으로 $n = 3f + 1$에서 배신 뜻 모으기를
+이룬다.
 
-## Reference
+## 참고 문헌
 
 - Fischer, M. J., Lynch, N. A., & Paterson, M. S. "Impossibility of
   Distributed Consensus with One Faulty Process." *JACM*, 1985.
 - Lamport, L. "Paxos Made Simple." ACM SIGACT News, 2001.
 - Lynch, N. *Distributed Algorithms*. Morgan Kaufmann, 1996.
+
+
+## 연습문제
+
+**연습문제 1.**
+나눠 하는 셈의 뜻 모으기 문제를 말하여라. 세 요구는 무엇인가?
+
+??? success "연습문제 1 풀이"
+    뜻 모으기에서 일꾼 $n$개가 저마다 값을 내놓고 하나에 뜻을 모아야 한다. 요구: (1) 뜻 맞음: 옳은 모든 일꾼이 같은 값을 정한다. (2) 올바름: 정해진 값은 어떤 일꾼이 내놓은 것이다. (3) 끝남: 옳은 모든 일꾼이 끝내 정한다. FLP 불가능 결과(Fischer, Lynch, Paterson, 1985)는 멈춤 고장 하나만 있어도 맞추지 않은 시스템에서 정해진 뜻 모으기가 불가능함을 보인다. 실제 시스템은 아무렇게 하기나 얼마간 맞춤으로 이를 비껴간다.
+
+---
+
+**연습문제 2.**
+Paxos 알고리즘을 큰 틀에서 밝혀라.
+
+??? success "연습문제 2 풀이"
+    Paxos에는 세 몫이 있다. 내미는 이, 받는 이, 배우는 이다. 1마당(채비): 내미는 이가 내놓기 번호 $n$과 함께 채비 요청을 받는 이의 과반에 보낸다. 받는 이는 $n$보다 작은 번호는 받지 않겠다는 약속과 앞서 받아들인 값을 함께 답한다. 2마당(받기): 내미는 이가 번호 $n$과 값(자기 값이거나 앞서 받아들인 것 가운데 번호가 가장 큰 값)과 함께 받기 요청을 보낸다. 과반이 받아들이면 그 값이 뽑힌다. 배우는 이가 뽑힌 값을 알아챈다. Paxos은 안전함(뜻 맞음 + 올바름)을 늘 보장하고 살아 있음(끝남)은 얼마간 맞춤 아래에서 보장한다.
+
+---
+
+**연습문제 3.**
+뜻 모으기와 상태 기계 되풀이 놓기의 관계를 밝혀라.
+
+??? success "연습문제 3 풀이"
+    상태 기계 되풀이 놓기는 뜻 모으기를 써서 모든 사본이 같은 차례의 명령을 돌리게 한다. 명령마다 따로 둔 뜻 모으기 판(번호 매긴 칸)으로 정해진다. 모든 사본이 같은 상태에서 시작해 같은 명령을 같은 차례로 돌리면 서로 어긋나지 않는다. Multi-Paxos와 Raft은 명령을 묶는 안정된 우두머리를 뽑아 이를 다듬어, 명령마다 Paxos 전체를 도는 덧짐을 피한다. 상태 기계 되풀이 놓기는 나눠진 자료 바탕, 조율 서비스(ZooKeeper), 사슬 장부의 바탕이다.
+
+---
+
+**연습문제 4.**
+뜻 모으기는 나눠 하는 깊은 배움 익히기와 어떻게 이어지는가?
+
+??? success "연습문제 4 풀이"
+    나눠 익히기에서 일꾼들은 다음에 뜻을 모아야 한다. (1) 맞춘 기울기 모으기 뒤의 온 자리 모델 상태(all-reduce도 뜻 맞음의 한 가지다), (2) 되짚기 표시 결정(어느 되풀이를 표시할지), (3) 그때그때 크기 바꾸기(일꾼을 더하거나 빼는 데 뜻 모으기). 맞춘 확률 기울기 내려가기는 울타리가 필요하다(묶음이 끝났다는 데 대한 숨은 뜻 모으기). 잡 일꾼은 일꾼 고장을 다루려 뜻 모으기의 한 가지를 쓴다. 연합 배움은 나쁜 뜻을 가진 손님이 있을 수 있을 때 배신 뜻 모으기와 성질을 나누는 모으기 규약을 쓴다.

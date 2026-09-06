@@ -1,124 +1,157 @@
-# Frequency Estimation
+# 잦음 어림
 
-Given a stream of elements, how often does a particular item appear? Answering this **point query** exactly requires storing the entire frequency vector, which may be prohibitively large. Frequency estimation algorithms maintain compact summaries that answer point queries approximately, with provable error guarantees. These algorithms form the backbone of streaming analytics, powering applications from network monitoring to natural language processing.
+원소의 흐름이 주어질 때 어떤 것이 얼마나 자주 나타나는가? 이 **점 묻기**에 정확히 답하려면 잦음 벡터 전체를 담아야 하는데 이는 너무 클 수 있다. 잦음 어림 알고리즘은 밝힐 수 있는 어긋남 보장과 함께 점 묻기에 어림하여 답하는 간결한 간추림을 지닌다. 이 알고리즘들이 흐름 분석의 등뼈를 이루어 그물 지켜보기부터 자연어 다루기까지 떠받친다.
 
-## Problem Statement
+## 문제 서술
 
-Given a data stream $\sigma = a_1, a_2, \ldots, a_n$ where each $a_i \in [U] = \{1, 2, \ldots, U\}$, define the **frequency** of item $j$ as:
+저마다 $a_i \in [U] = \{1, 2, \ldots, U\}$인 자료 흐름 $\sigma = a_1, a_2, \ldots, a_n$이 주어질 때 것 $j$의 **잦음**을 다음과 같이 뜻매김한다:
 
 $$
 f_j = |\{i : a_i = j\}|
 $$
 
-The goal is to maintain a data structure of size $o(U)$ that, given a query item $j$, returns an estimate $\hat{f}_j$ satisfying:
+목표는 크기 $o(U)$의 자료 얼개를 지녀, 묻는 것 $j$이 주어지면 다음을 만족하는 어림 $\hat{f}_j$을 돌려주는 것이다:
 
 $$
 |\hat{f}_j - f_j| \leq \epsilon n
 $$
 
-with probability at least $1 - \delta$, where $\epsilon$ is the accuracy parameter and $\delta$ is the failure probability.
+적어도 확률 $1 - \delta$으로. 여기서 $\epsilon$은 맞음 잡이고 $\delta$은 어긋날 확률이다.
 
-## Frequency Moments
+## 잦음 적률
 
-Frequency estimation is closely related to **frequency moments**. The $k$-th frequency moment is:
+잦음 어림은 **잦음 적률**과 가깝다. $k$번째 잦음 적률은 다음과 같다:
 
 $$
 F_k = \sum_{j=1}^{U} f_j^k
 $$
 
-Important special cases:
+중요한 특별한 경우:
 
-- $F_0$: the number of **distinct elements** in the stream
-- $F_1 = n$: the **stream length**
-- $F_2 = \sum_j f_j^2$: the **self-join size** or sum of squared frequencies, measuring how skewed the frequency distribution is
+- $F_0$: 흐름 속 **서로 다른 원소**의 개수
+- $F_1 = n$: **흐름 길이**
+- $F_2 = \sum_j f_j^2$: **스스로 이음 크기** 또는 잦음 제곱의 합. 잦음 분포가 얼마나 치우쳤는지 잰다
 
-!!! note "Why $F_2$ Matters"
-    $F_2$ quantifies the "surprise" of the frequency distribution. If all items appear equally, $F_2 = n^2/U$. If one item dominates, $F_2 \approx n^2$. The ratio $F_2 / F_1^2$ is sometimes called the **repeat rate** and measures the predictability of the stream.
+!!! note "$F_2$이 중요한 까닭"
+    $F_2$은 잦음 분포의 "놀라움"을 수량으로 나타낸다. 모든 것이 고루 나타나면 $F_2 = n^2/U$이다. 한 것이 판을 치면 $F_2 \approx n^2$이다. 비 $F_2 / F_1^2$을 **되풀이 비율**이라 부르기도 하며 흐름이 얼마나 헤아리기 쉬운지 잰다.
 
-## Approaches to Frequency Estimation
+## 잦음 어림의 길
 
-### Exact Counting
+### 정확히 세기
 
-Maintaining a hash table with exact counts requires $O(d)$ space where $d$ is the number of distinct elements. When $d$ is large (e.g., IP addresses, n-grams), this is impractical.
+정확한 셈을 담은 흩기 표를 지니려면 $d$이 서로 다른 원소의 개수일 때 공간 $O(d)$이 든다. $d$이 크면(보기로 IP 주소, n토막) 쓸 수 없다.
 
-### Count-Min Sketch
+### Count-Min 스케치
 
-The **Count-Min Sketch** (Cormode and Muthukrishnan, 2005) uses $w \times d$ counters with $d$ independent hash functions. Each hash function maps items to one of $w$ counters:
+**Count-Min 스케치**(Cormode와 Muthukrishnan, 2005)는 독립 흩기 함수 $d$개와 함께 셈틀 $w \times d$개를 쓴다. 흩기 함수마다 것을 셈틀 $w$개 가운데 하나로 옮긴다:
 
 $$
 \hat{f}_j = \min_{i=1}^{d} C[i][h_i(j)]
 $$
 
-Space: $O\left(\frac{e}{\epsilon} \cdot \ln \frac{1}{\delta}\right)$ with $w = \lceil e/\epsilon \rceil$ and $d = \lceil \ln(1/\delta) \rceil$.
+공간: $w = \lceil e/\epsilon \rceil$, $d = \lceil \ln(1/\delta) \rceil$일 때 $O\left(\frac{e}{\epsilon} \cdot \ln \frac{1}{\delta}\right)$.
 
-The estimate always satisfies $\hat{f}_j \geq f_j$ (no underestimation) and:
+어림은 늘 $\hat{f}_j \geq f_j$(모자라게 세지 않음)을 만족하며 또한:
 
 $$
 P(\hat{f}_j - f_j > \epsilon n) < \delta
 $$
 
-### Count Sketch
+### Count 스케치
 
-The **Count Sketch** (Charikar, Chen, and Farach-Colton, 2004) uses sign functions $s_i : [U] \to \{-1, +1\}$ in addition to hash functions. Updates add $s_i(a)$ to the counter, and the estimate is the **median** across rows:
+**Count 스케치**(Charikar, Chen, Farach-Colton, 2004)는 흩기 함수에 더해 부호 함수 $s_i : [U] \to \{-1, +1\}$을 쓴다. 고칠 때 셈틀에 $s_i(a)$을 더하고 어림은 줄들의 **가운뎃값**이다:
 
 $$
 \hat{f}_j = \text{median}_{i=1}^{d} \; s_i(j) \cdot C[i][h_i(j)]
 $$
 
-The Count Sketch provides a two-sided error guarantee:
+Count 스케치는 양쪽 어긋남 보장을 준다:
 
 $$
 P(|\hat{f}_j - f_j| > \epsilon \sqrt{F_2}) < \delta
 $$
 
-This is stronger than Count-Min Sketch for skewed distributions because $\sqrt{F_2} \leq n$.
+$\sqrt{F_2} \leq n$이므로 치우친 분포에서는 Count-Min 스케치보다 세다.
 
-### Comparison
+### 견줌
 
-| Property | Count-Min Sketch | Count Sketch |
+| 성질 | Count-Min 스케치 | Count 스케치 |
 |---|---|---|
-| Error bound | $\epsilon n$ | $\epsilon \sqrt{F_2}$ |
-| Error type | One-sided (overestimate) | Two-sided |
-| Space | $O(\frac{1}{\epsilon} \log \frac{1}{\delta})$ | $O(\frac{1}{\epsilon^2} \log \frac{1}{\delta})$ |
-| Best for | Heavy hitters, point queries | Skewed distributions |
+| 어긋남 가둠 | $\epsilon n$ | $\epsilon \sqrt{F_2}$ |
+| 어긋남 갈래 | 한쪽(넘치게 셈) | 양쪽 |
+| 공간 | $O(\frac{1}{\epsilon} \log \frac{1}{\delta})$ | $O(\frac{1}{\epsilon^2} \log \frac{1}{\delta})$ |
+| 알맞은 곳 | 큰손, 점 묻기 | 치우친 분포 |
 
-## The AMS Sketch for $F_2$
+## $F_2$을 위한 AMS 스케치
 
-The Alon-Matias-Szegedy (AMS) sketch estimates $F_2$ using random projections. Maintain a counter $Z$ using a 4-wise independent hash function $h : [U] \to \{-1, +1\}$:
+Alon-Matias-Szegedy(AMS) 스케치는 아무 쏘기로 $F_2$을 어림한다. 4겹 독립 흩기 함수 $h : [U] \to \{-1, +1\}$으로 셈틀 $Z$을 지닌다:
 
 $$
 Z = \sum_{i=1}^{n} h(a_i)
 $$
 
-Then $\mathbb{E}[Z^2] = F_2$. By maintaining $O(1/\epsilon^2)$ independent copies and taking the mean, the estimate achieves:
+그러면 $\mathbb{E}[Z^2] = F_2$이다. 독립인 사본 $O(1/\epsilon^2)$개를 지니고 평균을 잡으면 어림이 다음을 이룬다:
 
 $$
 P(|\hat{F}_2 - F_2| > \epsilon F_2) < \delta
 $$
 
-using $O(\frac{1}{\epsilon^2} \log \frac{1}{\delta})$ space.
+공간 $O(\frac{1}{\epsilon^2} \log \frac{1}{\delta})$으로.
 
-## Heavy Hitters
+## 큰손
 
-An item $j$ is an **$\epsilon$-heavy hitter** if $f_j > \epsilon n$. Finding all heavy hitters is a fundamental streaming problem:
+$f_j > \epsilon n$이면 것 $j$은 **$\epsilon$큰손**이다. 큰손을 모두 찾는 것은 근본이 되는 흐름 문제이다:
 
-- **Misra-Gries** finds all $\epsilon$-heavy hitters using $O(1/\epsilon)$ counters
-- **Count-Min Sketch** with threshold $\epsilon n$ identifies heavy hitters with no false negatives
-- At most $1/\epsilon$ items can be $\epsilon$-heavy hitters (since $\sum_j f_j = n$)
+- **미스라-그리스**는 셈틀 $O(1/\epsilon)$개로 모든 $\epsilon$큰손을 찾는다
+- 문턱이 $\epsilon n$인 **Count-Min 스케치**는 거짓 음성 없이 큰손을 가려낸다
+- $\epsilon$큰손은 많아야 $1/\epsilon$개다($\sum_j f_j = n$이기 때문이다)
 
-## Connection to Deep Learning
+## 딥러닝과의 관계
 
-Frequency estimation techniques are used in deep learning systems:
+잦음 어림 재주는 깊은 배움 시스템에 쓰인다:
 
-- **Feature hashing**: maps high-dimensional sparse features to a fixed-size vector using hash functions, directly analogous to Count-Min Sketch
-- **Gradient compression**: in distributed training, gradient sketches compress communication by keeping only the most significant (heavy hitter) gradient components
-- **Vocabulary management**: tracking token frequencies in language model training uses streaming frequency estimation over corpora too large to fit in memory
+- **특징 흩기**: 흩기 함수로 높은 차원의 성긴 특징을 붙박인 크기의 벡터로 옮기며 Count-Min 스케치와 곧바로 닮았다
+- **기울기 눌러 담기**: 나눠 익히기에서 기울기 스케치가 가장 큰(큰손) 기울기 성분만 남겨 주고받기를 줄인다
+- **낱말 다루기**: 말 모델 익히기에서 토막 잦음을 좇는 일은 기억에 다 담기지 않는 말뭉치에 흐름 잦음 어림을 쓴다
 
-## Summary
+## 요약
 
-Frequency estimation in the streaming model trades exact counts for compact approximate representations. The Count-Min Sketch and Count Sketch provide different tradeoffs between space, error guarantees, and distribution sensitivity. The AMS sketch extends these ideas to estimate frequency moments, particularly $F_2$. Together, these tools enable efficient processing of massive data streams with provable accuracy guarantees.
+흐름 모형의 잦음 어림은 정확한 셈을 내주고 간결한 어림 나타냄을 얻는다. Count-Min 스케치와 Count 스케치는 공간, 어긋남 보장, 분포 민감도 사이에 서로 다른 맞바꿈을 준다. AMS 스케치는 이 생각을 넓혀 잦음 적률, 특히 $F_2$을 어림한다. 이 연장들이 함께 밝힐 수 있는 맞음 보장과 함께 거대한 자료 흐름을 효율 좋게 다루게 해 준다.
 
-## References
+## 참고 문헌
 
 - [Data Streams: Algorithms and Applications (Muthukrishnan)](https://www.cs.rutgers.edu/~muthu/stream-1-1.ps)
 - [An Improved Data Stream Summary: The Count-Min Sketch (Cormode and Muthukrishnan, 2005)](https://doi.org/10.1016/j.jalgor.2003.12.001)
+
+
+## 연습문제
+
+**연습문제 1.**
+흐름 모형의 잦음 어림 문제와 그 근본 공간 아래 가둠을 뜻매김하여라.
+
+??? success "연습문제 1 풀이"
+    온 모임 $[m]$에서 온 것 $N$개의 흐름이 주어질 때 묻는 어떤 것에 대해서든 잦음 $f_i$(것 $i$의 셈)을 어림한다. 정확한 풀이는 공간 $\Omega(m)$이 든다. $(\epsilon, \delta)$어림 어림(확률 $\geq 1-\delta$으로 $|\hat{f}_i - f_i| \leq \epsilon N$)에서는 공간 아래 가둠이 $\Omega(1/\epsilon \cdot \log(1/\delta) \cdot \log m)$비트이다. Count-Min 스케치와 Count 스케치가 (상수배 안에서) 이를 이룬다.
+
+---
+
+**연습문제 2.**
+잦은 것(큰손)을 찾는 미스라-그리스 알고리즘을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    잡이 $k$인 미스라-그리스: (것, 셈) 짝을 많아야 $k$개 지닌다. 흐름 원소마다, 그 것에 칸이 있으면 하나 올린다. 없고 칸이 $k$개보다 적으면 셈 1로 새 칸을 만든다. 그렇지 않으면 모든 셈을 하나씩 내리고 0이 된 것을 뺀다. 묻기: 어떤 것의 셈도 많아야 $N/(k+1)$만큼 모자라게 어림된다. 참 잦음이 $> N/(k+1)$인 것은 모두 간추림에 들어 있음이 보장된다. 이 정해진 알고리즘은 $O(k \log(N + m))$비트를 쓴다.
+
+---
+
+**연습문제 3.**
+공간 아끼기 알고리즘을 밝히고 큰손 찾기에서 미스라-그리스보다 어떻게 나은지 말하여라.
+
+??? success "연습문제 3 풀이"
+    공간 아끼기(Metwally et al.): (것, 셈) 짝을 $k$개 지닌다. 간추림에 없는 새 것이 오면 셈이 가장 작은 것을 그 것으로 바꾸고 셈을 하나 올린다(새 것이 최소 셈을 '물려받는다'). 이는 다음을 보장한다. (1) 잦음이 $> N/k$인 것은 모두 간추림에 있다, (2) 어림한 셈은 넘치게 셈이며 어긋남이 많아야 $N/k$이다, (3) 위 $k$개의 잦음이 $> N/k$이면 그 정확한 차례가 지켜진다. 공간 아끼기는 더 단순하고 실제로 미스라-그리스보다 더 맞을 때가 많다.
+
+---
+
+**연습문제 4.**
+잦음 어림은 큰 규모 기계 배움의 특징 세기와 어떻게 이어지는가?
+
+??? success "연습문제 4 풀이"
+    큰 규모 기계 배움(보기로 온라인 광고)에서 특징 공간은 값이 수십억 개일 수 있다(쓰는 이 번호, 주소 흩기값). 거르기, 흩기, 낱말 짓기를 위해 특징을 정확히 세려면 기억이 너무 많이 든다. 흐름 잦음 어림이 다음을 가능하게 한다. (1) 낱말 다듬기(Count-Min 스케치로 $> k$번 나타나는 특징만 남김), (2) 특징 흩기의 부딪침 살피기, (3) 특징 잦음에 바탕한 온라인 배움 빠르기 손보기(드문 특징에 더 큰 고침을 줌). 이 스케치들은 L2 두름에 들어가 실시간 다루기를 할 수 있게 한다.

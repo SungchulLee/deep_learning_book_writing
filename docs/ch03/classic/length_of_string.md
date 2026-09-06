@@ -1,9 +1,4 @@
-# Length of String
-
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
+# 문자열의 길이
 <img src="img/Screen Shot 2022-05-01 at 8.01.14 PM.png" width=70%>
 
 ```python
@@ -30,7 +25,7 @@ if __name__ == "__main__":
     main()
 ```
 
-**Output:**
+**출력:**
 ```
 Computation of length of string 'At' using recursion : 2
 Computation of length of string 'At' using python    : 2
@@ -132,6 +127,54 @@ Computation of length of string 'said' using recursion : 4
 Computation of length of string 'said' using python    : 4
 ```
 
-# Reference
+# 참고 자료
 
 [[알고리즘] 제1-2강 Recursion의 개념과 기본 예제들 (2/3)](https://www.youtube.com/watch?v=tuzf1yLPgRI&list=PL52K_8WQO5oUuH06MLOrah4h05TZ4n38l&index=2)
+
+## 연습문제
+
+**연습문제 1.**
+문자열에서 특정 글자가 나타나는 횟수를 세는 재귀 함수를 작성하라.
+
+??? success "연습문제 1 풀이"
+    ```python
+    def count_char(s, c):
+        if not s:
+            return 0
+        return (1 if s[0] == c else 0) + count_char(s[1:], c)
+    ```
+
+---
+
+**연습문제 2.**
+문자열이 회문인지 확인하는 재귀 함수를 구현하라.
+
+??? success "연습문제 2 풀이"
+    ```python
+    def is_palindrome(s):
+        if len(s) <= 1:
+            return True
+        return s[0] == s[-1] and is_palindrome(s[1:-1])
+    ```
+
+---
+
+**연습문제 3.**
+파이썬 문자열이 불변일 때(슬라이싱이 복사본을 만든다) 재귀적 `length_of_string`의 시간 복잡도는 얼마인가?
+
+??? success "연습문제 3 풀이"
+    각 재귀 호출이 슬라이싱으로 길이 $n-1$의 새 문자열을 만들며 $O(n-1)$ 시간이 든다. 총합은 $\sum_{k=1}^{n} k = O(n^2)$이다. $O(n)$을 얻으려면 슬라이싱 대신 인덱스를 넘긴다. `def length(s, i=0): return 0 if i == len(s) else 1 + length(s, i+1)`.
+
+---
+
+**연습문제 4.**
+문자열을 뒤집는 재귀 함수를 작성하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    def reverse_string(s):
+        if len(s) <= 1:
+            return s
+        return reverse_string(s[1:]) + s[0]
+    ```
+    문자열 슬라이싱과 이어 붙이기 때문에 시간 복잡도가 $O(n^2)$이다. $O(n)$ 방식은 리스트와 인덱스를 쓴다.

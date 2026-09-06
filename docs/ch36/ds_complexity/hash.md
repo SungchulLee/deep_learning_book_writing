@@ -105,3 +105,43 @@ the sketch.
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Knuth, D. *The Art of Computer Programming, Vol. 3: Sorting and Searching*. 2nd ed. Addison-Wesley, 1998.
+
+## Exercises
+
+**Exercise 1.**
+Compare chaining and open addressing for hash table collision resolution. What are the tradeoffs in time, space, and cache performance?
+
+??? success "Solution to Exercise 1"
+    **Chaining**: each bucket stores a linked list of colliding elements. Insertion: $O(1)$ (prepend to list). Search: $O(1 + \alpha)$ average where $\alpha = n/m$ is the load factor. Space: $n$ elements + $n$ pointers + $m$ bucket pointers. Cache performance: poor (linked list nodes are scattered in memory). **Open addressing**: all elements stored in the table itself. On collision, probe the next slot (linear, quadratic, or double hashing). Insertion/search: $O(1/(1-\alpha))$ average. Must keep $\alpha < 0.7$ for good performance. Space: no pointer overhead, but table must be larger to maintain low load factor. Cache performance: better (elements are contiguous; linear probing has excellent locality). Open addressing wins on cache performance and memory (no pointers). Chaining is simpler and degrades more gracefully at high load factors. $\square$
+
+---
+
+**Exercise 2.**
+A hash table with $n$ elements and $m$ buckets has load factor $\alpha = n/m$. Derive the expected number of probes for a successful and unsuccessful search with chaining.
+
+??? success "Solution to Exercise 2"
+    **Unsuccessful search** (element not in table): the search must traverse the entire chain at a random bucket. Expected chain length: $\alpha = n/m$. Expected probes: $1 + \alpha$ (one hash computation + traversal). **Successful search**: the expected number of elements examined when searching for a random element. An element inserted at time $i$ (when the table had $i-1$ elements) was placed in a chain of expected length $1 + (i-1)/m$. Averaging over all $n$ elements: $\frac{1}{n} \sum_{i=1}^{n} (1 + (i-1)/m) = 1 + (n-1)/(2m) \approx 1 + \alpha/2$. For $\alpha = 1$: successful search takes $\approx 1.5$ probes, unsuccessful takes $\approx 2$ probes. $\square$
+
+---
+
+**Exercise 3.**
+Explain why hash tables do not support efficient range queries or ordered iteration. What data structure should be used instead?
+
+??? success "Solution to Exercise 3"
+    Hash functions map keys to pseudorandom bucket positions, destroying any ordering. Two keys that are numerically adjacent (e.g., 100 and 101) map to unrelated buckets. A range query "find all keys in $[a, b]$" must check every bucket ($O(m + n)$), equivalent to scanning the entire table. Ordered iteration requires sorting all elements ($O(n \log n)$). For range queries and ordered access, use a balanced BST ($O(\log n)$ search + $O(k)$ traversal for $k$ results) or a B-tree. A skip list is another option with $O(\log n)$ search and sequential access along the bottom level. If both hash-speed point lookups and range queries are needed, use a combined approach: a hash table for point queries and a sorted index for range queries. $\square$
+
+---
+
+**Exercise 4.**
+A hash table experiences a "resize storm" when the load factor threshold is crossed frequently. Describe the problem and propose a solution.
+
+??? success "Solution to Exercise 4"
+    If the load factor threshold is $\alpha = 0.75$ and the table grows by doubling, a sequence of alternating insertions and deletions near the threshold causes repeated resize-up and resize-down operations, each costing $O(n)$. Example: $n = 750$ in a 1000-slot table ($\alpha = 0.75$). Insert triggers resize to 2000 slots. Delete brings $n = 749$. If the shrink threshold is $\alpha = 0.25$ ($n < 500$), no shrink yet. But with a shrink threshold of $\alpha = 0.375$ ($n < 750$), the delete triggers shrink back to 1000, and the next insert triggers growth again. Solution: use asymmetric thresholds -- grow at $\alpha = 0.75$, shrink at $\alpha = 0.25$. This ensures that between a grow and a shrink, at least $n/2$ operations occur, amortizing both resizes to $O(1)$ per operation. $\square$
+
+---
+
+**Exercise 5.**
+Python dictionaries use open addressing with a probing sequence. Explain why Python dicts maintain insertion order since Python 3.7 and what data structure enables this.
+
+??? success "Solution to Exercise 5"
+    Since CPython 3.6 (official guarantee in 3.7), dictionaries maintain insertion order using a **compact dict** design with two arrays: (1) a hash table of indices (sparse array, 1-2 bytes per slot) mapping hash positions to positions in the dense array. (2) A dense array of (hash, key, value) tuples stored in insertion order. Insertion appends to the dense array and records the index in the hash table. Iteration traverses the dense array sequentially (preserving insertion order). Deletion marks entries as deleted in the dense array (tombstone) and the hash table. This design improves memory efficiency (the hash table stores small indices instead of full key-value pairs) and provides insertion-order iteration for free. The trade-off: slightly more complex probing (indirection through the index table), but the overall performance is better due to the dense array's cache-friendly layout. $\square$

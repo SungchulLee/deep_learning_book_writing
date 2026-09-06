@@ -1,83 +1,110 @@
-# Open Information Extraction
+# 열린 앎 뽑기
+## 학습 목표
 
+- 틀 없는 세 쌍 뽑기를 이해한다
+- 열린 앎 뽑기와 닫힌 앎 뽑기 방식을 견준다
+- 열린 앎 뽑기를 글 캐어 보기에 쓴다
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 왜 필요한가
 
-## Learning Objectives
+닫힌 앎 뽑기는 미리 정한 관계 틀이 있어야 하는데, 갖가지 글을 다룰 때 이것이 병목이 된다. 열린 앎 뽑기는 붙박이 갈래 체계 없이 아무 (주어, 관계, 목적어) 세 쌍이나 뽑는다.
 
-- Understand schema-free triple extraction
-- Compare Open IE with closed IE approaches
-- Apply Open IE for exploratory text mining
+### 예
 
-## Motivation
+들임: *"Einstein was born in Ulm and developed the theory of relativity while working at the patent office."*
 
-Closed IE requires predefined relation schemas — a bottleneck when processing diverse text. Open IE extracts arbitrary (subject, relation, object) triples without a fixed ontology.
-
-### Example
-
-Input: *"Einstein was born in Ulm and developed the theory of relativity while working at the patent office."*
-
-Open IE output:
+열린 앎 뽑기의 내놓음:
 
 - (Einstein, was born in, Ulm)
 - (Einstein, developed, the theory of relativity)
 - (Einstein, working at, the patent office)
 
-## Key Systems
+## 핵심 체계
 
-### ReVerb (Fader et al., 2011)
+### ReVerb(Fader 외, 2011)
 
-Uses syntactic constraints on relation phrases. The relation must match patterns like V (verb), V P (verb-preposition), or V W* P (verb-words-preposition). A lexical constraint requires the relation phrase to appear frequently enough to filter noise.
+관계 마디에 월 짜임 제약을 건다. 관계는 V(움직씨), V P(움직씨-앞가지), V W* P(움직씨-낱말들-앞가지) 같은 무늬에 맞아야 한다. 낱말 제약은 잡음을 거르려 관계 마디가 충분히 자주 나타날 것을 요구한다.
 
-### OLLIE (Mausam et al., 2012)
+### OLLIE(Mausam 외, 2012)
 
-Extends ReVerb by learning extraction patterns from dependency parses and handling context clauses (attribution, conditionals).
+달림 뜯어 읽기에서 뽑기 무늬를 배우고 맥락 마디(누구의 말인지, 조건절)를 다루어 ReVerb를 넓힌다.
 
-### Stanford OpenIE (Angeli et al., 2015)
+### Stanford OpenIE(Angeli 외, 2015)
 
-Splits complex sentences into short, atomic clauses using natural logic. For instance, *"Born in Ulm, Einstein developed relativity"* becomes two independent statements: *"Einstein was born in Ulm"* and *"Einstein developed relativity"*.
+자연 논리로 복잡한 월을 짧고 더 쪼갤 수 없는 마디로 나눈다. 보기로 *"Born in Ulm, Einstein developed relativity"*는 서로 얽히지 않은 두 진술 *"Einstein was born in Ulm"*과 *"Einstein developed relativity"*가 된다.
 
-### Neural Open IE
+### 신경 열린 앎 뽑기
 
-Modern approaches use seq2seq models to generate triples directly from text:
+요즘 방식은 차례에서 차례로 모델을 써서 글에서 곧바로 세 쌍을 만들어 낸다:
 
 ```python
-# Using a generative model for Open IE
+# 열린 앎 뽑기에 지어내는 모델 쓰기
 prompt = (
     "Extract all (subject, relation, object) triples from:\n"
     "Apple acquired Beats for \$3B in 2014.\n"
     "Triples:"
 )
-# Expected output:
+# 나올 내놓음:
 # (Apple, acquired, Beats)
 # (Apple, acquired Beats for, \$3B)
 # (acquisition, occurred in, 2014)
 ```
 
-## Comparison with Closed IE
+## 닫힌 앎 뽑기와의 견줌
 
-| Aspect | Closed IE | Open IE |
+| 갈래 | 닫힌 앎 뽑기 | 열린 앎 뽑기 |
 |--------|-----------|---------|
-| Relations | Fixed schema | Any expressed relation |
-| Training | Labeled examples | Syntactic patterns / self-supervised |
-| Precision | Higher | Lower (noisy extractions) |
-| Recall | Limited to schema | Broader coverage |
-| Use case | Structured DB population | Exploratory analysis |
+| 관계 | 붙박이 틀 | 드러난 아무 관계나 |
+| 익히기 | 이름표 붙인 보기 | 월 짜임 무늬 / 스스로 살핌 |
+| 정밀도 | 더 높음 | 더 낮음(잡음 섞인 뽑음) |
+| 재현율 | 틀에 제한됨 | 더 넓게 덮음 |
+| 쓰임새 | 짜임 있는 데이터베이스 채우기 | 캐어 보는 살피기 |
 
-## Challenges
+## 어려움
 
-1. **Uninformative extractions**: (He, is, good) — too vague to be useful
-2. **Overly specific relations**: Long verb phrases reduce generalizability
-3. **Implicit relations**: Not all relations have explicit verbal expression
-4. **Nested extractions**: Complex sentences may require recursive extraction
+1. **알맹이 없는 뽑음**: (He, is, good) — 너무 두루뭉술해 쓸모없다
+2. **지나치게 좁은 관계**: 긴 움직씨 마디는 두루 통함을 떨어뜨린다
+3. **숨은 관계**: 모든 관계가 움직씨로 드러나지는 않는다
+4. **겹겹이 든 뽑음**: 복잡한 월은 되돌이로 뽑아야 할 수 있다
 
-## Applications in Finance
+## 금융에서의 쓰임새
 
-Open IE enables exploratory mining of financial text where relation schemas are incomplete: discovering novel supply chain relationships from news, extracting management commentary patterns from earnings calls, and mining regulatory filings for undisclosed business relationships.
+열린 앎 뽑기는 관계 틀이 온전하지 않은 금융 글을 캐어 보게 해 준다. 곧 뉴스에서 새 공급망 관계를 찾아내고, 실적 발표에서 경영진 논평의 무늬를 뽑고, 규제 보고서에서 드러나지 않은 사업 관계를 캔다.
 
-## References
+## 참고 문헌
 
 1. Fader, A., Soderland, S., & Etzioni, O. (2011). Identifying Relations for Open Information Extraction. *EMNLP*.
 2. Mausam, et al. (2012). Open Language Learning for Information Extraction. *EMNLP-CoNLL*.
 3. Angeli, G., Premkumar, M. J., & Manning, C. D. (2015). Leveraging Linguistic Structure for Open Domain IE. *ACL*.
+
+## 연습문제
+
+**연습문제 1.**
+닫힌 앎 뽑기와 열린 앎 뽑기의 차이를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    **닫힌 앎 뽑기**는 이름표 붙인 자료로 익힌 살펴 배운 모델을 써서 미리 정해 둔 틀(보기로 "born-in", "works-for")의 관계를 뽑는다. 아는 관계 갈래에서는 정밀도가 높지만 새 관계는 찾아내지 못한다. **열린 앎 뽑기**는 미리 정한 틀 없이 월의 짜임 무늬나 배운 뽑개로 아무 (주어, 관계, 목적어) 세 쌍이나 뽑는다. 새 관계를 찾아낼 수 있지만 잡음이 섞이거나 겹치거나 다듬어지지 않은 것이 나올 수 있다. 닫힌 앎 뽑기는 앎 곳간 채우기에, 열린 앎 뽑기는 큰 말뭉치를 캐어 보는 데 알맞다.
+
+---
+
+**연습문제 2.**
+같은 것 가리키기 풀기란 무엇이며 뒤따르는 자연어 일에 왜 중요한가?
+
+??? success "연습문제 2 풀이"
+    같은 것 가리키기 풀기는 글에서 같은 것을 가리키는 모든 표현(언급)을 가려내 무리로 묶는다. 보기로 "Alice went to the store. She bought milk"에서 "Alice"와 "She"는 같은 것을 가리킨다. 이는 다음에 결정적이다. (1) 앎 뽑기(월을 넘나들며 같은 것에 대한 사실 잇기), (2) 물음 답하기(물음과 글월의 대이름씨 풀기), (3) 간추리기(겹침 피하기), (4) 대화 체계(차례를 넘나들며 것 좇기).
+
+---
+
+**연습문제 3.**
+사건 뽑기 체계의 핵심 조각을 설명하여라. 사건 뽑기가 관계 뽑기보다 어려운 까닭은 무엇인가?
+
+??? success "연습문제 3 풀이"
+    사건 뽑기는 다음을 가려낸다. (1) **사건 방아쇠**(사건을 가리키는 낱말, 보기로 "attacked"), (2) **사건 갈래** 매기기, (3) **딸린 것의 몫**(누가 누구에게 무엇을 어디서 언제 했는가). 관계 뽑기보다 어려운 까닭은 이렇다. 곧 사건마다 딸린 것의 수가 다르고 그 몫이 복잡하며, 방아쇠가 아리송할 수 있고(같은 낱말이 맥락에 따라 다른 사건 갈래를 일으킨다), 딸린 것이 여러 월에 걸칠 수 있으며, 월 하나에 겹치는 사건이 여럿 들어 있을 수 있다.
+
+---
+
+**연습문제 4.**
+달림 뜯어 읽기를 써서 단순한 규칙 바탕 열린 앎 뽑기 체계를 꾸며라. 그 한계는 무엇인가?
+
+??? success "연습문제 4 풀이"
+    규칙 바탕 열린 앎 뽑기 체계는 달림 나무에서 주어-움직씨-목적어 무늬를 가려내 세 쌍을 뽑는다. (1) 주된 움직씨(뿌리)를 찾고, (2) 이름씨 주어(nsubj)를 주어로 뽑고, (3) 직접 목적어(dobj)를 목적어로 뽑고, (4) (주어, 움직씨, 목적어) 세 쌍을 만든다. **한계**: (1) 이름씨로 바꾼 표현("Obama's visit to China")의 관계를 놓친다. (2) 마디가 여럿인 복잡한 월을 다루지 못한다. (3) 특별한 규칙 없이는 입음꼴에서 어그러진다. (4) 앞가지가 붙은 월에서는 질 낮은 세 쌍을 낸다. (5) 같은 관계의 서로 다른 겉모습을 하나로 다듬지 못한다.

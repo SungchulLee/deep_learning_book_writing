@@ -1,23 +1,16 @@
-# Transitive Closure
+# 이행 닫힘
 
-Many graph problems do not require exact shortest-path distances — they only
-need to know whether a path exists from vertex $u$ to vertex $v$.  The
-**transitive closure** of a directed graph answers this reachability question
-for all pairs of vertices simultaneously.  It is closely related to the
-Floyd-Warshall algorithm but operates on Boolean values instead of distances,
-making it simpler and more efficient in practice.
+많은 그래프 문제는 정확한 최단 경로 거리를 필요로 하지 않는다. 꼭짓점 $u$에서 꼭짓점 $v$까지 길이 있는지만 알면 된다. 방향 그래프의 **이행 닫힘**은 모든 꼭짓점 짝에 대해 이 닿음 물음에 한꺼번에 답한다. 이는 플로이드-워셜 알고리즘과 가깝게 이어져 있지만 거리 대신 참거짓 값을 다루므로 더 단순하고 실전에서 더 효율적이다.
 
-## Definition
+## 정의
 
-Given a directed graph $G = (V, E)$, the **transitive closure** is a graph
-$G^* = (V, E^*)$ where:
+방향 그래프 $G = (V, E)$이 주어졌을 때 **이행 닫힘**은 다음을 만족하는 그래프 $G^* = (V, E^*)$이다:
 
 $$
 (u, v) \in E^* \iff \text{there exists a path from } u \text{ to } v \text{ in } G
 $$
 
-Equivalently, the transitive closure can be represented as a Boolean matrix
-$T$ where:
+마찬가지로 이행 닫힘을 다음을 만족하는 참거짓 행렬 $T$으로 나타낼 수 있다:
 
 $$
 T[i][j] =
@@ -27,17 +20,15 @@ T[i][j] =
 \end{cases}
 $$
 
-## Warshall's Algorithm
+## 워셜의 알고리즘
 
-Warshall's algorithm computes the transitive closure using the same
-intermediate-vertex expansion as Floyd-Warshall, but replaces arithmetic
-operations ($\min$, $+$) with Boolean operations ($\lor$, $\land$):
+워셜의 알고리즘은 플로이드-워셜과 같은 가운데 꼭짓점 넓히기로 이행 닫힘을 셈하되, 산술 연산($\min$, $+$)을 참거짓 연산($\lor$, $\land$)으로 바꾼다:
 
 $$
 t^{(k)}_{ij} = t^{(k-1)}_{ij} \lor \left(t^{(k-1)}_{ik} \land t^{(k-1)}_{kj}\right)
 $$
 
-**Base case ($k = 0$):**
+**바탕 경우($k = 0$):**
 
 $$
 t^{(0)}_{ij} =
@@ -47,11 +38,9 @@ t^{(0)}_{ij} =
 \end{cases}
 $$
 
-**Interpretation:** Vertex $j$ is reachable from $i$ using intermediates from
-$\{1, \dots, k\}$ if either it was already reachable using $\{1, \dots, k-1\}$,
-or there is a path $i \leadsto k \leadsto j$ through vertex $k$.
+**풀이:** $\{1, \dots, k-1\}$을 써서 이미 닿을 수 있었거나 꼭짓점 $k$을 지나는 길 $i \leadsto k \leadsto j$이 있으면, $\{1, \dots, k\}$을 가운데 꼭짓점으로 써서 $i$에서 $j$에 닿을 수 있다.
 
-## Pseudocode
+## 의사코드
 
 ```
 TRANSITIVE-CLOSURE(G):
@@ -64,20 +53,16 @@ TRANSITIVE-CLOSURE(G):
     return T
 ```
 
-## Complexity
+## 복잡도
 
 - **Time:** $\Theta(V^3)$ — three nested loops over $n$ vertices.
 - **Space:** $\Theta(V^2)$ for the Boolean matrix.
 
-Although the asymptotic time matches Floyd-Warshall, Boolean operations are
-significantly cheaper than floating-point arithmetic.  Furthermore, the matrix
-can be stored using bitsets (one bit per entry), reducing space by a factor of
-32 or 64 and enabling bitwise parallelism in the inner loop.
+점근 시간은 플로이드-워셜과 같지만 참거짓 연산이 부동소수점 산술보다 훨씬 싸다. 게다가 행렬을 비트 집합(항목마다 비트 하나)으로 담으면 공간이 32배나 64배 줄고 안쪽 되풀이에서 비트 단위 병렬성을 쓸 수 있다.
 
-### Bitset Optimization
+### 비트 집합으로 다듬기
 
-Storing each row as a bitset of $n$ bits allows the inner loop to be replaced
-by a single bitwise OR:
+행마다 $n$비트의 비트 집합으로 담으면 안쪽 되풀이를 비트 단위 OR 하나로 바꿀 수 있다:
 
 ```
 for k = 0 to n-1:
@@ -86,44 +71,36 @@ for k = 0 to n-1:
             T[i] = T[i] OR T[k]
 ```
 
-This reduces the practical running time by a factor of the word size (typically
-64), giving an effective complexity of $O(V^3 / w)$ where $w$ is the word size.
+그러면 실전에서 도는 시간이 낱말 크기(보통 64)만큼 줄어 실효 복잡도가 $O(V^3 / w)$이 된다. 여기서 $w$은 낱말 크기이다.
 
-## Connection to Floyd-Warshall
+## 플로이드-워셜과의 이음
 
 Warshall's algorithm is a Boolean specialization of Floyd-Warshall:
 
-| Operation | Floyd-Warshall | Warshall |
+| 연산 | 플로이드-워셜 | 워셜 |
 |---|---|---|
-| Combine | $\min$ | $\lor$ |
-| Extend | $+$ | $\land$ |
-| Identity | $\infty$ | $0$ (false) |
-| Base value | edge weight | $1$ (true) |
-| Result | shortest distances | reachability |
+| 합치기 | $\min$ | $\lor$ |
+| 잇기 | $+$ | $\land$ |
+| 항등원 | $\infty$ | $0$(거짓) |
+| 바탕 값 | 변의 무게 | $1$(참) |
+| 결과 | 최단 거리 | 닿음 |
 
-This connection extends to the algebraic concept of a **semiring**: both
-algorithms compute a closure over a semiring, with Floyd-Warshall using the
-tropical semiring $(\min, +, \infty, 0)$ and Warshall using the Boolean
-semiring $(\lor, \land, 0, 1)$.
+이 이음은 **반환**이라는 대수 개념으로 넓어진다. 곧 두 알고리즘 모두 반환 위에서 닫힘을 셈하는데, 플로이드-워셜은 열대 반환 $(\min, +, \infty, 0)$을, 워셜은 참거짓 반환 $(\lor, \land, 0, 1)$을 쓴다.
 
-## Alternative Approaches
+## 다른 길
 
 The transitive closure can also be computed by:
 
-- **BFS/DFS from each vertex:** $O(V(V + E))$ time.  Better for sparse graphs
-  when $E \ll V^2$.
-- **Matrix multiplication:** Compute $A + A^2 + \cdots + A^{V-1}$ where $A$ is
-  the adjacency matrix.  Using repeated squaring, this takes $O(V^3 \log V)$
-  multiplications but can leverage fast matrix multiplication for sub-cubic
-  theoretical bounds.
+- **꼭짓점마다 BFS/DFS:** $O(V(V + E))$ 시간. $E \ll V^2$인 성긴 그래프에 더 낫다.
+- **행렬 곱하기:** $A$이 이웃 행렬일 때 $A + A^2 + \cdots + A^{V-1}$을 셈한다. 되풀이 제곱을 쓰면 곱하기가 $O(V^3 \log V)$번 들지만, 빠른 행렬 곱하기를 쓰면 이론상 세제곱 아래 한계를 얻을 수 있다.
 
-## Worked Example
+## 풀이 예제
 
-Consider a graph with 4 vertices:
+꼭짓점 4개의 그래프를 생각하자:
 
-Edges: $(0, 1)$, $(1, 2)$, $(2, 3)$, $(3, 1)$.
+변: $(0, 1)$, $(1, 2)$, $(2, 3)$, $(3, 1)$.
 
-Initial matrix (with self-loops on diagonal):
+처음 행렬(대각선에 제 고리를 둔 것):
 
 $$
 T^{(0)} = \begin{pmatrix}
@@ -134,23 +111,23 @@ T^{(0)} = \begin{pmatrix}
 \end{pmatrix}
 $$
 
-**After $k=0$:** Row 0 provides paths through vertex 0.
-$T[1][0] = 0$, so no changes via vertex 0.
+**$k=0$ 뒤:** 행 0이 꼭짓점 0을 지나는 길을 준다.
+$T[1][0] = 0$이므로 꼭짓점 0을 거친 바뀜은 없다.
 
-**After $k=1$:** Vertex 1 as intermediate.
+**$k=1$ 뒤:** 꼭짓점 1을 가운데 꼭짓점으로.
 $T[0][2] = T[0][1] \land T[1][2] = 1 \land 1 = 1$.
 $T[3][2] = T[3][1] \land T[1][2] = 1 \land 1 = 1$.
 
-**After $k=2$:** Vertex 2 as intermediate.
+**$k=2$ 뒤:** 꼭짓점 2을 가운데 꼭짓점으로.
 $T[0][3] = T[0][2] \land T[2][3] = 1 \land 1 = 1$.
 $T[1][3] = T[1][2] \land T[2][3] = 1 \land 1 = 1$.
-$T[3][3]$ already 1.
+$T[3][3]$은 이미 1이다.
 
-**After $k=3$:** Vertex 3 as intermediate.
-$T[0][1]$ already 1.  $T[1][1]$ already 1.
+**$k=3$ 뒤:** 꼭짓점 3을 가운데 꼭짓점으로.
+$T[0][1]$은 이미 1이다. $T[1][1]$도 이미 1이다.
 $T[2][1] = T[2][3] \land T[3][1] = 1 \land 1 = 1$.
 
-Final matrix:
+마지막 행렬:
 
 $$
 T^{(4)} = \begin{pmatrix}
@@ -163,42 +140,42 @@ $$
 
 Vertex 0 can reach all others, but no vertex can reach vertex 0 (except itself).
 
-## Implementation
+## 구현
 
 ```python
 """
-Transitive closure of a directed graph using Warshall's algorithm.
+워셜 알고리즘으로 구하는 방향 그래프의 이행 닫힘.
 
-Determines reachability between all pairs of vertices in O(V^3) time,
-using Boolean operations instead of arithmetic.
+모든 꼭짓점 짝 사이의 닿음을 O(V^3) 시간에 정하며,
+산술 대신 불리언 연산을 쓴다.
 """
 
 
-# === Warshall's algorithm ====================================================
+# === 워셜 알고리즘 ===========================================================
 
 def transitive_closure(n: int, edges: list) -> list:
-    """Compute the transitive closure of a directed graph.
+    """방향 그래프의 이행 닫힘 셈하기.
 
-    Parameters
+    매개변수
     ----------
     n : int
-        Number of vertices (labeled 0 to n-1).
+        꼭짓점의 개수(0부터 n-1까지 이름 붙임).
     edges : list of (u, v)
-        Directed edges.
+        방향 변.
 
-    Returns
+    반환값
     -------
     T : list of list of bool
-        T[i][j] is True if j is reachable from i.
+        i에서 j에 닿을 수 있으면 T[i][j]은 True이다.
     """
-    # Initialize: diagonal and direct edges
+    # 첫값 잡기: 대각과 곧바로 이은 변
     T = [[False] * n for _ in range(n)]
     for i in range(n):
         T[i][i] = True
     for u, v in edges:
         T[u][v] = True
 
-    # Warshall's algorithm
+    # 워셜 알고리즘
     for k in range(n):
         for i in range(n):
             if T[i][k]:
@@ -209,16 +186,16 @@ def transitive_closure(n: int, edges: list) -> list:
     return T
 
 
-# === Display utility =========================================================
+# === 보여 주기 도구 ==========================================================
 
 def print_matrix(T: list, label: str = "Reachability matrix") -> None:
-    """Print a Boolean matrix as 0s and 1s."""
+    """불리언 행렬을 0과 1으로 찍기."""
     print(f"{label}:")
     for row in T:
         print("  " + " ".join("1" if x else "0" for x in row))
 
 
-# === Demo ====================================================================
+# === 보임 ====================================================================
 
 if __name__ == "__main__":
     n = 4
@@ -227,14 +204,14 @@ if __name__ == "__main__":
     T = transitive_closure(n, edges)
     print_matrix(T)
 
-    # Check specific reachability
+    # 정해진 닿음 살피기
     print(f"\n0 -> 3 reachable: {T[0][3]}")
     print(f"3 -> 0 reachable: {T[3][0]}")
     print(f"1 -> 3 reachable: {T[1][3]}")
     print(f"2 -> 1 reachable: {T[2][1]}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 Reachability matrix:
@@ -249,9 +226,41 @@ Reachability matrix:
 2 -> 1 reachable: True
 ```
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. *Introduction to
   Algorithms* (4th ed.), Chapter 25.2: Transitive Closure of a Directed Graph.
 - Warshall, S. (1962). A theorem on Boolean matrices. *Journal of the ACM*,
   9(1), 11-12.
+
+## 연습문제
+
+**연습문제 1.**
+꼭짓점 $\{0,1,2,3\}$과 변 $\{(0,1),(1,2),(2,3),(3,1)\}$을 갖는 방향 그래프의 이행 닫힘을 셈하여라. 어느 짝 $(i,j)$이 닿을 수 있는가?
+
+??? success "연습문제 1 풀이"
+    곧바른 변에서 시작해 닿음을 퍼뜨리면 $0 \to 1 \to 2 \to 3 \to 1$이다(1,2,3 사이에 고리). 0에서: 1,2,3에 닿는다. 1에서: 2,3,1에 닿는다(고리). 2에서: 3,1,2에 닿는다(고리). 3에서: 1,2,3에 닿는다(고리). 닿는 짝: $(0,1), (0,2), (0,3), (1,1), (1,2), (1,3), (2,1), (2,2), (2,3), (3,1), (3,2), (3,3)$. 꼭짓점 0에는 다른 어떤 꼭짓점에서도 닿을 수 없다. $\square$
+
+---
+
+**연습문제 2.**
+(플로이드-워셜의 참거짓 판인) 워셜의 알고리즘이 이행 닫힘을 어떻게 셈하는지 밝혀라. 시간과 공간 복잡도는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    변 $(i,j)$이 있으면 $T[i][j] = \text{True}$인 참거짓 행렬 $T$을 첫걸음 잡는다. $0$부터 $V-1$까지 가운데 꼭짓점 $k$마다 $T[i][j] = T[i][j] \lor (T[i][k] \land T[k][j])$으로 새로 고친다. 모든 $k$을 다루고 나면 $T[i][j]$이 $i$에서 $j$에 닿을 수 있는지를 알려 준다. 시간: $O(V^3)$. 공간: 행렬에 $O(V^2)$. 행에 비트 병렬 연산을 쓰면 실전에서 도는 시간을 낱말 크기만큼 줄일 수 있다. $\square$
+
+---
+
+**연습문제 3.**
+$A$이 이웃 행렬이고 $I$이 항등 행렬일 때, 참거짓 행렬 곱하기로 이행 닫힘을 $T = (I + A)^{V-1}$으로도 셈할 수 있음을 증명하여라.
+
+??? success "연습문제 3 풀이"
+    $(I + A)$은 길이 0이나 1인 길을 나타낸다. $(I + A)^2$은 길이 0, 1, 2인 길을 나타낸다(참거짓 행렬 곱하기에 따라, $i$이 많아야 한 걸음에 $k$에 닿고 $k$이 많아야 한 걸음에 $j$에 닿는 가운데 꼭짓점 $k$이 있으면 항목 $(i,j)$이 참이다). 귀납으로 $(I + A)^k$은 길이가 많아야 $k$인 길을 담는다. 꼭짓점 $V$개의 그래프에서 가장 긴 단순 길의 변이 많아야 $V - 1$개이므로 $(I + A)^{V-1}$이 닿을 수 있는 짝을 모두 담는다. 되풀이 제곱을 쓰면 참거짓 행렬 곱하기가 $O(\log V)$번 필요하고 저마다 $O(V^3)$이 들어 모두 $O(V^3 \log V)$이다. $\square$
+
+---
+
+**연습문제 4.**
+이행 닫힘을 셈하는 데 DFS을 어떻게 쓸 수 있는가? 성긴 그래프에서 워셜의 알고리즘과 복잡도를 견주어라.
+
+??? success "연습문제 4 풀이"
+    꼭짓점 $v$마다 DFS을 돌린다. $v$에서의 DFS 도중 들른 꼭짓점은 모두 $v$에서 닿을 수 있다. 통틀어 $O(V(V + E))$ 시간이 든다. 성긴 그래프($E = O(V)$)에서는 $O(V^2)$으로 워셜의 $O(V^3)$보다 훨씬 낫다. 빽빽한 그래프($E = O(V^2)$)에서는 두 길 모두 $O(V^3)$이다. DFS 길은 결과 행렬에 $O(V^2)$, DFS 더미에 $O(V)$ 공간을 쓰며 이는 워셜과 같다. $\square$

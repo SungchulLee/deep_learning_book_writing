@@ -1,89 +1,89 @@
-# Stack Abstract Data Type
+# 스택 추상 자료형
 
-Many everyday interactions follow a "last in, first out" pattern: the browser back button revisits pages in reverse order, the undo command in a text editor reverses the most recent action first, and a compiler matches closing braces with the nearest unmatched opener. All of these rely on the **stack** abstract data type, which enforces the constraint that only the most recently added element is accessible at any moment. This page defines the stack ADT formally, specifies its core operations with their contracts, and analyzes the time complexity that any correct implementation must achieve.
+일상에서 마주치는 여러 상황이 "나중에 넣은 것을 먼저 꺼내는" 방식을 따른다. 브라우저의 뒤로 가기는 방문한 쪽을 역순으로 되짚고, 편집기의 되돌리기는 가장 최근 동작부터 되돌리며, 컴파일러는 닫는 중괄호를 짝이 없는 가장 가까운 여는 중괄호와 맞춘다. 이들은 모두 **스택** 추상 자료형에 기댄다. 스택은 어느 순간에도 가장 최근에 넣은 원소에만 손댈 수 있다는 제약을 강제한다. 이 쪽은 스택 추상 자료형을 형식적으로 정의하고, 핵심 연산과 그 계약을 규정하며, 올바른 구현이라면 반드시 달성해야 할 시간 복잡도를 분석한다.
 
-## LIFO Principle
+## 후입선출 원리
 
-A stack maintains a sequence of elements governed by the **Last-In, First-Out (LIFO)** policy. When a new element is added, it goes on top of the stack. When an element is removed, it is always the topmost element --- the one most recently added --- that leaves. This ordering distinguishes a stack from other container types like queues (FIFO) or random-access arrays.
+스택은 **후입선출(LIFO)** 정책에 따라 원소의 열을 관리한다. 새 원소를 넣으면 스택의 꼭대기에 놓인다. 원소를 뺄 때에는 언제나 꼭대기 원소, 곧 가장 최근에 넣은 원소가 나간다. 이러한 순서가 스택을 큐(선입선출)나 임의 접근 배열 같은 다른 용기와 구별해 준다.
 
-Formally, if elements $e_1, e_2, \ldots, e_n$ are pushed in that order, then successive pop operations return $e_n, e_{n-1}, \ldots, e_1$.
+형식적으로, 원소 $e_1, e_2, \ldots, e_n$을 그 순서대로 넣었다면 잇따른 빼기 연산은 $e_n, e_{n-1}, \ldots, e_1$을 돌려준다.
 
-## Core Operations
+## 핵심 연산
 
-The stack ADT specifies the following operations. Every correct implementation must provide all of them.
+스택 추상 자료형은 다음 연산을 규정한다. 올바른 구현이라면 이들을 모두 제공해야 한다.
 
-| Operation | Description | Precondition | Postcondition |
+| 연산 | 설명 | 사전 조건 | 사후 조건 |
 |-----------|-------------|--------------|---------------|
-| `Push(x)` | Insert element $x$ onto the top | None | Stack size increases by 1; $x$ becomes the new top |
-| `Pop()` | Remove and return the top element | Stack is non-empty | Stack size decreases by 1; the previous second element becomes the new top |
-| `Peek()` / `Top()` | Return the top element without removing it | Stack is non-empty | Stack is unchanged |
-| `IsEmpty()` | Return whether the stack contains no elements | None | Stack is unchanged |
-| `Size()` | Return the number of elements | None | Stack is unchanged |
+| `Push(x)` | 원소 $x$을 꼭대기에 넣는다 | 없음 | 스택의 크기가 1 늘고 $x$이 새 꼭대기가 된다 |
+| `Pop()` | 꼭대기 원소를 빼서 돌려준다 | 스택이 비어 있지 않다 | 스택의 크기가 1 줄고 바로 아래 원소가 새 꼭대기가 된다 |
+| `Peek()` / `Top()` | 꼭대기 원소를 빼지 않고 돌려준다 | 스택이 비어 있지 않다 | 스택은 그대로이다 |
+| `IsEmpty()` | 스택에 원소가 없는지 돌려준다 | 없음 | 스택은 그대로이다 |
+| `Size()` | 원소의 개수를 돌려준다 | 없음 | 스택은 그대로이다 |
 
-!!! warning "Underflow"
-    Calling `Pop()` or `Peek()` on an empty stack is an **underflow error**. Implementations typically raise an exception or return a sentinel value. A well-designed client always checks `IsEmpty()` before accessing the top element.
+!!! warning "언더플로"
+    빈 스택에 `Pop()`이나 `Peek()`을 부르는 것은 **언더플로 오류**이다. 구현은 보통 예외를 일으키거나 표지값을 돌려준다. 잘 짜인 사용 측 코드는 꼭대기 원소에 손대기 전에 언제나 `IsEmpty()`을 확인한다.
 
-## Time Complexity Contract
+## 시간 복잡도 계약
 
-A key property of the stack ADT is that all five core operations run in $O(1)$ worst-case time for both array-based and linked-list-based implementations.
+스택 추상 자료형의 중요한 성질은, 배열 기반 구현에서든 연결 리스트 기반 구현에서든 다섯 가지 핵심 연산이 모두 최악의 경우에도 $O(1)$ 시간에 끝난다는 것이다.
 
 $$
 T_{\text{Push}} = T_{\text{Pop}} = T_{\text{Peek}} = T_{\text{IsEmpty}} = T_{\text{Size}} = O(1)
 $$
 
-For dynamic arrays, `Push` has $O(1)$ **amortized** time due to occasional resizing, but $O(n)$ worst-case for a single operation. Linked-list implementations achieve $O(1)$ worst-case for every operation.
+동적 배열에서는 이따금 크기를 다시 잡아야 하므로 `Push`이 **상각** $O(1)$ 시간이지만 한 번의 연산으로는 최악의 경우 $O(n)$이다. 연결 리스트 구현은 모든 연산이 최악의 경우에도 $O(1)$이다.
 
-## Abstraction Barrier
+## 추상화 장벽
 
-The ADT specifies **what** operations are available and **what guarantees** they provide, but says nothing about **how** data is stored internally. This separation is the abstraction barrier: client code depends only on the interface, so swapping one implementation for another (array for linked list, for instance) requires no changes to the client.
+추상 자료형은 **어떤** 연산을 쓸 수 있고 **무엇을 보장**하는지를 규정할 뿐, 데이터를 안에서 **어떻게** 저장하는지는 말하지 않는다. 이 구분이 추상화 장벽이다. 사용 측 코드는 인터페이스에만 기대므로 구현을 바꾸어도(예: 배열을 연결 리스트로) 사용 측은 손댈 것이 없다.
 
 ```python
 """
-Stack ADT — interface demonstration.
+스택 추상 자료형 — 인터페이스 시연.
 
-Shows that client code interacts only with the public operations
-(push, pop, peek, is_empty, size) without knowing the internal
-storage mechanism.
+사용 측 코드가 공개된 연산으로만 다룬다는 것을 보인다
+(push, pop, peek, is_empty, size)만 알면 되고 내부 저장 방식은
+몰라도 된다.
 """
 
 
-# === Stack ADT Interface =====================================================
+# === 스택 추상 자료형 인터페이스 =====================================================
 
 class Stack:
-    """Stack following the LIFO (Last-In, First-Out) principle."""
+    """후입선출(LIFO) 원리를 따르는 스택."""
 
     def __init__(self):
         self._items = []
 
     def push(self, x):
-        """Add element x to the top of the stack."""
+        """원소 x를 스택의 꼭대기에 넣는다."""
         self._items.append(x)
 
     def pop(self):
-        """Remove and return the top element. Raises IndexError if empty."""
+        """꼭대기 원소를 빼서 돌려준다. 비어 있으면 IndexError를 일으킨다."""
         if self.is_empty():
             raise IndexError("pop from empty stack")
         return self._items.pop()
 
     def peek(self):
-        """Return the top element without removing it."""
+        """꼭대기 원소를 빼지 않고 돌려준다."""
         if self.is_empty():
             raise IndexError("peek from empty stack")
         return self._items[-1]
 
     def is_empty(self):
-        """Return True if the stack contains no elements."""
+        """스택에 원소가 없으면 True를 돌려준다."""
         return len(self._items) == 0
 
     def size(self):
-        """Return the number of elements in the stack."""
+        """스택에 든 원소의 개수를 돌려준다."""
         return len(self._items)
 
     def __repr__(self):
         return f"Stack({self._items})"
 
 
-# === Demonstration ============================================================
+# === 시연 ============================================================
 
 if __name__ == "__main__":
     s = Stack()
@@ -100,7 +100,7 @@ if __name__ == "__main__":
         print(f"Popped {s.pop():>3} → {s}")
 ```
 
-**Output:**
+**출력:**
 ```
 Empty? True
 Pushed  10 → Stack([10])
@@ -113,17 +113,50 @@ Popped  20 → Stack([10])
 Popped  10 → Stack([])
 ```
 
-The output confirms LIFO ordering: elements pushed in order 10, 20, 30 are popped in reverse order 30, 20, 10. The `peek` operation returns 30 --- the most recently pushed element --- without modifying the stack.
+출력은 후입선출 순서를 확인해 준다. 10, 20, 30 순서로 넣은 원소가 30, 20, 10의 역순으로 나온다. `peek` 연산은 스택을 바꾸지 않고 가장 최근에 넣은 원소인 30을 돌려준다.
 
-## Stack Invariant
+## 스택 불변식
 
-A correct stack implementation must maintain the following invariant at all times:
+올바른 스택 구현은 언제나 다음 불변식을 지켜야 한다.
 
-!!! info "Stack Invariant"
-    After any sequence of `Push` and `Pop` operations, the element returned by `Peek()` is the element most recently added by `Push` that has not yet been removed by `Pop`. If no such element exists, the stack is empty.
+!!! info "스택 불변식"
+    `Push`과 `Pop`을 어떻게 이어서 수행하든, `Peek()`이 돌려주는 원소는 `Push`으로 넣었으나 아직 `Pop`으로 빼지 않은 원소 가운데 가장 최근의 것이다. 그런 원소가 없으면 스택은 비어 있다.
 
-This invariant is the formal statement of the LIFO property. Any implementation that violates it --- for example, by returning elements in a different order --- is not a valid stack.
+이 불변식이 후입선출 성질을 형식적으로 진술한 것이다. 이를 어기는 구현, 예를 들어 원소를 다른 순서로 돌려주는 구현은 올바른 스택이 아니다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+스택 추상 자료형의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+스택 추상 자료형을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+스택 추상 자료형을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+스택 추상 자료형을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

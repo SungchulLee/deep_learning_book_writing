@@ -1,92 +1,92 @@
-# Substitution Method
+# 치환 방법
 
-The [recursion tree](recursion_tree.md) and [Master theorem](master.md) give us answers quickly, but neither constitutes a formal proof. The substitution method fills this gap: it is mathematical induction applied to recurrences. You guess a bound (often informed by a recursion tree), then prove by strong induction that the guess is correct. Because the method is general-purpose and relies only on induction, it can handle recurrences that fall outside the Master theorem's scope, and it is the standard way to *verify* results obtained by other methods.
+[재귀 트리](recursion_tree.md)와 [마스터 정리](master.md)는 답을 빠르게 주지만 어느 쪽도 형식적인 증명은 아니다. 치환 방법이 이 빈틈을 메운다. 점화식에 적용된 수학적 귀납법이 바로 치환 방법이다. (흔히 재귀 트리에서 얻은 정보를 바탕으로) 경계를 추측한 뒤, 그 추측이 옳음을 강한 귀납법으로 증명한다. 이 방법은 범용적이고 귀납법에만 의존하므로 마스터 정리의 범위를 벗어나는 점화식도 다룰 수 있으며, 다른 방법으로 얻은 결과를 *검증하는* 표준적인 수단이다.
 
-## The Two-Step Process
+## 두 단계 과정
 
-The substitution method has exactly two steps:
+치환 방법은 정확히 두 단계로 이루어진다.
 
-1. **Guess** the form of the solution (e.g., $T(n) = O(n \log n)$)
-2. **Prove** the guess by strong induction, substituting the inductive hypothesis into the recurrence
+1. 해의 형태를 **추측한다**(예: $T(n) = O(n \log n)$)
+2. 귀납 가정을 점화식에 대입하여 강한 귀납법으로 추측을 **증명한다**
 
-The guess must include an unspecified constant (e.g., $T(n) \leq cn \log n$ for some $c > 0$). The proof then determines conditions on $c$ that make the bound hold.
+추측에는 값이 정해지지 않은 상수가 포함되어야 한다(예: 어떤 $c > 0$에 대해 $T(n) \leq cn \log n$). 그런 다음 증명 과정에서 그 경계가 성립하게 하는 $c$의 조건이 결정된다.
 
-## Example 1: Merge Sort
+## 예제 1: 병합 정렬
 
-### Guess
+### 추측
 
-From the recursion tree or prior experience, we guess $T(n) = O(n \log n)$. More precisely, we claim there exists a constant $c > 0$ such that $T(n) \leq cn \log n$ for all $n \geq 2$.
+재귀 트리나 이전 경험으로부터 $T(n) = O(n \log n)$을 추측한다. 좀 더 정확히는, 모든 $n \geq 2$에 대해 $T(n) \leq cn \log n$인 상수 $c > 0$이 존재한다고 주장한다.
 
-### Inductive Step
+### 귀납 단계
 
-The recurrence is $T(n) = 2T(n/2) + n$. Assume the bound holds for all values smaller than $n$:
+점화식은 $T(n) = 2T(n/2) + n$이다. $n$보다 작은 모든 값에 대해 경계가 성립한다고 가정한다.
 
 $$
 T(n/2) \leq c(n/2) \log(n/2)
 $$
 
-Substituting into the recurrence:
+점화식에 대입하면
 
 $$
 T(n) = 2T(n/2) + n \leq 2 \cdot c(n/2) \log(n/2) + n = cn(\log n - 1) + n = cn \log n - cn + n
 $$
 
-This is at most $cn \log n$ whenever $cn \geq n$, i.e., $c \geq 1$.
+이는 $cn \geq n$일 때, 즉 $c \geq 1$일 때 $cn \log n$ 이하이다.
 
-### Base Case
+### 기저 사례
 
-We need $T(n_0) \leq cn_0 \log n_0$ for some base case $n_0$. Since $T(1) = \Theta(1)$ and $\log 1 = 0$, the bound $T(n) \leq cn \log n$ fails at $n = 1$. This is not a problem: we choose $n_0 = 2$ and verify that $T(2) \leq c \cdot 2 \cdot \log 2 = 2c$, which holds for $c$ large enough.
+어떤 기저 사례 $n_0$에 대해 $T(n_0) \leq cn_0 \log n_0$이 필요하다. $T(1) = \Theta(1)$이고 $\log 1 = 0$이므로 경계 $T(n) \leq cn \log n$은 $n = 1$에서 성립하지 않는다. 이는 문제가 되지 않는다. $n_0 = 2$로 잡고 $T(2) \leq c \cdot 2 \cdot \log 2 = 2c$임을 확인하면 되는데, 이는 $c$가 충분히 크면 성립한다.
 
-### Conclusion
+### 결론
 
-For $c \geq 1$ and $n \geq 2$, $T(n) \leq cn \log n$, confirming $T(n) = O(n \log n)$.
+$c \geq 1$이고 $n \geq 2$이면 $T(n) \leq cn \log n$이므로 $T(n) = O(n \log n)$이 확인된다.
 
-## Example 2: Upper Bound with a Subtraction Trick
+## 예제 2: 뺄셈 요령을 쓰는 상계
 
-Consider $T(n) = 2T(n/2) + 1$. We guess $T(n) = O(n)$, meaning $T(n) \leq cn$ for some constant $c > 0$.
+$T(n) = 2T(n/2) + 1$을 생각하자. $T(n) = O(n)$, 즉 어떤 상수 $c > 0$에 대해 $T(n) \leq cn$을 추측한다.
 
-### Inductive Step
+### 귀납 단계
 
 $$
 T(n) = 2T(n/2) + 1 \leq 2c(n/2) + 1 = cn + 1
 $$
 
-This gives $cn + 1$, not $cn$. The induction *fails* because of the extra $+1$.
+$cn$이 아니라 $cn + 1$이 나온다. 여분의 $+1$ 때문에 귀납이 *실패* 한다.
 
-### Strengthening the Guess
+### 추측 강화하기
 
-The fix is to guess a tighter form: $T(n) \leq cn - d$ for constants $c, d > 0$.
+해결책은 더 조인 형태를 추측하는 것이다. 상수 $c, d > 0$에 대해 $T(n) \leq cn - d$로 둔다.
 
 $$
 T(n) = 2T(n/2) + 1 \leq 2(c(n/2) - d) + 1 = cn - 2d + 1 \leq cn - d
 $$
 
-The last inequality holds when $d \geq 1$. Choosing $c$ large enough for the base case completes the proof.
+마지막 부등식은 $d \geq 1$일 때 성립한다. 기저 사례를 위해 $c$를 충분히 크게 잡으면 증명이 완성된다.
 
-!!! tip "The Subtraction Trick"
-    When a naive guess fails by a lower-order additive term, subtracting a lower-order term from the hypothesis often resolves it. If you guess $T(n) \leq cn$ and the induction yields $cn + 1$, try $T(n) \leq cn - d$ instead.
+!!! tip "뺄셈 요령"
+    소박한 추측이 낮은 차수의 덧셈 항 때문에 실패할 때, 가정에서 낮은 차수의 항을 빼면 해결되는 경우가 많다. $T(n) \leq cn$을 추측했는데 귀납이 $cn + 1$을 준다면 대신 $T(n) \leq cn - d$를 시도해 보라.
 
-## Example 3: Lower Bound
+## 예제 3: 하계
 
-The substitution method also proves lower bounds. For $T(n) = 2T(n/2) + n$, we prove $T(n) = \Omega(n \log n)$ by showing $T(n) \geq cn \log n$ for some $c > 0$.
+치환 방법으로 하계도 증명할 수 있다. $T(n) = 2T(n/2) + n$에 대해 어떤 $c > 0$에 대해 $T(n) \geq cn \log n$임을 보여 $T(n) = \Omega(n \log n)$을 증명한다.
 
-### Inductive Step
+### 귀납 단계
 
 $$
 T(n) = 2T(n/2) + n \geq 2c(n/2)\log(n/2) + n = cn(\log n - 1) + n = cn \log n + n(1 - c)
 $$
 
-This is at least $cn \log n$ whenever $c \leq 1$. Combined with the upper bound (Example 1), we get $T(n) = \Theta(n \log n)$.
+이는 $c \leq 1$일 때 $cn \log n$ 이상이다. (예제 1의) 상계와 합치면 $T(n) = \Theta(n \log n)$을 얻는다.
 
-## Example 4: A Non-Standard Recurrence
+## 예제 4: 비표준 점화식
 
-Consider $T(n) = T(n/3) + T(2n/3) + n$. This has unequal subproblem sizes, so the Master theorem does not apply directly.
+$T(n) = T(n/3) + T(2n/3) + n$을 생각하자. 부분문제 크기가 서로 다르므로 마스터 정리를 곧바로 적용할 수 없다.
 
-### Guess
+### 추측
 
-From a recursion tree analysis: every level sums to at most $n$, and the tree height is $\log_{3/2} n$. We guess $T(n) = O(n \log n)$, i.e., $T(n) \leq cn \log n$ for some $c$.
+재귀 트리 분석에 따르면 모든 층의 합이 많아야 $n$이고 트리 높이는 $\log_{3/2} n$이다. $T(n) = O(n \log n)$, 즉 어떤 $c$에 대해 $T(n) \leq cn \log n$을 추측한다.
 
-### Inductive Step
+### 귀납 단계
 
 $$
 T(n) \leq c(n/3)\log(n/3) + c(2n/3)\log(2n/3) + n
@@ -104,60 +104,93 @@ $$
 = cn \log n - cn\left(\frac{\log 3}{3} + \frac{2\log(3/2)}{3}\right) + n
 $$
 
-The quantity $\frac{\log 3}{3} + \frac{2\log(3/2)}{3}$ is a positive constant, call it $\alpha$. So:
+$\frac{\log 3}{3} + \frac{2\log(3/2)}{3}$은 양의 상수이며 이를 $\alpha$라 하자. 그러면
 
 $$
 T(n) \leq cn \log n - c\alpha n + n \leq cn \log n
 $$
 
-whenever $c \geq 1/\alpha$. This confirms $T(n) = O(n \log n)$.
+이 부등식은 $c \geq 1/\alpha$일 때 성립한다. 따라서 $T(n) = O(n \log n)$이 확인된다.
 
-## Common Pitfalls
+## 흔한 함정
 
-### Pitfall 1: Wrong Inductive Form
+### 함정 1: 잘못된 귀납 형태
 
-!!! warning "Do Not Round the Asymptotic Class"
-    A common mistake is to substitute the asymptotic class rather than the precise form. For example, if the guess is $T(n) = O(n)$, you must prove $T(n) \leq cn$ for a specific constant $c$. Writing $T(n) \leq O(n)$ in the inductive step is circular and proves nothing.
+!!! warning "점근적 부류를 그대로 대입하지 말 것"
+    흔한 실수는 정확한 형태 대신 점근적 부류를 대입하는 것이다. 예를 들어 추측이 $T(n) = O(n)$이라면 구체적인 상수 $c$에 대해 $T(n) \leq cn$을 증명해야 한다. 귀납 단계에 $T(n) \leq O(n)$이라고 쓰는 것은 순환 논법이며 아무것도 증명하지 못한다.
 
-### Pitfall 2: Ignoring the Base Case
+### 함정 2: 기저 사례를 무시하는 것
 
-The inductive step may require $c$ to be large, and the base case imposes a lower bound on $c$. Both constraints must be satisfiable simultaneously. If $n_0 = 1$ causes $\log n_0 = 0$ to make the bound trivially false, choose a larger $n_0$.
+귀납 단계가 $c$를 크게 요구할 수 있고, 기저 사례는 $c$에 하한을 부과한다. 두 제약이 동시에 만족 가능해야 한다. $n_0 = 1$이 $\log n_0 = 0$을 만들어 경계가 자명하게 거짓이 된다면 더 큰 $n_0$을 골라야 한다.
 
-### Pitfall 3: Changing the Constant
+### 함정 3: 상수를 바꾸는 것
 
-The constant $c$ must remain the *same* throughout the proof. If the inductive step works for $c = 5$ but the base case needs $c = 10$, then $c = 10$ must work for both.
+상수 $c$는 증명 전체에 걸쳐 *같아야* 한다. 귀납 단계는 $c = 5$에서 되는데 기저 사례가 $c = 10$을 필요로 한다면, $c = 10$이 둘 다에서 성립해야 한다.
 
-### Pitfall 4: Adding Instead of Subtracting
+### 함정 4: 빼는 대신 더하는 것
 
-When strengthening a guess, always *subtract* a lower-order term (e.g., $cn - d$), never *add* one (e.g., $cn + d$). Adding makes the bound weaker, not stronger.
+추측을 강화할 때는 낮은 차수의 항을 항상 *빼야* 하고(예: $cn - d$) 결코 *더해서는* 안 된다(예: $cn + d$). 더하면 경계가 강해지는 것이 아니라 약해진다.
 
-## Proving Exact Bounds with Theta
+## 세타로 정확한 경계 증명하기
 
-To show $T(n) = \Theta(g(n))$, use the substitution method twice:
+$T(n) = \Theta(g(n))$을 보이려면 치환 방법을 두 번 쓴다.
 
-1. Prove $T(n) \leq c_1 g(n)$ for some $c_1 > 0$ (upper bound)
-2. Prove $T(n) \geq c_2 g(n)$ for some $c_2 > 0$ (lower bound)
+1. 어떤 $c_1 > 0$에 대해 $T(n) \leq c_1 g(n)$을 증명한다(상계)
+2. 어떤 $c_2 > 0$에 대해 $T(n) \geq c_2 g(n)$을 증명한다(하계)
 
-The constants $c_1$ and $c_2$ may differ. Together, they establish $c_2 g(n) \leq T(n) \leq c_1 g(n)$ for all sufficiently large $n$.
+상수 $c_1$과 $c_2$는 서로 달라도 된다. 둘을 합치면 충분히 큰 모든 $n$에 대해 $c_2 g(n) \leq T(n) \leq c_1 g(n)$이 확립된다.
 
-## Where Do Guesses Come From?
+## 추측은 어디에서 오는가?
 
-The substitution method requires a guess, but it does not tell you how to find one. Common sources include:
+치환 방법은 추측을 요구하지만 그것을 어떻게 찾는지는 알려주지 않는다. 흔한 출처는 다음과 같다.
 
-| Source | When to use |
+| 출처 | 쓰는 때 |
 |--------|-------------|
-| [Recursion tree](recursion_tree.md) | Always a good first step for intuition |
-| [Master theorem](master.md) | When the recurrence matches $T(n) = aT(n/b) + f(n)$ |
-| Similar recurrences | If you know $T(n) = 2T(n/2) + n$ gives $\Theta(n \log n)$, try that form for $T(n) = 2T(n/2) + n\log n$ |
-| Experimentation | Compute $T(n)$ for small $n$ and look for a pattern |
+| [재귀 트리](recursion_tree.md) | 직관을 얻기 위한 첫 단계로 언제나 좋다 |
+| [마스터 정리](master.md) | 점화식이 $T(n) = aT(n/b) + f(n)$에 들어맞을 때 |
+| 비슷한 점화식 | $T(n) = 2T(n/2) + n$이 $\Theta(n \log n)$을 준다는 것을 안다면 $T(n) = 2T(n/2) + n\log n$에도 그 형태를 시도해 본다 |
+| 실험 | 작은 $n$에 대해 $T(n)$을 계산하고 패턴을 찾는다 |
 
-## Connections to Other Topics
+## 다른 주제와의 연결
 
-- **[Recursion Tree Method](recursion_tree.md)**: The primary tool for generating guesses that the substitution method verifies
-- **[Master Theorem](master.md)**: Provides answers that the substitution method can prove formally
-- **[Recurrence from Divide and Conquer](divide_conquer.md)**: How to derive the recurrences that the substitution method solves
+- **[재귀 트리 방법](recursion_tree.md)**: 치환 방법이 검증할 추측을 만들어 내는 주된 도구
+- **[마스터 정리](master.md)**: 치환 방법이 형식적으로 증명할 수 있는 답을 제공한다
+- **[분할 정복으로부터의 점화식](divide_conquer.md)**: 치환 방법이 푸는 점화식을 유도하는 방법
 
-## References
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Section 4.3. MIT Press.
 - Erickson, J. (2019). *Algorithms*, Chapter 1. Self-published.
+
+
+## 연습문제
+
+**연습문제 1.**
+치환 방법에서 다룬 점화식 풀이 기법을 점화식 $T(n) = 2T(n/2) + n$에 적용하라.
+
+??? success "연습문제 1 풀이"
+    이 절에서 설명한 방법을 사용한다. 핵심 매개변수를 찾고 기법을 적용하면 $T(n) = \Theta(n \log n)$을 얻는다. 이것이 병합 정렬의 점화식이며, 일이 층마다 고르게 분포되는 균형 잡힌 경우를 나타낸다.
+
+---
+
+**연습문제 2.**
+치환 방법을 사용하여 $T(n) = 4T(n/2) + n$을 풀어라. 어느 경우에 해당하는가?
+
+??? success "연습문제 2 풀이"
+    $a = 4, b = 2, \log_b a = 2$이다. $f(n) = n = O(n^{2-1})$이다. 재귀 비용이 지배하므로 $T(n) = \Theta(n^2)$이다.
+
+---
+
+**연습문제 3.**
+길이 $n$인 시퀀스를 두 절반으로 나누어 각각을 재귀적으로 처리한 뒤 $O(n)$의 교차 어텐션으로 결합하는 트랜스포머 층의 점화식을 쓰고 풀어라.
+
+??? success "연습문제 3 풀이"
+    $T(n) = 2T(n/2) + O(n)$이다. 이는 $T(n) = \Theta(n \log n)$을 주며 병합 정렬과 같다. 실제로 트랜스포머는 이런 재귀 구조를 쓰지 않지만, (Longformer 같은) 계층적 어텐션 기법이 이를 근사한다.
+
+---
+
+**연습문제 4.**
+치환 방법에 나오는 점화식의 해를 치환 방법으로 검증하라. 귀납 가정을 서술하고 증명을 수행하라.
+
+??? success "연습문제 4 풀이"
+    이 절의 기법으로 닫힌 형태를 추측한다. 모든 $k < n$에 대해 $T(k) \leq ck^p$(또는 적절한 형태)를 가정한다. 이를 점화식에 대입하여 $T(n) \leq cn^p$임을 검증한다. 기저 사례는 따로 처리한다. $\square$

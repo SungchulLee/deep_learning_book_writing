@@ -1,65 +1,65 @@
-# Expression Evaluation
+# 식의 계산
 
-Arithmetic expressions like `3 + 4 * 2` require careful handling of operator precedence and parentheses. In **infix notation** --- the notation humans use --- multiplication binds tighter than addition, and parentheses override the default precedence. Evaluating such expressions directly is cumbersome because the evaluator must look ahead to determine whether a pending operator should be applied now or later. **Postfix notation** (also called Reverse Polish Notation, RPN) eliminates this problem entirely: operands appear before their operators, and no parentheses are needed. A stack makes postfix evaluation straightforward --- scan left to right, push operands, and apply operators as they appear. This page explains both the postfix evaluation algorithm and a direct infix evaluator that uses two stacks.
+`3 + 4 * 2` 같은 산술식은 연산자 우선순위와 괄호를 조심스럽게 다루어야 한다. 사람이 쓰는 표기인 **중위 표기**에서는 곱셈이 덧셈보다 강하게 묶이고 괄호가 기본 우선순위를 뒤집는다. 이런 식을 곧바로 계산하기는 번거롭다. 미루어 둔 연산자를 지금 적용할지 나중에 적용할지 알려면 앞을 내다보아야 하기 때문이다. **후위 표기**(역폴란드 표기, RPN이라고도 한다)는 이 문제를 아예 없앤다. 피연산자가 연산자보다 앞에 오고 괄호가 필요 없다. 스택을 쓰면 후위 표기의 계산이 간단해진다. 왼쪽에서 오른쪽으로 훑으며 피연산자는 넣고 연산자가 나오면 적용하면 된다. 이 쪽은 후위 계산 알고리즘과, 스택 두 개를 쓰는 중위 계산기를 함께 설명한다.
 
-## Postfix Evaluation Algorithm
+## 후위 표기 계산 알고리즘
 
-Given a postfix expression as a sequence of tokens (operands and operators), the evaluation algorithm works as follows:
+후위 표기식이 토큰(피연산자와 연산자)의 열로 주어졌을 때 계산 알고리즘은 다음과 같다.
 
-1. Initialize an empty stack
-2. For each token from left to right:
-    - If the token is a **number**, push it onto the stack
-    - If the token is an **operator** ($+$, $-$, $\times$, $\div$), pop two operands, apply the operator, and push the result
-3. After all tokens are processed, the stack contains exactly one element: the result
+1. 빈 스택을 만든다
+2. 왼쪽에서 오른쪽으로 각 토큰에 대해:
+    - 토큰이 **수**이면 스택에 넣는다
+    - 토큰이 **연산자**($+$, $-$, $\times$, $\div$)이면 피연산자 두 개를 빼고 연산자를 적용한 뒤 결과를 넣는다
+3. 모든 토큰을 처리하면 스택에는 원소가 정확히 하나 남으며 그것이 결과이다
 
-The algorithm runs in $O(n)$ time and $O(n)$ space, where $n$ is the number of tokens.
+토큰의 수를 $n$이라 할 때 이 알고리즘은 $O(n)$ 시간과 $O(n)$ 공간에 돌아간다.
 
-??? example "Worked Example: Postfix Evaluation"
-    Evaluate the postfix expression `3 4 2 * +` (equivalent to infix `3 + 4 * 2`):
+??? example "풀이 예: 후위 표기의 계산"
+    후위 표기식 `3 4 2 * +`(중위 표기 `3 + 4 * 2`과 같다)을 계산하라.
 
-    | Step | Token | Action | Stack |
+    | 단계 | 토큰 | 동작 | 스택 |
     |------|-------|--------|-------|
-    | 1 | `3` | Push 3 | `[3]` |
-    | 2 | `4` | Push 4 | `[3, 4]` |
-    | 3 | `2` | Push 2 | `[3, 4, 2]` |
-    | 4 | `*` | Pop 2 and 4, push $4 \times 2 = 8$ | `[3, 8]` |
-    | 5 | `+` | Pop 8 and 3, push $3 + 8 = 11$ | `[11]` |
+    | 1 | `3` | 3을 넣는다 | `[3]` |
+    | 2 | `4` | 4를 넣는다 | `[3, 4]` |
+    | 3 | `2` | 2를 넣는다 | `[3, 4, 2]` |
+    | 4 | `*` | 2와 4를 빼고 $4 \times 2 = 8$을 넣는다 | `[3, 8]` |
+    | 5 | `+` | 8과 3을 빼고 $3 + 8 = 11$을 넣는다 | `[11]` |
 
-    Result: **11**
+    결과: **11**
 
-## Two-Stack Infix Evaluation
+## 스택 두 개를 쓰는 중위 계산
 
-Dijkstra's two-stack algorithm evaluates fully parenthesized infix expressions directly. It uses one stack for operands and one for operators:
+데이크스트라의 두 스택 알고리즘은 괄호가 완전히 붙은 중위 표기식을 곧바로 계산한다. 피연산자용 스택과 연산자용 스택을 하나씩 쓴다.
 
-1. **Left parenthesis** `(` --- ignore (or push to operator stack for tracking)
-2. **Number** --- push onto the operand stack
-3. **Operator** --- push onto the operator stack
-4. **Right parenthesis** `)` --- pop an operator and two operands, apply the operator, push the result
+1. **여는 괄호** `(` — 무시한다(또는 추적을 위해 연산자 스택에 넣는다)
+2. **수** — 피연산자 스택에 넣는다
+3. **연산자** — 연산자 스택에 넣는다
+4. **닫는 괄호** `)` — 연산자 하나와 피연산자 두 개를 빼고 연산자를 적용한 뒤 결과를 넣는다
 
-For expressions that are not fully parenthesized, the algorithm is extended with precedence rules: before pushing an operator, pop and apply any operators on the stack that have equal or higher precedence.
+괄호가 완전히 붙지 않은 식에는 우선순위 규칙을 더한다. 연산자를 넣기 전에, 스택에 있는 우선순위가 같거나 높은 연산자를 모두 빼서 적용한다.
 
 ```python
 """
-Expression evaluation — postfix and infix evaluation using stacks.
+식의 계산 — 스택을 쓰는 후위 표기와 중위 표기의 계산.
 
-Demonstrates the postfix (RPN) evaluation algorithm and a two-stack
-infix evaluator that handles operator precedence.
+후위 표기(RPN) 계산 알고리즘과, 연산자 우선순위를 다루는 두 스택
+중위 계산기를 보인다.
 """
 
 
-# === Postfix Evaluator ========================================================
+# === 후위 표기 계산기 ========================================================
 
 def evaluate_postfix(expression):
     """Evaluate a postfix (RPN) expression.
 
-    Args:
-        expression: space-separated string of numbers and operators.
+    인수:
+        expression: 수와 연산자를 빈칸으로 나눈 문자열.
 
-    Returns:
-        The numeric result.
+    반환값:
+        수치 결과.
 
-    Time:  O(n) where n is the number of tokens.
-    Space: O(n) for the operand stack.
+    시간:  O(n), 여기서 n은 토큰의 수이다.
+    공간: 피연산자 스택을 위해 O(n).
     """
     operators = {
         "+": lambda a, b: a + b,
@@ -85,7 +85,7 @@ def evaluate_postfix(expression):
     return stack[0]
 
 
-# === Infix Evaluator with Precedence ==========================================
+# === 우선순위를 다루는 중위 표기 계산기 ==========================================
 
 PRECEDENCE = {"+": 1, "-": 1, "*": 2, "/": 2}
 
@@ -93,11 +93,11 @@ PRECEDENCE = {"+": 1, "-": 1, "*": 2, "/": 2}
 def evaluate_infix(expression):
     """Evaluate an infix expression with operator precedence and parentheses.
 
-    Uses two stacks: one for operands, one for operators.
-    Handles +, -, *, / and parentheses.
+    스택 두 개를 쓴다. 하나는 피연산자용, 하나는 연산자용이다.
+    +, -, *, /와 괄호를 다룬다.
 
-    Time:  O(n) where n is the number of tokens.
-    Space: O(n) for the two stacks.
+    시간:  O(n), 여기서 n은 토큰의 수이다.
+    공간: 두 스택을 위해 O(n).
     """
     def apply_operator(ops, vals):
         op = ops.pop()
@@ -134,7 +134,7 @@ def evaluate_infix(expression):
         elif token == ")":
             while ops[-1] != "(":
                 apply_operator(ops, vals)
-            ops.pop()  # remove the "("
+            ops.pop()  # "("을 없앤다
         elif token in PRECEDENCE:
             while (ops and ops[-1] != "(" and
                    ops[-1] in PRECEDENCE and
@@ -150,10 +150,10 @@ def evaluate_infix(expression):
     return vals[0]
 
 
-# === Demonstration ============================================================
+# === 시연 ============================================================
 
 if __name__ == "__main__":
-    # Postfix evaluation
+    # 후위 표기 계산
     result1 = evaluate_postfix("3 4 2 * +")
     print(f"  Result: {result1}")
     print()
@@ -162,7 +162,7 @@ if __name__ == "__main__":
     print(f"  Result: {result2}")
     print()
 
-    # Infix evaluation
+    # 중위 표기 계산
     expressions = [
         "3 + 4 * 2",
         "(3 + 4) * 2",
@@ -175,7 +175,7 @@ if __name__ == "__main__":
         print(f"    {expr:30s} = {result}")
 ```
 
-**Output:**
+**출력:**
 ```
   Evaluating postfix: 3 4 2 * +
     push 3  →  stack = [3.0]
@@ -204,27 +204,60 @@ if __name__ == "__main__":
     10 / 2 + 3 * 4                 = 17.0
 ```
 
-The postfix evaluator traces each step, showing how the stack grows and shrinks. The infix evaluator produces the same results as standard arithmetic, correctly respecting operator precedence and parentheses.
+후위 계산기는 각 단계를 따라가며 스택이 어떻게 커지고 줄어드는지 보여 준다. 중위 계산기는 연산자 우선순위와 괄호를 제대로 지켜 보통의 산술과 같은 결과를 낸다.
 
-## Correctness
+## 올바름
 
-The postfix evaluation algorithm is correct because postfix notation encodes the evaluation order explicitly. Each operator immediately follows its operands, so when the algorithm encounters an operator, the top two stack elements are guaranteed to be its operands (assuming the input expression is valid).
+후위 표기는 계산 순서를 겉으로 드러내어 담고 있으므로 후위 계산 알고리즘은 올바르다. 각 연산자는 자기 피연산자 바로 뒤에 오므로, 알고리즘이 연산자를 만나면 (입력이 올바르다는 전제 아래) 스택의 위 두 원소가 반드시 그 피연산자이다.
 
-For the infix evaluator, correctness follows from the precedence-based deferral rule: an operator is applied only after all higher-precedence operators to its right have been applied. This produces the same result as the standard mathematical interpretation.
+중위 계산기의 올바름은 우선순위에 따른 미루기 규칙에서 따라 나온다. 어떤 연산자는 그 오른쪽에 있는 우선순위가 더 높은 연산자를 모두 적용한 뒤에야 적용된다. 이렇게 하면 표준적인 수학적 해석과 같은 결과가 나온다.
 
-!!! warning "Invalid Expressions"
-    Both algorithms assume valid input. A postfix expression with too few operands for an operator will cause an underflow error. An infix expression with mismatched parentheses will produce incorrect results or raise exceptions. Production implementations should include input validation.
+!!! warning "올바르지 않은 식"
+    두 알고리즘 모두 올바른 입력을 전제한다. 연산자에 견주어 피연산자가 모자란 후위 표기식은 언더플로 오류를 일으킨다. 괄호가 맞지 않는 중위 표기식은 잘못된 결과를 내거나 예외를 일으킨다. 실전 구현에는 입력 검증을 넣어야 한다.
 
-## Complexity Summary
+## 복잡도 요약
 
-| Algorithm | Time | Space |
+| 알고리즘 | 시간 | 공간 |
 |---|---|---|
-| Postfix evaluation | $O(n)$ | $O(n)$ |
-| Two-stack infix evaluation | $O(n)$ | $O(n)$ |
+| 후위 표기 계산 | $O(n)$ | $O(n)$ |
+| 두 스택 중위 계산 | $O(n)$ | $O(n)$ |
 
-Both algorithms make a single pass through the token sequence. Each token is pushed and popped at most once, giving linear time.
+두 알고리즘 모두 토큰의 열을 한 번만 훑는다. 각 토큰은 많아야 한 번 들어가고 한 번 나오므로 선형 시간이다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), Chapter 10. MIT Press.
 - Dijkstra, E. W. (1961). "Algol 60 translation." *ALGOL Bulletin*, Supplement 10.
+
+
+## 연습문제
+
+**연습문제 1.**
+식의 계산의 추상 자료형이 지원하는 연산을 시간 복잡도와 함께 모두 열거하라. 어느 연산이 병목인가?
+
+??? success "연습문제 1 풀이"
+    추상 자료형은 구현과 무관하게 지원하는 연산을 정한다. 무엇이 병목인지는 쓰임새에 달렸다. 실시간 시스템에서는 최악의 복잡도가 중요하고, 일괄 처리에서는 상각 복잡도로 충분하다.
+
+---
+
+**연습문제 2.**
+식의 계산을(를) 서로 다른 두 자료 구조로 구현하라. 각각의 절충을 비교하라.
+
+??? success "연습문제 2 풀이"
+    구현 1: 배열 기반 — 접근은 상수 시간이지만 크기를 다시 잡아야 할 수 있다. 구현 2: 연결 리스트 기반 — 삽입과 삭제는 상수 시간이지만 접근은 $O(n)$이다. 어느 쪽을 고를지는 응용에서 예상되는 연산의 구성에 달렸다.
+
+---
+
+**연습문제 3.**
+식의 계산을(를) 쓰는 딥러닝 응용을 하나 설명하라(예: 그래프 신경망의 너비 우선 탐색, 기호 미분에서의 식 계산, 데이터 적재의 스케줄링).
+
+??? success "연습문제 3 풀이"
+    구체적인 응용은 그 추상 자료형의 순서 성질에 달렸다. 선입선출(큐)은 GNN의 너비 우선 그래프 순회에 쓰이고, 후입선출(스택)은 자동 미분 테이프 처리에 쓰이며, 우선순위 순서는 빔 탐색과 예정 표집에 쓰인다.
+
+---
+
+**연습문제 4.**
+식의 계산을(를) 원형 배열로 구현하면 모든 연산이 상각 $O(1)$ 시간임을 증명하라.
+
+??? success "연습문제 4 풀이"
+    원형 배열은 머리와 꼬리 인덱스를 용량으로 나눈 나머지로 관리한다. 넣기와 빼기는 인덱스를 $O(1)$에 조정한다. 배열이 가득 차면 용량을 두 배로 늘리는 데 $O(n)$이 들지만, 이는 값싼 연산 $O(n)$번 뒤에 한 번 일어나므로 동적 배열과 같은 논법으로 상각 $O(1)$이 된다. $\square$

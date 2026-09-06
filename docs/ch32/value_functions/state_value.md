@@ -1,81 +1,110 @@
-# 32.3.1 State Value Function
+# 32.3.1 상태 값 함수
+## 정의
 
-
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
-
-## Definition
-
-The **state value function** $V_\pi(s)$ gives the expected return when starting in state $s$ and following policy $\pi$ thereafter:
+**상태 값 함수** $V_\pi(s)$은 상태 $s$에서 시작해 그 뒤 방침 $\pi$을 따를 때의 기대 돌아옴을 준다:
 
 $$V_\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s] = \mathbb{E}_\pi\left[\sum_{k=0}^{\infty} \gamma^k R_{t+k+1} \mid S_t = s\right]$$
 
-This function answers: "How good is it to be in state $s$ under policy $\pi$?"
+이 함수는 "방침 $\pi$ 아래 상태 $s$에 있는 것이 얼마나 좋은가?"에 답한다.
 
-## Properties
+## 성질
 
-1. **Policy-dependent**: Different policies yield different value functions
-2. **Bounded**: For $\gamma < 1$ and bounded rewards: $|V_\pi(s)| \leq \frac{R_{\max}}{1-\gamma}$
-3. **Unique**: For a given policy $\pi$ and MDP, $V_\pi$ is uniquely defined
-4. **Recursive**: Satisfies the Bellman equation (see Section 32.3.3)
+1. **방침에 매임**: 방침이 다르면 값 함수도 다르다
+2. **가둬짐**: $\gamma < 1$이고 보상이 가둬져 있으면 $|V_\pi(s)| \leq \frac{R_{\max}}{1-\gamma}$이다
+3. **하나뿐임**: 주어진 방침 $\pi$과 마르코프 결정 과정에서 $V_\pi$이 하나로 뜻매김된다
+4. **되돌이**: 벨먼 방정식을 만족한다(32.3.3 참고)
 
-## Computing V_pi for Finite MDPs
+## 유한 마르코프 결정 과정에서 V_pi 셈하기
 
-### Direct Computation (Matrix Form)
+### 곧바른 셈하기(행렬 꼴)
 
-For finite MDPs, $V_\pi$ can be computed by solving a system of linear equations:
+유한 마르코프 결정 과정에서 $V_\pi$은 선형 방정식 체계를 풀어 셈할 수 있다:
 
 $$\mathbf{v}_\pi = \mathbf{r}_\pi + \gamma \mathbf{P}_\pi \mathbf{v}_\pi$$
 
-Rearranging:
+정리하면 다음과 같다.
 
 $$\mathbf{v}_\pi = (\mathbf{I} - \gamma \mathbf{P}_\pi)^{-1} \mathbf{r}_\pi$$
 
-where:
-- $\mathbf{P}_\pi \in \mathbb{R}^{|\mathcal{S}| \times |\mathcal{S}|}$ with $[\mathbf{P}_\pi]_{ss'} = \sum_a \pi(a|s) P(s'|s,a)$
-- $\mathbf{r}_\pi \in \mathbb{R}^{|\mathcal{S}|}$ with $[\mathbf{r}_\pi]_s = \sum_a \pi(a|s) R(s,a)$
+여기서 각 기호는 다음과 같다.
 
-This requires $O(|\mathcal{S}|^3)$ computation for the matrix inverse.
+- $[\mathbf{P}_\pi]_{ss'} = \sum_a \pi(a|s) P(s'|s,a)$인 $\mathbf{P}_\pi \in \mathbb{R}^{|\mathcal{S}| \times |\mathcal{S}|}$
+- $[\mathbf{r}_\pi]_s = \sum_a \pi(a|s) R(s,a)$인 $\mathbf{r}_\pi \in \mathbb{R}^{|\mathcal{S}|}$
 
-### Iterative Computation
+행렬을 뒤집는 데 셈 $O(|\mathcal{S}|^3)$이 든다.
 
-For large state spaces, iterative methods are preferred:
+### 되풀이 셈하기
+
+상태 자리가 크면 되풀이 방법을 즐겨 쓴다:
 
 $$V_{k+1}(s) = \sum_a \pi(a|s) \left[R(s,a) + \gamma \sum_{s'} P(s'|s,a) V_k(s')\right]$$
 
-This converges to $V_\pi$ as $k \to \infty$ (guaranteed by contraction mapping).
+$k \to \infty$일 때 $V_\pi$으로 모인다(오므리는 옮김이 보장한다).
 
-### Monte Carlo Estimation
+### 몬테카를로 어림
 
-Estimate $V_\pi(s)$ by averaging returns from many episodes:
+여러 판의 돌아옴을 평균 내어 $V_\pi(s)$을 어림한다:
 
 $$V_\pi(s) \approx \frac{1}{N(s)} \sum_{i=1}^{N(s)} G_t^{(i)}$$
 
-where $G_t^{(i)}$ is the return from the $i$-th visit to state $s$.
+여기서 $G_t^{(i)}$은 상태 $s$에 $i$번째로 들른 뒤의 돌아옴이다.
 
-## Optimal State Value Function
+## 가장 좋은 상태 값 함수
 
-The **optimal state value function** $V^*(s)$ is the maximum over all policies:
+**가장 좋은 상태 값 함수** $V^*(s)$은 모든 방침에 대한 최대다:
 
 $$V^*(s) = \max_\pi V_\pi(s) \quad \text{for all } s \in \mathcal{S}$$
 
-An optimal policy $\pi^*$ achieves $V_{\pi^*}(s) = V^*(s)$ for all states simultaneously.
+가장 좋은 방침 $\pi^*$은 모든 상태에서 한꺼번에 $V_{\pi^*}(s) = V^*(s)$을 이룬다.
 
-## Partial Ordering of Policies
+## 방침의 반쯤 차례
 
-Policy $\pi$ is **better than or equal to** policy $\pi'$ (written $\pi \geq \pi'$) if:
+다음이면 방침 $\pi$이 방침 $\pi'$보다 **낫거나 같다**($\pi \geq \pi'$으로 적는다):
 
 $$V_\pi(s) \geq V_{\pi'}(s) \quad \text{for all } s \in \mathcal{S}$$
 
-There always exists at least one optimal policy $\pi^*$ that is better than or equal to all other policies.
+다른 모든 방침보다 낫거나 같은 가장 좋은 방침 $\pi^*$이 적어도 하나는 늘 있다.
 
-## Interpretation in Finance
+## 금융에서의 풀이
 
-In portfolio management:
-- $V_\pi(s)$ represents the expected future risk-adjusted return from market state $s$ under strategy $\pi$
-- Comparing $V_\pi(s)$ across states reveals which market conditions are more favorable
-- $V^*(s)$ represents the best possible expected performance achievable from any state
+꾸러미 다루기에서:
 
-## Summary
+- $V_\pi(s)$은 셈속 $\pi$ 아래 시장 상태 $s$에서의 위험을 고려한 기대 앞날 벌이를 나타낸다
+- 상태에 걸쳐 $V_\pi(s)$을 견주면 어떤 시장 형편이 더 좋은지 드러난다
+- $V^*(s)$은 어느 상태에서든 이룰 수 있는 가장 좋은 기대 성과를 나타낸다
 
-The state value function is the central quantity in RL, encoding the long-term desirability of each state under a given policy. It can be computed exactly for small MDPs (matrix inversion) or estimated via iterative/sampling methods for larger problems. The optimal value function $V^*$ characterizes the best achievable performance.
+## 요약
+
+상태 값 함수는 힘 북돋우는 배움의 한가운데 양으로, 주어진 방침 아래 상태마다의 긴 때 바람직함을 담는다. 작은 마르코프 결정 과정에서는 정확히 셈할 수 있고(행렬 뒤집기) 큰 문제에서는 되풀이나 뽑기 방법으로 어림한다. 가장 좋은 값 함수 $V^*$이 이룰 수 있는 가장 좋은 성과를 나타낸다.
+
+## 연습문제
+
+**연습문제 1.**
+이 마디의 주제와 딸린 단순한 마르코프 결정 과정을 생각하여라. 상태 3개와 움직임 2개의 작은 보기에서 관련 양을 손으로 셈하여라.
+
+??? success "연습문제 1 풀이"
+    상태 $S = \{s_1, s_2, s_3\}$과 움직임 $A = \{a_1, a_2\}$을 뜻매김한다. 옮김 확률과 보상을 매긴다. 상태-움직임 짝마다 기대 즉시 보상과 옮김 분포를 셈한다. 이 마디의 뜻매김과 식으로 바라는 양을 셈한다. 상태 자리가 작아 정확히 셈할 수 있어 추상 적기가 구체 숫자로 어떻게 옮겨지는지 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 다룬 핵심 성질이나 모임 결과를 밝혀라. 여김을 또렷이 적고 어느 것이 꼭 필요한지 가려내어라.
+
+??? success "연습문제 2 풀이"
+    밝힘은 그 연산자에 오므리는 옮김 정리를 써서 따라온다. 깎기 인수가 $\gamma < 1$인 유한 마르코프 결정 과정을 여기면 그 연산자는 상한 노름에서 $\gamma$오므리기다. 바나흐 고정점 정리에 따라 되풀이해 쓰면 $k$이 되풀이 횟수일 때 빠르기 $O(\gamma^k)$으로 하나뿐인 고정점에 모인다. 유한하다는 여김이 보상이 가둬짐을 보장하고 깎기 인수 $\gamma < 1$이 오므리기 성질에 꼭 필요하다. $\square$
+
+---
+
+**연습문제 3.**
+이 마디에서 밝힌 알고리즘이나 셈을 단순한 격자 세상에 대해 파이썬으로 짜라. $\epsilon = 0.01$ 안으로 모이는 데 필요한 되풀이 횟수를 알려라.
+
+??? success "연습문제 3 풀이"
+    모서리에 마침 상태가 있고 고른 아무 방침을 쓰는 $4 \times 4$ 격자 세상이 여느 시험 사례가 된다. 짜기는 모든 상태의 가장 큰 바뀜이 $\epsilon$ 아래로 떨어질 때까지 고침 규칙을 되풀이한다. 깎기 인수에 따라 보통 50~200번 되풀이하면 모인다. 핵심 짜기 세부는 맞춘 고침보다 빨리 모이도록 제자리 고침(가우스-자이델 방식)을 쓰는 것이다. $\square$
+
+---
+
+**연습문제 4.**
+이 마디에서 밝힌 길에 본디 있는 근본 한계나 맞바꿈을 다루어라. 뒤 장의 더 나아간 방법이 이 한계를 어떻게 넘는가?
+
+??? success "연습문제 4 풀이"
+    표로 하는 길은 모든 상태(어쩌면 움직임까지)를 늘어놓아야 하는데 이어지거나 차원이 높은 상태 자리에서는 될 일이 아니다. 차원의 저주는 상태 변수의 수에 따라 상태 수가 지수로 늘어남을 뜻한다. 함수 어림(33~34장)은 그 함수를 신경망으로 잡을 두어 나타내고 닮은 상태에 걸쳐 넓혀 이를 넘는다. 다만 새 어려움이 생긴다. 모임이 더는 보장되지 않으며 함수 어림, 띄워 올리기, 벗어난 방침 익히기의 죽음의 삼각이 발산을 일으킬 수 있다. $\square$

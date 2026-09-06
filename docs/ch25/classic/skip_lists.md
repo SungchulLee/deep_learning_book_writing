@@ -1,80 +1,62 @@
-# Randomized Skip Lists
+# 마구잡이 건너뛰기 목록
 
-A sorted linked list supports search in $O(n)$ time. A balanced BST
-achieves $O(\log n)$ but requires complex rebalancing. **Skip lists**
-provide the same $O(\log n)$ expected time for search, insertion, and
-deletion, using randomization instead of deterministic rebalancing.
-Each element is randomly promoted to higher levels, creating "express
-lanes" that allow the search to skip over large portions of the list.
+정렬한 이음 목록은 찾기를 $O(n)$ 시간에 한다. 고른 이진 찾기 나무는 $O(\log n)$을 이루지만 복잡한 다시 고르기가 필요하다. **건너뛰기 목록**은 정해진 다시 고르기 대신 마구잡이를 써서 찾기, 넣기, 지우기에 같은 기댓값 $O(\log n)$ 시간을 준다. 낱개마다 마구잡이로 위 층으로 올려 "빠른 길"을 만들어 찾기가 목록의 큰 조각을 건너뛰게 한다.
 
-## Structure
+## 구조
 
-A skip list consists of multiple levels of linked lists. Level 0 (the
-bottom) contains all $n$ elements in sorted order. Each higher level
-contains a random subset of the elements from the level below.
+건너뛰기 목록은 이음 목록 여러 층으로 이루어진다. 층 0(맨 아래)은 $n$개 낱개를 모두 정렬한 차례로 담는다. 위 층은 저마다 아래 층 낱개의 아무 부분 모임을 담는다.
 
-Each element is assigned a random **height**: flip a fair coin repeatedly
-and count the number of heads before the first tail. An element with
-height $h$ appears in levels $0, 1, \ldots, h$.
+낱개마다 아무 **높이**를 매긴다. 곧 공정한 동전을 거듭 던져 처음 뒷면이 나오기 전까지 앞면의 수를 센다. 높이가 $h$인 낱개는 층 $0, 1, \ldots, h$에 나타난다.
 
-!!! note "Expected Heights"
-    With a fair coin (promotion probability $p = 1/2$):
+!!! note "기댓값 높이"
+    공정한 동전이면(올릴 확률 $p = 1/2$):
 
-    - Expected height of each element: $1/(1-p) = 2$
-    - Expected number of elements at level $i$: $n/2^i$
-    - Expected maximum height: $O(\log n)$
+    - 낱개마다 기댓값 높이: $1/(1-p) = 2$
+    - 층 $i$의 기댓값 낱개 수: $n/2^i$
+    - 기댓값 최대 높이: $O(\log n)$
 
-## Search
+## 찾기
 
-To search for a key $x$:
+열쇠 $x$을 찾으려면:
 
-1. Start at the head node of the highest level.
-2. Move right along the current level until the next node has key $> x$
-   (or we reach the end).
-3. Drop down one level and repeat.
-4. At level 0, check if the current node has key $= x$.
+1. 가장 높은 층의 머리 마디에서 시작한다.
+2. 다음 마디의 열쇠가 $> x$이 될 때까지(또는 끝에 이를 때까지) 지금 층을 따라 오른쪽으로 간다.
+3. 한 층 아래로 내려가 되풀이한다.
+4. 층 0에서 지금 마디의 열쇠가 $= x$인지 살핀다.
 
-This is analogous to binary search: each level halves the remaining
-search space in expectation.
+이는 이분 찾기와 비슷하다. 곧 층마다 남은 찾기 공간이 기댓값으로 반이 된다.
 
-## Expected Search Time
+## 기대 탐색 시간
 
-**Theorem.** The expected search time in a skip list with $n$ elements
-is $O(\log n)$.
+**정리.** 낱개 $n$개인 건너뛰기 목록에서 기댓값 찾기 시간은 $O(\log n)$이다.
 
-**Proof sketch.** Analyze the search path *backwards* from the target
-to the head. At each step going back, we either go up one level (with
-probability $1/2$, since the current node was promoted) or go left on the
-same level (with probability $1/2$). The expected number of left moves
-at level $i$ is at most $1/p = 2$. With $O(\log n)$ levels, the total
-expected path length is $O(\log n)$.
+**밝힘 밑그림.** 목표에서 머리로 찾기 길을 *거꾸로* 살핀다. 거슬러 가는 걸음마다 한 층 위로 가거나($1/2$의 확률로. 지금 마디가 올려졌기 때문이다) 같은 층에서 왼쪽으로 간다($1/2$의 확률로). 층 $i$에서 왼쪽으로 가는 기댓값 횟수는 많아야 $1/p = 2$이다. 층이 $O(\log n)$개이므로 온 기댓값 길이는 $O(\log n)$이다.
 
-More precisely, the expected number of comparisons is:
+더 자세히는 기댓값 견줌 횟수가 다음과 같다.
 
 $$
 E[\text{comparisons}] = \frac{\log_2 n}{p} + \frac{1}{1-p} = O(\log n)
 $$
 
-## Insertion
+## 삽입
 
-1. Search for the position (keeping track of update pointers at each level).
-2. Generate a random height $h$ for the new element.
-3. Insert the element at levels $0, 1, \ldots, h$, splicing it into each
-   level's linked list.
+1. 자리를 찾는다(층마다 고칠 가리개를 좇으면서).
+2. 새 낱개의 아무 높이 $h$을 만든다.
+3. 낱개를 층 $0, 1, \ldots, h$에 넣으며 층마다 이음 목록에 끼워 넣는다.
 
-If $h$ exceeds the current maximum level, add new levels to the skip list.
+$h$이 지금 최대 층을 넘으면 건너뛰기 목록에 새 층을 더한다.
 
-## Deletion
+## 삭제
 
-1. Search for the element (keeping track of predecessors at each level).
-2. Remove the element from each level where it appears.
-3. If the highest level becomes empty, reduce the maximum level.
+1. 낱개를 찾는다(층마다 앞 마디를 좇으면서).
+2. 낱개가 나타나는 층마다 그것을 뺀다.
+3. 가장 높은 층이 비면 최대 층을 줄인다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Randomized skip list: a probabilistic alternative to balanced BSTs.
+마구잡이 건너뛰기 목록: 고른 이진 찾기 나무의 확률 대안.
 
 Supports search, insertion, and deletion in O(log n) expected time.
 """
@@ -82,20 +64,20 @@ Supports search, insertion, and deletion in O(log n) expected time.
 import random
 
 
-# === Skip List Node ===
+# === 건너뛰기 목록 마디 ===
 
 class SkipNode:
-    """A node in the skip list."""
+    """건너뛰기 목록의 마디."""
 
     def __init__(self, key, level):
         self.key = key
         self.forward = [None] * (level + 1)
 
 
-# === Skip List ===
+# === 건너뛰기 리스트 ===
 
 class SkipList:
-    """A randomized skip list data structure.
+    """마구잡이 건너뛰기 목록 자료 짜임.
 
     Each operation (search, insert, delete) runs in O(log n) expected time.
     """
@@ -108,16 +90,16 @@ class SkipList:
         self.size = 0
 
     def random_level(self):
-        """Generate a random level using coin flips."""
+        """동전 던지기로 아무 층을 만든다."""
         lvl = 0
         while random.random() < self.p and lvl < self.max_level:
             lvl += 1
         return lvl
 
     def search(self, key):
-        """Search for a key in the skip list.
+        """건너뛰기 목록에서 열쇠를 찾는다.
 
-        Returns True if found, False otherwise.
+        찾으면 True, 아니면 False을 돌려준다.
         """
         current = self.header
         for i in range(self.level, -1, -1):
@@ -127,7 +109,7 @@ class SkipList:
         return current is not None and current.key == key
 
     def insert(self, key):
-        """Insert a key into the skip list."""
+        """건너뛰기 리스트에 키를 넣는다."""
         update = [None] * (self.max_level + 1)
         current = self.header
 
@@ -154,9 +136,9 @@ class SkipList:
             self.size += 1
 
     def delete(self, key):
-        """Delete a key from the skip list.
+        """건너뛰기 목록에서 열쇠를 지운다.
 
-        Returns True if the key was found and deleted.
+        열쇠를 찾아 지웠으면 True을 돌려준다.
         """
         update = [None] * (self.max_level + 1)
         current = self.header
@@ -182,7 +164,7 @@ class SkipList:
         return False
 
     def display(self):
-        """Print all levels of the skip list."""
+        """건너뛰기 목록의 모든 층을 찍는다."""
         for i in range(self.level, -1, -1):
             nodes = []
             node = self.header.forward[i]
@@ -192,38 +174,38 @@ class SkipList:
             print(f"  Level {i}: {' -> '.join(nodes)}")
 
 
-# === Main ===
+# === 메인 ===
 
 if __name__ == "__main__":
     random.seed(42)
     sl = SkipList()
 
-    # Insert elements
+    # 원소 삽입
     for val in [3, 6, 7, 9, 12, 19, 17, 26, 21, 25]:
         sl.insert(val)
 
     print(f"Skip list ({sl.size} elements):")
     sl.display()
 
-    # Search
+    # 탐색
     for key in [7, 10, 21]:
         print(f"Search {key}: {sl.search(key)}")
 
-    # Delete
+    # 지우기
     sl.delete(19)
     print(f"\nAfter deleting 19 ({sl.size} elements):")
     sl.display()
 ```
 
-**Output:**
+**출력:**
 ```
 Skip list (10 elements):
   Level 2: 6 -> 17
   Level 1: 6 -> 9 -> 17 -> 21 -> 25
   Level 0: 3 -> 6 -> 7 -> 9 -> 12 -> 17 -> 19 -> 21 -> 25 -> 26
-Search 7: True
-Search 10: False
-Search 21: True
+7 찾기: True
+10 찾기: False
+21 찾기: True
 
 After deleting 19 (9 elements):
   Level 2: 6 -> 17
@@ -231,30 +213,60 @@ After deleting 19 (9 elements):
   Level 0: 3 -> 6 -> 7 -> 9 -> 12 -> 17 -> 21 -> 25 -> 26
 ```
 
-## Complexity Summary
+## 복잡도 요약
 
-| Operation | Expected Time | Worst Case |
+| 셈 | 기댓값 시간 | 가장 나쁜 경우 |
 |---|---|---|
-| Search | $O(\log n)$ | $O(n)$ |
-| Insert | $O(\log n)$ | $O(n)$ |
-| Delete | $O(\log n)$ | $O(n)$ |
-| Space | $O(n)$ expected | $O(n \log n)$ |
+| 찾기 | $O(\log n)$ | $O(n)$ |
+| 삽입 | $O(\log n)$ | $O(n)$ |
+| 삭제 | $O(\log n)$ | $O(n)$ |
+| 자리 | 기댓값 $O(n)$ | $O(n \log n)$ |
 
-## Skip List vs Balanced BST
+## 건너뛰기 목록과 고른 이진 찾기 나무
 
-| Feature | Skip List | Balanced BST |
+| 특징 | 건너뛰기 목록 | 고른 이진 찾기 나무 |
 |---|---|---|
-| Implementation | Simple | Complex rotations |
-| Guarantees | Expected $O(\log n)$ | Worst-case $O(\log n)$ |
-| Concurrency | Lock-free variants easy | Hard to parallelize |
-| Cache behavior | Poor (pointer chasing) | Better with arrays |
+| 짜기 | 단순하다 | 돌리기가 복잡하다 |
+| 보장 | 기댓값 $O(\log n)$ | 가장 나쁜 경우 $O(\log n)$ |
+| 함께 돌기 | 자물쇠 없는 변형이 쉽다 | 나란히 하기 어렵다 |
+| 저장턱 움직임 | 나쁘다(가리개 좇기) | 배열이면 더 낫다 |
 
-!!! tip "When to Choose Skip Lists"
-    Skip lists shine in concurrent programming — lock-free skip lists are
-    much simpler than lock-free balanced trees. Redis, LevelDB, and Java's
-    ConcurrentSkipListMap all use skip lists.
+!!! tip "언제 건너뛰기 목록을 고를까"
+    건너뛰기 목록은 함께 도는 짜기에서 빛난다. 자물쇠 없는 건너뛰기 목록은 자물쇠 없는 고른 나무보다 훨씬 단순하다. Redis, LevelDB, 자바의 ConcurrentSkipListMap이 모두 건너뛰기 목록을 쓴다.
 
-## Reference
+## 참고 문헌
 
 - Pugh, W. "Skip Lists: A Probabilistic Alternative to Balanced Trees." *CACM*, 1990.
 - Motwani, R. & Raghavan, P. *Randomized Algorithms*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+마구잡이 건너뛰기 목록의 핵심 마구잡이 재주와 그것이 정해진 방식보다 나은 까닭을 설명하라.
+
+??? success "연습문제 1 풀이"
+    마구잡이 건너뛰기 목록은 마구잡이를 써서 정해진 알고리즘이 마주칠 수 있는 가장 나쁜 들임을 피한다. 아무렇게나 고르므로 알고리즘의 솜씨가 들임의 짜임이 아니라 제 동전 던지기에 달린다. 그래서 모든 들임에 대해 참인 센 기댓값 시간이나 높은 확률의 보장을 흔히 얻으며, 짓궂거나 병리적인 경우를 걱정할 까닭이 없어진다. $\square$
+
+---
+
+**연습문제 2.**
+마구잡이 건너뛰기 목록의 기댓값 시간 복잡도는 얼마인가? 가장 나쁜 경우의 복잡도는 얼마인가?
+
+??? success "연습문제 2 풀이"
+    기댓값 시간 복잡도는 흔히 $O(n)$이나 $O(n \log n)$이며 높은 확률로 이룬다. 가장 나쁜 경우는 다항식만큼 더 나쁠 수 있지만(예컨대 $O(n^2)$) 그럴 확률은 무시할 만큼 작다. 기댓값과 가장 나쁜 경우의 틈이 마구잡이의 값이며, 가장 나쁜 움직임이 일어날 확률은 들임 크기에 따라 지수로 줄어든다. $\square$
+
+---
+
+**연습문제 3.**
+마구잡이 건너뛰기 목록은 라스베이거스 알고리즘인가 몬테카를로 알고리즘인가? 그 차이를 설명하라.
+
+??? success "연습문제 3 풀이"
+    **라스베이거스**: 늘 옳은 결과를 내며 도는 시간이 아무 변수이다(기댓값이 다항식). **몬테카를로**: 늘 다항식 시간에 돌지만 결과가 어떤 가둔 확률로 틀릴 수 있다. 마구잡이 건너뛰기 목록은 옳음을 보장하느냐 도는 시간을 보장하느냐에 따라 이 가운데 하나에 든다. 이 가름이 어긋날 확률을 어떻게 다룰지 정한다. $\square$
+
+---
+
+**연습문제 4.**
+마구잡이 건너뛰기 목록에서 마구잡이를 없애거나 솜씨가 나쁠 확률을 줄이는 법을 설명하라.
+
+??? success "연습문제 4 풀이"
+    방책은 다음과 같다. (1) **거듭 해 보기**: 알고리즘을 여러 번 돌려 가장 좋거나 많은 쪽 결과를 택하면 어긋날 확률이 지수로 줄어든다. (2) **마구잡이 없애기**: 조건부 기댓값이나 흩는 함수 무리로 아무 고르기를 정해진 고르기로 바꾼다. (3) **키우기**: 몬테카를로 알고리즘에서는 $k$번 되풀이해 어긋남을 $2^{-k}$으로 줄인다. (4) **비슷 마구잡이 만들개**: 알고리즘이 보기에 "마구잡이처럼 보이는" 정해진 차례를 쓴다. $\square$

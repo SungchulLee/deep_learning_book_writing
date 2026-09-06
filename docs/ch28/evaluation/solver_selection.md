@@ -1,84 +1,80 @@
-# Solver Selection Guide for Neural ODEs
+# 신경 상미분 방정식의 풀개 고르기 안내
+## 들어가며
 
+상미분 방정식 풀개를 어떻게 고르느냐가 신경 상미분 방정식의 성능을 여러 갈래에서 결정적으로 정한다. 풀이 정확도, 셈 비용, 기억 요구, 수치 안정성이 그것이다. 실무자는 드러난 방법(룽게-쿠타 변형), 은근한 방법, 맞추어 가는 얼거리에 걸친 여러 고르기 가운데 골라야 하며 저마다 정확도 보장과 셈 성질이 다르다. 풀개를 잘못 고르면 쓸데없는 셈 비용(정밀하지 않은 신경망에 지나치게 정확한 풀개)이나 나쁜 풀이(풀개 허용 오차가 너무 헐거움)로 이어진다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+어긋남 허용을 빡빡하게 다스릴 수 있는 여느 과학 셈과 달리 신경 상미분 방정식에는 남다른 어려움이 있다. 움직임을 본디 흐릿함이 있는 자료에서 배우고, 신경망이 상미분 방정식 얼개 가정을 만족하지 않을 수 있으며, 익히기에 뒷먹임 미분이 필요해 더 복잡해진다. 이 마디는 풀개 고르기에 대한 실제 안내를 주고 맞바꿈을 따지며 쓰임새 마당마다 권하는 바를 내놓는다.
 
-## Introduction
+## 핵심 개념
 
-The choice of ODE solver critically determines Neural ODE performance across multiple dimensions: solution accuracy, computational cost, memory requirements, and numerical stability. Neural ODE practitioners must select from diverse options spanning explicit methods (Runge-Kutta variants), implicit methods, and adaptive schemes—each with different accuracy guarantees and computational profiles. Poor solver selection leads to either unnecessary computational expense (overly accurate solver for imprecise neural network) or poor solutions (solver tolerance too loose).
+### 풀개 갈래 나눔
+- **드러난 방법**: h(t)에서 h(t+Δt)을 셈한다. 단순하지만 뻣뻣한 계에서는 흔들린다
+- **은근한 방법**: 대수 방정식을 푼다. 뻣뻣한 계에서 안정되지만 비싸다
+- **맞추어 가는 방법**: 그 자리의 어긋남 어림으로 걸음 크기를 맞춘다. 너그럽다
+- **여러 걸음 방법**: 앞의 여러 걸음의 앎을 쓴다. 매끄러운 계에 효율 좋다
 
-Unlike traditional scientific computing where error tolerance can be tightly controlled, Neural ODEs present unique challenges: the dynamics are learned from data with inherent uncertainty, the network may not satisfy ODE structure assumptions, and training requires backward-mode differentiation adding further complexity. This section provides practical guidance on solver selection, discusses trade-offs, and offers recommendations for different application domains.
+### 결정적인 성질
+- **차수**: 그 자리의 어긋남이 O(Δt^p)이다. 차수가 높으면 큰 걸음으로도 정확하다
+- **안정 자리**: 방법이 안정된 채로 있는 복소 평면의 자리
+- **뻣뻣함 다루기**: 때 잣수가 크게 다른 계를 다루는 힘
+- **미분할 수 있음**: 풀개의 기울기를 셈할 수 있는지(익히기에 결정적이다)
 
-## Key Concepts
+## 수학적 틀
 
-### Solver Classification
-- **Explicit Methods**: Compute h(t+Δt) from h(t); simple but unstable for stiff systems
-- **Implicit Methods**: Solve algebraic equation; stable for stiff systems but expensive
-- **Adaptive Methods**: Adjust step size based on local error estimate; flexible
-- **Multistep Methods**: Use information from multiple previous steps; efficient for smooth systems
+### 일반 상미분 방정식 문제
 
-### Critical Properties
-- **Order**: Local error O(Δt^p); higher order = accurate with larger steps
-- **Stability Region**: Complex plane region where method remains stable
-- **Stiffness Handling**: Ability to handle systems with widely varying timescales
-- **Differentiability**: Whether solver gradients computable (critical for training)
-
-## Mathematical Framework
-
-### General ODE Problem
-
-Neural ODE solver approximate solution to:
+신경 상미분 방정식 풀개는 다음의 풀이를 어림한다:
 
 $$\frac{dh}{dt} = f(h, t; \theta), \quad h(t_0) = h_0$$
 
-on interval [t₀, t₁]. Solver produces approximation {ĥ_n} at times {t_n}.
+구간 [t₀, t₁]에서. 풀개는 때 {t_n}에서 어림 {ĥ_n}을 내놓는다.
 
-### Local vs Global Error
+### 그 자리 어긋남과 온 어긋남
 
-Local truncation error at step n:
+걸음 n의 그 자리 자름 어긋남:
 
 $$\tau_n = \text{Error in approximating } h(t_{n+1}) \text{ assuming } h(t_n) \text{ exact}$$
 
-Global error after M steps (time T = Mt):
+M걸음 뒤(때 T = Mt)의 온 어긋남:
 
 $$e_{\text{global}}(T) \approx C \cdot \tau_{\text{local}} \cdot T$$
 
-where C depends on problem conditioning. Better solver order → smaller global error.
+여기서 C은 문제의 조건 상태에 매인다. 풀개 차수가 높을수록 온 어긋남이 작다.
 
-### Adaptive Error Control
+### 맞추어 가는 어긋남 다스리기
 
-Adaptive methods estimate local error each step:
+맞추어 가는 방법은 걸음마다 그 자리의 어긋남을 어림한다:
 
 $$\hat{\tau}_n = \text{EST}_n$$
 
-and adjust step size h_n to maintain error below tolerance:
+그리고 어긋남을 허용 오차 아래로 지키도록 걸음 크기 h_n을 맞춘다:
 
 $$h_n^{(i+1)} = h_n^{(i)} \cdot \left(\frac{\text{TOL}}{\hat{\tau}_n}\right)^{1/(p+1)}$$
 
-where p is method order. Enables automatic accuracy control.
+여기서 p은 방법의 차수이다. 저절로 정확도를 다스릴 수 있게 한다.
 
-## Explicit Runge-Kutta Methods
+## 드러난 룽게-쿠타 방법
 
-### Forward Euler
+### 앞으로 오일러
 
-Simplest explicit method:
+가장 단순한 드러난 방법:
 
 $$h_{n+1} = h_n + \Delta t \cdot f(h_n, t_n)$$
 
-**Properties**:
-- Order: 1 (O(Δt) local error)
-- Stability: Unstable for stiff systems, small stability region
-- Cost: 1 function evaluation per step
-- Use: Quick prototyping only; usually too inaccurate
+**성질**:
 
-### RK4 (Fourth-Order Runge-Kutta)
+- 차수: 1(그 자리 어긋남 O(Δt))
+- 안정성: 뻣뻣한 계에서 흔들리고 안정 자리가 작다
+- 비용: 걸음마다 함수 매김 1번
+- 쓰임: 빠른 시제품에만. 보통 너무 부정확하다
 
-Standard workhorse method:
+### RK4(4차 룽게-쿠타)
+
+여느 일꾼 방법:
 
 $$h_{n+1} = h_n + \frac{\Delta t}{6}(k_1 + 2k_2 + 2k_3 + k_4)$$
 
-where:
+여기서 각 기호는 다음과 같다.
 
 $$k_1 = f(h_n, t_n)$$
 
@@ -88,225 +84,261 @@ $$k_3 = f(h_n + \frac{\Delta t}{2}k_2, t_n + \frac{\Delta t}{2})$$
 
 $$k_4 = f(h_n + \Delta t k_3, t_n + \Delta t)$$
 
-**Properties**:
-- Order: 4 (O(Δt⁴) local error)
-- Cost: 4 function evaluations per step
-- Stability: Better than Euler; adequate for non-stiff systems
-- Use: Default choice for smooth systems, fixed step size preferred
+**성질**:
 
-## Adaptive Solvers
+- 차수: 4(그 자리 어긋남 O(Δt⁴))
+- 비용: 걸음마다 함수 매김 4번
+- 안정성: 오일러보다 낫고 뻣뻣하지 않은 계에 넉넉하다
+- 쓰임: 매끄러운 계의 기본 고르기, 붙박이 걸음 크기를 즐겨 쓴다
 
-### DOP853 (Dormand-Prince 8th Order)
+## 맞추어 가는 풀개
 
-Embedded pair enabling adaptive stepping:
+### DOP853(도맨드-프린스 8차)
 
-**Pair 1**: 8th order (primary)
-**Pair 2**: 7th order (error estimation)
+맞추어 가는 걸음을 가능하게 하는 박아 넣은 짝:
 
-Step size adjustment:
+**짝 1**: 8차(으뜸)
+**짝 2**: 7차(어긋남 어림)
+
+걸음 크기 맞추기:
 
 $$h_{\text{new}} = h \cdot \text{min}(5, \text{max}(0.1, 0.87 \cdot (TOL/\text{err})^{1/9}))$$
 
-**Properties**:
-- Order: 8/7 (8th order, estimated 7th for error)
-- Cost: 12 function evaluations per step
-- Adaptivity: Excellent; automatically adjusts for changing stiffness
-- Use: Recommended when solution smoothness varies; good default choice
+**성질**:
 
-### CVODE (Adams-Moulton/BDF Switching)
+- 차수: 8/7(8차이고 어긋남은 7차로 어림한다)
+- 비용: 걸음마다 함수 매김 12번
+- 맞추어 가기: 훌륭하다. 바뀌는 뻣뻣함에 저절로 맞춘다
+- 쓰임: 풀이의 매끄러움이 달라질 때 권한다. 좋은 기본 고르기이다
 
-Sophisticated solver switching between:
+### CVODE(애덤스-몰턴과 후향 미분 공식 바꿔 쓰기)
 
-- **Adams Methods**: Non-stiff problems; lower computational cost
-- **BDF**: Stiff problems; implicit stepping but handles discontinuous dynamics
+다음 사이를 오가는 정교한 풀개:
 
-Automatically detects stiffness and switches methods.
+- **애덤스 방법**: 뻣뻣하지 않은 문제. 셈 비용이 낮다
+- **후향 미분 공식**: 뻣뻣한 문제. 은근한 걸음이지만 끊긴 움직임을 다룬다
 
-**Properties**:
-- Order: Adaptive (1-12)
-- Stability: Excellent for wide problem classes
-- Cost: Variable, can be expensive for very stiff systems
-- Use: When system may be stiff or have discontinuities
+뻣뻣함을 저절로 찾아내어 방법을 바꾼다.
 
-## Implicit Methods for Stiff Systems
+**성질**:
 
-### Implicit Runge-Kutta (IRK)
+- 차수: 맞추어 감(1~12)
+- 안정성: 넓은 문제 갈래에 훌륭하다
+- 비용: 달라지며 아주 뻣뻣한 계에서는 비쌀 수 있다
+- 쓰임: 계가 뻣뻣하거나 끊긴 곳이 있을 수 있을 때
 
-For stiff systems where explicit methods require tiny steps:
+## 뻣뻣한 계를 위한 은근한 방법
+
+### 은근한 룽게-쿠타(IRK)
+
+드러난 방법이 아주 작은 걸음을 요구하는 뻣뻣한 계에서:
 
 $$h_{n+1} = h_n + \Delta t \sum_{i=1}^s b_i k_i$$
 
-where k_i satisfy coupled equations requiring Newton iteration solution.
+여기서 k_i은 뉴턴 되풀이로 풀어야 하는 얽힌 방정식을 만족한다.
 
-**Properties**:
-- Order: 2s-1 (can be very high)
-- Stability: Excellent for stiff systems (L-stable variants)
-- Cost: High per step (Newton iterations)
-- Use: Stiff systems where cost-per-step justified by larger feasible steps
+**성질**:
 
-## Adjoint Sensitivity Methods for Training
+- 차수: 2s-1(아주 높을 수 있다)
+- 안정성: 뻣뻣한 계에 훌륭하다(L 안정 변형)
+- 비용: 걸음마다 높다(뉴턴 되풀이)
+- 쓰임: 걸음을 크게 잡을 수 있어 걸음마다의 비용이 값진 뻣뻣한 계
 
-### Checkpoint Adjoint
+## 익히기를 위한 딸림 민감도 방법
 
-Neural ODE training requires computing gradients via:
+### 되짚을 자리 딸림
+
+신경 상미분 방정식 익히기는 다음으로 기울기를 셈해야 한다:
 
 $$\frac{d\mathcal{L}}{d\theta} = -\int_0^T \left(\frac{d\mathcal{L}}{dh}\right)^T \frac{\partial f}{\partial \theta}(h, t) dt$$
 
-via adjoint ODE:
+딸림 상미분 방정식으로:
 
 $$\frac{d}{dt}\left(\frac{d\mathcal{L}}{dh}\right) = -\left(\frac{\partial f}{\partial h}\right)^T \frac{d\mathcal{L}}{dh}$$
 
-**Checkpoint Adjoint**:
-1. Forward pass: Save selected h values (checkpoints)
-2. Backward pass: Recompute h between checkpoints
-3. Adjoint pass: Solve adjoint ODE backward in time
+**되짚을 자리 딸림**:
 
-Reduces memory from O(steps) to O(√steps) with minimal computational overhead.
+1. 앞먹임: 고른 h 값을 담아 둔다(되짚을 자리)
+2. 뒷먹임: 되짚을 자리 사이의 h을 다시 셈한다
+3. 딸림 지나감: 때를 거꾸로 하여 딸림 상미분 방정식을 푼다
 
-## Practical Selection Guide
+셈 웃돈을 아주 조금만 더하며 기억을 O(걸음 수)에서 O(√걸음 수)으로 줄인다.
 
-### Decision Tree for Solver Choice
+## 실제 고르기 안내
+
+### 풀개 고르기 결정 나무
 
 ```
-Start: Neural ODE problem
+시작: 신경 상미분 방정식 문제
 
-1. Dimension of h?
+1. h의 차원은?
    - Low (<100): Use adaptive solver (DOP853)
-   - High (1000+): Use implicit method or check stiffness
+   - 높음(1000 이상): 은근한 방법을 쓰거나 뻣뻣함을 살핀다
 
-2. Estimate stiffness ratio λ_max/λ_min?
+2. 뻣뻣함 비 λ_max/λ_min을 어림하는가?
    - Stiff (ratio > 100): Use implicit method or CVODE
    - Non-stiff: Use explicit method (RK4 or DOP853)
 
-3. Speed vs Accuracy priority?
-   - Speed critical: RK4 with fixed step, loose tolerance
-   - Accuracy critical: DOP853 with adaptive step
+3. 빠르기와 정확도 가운데 무엇이 먼저인가?
+   - 빠르기가 결정적: 붙박이 걸음과 헐거운 허용 오차의 RK4
+   - 정확도가 결정적: 맞추어 가는 걸음의 DOP853
    - Both: DOP853 (adaptive step balances both)
 
-4. Training differentiability required?
+4. 익히기에 미분할 수 있어야 하는가?
    - Yes: Use adjoint-compatible solver (most solvers OK)
-   - Ensure backward pass stability
+   - 뒷먹임의 안정을 보장한다
 ```
 
-### Default Recommendations
+### 기본 권함
 
-**For Most Applications** (including finance):
+**대부분의 쓰임새에**(금융 포함):
 
 ```
 Use: DOP853 (Dormand-Prince 8th order adaptive)
-Tolerance: 1e-6 to 1e-4
-Reason: Good accuracy/speed balance, handles varied dynamics
+허용 오차: 1e-6에서 1e-4
+까닭: 정확도와 빠르기의 균형이 좋고 여러 움직임을 다룬다
 ```
 
-**For Speed-Critical Applications**:
+**빠르기가 결정적인 쓰임새에**:
 
 ```
 Use: RK4 with fixed step h = 0.01
 Tolerance: N/A (fixed step)
-Reason: Fast, minimal overhead, adequate for smooth systems
+까닭: 빠르고 웃돈이 적으며 매끄러운 계에 넉넉하다
 ```
 
-**For Stiff Systems**:
+**뻣뻣한 계에**:
 
 ```
 Use: CVODE or implicit RK (Radau)
-Tolerance: 1e-6
+허용 오차: 1e-6
 Reason: Handles stiffness; standard choice in scientific computing
 ```
 
-**For Training Large Networks**:
+**큰 신경망 익히기에**:
 
 ```
-Use: Adjoint ODE + DOP853
+쓰기: 딸림 상미분 방정식 + DOP853
 Tolerance: 1e-4 to 1e-3 (loosen for faster training)
-Checkpoint: Every 10-20 steps
+되짚을 자리: 10~20걸음마다
 ```
 
-## Tolerance Selection
+## 허용 오차 고르기
 
-### Choosing Tolerance Value
+### 허용 오차 값 고르기
 
-Solver tolerance TOL controls accuracy. Too tight wastes computation; too loose gives poor results.
+풀개 허용 오차 TOL이 정확도를 다스린다. 너무 빡빡하면 셈을 낭비하고 너무 헐거우면 결과가 나쁘다.
 
-**Heuristic**: Set TOL to ~10% of neural network error:
+**어림짐작**: TOL을 신경망 어긋남의 약 10%으로 둔다:
 
-1. Train baseline model (RNN)
-2. Measure baseline error σ_baseline
-3. Set Neural ODE tolerance TOL = 0.1 × σ_baseline
+1. 바탕선 모델(되돌이 신경망)을 익힌다
+2. 바탕선 어긋남 σ_baseline을 잰다
+3. 신경 상미분 방정식 허용 오차를 TOL = 0.1 × σ_baseline으로 둔다
 
-**Conservative**: TOL = 1e-6 to 1e-5 (always accurate)
-**Moderate**: TOL = 1e-4 to 1e-5 (default, good balance)
-**Aggressive**: TOL = 1e-3 to 1e-4 (faster, some accuracy loss)
+**조심스럽게**: TOL = 1e-6에서 1e-5(늘 정확하다)
+**어지간하게**: TOL = 1e-4에서 1e-5(기본, 균형이 좋다)
+**과감하게**: TOL = 1e-3에서 1e-4(더 빠르고 정확도를 얼마간 잃는다)
 
-### Tolerance for Different Tasks
+### 일마다 다른 허용 오차
 
-| Task | Tolerance | Reasoning |
+| 일 | 허용 오차 | 까닭 |
 |------|-----------|-----------|
-| Classification | 1e-3 | Only need correct class |
-| Regression | 1e-4 | Need continuous prediction |
-| Generative | 1e-5 | Subtle distribution changes |
-| Physics-Informed | 1e-6 | Physical accuracy critical |
+| 가름 | 1e-3 | 갈래만 맞으면 된다 |
+| 되돌이 맞춤 | 1e-4 | 이어진 헤아림이 필요하다 |
+| 만들어 내기 | 1e-5 | 분포의 미묘한 바뀜 |
+| 물리를 담은 것 | 1e-6 | 물리 정확도가 결정적이다 |
 
-## Computational Cost Analysis
+## 셈 값 분석
 
-### NFE Comparison
+### 함수 매김 횟수 견주기
 
-Number of Function Evaluations (NFE) during forward+backward pass:
+앞먹임과 뒷먹임 동안의 함수 매김 횟수(NFE):
 
-| Solver | Forward | Backward | Total | Notes |
+| 풀개 | 앞먹임 | 뒷먹임 | 온 횟수 | 비고 |
 |--------|---------|----------|-------|-------|
-| RK4 (fixed 0.01) | 4000 | 8000 | 12000 | Fast, fixed cost |
-| DOP853 (adaptive) | 500 | 1000 | 1500 | Fewer steps, adaptive |
-| CVODE (non-stiff) | 400 | 800 | 1200 | Auto-stepping, efficient |
-| Implicit RK | 200 | 400 | 600 | High per-step cost |
+| RK4(붙박이 0.01) | 4000 | 8000 | 12000 | 빠르고 비용이 붙박여 있다 |
+| DOP853(맞추어 감) | 500 | 1000 | 1500 | 걸음이 적고 맞추어 간다 |
+| CVODE(뻣뻣하지 않음) | 400 | 800 | 1200 | 저절로 걸음을 잡아 효율 좋다 |
+| 은근한 룽게-쿠타 | 200 | 400 | 600 | 걸음마다 비용이 높다 |
 
-Fewer NFE typically means faster wall-clock time, but per-step cost matters.
+함수 매김 횟수가 적을수록 보통 실제 시간이 빠르지만 걸음마다의 비용도 중요하다.
 
-### Memory Requirements
+### 기억 요구
 
-Checkpoint adjoint vs full storage:
+되짚을 자리 딸림과 모두 담아 두기 견주기:
 
-- **Full Gradient Storage**: O(NFE × d) memory (d = state dimension)
-- **Checkpoint Adjoint**: O(√NFE × d) memory (~50x reduction for NFE=10000)
+- **기울기를 모두 담기**: 기억 O(NFE × d)(d = 상태 차원)
+- **되짚을 자리 딸림**: 기억 O(√NFE × d)(NFE=10000에서 약 50배 줄어듦)
 
-For large models, checkpoint adjoint essential.
+모델이 크면 되짚을 자리 딸림이 꼭 필요하다.
 
-## Numerical Stability Considerations
+## 수치적 안정성에 대한 고려
 
-### Error Accumulation
+### 어긋남 쌓임
 
-Over T units of time with tolerance TOL:
+허용 오차 TOL으로 때 T만큼 지나면:
 
 $$\text{Global Error} \approx C \cdot TOL \cdot T$$
 
-For long integration (T >> 1), error accumulates. Mitigations:
+오래 적분하면(T >> 1) 어긋남이 쌓인다. 누그러뜨리는 법:
 
-1. Use tighter tolerance
-2. Use higher-order solver
-3. Retrain checkpoint every few time units
-4. Use ensemble of solvers
+1. 허용 오차를 더 빡빡하게 한다
+2. 차수가 더 높은 풀개를 쓴다
+3. 몇 때 단위마다 되짚을 자리를 다시 익힌다
+4. 풀개 모듬을 쓴다
 
-### Gradient Stability
+### 기울기 안정성
 
-Adjoint ODE is backward-time problem with potentially different conditioning:
+딸림 상미분 방정식은 조건 상태가 다를 수 있는 거꾸로 된 때의 문제이다:
 
 $$\text{Condition Number (Adjoint)} = \text{Cond}(J_f)^2$$
 
-Poorly conditioned dynamics → unstable gradients. Test with finite differences to verify.
+조건 상태가 나쁜 움직임 → 흔들리는 기울기. 유한 차분으로 시험해 확인하라.
 
-## Solver Comparison: Financial Time Series Example
+## 풀개 견주기: 금융 때 차례 보기
 
-**Task**: Predict 1-hour-ahead stock prices from 24-hour history.
+**일**: 24시간 자취로 1시간 뒤 주가를 헤아린다.
 
-| Solver | MSE | Time | NFE | Memory |
+| 풀개 | 평균 제곱 어긋남 | 시간 | 함수 매김 횟수 | 기억 |
 |--------|-----|------|-----|--------|
-| LSTM | 0.156 | 12.3s | — | 250MB |
-| RK4 (h=0.01) | 0.145 | 8.5s | 24000 | 180MB |
-| DOP853 (1e-4) | 0.142 | 3.2s | 2400 | 120MB |
-| CVODE (1e-4) | 0.143 | 2.8s | 2100 | 110MB |
+| 장단기 기억망 | 0.156 | 12.3초 | — | 250MB |
+| RK4(h=0.01) | 0.145 | 8.5초 | 24000 | 180MB |
+| DOP853(1e-4) | 0.142 | 3.2초 | 2400 | 120MB |
+| CVODE(1e-4) | 0.143 | 2.8초 | 2100 | 110MB |
 
-**Recommendation**: DOP853 with TOL=1e-4 optimal for this application.
+**권함**: 이 쓰임새에는 TOL=1e-4인 DOP853이 가장 좋다.
 
-!!! note "Solver Selection Principle"
-    Default choice: DOP853 adaptive solver with tolerance 1e-4 or 1e-5. This provides good balance of accuracy, efficiency, and robustness. Only deviate for specific requirements: need raw speed → use RK4; need to handle stiffness → use CVODE; need maximum accuracy → use tighter tolerance or implicit method.
+!!! note "풀개 고르기 원리"
+    기본 고르기: 허용 오차 1e-4이나 1e-5인 DOP853 맞추어 가는 풀개. 정확도, 효율, 튼튼함의 균형이 좋다. 특별한 요구가 있을 때만 벗어난다. 순수한 빠르기가 필요하면 RK4을, 뻣뻣함을 다루어야 하면 CVODE을, 최대 정확도가 필요하면 더 빡빡한 허용 오차나 은근한 방법을 쓴다.
 
+## 연습문제
+
+**연습문제 1.**
+$y(0) = 0$인 뻣뻣한 상미분 방정식 $dy/dt = -1000y + 3000 - 2000e^{-t}$에서 오일러, RK4, 도맨드-프린스 풀개를 견주어라. 풀개마다 안정에 필요한 걸음 크기를 구하라.
+
+??? success "연습문제 1 풀이"
+    닫힌 꼴 풀이는 $y(t) = 3 - 0.998e^{-1000t} - 2.002e^{-t}$이다. 오일러는 안정하려면 $h < 0.002$이어야 하고(고윳값 $-1000$이 $|1 + h\lambda| < 1$을 요구한다) 약 500걸음이 든다. RK4은 안정 자리가 더 넓지만 여전히 $h < 0.0028$이 필요해 약 360걸음이 든다. 맞추어 가는 도맨드-프린스는 $t=0$ 언저리의 빠른 과도 현상을 알아채 그곳에서는 아주 작은 걸음을, 지수가 사그라진 뒤에는 큰 걸음을 써서 함수 매김이 모두 50~100번쯤 든다. 뻣뻣한 계에는 은근한 풀개를 즐겨 쓴다. $\square$
+
+---
+
+**연습문제 2.**
+2차 룽게-쿠타 방법의 차수 조건을 이끌어 내고 중점 방법과 호인 방법이 그 특별한 경우임을 짚어라.
+
+??? success "연습문제 2 풀이"
+    일반적인 두 단계 룽게-쿠타 방법은 $k_1 = f(t_n, y_n)$, $k_2 = f(t_n + c_2 h, y_n + a_{21}h k_1)$, $y_{n+1} = y_n + h(b_1 k_1 + b_2 k_2)$이다. 테일러 펼침에서 $a_{21} = c_2$일 때 $b_1 + b_2 = 1$과 $b_2 c_2 = 1/2$이라는 조건이 나온다. 자유 매개변수 $c_2$이 $b_2 = 1/(2c_2)$을 준다. 중점 방법($c_2 = 1/2$, $b_1 = 0$, $b_2 = 1$)과 호인 방법($c_2 = 1$, $b_1 = b_2 = 1/2$)이 특별한 경우이다. $\square$
+
+---
+
+**연습문제 3.**
+맞추어 가는 걸음 크기 다스리기가 신경 상미분 방정식에 꼭 필요한 까닭과 익히는 동안 붙박이 걸음 크기를 쓰면 어떻게 되는지 밝혀라.
+
+??? success "연습문제 3 풀이"
+    맞추어 가는 다스리기는 그 자리의 자름 어긋남을 어림해 허용 오차를 지키도록 걸음 크기를 맞춘다. 신경 상미분 방정식에서 이것이 꼭 필요한 까닭은 (1) 배운 움직임 $f_\theta$이 익히는 동안 바뀌고, (2) 자취의 자리마다 매끄러움이 다르며, (3) 알맞은 걸음 크기를 미리 알 수 없기 때문이다. 붙박이 걸음 크기는 매끄러운 자리에서 셈을 낭비하거나 빠르게 바뀌는 자리에서 부정확한 풀이를 내며, 매개변수가 고쳐질수록 알맞은 붙박이 크기가 예측할 수 없게 바뀐다. $\square$
+
+---
+
+**연습문제 4.**
+때 차례 내다보기에 쓰는 신경 상미분 방정식의 가장 좋은 풀개를 고르는 견줌 시험을 짜라. 잣대, 풀개, 절차를 밝혀라.
+
+??? success "연습문제 4 풀이"
+    잣대: 한 바퀴마다 실제 시간, 함수 매김 횟수(NFE), 시험 손실, 익히는 동안 함수 매김 횟수의 자람. 풀개: 오일러, RK4, 도맨드-프린스, 은근한 애덤스. 절차: 같은 얼개를 풀개마다 여러 허용 오차(맞추어 감)나 걸음 크기(붙박이)로 익힌다. 10바퀴마다 잣대를 적고 정확도 대 셈량의 파레토 경계를 그린 뒤 바라는 맞바꿈에 가장 가까운 풀개를 고른다. 튼튼함을 위해 자료 묶음 3개에서 되풀이한다. $\square$

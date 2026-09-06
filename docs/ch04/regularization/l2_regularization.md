@@ -1,208 +1,167 @@
-# L2 Regularization (Ridge)
+# L2 정칙화 (능선)
+## 개요
 
+능선 회귀 또는 가중치 감쇠라고도 하는 L2 정칙화는 모델 가중치의 크기의 제곱에 비례하는 벌점을 손실 함수에 더한다. L1 정칙화와 달리 L2는 작지만 영이 아닌 가중치를 이끌어 내며, 그 결과 어느 한 가중치도 지나치게 커지지 않는 매끄러운 가중치 분포를 얻는다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 수학적 정식화
 
-## Overview
+### L2 벌점을 더한 표준 손실
 
-L2 regularization, also known as Ridge regression or weight decay, adds a penalty proportional to the squared magnitude of model weights to the loss function. Unlike L1 regularization, L2 encourages small but non-zero weights, resulting in smooth weight distributions that prevent any single weight from becoming too large.
-
-## Mathematical Formulation
-
-### Standard Loss with L2 Penalty
-
-For a loss function $\mathcal{L}(\theta)$ with parameters $\theta = \{w_1, w_2, \ldots, w_n\}$, L2 regularization modifies the objective:
+매개변수가 $\theta = \{w_1, w_2, \ldots, w_n\}$인 손실 함수 $\mathcal{L}(\theta)$에 대해 L2 정칙화는 목적 함수를 다음과 같이 바꾼다.
 
 $$
-
 \mathcal{L}_{\text{L2}}(\theta) = \mathcal{L}(\theta) + \lambda \sum_{i=1}^{n} w_i^2
-
 $$
 
-Equivalently, using vector notation with the squared L2 norm:
+동등하게, L2 노름의 제곱을 쓰는 벡터 표기로 다음과 같다.
 
 $$
-
 \mathcal{L}_{\text{L2}}(\theta) = \mathcal{L}(\theta) + \lambda \|w\|_2^2
-
 $$
 
-where:
+여기서 각 기호는 다음과 같다.
 
-- $\mathcal{L}(\theta)$ is the original loss function
-- $\lambda \geq 0$ is the regularization strength
-- $\|w\|_2^2 = w^T w = \sum_{i=1}^{n} w_i^2$ is the squared L2 norm
+- $\mathcal{L}(\theta)$은 원래의 손실 함수이다
+- $\lambda \geq 0$은 정칙화의 강도이다
+- $\|w\|_2^2 = w^T w = \sum_{i=1}^{n} w_i^2$은 L2 노름의 제곱이다
 
-### Linear Regression with L2 (Ridge Regression)
+### L2를 쓰는 선형 회귀 (능선 회귀)
 
-For linear regression with design matrix $X \in \mathbb{R}^{m \times n}$, target $y \in \mathbb{R}^m$, and weights $w \in \mathbb{R}^n$:
+설계 행렬 $X \in \mathbb{R}^{m \times n}$, 목표 $y \in \mathbb{R}^m$, 가중치 $w \in \mathbb{R}^n$인 선형 회귀에 대해 다음이 성립한다.
 
 $$
-
 \mathcal{L}_{\text{Ridge}}(w) = \frac{1}{2m} \|Xw - y\|_2^2 + \lambda \|w\|_2^2
-
 $$
 
-Expanding:
+펼치면 다음과 같다.
 
 $$
-
 \mathcal{L}_{\text{Ridge}}(w) = \frac{1}{2m} (Xw - y)^T(Xw - y) + \lambda w^T w
-
 $$
 
-### Gradient Derivation
+### 기울기의 유도
 
-The L2 penalty is differentiable everywhere:
+L2 벌점은 어디서나 미분 가능하다.
 
 $$
-
 \frac{\partial}{\partial w_i} \left( \lambda \sum_{j=1}^{n} w_j^2 \right) = 2\lambda w_i
-
 $$
 
-In vector form:
+벡터 형태로는 다음과 같다.
 
 $$
-
 \nabla_w \left( \lambda \|w\|_2^2 \right) = 2\lambda w
-
 $$
 
-The full gradient for L2-regularized loss:
+L2 정칙화된 손실의 전체 기울기는 다음과 같다.
 
 $$
-
 \nabla_w \mathcal{L}_{\text{L2}} = \nabla_w \mathcal{L} + 2\lambda w
-
 $$
 
-### Closed-Form Solution for Ridge Regression
+### 능선 회귀의 닫힌 형태 해
 
-Setting the gradient to zero:
+기울기를 영으로 놓으면 다음과 같다.
 
 $$
-
 \nabla_w \mathcal{L}_{\text{Ridge}} = \frac{1}{m} X^T(Xw - y) + 2\lambda w = 0
-
 $$
 
-Solving for $w$:
+$w$에 대해 풀면 다음과 같다.
 
 $$
-
 \frac{1}{m} X^T X w + 2\lambda w = \frac{1}{m} X^T y
-
 $$
 
 $$
-
 \left( \frac{1}{m} X^T X + 2\lambda I \right) w = \frac{1}{m} X^T y
-
 $$
 
 $$
-
 w^* = \left( X^T X + 2m\lambda I \right)^{-1} X^T y
-
 $$
 
-**Key insight**: The term $2m\lambda I$ ensures the matrix is always invertible, even when $X^T X$ is singular (e.g., when $n > m$).
+**핵심**: 항 $2m\lambda I$은 $X^T X$이 특이행렬일 때에도(예: $n > m$일 때) 행렬이 언제나 가역이 되도록 보장한다.
 
-## Geometric Interpretation
+## 기하학적 해석
 
-### Constraint Region
+### 제약 영역
 
-L2 regularization is equivalent to constrained optimization with an L2 ball:
+L2 정칙화는 L2 공 제약을 갖는 제약 최적화와 동등하다.
 
 $$
-
 \min_w \mathcal{L}(w) \quad \text{subject to} \quad \|w\|_2^2 \leq t
-
 $$
 
-The L2 ball in 2D is a circle:
+2차원에서 L2 공은 원이다.
 
 $$
-
 \|w\|_2^2 = w_1^2 + w_2^2 \leq t
-
 $$
 
-### Why L2 Shrinks but Doesn't Sparsify
+### L2가 수축시키되 희소하게 만들지는 않는 이유
 
-The circular constraint region has no corners. The loss function's contours typically intersect the circle at a point where both coordinates are non-zero. This results in:
+원형의 제약 영역에는 모서리가 없다. 손실 함수의 등고선은 보통 두 좌표가 모두 영이 아닌 점에서 원과 만난다. 그 결과는 다음과 같다.
 
-- All weights being shrunk toward zero
-- But rarely exactly zero
-- Smooth, continuous weight distributions
+- 모든 가중치가 영 쪽으로 수축한다
+- 그러나 정확히 영이 되는 일은 드물다
+- 매끄럽고 연속적인 가중치 분포를 얻는다
 
-### Bayesian Interpretation
+### 베이즈적 해석
 
-L2 regularization corresponds to a **Gaussian prior** on the weights:
+L2 정칙화는 가중치에 대한 **정규 사전분포**에 대응한다.
 
 $$
-
 p(w) = \mathcal{N}(0, \sigma^2 I)
-
 $$
 
-The regularization strength relates to the prior variance:
+정칙화의 강도는 사전분포의 분산과 다음 관계에 있다.
 
 $$
-
 \lambda = \frac{1}{2\sigma^2}
-
 $$
 
-**MAP estimation** with this prior gives the Ridge solution:
+이 사전분포를 쓰는 **MAP 추정**은 능선 회귀의 해를 준다.
 
 $$
-
 w_{\text{MAP}} = \arg\max_w \left[ \log p(y|X, w) + \log p(w) \right]
-
 $$
 
-## Weight Decay Interpretation
+## 가중치 감쇠로서의 해석
 
-### Connection to Gradient Descent
+### 경사 하강법과의 관계
 
-In gradient descent, the L2 penalty adds a term that shrinks weights at each step:
+경사 하강법에서 L2 벌점은 매 단계 가중치를 수축시키는 항을 더한다.
 
 $$
-
 w_{t+1} = w_t - \eta \nabla_w \mathcal{L} - 2\eta\lambda w_t
-
 $$
 
-Rearranging:
+정리하면 다음과 같다.
 
 $$
-
 w_{t+1} = (1 - 2\eta\lambda) w_t - \eta \nabla_w \mathcal{L}
-
 $$
 
-The factor $(1 - 2\eta\lambda)$ multiplies the current weights, causing them to **decay** toward zero at each step. This is why L2 regularization is often called **weight decay**.
+인수 $(1 - 2\eta\lambda)$이 현재 가중치에 곱해져 매 단계 가중치를 영 쪽으로 **감쇠**시킨다. 이것이 L2 정칙화를 흔히 **가중치 감쇠**라 부르는 까닭이다.
 
-### AdamW: Decoupled Weight Decay
+### AdamW: 분리된 가중치 감쇠
 
-Standard Adam with L2 regularization doesn't perfectly decouple the adaptive learning rate from weight decay. AdamW fixes this:
+L2 정칙화를 쓰는 표준 Adam은 적응형 학습률과 가중치 감쇠를 완전히 분리하지 못한다. AdamW가 이를 바로잡는다.
 
 ```python
-# Standard Adam with L2 (not ideal)
+# L2를 쓰는 표준 Adam (이상적이지 않다)
 gradient = grad + 2 * lambda * w
-# The regularization term gets scaled by adaptive lr
+# 정칙화 항이 적응형 학습률로 배율 조정된다
 
-# AdamW (proper weight decay)
+# AdamW (제대로 된 가중치 감쇠)
 w = w - lr * adam_step(grad) - lr * lambda * w
-# Weight decay applied directly, not through gradient
+# 기울기를 거치지 않고 가중치 감쇠를 직접 적용한다
 ```
 
-## PyTorch Implementation
+## PyTorch 구현
 
-### Manual L2 Regularization
+### L2 정칙화 직접 구현하기
 
 ```python
 import torch
@@ -211,23 +170,22 @@ import torch.optim as optim
 
 def l2_regularization(model: nn.Module, lambda_l2: float) -> torch.Tensor:
     """
-    Compute L2 regularization penalty.
+    L2 정칙화의 벌점을 계산한다.
     
-    Args:
-        model: Neural network model
-        lambda_l2: Regularization strength
+    인수:
+        model: 신경망 모델
+        lambda_l2: 정칙화의 강도
         
-    Returns:
-        L2 penalty term (squared L2 norm of weights)
+    반환값:
+        L2 벌점 항 (가중치의 L2 노름의 제곱)
     """
     l2_penalty = torch.tensor(0., device=next(model.parameters()).device)
     for param in model.parameters():
         l2_penalty = l2_penalty + torch.sum(param ** 2)
     return lambda_l2 * l2_penalty
 
-
 class L2RegularizedModel(nn.Module):
-    """Model with built-in L2 regularization computation."""
+    """L2 정칙화 계산이 내장된 모델."""
     
     def __init__(self, input_dim, hidden_dims, output_dim):
         super().__init__()
@@ -248,39 +206,37 @@ class L2RegularizedModel(nn.Module):
         return self.network(x)
     
     def l2_penalty(self, lambda_l2=0.01):
-        """Compute L2 penalty for all parameters."""
+        """모든 매개변수에 대한 L2 벌점을 계산한다."""
         penalty = 0
         for param in self.parameters():
             penalty += torch.sum(param ** 2)
         return lambda_l2 * penalty
 ```
 
-### Using Optimizer's weight_decay Parameter
+### 최적화기의 weight_decay 매개변수 쓰기
 
-PyTorch optimizers have built-in weight decay:
+PyTorch의 최적화기에는 가중치 감쇠가 내장되어 있다.
 
 ```python
-# SGD with weight decay (implements L2 regularization)
+# 가중치 감쇠를 쓰는 SGD (L2 정칙화를 구현한다)
 optimizer = optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
 
-# Adam with weight decay
+# 가중치 감쇠를 쓰는 Adam
 optimizer = optim.Adam(model.parameters(), lr=0.001, weight_decay=0.01)
 
-# AdamW - proper decoupled weight decay (recommended)
+# AdamW - 제대로 분리된 가중치 감쇠 (권장)
 optimizer = optim.AdamW(model.parameters(), lr=0.001, weight_decay=0.01)
 ```
 
-**Note**: The `weight_decay` parameter implements weight decay as:
+**참고**: `weight_decay` 매개변수는 가중치 감쇠를 다음과 같이 구현한다.
 
 $$
-
 w_{t+1} = w_t - \eta \nabla \mathcal{L} - \eta \cdot \text{weight\_decay} \cdot w_t
-
 $$
 
-This is equivalent to L2 with $\lambda = \text{weight\_decay} / 2$ in the loss formulation.
+이는 손실 식에서 $\lambda = \text{weight\_decay} / 2$인 L2와 동등하다.
 
-### Complete Training Loop with L2
+### L2를 쓰는 완전한 학습 루프
 
 ```python
 import torch
@@ -299,35 +255,35 @@ def train_with_l2_regularization(
     use_adamw: bool = True
 ) -> dict:
     """
-    Train model with L2 regularization.
+    L2 정칙화로 모델을 학습시킨다.
     
-    Args:
-        model: Neural network
-        train_loader: Training data
-        val_loader: Validation data
-        lambda_l2: L2 regularization strength
-        epochs: Number of epochs
-        lr: Learning rate
-        use_adamw: Whether to use AdamW (True) or manual L2 (False)
+    인수:
+        model: 신경망
+        train_loader: 학습 데이터
+        val_loader: 검증 데이터
+        lambda_l2: L2 정칙화의 강도
+        epochs: 에포크 수
+        lr: 학습률
+        use_adamw: AdamW를 쓸지(True) 직접 L2를 더할지(False)
         
-    Returns:
-        Training history
+    반환값:
+        학습 이력
     """
     criterion = nn.MSELoss()
     
     if use_adamw:
-        # Use optimizer's built-in weight decay
+        # 최적화기에 내장된 가중치 감쇠 쓰기
         optimizer = optim.AdamW(model.parameters(), lr=lr, weight_decay=2*lambda_l2)
         manual_l2 = False
     else:
-        # Manual L2 regularization
+        # L2 정칙화 직접 구현
         optimizer = optim.Adam(model.parameters(), lr=lr)
         manual_l2 = True
     
     history = {'train_loss': [], 'val_loss': [], 'weight_norm': []}
     
     for epoch in range(epochs):
-        # Training phase
+        # 학습 단계
         model.train()
         train_loss = 0
         for X_batch, y_batch in train_loader:
@@ -346,7 +302,7 @@ def train_with_l2_regularization(
             optimizer.step()
             train_loss += loss.item()
         
-        # Validation phase
+        # 검증 단계
         model.eval()
         val_loss = 0
         with torch.no_grad():
@@ -354,7 +310,7 @@ def train_with_l2_regularization(
                 predictions = model(X_batch)
                 val_loss += criterion(predictions, y_batch).item()
         
-        # Compute weight statistics
+        # 가중치 통계 계산
         total_norm = sum(p.norm().item() ** 2 for p in model.parameters()) ** 0.5
         
         history['train_loss'].append(train_loss / len(train_loader))
@@ -368,23 +324,23 @@ def train_with_l2_regularization(
     return history
 ```
 
-### Selective L2 Regularization
+### 선택적 L2 정칙화
 
-Apply different regularization strengths to different layers:
+층마다 서로 다른 정칙화 강도를 적용한다.
 
 ```python
 def create_param_groups_with_l2(model, base_lr=0.001, 
                                  layer_decay_rates=None):
     """
-    Create parameter groups with layer-specific L2 regularization.
+    층마다 다른 L2 정칙화를 갖는 매개변수 묶음을 만든다.
     
-    Args:
-        model: Neural network
-        base_lr: Base learning rate
-        layer_decay_rates: Dict mapping layer names to weight decay values
+    인수:
+        model: 신경망
+        base_lr: 기본 학습률
+        layer_decay_rates: 층 이름을 가중치 감쇠 값에 대응시키는 사전
         
-    Returns:
-        List of parameter groups for optimizer
+    반환값:
+        최적화기를 위한 매개변수 묶음의 목록
     """
     if layer_decay_rates is None:
         layer_decay_rates = {}
@@ -395,14 +351,14 @@ def create_param_groups_with_l2(model, base_lr=0.001,
         if not param.requires_grad:
             continue
         
-        # Find matching layer decay rate
-        weight_decay = 0.01  # default
+        # 층에 맞는 감쇠율 찾기
+        weight_decay = 0.01  # 기본값
         for layer_name, decay in layer_decay_rates.items():
             if layer_name in name:
                 weight_decay = decay
                 break
         
-        # Don't regularize biases (common practice)
+        # 편향은 정칙화하지 않는다 (흔한 관행)
         if 'bias' in name:
             weight_decay = 0.0
         
@@ -414,22 +370,21 @@ def create_param_groups_with_l2(model, base_lr=0.001,
     
     return param_groups
 
-
-# Example usage
+# 사용 예
 model = L2RegularizedModel(input_dim=20, hidden_dims=[128, 64], output_dim=1)
 
-# Different regularization for different layers
+# 층마다 다른 정칙화
 layer_decays = {
-    'network.0': 0.001,  # First layer: light regularization
-    'network.2': 0.01,   # Second layer: medium regularization
-    'network.4': 0.1,    # Output layer: heavy regularization
+    'network.0': 0.001,  # 첫 층: 가벼운 정칙화
+    'network.2': 0.01,   # 둘째 층: 중간 정칙화
+    'network.4': 0.1,    # 출력층: 강한 정칙화
 }
 
 param_groups = create_param_groups_with_l2(model, layer_decay_rates=layer_decays)
 optimizer = optim.AdamW(param_groups)
 ```
 
-## Scikit-learn Implementation
+## scikit-learn 구현
 
 ```python
 from sklearn.linear_model import Ridge, RidgeCV
@@ -438,24 +393,24 @@ import numpy as np
 
 def ridge_regression_analysis(X, y, alphas=None):
     """
-    Analyze Ridge regression across different regularization strengths.
+    정칙화의 강도를 달리하며 능선 회귀를 분석한다.
     
-    Args:
-        X: Feature matrix
-        y: Target vector
-        alphas: Regularization values to try
+    인수:
+        X: 특징 행렬
+        y: 목표 벡터
+        alphas: 시도해 볼 정칙화 값
         
-    Returns:
-        Optimal model and analysis results
+    반환값:
+        최적 모델과 분석 결과
     """
-    # Standardize features
+    # 특징을 표준화한다
     scaler = StandardScaler()
     X_scaled = scaler.fit_transform(X)
     
     if alphas is None:
         alphas = np.logspace(-4, 4, 50)
     
-    # Cross-validation to find optimal alpha
+    # 최적 alpha를 찾기 위한 교차 검증
     ridge_cv = RidgeCV(alphas=alphas, cv=5, scoring='neg_mean_squared_error')
     ridge_cv.fit(X_scaled, y)
     
@@ -466,9 +421,8 @@ def ridge_regression_analysis(X, y, alphas=None):
     
     return ridge_cv, scaler
 
-
 def plot_ridge_coefficients(X, y, alphas):
-    """Visualize how coefficients change with regularization strength."""
+    """정칙화의 강도에 따라 계수가 어떻게 바뀌는지 시각화한다."""
     import matplotlib.pyplot as plt
     
     scaler = StandardScaler()
@@ -496,98 +450,92 @@ def plot_ridge_coefficients(X, y, alphas):
     return coefs
 ```
 
-## Singular Value Decomposition Perspective
+## 특잇값 분해의 관점
 
-Ridge regression has an elegant interpretation via SVD. If $X = U \Sigma V^T$, then:
+능선 회귀는 SVD를 통해 우아하게 해석된다. $X = U \Sigma V^T$이면 다음과 같다.
 
 $$
-
 w_{\text{Ridge}} = V D_\lambda \Sigma^{-1} U^T y
-
 $$
 
-where $D_\lambda$ is a diagonal matrix with entries:
+여기서 $D_\lambda$은 성분이 다음과 같은 대각행렬이다.
 
 $$
-
 d_i = \frac{\sigma_i^2}{\sigma_i^2 + \lambda}
-
 $$
 
-**Interpretation**: Ridge shrinks coefficients in directions of small singular values more aggressively. This prevents overfitting on noisy directions while preserving signal in strong directions.
+**해석**: 능선 회귀는 특잇값이 작은 방향의 계수를 더 세게 수축시킨다. 이는 강한 방향의 신호는 지키면서 잡음이 많은 방향에서의 과적합을 막는다.
 
 ```python
 def ridge_via_svd(X, y, lambda_reg):
     """
-    Compute Ridge solution using SVD.
+    SVD로 능선 회귀의 해를 계산한다.
     
-    This reveals how Ridge shrinks along different
-    singular value directions.
+    이는 능선 회귀가 특잇값 방향마다 어떻게
+    수축시키는지 드러낸다.
     """
     U, s, Vt = np.linalg.svd(X, full_matrices=False)
     V = Vt.T
     
-    # Shrinkage factors
+    # 수축 인수
     d = s ** 2 / (s ** 2 + lambda_reg)
     
-    # Ridge solution
+    # 능선 회귀의 해
     w_ridge = V @ np.diag(d / s) @ U.T @ y
     
     return w_ridge, d, s
 ```
 
-## Effective Degrees of Freedom
+## 실효 자유도
 
-Ridge regression has effective degrees of freedom:
+능선 회귀의 실효 자유도는 다음과 같다.
 
 $$
-
 \text{df}_\lambda = \sum_{i=1}^{n} \frac{\sigma_i^2}{\sigma_i^2 + \lambda} = \text{tr}(X(X^TX + \lambda I)^{-1}X^T)
-
 $$
 
-This measures model complexity: as $\lambda \to 0$, $\text{df} \to n$ (OLS); as $\lambda \to \infty$, $\text{df} \to 0$.
+이는 모델의 복잡도를 잰다. $\lambda \to 0$이면 $\text{df} \to n$(보통최소제곱), $\lambda \to \infty$이면 $\text{df} \to 0$이다.
 
-## Comparison: L2 vs L1
+## 비교: L2와 L1
 
-| Aspect | L2 (Ridge) | L1 (Lasso) |
+| 항목 | L2 (능선) | L1 (라쏘) |
 |--------|------------|------------|
-| Penalty | $\lambda \sum w_i^2$ | $\lambda \sum \|w_i\|$ |
-| Constraint shape | Circle/Sphere | Diamond/Cross-polytope |
-| Sparse solutions | No | Yes |
-| Closed-form | Yes | No |
-| Differentiable | Yes | No (at 0) |
-| Correlated features | Shares weight equally | Selects one |
-| Bayesian prior | Gaussian | Laplace |
+| 벌점 | $\lambda \sum w_i^2$ | $\lambda \sum \|w_i\|$ |
+| 제약의 모양 | 원/구 | 마름모/교차다포체 |
+| 희소한 해 | 아니다 | 그렇다 |
+| 닫힌 형태 | 있음 | 없음 |
+| 미분 가능 | 그렇다 | 아니다 (0에서) |
+| 상관된 특징 | 가중치를 고르게 나눈다 | 하나를 고른다 |
+| 베이즈 사전분포 | 정규분포 | 라플라스분포 |
 
-## When to Use L2 Regularization
+## L2 정칙화를 쓸 때
 
-### Good Use Cases
+### 알맞은 쓰임새
 
-1. **Prevent large weights**: When extreme weights cause instability
-2. **Correlated features**: L2 handles multicollinearity gracefully
-3. **All features relevant**: When you believe all features contribute
-4. **Numerical stability**: Adding $\lambda I$ ensures invertibility
-5. **Deep learning**: Standard regularization for neural networks
+1. **큰 가중치를 막을 때**: 극단적인 가중치가 불안정을 일으킬 때
+2. **상관된 특징**: L2는 다중공선성을 매끄럽게 다룬다
+3. **모든 특징이 유의미할 때**: 모든 특징이 기여한다고 믿을 때
+4. **수치적 안정성**: $\lambda I$을 더하면 가역성이 보장된다
+5. **딥러닝**: 신경망의 표준 정칙화 방법이다
 
-### Hyperparameter Selection
+### 초매개변수 선택
 
 ```python
 from sklearn.model_selection import GridSearchCV
 
 def select_optimal_l2(model_class, X, y, param_grid, cv=5):
     """
-    Select optimal L2 regularization strength via grid search.
+    격자 탐색으로 최적의 L2 정칙화 강도를 고른다.
     
-    Args:
-        model_class: Model class (e.g., Ridge)
-        X: Features
-        y: Targets
-        param_grid: Parameter grid (e.g., {'alpha': [0.01, 0.1, 1.0]})
-        cv: Cross-validation folds
+    인수:
+        model_class: 모델 클래스 (예: Ridge)
+        X: 특징
+        y: 목푯값
+        param_grid: 매개변수 격자 (예: {'alpha': [0.01, 0.1, 1.0]})
+        cv: 교차 검증의 겹 수
         
-    Returns:
-        Best model and search results
+    반환값:
+        가장 좋은 모델과 탐색 결과
     """
     grid_search = GridSearchCV(
         model_class(),
@@ -604,47 +552,87 @@ def select_optimal_l2(model_class, X, y, param_grid, cv=5):
     return grid_search.best_estimator_, grid_search.cv_results_
 ```
 
-## Practical Guidelines
+## 실무 지침
 
-### Regularization Strength Selection
+### 정칙화 강도의 선택
 
-- **Too small ($\lambda \to 0$)**: Behaves like unregularized model, potential overfitting
-- **Too large ($\lambda \to \infty$)**: All weights shrink to zero, underfitting
-- **Optimal**: Balance bias-variance trade-off
+- **너무 작으면($\lambda \to 0$)**: 정칙화하지 않은 모델처럼 행동하여 과적합할 수 있다
+- **너무 크면($\lambda \to \infty$)**: 모든 가중치가 영으로 수축하여 과소적합한다
+- **최적**: 편향-분산 절충의 균형을 맞춘다
 
-### Feature Scaling
+### 특징의 척도 조정
 
-**Always standardize features before applying L2 regularization.** The penalty treats all weights equally, so features with different scales would be penalized unequally.
+**L2 정칙화를 적용하기 전에 언제나 특징을 표준화하라.** 벌점은 모든 가중치를 똑같이 다루므로, 척도가 다른 특징은 불공평하게 벌점을 받게 된다.
 
 ```python
 from sklearn.preprocessing import StandardScaler
 from sklearn.pipeline import Pipeline
 from sklearn.linear_model import Ridge
 
-# Correct approach: scale then regularize
+# 옳은 방법: 척도를 맞춘 뒤 정칙화한다
 pipeline = Pipeline([
     ('scaler', StandardScaler()),
     ('ridge', Ridge(alpha=1.0))
 ])
 ```
 
-### Bias Terms
+### 편향 항
 
-**Don't regularize bias terms.** The bias (intercept) shouldn't be penalized as it just shifts predictions:
+**편향 항은 정칙화하지 마라.** 편향(절편)은 예측을 옮길 뿐이므로 벌점을 주지 않아야 한다.
 
 ```python
-# In PyTorch, separate weights and biases
+# PyTorch에서는 가중치와 편향을 나눈다
 def l2_regularization_weights_only(model, lambda_l2):
-    """L2 penalty on weights only, not biases."""
+    """편향은 빼고 가중치에만 적용하는 L2 벌점."""
     penalty = 0
     for name, param in model.named_parameters():
-        if 'weight' in name:  # Only weight matrices
+        if 'weight' in name:  # 가중치 행렬만
             penalty += torch.sum(param ** 2)
     return lambda_l2 * penalty
 ```
 
-## References
+## 참고 문헌
 
 1. Hoerl, A. E., & Kennard, R. W. (1970). Ridge Regression: Biased Estimation for Nonorthogonal Problems. *Technometrics*, 12(1), 55-67.
 2. Hastie, T., Tibshirani, R., & Friedman, J. (2009). *The Elements of Statistical Learning* (2nd ed.). Springer.
 3. Loshchilov, I., & Hutter, F. (2019). Decoupled Weight Decay Regularization. *ICLR 2019*.
+
+## 연습문제
+
+**연습문제 1.**
+L2 정칙화가 SGD에서는 가중치 감쇠와 동등하지만 Adam에서는 그렇지 않음을 보여라.
+
+??? success "연습문제 1 풀이"
+    SGD에서는 $w \leftarrow w - \eta(\nabla L + \lambda w) = (1-\eta\lambda)w - \eta\nabla L$이며, 인수 $(1-\eta\lambda)$이 가중치 감쇠이다. Adam에서는 적응형 학습률 때문에 $\lambda w$도 이차 모멘트 추정값으로 나뉘므로 L2 정칙화와 가중치 감쇠가 동등하지 않게 된다. AdamW가 이를 바로잡는다.
+
+---
+
+**연습문제 2.**
+L2 정칙화를 가중치에 대한 정규 사전분포로 보는 베이즈적 해석을 유도하라.
+
+??? success "연습문제 2 풀이"
+    사전분포 $w \sim \mathcal{N}(0, \sigma_w^2)$을 쓰는 MAP는 $\log p(w|D) \propto \log p(D|w) + \log p(w) = -L(w) - \frac{\|w\|^2}{2\sigma_w^2}$이다. $\lambda = 1/(2\sigma_w^2)$으로 두면 L2 정칙화를 얻는다.
+
+---
+
+**연습문제 3.**
+L2 정칙화가 가중치를 영 쪽으로 수축시키되 결코 정확히 영으로 만들지 않는 이유를 기하적으로 설명하라.
+
+??? success "연습문제 3 풀이"
+    L2의 제약 영역은 구이다. $\|w\|^2$의 기울기는 $2w$으로 언제나 반지름 방향 바깥을 가리킨다. 벌점은 $w$에 비례하여 영 쪽으로 향하는 연속적인 힘을 만들지만, 이 힘은 $w \to 0$일 때 사라지므로 가중치는 영에 점근적으로 다가갈 뿐 결코 닿지 않는다.
+
+---
+
+**연습문제 4.**
+PyTorch에서 `weight_decay` 매개변수를 쓰는 방법과 벌점을 직접 더하는 방법 모두로 L2 정칙화를 구현하라.
+
+??? success "연습문제 4 풀이"
+    ```python
+    # 방법 1: weight_decay
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.01, weight_decay=0.01)
+    # 방법 2: 직접 구현
+    loss = criterion(model(x), y)
+    l2_penalty = sum(p.pow(2).sum() for p in model.parameters())
+    loss = loss + 0.01 * l2_penalty
+    loss.backward()
+    ```

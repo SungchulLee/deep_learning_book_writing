@@ -1,174 +1,157 @@
-# Feasibility Check
+# 될 수 있는지 살피기
 
-In the backtracking template, the `is_valid` function is called at every node of
-the state space tree before extending the partial solution.  This **feasibility
-check** is the single most important factor in determining how much of the tree the
-algorithm actually visits.  A fast, tight feasibility check prunes large subtrees
-early; a slow or loose one forces the search to explore nodes that can never lead to
-a solution.  This page examines how to design feasibility checks, analyzes their
-cost, and shows how the same abstract idea specializes to several classic problems.
+되짚기 본에서 `is_valid` 함수는 어중간한 풀이를 넓히기 앞서 상태 공간 나무의 마디마다 불린다. 이 **될 수 있는지 살피기**가 알고리즘이 나무를 얼마나 들르는지 정하는 가장 중요한 요인이다. 빠르고 빡빡하게 살피면 큰 아래 나무를 일찍 쳐 내고, 느리거나 헐겁게 살피면 결코 풀이로 이어질 수 없는 마디까지 살피게 된다. 이 쪽은 될 수 있는지 살피기를 어떻게 짜는지 살피고 그 값을 따지며 같은 생각이 여러 고전 문제에 어떻게 맞춰지는지 보인다.
 
-## Formal Definition
+## 엄밀한 정의
 
-Given a problem with $n$ decisions, let $S_k = (x_1, x_2, \ldots, x_k)$ denote the
-partial solution after $k$ decisions.  A **feasibility function**
+결정이 $n$번인 문제에서 $S_k = (x_1, x_2, \ldots, x_k)$을 $k$번 결정한 뒤의 어중간한 풀이라 하자. **될 수 있는지 함수**
 
 $$
 \text{feasible}: S_k \to \{\text{True},\, \text{False}\}
 $$
 
-returns True exactly when $S_k$ can be extended to at least one complete solution
-$S_n$ that satisfies all problem constraints.
+은 $S_k$을 문제의 모든 제약을 채우는 온전한 풀이 $S_n$ 하나 이상으로 넓힐 수 있을 때 그리고 그때만 참을 돌려준다.
 
-Computing the exact feasibility function is often as hard as solving the problem
-itself.  In practice we use a **necessary condition** — a predicate that returns
-True whenever $S_k$ is extensible, but may also return True for some non-extensible
-partial solutions.  The tighter this necessary condition approximates the true
-feasibility function, the more nodes are pruned.
+정확한 될 수 있는지 함수를 셈하는 것은 흔히 문제를 푸는 것만큼 어렵다. 실전에서는 **필요조건**을 쓴다. 곧 $S_k$을 넓힐 수 있으면 늘 참을 돌려주되 넓힐 수 없는 어중간한 풀이에도 참을 돌려줄 수 있는 술어이다. 이 필요조건이 참된 될 수 있는지 함수에 가까울수록 마디를 더 많이 쳐 낸다.
 
-!!! info "Necessary vs. sufficient conditions"
+!!! info "필요조건과 충분조건"
 
-    A necessary condition that is too weak (always returns True) provides no
-    pruning.  A condition that is too strong (sometimes returns False for
-    extensible partial solutions) is incorrect — it causes the algorithm to miss
-    valid solutions.  The goal is a necessary condition that is as close to
-    sufficient as possible while remaining efficient to evaluate.
+    너무 약한 필요조건(늘 참을 돌려주는 것)은 가지를 전혀 치지 못한다. 너무 센 조건(넓힐 수 있는 어중간한 풀이에 이따금 거짓을 돌려주는 것)은 틀렸다. 알고리즘이 옳은 풀이를 놓치게 하기 때문이다. 목표는 따지기 효율 좋으면서 되도록 충분조건에 가까운 필요조건이다.
 
-## Design Principles
+## 설계 원칙
 
-### Incremental Evaluation
+### 조금씩 따지기
 
-Because the feasibility check is called at every node, its running time multiplies
-the total node count.  The check should therefore be **incremental**: when decision
-$x_k$ is added to $S_{k-1}$, only evaluate constraints involving $x_k$, not all
-constraints from scratch.
+될 수 있는지 살피기가 마디마다 불리므로 그 도는 시간이 전체 마디 수에 곱해진다. 따라서 살피기는 **조금씩** 해야 한다. 곧 결정 $x_k$을 $S_{k-1}$에 더할 때 처음부터 모든 제약을 따지지 말고 $x_k$이 걸린 제약만 따진다.
 
-| Approach | Cost per node | Total for $N$ nodes |
+| 방식 | 마디마다의 값 | 마디 $N$개의 전체 |
 |----------|--------------|---------------------|
-| Full constraint check | $O(k)$ or $O(k^2)$ | $O(N \cdot n^2)$ |
-| Incremental check | $O(1)$ or $O(k)$ | $O(N \cdot n)$ or $O(N)$ |
+| 제약 전부 살피기 | $O(k)$ 또는 $O(k^2)$ | $O(N \cdot n^2)$ |
+| 조금씩 살피기 | $O(1)$ 또는 $O(k)$ | $O(N \cdot n)$ 또는 $O(N)$ |
 
-The incremental approach requires maintaining auxiliary data structures that are
-updated in `make_move` and restored in `undo_move`.
+조금씩 살피려면 `make_move`에서 새로 고치고 `undo_move`에서 되돌리는 딸림 자료 짜임을 두어야 한다.
 
-### Auxiliary Data Structures
+### 딸림 자료 짜임
 
-A well-designed feasibility check often relies on auxiliary state that summarizes
-constraint information:
+잘 짠 될 수 있는지 살피기는 흔히 제약 앎을 간추린 딸림 상태에 기댄다:
 
-- **Conflict counters**: an integer that counts how many constraints are violated.
-  If the counter exceeds zero, the partial solution is infeasible.
-- **Availability sets**: a set (or bitmask) of values still legal for each
-  remaining decision.  If any set becomes empty, the partial solution is infeasible.
-- **Projection arrays**: row, column, or diagonal markers for grid-based problems
-  (e.g., N-Queens).
+- **부딪침 세개**: 어긴 제약이 몇 개인지 세는 정수. 세개가 0을 넘으면 그 어중간한 풀이는 될 수 없다.
+- **쓸 수 있는 모임**: 남은 결정마다 아직 쓸 수 있는 값의 모임(또는 비트 가림막). 어떤 모임이 비면 그 어중간한 풀이는 될 수 없다.
+- **쏘기 배열**: 격자 바탕 문제(예컨대 N-여왕)의 가로줄, 세로줄, 대각선 표시.
 
-These structures must be updated in $O(1)$ during `make_move` and `undo_move` so
-that the per-node feasibility check stays cheap.
+마디마다의 될 수 있는지 살피기가 값싸도록 이 짜임을 `make_move`과 `undo_move`에서 $O(1)$에 새로 고쳐야 한다.
 
-## Problem-Specific Feasibility Checks
+## 문제마다의 될 수 있는지 살피기
 
-### N-Queens
+### N-여왕
 
-**Problem.** Place $n$ queens on an $n \times n$ board so that no two queens share a
-row, column, or diagonal.
+**문제.** 어느 두 여왕도 가로줄, 세로줄, 대각선을 함께 쓰지 않도록 $n \times n$ 판에 여왕 $n$개를 놓아라.
 
-**Decision.** Place one queen per row.  Decision $k$ selects the column $c_k \in
-\{0, 1, \ldots, n-1\}$ for the queen in row $k$.
+**결정.** 가로줄마다 여왕을 하나 놓는다. 결정 $k$은 가로줄 $k$의 여왕이 놓일 세로줄 $c_k \in \{0, 1, \ldots, n-1\}$을 고른다.
 
-**Feasibility check.** After placing the queen in row $k$ at column $c_k$, check:
+**될 수 있는지 살피기.** 가로줄 $k$의 세로줄 $c_k$에 여왕을 놓은 뒤 다음을 살핀다:
 
-1. **Column conflict**: is $c_k$ already used by a queen in rows $0, \ldots, k-1$?
-2. **Diagonal conflict**: does $|c_k - c_j| = |k - j|$ for any $j < k$?
+1. **세로줄 부딪침**: $c_k$을 가로줄 $0, \ldots, k-1$의 여왕이 이미 썼는가?
+2. **대각선 부딪침**: 어떤 $j < k$에 대해 $|c_k - c_j| = |k - j|$인가?
 
-With three Boolean arrays — `col_used[c]`, `diag1_used[k - c + n - 1]`, and
-`diag2_used[k + c]` — each check runs in $O(1)$.
+참거짓 배열 셋 `col_used[c]`, `diag1_used[k - c + n - 1]`, `diag2_used[k + c]`을 쓰면 살피기마다 $O(1)$에 돈다.
 
-### Graph Coloring
+### 그래프 색칠하기
 
-**Problem.** Assign one of $m$ colors to each of $n$ vertices so that no two
-adjacent vertices share the same color.
+**문제.** 이웃한 두 꼭짓점이 같은 색을 갖지 않도록 꼭짓점 $n$개에 색 $m$개 가운데 하나씩 매겨라.
 
-**Feasibility check.** After assigning color $c$ to vertex $v_k$, iterate over
-$v_k$'s neighbors.  If any already-colored neighbor has color $c$, the assignment
-is infeasible.
+**될 수 있는지 살피기.** 꼭짓점 $v_k$에 색 $c$을 매긴 뒤 $v_k$의 이웃을 되풀이한다. 이미 칠한 이웃 가운데 색이 $c$인 것이 있으면 그 매김은 될 수 없다.
 
-With an adjacency list, this check runs in $O(\deg(v_k))$.  To make it $O(1)$,
-maintain a per-vertex set of forbidden colors; when $v_k$ receives color $c$, add $c$
-to the forbidden set of every uncolored neighbor.
+이웃 목록을 쓰면 이 살피기가 $O(\deg(v_k))$에 돈다. $O(1)$으로 만들려면 꼭짓점마다 금지된 색의 모임을 둔다. $v_k$이 색 $c$을 받으면 아직 칠하지 않은 이웃마다 금지 모임에 $c$을 더한다.
 
-### Subset Sum
+### 부분 모임 합
 
-**Problem.** Given a set of positive integers $\{a_1, \ldots, a_n\}$ and a target
-$T$, find a subset whose elements sum to exactly $T$.
+**문제.** 양의 정수 모임 $\{a_1, \ldots, a_n\}$과 목표 $T$이 주어질 때 원소의 합이 정확히 $T$인 부분 모임을 찾아라.
 
-**Feasibility check.** Let $\text{sum}_k$ be the running sum after $k$ decisions.
-Two conditions enable pruning:
+**될 수 있는지 살피기.** $\text{sum}_k$을 $k$번 결정 뒤의 흐르는 합이라 하자. 두 조건에서 가지를 칠 수 있다:
 
-1. **Over-target**: $\text{sum}_k > T$ (prune — adding more positive integers only
-   increases the sum).
-2. **Under-target**: $\text{sum}_k + \sum_{i=k+1}^{n} a_i < T$ (prune — even
-   including all remaining elements cannot reach the target).
+1. **목표 넘음**: $\text{sum}_k > T$(쳐 낸다. 양의 정수를 더 넣으면 합이 커질 뿐이다).
+2. **목표에 못 미침**: $\text{sum}_k + \sum_{i=k+1}^{n} a_i < T$(쳐 낸다. 남은 원소를 모두 넣어도 목표에 이를 수 없다).
 
-Both checks run in $O(1)$ if a precomputed suffix-sum array is maintained.
+뒷합 배열을 미리 셈해 두면 두 살피기 모두 $O(1)$에 돈다.
 
-### Sudoku
+### 스도쿠
 
-**Problem.** Fill a $9 \times 9$ grid so that every row, column, and $3 \times 3$ box
-contains the digits 1 through 9 exactly once.
+**문제.** 가로줄, 세로줄, $3 \times 3$ 상자마다 1부터 9까지 숫자가 꼭 한 번씩 들어가도록 $9 \times 9$ 격자를 채워라.
 
-**Feasibility check.** After placing digit $d$ in cell $(r, c)$, check three
-constraints:
+**될 수 있는지 살피기.** 칸 $(r, c)$에 숫자 $d$을 놓은 뒤 제약 셋을 살핀다:
 
-1. Is $d$ already present in row $r$?
-2. Is $d$ already present in column $c$?
-3. Is $d$ already present in the $3 \times 3$ box containing $(r, c)$?
+1. $d$이 이미 가로줄 $r$에 있는가?
+2. $d$이 이미 세로줄 $c$에 있는가?
+3. $d$이 이미 $(r, c)$이 든 $3 \times 3$ 상자에 있는가?
 
-With three arrays of bitmasks (`row_used[r]`, `col_used[c]`, `box_used[b]`), each
-check is a single bitwise AND in $O(1)$.
+비트 가림막 배열 셋(`row_used[r]`, `col_used[c]`, `box_used[b]`)을 쓰면 살피기마다 $O(1)$의 비트 AND 한 번이다.
 
-## Constraint Propagation
+## 제약 퍼뜨리기
 
-A pure feasibility check asks: "Is the current partial solution still valid?"
-**Constraint propagation** goes further by deducing forced values — decisions that
-are uniquely determined given the current partial solution.  After each move:
+수수한 될 수 있는지 살피기는 "지금 어중간한 풀이가 아직 옳은가?"를 묻는다. **제약 퍼뜨리기**는 한발 더 나아가 지금 어중간한 풀이에서 하나로 정해지는 결정, 곧 정해진 값을 이끌어 낸다. 움직임마다 뒤에:
 
-1. Update the availability sets for all remaining decisions.
-2. If any availability set has exactly one element, that decision is forced —
-   assign it immediately (this is called **unit propagation** in SAT terminology).
-3. If any availability set is empty, prune — the partial solution is infeasible.
+1. 남은 결정 모두의 쓸 수 있는 모임을 새로 고친다.
+2. 어떤 쓸 수 있는 모임의 원소가 딱 하나이면 그 결정은 정해진 것이니 곧바로 매긴다(충족 가능성 용어로 **단위 퍼뜨리기**라 한다).
+3. 어떤 쓸 수 있는 모임이 비면 쳐 낸다. 그 어중간한 풀이는 될 수 없다.
 
-Constraint propagation transforms the feasibility check from a passive filter into an
-active inference engine that can dramatically reduce the branching factor.
+제약 퍼뜨리기는 될 수 있는지 살피기를 가만히 거르는 것에서 갈래 수를 크게 줄이는 능동 추론 기관으로 바꾼다.
 
-!!! tip "Constraint propagation in Sudoku"
+!!! tip "스도쿠의 제약 퍼뜨리기"
 
-    Naked-singles and hidden-singles propagation can solve many Sudoku puzzles
-    without any branching at all.  When branching is needed, propagation after
-    each guess reduces the remaining possibilities so aggressively that even
-    hard puzzles require exploring only a handful of nodes.
+    드러난 홑값과 숨은 홑값 퍼뜨리기만으로도 많은 스도쿠 퍼즐을 가지를 전혀 뻗지 않고 풀 수 있다. 가지를 뻗어야 할 때도 짚어 볼 때마다 퍼뜨리면 남은 가능성이 세게 줄어들어 어려운 퍼즐도 마디 몇 개만 살피면 된다.
 
-## Cost vs. Pruning Power
+## 값과 가지치기 힘
 
-The feasibility check presents a fundamental trade-off:
+될 수 있는지 살피기에는 근본 맞바꿈이 있다:
 
 $$
-\text{Total cost} = (\text{nodes visited}) \times (\text{cost per node})
+\text{전체 값} = (\text{들른 마디 수}) \times (\text{마디마다의 값})
 $$
 
-A more expensive check may prune more nodes, but the per-node overhead grows.  The
-optimal balance depends on the problem:
+더 값비싼 살피기는 마디를 더 많이 쳐 내지만 마디마다의 군더더기가 는다. 가장 좋은 저울질은 문제에 달렸다:
 
-| Check complexity | Pruning power | Best when |
+| 살피기 복잡도 | 가지치기 힘 | 언제 가장 좋은가 |
 |-----------------|---------------|-----------|
-| $O(1)$ | Low–moderate | Branching factor is small; tree is shallow |
-| $O(k)$ | Moderate–high | Each decision interacts with all previous ones |
-| $O(k^2)$ or higher | High | Tight pruning eliminates exponentially many nodes |
+| $O(1)$ | 낮음~가운데 | 갈래 수가 적고 나무가 얕을 때 |
+| $O(k)$ | 가운데~높음 | 결정마다 앞선 결정 모두와 얽힐 때 |
+| $O(k^2)$ 이상 | 높음 | 빡빡한 가지치기가 마디를 지수만큼 없앨 때 |
 
-In practice, start with the cheapest correct check and add more sophisticated tests
-only if profiling shows that the search still visits too many nodes.
+실전에서는 가장 값싼 옳은 살피기로 시작하고, 성능을 재어 보아 찾기가 여전히 마디를 너무 많이 들를 때만 더 정교한 시험을 더한다.
 
-## Reference
+## 참고 문헌
 
-- Skiena, *The Algorithm Design Manual*, Chapter 9: Combinatorial Search,
+- Skiena, *The Algorithm Design Manual*, 9장: Combinatorial Search,
   [algorist.com](https://www.algorist.com/)
+
+## 연습문제
+
+**연습문제 1.**
+될 수 있는지 살피기의 고갱이 생각과 그것이 풀이 공간을 어떻게 짜임새 있게 살피는지 설명하라.
+
+??? success "연습문제 1 풀이"
+    될 수 있는지 살피기은 풀이 공간을 나무로 보고 살피며 마디마다 어중간한 풀이를 뜻한다. 마디마다 알고리즘은 어중간한 풀이를 넓히고 될 수 있는지 제약을 살핀다. 어중간한 풀이가 제약을 어기거나 (가장 좋거나 옳은 온전한 풀이로 이어질 수 없음이 밝혀지면) 알고리즘은 **가지를 쳐**(되짚어) 그 아래 나무 전체를 살피지 않는다. 가지치기가 찾기 공간의 큰 몫을 없애므로 막무가내보다 효율이 좋다. $\square$
+
+---
+
+**연습문제 2.**
+될 수 있는지 살피기의 최악의 경우 시간 복잡도는 무엇인가? 가지치기는 언제 찾기 공간을 크게 줄이는가?
+
+??? success "연습문제 2 풀이"
+    최악의 경우(가지치기가 없으면) 알고리즘이 풀이 공간 전체를 살피며 이는 흔히 지수나 계승이다. 곧 갈래 수가 $b$이고 깊이가 $d$이면 $O(b^d)$, 자리 바꿈 문제이면 $O(n!)$이다. 가지치기는 다음일 때 찾기를 크게 줄인다. (1) 제약이 빡빡해 될 수 없는 갈래가 많을 때, (2) 좋은 묶음이 갈래를 일찍 없앨 때, (3) 차례를 매기는 어림짐작이 그럴듯한 갈래를 먼저 살필 때이다. 실전에서 가지치기는 도는 시간을 자릿수만큼 줄일 수 있다. $\square$
+
+---
+
+**연습문제 3.**
+될 수 있는지 살피기의 가지치기 조건을 적어라. 무엇이 좋은 가지치기 잣대를 만드는가?
+
+??? success "연습문제 3 풀이"
+    가지치기 잣대는 어중간한 풀이를 언제 버릴지 정한다. 좋은 잣대는 다음과 같다. (1) **될 수 있음**: 어중간한 풀이가 이미 제약을 어긴다. (2) **묶음**: 어중간한 풀이를 가장 좋게 마무리해도 여태 가장 좋은 풀이보다 나을 수 없다. (3) **누름**: 다른 어중간한 풀이가 적어도 그만큼 좋음이 밝혀진다. 잘 듣는 가지치기 잣대는 따지기 값싸고 큰 아래 나무를 없앤다. $\square$
+
+---
+
+**연습문제 4.**
+작은 경우에 될 수 있는지 살피기을 짜고 살핀 마디의 수를 전체 찾기 공간의 크기와 견주어 세어라.
+
+??? success "연습문제 4 풀이"
+    작은 경우(예컨대 N-여왕에서 $n = 8$, 배낭에서 담이 20)에는 전체 찾기 공간에 마디가 수백만 개일 수 있지만 가지치기가 잘 들면 수천 개만 살핀다. (살핀 수 / 전체) 비가 가지치기가 얼마나 잘 드는지 값으로 나타낸다. 제약이 잘 걸린 문제에서는 이 비가 1% 아래일 수 있어 되짚기가 막무가내보다 힘이 셈을 보여 준다. $\square$

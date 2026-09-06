@@ -1,112 +1,162 @@
-# Hamiltonian Cycle
+# 해밀턴 돌이
 
-A **Hamiltonian cycle** visits every vertex in a graph exactly once and returns to the starting vertex. Unlike Euler circuits (which visit every *edge* once and are decidable in polynomial time), determining whether a Hamiltonian cycle exists is NP-complete. This contrast highlights how similar-sounding graph problems can differ dramatically in computational difficulty.
+**해밀턴 돌이**는 그래프의 모든 꼭짓점을 꼭 한 번씩 들르고 시작 꼭짓점으로 돌아온다. 모든 *변*을 한 번씩 들르며 다항 시간에 가릴 수 있는 오일러 회로와 달리, 해밀턴 돌이가 있는지 가리는 것은 NP 완전이다. 이 대조는 비슷해 보이는 그래프 문제가 셈의 어려움에서 얼마나 크게 다를 수 있는지 잘 보여 준다.
 
-## Problem Definition
+## 문제의 정의
 
-!!! tip "Definition: Hamiltonian Path and Cycle"
-    Given an undirected graph $G = (V, E)$:
+!!! tip "뜻매김: 해밀턴 길과 돌이"
+    방향 없는 그래프 $G = (V, E)$이 주어질 때:
 
-    - A **Hamiltonian path** is a path that visits every vertex exactly once.
-    - A **Hamiltonian cycle** is a cycle that visits every vertex exactly once (returning to the start).
+    - **해밀턴 길**은 모든 꼭짓점을 꼭 한 번씩 들르는 길이다.
+    - **해밀턴 돌이**는 모든 꼭짓점을 꼭 한 번씩 들르고 시작점으로 돌아오는 돌이이다.
 
-    The **Hamiltonian Cycle (HAM-CYCLE)** problem asks: does $G$ contain a Hamiltonian cycle?
+    **해밀턴 돌이(HAM-CYCLE)** 문제는 묻는다. $G$에 해밀턴 돌이가 있는가?
 
-The directed versions are defined analogously on directed graphs.
+방향 있는 판은 방향 그래프에서 같은 방식으로 뜻매김한다.
 
-## NP-Completeness
+## NP 완전성
 
-!!! tip "Theorem"
-    HAM-CYCLE is NP-complete.
+!!! tip "정리"
+    해밀턴 돌이는 NP 완전이다.
 
-**Membership in NP.** A Hamiltonian cycle is a sequence of $n$ vertices. Verifying that it forms a valid cycle (all vertices appear exactly once, all consecutive pairs are edges) takes $O(n)$ time.
+**NP에 듦.** 해밀턴 돌이는 꼭짓점 $n$개의 차례이다. 그것이 올바른 돌이인지(모든 꼭짓점이 꼭 한 번씩 나오고 잇단 짝이 모두 변인지) 살피는 데 $O(n)$ 시간이 든다.
 
-**NP-Hardness.** We sketch the reduction from **Vertex Cover** to HAM-CYCLE, following the approach in CLRS.
+**NP 어려움.** CLRS의 방식을 따라 **꼭짓점 덮기**에서 해밀턴 돌이로 가는 줄임을 그린다.
 
-### Reduction from Vertex Cover
+### 꼭짓점 덮기에서 줄이기
 
-Given a Vertex Cover instance $(G, k)$ with graph $G = (V, E)$, $|V| = n$, $|E| = m$:
+그래프 $G = (V, E)$, $|V| = n$, $|E| = m$인 꼭짓점 덮기 사례 $(G, k)$이 주어질 때:
 
-1. **Edge gadgets.** For each edge $e = (u, v) \in E$, create a gadget with 12 vertices arranged so that any Hamiltonian cycle must traverse the gadget in a way that "covers" $e$ from either $u$'s side or $v$'s side (or both).
+1. **변 장치.** 변 $e = (u, v) \in E$마다 꼭짓점 12개짜리 장치를 만들되, 어떤 해밀턴 돌이도 $u$ 쪽이나 $v$ 쪽(또는 양쪽)에서 $e$을 "덮는" 방식으로 그 장치를 지나가야 하도록 배치한다.
 
-2. **Vertex chains.** For each vertex $u$, link its edge gadgets into a chain. The chain can be traversed in one direction or the other.
+2. **꼭짓점 사슬.** 꼭짓점 $u$마다 그 변 장치들을 사슬로 잇는다. 사슬은 어느 방향으로든 지날 수 있다.
 
-3. **Selector vertices.** Add $k$ selector vertices $s_1, \ldots, s_k$. Each selector connects to the start and end of every vertex chain.
+3. **고르개 꼭짓점.** 고르개 꼭짓점 $s_1, \ldots, s_k$을 더한다. 고르개마다 모든 꼭짓점 사슬의 처음과 끝에 이어진다.
 
-4. **Hamiltonian cycle exists $\Leftrightarrow$ vertex cover of size $k$ exists.** A Hamiltonian cycle chooses $k$ vertex chains (one per selector), covering all edge gadgets. This corresponds to a vertex cover.
+4. **해밀턴 돌이가 있음 $\Leftrightarrow$ 크기 $k$인 꼭짓점 덮기가 있음.** 해밀턴 돌이는 꼭짓점 사슬 $k$개를(고르개마다 하나씩) 골라 모든 변 장치를 덮는다. 이것이 꼭짓점 덮기에 해당한다.
 
-The construction is polynomial in $|V|$ and $|E|$, completing the reduction. $\square$
+이 세움은 $|V|$과 $|E|$에 대해 다항이며 줄임이 끝난다. $\square$
 
-## Hamiltonian Path
+## 해밀턴 길
 
-The **Hamiltonian Path (HAM-PATH)** problem is also NP-complete. It reduces from HAM-CYCLE: given graph $G$, pick any vertex $v$, split it into $v_{\text{in}}$ and $v_{\text{out}}$, and ask for a Hamiltonian path from $v_{\text{out}}$ to $v_{\text{in}}$.
+**해밀턴 길(HAM-PATH)** 문제도 NP 완전이다. 해밀턴 돌이에서 줄인다. 그래프 $G$이 주어지면 아무 꼭짓점 $v$을 골라 $v_{\text{in}}$과 $v_{\text{out}}$으로 가르고 $v_{\text{out}}$에서 $v_{\text{in}}$까지의 해밀턴 길을 묻는다.
 
-## Relationship to TSP
+## 떠돌이 장수 문제와의 관계
 
-HAM-CYCLE reduces to the decision version of TSP: given a graph $G$, create a complete weighted graph where $w(u,v) = 1$ if $(u,v) \in E$ and $w(u,v) = 2$ otherwise. A Hamiltonian cycle in $G$ exists if and only if the TSP tour of cost $n$ exists.
+해밀턴 돌이는 떠돌이 장수 문제의 가름 판으로 줄여진다. 그래프 $G$이 주어지면 $(u,v) \in E$이면 $w(u,v) = 1$, 그 밖에는 $w(u,v) = 2$인 완전 무게 그래프를 만든다. $G$에 해밀턴 돌이가 있을 필요충분조건은 비용 $n$인 떠돌이 장수 돌이가 있는 것이다.
 
-This reduction also proves that general TSP has no finite approximation ratio (unless P = NP).
+이 줄임은 (P = NP이 아닌 한) 일반 떠돌이 장수 문제에 유한한 어림 비율이 없음도 밝힌다.
 
-## Sufficient Conditions
+## 충분조건
 
-While deciding HAM-CYCLE is hard in general, several sufficient conditions guarantee existence:
+해밀턴 돌이를 가리는 것은 일반으로 어렵지만 몇몇 넉넉 조건이 있음을 보장한다:
 
-!!! tip "Dirac's Theorem (1952)"
-    If $G$ has $n \geq 3$ vertices and every vertex has degree at least $n/2$, then $G$ has a Hamiltonian cycle.
+!!! tip "디랙 정리(1952)"
+    $G$의 꼭짓점이 $n \geq 3$개이고 모든 꼭짓점의 차수가 적어도 $n/2$이면 $G$에 해밀턴 돌이가 있다.
 
-!!! tip "Ore's Theorem (1960)"
-    If $G$ has $n \geq 3$ vertices and for every pair of non-adjacent vertices $u, v$: $\deg(u) + \deg(v) \geq n$, then $G$ has a Hamiltonian cycle.
+!!! tip "오레 정리(1960)"
+    $G$의 꼭짓점이 $n \geq 3$개이고 이웃하지 않은 모든 꼭짓점 짝 $u, v$에 대해 $\deg(u) + \deg(v) \geq n$이면 $G$에 해밀턴 돌이가 있다.
 
-Ore's theorem generalizes Dirac's theorem (Dirac is the special case where each individual degree is $\geq n/2$).
+오레 정리는 디랙 정리를 넓힌 것이다(디랙은 낱낱의 차수가 $\geq n/2$인 특별한 경우이다).
 
-## Special Graph Classes
+## 특별한 그래프 갈래
 
-| Graph Class | HAM-CYCLE Status | Notes |
+| 그래프 갈래 | 해밀턴 돌이 여부 | 비고 |
 |-------------|-----------------|-------|
-| Complete graph $K_n$ ($n \geq 3$) | Always exists | $(n-1)!/2$ distinct cycles |
-| Complete bipartite $K_{n,n}$ | Always exists | Requires equal parts |
-| Hypercube $Q_n$ | Always exists | Gray code traversal |
-| Petersen graph | Does not exist | Classic counterexample |
-| Planar graphs | NP-complete | Remains hard |
-| Grid graphs | NP-complete | Even for subgrids |
+| 완전 그래프 $K_n$($n \geq 3$) | 늘 있다 | 서로 다른 돌이 $(n-1)!/2$개 |
+| 완전 두 쪽 $K_{n,n}$ | 늘 있다 | 양쪽 크기가 같아야 한다 |
+| 초입방체 $Q_n$ | 늘 있다 | 그레이 부호 훑기 |
+| 피터슨 그래프 | 없다 | 고전 반례 |
+| 평면 그래프 | NP 완전 | 여전히 어렵다 |
+| 격자 그래프 | NP 완전 | 부분 격자에서도 그렇다 |
 
-## Algorithms
+## 알고리즘
 
-### Exact Algorithms
+### 정확한 알고리즘
 
-| Algorithm | Time | Space | Notes |
+| 알고리즘 | 시간 | 공간 | 비고 |
 |-----------|------|-------|-------|
-| Brute force | $O(n!)$ | $O(n)$ | Try all permutations |
-| Held-Karp DP | $O(2^n \cdot n^2)$ | $O(2^n \cdot n)$ | Bitmask DP |
-| Inclusion-exclusion | $O(2^n \cdot n^2)$ | $O(n^2)$ | Polynomial space |
+| 막무가내 | $O(n!)$ | $O(n)$ | 모든 자리바꿈을 시험한다 |
+| 헬드-카프 짜 넣기 | $O(2^n \cdot n^2)$ | $O(2^n \cdot n)$ | 비트 가림막 짜 넣기 |
+| 넣고 빼기 | $O(2^n \cdot n^2)$ | $O(n^2)$ | 다항 공간 |
 
-### The Held-Karp Approach
+### 헬드-카프 방식
 
-Define $\text{dp}[S][v]$ = whether there exists a Hamiltonian path visiting exactly the vertices in $S$ and ending at $v$.
+$\text{dp}[S][v]$을 $S$의 꼭짓점만 꼭 들르고 $v$에서 끝나는 해밀턴 길이 있는지로 뜻매김한다.
 
 $$
 \text{dp}[S][v] = \bigvee_{u \in S \setminus \{v\},\; (u,v) \in E} \text{dp}[S \setminus \{v\}][u]
 $$
 
-A Hamiltonian cycle exists if $\text{dp}[V][v] = \text{true}$ for some $v$ adjacent to the start vertex.
+시작 꼭짓점에 이웃한 어떤 $v$에 대해 $\text{dp}[V][v] = \text{true}$이면 해밀턴 돌이가 있다.
 
-??? example "Example: Checking Hamiltonian Cycle"
-    **Graph:** $V = \{1, 2, 3, 4\}$, edges $\{(1,2), (2,3), (3,4), (4,1), (1,3)\}$.
+??? example "보기: 해밀턴 돌이 살피기"
+    **그래프:** $V = \{1, 2, 3, 4\}$, 변 $\{(1,2), (2,3), (3,4), (4,1), (1,3)\}$.
 
-    **Candidate cycle:** $1 \to 2 \to 3 \to 4 \to 1$.
+    **후보 돌이:** $1 \to 2 \to 3 \to 4 \to 1$.
 
-    - $(1,2) \in E$? Yes.
-    - $(2,3) \in E$? Yes.
-    - $(3,4) \in E$? Yes.
-    - $(4,1) \in E$? Yes.
-    - All 4 vertices visited exactly once? Yes.
+    - $(1,2) \in E$인가? 그렇다.
+    - $(2,3) \in E$인가? 그렇다.
+    - $(3,4) \in E$인가? 그렇다.
+    - $(4,1) \in E$인가? 그렇다.
+    - 꼭짓점 4개를 꼭 한 번씩 들렀는가? 그렇다.
 
-    **Valid Hamiltonian cycle.** Another cycle: $1 \to 3 \to 2 \to 4 \to 1$ --- check $(2,4)$: not in $E$. Invalid.
+    **올바른 해밀턴 돌이이다.** 다른 돌이: $1 \to 3 \to 2 \to 4 \to 1$ --- $(2,4)$을 살피면 $E$에 없다. 올바르지 않다.
 
-    Note: the graph has edge $(1,3)$ creating a shortcut, but the only valid Hamiltonian cycle uses the 4-cycle $1 \to 2 \to 3 \to 4 \to 1$.
+    알림: 그래프에 지름길을 만드는 변 $(1,3)$이 있지만 올바른 해밀턴 돌이는 4 돌이 $1 \to 2 \to 3 \to 4 \to 1$뿐이다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Chapter 34.
 - Sipser, M. (2012). *Introduction to the Theory of Computation* (3rd ed.). Cengage Learning.
 - Garey, M. R., & Johnson, D. S. (1979). *Computers and Intractability*. W. H. Freeman.
+
+## 연습문제
+
+**연습문제 1.**
+피터슨 그래프에 해밀턴 돌이가 있는지 가려라. 답을 뒷받침하라.
+
+??? success "연습문제 1 풀이"
+    피터슨 그래프에는 해밀턴 돌이가 없다. 모든 경우를 샅샅이 따져 확인하거나, 피터슨 그래프가 가장 작은 준해밀턴 그래프임을 보면 된다. 해밀턴 돌이는 없지만 아무 꼭짓점 하나를 지우면 해밀턴 그래프가 된다.
+
+    증명 얼개: 피터슨 그래프는 꼭짓점 10개의 3정규 그래프이다. 어떤 해밀턴 돌이도 꼭짓점마다 변을 꼭 2개 쓴다. 바깥 5 돌이에서 바깥 변과 살 변을 번갈아 쓰면 안쪽 오각별의 얼개와 어긋난다. 차근한 경우 따짐이 올바른 해밀턴 돌이가 없음을 확인해 준다.
+
+---
+
+**연습문제 2.**
+해밀턴 돌이 $\leq_p$ 해밀턴 길(방향 없는 그래프에 해밀턴 길이 있는지 가리는 문제)임을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    해밀턴 돌이 사례 $G = (V, E)$이 주어지면 해밀턴 길 사례를 다음과 같이 세운다. 아무 꼭짓점 $v \in V$을 고른다. 새 꼭짓점 $s$과 $t$을 더해 새 그래프 $G'$을 만든다. $s$을 $G$에서 $v$의 모든 이웃에 잇고 $t$을 $v$에 이으며 $G$에서 $v$을 지운다.
+
+    사실 더 간단한 줄임이 있다. 변 $(u, w) \in E$마다 $u$을 $u_{in}$과 $u_{out}$으로 갈라 변을 돌려 길의 끝점을 만들어 $G'$을 세운다. 더 곧바로는 $G$이 주어질 때 꼭짓점 $v$마다 그리고 $v$의 이웃 짝 $a, b$마다 $G - v$에 $a$에서 $b$까지의 해밀턴 길이 있는지 시험한다. 이는 $O(n \cdot \Delta^2)$번 부른다.
+
+    더 간단한 방식: $G$이 주어지면 이웃이 $u_1, \ldots, u_d$인 아무 꼭짓점 $v$을 고른다. 모든 $u_i$에 이웃한 새 꼭짓점 $v'$을 더해 $G$에서 $G'$을 만든다. 그러면 $G$에 해밀턴 돌이가 있을 필요충분조건은 $G'$에 $v$과 $v'$ 사이의 해밀턴 길이 있는 것이다. 이 세움은 다항이다.
+
+---
+
+**연습문제 3.**
+해밀턴 돌이의 헬드-카프 짜 넣기 알고리즘을 적고 그 복잡도를 살펴라.
+
+??? success "연습문제 3 풀이"
+    $dp[S][v]$을 꼭짓점 1에서 시작해 $S$의 꼭짓점만 꼭 들르고 $v \in S$에서 끝나는 길이 있으면 참이라 뜻매김한다.
+
+    바탕 경우: $dp[\{1\}, 1]$ = 참.
+
+    옮김: $dp[S][v]$이 참일 필요충분조건은 변 $(u,v)$이 있고 $dp[S \setminus \{v\}][u]$ = 참인 $u \in S \setminus \{v\}$이 있는 것이다.
+
+    답: $G$에 해밀턴 돌이가 있을 필요충분조건은 $dp[V][v]$ = 참이고 변 $(v, 1) \in E$인 $v \neq 1$이 있는 것이다.
+
+    상태: 부분 모임 $2^n$가지 곱하기 꼭짓점 $n$개 = $O(n \cdot 2^n)$. 상태마다 앞선 것을 $O(n)$개 살핀다. 시간: $O(n^2 \cdot 2^n)$. 공간: $O(n \cdot 2^n)$.
+
+    이는 막무가내 $O(n!)$보다 낫다. $n = 20$에서 $n^2 \cdot 2^n \approx 4 \times 10^8$인 데 견주어 $20! \approx 2.4 \times 10^{18}$이다.
+
+---
+
+**연습문제 4.**
+디랙 정리를 밝혀라. 최소 차수 $\delta(G) \geq n/2$인 꼭짓점 $n \geq 3$개의 모든 단순 그래프에는 해밀턴 돌이가 있다. 왜 이것이 NP 완전성과 어긋나지 않는가?
+
+??? success "연습문제 4 풀이"
+    디랙 정리는 넉넉 조건을 준다. $\delta(G) \geq n/2$이면 해밀턴 돌이가 있다. 그 밝힘은 세워 보이는 방식이다. 가장 긴 길 $P$에서 시작해 그것이 해밀턴이 아니면 차수 조건이 $P$을 늘리거나 돌이로 닫는 "돌림"을 낳아 결국 모든 꼭짓점을 들른다.
+
+    이는 NP 완전성과 어긋나지 않는다. (1) 이 정리는 $\delta(G) \geq n/2$을 만족하는 빽빽한 그래프에만 쓰이며 이는 제한된 갈래이다. (2) NP 완전성은 가장 나쁜 경우의 사례에 대한 것이고 문제가 어려운 성긴 그래프는 디랙 조건을 만족하지 않는다. (3) 그래프가 $\delta(G) \geq n/2$을 만족하는지 살피는 것은 하찮으며($O(n + m)$) 그런 그래프에서는 답이 늘 "예"이므로 찾을 것이 없다. NP 어려움 사례는 최소 차수가 $n/2$보다 훨씬 낮다.

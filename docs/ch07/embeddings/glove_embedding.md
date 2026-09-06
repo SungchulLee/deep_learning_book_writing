@@ -1,0 +1,160 @@
+# GloVe 임베딩
+
+GloVe 임베딩 — 사전 학습 벡터 불러오기와 질의하기. 다음을 보인다:
+
+순차열 모형은 시간적이고 순서가 있는 데이터를 다루는 데 바탕이 된다. 이 구현은 낱말 임베딩의 핵심 착상을 다루며, 순환 계산과 학습된 표현이 시각 사이의 의존을 어떻게 붙잡는지 보인다.
+
+## 코드
+
+```python
+"""
+GloVe 임베딩 — 사전 학습 벡터 불러오기와 질의하기
+==========================================================
+
+다음을 보인다:
+    1. torchtext로 사전 학습 GloVe 임베딩 불러오기
+    2. 낱말 벡터 꺼내기
+    3. 낱말 사이의 코사인 유사도 계산하기
+    4. 가장 가까운 이웃 찾기
+    5. 낱말 유추 과제 풀기 (king - man + woman ≈ queen)
+
+필요한 것:
+    pip install torchtext torch
+
+Note:
+    처음 돌리면 GloVe 벡터를 내려받는다 (6B/100d는 약 862MB).
+"""
+
+import torch
+import torchtext.vocab as vocab
+
+# ========================================================================
+# 메인
+# ========================================================================
+
+
+def load_glove(name: str = "6B", dim: int = 100) -> vocab.GloVe:
+    """사전 학습 GloVe 벡터를 불러온다."""
+    print(f"Loading GloVe (name={name}, dim={dim})...")
+    glove = vocab.GloVe(name=name, dim=dim)
+    print(f"  Loaded {len(glove.itos)} word vectors of dimension {dim}.")
+    return glove
+
+
+def find_closest_words(
+    word_vector: torch.Tensor, glove: vocab.GloVe, top_k: int = 5
+) -> list[tuple[str, float]]:
+    """코사인 유사도로 가장 가까운 낱말 k개를 돌려준다."""
+    sims = torch.nn.functional.cosine_similarity(
+        word_vector.unsqueeze(0), glove.vectors, dim=1
+    )
+    values, indices = torch.topk(sims, k=top_k)
+    return [(glove.itos[idx], val.item()) for idx, val in zip(indices, values)]
+
+
+def analogy(
+    a: str, b: str, c: str, glove: vocab.GloVe, top_k: int = 5
+) -> list[tuple[str, float]]:
+    """
+    푼다: a와 b의 관계는 c와 무엇의 관계와 같은가?
+    벡터 산술: 결과 ≈ b - a + c
+
+    예: analogy("man", "king", "woman") ≈ "queen"
+    """
+    vec = glove[b] - glove[a] + glove[c]
+    # 결과에서 입력 낱말 빼기
+    exclude = {a, b, c}
+    results = find_closest_words(vec, glove, top_k=top_k + len(exclude))
+    return [(w, s) for w, s in results if w not in exclude][:top_k]
+
+
+def main():
+    glove = load_glove(name="6B", dim=100)
+
+    # --- 낱말 벡터 ---
+    print("\n--- Word vector for 'hello' ---")
+    hello_vec = glove["hello"]
+    print(f"  Shape: {hello_vec.shape}")
+    print(f"  First 5 dims: {hello_vec[:5].tolist()}")
+
+    # --- 가장 가까운 이웃 ---
+    print("\n--- Words most similar to 'hello' ---")
+    for word, sim in find_closest_words(glove["hello"], glove, top_k=5):
+        print(f"  {word:15s}  cosine={sim:.4f}")
+
+    # --- 쌍마다의 유사도 ---
+    print("\n--- Pairwise cosine similarities ---")
+    pairs = [("king", "queen"), ("king", "apple"), ("cat", "dog"), ("good", "bad")]
+    for w1, w2 in pairs:
+        sim = torch.nn.functional.cosine_similarity(
+            glove[w1].unsqueeze(0), glove[w2].unsqueeze(0)
+        ).item()
+        print(f"  sim({w1}, {w2}) = {sim:.4f}")
+
+    # --- 유추 ---
+    print("\n--- Analogy: man → king, woman → ? ---")
+    for word, sim in analogy("man", "king", "woman", glove, top_k=5):
+        print(f"  {word:15s}  cosine={sim:.4f}")
+
+    print("\n--- Analogy: paris → france, tokyo → ? ---")
+    for word, sim in analogy("paris", "france", "tokyo", glove, top_k=5):
+        print(f"  {word:15s}  cosine={sim:.4f}")
+
+
+if __name__ == "__main__":
+    main()```
+
+## 논의
+
+이 구현은 깔끔하고 읽기 좋은 PyTorch 코드로 낱말 임베딩의 핵심 개념을 보인다. 모듈식 짜임 덕분에 부품 하나하나를 살펴보고 다른 과제나 데이터셋에 맞추어 고치기 쉽다.
+
+여기서 보인 방식은 더 복잡한 상황으로 자연스럽게 넓혀진다. 초매개변수와 구조의 변형, 다른 데이터셋으로 실험해 보면 이해가 깊어지고 자연어 처리 과제에 대한 실용적인 직관이 쌓인다.
+
+## 연습문제
+
+**연습문제 1.**
+코드를 훑으며 핵심 설계 결정을 찾아라. 구체적인 구현 선택 세 가지를 열거하고 각각이 낱말 임베딩에 알맞은 까닭을 설명하라.
+
+??? success "연습문제 1 풀이"
+    설계 결정은 구현마다 다르지만 흔히 다음이 포함된다. (1) 활성화 함수의 선택 — ReLU 계열은 포화되지 않는 경사를 주어 학습을 빠르게 한다. (2) 정규화 전략 — 배치 정규화는 내부 공변량 이동을 줄여 학습을 안정시킨다. (3) 잔차 연결 — 있을 경우 건너뛰는 경로를 제공하여 깊은 신경망에서도 경사가 흐르게 한다. 각 선택은 표현력, 계산 비용, 학습 안정성 사이의 절충을 반영한다.
+
+---
+
+**연습문제 2.**
+입력이 기대하는 모양과 자료형을 갖는지 확인하도록 주 함수나 클래스에 입력 검증을 추가하라. 잘못된 입력에는 유익한 오류 메시지를 내라.
+
+??? success "연습문제 2 풀이"
+    `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.
+
+---
+
+**연습문제 3.**
+이 구현에서 생길 수 있는 실패 양상 두 가지를 서술하고, 각각을 어떻게 진단하고 고칠지 설명하라.
+
+??? success "연습문제 3 풀이"
+    흔한 실패 양상은 다음과 같다. (1) **경사 소실/폭발** — 경사의 노름을 지켜보아 진단한다(`torch.nn.utils.clip_grad_norm_`을 쓰거나 층마다 `param.grad.norm()`을 기록한다). 경사 자르기, 더 나은 초기화(Xavier/Kaiming), 또는 구조 변경(잔차 연결, 정규화)으로 고친다. (2) **과적합** — 학습 손실은 줄어드는데 검증 손실이 늘어나면 진단된다. 정칙화(드롭아웃, 가중치 감쇠, 데이터 증강)나 모델 용량 축소로 고친다. 이런 문제를 일찍 잡아내려면 언제나 학습 지표와 검증 지표를 함께 살펴라.
+
+---
+
+**연습문제 4.**
+GloVe 임베딩 구현을 검증하는 종합 시험 함수를 작성하라. 빈 입력, 원소가 하나뿐인 입력, 아주 큰 입력, 극단적인 값(0, 아주 큰 수)을 가진 입력 같은 경계 상황을 시험하라.
+
+??? success "연습문제 4 풀이"
+    경계 조건을 두루 시험하는 함수를 만든다.
+    ```python
+    def test_glove embedding():
+        model = Glove Embedding(...)
+        # 보통의 입력
+        assert model(normal_input).shape == expected_shape
+        # 원소가 하나인 배치
+        assert model(single_input).shape == (1, ...)
+        # 큰 값 (넘침을 확인한다)
+        out = model(torch.ones(...) * 1000)
+        assert torch.isfinite(out).all()
+        # 경사의 흐름
+        out = model(normal_input)
+        out.sum().backward()
+        for p in model.parameters():
+            assert p.grad is not None
+    ```
+    경사의 흐름을 시험하는 것은 그 구조가 처음부터 끝까지 이어지는 학습을 지원하는지 확인하는 데 특히 중요하다.

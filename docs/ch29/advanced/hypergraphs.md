@@ -1,50 +1,83 @@
-# Hypergraph Neural Networks
+# 초그래프 신경망
 
-Standard graphs represent only pairwise relationships: an edge connects exactly two nodes. Many real-world interactions, however, are inherently **multi-way** -- a research paper connects all its co-authors simultaneously, a financial transaction may involve multiple parties, and a drug combination acts on multiple targets together. A **hypergraph** $H = (V, \mathcal{E})$ generalizes graphs by allowing **hyperedges** that connect any number of nodes, capturing these higher-order relationships directly.
+여느 그래프는 짝 관계만 나타낸다. 변이 마디를 꼭 둘 잇는다. 그러나 실제의 많은 주고받음은 본디 **여럿 사이의 것**이다. 논문 하나가 함께 쓴 저자를 모두 한꺼번에 잇고, 금융 거래에 여러 쪽이 얽히며, 약 조합이 여러 과녁에 함께 듣는다. **초그래프** $H = (V, \mathcal{E})$은 마디를 몇 개든 잇는 **초변**을 허락해 그래프를 넓히며 이런 높은 차수의 관계를 곧바로 담는다.
 
-## Hypergraph Representation
+## 초그래프 나타내기
 
-The algebraic representation of a hypergraph is its **incidence matrix** $\mathbf{B} \in \{0,1\}^{|V| \times |\mathcal{E}|}$, where $B_{ve} = 1$ if node $v$ participates in hyperedge $e$.
+초그래프의 대수 나타냄은 **닿음 행렬** $\mathbf{B} \in \{0,1\}^{|V| \times |\mathcal{E}|}$이며 마디 $v$이 초변 $e$에 들면 $B_{ve} = 1$이다.
 
-Two derived quantities are central to hypergraph neural network architectures:
+여기서 얻는 두 양이 초그래프 신경망 얼개의 한가운데에 있다:
 
-- **Node degree**: $d(v) = \sum_{e \in \mathcal{E}} B_{ve}$ (number of hyperedges containing $v$)
-- **Hyperedge degree**: $\delta(e) = \sum_{v \in V} B_{ve}$ (number of nodes in $e$)
+- **마디 차수**: $d(v) = \sum_{e \in \mathcal{E}} B_{ve}$($v$을 담은 초변의 개수)
+- **초변 차수**: $\delta(e) = \sum_{v \in V} B_{ve}$($e$에 든 마디의 개수)
 
-## Hypergraph Neural Networks
+## 초그래프 신경망
 
-### HyperGCN
+### 초그래프 겹말기 신경망
 
-The simplest approach extends graph convolution to hypergraphs using the incidence matrix and degree-based normalization:
+가장 단순한 방식은 닿음 행렬과 차수 바탕 고르게 맞추기로 그래프 겹말기를 초그래프로 넓힌다:
 
 $$
 \mathbf{h}_v^{(\ell+1)} = \sigma\!\left(\sum_{e \ni v} \frac{1}{\delta(e)} \sum_{u \in e} \frac{1}{\sqrt{d(v)\,d(u)}}\, \mathbf{W}^{(\ell)}\,\mathbf{h}_u^{(\ell)}\right)
 $$
 
-This aggregates information from all nodes that share a hyperedge with $v$, weighted by node and hyperedge degrees.
+이는 $v$과 초변을 함께 가진 모든 마디의 앎을 마디와 초변의 차수로 무게를 주어 모은다.
 
-### Two-Stage Message Passing
+### 두 단계 쪽지 건네기
 
-A more flexible architecture decomposes hypergraph convolution into two stages:
+더 너그러운 얼개는 초그래프 겹말기를 두 단계로 쪼갠다:
 
-1. **Node to hyperedge**: Aggregate node features for each hyperedge $e$, producing a hyperedge representation $\mathbf{m}_e = \text{AGG}(\{\mathbf{h}_u : u \in e\})$
-2. **Hyperedge to node**: Aggregate hyperedge representations for each node $v$, producing an updated node representation $\mathbf{h}_v' = \text{AGG}(\{\mathbf{m}_e : v \in e\})$
+1. **마디에서 초변으로**: 초변 $e$마다 마디 특징을 모아 초변 나타냄 $\mathbf{m}_e = \text{AGG}(\{\mathbf{h}_u : u \in e\})$을 만든다
+2. **초변에서 마디로**: 마디 $v$마다 초변 나타냄을 모아 고친 마디 나타냄 $\mathbf{h}_v' = \text{AGG}(\{\mathbf{m}_e : v \in e\})$을 만든다
 
-### AllSet and AllDeepSets
+### AllSet과 AllDeepSets
 
-Recent architectures replace the simple aggregation functions with learnable set functions (Deep Sets) or transformers, enabling the model to learn task-specific aggregation strategies at each stage. This increases expressiveness while maintaining the two-stage message-passing structure.
+최근 얼개는 단순한 모으기 함수를 배울 수 있는 모임 함수(딥 세트)나 변환기로 바꾸어 단계마다 그 일에 맞는 모으기 셈속을 배우게 한다. 이는 두 단계 쪽지 건네기 얼개를 지키면서 나타냄 힘을 키운다.
 
-## Financial Applications
+## 금융에서의 쓰임
 
-Hypergraphs arise naturally in finance:
+초그래프는 금융에서 자연스럽게 나타난다:
 
-- **Portfolio groups**: A fund holds multiple stocks; each fund defines a hyperedge over its constituent assets
-- **Joint defaults**: Multiple firms defaulting in the same crisis event form a hyperedge linking those firms
-- **Regulatory clusters**: Assets governed by the same regulation share a hyperedge
+- **꾸러미 무리**: 펀드 하나가 주식 여럿을 담는다. 펀드마다 그 구성 자산 위에 초변을 뜻매김한다
+- **함께 나는 부도**: 같은 위기 사건에 부도 난 회사들이 그 회사들을 잇는 초변을 이룬다
+- **규제 뭉치**: 같은 규제를 받는 자산이 초변을 함께 가진다
 
-!!! tip "When Hypergraphs Add Value"
-    Hypergraph models are most beneficial when the higher-order structure carries information beyond what pairwise edges capture. If the clique expansion (replacing each hyperedge with all pairwise edges) loses no information, a standard GNN may suffice. Test both approaches.
+!!! tip "초그래프가 값진 때"
+    초그래프 모델은 높은 차수의 얼개가 짝 변이 담는 것 너머의 앎을 지닐 때 가장 이롭다. 덩어리 펼치기(초변마다 모든 짝 변으로 바꾸기)가 앎을 잃지 않는다면 여느 그래프 신경망으로 넉넉할 수 있다. 두 방식을 모두 시험하라.
 
-## References
+## 참고 문헌
 
 [Feng et al. -- Hypergraph Neural Networks (AAAI 2019)](https://arxiv.org/abs/1809.09401)
+
+
+## 연습문제
+
+**연습문제 1.**
+초그래프를 뜻매김하고 여느 그래프와 어떻게 다른지 밝혀라.
+
+??? success "연습문제 1 풀이"
+    초그래프 $H = (V, E)$은 꼭짓점 $V$과 초변 $E$을 가지며 $e \in E$마다 (짝뿐 아니라) 크기가 아무거나인 $V$의 부분 모임이다. 여느 그래프는 모든 변에서 $|e| = 2$인 특별한 경우이다. 초그래프는 무리 주고받음을 자연스럽게 나타낸다. 연구자 5명이 함께 쓴 논문은 짝 변 $\binom{5}{2} = 10$개가 아니라 꼭짓점 5개짜리 초변 하나이다. $v \in e$일 때 $B_{ve} = 1$인 닿음 행렬 $B \in \{0,1\}^{|V| \times |E|}$이 이웃 행렬을 갈음한다.
+
+---
+
+**연습문제 2.**
+닿음 행렬을 쓴 초그래프 신경망의 쪽지 건네기 얼거리를 적어라.
+
+??? success "연습문제 2 풀이"
+    초그래프 신경망(HGNN)은 두 걸음 쪽지 건네기를 쓴다. 걸음 1(꼭짓점에서 초변으로): 초변마다 모든 꼭짓점의 특징을 모은다: $z_e = \frac{1}{|e|} \sum_{v \in e} h_v$. 걸음 2(초변에서 꼭짓점으로): 꼭짓점마다 그것을 담은 모든 초변의 특징을 모은다: $d_v$이 꼭짓점 차수일 때 $h_v' = \sigma(\sum_{e \ni v} \frac{1}{d_v} W z_e)$이다. 행렬 꼴로는 $D_v, D_e$이 대각 차수 행렬일 때 $H^{(l+1)} = \sigma(D_v^{-1} B W_e D_e^{-1} B^T H^{(l)} \Theta)$이다.
+
+---
+
+**연습문제 3.**
+화학 반응이나 사회 무리를 나타낼 때 초그래프 나타냄의 이점은 무엇인가?
+
+??? success "연습문제 3 풀이"
+    화학에서 반응은 여러 반응물과 생성물이 한꺼번에 얽히며 이는 자연스럽게 참여 분자를 모두 잇는 초변이다. 짝 그래프는 이 무리 얼개를 잃는다. 사회 그물에서는 무리 소속(동아리, 학급, 팀)이 초변이다. 이점: (1) 무리 수준의 앎이 짝으로 쪼개지지 않고 지켜진다, (2) 짝 모델이 놓치는 높은 차수의 얽힘을 담는다, (3) 변의 개수가 줄어(꼭짓점 $k$개 무리 = 초변 1개 대 변 $\binom{k}{2}$개) 빽빽한 무리에서 셈이 효율 좋아진다.
+
+---
+
+**연습문제 4.**
+여느 그래프 신경망에 견준 초그래프 신경망의 셈 복잡도를 밝혀라.
+
+??? success "연습문제 4 풀이"
+    꼭짓점 $n$개, 초변 $m$개, 온 닿음 수 $\sum_e |e| = s$인 초그래프에서 두 걸음 쪽지 건네기는 $d$이 특징 차원일 때 $O(s \cdot d)$이 든다. 닿음 행렬의 0이 아닌 칸 수에 비례한다. 덩어리 펼치기(초변마다 모든 짝 변으로 바꾸기)에 여느 그래프 신경망을 쓰면 비용이 $O(\sum_e |e|^2 \cdot d)$이며 훨씬 클 수 있다. 따라서 초변이 클 때 초그래프 방법이 더 효율 좋고 덩어리 펼치기로 앎을 잃는 것도 피한다.

@@ -1,148 +1,216 @@
-# Common Pitfalls
+# 흔한 함정
 
-Competitive programming submissions fail for reasons that are often predictable and preventable. Understanding the most frequent pitfalls -- and developing habits to avoid them -- can turn a 50% acceptance rate into an 80%+ rate. This section catalogs the pitfalls that account for the vast majority of Wrong Answer, Runtime Error, and Time Limit Exceeded verdicts.
+겨루기 짜기의 제출은 흔히 헤아릴 수 있고 막을 수 있는 까닭으로 틀린다. 가장 잦은 함정을 알고 피하는 버릇을 들이면 통과율이 50%에서 80% 넘게 올라간다. 이 마디는 오답, 돌림 어긋남, 때 초과 판정의 거의 대부분을 차지하는 함정을 모아 적는다.
 
-## Integer Overflow
+## 정수 넘침
 
-Integer overflow is arguably the single most common pitfall in competitive programming. It occurs silently in C++ and produces wrong results without any error message.
+정수 넘침은 아마도 겨루기 짜기에서 가장 흔한 함정 하나다. C++에서 소리 없이 일어나 어긋남 알림 없이 틀린 결과를 낸다.
 
-### When It Happens
+### 언제 일어나는가
 
-- Multiplying two `int` values each up to $10^9$: the product $10^{18}$ exceeds the 32-bit range of $2^{31} - 1 \approx 2.15 \times 10^9$.
-- Summing $n = 10^5$ values each up to $10^9$: the sum can reach $10^{14}$.
-- Computing $\binom{n}{k}$ or factorials for even moderate $n$.
+- 저마다 $10^9$까지인 `int` 둘을 곱함: 곱 $10^{18}$이 32비트 범위 $2^{31} - 1 \approx 2.15 \times 10^9$을 넘는다.
+- 저마다 $10^9$까지인 값 $n = 10^5$개를 더함: 합이 $10^{14}$에 이를 수 있다.
+- 웬만한 $n$에서도 $\binom{n}{k}$이나 계승을 셈함.
 
-### Prevention
+### 막기
 
-- Use `long long` (64-bit) whenever intermediate results can exceed $2 \times 10^9$.
-- In Python, integers have arbitrary precision, so overflow is not an issue -- but converting to `float` loses precision for large values.
-- When performing modular arithmetic, reduce after every multiplication:
+- 중간 결과가 $2 \times 10^9$을 넘을 수 있으면 늘 `long long`(64비트)을 쓴다.
+- 파이썬의 정수는 자릿수 제한이 없어 넘침이 말썽이 아니다. 다만 `float`으로 바꾸면 큰 값에서 자릿수를 잃는다.
+- 법 셈을 할 때는 곱할 때마다 줄인다:
 
 $$
 (a \times b) \bmod m = ((a \bmod m) \times (b \bmod m)) \bmod m
 $$
 
-!!! danger "The Silent Killer"
-    In C++, `int a = 100000; int b = a * a;` silently overflows. The result is undefined behavior, not an error message. Always cast before multiplication: `long long b = (long long)a * a;`.
+!!! danger "소리 없는 살인자"
+    C++에서 `int a = 100000; int b = a * a;`은 소리 없이 넘친다. 결과는 어긋남 알림이 아니라 뜻 없는 움직임이다. 늘 곱하기 전에 형을 바꾼다: `long long b = (long long)a * a;`.
 
-## Off-by-One Errors
+## 하나 어긋남
 
-Off-by-one errors arise from confusion about inclusive vs exclusive boundaries, 0-indexed vs 1-indexed arrays, and loop termination conditions.
+하나 어긋남은 경계를 담는지 빼는지, 배열이 0부터인지 1부터인지, 되돌이를 언제 멈추는지 헷갈려 생긴다.
 
-### Common Manifestations
+### 흔한 모습
 
-- Loop runs $n - 1$ times instead of $n$ (or vice versa).
-- Binary search returns the wrong boundary (the last element satisfying a condition vs the first element violating it).
-- Array allocated with size $n$ but accessed at index $n$ (valid indices are $0$ to $n - 1$).
-- Fence-post errors: $n$ items have $n - 1$ gaps between them.
+- 되돌이가 $n$번 대신 $n - 1$번 돈다(또는 그 반대).
+- 두 갈래 찾기가 엉뚱한 경계를 돌려준다(조건을 만족하는 마지막 원소와 어기는 첫 원소).
+- 크기 $n$으로 잡은 배열의 번호 $n$에 닿음(올바른 번호는 $0$부터 $n - 1$까지).
+- 울타리 기둥 어긋남: 물건 $n$개 사이에는 틈이 $n - 1$개다.
 
-### Prevention
+### 막기
 
-- Always write out the loop invariant explicitly, even if just as a comment.
-- For binary search, use a template with well-defined semantics (e.g., "find the smallest index $i$ such that $f(i)$ is true").
-- Allocate arrays with a small buffer: `int a[MAXN + 5]` avoids boundary issues.
+- 주석으로라도 되돌이 불변량을 늘 드러나게 적는다.
+- 두 갈래 찾기에는 뜻이 또렷한 본새를 쓴다(보기로 "$f(i)$이 참인 가장 작은 번호 $i$을 찾는다").
+- 배열에 여유를 조금 둔다. `int a[MAXN + 5]`이 경계 말썽을 피한다.
 
-## Uninitialized Variables
+## 첫 값을 안 준 변수
 
-Using a variable before assigning a value produces undefined behavior in C/C++ and can give different results on different machines or compiler settings.
+값을 주기 전에 변수를 쓰면 C/C++에서 뜻 없는 움직임이 되고 기계나 옮겨 짓개 설정에 따라 결과가 달라질 수 있다.
 
-### Common Scenarios
+### 흔한 상황
 
-- Global arrays in C++ are zero-initialized, but local arrays are not.
-- Forgetting to initialize `ans = 0` (or `ans = INF` for minimization) before a loop.
-- Reusing a variable from a previous test case without resetting.
+- C++의 온 자리 배열은 0으로 시작하지만 그 자리 배열은 아니다.
+- 되돌이 앞에서 `ans = 0`(가장 작게 하기에는 `ans = INF`)으로 두기를 잊음.
+- 앞 시험 사례의 변수를 되돌리지 않고 다시 씀.
 
-### Prevention
+### 막기
 
-- Initialize all variables at declaration.
-- For multi-test-case problems, reset all global state at the start of each test case, not at the end.
+- 모든 변수를 밝힐 때 첫 값을 준다.
+- 시험 사례가 여럿인 문제에서는 끝이 아니라 사례 시작마다 온 자리 상태를 되돌린다.
 
-## Wrong Data Types
+## 틀린 자료 갈래
 
-### Floating-Point Precision
+### 실수의 자릿수
 
-Floating-point arithmetic introduces rounding errors that accumulate across operations. Comparing `double` values with `==` is almost always wrong.
+실수 셈은 연산마다 쌓이는 반올림 어긋남을 낳는다. `double`을 `==`으로 견주는 것은 거의 늘 틀렸다.
 
-- Use epsilon-based comparison: $|a - b| < \varepsilon$ with $\varepsilon = 10^{-9}$.
-- Prefer integer arithmetic when possible. For instance, comparing $\frac{a}{b}$ vs $\frac{c}{d}$ is safer as $a \times d$ vs $c \times b$ (watching for overflow).
+- 엡실론 견줌을 쓴다. $\varepsilon = 10^{-9}$으로 $|a - b| < \varepsilon$.
+- 될 수 있으면 정수 셈을 쓴다. 보기로 $\frac{a}{b}$과 $\frac{c}{d}$을 견줄 때는 (넘침을 살피며) $a \times d$과 $c \times b$으로 견주는 편이 안전하다.
 
-### Signed vs Unsigned
+### 부호 있음과 없음
 
-Mixing signed and unsigned integers in C++ causes implicit conversion bugs. A common trap: `for (int i = v.size() - 1; i >= 0; i--)` fails if `v.size()` returns `size_t` (unsigned) and the vector is empty, because `0u - 1` wraps to a huge positive number.
+C++에서 부호 있는 정수와 없는 정수를 섞으면 숨은 형 바꿈 벌레가 생긴다. 흔한 함정: `v.size()`이 `size_t`(부호 없음)을 돌려주고 벡터가 비어 있으면 `0u - 1`이 엄청난 양수로 감기므로 `for (int i = v.size() - 1; i >= 0; i--)`이 안 된다.
 
-## Array and Memory Errors
+## 배열과 기억의 어긋남
 
-### Out-of-Bounds Access
+### 범위 밖 닿기
 
-Accessing `a[n]` in an array of size $n$, or `a[-1]` in C++, is undefined behavior. It may work on your machine but crash on the judge.
+크기 $n$인 배열의 `a[n]`이나 C++의 `a[-1]`에 닿는 것은 뜻 없는 움직임이다. 내 컴퓨터에서는 되어도 채점기에서 죽을 수 있다.
 
-### Stack Overflow
+### 쌓기 넘침
 
-Deep recursion (depth $> 10^4$ in C++ without stack size adjustment) causes stack overflow. Solutions:
+깊은 되돌이(쌓기 크기를 손보지 않은 C++에서 깊이 $> 10^4$)는 쌓기 넘침을 낳는다. 풀이:
 
-- Convert recursion to iteration using an explicit stack.
-- Increase the stack size with compiler flags or OS settings.
-- Use iterative DP instead of memoized recursion.
+- 드러난 쌓기를 써서 되돌이를 되풀이로 바꾼다.
+- 옮겨 짓개 깃발이나 운영 체제 설정으로 쌓기 크기를 늘린다.
+- 외워 두는 되돌이 대신 되풀이 동적 짜기를 쓴다.
 
-### Memory Limit Exceeded
+### 기억 한도 초과
 
-A 2D array of size $10^4 \times 10^4$ with `int` uses 400 MB -- exceeding typical 256 MB limits. Use rolling arrays for DP or sparse representations for graphs.
+`int`의 $10^4 \times 10^4$ 2차원 배열은 400MB을 써서 여느 256MB 한도를 넘는다. 동적 짜기에는 굴러가는 배열을, 그래프에는 성긴 나타냄을 쓴다.
 
-## Multi-Test-Case Errors
+## 여러 시험 사례의 어긋남
 
-### Forgetting to Reset State
+### 상태 되돌리기를 잊음
 
-When a problem has $T$ test cases, global data structures must be cleared between cases. Common items to reset:
+시험 사례가 $T$개인 문제에서는 사례 사이에 온 자리 자료 얼개를 비워야 한다. 흔히 되돌릴 것:
 
-- Visited arrays for BFS/DFS.
-- Union-Find parent and rank arrays.
-- Adjacency lists (clear or rebuild).
-- Counters and accumulators.
+- 너비/깊이 우선 찾기의 들른 표시 배열.
+- 합집합 찾기의 어버이와 계급 배열.
+- 이웃 목록(비우거나 다시 짓기).
+- 셈틀과 쌓개.
 
-### Wrong Output Format
+### 틀린 내놓기 꼴
 
-- Missing or extra newline between test cases.
-- Forgetting `"Case #X: "` prefix when required.
-- Printing `"Yes"` instead of `"YES"` (case sensitivity).
+- 시험 사례 사이에 줄 바꿈이 빠지거나 더 있음.
+- 필요할 때 `"Case #X: "` 앞자락을 잊음.
+- `"YES"` 대신 `"Yes"`을 찍음(대소문자 구별).
 
-## Algorithm-Specific Pitfalls
+## 알고리즘마다의 함정
 
-### Sorting
+### 줄 세우기
 
-- Using an unstable sort when stability is required.
-- Incorrect comparator: a comparator must define a strict weak ordering. If `comp(a, b)` and `comp(b, a)` can both be true, the sort produces undefined behavior.
+- 안정이 필요한데 안정하지 않은 줄 세우기를 씀.
+- 틀린 견줌개: 견줌개는 엄격한 약 순서를 뜻매김해야 한다. `comp(a, b)`과 `comp(b, a)`이 둘 다 참일 수 있으면 줄 세우기가 뜻 없는 움직임을 낸다.
 
-### Graph Algorithms
+### 그래프 알고리즘
 
-- Forgetting to handle disconnected components.
-- Using Dijkstra with negative edge weights (use Bellman--Ford instead).
-- Confusing node indices (0-indexed vs 1-indexed) between the input and your data structure.
+- 끊긴 조각 다루기를 잊음.
+- 음의 변 무게에 데이크스트라를 씀(대신 벨먼-포드를 쓴다).
+- 들임과 내 자료 얼개 사이에서 마디 번호(0부터인지 1부터인지)를 헷갈림.
 
-### Dynamic Programming
+### 짜 넣기
 
-- Wrong base case initialization.
-- Iterating in the wrong order for a knapsack-type DP (items before capacity vs capacity before items).
-- Forgetting that the answer might not be at `dp[n]` but at `max(dp[0..n])`.
+- 바탕 경우의 첫 값이 틀림.
+- 배낭 꼴 동적 짜기에서 훑는 차례가 틀림(물건 먼저인지 담는 양 먼저인지).
+- 답이 `dp[n]`이 아니라 `max(dp[0..n])`일 수 있음을 잊음.
 
-### Modular Arithmetic
+### 법 셈
 
-- Forgetting to take the modulus at intermediate steps, causing overflow.
-- Subtracting modular values without adding $m$ first: $(a - b) \bmod m$ should be computed as $((a - b) \bmod m + m) \bmod m$ to avoid negative results in C++.
-- Using the wrong modulus ($10^9 + 7$ vs $998244353$).
+- 중간 걸음에서 나머지 잡기를 잊어 넘침.
+- $m$을 먼저 더하지 않고 법 값을 뺌: C++에서 음수 결과를 피하려면 $(a - b) \bmod m$을 $((a - b) \bmod m + m) \bmod m$으로 셈해야 한다.
+- 법을 잘못 씀($10^9 + 7$과 $998244353$).
 
-## Pitfall Prevention Checklist
+## 함정 막기 점검표
 
-Before submitting, review this checklist:
+내기 전에 이 점검표를 살핀다:
 
-- [ ] All variables initialized.
-- [ ] Integer types are large enough for worst-case values.
-- [ ] Array sizes include a small buffer.
-- [ ] Multi-test-case state is reset.
-- [ ] Output format matches exactly (case, spacing, newlines).
-- [ ] Modular arithmetic applied at every multiplication and addition.
-- [ ] Edge cases tested ($n = 0$, $n = 1$, maximum $n$).
-- [ ] Comparator defines a strict weak ordering.
+- [ ] 모든 변수에 첫 값을 주었다.
+- [ ] 정수 갈래가 가장 나쁜 값에도 넉넉하다.
+- [ ] 배열 크기에 여유를 조금 두었다.
+- [ ] 여러 시험 사례의 상태를 되돌렸다.
+- [ ] 내놓기 꼴이 정확히 맞는다(대소문자, 띄어쓰기, 줄 바꿈).
+- [ ] 곱하기와 더하기마다 법 셈을 했다.
+- [ ] 가장자리 경우를 시험했다($n = 0$, $n = 1$, 최대 $n$).
+- [ ] 견줌개가 엄격한 약 순서를 뜻매김한다.
 
-## Reference
+## 참고 문헌
 
-- [Competitive Programmer's Handbook](https://cses.fi/book/book.pdf)
+음이 아닌 정수 $x$가 주어질 때 비트 셈만 써서 $x$의 가장 낮은 켜진 비트만 남기는 식을 적어라(곧 그 비트만 켜진 값을 만들어라). $x = 0$일 때 그 식은 무엇을 돌려주는가?
+
+## 연습문제
+
+**연습문제 1.**
+다음 C++ 코드에서 정수 넘침 벌레를 가려내고 고친 판을 보여라:
+```cpp
+int n = 100000;
+int result = n * (n - 1) / 2;
+```
+
+??? success "연습문제 1 풀이"
+    곱 `n * (n - 1)`은 $100000 \times 99999 = 9{,}999{,}900{,}000$을 셈하는데 이는 32비트 부호 있는 정수 범위 $2^{31} - 1 = 2{,}147{,}483{,}647$을 넘는다. 결과가 감겨 나눗셈 전에 틀린 값이 된다. 고침: 곱하기 전에 `long long`으로 바꾼다:
+    ```cpp
+    long long n = 100000;
+    long long result = n * (n - 1) / 2;
+    ```
+    또는 `n`을 `int`로 두고 `(long long)n * (n - 1) / 2`으로 한다. C++의 따지기 차례에서 나눗셈이 곱하기 뒤에 오므로 2로 나누는 것은 넘침을 막지 못한다. $\square$
+
+---
+
+**연습문제 2.**
+어떤 겨룸꾼의 풀이가 유리수 $a/b$과 $c/d$($a, b, c, d \le 10^9$)을 `double`으로 견준다. 왜 틀릴 수 있는지 밝히고 올바른 견줌 방법을 내놓아라.
+
+??? success "연습문제 2 풀이"
+    `double`은 가수가 52비트여서 열째 자리로 15~16자리쯤이다. 엇갈린 곱 $a \cdot d$과 $c \cdot b$은 저마다 $10^{18}$까지로 19자리여서 `double`의 자릿수를 넘는다. 엇갈린 곱이 1만큼 다른 서로 다른 유리수 둘(보기로 $10^9 \times (10^9 - 1) + 1$과 $10^9 \times (10^9 - 1)$)이 `double`으로 반올림하면 같다고 나올 수 있다. 올바른 방법: 64비트 정수의 엇갈린 곱으로 견준다. $a/b$과 $c/d$을 `long long` 값 $a \cdot d$과 $c \cdot b$으로 견준다($10^{18} < 2^{63}$이므로 64비트에 든다). 부호를 조심한다. $b$이나 $d$이 음이면 부등호를 뒤집는다. $\square$
+
+---
+
+**연습문제 3.**
+다음 파이썬 그래프 풀이는 복잡도가 가장 좋은 $O(n + m)$인데도 큰 들임에서 때 초과가 난다. 숨은 상수 인수 말썽을 가려내어라:
+```python
+visited = []
+def dfs(u):
+    if u in visited:
+        return
+    visited.append(u)
+    for v in graph[u]:
+        dfs(v)
+```
+
+??? success "연습문제 3 풀이"
+    파이썬 목록의 `in` 연산자는 선형으로 훑으므로 `u in visited`에 $O(|\text{visited}|)$이 든다. 마디 $n$개에 걸쳐 깊이 우선 찾기가 $O(n + m)$에서 $O(n^2 + m)$이 된다. $n = 10^5$이면 연산이 $\sim 10^{10}$번 늘어난다. 고침: 목록 대신 집합을 쓴다:
+    ```python
+    visited = set()
+    def dfs(u):
+        if u in visited:
+            return
+        visited.add(u)
+        for v in graph[u]:
+            dfs(v)
+    ```
+    집합의 속함 시험은 평균 $O(1)$이어서 온 복잡도가 $O(n + m)$으로 돌아온다. 또한 파이썬에서 $n > 10^4$이면 되돌이 깊이 우선 찾기가 기본 되돌이 한도(1000)에 걸릴 수 있다. `sys.setrecursionlimit`을 쓰거나 되풀이 깊이 우선 찾기로 바꾼다. $\square$
+
+---
+
+**연습문제 4.**
+어떤 풀이가 제 컴퓨터에서는 옳은 내놓기를 내는데 채점기에서 돌림 어긋남이 난다. 알고리즘이 마디가 최대 $n = 5 \times 10^5$개인 나무에서 되돌이 깊이 우선 찾기를 쓴다. 문제를 진단하고 서로 다른 고침 둘을 내놓아라.
+
+??? success "연습문제 4 풀이"
+    문제는 쌓기 넘침이다. 되돌이 부름마다 쌓기 공간을 쓴다(대부분의 시스템에서 틀마다 1~8KB). $n = 5 \times 10^5$이고 가장 나쁜 경우인 한 줄 사슬 나무면 되돌이 깊이가 $n$이어서 쌓기가 0.5~4GB 필요하다. 기본 쌓기 크기(보통 1~8MB)를 훨씬 넘는다. 고침 1: 드러난 쌓기(파이썬의 `list`나 C++의 `stack<int>`)를 쓰는 되풀이 깊이 우선 찾기로 바꾼다. 이는 부름 쌓기 대신 더미 기억을 쓴다. 고침 2: C++에서는 이을 때 쌓기 크기를 늘리거나(64MB이면 `-Wl,--stack,67108864`) 리눅스에서 `ulimit -s unlimited`을 쓴다. 파이썬에서는 `sys.setrecursionlimit(600000)`과 `threading.stack_size(67108864)`을 함께 쓰고 새 실에서 풀이를 돌린다. 되풀이 방식이 더 옮겨 쓰기 좋고 낫다. $\square$
+
+---
+
+**연습 5.**
+겨루기 짜기의 벌레라는 맥락에서 1부터 세는 배열과 0부터 세는 배열의 차이를 밝혀라. 두 관행을 섞어 보기 사례는 지나지만 가장자리 경우에서 틀리는 구체 보기를 들어라.
+
+??? success "연습 5의 풀이"
+    1부터 세는 배열은 자리 $1, 2, \ldots, n$을, 0부터 세는 배열은 $0, 1, \ldots, n-1$을 쓴다. 관행을 섞으면 하나 어긋남이 생긴다. 보기: 문제가 마디를 $1$부터 $n$까지 매긴다. 짜는 이가 이웃 목록을 크기 $n$의 0부터 세는 배열에 담으면서 변을 $u, v \in [1, n]$인 `(u, v)`으로 읽는다. 1을 빼지 않으면 `graph[n]`이 범위 밖 닿기가 된다. 보기 사례가 $n \le 3$이고 배열에 여유를 두었다면(보기로 `graph = [[] for _ in range(n+1)]`) 벌레가 가려진다. 그러나 나중에 `for i in range(n)`으로 훑으며 (늘 비어 있는) `graph[0]`을 다루고 `graph[n]`을 놓치면 마디 $n$의 변이 사라진다. 마디 $n$이 마침 잎이거나 답에 결정적이지 않은 보기는 지나지만 마디 $n$에 중요한 변이 있는 경우에는 틀린다. $\square$

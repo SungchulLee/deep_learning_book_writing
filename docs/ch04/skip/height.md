@@ -1,127 +1,133 @@
-# Expected Height
+# 기대 높이
 
-The height of a skip list -- the maximum level among all nodes -- determines
-the number of layers the search algorithm must descend. If the height grew
-linearly with $n$, skip lists would be no faster than a plain linked list.
-The probabilistic analysis shows that the expected height is $O(\log n)$,
-which is what makes $O(\log n)$ search possible. This page derives the
-expected height and establishes high-probability bounds.
+스킵 리스트의 높이, 즉 모든 노드 중 가장 높은 층은 탐색 알고리즘이 내려가야 할 층의 수를 정한다. 높이가 $n$에 비례해 커진다면 스킵 리스트는 평범한 연결 리스트보다 나을 것이 없다. 확률적 분석은 높이의 기댓값이 $O(\log n)$임을 보여주며, 이것이 $O(\log n)$ 탐색을 가능하게 한다. 이 페이지는 기대 높이를 유도하고 높은 확률로 성립하는 상계를 세운다.
 
-## Setup
+## 설정
 
-Consider a skip list with $n$ nodes and promotion probability $p$. Each
-node is independently assigned a random level: level 1 is guaranteed, and
-each additional level is added with probability $p$. The **height** $H$ of
-the skip list is the maximum level across all $n$ nodes:
+노드가 $n$개이고 승격 확률이 $p$인 스킵 리스트를 생각하자. 각 노드는 독립적으로 무작위 층을 배정받는다. 층 1은 보장되고, 층을 하나 더 얻을 확률은 $p$이다. 스킵 리스트의 **높이** $H$은 $n$개 노드에 걸친 최대 층이다.
 
 $$
 H = \max_{i=1}^{n} L_i
 $$
 
-where $L_i$ is the level of node $i$, and each $L_i$ follows a geometric
-distribution with parameter $1 - p$.
+여기서 $L_i$은 노드 $i$의 층이며, 각 $L_i$은 매개변수가 $1 - p$인 기하분포를 따른다.
 
-## Probability of a Single Node Reaching Level k
+## 노드 하나가 층 k에 이를 확률
 
-A single node reaches level $k$ or higher if it is promoted $k - 1$ times,
-each with probability $p$:
+노드 하나가 층 $k$ 이상에 이르려면 확률 $p$의 승격이 $k - 1$번 일어나야 한다.
 
 $$
 \Pr[L_i \geq k] = p^{k-1}
 $$
 
-## Expected Maximum Level
+## 최대 층의 기댓값
 
-The height $H \geq k$ if and only if at least one of the $n$ nodes reaches
-level $k$. By the union bound:
+$H \geq k$인 것은 $n$개 노드 중 적어도 하나가 층 $k$에 이르는 것과 동치이다. 합집합 상계에 의해 다음이 성립한다.
 
 $$
 \Pr[H \geq k] = \Pr\!\left[\bigcup_{i=1}^{n} \{L_i \geq k\}\right] \leq n \cdot p^{k-1}
 $$
 
-Setting $k = \log_{1/p} n + 1$ (so that $p^{k-1} = 1/n$), this bound
-becomes:
+$k = \log_{1/p} n + 1$으로 두면($p^{k-1} = 1/n$이 되도록) 이 상계는 다음이 된다.
 
 $$
 \Pr\!\left[H \geq \log_{1/p} n + 1\right] \leq n \cdot \frac{1}{n} = 1
 $$
 
-This is trivial, but for $k = c \log_{1/p} n$ with $c > 1$:
+이는 자명하지만, $c > 1$인 $k = c \log_{1/p} n$에 대해서는 다음이 성립한다.
 
 $$
 \Pr[H \geq c \log_{1/p} n] \leq n \cdot p^{c \log_{1/p} n - 1} = \frac{n}{p} \cdot n^{-c} = \frac{1}{p \cdot n^{c-1}}
 $$
 
-For any constant $c > 1$, this probability vanishes as $n$ grows.
+1보다 큰 어떤 상수 $c$에 대해서든 $n$이 커지면 이 확률은 사라진다.
 
-The expected height can be computed exactly:
+기대 높이는 정확히 계산할 수 있다.
 
 $$
 E[H] = \sum_{k=1}^{\infty} \Pr[H \geq k] \leq \sum_{k=1}^{\infty} \min(1, \, n \cdot p^{k-1})
 $$
 
-The first $\log_{1/p} n$ terms contribute at most $\log_{1/p} n$. The
-remaining terms form a geometric series:
+처음 $\log_{1/p} n$개의 항은 많아야 $\log_{1/p} n$을 보탠다. 나머지 항들은 등비급수를 이룬다.
 
 $$
 \sum_{k = \lfloor\log_{1/p} n\rfloor + 1}^{\infty} n \cdot p^{k-1} \leq \sum_{j=0}^{\infty} p^{j} = \frac{1}{1 - p}
 $$
 
-Therefore:
+따라서 다음이 성립한다.
 
 $$
 E[H] \leq \log_{1/p} n + \frac{1}{1 - p} = O(\log n)
 $$
 
-For $p = 1/2$, this gives $E[H] \leq \log_2 n + 2$.
+$p = 1/2$이면 $E[H] \leq \log_2 n + 2$이다.
 
-## High-Probability Bound
+## 높은 확률로 성립하는 상계
 
-The union bound analysis above shows that the height exceeds
-$c \log_{1/p} n$ with probability at most $O(n^{-(c-1)})$. This is a
-**high-probability** bound: for any desired polynomial confidence
-$1 - 1/n^d$, choose $c = d + 1$.
+위의 합집합 상계 분석은 높이가 $c \log_{1/p} n$을 넘을 확률이 많아야 $O(n^{-(c-1)})$임을 보여준다. 이는 **높은 확률로 성립하는** 상계이다. 원하는 다항 신뢰도 $1 - 1/n^d$에 대해 $c = d + 1$으로 고르면 된다.
 
-??? note "Concrete example"
-    For $p = 1/2$ and $n = 10^6$ nodes, the expected height is at most
-    $\log_2(10^6) + 2 \approx 22$. The probability that the height
-    exceeds $40$ (roughly $2 \log_2 n$) is at most
-    $10^6 \cdot 2^{-39} \approx 1.8 \times 10^{-6}$, or about one in
-    half a million.
+??? note "구체적인 예"
+    $p = 1/2$이고 노드가 $n = 10^6$개이면 기대 높이는 많아야 $\log_2(10^6) + 2 \approx 22$이다. 높이가 (대략 $2 \log_2 n$인) $40$을 넘을 확률은 많아야 $10^6 \cdot 2^{-39} \approx 1.8 \times 10^{-6}$으로, 오십만 분의 일 남짓이다.
 
-## Maximum Level Cap
+## 최대 층의 상한
 
-In practice, skip list implementations set a maximum level cap
-$\text{MaxLevel}$ to bound memory usage and avoid extremely tall (but
-astronomically unlikely) nodes. A common choice is:
+실무에서 스킵 리스트 구현은 메모리 사용량을 묶어 두고 (천문학적으로 드물지만) 지나치게 높은 노드를 피하려고 최대 층의 상한 $\text{MaxLevel}$을 정한다. 흔한 선택은 다음과 같다.
 
 $$
 \text{MaxLevel} = \lfloor \log_{1/p} n \rfloor + 1
 $$
 
-For $p = 1/2$ and an anticipated maximum of $n = 2^{16} = 65{,}536$
-elements, $\text{MaxLevel} = 17$ is sufficient.
+$p = 1/2$이고 원소가 최대 $n = 2^{16} = 65{,}536$개로 예상된다면 $\text{MaxLevel} = 17$이면 충분하다.
 
-!!! warning "Setting MaxLevel too low"
-    If MaxLevel is set below $\log_{1/p} n$, the skip list degrades: the
-    top levels become overcrowded, and search approaches $O(n)$.
-    Always set MaxLevel based on the expected maximum number of elements.
+!!! warning "MaxLevel을 너무 낮게 잡을 때"
+    MaxLevel을 $\log_{1/p} n$보다 낮게 잡으면 스킵 리스트가 나빠진다. 위쪽 층이 지나치게 붐비고 탐색이 $O(n)$에 가까워진다. MaxLevel은 언제나 예상되는 최대 원소 수를 바탕으로 정하라.
 
-## Comparison with Deterministic Trees
+## 결정적 트리와의 비교
 
-| Property | Skip list height | AVL tree height | Red-black tree height |
+| 성질 | 스킵 리스트 높이 | AVL 트리 높이 | 적흑 트리 높이 |
 |---|---|---|---|
-| Bound type | Expected / high probability | Worst case | Worst case |
-| Formula | $\leq \log_{1/p} n + O(1)$ | $\leq 1.44 \log_2 n$ | $\leq 2 \log_2 n$ |
-| For $n = 10^6$ | $\approx 22$ ($p = 1/2$) | $\approx 29$ | $\approx 40$ |
+| 상계의 종류 | 기댓값 / 높은 확률 | 최악의 경우 | 최악의 경우 |
+| 공식 | $\leq \log_{1/p} n + O(1)$ | $\leq 1.44 \log_2 n$ | $\leq 2 \log_2 n$ |
+| $n = 10^6$일 때 | $\approx 22$ ($p = 1/2$) | $\approx 29$ | $\approx 40$ |
 
-The expected skip list height is competitive with deterministic tree
-heights, and the high-probability bound ensures that pathological heights
-are vanishingly unlikely.
+스킵 리스트의 기대 높이는 결정적 트리의 높이에 견줄 만하며, 높은 확률로 성립하는 상계 덕분에 병적으로 높은 경우는 사실상 일어나지 않는다.
 
-## Reference
+## 참고 문헌
 
 - Pugh, W. "Skip Lists: A Probabilistic Alternative to Balanced Trees."
   *Communications of the ACM*, 33(6), 1990.
 - Motwani, R. & Raghavan, P. *Randomized Algorithms*, Chapter 3.
   Cambridge University Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+기대 높이에 대해 삽입, 삭제, 탐색, 접근 연산의 시간 복잡도를 진술하라.
+
+??? success "연습문제 1 풀이"
+    복잡도는 구체적인 구현(배열 기반이냐 연결 기반이냐)에 달려 있다. 배열 기반은 접근이 $O(1)$이고 임의의 위치에서의 삽입·삭제가 $O(n)$이다. 연결 기반은 이미 아는 위치에서의 삽입·삭제가 $O(1)$이고 탐색·접근이 $O(n)$이다. 어떤 연산이 주를 이루느냐에 따라 선택이 갈린다.
+
+---
+
+**연습문제 2.**
+원소 6개로 기대 높이을(를) 따라가며 각 연산 후의 자료구조 상태를 보여라.
+
+??? success "연습문제 2 풀이"
+    구조에 삽입, 접근, 삭제를 차례로 수행하라. 각 단계마다 (연결 구조라면) 포인터를, (배열 기반이라면) 배열의 내용을 보이며 구조가 불변식을 어떻게 유지하는지 나타내라.
+
+---
+
+**연습문제 3.**
+기대 높이이(가) PyTorch의 텐서 저장과 어떻게 관련되는지 설명하라. 자료구조의 선택이 메모리 배치와 캐시 성능에 어떤 영향을 주는가?
+
+??? success "연습문제 3 풀이"
+    PyTorch 텐서는 캐시에 효율적으로 접근할 수 있도록 연속된 배열로 저장된다. 연결 구조는 autograd 그래프를 훑는 데 내부적으로 쓰인다. 이 선택은 메모리 사용량(배열에는 포인터 부담이 없다)과 접근 양상(캐시 지역성 덕분에 순차적인 배열 접근이 연결 리스트 순회보다 10~100배 빠르다)에 모두 영향을 준다.
+
+---
+
+**연습문제 4.**
+반복문 불변식을 사용하여 기대 높이의 주요 연산의 시간 복잡도를 증명하라.
+
+??? success "연습문제 4 풀이"
+    알고리즘의 반복문이 유지하는 불변식을 진술하라. 초기화, 유지, 종료를 증명하라. 이 불변식으로부터 반복문이 명시된 횟수 안에 끝남이 따라 나오며, 이로써 복잡도의 상계가 확립된다. $\square$

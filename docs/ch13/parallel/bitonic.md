@@ -1,55 +1,45 @@
-# Bitonic Sort
+# 바이토닉 정렬
 
-Most sorting algorithms are inherently sequential: each comparison depends on the
-results of previous ones.  **Bitonic sort** is a parallel sorting algorithm whose
-comparison pattern is fixed and data-independent, making it ideal for hardware
-implementations (FPGA, GPU) and sorting networks.  It builds on the concept of
-*bitonic sequences* -- sequences that first increase then decrease (or vice versa) --
-and recursively merges them into sorted order.
+대부분의 정렬 알고리즘은 본디 차례대로 굴러간다. 견줌마다 앞선 견줌의 결과에 기대기 때문이다. **바이토닉 정렬**은 견줌의 본새가 붙박여 있고 데이터에 기대지 않는 병렬 정렬 알고리즘이어서 하드웨어 구현(FPGA, GPU)과 정렬 망에 딱 맞는다. 처음에는 커지다가 나중에 작아지는(또는 그 반대인) *바이토닉 수열*이라는 개념 위에 서서, 그것들을 되돌이로 병합해 정렬된 차례를 만든다.
 
-## Bitonic Sequences
+## 바이토닉 수열
 
 A sequence $a_0, a_1, \dots, a_{n-1}$ is **bitonic** if there exists an index $k$
-such that:
+이때 다음이 성립한다.
 
 $$
 a_0 \le a_1 \le \cdots \le a_k \ge a_{k+1} \ge \cdots \ge a_{n-1}
 $$
 
-or the sequence is a cyclic rotation of such a sequence.  Examples:
+이거나, 그 수열을 돌려 놓은 것이다. 보기를 들면 다음과 같다.
 
-- $[1, 3, 5, 7, 6, 4, 2]$ -- increases then decreases.
-- $[7, 6, 4, 2, 1, 3, 5]$ -- cyclic rotation of a bitonic sequence.
-- Any sorted sequence is trivially bitonic ($k = n-1$).
-- Any reverse-sorted sequence is trivially bitonic ($k = 0$).
+- $[1, 3, 5, 7, 6, 4, 2]$ — 커졌다가 작아진다.
+- $[7, 6, 4, 2, 1, 3, 5]$ — 바이토닉 수열을 돌려 놓은 것이다.
+- 정렬된 수열은 모두 시시하게 바이토닉이다($k = n-1$).
+- 거꾸로 정렬된 수열도 모두 시시하게 바이토닉이다($k = 0$).
 
-## Bitonic Merge
+## 바이토닉 병합
 
-The key operation is the **bitonic merge**, which takes a bitonic sequence and produces
-a sorted sequence.  Given a bitonic sequence of length $n$ (a power of 2):
+핵심 연산은 **바이토닉 병합**으로, 바이토닉 수열을 받아 정렬된 수열을 낸다. 길이가 $n$(2의 거듭제곱)인 바이토닉 수열이 주어지면 다음과 같이 한다.
 
 1. Compare elements at distance $n/2$: pair $(a_i, a_{i + n/2})$ for $i = 0, \dots, n/2 - 1$.
 2. For each pair, swap if the element at position $i$ is greater (for ascending order).
-3. After this step, the two halves are each bitonic and every element in the first half
-   is at most every element in the second half.
-4. Recursively apply bitonic merge to each half.
+3. 이 걸음 뒤에 두 반쪽이 저마다 바이토닉이 되고, 앞쪽 반의 모든 원소가 뒤쪽 반의 모든 원소보다 작거나 같아진다.
+4. 반쪽마다 바이토닉 병합을 되돌이로 쓴다.
 
-The recursion has depth $\log_2 n$, and each level performs $n/2$ independent
-comparisons.
+되돌이의 깊이는 $\log_2 n$이고, 층마다 서로 독립인 견줌을 $n/2$번 한다.
 
-## Bitonic Sort Algorithm
+## 바이토닉 정렬 알고리즘
 
-Bitonic sort builds up sorted sequences by alternately producing bitonic sequences and
-merging them:
+바이토닉 정렬은 바이토닉 수열을 만들고 병합하기를 번갈아 하며 정렬된 수열을 쌓아 올린다.
 
 1. Start with $n$ individual elements (each trivially sorted).
 2. For each block size $s = 2, 4, 8, \dots, n$:
-    - Pair adjacent blocks of size $s/2$.
-    - Sort one block ascending and the other descending, forming a bitonic sequence
-      of size $s$.
+    - 크기 $s/2$의 이웃한 블록을 짝짓는다.
+    - 한 블록은 오름차순으로, 다른 블록은 내림차순으로 정렬해 크기 $s$의 바이토닉 수열을 만든다.
     - Apply bitonic merge to produce a sorted sequence of size $s$.
 
-## Complexity
+## 복잡도
 
 $$
 T_{\text{comparisons}} = O(n \log^2 n)
@@ -59,62 +49,61 @@ $$
 T_{\text{parallel}} = O(\log^2 n) \quad \text{with } n/2 \text{ processors}
 $$
 
-The algorithm performs $\log_2 n$ stages, and stage $k$ has $k$ comparison rounds,
-giving a total of $\frac{1}{2}\log_2 n \cdot (\log_2 n + 1)$ parallel steps.
+이 알고리즘은 단계를 $\log_2 n$번 거치고 단계 $k$에는 견줌 회차가 $k$번 있어, 모두 $\frac{1}{2}\log_2 n \cdot (\log_2 n + 1)$번의 병렬 걸음이 든다.
 
 **Space:** $O(n)$ -- the sort is in-place (only swaps are needed).
 
-## Worked Example
+## 풀이 예제
 
 Sort $A = [3, 7, 4, 8, 6, 2, 1, 5]$ using bitonic sort (ascending).
 
-**Stage 1 (blocks of 2):** Sort pairs alternately ascending/descending.
+**단계 1(크기 2 블록):** 쌍을 오름차순과 내림차순으로 번갈아 정렬한다.
 
-- $[3, 7] \to [3, 7]$ (ascending)
-- $[4, 8] \to [8, 4]$ (descending)
-- $[6, 2] \to [2, 6]$ (ascending)
-- $[1, 5] \to [5, 1]$ (descending)
+- $[3, 7] \to [3, 7]$(오름차순)
+- $[4, 8] \to [8, 4]$(내림차순)
+- $[6, 2] \to [2, 6]$(오름차순)
+- $[1, 5] \to [5, 1]$(내림차순)
 
-Result: $[3, 7, 8, 4, 2, 6, 5, 1]$
+결과: $[3, 7, 8, 4, 2, 6, 5, 1]$
 
-**Stage 2 (blocks of 4):** Bitonic merge groups of 4.
+**단계 2(크기 4 블록):** 4개짜리 무리를 바이토닉 병합한다.
 
-- $[3, 7, 8, 4]$ is bitonic -- merge ascending: $[3, 4, 7, 8]$
-- $[2, 6, 5, 1]$ is bitonic -- merge descending: $[6, 5, 2, 1]$
+- $[3, 7, 8, 4]$은 바이토닉이다 — 오름차순으로 병합하면 $[3, 4, 7, 8]$
+- $[2, 6, 5, 1]$은 바이토닉이다 — 내림차순으로 병합하면 $[6, 5, 2, 1]$
 
-Result: $[3, 4, 7, 8, 6, 5, 2, 1]$
+결과: $[3, 4, 7, 8, 6, 5, 2, 1]$
 
-**Stage 3 (block of 8):** The entire array is bitonic -- merge ascending.
+**단계 3(크기 8 블록):** 배열 전체가 바이토닉이다 — 오름차순으로 병합한다.
 
-- Compare at distance 4: $(3,6), (4,5), (7,2), (8,1) \to [3, 4, 2, 1, 6, 5, 7, 8]$
-- Compare at distance 2: $(3,2), (4,1), (6,7), (5,8) \to [2, 1, 3, 4, 6, 5, 7, 8]$
-- Compare at distance 1: $(2,1), (3,4), (6,5), (7,8) \to [1, 2, 3, 4, 5, 6, 7, 8]$
+- 거리 4에서 견준다: $(3,6), (4,5), (7,2), (8,1) \to [3, 4, 2, 1, 6, 5, 7, 8]$
+- 거리 2에서 견준다: $(3,2), (4,1), (6,7), (5,8) \to [2, 1, 3, 4, 6, 5, 7, 8]$
+- 거리 1에서 견준다: $(2,1), (3,4), (6,5), (7,8) \to [1, 2, 3, 4, 5, 6, 7, 8]$
 
-**Final result:** $[1, 2, 3, 4, 5, 6, 7, 8]$
+**마지막 결과:** $[1, 2, 3, 4, 5, 6, 7, 8]$
 
-## Implementation
+## 구현
 
 ```python
 """
-Bitonic sort -- data-oblivious parallel sorting algorithm.
+바이토닉 정렬 — 자료를 아랑곳하지 않는 병렬 정렬 알고리즘.
 
-The comparison pattern is independent of input values, making it
-suitable for hardware sorting networks and GPU implementations.
-Time:  O(n log^2 n) comparisons (sequential)
-       O(log^2 n) parallel steps with n/2 processors
-Space: O(n) -- in-place via swaps
+견줌 무늬가 입력 값과 상관없으므로 하드웨어 정렬 망과
+GPU 구현에 알맞다.
+시간:  견줌 O(n log^2 n)번(차례대로)
+       처리기 n/2개로 병렬 걸음 O(log^2 n)번
+공간: O(n) — 맞바꾸기로 제자리에서
 """
 
-# === Bitonic sort ===========================================================
+# === 바이토닉 정렬 ==========================================================
 
 def _compare_and_swap(arr: list[int], i: int, j: int, ascending: bool) -> None:
-    """Swap arr[i] and arr[j] if they are in the wrong order."""
+    """차례가 틀렸으면 arr[i]과 arr[j]을 맞바꾼다."""
     if (arr[i] > arr[j]) == ascending:
         arr[i], arr[j] = arr[j], arr[i]
 
 
 def _bitonic_merge(arr: list[int], lo: int, length: int, ascending: bool) -> None:
-    """Merge a bitonic sequence arr[lo:lo+length] into sorted order."""
+    """바이토닉 수열 arr[lo:lo+length]을 정렬된 차례로 병합한다."""
     if length <= 1:
         return
 
@@ -127,33 +116,33 @@ def _bitonic_merge(arr: list[int], lo: int, length: int, ascending: bool) -> Non
 
 
 def _bitonic_sort_rec(arr: list[int], lo: int, length: int, ascending: bool) -> None:
-    """Recursively sort arr[lo:lo+length] using bitonic sort."""
+    """바이토닉 정렬로 arr[lo:lo+length]을 되돌이로 정렬한다."""
     if length <= 1:
         return
 
     half = length // 2
-    # Sort first half ascending, second half descending
+    # 앞 반쪽은 오름차순, 뒤 반쪽은 내림차순으로 정렬
     _bitonic_sort_rec(arr, lo, half, True)
     _bitonic_sort_rec(arr, lo + half, half, False)
 
-    # Merge the resulting bitonic sequence
+    # 그렇게 나온 바이토닉 수열을 병합
     _bitonic_merge(arr, lo, length, ascending)
 
 
 def bitonic_sort(arr: list[int], ascending: bool = True) -> list[int]:
-    """Sort *arr* using bitonic sort.
+    """바이토닉 정렬로 *arr*을 정렬한다.
 
-    Parameters
+    매개변수
     ----------
     arr : list[int]
-        Input array. Length must be a power of 2.
+        입력 배열. 길이는 2의 거듭제곱이어야 한다.
     ascending : bool
-        Sort in ascending order if True.
+        True이면 오름차순으로 정렬한다.
 
-    Returns
+    반환값
     -------
     list[int]
-        Sorted array.
+        정렬된 배열.
     """
     result = list(arr)
     n = len(result)
@@ -162,7 +151,7 @@ def bitonic_sort(arr: list[int], ascending: bool = True) -> list[int]:
     return result
 
 
-# === Demo ===================================================================
+# === 시연 ===================================================================
 
 if __name__ == "__main__":
     data = [3, 7, 4, 8, 6, 2, 1, 5]
@@ -171,7 +160,7 @@ if __name__ == "__main__":
     print(f"Ascending: {sorted_data}")
     print(f"Descending: {bitonic_sort(data, ascending=False)}")
 
-    # Larger example
+    # 더 큰 보기
     import random
     random.seed(42)
     large = [random.randint(0, 999) for _ in range(16)]
@@ -179,7 +168,7 @@ if __name__ == "__main__":
     print(f"Sorted:     {bitonic_sort(large)}")
 ```
 
-**Output:**
+**출력:**
 ```
 Input:     [3, 7, 4, 8, 6, 2, 1, 5]
 Ascending: [1, 2, 3, 4, 5, 6, 7, 8]
@@ -189,24 +178,50 @@ Input (16): [654, 114, 25, 837, 886, 544, 165, 572, 892, 400, 991, 985, 7, 426, 
 Sorted:     [7, 25, 114, 156, 165, 400, 426, 544, 572, 654, 837, 849, 886, 892, 985, 991]
 ```
 
-## GPU and Hardware Applications
+## GPU과 하드웨어에서의 쓰임새
 
-Bitonic sort is particularly attractive for GPUs because:
+바이토닉 정렬이 GPU에 특히 매력적인 까닭은 다음과 같다.
 
-1. **Data-oblivious.** The comparison pattern does not depend on the data values,
-   so all threads execute the same instructions (no branch divergence).
-2. **Regular memory access.** Each stage accesses elements at fixed strides, which
-   maps well to GPU memory coalescing.
-3. **No synchronization within a warp.** Comparisons within a 32-thread warp can
-   execute without explicit barriers.
+1. **데이터를 보지 않음.** 견줌의 본새가 데이터 값에 기대지 않으므로 모든 실이 같은 명령을 밟는다(가지가 갈리지 않는다).
+2. **한결같은 기억 훑기.** 단계마다 정해진 걸음폭으로 원소를 훑으므로 GPU의 기억 합치기에 잘 맞는다.
+3. **워프 안에서는 맞추기가 없음.** 실 32개짜리 워프 안의 견줌은 드러난 장벽 없이 돌 수 있다.
 
-For these reasons, bitonic sort is the sorting algorithm of choice for small to
-moderate arrays on GPUs, despite its $O(n \log^2 n)$ comparison count being worse
-than optimal $O(n \log n)$ merge sort.
+이런 까닭에 바이토닉 정렬은 견줌 횟수가 $O(n \log^2 n)$으로 가장 좋은 $O(n \log n)$ 병합 정렬보다 나쁜데도, GPU에서 작거나 중간 크기의 배열을 정렬할 때 첫손에 꼽힌다.
 
-## Reference
+## 참고 문헌
 
-- Batcher, K. E. (1968). Sorting networks and their applications. *Proceedings
-  of the AFIPS Spring Joint Computer Conference*, 307-314.
-- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022).
-  *Introduction to Algorithms* (4th ed.), Chapter 27. MIT Press.
+- Batcher, K. E. (1968). Sorting networks and their applications. *Proceedings of the AFIPS Spring Joint Computer Conference*, 307-314.
+- Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.), 27장. MIT Press.
+
+
+## 연습문제
+
+**연습문제 1.**
+바이토닉 정렬의 핵심 생각과 그 시간·공간 복잡도를 밝혀라.
+
+??? success "연습문제 1 풀이"
+    이 알고리즘은 견줌 너머의 성질(정수 열쇠, 바깥 저장 장치, 병렬 하드웨어)을 살려 써서 비교 기반 정렬이 따라올 수 없는 성능을 이룬다. 구체적인 복잡도 한계는 이 쪽에서 뜯어본다.
+
+---
+
+**연습문제 2.**
+작은 입력에서 바이토닉 정렬을 따라가라. 훑기나 단계마다 보여라.
+
+??? success "연습문제 2 풀이"
+    원소 6~8개에 알고리즘을 적용하며 훑을 때마다의 상태를 보여라. 이 따라가기가 알고리즘의 얼개를 드러내고 옳음을 눈에 보이게 한다.
+
+---
+
+**연습문제 3.**
+어떤 조건에서 비교 기반 정렬보다 바이토닉 정렬이 나은가?
+
+??? success "연습문제 3 풀이"
+    다음일 때 낫다. 입력의 정수 범위가 묶여 있을 때(세기 정렬과 기수 정렬), 데이터가 램을 넘칠 때(바깥 정렬), 병렬 하드웨어를 쓸 수 있을 때(병렬 정렬). 이런 조건에서는 알고리즘이 비교 기반의 아래 한계 $\Omega(n\log n)$을 비껴갈 수 있다.
+
+---
+
+**연습문제 4.**
+바이토닉 정렬이 실전에서 이득을 주는 깊은 학습 응용을 서술하라.
+
+??? success "연습문제 4 풀이"
+    응용: 어휘를 찾기 위한 토큰 번호 정렬($O(n + V)$의 세기 정렬), GPU 기억을 넘치는 데이터셋의 바깥 정렬, GPU에서 배치 연산을 위한 병렬 정렬. 특정 조건(정수 열쇠, 큰 데이터, 병렬성)이 갖추어질 때 이득이 가장 크다.

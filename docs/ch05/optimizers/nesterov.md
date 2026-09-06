@@ -1,75 +1,75 @@
-# Nesterov Accelerated Gradient
+# 네스테로프 가속 경사
 
-[Classical momentum](momentum.md) accumulates a velocity vector from past gradients and uses it to accelerate parameter updates.  While this speeds convergence in low-curvature directions, the accumulated velocity can overshoot when the loss surface curves sharply — for instance near a minimum, where the gradient changes direction rapidly.  **Nesterov Accelerated Gradient** (NAG; Nesterov, 1983) mitigates this by evaluating the gradient at a **look-ahead position** rather than the current position.  This "peek ahead" provides an early warning of curvature changes, allowing the optimizer to slow down before it overshoots.
+[고전적인 모멘텀](momentum.md)은 지난 기울기로 속도 벡터를 쌓아 매개변수의 갱신을 가속한다. 곡률이 낮은 방향에서는 수렴이 빨라지지만, 손실 곡면이 급하게 굽는 곳, 예를 들어 기울기의 방향이 빠르게 바뀌는 극소점 근처에서는 쌓인 속도가 지나쳐 버릴 수 있다. **네스테로프 가속 경사**(NAG, Nesterov, 1983)는 현재 위치가 아니라 **미리 본 위치**에서 기울기를 재어 이를 누그러뜨린다. 이 "미리 엿보기"가 곡률의 변화를 미리 알려 주어 최적화기가 지나치기 전에 속도를 늦추게 한다.
 
-## Update Rule
+## 갱신 규칙
 
-At each time step $t$, let $\theta_t$ denote the current parameters, $\mu \in [0, 1)$ the momentum coefficient, and $\eta > 0$ the learning rate.  The velocity vector $v_t$ is initialized to zero.
+각 시각 $t$에서 현재 매개변수를 $\theta_t$, 모멘텀 계수를 $\mu \in [0, 1)$, 학습률을 $\eta > 0$이라 하자. 속도 벡터 $v_t$은 0으로 초기화한다.
 
-**Step 1.** Compute the look-ahead position and evaluate the gradient there:
+**1단계.** 미리 볼 위치를 계산하고 거기서 기울기를 잰다.
 
 $$
 \tilde{\theta}_t = \theta_t + \mu \, v_{t-1}
 $$
 
-**Step 2.** Update the velocity using the gradient at the look-ahead position:
+**2단계.** 미리 본 위치의 기울기로 속도를 갱신한다.
 
 $$
 v_t = \mu \, v_{t-1} - \eta \, \nabla_\theta \mathcal{L}(\tilde{\theta}_t)
 $$
 
-**Step 3.** Update the parameters:
+**3단계.** 매개변수를 갱신한다.
 
 $$
 \theta_{t+1} = \theta_t + v_t
 $$
 
-The critical difference from classical momentum is in Step 1: the gradient is evaluated at $\tilde{\theta}_t = \theta_t + \mu \, v_{t-1}$ (where momentum would carry us) rather than at $\theta_t$ itself.
+고전적인 모멘텀과의 결정적인 차이는 1단계에 있다. 기울기를 $\theta_t$ 자체가 아니라 (모멘텀이 데려갈 곳인) $\tilde{\theta}_t = \theta_t + \mu \, v_{t-1}$에서 잰다.
 
-!!! note "Equivalent reformulation"
-    Many frameworks, including PyTorch, implement an algebraically equivalent form that avoids explicitly computing the look-ahead position.  Defining $\hat{\theta}_t = \theta_t + \mu \, v_t$ and substituting, one can show that the update reduces to a modified velocity step applied directly at $\theta_t$.  The mathematical effect is identical.
+!!! note "동등한 다시 쓰기"
+    PyTorch를 비롯한 여러 프레임워크는 미리 볼 위치를 겉으로 계산하지 않는 대수적으로 동등한 형태를 구현한다. $\hat{\theta}_t = \theta_t + \mu \, v_t$으로 두고 대입하면 갱신이 $\theta_t$에서 바로 적용되는 변형된 속도 걸음으로 줄어듦을 보일 수 있다. 수학적인 효과는 같다.
 
-## Intuition: Corrective Look-Ahead
+## 직관: 바로잡아 주는 미리 보기
 
-Consider a ball rolling downhill with momentum.  Classical momentum evaluates the slope at the ball's current position and adds it to the accumulated velocity.  If the ball is approaching a valley floor, the current gradient still points downhill, so the ball accelerates further and overshoots.
+관성을 지니고 비탈을 굴러 내려가는 공을 생각해 보자. 고전적인 모멘텀은 공의 현재 위치에서 기울기를 재어 쌓인 속도에 더한다. 공이 골짜기 바닥에 다가가고 있어도 현재 기울기는 여전히 내리막을 가리키므로 공은 더 빨라져 지나쳐 버린다.
 
-Nesterov momentum first moves the ball to where momentum *would* carry it, then evaluates the slope at that future position.  If the future position is already past the valley floor, the gradient there points *uphill*, which reduces the velocity and prevents overshoot.
+네스테로프 모멘텀은 먼저 공을 모멘텀이 데려갈 곳으로 옮긴 뒤 그 미래 위치에서 기울기를 잰다. 그 위치가 이미 골짜기 바닥을 지났다면 거기서의 기울기는 *오르막*을 가리키므로 속도가 줄어 지나침을 막는다.
 
-??? example "Comparison on a 1D quadratic"
-    Consider minimizing $f(\theta) = \frac{1}{2}\theta^2$ starting from $\theta_0 = 10$ with $\eta = 0.1$ and $\mu = 0.9$.
+??? example "1차원 이차 함수에서의 비교"
+    $\eta = 0.1$, $\mu = 0.9$으로 $\theta_0 = 10$에서 시작하여 $f(\theta) = \frac{1}{2}\theta^2$을 최소화한다고 하자.
 
-    **Classical momentum** evaluates $\nabla f(\theta_t) = \theta_t$ at the current position, so the velocity accumulates a strong downhill signal even as the parameters approach zero, causing oscillation.
+    **고전적인 모멘텀**은 현재 위치에서 $\nabla f(\theta_t) = \theta_t$을 재므로 매개변수가 0에 다가가는 동안에도 속도에 강한 내리막 신호가 쌓여 진동이 생긴다.
 
-    **Nesterov momentum** evaluates $\nabla f(\theta_t + \mu v_{t-1})$ at the look-ahead position.  When the velocity is about to carry $\theta$ past zero, the look-ahead gradient points in the opposite direction, damping the oscillation earlier.
+    **네스테로프 모멘텀**은 미리 본 위치에서 $\nabla f(\theta_t + \mu v_{t-1})$을 잰다. 속도가 $\theta$을 0 너머로 데려가려 할 때 미리 본 기울기가 반대 방향을 가리켜 진동을 더 일찍 누그러뜨린다.
 
-## Convergence Properties
+## 수렴 성질
 
-For **smooth convex** functions with Lipschitz-continuous gradients, the convergence rates are:
+기울기가 립시츠 연속인 **매끄러운 볼록** 함수에서 수렴 속도는 다음과 같다.
 
-| Method | Rate |
+| 방법 | 속도 |
 |---|---|
-| Gradient descent (no momentum) | $O(1/t)$ |
-| Nesterov accelerated gradient | $O(1/t^2)$ |
+| 경사 하강법 (모멘텀 없음) | $O(1/t)$ |
+| 네스테로프 가속 경사 | $O(1/t^2)$ |
 
-The $O(1/t^2)$ rate achieved by NAG is **optimal** among first-order methods for this function class (Nesterov, 1983).  This quadratic speedup in the convergence rate is the theoretical motivation for Nesterov acceleration.
+NAG가 이루는 $O(1/t^2)$ 속도는 이 함수족에 대한 일차 방법 가운데 **최적**이다(Nesterov, 1983). 수렴 속도가 이렇게 이차로 빨라진다는 것이 네스테로프 가속의 이론적 동기이다.
 
-For **non-convex** loss surfaces typical in deep learning, the theoretical guarantees do not directly apply, but empirical results consistently show that Nesterov momentum reduces oscillation and converges slightly faster than classical momentum.
+딥러닝에서 흔한 **비볼록** 손실 곡면에는 이론적 보장이 바로 적용되지 않지만, 네스테로프 모멘텀이 진동을 줄이고 고전적인 모멘텀보다 조금 더 빨리 수렴한다는 것이 경험적으로 한결같이 확인된다.
 
-## PyTorch Example
+## PyTorch 예제
 
 ```python
-"""Nesterov Accelerated Gradient demonstration using PyTorch's SGD."""
+"""PyTorch의 SGD로 보는 네스테로프 가속 경사 시연."""
 
 import torch
 import torch.nn as nn
 
 
-# === Model and Optimizer Setup ===
+# === 모델과 최적화기 준비 ===
 
 if __name__ == "__main__":
     model = nn.Linear(10, 1)
 
-    # Enable Nesterov momentum by setting nesterov=True
+    # nesterov=True으로 두어 네스테로프 모멘텀 켜기
     optimizer = torch.optim.SGD(
         model.parameters(),
         lr=0.01,
@@ -77,7 +77,7 @@ if __name__ == "__main__":
         nesterov=True,
     )
 
-    # Training loop (illustrative)
+    # 학습 루프 (예시)
     for step in range(100):
         x = torch.randn(32, 10)
         y = torch.randn(32, 1)
@@ -89,17 +89,50 @@ if __name__ == "__main__":
     print(f"Final loss: {loss.item():.4f}")
 ```
 
-## When to Use
+## 언제 쓰는가
 
-Nesterov momentum is generally preferred over classical momentum whenever SGD is the chosen optimizer family:
+SGD 계열을 고른다면 대체로 고전적인 모멘텀보다 네스테로프 모멘텀을 선호한다.
 
-- **No extra cost**: the look-ahead gradient evaluation adds negligible overhead (PyTorch's reformulation avoids a second forward pass).
-- **Reduced oscillation**: the corrective look-ahead reliably dampens oscillation near minima.
-- **Standard recommendation**: set `nesterov=True` in `torch.optim.SGD` as a default when using SGD with momentum.
+- **추가 비용이 없다**: 미리 본 위치에서 기울기를 재는 데 드는 부담이 무시할 만하다(PyTorch의 다시 쓴 형태는 두 번째 순전파를 피한다).
+- **진동이 줄어든다**: 바로잡아 주는 미리 보기가 극소점 근처의 진동을 확실히 누그러뜨린다.
+- **표준 권고**: 모멘텀을 쓰는 SGD라면 `torch.optim.SGD`에서 `nesterov=True`을 기본으로 두라.
 
-For adaptive-rate optimizers like [Adam](adam.md), the Nesterov idea has been incorporated into variants such as NAdam, but standard Adam is more commonly used in practice.
+[Adam](adam.md) 같은 적응형 학습률 최적화기에서는 네스테로프의 착상이 NAdam 같은 변형에 녹아 있지만, 실무에서는 표준 Adam이 더 흔히 쓰인다.
 
-## Reference
+## 참고 문헌
 
 - Nesterov, Y. (1983). A Method of Solving a Convex Programming Problem with Convergence Rate $O(1/k^2)$. *Soviet Mathematics Doklady*, 27(2), 372--376.
 - Sutskever, I., Martens, J., Dahl, G., & Hinton, G. (2013). On the Importance of Initialization and Momentum in Deep Learning. *ICML 2013*.
+
+
+## 연습문제
+
+**연습문제 1.**
+네스테로프 가속 경사의 갱신 규칙 전체를 쓰라. 각 항(기울기, 모멘텀, 적응형 학습률, 편향 보정)이 하는 구실을 밝히라.
+
+??? success "연습문제 1 풀이"
+    이 쪽의 갱신 규칙은 여러 부분으로 이루어진다. 기울기는 하강 방향을 주고, 모멘텀 항은 단계에 걸쳐 잡음이 섞인 기울기를 매끄럽게 하며, 적응 항은 매개변수마다 학습률의 배율을 조정하고, (있다면) 편향 보정은 모멘트 추정값을 0으로 초기화한 데서 오는 치우침을 바로잡는다.
+
+---
+
+**연습문제 2.**
+네스테로프 가속 경사을(를) 기본 SGD와 비교하라. 어떤 손실 지형에서 네스테로프 가속 경사이(가) 가장 유리한가?
+
+??? success "연습문제 2 풀이"
+    네스테로프 가속 경사은(는) 다음과 같은 손실 지형에서 유리하다. (1) 차원마다 곡률이 다를 때(적응형 학습률이 도움이 된다), (2) 기울기에 잡음이 많을 때(모멘텀의 평활화가 도움이 된다), (3) 기울기가 희소할 때(누적된 이차 모멘트가 드물게 갱신되는 매개변수에도 뜻있는 학습률을 준다). 잘 조율된 대규모 과제에서는 SGD가 더 잘 일반화할 수 있다.
+
+---
+
+**연습문제 3.**
+네스테로프 가속 경사으로 4단계 동안 기울기 $[0.1, 0.2, 0.1, 0.3]$을 받은 매개변수의 실효 학습률을 유도하라. 명목 학습률과 어떻게 다른가?
+
+??? success "연습문제 3 풀이"
+    이 쪽의 갱신 규칙을 적용하여 4단계 뒤에 누적된 상태를 계산하라. 실효 학습률은 명목 학습률을 누적된 이차 모멘트 항(에 엡실론을 더한 값)으로 나눈 것이다. 기울기가 꾸준히 큰 매개변수는 실효 학습률이 작아지고, 기울기가 작은 매개변수는 실효 학습률이 커진다.
+
+---
+
+**연습문제 4.**
+네스테로프 가속 경사이(가) 어떤 학습률 선택에서 발산할 수 있는 이유를 설명하라. 안정 조건을 유도하라.
+
+??? success "연습문제 4 풀이"
+    실효 걸음 크기가 곡률의 한계를 넘으면 발산한다. 매개변수가 극소점을 지나쳐 진폭이 커지며 진동한다. 안정 조건은 학습률, 손실의 곡률(헤세 행렬의 고윳값), 최적화기의 적응 배율 사이의 관계에 달렸다. 볼록 이차 함수에서는 매끄러움 상수를 $L$이라 할 때 조건이 $\eta < 2/L$이다.

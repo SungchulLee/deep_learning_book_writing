@@ -211,3 +211,43 @@ Lookup 99: None
 
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 - [Database System Concepts (Silberschatz, Korth, Sudarshan)](https://www.db-book.com/)
+
+## Exercises
+
+**Exercise 1.**
+Explain why hash indexes do not support range queries. What structural property of hash functions prevents ordered access?
+
+??? success "Solution to Exercise 1"
+    Hash functions are designed to distribute keys uniformly and pseudorandomly across buckets. Two keys that are close in value (e.g., 100 and 101) map to unrelated bucket positions. This destroys any ordering: a range query `WHERE id BETWEEN 100 AND 200` would need to check every bucket because the target keys are scattered. B-tree indexes maintain sorted order, so a range scan starts at the lower bound and sequentially reads pages until the upper bound. Hash indexes provide $O(1)$ point lookups but $O(n)$ range scans (equivalent to a full table scan). This is why databases default to B-tree indexes and use hash indexes only when the workload is exclusively exact-match lookups. $\square$
+
+---
+
+**Exercise 2.**
+Describe extendible hashing and how it handles bucket overflow without rehashing the entire table.
+
+??? success "Solution to Exercise 2"
+    Extendible hashing uses a directory of $2^d$ pointers (where $d$ is the global depth) mapping hash prefixes to buckets. Each bucket has a local depth $d_b \le d$. On overflow: if $d_b < d$, split the bucket into two, increment $d_b$, and update the relevant directory entries to point to the new buckets. If $d_b = d$, double the directory ($d \to d + 1$), copying all pointers, then split the bucket. Crucially, only one bucket is split and at most one directory doubling occurs -- no existing records are moved except those in the overflowing bucket. This is $O(B)$ work where $B$ is the bucket size, compared to $O(n)$ for full rehashing. The directory fits in memory (it is small -- $2^d$ pointers), so only the split bucket requires disk I/O. $\square$
+
+---
+
+**Exercise 3.**
+A hash index uses linear probing with a load factor of $\alpha$. Derive the expected number of probes for a successful lookup and an unsuccessful lookup.
+
+??? success "Solution to Exercise 3"
+    Under the uniform hashing assumption, Knuth's analysis gives: expected probes for a **successful** lookup: $\frac{1}{2}(1 + \frac{1}{1 - \alpha})$. Expected probes for an **unsuccessful** lookup: $\frac{1}{2}(1 + \frac{1}{(1-\alpha)^2})$. At $\alpha = 0.5$: successful $= 1.5$ probes, unsuccessful $= 2.5$ probes. At $\alpha = 0.75$: successful $= 2.5$, unsuccessful $= 8.5$. At $\alpha = 0.9$: successful $= 5.5$, unsuccessful $= 50.5$. The sharp degradation above $\alpha = 0.75$ is why hash tables are typically resized at 70--75% load. For database hash indexes, each probe is a disk I/O, making the cost even more critical than in-memory hash tables. $\square$
+
+---
+
+**Exercise 4.**
+Compare static hash indexing, extendible hashing, and linear hashing for a database that grows from 1000 to 10 million records. Which approach handles growth best?
+
+??? success "Solution to Exercise 4"
+    **Static hashing**: fixed number of buckets chosen at creation. As records grow, buckets overflow, creating long chains. Eventually requires a full rebuild (costly $O(n)$ operation that locks the table). Poor for growing databases. **Extendible hashing**: directory doubles when needed ($O(2^d)$ to double), but only one bucket splits at a time. Handles growth smoothly. Drawback: directory can become very large ($2^d$ entries) if data distribution is skewed. **Linear hashing**: splits buckets one at a time in round-robin order, triggered when the average load exceeds a threshold. No directory needed -- the number of buckets grows linearly. Overflow chains are temporary (resolved when the overflowing bucket is eventually split). Linear hashing handles growth best for large-scale databases because it avoids both full rebuilds and large directories, with predictable $O(1)$ amortized cost per split. $\square$
+
+---
+
+**Exercise 5.**
+Bitcask (used in Riak) stores an in-memory hash index mapping every key to a file offset. Analyze its space requirements for $10^8$ keys of average length 20 bytes and discuss why it is effective for write-heavy workloads.
+
+??? success "Solution to Exercise 5"
+    Each hash index entry stores: key (20 bytes average), file ID (4 bytes), offset (8 bytes), value size (4 bytes), timestamp (4 bytes). Total per entry: $\approx 40$ bytes. For $10^8$ keys: $40 \times 10^8 = 4$ GB of RAM for the index. This is feasible on modern servers but limits the number of keys. Effectiveness for writes: Bitcask writes are always sequential appends to the active data file -- no random I/O, no in-place updates. This maximizes disk throughput (sequential writes are 100x faster than random on HDD). Reads are always one random I/O (look up the offset in the in-memory hash map, then seek to that offset). The tradeoff: the entire key set must fit in RAM, and range queries are not supported. For use cases with a bounded key count and high write throughput (session stores, caches), Bitcask is highly effective. $\square$

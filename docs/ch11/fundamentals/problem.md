@@ -1,86 +1,120 @@
-# Sorting Problem
+# 정렬 문제
 
-Sorting is one of the most fundamental problems in computer science. Nearly every large software system relies on sorting at some level — databases order records for efficient retrieval, search engines rank results by relevance, and operating systems schedule processes by priority. Understanding the sorting problem precisely is essential because the way we formalize it determines which algorithms are correct, which complexity bounds apply, and which trade-offs matter. This section defines the sorting problem formally, introduces the comparison model, and surveys the basic complexity landscape.
+정렬은 컴퓨터 과학에서 가장 근본 되는 문제 가운데 하나이다. 거의 모든 큰 소프트웨어 체계가 어느 수준에서든 정렬에 기댄다. 데이터베이스는 효율적으로 꺼내려고 레코드를 늘어놓고, 검색 엔진은 관련도로 결과의 순위를 매기고, 운영체제는 우선순위로 프로세스의 일정을 짠다. 정렬 문제를 정확히 이해하는 것이 꼭 필요한데, 어떻게 정식화하느냐가 어떤 알고리즘이 옳은지, 어떤 복잡도 한계가 적용되는지, 어떤 맞바꿈이 중요한지를 정하기 때문이다. 이 절은 정렬 문제를 정식으로 정의하고 비교 모형을 들여오고 기본 복잡도 지형을 훑는다.
 
-## Formal Definition
+## 엄밀한 정의
 
-The **sorting problem** takes a sequence of $n$ elements and produces a reordering (permutation) of that sequence such that the elements appear in non-decreasing order according to a given ordering relation.
+**정렬 문제**는 원소 $n$개의 수열을 받아, 주어진 순서 관계에 따라 원소가 감소하지 않는 순서로 놓이도록 그 수열을 다시 늘어놓은 것(순열)을 낸다.
 
-**Input.** A sequence of $n$ elements $\langle a_1, a_2, \ldots, a_n \rangle$.
+**입력.** 원소 $n$개의 수열 $\langle a_1, a_2, \ldots, a_n \rangle$.
 
-**Output.** A permutation $\langle a_{\pi(1)}, a_{\pi(2)}, \ldots, a_{\pi(n)} \rangle$ of the input such that
+**출력.** 다음을 만족하는 입력의 순열 $\langle a_{\pi(1)}, a_{\pi(2)}, \ldots, a_{\pi(n)} \rangle$.
 
 $$
 a_{\pi(1)} \leq a_{\pi(2)} \leq \cdots \leq a_{\pi(n)}
 $$
 
-Here $\pi$ is a permutation of $\{1, 2, \ldots, n\}$, and $\leq$ is a **total order** on the element type.
+여기서 $\pi$은 $\{1, 2, \ldots, n\}$의 순열이고 $\leq$은 원소 형에 대한 **전순서**이다.
 
-## Total Order
+## 전순서
 
-A **total order** $\leq$ on a set $S$ is a binary relation satisfying four properties:
+집합 $S$의 **전순서** $\leq$은 다음 네 성질을 만족하는 이항 관계이다.
 
-1. **Reflexivity.** For all $a \in S$, $a \leq a$.
-2. **Antisymmetry.** If $a \leq b$ and $b \leq a$, then $a = b$.
-3. **Transitivity.** If $a \leq b$ and $b \leq c$, then $a \leq c$.
-4. **Totality.** For all $a, b \in S$, either $a \leq b$ or $b \leq a$.
+1. **반사성.** 모든 $a \in S$에 대해 $a \leq a$이다.
+2. **반대칭성.** $a \leq b$이고 $b \leq a$이면 $a = b$이다.
+3. **추이성.** $a \leq b$이고 $b \leq c$이면 $a \leq c$이다.
+4. **완전성.** 모든 $a, b \in S$에 대해 $a \leq b$이거나 $b \leq a$이다.
 
-Totality ensures that every pair of elements is comparable. This is crucial: without totality, some pairs might be incomparable and the notion of a "sorted" sequence would be ill-defined.
+완전성은 원소 쌍마다 견줄 수 있음을 보장한다. 이것이 매우 중요하다. 완전성이 없으면 어떤 쌍은 견줄 수 없고 "정렬된" 수열이라는 개념 자체가 제대로 정의되지 않는다.
 
-!!! example "Common Total Orders"
-    - Integers under the usual $\leq$.
-    - Strings under lexicographic (dictionary) order.
-    - Tuples under lexicographic comparison: compare first components, break ties with second components, and so on.
+!!! example "흔한 전순서"
 
-## Keys and Satellite Data
+    - 보통의 $\leq$ 아래의 정수.
+    - 사전식 순서 아래의 문자열.
+    - 사전식 비교 아래의 짝: 첫 성분을 견주고 같으면 둘째 성분으로 가리는 식이다.
 
-In practice, each element $a_i$ consists of a **key** used for ordering and **satellite data** that travels with the key. The sorting algorithm compares and rearranges elements based on their keys alone. For example, sorting a list of student records by GPA treats GPA as the key while name, ID, and other fields are satellite data.
+## 열쇠와 딸린 데이터
 
-This distinction matters when multiple elements share the same key. A sorting algorithm is **stable** if elements with equal keys appear in the output in the same relative order as in the input. Stability is discussed in detail on the [Stability](stability.md) page.
+실제로 원소 $a_i$마다 순서를 매기는 데 쓰는 **열쇠**와 그 열쇠를 따라다니는 **딸린 데이터**로 이루어진다. 정렬 알고리즘은 열쇠만 보고 원소를 견주고 다시 늘어놓는다. 이를테면 학생 기록을 평점으로 정렬하면 평점이 열쇠이고 이름과 학번 같은 칸은 딸린 데이터이다.
 
-## The Comparison Model
+여러 원소가 같은 열쇠를 나누어 가질 때 이 구분이 중요해진다. 열쇠가 같은 원소가 입력에서와 같은 상대 순서로 출력에 놓이면 정렬 알고리즘이 **안정적**이다. 안정성은 [안정성](stability.md) 쪽에서 자세히 다룬다.
 
-Most classical sorting algorithms operate in the **comparison model**: the only way to determine the relative order of two elements is by comparing them using $\leq$ (or equivalently $<$, $>$, $\geq$). No assumptions are made about the internal structure of the keys.
+## 비교 모형
 
-In this model, every algorithm can be represented as a **decision tree** where each internal node corresponds to a comparison $a_i \leq a_j$ and each leaf corresponds to a particular output permutation. The decision tree model leads to a fundamental lower bound: any comparison-based sorting algorithm must perform at least
+고전적인 정렬 알고리즘 대부분은 **비교 모형**에서 돈다. 두 원소의 상대 순서를 아는 유일한 길은 $\leq$(또는 그와 같은 $<$, $>$, $\geq$)으로 견주는 것이다. 열쇠의 속 짜임에 대해서는 아무 가정도 하지 않는다.
+
+이 모형에서 알고리즘마다 내부 노드가 비교 $a_i \leq a_j$에, 잎이 특정 출력 순열에 해당하는 **결정 트리**로 나타낼 수 있다. 결정 트리 모형은 근본적인 아래 한계를 낳는다. 어떤 비교 기반 정렬 알고리즘이든 최악의 경우 적어도
 
 $$
 \Omega(n \log n)
 $$
 
-comparisons in the worst case. This bound is proved on the [Proof](../lower_bound/proof.md) page.
+만큼 비교해야 한다. 이 한계는 [증명](../lower_bound/proof.md) 쪽에서 증명한다.
 
-!!! tip "Beyond Comparisons"
-    Algorithms like counting sort, radix sort, and bucket sort bypass the $\Omega(n \log n)$ barrier by exploiting the structure of keys (e.g., integers in a known range). These are called **non-comparison-based** sorting algorithms and achieve $O(n)$ time under appropriate assumptions.
+!!! tip "비교를 넘어서"
+    계수 정렬, 기수 정렬, 양동이 정렬 같은 알고리즘은 (알려진 범위의 정수 같은) 열쇠의 짜임을 이용해 $\Omega(n \log n)$ 벽을 비껴간다. 이를 **비교에 바탕하지 않는** 정렬 알고리즘이라 하며 알맞은 가정 아래 $O(n)$ 시간을 이룬다.
 
-## Complexity Landscape
+## 복잡도 지형
 
-The table below summarizes the time complexity of major sorting algorithms. Here $n$ is the number of elements and $k$ is the range of key values (for integer sorts).
+아래 표는 주요 정렬 알고리즘의 시간 복잡도를 간추린다. 여기서 $n$은 원소의 수이고 $k$은 (정수 정렬에서) 열쇠 값의 범위이다.
 
-| Algorithm | Best | Average | Worst | In-Place | Stable |
+| 알고리즘 | 최선 | 평균 | 최악 | 제자리 | 안정성 |
 |-----------|------|---------|-------|----------|--------|
-| Bubble sort | $O(n)$ | $O(n^2)$ | $O(n^2)$ | Yes | Yes |
-| Selection sort | $O(n^2)$ | $O(n^2)$ | $O(n^2)$ | Yes | No |
-| Insertion sort | $O(n)$ | $O(n^2)$ | $O(n^2)$ | Yes | Yes |
-| Merge sort | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | No | Yes |
-| Heapsort | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | Yes | No |
-| Quicksort | $O(n \log n)$ | $O(n \log n)$ | $O(n^2)$ | Yes | No |
-| Counting sort | $O(n + k)$ | $O(n + k)$ | $O(n + k)$ | No | Yes |
-| Radix sort | $O(dn)$ | $O(dn)$ | $O(dn)$ | No | Yes |
+| 거품 정렬 | $O(n)$ | $O(n^2)$ | $O(n^2)$ | 그렇다 | 그렇다 |
+| 선택 정렬 | $O(n^2)$ | $O(n^2)$ | $O(n^2)$ | 그렇다 | 아니다 |
+| 삽입 정렬 | $O(n)$ | $O(n^2)$ | $O(n^2)$ | 그렇다 | 그렇다 |
+| 병합 정렬 | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | 아니다 | 그렇다 |
+| 힙 정렬 | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | 그렇다 | 아니다 |
+| 퀵 정렬 | $O(n \log n)$ | $O(n \log n)$ | $O(n^2)$ | 그렇다 | 아니다 |
+| 계수 정렬 | $O(n + k)$ | $O(n + k)$ | $O(n + k)$ | 아니다 | 그렇다 |
+| 기수 정렬 | $O(dn)$ | $O(dn)$ | $O(dn)$ | 아니다 | 그렇다 |
 
-The $\Omega(n \log n)$ lower bound means that merge sort, heapsort, and (on average) quicksort are **asymptotically optimal** among comparison-based algorithms. The simple $O(n^2)$ algorithms — bubble, selection, and insertion sort — are useful for small inputs or nearly sorted data but are too slow for large-scale sorting.
+$\Omega(n \log n)$이라는 아래 한계는 병합 정렬과 힙 정렬과 (평균적으로) 퀵 정렬이 비교 기반 알고리즘 가운데 **점근적으로 최적**임을 뜻한다. 간단한 $O(n^2)$ 알고리즘인 거품 정렬과 선택 정렬과 삽입 정렬은 입력이 작거나 거의 정렬되었을 때 쓸모 있지만 큰 규모 정렬에는 너무 느리다.
 
-## Sorting as a Building Block
+## 짜임 단위로서의 정렬
 
-Sorting serves as a prerequisite for many other algorithms:
+정렬은 다른 여러 알고리즘의 앞선 조건 노릇을 한다.
 
-- **Binary search** requires a sorted array and runs in $O(\log n)$ time.
-- **Finding duplicates** reduces from $O(n^2)$ with brute force to $O(n \log n)$ by sorting first and scanning adjacent pairs.
-- **Computing the median** and other order statistics can be found in $O(n)$ time, but sorting provides them all simultaneously.
-- **Greedy algorithms** for scheduling and interval problems typically begin by sorting events by start or finish time.
+- **이진 탐색**은 정렬된 배열이 필요하고 $O(\log n)$ 시간에 돈다.
+- **겹친 것 찾기**는 힘으로 밀어붙이면 $O(n^2)$이지만 먼저 정렬하고 이웃한 쌍을 훑으면 $O(n \log n)$으로 준다.
+- **중앙값 셈하기**를 비롯한 순서 통계는 $O(n)$ 시간에 찾을 수 있지만 정렬하면 그것을 모두 한꺼번에 얻는다.
+- 일정과 구간 문제의 **탐욕 알고리즘**은 대개 사건을 시작 시각이나 끝 시각으로 정렬하며 시작한다.
 
-These applications explain why sorting is studied so extensively: improvements to sorting algorithms cascade into improvements across many domains.
+이런 쓰임이 정렬을 그토록 널리 연구하는 까닭을 설명해 준다. 정렬 알고리즘이 나아지면 여러 분야가 함께 나아진다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press. Chapter 8.
+
+
+## 연습문제
+
+**연습문제 1.**
+정렬 문제를 정식으로 정의하고 비교 기반 정렬에서의 뜻을 설명하라.
+
+??? success "연습문제 1 풀이"
+    정식 정의는 정렬 알고리즘 설계를 옥죄는 이론적 바탕을 세운다. 이 바탕을 이해하면 알고리즘을 고르는 데 길잡이가 되고 $\Omega(n\log n)$ 벽이 언제 적용되는지 드러난다.
+
+---
+
+**연습문제 2.**
+배열 $[38, 27, 43, 3, 9, 82, 10]$으로 정렬 문제를 보여라.
+
+??? success "연습문제 2 풀이"
+    그 개념을 주어진 배열에 적용하며 관련된 단계를 하나씩 보여라. 이 보기는 추상적인 정의를 손에 잡히게 하고 모서리 경우를 짚어야 한다.
+
+---
+
+**연습문제 3.**
+이 쪽에서 밝힌 주된 결과를 증명하라.
+
+??? success "연습문제 3 풀이"
+    설명한 증명 기법(결정 트리, 적수, 세기)을 쓰라. 주장을 밝히고 논증을 세운 뒤 빈틈없이 밀고 나가라. $\square$
+
+---
+
+**연습문제 4.**
+정렬 문제를 `torch.sort`의 구현에 어떤 실마리를 주는가?
+
+??? success "연습문제 4 풀이"
+    파이토치의 정렬 연산은 이 쪽의 이론적 제약을 지켜야 한다. GPU 정렬에서는 병렬성 요구가 알고리즘 선택을 더 옥죈다. 이론적 한계를 이해하면 데이터의 크기와 종류에 맞는 알고리즘을 고르는 데 도움이 된다.

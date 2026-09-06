@@ -1,127 +1,159 @@
-# Approximation Ratio
+# 어림 비율
 
-When an NP-hard optimization problem cannot be solved exactly in polynomial time, we settle for approximate solutions. The **approximation ratio** quantifies how close an algorithm's output is to the true optimum. This measure serves as the primary yardstick for comparing approximation algorithms and classifying problems by their approximability.
+NP-어려운 가장 좋게 하기 문제를 다항식 시간에 정확히 풀 수 없으면 어림 풀이로 만족한다. **어림 비율**은 알고리즘이 내놓은 것이 참으로 가장 좋은 값에 얼마나 가까운지 수로 나타낸다. 이 잣대는 어림 알고리즘을 견주고 문제를 어림할 수 있는 정도로 가르는 으뜸 자이다.
 
-## Formal Definition
+## 엄밀한 정의
 
-Consider an optimization problem $\Pi$ with instances $I$. Let $\text{OPT}(I)$ denote the optimal objective value and $A(I)$ denote the value returned by algorithm $A$.
+보기가 $I$인 가장 좋게 하기 문제 $\Pi$을 보자. $\text{OPT}(I)$을 가장 좋은 목표 값, $A(I)$을 알고리즘 $A$이 돌려준 값이라 하자.
 
-!!! tip "Definition: Approximation Ratio"
-    An algorithm $A$ has **approximation ratio** $\rho \geq 1$ if for every instance $I$:
+!!! tip "뜻매김: 어림 비율"
+    알고리즘 $A$이 모든 보기 $I$에 대해 다음을 채우면 **어림 비율** $\rho \geq 1$을 가진다.
 
-    **Minimization:**
+    **가장 작게 하기:**
 
     $$
     A(I) \leq \rho \cdot \text{OPT}(I)
     $$
 
-    **Maximization:**
+    **가장 크게 하기:**
 
     $$
     A(I) \geq \frac{1}{\rho} \cdot \text{OPT}(I)
     $$
 
-A $\rho$-approximation algorithm is one that achieves ratio $\rho$. The ratio is always at least 1, with $\rho = 1$ corresponding to an exact solution.
+$\rho$ 어림 알고리즘은 비율 $\rho$을 이루는 알고리즘이다. 비율은 늘 1 이상이며 $\rho = 1$은 정확한 풀이에 맞물린다.
 
-### Alternative Convention
+### 다른 약속
 
-Some texts define the ratio as a value in $(0, 1]$ for maximization:
+어떤 글은 가장 크게 하기에서 비율을 $(0, 1]$ 안의 값으로 뜻매김한다.
 
 $$
 \alpha = \frac{A(I)}{\text{OPT}(I)} \geq \alpha \quad \text{(maximization, } \alpha \leq 1\text{)}
 $$
 
-For example, the Goemans-Williamson MAX-CUT algorithm achieves $\alpha \approx 0.878$, which corresponds to $\rho \approx 1.139$ in the $\rho \geq 1$ convention.
+예컨대 괴만스-윌리엄슨 최대 자름 알고리즘은 $\alpha \approx 0.878$을 이루며 이는 $\rho \geq 1$ 약속에서 $\rho \approx 1.139$에 맞물린다.
 
-## Worst-Case vs Expected
+## 가장 나쁜 경우와 기댓값
 
-The ratio can be defined in two ways:
+비율은 두 가지로 뜻매김할 수 있다.
 
-**Worst-case ratio.** For every instance $I$ of size $n$:
+**가장 나쁜 경우 비율.** 크기 $n$인 모든 보기 $I$에 대해:
 
 $$
 \rho_n = \max_{|I| = n} \frac{A(I)}{\text{OPT}(I)} \quad \text{(minimization)}
 $$
 
-The overall approximation ratio is $\rho = \sup_n \rho_n$.
+전체 어림 비율은 $\rho = \sup_n \rho_n$이다.
 
-**Expected ratio.** For randomized algorithms, the guarantee becomes:
+**기댓값 비율.** 마구잡이 알고리즘에서는 보장이 다음이 된다.
 
 $$
 \mathbb{E}[A(I)] \leq \rho \cdot \text{OPT}(I)
 $$
 
-where the expectation is over the algorithm's random choices. The instance $I$ is worst-case (this is not an average-case guarantee).
+여기서 기댓값은 알고리즘의 아무 고르기에 걸친 것이다. 보기 $I$은 가장 나쁜 경우이다(평균 경우 보장이 아니다).
 
-## Absolute vs Relative Guarantees
+## 절대 보장과 상대 보장
 
-Beyond multiplicative ratios, some algorithms provide **additive** guarantees:
+곱셈 비율 말고도 어떤 알고리즘은 **덧셈** 보장을 준다.
 
 $$
 |A(I) - \text{OPT}(I)| \leq c
 $$
 
-for a constant $c$. For example, edge coloring can always be done with at most $\Delta + 1$ colors (Vizing's theorem), where $\Delta$ is the maximum degree and OPT $\geq \Delta$.
+상수 $c$에 대해 그렇다. 예컨대 모서리 색칠하기는 늘 많아야 $\Delta + 1$가지 빛깔로 할 수 있으며(비징 정리) $\Delta$은 최대 차수이고 OPT $\geq \Delta$이다.
 
-Multiplicative guarantees are more common because they scale with instance size.
+곱셈 보장이 보기 크기에 따라 함께 커지므로 더 흔하다.
 
-## Key Examples
+## 핵심 보기
 
-| Problem | Algorithm | Ratio $\rho$ | Type |
+| 문제 | 알고리즘 | 비율 $\rho$ | 갈래 |
 |---------|-----------|-------------|------|
-| Vertex Cover | Maximal Matching | 2 | Minimization |
-| Metric TSP | Christofides | 3/2 | Minimization |
-| Set Cover | Greedy | $H_n \approx \ln n$ | Minimization |
-| MAX-CUT | Goemans-Williamson | $\approx 1.139$ | Maximization |
-| Knapsack | FPTAS | $1 + \epsilon$ | Maximization |
-| MAX-3SAT | Random Assignment | $8/7$ | Maximization |
+| 꼭짓점 덮기 | 더 키울 수 없는 짝짓기 | 2 | 가장 작게 하기 |
+| 잣대 떠돌이 장수 문제 | 크리스토피데스 | 3/2 | 가장 작게 하기 |
+| 모임 덮기 | 욕심쟁이 | $H_n \approx \ln n$ | 가장 작게 하기 |
+| 최대 자름 | 괴만스-윌리엄슨 | $\approx 1.139$ | 가장 크게 하기 |
+| 배낭 | FPTAS | $1 + \epsilon$ | 가장 크게 하기 |
+| MAX-3SAT | 아무 매김 | $8/7$ | 가장 크게 하기 |
 
-## Approximation Classes
+## 어림 갈래
 
-The ratio determines which approximation class a problem belongs to:
+비율이 문제가 어느 어림 갈래에 드는지 정한다.
 
-| Class | Ratio | Example |
+| 갈래 | 비율 | 보기 |
 |-------|-------|---------|
-| **FPTAS** | $(1 + \epsilon)$ for any $\epsilon$, poly in $n$ and $1/\epsilon$ | Knapsack |
-| **PTAS** | $(1 + \epsilon)$ for any $\epsilon$, poly in $n$ | Euclidean TSP |
-| **APX** | Constant $\rho$ | Vertex Cover ($\rho = 2$) |
-| **Log-APX** | $O(\log n)$ | Set Cover |
-| **Poly-APX** | $O(n^c)$ for some $c < 1$ | Independent Set (planar) |
+| **FPTAS** | 아무 $\epsilon$에 대해 $(1 + \epsilon)$, $n$과 $1/\epsilon$에 다항식 | 배낭 |
+| **PTAS** | 아무 $\epsilon$에 대해 $(1 + \epsilon)$, $n$에 다항식 | 유클리드 떠돌이 장수 문제 |
+| **APX** | 상수 $\rho$ | 꼭짓점 덮기($\rho = 2$) |
+| **Log-APX** | $O(\log n)$ | 모임 덮기 |
+| **Poly-APX** | 어떤 $c < 1$에 대해 $O(n^c)$ | 서로 매이지 않은 모임(평면) |
 
-A problem that is **APX-hard** admits no PTAS unless P = NP. This classification helps determine the best achievable ratio.
+**APX-어려운** 문제는 P = NP이 아니라면 PTAS을 받아들이지 않는다. 이 가름이 이룰 수 있는 가장 좋은 비율을 가리는 데 도움이 된다.
 
-## Proving Approximation Ratios
+## 어림 비율 밝히기
 
-The standard proof strategy has two components:
+여느 밝힘 방책에는 두 몫이 있다.
 
-1. **Lower bound on OPT.** Find a quantity $L$ computable in polynomial time such that $L \leq \text{OPT}$. Common choices include LP relaxation values, matching sizes, and spanning tree costs.
+1. **OPT의 아래 한계.** $L \leq \text{OPT}$이면서 다항식 시간에 셈할 수 있는 양 $L$을 찾는다. 흔한 고르기로 선형 계획 느슨하게 하기 값, 짝짓기 크기, 뻗음 나무 비용이 있다.
 
-2. **Upper bound on $A(I)$.** Show that the algorithm's output satisfies $A(I) \leq \rho \cdot L$.
+2. **$A(I)$의 위 한계.** 알고리즘의 내놓기가 $A(I) \leq \rho \cdot L$을 채움을 보인다.
 
-Combining gives $A(I) \leq \rho \cdot L \leq \rho \cdot \text{OPT}$.
+아우르면 $A(I) \leq \rho \cdot L \leq \rho \cdot \text{OPT}$이 된다.
 
-??? example "Example: Vertex Cover Ratio Proof"
-    **Algorithm.** Find a maximal matching $M$, return both endpoints.
+??? example "보기: 꼭짓점 덮기 비율 밝히기"
+    **알고리즘.** 더 키울 수 없는 짝짓기 $M$을 찾아 두 끝점을 돌려준다.
 
-    **Lower bound.** Any vertex cover must include at least one endpoint of each edge in $M$. Since $M$ is a matching (no shared endpoints): $\text{OPT} \geq |M|$.
+    **아래 한계.** 어떤 꼭짓점 덮기도 $M$의 모서리마다 끝점 하나는 담아야 한다. $M$은 짝짓기이므로(끝점을 나누어 가지지 않는다) $\text{OPT} \geq |M|$이다.
 
-    **Upper bound.** The algorithm returns $2|M|$ vertices.
+    **위 한계.** 알고리즘은 꼭짓점 $2|M|$개를 돌려준다.
 
-    **Ratio.** $\frac{A(I)}{\text{OPT}(I)} \leq \frac{2|M|}{|M|} = 2$.
+    **비율.** $\frac{A(I)}{\text{OPT}(I)} \leq \frac{2|M|}{|M|} = 2$.
 
-    This ratio is tight: consider a graph consisting of $k$ disjoint edges. The optimal cover picks one endpoint per edge ($|M| = k$), while the algorithm picks both ($2k$).
+    이 비율은 빡빡하다. 서로 떨어진 모서리 $k$개로 이루어진 그래프를 보자. 가장 좋은 덮기는 모서리마다 끝점 하나를 고르고($|M| = k$) 알고리즘은 둘 다 고른다($2k$).
 
-## Asymptotic vs Absolute Ratios
+## 점근 비율과 절대 비율
 
-For some problems, the ratio depends on the input size $n$:
+어떤 문제에서는 비율이 들임 크기 $n$에 매인다.
 
-- **Set Cover:** best ratio is $\Theta(\log n)$, meaning both the algorithm and the lower bound scale logarithmically.
-- **Clique:** best polynomial-time ratio is $\Theta(n)$, meaning essentially no useful approximation is possible.
+- **모임 덮기:** 가장 좋은 비율은 $\Theta(\log n)$이며 알고리즘과 아래 한계가 모두 로그로 커진다.
+- **완전 부분 그래프:** 가장 좋은 다항식 시간 비율이 $\Theta(n)$이며 사실상 쓸모 있는 어림이 불가능하다.
 
-The distinction between constant-ratio and growing-ratio problems is fundamental in approximation theory.
+상수 비율 문제와 커지는 비율 문제의 가름은 어림 이론에서 바탕이 된다.
 
-## Reference
+## 참고 문헌
 
 - Cormen, T. H., Leiserson, C. E., Rivest, R. L., & Stein, C. (2022). *Introduction to Algorithms* (4th ed.). MIT Press, Chapter 35.
 - Vazirani, V. V. (2001). *Approximation Algorithms*. Springer.
 - Williamson, D. P., & Shmoys, D. B. (2011). *The Design of Approximation Algorithms*. Cambridge University Press.
+
+## 연습문제
+
+**연습문제 1.**
+가장 작게 하기와 가장 크게 하기 문제 모두에서 어림 비율을 뜻매김하라.
+
+??? success "연습문제 1 풀이"
+    **가장 작게 하기** 문제에서는 $\rho = \frac{ALG}{OPT} \geq 1$이다. 알고리즘은 가장 좋은 비용의 많아야 $\rho$배인 풀이를 낸다. **가장 크게 하기** 문제에서는 $\rho = \frac{OPT}{ALG} \geq 1$이다(같은 말로 $ALG \geq OPT/\rho$). 둘 다 $\rho = 1$이면 정확히 가장 좋다. $\rho$ 어림은 모든 보기에서 풀이가 가장 좋은 값의 $\rho$ 갑절 안에 듦을 보장한다. $\square$
+
+---
+
+**연습문제 2.**
+가장 작게 하기 문제의 2 어림이 풀이가 많아야 가장 좋은 값의 두 배임을 보장함을 밝혀라.
+
+??? success "연습문제 2 풀이"
+    모든 보기 $I$에서 $ALG(I) \leq 2 \cdot OPT(I)$이면 알고리즘의 비용은 많아야 가장 좋은 값의 200%이다. 갑절 2은 가장 나쁜 경우의 보장이다. 많은 보기에서 알고리즘은 가장 좋은 값에 훨씬 가깝게 할 수 있다. 밝힘은 아무 보기에서든 알고리즘의 내놓기가 이 한계를 채움을 보여야 하며, 흔히 $ALG$과 $OPT$을 같은 아래 한계와 이어 보인다. $\square$
+
+---
+
+**연습문제 3.**
+NP-어려운 문제에서 어림 알고리즘이 왜 중요한가?
+
+??? success "연습문제 3 풀이"
+    NP-어려운 문제에서 정확한 알고리즘은 (P = NP이 아니라면) 지수 시간이 든다. 어림 알고리즘은 다항식 시간에 돌며 밝힐 수 있는 품질 보장을 준다. 이는 다룰 수 있음과 가장 좋음 사이의 틈을 잇는다. 곧 셈의 효율을 위해 정확한 최적을 내주지만 그 내줌이 가둬져 있다. 문제마다 받아들이는 어림 비율이 달라 P와 NP의 이분법 너머의 풍부한 복잡도 풍경이 드러난다. $\square$
+
+---
+
+**연습문제 4.**
+상수 갑절 어림, 로그 어림, 상수 어림이 없는 NP-어려운 문제의 보기를 들어라.
+
+??? success "연습문제 4 풀이"
+    **상수 갑절**: 꼭짓점 덮기(갑절 2), 잣대 떠돌이 장수 문제(크리스토피데스로 갑절 1.5). **로그**: 모임 덮기($O(\ln n)$ 어림이며 여느 가정 아래 가장 좋다). **상수 어림 없음**: 완전 부분 그래프(P = NP이 아니라면 $n^{1-\epsilon}$ 안으로 어림하기 어렵다), 일반 떠돌이 장수 문제(해밀턴 돌기에서 줄여 P = NP이 아니라면 어림할 수 없다). 어림 풍경은 문제마다 본디 어려움을 비춘다. $\square$

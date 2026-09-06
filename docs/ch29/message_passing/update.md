@@ -1,91 +1,120 @@
-# 29.2.3 Update Functions
+# 29.2.3 고치기 함수
+## 들어가며
 
+**고치기 함수**는 마디의 앞선 나타냄과 이웃에서 모은 쪽지를 합쳐 새 마디 박아 넣기를 만든다. 이 걸음이 층을 거치며 스스로의 앎을 어떻게 지키고 이웃의 앎과 어떻게 아우를지를 정한다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+## 엄밀한 정의
 
-## Introduction
-
-The **update function** combines a node's previous representation with the aggregated messages from its neighbors to produce the new node embedding. This step determines how self-information is preserved and integrated with neighborhood information across layers.
-
-## Formal Definition
-
-Given node $v$ with current representation $\mathbf{h}_v^{(l-1)}$ and aggregated neighborhood message $\mathbf{m}_v^{(l)}$:
+지금 나타냄이 $\mathbf{h}_v^{(l-1)}$이고 모은 이웃 쪽지가 $\mathbf{m}_v^{(l)}$인 마디 $v$이 주어질 때:
 
 $$\mathbf{h}_v^{(l)} = \text{UPD}\left(\mathbf{h}_v^{(l-1)}, \mathbf{m}_v^{(l)}\right)$$
 
-## Update Function Variants
+## 고치기 함수의 변형
 
-### Simple Replacement
+### 단순 바꿔 넣기
 
 $$\mathbf{h}_v^{(l)} = \sigma\left(\mathbf{m}_v^{(l)}\right)$$
 
-Self-information is only preserved if self-loops are included in the graph. Used in basic GCN.
+스스로 이음이 그래프에 들어 있을 때만 스스로의 앎이 지켜진다. 기본 GCN에 쓰인다.
 
-### Concatenation + Linear
+### 이어 붙이기 + 선형
 
 $$\mathbf{h}_v^{(l)} = \sigma\left(W \cdot [\mathbf{h}_v^{(l-1)} \| \mathbf{m}_v^{(l)}]\right)$$
 
-Explicitly separates self and neighbor information. Used in GraphSAGE.
+스스로와 이웃의 앎을 드러나게 떼어 놓는다. GraphSAGE에 쓰인다.
 
-### Residual Connection
+### 나머지 이음
 
 $$\mathbf{h}_v^{(l)} = \mathbf{h}_v^{(l-1)} + \sigma\left(W \cdot \mathbf{m}_v^{(l)}\right)$$
 
-Preserves original features, enables training deeper networks. Analogous to ResNet.
+본디 특징을 지키고 더 깊은 그물을 익힐 수 있게 한다. ResNet과 비슷하다.
 
-### GRU-based Update
+### GRU 바탕 고치기
 
 $$\mathbf{h}_v^{(l)} = \text{GRU}\left(\mathbf{m}_v^{(l)}, \mathbf{h}_v^{(l-1)}\right)$$
 
-Uses gating mechanisms to control information flow. The GRU decides how much old information to retain.
+문 얼개로 앎의 흐름을 다스린다. GRU가 옛 앎을 얼마나 남길지 정한다.
 
-### LSTM-based Update
+### 장단기 기억망 바탕 고치기
 
 $$\mathbf{h}_v^{(l)}, \mathbf{c}_v^{(l)} = \text{LSTM}\left(\mathbf{m}_v^{(l)}, (\mathbf{h}_v^{(l-1)}, \mathbf{c}_v^{(l-1)})\right)$$
 
-Maintains a cell state for long-range memory across layers.
+층을 가로지르는 긴 기억을 위해 칸 상태를 지닌다.
 
-### MLP-based Update
+### 여러 층 신경망 바탕 고치기
 
 $$\mathbf{h}_v^{(l)} = \text{MLP}\left([\mathbf{h}_v^{(l-1)} \| \mathbf{m}_v^{(l)}]\right)$$
 
-Maximum flexibility but more parameters. Used in GIN and other expressive architectures.
+가장 너그럽지만 잡이 더 많다. GIN과 다른 나타냄 힘 센 얼개에 쓰인다.
 
-### Weighted Sum (with learnable epsilon)
+### 무게 합(배울 수 있는 엡실론과 함께)
 
 $$\mathbf{h}_v^{(l)} = \text{MLP}\left((1 + \epsilon) \cdot \mathbf{h}_v^{(l-1)} + \mathbf{m}_v^{(l)}\right)$$
 
-The GIN update: $\epsilon$ controls the relative weight of self vs. neighbors.
+GIN의 고치기: $\epsilon$이 스스로와 이웃의 상대 무게를 다스린다.
 
-## Design Considerations
+## 설계에서의 고려
 
-### Self-Information Preservation
-Without explicit self-connection, a node's own features may be diluted after multiple layers. Solutions:
-1. Add self-loops to the graph
-2. Use concatenation-based updates
-3. Use residual connections
+### 스스로의 앎 지키기
+드러난 스스로 이음이 없으면 층을 여럿 지난 뒤 마디 자신의 특징이 묽어질 수 있다. 풀이:
 
-### Depth and Over-Smoothing
-As depth increases, representations tend to converge. Update functions that preserve individuality help:
-- Residual connections slow down smoothing
-- GRU gating selectively retains information
-- Skip connections from early layers (Jumping Knowledge)
+1. 그래프에 스스로 이음을 더한다
+2. 이어 붙이기 바탕 고치기를 쓴다
+3. 나머지 이음을 쓴다
 
-### Nonlinearity
-The activation function $\sigma$ (ReLU, ELU, GELU) applied in the update introduces nonlinearity, enabling the network to learn complex functions.
+### 깊이와 지나친 매끄러워짐
+깊이가 늘면 나타냄이 한곳으로 모이기 쉽다. 저마다의 다름을 지키는 고치기 함수가 도움이 된다:
 
-## Comparison
+- 나머지 이음이 매끄러워짐을 늦춘다
+- GRU의 문이 앎을 가려서 남긴다
+- 앞선 층에서 건너뛰는 이음(뛰어넘는 앎)
 
-| Update Type | Self-Info | Depth-Friendly | Parameters | Expressiveness |
+### 비선형
+고치기에 쓰는 깨움 함수 $\sigma$(ReLU, ELU, GELU)이 비선형을 들여와 그물이 복잡한 함수를 배울 수 있게 한다.
+
+## 비교
+
+| 고치기 갈래 | 스스로의 앎 | 깊이에 친함 | 잡 | 나타냄 힘 |
 |-------------|-----------|----------------|------------|---------------|
-| Replace | Via self-loops | Low | Low | Low |
-| Concat+Linear | Explicit | Medium | Medium | Medium |
-| Residual | Strong | High | Low | Medium |
-| GRU | Gated | High | High | High |
-| MLP | Explicit | Medium | High | High |
-| GIN ($\epsilon$) | Weighted | Medium | Medium | High |
+| 바꿔 넣기 | 스스로 이음으로 | 낮음 | 낮음 | 낮음 |
+| 이어 붙이기+선형 | 드러남 | 보통 | 보통 | 보통 |
+| 나머지 | 셈 | 높음 | 낮음 | 보통 |
+| GRU | 문 달림 | 높음 | 높음 | 높음 |
+| 여러 층 신경망 | 드러남 | 보통 | 높음 | 높음 |
+| GIN($\epsilon$) | 무게 매김 | 보통 | 보통 | 높음 |
 
-## Summary
+## 요약
 
-The update function is the final step in each message passing iteration. The choice of update function balances expressiveness, computational cost, and trainability. For deep GNNs, residual connections or gated updates are recommended to combat over-smoothing and gradient issues.
+고치기 함수는 쪽지 건네기 되풀이마다의 마지막 걸음이다. 어떤 고치기 함수를 고르느냐가 나타냄 힘, 셈 비용, 익히기 쉬움의 균형을 잡는다. 깊은 그래프 신경망에서는 지나친 매끄러워짐과 기울기 말썽에 맞서려 나머지 이음이나 문 달린 고치기를 권한다.
+
+## 연습문제
+
+**연습문제 1.**
+마디 5개와 돌이의 이웃 얼개를 가진 그래프를 살펴보자. 2차원 특징 벡터에서 이 마디에 적은 쪽지 건네기 고침 한 걸음을 손으로 셈하라.
+
+??? success "연습문제 1 풀이"
+    마디 $1, \ldots, 5$에 특징 벡터 $\mathbf{h}_i \in \mathbb{R}^2$을 붙인다. 돌이에서 마디마다 이웃이 꼭 둘이다. 마디마다 모으기(보기로 이웃의 평균)와 고침(보기로 선형 바꿈과 깨움)을 쓴다. 한 걸음 뒤 마디마다의 나타냄이 바로 옆 이웃의 영향을 받는다. 이 드러난 셈은 받아들이는 자리가 층마다 한 뜀씩 넓어짐을 보여 준다. $\square$
+
+---
+
+**연습문제 2.**
+평균 모으기와 합 모으기가 여럿 모임을 가르는 나타냄 힘에서 다름을 밝혀라. 평균 모으기로는 가릴 수 없지만 합 모으기로는 가릴 수 있는 여럿 모임 둘의 구체적인 보기를 들어라.
+
+??? success "연습문제 2 풀이"
+    $S_1 = \{1, 1, 1\}$과 $S_2 = \{1\}$을 살펴보자. 평균 모으기는 $\text{mean}(S_1) = 1 = \text{mean}(S_2)$을 주어 둘을 가르지 못한다. 합 모으기는 $\text{sum}(S_1) = 3 \neq 1 = \text{sum}(S_2)$을 준다. 더 넓게는 평균 모으기가 여럿 모임의 겹침 수에 대해 불변이므로 서로 낱값 배인 여럿 모임을 가를 수 없다. 그래서 그래프 동형 신경망은 1차 바이스파일러-레만 시험에 맞먹는 최대 나타냄 힘을 얻으려 합 모으기를 쓴다. $\square$
+
+---
+
+**연습문제 3.**
+최단 길 거리가 $k$일 때 마디 $u$의 앎이 마디 $v$에 닿으려면 쪽지 건네기 층이 몇 개 필요한가? $k$이 커지면 실제로 어떤 문제가 생기는가?
+
+??? success "연습문제 3 풀이"
+    층마다 앎을 한 뜀씩 퍼뜨리므로 꼭 $k$개가 필요하다. $k$이 커지면 받아들이는 자리가 지수로 넓어진다(마디마다 $k$뜀 안의 모든 마디에서 모은다). 이는 지나친 매끄러워짐을 낳는다. 층이 많아지면 마디마다 거의 온 그래프의 앎을 모았기에 모든 마디 나타냄이 가릴 수 없는 벡터로 모인다. 누그러뜨리는 셈속으로는 남은 이음, 건너뛰는 앎, 그래프 변환기가 있다. $\square$
+
+---
+
+**연습문제 4.**
+그래프 겹말기의 자리 방식과 스펙트럼 방식의 맞바꿈을 따져라. 각각은 어떤 조건에서 더 나은가?
+
+??? success "연습문제 4 풀이"
+    스펙트럼 방법(보기로 ChebNet)은 그래프 라플라스의 고유 분해로 겹말기를 뜻매김해 원리 있는 신호 다루기 틀을 주지만 고유 분해($O(n^3)$)가 필요하고 그래프 위상이 붙박여 있어야 한다. 자리 방법(보기로 GraphSAGE, 그래프 눈길 신경망)은 이웃 모으기로 겹말기를 뜻매김해 달라지는 그래프 얼개를 자연스럽게 다루고 작은 묶음으로 큰 그래프에도 키울 수 있다. 정확한 진동수 거르기가 중요한 작고 위상이 붙박인 그래프에는 스펙트럼 방법이, 귀납 배움이 필요한 크거나 바뀌거나 뒤섞인 그래프에는 자리 방법이 낫다. $\square$

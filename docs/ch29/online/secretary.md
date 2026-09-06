@@ -1,108 +1,141 @@
-# Secretary Problem
+# 비서 문제
 
-Imagine interviewing candidates one by one for a position, where after each interview you must immediately accept or reject the candidate with no possibility of recalling rejected ones. How many candidates should you observe before starting to select? The **secretary problem** (also called the optimal stopping problem) provides a beautiful answer: observe the first $n/e$ candidates, then select the next candidate who is better than all previously seen. This strategy selects the best candidate with probability converging to $1/e \approx 0.368$, and no strategy can do better.
+한 자리를 두고 지원자를 하나씩 만나 보되, 만날 때마다 곧바로 받거나 물리쳐야 하고 물리친 사람은 다시 부를 수 없다고 하자. 고르기 시작하기 전에 몇 사람을 보아야 할까? **비서 문제**(최적 멈춤 문제라고도 한다)는 아름다운 답을 준다. 처음 $n/e$명을 보기만 한 뒤, 그때까지 본 모두보다 나은 첫 사람을 고르는 것이다. 이 셈속은 가장 나은 사람을 확률 $1/e \approx 0.368$에 가까이 고르며 어떤 셈속도 이보다 낫지 못하다.
 
-## Problem Formulation
+## 문제 정식화
 
-A set of $n$ candidates arrives in uniformly random order. After interviewing candidate $i$, the algorithm observes the **relative rank** of candidate $i$ among the first $i$ candidates (but not the absolute quality). The algorithm must immediately and irrevocably decide to accept or reject candidate $i$. The goal is to maximize the probability of selecting the single best candidate.
+지원자 $n$명이 고르게 아무 차례로 온다. 지원자 $i$을 만난 뒤 알고리즘은 처음 $i$명 가운데 그 사람의 **상대 매김**을 본다(절대 품질은 보지 못한다). 알고리즘은 곧바로 되돌릴 수 없이 지원자 $i$을 받을지 물리칠지 정해야 한다. 목표는 가장 나은 한 사람을 고를 확률을 가장 크게 하는 것이다.
 
-Key assumptions:
+핵심 여김:
 
-- There are exactly $n$ candidates, and $n$ is known in advance.
-- Candidates arrive in a uniformly random permutation.
-- Only relative rankings are observable (no cardinal scores).
-- Decisions are irrevocable: rejected candidates cannot be recalled.
-- The objective is to select the absolute best candidate (not just a good one).
+- 지원자가 꼭 $n$명이고 $n$을 미리 안다.
+- 지원자가 고르게 아무 자리바꿈으로 온다.
+- 상대 매김만 볼 수 있다(수량 점수는 없다).
+- 결정은 되돌릴 수 없다. 물리친 지원자는 다시 부를 수 없다.
+- 목표는 그저 괜찮은 사람이 아니라 가장 나은 사람을 고르는 것이다.
 
-## The Optimal Stopping Rule
+## 최적 멈춤 규칙
 
-The optimal strategy belongs to the class of **threshold rules**: reject the first $r - 1$ candidates unconditionally (the **observation phase**), then accept the first subsequent candidate who is better than all candidates seen so far.
+가장 좋은 셈속은 **문턱 규칙** 갈래에 든다. 처음 $r - 1$명을 무조건 물리치고(**보기 마당**), 그 뒤 그때까지 본 모두보다 나은 첫 지원자를 받는다.
 
-Let $P(r, n)$ denote the probability of selecting the best candidate when the observation phase has length $r - 1$:
+보기 마당의 길이가 $r - 1$일 때 가장 나은 사람을 고를 확률을 $P(r, n)$이라 하자:
 
 $$
 P(r, n) = \sum_{i=r}^{n} P(\text{best is at position } i \text{ and is selected}) = \sum_{i=r}^{n} \frac{1}{n} \cdot \frac{r-1}{i-1}
 $$
 
-The term $1/n$ is the probability that the best candidate is at position $i$, and $(r-1)/(i-1)$ is the probability that the best among the first $i-1$ candidates falls within the observation phase (so the algorithm does not stop earlier).
+항 $1/n$은 가장 나은 사람이 자리 $i$에 있을 확률이고, $(r-1)/(i-1)$은 처음 $i-1$명 가운데 가장 나은 사람이 보기 마당 안에 들 확률이다(그래야 알고리즘이 더 일찍 멈추지 않는다).
 
-## Asymptotic Optimality
+## 점근 최적성
 
-To find the optimal $r$, maximize $P(r, n)$:
+가장 좋은 $r$을 찾으려면 $P(r, n)$을 가장 크게 한다:
 
 $$
 P(r, n) = \frac{r-1}{n} \sum_{i=r}^{n} \frac{1}{i-1}
 $$
 
-As $n \to \infty$, set $r = \lfloor \alpha n \rfloor$ for some $\alpha \in (0, 1)$. The sum becomes a Riemann integral:
+$n \to \infty$일 때 어떤 $\alpha \in (0, 1)$에 대해 $r = \lfloor \alpha n \rfloor$으로 두자. 합은 리만 적분이 된다:
 
 $$
 P(\alpha) = \alpha \int_{\alpha}^{1} \frac{1}{x} \, dx = -\alpha \ln \alpha
 $$
 
-Maximizing over $\alpha$ by taking the derivative and setting it to zero:
+$\alpha$에 대해 미분해 0으로 놓아 가장 크게 하면:
 
 $$
 \frac{d}{d\alpha}(-\alpha \ln \alpha) = -\ln \alpha - 1 = 0 \implies \alpha^* = \frac{1}{e}
 $$
 
-**Theorem.** The optimal strategy observes the first $\lfloor n/e \rfloor$ candidates, then selects the next candidate better than all previous ones. This strategy selects the best candidate with probability:
+**정리.** 가장 좋은 셈속은 처음 $\lfloor n/e \rfloor$명을 보기만 한 뒤 앞선 모두보다 나은 다음 지원자를 고른다. 이 셈속이 가장 나은 사람을 고를 확률은 다음과 같다:
 
 $$
 P^* = \frac{1}{e} \approx 0.3679
 $$
 
-No online algorithm can achieve a higher probability. $\square$
+어떤 온라인 알고리즘도 이보다 높은 확률을 이룰 수 없다. $\square$
 
-!!! note "Probability Interpretation"
-    The probability $1/e$ means that even the best possible strategy fails to select the best candidate about 63% of the time. This is the inherent cost of making irrevocable decisions with incomplete information.
+!!! note "확률 풀이"
+    확률 $1/e$은 가장 좋은 셈속조차 열에 여섯 번 남짓은 가장 나은 사람을 고르지 못함을 뜻한다. 이는 온전하지 않은 앎으로 되돌릴 수 없는 결정을 하는 데 본디 따르는 값이다.
 
-## Variants
+## 변형
 
-### Multiple Choices
+### 여럿 고르기
 
-If the algorithm can select $k$ candidates (e.g., hiring $k$ positions), the success probability increases. The optimal threshold shifts, and the analysis generalizes using multiple stopping rules.
+알고리즘이 지원자 $k$명을 고를 수 있으면(보기로 $k$자리를 뽑기) 성공 확률이 는다. 가장 좋은 문턱이 옮겨 가고 살피기는 여러 멈춤 규칙으로 넓혀진다.
 
-### Unknown $n$
+### n을 모를 때
 
-When the number of candidates $n$ is unknown, the algorithm cannot compute $n/e$ directly. Variants use:
+지원자 수 $n$을 모르면 알고리즘이 $n/e$을 곧바로 셈할 수 없다. 변형은 다음을 쓴다:
 
-- **Time-based thresholds**: if interview times are uniform on $[0, 1]$, reject until time $1/e$.
-- **Adaptive strategies**: maintain a running estimate of $n$ and adjust the threshold dynamically.
+- **때 바탕 문턱**: 만나는 때가 $[0, 1]$에 고르면 때 $1/e$까지 물리친다.
+- **맞춰 가는 셈속**: $n$의 어림을 이어 가며 문턱을 그때그때 손본다.
 
-### Cardinal Payoff
+### 수량 갚음
 
-If the objective changes from selecting the best to maximizing expected rank or expected value, different strategies emerge. For maximizing expected rank, the optimal threshold decreases as the penalty for non-best selections is less severe.
+목표가 가장 나은 사람 고르기에서 기대 매김이나 기대 값을 가장 크게 하기로 바뀌면 다른 셈속이 나온다. 기대 매김을 가장 크게 하려면 가장 낫지 않은 고름의 벌이 덜 무겁기에 가장 좋은 문턱이 낮아진다.
 
-### Secretary Problem with Recall
+### 다시 부를 수 있는 비서 문제
 
-If rejected candidates can be recalled with some probability $p$, the optimal threshold shifts to the right, allowing a shorter observation phase.
+물리친 지원자를 확률 $p$으로 다시 부를 수 있으면 가장 좋은 문턱이 오른쪽으로 옮겨 가 보기 마당이 짧아진다.
 
-## Analysis of the $1/e$ Strategy
+## 1/e 셈속 살피기
 
-The proof that $1/e$ is optimal uses the following steps:
+$1/e$이 가장 좋음을 밝히는 데는 다음 걸음을 쓴다:
 
-1. **Restrict to threshold strategies**: any optimal strategy can be expressed as a threshold rule (by the structure of sufficient statistics).
-2. **Compute success probability**: for threshold $r$, the probability is $P(r,n) = \frac{r-1}{n}\sum_{i=r}^n \frac{1}{i-1}$.
-3. **Take the continuous limit**: as $n \to \infty$, $P(\alpha) = -\alpha \ln \alpha$.
-4. **Optimize**: the unique maximum occurs at $\alpha = 1/e$ with value $1/e$.
+1. **문턱 셈속으로 좁히기**: 어떤 가장 좋은 셈속도 문턱 규칙으로 적을 수 있다(충분 통계량의 얼개 덕이다).
+2. **성공 확률 셈하기**: 문턱 $r$에서 확률은 $P(r,n) = \frac{r-1}{n}\sum_{i=r}^n \frac{1}{i-1}$이다.
+3. **이어진 끝값 잡기**: $n \to \infty$일 때 $P(\alpha) = -\alpha \ln \alpha$이다.
+4. **가장 좋게 하기**: 오직 하나뿐인 최대가 $\alpha = 1/e$에서 값 $1/e$으로 나타난다.
 
-??? example "Numerical Verification for Small $n$"
-    For $n = 10$, the optimal threshold is $r = 4$ (observe 3, then select), yielding success probability $\approx 0.399$. As $n$ grows, the optimal $r/n$ approaches $1/e$ and the success probability approaches $1/e \approx 0.368$.
+??? example "작은 $n$에서의 수치 확인"
+    $n = 10$이면 가장 좋은 문턱이 $r = 4$이고(3명을 본 뒤 고름) 성공 확률은 $\approx 0.399$이다. $n$이 커지면 가장 좋은 $r/n$이 $1/e$에 가까워지고 성공 확률은 $1/e \approx 0.368$에 가까워진다.
 
-## Connection to Deep Learning
+## 딥러닝과의 관계
 
-The secretary problem framework appears in several deep learning contexts:
+비서 문제 틀은 깊은 배움의 여러 자리에 나타난다:
 
-- **Hyperparameter search**: when evaluating model configurations sequentially with a limited budget, the explore-then-exploit structure mirrors the secretary problem's observation-then-selection phases.
-- **Early stopping**: deciding when to stop training resembles an optimal stopping problem where the "candidates" are model checkpoints at different epochs.
-- **Neural architecture search**: evaluating architectures sequentially under budget constraints involves similar accept/reject decisions.
+- **웃잡 찾기**: 밑천이 한정된 채 모델 짜임을 차례로 따질 때, 먼저 살펴보고 나중에 써먹는 얼개가 비서 문제의 보기-고르기 마당과 닮았다.
+- **일찍 멈추기**: 언제 익히기를 멈출지 정하는 일은 "지원자"가 여러 판의 모델 되짚기 표시인 최적 멈춤 문제와 닮았다.
+- **신경 얼개 찾기**: 밑천이 한정된 채 얼개를 차례로 따지는 일에도 비슷한 받기/물리치기 결정이 든다.
 
-## Summary
+## 요약
 
-The secretary problem demonstrates that with the optimal $1/e$-threshold strategy, an online algorithm selects the best of $n$ candidates with probability $1/e$, and this is the best achievable. The elegant interplay between the observation phase length and selection probability produces one of the most celebrated results in optimal stopping theory, with applications ranging from hiring decisions to hyperparameter optimization.
+비서 문제는 가장 좋은 $1/e$ 문턱 셈속으로 온라인 알고리즘이 지원자 $n$명 가운데 가장 나은 사람을 확률 $1/e$으로 고르며 이것이 이룰 수 있는 최선임을 보여 준다. 보기 마당의 길이와 고름 확률이 맞물리는 우아함이 최적 멈춤 이론에서 가장 이름난 결과 가운데 하나를 낳으며, 사람 뽑기부터 웃잡 가장 좋게 하기까지 두루 쓰인다.
 
-## References
+## 참고 문헌
 
 - [Online Computation and Competitive Analysis (Borodin and El-Yaniv)](https://www.amazon.com/dp/0521619467)
 - [Who Solved the Secretary Problem? (Ferguson, 1989)](https://doi.org/10.1214/ss/1177012493)
+
+
+## 연습문제
+
+**연습문제 1.**
+고전 비서 문제와 그 가장 좋은 풀이를 말하여라.
+
+??? success "연습문제 1 풀이"
+    비서 문제: 지원자 $n$명을 아무 차례로 하나씩 만난다. 만날 때마다 곧바로 받거나 물리친다(되돌릴 수 없다). 목표는 가장 나은 사람을 뽑을 확률을 가장 크게 하는 것이다. 가장 좋은 셈속: 처음 $n/e$명을 물리치고(보기 마당) 그 뒤 그때까지 본 모두보다 나은 첫 지원자를 받는다. $n \to \infty$일 때 성공 확률 $\geq 1/e \approx 0.368$을 이룬다.
+
+---
+
+**연습문제 2.**
+$1/e$ 셈속이 가장 좋음을 밝혀라. 유한한 $n$에서 성공 확률은 얼마인가?
+
+??? success "연습문제 2 풀이"
+    문턱을 $k$이라 하자(처음 $k$명을 물리치고 그 $k$명 모두를 이기는 첫 사람을 고른다). 가장 나은 사람이 뽑히는 것은 그 사람이 자리 $i > k$에 있고 자리 $1, \ldots, i-1$의 최대가 $\{1, \ldots, k\}$ 안에 있을 때이며 그때뿐이다. $P(\text{성공}) = \sum_{i=k+1}^{n} P(i\text{에 가장 나은 사람}) \cdot P(\text{처음 } i-1 \text{의 최대가 처음 } k \text{ 안}) = \sum_{i=k+1}^{n} \frac{1}{n} \cdot \frac{k}{i-1} = \frac{k}{n} \sum_{i=k}^{n-1} \frac{1}{i}$이다. $k$에 대해 가장 좋게 하면 $n \to \infty$일 때 $k/n \to 1/e$이고 $P \to 1/e$이다. 유한한 $n$에서는 $H$이 조화수일 때 $P = k/n \cdot (H_{n-1} - H_{k-1})$이다.
+
+---
+
+**연습문제 3.**
+여럿 고르는 비서 문제와 온라인 사람 뽑기에서의 쓰임새를 밝혀라.
+
+??? success "연습문제 3 풀이"
+    $k$고름 비서 문제에서는 많아야 $k$명을 뽑을 수 있고 온 값을 가장 크게 하려 한다(또는 가장 나은 한 사람을 뽑을 확률을 가장 크게 한다). 기대 온 값을 가장 크게 하는 데는 문턱 바탕 알고리즘이 오프라인 최적의 $1 - O(1/\sqrt{k})$ 몫을 이룬다. 쓰임새: 여러 사람 뽑기, 보여 줄 광고 여럿 고르기, 여러 투자 기회 고르기. 핵심 통찰은 고를 수 있는 수가 늘수록 겨룸 비가 크게 좋아진다는 것이다.
+
+---
+
+**연습문제 4.**
+비서 문제 틀은 온라인 경매 설계에 어떻게 쓰이는가?
+
+??? success "연습문제 4 풀이"
+    온라인 경매에서는 값 부르기가 차례로 오고 곧바로 받거나 물리쳐야 한다. 파는 이는 벌이를 가장 크게 하려 한다. 이는 비서 문제와 비슷하다. 파는 이는 처음 부른 값들을 보아 값 분포를 어림한 뒤 문턱을 세운다. 변형: (1) 내건 값 얼개(받든지 말든지 하는 값을 매김), (2) 예언자 부등식(모든 값을 미리 보는 예언자와 견줌 --- 가장 좋은 문턱이 예언자 기대 값의 절반을 이룬다), (3) 밑천에 매인 여러 물건 경매.

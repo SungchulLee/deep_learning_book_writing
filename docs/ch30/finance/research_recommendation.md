@@ -1,270 +1,300 @@
-# Research Report Recommendation Systems
+# 연구 보고서 추천 시스템
+## 들어가며
 
+금융 연구 보고서, 곧 주식 연구, 채권 살피기, 거시 논평, 투자 논지는 투자자에게 값진 앎 자산이다. 그러나 연구가 넘쳐나면서 앎이 밀려든다. 여느 기관은 달마다 수천 편을 내거나 받아 보지만 사람 하나가 소화할 수 있는 것은 그 일부뿐이다. 연구 추천 시스템은 관심, 전문 분야, 지금 가진 자리를 바탕으로 알맞은 보고서를 살피는 이와 거래하는 이에게 저절로 내밀어 앎의 흐름과 결정의 효율을 크게 높인다.
 
-!!! warning "Incomplete page"
-    This page is missing the required five-section structure (Concept Definition, Explanation, Diagram / Example). Content needs to be reorganized and expanded.
+연구 추천은 물건 추천과 여러 면에서 크게 다르다. 연구 내용은 (짜임 있는 물건 특징과 달리) 주로 글이고, 값어치는 표준화된 특징이 아니라 남다른 통찰에서 나오며, 추천은 새로움(놀라운 통찰)과 알맞음(쓰는 이 관심과 맞음)을 저울질해야 한다. 앞선 시스템은 내용을 이해하는 자연어 다루기, 숨은 취향을 배우는 함께 거르기, 알맞음을 위한 꾸러미 맥락(살피는 이가 지금 다루는 자리)을 아우른다.
 
-## Introduction
+이 마디는 실제 연구 추천 시스템을 세우고 내용을 나타내는 자연어 다루기 재주를 보이며 금융 마당 특유의 어려움을 다룬다.
 
-Financial research reports—equity research, fixed income analysis, macro commentary, investment theses—represent valuable information assets for investors. However, the proliferation of research creates information overload: typical institutions produce or subscribe to thousands of reports monthly, while individual analysts can only digest a fraction. Research recommendation systems automatically surface relevant reports to analysts and traders based on their interests, expertise, and current market positions, dramatically improving information flow and decision-making efficiency.
+## 핵심 개념
 
-Research recommendations differ from product recommendations in important ways: research content is primarily text-based (unlike structured product features), value comes from unique insights rather than standardized features, and recommendations must balance novelty (surprising insights) with relevance (alignment with user interests). Advanced systems combine natural language processing for content understanding, collaborative filtering for implicit preference learning, and portfolio context (what positions analyst currently manages) for relevance.
+### 내용 이해하기
+- **글 특징**: 연구 글에서 뽑아낸다(느낌, 주제, 언급된 종목)
+- **낱것 알아보기**: 다뤄진 회사, 업종, 주요 인물을 가려낸다
+- **박아 넣기 나타냄**: 연구 내용의 빽빽한 벡터 나타냄
+- **뜻 닮음**: 보고서 내용 사이의 알맞음을 잰다
 
-This section develops practical research recommendation systems, demonstrates NLP techniques for content representation, and addresses financial-domain specific challenges.
+### 연구 마당의 쓰는 이 됨됨이 그리기
+- **전문 분야**: 살피는 이가 파고드는 업종과 종목
+- **지금 자리**: 다루고 있는 꾸러미
+- **읽은 지난 일**: 앞서 읽은 보고서와 눈여겨봄
+- **찾기 묻기**: 드러난 관심 신호
+- **동료 추천**: 동료가 값지다고 여기는 것
 
-## Key Concepts
+## 수학적 틀
 
-### Content Understanding
-- **Document Features**: Extracted from research text (sentiment, topics, stocks mentioned)
-- **Entity Recognition**: Identify companies, sectors, key figures discussed
-- **Embedding Representation**: Dense vector representation of research content
-- **Semantic Similarity**: Measure relevance between report content
+### 글 나타내기
 
-### User Profiling in Research Domains
-- **Expertise**: Sectors/stocks analyst specializes in
-- **Current Positions**: Portfolio under management
-- **Read History**: Previously read reports and engagement
-- **Search Queries**: Explicit interest signals
-- **Peer Recommendations**: What colleagues find valuable
+연구 보고서 d에 대해 여러 나타냄을 뽑아낸다:
 
-## Mathematical Framework
-
-### Document Representation
-
-For research report d, extract multiple representations:
-
-**Bag-of-Words (BoW)**:
+**낱말 자루**:
 
 $$x_{\text{bow}} = [\text{count}(\text{word}_1), \ldots, \text{count}(\text{word}_V)]$$
 
-Simple, interpretable, but sparse.
+단순하고 풀이하기 쉽지만 성기다.
 
-**TF-IDF Representation**:
+**TF-IDF 나타냄**:
 
 $$x_{\text{tfidf}, i} = \text{TF}(i) \times \text{IDF}(i) = \frac{\text{count}_i}{|d|} \times \log\frac{|D|}{|d \in D: \text{word}_i \in d|}$$
 
-Weights frequent words; less frequent unusual words more heavily.
+자주 나오는 낱말에 무게를 주되 드물고 남다른 낱말에 더 무겁게 준다.
 
-**Learned Embedding**:
+**배운 박아 넣기**:
 
 $$x_{\text{embed}} \in \mathbb{R}^{128}$$
 
-Neural network compresses document to dense vector; learned end-to-end through recommendation loss.
+신경망이 글을 빽빽한 벡터로 누른다. 추천 손실로 끝에서 끝까지 배운다.
 
-### User-Document Relevance Scoring
+### 쓰는 이와 글의 알맞음 점수 매기기
 
-Predict whether user u would find report d relevant:
+쓰는 이 u이 보고서 d을 알맞다고 여길지 헤아린다:
 
 $$\text{Score}(u, d) = \langle u_{\text{embedding}}, d_{\text{embedding}} \rangle + \text{context}(u, d)$$
 
-where context(u,d) captures:
-- **Sector Alignment**: Is report sector within user's expertise?
-- **Stock Holdings**: Does report discuss stocks in user's portfolio?
-- **Novelty**: Is report's perspective novel compared to recent reads?
+여기서 context(u,d)은 다음을 담는다:
 
-### Collaborative Filtering for Research
+- **업종 맞음**: 보고서의 업종이 쓰는 이의 전문 분야 안에 드는가?
+- **가진 종목**: 보고서가 쓰는 이의 꾸러미에 든 종목을 다루는가?
+- **새로움**: 보고서의 관점이 최근 읽은 것과 견주어 새로운가?
 
-Matrix factorization learning user/document embeddings:
+### 연구를 위한 함께 거르기
+
+쓰는 이와 글의 박아 넣기를 배우는 행렬 인수 분해:
 
 $$\text{Score}(u, d) = u_{\text{latent}} \cdot d_{\text{latent}}^T$$
 
-Train on implicit signals (read events, time spent, forwarded to colleagues):
+숨은 신호(읽은 일, 머문 때, 동료에게 넘김)로 익힌다:
 
 $$\mathcal{L} = \sum_{(u,d) \in \text{read}} (1 - \text{Score}(u, d))^2 + \lambda \sum_{(u,d) \notin \text{read}} \text{Score}(u, d)^2$$
 
-## NLP Techniques for Research Content
+## 연구 내용을 위한 자연어 다루기 재주
 
-### Topic Modeling
+### 주제 나타내기
 
-Identify latent topics in research documents:
+연구 글의 숨은 주제를 가려낸다:
 
 $$p(\text{topic}_k | d) = \frac{\sum_w p(\text{topic}_k | w) p(w | d)}{Z}$$
 
-Topics (e.g., "AI/ML trends", "Fed policy", "Energy transition") enable grouping related reports.
+주제(보기로 "인공지능/기계 배움 흐름", "연준 정책", "에너지 전환")로 딸린 보고서를 묶을 수 있다.
 
-### Named Entity Recognition (NER)
+### 이름 붙은 낱것 알아보기
 
-Extract companies, people, events mentioned:
+언급된 회사, 사람, 일을 뽑아낸다:
 
 ```
 Input: "Apple's Q4 earnings beat estimates. CEO Tim Cook highlighted services growth."
 Output: [COMPANY: Apple, METRIC: Q4 earnings, PERSON: Tim Cook, METRIC: services growth]
 ```
 
-Relevant for recommending reports on stocks user manages or sectors of interest.
+쓰는 이가 다루는 종목이나 관심 업종의 보고서를 권하는 데 쓸모 있다.
 
-### Sentiment Analysis
+### 느낌 살피기
 
-Quantify report sentiment toward stocks/sectors:
+종목과 업종에 대한 보고서의 느낌을 수량으로 나타낸다:
 
 $$\text{Sentiment}(d) = \sum_i w_i \cdot \text{sentiment}(\text{sentence}_i) \in [-1, 1]$$
 
-Analysts may specifically want bullish vs bearish perspectives; incorporate as recommendation feature.
+살피는 이가 오름세와 내림세 관점을 콕 집어 바랄 수 있으니 추천 특징으로 담는다.
 
-### Abstractive Summarization
+### 새로 지어 간추리기
 
-Generate concise summaries enabling quick scanning:
+빠르게 훑을 수 있는 간결한 간추림을 만든다:
 
 $$\text{Summary} = \text{NeuralAbstractiveSummarizer}(document)$$
 
-Allow researchers to quickly assess relevance before reading full report.
+연구자가 보고서 전체를 읽기 전에 알맞음을 빠르게 가늠하게 한다.
 
-## Content-Based Research Recommendation
+## 내용 바탕 연구 추천
 
-### Feature Engineering
+### 특징 만들기
 
-For each research report, extract features:
+연구 보고서마다 특징을 뽑아낸다:
 
 $$d = [\text{sector}, \text{geography}, \text{sentiment}, \text{stocks\_mentioned}, \text{themes}, \text{analyst\_quality}]$$
 
-Recommend reports similar to user's preferences:
+쓰는 이의 취향과 닮은 보고서를 권한다:
 
 $$\text{Score}(u, d) = \sum_i w_i \cdot \text{Sim}_i(u_{\text{pref}}, d)$$
 
-### Sector-Based Recommendations
+### 업종 바탕 추천
 
-Simple but effective: recommend reports in user's sector:
+단순하지만 쓸모 있다. 쓰는 이의 업종 보고서를 권한다:
 
 $$\text{Score}(u, d) = \mathbb{1}[\text{sector}(d) = \text{sector}(u)]$$
 
-Constraint-based approach; good for domain-specific users (equity analyst covering tech sector).
+매임 바탕 길이며 마당이 뚜렷한 쓰는 이(기술 업종을 맡은 주식 분석가)에게 좋다.
 
-### Theme-Based Recommendations
+### 주제 바탕 추천
 
-Identify themes in reports (AI, climate change, supply chain) and user interests:
+보고서의 주제(인공지능, 기후 변화, 공급 사슬)와 쓰는 이의 관심을 가려낸다:
 
 $$\text{Themes}(d) = [\mathbb{1}[\text{theme}_1], \ldots, \mathbb{1}[\text{theme}_K]]$$
 
-Recommend reports addressing themes user cares about.
+쓰는 이가 마음 쓰는 주제를 다룬 보고서를 권한다.
 
-## Collaborative Filtering for Research
+## 연구를 위한 함께 거르기
 
-### User-Based Collaborative Filtering
+### 쓰는 이 바탕 함께 거르기
 
-Recommend reports read by similar analysts:
+닮은 살피는 이가 읽은 보고서를 권한다:
 
 $$\text{Score}(u, d) = \sum_{u': \text{similar}(u, u')} \text{Sim}(u, u') \times \text{Engagement}(u', d)$$
 
-where similarity based on:
-- Read history (docs both have read)
-- Sector expertise (overlapping coverage)
-- Investment style (similar positions)
+여기서 닮음은 다음에 바탕한다:
 
-### Item-Item Collaborative Filtering
+- 읽은 지난 일(둘 다 읽은 글)
+- 업종 전문성(겹치는 맡은 범위)
+- 투자 방식(닮은 자리)
 
-Recommend reports similar to documents user already read:
+### 물건과 물건의 함께 거르기
+
+쓰는 이가 이미 읽은 글과 닮은 보고서를 권한다:
 
 $$\text{Score}(u, d) = \sum_{d': \text{read}(u, d')} \text{Sim}(d, d') \times \text{Satisfaction}(u, d')$$
 
-where similarity between documents:
+여기서 글 사이의 닮음은:
 
 $$\text{Sim}(d_1, d_2) = \cos(\text{embedding}(d_1), \text{embedding}(d_2))$$
 
-## Context-Aware Recommendations
+## 맥락을 살피는 추천
 
-### Portfolio Context
+### 꾸러미 맥락
 
-Boost relevance of reports about stocks analyst manages:
+살피는 이가 다루는 종목의 보고서에 알맞음을 더한다:
 
 $$\text{Portfolio Boost}(u, d) = \frac{\sum_i w_i \times \mathbb{1}[\text{stock}_i \text{ mentioned in } d]}{|u_{\text{portfolio}}|}$$
 
-Analyst managing 30-stock portfolio will find 5-stock research more contextual.
+종목 30개 꾸러미를 다루는 이에게는 종목 5개를 다룬 연구가 더 맥락에 맞다.
 
-### Market Context
+### 시장 맥락
 
-Current market conditions influence relevance:
+지금 시장 형편이 알맞음에 영향을 준다:
 
-- **Earnings Season**: Reports on earnings surprises highly relevant
-- **Fed Announcement**: Macro research relevant during policy decisions
-- **Market Stress**: Risk analysis reports spike in relevance during volatility
+- **실적 철**: 실적 놀라움에 대한 보고서가 매우 알맞다
+- **연준 발표**: 정책 결정 때 거시 연구가 알맞다
+- **시장 버거움**: 흔들릴 때 위험 살피기 보고서의 알맞음이 치솟는다
 
-Temporal signals improve recommendations.
+때의 신호가 추천을 좋게 한다.
 
-### Cross-Selling in Research
+### 연구에서의 곁들여 권하기
 
-Recommend research analysts don't typically read:
+살피는 이가 평소 읽지 않는 연구를 권한다:
 
 $$\text{Novelty Score} = 1 - \sum_{d': \text{read}(u)} \text{Sim}(d, d')$$
 
-High novelty reports expand analyst's perspective; balance novelty with relevance.
+새로움이 큰 보고서는 살피는 이의 관점을 넓힌다. 새로움과 알맞음을 저울질한다.
 
-## Practical Implementation
+## 실전 구현
 
-### Research Recommendation Pipeline
+### 연구 추천 흐름
 
-1. **Research Ingestion**: Consume research reports from Bloomberg, FactSet, internal analysts
-2. **Content Processing**: Extract metadata, summarize, identify stocks/sectors mentioned
-3. **Embedding**: Generate document embeddings via pre-trained language model (BERT, GPT)
-4. **User Profiling**: Build user embeddings from read history and portfolio
-5. **Scoring**: Compute recommendation scores combining collaborative filtering + context
-6. **Filtering**: Apply constraints (sectors, company exclusions, banned analysts)
-7. **Ranking & Presentation**: Display top-k recommendations with relevance explanation
+1. **연구 들이기**: Bloomberg, FactSet, 안쪽 살피는 이의 보고서를 받아들인다
+2. **내용 다루기**: 곁 자료를 뽑고 간추리며 언급된 종목과 업종을 가려낸다
+3. **박아 넣기**: 미리 익힌 말 모델(BERT, GPT)로 글 박아 넣기를 만든다
+4. **쓰는 이 됨됨이 그리기**: 읽은 지난 일과 꾸러미로 쓰는 이 박아 넣기를 만든다
+5. **점수 매기기**: 함께 거르기와 맥락을 아울러 추천 점수를 셈한다
+6. **거르기**: 매임을 쓴다(업종, 뺄 회사, 금지된 살피는 이)
+7. **매기기와 보이기**: 알맞음 밝힘과 함께 위 k개 추천을 보여 준다
 
-### User Interface for Recommendations
+### 추천의 쓰는 이 얼굴
 
-Recommendations typically surfaced in:
+추천은 보통 다음에서 내밀어진다:
 
-1. **Daily Digest Email**: Top 3-5 reports personalized by portfolio
-2. **Dashboard Widget**: "Recommended for Your Sectors" on analyst portal
-3. **Alerts**: Real-time alerts when relevant report arrives
-4. **Search Results**: Personalized ranking of research matching search query
+1. **날마다 간추림 편지**: 꾸러미에 맞춘 위 3~5편
+2. **계기판 조각**: 살피는 이 창구의 "당신의 업종 추천"
+3. **알림**: 알맞은 보고서가 오면 실시간 알림
+4. **찾기 결과**: 찾기 묻기에 맞는 연구를 사람마다 맞추어 매김
 
-### Feedback Loop
+### 되먹임 고리
 
-Continuous improvement through feedback:
+되먹임으로 끊임없이 좋게 한다:
 
-- **Implicit**: Track which recommended reports are opened, read duration, forwarded
-- **Explicit**: Optional "thumbs up/down" on recommendations
-- **Outcome**: Measure if recommended research influenced investment decision
+- **숨음**: 권한 보고서 가운데 어느 것을 열었는지, 얼마나 읽었는지, 넘겼는지를 좇는다
+- **드러남**: 추천에 대한 "좋아요/싫어요"(고를 수 있음)
+- **결과**: 권한 연구가 투자 결정에 영향을 주었는지 잰다
 
-## Evaluation Metrics for Research Recommendations
+## 연구 추천의 따지기 잣대
 
-### Engagement Metrics
+### 눈여겨봄 잣대
 
-**Click-Through Rate**: % recommended reports clicked by user
+**누름 비율**: 쓰는 이가 누른 권한 보고서의 %
 
 $$\text{CTR} = \frac{\# \text{clicks on recommendations}}{\# \text{recommendations shown}}$$
 
-**Read Rate**: % reports opened are actually read (not just title-scanned)
+**읽음 비율**: 연 보고서 가운데 실제로 읽은 %(제목만 훑은 것 제외)
 
-**Time-to-Value**: How quickly recommended research cited in investment decision
+**값어치까지의 때**: 권한 연구가 얼마나 빨리 투자 결정에 인용되는가
 
-### Accuracy Metrics
+### 맞음 잣대
 
-**Ranking Accuracy**: Does top-ranked report match user's preferred report?
+**매김 맞음**: 가장 높이 매긴 보고서가 쓰는 이가 좋아하는 보고서와 맞는가?
 
 $$\text{NDCG@5} = \frac{\text{DCG@5}}{\text{IDCG@5}}$$
 
-**Relevance Precision**: % recommended reports user actually finds relevant
+**알맞음 정밀도**: 쓰는 이가 실제로 알맞다고 여기는 권한 보고서의 %
 
-**Diversity**: Are recommendations diverse or repetitive?
+**다양함**: 추천이 다채로운가 되풀이되는가?
 
-## Case Study: Equity Research Recommendation
+## 사례 살피기: 주식 연구 추천
 
-### System Components
+### 시스템 조각
 
-1. **Research Corpus**: 500 reports/month across 1000+ companies
-2. **User Base**: 200 equity analysts covering different sectors
-3. **Portfolio Data**: Real-time position data for 50 active portfolios
+1. **연구 말뭉치**: 회사 1000곳 넘게 달마다 보고서 500편
+2. **쓰는 이 무리**: 서로 다른 업종을 맡은 주식 분석가 200명
+3. **꾸러미 자료**: 움직이는 꾸러미 50개의 실시간 자리 자료
 
-### Example Recommendation
+### 추천 보기
 
-**Analyst Profile**:
-- Covers: Technology sector (40 stocks)
-- Recent Focus: Cloud infrastructure, cybersecurity
-- Positions: Holdings in AWS, Cloudflare, CrowdStrike
+**살피는 이 됨됨이**:
 
-**Recommended Reports**:
-1. **Primary**: "Cloud Consolidation Risks for AWS" - Topic alignment (cloud), Portfolio relevance (holds AWS)
-2. **Secondary**: "Cybersecurity Vendor Consolidation" - Sector alignment (tech), Position relevance (holds Crowdstrike)
-3. **Exploratory**: "Chinese Tech Regulation Impact" - Crosses sectors (tech), expands perspective
+- 맡은 범위: 기술 업종(종목 40개)
+- 최근 관심: 구름 바탕 시설, 사이버 보안
+- 자리: AWS, Cloudflare, CrowdStrike 보유
 
-### Results
+**권한 보고서**:
 
-- **CTR**: 35% (reports recommended)
-- **Read Rate**: 65% of clicked reports fully read
-- **Engagement**: 15% of recommended reports mentioned in investment decisions
+1. **으뜸**: "AWS의 구름 통합 위험" - 주제 맞음(구름), 꾸러미 알맞음(AWS 보유)
+2. **버금**: "사이버 보안 공급사 통합" - 업종 맞음(기술), 자리 알맞음(CrowdStrike 보유)
+3. **둘러보기**: "중국 기술 규제의 영향" - 업종을 넘나들며(기술) 관점을 넓힌다
 
-!!! note "Research Recommendation Best Practices"
-    Successful research recommendation systems balance relevance (alignment with user expertise) with novelty (introducing new perspectives). Personalization crucial to overcome information overload. Always include explanation of why report recommended (sector match, similar reader profile, portfolio relevance) to build user trust and verify recommendation quality.
+### 결과
 
+- **누름 비율**: 35%(권한 보고서 기준)
+- **읽음 비율**: 누른 보고서의 65%를 끝까지 읽음
+- **눈여겨봄**: 권한 보고서의 15%가 투자 결정에 언급됨
+
+!!! note "연구 추천의 가장 좋은 방식"
+    잘된 연구 추천 시스템은 알맞음(쓰는 이의 전문 분야와 맞음)과 새로움(새 관점 들이기)을 저울질한다. 앎이 밀려드는 것을 이겨 내려면 사람마다 맞추기가 결정적이다. 쓰는 이의 믿음을 쌓고 추천 품질을 확인하려 왜 그 보고서를 권했는지(업종 맞음, 닮은 읽는 이 됨됨이, 꾸러미 알맞음)를 늘 함께 밝힌다.
+
+## 연습문제
+
+**연습문제 1.**
+이 길에서 차가운 출발 문제가 새 쓰는 이와 새 물건에 어떻게 다르게 나타나는지 밝혀라. 경우마다 누그러뜨릴 셈속을 하나씩 내놓아라.
+
+??? success "연습문제 1 풀이"
+    새 쓰는 이는 취향을 배울 주고받음 지난 일이 없어 함께 거르기 신호를 쓸 수 없다. 누그러뜨리기: 내용 바탕 특징(인구 특성, 밝힌 취향)으로 쓰는 이 박아 넣기의 첫 값을 잡는다. 새 물건은 아직 주고받은 쓰는 이가 없어 함께 거르기로 매길 수 없다. 누그러뜨리기: 물건 내용 특징(밝힘, 갈래)으로 그 물건을 박아 넣기 자리에서 닮은 물건 곁에 놓는다. 두 셈속 모두 주고받음이 넉넉히 쌓일 때까지 차가운 낱것을 띄워 준다. $\square$
+
+---
+
+**연습문제 2.**
+이 마디에서 밝힌 잡의 기울기 고침을 이끌어 내어라. 어느 항이 셈하기에 가장 비싼지 가려내고 어림을 내놓아라.
+
+??? success "연습문제 2 풀이"
+    기울기에는 고르게 맞추려 온 물건 목록에 대한 기댓값을 셈하는 일이 든다. 물건 수에 선형으로 늘어나므로 가장 비싼 항이다. 음의 뽑기는 온 목록 대신 음의 물건 가운데 아무 작은 부분 모임만 더해 이를 어림하여, 고침마다 비용을 $O(|\mathcal{I}|)$에서 $O(k)$으로 줄인다. 여기서 $k$은 음의 표본 수(보통 5~20)이다. 중요도 뽑기가 이 어림에 치우치지 않은 어림개를 준다. $\square$
+
+---
+
+**연습문제 3.**
+이 추천 방식이 인기 바탕 밑그림보다 쓰는 이의 눈여겨봄을 높이는지 따질 A/B 시험을 설계하여라. 아무 나누기 단위, 으뜸 잣대, 최소 표본 크기 셈을 밝혀라.
+
+??? success "연습문제 3 풀이"
+    아무 나누기 단위: 쓰는 이(서로 섞이지 않도록 세션이 아님). 으뜸 잣대: 추천의 누름 비율. 밑그림 누름 비율이 5%이고 알아챌 최소 효과가 0.5%포인트(상대 10% 오름)일 때, 뜻 있음 수준 $\alpha = 0.05$과 힘 $1 - \beta = 0.80$에서 무리마다 필요한 표본 크기는 $n = 2(z_{\alpha/2} + z_\beta)^2 \cdot p(1-p) / \delta^2 \approx 15{,}000$명이다. 주마다의 무늬를 담으려 적어도 2주 돌린다. 난간: 벌이와 다양함 잣대를 딸린 결과로 지켜본다. $\square$
+
+---
+
+**연습문제 4.**
+이 추천 방법의 따지기가 오프라인(지난 자료)과 온라인(실제 오감) 자리에서 어떻게 다른지 밝혀라. 오프라인 따지기에서 어떤 치우침이 생길 수 있는가?
+
+??? success "연습문제 4 풀이"
+    오프라인 따지기는 때로 나눈 지난 주고받음을 쓴다(지난 것으로 익히고 앞으로의 것으로 시험). 치우침에는 다음이 있다. (1) 고름 치우침 -- 쓰는 이는 보여 준 물건과만 주고받았으므로 보지 않은 물건이 참으로 음인 것은 아니다. (2) 인기 치우침 -- 인기 물건이 시험 모임을 지배한다. (3) 자리 치우침 -- 위쪽에 놓인 물건이 알맞음과 상관없이 더 눌린다. 온라인 따지기(A/B 시험)는 고름 치우침을 피하지만 비싸고 느리다. 치우치지 않은 오프라인 따지기 방법으로는 보여 줄 확률로 봄에 다시 무게를 주는 거꿀 성향 점수 매기기가 있다. $\square$
