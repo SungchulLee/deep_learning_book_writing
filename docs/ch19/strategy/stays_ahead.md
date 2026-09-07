@@ -46,30 +46,30 @@ $G = (g_1, g_2, \ldots, g_k)$을 마침 시각으로 줄 세운 욕심쟁이 풀
 
 *밑 자리*($i = 1$): 욕심쟁이 알고리즘이 온 활동 가운데 마침 시각이 가장 이른 것을 고르므로 $f(g_1) \leq f(o_1)$이다.
 
-*Inductive step:* Assume $f(g_{i-1}) \leq f(o_{i-1})$ for some $i \geq 2$. Activity $o_i$ is compatible with $o_{i-1}$, so:
+*미루어 나아가는 걸음:* 어떤 $i \geq 2$에 대해 $f(g_{i-1}) \leq f(o_{i-1})$이라 하자. 활동 $o_i$은 $o_{i-1}$과 어울리므로
 
 $$
 s(o_i) \geq f(o_{i-1}) \geq f(g_{i-1})
 $$
 
-This means $o_i$ is available (compatible with $g_{i-1}$) when the greedy algorithm makes its $i$-th choice. The greedy algorithm picks the available activity with the smallest finish time, so:
+이는 욕심쟁이 알고리즘이 $i$번째로 고를 때 $o_i$을 고를 수 있다($g_{i-1}$과 어울린다)는 뜻이다. 욕심쟁이 알고리즘은 고를 수 있는 활동 가운데 마침 시각이 가장 작은 것을 고르므로
 
 $$
 f(g_i) \leq f(o_i)
 $$
 
-**Conclusion.** Suppose for contradiction that $k < m$. Then $o_{k+1}$ exists and satisfies $s(o_{k+1}) \geq f(o_k) \geq f(g_k)$, so $o_{k+1}$ is compatible with $g_k$. But then the greedy algorithm would have selected at least one more activity after $g_k$, contradicting $|G| = k$. Therefore $k \geq m$, and since $O$ is a maximum-size set, $k = m$. $\square$
+**맺음.** 어긋남을 보이려고 $k < m$이라 하자. 그러면 $o_{k+1}$이 있고 $s(o_{k+1}) \geq f(o_k) \geq f(g_k)$을 채우므로 $o_{k+1}$은 $g_k$과 어울린다. 그런데 그렇다면 욕심쟁이 알고리즘이 $g_k$ 뒤에 활동을 적어도 하나 더 골랐을 것이고 이는 $|G| = k$과 어긋난다. 그러므로 $k \geq m$이고 $O$이 크기가 가장 큰 모음이므로 $k = m$이다. $\square$
 
 ## 보기 2: 최대 늦음 가장 작게 하기
 
-**Problem.** Given $n$ jobs with processing times $p_i$ and deadlines $d_i$, schedule all jobs on a single machine (no idle time) to minimize the maximum lateness $L_{\max} = \max_i (C_i - d_i)$, where $C_i$ is the completion time of job $i$.
+**문제.** 처리 시간 $p_i$과 마감 $d_i$을 지닌 일 $n$개가 주어졌을 때, 노는 시간 없이 한 기계에서 모든 일의 일정을 짜서 가장 큰 늦음 $L_{\max} = \max_i (C_i - d_i)$을 가장 작게 하여라. 여기서 $C_i$은 일 $i$의 마침 시각이다.
 
-**Greedy rule.** Schedule jobs in order of increasing deadline: $d_1 \leq d_2 \leq \cdots \leq d_n$ (Earliest Deadline First, EDF).
+**욕심쟁이 규칙.** 마감이 이른 차례로 일정을 짠다: $d_1 \leq d_2 \leq \cdots \leq d_n$(마감 이른 것 먼저, EDF).
 
-**Theorem.** EDF minimizes $L_{\max}$.
+**정리.** 마감 이른 것 먼저는 $L_{\max}$을 가장 작게 한다.
 
 ??? example "욕심쟁이가 앞선다에 의한 증명"
-    Let $G$ be the EDF schedule and $O$ be any other schedule. We show $L_{\max}(G) \leq L_{\max}(O)$.
+    $G$을 마감 이른 것 먼저 일정이라 하고 $O$을 다른 아무 일정이라 하자. $L_{\max}(G) \leq L_{\max}(O)$임을 보인다.
 
     **살핌.** $G$에는 노는 때가 없으므로 $j$번째 일의 마침 시각은 다음과 같다:
 
@@ -77,33 +77,33 @@ $$
     C_j^G = \sum_{i=1}^{j} p_{\sigma_G(i)}
     $$
 
-    where $\sigma_G$ is the EDF permutation. The same formula holds for $O$ with permutation $\sigma_O$.
+    여기서 $\sigma_G$은 마감 이른 것 먼저 자리바꿈이다. 자리바꿈 $\sigma_O$을 쓰는 $O$에도 같은 식이 이루어진다.
 
     **핵심 눈썰미.** 두 일정 모두 노는 때 없이 같은 일 모음을 다루므로, 어떤 일정에서든 $j$번째 일의 마침 시각은 그 일정의 자리바꿈에서 처음 $j$개 다루는 시간의 합과 같다.
 
-    Since EDF processes jobs in deadline order, the job completing at position $j$ has the smallest possible deadline among jobs in positions $1, \ldots, n$. This means the lateness $C_j^G - d_{\sigma_G(j)}$ is minimized for the "worst-positioned" job.
+    마감 이른 것 먼저는 일을 마감 차례로 다루므로 자리 $j$에서 마치는 일은 자리 $1, \ldots, n$의 일 가운데 마감이 될 수 있는 한 이르다. 이는 "가장 나쁜 자리"에 놓인 일의 늦음 $C_j^G - d_{\sigma_G(j)}$이 가장 작아진다는 뜻이다.
 
-    More precisely, any schedule with an inversion (job $a$ before job $b$ with $d_a > d_b$) can be improved by swapping $a$ and $b$, reducing the maximum lateness. Since EDF has no inversions, it is optimal. $\square$
+    더 엄밀히 말하면, 뒤집힘이 있는 어떤 일정($d_a > d_b$인데 일 $a$이 일 $b$보다 앞에 오는 경우)도 $a$과 $b$을 맞바꾸어 가장 큰 늦음을 줄이며 낫게 할 수 있다. 마감 이른 것 먼저에는 뒤집힘이 없으므로 가장 좋다. $\square$
 
 ## 앞선다가 통하는 까닭
 
 이 재주의 힘은 **귀납을 더 세게 만드는 데** 있다. 곧 마지막 결과가 가장 좋다는 것만이 아니라 욕심쟁이 풀이가 가운데 걸음마다 앞선다는 것을 증명한다. 이 더 센 주장 덕분에 귀납법이 깔끔하게 통한다.
 
-The measure $\mu$ must be chosen carefully. Good measures satisfy:
+자 $\mu$은 꼼꼼히 골라야 한다. 좋은 자는 다음을 채운다.
 
-1. **Monotonicity**: $\mu_G(i) \leq \mu_G(i+1)$ (progress always advances).
-2. **Comparability**: $\mu_G(i)$ and $\mu_O(i)$ measure the same quantity for the same step index.
-3. **Terminal implication**: the stays-ahead invariant at $i = \min(k, m)$ implies $G$ is at least as good as $O$.
+1. **한 방향으로만 바뀜**: $\mu_G(i) \leq \mu_G(i+1)$(나아감이 늘 앞으로 간다).
+2. **견줄 수 있음**: $\mu_G(i)$과 $\mu_O(i)$이 같은 걸음 번호에서 같은 것을 잰다.
+3. **마무리 함의**: $i = \min(k, m)$에서의 앞서 있음 안 바뀜에서 $G$이 $O$ 못지않게 좋음이 따라 나온다.
 
 ## 맞바꿈 논증과의 견줌
 
 | 갈래 | 욕심쟁이가 앞선다 | 맞바꿈 논증 |
 |--------|--------------------|--------------------|
-| Proof structure | Induction on step $i$ | Transform optimal $\to$ greedy |
+| 증명 얼개 | 걸음 $i$에 대한 미루어 나아가기 | 가장 좋은 풀이를 $\to$ 욕심쟁이 풀이로 바꾸기 |
 | 무엇을 견주나 | 욕심쟁이와 아무 풀이, 걸음마다 | 맞바꿈 지점에서 두 풀이 |
 | 가장 센 때 | 자연스러운 나아감 잣대가 있을 때 | 맞바꿈 한 번으로 될 수 있음이 지켜질 때 |
 | 보기 | 활동 고르기, 일정 짜기 | 허프먼, 쪼갤 수 있는 배낭 |
-| Typical invariant | $f(g_i) \leq f(o_i)$ | $\|S'\| \geq \|S^*\|$ after swap |
+| 흔한 안 바뀜 | $f(g_i) \leq f(o_i)$ | 맞바꾼 뒤 $\|S'\| \geq \|S^*\|$ |
 
 두 재주는 욕심쟁이의 옳음을 증명하는 데 논리로는 같지만, 욕심쟁이가 정렬된 차례로 물건을 다루는 문제에서는 앞선다 쪽이 흔히 더 우아한 증명을 낸다.
 
@@ -113,7 +113,7 @@ The measure $\mu$ must be chosen carefully. Good measures satisfy:
 
     1. **잘못된 잣대.** 걸음마다의 마침 시각 대신 전체 값을 쓰거나 그 반대로 하는 것. 잣대는 걸음마다 견줄 수 있어야 한다.
     2. **어긋남 이끌기에서의 하나 차이.** 귀납법 끝에서 $k < m$인 경우를 따로 다루는 것을 잊는 것.
-    3. **Assuming $k = m$.** The proof must establish this, not assume it. In activity selection, the stays-ahead invariant implies $k \geq m$ and feasibility gives $k \leq m$.
+    3. **$k = m$이라고 가정하기.** 증명은 이를 가정할 것이 아니라 세워야 한다. 활동 고르기에서는 앞서 있음 안 바뀜에서 $k \geq m$이 나오고 되는 풀이라는 데서 $k \leq m$이 나온다.
 
 ## 참고 문헌
 
