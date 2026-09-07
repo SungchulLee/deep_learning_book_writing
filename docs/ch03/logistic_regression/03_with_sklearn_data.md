@@ -9,23 +9,23 @@
 ```python
 """
 ==============================================================================
-03_with_sklearn_data.py - Working with Real Datasets
+03_with_sklearn_data.py - 참 자료 묶음 다루기
 ================================================================================
 
 배움 목표:
-- Load and work with real-world datasets
-- Understand data preprocessing (standardization)
-- Handle train/validation/test splits properly
-- Evaluate model with multiple metrics
+- 참 세상 자료 묶음을 불러와 다룬다
+- 자료 미리 다듬기(표준화)를 이해한다
+- 익힘/다짐/시험 나누기를 제대로 다룬다
+- 여러 자로 모형을 따진다
 
 PREREQUISITES:
-- Completed 02_simple_binary_classification.py
-- Understanding of mean and standard deviation
-- Basic statistics knowledge
+- 02_simple_binary_classification.py을 마쳤을 것
+- 평균과 표준편차 이해
+- 기본 통계 지식
 
-TIME TO COMPLETE: ~1 hour
+마치는 데 드는 때: 1시간쯤
 
-DIFFICULTY: ⭐⭐☆☆☆ (Easy-Medium)
+어려움: ⭐⭐☆☆☆ (쉬움~보통)
 ================================================================================
 """
 
@@ -53,18 +53,18 @@ print("="*80)
 print("\n1.1: About the Wisconsin Breast Cancer Dataset")
 print("-" * 40)
 print("""
-Dataset: Wisconsin Diagnostic Breast Cancer Dataset
-Source: UCI Machine Learning Repository
-Samples: 569 patients
-Features: 30 numerical features computed from digitized images
-Target: Malignant (1) or Benign (0)
+자료 묶음: 위스콘신 유방암 진단 자료 묶음
+밑동: UCI 기계 배움 저장소
+표본: 환자 569명
+특징: 디지털 그림에서 셈한 수치 특징 30개
+과녁: 악성(1)인가 양성(0)인가
 
-Features include:
-  - radius (mean of distances from center to points on perimeter)
-  - texture (standard deviation of gray-scale values)
-  - perimeter, area, smoothness, compactness, etc.
+특징에는 다음이 있다.
+  - 반지름(가운데에서 둘레 위 점까지 거리의 평균)
+  - 결(잿빛 값의 표준편차)
+  - 둘레, 넓이, 매끄러움, 옹골참 따위
   
-Goal: Predict whether a tumor is malignant or benign based on these features
+목표: 이 특징으로 종양이 악성인지 양성인지 예측한다
 """)
 
 # 데이터셋을 불러온다
@@ -90,19 +90,19 @@ print("="*80)
 print("\n2.1: Why Standardization?")
 print("-" * 40)
 print("""
-Feature Standardization: Transform features to have mean=0, std=1
+특징 표준화: 특징을 평균 0, 표준편차 1이 되도록 바꾼다
 
-Why needed:
-  1. Features have different scales (e.g., radius vs area)
-  2. Gradient descent converges faster with standardized features
-  3. Prevents features with large scales from dominating
+왜 필요한가:
+  1. 특징마다 잣대가 다르다(보기: 반지름과 넓이)
+  2. 표준화한 특징에서 기울기 내림이 더 빨리 모여든다
+  3. 잣대가 큰 특징이 휘어잡는 것을 막는다
   
-Formula: z = (x - mean) / std
+식: z = (x - mean) / std
 
 IMPORTANT: 
-  - Fit scaler on TRAINING data only
-  - Apply same transformation to test data
-  - Never fit on test data (would leak information!)
+  - 잣대 잡개는 익힘 자료에만 맞춘다
+  - 시험 자료에는 같은 바꾸기를 건다
+  - 시험 자료에는 결코 맞추지 마라(정보가 새어 나간다!)
 """)
 
 # 표준화 전에 데이터를 나눈다
@@ -144,10 +144,10 @@ print("="*80)
 
 class LogisticRegressionModel(nn.Module):
     """
-    Logistic Regression for Breast Cancer Classification
+    유방암 가름을 위한 로지스틱 회귀
     
-    Input: 30 features
-    Output: 1 probability (benign)
+    들임: 특징 30개
+    내놓음: 확률 1개(양성)
     """
     def __init__(self, n_features):
         super(LogisticRegressionModel, self).__init__()
@@ -318,10 +318,10 @@ plt.legend()
 # 그림 6: 요약
 plt.subplot(2, 3, 6)
 summary = f"""
-MODEL SUMMARY
+모형 간추림
 {'='*40}
 
-Dataset: Breast Cancer Wisconsin
+자료 묶음: 위스콘신 유방암
 Samples: {len(X)} total
   - Training: {len(X_train)}
   - Test: {len(X_test)}
@@ -333,13 +333,13 @@ Training:
   - Final Loss: {history['loss'][-1]:.4f}
   - Final Train Acc: {history['accuracy'][-1]:.4f}
 
-Test Performance:
+시험 성능:
   - Accuracy: {accuracy:.4f}
   - Precision: {precision:.4f}
   - Recall: {recall:.4f}
   - F1-Score: {f1:.4f}
 
-Clinical Interpretation:
+임상으로 읽기:
   - Missed cancers (FP): {fp}
   - False alarms (FN): {fn}
 """
@@ -360,48 +360,48 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. DATA PREPROCESSING
-   - Always standardize features
-   - Fit scaler on training data only
-   - Apply same transformation to test data
+1. 자료 미리 다듬기
+   - 특징은 늘 표준화하라
+   - 잣대 잡개는 익힘 자료에만 맞춰라
+   - 시험 자료에는 같은 바꾸기를 건다
 
-2. EVALUATION METRICS
-   - Accuracy: Good for balanced datasets
-   - Precision: Important when false positives are costly
-   - Recall: Important when false negatives are costly
-   - F1-Score: Balance between precision and recall
+2. 따짐 자
+   - 맞음: 고른 자료 묶음에 좋다
+   - 정밀도: 헛맞음의 값이 클 때 종요롭다
+   - 재현율: 놓침의 값이 클 때 종요롭다
+   - F1 점수: 정밀도와 재현율의 고른 자리
 
-3. MEDICAL APPLICATIONS
-   - False positives: Unnecessary worry/procedures
-   - False negatives: Missed diseases (very dangerous!)
-   - Often prioritize high recall (catch all diseases)
+3. 의료에서의 쓰임
+   - 헛맞음: 쓸데없는 걱정과 시술
+   - 놓침: 병을 놓친다(아주 위험하다!)
+   - 흔히 높은 재현율을 앞세운다(병을 모두 잡아낸다)
 
-4. BEST PRACTICES
-   - Use multiple metrics, not just accuracy
-   - Understand confusion matrix
-   - Consider domain-specific costs of errors
+4. 좋은 버릇
+   - 맞음만이 아니라 여러 자를 써라
+   - 헷갈림 행렬을 이해하라
+   - 그 분야에서 어긋남이 치르는 값을 헤아려라
 """)
 
 print("\n" + "="*80)
 print("EXERCISES")
 print("="*80)
 print("""
-1. EASY: Try different test_size values (0.1, 0.3, 0.5)
-   How does it affect performance?
+1. 쉬움: test_size 값을 바꾸어 보아라(0.1, 0.3, 0.5)
+   성능에 어떤 영향을 주는가?
 
-2. MEDIUM: Adjust decision threshold from 0.5 to 0.3
-   How does it affect precision vs recall?
+2. 보통: 가름 문턱을 0.5에서 0.3으로 바꾸어라
+   정밀도와 재현율에 어떤 영향을 주는가?
 
-3. MEDIUM: Try different learning rates
-   Plot learning curves for lr=0.01, 0.1, 1.0
+3. 보통: 여러 배움 빠르기를 써 보아라
+   lr=0.01, 0.1, 1.0의 배움 굽이를 그려라
 
-4. HARD: Implement weighted loss function
-   Give more penalty to false negatives
-   Hint: Use pos_weight parameter in BCELoss
+4. 어려움: 무게 실은 잃음 함수를 짜라
+   놓침에 더 큰 벌을 주어라
+   실마리: BCELoss의 pos_weight 매개변수를 써라
 
-5. HARD: Feature importance analysis
-   Which features are most important?
-   Look at model.linear.weight values
+5. 어려움: 특징의 종요로움 살피기
+   어떤 특징이 가장 종요로운가?
+   model.linear.weight 값을 보아라
 """)
 
 print("\n" + "="*80)

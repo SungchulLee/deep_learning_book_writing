@@ -525,31 +525,31 @@ print("""
    - test_size을 0.1과 0.5으로 바꾸어라
    - How does it affect results?
 
-4. HARD: Implement a function to predict new data:
+4. 어려움: 새 자료를 예측하는 함수를 짜라.
    def predict(model, x1, x2):
        # 여기에 코드를 작성한다
        pass
    
-   Test with: predict(model, 0.5, 0.5)
+   이렇게 시험하라: predict(model, 0.5, 0.5)
 
-5. HARD: Add more features to the dataset:
-   - Use n_features=4 or 10
-   - Modify the model accordingly
-   - Compare performance
+5. 어려움: 자료 묶음에 특징을 더하여라.
+   - n_features=4이나 10을 쓴다
+   - 모형도 그에 맞게 고친다
+   - 성능을 견준다
 """)
 
 print("\n" + "="*80)
 print("NEXT STEPS")
 print("="*80)
 print("""
-Great job! You've built your first logistic regression model!
+잘했다! 첫 로지스틱 회귀 모형을 지었다!
 
-Next tutorial: 03_with_sklearn_data.py
-- Work with real-world datasets
-- Learn data preprocessing techniques
-- Handle different data types
+다음 익힘: 03_with_sklearn_data.py
+- 참 세상 자료 묶음을 다룬다
+- 자료를 미리 다듬는 솜씨를 배운다
+- 여러 자료 갈래를 다룬다
 
-Ready? Run: python 03_with_sklearn_data.py
+채비가 되었는가? 다음을 돌려라: python 03_with_sklearn_data.py
 """)
 print("="*80)
 

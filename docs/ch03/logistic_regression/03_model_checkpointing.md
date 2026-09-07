@@ -9,17 +9,17 @@
 ```python
 """
 ================================================================================
-03_model_checkpointing.py - Saving and Loading Models
+03_model_checkpointing.py - 모형 갈무리하고 불러오기
 ================================================================================
 
 배움 목표:
-- Save and load model weights
-- Implement checkpoint system
-- Resume training from checkpoints
-- Save complete training state
-- Best practices for model persistence
+- 모형 무게를 갈무리하고 불러온다
+- 되짚음 저장 얼개를 짠다
+- 되짚음 저장에서 익힘을 이어 간다
+- 온전한 익힘 상태를 갈무리한다
+- 모형을 남기는 좋은 버릇
 
-TIME TO COMPLETE: ~1 hour
+마치는 데 드는 때: 1시간쯤
 어려움: ⭐⭐⭐☆☆ (가운데)
 ================================================================================
 """
@@ -80,15 +80,15 @@ class LogisticRegression(nn.Module):
 
 def save_checkpoint(model, optimizer, epoch, loss, accuracy, filepath):
     """
-    Save complete training state
+    온전한 익힘 상태를 갈무리한다
     
     Args:
-        model: The model to save
-        optimizer: The optimizer to save
-        epoch: Current epoch number
-        loss: Current loss value
-        accuracy: Current accuracy
-        filepath: Where to save the checkpoint
+        model: 갈무리할 모형
+        optimizer: 갈무리할 가장 좋게 하개
+        epoch: 이제 판 번호
+        loss: 이제 잃음 값
+        accuracy: 이제 맞음
+        filepath: 되짚음 저장을 둘 자리
     """
     checkpoint = {
         'epoch': epoch,
@@ -103,15 +103,15 @@ def save_checkpoint(model, optimizer, epoch, loss, accuracy, filepath):
 
 def load_checkpoint(filepath, model, optimizer=None):
     """
-    Load checkpoint and restore state
+    되짚음 저장을 불러와 상태를 되살린다
     
     Args:
-        filepath: Path to checkpoint file
-        model: Model to load weights into
-        optimizer: Optional optimizer to restore state
+        filepath: 되짚음 저장 두루마리의 길
+        model: 무게를 불러 넣을 모형
+        optimizer: 상태를 되살릴 가장 좋게 하개(골라 쓴다)
         
     Returns:
-        Dictionary with training info
+        익힘 정보를 담은 사전
     """
     checkpoint = torch.load(filepath)
     model.load_state_dict(checkpoint['model_state_dict'])
@@ -333,64 +333,64 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. TYPES OF SAVING
-   ✓ Full checkpoint: model + optimizer + training state
-   ✓ Best model: only model weights (for deployment)
-   ✓ Periodic: save every N epochs
+1. 갈무리의 갈래
+   ✓ 온 되짚음 저장: 모형 + 가장 좋게 하개 + 익힘 상태
+   ✓ 가장 좋은 모형: 모형 무게만(내놓기용)
+   ✓ 때맞춰: N 판마다 갈무리
 
-2. CHECKPOINT CONTENTS
-   ✓ model_state_dict: Model weights
-   ✓ optimizer_state_dict: Optimizer state (momentum, etc.)
-   ✓ epoch: Current epoch number
-   ✓ loss/accuracy: Performance metrics
-   ✓ Additional: learning rate, random state, etc.
+2. 되짚음 저장에 담기는 것
+   ✓ model_state_dict: 모형 무게
+   ✓ optimizer_state_dict: 가장 좋게 하개 상태(여세 따위)
+   ✓ epoch: 이제 판 번호
+   ✓ loss/accuracy: 성능 자
+   ✓ 덧붙임: 배움 빠르기, 마구잡이 상태 따위
 
 3. 좋은 버릇
-   ✓ Save checkpoints regularly
-   ✓ Save best model separately
-   ✓ Include training state for resuming
-   ✓ Clean up old checkpoints
-   ✓ Use meaningful filenames
-   ✓ Save metadata (config, date, etc.)
+   ✓ 되짚음 저장을 자주 하라
+   ✓ 가장 좋은 모형은 따로 갈무리하라
+   ✓ 이어 가려면 익힘 상태도 넣어라
+   ✓ 묵은 되짚음 저장은 치워라
+   ✓ 뜻이 담긴 두루마리 이름을 써라
+   ✓ 곁들인 정보(설정, 날짜 따위)도 갈무리하라
 
-4. WHEN TO CHECKPOINT
-   ✓ Every N epochs (e.g., every 10)
-   ✓ When validation improves
-   ✓ Before long training runs
-   ✓ Before hyperparameter changes
+4. 언제 되짚음 저장을 할까
+   ✓ N 판마다(보기: 10 판마다)
+   ✓ 다짐이 나아질 때
+   ✓ 오래 익히기 앞에
+   ✓ 웃매개변수를 바꾸기 앞에
 
-5. FILE ORGANIZATION
+5. 두루마리 갈무리 짜임
    checkpoints/
-   ├── best_model.pt          # Best performing model
-   ├── checkpoint_epoch_10.pt # Periodic checkpoints
+   ├── best_model.pt          # 가장 성능이 좋은 모형
+   ├── checkpoint_epoch_10.pt # 때맞춘 되짚음 저장
    ├── checkpoint_epoch_20.pt
-   └── last_checkpoint.pt     # Most recent state
+   └── last_checkpoint.pt     # 가장 마지막 상태
 """)
 
 print("\n" + "="*80)
 print("EXERCISES")
 print("="*80)
 print("""
-1. EASY: Save training history (losses, accuracies) to JSON
+1. 쉬움: 익힘 자취(잃음, 맞음)를 JSON으로 갈무리하라
 
-2. MEDIUM: Implement early stopping with checkpoint loading:
-   - Save when validation improves
-   - If no improvement for N epochs, stop and load best
+2. 보통: 되짚음 저장 불러오기를 곁들인 일찍 멈추기를 짜라.
+   - 다짐이 나아지면 갈무리한다
+   - N 판 동안 나아지지 않으면 멈추고 가장 좋은 것을 불러온다
 
-3. MEDIUM: Add metadata to checkpoints:
+3. 보통: 되짚음 저장에 곁들인 정보를 더하여라.
    - Timestamp
    - Hyperparameters
-   - Model architecture details
+   - 모형 얼개의 속내
 
-4. HARD: Implement checkpoint versioning:
-   - Keep different versions of model
-   - Compare performance across versions
-   - Rollback to previous version if needed
+4. 어려움: 되짚음 저장에 판 번호를 매겨라.
+   - 모형의 여러 판을 남긴다
+   - 판마다 성능을 견준다
+   - 필요하면 앞선 판으로 되돌린다
 
-5. HARD: Create deployment package:
-   - Save model + preprocessing (scaler)
-   - Add inference function
-   - Create simple API
+5. 어려움: 내놓기 꾸러미를 만들어라.
+   - 모형과 미리 다듬기(잣대 잡개)를 갈무리한다
+   - 미룸 함수를 더한다
+   - 단순한 낯을 만든다
 """)
 
 
