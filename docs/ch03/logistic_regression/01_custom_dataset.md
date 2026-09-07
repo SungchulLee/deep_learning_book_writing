@@ -12,7 +12,7 @@
 01_custom_dataset.py - Creating Custom Dataset Classes
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Create custom Dataset classes for any data format
 - Implement __len__ and __getitem__ methods
 - Handle various data types (CSV, images, text)

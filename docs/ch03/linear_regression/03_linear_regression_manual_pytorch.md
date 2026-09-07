@@ -26,7 +26,7 @@ PREREQUISITES:
     - Tutorial 01 (PyTorch basics)
     - Tutorial 02 (Linear regression with NumPy)
 
-LEARNING OBJECTIVES:
+배움 목표:
     - Use PyTorch tensors for computation
     - Manually compute gradients (still no autograd)
     - Understand tensor operations vs NumPy operations

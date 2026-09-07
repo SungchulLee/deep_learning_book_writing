@@ -8,29 +8,29 @@
 #!/usr/bin/env python3
 """
 ==============================================================================
-BEGINNER TUTORIAL 05: Complete Linear Regression Training Loop
+첫걸음 익힘 05: 온전한 선형 회귀 익힘 되돌이
 ==============================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 -------------------
-1. Build a complete training loop from scratch
-2. Understand the standard training cycle: forward → loss → backward → update
-3. Learn proper gradient management in training
-4. Visualize training progress
-5. Understand parameter updates without autograd
+1. 온전한 익힘 되돌이를 맨바닥부터 짓는다
+2. 여느 익힘 돌이를 이해한다: 앞으로 → 잃음 → 뒤로 → 고치기
+3. 익힐 때 기울기를 제대로 다루는 법을 배운다
+4. 익힘이 나아가는 모습을 그림으로 본다
+5. 자동 미분 없이 매개변수를 고치는 법을 이해한다
 
-KEY CONCEPTS:
+고갱이 개념:
 ------------
-- Training Loop: forward, loss, backward, update (repeat)
-- Gradient Zeroing: Essential before each backward pass
-- torch.no_grad(): Context for parameter updates
-- Loss Tracking: Monitor convergence
-- Synthetic Data: Generate clean test data
+- 익힘 되돌이: 앞으로, 잃음, 뒤로, 고치기(되풀이)
+- 기울기 0으로 만들기: 뒤로 걸음 앞마다 꼭 해야 한다
+- torch.no_grad(): 매개변수를 고칠 때 쓰는 자리
+- 잃음 좇기: 모여드는지 지켜본다
+- 인공 자료: 깨끗한 시험 자료를 만든다
 
-REAL-WORLD APPLICATION:
+참 세상에서의 쓰임:
 -----------------------
-This is the foundation of ALL deep learning training loops!
-Understanding this simple example prepares you for complex neural networks.
+이것이 모든 깊은 배움 익힘 되돌이의 바탕이다!
+이 단순한 보기를 이해하면 복잡한 신경망을 다룰 채비가 된다.
 
 ==============================================================================
 """
@@ -46,16 +46,16 @@ import numpy as np
 
 def generate_synthetic_data(n_samples=100, true_w=2.0, true_b=1.0, noise_std=0.2):
     """
-    Generate synthetic linear regression data: y = w*x + b + noise
+    인공 선형 회귀 자료를 만든다: y = w*x + b + 잡음
     
     Args:
-        n_samples: Number of data points
-        true_w: True slope (weight)
-        true_b: True intercept (bias)
-        noise_std: Standard deviation of Gaussian noise
+        n_samples: 자료 점의 수
+        true_w: 참 기울기(무게)
+        true_b: 참 절편(치우침)
+        noise_std: 가우스 잡음의 표준편차
     
     Returns:
-        x, y: Input and target tensors
+        x, y: 들임 텐서와 과녁 텐서
     """
     x = torch.randn(n_samples, 1)  # Random inputs from N(0,1)
     noise = noise_std * torch.randn(n_samples, 1)  # Gaussian noise
@@ -65,8 +65,8 @@ def generate_synthetic_data(n_samples=100, true_w=2.0, true_b=1.0, noise_std=0.2
 
 def main():
     """
-    Complete example of training a linear regression model from scratch.
-    We'll predict y from x, learning parameters w (weight) and b (bias).
+    선형 회귀 모형을 맨바닥부터 익히는 온전한 보기.
+    x에서 y을 예측하며 매개변수 w(무게)과 b(치우침)을 배운다.
     """
     
     print("="*70)
@@ -243,46 +243,46 @@ def main():
     print("UNDERSTANDING THE TRAINING LOOP")
     print("="*70)
     print("""
-    The Training Cycle (repeated for each epoch):
+    익힘 돌이(판마다 되풀이한다):
     
-    1. FORWARD PASS
-       └─ Compute predictions: y_pred = w*x + b
-       └─ Compute loss: MSE = mean((y_pred - y)^2)
+    1. 앞으로 걸음
+       └─ 예측을 셈한다: y_pred = w*x + b
+       └─ 잃음을 셈한다: MSE = mean((y_pred - y)^2)
     
-    2. BACKWARD PASS  
-       └─ Zero old gradients: w.grad.zero_(), b.grad.zero_()
-       └─ Compute new gradients: loss.backward()
+    2. 뒤로 걸음
+       └─ 묵은 기울기를 0으로 만든다: w.grad.zero_(), b.grad.zero_()
+       └─ 새 기울기를 셈한다: loss.backward()
     
-    3. UPDATE PARAMETERS
-       └─ Gradient descent: w = w - lr * w.grad
+    3. 매개변수 고치기
+       └─ 기울기 내림: w = w - lr * w.grad
        └─                   b = b - lr * b.grad
     
-    Why torch.no_grad() for updates?
-    • Parameter updates shouldn't be part of the computation graph
-    • Saves memory and computational overhead
-    • Updates are in-place operations on the parameter values
+    고칠 때 torch.no_grad()을 쓰는 까닭은?
+    • 매개변수 고치기는 셈 그래프에 들어가면 안 된다
+    • 기억 자리와 셈의 덤을 아낀다
+    • 고치기는 매개변수 값에 제자리로 하는 셈이다
     
-    Why zero gradients?
-    • Gradients accumulate by default in PyTorch
-    • Old gradients must be cleared before computing new ones
-    • Forgetting this leads to incorrect parameter updates!
+    기울기를 0으로 만드는 까닭은?
+    • PyTorch에서는 기울기가 기본으로 쌓인다
+    • 새 기울기를 셈하기 앞에 묵은 것을 지워야 한다
+    • 이를 잊으면 매개변수를 잘못 고치게 된다!
     
-    Learning Rate:
-    • Too large: Unstable training, might diverge
-    • Too small: Slow convergence
-    • 0.1 works well for this simple problem
+    배움 빠르기:
+    • 너무 크면 익힘이 흔들리고 퍼져 나갈 수 있다
+    • 너무 작으면 더디게 모여든다
+    • 이 단순한 문제에는 0.1이 잘 듣는다
     """)
     
     print("="*70)
     print("KEY TAKEAWAYS")
     print("="*70)
     print("""
-    ✓ Training loop structure: forward → loss → backward → update
-    ✓ Always zero gradients before backward pass
-    ✓ Use torch.no_grad() for parameter updates
-    ✓ Track loss to monitor convergence
-    ✓ Visualization helps understand model quality
-    ✓ This pattern extends to ALL neural network training!
+    ✓ 익힘 되돌이의 짜임: 앞으로 → 잃음 → 뒤로 → 고치기
+    ✓ 뒤로 걸음 앞에는 늘 기울기를 0으로 만들어라
+    ✓ 매개변수를 고칠 때는 torch.no_grad()을 써라
+    ✓ 잃음을 좇아 모여드는지 지켜보아라
+    ✓ 그림으로 보면 모형이 얼마나 좋은지 알기 쉽다
+    ✓ 이 무늬는 모든 신경망 익힘으로 넓혀진다!
     """)
 
 

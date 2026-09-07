@@ -12,7 +12,7 @@
 02_dataloader_batching.py - Efficient Batch Processing with DataLoader
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Understand mini-batch gradient descent
 - Use PyTorch DataLoader for efficient batching
 - Learn about Dataset and DataLoader classes

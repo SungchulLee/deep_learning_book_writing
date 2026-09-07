@@ -6,7 +6,7 @@
 
 ```python
 #!/usr/bin/env python3
-"""Linear regression with module."""
+"""단원을 쓰는 선형 회귀."""
 import matplotlib.pyplot as plt
 import torch
 import torch.nn as nn
@@ -88,9 +88,9 @@ def main():
     ax1.set_ylabel("loss")
 
     # (c) α(편향)의 궤적
-    #ax2.plot(range(steps), betas, label="β (slope)", lw=2)
+    #ax2.plot(range(steps), betas, label="β (기울기)", lw=2)
     ax2.plot(range(steps), alphas, label="α (intercept)", lw=2)
-    #ax2.axhline(2.0, color="k", ls="--", lw=1, alpha=0.7, label="true β=2")
+    #ax2.axhline(2.0, color="k", ls="--", lw=1, alpha=0.7, label="참 β=2")
     ax2.axhline(1.0, color="gray", ls="--", lw=1, alpha=0.7, label="true α=1")
     ax2.set_title("Parameter Alpha Convergence")
     ax2.set_xlabel("epoch")
@@ -99,9 +99,9 @@ def main():
 
     # (d) β(가중치)의 궤적
     ax3.plot(range(steps), betas, label="β (slope)", lw=2)
-    #ax3.plot(range(steps), alphas, label="α (intercept)", lw=2)
+    #ax3.plot(range(steps), alphas, label="α (절편)", lw=2)
     ax3.axhline(2.0, color="k", ls="--", lw=1, alpha=0.7, label="true β=2")
-    #ax3.axhline(1.0, color="gray", ls="--", lw=1, alpha=0.7, label="true α=1")
+    #ax3.axhline(1.0, color="gray", ls="--", lw=1, alpha=0.7, label="참 α=1")
     ax3.set_title("Parameter Beta Convergence")
     ax3.set_xlabel("epoch")
     ax3.set_ylabel("beta")

@@ -8,23 +8,23 @@
 #!/usr/bin/env python3
 """
 ==============================================================================
-BEGINNER TUTORIAL 01: Basic Scalar Backward Pass
+첫걸음 익힘 01: 홑값 뒤로 걸음 기초
 ==============================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 -------------------
-1. Understand what a "leaf" tensor is in PyTorch's autograd system
-2. Learn how to enable gradient tracking with requires_grad=True
-3. See how to compute gradients using .backward() on a scalar loss
-4. Understand the difference between leaf and non-leaf tensors
-5. Learn about .retain_grad() for non-leaf tensors
+1. PyTorch의 자동 미분 얼개에서 "잎" 텐서가 무엇인지 이해한다
+2. requires_grad=True으로 기울기 좇기를 켜는 법을 배운다
+3. 홑값 잃음에 .backward()을 써서 기울기를 셈하는 법을 본다
+4. 잎 텐서와 잎이 아닌 텐서의 다름을 이해한다
+5. 잎이 아닌 텐서를 위한 .retain_grad()을 배운다
 
-KEY CONCEPTS:
+고갱이 개념:
 ------------
-- Leaf Tensor: A tensor created directly by the user (not from operations)
-- Computational Graph: PyTorch builds this automatically to track operations
-- Gradient Accumulation: Gradients add up unless explicitly zeroed
-- Vector-Jacobian Product (VJP): How PyTorch computes gradients efficiently
+- 잎 텐서: 쓰는 이가 곧바로 만든 텐서(셈에서 나온 것이 아니다)
+- 셈 그래프: PyTorch이 셈을 좇으려고 절로 세운다
+- 기울기 쌓임: 드러내 놓고 0으로 만들지 않으면 기울기가 더해진다
+- 벡터-야코비 곱(VJP): PyTorch이 기울기를 잘 들게 셈하는 방식
 
 ==============================================================================
 """
@@ -38,10 +38,10 @@ import torch
 
 def main():
     """
-    Demonstrates basic gradient computation for a scalar loss function.
+    홑값 잃음 함수에 대한 기본 기울기 셈을 보인다.
     
-    We'll compute: loss = sum(x^2)
-    Expected gradient: d(loss)/dx = 2*x
+    다음을 셈한다: loss = sum(x^2)
+    바라는 기울기: d(loss)/dx = 2*x
     """
     
     # 재현성을 위한 난수 시드 설정
@@ -139,31 +139,31 @@ def main():
     print("UNDERSTANDING: What is grad_output / upstream gradient?")
     print("="*70)
     print("""
-    PyTorch uses the CHAIN RULE via Vector-Jacobian Products (VJP):
+    PyTorch은 벡터-야코비 곱(VJP)으로 사슬 법칙을 쓴다.
     
-    If y = f(x) and loss = g(y), then:
+    y = f(x)이고 loss = g(y)이면
         d(loss)/dx = (d(loss)/dy) * (dy/dx)
-                   = upstream_grad * local_jacobian
+                   = 위쪽 기울기 * 그 자리 야코비
     
-    For scalar loss.backward():
-    - The implicit upstream gradient is 1.0
-    - Each operation computes: incoming_grad * local_jacobian
-    - This propagates backwards through the computational graph
+    홑값 loss.backward()에서는
+    - 넌지시 쓰이는 위쪽 기울기가 1.0이다
+    - 셈마다 들어온 기울기 * 그 자리 야코비를 셈한다
+    - 이것이 셈 그래프를 따라 거꾸로 퍼진다
     
-    For non-scalar outputs, you must provide the upstream gradient explicitly!
-    (We'll see this in advanced tutorials)
+    홑값이 아닌 내놓음에는 위쪽 기울기를 드러내 놓고 주어야 한다!
+    (이는 앞선 익힘에서 본다)
     """)
     
     print("="*70)
     print("KEY TAKEAWAYS")
     print("="*70)
     print("""
-    ✓ Leaf tensors: Created by user, not by operations
-    ✓ requires_grad=True: Enables gradient tracking
-    ✓ .backward(): Computes gradients for scalar losses
-    ✓ .grad: Stores computed gradients (only for leaves by default)
-    ✓ .retain_grad(): Use this to keep gradients for non-leaf tensors
-    ✓ .grad_fn: Shows which operation created a tensor (None for leaves)
+    ✓ 잎 텐서: 셈이 아니라 쓰는 이가 만든다
+    ✓ requires_grad=True: 기울기 좇기를 켠다
+    ✓ .backward(): 홑값 잃음의 기울기를 셈한다
+    ✓ .grad: 셈한 기울기를 담는다(기본으로는 잎에만)
+    ✓ .retain_grad(): 잎이 아닌 텐서의 기울기를 남기려면 이를 쓴다
+    ✓ .grad_fn: 어떤 셈이 텐서를 만들었는지 보인다(잎이면 None)
     """)
 
 

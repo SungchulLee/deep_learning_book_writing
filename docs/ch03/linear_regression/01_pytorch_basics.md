@@ -27,7 +27,7 @@ PREREQUISITES:
     - Basic Python knowledge
     - Basic understanding of derivatives (calculus)
 
-LEARNING OBJECTIVES:
+배움 목표:
     - Create and manipulate PyTorch tensors
     - Understand tensor operations
     - Use autograd to compute gradients automatically

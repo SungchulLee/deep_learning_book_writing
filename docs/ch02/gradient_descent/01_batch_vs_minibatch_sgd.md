@@ -10,7 +10,7 @@
 Level 2 - Example 1: Batch, Mini-batch, and Stochastic Gradient Descent
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Understand different variants of gradient descent
 - Compare batch GD, mini-batch GD, and SGD
 - Learn about DataLoader and batching in PyTorch

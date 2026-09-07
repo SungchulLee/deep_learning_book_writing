@@ -10,7 +10,7 @@
 Level 1 - Example 3: Simple Linear Regression with PyTorch
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Apply gradient descent to a real regression problem
 - Use PyTorch's nn.Module for better code organization
 - Implement training and evaluation loops

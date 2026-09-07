@@ -15,7 +15,7 @@ MIXTURE OF GAUSSIANS MLE - Expectation-Maximization Algorithm
 
 DIFFICULTY: ⭐⭐⭐ Advanced (Level 3)
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Understand latent variable models
 - Learn the Expectation-Maximization (EM) algorithm
 - Implement soft clustering

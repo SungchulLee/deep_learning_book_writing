@@ -27,7 +27,7 @@ PREREQUISITES:
     - Basic calculus (derivatives)
     - Tutorial 01 (helpful but not required)
 
-LEARNING OBJECTIVES:
+배움 목표:
     - Understand the linear model: y = wx + b
     - Compute loss and gradients manually
     - Implement gradient descent from scratch

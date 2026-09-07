@@ -15,7 +15,7 @@ LOGISTIC REGRESSION MLE - Binary Classification
 
 DIFFICULTY: ⭐⭐⭐ Advanced (Level 3)
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Understand logistic regression as MLE
 - See connection to binary cross-entropy loss
 - Implement classification in PyTorch

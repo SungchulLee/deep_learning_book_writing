@@ -10,7 +10,7 @@
 Level 1 - Example 4: Visualizing Gradient Descent in Action
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - See gradient descent optimization visually
 - Understand loss landscapes
 - Observe effect of learning rate

@@ -12,7 +12,7 @@
 03_with_sklearn_data.py - Working with Real Datasets
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Load and work with real-world datasets
 - Understand data preprocessing (standardization)
 - Handle train/validation/test splits properly

@@ -10,7 +10,7 @@
 Level 4 - Project 1: Neural Network for MNIST Digit Classification
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Build a complete neural network from scratch
 - Train on a real-world dataset (MNIST)
 - Implement proper train/validation/test splits

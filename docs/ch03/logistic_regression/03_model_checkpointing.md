@@ -12,7 +12,7 @@
 03_model_checkpointing.py - Saving and Loading Models
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Save and load model weights
 - Implement checkpoint system
 - Resume training from checkpoints

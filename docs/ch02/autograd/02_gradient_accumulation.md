@@ -8,25 +8,25 @@
 #!/usr/bin/env python3
 """
 ==============================================================================
-BEGINNER TUTORIAL 02: Gradient Accumulation
+첫걸음 익힘 02: 기울기 쌓임
 ==============================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 -------------------
-1. Understand that gradients ACCUMULATE by default in PyTorch
-2. Learn why you need to zero gradients between training steps
-3. See practical examples of gradient accumulation behavior
-4. Understand when gradient accumulation is useful vs problematic
+1. PyTorch에서 기울기가 기본으로 쌓인다는 것을 이해한다
+2. 익힘 걸음 사이에 기울기를 0으로 만들어야 하는 까닭을 배운다
+3. 기울기가 쌓이는 모습을 손에 잡히는 보기로 본다
+4. 기울기 쌓임이 언제 쓸모 있고 언제 골칫거리인지 이해한다
 
-KEY CONCEPTS:
+고갱이 개념:
 ------------
-- Gradient Accumulation: Gradients add up with each .backward() call
-- Zero Gradients: Must explicitly clear with .zero_() or .grad = None
-- Use Cases: Large batch simulation, multiple loss terms
+- 기울기 쌓임: .backward()을 부를 때마다 기울기가 더해진다
+- 기울기 0으로 만들기: .zero_()이나 .grad = None으로 드러내 놓고 지워야 한다
+- 쓰임새: 큰 묶음 흉내내기, 여러 잃음 마디
 
-COMMON PITFALL:
+흔한 함정:
 --------------
-Forgetting to zero gradients leads to incorrect updates!
+기울기를 0으로 만들기를 잊으면 잘못 고치게 된다!
 
 ==============================================================================
 """
@@ -40,8 +40,8 @@ import torch
 
 def main():
     """
-    Demonstrates how gradients accumulate across multiple backward passes
-    and why zeroing gradients is essential for correct training.
+    여러 번 뒤로 걸으며 기울기가 어떻게 쌓이는지,
+    그리고 옳게 익히려면 왜 기울기를 0으로 만들어야 하는지 보인다.
     """
     
     torch.manual_seed(0)
@@ -211,14 +211,14 @@ def main():
     print("KEY TAKEAWAYS")
     print("="*70)
     print("""
-    ✓ Gradients ACCUMULATE by default - this is a feature, not a bug!
-    ✓ Always zero gradients between training steps: .zero_() or = None
-    ✓ .zero_() keeps the tensor, = None frees memory (slightly faster)
-    ✓ Intentional accumulation is useful for:
-        • Simulating large batches with limited memory
-        • Combining multiple loss terms
-        • Gradient accumulation in distributed training
-    ✓ NEVER forget to zero gradients in your training loop!
+    ✓ 기울기는 기본으로 쌓인다. 이는 버릇이지 벌레가 아니다!
+    ✓ 익힘 걸음 사이에는 늘 기울기를 0으로 만들어라: .zero_()이나 = None
+    ✓ .zero_()은 텐서를 남기고 = None은 기억 자리를 놓아준다(조금 더 빠르다)
+    ✓ 일부러 쌓는 것은 다음에 쓸모 있다.
+        • 기억 자리가 적을 때 큰 묶음을 흉내내기
+        • 여러 잃음 마디를 아우르기
+        • 흩어 익힐 때의 기울기 쌓기
+    ✓ 익힘 되돌이에서 기울기를 0으로 만들기를 절대 잊지 마라!
     """)
 
 

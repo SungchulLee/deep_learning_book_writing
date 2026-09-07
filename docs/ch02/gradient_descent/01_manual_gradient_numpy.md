@@ -10,7 +10,7 @@
 Level 1 - Example 1: Manual Gradient Descent with NumPy
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Understand gradient descent from first principles
 - Manually compute gradients using calculus
 - Implement gradient descent without any ML libraries

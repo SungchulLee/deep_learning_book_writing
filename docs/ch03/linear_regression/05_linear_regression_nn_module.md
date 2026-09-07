@@ -24,7 +24,7 @@ TOPICS COVERED:
 PREREQUISITES:
     - Tutorial 04 (Autograd)
 
-LEARNING OBJECTIVES:
+배움 목표:
     - Create custom models with nn.Module
     - Use built-in layers (nn.Linear)
     - Use optimizers for parameter updates

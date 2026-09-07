@@ -12,7 +12,7 @@
 01_introduction.py - Introduction to PyTorch Tensors and Autograd
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Understand PyTorch tensors (the fundamental data structure)
 - Learn about automatic differentiation (autograd)
 - Implement a simple gradient descent optimization

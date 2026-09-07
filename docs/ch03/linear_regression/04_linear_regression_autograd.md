@@ -25,7 +25,7 @@ PREREQUISITES:
     - Tutorial 01 (PyTorch basics with autograd)
     - Tutorial 03 (Manual PyTorch gradients)
 
-LEARNING OBJECTIVES:
+배움 목표:
     - Use autograd for gradient computation
     - Understand when to zero gradients
     - Use no_grad() context for efficiency
@@ -346,7 +346,7 @@ Key Takeaways:
 
 3. IMPORTANT POINTS:
    ✓ Always zero gradients before backward()
-   ✓ Use torch.no_grad() for parameter updates
+   ✓ 매개변수를 고칠 때는 torch.no_grad()을 써라
    ✓ Gradients accumulate by default
    ✓ Same results as manual computation
 

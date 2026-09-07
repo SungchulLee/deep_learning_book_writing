@@ -10,7 +10,7 @@
 Level 1 - Example 2: PyTorch Autograd Basics
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Understand PyTorch's automatic differentiation (autograd)
 - Learn about computational graphs
 - Compare manual vs automatic gradient computation

@@ -15,7 +15,7 @@ NEURAL NETWORK MLE - Deep Learning with Maximum Likelihood
 
 DIFFICULTY: ⭐⭐⭐ Advanced (Level 3)
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Understand how neural networks use MLE
 - See the connection between loss functions and likelihood
 - Implement custom MLE-based losses

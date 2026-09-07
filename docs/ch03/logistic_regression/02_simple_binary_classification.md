@@ -12,7 +12,7 @@
 02_simple_binary_classification.py - Your First Logistic Regression Model
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Understand binary classification problems
 - Implement logistic regression from scratch using PyTorch
 - Learn the sigmoid function and its properties

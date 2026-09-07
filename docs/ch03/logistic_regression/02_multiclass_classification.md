@@ -12,7 +12,7 @@
 02_multiclass_classification.py - Softmax and Multi-Class Problems
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Extend logistic regression to multiple classes
 - Understand softmax activation
 - Use CrossEntropyLoss

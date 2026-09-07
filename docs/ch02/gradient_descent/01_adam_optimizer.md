@@ -10,7 +10,7 @@
 Level 3 - Example 1: Adam Optimizer - Adaptive Moment Estimation
 ================================================================================
 
-LEARNING OBJECTIVES:
+배움 목표:
 - Understand adaptive learning rate methods
 - Implement Adam optimizer from scratch
 - Compare Adam with SGD and SGD+Momentum
