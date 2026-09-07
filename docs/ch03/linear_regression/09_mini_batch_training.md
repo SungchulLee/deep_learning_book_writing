@@ -15,7 +15,7 @@ DESCRIPTION:
     Mini-batch gradient descent using PyTorch DataLoader.
     Efficient training with batches instead of full dataset.
 
-TOPICS COVERED:
+다루는 것:
     - Dataset and DataLoader classes
     - Mini-batch gradient descent
     - Batch size effects

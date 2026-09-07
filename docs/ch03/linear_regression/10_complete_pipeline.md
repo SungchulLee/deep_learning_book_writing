@@ -16,7 +16,7 @@ DESCRIPTION:
     Includes train/val/test split, early stopping, model checkpointing,
     logging, and comprehensive evaluation.
 
-TOPICS COVERED:
+다루는 것:
     - Complete training pipeline
     - Train/validation/test splits
     - Early stopping

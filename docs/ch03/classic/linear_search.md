@@ -11,13 +11,13 @@
 - **재귀 사례**: 리스트의 나머지를 탐색한다
 
 ```python
-"""Recursive linear search with index tracking."""
+"""자리 번호를 좇는 되부름 선형 찾기."""
 
 
 # === 재귀적 선형 탐색 ===
 
 def linear_search(arr, target, index=0):
-    """Return the index of target in arr, or -1 if not found."""
+    """arr에서 과녁의 자리 번호를 돌려주고, 못 찾으면 -1을 돌려준다."""
     if index == len(arr):
         return -1
     if arr[index] == target:

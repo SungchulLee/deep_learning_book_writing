@@ -9,31 +9,31 @@ PyTorch 텐서는 모든 딥러닝 계산의 기본 자료구조로, NumPy 배�
 ==============================================================================
 01_pytorch_basics.py
 ==============================================================================
-DIFFICULTY: ⭐ (Beginner)
+어려움: ⭐ (첫걸음)
 
 DESCRIPTION:
-    Introduction to PyTorch tensors and automatic differentiation (autograd).
-    This script covers the fundamental building blocks you'll use in all
-    subsequent tutorials.
+    PyTorch 텐서와 자동 미분(autograd) 들머리.
+    이 글은 뒤이은 모든 익힘에서 쓸
+    밑바탕 벽돌을 다룬다.
 
-TOPICS COVERED:
-    - Creating tensors in different ways
-    - Tensor operations and broadcasting
-    - Automatic differentiation with autograd
-    - Computing gradients
-    - Understanding requires_grad
+다루는 것:
+    - 여러 방식으로 텐서 만들기
+    - 텐서 셈과 펴 맞추기
+    - autograd으로 하는 자동 미분
+    - 기울기 셈하기
+    - requires_grad 이해하기
 
 PREREQUISITES:
-    - Basic Python knowledge
-    - Basic understanding of derivatives (calculus)
+    - 기본 파이썬 지식
+    - 도함수(미적분)에 대한 기본 이해
 
 배움 목표:
-    - Create and manipulate PyTorch tensors
-    - Understand tensor operations
-    - Use autograd to compute gradients automatically
-    - Understand the computational graph
+    - PyTorch 텐서를 만들고 다룬다
+    - 텐서 셈을 이해한다
+    - autograd으로 기울기를 절로 셈한다
+    - 셈 그래프를 이해한다
 
-TIME: ~15 minutes
+걸리는 때: 15분쯤
 ==============================================================================
 """
 

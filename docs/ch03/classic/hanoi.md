@@ -19,13 +19,13 @@
 3. $n - 1$개 원반을 B에서 C로 옮긴다(A를 보조로 사용)
 
 ```python
-"""Tower of Hanoi — recursive solution with move counting."""
+"""하노이 탑 — 옮긴 횟수를 세는 되부름 풀이."""
 
 
 # === 재귀 알고리즘 ===
 
 def hanoi(n, source, auxiliary, target):
-    """Move n disks from source to target using auxiliary peg."""
+    """도움 기둥을 써서 원반 n개를 밑에서 과녁으로 옮긴다."""
     if n == 1:
         print(f"Move disk 1 from {source} to {target}")
         return 1

@@ -9,31 +9,31 @@
 ==============================================================================
 02_linear_regression_numpy.py
 ==============================================================================
-DIFFICULTY: ⭐ (Beginner)
+어려움: ⭐ (첫걸음)
 
 DESCRIPTION:
-    Implement linear regression from scratch using only NumPy.
-    This helps understand the mathematics before using PyTorch abstractions.
+    넘파이만으로 선형 회귀를 맨바닥부터 짠다.
+    PyTorch의 추상을 쓰기 앞에 수식을 이해하는 데 도움이 된다.
 
-TOPICS COVERED:
-    - Linear regression mathematical foundation
-    - Gradient descent algorithm
-    - Loss functions (Mean Squared Error)
-    - Manual gradient computation
-    - Training loop structure
+다루는 것:
+    - 선형 회귀의 수학 바탕
+    - 기울기 내림 알고리즘
+    - 잃음 함수(평균 제곱 어긋남)
+    - 손수 하는 기울기 셈
+    - 익힘 되돌이의 짜임
 
 PREREQUISITES:
-    - Basic linear algebra (vectors, matrices)
-    - Basic calculus (derivatives)
-    - Tutorial 01 (helpful but not required)
+    - 기본 선형대수(벡터, 행렬)
+    - 기본 미적분(도함수)
+    - 익힘 01(도움이 되지만 꼭 필요하지는 않다)
 
 배움 목표:
-    - Understand the linear model: y = wx + b
-    - Compute loss and gradients manually
-    - Implement gradient descent from scratch
-    - Visualize training progress
+    - 선형 모형 y = wx + b을 이해한다
+    - 잃음과 기울기를 손수 셈한다
+    - 기울기 내림을 맨바닥부터 짠다
+    - 익힘이 나아가는 모습을 그림으로 본다
 
-TIME: ~20 minutes
+걸리는 때: 20분쯤
 ==============================================================================
 """
 

@@ -61,7 +61,7 @@ def infinite_recursion(n):
     infinite_recursion(n + 1)  # n이 증가하므로 0의 기저 사례에 도달할 수 없다
 
 # infinite_recursion(1)을 호출하면 다음이 발생한다:
-# RecursionError: maximum recursion depth exceeded
+# RecursionError: 되부름 깊이 한도를 넘었다
 ```
 
 파이썬은 진짜 스택 넘침을 막기 위해 재귀 깊이를 제한한다(기본값 1000). 이 안전장치가 무한 재귀를 `RecursionError`로 바꾸어 준다.

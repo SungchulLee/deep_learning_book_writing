@@ -9,13 +9,13 @@
 ==============================================================================
 05_linear_regression_nn_module.py
 ==============================================================================
-DIFFICULTY: ⭐⭐ (Intermediate)
+어려움: ⭐⭐ (가운데)
 
 DESCRIPTION:
     Linear regression using PyTorch's nn.Module and nn.Linear.
     This is the "proper" PyTorch way to build models.
 
-TOPICS COVERED:
+다루는 것:
     - nn.Module class for models
     - nn.Linear layer
     - Optimizers (torch.optim.SGD)
@@ -30,7 +30,7 @@ PREREQUISITES:
     - Use optimizers for parameter updates
     - Follow PyTorch best practices
 
-TIME: ~20 minutes
+걸리는 때: 20분쯤
 ==============================================================================
 """
 

@@ -15,7 +15,7 @@ DESCRIPTION:
     Linear regression with multiple input features (multivariate).
     Uses California housing dataset for real-world example.
 
-TOPICS COVERED:
+다루는 것:
     - Multiple input features
     - Real-world dataset
     - Feature scaling/normalization

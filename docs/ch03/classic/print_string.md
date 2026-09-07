@@ -8,13 +8,13 @@
 - **재귀 사례**: 첫 글자를 출력한 뒤 나머지를 재귀적으로 출력한다
 
 ```python
-"""Print a string character by character using recursion."""
+"""되부름으로 글자열을 한 글자씩 찍는다."""
 
 
 # === 재귀적 출력 ===
 
 def print_string_recursive(string):
-    """Print each character of string using recursion."""
+    """되부름으로 글자열의 글자를 하나씩 찍는다."""
     if string == "":
         return
     print(string[0], end="")
@@ -24,7 +24,7 @@ def print_string_recursive(string):
 # === 내장 함수와 비교 ===
 
 def print_string_builtin(string):
-    """Print string using Python built-in."""
+    """파이썬 붙박이로 글자열을 찍는다."""
     print(string)
 
 

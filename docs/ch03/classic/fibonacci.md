@@ -18,10 +18,10 @@ $$
 
 ```python
 def compute_fibonacci_using_recursion(n):
-    """Compute the n-th Fibonacci number using naive recursion.
+    """손쉬운 되부름으로 n 번째 피보나치 수를 셈한다.
 
-    Time complexity: O(2^n) -- exponential due to repeated subproblems.
-    Space complexity: O(n) -- maximum recursion depth.
+    시간 복잡도: O(2^n) — 같은 아래 문제를 되풀이해 푸니 지수다.
+    공간 복잡도: O(n) — 가장 깊은 되부름 깊이.
     """
     if n <= 1:
         return n

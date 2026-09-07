@@ -10,13 +10,13 @@
 다른 접근으로는 `string[-1]`을 출력하고 `string[:-1]`에 재귀하여 처리 순서를 뒤집는 방법이 있다.
 
 ```python
-"""Print a string in reverse using recursion."""
+"""되부름으로 글자열을 거꾸로 찍는다."""
 
 
 # === 재귀적 역순 출력 ===
 
 def print_reverse_recursive(string):
-    """Print each character of string in reverse using recursion."""
+    """되부름으로 글자열의 글자를 거꾸로 하나씩 찍는다."""
     if string == "":
         return
     print(string[-1], end="")
@@ -26,7 +26,7 @@ def print_reverse_recursive(string):
 # === 내장 함수와 비교 ===
 
 def print_reverse_builtin(string):
-    """Print reversed string using Python slicing."""
+    """파이썬 자르기로 뒤집은 글자열을 찍는다."""
     print(string[::-1])
 
 

@@ -9,29 +9,29 @@ PyTorch의 autograd 체계는 경사 공식을 손으로 유도하고 코딩할 
 ==============================================================================
 04_linear_regression_autograd.py
 ==============================================================================
-DIFFICULTY: ⭐⭐ (Intermediate)
+어려움: ⭐⭐ (가운데)
 
 DESCRIPTION:
-    Linear regression using PyTorch's automatic differentiation (autograd).
-    No more manual gradient computation! Let PyTorch do the calculus.
+    PyTorch의 자동 미분(autograd)을 쓰는 선형 회귀.
+    이제 손수 기울기를 셈하지 않는다! 미적분은 PyTorch에 맡긴다.
 
-TOPICS COVERED:
-    - Using requires_grad=True for automatic differentiation
-    - .backward() for gradient computation
-    - Gradient accumulation and zeroing
-    - torch.no_grad() context
+다루는 것:
+    - 자동 미분을 위한 requires_grad=True 쓰기
+    - 기울기 셈을 위한 .backward()
+    - 기울기 쌓기와 0으로 만들기
+    - torch.no_grad() 자리
 
 PREREQUISITES:
-    - Tutorial 01 (PyTorch basics with autograd)
-    - Tutorial 03 (Manual PyTorch gradients)
+    - 익힘 01(autograd을 곁들인 PyTorch 기초)
+    - 익힘 03(손수 하는 PyTorch 기울기)
 
 배움 목표:
-    - Use autograd for gradient computation
-    - Understand when to zero gradients
-    - Use no_grad() context for efficiency
-    - Compare with manual gradient code
+    - 기울기 셈에 autograd을 쓴다
+    - 언제 기울기를 0으로 만들지 이해한다
+    - 잘 들도록 no_grad() 자리를 쓴다
+    - 손수 셈하는 코드와 견준다
 
-TIME: ~15 minutes
+걸리는 때: 15분쯤
 ==============================================================================
 """
 
@@ -170,13 +170,13 @@ print("PART 5: UNDERSTANDING GRADIENT ACCUMULATION")
 print("=" * 70)
 
 print("""
-Why do we need to zero gradients?
+기울기를 0으로 만들어야 하는 까닭은?
 
-PyTorch accumulates gradients by default. This is useful for some
-advanced scenarios (like gradient accumulation for large batches),
-but for standard training, we want fresh gradients each iteration.
+PyTorch은 기본으로 기울기를 쌓는다. 큰 묶음을 흉내내는 기울기 쌓기 같은
+앞선 자리에서는 쓸모 있지만,
+여느 익힘에서는 되돌이마다 새 기울기를 바란다.
 
-Example of what happens WITHOUT zeroing:
+0으로 만들지 않으면 어떻게 되는지 보기:
 """)
 
 # 시연
@@ -208,8 +208,8 @@ print("PART 6: UNDERSTANDING torch.no_grad()")
 print("=" * 70)
 
 print("""
-torch.no_grad() disables gradient tracking temporarily.
-Use it when:
+torch.no_grad()은 기울기 좇기를 잠깐 끈다.
+다음 때에 쓴다.
 1. Making predictions (inference)
 2. Updating parameters (as we did in the training loop)
 3. Any operation where you don't need gradients

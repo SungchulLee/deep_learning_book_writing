@@ -15,7 +15,7 @@ DESCRIPTION:
     Polynomial regression to fit non-linear relationships.
     Demonstrates feature engineering and overfitting.
 
-TOPICS COVERED:
+다루는 것:
     - Polynomial feature expansion
     - Overfitting vs underfitting
     - Model complexity trade-offs

@@ -87,8 +87,8 @@ if __name__ == "__main__":
 ```python
 def print_permutation(i, k):
     """
-    i : index you can change lst memebrs
-    k : lenth of final printed list
+    i : lst의 원소를 바꿀 수 있는 자리 번호
+    k : 마지막으로 찍을 목록의 길이
     """
     if i > k:
         print(lst[:k])
@@ -102,8 +102,8 @@ def print_permutation(i, k):
     
 def print_permutation_after_member_change(i, k):
     """
-    i : index you can change lst memebrs, lst members are already changed
-    k : lenth of final printed list
+    i : lst의 원소를 바꿀 수 있는 자리 번호. lst 원소는 이미 바뀌었다
+    k : 마지막으로 찍을 목록의 길이
     """
     print_permutation(i+1, k)
     

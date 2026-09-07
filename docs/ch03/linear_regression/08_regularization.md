@@ -15,7 +15,7 @@ DESCRIPTION:
     L1 and L2 regularization to prevent overfitting.
     Ridge and Lasso regression with PyTorch.
 
-TOPICS COVERED:
+다루는 것:
     - L1 (Lasso) and L2 (Ridge) regularization
     - Weight decay in optimizers
     - Feature selection with L1
