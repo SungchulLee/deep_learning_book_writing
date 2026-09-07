@@ -6,8 +6,8 @@
 
 타잔 알고리즘은 꼭짓점 $u$마다 두 값을 매긴다:
 
-- $\text{disc}[u]$: the discovery time of $u$ in the DFS (the order in which $u$ is first visited).
-- $\text{low}[u]$: the smallest discovery time reachable from $u$ through the DFS subtree of $u$, including back edges.
+- $\text{disc}[u]$: 돌아보기에서 $u$을 찾아낸 시각($u$을 처음 들른 차례).
+- $\text{low}[u]$: 되돌아가는 변까지 넣어 $u$의 돌아보기 아래나무를 거쳐 $u$에서 닿을 수 있는 가장 작은 찾아낸 시각.
 
 낮은 이음 값은 되돌이로 정의한다:
 
@@ -15,23 +15,23 @@ $$
 \text{low}[u] = \min\!\Big(\text{disc}[u],\ \min_{(u,v) \in E} \text{low}[v],\ \min_{\substack{(u,v) \in E \\ v \text{ on stack}}} \text{disc}[v]\Big)
 $$
 
-A vertex $u$ is the **root** of an SCC if $\text{low}[u] = \text{disc}[u]$. This means $u$ cannot reach any vertex discovered earlier than itself, so $u$ and all vertices above it on the stack form a maximal strongly connected set.
+$\text{low}[u] = \text{disc}[u]$이면 꼭짓점 $u$은 강한 이음 조각의 **뿌리**다. 이는 $u$이 자기보다 먼저 찾아낸 어떤 꼭짓점에도 닿을 수 없다는 뜻이므로, $u$과 쌓기에서 그 위에 있는 꼭짓점 모두가 가장 큰 강한 이음 집합을 이룬다.
 
 ## 알고리즘
 
-1. Maintain a global timer, a stack, and arrays for $\text{disc}$, $\text{low}$, and whether each vertex is on the stack.
+1. 전역 시계, 쌓기, 그리고 $\text{disc}$, $\text{low}$, 꼭짓점이 쌓기에 있는지를 담는 배열을 지닌다.
 2. 들르지 않은 꼭짓점 $u$마다 깊이 우선 돌아보기를 한다:
-    - Set $\text{disc}[u] = \text{low}[u] = \text{timer}$; increment timer.
+    - $\text{disc}[u] = \text{low}[u] = \text{timer}$으로 두고 시계를 하나 올린다.
     - $u$을 쌓기에 올린다.
     - $u$의 각 이웃 $v$에 대해:
-        - If $v$ is unvisited, recurse on $v$ and set $\text{low}[u] = \min(\text{low}[u], \text{low}[v])$.
-        - If $v$ is on the stack, set $\text{low}[u] = \min(\text{low}[u], \text{disc}[v])$.
-    - After processing all neighbors, if $\text{low}[u] = \text{disc}[u]$, pop vertices from the stack until $u$ is popped. These vertices form one SCC.
+        - $v$을 아직 안 들렀으면 $v$에서 되부르고 $\text{low}[u] = \min(\text{low}[u], \text{low}[v])$으로 둔다.
+        - $v$이 쌓기에 있으면 $\text{low}[u] = \min(\text{low}[u], \text{disc}[v])$으로 둔다.
+    - 이웃을 모두 다룬 뒤 $\text{low}[u] = \text{disc}[u]$이면 $u$이 나올 때까지 쌓기에서 꼭짓점을 꺼낸다. 이 꼭짓점들이 강한 이음 조각 하나를 이룬다.
 
 ## 올바름
 
 !!! note "뿌리 찾기가 되는 까닭"
-    A vertex $u$ with $\text{low}[u] = \text{disc}[u]$ is the first-discovered vertex in its SCC. All other vertices $v$ in the same SCC have $\text{low}[v] < \text{disc}[v]$ because they can reach $u$ (or an earlier vertex) through back edges. When the DFS backtracks to $u$ and finds $\text{low}[u] = \text{disc}[u]$, every vertex of $u$'s SCC is on the stack above $u$, so popping until $u$ extracts exactly one SCC.
+    $\text{low}[u] = \text{disc}[u]$인 꼭짓점 $u$은 제 조각에서 가장 먼저 찾아낸 꼭짓점이다. 같은 조각의 다른 꼭짓점 $v$은 되돌아가는 변으로 $u$(이나 더 이른 꼭짓점)에 닿을 수 있으므로 $\text{low}[v] < \text{disc}[v]$이다. 돌아보기가 $u$으로 되짚어 와서 $\text{low}[u] = \text{disc}[u]$임을 보면, $u$의 조각에 드는 꼭짓점이 모두 쌓기에서 $u$ 위에 있으므로 $u$까지 꺼내면 정확히 조각 하나가 나온다.
 
 **핵심 불변량:** 언제나 쌓기에는 아직 조각이 온전히 가려지지 않은 꼭짓점이 들어 있다. 꼭짓점은 자기 조각의 뿌리를 찾을 때까지 쌓기에 남는다.
 
@@ -132,7 +132,7 @@ Strongly connected components:
   C4 = [6]
 ```
 
-Note that Tarjan's algorithm outputs SCCs in reverse topological order of the [condensation graph](condensation.md). The SCC containing vertices $\{3, 4, 5\}$ appears first because it is a sink SCC -- no edges leave it to other SCCs.
+타잔 알고리즘은 [오그린 그래프](condensation.md)의 위상 차례를 거꾸로 하여 조각을 내놓음을 눈여겨보아라. 꼭짓점 $\{3, 4, 5\}$을 담은 조각이 먼저 나오는데, 다른 조각으로 나가는 변이 없는 바닥 조각이기 때문이다.
 
 ## 한 걸음씩 따라가기
 
@@ -165,15 +165,15 @@ Note that Tarjan's algorithm outputs SCCs in reverse topological order of the [c
 타잔 알고리즘에서 낮은 이음 값이 하는 몫을 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    The **low-link value** $\text{low}[v]$ is the smallest discovery time reachable from $v$'s subtree (including via back edges and cross edges within the current DFS stack). When $\text{low}[v] = \text{disc}[v]$ for a vertex $v$, it means $v$ is the root of its SCC — no vertex in $v$'s subtree can reach an ancestor of $v$ in the DFS stack. At this point, all vertices on the stack from $v$ to the top form one SCC. $\square$
+    **낮은 이음 값** $\text{low}[v]$은 $v$의 아래나무에서 닿을 수 있는 가장 작은 찾아낸 시각이다(되돌아가는 변과 이제 돌아보기 쌓기 안의 엇변까지 넣는다). 꼭짓점 $v$에서 $\text{low}[v] = \text{disc}[v]$이면 $v$이 제 조각의 뿌리라는 뜻이다. 곧 $v$의 아래나무에 있는 어떤 꼭짓점도 돌아보기 쌓기에서 $v$의 조상에 닿을 수 없다. 이때 쌓기에서 $v$부터 꼭대기까지의 꼭짓점이 조각 하나를 이룬다. $\square$
 
 ---
 
 **연습문제 2.**
-Trace Tarjan's algorithm on the graph: edges $\{(0,1),(1,2),(2,0),(1,3),(3,4),(4,3)\}$.
+변이 $\{(0,1),(1,2),(2,0),(1,3),(3,4),(4,3)\}$인 그래프에서 타잔 알고리즘을 좇아라.
 
 ??? success "연습문제 2 풀이"
-    DFS from 0: disc[0]=0, low[0]=0. Explore 1: disc[1]=1, low[1]=1. Explore 2: disc[2]=2, low[2]=2. Edge (2,0): 0 is on stack, low[2]=min(2,0)=0. Back to 1: low[1]=min(1,0)=0. Explore 3: disc[3]=3, low[3]=3. Explore 4: disc[4]=4, low[4]=4. Edge (4,3): 3 on stack, low[4]=min(4,3)=3. Back to 3: low[3]=min(3,3)=3. low[3]==disc[3], so SCC={3,4}. Back to 1: low[1]=0. Back to 0: low[0]=min(0,0)=0. low[0]==disc[0], so SCC={0,1,2}. Result: two SCCs: $\{0,1,2\}$ and $\{3,4\}$. $\square$
+    0부터 돌아보기: disc[0]=0, low[0]=0. 1을 살핀다: disc[1]=1, low[1]=1. 2을 살핀다: disc[2]=2, low[2]=2. 변 (2,0): 0이 쌓기에 있으므로 low[2]=min(2,0)=0. 1로 되돌아온다: low[1]=min(1,0)=0. 3을 살핀다: disc[3]=3, low[3]=3. 4을 살핀다: disc[4]=4, low[4]=4. 변 (4,3): 3이 쌓기에 있으므로 low[4]=min(4,3)=3. 3으로 되돌아온다: low[3]=min(3,3)=3. low[3]==disc[3]이므로 조각={3,4}. 1로 되돌아온다: low[1]=0. 0으로 되돌아온다: low[0]=min(0,0)=0. low[0]==disc[0]이므로 조각={0,1,2}. 결과는 조각 둘, 곧 $\{0,1,2\}$과 $\{3,4\}$이다. $\square$
 
 ---
 
@@ -181,7 +181,7 @@ Trace Tarjan's algorithm on the graph: edges $\{(0,1),(1,2),(2,0),(1,3),(3,4),(4
 타잔 알고리즘은 왜 쌓기를 쓰는가? 없으면 무엇이 잘못되는가?
 
 ??? success "연습문제 3 풀이"
-    The stack tracks vertices in the current DFS path that have not yet been assigned to an SCC. When an SCC root is found ($\text{low}[v] = \text{disc}[v]$), all vertices above $v$ on the stack belong to $v$'s SCC. Without the stack, we could not distinguish between vertices in the current SCC and vertices already assigned to other SCCs. Cross edges to finished SCCs would incorrectly lower low-link values if we did not check stack membership. $\square$
+    쌓기는 이제 돌아보기 경로에 있으면서 아직 어느 조각에도 배정되지 않은 꼭짓점을 좇는다. 조각의 뿌리를 찾으면($\text{low}[v] = \text{disc}[v]$) 쌓기에서 $v$ 위의 꼭짓점이 모두 $v$의 조각에 든다. 쌓기가 없으면 이제 조각의 꼭짓점과 이미 다른 조각에 배정된 꼭짓점을 가릴 수 없다. 쌓기에 있는지 살피지 않으면 이미 마친 조각으로 가는 엇변이 낮은 이음 값을 잘못 낮출 것이다. $\square$
 
 ---
 
@@ -189,4 +189,4 @@ Trace Tarjan's algorithm on the graph: edges $\{(0,1),(1,2),(2,0),(1,3),(3,4),(4
 타잔 알고리즘이 $O(V + E)$ 시간에 도는 것을 증명하여라.
 
 ??? success "연습문제 4 풀이"
-    Each vertex is visited exactly once by DFS: $O(V)$. Each edge is examined exactly once: $O(E)$. Each vertex is pushed and popped from the stack exactly once: $O(V)$. The low-link update is $O(1)$ per edge. SCC identification (popping until root) processes each vertex once across all SCCs. Total: $O(V + E)$. $\square$
+    돌아보기가 꼭짓점마다 정확히 한 번 들른다: $O(V)$. 변마다 정확히 한 번 살핀다: $O(E)$. 꼭짓점마다 쌓기에 정확히 한 번 넣고 한 번 꺼낸다: $O(V)$. 낮은 이음 값 고치기는 변마다 $O(1)$이다. 조각 짚어내기(뿌리까지 꺼내기)는 모든 조각을 통틀어 꼭짓점마다 한 번씩 다룬다. 전체는 $O(V + E)$이다. $\square$

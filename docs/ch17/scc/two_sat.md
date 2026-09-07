@@ -4,17 +4,17 @@
 
 ## 문제 정식화
 
-A **2-SAT** instance consists of $n$ Boolean variables $x_1, x_2, \ldots, x_n$ and $m$ clauses, where each clause is a disjunction of exactly two literals:
+**2-SAT** 사례는 불 변수 $n$개 $x_1, x_2, \ldots, x_n$과 마디 $m$개로 이루어지며, 마디마다 정확히 글자 둘의 논리합이다.
 
 $$
 (l_{1,1} \lor l_{1,2}) \land (l_{2,1} \lor l_{2,2}) \land \cdots \land (l_{m,1} \lor l_{m,2})
 $$
 
-Each literal $l_{i,j}$ is either a variable $x_k$ or its negation $\neg x_k$. The goal is to determine whether there exists an assignment of truth values to the variables that satisfies all clauses simultaneously.
+글자 $l_{i,j}$은 저마다 변수 $x_k$이거나 그 부정 $\neg x_k$이다. 목표는 모든 절을 한꺼번에 참으로 만드는 진리값 배정이 있는지 가리는 것이다.
 
 ## 함의 그래프
 
-The key insight is that each clause $(a \lor b)$ is logically equivalent to two implications:
+고갱이 눈썰미는 마디 $(a \lor b)$이 논리적으로 함의 둘과 같다는 것이다.
 
 $$
 (\neg a \Rightarrow b) \quad \text{and} \quad (\neg b \Rightarrow a)
@@ -22,30 +22,30 @@ $$
 
 **함의 그래프** $G = (V, E)$을 다음과 같이 세운다:
 
-- **Vertices:** For each variable $x_i$, create two vertices: $x_i$ and $\neg x_i$. So $|V| = 2n$.
-- **Edges:** For each clause $(a \lor b)$, add directed edges $\neg a \to b$ and $\neg b \to a$.
+- **꼭짓점:** 변수 $x_i$마다 꼭짓점 둘, 곧 $x_i$과 $\neg x_i$을 만든다. 그러므로 $|V| = 2n$이다.
+- **변:** 마디 $(a \lor b)$마다 방향 있는 변 $\neg a \to b$과 $\neg b \to a$을 더한다.
 
 !!! tip "왜 함의인가?"
-    The clause $(a \lor b)$ says "at least one of $a$, $b$ must be true." If $a$ is false, then $b$ must be true -- hence $\neg a \Rightarrow b$. Symmetrically, if $b$ is false, then $a$ must be true -- hence $\neg b \Rightarrow a$.
+    마디 $(a \lor b)$은 "$a$과 $b$ 가운데 적어도 하나는 참이어야 한다"는 뜻이다. $a$이 거짓이면 $b$이 참이어야 하므로 $\neg a \Rightarrow b$이다. 대칭으로 $b$이 거짓이면 $a$이 참이어야 하므로 $\neg b \Rightarrow a$이다.
 
 ## 강한 이음 조각에 바탕한 풀이
 
-The formula is satisfiable if and only if no variable $x_i$ and its negation $\neg x_i$ belong to the same SCC in the implication graph.
+논리식이 충족 가능한 것은 함의 그래프에서 어떤 변수 $x_i$과 그 부정 $\neg x_i$도 같은 강한 이음 조각에 들지 않는 것과 같은 뜻이다.
 
 !!! note "2-SAT 충족 가능성 정리"
-    A 2-SAT formula is satisfiable if and only if for every variable $x_i$, the vertices $x_i$ and $\neg x_i$ are in different SCCs of the implication graph.
+    2-SAT 논리식이 충족 가능한 것은 모든 변수 $x_i$에 대해 꼭짓점 $x_i$과 $\neg x_i$이 함의 그래프의 서로 다른 강한 이음 조각에 있는 것과 같은 뜻이다.
 
-**Proof sketch (forward).** If $x_i$ and $\neg x_i$ are in the same SCC, there is a path from $x_i$ to $\neg x_i$ and from $\neg x_i$ to $x_i$ in the implication graph. This means setting $x_i = \text{true}$ forces $x_i = \text{false}$ (and vice versa), making the formula unsatisfiable. $\square$
+**증명 얼개(정방향).** $x_i$과 $\neg x_i$이 같은 조각에 있으면 함의 그래프에 $x_i$에서 $\neg x_i$으로, 또 $\neg x_i$에서 $x_i$으로 가는 경로가 있다. 이는 $x_i = \text{true}$으로 두면 $x_i = \text{false}$이 되고 거꾸로도 그렇다는 뜻이므로 논리식이 충족 불가능하다. $\square$
 
-**Proof sketch (reverse).** If no variable shares an SCC with its negation, we can assign truth values consistently by processing the [condensation DAG](condensation.md) in reverse topological order: for each unassigned variable, set the literal whose SCC appears later in the topological order to true. $\square$
+**증명 얼개(역방향).** 어떤 변수도 그 부정과 조각을 함께 쓰지 않으면 [오그린 그래프](condensation.md)를 위상 차례의 거꾸로로 다루며 진리값을 앞뒤 맞게 배정할 수 있다. 아직 배정하지 않은 변수마다 위상 차례에서 더 뒤에 오는 조각의 글자을 참으로 둔다. $\square$
 
 ## 배정 뽑아내기
 
 충족 가능함을 확인하고 나면 배정을 다음과 같이 뽑아낸다:
 
 1. ([타잔](tarjan.md)이나 [코사라주](kosaraju.md)를 써서) 함의 그래프의 강한 이음 조각을 셈한다.
-2. For each variable $x_i$, compare the topological order of the SCC containing $x_i$ with the SCC containing $\neg x_i$.
-3. Set $x_i = \text{true}$ if the SCC of $x_i$ appears later (higher topological order) than the SCC of $\neg x_i$.
+2. 변수 $x_i$마다 $x_i$을 담은 조각과 $\neg x_i$을 담은 조각의 위상 차례를 견준다.
+3. $x_i$의 조각이 $\neg x_i$의 조각보다 뒤에 오면(위상 차례가 더 높으면) $x_i = \text{true}$으로 둔다.
 
 직관으로 보면, 오그린 유향 비순환 그래프에서 뒤쪽 조각이 함의 사슬의 앞쪽 조각을 "덮어쓴다".
 

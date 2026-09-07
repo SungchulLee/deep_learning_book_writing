@@ -10,28 +10,28 @@
 
 2. **그래프를 뒤집는다.** 모든 변 $(u, v) \in E$을 $(v, u) \in E^T$으로 뒤집은 뒤집은 그래프 $G^T = (V, E^T)$을 짓는다.
 
-3. **Second DFS pass on $G^T$.** Process vertices in the order from step 1 (popping from the stack). Each DFS tree in this pass forms one strongly connected component.
+3. **$G^T$에서의 두 번째 돌아보기.** 걸음 1에서 얻은 차례대로(쌓기에서 꺼내며) 꼭짓점을 다룬다. 이 걸음의 돌아보기 나무마다 강한 이음 조각 하나를 이룬다.
 
 ## 왜 통하는가
 
 핵심 눈썰미는 마침 시각과 조각 짜임 사이의 관계이다.
 
 !!! note "강한 이음 조각의 마침 시각 성질"
-    If $C_1$ and $C_2$ are two different SCCs and there is an edge from $C_1$ to $C_2$ in the [condensation graph](condensation.md), then the vertex with the latest finish time in $C_1 \cup C_2$ belongs to $C_1$.
+    $C_1$과 $C_2$이 서로 다른 강한 이음 조각이고 [오그린 그래프](condensation.md)에서 $C_1$에서 $C_2$으로 가는 변이 있으면, $C_1 \cup C_2$에서 마침 시각이 가장 늦은 꼭짓점은 $C_1$에 든다.
 
-**Proof sketch.** If DFS first enters $C_1$, it explores all of $C_1$ and then reaches $C_2$ via the inter-component edge. All vertices in $C_2$ finish before the DFS returns to $C_1$, so $C_1$'s vertices finish later. If DFS first enters $C_2$, it cannot reach $C_1$ (no edge from $C_2$ to $C_1$, since the condensation is a DAG). After finishing $C_2$, DFS eventually starts on a vertex in $C_1$, which finishes later. $\square$
+**증명 얼개.** 돌아보기가 $C_1$에 먼저 들어가면 $C_1$을 모두 살핀 뒤 조각 사이 변으로 $C_2$에 닿는다. $C_2$의 꼭짓점은 모두 돌아보기가 $C_1$으로 되짚기 앞에 마치므로 $C_1$의 꼭짓점이 더 늦게 마친다. 돌아보기가 $C_2$에 먼저 들어가면 $C_1$에 닿을 수 없다(오그린 그래프가 비순환이므로 $C_2$에서 $C_1$으로 가는 변이 없다). $C_2$을 마친 뒤 돌아보기는 마침내 $C_1$의 꼭짓점에서 비롯하고 그것이 더 늦게 마친다. $\square$
 
-**Consequence.** In the second pass on $G^T$, the vertex with the latest finish time starts DFS in a "source" SCC of the condensation DAG. In $G^T$, inter-component edges are reversed, so this SCC has no outgoing edges in $G^T$. The DFS therefore stays within this SCC, correctly identifying it. Once processed, we move to the next unvisited vertex with the highest finish time, which is in another source SCC of the remaining condensation -- and the process repeats.
+**따름.** $G^T$에서의 두 번째 걸음에서는 마침 시각이 가장 늦은 꼭짓점이 오그린 그래프의 "근원" 강한 이음 조각에서 돌아보기를 비롯한다. $G^T$에서는 조각 사이 변이 뒤집혀 있으므로 이 조각에는 $G^T$에서 나가는 변이 없다. 따라서 돌아보기가 이 조각 안에만 머물러 그것을 옳게 짚어낸다. 다 다루고 나면 아직 들르지 않은 꼭짓점 가운데 마침 시각이 가장 늦은 것으로 넘어가는데, 그것은 남은 오그린 그래프의 또 다른 근원 조각에 있다. 그리고 이 과정을 되풀이한다.
 
 ## 복잡도
 
-Both DFS passes visit each vertex and edge exactly once. Constructing $G^T$ takes $O(V + E)$. Therefore:
+두 돌아보기 모두 꼭짓점과 변을 정확히 한 번씩 들른다. $G^T$을 짓는 데 $O(V + E)$이 든다. 그러므로
 
 $$
 T(V, E) = O(V + E)
 $$
 
-Space complexity is $O(V + E)$ for storing $G^T$ and the finish-time stack.
+$G^T$과 마침 시각 쌓기를 저장하는 데 드는 공간 복잡도는 $O(V + E)$이다.
 
 ## 구현
 
@@ -128,21 +128,21 @@ Strongly connected components:
 
 위의 보기 그래프를 쓰면:
 
-**Pass 1 (DFS on $G$):** Starting from vertex 0, the DFS explores $0 \to 1 \to 2$ (back to 0, already visited), then $1 \to 3 \to 4 \to 5$ (back to 3, already visited). Finish order accumulates as vertices complete their exploration. After processing all vertices starting from 0 and then 6, the finish stack (bottom to top) might be: $[7, 5, 4, 3, 2, 0, 1, 6]$.
+**걸음 1($G$에서의 돌아보기):** 꼭짓점 0에서 비롯해 돌아보기가 $0 \to 1 \to 2$(0으로 되돌아가나 이미 들렀다)을 살피고 그다음 $1 \to 3 \to 4 \to 5$(3으로 되돌아가나 이미 들렀다)을 살핀다. 꼭짓점이 살피기를 마칠 때마다 마침 차례가 쌓인다. 0에서 비롯해 모든 꼭짓점을 다루고 그다음 6까지 다루면 마침 쌓기(아래에서 위로)은 $[7, 5, 4, 3, 2, 0, 1, 6]$일 수 있다.
 
-**Transpose $G^T$:** Reverse all edges. The edge $0 \to 1$ becomes $1 \to 0$, and so on.
+**뒤집은 그래프 $G^T$:** 모든 변을 뒤집는다. 변 $0 \to 1$은 $1 \to 0$이 되고 나머지도 그렇다.
 
-**Pass 2 (DFS on $G^T$):** Pop vertex 6 from the stack. DFS on $G^T$ from 6 finds only 6 (no incoming edges in $G$). Pop vertex 1; DFS explores $\{1, 0, 2\}$ -- these form one SCC. Pop vertex 3; DFS explores $\{3, 5, 4\}$ -- another SCC. Pop vertex 7; it is alone.
+**걸음 2($G^T$에서의 돌아보기):** 쌓기에서 꼭짓점 6을 꺼낸다. $G^T$에서 6부터 돌아보면 6만 찾는다($G$에서 들어오는 변이 없다). 꼭짓점 1을 꺼내면 돌아보기가 $\{1, 0, 2\}$을 살피고 이들이 강한 이음 조각 하나를 이룬다. 꼭짓점 3을 꺼내면 $\{3, 5, 4\}$을 살피고 또 하나의 조각이 된다. 꼭짓점 7을 꺼내면 홀로다.
 
 ## 타잔 알고리즘과의 견줌
 
 | 성질 | 코사라주 | [타잔](tarjan.md) |
 |---|---|---|
-| DFS passes | Two (on $G$ and $G^T$) | One |
-| Extra storage | Transpose graph $G^T$ | Low-link values and stack |
+| 돌아보기 횟수 | 둘($G$과 $G^T$) | 하나 |
+| 덧붙은 저장 | 뒤집은 그래프 $G^T$ | 낮은 이음 값과 쌓기 |
 | 짜기 | 이해하기 더 쉽다 | 조금 더 복잡하다 |
 | 시간 복잡도 | $O(V + E)$ | $O(V + E)$ |
-| Space complexity | $O(V + E)$ for $G^T$ | $O(V)$ extra |
+| 공간 복잡도 | $G^T$에 $O(V + E)$ | 덧붙어 $O(V)$ |
 
 코사라주 알고리즘은 생각이 또렷해서 가르칠 때 즐겨 쓰이고, 타잔 알고리즘은 기억 공간이 빠듯한 실전에서 즐겨 쓰인다.
 
@@ -157,7 +157,7 @@ Strongly connected components:
 코사라주 알고리즘의 두 번 도는 깊이 우선 돌아보기 방식을 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    **Pass 1**: Run DFS on the original graph $G$, recording finish times. Push vertices onto a stack in order of completion. **Pass 2**: Transpose the graph ($G^T$ — reverse all edges). Pop vertices from the stack and run DFS on $G^T$. Each DFS from a new root discovers one SCC. The stack order ensures we process "source" SCCs in the condensation first, preventing them from reaching into other SCCs in $G^T$. Total time: $O(V + E)$. $\square$
+    **걸음 1**: 본디 그래프 $G$에서 돌아보기를 돌리며 마침 시각을 적는다. 마치는 차례대로 꼭짓점을 쌓기에 넣는다. **걸음 2**: 그래프를 뒤집는다($G^T$ — 모든 변을 뒤집는다). 쌓기에서 꼭짓점을 꺼내며 $G^T$에서 돌아보기를 돌린다. 새 뿌리에서 돌아볼 때마다 강한 이음 조각 하나를 찾는다. 쌓기 차례 덕에 오그린 그래프의 "근원" 조각을 먼저 다루게 되어 $G^T$에서 다른 조각으로 넘어가지 않는다. 전체 시간은 $O(V + E)$이다. $\square$
 
 ---
 
@@ -165,7 +165,7 @@ Strongly connected components:
 코사라주 알고리즘에 왜 뒤집은 그래프가 필요한가? 변 뒤집기는 어떤 몫을 하는가?
 
 ??? success "연습문제 2 풀이"
-    Edge reversal ensures that DFS in pass 2 stays within a single SCC. In $G^T$, the SCCs are the same as in $G$ (mutual reachability is symmetric under transposition). The finish-time ordering from pass 1 processes SCCs in reverse topological order of the condensation. In $G^T$, edges between SCCs are reversed, so DFS from a "source" SCC in the condensation (processed first) cannot cross into other SCCs. This confines each DFS to exactly one SCC. $\square$
+    변을 뒤집으면 걸음 2의 돌아보기가 강한 이음 조각 하나 안에만 머문다. $G^T$의 강한 이음 조각은 $G$의 것과 같다(서로 닿음은 뒤집어도 대칭이다). 걸음 1의 마침 시각 차례는 오그린 그래프의 위상 차례를 거꾸로 하여 조각을 다룬다. $G^T$에서는 조각 사이 변이 뒤집혀 있으므로 먼저 다루는 오그린 그래프의 "근원" 조각에서 돌아보기가 다른 조각으로 넘어갈 수 없다. 그래서 돌아보기마다 정확히 조각 하나에 갇힌다. $\square$
 
 ---
 
@@ -173,7 +173,7 @@ Strongly connected components:
 코사라주 알고리즘이 강한 이음 조각을 올바로 가려냄을 증명하여라.
 
 ??? success "연습문제 3 풀이"
-    After pass 1, vertices are ordered by decreasing finish time. In the condensation DAG of $G$, the SCC with the latest finish time is a "source" (no incoming edges from other SCCs). In $G^T$, this SCC becomes a "sink," so DFS from it in $G^T$ stays within the SCC. After discovering this SCC, we remove it and repeat. The next SCC in the stack is now a source in the remaining condensation. By induction, each DFS in pass 2 discovers exactly one SCC. $\square$
+    걸음 1이 끝나면 꼭짓점이 마침 시각이 늦은 차례로 놓인다. $G$의 오그린 그래프에서 마침 시각이 가장 늦은 조각은 "근원"이다(다른 조각에서 들어오는 변이 없다). $G^T$에서는 이 조각이 "바닥"이 되므로 $G^T$에서 그 조각부터 돌아보면 조각 안에 머문다. 이 조각을 찾은 뒤 없애고 되풀이한다. 쌓기의 다음 조각은 이제 남은 오그린 그래프의 근원이다. 미루어 나아가면 걸음 2의 돌아보기마다 정확히 조각 하나를 찾는다. $\square$
 
 ---
 
@@ -181,4 +181,4 @@ Strongly connected components:
 강한 이음 조각을 찾는 코사라주 알고리즘과 타잔 알고리즘을 견주어라.
 
 ??? success "연습문제 4 풀이"
-    Both run in $O(V + E)$. **Kosaraju**: two DFS passes (one on $G$, one on $G^T$), simpler to understand, requires $O(V + E)$ extra space for the transpose graph. **Tarjan**: single DFS pass, uses a stack and low-link values, more space-efficient (no transpose needed), slightly more complex to implement. Tarjan produces SCCs in reverse topological order of the condensation DAG. In practice, both have similar performance; Tarjan is preferred when memory is a concern. $\square$
+    둘 다 $O(V + E)$에 돈다. **코사라주**: 돌아보기를 두 번 한다($G$에 한 번, $G^T$에 한 번). 이해하기 쉽고 뒤집은 그래프에 $O(V + E)$의 덧붙은 공간이 든다. **타잔**: 돌아보기를 한 번만 하고 쌓기와 낮은 이음 값을 쓴다. 뒤집을 필요가 없어 공간을 더 아끼지만 짜기는 조금 더 까다롭다. 타잔은 오그린 그래프의 위상 차례를 거꾸로 하여 조각을 내놓는다. 참으로는 성능이 비슷하며 메모리가 걸리면 타잔을 고른다. $\square$
