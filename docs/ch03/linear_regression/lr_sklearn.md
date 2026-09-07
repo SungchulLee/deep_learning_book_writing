@@ -6,18 +6,18 @@ scikit-learn은 선형 회귀와 그 정칙화 변형인 릿지, 라쏘, 엘라�
 
 ```python
 """
-Linear Regression with Scikit-learn
+사이킷런으로 하는 선형 회귀
 =====================================
 
-Comparison of OLS, Ridge, Lasso, and ElasticNet on synthetic data.
+인공 자료에서 최소제곱, 능선, 라쏘, 엘라스틱넷을 견준다.
 
 Demonstrates:
 - sklearn.linear_model.{LinearRegression, Ridge, Lasso, ElasticNet}
-- Cross-validated variants {RidgeCV, LassoCV, ElasticNetCV}
-- Pipeline with StandardScaler
-- Coefficient comparison across models
+- 엇갈아 다짐하는 갈래 {RidgeCV, LassoCV, ElasticNetCV}
+- StandardScaler을 쓰는 흐름
+- 모형마다의 계수 견주기
 
-Author: Deep Learning Foundations Curriculum
+지은이: 깊은 배움 바탕 배움 차례
 """
 
 import argparse

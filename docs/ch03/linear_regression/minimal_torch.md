@@ -6,20 +6,20 @@
 
 ```python
 """
-Minimal PyTorch Linear Regression — Autograd
+가장 단출한 PyTorch 선형 회귀 — 자동 미분
 ==============================================
 
-Uses requires_grad=True on raw tensors and loss.backward() for
-automatic gradient computation.  No nn.Module, no optimizer object.
+날 텐서에 requires_grad=True을 두고 loss.backward()으로 기울기를 절로
+셈한다.  nn.Module도 가장 좋게 하개 객체도 쓰지 않는다.
 
 Demonstrates:
 - requires_grad=True
-- loss.backward() for autograd
-- torch.no_grad() context for parameter updates
-- .grad.zero_() to clear accumulated gradients
-- .detach() to extract values from the computation graph
+- 자동 미분을 위한 loss.backward()
+- 매개변수를 고칠 때 쓰는 torch.no_grad() 자리
+- 쌓인 기울기를 지우는 .grad.zero_()
+- 셈 그래프에서 값을 뽑아내는 .detach()
 
-Author: Deep Learning Foundations Curriculum
+지은이: 깊은 배움 바탕 배움 차례
 """
 
 import argparse

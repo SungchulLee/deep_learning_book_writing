@@ -310,7 +310,7 @@ COMPLETE PIPELINE DEMONSTRATED:
 ✓ Data augmentation for better generalization
 ✓ Proper train/test split
 ✓ Deep architecture with regularization
-✓ Learning rate scheduling
+✓ 배움 빠르기 짜기
 ✓ Model checkpointing (save best model)
 ✓ Comprehensive evaluation (per-class, confusion matrix)
 ✓ Visualization of results

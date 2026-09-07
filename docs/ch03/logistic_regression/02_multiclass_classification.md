@@ -20,7 +20,7 @@
 - Evaluate multi-class models
 
 TIME TO COMPLETE: ~1.5 hours
-DIFFICULTY: ⭐⭐⭐⭐☆ (Advanced)
+어려움: ⭐⭐⭐⭐☆ (앞선)
 ================================================================================
 """
 

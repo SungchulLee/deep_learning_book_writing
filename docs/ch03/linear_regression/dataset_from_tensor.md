@@ -6,23 +6,23 @@
 
 ```python
 """
-Linear Regression with nn.Linear — Dataset from Tensor
+nn.Linear으로 하는 선형 회귀 — 텐서에서 만든 자료 묶음
 ========================================================
 
-Idiomatic PyTorch linear regression using nn.Linear, F.mse_loss,
-optim.SGD, DataLoader, device handling, and state_dict save/load.
+nn.Linear, F.mse_loss, optim.SGD, DataLoader, 기기 다루기,
+state_dict 갈무리와 불러오기를 쓰는 PyTorch다운 선형 회귀.
 
-This is the canonical pattern that generalises to all later chapters.
+이것이 뒤의 모든 장으로 이어지는 표준 무늬다.
 
 Demonstrates:
-- nn.Module subclass
-- TensorDataset / DataLoader pipeline
-- Device-agnostic training (CPU / GPU)
+- nn.Module 아래 갈래
+- TensorDataset / DataLoader 흐름
+- 기기를 가리지 않는 익힘(CPU / GPU)
 - optimizer.zero_grad() → loss.backward() → optimizer.step()
-- model.eval() + torch.no_grad() for inference
-- torch.save / torch.load for model persistence
+- 미룸을 위한 model.eval() + torch.no_grad()
+- 모형을 남기기 위한 torch.save / torch.load
 
-Author: Deep Learning Foundations Curriculum
+지은이: 깊은 배움 바탕 배움 차례
 """
 
 import argparse

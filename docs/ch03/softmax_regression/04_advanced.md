@@ -16,7 +16,7 @@ Prerequisites: Level 1, 2, 3
 Learning Goals:
   - Implement softmax regression from scratch (numpy)
   - Advanced regularization techniques (L2, dropout, batch normalization)
-  - Learning rate scheduling
+  - 배움 빠르기 짜기
   - 일찍 멈추기
   - Gradient clipping
   - Custom loss functions and metrics

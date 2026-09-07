@@ -6,20 +6,20 @@
 
 ```python
 """
-WMT on SPY — CAPM Beta Estimation
+SPY에 대한 WMT — CAPM 베타 어림
 ====================================
 
-Estimate Walmart's market beta by regressing WMT daily returns on
-SPY daily returns.  Three implementations: NumPy, sklearn, PyTorch.
+WMT의 날마다 수익률을 SPY의 날마다 수익률에 회귀시켜 월마트의 시장 베타를
+어림한다.  넘파이, 사이킷런, PyTorch 세 가지로 짠다.
 
 Demonstrates:
-- yfinance for data download
-- Return calculation (pct_change)
-- CAPM regression: R_WMT = α + β R_SPY + ε
-- Rolling beta estimation
-- Comparison across OLS, sklearn, and PyTorch
+- 자료 내려받기에 쓰는 yfinance
+- 수익률 셈하기(pct_change)
+- CAPM 회귀: R_WMT = α + β R_SPY + ε
+- 구르는 베타 어림
+- 최소제곱, 사이킷런, PyTorch 견주기
 
-Author: Deep Learning Foundations Curriculum
+지은이: 깊은 배움 바탕 배움 차례
 
 Requirements:
     pip install yfinance

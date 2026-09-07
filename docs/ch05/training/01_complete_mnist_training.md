@@ -498,8 +498,8 @@ print("""
    ✓ Add dropout for regularization
 
 3. PRODUCTION CONSIDERATIONS:
-   ✓ Configuration management
-   ✓ Reproducibility (random seeds)
+   ✓ 설정 다루기
+   ✓ 되풀이할 수 있음(마구잡이 씨앗)
    ✓ Device handling (CPU/GPU)
    ✓ Progress logging
    ✓ Error handling (not shown but important)

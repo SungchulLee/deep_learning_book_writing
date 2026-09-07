@@ -9,18 +9,18 @@
 ```python
 """
 ================================================================================
-01_custom_dataset.py - Creating Custom Dataset Classes
+01_custom_dataset.py - 맞춤 Dataset 갈래 만들기
 ================================================================================
 
 배움 목표:
-- Create custom Dataset classes for any data format
-- Implement __len__ and __getitem__ methods
-- Handle various data types (CSV, images, text)
-- Apply transformations during loading
-- Best practices for data loading
+- 어떤 자료 꼴에도 맞는 맞춤 Dataset 갈래를 만든다
+- __len__과 __getitem__ 방법을 짠다
+- 여러 자료 갈래(CSV, 그림, 글월)를 다룬다
+- 불러오면서 바꾸기를 건다
+- 자료 불러오기의 좋은 버릇
 
-TIME TO COMPLETE: ~2 hours
-DIFFICULTY: ⭐⭐⭐⭐☆ (Advanced)
+마치는 데 드는 때: 2시간쯤
+어려움: ⭐⭐⭐⭐☆ (앞선)
 ================================================================================
 """
 
@@ -45,17 +45,17 @@ print("PART 1: WHEN TO USE CUSTOM DATASETS")
 print("="*80)
 
 print("""
-Built-in TensorDataset works for simple cases, but custom Dataset classes are
-needed for:
+붙박이 TensorDataset은 단순한 자리에 쓰지만, 다음에는 맞춤 Dataset 갈래가
+필요하다.
 
-✓ Loading data from files (don't fit in memory)
-✓ Complex data types (images, text, audio)
-✓ On-the-fly preprocessing/augmentation
-✓ Multiple data sources
-✓ Special sampling strategies
-✓ Memory-efficient loading
+✓ 두루마리에서 자료 불러오기(기억 자리에 다 안 들어갈 때)
+✓ 복잡한 자료 갈래(그림, 글월, 소리)
+✓ 그때그때 미리 다듬기와 불리기
+✓ 여러 자료 밑동
+✓ 남다른 뽑기 꾀
+✓ 기억 자리를 아끼는 불러오기
 
-Custom Dataset Template:
+맞춤 Dataset 본:
 ------------------------
 class CustomDataset(Dataset):
     def __init__(self, data_path, transform=None):
@@ -82,13 +82,13 @@ print("="*80)
 
 class CSVDataset(Dataset):
     """
-    Custom Dataset for loading data from CSV files
+    CSV 두루마리에서 자료를 불러오는 맞춤 Dataset
     
     Args:
-        csv_file (str): Path to CSV file
-        feature_cols (list): List of feature column names
-        target_col (str): Name of target column
-        transform (callable, optional): Transformation to apply
+        csv_file (str): CSV 두루마리의 길
+        feature_cols (list): 특징 칸 이름의 목록
+        target_col (str): 과녁 칸의 이름
+        transform (callable, 골라 쓴다): 걸어 줄 바꾸기
     """
     
     def __init__(self, 
@@ -116,10 +116,10 @@ class CSVDataset(Dataset):
     
     def __getitem__(self, idx):
         """
-        Get one sample
+        표본 하나를 얻는다
         
         Args:
-            idx (int): Index of sample to retrieve
+            idx (int): 가져올 표본의 번호
             
         Returns:
             튜플: (특징, 과녁)
@@ -176,8 +176,8 @@ print("="*80)
 
 class MemoryEfficientDataset(Dataset):
     """
-    Dataset that loads data only when needed (lazy loading)
-    Useful for large datasets that don't fit in RAM
+    필요할 때만 자료를 불러오는 Dataset(게으른 불러오기)
+    기억 자리에 다 안 들어가는 큰 자료 묶음에 쓸모 있다
     """
     
     def __init__(self, data_dir: Path, file_extension: str = '.npy'):
@@ -215,7 +215,7 @@ print("="*80)
 
 class AugmentedDataset(Dataset):
     """
-    Dataset with data augmentation applied during loading
+    불러오면서 자료 불리기를 거는 Dataset
     """
     
     def __init__(self, X, y, augment: bool = True, noise_std: float = 0.1):
@@ -326,17 +326,17 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. CUSTOM DATASET STRUCTURE
-   ✓ Must inherit from torch.utils.data.Dataset
-   ✓ Must implement __len__ and __getitem__
-   ✓ Can add any initialization logic
+1. 맞춤 Dataset의 짜임
+   ✓ torch.utils.data.Dataset을 물려받아야 한다
+   ✓ __len__과 __getitem__을 짜야 한다
+   ✓ 첫자리 잡는 논리는 마음대로 더할 수 있다
 
-2. WHEN TO USE
-   ✓ Data doesn't fit in memory
-   ✓ Complex data types (images, text, audio)
-   ✓ On-the-fly preprocessing
+2. 언제 쓸까
+   ✓ 자료가 기억 자리에 다 안 들어갈 때
+   ✓ 복잡한 자료 갈래(그림, 글월, 소리)
+   ✓ 그때그때 미리 다듬을 때
    ✓ Data augmentation during training
-   ✓ Multiple data sources
+   ✓ 여러 자료 밑동
 
 3. BEST PRACTICES
    ✓ Load data lazily (in __getitem__)

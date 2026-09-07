@@ -6,20 +6,20 @@
 
 ```python
 """
-Normal Equation — NumPy Implementation
+정규 방정식 — 넘파이 짜보기
 ========================================
 
-Closed-form solution for linear regression:
+선형 회귀의 닫힌 꼴 풀이:
 
     θ* = (X^T X)^{-1} X^T y
 
 Demonstrates:
-- Design matrix construction (prepending ones for bias)
-- Normal equation solve via np.linalg.solve (numerically stable)
-- Comparison with np.linalg.lstsq
-- Train / test split and evaluation
+- 설계 행렬 짓기(치우침을 위해 1을 앞에 붙인다)
+- np.linalg.solve으로 정규 방정식 풀기(수치가 든든하다)
+- np.linalg.lstsq과 견주기
+- 익힘/시험 나누기와 따지기
 
-Author: Deep Learning Foundations Curriculum
+지은이: 깊은 배움 바탕 배움 차례
 """
 
 import argparse

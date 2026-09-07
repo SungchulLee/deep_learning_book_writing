@@ -6,19 +6,19 @@
 
 ```python
 """
-Gradient Descent for Linear Regression — NumPy
+선형 회귀를 위한 기울기 내림 — 넘파이
 ================================================
 
-Implements batch and mini-batch gradient descent from scratch.
+묶음 기울기 내림과 작은 묶음 기울기 내림을 맨바닥부터 짠다.
 
 Demonstrates:
-- Design matrix with bias column
-- Full-batch gradient: g = (2/n) X^T (Xθ - y)
-- Mini-batch shuffling via rng.permutation
-- Learning-rate sensitivity analysis
-- Convergence comparison: batch vs mini-batch
+- 치우침 칸을 지닌 설계 행렬
+- 온 묶음 기울기: g = (2/n) X^T (Xθ - y)
+- rng.permutation으로 하는 작은 묶음 섞기
+- 배움 빠르기에 얼마나 흔들리는지 살피기
+- 모여듦 견주기: 묶음과 작은 묶음
 
-Author: Deep Learning Foundations Curriculum
+지은이: 깊은 배움 바탕 배움 차례
 """
 
 import argparse

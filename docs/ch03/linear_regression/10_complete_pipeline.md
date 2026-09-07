@@ -21,14 +21,14 @@ DESCRIPTION:
     - 익힘/다짐/시험 나누기
     - 일찍 멈추기
     - 모형 되짚음 저장
-    - Learning rate scheduling
-    - Comprehensive evaluation
+    - 배움 빠르기 짜기
+    - 두루 갖춘 따짐
     - Reproducibility
 
 PREREQUISITES:
-    - All previous tutorials
+    - 앞의 익힘 모두
 
-TIME: ~40 minutes
+걸리는 때: 40분쯤
 ==============================================================================
 """
 
@@ -510,7 +510,7 @@ ax6.grid(True, alpha=0.3, axis='y')
 # 7. 학습 요약
 ax7 = fig.add_subplot(gs[2, :])
 summary = f"""
-TRAINING SUMMARY
+익힘 간추림
 
 Configuration:
   - Model: {'Linear' if not config.hidden_sizes else f'MLP {config.hidden_sizes}'}
@@ -519,7 +519,7 @@ Configuration:
   - Epochs: {len(history['train_loss'])}
   - Early stopping patience: {config.patience}
 
-Final Metrics:
+마지막 자:
   Train - R²: {train_metrics['r2']:.4f}, MAE: ${train_metrics['mae']*100:.2f}k, RMSE: ${train_metrics['rmse']*100:.2f}k
   Val   - R²: {val_metrics['r2']:.4f}, MAE: ${val_metrics['mae']*100:.2f}k, RMSE: ${val_metrics['rmse']*100:.2f}k
   Test  - R²: {test_metrics['r2']:.4f}, MAE: ${test_metrics['mae']*100:.2f}k, RMSE: ${test_metrics['rmse']*100:.2f}k
@@ -542,31 +542,31 @@ print("\n" + "=" * 70)
 print("PIPELINE COMPLETE!")
 print("=" * 70)
 print("""
-CONGRATULATIONS! You've completed a production-ready ML pipeline!
+잘했다! 참으로 굴릴 수 있는 기계 배움 흐름을 마쳤다!
 
-This tutorial demonstrated:
-✓ Configuration management
-✓ Reproducibility (random seeds)
-✓ Proper train/val/test split
-✓ Feature scaling
-✓ DataLoader for efficient batching
-✓ Early stopping
-✓ Model checkpointing
-✓ Learning rate scheduling
-✓ Comprehensive logging
-✓ Multiple evaluation metrics
-✓ Professional visualizations
+이 익힘이 보인 것:
+✓ 설정 다루기
+✓ 되풀이할 수 있음(마구잡이 씨앗)
+✓ 제대로 된 익힘/다짐/시험 나누기
+✓ 특징 잣대 잡기
+✓ 잘 드는 묶음 만들기를 위한 DataLoader
+✓ 일찍 멈추기
+✓ 모형 되짚음 저장
+✓ 배움 빠르기 짜기
+✓ 두루 갖춘 적바림
+✓ 여러 따짐 자
+✓ 다듬어진 그림
 
 다음 걸음:
-1. Try with different models (add hidden layers)
-2. Experiment with hyperparameters
-3. Apply to your own datasets
-4. Add GPU support (.to('cuda'))
-5. Implement cross-validation
-6. Add data augmentation (for image tasks)
-7. Deploy the model
+1. 다른 모형으로 해 보아라(숨은 층을 더한다)
+2. 웃매개변수를 이리저리 바꾸어 보아라
+3. 제 자료 묶음에 써 보아라
+4. GPU 받침을 더하여라(.to('cuda'))
+5. 엇갈아 다짐하기를 짜라
+6. 자료 불리기를 더하여라(그림 일에)
+7. 모형을 내놓아라
 
-You now have a solid foundation for PyTorch ML projects!
+이제 PyTorch 기계 배움 과제의 든든한 바탕을 갖췄다!
 """)
 
 

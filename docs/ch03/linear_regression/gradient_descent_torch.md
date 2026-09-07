@@ -6,19 +6,19 @@
 
 ```python
 """
-Gradient Descent for Linear Regression — PyTorch (Manual)
+선형 회귀를 위한 기울기 내림 — PyTorch(손수)
 ==========================================================
 
-Manual gradient computation with PyTorch tensors and DataLoader.
-No nn.Module, no autograd — pure tensor operations.
+PyTorch 텐서와 DataLoader으로 손수 기울기를 셈한다.
+nn.Module도 autograd도 쓰지 않고 텐서 셈만 쓴다.
 
 Demonstrates:
-- TensorDataset / DataLoader for batching
-- Manual gradient: g = (2/B) X^T (Xw + b - y)
-- In-place parameter updates
-- Convergence tracking
+- 묶음 만들기를 위한 TensorDataset / DataLoader
+- 손수 셈하는 기울기: g = (2/B) X^T (Xw + b - y)
+- 제자리에서 매개변수 고치기
+- 모여드는 모습 좇기
 
-Author: Deep Learning Foundations Curriculum
+지은이: 깊은 배움 바탕 배움 차례
 """
 
 import argparse

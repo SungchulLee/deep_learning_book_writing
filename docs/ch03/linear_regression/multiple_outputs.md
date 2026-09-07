@@ -6,18 +6,18 @@
 
 ```python
 """
-Multiple Output Linear Regression
+내놓음이 여럿인 선형 회귀
 ===================================
 
-Multi-target regression: nn.Linear(3, 2) mapping R^3 → R^2.
+과녁이 여럿인 회귀: R^3 → R^2으로 옮기는 nn.Linear(3, 2).
 
 Demonstrates:
-- nn.Linear(p, q) with q > 1
-- Weight matrix shapes: stored as (q, p), computed as x @ W^T + b
-- Per-output R² evaluation
-- Normal equation verification for multi-output case
+- q > 1인 nn.Linear(p, q)
+- 무게 행렬의 꼴: (q, p)으로 담고 x @ W^T + b으로 셈한다
+- 내놓음마다의 R² 따지기
+- 내놓음이 여럿일 때 정규 방정식으로 따져 보기
 
-Author: Deep Learning Foundations Curriculum
+지은이: 깊은 배움 바탕 배움 차례
 """
 
 import argparse

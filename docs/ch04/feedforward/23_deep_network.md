@@ -248,7 +248,7 @@ BUILDING DEEP NETWORKS:
 ✓ Batch normalization after linear layers
 ✓ Proper weight initialization (Kaiming for ReLU)
 ✓ Gradient clipping to prevent explosion
-✓ Learning rate scheduling
+✓ 배움 빠르기 짜기
 
 RESIDUAL CONNECTIONS:
   H(x) = F(x) + x
