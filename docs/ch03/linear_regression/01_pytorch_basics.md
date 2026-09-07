@@ -13,24 +13,24 @@ PyTorch 텐서는 모든 딥러닝 계산의 기본 자료구조로, NumPy 배�
 
 DESCRIPTION:
     PyTorch 텐서와 자동 미분(autograd) 들머리.
-    이 글은 뒤이은 모든 익힘에서 쓸
+    이 글은 뒤이은 모든 학습에서 쓸
     밑바탕 벽돌을 다룬다.
 
 다루는 것:
     - 여러 방식으로 텐서 만들기
     - 텐서 셈과 펴 맞추기
     - autograd로 하는 자동 미분
-    - 기울기 셈하기
+    - 기울기 계산
     - requires_grad 이해하기
 
 PREREQUISITES:
     - 기본 파이썬 지식
     - 도함수(미적분)에 대한 기본 이해
 
-배움 목표:
+학습 목표:
     - PyTorch 텐서를 만들고 다룬다
     - 텐서 셈을 이해한다
-    - autograd로 기울기를 절로 셈한다
+    - autograd로 기울기를 절로 계산한다
     - 셈 그래프를 이해한다
 
 걸리는 때: 15분쯤
@@ -63,7 +63,7 @@ print(f"Shape: {tensor_2d.shape}")  # (2 rows, 3 columns)
 print(f"Data type: {tensor_2d.dtype}")
 
 # ============================================================================
-# 1.2 특정 자료형으로 텐서 만들기
+# 1.2 특정 데이터형으로 텐서 만들기
 # ============================================================================
 print("\n1.2 Creating tensors with specific data types:")
 
@@ -71,7 +71,7 @@ print("\n1.2 Creating tensors with specific data types:")
 float_tensor = torch.tensor([1.0, 2.0, 3.0])
 print(f"Float tensor: {float_tensor}, dtype: {float_tensor.dtype}")
 
-# 자료형을 명시적으로 지정할 수 있다
+# 데이터형을 명시적으로 지정할 수 있다
 float32_tensor = torch.tensor([1, 2, 3], dtype=torch.float32)
 print(f"Float32 tensor: {float32_tensor}, dtype: {float32_tensor.dtype}")
 

@@ -139,7 +139,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 def neural_loss(w1, w2, x=1, y=2):
-    """y = w2 * ReLU(w1 * x)의 잃음"""
+    """y = w2 * ReLU(w1 * x)의 손실"""
     hidden = np.maximum(0, w1 * x)  # ReLU
     pred = w2 * hidden
     return (pred - y) ** 2

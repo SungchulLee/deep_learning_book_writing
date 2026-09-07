@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""익힘 22: 가장 좋게 하기 기초 - 가장 좋게 하개와 익힘"""
+"""학습 22: 최적화 기초 - 최적화기와 학습"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -89,7 +89,7 @@ def main():
     
     header("6. Comparing Optimizers")
     print("""
-    흔한 가장 좋게 하개:
+    흔한 최적화기:
     
     SGD: 단순하고 손봐야 하지만 두루 잘 미친다
     Adam: 맞추어 가며 그대로 써도 잘 듣지만 지나치게 맞춰질 수 있다

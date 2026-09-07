@@ -10,13 +10,13 @@
 텐서 만들기와 첫자리 잡기 방법.
 
 Covers:
-- 기본 만들개: torch.tensor, torch.as_tensor, torch.from_numpy
+- 기본 생성기: torch.tensor, torch.as_tensor, torch.from_numpy
 - 상수 텐서: zeros, ones, full, empty
 - 항등과 대각: eye, diag
 - 마구잡이 텐서: rand, randn, randint, randperm
 - 범위 텐서: arange, linspace, logspace
-- 꼴을 본뜨는 만들개: zeros_like, ones_like 따위
-- 기기와 자료 갈래 밝히기
+- 모양을 본뜨는 생성기: zeros_like, ones_like 따위
+- 기기와 데이터 클래스 밝히기
 """
 
 import torch

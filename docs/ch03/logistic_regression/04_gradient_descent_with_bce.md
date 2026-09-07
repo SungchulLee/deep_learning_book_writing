@@ -146,7 +146,7 @@ for epoch in range(num_epochs):
 #    y_predicted: (N_test, 1) probabilities in [0,1]
 #    y_predicted_cls: (N_test, 1) in {0,1} after thresholding via .round()
 #                     - .round()는 0.5를 문턱값으로 삼는 것과 같다:
-#                       p>=0.5 → 1.0, p<0.5 → 0.0 (자료형은 float32로 유지)
+#                       p>=0.5 → 1.0, p<0.5 → 0.0 (데이터형은 float32로 유지)
 #                     - 정수형을 명시적으로 얻으려면:
 #                       y_predicted_cls = y_predicted.round().to(torch.int64)
 #    y_test: (N_test, 1) is float32 here; equality on 0.0/1.0 floats is exact.

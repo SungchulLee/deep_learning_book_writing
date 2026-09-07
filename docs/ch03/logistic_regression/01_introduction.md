@@ -12,18 +12,18 @@
 01_introduction.py - PyTorch 텐서와 자동 미분 들머리
 ================================================================================
 
-배움 목표:
-- PyTorch 텐서(밑바탕 자료 짜임)를 이해한다
+학습 목표:
+- PyTorch 텐서(밑바탕 데이터 짜임)를 이해한다
 - 자동 미분(autograd)을 배운다
-- 단순한 기울기 내림 다듬기를 짠다
-- 신경망 익힘의 기초를 이해한다
+- 단순한 경사 하강법 다듬기를 짠다
+- 신경망 학습의 기초를 이해한다
 
 PREREQUISITES:
 - 기본 파이썬 프로그래밍
 - 도함수와 기울기 이해
 - 넘파이 기초(도움이 되지만 꼭 필요하지는 않다)
 
-마치는 데 드는 때: 30분쯤
+소요 시간: 30분쯤
 
 어려움: ⭐☆☆☆☆ (첫걸음)
 ================================================================================
@@ -56,7 +56,7 @@ print(f"Zeros:       {tensor_zeros}")
 print(f"Ones:        {tensor_ones}")
 print(f"Random:      {tensor_random}")
 
-# 모양과 자료형
+# 모양과 데이터형
 print(f"\nShape: {tensor_from_list.shape}")  # torch.Size([3])
 print(f"Dtype: {tensor_from_list.dtype}")   # torch.float32
 print(f"Device: {tensor_from_list.device}") # cpu or cuda
@@ -231,19 +231,19 @@ print("PART 4: KEY TAKEAWAYS")
 print("="*80)
 
 print("""
-1. 텐서가 PyTorch의 밑바탕 자료 짜임이다
+1. 텐서가 PyTorch의 밑바탕 데이터 짜임이다
    - 넘파이 배열과 비슷하되 GPU 받침과 자동 미분이 있다
    - torch.tensor(), torch.zeros(), torch.randn() 따위로 만든다
 
 2. 자동 미분(autograd)
    - 셈을 좇으려면 requires_grad=True를 둔다
-   - .backward()을 불러 모든 기울기를 셈한다
+   - .backward()을 불러 모든 기울기를 계산한다
    - 기울기는 .grad 속성에 담긴다
 
-3. 기울기 내림
+3. 경사 하강법
    - 함수를 가장 작게 하도록 매개변수를 거듭 고친다
    - 고침 규칙: x_new = x_old - learning_rate * gradient
-   - 되돌이 사이에는 늘 .zero_grad()을 불러라!
+   - 루프 사이에는 늘 .zero_grad()을 불러라!
 
 4. 토치와 넘파이 견주기
    - torch.tensor와 np.array
@@ -257,33 +257,33 @@ print("EXERCISES (Try These!)")
 print("="*80)
 
 print("""
-1. 쉬움: 배움 빠르기를 0.01과 0.5으로 바꾸어라.
+1. 쉬움: 학습률를 0.01과 0.5으로 바꾸어라.
    모여드는 빠르기에 어떤 영향을 주는가?
 
 2. 보통: y = x^4 - 4x^2 + 4을 가장 작게 해 보아라
    이 함수에는 그 자리 골짜기가 둘 있다!
    x=0과 x=3에서 비롯하면 무엇을 얻는가?
 
-3. 보통: 2차원 함수에 기울기 내림을 짜라.
+3. 보통: 2차원 함수에 경사 하강법을 짜라.
    y = (x1 - 2)^2 + (x2 + 1)^2
    골짜기는 (2, -1)에 있어야 한다
 
-4. 어려움: 기울기 내림에 여세를 더하여라.
+4. 어려움: 경사 하강법에 여세를 더하여라.
    velocity = 0.9 * velocity + learning_rate * gradient
    x = x - velocity
-   여느 기울기 내림과 모여드는 모습을 견주어라.
+   여느 경사 하강법과 모여드는 모습을 견주어라.
 """)
 
 print("\n" + "="*80)
 print("NEXT STEPS")
 print("="*80)
 print("""
-PyTorch 텐서와 기울기 내림의 기초를 배웠다!
+PyTorch 텐서와 경사 하강법의 기초를 배웠다!
 
-다음 익힘: 02_simple_binary_classification.py
-- 이 개념을 참 기계 배움 문제에 쓴다
-- 로지스틱 회귀를 맨바닥부터 짠다
-- 둘 가름개를 익힌다
+다음 학습: 02_simple_binary_classification.py
+- 이 개념을 참 기계 학습 문제에 쓴다
+- 로지스틱 회귀를 밑바닥부터 짠다
+- 둘 분류기를 익힌다
 
 이어서 할 채비가 되었는가? 다음을 돌려라.
     python 02_simple_binary_classification.py

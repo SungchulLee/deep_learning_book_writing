@@ -148,14 +148,14 @@ import torch.nn.functional as F
 # 방법 1: torch.nn.functional.one_hot 사용하기
 def create_one_hot(labels: torch.Tensor, num_classes: int) -> torch.Tensor:
     """
-    갈래 번호를 원핫 벡터로 바꾼다.
+    클래스 번호를 원핫 벡터로 바꾼다.
 
     Args:
-        labels: 갈래 번호 [0, num_classes-1]을 담은 꼴 (batch_size,)인 텐서
-        num_classes: 갈래의 온 수 K
+        labels: 클래스 번호 [0, num_classes-1]을 담은 모양 (batch_size,)인 텐서
+        num_classes: 클래스의 전체 개수 K
 
     Returns:
-        꼴이 (batch_size, num_classes)인 원핫 텐서
+        모양이 (batch_size, num_classes)인 원핫 텐서
     """
     return F.one_hot(labels, num_classes=num_classes).float()
 
@@ -208,17 +208,17 @@ print("Manual implementation matches F.one_hot!")
 ```python
 def get_true_class_probs(probs: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     """
-    참 갈래의 예측 확률을 뽑아낸다.
+    참 클래스의 예측 확률을 뽑아낸다.
 
     이는 (one_hot * probs).sum(dim=1)과 같다.
     다만 gather를 쓰면 더 잘 든다.
 
     Args:
-        probs: 꼴이 (batch_size, num_classes)인 예측 확률
-        labels: 꼴이 (batch_size,)인 참 갈래 번호
+        probs: 모양이 (batch_size, num_classes)인 예측 확률
+        labels: 모양이 (batch_size,)인 참 클래스 번호
 
     Returns:
-        꼴이 (batch_size,)인 참 갈래의 확률
+        모양이 (batch_size,)인 참 클래스의 확률
     """
     # gather(dim, index)은 인덱스를 써서 dim을 따라 원소를 고른다
     return probs.gather(1, labels.unsqueeze(1)).squeeze(1)
@@ -276,7 +276,7 @@ labels_onehot = F.one_hot(labels_indices, num_classes=3).float()
 ```python
 class LabelSmoothingLoss(nn.Module):
     """
-    레이블 스무딩을 곁들인 엇갈린 엔트로피 잃음.
+    레이블 스무딩을 곁들인 교차 엔트로피 손실.
     속으로는 원핫으로 매긴 과녁이 있어야 한다.
     """
     def __init__(self, num_classes: int, smoothing: float = 0.1):
@@ -311,11 +311,11 @@ def sample_categorical(probs: torch.Tensor, num_samples: int = 1000) -> torch.Te
     범주 분포에서 표본을 뽑는다.
 
     Args:
-        probs: 꼴이 (num_classes,)인 확률 벡터
+        probs: 모양이 (num_classes,)인 확률 벡터
         num_samples: 뽑을 표본의 수
 
     Returns:
-        뽑은 갈래 번호를 담은 텐서
+        뽑은 클래스 번호를 담은 텐서
     """
     # torch.multinomial은 범주형 분포에서 표본을 뽑는다
     return torch.multinomial(probs, num_samples, replacement=True)

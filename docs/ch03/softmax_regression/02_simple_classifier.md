@@ -9,17 +9,17 @@
 ```python
 """
 ===============================================================================
-2단계: 첫 소프트맥스 가름개 짓기
+2단계: 첫 소프트맥스 분류기 짓기
 ===============================================================================
 어려움: 첫걸음~가운데
 미리 알아 둘 것: 1단계, 기본 PyTorch
-배움 목표:
-  - 여러 갈래 가름을 위한 단순한 신경망을 짓는다
-  - 익힘 되돌이의 짜임을 이해한다
-  - 가름 테두리를 그림으로 본다
-  - 모형의 성능을 따진다
+학습 목표:
+  - 여러 클래스 분류을 위한 단순한 신경망을 짓는다
+  - 학습 루프의 짜임을 이해한다
+  - 분류 테두리를 그림으로 본다
+  - 모델의 성능을 평가한다
 
-마치는 데 드는 때: 30~45분
+소요 시간: 30~45분
 ===============================================================================
 """
 
@@ -49,15 +49,15 @@ print("=" * 80)
 
 def create_dataset(dataset_type='blobs', n_samples=1000):
     """
-    가름을 위한 인공 2차원 자료 묶음을 만든다.
+    분류을 위한 인공 2차원 데이터셋을 만든다.
     
     Args:
         dataset_type (str): 'blobs', 'moons', 'circles' 가운데 하나
         n_samples (int): 만들 표본의 수
     
     Returns:
-        X (np.array): 꼴이 (n_samples, 2)인 특징
-        y (np.array): 꼴이 (n_samples,)인 이름표
+        X (np.array): 모양이 (n_samples, 2)인 특징
+        y (np.array): 모양이 (n_samples,)인 레이블
     """
     if dataset_type == 'blobs':
         # 잘 분리된 군집 (가장 쉽다)
@@ -133,16 +133,16 @@ print("=" * 80)
 
 class SoftmaxClassifier(nn.Module):
     """
-    여러 갈래 가름을 위한 단순한 앞먹임 신경망.
+    여러 클래스 분류을 위한 단순한 앞먹임 신경망.
     
     Architecture:
-        들임 층(특징 2개)
+        입력 층(특징 2개)
           ↓
-        숨은 층(뉴런 64개) + ReLU
+        은닉층(뉴런 64개) + ReLU
           ↓
-        숨은 층(뉴런 32개) + ReLU
+        은닉층(뉴런 32개) + ReLU
           ↓
-        내놓음 층(갈래 3개) → 로짓
+        출력 층(클래스 3개) → 로짓
     
     눈여겨볼 것: 수치가 든든하도록 CrossEntropyLoss이 안에서 다루므로
           forward()에서는 소프트맥스를 걸지 않는다.
@@ -150,13 +150,13 @@ class SoftmaxClassifier(nn.Module):
     
     def __init__(self, input_size=2, hidden_size1=64, hidden_size2=32, num_classes=3):
         """
-        그물의 층을 첫자리 잡는다.
+        망의 층을 첫자리 잡는다.
         
         Args:
-            input_size (int): 들임 특징의 수
-            hidden_size1 (int): 첫 숨은 층의 뉴런 수
-            hidden_size2 (int): 둘째 숨은 층의 뉴런 수
-            num_classes (int): 내놓음 갈래의 수
+            input_size (int): 입력 특징의 수
+            hidden_size1 (int): 첫 은닉층의 뉴런 수
+            hidden_size2 (int): 둘째 은닉층의 뉴런 수
+            num_classes (int): 출력 클래스의 수
         """
         super(SoftmaxClassifier, self).__init__()
         
@@ -169,13 +169,13 @@ class SoftmaxClassifier(nn.Module):
         
     def forward(self, x):
         """
-        그물을 지나는 앞으로 걸음.
+        망을 지나는 순전파.
         
         Args:
-            x (torch.Tensor): 꼴이 (batch_size, input_size)인 들임 텐서
+            x (torch.Tensor): 모양이 (batch_size, input_size)인 입력 텐서
         
         Returns:
-            torch.Tensor: 꼴이 (batch_size, num_classes)인 로짓
+            torch.Tensor: 모양이 (batch_size, num_classes)인 로짓
         """
         out = self.fc1(x)      # Apply first linear transformation
         out = self.relu1(out)  # Apply ReLU activation
@@ -236,19 +236,19 @@ print("=" * 80)
 def train_model(model, X_train, y_train, X_test, y_test, 
                 criterion, optimizer, num_epochs=100, verbose=True):
     """
-    모형을 익히고 자를 좇는다.
+    모델을 익히고 자를 좇는다.
     
     Args:
-        model: 익힐 PyTorch 모형
-        X_train, y_train: 익힘 자료
-        X_test, y_test: 시험 자료
-        criterion: 잃음 함수
+        model: 익힐 PyTorch 모델
+        X_train, y_train: 학습 데이터
+        X_test, y_test: 시험 데이터
+        criterion: 손실 함수
         optimizer: 가장 좋게 하는 알고리즘
-        num_epochs: 익힘 되돌이 수
+        num_epochs: 학습 루프 수
         verbose: 나아가는 모습을 찍을지 여부
     
     Returns:
-        dict: 익힘 자취(잃음과 맞음)
+        dict: 학습 자취(손실과 정확도)
     """
     # 학습 기록을 저장한다
     history = {
@@ -378,12 +378,12 @@ print("=" * 80)
 
 def plot_decision_boundaries(model, X, y, title="Decision Boundaries"):
     """
-    모형이 배운 가름 테두리를 그림으로 본다.
+    모델이 배운 분류 테두리를 그림으로 본다.
     
     Args:
-        model: 익힌 PyTorch 모형
-        X (np.array): 들임 특징
-        y (np.array): 참 이름표
+        model: 익힌 PyTorch 모델
+        X (np.array): 입력 특징
+        y (np.array): 참 레이블
         title (str): 그림 제목
     """
     # 격자를 만든다
@@ -430,15 +430,15 @@ print("=" * 80)
 
 def predict_with_probabilities(model, X_new):
     """
-    예측하고 갈래마다의 확률을 보인다.
+    예측하고 클래스마다의 확률을 보인다.
     
     Args:
-        model: 익힌 모형
-        X_new (torch.Tensor): 새 들임 표본
+        model: 익힌 모델
+        X_new (torch.Tensor): 새 입력 표본
     
     Returns:
-        predictions (torch.Tensor): 예측한 갈래 번호
-        probabilities (torch.Tensor): 갈래마다의 확률
+        predictions (torch.Tensor): 예측한 클래스 번호
+        probabilities (torch.Tensor): 클래스마다의 확률
     """
     model.eval()
     with torch.no_grad():
@@ -529,30 +529,30 @@ print("SUMMARY - What You Learned")
 print("=" * 80)
 
 print("""
-✅ 가름을 위한 인공 자료 묶음을 만들었다
+✅ 분류을 위한 인공 데이터셋을 만들었다
 ✅ PyTorch로 여러 층 신경망을 지었다
-✅ 온전한 익힘 되돌이를 짰다
-✅ 익힘과 시험의 자를 좇았다
-✅ 가름 테두리를 그림으로 보았다
+✅ 온전한 학습 루프를 짰다
+✅ 학습과 시험의 자를 좇았다
+✅ 분류 테두리를 그림으로 보았다
 ✅ 확률 어림을 곁들여 예측했다
-✅ 자로 모형의 성능을 따졌다
-✅ 익힌 모형을 갈무리하고 불러왔다
+✅ 자로 모델의 성능을 따졌다
+✅ 익힌 모델을 저장하고 불러왔다
 
-익힘 되돌이의 고갱이 조각:
+학습 루프의 고갱이 조각:
 ------------------------------
-1. 앞으로 걸음: model(X) → 로짓
-2. 잃음 셈하기: criterion(logits, y)
+1. 순전파: model(X) → 로짓
+2. 손실 계산: criterion(logits, y)
 3. 기울기 지우기: optimizer.zero_grad()
-4. 뒤로 걸음: loss.backward()
-5. 무게 고치기: optimizer.step()
+4. 역전파: loss.backward()
+5. 가중치 고치기: optimizer.step()
 
 다음 걸음:
 -----------
-→ 3단계: 참 자료 묶음으로 익히기(MNIST, 패션 MNIST)
-→ 4단계: 맨바닥부터 짜기(맞춤 익힘)
-→ 5단계: 앞선 솜씨(정칙화, 자료 불리기)
+→ 3단계: 참 데이터셋으로 익히기(MNIST, 패션 MNIST)
+→ 4단계: 밑바닥부터 짜기(맞춤 학습)
+→ 5단계: 앞선 기법(정칙화, 데이터 불리기)
 
-🎉 잘했다! 첫 가름개를 짓고 익혔다!
+🎉 잘했다! 첫 분류기를 짓고 익혔다!
 """)
 
 

@@ -10,11 +10,11 @@
 1단계 - 보기 3: PyTorch로 하는 단순 선형 회귀
 ================================================================================
 
-배움 목표:
-- 기울기 내림을 참 회귀 문제에 쓴다
+학습 목표:
+- 경사 하강법을 참 회귀 문제에 쓴다
 - 코드를 더 잘 짜려고 PyTorch의 nn.Module을 쓴다
-- 익힘 되돌이와 따짐 되돌이를 짠다
-- 모형의 예측을 그림으로 본다
+- 학습 루프와 따짐 루프를 짠다
+- 모델의 예측을 그림으로 본다
 
 어려움: ⭐ 첫걸음
 
@@ -71,23 +71,23 @@ print("="*80)
 
 class LinearRegressionModel(nn.Module):
     """
-    선형 회귀 모형: y = wx + b
+    선형 회귀 모델: y = wx + b
     
-    이것이 PyTorch에서 모형을 매기는 방식이다.
+    이것이 PyTorch에서 모델을 매기는 방식이다.
     Benefits:
     - 매개변수를 절로 다룬다
     - 넓히기 쉽다
-    - PyTorch 가장 좋게 하개와 맞물린다
+    - PyTorch 최적화기와 맞물린다
     - 깔끔하고 짜임새 있는 코드
     """
     
     def __init__(self, input_dim, output_dim):
         """
-        모형 매개변수의 첫자리를 잡는다
+        모델 매개변수의 초기화한다
         
         Args:
-            input_dim: 들임 특징의 수
-            output_dim: 내놓음 값의 수
+            input_dim: 입력 특징의 수
+            output_dim: 출력 값의 수
         """
         super(LinearRegressionModel, self).__init__()
         
@@ -99,13 +99,13 @@ class LinearRegressionModel(nn.Module):
     
     def forward(self, x):
         """
-        앞으로 걸음: 예측을 셈한다
+        순전파: 예측을 계산한다
         
         Args:
-            x: 꼴이 (batch_size, input_dim)인 들임 텐서
+            x: 모양이 (batch_size, input_dim)인 입력 텐서
         
         Returns:
-            predictions: 꼴이 (batch_size, output_dim)인 내놓음 텐서
+            predictions: 모양이 (batch_size, output_dim)인 출력 텐서
         """
         return self.linear(x)
 
@@ -303,30 +303,30 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. nn.Module이 모형을 매기는 여느 방식이다
+1. nn.Module이 모델을 매기는 여느 방식이다
    - nn.Module을 물려받는다
    - __init__()에서 층을 매긴다
    - forward() 방법을 짠다
 
-2. 익힘 되돌이에는 여느 걸음 다섯이 있다.
-   1. 앞으로 걸음:      y_pred = model(X)
-   2. 잃음 셈하기:      loss = criterion(y_pred, y)
+2. 학습 루프에는 여느 걸음 다섯이 있다.
+   1. 순전파:      y_pred = model(X)
+   2. 손실 계산:      loss = criterion(y_pred, y)
    3. 기울기 0으로:    optimizer.zero_grad()
-   4. 뒤로 걸음:     loss.backward()
+   4. 역전파:     loss.backward()
    5. 매개변수 고치기: optimizer.step()
 
 3. 따질 때는 model.eval()과 torch.no_grad()을 써라
-   - 어떤 층(드롭아웃, 묶음 정규화)을 끈다
+   - 어떤 층(드롭아웃, 배치 정규화)을 끈다
    - 기울기를 좇지 않아 기억 자리를 아낀다
 
 4. 여러 자를 쓰면 더 잘 따질 수 있다
-   - MSE: 큰 어긋남을 더 크게 벌한다
-   - MAE: 모든 어긋남을 똑같이 다룬다
-   - R²: 설명된 흩어짐의 몫을 잰다
+   - MSE: 큰 오차을 더 크게 벌한다
+   - MAE: 모든 오차을 똑같이 다룬다
+   - R²: 설명된 분산의 몫을 잰다
 
 5. 잔차 그림이 탈을 짚어내는 데 도움이 된다
    - 마구잡이로 흩어져 있으면 잘 맞은 것이다
-   - 무늬가 보이면 비선형 모형이 필요할 수 있다
+   - 무늬가 보이면 비선형 모델이 필요할 수 있다
 """)
 
 # ============================================================================
@@ -336,23 +336,23 @@ print("\n" + "="*80)
 print("EXPERIMENTS TO TRY")
 print("="*80)
 print("""
-1. 여러 배움 빠르기:
+1. 여러 학습률:
    - Try lr = 0.001, 0.1, 0.5
    - 모여드는 빠르기와 든든함을 살펴보아라
 
-2. 익힘 자료 늘리기:
+2. 학습 데이터 늘리기:
    - n_samples을 1000으로 키운다
-   - 모형이 더 잘 맞는가?
+   - 모델이 더 잘 맞는가?
 
 3. 잡음 늘리기:
-   - 자료를 만들 때 잡음을 키운다
+   - 데이터를 만들 때 잡음을 키운다
    - R² 점수에 어떤 영향을 주는가?
 
-4. 여러 가장 좋게 하개:
+4. 여러 최적화기:
    - SGD을 Adam으로 갈음한다: torch.optim.Adam(...)
    - 모여드는 모습을 견준다
 
-5. 모형 갈무리하고 불러오기:
+5. 모델 저장하고 불러오기:
    - torch.save(model.state_dict(), 'model.pth')
    - model.load_state_dict(torch.load('model.pth'))
 """)

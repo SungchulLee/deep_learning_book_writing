@@ -12,18 +12,18 @@
 어려움: ⭐⭐⭐⭐ (앞선)
 
 DESCRIPTION:
-    PyTorch DataLoader를 쓰는 작은 묶음 기울기 내림.
-    온 자료 묶음 대신 묶음으로 잘 들게 익힌다.
+    PyTorch DataLoader를 쓰는 작은 배치 경사 하강법.
+    온 데이터셋 대신 배치으로 잘 들게 익힌다.
 
 다루는 것:
-    - Dataset과 DataLoader 갈래
-    - 작은 묶음 기울기 내림
-    - 묶음 크기가 미치는 영향
+    - Dataset과 DataLoader 클래스
+    - 작은 배치 경사 하강법
+    - 배치 크기가 미치는 영향
     - 섞기와 뽑기
-    - 익힘이 잘 듦
+    - 학습이 잘 듦
 
 PREREQUISITES:
-    - 익힘 05(nn.Module)
+    - 학습 05(nn.Module)
 
 걸리는 때: 25분쯤
 ==============================================================================
@@ -254,21 +254,21 @@ ax.grid(True, alpha=0.3, axis='y')
 # 그림 4: 요약 문구
 ax = axes[1, 1]
 summary_text = """
-묶음 크기가 미치는 영향:
+배치 크기가 미치는 영향:
 
-작은 묶음(32, 128):
-✓ 되돌이가 빠르다
+작은 배치(32, 128):
+✓ 루프가 빠르다
 ✓ 기울기 고침이 더 잦다
 ✓ 기울기에 잡음이 더 많다
 ✓ 두루 더 잘 미친다
 ✗ 셈이 덜 잘 든다
 
-가운데 묶음(512):
+가운데 배치(512):
 ✓ 고루 좋다
-✓ 익힘이 든든하다
+✓ 학습이 든든하다
 ✓ Efficient
 
-온 묶음(기울기 내림):
+온 배치(경사 하강법):
 ✓ 기울기가 가장 든든하다
 ✓ Deterministic
 ✗ 고치기가 더디다
@@ -278,7 +278,7 @@ summary_text = """
 Recommendation:
 - 32~256에서 비롯하라
 - 기억 자리가 넉넉하면 키워라
-- 다짐 잃음을 지켜보아라
+- 검증 손실을 지켜보아라
 """
 ax.text(0.1, 0.95, summary_text, transform=ax.transAxes,
         fontsize=9, verticalalignment='top', fontfamily='monospace',
@@ -298,7 +298,7 @@ print("PART 6: EFFICIENT TRAINING LOOP TEMPLATE")
 print("=" * 70)
 
 print("""
-DataLoader를 쓰는 여느 PyTorch 익힘 되돌이:
+DataLoader를 쓰는 여느 PyTorch 학습 루프:
 
 # 준비
 train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
@@ -308,7 +308,7 @@ optimizer = torch.optim.Adam(model.parameters())
 
 # 학습 루프
 for epoch in range(n_epochs):
-    model.train()  # 익힘 결로 둔다
+    model.train()  # 학습 결로 둔다
     
     for batch_X, batch_y in train_loader:
         # 순전파
@@ -326,42 +326,42 @@ for epoch in range(n_epochs):
         val_loss = evaluate(model, val_loader)
 
 고갱이:
-1. DataLoader이 묶음 만들기와 섞기를 다룬다
-2. 판마다 모든 묶음을 훑는다
-3. 한 판 = 온 자료 묶음을 한 번 훑기
-4. 기울기는 온 자료가 아니라 묶음마다 셈한다
+1. DataLoader이 배치 만들기와 섞기를 다룬다
+2. 에폭마다 모든 배치을 훑는다
+3. 한 에폭 = 온 데이터셋을 한 번 훑기
+4. 기울기는 온 데이터가 아니라 배치마다 계산한다
 """)
 
 print("\n" + "=" * 70)
 print("SUMMARY")
 print("=" * 70)
 print("""
-작은 묶음 익히기:
+작은 배치 익히기:
 
-1. Dataset 갈래:
-   - 자료(X, y)를 지닌다
+1. Dataset 클래스:
+   - 데이터(X, y)를 지닌다
    - __len__과 __getitem__을 짠다
-   - 자료 불리기와 바꾸기를 더할 수 있다
+   - 데이터 불리기와 바꾸기를 더할 수 있다
 
 2. DATALOADER:
-   - 자료를 절로 묶는다
-   - 판마다 섞는다
-   - 나란히 자료 불러오기(num_workers)
-   - 마지막의 모자란 묶음을 다룬다
+   - 데이터를 절로 묶는다
+   - 에폭마다 섞는다
+   - 나란히 데이터 불러오기(num_workers)
+   - 마지막의 모자란 배치을 다룬다
 
-3. 묶음 크기의 맞바꿈:
+3. 배치 크기의 맞바꿈:
    - 작으면 잡음이 많지만 빠르다
    - 크면 든든하지만 느리다
    - 알맞은 자리: 32~512
    - 2의 거듭제곱을 권한다
 
 4. BENEFITS:
-   ✓ 기억 자리를 아낀다(자료를 모두 올리지 않는다)
+   ✓ 기억 자리를 아낀다(데이터를 모두 올리지 않는다)
    ✓ 더 빨리 모여든다(고침이 잦다)
    ✓ 두루 더 잘 미친다
    ✓ GPU의 나란한 셈을 쓸 수 있다
 
-다음: 익힘 10 - 온전한 실전 흐름!
+다음: 학습 10 - 온전한 실전 흐름!
 """)
 
 

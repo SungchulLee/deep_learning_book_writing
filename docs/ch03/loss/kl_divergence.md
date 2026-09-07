@@ -165,8 +165,8 @@ def kl_divergence(mu: torch.Tensor, logvar: torch.Tensor,
     식: D_KL = -0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
 
     Args:
-        mu: q의 평균, 꼴 (batch_size, latent_dim).
-        logvar: q의 로그 흩어짐, 꼴 (batch_size, latent_dim).
+        mu: q의 평균, 모양 (batch_size, latent_dim).
+        logvar: q의 로그 분산, 모양 (batch_size, latent_dim).
         reduction: 'sum', 'mean', 'none' 가운데 하나.
 
     Returns:
@@ -195,11 +195,11 @@ def vae_loss(recon_x: torch.Tensor, x: torch.Tensor,
     """완전한 VAE 손실: 복원 + beta * KL.
 
     Args:
-        recon_x: 되살린 자료, 꼴 (batch_size, data_dim).
-        x: 본디 자료, 꼴 (batch_size, data_dim).
-        mu: 부호기 평균, 꼴 (batch_size, latent_dim).
-        logvar: 부호기 로그 흩어짐, 꼴 (batch_size, latent_dim).
-        beta: KL 무게(베타 VAE).
+        recon_x: 되살린 데이터, 모양 (batch_size, data_dim).
+        x: 본디 데이터, 모양 (batch_size, data_dim).
+        mu: 인코더 평균, 모양 (batch_size, latent_dim).
+        logvar: 인코더 로그 분산, 모양 (batch_size, latent_dim).
+        beta: KL 가중치(베타 VAE).
 
     Returns:
         (total_loss, recon_loss, kl_loss) 튜플.

@@ -7,7 +7,7 @@
 ```python
 #!/usr/bin/env python3
 """
-텐서의 자료 쪽 잔손질 도구.
+텐서의 데이터 쪽 잔손질 도구.
 
 Covers:
 - item(), tolist()

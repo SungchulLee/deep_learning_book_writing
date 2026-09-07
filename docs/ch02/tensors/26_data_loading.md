@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""익힘 26: 자료 불러오기 - DataLoader으로 잘 드는 자료 흐름 만들기"""
+"""학습 26: 데이터 불러오기 - DataLoader으로 잘 드는 데이터 흐름 만들기"""
 import torch
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import numpy as np
@@ -17,7 +17,7 @@ import numpy as np
 def header(title): print(f"\n{'='*70}\n{title}\n{'='*70}")
 
 class CustomDataset(Dataset):
-    """맞춤 자료 묶음 보기."""
+    """맞춤 데이터셋 보기."""
     def __init__(self, size=100):
         self.data = torch.randn(size, 10)
         self.labels = torch.randint(0, 2, (size,))
@@ -157,14 +157,14 @@ def main():
     
     1. 더 빨리 불러오려면 일꾼을 여럿 써라(num_workers > 0)
     2. GPU을 쓸 때는 pin_memory=True를 켜라
-    3. 익힘 자료를 섞어라(shuffle=True)
-    4. 다짐/시험 자료는 섞지 마라
-    5. 알맞은 묶음 크기를 써라(2의 거듭제곱이 잘 듣는 일이 잦다)
-    6. persistent_workers=True로 자료를 미리 가져와라
-    7. 묶음 크기가 종요로우면 drop_last=True를 써라
-    8. 맞춤 자료 묶음에서는 __getitem__을 잘 들게 짜라
-    9. 될 수 있으면 미리 다듬은 자료를 갈무리해 두어라
-    10. 자료 불러오는 때와 익히는 때를 견주어 살펴라
+    3. 학습 데이터를 섞어라(shuffle=True)
+    4. 검증/시험 데이터는 섞지 마라
+    5. 알맞은 배치 크기를 써라(2의 거듭제곱이 잘 듣는 일이 잦다)
+    6. persistent_workers=True로 데이터를 미리 가져와라
+    7. 배치 크기가 종요로우면 drop_last=True를 써라
+    8. 맞춤 데이터셋에서는 __getitem__을 잘 들게 짜라
+    9. 될 수 있으면 미리 다듬은 데이터를 저장해 두어라
+    10. 데이터 불러오는 때와 익히는 때를 견주어 살펴라
     """)
 
 if __name__ == "__main__":

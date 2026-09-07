@@ -7,7 +7,7 @@
 ```python
 #!/usr/bin/env python3
 """
-꼴 / 자료 갈래 / 기기 / 자리 얼개 속성과 도우미.
+꼴 / 데이터 클래스 / 기기 / 자리 구조 속성과 도우미.
 
 Covers:
 - shape / size() / ndim

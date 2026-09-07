@@ -342,7 +342,7 @@ print(f"CrossEntropyLoss: {loss.item():.4f}")
 ```python
 def cross_entropy_manual(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
     """
-    엇갈린 엔트로피 잃음을 손수 짠 것.
+    교차 엔트로피 손실을 손수 짠 것.
 
     CE = -mean(log(softmax(logits))[true_class])
        = mean(-log_softmax(logits)[true_class])
@@ -383,21 +383,21 @@ print(f"Direct CE:  {criterion(logits, targets).item():.6f}")
 class_weights = torch.tensor([1.0, 2.0, 3.0])
 weighted_ce = nn.CrossEntropyLoss(weight=class_weights)
 
-# 이름표 평활화를 쓰는 경우
+# 레이블 평활화를 쓰는 경우
 smooth_ce = nn.CrossEntropyLoss(label_smoothing=0.1)
 
-# 특정 이름표를 무시하는 경우 (예: 채움값)
+# 특정 레이블를 무시하는 경우 (예: 채움값)
 ignore_ce = nn.CrossEntropyLoss(ignore_index=-100)
 
 # 초점 손실 (직접 구현)
 def focal_loss(logits, targets, alpha=1.0, gamma=2.0):
     """
-    촘촘한 물체 알아내기를 위한 초점 잃음.
+    촘촘한 물체 알아내기를 위한 초점 손실.
 
     Args:
-        logits: 모형의 날것 내놓음
-        targets: 참값 갈래 번호
-        alpha: 무게 값
+        logits: 모델의 날것 출력
+        targets: 참값 클래스 번호
+        alpha: 가중치 값
         gamma: 초점 매개변수
     """
     ce_loss = F.cross_entropy(logits, targets, reduction='none')
@@ -411,7 +411,7 @@ def focal_loss(logits, targets, alpha=1.0, gamma=2.0):
 ```python
 def verify_gradient_derivation():
     """
-    우리가 해석으로 얻은 기울기가 PyTorch 자동 미분과 맞는지 따진다.
+    우리가 해석으로 얻은 기울기가 PyTorch 자동 미분과 맞는지 평가한다.
     """
     torch.manual_seed(42)
 
@@ -456,7 +456,7 @@ verify_gradient_derivation()
 ```python
 def visualize_gradient_flow():
     """
-    소프트맥스 + 엇갈린 엔트로피를 지나 기울기가 어떻게 흐르는지 보인다.
+    소프트맥스 + 교차 엔트로피를 지나 기울기가 어떻게 흐르는지 보인다.
     """
     torch.manual_seed(42)
 
@@ -498,7 +498,7 @@ import numpy as np
 
 class SoftmaxRegressionNumPy:
     """
-    맨바닥부터 짠 소프트맥스 회귀.
+    밑바닥부터 짠 소프트맥스 회귀.
     이끌어 낸 기울기를 코드로 보인다.
     """
 
@@ -526,7 +526,7 @@ class SoftmaxRegressionNumPy:
 
     def backward(self, X: np.ndarray, y: np.ndarray) -> tuple:
         """
-        뒤로 걸음: 기울기를 셈한다.
+        역전파: 기울기를 계산한다.
 
         고갱이 눈썰미: ∂L/∂z = π - y(원핫)
         """
@@ -557,7 +557,7 @@ class SoftmaxRegressionNumPy:
         return loss
 
     def predict(self, X: np.ndarray) -> np.ndarray:
-        """클래스 이름표를 예측한다."""
+        """클래스 레이블를 예측한다."""
         probs = self.forward(X)
         return np.argmax(probs, axis=1)
 

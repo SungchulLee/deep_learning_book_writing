@@ -7,7 +7,7 @@
 ```python
 #!/usr/bin/env python3
 """
-텐서의 기억 자리 얼개와 보기/베끼기 움직임.
+텐서의 기억 자리 구조와 보기/베끼기 움직임.
 
 Covers:
 - transpose()/permute()의 보기, 걸음 바뀜, .contiguous()

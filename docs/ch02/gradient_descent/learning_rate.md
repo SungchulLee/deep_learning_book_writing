@@ -148,7 +148,7 @@ $$\eta \leq \frac{1}{L}$$
 def learning_rate_finder(model, train_loader, criterion, 
                          lr_min=1e-7, lr_max=1, num_iter=100):
     """
-    배움 빠르기를 조금씩 키우고 잃음을 지켜보며
+    학습률를 조금씩 키우고 손실을 지켜보며
     가장 좋은 값을 찾는다.
     """
     # 원래 상태 저장

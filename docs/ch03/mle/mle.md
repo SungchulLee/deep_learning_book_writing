@@ -416,7 +416,7 @@ def generate_coin_flips(n_flips: int, true_p: float, seed: int = 42) -> torch.Te
 
 def compute_log_likelihood(data: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
     """
-    베르누이 분포의 로그 가능도를 셈한다.
+    베르누이 분포의 로그 가능도를 계산한다.
     
     ℓ(p) = Σ[x_i * log(p) + (1-x_i) * log(1-p)]
     """
@@ -432,10 +432,10 @@ def gradient_based_mle(data: torch.Tensor,
                        lr: float = 0.1, 
                        n_iter: int = 500) -> tuple:
     """
-    기울기 내림으로 최대가능도를 셈한다.
+    경사 하강법으로 최대가능도를 계산한다.
     
-    최대가능도와 가장 좋게 하기 사이의 이음을 보인다.
-    이것이 깊은 배움 전체를 받친다.
+    최대가능도와 최적화 사이의 이음을 보인다.
+    이것이 깊은 학습 전체를 받친다.
     """
     # 매개변수를 초기화한다 (제약 없는 최적화를 위한 시그모이드 매개화)
     logit_p = torch.tensor(0.0, requires_grad=True)
@@ -519,7 +519,7 @@ def gradient_mle(data: torch.Tensor,
     """
     PyTorch 자동 미분을 쓰는 두루 쓰는 기울기 바탕 최대가능도.
     
-    닫힌 꼴 최대가능도가 없는 분포나 배움 목적에 쓴다.
+    닫힌 꼴 최대가능도가 없는 분포나 학습 목적에 쓴다.
     """
     params = {k: v.clone().requires_grad_(True) for k, v in init_params.items()}
     optimizer = torch.optim.Adam(params.values(), lr=lr)
@@ -541,7 +541,7 @@ def compute_fisher_information_matrix(data: torch.Tensor,
                                       params: torch.Tensor,
                                       eps: float = 1e-4) -> torch.Tensor:
     """
-    피셔 정보 행렬을 수치로 셈한다.
+    피셔 정보 행렬을 수치로 계산한다.
     
     최대가능도에서의 관측 피셔 정보(음의 헤세)를 유한 차분으로 쓴다.
     I_ij = -∂²ℓ/∂θ_i∂θ_j

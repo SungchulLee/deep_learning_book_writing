@@ -10,7 +10,7 @@
 ==============================================
 
 날 텐서에 requires_grad=True를 두고 loss.backward()으로 기울기를 절로
-셈한다.  nn.Module도 가장 좋게 하개 객체도 쓰지 않는다.
+계산한다.  nn.Module도 최적화기 객체도 쓰지 않는다.
 
 Demonstrates:
 - requires_grad=True
@@ -19,7 +19,7 @@ Demonstrates:
 - 쌓인 기울기를 지우는 .grad.zero_()
 - 셈 그래프에서 값을 뽑아내는 .detach()
 
-지은이: 깊은 배움 바탕 배움 차례
+지은이: 깊은 학습 바탕 학습 차례
 """
 
 import argparse

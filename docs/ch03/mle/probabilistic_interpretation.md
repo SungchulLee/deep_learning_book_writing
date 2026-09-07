@@ -244,8 +244,8 @@ def poisson_regression_demo():
 ```python
 def loss_function_comparison():
     """
-    튄값이 있는 회귀에서 MSE, MAE, 후버 잃음을 견준다.
-    잃음을 고르는 것이 곧 분포를 가정하는 것임을 보인다.
+    튄값이 있는 회귀에서 MSE, MAE, 후버 손실을 견준다.
+    손실을 고르는 것이 곧 분포를 가정하는 것임을 보인다.
     """
     torch.manual_seed(42)
     

@@ -13,21 +13,21 @@
 
 DESCRIPTION:
     PyTorch의 nn.Module과 nn.Linear을 쓰는 선형 회귀.
-    이것이 PyTorch에서 모형을 짓는 "제대로 된" 길이다.
+    이것이 PyTorch에서 모델을 짓는 "제대로 된" 길이다.
 
 다루는 것:
-    - 모형을 위한 nn.Module 갈래
+    - 모델을 위한 nn.Module 클래스
     - nn.Linear 층
-    - 가장 좋게 하개(torch.optim.SGD)
+    - 최적화기(torch.optim.SGD)
     - 더 깔끔하고 잘 늘어나는 코드
 
 PREREQUISITES:
-    - 익힘 04(자동 미분)
+    - 학습 04(자동 미분)
 
-배움 목표:
-    - nn.Module으로 맞춤 모형을 만든다
+학습 목표:
+    - nn.Module으로 맞춤 모델을 만든다
     - 붙박이 층(nn.Linear)을 쓴다
-    - 매개변수 고치기에 가장 좋게 하개를 쓴다
+    - 매개변수 고치기에 최적화기를 쓴다
     - PyTorch의 좋은 버릇을 따른다
 
 걸리는 때: 20분쯤
@@ -71,19 +71,19 @@ print("=" * 70)
 
 class LinearRegressionModel(nn.Module):
     """
-    nn.Module을 쓰는 선형 회귀 모형
+    nn.Module을 쓰는 선형 회귀 모델
     
-    이것이 PyTorch에서 모형을 매기는 여느 길이다.
-    모든 모형은 nn.Module을 물려받아야 한다.
+    이것이 PyTorch에서 모델을 매기는 여느 길이다.
+    모든 모델은 nn.Module을 물려받아야 한다.
     """
     
     def __init__(self, input_dim=1, output_dim=1):
         """
-        모형의 첫자리를 잡는다
+        모델의 초기화한다
         
         Args:
-            input_dim: 들임 특징의 수
-            output_dim: 내놓음 특징의 수
+            input_dim: 입력 특징의 수
+            output_dim: 출력 특징의 수
         """
         # 언제나 부모 생성자를 먼저 호출한다
         super(LinearRegressionModel, self).__init__()
@@ -96,10 +96,10 @@ class LinearRegressionModel(nn.Module):
         
     def forward(self, x):
         """
-        앞으로 걸음: 자료가 모형을 어떻게 흐르는지 매긴다
+        순전파: 데이터가 모델을 어떻게 흐르는지 매긴다
         
         Args:
-            x: 들임 텐서
+            x: 입력 텐서
         
         Returns:
             내놓는 예측
@@ -133,10 +133,10 @@ print(f"Optimizer: {optimizer}")
 print(f"Learning rate: {learning_rate}")
 
 print("""
-가장 좋게 하개를 쓰는 고갱이 이점:
-1. 모형의 매개변수를 모두 절로 고친다
+최적화기를 쓰는 고갱이 이점:
+1. 모델의 매개변수를 모두 절로 고친다
 2. 손수 매개변수를 고칠 일이 없다
-3. 가장 좋게 하개를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
+3. 최적화기를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
 4. optimizer.zero_grad()으로 기울기 0으로 만들기를 다룬다
 """)
 
@@ -196,9 +196,9 @@ print("PART 5: MODEL EVALUATION MODE")
 print("=" * 70)
 
 print("""
-모형에는 두 결이 있다.
-1. 익힘 결(model.train()): 기본이며 드롭아웃, 묶음 정규화 따위를 켠다
-2. 따짐 결(model.eval()): 드롭아웃, 묶음 정규화 따위를 끈다
+모델에는 두 결이 있다.
+1. 학습 결(model.train()): 기본이며 드롭아웃, 배치 정규화 따위를 켠다
+2. 따짐 결(model.eval()): 드롭아웃, 배치 정규화 따위를 끈다
 
 선형 회귀에서는 걸리지 않지만 좋은 버릇이다!
 """)
@@ -284,24 +284,24 @@ axes[1, 0].grid(True, alpha=0.3)
 
 # 코드 비교
 comparison = """
-익힘 되돌이가 나아온 길:
+학습 루프가 나아온 길:
 
-익힘 02(넘파이):
+학습 02(넘파이):
   - 손수 쓰는 기울기 식
   - 손수 하는 매개변수 고치기
   - 코드 40줄쯤
 
-익힘 03(손수 하는 PyTorch):
+학습 03(손수 하는 PyTorch):
   - 텐서 셈
   - 손수 하는 기울기
   - 손수 하는 고치기
 
-익힘 04(자동 미분):
+학습 04(자동 미분):
   - loss.backward()
   - 손수 하는 고치기
   - grad.zero_()
 
-익힘 05(nn.Module):
+학습 05(nn.Module):
   - model(X)
   - optimizer.zero_grad()
   - loss.backward()
@@ -322,7 +322,7 @@ print("\n" + "=" * 70)
 print("SUMMARY")
 print("=" * 70)
 print("""
-여느 PyTorch 익힘 되돌이:
+여느 PyTorch 학습 루프:
 
 model = MyModel()
 criterion = nn.MSELoss()
@@ -339,19 +339,19 @@ for epoch in range(n_epochs):
     optimizer.step()
 
 고갱이 조각:
-1. nn.Module: 모든 모형의 밑 갈래
+1. nn.Module: 모든 모델의 밑 클래스
 2. nn.Linear: 붙박이 선형 층
 3. optimizer: 매개변수 고치기를 다룬다
-4. criterion: 잃음 함수
+4. criterion: 손실 함수
 
 Advantages:
 ✓ 깔끔하고 읽기 좋은 코드
-✓ 복잡한 모형으로 넓히기 쉽다
+✓ 복잡한 모델으로 넓히기 쉽다
 ✓ 매개변수를 절로 다룬다
-✓ 모형을 갈무리하고 불러오기 쉽다
+✓ 모델을 저장하고 불러오기 쉽다
 ✓ GPU을 받친다(.to('cuda')만 더하면 된다)
 
-다음: 익힘 06 - 여러 들임 특징!
+다음: 학습 06 - 여러 입력 특징!
 """)
 
 

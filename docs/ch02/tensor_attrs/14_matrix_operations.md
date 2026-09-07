@@ -14,7 +14,7 @@ Covers:
 - 원소별 곱: mul (*)
 - 벡터 셈: dot, cross, outer
 - 복잡한 셈을 위한 einsum
-- 묶음 행렬 셈
+- 배치 행렬 셈
 - 선형대수: inv, det, solve, eig
 - 행렬 쪼개기: SVD, QR, 촐레스키
 """

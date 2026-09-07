@@ -349,13 +349,13 @@ print("=" * 70)
 
 def bernoulli_properties(p: float) -> dict:
     """
-    베르누이 분포의 이론 성질을 셈한다.
+    베르누이 분포의 이론 성질을 계산한다.
 
     Args:
         p: 성공 확률. [0, 1] 안에 있어야 한다
 
     Returns:
-        평균, 흩어짐, 치우침을 담은 사전
+        평균, 분산, 편향을 담은 사전
     """
     if not 0 <= p <= 1:
         raise ValueError("p must be in [0, 1]")
@@ -382,13 +382,13 @@ print("=" * 70)
 
 class LogisticRegressionGLM(nn.Module):
     """
-    일반화 선형 모형으로 본 로지스틱 회귀.
+    일반화 선형 모델으로 본 로지스틱 회귀.
 
-    일반화 선형 모형의 조각을 드러내 놓고 가른다.
+    일반화 선형 모델의 조각을 드러내 놓고 가른다.
     - 선형 예측기(짜임새 조각)
     - 거꿀 이음 함수(시그모이드)
 
-    마구잡이 조각(베르누이)은 BCE 잃음 안에 넌지시 들어 있다.
+    마구잡이 조각(베르누이)은 BCE 손실 안에 넌지시 들어 있다.
     """
 
     def __init__(self, n_features: int):
@@ -470,7 +470,7 @@ print("=" * 70)
 
 def compute_log_likelihood_manual(X, y, beta):
     """
-    이끌어 낸 식으로 로그 가능도를 셈한다.
+    이끌어 낸 식으로 로그 가능도를 계산한다.
 
     ℓ(β) = Σᵢ [yᵢ xᵢᵀβ - log(1 + exp(xᵢᵀβ))]
     """
@@ -480,7 +480,7 @@ def compute_log_likelihood_manual(X, y, beta):
 
 def compute_log_likelihood_direct(X, y, beta):
     """
-    곧바로 쓰는 식으로 로그 가능도를 셈한다.
+    곧바로 쓰는 식으로 로그 가능도를 계산한다.
 
     ℓ(β) = Σᵢ [yᵢ log(pᵢ) + (1-yᵢ) log(1-pᵢ)]
     """

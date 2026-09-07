@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""익힘 25: 기억 자리 다루기 - 기억 자리 씀씀이 다듬기"""
+"""학습 25: 기억 자리 다루기 - 기억 자리 씀씀이 다듬기"""
 import torch
 import torch.nn as nn
 
@@ -63,7 +63,7 @@ def main():
         
     기울기 쌓기를 쓴다.
         batch_size = 32
-        accumulation_steps = 4  # 실제 묶음 크기 = 128
+        accumulation_steps = 4  # 실제 배치 크기 = 128
         
     for i, (x, y) in enumerate(dataloader):
         output = model(x)
@@ -77,7 +77,7 @@ def main():
     
     header("6. Checkpoint Activations")
     print("""
-    아주 깊은 그물에는 기울기 되짚음 저장을 쓴다.
+    아주 깊은 망에는 기울기 되짚음 저장을 쓴다.
     
     from torch.utils.checkpoint import checkpoint
     
@@ -120,16 +120,16 @@ def main():
     print("""
     기억 자리 다듬기 요령:
     
-    1. 미룸 때는 torch.no_grad()을 써라
+    1. 추론 때는 torch.no_grad()을 써라
     2. 기울기가 필요 없으면 .detach()을 불러라
     3. 안전할 때는 제자리 셈(_)을 써라
-    4. 실제 묶음 크기를 키우려면 기울기를 쌓아라
-    5. 섞인 촘촘함 익히기를 써라(익힘 24을 보아라)
+    4. 실제 배치 크기를 키우려면 기울기를 쌓아라
+    5. 섞인 촘촘함 익히기를 써라(학습 24을 보아라)
     6. 다 쓴 큰 텐서는 지워라: del x
-    7. GPU 갈무리를 비워라: torch.cuda.empty_cache()
-    8. 깊은 그물에는 기울기 되짚음 저장을 써라
+    7. GPU 저장를 비워라: torch.cuda.empty_cache()
+    8. 깊은 망에는 기울기 되짚음 저장을 써라
     9. 기억 자리 씀씀이를 살펴 목을 찾아라
-    10. 묶음 크기나 모형 크기를 줄이는 것도 생각해 보아라
+    10. 배치 크기나 모델 크기를 줄이는 것도 생각해 보아라
     """)
 
 if __name__ == "__main__":

@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""기울기를 쌓는 익힘 되돌이."""
+"""기울기를 쌓는 학습 루프."""
 import torch
 import torch.nn as nn
 

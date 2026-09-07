@@ -10,10 +10,10 @@
 
 #!/usr/bin/env python3
 """
-가장 단출한 IMDb 글월 가름 과제(맨바닥부터, torchtext 없이).
-- 기본으로 큰 영화 평 자료 묶음(aclImdb)을 ./data에 내려받는다
+가장 단출한 IMDb 글월 분류 과제(밑바닥부터, torchtext 없이).
+- 기본으로 큰 영화 평 데이터셋(aclImdb)을 ./data에 내려받는다
 - 단순한 낱말 사전을 짓는다
-- 평균 묻힘 가름개를 익힌다(PyTorch)
+- 평균 임베딩 분류기를 익힌다(PyTorch)
 쓰는 법(보기):
     python main.py --epochs 2 --batch_size 64 --max_len 256
 """

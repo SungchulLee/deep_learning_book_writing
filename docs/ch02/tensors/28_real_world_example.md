@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""익힘 28: 참 세상 보기 - 온전한 MNIST 숫자 가름개"""
+"""학습 28: 참 세상 보기 - 온전한 MNIST 숫자 분류기"""
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -31,7 +31,7 @@ class SyntheticMNIST(Dataset):
         return self.data[idx], self.labels[idx]
 
 class ConvNet(nn.Module):
-    """숫자 가름을 위한 누비기 신경망."""
+    """숫자 분류을 위한 누비기 신경망."""
     def __init__(self):
         super().__init__()
         self.conv1 = nn.Conv2d(1, 32, kernel_size=3)
@@ -51,7 +51,7 @@ class ConvNet(nn.Module):
         return x
 
 def train_epoch(model, dataloader, criterion, optimizer, device):
-    """한 판 익힌다."""
+    """한 에폭 익힌다."""
     model.train()
     total_loss = 0
     correct = 0
@@ -76,7 +76,7 @@ def train_epoch(model, dataloader, criterion, optimizer, device):
     return avg_loss, accuracy
 
 def validate(model, dataloader, criterion, device):
-    """모형을 다진다."""
+    """모델을 다진다."""
     model.eval()
     total_loss = 0
     correct = 0
@@ -172,13 +172,13 @@ def main():
     print("="*70)
     print("""
     다음 걸음:
-    1. 참 MNIST 자료 묶음으로 해 보아라(torchvision.datasets.MNIST)
-    2. 여러 얼개를 이리저리 바꾸어 보아라
-    3. 자료 불리기를 더하여라
-    4. 여러 가장 좋게 하개와 배움 빠르기를 써 보아라
-    5. 일찍 멈추기를 짜라
+    1. 참 MNIST 데이터셋으로 해 보아라(torchvision.datasets.MNIST)
+    2. 여러 구조를 이리저리 바꾸어 보아라
+    3. 데이터 불리기를 더하여라
+    4. 여러 최적화기와 학습률를 써 보아라
+    5. 조기 종료를 짜라
     6. 텐서보드로 적바림을 더하여라
-    7. 모형을 참으로 굴릴 수 있게 내놓아라
+    7. 모델을 참으로 굴릴 수 있게 내놓아라
     """)
 
 if __name__ == "__main__":

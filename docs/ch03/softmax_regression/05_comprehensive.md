@@ -9,19 +9,19 @@
 ```python
 """
 ===============================================================================
-5단계: 여러 자료 묶음을 아우르는 가름 과제
+5단계: 여러 데이터셋을 아우르는 분류 과제
 ===============================================================================
 어려움: 앞섬
 미리 알아 둘 것: 1~4단계
-배움 목표:
-  - 참 자료 묶음 여럿을 다룬다
-  - 두루 쓸 수 있는 모형 공장을 짓는다
-  - 실험을 두루 좇는 얼개를 짠다
-  - 다시 쓸 수 있는 익힘 흐름을 만든다
+학습 목표:
+  - 참 데이터셋 여럿을 다룬다
+  - 두루 쓸 수 있는 모델 공장을 짓는다
+  - 실험을 두루 좇는 구조를 짠다
+  - 다시 쓸 수 있는 학습 흐름을 만든다
   - 자세한 성능 알림을 만든다
-  - 얼개를 짜임새 있게 견준다
+  - 구조를 짜임새 있게 견준다
 
-마치는 데 드는 때: 90~120분
+소요 시간: 90~120분
 ===============================================================================
 """
 
@@ -55,18 +55,18 @@ print("=" * 80)
 
 class DatasetManager:
     """
-    자료 묶음 불러오기와 미리 다듬기를 한곳에 모은 것.
-    한결같은 창구로 여러 자료 묶음을 받쳐 준다.
+    데이터셋 불러오기와 미리 다듬기를 한곳에 모은 것.
+    한결같은 창구로 여러 데이터셋을 받쳐 준다.
     """
     
     def __init__(self, dataset_name, batch_size=128, val_split=0.1):
         """
-        자료 묶음 살림꾼의 첫자리를 잡는다.
+        데이터셋 관리자의 초기화한다.
         
         Args:
             dataset_name: 'mnist', 'fashion_mnist', 'cifar10' 가운데 하나
-            batch_size: 자료 불러오개의 묶음 크기
-            val_split: 익힘 자료 가운데 다짐에 쓸 몫
+            batch_size: 데이터 로더의 배치 크기
+            val_split: 학습 데이터 가운데 검증에 쓸 몫
         """
         self.dataset_name = dataset_name.lower()
         self.batch_size = batch_size
@@ -197,22 +197,22 @@ print("=" * 80)
 
 class ModelFactory:
     """
-    여러 모형 얼개를 만드는 공장.
+    여러 모델 구조를 만드는 공장.
     """
     
     @staticmethod
     def create_model(model_type, input_shape, num_classes, **kwargs):
         """
-        갈래에 따라 모형을 만든다.
+        클래스에 따라 모델을 만든다.
         
         Args:
             model_type: 'simple', 'medium', 'deep' 가운데 하나
-            input_shape: 들임 텐서의 꼴 (C, H, W)
-            num_classes: 내놓음 갈래의 수
-            **kwargs: 덧붙이는 모형 매개변수
+            input_shape: 입력 텐서의 모양 (C, H, W)
+            num_classes: 출력 클래스의 수
+            **kwargs: 덧붙이는 모델 매개변수
         
         Returns:
-            PyTorch 모형
+            PyTorch 모델
         """
         if model_type == 'simple':
             return ModelFactory._simple_model(input_shape, num_classes, **kwargs)
@@ -345,21 +345,21 @@ print("=" * 80)
 
 class Trainer:
     """
-    실험 좇기를 곁들인 두루 갖춘 익힘 흐름.
+    실험 좇기를 곁들인 두루 갖춘 학습 흐름.
     """
     
     def __init__(self, model, train_loader, val_loader, test_loader,
                  criterion, optimizer, device, experiment_name="experiment"):
         """
-        익힘개의 첫자리를 잡는다.
+        학습개의 초기화한다.
         
         Args:
-            model: PyTorch 모형
-            train_loader, val_loader, test_loader: 자료 불러오개
-            criterion: 잃음 함수
-            optimizer: 가장 좋게 하개
+            model: PyTorch 모델
+            train_loader, val_loader, test_loader: 데이터 로더
+            criterion: 손실 함수
+            optimizer: 최적화기
             device: 익힐 장치
-            experiment_name: 결과를 갈무리할 이름
+            experiment_name: 결과를 저장할 이름
         """
         self.model = model.to(device)
         self.train_loader = train_loader
@@ -459,15 +459,15 @@ class Trainer:
     
     def train(self, num_epochs, scheduler=None, early_stopping_patience=None):
         """
-        으뜸 익힘 되돌이.
+        으뜸 학습 루프.
         
         Args:
-            num_epochs: 익힐 판의 수
-            scheduler: 배움 빠르기 짜개(골라 씀)
-            early_stopping_patience: 일찍 멈추기의 참을성(골라 씀)
+            num_epochs: 익힐 에폭 수
+            scheduler: 학습률 짜개(골라 씀)
+            early_stopping_patience: 조기 종료의 참을성(골라 씀)
         
         Returns:
-            익힘 결과를 담은 사전
+            학습 결과를 담은 사전
         """
         print(f"\n{'='*80}")
         print(f"Training: {self.experiment_name}")
@@ -565,11 +565,11 @@ class ExperimentRunner:
         실험 하나를 돌린다.
         
         Args:
-            dataset_name: 자료 묶음의 이름
-            model_type: 모형의 갈래
-            num_epochs: 익힘 판의 수
-            lr: 배움 빠르기
-            use_scheduler: 배움 빠르기 짜기를 쓸지 여부
+            dataset_name: 데이터셋의 이름
+            model_type: 모델의 클래스
+            num_epochs: 학습 에폭 수
+            lr: 학습률
+            use_scheduler: 학습률 짜기를 쓸지 여부
         """
         experiment_name = f"{dataset_name}_{model_type}_lr{lr}"
         print(f"\n{'='*80}")
@@ -722,30 +722,30 @@ print("SUMMARY - What You Accomplished")
 print("=" * 80)
 
 print("""
-✅ 여러 자료 묶음을 받쳐 주는 자료 묶음 살림꾼을 지었다
-✅ 여러 얼개를 위한 모형 공장을 만들었다
-✅ 온전히 갖춘 익힘 흐름을 짰다
+✅ 여러 데이터셋을 받쳐 주는 데이터셋 관리자을 지었다
+✅ 여러 구조를 위한 모델 공장을 만들었다
+✅ 온전히 갖춘 학습 흐름을 짰다
 ✅ 자세한 자로 실험을 좇았다
-✅ 여러 모형과 자료 묶음을 짜임새 있게 견주었다
+✅ 여러 모델과 데이터셋을 짜임새 있게 견주었다
 ✅ 성능 견줌 알림을 만들었다
 
-과제 얼개:
+과제 구조:
 ------------------
 1. DatasetManager
-   - 여러 자료 묶음을 위한 하나로 된 창구
-   - 익힘/다짐/시험 저절로 나누기
-   - 묶음 크기와 미리 다듬기를 맞출 수 있다
+   - 여러 데이터셋을 위한 하나로 된 창구
+   - 학습/검증/시험 저절로 나누기
+   - 배치 크기와 미리 다듬기를 맞출 수 있다
 
 2. ModelFactory
-   - 단순, 보통, 깊은 얼개
+   - 단순, 보통, 깊은 구조
    - 매개변수를 두루 맞출 수 있다
-   - 새 모형으로 넓히기 쉽다
+   - 새 모델으로 넓히기 쉽다
 
 3. Trainer
-   - 온전한 익힘 되돌이
-   - 배움 빠르기 짜기
-   - 일찍 멈추기
-   - 가장 좋은 모형 좇기
+   - 온전한 학습 루프
+   - 학습률 짜기
+   - 조기 종료
+   - 가장 좋은 모델 좇기
    - 두루 갖춘 자취
 
 4. ExperimentRunner
@@ -754,38 +754,38 @@ print("""
    - 알림 만들기
    - 결과 좇기
 
-고갱이 배움:
+고갱이 학습:
 --------------
 • 조각으로 나눈 설계는 실험을 쉽게 한다
 • 짜임새 있는 견줌이 가장 좋은 길을 드러낸다
 • 실험 좇기는 다시 해내기에 매우 종요롭다
-• 자료 묶음이 다르면 얼개도 달라야 한다
-• 웃매개변수는 성능에 크게 미친다
+• 데이터셋이 다르면 구조도 달라야 한다
+• 초매개변수는 성능에 크게 미친다
 
 익은 이의 조언:
 ------------------
 1. 늘 실험을 짜임새 있게 좇아라
-2. 모형을 고를 때는 다짐 묶음을 써라
-3. 따로 떼어 둔 시험 묶음의 결과를 알려라
-4. 모형을 고르게 견주어라(같은 자료, 장치, 씨앗)
-5. 모든 웃매개변수와 맞춤을 적어 두어라
+2. 모델을 고를 때는 검증 배치을 써라
+3. 따로 떼어 둔 시험 배치의 결과를 알려라
+4. 모델을 고르게 견주어라(같은 데이터, 장치, 씨앗)
+5. 모든 초매개변수와 맞춤을 적어 두어라
 
 다음 걸음:
 -----------
-→ 자료 묶음을 더 넓힌다(CIFAR-100, ImageNet, 맞춤)
-→ 엮음 얼개를 더한다
-→ 더 앞선 솜씨를 짠다(믹스업, 컷아웃)
+→ 데이터셋을 더 넓힌다(CIFAR-100, ImageNet, 맞춤)
+→ 엮음 구조를 더한다
+→ 더 앞선 기법를 짠다(믹스업, 컷아웃)
 → 그림 보기와 텐서보드 적기를 만든다
-→ 가장 좋은 모형을 미룸에 올린다
+→ 가장 좋은 모델을 추론에 올린다
 
-🎉 잘했다! 익힘 갈래 모두를 마쳤다!
+🎉 잘했다! 학습 클래스 모두를 마쳤다!
 
-이제 다음을 할 솜씨를 갖추었다.
+이제 다음을 할 기법를 갖추었다.
 • 소프트맥스 회귀를 이론에서 실제까지 이해한다
-• 깊은 배움 가름개를 짓고 익힌다
-• 앞선 솜씨와 가장 좋은 버릇을 쓴다
+• 깊은 학습 분류기를 짓고 익힌다
+• 앞선 기법와 가장 좋은 버릇을 쓴다
 • 짜임새 있는 실험과 견줌을 돌린다
-• 참으로 굴릴 수 있는 익힘 흐름을 만든다
+• 참으로 굴릴 수 있는 학습 흐름을 만든다
 
 배우고 실험하기를 이어 가라! 🚀
 """)

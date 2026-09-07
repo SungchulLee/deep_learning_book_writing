@@ -146,12 +146,12 @@ $$
 - weight_decay로 하는 L2 정칙화
 - 손수 벌을 주는 L1 정칙화
 - 엘라스틱넷 정칙화
-- 익힘/다짐/시험 나누기를 곁들인 자료 다루기
-- 일찍 멈추기를 곁들인 익힘
+- 학습/검증/시험 나누기를 곁들인 데이터 다루기
+- 조기 종료를 곁들인 학습
 - 두루 갖춘 따짐 자
 - 정칙화 세기 손보기
 
-지은이: 깊은 배움 바탕
+지은이: 깊은 학습 바탕
 """
 
 import torch
@@ -181,15 +181,15 @@ print("=" * 70)
 
 class BinaryClassificationDataset(Dataset):
     """
-    둘 가름을 위한 맞춤 Dataset.
+    둘 분류을 위한 맞춤 Dataset.
 
-    표준화를 비롯한 자료 미리 다듬기를 다룬다.
+    표준화를 비롯한 데이터 미리 다듬기를 다룬다.
 
     Args:
-        X: 꼴이 (n_samples, n_features)인 특징 행렬
-        y: 꼴이 (n_samples,)이고 값이 {0, 1}인 이름표
+        X: 모양이 (n_samples, n_features)인 특징 행렬
+        y: 모양이 (n_samples,)이고 값이 {0, 1}인 레이블
         scaler: 미리 맞춘 StandardScaler(골라 쓴다)
-        fit_scaler: 잣대 잡개를 맞출지 여부(익힘 자료에는 True)
+        fit_scaler: 잣대 잡개를 맞출지 여부(학습 데이터에는 True)
     """
 
     def __init__(
@@ -269,13 +269,13 @@ class LogisticRegression(nn.Module):
     """
     정칙화를 골라 쓸 수 있는 로지스틱 회귀.
 
-    얼개: 선형 → 시그모이드
+    구조: 선형 → 시그모이드
 
     수치가 든든하게 익히려면 BCEWithLogitsLoss을 쓰고
     forward() 대신 logits()을 불러라.
 
     Args:
-        n_features: 들임 특징의 수
+        n_features: 입력 특징의 수
     """
 
     def __init__(self, n_features: int):
@@ -324,23 +324,23 @@ def train_model(
     """
     L1/L2 정칙화를 골라 쓰며 로지스틱 회귀를 익힌다.
 
-    L2 정칙화는 가장 좋게 하개의 weight_decay로 건다.
-    L1 정칙화는 잃음에 손수 벌 마디를 더해 건다.
+    L2 정칙화는 최적화기의 weight_decay로 건다.
+    L1 정칙화는 손실에 손수 벌 마디를 더해 건다.
     엘라스틱넷을 쓰려면 l1_lambda > 0과 l2_lambda > 0을 함께 둔다.
 
     Args:
-        model: LogisticRegression 모형
-        train_loader: 익힘 DataLoader
-        val_loader: 다짐 DataLoader
-        num_epochs: 가장 많은 익힘 판 수
-        learning_rate: 배움 빠르기
+        model: LogisticRegression 모델
+        train_loader: 학습 DataLoader
+        val_loader: 검증 DataLoader
+        num_epochs: 가장 많은 학습 에폭 수
+        learning_rate: 학습률
         l1_lambda: L1 정칙화 세기
         l2_lambda: L2 정칙화 세기(weight_decay)
-        patience: 일찍 멈추기 참을성
+        patience: 조기 종료 참을성
         verbose: 나아가는 모습을 찍는다
 
     Returns:
-        익힘 자취 사전
+        학습 자취 사전
     """
     criterion = nn.BCEWithLogitsLoss()
     optimizer = torch.optim.Adam(

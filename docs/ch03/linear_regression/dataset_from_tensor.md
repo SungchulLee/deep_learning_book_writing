@@ -6,23 +6,23 @@
 
 ```python
 """
-nn.Linear으로 하는 선형 회귀 — 텐서에서 만든 자료 묶음
+nn.Linear으로 하는 선형 회귀 — 텐서에서 만든 데이터셋
 ========================================================
 
 nn.Linear, F.mse_loss, optim.SGD, DataLoader, 기기 다루기,
-state_dict 갈무리와 불러오기를 쓰는 PyTorch다운 선형 회귀.
+state_dict 저장와 불러오기를 쓰는 PyTorch다운 선형 회귀.
 
 이것이 뒤의 모든 장으로 이어지는 표준 무늬다.
 
 Demonstrates:
-- nn.Module 아래 갈래
+- nn.Module 아래 클래스
 - TensorDataset / DataLoader 흐름
-- 기기를 가리지 않는 익힘(CPU / GPU)
+- 기기를 가리지 않는 학습(CPU / GPU)
 - optimizer.zero_grad() → loss.backward() → optimizer.step()
-- 미룸을 위한 model.eval() + torch.no_grad()
-- 모형을 남기기 위한 torch.save / torch.load
+- 추론을 위한 model.eval() + torch.no_grad()
+- 모델을 남기기 위한 torch.save / torch.load
 
-지은이: 깊은 배움 바탕 배움 차례
+지은이: 깊은 학습 바탕 학습 차례
 """
 
 import argparse

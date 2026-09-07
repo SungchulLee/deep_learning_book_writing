@@ -19,15 +19,15 @@ def header(title: str):
     print("=" * 80)
 
 def ptr_numpy(a: np.ndarray) -> int:
-    """넘파이 배열의 밑 자료 가리개를 (파이썬 정수로) 돌려준다.
+    """넘파이 배열의 밑 데이터 가리개를 (파이썬 정수로) 돌려준다.
     Notes:
       • 보기라면 밑 버퍼의 가운데를 가리킬 수도 있다.
-      • 이 주소와 걸음/꼴이 원소가 어디에 있는지를 온전히 밝힌다.
+      • 이 주소와 걸음/모양이 원소가 어디에 있는지를 온전히 밝힌다.
     """
     return a.__array_interface__['data'][0]
 
 def ptr_torch(t: torch.Tensor) -> int:
-    """PyTorch 텐서 저장소의 밑 자료 가리개를 (파이썬 정수로) 돌려준다.
+    """PyTorch 텐서 저장소의 밑 데이터 가리개를 (파이썬 정수로) 돌려준다.
     Notes:
       • C++의 Tensor.storage().data_ptr()과 같다.
       • 두 객체가 같은 밑 버퍼를 가리키면 "기억 자리를 나눠 쓴다"고 하지만,

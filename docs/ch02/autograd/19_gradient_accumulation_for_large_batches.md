@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""큰 묶음을 위한 기울기 쌓기."""
+"""큰 배치을 위한 기울기 쌓기."""
 import torch
 import torch.nn as nn
 

@@ -9,15 +9,15 @@ scikit-learn은 선형 회귀와 그 정칙화 변형인 릿지, 라쏘, 엘라�
 사이킷런으로 하는 선형 회귀
 =====================================
 
-인공 자료에서 최소제곱, 능선, 라쏘, 엘라스틱넷을 견준다.
+인공 데이터에서 최소제곱, 능선, 라쏘, 엘라스틱넷을 견준다.
 
 Demonstrates:
 - sklearn.linear_model.{LinearRegression, Ridge, Lasso, ElasticNet}
-- 엇갈아 다짐하는 갈래 {RidgeCV, LassoCV, ElasticNetCV}
+- 엇갈아 검증하는 클래스 {RidgeCV, LassoCV, ElasticNetCV}
 - StandardScaler을 쓰는 흐름
-- 모형마다의 계수 견주기
+- 모델마다의 계수 견주기
 
-지은이: 깊은 배움 바탕 배움 차례
+지은이: 깊은 학습 바탕 학습 차례
 """
 
 import argparse

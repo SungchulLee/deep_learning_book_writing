@@ -29,7 +29,7 @@ INTUITION: T/R ≈ C/N  =>  N ≈ (C × R) / T
 
 이것이 링컨-피터슨 어림값이며 곧 최대가능도 어림값이다!
 
-수학 모형:
+수학 모델:
 다시 잡은 것 가운데 표시된 수는 초기하 분포를 따른다.
 P(T | N) = C(C, T) × C(N-C, R-T) / C(N, R)
 
@@ -43,7 +43,7 @@ P(T | N) = C(C, T) × C(N-C, R-T) / C(N, R)
 - 프로그램 시험(벌레 수 어림하기)
 - 인구 조사 바로잡기(덜 센 수 어림하기)
 
-지은이: PyTorch 최대가능도 익힘
+지은이: PyTorch 최대가능도 학습
 DATE: 2025
 ================================================================================
 """
@@ -61,7 +61,7 @@ from typing import Tuple
 
 def compute_hypergeometric_pmf(N: int, C: int, R: int, T: int) -> float:
     """
-    초기하 분포로 확률 P(T | N, C, R)을 셈한다.
+    초기하 분포로 확률 P(T | N, C, R)을 계산한다.
     
     P(T) = C(C, T) × C(N-C, R-T) / C(N, R)
     
@@ -101,7 +101,7 @@ def compute_log_likelihood(N: int, C: int, R: int, T: int) -> float:
 
 def lincoln_petersen_estimator(C: int, R: int, T: int) -> float:
     """
-    링컨-피터슨 어림값(최대가능도 어림)을 셈한다.
+    링컨-피터슨 어림값(최대가능도 어림)을 계산한다.
     
     N̂ = (C × R) / T
     
@@ -226,7 +226,7 @@ Estimates:
 • 참 개체 수: N = {N_true}
 • 최대가능도 어림: N̂ = {N_mle}
 • 링컨-피터슨 어림: N̂ = {N_lp:.1f}
-• 어긋남: {abs(N_mle - N_true)}마리
+• 오차: {abs(N_mle - N_true)}마리
 """
     ax.text(0.5, 0.425, results_text, ha='center', va='center',
            fontsize=9, family='monospace', transform=ax.transAxes)
@@ -242,7 +242,7 @@ Estimates:
     
     bars = ax.barh(methods, values, color=colors, alpha=0.7, edgecolor='black', linewidth=2)
     
-    # 값 이름표를 추가한다
+    # 값 레이블를 추가한다
     for i, (bar, val) in enumerate(zip(bars, values)):
         ax.text(val, i, f'  {val:.1f}', va='center', fontsize=11, fontweight='bold')
     
@@ -379,7 +379,7 @@ def main():
 
 1. 쉬움: C, R, T 값을 바꾸어 보아라
    - T = 0이면(다시 잡힌 표시가 없으면) 어떻게 되는가?
-   - C과 R을 키우면 맞음이 어떻게 나아지는가?
+   - C과 R을 키우면 정확도이 어떻게 나아지는가?
 
 2. 보통: 믿음 구간을 더하여라
    - 가능도 바탕 믿음 구간을 쓴다
@@ -394,9 +394,9 @@ def main():
    - 무리가 닫혀 있지 않을 때(태어남, 죽음, 옮겨감)
    - 가정이 깨질 때 최대가능도는 얼마나 든든한가?
 
-5. 어려움: 베이즈 갈래
+5. 어려움: 베이즈 클래스
    - N에 앞확률을 둔다(보기: 고른 분포나 기하 분포)
-   - 뒤확률 분포를 셈한다
+   - 뒤확률 분포를 계산한다
    - 베이즈 믿음 구간과 최대가능도 믿음 구간을 견준다
 """
 
@@ -421,7 +421,7 @@ if __name__ == "__main__":
 ---
 
 **연습문제 2.**
-입력이 기대하는 모양과 자료형을 갖는지 확인하도록 주 함수나 클래스에 입력 검증을 추가하라. 잘못된 입력에는 유익한 오류 메시지를 내라.
+입력이 기대하는 모양과 데이터형을 갖는지 확인하도록 주 함수나 클래스에 입력 검증을 추가하라. 잘못된 입력에는 유익한 오류 메시지를 내라.
 
 ??? success "연습문제 2 풀이"
     `forward` 메서드(또는 해당 함수)의 첫머리에 다음과 같은 검사를 추가한다. `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`와 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. 모양을 검증할 때는 중요한 차원을 확인한다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 유익한 오류 메시지는 디버깅 속도를 크게 높이고 코드를 재사용하기에도 더 견고하게 만든다.

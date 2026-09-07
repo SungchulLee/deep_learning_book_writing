@@ -45,7 +45,7 @@ $$\theta_{t+1} = \theta_t - \eta \cdot \frac{1}{B}\sum_{j \in \mathcal{B}_t} \na
 def batch_gradient_descent(X, y, model, criterion, 
                            learning_rate, n_epochs):
     """
-    묶음 기울기 내림: 되돌이마다 자료를 모두 쓴다
+    배치 경사 하강법: 루프마다 데이터를 모두 쓴다
     """
     for epoch in range(n_epochs):
         # 전체 데이터셋에 대한 순전파
@@ -98,7 +98,7 @@ def batch_gradient_descent(X, y, model, criterion,
 def stochastic_gradient_descent(X, y, model, criterion,
                                  learning_rate, n_epochs):
     """
-    확률 기울기 내림: 되돌이마다 표본 하나를 쓴다
+    확률 경사 하강법: 루프마다 표본 하나를 쓴다
     """
     n_samples = X.shape[0]
     
@@ -168,7 +168,7 @@ $$\nabla_\theta \ell(\theta; x_i, y_i) = \nabla_\theta L(\theta) + \epsilon_i$$
 def minibatch_gradient_descent(X, y, model, criterion,
                                 learning_rate, n_epochs, batch_size):
     """
-    작은 묶음 기울기 내림: 둘의 좋은 점을 다 가진다
+    작은 배치 경사 하강법: 둘의 좋은 점을 다 가진다
     """
     # 자동 배치 구성을 위한 DataLoader 생성
     dataset = TensorDataset(X, y)

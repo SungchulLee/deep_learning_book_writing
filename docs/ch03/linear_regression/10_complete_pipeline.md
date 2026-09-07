@@ -12,21 +12,21 @@
 어려움: ⭐⭐⭐⭐⭐ (앞선)
 
 DESCRIPTION:
-    좋은 버릇을 모두 담아 참으로 굴릴 수 있는 온전한 익힘 흐름.
-    익힘/다짐/시험 나누기, 일찍 멈추기, 모형 되짚음 저장,
+    좋은 버릇을 모두 담아 참으로 굴릴 수 있는 온전한 학습 흐름.
+    학습/검증/시험 나누기, 조기 종료, 모델 되짚음 저장,
     적바림, 두루 갖춘 따짐을 담는다.
 
 다루는 것:
-    - 온전한 익힘 흐름
-    - 익힘/다짐/시험 나누기
-    - 일찍 멈추기
-    - 모형 되짚음 저장
-    - 배움 빠르기 짜기
+    - 온전한 학습 흐름
+    - 학습/검증/시험 나누기
+    - 조기 종료
+    - 모델 되짚음 저장
+    - 학습률 짜기
     - 두루 갖춘 따짐
     - Reproducibility
 
 PREREQUISITES:
-    - 앞의 익힘 모두
+    - 앞의 학습 모두
 
 걸리는 때: 40분쯤
 ==============================================================================
@@ -510,14 +510,14 @@ ax6.grid(True, alpha=0.3, axis='y')
 # 7. 학습 요약
 ax7 = fig.add_subplot(gs[2, :])
 summary = f"""
-익힘 간추림
+학습 간추림
 
 Configuration:
-  - 모형: {'Linear' if not config.hidden_sizes else f'MLP {config.hidden_sizes}'}
-  - 가장 좋게 하개: Adam (lr={config.learning_rate}, weight_decay={config.weight_decay})
-  - 묶음 크기: {config.batch_size}
-  - 판 수: {len(history['train_loss'])}
-  - 일찍 멈추기 참을성: {config.patience}
+  - 모델: {'Linear' if not config.hidden_sizes else f'MLP {config.hidden_sizes}'}
+  - 최적화기: Adam (lr={config.learning_rate}, weight_decay={config.weight_decay})
+  - 배치 크기: {config.batch_size}
+  - 에폭 수: {len(history['train_loss'])}
+  - 조기 종료 참을성: {config.patience}
 
 마지막 자:
   Train - R²: {train_metrics['r2']:.4f}, MAE: ${train_metrics['mae']*100:.2f}k, RMSE: ${train_metrics['rmse']*100:.2f}k
@@ -526,8 +526,8 @@ Configuration:
 
 Observations:
   - {"이렇다 할 지나친 맞춰짐 없음" if abs(train_metrics['r2'] - test_metrics['r2']) < 0.05 else "지나친 맞춰짐이 얼마간 보임"}
-  - 가장 좋은 다짐 잃음: {best_checkpoint['val_loss']:.6f}
-  - 모형을 갈무리한 곳: {config.checkpoint_dir}/best_model.pth
+  - 가장 좋은 검증 손실: {best_checkpoint['val_loss']:.6f}
+  - 모델을 저장한 곳: {config.checkpoint_dir}/best_model.pth
 """
 ax7.text(0.1, 0.9, summary, transform=ax7.transAxes,
          fontsize=10, verticalalignment='top', fontfamily='monospace',
@@ -542,31 +542,31 @@ print("\n" + "=" * 70)
 print("PIPELINE COMPLETE!")
 print("=" * 70)
 print("""
-잘했다! 참으로 굴릴 수 있는 기계 배움 흐름을 마쳤다!
+잘했다! 참으로 굴릴 수 있는 기계 학습 흐름을 마쳤다!
 
-이 익힘이 보인 것:
+이 학습이 보인 것:
 ✓ 설정 다루기
-✓ 되풀이할 수 있음(마구잡이 씨앗)
-✓ 제대로 된 익힘/다짐/시험 나누기
+✓ 반복할 수 있음(마구잡이 씨앗)
+✓ 제대로 된 학습/검증/시험 나누기
 ✓ 특징 잣대 잡기
-✓ 잘 드는 묶음 만들기를 위한 DataLoader
-✓ 일찍 멈추기
-✓ 모형 되짚음 저장
-✓ 배움 빠르기 짜기
+✓ 잘 드는 배치 만들기를 위한 DataLoader
+✓ 조기 종료
+✓ 모델 되짚음 저장
+✓ 학습률 짜기
 ✓ 두루 갖춘 적바림
 ✓ 여러 따짐 자
 ✓ 다듬어진 그림
 
 다음 걸음:
-1. 다른 모형으로 해 보아라(숨은 층을 더한다)
-2. 웃매개변수를 이리저리 바꾸어 보아라
-3. 제 자료 묶음에 써 보아라
+1. 다른 모델으로 해 보아라(은닉층을 더한다)
+2. 초매개변수를 이리저리 바꾸어 보아라
+3. 제 데이터셋에 써 보아라
 4. GPU 받침을 더하여라(.to('cuda'))
-5. 엇갈아 다짐하기를 짜라
-6. 자료 불리기를 더하여라(그림 일에)
-7. 모형을 내놓아라
+5. 엇갈아 검증하기를 짜라
+6. 데이터 불리기를 더하여라(그림 일에)
+7. 모델을 내놓아라
 
-이제 PyTorch 기계 배움 과제의 든든한 바탕을 갖췄다!
+이제 PyTorch 기계 학습 과제의 든든한 바탕을 갖췄다!
 """)
 
 

@@ -101,7 +101,7 @@ def main():
     #     새로 만든 텐서는 requires_grad=False이다.
     #     역전파를 할 것이라면 실수/복소수 텐서에 requires_grad=True를 설정한다.
     #
-    # • 기기/자료 갈래:
+    # • 기기/데이터 클래스:
     #     dtype를 명시하는 편이 좋다(예: 학습에는 float32). 필요하면 장치를 옮긴다:
     #         t = torch.from_numpy(arr).to("cuda")   # CPU에서 먼저 공유한 뒤 GPU로 COPY
     #         t = torch.tensor(df.to_numpy(np.float32), device="cuda")  # GPU로 바로 **COPY**
