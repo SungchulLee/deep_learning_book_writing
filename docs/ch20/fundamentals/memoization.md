@@ -1,8 +1,8 @@
 # 적어 두기(위에서 아래로)
 $$\begin{array}{llll}
-\text{Recursion}&&\text{No Dynamic Programming (No Memoization or Tabulation)}\\
-\text{Top Down}&&\text{Dynamic Programming (Memoization)}\\
-\text{Bottom Up}&&\text{Dynamic Programming (Tabulation)}
+\text{되부름}&&\text{갈피 다지기 없음(메모도 표 채우기도 없음)}\\
+\text{위에서 아래로}&&\text{갈피 다지기(메모)}\\
+\text{아래에서 위로}&&\text{갈피 다지기(표 채우기)}
 \end{array}$$
 
 $$

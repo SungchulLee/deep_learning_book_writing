@@ -4,9 +4,9 @@
 [Multistage Graph (Shortest Path)](https://www.geeksforgeeks.org/multistage-graph-shortest-path/)
 
 $$\begin{array}{lll}
-\text{cost}(\text{edge}(i,j))&=&\text{Cost of travelling from $i$ to $j$}\\
+\text{cost}(\text{edge}(i,j))&=&\text{$i$에서 $j$까지 가는 값}\\
 \\
-\text{cost}(i)&=&\text{Cost of travelling from $i$ to end}\\
+\text{cost}(i)&=&\text{$i$에서 끝까지 가는 값}\\
 \\
 \text{cost}(i)&=&\min\left\{\text{cost}(\text{edge}(i,j))+\text{cost}(j)\right\}
 \end{array}$$

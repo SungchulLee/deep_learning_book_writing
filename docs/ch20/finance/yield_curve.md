@@ -99,7 +99,7 @@ $$V_{:,2} \approx \text{sign}(m - m_{\text{pivot}})} \cdot |m - m_{\text{pivot}}
 $$V_{:,3} \approx \begin{cases}
 
 + & \text{if } m \text{ near 2-5Y} \\
-- & \text{if } m \text{ short or long}
+- & \text{if } m \text{ 짧거나 길면}
 \end{cases}$$
 
 곡선 꼴의 바뀜을 나타낸다. 다음이 몰고 간다:
