@@ -10,12 +10,12 @@
 
 ## 엄밀한 정의
 
-Let $\mathcal{P}$ be an optimization problem in which a solution is built by making a sequence of choices $c_1, c_2, \ldots, c_k$. The problem satisfies the **greedy choice property** if the following holds:
+$\mathcal{P}$을 고름 $c_1, c_2, \ldots, c_k$을 잇달아 하여 풀이를 쌓는 가장 좋게 하기 문제라 하자. 다음이 이루어지면 이 문제는 **욕심쟁이 고름 성질**을 채운다.
 
 !!! note "욕심쟁이 고름 성질"
-    For every instance of $\mathcal{P}$, there exists an optimal solution that includes the greedy (locally optimal) first choice. That is, making the locally optimal choice at the current step does not preclude reaching a globally optimal solution.
+    $\mathcal{P}$의 어떤 사례에서도 욕심쟁이의(그 자리에서 가장 좋은) 첫 고름을 담은 가장 좋은 풀이가 있다. 곧 이제 걸음에서 그 자리 가장 좋은 것을 골라도 두루 가장 좋은 풀이에 닿는 길이 막히지 않는다.
 
-More precisely, let $S^*$ be any optimal solution. If the greedy choice is $g$, then there exists an optimal solution $S'$ such that $g \in S'$.
+더 엄밀히 말하면, $S^*$을 아무 가장 좋은 풀이라 하자. 욕심쟁이 고름이 $g$이면 $g \in S'$인 가장 좋은 풀이 $S'$이 있다.
 
 ## 가장 좋은 아래 짜임과의 관계
 
@@ -30,23 +30,23 @@ $$
 \text{OPT}(\mathcal{P}) = g \cup \text{OPT}(\mathcal{P}')
 $$
 
-where $g$ is the greedy choice and $\mathcal{P}'$ is the subproblem remaining after committing to $g$.
+여기서 $g$은 욕심쟁이 고름이고 $\mathcal{P}'$은 $g$을 고르고 난 뒤 남는 아래 문제다.
 
 ## 증명 틀
 
 어떤 문제에 욕심쟁이 고름 성질을 세우는 표준 방식은 **"오려 붙이기"** 또는 **맞바꿈 논증**이다:
 
-1. **Assume** an optimal solution $S^*$ exists.
-2. **If** $S^*$ already contains the greedy choice $g$, we are done.
-3. **If not**, construct a new solution $S'$ by replacing some element of $S^*$ with $g$.
+1. 가장 좋은 풀이 $S^*$이 있다고 **하자**.
+2. $S^*$이 이미 욕심쟁이 고름 $g$을 담고 **있으면** 끝이다.
+3. **아니라면** $S^*$의 어떤 원소를 $g$으로 갈음해 새 풀이 $S'$을 짓는다.
 4. $S'$이 될 수 있음(모든 제약을 채움)을 **보인다**.
-5. **Show** that $S'$ is at least as good as $S^*$ (the objective value does not worsen).
+5. $S'$이 $S^*$ 못지않게 좋음(목표 값이 나빠지지 않음)을 **보인다**.
 6. $S'$이 $g$을 담은 가장 좋은 풀이라고 **매듭짓는다**.
 
 ??? example "활동 고르기: 욕심쟁이 고름 증명 얼개"
     **주장.** 가장 일찍 끝나는 활동 $a_1$을 담은 가장 좋은 풀이가 있다.
 
-    **Proof sketch.** Let $S^* = \{a_{j_1}, a_{j_2}, \ldots, a_{j_k}\}$ be an optimal set of non-overlapping activities sorted by finish time. If $a_{j_1} = a_1$, we are done. Otherwise, $a_1$ finishes no later than $a_{j_1}$, so replacing $a_{j_1}$ with $a_1$ preserves non-overlap with $a_{j_2}, \ldots, a_{j_k}$. The resulting set $S' = \{a_1, a_{j_2}, \ldots, a_{j_k}\}$ has the same size $k$, so it is also optimal. $\square$
+    **증명 얼개.** $S^* = \{a_{j_1}, a_{j_2}, \ldots, a_{j_k}\}$을 마침 시각으로 줄 세운, 겹치지 않는 활동의 가장 좋은 모음이라 하자. $a_{j_1} = a_1$이면 끝이다. 아니라면 $a_1$이 $a_{j_1}$보다 늦게 마치지 않으므로 $a_{j_1}$을 $a_1$으로 갈음해도 $a_{j_2}, \ldots, a_{j_k}$과 겹치지 않음이 지켜진다. 그렇게 나온 모음 $S' = \{a_1, a_{j_2}, \ldots, a_{j_k}\}$은 크기가 그대로 $k$이므로 이 또한 가장 좋다. $\square$
 
 ## 욕심쟁이 고름 성질이 어그러질 때
 
@@ -73,7 +73,7 @@ where $g$ is the greedy choice and $\mathcal{P}'$ is the subproblem remaining af
 | 욕심쟁이 고름 성질 | 필요함 | 필요 없음 |
 | 겹치는 작은 문제 | 필요 없음 | 써먹음 |
 | 고름을 다시 헤아림 | 전혀 안 함 | 함(작은 문제를 모두 푼다) |
-| Time complexity | Often $O(n \log n)$ | Often $O(n^2)$ or $O(nW)$ |
+| 시간 복잡도 | 흔히 $O(n \log n)$ | 흔히 $O(n^2)$이나 $O(nW)$ |
 
 욕심쟁이 고름 성질이 성립하면 겹치는 작은 문제를 푸는 덧짐을 피하므로 욕심쟁이 알고리즘이 낫다.
 

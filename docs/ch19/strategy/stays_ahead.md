@@ -11,11 +11,11 @@
 ## 엄밀한 틀
 
 !!! note "욕심쟁이가 앞선다 틀"
-    **Setup.** Let $G = (g_1, g_2, \ldots, g_k)$ be the greedy solution and $O = (o_1, o_2, \ldots, o_m)$ be any feasible solution, both sorted in the order the algorithm processes them.
+    **차림.** $G = (g_1, g_2, \ldots, g_k)$을 욕심쟁이 풀이라 하고 $O = (o_1, o_2, \ldots, o_m)$을 되는 아무 풀이라 하자. 둘 다 알고리즘이 다루는 차례로 줄 세운다.
 
-    **Define a measure.** Choose a function $\mu$ that captures "progress" after $i$ steps. For activity selection, $\mu(i) = f(g_i)$ (finish time of the $i$-th selected activity).
+    **자를 매긴다.** $i$ 걸음 뒤의 "나아감"을 담는 함수 $\mu$을 고른다. 활동 고르기에서는 $\mu(i) = f(g_i)$이다($i$번째로 고른 활동의 마침 시각).
 
-    **Stays-ahead invariant.** For all $i \leq \min(k, m)$:
+    **앞서 있음 안 바뀜.** 모든 $i \leq \min(k, m)$에 대해
 
     $$
     \mu_G(i) \leq \mu_O(i) \quad \text{(for earliest-finish-time problems)}
@@ -26,13 +26,13 @@
     **$i$에 대한 귀납법으로 증명한다**:
 
     - *바탕 경우*($i = 1$): 욕심쟁이 규칙에서 따라 나온다.
-    - *Inductive step*: assume $\mu_G(i-1) \leq \mu_O(i-1)$; show $\mu_G(i) \leq \mu_O(i)$.
+    - *미루어 나아가는 걸음*: $\mu_G(i-1) \leq \mu_O(i-1)$이라 하고 $\mu_G(i) \leq \mu_O(i)$을 보인다.
 
-    **Conclude:** Since $G$ stays ahead at every step, $G$ is at least as good as $O$ overall: $k \geq m$ (for maximization of count) or $\text{cost}(G) \leq \text{cost}(O)$ (for minimization).
+    **맺음:** $G$이 걸음마다 앞서 있으므로 $G$은 온통으로 보아 $O$ 못지않게 좋다. 곧 (수를 가장 크게 하는 문제이면) $k \geq m$이거나 (가장 작게 하는 문제이면) $\text{cost}(G) \leq \text{cost}(O)$이다.
 
 ## 보기 1: 활동 고르기
 
-**Problem.** Select the maximum number of mutually compatible activities from $\{a_1, \ldots, a_n\}$ with start times $s_i$ and finish times $f_i$.
+**문제.** 비롯하는 시각 $s_i$과 마치는 시각 $f_i$을 지닌 $\{a_1, \ldots, a_n\}$에서 서로 어울리는 활동을 될 수 있는 대로 많이 골라라.
 
 **욕심쟁이 규칙.** 늘 아직 안 고른 어울리는 활동 가운데 가장 일찍 끝나는 것을 고른다.
 
@@ -40,11 +40,11 @@
 
 **증명.**
 
-Let $G = (g_1, g_2, \ldots, g_k)$ be the greedy solution, sorted by finish time. Let $O = (o_1, o_2, \ldots, o_m)$ be any maximum-size compatible set, also sorted by finish time.
+$G = (g_1, g_2, \ldots, g_k)$을 마침 시각으로 줄 세운 욕심쟁이 풀이라 하자. $O = (o_1, o_2, \ldots, o_m)$을 마찬가지로 마침 시각으로 줄 세운, 크기가 가장 큰 아무 어울리는 모음이라 하자.
 
-**Stays-ahead invariant:** for all $1 \leq i \leq \min(k, m)$, we have $f(g_i) \leq f(o_i)$.
+**앞서 있음 안 바뀜:** 모든 $1 \leq i \leq \min(k, m)$에 대해 $f(g_i) \leq f(o_i)$이다.
 
-*Base case* ($i = 1$): The greedy algorithm picks the activity with the globally earliest finish time, so $f(g_1) \leq f(o_1)$.
+*밑 자리*($i = 1$): 욕심쟁이 알고리즘이 온 활동 가운데 마침 시각이 가장 이른 것을 고르므로 $f(g_1) \leq f(o_1)$이다.
 
 *Inductive step:* Assume $f(g_{i-1}) \leq f(o_{i-1})$ for some $i \geq 2$. Activity $o_i$ is compatible with $o_{i-1}$, so:
 

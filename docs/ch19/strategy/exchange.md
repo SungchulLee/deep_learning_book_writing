@@ -148,7 +148,7 @@
 맞바꿈 논증은 왜 맞바꿈마다 풀이가 나빠지지 않음을 보여야 하는가?
 
 ??? success "연습문제 3 풀이"
-    If an exchange could worsen the solution, we cannot guarantee convergence to the greedy solution through a sequence of non-worsening swaps starting from an optimal solution. The exchange argument builds a chain: $O = O_0 \to O_1 \to \cdots \to G$ where each $O_i$ is at least as good as $O_{i-1}$. If any step worsened the solution, we could not conclude $G \geq O$ (in quality). The non-worsening property is what bridges the gap between "greedy is feasible" and "greedy is optimal." $\square$
+    맞바꿈이 풀이를 나쁘게 할 수 있다면, 가장 좋은 풀이에서 비롯해 나빠지지 않는 맞바꿈을 잇달아 하여 욕심쟁이 풀이로 모여든다고 보장할 수 없다. 맞바꿈 따짐은 사슬 $O = O_0 \to O_1 \to \cdots \to G$을 세우며 $O_i$마다 $O_{i-1}$ 못지않게 좋다. 어느 걸음에서든 풀이가 나빠지면 $G \geq O$(좋음에서)이라고 맺을 수 없다. 나빠지지 않는다는 성질이 "욕심쟁이가 되는 풀이다"와 "욕심쟁이가 가장 좋다" 사이의 틈을 메운다. $\square$
 
 ---
 
@@ -156,4 +156,4 @@
 맞바꿈 논증과 "욕심쟁이가 앞선다" 재주를 견주어라. 저마다 언제 쓰는 것이 더 자연스러운가?
 
 ??? success "연습문제 4 풀이"
-    **Exchange argument**: Works by transforming any optimal solution into the greedy solution through local swaps. Natural for scheduling and assignment problems where solutions are permutations. **Greedy stays ahead**: Shows the greedy solution is at least as good as any other solution at every step (by induction). Natural for selection problems (like activity selection) where we build a solution incrementally. Both are valid for any greedy proof; the choice depends on which is easier to formalize for the specific problem. $\square$
+    **맞바꿈 따짐**: 그 자리 맞바꿈을 거듭해 아무 가장 좋은 풀이를 욕심쟁이 풀이로 바꾼다. 풀이가 자리바꿈인 일정 잡기나 배정 문제에 자연스럽다. **욕심쟁이가 앞서 있음**: 걸음마다 욕심쟁이 풀이가 다른 어떤 풀이 못지않게 좋음을 (미루어 나아가기로) 보인다. 활동 고르기처럼 풀이를 조금씩 쌓아 가는 고르기 문제에 자연스럽다. 어떤 욕심쟁이 증명에도 둘 다 쓸 수 있고, 문제마다 어느 쪽이 엄밀하게 적기 쉬운지에 따라 고른다. $\square$

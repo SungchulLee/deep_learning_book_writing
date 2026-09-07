@@ -11,7 +11,7 @@
 ## 엄밀한 정의
 
 !!! note "욕심쟁이 문제의 가장 좋은 아래 짜임"
-    A problem $\mathcal{P}$ exhibits **optimal substructure** if an optimal solution to $\mathcal{P}$ can be constructed from the greedy choice $g$ combined with an optimal solution to the subproblem $\mathcal{P}'$ that remains after making choice $g$:
+    $\mathcal{P}$의 가장 좋은 풀이를 욕심쟁이 고름 $g$과, $g$을 고른 뒤 남는 아래 문제 $\mathcal{P}'$의 가장 좋은 풀이를 아울러 지을 수 있으면 문제 $\mathcal{P}$은 **가장 좋은 아래 짜임**을 지닌다.
 
     $$
     \text{OPT}(\mathcal{P}) = \{g\} \cup \text{OPT}(\mathcal{P}')
@@ -23,13 +23,13 @@
 
 표준 증명 재주는 **오려 붙이기 논증**이다:
 
-1. **Assume** $S^*$ is an optimal solution to $\mathcal{P}$ that includes the greedy choice $g$.
-2. **Define** $S^* \setminus \{g\}$ as a candidate solution to the subproblem $\mathcal{P}'$.
-3. **Suppose for contradiction** that $S^* \setminus \{g\}$ is not optimal for $\mathcal{P}'$. Then there exists a strictly better solution $T'$ for $\mathcal{P}'$.
-4. **Paste**: form $S' = \{g\} \cup T'$. Since $T'$ is better than $S^* \setminus \{g\}$ for $\mathcal{P}'$, the combined solution $S'$ is better than $S^*$ for $\mathcal{P}$.
-5. **Contradiction**: this contradicts the optimality of $S^*$.
+1. $S^*$을 욕심쟁이 고름 $g$을 담은 $\mathcal{P}$의 가장 좋은 풀이라 **하자**.
+2. $S^* \setminus \{g\}$을 아래 문제 $\mathcal{P}'$의 후보 풀이로 **삼는다**.
+3. 어긋남을 보이려고 $S^* \setminus \{g\}$이 $\mathcal{P}'$에 대해 가장 좋지 않다고 **하자**. 그러면 $\mathcal{P}'$에 대해 반드시 더 나은 풀이 $T'$이 있다.
+4. **붙이기**: $S' = \{g\} \cup T'$을 만든다. $\mathcal{P}'$에 대해 $T'$이 $S^* \setminus \{g\}$보다 낫므로, 아우른 풀이 $S'$은 $\mathcal{P}$에 대해 $S^*$보다 낫다.
+5. **어긋남**: 이는 $S^*$이 가장 좋다는 것과 어긋난다.
 
-Therefore, $S^* \setminus \{g\}$ must be optimal for $\mathcal{P}'$.
+그러므로 $S^* \setminus \{g\}$은 $\mathcal{P}'$에 대해 가장 좋아야 한다.
 
 ## 보기: 활동 고르기
 
@@ -37,12 +37,12 @@ Therefore, $S^* \setminus \{g\}$ must be optimal for $\mathcal{P}'$.
 
 **욕심쟁이 고름.** 마침 시각 $f_1$이 가장 작은 활동 $a_1$을 고른다.
 
-**Subproblem.** Let $\mathcal{P}' = \{a_i : s_i \geq f_1\}$ be the set of activities that start after $a_1$ finishes.
+**아래 문제.** $\mathcal{P}' = \{a_i : s_i \geq f_1\}$을 $a_1$이 마친 뒤 비롯하는 활동의 모음이라 하자.
 
-**Optimal substructure claim.** If $S^* = \{a_1\} \cup R$ is an optimal solution containing $a_1$, then $R$ is an optimal solution to $\mathcal{P}'$.
+**가장 좋은 아래 짜임 주장.** $S^* = \{a_1\} \cup R$이 $a_1$을 담은 가장 좋은 풀이이면 $R$은 $\mathcal{P}'$의 가장 좋은 풀이다.
 
 ??? example "오려 붙이기 증명"
-    **Proof.** Suppose $R$ is not optimal for $\mathcal{P}'$. Then there exists a compatible set $R'$ for $\mathcal{P}'$ with $|R'| > |R|$. Since every activity in $R'$ starts after $f_1$, the set $\{a_1\} \cup R'$ is a compatible set for $\mathcal{P}$ with $|\{a_1\} \cup R'| = 1 + |R'| > 1 + |R| = |S^*|$. This contradicts the optimality of $S^*$, so $R$ must be optimal for $\mathcal{P}'$. $\square$
+    **증명.** $R$이 $\mathcal{P}'$에 대해 가장 좋지 않다고 하자. 그러면 $|R'| > |R|$인 $\mathcal{P}'$의 어울리는 모음 $R'$이 있다. $R'$의 활동은 모두 $f_1$ 뒤에 비롯하므로 모음 $\{a_1\} \cup R'$은 $\mathcal{P}$의 어울리는 모음이고 $|\{a_1\} \cup R'| = 1 + |R'| > 1 + |R| = |S^*|$이다. 이는 $S^*$이 가장 좋다는 것과 어긋나므로 $R$은 $\mathcal{P}'$에 대해 가장 좋아야 한다. $\square$
 
 ## 보기: 쪼갤 수 있는 배낭
 
@@ -50,13 +50,13 @@ Therefore, $S^* \setminus \{g\}$ must be optimal for $\mathcal{P}'$.
 
 **욕심쟁이 고름.** 값 대 무게 비 $v_i / w_i$가 가장 큰 물건을 될 수 있는 한 많이 담는다.
 
-**Optimal substructure.** After filling the knapsack with the greedy choice (fully or partially taking the best-ratio item), the remaining capacity $W' = W - \min(w_1, W)$ defines a subproblem. An optimal solution to the original problem restricted to the greedy choice decomposes as:
+**가장 좋은 아래 짜임.** 욕심쟁이 고름으로 배낭을 채운 뒤(견줌이 가장 좋은 물건을 온통 또는 얼마쯤 가져간 뒤) 남은 담는 힘 $W' = W - \min(w_1, W)$이 아래 문제를 매긴다. 욕심쟁이 고름으로 옭아맨 본디 문제의 가장 좋은 풀이는 다음과 같이 쪼개진다.
 
 $$
 \text{OPT}(W) = v_{\text{greedy}} + \text{OPT}(W')
 $$
 
-where $v_{\text{greedy}}$ is the value gained from the greedy choice.
+여기서 $v_{\text{greedy}}$은 욕심쟁이 고름에서 얻은 값이다.
 
 ## 동적 계획과의 대비
 
