@@ -4,7 +4,7 @@
 
 ## 바깥 기억 모형
 
-The analysis uses the **external memory (I/O) model** with three parameters:
+이 살핌은 매개변수 셋을 지닌 **바깥 기억 자리(입출력) 모형**을 쓴다.
 
 | 기호 | 뜻 |
 |--------|---------|

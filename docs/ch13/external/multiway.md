@@ -41,17 +41,17 @@ $$
 
 $M = 3{,}000$, $B = 1{,}000$으로 원소 $N = 12{,}000$개를 정렬해 보자.
 
-**Run formation:** 4 sorted runs of 3,000 elements each. Cost: $2 \times 12 = 24$ I/Os.
+**런 만들기:** 원소 3,000개짜리 줄 세운 런 4개. 값: 입출력 $2 \times 12 = 24$ 번.
 
-**Merge:** $k = \lfloor 3{,}000/1{,}000 \rfloor - 1 = 2$ input buffers.
+**합치기:** 들임 버퍼 $k = \lfloor 3{,}000/1{,}000 \rfloor - 1 = 2$개.
 
-- With $k = 2$: 2 passes, costing $2 \times 24 = 48$ I/Os. Total: 72 I/Os.
+- $k = 2$이면 2 번 훑으며 입출력 $2 \times 24 = 48$ 번이 든다. 모두 입출력 72 번.
 
-Now suppose $B = 500$, so $k = \lfloor 3{,}000/500 \rfloor - 1 = 5$:
+이제 $B = 500$이라 하면 $k = \lfloor 3{,}000/500 \rfloor - 1 = 5$이다.
 
-- All 4 runs merge in a single pass: $2 \times 24 = 48$ I/Os. Total: 72 I/Os.
+- 런 4개가 한 번에 모두 합쳐진다: 입출력 $2 \times 24 = 48$ 번. 모두 입출력 72 번.
 
-With larger memory ($M = 6{,}000$): only 2 runs, one merge pass suffices regardless.
+기억 자리가 더 크면($M = 6{,}000$) 런이 2개뿐이라 어느 쪽이든 합치기를 한 번만 하면 된다.
 
 ## k갈래 병합을 위한 최소 힙
 
@@ -60,7 +60,7 @@ With larger memory ($M = 6{,}000$): only 2 runs, one merge pass suffices regardl
 1. 최소 꺼내기가 아직 다루지 않은 원소 가운데 전체에서 가장 작은 것을 주고, 그것이 어느 런에서 왔는지 알려 준다.
 2. 그 런에서 다음 원소를 넣는다(비용 $O(\log k)$).
 
-After $N$ total extractions, the heap has performed $O(N \log k)$ work.
+모두 $N$ 번 꺼내고 나면 더미가 한 일감은 $O(N \log k)$이다.
 
 ## 구현
 

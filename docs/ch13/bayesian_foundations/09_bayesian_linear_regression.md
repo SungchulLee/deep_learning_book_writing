@@ -143,16 +143,16 @@ if __name__ == "__main__":
 
 ## 논의
 
-The Bayesian linear regression model assumes $y = X\beta + \varepsilon$ with $\varepsilon \sim N(0, \sigma^2 I)$ and places a Gaussian prior $\beta \sim N(m_0, V_0)$. The posterior is conjugate Gaussian: $\beta | y \sim N(m_n, V_n)$ where $V_n = (V_0^{-1} + \sigma^{-2} X^T X)^{-1}$ and $m_n = V_n(V_0^{-1} m_0 + \sigma^{-2} X^T y)$.
+베이즈 선형 회귀 모형은 $\varepsilon \sim N(0, \sigma^2 I)$인 $y = X\beta + \varepsilon$을 가정하고 정규 앞확률 $\beta \sim N(m_0, V_0)$을 둔다. 뒤확률은 켤레 정규다. 곧 $\beta | y \sim N(m_n, V_n)$이며 $V_n = (V_0^{-1} + \sigma^{-2} X^T X)^{-1}$이고 $m_n = V_n(V_0^{-1} m_0 + \sigma^{-2} X^T y)$이다.
 
-A key advantage is the predictive distribution. For a new input $x_*$, the prediction follows $y_* | y \sim N(x_*^T m_n, \sigma^2 + x_*^T V_n x_*)$. The extra term $x_*^T V_n x_*$ captures parameter uncertainty and causes predictive intervals to widen in data-sparse regions, providing automatic uncertainty calibration.
+고갱이 이점은 예측 분포다. 새 들임 $x_*$에 대해 예측은 $y_* | y \sim N(x_*^T m_n, \sigma^2 + x_*^T V_n x_*)$을 따른다. 덧붙은 마디 $x_*^T V_n x_*$이 매개변수 불확실성을 담아, 자료가 성긴 자리에서 예측 구간을 넓혀 불확실성 눈금을 저절로 맞춘다.
 
-The code generates synthetic data, computes the posterior analytically with a weakly informative prior, and visualizes both the posterior mean prediction and 95% predictive intervals. Drawing posterior samples of $\beta$ shows the family of plausible regression lines. The prior acts as regularization, connecting Bayesian regression to ridge regression when $V_0 = \lambda^{-1} I$.
+코드는 인공 자료를 만들고, 약하게 알려 주는 앞확률로 뒤확률을 해석적으로 셈하며, 뒤확률 평균 예측과 95% 예측 구간을 함께 그린다. $\beta$의 뒤확률 표본을 뽑으면 그럴듯한 회귀 직선의 무리가 보인다. 앞확률이 정칙화 노릇을 하며, $V_0 = \lambda^{-1} I$이면 베이즈 회귀가 능선 회귀와 이어진다.
 
 ## 연습문제
 
 **연습문제 1.**
-Implement Bayesian polynomial regression of degree 3 for data generated from $y = \sin(x) + \varepsilon$. Plot the predictive mean and 95% credible interval.
+$y = \sin(x) + \varepsilon$에서 만든 자료에 대해 차수 3의 베이즈 다항 회귀를 짜라. 예측 평균과 95% 믿음 구간을 그려라.
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -185,10 +185,10 @@ plt.show()
 ---
 
 **연습문제 2.**
-Show that the Bayesian posterior mean with prior $\beta \sim N(0, \lambda^{-1}I)$ is identical to the ridge regression estimator.
+앞확률이 $\beta \sim N(0, \lambda^{-1}I)$일 때 베이즈 뒤확률 평균이 능선 회귀 어림값과 같음을 보여라.
 
 ??? success "연습문제 2 풀이"
-    The posterior mean is $m_n = V_n(\sigma^{-2}X^Ty) = (\lambda I + \sigma^{-2}X^TX)^{-1}\sigma^{-2}X^Ty$. Multiplying numerator and denominator by $\sigma^2$: $m_n = (\lambda\sigma^2 I + X^TX)^{-1}X^Ty$. This is exactly the ridge regression solution $\hat{\beta}_{\text{ridge}} = (X^TX + \lambda\sigma^2 I)^{-1}X^Ty$, establishing the equivalence. $\square$
+    뒤확률 평균은 $m_n = V_n(\sigma^{-2}X^Ty) = (\lambda I + \sigma^{-2}X^TX)^{-1}\sigma^{-2}X^Ty$이다. 분자와 분모에 $\sigma^2$을 곱하면 $m_n = (\lambda\sigma^2 I + X^TX)^{-1}X^Ty$이다. 이는 능선 회귀 풀이 $\hat{\beta}_{\text{ridge}} = (X^TX + \lambda\sigma^2 I)^{-1}X^Ty$과 꼭 같으므로 둘이 같음이 세워진다. $\square$
 
 
 ---

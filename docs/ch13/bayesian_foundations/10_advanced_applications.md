@@ -123,9 +123,9 @@ if __name__ == "__main__":
 
 ## 논의
 
-Bayesian A/B testing models conversion rates using Beta posteriors. Starting from a uniform prior $\text{Beta}(1,1)$, the posterior for variant $k$ after observing $s_k$ successes in $n_k$ trials is $\text{Beta}(1 + s_k, 1 + n_k - s_k)$. The probability that B is better than A is computed via Monte Carlo: draw samples from both posteriors and estimate $P(\theta_B > \theta_A)$.
+베이즈 A/B 시험은 베타 뒤확률로 전환율을 모형으로 삼는다. 고른 앞확률 $\text{Beta}(1,1)$에서 비롯해, 갈래 $k$에서 $n_k$ 번 가운데 $s_k$ 번 성공을 살펴본 뒤의 뒤확률은 $\text{Beta}(1 + s_k, 1 + n_k - s_k)$이다. B이 A보다 나을 확률은 몬테카를로로 셈한다. 곧 두 뒤확률에서 표본을 뽑아 $P(\theta_B > \theta_A)$을 어림한다.
 
-A major advantage is computing the expected lift and its credible interval. The lift distribution $\theta_B / \theta_A - 1$ tells us not just whether B is better, but by how much. The 95% credible interval on lift provides a direct, interpretable range for practical significance, far more useful for decision-making than a binary significant/not-significant verdict.
+큰 이점은 기대 향상과 그 믿음 구간을 셈할 수 있다는 것이다. 향상 분포 $\theta_B / \theta_A - 1$은 B이 나은지뿐 아니라 얼마나 나은지도 알려 준다. 향상에 대한 95% 믿음 구간은 실제 뜻있음을 곧바로 읽을 수 있는 범위로 주므로, 뜻있다/없다는 두 갈래 판정보다 판단에 훨씬 쓸모 있다.
 
 베이즈 얼개는 원칙 있는 일찍 멈추기도 받쳐 준다. 자료를 여러 번 들여다본 것을 바로잡아야 하는 빈도주의 순차 시험과 달리, 베이즈 추론은 자료가 쌓이는 대로 믿음을 저절로 새로 고친다. '$P(B > A) > 0.95$이면 멈춘다' 같은 결정 규칙은 뒤확률을 곧바로 다스리므로 표본 크기를 크게 줄일 수 있다.
 
@@ -160,7 +160,7 @@ print(f'95% CI: [{np.percentile(lift,2.5)*100:.2f}%, {np.percentile(lift,97.5)*1
 ??? success "연습문제 2 풀이"
     빈도주의 p값은 표본 크기를 붙박이로 놓고 귀무가설 아래에서 셈한다. 결과를 여러 번 엿보다가 뜻있어지면 멈추면 사실상 시험을 여러 번 돌리는 셈이라 거짓 양성률이 부풀어 오른다. 본페로니나 알파 나눠 쓰기 함수 같은 바로잡기가 필요하다.
 
-Bayesian inference does not have this problem because the posterior probability $P(B > A | \text{data})$ is a valid probability statement at any point during the experiment. The posterior simply reflects the current state of evidence. If you observe more data, you update the posterior, but the probability statement remains coherent. There is no concept of 'multiple testing' because you are always working with the same model and the same posterior, just with more data incorporated.
+베이즈 추론에는 이런 문제가 없다. 뒤확률 $P(B > A | \text{data})$은 실험 도중 어느 때에도 올바른 확률 진술이기 때문이다. 뒤확률은 이제까지의 증거 상태를 그대로 비출 뿐이다. 자료를 더 살펴보면 뒤확률을 고치지만 확률 진술은 여전히 앞뒤가 맞는다. 늘 같은 모형과 같은 뒤확률을 다루되 자료만 더 넣는 것이므로 '여러 번 시험하기'라는 개념 자체가 없다.
 
 
 ---

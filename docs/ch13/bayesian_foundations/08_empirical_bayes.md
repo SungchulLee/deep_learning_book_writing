@@ -147,7 +147,7 @@ if __name__ == "__main__":
 ## 연습문제
 
 **연습문제 1.**
-Implement the empirical Bayes procedure for a Normal-Normal model. Given 10 observations $y_i \sim N(\theta_i, 1)$ with $\theta_i \sim N(\mu, \tau^2)$, estimate $\mu$ and $\tau^2$ from the marginal distribution and compute the shrinkage estimates.
+정규-정규 모형에 대한 경험 베이즈 절차를 짜라. $\theta_i \sim N(\mu, \tau^2)$이고 관측값이 $y_i \sim N(\theta_i, 1)$인 10개가 주어졌을 때 주변 분포에서 $\mu$과 $\tau^2$을 어림하고 오그림 어림값을 셈하여라.
 
 ??? success "연습문제 1 풀이"
     ```python
@@ -174,10 +174,10 @@ print(f'MSE (EB):  {np.mean((eb_est - thetas)**2):.4f}')
 ---
 
 **연습문제 2.**
-Explain why the James-Stein estimator dominates the MLE only for dimension $p \geq 3$. What happens in dimensions 1 and 2?
+제임스-스타인 어림값이 차원 $p \geq 3$에서만 최대가능도 어림값을 앞서는 까닭을 밝혀라. 차원 1과 2에서는 어떻게 되는가?
 
 ??? success "연습문제 2 풀이"
-    The James-Stein estimator shrinks the MLE toward a target point and has the form $\hat{\theta}_{JS} = \bar{y} + (1 - (p-2)/\|y - \bar{y}\|^2)(y - \bar{y})$ where $p$ is the dimension. The shrinkage factor $(p-2)/\|y-\bar{y}\|^2$ is only positive when $p \geq 3$, which is why the result requires at least three dimensions.
+    제임스-스타인 어림값은 최대가능도 어림값을 어떤 과녁 점 쪽으로 오그리며 $\hat{\theta}_{JS} = \bar{y} + (1 - (p-2)/\|y - \bar{y}\|^2)(y - \bar{y})$ 꼴이다. 여기서 $p$은 차원이다. 오그림 값 $(p-2)/\|y-\bar{y}\|^2$은 $p \geq 3$일 때만 양수이며, 그래서 이 결과에는 차원이 적어도 셋이어야 한다.
 
 차원이 1과 2일 때 MLE은 받아들일 수 있다. 곧 평균 제곱 오차로 볼 때 어떤 어림자도 그것을 고르게 누를 수 없다는 뜻이다. 이것이 스타인의 역설이다. 낱낱의 어림값은 가장 좋지만, 매개변수를 셋 이상 함께 어림할 때는 공통 값 쪽으로 오그라뜨려 늘 더 잘할 수 있다.
 

@@ -4,10 +4,10 @@
 
 ## 알고리즘 훑어보기
 
-Given $n$ elements uniformly distributed over $[0, 1)$:
+$[0, 1)$에 고르게 흩어진 원소 $n$개가 주어졌을 때
 
-1. **Create** $n$ empty buckets $B[0], B[1], \dots, B[n-1]$.
-2. **Distribute.** For each element $x$, insert it into bucket $B[\lfloor n \cdot x \rfloor]$.
+1. 빈 통 $n$개 $B[0], B[1], \dots, B[n-1]$을 **만든다**.
+2. **나눈다.** 원소 $x$마다 통 $B[\lfloor n \cdot x \rfloor]$에 넣는다.
 3. **Sort** each bucket individually (insertion sort works well since buckets are small).
 4. **Concatenate** all buckets in order to produce the sorted output.
 

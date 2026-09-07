@@ -157,9 +157,9 @@ if __name__ == "__main__":
 
 ## 논의
 
-A hierarchical Bayesian model introduces multiple levels of uncertainty. At the lowest level, data within each group are generated from group-specific parameters $\theta_i$. At the next level, these group parameters are drawn from a shared population distribution governed by hyperparameters $\mu$ and $\tau$. This structure creates a natural mechanism for partial pooling: each group's estimate is pulled toward the population mean by an amount that depends on both the group's sample size and the between-group variability.
+층 베이즈 모형은 불확실성을 여러 켜로 나눈다. 가장 아래 켜에서는 무리마다 그 무리의 매개변수 $\theta_i$에서 자료가 나온다. 다음 켜에서는 이 무리 매개변수가 웃매개변수 $\mu$과 $\tau$이 다스리는 함께 쓰는 모집단 분포에서 뽑힌다. 이 짜임은 부분 모으기라는 자연스러운 얼개를 낳는다. 무리마다의 어림이 그 무리의 표본 크기와 무리 사이 흩어짐에 따라 정해지는 만큼 모집단 평균 쪽으로 끌린다.
 
-The shrinkage weight for group $i$ is approximately $w_i = n_i / (n_i + \sigma^2 / \tau^2)$, where $n_i$ is the sample size, $\sigma^2$ is the within-group variance, and $\tau^2$ is the between-group variance. Groups with smaller samples have weights closer to zero, meaning their estimates are pulled more strongly toward the grand mean. This is precisely the behavior we want: when we have little data for a group, we rely more on the population-level information.
+무리 $i$의 오그림 무게는 어림잡아 $w_i = n_i / (n_i + \sigma^2 / \tau^2)$이다. 여기서 $n_i$은 표본 크기, $\sigma^2$은 무리 안 흩어짐, $\tau^2$은 무리 사이 흩어짐이다. 표본이 작은 무리는 무게가 0에 가까워 그 어림이 온 평균 쪽으로 더 세게 끌린다. 이것이 바로 우리가 바라는 결이다. 어떤 무리의 자료가 적으면 모집단 수준의 소식에 더 기대게 된다.
 
 코드는 이를 흉내 낸 "여덟 학교" 상황으로 보인다. 어울림 없음(학교마다 따로 어림), 온전한 어울림(모든 학교에 큰 평균을 줌), 얼마쯤 어울림(층 오그라들기)을 견주면 얼마쯤 어울림이 참된 효과에 더 가까운 어림값을 내놓음을 본다. 이 길은 교육 연구, 임상 시험, 스포츠 분석을 비롯해 자료가 저절로 무리 지어지는 어느 분야에서나 널리 쓰인다.
 
@@ -201,19 +201,19 @@ $p = 0.4$인 불공평한 놀이(노름꾼에게 불리하게 치우친)를 쓰�
 ---
 
 **연습문제 2.**
-Explain why the shrinkage weight $w_i = n_i / (n_i + \sigma^2 / \tau^2)$ approaches 1 as $n_i \to \infty$ and approaches 0 as $n_i \to 0$. What does this mean practically for estimation?
+오그림 무게 $w_i = n_i / (n_i + \sigma^2 / \tau^2)$이 $n_i \to \infty$이면 1에, $n_i \to 0$이면 0에 다가가는 까닭을 밝혀라. 어림에서 이것이 실제로 뜻하는 바는 무엇인가?
 
 ??? success "연습문제 2 풀이"
-    When $n_i \to \infty$, the ratio becomes $n_i / n_i = 1$, so the group estimate equals the observed mean with no shrinkage. This makes sense: with infinite data, the group-specific estimate is perfectly reliable and needs no borrowing from other groups.
+    $n_i \to \infty$이면 비는 $n_i / n_i = 1$이 되므로 무리 어림이 오그라듦 없이 살펴본 평균과 같아진다. 이는 이치에 닿는다. 자료가 끝없이 많으면 그 무리만의 어림이 온전히 믿을 만하므로 다른 무리에서 빌려 올 것이 없다.
 
-    When $n_i \to 0$, the ratio becomes $0 / (\sigma^2/\tau^2) = 0$, so the estimate collapses to the grand mean. With no data for a group, the best prediction is the population average.
+    $n_i \to 0$이면 비는 $0 / (\sigma^2/\tau^2) = 0$이 되므로 어림이 온 평균으로 주저앉는다. 어떤 무리의 자료가 없으면 가장 좋은 예측은 모집단 평균이다.
 
     실전으로 보면 층 모형은 무리마다의 자료를 믿는 쪽과 모집단 정보에 기대는 쪽 사이를 스스로 맞춘다는 뜻이다. 관측이 많은 무리는 더 낱낱으로 다뤄지고, 자료가 성긴 무리는 함께 쓰는 모집단 어림값에 크게 기댄다.
 
 ---
 
 **연습문제 3.**
-Extend the code to compute 95% credible intervals for each school's effect under partial pooling. Assume the posterior for each $\theta_i$ is approximately normal with mean equal to the partial pooling estimate and variance $(1/n_i + 1/\tau^2)^{-1} \cdot \sigma^2 / n_i$. Compare interval widths across schools.
+부분 모으기에서 학교마다의 효과에 대한 95% 믿음 구간을 셈하도록 코드를 넓혀라. $\theta_i$의 뒤확률이 평균은 부분 모으기 어림과 같고 흩어짐은 $(1/n_i + 1/\tau^2)^{-1} \cdot \sigma^2 / n_i$인 정규 분포에 가깝다고 보아라. 학교마다 구간 너비를 견주어라.
 
 ??? success "연습문제 3 풀이"
     ```python
