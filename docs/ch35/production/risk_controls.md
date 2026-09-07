@@ -1,16 +1,16 @@
-# Risk Controls
+# 무릅씀 다스리개
 
-Chapter 35.7.4: Risk Controls Production risk controls with kill switches and position limits.
+35.7.4장: 무릅씀 다스리개. 죽임 스위치와 자리 위끝을 갖춘 서비스 무릅씀 다스리기.
 
-Deploying deep learning in quantitative finance requires robust production infrastructure. This module covers production system design patterns including monitoring, risk controls, and deployment strategies for financial applications.
+계량 금융에 깊은 배움을 올리려면 든든한 서비스 바탕이 있어야 한다. 이 꾸러미는 지켜보기, 무릅씀 다스리기, 금융 쓰임을 서비스에 올리는 꾀를 아우르는 서비스 얼개 설계 결을 다룬다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 35.7.4: Risk Controls
+35.7.4장: 무릅씀 다스리개
 ================================
-Production risk controls with kill switches and position limits.
+죽임 스위치와 자리 위끝을 갖춘 서비스 무릅씀 다스리기.
 """
 
 import numpy as np
@@ -19,7 +19,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
@@ -43,7 +43,7 @@ class RiskControlConfig:
 
 
 class PreTradeRiskCheck:
-    """Pre-trade risk checks before order submission."""
+    """주문을 내기에 앞서 하는 거래 앞 무릅씀 살피기."""
 
     def __init__(self, config: RiskControlConfig):
         self.config = config
@@ -52,27 +52,27 @@ class PreTradeRiskCheck:
               portfolio_value: float) -> Dict:
         issues = []
 
-        # Position limits
+        # 자리 위끝
         max_pos = np.max(np.abs(target_weights))
         if max_pos > self.config.max_position_per_asset:
-            issues.append(f"Position limit: max={max_pos:.3f}")
+            issues.append(f"자리 위끝: 가장 큼={max_pos:.3f}")
 
-        # Leverage
+        # 지렛대
         leverage = np.sum(np.abs(target_weights))
         if leverage > self.config.max_leverage:
-            issues.append(f"Leverage limit: {leverage:.3f}")
+            issues.append(f"지렛대 위끝: {leverage:.3f}")
 
-        # Order size (fat-finger)
+        # 주문 크기(손가락 헛짚기)
         delta = np.abs(target_weights - current_weights)
         max_order = np.max(delta)
         if max_order > self.config.max_order_size:
-            issues.append(f"Order size: max={max_order:.3f}")
+            issues.append(f"주문 크기: 가장 큼={max_order:.3f}")
 
         passed = len(issues) == 0
         return {"passed": passed, "issues": issues}
 
     def enforce(self, target_weights: np.ndarray) -> np.ndarray:
-        """Clip weights to satisfy constraints."""
+        """매임을 채우도록 몫을 잘라 낸다."""
         w = np.clip(target_weights, -self.config.max_position_per_asset,
                      self.config.max_position_per_asset)
         leverage = np.sum(np.abs(w))
@@ -82,7 +82,7 @@ class PreTradeRiskCheck:
 
 
 class KillSwitch:
-    """Emergency kill switch for trading system."""
+    """거래 얼개를 위한 다급할 때의 죽임 스위치."""
 
     def __init__(self, config: RiskControlConfig):
         self.config = config
@@ -108,22 +108,22 @@ class KillSwitch:
 
         drawdown = (self.peak_value - self.current_value) / (self.peak_value + 1e-8)
 
-        # Check triggers
+        # 당김쇠를 살핀다
         if self.daily_pnl < -self.config.max_daily_loss:
             self.triggered = True
-            self.trigger_reason = f"Daily loss limit: {self.daily_pnl*100:.1f}%"
+            self.trigger_reason = f"오늘 잃음 위끝: {self.daily_pnl*100:.1f}%"
             return RiskAction.FLATTEN
 
         if drawdown > self.config.max_drawdown:
             self.triggered = True
-            self.trigger_reason = f"Drawdown limit: {drawdown*100:.1f}%"
+            self.trigger_reason = f"내림폭 위끝: {drawdown*100:.1f}%"
             return RiskAction.FLATTEN
 
         if self.daily_turnover > self.config.max_daily_turnover:
-            self.trigger_reason = f"Turnover limit: {self.daily_turnover:.1f}x"
+            self.trigger_reason = f"갈아치움 위끝: {self.daily_turnover:.1f}곱절"
             return RiskAction.HALT
 
-        # Scale down when approaching limits
+        # 위끝에 다가가면 줄인다
         if drawdown > self.config.max_drawdown * 0.7:
             return RiskAction.SCALE_DOWN
         if self.daily_pnl < -self.config.max_daily_loss * 0.7:
@@ -131,7 +131,7 @@ class KillSwitch:
 
         return RiskAction.PASS
 
-    def manual_trigger(self, reason: str = "Manual override"):
+    def manual_trigger(self, reason: str = "손으로 젖힘"):
         self.triggered = True
         self.trigger_reason = reason
 
@@ -141,7 +141,7 @@ class KillSwitch:
 
 
 class VolatilityScaler:
-    """Scale positions based on current volatility."""
+    """지금 출렁임에 맞추어 자리를 키우거나 줄인다."""
 
     def __init__(self, config: RiskControlConfig, lookback: int = 20):
         self.config = config
@@ -164,7 +164,7 @@ class VolatilityScaler:
 
 
 class ProductionRiskManager:
-    """Complete production risk management system."""
+    """온전히 갖춘 서비스 무릅씀 다루기 얼개."""
 
     def __init__(self, config: RiskControlConfig, num_assets: int):
         self.config = config
@@ -177,7 +177,7 @@ class ProductionRiskManager:
                        current_weights: np.ndarray,
                        portfolio_return: float = 0.0,
                        turnover: float = 0.0) -> Dict:
-        # Update risk state
+        # 무릅씀 상태를 고쳐 쓴다
         self.vol_scaler.update(portfolio_return)
         action = self.kill_switch.update(portfolio_return, turnover)
 
@@ -189,15 +189,15 @@ class ProductionRiskManager:
             return {"weights": np.zeros(self.num_assets), "action": action,
                     "reason": self.kill_switch.trigger_reason}
 
-        # Vol scaling
+        # 출렁임에 맞추어 크기 잡기
         vol_scale = self.vol_scaler.get_scale()
         scaled_weights = target_weights * vol_scale
 
-        # Scale down if approaching limits
+        # 위끝에 다가가면 줄인다
         if action == RiskAction.SCALE_DOWN:
             scaled_weights *= 0.5
 
-        # Pre-trade checks and enforcement
+        # 거래 앞 살피기와 매임 걸기
         check = self.pre_trade.check(scaled_weights, current_weights, 1.0)
         final_weights = self.pre_trade.enforce(scaled_weights)
 
@@ -211,9 +211,9 @@ class ProductionRiskManager:
 
 
 def demo_risk_controls():
-    """Demonstrate production risk controls."""
+    """서비스 무릅씀 다스리개를 보인다."""
     print("=" * 70)
-    print("Production Risk Controls Demonstration")
+    print("서비스 무릅씀 다스리개 보이기")
     print("=" * 70)
 
     config = RiskControlConfig(
@@ -226,12 +226,12 @@ def demo_risk_controls():
     np.random.seed(42)
     weights = np.ones(N) / N
 
-    print("\n--- Simulation with Risk Controls ---")
+    print("\n--- 무릅씀 다스리개를 얹은 흉내내기 ---")
     for step in range(50):
-        target = np.random.dirichlet(np.ones(N)) * 1.2  # Slightly aggressive
+        target = np.random.dirichlet(np.ones(N)) * 1.2  # 조금 세게 잡는다
         ret = np.random.randn() * 0.01 + 0.0002
         if 20 <= step <= 30:
-            ret -= 0.012  # Drawdown
+            ret -= 0.012  # 내림폭
 
         turnover = np.sum(np.abs(target - weights))
         result = rm.process_action(target, weights, ret, turnover)
@@ -239,83 +239,83 @@ def demo_risk_controls():
 
         action = result["action"]
         if action != RiskAction.PASS:
-            print(f"  Step {step}: [{action.value}] "
+            print(f"  걸음 {step}: [{action.value}] "
                   f"{result.get('reason', '')} "
                   f"vol_scale={result.get('vol_scale', 'N/A')}")
 
-    print(f"\nKill switch triggered: {rm.kill_switch.triggered}")
+    print(f"\n죽임 스위치가 당겨졌는가: {rm.kill_switch.triggered}")
     if rm.kill_switch.triggered:
-        print(f"Reason: {rm.kill_switch.trigger_reason}")
+        print(f"까닭: {rm.kill_switch.trigger_reason}")
 
-    # Pre-trade check examples
-    print("\n--- Pre-Trade Risk Checks ---")
+    # 거래 앞 살피기 보기
+    print("\n--- 거래 앞 무릅씀 살피기 ---")
     tests = [
-        ("Normal", np.array([0.2, 0.2, 0.2, 0.2, 0.2])),
-        ("Concentrated", np.array([0.5, 0.3, 0.1, 0.05, 0.05])),
-        ("High leverage", np.array([0.5, 0.4, 0.3, 0.2, 0.1])),
+        ("여느 것", np.array([0.2, 0.2, 0.2, 0.2, 0.2])),
+        ("쏠린 것", np.array([0.5, 0.3, 0.1, 0.05, 0.05])),
+        ("지렛대 큰 것", np.array([0.5, 0.4, 0.3, 0.2, 0.1])),
     ]
     for name, w in tests:
         check = rm.pre_trade.check(w, np.ones(N) / N, 1e6)
         enforced = rm.pre_trade.enforce(w)
-        print(f"  {name:<15}: passed={check['passed']}, "
-              f"issues={check['issues'] or 'none'}")
-        print(f"  {'':15}  enforced={np.round(enforced, 3)}")
+        print(f"  {name:<15}: 지나감={check['passed']}, "
+              f"걸린 것={check['issues'] or '없음'}")
+        print(f"  {'':15}  매임 건 뒤={np.round(enforced, 3)}")
 
 
 if __name__ == "__main__":
     demo_risk_controls()```
 
-## Discussion
+## 논의
 
-This implementation demonstrates key concepts in production system using clean, readable PyTorch code. The modular structure makes it easy to study individual components and adapt them for different tasks or datasets.
+이 짜보기는 깔끔하고 읽기 쉬운 PyTorch 코드로 서비스 얼개의 고갱이가 되는 생각을 보여 준다. 조각으로 나눈 얼개 덕에 부분마다 따로 살피고 다른 일이나 자료에 맞추어 고치기 쉽다.
 
-The patterns demonstrated here extend naturally to more complex scenarios. Experimenting with hyperparameters, architectural variations, and different datasets deepens understanding and builds practical intuition for deployment tasks.
+여기서 보인 결은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 얼개의 갈래, 여러 자료를 바꿔 가며 해 보면 이해가 깊어지고 서비스에 올리는 일에 대한 감이 몸에 붙는다.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Read through the code and identify the key design decisions. List three specific implementation choices and explain why each is appropriate for production system.
+**익힘 1.**
+코드를 읽고 고갱이가 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 서비스 얼개에 알맞은지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Design decisions vary by implementation but commonly include: (1) choice of activation functions -- ReLU variants provide non-saturating gradients for faster training; (2) normalization strategy -- batch normalization stabilizes training by reducing internal covariate shift; (3) residual connections -- when present, they enable gradient flow in deep networks by providing skip paths. Each choice reflects a trade-off between expressiveness, computational cost, and training stability.
-
----
-
-**Exercise 2.**
-Add input validation to the main function or class to check that inputs have the expected shape and dtype. Raise informative error messages for invalid inputs.
-
-??? success "Solution to Exercise 2"
-    At the start of the `forward` method (or relevant function), add checks like: `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'` and `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. For shape validation, check critical dimensions: `B, C, H, W = x.shape; assert C == self.expected_channels`. Informative error messages significantly speed up debugging and make the code more robust for reuse.
+??? success "익힘 1 풀이"
+    설계 판단은 짜보기마다 다르나 흔히 이런 것이 있다. (1) 살림 함수 고르기 -- ReLU 갈래는 기울기가 잦아들지 않아 익히기가 빠르다. (2) 고르게 하는 꾀 -- 묶음 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 익힘을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 그물에서 기울기가 흐르게 한다. 고른 것마다 나타내는 힘, 셈 값, 익힘의 든든함 사이의 맞바꿈을 드러낸다.
 
 ---
 
-**Exercise 3.**
-Describe two potential failure modes of this implementation and explain how you would diagnose and fix each one.
+**익힘 2.**
+들임의 꼴과 자료 갈래가 바라는 대로인지 살피는 들임 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 들임에는 알아듣기 쉬운 어긋남 알림을 띄워라.
 
-??? success "Solution to Exercise 3"
-    Common failure modes include: (1) **Vanishing/exploding gradients** -- diagnosed by monitoring gradient norms (`torch.nn.utils.clip_grad_norm_` or logging `param.grad.norm()` per layer). Fix with gradient clipping, better initialization (Xavier/Kaiming), or architectural changes (residual connections, normalization). (2) **Overfitting** -- diagnosed when training loss decreases but validation loss increases. Fix with regularization (dropout, weight decay, data augmentation) or reducing model capacity. Always monitor both training and validation metrics to catch these issues early.
+??? success "익힘 2 풀이"
+    `forward` 방법(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 꼴을 살피려면 종요로운 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 벌레잡기를 크게 앞당기고 코드를 되쓰기 든든하게 한다.
 
 ---
 
-**Exercise 4.**
-Write a comprehensive test function that validates the Risk Controls implementation. Test edge cases including empty inputs, single-element inputs, very large inputs, and inputs with extreme values (zeros, very large numbers).
+**익힘 3.**
+이 짜보기가 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
 
-??? success "Solution to Exercise 4"
-    Create a test function that exercises boundary conditions:
+??? success "익힘 3 풀이"
+    흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 얼개 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 살핌 잃음이 오르면 짚어낸다. 정칙화(드롭아웃, 짐 줄이기, 자료 늘리기)나 모형 크기 줄이기로 고친다. 익힘과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+
+---
+
+**익힘 4.**
+무릅씀 다스리개 짜보기를 살피는 두루 갖춘 시험 함수를 써라. 빈 들임, 원소 하나짜리 들임, 아주 큰 들임, 그리고 끝자락 값(0, 아주 큰 수)이 든 들임 같은 가장자리 자리를 시험하여라.
+
+??? success "익힘 4 풀이"
+    금 언저리 조건을 두루 건드리는 시험 함수를 짓는다.
     ```python
     def test_riskaction():
         model = RiskAction(...)
-        # Normal input
+        # 여느 들임
         assert model(normal_input).shape == expected_shape
-        # Single element batch
+        # 원소 하나짜리 묶음
         assert model(single_input).shape == (1, ...)
-        # Large values (check for overflow)
+        # 큰 값(넘침을 살핀다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # Gradient flow
+        # 기울기 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    Testing gradient flow is especially important to ensure the architecture supports end-to-end training.
+    얼개가 끝에서 끝까지 익히기를 받치는지 알려면 기울기 흐름을 시험하는 것이 특히 중요하다.
