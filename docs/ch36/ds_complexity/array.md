@@ -1,165 +1,162 @@
-# Array Complexities
+# 배열 복잡도
 
-Arrays are the most fundamental data structure in computing. They store elements in
-contiguous memory, providing $O(1)$ random access by index -- a property that no other
-data structure can match. Understanding the complexity of each array operation is
-essential because arrays underlie nearly every other data structure.
+배열은 셈틀에서 가장 밑바탕이 되는 자료 얼개다. 원소를 잇닿은 기억에 담아
+번호로 $O(1)$에 아무 데나 닿게 해 준다. 다른 어떤 자료 얼개도 이에 맞먹지
+못한다. 배열 연산마다의 복잡도를 아는 일은 종요롭다. 거의 모든 다른 자료
+얼개가 배열 위에 서 있기 때문이다.
 
-## Static Array Operations
+## 붙박이 배열 연산
 
-A static array has a fixed size determined at allocation. Elements cannot be added or
-removed; only the values at existing indices can be modified.
+붙박이 배열은 자리를 내줄 때 크기가 정해진다. 원소를 더하거나 뺄 수 없고
+이미 있는 번호의 값만 고칠 수 있다.
 
-| Operation | Time | Notes |
+| 연산 | 때 | 짚을 것 |
 |---|---|---|
-| Access by index | $O(1)$ | Direct memory offset calculation |
-| Update by index | $O(1)$ | Same as access |
-| Search (unsorted) | $O(n)$ | Must scan all elements |
-| Search (sorted) | $O(\log n)$ | Binary search |
-| Find min/max | $O(n)$ | Must scan all elements |
+| 번호로 닿기 | $O(1)$ | 기억 자리를 곧바로 셈한다 |
+| 번호로 고치기 | $O(1)$ | 닿기와 같다 |
+| 찾기(줄 세우지 않음) | $O(n)$ | 온 원소를 훑어야 한다 |
+| 찾기(줄 세움) | $O(\log n)$ | 이진 찾기 |
+| 가장 작은/큰 것 찾기 | $O(n)$ | 온 원소를 훑어야 한다 |
 
-The $O(1)$ access time comes from the address formula: element at index $i$ is located
-at memory address
+$O(1)$ 닿기는 주소 꼴에서 온다. 번호 $i$의 원소는 다음 기억 주소에 있다.
 
 $$
-\text{base} + i \times \text{element\_size}
+\text{밑자리} + i \times \text{원소\_크기}
 $$
 
-This formula requires contiguous memory allocation, which is the defining property of
-arrays.
+이 꼴은 잇닿은 기억을 바라며, 이것이 배열을 배열답게 하는 됨됨이다.
 
-## Dynamic Array Operations
+## 움직이는 배열 연산
 
-A dynamic array (Python `list`, C++ `vector`, Java `ArrayList`) automatically resizes
-when capacity is exceeded, typically by doubling.
+움직이는 배열(파이썬 `list`, C++ `vector`, 자바 `ArrayList`)은 담는 크기를
+넘으면 스스로 크기를 늘린다. 흔히 두 곱절로 늘린다.
 
-| Operation | Average | Worst | Amortized | Notes |
+| 연산 | 고르게 | 가장 나쁠 때 | 고르게 나눈 | 짚을 것 |
 |---|---|---|---|---|
-| Access by index | $O(1)$ | $O(1)$ | -- | Same as static |
-| Append (push back) | $O(1)$ | $O(n)$ | $O(1)$ | Resize triggers copy |
-| Insert at index $i$ | $O(n)$ | $O(n)$ | -- | Shifts $n - i$ elements |
-| Delete at index $i$ | $O(n)$ | $O(n)$ | -- | Shifts $n - i$ elements |
-| Pop last | $O(1)$ | $O(1)$ | $O(1)$ | No shifting needed |
-| Search | $O(n)$ | $O(n)$ | -- | Linear scan |
+| 번호로 닿기 | $O(1)$ | $O(1)$ | -- | 붙박이와 같다 |
+| 뒤에 붙이기 | $O(1)$ | $O(n)$ | $O(1)$ | 크기를 늘리면 베낀다 |
+| 번호 $i$에 넣기 | $O(n)$ | $O(n)$ | -- | 원소 $n - i$개를 민다 |
+| 번호 $i$에서 지우기 | $O(n)$ | $O(n)$ | -- | 원소 $n - i$개를 민다 |
+| 마지막 것 빼기 | $O(1)$ | $O(1)$ | $O(1)$ | 밀 것이 없다 |
+| 찾기 | $O(n)$ | $O(n)$ | -- | 죽 훑는다 |
 
-!!! tip "Why Amortized O(1) for Append"
-    When the array is full, doubling the capacity costs $O(n)$ to copy all
-    elements. But this happens only after $n$ cheap $O(1)$ appends. Spreading the
-    expensive copy over the preceding cheap operations gives $O(1)$ amortized cost
-    per append.
+!!! tip "뒤에 붙이기가 왜 고르게 나눈 O(1)인가"
+    배열이 꽉 찼을 때 담는 크기를 두 곱절로 늘리면 온 원소를 베끼느라
+    $O(n)$이 든다. 그런데 이는 싼 $O(1)$ 붙이기를 $n$번 한 뒤에야 일어난다.
+    비싼 베끼기를 앞선 싼 연산에 고르게 나누면 붙이기마다 $O(1)$이 된다.
 
-## Sorted Array Operations
+## 줄 세운 배열 연산
 
-Maintaining a sorted array enables binary search but makes insertion expensive.
+배열을 줄 세워 두면 이진 찾기를 쓸 수 있으나 넣기가 비싸진다.
 
-| Operation | Time | Notes |
+| 연산 | 때 | 짚을 것 |
 |---|---|---|
-| Search | $O(\log n)$ | Binary search |
-| Insert (maintaining order) | $O(n)$ | Find position + shift elements |
-| Delete (maintaining order) | $O(n)$ | Find element + shift elements |
-| Find min | $O(1)$ | First element |
-| Find max | $O(1)$ | Last element |
-| Find predecessor/successor | $O(\log n)$ | Binary search variant |
-| Merge two sorted arrays | $O(m + n)$ | Two-pointer merge |
+| 찾기 | $O(\log n)$ | 이진 찾기 |
+| 넣기(차례를 지키며) | $O(n)$ | 자리를 찾고 원소를 민다 |
+| 지우기(차례를 지키며) | $O(n)$ | 원소를 찾고 민다 |
+| 가장 작은 것 찾기 | $O(1)$ | 첫 원소 |
+| 가장 큰 것 찾기 | $O(1)$ | 마지막 원소 |
+| 앞/뒤 이웃 찾기 | $O(\log n)$ | 이진 찾기의 갈래 |
+| 줄 세운 배열 둘 합치기 | $O(m + n)$ | 손가락질 둘로 합친다 |
 
-## Multidimensional Arrays
+## 여러 차원 배열
 
-A 2D array of size $m \times n$ uses either row-major or column-major layout.
+크기 $m \times n$인 2차원 배열은 가로줄 앞섬이나 세로줄 앞섬으로 놓인다.
 
-| Operation | Time | Notes |
+| 연산 | 때 | 짚을 것 |
 |---|---|---|
-| Access `A[i][j]` | $O(1)$ | Offset = $i \times n + j$ (row-major) |
-| Row traversal | $O(n)$ | Cache-friendly in row-major |
-| Column traversal | $O(m)$ | Cache-unfriendly in row-major |
-| Full traversal | $O(mn)$ | Row-by-row is faster due to caching |
-| Transpose | $O(mn)$ | Must visit every element |
+| `A[i][j]`에 닿기 | $O(1)$ | 자리 = $i \times n + j$ (가로줄 앞섬) |
+| 가로줄 훑기 | $O(n)$ | 가로줄 앞섬에서 캐시에 잘 맞는다 |
+| 세로줄 훑기 | $O(m)$ | 가로줄 앞섬에서 캐시에 맞지 않는다 |
+| 온통 훑기 | $O(mn)$ | 캐시 덕에 가로줄씩 훑는 쪽이 빠르다 |
+| 뒤집기 | $O(mn)$ | 원소마다 들러야 한다 |
 
-!!! warning "Cache Performance"
-    Traversing a 2D array column-by-column in a row-major language (C, C++, Python
-    NumPy default) causes cache misses at every access. For large matrices, this
-    can be 10--100x slower than row-by-row traversal.
+!!! warning "캐시 빠르기"
+    가로줄 앞섬인 말(C, C++, 파이썬 NumPy의 맡긴 값)에서 2차원 배열을
+    세로줄씩 훑으면 닿을 때마다 캐시가 빗나간다. 큰 행렬이면 가로줄씩
+    훑는 것보다 10~100곱절 느려질 수 있다.
 
-## Space Complexity
+## 자리 복잡도
 
-| Array Type | Space | Notes |
+| 배열 갈래 | 자리 | 짚을 것 |
 |---|---|---|
-| Static array of $n$ elements | $O(n)$ | Exact: $n \times$ element size |
-| Dynamic array | $O(n)$ | Up to $2n$ allocated due to doubling |
-| 2D array $m \times n$ | $O(mn)$ | Contiguous or array of pointers |
-| Sparse array (hash map) | $O(k)$ | $k$ = number of non-zero elements |
+| 원소 $n$개짜리 붙박이 배열 | $O(n)$ | 꼭 $n \times$ 원소 크기 |
+| 움직이는 배열 | $O(n)$ | 두 곱절로 늘리므로 $2n$까지 잡는다 |
+| 2차원 배열 $m \times n$ | $O(mn)$ | 잇닿거나 손가락질의 배열 |
+| 성긴 배열(해시 짝지음) | $O(k)$ | $k$ = 0이 아닌 원소의 수 |
 
-## Common Array Algorithms and Their Complexities
+## 흔한 배열 알고리즘과 그 복잡도
 
-| Algorithm | Time | Space | Notes |
+| 알고리즘 | 때 | 자리 | 짚을 것 |
 |---|---|---|---|
-| Prefix sum (build) | $O(n)$ | $O(n)$ | Enables $O(1)$ range sum queries |
-| Prefix sum (query) | $O(1)$ | -- | $\text{sum}(l, r) = P[r+1] - P[l]$ |
-| Kadane's algorithm | $O(n)$ | $O(1)$ | Maximum subarray sum |
-| Dutch National Flag | $O(n)$ | $O(1)$ | 3-way partition |
-| Rotate by $k$ | $O(n)$ | $O(1)$ | Three reversals trick |
-| Remove duplicates (sorted) | $O(n)$ | $O(1)$ | Two pointers |
+| 앞가지 합(세우기) | $O(n)$ | $O(n)$ | 너비 합 물음을 $O(1)$에 한다 |
+| 앞가지 합(묻기) | $O(1)$ | -- | $\text{합}(l, r) = P[r+1] - P[l]$ |
+| 카데인 알고리즘 | $O(n)$ | $O(1)$ | 가장 큰 부분 배열 합 |
+| 네덜란드 나라 깃발 | $O(n)$ | $O(1)$ | 셋으로 가르기 |
+| $k$만큼 돌리기 | $O(n)$ | $O(1)$ | 세 번 뒤집는 꾀 |
+| 겹친 것 없애기(줄 세움) | $O(n)$ | $O(1)$ | 손가락질 둘 |
 
-## Comparison with Other Structures
+## 다른 얼개와 견주기
 
-| Operation | Array | Linked List | Hash Table | BST (balanced) |
+| 연산 | 배열 | 이음 목록 | 해시 표 | 이진 찾기 나무(고름) |
 |---|---|---|---|---|
-| Access by index | $O(1)$ | $O(n)$ | -- | -- |
-| Search | $O(n)$ | $O(n)$ | $O(1)$ avg | $O(\log n)$ |
-| Insert at end | $O(1)$ amort. | $O(1)$ | $O(1)$ avg | $O(\log n)$ |
-| Insert at beginning | $O(n)$ | $O(1)$ | -- | $O(\log n)$ |
-| Delete | $O(n)$ | $O(1)$ given pointer | $O(1)$ avg | $O(\log n)$ |
-| Ordered traversal | $O(n)$ | $O(n)$ | $O(n \log n)$ sort | $O(n)$ |
+| 번호로 닿기 | $O(1)$ | $O(n)$ | -- | -- |
+| 찾기 | $O(n)$ | $O(n)$ | 고르게 $O(1)$ | $O(\log n)$ |
+| 뒤에 넣기 | 고르게 나눈 $O(1)$ | $O(1)$ | 고르게 $O(1)$ | $O(\log n)$ |
+| 앞에 넣기 | $O(n)$ | $O(1)$ | -- | $O(\log n)$ |
+| 지우기 | $O(n)$ | 손가락질이 있으면 $O(1)$ | 고르게 $O(1)$ | $O(\log n)$ |
+| 차례대로 훑기 | $O(n)$ | $O(n)$ | 줄 세우기 $O(n \log n)$ | $O(n)$ |
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Sedgewick, R. and Wayne, K. *Algorithms*. 4th ed. Addison-Wesley, 2011.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare the time complexities of array operations: access by index, search, insertion at the end, insertion at position $i$, and deletion at position $i$.
+**익힘 1.**
+배열 연산의 때 복잡도를 견주어라. 번호로 닿기, 찾기, 뒤에 넣기, 자리 $i$에 넣기, 자리 $i$에서 지우기.
 
-??? success "Solution to Exercise 1"
-    | Operation | Time | Explanation |
+??? success "익힘 1 풀이"
+    | 연산 | 때 | 풀이 |
     |---|---|---|
-    | Access by index | $O(1)$ | Direct address computation: base + i * element_size |
-    | Search (unsorted) | $O(n)$ | Must scan all elements |
-    | Search (sorted) | $O(\log n)$ | Binary search |
-    | Insert at end | $O(1)$ amortized | Append; $O(n)$ when resizing |
-    | Insert at position $i$ | $O(n)$ | Shift elements $i, i+1, \ldots, n-1$ right |
-    | Delete at position $i$ | $O(n)$ | Shift elements $i+1, \ldots, n-1$ left |
+    | 번호로 닿기 | $O(1)$ | 주소를 곧바로 셈한다: 밑자리 + i * 원소 크기 |
+    | 찾기(줄 세우지 않음) | $O(n)$ | 온 원소를 훑어야 한다 |
+    | 찾기(줄 세움) | $O(\log n)$ | 이진 찾기 |
+    | 뒤에 넣기 | 고르게 나눈 $O(1)$ | 붙이기. 크기를 늘릴 때는 $O(n)$ |
+    | 자리 $i$에 넣기 | $O(n)$ | 원소 $i, i+1, \ldots, n-1$을 오른쪽으로 민다 |
+    | 자리 $i$에서 지우기 | $O(n)$ | 원소 $i+1, \ldots, n-1$을 왼쪽으로 민다 |
 
-    The key advantage of arrays is $O(1)$ random access. The key disadvantage is $O(n)$ insertion/deletion in the middle. $\square$
-
----
-
-**Exercise 2.**
-A dynamic array doubles its capacity when full. Prove that the amortized cost of $n$ append operations is $O(1)$ per operation.
-
-??? success "Solution to Exercise 2"
-    Use the aggregate method. Over $n$ appends, resizing occurs when the array size reaches $1, 2, 4, 8, \ldots, 2^k$ where $2^k \le n$. Each resize copies $2^j$ elements. Total copies: $\sum_{j=0}^{k} 2^j = 2^{k+1} - 1 < 2n$. Adding the $n$ individual insertions (each $O(1)$ without resizing): total work $< 3n$. Amortized cost: $3n / n = O(1)$ per append. Alternatively, using the banker's method: charge 3 units per append (1 for the insertion itself, 2 saved for future copying). When a resize doubles from $m$ to $2m$, the $m$ new elements since the last resize have saved $2m$ units, which pays for copying $m$ elements. $\square$
+    배열의 고갱이 나은 점은 $O(1)$로 아무 데나 닿는 것이다. 고갱이 못한 점은 가운데에 넣고 지우는 데 $O(n)$이 드는 것이다. $\square$
 
 ---
 
-**Exercise 3.**
-Explain why arrays have better cache performance than linked lists for sequential access, despite both requiring $O(n)$ time.
+**익힘 2.**
+움직이는 배열이 꽉 차면 담는 크기를 두 곱절로 늘린다. 뒤에 붙이기를 $n$번 할 때 연산마다 고르게 나눈 값이 $O(1)$임을 증명하여라.
 
-??? success "Solution to Exercise 3"
-    Arrays store elements contiguously in memory. When the CPU accesses `arr[i]`, the hardware prefetcher loads the entire cache line (typically 64 bytes) containing `arr[i]` and its neighbors. Subsequent accesses to `arr[i+1], arr[i+2], ...` hit the L1 cache ($\sim$1 ns per access). Linked list nodes are scattered in memory (allocated by `malloc` at arbitrary addresses). Each `node->next` traversal is a pointer chase to a potentially distant memory location, causing an L1/L2 cache miss ($\sim$5--100 ns per access). For sequential traversal of $n$ elements: arrays make $\sim n/16$ cache line fetches (16 ints per 64-byte line); linked lists make $\sim n$ independent memory accesses. The practical speedup is 5--20x for arrays over linked lists, despite identical $O(n)$ asymptotic complexity. $\square$
-
----
-
-**Exercise 4.**
-Given $n = 10^5$ elements, compare the practical performance of: (a) searching an unsorted array, (b) binary searching a sorted array, (c) hash table lookup. Include estimated times.
-
-??? success "Solution to Exercise 4"
-    (a) Unsorted array linear search: $O(n)$, average $n/2 = 50{,}000$ comparisons. At $\sim$1 ns per comparison (cached): $\sim$50 microseconds. (b) Sorted array binary search: $O(\log n)$, $\lceil \log_2(10^5) \rceil = 17$ comparisons. Each comparison may cause a cache miss ($\sim$10 ns for L2): $\sim$170 ns. (c) Hash table lookup: $O(1)$ expected, $\sim$2--3 memory accesses (hash computation + bucket access + possible collision resolution). At $\sim$10 ns per access: $\sim$30 ns. Ranking: hash table (30 ns) < binary search (170 ns) < linear search (50 microseconds). For repeated lookups, the hash table is $\sim$6x faster than binary search and $\sim$1700x faster than linear search. The preprocessing costs (sorting: $O(n \log n)$; hash table: $O(n)$) are amortized over many lookups. $\square$
+??? success "익힘 2 풀이"
+    모아 세는 길을 쓴다. 붙이기 $n$번 동안 배열 크기가 $1, 2, 4, 8, \ldots, 2^k$($2^k \le n$)에 이를 때마다 크기를 늘린다. 늘릴 때마다 원소 $2^j$개를 베낀다. 온 베낌은 $\sum_{j=0}^{k} 2^j = 2^{k+1} - 1 < 2n$이다. 여기에 낱낱의 넣기 $n$번(크기를 늘리지 않으면 저마다 $O(1)$)을 더하면 온 품이 $< 3n$이다. 고르게 나눈 값은 $3n / n = O(1)$이다. 다른 길로 은행원 셈을 쓸 수도 있다. 붙이기마다 3몫을 매긴다(넣기 자체에 1, 앞으로의 베낌에 2를 모아 둔다). 크기가 $m$에서 $2m$으로 두 곱절이 될 때, 지난 늘림 뒤에 들어온 새 원소 $m$개가 $2m$몫을 모아 두었으니 원소 $m$개를 베끼는 값을 치른다. $\square$
 
 ---
 
-**Exercise 5.**
-A problem requires frequent insertions and deletions at arbitrary positions while maintaining sorted order. An array requires $O(n)$ per operation. Propose a data structure with better complexity.
+**익힘 3.**
+차례대로 닿을 때 배열과 이음 목록이 둘 다 $O(n)$인데도 배열의 캐시 빠르기가 나은 까닭을 밝혀라.
 
-??? success "Solution to Exercise 5"
-    A **balanced BST** (AVL tree, red-black tree, or treap) supports insert, delete, and search in $O(\log n)$. It maintains sorted order through the BST invariant. Alternatively, a **skip list** provides $O(\log n)$ expected time for all operations. For competitive programming, a **Fenwick tree with coordinate compression** can support order-statistic queries (rank, select) in $O(\log n)$, acting as a sorted multiset. The tradeoff compared to arrays: $O(\log n)$ vs. $O(n)$ for modifications, but $O(\log n)$ vs. $O(1)$ for access by index (unless the BST is augmented with subtree sizes for order-statistic operations). For this problem, the $O(\log n)$ modification time outweighs the slower access time. $\square$
+??? success "익힘 3 풀이"
+    배열은 원소를 기억에 잇닿게 담는다. CPU가 `arr[i]`에 닿으면 쇠 붙임새의 미리 읽개가 `arr[i]`과 그 이웃이 든 캐시 줄(흔히 64바이트)을 통째로 부른다. 뒤이어 `arr[i+1], arr[i+2], ...`에 닿을 때는 L1 캐시가 맞는다(닿기마다 $\sim$1 나노초). 이음 목록의 마디는 기억에 흩어져 있다(`malloc`이 아무 주소에나 자리를 내준다). `node->next`를 따라갈 때마다 멀리 떨어졌을지 모를 기억 자리를 좇으므로 L1/L2 캐시가 빗나간다(닿기마다 $\sim$5~100 나노초). 원소 $n$개를 차례대로 훑을 때 배열은 캐시 줄을 $\sim n/16$번 부르고(64바이트 줄에 옹근수 16개), 이음 목록은 따로 떨어진 기억에 $\sim n$번 닿는다. 같은 $O(n)$인데도 참으로는 배열이 이음 목록보다 5~20곱절 빠르다. $\square$
+
+---
+
+**익힘 4.**
+원소가 $n = 10^5$개일 때 (가) 줄 세우지 않은 배열 훑기, (나) 줄 세운 배열의 이진 찾기, (다) 해시 표 찾기의 참 빠르기를 견주어라. 어림한 때도 곁들여라.
+
+??? success "익힘 4 풀이"
+    (가) 줄 세우지 않은 배열을 죽 훑기: $O(n)$, 고르게 $n/2 = 50{,}000$번 견준다. 견줌마다 $\sim$1 나노초(캐시에 있을 때)면 $\sim$50 마이크로초다. (나) 줄 세운 배열의 이진 찾기: $O(\log n)$, $\lceil \log_2(10^5) \rceil = 17$번 견준다. 견줌마다 캐시가 빗나갈 수 있으니(L2이면 $\sim$10 나노초) $\sim$170 나노초다. (다) 해시 표 찾기: 어림 $O(1)$, 기억에 $\sim$2~3번 닿는다(해시 셈 + 두레박 닿기 + 부딪힘 풀기). 닿기마다 $\sim$10 나노초면 $\sim$30 나노초다. 차례를 매기면 해시 표(30 나노초) < 이진 찾기(170 나노초) < 죽 훑기(50 마이크로초)다. 되풀이해 찾을 때 해시 표가 이진 찾기보다 $\sim$6곱절, 죽 훑기보다 $\sim$1700곱절 빠르다. 미리 다듬는 값(줄 세우기 $O(n \log n)$, 해시 표 $O(n)$)은 많은 찾기에 고르게 나뉜다. $\square$
+
+---
+
+**익힘 5.**
+어떤 문제가 차례를 지키면서 아무 자리에나 자주 넣고 지우기를 바란다. 배열은 연산마다 $O(n)$이 든다. 복잡도가 더 나은 자료 얼개를 내놓아라.
+
+??? success "익힘 5 풀이"
+    **고른 이진 찾기 나무**(AVL 나무, 붉은검은 나무, 트립)는 넣기, 지우기, 찾기를 $O(\log n)$에 받친다. 이진 찾기 나무의 불변 조건으로 차례를 지킨다. 아니면 **건너뛰기 목록**이 모든 연산을 어림 $O(\log n)$에 준다. 겨루기 프로그램에서는 **자리 눌러 담기를 곁들인 페닉 나무**가 차례 셈속 물음(등수, 고르기)을 $O(\log n)$에 받쳐 줄 세운 겹모임 노릇을 한다. 배열과 견준 맞바꿈은 이렇다. 고치기는 $O(n)$ 대신 $O(\log n)$이지만, 번호로 닿기는 $O(1)$ 대신 $O(\log n)$이다(밑나무 크기를 붙여 차례 셈속 연산을 받치지 않는 한). 이 문제에서는 고치는 때가 $O(\log n)$인 것이 닿기가 느려지는 것보다 값지다. $\square$

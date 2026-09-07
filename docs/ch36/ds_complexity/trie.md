@@ -1,100 +1,100 @@
-# Trie Complexity Analysis
+# 트라이 복잡도 살피기
 
-Understanding the time and space complexity of trie operations is essential for deciding when a trie is the right data structure for a problem. This page provides a systematic analysis of each operation, compares tries with alternative data structures, and identifies the scenarios where tries offer a clear advantage.
+트라이 연산의 때와 자리 복잡도를 알아야 어떤 문제에 트라이가 알맞은 자료 얼개인지 가릴 수 있다. 이 쪽은 연산마다를 짜임새 있게 살피고, 트라이를 다른 자료 얼개와 견주며, 트라이가 또렷이 앞서는 자리를 짚는다.
 
-## Operation Complexities
+## 연산 복잡도
 
-Let $m$ denote the length of the query string, $n$ the number of stored strings, $L$ the total length of all stored strings, and $|\Sigma|$ the alphabet size.
+$m$을 물음 글자열의 길이, $n$을 갈무리한 글자열의 수, $L$을 갈무리한 온 글자열의 길이, $|\Sigma|$을 낱자 모둠의 크기라 하자.
 
-| Operation | Time | Notes |
+| 연산 | 때 | 짚을 것 |
 |:---|:---:|:---|
-| Insert | $O(m)$ | Create at most $m$ new nodes |
-| Search (exact) | $O(m)$ | Follow at most $m$ edges |
-| Delete | $O(m)$ | May require cleanup of empty nodes |
-| Prefix search | $O(p + k)$ | $p$ = prefix length, $k$ = output size |
-| Longest prefix match | $O(m)$ | Used in IP routing |
+| 넣기 | $O(m)$ | 많아야 새 마디 $m$개를 만든다 |
+| 찾기(꼭 맞게) | $O(m)$ | 많아야 변 $m$개를 따라간다 |
+| 지우기 | $O(m)$ | 빈 마디를 치워야 할 수 있다 |
+| 앞가지 찾기 | $O(p + k)$ | $p$ = 앞가지 길이, $k$ = 내놓기 크기 |
+| 가장 긴 앞가지 맞추기 | $O(m)$ | IP 길잡기에 쓴다 |
 
-All operations are **independent of $n$** -- a critical advantage when the dataset is large but individual strings are short.
+모든 연산이 **$n$에 매이지 않는다**. 자료는 많은데 글자열 하나하나는 짧을 때 크게 이롭다.
 
-## Space Complexity
+## 자리 복잡도
 
-The space depends on the node representation:
+자리는 마디를 어떻게 나타내느냐에 달렸다.
 
-| Representation | Space per node | Total space |
+| 나타냄 | 마디마다의 자리 | 온 자리 |
 |:---|:---:|:---|
-| Array of size $\lvert\Sigma\rvert$ | $O(\lvert\Sigma\rvert)$ | $O(L \cdot \lvert\Sigma\rvert)$ |
-| Hash map | $O(\text{avg children})$ | $O(L)$ on average |
-| Compressed (Patricia) | $O(1)$ amortized | $O(n)$ nodes, $O(L)$ for labels |
+| 크기 $\lvert\Sigma\rvert$인 배열 | $O(\lvert\Sigma\rvert)$ | $O(L \cdot \lvert\Sigma\rvert)$ |
+| 해시 짝지음 | $O(\text{고른 자식 수})$ | 고르게 $O(L)$ |
+| 눌러 담은 것(퍼트리샤) | 고른 $O(1)$ | 마디 $O(n)$개, 이름표에 $O(L)$ |
 
-For small alphabets (e.g., DNA with $|\Sigma| = 4$), the array representation is practical. For large alphabets (e.g., Unicode), hash maps or compressed tries are preferred.
+낱자 모둠이 작으면(보기로 $|\Sigma| = 4$인 DNA) 배열 나타냄이 쓸 만하다. 낱자 모둠이 크면(보기로 유니코드) 해시 짝지음이나 눌러 담은 트라이가 낫다.
 
-## Comparison with Other Data Structures
+## 다른 자료 얼개와 견주기
 
-| Data Structure | Exact Lookup | Prefix Search | Sorted Order | Space |
+| 자료 얼개 | 꼭 맞게 찾기 | 앞가지 찾기 | 줄 세운 차례 | 자리 |
 |:---|:---:|:---:|:---:|:---|
-| Trie | $O(m)$ | $O(p + k)$ | Yes (via DFS) | $O(L \cdot \lvert\Sigma\rvert)$ or $O(L)$ |
-| Hash table | $O(m)$ avg | $O(n \cdot m)$ | No | $O(L)$ |
-| Balanced BST | $O(m \log n)$ | $O(m \log n + k)$ | Yes | $O(L)$ |
-| Sorted array | $O(m \log n)$ | $O(m \log n + k)$ | Yes | $O(L)$ |
+| 트라이 | $O(m)$ | $O(p + k)$ | 예(깊이 먼저로) | $O(L \cdot \lvert\Sigma\rvert)$이나 $O(L)$ |
+| 해시 표 | 고르게 $O(m)$ | $O(n \cdot m)$ | 아니오 | $O(L)$ |
+| 고른 이진 찾기 나무 | $O(m \log n)$ | $O(m \log n + k)$ | 예 | $O(L)$ |
+| 줄 세운 배열 | $O(m \log n)$ | $O(m \log n + k)$ | 예 | $O(L)$ |
 
-The trie's distinguishing advantage is **prefix search in $O(p + k)$** -- no other standard data structure matches this without additional indexing.
+트라이가 남다르게 앞서는 것은 **$O(p + k)$의 앞가지 찾기**다. 색인을 더 두지 않고 이에 맞먹는 여느 자료 얼개는 없다.
 
-!!! tip "When to Choose a Trie"
-    Tries are the best choice when:
+!!! tip "트라이를 고를 때"
+    다음일 때 트라이가 가장 낫다.
 
-    - **Prefix-based queries** are frequent (autocomplete, spell-check, IP routing)
-    - **Strings share long common prefixes**, making the trie compact
-    - **Worst-case guarantees** matter: trie operations have no adversarial inputs (unlike hash tables)
+    - **앞가지로 묻는 일**이 잦다(자동 채우기, 맞춤법 살피기, IP 길잡기)
+    - **글자열이 긴 앞가지를 함께 쓴다**. 그러면 트라이가 촘촘해진다
+    - **가장 나쁠 때의 보장**이 중요하다. 트라이 연산에는 (해시 표와 달리) 겨누어 무너뜨릴 들임이 없다
 
-    Tries are a poor choice when the alphabet is very large, strings share few prefixes, and only exact lookup is needed -- a hash table will be simpler and faster.
+    낱자 모둠이 아주 크고, 글자열끼리 앞가지를 거의 함께 쓰지 않으며, 꼭 맞게 찾기만 하면 될 때는 트라이가 알맞지 않다. 해시 표가 더 단순하고 빠르다.
 
-## References
+## 살펴볼 거리
 
 [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Analyze the time and space complexity of inserting a string of length $m$ into a trie with an alphabet of size $|\Sigma|$.
+**익힘 1.**
+낱자 모둠의 크기가 $|\Sigma|$인 트라이에 길이 $m$인 글자열을 넣을 때의 때와 자리 복잡도를 따져라.
 
-??? success "Solution to Exercise 1"
-    Time: $O(m)$ -- traverse or create one node per character. At each step, check if the child for the current character exists ($O(1)$ with an array of size $|\Sigma|$ or $O(1)$ expected with a hash map). Create the child if absent. Total: $m$ steps, each $O(1)$, giving $O(m)$. Space for the new string: at most $m$ new nodes (if no prefix is shared with existing strings). Each node has $|\Sigma|$ child pointers with array representation, or variable children with hash maps. Worst-case space per node: $O(|\Sigma|)$ with arrays, $O(1)$ average with hash maps. Total trie space for $n$ strings of average length $L$: $O(n \cdot L \cdot |\Sigma|)$ with arrays, $O(n \cdot L)$ with hash maps (but with higher constant factors). $\square$
-
----
-
-**Exercise 2.**
-Compare a trie with a hash set for the operation "check if any stored string has prefix $p$." Which is more efficient?
-
-??? success "Solution to Exercise 2"
-    **Trie**: navigate from root following the characters of $p$. If we successfully traverse all $|p|$ characters (all intermediate nodes exist), the answer is yes (at least one string passes through this node). Time: $O(|p|)$. **Hash set**: stores complete strings, not prefixes. To check if any string has prefix $p$, we must iterate over all stored strings and check each one: $O(n \cdot |p|)$ where $n$ is the number of strings. Alternatively, precompute all prefixes of all strings and store them in the hash set: $O(1)$ lookup per query, but $O(n \cdot L)$ preprocessing space where $L$ is the average string length. The trie is clearly superior for prefix queries: $O(|p|)$ with no extra space beyond the trie itself. This is the trie's defining advantage. $\square$
+??? success "익힘 1 풀이"
+    때: $O(m)$. 글자마다 마디를 하나씩 따라가거나 만든다. 걸음마다 지금 글자의 자식이 있는지 살핀다(크기 $|\Sigma|$인 배열이면 $O(1)$, 해시 짝지음이면 어림 $O(1)$). 없으면 자식을 만든다. 모두 $m$걸음이고 걸음마다 $O(1)$이니 $O(m)$이다. 새 글자열에 드는 자리: 많아야 새 마디 $m$개다(이미 있는 글자열과 앞가지를 함께 쓰지 않을 때). 마디마다 배열 나타냄이면 자식 손가락질이 $|\Sigma|$개, 해시 짝지음이면 자식 수가 들쭉날쭉하다. 마디마다 가장 나쁠 때의 자리는 배열이면 $O(|\Sigma|)$, 해시 짝지음이면 고르게 $O(1)$이다. 고르게 길이 $L$인 글자열 $n$개의 온 트라이 자리는 배열이면 $O(n \cdot L \cdot |\Sigma|)$, 해시 짝지음이면 $O(n \cdot L)$이다(다만 붙박이 곱이 크다). $\square$
 
 ---
 
-**Exercise 3.**
-A compressed trie (Patricia trie) reduces space by collapsing chains of single-child nodes. Analyze the space savings for a dictionary of $n$ English words.
+**익힘 2.**
+"갈무리한 글자열 가운데 앞가지가 $p$인 것이 있는가"를 두고 트라이와 해시 모임을 견주어라. 어느 쪽이 더 잘 드는가?
 
-??? success "Solution to Exercise 3"
-    An uncompressed trie for $n$ words of average length $L$ has up to $nL$ nodes. Many nodes on shared prefixes have only one child (e.g., the suffix of a unique word). A Patricia trie collapses such chains: each edge stores a substring rather than a single character. The resulting trie has at most $2n - 1$ nodes (each internal node has $\ge 2$ children; with $n$ leaves, the number of internal nodes is at most $n - 1$). Space: $O(n)$ nodes plus $O(nL)$ total edge label length (which can be represented by start/end pointers into the original strings, requiring $O(n)$ space). For $n = 100{,}000$ English words: uncompressed trie might have $\sim 500{,}000$ nodes; Patricia trie has $\sim 200{,}000$ nodes -- a 60% reduction. $\square$
-
----
-
-**Exercise 4.**
-Describe how a trie supports autocomplete (finding all strings with a given prefix) and analyze the time complexity.
-
-??? success "Solution to Exercise 4"
-    Navigate from the root following the prefix characters: $O(|p|)$ to reach the prefix node. From there, perform a DFS/BFS to collect all descendant leaf nodes, each representing a stored string. Time: $O(|p| + k \cdot L_{\text{avg}})$ where $k$ is the number of matching strings and $L_{\text{avg}}$ is the average length of the suffix beyond the prefix. If only the top-$k$ results by popularity are needed, augment each node with a precomputed list of top-$k$ descendants. Autocomplete query: $O(|p| + k)$ -- navigate to the prefix node and read the top-$k$ list. This is the approach used by search engine autocomplete boxes. $\square$
+??? success "익힘 2 풀이"
+    **트라이**: 뿌리에서 $p$의 글자를 따라간다. $|p|$개의 글자를 모두 따라갈 수 있으면(사이 마디가 모두 있으면) 답은 예다(적어도 한 글자열이 이 마디를 지난다). 때: $O(|p|)$. **해시 모임**: 앞가지가 아니라 온전한 글자열을 갈무리한다. 앞가지가 $p$인 글자열이 있는지 보려면 갈무리한 글자열을 모두 훑으며 하나씩 살펴야 한다. $n$이 글자열의 수일 때 $O(n \cdot |p|)$이다. 아니면 모든 글자열의 모든 앞가지를 미리 셈해 해시 모임에 담을 수 있다. 그러면 물음마다 $O(1)$이지만 $L$이 고른 글자열 길이일 때 미리 다듬는 자리가 $O(n \cdot L)$ 든다. 앞가지 물음에는 트라이가 또렷이 낫다. 트라이 그 자체 말고 더 드는 자리 없이 $O(|p|)$이다. 이것이 트라이를 트라이답게 하는 나은 점이다. $\square$
 
 ---
 
-**Exercise 5.**
-Compare a trie with a sorted array + binary search for dictionary operations (insert, search, prefix search). Under what conditions does each win?
+**익힘 3.**
+눌러 담은 트라이(퍼트리샤 트라이)는 자식이 하나뿐인 마디의 사슬을 접어 자리를 줄인다. 영어 낱말 $n$개짜리 사전에서 얼마나 아끼는지 따져라.
 
-??? success "Solution to Exercise 5"
-    | Operation | Trie | Sorted Array + Binary Search |
+??? success "익힘 3 풀이"
+    고르게 길이 $L$인 낱말 $n$개의 누르지 않은 트라이에는 마디가 $nL$개까지 있다. 함께 쓰는 앞가지 위의 많은 마디는 자식이 하나뿐이다(보기로 홑 낱말의 뒷가지). 퍼트리샤 트라이는 그런 사슬을 접는다. 변마다 글자 하나가 아니라 부분 글자열을 담는다. 그러면 마디가 많아야 $2n - 1$개다(속마디마다 자식이 $\ge 2$개이고, 잎이 $n$개면 속마디는 많아야 $n - 1$개다). 자리는 마디 $O(n)$개에 온 변 이름표 길이 $O(nL)$을 더한 것이다(이름표는 본디 글자열을 가리키는 시작/끝 손가락질로 나타낼 수 있어 $O(n)$이면 된다). 영어 낱말 $n = 100{,}000$개면 누르지 않은 트라이는 마디가 $\sim 500{,}000$개, 퍼트리샤 트라이는 $\sim 200{,}000$개로 60% 준다. $\square$
+
+---
+
+**익힘 4.**
+트라이가 자동 채우기(주어진 앞가지로 시작하는 글자열을 모두 찾기)를 어떻게 받치는지 밝히고 때 복잡도를 따져라.
+
+??? success "익힘 4 풀이"
+    뿌리에서 앞가지 글자를 따라간다. 앞가지 마디까지 가는 데 $O(|p|)$이 든다. 거기서 깊이 먼저/너비 먼저로 훑어 자손 잎을 모두 거둔다. 잎마다 갈무리한 글자열 하나를 나타낸다. 때: $O(|p| + k \cdot L_{\text{고른}})$이고 $k$은 맞는 글자열의 수, $L_{\text{고른}}$은 앞가지 뒤 뒷가지의 고른 길이다. 사람이 많이 찾는 앞선 $k$개만 있으면 되면, 마디마다 앞선 $k$개 자손 목록을 미리 셈해 붙여 둔다. 그러면 자동 채우기 물음이 $O(|p| + k)$이다. 앞가지 마디까지 가서 앞선 $k$개 목록을 읽으면 된다. 찾기 엔진의 자동 채우기 칸이 이 길을 쓴다. $\square$
+
+---
+
+**익힘 5.**
+사전 연산(넣기, 찾기, 앞가지 찾기)을 두고 트라이와 줄 세운 배열 + 이진 찾기를 견주어라. 어떤 조건에서 저마다 이기는가?
+
+??? success "익힘 5 풀이"
+    | 연산 | 트라이 | 줄 세운 배열 + 이진 찾기 |
     |---|---|---|
-    | Insert | $O(m)$ | $O(n \cdot m)$ (shift + compare) |
-    | Search | $O(m)$ | $O(m \log n)$ |
-    | Prefix search (all $k$ matches) | $O(m + k \cdot L)$ | $O(m \log n + k \cdot L)$ |
-    | Space | $O(S \cdot |\Sigma|)$ or $O(S)$ | $O(S)$ compact |
+    | 넣기 | $O(m)$ | $O(n \cdot m)$ (밀기 + 견주기) |
+    | 찾기 | $O(m)$ | $O(m \log n)$ |
+    | 앞가지 찾기(맞는 것 $k$개 모두) | $O(m + k \cdot L)$ | $O(m \log n + k \cdot L)$ |
+    | 자리 | $O(S \cdot |\Sigma|)$이나 $O(S)$ | $O(S)$로 촘촘 |
 
-    where $m$ = query length, $n$ = number of strings, $S$ = total string characters, $L$ = avg string length. Trie wins when: (1) prefix queries are common; (2) the dictionary is dynamic (frequent inserts/deletes); (3) $|\Sigma|$ is small (26 for lowercase English). Sorted array wins when: (1) the dictionary is static (built once, queried many times); (2) memory is tight (arrays are more compact); (3) $|\Sigma|$ is large (Unicode), making trie nodes expensive. For most autocomplete and spell-check applications, tries are preferred. $\square$
+    여기서 $m$ = 물음 길이, $n$ = 글자열의 수, $S$ = 온 글자 수, $L$ = 고른 글자열 길이다. 트라이가 이길 때는 (1) 앞가지 물음이 잦을 때, (2) 사전이 자꾸 바뀔 때(넣기/지우기가 잦을 때), (3) $|\Sigma|$이 작을 때(작은 영어 글자면 26)다. 줄 세운 배열이 이길 때는 (1) 사전이 붙박일 때(한 번 세우고 많이 물을 때), (2) 기억이 빠듯할 때(배열이 더 촘촘하다), (3) $|\Sigma|$이 클 때(유니코드) 트라이 마디가 비싸질 때다. 자동 채우기와 맞춤법 살피기 쓰임 대부분에서는 트라이가 낫다. $\square$
