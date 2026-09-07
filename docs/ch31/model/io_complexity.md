@@ -101,7 +101,7 @@ $$
 """
 바깥 기억 연산의 들고남 복잡도 가둠.
 
-Computes and compares the fundamental I/O bounds (scan, sort, search)
+바탕이 되는 들고남 한계(훑기, 줄 세우기, 찾기)를 셈해 견준다
 문제 크기와 기억 짜임을 달리하며.
 """
 
@@ -117,7 +117,7 @@ def scan(n: int, b: int) -> float:
 
 
 def sort(n: int, m: int, b: int) -> float:
-    """Sorting bound: (N/B) * log_{M/B}(N/B)."""
+    """줄 세우기 한계: (N/B) * log_{M/B}(N/B)."""
     blocks = n / b
     fan_out = m / b
     if fan_out <= 1:

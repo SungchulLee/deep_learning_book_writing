@@ -13,7 +13,7 @@ CIFAR-10 데이터셋 시각화
 CIFAR-10은 색 이미지와 실제 물체 인식을 들여온다!
 이 데이터셋은 MNIST 계열보다 훨씬 까다롭다.
 
-CIFAR-10 (Canadian Institute For Advanced Research):
+CIFAR-10(캐나다 고등 연구원):
 - 32x32 RGB(색) 이미지 60,000장
 - 실제 세상의 물체 부류 10개
 - 배경이 있는 자연 이미지

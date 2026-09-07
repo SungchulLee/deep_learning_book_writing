@@ -79,7 +79,7 @@ class WorkStealingScheduler:
         self.total_steps = 0
 
     def submit(self, tasks, processor=0):
-        """Submit tasks to a processor's deque.
+        """셈틀의 두 끝 큐에 일을 넣는다.
 
         인수:
             tasks: Task 대상의 목록

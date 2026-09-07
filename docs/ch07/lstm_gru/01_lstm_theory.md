@@ -20,10 +20,10 @@ LSTM의 이론과 밑바닥부터의 구현
 
 Forget Gate:    f_t = σ(W_f · [h_{t-1}, x_t] + b_f)
 Input Gate:     i_t = σ(W_i · [h_{t-1}, x_t] + b_i)
-Cell Candidate: C̃_t = tanh(W_C · [h_{t-1}, x_t] + b_C)
+칸 후보: C̃_t = tanh(W_C · [h_{t-1}, x_t] + b_C)
 Cell State:     C_t = f_t ⊙ C_{t-1} + i_t ⊙ C̃_t
 Output Gate:    o_t = σ(W_o · [h_{t-1}, x_t] + b_o)
-Hidden State:   h_t = o_t ⊙ tanh(C_t)
+숨은 상태:   h_t = o_t ⊙ tanh(C_t)
 
 여기서 각 기호는 다음과 같다.
 - σ는 시그모이드 함수이다

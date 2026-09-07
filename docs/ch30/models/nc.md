@@ -99,8 +99,8 @@ $O(\log n)$을 이루어 회로 모형에서 줄 세우기를 $\text{NC}^1$에
 """
 블렐로크 알고리즘으로 하는 나란한 앞자락 합(훑기)(흉내).
 
-Parallel time : O(log n)
-Work (total ops): O(n)
+나란히 셈 때 : O(log n)
+일감(온 셈 수): O(n)
 
 유의: 이 짜기는 두 갈래 나무 번호 매기기가 어떤 들임 크기에서도
 맞도록 들임을 다음 2의 거듭제곱까지 채운다.
@@ -109,7 +109,7 @@ Work (total ops): O(n)
 # === 도우미 ===
 
 def next_power_of_two(n: int) -> int:
-    """Return the smallest power of 2 that is >= n."""
+    """n 이상인 가장 작은 2의 거듭제곱을 돌려준다."""
     p = 1
     while p < n:
         p *= 2

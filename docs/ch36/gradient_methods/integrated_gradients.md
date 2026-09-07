@@ -252,7 +252,7 @@ class IntegratedGradients:
     쌓은 기울기 몫 매기기 방법.
 
     살펴볼 거리: Sundararajan et al., "Axiomatic Attribution for 
-    Deep Networks" (ICML 2017)
+    Deep Networks"(ICML 2017)
     """
 
     def __init__(self, model: nn.Module):

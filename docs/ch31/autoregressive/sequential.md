@@ -133,7 +133,7 @@ class SequentialGraphGenerator(nn.Module):
     마디 하나씩 만드는 자기 되돌이 그래프 만들개.
     
     At each step t:
-    1. Graph-level RNN state summarizes G_{<t}
+    1. 그래프 층 되도는 그물의 상태가 G_{<t}를 간추린다
     2. 변 여러 층 신경망이 앞선 마디와의 이음을 헤아린다
     3. 멈춤 헤아리개가 마디를 더 더할지 정한다
     """
@@ -197,11 +197,11 @@ class SequentialGraphGenerator(nn.Module):
         
         인수:
             adj_sequences: (B, max_nodes, max_nodes) 채운 변 벡터
-                adj_sequences[b, t, :t] = edges from node t to nodes 0..t-1
+                adj_sequences[b, t, :t]는 마디 t에서 마디 0..t-1로 가는 변이다
             lengths: (B,) 그래프마다 마디 개수
             
         반환값:
-            Dictionary with 'edge_loss' and 'stop_loss'
+            'edge_loss'와 'stop_loss'를 담은 사전
         """
         batch_size = adj_sequences.size(0)
         device = adj_sequences.device
@@ -276,7 +276,7 @@ class SequentialGraphGenerator(nn.Module):
         자기 되돌이로 그래프를 만든다.
         
         반환값:
-            List of adjacency matrices (variable sizes)
+            이웃 행렬의 목록(크기가 저마다 다르다)
         """
         self.eval()
         graphs = []

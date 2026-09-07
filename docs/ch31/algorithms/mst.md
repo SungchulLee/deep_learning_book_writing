@@ -55,10 +55,10 @@ $m = \Omega(n \cdot B)$인 빽빽한 그래프에서 가장 좋은 가둠 $O(\te
 
 ```python
 """
-External MST simulation using Boruvka's approach.
+보루브카 방식을 쓰는 바깥 기억 최소 뻗은 나무 흉내내기.
 
 마당마다 최소 변을 고르고 조각을 오므리며 군더더기 변을 없애는
-finds minimum-weight outgoing edges, contracts components,
+무게가 가장 작은 나가는 변을 찾고 이음 조각을 오그린다.
 마당 바탕 보루프카 알고리즘을 흉내 낸다. 흉내 낸 들고남을 좇는다.
 """
 
@@ -67,7 +67,7 @@ finds minimum-weight outgoing edges, contracts components,
 # ===================================================================
 
 def external_boruvka_mst(n, edges, B=4):
-    """Compute MST using Boruvka's algorithm (external-memory style).
+    """보루브카 알고리즘으로 최소 뻗은 나무를 셈한다(바깥 기억 방식).
 
     인수:
         n: 꼭짓점 개수

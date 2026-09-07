@@ -101,7 +101,7 @@ class VPSDE:
         return torch.exp(log_alpha)
 
     def marginal_params(self, t: torch.Tensor):
-        """Return mean coefficient and std for q(x_t | x_0)."""
+        """q(x_t | x_0)의 평균 계수와 표준편차를 돌려준다."""
         ab = self.alpha_bar(t)
         mean_coeff = torch.sqrt(ab)
         std = torch.sqrt(1 - ab)

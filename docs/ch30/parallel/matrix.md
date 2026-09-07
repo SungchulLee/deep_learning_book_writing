@@ -68,8 +68,8 @@ def matmul_naive(A, B):
     """여느 알고리즘으로 행렬 A과 B을 곱한다.
 
     인수:
-        A: n x n matrix (list of lists)
-        B: n x n matrix (list of lists)
+        A: n x n 행렬(목록의 목록)
+        B: n x n 행렬(목록의 목록)
 
     반환값:
         C: n x n 결과 행렬
@@ -90,8 +90,8 @@ def matmul_recursive(A, B):
     """되돌이 나누어 정복하기로 행렬을 곱한다.
 
     인수:
-        A: n x n matrix (list of lists)
-        B: n x n matrix (list of lists)
+        A: n x n 행렬(목록의 목록)
+        B: n x n 행렬(목록의 목록)
 
     반환값:
         C: n x n 결과 행렬

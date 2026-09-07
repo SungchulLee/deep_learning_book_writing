@@ -6,7 +6,7 @@
 
 ```python
 """
-Chapter 29.3.6: Graph Attention Network (GAT)
+29.3.6: 그림 눈여겨보기 그물(GAT)
 그래프 위의 여러 머리 눈길.
 """
 

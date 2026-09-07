@@ -179,7 +179,7 @@ def compute_mmd(
     인수:
         samples_ref: 잣대 그래프에서 온 막대 그림 벡터 목록
         samples_gen: 만든 그래프에서 온 막대 그림 벡터 목록
-        kernel_fn: kernel function (default: Gaussian RBF)
+        kernel_fn: 알맹이 함수(기본값: 가우스 RBF)
         sigma: 알맹이 띠너비
         
     반환값:
@@ -216,7 +216,7 @@ def evaluate_generation(
     만든 그래프를 잣대와 맞대어 두루 따진다.
     
     반환값:
-        Dictionary of metric name -> value
+        자 이름을 값으로 보내는 사전
     """
     results = {}
 

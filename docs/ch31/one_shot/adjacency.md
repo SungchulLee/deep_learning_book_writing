@@ -112,7 +112,7 @@ import numpy as np
 
 
 class MLPDecoder(nn.Module):
-    """Simple MLP decoder: latent -> flattened upper-triangular adjacency."""
+    """단순한 다층 퍼셉트론 푸는개: 숨은 값 -> 펼친 위 삼각 이웃 행렬."""
 
     def __init__(self, latent_dim: int, max_nodes: int, hidden_dim: int = 256):
         super().__init__()
@@ -149,7 +149,7 @@ class MLPDecoder(nn.Module):
 
 class FactoredDecoder(nn.Module):
     """
-    Factored decoder: latent -> node embeddings -> bilinear edge prediction.
+    인수로 나눈 푸는개: 숨은 값 -> 마디 묻힘 -> 겹선형 변 예측.
     여러 층 신경망 풀개보다 잡을 아낀다.
     """
 

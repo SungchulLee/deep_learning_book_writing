@@ -66,7 +66,7 @@ def parallel_bfs(adj, source):
 
     반환값:
         dist: 닿을 수 있는 꼭짓점마다 거리를 옮기는 사전
-        levels: list of frontiers (one per BFS level)
+        levels: 앞선 자리의 목록(너비 우선 층마다 하나)
     """
     dist = {source: 0}
     frontier = [source]

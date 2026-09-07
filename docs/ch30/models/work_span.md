@@ -77,8 +77,8 @@ $S_p = p$이고 $E_p = 1$이면 알고리즘이 **완벽한 선형 빨라짐**�
 """
 일-뻗음 살피기: 배열 더하기를 위한 나란한 나무 줄임.
 
-Demonstrates computing work and span for a parallel reduction,
-then applies Brent's theorem to estimate parallel running time.
+나란히 줄이기의 일감과 뻗음을 셈하는 법을 보인 뒤
+브렌트 정리로 나란히 셈의 도는 때를 어림한다.
 """
 
 import math
@@ -94,7 +94,7 @@ def compute_work_span_reduction(n):
         n: 더할 원소의 개수
 
     반환값:
-        Tuple of (work, span, parallelism)
+        (일감, 뻗음, 나란함) 튜플
     """
     work = n - 1
     span = math.ceil(math.log2(n))
@@ -103,7 +103,7 @@ def compute_work_span_reduction(n):
 
 
 def brent_bound(work, span, p):
-    """Compute Brent's upper bound on T_p.
+    """T_p에 대한 브렌트의 위 한계를 셈한다.
 
     인수:
         work: 온 연산 T_1

@@ -7,7 +7,7 @@
 ```python
 """
 29.3.2: 그래프 푸리에 변환
-GFT implementation, spectral convolution, and Parseval's theorem.
+그래프 푸리에 바꿈 짜기, 스펙트럼 엮음, 파세발 정리.
 """
 
 import numpy as np
@@ -74,7 +74,7 @@ def demo_gft():
 
 
 def demo_parseval():
-    """Verify Parseval's theorem on graphs."""
+    """그래프에서 파세발 정리를 따져 본다."""
     print("\n" + "=" * 60)
     print("Parseval's Theorem")
     print("=" * 60)

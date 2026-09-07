@@ -106,7 +106,7 @@ class MF(nn.Module):
     """
     함께 거르기를 위한 행렬 인수 분해.
     
-    Predicts rating as: r_hat = p_u^T q_i
+    매김을 이렇게 예측한다: r_hat = p_u^T q_i
     여기서 p_u과 q_i은 배운 박아 넣기 벡터이다.
     """
     def __init__(self, num_users, num_items, emb_size=100):
@@ -242,10 +242,10 @@ class MF_bias(nn.Module):
     """
     쓰는 이와 물건의 치우침을 넣은 행렬 인수 분해.
     
-    Predicts rating as: r_hat = p_u^T q_i + b_u + b_i
+    매김을 이렇게 예측한다: r_hat = p_u^T q_i + b_u + b_i
     
     유의: 온 자리 평균 mu은 치우침 항에 빨려 들어가거나
-    during training (PyTorch optimizes b_u and b_i to include it),
+    익히는 동안(PyTorch이 이를 담도록 b_u와 b_i를 맞춘다),
     붙박인 상수로 드러나게 더할 수 있다.
     """
     def __init__(self, num_users, num_items, emb_size=100):

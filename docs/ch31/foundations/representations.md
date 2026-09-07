@@ -113,7 +113,7 @@ def upper_triangular_to_adjacency(vec: torch.Tensor, n: int) -> torch.Tensor:
         n: 마디 개수
         
     반환값:
-        (n, n) symmetric adjacency matrix
+        (n, n) 대칭 이웃 행렬
     """
     adj = torch.zeros(n, n, dtype=vec.dtype, device=vec.device)
     indices = torch.triu_indices(n, n, offset=1)
@@ -128,7 +128,7 @@ def bfs_ordering(adj: torch.Tensor, start: Optional[int] = None) -> list[int]:
     
     인수:
         adj: (n, n) 이웃 행렬
-        start: starting node (random if None)
+        start: 비롯하는 마디(None이면 마구잡이)
         
     반환값:
         너비 우선 차례의 마디 번호 목록
@@ -170,7 +170,7 @@ def permute_adjacency(adj: torch.Tensor, perm: list[int]) -> torch.Tensor:
 
 def compute_bfs_bandwidth(adj: torch.Tensor) -> int:
     """
-    Compute the BFS bandwidth: max |i - j| for edges (i, j) 
+    너비 우선 띠너비를 셈한다: 변 (i, j)에 대한 max |i - j|
     너비 우선 차례 아래에서.
     """
     order = bfs_ordering(adj)
@@ -208,7 +208,7 @@ def reconstruct_from_spectrum(
     """
     스펙트럼 분해에서 이웃 행렬을 되짓는다.
     
-    The Laplacian L = U Λ U^T, and A = D - L.
+    라플라스 행렬은 L = U Λ U^T이고 A = D - L이다.
     D을 모르므로 되지은 L에서 어림한다.
     """
     laplacian = eigenvectors @ torch.diag(eigenvalues) @ eigenvectors.t()

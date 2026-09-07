@@ -66,15 +66,15 @@ class ForkJoinStats:
         self.work = 0
 
     def parallel_sum(self, arr, lo, hi):
-        """Compute sum of arr[lo:hi] using fork-join pattern.
+        """갈랐다 모으는 방식으로 arr[lo:hi]의 합을 셈한다.
 
         인수:
             arr: 들임 배열
-            lo: start index (inclusive)
-            hi: end index (exclusive)
+            lo: 비롯하는 번호(넣는다)
+            hi: 끝 번호(넣지 않는다)
 
         반환값:
-            Tuple of (sum, span)
+            (합, 뻗음) 튜플
         """
         if hi - lo <= 1:
             self.work += 1

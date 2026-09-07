@@ -192,7 +192,7 @@ class GraphRNN(nn.Module):
     """
     GraphRNN: 그래프 만들기의 두 켜 켜진 되돌이 신경망.
     
-    Graph-level RNN tracks global state; edge-level RNN generates
+    그래프 층 되도는 그물이 온 상태를 좇고, 변 층 되도는 그물이
     새 마디마다의 이음.
     """
 

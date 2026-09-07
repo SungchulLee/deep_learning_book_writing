@@ -124,7 +124,7 @@ class GRANAttentionLayer(nn.Module):
         """
         인수:
             h: (n_total, hidden_dim) 마디 박아 넣기
-            adj: (n_total, n_total) adjacency (existing + candidate)
+            adj: (n_total, n_total) 이웃 행렬(이미 있는 것 + 후보)
             candidate_mask: (n_total, n_total) 후보 변 가리개
         """
         n = h.size(0)

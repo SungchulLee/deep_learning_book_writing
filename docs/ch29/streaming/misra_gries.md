@@ -75,7 +75,7 @@ Space: O(k)
 
 # === 미스라-그리스 ===
 class MisraGries:
-    """Find elements with frequency > n/k using k-1 counters."""
+    """세개 k-1개로 잦기가 n/k를 넘는 원소를 찾는다."""
 
     def __init__(self, k: int):
         self.k = k

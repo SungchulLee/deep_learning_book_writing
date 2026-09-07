@@ -91,7 +91,7 @@ $$
 
 ```python
 """
-Visualization of Amdahl's and Gustafson's Laws.
+암달의 법칙과 구스타프슨의 법칙을 그림으로 보이기.
 
 셈틀 수에 따라 빨라짐이 어떻게 커지는지 보인다.
 """
@@ -101,19 +101,19 @@ import math
 
 # === 암달의 법칙 ===
 def amdahl_speedup(s: float, p: int) -> float:
-    """Compute Amdahl's speedup for serial fraction s and p processors."""
+    """차례 몫 s와 셈틀 p개에 대한 암달의 빨라짐을 셈한다."""
     return 1.0 / (s + (1.0 - s) / p)
 
 
 # === 구스타프슨의 법칙 ===
 def gustafson_speedup(s_prime: float, p: int) -> float:
-    """Compute Gustafson's scaled speedup."""
+    """구스타프슨의 잣대 맞춘 빨라짐을 셈한다."""
     return p - s_prime * (p - 1)
 
 
 # === 효율 ===
 def efficiency(speedup: float, p: int) -> float:
-    """Parallel efficiency = speedup / p."""
+    """나란히 셈의 효율 = 빨라짐 / p."""
     return speedup / p
 
 

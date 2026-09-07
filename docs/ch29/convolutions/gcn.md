@@ -6,7 +6,7 @@
 
 ```python
 """
-Chapter 29.3.4: Graph Convolutional Network (GCN)
+29.3.4: 그림 엮음 그물(GCN)
 Kipf & Welling(2017)을 맨바닥부터 짜기.
 """
 

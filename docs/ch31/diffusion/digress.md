@@ -216,11 +216,11 @@ class CategoricalDiffusion:
         t: int,
     ) -> torch.Tensor:
         """
-        Compute posterior q(x_{t-1} | x_t, x_0) for a single variable.
+        변수 하나에 대한 뒷분포 q(x_{t-1} | x_t, x_0)을 셈한다.
         
         인수:
             x_t: one-hot (K,)
-            x_0_pred: predicted distribution (K,)
+            x_0_pred: 예측한 분포 (K,)
             t: 지금 때 걸음
         """
         if t == 0:

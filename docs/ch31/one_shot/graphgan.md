@@ -111,7 +111,7 @@ from torch.autograd import grad as torch_grad
 
 
 class GraphGenerator(nn.Module):
-    """Generator: noise -> graph adjacency matrix."""
+    """만들개: 잡음 -> 그래프 이웃 행렬."""
 
     def __init__(
         self,
@@ -141,9 +141,9 @@ class GraphGenerator(nn.Module):
         """
         인수:
             z: (B, latent_dim) 잡소리
-            hard: if True, use Gumbel-Softmax with hard=True
+            hard: True이면 hard=True인 검벨 소프트맥스를 쓴다
         반환값:
-            adj: (B, n, n) adjacency (soft or hard)
+            adj: (B, n, n) 이웃 행렬(부드럽거나 딱딱한 것)
         """
         B = z.size(0)
         n = self.max_nodes

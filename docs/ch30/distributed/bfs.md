@@ -114,7 +114,7 @@ class Node:
 
 # === 나눠 하는 너비 우선 찾기 흉내내개 ===
 def distributed_bfs(adj: dict[int, list[int]], source: int) -> dict[int, int]:
-    """Simulate synchronous distributed BFS. Return {node: distance}."""
+    """발맞춘 흩뿌린 너비 우선 찾기를 흉내 낸다. {마디: 거리}를 돌려준다."""
     nodes = {v: Node(v, neighbors) for v, neighbors in adj.items()}
 
     # 샘 첫 값 두기

@@ -76,7 +76,7 @@ def sort_ios(n: int, m: int, b: int) -> int:
     """
     바깥 기억에서 원소 N개를 줄 세우는 들고남 횟수.
 
-    Uses the standard bound: (N/B) * log_{M/B}(N/B).
+    여느 한계를 쓴다: (N/B) * log_{M/B}(N/B).
 
     매개변수
     ----------

@@ -53,9 +53,9 @@ $$
 
 ```python
 """
-Parallel prefix sum (Blelloch's work-efficient scan).
+나란히 셈하는 앞자리 합(블렐로크의 일감 아끼는 훑기).
 
-Simulates the up-sweep (reduce) and down-sweep (distribute)
+위로 쓸기(줄이기)와 아래로 쓸기(나누기)를 흉내 낸다
 나란한 앞자락 합 알고리즘의 마당.
 """
 
@@ -66,7 +66,7 @@ import math
 # ===================================================================
 
 def parallel_prefix_sum(arr):
-    """Compute exclusive prefix sum using Blelloch's algorithm.
+    """블렐로크 알고리즘으로 제 자리를 뺀 앞자리 합을 셈한다.
 
     인수:
         arr: 수의 들임 배열
