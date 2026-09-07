@@ -1,165 +1,165 @@
-# 34.2.1 Actor-Critic Fundamentals
-## Introduction
+# 34.2.1 행위자-비평가 바탕
+## 들머리
 
-Actor-critic methods combine the strengths of policy-based and value-based approaches. The **actor** maintains a parameterized policy $\pi_\theta(a|s)$ and the **critic** learns a value function $V_\phi(s)$ (or $Q_\phi(s,a)$) that evaluates the actor's performance. This combination enables lower-variance gradient estimates than pure REINFORCE while maintaining the advantages of direct policy optimization.
+행위자-비평가 방법은 방침 바탕 길과 값 바탕 길의 힘을 함께 얻는다. **행위자**는 매개변수로 나타낸 방침 $\pi_\theta(a|s)$을 지니고, **비평가**는 행위자의 됨됨이를 따지는 값 함수 $V_\phi(s)$(또는 $Q_\phi(s,a)$)을 배운다. 이 어우름은 곧바로 방침을 가장 좋게 하는 이로움을 지키면서 순수 REINFORCE보다 흩어짐이 작은 기울기 어림을 이루게 한다.
 
-## Architecture
+## 얼개
 
-### Two-Component Design
+### 두 조각 설계
 
-The actor-critic framework consists of:
+행위자-비평가 틀은 다음으로 이루어진다.
 
-1. **Actor** $\pi_\theta(a|s)$: Policy network that selects actions
-2. **Critic** $V_\phi(s)$: Value network that estimates expected returns
+1. **행위자** $\pi_\theta(a|s)$: 움직임을 고르는 방침 그물
+2. **비평가** $V_\phi(s)$: 어림 돌아옴을 어림하는 값 그물
 
-The critic serves as a learned baseline, providing advantage estimates:
+비평가는 배운 밑금 노릇을 하여 이점 어림을 준다.
 
 $$A_t = r_t + \gamma V_\phi(s_{t+1}) - V_\phi(s_t)$$
 
-### Update Rules
+### 고침 규칙
 
-**Actor update** (policy gradient with advantage):
+**행위자 고침**(이점을 쓰는 방침 기울기):
 
 $$\theta \leftarrow \theta + \alpha_\theta \nabla_\theta \log \pi_\theta(a_t|s_t) \cdot A_t$$
 
-**Critic update** (value function regression):
+**비평가 고침**(값 함수 되돌이):
 
 $$\phi \leftarrow \phi - \alpha_\phi \nabla_\phi (V_\phi(s_t) - G_t)^2$$
 
-where $G_t$ is the target return (Monte Carlo, TD, or n-step).
+여기서 $G_t$은 과녁 돌아옴이다(몬테카를로, 때 차이, 또는 n걸음).
 
-## Advantage of Actor-Critic over REINFORCE
+## 행위자-비평가가 REINFORCE보다 나은 점
 
-| Aspect | REINFORCE | Actor-Critic |
+| 결 | REINFORCE | 행위자-비평가 |
 |--------|-----------|--------------|
-| Variance | High (Monte Carlo) | Low (bootstrapping) |
-| Bias | Unbiased | Biased (value function error) |
-| Update frequency | End of episode | Every step (online) |
-| Sample efficiency | Low | Higher |
-| Convergence speed | Slow | Faster |
+| 흩어짐 | 큼(몬테카를로) | 작음(부트스트랩) |
+| 치우침 | 치우치지 않음 | 치우침(값 함수 잘못) |
+| 고치는 잦기 | 에피소드 끝 | 걸음마다(잇달아) |
+| 뽑기 효율 | 낮음 | 더 높음 |
+| 모이는 빠르기 | 더딤 | 더 빠름 |
 
-The key trade-off: actor-critic introduces bias through the critic's imperfect value estimates but dramatically reduces variance, leading to faster practical convergence.
+종요로운 맞바꿈은 이렇다. 행위자-비평가는 비평가의 온전치 않은 값 어림 때문에 치우침을 들여오지만 흩어짐을 크게 줄여, 실제로 더 빨리 모이게 한다.
 
-## Online Actor-Critic
+## 잇단 행위자-비평가
 
-The simplest actor-critic performs updates at every timestep:
+가장 쉬운 행위자-비평가는 때 걸음마다 고친다.
 
 ```
-For each step t:
-    Take action a_t ~ π_θ(·|s_t)
-    Observe r_t, s_{t+1}
-    δ_t = r_t + γ V_φ(s_{t+1}) - V_φ(s_t)       # TD error
-    θ ← θ + α_θ · δ_t · ∇_θ log π_θ(a_t|s_t)     # Actor update
-    φ ← φ + α_φ · δ_t · ∇_φ V_φ(s_t)              # Critic update
+걸음 t마다:
+    움직임 a_t ~ π_θ(·|s_t)을 벌인다
+    r_t, s_{t+1}을 본다
+    δ_t = r_t + γ V_φ(s_{t+1}) - V_φ(s_t)       # 때 차이 잘못
+    θ ← θ + α_θ · δ_t · ∇_θ log π_θ(a_t|s_t)     # 행위자 고침
+    φ ← φ + α_φ · δ_t · ∇_φ V_φ(s_t)              # 비평가 고침
 ```
 
-The TD error $\delta_t$ serves as a one-step advantage estimate.
+때 차이 잘못 $\delta_t$이 한 걸음 이점 어림 노릇을 한다.
 
-## Batch Actor-Critic
+## 묶음 행위자-비평가
 
-In practice, batch updates are more stable:
+실제로는 묶음으로 고치는 것이 더 든든하다.
 
-1. Collect a batch of transitions using $\pi_\theta$
-2. Compute advantage estimates for all transitions
-3. Update actor using policy gradient with advantages
-4. Update critic using value regression
+1. $\pi_\theta$으로 넘어감의 묶음을 모은다
+2. 온 넘어감에 대해 이점 어림을 셈한다
+3. 이점을 쓰는 방침 기울기로 행위자를 고친다
+4. 값 되돌이로 비평가를 고친다
 
-### Critic Targets
+### 비평가 과녁
 
-The choice of critic target affects bias-variance:
+비평가 과녁을 어떻게 고르느냐가 치우침-흩어짐에 미친다.
 
-- **TD(0)**: $y_t = r_t + \gamma V_\phi(s_{t+1})$ — low variance, high bias
-- **N-step**: $y_t = \sum_{k=0}^{n-1} \gamma^k r_{t+k} + \gamma^n V_\phi(s_{t+n})$ — intermediate
-- **Monte Carlo**: $y_t = G_t = \sum_{k=t}^{T} \gamma^{k-t} r_k$ — no bias, high variance
-- **GAE**: Exponentially-weighted mixture of n-step returns (Section 34.2.4)
+- **TD(0)**: $y_t = r_t + \gamma V_\phi(s_{t+1})$ -- 흩어짐이 작고 치우침이 큼
+- **N걸음**: $y_t = \sum_{k=0}^{n-1} \gamma^k r_{t+k} + \gamma^n V_\phi(s_{t+n})$ -- 그 사이
+- **몬테카를로**: $y_t = G_t = \sum_{k=t}^{T} \gamma^{k-t} r_k$ -- 치우침이 없고 흩어짐이 큼
+- **GAE**: n걸음 돌아옴을 지수로 무게 주어 섞은 것(34.2.4절)
 
-## Design Choices
+## 설계 고름
 
-### Shared vs. Separate Networks
+### 함께 쓰는 그물과 따로 두는 그물
 
-**Shared backbone** (common in A2C/PPO):
+**함께 쓰는 등뼈**(A2C/PPO에서 흔하다):
 
-- Feature extractor shared between actor and critic heads
-- Reduces parameters and computation
-- Risk: gradient interference between policy and value objectives
-- Mitigation: use different loss coefficients (e.g., 0.5 for value loss)
+- 행위자 머리와 비평가 머리가 특징 뽑개를 함께 쓴다
+- 매개변수와 셈이 줄어든다
+- 무릅씀: 방침 목표와 값 목표 사이에서 기울기가 서로를 방해한다
+- 누그러뜨리기: 손실 계수를 달리 쓴다(보기로 값 손실에 0.5)
 
-**Separate networks** (common in SAC/TD3):
+**따로 두는 그물**(SAC/TD3에서 흔하다):
 
-- Independent architectures for actor and critic
-- More stable training
-- Better for off-policy methods where actor and critic may need different learning rates
+- 행위자와 비평가가 서로 매이지 않은 얼개를 지닌다
+- 익힘이 더 든든하다
+- 행위자와 비평가의 배움률이 달라야 할 수 있는 벗어난 방침 방법에 더 알맞다
 
-### Entropy Regularization
+### 엔트로피 정칙화
 
-Adding entropy bonus prevents premature convergence:
+엔트로피 덤을 더하면 너무 일찍 모이는 것을 막는다.
 
-$$L_\text{total} = L_\text{policy} + c_v L_\text{value} - c_e \mathcal{H}(\pi_\theta)$$
+$$L_\text{온} = L_\text{방침} + c_v L_\text{값} - c_e \mathcal{H}(\pi_\theta)$$
 
-Typical coefficients: $c_v = 0.5$, $c_e = 0.01$.
+흔한 계수: $c_v = 0.5$, $c_e = 0.01$.
 
-### Gradient Flow
+### 기울기 흐름
 
-For the shared network case, gradients from three sources flow through the network:
+함께 쓰는 그물에서는 샘 셋에서 온 기울기가 그물을 지난다.
 
-1. Policy gradient (actor): increases probability of advantageous actions
-2. Value gradient (critic): improves value estimates
-3. Entropy gradient: maintains exploration
+1. 방침 기울기(행위자): 이로운 움직임의 낌새를 올린다
+2. 값 기울기(비평가): 값 어림을 낫게 한다
+3. 엔트로피 기울기: 살펴보기를 지킨다
 
-These must be balanced to avoid one objective dominating.
+한 목표가 판치지 않도록 이들의 저울을 맞추어야 한다.
 
-## Theoretical Properties
+## 이치 성질
 
-### Convergence
+### 모임
 
-Actor-critic methods with compatible function approximation converge to a local optimum under standard conditions. The critic must be a compatible function approximator:
+어울리는 함수 어림을 쓰는 행위자-비평가 방법은 여느 조건에서 그 언저리 가장 좋은 곳으로 모인다. 비평가는 어울리는 함수 어림개여야 한다.
 
 $$Q_w(s, a) = \nabla_\theta \log \pi_\theta(a|s)^\top w$$
 
-In practice, neural network critics violate this condition, but learning remains effective with sufficient capacity.
+실제로 신경망 비평가는 이 조건을 깨뜨리지만, 그릇이 넉넉하면 배움이 그래도 잘 듣는다.
 
-### The Deadly Triad
+### 죽음의 삼발이
 
-Actor-critic with function approximation combines three elements that can cause instability:
+함수 어림을 쓰는 행위자-비평가는 들쭉날쭉함을 낳을 수 있는 세 가지를 한데 엮는다.
 
-1. **Function approximation** (neural networks)
-2. **Bootstrapping** (TD learning for critic)
-3. **Off-policy learning** (if data reuse is employed)
+1. **함수 어림**(신경망)
+2. **부트스트랩**(비평가를 위한 때 차이 배움)
+3. **벗어난 방침 배움**(자료를 되쓸 때)
 
-On-policy actor-critic methods avoid the third element, providing better stability guarantees.
+방침 안 행위자-비평가 방법은 셋째를 비껴가므로 더 나은 든든함 보장을 준다.
 
-## Summary
+## 요약
 
-Actor-critic methods bridge policy gradient and value-based learning. The critic provides low-variance advantage estimates, while the actor directly optimizes the policy. This combination forms the foundation for modern algorithms like A2C, A3C, PPO, and SAC.
+행위자-비평가 방법은 방침 기울기와 값 바탕 배움을 잇는다. 비평가는 흩어짐이 작은 이점 어림을 주고 행위자는 방침을 곧바로 가장 좋게 한다. 이 어우름이 A2C, A3C, PPO, SAC 같은 요즘 알고리즘의 바탕을 이룬다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$

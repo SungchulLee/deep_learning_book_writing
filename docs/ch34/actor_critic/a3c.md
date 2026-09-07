@@ -1,15 +1,15 @@
-# Asynchronous Advantage Actor-Critic (A3C)
+# 발 안 맞춘 이점 행위자-비평가(A3C)
 
-Asynchronous Advantage Actor-Critic (A3C) is an important concept in actor-critic methods. memory for global model and optimizer. This implementation provides a hands-on demonstration of the key algorithms and data structures involved, illustrating both the theoretical foundations and practical considerations for real-world deployment.
+발 안 맞춘 이점 행위자-비평가(A3C)는 행위자-비평가 방법에서 종요로운 생각이다. 온 세상 모형과 가장 좋게 하는 개를 위한 함께 쓰는 기억을 다룬다. 이 구현은 여기에 걸린 종요로운 알고리즘과 자료 얼개를 손으로 만져 보이며, 이치 바탕과 실제로 서비스에 올릴 때 살필 것을 함께 보여 준다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 34.2.3: Asynchronous Advantage Actor-Critic (A3C)
+34.2.3장: 발 안 맞춘 이점 행위자-비평가(A3C)
 ==========================================================
-A3C implementation using PyTorch multiprocessing with shared
-memory for global model and optimizer.
+온 세상 모형과 가장 좋게 하는 개를 위한 함께 쓰는 기억을
+쓰는, 파이토치 여러 프로세스 A3C 구현.
 """
 
 import torch
@@ -23,16 +23,16 @@ from typing import List
 import os
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 # ---------------------------------------------------------------------------
-# Actor-Critic Network
+# 행위자-비평가 그물
 # ---------------------------------------------------------------------------
 
 class A3CNetwork(nn.Module):
-    """Actor-critic network for A3C with shared backbone."""
+    """등뼈를 함께 쓰는 A3C용 행위자-비평가 그물."""
     
     def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 128):
         super().__init__()
@@ -45,7 +45,7 @@ class A3CNetwork(nn.Module):
         self.actor = nn.Linear(hidden_dim, act_dim)
         self.critic = nn.Linear(hidden_dim, 1)
         
-        # Initialize weights
+        # 무게 첫 값 매기기
         for m in self.modules():
             if isinstance(m, nn.Linear):
                 nn.init.orthogonal_(m.weight, np.sqrt(2))
@@ -68,20 +68,20 @@ class A3CNetwork(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Shared Adam Optimizer
+# 함께 쓰는 Adam 가장 좋게 하는 개
 # ---------------------------------------------------------------------------
 
 class SharedAdam(torch.optim.Adam):
     """
-    Adam optimizer with shared state for multiprocessing.
+    여러 프로세스를 위해 상태를 함께 쓰는 Adam.
     
-    Shares optimizer state tensors across processes using
-    shared memory, enabling Hogwild-style updates.
+    함께 쓰는 기억으로 가장 좋게 하는 개의 상태 텐서를 프로세스
+    사이에서 함께 써 Hogwild 꼴 고침을 이루게 한다.
     """
     
     def __init__(self, params, lr=1e-3, betas=(0.9, 0.999), eps=1e-8):
         super().__init__(params, lr=lr, betas=betas, eps=eps)
-        # Initialize state and share memory
+        # 상태에 첫 값을 매기고 기억을 함께 쓴다
         for group in self.param_groups:
             for p in group["params"]:
                 state = self.state[p]
@@ -89,14 +89,14 @@ class SharedAdam(torch.optim.Adam):
                 state["exp_avg"] = torch.zeros_like(p.data)
                 state["exp_avg_sq"] = torch.zeros_like(p.data)
                 
-                # Share memory
+                # 기억 함께 쓰기
                 state["step"].share_memory_()
                 state["exp_avg"].share_memory_()
                 state["exp_avg_sq"].share_memory_()
 
 
 # ---------------------------------------------------------------------------
-# A3C Worker
+# A3C 일꾼
 # ---------------------------------------------------------------------------
 
 def a3c_worker(
@@ -114,13 +114,13 @@ def a3c_worker(
     max_grad_norm: float = 40.0,
 ):
     """
-    A3C worker process.
+    A3C 일꾼 프로세스.
     
-    Each worker:
-    1. Syncs local model from global
-    2. Collects n_steps of experience
-    3. Computes gradients locally
-    4. Applies gradients to global model
+    일꾼마다:
+    1. 제 모형을 온 세상 모형에 맞춘다
+    2. n_steps만큼 겪음을 모은다
+    3. 제자리에서 기울기를 셈한다
+    4. 그 기울기를 온 세상 모형에 매긴다
     """
     torch.manual_seed(rank + 42)
     
@@ -128,22 +128,22 @@ def a3c_worker(
     obs_dim = env.observation_space.shape[0]
     act_dim = env.action_space.n
     
-    # Local model (not shared)
+    # 제 모형(함께 쓰지 않는다)
     local_model = A3CNetwork(obs_dim, act_dim)
     
     obs, _ = env.reset(seed=rank)
     episode_reward = 0.0
     
     while True:
-        # Check if training is done
+        # 익힘이 끝났는지 살핀다
         with global_episode_counter.get_lock():
             if global_episode_counter.value >= max_episodes:
                 break
         
-        # Sync local model from global
+        # 제 모형을 온 세상 모형에 맞춘다
         local_model.load_state_dict(global_model.state_dict())
         
-        # Collect n-step rollout
+        # n걸음 굴림을 모은다
         states, actions, rewards, dones = [], [], [], []
         log_probs, values, entropies = [], [], []
         
@@ -185,11 +185,11 @@ def a3c_worker(
                 if ep_num >= max_episodes:
                     break
         
-        # Compute returns and advantages
+        # 돌아옴과 이점을 셈한다
         states_t = torch.FloatTensor(np.array(states))
         actions_t = torch.LongTensor(actions)
         
-        # Bootstrap value for last state
+        # 마지막 상태의 부트스트랩 값
         with torch.no_grad():
             if dones[-1]:
                 R = 0.0
@@ -203,27 +203,27 @@ def a3c_worker(
             returns.insert(0, R)
         returns = torch.FloatTensor(returns)
         
-        # Forward pass with gradients
+        # 기울기를 켜고 앞으로 지나가기
         _, log_probs_t, entropies_t, values_t = local_model.get_action_and_value(
             states_t, actions_t
         )
         
-        # Advantages
+        # 이점
         advantages = returns - values_t.detach()
         
-        # Losses
+        # 손실
         policy_loss = -(log_probs_t * advantages).mean()
         value_loss = F.mse_loss(values_t, returns)
         entropy_loss = -entropies_t.mean()
         
         total_loss = policy_loss + value_coef * value_loss + entropy_coef * entropy_loss
         
-        # Compute gradients on local model
+        # 제 모형에서 기울기를 셈한다
         optimizer.zero_grad()
         total_loss.backward()
         nn.utils.clip_grad_norm_(local_model.parameters(), max_grad_norm)
         
-        # Transfer gradients to global model
+        # 기울기를 온 세상 모형으로 옮긴다
         for local_param, global_param in zip(
             local_model.parameters(), global_model.parameters()
         ):
@@ -232,21 +232,22 @@ def a3c_worker(
             else:
                 global_param.grad.copy_(local_param.grad)
         
-        # Apply gradients to global model (Hogwild-style)
+        # 온 세상 모형에 기울기를 매긴다(Hogwild 꼴)
         optimizer.step()
     
     env.close()
 
 
 # ---------------------------------------------------------------------------
-# A3C Trainer
+# A3C 익힘 이끄개
 # ---------------------------------------------------------------------------
 
 class A3CTrainer:
     """
-    A3C training coordinator.
+    A3C 익힘을 이끄는 것.
     
-    Spawns worker processes and manages global model/optimizer.
+    일꾼 프로세스를 돋아나게 하고 온 세상 모형과 가장 좋게 하는
+    개를 다룬다.
     """
     
     def __init__(
@@ -267,29 +268,29 @@ class A3CTrainer:
         self.entropy_coef = entropy_coef
         self.value_coef = value_coef
         
-        # Determine dimensions
+        # 차원을 알아낸다
         env = gym.make(env_id)
         obs_dim = env.observation_space.shape[0]
         act_dim = env.action_space.n
         env.close()
         
-        # Global model (shared memory)
+        # 온 세상 모형(함께 쓰는 기억)
         self.global_model = A3CNetwork(obs_dim, act_dim, hidden_dim)
         self.global_model.share_memory()
         
-        # Shared optimizer
+        # 함께 쓰는 가장 좋게 하는 개
         self.optimizer = SharedAdam(self.global_model.parameters(), lr=lr)
     
     def train(self, max_episodes: int = 2000) -> List[float]:
-        """Train using multiple worker processes."""
+        """일꾼 프로세스 여럿으로 익힌다."""
         mp.set_start_method("spawn", force=True)
         
-        # Shared counters
+        # 함께 쓰는 세개
         global_episode_counter = mp.Value("i", 0)
         manager = mp.Manager()
         global_rewards = manager.list()
         
-        # Spawn workers
+        # 일꾼을 돋아나게 한다
         processes = []
         for rank in range(self.n_workers):
             p = mp.Process(
@@ -311,14 +312,14 @@ class A3CTrainer:
             p.start()
             processes.append(p)
         
-        # Wait for all workers
+        # 온 일꾼을 기다린다
         for p in processes:
             p.join()
         
         return list(global_rewards)
     
     def evaluate(self, n_episodes: int = 10) -> float:
-        """Evaluate the global model."""
+        """온 세상 모형을 따진다."""
         env = gym.make(self.env_id)
         rewards = []
         
@@ -344,16 +345,15 @@ class A3CTrainer:
 
 
 # ---------------------------------------------------------------------------
-# Simplified single-process A3C simulation
+# 프로세스 하나로 쉽게 흉내 낸 A3C
 # ---------------------------------------------------------------------------
 
 class SimulatedA3C:
     """
-    Simplified A3C simulation in a single process.
+    프로세스 하나에서 쉽게 흉내 낸 A3C.
     
-    Mimics A3C behavior by maintaining multiple environment instances
-    and updating sequentially, useful for demonstration without
-    multiprocessing complexity.
+    둘레를 여럿 지니고 차례대로 고쳐 A3C의 거동을 흉내 낸다.
+    여러 프로세스의 얽힘 없이 보여 주기에 쓸모 있다.
     """
     
     def __init__(
@@ -373,16 +373,16 @@ class SimulatedA3C:
         self.entropy_coef = entropy_coef
         self.value_coef = value_coef
         
-        # Create environments
+        # 둘레를 만든다
         self.envs = [gym.make(env_id) for _ in range(n_workers)]
         obs_dim = self.envs[0].observation_space.shape[0]
         act_dim = self.envs[0].action_space.n
         
-        # Global model
+        # 온 세상 모형
         self.global_model = A3CNetwork(obs_dim, act_dim, hidden_dim)
         self.optimizer = torch.optim.Adam(self.global_model.parameters(), lr=lr)
         
-        # Local models
+        # 제 모형들
         self.local_models = [
             A3CNetwork(obs_dim, act_dim, hidden_dim) for _ in range(n_workers)
         ]
@@ -392,17 +392,17 @@ class SimulatedA3C:
         recent_rewards = deque(maxlen=100)
         episode_count = 0
         
-        # Initialize observations
+        # 봄에 첫 값을 매긴다
         obs_list = [env.reset(seed=i)[0] for i, env in enumerate(self.envs)]
         episode_rewards = [0.0] * self.n_workers
         
         while episode_count < max_episodes:
-            # Each worker collects and updates
+            # 일꾼마다 모으고 고친다
             for w in range(self.n_workers):
-                # Sync local from global
+                # 제 모형을 온 세상 모형에 맞춘다
                 self.local_models[w].load_state_dict(self.global_model.state_dict())
                 
-                # Collect rollout
+                # 굴림을 모은다
                 states, actions, rewards, dones = [], [], [], []
                 
                 for _ in range(self.n_steps):
@@ -440,7 +440,7 @@ class SimulatedA3C:
                 if episode_count >= max_episodes:
                     break
                 
-                # Compute returns
+                # 돌아옴을 셈한다
                 states_t = torch.FloatTensor(np.array(states))
                 actions_t = torch.LongTensor(actions)
                 
@@ -459,7 +459,7 @@ class SimulatedA3C:
                     returns_list.insert(0, R)
                 returns_t = torch.FloatTensor(returns_list)
                 
-                # Forward + loss
+                # 앞으로 지나가기 + 손실
                 _, lp, ent, val = self.local_models[w].get_action_and_value(states_t, actions_t)
                 adv = returns_t - val.detach()
                 
@@ -469,7 +469,7 @@ class SimulatedA3C:
                     - self.entropy_coef * ent.mean()
                 )
                 
-                # Apply gradients to global model
+                # 온 세상 모형에 기울기를 매긴다
                 self.optimizer.zero_grad()
                 loss.backward()
                 
@@ -495,7 +495,7 @@ from collections import deque
 
 
 def demo_simulated_a3c():
-    """Demo A3C in single-process simulation."""
+    """프로세스 하나로 흉내 낸 A3C를 보여 준다."""
     print("=" * 60)
     print("Simulated A3C on CartPole-v1")
     print("=" * 60)
@@ -520,34 +520,34 @@ def demo_simulated_a3c():
 if __name__ == "__main__":
     demo_simulated_a3c()```
 
-## Discussion
+## 논의
 
-The implementation centers on the `A3CNetwork`, `SharedAdam`, `A3CTrainer` classes, which encapsulate the core logic of asynchronous advantage actor-critic (a3c). The code follows a modular design that separates the algorithmic components from the demonstration and evaluation logic.
+이 구현은 발 안 맞춘 이점 행위자-비평가(A3C)의 한가운데 논리를 담은 `A3CNetwork`, `SharedAdam`, `A3CTrainer` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-The demonstration function shows the practical application of these components on standard reinforcement learning benchmarks. By examining the output, one can observe how the algorithm's performance varies with different hyperparameter choices and problem configurations.
+보여 주기 함수는 이 조각들을 여느 힘 북돋우는 배움 잣대에 실제로 써 보인다. 그 출력을 살피면 매개변수 고름과 문제 얼개에 따라 알고리즘의 됨됨이가 어떻게 달라지는지 볼 수 있다.
 
-From a practical standpoint, this implementation prioritizes clarity over raw performance. Production systems would typically incorporate additional optimizations such as batched computation, GPU acceleration, and more sophisticated hyperparameter tuning. Nevertheless, the core algorithmic ideas demonstrated here transfer directly to large-scale applications.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 묶음 셈하기, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Run the demonstration code and record the key output metrics. Modify one hyperparameter (such as the learning rate, hidden dimension, or number of layers) and describe how the results change.
+**연습문제 1.**
+보여 주기 코드를 돌리고 종요로운 출력 재기를 적어라. 매개변수 하나(배움률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    After running the demo, systematically vary the chosen hyperparameter while keeping others fixed. For example, doubling the hidden dimension typically improves representational capacity but increases computation time. The learning rate has a non-monotonic effect: too small leads to slow convergence, while too large causes instability. Document the specific numbers for at least three different values of the chosen hyperparameter.
-
----
-
-**Exercise 2.**
-Explain the role of the key architectural choices in the implementation. Why are specific activation functions, normalization strategies, or loss functions used? What would happen if you substituted alternatives?
-
-??? success "Solution to Exercise 2"
-    The architectural choices reflect established best practices in actor-critic methods. For instance, ReLU activations provide non-linearity while avoiding vanishing gradients for positive inputs. The loss function is chosen to match the task type (cross-entropy for classification, MSE for regression). Substituting alternatives (e.g., sigmoid activations, L1 loss) would change the optimization landscape and potentially degrade performance, though some substitutions may be beneficial in specific scenarios.
+??? success "연습문제 1 풀이"
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 짜임 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 배움률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
-**Exercise 3.**
-Extend the implementation to handle a more challenging scenario: either a larger dataset, a different problem variant, or an additional feature. Describe your modification and evaluate its impact on performance.
+**연습문제 2.**
+이 구현에서 종요로운 얼개 고름이 맡은 몫을 풀어라. 왜 그런 활성 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 3"
-    One natural extension is to add regularization (dropout, weight decay) or a more sophisticated architecture (additional layers, skip connections). Implement the chosen extension, train on the same data, and compare metrics before and after. The extension should demonstrate understanding of both the original algorithm and the modification's theoretical motivation.
+??? success "연습문제 2 풀이"
+    이 얼개 고름은 행위자-비평가 방법에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 들임에서 기울기가 사라지는 것을 막는다. 손실 함수는 일감 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 가장 좋게 하기 지형이 바뀌어 됨됨이가 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+
+---
+
+**연습문제 3.**
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 자료 뭉치, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 됨됨이에 미친 바를 따져라.
+
+??? success "연습문제 3 풀이"
+    절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.

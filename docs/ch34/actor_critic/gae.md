@@ -1,116 +1,116 @@
-# 34.2.4 Generalized Advantage Estimation (GAE)
-## Introduction
+# 34.2.4 넓힌 이점 어림(GAE)
+## 들머리
 
-Generalized Advantage Estimation (Schulman et al., 2016) provides a principled framework for trading off bias and variance in advantage estimation. GAE computes an exponentially-weighted average of multi-step advantage estimates, controlled by a single hyperparameter $\lambda \in [0, 1]$. It has become the standard advantage estimator in modern policy gradient algorithms including PPO.
+넓힌 이점 어림(슐먼 외, 2016)은 이점 어림에서 치우침과 흩어짐을 맞바꾸는 이치 있는 틀을 준다. GAE는 여러 걸음 이점 어림을 지수로 무게 주어 고르게 하며, 매개변수 $\lambda \in [0, 1]$ 하나로 다스린다. PPO를 비롯한 요즘 방침 기울기 알고리즘에서 여느 이점 어림개가 되었다.
 
-## Motivation
+## 밑뜻
 
-Different advantage estimators offer different bias-variance profiles:
+이점 어림개마다 치우침-흩어짐 결이 다르다.
 
-- **1-step TD**: $\hat{A}_t^{(1)} = \delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$ — low variance, high bias
-- **2-step**: $\hat{A}_t^{(2)} = \delta_t + \gamma \delta_{t+1}$ — medium variance, medium bias
-- **$n$-step**: $\hat{A}_t^{(n)} = \sum_{k=0}^{n-1} \gamma^k \delta_{t+k}$ — higher variance, lower bias
-- **Monte Carlo**: $\hat{A}_t^{(\infty)} = G_t - V(s_t)$ — highest variance, no bias
+- **1걸음 때 차이**: $\hat{A}_t^{(1)} = \delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$ -- 흩어짐이 작고 치우침이 큼
+- **2걸음**: $\hat{A}_t^{(2)} = \delta_t + \gamma \delta_{t+1}$ -- 흩어짐도 치우침도 어중간함
+- **$n$걸음**: $\hat{A}_t^{(n)} = \sum_{k=0}^{n-1} \gamma^k \delta_{t+k}$ -- 흩어짐이 더 크고 치우침이 더 작음
+- **몬테카를로**: $\hat{A}_t^{(\infty)} = G_t - V(s_t)$ -- 흩어짐이 가장 크고 치우침이 없음
 
-GAE smoothly interpolates between these extremes.
+GAE는 이 끝점 사이를 매끄럽게 잇는다.
 
-## GAE Formula
+## GAE 식
 
 $$\hat{A}_t^{\text{GAE}(\gamma, \lambda)} = \sum_{k=0}^{T-t-1} (\gamma \lambda)^k \delta_{t+k}$$
 
-where $\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$ is the TD error.
+여기서 $\delta_t = r_t + \gamma V(s_{t+1}) - V(s_t)$은 때 차이 잘못이다.
 
-### Special Cases
+### 남다른 경우
 
-| $\lambda$ | Estimator | Bias | Variance |
+| $\lambda$ | 어림개 | 치우침 | 흩어짐 |
 |-----------|-----------|------|----------|
-| 0 | 1-step TD ($\delta_t$) | High | Low |
-| 0.5 | Balanced mixture | Medium | Medium |
-| 0.95 | Standard choice | Low | Moderate |
-| 1 | Monte Carlo ($G_t - V(s_t)$) | None | High |
+| 0 | 1걸음 때 차이($\delta_t$) | 큼 | 작음 |
+| 0.5 | 고루 섞음 | 어중간 | 어중간 |
+| 0.95 | 여느 고름 | 작음 | 어중간 |
+| 1 | 몬테카를로($G_t - V(s_t)$) | 없음 | 큼 |
 
-## Efficient Computation
+## 좋은 셈하기
 
-GAE is computed recursively in a single backward pass:
+GAE는 뒤에서 앞으로 한 번 지나며 되돌아 들어가 셈한다.
 
 $$\hat{A}_{T-1} = \delta_{T-1}$$
 
 $$\hat{A}_t = \delta_t + \gamma \lambda (1 - d_{t+1}) \hat{A}_{t+1}$$
 
-where $d_{t+1}$ indicates terminal states. This is $O(T)$ in time and memory.
+여기서 $d_{t+1}$은 끝 상태를 가리킨다. 때와 기억이 $O(T)$이다.
 
-## Bias-Variance Analysis
+## 치우침-흩어짐 살피기
 
-The bias of GAE stems from value function approximation error. With perfect value function, GAE is unbiased for all $\lambda$. In practice:
+GAE의 치우침은 값 함수 어림 잘못에서 온다. 값 함수가 온전하면 GAE는 모든 $\lambda$에서 치우치지 않는다. 실제로는 다음과 같다.
 
-- Smaller $\lambda$: More reliance on value function, more bias if $V$ is inaccurate, less variance
-- Larger $\lambda$: Less reliance on value function, less bias, more variance from Monte Carlo-like estimation
+- $\lambda$이 작으면: 값 함수에 더 기대므로 $V$이 틀리면 치우침이 크고 흩어짐은 작다
+- $\lambda$이 크면: 값 함수에 덜 기대므로 치우침이 작고, 몬테카를로 같은 어림에서 오는 흩어짐이 크다
 
-The effective discount for GAE is $\gamma_\text{eff} = \gamma \lambda$, meaning GAE with $\gamma=0.99, \lambda=0.95$ has an effective horizon of $\frac{1}{1-\gamma\lambda} \approx 19$ steps.
+GAE의 실제 깎기는 $\gamma_\text{실제} = \gamma \lambda$이므로 $\gamma=0.99$, $\lambda=0.95$인 GAE의 실제 눈길은 $\frac{1}{1-\gamma\lambda} \approx 19$걸음이다.
 
-## GAE with PPO
+## PPO와 함께 쓰는 GAE
 
-In PPO, GAE advantages are used for both the clipped policy objective and the return targets:
+PPO에서는 잘라 낸 방침 목표와 돌아옴 과녁 둘 다에 GAE 이점을 쓴다.
 
-1. Compute GAE advantages: $\hat{A}_t^{\text{GAE}}$
-2. Normalize: $\hat{A}_t \leftarrow \frac{\hat{A}_t - \mu}{\sigma + \epsilon}$
-3. Return targets: $\hat{R}_t = \hat{A}_t^{\text{GAE}} + V_\phi(s_t)$
+1. GAE 이점을 셈한다: $\hat{A}_t^{\text{GAE}}$
+2. 고르게 한다: $\hat{A}_t \leftarrow \frac{\hat{A}_t - \mu}{\sigma + \epsilon}$
+3. 돌아옴 과녁: $\hat{R}_t = \hat{A}_t^{\text{GAE}} + V_\phi(s_t)$
 
-The value function is then trained on $\hat{R}_t$, not on Monte Carlo returns directly.
+그런 다음 값 함수를 몬테카를로 돌아옴이 아니라 $\hat{R}_t$으로 익힌다.
 
-## Practical Considerations
+## 실제로 살필 것
 
-### Choosing lambda
+### 람다 고르기
 
-- $\lambda = 0.95$: Default choice for most problems
-- $\lambda = 0.97$: Better for long-horizon tasks
-- $\lambda = 0.9$: Better for tasks with accurate value functions
-- Lower $\lambda$ when value function is well-trained; higher when exploration is critical
+- $\lambda = 0.95$: 거의 모든 문제의 기본 고름
+- $\lambda = 0.97$: 눈길이 긴 일감에 더 낫다
+- $\lambda = 0.9$: 값 함수가 잘 맞는 일감에 더 낫다
+- 값 함수가 잘 익었으면 $\lambda$을 낮추고 살펴보기가 종요로우면 높이라
 
-### Interaction with gamma
+### 감마와의 주고받기
 
-The effective bias-variance trade-off depends on both $\gamma$ and $\lambda$:
+실제 치우침-흩어짐 맞바꿈은 $\gamma$과 $\lambda$ 둘에 달렸다.
 
-- $\gamma$ controls the actual horizon of the MDP
-- $\lambda$ controls how much of that horizon is estimated via bootstrapping vs. actual rewards
-- $\gamma \lambda$ determines the effective weighting decay
+- $\gamma$은 마르코프 결정 과정의 참 눈길을 다스린다
+- $\lambda$은 그 눈길 가운데 얼마를 부트스트랩으로 어림하고 얼마를 참 보상으로 얻을지를 다스린다
+- $\gamma \lambda$이 실제 무게 삭임을 정한다
 
-### Mini-batch Computation
+### 작은 묶음 셈하기
 
-When using mini-batch updates (as in PPO), GAE is computed once for the full rollout, then advantages are used across multiple epochs of mini-batch optimization.
+(PPO에서처럼) 작은 묶음으로 고칠 때에는 온 굴림에 대해 GAE를 한 번 셈한 뒤, 그 이점을 작은 묶음 가장 좋게 하기의 여러 판에 걸쳐 쓴다.
 
-## Summary
+## 요약
 
-GAE provides a unified, tunable framework for advantage estimation that subsumes both TD and Monte Carlo methods. The single hyperparameter $\lambda$ offers a clean bias-variance knob. Combined with PPO's clipped objective, GAE enables stable, sample-efficient policy optimization across a wide range of tasks.
+GAE는 때 차이 방법과 몬테카를로 방법을 함께 아우르는, 벼릴 수 있는 하나의 이점 어림 틀을 준다. 매개변수 $\lambda$ 하나가 깔끔한 치우침-흩어짐 손잡이가 된다. PPO의 잘라 낸 목표와 엮으면 GAE는 널리 여러 일감에서 든든하고 뽑기를 아끼는 방침 가장 좋게 하기를 이루게 한다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$

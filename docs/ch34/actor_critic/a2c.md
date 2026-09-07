@@ -1,15 +1,15 @@
-# Advantage Actor-Critic (A2C)
+# 이점 행위자-비평가(A2C)
 
-Advantage Actor-Critic (A2C) is an important concept in actor-critic methods. n-step returns, and combined actor-critic training. This implementation provides a hands-on demonstration of the key algorithms and data structures involved, illustrating both the theoretical foundations and practical considerations for real-world deployment.
+이점 행위자-비평가(A2C)는 행위자-비평가 방법에서 종요로운 생각이다. n걸음 돌아옴과 행위자-비평가를 함께 익히는 것을 다룬다. 이 구현은 여기에 걸린 종요로운 알고리즘과 자료 얼개를 손으로 만져 보이며, 이치 바탕과 실제로 서비스에 올릴 때 살필 것을 함께 보여 준다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 34.2.2: Advantage Actor-Critic (A2C)
+34.2.2장: 이점 행위자-비평가(A2C)
 =============================================
-Full A2C implementation with vectorized environments,
-n-step returns, and combined actor-critic training.
+벡터 둘레, n걸음 돌아옴, 행위자-비평가를 함께 익히는
+온전한 A2C 구현.
 """
 
 import torch
@@ -22,12 +22,12 @@ from typing import List
 from collections import deque
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 # ---------------------------------------------------------------------------
-# Actor-Critic Network
+# 행위자-비평가 그물
 # ---------------------------------------------------------------------------
 
 def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
@@ -37,7 +37,7 @@ def layer_init(layer, std=np.sqrt(2), bias_const=0.0):
 
 
 class A2CNetwork(nn.Module):
-    """Shared actor-critic network for A2C."""
+    """A2C를 위한, 함께 쓰는 행위자-비평가 그물."""
     
     def __init__(self, obs_dim: int, act_dim: int, hidden_dim: int = 64):
         super().__init__()
@@ -66,14 +66,14 @@ class A2CNetwork(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Vectorized Environment Wrapper
+# 벡터 둘레 감싸개
 # ---------------------------------------------------------------------------
 
 class VecEnv:
     """
-    Simple synchronous vectorized environment.
+    쉬운 발맞춘 벡터 둘레.
     
-    Runs N environments in parallel, stepping them synchronously.
+    둘레 N개를 나란히 돌리며 발맞추어 걸음을 옮긴다.
     """
     
     def __init__(self, env_id: str, n_envs: int, seed: int = 0):
@@ -95,7 +95,7 @@ class VecEnv:
             obs, reward, terminated, truncated, info = env.step(action)
             done = terminated or truncated
             
-            # Auto-reset on done
+            # 끝나면 저절로 되돌린다
             if done:
                 info["terminal_obs"] = obs
                 info["episode_reward"] = info.get("episode", {}).get("r", None)
@@ -122,35 +122,35 @@ class VecEnv:
 
 
 # ---------------------------------------------------------------------------
-# A2C Agent
+# A2C 부림꾼
 # ---------------------------------------------------------------------------
 
 class A2C:
     """
-    Advantage Actor-Critic (A2C) with synchronous vectorized environments.
+    발맞춘 벡터 둘레를 쓰는 이점 행위자-비평가(A2C).
     
-    Parameters
+    매개변수
     ----------
     env_id : str
-        Gymnasium environment ID.
+        Gymnasium 둘레 아이디.
     n_envs : int
-        Number of parallel environments.
+        나란한 둘레의 개수.
     n_steps : int
-        Rollout length per environment.
+        둘레마다 굴림 길이.
     lr : float
-        Learning rate.
+        배움률.
     gamma : float
-        Discount factor.
+        깎기 인자.
     value_coef : float
-        Value loss coefficient.
+        값 손실 계수.
     entropy_coef : float
-        Entropy bonus coefficient.
+        엔트로피 덤 계수.
     max_grad_norm : float
-        Maximum gradient norm for clipping.
+        자르기를 위한 기울기 노름의 최댓값.
     use_gae : bool
-        Whether to use GAE (True) or n-step returns (False).
+        GAE를 쓸지(True) n걸음 돌아옴을 쓸지(False).
     gae_lambda : float
-        GAE lambda parameter.
+        GAE 람다 매개변수.
     """
     
     def __init__(
@@ -177,26 +177,26 @@ class A2C:
         self.use_gae = use_gae
         self.gae_lambda = gae_lambda
         
-        # Setup environments
+        # 둘레 갖추기
         self.envs = VecEnv(env_id, n_envs, seed=seed)
         obs_dim = self.envs.observation_space.shape[0]
         act_dim = self.envs.action_space.n
         
-        # Setup network
+        # 그물 갖추기
         self.network = A2CNetwork(obs_dim, act_dim, hidden_dim)
         self.optimizer = optim.Adam(self.network.parameters(), lr=lr, eps=1e-5)
     
     def collect_rollout(self, obs):
         """
-        Collect n_steps of experience from all environments.
+        온 둘레에서 n_steps만큼의 겪음을 모은다.
         
-        Returns
+        돌려주는 값
         -------
-        obs : ndarray (next observation for continuing)
-        rollout : dict of tensors
-        episode_rewards : list of completed episode rewards
+        obs : ndarray (이어 가기 위한 다음 봄)
+        rollout : 텐서 사전
+        episode_rewards : 마친 에피소드 보상의 목록
         """
-        # Storage
+        # 곳간
         mb_obs = np.zeros((self.n_steps, self.n_envs) + self.envs.observation_space.shape)
         mb_actions = np.zeros((self.n_steps, self.n_envs), dtype=np.int64)
         mb_rewards = np.zeros((self.n_steps, self.n_envs))
@@ -221,10 +221,10 @@ class A2C:
             mb_rewards[step] = rewards
             mb_dones[step] = dones
             
-            # Track episode completions
+            # 에피소드가 마친 것을 좇는다
             for i, done in enumerate(dones):
                 if done:
-                    # Compute episode reward from stored rewards
+                    # 갈무리한 보상으로 에피소드 보상을 셈한다
                     ep_reward = sum(mb_rewards[s, i] for s in range(step + 1))
                     episode_rewards.append(ep_reward)
         
@@ -240,7 +240,7 @@ class A2C:
         return obs, rollout, episode_rewards
     
     def compute_returns_and_advantages(self, rollout, last_obs):
-        """Compute return targets and advantages."""
+        """돌아옴 과녁과 이점을 셈한다."""
         rewards = rollout["rewards"]
         dones = rollout["dones"]
         values = rollout["values"]
@@ -251,7 +251,7 @@ class A2C:
             ).numpy()
         
         if self.use_gae:
-            # GAE computation
+            # GAE 셈하기
             advantages = np.zeros_like(rewards)
             last_gae = 0
             for t in reversed(range(self.n_steps)):
@@ -268,7 +268,7 @@ class A2C:
             
             returns = advantages + values
         else:
-            # N-step returns (standard A2C)
+            # n걸음 돌아옴(여느 A2C)
             returns = np.zeros_like(rewards)
             R = last_value
             for t in reversed(range(self.n_steps)):
@@ -279,30 +279,30 @@ class A2C:
         returns = torch.FloatTensor(returns.reshape(-1))
         advantages = torch.FloatTensor(advantages.reshape(-1))
         
-        # Normalize advantages
+        # 이점을 고르게 한다
         advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
         
         return returns, advantages
     
     def update(self, rollout, returns, advantages):
-        """Perform A2C update."""
+        """A2C 고침을 벌인다."""
         obs = rollout["obs"]
         actions = rollout["actions"]
         
-        # Forward pass
+        # 앞으로 지나가기
         _, new_log_probs, entropy, new_values = \
             self.network.get_action_and_value(obs, actions)
         
-        # Policy loss
+        # 방침 손실
         policy_loss = -(new_log_probs * advantages).mean()
         
-        # Value loss
+        # 값 손실
         value_loss = nn.functional.mse_loss(new_values, returns)
         
-        # Entropy loss
+        # 엔트로피 손실
         entropy_loss = -entropy.mean()
         
-        # Total loss
+        # 온 손실
         total_loss = (
             policy_loss
             + self.value_coef * value_loss
@@ -322,7 +322,7 @@ class A2C:
         }
     
     def train(self, total_steps: int = 200000, print_interval: int = 10000) -> List[float]:
-        """Train A2C agent."""
+        """A2C 부림꾼을 익힌다."""
         obs = self.envs.reset()
         all_rewards = []
         recent_rewards = deque(maxlen=100)
@@ -354,7 +354,7 @@ class A2C:
         return all_rewards
     
     def evaluate(self, env_id: str, n_episodes: int = 10) -> float:
-        """Evaluate the trained policy."""
+        """익힌 방침을 따진다."""
         env = gym.make(env_id)
         rewards = []
         
@@ -380,11 +380,11 @@ class A2C:
 
 
 # ---------------------------------------------------------------------------
-# Demo
+# 보여 주기
 # ---------------------------------------------------------------------------
 
 def demo_a2c():
-    """Train A2C on CartPole."""
+    """CartPole에서 A2C를 익힌다."""
     print("=" * 60)
     print("A2C on CartPole-v1")
     print("=" * 60)
@@ -404,7 +404,7 @@ def demo_a2c():
     
     rewards = agent.train(total_steps=200000, print_interval=20000)
     
-    # Evaluate
+    # 따지기
     eval_reward = agent.evaluate("CartPole-v1", n_episodes=20)
     print(f"\nEvaluation reward (20 episodes): {eval_reward:.1f}")
     
@@ -412,7 +412,7 @@ def demo_a2c():
 
 
 def demo_a2c_with_gae():
-    """Train A2C with GAE on CartPole."""
+    """CartPole에서 GAE를 쓰는 A2C를 익힌다."""
     print("\n" + "=" * 60)
     print("A2C with GAE on CartPole-v1")
     print("=" * 60)
@@ -443,34 +443,34 @@ if __name__ == "__main__":
     demo_a2c()
     demo_a2c_with_gae()```
 
-## Discussion
+## 논의
 
-The implementation centers on the `A2CNetwork`, `VecEnv`, `A2C` classes, which encapsulate the core logic of advantage actor-critic (a2c). The code follows a modular design that separates the algorithmic components from the demonstration and evaluation logic.
+이 구현은 이점 행위자-비평가(A2C)의 한가운데 논리를 담은 `A2CNetwork`, `VecEnv`, `A2C` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-The demonstration functions show the practical application of these components on standard reinforcement learning benchmarks. By examining the output, one can observe how the algorithm's performance varies with different hyperparameter choices and problem configurations.
+보여 주기 함수는 이 조각들을 여느 힘 북돋우는 배움 잣대에 실제로 써 보인다. 그 출력을 살피면 매개변수 고름과 문제 얼개에 따라 알고리즘의 됨됨이가 어떻게 달라지는지 볼 수 있다.
 
-From a practical standpoint, this implementation prioritizes clarity over raw performance. Production systems would typically incorporate additional optimizations such as batched computation, GPU acceleration, and more sophisticated hyperparameter tuning. Nevertheless, the core algorithmic ideas demonstrated here transfer directly to large-scale applications.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 묶음 셈하기, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Run the demonstration code and record the key output metrics. Modify one hyperparameter (such as the learning rate, hidden dimension, or number of layers) and describe how the results change.
+**연습문제 1.**
+보여 주기 코드를 돌리고 종요로운 출력 재기를 적어라. 매개변수 하나(배움률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    After running the demo, systematically vary the chosen hyperparameter while keeping others fixed. For example, doubling the hidden dimension typically improves representational capacity but increases computation time. The learning rate has a non-monotonic effect: too small leads to slow convergence, while too large causes instability. Document the specific numbers for at least three different values of the chosen hyperparameter.
-
----
-
-**Exercise 2.**
-Explain the role of the key architectural choices in the implementation. Why are specific activation functions, normalization strategies, or loss functions used? What would happen if you substituted alternatives?
-
-??? success "Solution to Exercise 2"
-    The architectural choices reflect established best practices in actor-critic methods. For instance, ReLU activations provide non-linearity while avoiding vanishing gradients for positive inputs. The loss function is chosen to match the task type (cross-entropy for classification, MSE for regression). Substituting alternatives (e.g., sigmoid activations, L1 loss) would change the optimization landscape and potentially degrade performance, though some substitutions may be beneficial in specific scenarios.
+??? success "연습문제 1 풀이"
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 짜임 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 배움률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
-**Exercise 3.**
-Extend the implementation to handle a more challenging scenario: either a larger dataset, a different problem variant, or an additional feature. Describe your modification and evaluate its impact on performance.
+**연습문제 2.**
+이 구현에서 종요로운 얼개 고름이 맡은 몫을 풀어라. 왜 그런 활성 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 3"
-    One natural extension is to add regularization (dropout, weight decay) or a more sophisticated architecture (additional layers, skip connections). Implement the chosen extension, train on the same data, and compare metrics before and after. The extension should demonstrate understanding of both the original algorithm and the modification's theoretical motivation.
+??? success "연습문제 2 풀이"
+    이 얼개 고름은 행위자-비평가 방법에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 들임에서 기울기가 사라지는 것을 막는다. 손실 함수는 일감 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 가장 좋게 하기 지형이 바뀌어 됨됨이가 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+
+---
+
+**연습문제 3.**
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 자료 뭉치, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 됨됨이에 미친 바를 따져라.
+
+??? success "연습문제 3 풀이"
+    절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
