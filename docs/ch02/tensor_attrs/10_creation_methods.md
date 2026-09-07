@@ -7,7 +7,7 @@
 ```python
 #!/usr/bin/env python3
 """
-텐서 만들기와 첫자리 잡기 방법.
+텐서 만들기와 초기화 방법.
 
 Covers:
 - 기본 생성기: torch.tensor, torch.as_tensor, torch.from_numpy

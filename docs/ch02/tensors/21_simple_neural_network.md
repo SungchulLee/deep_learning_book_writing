@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""학습 21: 단순한 신경망 - 밑바닥부터 짓기"""
+"""튜토리얼 21: 단순한 신경망 - 밑바닥부터 짓기"""
 import torch
 import torch.nn as nn
 

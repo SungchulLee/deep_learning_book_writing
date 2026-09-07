@@ -9,12 +9,12 @@
 선형 회귀를 위한 경사 하강법 — PyTorch(손수)
 ==========================================================
 
-PyTorch 텐서와 DataLoader으로 손수 기울기를 계산한다.
+PyTorch 텐서와 DataLoader으로 직접 기울기를 계산한다.
 nn.Module도 autograd도 쓰지 않고 텐서 셈만 쓴다.
 
 Demonstrates:
 - 배치 만들기를 위한 TensorDataset / DataLoader
-- 손수 셈하는 기울기: g = (2/B) X^T (Xw + b - y)
+- 직접 계산하는 기울기: g = (2/B) X^T (Xw + b - y)
 - 제자리에서 매개변수 고치기
 - 모여드는 모습 좇기
 

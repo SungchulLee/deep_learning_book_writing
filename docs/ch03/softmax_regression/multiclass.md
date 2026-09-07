@@ -182,7 +182,7 @@ tensor([[1., 0., 0.],
 ```python
 def one_hot_manual(labels: torch.Tensor, num_classes: int) -> torch.Tensor:
     """
-    이해를 돕고자 손수 짠 원핫 매김.
+    이해를 돕고자 직접 구현한 원핫 매김.
 
     영 텐서를 만들고 scatter_으로 알맞은 자리에 1을
     놓는다.
@@ -211,7 +211,7 @@ def get_true_class_probs(probs: torch.Tensor, labels: torch.Tensor) -> torch.Ten
     참 클래스의 예측 확률을 뽑아낸다.
 
     이는 (one_hot * probs).sum(dim=1)과 같다.
-    다만 gather를 쓰면 더 잘 든다.
+    다만 gather를 쓰면 더 효율적이다.
 
     Args:
         probs: 모양이 (batch_size, num_classes)인 예측 확률

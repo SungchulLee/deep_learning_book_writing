@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""학습 27: 모델 되짚음 저장 - 모델 저장하고 불러오기"""
+"""튜토리얼 27: 모델 되짚음 저장 - 모델 저장하고 불러오기"""
 import torch
 import torch.nn as nn
 import torch.optim as optim

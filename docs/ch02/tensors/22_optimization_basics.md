@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""학습 22: 최적화 기초 - 최적화기와 학습"""
+"""튜토리얼 22: 최적화 기초 - 최적화기와 학습"""
 import torch
 import torch.nn as nn
 import torch.optim as optim

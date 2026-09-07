@@ -342,7 +342,7 @@ print(f"CrossEntropyLoss: {loss.item():.4f}")
 ```python
 def cross_entropy_manual(logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
     """
-    교차 엔트로피 손실을 손수 짠 것.
+    교차 엔트로피 손실을 직접 구현한 것.
 
     CE = -mean(log(softmax(logits))[true_class])
        = mean(-log_softmax(logits)[true_class])
@@ -528,7 +528,7 @@ class SoftmaxRegressionNumPy:
         """
         역전파: 기울기를 계산한다.
 
-        고갱이 눈썰미: ∂L/∂z = π - y(원핫)
+        핵심 통찰: ∂L/∂z = π - y(원핫)
         """
         N = len(y)
 

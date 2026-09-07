@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""학습 28: 참 세상 보기 - 온전한 MNIST 숫자 분류기"""
+"""튜토리얼 28: 참 세상 보기 - 온전한 MNIST 숫자 분류기"""
 import torch
 import torch.nn as nn
 import torch.optim as optim

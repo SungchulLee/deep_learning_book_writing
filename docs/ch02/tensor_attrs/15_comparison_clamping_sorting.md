@@ -13,7 +13,7 @@ Covers:
 - 견주기 셈: ==, !=, <, <=, >, >=
 - 논리 셈: &, |, ~
 - 조건에 따라 고르는 torch.where
-- 옭아매기: clamp, clip
+- 제한하기: clamp, clip
 - 줄 세우기: sort, argsort
 - 위 k개 고르기: topk, kthvalue
 - 원소 찾기: eq, ne, lt, le, gt, ge

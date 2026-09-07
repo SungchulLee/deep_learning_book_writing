@@ -22,7 +22,7 @@ DESCRIPTION:
     - 더 깔끔하고 잘 늘어나는 코드
 
 PREREQUISITES:
-    - 학습 04(자동 미분)
+    - 튜토리얼 04(자동 미분)
 
 학습 목표:
     - nn.Module으로 맞춤 모델을 만든다
@@ -133,9 +133,9 @@ print(f"Optimizer: {optimizer}")
 print(f"Learning rate: {learning_rate}")
 
 print("""
-최적화기를 쓰는 고갱이 이점:
+최적화기를 쓰는 핵심 이점:
 1. 모델의 매개변수를 모두 절로 고친다
-2. 손수 매개변수를 고칠 일이 없다
+2. 직접 매개변수를 고칠 일이 없다
 3. 최적화기를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
 4. optimizer.zero_grad()으로 기울기 0으로 만들기를 다룬다
 """)
@@ -286,22 +286,22 @@ axes[1, 0].grid(True, alpha=0.3)
 comparison = """
 학습 루프가 나아온 길:
 
-학습 02(넘파이):
-  - 손수 쓰는 기울기 식
-  - 손수 하는 매개변수 고치기
+튜토리얼 02(넘파이):
+  - 직접 쓰는 기울기 식
+  - 직접 하는 매개변수 고치기
   - 코드 40줄쯤
 
-학습 03(손수 하는 PyTorch):
+튜토리얼 03(직접 하는 PyTorch):
   - 텐서 셈
-  - 손수 하는 기울기
-  - 손수 하는 고치기
+  - 직접 하는 기울기
+  - 직접 하는 고치기
 
-학습 04(자동 미분):
+튜토리얼 04(자동 미분):
   - loss.backward()
-  - 손수 하는 고치기
+  - 직접 하는 고치기
   - grad.zero_()
 
-학습 05(nn.Module):
+튜토리얼 05(nn.Module):
   - model(X)
   - optimizer.zero_grad()
   - loss.backward()
@@ -338,7 +338,7 @@ for epoch in range(n_epochs):
     loss.backward()
     optimizer.step()
 
-고갱이 조각:
+핵심 조각:
 1. nn.Module: 모든 모델의 밑 클래스
 2. nn.Linear: 붙박이 선형 층
 3. optimizer: 매개변수 고치기를 다룬다
@@ -351,7 +351,7 @@ Advantages:
 ✓ 모델을 저장하고 불러오기 쉽다
 ✓ GPU을 받친다(.to('cuda')만 더하면 된다)
 
-다음: 학습 06 - 여러 입력 특징!
+다음: 튜토리얼 06 - 여러 입력 특징!
 """)
 
 

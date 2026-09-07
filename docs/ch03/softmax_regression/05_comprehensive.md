@@ -459,7 +459,7 @@ class Trainer:
     
     def train(self, num_epochs, scheduler=None, early_stopping_patience=None):
         """
-        으뜸 학습 루프.
+        주요 학습 루프.
         
         Args:
             num_epochs: 익힐 에폭 수
@@ -754,7 +754,7 @@ print("""
    - 알림 만들기
    - 결과 좇기
 
-고갱이 학습:
+핵심 학습:
 --------------
 • 조각으로 나눈 설계는 실험을 쉽게 한다
 • 짜임새 있는 견줌이 가장 좋은 길을 드러낸다

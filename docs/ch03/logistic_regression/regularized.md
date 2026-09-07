@@ -144,7 +144,7 @@ $$
 
 참으로 굴릴 수 있는 짜보기이며 다음을 다룬다.
 - weight_decay로 하는 L2 정칙화
-- 손수 벌을 주는 L1 정칙화
+- 직접 벌을 주는 L1 정칙화
 - 엘라스틱넷 정칙화
 - 학습/검증/시험 나누기를 곁들인 데이터 다루기
 - 조기 종료를 곁들인 학습
@@ -189,7 +189,7 @@ class BinaryClassificationDataset(Dataset):
         X: 모양이 (n_samples, n_features)인 특징 행렬
         y: 모양이 (n_samples,)이고 값이 {0, 1}인 레이블
         scaler: 미리 맞춘 StandardScaler(골라 쓴다)
-        fit_scaler: 잣대 잡개를 맞출지 여부(학습 데이터에는 True)
+        fit_scaler: 스케일러를 맞출지 여부(학습 데이터에는 True)
     """
 
     def __init__(
@@ -325,7 +325,7 @@ def train_model(
     L1/L2 정칙화를 골라 쓰며 로지스틱 회귀를 익힌다.
 
     L2 정칙화는 최적화기의 weight_decay로 건다.
-    L1 정칙화는 손실에 손수 벌 마디를 더해 건다.
+    L1 정칙화는 손실에 직접 벌 마디를 더해 건다.
     엘라스틱넷을 쓰려면 l1_lambda > 0과 l2_lambda > 0을 함께 둔다.
 
     Args:

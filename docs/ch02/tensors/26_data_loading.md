@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""학습 26: 데이터 불러오기 - DataLoader으로 잘 드는 데이터 흐름 만들기"""
+"""튜토리얼 26: 데이터 불러오기 - DataLoader으로 효율적인 데이터 흐름 만들기"""
 import torch
 from torch.utils.data import Dataset, DataLoader, TensorDataset
 import numpy as np

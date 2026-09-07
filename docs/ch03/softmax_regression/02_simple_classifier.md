@@ -150,7 +150,7 @@ class SoftmaxClassifier(nn.Module):
     
     def __init__(self, input_size=2, hidden_size1=64, hidden_size2=32, num_classes=3):
         """
-        망의 층을 첫자리 잡는다.
+        망의 층을 초기값 잡는다.
         
         Args:
             input_size (int): 입력 특징의 수
@@ -538,7 +538,7 @@ print("""
 ✅ 자로 모델의 성능을 따졌다
 ✅ 익힌 모델을 저장하고 불러왔다
 
-학습 루프의 고갱이 조각:
+학습 루프의 핵심 조각:
 ------------------------------
 1. 순전파: model(X) → 로짓
 2. 손실 계산: criterion(logits, y)

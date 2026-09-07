@@ -6,13 +6,13 @@
 
 ```python
 """
-학습 09: 꼴 바꾸기와 보기
+튜토리얼 09: 꼴 바꾸기와 보기
 =================================
 
 될 수 있으면 데이터를 베끼지 않고 텐서의 차원을 바꾸는 법을 배운다.
 보기와 베낌의 다름을 아는 것이 기억 자리를 아끼는 데 꼭 필요하다.
 
-고갱이 개념:
+핵심 개념:
 - reshape(), view(), contiguous() 견주기
 - 차원 더하기와 없애기(unsqueeze/squeeze)
 - 차원 자리바꿈(transpose/permute)
@@ -294,7 +294,7 @@ def main():
     header("10. Best Practices and Tips")
     
     print("""
-    고갱이 학습:
+    핵심 학습:
     
     1. **reshape()과 view() 견주기**
        - reshape()을 써라: 더 안전하고 늘 된다(필요하면 베낀다)
