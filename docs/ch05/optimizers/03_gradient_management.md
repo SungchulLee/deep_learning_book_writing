@@ -257,7 +257,7 @@ GRADIENT ACCUMULATION:
   • Update parameters after N accumulation steps
   • Effective batch size = batch_size × accumulation_steps
   
-USE CASES:
+쓰임새:
   • GPU memory is limited
   • Want to train with large effective batch sizes
   • Training very large models

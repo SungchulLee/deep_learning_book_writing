@@ -479,36 +479,36 @@ print("""
 3. 움직이는 기울기 내림:
    • Adam 가장 좋게 하개는 빨리 모여든다
    • DataLoader로 하는 묶음 익힘
-   • Automatic differentiation handles complex network
-   • All concepts from Levels 1-3 applied here!
+   • 자동 미분이 복잡한 그물을 다룬다
+   • 1~3단계의 모든 개념이 여기 쓰였다!
 
-4. ACHIEVING GOOD PERFORMANCE:
-   • >95% accuracy on MNIST is achievable
-   • Proper architecture design matters
-   • Hyperparameter tuning improves results
-   • More training typically helps (to a point)
+4. 좋은 성능 이루기:
+   • MNIST에서 맞음 95% 넘기기는 이룰 수 있다
+   • 얼개를 제대로 꾸미는 일이 종요롭다
+   • 웃매개변수를 손보면 결과가 나아진다
+   • 흔히 더 익히면 도움이 된다(어느 선까지는)
 
-5. NEXT STEPS:
-   • Try different architectures (more/fewer layers)
-   • Experiment with hyperparameters
-   • Add convolutional layers for better performance
-   • Try other datasets (Fashion-MNIST, CIFAR-10)
+5. 다음 걸음:
+   • 여러 얼개를 써 보아라(층을 늘리거나 줄여서)
+   • 웃매개변수를 이리저리 바꾸어 보아라
+   • 성능을 높이려면 누비기 층을 더하라
+   • 다른 자료 묶음도 써 보아라(패션 MNIST, CIFAR-10)
 """)
 
 print("="*80)
 print("🎉 CONGRATULATIONS!")
 print("="*80)
 print("""
-You've completed a full neural network project!
+온전한 신경망 과제를 마쳤다!
 
-You now know how to:
-✓ Load and preprocess real datasets
-✓ Build neural networks with PyTorch
-✓ Train models using gradient descent
-✓ Evaluate and visualize results
-✓ Save and load trained models
+이제 다음을 할 수 있다.
+✓ 참 자료 묶음을 불러오고 미리 다듬기
+✓ PyTorch으로 신경망 짓기
+✓ 기울기 내림으로 모형 익히기
+✓ 결과를 따지고 그림으로 보기
+✓ 익힌 모형을 갈무리하고 불러오기
 
-This is the foundation for deep learning!
+이것이 깊은 배움의 바탕이다!
 """)
 print("="*80)
 

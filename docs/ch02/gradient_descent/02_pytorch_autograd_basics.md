@@ -7,22 +7,22 @@
 ```python
 """
 ================================================================================
-Level 1 - Example 2: PyTorch Autograd Basics
+1단계 - 보기 2: PyTorch 자동 미분 기초
 ================================================================================
 
 배움 목표:
-- Understand PyTorch's automatic differentiation (autograd)
-- Learn about computational graphs
-- Compare manual vs automatic gradient computation
-- Master requires_grad and backward() methods
+- PyTorch의 자동 미분(autograd)을 이해한다
+- 셈 그래프를 배운다
+- 손수 셈하기와 절로 셈하기를 견준다
+- requires_grad과 backward() 방법을 익힌다
 
 어려움: ⭐ 첫걸음
 
-TIME: 25-35 minutes
+걸리는 때: 25~35분
 
 PREREQUISITES:
-- Completed Example 01 (Manual Gradient Descent)
-- Basic understanding of gradients
+- 보기 01(손수 하는 기울기 내림)을 마쳤을 것
+- 기울기를 기본으로 이해하고 있을 것
 
 ================================================================================
 """
@@ -88,23 +88,23 @@ print("PART 3: COMPUTATIONAL GRAPH")
 print("="*80)
 
 print("""
-When you perform operations on tensors with requires_grad=True,
-PyTorch builds a computational graph:
+requires_grad=True인 텐서에 셈을 하면
+PyTorch이 셈 그래프를 세운다.
 
     x (requires_grad=True)
     ↓
-    x² (intermediate operation)
+    x² (가운데 셈)
     ↓
-    3*x² (intermediate operation)
+    3*x² (가운데 셈)
     ↓
-    3*x² + 2x (intermediate operation)
+    3*x² + 2x (가운데 셈)
     ↓
-    y = 3*x² + 2x + 1 (final output)
+    y = 3*x² + 2x + 1 (마지막 내놓음)
 
-When you call y.backward():
-- PyTorch traverses this graph backwards
-- Applies chain rule automatically
-- Accumulates gradients in x.grad
+y.backward()을 부르면
+- PyTorch이 이 그래프를 거꾸로 훑는다
+- 사슬 법칙을 절로 건다
+- x.grad에 기울기를 쌓는다
 """)
 
 # ============================================================================
@@ -180,30 +180,30 @@ print("PART 5: MANUAL vs AUTOGRAD COMPARISON")
 print("="*80)
 
 print("""
-MANUAL GRADIENT (from Example 01):
+손수 셈하는 기울기(보기 01에서):
 -----------------------------------
 def compute_gradient(x, y_true, y_pred):
     # 직접 유도한 식: dL/dw = mean(2 * x * (y_pred - y_true))
     gradient = np.mean(2 * x * (y_pred - y_true))
     return gradient
 
-AUTOGRAD (this example):
+자동 미분(이 보기):
 ------------------------
 loss = torch.mean((y_pred - y) ** 2)
-loss.backward()  # Automatically computes all gradients!
-gradient = w.grad  # PyTorch fills this in for us
+loss.backward()  # 모든 기울기를 절로 셈한다!
+gradient = w.grad  # PyTorch이 대신 채워 준다
 
-ADVANTAGES OF AUTOGRAD:
-✓ No manual calculus needed
-✓ Handles complex models automatically
-✓ Fewer bugs (no derivative mistakes)
-✓ Efficient implementation
-✓ Easy to modify model architecture
+자동 미분의 이점:
+✓ 손수 미적분할 것이 없다
+✓ 복잡한 모형도 절로 다룬다
+✓ 벌레가 적다(도함수 실수가 없다)
+✓ 잘 드는 짜보기
+✓ 모형 얼개를 고치기 쉽다
 
-WHEN TO USE MANUAL:
-• Learning/understanding gradients
-• Simple educational examples
-• Very custom operations
+손수 할 때:
+• 기울기를 배우거나 이해할 때
+• 단순한 배움 보기
+• 아주 남다른 셈
 """)
 
 # ============================================================================
@@ -230,7 +230,7 @@ y2.backward()
 print(f"After 2nd backward: x.grad = {x.grad.item()}")  # Should be 27
 
 print("""
-IMPORTANT: Always zero gradients before backward pass!
+종요롭다: 뒤로 걸음 앞에는 늘 기울기를 0으로 만들어라!
     if w.grad is not None:
         w.grad.zero_()
     loss.backward()
@@ -257,10 +257,10 @@ with torch.no_grad():
     print(f"\nInside no_grad, z.requires_grad: {z.requires_grad}")
 
 print("""
-USE CASES:
-- detach(): When you want to use a value without gradients
-- no_grad(): For inference or parameter updates
-- Both prevent unnecessary graph building (saves memory!)
+쓰임새:
+- detach(): 기울기 없이 값만 쓰고 싶을 때
+- no_grad(): 미룸이나 매개변수 고치기에
+- 둘 다 쓸데없는 그래프 세우기를 막는다(기억 자리를 아낀다!)
 """)
 
 # ============================================================================
@@ -302,18 +302,18 @@ print("\n" + "="*80)
 print("PRACTICE EXERCISE")
 print("="*80)
 print("""
-Try implementing gradient descent for these functions:
+다음 함수에 기울기 내림을 짜 보아라.
 
 1. Quadratic: y = ax² + bx + c
-   - Use 3 parameters: a, b, c (all with requires_grad=True)
-   - Fit to data: x=[1,2,3,4], y=[3,8,15,24]
+   - 매개변수 셋 a, b, c을 쓴다(모두 requires_grad=True)
+   - 자료에 맞춘다: x=[1,2,3,4], y=[3,8,15,24]
 
-2. Non-linear: y = a*sin(b*x) + c
-   - Fit sine wave to noisy data
-   - Experiment with learning rates
+2. 비선형: y = a*sin(b*x) + c
+   - 잡음 섞인 자료에 사인 물결을 맞춘다
+   - 배움 빠르기를 이리저리 바꾸어 보아라
 
 3. Multi-dimensional: z = ax + by + c
-   - 2 input features (x, y)
+   - 들임 특징 2개(x, y)
    - 3 parameters (a, b, c)
 """)
 
@@ -324,36 +324,36 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. AUTOGRAD eliminates manual gradient computation
-   - Set requires_grad=True on parameters
-   - Build computational graph through operations
-   - Call .backward() to compute all gradients
+1. 자동 미분은 손수 하는 기울기 셈을 없앤다
+   - 매개변수에 requires_grad=True을 둔다
+   - 셈을 거쳐 셈 그래프를 세운다
+   - .backward()을 불러 모든 기울기를 셈한다
 
-2. ALWAYS ZERO GRADIENTS before backward pass
-   - Gradients accumulate by default
-   - Use: w.grad.zero_() or optimizer.zero_grad()
+2. 뒤로 걸음 앞에는 늘 기울기를 0으로 만들어라
+   - 기울기는 기본으로 쌓인다
+   - 이렇게 쓴다: w.grad.zero_()이나 optimizer.zero_grad()
 
-3. USE torch.no_grad() for parameter updates
-   - Prevents tracking operations we don't need to differentiate
-   - Essential for inference (testing/prediction)
-   - Saves memory and computation
+3. 매개변수를 고칠 때는 torch.no_grad()을 써라
+   - 미분할 필요 없는 셈을 좇지 않게 한다
+   - 미룸(시험/예측)에 꼭 필요하다
+   - 기억 자리와 셈을 아낀다
 
-4. LEAF TENSORS store gradients
-   - Only tensors created with requires_grad=True
-   - Intermediate tensors don't store gradients by default
+4. 잎 텐서가 기울기를 담는다
+   - requires_grad=True으로 만든 텐서만 그렇다
+   - 가운데 텐서는 기본으로 기울기를 담지 않는다
 
-5. COMPUTATION GRAPH is dynamic
-   - Built during forward pass
-   - Cleared after backward pass
-   - Rebuilt on next forward pass
+5. 셈 그래프는 그때그때 세워진다
+   - 앞으로 걸음에서 세워진다
+   - 뒤로 걸음 뒤에 지워진다
+   - 다음 앞으로 걸음에서 다시 세워진다
 """)
 
 print("="*80)
 print("NEXT STEPS")
 print("="*80)
 print("""
-You now understand automatic differentiation!
-Next, move to Example 03 to apply this to a real regression problem.
+이제 자동 미분을 이해했다!
+다음으로 보기 03에 가서 이를 참 회귀 문제에 써 보아라.
 """)
 print("="*80)
 

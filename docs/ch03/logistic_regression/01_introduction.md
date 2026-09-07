@@ -237,7 +237,7 @@ print("""
 
 2. AUTOGRAD (Automatic Differentiation)
    - Set requires_grad=True to track operations
-   - Call .backward() to compute all gradients
+   - .backward()을 불러 모든 기울기를 셈한다
    - Gradients stored in .grad attribute
 
 3. GRADIENT DESCENT

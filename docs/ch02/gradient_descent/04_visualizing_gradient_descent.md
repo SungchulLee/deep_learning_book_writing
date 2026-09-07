@@ -18,7 +18,7 @@ Level 1 - Example 4: Visualizing Gradient Descent in Action
 
 어려움: ⭐ 첫걸음
 
-TIME: 25-35 minutes
+걸리는 때: 25~35분
 
 ================================================================================
 """

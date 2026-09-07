@@ -7,22 +7,22 @@
 ```python
 """
 ================================================================================
-Level 1 - Example 3: Simple Linear Regression with PyTorch
+1단계 - 보기 3: PyTorch으로 하는 단순 선형 회귀
 ================================================================================
 
 배움 목표:
-- Apply gradient descent to a real regression problem
-- Use PyTorch's nn.Module for better code organization
-- Implement training and evaluation loops
-- Visualize model predictions
+- 기울기 내림을 참 회귀 문제에 쓴다
+- 코드를 더 잘 짜려고 PyTorch의 nn.Module을 쓴다
+- 익힘 되돌이와 따짐 되돌이를 짠다
+- 모형의 예측을 그림으로 본다
 
 어려움: ⭐ 첫걸음
 
-TIME: 30-40 minutes
+걸리는 때: 30~40분
 
 PREREQUISITES:
-- Completed Examples 01 and 02
-- Basic understanding of linear regression
+- 보기 01과 02을 마쳤을 것
+- 선형 회귀를 기본으로 이해하고 있을 것
 
 ================================================================================
 """
@@ -71,23 +71,23 @@ print("="*80)
 
 class LinearRegressionModel(nn.Module):
     """
-    Linear Regression Model: y = wx + b
+    선형 회귀 모형: y = wx + b
     
-    This is the PyTorch way of defining models.
+    이것이 PyTorch에서 모형을 매기는 방식이다.
     Benefits:
-    - Automatic parameter management
-    - Easy to extend
-    - Works with PyTorch optimizers
-    - Clean and organized code
+    - 매개변수를 절로 다룬다
+    - 넓히기 쉽다
+    - PyTorch 가장 좋게 하개와 맞물린다
+    - 깔끔하고 짜임새 있는 코드
     """
     
     def __init__(self, input_dim, output_dim):
         """
-        Initialize model parameters
+        모형 매개변수의 첫자리를 잡는다
         
         Args:
-            input_dim: number of input features
-            output_dim: number of output values
+            input_dim: 들임 특징의 수
+            output_dim: 내놓음 값의 수
         """
         super(LinearRegressionModel, self).__init__()
         
@@ -102,10 +102,10 @@ class LinearRegressionModel(nn.Module):
         앞으로 걸음: 예측을 셈한다
         
         Args:
-            x: input tensor of shape (batch_size, input_dim)
+            x: 꼴이 (batch_size, input_dim)인 들임 텐서
         
         Returns:
-            predictions: output tensor of shape (batch_size, output_dim)
+            predictions: 꼴이 (batch_size, output_dim)인 내놓음 텐서
         """
         return self.linear(x)
 
@@ -303,30 +303,30 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. nn.Module is the standard way to define models
-   - Inherit from nn.Module
-   - Define layers in __init__()
-   - Implement forward() method
+1. nn.Module이 모형을 매기는 여느 방식이다
+   - nn.Module을 물려받는다
+   - __init__()에서 층을 매긴다
+   - forward() 방법을 짠다
 
-2. Training loop has 5 standard steps:
-   1. Forward pass:      y_pred = model(X)
-   2. Compute loss:      loss = criterion(y_pred, y)
-   3. Zero gradients:    optimizer.zero_grad()
-   4. Backward pass:     loss.backward()
-   5. Update parameters: optimizer.step()
+2. 익힘 되돌이에는 여느 걸음 다섯이 있다.
+   1. 앞으로 걸음:      y_pred = model(X)
+   2. 잃음 셈하기:      loss = criterion(y_pred, y)
+   3. 기울기 0으로:    optimizer.zero_grad()
+   4. 뒤로 걸음:     loss.backward()
+   5. 매개변수 고치기: optimizer.step()
 
-3. Use model.eval() and torch.no_grad() for evaluation
-   - Disables certain layers (dropout, batch norm)
-   - Saves memory by not tracking gradients
+3. 따질 때는 model.eval()과 torch.no_grad()을 써라
+   - 어떤 층(드롭아웃, 묶음 정규화)을 끈다
+   - 기울기를 좇지 않아 기억 자리를 아낀다
 
-4. Multiple metrics provide better evaluation
-   - MSE: penalizes large errors more
-   - MAE: treats all errors equally
-   - R²: measures fraction of variance explained
+4. 여러 자를 쓰면 더 잘 따질 수 있다
+   - MSE: 큰 어긋남을 더 크게 벌한다
+   - MAE: 모든 어긋남을 똑같이 다룬다
+   - R²: 설명된 흩어짐의 몫을 잰다
 
-5. Residual plots help diagnose issues
-   - Random scatter: good fit
-   - Patterns: might need non-linear model
+5. 잔차 그림이 탈을 짚어내는 데 도움이 된다
+   - 마구잡이로 흩어져 있으면 잘 맞은 것이다
+   - 무늬가 보이면 비선형 모형이 필요할 수 있다
 """)
 
 # ============================================================================
@@ -338,17 +338,17 @@ print("="*80)
 print("""
 1. 여러 배움 빠르기:
    - Try lr = 0.001, 0.1, 0.5
-   - Observe convergence speed and stability
+   - 모여드는 빠르기와 든든함을 살펴보아라
 
-2. More training data:
-   - Increase n_samples to 1000
-   - Does the model fit better?
+2. 익힘 자료 늘리기:
+   - n_samples을 1000으로 키운다
+   - 모형이 더 잘 맞는가?
 
-3. More noise:
-   - Increase noise level in data generation
-   - How does it affect R² score?
+3. 잡음 늘리기:
+   - 자료를 만들 때 잡음을 키운다
+   - R² 점수에 어떤 영향을 주는가?
 
-4. Different optimizers:
+4. 여러 가장 좋게 하개:
    - Replace SGD with Adam: torch.optim.Adam(...)
    - Compare convergence
 

@@ -322,9 +322,9 @@ print("""
 Key Takeaways:
 
 1. AUTOGRAD BASICS:
-   - Set requires_grad=True on parameters
+   - 매개변수에 requires_grad=True을 둔다
    - PyTorch builds computational graph automatically
-   - Call .backward() to compute all gradients
+   - .backward()을 불러 모든 기울기를 셈한다
 
 2. TRAINING LOOP STRUCTURE:
    for epoch in range(n_epochs):
