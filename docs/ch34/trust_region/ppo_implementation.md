@@ -1,128 +1,128 @@
-# 34.3.4 PPO Implementation
-## Introduction
+# 34.3.4 PPO 구현
+## 들머리
 
-This section provides a complete, production-quality PPO implementation following the "37 Implementation Details" best practices (Huang et al., 2022). The implementation covers vectorized environments, proper advantage computation, the full training loop, and critical implementation details that significantly affect performance.
+이 절은 "37가지 구현 자디잔 것"의 좋은 버릇(황 외, 2022)을 따르는 온전한 서비스 품질의 PPO 구현을 준다. 벡터 둘레, 알맞은 이점 셈하기, 온 익힘 되돌이, 그리고 됨됨이에 크게 미치는 종요로운 구현 자디잔 것을 다룬다.
 
-## Critical Implementation Details
+## 종요로운 구현 자디잔 것
 
-### 1. Vectorized Environments
-Run $N$ environment copies in parallel to collect diverse data efficiently. Each environment auto-resets on episode termination.
+### 1. 벡터 둘레
+둘레 벌 $N$개를 나란히 돌려 여러 갈래 자료를 값싸게 모은다. 에피소드가 끝나면 둘레마다 절로 되돌아간다.
 
-### 2. Advantage Normalization
-Normalize advantages at the minibatch level (not the full batch) for stable gradient magnitudes:
+### 2. 이점 고르게 하기
+기울기 크기를 든든하게 하려고 (온 묶음이 아니라) 작은 묶음 켜에서 이점을 고르게 한다.
 
-$$\hat{A}_t = \frac{A_t - \mu_\text{mb}}{\sigma_\text{mb} + \epsilon}$$
+$$\hat{A}_t = \frac{A_t - \mu_\text{작은묶음}}{\sigma_\text{작은묶음} + \epsilon}$$
 
-### 3. Value Function Clipping (Optional)
-Clip value predictions to prevent large value updates:
+### 3. 값 함수 자르기(고를 수 있음)
+값이 크게 고쳐지는 것을 막으려 값 미리 보기를 자른다.
 
-$$V_\text{clip} = V_\text{old} + \text{clip}(V_\theta - V_\text{old}, -\epsilon, \epsilon)$$
+$$V_\text{자름} = V_\text{옛} + \text{clip}(V_\theta - V_\text{옛}, -\epsilon, \epsilon)$$
 
-$$L_V = \max\left[(V_\theta - V_\text{target})^2, (V_\text{clip} - V_\text{target})^2\right]$$
+$$L_V = \max\left[(V_\theta - V_\text{과녁})^2, (V_\text{자름} - V_\text{과녁})^2\right]$$
 
-### 4. Learning Rate Annealing
-Linear decay of learning rate to zero over training improves final performance.
+### 4. 배움률 식히기
+익히는 동안 배움률을 0까지 곧게 줄이면 마지막 됨됨이가 나아진다.
 
-### 5. Global Gradient Clipping
-Clip the global gradient norm (not per-parameter) to 0.5.
+### 5. 온 세상 기울기 자르기
+(매개변수마다가 아니라) 온 세상 기울기 노름을 0.5으로 자른다.
 
-### 6. Orthogonal Initialization
-Initialize weights with orthogonal matrices:
+### 6. 직교 첫 값 매기기
+무게에 직교 행렬로 첫 값을 매긴다.
 
-- Hidden layers: gain $\sqrt{2}$
-- Policy head: gain $0.01$
-- Value head: gain $1.0$
+- 숨은 켜: 이득 $\sqrt{2}$
+- 방침 머리: 이득 $0.01$
+- 값 머리: 이득 $1.0$
 
-### 7. Observation Normalization
-Running mean/variance normalization of observations with clipping to $[-10, 10]$.
+### 7. 봄 고르게 하기
+흐르는 평균/흩어짐으로 봄을 고르게 하고 $[-10, 10]$으로 자른다.
 
-### 8. Reward Normalization
-Normalize rewards by the running standard deviation (but not the mean) to handle different reward scales.
+### 8. 보상 고르게 하기
+보상 잣대가 서로 다른 것을 다루려 (평균이 아니라) 흐르는 표준편차로 보상을 고르게 한다.
 
-## Training Loop Structure
+## 익힘 되돌이 얼개
 
 ```
-Total updates = total_timesteps / (n_envs × n_steps)
+온 고침 수 = total_timesteps / (n_envs × n_steps)
 
-For each update:
-    # Rollout phase
-    For t = 0, ..., n_steps-1:
+고침마다:
+    # 굴림 마디
+    for t = 0, ..., n_steps-1:
         action, logprob, value = agent(obs)
         obs, reward, done = envs.step(action)
         store(obs, action, reward, done, logprob, value)
-    
-    # Bootstrap last value
+
+    # 마지막 값 부트스트랩
     last_value = agent.get_value(last_obs)
-    
-    # Compute GAE
+
+    # GAE 셈하기
     advantages, returns = compute_gae(rewards, values, dones, last_value)
-    
-    # Flatten batch
-    batch = flatten(rollout)  # shape: (n_envs × n_steps, ...)
-    
-    # Optimization phase
-    For epoch = 1, ..., n_epochs:
+
+    # 묶음 납작하게 펴기
+    batch = flatten(rollout)  # 꼴: (n_envs × n_steps, ...)
+
+    # 가장 좋게 하기 마디
+    for epoch = 1, ..., n_epochs:
         indices = random_permutation(batch_size)
-        For each minibatch of indices:
+        각 작은 묶음 번호에 대해:
             ratio = exp(new_logprob - old_logprob)
             clipped_loss = min(ratio × adv, clip(ratio) × adv)
             value_loss = MSE(value, returns)
             entropy = policy.entropy()
             loss = -clip_loss + c_v × value_loss - c_e × entropy
             optimizer.step(loss)
-    
-    # Anneal learning rate
+
+    # 배움률 식히기
 ```
 
-## Performance Benchmarks
+## 됨됨이 잣대
 
-With proper implementation, PPO achieves:
+옳게 만들면 PPO는 다음을 이룬다.
 
-- **CartPole-v1**: Solved (~500 reward) in < 100K steps
-- **LunarLander-v2**: Solved (~200 reward) in ~500K steps
-- **Atari (Breakout)**: ~400+ score in ~10M frames
+- **CartPole-v1**: 10만 걸음 안에 풂(보상 약 500)
+- **LunarLander-v2**: 약 50만 걸음에 풂(보상 약 200)
+- **아타리(Breakout)**: 약 1000만 컷에 400점 이상
 
-## Common Implementation Pitfalls
+## 흔히 빠지는 구현 함정
 
-1. **Not normalizing advantages per minibatch**: Leads to unstable training
-2. **Wrong log probability computation**: Must sum log probs across action dimensions for continuous
-3. **Forgetting to detach old log probs**: Old log probs must not carry gradients
-4. **Missing auto-reset**: Environments must auto-reset on termination
-5. **Incorrect GAE at episode boundaries**: Must mask with done flags
-6. **Not annealing learning rate**: Final performance suffers without annealing
+1. **작은 묶음마다 이점을 고르게 하지 않기**: 익힘이 들쭉날쭉해진다
+2. **로그 낌새를 잘못 셈하기**: 이어진 움직임에서는 움직임 차원에 걸쳐 로그 낌새를 더해야 한다
+3. **옛 로그 낌새를 떼어 놓기를 잊기**: 옛 로그 낌새에 기울기가 붙으면 안 된다
+4. **절로 되돌아가기를 빠뜨리기**: 둘레는 끝날 때 절로 되돌아가야 한다
+5. **에피소드 테두리에서 GAE를 그르치기**: done 깃발로 가려야 한다
+6. **배움률을 식히지 않기**: 식히지 않으면 마지막 됨됨이가 나빠진다
 
-## Summary
+## 요약
 
-A correct PPO implementation requires careful attention to many details beyond the core clipped objective. The combination of vectorized environments, GAE, proper normalization, and learning rate scheduling creates a robust and efficient training system.
+옳은 PPO 구현은 한가운데 잘라 낸 목표 말고도 많은 자디잔 것을 꼼꼼히 살펴야 한다. 벡터 둘레, GAE, 알맞은 고르게 하기, 배움률 짜기의 어우름이 굳세고 값싼 익힘 시스템을 만든다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$

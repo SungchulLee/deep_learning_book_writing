@@ -1,149 +1,149 @@
-# 34.3.1 Trust Region Policy Optimization (TRPO)
-## Introduction
+# 34.3.1 믿음 구역 방침 가장 좋게 하기(TRPO)
+## 들머리
 
-TRPO (Schulman et al., 2015) addresses a fundamental challenge in policy gradient methods: how large should each update step be? Too large a step can catastrophically degrade the policy; too small a step wastes computation. TRPO solves this by formulating policy optimization as a constrained optimization problem where updates are bounded by a KL divergence trust region.
+TRPO(슐먼 외, 2015)는 방침 기울기 방법의 근본 어려움, 곧 고치는 걸음을 얼마나 크게 잡아야 하는가를 다룬다. 걸음이 너무 크면 방침이 끔찍하게 무너지고, 너무 작으면 셈을 버린다. TRPO는 방침 가장 좋게 하기를 쿨백-라이블러 어긋남 믿음 구역으로 고침을 매어 두는 매인 가장 좋게 하기 문제로 세워 이를 푼다.
 
-## Motivation
+## 밑뜻
 
-Standard policy gradient updates $\theta \leftarrow \theta + \alpha \nabla_\theta J(\theta)$ have no guarantees on the magnitude of policy change. A small change in parameters $\theta$ can cause a large change in the policy $\pi_\theta$, especially in regions of high sensitivity.
+여느 방침 기울기 고침 $\theta \leftarrow \theta + \alpha \nabla_\theta J(\theta)$은 방침이 얼마나 바뀌는지에 아무 보장이 없다. 매개변수 $\theta$의 작은 바뀜이, 남달리 예민한 자리에서는 방침 $\pi_\theta$의 큰 바뀜을 낳을 수 있다.
 
-TRPO provides monotonic improvement guarantees by constraining how much the policy distribution can change per update.
+TRPO는 고침마다 방침 분포가 얼마나 바뀔 수 있는지를 매어 한결같은 나아짐을 보장한다.
 
-## Theoretical Foundation
+## 이치 바탕
 
-### Surrogate Objective
+### 대리 목표
 
-TRPO maximizes a surrogate objective that lower-bounds the true improvement:
+TRPO는 참 나아짐을 아래에서 매는 대리 목표를 가장 크게 한다.
 
-$$L_{\pi_{\theta_\text{old}}}(\theta) = \mathbb{E}_{s \sim d^{\pi_{\theta_\text{old}}}, a \sim \pi_{\theta_\text{old}}}\left[\frac{\pi_\theta(a|s)}{\pi_{\theta_\text{old}}(a|s)} A^{\pi_{\theta_\text{old}}}(s, a)\right]$$
+$$L_{\pi_{\theta_\text{옛}}}(\theta) = \mathbb{E}_{s \sim d^{\pi_{\theta_\text{옛}}}, a \sim \pi_{\theta_\text{옛}}}\left[\frac{\pi_\theta(a|s)}{\pi_{\theta_\text{옛}}(a|s)} A^{\pi_{\theta_\text{옛}}}(s, a)\right]$$
 
-This importance-sampled objective allows evaluating the new policy $\pi_\theta$ using data from the old policy $\pi_{\theta_\text{old}}$.
+중요도 뽑기를 쓰는 이 목표는 옛 방침 $\pi_{\theta_\text{옛}}$의 자료로 새 방침 $\pi_\theta$을 따질 수 있게 한다.
 
-### Monotonic Improvement Theorem
+### 한결같은 나아짐 정리
 
-Kakade & Langford (2002) showed that the true performance improvement satisfies:
+카케이드와 랭퍼드(2002)는 참 됨됨이 나아짐이 다음을 채움을 보였다.
 
-$$J(\pi_\theta) \geq L_{\pi_{\theta_\text{old}}}(\theta) - C \cdot D_\text{KL}^{\max}(\pi_{\theta_\text{old}} \| \pi_\theta)$$
+$$J(\pi_\theta) \geq L_{\pi_{\theta_\text{옛}}}(\theta) - C \cdot D_\text{KL}^{\max}(\pi_{\theta_\text{옛}} \| \pi_\theta)$$
 
-where $C = \frac{2\gamma \epsilon}{(1-\gamma)^2}$ and $\epsilon = \max_s |A^{\pi}(s, a)|$.
+여기서 $C = \frac{2\gamma \epsilon}{(1-\gamma)^2}$이고 $\epsilon = \max_s |A^{\pi}(s, a)|$이다.
 
-### TRPO Optimization Problem
+### TRPO 가장 좋게 하기 문제
 
-TRPO replaces the penalty with a hard constraint:
+TRPO는 벌을 굳은 매임으로 갈음한다.
 
-$$\max_\theta \quad L_{\pi_{\theta_\text{old}}}(\theta)$$
+$$\max_\theta \quad L_{\pi_{\theta_\text{옛}}}(\theta)$$
 
-$$\text{s.t.} \quad \bar{D}_\text{KL}(\pi_{\theta_\text{old}} \| \pi_\theta) \leq \delta$$
+$$\text{단} \quad \bar{D}_\text{KL}(\pi_{\theta_\text{옛}} \| \pi_\theta) \leq \delta$$
 
-where $\bar{D}_\text{KL}$ is the average KL divergence over states and $\delta$ is the trust region radius (typically $0.01$).
+여기서 $\bar{D}_\text{KL}$은 상태에 걸친 평균 쿨백-라이블러 어긋남이고 $\delta$은 믿음 구역 반지름(흔히 $0.01$)이다.
 
-## Algorithm
+## 알고리즘
 
-### Conjugate Gradient Method
+### 켤레 기울기 방법
 
-TRPO uses the conjugate gradient algorithm to approximately solve:
+TRPO는 켤레 기울기 알고리즘으로 다음을 어림하여 푼다.
 
 $$\theta_{k+1} = \theta_k + \alpha \hat{F}^{-1} \hat{g}$$
 
-where:
+여기서:
 
-- $\hat{g} = \nabla_\theta L(\theta)|_{\theta_k}$ is the policy gradient
-- $\hat{F}$ is the Fisher information matrix (Hessian of KL divergence)
-- $\alpha$ is determined by backtracking line search to satisfy the KL constraint
+- $\hat{g} = \nabla_\theta L(\theta)|_{\theta_k}$은 방침 기울기다
+- $\hat{F}$은 피셔 정보 행렬(쿨백-라이블러 어긋남의 헤세 행렬)이다
+- $\alpha$은 쿨백-라이블러 매임을 채우도록 되짚어 가는 줄 찾기로 정한다
 
-### Fisher-Vector Product
+### 피셔-벡터 곱
 
-Computing $\hat{F}^{-1} g$ directly is intractable for large networks. Instead, the conjugate gradient method only requires Fisher-vector products $\hat{F}v$, computed efficiently via:
+$\hat{F}^{-1} g$을 곧바로 셈하는 일은 큰 그물에서 다룰 수 없다. 그 대신 켤레 기울기 방법은 피셔-벡터 곱 $\hat{F}v$만을 바라며 이는 다음으로 값싸게 셈한다.
 
 $$\hat{F}v = \nabla_\theta \left[(\nabla_\theta \bar{D}_\text{KL})^\top v\right]$$
 
-This requires only two backpropagation passes, avoiding explicit matrix construction.
+이는 거꾸로 퍼뜨리기 두 번이면 되므로 행렬을 드러내 짓지 않아도 된다.
 
-### Backtracking Line Search
+### 되짚어 가는 줄 찾기
 
-After computing the search direction $s = \hat{F}^{-1}g$, TRPO determines the step size:
+찾는 쪽 $s = \hat{F}^{-1}g$을 셈한 뒤 TRPO는 걸음 크기를 정한다.
 
-1. Compute maximum step: $\alpha_\text{max} = \sqrt{\frac{2\delta}{s^\top \hat{F} s}}$
-2. Try $\alpha = \alpha_\text{max} \cdot \beta^k$ for $k = 0, 1, 2, \ldots$
-3. Accept first $\alpha$ satisfying: (a) KL constraint, (b) positive surrogate improvement
+1. 가장 큰 걸음을 셈한다: $\alpha_\text{최대} = \sqrt{\frac{2\delta}{s^\top \hat{F} s}}$
+2. $k = 0, 1, 2, \ldots$에 대해 $\alpha = \alpha_\text{최대} \cdot \beta^k$을 꾀한다
+3. (가) 쿨백-라이블러 매임과 (나) 대리 목표의 나아짐을 함께 채우는 첫 $\alpha$을 받아들인다
 
-## TRPO Pseudocode
+## TRPO 의사코드
 
 ```
-For each iteration:
-    Collect trajectories using π_θ
-    Compute advantages (GAE)
-    
-    Compute policy gradient g = ∇_θ L(θ)
-    Compute search direction s = F⁻¹g via conjugate gradient
-    Compute max step size: α_max = sqrt(2δ / s^T F s)
-    
-    Backtracking line search:
-        For k = 0, 1, 2, ..., K:
-            θ_new = θ + α_max · β^k · s
-            If KL(π_old || π_new) ≤ δ and L(θ_new) > L(θ):
-                Accept θ_new
-                Break
-    
-    Update value function (separate optimizer)
+되풀이마다:
+    π_θ으로 자취를 모은다
+    이점을 셈한다(GAE)
+
+    방침 기울기 g = ∇_θ L(θ)을 셈한다
+    켤레 기울기로 찾는 쪽 s = F⁻¹g을 셈한다
+    가장 큰 걸음 크기를 셈한다: α_최대 = sqrt(2δ / s^T F s)
+
+    되짚어 가는 줄 찾기:
+        for k = 0, 1, 2, ..., K:
+            θ_새 = θ + α_최대 · β^k · s
+            if KL(π_옛 || π_새) ≤ δ and L(θ_새) > L(θ):
+                θ_새를 받아들인다
+                멈춘다
+
+    값 함수를 고친다(따로 둔 가장 좋게 하는 개)
 ```
 
-## Properties
+## 성질
 
-### Advantages
-- Monotonic improvement guarantee (under exact optimization)
-- Robust to hyperparameter choices
-- Stable training across diverse environments
-- Does not require learning rate tuning
+### 이로움
+- (딱 맞게 가장 좋게 할 때) 한결같은 나아짐이 보장된다
+- 매개변수 고름에 굳세다
+- 여러 둘레에 걸쳐 익힘이 든든하다
+- 배움률을 벼릴 까닭이 없다
 
-### Limitations
-- Complex implementation (conjugate gradient, line search)
-- Computationally expensive per iteration
-- Does not scale well with very large networks
-- Second-order computation overhead
+### 매임
+- 만들기가 얽힌다(켤레 기울기, 줄 찾기)
+- 되풀이마다 셈이 비싸다
+- 아주 큰 그물에서는 잘 늘어나지 않는다
+- 이차 셈하기의 덧듦이 있다
 
-## Hyperparameters
+## 매개변수
 
-| Parameter | Typical Value | Description |
+| 매개변수 | 흔한 값 | 뜻 |
 |-----------|--------------|-------------|
-| $\delta$ | 0.01 | KL constraint (trust region size) |
-| CG iterations | 10 | Conjugate gradient steps |
-| CG damping | 0.1 | Fisher matrix damping |
-| Line search steps | 10 | Backtracking attempts |
-| Backtrack ratio $\beta$ | 0.5 | Step size decay |
+| $\delta$ | 0.01 | 쿨백-라이블러 매임(믿음 구역 크기) |
+| 켤레 기울기 되풀이 | 10 | 켤레 기울기 걸음 |
+| 켤레 기울기 눅임 | 0.1 | 피셔 행렬 눅임 |
+| 줄 찾기 걸음 | 10 | 되짚어 가는 꾀함 |
+| 되짚는 비 $\beta$ | 0.5 | 걸음 크기 삭임 |
 
-## Summary
+## 요약
 
-TRPO provides a principled approach to stable policy optimization through constrained updates. Its theoretical monotonic improvement guarantee and robustness to hyperparameters made it a significant advance. While PPO has largely replaced TRPO in practice due to simpler implementation, TRPO's theoretical framework remains foundational.
+TRPO는 매인 고침으로 든든한 방침 가장 좋게 하기에 이치 있는 길을 준다. 한결같은 나아짐을 이치로 보장하고 매개변수에 굳센 덕분에 큰 걸음을 내디뎠다. 만들기가 더 쉬운 PPO가 실제로는 TRPO를 거의 갈음했으나, TRPO의 이치 틀은 여전히 바탕으로 자리한다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$

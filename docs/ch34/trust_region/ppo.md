@@ -1,15 +1,15 @@
-# Proximal Policy Optimization (PPO)
+# 가까운 곳 방침 가장 좋게 하기(PPO)
 
-Proximal Policy Optimization (PPO) is the most widely-used policy gradient algorithm in modern reinforcement learning, combining the stability of trust region methods with the simplicity of first-order optimization. PPO constrains policy updates by clipping the probability ratio between new and old policies, preventing destructively large steps while avoiding the computational overhead of explicitly computing KL divergence constraints. This implementation demonstrates the clipping mechanism, analyzes how different clipping thresholds affect training, and compares the clipped surrogate objective with its unclipped counterpart.
+가까운 곳 방침 가장 좋게 하기(PPO)는 요즘 힘 북돋우는 배움에서 가장 널리 쓰이는 방침 기울기 알고리즘으로, 믿음 구역 방법의 든든함과 일차 가장 좋게 하기의 쉬움을 함께 얻는다. PPO는 새 방침과 옛 방침의 낌새 비를 잘라 방침 고침을 매어 두어, 쿨백-라이블러 어긋남 매임을 드러내 셈하는 덧듦 없이 무너뜨릴 만큼 큰 걸음을 막는다. 이 구현은 자르기 장치를 보이고, 자르는 문턱이 익힘에 어떻게 미치는지 살피며, 잘라 낸 대리 목표와 자르지 않은 것을 견준다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 34.3.3: PPO - Clipped Objective Demonstration
+34.3.3장: PPO -- 잘라 낸 목표 보여 주기
 ======================================================
-Demonstrates the PPO clipping mechanism and compares
-clipped vs unclipped surrogate objectives.
+PPO의 자르기 장치를 보이고 잘라 낸 대리 목표와 자르지 않은
+것을 견준다.
 """
 
 import torch
@@ -18,14 +18,14 @@ import numpy as np
 import matplotlib
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 
 
 def visualize_ppo_clipping():
-    """Visualize the PPO clipped objective for positive and negative advantages."""
+    """이점이 0보다 클 때와 작을 때의 PPO 잘라 낸 목표를 그려 본다."""
     epsilon = 0.2
     ratios = torch.linspace(0.5, 2.0, 300)
     
@@ -35,14 +35,14 @@ def visualize_ppo_clipping():
                                        (-1.0, "Negative Advantage (A=-1)")]):
         ax = axes[idx]
         
-        # Unclipped surrogate
+        # 자르지 않은 대리 목표
         unclipped = ratios * A
         
-        # Clipped surrogate
+        # 잘라 낸 대리 목표
         clipped_ratios = torch.clamp(ratios, 1 - epsilon, 1 + epsilon)
         clipped = clipped_ratios * A
         
-        # PPO objective: min(unclipped, clipped)
+        # PPO 목표: min(자르지 않음, 잘라 냄)
         ppo_obj = torch.min(unclipped, clipped)
         
         ax.plot(ratios.numpy(), unclipped.numpy(), "b--", label="Unclipped", alpha=0.7)
@@ -66,14 +66,14 @@ def visualize_ppo_clipping():
 
 
 def demonstrate_clip_behavior():
-    """Show how clipping affects gradient flow."""
+    """자르기가 기울기 흐름에 어떻게 미치는지 보인다."""
     print("=" * 60)
     print("PPO Clipping Behavior Analysis")
     print("=" * 60)
     
     epsilon = 0.2
     
-    # Simulate different ratio/advantage combinations
+    # 서로 다른 비/이점 어우름을 흉내 낸다
     scenarios = [
         (1.5, 1.0, "Large ratio, positive advantage"),
         (0.7, 1.0, "Small ratio, positive advantage"),
@@ -105,7 +105,7 @@ def demonstrate_clip_behavior():
 
 
 def ppo_loss_computation_example():
-    """Step-by-step PPO loss computation."""
+    """PPO 손실을 걸음마다 셈해 본다."""
     print("\n" + "=" * 60)
     print("PPO Loss Computation Example")
     print("=" * 60)
@@ -117,27 +117,27 @@ def ppo_loss_computation_example():
     
     torch.manual_seed(42)
     
-    # Simulated data
-    old_log_probs = torch.randn(batch_size) - 1.0  # Typical log prob values
-    new_log_probs = old_log_probs + torch.randn(batch_size) * 0.1  # Slightly different
+    # 흉내 낸 자료
+    old_log_probs = torch.randn(batch_size) - 1.0  # 흔한 로그 낌새 값
+    new_log_probs = old_log_probs + torch.randn(batch_size) * 0.1  # 조금 다르다
     advantages = torch.randn(batch_size)
     advantages = (advantages - advantages.mean()) / (advantages.std() + 1e-8)
     values = torch.randn(batch_size, requires_grad=True)
     returns = values.detach() + torch.randn(batch_size) * 0.5
     entropy = torch.tensor(0.5)
     
-    # Compute ratio
+    # 비를 셈한다
     ratio = torch.exp(new_log_probs - old_log_probs)
     
-    # Clipped surrogate
+    # 잘라 낸 대리 목표
     surr1 = ratio * advantages
     surr2 = torch.clamp(ratio, 1 - epsilon, 1 + epsilon) * advantages
     policy_loss = -torch.min(surr1, surr2).mean()
     
-    # Value loss
+    # 값 손실
     value_loss = nn.functional.mse_loss(values, returns)
     
-    # Total loss
+    # 온 손실
     total_loss = policy_loss + value_coef * value_loss - entropy_coef * entropy
     
     print(f"\nBatch size: {batch_size}")
@@ -152,7 +152,7 @@ def ppo_loss_computation_example():
 
 
 def compare_clip_values():
-    """Compare PPO with different clipping values."""
+    """자르는 값을 달리하여 PPO를 견준다."""
     print("\n" + "=" * 60)
     print("Effect of Clipping Parameter ε")
     print("=" * 60)
@@ -191,34 +191,34 @@ if __name__ == "__main__":
     compare_clip_values()
     visualize_ppo_clipping()```
 
-## Discussion
+## 논의
 
-The implementation centers on several utility functions that implement the key operations for ppo. The code follows a modular design that separates the algorithmic components from the demonstration and evaluation logic.
+이 구현은 PPO의 종요로운 연산을 만든 도구 함수 여럿을 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-The demonstration function shows the practical application of these components on synthetic data that highlights the key behaviors. By examining the output, one can observe how the algorithm's performance varies with different hyperparameter choices and problem configurations.
+보여 주기 함수는 이 조각들을 종요로운 거동이 드러나는 지어낸 자료에 실제로 써 보인다. 그 출력을 살피면 매개변수 고름과 문제 얼개에 따라 알고리즘의 됨됨이가 어떻게 달라지는지 볼 수 있다.
 
-From a practical standpoint, this implementation prioritizes clarity over raw performance. Production systems would typically incorporate additional optimizations such as batched computation, GPU acceleration, and more sophisticated hyperparameter tuning. Nevertheless, the core algorithmic ideas demonstrated here transfer directly to large-scale applications.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 묶음 셈하기, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Run the demonstration code and record the key output metrics. Modify one hyperparameter (such as the learning rate, hidden dimension, or number of layers) and describe how the results change.
+**연습문제 1.**
+보여 주기 코드를 돌리고 종요로운 출력 재기를 적어라. 매개변수 하나(배움률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    After running the demo, systematically vary the chosen hyperparameter while keeping others fixed. For example, doubling the hidden dimension typically improves representational capacity but increases computation time. The learning rate has a non-monotonic effect: too small leads to slow convergence, while too large causes instability. Document the specific numbers for at least three different values of the chosen hyperparameter.
-
----
-
-**Exercise 2.**
-Explain the role of the key architectural choices in the implementation. Why are specific activation functions, normalization strategies, or loss functions used? What would happen if you substituted alternatives?
-
-??? success "Solution to Exercise 2"
-    The architectural choices reflect established best practices in trust region methods. For instance, ReLU activations provide non-linearity while avoiding vanishing gradients for positive inputs. The loss function is chosen to match the task type (cross-entropy for classification, MSE for regression). Substituting alternatives (e.g., sigmoid activations, L1 loss) would change the optimization landscape and potentially degrade performance, though some substitutions may be beneficial in specific scenarios.
+??? success "연습문제 1 풀이"
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 짜임 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 배움률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
-**Exercise 3.**
-Extend the implementation to handle a more challenging scenario: either a larger dataset, a different problem variant, or an additional feature. Describe your modification and evaluate its impact on performance.
+**연습문제 2.**
+이 구현에서 종요로운 얼개 고름이 맡은 몫을 풀어라. 왜 그런 활성 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 3"
-    One natural extension is to add regularization (dropout, weight decay) or a more sophisticated architecture (additional layers, skip connections). Implement the chosen extension, train on the same data, and compare metrics before and after. The extension should demonstrate understanding of both the original algorithm and the modification's theoretical motivation.
+??? success "연습문제 2 풀이"
+    이 얼개 고름은 믿음 구역 방법에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 들임에서 기울기가 사라지는 것을 막는다. 손실 함수는 일감 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 가장 좋게 하기 지형이 바뀌어 됨됨이가 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+
+---
+
+**연습문제 3.**
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 자료 뭉치, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 됨됨이에 미친 바를 따져라.
+
+??? success "연습문제 3 풀이"
+    절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.

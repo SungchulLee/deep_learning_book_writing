@@ -1,15 +1,15 @@
-# Natural Policy Gradient
+# 자연 방침 기울기
 
-Natural Policy Gradient is an important concept in trust region methods. matrix computation and comparison with vanilla policy gradient. This implementation provides a hands-on demonstration of the key algorithms and data structures involved, illustrating both the theoretical foundations and practical considerations for real-world deployment.
+자연 방침 기울기는 믿음 구역 방법에서 종요로운 생각이다. 행렬 셈하기와 맹탕 방침 기울기와의 견줌을 다룬다. 이 구현은 여기에 걸린 종요로운 알고리즘과 자료 얼개를 손으로 만져 보이며, 이치 바탕과 실제로 서비스에 올릴 때 살필 것을 함께 보여 준다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 34.3.2: Natural Policy Gradient
+34.3.2장: 자연 방침 기울기
 =========================================
-Implementation of Natural Policy Gradient with Fisher information
-matrix computation and comparison with vanilla policy gradient.
+피셔 정보 행렬 셈하기를 곁들인 자연 방침 기울기 구현과 맹탕
+방침 기울기와의 견줌.
 """
 
 import torch
@@ -21,12 +21,12 @@ from typing import List
 from collections import deque
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 # ---------------------------------------------------------------------------
-# Network
+# 그물
 # ---------------------------------------------------------------------------
 
 class PolicyNet(nn.Module):
@@ -56,18 +56,18 @@ class ValueNet(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# Fisher Information Utilities
+# 피셔 정보 도구
 # ---------------------------------------------------------------------------
 
 def compute_fisher_vector_product(policy, obs, v, damping=0.1):
     """
-    Compute Fisher-vector product Fv using double backprop.
+    거꾸로 퍼뜨리기를 두 번 하여 피셔-벡터 곱 Fv를 셈한다.
     
     F = E[∇log π ∇log π^T]
     Fv = ∇(∇KL · v)
     """
     dist = policy(obs)
-    # KL divergence of distribution with itself (for Hessian computation)
+    # 헤세 행렬을 셈하려고 제 자신과의 쿨백-라이블러 어긋남을 쓴다
     log_probs = dist.logits - dist.logits.logsumexp(dim=-1, keepdim=True)
     probs = dist.probs
     kl = (probs * log_probs).sum(-1).mean()
@@ -84,7 +84,7 @@ def compute_fisher_vector_product(policy, obs, v, damping=0.1):
 
 
 def conjugate_gradient(fvp_fn, b, n_steps=10, residual_tol=1e-10):
-    """Solve Fx = b using conjugate gradient."""
+    """켤레 기울기로 Fx = b를 푼다."""
     x = torch.zeros_like(b)
     r = b.clone()
     p = b.clone()
@@ -106,11 +106,11 @@ def conjugate_gradient(fvp_fn, b, n_steps=10, residual_tol=1e-10):
 
 def compute_empirical_fisher(policy, obs, actions, n_samples=None):
     """
-    Compute empirical Fisher matrix (for small networks).
+    겪음에서 얻은 피셔 행렬을 셈한다(작은 그물에서).
     
     F = (1/N) Σ ∇log π(a|s) ∇log π(a|s)^T
     
-    Only feasible for small parameter counts.
+    매개변수가 적을 때에만 다룰 수 있다.
     """
     if n_samples is None:
         n_samples = len(obs)
@@ -134,15 +134,15 @@ def compute_empirical_fisher(policy, obs, actions, n_samples=None):
 
 
 # ---------------------------------------------------------------------------
-# Natural Policy Gradient Agent
+# 자연 방침 기울기 부림꾼
 # ---------------------------------------------------------------------------
 
 class NaturalPolicyGradient:
     """
-    Natural Policy Gradient agent.
+    자연 방침 기울기 부림꾼.
     
-    Uses Fisher information matrix to compute natural gradient
-    direction, providing parameterization-invariant updates.
+    피셔 정보 행렬로 자연 기울기 쪽을 셈하여, 매개변수 나타내기에
+    흔들리지 않는 고침을 준다.
     """
     
     def __init__(
@@ -229,8 +229,8 @@ class NaturalPolicyGradient:
         return torch.FloatTensor(advantages), torch.FloatTensor(advantages + values)
     
     def update_policy(self, obs, actions, advantages):
-        """Natural policy gradient update."""
-        # Compute policy gradient
+        """자연 방침 기울기 고침."""
+        # 방침 기울기를 셈한다
         dist = self.policy(obs)
         log_probs = dist.log_prob(actions)
         surrogate = (log_probs * advantages).mean()
@@ -241,20 +241,20 @@ class NaturalPolicyGradient:
         if pg.norm() < 1e-8:
             return 0.0
         
-        # Compute natural gradient via CG
+        # 켤레 기울기로 자연 기울기를 셈한다
         fvp_fn = lambda v: compute_fisher_vector_product(
             self.policy, obs, v, self.cg_damping
         )
         natural_grad = conjugate_gradient(fvp_fn, pg, self.cg_iters)
         
-        # Step size based on KL constraint: α = sqrt(2δ / g^T F^{-1} g)
+        # 쿨백-라이블러 매임에 바탕을 둔 걸음 크기: α = sqrt(2δ / g^T F^{-1} g)
         sFs = pg.dot(natural_grad)
         if sFs <= 0:
             return 0.0
         
         alpha = torch.sqrt(2 * self.step_size / (sFs + 1e-8))
         
-        # Update parameters
+        # 매개변수를 고친다
         old_params = self._flat_params()
         new_params = old_params + alpha * natural_grad
         self._set_flat_params(new_params)
@@ -300,11 +300,11 @@ class NaturalPolicyGradient:
 
 
 # ---------------------------------------------------------------------------
-# Comparison: Standard PG vs Natural PG
+# 견줌: 여느 방침 기울기와 자연 방침 기울기
 # ---------------------------------------------------------------------------
 
 class VanillaPG(NaturalPolicyGradient):
-    """Standard policy gradient for comparison."""
+    """견주기 위한 여느 방침 기울기."""
     
     def __init__(self, env, lr=1e-3, **kwargs):
         super().__init__(env, **kwargs)
@@ -315,7 +315,7 @@ class VanillaPG(NaturalPolicyGradient):
         log_probs = dist.log_prob(actions)
         loss = -(log_probs * advantages).mean()
         
-        # Standard gradient update
+        # 여느 기울기 고침
         grads = torch.autograd.grad(loss, self.policy.parameters())
         with torch.no_grad():
             for p, g in zip(self.policy.parameters(), grads):
@@ -366,34 +366,34 @@ if __name__ == "__main__":
     demo_npg()
     demo_comparison()```
 
-## Discussion
+## 논의
 
-The implementation centers on the `PolicyNet`, `ValueNet`, `NaturalPolicyGradient` classes, which encapsulate the core logic of natural policy gradient. The code follows a modular design that separates the algorithmic components from the demonstration and evaluation logic.
+이 구현은 자연 방침 기울기의 한가운데 논리를 담은 `PolicyNet`, `ValueNet`, `NaturalPolicyGradient` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-The demonstration functions show the practical application of these components on standard reinforcement learning benchmarks. By examining the output, one can observe how the algorithm's performance varies with different hyperparameter choices and problem configurations.
+보여 주기 함수는 이 조각들을 여느 힘 북돋우는 배움 잣대에 실제로 써 보인다. 그 출력을 살피면 매개변수 고름과 문제 얼개에 따라 알고리즘의 됨됨이가 어떻게 달라지는지 볼 수 있다.
 
-From a practical standpoint, this implementation prioritizes clarity over raw performance. Production systems would typically incorporate additional optimizations such as batched computation, GPU acceleration, and more sophisticated hyperparameter tuning. Nevertheless, the core algorithmic ideas demonstrated here transfer directly to large-scale applications.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 묶음 셈하기, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Run the demonstration code and record the key output metrics. Modify one hyperparameter (such as the learning rate, hidden dimension, or number of layers) and describe how the results change.
+**연습문제 1.**
+보여 주기 코드를 돌리고 종요로운 출력 재기를 적어라. 매개변수 하나(배움률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    After running the demo, systematically vary the chosen hyperparameter while keeping others fixed. For example, doubling the hidden dimension typically improves representational capacity but increases computation time. The learning rate has a non-monotonic effect: too small leads to slow convergence, while too large causes instability. Document the specific numbers for at least three different values of the chosen hyperparameter.
-
----
-
-**Exercise 2.**
-Explain the role of the key architectural choices in the implementation. Why are specific activation functions, normalization strategies, or loss functions used? What would happen if you substituted alternatives?
-
-??? success "Solution to Exercise 2"
-    The architectural choices reflect established best practices in trust region methods. For instance, ReLU activations provide non-linearity while avoiding vanishing gradients for positive inputs. The loss function is chosen to match the task type (cross-entropy for classification, MSE for regression). Substituting alternatives (e.g., sigmoid activations, L1 loss) would change the optimization landscape and potentially degrade performance, though some substitutions may be beneficial in specific scenarios.
+??? success "연습문제 1 풀이"
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 짜임 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 배움률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
-**Exercise 3.**
-Extend the implementation to handle a more challenging scenario: either a larger dataset, a different problem variant, or an additional feature. Describe your modification and evaluate its impact on performance.
+**연습문제 2.**
+이 구현에서 종요로운 얼개 고름이 맡은 몫을 풀어라. 왜 그런 활성 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 3"
-    One natural extension is to add regularization (dropout, weight decay) or a more sophisticated architecture (additional layers, skip connections). Implement the chosen extension, train on the same data, and compare metrics before and after. The extension should demonstrate understanding of both the original algorithm and the modification's theoretical motivation.
+??? success "연습문제 2 풀이"
+    이 얼개 고름은 믿음 구역 방법에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 들임에서 기울기가 사라지는 것을 막는다. 손실 함수는 일감 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 가장 좋게 하기 지형이 바뀌어 됨됨이가 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+
+---
+
+**연습문제 3.**
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 자료 뭉치, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 됨됨이에 미친 바를 따져라.
+
+??? success "연습문제 3 풀이"
+    절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
