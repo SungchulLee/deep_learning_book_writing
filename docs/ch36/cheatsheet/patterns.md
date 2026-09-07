@@ -1,168 +1,165 @@
-# Pattern Recognition Guide
+# 결 알아보기 길잡이
 
-Most algorithmic problems fall into a small number of recurring patterns. Recognizing
-which pattern applies to a given problem is the most important skill for interviews and
-contests, because it immediately narrows the solution space from hundreds of algorithms
-to two or three candidates.
+알고리즘 문제는 거의 다 되풀이해 나타나는 몇몇 결에 든다. 주어진 문제에 어떤
+결이 맞는지 알아보는 것이 면담과 겨루기에서 가장 중요한 재주다. 그것만으로
+풀이 밭이 알고리즘 수백 가지에서 두셋으로 확 좁혀지기 때문이다.
 
-## Two Pointers
+## 손가락질 둘
 
-Use two pointers when the problem involves a sorted array or a linked list and asks
-for a pair, subarray, or partition.
+문제가 줄 세운 배열이나 이음 목록을 다루며 짝, 부분 배열, 나눔을 물으면
+손가락질 둘을 쓴다.
 
-| Variant | Setup | Typical Complexity | Example Problems |
+| 갈래 | 차림 | 흔한 복잡도 | 보기 문제 |
 |---|---|---|---|
-| Opposite ends | `lo = 0, hi = n-1` | $O(n)$ | Two Sum (sorted), Container With Most Water |
-| Same direction | `slow, fast` | $O(n)$ | Remove duplicates, linked list cycle |
-| Partitioning | `lo, hi` swap | $O(n)$ | Dutch National Flag, Quick Sort partition |
+| 양 끝 | `lo = 0, hi = n-1` | $O(n)$ | 두 수의 합(줄 세움), 물을 가장 많이 담는 그릇 |
+| 같은 쪽 | `slow, fast` | $O(n)$ | 겹친 것 없애기, 이음 목록 맴돌이 |
+| 나누기 | `lo, hi` 맞바꿈 | $O(n)$ | 네덜란드 나라 깃발, 빠른 줄 세우기 나누기 |
 
-**When to use**: the array is sorted (or can be sorted without losing information),
-and you need to find elements satisfying a condition involving their sum, difference,
-or relative position.
+**쓸 때**: 배열이 줄 서 있고(또는 소식을 잃지 않고 줄 세울 수 있고), 원소의 합,
+차이, 서로의 자리에 걸린 조건을 채우는 원소를 찾아야 할 때다.
 
-## Sliding Window
+## 미끄럼 창
 
-Sliding window maintains a contiguous subarray or substring that expands and contracts
-to satisfy a constraint.
+미끄럼 창은 매임을 채우도록 늘었다 줄었다 하는 잇닿은 부분 배열이나 부분
+글자열을 지닌다.
 
-| Variant | When to Use | Complexity |
+| 갈래 | 쓸 때 | 복잡도 |
 |---|---|---|
-| Fixed size $k$ | Maximum/minimum of all windows of size $k$ | $O(n)$ |
-| Variable size | Shortest/longest subarray with a property | $O(n)$ |
-| With hash map | Substring with character frequency constraints | $O(n)$ |
+| 크기 $k$ 붙박이 | 크기 $k$인 온 창의 가장 큰/작은 값 | $O(n)$ |
+| 크기가 바뀜 | 어떤 됨됨이를 지닌 가장 짧은/긴 부분 배열 | $O(n)$ |
+| 해시 짝지음을 곁들임 | 글자 잦기에 매인 부분 글자열 | $O(n)$ |
 
-**Key insight**: if adding an element to the right maintains or violates the
-constraint monotonically, sliding window works. If the constraint can be violated and
-then restored by removing from the left, the window is valid.
+**고갱이 깨침**: 오른쪽에 원소를 더할 때 매임이 한 방향으로 지켜지거나 깨지면
+미끄럼 창이 듣는다. 매임이 깨졌다가 왼쪽에서 빼며 되살아날 수 있으면 그 창은
+올바르다.
 
-## Binary Search
+## 이진 찾기
 
-Binary search applies whenever the answer lies in a sorted or monotone search space.
+답이 줄 서거나 한 방향인 찾기 밭에 있으면 이진 찾기를 쓸 수 있다.
 
-| Variant | Setup | Complexity | Example |
+| 갈래 | 차림 | 복잡도 | 보기 |
 |---|---|---|---|
-| Index search | Sorted array, find target | $O(\log n)$ | Lower/upper bound |
-| Answer search | Monotone predicate on answer space | $O(\log R \cdot f(n))$ | Minimum capacity, maximum distance |
-| Fractional | Real-valued answer | $O(\log(R/\epsilon) \cdot f(n))$ | Geometric optimization |
+| 번호 찾기 | 줄 세운 배열에서 겨눈 것 찾기 | $O(\log n)$ | 아래/위 울타리 |
+| 답 찾기 | 답 밭에 대한 한 방향 가름 | $O(\log R \cdot f(n))$ | 가장 작은 담는 크기, 가장 먼 거리 |
+| 실수 | 답이 실수 | $O(\log(R/\epsilon) \cdot f(n))$ | 꼴 다듬기 |
 
-**When to use**: the problem asks "find the minimum $x$ such that condition $C(x)$
-holds" and $C$ is monotone (once true, stays true for all larger $x$).
+**쓸 때**: 문제가 "조건 $C(x)$을 채우는 가장 작은 $x$을 찾아라"라고 묻고 $C$이 한
+방향일 때다(한 번 참이 되면 더 큰 $x$에서도 참이다).
 
-## Dynamic Programming
+## 갈피 다지기
 
-DP applies when a problem has optimal substructure and overlapping subproblems.
+문제에 가장 좋은 밑얼개와 겹치는 작은 문제가 있으면 갈피 다지기를 쓴다.
 
-| Pattern | State Space | Time | Example |
+| 결 | 상태 밭 | 때 | 보기 |
 |---|---|---|---|
-| Linear DP | $dp[i]$ | $O(n)$ to $O(n^2)$ | House Robber, LIS |
-| Grid DP | $dp[i][j]$ | $O(mn)$ | Unique Paths, Edit Distance |
-| Interval DP | $dp[i][j]$ for range $[i, j]$ | $O(n^3)$ | Matrix Chain, Burst Balloons |
-| Knapsack | $dp[i][w]$ | $O(nW)$ | 0/1 Knapsack, Coin Change |
-| Bitmask DP | $dp[\text{mask}]$ | $O(2^n \cdot n)$ | TSP, Assignment |
-| Tree DP | $dp[\text{node}]$ | $O(n)$ | Max Independent Set |
+| 선형 갈피 다지기 | $dp[i]$ | $O(n)$~$O(n^2)$ | 집 털기, 가장 긴 늘어나는 부분 열 |
+| 격자 갈피 다지기 | $dp[i][j]$ | $O(mn)$ | 남다른 길, 고침 거리 |
+| 사이 갈피 다지기 | 너비 $[i, j]$의 $dp[i][j]$ | $O(n^3)$ | 행렬 사슬, 풍선 터뜨리기 |
+| 배낭 | $dp[i][w]$ | $O(nW)$ | 0/1 배낭, 동전 바꾸기 |
+| 비트 가리개 갈피 다지기 | $dp[\text{가리개}]$ | $O(2^n \cdot n)$ | 떠도는 장수 문제, 일감 맡기기 |
+| 나무 갈피 다지기 | $dp[\text{마디}]$ | $O(n)$ | 가장 큰 홀로 선 모임 |
 
-**When to use**: the brute-force solution recomputes the same subproblems, and the
-problem asks for an optimal value (min, max, count).
+**쓸 때**: 마구잡이 풀이가 같은 작은 문제를 되풀이해 셈하고, 문제가 가장 좋은
+값(가장 작은 것, 큰 것, 세기)을 물을 때다.
 
-## Greedy
+## 욕심꾸러기
 
-Greedy algorithms make locally optimal choices that lead to a globally optimal solution.
+욕심꾸러기 알고리즘은 그 자리에서 가장 좋은 고름을 이어 가 온 세상에서 가장 좋은
+풀이에 이른다.
 
-| Signal | Strategy | Example |
+| 낌새 | 꾀 | 보기 |
 |---|---|---|
-| Interval scheduling | Sort by end time, pick non-overlapping | Activity Selection |
-| Huffman-style merging | Always merge the two smallest | Huffman Coding |
-| Exchange argument | Swapping any two elements does not improve | Fractional Knapsack |
-| Matroid structure | Greedy on a matroid yields optimal | MST (Kruskal's) |
+| 사이 차례 잡기 | 끝나는 때로 줄 세우고 겹치지 않는 것을 고른다 | 할 일 고르기 |
+| 허프먼 결의 합치기 | 늘 가장 작은 둘을 합친다 | 허프먼 부호 |
+| 맞바꿈 따짐 | 아무 둘을 맞바꿔도 나아지지 않는다 | 쪼갤 수 있는 배낭 |
+| 매트로이드 얼개 | 매트로이드 위의 욕심꾸러기가 가장 좋다 | 가장 작은 뻗는 나무(크러스컬) |
 
-**When to use**: a greedy choice property can be proven (exchange argument or matroid
-theory), and the problem has optimal substructure.
+**쓸 때**: 욕심꾸러기 고름 됨됨이를 증명할 수 있고(맞바꿈 따짐이나 매트로이드
+이론), 문제에 가장 좋은 밑얼개가 있을 때다.
 
-## Backtracking
+## 되짚어 가기
 
-Backtracking systematically explores all candidates and prunes branches that cannot
-lead to a valid solution.
+되짚어 가기는 후보를 짜임새 있게 살피며 올바른 풀이에 이를 수 없는 가지를 쳐낸다.
 
-| Signal | Approach | Complexity |
+| 낌새 | 길 | 복잡도 |
 |---|---|---|
-| "Find all" / "list all" | Generate and test with pruning | Exponential |
-| Constraint satisfaction | Place, check, backtrack | $O(k^n)$ in the worst case |
-| Optimization with constraints | Branch and bound | Exponential with pruning |
+| "모두 찾아라" / "모두 늘어놓아라" | 만들고 살피며 가지를 친다 | 곱절꼴 |
+| 매임 채우기 | 놓고, 살피고, 되짚는다 | 가장 나쁠 때 $O(k^n)$ |
+| 매임을 곁들인 가장 좋게 하기 | 가지 치고 울타리 잡기 | 가지치기를 곁들인 곱절꼴 |
 
-**When to use**: the problem asks for all valid configurations, the search space is
-small ($n \le 20$), or effective pruning drastically reduces the actual search.
+**쓸 때**: 문제가 올바른 차림을 모두 물을 때, 찾기 밭이 좁을 때($n \le 20$), 또는
+가지치기가 참 찾기를 크게 줄일 때다.
 
-## Graph Patterns
+## 그래프 결
 
-| Problem Type | Algorithm | Complexity |
+| 문제 갈래 | 알고리즘 | 복잡도 |
 |---|---|---|
-| Shortest path (unweighted) | BFS | $O(V + E)$ |
-| Shortest path (weighted, non-negative) | Dijkstra | $O((V + E) \log V)$ |
-| Shortest path (negative weights) | Bellman-Ford | $O(VE)$ |
-| Connected components | DFS / Union-Find | $O(V + E)$ |
-| Topological order | DFS / Kahn's | $O(V + E)$ |
-| Cycle detection | DFS coloring | $O(V + E)$ |
-| MST | Kruskal / Prim | $O(E \log V)$ |
+| 가장 짧은 길(짐 없음) | 너비 먼저 훑기 | $O(V + E)$ |
+| 가장 짧은 길(짐 있고 음수 아님) | 데이크스트라 | $O((V + E) \log V)$ |
+| 가장 짧은 길(음수 짐) | 벨먼-포드 | $O(VE)$ |
+| 이어진 조각 | 깊이 먼저 훑기 / 모으고 찾기 | $O(V + E)$ |
+| 갈래 차례 | 깊이 먼저 훑기 / 칸 | $O(V + E)$ |
+| 맴돌이 찾기 | 깊이 먼저 훑기 빛깔 매기기 | $O(V + E)$ |
+| 가장 작은 뻗는 나무 | 크러스컬 / 프림 | $O(E \log V)$ |
 
-## Pattern Selection Flowchart
+## 결 고르는 흐름도
 
-When facing a new problem, ask these questions in order:
+새 문제를 만나면 다음을 차례로 물어라.
 
-1. **Is the input sorted or can sorting help?** Try two pointers or binary search.
-2. **Does it involve contiguous subarrays/substrings?** Try sliding window.
-3. **Does it ask for an optimal value with overlapping subproblems?** Try DP.
-4. **Can you prove a greedy choice property?** Try greedy.
-5. **Does it involve a graph or tree structure?** Try BFS/DFS.
-6. **Does it ask for all solutions?** Try backtracking.
-7. **None of the above?** Start with brute force, then optimize.
+1. **들임이 줄 서 있는가, 줄 세우면 도움이 되는가?** 손가락질 둘이나 이진 찾기를 해 보라.
+2. **잇닿은 부분 배열/부분 글자열을 다루는가?** 미끄럼 창을 해 보라.
+3. **겹치는 작은 문제와 함께 가장 좋은 값을 묻는가?** 갈피 다지기를 해 보라.
+4. **욕심꾸러기 고름 됨됨이를 증명할 수 있는가?** 욕심꾸러기를 해 보라.
+5. **그래프나 나무 얼개를 다루는가?** 너비/깊이 먼저 훑기를 해 보라.
+6. **풀이를 모두 묻는가?** 되짚어 가기를 해 보라.
+7. **어느 것도 아닌가?** 마구잡이로 시작한 뒤 다듬어라.
 
-!!! tip "Pattern Combinations"
-    Many problems combine patterns. For example, "minimum cost path in a grid"
-    combines graph (grid as graph) with DP (optimal substructure). "Longest
-    substring without repeating characters" combines sliding window with a hash
-    set.
+!!! tip "결을 아우르기"
+    많은 문제가 결을 아우른다. 보기로 "격자에서 값이 가장 작은 길"은 그래프
+    (격자를 그래프로)와 갈피 다지기(가장 좋은 밑얼개)를 아우른다. "글자가
+    겹치지 않는 가장 긴 부분 글자열"은 미끄럼 창과 해시 모임을 아우른다.
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Skiena, S. *The Algorithm Design Manual*. 3rd ed. Springer, 2020.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Classify the following problem into an algorithmic pattern: "Given an array, find the longest subarray with sum at most $k$." Describe the pattern and the algorithm.
+**익힘 1.**
+다음 문제를 알고리즘 결로 가려라. "배열이 주어졌을 때 합이 많아야 $k$인 가장 긴 부분 배열을 찾아라." 그 결과 알고리즘을 밝혀라.
 
-??? success "Solution to Exercise 1"
-    This is a **sliding window** problem. The pattern: maintain a window $[l, r]$ and expand $r$ rightward, adding elements to a running sum. When the sum exceeds $k$, shrink from the left (increment $l$) until the sum is $\le k$ again. Track the maximum window length. Time: $O(n)$ -- each element is added and removed at most once. The sliding window pattern applies when: (1) the problem asks for a contiguous subarray/substring; (2) the constraint is monotone (expanding the window can only make it "worse," shrinking can only make it "better"); (3) both endpoints move in the same direction. $\square$
-
----
-
-**Exercise 2.**
-The "two pointers" pattern solves problems on sorted arrays. Give two distinct problems it solves and explain the pointer movement logic.
-
-??? success "Solution to Exercise 2"
-    **Problem 1 -- Two Sum (sorted array)**: find indices $i, j$ with $a[i] + a[j] = k$. Start with $l = 0, r = n-1$. If $a[l] + a[r] < k$, increment $l$ (need larger sum). If $> k$, decrement $r$. If equal, return. Time: $O(n)$. **Problem 2 -- Remove duplicates in-place**: maintain a write pointer $w$ and a read pointer $r$. If $a[r] \ne a[w-1]$, copy $a[r]$ to $a[w]$ and increment both. Otherwise, increment only $r$. Time: $O(n)$. The two-pointer pattern applies when: (1) the array is sorted; (2) one pointer's movement depends on a condition involving both pointers; (3) both pointers traverse the array at most once, ensuring $O(n)$ time. $\square$
+??? success "익힘 1 풀이"
+    이는 **미끄럼 창** 문제다. 결은 이렇다. 창 $[l, r]$을 지니고 $r$을 오른쪽으로 늘리며 흐르는 합에 원소를 더한다. 합이 $k$을 넘으면 합이 다시 $k$ 아래가 될 때까지 왼쪽에서 줄인다($l$을 키운다). 가장 긴 창 길이를 좇는다. 때: $O(n)$이다. 원소마다 많아야 한 번 더해지고 한 번 빠진다. 미끄럼 창 결은 (1) 문제가 잇닿은 부분 배열/부분 글자열을 물을 때, (2) 매임이 한 방향일 때(창을 늘리면 "나빠지기만" 하고 줄이면 "좋아지기만" 할 때), (3) 두 끝점이 같은 쪽으로 움직일 때 듣는다. $\square$
 
 ---
 
-**Exercise 3.**
-When should you use "binary search on the answer" instead of directly computing the answer? Give a concrete example.
+**익힘 2.**
+"손가락질 둘" 결은 줄 세운 배열의 문제를 푼다. 이것으로 푸는 서로 다른 문제 둘을 들고 손가락질이 움직이는 이치를 밝혀라.
 
-??? success "Solution to Exercise 3"
-    Use binary search on the answer when: (1) the answer is a numerical value in a known range; (2) there is a monotone feasibility function -- if answer $x$ is feasible, then $x + 1$ is also feasible (or vice versa); (3) checking feasibility for a given $x$ is easier than finding the optimal $x$ directly. Example: "Allocate $n$ tasks to $k$ workers to minimize the maximum workload." Directly computing the optimal allocation is complex. But binary search on the answer $x$ (maximum workload) transforms the problem into: "Can we assign all tasks such that no worker's total exceeds $x$?" This feasibility check is a simple greedy algorithm. Binary search over $x \in [max(task), sum(tasks)]$ in $O(\log(\text{range}) \times n)$. $\square$
-
----
-
-**Exercise 4.**
-Describe the "monotonic stack" pattern and give a problem it solves efficiently.
-
-??? success "Solution to Exercise 4"
-    A monotonic stack maintains elements in sorted order (increasing or decreasing) by popping elements that violate the invariant before pushing a new element. Problem: "For each element in an array, find the nearest smaller element to its left." Algorithm: maintain a stack of elements in increasing order. For each element $a[i]$: pop all elements $\ge a[i]$ from the stack. The stack's top is the nearest smaller element (or "none" if empty). Push $a[i]$. Time: $O(n)$ -- each element is pushed and popped at most once. The monotonic stack pattern applies to "next greater/smaller element" problems, histogram areas, stock span problems, and sliding window maximums (with a deque variant). $\square$
+??? success "익힘 2 풀이"
+    **문제 1 -- 두 수의 합(줄 세운 배열)**: $a[i] + a[j] = k$인 번호 $i, j$을 찾는다. $l = 0, r = n-1$에서 시작한다. $a[l] + a[r] < k$이면 $l$을 키운다(더 큰 합이 있어야 한다). $> k$이면 $r$을 줄인다. 같으면 내놓는다. 때: $O(n)$. **문제 2 -- 제자리에서 겹친 것 없애기**: 쓰는 손가락질 $w$과 읽는 손가락질 $r$을 지닌다. $a[r] \ne a[w-1]$이면 $a[r]$을 $a[w]$에 베끼고 둘 다 키운다. 아니면 $r$만 키운다. 때: $O(n)$. 손가락질 둘 결은 (1) 배열이 줄 서 있고, (2) 한 손가락질의 움직임이 두 손가락질에 걸린 조건에 매이며, (3) 두 손가락질이 배열을 많아야 한 번 훑어 $O(n)$이 보장될 때 듣는다. $\square$
 
 ---
 
-**Exercise 5.**
-Given the problem "find the number of connected components in an undirected graph," identify the pattern and two algorithms that solve it.
+**익힘 3.**
+답을 곧바로 셈하는 대신 "답에 대한 이진 찾기"를 써야 할 때는 언제인가? 손에 잡히는 보기를 들어라.
 
-??? success "Solution to Exercise 5"
-    Pattern: **graph traversal / connected components**. Algorithm 1: **BFS/DFS** -- iterate over all vertices. For each unvisited vertex, run BFS or DFS to visit all reachable vertices, marking them as visited. Increment the component count. Time: $O(V + E)$. Space: $O(V)$ for the visited array. Algorithm 2: **Union-Find (DSU)** -- initialize each vertex as its own component. For each edge $(u, v)$, union the components of $u$ and $v$. The number of components is $V - \text{(number of successful unions)}$. Time: $O(E \cdot \alpha(V)) \approx O(E)$. Union-Find is preferable when edges are processed incrementally (online), while BFS/DFS is simpler for static graphs. $\square$
+??? success "익힘 3 풀이"
+    답에 대한 이진 찾기를 쓸 때는 (1) 답이 아는 너비 안의 수 값일 때, (2) 될 수 있는지가 한 방향일 때(답 $x$이 되면 $x + 1$도 된다, 또는 그 반대), (3) 주어진 $x$이 될 수 있는지 살피는 것이 가장 좋은 $x$을 곧바로 찾는 것보다 쉬울 때다. 보기: "일감 $n$개를 일꾼 $k$명에게 맡겨 가장 큰 일감을 가장 작게 하라." 가장 좋은 맡김을 곧바로 셈하기는 까다롭다. 그런데 답 $x$(가장 큰 일감)에 이진 찾기를 걸면 문제가 이렇게 바뀐다. "어느 일꾼의 합도 $x$을 넘지 않게 온 일감을 맡길 수 있는가?" 이 살핌은 단순한 욕심꾸러기 알고리즘이다. $x \in [\max(\text{일감}), \sum(\text{일감})]$에 대해 $O(\log(\text{너비}) \times n)$에 이진 찾기를 한다. $\square$
+
+---
+
+**익힘 4.**
+"한 방향 쌓개" 결을 밝히고 이것이 잘 푸는 문제를 들어라.
+
+??? success "익힘 4 풀이"
+    한 방향 쌓개는 새 원소를 밀어 넣기에 앞서 불변 조건을 어기는 원소를 빼내어, 원소를 줄 세운 차례(늘어나거나 줄어드는)로 지닌다. 문제: "배열의 원소마다 그 왼쪽에서 가장 가까운 더 작은 원소를 찾아라." 알고리즘: 늘어나는 차례의 원소 쌓개를 지닌다. 원소 $a[i]$마다 쌓개에서 $\ge a[i]$인 원소를 모두 뺀다. 쌓개의 맨 위가 가장 가까운 더 작은 원소다(비었으면 "없음"). $a[i]$을 밀어 넣는다. 때: $O(n)$이다. 원소마다 많아야 한 번 밀어 넣고 한 번 뺀다. 한 방향 쌓개 결은 "다음으로 큰/작은 원소" 문제, 막대 그림 넓이, 주가 뻗침 문제, 그리고 (덱 갈래로) 미끄럼 창의 가장 큰 값에 쓰인다. $\square$
+
+---
+
+**익힘 5.**
+"방향 없는 그래프에서 이어진 조각의 수를 찾아라"라는 문제의 결을 짚고 이를 푸는 알고리즘 둘을 들어라.
+
+??? success "익힘 5 풀이"
+    결: **그래프 훑기 / 이어진 조각**. 알고리즘 1: **너비/깊이 먼저 훑기** -- 온 마디를 훑는다. 들르지 않은 마디마다 너비 먼저나 깊이 먼저로 닿을 수 있는 마디를 모두 들르며 들렀다고 표시한다. 조각 세개를 하나 키운다. 때: $O(V + E)$. 자리: 들렀는지 담는 배열에 $O(V)$. 알고리즘 2: **모으고 찾기(DSU)** -- 마디마다 제 조각으로 첫자리를 잡는다. 변 $(u, v)$마다 $u$과 $v$의 조각을 모은다. 조각의 수는 $V - \text{(모으기에 성공한 횟수)}$다. 때: $O(E \cdot \alpha(V)) \approx O(E)$. 변이 하나씩 들어올 때(흘러올 때)는 모으고 찾기가 낫고, 붙박인 그래프에는 너비/깊이 먼저가 더 단순하다. $\square$
