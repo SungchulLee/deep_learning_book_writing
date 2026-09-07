@@ -1,91 +1,91 @@
-# Chapter 38: Adversarial Robustness
+# 38장: 맞섬에 든든하기
 
-This chapter provides a comprehensive treatment of adversarial robustness in deep learning, covering the discovery and theory of adversarial examples, attack methods ranging from white-box to physical-world scenarios, defense mechanisms including adversarial training and certified robustness, and evaluation best practices. Special emphasis is placed on financial applications where adversarial threats manifest as market manipulation, fraud evasion, and model extraction attacks.
+이 장은 깊은 배움에서 맞섬에 든든한 일을 두루 다룬다. 맞서는 보기를 찾아낸 이야기와 그 이론, 흰 상자에서 참 세상에 이르는 치기 방법, 맞서며 익히기와 밝혀 낸 든든함을 아우른 막이, 그리고 제대로 따지는 좋은 버릇을 담는다. 맞섬의 으름이 저자 흔들기, 속임수 비껴가기, 모형 빼내기로 드러나는 금융 쓰임에 힘주어 살핀다.
 
 ---
 
-## Foundations
+## 밑바탕
 
-Core theory, threat models, and mathematical framework for adversarial robustness.
+맞섬에 든든하기의 고갱이 이론, 으름 얼개, 수학 틀.
 
-- [Introduction to Adversarial Robustness](foundations/introduction.md) -- Discovery of adversarial examples, hypotheses for their existence, and implications for deep learning
-- [Threat Models](foundations/threat_models.md) -- Formalizing adversary knowledge, capabilities, and objectives across white-box, black-box, and physical settings
-- [Robustness Definitions](foundations/definitions.md) -- Pointwise robustness, minimum adversarial perturbation, and reusable PyTorch attack base classes
-- [Perturbation Types](foundations/perturbations.md) -- L-infinity, L-2, and L-1 norm constraints with geometric properties and projection operators
+- [맞섬에 든든하기 들머리](foundations/introduction.md) -- 맞서는 보기를 찾아낸 이야기, 그것이 있는 까닭에 대한 여러 짐작, 깊은 배움에 걸리는 바
+- [으름 얼개](foundations/threat_models.md) -- 흰 상자, 검은 상자, 참 세상에 걸쳐 겨루는 이의 앎, 힘, 목표를 꼴로 적기
+- [든든함 뜻매김](foundations/definitions.md) -- 점마다의 든든함, 가장 작은 맞서는 흔듦, 다시 쓸 수 있는 PyTorch 치기 밑 갈래
+- [흔듦의 갈래](foundations/perturbations.md) -- L-무한, L-2, L-1 노름의 옭아맴과 그 꼴, 그리고 되비추는 셈
 
-## White-Box Attacks
+## 흰 상자 치기
 
-Gradient-based attacks with full access to model parameters and architecture.
+모형의 매개변수와 얼개를 온전히 아는 채로 하는 기울기 바탕의 치기.
 
-- [Fast Gradient Sign Method (FGSM)](white_box/fgsm.md) -- The foundational single-step gradient attack motivated by the linear hypothesis
-- [Projected Gradient Descent (PGD)](white_box/pgd.md) -- Multi-step iterative attack that is the de facto standard for robustness evaluation
-- [DeepFool](white_box/deepfool.md) -- Geometric attack finding the minimal perturbation to cross the nearest decision boundary
-- [Carlini-Wagner (C&W) Attack](white_box/cw_attack.md) -- Optimization-based attack reformulating adversarial generation as unconstrained minimization
-- [AutoAttack](white_box/autoattack.md) -- Parameter-free ensemble attack for reliable robustness evaluation without hyperparameter tuning
+- [빠른 기울기 부호 방법(FGSM)](white_box/fgsm.md) -- 선형 짐작에서 비롯한, 한 걸음짜리 밑바탕 기울기 치기
+- [되비춘 기울기 내림(PGD)](white_box/pgd.md) -- 든든함을 따지는 사실상의 잣대가 된 여러 걸음 되돌이 치기
+- [딥풀](white_box/deepfool.md) -- 가장 가까운 판단의 금을 넘는 가장 작은 흔듦을 찾는 꼴 바탕의 치기
+- [칼리니-와그너(C&W) 치기](white_box/cw_attack.md) -- 맞서는 보기 만들기를 옭아맴 없는 가장 작게 하기로 다시 쓴 치기
+- [오토어택](white_box/autoattack.md) -- 하이퍼파라미터를 맞추지 않고도 든든함을 미덥게 따지는 매개변수 없는 모둠 치기
 
-## Black-Box Attacks
+## 검은 상자 치기
 
-Attacks without direct access to model internals, using only query responses or transferability.
+모형 속을 곧바로 보지 못한 채 물음의 되받음이나 옮아감만으로 하는 치기.
 
-- [Transfer Attacks](black_box/transfer.md) -- Zero-query attacks exploiting cross-model transferability of adversarial perturbations
-- [Query-Based Attacks](black_box/query_based.md) -- Iterative attacks using model queries with score-based and decision-based variants
-- [Score-Based Attacks](black_box/score_based.md) -- Exploiting output probability distributions for gradient estimation without model access
-- [Decision-Based Attacks](black_box/decision_based.md) -- Attacks operating with only hard-label predictions in the most restrictive black-box setting
+- [옮아가는 치기](black_box/transfer.md) -- 맞서는 흔듦이 모형을 넘나들며 옮아가는 것을 쓰는 물음 없는 치기
+- [물음 바탕 치기](black_box/query_based.md) -- 점수 바탕과 판단 바탕의 갈래를 지닌, 모형에 물어 가며 되돌이하는 치기
+- [점수 바탕 치기](black_box/score_based.md) -- 모형 속을 보지 않고 날임 낌새 분포로 기울기를 어림하기
+- [판단 바탕 치기](black_box/decision_based.md) -- 굳은 이름표만 얻는 가장 빡빡한 검은 상자 자리에서의 치기
 
-## Physical-World Attacks
+## 참 세상 치기
 
-Adversarial perturbations that survive real-world deployment conditions.
+참 자리에 내놓아도 살아남는 맞서는 흔듦.
 
-- [Adversarial Patches](physical/patches.md) -- Localized, physically printable perturbations that fool classifiers in the real world
-- [3D Adversarial Attacks](physical/3d_attacks.md) -- Perturbations to object shape, texture, and lighting that are adversarial across viewpoints
-- [Real-World Robustness](physical/real_world.md) -- Bridging the digital-to-physical gap with expectation over transformations (EOT)
+- [맞서는 헝겊](physical/patches.md) -- 참 세상에서 가름개를 속이는, 그 자리에 몰린 찍어 낼 수 있는 흔듦
+- [3차원 맞서는 치기](physical/3d_attacks.md) -- 보는 자리를 바꿔도 맞서는, 물체의 꼴·결·빛에 준 흔듦
+- [참 세상에서의 든든함](physical/real_world.md) -- 바뀜에 걸친 바람(EOT)으로 셈틀과 참 세상의 틈 메우기
 
-## Adversarial Training
+## 맞서며 익히기
 
-Training-time defenses that augment the learning process with adversarial examples.
+익힐 때 맞서는 보기를 배움에 섞는 막이.
 
-- [Standard Adversarial Training](adversarial_training/standard.md) -- PGD-based robust optimization as the most effective defense against adversarial attacks
-- [TRADES](adversarial_training/trades.md) -- Theoretically principled trade-off between clean accuracy and adversarial robustness
-- [Free Adversarial Training](adversarial_training/free_at.md) -- Achieving comparable robustness at near standard training cost by recycling gradients
-- [Fast Adversarial Training](adversarial_training/fast_at.md) -- Single-step FGSM training with random initialization to prevent catastrophic overfitting
-- [MART](adversarial_training/mart.md) -- Misclassification-aware training that focuses defense effort on hard examples
+- [여느 맞서며 익히기](adversarial_training/standard.md) -- 맞서는 치기에 가장 잘 듣는 막이인 PGD 바탕의 든든하게 하기
+- [TRADES](adversarial_training/trades.md) -- 맑은 맞음과 맞섬의 든든함 사이를 이론에 닿게 맞바꾸기
+- [값싼 맞서며 익히기](adversarial_training/free_at.md) -- 기울기를 되쓰며 여느 익힘에 가까운 값으로 맞먹는 든든함 이루기
+- [빠른 맞서며 익히기](adversarial_training/fast_at.md) -- 아무렇게나 첫자리를 잡아 무너지듯 지나치게 맞추는 것을 막는 한 걸음 FGSM 익힘
+- [MART](adversarial_training/mart.md) -- 잘못 가른 보기를 헤아려 어려운 보기에 막이의 힘을 모으는 익힘
 
-## Certified Defenses
+## 밝혀 낸 막이
 
-Provable robustness guarantees that hold against all possible attacks within a radius.
+어떤 치기가 와도 어느 자리 안에서는 든든함을 증명해 주는 막이.
 
-- [Randomized Smoothing](certified/randomized_smoothing.md) -- Transforming any classifier into a certifiably robust one via Gaussian noise averaging
-- [Interval Bound Propagation (IBP)](certified/ibp.md) -- Certified L-infinity robustness by propagating interval bounds through network layers
-- [CROWN](certified/crown.md) -- Convex relaxation-based certification with tighter bounds than IBP via linear relaxations
-- [Lipschitz-Constrained Networks](certified/lipschitz.md) -- Certified robustness through explicit Lipschitz constant constraints on network sensitivity
+- [아무렇게나 매끄럽게 하기](certified/randomized_smoothing.md) -- 가우스 잡음을 고르게 하여 어떤 가름개든 밝혀 낸 든든함을 지니게 하기
+- [사이 테두리 퍼뜨리기(IBP)](certified/ibp.md) -- 그물 켜를 지나며 사이 테두리를 퍼뜨려 L-무한 든든함 밝히기
+- [CROWN](certified/crown.md) -- 선형으로 눅여 IBP보다 촘촘한 테두리를 주는 볼록 눅임 바탕의 밝히기
+- [립시츠로 옭아맨 그물](certified/lipschitz.md) -- 그물이 얼마나 예민한지를 립시츠 값으로 옭아매어 든든함 밝히기
 
-## Detection Methods
+## 알아내는 방법
 
-Identifying adversarial inputs before they reach the classifier.
+맞서는 들임이 가름개에 닿기 앞서 짚어내기.
 
-- [Statistical Detection](detection/statistical.md) -- Detecting adversarial examples via Mahalanobis distance and activation distribution analysis
-- [Feature Squeezing](detection/feature_squeezing.md) -- Comparing predictions on original vs. reduced-complexity inputs to flag adversarial perturbations
-- [Input Transformation Defenses](detection/input_transform.md) -- Preprocessing with JPEG compression, randomized resizing, and denoising to purify inputs
+- [자로 알아내기](detection/statistical.md) -- 마할라노비스 거리와 살림 분포 살피기로 맞서는 보기 짚어내기
+- [결 쥐어짜기](detection/feature_squeezing.md) -- 본디 들임과 얽힘을 줄인 들임의 미루어 봄을 견주어 맞서는 흔듦에 표시하기
+- [들임 바꾸어 막기](detection/input_transform.md) -- JPEG 눌러 담기, 아무렇게나 크기 바꾸기, 잡음 지우기로 들임 맑히기
 
-## Evaluation
+## 따지기
 
-Best practices for honest adversarial robustness assessment.
+맞섬의 든든함을 솔직히 따지는 좋은 버릇.
 
-- [Adaptive Attacks and Gradient Masking](evaluation/adaptive.md) -- Detecting and circumventing defenses that obscure gradients rather than providing true robustness
-- [Evaluation and Benchmarking](evaluation/benchmarks.md) -- Standardized evaluation protocols including AutoAttack and RobustBench
-- [Certified Accuracy](evaluation/certified_accuracy.md) -- Provable lower bounds on robustness independent of attack strength
+- [맞추어 오는 치기와 기울기 가리기](evaluation/adaptive.md) -- 참 든든함 대신 기울기를 가리는 막이를 짚어내고 넘어서기
+- [따지기와 잣대 재기](evaluation/benchmarks.md) -- 오토어택과 RobustBench을 아우른 잣대 잡힌 따짐 절차
+- [밝혀 낸 맞음](evaluation/certified_accuracy.md) -- 치기의 세기와 상관없이 증명되는 든든함의 아래끝
 
-## Finance Applications
+## 금융에 쓰기
 
-Adversarial robustness in financial machine learning systems.
+금융 기계 배움 얼개에서의 맞섬에 든든하기.
 
-- [Market Manipulation Detection](finance/manipulation.md) -- Detecting spoofing, wash trading, and strategic signal manipulation as adversarial attacks
-- [Fraud Detection Robustness](finance/fraud.md) -- Building fraud detectors resilient to adaptive adversaries who evolve evasion strategies
-- [Model Security in Financial Systems](finance/security.md) -- End-to-end security including model extraction, data poisoning, and secure deployment
+- [저자 흔들기 알아내기](finance/manipulation.md) -- 속임 주문, 짜고 하는 거래, 꾀 부린 신호 흔들기를 맞서는 치기로 보고 짚어내기
+- [속임수 알아내기의 든든함](finance/fraud.md) -- 비껴가는 꾀를 갈아 가며 맞추어 오는 겨루는 이에게도 버티는 속임수 알아내개 짓기
+- [금융 얼개의 모형 지킴](finance/security.md) -- 모형 빼내기, 자료에 독 타기, 든든히 내놓기를 아우른 끝에서 끝까지의 지킴
 
-## Additional Resources
+## 더 볼 거리
 
-Supplementary materials and code examples.
+곁들일 거리와 코드 보기.
 
-- Adversarial Robustness Overview -- Module overview covering attacks, defenses, and evaluation techniques
-- [Adversarial Attacks on NLP Models](adversarial/nlp_adversarial.md) -- Character-level, word-level, and sentence-level attacks on text-based financial models
+- 맞섬에 든든하기 두루 보기 -- 치기, 막이, 따지는 재주를 아우른 묶음 두루 보기
+- [글월 모형에 대한 맞서는 치기](adversarial/nlp_adversarial.md) -- 글월 바탕 금융 모형에 대한 글자, 낱말, 월 켜의 치기
