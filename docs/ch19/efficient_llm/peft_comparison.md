@@ -713,7 +713,7 @@ Quality
 LoRA의 고갱이 생각을 밝혀라. 모델의 좋음을 지키면서 익힐 매개변수를 어떻게 줄이는가?
 
 ??? success "연습문제 1 풀이"
-    LoRA (Low-Rank Adaptation) freezes the pretrained weight matrix $W_0 \in \mathbb{R}^{d \times k}$ and adds a low-rank update $\Delta W = BA$ where $B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$, and $r \ll \min(d, k)$. The forward pass becomes $h = (W_0 + BA)x$. Only $A$ and $B$ are trained, reducing trainable parameters from $dk$ to $r(d+k)$. For a typical layer with $d = k = 4096$ and $r = 8$, this is a $256\times$ reduction. The key insight: the weight updates during fine-tuning have low intrinsic rank, so a low-rank decomposition captures the essential adaptation.
+    LoRA(낮은 계수 맞추기)는 미리 익힌 무게 행렬 $W_0 \in \mathbb{R}^{d \times k}$을 얼리고 낮은 계수 고침 $\Delta W = BA$을 더한다. 여기서 $B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$이고 $r \ll \min(d, k)$이다. 앞으로 걸음은 $h = (W_0 + BA)x$이 된다. $A$과 $B$만 익히므로 익힐 매개변수가 $dk$개에서 $r(d+k)$개로 준다. $d = k = 4096$이고 $r = 8$인 흔한 층이면 $256\times$ 줄어든다. 고갱이 눈썰미는 곱게 다듬는 동안의 무게 고침이 타고난 계수가 낮다는 것이며, 그래서 낮은 계수 쪼갬이 종요로운 맞춤을 담아낸다.
 
 ---
 
@@ -723,9 +723,9 @@ LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 
 ??? success "연습문제 2 풀이"
     | 방법 | 익힐 매개변수 | 미룸 덧짐 | 기억 공간 | 여러 일 |
     |--------|-----------------|-------------------|--------|------------|
-    | **LoRA** | $\sim$0.1-1% | None (merge weights) | Low | Swap $A, B$ matrices |
-    | **Prefix Tuning** | $\sim$0.1% | Slight (extra tokens) | Low | Swap prefix vectors |
-    | **Adapters** | $\sim$1-5% | Moderate (extra layers) | Medium | Swap adapter modules |
+    | **LoRA** | $\sim$0.1~1% | 없음(무게를 어울린다) | 낮음 | $A, B$ 행렬을 갈아 끼운다 |
+    | **머리말 맞추기** | $\sim$0.1% | 조금 있음(덧붙은 토막) | 낮음 | 머리말 벡터를 갈아 끼운다 |
+    | **맞춤개** | $\sim$1~5% | 어느 정도 있음(덧붙은 층) | 보통 | 맞춤개 단원을 갈아 끼운다 |
 
     $BA$을 $W_0$에 어울릴 수 있으므로 LoRA는 미룸 덧짐이 0이다. 앞가지 다듬기는 맥락 창을 먹는 가상 토막을 더한다. 어댑터는 늦음을 늘리는 병목 층을 더한다. 셋 다 대부분의 일에서 온전한 곱게 다듬기에 가까운 성능을 내며, 단순하고 효율적이어서 LoRA가 가장 널리 쓰인다.
 
@@ -735,7 +735,7 @@ LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 
 매개변수 700억 모델을 온전히 곱게 다듬는 것이 대부분의 조직에 왜 실전에 맞지 않는가? 기억 공간 요구량을 수로 나타내어라.
 
 ??? success "연습문제 3 풀이"
-    A 70B model in fp16 requires $70 \times 10^9 \times 2$ bytes = 140 GB just for weights. Fine-tuning additionally requires: optimizer states (Adam stores 2 states per parameter: 280 GB in fp32), gradients (140 GB in fp16), and activations for backpropagation. Total: $\sim$700+ GB of GPU memory. Even with gradient checkpointing and mixed precision, this requires 8+ A100 80GB GPUs. LoRA reduces trainable parameters to $\sim$70M, cutting optimizer states and gradient memory by $1000\times$, making fine-tuning feasible on 1-2 GPUs.
+    fp16으로 된 700억 매개변수 모델은 무게만 해도 $70 \times 10^9 \times 2$바이트 = 140GB가 든다. 곱게 다듬으려면 여기에 더해 가장 좋게 하개 상태(Adam은 매개변수마다 상태 2개를 담으므로 fp32으로 280GB), 기울기(fp16으로 140GB), 되짚기용 살림 값이 든다. 모두 GPU 기억 자리가 $\sim$700GB 넘게 든다. 기울기 되짚음 저장과 섞인 촘촘함을 써도 A100 80GB GPU가 8장 넘게 든다. LoRA은 익힐 매개변수를 $\sim$7000만 개로 줄여 가장 좋게 하개 상태와 기울기 기억 자리를 $1000\times$ 줄이므로 GPU 한두 장으로도 곱게 다듬을 수 있다.
 
 ---
 
@@ -743,4 +743,4 @@ LoRA, 앞가지 다듬기, 어댑터 층을 견주어라. 기억 공간, 미룸 
 양자화를 헤아린 LoRA(QLoRA)란 무엇이며 큰 말 모델 곱게 다듬기를 누구나 하게 만드는 데 왜 뜻깊은가?
 
 ??? success "연습문제 4 풀이"
-    QLoRA combines 4-bit quantization of the base model with LoRA adapters in fp16/bf16. The base weights $W_0$ are stored in 4-bit NormalFloat format ($\sim$0.5 bytes per parameter), reducing memory for a 70B model from 140 GB to $\sim$35 GB. LoRA adapters remain in higher precision for stable training. Additional innovations: double quantization (quantizing the quantization constants) and paged optimizers (using CPU memory for optimizer state spikes). This enables fine-tuning a 65B model on a single 48GB GPU (A6000), making LLM adaptation accessible to researchers and small organizations without expensive multi-GPU clusters.
+    QLoRA은 밑 모델을 4비트로 수 줄이고 LoRA 맞춤개는 fp16/bf16으로 두어 둘을 아우른다. 밑 무게 $W_0$은 4비트 NormalFloat 꼴로 담기므로(매개변수마다 $\sim$0.5바이트) 700억 모델의 기억 자리가 140GB에서 $\sim$35GB으로 준다. LoRA 맞춤개는 익힘이 든든하도록 더 촘촘한 꼴로 남는다. 여기에 겹 수 줄이기(수 줄이기 상수를 다시 수 줄이기)와 쪽 넘김 가장 좋게 하개(가장 좋게 하개 상태가 치솟을 때 CPU 기억 자리를 씀)라는 새로움이 더해진다. 그래서 48GB GPU(A6000) 한 장으로 650억 모델을 곱게 다듬을 수 있고, 값비싼 여러 GPU 무리 없이도 연구자와 작은 조직이 큰 말 모델을 맞출 수 있게 된다.

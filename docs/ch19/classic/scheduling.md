@@ -4,14 +4,14 @@
 
 ## 문제 진술: 최대 늦음 가장 작게 하기
 
-**Input.** A set of $n$ jobs $\{1, 2, \ldots, n\}$. Job $i$ has:
+**들임.** 일 $n$개의 모음 $\{1, 2, \ldots, n\}$. 일 $i$은 다음을 지닌다.
 
 - 다루는 시간 $p_i > 0$(끝내는 데 드는 시간).
 - 마감 $d_i$(이때까지 끝나면 좋은 시각).
 
 **제약.** 기계 하나가 한 번에 일 하나를 다룬다. 모든 일은 때 0에 쓸 수 있다. 가로채기가 없다(한 번 시작한 일은 끝까지 돈다). 노는 때가 없다.
 
-**Schedule.** A permutation $\sigma$ of $\{1, 2, \ldots, n\}$. Job $\sigma(j)$ is the $j$-th job processed. Its completion time is:
+**일정.** $\{1, 2, \ldots, n\}$의 자리바꿈 $\sigma$. 일 $\sigma(j)$은 $j$번째로 다루는 일이다. 그 마침 시각은 다음과 같다.
 
 $$
 C_{\sigma(j)} = \sum_{k=1}^{j} p_{\sigma(k)}
@@ -29,9 +29,9 @@ $$
 
 !!! note "EDF 일정 짜기"
 
-    1. Sort jobs by deadline: $d_1 \leq d_2 \leq \cdots \leq d_n$.
+    1. 일을 마감으로 줄 세운다: $d_1 \leq d_2 \leq \cdots \leq d_n$.
     2. 노는 때 없이 이 차례로 일을 다룬다.
-    3. The $j$-th job completes at time $C_j = \sum_{k=1}^{j} p_k$.
+    3. $j$번째 일은 시각 $C_j = \sum_{k=1}^{j} p_k$에 마친다.
 
 이 알고리즘은 차례를 정할 때 다루는 시간을 아예 헤아리지 않는다. 오직 마감만 본다.
 
@@ -68,24 +68,24 @@ $$
 | 3        | 3   | 6      | 9      | $-3$   |
 | 4        | 4   | 10     | 9      | $1$    |
 
-This also gives $L_{\max} = 1$, which matches EDF. But no schedule achieves $L_{\max} < 1$, since the total processing time is 10 and the latest deadline is 9.
+이 또한 $L_{\max} = 1$을 주어 마감 이른 것 먼저와 같다. 그러나 온 처리 시간이 10이고 가장 늦은 마감이 9이므로 어떤 일정도 $L_{\max} < 1$을 이루지 못한다.
 
 ## 옳음의 증명
 
-**Theorem.** EDF minimizes the maximum lateness $L_{\max}$.
+**정리.** 마감 이른 것 먼저는 가장 큰 늦음 $L_{\max}$을 가장 작게 한다.
 
-The proof uses the exchange argument, showing that any **inversion** in the schedule can be removed without increasing $L_{\max}$.
+증명은 맞바꿈 따짐을 쓴다. 곧 일정의 어떤 **뒤집힘**이든 $L_{\max}$을 늘리지 않고 없앨 수 있음을 보인다.
 
 **정의.** 일정에서 **뒤바뀜**이란 일 $i$이 일 $j$보다 앞에 놓였는데 $d_i > d_j$인 이웃한 일 짝 $(i, j)$이다.
 
 **주장 1.** 노는 때가 없는 가장 좋은 일정이 있다.
 
-*Proof.* Removing idle time shifts jobs earlier, which can only decrease lateness. $\square$
+*증명.* 노는 시간을 없애면 일이 앞으로 당겨지므로 늦음은 줄어들 뿐이다. $\square$
 
 **주장 2.** 뒤바뀜이 없는 가장 좋은 일정이 있다.
 
 ??? example "맞바꿈에 의한 증명"
-    Suppose schedule $\sigma$ has an inversion: job $i$ immediately precedes job $j$ with $d_i > d_j$. Let $\sigma'$ be the schedule obtained by swapping $i$ and $j$.
+    일정 $\sigma$에 뒤집힘이 있다고 하자. 곧 $d_i > d_j$인데 일 $i$이 일 $j$ 바로 앞에 온다고 하자. $i$과 $j$을 맞바꾼 일정을 $\sigma'$이라 하자.
 
     맞바꾸기 앞에 두 일 모두 같은 때 $t$에 시작한다:
 
@@ -106,11 +106,11 @@ The proof uses the exchange argument, showing that any **inversion** in the sche
     L_{\max}(\sigma') = \max(L_j', L_i', \ldots) \leq \max(L_j, \ldots) = L_{\max}(\sigma)
     $$
 
-    Swapping the inversion does not increase $L_{\max}$. $\square$
+    뒤집힘을 맞바꾸어도 $L_{\max}$은 늘지 않는다. $\square$
 
 **주장 3.** 뒤바뀜이 없는 일정은 일을 EDF 차례로 다룬다.
 
-**Conclusion.** Since inversions can be eliminated without increasing $L_{\max}$, and a schedule with no inversions is the EDF schedule, EDF is optimal.
+**맺음.** $L_{\max}$을 늘리지 않고 뒤집힘을 없앨 수 있고 뒤집힘이 없는 일정이 곧 마감 이른 것 먼저 일정이므로, 마감 이른 것 먼저가 가장 좋다.
 
 ## 파이썬 구현
 
@@ -186,7 +186,7 @@ Maximum lateness: 1
 
 ## 변종: 무게를 준 마침 시각 가장 작게 하기
 
-A related problem minimizes the **total weighted completion time** $\sum_{i=1}^{n} w_i C_i$, where $w_i$ is the weight (priority) of job $i$.
+이와 이어진 문제로 **짐 실은 온 마침 시간** $\sum_{i=1}^{n} w_i C_i$을 가장 작게 하는 것이 있다. 여기서 $w_i$은 일 $i$의 짐(우선순위)이다.
 
 **욕심쟁이 규칙.** 일을 $w_i / p_i$(무게 대 다루는 시간 비)의 내림차순으로 다룬다.
 

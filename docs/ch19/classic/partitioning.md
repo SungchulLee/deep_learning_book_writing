@@ -137,7 +137,7 @@ Resources needed: 3
 | Time   | $O(n \log n)$ |
 | 공간 | $O(n)$ |
 
-Sorting takes $O(n \log n)$. Each activity involves one heap push and at most one heap pop, each taking $O(\log n)$ time.
+줄 세우기에 $O(n \log n)$이 든다. 활동마다 더미에 한 번 넣고 많아야 한 번 꺼내며 저마다 $O(\log n)$ 시간이 든다.
 
 ## 응용
 

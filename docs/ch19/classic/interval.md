@@ -4,7 +4,7 @@
 
 ## 문제 서술
 
-Given $n$ activities $\{a_1, a_2, \dots, a_n\}$ where activity $a_i$ has start time $s_i$ and finish time $f_i$, find the largest subset $S$ of mutually compatible activities. Two activities $a_i$ and $a_j$ are **compatible** if their intervals do not overlap: $f_i \le s_j$ or $f_j \le s_i$.
+활동 $a_i$마다 비롯하는 시각 $s_i$과 마치는 시각 $f_i$을 지닌 활동 $n$개 $\{a_1, a_2, \dots, a_n\}$이 주어졌을 때 서로 어울리는 활동의 가장 큰 부분 모음 $S$을 찾아라. 두 활동 $a_i$과 $a_j$의 구간이 겹치지 않으면, 곧 $f_i \le s_j$이거나 $f_j \le s_i$이면 둘은 **어울린다**.
 
 ## 욕심쟁이 알고리즘
 
@@ -18,15 +18,15 @@ Given $n$ activities $\{a_1, a_2, \dots, a_n\}$ where activity $a_i$ has start t
     가장 이른 마침 시각 욕심쟁이 알고리즘은 서로 어울리는 활동의 가장 큰 모음을 낸다.
 
 ??? example "증명(맞바꿈 논증)"
-    Let $G = \{g_1, g_2, \dots, g_k\}$ be the greedy solution (sorted by finish time) and $O = \{o_1, o_2, \dots, o_m\}$ be an optimal solution with $m \ge k$. We show $k = m$.
+    $G = \{g_1, g_2, \dots, g_k\}$을 (마침 시각으로 줄 세운) 욕심쟁이 풀이라 하고 $O = \{o_1, o_2, \dots, o_m\}$을 $m \ge k$인 가장 좋은 풀이라 하자. $k = m$임을 보인다.
 
-    **Claim.** For each $i \le k$, $f(g_i) \le f(o_i)$ (greedy finishes at least as early at every step).
+    **주장.** $i \le k$마다 $f(g_i) \le f(o_i)$이다(욕심쟁이가 걸음마다 적어도 그만큼 일찍 마친다).
 
-    *Base case:* $f(g_1) \le f(o_1)$ because greedy picks the earliest finish time.
+    *밑 자리:* 욕심쟁이가 마침 시각이 가장 이른 것을 고르므로 $f(g_1) \le f(o_1)$이다.
 
-    *Inductive step:* Assume $f(g_i) \le f(o_i)$. Then $s(o_{i+1}) \ge f(o_i) \ge f(g_i)$, so $o_{i+1}$ is available to greedy at step $i+1$. Greedy picks $g_{i+1}$ with the earliest finish time among all available activities, so $f(g_{i+1}) \le f(o_{i+1})$.
+    *미루어 나아가는 걸음:* $f(g_i) \le f(o_i)$이라 하자. 그러면 $s(o_{i+1}) \ge f(o_i) \ge f(g_i)$이므로 걸음 $i+1$에서 욕심쟁이가 $o_{i+1}$을 고를 수 있다. 욕심쟁이는 고를 수 있는 활동 가운데 마침 시각이 가장 이른 $g_{i+1}$을 고르므로 $f(g_{i+1}) \le f(o_{i+1})$이다.
 
-    Since the greedy solution stays ahead at every step, if $m > k$, then $o_{k+1}$ would be compatible with $g_k$ (because $s(o_{k+1}) \ge f(o_k) \ge f(g_k)$), contradicting the fact that greedy stopped. Therefore $m = k$. $\square$
+    욕심쟁이 풀이가 걸음마다 앞서 있으므로, $m > k$이면 $o_{k+1}$이 $g_k$과 어울릴 것이고($s(o_{k+1}) \ge f(o_k) \ge f(g_k)$이기 때문이다) 이는 욕심쟁이가 멈췄다는 것과 어긋난다. 그러므로 $m = k$이다. $\square$
 
 ## 구현
 
@@ -108,7 +108,7 @@ Maximum compatible set: 4 activities
 | Time   | $O(n \log n)$ |
 | 공간 | $O(n)$ |
 
-Sorting dominates at $O(n \log n)$. The selection pass is a single $O(n)$ scan.
+줄 세우기가 $O(n \log n)$으로 가장 크다. 고르는 걸음은 $O(n)$의 한 번 훑기다.
 
 ## 무게 있는 변종
 

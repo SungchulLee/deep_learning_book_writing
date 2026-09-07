@@ -76,7 +76,7 @@ $$
 B(\hat{T}') = B(\hat{T}) - f_x - f_y < B(T) - f_x - f_y = B(T')
 $$
 
-This contradicts the optimality of $T'$ for $C'$. $\square$
+이는 $T'$이 $C'$에 대해 가장 좋다는 것과 어긋난다. $\square$
 
 ## 주요 정리
 
@@ -96,7 +96,7 @@ This contradicts the optimality of $T'$ for $C'$. $\square$
 
 4. 이 부풀림이 바로 알고리즘이 하는 일이다. 곧 어울릴 때 $x$과 $y$을 $z$의 자식으로 두었다.
 
-Therefore, the algorithm produces an optimal tree for $C$. $\square$
+그러므로 이 알고리즘은 $C$에 대해 가장 좋은 나무를 내놓는다. $\square$
 
 ## 핵심 눈썰미: 증명이 통하는 까닭
 
@@ -104,7 +104,7 @@ Therefore, the algorithm produces an optimal tree for $C$. $\square$
 
 ## 유일성
 
-The Huffman tree is not necessarily unique --- different tie-breaking rules when frequencies are equal produce different trees. However, all optimal trees have the same cost $B(T^*)$. Moreover, all optimal prefix-free codes for a given frequency distribution have the same set of codeword lengths (up to permutation of characters with equal frequency).
+허프먼 나무가 반드시 하나뿐인 것은 아니다. 잦기가 같을 때 어떻게 가르느냐에 따라 다른 나무가 나온다. 다만 가장 좋은 나무는 모두 값 $B(T^*)$이 같다. 나아가 어떤 잦기 분포에 대한 가장 좋은 머리말 없는 부호는 모두 부호말 길이의 모음이 같다(잦기가 같은 글자끼리의 자리바꿈은 빼고).
 
 ## 참고 문헌
 
