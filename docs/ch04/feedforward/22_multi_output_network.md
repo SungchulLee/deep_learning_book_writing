@@ -285,13 +285,13 @@ print("""
 ✓ 과제 사이에서 특징 추출을 공유한다
 ✓ 예측에는 과제별 머리를 따로 둔다
 ✓ 손실을 가중합으로 합친다
-✓ Can improve generalization (regularization effect)
+✓ 일반화를 높일 수 있다(정칙화 효과)
 
 구조:
   입력 → 공유층 → 갈라짐 → 과제 머리 → 출력
 
 ADVANTAGES:
-+ Shared representations (transfer learning effect)
++ 표현을 공유한다(전이 학습 효과)
 + 표본 효율이 낫다
 + 암묵적인 정칙화 효과
 + 모델 하나만 배포하면 된다

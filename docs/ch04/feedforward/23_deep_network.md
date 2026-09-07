@@ -244,15 +244,15 @@ print("KEY TAKEAWAYS")
 print("="*80)
 print("""
 깊은 신경망 짓기:
-✓ Use residual connections (skip connections)
+✓ 잔차 연결(건너뛰기 연결)을 쓴다
 ✓ 선형층 뒤의 배치 정규화
-✓ Proper weight initialization (Kaiming for ReLU)
+✓ 알맞은 가중치 초기화(ReLU에는 카이밍)
 ✓ 폭발을 막는 기울기 절단
 ✓ 배움 빠르기 짜기
 
 잔차 연결:
   H(x) = F(x) + x
-  - Easier to optimize (gradients flow directly)
+  - 최적화가 쉽다(기울기가 곧장 흐른다)
   - 100층이 넘는 신경망도 학습할 수 있게 한다
   - ResNet, DenseNet, 트랜스포머에 쓴다
 
@@ -269,7 +269,7 @@ print("""
 
 깊이가 주는 어려움:
 ⚠ 기울기 소실과 폭발
-⚠ Degradation (accuracy saturates)
+⚠ 성능 퇴화(정확도가 더 오르지 않는다)
 ⚠ 메모리와 계산이 더 든다
 ⚠ 학습 시간이 길어진다
 

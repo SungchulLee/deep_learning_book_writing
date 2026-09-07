@@ -62,15 +62,15 @@ print("""
   - 안쪽 함께 바뀜의 옮겨감을 줄인다
   - 배움 빠르기를 더 크게 쓸 수 있다
   - 초기화에 대한 민감도를 낮춘다
-  - Acts as regularization (like dropout)
+  - 정칙화 노릇을 한다(드롭아웃처럼)
 
-Formula (for each feature in batch):
+식(배치 안의 특징마다):
   1. μ = mean(batch)
   2. σ² = variance(batch)
   3. x̂ = (x - μ) / √(σ² + ε)     # 정규화
   4. y = γ * x̂ + β                # 배율 조정과 이동
 
-Where γ (gamma) and β (beta) are learnable parameters!
+여기서 γ(감마)와 β(베타)는 학습되는 매개변수이다!
 """)
 
 # ==============================================================================
@@ -409,14 +409,14 @@ print("=" * 70)
 print("""
 1. 배치 정규화가 하는 일:
    - 미니배치별로 층 입력을 정규화한다
-   - Learns optimal scale (γ) and shift (β)
+   - 최적의 크기(γ)와 이동(β)을 학습한다
    - 추론을 위해 이동 통계를 유지한다
 
 2. Benefits:
-   ✓ Faster convergence (can use higher learning rates)
+   ✓ 더 빨리 수렴한다(더 큰 학습률을 쓸 수 있다)
    ✓ 초기화에 대한 민감도를 낮춘다
-   ✓ Acts as regularization (slight generalization improvement)
-   ✓ More stable training (especially for deep networks)
+   ✓ 정칙화 노릇을 한다(일반화가 조금 나아진다)
+   ✓ 학습이 더 안정적이다(특히 깊은 신경망에서)
 
 3. 배치 정규화를 어디에 둘까:
    - 보통: 선형 -> 배치 정규화 -> 활성화
@@ -426,25 +426,25 @@ print("""
    - 합성곱층에는 BatchNorm2d를 쓴다
 
 4. 학습과 평가:
-   - Training: Uses batch statistics (mean, var from current batch)
-   - Evaluation: Uses running statistics (accumulated during training)
-   - Always call model.train() and model.eval() appropriately!
+   - 학습: 배치 통계를 쓴다(현재 배치의 평균과 분산)
+   - 평가: 이동 통계를 쓴다(학습 중에 쌓은 값)
+   - model.train()과 model.eval()을 늘 알맞게 부르라!
 
 5. 배치 정규화의 변형:
    - BatchNorm1d: 완전 연결층용
    - BatchNorm2d: 2차원 합성곱층용
    - BatchNorm3d: 3차원 합성곱층용
-   - LayerNorm: Alternative (normalizes across features, not batch)
+   - LayerNorm: 대안(배치가 아니라 특징 방향으로 정규화한다)
    - GroupNorm: 배치 크기가 작아도 잘 작동한다
 
 6. 배치 정규화를 쓰지 말아야 할 때:
-   - Very small batch sizes (statistics unreliable)
-   - Recurrent networks (use LayerNorm instead)
+   - 배치 크기가 아주 작을 때(통계를 믿기 어렵다)
+   - 순환 신경망(대신 LayerNorm을 쓴다)
    - 배치 사이의 독립성이 중요할 때
 
 7. 흔한 함정:
-   ✗ Forgetting to call model.eval() during inference
-   ✗ Using batch size = 1 (statistics don't make sense)
+   ✗ 추론할 때 model.eval() 부르기를 잊는다
+   ✗ 배치 크기를 1로 쓴다(통계가 뜻이 없다)
    ✗ 학습 모드와 평가 모드를 헷갈리기
 
 다음 단계:

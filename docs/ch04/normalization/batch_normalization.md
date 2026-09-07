@@ -15,7 +15,7 @@
 학습을 빠르게 하고 더 높은 학습률을 쓸 수 있게 해 준다.
 
 논문: "Batch Normalization: Accelerating Deep Network Training by
-       Reducing Internal Covariate Shift" (Ioffe & Szegedy, 2015)
+       내부 공변량 이동 줄이기"(Ioffe & Szegedy, 2015)
 """
 
 import numpy as np

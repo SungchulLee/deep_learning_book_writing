@@ -75,7 +75,7 @@ print("\n" + "="*70)
 print("INITIALIZATION GUIDE")
 print("="*70)
 print("""
-XAVIER (GLOROT) INITIALIZATION:
+자비에르(글로로) 초기화:
   Formula: U(-√(6/(n_in + n_out)), √(6/(n_in + n_out)))
   쓰는 곳: 시그모이드, tanh 활성화
   목표: 층 사이에서 분산을 유지한다
@@ -90,11 +90,11 @@ HE (KAIMING) INITIALIZATION:
   쓰임: 드물다. 너무 작거나 클 수 있다
 
 ZEROS:
-  Never use for weights! (breaks symmetry)
+  가중치에는 절대 쓰지 마라!(대칭이 깨지지 않는다)
   편향에는 괜찮다
 
 RECOMMENDATIONS:
-  ReLU networks → He initialization (default in PyTorch)
+  ReLU 신경망 → He 초기화(PyTorch의 기본값)
   시그모이드나 tanh → 자비에르 초기화
   편향 → 0이나 작은 상수
   

@@ -84,11 +84,11 @@ print("="*70)
 print("""
 문제 유형             | 권장 손실             | 출력 활성화
 ----------------------|----------------------|-------------------
-Regression            | MSELoss              | None (linear)
-Regression (outliers) | L1Loss / SmoothL1    | None
-Binary Classification | BCEWithLogitsLoss    | None (logits)
-Multi-class           | CrossEntropyLoss     | None (logits)
-Multi-label           | BCEWithLogitsLoss    | None (logits)
+회귀                  | MSELoss              | 없음(선형)
+회귀(이상치 있음)    | L1Loss / SmoothL1    | 없음
+이진 분류             | BCEWithLogitsLoss    | 없음(로짓)
+다중 클래스           | CrossEntropyLoss     | 없음(로짓)
+다중 레이블           | BCEWithLogitsLoss    | 없음(로짓)
 
 핵심:
 ✓ *WithLogits 판을 쓰라. 더 안정적이다

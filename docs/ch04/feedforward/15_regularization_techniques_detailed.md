@@ -53,12 +53,12 @@ print("""
 과적합이란 무엇인가?
   - 모델이 학습 데이터를 지나치게 잘 외운다
   - 학습 집합에서는 아주 잘한다
-  - Performs poorly on unseen data (test set)
+  - 처음 보는 데이터(시험 집합)에서 성능이 나쁘다
   - 일반화하지 않고 암기한다
 
 과적합을 어떻게 막는가?
   1. 학습 데이터를 더 모은다
-  2. Simpler model (fewer parameters)
+  2. 더 단순한 모델(매개변수가 적다)
   3. 정칙화 기법:
      - Dropout
      - L2 정칙화 (가중치 감쇠)
@@ -397,13 +397,13 @@ print("""
 
 2. Dropout (nn.Dropout):
    - 학습 중 뉴런을 무작위로 0으로 만든다
-   - dropout_rate: Probability of dropping (typical: 0.2-0.5)
-   - Automatically disabled with model.eval()
+   - dropout_rate: 떨어뜨릴 확률(보통 0.2~0.5)
+   - model.eval()을 부르면 자동으로 꺼진다
    - 뉴런들이 함께 적응하는 것을 막는다
 
-3. Weight Decay (L2 Regularization):
-   - Adds penalty for large weights: Loss = Data_Loss + λ * Σ(weights²)
-   - Set via optimizer: weight_decay=1e-4
+3. 가중치 감쇠(L2 정칙화):
+   - 큰 가중치에 벌점을 더한다: 손실 = 데이터 손실 + λ * Σ(가중치²)
+   - 최적화기에서 설정한다: weight_decay=1e-4
    - 가중치를 작게 유지하도록 북돋운다
    - 두루 미침이 나아진다
 
@@ -413,7 +413,7 @@ print("""
    - 기울기 갱신에는 쓰지 않는다
    - 시험 집합과 따로 둔다
 
-5. Other regularization techniques (not covered here):
+5. 그 밖의 정칙화 기법(여기서는 다루지 않는다):
    - 데이터 증강
    - 배치 정규화
    - 조기 종료

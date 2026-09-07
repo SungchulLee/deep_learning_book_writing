@@ -165,19 +165,19 @@ USAGE:
   model.eval()   # 평가 중에는 드롭아웃 끄기
   
 그 밖의 정칙화:
-  - L2 (weight_decay in optimizer): Penalizes large weights
+  - L2(최적화기의 weight_decay): 큰 가중치에 벌점을 준다
   - L1: 희소성을 북돋운다
   - 조기 종료: 검증 손실이 늘면 멈춘다
   - 데이터 증강: 데이터셋을 인위적으로 늘린다
   
 언제 쓰는가:
   ✓ 작은 데이터셋에 큰 모델을 쓸 때
-  ✓ Model overfitting (train acc >> test acc)
+  ✓ 모델이 과적합한다(학습 정확도 >> 시험 정확도)
   ✓ 깊은 신경망
   
 드롭아웃 비율:
-  - Input layer: 0.1-0.2 (lower)
-  - Hidden layers: 0.3-0.5 (higher)
+  - 입력층: 0.1~0.2(낮게)
+  - 은닉층: 0.3~0.5(높게)
   - 출력층: 절대 쓰지 마라!
 """)
 

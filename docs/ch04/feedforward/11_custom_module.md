@@ -161,9 +161,9 @@ print("\n"+"="*70)
 print("KEY TAKEAWAYS")
 print("="*70)
 print("""
-1. Always call super().__init__() first in __init__
-2. Define layers as instance attributes (self.xxx)
-3. Implement forward() to define computation
+1. __init__에서는 늘 super().__init__()을 먼저 부른다
+2. 층은 인스턴스 속성(self.xxx)으로 정의한다
+3. 계산을 정의하려면 forward()를 구현한다
 4. PyTorch는 다음을 자동으로 한다.
    - 매개변수를 추적한다
    - 계산 그래프를 만든다

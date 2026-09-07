@@ -149,7 +149,7 @@ def reverse_recursive(head):
 
 # === 부분 리스트 뒤집기 ===
 def reverse_between(head, m, n):
-    """Reverse nodes from position m to n (1-indexed).
+    """m번째부터 n번째까지의 노드를 뒤집는다(1부터 센다).
 
     시간: O(n), 공간: O(1).
     """

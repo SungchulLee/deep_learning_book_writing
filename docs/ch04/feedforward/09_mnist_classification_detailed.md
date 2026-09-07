@@ -407,11 +407,11 @@ print("Key Takeaways")
 print("=" * 70)
 print("""
 1. 실제 데이터 작업 흐름:
-   a) Load dataset (torchvision.datasets)
-   b) Create data loaders (batching, shuffling)
-   c) Define model architecture
-   d) Train with batches
-   e) Evaluate on test set
+   a) 데이터셋을 불러온다(torchvision.datasets)
+   b) 데이터 로더를 만든다(배치 구성, 섞기)
+   c) 모델 구조를 정의한다
+   d) 배치로 학습한다
+   e) 시험 집합에서 평가한다
 
 2. DataLoader의 이점:
    - 자동 배치 구성
@@ -421,19 +421,19 @@ print("""
 
 3. 분류에 쓰는 CrossEntropyLoss:
    - LogSoftmax와 NLLLoss를 합친다
-   - Expects raw logits (no softmax in model)
+   - 원본 로짓을 받는다(모델에 소프트맥스를 두지 않는다)
    - 수치적으로 안정적이다
 
 4. 학습 모범 사례:
-   - model.train() before training
-   - model.eval() before evaluation
-   - torch.no_grad() during inference
+   - 학습 앞에 model.train()
+   - 평가 앞에 model.eval()
+   - 추론 중에는 torch.no_grad()
    - 손실과 정확도를 함께 추적한다
 
 5. MNIST의 일반적인 정확도:
    - 단순 순전파 신경망: 95~97%
-   - CNN (covered later): 99%+
-   - Our model: ~{test_accuracy:.1f}%
+   - CNN(뒤에서 다룬다): 99% 이상
+   - 우리 모델: 약 {test_accuracy:.1f}%
 
 다음 단계:
 - 튜토리얼 07: 검증 집합과 정칙화 더하기

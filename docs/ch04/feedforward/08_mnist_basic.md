@@ -500,7 +500,7 @@ print(f"""
    ✓ 따로 떼어 둔 시험 집합에서의 평가
    ✓ 결과 시각화
 
-2. Achieved ~{overall_accuracy:.1f}% accuracy with simple 2-layer network!
+2. 단순한 2층 신경망으로 약 {overall_accuracy:.1f}%의 정확도를 얻었다!
    - 최고 수준의 CNN은 약 99.7%에 이른다
    - 이 기준선도 꽤 훌륭하다
 
@@ -510,11 +510,11 @@ print(f"""
 
 4. GPU 가속은 학습을 훨씬 빠르게 한다
    - 모델과 데이터를 모두 장치로 옮겨야 한다
-   - Use .to(device) for tensors and models
+   - 텐서와 모델에는 .to(device)를 쓴다
 
 5. 학습 모드와 평가 모드:
-   - model.train(): Enables dropout, batchnorm training
-   - model.eval(): Disables them for inference
+   - model.train(): 드롭아웃과 배치 정규화의 학습 동작을 켠다
+   - model.eval(): 추론을 위해 그것들을 끈다
 
 다음: 2단계에서는 PyTorch의 기능과 더 나은 구조를 다룬다!
 """)
@@ -530,9 +530,9 @@ print("""
 2. 은닉층을 하나 더 넣어 3층 신경망을 만들어 보라
 3. SGD, RMSprop, AdaGrad 등 여러 최적화기를 써 보라
 4. 학습률 0.0001, 0.01, 0.1로 실험해 보라
-5. Train for more epochs (10-20) - watch for overfitting
+5. 더 많은 에폭(10~20)으로 학습해 보라. 과적합을 살피라
 6. 검증 손실을 기준으로 조기 종료를 구현해 보라
-7. Save the trained model: torch.save(model.state_dict(), 'model.pth')
+7. 학습한 모델을 저장하라: torch.save(model.state_dict(), 'model.pth')
 8. 무작위 회전과 이동 같은 데이터 증강을 더해 보라
 9. 첫 층의 가중치를 그려 신경망이 배운 것을 살펴보라
 10. 혼동 행렬을 만들어 어떤 숫자가 헷갈리는지 보라

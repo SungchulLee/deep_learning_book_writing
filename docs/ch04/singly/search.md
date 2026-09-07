@@ -93,7 +93,7 @@ def to_list(head):
 
 # === 값으로 탐색 ===
 def search_value(head, target):
-    """Return the first node with data == target, or None if not found.
+    """data == target인 첫 노드를 돌려주고 없으면 None을 돌려준다.
 
     시간: O(n), 공간: O(1).
     """
@@ -140,7 +140,7 @@ def find_middle(head):
 
 # === 끝에서 k번째 찾기 ===
 def kth_from_end(head, k):
-    """Return the k-th node from the end (1-indexed).
+    """뒤에서 k번째 노드를 돌려준다(1부터 센다).
 
     시간: O(n), 공간: O(1).
     """

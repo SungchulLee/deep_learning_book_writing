@@ -303,23 +303,23 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print(f"""
-ACHIEVED: {final_acc:.2f}% accuracy on CIFAR-10
-(State-of-the-art CNNs achieve ~99%)
+달성: CIFAR-10에서 정확도 {final_acc:.2f}%
+(최고 수준의 CNN은 약 99%에 이른다)
 
 보여 준 완전한 파이프라인:
 ✓ 일반화를 높이는 데이터 증강
 ✓ 알맞은 학습과 시험 분할
 ✓ 정칙화를 곁들인 깊은 구조
 ✓ 배움 빠르기 짜기
-✓ Model checkpointing (save best model)
-✓ Comprehensive evaluation (per-class, confusion matrix)
+✓ 모델 체크포인트(가장 좋은 모델을 저장한다)
+✓ 두루 갖춘 평가(클래스별, 혼동 행렬)
 ✓ 결과 시각화
 
 실서비스에서 살필 점:
 - 초매개변수 조율에는 늘 검증 집합을 쓰라
 - 정확도만이 아니라 여러 지표를 살피라
 - 체크포인트를 규칙적으로 저장하라
-- Analyze errors (confusion matrix)
+- 오류를 분석한다(혼동 행렬)
 - 최종 모델은 시험 집합에서 딱 한 번만 시험하라
 """)
 plt.show()

@@ -349,7 +349,7 @@ print("""
    ✓ 모델 점검 도구
 
 5. Sequential 모델은 접근, 자르기, 고치기가 쉽다
-   - Access by index: model[0]
+   - 인덱스로 접근: model[0]
    - Slice: model[:3]
    - 순회: for layer in model
 
@@ -368,10 +368,10 @@ print("""
 1. Sequential로 5~6층짜리 더 깊은 모델을 만들어 보라
 2. 층 사이에 배치 정규화를 넣어 보라
 3. 드롭아웃 비율을 달리하여 실험해 보라
-4. Build a "wide" network (more neurons per layer) vs "deep" (more layers)
+4. "넓은" 신경망(층마다 뉴런이 많다)과 "깊은" 신경망(층이 많다)을 만들어 견주어 보라
 5. 설정 목록으로 Sequential 모델을 만들어 내는 함수를 짜 보라
 6. 자르기로 중간 특징을 뽑아 보라
-7. Try different activation functions (LeakyReLU, ELU, etc.)
+7. 여러 활성화 함수(LeakyReLU, ELU 등)를 써 보라
 8. Sequential 모델의 앙상블을 만들어 보라
 9. 첫 층의 가중치를 시각화해 보라
 10. 층을 없애는 방식으로 모델 가지치기를 구현해 보라

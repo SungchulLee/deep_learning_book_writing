@@ -194,8 +194,8 @@ print("KEY POINTS FOR REGRESSION")
 print("="*80)
 print("""
 회귀의 특징:
-✓ Use MSELoss or L1Loss (not CrossEntropy!)
-✓ Single output neuron (no activation function)
+✓ MSELoss나 L1Loss를 쓴다(교차 엔트로피가 아니다!)
+✓ 출력 뉴런 하나(활성화 함수 없음)
 ✓ 입력 특징을 정규화하거나 표준화하라
 ✓ RMSE, MAE, R² 점수로 평가하라
 
@@ -206,7 +206,7 @@ print("""
 
 METRICS:
 - MSE: 평균 제곱 오차
-- RMSE: Root MSE (same units as target)
+- RMSE: MSE의 제곱근(목표와 단위가 같다)
 - MAE: 평균 절대 오차
 - R²: Coefficient of determination (0-1)
 

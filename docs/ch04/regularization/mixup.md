@@ -234,7 +234,7 @@ class ManifoldMixupModel(nn.Module):
     무작위 은닉층에서 다양체 믹스업을 지원하는 모델.
     
     참고: Verma 등, "Manifold Mixup: Better Representations by
-               Interpolating Hidden States" (ICML 2019)
+               은닉 상태 사이 메우기"(ICML 2019)
     """
     
     def __init__(self, input_dim, hidden_dims, output_dim):

@@ -64,21 +64,21 @@ print("\n" + "="*70)
 print("ACTIVATION FUNCTION GUIDE")
 print("="*70)
 print("""
-ReLU (Rectified Linear Unit)
+ReLU(정류 선형 유닛)
   Formula: f(x) = max(0, x)
   장점: 단순하고 빠르며 잘 작동한다
-  Cons: Dead neurons (neurons that output 0 for all inputs)
+  단점: 죽은 뉴런(모든 입력에 0을 내놓는 뉴런)
   쓰임: 은닉층의 기본 선택
 
 Sigmoid
   Formula: f(x) = 1 / (1 + e^(-x))
-  Pros: Smooth, bounded [0,1]
+  장점: 매끄럽고 [0,1]로 유계이다
   단점: 기울기 소실, 느린 수렴
   쓰임: 이진 분류 출력, LSTM의 게이트
 
 Tanh
   Formula: f(x) = (e^x - e^(-x)) / (e^x + e^(-x))
-  Pros: Zero-centered, bounded [-1,1]
+  장점: 0을 중심으로 하며 [-1,1]로 유계이다
   단점: 기울기 소실
   쓰임: 때때로 RNN에서, 은닉층에서는 시그모이드보다 낫다
 
@@ -88,7 +88,7 @@ LeakyReLU
   단점: 이득이 한결같지 않다
   쓰임: 죽은 ReLU 문제를 만났을 때
 
-ELU (Exponential Linear Unit)
+ELU(지수 선형 유닛)
   Formula: f(x) = x if x>0 else α(e^x - 1)
   장점: 매끄럽고 평균 활성값이 0에 더 가깝다
   단점: 계산 비용이 더 크다
@@ -101,10 +101,10 @@ Softplus
   쓰임: 실무에서는 드물고 이론적 관심 대상이다
 
 RECOMMENDATIONS:
-  - Hidden layers: ReLU (default), LeakyReLU if needed
+  - 은닉층: ReLU(기본), 필요하면 LeakyReLU
   - 이진 출력: 시그모이드
-  - Multi-class output: Softmax (via CrossEntropyLoss)
-  - Regression output: None (linear)
+  - 다중 클래스 출력: 소프트맥스(CrossEntropyLoss로)
+  - 회귀 출력: 없음(선형)
 """)
 
 print("\nEXERCISES:")
