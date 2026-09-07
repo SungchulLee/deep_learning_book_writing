@@ -1,69 +1,69 @@
-# Chapter 35: RL for Quantitative Finance
+# 35장: 계량 금융을 위한 힘 북돋우는 배움
 
-This chapter bridges the gap between reinforcement learning theory and practical quantitative finance applications. We explore how to formulate financial decision-making problems -- portfolio management, trading execution, market making, and risk management -- as Markov Decision Processes and solve them using modern deep RL algorithms. Financial markets present unique challenges for RL agents, including non-stationarity, regime changes, low signal-to-noise ratios, and the critical importance of transaction costs and risk constraints.
+이 장은 힘 북돋우는 배움의 이치와 계량 금융의 실제 쓰임 사이를 잇는다. 밑천 다루기, 거래 벌이기, 저자 만들기, 무릅씀 다루기 같은 금융 결정 문제를 마르코프 결정 과정으로 세우고 요즘 깊은 힘 북돋우는 배움 알고리즘으로 푸는 길을 살핀다. 금융 저자는 힘 북돋우는 배움 부림꾼에게 남다른 어려움을 안긴다. 흐름이 바뀌고, 판이 갈리며, 신호 대 잡음 비가 낮고, 거래 비용과 무릅씀 매임이 매우 종요롭다.
 
 ---
 
-## Environments
+## 둘레
 
-Design and implementation of Gymnasium-compatible financial trading environments for RL agent training.
+부림꾼을 익히기 위한, Gymnasium과 어울리는 금융 거래 둘레의 설계와 구현.
 
-- Environment Design -- Architecture and modular components for financial RL environments
-- [State Representations](environments/state.md) -- Designing effective state features including price-based, portfolio, and multi-timeframe inputs
-- [Action Spaces](environments/actions.md) -- Discrete vs. continuous action formulations with portfolio weight constraints
-- [Reward Engineering](environments/rewards.md) -- Designing reward functions aligned with financial objectives and risk-adjusted returns
-- [Market Simulation](environments/simulation.md) -- Realistic market simulators with transaction costs, slippage, and market impact
+- 둘레 설계 -- 금융 힘 북돋우는 배움 둘레의 얼개와 조각
+- [상태 나타내기](environments/state.md) -- 값 바탕, 밑천, 여러 때 잣대 들임을 아우르는 잘 듣는 상태 특징 설계
+- [움직임 공간](environments/actions.md) -- 밑천 무게 매임을 곁들인 따로 떨어진 움직임과 이어진 움직임 세우기
+- [보상 만들기](environments/rewards.md) -- 금융 목표와 무릅씀을 맞춘 돌아옴에 들어맞는 보상 함수 설계
+- [저자 흉내내기](environments/simulation.md) -- 거래 비용, 미끄러짐, 저자 흔듦을 담은 참에 가까운 저자 흉내내개
 
-## Portfolio Management
+## 밑천 다루기
 
-Formulating portfolio optimization as an RL problem, from single-asset to multi-asset allocation.
+밑천 나누기 가장 좋게 하기를 힘 북돋우는 배움 문제로 세우기. 자산 하나에서 여럿에 걸친 나누기까지.
 
-- Problem Formulation -- Mapping portfolio management to an MDP with state, action, and reward definitions
-- Multi-Asset Allocation -- Neural network architectures for multi-asset portfolio weight prediction
-- Rebalancing Strategies -- RL-based dynamic rebalancing balancing tracking error and transaction costs
-- Transaction Costs -- Modeling commissions, spread, slippage, and market impact in cost-aware policies
+- 문제 세우기 -- 밑천 다루기를 상태, 움직임, 보상의 뜻매김과 함께 마르코프 결정 과정으로 옮기기
+- 여러 자산 나누기 -- 여러 자산 밑천 무게를 미리 보는 신경망 얼개
+- 다시 맞추기 꾀 -- 좇음 어긋남과 거래 비용의 저울을 맞추는, 힘 북돋우는 배움 바탕의 움직이는 다시 맞추기
+- 거래 비용 -- 수수료, 사고파는 값 사이, 미끄러짐, 저자 흔듦을 그려 비용을 살피는 방침
 
-## Trading Strategies
+## 거래 꾀
 
-RL-based approaches to execution, market making, and systematic trading.
+벌이기, 저자 만들기, 짜임 있는 거래에 대한 힘 북돋우는 배움의 길.
 
-- Execution Algorithms -- Optimal trade execution minimizing market impact with RL-based TWAP/VWAP alternatives
-- Market Making -- RL-based quoting strategies with inventory risk and adverse selection management
-- Statistical Arbitrage -- Pairs trading with RL-based entry/exit signals and multi-pair coordination
-- Momentum Trading -- Trend-following and cross-sectional momentum with adaptive RL policies
+- 벌이기 알고리즘 -- 저자 흔듦을 가장 작게 하는 가장 좋은 거래 벌이기, TWAP/VWAP의 힘 북돋우는 배움 갈음
+- 저자 만들기 -- 재고 무릅씀과 불리한 고름을 다루는, 힘 북돋우는 배움 바탕의 값 부르기 꾀
+- 통계 차익 거래 -- 힘 북돋우는 배움 바탕의 들고 나는 신호를 쓰는 짝 거래와 여러 짝 발맞추기
+- 밀기 거래 -- 흐름 좇기와 가로지르는 밀기를 맞춰 가는 방침으로 다루기
 
-## Risk Management
+## 무릅씀 다루기
 
-Incorporating risk awareness into RL objectives through reward design and constraints.
+보상 설계와 매임으로 무릅씀 살핌을 힘 북돋우는 배움 목표에 넣기.
 
-- [Risk-Adjusted Rewards](risk/rewards.md) -- Sharpe ratio, Sortino ratio, and differential Sharpe ratio as RL reward functions
-- Drawdown Control -- Drawdown-aware policies with circuit breakers and position scaling
-- [VaR Constraints](risk/var_constraints.md) -- Value-at-Risk constraints via Lagrangian relaxation in policy optimization
-- CVaR Optimization -- Conditional Value-at-Risk for tail-risk management using distributional RL
+- [무릅씀을 맞춘 보상](risk/rewards.md) -- 샤프 비, 소르티노 비, 미분 샤프 비를 힘 북돋우는 배움 보상 함수로 쓰기
+- 내림폭 다스리기 -- 회로 차단기와 자리 크기 잣대기를 곁들인, 내림폭을 살피는 방침
+- [무릅씀 값 매임](risk/var_constraints.md) -- 라그랑주 느슨히 하기로 방침 가장 좋게 하기에 넣는 무릅씀 값 매임
+- CVaR 가장 좋게 하기 -- 분포 힘 북돋우는 배움으로 다루는 꼬리 무릅씀
 
-## Challenges
+## 어려움
 
-Addressing the unique difficulties of applying RL to financial markets.
+금융 저자에 힘 북돋우는 배움을 쓸 때의 남다른 어려움 다루기.
 
-- Non-Stationarity -- Adaptive RL methods for handling distribution shift and evolving market dynamics
-- [Regime Changes](challenges/regimes.md) -- Detecting market regimes and building regime-conditioned policies
-- Low Signal-to-Noise -- Techniques for extracting weak signals from noisy financial data
-- Overfitting -- Preventing overfitting with cross-validation, regularization, and data-mined pattern detection
+- 흐름 바뀜 -- 분포 옮겨감과 바뀌는 저자 움직임을 다루는, 맞춰 가는 힘 북돋우는 배움 방법
+- [판 바뀜](challenges/regimes.md) -- 저자 판을 알아내고 판에 매인 방침 세우기
+- 낮은 신호 대 잡음 -- 잡음 많은 금융 자료에서 약한 신호를 뽑아내는 재주
+- 지나치게 맞추기 -- 엇갈려 살피기, 정칙화, 자료에서 캐낸 결 알아내기로 지나치게 맞추기 막기
 
-## Backtesting
+## 되짚어 시험하기
 
-Rigorous evaluation of RL trading strategies on historical data.
+지난 자료로 힘 북돋우는 배움 거래 꾀를 엄밀히 따지기.
 
-- Backtesting Framework -- Event-driven and vectorized backtesting engines with realistic simulation
-- Walk-Forward Analysis -- Expanding and rolling window procedures for time-series strategy evaluation
-- Performance Metrics -- Comprehensive return, risk, tail behavior, and efficiency metrics
-- Statistical Significance -- Bootstrap hypothesis tests and multiple testing corrections for strategy selection
+- 되짚어 시험하기 틀 -- 참에 가까운 흉내내기를 곁들인 사건 이끄는 엔진과 벡터 엔진
+- 앞으로 걸어가며 살피기 -- 때 열 꾀를 따지기 위한 넓혀 가는 창과 굴러가는 창 절차
+- 됨됨이 재기 -- 돌아옴, 무릅씀, 꼬리 거동, 효율을 두루 재기
+- 통계로 뜻있음 -- 꾀를 고르기 위한 부트스트랩 가설 검정과 여러 번 검정 바로잡기
 
-## Production Deployment
+## 서비스에 올리기
 
-Taking RL strategies from backtesting to live trading.
+되짚어 시험하기에서 살아 있는 거래로 힘 북돋우는 배움 꾀를 옮기기.
 
-- Live Trading Systems -- Production-grade systems with real-time data pipelines, inference, and order management
-- Paper Trading -- Validating strategies with real-time data in simulated execution
-- Monitoring -- Real-time alerting, dashboards, and observability for live trading systems
-- Risk Controls -- Pre-trade, real-time, and post-trade risk checks with kill switches and position limits
+- 살아 있는 거래 시스템 -- 실시간 자료 흐름, 미루어 보기, 주문 다루기를 갖춘 서비스 품질의 시스템
+- 종이 거래 -- 실시간 자료로 흉내 낸 벌이기에서 꾀 살펴보기
+- 지켜보기 -- 살아 있는 거래 시스템을 위한 실시간 미리 알림, 계기판, 들여다보기
+- 무릅씀 다스리개 -- 죽임 스위치와 자리 위끝을 갖춘 거래 앞, 실시간, 거래 뒤 무릅씀 살피기
