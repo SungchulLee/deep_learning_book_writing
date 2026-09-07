@@ -56,7 +56,7 @@ if __name__ == "__main__":
 
 ## 논의
 
-The LSTM introduces three gates -- forget, input, and output -- that regulate information flow through the cell state. The forget gate determines what information to discard from the previous cell state. The input gate and candidate values determine what new information to store. The cell state update $C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t$ uses element-wise multiplication, allowing gradients to flow directly through the cell state without repeated matrix multiplication by the recurrent weight matrix.
+LSTM은 문 셋(잊음, 들임, 날임)을 두어 칸 상태를 지나는 소식의 흐름을 다스린다. 잊음 문은 앞선 칸 상태에서 무엇을 버릴지 정한다. 들임 문과 후보 값은 어떤 새 소식을 담을지 정한다. 칸 상태 고침 $C_t = f_t \odot C_{t-1} + i_t \odot \tilde{C}_t$은 원소마다 곱하기를 쓰므로, 되도는 짐 행렬을 거듭 곱하지 않고도 기울기가 칸 상태를 따라 곧바로 흐른다.
 
 칸 상태를 지나는 이 곧은 기울기 통로가 핵심 얼개 새로움이다. 잊음 문이 1에 가깝고 들임 문이 0에 가까우면 칸 상태가 거의 그대로 지켜지고 기울기가 거의 줄지 않고 뒤로 흐른다. 그물은 여러 때 걸음에 걸쳐 남아야 할 앎에 대해 잊음 문을 열어 두는 법을 배워 기울기 사라짐을 에도는 "기울기 고속도로"를 만든다. 잊음 문의 치우침을 양수(보기로 1.0)로 첫자리매김하면 모델이 기본으로 기억하도록 북돋운다.
 
@@ -70,15 +70,15 @@ LSTM은 말 나타내기 잣대에서 맨 되돌이 그물보다 헷갈림도가
 ??? success "연습문제 1 풀이"
     LSTM에는 문이 4개 있고, 문마다 들임-숨은 층 무게와 숨은 층-숨은 층 무게에 치우침이 있다:
     
-    - Input-to-hidden for all gates: $4 \times d \times h = 4 \times 256 \times 512 = 524{,}288$
-    - Hidden-to-hidden for all gates: $4 \times h \times h = 4 \times 512 \times 512 = 1{,}048{,}576$
-    - Biases for all gates: $4 \times h = 2{,}048$
+    - 모든 문의 들임에서 숨은 켜로: $4 \times d \times h = 4 \times 256 \times 512 = 524{,}288$
+    - 모든 문의 숨은 켜에서 숨은 켜로: $4 \times h \times h = 4 \times 512 \times 512 = 1{,}048{,}576$
+    - 모든 문의 치우침: $4 \times h = 2{,}048$
     
     LSTM 모두: 매개변수 $1{,}574{,}912$개.
     
     A vanilla RNN: $(d \times h) + (h \times h) + 2h = 131{,}072 + 262{,}144 + 1{,}024 = 394{,}240$.
     
-    Ratio: approximately $4\times$, matching the 4 gate structure.
+    견줌은 대략 $4\times$이며 문이 넷인 얼개와 맞는다.
 
 ---
 
@@ -86,7 +86,7 @@ LSTM은 말 나타내기 잣대에서 맨 되돌이 그물보다 헷갈림도가
 잊음 문 $f_t$이 늘 0이고 들임 문 $i_t$이 늘 1일 때 어떤 일이 일어나는지 설명하여라. 이는 맨 되돌이 그물과 어떻게 다른가?
 
 ??? success "연습문제 2 풀이"
-    With $f_t = 0$ and $i_t = 1$: $C_t = 0 \cdot C_{t-1} + 1 \cdot \tilde{C}_t = \tilde{C}_t$. The cell state is completely overwritten at every step, discarding all previous memory. The gradient advantage of the cell state is lost because $\partial C_t / \partial C_{t-1} = 0$, and the model behaves like a vanilla RNN with an additional output gate modulating the hidden state. This reintroduces the vanishing gradient problem.
+    $f_t = 0$이고 $i_t = 1$이면 $C_t = 0 \cdot C_{t-1} + 1 \cdot \tilde{C}_t = \tilde{C}_t$이다. 칸 상태가 걸음마다 통째로 덮어써져 앞선 기억이 모두 사라진다. $\partial C_t / \partial C_{t-1} = 0$이므로 칸 상태가 주던 기울기 이점이 없어지고, 모델은 숨은 상태를 다스리는 날임 문이 하나 더 붙은 맨 되도는 신경망처럼 움직인다. 그러면 기울기가 사라지는 탈이 되살아난다.
 
 ---
 
@@ -113,4 +113,4 @@ LSTM은 말 나타내기 잣대에서 맨 되돌이 그물보다 헷갈림도가
             return self.fc(output), hidden
     ```
     
-    Weight tying requires `embedding_dim == hidden_dim` because the embedding matrix has shape $(V, d_e)$ and the output projection has shape $(V, d_h)$. For sharing, $d_e = d_h$. This reduces parameters by $V \times d$ and acts as a regularizer.
+    짐 묶기는 `embedding_dim == hidden_dim`이어야 한다. 담기 행렬의 꼴이 $(V, d_e)$이고 날임 되비춤의 꼴이 $(V, d_h)$이기 때문이다. 나누어 쓰려면 $d_e = d_h$이어야 한다. 이러면 매개변수가 $V \times d$만큼 줄고 다독임 노릇도 한다.

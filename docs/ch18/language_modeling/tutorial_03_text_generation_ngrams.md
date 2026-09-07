@@ -1,6 +1,6 @@
 # n-그램으로 글 만들어 내기
 
-Text generation using n-gram language models demonstrates the practical application of learned probability distributions. By sampling from the conditional distribution $P(w \mid \text{context})$ at each step, we can generate novel text that reflects the statistical patterns learned from the training corpus. Different sampling strategies -- greedy, random, temperature, and top-k -- offer various trade-offs between diversity and coherence.
+n낱말 말 모델로 글을 만들어 보면 배운 확률 분포를 참으로 어떻게 쓰는지 알 수 있다. 걸음마다 조건부 분포 $P(w \mid \text{context})$에서 뽑으면 익힘 뭉치에서 배운 통계 무늬를 담은 새 글을 만들 수 있다. 욕심쟁이, 마구잡이, 온도, 위 k 같은 여러 표집 전략은 여러 갈래임과 조리 사이에서 저마다 다른 맞바꿈을 준다.
 
 ## 코드
 
@@ -136,14 +136,14 @@ if __name__ == "__main__":
 
 욕심쟁이 풀기는 늘 가장 그럴듯한 다음 낱말을 골라 늘 같은 내놓음을 낸다. 단순하고 빠르지만 모델이 확률 높은 고리에 갇혀 되풀이되는 글을 내기 쉽다. 보기로 여러 맥락 뒤에서 "the"가 늘 가장 그럴듯하다면 욕심쟁이 풀기는 "the"로 뒤덮인 차례를 낸다. 또 늘 같다는 성질 때문에, 한 걸음에서 덜 그럴듯한 낱말을 골라야 뒤에 더 좋은 낱말이 나오는 전체적으로 가장 좋은 차례를 놓칠 수 있다.
 
-Temperature sampling modifies the probability distribution before sampling by raising each probability to the power $1/T$ and renormalizing. When $T < 1$, the distribution becomes sharper (more peaked around the mode), producing more conservative and repetitive text. When $T > 1$, the distribution flattens, giving lower-probability words more chance of selection and producing more creative but potentially incoherent text. At the extreme, $T \to 0$ converges to greedy decoding, while $T \to \infty$ converges to uniform random sampling over the vocabulary.
+온도 표집은 뽑기 앞에서 확률마다 $1/T$ 제곱을 하고 다시 잣대를 맞추어 분포를 바꾼다. $T < 1$이면 분포가 뾰족해져(최빈값 둘레로 몰려) 더 얌전하고 되풀이되는 글이 나온다. $T > 1$이면 분포가 평평해져 확률이 낮은 낱말도 더 뽑히므로 더 새롭되 조리가 없을 수도 있는 글이 나온다. 끝으로 가면 $T \to 0$은 욕심쟁이 풀기로, $T \to \infty$은 낱말 사전 위의 고른 마구잡이 표집으로 모여든다.
 
 상위 k 표집은 후보를 가장 그럴듯한 낱말 $k$개로 제한한 뒤 그 잘라 낸 분포에서 뽑는다. 이러면 조리를 무너뜨릴 만큼 그럴듯하지 않은 낱말이 나오는 것을 막으면서 확률 높은 자리 안에서 여러 갈래임은 지킨다. n-그램 만들개의 핵심 한계는 먼 거리의 조리를 지키지 못한다는 것이다. 곧 바이그램 모델은 앞 낱말 하나만 "기억"하므로 만든 글이 금세 주제에서 벗어난다. 이 때문에 더 긴 맥락을 담는 숨은 상태를 지니는 신경 말 모델로 나아가게 된다.
 
 ## 연습문제
 
 **연습문제 1.**
-Given a distribution $P = \{0.5, 0.3, 0.1, 0.1\}$ over words $\{A, B, C, D\}$, compute the temperature-adjusted distribution for $T = 0.5$ and $T = 2.0$. Verify that they sum to 1.
+낱말 $\{A, B, C, D\}$에 대한 분포 $P = \{0.5, 0.3, 0.1, 0.1\}$이 주어졌을 때 $T = 0.5$과 $T = 2.0$의 온도로 고친 분포를 셈하여라. 합이 1이 되는지 따져 보아라.
 
 ??? success "연습문제 1 풀이"
     For $T = 0.5$: $P'(w) \propto P(w)^{1/0.5} = P(w)^2$

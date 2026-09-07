@@ -79,7 +79,7 @@ $$q(k) = (1 - \epsilon) \cdot \mathbf{1}[k = y] + \frac{\epsilon}{|\mathcal{V}|}
 | 나란함 | 차례차례 | 온전히 나란히 |
 | 먼 거리 얽힘 | 기울기 탈 | 곧바른 눈길 |
 | 익히기 빠르기 | 느림 | 빠름 |
-| Memory | O(1) per step | O(n^2) attention |
+| 기억 | 걸음마다 O(1) | O(n^2) 눈길 |
 
 ## 참고 문헌
 
@@ -108,7 +108,7 @@ $$q(k) = (1 - \epsilon) \cdot \mathbf{1}[k = y] + \frac{\epsilon}{|\mathcal{V}|}
 BLEU 점수를 정의하여라. 기계 옮김 잣대로서 알려진 한계는 무엇인가?
 
 ??? success "연습문제 3 풀이"
-    BLEU computes modified $n$-gram precision (clipped to reference counts) for $n = 1, \ldots, N$ and combines them geometrically with a brevity penalty: $\text{BLEU} = BP \cdot \exp\left(\sum_{n=1}^N w_n \log p_n\right)$. **Limitations**: (1) only measures precision, ignoring recall (a translation can score high by being very short), (2) treats all $n$-grams equally regardless of semantic importance, (3) does not handle synonyms or paraphrases, (4) correlates poorly with human judgments at the sentence level, and (5) the brevity penalty is a crude proxy for adequacy.
+    BLEU은 $n = 1, \ldots, N$에 대해 고친 $n$낱말 정밀도(본보기 세는 수로 잘라 낸다)를 셈하고 이를 짧음 벌과 함께 기하로 아우른다. $\text{BLEU} = BP \cdot \exp\left(\sum_{n=1}^N w_n \log p_n\right)$이다. **한계**는 이렇다. (1) 정밀도만 재고 재현율을 버린다(아주 짧게 옮기면 점수가 높아질 수 있다). (2) 뜻의 종요로움과 상관없이 모든 $n$낱말을 똑같이 다룬다. (3) 비슷한 말이나 바꿔 쓴 말을 다루지 못한다. (4) 월 수준에서는 사람의 판단과 잘 맞지 않는다. (5) 짧음 벌은 알맞음을 재는 거친 대리 값일 뿐이다.
 
 ---
 

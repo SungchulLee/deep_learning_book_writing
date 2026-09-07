@@ -129,10 +129,10 @@ if __name__ == "__main__":
 
 ??? success "연습문제 1 풀이"
 
-    - Embedding layer: $V \times d = 10{,}000 \times 128 = 1{,}280{,}000$
-    - Hidden layer weights: $(n \times d) \times h = (4 \times 128) \times 256 = 512 \times 256 = 131{,}072$
+    - 담기 켜: $V \times d = 10{,}000 \times 128 = 1{,}280{,}000$
+    - 숨은 켜 짐: $(n \times d) \times h = (4 \times 128) \times 256 = 512 \times 256 = 131{,}072$
     - 숨은 층 치우침: $h = 256$
-    - Output layer weights: $h \times V = 256 \times 10{,}000 = 2{,}560{,}000$
+    - 날임 켜 짐: $h \times V = 256 \times 10{,}000 = 2{,}560{,}000$
     - 내놓는 층 치우침: $V = 10{,}000$
     
     모두: $1{,}280{,}000 + 131{,}072 + 256 + 2{,}560{,}000 + 10{,}000 = 3{,}981{,}328$개의 매개변수.

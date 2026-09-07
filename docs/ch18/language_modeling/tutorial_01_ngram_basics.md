@@ -210,7 +210,7 @@ n-그램 모델의 근본 맞바꿈은 나타내는 힘과 자료의 성김 사�
 ## 연습문제
 
 **연습문제 1.**
-Given the corpus `["the cat sat", "the dog sat", "a cat ran"]`, compute by hand the bigram probability $P(\text{sat} \mid \text{cat})$ and the sentence log probability (base 2) for the sentence "the cat sat" under a bigram model.
+뭉치 `["the cat sat", "the dog sat", "a cat ran"]`이 주어졌을 때 두낱말 확률 $P(\text{sat} \mid \text{cat})$과, 두낱말 모델에서 월 "the cat sat"의 로그 확률(밑 2)을 손으로 셈하여라.
 
 ??? success "연습문제 1 풀이"
     먼저 경계 토막을 더한 뒤 바이그램을 센다:
@@ -221,7 +221,7 @@ Given the corpus `["the cat sat", "the dog sat", "a cat ran"]`, compute by hand 
     
     $P(\text{sat} \mid \text{cat}) = \text{count}(\text{cat}, \text{sat}) / \text{count}(\text{cat}) = 1 / 2 = 0.5$
     
-    For "the cat sat": $P(\text{the} \mid \langle s \rangle) = 2/3$, $P(\text{cat} \mid \text{the}) = 1/2$, $P(\text{sat} \mid \text{cat}) = 1/2$, $P(\langle /s \rangle \mid \text{sat}) = 2/2 = 1$.
+    "the cat sat"에서는 $P(\text{the} \mid \langle s \rangle) = 2/3$, $P(\text{cat} \mid \text{the}) = 1/2$, $P(\text{sat} \mid \text{cat}) = 1/2$, $P(\langle /s \rangle \mid \text{sat}) = 2/2 = 1$이다.
     
     $\log_2 P = \log_2(2/3) + \log_2(1/2) + \log_2(1/2) + \log_2(1) \approx -0.585 - 1.0 - 1.0 + 0 = -2.585$
 
@@ -231,9 +231,9 @@ Given the corpus `["the cat sat", "the dog sat", "a cat ran"]`, compute by hand 
 낱말이 저마다 낱말 곳간에 있을 수 있는데도 트라이그램 모델이 "the elephant danced"에 확률 0을 주는 까닭을 밝혀라. 자료의 성김 문제는 $n$에 따라 어떻게 커지는가?
 
 ??? success "연습문제 2 풀이"
-    The trigram model computes $P(w_i \mid w_{i-2}, w_{i-1})$. Even if "elephant" and "danced" appear in the vocabulary individually, the specific trigram (`<s>`, `<s>`, the), (the, elephant, ...) etc., may never have been observed. Since the MLE estimate is count-based, any unobserved trigram gets probability zero.
+    세낱말 모델은 $P(w_i \mid w_{i-2}, w_{i-1})$을 셈한다. "elephant"과 "danced"이 낱말 사전에 따로 있더라도 (`<s>`, `<s>`, the), (the, elephant, ...) 같은 그 세낱말은 한 번도 안 나왔을 수 있다. 최대가능도 어림은 세는 수에 바탕을 두므로 나오지 않은 세낱말은 확률이 0이 된다.
     
-    Data sparsity scales exponentially with $n$. For a vocabulary of size $V$, there are $V^n$ possible n-grams. With $V = 10{,}000$: unigrams = $10^4$, bigrams = $10^8$, trigrams = $10^{12}$. Most of these will never appear in any realistic training corpus, making higher-order n-grams increasingly sparse. This is why practical n-gram models rarely go beyond $n = 5$, and even trigram models require smoothing.
+    자료가 성겨지는 정도는 $n$에 따라 지수로 는다. 크기가 $V$인 낱말 사전에는 n낱말이 $V^n$가지 있을 수 있다. $V = 10{,}000$이면 한낱말은 $10^4$, 두낱말은 $10^8$, 세낱말은 $10^{12}$가지다. 이 가운데 대부분은 어떤 참된 익힘 뭉치에도 나오지 않으므로 차수가 높을수록 더 성겨진다. 그래서 참으로 쓰는 n낱말 모델은 $n = 5$을 넘는 일이 드물고, 세낱말 모델조차 매끄럽게 하기가 든다.
 
 ---
 

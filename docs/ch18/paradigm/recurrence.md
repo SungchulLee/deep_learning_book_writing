@@ -42,9 +42,9 @@ $$
 되돌이 관계식 $T(n) = aT(n/b) + f(n)$에 대해:
 
 - **켜 0**(뿌리): 크기 $n$인 문제 하나가 $f(n)$을 보탠다.
-- **Level 1**: $a$ problems of size $n/b$ each contribute $f(n/b)$, total $a \cdot f(n/b)$.
-- **Level $k$**: $a^k$ problems of size $n/b^k$ each contribute $f(n/b^k)$, total $a^k \cdot f(n/b^k)$.
-- **Depth**: the recursion bottoms out when $n/b^k \le n_0$, giving depth $k = \log_b n$ (ignoring constant $n_0$).
+- **켜 1**: 크기 $n/b$인 문제 $a$개가 저마다 $f(n/b)$을 보태니 모두 $a \cdot f(n/b)$이다.
+- **켜 $k$**: 크기 $n/b^k$인 문제 $a^k$개가 저마다 $f(n/b^k)$을 보태니 모두 $a^k \cdot f(n/b^k)$이다.
+- **깊이**: $n/b^k \le n_0$이면 되부름이 바닥에 닿으므로 깊이는 $k = \log_b n$이다(상수 $n_0$은 셈에서 뺀다).
 
 전체 값은 다음과 같다
 
@@ -63,7 +63,7 @@ $T(n) = 2T(n/2) + cn$에 대해:
 | $2$ | $4$ | $n/4$ | $cn/4$ | $cn$ |
 | $k$ | $2^k$ | $n/2^k$ | $cn/2^k$ | $cn$ |
 
-Every level costs $cn$, and there are $\log_2 n$ levels, so
+켜마다 값이 $cn$이고 켜가 $\log_2 n$개이므로
 
 $$
 T(n) = cn \cdot \log_2 n = \Theta(n \log n)
@@ -78,9 +78,9 @@ $$
 
 ### 보기: 어울러 정렬이 O(n log n)임을 증명하기
 
-**Claim.** $T(n) \le cn \log n$ for some constant $c > 0$ and all $n \ge 2$.
+**주장.** 어떤 상수 $c > 0$과 모든 $n \ge 2$에 대해 $T(n) \le cn \log n$이다.
 
-**Inductive step.** Assume $T(k) \le ck \log k$ for all $k < n$. Then
+**미루어 나아가는 걸음.** 모든 $k < n$에 대해 $T(k) \le ck \log k$이라 하자. 그러면
 
 $$
 T(n) = 2T\!\left(\frac{n}{2}\right) + \Theta(n) \le 2 \cdot c \cdot \frac{n}{2} \cdot \log \frac{n}{2} + dn
@@ -93,7 +93,7 @@ $$
 provided $c \ge d$. $\square$
 
 !!! warning "대입에서 흔히 빠지는 함정"
-    A frequent mistake is guessing $T(n) \le cn$ for merge sort. The inductive step yields $T(n) \le cn + dn$, which does not prove $T(n) \le cn$ because the extra $dn$ term cannot be absorbed. The guess must match the asymptotic form exactly, including logarithmic factors.
+    합치기 줄 세우기에서 $T(n) \le cn$이라고 어림잡는 것이 흔한 잘못이다. 미루어 나아가는 걸음에서 $T(n) \le cn + dn$이 나오는데, 덧붙은 $dn$ 마디를 삼킬 수 없으므로 $T(n) \le cn$을 밝히지 못한다. 어림잡을 때는 로그 값까지 넣어 점근 꼴을 딱 맞게 잡아야 한다.
 
 ## 마스터 정리
 
@@ -103,23 +103,23 @@ $$
 T(n) = aT\!\left(\frac{n}{b}\right) + f(n)
 $$
 
-where $a \ge 1$ and $b > 1$. The key quantity is the **critical exponent** $\log_b a$, which represents the growth rate of the number of subproblems.
+여기서 $a \ge 1$이고 $b > 1$이다. 고갱이 값은 **고비 지수** $\log_b a$이며 잔문제 수가 늘어나는 빠르기를 나타낸다.
 
 ### 세 가지 경우
 
-**Case 1.** If $f(n) = O(n^{\log_b a - \epsilon})$ for some $\epsilon > 0$, then the leaf work dominates:
+**첫째 갈래.** 어떤 $\epsilon > 0$에 대해 $f(n) = O(n^{\log_b a - \epsilon})$이면 잎에서의 일감이 가장 크다.
 
 $$
 T(n) = \Theta(n^{\log_b a})
 $$
 
-**Case 2.** If $f(n) = \Theta(n^{\log_b a})$, then work is evenly distributed across levels:
+**둘째 갈래.** $f(n) = \Theta(n^{\log_b a})$이면 일감이 켜마다 고르게 퍼진다.
 
 $$
 T(n) = \Theta(n^{\log_b a} \log n)
 $$
 
-**Case 3.** If $f(n) = \Omega(n^{\log_b a + \epsilon})$ for some $\epsilon > 0$, and $af(n/b) \le cf(n)$ for some $c < 1$ (regularity condition), then the root work dominates:
+**셋째 갈래.** 어떤 $\epsilon > 0$에 대해 $f(n) = \Omega(n^{\log_b a + \epsilon})$이고 어떤 $c < 1$에 대해 $af(n/b) \le cf(n)$이면(반듯함 조건) 뿌리에서의 일감이 가장 크다.
 
 $$
 T(n) = \Theta(f(n))
@@ -127,16 +127,16 @@ $$
 
 ### 마스터 정리 쓰기
 
-| Algorithm | Recurrence | $a$ | $b$ | $\log_b a$ | Case | $T(n)$ |
+| 알고리즘 | 되돌이 식 | $a$ | $b$ | $\log_b a$ | 갈래 | $T(n)$ |
 |---|---|---|---|---|---|---|
-| Binary search | $T(n) = T(n/2) + O(1)$ | $1$ | $2$ | $0$ | 2 | $\Theta(\log n)$ |
+| 이분 찾기 | $T(n) = T(n/2) + O(1)$ | $1$ | $2$ | $0$ | 2 | $\Theta(\log n)$ |
 | Merge sort | $T(n) = 2T(n/2) + O(n)$ | $2$ | $2$ | $1$ | 2 | $\Theta(n \log n)$ |
 | Karatsuba | $T(n) = 3T(n/2) + O(n)$ | $3$ | $2$ | $1.585$ | 1 | $\Theta(n^{1.585})$ |
 | Strassen | $T(n) = 7T(n/2) + O(n^2)$ | $7$ | $2$ | $2.807$ | 1 | $\Theta(n^{2.807})$ |
 
 ### 마스터 정리를 쓸 수 없을 때
 
-The Master Theorem requires $f(n)$ to be **polynomially smaller or larger** than $n^{\log_b a}$. It does not cover cases where $f(n)$ differs by a logarithmic factor. For example, the recurrence
+으뜸 정리는 $f(n)$이 $n^{\log_b a}$보다 **다항식만큼 작거나 커야** 한다. $f(n)$이 로그 값만큼만 다른 자리는 다루지 못한다. 보기로 다음 되돌이 식이 그렇다.
 
 $$
 T(n) = 2T\!\left(\frac{n}{2}\right) + n \log n
@@ -148,11 +148,11 @@ $$
 
 ### 바닥과 천장
 
-Real algorithms split arrays at $\lfloor n/2 \rfloor$ and $\lceil n/2 \rceil$, not exactly $n/2$. The standard approach is to solve the recurrence assuming exact division and then verify that floors and ceilings do not change the asymptotic result. For the Master Theorem, this assumption is provably safe.
+참 알고리즘은 배열을 딱 $n/2$이 아니라 $\lfloor n/2 \rfloor$과 $\lceil n/2 \rceil$에서 쪼갠다. 흔히 딱 나뉜다고 보고 되돌이 식을 푼 뒤, 내림과 올림이 점근 결과를 바꾸지 않음을 따져 본다. 으뜸 정리에서는 이 가정이 안전함을 밝힐 수 있다.
 
 ### 바탕 경우의 상수 인자
 
-The base case $T(n_0) = \Theta(1)$ absorbs implementation-dependent constants. Changing the base case threshold (e.g., switching to insertion sort for $n \le 32$) does not alter the asymptotic solution but can significantly affect practical performance.
+밑 자리 $T(n_0) = \Theta(1)$이 짜보기에 따라 달라지는 상수를 삼킨다. 밑 자리 문턱을 바꾸어도($n \le 32$에서 끼워넣기 줄 세우기로 갈아타는 따위) 점근 풀이는 그대로지만 참으로 도는 빠르기는 크게 달라질 수 있다.
 
 ## 요약
 
@@ -160,7 +160,7 @@ The base case $T(n_0) = \Theta(1)$ absorbs implementation-dependent constants. C
 
 1. **되돌이 나무**: 켜마다의 값을 그려 보고 모든 켜에 걸쳐 더한다.
 2. **대입**: 답을 어림잡고 귀납법으로 증명한다.
-3. **Master Theorem**: compare $f(n)$ to $n^{\log_b a}$ and read off the answer.
+3. **으뜸 정리**: $f(n)$을 $n^{\log_b a}$과 견주어 답을 읽어 낸다.
 
 마스터 정리는 쓸 수 있을 때 가장 빠르지만, 되돌이 나무 방법은 마스터 정리가 주지 못하는 직관을 주고, 대입 방법은 마스터 정리가 놓치는 경우를 다룬다.
 

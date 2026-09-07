@@ -10,7 +10,7 @@
 
 ### 쪼개기 전략
 
-The most common approach splits the input in half, producing two subproblems of size $\lfloor n/2 \rfloor$ and $\lceil n/2 \rceil$. This balanced split is the default for array-based problems such as merge sort and binary search.
+가장 흔한 길은 들임을 반으로 쪼개어 크기가 $\lfloor n/2 \rfloor$과 $\lceil n/2 \rceil$인 잔문제 둘을 만드는 것이다. 이렇게 고르게 쪼개는 것이 합치기 줄 세우기나 이분 찾기 같은 배열 문제의 기본이다.
 
 더 널리 보면 나누기 단계는 크기 $n/b$인 작은 문제 $a$개를 낳을 수 있다:
 
@@ -19,13 +19,13 @@ The most common approach splits the input in half, producing two subproblems of 
 - **여러 갈래로 쪼개기**($a > 2$): 카라추바는 둘로 쪼갠 뒤($b = 2$) 작은 문제 $a = 3$개를 쓴다.
 
 !!! warning "고르지 않은 쪼개기는 성능을 해친다"
-    If the divide step produces subproblems of sizes $n - 1$ and $1$ (as in naive quicksort on a sorted array), the recursion depth becomes $O(n)$ and the total work is often $O(n^2)$. Balanced splits keep the recursion depth at $O(\log n)$.
+    나누는 걸음이 크기 $n - 1$과 $1$인 잔문제를 만들면(줄 세운 배열에 손쉬운 빠른 줄 세우기를 쓸 때처럼) 되부름 깊이가 $O(n)$이 되고 온 일감이 흔히 $O(n^2)$이 된다. 고르게 쪼개면 되부름 깊이가 $O(\log n)$으로 지켜진다.
 
 ### 나누는 값
 
 나누기 단계 자체는 $D(n)$의 시간이 든다. 여러 알고리즘에서 나누기는 아무것도 아니다:
 
-- **Merge sort**: compute $\text{mid} = \lfloor (l + r) / 2 \rfloor$ in $O(1)$.
+- **합치기 줄 세우기**: $\text{mid} = \lfloor (l + r) / 2 \rfloor$을 $O(1)$에 셈한다.
 - **이분 찾기**: 가운뎃점을 $O(1)$에 셈한다.
 - **가장 가까운 짝**: 점을 자리표로 정렬하거나 가운뎃값에서 쪼갠다. $O(n)$이 들고 미리 정렬해 두었으면 $O(1)$이다.
 
@@ -41,7 +41,7 @@ The most common approach splits the input in half, producing two subproblems of 
 
 | 알고리즘 | 바탕 경우 | 곧바른 풀이 |
 |---|---|---|
-| Merge sort | $n \le 1$ | A single element is already sorted |
+| 합치기 줄 세우기 | $n \le 1$ | 원소 하나는 이미 줄 세워져 있다 |
 | 이분 찾기 | $l > r$ | 찾는 값이 배열에 없다 |
 | 카라추바 | $n = 1$ | 한 자리 곱셈 |
 | 슈트라센 | $n = 1$ | 홑값 곱셈 |

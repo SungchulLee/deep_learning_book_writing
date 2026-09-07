@@ -58,7 +58,7 @@ if __name__ == "__main__":
 
 ## 논의
 
-The RNN language model processes sequences one token at a time, updating a hidden state vector at each step according to $h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b_h)$. This hidden state serves as a compressed representation of the entire sequence history, theoretically allowing the model to condition its predictions on arbitrarily long contexts. Unlike the feedforward model, which sees only a fixed window, the RNN can in principle learn that a word at position 100 depends on a word at position 1.
+되도는 신경망 말 모델은 이음을 토막 하나씩 다루며 걸음마다 $h_t = \tanh(W_{hh} h_{t-1} + W_{xh} x_t + b_h)$에 따라 숨은 상태 벡터를 고친다. 이 숨은 상태는 지나온 이음 전체를 눌러 담은 나타냄이라, 이론상 모델이 아무리 긴 앞뒤 흐름에도 기대어 미루어 볼 수 있게 한다. 붙박인 창만 보는 앞먹임 모델과 달리 되도는 신경망은 원칙상 100번째 자리의 낱말이 1번째 자리의 낱말에 매여 있음을 배울 수 있다.
 
 실전에서 맨 되돌이 그물은 기울기 사라짐 때문에 먼 거리 얽힘에 약하다. 때를 거슬러 뒤로 퍼뜨리는 동안 걸음마다 기울기에 되돌이 무게 행렬이 곱해진다. 이 행렬의 스펙트럼 노름이 1보다 작으면 기울기가 차례 길이에 따라 지수로 줄어들어 먼 거리 무늬를 배울 수 없게 된다. 기울기 자르기는 기울기 터짐을 다루지만, 기울기 사라짐은 LSTM이나 GRU 칸 같은 얼개의 바뀜이 있어야 한다.
 
@@ -72,8 +72,8 @@ The RNN language model processes sequences one token at a time, updating a hidde
 ??? success "연습문제 1 풀이"
     되돌이 그물의 되돌이 층에는 다음이 있다:
     
-    - Input-to-hidden weights $W_{xh}$: $d \times h = 128 \times 256 = 32{,}768$
-    - Hidden-to-hidden weights $W_{hh}$: $h \times h = 256 \times 256 = 65{,}536$
+    - 들임에서 숨은 켜로 가는 짐 $W_{xh}$: $d \times h = 128 \times 256 = 32{,}768$
+    - 숨은 켜에서 숨은 켜로 가는 짐 $W_{hh}$: $h \times h = 256 \times 256 = 65{,}536$
     - 치우침: $h + h = 512$(무게 행렬마다 하나씩)
     
     모두: $32{,}768 + 65{,}536 + 512 = 98{,}816$개의 매개변수.
@@ -90,7 +90,7 @@ The RNN language model processes sequences one token at a time, updating a hidde
     \frac{\partial L_T}{\partial h_t} = \frac{\partial L_T}{\partial h_T} \prod_{k=t+1}^{T} \frac{\partial h_k}{\partial h_{k-1}}
     $$
     
-    Since $h_k = \tanh(W_{hh} h_{k-1} + W_{xh} x_k + b)$, we have $\partial h_k / \partial h_{k-1} = \text{diag}(1 - \tanh^2(\cdot)) \cdot W_{hh}$. The product of $T - t$ such matrices involves repeated multiplication by $W_{hh}$ scaled by the tanh derivative (which is at most 1). If the spectral norm of $W_{hh}$ is less than 1, this product shrinks exponentially, making gradients vanish for large $T - t$.
+    $h_k = \tanh(W_{hh} h_{k-1} + W_{xh} x_k + b)$이므로 $\partial h_k / \partial h_{k-1} = \text{diag}(1 - \tanh^2(\cdot)) \cdot W_{hh}$이다. 이런 행렬 $T - t$개의 곱은 tanh의 도함수(많아야 1)로 잣대가 잡힌 $W_{hh}$을 거듭 곱하는 셈이다. $W_{hh}$의 스펙트럼 노름이 1보다 작으면 이 곱은 지수로 줄어들어 $T - t$이 클 때 기울기가 사라진다.
 
 ---
 
