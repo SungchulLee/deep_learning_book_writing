@@ -66,10 +66,10 @@ cot_examples = [
 
 걸음마다 정확도가 $p$이고 연산이 $n$번 필요한 여러 걸음 문제에서:
 
-- **Direct prediction**: Accuracy $\approx p^n$
-- **CoT**: Accuracy $\approx p$ per step with self-correction
+- **곧바로 미루어 보기**: 맞음 $\approx p^n$
+- **생각 사슬**: 스스로 바로잡으며 걸음마다 맞음 $\approx p$
 
-For $p = 0.95$, $n = 5$: direct $\approx 0.77$, CoT $\approx 0.95$ per step.
+$p = 0.95$, $n = 5$이면 곧바로 미루어 보기는 $\approx 0.77$, 생각 사슬은 걸음마다 $\approx 0.95$이다.
 
 ## 참고 문헌
 
@@ -121,4 +121,4 @@ For $p = 0.95$, $n = 5$: direct $\approx 0.77$, CoT $\approx 0.95$ per step.
     for 1.5 hours. What is the total distance?
     A: Let's think step by step.
     ```
-    Expected output: Distance for first segment: $60 \times 2.5 = 150$ miles. Distance for second segment: $80 \times 1.5 = 120$ miles. Total distance: $150 + 120 = 270$ miles.
+    바라는 내놓음: 첫 구간의 거리는 $60 \times 2.5 = 150$마일. 둘째 구간의 거리는 $80 \times 1.5 = 120$마일. 온 거리는 $150 + 120 = 270$마일.

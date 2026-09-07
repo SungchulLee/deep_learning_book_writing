@@ -4,7 +4,7 @@
 
 ## 알고리즘
 
-Given a weighted matroid $M = (S, \mathcal{I})$ with a weight function $w : S \to \mathbb{R}_{\ge 0}$, the goal is to find an independent set of maximum total weight:
+짐 함수 $w : S \to \mathbb{R}_{\ge 0}$을 지닌 짐 붙은 매트로이드 $M = (S, \mathcal{I})$이 주어졌을 때 목표는 짐의 합이 가장 큰 홀로 선 모음을 찾는 것이다.
 
 $$
 \max_{A \in \mathcal{I}} \sum_{x \in A} w(x)
@@ -12,9 +12,9 @@ $$
 
 욕심쟁이 알고리즘은 놀랍도록 단순하다:
 
-1. Sort elements of $S$ in decreasing order of weight: $w(x_1) \ge w(x_2) \ge \cdots \ge w(x_n)$.
+1. $S$의 원소를 짐이 큰 차례로 줄 세운다: $w(x_1) \ge w(x_2) \ge \cdots \ge w(x_n)$.
 2. Initialize $A \leftarrow \emptyset$.
-3. For each $x_i$ in sorted order: if $A \cup \{x_i\} \in \mathcal{I}$, set $A \leftarrow A \cup \{x_i\}$.
+3. 줄 세운 차례로 $x_i$마다 $A \cup \{x_i\} \in \mathcal{I}$이면 $A \leftarrow A \cup \{x_i\}$으로 둔다.
 4. $A$을 돌려준다.
 
 ```text
@@ -32,26 +32,26 @@ GREEDY-MATROID(M, w):
 ## 가장 좋음 정리
 
 !!! note "매트로이드 욕심쟁이 정리"
-    Let $M = (S, \mathcal{I})$ be a matroid and $w : S \to \mathbb{R}_{\ge 0}$ a weight function. The greedy algorithm returns an independent set $A$ of maximum weight. Moreover, $A$ is a base (maximal independent set) whenever all weights are positive.
+    $M = (S, \mathcal{I})$을 매트로이드, $w : S \to \mathbb{R}_{\ge 0}$을 짐 함수라 하자. 욕심쟁이 알고리즘은 짐이 가장 큰 홀로 선 모음 $A$을 돌려준다. 나아가 짐이 모두 양수이면 $A$은 밑틀(가장 큰 홀로 선 모음)이다.
 
 ## 정확성 증명
 
 **주장.** 욕심쟁이 알고리즘은 무게가 가장 큰 얽히지 않는 모음을 낸다.
 
-**Proof.** Let $A = \{a_1, a_2, \dots, a_k\}$ be the greedy solution in the order elements were added, and let $O = \{o_1, o_2, \dots, o_m\}$ be an optimal solution with elements sorted by decreasing weight.
+**증명.** $A = \{a_1, a_2, \dots, a_k\}$을 원소를 더한 차례로 적은 욕심쟁이 풀이라 하고, $O = \{o_1, o_2, \dots, o_m\}$을 원소를 짐이 큰 차례로 줄 세운 가장 좋은 풀이라 하자.
 
-We show $w(a_i) \ge w(o_i)$ for all $i \le k$, which implies $w(A) \ge w(O)$.
+모든 $i \le k$에 대해 $w(a_i) \ge w(o_i)$임을 보이는데, 그러면 $w(A) \ge w(O)$이 따라 나온다.
 
 어긋남을 이끌어 내려고 $w(a_i) < w(o_i)$인 첫 번호가 $i$이라고 하자. 다음을 보자:
 
-- $A_{i-1} = \{a_1, \dots, a_{i-1}\}$ (the first $i-1$ greedy choices).
-- $O_i = \{o_1, \dots, o_i\}$ (the first $i$ elements of the optimal solution).
+- $A_{i-1} = \{a_1, \dots, a_{i-1}\}$(욕심쟁이가 처음 고른 $i-1$개).
+- $O_i = \{o_1, \dots, o_i\}$(가장 좋은 풀이의 처음 $i$개 원소).
 
-Since $|A_{i-1}| = i - 1 < i = |O_i|$ and both are independent (by the hereditary property for $O_i$), the exchange property guarantees some $o_j \in O_i \setminus A_{i-1}$ such that $A_{i-1} \cup \{o_j\} \in \mathcal{I}$.
+$|A_{i-1}| = i - 1 < i = |O_i|$이고 둘 다 홀로 서 있으므로($O_i$은 물림 성질에 따라) 맞바꿈 성질이 $A_{i-1} \cup \{o_j\} \in \mathcal{I}$인 $o_j \in O_i \setminus A_{i-1}$이 있음을 보장한다.
 
-Since $o_j \in O_i$, we have $w(o_j) \ge w(o_i) > w(a_i)$. But the greedy algorithm considers elements in decreasing weight order and would have chosen $o_j$ before $a_i$ (or at the same step), contradicting the fact that $a_i$ was chosen at step $i$.
+$o_j \in O_i$이므로 $w(o_j) \ge w(o_i) > w(a_i)$이다. 그런데 욕심쟁이 알고리즘은 원소를 짐이 큰 차례로 살피므로 $a_i$보다 앞서(또는 같은 걸음에) $o_j$을 골랐을 것이고, 이는 걸음 $i$에서 $a_i$을 골랐다는 것과 어긋난다.
 
-Therefore $w(a_i) \ge w(o_i)$ for all $i$, and since $k \ge m$ would follow from the exchange property (the greedy solution is maximal), we have $w(A) \ge w(O)$.
+그러므로 모든 $i$에 대해 $w(a_i) \ge w(o_i)$이고, 맞바꿈 성질에서 $k \ge m$이 따라 나오므로(욕심쟁이 풀이가 가장 크다) $w(A) \ge w(O)$이다.
 
 $\square$
 
@@ -60,11 +60,11 @@ $\square$
 매트로이드 욕심쟁이 정리에는 놀라운 거꿀이 있다:
 
 !!! note "거꿀 정리(에드먼즈, 라도)"
-    Let $(S, \mathcal{I})$ be a non-empty hereditary set system (satisfying Axioms 1 and 2). The greedy algorithm finds a maximum-weight independent set for **every** weight function $w : S \to \mathbb{R}_{\ge 0}$ if and only if $(S, \mathcal{I})$ is a matroid.
+    $(S, \mathcal{I})$을 비지 않은 물림 모음 얼개(공리 1과 2를 채운다)라 하자. 욕심쟁이 알고리즘이 **모든** 짐 함수 $w : S \to \mathbb{R}_{\ge 0}$에 대해 짐이 가장 큰 홀로 선 모음을 찾는 것은 $(S, \mathcal{I})$이 매트로이드인 것과 같은 뜻이다.
 
 곧 매트로이드는 욕심쟁이가 가장 좋기 위한 충분조건일 뿐 아니라 **정확한** 특징지음이다. 물려받는 모음 체계가 매트로이드가 아니면(맞바꿈 성질이 어그러지면) 욕심쟁이가 어그러지는 무게 함수가 있다.
 
-**Proof sketch of the converse.** Suppose $\mathcal{I}$ is hereditary but violates the exchange property: there exist $A, B \in \mathcal{I}$ with $|A| < |B|$ such that $A \cup \{x\} \notin \mathcal{I}$ for all $x \in B \setminus A$. Assign weights so that elements in $A$ have slightly higher weight than elements in $B \setminus A$, and all other elements have weight 0. The greedy algorithm selects all of $A$ first, then gets stuck with a smaller independent set than $B$, proving greedy is suboptimal.
+**거꿀 명제의 증명 얼개.** $\mathcal{I}$이 물림 성질은 지니되 맞바꿈 성질을 어긴다고 하자. 곧 $|A| < |B|$이면서 모든 $x \in B \setminus A$에 대해 $A \cup \{x\} \notin \mathcal{I}$인 $A, B \in \mathcal{I}$이 있다고 하자. $A$의 원소가 $B \setminus A$의 원소보다 짐이 조금 크고 나머지 원소는 짐이 0이 되도록 짐을 매긴다. 욕심쟁이 알고리즘은 먼저 $A$을 모두 고르고 나서 $B$보다 작은 홀로 선 모음에 갇히므로 욕심쟁이가 가장 좋지 않음이 드러난다.
 
 ## 응용
 
@@ -256,10 +256,10 @@ Total weight: 6
 | 항목 | 비용 |
 |--------|:----:|
 | Sorting | $O(n \log n)$ |
-| Independence checks | $O(n \cdot f(n))$ |
+| 홀로 섬 살피기 | $O(n \cdot f(n))$ |
 | Total | $O(n \log n + n \cdot f(n))$ |
 
-Here $f(n)$ is the cost of one independence check. For graphic matroids with union-find, $f(n) \approx O(\alpha(n))$, giving $O(n \log n)$ total. For general matroids, $f(n)$ depends on the specific independence oracle.
+여기서 $f(n)$은 홀로 섬을 한 번 살피는 값이다. 합치기-찾기를 쓰는 그래프 매트로이드에서는 $f(n) \approx O(\alpha(n))$이라 모두 $O(n \log n)$이다. 여느 매트로이드에서는 $f(n)$이 어떤 홀로 섬 신탁을 쓰느냐에 달렸다.
 
 ## 참고 문헌
 

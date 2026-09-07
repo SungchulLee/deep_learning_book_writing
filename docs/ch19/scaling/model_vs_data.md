@@ -26,7 +26,7 @@
 
 $$\text{Total Cost} = C_{\text{train}}(N, D) + K \cdot C_{\text{inference}}(N)$$
 
-Examples: LLaMA-7B ($D/N = 143$), Mistral-7B ($D/N \approx 285$)
+보기: LLaMA-7B($D/N = 143$), Mistral-7B($D/N \approx 285$)
 
 ## 실무적 함의
 
@@ -82,7 +82,7 @@ def recommend_model_size(
 친칠라 규모 법칙을 말하여라. 이는 모델 크기와 익힘 토막 사이의 가장 좋은 셈 나눔을 어떻게 바꾸는가?
 
 ??? success "연습문제 1 풀이"
-    The Chinchilla scaling law (Hoffmann et al., 2022) states that for compute-optimal training, model size $N$ and training tokens $D$ should scale equally: $N \propto C^{0.5}$ and $D \propto C^{0.5}$ where $C$ is the compute budget. This implies the optimal ratio is roughly $D \approx 20N$ (20 tokens per parameter). Previous practice (GPT-3, etc.) undertrained large models: GPT-3 (175B params) was trained on 300B tokens, while the Chinchilla-optimal approach trains a 70B model on 1.4T tokens, achieving better performance with the same compute.
+    친칠라 크기 법칙(호프만 외, 2022)에 따르면 셈을 가장 잘 쓰는 익힘에서는 모델 크기 $N$과 익힘 토막 수 $D$을 똑같이 키워야 한다. 곧 $N \propto C^{0.5}$이고 $D \propto C^{0.5}$이며 $C$은 셈 예산이다. 그러면 가장 좋은 견줌은 대략 $D \approx 20N$이다(매개변수마다 토막 20개). 그전 버릇(GPT-3 따위)은 큰 모델을 덜 익혔다. GPT-3(매개변수 1750억 개)은 토막 3000억 개로 익혔지만, 친칠라에 맞춘 길은 700억 모델을 토막 1조 4000억 개로 익혀 같은 셈으로 더 나은 됨됨이를 이룬다.
 
 ---
 
@@ -103,7 +103,7 @@ def recommend_model_size(
 ---
 
 **연습문제 4.**
-If you had a fixed compute budget of $10^{23}$ FLOPs, how would you allocate it between model size and training data? Justify your answer using scaling laws.
+셈 예산이 $10^{23}$ 뜨는 셈 횟수로 붙박여 있다면 모델 크기와 익힘 자료에 어떻게 나누어 쓰겠는가? 크기 법칙으로 답을 뒷받침하여라.
 
 ??? success "연습문제 4 풀이"
-    Using the Chinchilla scaling law with $C = 6ND$ (approximate FLOPs for transformer training): $10^{23} = 6ND$, with optimal $D \approx 20N$. Substituting: $10^{23} = 6N \cdot 20N = 120N^2$, so $N \approx \sqrt{10^{23}/120} \approx 2.9 \times 10^{10} \approx 29B$ parameters. Training tokens: $D = 10^{23}/(6 \times 29 \times 10^9) \approx 575B$ tokens. This allocation follows the compute-optimal ratio and would outperform both a larger undertrained model (e.g., 175B on 96B tokens) and a smaller overtrained model (e.g., 7B on 2.4T tokens) at the same compute budget.
+    $C = 6ND$(변환기 익힘의 어림 뜨는 셈 횟수)을 쓰는 친칠라 크기 법칙을 쓴다. $10^{23} = 6ND$이고 가장 좋은 $D \approx 20N$이다. 넣어 보면 $10^{23} = 6N \cdot 20N = 120N^2$이므로 $N \approx \sqrt{10^{23}/120} \approx 2.9 \times 10^{10}$, 곧 매개변수 약 290억 개다. 익힘 토막은 $D = 10^{23}/(6 \times 29 \times 10^9) \approx 5750$억 개다. 이렇게 나누면 셈을 가장 잘 쓰는 견줌을 따르므로, 같은 셈 예산에서 덜 익힌 더 큰 모델(1750억을 토막 960억 개로)이나 지나치게 익힌 더 작은 모델(70억을 토막 2조 4000억 개로)보다 낫다.

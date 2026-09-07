@@ -11,7 +11,7 @@
 
 $$\text{score}(q, d) = \text{sim}(E_q(q), E_d(d))$$
 
-where $E_q$ and $E_d$ are encoder networks and $\text{sim}$ is typically cosine similarity or dot product.
+여기서 $E_q$과 $E_d$은 부호기 그물이고 $\text{sim}$은 흔히 코사인 닮음이나 점곱이다.
 
 찾을 때에는 글월 묻힘을 미리 셈해 두고 어림 가장 가까운 이웃(ANN)으로 효율적으로 찾도록 색인한다.
 
@@ -32,7 +32,7 @@ where $E_q$ and $E_d$ are encoder networks and $\text{sim}$ is typically cosine 
 
 $$\mathcal{L} = -\log \frac{\exp(\text{sim}(q, d^+) / \tau)}{\exp(\text{sim}(q, d^+) / \tau) + \sum_{d^- \in \mathcal{N}} \exp(\text{sim}(q, d^-) / \tau)}$$
 
-where $d^+$ is the positive (relevant) document, $\mathcal{N}$ are negative documents, and $\tau$ is temperature.
+여기서 $d^+$은 맞는(걸리는) 글월이고 $\mathcal{N}$은 아닌 글월이며 $\tau$은 온도다.
 
 ### 어려운 음의 보기 캐기
 

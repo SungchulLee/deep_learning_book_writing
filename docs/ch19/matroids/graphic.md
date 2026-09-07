@@ -4,10 +4,10 @@
 
 ## 정의
 
-Given an undirected graph $G = (V, E)$, the **graphic matroid** (also called the **cycle matroid**) is $M(G) = (E, \mathcal{I})$ where:
+방향 없는 그래프 $G = (V, E)$이 주어졌을 때 **그래프 매트로이드**(**순환 매트로이드**라고도 한다)는 $M(G) = (E, \mathcal{I})$이며 다음과 같다.
 
 - **바탕 모음**은 변 모음 $E$이다.
-- A subset $F \subseteq E$ is **independent** if and only if $F$ is acyclic (i.e., $F$ forms a forest).
+- 부분 모음 $F \subseteq E$이 **홀로 선** 것은 $F$이 비순환인 것, 곧 $F$이 숲을 이루는 것과 같은 뜻이다.
 
 핵심 조각이 그래프 개념에 곧바로 대응된다:
 
@@ -17,17 +17,17 @@ Given an undirected graph $G = (V, E)$, the **graphic matroid** (also called the
 | 얽히지 않는 모음 | 숲(순환 없는 변 부분 모음) |
 | 회로 | 단순 순환 |
 | 기저 | 뻗은 숲 |
-| Rank of $A \subseteq E$ | Number of edges in a spanning forest of the subgraph induced by $A$ |
+| $A \subseteq E$의 계수 | $A$이 이끄는 아래그래프의 뻗는 숲에 든 변의 수 |
 
 ## 매트로이드 공리 확인하기
 
 $E$의 순환 없는 부분 모음이 매트로이드 공리 셋을 채우는지 살펴야 한다.
 
-**Axiom 1 (Non-emptiness).** The empty set $\emptyset$ contains no edges, so it is trivially acyclic. Thus $\emptyset \in \mathcal{I}$.
+**공리 1(비지 않음).** 빈 모음 $\emptyset$에는 변이 없으므로 저절로 비순환이다. 따라서 $\emptyset \in \mathcal{I}$이다.
 
-**Axiom 2 (Hereditary property).** If $F$ is acyclic and $F' \subseteq F$, then $F'$ is also acyclic. Removing edges from a forest cannot create a cycle.
+**공리 2(물림 성질).** $F$이 비순환이고 $F' \subseteq F$이면 $F'$도 비순환이다. 숲에서 변을 없앤다고 순환이 생길 수는 없다.
 
-**Axiom 3 (Exchange property).** Let $F_1, F_2 \in \mathcal{I}$ with $|F_1| < |F_2|$. Since both are forests, $F_1$ spans at most $|V| - |F_1|$ connected components, and $F_2$ spans $|V| - |F_2|$ components. Because $|F_1| < |F_2|$, the forest $F_2$ has fewer components, so some edge $e \in F_2 \setminus F_1$ connects two components of $F_1$. Adding $e$ to $F_1$ cannot create a cycle (it bridges two components), so $F_1 \cup \{e\} \in \mathcal{I}$.
+**공리 3(맞바꿈 성질).** $|F_1| < |F_2|$인 $F_1, F_2 \in \mathcal{I}$을 보자. 둘 다 숲이므로 $F_1$은 많아야 $|V| - |F_1|$개의 이어진 조각에 걸치고 $F_2$은 $|V| - |F_2|$개의 조각에 걸친다. $|F_1| < |F_2|$이므로 숲 $F_2$의 조각이 더 적고, 따라서 어떤 변 $e \in F_2 \setminus F_1$이 $F_1$의 조각 둘을 잇는다. $F_1$에 $e$을 더해도 순환이 생기지 않으므로(조각 둘을 다리처럼 잇는다) $F_1 \cup \{e\} \in \mathcal{I}$이다.
 
 !!! note "맞바꿈 성질이 통하는 까닭"
     꼭짓점 $n$개에 변 $k$개인 숲은 이어진 조각이 정확히 $n - k$개다. $F_2$의 변이 $F_1$보다 많으면 조각은 더 적다. 비둘기집 원리로 $F_2$의 어떤 변 하나는 $F_1$의 서로 다른 두 조각을 잇고, 그 변을 더해도 순환이 생기지 않는다.
@@ -43,7 +43,7 @@ $E$의 순환 없는 부분 모음이 매트로이드 공리 셋을 채우는지
 그래프 매트로이드의 **회로**는 가장 작은 얽힌 모음이며, 그래프의 단순 순환에 맞대응된다. 회로의 근본 성질이 그래프 이론과 이어진다:
 
 !!! note "회로가 하나뿐이라는 성질"
-    If $F$ is a forest and $e \notin F$, then $F \cup \{e\}$ contains at most one cycle. This cycle, if it exists, is the unique circuit containing $e$ relative to $F$.
+    $F$이 숲이고 $e \notin F$이면 $F \cup \{e\}$에는 순환이 많아야 하나 있다. 그런 순환이 있다면 그것이 $F$에 대해 $e$을 담은 하나뿐인 회로다.
 
 이 성질은 뻗은 나무에 변을 하나 더하면 순환이 정확히 하나 생기고, 그 순환에서 아무 변이나 없애면 또 다른 뻗은 나무가 되는 까닭을 이해하는 데 꼭 필요하다.
 
@@ -211,11 +211,11 @@ MST edges: [(0, 1, 1), (1, 2, 2), (1, 3, 3)]
 MST weight: 6
 ```
 
-The forest $\{(0,1), (1,2), (2,3)\}$ is independent (acyclic), while $\{(0,1), (1,2), (0,2)\}$ forms a triangle and is dependent. The rank equals $|V| - 1 = 3$ for this connected graph. Kruskal's algorithm (the matroid greedy algorithm) finds the MST with weight 6.
+숲 $\{(0,1), (1,2), (2,3)\}$은 홀로 서 있고(비순환이다) $\{(0,1), (1,2), (0,2)\}$은 세모를 이루어 매여 있다. 이 이어진 그래프의 계수는 $|V| - 1 = 3$이다. 크러스컬 알고리즘(매트로이드 욕심쟁이 알고리즘)이 짐이 6인 가장 작은 뻗는 나무를 찾는다.
 
 ## 쌍대 그래프 매트로이드
 
-The **dual** of a graphic matroid is the **cographic matroid** $M^*(G) = (E, \mathcal{I}^*)$, where $F \subseteq E$ is independent if and only if $G \setminus F$ (the graph with edges $F$ removed) remains connected. The bases of $M^*(G)$ are the complements of spanning trees: if $T$ is a spanning tree, then $E \setminus T$ is a base of the cographic matroid.
+그래프 매트로이드의 **짝**은 **짝 그래프 매트로이드** $M^*(G) = (E, \mathcal{I}^*)$이며, $F \subseteq E$이 홀로 선 것은 $G \setminus F$(변 $F$을 없앤 그래프)이 이어진 채로 남는 것과 같은 뜻이다. $M^*(G)$의 밑틀은 뻗는 나무의 여집합이다. 곧 $T$이 뻗는 나무이면 $E \setminus T$이 짝 그래프 매트로이드의 밑틀이다.
 
 ## 참고 문헌
 

@@ -9,7 +9,7 @@
 
 예로부터의 자연어 다루기는 뒤따르는 일마다 그 일에 맞춘 곱게 다듬기가 필요했다. 큰 말 모델은 근본적으로 다른 틀을 들여왔다. 곧 매개변수를 조금도 고치지 않고 자연어 시킴으로 모델의 몸짓에 조건을 거는 **시킴말**이다.
 
-Formally, instead of learning task-specific parameters $\theta_{\text{task}}$, we construct an input $\text{prompt}(x)$ such that:
+엄밀히 말하면 일에 맞춘 매개변수 $\theta_{\text{task}}$을 배우는 대신 다음을 채우는 들임 $\text{prompt}(x)$을 짓는다.
 
 $$\hat{y} = \text{LLM}(\text{prompt}(x); \theta_{\text{pretrained}})$$
 
@@ -96,4 +96,4 @@ $$\hat{y} = \text{LLM}(\text{prompt}(x); \theta_{\text{pretrained}})$$
     for 1.5 hours. What is the total distance?
     A: Let's think step by step.
     ```
-    Expected output: Distance for first segment: $60 \times 2.5 = 150$ miles. Distance for second segment: $80 \times 1.5 = 120$ miles. Total distance: $150 + 120 = 270$ miles.
+    바라는 내놓음: 첫 구간의 거리는 $60 \times 2.5 = 150$마일. 둘째 구간의 거리는 $80 \times 1.5 = 120$마일. 온 거리는 $150 + 120 = 270$마일.
