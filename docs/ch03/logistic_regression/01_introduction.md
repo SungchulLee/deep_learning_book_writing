@@ -9,23 +9,23 @@
 ```python
 """
 ================================================================================
-01_introduction.py - Introduction to PyTorch Tensors and Autograd
+01_introduction.py - PyTorch 텐서와 자동 미분 들머리
 ================================================================================
 
 배움 목표:
-- Understand PyTorch tensors (the fundamental data structure)
-- Learn about automatic differentiation (autograd)
-- Implement a simple gradient descent optimization
-- Understand the basics of neural network training
+- PyTorch 텐서(밑바탕 자료 짜임)를 이해한다
+- 자동 미분(autograd)을 배운다
+- 단순한 기울기 내림 다듬기를 짠다
+- 신경망 익힘의 기초를 이해한다
 
 PREREQUISITES:
-- Basic Python programming
-- Understanding of derivatives and gradients
-- numpy basics (helpful but not required)
+- 기본 파이썬 프로그래밍
+- 도함수와 기울기 이해
+- 넘파이 기초(도움이 되지만 꼭 필요하지는 않다)
 
-TIME TO COMPLETE: ~30 minutes
+마치는 데 드는 때: 30분쯤
 
-DIFFICULTY: ⭐☆☆☆☆ (Beginner)
+어려움: ⭐☆☆☆☆ (첫걸음)
 ================================================================================
 """
 
@@ -231,24 +231,24 @@ print("PART 4: KEY TAKEAWAYS")
 print("="*80)
 
 print("""
-1. TENSORS are PyTorch's fundamental data structure
-   - Like NumPy arrays but with GPU support and autograd
-   - Created with torch.tensor(), torch.zeros(), torch.randn(), etc.
+1. 텐서가 PyTorch의 밑바탕 자료 짜임이다
+   - 넘파이 배열과 비슷하되 GPU 받침과 자동 미분이 있다
+   - torch.tensor(), torch.zeros(), torch.randn() 따위로 만든다
 
-2. AUTOGRAD (Automatic Differentiation)
-   - Set requires_grad=True to track operations
+2. 자동 미분(autograd)
+   - 셈을 좇으려면 requires_grad=True을 둔다
    - .backward()을 불러 모든 기울기를 셈한다
-   - Gradients stored in .grad attribute
+   - 기울기는 .grad 속성에 담긴다
 
-3. GRADIENT DESCENT
-   - Iteratively update parameters to minimize a function
-   - Update rule: x_new = x_old - learning_rate * gradient
-   - Always call .zero_grad() between iterations!
+3. 기울기 내림
+   - 함수를 가장 작게 하도록 매개변수를 거듭 고친다
+   - 고침 규칙: x_new = x_old - learning_rate * gradient
+   - 되돌이 사이에는 늘 .zero_grad()을 불러라!
 
-4. TORCH VS NUMPY
-   - torch.tensor vs np.array
-   - PyTorch can run on GPU (CUDA)
-   - PyTorch has built-in automatic differentiation
+4. 토치와 넘파이 견주기
+   - torch.tensor와 np.array
+   - PyTorch은 GPU(CUDA)에서 돌 수 있다
+   - PyTorch에는 붙박이 자동 미분이 있다
 """)
 
 
@@ -257,35 +257,35 @@ print("EXERCISES (Try These!)")
 print("="*80)
 
 print("""
-1. EASY: Change the learning rate to 0.01 and 0.5. 
-   How does it affect convergence speed?
+1. 쉬움: 배움 빠르기를 0.01과 0.5으로 바꾸어라.
+   모여드는 빠르기에 어떤 영향을 주는가?
 
-2. MEDIUM: Try minimizing y = x^4 - 4x^2 + 4
-   This function has two local minima!
-   Starting from x=0 and x=3, what do you get?
+2. 보통: y = x^4 - 4x^2 + 4을 가장 작게 해 보아라
+   이 함수에는 그 자리 골짜기가 둘 있다!
+   x=0과 x=3에서 비롯하면 무엇을 얻는가?
 
-3. MEDIUM: Implement gradient descent for 2D function:
+3. 보통: 2차원 함수에 기울기 내림을 짜라.
    y = (x1 - 2)^2 + (x2 + 1)^2
-   Minimum should be at (2, -1)
+   골짜기는 (2, -1)에 있어야 한다
 
-4. HARD: Add momentum to gradient descent:
+4. 어려움: 기울기 내림에 여세를 더하여라.
    velocity = 0.9 * velocity + learning_rate * gradient
    x = x - velocity
-   Compare convergence with standard gradient descent.
+   여느 기울기 내림과 모여드는 모습을 견주어라.
 """)
 
 print("\n" + "="*80)
 print("NEXT STEPS")
 print("="*80)
 print("""
-You've learned the basics of PyTorch tensors and gradient descent!
+PyTorch 텐서와 기울기 내림의 기초를 배웠다!
 
-Next tutorial: 02_simple_binary_classification.py
-- Apply these concepts to a real machine learning problem
-- Implement logistic regression from scratch
-- Train a binary classifier
+다음 익힘: 02_simple_binary_classification.py
+- 이 개념을 참 기계 배움 문제에 쓴다
+- 로지스틱 회귀를 맨바닥부터 짠다
+- 둘 가름개를 익힌다
 
-Ready to continue? Run:
+이어서 할 채비가 되었는가? 다음을 돌려라.
     python 02_simple_binary_classification.py
 """)
 print("="*80)

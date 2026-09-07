@@ -19,7 +19,7 @@
 - Handle one-hot encoding
 - Evaluate multi-class models
 
-TIME TO COMPLETE: ~1.5 hours
+마치는 데 드는 때: 1시간 반쯤
 어려움: ⭐⭐⭐⭐☆ (앞선)
 ================================================================================
 """

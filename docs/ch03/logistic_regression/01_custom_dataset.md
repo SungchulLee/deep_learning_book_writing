@@ -335,55 +335,55 @@ print("""
    ✓ 자료가 기억 자리에 다 안 들어갈 때
    ✓ 복잡한 자료 갈래(그림, 글월, 소리)
    ✓ 그때그때 미리 다듬을 때
-   ✓ Data augmentation during training
+   ✓ 익히는 동안 자료를 불릴 때
    ✓ 여러 자료 밑동
 
-3. BEST PRACTICES
-   ✓ Load data lazily (in __getitem__)
-   ✓ Store only file paths in memory
-   ✓ Cache preprocessed data if possible
-   ✓ Use proper indexing
-   ✓ Return consistent tensor types
+3. 좋은 버릇
+   ✓ 자료를 게으르게 불러라(__getitem__에서)
+   ✓ 기억 자리에는 두루마리 길만 담아라
+   ✓ 될 수 있으면 미리 다듬은 자료를 갈무리하라
+   ✓ 자리 잡기를 제대로 하라
+   ✓ 한결같은 텐서 갈래를 돌려주어라
 
-4. COMMON PATTERNS
-   ✓ CSV/Excel: Load file paths, read in __getitem__
-   ✓ Images: Store image paths, load with PIL/OpenCV
-   ✓ Text: Store file paths, tokenize on-the-fly
-   ✓ Large datasets: Memory-mapped arrays
+4. 흔한 무늬
+   ✓ CSV/엑셀: 두루마리 길을 담고 __getitem__에서 읽는다
+   ✓ 그림: 그림 길을 담고 PIL/OpenCV으로 불러온다
+   ✓ 글월: 두루마리 길을 담고 그때그때 토막으로 나눈다
+   ✓ 큰 자료 묶음: 기억 자리에 이어 붙인 배열
 
 5. AUGMENTATION
-   ✓ Apply in __getitem__ during training
-   ✓ Use flags to enable/disable
-   ✓ Random transformations
-   ✓ Increases dataset size effectively
+   ✓ 익히는 동안 __getitem__에서 건다
+   ✓ 깃발로 켜고 끈다
+   ✓ 마구잡이 바꾸기
+   ✓ 자료 묶음을 사실상 늘린다
 """)
 
 print("\n" + "="*80)
 print("EXERCISES")
 print("="*80)
 print("""
-1. EASY: Add normalization to CSVDataset
-   Apply StandardScaler in __init__
+1. 쉬움: CSVDataset에 정규화를 더하여라
+   __init__에서 StandardScaler을 걸어라
 
-2. MEDIUM: Create ImageDataset class:
-   - Load images from folder
-   - Apply transforms (resize, normalize)
-   - Handle RGB/grayscale
+2. 보통: ImageDataset 갈래를 만들어라.
+   - 자리표에서 그림을 불러온다
+   - 바꾸기를 건다(크기 바꾸기, 정규화)
+   - RGB과 잿빛을 다룬다
 
-3. MEDIUM: Implement caching:
-   - Cache loaded samples in memory
-   - Clear cache when memory full
+3. 보통: 갈무리를 짜라.
+   - 불러온 표본을 기억 자리에 갈무리한다
+   - 기억 자리가 차면 갈무리를 비운다
 
-4. HARD: Create TextDataset:
-   - Load text files
-   - Tokenize on-the-fly
-   - Create vocabulary
-   - Return padded sequences
+4. 어려움: TextDataset을 만들어라.
+   - 글월 두루마리를 불러온다
+   - 그때그때 토막으로 나눈다
+   - 낱말 사전을 만든다
+   - 덧댄 이음을 돌려준다
 
-5. HARD: Implement weighted sampling:
-   - Balance imbalanced classes
-   - Use WeightedRandomSampler
-   - Compare with simple oversampling
+5. 어려움: 무게 실은 뽑기를 짜라.
+   - 치우친 갈래를 고르게 한다
+   - WeightedRandomSampler을 쓴다
+   - 단순한 늘려 뽑기와 견준다
 """)
 
 print("\n" + "="*80)

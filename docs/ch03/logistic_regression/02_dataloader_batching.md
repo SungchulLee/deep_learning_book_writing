@@ -9,23 +9,23 @@
 ```python
 """
 ================================================================================
-02_dataloader_batching.py - Efficient Batch Processing with DataLoader
+02_dataloader_batching.py - DataLoader으로 하는 잘 드는 묶음 다루기
 ================================================================================
 
 배움 목표:
-- Understand mini-batch gradient descent
-- Use PyTorch DataLoader for efficient batching
-- Learn about Dataset and DataLoader classes
-- Handle shuffling and batch processing
-- Scale to larger datasets
+- 작은 묶음 기울기 내림을 이해한다
+- 잘 드는 묶음 만들기에 PyTorch DataLoader을 쓴다
+- Dataset과 DataLoader 갈래를 배운다
+- 섞기와 묶음 다루기를 익힌다
+- 더 큰 자료 묶음으로 넓힌다
 
 PREREQUISITES:
-- Completed 01_proper_training_loop.py
-- Understanding of gradient descent
+- 01_proper_training_loop.py을 마쳤을 것
+- 기울기 내림을 이해하고 있을 것
 
-TIME TO COMPLETE: ~1.5 hours
+마치는 데 드는 때: 1시간 반쯤
 
-DIFFICULTY: ⭐⭐⭐☆☆ (Intermediate)
+어려움: ⭐⭐⭐☆☆ (가운데)
 ================================================================================
 """
 
@@ -52,28 +52,28 @@ print("PART 1: WHY USE BATCHES?")
 print("="*80)
 
 print("""
-Mini-Batch Gradient Descent:
+작은 묶음 기울기 내림:
 
-Instead of processing all data at once (full batch) or one sample at a time
-(stochastic), we process small batches:
+자료를 한꺼번에 다루거나(온 묶음) 한 번에 하나씩 다루는(확률) 대신
+작은 묶음으로 다룬다.
 
-Batch Size = 1 (SGD):
-  ✓ Fast updates
-  ✗ Noisy gradients
-  ✗ Slow computation (no vectorization)
+묶음 크기 = 1(SGD):
+  ✓ 고치기가 빠르다
+  ✗ 기울기에 잡음이 많다
+  ✗ 셈이 느리다(벡터로 묶지 못한다)
 
-Batch Size = ALL (Full Batch GD):
-  ✓ Stable gradients
+묶음 크기 = 모두(온 묶음 기울기 내림):
+  ✓ 기울기가 든든하다
   ✗ 기억 자리를 많이 쓴다
   ✗ 자료가 크면 느리다
 
-Batch Size = 32-256 (Mini-Batch):
-  ✓ Balance between speed and stability
-  ✓ Efficient GPU utilization
-  ✓ Regularization effect from noise
-  ✓ Can process datasets larger than memory
+묶음 크기 = 32~256(작은 묶음):
+  ✓ 빠르기와 든든함이 고루 좋다
+  ✓ GPU을 잘 쓴다
+  ✓ 잡음에서 오는 정칙화 효과
+  ✓ 기억 자리보다 큰 자료 묶음도 다룰 수 있다
 
-Common batch sizes: 16, 32, 64, 128, 256
+흔한 묶음 크기: 16, 32, 64, 128, 256
 """)
 
 # =============================================================================
@@ -189,8 +189,8 @@ def train_epoch_with_batches(model, dataloader, criterion, optimizer):
     
     # 배치들을 순회한다
     for batch_idx, (batch_X, batch_y) in enumerate(dataloader):
-        # batch_X shape: (batch_size, n_features)
-        # batch_y shape: (batch_size, 1)
+        # batch_X 꼴: (batch_size, n_features)
+        # batch_y 꼴: (batch_size, 1)
         
         # 순전파
         predictions = model(batch_X)
@@ -396,40 +396,40 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. DATALOADER BENEFITS
-   ✓ Automatic batching
-   ✓ Efficient memory usage
-   ✓ Built-in shuffling
-   ✓ Parallel data loading (num_workers)
-   ✓ Can handle datasets larger than RAM
+1. DataLoader의 좋은 점
+   ✓ 절로 묶어 준다
+   ✓ 기억 자리를 잘 쓴다
+   ✓ 붙박이 섞기
+   ✓ 나란히 자료 불러오기(num_workers)
+   ✓ 기억 자리보다 큰 자료 묶음도 다룬다
 
-2. BATCH SIZE SELECTION
-   ✓ Smaller batches: More noise, better regularization
-   ✓ Larger batches: More stable, faster training
-   ✓ Common choices: 32, 64, 128
-   ✓ Limited by GPU memory
+2. 묶음 크기 고르기
+   ✓ 작은 묶음: 잡음이 많고 정칙화가 잘 된다
+   ✓ 큰 묶음: 더 든든하고 익힘이 빠르다
+   ✓ 흔히 고르는 값: 32, 64, 128
+   ✓ GPU 기억 자리에 매인다
 
-3. BEST PRACTICES
-   ✓ Always shuffle training data
-   ✓ Don't shuffle test/validation data
-   ✓ Use TensorDataset for simple cases
-   ✓ Create custom Dataset for complex data
-   ✓ Set num_workers=0 on Windows
+3. 좋은 버릇
+   ✓ 익힘 자료는 늘 섞어라
+   ✓ 시험/다짐 자료는 섞지 마라
+   ✓ 단순한 자리에는 TensorDataset을 써라
+   ✓ 복잡한 자료에는 맞춤 Dataset을 만들어라
+   ✓ 윈도에서는 num_workers=0으로 두어라
 
-4. WHEN TO USE BATCHES
-   ✓ Datasets > 10,000 samples
-   ✓ Limited memory
-   ✓ GPU training
-   ✓ Want regularization effect
+4. 언제 묶음을 쓸까
+   ✓ 표본이 10,000개를 넘는 자료 묶음
+   ✓ 기억 자리가 넉넉하지 않을 때
+   ✓ GPU으로 익힐 때
+   ✓ 정칙화 효과를 바랄 때
 """)
 
 print("\n" + "="*80)
 print("EXERCISES")
 print("="*80)
 print("""
-1. EASY: Try batch_size=1. How does it compare to mini-batch?
+1. 쉬움: batch_size=1으로 해 보아라. 작은 묶음과 견주면 어떠한가?
 
-2. MEDIUM: Implement custom Dataset class:
+2. 보통: 맞춤 Dataset 갈래를 짜라.
    class CustomDataset(Dataset):
        def __init__(self, X, y):
            # 여기에 코드를 작성한다
@@ -440,13 +440,13 @@ print("""
        def __getitem__(self, idx):
            # 여기에 코드를 작성한다
 
-3. MEDIUM: Add data augmentation during batch loading
+3. 보통: 묶음을 불러오는 동안 자료 불리기를 더하여라
 
-4. HARD: Implement dynamic batch sizing:
-   - Start with small batches
-   - Gradually increase during training
+4. 어려움: 묶음 크기를 그때그때 바꾸도록 짜라.
+   - 작은 묶음에서 비롯한다
+   - 익히는 동안 차츰 키운다
 
-5. HARD: Compare training time for different batch sizes
+5. 어려움: 묶음 크기마다 익힘 때를 견주어라
    Use time.time() to measure
 """)
 

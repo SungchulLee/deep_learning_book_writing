@@ -20,7 +20,7 @@
 - Best practices for model persistence
 
 TIME TO COMPLETE: ~1 hour
-DIFFICULTY: ⭐⭐⭐☆☆ (Intermediate)
+어려움: ⭐⭐⭐☆☆ (가운데)
 ================================================================================
 """
 
@@ -345,7 +345,7 @@ print("""
    ✓ loss/accuracy: Performance metrics
    ✓ Additional: learning rate, random state, etc.
 
-3. BEST PRACTICES
+3. 좋은 버릇
    ✓ Save checkpoints regularly
    ✓ Save best model separately
    ✓ Include training state for resuming
