@@ -284,7 +284,7 @@ $$\text{Weighted CE} = -\frac{1}{N} \sum_{i=1}^{N} w_{y^{(i)}} \log \hat{\pi}_{y
 원-핫 목표 대신 평활화된 목표를 쓴다.
 
 $$\tilde{y}_k = \begin{cases}
-1 - \epsilon & \text{if } k = c \text{ (true class)} \\
+1 - \epsilon & \text{if } k = c \text{ (참 갈래)} \\
 \frac{\epsilon}{K-1} & \text{otherwise}
 \end{cases}$$
 

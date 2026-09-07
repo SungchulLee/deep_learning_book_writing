@@ -146,7 +146,7 @@ $$
 
     $\mathbf{P} \subseteq \mathbf{NP} \subseteq \mathbf{PH} \subseteq \mathbf{PSPACE} \subseteq \mathbf{EXP}$
 
-    Additionally: $\mathbf{P} \subseteq \mathbf{co\text{-}NP} \subseteq \mathbf{PH}$ and $\mathbf{P} \subseteq \mathbf{BPP} \subseteq \mathbf{PSPACE}$.
+    덧붙여 $\mathbf{P} \subseteq \mathbf{co\text{-}NP} \subseteq \mathbf{PH}$이고 $\mathbf{P} \subseteq \mathbf{BPP} \subseteq \mathbf{PSPACE}$이다.
 
     알려진 엄격한 담김: $\mathbf{P} \neq \mathbf{EXP}$(시간 켜 정리에 따라)과 $\mathbf{NP} \neq \mathbf{EXPTIME}$이다. $\mathbf{P} \neq \mathbf{NP}$, $\mathbf{NP} \neq \mathbf{co\text{-}NP}$, $\mathbf{NP} \neq \mathbf{PSPACE}$, $\mathbf{BPP} \neq \mathbf{P}$인지는 열려 있다. $\mathbf{P} \neq \mathbf{EXP}$이므로 사슬 $\mathbf{P} \subseteq \mathbf{NP} \subseteq \mathbf{PSPACE} \subseteq \mathbf{EXP}$의 담김 가운데 적어도 하나는 엄격해야 하지만 어느 것인지는 모른다.
 

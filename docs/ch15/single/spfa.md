@@ -240,4 +240,4 @@ SPFA이 음의 고리를 어떻게 알아낼 수 있는가?
 SPFA의 SLF(가장 짧은 이름표 먼저) 다듬기는 꼭짓점의 거리가 줄 맨 앞 원소의 거리보다 작으면 그 꼭짓점을 줄의 앞에 넣는다. 이것이 왜 성능을 낫게 할 수 있는지 설명하여라.
 
 ??? success "연습문제 4 풀이"
-    SLF prioritizes vertices with smaller tentative distances, making SPFA behave more like Dijkstra. Processing low-distance vertices first tends to produce more effective relaxations (reaching the true shortest distance faster) and reduces the number of times vertices re-enter the queue. This does not change the worst-case complexity but often significantly improves average performance, especially on graphs with a mix of positive and negative edge weights. $\square$
+    SLF은 잠정 거리가 작은 꼭짓점을 먼저 다루므로 SPFA이 데이크스트라처럼 움직이게 한다. 거리가 작은 꼭짓점을 먼저 다루면 늦추기가 더 잘 들어(참 최단 거리에 더 빨리 닿는다) 꼭짓점이 줄에 다시 들어오는 횟수가 준다. 가장 나쁠 때의 복잡도는 그대로지만 평균 성능은 흔히 크게 나아지며, 특히 양수와 음수 변 짐이 섞인 그래프에서 그렇다. $\square$

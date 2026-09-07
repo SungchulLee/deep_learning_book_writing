@@ -16,7 +16,7 @@ $$
 x_{i+1} = f(x_i) = x_i^2 + c \pmod{n}
 $$
 
-The sequence is deterministic but behaves pseudo-randomly modulo any fixed
+이 이음은 정해진 대로 나아가지만 어떤 붙박인 수로 나눈 나머지에서는 유사 마구잡이처럼 움직인다
 prime factor $p$ of $n$.
 
 ## 플로이드 돌이 찾기

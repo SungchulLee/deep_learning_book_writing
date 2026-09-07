@@ -68,7 +68,7 @@ $$
 
 자리 $i$에서 시작하는 뒷가지는 $i \leq n - 1$이면 $S_1$에, $i \geq n + 1$이면 $S_2$에 든다(자리 $n$은 가르개 $\texttt{\#}$이다).
 
-??? example "LCS of 'abcde' and 'bcdef'"
+??? example "'abcde'과 'bcdef'의 가장 긴 공통 부분문자열"
     Concatenate: $T = \texttt{abcde\#bcdef\$}$
 
     뒷가지 배열과 최장 공통 앞가지 배열을 세운 뒤 서로 다른 글줄의 뒷가지 사이 최장 공통 앞가지 최댓값을 훑어 찾는다.

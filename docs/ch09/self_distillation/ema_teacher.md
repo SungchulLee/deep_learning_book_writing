@@ -167,7 +167,7 @@ EMA에 이따금씩의 온전한 맞춤을 곁들인다.
 
 $$\theta_t^{\text{EMA}} = \begin{cases}
 \tau \theta_t^{\text{EMA}} + (1-\tau) \theta_t^{\text{student}} & \text{if } t \mod k \neq 0 \\
-\theta_t^{\text{student}} & \text{otherwise}
+\theta_t^{\text{student}} & \text{그 밖에는}
 \end{cases}$$
 
 ## 이론적 이음

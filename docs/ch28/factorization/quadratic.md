@@ -4,10 +4,10 @@
 
 ## 수학적 바탕
 
-The Quadratic Sieve exploits a classical observation due to Fermat:
+이차 체는 페르마의 옛 살핌을 쓴다.
 
-> If we find integers $x$ and $y$ such that $x^2 \equiv y^2 \pmod{n}$ but
-> $x \not\equiv \pm y \pmod{n}$, then $\gcd(x - y, n)$ is a non-trivial
+> $x^2 \equiv y^2 \pmod{n}$이면서 다음을 채우는 정수 $x$과 $y$을 찾으면,
+> $x \not\equiv \pm y \pmod{n}$이면 $\gcd(x - y, n)$은 자명하지 않은
 > factor of $n$.
 
 어려움은 그런 제곱의 합동을 찾는 것이다.
@@ -20,7 +20,7 @@ The Quadratic Sieve exploits a classical observation due to Fermat:
 
 $n$이 $p$을 법으로 이차 잉여인(곧 르장드르 기호 $(n/p) = 1$인) 작은 소수 $p$으로 이루어진 **인수 바탕** $\mathcal{B} = \{p_1, p_2, \dots, p_k\}$을 고른다.
 
-For values of $x$ near $\lceil \sqrt{n} \rceil$, compute
+$\lceil \sqrt{n} \rceil$ 언저리의 $x$ 값에 대해 다음을 셈한다
 
 $$
 Q(x) = x^2 - n
@@ -46,7 +46,7 @@ $$
 
 ### 국면 3 --- 인수 뽑아내기
 
-The selected subset yields
+고른 부분 모음에서 다음을 얻는다
 
 $$
 \left(\prod_{x \in S} x\right)^2 \equiv \left(\prod_{x \in S} Q(x)\right) \equiv y^2 \pmod{n}

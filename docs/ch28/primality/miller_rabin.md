@@ -69,18 +69,18 @@ if __name__ == "__main__":
 
 ## 오차 분석
 
-For a single round with a random base $a$:
+마구잡이 밑 $a$으로 한 판을 돌면
 
 - $n$이 소수이면 시험은 늘 "아마 소수"를 돌려준다(거짓 음성이 없다).
 - $n$이 합성수이면 거짓 양성(시험이 "아마 소수"라고 하는 것)의 확률은 많아야 $1/4$이다.
 
-After $k$ independent rounds:
+서로 아랑곳없는 $k$ 판을 돈 뒤에는
 
 $$
 \Pr[\text{false positive}] \le \left(\frac{1}{4}\right)^k = 4^{-k}
 $$
 
-With $k = 20$ rounds, the error probability is less than $10^{-12}$.
+$k = 20$ 판을 돌면 어긋날 확률이 $10^{-12}$보다 작다.
 
 !!! note "Why 1/4, Not 1/2"
     ($1/2$이 아니라) $1/4$이라는 한계는 어떤 합성수 $n$에 대해서도 많아야 밑 $(n - 1)/4$개가 "강한 거짓말쟁이"임을 보인 라빈의 살핌에서 왔다. 이는 페르마 증인만으로 얻는 $1/2$ 한계보다 빠듯하다.

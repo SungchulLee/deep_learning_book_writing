@@ -22,7 +22,7 @@
 
 ## 방식 1 --- 골라 쓰기
 
-At each level $k$, iterate over all $n$ elements and select those not yet used.
+켜 $k$마다 원소 $n$개를 모두 훑으며 아직 쓰지 않은 것을 고른다.
 
 ```
 PERMUTATIONS(perm, k, n):
