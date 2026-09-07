@@ -1,90 +1,90 @@
-# Chapter 37: Bias and Fairness
+# 37장: 치우침과 고름
 
-This chapter addresses the ethical, legal, and technical challenges of ensuring machine learning systems do not discriminate against individuals or groups based on protected characteristics. We cover the mathematical foundations of fairness definitions, impossibility theorems that constrain what fairness criteria can be simultaneously achieved, and practical mitigation techniques spanning pre-processing, in-processing, and post-processing approaches. Special attention is given to fairness in financial applications where regulatory requirements are particularly stringent.
+이 장은 기계 배움 얼개가 지켜야 할 됨됨이를 바탕으로 사람이나 무리를 차별하지 않게 하는 데 걸린 윤리·법·기술의 어려움을 다룬다. 고름을 뜻매김하는 수학 밑바탕, 어떤 고름 잣대를 함께 이룰 수 있는지를 옭아매는 있을 수 없음 정리, 그리고 미리 다듬기·익히며 다루기·뒤에 다듬기에 걸친 참으로 쓰는 눅이기 재주를 다룬다. 규정이 특히 빡빡한 금융 쓰임에서의 고름에 눈길을 더 둔다.
 
 ---
 
-## Foundations
+## 밑바탕
 
-Core concepts, historical context, and sources of bias in ML systems.
+기계 배움 얼개에서 치우침의 고갱이 개념, 지난 자취, 치우침이 오는 데.
 
-- Introduction to Algorithmic Fairness -- The fairness problem, motivating examples, and why fairness matters in ML
-- Sources of Bias in ML Systems -- Taxonomy of bias from historical data, representation, measurement, and deployment
-- Historical Context and Landmark Cases -- Legal foundations, disparate treatment vs. disparate impact, and the 80% rule
+- 알고리즘 고름 들머리 -- 고름 문제, 마음을 움직이는 보기, 기계 배움에서 고름이 중요한 까닭
+- 기계 배움 얼개에서 치우침이 오는 데 -- 지난 자료, 나타냄, 재기, 내놓기에서 오는 치우침의 갈래 나누기
+- 지난 자취와 이름난 재판 -- 법 밑바탕, 달리 다룸 대 달리 미침, 그리고 80% 규칙
 
-## Fairness Definitions
+## 고름 뜻매김
 
-Mathematical formalizations of what it means for a model to be fair.
+모형이 고르다는 것이 무슨 뜻인지를 수학으로 세운 것들.
 
-- Demographic Parity -- Equal positive prediction rates across protected groups (statistical parity)
-- Equal Opportunity -- Equal true positive rates ensuring qualified individuals receive equal treatment
-- Equalized Odds -- Equal TPR and FPR across groups via conditional independence of predictions and attributes
-- Calibration -- Predicted probabilities accurately reflecting true outcome rates within each group
-- Individual Fairness -- Similar individuals receiving similar predictions via Lipschitz continuity constraints
-- Counterfactual Fairness -- Causal reasoning ensuring predictions are invariant to counterfactual group membership changes
+- 인구 고름 -- 지켜야 할 무리 사이에 양수로 미루어 보는 비율이 같음(통계 고름)
+- 고른 틈 -- 참 양수 비율이 같아 자격 있는 사람이 고르게 다뤄지게 함
+- 고른 승산 -- 미루어 봄과 됨됨이의 매인 남남임으로 무리 사이 TPR과 FPR을 같게 함
+- 눈금 맞음 -- 무리마다 미루어 본 낌새가 참 결과 비율을 옳게 드러냄
+- 사람마다의 고름 -- 립시츠 이어짐 매임으로 비슷한 사람이 비슷한 미루어 봄을 받음
+- 되돌려 세운 고름 -- 인과로 헤아려, 무리가 바뀌었다고 가정해도 미루어 봄이 흔들리지 않게 함
 
-## Impossibility Theorems
+## 있을 수 없음 정리
 
-Mathematical results showing fundamental tradeoffs between fairness criteria.
+고름 잣대 사이의 밑바탕 맞바꿈을 밝힌 수학 열매.
 
-- Chouldechova's Theorem -- Proving calibration and equal error rates cannot coexist when base rates differ
-- KMR Impossibility Theorem -- Kleinberg-Mullainathan-Raghavan result on calibration vs. balance incompatibility
-- Tradeoff Analysis -- Quantifying the fairness-accuracy Pareto frontier and finding optimal solutions
+- 촐데초바 정리 -- 밑 비율이 다르면 눈금 맞음과 고른 어긋남 비율이 함께 있을 수 없음을 증명
+- KMR 있을 수 없음 정리 -- 눈금 맞음과 저울 맞음이 함께 있을 수 없다는 클라인버그-멀레이너선-라가반의 열매
+- 맞바꿈 살피기 -- 고름-맞음의 파레토 앞선 자리를 수로 재고 가장 좋은 풀이를 찾기
 
-## Fairness Metrics
+## 고름 재기
 
-Quantitative measurement of bias across protected groups.
+지켜야 할 무리에 걸친 치우침을 수로 재기.
 
-- Statistical Fairness Metrics -- Unified PyTorch framework for computing demographic parity, equal opportunity, and equalized odds
-- Causal Fairness Metrics -- Total, direct, and indirect causal effects of protected attributes on predictions
-- Multi-Group Fairness Metrics -- Extending binary fairness measures to handle multiple protected groups
-- Intersectionality in Fairness -- Detecting bias in intersectional subgroups that may be hidden in marginal analysis
+- 통계 고름 자 -- 인구 고름, 고른 틈, 고른 승산을 셈하는 하나로 아우른 PyTorch 틀
+- 인과 고름 자 -- 지켜야 할 됨됨이가 미루어 봄에 미치는 온·곧은·에두른 인과 힘
+- 여러 무리 고름 자 -- 두 값 고름 자를 여러 지켜야 할 무리로 넓히기
+- 고름에서의 겹침 -- 가장자리 살핌에서는 숨는 겹친 작은 무리의 치우침 알아내기
 
-## Pre-processing Methods
+## 미리 다듬는 방법
 
-Mitigating bias by transforming training data before model training.
+모형을 익히기에 앞서 익힘 자료를 바꾸어 치우침을 눅이기.
 
-- Reweighing -- Assigning sample weights to remove correlation between protected attributes and labels
-- Disparate Impact Remover -- Transforming feature distributions to be identical across protected groups
-- Fair Representation Learning -- Learning latent representations that retain predictive signal while removing group information
-- Data Augmentation for Fairness -- Creating synthetic samples to balance the joint distribution of attributes and labels
+- 짐 다시 매기기 -- 표본에 짐을 매겨 지켜야 할 됨됨이와 이름표의 얽힘을 걷어내기
+- 달리 미침 없애개 -- 결의 퍼짐을 지켜야 할 무리 사이에 똑같게 바꾸기
+- 고른 나타냄 배우기 -- 미루어 볼 신호는 남기되 무리 소식은 걷어낸 숨은 나타냄 배우기
+- 고름을 위한 자료 늘리기 -- 됨됨이와 이름표의 함께 있는 퍼짐을 고르게 하는 지어낸 표본 만들기
 
-## In-processing Methods
+## 익히며 다루는 방법
 
-Incorporating fairness objectives directly into the model training procedure.
+고름 목표를 모형 익힘 절차에 곧바로 넣기.
 
-- Adversarial Debiasing -- Training a predictor to fool an adversary that tries to infer protected attributes
-- Fairness Constraints -- Constrained optimization with explicit fairness bounds via Lagrangian relaxation
-- Fairness Regularization -- Adding fairness penalty terms to the training loss for soft bias mitigation
-- Multi-Objective Fairness Optimization -- Pareto-optimal solutions balancing accuracy with multiple fairness criteria
+- 맞겨루며 치우침 걷어내기 -- 지켜야 할 됨됨이를 알아내려는 맞수를 속이도록 미루개를 익히기
+- 고름 매임 -- 라그랑주 늦추기로 또렷한 고름 울타리를 건 매인 가장 좋게 하기
+- 고름 정칙화 -- 익힘 잃음에 고름 벌을 더해 치우침을 부드럽게 눅이기
+- 여러 목표 고름 다듬기 -- 맞음과 여러 고름 잣대를 저울질하는 파레토 가장 좋은 풀이
 
-## Post-processing Methods
+## 뒤에 다듬는 방법
 
-Adjusting model outputs after training to satisfy fairness criteria.
+익힌 뒤 모형의 내놓기를 고쳐 고름 잣대를 채우기.
 
-- Threshold Optimization -- Group-specific classification thresholds to achieve fairness while maximizing accuracy
-- Calibrated Equalized Odds -- Achieving approximate equalized odds while preserving calibration via randomized thresholds
-- Reject Option Classification -- Deferring uncertain predictions to improve fairness near the decision boundary
+- 문턱 다듬기 -- 맞음을 가장 크게 하면서 고름을 이루는 무리마다의 가름 문턱
+- 눈금 맞춘 고른 승산 -- 아무렇게나 하는 문턱으로 눈금 맞음을 지키면서 고른 승산에 가까이 가기
+- 물리는 길 가름 -- 판단 금 언저리의 아리송한 미루어 봄을 미루어 두어 고름을 낫게 하기
 
-## Evaluation
+## 따지기
 
-Systematic assessment of fairness in deployed models.
+내놓은 모형의 고름을 짜임새 있게 따지기.
 
-- Fairness Audits -- Comprehensive five-stage audit framework combining quantitative metrics and qualitative analysis
-- Disparate Impact Testing -- Statistical hypothesis tests for determining whether fairness violations are significant
-- Longitudinal Fairness Analysis -- Monitoring fairness metrics over time to detect drift and emerging biases
+- 고름 감사 -- 수로 재는 자와 결로 살피는 것을 아우른 다섯 마디 감사 틀
+- 달리 미침 따지기 -- 고름을 어긴 것이 뜻있는지 가리는 통계 가설 검정
+- 때에 걸친 고름 살피기 -- 고름 자를 때에 따라 지켜보아 옮겨감과 새로 생기는 치우침을 알아내기
 
-## Finance Applications
+## 금융에 쓰기
 
-Fairness considerations specific to financial services and regulatory compliance.
+금융 서비스와 규정 따르기에 남다른 고름 헤아림.
 
-- Fair Credit Scoring -- ECOA-compliant credit models with adverse action explanations and disparate impact testing
-- Fair Insurance Pricing -- Actuarial fairness under evolving regulations restricting demographic pricing variables
-- Fairness in Algorithmic Trading -- Equitable execution quality, market access, and information asymmetry across participant types
-- Regulatory Framework -- Mapping ECOA, Fair Housing Act, GDPR, and SR 11-7 requirements to technical fairness implementations
+- 고른 신용 점수 매기기 -- 불리한 처분 풀이와 달리 미침 따지기를 갖춘 ECOA에 맞는 신용 모형
+- 고른 보험 값 매기기 -- 인구 값 매김 변수를 옭아매는 바뀌는 규정 아래에서의 보험 셈 고름
+- 알고리즘 거래에서의 고름 -- 참여자 갈래에 걸친 고른 벌임 됨됨이, 저자에 닿을 길, 소식의 치우침
+- 규정 틀 -- ECOA, 공정 주거법, GDPR, SR 11-7이 바라는 것을 기술 고름 짜보기에 이어 주기
 
-## Code Examples
+## 코드 보기
 
-Practical implementations and toolkit overviews.
+참으로 쓰는 짜보기와 연장 살펴보기.
 
-- Bias and Fairness Toolkit Overview -- Python implementations of bias detection, fairness metrics, and mitigation techniques
+- 치우침과 고름 연장 살펴보기 -- 치우침 알아내기, 고름 자, 눅이기 재주의 파이썬 짜보기

@@ -1,15 +1,15 @@
-# Fairness Metrics
+# 고름 자
 
-Fairness Metrics and Evaluation Comprehensive fairness metrics for evaluating ML model fairness.
+고름 자와 따지기. 기계 배움 모형의 고름을 따지는 두루 갖춘 고름 자.
 
-Ensuring fairness in machine learning systems is both an ethical imperative and a practical concern. This module demonstrates techniques for detecting, measuring, and mitigating bias in deep learning models, connecting theoretical fairness criteria to actionable code.
+기계 배움 얼개에서 고름을 지키는 일은 윤리로도 마땅하고 참으로도 걸린 문제다. 이 꾸러미는 깊은 배움 모형의 치우침을 알아내고, 재고, 눅이는 재주를 보이며, 이론의 고름 잣대를 손에 잡히는 코드로 이어 준다.
 
-## Code
+## 코드
 
 ```python
 """
-Fairness Metrics and Evaluation
-Comprehensive fairness metrics for evaluating ML model fairness.
+고름 자와 따지기
+기계 배움 모형의 고름을 따지는 두루 갖춘 고름 자.
 """
 
 import numpy as np
@@ -17,47 +17,47 @@ from typing import Dict, List, Optional, Tuple
 from sklearn.metrics import confusion_matrix, accuracy_score
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 class FairnessMetrics:
-    """Comprehensive fairness metrics for ML models."""
-    
+    """기계 배움 모형을 위한 두루 갖춘 고름 자."""
+
     @staticmethod
     def demographic_parity(
         y_pred: np.ndarray,
         sensitive_attr: np.ndarray
     ) -> Dict[str, float]:
         """
-        Calculate demographic parity metrics.
-        
-        Demographic Parity (Statistical Parity): 
+        인구 고름 자를 셈한다.
+
+        인구 고름(통계 고름):
         P(Y_pred=1|A=0) = P(Y_pred=1|A=1)
-        
+
         Args:
-            y_pred: Predicted labels
-            sensitive_attr: Sensitive attribute (binary)
-            
+            y_pred: 미루어 본 이름표
+            sensitive_attr: 예민한 됨됨이(두 값)
+
         Returns:
-            Dictionary with demographic parity metrics
+            인구 고름 자를 담은 사전
         """
         groups = np.unique(sensitive_attr)
         positive_rates = {}
-        
+
         for group in groups:
             mask = sensitive_attr == group
             positive_rates[f'group_{group}'] = np.mean(y_pred[mask])
-        
+
         max_rate = max(positive_rates.values())
         min_rate = min(positive_rates.values())
-        
+
         return {
             'positive_rates': positive_rates,
             'demographic_parity_difference': max_rate - min_rate,
             'demographic_parity_ratio': min_rate / max_rate if max_rate > 0 else 0
         }
-    
+
     @staticmethod
     def equal_opportunity(
         y_true: np.ndarray,
@@ -65,22 +65,22 @@ class FairnessMetrics:
         sensitive_attr: np.ndarray
     ) -> Dict[str, float]:
         """
-        Calculate equal opportunity metrics.
-        
-        Equal Opportunity: TPR should be equal across groups
+        고른 틈 자를 셈한다.
+
+        고른 틈: 무리 사이에 TPR이 같아야 한다
         TPR = P(Y_pred=1|Y_true=1, A=a)
-        
+
         Args:
-            y_true: True labels
-            y_pred: Predicted labels
-            sensitive_attr: Sensitive attribute
-            
+            y_true: 참 이름표
+            y_pred: 미루어 본 이름표
+            sensitive_attr: 예민한 됨됨이
+
         Returns:
-            Dictionary with equal opportunity metrics
+            고른 틈 자를 담은 사전
         """
         groups = np.unique(sensitive_attr)
         tpr_dict = {}
-        
+
         for group in groups:
             mask = (sensitive_attr == group) & (y_true == 1)
             if np.sum(mask) > 0:
@@ -88,14 +88,14 @@ class FairnessMetrics:
                 tpr_dict[f'tpr_group_{group}'] = tpr
             else:
                 tpr_dict[f'tpr_group_{group}'] = 0.0
-        
+
         tpr_values = list(tpr_dict.values())
-        
+
         return {
             'true_positive_rates': tpr_dict,
             'equal_opportunity_difference': max(tpr_values) - min(tpr_values)
         }
-    
+
     @staticmethod
     def equalized_odds(
         y_true: np.ndarray,
@@ -103,25 +103,25 @@ class FairnessMetrics:
         sensitive_attr: np.ndarray
     ) -> Dict[str, float]:
         """
-        Calculate equalized odds metrics.
-        
-        Equalized Odds: Both TPR and FPR equal across groups
-        
+        고른 승산 자를 셈한다.
+
+        고른 승산: 무리 사이에 TPR과 FPR이 모두 같아야 한다
+
         Args:
-            y_true: True labels
-            y_pred: Predicted labels
-            sensitive_attr: Sensitive attribute
-            
+            y_true: 참 이름표
+            y_pred: 미루어 본 이름표
+            sensitive_attr: 예민한 됨됨이
+
         Returns:
-            Dictionary with equalized odds metrics
+            고른 승산 자를 담은 사전
         """
         groups = np.unique(sensitive_attr)
         tpr_dict = {}
         fpr_dict = {}
-        
+
         for group in groups:
             group_mask = sensitive_attr == group
-            
+
             # TPR
             pos_mask = group_mask & (y_true == 1)
             if np.sum(pos_mask) > 0:
@@ -129,7 +129,7 @@ class FairnessMetrics:
             else:
                 tpr = 0.0
             tpr_dict[f'tpr_group_{group}'] = tpr
-            
+
             # FPR
             neg_mask = group_mask & (y_true == 0)
             if np.sum(neg_mask) > 0:
@@ -137,10 +137,10 @@ class FairnessMetrics:
             else:
                 fpr = 0.0
             fpr_dict[f'fpr_group_{group}'] = fpr
-        
+
         tpr_values = list(tpr_dict.values())
         fpr_values = list(fpr_dict.values())
-        
+
         return {
             'true_positive_rates': tpr_dict,
             'false_positive_rates': fpr_dict,
@@ -149,7 +149,7 @@ class FairnessMetrics:
             'average_odds_difference': (max(tpr_values) - min(tpr_values) + 
                                        max(fpr_values) - min(fpr_values)) / 2
         }
-    
+
     @staticmethod
     def predictive_parity(
         y_true: np.ndarray,
@@ -157,23 +157,23 @@ class FairnessMetrics:
         sensitive_attr: np.ndarray
     ) -> Dict[str, float]:
         """
-        Calculate predictive parity metrics.
-        
-        Predictive Parity (Outcome Test): 
-        PPV (precision) should be equal across groups
+        미루어 봄 고름 자를 셈한다.
+
+        미루어 봄 고름(결과 따지기):
+        PPV(맞힘)가 무리 사이에 같아야 한다
         PPV = P(Y_true=1|Y_pred=1, A=a)
-        
+
         Args:
-            y_true: True labels
-            y_pred: Predicted labels
-            sensitive_attr: Sensitive attribute
-            
+            y_true: 참 이름표
+            y_pred: 미루어 본 이름표
+            sensitive_attr: 예민한 됨됨이
+
         Returns:
-            Dictionary with predictive parity metrics
+            미루어 봄 고름 자를 담은 사전
         """
         groups = np.unique(sensitive_attr)
         ppv_dict = {}
-        
+
         for group in groups:
             mask = (sensitive_attr == group) & (y_pred == 1)
             if np.sum(mask) > 0:
@@ -181,14 +181,14 @@ class FairnessMetrics:
                 ppv_dict[f'ppv_group_{group}'] = ppv
             else:
                 ppv_dict[f'ppv_group_{group}'] = 0.0
-        
+
         ppv_values = list(ppv_dict.values())
-        
+
         return {
             'positive_predictive_values': ppv_dict,
             'predictive_parity_difference': max(ppv_values) - min(ppv_values)
         }
-    
+
     @staticmethod
     def calibration_metrics(
         y_true: np.ndarray,
@@ -197,37 +197,37 @@ class FairnessMetrics:
         n_bins: int = 10
     ) -> Dict[str, Dict]:
         """
-        Calculate calibration metrics for each group.
-        
-        A well-calibrated model: among predictions with score s,
-        approximately s fraction should be positive.
-        
+        무리마다 눈금 맞음 자를 셈한다.
+
+        눈금이 잘 맞은 모형: 점수가 s인 미루어 봄 가운데
+        대략 s 몫이 양수여야 한다.
+
         Args:
-            y_true: True labels
-            y_pred_proba: Predicted probabilities
-            sensitive_attr: Sensitive attribute
-            n_bins: Number of bins for calibration
-            
+            y_true: 참 이름표
+            y_pred_proba: 미루어 본 낌새
+            sensitive_attr: 예민한 됨됨이
+            n_bins: 눈금 맞음에 쓸 통의 수
+
         Returns:
-            Calibration metrics per group
+            무리마다의 눈금 맞음 자
         """
         groups = np.unique(sensitive_attr)
         calibration_dict = {}
-        
+
         for group in groups:
             mask = sensitive_attr == group
             y_true_group = y_true[mask]
             y_proba_group = y_pred_proba[mask]
-            
-            # Create bins
+
+            # 통을 만든다
             bins = np.linspace(0, 1, n_bins + 1)
             bin_indices = np.digitize(y_proba_group, bins) - 1
             bin_indices = np.clip(bin_indices, 0, n_bins - 1)
-            
+
             bin_true_prob = []
             bin_pred_prob = []
             bin_counts = []
-            
+
             for i in range(n_bins):
                 bin_mask = bin_indices == i
                 if np.sum(bin_mask) > 0:
@@ -238,23 +238,23 @@ class FairnessMetrics:
                     bin_true_prob.append(0)
                     bin_pred_prob.append(0)
                     bin_counts.append(0)
-            
-            # Expected Calibration Error (ECE)
+
+            # 바라는 눈금 맞음 어긋남(ECE)
             ece = 0
             total_samples = len(y_true_group)
             for i in range(n_bins):
                 if bin_counts[i] > 0:
                     ece += (bin_counts[i] / total_samples) * abs(bin_true_prob[i] - bin_pred_prob[i])
-            
+
             calibration_dict[f'group_{group}'] = {
                 'expected_calibration_error': ece,
                 'bin_true_probabilities': bin_true_prob,
                 'bin_predicted_probabilities': bin_pred_prob,
                 'bin_counts': bin_counts
             }
-        
+
         return calibration_dict
-    
+
     @staticmethod
     def group_fairness_score(
         y_true: np.ndarray,
@@ -263,19 +263,19 @@ class FairnessMetrics:
         weights: Optional[Dict[str, float]] = None
     ) -> float:
         """
-        Calculate composite group fairness score.
-        
-        Combines multiple fairness metrics into a single score.
-        Lower score indicates better fairness.
-        
+        아우른 무리 고름 점수를 셈한다.
+
+        고름 자 여럿을 점수 하나로 아우른다.
+        점수가 낮을수록 더 고르다.
+
         Args:
-            y_true: True labels
-            y_pred: Predicted labels
-            sensitive_attr: Sensitive attribute
-            weights: Weights for different metrics (optional)
-            
+            y_true: 참 이름표
+            y_pred: 미루어 본 이름표
+            sensitive_attr: 예민한 됨됨이
+            weights: 자마다의 짐(없어도 된다)
+
         Returns:
-            Composite fairness score
+            아우른 고름 점수
         """
         if weights is None:
             weights = {
@@ -284,22 +284,22 @@ class FairnessMetrics:
                 'equalized_odds': 1.0,
                 'predictive_parity': 1.0
             }
-        
+
         metrics = FairnessMetrics()
-        
-        # Get all metrics
+
+        # 온 자를 얻는다
         dp = metrics.demographic_parity(y_pred, sensitive_attr)
         eo = metrics.equal_opportunity(y_true, y_pred, sensitive_attr)
         eq = metrics.equalized_odds(y_true, y_pred, sensitive_attr)
         pp = metrics.predictive_parity(y_true, y_pred, sensitive_attr)
-        
-        # Calculate weighted score
+
+        # 짐 실은 점수를 셈한다
         score = 0
         score += weights['demographic_parity'] * dp['demographic_parity_difference']
         score += weights['equal_opportunity'] * eo['equal_opportunity_difference']
         score += weights['equalized_odds'] * eq['average_odds_difference']
         score += weights['predictive_parity'] * pp['predictive_parity_difference']
-        
+
         total_weight = sum(weights.values())
         return score / total_weight if total_weight > 0 else score
 
@@ -311,155 +311,155 @@ def comprehensive_fairness_evaluation(
     sensitive_attrs: Dict[str, np.ndarray]
 ) -> str:
     """
-    Perform comprehensive fairness evaluation.
-    
+    두루 갖춘 고름 따지기를 한다.
+
     Args:
-        y_true: True labels
-        y_pred: Predicted labels
-        y_pred_proba: Predicted probabilities (optional)
-        sensitive_attrs: Dictionary of sensitive attributes
-        
+        y_true: 참 이름표
+        y_pred: 미루어 본 이름표
+        y_pred_proba: 미루어 본 낌새(없어도 된다)
+        sensitive_attrs: 예민한 됨됨이의 사전
+
     Returns:
-        Formatted evaluation report
+        꼴 갖춘 따짐 알림
     """
     metrics = FairnessMetrics()
     report = []
-    
+
     report.append("=" * 80)
-    report.append("COMPREHENSIVE FAIRNESS EVALUATION")
+    report.append("두루 갖춘 고름 따지기")
     report.append("=" * 80)
-    
+
     for attr_name, attr_values in sensitive_attrs.items():
         report.append(f"\n{'=' * 80}")
-        report.append(f"SENSITIVE ATTRIBUTE: {attr_name.upper()}")
+        report.append(f"예민한 됨됨이: {attr_name.upper()}")
         report.append(f"{'=' * 80}\n")
-        
-        # Demographic Parity
-        report.append("1. DEMOGRAPHIC PARITY")
+
+        # 인구 고름
+        report.append("1. 인구 고름")
         report.append("-" * 40)
         dp = metrics.demographic_parity(y_pred, attr_values)
         for key, value in dp.items():
             report.append(f"   {key}: {value}")
         report.append("")
-        
-        # Equal Opportunity
-        report.append("2. EQUAL OPPORTUNITY")
+
+        # 고른 틈
+        report.append("2. 고른 틈")
         report.append("-" * 40)
         eo = metrics.equal_opportunity(y_true, y_pred, attr_values)
         for key, value in eo.items():
             report.append(f"   {key}: {value}")
         report.append("")
-        
-        # Equalized Odds
-        report.append("3. EQUALIZED ODDS")
+
+        # 고른 승산
+        report.append("3. 고른 승산")
         report.append("-" * 40)
         eq = metrics.equalized_odds(y_true, y_pred, attr_values)
         for key, value in eq.items():
             report.append(f"   {key}: {value}")
         report.append("")
-        
-        # Predictive Parity
-        report.append("4. PREDICTIVE PARITY")
+
+        # 미루어 봄 고름
+        report.append("4. 미루어 봄 고름")
         report.append("-" * 40)
         pp = metrics.predictive_parity(y_true, y_pred, attr_values)
         for key, value in pp.items():
             report.append(f"   {key}: {value}")
         report.append("")
-        
-        # Calibration (if probabilities provided)
+
+        # 눈금 맞음(낌새가 주어졌을 때)
         if y_pred_proba is not None:
-            report.append("5. CALIBRATION")
+            report.append("5. 눈금 맞음")
             report.append("-" * 40)
             cal = metrics.calibration_metrics(y_true, y_pred_proba, attr_values)
             for group, cal_metrics in cal.items():
                 report.append(f"   {group}: ECE = {cal_metrics['expected_calibration_error']:.4f}")
             report.append("")
-        
-        # Composite Score
-        report.append("6. COMPOSITE FAIRNESS SCORE")
+
+        # 아우른 점수
+        report.append("6. 아우른 고름 점수")
         report.append("-" * 40)
         score = metrics.group_fairness_score(y_true, y_pred, attr_values)
-        report.append(f"   Score: {score:.4f} (lower is better)")
+        report.append(f"   점수: {score:.4f} (낮을수록 좋다)")
         report.append("")
-    
+
     return "\n".join(report)
 
 
 if __name__ == "__main__":
-    # Example usage
+    # 쓰는 보기
     np.random.seed(42)
-    
+
     n_samples = 1000
     gender = np.random.randint(0, 2, n_samples)
     y_true = np.random.randint(0, 2, n_samples)
-    
-    # Biased predictions
+
+    # 치우친 미루어 봄
     y_pred = np.where(
         gender == 0,
         np.random.choice([0, 1], n_samples, p=[0.3, 0.7]),
         np.random.choice([0, 1], n_samples, p=[0.6, 0.4])
     )
-    
+
     y_pred_proba = np.random.rand(n_samples)
-    
+
     report = comprehensive_fairness_evaluation(
         y_true, y_pred, y_pred_proba,
         {'gender': gender}
     )
-    
+
     print(report)```
 
-## Discussion
+## 논의
 
-This implementation demonstrates key concepts in deep learning using clean, readable PyTorch code. The modular structure makes it easy to study individual components and adapt them for different tasks or datasets.
+이 짜보기는 깔끔하고 읽기 쉬운 PyTorch 코드로 깊은 배움의 고갱이가 되는 생각을 보여 준다. 조각으로 나눈 얼개 덕에 부분마다 따로 살피고 다른 일이나 자료에 맞추어 고치기 쉽다.
 
-The patterns demonstrated here extend naturally to more complex scenarios. Experimenting with hyperparameters, architectural variations, and different datasets deepens understanding and builds practical intuition for machine learning tasks.
+여기서 보인 결은 더 까다로운 자리로도 자연스레 넓혀진다. 하이퍼파라미터, 얼개의 갈래, 여러 자료를 바꿔 가며 해 보면 이해가 깊어지고 기계 배움 일감에 대한 감이 몸에 붙는다.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Read through the code and identify the key design decisions. List three specific implementation choices and explain why each is appropriate for deep learning.
+**익힘 1.**
+코드를 읽고 고갱이가 되는 설계 판단을 짚어라. 짜기에서 고른 것 셋을 들고, 저마다 왜 깊은 배움에 알맞은지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Design decisions vary by implementation but commonly include: (1) choice of activation functions -- ReLU variants provide non-saturating gradients for faster training; (2) normalization strategy -- batch normalization stabilizes training by reducing internal covariate shift; (3) residual connections -- when present, they enable gradient flow in deep networks by providing skip paths. Each choice reflects a trade-off between expressiveness, computational cost, and training stability.
-
----
-
-**Exercise 2.**
-Add input validation to the main function or class to check that inputs have the expected shape and dtype. Raise informative error messages for invalid inputs.
-
-??? success "Solution to Exercise 2"
-    At the start of the `forward` method (or relevant function), add checks like: `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'` and `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'`. For shape validation, check critical dimensions: `B, C, H, W = x.shape; assert C == self.expected_channels`. Informative error messages significantly speed up debugging and make the code more robust for reuse.
+??? success "익힘 1 풀이"
+    설계 판단은 짜보기마다 다르나 흔히 이런 것이 있다. (1) 살림 함수 고르기 -- ReLU 갈래는 기울기가 잦아들지 않아 익히기가 빠르다. (2) 고르게 하는 꾀 -- 묶음 고르게 하기가 안쪽 함께 바뀌는 옮겨감을 줄여 익힘을 든든하게 한다. (3) 나머지 이음 -- 있으면 건너뛰는 길을 주어 깊은 그물에서 기울기가 흐르게 한다. 고른 것마다 나타내는 힘, 셈 값, 익힘의 든든함 사이의 맞바꿈을 드러낸다.
 
 ---
 
-**Exercise 3.**
-Describe two potential failure modes of this implementation and explain how you would diagnose and fix each one.
+**익힘 2.**
+들임의 꼴과 자료 갈래가 바라는 대로인지 살피는 들임 살피기를 으뜸 함수나 클래스에 더하여라. 올바르지 않은 들임에는 알아듣기 쉬운 어긋남 알림을 띄워라.
 
-??? success "Solution to Exercise 3"
-    Common failure modes include: (1) **Vanishing/exploding gradients** -- diagnosed by monitoring gradient norms (`torch.nn.utils.clip_grad_norm_` or logging `param.grad.norm()` per layer). Fix with gradient clipping, better initialization (Xavier/Kaiming), or architectural changes (residual connections, normalization). (2) **Overfitting** -- diagnosed when training loss decreases but validation loss increases. Fix with regularization (dropout, weight decay, data augmentation) or reducing model capacity. Always monitor both training and validation metrics to catch these issues early.
+??? success "익힘 2 풀이"
+    `forward` 방법(또는 알맞은 함수)의 첫머리에 `assert x.dim() == expected_dims, f'Expected {expected_dims}D input, got {x.dim()}D'`이나 `assert x.dtype == torch.float32, f'Expected float32, got {x.dtype}'` 같은 살핌을 더한다. 꼴을 살피려면 종요로운 차원을 본다. `B, C, H, W = x.shape; assert C == self.expected_channels`. 알아듣기 쉬운 어긋남 알림은 벌레잡기를 크게 앞당기고 코드를 되쓰기 든든하게 한다.
 
 ---
 
-**Exercise 4.**
-Write a comprehensive test function that validates the Fairness Metrics implementation. Test edge cases including empty inputs, single-element inputs, very large inputs, and inputs with extreme values (zeros, very large numbers).
+**익힘 3.**
+이 짜보기가 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
 
-??? success "Solution to Exercise 4"
-    Create a test function that exercises boundary conditions:
+??? success "익힘 3 풀이"
+    흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫값 잡기(Xavier/Kaiming), 얼개 고치기(나머지 이음, 고르게 하기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 살핌 잃음이 오르면 짚어낸다. 정칙화(드롭아웃, 짐 줄이기, 자료 늘리기)나 모형 크기 줄이기로 고친다. 익힘과 살핌 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
+
+---
+
+**익힘 4.**
+고름 자 짜보기를 살피는 두루 갖춘 시험 함수를 써라. 빈 들임, 원소 하나짜리 들임, 아주 큰 들임, 그리고 끝자락 값(0, 아주 큰 수)이 든 들임 같은 가장자리 자리를 시험하여라.
+
+??? success "익힘 4 풀이"
+    금 언저리 조건을 두루 건드리는 시험 함수를 짓는다.
     ```python
     def test_fairnessmetrics():
         model = FairnessMetrics(...)
-        # Normal input
+        # 여느 들임
         assert model(normal_input).shape == expected_shape
-        # Single element batch
+        # 원소 하나짜리 묶음
         assert model(single_input).shape == (1, ...)
-        # Large values (check for overflow)
+        # 큰 값(넘침을 살핀다)
         out = model(torch.ones(...) * 1000)
         assert torch.isfinite(out).all()
-        # Gradient flow
+        # 기울기 흐름
         out = model(normal_input)
         out.sum().backward()
         for p in model.parameters():
             assert p.grad is not None
     ```
-    Testing gradient flow is especially important to ensure the architecture supports end-to-end training.
+    얼개가 끝에서 끝까지 익히기를 받치는지 알려면 기울기 흐름을 시험하는 것이 특히 중요하다.
