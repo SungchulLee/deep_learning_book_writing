@@ -586,7 +586,7 @@ def targeted_fgsm(model, images, target_labels, epsilon):
     목표 있는 FGSM: 목표 갈래의 손실을 가장 작게 한다.
     
     흔들림은 손실이 줄어드는 방향으로 움직인다
-    with respect to the target class, pulling predictions toward it.
+    과녁 갈래에 대해 기울기를 구해 헤아림을 그쪽으로 끌어당긴다.
     """
     criterion = nn.CrossEntropyLoss()
     

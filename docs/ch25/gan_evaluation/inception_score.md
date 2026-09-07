@@ -134,16 +134,16 @@ from scipy import stats
 
 class InceptionScoreCalculator:
     """
-    Comprehensive Inception Score calculator with detailed documentation.
+    자세한 풀이를 곁들인 두루 갖춘 인셉션 점수 셈틀.
     
-    The Inception Score measures both quality and diversity of generated images
-    by analyzing the class predictions of a pre-trained Inception network.
+    인셉션 점수는 미리 익힌 인셉션 그물의 갈래 헤아림을 살펴
+    만들어 낸 그림의 품질과 다양함을 함께 잰다.
     """
     
     def __init__(self, 
                  device: str = 'cuda' if torch.cuda.is_available() else 'cpu'):
         """
-        Initialize the IS calculator.
+        인셉션 점수 셈틀의 첫자리를 잡는다.
         
         Args:
             device: Computation device ('cuda' or 'cpu')
@@ -152,10 +152,10 @@ class InceptionScoreCalculator:
         self.inception_model = None
         
     def _load_inception(self):
-        """Load InceptionV3 model pre-trained on ImageNet."""
+        """ImageNet으로 미리 익힌 InceptionV3 모델을 불러온다."""
         from torchvision.models import inception_v3, Inception_V3_Weights
         
-        # Load pre-trained InceptionV3
+        # 미리 익힌 InceptionV3을 불러온다
         self.inception_model = inception_v3(
             weights=Inception_V3_Weights.IMAGENET1K_V1,
             transform_input=False  # We'll handle preprocessing ourselves
@@ -163,24 +163,24 @@ class InceptionScoreCalculator:
         self.inception_model.eval()
         self.inception_model.to(self.device)
         
-        # Disable auxiliary outputs
+        # 곁들이 내놓음을 끈다
         self.inception_model.aux_logits = False
         
     def _preprocess_images(self, images: torch.Tensor) -> torch.Tensor:
         """
-        Preprocess images for InceptionV3.
+        InceptionV3에 맞게 그림을 미리 다듬는다.
         
-        InceptionV3 expects:
-        - Images of size 299×299
-        - Normalized with ImageNet mean and std
+        InceptionV3은 다음을 바란다.
+        - 크기가 299×299인 그림
+        - ImageNet 평균과 표준편차로 잣대를 맞춘 그림
         
         Args:
             images: Input images [B, C, H, W] in range [0, 1]
             
         Returns:
-            Preprocessed images ready for Inception
+            인셉션에 바로 넣을 수 있게 다듬은 그림
         """
-        # Resize to 299×299 if needed
+        # 필요하면 299×299로 크기를 바꾼다
         if images.shape[2] != 299 or images.shape[3] != 299:
             images = F.interpolate(
                 images, 
@@ -189,11 +189,11 @@ class InceptionScoreCalculator:
                 align_corners=False
             )
         
-        # Convert grayscale to RGB if needed
+        # 필요하면 잿빛을 RGB로 바꾼다
         if images.shape[1] == 1:
             images = images.repeat(1, 3, 1, 1)
         
-        # Normalize with ImageNet statistics
+        # ImageNet 통계로 잣대를 맞춘다
         # Note: Inception expects [-1, 1] range internally
         mean = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).to(images.device)
         std = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).to(images.device)
@@ -206,11 +206,11 @@ class InceptionScoreCalculator:
                        images: torch.Tensor, 
                        batch_size: int = 32) -> np.ndarray:
         """
-        Get Inception predictions for a batch of images.
+        그림 묶음에 대한 인셉션 헤아림을 얻는다.
         
         Args:
             images: Generated images [N, C, H, W] in range [0, 1]
-            batch_size: Batch size for processing
+            batch_size: 다룰 때 쓰는 묶음 크기
             
         Returns:
             Softmax probabilities [N, 1000]
@@ -226,10 +226,10 @@ class InceptionScoreCalculator:
                 batch = images[i:i+batch_size].to(self.device)
                 batch = self._preprocess_images(batch)
                 
-                # Forward pass through Inception
+                # 인셉션을 지나 앞으로 걸음
                 logits = self.inception_model(batch)
                 
-                # Apply softmax to get probabilities
+                # 소프트맥스를 걸어 확률을 얻는다
                 probs = F.softmax(logits, dim=1)
                 all_probs.append(probs.cpu().numpy())
         
@@ -240,35 +240,35 @@ class InceptionScoreCalculator:
                                   splits: int = 10,
                                   batch_size: int = 32) -> Tuple[float, float]:
         """
-        Calculate Inception Score with confidence intervals.
+        믿음 구간과 함께 인셉션 점수를 셈한다.
         
         Algorithm:
         1. Get p(y|x) from Inception for each image
-        2. Split data into `splits` groups for computing variance
-        3. For each split:
+        2. 흩어짐을 셈하려고 자료를 `splits`개 무리로 나눈다
+        3. 조각마다:
            a. Compute marginal p(y) = mean(p(y|x))
            b. Compute KL(p(y|x) || p(y)) for each sample
-           c. Average KL and exponentiate
-        4. Return mean and std across splits
+           c. KL을 평균 내고 지수를 취한다
+        4. 조각들의 평균과 표준편차를 돌려준다
         
         Args:
             images: Generated images [N, C, H, W] in range [0, 1]
-            splits: Number of splits for computing std
-            batch_size: Batch size for Inception inference
+            splits: 표준편차를 셈할 때 나눌 조각의 수
+            batch_size: 인셉션 미룸에 쓰는 묶음 크기
             
         Returns:
             Tuple of (IS mean, IS std)
         """
-        # Get predictions
+        # 헤아림을 얻는다
         probs = self.get_predictions(images, batch_size)
         
-        # Calculate IS with splits
+        # 조각을 나누어 인셉션 점수를 셈한다
         scores = []
         n = len(probs)
         split_size = n // splits
         
         for k in range(splits):
-            # Get split
+            # 조각을 가져온다
             start = k * split_size
             end = start + split_size if k < splits - 1 else n
             part = probs[start:end]
@@ -276,19 +276,19 @@ class InceptionScoreCalculator:
             # Compute marginal: p(y) = (1/N) Σ p(y|x_i)
             p_y = np.mean(part, axis=0, keepdims=True)
             
-            # Compute KL divergence for each sample
+            # 표본마다 KL 갈림을 셈한다
             # KL(p(y|x) || p(y)) = Σ p(y|x) * log(p(y|x) / p(y))
             eps = 1e-16
             part = np.clip(part, eps, 1.0)
             p_y = np.clip(p_y, eps, 1.0)
             
-            # Log ratio
+            # 로그 비
             log_ratio = np.log(part) - np.log(p_y)
             
-            # KL divergence per sample
+            # 표본마다의 KL 갈림
             kl_per_sample = np.sum(part * log_ratio, axis=1)
             
-            # Average KL and exponentiate
+            # KL을 평균 내고 지수를 취한다
             mean_kl = np.mean(kl_per_sample)
             is_score = np.exp(mean_kl)
             
@@ -299,22 +299,22 @@ class InceptionScoreCalculator:
 
 def compute_inception_score_step_by_step(probs: np.ndarray) -> dict:
     """
-    Compute IS with detailed intermediate results for educational purposes.
+    배움을 돕고자 중간 결과까지 자세히 내며 인셉션 점수를 셈한다.
     
-    This function breaks down the IS computation into interpretable steps,
-    making it easier to understand what each component measures.
+    이 함수는 인셉션 점수 셈을 읽기 쉬운 걸음으로 나누어
+    각 조각이 무엇을 재는지 알기 쉽게 한다.
     
     Args:
         probs: Class probabilities [N, C] from Inception
         
     Returns:
-        Dictionary containing intermediate values and final IS
+        중간 값과 마지막 인셉션 점수를 담은 사전
     """
     eps = 1e-16
     probs = np.clip(probs, eps, 1.0)
     
     # Step 1: Compute marginal distribution p(y)
-    # This represents the overall class distribution across all samples
+    # 이는 모든 표본에 걸친 갈래 분포를 나타낸다
     p_y = np.mean(probs, axis=0)
     
     # Step 2: Compute entropy of marginal H(y)
@@ -326,16 +326,16 @@ def compute_inception_score_step_by_step(probs: np.ndarray) -> dict:
     h_conditional_per_sample = -np.sum(probs * np.log(probs), axis=1)
     h_conditional = np.mean(h_conditional_per_sample)
     
-    # Step 4: Compute KL divergence
+    # 걸음 4: KL 갈림을 셈한다
     # KL(p(y|x) || p(y)) = H(y) - H(y|x) in expectation
-    # But we compute it directly for accuracy
+    # 다만 정확함을 위해 곧바로 셈한다
     kl_per_sample = np.sum(probs * (np.log(probs) - np.log(p_y)), axis=1)
     mean_kl = np.mean(kl_per_sample)
     
     # Step 5: Final IS = exp(mean_kl)
     inception_score = np.exp(mean_kl)
     
-    # Additional insights
+    # 덧붙이는 눈썰미
     effective_classes = np.exp(h_marginal)  # Effective number of classes used
     avg_confidence = np.exp(-h_conditional)  # Average prediction confidence
     
@@ -359,7 +359,7 @@ import matplotlib.pyplot as plt
 
 def demonstrate_inception_score():
     """
-    Demonstrate IS computation with different quality scenarios.
+    품질이 다른 여러 상황에서 인셉션 점수 셈을 보인다.
     """
     n_samples = 1000
     n_classes = 10  # Simplified for demonstration
@@ -416,7 +416,7 @@ def demonstrate_inception_score():
     }
 
 
-# Run demonstration
+# 보임을 돌린다
 results = demonstrate_inception_score()
 ```
 
@@ -447,10 +447,10 @@ IS cannot distinguish between a model that generates novel images and one that s
 ```python
 def demonstrate_memorization_blindness():
     """
-    Shows that IS cannot detect if a model memorizes training data.
+    모델이 익힘 자료를 외워도 인셉션 점수는 알아채지 못함을 보인다.
     """
-    # A model that generates the same 10 images perfectly
-    # will still achieve high IS if those images are classified confidently
+    # 같은 그림 10장을 나무랄 데 없이 만들어 내는 모델도
+    # 그 그림들이 자신 있게 갈리면 인셉션 점수가 높게 나온다
     n_unique = 10
     n_total = 1000
     
@@ -490,9 +490,9 @@ Adversarial strategies can artificially inflate IS:
 ```python
 def demonstrate_gaming_is():
     """
-    Shows how IS can be 'gamed' with adversarial strategies.
+    맞겨루기 꾀로 인셉션 점수를 어떻게 '주무를' 수 있는지 보인다.
     """
-    # Strategy: Generate exactly one image per class
+    # 꾀: 갈래마다 그림을 꼭 하나씩만 만든다
     n_classes = 1000
     probs_gamed = np.eye(n_classes)  # Perfect classification for each class
     
@@ -508,7 +508,7 @@ def demonstrate_gaming_is():
 ```python
 def analyze_sample_size_effect(generator, sample_sizes=[100, 500, 1000, 5000, 10000]):
     """
-    Analyze how sample size affects IS stability.
+    표본 수가 인셉션 점수의 든든함에 어떤 영향을 주는지 살핀다.
     """
     calculator = InceptionScoreCalculator()
     
@@ -535,7 +535,7 @@ def analyze_sample_size_effect(generator, sample_sizes=[100, 500, 1000, 5000, 10
 ### 2. Splits for Variance Estimation
 
 ```python
-# Standard practice: 10 splits
+# 흔한 방식: 조각 10개
 is_mean, is_std = calculator.calculate_inception_score(images, splits=10)
 
 # Report as: IS = mean ± std

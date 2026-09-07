@@ -9,17 +9,17 @@ This module implements module 52: inception score (is), an important component i
 Module 52: Inception Score (IS)
 ================================
 
-Implementation and explanation of Inception Score, a popular metric
-for evaluating generative models, especially GANs.
+만들어 내는 모델, 특히 GAN을 따지는 데 널리 쓰는 자인
+인셉션 점수를 짜고 풀이한다.
 
-Learning Objectives:
+배움 목표:
 -------------------
-1. Understand IS mathematical foundation
-2. Implement IS from scratch
-3. Interpret IS scores correctly
-4. Recognize IS limitations
+1. 인셉션 점수의 수학 바탕을 이해한다
+2. 인셉션 점수를 맨바닥부터 짠다
+3. 인셉션 점수를 올바로 읽는다
+4. 인셉션 점수의 한계를 알아본다
 
-Key Formula:
+고갱이 식:
 -----------
 IS = exp(E_x[KL(p(y|x) || p(y))])
 
@@ -27,7 +27,7 @@ where:
 - p(y|x): Conditional label distribution (sharpness/quality)
 - p(y): Marginal label distribution (diversity)
 
-Author: Educational AI Team
+지은이: 배움용 AI 모둠
 Date: 2025
 """
 
@@ -48,17 +48,17 @@ np.random.seed(42)
 
 class InceptionScore:
     """
-    Inception Score calculator.
+    인셉션 점수 셈틀.
     
-    Mathematical Foundation:
+    수학 바탕:
     -----------------------
     IS = exp(E_x[KL(p(y|x) || p(y))])
     
-    Breaking down the components:
+    조각을 하나씩 뜯어보면:
     
     1. p(y|x): Conditional class distribution
-       - Run InceptionV3 on image x
-       - Get softmax probabilities over 1000 ImageNet classes
+       - 그림 x에 InceptionV3을 돌린다
+       - ImageNet 갈래 1000개에 대한 소프트맥스 확률을 얻는다
        - Sharp distribution (confident predictions) = high quality
     
     2. p(y): Marginal class distribution  
@@ -71,114 +71,114 @@ class InceptionScore:
        - High KL = images have confident, diverse predictions
        - Low KL = either low quality or low diversity
     
-    4. Exponentiation: Convert from log scale
+    4. 지수 취하기: 로그 자에서 되돌린다
        - exp(E[KL(...)]) gives final IS
-       - Typical range: 1.0 to ~10.0 for ImageNet-like images
+       - 흔한 범위: ImageNet 같은 그림에서 1.0에서 10.0쯤
     
     Intuition:
     ---------
-    Good generative model should produce images that:
+    좋은 만들어 내는 모델은 다음과 같은 그림을 내놓아야 한다.
     - Are clearly recognizable (high p(y|x) entropy → confident)
     - Cover many classes (uniform p(y) → diverse)
     
-    IS captures both via KL divergence.
+    인셉션 점수는 KL 갈림으로 두 가지를 함께 잡는다.
     
     Limitations:
     -----------
     1. Only works for ImageNet-like images (uses Inception classifier)
     2. Cannot detect overfitting (memorization)
-    3. Ignores within-class diversity
-    4. Can be fooled by generating one image per class
-    5. Sensitive to Inception model choice
+    3. 갈래 안의 다양함을 놓친다
+    4. 갈래마다 그림 하나씩만 만들어도 속일 수 있다
+    5. 어떤 인셉션 모델을 쓰느냐에 흔들린다
     """
     
     @staticmethod
     def calculate_inception_score(probs: np.ndarray,
                                   splits: int = 10) -> Tuple[float, float]:
         """
-        Calculate Inception Score from class probabilities.
+        갈래 확률에서 인셉션 점수를 셈한다.
         
         Args:
             probs: Class probabilities [n_samples, n_classes]
-                   Output of InceptionV3 softmax layer
-            splits: Number of splits for computing std dev
+                   InceptionV3 소프트맥스 층의 내놓음
+            splits: 표준편차를 셈할 때 나눌 조각의 수
         
         Returns:
             Tuple of (mean IS, std IS)
         
-        Mathematical Steps:
+        수학 걸음:
         ------------------
         1. Compute p(y) = (1/N) Σ p(y|x_i) for each x_i
-        2. For each split:
+        2. 조각마다:
            a. Compute KL(p(y|x_i) || p(y)) for each sample
            b. Average: E_x[KL(...)]
            c. Exponentiate: exp(E_x[KL(...)])
-        3. Return mean and std over splits
+        3. 조각들의 평균과 표준편차를 돌려준다
         """
-        # Ensure probabilities are valid
+        # 확률이 올바른지 다진다
         assert np.all(probs >= 0), "Probabilities must be non-negative"
         assert np.allclose(probs.sum(axis=1), 1.0, atol=1e-3), \
             "Probabilities must sum to 1"
         
         n_samples = len(probs)
         
-        # Split into batches for computing std
+        # 표준편차를 셈하려고 묶음으로 나눈다
         split_size = n_samples // splits
         scores = []
         
         for i in range(splits):
-            # Get split
+            # 조각을 가져온다
             start_idx = i * split_size
             end_idx = (i + 1) * split_size if i < splits - 1 else n_samples
             part = probs[start_idx:end_idx]
             
             # 1. Compute marginal distribution p(y)
-            # Average of conditional distributions
+            # 조건 분포의 평균
             # Shape: [n_classes]
             p_y = np.mean(part, axis=0)
             
-            # 2. Compute KL divergence for each sample
+            # 2. 표본마다 KL 갈림을 셈한다
             # KL(p(y|x) || p(y)) = Σ p(y|x) * log(p(y|x) / p(y))
             
-            # Add small epsilon for numerical stability
+            # 수치가 든든하도록 작은 엡실론을 더한다
             eps = 1e-16
             p_y = p_y + eps
             part = part + eps
             
-            # Compute KL divergence
+            # KL 갈림을 셈한다
             # Shape: [split_size, n_classes]
             kl_div = part * (np.log(part) - np.log(p_y))
             
-            # Sum over classes, average over samples
+            # 갈래에 대해 더하고 표본에 대해 평균 낸다
             # E_x[KL(p(y|x) || p(y))]
             kl_mean = np.mean(np.sum(kl_div, axis=1))
             
-            # 3. Exponentiate to get IS
+            # 3. 지수를 취해 인셉션 점수를 얻는다
             is_score = np.exp(kl_mean)
             scores.append(is_score)
         
-        # Return mean and std over splits
+        # 조각들의 평균과 표준편차를 돌려준다
         return float(np.mean(scores)), float(np.std(scores))
     
     @staticmethod
     def interpret_is(is_score: float) -> str:
         """
-        Interpret Inception Score value.
+        인셉션 점숫값을 풀이한다.
         
         Args:
-            is_score: IS value
+            is_score: 인셉션 점숫값
         
         Returns:
-            Interpretation string
+            풀이 글월
         
         Typical Ranges (ImageNet):
         -------------------------
-        - IS < 2.0: Very poor
-        - IS 2.0-5.0: Poor to moderate
+        - 인셉션 점수 < 2.0: 매우 나쁨
+        - 인셉션 점수 2.0~5.0: 나쁨에서 보통
         - IS 5.0-8.0: Good
         - IS > 8.0: Excellent
         
-        Note: Real images from ImageNet achieve IS ~11.2
+        눈여겨볼 것: ImageNet의 참 그림은 인셉션 점수가 11.2쯤이다
         """
         if is_score < 2.0:
             return "Very Poor"
@@ -192,7 +192,7 @@ class InceptionScore:
 
 def demonstrate_inception_score_intuition():
     """
-    Demonstrates IS intuition with toy examples.
+    간단한 보기로 인셉션 점수의 느낌을 보인다.
     """
     print("=" * 70)
     print("Inception Score Intuition")
@@ -238,7 +238,7 @@ def demonstrate_inception_score_intuition():
     print("\nScenario 3: Mode Collapse (Single Class)")
     print("-" * 70)
     
-    # All images classified as class 0
+    # 모든 그림이 갈래 0으로 갈린다
     probs3 = np.zeros((n_samples, n_classes))
     probs3[:, 0] = 0.95
     probs3[:, 1:] = 0.05 / (n_classes - 1)
@@ -249,11 +249,11 @@ def demonstrate_inception_score_intuition():
     print("Explanation: Confident predictions but no diversity")
     print("p(y) peaked at one class → Low KL → Low IS")
     
-    # Scenario 4: High quality but limited diversity
+    # 상황 4: 품질은 좋으나 다양함이 적다
     print("\nScenario 4: Good Quality but Limited Diversity")
     print("-" * 70)
     
-    # Only 3 out of 10 classes represented
+    # 갈래 10개 가운데 3개만 나타난다
     probs4 = np.zeros((n_samples, n_classes))
     for i in range(n_samples):
         class_idx = i % 3  # Only classes 0, 1, 2
@@ -280,7 +280,7 @@ def demonstrate_inception_score_intuition():
 
 def demonstrate_is_limitations():
     """
-    Demonstrates limitations of Inception Score.
+    인셉션 점수의 한계를 보인다.
     """
     print("\n" + "=" * 70)
     print("Inception Score Limitations")
@@ -289,7 +289,7 @@ def demonstrate_is_limitations():
     n_samples = 1000
     n_classes = 10
     
-    # Limitation 1: Cannot detect memorization
+    # 한계 1: 외워 버린 것을 알아채지 못한다
     print("\nLimitation 1: Cannot Detect Memorization/Overfitting")
     print("-" * 70)
     print("A model that perfectly memorizes training images can achieve")
@@ -298,7 +298,7 @@ def demonstrate_is_limitations():
     print("         → High IS (confident + diverse)")
     print("         → But not creative/generative!")
     
-    # Limitation 2: Ignores within-class diversity
+    # 한계 2: 갈래 안의 다양함을 놓친다
     print("\nLimitation 2: Ignores Within-Class Diversity")
     print("-" * 70)
     print("IS only cares about class labels, not visual diversity.")
@@ -306,7 +306,7 @@ def demonstrate_is_limitations():
     print("         → Still get high IS if classified as 'cat'")
     print("         → But zero visual diversity!")
     
-    # Create example: all images classified as same class but IS is high
+    # 보기: 모든 그림이 같은 갈래로 갈리는데도 인셉션 점수가 높다
     probs_same = np.zeros((n_samples, n_classes))
     probs_same[:, 0] = 0.95
     probs_same[:, 1:] = 0.05 / (n_classes - 1)
@@ -315,7 +315,7 @@ def demonstrate_is_limitations():
     print(f"\n1000 identical images → IS = {is_same:.2f}")
     print("This should be low but IS doesn't capture it!")
     
-    # Limitation 3: Can be fooled
+    # 한계 3: 속일 수 있다
     print("\nLimitation 3: Can Be Fooled by Adversarial Generation")
     print("-" * 70)
     print("Strategy: Generate exactly one image per class")
@@ -324,7 +324,7 @@ def demonstrate_is_limitations():
     print("          → High IS!")
     print("\nBut only 10 unique images for 1000 ImageNet classes is terrible!")
     
-    # Limitation 4: Inception-specific
+    # 한계 4: 인셉션에만 매여 있다
     print("\nLimitation 4: Tied to InceptionV3 Classifier")
     print("-" * 70)
     print("IS depends on InceptionV3's learned representations.")
@@ -344,16 +344,16 @@ def demonstrate_is_limitations():
 
 def main():
     """
-    Main demonstration function.
+    으뜸 보임 함수.
     """
     print("\n" + "=" * 70)
     print("MODULE 52: INCEPTION SCORE (IS)")
     print("=" * 70)
     
-    # Demonstrate IS intuition
+    # 인셉션 점수의 느낌을 보인다
     demonstrate_inception_score_intuition()
     
-    # Demonstrate limitations
+    # 한계를 보인다
     demonstrate_is_limitations()
     
     print("\n" + "=" * 70)
@@ -364,38 +364,38 @@ def main():
        IS = exp(E_x[KL(p(y|x) || p(y))])
        - p(y|x): Conditional distribution (quality/sharpness)
        - p(y): Marginal distribution (diversity)
-       - KL divergence balances both
+       - KL 갈림이 둘의 균형을 잡는다
     
-    2. What IS Measures:
-       - Quality: How confident are the predictions?
-       - Diversity: How many classes are covered?
+    2. 인셉션 점수가 재는 것:
+       - 품질: 헤아림이 얼마나 자신 있는가?
+       - 다양함: 갈래를 얼마나 두루 덮는가?
        - High IS = Confident predictions + Diverse samples
     
-    3. Typical Values:
+    3. 흔한 값:
        - Minimum: IS = 1.0 (uniform predictions)
        - Good: IS > 5.0
        - Excellent: IS > 8.0
-       - Real ImageNet: IS ≈ 11.2
+       - 참 ImageNet: 인셉션 점수 ≈ 11.2
     
     4. Strengths:
-       - Single number metric
-       - Fast to compute
-       - Captures quality-diversity tradeoff
-       - Widely used and understood
+       - 수 하나로 나타내는 자
+       - 셈이 빠르다
+       - 품질과 다양함의 절충을 잡아낸다
+       - 널리 쓰이고 잘 알려져 있다
     
     5. Limitations:
-       - Cannot detect memorization/overfitting
-       - Ignores within-class diversity
-       - Only works for ImageNet-like images
-       - Tied to InceptionV3 classifier
-       - Can be fooled by adversarial strategies
+       - 외워 버림이나 지나치게 맞춰짐을 알아채지 못한다
+       - 갈래 안의 다양함을 놓친다
+       - ImageNet 같은 그림에서만 쓸모 있다
+       - InceptionV3 가름개에 매여 있다
+       - 맞겨루기 꾀에 속을 수 있다
     
     6. 모범 사례:
        - Use splits=10 for computing std dev
-       - Report IS ± std
+       - 인셉션 점수 ± 표준편차를 함께 알린다
        - Always combine with other metrics (FID, precision/recall)
-       - Include visual inspection
-       - Consider task-specific evaluation
+       - 눈으로 살펴보는 일을 곁들인다
+       - 일에 맞춘 따지기도 함께 생각한다
     """)
     print("=" * 70)
 

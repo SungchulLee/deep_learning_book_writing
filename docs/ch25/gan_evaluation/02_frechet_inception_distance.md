@@ -10,7 +10,7 @@ Module 52: Fréchet Inception Distance (FID)
 ==========================================
 
 가장 널리 쓰이는 잣대 가운데 하나인 FID을 두루 갖추어 짠다
-for evaluating generative models.
+만들어 내는 모델을 따지는 데 쓴다.
 
 학습 목표:
 -------------------
