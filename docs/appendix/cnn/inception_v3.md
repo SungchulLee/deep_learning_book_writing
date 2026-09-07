@@ -2,7 +2,7 @@
 
 Inception v3, presented in the 2015 paper "Rethinking the Inception Architecture," refines the original GoogLeNet with several key innovations: factorized convolutions that decompose large filters into smaller asymmetric ones, label smoothing regularization, and auxiliary classifiers for training stability. These improvements together yield a more efficient and accurate architecture that became a standard baseline for image classification research.
 
-## Code
+## 코드
 
 ```python
 #!/usr/bin/env python3
@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 class InceptionV3(nn.Module):
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## Discussion
+## 논의
 
 The most significant architectural contribution of Inception v3 is the factorization of convolutions. A $5 \times 5$ convolution is replaced by two stacked $3 \times 3$ convolutions, reducing parameters from $25C^2$ to $18C^2$. Going further, an $n \times n$ convolution is factorized into an $n \times 1$ followed by a $1 \times n$ convolution, which for $n=7$ reduces parameters from $49C^2$ to $14C^2$. These factorizations maintain the receptive field while dramatically reducing computation.
 
@@ -45,28 +45,28 @@ Label smoothing is another important contribution. Instead of using hard one-hot
 
 Auxiliary classifiers, attached to intermediate layers during training, provide additional gradient signals to combat the vanishing gradient problem in very deep networks. They are weighted by a small factor (0.3) and removed at inference time. While their contribution to preventing vanishing gradients has been debated, they serve as effective regularizers by encouraging discriminative features at intermediate representations.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 Calculate the parameter savings from factorizing a $7 \times 7$ convolution with 256 input and 256 output channels into a $7 \times 1$ followed by $1 \times 7$ convolution.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     Original $7 \times 7$ convolution: $256 \times 256 \times 7 \times 7 = 3,211,264$ parameters. Factorized: $7 \times 1$ convolution has $256 \times 256 \times 7 \times 1 = 458,752$ parameters, and $1 \times 7$ convolution has $256 \times 256 \times 1 \times 7 = 458,752$ parameters. Total factorized: $917,504$ parameters. Savings: $3,211,264 / 917,504 \approx 3.5\times$ fewer parameters, or about 71% reduction.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Explain why label smoothing helps prevent overfitting. How does it interact with the cross-entropy loss function?
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     With hard one-hot targets, the cross-entropy loss drives the model to output arbitrarily large logits for the correct class relative to others, as $-\log(\text{softmax})$ approaches zero only as the logit difference approaches infinity. This leads to overconfident predictions and poor calibration. Label smoothing changes the target distribution so the correct class has probability $1-\epsilon+\epsilon/K$ instead of 1, and incorrect classes have probability $\epsilon/K$ instead of 0. The loss now has a finite optimum where the model assigns high but bounded probability to the correct class. This acts as a regularizer that encourages the model to maintain uncertainty, improves calibration, and reduces the gap between training and validation performance.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Implement an Inception module with three parallel branches: a $1 \times 1$ convolution, a factorized $3 \times 3$ convolution (using $3 \times 1$ and $1 \times 3$), and a max-pooling branch.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     class InceptionModule(nn.Module):
         def __init__(self, in_ch, out_1x1, out_3x3, pool_proj):

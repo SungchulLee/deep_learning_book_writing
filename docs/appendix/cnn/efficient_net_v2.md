@@ -2,7 +2,7 @@
 
 EfficientNetV2, presented in the 2021 paper "EfficientNetV2: Smaller Models and Faster Training," improves upon the original EfficientNet with Fused-MBConv layers and a progressive learning strategy. These changes significantly reduce training time while maintaining or improving accuracy. The architecture was discovered through a combination of neural architecture search and manual refinement, optimizing for both training speed and parameter efficiency.
 
-## Code
+## 코드
 
 ```python
 #!/usr/bin/env python3
@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 class FusedMBConv(nn.Module):
@@ -50,7 +50,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## Discussion
+## 논의
 
 The central architectural innovation in EfficientNetV2 is the Fused-MBConv block, which replaces the depthwise separable convolution in early stages with a regular $3 \times 3$ convolution. While depthwise separable convolutions are parameter-efficient, they underutilize modern accelerator hardware (GPUs/TPUs) due to low arithmetic intensity. The fused variant uses a standard $3 \times 3$ convolution to expand channels, followed by a $1 \times 1$ projection, achieving better hardware utilization at the cost of slightly more parameters. EfficientNetV2 uses Fused-MBConv in early stages (where feature maps are large) and standard MBConv in later stages.
 
@@ -58,28 +58,28 @@ The progressive learning strategy is another key contribution. During training, 
 
 EfficientNetV2 also uses SiLU (Swish) activation throughout, which has been shown to outperform ReLU in many settings. The SiLU function $f(x) = x \cdot \sigma(x)$ is smooth and non-monotonic, providing better gradient flow during training.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 Compare the computational cost (in FLOPs) of a standard MBConv block versus a FusedMBConv block, given input shape $(1, 32, 56, 56)$ with expand ratio 4 and output channels 32.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     For MBConv: (1) $1 \times 1$ expansion: $32 \times 128 \times 56 \times 56 \approx 12.8M$ FLOPs. (2) $3 \times 3$ depthwise: $128 \times 9 \times 56 \times 56 \approx 3.6M$ FLOPs. (3) $1 \times 1$ projection: $128 \times 32 \times 56 \times 56 \approx 12.8M$ FLOPs. Total: $\approx 29.2M$ FLOPs. For FusedMBConv: (1) $3 \times 3$ regular conv: $32 \times 128 \times 9 \times 56 \times 56 \approx 115.6M$ FLOPs. (2) $1 \times 1$ projection: $128 \times 32 \times 56 \times 56 \approx 12.8M$ FLOPs. Total: $\approx 128.4M$ FLOPs. FusedMBConv uses about 4.4x more FLOPs but achieves higher hardware utilization, often resulting in faster wall-clock time on GPUs.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Explain why progressive learning (increasing resolution during training) is more beneficial for EfficientNet-style models than for fixed-resolution models like ResNet.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     EfficientNet models use compound scaling that jointly adjusts depth, width, and resolution. Their architecture is specifically designed to work across different resolutions. Progressive learning exploits this by starting at low resolution (fewer pixels to process, faster iterations) and gradually increasing to full resolution. The features learned at lower resolution transfer naturally because the network structure is resolution-agnostic. ResNets have fixed architectural assumptions and their performance is more sensitive to resolution changes. Additionally, the regularization scheduling in progressive learning (weaker augmentation at low resolution, stronger at high resolution) prevents the model from overfitting to augmented small images, a problem less relevant for ResNets that train at fixed resolution.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Implement a complete `FusedMBConv` block with squeeze-and-excitation (SE) attention and a skip connection.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     class FusedMBConvSE(nn.Module):
         def __init__(self, in_ch, out_ch, expand_ratio=4, se_ratio=0.25):

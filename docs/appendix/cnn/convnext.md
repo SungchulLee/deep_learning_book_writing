@@ -2,7 +2,7 @@
 
 ConvNeXt, presented in the 2022 paper "A ConvNet for the 2020s," systematically modernizes the classic ResNet architecture by incorporating design principles borrowed from Vision Transformers. The result is a pure convolutional architecture that matches or exceeds the performance of Swin Transformer across multiple vision benchmarks, demonstrating that the inductive biases of convolutions remain highly competitive when paired with modern training recipes and architectural choices.
 
-## Code
+## 코드
 
 ```python
 #!/usr/bin/env python3
@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 class ConvNeXtBlock(nn.Module):
@@ -63,7 +63,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## Discussion
+## 논의
 
 The ConvNeXt block draws several design choices from transformers. The $7 \times 7$ depthwise convolution mirrors the large receptive field of self-attention, while using `groups=dim` keeps computation efficient. LayerNorm replaces BatchNorm, which aligns with transformer practice and improves performance especially in transfer learning scenarios where batch statistics may be unreliable. The inverted bottleneck design (expanding to $4 \times$ the dimension, then projecting back) directly parallels the feedforward network in a transformer block.
 
@@ -71,28 +71,28 @@ Layer scale, controlled by the learnable parameter `gamma` initialized to a very
 
 The broader lesson of ConvNeXt is that many perceived advantages of vision transformers stem not from self-attention itself, but from accompanying design and training improvements. When these improvements are transferred back to convolutional architectures, pure ConvNets remain highly competitive, while retaining the efficiency benefits of translation equivariance and local connectivity.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 Calculate the number of parameters in a single `ConvNeXtBlock` with `dim=96`.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     The depthwise convolution has $96 \times 7 \times 7 + 96 = 4800$ parameters (weights + bias). LayerNorm has $96 + 96 = 192$ parameters (weight and bias). The first pointwise linear layer: $96 \times 384 + 384 = 37,248$. The second pointwise linear layer: $384 \times 96 + 96 = 36,960$. Layer scale gamma: $96$. Total: $4800 + 192 + 37,248 + 36,960 + 96 = 79,296$ parameters.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Explain the purpose of the `permute` operations in the forward method of `ConvNeXtBlock`. Why not use `nn.LayerNorm` directly on the NCHW tensor?
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     PyTorch's `nn.LayerNorm` normalizes over the last dimension(s) of the input. For a tensor in NCHW format, applying LayerNorm would normalize over W (width) only, or require specifying `[C, H, W]` which would couple the normalization to a specific spatial resolution. By permuting to NHWC format, LayerNorm naturally normalizes over the channel dimension C at each spatial location, which is the desired behavior (analogous to how LayerNorm works in transformers over the feature dimension). The linear layers also operate on the last dimension, so the NHWC layout lets them process channels directly. The final permute restores NCHW for compatibility with the depthwise convolution.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Modify the `ConvNeXt` model to support a multi-stage architecture with downsampling between stages. Add a second stage with `dim=192` and a downsampling layer between the two stages.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     class ConvNeXtMultiStage(nn.Module):
         def __init__(self, num_classes=1000):

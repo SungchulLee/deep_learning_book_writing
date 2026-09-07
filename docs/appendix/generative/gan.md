@@ -4,7 +4,7 @@ GAN was introduced in the 2014 paper "Generative Adversarial Networks." Two netw
 
 This implementation provides a concise, educational reference for GAN. The code focuses on the core architecture and forward pass, making it straightforward to study the key design patterns and adapt them for experimentation.
 
-## Code
+## 코드
 
 ```python
 #!/usr/bin/env python3
@@ -17,7 +17,7 @@ import torch
 import torch.nn as nn
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 class Generator(nn.Module):
@@ -136,48 +136,48 @@ if __name__ == "__main__":
     print(f"Generator Parameters: {sum(p.numel() for p in model.generator.parameters()):,}")
     print(f"Discriminator Parameters: {sum(p.numel() for p in model.discriminator.parameters()):,}")```
 
-## Discussion
+## 논의
 
-The implementation defines 3 classes (`Generator`, `Discriminator`, `GAN`) that work together to form the complete generative model architecture. Each class encapsulates a distinct component, making the code modular and easy to extend. The `forward` methods define the computational graph that PyTorch uses for automatic differentiation.
+이 짜보기는 갈래 3개(`Generator`, `Discriminator`, `GAN`)를 매기고, 이들이 어울려 온전한 만들개 모형 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch이 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
 The training loop follows the standard PyTorch pattern: forward pass to compute predictions, loss calculation, backward pass for gradient computation, and parameter update via the optimizer. Tracking metrics across epochs reveals the convergence behavior and helps diagnose issues like underfitting or overfitting.
 
-As a reference implementation, this code prioritizes clarity over optimization. Production systems would typically add mixed-precision training, distributed data parallelism, and more sophisticated data augmentation. Nevertheless, the core architectural ideas shown here remain the same regardless of scale.
+여기 실린 코드는 본보기 짜보기라 다듬기보다 알아보기 쉬움을 앞세운다. 서비스 얼개라면 흔히 섞인 촘촘함 익히기, 흩은 자료 나란히, 더 정교한 자료 불리기를 더한다. 그래도 여기서 보인 얼개의 고갱이 깨침은 크기와 상관없이 그대로다.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Calculate the total number of learnable parameters in `Generator` with the default initialization. Break down the count by layer, including both weights and biases.
+**익힘 1.**
+기본 첫자리로 잡은 `Generator`의 배울 수 있는 매개변수를 모두 세어라. 짐과 치우침을 아울러 켜마다 나누어 적어라.
 
-??? success "Solution to Exercise 1"
-    For each `nn.Linear(in_features, out_features)`, there are `in_features * out_features` weight parameters plus `out_features` bias parameters (unless `bias=False`). For `nn.Conv2d(in_c, out_c, k)`, there are `in_c * out_c * k * k` weight parameters plus `out_c` bias parameters. For `nn.Embedding(num, dim)`, there are `num * dim` parameters. Sum across all layers. You can verify with `sum(p.numel() for p in model.parameters())`.
+??? success "익힘 1 풀이"
+    `nn.Linear(in_features, out_features)`마다 짐 매개변수가 `in_features * out_features`개이고 치우침이 `out_features`개다(`bias=False`가 아니면). `nn.Conv2d(in_c, out_c, k)`마다 짐이 `in_c * out_c * k * k`개, 치우침이 `out_c`개다. `nn.Embedding(num, dim)`은 매개변수가 `num * dim`개다. 켜를 모두 더한다. `sum(p.numel() for p in model.parameters())`으로 따져 볼 수 있다.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Replace the optimizer with Adam (use `torch.optim.Adam` with `lr=0.001`) and compare the training convergence with the original optimizer. Plot the loss curves for both on the same graph.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     Replace the optimizer creation line with `optimizer = torch.optim.Adam(model.parameters(), lr=0.001)`. Adam typically converges faster in early epochs because it maintains per-parameter adaptive learning rates and momentum estimates. The loss curve with Adam usually drops more steeply in the first few epochs but may oscillate slightly more than SGD with momentum near the optimum. For a fair comparison, run both with the same random seed and number of epochs.
 
 ---
 
-**Exercise 3.**
-Describe two potential failure modes of this implementation and explain how you would diagnose and fix each one.
+**익힘 3.**
+이 짜보기가 무너질 만한 결 둘을 밝히고, 저마다 어떻게 짚어내고 고칠지 밝혀라.
 
-??? success "Solution to Exercise 3"
-    Common failure modes include: (1) **Vanishing/exploding gradients** -- diagnosed by monitoring gradient norms (`torch.nn.utils.clip_grad_norm_` or logging `param.grad.norm()` per layer). Fix with gradient clipping, better initialization (Xavier/Kaiming), or architectural changes (residual connections, normalization). (2) **Overfitting** -- diagnosed when training loss decreases but validation loss increases. Fix with regularization (dropout, weight decay, data augmentation) or reducing model capacity. Always monitor both training and validation metrics to catch these issues early.
+??? success "익힘 3 풀이"
+    흔히 무너지는 결은 이렇다. (1) **기울기가 사라지거나 터짐** -- 기울기 크기를 지켜보아 짚어낸다(`torch.nn.utils.clip_grad_norm_`이나 켜마다 `param.grad.norm()` 적기). 기울기 자르기, 더 나은 첫자리 잡기(Xavier/Kaiming), 얼개 고치기(나머지 이음, 잣대 잡기)로 고친다. (2) **지나치게 맞추기** -- 익힘 잃음은 줄어드는데 따짐 잃음이 오르면 짚어낸다. 다독임(드롭아웃, 짐 줄이기, 자료 불리기)이나 모형 크기 줄이기로 고친다. 익힘과 따짐 자를 늘 함께 지켜보아 이를 일찍 잡아야 한다.
 
 ---
 
-**Exercise 4.**
-Extend `Generator` to support a configurable number of layers or blocks. Add a `num_layers` parameter to `__init__` and use `nn.ModuleList` to create a variable-depth architecture. Test with 2, 4, and 8 layers.
+**익힘 4.**
+`Generator`을 켜나 덩이의 수를 골라 잡을 수 있게 넓혀라. `__init__`에 `num_layers` 매개변수를 더하고 `nn.ModuleList`으로 깊이를 바꿀 수 있는 얼개를 짜라. 켜 2개, 4개, 8개로 시험하여라.
 
-??? success "Solution to Exercise 4"
-    Replace the hardcoded layers with:
+??? success "익힘 4 풀이"
+    박아 넣은 켜를 다음으로 갈음한다.
     ```python
     self.layers = nn.ModuleList()
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    In the `forward` method, iterate: `for layer in self.layers: x = layer(x)`. Using `nn.ModuleList` (not a plain Python list) ensures PyTorch registers all parameters for optimization. Test with: `for n in [2, 4, 8]: model = Generator(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch이 매개변수를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = Generator(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.

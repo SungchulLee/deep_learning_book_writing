@@ -2,7 +2,7 @@
 
 The Convolutional Block Attention Module (CBAM), introduced in the 2018 paper of the same name, applies sequential channel and spatial attention to refine feature maps. By learning "what" to attend to (channel attention) and "where" to attend (spatial attention), CBAM provides a lightweight yet effective mechanism that can be plugged into any CNN backbone with minimal overhead.
 
-## Code
+## 코드
 
 ```python
 #!/usr/bin/env python3
@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 class ChannelAttention(nn.Module):
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## Discussion
+## 논의
 
 CBAM consists of two sequential sub-modules. The channel attention module exploits inter-channel relationships by aggregating spatial information using both average pooling and max pooling, passing each through a shared multi-layer perceptron, and combining the results. This dual-pooling strategy captures both the average response (what features are generally present) and the most salient response (what features are strongest), producing a richer channel descriptor than using either alone.
 
@@ -89,28 +89,28 @@ The spatial attention module complements channel attention by identifying inform
 
 The design is deliberately lightweight. The reduction ratio in channel attention (defaulting to 16) keeps the bottleneck MLP small, and the spatial attention uses a single convolution. This makes CBAM easy to integrate into existing architectures like ResNet, with typically less than 1% parameter overhead while providing consistent accuracy improvements across classification, detection, and segmentation tasks.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 Given an input feature map of shape $(B, 64, H, W)$ with reduction ratio 16, compute the number of parameters in the `ChannelAttention` module.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     The shared MLP consists of two $1 \times 1$ convolutions (without bias): the first is $64 \to 64/16 = 4$ with $64 \times 4 = 256$ parameters, and the second is $4 \to 64$ with $4 \times 64 = 256$ parameters. The total is $256 + 256 = 512$ parameters. Note that the pooling layers have no learnable parameters, and the sigmoid is parameter-free.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Why does CBAM apply channel attention before spatial attention rather than the reverse order or in parallel? Discuss the intuitive reasoning.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     Channel attention first determines which feature channels are important, effectively answering "what" to focus on. Once the features are re-weighted by channel importance, spatial attention can more effectively determine "where" those important features are located. If spatial attention were applied first, it would operate on all channels equally without knowing which channels carry the most relevant information. The sequential ordering creates an information cascade: channel selection refines the features, giving spatial attention a cleaner signal to localize. The original paper empirically confirms that channel-first ordering consistently outperforms spatial-first and parallel configurations.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Extend the `SpatialAttention` module to accept a configurable number of pooling operations (e.g., adding $L^2$-norm pooling in addition to average and max pooling). Write the modified class.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     class SpatialAttentionExtended(nn.Module):
         def __init__(self, kernel_size=7, use_l2=True):

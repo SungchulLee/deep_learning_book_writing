@@ -2,7 +2,7 @@
 
 ConvNeXt V2, introduced in the 2023 paper "ConvNeXt V2: Co-designing and Scaling ConvNets with Masked Autoencoders," extends the original ConvNeXt with two key innovations: a self-supervised pretraining strategy using masked autoencoders (FCMAE) and a new normalization layer called Global Response Normalization (GRN). Together, these improvements enable ConvNeXt V2 to scale more effectively and achieve stronger performance across a wide range of model sizes.
 
-## Code
+## 코드
 
 ```python
 #!/usr/bin/env python3
@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 class GRN(nn.Module):
@@ -69,7 +69,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## Discussion
+## 논의
 
 The Global Response Normalization (GRN) layer is the architectural centerpiece of ConvNeXt V2. It addresses the feature collapse problem that arises when training ConvNets with masked autoencoder pretraining. GRN operates by first computing the $L^2$ norm of each channel's spatial response, then normalizing these norms relative to their mean across channels, and finally using the normalized values to re-scale the original features. The learnable parameters $\gamma$ and $\beta$ provide flexibility, and the residual connection ensures the layer can initially behave as an identity.
 
@@ -77,28 +77,28 @@ The motivation for GRN comes from the observation that masked autoencoder pretra
 
 Compared to the original ConvNeXt, the V2 block replaces the layer scale mechanism with GRN placed after the GELU activation in the inverted bottleneck. This change, combined with the fully convolutional masked autoencoder (FCMAE) pretraining strategy, allows ConvNeXt V2 to match or surpass transformer-based models across a spectrum of model sizes, from tiny (4M parameters) to huge (600M+ parameters).
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 For an input tensor of shape $(B, H, W, D)$ in the GRN layer, describe the shape of $G_x$ and $N_x$ at each step.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     Starting with input $x$ of shape $(B, H, W, D)$: (1) $G_x = \|x\|_2$ computed over dimensions $(1, 2)$ (height and width) with keepdim gives shape $(B, 1, 1, D)$. This is the $L^2$ norm of each channel's spatial response. (2) $G_x.\text{mean}(\text{dim}=-1, \text{keepdim}=\text{True})$ averages across the $D$ dimension, producing shape $(B, 1, 1, 1)$. (3) $N_x = G_x / (\text{mean} + \epsilon)$ has shape $(B, 1, 1, D)$, representing the normalized response of each channel relative to the average channel response. The final output $\gamma \cdot (x \cdot N_x) + \beta + x$ has shape $(B, H, W, D)$.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Compare GRN to Squeeze-and-Excitation (SE) blocks. What are the key similarities and differences in how they modulate channel responses?
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     Both GRN and SE blocks perform channel-wise feature recalibration based on global spatial information. SE blocks squeeze spatial dimensions via global average pooling, then learn channel weights through a bottleneck MLP with sigmoid activation, producing weights in $[0, 1]$. GRN instead computes $L^2$ norms over spatial dimensions and normalizes them by their cross-channel mean, producing unbounded scaling factors. Key differences: (1) SE uses a learned nonlinear transformation (MLP) while GRN uses a fixed normalization formula with learned affine parameters. (2) SE weights are bounded by sigmoid, while GRN scaling is unbounded. (3) GRN includes a residual connection by design. (4) GRN has far fewer parameters (just $2D$) compared to SE ($2D^2/r$ where $r$ is the reduction ratio).
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Implement a variant of GRN that operates in NCHW format (without requiring the permute to NHWC), making it compatible with standard convolutional layers.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     class GRN_NCHW(nn.Module):
         def __init__(self, dim):

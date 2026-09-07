@@ -2,7 +2,7 @@
 
 HRNet (High-Resolution Network), introduced in the 2019 paper "Deep High-Resolution Representation Learning for Visual Recognition," maintains high-resolution representations throughout the entire network. Unlike conventional architectures that progressively downsample feature maps and then recover resolution through upsampling, HRNet connects multi-resolution streams in parallel and repeatedly exchanges information between them. This design produces richer and more spatially precise features, making it particularly effective for tasks like pose estimation and semantic segmentation.
 
-## Code
+## 코드
 
 ```python
 #!/usr/bin/env python3
@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 class BasicBlock(nn.Module):
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## Discussion
+## 논의
 
 The defining characteristic of HRNet is its parallel multi-resolution architecture. Instead of the typical encoder-decoder or feature pyramid approach where resolution is first reduced and then recovered, HRNet maintains a high-resolution stream throughout and progressively adds lower-resolution parallel streams. The multi-scale fusion modules repeatedly exchange information between all resolution levels, allowing the high-resolution stream to benefit from the semantic richness of low-resolution features while preserving fine spatial detail.
 
@@ -126,28 +126,28 @@ The fusion mechanism is carefully designed. When fusing from low to high resolut
 
 HRNet's design is particularly powerful for dense prediction tasks. For human pose estimation, the spatially precise high-resolution representations directly provide accurate keypoint heatmaps. For semantic segmentation, the rich multi-scale features enable fine-grained boundary delineation. The architecture consistently outperforms methods that rely on post-hoc resolution recovery.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 In an `HRModule` with 3 branches at resolutions $H \times W$, $H/2 \times W/2$, and $H/4 \times W/4$, how many fusion paths exist? List the upsampling and downsampling operations needed.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     With 3 branches, there are $3 \times 3 = 9$ fusion paths (each branch receives from all 3 branches including itself). Identity paths: 3 (branch $i$ to itself). Upsampling paths: 3 (branch 1 to 0: $2\times$ up; branch 2 to 0: $4\times$ up; branch 2 to 1: $2\times$ up). Downsampling paths: 3 (branch 0 to 1: one stride-2 conv; branch 0 to 2: two stride-2 convs; branch 1 to 2: one stride-2 conv). Each upsampling path uses a $1 \times 1$ convolution for channel adjustment followed by upsampling. Each downsampling path uses a sequence of stride-2 $3 \times 3$ convolutions.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Compare HRNet's approach to maintaining spatial resolution with U-Net's encoder-decoder approach with skip connections. What are the advantages and disadvantages of each?
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     HRNet maintains high-resolution features throughout, so spatial information is never completely lost. Multi-scale fusion happens repeatedly, allowing gradual refinement. However, this is computationally expensive since the high-resolution stream processes features at full resolution for the entire network depth. U-Net progressively downsamples, reducing computation in deeper layers, and uses skip connections to recover spatial detail during upsampling. This is more computationally efficient but relies on skip connections to bridge the information gap across the bottleneck. U-Net's skip connections are simple concatenations at matched resolutions, while HRNet's fusion is more thorough, combining all resolution levels at every stage. HRNet generally produces more accurate spatial predictions but at higher computational cost.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Design a lightweight version of `HRModule` that uses depthwise separable convolutions in the branches and $1 \times 1$ convolutions for all fusion operations (replacing strided $3 \times 3$ convolutions with pooling + $1 \times 1$ convolution).
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     class LightBasicBlock(nn.Module):
         def __init__(self, channels):

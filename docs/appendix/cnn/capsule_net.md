@@ -2,7 +2,7 @@
 
 Capsule Networks, introduced in the 2017 paper "Dynamic Routing Between Capsules," represent a fundamentally different approach to visual recognition. Unlike traditional CNNs that use scalar activations, capsules output vectors that encode both the probability and the pose (position, orientation, scale) of detected entities. This design addresses the inability of standard CNNs to model part-whole relationships and spatial hierarchies.
 
-## Code
+## 코드
 
 ```python
 #!/usr/bin/env python3
@@ -16,7 +16,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 class PrimaryCaps(nn.Module):
@@ -112,7 +112,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## Discussion
+## 논의
 
 The fundamental innovation in CapsNet is the concept of a capsule: a group of neurons whose activity vector represents the instantiation parameters of a specific type of entity. The length of the capsule's output vector represents the probability that the entity exists, while the orientation encodes properties such as pose, deformation, and texture. This is in stark contrast to conventional CNNs where scalar activations lose spatial relationship information through pooling operations.
 
@@ -120,26 +120,26 @@ The squash function is the nonlinearity applied to capsule outputs. It shrinks s
 
 Dynamic routing is the mechanism by which lower-level capsules decide which higher-level capsule to send their output to. Over multiple iterations, coupling coefficients $c_{ij}$ are refined so that each lower-level capsule routes its output to the higher-level capsule whose current output is most aligned with the prediction from that lower-level capsule. The decoder network serves as a regularizer by reconstructing the input image from the digit capsule outputs, encouraging the capsules to encode meaningful instantiation parameters.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 Compute the output shape of the `PrimaryCaps` layer when the input tensor has shape `(batch=4, channels=256, height=20, width=20)` with `num_capsules=8` and `out_channels=32`.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     Each of the 8 convolutional capsules applies a $9 \times 9$ convolution with stride 2 and no padding to a $20 \times 20$ feature map. The output spatial size is $\lfloor (20 - 9) / 2 \rfloor + 1 = 6$. Each capsule produces shape $(4, 32, 6, 6)$, which is reshaped to $(4, 1152, 1)$. Concatenating 8 capsules along the last dimension gives $(4, 1152, 8)$. After the squash function, the output shape remains $(4, 1152, 8)$.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Explain why the squash function is preferred over a simple sigmoid or softmax normalization for capsule outputs. What property does it preserve that these alternatives would not?
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     The squash function preserves the direction of the input vector while constraining its magnitude to be between 0 and 1. A sigmoid applied element-wise would independently scale each component, destroying the directional information that encodes pose parameters. A softmax would normalize across components to sum to 1, which is also inappropriate since the components represent different instantiation parameters (e.g., position, rotation), not a probability distribution. The squash function uniquely maintains that the orientation of the vector encodes "what" the entity looks like while the length encodes "whether" it exists.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Modify the `CapsNet` architecture to accept RGB images of size $32 \times 32$ (like CIFAR-10) instead of grayscale $28 \times 28$ images. Specify the necessary changes to layer dimensions and the decoder output size.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     The required changes are: (1) Change `self.conv1` input channels from 1 to 3: `nn.Conv2d(3, 256, kernel_size=9, stride=1)`. The output spatial size after conv1 becomes $(32 - 9 + 1) = 24$. (2) After `PrimaryCaps` with its $9 \times 9$ stride-2 convolution, the spatial size becomes $\lfloor (24 - 9) / 2 \rfloor + 1 = 8$. Update `DigitCaps` accordingly: `num_routes = 32 * 8 * 8 = 2048`. (3) Change the decoder output from 784 to $3 \times 32 \times 32 = 3072$: replace `nn.Linear(1024, 784)` with `nn.Linear(1024, 3072)`.

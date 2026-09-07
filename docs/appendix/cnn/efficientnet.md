@@ -2,7 +2,7 @@
 
 EfficientNet, introduced in the 2019 paper "EfficientNet: Rethinking Model Scaling for Convolutional Neural Networks," proposes a principled method for scaling CNNs along three dimensions simultaneously: depth, width, and resolution. By using a compound scaling coefficient, the architecture achieves state-of-the-art accuracy with significantly fewer parameters and FLOPs than previous models. The base architecture, EfficientNet-B0, was discovered through neural architecture search.
 
-## Code
+## 코드
 
 ```python
 #!/usr/bin/env python3
@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 class MBConv(nn.Module):
@@ -82,7 +82,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## Discussion
+## 논의
 
 The MBConv (Mobile Inverted Bottleneck Convolution) block is the fundamental building unit of EfficientNet. It follows an inverted residual structure: first expanding the channel dimension by a factor (typically 6x), applying a depthwise separable convolution at the expanded dimension, then projecting back to a smaller output dimension. The residual connection bypasses the entire block when input and output dimensions match, facilitating gradient flow. The SiLU (Swish) activation replaces ReLU, providing smoother gradients.
 
@@ -90,28 +90,28 @@ The compound scaling method is EfficientNet's key theoretical contribution. Rath
 
 The practical impact of compound scaling is significant. EfficientNet-B7 achieves 84.3% top-1 accuracy on ImageNet with 66M parameters, compared to GPipe's 84.3% with 557M parameters. This demonstrates that balanced scaling across all dimensions is far more efficient than scaling any single dimension to extremes.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 Given compound scaling parameters $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$ and $\phi = 2$, compute the scaled depth, width, and resolution multipliers.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     Depth multiplier: $d = \alpha^\phi = 1.2^2 = 1.44$. Width multiplier: $w = \beta^\phi = 1.1^2 = 1.21$. Resolution multiplier: $r = \gamma^\phi = 1.15^2 = 1.3225$. Verification: $\alpha \cdot \beta^2 \cdot \gamma^2 = 1.2 \times 1.21 \times 1.3225 \approx 1.919 \approx 2$. So with $\phi = 2$, the model uses roughly $1.44 \times$ more layers, $1.21 \times$ wider channels, and $1.32 \times$ larger input resolution compared to the base model.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Why does the MBConv block use a $1 \times 1$ convolution for the final projection instead of applying another depthwise convolution? Discuss the role of the linear bottleneck.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     The $1 \times 1$ projection serves as a "linear bottleneck" that compresses the expanded representation back to a lower-dimensional space without applying a nonlinear activation. This is deliberate: the expanded space (6x channels) captures rich feature interactions through the depthwise convolution, and the projection linearly combines these features. Adding a nonlinearity here would destroy information in the low-dimensional bottleneck space, as shown by the MobileNetV2 paper. A depthwise convolution at the bottleneck dimension would only allow channel-independent spatial filtering at the already compressed dimension, missing the inter-channel mixing that the $1 \times 1$ convolution provides.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Add a Squeeze-and-Excitation (SE) module to the `MBConv` block between the depthwise convolution and the final $1 \times 1$ projection.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     class MBConvSE(nn.Module):
         def __init__(self, in_channels, out_channels, expand_ratio=6, stride=1, se_ratio=0.25):

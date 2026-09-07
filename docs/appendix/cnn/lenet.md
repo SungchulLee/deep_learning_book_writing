@@ -2,7 +2,7 @@
 
 LeNet-5, published in the 1998 paper "Gradient-Based Learning Applied to Document Recognition" by Yann LeCun et al., is one of the earliest and most influential convolutional neural network architectures. Originally designed for handwritten digit recognition on the MNIST dataset, LeNet demonstrated that neural networks with learned convolutional features could outperform hand-engineered feature extractors. Its design introduced the foundational CNN pattern of alternating convolution and pooling layers followed by fully connected layers.
 
-## Code
+## 코드
 
 ```python
 #!/usr/bin/env python3
@@ -19,7 +19,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     print(y.shape)  # torch.Size([1, 10])
 ```
 
-## Discussion
+## 논의
 
 LeNet-5 established the template that nearly all modern CNNs follow. The architecture applies two convolutional layers with increasing channel counts (1 to 6 to 16), each followed by average pooling that halves the spatial dimensions. The resulting feature maps are flattened and passed through three fully connected layers that progressively reduce dimensionality (256 to 120 to 84 to 10). Each layer applies a nonlinear activation, allowing the network to learn hierarchical feature representations.
 
@@ -68,28 +68,28 @@ The convolutional layers learn local spatial features: the first layer typically
 
 Despite its simplicity by modern standards, LeNet contains key principles that remain relevant: weight sharing through convolutions (reducing parameters compared to fully connected layers), spatial hierarchy through stacked convolutions and pooling, and end-to-end training with backpropagation. With only about 60,000 parameters, LeNet achieves over 99% accuracy on MNIST, demonstrating remarkable efficiency for its task.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 Trace the tensor shapes through the entire LeNet forward pass for an input of shape $(32, 1, 28, 28)$.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     Input: $(32, 1, 28, 28)$. After conv1 ($5 \times 5$, 6 filters): $(32, 6, 24, 24)$ since $28 - 5 + 1 = 24$. After avg_pool2d (kernel 2): $(32, 6, 12, 12)$. After conv2 ($5 \times 5$, 16 filters): $(32, 16, 8, 8)$ since $12 - 5 + 1 = 8$. After avg_pool2d (kernel 2): $(32, 16, 4, 4)$. After flatten: $(32, 256)$ since $16 \times 4 \times 4 = 256$. After fc1: $(32, 120)$. After fc2: $(32, 84)$. After fc3: $(32, 10)$.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Calculate the total number of learnable parameters in LeNet-5 (including biases).
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     conv1: $1 \times 6 \times 5 \times 5 + 6 = 156$ parameters. conv2: $6 \times 16 \times 5 \times 5 + 16 = 2,416$ parameters. fc1: $256 \times 120 + 120 = 30,840$ parameters. fc2: $120 \times 84 + 84 = 10,164$ parameters. fc3: $84 \times 10 + 10 = 850$ parameters. Total: $156 + 2,416 + 30,840 + 10,164 + 850 = 44,426$ parameters. Note that the vast majority (about 93%) of parameters are in the fully connected layers.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Modify LeNet to accept $32 \times 32$ RGB images (like CIFAR-10) and use max pooling instead of average pooling. Update all dimension calculations.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     class LeNetCIFAR(nn.Module):
         def __init__(self, num_classes=10):

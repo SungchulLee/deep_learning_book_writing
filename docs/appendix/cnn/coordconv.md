@@ -2,7 +2,7 @@
 
 CoordConv, introduced in the 2018 paper "An Intriguing Failing of Convolutional Neural Networks and the CoordConv Solution," addresses a fundamental limitation of standard convolutions: they are translation equivariant by design, which means they cannot natively encode spatial position. By concatenating coordinate channels to the input, CoordConv allows networks to learn position-dependent filters, dramatically improving performance on tasks requiring spatial awareness such as coordinate regression and object detection.
 
-## Code
+## 코드
 
 ```python
 #!/usr/bin/env python3
@@ -15,7 +15,7 @@ import torch
 import torch.nn as nn
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 class AddCoords(nn.Module):
@@ -86,7 +86,7 @@ if __name__ == "__main__":
     print(f"Parameters: {sum(p.numel() for p in model.parameters()):,}")
 ```
 
-## Discussion
+## 논의
 
 The key insight behind CoordConv is that standard convolutions apply the same learned filter everywhere across the spatial dimensions, making them inherently unable to distinguish between different positions. While this translation equivariance is desirable for many tasks (e.g., recognizing an object regardless of where it appears), it becomes a liability for tasks that require understanding absolute or relative spatial position, such as converting pixel coordinates to one-hot grids or detecting objects at specific locations.
 
@@ -94,28 +94,28 @@ The `AddCoords` module generates normalized coordinate grids ranging from $-1$ t
 
 The overhead of CoordConv is minimal: only 2 (or 3) additional input channels per convolution layer. The original paper demonstrated that this simple modification solved the "coordinate transform" problem that standard CNNs completely failed at, and improved performance on generative models and object detection. CoordConv has since become a standard tool in architectures where spatial awareness is critical.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 For an input of shape $(2, 3, 8, 8)$, what is the output shape of `AddCoords` with `with_r=True`? What are the values at position $(0, 0)$ and $(7, 7)$ in the x-coordinate channel?
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     The output shape is $(2, 6, 8, 8)$: the original 3 channels plus x-coordinate, y-coordinate, and r-coordinate channels. At position $(0, 0)$: $x = 0/(8-1) \times 2 - 1 = -1$. At position $(7, 7)$: $x = 7/7 \times 2 - 1 = 1$. The coordinate channels span from $-1$ to $1$ linearly across the spatial dimensions.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Explain why CoordConv is particularly beneficial for generative models (e.g., GANs). What specific failure mode does it address?
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     In generative models, the generator must map from a latent vector to a spatially organized output image. With standard transposed convolutions, the generator has no built-in notion of absolute position, so it must implicitly learn spatial structure from the data. This often leads to repeating patterns and difficulty generating content that varies systematically with position (e.g., placing an object at a specific location). CoordConv gives the generator explicit access to spatial coordinates, allowing it to learn position-dependent generation rules directly. This reduces artifacts like checkerboard patterns and improves the generator's ability to control spatial placement of generated content.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Design a `RelativeCoordConv` variant where, instead of absolute coordinates, each position receives coordinates relative to a given reference point $(r_x, r_y)$. This could be useful for tasks like keypoint detection.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     class RelativeAddCoords(nn.Module):
         def __init__(self):
