@@ -271,22 +271,22 @@ CrossEntropyLoss를 쓸 때:
 ```python
 def forward(self, x):
     logits = self.layers(x)
-    return logits  # No activation
+    return logits  # 활성화 없음
     
 loss = nn.CrossEntropyLoss()
 output = model(input)
-loss_value = loss(output, target)  # PyTorch applies softmax internally
+loss_value = loss(output, target)  # PyTorch이 속에서 소프트맥스를 건다
 ```
 
 With NLLLoss:
 ```python
 def forward(self, x):
     logits = self.layers(x)
-    return F.log_softmax(logits, dim=1)  # Apply log_softmax
+    return F.log_softmax(logits, dim=1)  # log_softmax을 건다
     
 loss = nn.NLLLoss()
-output = model(input)  # Already log probabilities
-loss_value = loss(output, target)  # Directly compute NLL
+output = model(input)  # 이미 로그 확률이다
+loss_value = loss(output, target)  # 음의 로그 가능도를 곧바로 셈한다
 ```
 
 Key Insight:
