@@ -1,6 +1,6 @@
 # 쪼갤 수 있는 배낭
 
-The knapsack problem asks: given a set of items, each with a weight and a value, which items should a thief put in a knapsack of limited capacity to maximize total value? In the **fractional** variant, the thief may take fractions of items --- for example, pouring half a bag of gold dust into the sack. This seemingly small relaxation changes the problem fundamentally: while the 0-1 knapsack requires dynamic programming (and is NP-hard), the fractional knapsack admits an elegant $O(n \log n)$ greedy solution.
+배낭 문제는 이렇게 묻는다. 무게와 값을 지닌 물건 모음이 주어졌을 때, 도둑이 담는 힘이 마디 지어진 배낭에 어떤 물건을 넣어야 값의 합이 가장 커지는가? **쪼갤 수 있는** 갈래에서는 도둑이 물건을 쪼개어 가져갈 수 있다. 이를테면 금가루 자루의 반을 부어 담는 식이다. 사소해 보이는 이 느슨함이 문제를 밑바탕부터 바꾼다. 0-1 배낭에는 갈피 다지기가 들고(NP-어려움이다) 쪼갤 수 있는 배낭에는 멋진 $O(n \log n)$ 욕심쟁이 풀이가 있다.
 
 ## 문제 서술
 
@@ -9,7 +9,7 @@ The knapsack problem asks: given a set of items, each with a weight and a value,
 - 무게가 $w_i > 0$이고 값이 $v_i > 0$인 물건 $n$개.
 - 배낭의 담이 $W > 0$.
 
-**Decision variable.** For each item $i$, choose a fraction $x_i \in [0, 1]$ to take.
+**판단 변수.** 물건 $i$마다 가져갈 몫 $x_i \in [0, 1]$을 고른다.
 
 **목표.** 전체 값을 가장 크게 한다:
 
@@ -70,21 +70,21 @@ $$
 
 **정리.** 욕심쟁이 알고리즘은 쪼갤 수 있는 배낭 문제의 가장 좋은 풀이를 낸다.
 
-**Proof.** Without loss of generality, assume items are sorted so that $r_1 \geq r_2 \geq \cdots \geq r_n$. Let $G = (x_1^G, \ldots, x_n^G)$ be the greedy solution and $S^* = (x_1^*, \ldots, x_n^*)$ be any optimal solution.
+**증명.** 일반성을 잃지 않고 물건이 $r_1 \geq r_2 \geq \cdots \geq r_n$이 되도록 줄 세워져 있다고 하자. $G = (x_1^G, \ldots, x_n^G)$을 욕심쟁이 풀이, $S^* = (x_1^*, \ldots, x_n^*)$을 아무 가장 좋은 풀이라 하자.
 
-Suppose $G \neq S^*$. Let $j$ be the first index where they differ: $x_j^G \neq x_j^*$.
+$G \neq S^*$이라 하자. 둘이 처음 달라지는 자리 번호를 $j$이라 하자. 곧 $x_j^G \neq x_j^*$이다.
 
-**Case 1:** $x_j^G > x_j^*$ (greedy takes more of item $j$). Since the greedy algorithm takes as much of item $j$ as possible before moving to item $j+1$, the remaining capacity in $S^*$ allocated to items $j, j+1, \ldots, n$ differs from $G$.
+**첫째 갈래:** $x_j^G > x_j^*$(욕심쟁이가 물건 $j$을 더 많이 가져간다). 욕심쟁이 알고리즘은 물건 $j+1$으로 넘어가기 앞에 물건 $j$을 될 수 있는 대로 많이 가져가므로, $S^*$에서 물건 $j, j+1, \ldots, n$에 나눠 준 남은 담는 힘이 $G$과 다르다.
 
-Construct $S'$ by increasing $x_j$ from $x_j^*$ toward $x_j^G$ by some amount $\delta$, and decreasing later items to maintain the capacity constraint. The change in value is:
+$x_j$을 $x_j^*$에서 $x_j^G$ 쪽으로 $\delta$만큼 늘리고 뒤 물건을 줄여 담는 힘 매임을 지키도록 $S'$을 짓는다. 값의 바뀜은 다음과 같다.
 
 $$
 \Delta = \delta \cdot w_j \cdot r_j - \sum_{k > j} \delta_k \cdot w_k \cdot r_k
 $$
 
-Since $r_j \geq r_k$ for all $k > j$ and $\delta \cdot w_j = \sum_{k>j} \delta_k \cdot w_k$ (weight balance), we have $\Delta \geq 0$. So $S'$ is at least as good as $S^*$ and agrees with $G$ on one more item.
+모든 $k > j$에 대해 $r_j \geq r_k$이고 $\delta \cdot w_j = \sum_{k>j} \delta_k \cdot w_k$(무게 균형)이므로 $\Delta \geq 0$이다. 그러므로 $S'$은 $S^*$ 못지않게 좋고 $G$과 물건 하나만큼 더 같아진다.
 
-Repeating this process transforms $S^*$ into $G$ without decreasing value. $\square$
+이 과정을 되풀이하면 값을 줄이지 않고 $S^*$이 $G$으로 바뀐다. $\square$
 
 ## 파이썬 구현
 
@@ -181,7 +181,7 @@ Maximum value: 240.0
 |----------|---------------------|--------------|
 | 물건 쪼개기 | 된다 | 안 된다 |
 | 알고리즘 | 욕심쟁이(비로) | 동적 계획 |
-| Time complexity | $O(n \log n)$ | $O(nW)$ (pseudo-polynomial) |
+| 시간 복잡도 | $O(n \log n)$ | $O(nW)$(유사 다항식) |
 | 욕심쟁이 고름 성질 | 성립한다 | 성립하지 않는다 |
 | NP-어려움 | 아니다 | 그렇다 |
 

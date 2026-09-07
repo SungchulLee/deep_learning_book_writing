@@ -7,15 +7,15 @@
 액면 $d_1 > d_2 > \cdots > d_k$과 목표 금액 $A$이 주어지면 욕심쟁이 알고리즘은 들어맞는 가장 큰 액면을 거듭 고른다.
 
 1. 남은 값 $= A$, 개수 $= 0$으로 둔다.
-2. For each denomination $d_i$ (largest first): use $\lfloor \text{remaining} / d_i \rfloor$ coins, update remaining.
+2. 액면 $d_i$마다(큰 것부터) $\lfloor \text{remaining} / d_i \rfloor$개를 쓰고 남은 금액을 고친다.
 3. 남은 값이 $0$이면 개수를 돌려준다. 아니면 (욕심쟁이로는) 풀이가 없다.
 
 ## 욕심쟁이가 통할 때
 
-A coin system is called **canonical** if the greedy algorithm always produces the minimum number of coins. The US system $\{1, 5, 10, 25\}$ is canonical.
+욕심쟁이 알고리즘이 늘 가장 적은 동전 수를 내놓으면 그 동전 얼개를 **반듯하다**고 한다. 미국 얼개 $\{1, 5, 10, 25\}$은 반듯하다.
 
 !!! warning "표준이 아닌 체계에서는 욕심쟁이가 어그러진다"
-    For denominations $\{1, 3, 4\}$ and target $6$: greedy picks $4 + 1 + 1 = 3$ coins, but $3 + 3 = 2$ coins is optimal.
+    액면 $\{1, 3, 4\}$과 목표 $6$에서 욕심쟁이는 $4 + 1 + 1 = 3$개를 고르지만 $3 + 3 = 2$개가 가장 좋다.
 
 ## 표준 체계에서 욕심쟁이의 옳음
 
@@ -29,7 +29,7 @@ $$
 \text{dp}[i] = \min_{c \in \text{coins},\; c \le i} (\text{dp}[i - c] + 1)
 $$
 
-with base case $\text{dp}[0] = 0$ and $\text{dp}[i] = \infty$ for amounts that cannot be formed.
+밑 자리는 $\text{dp}[0] = 0$이고 만들 수 없는 금액에는 $\text{dp}[i] = \infty$이다.
 
 ## 구현
 
@@ -119,14 +119,14 @@ Coins [1, 3, 4], amount=6:
   DP:     2 coins
 ```
 
-For the US system, greedy and DP agree. For $\{1, 3, 4\}$, greedy uses 3 coins while the optimal DP solution uses only 2 coins ($3 + 3$).
+미국 얼개에서는 욕심쟁이와 갈피 다지기의 답이 같다. $\{1, 3, 4\}$에서는 욕심쟁이가 동전 3개를 쓰지만 가장 좋은 갈피 다지기 풀이는 2개($3 + 3$)만 쓴다.
 
 ## 복잡도
 
 | 알고리즘 | 시간 | 공간 |
 |-----------|:----:|:-----:|
 | 욕심쟁이 | $O(k)$, $k$ = 액면의 개수 | $O(1)$ |
-| DP        | $O(A \cdot k)$ where $A$ = amount | $O(A)$ |
+| 갈피 다지기        | $A$을 금액이라 할 때 $O(A \cdot k)$ | $O(A)$ |
 
 욕심쟁이 방식은 더 빠르지만 표준 체계에서만 옳다. 동적 계획은 늘 최적을 찾지만 액수에 비례하는 시간이 든다.
 

@@ -4,7 +4,7 @@
 
 ## 자리매김과 기호
 
-Let $C = \{c_1, c_2, \ldots, c_n\}$ be an alphabet of $n$ characters with frequencies $f_1, f_2, \ldots, f_n > 0$. A prefix-free code is represented by a full binary tree $T$ in which each leaf corresponds to a character. The cost is:
+$C = \{c_1, c_2, \ldots, c_n\}$을 잦기가 $f_1, f_2, \ldots, f_n > 0$인 글자 $n$개의 낱자모라 하자. 머리말 없는 부호는 잎마다 글자 하나에 맞물리는 꽉 찬 이진 나무 $T$으로 나타낸다. 값은 다음과 같다.
 
 $$
 B(T) = \sum_{i=1}^{n} f_i \cdot d_T(c_i)
@@ -12,20 +12,20 @@ $$
 
 여기서 $d_T(c_i)$은 나무 $T$에서 글자 $c_i$의 깊이이다.
 
-**Goal.** Show that Huffman's algorithm constructs a tree $T^*$ minimizing $B(T)$ over all full binary trees with $n$ leaves.
+**목표.** 허프먼 알고리즘이 잎이 $n$개인 꽉 찬 이진 나무를 모두 통틀어 $B(T)$을 가장 작게 하는 나무 $T^*$을 짓는다는 것을 보여라.
 
 ## 보조정리 1: 욕심쟁이 고름 성질
 
 !!! note "보조정리 1(잦기가 가장 낮은 형제)"
     $x$과 $y$을 $C$에서 잦기가 가장 낮은 두 글자라 하자(같으면 아무렇게나 정한다). 그러면 $x$과 $y$이 가장 깊은 곳의 형제인 가장 좋은 앞가지 없는 부호가 있다.
 
-**Proof.** Let $T^*$ be an optimal tree. Let $a$ and $b$ be two sibling leaves at the maximum depth of $T^*$.
+**증명.** $T^*$을 가장 좋은 나무라 하자. $a$과 $b$을 $T^*$에서 가장 깊은 곳에 있는 형제 잎 둘이라 하자.
 
 **Case 1:** $\{a, b\} = \{x, y\}$. Done.
 
-**Case 2:** $\{a, b\} \neq \{x, y\}$. Without loss of generality, assume $f_x \leq f_y$. Since $x$ and $y$ have the two smallest frequencies, $f_x \leq f_a$ and $f_y \leq f_b$ (possibly after relabeling $a, b$).
+**둘째 갈래:** $\{a, b\} \neq \{x, y\}$. 일반성을 잃지 않고 $f_x \leq f_y$이라 하자. $x$과 $y$의 잦기가 가장 작은 둘이므로 ($a, b$의 이름을 바꾸면) $f_x \leq f_a$이고 $f_y \leq f_b$이다.
 
-Construct $T'$ by swapping $x$ with $a$ in $T^*$ (i.e., $x$ moves to $a$'s position and $a$ moves to $x$'s position). The change in cost is:
+$T^*$에서 $x$과 $a$을 맞바꾸어 $T'$을 짓는다(곧 $x$이 $a$의 자리로, $a$이 $x$의 자리로 간다). 값의 바뀜은 다음과 같다.
 
 $$
 B(T') - B(T^*) = f_x \cdot d_{T^*}(a) + f_a \cdot d_{T^*}(x) - f_x \cdot d_{T^*}(x) - f_a \cdot d_{T^*}(a)
@@ -35,18 +35,18 @@ $$
 = (f_a - f_x)(d_{T^*}(x) - d_{T^*}(a))
 $$
 
-Since $f_a \geq f_x$ and $d_{T^*}(a) \geq d_{T^*}(x)$ (because $a$ is at maximum depth), we have $d_{T^*}(x) - d_{T^*}(a) \leq 0$. Therefore $B(T') - B(T^*) \leq 0$, so $T'$ is at least as good as $T^*$.
+$f_a \geq f_x$이고 ($a$이 가장 깊은 곳에 있으므로) $d_{T^*}(a) \geq d_{T^*}(x)$이므로 $d_{T^*}(x) - d_{T^*}(a) \leq 0$이다. 그러므로 $B(T') - B(T^*) \leq 0$이고 $T'$은 $T^*$ 못지않게 좋다.
 
-Now swap $y$ with $b$ in $T'$ (where $b$ is the sibling of $x$ at maximum depth). By an analogous argument, $B(T'') \leq B(T')$. In $T''$, characters $x$ and $y$ are siblings at maximum depth, and $B(T'') \leq B(T^*)$. Since $T^*$ is optimal, $T''$ is also optimal. $\square$
+이제 $T'$에서 $y$과 $b$을 맞바꾼다($b$은 가장 깊은 곳에 있는 $x$의 형제다). 같은 따짐으로 $B(T'') \leq B(T')$이다. $T''$에서는 글자 $x$과 $y$이 가장 깊은 곳의 형제이고 $B(T'') \leq B(T^*)$이다. $T^*$이 가장 좋으므로 $T''$도 가장 좋다. $\square$
 
 ## 보조정리 2: 가장 좋은 아래 짜임
 
 !!! note "보조정리 2(가장 좋은 아래 짜임)"
-    Let $x$ and $y$ be sibling leaves in an optimal tree $T^*$ for alphabet $C$. Define a reduced alphabet $C' = (C \setminus \{x, y\}) \cup \{z\}$ where $z$ is a new character with frequency $f_z = f_x + f_y$. If $T'$ is an optimal tree for $C'$, then replacing the leaf $z$ in $T'$ with an internal node having children $x$ and $y$ produces an optimal tree for $C$.
+    $x$과 $y$을 낱자모 $C$에 대한 가장 좋은 나무 $T^*$의 형제 잎이라 하자. 줄인 낱자모 $C' = (C \setminus \{x, y\}) \cup \{z\}$을 매기는데, $z$은 잦기가 $f_z = f_x + f_y$인 새 글자다. $T'$이 $C'$에 대한 가장 좋은 나무이면, $T'$의 잎 $z$을 $x$과 $y$을 자식으로 지닌 안쪽 마디로 갈음하면 $C$에 대한 가장 좋은 나무가 나온다.
 
 **증명.** $T'$의 잎 $z$을 자식이 $x$과 $y$인 속 마디로 부풀려 얻은 나무를 $T$이라 하자. $T$의 값은 $T'$의 값과 다음처럼 이어진다:
 
-For every character $c \notin \{x, y, z\}$, $d_T(c) = d_{T'}(c)$.
+$c \notin \{x, y, z\}$인 글자마다 $d_T(c) = d_{T'}(c)$이다.
 
 For $x$ and $y$: $d_T(x) = d_T(y) = d_{T'}(z) + 1$.
 
@@ -70,7 +70,7 @@ $$
 
 따라서 $B(T) = B(T') + f_x + f_y$이다.
 
-**Claim:** $T$ is optimal for $C$. Suppose not --- there exists a tree $\hat{T}$ for $C$ with $B(\hat{T}) < B(T)$. By Lemma 1, we may assume $x$ and $y$ are siblings in $\hat{T}$. Collapsing $x$ and $y$ into a single leaf $z$ with $f_z = f_x + f_y$ yields a tree $\hat{T}'$ for $C'$ with:
+**주장:** $T$은 $C$에 대해 가장 좋다. 그렇지 않다고 하자. 곧 $B(\hat{T}) < B(T)$인 $C$의 나무 $\hat{T}$이 있다고 하자. 보조정리 1에 따라 $\hat{T}$에서 $x$과 $y$이 형제라고 보아도 된다. $x$과 $y$을 잦기가 $f_z = f_x + f_y$인 잎 $z$ 하나로 오그리면 $C'$의 나무 $\hat{T}'$을 얻고 다음이 이루어진다.
 
 $$
 B(\hat{T}') = B(\hat{T}) - f_x - f_y < B(T) - f_x - f_y = B(T')

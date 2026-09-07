@@ -6,19 +6,19 @@
 
 **앞가지 없는 부호**(때로 "앞가지 부호"라고도 한다)는 어떤 부호말도 다른 것의 앞가지가 아닌 두 값 부호이다. 이 성질 덕분에 이어 붙인 비트열을 나눔표 없이 왼쪽에서 오른쪽으로 아리송함 없이 풀어낼 수 있다.
 
-For example, $\{0, 10, 110, 111\}$ is prefix-free, while $\{0, 01, 10, 1\}$ is not (since $0$ is a prefix of $01$, and $1$ is a prefix of $10$).
+보기로 $\{0, 10, 110, 111\}$은 머리말 없는 부호이지만 $\{0, 01, 10, 1\}$은 아니다($0$이 $01$의 머리말이고 $1$이 $10$의 머리말이기 때문이다).
 
 앞가지 없는 부호는 이진 나무와 하나씩 맞대응된다. 곧 잎마다 글자 하나를 나타내고, 뿌리에서 잎까지의 길(왼쪽 = 0, 오른쪽 = 1)이 부호말을 준다. 부호말의 길이 $d_i$은 나무에서 글자 $i$의 깊이와 같다.
 
 ## 가장 좋게 하기 목표
 
-Given $n$ characters with frequencies $f_1, f_2, \ldots, f_n$, the **cost** of a prefix-free code is the expected number of bits per character:
+잦기가 $f_1, f_2, \ldots, f_n$인 글자 $n$개가 주어졌을 때 머리말 없는 부호의 **값**은 글자마다 드는 비트 수의 바라는 값이다.
 
 $$
 B(T) = \sum_{i=1}^{n} f_i \cdot d_i
 $$
 
-where $d_i$ is the depth of character $i$ in the code tree $T$. Huffman coding constructs the tree $T^*$ that minimizes $B(T)$.
+여기서 $d_i$은 부호 나무 $T$에서 글자 $i$의 깊이다. 허프먼 부호는 $B(T)$을 가장 작게 하는 나무 $T^*$을 짓는다.
 
 ## 알고리즘
 
@@ -43,11 +43,11 @@ where $d_i$ is the depth of character $i$ in the code tree $T$. Huffman coding c
 
 **한 걸음씩 세우기:**
 
-1. **Merge** $a$ (5) and $b$ (9) $\to$ internal node (14).
-2. **Merge** $c$ (12) and $d$ (13) $\to$ internal node (25).
-3. **Merge** (14) and $e$ (16) $\to$ internal node (30).
-4. **Merge** (25) and (30) $\to$ internal node (55).
-5. **Merge** $f$ (45) and (55) $\to$ root (100).
+1. $a$(5)과 $b$(9)을 **합친다** $\to$ 안쪽 마디(14).
+2. $c$(12)과 $d$(13)을 **합친다** $\to$ 안쪽 마디(25).
+3. (14)과 $e$(16)을 **합친다** $\to$ 안쪽 마디(30).
+4. (25)과 (30)을 **합친다** $\to$ 안쪽 마디(55).
+5. $f$(45)과 (55)을 **합친다** $\to$ 뿌리(100).
 
 **나온 부호:**
 
@@ -66,7 +66,7 @@ $$
 B(T) = 45 \cdot 1 + 12 \cdot 3 + 13 \cdot 3 + 5 \cdot 4 + 9 \cdot 4 + 16 \cdot 3 = 224
 $$
 
-A fixed 3-bit code would cost $100 \times 3 = 300$ bits. Huffman coding saves 25.3%.
+붙박인 3비트 부호라면 $100 \times 3 = 300$비트가 든다. 허프먼 부호는 25.3%을 아낀다.
 
 ## 파이썬 구현
 
@@ -209,7 +209,7 @@ Savings: 25.3%
 $n$을 서로 다른 글자의 개수라 하자.
 
 - **처음 힙 세우기:** $O(n)$.
-- **Main loop:** $n - 1$ iterations, each extracting two elements and inserting one: $O(n \log n)$.
+- **큰 되돌이:** $n - 1$ 번 돌며 그때마다 원소 둘을 꺼내고 하나를 넣는다: $O(n \log n)$.
 - **부호 뽑아내기:** $O(n)$(모든 잎을 한 번 돌아본다).
 - **Total:** $O(n \log n)$.
 
@@ -217,7 +217,7 @@ $n$을 서로 다른 글자의 개수라 하자.
 
 ## 허프먼 부호의 성질
 
-1. **Optimality.** Among all prefix-free codes, Huffman coding minimizes $\sum f_i d_i$ (proved on the Huffman Optimality Proof page).
+1. **가장 좋음.** 머리말 없는 부호를 모두 통틀어 허프먼 부호가 $\sum f_i d_i$을 가장 작게 한다(허프먼 가장 좋음 증명 쪽에서 밝힌다).
 2. **꽉 찬 이진 나무.** 속 마디마다 자식이 정확히 둘이다. 자식이 하나뿐인 마디가 있다면 그 자식의 부호말을 줄일 수 있다.
 3. **잦기가 가장 낮은 글자는 가장 깊은 곳의 형제이다.** 욕심쟁이 세우기에서 곧바로 따라 나온다.
 
