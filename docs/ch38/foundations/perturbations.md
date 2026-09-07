@@ -1,49 +1,49 @@
-# Perturbation Types
-## Introduction
+# 흔듦의 갈래
+## 들머리
 
-The choice of perturbation constraint defines the "budget" an adversary operates within. Different norms capture different notions of imperceptibility and lead to different attack strategies. This section formalizes the standard perturbation types, their geometric properties, and their projection operators used in constrained optimization.
+흔듦을 어떻게 옭아매느냐가 겨루는 이가 움직일 "예산"을 정한다. 노름이 다르면 알아챌 수 없음의 뜻도 달라지고 치기의 꾀도 달라진다. 이 마디는 여느 흔듦 갈래와 그 꼴의 결, 그리고 옭아맨 가장 좋게 하기에 쓰는 되비추는 셈을 꼴로 적는다.
 
-## L-infinity Norm
+## L-무한 노름
 
 $$
 \|\boldsymbol{\delta}\|_\infty = \max_i |\delta_i| \leq \varepsilon
 $$
 
-**Interpretation:** Each coordinate changes by at most $\varepsilon$. This is the most commonly used constraint in adversarial robustness research.
+**풀이:** 자리마다 많아야 $\varepsilon$만큼 바뀐다. 맞섬에 든든하기 연구에서 가장 흔히 쓰는 옭아맴이다.
 
-**Properties:**
+**결:**
 
-- Constrains the maximum per-feature change
-- Natural for images: bounds the per-pixel perturbation
-- The $\ell_\infty$ ball is a hypercube in $\mathbb{R}^d$
-- Standard benchmarks: $\varepsilon = 8/255 \approx 0.031$ for CIFAR-10, $\varepsilon = 4/255$ for ImageNet
+- 결마다의 가장 큰 바뀜을 옭아맨다
+- 그림에 잘 맞는다. 낱그림점마다의 흔듦을 마디 짓는다
+- $\ell_\infty$ 공은 $\mathbb{R}^d$의 넘세모꼴 상자다
+- 여느 잣대: CIFAR-10에서 $\varepsilon = 8/255 \approx 0.031$, 이미지넷에서 $\varepsilon = 4/255$
 
-**Projection operator:**
+**되비추는 셈:**
 
 $$
 \Pi_\varepsilon^{\infty}(\boldsymbol{\delta})_i = \text{clip}(\delta_i, -\varepsilon, \varepsilon)
 $$
 
-This is computationally trivial—simply clamp each coordinate independently.
+셈이 아주 쉽다. 자리마다 따로 잘라 내면 된다.
 
-**Financial interpretation:** In feature-space attacks on financial models, $\ell_\infty$ bounds the maximum change in any single input feature (e.g., no single financial metric changes by more than $\varepsilon$).
+**금융에서의 풀이:** 금융 모형의 결 밭 치기에서 $\ell_\infty$은 들임 결 하나가 바뀔 수 있는 가장 큰 폭을 마디 짓는다(어떤 금융 자도 $\varepsilon$을 넘게 바뀌지 않는다).
 
-## L2 Norm
+## L2 노름
 
 $$
 \|\boldsymbol{\delta}\|_2 = \sqrt{\sum_i \delta_i^2} \leq \varepsilon
 $$
 
-**Interpretation:** The total Euclidean magnitude of the perturbation is bounded. Individual coordinates may change by more than $\varepsilon$, provided the overall vector length remains small.
+**풀이:** 흔듦의 온 유클리드 크기가 마디 지어진다. 벡터의 온 길이만 작다면 자리 하나는 $\varepsilon$을 넘게 바뀔 수도 있다.
 
-**Properties:**
+**결:**
 
-- Allows larger changes in fewer dimensions
-- Natural for physical perturbations and continuous signals
-- The $\ell_2$ ball is a hypersphere in $\mathbb{R}^d$
-- Standard benchmarks: $\varepsilon = 0.5$ for CIFAR-10, $\varepsilon = 3.0$ for ImageNet
+- 적은 차수에서 더 큰 바뀜을 받아 준다
+- 참 세상의 흔듦과 이어지는 신호에 잘 맞는다
+- $\ell_2$ 공은 $\mathbb{R}^d$의 넘세모꼴 공이다
+- 여느 잣대: CIFAR-10에서 $\varepsilon = 0.5$, 이미지넷에서 $\varepsilon = 3.0$
 
-**Projection operator:**
+**되비추는 셈:**
 
 $$
 \Pi_\varepsilon^{2}(\boldsymbol{\delta}) = 
@@ -53,41 +53,41 @@ $$
 \end{cases}
 $$
 
-This normalizes the perturbation to lie on the surface of the $\varepsilon$-ball when it exceeds the budget.
+예산을 넘으면 흔듦의 잣대를 맞추어 $\varepsilon$ 공의 껍질에 놓는다.
 
-## L1 Norm
+## L1 노름
 
 $$
 \|\boldsymbol{\delta}\|_1 = \sum_i |\delta_i| \leq \varepsilon
 $$
 
-**Interpretation:** The total absolute change across all coordinates is bounded.
+**풀이:** 자리 모두에 걸친 온 바뀜의 크기가 마디 지어진다.
 
-**Properties:**
+**결:**
 
-- Encourages **sparse** perturbations (few coordinates modified significantly)
-- The $\ell_1$ ball is a cross-polytope (diamond shape)
-- Harder to optimize than $\ell_\infty$ or $\ell_2$
-- Relates to $\ell_0$ through convex relaxation
+- **성긴** 흔듦을 이끈다(몇몇 자리만 크게 바뀐다)
+- $\ell_1$ 공은 엇갈린 여러모꼴(마름모 꼴)이다
+- $\ell_\infty$이나 $\ell_2$보다 가장 좋게 하기 어렵다
+- 볼록 눅임으로 $\ell_0$과 이어진다
 
-**Projection operator (Duchi et al., 2008):**
+**되비추는 셈(두치 등, 2008):**
 
-The projection onto the $\ell_1$ ball requires a sorting-based algorithm:
+$\ell_1$ 공으로 되비추려면 줄 세우기에 기댄 알고리즘이 있어야 한다.
 
 ```python
 def project_l1(v: torch.Tensor, radius: float) -> torch.Tensor:
     """
-    Project vector v onto L1 ball of given radius.
-    Uses the algorithm from Duchi et al. (2008).
+    벡터 v을 주어진 반지름의 L1 공으로 되비춘다.
+    두치 등(2008)의 알고리즘을 쓴다.
     """
     if torch.norm(v, p=1) <= radius:
         return v
     
-    # Sort absolute values in descending order
+    # 크기를 큰 것부터 줄 세운다
     u = torch.abs(v)
     sorted_u, _ = torch.sort(u, descending=True)
     
-    # Find the threshold via cumulative sum
+    # 쌓은 합으로 문턱을 찾는다
     cumsum = torch.cumsum(sorted_u, dim=0)
     indices = torch.arange(1, len(u) + 1, device=v.device, dtype=v.dtype)
     rho = torch.where(
@@ -98,48 +98,48 @@ def project_l1(v: torch.Tensor, radius: float) -> torch.Tensor:
     
     theta = (cumsum[rho - 1] - radius) / rho
     
-    # Apply soft thresholding
+    # 부드러운 문턱 자르기를 건다
     return torch.sign(v) * torch.clamp(torch.abs(v) - theta, min=0)
 ```
 
-## L0 "Norm"
+## L0 "노름"
 
 $$
 \|\boldsymbol{\delta}\|_0 = |\{i : \delta_i \neq 0\}| \leq k
 $$
 
-**Interpretation:** At most $k$ features (pixels) may be modified, but those features can change by an arbitrary amount (usually still clipped to valid input range).
+**풀이:** 많아야 결(낱그림점) $k$개만 고칠 수 있으나, 그 결은 얼마든지 바뀔 수 있다(흔히 옳은 들임 자리로는 잘라 낸다).
 
-**Properties:**
+**결:**
 
-- Extreme sparsity: only $k$ coordinates are perturbed
-- Not a true norm (violates homogeneity)
-- Combinatorially hard to optimize (NP-hard in general)
-- Often relaxed to $\ell_1$ in practice
-- Models pixel-level attacks (e.g., placing a few adversarial pixels)
+- 아주 성기다. 자리 $k$개만 흔든다
+- 참 노름이 아니다(한결같음을 어긴다)
+- 골라 뽑기가 얽혀 가장 좋게 하기 어렵다(대개 NP-어려움)
+- 참으로는 흔히 $\ell_1$으로 눅인다
+- 낱그림점 켜의 치기를 그린다(맞서는 낱그림점 몇 개 놓기 따위)
 
-## Geometric Comparison
+## 꼴로 견주기
 
-The unit balls of different norms have distinct shapes in $\mathbb{R}^d$:
+노름마다 낱 공의 꼴이 $\mathbb{R}^d$에서 서로 다르다.
 
-| Norm | Unit Ball Shape | Sparsity | Optimization | Vertices |
+| 노름 | 낱 공의 꼴 | 성김 | 가장 좋게 하기 | 꼭짓점 |
 |------|-----------------|----------|--------------|----------|
-| $\ell_\infty$ | Hypercube | None | Easy (element-wise) | $2^d$ |
-| $\ell_2$ | Hypersphere | None | Easy (gradient) | Continuous |
-| $\ell_1$ | Cross-polytope | Moderate | Moderate | $2d$ |
-| $\ell_0$ | Discrete set | Extreme | NP-hard | Combinatorial |
+| $\ell_\infty$ | 넘세모꼴 상자 | 없음 | 쉬움(낱낱이) | $2^d$ |
+| $\ell_2$ | 넘세모꼴 공 | 없음 | 쉬움(기울기) | 이어짐 |
+| $\ell_1$ | 엇갈린 여러모꼴 | 가운데 | 가운데 | $2d$ |
+| $\ell_0$ | 띄엄한 모임 | 아주 성김 | NP-어려움 | 골라 뽑기 |
 
-### Norm Relationships
+### 노름끼리의 사이
 
-For any vector $\boldsymbol{\delta} \in \mathbb{R}^d$:
+어떤 벡터 $\boldsymbol{\delta} \in \mathbb{R}^d$에서든
 
 $$
 \|\boldsymbol{\delta}\|_\infty \leq \|\boldsymbol{\delta}\|_2 \leq \|\boldsymbol{\delta}\|_1 \leq \sqrt{d} \|\boldsymbol{\delta}\|_2 \leq d \|\boldsymbol{\delta}\|_\infty
 $$
 
-These inequalities allow converting perturbation budgets between norms, though the conversions become loose in high dimensions.
+이 부등식으로 노름 사이에서 흔듦 예산을 옮길 수 있다. 다만 차수가 높으면 그 옮김이 헐거워진다.
 
-## PyTorch Implementation: Unified Projection
+## PyTorch으로 짜기: 하나로 모은 되비추기
 
 ```python
 import torch
@@ -148,20 +148,20 @@ from typing import Literal
 
 class PerturbationProjector:
     """
-    Unified projection onto Lp epsilon-balls.
+    Lp 엡실론 공으로 하나로 모아 되비추기.
     
-    Handles Linf, L2, and L1 projections with valid range clipping.
+    옳은 자리로 잘라 내며 Linf, L2, L1 되비추기를 다룬다.
     
     Parameters
     ----------
     norm : str
-        Norm type ('linf', 'l2', 'l1')
+        노름 갈래('linf', 'l2', 'l1')
     epsilon : float
-        Perturbation budget
+        흔듦 예산
     clip_min : float
-        Minimum valid input value
+        옳은 들임의 가장 작은 값
     clip_max : float
-        Maximum valid input value
+        옳은 들임의 가장 큰 값
     """
     
     def __init__(
@@ -182,19 +182,19 @@ class PerturbationProjector:
         x: torch.Tensor
     ) -> torch.Tensor:
         """
-        Project perturbation onto epsilon-ball and clip to valid range.
+        흔듦을 엡실론 공으로 되비추고 옳은 자리로 잘라 낸다.
         
         Parameters
         ----------
         delta : torch.Tensor
-            Perturbation tensor, shape (N, ...)
+            흔듦 텐서, 꼴 (N, ...)
         x : torch.Tensor
-            Original input (for valid range clipping)
+            본디 들임(옳은 자리로 잘라 내는 데 쓴다)
             
         Returns
         -------
         delta_proj : torch.Tensor
-            Projected perturbation
+            되비춘 흔듦
         """
         if self.norm == 'linf':
             delta = torch.clamp(delta, -self.epsilon, self.epsilon)
@@ -217,13 +217,13 @@ class PerturbationProjector:
                     )
             delta = delta_flat.view(delta.shape)
         
-        # Clip to ensure x + delta is in valid range
+        # x + delta이 옳은 자리에 있도록 잘라 낸다
         delta = torch.clamp(x + delta, self.clip_min, self.clip_max) - x
         return delta
     
     @staticmethod
     def _project_l1_single(v: torch.Tensor, radius: float) -> torch.Tensor:
-        """Project a single vector onto L1 ball."""
+        """벡터 하나를 L1 공으로 되비춘다."""
         u = torch.abs(v)
         sorted_u, _ = torch.sort(u, descending=True)
         cumsum = torch.cumsum(sorted_u, dim=0)
@@ -238,19 +238,19 @@ class PerturbationProjector:
     
     def random_init(self, shape: tuple, device: torch.device) -> torch.Tensor:
         """
-        Generate random initialization within the epsilon-ball.
+        엡실론 공 안에서 첫자리를 아무렇게나 잡는다.
         
         Parameters
         ----------
         shape : tuple
-            Shape of the perturbation tensor
+            흔듦 텐서의 꼴
         device : torch.device
-            Device for the tensor
+            텐서를 둘 장치
             
         Returns
         -------
         delta : torch.Tensor
-            Random perturbation within epsilon-ball
+            엡실론 공 안의 아무 흔듦
         """
         if self.norm == 'linf':
             return torch.empty(shape, device=device).uniform_(
@@ -260,13 +260,13 @@ class PerturbationProjector:
             delta = torch.randn(shape, device=device)
             delta_flat = delta.view(shape[0], -1)
             norms = delta_flat.norm(p=2, dim=1, keepdim=True)
-            delta_flat = delta_flat / norms  # Unit sphere
-            # Scale uniformly within ball
+            delta_flat = delta_flat / norms  # 낱 공
+            # 공 안에서 고르게 잣대를 잡는다
             r = torch.rand(shape[0], 1, device=device) ** (1.0 / delta_flat.shape[1])
             delta_flat = delta_flat * r * self.epsilon
             return delta_flat.view(shape)
         elif self.norm == 'l1':
-            # Approximate: sample uniformly and project
+            # 어림: 고르게 뽑아 되비춘다
             delta = torch.empty(shape, device=device).uniform_(-1, 1)
             delta_flat = delta.view(shape[0], -1)
             for i in range(shape[0]):
@@ -276,73 +276,73 @@ class PerturbationProjector:
             return delta_flat.view(shape)
 ```
 
-## Perturbation Budgets in Practice
+## 참으로 쓰는 흔듦 예산
 
-### Standard Benchmarks
+### 여느 잣대
 
-| Dataset | $\ell_\infty$ | $\ell_2$ | Justification |
+| 자료 꾸러미 | $\ell_\infty$ | $\ell_2$ | 까닭 |
 |---------|---------------|----------|---------------|
-| MNIST | $0.3$ | $2.0$ | Digit remains recognizable |
-| CIFAR-10 | $8/255 \approx 0.031$ | $0.5$ | Changes imperceptible to humans |
-| ImageNet | $4/255 \approx 0.016$ | $3.0$ | Higher resolution, tighter budget |
+| MNIST | $0.3$ | $2.0$ | 숫자를 알아볼 수 있다 |
+| CIFAR-10 | $8/255 \approx 0.031$ | $0.5$ | 사람이 바뀜을 알아채지 못한다 |
+| 이미지넷 | $4/255 \approx 0.016$ | $3.0$ | 결이 고와 예산이 더 빡빡하다 |
 
-### Financial Applications
+### 금융에 쓰기
 
-For tabular financial data, perturbation budgets must be domain-specific:
+표로 된 금융 자료에서는 흔듦 예산이 그 밭에 맞아야 한다.
 
-| Feature Type | Suggested $\ell_\infty$ Budget | Rationale |
+| 결 갈래 | 내놓는 $\ell_\infty$ 예산 | 까닭 |
 |-------------|-------------------------------|-----------|
-| Normalized prices | 0.01-0.05 | Small price manipulation |
-| Log returns | 0.005-0.02 | Realistic market noise |
-| Binary indicators | 0 (fixed) | Cannot perturb categorical |
-| Continuous ratios | 0.01-0.1 | Feature-dependent |
+| 잣대 맞춘 값 | 0.01~0.05 | 값을 조금 흔들기 |
+| 로그 돌아옴 | 0.005~0.02 | 그럴듯한 저자 잡음 |
+| 두 값 표시 | 0(붙박이) | 갈래 값은 흔들 수 없다 |
+| 이어지는 견줌 | 0.01~0.1 | 결에 매인다 |
 
-## Summary
+## 간추림
 
-| Norm | Constraint | Best For | Projection Complexity |
+| 노름 | 옭아맴 | 잘 맞는 자리 | 되비추기의 번거로움 |
 |------|-----------|----------|----------------------|
-| $\ell_\infty$ | Max per-coordinate | Image attacks, uniform changes | $O(d)$ |
-| $\ell_2$ | Euclidean magnitude | Physical perturbations | $O(d)$ |
-| $\ell_1$ | Total absolute change | Sparse perturbations | $O(d \log d)$ |
-| $\ell_0$ | Number of changes | Pixel attacks | NP-hard |
+| $\ell_\infty$ | 자리마다의 가장 큼 | 그림 치기, 고른 바뀜 | $O(d)$ |
+| $\ell_2$ | 유클리드 크기 | 참 세상의 흔듦 | $O(d)$ |
+| $\ell_1$ | 온 바뀜의 크기 | 성긴 흔듦 | $O(d \log d)$ |
+| $\ell_0$ | 바뀐 자리의 수 | 낱그림점 치기 | NP-어려움 |
 
-The choice of norm should match the threat model's notion of imperceptibility. For images, $\ell_\infty$ and $\ell_2$ are standard. For financial features, domain-specific constraints often supersede any single norm.
+노름은 으름 얼개가 말하는 알아챌 수 없음과 맞아야 한다. 그림에서는 $\ell_\infty$과 $\ell_2$이 여느 길이다. 금융 결에서는 밭에 맞는 옭아맴이 어떤 노름 하나보다 앞서는 일이 잦다.
 
-## References
+## 살펴볼 거리
 
 1. Goodfellow, I., Shlens, J., & Szegedy, C. (2015). "Explaining and Harnessing Adversarial Examples." ICLR.
 2. Carlini, N., & Wagner, D. (2017). "Towards Evaluating the Robustness of Neural Networks." IEEE S&P.
 3. Duchi, J., et al. (2008). "Efficient Projections onto the L1-Ball for Learning in High Dimensions." ICML.
 4. Croce, F., & Hein, M. (2021). "Mind the Box: L1-APGD for Sparse Adversarial Attacks on Image Classifiers." ICML.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
