@@ -1,94 +1,94 @@
-# Quantization
-## Overview
+# 수 줄이기
+## 두루 보기
 
-Quantization reduces the numerical precision of neural network weights and activations from floating-point (typically 32-bit) to lower bit-width representations (8-bit, 4-bit, or even binary). This achieves significant reductions in memory footprint and computational cost, with specialized hardware providing substantial inference speedups.
+수 줄이기는 신경 그물의 짐과 살림을 뜨는 소수점(흔히 32비트)에서 더 적은 비트(8비트, 4비트, 나아가 두 값)으로 촘촘함을 낮춘다. 이로써 기억 자리와 셈 값이 크게 줄고, 이를 받쳐 주는 쇠 붙임새에서는 미루어 봄이 크게 빨라진다.
 
-## Quantization Fundamentals
+## 수 줄이기 밑바탕
 
-### Why Quantize?
+### 왜 수를 줄이는가
 
-Neural network weights and activations are typically stored as 32-bit floats:
-
-```
-FP32: ±[1.18e-38, 3.4e+38] with ~7 decimal digits precision
-      Sign (1) | Exponent (8) | Mantissa (23)
-```
-
-Most neural network computations don't require this precision. Quantization maps values to lower precision:
+신경 그물의 짐과 살림은 흔히 32비트 뜨는 소수로 담긴다.
 
 ```
-INT8: [-128, 127] or [0, 255]
-      8 bits total
-
-FP16: ±[6.1e-5, 65504] with ~3 decimal digits
-      Sign (1) | Exponent (5) | Mantissa (10)
+FP32: ±[1.18e-38, 3.4e+38], 열 자리로 약 7자리 촘촘함
+      부호 (1) | 지수 (8) | 가수 (23)
 ```
 
-### Benefits of Quantization
+신경 그물의 셈은 거의 이만한 촘촘함이 있어야 하지 않다. 수 줄이기는 값을 더 낮은 촘촘함으로 옮긴다.
 
-| Metric | FP32 → INT8 | FP32 → FP16 |
+```
+INT8: [-128, 127] 또는 [0, 255]
+      모두 8비트
+
+FP16: ±[6.1e-5, 65504], 열 자리로 약 3자리
+      부호 (1) | 지수 (5) | 가수 (10)
+```
+
+### 수 줄이기의 나은 점
+
+| 자 | FP32 → INT8 | FP32 → FP16 |
 |--------|-------------|-------------|
-| Model Size | 4× reduction | 2× reduction |
-| Memory Bandwidth | 4× reduction | 2× reduction |
-| Compute Speed | 2-4× faster* | 1.5-2× faster* |
-| Accuracy Loss | 0-2% typical | <0.5% typical |
+| 모형 크기 | 4배 줄어듦 | 2배 줄어듦 |
+| 기억 너비 | 4배 줄어듦 | 2배 줄어듦 |
+| 셈 빠르기 | 2~4배 빠름* | 1.5~2배 빠름* |
+| 맞음 잃음 | 흔히 0~2% | 흔히 0.5% 미만 |
 
-*Speedup depends on hardware support
+*빨라짐은 쇠 붙임새가 받쳐 주는지에 매인다
 
-## Mathematical Foundation
+## 수학 밑바탕
 
-### Quantization Mapping
+### 수 줄이기 옮김
 
-Quantization maps continuous floating-point values to a discrete set of integers:
+수 줄이기는 이어지는 뜨는 소수 값을 띄엄한 정수 모임으로 옮긴다.
 
 $$x_{\text{float}} \in \mathbb{R} \rightarrow x_{\text{quant}} \in \{0, 1, \ldots, 2^b - 1\}$$
 
-where $b$ is the bit-width.
+여기서 $b$은 비트 너비다.
 
-### Uniform Affine Quantization
+### 고른 아핀 수 줄이기
 
-The most common quantization scheme uses a linear mapping with scale and zero-point:
+가장 흔한 수 줄이기 얼개는 잣대와 0점을 지닌 선형 옮김을 쓴다.
 
-**Quantization:**
+**수 줄이기:**
 
 $$x_q = \text{round}\left(\frac{x - z}{s}\right) = \text{round}\left(\frac{x}{s}\right) - z_q$$
 
-**Dequantization:**
+**수 되돌리기:**
 
 $$\hat{x} = s \cdot (x_q + z_q) = s \cdot x_q + z$$
 
-where:
+여기서:
 
-- $s$ is the scale factor
-- $z$ is the zero-point (offset)
-- $z_q$ is the quantized zero-point
+- $s$은 잣대 값
+- $z$은 0점(치우침)
+- $z_q$은 수 줄인 0점
 
-### Scale and Zero-Point Computation
+### 잣대와 0점 셈하기
 
-For a tensor with range $[x_{\min}, x_{\max}]$:
+자리가 $[x_{\min}, x_{\max}]$인 텐서에서
 
 $$s = \frac{x_{\max} - x_{\min}}{q_{\max} - q_{\min}}$$
 
 $$z = q_{\min} - \text{round}\left(\frac{x_{\min}}{s}\right)$$
 
-For INT8 with unsigned representation: $q_{\min} = 0$, $q_{\max} = 255$
+부호 없는 INT8에서는 $q_{\min} = 0$, $q_{\max} = 255$
 
-For INT8 with signed representation: $q_{\min} = -128$, $q_{\max} = 127$
+부호 있는 INT8에서는 $q_{\min} = -128$, $q_{\max} = 127$
 
-### Symmetric vs. Asymmetric Quantization
+### 맞바꿈 대칭 대 어긋난 수 줄이기
 
-**Symmetric Quantization** ($z = 0$):
+**대칭 수 줄이기**($z = 0$):
 
 $$x_q = \text{round}\left(\frac{x}{s}\right), \quad s = \frac{\max(|x_{\min}|, |x_{\max}|)}{q_{\max}}$$
 
-Simpler but wastes dynamic range for asymmetric distributions.
+더 단순하나 한쪽으로 쏠린 분포에서는 쓸 자리를 버린다.
 
-**Asymmetric Quantization** ($z \neq 0$):
-Uses the full formula above. Better utilizes the quantization range for skewed distributions (common for activations after ReLU).
+**어긋난 수 줄이기**($z \neq 0$):
+위의 온전한 식을 쓴다. 한쪽으로 쏠린 분포(ReLU 뒤의 살림에서 흔하다)에서 수 줄이기 자리를 더 잘 쓴다.
 
-## PyTorch Implementation
+## PyTorch으로 짜기
 
-### Basic Quantization Operations
+### 밑바탕 수 줄이기 셈
 
 ```python
 import torch
@@ -102,24 +102,24 @@ def compute_quantization_params(tensor: torch.Tensor,
                                 num_bits: int = 8, 
                                 symmetric: bool = True) -> Tuple[float, int]:
     """
-    Compute scale and zero-point for quantization.
+    수 줄이기에 쓸 잣대와 0점을 셈한다.
     
     Args:
-        tensor: Input tensor to quantize
-        num_bits: Number of bits for quantization
-        symmetric: Whether to use symmetric quantization
+        tensor: 수를 줄일 들임 텐서
+        num_bits: 수 줄이기에 쓸 비트 수
+        symmetric: 대칭 수 줄이기를 쓸지
         
     Returns:
-        scale, zero_point
+        잣대, 0점
     """
     if symmetric:
-        # Symmetric: range is [-max_abs, max_abs], zero_point = 0
+        # 대칭: 자리는 [-max_abs, max_abs], zero_point = 0
         max_abs = tensor.abs().max()
         qmax = 2 ** (num_bits - 1) - 1
         scale = max_abs / qmax
         zero_point = 0
     else:
-        # Asymmetric: use full range
+        # 어긋남: 온 자리를 쓴다
         min_val = tensor.min()
         max_val = tensor.max()
         qmin = 0
@@ -132,7 +132,7 @@ def compute_quantization_params(tensor: torch.Tensor,
 
 def quantize(tensor: torch.Tensor, scale: float, zero_point: int, 
              num_bits: int = 8) -> torch.Tensor:
-    """Quantize tensor to integer."""
+    """텐서를 정수로 수 줄인다."""
     qmin = 0 if zero_point != 0 else -(2 ** (num_bits - 1))
     qmax = 2 ** num_bits - 1 if zero_point != 0 else 2 ** (num_bits - 1) - 1
     
@@ -143,47 +143,47 @@ def quantize(tensor: torch.Tensor, scale: float, zero_point: int,
 
 def dequantize(q_tensor: torch.Tensor, scale: float, 
                zero_point: int) -> torch.Tensor:
-    """Dequantize integer tensor back to float."""
+    """정수 텐서를 뜨는 소수로 되돌린다."""
     return scale * (q_tensor.float() - zero_point)
 ```
 
-## Quantization Error Analysis
+## 수 줄이기 어긋남 살피기
 
-### Quantization Noise
+### 수 줄이기 잡음
 
-The quantization error for uniform quantization follows an approximately uniform distribution:
+고른 수 줄이기의 어긋남은 거의 고른 분포를 따른다.
 
 $$\epsilon = x - \hat{x} \sim \mathcal{U}\left(-\frac{s}{2}, \frac{s}{2}\right)$$
 
-**Mean Squared Error:**
+**평균 제곱 어긋남:**
 
 $$\text{MSE} = \mathbb{E}[\epsilon^2] = \frac{s^2}{12}$$
 
-**Signal-to-Quantization-Noise Ratio (SQNR):**
+**신호 대 수 줄이기 잡음 견줌(SQNR):**
 
 $$\text{SQNR} = 10 \log_{10}\left(\frac{\sigma_x^2}{\text{MSE}}\right) \approx 6.02b + 4.77 \text{ dB}$$
 
-Each additional bit approximately adds 6 dB to SQNR.
+비트를 하나 더할 때마다 SQNR이 약 6 dB 오른다.
 
-### Error Propagation
+### 어긋남 퍼짐
 
-In a multi-layer network, quantization errors accumulate:
+여러 켜 그물에서는 수 줄이기 어긋남이 쌓인다.
 
 $$\epsilon_{\text{output}} = f(x + \epsilon_x, W + \epsilon_W) - f(x, W)$$
 
-For linear layers, the error approximately scales with layer width and depth, motivating per-layer quantization strategies.
+선형 켜에서는 어긋남이 켜의 너비와 깊이에 따라 커지므로 켜마다 다른 수 줄이기 꾀가 있어야 한다.
 
-## Types of Quantization
+## 수 줄이기의 갈래
 
-### 1. Dynamic Quantization
+### 1. 움직이는 수 줄이기
 
-Weights quantized statically, activations quantized dynamically at runtime.
+짐은 미리 줄이고, 살림은 돌아갈 때 그때그때 줄인다.
 
-**Best for**: Models with variable input sizes, RNNs, LSTMs, Transformers.
+**잘 맞는 자리**: 들임 크기가 바뀌는 모형, RNN, LSTM, 변환기.
 
 ```python
 class LinearModel(nn.Module):
-    """Example model for dynamic quantization."""
+    """움직이는 수 줄이기의 보기 모형."""
     
     def __init__(self, input_size: int = 784, hidden_size: int = 256, 
                  num_classes: int = 10):
@@ -201,72 +201,72 @@ class LinearModel(nn.Module):
 def apply_dynamic_quantization(model: nn.Module,
                                dtype: torch.dtype = torch.qint8) -> nn.Module:
     """
-    Apply dynamic quantization to a model.
+    모형에 움직이는 수 줄이기를 건다.
     
-    Dynamic quantization:
-    - Weights: quantized statically (INT8)
-    - Activations: quantized dynamically at inference time
+    움직이는 수 줄이기:
+    - 짐: 미리 줄인다(INT8)
+    - 살림: 미루어 볼 때 그때그때 줄인다
     
     Args:
-        model: Pre-trained FP32 model
-        dtype: Quantization dtype (torch.qint8 or torch.float16)
+        model: 미리 익힌 FP32 모형
+        dtype: 수 줄이기 갈래(torch.qint8 또는 torch.float16)
         
     Returns:
-        Dynamically quantized model
+        움직이는 수 줄이기를 건 모형
     """
     model.eval()
     
-    # Get size before
+    # 앞선 크기를 잰다
     size_before = sum(p.numel() * p.element_size() for p in model.parameters())
     
-    # Specify which layer types to quantize
+    # 어느 켜 갈래를 줄일지 밝힌다
     quantized_model = torch.quantization.quantize_dynamic(
         model,
         qconfig_spec={nn.Linear, nn.LSTM, nn.GRU},
         dtype=dtype
     )
     
-    # Get size after
+    # 뒤의 크기를 잰다
     size_after = sum(
         p.numel() * p.element_size() 
         for p in quantized_model.parameters()
     )
     
-    print(f"Size before: {size_before / 1e6:.2f} MB")
-    print(f"Size after: {size_after / 1e6:.2f} MB")
-    print(f"Compression: {size_before / size_after:.2f}x")
+    print(f"앞선 크기: {size_before / 1e6:.2f} MB")
+    print(f"뒤의 크기: {size_after / 1e6:.2f} MB")
+    print(f"눌러 담음: {size_before / size_after:.2f}배")
     
     return quantized_model
 ```
 
-### 2. Static Quantization
+### 2. 붙박인 수 줄이기
 
-Both weights and activations quantized ahead of time using calibration data.
+눈금 맞추기 자료를 써서 짐과 살림을 모두 미리 줄인다.
 
-**Best for**: Fixed input sizes, CNNs, vision models.
+**잘 맞는 자리**: 들임 크기가 붙박인 곳, CNN, 보기 모형.
 
 ```python
 class QuantizableModel(nn.Module):
     """
-    Model prepared for static quantization.
+    붙박인 수 줄이기에 맞게 마련한 모형.
     
-    Key modifications:
-    1. Add QuantStub/DeQuantStub for input/output
-    2. Replace functional operations with module equivalents
-    3. Fuse layers where possible
+    고갱이 고침:
+    1. 들임/날임에 QuantStub/DeQuantStub을 더한다
+    2. 함수 셈을 같은 일을 하는 묶음으로 바꾼다
+    3. 될 수 있으면 켜를 녹여 붙인다
     """
     
     def __init__(self, num_classes: int = 10):
         super().__init__()
         
-        # Quantization stubs
+        # 수 줄이기 꼭지
         self.quant = torch.quantization.QuantStub()
         self.dequant = torch.quantization.DeQuantStub()
         
-        # Model layers
+        # 모형의 켜
         self.conv1 = nn.Conv2d(1, 32, 3, padding=1)
         self.bn1 = nn.BatchNorm2d(32)
-        self.relu1 = nn.ReLU()  # Use module, not F.relu
+        self.relu1 = nn.ReLU()  # F.relu이 아니라 묶음을 쓴다
         
         self.conv2 = nn.Conv2d(32, 64, 3, padding=1)
         self.bn2 = nn.BatchNorm2d(64)
@@ -276,7 +276,7 @@ class QuantizableModel(nn.Module):
         self.fc = nn.Linear(64 * 7 * 7, num_classes)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.quant(x)  # Quantize input
+        x = self.quant(x)  # 들임의 수를 줄인다
         
         x = self.conv1(x)
         x = self.bn1(x)
@@ -290,15 +290,15 @@ class QuantizableModel(nn.Module):
         x = x.view(x.size(0), -1)
         x = self.fc(x)
         
-        x = self.dequant(x)  # Dequantize output
+        x = self.dequant(x)  # 날임의 수를 되돌린다
         return x
     
     def fuse_model(self):
         """
-        Fuse Conv-BN-ReLU sequences for better quantization.
+        수 줄이기가 잘 되도록 Conv-BN-ReLU 이음을 녹여 붙인다.
         
-        Fusing reduces quantization error by avoiding intermediate
-        quantization/dequantization steps.
+        녹여 붙이면 가운데의 수 줄이기/되돌리기 걸음을 건너뛰어
+        수 줄이기 어긋남이 줄어든다.
         """
         torch.quantization.fuse_modules(
             self,
@@ -312,63 +312,63 @@ def apply_static_quantization(model: nn.Module,
                               calibration_loader: torch.utils.data.DataLoader,
                               backend: str = 'fbgemm') -> nn.Module:
     """
-    Apply static quantization with calibration.
+    눈금을 맞추어 붙박인 수 줄이기를 건다.
     
-    Static quantization:
-    - Weights: quantized statically
-    - Activations: quantized using pre-computed scale/zero-point from calibration
+    붙박인 수 줄이기:
+    - 짐: 미리 줄인다
+    - 살림: 눈금 맞추기에서 미리 셈한 잣대/0점으로 줄인다
     
-    Requires representative calibration data to determine activation ranges.
+    살림의 자리를 정하려면 잘 드러내는 눈금 맞추기 자료가 있어야 한다.
     
     Args:
-        model: QuantizableModel (must have quant/dequant stubs)
-        calibration_loader: DataLoader with representative samples
-        backend: 'fbgemm' (x86) or 'qnnpack' (ARM)
+        model: QuantizableModel(수 줄이기 꼭지가 있어야 한다)
+        calibration_loader: 본보기 보기를 담은 DataLoader
+        backend: 'fbgemm'(x86) 또는 'qnnpack'(ARM)
         
     Returns:
-        Statically quantized model
+        붙박인 수 줄이기를 건 모형
     """
     model.eval()
     
-    # Fuse layers if method exists
+    # 방법이 있으면 켜를 녹여 붙인다
     if hasattr(model, 'fuse_model'):
         model.fuse_model()
     
-    # Set quantization configuration
+    # 수 줄이기 차림을 잡는다
     model.qconfig = torch.quantization.get_default_qconfig(backend)
     
-    # Insert observers
+    # 살피개를 끼운다
     torch.quantization.prepare(model, inplace=True)
     
-    # Calibration: run representative data through model
-    print("Calibrating...")
+    # 눈금 맞추기: 본보기 자료를 모형에 흘린다
+    print("눈금 맞추는 중...")
     with torch.no_grad():
         for batch_idx, (data, _) in enumerate(calibration_loader):
             model(data)
-            if batch_idx >= 100:  # Use 100 batches for calibration
+            if batch_idx >= 100:  # 눈금 맞추기에 묶음 100개를 쓴다
                 break
     
-    # Convert to quantized model
+    # 수 줄인 모형으로 바꾼다
     torch.quantization.convert(model, inplace=True)
     
     return model
 ```
 
-### 3. Quantization-Aware Training (QAT)
+### 3. 수 줄이기를 아는 익힘(QAT)
 
-Simulate quantization during training so the network learns to be robust to quantization errors.
+익히는 동안 수 줄이기를 흉내 내어 그물이 수 줄이기 어긋남에 든든해지도록 배우게 한다.
 
-**Best for**: When static quantization causes unacceptable accuracy loss.
+**잘 맞는 자리**: 붙박인 수 줄이기로 맞음이 받아들일 수 없을 만큼 떨어질 때.
 
-**Forward Pass:**
+**앞으로 걸음:**
 
 $$\hat{x} = \text{FakeQuant}(x) = s \cdot \text{round}\left(\frac{\text{clamp}(x, x_{\min}, x_{\max})}{s}\right)$$
 
-**Backward Pass (Straight-Through Estimator):**
+**되돌아 걸음(곧장 지나가는 어림개):**
 
 $$\frac{\partial \mathcal{L}}{\partial x} \approx \frac{\partial \mathcal{L}}{\partial \hat{x}} \cdot \mathbf{1}[x_{\min} \leq x \leq x_{\max}]$$
 
-The gradient passes through the quantization as if it were an identity function (within the clipping range).
+기울기는 (자르는 자리 안에서) 수 줄이기를 제 자리 함수인 양 지나간다.
 
 ```python
 def train_with_qat(model: nn.Module,
@@ -379,50 +379,50 @@ def train_with_qat(model: nn.Module,
                    backend: str = 'fbgemm',
                    device: str = 'cpu') -> nn.Module:
     """
-    Quantization-Aware Training (QAT).
+    수 줄이기를 아는 익힘(QAT).
     
-    Simulates quantization during training using fake quantization,
-    allowing the model to learn weights robust to quantization error.
+    익히는 동안 거짓 수 줄이기로 흉내를 내어
+    모형이 수 줄이기 어긋남에 든든한 짐을 배우게 한다.
     
-    QAT typically achieves 1-2% better accuracy than PTQ.
+    QAT은 흔히 익힘 뒤 수 줄이기보다 맞음이 1~2% 낫다.
     
     Args:
-        model: QuantizableModel to train
-        train_loader: Training data
-        test_loader: Test data for evaluation
-        epochs: Training epochs
-        lr: Learning rate
-        backend: Quantization backend
-        device: Training device
+        model: 익힐 QuantizableModel
+        train_loader: 익힘 자료
+        test_loader: 따질 시험 자료
+        epochs: 익힘 판 수
+        lr: 배움 비율
+        backend: 수 줄이기 뒷단
+        device: 익힐 장치
         
     Returns:
-        Quantized model
+        수 줄인 모형
     """
     model = model.to(device)
     model.train()
     
-    # Fuse layers
+    # 켜를 녹여 붙인다
     if hasattr(model, 'fuse_model'):
         model.fuse_model()
     
-    # Set QAT configuration
+    # QAT 차림을 잡는다
     model.qconfig = torch.quantization.get_default_qat_qconfig(backend)
     
-    # Prepare for QAT (inserts fake quantization modules)
+    # QAT을 마련한다(거짓 수 줄이기 묶음을 끼운다)
     torch.quantization.prepare_qat(model, inplace=True)
     
-    # Training setup
+    # 익힘 차림
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs)
     
-    print("Starting Quantization-Aware Training...")
+    print("수 줄이기를 아는 익힘을 비롯한다...")
     
     for epoch in range(epochs):
         model.train()
         train_loss = 0.0
         
-        # Freeze BatchNorm stats after warmup
+        # 몸풀기 뒤 묶음 잣대 잡기의 자를 얼린다
         if epoch >= epochs // 2:
             model.apply(torch.quantization.disable_observer)
         if epoch >= epochs * 3 // 4:
@@ -441,7 +441,7 @@ def train_with_qat(model: nn.Module,
         
         scheduler.step()
         
-        # Evaluate
+        # 따진다
         if (epoch + 1) % 2 == 0:
             model.eval()
             correct = 0
@@ -454,28 +454,28 @@ def train_with_qat(model: nn.Module,
                     correct += pred.eq(target).sum().item()
                     total += target.size(0)
             
-            print(f"Epoch {epoch+1}/{epochs}, "
-                  f"Loss: {train_loss/len(train_loader):.4f}, "
-                  f"Acc: {100*correct/total:.2f}%")
+            print(f"{epoch+1}/{epochs}판, "
+                  f"잃음: {train_loss/len(train_loader):.4f}, "
+                  f"맞음: {100*correct/total:.2f}%")
     
-    # Convert to fully quantized model
+    # 온통 수 줄인 모형으로 바꾼다
     model.eval()
     model_quantized = torch.quantization.convert(model.cpu(), inplace=False)
     
     return model_quantized
 ```
 
-## Mixed Precision (FP16)
+## 섞인 촘촘함(FP16)
 
-Use half precision for faster computation on modern GPUs:
+요즘 GPU에서 더 빠르게 셈하려고 반 촘촘함을 쓴다.
 
 ```python
 def mixed_precision_inference(model: nn.Module, 
                               data: torch.Tensor) -> torch.Tensor:
     """
-    Run inference with automatic mixed precision (AMP).
+    절로 섞이는 촘촘함(AMP)으로 미루어 본다.
     
-    AMP automatically uses FP16 where safe and FP32 where needed.
+    AMP은 걱정 없는 자리에는 FP16을, 있어야 할 자리에는 FP32을 절로 쓴다.
     """
     model.eval()
     device = next(model.parameters()).device
@@ -490,12 +490,12 @@ def mixed_precision_inference(model: nn.Module,
 
 def benchmark_precision(model: nn.Module, data: torch.Tensor, 
                         iterations: int = 100) -> Dict[str, float]:
-    """Compare FP32 vs FP16 performance."""
+    """FP32과 FP16의 됨됨이를 견준다."""
     device = torch.device('cuda')
     model = model.to(device)
     data = data.to(device)
     
-    # FP32 benchmark
+    # FP32 잣대 재기
     model_fp32 = model.float()
     data_fp32 = data.float()
     
@@ -507,7 +507,7 @@ def benchmark_precision(model: nn.Module, data: torch.Tensor,
     torch.cuda.synchronize()
     fp32_time = time.perf_counter() - start
     
-    # FP16 benchmark
+    # FP16 잣대 재기
     model_fp16 = model.half()
     data_fp16 = data.half()
     
@@ -521,7 +521,7 @@ def benchmark_precision(model: nn.Module, data: torch.Tensor,
     
     print(f"FP32: {fp32_time*1000:.2f} ms")
     print(f"FP16: {fp16_time*1000:.2f} ms")
-    print(f"Speedup: {fp32_time/fp16_time:.2f}x")
+    print(f"빨라짐: {fp32_time/fp16_time:.2f}배")
     
     return {
         'fp32_time_ms': fp32_time * 1000,
@@ -530,13 +530,13 @@ def benchmark_precision(model: nn.Module, data: torch.Tensor,
     }
 ```
 
-## Calibration Strategies
+## 눈금 맞추기 꾀
 
-### Min-Max Calibration
+### 가장 작은 값-가장 큰 값 눈금 맞추기
 
 ```python
 class MinMaxObserver:
-    """Track min/max values for calibration."""
+    """눈금 맞추기에 쓸 가장 작은/큰 값을 좇는다."""
     
     def __init__(self):
         self.min_val = float('inf')
@@ -553,13 +553,13 @@ class MinMaxObserver:
         return scale, zero_point
 ```
 
-### Histogram Calibration
+### 잦기 그림 눈금 맞추기
 
 ```python
 import numpy as np
 
 class HistogramObserver:
-    """Track histogram for better calibration."""
+    """눈금을 더 잘 맞추려고 잦기 그림을 좇는다."""
     
     def __init__(self, num_bins: int = 2048):
         self.num_bins = num_bins
@@ -579,19 +579,19 @@ class HistogramObserver:
     
     def compute_params_entropy(self, num_bits: int = 8):
         """
-        Compute optimal threshold using KL divergence (entropy calibration).
+        KL 갈림으로 가장 좋은 문턱을 셈한다(엔트로피 눈금 맞추기).
         
-        Find threshold that minimizes information loss when quantizing.
+        수를 줄일 때 소식 잃음을 가장 작게 하는 문턱을 찾는다.
         """
-        # Use PyTorch's built-in HistogramObserver for production
+        # 서비스에서는 PyTorch에 든 HistogramObserver을 쓴다
         pass
 ```
 
-### Percentile Calibration
+### 백분위 눈금 맞추기
 
 ```python
 class PercentileObserver:
-    """Use percentile for outlier robustness."""
+    """튀는 값에 든든하도록 백분위를 쓴다."""
     
     def __init__(self, percentile: float = 99.99):
         self.percentile = percentile
@@ -612,30 +612,30 @@ class PercentileObserver:
         return scale, zero_point
 ```
 
-## Per-Channel vs. Per-Tensor Quantization
+## 갈래마다 대 텐서마다의 수 줄이기
 
-### Per-Tensor Quantization
+### 텐서마다의 수 줄이기
 
-Single scale/zero-point for the entire tensor:
+온 텐서에 잣대/0점 하나:
 
-- Simpler implementation
-- May lose precision if weight distributions vary across channels
+- 짜기가 더 단순하다
+- 갈래마다 짐 분포가 다르면 촘촘함을 잃을 수 있다
 
-### Per-Channel Quantization
+### 갈래마다의 수 줄이기
 
-Separate scale/zero-point for each output channel:
+날임 갈래마다 따로 잣대/0점을 둔다.
 
-- Better preserves weight distributions
-- Essential for convolutional layers
-- Standard for modern quantization
+- 짐 분포를 더 잘 지킨다
+- 엮음 켜에는 꼭 있어야 한다
+- 요즘 수 줄이기의 여느 길이다
 
 ```python
 def analyze_weight_distribution(conv: nn.Conv2d) -> Dict:
     """
-    Analyze weight distribution per output channel.
+    날임 갈래마다 짐 분포를 살핀다.
     
-    Per-channel quantization is beneficial when channels have
-    significantly different weight ranges.
+    갈래마다 짐 자리가 크게 다를 때
+    갈래마다의 수 줄이기가 도움이 된다.
     """
     weights = conv.weight.data  # (out_ch, in_ch, kH, kW)
     
@@ -651,7 +651,7 @@ def analyze_weight_distribution(conv: nn.Conv2d) -> Dict:
             'range': (ch_weights.max() - ch_weights.min()).item()
         })
     
-    # Compute range variation
+    # 자리의 바뀜을 셈한다
     ranges = [s['range'] for s in channel_stats]
     range_ratio = max(ranges) / (min(ranges) + 1e-8)
     
@@ -662,9 +662,9 @@ def analyze_weight_distribution(conv: nn.Conv2d) -> Dict:
     }
 ```
 
-## Mixed-Precision Quantization
+## 섞인 촘촘함 수 줄이기
 
-Different layers have different sensitivity to quantization. Mixed-precision assigns bit-widths per layer:
+켜마다 수 줄이기에 예민한 정도가 다르다. 섞인 촘촘함은 켜마다 비트 너비를 달리 준다.
 
 ```python
 def mixed_precision_sensitivity(model: nn.Module,
@@ -672,16 +672,16 @@ def mixed_precision_sensitivity(model: nn.Module,
                                 bit_widths: List[int] = [4, 8, 16],
                                 device: str = 'cpu') -> Dict:
     """
-    Analyze layer sensitivity to different quantization bit-widths.
+    비트 너비마다 켜가 얼마나 예민한지 살핀다.
     
     Args:
-        model: Model to analyze
-        test_loader: Test data
-        bit_widths: Bit-widths to test
-        device: Device for inference
+        model: 살필 모형
+        test_loader: 시험 자료
+        bit_widths: 해 볼 비트 너비
+        device: 미루어 볼 장치
         
     Returns:
-        Sensitivity scores per layer per bit-width
+        켜마다 비트 너비마다의 예민함 점수
     """
     import copy
     
@@ -693,12 +693,12 @@ def mixed_precision_sensitivity(model: nn.Module,
             results[name] = {}
             
             for bits in bit_widths:
-                # Simulate quantization for this layer only
+                # 이 켜만 수 줄이기를 흉내 낸다
                 model_copy = copy.deepcopy(model)
                 
                 for n, m in model_copy.named_modules():
                     if n == name:
-                        # Quantize weights
+                        # 짐의 수를 줄인다
                         weight = m.weight.data
                         q_min = -(2 ** (bits - 1))
                         q_max = 2 ** (bits - 1) - 1
@@ -725,7 +725,7 @@ def mixed_precision_sensitivity(model: nn.Module,
 def evaluate_model(model: nn.Module, 
                    test_loader: torch.utils.data.DataLoader,
                    device: str = 'cpu') -> float:
-    """Evaluate model accuracy."""
+    """모형의 맞음을 따진다."""
     model.eval()
     model.to(device)
     correct = 0
@@ -742,62 +742,62 @@ def evaluate_model(model: nn.Module,
     return correct / total
 ```
 
-## Hardware Considerations
+## 쇠 붙임새에서 헤아릴 것
 
-### Supported Operations
+### 받쳐 주는 셈
 
-| Operation | INT8 CPU | INT8 GPU | FP16 GPU |
+| 셈 | INT8 CPU | INT8 GPU | FP16 GPU |
 |-----------|----------|----------|----------|
 | Conv2d | ✓ | ✓ | ✓ |
-| Linear | ✓ | ✓ | ✓ |
-| BatchNorm | Fused | Fused | ✓ |
-| ReLU | Fused | Fused | ✓ |
-| Add | ✓ | ✓ | ✓ |
-| Concat | ✓ | ✓ | ✓ |
-| Softmax | FP32 fallback | FP32 fallback | ✓ |
+| 선형 | ✓ | ✓ | ✓ |
+| 묶음 잣대 잡기 | 녹여 붙임 | 녹여 붙임 | ✓ |
+| ReLU | 녹여 붙임 | 녹여 붙임 | ✓ |
+| 더하기 | ✓ | ✓ | ✓ |
+| 이어 붙이기 | ✓ | ✓ | ✓ |
+| 소프트맥스 | FP32으로 물러남 | FP32으로 물러남 | ✓ |
 
-### Backend Selection
+### 뒷단 고르기
 
 ```python
 def select_quantization_backend(target_device: str) -> str:
     """
-    Select appropriate quantization backend based on target hardware.
+    과녁 쇠 붙임새에 맞는 수 줄이기 뒷단을 고른다.
     
     Args:
         target_device: 'x86_cpu', 'arm_cpu', 'nvidia_gpu', 'apple_neural_engine'
         
     Returns:
-        Backend string for PyTorch quantization
+        PyTorch 수 줄이기의 뒷단 이름
     """
     backends = {
-        'x86_cpu': 'fbgemm',      # Intel/AMD CPUs
-        'arm_cpu': 'qnnpack',      # ARM CPUs (mobile)
-        'nvidia_gpu': 'tensorrt',  # NVIDIA GPUs (requires TensorRT)
-        'apple_neural_engine': 'coreml'  # Apple devices (requires coremltools)
+        'x86_cpu': 'fbgemm',      # 인텔/AMD CPU
+        'arm_cpu': 'qnnpack',      # ARM CPU(손전화)
+        'nvidia_gpu': 'tensorrt',  # NVIDIA GPU(TensorRT이 있어야 한다)
+        'apple_neural_engine': 'coreml'  # 애플 장치(coremltools이 있어야 한다)
     }
     
     return backends.get(target_device, 'fbgemm')
 ```
 
-## Best Practices
+## 좋은 버릇
 
-### Layer Sensitivity
+### 켜의 예민함
 
-First and last layers are typically most sensitive to quantization:
+첫 켜와 마지막 켜가 수 줄이기에 가장 예민한 것이 보통이다.
 
 ```python
 def apply_mixed_precision_strategy(model: nn.Module,
                                    sensitive_layers: List[str] = None) -> nn.Module:
     """
-    Apply higher precision to sensitive layers.
+    예민한 켜에는 더 높은 촘촘함을 쓴다.
     
-    Common strategy:
-    - First conv layer: FP32 or FP16 (preserves input information)
-    - Last linear layer: FP32 or FP16 (preserves output precision)
-    - Middle layers: INT8
+    흔한 꾀:
+    - 첫 엮음 켜: FP32이나 FP16(들임 소식을 지킨다)
+    - 마지막 선형 켜: FP32이나 FP16(날임의 촘촘함을 지킨다)
+    - 가운데 켜: INT8
     """
     if sensitive_layers is None:
-        # Default: first and last layers
+        # 기본값: 첫 켜와 마지막 켜
         layer_names = [name for name, _ in model.named_modules() 
                       if isinstance(_, (nn.Conv2d, nn.Linear))]
         sensitive_layers = [layer_names[0], layer_names[-1]] if layer_names else []
@@ -805,53 +805,53 @@ def apply_mixed_precision_strategy(model: nn.Module,
     for name, module in model.named_modules():
         if isinstance(module, (nn.Conv2d, nn.Linear)):
             if name in sensitive_layers:
-                module.qconfig = None  # Keep in FP32
+                module.qconfig = None  # FP32으로 둔다
             else:
                 module.qconfig = torch.quantization.get_default_qconfig('fbgemm')
     
     return model
 ```
 
-### Batch Normalization Folding
+### 묶음 잣대 잡기 접어 넣기
 
-Fold BatchNorm into preceding Conv/Linear for efficiency:
+잘 들도록 묶음 잣대 잡기를 앞의 엮음/선형 켜에 접어 넣는다.
 
 ```python
 def fold_batchnorm(model: nn.Module) -> nn.Module:
     """
-    Fold BatchNorm layers into preceding convolutions.
+    묶음 잣대 잡기 켜를 앞의 엮음 켜에 접어 넣는다.
     
-    For Conv-BN sequence:
+    Conv-BN 이음에서:
     y = γ * (Wx + b - μ) / σ + β
       = (γ/σ) * Wx + (γ(b-μ)/σ + β)
       = W' * x + b'
     
-    where:
+    여기서:
     W' = W * γ/σ
     b' = γ(b-μ)/σ + β
     """
-    # PyTorch provides this automatically during quantization
+    # PyTorch이 수 줄이기 동안 절로 해 준다
     torch.quantization.fuse_modules(
         model,
-        # Specify fusion patterns
-        [['conv', 'bn', 'relu']],  # Example pattern
+        # 녹여 붙일 결을 밝힌다
+        [['conv', 'bn', 'relu']],  # 보기 결
         inplace=True
     )
     return model
 ```
 
-### Calibration Data Guidelines
+### 눈금 맞추기 자료 길잡이
 
 ```python
 def prepare_calibration_data(dataset, num_samples: int = 1000) -> List[torch.Tensor]:
     """
-    Prepare representative calibration data.
+    잘 드러내는 눈금 맞추기 자료를 마련한다.
     
-    Guidelines:
-    - Use 500-2000 samples
-    - Include diverse examples
-    - Match production data distribution
-    - Don't use training data augmentation
+    길잡이:
+    - 보기 500~2000개를 쓴다
+    - 여러 결의 보기를 담는다
+    - 서비스 자료의 분포와 맞춘다
+    - 익힘 자료 불리기는 쓰지 않는다
     """
     indices = torch.randperm(len(dataset))[:num_samples]
     
@@ -863,16 +863,16 @@ def prepare_calibration_data(dataset, num_samples: int = 1000) -> List[torch.Ten
     return calibration_samples
 ```
 
-## Quantization Error Debugging
+## 수 줄이기 어긋남 벌레잡기
 
 ```python
 def debug_quantization_error(original: nn.Module,
                              quantized: nn.Module,
                              sample_input: torch.Tensor) -> Dict:
     """
-    Analyze where quantization error originates.
+    수 줄이기 어긋남이 어디서 오는지 살핀다.
     
-    Compares intermediate activations between FP32 and quantized models.
+    FP32 모형과 수 줄인 모형의 가운데 살림을 견준다.
     """
     original.eval()
     quantized.eval()
@@ -880,7 +880,7 @@ def debug_quantization_error(original: nn.Module,
     activations_fp32 = {}
     activations_quant = {}
     
-    # Register hooks to capture activations
+    # 살림을 잡으려 갈고리를 건다
     def make_hook(storage, name):
         def hook(module, input, output):
             storage[name] = output.detach()
@@ -899,16 +899,16 @@ def debug_quantization_error(original: nn.Module,
                 make_hook(activations_quant, name)
             ))
     
-    # Forward pass
+    # 앞으로 걸음
     with torch.no_grad():
         _ = original(sample_input)
         _ = quantized(sample_input)
     
-    # Remove hooks
+    # 갈고리를 뗀다
     for hook in hooks:
         hook.remove()
     
-    # Compare activations
+    # 살림을 견준다
     errors = {}
     for name in activations_fp32:
         if name in activations_quant:
@@ -931,7 +931,7 @@ def validate_quantization(original_model: nn.Module,
                           quantized_model: nn.Module, 
                           test_loader: torch.utils.data.DataLoader) -> Tuple[float, float]:
     """
-    Compare accuracy of original and quantized models.
+    본디 모형과 수 줄인 모형의 맞음을 견준다.
     """
     original_model.eval()
     quantized_model.eval()
@@ -942,12 +942,12 @@ def validate_quantization(original_model: nn.Module,
     
     with torch.no_grad():
         for data, target in test_loader:
-            # Original model
+            # 본디 모형
             out_orig = original_model(data)
             pred_orig = out_orig.argmax(dim=1)
             original_correct += (pred_orig == target).sum().item()
             
-            # Quantized model
+            # 수 줄인 모형
             out_quant = quantized_model(data)
             pred_quant = out_quant.argmax(dim=1)
             quantized_correct += (pred_quant == target).sum().item()
@@ -957,9 +957,9 @@ def validate_quantization(original_model: nn.Module,
     orig_acc = original_correct / total
     quant_acc = quantized_correct / total
     
-    print(f"Original accuracy: {orig_acc*100:.2f}%")
-    print(f"Quantized accuracy: {quant_acc*100:.2f}%")
-    print(f"Accuracy drop: {(orig_acc - quant_acc)*100:.2f}%")
+    print(f"본디 맞음: {orig_acc*100:.2f}%")
+    print(f"수 줄인 맞음: {quant_acc*100:.2f}%")
+    print(f"맞음 떨어짐: {(orig_acc - quant_acc)*100:.2f}%")
     
     return orig_acc, quant_acc
 
@@ -969,9 +969,9 @@ def measure_quantization_impact(original: nn.Module,
                                 test_loader: torch.utils.data.DataLoader,
                                 device: str = 'cpu') -> Dict:
     """
-    Compare original and quantized model performance.
+    본디 모형과 수 줄인 모형의 됨됨이를 견준다.
     """
-    # Model sizes
+    # 모형 크기
     def get_size_mb(model):
         param_size = sum(p.nelement() * p.element_size() 
                         for p in model.parameters())
@@ -982,16 +982,16 @@ def measure_quantization_impact(original: nn.Module,
     orig_size = get_size_mb(original)
     quant_size = get_size_mb(quantized)
     
-    # Inference time
+    # 미루어 보는 때
     sample_input = next(iter(test_loader))[0][:1].to(device)
     
-    # Warmup
+    # 몸풀기
     for _ in range(10):
         with torch.no_grad():
             _ = original(sample_input)
             _ = quantized(sample_input.cpu())
     
-    # Timing
+    # 때 재기
     n_runs = 100
     
     start = time.time()
@@ -1016,33 +1016,33 @@ def measure_quantization_impact(original: nn.Module,
     }
 ```
 
-## Summary
+## 간추림
 
-Quantization is essential for efficient deployment:
+잘 드는 내놓기에는 수 줄이기가 있어야 한다.
 
-1. **Dynamic quantization**: Easy to apply, good for RNNs/Transformers
-2. **Static quantization**: Best compression, requires calibration
-3. **QAT**: Best accuracy, requires training infrastructure
-4. **FP16**: Simple, good GPU speedup, minimal accuracy loss
+1. **움직이는 수 줄이기**: 걸기 쉽고 RNN/변환기에 좋다
+2. **붙박인 수 줄이기**: 가장 잘 눌러 담으나 눈금 맞추기가 있어야 한다
+3. **QAT**: 맞음이 가장 좋으나 익힘 바탕이 있어야 한다
+4. **FP16**: 단순하고 GPU에서 잘 빨라지며 맞음 잃음이 적다
 
-| Scenario | Recommended Method |
+| 형편 | 즐겨 쓸 방법 |
 |----------|-------------------|
-| Quick deployment | Dynamic quantization |
-| Maximum accuracy | QAT |
-| CNNs/Vision | Static quantization |
-| RNNs/Transformers | Dynamic quantization |
-| GPU deployment | FP16 / INT8 TensorRT |
+| 빨리 내놓기 | 움직이는 수 줄이기 |
+| 가장 좋은 맞음 | QAT |
+| CNN/보기 | 붙박인 수 줄이기 |
+| RNN/변환기 | 움직이는 수 줄이기 |
+| GPU에 내놓기 | FP16 / INT8 TensorRT |
 
-Key recommendations:
+고갱이로 즐겨 쓸 길:
 
-- Start with dynamic quantization for quick wins
-- Use static quantization for CNNs/vision models
-- Apply QAT when accuracy drop is unacceptable
-- Always validate accuracy after quantization
-- Use representative calibration data
-- Keep first and last layers at higher precision if needed
+- 손쉬운 보람을 얻으려면 움직이는 수 줄이기에서 비롯한다
+- CNN/보기 모형에는 붙박인 수 줄이기를 쓴다
+- 맞음 떨어짐을 받아들일 수 없으면 QAT을 건다
+- 수를 줄인 뒤에는 늘 맞음을 따진다
+- 잘 드러내는 눈금 맞추기 자료를 쓴다
+- 있어야 하면 첫 켜와 마지막 켜를 더 높은 촘촘함으로 둔다
 
-## References
+## 살펴볼 거리
 
 1. Jacob, B., et al. "Quantization and Training of Neural Networks for Efficient Integer-Arithmetic-Only Inference." CVPR 2018.
 2. Banner, R., et al. "Post Training 4-bit Quantization of Convolutional Networks for Rapid-Deployment." NeurIPS 2019.
@@ -1050,34 +1050,34 @@ Key recommendations:
 4. Gholami, A., et al. "A Survey of Quantization Methods for Efficient Neural Network Inference." arXiv 2021.
 5. Krishnamoorthi, R. "Quantizing Deep Convolutional Networks for Efficient Inference." arXiv 2018.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Describe the trade-offs between the optimization techniques discussed in this section in terms of accuracy loss, inference speedup, and implementation complexity.
+**익힘 1.**
+이 마디에서 다룬 다듬기 재주들을 맞음 잃음, 미루어 봄 빨라짐, 짜기의 번거로움으로 견주어 맞바꿈을 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Each technique has a different trade-off profile. Quantization (INT8) typically achieves 2--4x speedup with < 1% accuracy loss and moderate implementation effort (supported by frameworks). Pruning achieves variable speedup depending on sparsity pattern (structured pruning is more hardware-friendly) with 1--3% accuracy loss. Knowledge distillation maintains the original architecture's inference cost but uses a smaller student, achieving 2--10x compression with 1--5% accuracy loss. NAS finds optimal architectures but requires massive search compute (thousands of GPU-hours). For financial applications, the acceptable accuracy loss depends on the cost of errors. $\square$
-
----
-
-**Exercise 2.**
-Implement post-training quantization (INT8) for a simple feedforward network and measure the accuracy degradation and inference speedup on a benchmark dataset.
-
-??? success "Solution to Exercise 2"
-    Using PyTorch's quantization API: (1) train a float32 model to baseline accuracy; (2) apply `torch.quantization.quantize_dynamic` for dynamic quantization or calibrate with representative data for static quantization; (3) measure inference time (average over 1000 batches) and accuracy on test set. Typical results: 1.5--3x speedup on CPU, < 0.5% accuracy drop for dynamic quantization, < 0.2% for calibrated static quantization. The model size reduction is approximately 4x (FP32 to INT8). Key: static quantization requires a calibration dataset representative of deployment data. $\square$
+??? success "익힘 1 풀이"
+    재주마다 맞바꿈의 결이 다르다. 수 줄이기(INT8)은 흔히 2~4배 빨라지면서 맞음 잃음이 1% 미만이고, 틀이 받쳐 주므로 짜는 품이 가운데쯤이다. 쳐내기는 성김의 결에 따라 빨라짐이 들쭉날쭉하며(짜임새 있는 쳐내기가 쇠 붙임새에 더 맞다) 맞음 잃음은 1~3%이다. 앎 옮기기는 얼개 자체의 미루어 봄 값은 그대로 두되 더 작은 제자를 써서 2~10배로 눌러 담고 맞음 잃음은 1~5%이다. 신경 얼개 찾기는 가장 좋은 얼개를 찾아 주지만 찾는 데 엄청난 셈이 든다(GPU 수천 시간). 금융 쓰임에서는 받아들일 수 있는 맞음 잃음이 어긋남의 값에 매인다. $\square$
 
 ---
 
-**Exercise 3.**
-Design a production monitoring system for a deployed model that detects data drift, concept drift, and model degradation. Specify the metrics and alerting thresholds.
+**익힘 2.**
+단순한 앞먹임 그물에 익힘 뒤 수 줄이기(INT8)을 짜 넣고, 잣대 자료 꾸러미에서 맞음이 얼마나 떨어지고 미루어 봄이 얼마나 빨라지는지 재어라.
 
-??? success "Solution to Exercise 3"
-    Monitor three levels: (1) Data drift: track input feature distributions using KS test or PSI (Population Stability Index). Alert if PSI > 0.2 for any feature. (2) Concept drift: track prediction distribution shift and ground-truth label distribution (when available). Alert if prediction mean shifts by > 2 standard deviations from the baseline period. (3) Model degradation: track live accuracy/loss metrics with a rolling window. Alert if accuracy drops > 3% from baseline or latency exceeds SLA (e.g., p99 > 50ms). Implement dashboards with Grafana, store metrics in Prometheus, and send alerts via PagerDuty. $\square$
+??? success "익힘 2 풀이"
+    PyTorch의 수 줄이기 API을 쓴다. (1) float32 모형을 밑금 맞음까지 익힌다. (2) 움직이는 수 줄이기에는 `torch.quantization.quantize_dynamic`을 쓰고, 붙박인 수 줄이기에는 본보기 자료로 눈금을 맞춘다. (3) 미루어 보는 때(묶음 1000개의 평균)와 시험 꾸러미의 맞음을 잰다. 흔한 결과: CPU에서 1.5~3배 빨라지고, 움직이는 수 줄이기는 맞음이 0.5% 미만, 눈금 맞춘 붙박인 수 줄이기는 0.2% 미만 떨어진다. 모형 크기는 약 4배 줄어든다(FP32에서 INT8으로). 고갱이: 붙박인 수 줄이기에는 내놓을 자리의 자료를 잘 드러내는 눈금 맞추기 꾸러미가 있어야 한다. $\square$
 
 ---
 
-**Exercise 4.**
-Explain why latency requirements in financial trading systems are fundamentally different from web serving. How does this affect the deployment optimization strategy?
+**익힘 3.**
+내놓은 모형의 자료 옮겨감, 뜻 옮겨감, 됨됨이 떨어짐을 짚어내는 서비스 지켜보기 얼개를 꾸며라. 자와 알림 문턱을 밝혀라.
 
-??? success "Solution to Exercise 4"
-    Web serving tolerates 100--500ms latency with occasional spikes; trading systems require deterministic sub-millisecond latency (often < 100 microseconds for HFT). This changes the optimization strategy: (1) avoid garbage collection pauses (use C++ inference, not Python); (2) pre-allocate all memory (no dynamic allocation); (3) pin threads to cores (avoid context switches); (4) use FPGA or ASIC for the most latency-critical path; (5) quantization is essential but must not introduce non-deterministic rounding. Batch inference is not applicable (each decision is latency-critical). The deployment stack prioritizes worst-case latency (p99.9) over throughput. $\square$
+??? success "익힘 3 풀이"
+    세 켜를 지켜본다. (1) 자료 옮겨감: KS 시험이나 PSI(무리 든든함 지수)으로 들임 결의 분포를 좇는다. 어떤 결이든 PSI > 0.2이면 알린다. (2) 뜻 옮겨감: 미루어 봄 분포의 옮겨감과 (얻을 수 있으면) 참 이름표 분포를 좇는다. 미루어 봄의 평균이 밑금 동안에서 잣대 어긋남 2배 넘게 옮겨가면 알린다. (3) 모형 떨어짐: 굴러가는 창으로 살아 있는 맞음과 잃음을 좇는다. 맞음이 밑금보다 3% 넘게 떨어지거나 늦음이 약속을 넘으면(p99 > 50ms 따위) 알린다. Grafana으로 판을 만들고, Prometheus에 자를 담고, PagerDuty으로 알림을 보낸다. $\square$
+
+---
+
+**익힘 4.**
+금융 거래 얼개의 늦음 요건이 웹 서비스와 밑바탕부터 다른 까닭을 밝혀라. 이것이 내놓기 다듬기 꾀에 어떻게 걸리는가?
+
+??? success "익힘 4 풀이"
+    웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 얼개는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 미루어 봄). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 알맹이에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 묶음 미루어 봄은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$
