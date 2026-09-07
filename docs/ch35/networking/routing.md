@@ -1,77 +1,77 @@
-# Routing Algorithms
+# 길잡기 알고리즘
 
-Every packet traveling across a network must find a path from source to destination. **Routing algorithms** determine these paths by modeling the network as a weighted graph $G = (V, E)$ where vertices represent routers, edges represent links, and weights capture costs such as latency, hop count, or bandwidth. The two fundamental paradigms -- distance-vector and link-state -- correspond directly to the Bellman-Ford and Dijkstra algorithms, respectively.
+그물을 지나는 꾸러미마다 보낸 곳에서 받을 곳까지 가는 길을 찾아야 한다. **길잡기 알고리즘**은 그물을 짐 실은 그래프 $G = (V, E)$로 본떠 그 길을 정한다. 마디는 길잡이를, 변은 이음줄을, 짐은 늦음·건넘 수·너비 같은 비용을 나타낸다. 밑바탕이 되는 두 결, 곧 거리 벡터와 이음줄 상태는 저마다 벨먼-포드 알고리즘과 데이크스트라 알고리즘에 그대로 맞물린다.
 
-## Network as a Graph
+## 그래프로 본 그물
 
-A network of $n$ routers with $m$ links is modeled as a weighted graph:
+이음줄이 $m$개인 길잡이 $n$개의 그물을 짐 실은 그래프로 본뜬다.
 
-- Each router is a vertex $v \in V$, $|V| = n$.
-- Each link is an edge $(u, v) \in E$ with weight $w(u, v) \ge 0$.
-- The routing problem is single-source shortest path: for each router, compute the best path to every destination.
+- 길잡이마다 마디 $v \in V$이고 $\lvert V \rvert = n$이다.
+- 이음줄마다 변 $(u, v) \in E$이고 짐이 $w(u, v) \ge 0$이다.
+- 길잡기 문제는 한 곳에서 뻗는 가장 짧은 길 문제다. 길잡이마다 받을 곳마다로 가는 가장 나은 길을 셈한다.
 
-## Distance-Vector Routing
+## 거리 벡터 길잡기
 
-Each router maintains a **distance vector** $d(v, \cdot)$ storing its estimated distance to every destination. Routers periodically exchange vectors with neighbors and update via the Bellman-Ford relaxation:
+길잡이마다 받을 곳마다로 가는 어림 거리를 담은 **거리 벡터** $d(v, \cdot)$을 지닌다. 길잡이들은 이따금 이웃과 벡터를 주고받으며 벨먼-포드 늦추기로 고쳐 쓴다.
 
 $$
-d(v, u) \leftarrow \min_{w \in \text{neighbors}(v)} \bigl(c(v, w) + d(w, u)\bigr)
+d(v, u) \leftarrow \min_{w \in \text{이웃}(v)} \bigl(c(v, w) + d(w, u)\bigr)
 $$
 
-**Properties:**
+**됨됨이:**
 
-- Converges in at most $|V| - 1$ rounds.
-- Each router only needs information from its immediate neighbors (distributed computation).
-- Vulnerable to count-to-infinity: when a link fails, routers may slowly propagate incorrect distances.
+- 많아야 $\lvert V \rvert - 1$돌이에 모인다.
+- 길잡이마다 바로 옆 이웃의 소식만 있으면 된다(흩은 셈).
+- 끝없이 세기에 약하다. 이음줄이 끊기면 길잡이들이 틀린 거리를 더디게 퍼뜨릴 수 있다.
 
-**Complexity per router per round**: $O(|V| \cdot \text{degree})$.
+**길잡이마다 돌이마다의 복잡도**: $O(\lvert V \rvert \cdot \text{차수})$.
 
-## Link-State Routing
+## 이음줄 상태 길잡기
 
-Each router floods **link-state advertisements** (LSAs) describing its neighbors and link costs. Every router builds the complete topology graph and runs Dijkstra's algorithm independently.
+길잡이마다 제 이웃과 이음줄 비용을 적은 **이음줄 상태 알림**(LSA)을 물 퍼지듯 뿌린다. 길잡이마다 온전한 얼개 그래프를 세우고 저 혼자 데이크스트라 알고리즘을 돌린다.
 
-**Properties:**
+**됨됨이:**
 
-- Converges as soon as LSAs reach all routers (typically one flooding round).
-- Requires $O(|V| + |E|)$ storage per router for the full topology.
-- Immune to count-to-infinity since each router has the complete graph.
+- LSA가 모든 길잡이에 닿는 대로 모인다(흔히 뿌리기 한 돌이).
+- 온 얼개를 담느라 길잡이마다 $O(\lvert V \rvert + \lvert E \rvert)$의 갈무리가 든다.
+- 길잡이마다 온전한 그래프를 지니므로 끝없이 세기에 걸리지 않는다.
 
-**Complexity per router**: $O((|V| + |E|) \log |V|)$ for Dijkstra with a binary heap.
+**길잡이마다의 복잡도**: 두 갈래 더미를 쓴 데이크스트라로 $O((\lvert V \rvert + \lvert E \rvert) \log \lvert V \rvert)$.
 
-## Comparison
+## 견주기
 
-| Property | Distance-Vector | Link-State |
+| 됨됨이 | 거리 벡터 | 이음줄 상태 |
 |---|---|---|
-| Algorithm | Bellman-Ford | Dijkstra |
-| Knowledge | Local (neighbors only) | Global (full topology) |
-| Message size | $O(|V|)$ per update | $O(\text{degree})$ per LSA |
-| Convergence | $O(|V|)$ rounds | $O(1)$ flood + compute |
-| Loop-free | No (count-to-infinity) | Yes |
-| Example protocol | RIP | OSPF, IS-IS |
+| 알고리즘 | 벨먼-포드 | 데이크스트라 |
+| 아는 만큼 | 그 자리(이웃만) | 온 세상(온 얼개) |
+| 알림 크기 | 고침마다 $O(\lvert V \rvert)$ | LSA마다 $O(\text{차수})$ |
+| 모임 | $O(\lvert V \rvert)$돌이 | 뿌리기 $O(1)$ + 셈 |
+| 맴돌이 없음 | 아니오(끝없이 세기) | 예 |
+| 보기 규약 | RIP | OSPF, IS-IS |
 
-## Path-Vector Routing
+## 길 벡터 길잡기
 
-For inter-domain routing (between autonomous systems), **path-vector** protocols like BGP store the full AS path for each route. This prevents loops (reject routes containing own AS number) and enables policy-based routing decisions beyond shortest-path.
+여러 다스림 밭 사이를 잇는 길잡기에서는 BGP 같은 **길 벡터** 규약이 길마다 온전한 AS 길을 갈무리한다. 이로써 맴돌이를 막고(제 AS 번호가 든 길은 물리친다), 가장 짧은 길을 넘어 방침에 따른 길잡기 판단을 할 수 있다.
 
-## Implementation
+## 짜보기
 
 ```python
 """
-Routing Algorithms -- comparison of distance-vector and link-state.
+길잡기 알고리즘 -- 거리 벡터와 이음줄 상태 견주기.
 
-Implements both Bellman-Ford (distance-vector) and Dijkstra (link-state)
-on the same network graph and verifies they produce identical results.
+같은 그물 그래프에 벨먼-포드(거리 벡터)와 데이크스트라(이음줄 상태)를
+둘 다 짜 넣고 같은 열매가 나오는지 살핀다.
 """
 
 import heapq
 from collections import defaultdict
 
 
-# === Graph ====================================================================
+# === 그래프 =================================================================
 
 def build_graph(links: list[tuple[int, int, int]],
                 n: int) -> dict[int, list[tuple[int, int]]]:
-    """Build a bidirectional adjacency list."""
+    """두 갈래로 오가는 이웃 목록을 세운다."""
     graph: dict[int, list[tuple[int, int]]] = {i: [] for i in range(n)}
     for u, v, w in links:
         graph[u].append((v, w))
@@ -79,14 +79,14 @@ def build_graph(links: list[tuple[int, int, int]],
     return graph
 
 
-# === Bellman-Ford (Distance-Vector) ===========================================
+# === 벨먼-포드(거리 벡터) ===================================================
 
 def bellman_ford(n: int, links: list[tuple[int, int, int]],
                  source: int) -> list[float]:
-    """Compute shortest distances using Bellman-Ford."""
+    """벨먼-포드로 가장 짧은 거리를 셈한다."""
     dist = [float("inf")] * n
     dist[source] = 0
-    # Undirected edges: relax both directions
+    # 방향 없는 변: 두 쪽 모두 늦춘다
     edges = [(u, v, w) for u, v, w in links] + [(v, u, w) for u, v, w in links]
     for _ in range(n - 1):
         for u, v, w in edges:
@@ -95,11 +95,11 @@ def bellman_ford(n: int, links: list[tuple[int, int, int]],
     return dist
 
 
-# === Dijkstra (Link-State) ====================================================
+# === 데이크스트라(이음줄 상태) ==============================================
 
 def dijkstra(graph: dict[int, list[tuple[int, int]]],
              source: int) -> list[float]:
-    """Compute shortest distances using Dijkstra."""
+    """데이크스트라로 가장 짧은 거리를 셈한다."""
     n = len(graph)
     dist = [float("inf")] * n
     dist[source] = 0
@@ -115,7 +115,7 @@ def dijkstra(graph: dict[int, list[tuple[int, int]]],
     return dist
 
 
-# === Main =====================================================================
+# === 메인 ===================================================================
 
 if __name__ == "__main__":
     n = 6
@@ -131,19 +131,19 @@ if __name__ == "__main__":
     bf_dist = bellman_ford(n, links, source=0)
     dj_dist = dijkstra(graph, source=0)
 
-    print("Source: Router 0")
-    print(f"{'Dest':>6} {'Bellman-Ford':>13} {'Dijkstra':>9}")
+    print("보낸 곳: 길잡이 0")
+    print(f"{'받을 곳':>6} {'벨먼-포드':>13} {'데이크스트라':>9}")
     for i in range(n):
         print(f"{i:>6} {bf_dist[i]:>13.0f} {dj_dist[i]:>9.0f}")
 
-    print(f"\nResults match: {bf_dist == dj_dist}")
+    print(f"\n열매가 같은가: {bf_dist == dj_dist}")
 ```
 
-**Output:**
+**내놓기:**
 
 ```
-Source: Router 0
-  Dest  Bellman-Ford  Dijkstra
+보낸 곳: 길잡이 0
+ 받을 곳     벨먼-포드  데이크스트라
      0             0         0
      1             7         7
      2             9         9
@@ -151,52 +151,52 @@ Source: Router 0
      4            20        20
      5            11        11
 
-Results match: True
+열매가 같은가: True
 ```
 
-Both algorithms produce identical shortest-path distances, confirming that distance-vector and link-state routing converge to the same result -- they differ in how information is shared, not in the final outcome.
+두 알고리즘이 똑같은 가장 짧은 길 거리를 내놓는다. 거리 벡터 길잡기와 이음줄 상태 길잡기가 같은 곳으로 모인다는 뜻이며, 둘은 소식을 나누는 길이 다를 뿐 끝에 이르는 곳은 같다.
 
-## Reference
+## 살펴볼 거리
 
 - Kurose, J.F. and Ross, K.W. *Computer Networking: A Top-Down Approach*. Pearson
 - Cormen, T.H., Leiserson, C.E., Rivest, R.L., and Stein, C. *Introduction to Algorithms*. MIT Press
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Model a 6-router network as a weighted graph and compute the shortest-path routing table for one router using Dijkstra's algorithm. Show the forwarding decisions.
+**익힘 1.**
+길잡이 6개짜리 그물을 짐 실은 그래프로 본뜨고, 데이크스트라 알고리즘으로 길잡이 하나의 가장 짧은 길 표를 셈하여라. 넘겨주기 판단을 보여라.
 
-??? success "Solution to Exercise 1"
-    Network: R1-R2(2), R1-R3(5), R2-R3(1), R2-R4(3), R3-R5(2), R4-R5(1), R4-R6(4), R5-R6(2). Dijkstra from R1: dist[R1]=0, dist[R2]=2 (via R2), dist[R3]=3 (via R2-R3), dist[R4]=5 (via R2-R4), dist[R5]=5 (via R2-R3-R5), dist[R6]=7 (via R2-R3-R5-R6). Forwarding table at R1: R2$\to$direct, R3$\to$R2, R4$\to$R2, R5$\to$R2, R6$\to$R2. All traffic leaves through the R1-R2 link because R2 is on all shortest paths. This is common in topologies where one neighbor provides the best gateway. $\square$
-
----
-
-**Exercise 2.**
-Compare distance-vector and link-state routing paradigms. What algorithmic property of each determines its convergence behavior?
-
-??? success "Solution to Exercise 2"
-    **Distance-vector** (Bellman-Ford): each router knows only its own distances to destinations and shares these with neighbors. Convergence requires iterative relaxation: information propagates one hop per round. Convergence time is $O(V)$ rounds, where each round can take 30 seconds (RIP). Vulnerable to count-to-infinity because routers act on potentially stale information from neighbors. **Link-state** (Dijkstra): each router knows the complete network topology via flooding. Convergence requires two phases: flooding ($O(\text{diameter})$ time, typically milliseconds) and local Dijkstra computation ($O(V \log V + E)$, microseconds). The complete-information property ensures a single computation produces correct results -- no iterative convergence needed. The key algorithmic difference: Bellman-Ford is distributed and iterative; Dijkstra is local but requires global state. $\square$
+??? success "익힘 1 풀이"
+    그물: R1-R2(2), R1-R3(5), R2-R3(1), R2-R4(3), R3-R5(2), R4-R5(1), R4-R6(4), R5-R6(2). R1에서 데이크스트라를 돌리면 dist[R1]=0, dist[R2]=2(R2 거쳐), dist[R3]=3(R2-R3 거쳐), dist[R4]=5(R2-R4 거쳐), dist[R5]=5(R2-R3-R5 거쳐), dist[R6]=7(R2-R3-R5-R6 거쳐)이다. R1의 넘겨주기 표는 R2$\to$바로, R3$\to$R2, R4$\to$R2, R5$\to$R2, R6$\to$R2이다. R2가 모든 가장 짧은 길 위에 있으므로 모든 오감이 R1-R2 이음줄로 빠져나간다. 한 이웃이 가장 나은 어귀가 되는 얼개에서 흔히 나타난다. $\square$
 
 ---
 
-**Exercise 3.**
-Explain how routing loops form and describe three mechanisms used in routing protocols to prevent or mitigate them.
+**익힘 2.**
+거리 벡터 길잡기와 이음줄 상태 길잡기의 결을 견주어라. 저마다 어떤 알고리즘 됨됨이가 모이는 결을 가르는가?
 
-??? success "Solution to Exercise 3"
-    A routing loop occurs when router A forwards packets for destination D to router B, and B forwards them back to A (directly or through intermediate routers). Packets circulate until their TTL expires. Loops form when routing tables are inconsistent during convergence. Mechanisms: (1) **TTL (Time to Live)**: each packet's TTL is decremented at every hop. When it reaches 0, the packet is dropped. This limits the damage of loops but does not prevent them. (2) **Split horizon / poison reverse**: a router does not advertise a route back to the neighbor from which it was learned (or advertises it with infinity). This prevents simple two-node loops. (3) **Hold-down timers**: after a route is withdrawn, the router refuses to accept new routes to that destination for a hold-down period, preventing stale information from creating loops during convergence. $\square$
-
----
-
-**Exercise 4.**
-A network has equal-cost multiple paths (ECMP) between two endpoints. Explain how ECMP routing works and what benefits it provides.
-
-??? success "Solution to Exercise 4"
-    ECMP occurs when multiple shortest paths of equal cost exist between a source and destination. Instead of choosing one path, the router distributes traffic across all equal-cost paths. Distribution methods: (1) **Per-packet**: each packet is independently assigned to a path (e.g., round-robin). This maximizes bandwidth utilization but can cause packet reordering. (2) **Per-flow**: a hash of the flow identifier (source IP, destination IP, port, protocol) determines the path. All packets in a flow follow the same path, avoiding reordering. This is the standard approach. Benefits: (1) increased aggregate bandwidth (multiple paths share the load); (2) fault tolerance (if one path fails, traffic shifts to remaining paths); (3) better utilization of network links (prevents bottlenecks on a single path). $\square$
+??? success "익힘 2 풀이"
+    **거리 벡터**(벨먼-포드): 길잡이마다 제가 받을 곳까지 이르는 거리만 알고 이를 이웃과 나눈다. 모이려면 되풀이 늦추기가 있어야 하고, 소식이 돌이마다 한 걸음씩 퍼진다. 모이는 때는 $O(V)$돌이이며 돌이마다 30초가 걸리기도 한다(RIP). 길잡이가 이웃에게서 온 낡았을지 모를 소식대로 움직이므로 끝없이 세기에 약하다. **이음줄 상태**(데이크스트라): 길잡이마다 뿌리기로 온전한 그물 얼개를 안다. 모이는 데 두 마디가 든다. 뿌리기($O(\text{지름})$ 때, 흔히 밀리초)와 그 자리 데이크스트라 셈($O(V \log V + E)$, 마이크로초)이다. 소식이 온전하다는 됨됨이 덕에 한 번 셈하면 옳은 열매가 나오므로 되풀이해서 모일 일이 없다. 알고리즘의 고갱이 차이는 벨먼-포드가 흩어져 되풀이하는 데 견주어 데이크스트라는 그 자리에서 돌지만 온 세상 상태를 바란다는 데 있다. $\square$
 
 ---
 
-**Exercise 5.**
-Software-defined networking (SDN) separates the control plane from the data plane. How does this change the routing paradigm, and what advantages does it offer over distributed routing protocols?
+**익힘 3.**
+길잡기 맴돌이가 어떻게 생기는지 밝히고, 길잡기 규약이 이를 막거나 눅이는 데 쓰는 얼개 셋을 밝혀라.
 
-??? success "Solution to Exercise 5"
-    In traditional routing, each router independently computes routes using distributed protocols (OSPF, BGP). In SDN, a centralized controller maintains the global network view and computes routes for all routers, then installs forwarding rules in each router's flow table. Advantages: (1) **Global optimization**: the controller can compute globally optimal paths (e.g., minimizing congestion, maximizing throughput) rather than relying on shortest-path heuristics. (2) **Rapid innovation**: new routing policies are software changes in the controller, not firmware updates on every router. (3) **Traffic engineering**: the controller can reroute flows dynamically based on real-time load, which distributed protocols cannot do efficiently. (4) **Simplified routers**: data-plane devices only forward packets based on rules; they need no routing protocol software. Disadvantage: the controller is a single point of failure (mitigated by controller replication) and must scale to handle topology changes and flow requests for the entire network. $\square$
+??? success "익힘 3 풀이"
+    길잡기 맴돌이는 길잡이 A가 받을 곳 D로 갈 꾸러미를 길잡이 B에 넘기고, B가 그것을 (바로든 사이 길잡이를 거쳐서든) 도로 A에 넘길 때 생긴다. 꾸러미는 목숨(TTL)이 다할 때까지 맴돈다. 모이는 동안 길잡기 표가 서로 어긋나면 맴돌이가 생긴다. 얼개는 이렇다. (1) **TTL(살아 있을 때)**: 꾸러미의 TTL을 건넘마다 하나씩 줄인다. 0이 되면 꾸러미를 버린다. 맴돌이의 해를 줄이지만 막지는 못한다. (2) **쪼갠 지평 / 되쏘아 죽이기**: 길잡이가 어떤 길을 배운 이웃에게는 그 길을 알리지 않는다(또는 끝없이 멀다고 알린다). 마디 둘짜리 단순한 맴돌이를 막는다. (3) **눌러 두는 시계**: 길이 거두어진 뒤 얼마 동안 길잡이가 그 받을 곳으로 가는 새 길을 받지 않아, 모이는 동안 낡은 소식이 맴돌이를 만드는 것을 막는다. $\square$
+
+---
+
+**익힘 4.**
+두 끝점 사이에 비용이 같은 길이 여럿(ECMP) 있는 그물이 있다. ECMP 길잡기가 어떻게 도는지, 무엇이 이로운지 밝혀라.
+
+??? success "익힘 4 풀이"
+    ECMP는 보낸 곳과 받을 곳 사이에 비용이 같은 가장 짧은 길이 여럿일 때 생긴다. 길 하나를 고르는 대신 길잡이가 비용이 같은 모든 길에 오감을 나눈다. 나누는 길은 이렇다. (1) **꾸러미마다**: 꾸러미마다 따로 길을 매긴다(보기로 돌아가며). 너비를 가장 많이 쓰지만 꾸러미 차례가 뒤바뀔 수 있다. (2) **흐름마다**: 흐름 이름표(보낸 IP, 받을 IP, 어귀, 규약)의 해시가 길을 정한다. 한 흐름의 꾸러미가 모두 같은 길을 따라 차례가 뒤바뀌지 않는다. 이것이 여느 길이다. 이로운 점은 (1) 너비가 모여서 커지고(여러 길이 짐을 나눈다), (2) 하나가 끊겨도 나머지 길로 오감이 옮겨 가고(탈 견딤), (3) 그물 이음줄을 고루 쓴다(길 하나에 목이 조이지 않는다)는 것이다. $\square$
+
+---
+
+**익힘 5.**
+소프트웨어로 정하는 그물(SDN)은 다스림 켜와 자료 켜를 갈라놓는다. 이것이 길잡기의 결을 어떻게 바꾸며, 흩은 길잡기 규약에 견주어 무엇이 나은가?
+
+??? success "익힘 5 풀이"
+    여느 길잡기에서는 길잡이마다 흩은 규약(OSPF, BGP)으로 저 혼자 길을 셈한다. SDN에서는 가운데 다스리개가 온 세상 그물 그림을 지니고 모든 길잡이의 길을 셈한 뒤, 길잡이마다의 흐름 표에 넘겨주기 규칙을 심는다. 나은 점은 이렇다. (1) **온 세상 다듬기**: 다스리개가 가장 짧은 길이라는 어림 꾀에 기대지 않고 온 세상에서 가장 나은 길을 셈할 수 있다(보기로 막힘을 가장 적게, 흐름을 가장 많이). (2) **빠른 새로움**: 새 길잡기 방침이 길잡이마다의 펌웨어 고침이 아니라 다스리개의 소프트웨어 고침이 된다. (3) **오감 다스리기**: 다스리개가 그때그때의 짐을 보고 흐름의 길을 다시 잡을 수 있는데, 흩은 규약으로는 이를 잘 하기 어렵다. (4) **단순해진 길잡이**: 자료 켜의 장치는 규칙에 따라 꾸러미를 넘기기만 하면 되고 길잡기 규약 소프트웨어가 없어도 된다. 나쁜 점은 다스리개가 홀로 무너질 자리라는 것과(다스리개를 여럿 두어 눅인다) 온 그물의 얼개 바뀜과 흐름 요청을 감당할 만큼 커져야 한다는 것이다. $\square$

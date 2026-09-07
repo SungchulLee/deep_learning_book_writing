@@ -1,68 +1,68 @@
-# Dijkstra in OSPF
+# OSPF 속의 데이크스트라
 
-The **Open Shortest Path First** (OSPF) protocol is a link-state routing protocol used within an autonomous system (AS). Unlike distance-vector protocols such as RIP, which propagate distance estimates from neighbor to neighbor, OSPF floods the entire network topology to every router, allowing each router to independently compute shortest paths using Dijkstra's algorithm.
+**열린 가장 짧은 길 먼저**(OSPF) 규약은 하나의 다스림 밭(AS) 안에서 쓰는 이음줄 상태 길잡기 규약이다. 이웃에서 이웃으로 거리 어림을 퍼뜨리는 RIP 같은 거리 벡터 규약과 달리, OSPF은 그물 얼개를 통째로 모든 길잡이에 뿌려, 길잡이마다 데이크스트라 알고리즘으로 가장 짧은 길을 저 혼자 셈하게 한다.
 
-## Link-State Routing
+## 이음줄 상태 길잡기
 
-In OSPF, each router:
+OSPF에서 길잡이마다 이렇게 한다.
 
-1. **Discovers neighbors** by exchanging Hello packets on each interface.
-2. **Measures link costs** (bandwidth, delay, or administrative weight).
-3. **Floods link-state advertisements (LSAs)** describing its neighbors and link costs to all routers in the area.
-4. **Builds a complete topology graph** from received LSAs.
-5. **Runs Dijkstra's algorithm** on this graph to compute the shortest-path tree rooted at itself.
+1. 나들목마다 헬로 꾸러미를 주고받아 **이웃을 알아낸다**.
+2. **이음줄 비용을 잰다**(너비, 늦음, 또는 다스림에서 매긴 짐).
+3. 제 이웃과 이음줄 비용을 적은 **이음줄 상태 알림(LSA)을 뿌려** 그 밭의 모든 길잡이에 보낸다.
+4. 받은 LSA로 **온전한 얼개 그래프를 세운다**.
+5. 이 그래프에 **데이크스트라 알고리즘을 돌려** 저를 뿌리로 삼는 가장 짧은 길 나무를 셈한다.
 
-The result is a routing table mapping each destination to the appropriate next-hop interface.
+그 열매가 받을 곳마다 알맞은 다음 건넘 나들목을 이어 주는 길잡기 표다.
 
-## OSPF Areas
+## OSPF 밭
 
-Large networks are divided into **areas** to limit the scope of LSA flooding. Area 0 is the backbone; all other areas connect through it. Each router runs Dijkstra only within its area, and **Area Border Routers** (ABRs) summarize inter-area routes.
+큰 그물은 LSA 뿌리기의 미치는 데를 좁히려고 **밭**으로 나눈다. 밭 0이 등뼈이고 나머지 밭은 모두 그것을 거쳐 이어진다. 길잡이마다 제 밭 안에서만 데이크스트라를 돌리고, **밭 가장자리 길잡이**(ABR)가 밭 사이 길을 간추린다.
 
-## Dijkstra's Algorithm
+## 데이크스트라 알고리즘
 
-Given a weighted graph $G = (V, E)$ with non-negative edge weights and source $s$, Dijkstra's algorithm computes shortest-path distances $d(s, v)$ for all $v \in V$.
+변의 짐이 음수가 아닌 짐 실은 그래프 $G = (V, E)$과 보낸 곳 $s$이 주어지면, 데이크스트라 알고리즘이 모든 $v \in V$에 대해 가장 짧은 길 거리 $d(s, v)$을 셈한다.
 
-The algorithm maintains a priority queue of vertices ordered by tentative distance:
+이 알고리즘은 잠정 거리로 차례 매긴 앞선 줄을 지닌다.
 
-1. Initialize $d(s) = 0$, $d(v) = \infty$ for all $v \ne s$.
-2. Extract the vertex $u$ with minimum $d(u)$ from the priority queue.
-3. For each neighbor $v$ of $u$, if $d(u) + w(u, v) < d(v)$, update $d(v)$ (relaxation).
-4. Repeat until the queue is empty.
+1. $d(s) = 0$으로, $v \ne s$마다 $d(v) = \infty$으로 첫자리를 잡는다.
+2. 앞선 줄에서 $d(u)$이 가장 작은 마디 $u$을 빼낸다.
+3. $u$의 이웃 $v$마다 $d(u) + w(u, v) < d(v)$이면 $d(v)$을 고쳐 쓴다(늦추기).
+4. 줄이 빌 때까지 되풀이한다.
 
-With a binary heap, the running time is:
+두 갈래 더미를 쓰면 걸리는 때는 다음과 같다.
 
 $$
-T(V, E) = O((|V| + |E|) \log |V|)
+T(V, E) = O((\lvert V \rvert + \lvert E \rvert) \log \lvert V \rvert)
 $$
 
-Each OSPF router runs this computation whenever the topology changes (LSA update received).
+OSPF 길잡이마다 얼개가 바뀔 때마다(LSA 고침을 받을 때마다) 이 셈을 돌린다.
 
-!!! tip "OSPF vs RIP"
-    OSPF converges faster than RIP because every router has the complete topology and computes paths locally. RIP relies on iterative distance-vector exchanges that can take up to $|V| - 1$ rounds to converge, and it suffers from the count-to-infinity problem.
+!!! tip "OSPF 대 RIP"
+    OSPF은 길잡이마다 온 얼개를 지니고 제자리에서 길을 셈하므로 RIP보다 빨리 모인다. RIP은 되풀이해 주고받는 거리 벡터에 기대므로 모이는 데 $\lvert V \rvert - 1$돌이까지 걸릴 수 있고, 끝없이 세기 문제도 겪는다.
 
-## Implementation
+## 짜보기
 
 ```python
 """
-OSPF Shortest Path -- Dijkstra's algorithm for link-state routing.
+OSPF 가장 짧은 길 -- 이음줄 상태 길잡기의 데이크스트라 알고리즘.
 
-Each router builds a complete topology graph from LSAs and runs
-Dijkstra to compute the shortest-path tree for forwarding decisions.
+길잡이마다 LSA로 온전한 얼개 그래프를 세우고 데이크스트라를 돌려
+넘겨주기 판단에 쓸 가장 짧은 길 나무를 셈한다.
 """
 
 import heapq
 from collections import defaultdict
 
 
-# === Graph Construction =======================================================
+# === 그래프 세우기 ==========================================================
 
 def build_graph(links: list[tuple[int, int, int]]) -> dict[int, list[tuple[int, int]]]:
-    """Build adjacency list from (src, dst, cost) link descriptions."""
+    """(보낸 곳, 받을 곳, 비용) 이음줄 적음에서 이웃 목록을 세운다."""
     graph: dict[int, list[tuple[int, int]]] = defaultdict(list)
     for u, v, w in links:
         graph[u].append((v, w))
-        graph[v].append((u, w))  # OSPF links are bidirectional
-    # Ensure all nodes appear even if they have no outgoing edges
+        graph[v].append((u, w))  # OSPF 이음줄은 두 갈래로 오간다
+    # 나가는 변이 없는 마디도 모두 나타나게 한다
     for u, v, _ in links:
         if u not in graph:
             graph[u] = []
@@ -71,13 +71,13 @@ def build_graph(links: list[tuple[int, int, int]]) -> dict[int, list[tuple[int, 
     return dict(graph)
 
 
-# === Dijkstra =================================================================
+# === 데이크스트라 ===========================================================
 
 def dijkstra(graph: dict[int, list[tuple[int, int]]],
              source: int) -> tuple[dict[int, float], dict[int, int | None]]:
-    """Compute shortest paths from *source*.
+    """*source*에서 가는 가장 짧은 길을 셈한다.
 
-    Returns (distances, predecessors) for reconstructing paths.
+    길을 되세울 수 있게 (거리, 앞선 마디)를 내놓는다.
     """
     dist: dict[int, float] = {v: float("inf") for v in graph}
     prev: dict[int, int | None] = {v: None for v in graph}
@@ -99,7 +99,7 @@ def dijkstra(graph: dict[int, list[tuple[int, int]]],
 
 
 def shortest_path(prev: dict[int, int | None], target: int) -> list[int]:
-    """Reconstruct the shortest path to *target* from the predecessor map."""
+    """앞선 마디 짝지음으로 *target*까지의 가장 짧은 길을 되세운다."""
     path = []
     node = target
     while node is not None:
@@ -108,34 +108,34 @@ def shortest_path(prev: dict[int, int | None], target: int) -> list[int]:
     return path[::-1]
 
 
-# === Main =====================================================================
+# === 메인 ===================================================================
 
 if __name__ == "__main__":
-    # Simulate a small OSPF area with 5 routers
+    # 길잡이 5개짜리 작은 OSPF 밭을 흉내낸다
     links = [
-        (0, 1, 4),   # Router 0 -- Router 1, cost 4
-        (0, 2, 1),   # Router 0 -- Router 2, cost 1
-        (2, 1, 2),   # Router 2 -- Router 1, cost 2
-        (1, 3, 1),   # Router 1 -- Router 3, cost 1
-        (2, 3, 5),   # Router 2 -- Router 3, cost 5
-        (3, 4, 3),   # Router 3 -- Router 4, cost 3
+        (0, 1, 4),   # 길잡이 0 -- 길잡이 1, 비용 4
+        (0, 2, 1),   # 길잡이 0 -- 길잡이 2, 비용 1
+        (2, 1, 2),   # 길잡이 2 -- 길잡이 1, 비용 2
+        (1, 3, 1),   # 길잡이 1 -- 길잡이 3, 비용 1
+        (2, 3, 5),   # 길잡이 2 -- 길잡이 3, 비용 5
+        (3, 4, 3),   # 길잡이 3 -- 길잡이 4, 비용 3
     ]
 
     graph = build_graph(links)
     dist, prev = dijkstra(graph, source=0)
 
-    print("OSPF routing table for Router 0:")
-    print(f"{'Dest':>6} {'Cost':>6} {'Path'}")
+    print("길잡이 0의 OSPF 길잡기 표:")
+    print(f"{'받을 곳':>6} {'비용':>6} {'길'}")
     for dest in sorted(graph.keys()):
         path = shortest_path(prev, dest)
         print(f"{dest:>6} {dist[dest]:>6.0f}   {' -> '.join(map(str, path))}")
 ```
 
-**Output:**
+**내놓기:**
 
 ```
-OSPF routing table for Router 0:
-  Dest   Cost Path
+길잡이 0의 OSPF 길잡기 표:
+ 받을 곳   비용 길
      0      0   0
      1      3   0 -> 2 -> 1
      2      1   0 -> 2
@@ -143,49 +143,49 @@ OSPF routing table for Router 0:
      4      7   0 -> 2 -> 1 -> 3 -> 4
 ```
 
-The routing table shows that Router 0 reaches Router 1 via Router 2 (cost 3) rather than the direct link (cost 4), demonstrating how Dijkstra finds the true shortest path through the topology.
+길잡기 표를 보면 길잡이 0이 길잡이 1에 곧바로 난 이음줄(비용 4)이 아니라 길잡이 2를 거쳐(비용 3) 닿는다. 데이크스트라가 얼개를 꿰뚫어 참으로 가장 짧은 길을 찾아냄을 보여 준다.
 
-## Reference
+## 살펴볼 거리
 
 - Moy, J. "OSPF Version 2." RFC 2328, 1998
 - Cormen, T.H., Leiserson, C.E., Rivest, R.L., and Stein, C. *Introduction to Algorithms*. MIT Press
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Explain how OSPF routers build the link-state database and why Dijkstra's algorithm is applied locally rather than globally.
+**익힘 1.**
+OSPF 길잡이가 이음줄 상태 곳간을 어떻게 세우는지, 그리고 데이크스트라 알고리즘을 온 세상이 아니라 제자리에서 돌리는 까닭을 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Each OSPF router creates a Link-State Advertisement (LSA) describing its directly connected links and their costs. LSAs are flooded to all routers in the area using reliable flooding (each router forwards received LSAs to all neighbors except the sender). After flooding converges, every router has an identical link-state database containing all LSAs -- a complete graph description. Each router then independently runs Dijkstra's algorithm on this database to compute shortest paths from itself to all destinations. The algorithm is applied locally because each router needs shortest paths from its own perspective (as the source). The global topology is the same everywhere, but the shortest-path tree differs for each source. This local computation avoids centralized coordination and is robust to individual router failures. $\square$
-
----
-
-**Exercise 2.**
-A network has 5 routers (A-E) with links: A-B(1), A-C(4), B-C(2), B-D(5), C-D(1), C-E(6), D-E(2). Compute the shortest-path tree from router A using Dijkstra's algorithm.
-
-??? success "Solution to Exercise 2"
-    Initialize: dist[A]=0, all others $\infty$. Step 1: process A. Update: dist[B]=1, dist[C]=4. Step 2: process B (dist=1). Update: dist[C]=min(4, 1+2)=3, dist[D]=min($\infty$, 1+5)=6. Step 3: process C (dist=3). Update: dist[D]=min(6, 3+1)=4, dist[E]=min($\infty$, 3+6)=9. Step 4: process D (dist=4). Update: dist[E]=min(9, 4+2)=6. Step 5: process E (dist=6). Shortest-path tree from A: A$\to$B (cost 1), A$\to$B$\to$C (cost 3), A$\to$B$\to$C$\to$D (cost 4), A$\to$B$\to$C$\to$D$\to$E (cost 6). Router A installs these as its routing table entries. $\square$
+??? success "익힘 1 풀이"
+    OSPF 길잡이마다 제게 곧바로 이어진 이음줄과 그 비용을 적은 이음줄 상태 알림(LSA)을 짓는다. LSA는 믿음직한 뿌리기로 그 밭의 모든 길잡이에 퍼진다(길잡이마다 받은 LSA를 보낸 이를 뺀 모든 이웃에 넘긴다). 뿌리기가 모이면 길잡이마다 모든 LSA를 담은 똑같은 이음줄 상태 곳간, 곧 온전한 그래프 적음을 지닌다. 그러고 나서 길잡이마다 이 곳간에 데이크스트라 알고리즘을 저 혼자 돌려 저에게서 모든 받을 곳으로 가는 가장 짧은 길을 셈한다. 제자리에서 돌리는 까닭은 길잡이마다 제 자리에서(보낸 곳으로서) 본 가장 짧은 길이 있어야 하기 때문이다. 온 세상 얼개는 어디서나 같지만 가장 짧은 길 나무는 보낸 곳마다 다르다. 이렇게 제자리에서 셈하면 가운데서 맞출 일이 없고 길잡이 하나가 무너져도 든든하다. $\square$
 
 ---
 
-**Exercise 3.**
-OSPF uses areas to scale to large networks. Explain how area partitioning reduces the computational cost of Dijkstra's algorithm.
+**익힘 2.**
+길잡이 5개(A~E)와 이음줄 A-B(1), A-C(4), B-C(2), B-D(5), C-D(1), C-E(6), D-E(2)로 된 그물이 있다. 데이크스트라 알고리즘으로 길잡이 A에서 뻗는 가장 짧은 길 나무를 셈하여라.
 
-??? success "Solution to Exercise 3"
-    Without areas, every router runs Dijkstra on the full network graph with $V$ vertices and $E$ edges, costing $O(V \log V + E)$ per router. With $V = 10{,}000$, this is expensive and must be repeated whenever any link changes. OSPF divides the network into areas. Each router only maintains the full topology of its own area and summary routes from other areas (advertised by area border routers). If the network is divided into $k$ areas of $\sim V/k$ routers each, Dijkstra runs on a graph of size $V/k + k$ (local nodes plus inter-area summaries). For $k = 100$ and $V = 10{,}000$: each router processes $\sim 200$ nodes instead of 10,000 -- a 50x reduction. Link changes in one area trigger Dijkstra only in that area, not network-wide. $\square$
-
----
-
-**Exercise 4.**
-Compare OSPF (Dijkstra-based) with RIP (Bellman-Ford-based) in terms of convergence speed, message overhead, and suitability for large networks.
-
-??? success "Solution to Exercise 4"
-    **Convergence speed**: OSPF converges in seconds (LSA flooding + one Dijkstra run). RIP converges slowly (distance vectors propagate hop-by-hop, with $O(\text{diameter})$ iterations, each separated by 30-second update intervals). The "count to infinity" problem further delays RIP convergence on link failures. **Message overhead**: OSPF floods LSAs to all routers (high initial cost but triggered only by changes). RIP sends full routing tables to neighbors every 30 seconds regardless of changes (steady overhead). **Scalability**: OSPF scales to large networks via area hierarchies. RIP is limited to 15 hops (infinity = 16) and does not support hierarchical routing. OSPF is the standard for enterprise and ISP networks; RIP is suitable only for small networks. $\square$
+??? success "익힘 2 풀이"
+    첫자리: dist[A]=0, 나머지는 모두 $\infty$. 걸음 1: A을 다룬다. dist[B]=1, dist[C]=4로 고친다. 걸음 2: B(dist=1)을 다룬다. dist[C]=min(4, 1+2)=3, dist[D]=min($\infty$, 1+5)=6으로 고친다. 걸음 3: C(dist=3)을 다룬다. dist[D]=min(6, 3+1)=4, dist[E]=min($\infty$, 3+6)=9로 고친다. 걸음 4: D(dist=4)을 다룬다. dist[E]=min(9, 4+2)=6으로 고친다. 걸음 5: E(dist=6)을 다룬다. A에서 뻗는 가장 짧은 길 나무는 A$\to$B(비용 1), A$\to$B$\to$C(비용 3), A$\to$B$\to$C$\to$D(비용 4), A$\to$B$\to$C$\to$D$\to$E(비용 6)이다. 길잡이 A은 이것을 제 길잡기 표 항목으로 심는다. $\square$
 
 ---
 
-**Exercise 5.**
-A network link between routers B and C fails. Describe the sequence of events in OSPF from failure detection to routing table convergence.
+**익힘 3.**
+OSPF은 큰 그물로 커지려고 밭을 쓴다. 밭으로 나누는 것이 데이크스트라 알고리즘의 셈 비용을 어떻게 줄이는지 밝혀라.
 
-??? success "Solution to Exercise 5"
-    (1) **Detection**: routers B and C stop receiving Hello packets from each other (default dead interval: 40 seconds, or faster with BFD at $\sim$50 ms). Each declares the link down. (2) **LSA generation**: B and C each generate new LSAs omitting the B-C link and increment their sequence numbers. (3) **Flooding**: the new LSAs are flooded throughout the area. Each router receiving a newer LSA forwards it to all neighbors, ensuring all routers update within $\sim$1 second. (4) **SPF computation**: each router detects the LSA change, schedules a Dijkstra recomputation (with a throttle delay of $\sim$200 ms to batch changes), and runs Dijkstra on the updated link-state database. (5) **Routing table update**: new shortest paths that avoid the B-C link are installed. Traffic is rerouted. Total convergence time: $\sim$1--2 seconds with tuned timers, or $\sim$40 seconds with default Hello timers. $\square$
+??? success "익힘 3 풀이"
+    밭이 없으면 길잡이마다 마디 $V$개, 변 $E$개인 온 그물 그래프에 데이크스트라를 돌려 길잡이마다 $O(V \log V + E)$이 든다. $V = 10{,}000$이면 비싸고, 이음줄 하나만 바뀌어도 되풀이해야 한다. OSPF은 그물을 밭으로 나눈다. 길잡이마다 제 밭의 온 얼개와 다른 밭의 간추린 길(밭 가장자리 길잡이가 알린다)만 지닌다. 그물을 길잡이 $\sim V/k$개씩 밭 $k$개로 나누면 데이크스트라가 크기 $V/k + k$인 그래프(제 밭의 마디에 밭 사이 간추림을 더한 것)에서 돈다. $k = 100$이고 $V = 10{,}000$이면 길잡이마다 10,000개가 아니라 $\sim 200$개의 마디를 다루니 50곱절이 준다. 한 밭에서 이음줄이 바뀌면 그 밭에서만 데이크스트라가 돌고 그물 전체가 돌지 않는다. $\square$
+
+---
+
+**익힘 4.**
+OSPF(데이크스트라 바탕)과 RIP(벨먼-포드 바탕)을 모이는 빠르기, 알림 짐, 큰 그물에 맞음으로 견주어라.
+
+??? success "익힘 4 풀이"
+    **모이는 빠르기**: OSPF은 몇 초에 모인다(LSA 뿌리기 + 데이크스트라 한 번). RIP은 더디게 모인다(거리 벡터가 건넘마다 퍼지며 $O(\text{지름})$번 되풀이하고, 되풀이 사이가 30초다). 이음줄이 끊길 때는 "끝없이 세기" 문제가 RIP의 모임을 더 늦춘다. **알림 짐**: OSPF은 LSA를 모든 길잡이에 뿌린다(처음 값은 크지만 바뀔 때만 걸린다). RIP은 바뀌든 말든 30초마다 길잡기 표를 통째로 이웃에게 보낸다(늘 같은 짐). **커지기**: OSPF은 밭 켜를 두어 큰 그물로 커진다. RIP은 15 건넘에 매이고(끝없이 멂 = 16) 켜 있는 길잡기를 받치지 않는다. OSPF은 기업과 ISP 그물의 여느 길이고, RIP은 작은 그물에나 맞다. $\square$
+
+---
+
+**익힘 5.**
+길잡이 B와 C 사이 이음줄이 끊겼다. 끊김을 알아내는 데서 길잡기 표가 모일 때까지 OSPF에서 벌어지는 일을 차례대로 밝혀라.
+
+??? success "익힘 5 풀이"
+    (1) **알아내기**: 길잡이 B와 C이 서로에게서 헬로 꾸러미를 받지 못한다(맡긴 죽음 사이는 40초, BFD을 쓰면 $\sim$50 밀리초로 더 빠르다). 저마다 이음줄이 내려갔다고 알린다. (2) **LSA 짓기**: B와 C이 B-C 이음줄을 뺀 새 LSA를 짓고 차례 번호를 올린다. (3) **뿌리기**: 새 LSA가 밭 전체에 퍼진다. 더 새 LSA를 받은 길잡이마다 모든 이웃에 넘겨 $\sim$1초 안에 모든 길잡이가 고쳐 쓰게 한다. (4) **SPF 셈**: 길잡이마다 LSA가 바뀐 것을 알아채고 데이크스트라 다시 셈을 잡아 두었다가(바뀜을 모으려고 $\sim$200 밀리초쯤 늦춘다) 고쳐 쓴 이음줄 상태 곳간에 데이크스트라를 돌린다. (5) **길잡기 표 고침**: B-C 이음줄을 피하는 새 가장 짧은 길을 심는다. 오감이 다른 길로 돌아간다. 모두 모이는 때는 시계를 잘 맞추면 $\sim$1~2초, 맡긴 헬로 시계로는 $\sim$40초다. $\square$
