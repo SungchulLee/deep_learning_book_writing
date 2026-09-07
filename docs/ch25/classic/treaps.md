@@ -65,7 +65,7 @@ $$
 """
 마구잡이 트립: 아무 우선값을 갖춘 이진 찾기 나무 + 무지개탑.
 
-Supports search, insert, and delete in O(log n) expected time
+찾기, 넣기, 지우기를 기대 시간 O(log n)에 받쳐 준다
 돌리기로 우선값의 무지개탑 성질을 지킨다.
 """
 

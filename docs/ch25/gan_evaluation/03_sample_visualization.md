@@ -23,7 +23,7 @@
 ------------
 - 표본의 격자 그림
 - 숨은 공간 사이 메우기
-- Reconstruction error metrics (MSE, SSIM)
+- 되살림 어긋남 자(MSE, SSIM)
 - 눈으로 품질 따지기
 
 지은이: 가르치기 인공 지능 모둠
@@ -69,13 +69,13 @@ class SampleGridVisualizer:
         그려 보기용 그림 격자를 만든다.
         
         인수:
-            images: Batch of images [batch_size, channels, height, width]
+            images: 그림 묶음 [batch_size, channels, height, width]
             nrow: 가로줄마다 그림 수
             padding: 그림 사이 화소
-            normalize: Whether to normalize to [0, 1]
+            normalize: [0, 1]로 잣대를 맞출지 여부
         
         반환값:
-            Grid image as numpy array [height, width, channels]
+            넘파이 배열로 된 격자 그림 [height, width, channels]
         """
         batch_size = images.shape[0]
         ncol = (batch_size + nrow - 1) // nrow  # 올림 나눗셈
@@ -125,7 +125,7 @@ class SampleGridVisualizer:
         표본 격자를 그리고 필요하면 갈무리한다.
         
         인수:
-            images: Batch of images [batch_size, C, H, W]
+            images: 그림 묶음 [batch_size, C, H, W]
             title: 그림의 제목
             save_path: 그림을 갈무리할 길(있으면)
         """
@@ -174,12 +174,12 @@ class LatentSpaceInterpolation:
         숨은 벡터 둘 사이에 선형 사이 메우기를 한다.
         
         인수:
-            z1: Start latent vector [latent_dim]
-            z2: End latent vector [latent_dim]
+            z1: 처음 숨은 벡터 [latent_dim]
+            z2: 끝 숨은 벡터 [latent_dim]
             num_steps: 사이 끼움 걸음 수
         
         반환값:
-            Interpolated latent vectors [num_steps, latent_dim]
+            사이를 메운 숨은 벡터 [num_steps, latent_dim]
         
         수학 공식:
         --------------------
@@ -208,11 +208,11 @@ class LatentSpaceInterpolation:
                              z2: torch.Tensor,
                              num_steps: int = 10) -> torch.Tensor:
         """
-        Perform spherical linear interpolation (slerp).
+        공 모양 선형 사이 메우기(slerp)를 한다.
         
         왜 slerp인가?
         ---------
-        For distributions like Gaussian (VAE latent space),
+        가우스 같은 분포(VAE의 숨은 자리)에서는
         slerp은 원점에서 거리를 한결같이 지켜
         더 자연스러운 사이 메우기를 낸다.
         
@@ -223,12 +223,12 @@ class LatentSpaceInterpolation:
         where θ = arccos(z1·z2 / (||z1|| ||z2||))
         
         인수:
-            z1: Start latent vector [latent_dim]
-            z2: End latent vector [latent_dim]
+            z1: 처음 숨은 벡터 [latent_dim]
+            z2: 끝 숨은 벡터 [latent_dim]
             num_steps: 사이 끼움 걸음 수
         
         반환값:
-            Interpolated latent vectors [num_steps, latent_dim]
+            사이를 메운 숨은 벡터 [num_steps, latent_dim]
         """
         # 벡터를 고르게 맞춘다
         z1_norm = F.normalize(z1, dim=0)
@@ -316,9 +316,9 @@ class ReconstructionQuality:
     
     흔한 잣대:
     --------------
-    1. MSE (Mean Squared Error): Pixel-wise differences
-    2. PSNR (Peak Signal-to-Noise Ratio): Signal quality
-    3. SSIM (Structural Similarity): Perceptual similarity
+    1. MSE(평균 제곱 어긋남): 화소마다의 차이
+    2. PSNR(최고 신호 대 잡음 비): 신호 품질
+    3. SSIM(짜임새 닮음): 느낌으로 본 닮음
     
     쓰임새:
     ---------
@@ -338,11 +338,11 @@ class ReconstructionQuality:
         MSE = 1/(N*C*H*W) * Σ(original - reconstructed)²
         
         인수:
-            original: Original images [B, C, H, W]
-            reconstructed: Reconstructed images [B, C, H, W]
+            original: 본디 그림 [B, C, H, W]
+            reconstructed: 되살린 그림 [B, C, H, W]
         
         반환값:
-            MSE value (lower is better)
+            MSE 값(낮을수록 좋다)
         """
         # 제곱 차이 계산
         squared_diff = (original - reconstructed) ** 2
@@ -367,17 +367,17 @@ class ReconstructionQuality:
         
         해석:
         --------------
-        - Higher PSNR = Better quality
+        - PSNR이 높을수록 품질이 좋다
         - 봉우리 신호 대 잡음비 > 30 dB: 좋은 품질
         - 봉우리 신호 대 잡음비 > 40 dB: 뛰어난 품질
         
         인수:
-            original: Original images [B, C, H, W]
-            reconstructed: Reconstructed images [B, C, H, W]
-            max_pixel_value: Maximum pixel value (1.0 for normalized images)
+            original: 본디 그림 [B, C, H, W]
+            reconstructed: 되살린 그림 [B, C, H, W]
+            max_pixel_value: 가장 큰 화솟값(잣대를 맞춘 그림이면 1.0)
         
         반환값:
-            PSNR in decibels (higher is better)
+            데시벨 단위의 PSNR(높을수록 좋다)
         """
         # 평균 제곱 어긋남을 셈한다
         mse = ReconstructionQuality.compute_mse(original, reconstructed)
@@ -395,11 +395,11 @@ class ReconstructionQuality:
     def compute_per_sample_mse(original: torch.Tensor,
                               reconstructed: torch.Tensor) -> torch.Tensor:
         """
-        Compute MSE for each sample (useful for analysis).
+        표본마다 MSE를 셈한다(살피는 데 쓸모 있다).
         
         인수:
-            original: Original images [B, C, H, W]
-            reconstructed: Reconstructed images [B, C, H, W]
+            original: 본디 그림 [B, C, H, W]
+            reconstructed: 되살린 그림 [B, C, H, W]
         
         반환값:
             Per-sample MSE [B]

@@ -305,7 +305,7 @@ class BPDCalculator:
         인수:
             nll: 음의 로그 가능도(내트 단위)
             dimensions: 온 자료 차원
-                       (e.g., 28*28=784 for MNIST, 32*32*3=3072 for CIFAR)
+                       (보기: MNIST이면 28*28=784, CIFAR이면 32*32*3=3072)
         
         반환값:
             차원마다 비트 값

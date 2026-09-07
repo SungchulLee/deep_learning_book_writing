@@ -58,7 +58,7 @@ $h$이 지금 최대 층을 넘으면 건너뛰기 목록에 새 층을 더한�
 """
 마구잡이 건너뛰기 목록: 고른 이진 찾기 나무의 확률 대안.
 
-Supports search, insertion, and deletion in O(log n) expected time.
+찾기, 넣기, 지우기를 기대 시간 O(log n)에 받쳐 준다.
 """
 
 import random
@@ -79,7 +79,7 @@ class SkipNode:
 class SkipList:
     """마구잡이 건너뛰기 목록 자료 짜임.
 
-    Each operation (search, insert, delete) runs in O(log n) expected time.
+    찾기, 넣기, 지우기가 모두 기대 시간 O(log n)에 돈다.
     """
 
     def __init__(self, max_level=16, p=0.5):

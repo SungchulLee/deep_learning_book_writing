@@ -142,7 +142,7 @@ def evaluate_attack(model, x_clean, x_adv, y_true, y_target=None):
         x_clean: 깨끗한 그림
         x_adv: 맞겨루기 그림
         y_true: 참 레이블
-        y_target: Target labels (for targeted attacks)
+        y_target: 과녁 이름표(과녁 공격에 쓴다)
     
     반환값:
         공격 잣대 사전
@@ -184,8 +184,8 @@ def perturbation_metrics(x_clean, x_adv):
     흔들림 통계를 셈한다.
     
     인수:
-        x_clean: Clean images (batch)
-        x_adv: Adversarial images (batch)
+        x_clean: 깨끗한 그림(묶음)
+        x_adv: 맞겨루기 그림(묶음)
     
     반환값:
         흔들림 잣대 사전
@@ -219,8 +219,8 @@ def visualize_adversarial_example(x_clean, x_adv, y_true, y_pred_clean, y_pred_a
     깨끗한 그림, 흔들림, 맞겨루기 그림을 그려 본다.
     
     인수:
-        x_clean: Clean image tensor (C, H, W)
-        x_adv: Adversarial image tensor (C, H, W)
+        x_clean: 깨끗한 그림 텐서 (C, H, W)
+        x_adv: 맞겨루기 그림 텐서 (C, H, W)
         y_true: 참 이름표
         y_pred_clean: 깨끗한 그림의 헤아림
         y_pred_adv: 맞겨루기 그림의 헤아림
@@ -410,10 +410,10 @@ def fgsm_attack(model, images, labels, epsilon, criterion=None):
     
     인수:
         model: 겨눌 가름개
-        images: Input images (requires_grad should be True)
+        images: 들임 그림(requires_grad가 True여야 한다)
         labels: 참 이름표
         epsilon: 흔들림의 크기
-        criterion: Loss function (default: CrossEntropyLoss)
+        criterion: 잃음 함수(기본값: CrossEntropyLoss)
     
     반환값:
         adversarial_images: 흔들린 그림
@@ -855,8 +855,8 @@ def targeted_fgsm(model, images, target_labels, epsilon):
     """
     목표 있는 FGSM 공격.
     
-    Instead of maximizing loss (pushing away from true class),
-    we minimize loss (pulling toward target class).
+    잃음을 가장 크게 하는 대신(참 갈래에서 밀어내는 대신)
+    잃음을 가장 작게 한다(과녁 갈래로 끌어당긴다).
     
     인수:
         model: 겨눌 가름개
@@ -896,7 +896,7 @@ def targeted_fgsm(model, images, target_labels, epsilon):
 ```python
 def targeted_bim(model, images, target_labels, epsilon, alpha, num_iter):
     """
-    Targeted Basic Iterative Method (Iterative FGSM).
+    과녁을 둔 기본 되풀이 방법(되풀이 FGSM).
     
     목표 갈래 쪽으로 작은 걸음을 여러 번 내딛는다.
     
@@ -904,7 +904,7 @@ def targeted_bim(model, images, target_labels, epsilon, alpha, num_iter):
         model: 겨눌 가름개
         images: 들임 그림
         target_labels: 바라는 목표 갈래
-        epsilon: Maximum total perturbation (L_inf bound)
+        epsilon: 가장 큰 온 흔들림(L_inf 한계)
         alpha: 되풀이마다 걸음 크기
         num_iter: 되풀이 횟수
     
@@ -947,7 +947,7 @@ def targeted_pgd(model, images, target_labels, epsilon, alpha, num_iter,
         model: 겨눌 가름개
         images: 들임 그림
         target_labels: 바라는 목표 갈래
-        epsilon: Maximum perturbation (L_inf)
+        epsilon: 가장 큰 흔들림(L_inf)
         alpha: 걸음 크기
         num_iter: 되풀이 횟수
         random_start: 엡실론 공 안의 아무 점에서 시작할지 여부

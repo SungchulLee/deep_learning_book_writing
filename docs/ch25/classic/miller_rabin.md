@@ -70,7 +70,7 @@ $n$이 작으면 정해진 밑 모임이 옳음을 보장한다.
 밀러-라빈 소수 판정 살피기.
 
 수가 소수인지를 어긋날 확률이 가둬진 채 살피는 몬테카를로 알고리즘.
-error probability at most 4^{-k} for k rounds.
+k 바퀴를 돌면 틀릴 확률이 많아야 4^{-k}이다.
 """
 
 import random
@@ -81,7 +81,7 @@ import random
 def power_mod(base, exp, mod):
     """거듭 제곱하기로 base^exp mod mod을 셈한다.
 
-    Time complexity: O(log exp * log^2 mod) with Python's big integers.
+    시간 복잡도: 파이썬 큰 정수로 O(log exp * log^2 mod).
     """
     result = 1
     base = base % mod
@@ -99,8 +99,8 @@ def miller_rabin(n, k=20):
     """밀러-라빈 k바퀴로 n이 아마 소수인지 살핀다.
 
     인수:
-        n: integer to test (must be > 1).
-        k: number of rounds (error <= 4^{-k}).
+        n: 시험할 정수(1보다 커야 한다).
+        k: 바퀴 수(틀릴 확률 <= 4^{-k}).
 
     반환값:
         아마 소수이면 True, 틀림없이 합성수이면 False.

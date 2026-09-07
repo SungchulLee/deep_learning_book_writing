@@ -10,7 +10,7 @@
 ======================================
 
 이 단원은 따지기에 쓰는 바탕이 되는 가능도 잣대를 다룬다
-generative models: Negative Log-Likelihood (NLL), Bits Per Dimension (BPD),
+만들어 내는 모델을 위한 자: 음의 로그 가능도(NLL), 차원마다의 비트 수(BPD),
 그리고 헷갈림도.
 
 학습 목표:
@@ -55,11 +55,11 @@ np.random.seed(42)
 
 class NegativeLogLikelihood:
     """
-    Negative Log-Likelihood (NLL) implementation and explanation.
+    음의 로그 가능도(NLL)의 짜기와 풀이.
     
     수학의 뜻매김:
     -----------------------
-    For a generative model p_θ(x), the NLL on a dataset D is:
+    만들어 내는 모델 p_θ(x)에 대해 자료 묶음 D의 음의 로그 가능도는 다음과 같다.
     
         NLL = -1/N * Σ log p_θ(x_i)
     
@@ -68,14 +68,14 @@ class NegativeLogLikelihood:
     해석:
     --------------
     - 음의 로그 가능도는 모델이 자료를 얼마나 잘 설명하는지 잰다
-    - Lower NLL = Better fit to data distribution
-    - NLL = 0 would mean perfect modeling (impossible in practice)
+    - 음의 로그 가능도가 낮을수록 자료 분포에 잘 맞는다
+    - 음의 로그 가능도가 0이면 나무랄 데 없는 모형이다(실제로는 안 된다)
     - 음의 로그 가능도는 기댓값 로그 가능도의 음수이다
     
     어긋 엔트로피와의 이음:
     ---------------------------
     음의 로그 가능도는 다음 둘 사이의 어긋 엔트로피와 같다.
-    - True data distribution p_data(x)
+    - 참 자료 분포 p_data(x)
     - Model distribution p_θ(x)
     
     H(p_data, p_θ) = -E_{x~p_data}[log p_θ(x)] = NLL
@@ -87,15 +87,15 @@ class NegativeLogLikelihood:
         로그 확률에서 음의 로그 가능도를 셈한다.
         
         인수:
-            log_probs: Log probabilities for each sample [n_samples]
+            log_probs: 표본마다의 로그 확률 [n_samples]
         
         반환값:
             낱값으로서의 음의 로그 가능도
         
         수학의 걸음:
         ------------------
-        1. Average log probabilities: (1/N) Σ log p(x_i)
-        2. Negate: NLL = -(1/N) Σ log p(x_i)
+        1. 로그 확률의 평균: (1/N) Σ log p(x_i)
+        2. 음수를 취한다: NLL = -(1/N) Σ log p(x_i)
         """
         # 평균 로그 확률을 셈한다
         mean_log_prob = torch.mean(log_probs)
@@ -111,14 +111,14 @@ class NegativeLogLikelihood:
         믿음 구간과 함께 음의 로그 가능도를 셈한다.
         
         인수:
-            log_probs: Log probabilities [n_samples]
+            log_probs: 로그 확률 [n_samples]
         
         반환값:
-            Tuple of (NLL, standard error)
+            (음의 로그 가능도, 표준 오차) 튜플
         
         살펴보면:
         ----
-        Standard error = std(log_probs) / sqrt(n_samples)
+        표준 오차 = std(log_probs) / sqrt(n_samples)
         이는 음의 로그 가능도 어림의 흐릿함을 알려 준다.
         """
         # 음의 로그 가능도를 셈한다
@@ -135,7 +135,7 @@ class NegativeLogLikelihood:
 
 class BitsPerDimension:
     """
-    Bits Per Dimension (BPD) metric for normalized likelihood comparison.
+    가능도를 고르게 견주는 자인 차원마다의 비트 수(BPD).
     
     수학의 뜻매김:
     -----------------------
@@ -143,7 +143,7 @@ class BitsPerDimension:
     
     여기서 각 기호는 다음과 같다.
     - D은 자료의 차원이다
-    - log(2) converts from nats to bits
+    - log(2)이 내트를 비트로 바꾼다
     
     왜 차원마다 비트인가?
     --------
@@ -153,7 +153,7 @@ class BitsPerDimension:
     
     2. 앎 이론의 풀이
        - 차원 하나를 부호로 담는 데 드는 평균 비트
-       - Lower BPD = More efficient compression
+       - BPD이 낮을수록 더 잘 눌러 담는다
     
     3. 다음에 걸친 공정한 견줌을 가능하게 한다:
        - 서로 다른 그림 해상도
@@ -164,7 +164,7 @@ class BitsPerDimension:
     ----------------------
     BPD = 3.5 means:
     - 평균으로 화소나 차원마다 3.5비트가 필요하다
-    - For 8-bit images, uniform distribution gives BPD = 8.0
+    - 8비트 그림에서 고른 분포이면 BPD = 8.0이다
     - 좋은 모델은 자연 그림에서 차원마다 비트 < 4.0을 이룬다
     """
     
@@ -176,16 +176,16 @@ class BitsPerDimension:
         인수:
             nll: 음의 로그 가능도(내트 단위)
             dimensions: 자료의 온 차원 수
-                       (e.g., 28*28=784 for MNIST, 32*32*3=3072 for CIFAR)
+                       (보기: MNIST이면 28*28=784, CIFAR이면 32*32*3=3072)
         
         반환값:
             차원마다 비트 값
         
         수학의 걸음:
         ------------------
-        1. NLL is in natural units (nats)
+        1. 음의 로그 가능도는 자연 단위(내트)로 나온다
         2. 차원으로 나누어 고르게 맞춘다
-        3. Convert to bits: divide by log(2) ≈ 0.693
+        3. 비트로 바꾼다: log(2) ≈ 0.693으로 나눈다
         """
         # 내트에서 비트로 바꾼다: log(2)으로 나눈다
         # 그런 다음 차원으로 고르게 맞춘다
@@ -199,7 +199,7 @@ class BitsPerDimension:
         로그 확률에서 곧바로 차원마다 비트를 셈한다.
         
         인수:
-            log_probs: Log probabilities [n_samples]
+            log_probs: 로그 확률 [n_samples]
             dimensions: 자료의 차원
         
         반환값:
@@ -220,7 +220,7 @@ class BitsPerDimension:
         
         인수:
             bpd: 차원마다 비트 값
-            data_type: Type of data (image, text, etc.)
+            data_type: 자료의 갈래(그림, 글월 따위)
         
         반환값:
             풀이 글자열
@@ -256,16 +256,16 @@ class Perplexity:
     
     예제:
     --------
-    - Perplexity = 100: Model is as confused as if choosing randomly
+    - 헷갈림도 = 100: 마구잡이로 고르는 것만큼 헷갈린다
                         from 100 equally likely tokens
-    - Perplexity = 10:  Model has narrowed down to ~10 likely tokens
-    - Perplexity = 1:   Model is perfectly certain (only in theory)
+    - 헷갈림도 = 10:  그럴듯한 토큰을 10개쯤으로 좁혔다
+    - 헷갈림도 = 1:   모델이 온전히 확신한다(이론에서만)
     
     어긋 엔트로피와의 이음:
     ---------------------------
     Perplexity = 2^(cross-entropy in bits)
     
-    Lower perplexity = Better language model
+    헷갈림도가 낮을수록 좋은 말 모델이다
     """
     
     @staticmethod
@@ -274,16 +274,16 @@ class Perplexity:
         로그 확률에서 헷갈림도를 셈한다.
         
         인수:
-            log_probs: Log probabilities per token [n_tokens]
+            log_probs: 토큰마다의 로그 확률 [n_tokens]
         
         반환값:
             헷갈림도 값
         
         수학의 걸음:
         ------------------
-        1. Compute mean log probability: (1/N) Σ log p(x_i)
-        2. Negate to get NLL: -(1/N) Σ log p(x_i)
-        3. Exponentiate: exp(NLL)
+        1. 로그 확률의 평균을 셈한다: (1/N) Σ log p(x_i)
+        2. 음수를 취해 음의 로그 가능도를 얻는다: -(1/N) Σ log p(x_i)
+        3. 지수를 취한다: exp(NLL)
         """
         # 평균 로그 확률을 셈한다
         mean_log_prob = torch.mean(log_probs)
@@ -296,13 +296,13 @@ class Perplexity:
     @staticmethod
     def compute_per_token(log_probs: torch.Tensor) -> torch.Tensor:
         """
-        Compute per-token perplexity (useful for analysis).
+        토큰마다의 헷갈림도를 셈한다(살피는 데 쓸모 있다).
         
         인수:
-            log_probs: Log probabilities [n_tokens]
+            log_probs: 로그 확률 [n_tokens]
         
         반환값:
-            Per-token perplexities [n_tokens]
+            토큰마다의 헷갈림도 [n_tokens]
         """
         # 토큰마다: exp(-log_prob)
         per_token_perplexity = torch.exp(-log_probs)
@@ -671,23 +671,23 @@ def main():
     print("KEY TAKEAWAYS")
     print("=" * 70)
     print("""
-    1. Negative Log-Likelihood (NLL):
+    1. 음의 로그 가능도(NLL):
        - 모델이 자료에 얼마나 잘 확률을 매기는지 잰다
-       - Lower NLL = Better fit
+       - 음의 로그 가능도가 낮을수록 잘 맞는다
        - 익히기 손실 함수로 쓴다
        - 표준 오차로 믿음 구간을 셈할 수 있다
     
-    2. Bits Per Dimension (BPD):
+    2. 차원마다의 비트 수(BPD):
        - 차원에 걸친 공정한 견줌을 위해 음의 로그 가능도를 고르게 맞춘다
        - 앎 이론의 풀이
-       - BPD = NLL / (dimensions × log(2))
+       - BPD = NLL / (차원 수 × log(2))
        - 견줌을 가능하게 한다: MNIST와 CIFAR와 ImageNet
     
     3. 헷갈림도:
        - 말 모델에 맞춘 잣대
-       - Perplexity = exp(NLL per token)
+       - 헷갈림도 = exp(토큰마다의 음의 로그 가능도)
        - 직관: "실제로 쓰이는 낱말 수"
-       - Lower perplexity = More confident predictions
+       - 헷갈림도가 낮을수록 헤아림이 자신 있다
     
     4. 잣대 고르기:
        - 변분 자기 부호기, 흐름: 음의 로그 가능도나 차원마다 비트를 쓴다

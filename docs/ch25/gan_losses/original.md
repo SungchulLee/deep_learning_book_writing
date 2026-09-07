@@ -35,14 +35,14 @@ import torch
 import torch.nn as nn
 
 class OriginalGANLoss:
-    """Original GAN loss (Goodfellow et al., 2014)."""
+    """본디 GAN 잃음(Goodfellow 외, 2014)."""
     
     def __init__(self):
         self.criterion = nn.BCELoss()
     
     def discriminator_loss(self, d_real, d_fake):
         """
-        Discriminator loss: -E[log D(x)] - E[log(1 - D(G(z)))]
+        가름개 잃음: -E[log D(x)] - E[log(1 - D(G(z)))]
         """
         batch_size_real = d_real.size(0)
         batch_size_fake = d_fake.size(0)
@@ -60,7 +60,7 @@ class OriginalGANLoss:
     
     def generator_loss(self, d_fake):
         """
-        Original generator loss: E[log(1 - D(G(z)))]
+        본디 만들개 잃음: E[log(1 - D(G(z)))]
         """
         batch_size = d_fake.size(0)
         fake_labels = torch.zeros(batch_size, 1, device=d_fake.device)
@@ -223,7 +223,7 @@ class NonSaturatingGANLoss:
     """
     포화하지 않는 맞겨루기 만들개 손실.
     
-    Generator maximizes log(D(G(z))) instead of minimizing log(1 - D(G(z))).
+    만들개는 log(1 - D(G(z)))을 가장 작게 하는 대신 log(D(G(z)))을 가장 크게 한다.
     G이 서툴 때 더 센 기울기를 준다.
     """
     
@@ -232,7 +232,7 @@ class NonSaturatingGANLoss:
     
     def discriminator_loss(self, d_real, d_fake):
         """
-        Standard discriminator loss (same as original GAN).
+        여느 가름개 잃음(본디 GAN과 같다).
         
         L_D = -E[log D(x)] - E[log(1 - D(G(z)))]
         """
@@ -260,7 +260,7 @@ class NonSaturatingGANLoss:
         
         L_G = -E[log D(G(z))]
         
-        Instead of minimizing log(1-D), we minimize -log(D).
+        log(1-D)을 가장 작게 하는 대신 -log(D)을 가장 작게 한다.
         이는 실제 이름표를 쓴 두값 어긋 엔트로피로 짠다.
         """
         batch_size = d_fake.size(0)
@@ -281,7 +281,7 @@ class NonSaturatingGANLossManual:
     """로그를 드러내어 셈하는 포화하지 않는 손실."""
     
     def discriminator_loss(self, d_real, d_fake):
-        """D loss: -E[log D(x)] - E[log(1 - D(G(z)))]"""
+        """가름개 잃음: -E[log D(x)] - E[log(1 - D(G(z)))]"""
         eps = 1e-8  # 수치의 안정을 위해
         
         real_loss = -torch.log(d_real + eps).mean()

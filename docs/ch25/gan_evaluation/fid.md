@@ -164,7 +164,7 @@ class FIDCalculator:
     속성:
         device: 셈할 장치
         inception: 미리 익힌 InceptionV3 모델
-        feature_dim: Dimension of extracted features (2048)
+        feature_dim: 뽑아낸 특징의 차원(2048)
     """
     
     def __init__(self, 
@@ -173,7 +173,7 @@ class FIDCalculator:
         FID 셈개를 첫자리매김한다.
         
         인수:
-            device: Computation device ('cuda' or 'cpu')
+            device: 셈할 장치('cuda' 또는 'cpu')
         """
         self.device = device
         self.inception = None
@@ -183,7 +183,7 @@ class FIDCalculator:
         """
         특징 뽑기를 위해 InceptionV3을 불러와 고친다.
         
-        We extract features from the pool3 layer (2048-dimensional)
+        pool3 층에서 특징을 뽑는다(2048차원)
         이는 높은 수준의 뜻 앎을 담는다.
         """
         # 미리 익힌 InceptionV3을 불러온다
@@ -214,7 +214,7 @@ class FIDCalculator:
         - Channels: 3 (RGB)
         
         인수:
-            images: Input images [B, C, H, W] in range [0, 1]
+            images: [0, 1] 범위의 들임 그림 [B, C, H, W]
             
         반환값:
             미리 다듬은 그림
@@ -248,7 +248,7 @@ class FIDCalculator:
         그림에서 InceptionV3 특징을 뽑는다.
         
         인수:
-            images: Images [N, C, H, W] in range [0, 1]
+            images: [0, 1] 범위의 그림 [N, C, H, W]
             batch_size: 다룰 묶음 크기
             
         반환값:
@@ -277,10 +277,10 @@ class FIDCalculator:
         특징의 평균과 함께 흩어짐을 셈한다.
         
         인수:
-            features: Feature vectors [N, D]
+            features: 특징 벡터 [N, D]
             
         반환값:
-            Tuple of (mean [D], covariance [D, D])
+            (평균 [D], 공분산 [D, D]) 튜플
             
         수학의 참고:
             μ = (1/N) Σ x_i
@@ -303,14 +303,14 @@ class FIDCalculator:
         FID = ||μ₁ - μ₂||² + Tr(Σ₁ + Σ₂ - 2(Σ₁Σ₂)^{1/2})
         
         인수:
-            mu1: Mean of first distribution [D]
-            sigma1: Covariance of first distribution [D, D]
-            mu2: Mean of second distribution [D]
-            sigma2: Covariance of second distribution [D, D]
+            mu1: 첫째 분포의 평균 [D]
+            sigma1: 첫째 분포의 공분산 [D, D]
+            mu2: 둘째 분포의 평균 [D]
+            sigma2: 둘째 분포의 공분산 [D, D]
             eps: 수치 안정성을 위한 작은 상수
             
         반환값:
-            FID value (scalar, lower is better)
+            FID 값(스칼라이며 낮을수록 좋다)
         """
         # 넘파이 배열이 되게 한다
         mu1 = np.atleast_1d(mu1)
@@ -365,16 +365,16 @@ class FIDCalculator:
         온전한 물길:
         1. 실제 그림에서 인셉션 특징을 뽑는다
         2. 만든 그림에서 인셉션 특징을 뽑는다
-        3. Compute statistics (μ, Σ) for both
+        3. 둘 다의 통계(μ, Σ)를 셈한다
         4. 프레셰 거리를 셈한다
         
         인수:
-            real_images: Real images [N_r, C, H, W]
-            generated_images: Generated images [N_g, C, H, W]
+            real_images: 참 그림 [N_r, C, H, W]
+            generated_images: 만들어 낸 그림 [N_g, C, H, W]
             batch_size: 특징 뽑기의 묶음 크기
             
         반환값:
-            FID score (lower is better)
+            FID 점수(낮을수록 좋다)
         """
         print(f"Extracting features from {len(real_images)} real images...")
         real_features = self.extract_features(real_images, batch_size)
@@ -404,9 +404,9 @@ class FIDCalculator:
         이 편이 더 효율이 좋다.
         
         인수:
-            mu_real: Pre-computed mean of real features [D]
-            sigma_real: Pre-computed covariance of real features [D, D]
-            generated_images: Generated images [N, C, H, W]
+            mu_real: 미리 셈한 참 특징의 평균 [D]
+            sigma_real: 미리 셈한 참 특징의 공분산 [D, D]
+            generated_images: 만들어 낸 그림 [N, C, H, W]
             batch_size: 특징 뽑기의 묶음 크기
             
         반환값:
@@ -428,8 +428,8 @@ def save_reference_statistics(real_images: torch.Tensor,
     효율 좋게 FID을 셈할 수 있다.
     
     인수:
-        real_images: Real images [N, C, H, W]
-        save_path: Path to save statistics (.npz file)
+        real_images: 참 그림 [N, C, H, W]
+        save_path: 통계를 갈무리할 길(.npz 파일)
         batch_size: 특징 뽑기의 묶음 크기
     """
     calculator = FIDCalculator()
@@ -449,7 +449,7 @@ def load_reference_statistics(load_path: str) -> Tuple[np.ndarray, np.ndarray]:
         load_path: .npz 파일의 길
         
     반환값:
-        Tuple of (mean, covariance)
+        (평균, 공분산) 튜플
     """
     data = np.load(load_path)
     return data['mu'], data['sigma']
@@ -615,13 +615,13 @@ def bootstrap_fid(real_features: np.ndarray,
     부트스트랩 믿음 구간과 함께 FID을 셈한다.
     
     인수:
-        real_features: Real data features [N, D]
-        gen_features: Generated data features [N, D]
+        real_features: 참 자료의 특징 [N, D]
+        gen_features: 만들어 낸 자료의 특징 [N, D]
         n_bootstrap: 부트스트랩 표본 수
-        sample_size: Size of each bootstrap sample (default: min(N_real, N_gen))
+        sample_size: 부트스트랩 표본의 크기(기본값: min(N_real, N_gen))
         
     반환값:
-        Tuple of (FID, lower_ci, upper_ci) for 95% CI
+        95% 믿음 구간의 (FID, 아래 끝, 위 끝) 튜플
     """
     n_real = len(real_features)
     n_gen = len(gen_features)

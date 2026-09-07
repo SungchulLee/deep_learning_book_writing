@@ -145,11 +145,11 @@ import math
 # === 체르노프 한계 공식 ===
 
 def chernoff_upper(mu, delta):
-    """Exact Chernoff upper tail bound: Pr[X >= (1+delta)*mu].
+    """정확한 체르노프 위쪽 꼬리 한계: Pr[X >= (1+delta)*mu].
 
     인수:
         mu: X의 기댓값.
-        delta: relative deviation (delta > 0).
+        delta: 상대 벗어남(delta > 0).
 
     반환값:
         꼬리 확률의 위 한계.
@@ -161,12 +161,12 @@ def chernoff_upper(mu, delta):
 
 
 def chernoff_upper_simplified(mu, delta):
-    """Simplified Chernoff upper tail bound: exp(-mu * delta^2 / 3)."""
+    """단출한 체르노프 위쪽 꼬리 한계: exp(-mu * delta^2 / 3)."""
     return math.exp(-mu * delta ** 2 / 3)
 
 
 def chernoff_lower_simplified(mu, delta):
-    """Simplified Chernoff lower tail bound: exp(-mu * delta^2 / 2)."""
+    """단출한 체르노프 아래쪽 꼬리 한계: exp(-mu * delta^2 / 2)."""
     if delta <= 0 or delta >= 1:
         return 1.0
     return math.exp(-mu * delta ** 2 / 2)
@@ -175,7 +175,7 @@ def chernoff_lower_simplified(mu, delta):
 # === 몬테카를로 어림 ===
 
 def estimate_tail_prob(n, p, threshold, trials=100000):
-    """Estimate Pr[X >= threshold] via Monte Carlo simulation.
+    """몬테카를로 흉내내기로 Pr[X >= threshold]을 어림한다.
 
     X = sum of n independent Bernoulli(p) random variables.
     """

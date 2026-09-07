@@ -102,7 +102,7 @@ def make_graph(n, edges):
 # === 모서리 오그리기 ===
 
 def contract(adj, u, v):
-    """Contract edge (u, v) by merging v into u.
+    """v를 u에 합쳐 변 (u, v)을 오그린다.
 
     제 고리를 없애고 v의 모서리를 모두 u으로 돌린다.
     """
@@ -124,7 +124,7 @@ def contract(adj, u, v):
 def karger_once(adj):
     """카거의 오그리기 알고리즘 한 번 돌리기.
 
-    Returns the cut size (number of edges between the final 2 vertices).
+    자름 크기(마지막 꼭짓점 두 개 사이의 변 수)를 돌려준다.
     """
     adj = copy.deepcopy(adj)
 
@@ -150,8 +150,8 @@ def karger_min_cut(n, edges, trials=None):
 
     인수:
         n: 꼭짓점의 수.
-        edges: list of (u, v) edge tuples.
-        trials: number of repetitions (default: n^2 * ln(n) / 2).
+        edges: (u, v) 변 튜플의 목록.
+        trials: 되풀이 수(기본값: n^2 * ln(n) / 2).
 
     반환값:
         찾은 최소 자름의 크기.

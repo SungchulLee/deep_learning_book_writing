@@ -6,7 +6,7 @@
 
 ```python
 """
-Deep Convolutional GAN (DCGAN)
+깊은 엮음 GAN(DCGAN)
 
 다음 지침을 따른 DCGAN 짜기:
 "Unsupervised Representation Learning with Deep Convolutional Generative Adversarial Networks"
@@ -16,7 +16,7 @@ Deep Convolutional GAN (DCGAN)
 1. 모으기를 성큼 겹말기로 바꾼다
 2. G과 D 모두에 묶음 고르게 맞추기를 쓴다
 3. 온전 이음 숨은 층을 없앤다
-4. Use ReLU in G (except output: Tanh)
+4. G에서는 ReLU를 쓴다(내놓음만 Tanh)
 5. D에 LeakyReLU을 쓴다
 """
 
@@ -40,8 +40,8 @@ class DCGANGenerator(nn.Module):
         """
         인수:
             latent_dim: 숨은 벡터 z의 차원
-            image_channels: Number of output channels (1 for grayscale, 3 for RGB)
-            feature_maps: Number of feature maps in first layer (scales by 2x each layer)
+            image_channels: 내놓음 통로 수(잿빛이면 1, RGB이면 3)
+            feature_maps: 첫 층의 특징 지도 수(층마다 2배로 는다)
         """
         super().__init__()
         
@@ -87,10 +87,10 @@ class DCGANGenerator(nn.Module):
         숨은 벡터에서 그림을 만든다.
         
         인수:
-            z: Latent vector, shape (batch_size, latent_dim) or (batch_size, latent_dim, 1, 1)
+            z: 숨은 벡터, 꼴 (batch_size, latent_dim) 또는 (batch_size, latent_dim, 1, 1)
         
         반환값:
-            Generated images, shape (batch_size, channels, height, width)
+            만들어 낸 그림, 꼴 (batch_size, channels, height, width)
         """
         # 필요하면 펼치기
         if z.dim() == 4:
@@ -114,8 +114,8 @@ class DCGANDiscriminator(nn.Module):
     def __init__(self, image_channels: int = 1, feature_maps: int = 64):
         """
         인수:
-            image_channels: Number of input channels (1 for grayscale, 3 for RGB)
-            feature_maps: Number of feature maps in first layer (scales by 2x each layer)
+            image_channels: 들임 통로 수(잿빛이면 1, RGB이면 3)
+            feature_maps: 첫 층의 특징 지도 수(층마다 2배로 는다)
         """
         super().__init__()
         
@@ -154,10 +154,10 @@ class DCGANDiscriminator(nn.Module):
         그림을 실제인지 가짜인지 가른다.
         
         인수:
-            img: Input image, shape (batch_size, channels, height, width)
+            img: 들임 그림, 꼴 (batch_size, channels, height, width)
         
         반환값:
-            Probability of being real, shape (batch_size, 1)
+            참일 확률, 꼴 (batch_size, 1)
         """
         output = self.main(img)
         return output.view(-1, 1)
@@ -165,7 +165,7 @@ class DCGANDiscriminator(nn.Module):
 
 class DCGAN64Generator(nn.Module):
     """
-    DCGAN Generator for 64x64 images (following original paper more closely).
+    64x64 그림을 위한 DCGAN 만들개(본디 논문에 더 가깝게 따른다).
     """
     
     def __init__(self, latent_dim: int = 100, image_channels: int = 3,
@@ -215,7 +215,7 @@ class DCGAN64Generator(nn.Module):
 
 class DCGAN64Discriminator(nn.Module):
     """
-    DCGAN Discriminator for 64x64 images (following original paper).
+    64x64 그림을 위한 DCGAN 가름개(본디 논문을 따른다).
     """
     
     def __init__(self, image_channels: int = 3, feature_maps: int = 64):

@@ -51,7 +51,7 @@ class MockGenerativeModel:
             n_samples: 만들 표본의 개수
         
         반환값:
-            Generated images [n_samples, 1, 28, 28]
+            만들어 낸 그림 [n_samples, 1, 28, 28]
         """
         if self.quality_level == "poor":
             # 높은 잡음, 낮은 짜임
@@ -254,7 +254,7 @@ def main():
 실제로는 다음도 넣는다.
 - 인셉션 점수
 - 정밀도와 재현율
-- Perceptual metrics (LPIPS)
+- 느낌으로 재는 자(LPIPS)
 - 사람이 따지기
     """)
     
@@ -271,9 +271,9 @@ def main():
        - 수로 따지기 + 결로 따지기를 아우른다
     
     2. 잣대 풀이:
-       - Lower FID = Better match to real distribution
-       - Higher diversity = Less mode collapse
-       - Lower statistical errors = Better moments
+       - FID이 낮을수록 참 분포에 잘 들어맞는다
+       - 다양함이 클수록 봉우리 무너짐이 적다
+       - 통계 어긋남이 작을수록 적률이 잘 맞는다
     
     3. 품질 수준:
        - 나쁨: 높은 FID, 낮은 다양함, 큰 통계 어긋남
@@ -281,7 +281,7 @@ def main():
        - 좋음: 낮은 FID, 높은 다양함, 작은 어긋남
     
     4. 가장 좋은 방식:
-       - Generate sufficient samples (10K+ for FID)
+       - 표본을 넉넉히 만든다(FID이면 1만 개 이상)
        - 서로 메우는 잣대를 여럿 쓴다
        - 눈으로 살펴보기를 넣는다
        - 믿음 구간을 알린다

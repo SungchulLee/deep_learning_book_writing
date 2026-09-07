@@ -113,7 +113,7 @@ class PrecisionRecallCalculator:
     """
     만들어 내는 모델의 정밀도와 재현율 잣대.
     
-    Based on Sajjadi et al. (2018) and Kynkäänniemi et al. (2019).
+    Sajjadi 외(2018)와 Kynkäänniemi 외(2019)를 바탕으로 한다.
     
     정밀도는 충실함을 잰다. 곧 만든 표본이 그럴듯한가?
     재현율은 다양함을 잰다. 곧 모델이 모든 봉우리를 덮는가?
@@ -128,8 +128,8 @@ class PrecisionRecallCalculator:
         
         인수:
             k: k번째 가장 가까운 이웃의 이웃 수
-            row_batch_size: Batch size for distance computation (rows)
-            col_batch_size: Batch size for distance computation (cols)
+            row_batch_size: 거리 셈에 쓰는 묶음 크기(줄)
+            col_batch_size: 거리 셈에 쓰는 묶음 크기(열)
         """
         self.k = k
         self.row_batch_size = row_batch_size
@@ -142,8 +142,8 @@ class PrecisionRecallCalculator:
         묶음 단위로 짝마다 유클리드 거리를 셈한다.
         
         인수:
-            X: First set of points [N, D]
-            Y: Second set of points [M, D]
+            X: 첫째 점 모임 [N, D]
+            Y: 둘째 점 모임 [M, D]
             
         반환값:
             Distance matrix [N, M]
@@ -175,7 +175,7 @@ class PrecisionRecallCalculator:
             Y: Reference points [M, D]
             
         반환값:
-            k-th NN distances for each point in X [N]
+            X의 점마다 k번째 가장 가까운 이웃까지의 거리 [N]
         """
         distances = self._batch_pairwise_distances(X, Y)
         
@@ -198,11 +198,11 @@ class PrecisionRecallCalculator:
         4. 재현율: 만든 k번째 이웃 공에 드는 실제 표본의 몫
         
         인수:
-            real_features: Features from real images [N_r, D]
-            generated_features: Features from generated images [N_g, D]
+            real_features: 참 그림에서 뽑은 특징 [N_r, D]
+            generated_features: 만들어 낸 그림에서 뽑은 특징 [N_g, D]
             
         반환값:
-            Tuple of (precision, recall)
+            (정밀도, 재현율) 튜플
         """
         print(f"Computing precision/recall with k={self.k}")
         print(f"  Real samples: {len(real_features)}")
@@ -250,7 +250,7 @@ class PrecisionRecallCalculator:
 
 class ImprovedPrecisionRecall:
     """
-    Improved Precision and Recall (IPR) from Kynkäänniemi et al. (2019).
+    Kynkäänniemi 외(2019)의 나아진 정밀도와 재현율(IPR).
     
     본디 것보다 나아진 핵심:
     1. 초구면에 바탕한 다양체 어림을 쓴다
@@ -299,10 +299,10 @@ class ImprovedPrecisionRecall:
         k번째 가장 가까운 이웃으로 다양체 반지름을 셈한다.
         
         점마다 다양체 반지름은 그 k번째 가장 가까운 이웃까지의 거리이다
-        nearest neighbor (excluding itself).
+        가장 가까운 이웃(제 자신은 뺀다).
         
         인수:
-            features: Feature vectors [N, D]
+            features: 특징 벡터 [N, D]
             
         반환값:
             Manifold radii [N]
@@ -328,11 +328,11 @@ class ImprovedPrecisionRecall:
         - 만든 다양체: 만든 표본 둘레 초구면의 합집합
         
         인수:
-            real_features: Real image features [N_r, D]
-            generated_features: Generated image features [N_g, D]
+            real_features: 참 그림의 특징 [N_r, D]
+            generated_features: 만들어 낸 그림의 특징 [N_g, D]
             
         반환값:
-            Tuple of (precision, recall)
+            (정밀도, 재현율) 튜플
         """
         print(f"Computing Improved Precision/Recall (k={self.k})")
         
@@ -365,19 +365,19 @@ def compute_density_coverage(real_features: np.ndarray,
                             generated_features: np.ndarray,
                             k: int = 5) -> Tuple[float, float]:
     """
-    Compute Density and Coverage metrics (Naeem et al., 2020).
+    밀도와 덮음 자를 셈한다(Naeem 외, 2020).
     
     이는 정밀도와 재현율을 달리 적은 것이다.
     - 밀도: 만든 표본의 실제 이웃 평균 수
     - 덮기: 만든 이웃이 적어도 하나 있는 실제 표본의 몫
     
     인수:
-        real_features: Real features [N_r, D]
-        generated_features: Generated features [N_g, D]
+        real_features: 참 특징 [N_r, D]
+        generated_features: 만들어 낸 특징 [N_g, D]
         k: 이웃 수
         
     반환값:
-        Tuple of (density, coverage)
+        (밀도, 덮음) 튜플
     """
     from scipy.spatial.distance import cdist
     
@@ -537,7 +537,7 @@ def plot_precision_recall_tradeoff(models_results: dict):
     모델 여럿의 정밀도와 재현율을 그린다.
     
     인수:
-        models_results: Dict mapping model name to (precision, recall)
+        models_results: 모델 이름을 (정밀도, 재현율)로 보내는 사전
     """
     fig, ax = plt.subplots(figsize=(8, 8))
     
@@ -664,7 +664,7 @@ def compute_f_score(precision: float, recall: float, beta: float = 1.0) -> float
     인수:
         precision: 정밀도 값
         recall: 재현율 값
-        beta: Weight parameter (beta > 1 favors recall)
+        beta: 무게 매개변수(beta > 1이면 재현율을 더 친다)
         
     반환값:
         F-베타 점수

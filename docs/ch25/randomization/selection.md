@@ -56,9 +56,9 @@ $$
 
 ```python
 """
-Randomized selection (QuickSelect) for finding the k-th smallest element.
+k번째로 작은 원소를 찾는 마구잡이 고르기(퀵셀렉트).
 
-Expected O(n) time via random pivot selection.
+축을 마구잡이로 골라 기대 시간 O(n)에 끝난다.
 """
 
 import random
@@ -66,7 +66,7 @@ import random
 # === 나눔 ===
 
 def partition(arr, lo, hi):
-    """Lomuto partition scheme around arr[hi]."""
+    """arr[hi]를 축으로 하는 로무토 가르기 방식."""
     pivot = arr[hi]
     i = lo
     for j in range(lo, hi):
@@ -79,7 +79,7 @@ def partition(arr, lo, hi):
 # === 마구잡이 고르기 ===
 
 def randomized_select(arr, lo, hi, k):
-    """Return the k-th smallest element in arr[lo..hi] (0-indexed k)."""
+    """arr[lo..hi]에서 k번째로 작은 원소를 돌려준다(k는 0부터 센다)."""
     if lo == hi:
         return arr[lo]
     pivot_idx = random.randint(lo, hi)

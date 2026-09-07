@@ -146,7 +146,7 @@ class InceptionScoreCalculator:
         인셉션 점수 셈틀의 첫자리를 잡는다.
         
         Args:
-            device: Computation device ('cuda' or 'cpu')
+            device: 셈할 장치('cuda' 또는 'cpu')
         """
         self.device = device
         self.inception_model = None
@@ -175,7 +175,7 @@ class InceptionScoreCalculator:
         - ImageNet 평균과 표준편차로 잣대를 맞춘 그림
         
         Args:
-            images: Input images [B, C, H, W] in range [0, 1]
+            images: [0, 1] 범위의 들임 그림 [B, C, H, W]
             
         Returns:
             인셉션에 바로 넣을 수 있게 다듬은 그림
@@ -194,7 +194,7 @@ class InceptionScoreCalculator:
             images = images.repeat(1, 3, 1, 1)
         
         # ImageNet 통계로 잣대를 맞춘다
-        # Note: Inception expects [-1, 1] range internally
+        # 눈여겨볼 것: 인셉션은 속으로 [-1, 1] 범위를 바란다
         mean = torch.tensor([0.485, 0.456, 0.406]).view(1, 3, 1, 1).to(images.device)
         std = torch.tensor([0.229, 0.224, 0.225]).view(1, 3, 1, 1).to(images.device)
         
@@ -209,7 +209,7 @@ class InceptionScoreCalculator:
         그림 묶음에 대한 인셉션 헤아림을 얻는다.
         
         Args:
-            images: Generated images [N, C, H, W] in range [0, 1]
+            images: [0, 1] 범위의 만들어 낸 그림 [N, C, H, W]
             batch_size: 다룰 때 쓰는 묶음 크기
             
         Returns:
@@ -243,21 +243,21 @@ class InceptionScoreCalculator:
         믿음 구간과 함께 인셉션 점수를 셈한다.
         
         Algorithm:
-        1. Get p(y|x) from Inception for each image
+        1. 그림마다 인셉션에서 p(y|x)을 얻는다
         2. 흩어짐을 셈하려고 자료를 `splits`개 무리로 나눈다
         3. 조각마다:
-           a. Compute marginal p(y) = mean(p(y|x))
-           b. Compute KL(p(y|x) || p(y)) for each sample
+           a. 가장자리 분포 p(y) = mean(p(y|x))을 셈한다
+           b. 표본마다 KL(p(y|x) || p(y))을 셈한다
            c. KL을 평균 내고 지수를 취한다
         4. 조각들의 평균과 표준편차를 돌려준다
         
         Args:
-            images: Generated images [N, C, H, W] in range [0, 1]
+            images: [0, 1] 범위의 만들어 낸 그림 [N, C, H, W]
             splits: 표준편차를 셈할 때 나눌 조각의 수
             batch_size: 인셉션 미룸에 쓰는 묶음 크기
             
         Returns:
-            Tuple of (IS mean, IS std)
+            (인셉션 점수 평균, 표준편차) 튜플
         """
         # 헤아림을 얻는다
         probs = self.get_predictions(images, batch_size)
@@ -305,7 +305,7 @@ def compute_inception_score_step_by_step(probs: np.ndarray) -> dict:
     각 조각이 무엇을 재는지 알기 쉽게 한다.
     
     Args:
-        probs: Class probabilities [N, C] from Inception
+        probs: 인셉션이 낸 갈래 확률 [N, C]
         
     Returns:
         중간 값과 마지막 인셉션 점수를 담은 사전
@@ -313,16 +313,16 @@ def compute_inception_score_step_by_step(probs: np.ndarray) -> dict:
     eps = 1e-16
     probs = np.clip(probs, eps, 1.0)
     
-    # Step 1: Compute marginal distribution p(y)
+    # 걸음 1: 가장자리 분포 p(y)을 셈한다
     # 이는 모든 표본에 걸친 갈래 분포를 나타낸다
     p_y = np.mean(probs, axis=0)
     
-    # Step 2: Compute entropy of marginal H(y)
-    # Higher entropy means more diverse samples (covering more classes)
+    # 걸음 2: 가장자리 분포의 엔트로피 H(y)을 셈한다
+    # 엔트로피가 클수록 표본이 다양하다(갈래를 더 두루 덮는다)
     h_marginal = -np.sum(p_y * np.log(p_y))
     
-    # Step 3: Compute conditional entropy H(y|x) for each sample
-    # Lower conditional entropy means more confident predictions (higher quality)
+    # 걸음 3: 표본마다 조건 엔트로피 H(y|x)을 셈한다
+    # 조건 엔트로피가 작을수록 헤아림이 자신 있다(품질이 높다)
     h_conditional_per_sample = -np.sum(probs * np.log(probs), axis=1)
     h_conditional = np.mean(h_conditional_per_sample)
     
@@ -332,7 +332,7 @@ def compute_inception_score_step_by_step(probs: np.ndarray) -> dict:
     kl_per_sample = np.sum(probs * (np.log(probs) - np.log(p_y)), axis=1)
     mean_kl = np.mean(kl_per_sample)
     
-    # Step 5: Final IS = exp(mean_kl)
+    # 걸음 5: 마지막 인셉션 점수 = exp(mean_kl)
     inception_score = np.exp(mean_kl)
     
     # 덧붙이는 눈썰미
@@ -368,7 +368,7 @@ def demonstrate_inception_score():
     print("Inception Score Demonstration")
     print("=" * 70)
     
-    # Scenario 1: High quality + High diversity (Ideal)
+    # 상황 1: 높은 품질 + 높은 다양함(가장 바람직)
     print("\n📊 Scenario 1: High Quality + High Diversity")
     print("-" * 50)
     
@@ -384,7 +384,7 @@ def demonstrate_inception_score():
     print(f"  Effective classes: {results_ideal['effective_classes']:.2f}")
     print(f"  Average confidence: {results_ideal['avg_confidence']:.4f}")
     
-    # Scenario 2: Low quality (uncertain predictions)
+    # 상황 2: 품질이 낮다(헤아림이 흐릿하다)
     print("\n📊 Scenario 2: Low Quality (Uncertain Predictions)")
     print("-" * 50)
     
@@ -396,7 +396,7 @@ def demonstrate_inception_score():
     print(f"  Average confidence: {results_uncertain['avg_confidence']:.4f}")
     print("  Note: Minimum IS = 1.0 when all predictions are uniform")
     
-    # Scenario 3: Mode collapse (only one class)
+    # 상황 3: 봉우리 무너짐(갈래가 하나뿐)
     print("\n📊 Scenario 3: Mode Collapse (Single Class)")
     print("-" * 50)
     
@@ -538,7 +538,7 @@ def analyze_sample_size_effect(generator, sample_sizes=[100, 500, 1000, 5000, 10
 # 흔한 방식: 조각 10개
 is_mean, is_std = calculator.calculate_inception_score(images, splits=10)
 
-# Report as: IS = mean ± std
+# 이렇게 알린다: 인셉션 점수 = 평균 ± 표준편차
 print(f"IS = {is_mean:.2f} ± {is_std:.2f}")
 ```
 

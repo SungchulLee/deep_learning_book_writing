@@ -87,7 +87,7 @@ import random
 # === 나눔 ===
 
 def partition(arr, lo, hi):
-    """Lomuto partition around arr[hi]."""
+    """arr[hi]를 축으로 하는 로무토 가르기."""
     pivot = arr[hi]
     i = lo
     for j in range(lo, hi):
@@ -100,7 +100,7 @@ def partition(arr, lo, hi):
 # === 무작위 빠른 정렬 ===
 
 def randomized_quicksort(arr, lo, hi):
-    """Sort arr[lo..hi] using a uniformly random pivot."""
+    """고르게 마구잡이로 고른 축으로 arr[lo..hi]를 줄 세운다."""
     if lo < hi:
         pivot_idx = random.randint(lo, hi)
         arr[pivot_idx], arr[hi] = arr[hi], arr[pivot_idx]

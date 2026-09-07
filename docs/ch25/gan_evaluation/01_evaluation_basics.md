@@ -65,7 +65,7 @@ class EvaluationParadigms:
         
         수학적 바탕:
         ----------------------
-        For a generative model p_θ(x), we evaluate:
+        만들어 내는 모델 p_θ(x)에 대해 다음을 따진다.
             L = E_{x~p_data}[log p_θ(x)]
         
         가능도가 클수록 모델이 실제 자료 분포에
@@ -73,7 +73,7 @@ class EvaluationParadigms:
         
         인수:
             model: log_prob 방법이 있는 만들어 내는 모델
-            test_data: Real data samples [batch_size, features]
+            test_data: 참 자료 표본 [batch_size, features]
         
         반환값:
             평균 로그 가능도
@@ -97,11 +97,11 @@ class EvaluationParadigms:
         이는 표본에 바탕한 따지기를 단순하게 만든 판이다.
         다음을 견준다.
         1. 평균과 표준 편차
-        2. Distribution shapes (using histogram comparison)
+        2. 분포의 모양(히스토그램을 견주어 본다)
         
         인수:
-            generated_samples: Samples from the model [n_samples, features]
-            real_samples: Real data samples [n_samples, features]
+            generated_samples: 모델에서 뽑은 표본 [n_samples, features]
+            real_samples: 참 자료 표본 [n_samples, features]
         
         반환값:
             따지기 잣대를 담은 사전
@@ -141,7 +141,7 @@ class SimpleGaussianModel:
     ----------------------
     p_θ(x) = N(x | μ_θ, σ²_θ)
     
-    Where θ = {μ_θ, σ_θ} are learnable parameters.
+    여기서 θ = {μ_θ, σ_θ}은 배울 수 있는 매개변수다.
     
     이것이 가르치는 보기가 되는 까닭은 이렇다.
     1. 정확한 가능도를 셈할 수 있다
@@ -170,10 +170,10 @@ class SimpleGaussianModel:
         log N(x | μ, σ²) = -0.5 * [(x-μ)/σ]² - log(σ) - 0.5*log(2π)
         
         인수:
-            x: Data points [batch_size, dim]
+            x: 자료 점 [batch_size, dim]
         
         반환값:
-            Log probabilities [batch_size]
+            로그 확률 [batch_size]
         """
         # 로그 매개변수화에서 표준 편차를 얻는다
         # 이렇게 하면 σ > 0이 된다
@@ -211,7 +211,7 @@ class SimpleGaussianModel:
             n_samples: 만들 표본의 개수
         
         반환값:
-            Generated samples [n_samples, dim]
+            만들어 낸 표본 [n_samples, dim]
         """
         # 표준 편차를 얻는다
         std = torch.exp(self.log_std)
@@ -234,11 +234,11 @@ def demonstrate_likelihood_sample_tradeoff():
     핵심 통찰:
     -----------
     모델은 다음일 수 있다.
-    1. High likelihood but poor sample quality (memorization)
-    2. Low likelihood but excellent sample quality (missing modes)
-    3. Both high likelihood and good samples (ideal case)
+    1. 가능도는 높으나 표본 품질이 나쁘다(외워 버림)
+    2. 가능도는 낮으나 표본 품질이 아주 좋다(봉우리를 놓침)
+    3. 가능도도 높고 표본도 좋다(가장 바라는 경우)
     
-    This function illustrates case (1): A model that memorizes the training data
+    이 함수는 (1)의 경우를 보인다. 곧 익힘 자료를 외워 버린 모델이다
     익히기 자료에서 흠 없는 가능도를 이루지만 다양함이 나쁜 표본을 만든다.
     """
     print("=" * 70)
@@ -518,8 +518,8 @@ def main():
     print("""
     1. 가능도는 확률 매기기를 잰다:
        - 가능도가 클수록 자료 분포에 잘 맞는다
-       - Can be computed exactly for some models (Gaussians, flows)
-       - Used as training objective (maximize likelihood = minimize NLL)
+       - 어떤 모델(가우스, 흐름)에서는 정확히 셈할 수 있다
+       - 익힘 목표로 쓴다(가능도를 크게 하는 것은 음의 로그 가능도를 작게 하는 것이다)
     
     2. 표본 품질은 그럴듯함을 잰다:
        - 만든 표본이 얼마나 좋아 보이는가?

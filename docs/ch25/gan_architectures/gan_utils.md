@@ -27,8 +27,8 @@ def weights_init(m):
     """
     DCGAN 논문의 권고를 따라 신경망 무게를 첫자리매김한다.
     
-    Conv/ConvTranspose layers: mean=0, std=0.02
-    BatchNorm layers: weight=1, bias=0
+    Conv와 ConvTranspose 층: 평균=0, 표준편차=0.02
+    묶음 정규화 층: 무게=1, 치우침=0
     """
     classname = m.__class__.__name__
     if classname.find('Conv') != -1:
@@ -48,7 +48,7 @@ def save_samples(generator: nn.Module, epoch: int, device: str,
         epoch: 현재 에포크 번호
         device: 돌릴 장치
         fixed_noise: 한결같은 그림을 위한 붙박이 잡음
-        filename: Optional filename, defaults to 'samples_epoch_{epoch}.png'
+        filename: 골라 쓰는 파일 이름, 기본값은 'samples_epoch_{epoch}.png'
     """
     generator.eval()
     
@@ -200,7 +200,7 @@ def generate_latent_grid(generator: nn.Module, latent_dim: int = 100,
     인수:
         generator: 만들개 신경망
         latent_dim: 숨은 공간의 차원
-        grid_size: Size of the grid (grid_size x grid_size)
+        grid_size: 격자의 크기(grid_size x grid_size)
         device: 돌릴 장치
         filename: 내놓을 파일 이름
     """
@@ -250,7 +250,7 @@ class GANLosses:
     def vanilla_gan_loss(d_real: torch.Tensor, d_fake: torch.Tensor,
                         mode: str = 'discriminator') -> torch.Tensor:
         """
-        Original GAN loss (binary cross-entropy).
+        본디 GAN 잃음(두 갈래 엇갈린 엔트로피).
         
         인수:
             d_real: 실제 자료에 대한 가름개 내놓기
@@ -295,8 +295,8 @@ class GANLosses:
         바서슈타인 맞겨루기 만들개 손실.
         
         인수:
-            d_real: Discriminator (critic) output on real data
-            d_fake: Discriminator (critic) output on fake data
+            d_real: 참 자료에 대한 가름개(비평가)의 내놓음
+            d_fake: 가짜 자료에 대한 가름개(비평가)의 내놓음
             mode: 'discriminator'이나 'generator'
         
         반환값:
@@ -313,7 +313,7 @@ def label_smoothing(labels: torch.Tensor, smoothing: float = 0.1) -> torch.Tenso
     실제/가짜 이름표에 이름표 부드럽게 하기를 쓴다.
     
     인수:
-        labels: Original labels (0 or 1)
+        labels: 본디 이름표(0 또는 1)
         smoothing: 부드럽게 하는 정도
     
     반환값:
@@ -324,7 +324,7 @@ def label_smoothing(labels: torch.Tensor, smoothing: float = 0.1) -> torch.Tenso
 
 def add_noise_to_inputs(data: torch.Tensor, noise_std: float = 0.1) -> torch.Tensor:
     """
-    Add noise to discriminator inputs (helps training stability).
+    가름개 들임에 잡음을 더한다(익힘이 든든해진다).
     
     인수:
         data: 들임 자료

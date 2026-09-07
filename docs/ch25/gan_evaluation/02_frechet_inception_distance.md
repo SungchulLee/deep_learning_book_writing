@@ -6,7 +6,7 @@
 
 ```python
 """
-Module 52: Fréchet Inception Distance (FID)
+52단원: 프레셰 인셉션 거리(FID)
 ==========================================
 
 가장 널리 쓰이는 잣대 가운데 하나인 FID을 두루 갖추어 짠다
@@ -50,29 +50,29 @@ class FIDCalculator:
     -----------------------
     FID은 여러 변수 정규 분포 둘 사이의 거리를 잰다.
     
-    Real distribution: X_real ~ N(μ_r, Σ_r)  
-    Generated distribution: X_gen ~ N(μ_g, Σ_g)
+    참 분포: X_real ~ N(μ_r, Σ_r)
+    만들어 낸 분포: X_gen ~ N(μ_g, Σ_g)
     
     FID = ||μ_r - μ_g||² + Tr(Σ_r + Σ_g - 2(Σ_r Σ_g)^{1/2})
     
     왜 프레셰 거리인가?
     --------------------
-    1. The Fréchet distance (also called Wasserstein-2 distance) is the
+    1. 프레셰 거리(바서슈타인-2 거리라고도 한다)는
        정규 분포의 가장 좋은 나르기 거리
     2. 정규 분포에는 닫힌 꼴 풀이가 있다
     3. 평균과 함께 흩어짐의 차이에 모두 민감하다
-    4. Lower FID = distributions are more similar
+    4. FID이 낮을수록 두 분포가 더 닮았다
     
     왜 인셉션 특징인가?
     ----------------------
     1. ImageNet으로 익힌 InceptionV3은 그림의 뜻 특징을 담는다
-    2. Pool3 features (2048-dim) represent high-level image content
+    2. pool3 특징(2048차원)은 그림의 높은 층 내용을 나타낸다
     3. 화소 수준 견줌보다 튼튼하다
     4. 사람의 판단과 잘 이어진다
     
     흔한 FID 값:
     ------------------
-    - FID < 10: Excellent (near-perfect generation)
+    - FID < 10: 아주 좋음(거의 나무랄 데 없이 만들어 냄)
     - FID 10-50: 좋은 품질
     - FID 50-100: 보통 품질
     - FID > 100: 나쁜 품질
@@ -89,24 +89,24 @@ class FIDCalculator:
         
         수학의 이끌어 내기:
         -----------------------
-        For X ~ N(μ₁, Σ₁) and Y ~ N(μ₂, Σ₂), the Fréchet distance is:
+        X ~ N(μ₁, Σ₁)와 Y ~ N(μ₂, Σ₂)에 대해 프레셰 거리는 다음과 같다.
         
         d²_F(X,Y) = ||μ₁ - μ₂||² + Tr(Σ₁ + Σ₂ - 2(Σ₁Σ₂)^{1/2})
         
         공식을 나누어 보면:
-        1. ||μ₁ - μ₂||²: Difference in means (first moment)
+        1. ||μ₁ - μ₂||²: 평균의 차이(첫째 적률)
         2. Tr(Σ₁ + Σ₂): Sum of variances
-        3. -2Tr((Σ₁Σ₂)^{1/2}): Covariance overlap term
+        3. -2Tr((Σ₁Σ₂)^{1/2}): 공분산이 겹치는 마디
         
         인수:
-            mu1: Mean of first distribution [d]
-            sigma1: Covariance matrix of first distribution [d, d]
-            mu2: Mean of second distribution [d]
-            sigma2: Covariance matrix of second distribution [d, d]
+            mu1: 첫째 분포의 평균 [d]
+            sigma1: 첫째 분포의 공분산 행렬 [d, d]
+            mu2: 둘째 분포의 평균 [d]
+            sigma2: 둘째 분포의 공분산 행렬 [d, d]
             eps: 수치 안정성을 위한 작은 상수
         
         반환값:
-            Fréchet distance (scalar)
+            프레셰 거리(스칼라)
         """
         # 들임이 넘파이 배열이 되게 한다
         mu1 = np.atleast_1d(mu1)
@@ -158,17 +158,17 @@ class FIDCalculator:
         특징의 평균과 함께 흩어짐을 셈한다.
         
         인수:
-            features: Feature vectors [n_samples, feature_dim]
+            features: 특징 벡터 [n_samples, feature_dim]
         
         반환값:
-            Tuple of (mean [feature_dim], covariance [feature_dim, feature_dim])
+            (평균 [feature_dim], 공분산 [feature_dim, feature_dim]) 튜플
         
         수학의 참고:
         ------------------
         Mean: μ = (1/N) Σ x_i
         Covariance: Σ = (1/N) Σ (x_i - μ)(x_i - μ)ᵀ
         
-        We use rowvar=False to treat each column as a variable
+        열마다 하나의 변수로 보려고 rowvar=False을 쓴다
         """
         # 평균을 셈한다: 표본에 걸쳐 평균 낸다
         # 꼴: [특징 차원]
@@ -189,23 +189,23 @@ class FIDCalculator:
         
         온전한 물길:
         -----------------
-        1. Extract features from InceptionV3 (done before this function)
-        2. Compute statistics (μ, Σ) for real data
-        3. Compute statistics (μ, Σ) for generated data
+        1. InceptionV3에서 특징을 뽑는다(이 함수에 앞서 한다)
+        2. 참 자료의 통계(μ, Σ)를 셈한다
+        3. 만들어 낸 자료의 통계(μ, Σ)를 셈한다
         4. 프레셰 거리를 셈한다
         
         인수:
-            real_features: Features from real images [n_real, 2048]
-            generated_features: Features from generated images [n_gen, 2048]
+            real_features: 참 그림에서 뽑은 특징 [n_real, 2048]
+            generated_features: 만들어 낸 그림에서 뽑은 특징 [n_gen, 2048]
         
         반환값:
-            FID score (lower is better)
+            FID 점수(낮을수록 좋다)
         
         가장 작은 표본 크기:
         --------------------
-        - Absolute minimum: 2048 samples (= feature dimension)
+        - 가장 적어도: 표본 2048개(= 특징 차원)
         - 권함: 안정된 어림을 위해 표본 10,000개 이상
-        - More samples = more reliable FID
+        - 표본이 많을수록 FID이 미덥다
         """
         print(f"Computing FID with {len(real_features)} real and "
               f"{len(generated_features)} generated samples...")
@@ -244,7 +244,7 @@ class SimpleInceptionV3Wrapper:
         흉내 특징 뽑개로 첫자리매김한다.
         
         인수:
-            feature_dim: Dimension of feature vectors (2048 for InceptionV3)
+            feature_dim: 특징 벡터의 차원(InceptionV3이면 2048)
         """
         self.feature_dim = feature_dim
         print(f"Initialized mock InceptionV3 with {feature_dim}-dim features")
@@ -252,19 +252,19 @@ class SimpleInceptionV3Wrapper:
     
     def extract_features(self, images: torch.Tensor) -> np.ndarray:
         """
-        Extract features from images (mock implementation).
+        그림에서 특징을 뽑는다(흉내만 낸 짜기).
         
         실제 짜기에서는:
-        1. Preprocess images to InceptionV3 format (299×299, normalized)
+        1. 그림을 InceptionV3 꼴로 미리 다듬는다(299×299, 잣대 맞춤)
         2. InceptionV3을 지나는 앞먹임
-        3. Extract pool3 features (2048-dim)
-        4. No gradients needed (eval mode)
+        3. pool3 특징을 뽑는다(2048차원)
+        4. 기울기가 필요 없다(따짐 결)
         
         인수:
-            images: Batch of images [batch_size, C, H, W]
+            images: 그림 묶음 [batch_size, C, H, W]
         
         반환값:
-            Features [batch_size, feature_dim]
+            특징 [batch_size, feature_dim]
         """
         batch_size = images.shape[0]
         
@@ -426,7 +426,7 @@ def main():
     1. FID 뜻매김:
        - 실제 분포와 만든 분포 사이의 거리를 잰다
        - 특징 공간에서 정규 분포를 가정한다
-       - Lower FID = Better generation quality
+       - FID이 낮을수록 만들어 내는 품질이 좋다
     
     2. 수학의 몫:
        - 평균 차이: ||μ_r - μ_g||²
@@ -440,12 +440,12 @@ def main():
        - 화소 공간 견줌보다 낫다
     
     4. 표본 크기가 중요하다:
-       - Minimum: 2048 samples (= feature dimension)
+       - 가장 적어도: 표본 2048개(= 특징 차원)
        - 권함: 표본 10,000개 이상
-       - More samples = more stable FID estimates
+       - 표본이 많을수록 FID 어림이 든든하다
     
     5. 한계:
-       - Assumes Gaussian distributions (may not hold)
+       - 가우스 분포라고 가정한다(맞지 않을 수 있다)
        - 특징 뽑개를 무엇으로 고르느냐에 치우친다
        - 모든 잘못됨을 알아내지는 못한다
        - 다른 잣대와 아울러야 한다

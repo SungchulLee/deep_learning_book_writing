@@ -126,12 +126,12 @@ def train_gan(generator, discriminator, dataloader, latent_dim,
     기본 맞겨루기 만들개 익히기 되풀이.
     
     인수:
-        generator: Generator network G(z) -> x
-        discriminator: Discriminator network D(x) -> [0, 1]
+        generator: 만들개 그물 G(z) -> x
+        discriminator: 가름개 그물 D(x) -> [0, 1]
         dataloader: 실제 자료용 DataLoader
         latent_dim: 숨은 벡터 z의 차원
         n_epochs: 익히기 바퀴 수
-        device: Training device (cpu/cuda)
+        device: 익힐 장치(cpu 또는 cuda)
     """
     # 손실과 가장 좋게 하개
     criterion = nn.BCELoss()

@@ -81,8 +81,8 @@ $$
 """
 단순한 두 사람 놀이를 위한 몬테카를로 나무 찾기.
 
-Implements the four MCTS phases (selection, expansion, simulation,
-backpropagation) with UCB1 as the tree policy.
+MCTS의 네 마디(고르기, 넓히기, 흉내내기,
+거꾸로 퍼뜨리기)를 UCB1 나무 방침으로 짠다.
 """
 
 import math
