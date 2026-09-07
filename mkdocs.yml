@@ -2553,6 +2553,10 @@ nav:
         - Quantization: ch40/optimization/quantization.md
         - Knowledge Distillation: ch40/optimization/distillation.md
         - Neural Architecture Search: ch40/optimization/nas.md
+  - 강의 노트:
+    - 강의 노트 안내: lectures/index.md
+    - 기계학습과 응용:
+      - 2026-09-07 OT: lectures/ml_applications/2026-09-07-ot.md
   - Appendix - Model Implementations:
     - A1 Classic Convolutional Neural Networks:
       - LeNet: appendix/cnn/lenet.md
