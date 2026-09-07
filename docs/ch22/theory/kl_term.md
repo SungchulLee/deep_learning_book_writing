@@ -229,7 +229,7 @@ $$\mathbb{E}_{p_{\text{data}}(x)}[D_{KL}(q_\phi(z|x) \| p(z))] = I_q(X; Z) + D_{
 |---------|---------|-------------|
 | **표준 정규 분포로의 KL** | $-\frac{1}{2}\sum(1 + \log\sigma^2 - \mu^2 - \sigma^2)$ | 벌주기 항 |
 | **앞 KL** | $D_{KL}(p \| q)$ | 평균을 좇음(변분 자기 부호기에서는 쓰지 않는다) |
-| **Reverse KL** | $D_{KL}(q \| p)$ | Mode-seeking (VAE training) |
+| **뒤 KL** | $D_{KL}(q \| p)$ | 최빈값 찾기(VAE 익히기) |
 | **KL = 0** | $q(z\|x) = p(z)$ | 사후 분포 무너짐 |
 | **쪼개기** | $\text{서로 앎} + \text{가장자리 KL}$ | 앎 이론의 관점 |
 

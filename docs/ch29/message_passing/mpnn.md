@@ -31,19 +31,19 @@ $$\hat{y} = R\left(\{\mathbf{h}_v^T : v \in V\}\right)$$
 
 ## MPNN의 보기로 본 기존 모델
 
-### GCN(Kipf & Welling, 2017)
+### GCN(킵프 & 벨링, 2017)
 
 $$M_t(\mathbf{h}_u) = \frac{1}{\sqrt{d_u d_v}} W^t \mathbf{h}_u^t, \quad U_t(\mathbf{h}_v, \mathbf{m}_v) = \sigma(\mathbf{m}_v)$$
 
 스스로 이음이 스스로의 앎을 준다. 드러나게 따로 고치는 일은 없다.
 
-### GraphSAGE(Hamilton et al., 2017)
+### GraphSAGE(해밀턴 외, 2017)
 
 $$M_t(\mathbf{h}_u) = \mathbf{h}_u^t, \quad U_t(\mathbf{h}_v, \mathbf{m}_v) = \sigma\left(W^t [\mathbf{h}_v^t \| \mathbf{m}_v]\right)$$
 
 스스로와 이웃의 앎을 드러나게 떼어 놓는다.
 
-### GAT(Velickovic et al., 2018)
+### GAT(벨리치코비치 외, 2018)
 
 $$M_t(\mathbf{h}_u, \mathbf{h}_v) = \alpha_{uv} W^t \mathbf{h}_u^t$$
 

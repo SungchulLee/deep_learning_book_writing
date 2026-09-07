@@ -201,7 +201,7 @@ model.apply(init_weights)
 | 활성화 함수 | 권장 초기화 | 분산 공식 |
 |---------------------|-----------------|-----------------|
 | 시그모이드, Tanh | Xavier (Glorot) | $\sigma^2 = \frac{2}{n_{\text{in}} + n_{\text{out}}}$ |
-| ReLU | He (Kaiming) | $\sigma^2 = \frac{2}{n_{\text{in}}}$ |
+| ReLU | 허(카이밍) | $\sigma^2 = \frac{2}{n_{\text{in}}}$ |
 | Leaky ReLU (기울기 $a$) | He (수정판) | $\sigma^2 = \frac{2}{(1 + a^2)\,n_{\text{in}}}$ |
 | SELU | LeCun 정규 | $\sigma^2 = \frac{1}{n_{\text{in}}}$ |
 | GELU, Swish, Mish | He 또는 Xavier | 경험적으로 어느 쪽이든 무난하다 |

@@ -558,7 +558,7 @@ def chunked_attention(query, key, value, chunk_size=64):
     return output
 ```
 
-### FlashAttention
+### 플래시 눈길
 
 FlashAttention(Dao 등, 2022)은 데이터를 빠른 SRAM에 두는 타일 알고리즘으로 정확한 어텐션을 $O(n)$ 메모리에 계산한다. PyTorch 2.0 이상은 쓸 수 있으면 저절로 FlashAttention을 쓴다.
 

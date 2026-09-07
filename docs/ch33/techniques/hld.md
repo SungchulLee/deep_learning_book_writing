@@ -79,7 +79,7 @@ $O(\log n)$이 들어 모두 $O(\log^2 n)$이다.
 ```
 
 밑나무 크기: $\text{size}(1)=6,\; \text{size}(2)=3,\; \text{size}(3)=1,\;
-\text{size}(4)=1,\; \text{size}(5)=1,\; \text{size}(6)=1$.
+\text{size}(4)=1,\; \text{size}(5)=1,\; \text{size}(6)=1$이다.
 
 무거운 아이: $1 \to 2$(크기 3 대 1), $2 \to 4$(동점, 4를 뽑음).
 

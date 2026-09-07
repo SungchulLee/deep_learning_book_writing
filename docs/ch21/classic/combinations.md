@@ -154,7 +154,7 @@ $$
 T = O\!\left(k \cdot \binom{n}{k}\right)
 $$
 
-which is output-optimal since the output itself has size $\Theta\!\left(k \cdot \binom{n}{k}\right)$.
+내놓음 자체의 크기가 $\Theta\!\left(k \cdot \binom{n}{k}\right)$이므로 이는 내놓음에 대해 가장 좋다.
 
 **공간 복잡도.** 되돌이 깊이는 많아야 $\min(k, n)$이고 조합 그릇은 많아야 $k$개를 담으므로 내놓기 말고 $O(k)$ 공간이 든다.
 

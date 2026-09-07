@@ -80,7 +80,7 @@ def vae_loss_free_bits(recon_x, x, mu, logvar, free_bits=0.5):
 
 ## 자유 비트와 KL 달구기 견주기
 
-| Aspect | KL Annealing | Free Bits |
+| 살펴볼 점 | KL 달구기 | 자유 비트 |
 |--------|-------------|-----------|
 | **장치** | 때에 따름(차례표 바탕) | 짜임에 따름(차원마다의 문턱) |
 | **웃매개변수** | 몸풀기 기간 | 문턱 $\lambda$ |

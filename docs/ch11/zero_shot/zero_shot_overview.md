@@ -177,7 +177,7 @@ $$\mathcal{L}_{cont} = \sum_{i,j} y_{ij} D_{ij}^2 + (1 - y_{ij}) \max(0, m - D_{
 |-------|------------|--------------|--------------|
 | VGG-19 | 4096 | 이미지넷 | fc7 |
 | ResNet-101 | 2048 | 이미지넷 | avg_pool |
-| Inception-v3 | 2048 | ImageNet | pool3 |
+| Inception-v3 | 2048 | 이미지넷 | pool3 |
 | CLIP | 512/768 | 4억 쌍 | 마지막 층 |
 
 ### 특징 뽑기 파이프라인
