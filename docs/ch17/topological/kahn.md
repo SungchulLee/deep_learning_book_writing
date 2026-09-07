@@ -18,8 +18,8 @@
 2. 들어오는 차수가 0인 꼭짓점을 모두 넣어 줄서기 $Q$을 첫자리매김한다.
 3. $Q$이 비어 있지 않은 동안:
     - 꼭짓점 $u$을 줄서기에서 빼내 내놓는 목록에 덧붙인다.
-    - For each neighbor $v$ of $u$, decrement $\text{in-degree}(v)$ by 1.
-    - If $\text{in-degree}(v)$ becomes zero, enqueue $v$.
+    - $u$의 이웃 $v$마다 $\text{in-degree}(v)$을 1 줄인다.
+    - $\text{in-degree}(v)$이 0이 되면 $v$을 줄에 넣는다.
 4. 내놓는 목록에 꼭짓점 $n$개가 모두 들어 있으면 그것을 위상 차례로 돌려준다. 그렇지 않으면 $G$에 순환이 있다.
 
 ## 올바름
@@ -27,12 +27,12 @@
 !!! note "칸 알고리즘이 올바른 위상 차례를 내놓는 까닭"
     **주장:** $G$이 유향 비순환 그래프이면 칸 알고리즘은 올바른 위상 차례를 내놓는다.
 
-    **Proof.** We show that for every edge $(u, v) \in E$, vertex $u$ appears before $v$ in the output. When $u$ is dequeued in step 3, the algorithm decrements $\text{in-degree}(v)$. Before this point, $v$ cannot have in-degree zero (since the edge from $u$ contributes to $v$'s in-degree), so $v$ has not yet been dequeued. Therefore $u$ precedes $v$ in the output. $\square$
+    **증명.** 모든 변 $(u, v) \in E$에 대해 날임에서 꼭짓점 $u$이 $v$보다 앞에 옴을 보인다. 걸음 3에서 $u$을 줄에서 꺼낼 때 알고리즘이 $\text{in-degree}(v)$을 줄인다. 그전에는 $v$의 들어오는 차수가 0일 수 없으므로($u$에서 오는 변이 $v$의 들어오는 차수에 보태진다) $v$은 아직 줄에서 꺼내지지 않았다. 그러므로 날임에서 $u$이 $v$보다 앞선다. $\square$
 
 !!! note "순환 찾기"
     **주장:** $G$에 순환이 있으면 칸 알고리즘은 $n$개보다 적은 꼭짓점을 다룬다.
 
-    **Proof.** Every vertex in a cycle always has at least one predecessor that is also in the cycle. Since no vertex in the cycle ever reaches in-degree zero, none of them are enqueued. The output list therefore omits at least the vertices in the cycle. $\square$
+    **증명.** 순환에 든 꼭짓점은 모두 그 순환 안에 앞선 꼭짓점을 적어도 하나 지닌다. 순환의 어떤 꼭짓점도 들어오는 차수가 0이 되지 않으므로 아무도 줄에 들어가지 못한다. 그러므로 날임 목록에는 적어도 그 순환의 꼭짓점이 빠진다. $\square$
 
 ## 복잡도
 
@@ -182,7 +182,7 @@ if __name__ == "__main__":
 Lex smallest order: [0, 1, 2, 3, 4]
 ```
 
-The heap variant runs in $O((V + E) \log V)$ due to the heap operations.
+더미를 쓰는 갈래는 더미 셈 때문에 $O((V + E) \log V)$에 돈다.
 
 ## 깊이 우선 돌아보기 바탕 정렬과의 견줌
 
@@ -207,7 +207,7 @@ The heap variant runs in $O((V + E) \log V)$ due to the heap operations.
 칸 알고리즘을 한 단계씩 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    (1) Compute in-degree for all vertices. (2) Add all vertices with in-degree 0 to a queue. (3) While the queue is non-empty: dequeue vertex $v$, add $v$ to the output. For each neighbor $u$ of $v$, decrement $\text{in\_degree}[u]$. If $\text{in\_degree}[u]$ becomes 0, enqueue $u$. (4) If all vertices are in the output, it is a valid topological sort. If some vertices remain (in-degree never reached 0), a cycle exists. Time: $O(V + E)$. $\square$
+    (1) 모든 꼭짓점의 들어오는 차수를 셈한다. (2) 들어오는 차수가 0인 꼭짓점을 모두 줄에 넣는다. (3) 줄이 비지 않은 동안 꼭짓점 $v$을 꺼내 날임에 넣는다. $v$의 이웃 $u$마다 $\text{in\_degree}[u]$을 줄이고 0이 되면 $u$을 줄에 넣는다. (4) 모든 꼭짓점이 날임에 있으면 옳은 위상 정렬이다. 남은 꼭짓점이 있으면(들어오는 차수가 끝내 0이 되지 않으면) 순환이 있는 것이다. 시간은 $O(V + E)$이다. $\square$
 
 ---
 
@@ -215,7 +215,7 @@ The heap variant runs in $O((V + E) \log V)$ due to the heap operations.
 칸 알고리즘이 순환을 찾아냄을 증명하여라.
 
 ??? success "연습문제 2 풀이"
-    If the graph has a cycle $v_1 \to v_2 \to \cdots \to v_k \to v_1$, then every vertex in the cycle always has in-degree $\geq 1$ (from the predecessor in the cycle). No vertex in the cycle ever has in-degree 0, so none is ever enqueued. After the algorithm terminates, these vertices remain unprocessed. The count of processed vertices is less than $V$, signaling a cycle. $\square$
+    그래프에 순환 $v_1 \to v_2 \to \cdots \to v_k \to v_1$이 있으면 순환의 꼭짓점은 모두 늘 들어오는 차수가 $\geq 1$이다(순환 안의 앞선 꼭짓점에서 온다). 순환의 어떤 꼭짓점도 들어오는 차수가 0이 되지 않으므로 아무도 줄에 들어가지 못한다. 알고리즘이 끝난 뒤에도 이 꼭짓점들은 다루어지지 않은 채 남는다. 다룬 꼭짓점 수가 $V$보다 적으면 순환이 있다는 뜻이다. $\square$
 
 ---
 
@@ -223,7 +223,7 @@ The heap variant runs in $O((V + E) \log V)$ due to the heap operations.
 순환에 든 꼭짓점을 모두 찾도록 칸 알고리즘을 어떻게 고칠 수 있는가?
 
 ??? success "연습문제 3 풀이"
-    After running Kahn's algorithm, any vertex not in the output list is involved in a cycle (its in-degree never reached 0). Collect all unprocessed vertices — they form one or more cycles in the graph. To find the specific cycles, run DFS on the subgraph induced by these vertices. This gives the cycle structure in $O(V + E)$ total time. $\square$
+    칸 알고리즘을 돌린 뒤 날임 목록에 없는 꼭짓점은 모두 순환에 얽혀 있다(들어오는 차수가 끝내 0이 되지 않았다). 다루지 않은 꼭짓점을 모두 모으면 그래프의 순환 하나 이상을 이룬다. 어떤 순환인지 콕 집으려면 이 꼭짓점들이 이끄는 아래그래프에서 돌아보기를 돌린다. 그러면 전체 $O(V + E)$ 시간에 순환 얼개를 얻는다. $\square$
 
 ---
 
@@ -231,4 +231,4 @@ The heap variant runs in $O((V + E) \log V)$ due to the heap operations.
 칸 알고리즘에서 보통 줄서기 대신 우선순위 줄서기(최소 힙)를 쓰면 어떤 차례가 나오는가?
 
 ??? success "연습문제 4 풀이"
-    Using a min-heap produces the **lexicographically smallest** topological ordering. At each step, among all vertices with in-degree 0, the smallest-numbered vertex is chosen. This is useful when a canonical or deterministic ordering is needed (e.g., for testing or comparison). The time complexity increases to $O((V + E) \log V)$ due to heap operations (versus $O(V + E)$ with a regular queue). $\square$
+    최소 더미를 쓰면 **사전 차례로 가장 작은** 위상 차례가 나온다. 걸음마다 들어오는 차수가 0인 꼭짓점 가운데 번호가 가장 작은 것을 고른다. 정해진 하나의 차례가 필요할 때 쓸모 있다(시험이나 견줌 따위). 더미 셈 때문에 시간 복잡도는 $O((V + E) \log V)$으로 는다(여느 줄을 쓰면 $O(V + E)$이다). $\square$

@@ -226,7 +226,7 @@ Iterative topological order: [0, 2, 1, 3, 4]
 
     **칸**: 들어오는 차수가 0인 꼭짓점을 되풀이해 없앤다. 모든 꼭짓점을 다루지 못하면 순환이 있음을 알아챈다. 드러난 줄서기/목록과 들어오는 차수 배열을 쓴다. "켜별" 짜임을 이해하기에 더 직관적이다.
 
-    Both run in $O(V + E)$. DFS is preferred when DFS is already being used for other purposes. Kahn's is preferred for level-by-level processing. $\square$
+    둘 다 $O(V + E)$에 돈다. 돌아보기를 이미 다른 일에 쓰고 있으면 돌아보기 방식을 고른다. 켜마다 차례로 다루려면 칸 방식을 고른다. $\square$
 
 ---
 
@@ -234,4 +234,4 @@ Iterative topological order: [0, 2, 1, 3, 4]
 깊이 우선 돌아보기 바탕 위상 정렬은 시작 꼭짓점과 이웃을 다루는 차례에 따라 다른 차례를 내놓을 수 있는가?
 
 ??? success "연습문제 4 풀이"
-    Yes. The DFS-based sort depends on: (1) the order in which source vertices are chosen, and (2) the order in which neighbors are explored. Different choices lead to different valid topological orderings. For example, in a DAG with $A \to C, B \to C$: starting DFS from $A$ first gives $[A, B, C]$ or $[B, A, C]$ depending on when $B$ is processed. All outputs are valid topological orderings, but they may differ. $\square$
+    그렇다. 돌아보기 바탕 정렬은 (1) 시작 꼭짓점을 고르는 차례와 (2) 이웃을 살피는 차례에 달렸다. 다르게 고르면 다른 옳은 위상 차례가 나온다. 보기로 $A \to C, B \to C$인 유향 비순환 그래프에서 $A$부터 돌아보면 $B$을 언제 다루느냐에 따라 $[A, B, C]$이나 $[B, A, C]$이 나온다. 모두 옳은 위상 차례이지만 서로 다를 수 있다. $\square$

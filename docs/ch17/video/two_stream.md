@@ -35,7 +35,7 @@
 
 ### 수학 얼거리
 
-Given video $V$ with frames $\{I_1, \ldots, I_T\}$ and optical flow $\{F_1, \ldots, F_{T-1}\}$:
+틀이 $\{I_1, \ldots, I_T\}$이고 빛 흐름이 $\{F_1, \ldots, F_{T-1}\}$인 영상 $V$이 주어졌을 때
 
 **자리 갈래:**
 
@@ -49,7 +49,7 @@ $$p_{temporal} = f_t(\{F_{t}, F_{t+1}, \ldots, F_{t+L-1}\}) \in \mathbb{R}^K$$
 
 $$p_{final} = \alpha \cdot p_{spatial} + (1-\alpha) \cdot p_{temporal}$$
 
-where $K$ is the number of classes and $\alpha$ is the fusion weight.
+여기서 $K$은 갈래 수이고 $\alpha$은 녹여 아우르는 짐이다.
 
 ## 자리 갈래
 
@@ -630,7 +630,7 @@ def train_two_stream_e2e(model, train_loader, optimizer, epochs):
 느림빠름 얼개를 설명하여라. 영상을 두 가지 틀 비율로 다루면 왜 알아보기가 나아지는가?
 
 ??? success "연습문제 2 풀이"
-    SlowFast uses two pathways: a **Slow** pathway operating at low frame rate (e.g., 2 FPS) with a large channel capacity for detailed spatial semantics, and a **Fast** pathway at high frame rate (e.g., 16 FPS) with fewer channels for capturing rapid temporal dynamics. This design is efficient because: spatial semantics change slowly (don't need high frame rate), while motion occurs at fine temporal scales. The Fast pathway is lightweight ($\sim$20% of computation) and provides temporal resolution, while the Slow pathway provides spatial richness. Lateral connections fuse information between pathways.
+    SlowFast은 길 둘을 쓴다. **느린** 길은 낮은 틀 빠르기(예: 2 FPS)로 돌며 갈래를 넉넉히 두어 자리의 뜻을 잘게 담고, **빠른** 길은 높은 틀 빠르기(예: 16 FPS)로 돌며 갈래를 적게 두어 빠른 때의 움직임을 담는다. 자리의 뜻은 더디게 바뀌고(높은 틀 빠르기가 필요 없다) 움직임은 잔 때 잣대에서 일어나므로 이 꾸밈이 잘 든다. 빠른 길은 가볍고(셈의 $\sim$20%) 때의 결을 주며, 느린 길은 자리의 넉넉함을 준다. 옆으로 잇는 이음이 두 길 사이의 소식을 녹여 아우른다.
 
 ---
 
@@ -638,7 +638,7 @@ def train_two_stream_e2e(model, train_loader, optimizer, epochs):
 그림 가르기 얼개(보기로 ResNet)를 영상 이해로 넓힐 때의 주된 어려움은 무엇인가?
 
 ??? success "연습문제 3 풀이"
-    Key challenges: (1) **Computational cost**: adding a temporal dimension increases data by $T\times$ ($T$ frames), making 3D convolutions expensive; (2) **Temporal modeling**: 2D convolutions only see individual frames and miss temporal patterns; naively inflating 2D kernels to 3D (e.g., I3D) is expensive; (3) **Variable-length inputs**: videos vary in duration, requiring temporal pooling or sampling strategies; (4) **Long-range dependencies**: important events may span hundreds of frames, exceeding the receptive field of local convolutions; (5) **Training data**: video datasets are smaller than image datasets, making overfitting a concern.
+    고갱이 어려움은 이렇다. (1) **셈 값**: 때 차수를 더하면 자료가 $T\times$($T$은 틀 수)만큼 늘어 3차원 누비기가 값비싸진다. (2) **때 모형 짓기**: 2차원 누비기는 틀 하나만 보아 때의 무늬를 놓친다. 2차원 알갱이를 손쉽게 3차원으로 부풀리면(I3D 따위) 값이 비싸다. (3) **길이가 바뀌는 들임**: 영상마다 길이가 달라 때 모으기나 뽑기 꾀가 든다. (4) **멀리 걸친 매임**: 종요로운 일이 수백 틀에 걸칠 수 있어 그 자리 누비기의 받는 밭을 넘어선다. (5) **익힘 자료**: 영상 자료 묶음이 그림 자료 묶음보다 작아 지나치게 맞춰질 걱정이 있다.
 
 ---
 
@@ -648,8 +648,8 @@ def train_two_stream_e2e(model, train_loader, optimizer, epochs):
 ??? success "연습문제 4 풀이"
     | 방식 | 셈 | 때의 범위 | 익히기 |
     |----------|-------------|----------------|----------|
-    | **3D Conv** | $O(k^3 C^2 THW)$ | Local ($k$ frames) | Expensive, needs pretraining |
-    | **(2+1)D Conv** | $O(k^2 C^2 THW + k C^2 THW)$ | Local | Easier to optimize, fewer params |
-    | **Temporal Attention** | $O(T^2 CHW)$ | Global | Quadratic in $T$, flexible |
+    | **3차원 누비기** | $O(k^3 C^2 THW)$ | 그 자리(틀 $k$개) | 값비싸고 미리 익히기가 든다 |
+    | **(2+1)차원 누비기** | $O(k^2 C^2 THW + k C^2 THW)$ | 그 자리 | 다듬기 쉽고 매개변수가 적다 |
+    | **때 눈길** | $O(T^2 CHW)$ | 두루 | $T$에 이차이며 너그럽다 |
 
     3차원 누비기는 힘세지만 값이 비싸다. (2+1)차원 쪼개기는 자리 다루기와 때 다루기를 갈라 정확도를 지키면서 매개변수를 줄인다. 때에 걸친 스스로 눈길은 멀리 떨어진 얽힘을 담아내지만 차례 길이의 제곱으로 늘어난다. 요즘 얼개(보기로 Video Swin Transformer)는 흔히 가까운 자리의 눈길과 층진 꾸밈을 아우른다.
