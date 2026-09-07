@@ -1,14 +1,14 @@
-# Performance Metrics
+# 됨됨이 재기
 
-Comprehensive performance metrics are the language through which trading strategy quality is communicated. Beyond simple returns, risk-adjusted measures like the Sharpe ratio, Sortino ratio, and Calmar ratio capture the trade-off between reward and risk. Tail risk metrics such as Value-at-Risk and Conditional Value-at-Risk quantify exposure to extreme losses, while trading metrics like win rate and profit factor reveal strategy behavior patterns.
+두루 갖춘 됨됨이 자는 거래 꾀의 됨됨이를 나누는 말이다. 단순한 돌아옴을 넘어 샤프 비, 소르티노 비, 칼마 비 같은 무릅씀을 맞춘 자가 갚음과 무릅씀 사이의 맞바꿈을 담아낸다. 무릅씀 값(VaR)이나 매인 무릅씀 값(CVaR) 같은 꼬리 무릅씀 자는 끝자락 잃음에 얼마나 드러나 있는지를 재고, 이김률이나 벌이 인자 같은 거래 자는 꾀가 어떻게 움직이는지를 드러낸다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 35.6.3: Performance Metrics
+35.6.3장: 됨됨이 재기
 =====================================
-Comprehensive performance metrics for trading strategies.
+거래 꾀를 위한 두루 갖춘 됨됨이 자.
 """
 
 import numpy as np
@@ -16,12 +16,12 @@ from typing import Dict, Optional
 from dataclasses import dataclass
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 class PerformanceMetrics:
-    """Compute comprehensive performance metrics."""
+    """두루 갖춘 됨됨이 자를 셈한다."""
 
     def __init__(self, risk_free_rate: float = 0.02 / 252):
         self.rf = risk_free_rate
@@ -29,22 +29,22 @@ class PerformanceMetrics:
     def compute_all(self, returns: np.ndarray, benchmark_returns: Optional[np.ndarray] = None) -> Dict:
         metrics = {}
 
-        # Return metrics
+        # 돌아옴 자
         metrics["total_return"] = float(np.prod(1 + returns) - 1)
         metrics["cagr"] = float((1 + metrics["total_return"]) ** (252 / max(len(returns), 1)) - 1)
         metrics["daily_mean"] = float(np.mean(returns))
 
-        # Risk metrics
+        # 무릅씀 자
         metrics["volatility"] = float(np.std(returns) * np.sqrt(252))
         metrics["downside_vol"] = float(np.std(returns[returns < 0]) * np.sqrt(252)) if np.any(returns < 0) else 0.0
 
-        # Drawdown
+        # 내림폭
         cum = np.cumprod(1 + returns)
         peak = np.maximum.accumulate(cum)
         dd = (peak - cum) / (peak + 1e-8)
         metrics["max_drawdown"] = float(np.max(dd))
 
-        # Find max drawdown duration
+        # 가장 긴 내림폭이 이어진 때를 찾는다
         underwater = dd > 0
         durations = []
         current = 0
@@ -59,13 +59,13 @@ class PerformanceMetrics:
             durations.append(current)
         metrics["max_dd_duration"] = max(durations) if durations else 0
 
-        # VaR and CVaR
+        # VaR과 CVaR
         sorted_r = np.sort(returns)
         n5 = max(1, int(len(sorted_r) * 0.05))
         metrics["var_95"] = float(-sorted_r[n5])
         metrics["cvar_95"] = float(-np.mean(sorted_r[:n5]))
 
-        # Risk-adjusted
+        # 무릅씀을 맞춘 자
         excess = returns - self.rf
         metrics["sharpe_ratio"] = float(np.mean(excess) / (np.std(excess) + 1e-8) * np.sqrt(252))
 
@@ -75,7 +75,7 @@ class PerformanceMetrics:
 
         metrics["calmar_ratio"] = float(metrics["cagr"] / (metrics["max_drawdown"] + 1e-8))
 
-        # Trading metrics
+        # 거래 자
         metrics["win_rate"] = float(np.mean(returns > 0))
         gains = returns[returns > 0]
         losses = returns[returns < 0]
@@ -83,12 +83,12 @@ class PerformanceMetrics:
         metrics["avg_win"] = float(np.mean(gains)) if len(gains) > 0 else 0.0
         metrics["avg_loss"] = float(np.mean(losses)) if len(losses) > 0 else 0.0
 
-        # Tail ratios
+        # 꼬리 비
         p95 = np.percentile(returns, 95)
         p5 = np.percentile(returns, 5)
         metrics["tail_ratio"] = float(abs(p95) / (abs(p5) + 1e-8))
 
-        # Benchmark comparison
+        # 밑금과 견주기
         if benchmark_returns is not None:
             te = returns - benchmark_returns
             metrics["tracking_error"] = float(np.std(te) * np.sqrt(252))
@@ -99,12 +99,12 @@ class PerformanceMetrics:
         return metrics
 
     def format_report(self, metrics: Dict) -> str:
-        lines = ["=" * 50, "Performance Report", "=" * 50]
+        lines = ["=" * 50, "됨됨이 알림", "=" * 50]
         sections = {
-            "Returns": ["total_return", "cagr", "daily_mean"],
-            "Risk": ["volatility", "max_drawdown", "max_dd_duration", "var_95", "cvar_95"],
-            "Risk-Adjusted": ["sharpe_ratio", "sortino_ratio", "calmar_ratio"],
-            "Trading": ["win_rate", "profit_factor", "avg_win", "avg_loss", "tail_ratio"],
+            "돌아옴": ["total_return", "cagr", "daily_mean"],
+            "무릅씀": ["volatility", "max_drawdown", "max_dd_duration", "var_95", "cvar_95"],
+            "무릅씀 맞춤": ["sharpe_ratio", "sortino_ratio", "calmar_ratio"],
+            "거래": ["win_rate", "profit_factor", "avg_win", "avg_loss", "tail_ratio"],
         }
         for section, keys in sections.items():
             lines.append(f"\n--- {section} ---")
@@ -116,22 +116,22 @@ class PerformanceMetrics:
                     elif "ratio" in k or "factor" in k or "beta" in k:
                         lines.append(f"  {k:<22}: {v:>10.4f}")
                     elif "duration" in k:
-                        lines.append(f"  {k:<22}: {v:>10.0f} days")
+                        lines.append(f"  {k:<22}: {v:>10.0f}일")
                     else:
                         lines.append(f"  {k:<22}: {v:>10.6f}")
         return "\n".join(lines)
 
 
 def demo_metrics():
-    """Demonstrate performance metrics."""
+    """됨됨이 자를 보인다."""
     print("=" * 70)
-    print("Performance Metrics Demonstration")
+    print("됨됨이 재기 보이기")
     print("=" * 70)
 
     np.random.seed(42)
-    T = 504  # 2 years
+    T = 504  # 2년
     strategy_returns = np.random.randn(T) * 0.012 + 0.0004
-    strategy_returns[100:120] -= 0.02  # Drawdown
+    strategy_returns[100:120] -= 0.02  # 내림폭
 
     benchmark_returns = np.random.randn(T) * 0.01 + 0.0003
 
@@ -144,54 +144,54 @@ if __name__ == "__main__":
     demo_metrics()
 ```
 
-## Discussion
+## 논의
 
-The Sharpe ratio, defined as the annualized excess return divided by annualized volatility, remains the most widely cited risk-adjusted performance measure. However, it treats upside and downside volatility symmetrically, which penalizes strategies with positively skewed returns. The Sortino ratio addresses this by using only downside deviation in the denominator, making it more appropriate for strategies that occasionally produce large gains.
+샤프 비는 해로 환산한 넘치는 돌아옴을 해로 환산한 출렁임으로 나눈 것으로, 무릅씀을 맞춘 됨됨이 자 가운데 가장 널리 인용된다. 다만 위로 튀는 출렁임과 아래로 처지는 출렁임을 똑같이 다루므로 돌아옴이 오른쪽으로 치우친 꾀에 벌을 준다. 소르티노 비는 아래로 처지는 벗어남만 아랫자리에 두어 이를 바로잡으므로, 이따금 큰 벌이를 내는 꾀에 더 알맞다.
 
-Drawdown analysis reveals a strategy's worst-case behavior. Maximum drawdown measures the largest peak-to-trough decline, while maximum drawdown duration captures how long a strategy stayed underwater. The Calmar ratio (annualized return divided by maximum drawdown) provides a single number summarizing return relative to worst-case loss. These metrics are particularly important for live trading, where an investor must psychologically withstand drawdowns.
+내림폭 살피기는 꾀가 가장 나쁠 때 어떻게 움직이는지를 드러낸다. 가장 큰 내림폭은 마루에서 골까지 가장 크게 떨어진 만큼을 재고, 가장 긴 내림폭 이어짐은 꾀가 얼마나 오래 물속에 잠겨 있었는지를 담는다. 칼마 비(해로 환산한 돌아옴을 가장 큰 내림폭으로 나눈 것)는 가장 나쁜 잃음에 견준 돌아옴을 숫자 하나로 간추린다. 내림폭을 마음으로 견뎌야 하는 살아 있는 거래에서 이 자들이 더욱 종요롭다.
 
-When a benchmark is available, relative performance metrics become essential. Tracking error measures the volatility of return differences between strategy and benchmark. The information ratio (excess return over tracking error) quantifies whether active bets are rewarded. Alpha and beta from the CAPM framework decompose returns into market-driven and skill-driven components, helping determine whether a strategy truly generates alpha or merely takes on systematic risk.
+밑금이 있으면 견주는 됨됨이 자가 꼭 있어야 한다. 좇음 어긋남은 꾀와 밑금의 돌아옴 차이가 얼마나 출렁이는지를 잰다. 소식 비(넘치는 돌아옴을 좇음 어긋남으로 나눈 것)는 스스로 건 내기가 갚음을 받는지를 잰다. CAPM 틀의 알파와 베타는 돌아옴을 저자가 이끈 몫과 솜씨가 이끈 몫으로 가르므로, 꾀가 참으로 알파를 내는지 아니면 그저 얼개에 매인 무릅씀을 짊어질 뿐인지 가리는 데 도움이 된다.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compute the Sharpe ratio, Sortino ratio, and maximum drawdown for a return series with daily mean return 0.05%, daily standard deviation 1.5%, and a 20-day period where daily returns averaged -0.8%.
+**익힘 1.**
+날마다 고르게 0.05% 돌아오고 날마다 잣대 벗어남이 1.5%이며, 스무 날 동안 날마다 고르게 -0.8% 돌아온 때가 있는 돌아옴 열에 대해 샤프 비, 소르티노 비, 가장 큰 내림폭을 셈하여라.
 
-??? success "Solution to Exercise 1"
-    Annualized mean excess return $= (0.0005 - 0.02/252) \times 252 \approx 0.106$ (10.6%).
+??? success "익힘 1 풀이"
+    해로 환산한 고른 넘치는 돌아옴 $= (0.0005 - 0.02/252) \times 252 \approx 0.106$(10.6%).
 
-    Annualized volatility $= 0.015 \times \sqrt{252} \approx 0.238$ (23.8%).
-    
-    Sharpe ratio $= 0.106 / 0.238 \approx 0.445$.
-    
-    For the Sortino ratio, downside deviation uses only returns below the risk-free rate. Assuming roughly half of days are negative, annualized downside deviation $\approx 0.015 \times \sqrt{252/2} \approx 0.168$. Sortino $\approx 0.106 / 0.168 \approx 0.631$.
-    
-    During the drawdown period: cumulative loss $\approx 20 \times (-0.008) = -0.16$ or 16%. If this was from a peak, maximum drawdown $\approx 16\%$.
+    해로 환산한 출렁임 $= 0.015 \times \sqrt{252} \approx 0.238$(23.8%).
 
----
+    샤프 비 $= 0.106 / 0.238 \approx 0.445$.
 
+    소르티노 비에서는 아래로 처지는 벗어남에 무릅씀 없는 빠르기보다 낮은 돌아옴만 쓴다. 날의 절반쯤이 음수라고 여기면 해로 환산한 아래 벗어남이 $\approx 0.015 \times \sqrt{252/2} \approx 0.168$이다. 소르티노 $\approx 0.106 / 0.168 \approx 0.631$.
 
-**Exercise 2.**
-Explain why the profit factor (sum of gains divided by sum of losses) can be misleading for strategies with very different trade frequencies. Propose a normalized alternative.
-
-??? success "Solution to Exercise 2"
-    A strategy that trades once per year with a single large gain and a single small loss can have a very high profit factor without demonstrating consistent skill. Conversely, a high-frequency strategy with thousands of small gains and slightly fewer small losses may have a moderate profit factor despite being highly reliable.
-
-    A better alternative is the per-trade profit factor or the gain-to-pain ratio: $\text{GtP} = \sum r_i / \sum |r_i^-|$ where $r_i^-$ are negative returns. Another approach is to compute profit factor over rolling windows and report its stability (standard deviation of rolling profit factors), capturing both magnitude and consistency.
+    내림폭이 이어진 동안 쌓인 잃음은 $\approx 20 \times (-0.008) = -0.16$, 곧 16%이다. 이것이 마루에서 시작했다면 가장 큰 내림폭이 $\approx 16\%$이다.
 
 ---
 
 
-**Exercise 3.**
-Implement a function that computes the tail ratio (ratio of the 95th percentile gain to the absolute value of the 5th percentile loss) and explain its interpretation for strategy evaluation.
+**익힘 2.**
+거래 잦기가 크게 다른 꾀들 사이에서 벌이 인자(벌이의 합을 잃음의 합으로 나눈 것)가 왜 잘못 읽힐 수 있는지 밝혀라. 고르게 맞춘 다른 자를 내놓아라.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 2 풀이"
+    해에 한 번 거래해 큰 벌이 하나와 작은 잃음 하나를 낸 꾀는 한결같은 솜씨를 보이지 않고도 벌이 인자가 아주 높을 수 있다. 거꾸로 작은 벌이 수천 번과 그보다 조금 적은 작은 잃음을 내는 잦은 거래 꾀는 아주 미덥더라도 벌이 인자가 어중간할 수 있다.
+
+    더 나은 자는 거래마다의 벌이 인자나 벌이 대 아픔 비다. $\text{GtP} = \sum r_i / \sum |r_i^-|$이고 $r_i^-$은 음수 돌아옴이다. 다른 길로는 굴러가는 창마다 벌이 인자를 셈하고 그 한결같음(굴러가는 벌이 인자의 잣대 벗어남)을 함께 알리면 크기와 한결같음을 모두 담을 수 있다.
+
+---
+
+
+**익힘 3.**
+꼬리 비(95번째 백분위 벌이를 5번째 백분위 잃음의 절댓값으로 나눈 것)를 셈하는 함수를 짜고, 꾀를 따질 때 이를 어떻게 읽는지 밝혀라.
+
+??? success "익힘 3 풀이"
     ```python
     def tail_ratio(returns):
         p95 = np.percentile(returns, 95)
         p5 = np.percentile(returns, 5)
         return abs(p95) / (abs(p5) + 1e-8)
     ```
-    
-    A tail ratio greater than 1 indicates that the right tail (large gains) is fatter than the left tail (large losses), which is desirable. A tail ratio less than 1 means the strategy has fatter left tails -- large losses are more extreme than large gains. For trend-following strategies, the tail ratio is typically above 1 (many small losses, few large gains). For mean-reversion strategies, it is often below 1 (many small gains, occasional large losses).
+
+    꼬리 비가 1보다 크면 오른 꼬리(큰 벌이)가 왼 꼬리(큰 잃음)보다 두껍다는 뜻이니 반길 일이다. 1보다 작으면 왼 꼬리가 더 두꺼워 큰 잃음이 큰 벌이보다 끝자락에 있다는 뜻이다. 흐름을 좇는 꾀는 꼬리 비가 흔히 1을 넘고(작은 잃음이 많고 큰 벌이가 드물다), 평균으로 되돌아가는 꾀는 흔히 1보다 낮다(작은 벌이가 많고 이따금 큰 잃음이 난다).
 

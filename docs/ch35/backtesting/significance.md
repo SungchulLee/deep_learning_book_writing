@@ -1,14 +1,14 @@
-# Statistical Significance
+# 통계로 뜻있음
 
-Statistical significance testing determines whether a trading strategy's performance is genuine or merely the result of chance. Bootstrap tests, permutation tests, and corrections for multiple hypothesis testing help distinguish skill from luck. These tools are especially critical in quantitative finance where data-mining bias and overfitting are pervasive risks.
+통계로 뜻있음을 따지는 일은 거래 꾀의 됨됨이가 참된 것인지 그저 우연이 낳은 것인지 가린다. 부트스트랩 검정, 뒤섞기 검정, 그리고 여러 번 검정에 대한 바로잡기가 솜씨를 운에서 갈라내는 데 도움을 준다. 자료를 캐다 생기는 치우침과 지나치게 맞추기라는 무릅씀이 널려 있는 계량 금융에서 이 연장이 더욱 종요롭다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 35.6.4: Statistical Significance
+35.6.4장: 통계로 뜻있음
 ==========================================
-Bootstrap, permutation tests, and multiple testing corrections.
+부트스트랩, 뒤섞기 검정, 여러 번 검정 바로잡기.
 """
 
 import numpy as np
@@ -16,12 +16,12 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 class BootstrapTest:
-    """Bootstrap hypothesis test for strategy performance."""
+    """꾀의 됨됨이에 대한 부트스트랩 가설 검정."""
 
     def __init__(self, num_bootstrap: int = 10000, block_size: int = 20):
         self.num_bootstrap = num_bootstrap
@@ -31,7 +31,7 @@ class BootstrapTest:
         T = len(returns)
         observed_sharpe = (np.mean(returns) - null_mean) / (np.std(returns) + 1e-8) * np.sqrt(252)
 
-        # Block bootstrap
+        # 덩이 부트스트랩
         centered = returns - np.mean(returns) + null_mean
         n_blocks = T // self.block_size + 1
 
@@ -45,7 +45,7 @@ class BootstrapTest:
         boot_sharpes = np.array(boot_sharpes)
         p_value = np.mean(boot_sharpes >= observed_sharpe)
 
-        # Confidence interval
+        # 믿음 구간
         ci_lower = np.percentile(boot_sharpes, 2.5)
         ci_upper = np.percentile(boot_sharpes, 97.5)
 
@@ -59,7 +59,7 @@ class BootstrapTest:
 
 
 class PermutationTest:
-    """Permutation test for timing skill."""
+    """때 맞추는 솜씨에 대한 뒤섞기 검정."""
 
     def __init__(self, num_permutations: int = 10000):
         self.num_permutations = num_permutations
@@ -84,7 +84,7 @@ class PermutationTest:
 
 
 class MultipleTestingCorrection:
-    """Corrections for multiple hypothesis testing."""
+    """여러 번 하는 가설 검정 바로잡기."""
 
     @staticmethod
     def bonferroni(p_values: np.ndarray, alpha: float = 0.05) -> Dict:
@@ -105,7 +105,7 @@ class MultipleTestingCorrection:
         for i in range(n):
             adjusted[sorted_idx[i]] = min(sorted_p[i] * (n - i), 1.0)
 
-        # Enforce monotonicity
+        # 한 방향으로만 오르게 한다
         for i in range(1, n):
             adjusted[sorted_idx[i]] = max(adjusted[sorted_idx[i]], adjusted[sorted_idx[i-1]])
 
@@ -117,7 +117,7 @@ class MultipleTestingCorrection:
 
 
 class MinimumBacktestLength:
-    """Compute minimum backtest length for significance."""
+    """뜻있음에 있어야 할 가장 짧은 되짚어 시험 길이를 셈한다."""
 
     @staticmethod
     def compute(target_sharpe: float, confidence: float = 0.95) -> Dict:
@@ -133,118 +133,118 @@ class MinimumBacktestLength:
 
 
 def demo_significance():
-    """Demonstrate statistical significance tests."""
+    """통계로 뜻있음을 따지는 검정을 보인다."""
     print("=" * 70)
-    print("Statistical Significance Tests")
+    print("통계로 뜻있음 검정")
     print("=" * 70)
 
     np.random.seed(42)
     T = 504
     returns = np.random.randn(T) * 0.015 + 0.0004
 
-    # Bootstrap test
-    print("\n--- Bootstrap Sharpe Test ---")
+    # 부트스트랩 검정
+    print("\n--- 부트스트랩 샤프 검정 ---")
     boot = BootstrapTest(num_bootstrap=5000)
     result = boot.test_sharpe(returns)
-    print(f"Observed Sharpe: {result['observed_sharpe']:.4f}")
-    print(f"p-value: {result['p_value']:.4f}")
-    print(f"95% CI: [{result['ci_lower']:.4f}, {result['ci_upper']:.4f}]")
-    print(f"Significant: {result['significant_5pct']}")
+    print(f"본 샤프: {result['observed_sharpe']:.4f}")
+    print(f"p 값: {result['p_value']:.4f}")
+    print(f"95% 믿음 구간: [{result['ci_lower']:.4f}, {result['ci_upper']:.4f}]")
+    print(f"뜻있음: {result['significant_5pct']}")
 
-    # Permutation test
-    print("\n--- Permutation Test (Timing Skill) ---")
+    # 뒤섞기 검정
+    print("\n--- 뒤섞기 검정(때 맞추는 솜씨) ---")
     positions = np.sign(np.random.randn(T))
     perm = PermutationTest(num_permutations=5000)
     result = perm.test_timing(positions, returns)
-    print(f"Observed PnL: {result['observed_pnl']:.4f}")
-    print(f"Mean perm PnL: {result['mean_perm_pnl']:.4f}")
-    print(f"p-value: {result['p_value']:.4f}")
+    print(f"본 손익: {result['observed_pnl']:.4f}")
+    print(f"고른 뒤섞기 손익: {result['mean_perm_pnl']:.4f}")
+    print(f"p 값: {result['p_value']:.4f}")
 
-    # Multiple testing
-    print("\n--- Multiple Testing Corrections ---")
+    # 여러 번 검정
+    print("\n--- 여러 번 검정 바로잡기 ---")
     p_values = np.array([0.001, 0.01, 0.03, 0.05, 0.10, 0.20, 0.50])
     bonf = MultipleTestingCorrection.bonferroni(p_values)
     holm = MultipleTestingCorrection.holm_bonferroni(p_values)
-    print(f"{'Raw p':>8} {'Bonferroni':>12} {'Holm':>12}")
+    print(f"{'날 p':>8} {'본페로니':>12} {'홀름':>12}")
     print("-" * 34)
     for i in range(len(p_values)):
         print(f"{p_values[i]:>8.3f} {bonf['adjusted_p_values'][i]:>11.3f} "
               f"{holm['adjusted_p_values'][i]:>11.3f}")
 
-    # Minimum backtest length
-    print("\n--- Minimum Backtest Length ---")
+    # 가장 짧은 되짚어 시험 길이
+    print("\n--- 가장 짧은 되짚어 시험 길이 ---")
     try:
         for sr in [0.25, 0.5, 1.0, 1.5, 2.0]:
             mbl = MinimumBacktestLength.compute(sr)
-            print(f"  SR={sr:.2f}: {mbl['min_years']:.1f} years ({mbl['min_days']} days)")
+            print(f"  SR={sr:.2f}: {mbl['min_years']:.1f}해 ({mbl['min_days']}일)")
     except ImportError:
-        print("  (scipy needed)")
+        print("  (scipy이 있어야 한다)")
 
 
 if __name__ == "__main__":
     demo_significance()
 ```
 
-## Discussion
+## 논의
 
-The bootstrap test for the Sharpe ratio uses block bootstrapping to preserve the serial correlation structure of financial returns. By resampling blocks of returns under the null hypothesis (zero mean), we construct a distribution of Sharpe ratios that would arise by chance. The observed Sharpe ratio is then compared against this null distribution to obtain a p-value. Block sizes of 20-30 trading days are typical, capturing monthly correlation patterns.
+샤프 비에 대한 부트스트랩 검정은 덩이 부트스트랩을 써서 금융 돌아옴의 앞뒤 얽힘 얼개를 지킨다. 영 가설(평균이 0) 아래에서 돌아옴 덩이를 다시 뽑아, 우연히 나올 만한 샤프 비의 분포를 세운다. 그러고 나서 본 샤프 비를 이 영 분포에 견주어 p 값을 얻는다. 덩이 크기는 흔히 거래일 20~30일로 잡아 달 단위 얽힘 결을 담는다.
 
-Permutation tests provide a non-parametric approach to testing timing skill. By randomly shuffling the alignment between positions and returns, we destroy any genuine timing signal while preserving the marginal distributions. The fraction of permuted PnLs exceeding the observed PnL gives a direct p-value for the null hypothesis of no timing ability. This test is particularly powerful because it makes no distributional assumptions.
+뒤섞기 검정은 때 맞추는 솜씨를 따지는 매개변수 없는 길이다. 자리와 돌아옴의 짝을 아무렇게나 뒤섞으면 참된 때 맞춤 신호가 부서지면서도 저마다의 분포는 그대로 남는다. 뒤섞은 손익이 본 손익을 넘는 비율이 곧 때 맞추는 힘이 없다는 영 가설에 대한 p 값이다. 분포를 여기지 않으므로 이 검정이 특히 힘이 세다.
 
-Multiple testing corrections are essential when evaluating many strategy variants. The Bonferroni correction divides the significance level by the number of tests, controlling the family-wise error rate. The Holm-Bonferroni method provides a less conservative sequential approach. The minimum backtest length formula connects Sharpe ratio targets to required data: achieving a Sharpe of 0.5 at 95% confidence requires approximately 64 years of daily data, highlighting the difficulty of establishing statistical significance in finance.
+여러 꾀 갈래를 따질 때는 여러 번 검정 바로잡기가 꼭 있어야 한다. 본페로니 바로잡기는 뜻있음 문턱을 검정 횟수로 나누어 온 집안 어긋남률을 다스린다. 홀름-본페로니 방법은 덜 빡빡한 차례대로의 길을 준다. 가장 짧은 되짚어 시험 길이 꼴은 겨눈 샤프 비와 있어야 할 자료를 이어 준다. 95% 믿음으로 샤프 0.5을 세우려면 날마다의 자료가 64해쯤 있어야 하는데, 금융에서 통계로 뜻있음을 세우는 일이 얼마나 어려운지 잘 드러낸다.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-A strategy achieves a Sharpe ratio of 1.2 over 2 years of daily data. Using the formula for minimum backtest length, determine whether this result is statistically significant at the 95% confidence level.
+**익힘 1.**
+어떤 꾀가 날마다의 자료 2해에서 샤프 비 1.2을 이루었다. 가장 짧은 되짚어 시험 길이 꼴로 이 열매가 95% 믿음에서 통계로 뜻있는지 가려라.
 
-??? success "Solution to Exercise 1"
-    The minimum backtest length for significance at confidence $c$ is $T_{\min} = (z / SR)^2$ trading days, where $z = \Phi^{-1}(c)$.
+??? success "익힘 1 풀이"
+    믿음 $c$에서 뜻있으려면 가장 짧은 되짚어 시험 길이가 거래일로 $T_{\min} = (z / SR)^2$이고 $z = \Phi^{-1}(c)$이다.
 
-    For 95% confidence: $z = 1.645$. With $SR = 1.2/\sqrt{252} \approx 0.0756$ (daily):
-    
-    $T_{\min} = (1.645 / 0.0756)^2 \approx 473$ trading days $\approx 1.9$ years.
-    
-    We have 2 years $\approx 504$ trading days, which exceeds 473. The result is marginally significant at 95% confidence. However, this formula assumes IID returns; serial correlation or non-stationarity would require a longer backtest.
+    95% 믿음이면 $z = 1.645$이다. 날마다의 $SR = 1.2/\sqrt{252} \approx 0.0756$이므로
 
----
+    $T_{\min} = (1.645 / 0.0756)^2 \approx 473$ 거래일 $\approx 1.9$해다.
 
-
-**Exercise 2.**
-Explain why the Bonferroni correction is overly conservative when testing correlated strategy variants. What alternative is more appropriate?
-
-??? success "Solution to Exercise 2"
-    The Bonferroni correction assumes all tests are independent, dividing $\alpha$ by the total number of tests $m$. When strategies are correlated (e.g., momentum strategies with different lookback periods), the effective number of independent tests is much smaller than $m$, making Bonferroni excessively strict.
-
-    The Holm-Bonferroni method is a sequential improvement that rejects hypotheses in order of significance, adjusting the threshold at each step. For correlated tests, the False Discovery Rate (FDR) approach (Benjamini-Hochberg) is more appropriate: it controls the expected proportion of false discoveries rather than the probability of any false discovery, resulting in much more statistical power when many tests are correlated.
+    우리에게는 2해 $\approx 504$ 거래일이 있어 473을 넘는다. 95% 믿음에서 가까스로 뜻있다. 다만 이 꼴은 돌아옴이 서로 매이지 않고 같은 분포를 따른다고 여긴 것이라, 앞뒤 얽힘이 있거나 흔들림 없지 않으면 더 긴 되짚어 시험이 있어야 한다.
 
 ---
 
 
-**Exercise 3.**
-Implement a permutation test that determines whether a momentum signal has statistically significant predictive power for next-day returns.
+**익힘 2.**
+서로 얽힌 꾀 갈래를 따질 때 본페로니 바로잡기가 왜 지나치게 빡빡한지 밝혀라. 어떤 다른 길이 더 알맞은가?
 
-??? success "Solution to Exercise 3"
+??? success "익힘 2 풀이"
+    본페로니 바로잡기는 검정이 모두 서로 남남이라고 여겨 $\alpha$을 온 검정 횟수 $m$으로 나눈다. 꾀들이 서로 얽혀 있으면(보기로 되짚어 보는 길이만 다른 밀림 꾀들) 참으로 남남인 검정의 수가 $m$보다 훨씬 적으므로 본페로니가 지나치게 빡빡해진다.
+
+    홀름-본페로니 방법은 뜻있음 차례대로 가설을 물리치며 걸음마다 문턱을 고치는 나아진 길이다. 서로 얽힌 검정에는 거짓 찾음률(FDR)을 다스리는 길(베냐미니-호흐베르크)이 더 알맞다. 거짓 찾음이 하나라도 날 낌새가 아니라 거짓 찾음이 차지할 몫의 기댓값을 다스리므로, 얽힌 검정이 많을 때 통계의 힘이 훨씬 세다.
+
+---
+
+
+**익힘 3.**
+밀림 신호가 다음 날 돌아옴을 미리 알리는 힘이 통계로 뜻있는지 가리는 뒤섞기 검정을 짜라.
+
+??? success "익힘 3 풀이"
     ```python
     def permutation_test_momentum(returns, lookback=20, n_perms=10000):
         T = len(returns)
-        # Compute momentum signal
-        signal = np.array([np.mean(returns[max(0,t-lookback):t]) 
+        # 밀림 신호를 셈한다
+        signal = np.array([np.mean(returns[max(0,t-lookback):t])
                           for t in range(T)])
         positions = np.sign(signal)
-        
-        # Observed PnL
+
+        # 본 손익
         observed_pnl = np.sum(positions[:-1] * returns[1:])
-        
-        # Permutation distribution
+
+        # 뒤섞기 분포
         perm_pnls = []
         for _ in range(n_perms):
             shuffled_returns = np.random.permutation(returns[1:])
             perm_pnls.append(np.sum(positions[:-1] * shuffled_returns))
-        
+
         p_value = np.mean(np.array(perm_pnls) >= observed_pnl)
         return {'observed_pnl': observed_pnl, 'p_value': p_value,
                 'significant': p_value < 0.05}
     ```
-    This test destroys the temporal alignment between signal and future returns while preserving both marginal distributions, providing a clean test of whether the signal has genuine predictive power.
+    이 검정은 신호와 앞날 돌아옴의 때 맞춤을 부수면서도 저마다의 분포는 그대로 두므로, 신호에 참으로 미리 알리는 힘이 있는지를 깔끔하게 따진다.
 
