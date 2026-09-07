@@ -1,15 +1,15 @@
-# Reward Shaping
+# 보상 다듬기
 
-Reward Shaping is an important concept in practical RL techniques. and finance-specific reward functions. This implementation provides a hands-on demonstration of the key algorithms and data structures involved, illustrating both the theoretical foundations and practical considerations for real-world deployment.
+보상 다듬기는 실제 힘 북돋우는 배움 재주에서 종요로운 생각이다. 금융에 딸린 보상 함수를 다룬다. 이 구현은 여기에 걸린 종요로운 알고리즘과 자료 얼개를 손으로 만져 보이며, 이치 바탕과 실제로 서비스에 올릴 때 살필 것을 함께 보여 준다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 34.6.1: Reward Shaping
+34.6.1장: 보상 다듬기
 ================================
-Potential-based reward shaping, reward normalization,
-and finance-specific reward functions.
+퍼텐셜에 바탕을 둔 보상 다듬기, 보상 고르게 하기, 금융에 딸린
+보상 함수.
 """
 
 import torch
@@ -18,18 +18,18 @@ import gymnasium as gym
 from collections import deque
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 # ---------------------------------------------------------------------------
-# Potential-Based Reward Shaping
+# 퍼텐셜에 바탕을 둔 보상 다듬기
 # ---------------------------------------------------------------------------
 
 class PotentialBasedShaping:
     """
-    Potential-based reward shaping: r' = r + γΦ(s') - Φ(s)
-    Guaranteed to preserve optimal policy.
+    퍼텐셜에 바탕을 둔 보상 다듬기: r' = r + γΦ(s') - Φ(s)
+    가장 좋은 방침이 지켜짐이 보장된다.
     """
     
     def __init__(self, potential_fn, gamma=0.99):
@@ -43,7 +43,7 @@ class PotentialBasedShaping:
 
 
 class RewardNormalizer:
-    """Running normalization of rewards using Welford's algorithm."""
+    """웰퍼드의 알고리즘으로 보상을 흐르게 고르게 한다."""
     
     def __init__(self, clip=10.0):
         self.mean = 0.0
@@ -64,7 +64,7 @@ class RewardNormalizer:
 
 
 class RewardClipper:
-    """Clip rewards to [-clip, clip] range."""
+    """보상을 [-clip, clip] 너비로 자른다."""
     def __init__(self, clip=1.0):
         self.clip = clip
     
@@ -73,13 +73,13 @@ class RewardClipper:
 
 
 # ---------------------------------------------------------------------------
-# Finance Reward Functions
+# 금융 보상 함수
 # ---------------------------------------------------------------------------
 
 class SharpeReward:
     """
-    Sharpe-ratio based reward for portfolio management.
-    Computes rolling Sharpe ratio as reward signal.
+    밑천 다루기를 위한 샤프 비 바탕 보상.
+    흐르는 샤프 비를 보상 신호로 셈한다.
     """
     
     def __init__(self, window=20, risk_free_rate=0.0, annualize=252):
@@ -103,7 +103,7 @@ class SharpeReward:
 
 
 class DrawdownPenalty:
-    """Penalize portfolio drawdowns."""
+    """밑천 내림폭에 벌을 준다."""
     
     def __init__(self, penalty_coef=1.0):
         self.peak = 1.0
@@ -116,22 +116,22 @@ class DrawdownPenalty:
 
 
 def demo_reward_shaping():
-    """Compare training with different reward signals."""
+    """서로 다른 보상 신호로 익힘을 견준다."""
     print("=" * 60)
     print("Reward Shaping Comparison")
     print("=" * 60)
     
-    # CartPole with different reward shaping
+    # 서로 다른 보상 다듬기를 쓰는 CartPole
     env = gym.make("CartPole-v1")
     
-    # Define potential: closer to center = higher potential
+    # 퍼텐셜을 정한다: 가운데에 가까울수록 퍼텐셜이 높다
     def center_potential(obs):
-        return -abs(obs[0]) - abs(obs[2]) * 0.5  # Penalize position and angle
+        return -abs(obs[0]) - abs(obs[2]) * 0.5  # 자리와 각도에 벌을 준다
     
     shaper = PotentialBasedShaping(center_potential, gamma=0.99)
     normalizer = RewardNormalizer()
     
-    # Collect some transitions and show shaped rewards
+    # 넘어감을 얼마쯤 모아 다듬은 보상을 보인다
     obs, _ = env.reset()
     print(f"\n{'Step':>4} {'Raw':>8} {'Shaped':>8} {'Normalized':>10}")
     print("-" * 34)
@@ -151,7 +151,7 @@ def demo_reward_shaping():
     
     env.close()
     
-    # Finance reward demo
+    # 금융 보상 보여 주기
     print("\n" + "-" * 40)
     print("Finance Reward Functions")
     print("-" * 40)
@@ -179,34 +179,34 @@ def demo_reward_shaping():
 if __name__ == "__main__":
     demo_reward_shaping()```
 
-## Discussion
+## 논의
 
-The implementation centers on the `PotentialBasedShaping`, `RewardNormalizer`, `RewardClipper` classes, which encapsulate the core logic of reward shaping. The code follows a modular design that separates the algorithmic components from the demonstration and evaluation logic.
+이 구현은 보상 다듬기의 한가운데 논리를 담은 `PotentialBasedShaping`, `RewardNormalizer`, `RewardClipper` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-The demonstration function shows the practical application of these components on standard reinforcement learning benchmarks. By examining the output, one can observe how the algorithm's performance varies with different hyperparameter choices and problem configurations.
+보여 주기 함수는 이 조각들을 여느 힘 북돋우는 배움 잣대에 실제로 써 보인다. 그 출력을 살피면 매개변수 고름과 문제 얼개에 따라 알고리즘의 됨됨이가 어떻게 달라지는지 볼 수 있다.
 
-From a practical standpoint, this implementation prioritizes clarity over raw performance. Production systems would typically incorporate additional optimizations such as batched computation, GPU acceleration, and more sophisticated hyperparameter tuning. Nevertheless, the core algorithmic ideas demonstrated here transfer directly to large-scale applications.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 묶음 셈하기, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Run the demonstration code and record the key output metrics. Modify one hyperparameter (such as the learning rate, hidden dimension, or number of layers) and describe how the results change.
+**연습문제 1.**
+보여 주기 코드를 돌리고 종요로운 출력 재기를 적어라. 매개변수 하나(배움률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    After running the demo, systematically vary the chosen hyperparameter while keeping others fixed. For example, doubling the hidden dimension typically improves representational capacity but increases computation time. The learning rate has a non-monotonic effect: too small leads to slow convergence, while too large causes instability. Document the specific numbers for at least three different values of the chosen hyperparameter.
-
----
-
-**Exercise 2.**
-Explain the role of the key architectural choices in the implementation. Why are specific activation functions, normalization strategies, or loss functions used? What would happen if you substituted alternatives?
-
-??? success "Solution to Exercise 2"
-    The architectural choices reflect established best practices in practical RL techniques. For instance, ReLU activations provide non-linearity while avoiding vanishing gradients for positive inputs. The loss function is chosen to match the task type (cross-entropy for classification, MSE for regression). Substituting alternatives (e.g., sigmoid activations, L1 loss) would change the optimization landscape and potentially degrade performance, though some substitutions may be beneficial in specific scenarios.
+??? success "연습문제 1 풀이"
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 짜임 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 배움률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
-**Exercise 3.**
-Extend the implementation to handle a more challenging scenario: either a larger dataset, a different problem variant, or an additional feature. Describe your modification and evaluate its impact on performance.
+**연습문제 2.**
+이 구현에서 종요로운 얼개 고름이 맡은 몫을 풀어라. 왜 그런 활성 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 3"
-    One natural extension is to add regularization (dropout, weight decay) or a more sophisticated architecture (additional layers, skip connections). Implement the chosen extension, train on the same data, and compare metrics before and after. The extension should demonstrate understanding of both the original algorithm and the modification's theoretical motivation.
+??? success "연습문제 2 풀이"
+    이 얼개 고름은 실제 힘 북돋우는 배움 재주에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 들임에서 기울기가 사라지는 것을 막는다. 손실 함수는 일감 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 가장 좋게 하기 지형이 바뀌어 됨됨이가 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+
+---
+
+**연습문제 3.**
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 자료 뭉치, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 됨됨이에 미친 바를 따져라.
+
+??? success "연습문제 3 풀이"
+    절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.

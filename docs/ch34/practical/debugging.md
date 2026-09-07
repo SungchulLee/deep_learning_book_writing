@@ -1,14 +1,14 @@
-# Debugging Reinforcement Learning
+# 힘 북돋우는 배움 벌레잡기
 
-Debugging Reinforcement Learning is an important concept in practical RL techniques. This implementation provides a hands-on demonstration of the key algorithms and data structures involved, illustrating both the theoretical foundations and practical considerations for real-world deployment.
+힘 북돋우는 배움 벌레잡기는 실제 힘 북돋우는 배움 재주에서 종요로운 생각이다. 이 구현은 여기에 걸린 종요로운 알고리즘과 자료 얼개를 손으로 만져 보이며, 이치 바탕과 실제로 서비스에 올릴 때 살필 것을 함께 보여 준다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 34.6.4: Debugging Reinforcement Learning
+34.6.4장: 힘 북돋우는 배움 벌레잡기
 ==================================================
-Diagnostic tools, health checks, and monitoring utilities.
+짚어 내는 도구, 건강 살피기, 지켜보기 도구.
 """
 
 import torch
@@ -18,14 +18,14 @@ from collections import deque
 from typing import Dict, List, Optional
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 class RLDiagnostics:
     """
-    Comprehensive RL training diagnostics.
-    Tracks and reports key health metrics.
+    힘 북돋우는 배움 익힘을 두루 짚어 내는 것.
+    종요로운 건강 재기를 좇고 알린다.
     """
     
     def __init__(self, window=100):
@@ -50,7 +50,7 @@ class RLDiagnostics:
                 self.metrics[key].append(value)
     
     def compute_explained_variance(self):
-        """EV = 1 - Var(returns - predictions) / Var(returns)."""
+        """EV = 1 - Var(돌아옴 - 미리 봄) / Var(돌아옴)."""
         if len(self.metrics["value_predictions"]) < 10:
             return 0.0
         preds = np.array(list(self.metrics["value_predictions"]))
@@ -61,16 +61,16 @@ class RLDiagnostics:
         return 1.0 - np.var(actuals - preds) / var_actual
     
     def health_check(self) -> List[str]:
-        """Run diagnostic checks and return warnings."""
+        """짚어 내기를 벌이고 미리 알림을 돌려준다."""
         alerts = []
         
-        # Entropy check
+        # 엔트로피 살피기
         if len(self.metrics["entropy"]) >= 10:
             recent_entropy = list(self.metrics["entropy"])[-10:]
             if all(e < 0.01 for e in recent_entropy):
                 alerts.append("⚠️ ENTROPY COLLAPSE: Policy may be stuck (entropy near 0)")
         
-        # Gradient norm check
+        # 기울기 노름 살피기
         if len(self.metrics["grad_norm"]) >= 10:
             recent_grads = list(self.metrics["grad_norm"])[-10:]
             if any(np.isnan(g) or np.isinf(g) for g in recent_grads):
@@ -78,13 +78,13 @@ class RLDiagnostics:
             elif np.mean(recent_grads) > 100:
                 alerts.append("⚠️ LARGE GRADIENTS: Consider reducing learning rate")
         
-        # KL divergence check
+        # 쿨백-라이블러 어긋남 살피기
         if len(self.metrics["kl_divergence"]) >= 10:
             recent_kl = list(self.metrics["kl_divergence"])[-10:]
             if np.mean(recent_kl) > 0.1:
                 alerts.append("⚠️ HIGH KL: Policy changing too fast")
         
-        # Clip fraction check
+        # 잘라 낸 조각 살피기
         if len(self.metrics["clip_fraction"]) >= 10:
             recent_cf = list(self.metrics["clip_fraction"])[-10:]
             avg_cf = np.mean(recent_cf)
@@ -93,12 +93,12 @@ class RLDiagnostics:
             elif avg_cf < 0.01:
                 alerts.append("⚠️ LOW CLIP FRACTION: Updates may be too conservative")
         
-        # Value function check
+        # 값 함수 살피기
         ev = self.compute_explained_variance()
         if ev < 0:
             alerts.append("⚠️ NEGATIVE EXPLAINED VARIANCE: Value function worse than mean prediction")
         
-        # Learning progress
+        # 배움이 나아가는지
         if len(self.metrics["episode_rewards"]) >= self.window:
             rewards = list(self.metrics["episode_rewards"])
             first_half = np.mean(rewards[:len(rewards)//2])
@@ -109,7 +109,7 @@ class RLDiagnostics:
         return alerts
     
     def report(self) -> str:
-        """Generate a training status report."""
+        """익힘 상태 알림글을 짓는다."""
         lines = ["=" * 50, "RL Training Diagnostics Report", "=" * 50]
         
         for key in ["episode_rewards", "policy_loss", "value_loss", "entropy",
@@ -138,7 +138,7 @@ class RLDiagnostics:
 
 
 def check_gradient_flow(model: nn.Module) -> Dict[str, float]:
-    """Check gradient flow through all layers."""
+    """온 켜를 지나는 기울기 흐름을 살핀다."""
     grad_info = {}
     for name, param in model.named_parameters():
         if param.grad is not None:
@@ -152,18 +152,18 @@ def check_gradient_flow(model: nn.Module) -> Dict[str, float]:
 
 
 def verify_loss_sign():
-    """Verify that loss is constructed correctly for policy gradient."""
+    """방침 기울기를 위해 손실을 옳게 지었는지 살핀다."""
     print("=" * 60)
     print("Loss Sign Verification")
     print("=" * 60)
     
-    # Policy gradient: we MAXIMIZE E[log_prob * advantage]
-    # As a loss to MINIMIZE: L = -E[log_prob * advantage]
+    # 방침 기울기: E[log_prob * advantage]을 가장 크게 한다
+    # 가장 작게 할 손실로는: L = -E[log_prob * advantage]
     
     log_prob = torch.tensor(-1.5, requires_grad=True)
-    advantage = torch.tensor(2.0)  # Positive: good action
+    advantage = torch.tensor(2.0)  # 0보다 큼: 좋은 움직임
     
-    # Correct: negative sign (we minimize the negative)
+    # 옳음: 음의 부호(음수를 가장 작게 한다)
     correct_loss = -(log_prob * advantage)
     correct_loss.backward()
     print(f"Positive advantage (A={advantage.item()}):")
@@ -172,7 +172,7 @@ def verify_loss_sign():
     print(f"  Direction: {'Increase' if log_prob.grad.item() < 0 else 'Decrease'} log_prob ✓")
     
     log_prob2 = torch.tensor(-1.5, requires_grad=True)
-    advantage2 = torch.tensor(-1.0)  # Negative: bad action
+    advantage2 = torch.tensor(-1.0)  # 0보다 작음: 나쁜 움직임
     
     correct_loss2 = -(log_prob2 * advantage2)
     correct_loss2.backward()
@@ -183,14 +183,14 @@ def verify_loss_sign():
 
 
 def demo_diagnostics():
-    """Simulate training and show diagnostic output."""
+    """익힘을 흉내 내고 짚어 낸 결과를 보인다."""
     print("\n" + "=" * 60)
     print("Training Diagnostics Simulation")
     print("=" * 60)
     
     diag = RLDiagnostics(window=50)
     
-    # Simulate healthy training
+    # 건강한 익힘을 흉내 낸다
     for step in range(100):
         reward = 100 + step * 2 + np.random.randn() * 20
         diag.log(
@@ -207,7 +207,7 @@ def demo_diagnostics():
     
     print(diag.report())
     
-    # Simulate problematic training
+    # 골칫거리가 있는 익힘을 흉내 낸다
     print("\n\n" + "=" * 50)
     print("Simulating Problematic Training...")
     print("=" * 50)
@@ -215,11 +215,11 @@ def demo_diagnostics():
     diag2 = RLDiagnostics(window=20)
     for step in range(50):
         diag2.log(
-            episode_rewards=50 - step * 0.5,  # Degrading
-            entropy=0.001,  # Collapsed
-            kl_divergence=0.2,  # Too high
-            clip_fraction=0.7,  # Too high
-            grad_norm=200 + step * 10,  # Exploding
+            episode_rewards=50 - step * 0.5,  # 나빠짐
+            entropy=0.001,  # 무너짐
+            kl_divergence=0.2,  # 너무 높음
+            clip_fraction=0.7,  # 너무 높음
+            grad_norm=200 + step * 10,  # 터짐
             value_predictions=np.random.randn() * 100,
             actual_returns=50.0,
         )
@@ -231,34 +231,34 @@ if __name__ == "__main__":
     verify_loss_sign()
     demo_diagnostics()```
 
-## Discussion
+## 논의
 
-The implementation centers on the `RLDiagnostics` class, which encapsulates the core logic of debugging reinforcement learning. The code follows a modular design that separates the algorithmic components from the demonstration and evaluation logic.
+이 구현은 힘 북돋우는 배움 벌레잡기의 한가운데 논리를 담은 `RLDiagnostics` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-The demonstration function shows the practical application of these components on synthetic data that highlights the key behaviors. By examining the output, one can observe how the algorithm's performance varies with different hyperparameter choices and problem configurations.
+보여 주기 함수는 이 조각들을 종요로운 거동이 드러나는 지어낸 자료에 실제로 써 보인다. 그 출력을 살피면 매개변수 고름과 문제 얼개에 따라 알고리즘의 됨됨이가 어떻게 달라지는지 볼 수 있다.
 
-From a practical standpoint, this implementation prioritizes clarity over raw performance. Production systems would typically incorporate additional optimizations such as batched computation, GPU acceleration, and more sophisticated hyperparameter tuning. Nevertheless, the core algorithmic ideas demonstrated here transfer directly to large-scale applications.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 묶음 셈하기, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Run the demonstration code and record the key output metrics. Modify one hyperparameter (such as the learning rate, hidden dimension, or number of layers) and describe how the results change.
+**연습문제 1.**
+보여 주기 코드를 돌리고 종요로운 출력 재기를 적어라. 매개변수 하나(배움률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    After running the demo, systematically vary the chosen hyperparameter while keeping others fixed. For example, doubling the hidden dimension typically improves representational capacity but increases computation time. The learning rate has a non-monotonic effect: too small leads to slow convergence, while too large causes instability. Document the specific numbers for at least three different values of the chosen hyperparameter.
-
----
-
-**Exercise 2.**
-Explain the role of the key architectural choices in the implementation. Why are specific activation functions, normalization strategies, or loss functions used? What would happen if you substituted alternatives?
-
-??? success "Solution to Exercise 2"
-    The architectural choices reflect established best practices in practical RL techniques. For instance, ReLU activations provide non-linearity while avoiding vanishing gradients for positive inputs. The loss function is chosen to match the task type (cross-entropy for classification, MSE for regression). Substituting alternatives (e.g., sigmoid activations, L1 loss) would change the optimization landscape and potentially degrade performance, though some substitutions may be beneficial in specific scenarios.
+??? success "연습문제 1 풀이"
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 짜임 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 배움률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
-**Exercise 3.**
-Extend the implementation to handle a more challenging scenario: either a larger dataset, a different problem variant, or an additional feature. Describe your modification and evaluate its impact on performance.
+**연습문제 2.**
+이 구현에서 종요로운 얼개 고름이 맡은 몫을 풀어라. 왜 그런 활성 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 3"
-    One natural extension is to add regularization (dropout, weight decay) or a more sophisticated architecture (additional layers, skip connections). Implement the chosen extension, train on the same data, and compare metrics before and after. The extension should demonstrate understanding of both the original algorithm and the modification's theoretical motivation.
+??? success "연습문제 2 풀이"
+    이 얼개 고름은 실제 힘 북돋우는 배움 재주에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 들임에서 기울기가 사라지는 것을 막는다. 손실 함수는 일감 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 가장 좋게 하기 지형이 바뀌어 됨됨이가 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+
+---
+
+**연습문제 3.**
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 자료 뭉치, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 됨됨이에 미친 바를 따져라.
+
+??? success "연습문제 3 풀이"
+    절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.

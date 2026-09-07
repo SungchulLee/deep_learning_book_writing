@@ -1,15 +1,15 @@
-# Observation Normalization
+# 봄 고르게 하기
 
-Observation Normalization is an important concept in practical RL techniques. and advantages in RL training. This implementation provides a hands-on demonstration of the key algorithms and data structures involved, illustrating both the theoretical foundations and practical considerations for real-world deployment.
+봄 고르게 하기는 실제 힘 북돋우는 배움 재주에서 종요로운 생각이다. 힘 북돋우는 배움 익힘에서의 이점을 다룬다. 이 구현은 여기에 걸린 종요로운 알고리즘과 자료 얼개를 손으로 만져 보이며, 이치 바탕과 실제로 서비스에 올릴 때 살필 것을 함께 보여 준다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 34.6.3: Observation Normalization
+34.6.3장: 봄 고르게 하기
 ==========================================
-Running normalization utilities for observations, rewards,
-and advantages in RL training.
+힘 북돋우는 배움 익힘에서 봄, 보상, 이점에 쓰는 흐르는 고르게
+하기 도구.
 """
 
 import torch
@@ -17,12 +17,12 @@ import numpy as np
 from typing import Optional
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 class RunningMeanStd:
-    """Welford's online algorithm for running mean and variance."""
+    """흐르는 평균과 흩어짐을 위한 웰퍼드의 잇단 알고리즘."""
     
     def __init__(self, shape=()):
         self.mean = np.zeros(shape, dtype=np.float64)
@@ -50,14 +50,14 @@ class RunningMeanStd:
 
 class ObservationNormalizer:
     """
-    Normalize observations using running statistics.
+    흐르는 통계로 봄을 고르게 한다.
     
-    Parameters
+    매개변수
     ----------
     shape : tuple
-        Observation shape.
+        봄의 꼴.
     clip : float
-        Clip normalized values to [-clip, clip].
+        고르게 한 값을 [-clip, clip]으로 자른다.
     """
     
     def __init__(self, shape, clip=10.0):
@@ -83,9 +83,9 @@ class ObservationNormalizer:
 
 class RewardNormalizer:
     """
-    Normalize rewards by running standard deviation (not mean).
+    (평균이 아니라) 흐르는 표준편차로 보상을 고르게 한다.
     
-    Only divides by std to preserve reward sign and relative magnitude.
+    보상의 부호와 서로의 크기를 지키려고 표준편차로만 나눈다.
     """
     
     def __init__(self, clip=10.0):
@@ -106,8 +106,8 @@ class RewardNormalizer:
 
 class VecNormalizer:
     """
-    Combined normalizer for vectorized environments.
-    Handles observation and reward normalization together.
+    벡터 둘레를 위한 엮은 고르게 하는 개.
+    봄 고르게 하기와 보상 고르게 하기를 함께 다룬다.
     """
     
     def __init__(self, obs_shape, n_envs, clip_obs=10.0, clip_rew=10.0,
@@ -147,7 +147,7 @@ class VecNormalizer:
 
 
 def normalize_advantages(advantages, eps=1e-8):
-    """Normalize advantages to zero mean, unit variance (per minibatch)."""
+    """이점을 평균 0, 흩어짐 1로 고르게 한다(작은 묶음마다)."""
     return (advantages - advantages.mean()) / (advantages.std() + eps)
 
 
@@ -156,11 +156,11 @@ def demo_normalization():
     print("Observation and Reward Normalization Demo")
     print("=" * 60)
     
-    # Simulate observations with different scales
+    # 잣대가 다른 봄을 흉내 낸다
     np.random.seed(42)
     obs_dim = 4
     
-    # Feature 0: large scale, Feature 1: small scale, etc.
+    # 특징 0: 큰 잣대, 특징 1: 작은 잣대, 그렇게 이어진다
     scales = np.array([100.0, 0.01, 50.0, 0.001])
     offsets = np.array([500.0, -0.05, 25.0, 0.0])
     
@@ -170,32 +170,32 @@ def demo_normalization():
     raw_obs = []
     for _ in range(100):
         obs = np.random.randn(obs_dim) * scales + offsets
-        normalizer.normalize(obs)  # Update stats
+        normalizer.normalize(obs)  # 통계를 고친다
         raw_obs.append(obs)
     
     raw_obs = np.array(raw_obs)
     print(f"  Mean:  {raw_obs.mean(axis=0).round(3)}")
     print(f"  Std:   {raw_obs.std(axis=0).round(3)}")
     
-    # Now normalize
+    # 이제 고르게 한다
     norm_obs = np.array([normalizer.normalize(o) for o in raw_obs])
     print("\nAfter normalization:")
     print(f"  Mean:  {norm_obs.mean(axis=0).round(3)}")
     print(f"  Std:   {norm_obs.std(axis=0).round(3)}")
     print(f"  Range: [{norm_obs.min():.2f}, {norm_obs.max():.2f}]")
     
-    # Reward normalization
+    # 보상 고르게 하기
     print("\n" + "-" * 40)
     print("Reward Normalization:")
     
     rew_normalizer = RewardNormalizer()
-    rewards = np.random.randn(50) * 100 + 50  # Large scale rewards
+    rewards = np.random.randn(50) * 100 + 50  # 잣대가 큰 보상
     norm_rewards = [rew_normalizer.normalize(r) for r in rewards]
     
     print(f"  Raw:  mean={rewards.mean():.1f}, std={rewards.std():.1f}")
     print(f"  Norm: mean={np.mean(norm_rewards):.3f}, std={np.std(norm_rewards):.3f}")
     
-    # Advantage normalization
+    # 이점 고르게 하기
     print("\n" + "-" * 40)
     print("Advantage Normalization:")
     advantages = torch.randn(32) * 5 + 2
@@ -207,34 +207,34 @@ def demo_normalization():
 if __name__ == "__main__":
     demo_normalization()```
 
-## Discussion
+## 논의
 
-The implementation centers on the `RunningMeanStd`, `ObservationNormalizer`, `RewardNormalizer` classes, which encapsulate the core logic of observation normalization. The code follows a modular design that separates the algorithmic components from the demonstration and evaluation logic.
+이 구현은 봄 고르게 하기의 한가운데 논리를 담은 `RunningMeanStd`, `ObservationNormalizer`, `RewardNormalizer` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-The demonstration function shows the practical application of these components on synthetic data that highlights the key behaviors. By examining the output, one can observe how the algorithm's performance varies with different hyperparameter choices and problem configurations.
+보여 주기 함수는 이 조각들을 종요로운 거동이 드러나는 지어낸 자료에 실제로 써 보인다. 그 출력을 살피면 매개변수 고름과 문제 얼개에 따라 알고리즘의 됨됨이가 어떻게 달라지는지 볼 수 있다.
 
-From a practical standpoint, this implementation prioritizes clarity over raw performance. Production systems would typically incorporate additional optimizations such as batched computation, GPU acceleration, and more sophisticated hyperparameter tuning. Nevertheless, the core algorithmic ideas demonstrated here transfer directly to large-scale applications.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 묶음 셈하기, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Run the demonstration code and record the key output metrics. Modify one hyperparameter (such as the learning rate, hidden dimension, or number of layers) and describe how the results change.
+**연습문제 1.**
+보여 주기 코드를 돌리고 종요로운 출력 재기를 적어라. 매개변수 하나(배움률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    After running the demo, systematically vary the chosen hyperparameter while keeping others fixed. For example, doubling the hidden dimension typically improves representational capacity but increases computation time. The learning rate has a non-monotonic effect: too small leads to slow convergence, while too large causes instability. Document the specific numbers for at least three different values of the chosen hyperparameter.
-
----
-
-**Exercise 2.**
-Explain the role of the key architectural choices in the implementation. Why are specific activation functions, normalization strategies, or loss functions used? What would happen if you substituted alternatives?
-
-??? success "Solution to Exercise 2"
-    The architectural choices reflect established best practices in practical RL techniques. For instance, ReLU activations provide non-linearity while avoiding vanishing gradients for positive inputs. The loss function is chosen to match the task type (cross-entropy for classification, MSE for regression). Substituting alternatives (e.g., sigmoid activations, L1 loss) would change the optimization landscape and potentially degrade performance, though some substitutions may be beneficial in specific scenarios.
+??? success "연습문제 1 풀이"
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 짜임 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 배움률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
-**Exercise 3.**
-Extend the implementation to handle a more challenging scenario: either a larger dataset, a different problem variant, or an additional feature. Describe your modification and evaluate its impact on performance.
+**연습문제 2.**
+이 구현에서 종요로운 얼개 고름이 맡은 몫을 풀어라. 왜 그런 활성 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 3"
-    One natural extension is to add regularization (dropout, weight decay) or a more sophisticated architecture (additional layers, skip connections). Implement the chosen extension, train on the same data, and compare metrics before and after. The extension should demonstrate understanding of both the original algorithm and the modification's theoretical motivation.
+??? success "연습문제 2 풀이"
+    이 얼개 고름은 실제 힘 북돋우는 배움 재주에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 들임에서 기울기가 사라지는 것을 막는다. 손실 함수는 일감 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 가장 좋게 하기 지형이 바뀌어 됨됨이가 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+
+---
+
+**연습문제 3.**
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 자료 뭉치, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 됨됨이에 미친 바를 따져라.
+
+??? success "연습문제 3 풀이"
+    절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.

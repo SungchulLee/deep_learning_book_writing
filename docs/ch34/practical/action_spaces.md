@@ -1,15 +1,14 @@
-# Action Spaces
+# 움직임 공간
 
-Action Spaces is an important concept in practical RL techniques. action transformation utilities. This implementation provides a hands-on demonstration of the key algorithms and data structures involved, illustrating both the theoretical foundations and practical considerations for real-world deployment.
+움직임 공간은 실제 힘 북돋우는 배움 재주에서 종요로운 생각이다. 움직임 바꾸기 도구를 다룬다. 이 구현은 여기에 걸린 종요로운 알고리즘과 자료 얼개를 손으로 만져 보이며, 이치 바탕과 실제로 서비스에 올릴 때 살필 것을 함께 보여 준다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 34.6.2: Action Spaces
+34.6.2장: 움직임 공간
 ===============================
-Action space wrappers, portfolio constraints, and
-action transformation utilities.
+움직임 공간 감싸개, 밑천 매임, 움직임 바꾸기 도구.
 """
 
 import torch
@@ -19,18 +18,18 @@ from torch.distributions import Normal, Categorical
 import numpy as np
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
 class PortfolioActionHead(nn.Module):
     """
-    Portfolio allocation action head with various constraint modes.
+    갈래별 매임을 지닌 밑천 나누기 움직임 머리.
     
-    Modes:
-    - 'softmax': Long-only, weights sum to 1
-    - 'long_short': Weights sum to 0 (market neutral)
-    - 'leverage': L1 norm bounded by max_leverage
+    갈래:
+    - 'softmax': 사기만 하며 무게 합이 1이다
+    - 'long_short': 무게 합이 0이다(저자에 치우치지 않음)
+    - 'leverage': L1 노름이 max_leverage로 매인다
     """
     
     def __init__(self, hidden_dim, n_assets, mode="softmax", max_leverage=1.0):
@@ -60,7 +59,7 @@ class PortfolioActionHead(nn.Module):
 
 
 class DiscreteActionWrapper:
-    """Discretize a continuous action space into bins."""
+    """이어진 움직임 공간을 칸으로 따로 떼어 놓는다."""
     
     def __init__(self, n_bins_per_dim, low, high):
         self.n_bins = n_bins_per_dim
@@ -70,7 +69,7 @@ class DiscreteActionWrapper:
         self.total_actions = n_bins_per_dim ** self.dim
     
     def discrete_to_continuous(self, action_idx):
-        """Convert discrete action index to continuous action."""
+        """따로 떨어진 움직임 번호를 이어진 움직임으로 바꾼다."""
         indices = []
         idx = action_idx
         for _ in range(self.dim):
@@ -85,7 +84,7 @@ class DiscreteActionWrapper:
 
 
 class ContinuousActionRescaler:
-    """Rescale actions from [-1, 1] to actual bounds."""
+    """움직임을 [-1, 1]에서 참 매임으로 다시 잣댄다."""
     
     def __init__(self, low, high):
         self.low = torch.FloatTensor(low)
@@ -107,8 +106,8 @@ def demo_action_spaces():
     print("Action Space Demonstrations")
     print("=" * 60)
     
-    # Portfolio action heads
-    features = torch.randn(4, 64)  # Batch of 4
+    # 밑천 움직임 머리
+    features = torch.randn(4, 64)  # 묶음 크기 4
     n_assets = 5
     
     for mode in ["softmax", "long_short", "leverage"]:
@@ -119,7 +118,7 @@ def demo_action_spaces():
         print(f"  Sum: {weights[0].sum().item():.4f}")
         print(f"  L1 norm: {weights[0].abs().sum().item():.4f}")
     
-    # Discretization
+    # 따로 떼어 놓기
     print("\n" + "-" * 40)
     wrapper = DiscreteActionWrapper(n_bins_per_dim=5, low=[-1, -1], high=[1, 1])
     print(f"Discrete actions: {wrapper.total_actions} (5 bins × 2 dims)")
@@ -127,7 +126,7 @@ def demo_action_spaces():
         cont = wrapper.discrete_to_continuous(idx)
         print(f"  Action {idx:>2d} → {cont.round(3)}")
     
-    # Rescaling
+    # 다시 잣대기
     print("\n" + "-" * 40)
     rescaler = ContinuousActionRescaler(low=[-2.0], high=[2.0])
     for a in [-1.0, -0.5, 0.0, 0.5, 1.0]:
@@ -138,34 +137,34 @@ def demo_action_spaces():
 if __name__ == "__main__":
     demo_action_spaces()```
 
-## Discussion
+## 논의
 
-The implementation centers on the `PortfolioActionHead`, `DiscreteActionWrapper`, `ContinuousActionRescaler` classes, which encapsulate the core logic of action spaces. The code follows a modular design that separates the algorithmic components from the demonstration and evaluation logic.
+이 구현은 움직임 공간의 한가운데 논리를 담은 `PortfolioActionHead`, `DiscreteActionWrapper`, `ContinuousActionRescaler` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-The demonstration function shows the practical application of these components on synthetic data that highlights the key behaviors. By examining the output, one can observe how the algorithm's performance varies with different hyperparameter choices and problem configurations.
+보여 주기 함수는 이 조각들을 종요로운 거동이 드러나는 지어낸 자료에 실제로 써 보인다. 그 출력을 살피면 매개변수 고름과 문제 얼개에 따라 알고리즘의 됨됨이가 어떻게 달라지는지 볼 수 있다.
 
-From a practical standpoint, this implementation prioritizes clarity over raw performance. Production systems would typically incorporate additional optimizations such as batched computation, GPU acceleration, and more sophisticated hyperparameter tuning. Nevertheless, the core algorithmic ideas demonstrated here transfer directly to large-scale applications.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 묶음 셈하기, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Run the demonstration code and record the key output metrics. Modify one hyperparameter (such as the learning rate, hidden dimension, or number of layers) and describe how the results change.
+**연습문제 1.**
+보여 주기 코드를 돌리고 종요로운 출력 재기를 적어라. 매개변수 하나(배움률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    After running the demo, systematically vary the chosen hyperparameter while keeping others fixed. For example, doubling the hidden dimension typically improves representational capacity but increases computation time. The learning rate has a non-monotonic effect: too small leads to slow convergence, while too large causes instability. Document the specific numbers for at least three different values of the chosen hyperparameter.
-
----
-
-**Exercise 2.**
-Explain the role of the key architectural choices in the implementation. Why are specific activation functions, normalization strategies, or loss functions used? What would happen if you substituted alternatives?
-
-??? success "Solution to Exercise 2"
-    The architectural choices reflect established best practices in practical RL techniques. For instance, ReLU activations provide non-linearity while avoiding vanishing gradients for positive inputs. The loss function is chosen to match the task type (cross-entropy for classification, MSE for regression). Substituting alternatives (e.g., sigmoid activations, L1 loss) would change the optimization landscape and potentially degrade performance, though some substitutions may be beneficial in specific scenarios.
+??? success "연습문제 1 풀이"
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 짜임 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 배움률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
-**Exercise 3.**
-Extend the implementation to handle a more challenging scenario: either a larger dataset, a different problem variant, or an additional feature. Describe your modification and evaluate its impact on performance.
+**연습문제 2.**
+이 구현에서 종요로운 얼개 고름이 맡은 몫을 풀어라. 왜 그런 활성 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 3"
-    One natural extension is to add regularization (dropout, weight decay) or a more sophisticated architecture (additional layers, skip connections). Implement the chosen extension, train on the same data, and compare metrics before and after. The extension should demonstrate understanding of both the original algorithm and the modification's theoretical motivation.
+??? success "연습문제 2 풀이"
+    이 얼개 고름은 실제 힘 북돋우는 배움 재주에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 들임에서 기울기가 사라지는 것을 막는다. 손실 함수는 일감 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 가장 좋게 하기 지형이 바뀌어 됨됨이가 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+
+---
+
+**연습문제 3.**
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 자료 뭉치, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 됨됨이에 미친 바를 따져라.
+
+??? success "연습문제 3 풀이"
+    절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.
