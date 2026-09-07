@@ -1,133 +1,133 @@
-# 3D Adversarial Attacks
-## Introduction
+# 3차원 맞서는 치기
+## 들머리
 
-**3D adversarial attacks** extend adversarial perturbations beyond the image plane into three-dimensional space. Instead of perturbing pixel values, these attacks modify the physical properties of objects—their shape, texture, or lighting—to create adversarial objects that fool classifiers from multiple viewpoints.
+**3차원 맞서는 치기**은 맞서는 흔듦을 그림 평면 너머 세 차수의 밭으로 넓힌다. 낱그림점 값을 흔드는 대신 물체의 참 결—꼴, 살결, 빛—을 고쳐, 여러 자리에서 보아도 가름개를 속이는 맞서는 물체를 만든다.
 
-## Motivation
+## 왜 하는가
 
-Standard $\ell_p$ perturbations in image space have a fundamental limitation: they are **view-dependent**. A perturbation crafted for one camera angle becomes invalid when the viewpoint changes. 3D attacks address this by optimizing perturbations that are adversarial across a distribution of viewpoints.
+그림 밭의 여느 $\ell_p$ 흔듦에는 밑바탕 한계가 있다. **보는 자리에 매인다**는 것이다. 한 찍개 자리를 겨냥해 지은 흔듦은 보는 자리가 바뀌면 쓸모없어진다. 3차원 치기는 보는 자리의 분포에 걸쳐 맞서는 흔듦을 다듬어 이를 푼다.
 
-## Mathematical Formulation
+## 수학 꼴
 
-### Rendering Pipeline
+### 그려 내는 흐름
 
-A 3D object with parameters $\theta_{3D}$ (mesh, texture, pose) is projected to a 2D image via a differentiable renderer $\mathcal{R}$:
+매개변수 $\theta_{3D}$(그물눈, 살결, 자세)을 지닌 3차원 물체는 미분할 수 있는 그리개 $\mathcal{R}$으로 2차원 그림에 되비친다.
 
 $$
 \mathbf{I} = \mathcal{R}(\theta_{3D}, \theta_{\text{cam}}, \theta_{\text{light}})
 $$
 
-### 3D Adversarial Optimization
+### 3차원 맞섬 다듬기
 
-The attack optimizes the 3D perturbation to be adversarial across viewpoints:
+치기는 보는 자리에 걸쳐 맞서도록 3차원 흔듦을 다듬는다.
 
 $$
 \boldsymbol{\delta}_{3D}^* = \arg\max_{\boldsymbol{\delta}_{3D}} \mathbb{E}_{\theta_{\text{cam}}, \theta_{\text{light}}} \left[ \mathcal{L}(f(\mathcal{R}(\theta_{3D} + \boldsymbol{\delta}_{3D}, \theta_{\text{cam}}, \theta_{\text{light}})), y) \right]
 $$
 
-The perturbation $\boldsymbol{\delta}_{3D}$ can modify:
+흔듦 $\boldsymbol{\delta}_{3D}$은 다음을 고칠 수 있다.
 
-- **Texture**: Adversarial textures applied to object surfaces
-- **Shape**: Small mesh vertex displacements
-- **Material**: Changes to surface reflectance properties
+- **살결**: 물체 겉면에 입힌 맞서는 살결
+- **꼴**: 그물눈 꼭짓점의 작은 옮김
+- **감**: 겉면이 빛을 되쏘는 결의 바뀜
 
-### Differentiable Rendering
+### 미분할 수 있는 그려 내기
 
-The key enabling technology is **differentiable rendering**, which allows gradients to flow from the 2D classification loss back through the rendering pipeline to 3D object parameters:
+이를 이루는 고갱이 재주가 **미분할 수 있는 그려 내기**다. 2차원 가름 잃음에서 그려 내는 흐름을 거슬러 3차원 물체 매개변수까지 기울기가 흐를 수 있다.
 
 $$
 \frac{\partial \mathcal{L}}{\partial \boldsymbol{\delta}_{3D}} = \frac{\partial \mathcal{L}}{\partial \mathbf{I}} \cdot \frac{\partial \mathcal{R}}{\partial \boldsymbol{\delta}_{3D}}
 $$
 
-## Attack Types
+## 치기의 갈래
 
-### Adversarial Textures
+### 맞서는 살결
 
-Modify the texture map of a 3D object so that renderings from any angle are adversarial:
+어느 자리에서 그려도 맞서도록 3차원 물체의 살결 그림을 고친다.
 
 $$
 T^* = \arg\max_T \mathbb{E}_v \left[ \mathcal{L}(f(\mathcal{R}(\text{mesh}, T, v)), y) \right]
 $$
 
-### Adversarial Shapes
+### 맞서는 꼴
 
-Subtly deform the object mesh while maintaining recognizability to humans:
+사람이 알아보는 데는 지장 없이 물체의 그물눈을 은근히 비튼다.
 
 $$
 V^* = \arg\max_{\|V' - V\| \leq \varepsilon} \mathbb{E}_v \left[ \mathcal{L}(f(\mathcal{R}(V', T, v)), y) \right]
 $$
 
-### Adversarial Lighting
+### 맞서는 빛
 
-Manipulate the lighting environment to create adversarial conditions:
+빛의 자리를 흔들어 맞서는 자리를 만든다.
 
 $$
 L^* = \arg\max_L \mathcal{L}(f(\mathcal{R}(\text{mesh}, T, v, L)), y)
 $$
 
-## Practical Implications
+## 참으로 걸리는 바
 
-### Autonomous Systems
+### 스스로 움직이는 얼개
 
-3D adversarial attacks have been demonstrated against:
+3차원 맞서는 치기는 다음에 대해 보여졌다.
 
-- **Autonomous vehicles**: Adversarial 3D-printed objects misclassified by perception systems
-- **Drone navigation**: Modified landmarks that confuse visual positioning
-- **Robotic manipulation**: Adversarial object shapes that cause grasping failures
+- **스스로 모는 차**: 알아보는 얼개가 틀리게 가른, 3차원으로 찍어 낸 맞서는 물체
+- **날개 없는 새의 길잡이**: 보는 자리잡기를 헷갈리게 고친 표지
+- **일꾼 팔 다루기**: 집기를 어그러뜨리는 맞서는 물체 꼴
 
-### Defense Implications
+### 막이에 걸리는 바
 
-3D attacks motivate defenses that consider:
+3차원 치기는 다음을 헤아리는 막이를 이끈다.
 
-- Multi-view consistency checking
-- 3D-aware feature representations
-- Robust perception under environmental variation
+- 여러 자리에서 본 것이 한결같은지 살피기
+- 3차원을 아는 결 드러냄
+- 둘레가 바뀌어도 든든한 알아봄
 
-## Summary
+## 간추림
 
-| Attack Type | Perturbation Space | View-Invariant | Physical Feasibility |
+| 치기 갈래 | 흔듦의 밭 | 보는 자리에 그대로 | 참 세상에서 할 만함 |
 |-------------|-------------------|----------------|---------------------|
-| $\ell_p$ image | 2D pixel space | No | Limited |
-| Adversarial patch | 2D local region | Partially | High |
-| 3D texture | Texture map | Yes | Moderate |
-| 3D shape | Mesh vertices | Yes | Requires 3D printing |
+| $\ell_p$ 그림 | 2차원 낱그림점 밭 | 아니다 | 마디 있음 |
+| 맞서는 헝겊 | 2차원 그 자리 | 얼마쯤 | 높음 |
+| 3차원 살결 | 살결 그림 | 그렇다 | 가운데 |
+| 3차원 꼴 | 그물눈 꼭짓점 | 그렇다 | 3차원 찍개가 있어야 함 |
 
-3D adversarial attacks represent the most realistic threat model for physical-world perception systems, requiring defenses that go beyond 2D robustness.
+3차원 맞서는 치기는 참 세상 알아봄 얼개에 가장 그럴듯한 으름 얼개이며, 2차원 든든함을 넘어서는 막이가 있어야 한다.
 
-## References
+## 살펴볼 거리
 
 1. Athalye, A., et al. (2018). "Synthesizing Robust Adversarial Examples." ICML.
 2. Xiao, C., et al. (2019). "MeshAdv: Adversarial Meshes for Visual Recognition." CVPR.
 3. Zeng, X., et al. (2019). "Adversarial Attacks Beyond the Image Space." CVPR.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$

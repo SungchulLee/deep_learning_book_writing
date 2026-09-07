@@ -1,113 +1,113 @@
-# Real-World Robustness
-## Introduction
+# 참 세상에서의 든든함
+## 들머리
 
-Translating adversarial attacks and defenses from digital experiments to the physical world introduces fundamental challenges. Real-world adversarial robustness must account for environmental variability, sensor noise, and the practical constraints of deploying perturbations outside controlled digital settings.
+맞서는 치기와 막이를 셈틀 해 봄에서 참 세상으로 옮기면 밑바탕부터 어려움이 생긴다. 참 세상의 맞섬에 든든하기는 둘레의 흔들림, 재개의 잡음, 그리고 다스려진 셈틀 밖에서 흔듦을 내놓을 때의 손에 잡히는 옭아맴을 헤아려야 한다.
 
-## Digital-to-Physical Gap
+## 셈틀과 참 세상의 틈
 
-### Why Digital Attacks Don't Directly Transfer
+### 셈틀 치기가 곧바로 옮아가지 않는 까닭
 
-Adversarial perturbations crafted in the digital domain often fail when deployed physically due to:
+셈틀에서 지은 맞서는 흔듦은 참 세상에 내놓으면 다음 까닭에 어그러지는 일이 잦다.
 
-1. **Camera processing**: Auto-exposure, white balance, JPEG compression, and lens distortion alter pixel values
-2. **Viewing conditions**: Distance, angle, lighting, and occlusion change the effective perturbation
-3. **Print artifacts**: Printer resolution limits, color gamut constraints, and paper reflectance modify the perturbation
-4. **Environmental noise**: Weather, atmospheric conditions, and sensor noise add uncontrolled variation
+1. **찍개가 다룸**: 절로 빛 맞추기, 흰빛 맞추기, JPEG 눌러 담기, 렌즈 뒤틀림이 낱그림점 값을 바꾼다
+2. **보는 자리**: 거리, 각, 빛, 가림이 참으로 걸리는 흔듦을 바꾼다
+3. **찍어 낸 자국**: 찍개의 결 마디, 빛깔 테두리, 종이가 빛을 되쏘는 결이 흔듦을 바꾼다
+4. **둘레의 잡음**: 날씨, 하늘의 형편, 재개의 잡음이 다스릴 수 없는 흔들림을 더한다
 
-### Expectation over Transformations (EOT)
+### 바꿈에 걸친 바람(EOT)
 
-The standard approach to bridge this gap is optimizing over a distribution of physical transformations:
+이 틈을 메우는 여느 길은 참 세상 바꿈의 분포에 걸쳐 다듬는 것이다.
 
 $$
 \boldsymbol{\delta}^* = \arg\max_{\boldsymbol{\delta}} \mathbb{E}_{t \sim \mathcal{T}} \left[ \mathcal{L}(f(t(\mathbf{x} + \boldsymbol{\delta})), y) \right]
 $$
 
-where $\mathcal{T}$ includes rotations, scaling, color shifts, noise, and perspective transforms.
+여기서 $\mathcal{T}$에는 돌림, 크기 바꿈, 빛깔 옮김, 잡음, 비스듬히 틀기가 든다.
 
-## Demonstrated Physical Attacks
+## 참 세상에서 보인 치기
 
-### Traffic Sign Attacks
+### 길 표지 치기
 
-Eykholt et al. (2018) demonstrated physically printed perturbations on stop signs that caused misclassification by autonomous driving classifiers:
+에이크홀트 등(2018)은 멈춤 표지에 찍어 붙인 흔듦으로 스스로 모는 차의 가름개가 틀리게 가르게 함을 보였다.
 
-- Perturbations were printed as stickers
-- Effective from multiple distances and angles
-- Survived rain and varying lighting conditions
+- 흔듦을 붙임딱지로 찍어 냈다
+- 여러 거리와 각에서 먹혔다
+- 비와 바뀌는 빛에도 살아남았다
 
-### Adversarial Objects
+### 맞서는 물체
 
-Athalye et al. (2018) 3D-printed adversarial objects (e.g., a turtle classified as a rifle) that maintained adversarial properties across viewpoints, demonstrating that physical-world attacks are not merely theoretical.
+아탈리에 등(2018)은 맞서는 물체를 3차원으로 찍어 냈다(거북을 총으로 가르는 따위). 보는 자리가 바뀌어도 맞서는 결이 남아, 참 세상 치기가 이론에만 머물지 않음을 보였다.
 
-### Adversarial T-Shirts
+### 맞서는 옷
 
-Xu et al. (2020) created adversarial patterns printed on clothing that could evade person detection systems, with implications for surveillance and privacy.
+쉬 등(2020)은 사람 알아내기 얼개를 비껴가는 맞서는 결을 옷에 찍었다. 이는 살핌과 사사로움에 걸린다.
 
-## Robustness in Deployment
+## 내놓은 자리에서의 든든함
 
-### Environmental Robustness Testing
+### 둘레에 대한 든든함 시험
 
-For deployed ML systems, robustness should be evaluated against realistic perturbations:
+내놓은 기계 배움 얼개는 그럴듯한 흔듦에 대해 든든함을 따져야 한다.
 
-| Perturbation Type | Digital Simulation | Physical Test |
+| 흔듦 갈래 | 셈틀 흉내 | 참 세상 시험 |
 |-------------------|-------------------|---------------|
-| Lighting variation | Brightness/contrast augmentation | Multiple lighting setups |
-| Camera angle | Affine transforms | Multi-camera evaluation |
-| Weather | Synthetic fog/rain overlays | Outdoor testing |
-| Sensor noise | Gaussian/salt-and-pepper noise | Different camera hardware |
-| Distance | Downsampling | Varying distance capture |
+| 빛 바뀜 | 밝기/맞섬 불리기 | 여러 빛 차림 |
+| 찍개 각 | 아핀 바꿈 | 여러 찍개로 따지기 |
+| 날씨 | 지어낸 안개/비 덧씌우기 | 바깥 시험 |
+| 재개 잡음 | 가우스/소금후추 잡음 | 다른 찍개 쇠 붙임새 |
+| 거리 | 성기게 뽑기 | 거리를 달리해 담기 |
 
-### Common Corruptions Benchmark
+### 흔한 망가짐 잣대
 
-Hendrycks & Dietterich (2019) introduced a benchmark of 15 common image corruptions at 5 severity levels, including noise, blur, weather, and digital artifacts. This provides a standardized evaluation of robustness to non-adversarial but realistic perturbations.
+헨드릭스와 디트리히(2019)은 잡음, 흐림, 날씨, 셈틀 자국을 아우른 흔한 그림 망가짐 15가지를 5단계 세기로 담은 잣대를 내놓았다. 이는 맞서지는 않지만 그럴듯한 흔듦에 대한 든든함을 잣대 잡아 따지게 해 준다.
 
-## Financial Applications
+## 금융에 쓰기
 
-Real-world robustness concerns for financial ML systems:
+금융 기계 배움 얼개에서 참 세상의 든든함으로 걸리는 것들이다.
 
-- **Data pipeline robustness**: Models must handle missing data, delayed feeds, format changes, and data provider switches without catastrophic failure
-- **Distribution shift**: Market regime changes represent a natural form of "real-world perturbation" that models must withstand
-- **Sensor reliability**: Alternative data sources (satellite imagery, web scraping, IoT sensors) introduce physical-world noise into financial models
-- **Adversarial market participants**: Unlike computer vision where adversarial examples are theoretical, financial markets contain genuinely adversarial actors who manipulate observable signals
+- **자료 흐름의 든든함**: 모형은 빠진 자료, 늦은 줄기, 꼴 바뀜, 자료 대는 곳이 바뀌는 일을 크게 어그러지지 않고 다뤄야 한다
+- **분포 옮겨감**: 저자의 판이 바뀌는 것은 모형이 버텨야 할 "참 세상 흔듦"의 여느 꼴이다
+- **재개의 미더움**: 다른 자료 밑동(별그림, 누리 긁기, 사물 그물 재개)이 참 세상의 잡음을 금융 모형에 들인다
+- **맞서는 저자 참여자**: 맞서는 보기가 이론에 머무는 셈틀 보기와 달리, 저자에는 보이는 신호를 참으로 흔드는 이들이 있다
 
-## Summary
+## 간추림
 
-Real-world robustness extends adversarial robustness from mathematical $\ell_p$ balls to the messy reality of physical deployment. For financial applications, this means considering not just norm-bounded perturbations but the full range of data quality issues, distribution shifts, and strategic adversaries that production systems encounter.
+참 세상의 든든함은 맞섬에 든든하기를 수학의 $\ell_p$ 공에서 어수선한 참 내놓기의 자리로 넓힌다. 금융 쓰임에서는 노름으로 마디 지은 흔듦만이 아니라, 서비스 얼개가 마주하는 자료 됨됨이의 탈, 분포 옮겨감, 꾀 많은 겨루는 이를 두루 헤아려야 한다는 뜻이다.
 
-## References
+## 살펴볼 거리
 
 1. Eykholt, K., et al. (2018). "Robust Physical-World Attacks on Deep Learning Visual Classification." CVPR.
 2. Athalye, A., et al. (2018). "Synthesizing Robust Adversarial Examples." ICML.
 3. Hendrycks, D., & Dietterich, T. (2019). "Benchmarking Neural Network Robustness to Common Corruptions and Perturbations." ICLR.
 4. Kurakin, A., Goodfellow, I., & Bengio, S. (2017). "Adversarial Examples in the Physical World." ICLR Workshop.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
