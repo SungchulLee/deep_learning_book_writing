@@ -41,17 +41,17 @@ print("WHAT IS AN OPTIMIZER?")
 print("-" * 80)
 
 print("""
-An optimizer is the ALGORITHM that updates your model's parameters
-to minimize the loss function.
+최적화기는 손실 함수를 최소화하도록 모델의 매개변수를
+갱신하는 알고리즘이다.
 
 이렇게 생각해 보라:
 1. Your model makes predictions (forward pass)
-2. Loss function says "you're this wrong"
+2. 손실 함수가 "이만큼 틀렸다"라고 알려 준다
 3. PyTorch computes gradients (backward pass)
-4. Optimizer uses gradients to UPDATE the parameters
-5. Repeat until loss is low enough
+4. 최적화기가 기울기를 써서 매개변수를 갱신한다
+5. 손실이 충분히 낮아질 때까지 되풀이한다
 
-Without an optimizer, your model can't learn!
+최적화기가 없으면 모델은 학습할 수 없다!
 """)
 
 # ============================================================================
@@ -227,8 +227,8 @@ print("-" * 80)
 
 print("""
 1. INITIALIZATION:
-   Model started with random weights and bias
-   Initial predictions were far from correct
+   모델은 무작위 가중치와 편향으로 시작했다
+   처음 예측은 정답과 크게 어긋났다
 
 2. ITERATION (repeated 1000 times):
    a) Forward: Model makes predictions
@@ -237,15 +237,15 @@ print("""
    d) Step: Update parameters in the right direction
 
 3. RESULT:
-   Loss decreased from high to low
+   손실이 높은 값에서 낮은 값으로 줄었다
    Parameters converged to the true values (w≈2, b≈1)
-   Model now makes accurate predictions!
+   이제 모델이 정확하게 예측한다!
 
-4. KEY COMPONENTS:
-   • Loss function: Tells us how wrong we are
-   • Optimizer: Updates parameters to reduce loss
-   • Learning rate: Controls update step size
-   • Epochs: Number of times we go through the process
+4. 핵심 구성 요소:
+   • 손실 함수: 얼마나 틀렸는지 알려 준다
+   • 최적화기: 손실을 줄이도록 매개변수를 갱신한다
+   • 학습률: 갱신 보폭을 조절한다
+   • 에폭: 이 과정을 되풀이하는 횟수
 """)
 
 # ============================================================================
@@ -260,12 +260,12 @@ For Stochastic Gradient Descent (SGD):
 
     new_parameter = old_parameter - learning_rate × gradient
 
-Example from our training:
+우리 학습에서 가져온 예:
     If weight gradient = 2.5 and learning_rate = 0.01
     new_weight = old_weight - 0.01 × 2.5
     new_weight = old_weight - 0.025
 
-The optimizer does this for EVERY parameter in the model!
+최적화기는 모델의 모든 매개변수에 이 일을 한다!
 """)
 
 # ============================================================================
@@ -277,24 +277,24 @@ print("-" * 80)
 
 print("""
 ❌ MISTAKE 1: Forgetting optimizer.zero_grad()
-   → Gradients accumulate, causing incorrect updates
+   → 기울기가 쌓여 잘못된 갱신이 일어난다
    ✓ Always call optimizer.zero_grad() before loss.backward()
 
-❌ MISTAKE 2: Wrong order of operations
-   → Must be: forward → loss → zero_grad → backward → step
-   ✓ Follow this exact order in your training loop
+❌ 실수 2: 연산 순서가 틀렸다
+   → 반드시 순전파 → 손실 → zero_grad → backward → step 순이어야 한다
+   ✓ 학습 루프에서 이 순서를 정확히 지켜라
 
 ❌ MISTAKE 3: Using torch.no_grad() during training
-   → Prevents gradient computation, model can't learn
+   → 기울기 계산이 막혀 모델이 학습하지 못한다
    ✓ Only use no_grad() for evaluation/testing
 
-❌ MISTAKE 4: Not tracking loss
-   → Can't tell if model is learning
-   ✓ Print/log loss regularly to monitor training
+❌ 실수 4: 손실을 추적하지 않는다
+   → 모델이 학습하고 있는지 알 수 없다
+   ✓ 학습을 살피려면 손실을 규칙적으로 출력하거나 기록하라
 
-❌ MISTAKE 5: Learning rate too high or too low
-   → Model diverges or learns too slowly
-   ✓ Start with 0.01 or 0.001, adjust based on loss curve
+❌ 실수 5: 학습률이 너무 크거나 너무 작다
+   → 모델이 발산하거나 너무 느리게 학습한다
+   ✓ 0.01이나 0.001로 시작하여 손실 곡선을 보며 조정하라
 """)
 
 # ============================================================================
@@ -304,9 +304,9 @@ print("\n" + "=" * 80)
 print("KEY TAKEAWAYS")
 print("=" * 80)
 print("""
-1. Optimizers update model parameters to minimize loss
+1. 최적화기는 손실을 최소화하도록 모델 매개변수를 갱신한다
    
-2. Basic training loop structure:
+2. 기본 학습 루프 구조:
    for epoch in range(num_epochs):
        predictions = model(inputs)       # 순전파
        loss = criterion(predictions, targets)  # 손실
@@ -314,19 +314,19 @@ print("""
        loss.backward()                   # 기울기 계산
        optimizer.step()                  # 매개변수 갱신
 
-3. Learning rate is crucial:
-   • Controls how much parameters change each step
+3. 학습률이 매우 중요하다.
+   • 매 단계에서 매개변수가 얼마나 바뀔지 조절한다
    • Too high = unstable, too low = slow learning
-   • Typically start with 0.01 or 0.001
+   • 보통 0.01이나 0.001로 시작한다
 
 4. SGD (Stochastic Gradient Descent) is the simplest optimizer
    • Updates: parameter -= learning_rate × gradient
-   • Works well for many problems
+   • 많은 문제에서 잘 작동한다
    • Other optimizers (Adam, RMSprop) add improvements
 
-NEXT STEPS:
-→ Try different learning rates and see what happens
-→ Experiment with more complex models
+다음 단계:
+→ 학습률을 달리하여 어떤 일이 일어나는지 보라
+→ 더 복잡한 모델로 실험해 보라
 → Learn about advanced optimizers (Adam, AdamW)
 """)
 print("=" * 80)

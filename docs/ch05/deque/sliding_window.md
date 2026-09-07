@@ -83,7 +83,7 @@ from collections import deque
 # === 단조 덱 알고리즘 ===
 
 def sliding_window_max(nums: list[int | float], k: int) -> list[int | float]:
-    """Return the maximum of every contiguous subarray of length k.
+    """길이 k인 모든 연속 부분배열의 최댓값을 돌려준다.
 
     인수:
         nums: 수로 이루어진 입력 배열.

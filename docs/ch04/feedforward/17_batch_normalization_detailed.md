@@ -447,7 +447,7 @@ print("""
    ✗ Using batch size = 1 (statistics don't make sense)
    ✗ Mixing up training and evaluation modes
 
-NEXT STEPS:
+다음 단계:
 - Tutorial 09: Learning Rate Scheduling
 - Tutorial 10: Advanced Architectures
 - Tutorial 11: CIFAR-10 Challenge

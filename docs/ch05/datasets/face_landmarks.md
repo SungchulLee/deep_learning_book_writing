@@ -148,7 +148,7 @@ class ToTensor:
 
     def __call__(self, sample):
         image, landmarks = sample["image"], sample["landmarks"]
-        # numpy: H × W × C  →  torch: C × H × W
+        # 넘파이: H × W × C  →  토치: C × H × W
         image = image.transpose((2, 0, 1))
         return {
             "image": torch.from_numpy(image),

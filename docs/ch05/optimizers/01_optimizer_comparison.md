@@ -432,7 +432,7 @@ print("""
    • Experiment and compare
    • Use learning rate schedulers for better results
 
-NEXT STEPS:
+다음 단계:
 → Experiment with different learning rates
 → Learn about learning rate schedulers
 → Try combining optimizers with regularization

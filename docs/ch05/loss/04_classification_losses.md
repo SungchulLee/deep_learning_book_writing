@@ -42,16 +42,16 @@ print("-" * 80)
 
 print("""
 REGRESSION (Covered in previous tutorials):
-  • Predict continuous values
+  • 연속값을 예측한다
   • Example: House price ($150,000), Temperature (25.3°C)
-  • Loss: MSE, MAE, Huber
+  • 손실: MSE, MAE, 후버
   
 CLASSIFICATION:
-  • Predict discrete categories/classes
-  • Example: Email is Spam/Not Spam, Image is Cat/Dog/Bird
-  • Loss: Cross-Entropy, Binary Cross-Entropy
+  • 이산 범주나 클래스를 예측한다
+  • 예: 메일이 스팸인지 아닌지, 이미지가 고양이/개/새인지
+  • 손실: 교차 엔트로피, 이진 교차 엔트로피
   
-Key difference: Classification outputs probabilities for each class!
+핵심 차이: 분류는 클래스마다 확률을 출력한다!
 """)
 
 # ============================================================================
@@ -131,7 +131,7 @@ print("-" * 80)
 
 print("""
 In practice, neural networks output "logits" (raw, unbounded values).
-We convert logits to probabilities using the Sigmoid function.
+시그모이드 함수로 로짓을 확률로 바꾼다.
 
 Logit (raw) → Sigmoid → Probability (0 to 1)
 """)
@@ -158,13 +158,13 @@ print("BCEWithLogitsLoss - RECOMMENDED FOR TRAINING")
 print("-" * 80)
 
 print("""
-Instead of: Model → Sigmoid → BCE Loss
+모델 → 시그모이드 → BCE 손실 대신
 Use:        Model → BCEWithLogitsLoss (combines both!)
 
 Benefits:
   ✓ 수치가 더 든든하다
-  ✓ Faster computation
-  ✓ Prevents gradient problems
+  ✓ 계산이 더 빠르다
+  ✓ 기울기 문제를 막는다
 """)
 
 # BCEWithLogitsLoss 쓰기
@@ -309,7 +309,7 @@ print("-" * 80)
 
 print("""
 ✓ DO:
-  • Use BCEWithLogitsLoss for binary classification
+  • 이진 분류에는 BCEWithLogitsLoss를 쓴다
   • Use CrossEntropyLoss for multi-class classification
   • Let loss functions handle activation (sigmoid/softmax) internally
   • Use class indices for labels in CrossEntropyLoss
@@ -355,7 +355,7 @@ print("""
    • Binary: threshold at 0.5 after sigmoid
    • Multi-class: take argmax after softmax
 
-NEXT STEPS:
+다음 단계:
 → Build a simple image classifier
 → Experiment with different numbers of classes
 → Learn about class imbalance and weighted losses

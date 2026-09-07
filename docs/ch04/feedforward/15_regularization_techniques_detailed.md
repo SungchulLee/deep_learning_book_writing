@@ -425,7 +425,7 @@ print("""
    - Start with light regularization, increase if needed
    - Use dropout after ReLU, not before
 
-NEXT STEPS:
+다음 단계:
 - Tutorial 08: Batch Normalization
 - Tutorial 09: Learning Rate Scheduling
 - Tutorial 10: Advanced Architectures

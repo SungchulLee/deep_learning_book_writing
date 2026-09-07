@@ -184,19 +184,19 @@ print("\n" + "=" * 80)
 print("KEY TAKEAWAYS")
 print("=" * 80)
 print("""
-1. Loss functions measure how wrong your predictions are
+1. 손실 함수는 예측이 얼마나 틀렸는지 잰다
 2. Lower loss = better predictions (loss = 0 is perfect)
-3. Three ways to compute loss in PyTorch:
+3. PyTorch에서 손실을 계산하는 세 가지 방법:
    - Manual calculation (for learning/custom losses)
    - F.mse_loss() (functional API, quick and simple)
    - nn.MSELoss() (class API, best for training loops)
 4. MSE is good for regression problems (predicting continuous values)
-5. The 'reduction' parameter controls how errors are aggregated
+5. 'reduction' 매개변수는 오차를 모으는 방식을 정한다
 
-NEXT STEPS:
-→ Try changing the predicted_prices and see how loss changes
+다음 단계:
+→ predicted_prices를 바꾸어 손실이 어떻게 달라지는지 보라
 → Learn about other loss functions (MAE, Huber, etc.)
-→ Understand how optimizers use loss to improve the model
+→ 최적화기가 손실을 써서 모델을 어떻게 개선하는지 이해하라
 """)
 print("=" * 80)
 

@@ -176,25 +176,25 @@ print("=" * 60)
 # 6. 지식 베이스: 사전이나 온톨로지에서 찾는다
 
 print("""
-  Type 1: Keyword LF (simplest)
+  1형: 키워드 레이블링 함수(가장 단순)
   ──────────────────────────────
     @labeling_function()
     def lf_keyword(x):
         return SPAM if "subscribe" in x.text.lower() else ABSTAIN
 
-  Type 2: Pattern LF (regex)
+  2형: 패턴 레이블링 함수(정규식)
   ──────────────────────────────
     @labeling_function()
     def lf_regex(x):
         return SPAM if re.search(r"check.*out", x.text, re.I) else ABSTAIN
 
-  Type 3: Heuristic LF (metadata / structure)
+  3형: 어림 규칙 레이블링 함수(메타데이터 / 구조)
   ──────────────────────────────────────────────
     @labeling_function()
     def lf_short(x):
         return HAM if len(x.text.split()) < 5 else ABSTAIN
 
-  Type 4: NLP-based LF (requires preprocessing)
+  4형: 자연어 처리 기반 레이블링 함수(전처리가 필요하다)
   ────────────────────────────────────────────────
     from snorkel.preprocess.nlp import SpacyPreprocessor
     spacy = SpacyPreprocessor(text_field="text", doc_field="doc")
@@ -205,7 +205,7 @@ print("""
             return HAM
         return ABSTAIN
 
-  Type 5: External model LF
+  5형: 외부 모델 레이블링 함수
   ──────────────────────────────
     from textblob import TextBlob
 
@@ -214,7 +214,7 @@ print("""
         polarity = TextBlob(x.text).sentiment.polarity
         return HAM if polarity > 0.9 else ABSTAIN
 
-  Type 6: Programmatic LF factory (for scaling up)
+  6형: 프로그램으로 만드는 레이블링 함수 공장(규모 확장용)
   ─────────────────────────────────────────────────
     def make_keyword_lf(keywords, label):
         def lf(x):
@@ -254,7 +254,7 @@ print("=" * 60)
 
 
 def apply_lfs(data_points: List[DataPoint], lfs: List[Callable]) -> np.ndarray:
-    """Apply all labeling functions to all data points.
+    """모든 데이터 점에 모든 레이블링 함수를 적용한다.
 
     반환값:
         모양이 (n_samples, n_lfs)인 레이블 행렬 L.
@@ -270,7 +270,7 @@ def apply_lfs(data_points: List[DataPoint], lfs: List[Callable]) -> np.ndarray:
 
 
 def majority_vote(L: np.ndarray, tie_break: int = ABSTAIN) -> np.ndarray:
-    """Aggregate labels by majority vote.
+    """다수결로 레이블을 모은다.
 
     표본마다 (ABSTAIN을 뺀) 표를 세어 가장 많은 레이블을 고른다.
     동점이면 tie_break을 쓴다.
@@ -290,10 +290,10 @@ def majority_vote(L: np.ndarray, tie_break: int = ABSTAIN) -> np.ndarray:
 
 # Snorkel의 레이블 모델 (확률적)
 print("""
-  Majority Vote: simple but ignores LF accuracy differences.
+  다수결: 단순하지만 레이블링 함수마다 정확도가 다르다는 점을 무시한다.
 
-  Label Model (Snorkel): learns the accuracy and correlation of each
-  LF and produces probabilistic labels.
+  레이블 모델(Snorkel): 레이블링 함수마다 정확도와 상관을 학습하여
+  확률적 레이블을 만들어 낸다.
 
     from snorkel.labeling.model import LabelModel
 
@@ -329,7 +329,7 @@ print("=" * 60)
 
 
 def analyze_lfs(L: np.ndarray, lf_names: List[str]) -> None:
-    """Compute and display LF quality metrics.
+    """레이블링 함수의 품질 지표를 계산하여 보인다.
 
     적용률:  레이블링 함수가 기권하지 않은 표본의 비율
     겹침:   다른 레이블링 함수 하나 이상과 일치하는 표본의 비율
@@ -374,7 +374,7 @@ print()
 
 # Snorkel의 LFAnalysis
 print("""
-  Snorkel's built-in analysis:
+  Snorkel에 내장된 분석:
     from snorkel.labeling import LFAnalysis
 
     analysis = LFAnalysis(L=L_train, lfs=lfs)
@@ -400,7 +400,7 @@ print("=" * 60)
 #   6. 확률적 레이블로 최종 모델(예: BERT)을 학습시킨다
 
 print("""
-  Full Snorkel pipeline:
+  Snorkel 전체 파이프라인:
 
   # 1단계: 레이블링 함수 정의
   lfs = [lf_contains_link, lf_subscribe, lf_check_out,
@@ -512,12 +512,12 @@ print("Part 6: Financial Weak Supervision Use Cases")
 print("=" * 60)
 
 print("""
-  Weak supervision is especially valuable in finance where:
-  - Labeled data is scarce (proprietary, expensive to annotate)
-  - Domain experts can express heuristics but can't label 10K examples
-  - Patterns change over time (need rapid re-labeling)
+  약지도 학습은 다음과 같은 금융 분야에서 특히 값어치가 있다.
+  - 레이블 데이터가 드물다(독점적이고 주석 비용이 크다)
+  - 분야 전문가는 어림 규칙은 말할 수 있으나 1만 개를 일일이 레이블할 수는 없다
+  - 패턴이 시간에 따라 바뀐다(빠른 재레이블링이 필요하다)
 
-  Example: Earnings sentiment classification
+  예: 실적 감성 분류
   ───────────────────────────────────────────
   @labeling_function()
   def lf_beat_estimates(x):
@@ -554,25 +554,25 @@ print("""
           return BULLISH
       return ABSTAIN
 
-  Other financial applications:
+  그 밖의 금융 응용:
   ─────────────────────────────
-  1. SEC filing risk classification
-     LFs: keyword lists for each risk category, regex for regulatory
-     citations, NER for organization mentions
+  1. SEC 공시 위험 분류
+     레이블링 함수: 위험 범주별 키워드 목록, 규제 인용을 잡는 정규식,
+     기관 언급을 잡는 개체명 인식
 
-  2. News event detection
+  2. 뉴스 사건 탐지
      LFs: verb patterns ("acquired", "merged"), entity co-occurrence,
-     date proximity, source credibility
+     날짜 근접성, 출처 신뢰도
 
-  3. Credit risk assessment
-     LFs: financial ratio thresholds, industry benchmarks,
-     management change signals, debt covenant keywords
+  3. 신용 위험 평가
+     레이블링 함수: 재무 비율 임계값, 업종 기준치,
+     경영진 교체 신호, 부채 약정 키워드
 
-  4. ESG classification
-     LFs: environmental keywords, governance patterns,
-     regulatory compliance mentions, sustainability metrics
+  4. ESG 분류
+     레이블링 함수: 환경 키워드, 지배구조 패턴,
+     규제 준수 언급, 지속가능성 지표
 
-  Benefits over manual labeling:
+  수작업 레이블링에 견준 이점:
   ┌──────────────────────┬─────────────┬───────────────────┐
   │ Metric               │ Manual      │ Weak Supervision  │
   ├──────────────────────┼─────────────┼───────────────────┤

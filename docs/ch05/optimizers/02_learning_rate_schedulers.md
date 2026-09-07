@@ -443,7 +443,7 @@ print("""
    • Log it to see if schedule is working
    • Adjust if training is unstable or too slow
 
-NEXT STEPS:
+다음 단계:
 → Try different schedulers on your problem
 → Experiment with warmup strategies
 → Learn about cyclical learning rates

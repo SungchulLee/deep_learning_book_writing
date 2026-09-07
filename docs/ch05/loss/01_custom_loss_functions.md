@@ -43,26 +43,26 @@ print("-" * 80)
 print("""
 Standard losses (MSE, CrossEntropy) don't always match your goals:
 
-1. DOMAIN-SPECIFIC OBJECTIVES:
-   • Medical imaging: Dice loss for segmentation overlap
-   • Object detection: IoU loss for bounding boxes
-   • GANs: Adversarial losses
+1. 분야에 특화된 목적:
+   • 의료 영상: 분할 겹침을 재는 다이스 손실
+   • 객체 탐지: 경계 상자를 위한 IoU 손실
+   • GAN: 적대적 손실
 
-2. HANDLING DATA IMBALANCE:
-   • Focal loss for hard examples
-   • Weighted losses for rare classes
+2. 데이터 불균형 다루기:
+   • 어려운 예제를 위한 초점 손실
+   • 드문 클래스를 위한 가중 손실
 
-3. MULTI-TASK LEARNING:
-   • Combine multiple losses
-   • Balance different objectives
+3. 다중 과제 학습:
+   • 여러 손실을 결합한다
+   • 서로 다른 목적의 균형을 잡는다
 
-4. CUSTOM CONSTRAINTS:
-   • Physics-informed losses
-   • Enforce specific properties
+4. 맞춤 제약:
+   • 물리 지식을 반영한 손실
+   • 특정 성질을 강제한다
 
-5. RESEARCH & EXPERIMENTATION:
-   • Test new ideas
-   • Improve upon existing methods
+5. 연구와 실험:
+   • 새로운 착상을 시험한다
+   • 기존 방법을 개선한다
 """)
 
 # ============================================================================
@@ -160,12 +160,12 @@ print("-" * 80)
 
 print("""
 PROBLEM: Imbalanced datasets (e.g., 95% negative, 5% positive)
-  • Model can achieve 95% accuracy by always predicting negative
-  • Hard-to-classify examples get ignored
+  • 늘 음성으로 예측해도 정확도 95%가 나온다
+  • 분류하기 어려운 예제가 무시된다
   
-SOLUTION: Focal Loss
-  • Down-weights easy examples
-  • Focuses on hard examples
+해법: 초점 손실
+  • 쉬운 예제의 가중치를 낮춘다
+  • 어려운 예제에 집중한다
   • Formula: FL = -α(1-p)^γ log(p)
     where γ controls focusing (typical: 2)
 """)
@@ -256,8 +256,8 @@ print("DICE LOSS: For Segmentation Tasks")
 print("-" * 80)
 
 print("""
-DICE COEFFICIENT: Measures overlap between predictions and ground truth
-  • Used in medical image segmentation
+다이스 계수: 예측과 참값이 얼마나 겹치는지 잰다
+  • 의료 영상 분할에 쓴다
   • Range: 0 (no overlap) to 1 (perfect overlap)
   • Formula: Dice = 2|A ∩ B| / (|A| + |B|)
   
@@ -344,12 +344,12 @@ print("COMBINING MULTIPLE LOSS TERMS")
 print("-" * 80)
 
 print("""
-Often you want to optimize multiple objectives simultaneously:
-  • Reconstruction + Regularization
-  • Task loss + Consistency loss
+여러 목적을 한꺼번에 최적화하고 싶을 때가 많다.
+  • 재구성 + 정칙화
+  • 과제 손실 + 일관성 손실
   • Multiple task losses (multi-task learning)
   
-APPROACH: Weighted sum of losses
+접근: 손실의 가중합
   Total Loss = α₁ × Loss₁ + α₂ × Loss₂ + ...
 """)
 
@@ -413,28 +413,28 @@ print("-" * 80)
 
 print("""
 ✓ DO:
-  1. Use nn.Module base class for losses
+  1. 손실에는 nn.Module 기반 클래스를 쓴다
   2. Keep all operations in PyTorch (not numpy)
-  3. Test gradient flow with small examples
+  3. 작은 예제로 기울기 흐름을 시험한다
   4. Add numerical stability (smooth terms, clamps)
-  5. Document your loss function well
-  6. Provide default hyperparameters
-  7. Return scalar for backpropagation
+  5. 손실 함수를 잘 문서화한다
+  6. 기본 초매개변수를 제공한다
+  7. 역전파를 위해 스칼라를 돌려준다
   8. Consider numerical stability (avoid log(0), div by 0)
 
 ✗ DON'T:
   1. Use .item() inside loss (breaks gradients)
-  2. Use in-place operations carelessly
-  3. Forget to handle edge cases
-  4. Make loss dependent on non-tensor constants
-  5. Use operations that don't have gradients
+  2. 제자리 연산을 함부로 쓴다
+  3. 경계 상황 처리를 잊는다
+  4. 손실이 텐서가 아닌 상수에 의존하게 만든다
+  5. 기울기가 없는 연산을 쓴다
 
-TESTING YOUR LOSS:
+손실 시험하기:
   1. Check it returns correct shape (scalar)
   2. Verify gradients flow: loss.backward()
-  3. Test with known inputs/outputs
-  4. Compare with reference implementation if available
-  5. Check numerical stability with edge cases
+  3. 이미 아는 입력과 출력으로 시험한다
+  4. 참조 구현이 있으면 견주어 본다
+  5. 경계 상황에서 수치 안정성을 확인한다
 """)
 
 # 예: 사용자 정의 손실 시험하기
@@ -479,38 +479,38 @@ print("\n" + "=" * 80)
 print("KEY TAKEAWAYS")
 print("=" * 80)
 print("""
-1. Create custom losses when standard ones don't fit:
-   • Domain-specific objectives
-   • Handle data imbalance
-   • Multi-task learning
-   • Research experiments
+1. 표준 손실이 맞지 않을 때 맞춤 손실을 만든다.
+   • 분야에 특화된 목적
+   • 데이터 불균형 다루기
+   • 다중 과제 학습
+   • 연구 실험
 
-2. Two approaches:
-   • Function: Simple, for quick experiments
+2. 두 가지 접근:
+   • 함수: 단순하며 빠른 실험에 알맞다
    • Class (nn.Module): Professional, configurable, recommended
 
-3. Advanced loss examples:
-   • Focal Loss: For imbalanced classification
-   • Dice Loss: For segmentation overlap
-   • Combined Losses: Multiple objectives
+3. 고급 손실 예:
+   • 초점 손실: 불균형 분류용
+   • 다이스 손실: 분할 겹침용
+   • 결합 손실: 여러 목적
 
-4. Implementation tips:
-   • Use PyTorch operations only
-   • Return scalar for backpropagation
-   • Add numerical stability
-   • Test thoroughly
+4. 구현 요령:
+   • PyTorch 연산만 쓴다
+   • 역전파를 위해 스칼라를 돌려준다
+   • 수치 안정성을 더한다
+   • 철저히 시험한다
 
-5. Common patterns:
-   • Weighted losses for importance
-   • Combining multiple terms
-   • Class-balanced weights
-   • Hard example mining
+5. 흔한 패턴:
+   • 중요도를 반영한 가중 손실
+   • 여러 항 결합
+   • 클래스 균형 가중치
+   • 어려운 예제 캐기
 
-NEXT STEPS:
-→ Implement focal loss for your imbalanced dataset
-→ Experiment with loss combinations
-→ Create domain-specific losses for your problem
-→ Study papers for new loss functions
+다음 단계:
+→ 불균형 데이터셋에 초점 손실을 구현해 보라
+→ 손실 조합을 실험해 보라
+→ 문제에 맞는 분야 특화 손실을 만들어 보라
+→ 새로운 손실 함수를 다룬 논문을 살펴보라
 """)
 print("=" * 80)
 

@@ -435,7 +435,7 @@ print("""
    - CNN (covered later): 99%+
    - Our model: ~{test_accuracy:.1f}%
 
-NEXT STEPS:
+다음 단계:
 - Tutorial 07: Add validation set and regularization
 - Tutorial 08: Batch normalization
 - Tutorial 09: Deeper networks

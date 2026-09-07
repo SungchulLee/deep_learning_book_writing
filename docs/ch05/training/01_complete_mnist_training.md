@@ -511,7 +511,7 @@ print("""
    • StepLR scheduler (gradual learning rate decay)
    • Dropout (prevents overfitting)
 
-NEXT STEPS:
+다음 단계:
 → Experiment with different architectures
 → Try other optimizers (Adam, AdamW)
 → Add data augmentation

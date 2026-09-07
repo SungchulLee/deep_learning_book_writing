@@ -516,7 +516,7 @@ print("""
    • CNNs: Sometimes, especially if very deep
    • Simple networks: Rarely needed
 
-NEXT STEPS:
+다음 단계:
 → Add gradient monitoring to your training loops
 → Experiment with different clipping thresholds
 → Use gradient accumulation for larger effective batch sizes

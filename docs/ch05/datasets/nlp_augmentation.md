@@ -235,7 +235,7 @@ print("=" * 60)
 # 뜻을 지키면서 문장을 자연스럽게 바꾸어 쓴다.
 
 print("""
-  Back-translation pipeline using HuggingFace:
+  HuggingFace를 쓰는 역번역 파이프라인:
 
     from transformers import MarianMTModel, MarianTokenizer
 
@@ -308,7 +308,7 @@ print("=" * 60)
 
 
 class FinancialTextAugmenter:
-    """Multi-strategy text augmentation pipeline for financial NLP.
+    """금융 자연어 처리를 위한 다중 전략 텍스트 증강 파이프라인.
 
     여러 증강 전략을 설정 가능한 확률로 결합한다. 분야 특유의 어휘를 지켜야 하는
     금융 텍스트를 위해 설계되었다.
@@ -422,7 +422,7 @@ print(f"  Augmented lexical diversity (bigrams): {lexical_diversity(augmented_te
 print()
 
 print("""
-  Typical improvement from augmentation:
+  증강으로 얻는 일반적인 개선:
 
   ┌──────────────────┬──────────┬───────────────────┐
   │ Dataset Size     │ No Aug   │ With Aug (2x-5x)  │
@@ -433,8 +433,8 @@ print("""
   │ 10000 examples   │  0.87    │  0.88 (+1%)       │
   └──────────────────┴──────────┴───────────────────┘
 
-  Key insight: augmentation helps most with small datasets.
-  With enough data (>10K), the improvement diminishes.
+  핵심: 증강은 데이터셋이 작을 때 가장 큰 도움이 된다.
+  데이터가 충분하면(1만 개 이상) 개선 폭이 줄어든다.
 """)
 
 print("Done.")

@@ -162,22 +162,22 @@ print("-" * 80)
 
 print("""
 📊 USE MEAN SQUARED ERROR (MSE) when:
-   ✓ You have clean data with few outliers
-   ✓ Large errors should be penalized heavily
-   ✓ You want smooth gradients for optimization
-   ✓ Example: Predicting house prices in a stable market
+   ✓ 데이터가 깨끗하고 이상치가 적다
+   ✓ 큰 오차에 큰 벌점을 주어야 한다
+   ✓ 최적화를 위해 매끄러운 기울기를 원한다
+   ✓ 예: 안정된 시장에서 집값 예측
 
 📏 USE MEAN ABSOLUTE ERROR (MAE) when:
-   ✓ Your data has outliers
-   ✓ All errors should be treated more equally
-   ✓ You want the error in the same units as your data
+   ✓ 데이터에 이상치가 있다
+   ✓ 모든 오차를 더 고르게 다루어야 한다
+   ✓ 오차를 데이터와 같은 단위로 보고 싶다
    ✓ Example: Predicting delivery times (traffic outliers common)
 
 🎯 USE SMOOTH L1 LOSS (Huber) when:
-   ✓ You want robustness to outliers
-   ✓ But still want smooth optimization
-   ✓ Best for real-world data with occasional anomalies
-   ✓ Example: Object detection bounding box regression
+   ✓ 이상치에 강건하기를 바란다
+   ✓ 그러면서도 매끄러운 최적화를 원한다
+   ✓ 이따금 이상값이 섞인 실제 데이터에 가장 알맞다
+   ✓ 예: 객체 탐지의 경계 상자 회귀
 """)
 
 # ============================================================================
@@ -250,26 +250,26 @@ print("\n" + "=" * 80)
 print("KEY TAKEAWAYS")
 print("=" * 80)
 print("""
-1. Different loss functions handle errors differently:
-   • MSE: Squares errors → very sensitive to outliers
-   • MAE: Absolute errors → robust to outliers
-   • Smooth L1: Hybrid → best of both worlds
+1. 손실 함수마다 오차를 다르게 다룬다.
+   • MSE: 오차를 제곱한다 → 이상치에 매우 민감하다
+   • MAE: 절대 오차 → 이상치에 강건하다
+   • Smooth L1: 혼합형 → 두 방식의 장점을 함께 지닌다
 
-2. Loss choice impacts training:
-   • MSE pushes model to fit outliers aggressively
-   • MAE treats all errors more equally
-   • Smooth L1 balances between the two
+2. 손실 선택은 학습에 영향을 준다.
+   • MSE는 모델이 이상치에 무리하게 맞추도록 밀어붙인다
+   • MAE는 모든 오차를 더 고르게 다룬다
+   • Smooth L1은 둘 사이에서 균형을 잡는다
 
-3. Choose based on your data:
-   • Clean data → MSE
-   • Noisy/outliers → MAE or Smooth L1
-   • General purpose → Smooth L1
+3. 데이터에 맞추어 고른다.
+   • 깨끗한 데이터 → MSE
+   • 잡음이나 이상치 → MAE 또는 Smooth L1
+   • 범용 → Smooth L1
 
-4. All three losses are differentiable and work with PyTorch autograd
+4. 세 손실 모두 미분 가능하며 PyTorch 자동 미분과 함께 쓸 수 있다
 
-NEXT STEPS:
-→ Try with your own data
-→ Experiment with different outlier magnitudes
+다음 단계:
+→ 자신의 데이터로 시도해 보라
+→ 이상치의 크기를 달리하여 실험해 보라
 → Learn about classification losses (CrossEntropy, etc.)
 """)
 print("=" * 80)

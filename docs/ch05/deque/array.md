@@ -86,7 +86,7 @@ $$
 # === 원형 배열 덱 ===
 
 class ArrayDeque:
-    """A double-ended queue backed by a circular array.
+    """순환 배열로 뒷받침한 양방향 큐.
 
     네 가지 넣기/빼기 연산이 모두 상각 O(1) 시간에 돌아간다.
     내부 배열은 가득 차면 두 배로 늘고 4분의 1만 차면 절반으로 준다.
