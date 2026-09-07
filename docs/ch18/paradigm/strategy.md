@@ -8,7 +8,7 @@
 
 나누어 이기기 알고리즘은 크기 $n$인 문제를 세 단계로 풀어낸다:
 
-1. **Divide** the problem into $a \ge 1$ subproblems, each of size roughly $n / b$ for some $b > 1$.
+1. 문제를 잔문제 $a \ge 1$개로 **나눈다**. 어떤 $b > 1$에 대해 잔문제의 크기는 대략 $n / b$이다.
 2. 작은 문제마다 되돌이로 **이긴다**. 작은 문제가 충분히 작아지면 **바탕 경우**로 곧바로 푼다.
 3. 작은 문제의 풀이를 본디 문제의 풀이로 **아우른다**.
 
@@ -16,13 +16,13 @@
 
 ## 나누어 이기기가 되는 까닭
 
-Consider a problem of size $n$ that we split into $a$ subproblems each of size $n/b$. If solving the full problem directly takes $\Theta(n^c)$ work for some constant $c$, then the recursive approach replaces a single $\Theta(n^c)$ computation with $a$ computations of size $(n/b)^c = n^c / b^c$, plus the overhead $D(n)$ of dividing and $C(n)$ of combining. The total work at the top level is therefore
+크기 $n$인 문제를 크기 $n/b$인 잔문제 $a$개로 쪼갠다고 하자. 어떤 상수 $c$에 대해 온 문제를 곧바로 푸는 데 $\Theta(n^c)$ 일감이 든다면, 되부르는 길은 $\Theta(n^c)$ 셈 하나를 크기 $(n/b)^c = n^c / b^c$인 셈 $a$개와 나누는 덤 $D(n)$, 아우르는 덤 $C(n)$으로 갈음한다. 그러므로 맨 위 켜의 온 일감은 다음과 같다.
 
 $$
 a \cdot \left(\frac{n}{b}\right)^c + D(n) + C(n)
 $$
 
-When $a < b^c$, the subproblem work shrinks geometrically at each level, and the algorithm is faster than the brute-force approach. When $a > b^c$, the work grows at each level but the depth is only $\log_b n$, so the total is still bounded. The precise trade-off is captured by the **Master Theorem**, analyzed in detail on the [Recurrence Analysis](recurrence.md) page.
+$a < b^c$이면 잔문제의 일감이 켜마다 기하로 줄어들어 알고리즘이 막무가내로 하는 길보다 빠르다. $a > b^c$이면 켜마다 일감이 늘지만 깊이가 $\log_b n$뿐이라 모두 합쳐도 마디가 지어진다. 이 맞바꿈을 딱 잡아내는 것이 **으뜸 정리**이며 [되돌이 식 살피기](recurrence.md) 쪽에서 꼼꼼히 다룬다.
 
 ## 엄밀한 얼거리
 
@@ -38,19 +38,19 @@ $$
 - $b$은 문제 크기가 줄어드는 비율,
 - $f(n)$은 나누고 아우르는 값을 담는다.
 
-The **base case** is $T(n) = \Theta(1)$ for $n \le n_0$, where $n_0$ is a small constant. Choosing the right base case is important for practical efficiency: switching to an $O(n^2)$ algorithm when $n$ drops below a threshold (e.g., insertion sort for small arrays inside merge sort) can significantly reduce constant factors.
+**밑 자리**는 $n \le n_0$일 때 $T(n) = \Theta(1)$이며 $n_0$은 작은 상수다. 밑 자리를 잘 고르는 일은 참으로 잘 도는 데 종요롭다. $n$이 문턱 아래로 내려갈 때 $O(n^2)$ 알고리즘으로 갈아타면(합치기 줄 세우기 안에서 작은 배열에 끼워넣기 줄 세우기를 쓰는 따위) 상수 값이 크게 줄 수 있다.
 
 ## 나누어 이기기 알고리즘 꾸미기
 
 나누어 이기기 풀이를 만들려면 네 물음에 답해야 한다:
 
-1. **How to divide?** Choose a splitting strategy that produces balanced subproblems. Unbalanced splits (e.g., $n - 1$ and $1$) lead to $O(n)$ recursion depth and often $O(n^2)$ total work.
+1. **어떻게 나눌까?** 잔문제가 고르게 나오는 쪼개기 꾀를 골라라. 고르지 않게 쪼개면($n - 1$과 $1$ 따위) 되부름 깊이가 $O(n)$이 되고 온 일감이 흔히 $O(n^2)$이 된다.
 2. **작은 문제는 몇 개인가?** $a$을 줄이는 것이 알고리즘을 빠르게 하는 가장 곧바른 길이다. 카라추바 곱셈은 곱셈 4번을 3번으로, 슈트라센 알고리즘은 8번을 7번으로 줄인다.
-3. **How to combine?** The combine step must run in low-order time (typically $O(n)$ or $O(n \log n)$) to keep the overall complexity favorable.
+3. **어떻게 아우를까?** 아우르는 걸음은 낮은 차수의 때(흔히 $O(n)$이나 $O(n \log n)$)에 끝나야 온 복잡도가 좋게 남는다.
 4. **바탕 경우는 무엇인가?** 바탕 경우가 너무 크면 품을 낭비하고, 너무 작으면 되돌이 덧짐이 지나치게 든다.
 
 !!! tip "고르게 쪼개면 깊이가 가장 좋아진다"
-    Splitting the problem into subproblems of roughly equal size ensures the recursion tree has depth $\Theta(\log n)$. This logarithmic depth is the fundamental source of efficiency in divide-and-conquer algorithms.
+    문제를 크기가 엇비슷한 잔문제로 쪼개면 되부름 나무의 깊이가 $\Theta(\log n)$이 된다. 이 로그 깊이가 나누어 다스리기 알고리즘이 잘 드는 밑바탕 까닭이다.
 
 ## 다른 틀과의 견줌
 
@@ -71,11 +71,11 @@ The **base case** is $T(n) = \Theta(1)$ for $n \le n_0$, where $n_0$ is a small 
 
 | 알고리즘 | $a$ | $b$ | $f(n)$ | $T(n)$ |
 |---|---|---|---|---|
-| Binary search | $1$ | $2$ | $O(1)$ | $O(\log n)$ |
+| 이분 찾기 | $1$ | $2$ | $O(1)$ | $O(\log n)$ |
 | Merge sort | $2$ | $2$ | $O(n)$ | $O(n \log n)$ |
-| Karatsuba multiplication | $3$ | $2$ | $O(n)$ | $O(n^{\log_2 3}) \approx O(n^{1.585})$ |
-| Strassen's matrix multiply | $7$ | $2$ | $O(n^2)$ | $O(n^{\log_2 7}) \approx O(n^{2.807})$ |
-| Closest pair of points | $2$ | $2$ | $O(n)$ | $O(n \log n)$ |
+| 카라추바 곱하기 | $3$ | $2$ | $O(n)$ | $O(n^{\log_2 3}) \approx O(n^{1.585})$ |
+| 슈트라센 행렬 곱하기 | $7$ | $2$ | $O(n^2)$ | $O(n^{\log_2 7}) \approx O(n^{2.807})$ |
+| 가장 가까운 점 짝 | $2$ | $2$ | $O(n)$ | $O(n \log n)$ |
 | FFT | $2$ | $2$ | $O(n)$ | $O(n \log n)$ |
 
 이 알고리즘은 저마다 [고전 나누어 이기기](../classic/binary_search.md) 절에서 자세히 다룬다.

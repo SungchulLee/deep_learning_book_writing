@@ -48,7 +48,7 @@
 
 ### 섞인 바탕 경우
 
-In practice, switching to a simpler algorithm below a threshold $n_0$ reduces constant-factor overhead. For example, merge sort implementations typically switch to insertion sort when $n \le 16$, because insertion sort's lower overhead makes it faster on small arrays despite its $O(n^2)$ worst case.
+참으로는 문턱 $n_0$ 아래에서 더 단순한 알고리즘으로 갈아타면 상수 값 덤이 준다. 보기로 합치기 줄 세우기는 흔히 $n \le 16$일 때 끼워넣기 줄 세우기로 갈아탄다. 끼워넣기 줄 세우기는 가장 나쁠 때가 $O(n^2)$이지만 덤이 적어 작은 배열에서는 더 빠르기 때문이다.
 
 문턱값 $n_0$은 점근 복잡도를 바꾸지 않지만 실제 성능을 상수 배 낫게 할 수 있다.
 
@@ -95,9 +95,9 @@ $$
 T(n) = a \, T\!\left(\frac{n}{b}\right) + f(n)
 $$
 
-- If $f(n) = O(n^{\log_b a - \epsilon})$ for some $\epsilon > 0$, the subproblem work dominates: $T(n) = \Theta(n^{\log_b a})$.
-- If $f(n) = \Theta(n^{\log_b a})$, the work is evenly distributed: $T(n) = \Theta(n^{\log_b a} \log n)$.
-- If $f(n) = \Omega(n^{\log_b a + \epsilon})$ and the regularity condition holds, the combine work dominates: $T(n) = \Theta(f(n))$.
+- 어떤 $\epsilon > 0$에 대해 $f(n) = O(n^{\log_b a - \epsilon})$이면 잔문제의 일감이 가장 크다: $T(n) = \Theta(n^{\log_b a})$.
+- $f(n) = \Theta(n^{\log_b a})$이면 일감이 고르게 퍼진다: $T(n) = \Theta(n^{\log_b a} \log n)$.
+- $f(n) = \Omega(n^{\log_b a + \epsilon})$이고 반듯함 조건이 이루어지면 아우르는 일감이 가장 크다: $T(n) = \Theta(f(n))$.
 
 이 되돌이 관계식을 푸는 자세한 이야기는 [되돌이 관계 살피기](recurrence.md) 쪽을 보라.
 
@@ -105,9 +105,9 @@ $$
 
 어울러 정렬은 세 단계를 모두 깔끔하게 보여 준다.
 
-**Divide.** Split the array at the midpoint: $\text{mid} = \lfloor (l + r) / 2 \rfloor$. Cost: $O(1)$.
+**나누기.** 배열을 가운데에서 쪼갠다: $\text{mid} = \lfloor (l + r) / 2 \rfloor$. 값: $O(1)$.
 
-**Conquer.** Recursively sort the left half $A[l \,..\, \text{mid}]$ and the right half $A[\text{mid}+1 \,..\, r]$.
+**다스리기.** 왼쪽 반 $A[l \,..\, \text{mid}]$과 오른쪽 반 $A[\text{mid}+1 \,..\, r]$을 되부르며 줄 세운다.
 
 **아우르기.** 정렬된 두 반쪽을 어울린다. 값: $O(n)$.
 
@@ -117,7 +117,7 @@ $$
 T(n) = 2T\!\left(\frac{n}{2}\right) + \Theta(n)
 $$
 
-By the Master Theorem (case 2, with $a = 2$, $b = 2$, $f(n) = \Theta(n)$, and $\log_b a = 1$), the solution is
+으뜸 정리(둘째 갈래, $a = 2$, $b = 2$, $f(n) = \Theta(n)$, $\log_b a = 1$)에 따라 풀이는 다음과 같다.
 
 $$
 T(n) = \Theta(n \log n)

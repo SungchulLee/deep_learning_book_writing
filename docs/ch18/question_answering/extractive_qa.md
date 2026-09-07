@@ -7,7 +7,7 @@
 
 ## 일 세우기
 
-Given a question $q$ and context passage $c$, extract the answer span $a = c_{i:j}$ where $i$ and $j$ are the start and end token positions:
+물음 $q$과 앞뒤 흐름 글월 $c$이 주어졌을 때 답 구간 $a = c_{i:j}$을 뽑아낸다. 여기서 $i$과 $j$은 비롯하는 토막 자리와 끝나는 토막 자리다.
 
 $$\hat{a} = \arg\max_{(i,j): i \leq j \leq i + L_{\max}} P(\text{start}=i \mid q, c) \cdot P(\text{end}=j \mid q, c)$$
 
@@ -90,7 +90,7 @@ $$s_{\text{span}} = \max_{i,j} (s_{\text{start},i} + s_{\text{end},j})$$
 
 $$s_{\text{null}} = s_{\text{start},[\text{CLS}]} + s_{\text{end},[\text{CLS}]}$$
 
-Predict "unanswerable" if $s_{\text{null}} > s_{\text{span}} + \tau$ where $\tau$ is a threshold tuned on the dev set.
+$s_{\text{null}} > s_{\text{span}} + \tau$이면 "답할 수 없음"으로 미루어 본다. 여기서 $\tau$은 개발 묶음에서 잡은 문턱이다.
 
 ## 긴 글월 다루기
 
@@ -119,7 +119,7 @@ BERT의 토막 512개 한계 때문에 긴 글월은 미끄러지는 창으로 �
 BERT 바탕 뽑아내는 물음 답하기 모델이 답 구간을 어떻게 어림하는지 설명하여라.
 
 ??? success "연습문제 2 풀이"
-    The input is formatted as `[CLS] question [SEP] context [SEP]`. BERT produces hidden states $h_1, \ldots, h_n$ for all tokens. Two linear layers predict start and end logits: $s_i = w_s^\top h_i$ and $e_i = w_e^\top h_i$. The predicted span is $(i^*, j^*)$ where $i^* = \arg\max_i s_i$, $j^* = \arg\max_{j \geq i^*} e_j$. Training uses cross-entropy loss on start and end positions independently. The confidence score is $\text{softmax}(s_{i^*}) \cdot \text{softmax}(e_{j^*})$.
+    들임은 `[CLS] question [SEP] context [SEP]` 꼴로 만든다. BERT은 모든 토막에 대해 숨은 상태 $h_1, \ldots, h_n$을 낸다. 선형 켜 둘이 비롯함과 끝남의 로짓을 미루어 본다. $s_i = w_s^\top h_i$과 $e_i = w_e^\top h_i$이다. 미루어 본 구간은 $(i^*, j^*)$이며 $i^* = \arg\max_i s_i$, $j^* = \arg\max_{j \geq i^*} e_j$이다. 익힐 때는 비롯하는 자리와 끝나는 자리에 각각 엇결 엔트로피 잃음을 쓴다. 자신 점수는 $\text{softmax}(s_{i^*}) \cdot \text{softmax}(e_{j^*})$이다.
 
 ---
 
@@ -127,7 +127,7 @@ BERT 바탕 뽑아내는 물음 답하기 모델이 답 구간을 어떻게 어�
 SQuAD 값매김에 쓰이는 F1 잣대는 무엇인가? 일부만 맞는 경우를 어떻게 다루는가?
 
 ??? success "연습문제 3 풀이"
-    SQuAD F1 treats the prediction and ground truth as bags of tokens. Precision = (shared tokens) / (predicted tokens), Recall = (shared tokens) / (gold tokens), $F_1 = 2PR/(P+R)$. This handles partial matches: predicting "New York" when the gold is "New York City" gets $F_1 = 2 \cdot (2/2) \cdot (2/3) / (1 + 2/3) = 0.8$ rather than zero. Exact Match (EM) is the stricter metric, giving 1 only for exact string match after normalization (lowercasing, removing articles/punctuation).
+    SQuAD F1은 미루어 본 것과 참값을 토막 자루로 본다. 정밀도 = (겹치는 토막) / (미루어 본 토막), 재현율 = (겹치는 토막) / (참 토막)이고 $F_1 = 2PR/(P+R)$이다. 이러면 반쯤 맞은 것도 다룰 수 있다. 참값이 "New York City"인데 "New York"으로 미루어 보면 0이 아니라 $F_1 = 2 \cdot (2/2) \cdot (2/3) / (1 + 2/3) = 0.8$을 얻는다. 딱 맞음(EM)은 더 깐깐한 자로, 잣대를 맞춘 뒤(소문자로 바꾸고 관사와 문장 부호를 없앤 뒤) 글자열이 딱 같을 때만 1을 준다.
 
 ---
 
@@ -135,4 +135,4 @@ SQuAD 값매김에 쓰이는 F1 잣대는 무엇인가? 일부만 맞는 경우�
 물음 답하기 체계는 주어진 맥락으로 답할 수 없는 물음임을 어떻게 정할 수 있는가?
 
 ??? success "연습문제 4 풀이"
-    In SQuAD 2.0, some questions have no answer in the passage. The model learns a "no-answer" score, typically the score of predicting the `[CLS]` token as the start and end (a null span). If the null span score exceeds the best non-null span score by a threshold $\tau$, the model predicts "unanswerable." The threshold $\tau$ is tuned on the development set to balance precision and recall of the no-answer prediction. Alternatively, a separate binary classifier can predict answerability before span extraction.
+    SQuAD 2.0에서는 글월 안에 답이 없는 물음도 있다. 모델은 "답 없음" 점수를 배우는데, 흔히 `[CLS]` 토막을 비롯함이자 끝남으로 미루어 본 점수(빈 구간)다. 빈 구간 점수가 가장 좋은 빈 구간 아닌 점수보다 문턱 $\tau$만큼 크면 모델은 "답할 수 없음"으로 미루어 본다. 문턱 $\tau$은 답 없음 미루어 봄의 정밀도와 재현율을 저울질하도록 개발 묶음에서 잡는다. 아니면 구간을 뽑기 앞에 따로 둘 가름개를 두어 답할 수 있는지 미루어 볼 수도 있다.

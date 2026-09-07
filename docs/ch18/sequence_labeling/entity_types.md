@@ -53,7 +53,7 @@
 |------|----------|----------|
 | 회사 | "Goldman Sachs", "AAPL" | 종목 기호에 잇기 |
 | 금융 상품 | "10-year Treasury", "S&P 500" | 자산 꾸러미 살피기 |
-| Monetary Amount | "\$2.3 billion", "€50M" | Earnings extraction |
+| 돈 액수 | "\$23억", "€5천만" | 실적 뽑기 |
 | 경제 지표 | "GDP", "CPI", "unemployment rate" | 거시 살피기 |
 | 날짜/기간 | "Q3 2024", "fiscal year" | 때 맞추기 |
 | 규제 기관 | "SEC", "Fed", "ECB" | 규정 지킴 살피기 |
@@ -89,11 +89,11 @@ Entity
 
 ### 수식으로 나타내기
 
-Given entity mention $m$ with context $c$, predict a set of types $\mathcal{T}_m \subseteq \mathcal{T}$:
+앞뒤 흐름 $c$과 함께 개체 언급 $m$이 주어졌을 때 갈래 묶음 $\mathcal{T}_m \subseteq \mathcal{T}$을 미루어 본다.
 
 $$P(\mathcal{T}_m | m, c) = \prod_{t \in \mathcal{T}} P(t \in \mathcal{T}_m | m, c)$$
 
-Subject to hierarchical consistency: if $t \in \mathcal{T}_m$ and $t'$ is an ancestor of $t$, then $t' \in \mathcal{T}_m$.
+층 얼개가 앞뒤 맞아야 한다. $t \in \mathcal{T}_m$이고 $t'$이 $t$의 윗갈래이면 $t' \in \mathcal{T}_m$이다.
 
 ---
 
@@ -109,11 +109,11 @@ Subject to hierarchical consistency: if $t \in \mathcal{T}_m$ and $t'$ is an anc
 
 ### 표시하는 사람들 사이의 일치
 
-Measure taxonomy quality via Cohen's $\kappa$ or Fleiss' $\kappa$ on pilot annotations:
+맛보기로 단 주석에 코헨의 $\kappa$이나 플라이스의 $\kappa$을 써서 갈래 나누기의 좋음을 잰다.
 
 $$\kappa = \frac{p_o - p_e}{1 - p_e}$$
 
-where $p_o$ is observed agreement and $p_e$ is expected agreement by chance. Target $\kappa > 0.8$ for reliable annotation.
+여기서 $p_o$은 살펴본 맞음이고 $p_e$은 어쩌다 맞을 바라는 값이다. 믿을 만한 주석을 얻으려면 $\kappa > 0.8$을 노린다.
 
 ---
 
@@ -159,7 +159,7 @@ BIO 이름표 방식을 설명하여라. 월 "Barack Obama visited New York City
 차례 이름표 붙이기에서 자리마다 따로 소프트맥스로 갈래를 매기는 대신 두 방향 LSTM 위에 CRF 층을 얹는 까닭은 무엇인가?
 
 ??? success "연습문제 2 풀이"
-    Independent softmax treats each position's label independently, ignoring transition constraints. For example, it might predict I-PER following O, which is invalid in BIO tagging. A CRF layer models the joint probability of the entire label sequence, learning a transition matrix $A_{ij}$ that captures which tag transitions are valid. The CRF score for a sequence is $s(x, y) = \sum_t (E_{y_t, t} + A_{y_t, y_{t+1}})$, where $E$ is the emission score from BiLSTM. This ensures globally consistent predictions via Viterbi decoding.
+    자리마다 따로 소프트맥스를 쓰면 이름표를 서로 아랑곳없이 다루어 넘어감의 매임을 버린다. 보기로 O 뒤에 I-PER을 미루어 볼 수 있는데, BIO 이름 붙이기에서는 옳지 않다. CRF 켜는 이름표 이음 전체의 함께 확률을 모델로 삼아, 어떤 이름표 넘어감이 옳은지 담는 넘어감 행렬 $A_{ij}$을 배운다. 이음의 CRF 점수는 $s(x, y) = \sum_t (E_{y_t, t} + A_{y_t, y_{t+1}})$이며 $E$은 두 방향 LSTM에서 나온 내보냄 점수다. 이러면 비터비 풀기로 두루 앞뒤가 맞는 미루어 봄을 얻는다.
 
 ---
 
@@ -167,7 +167,7 @@ BIO 이름표 방식을 설명하여라. 월 "Barack Obama visited New York City
 것 수준에서의 이름 알아보기 값매김에 쓰는 정밀도, 재현율, F1 점수를 설명하여라. 것 수준 값매김이 토막 수준보다 왜 더 빡빡한가?
 
 ??? success "연습문제 3 풀이"
-    **Entity-level** evaluation requires both the entity boundary and type to be exactly correct. Precision = (correctly predicted entities) / (total predicted entities). Recall = (correctly predicted entities) / (total gold entities). $F_1 = 2 \cdot \frac{P \cdot R}{P + R}$. This is stricter than token-level because: a prediction "New York" when the gold entity is "New York City" gets partial credit at the token level (2/3 tokens correct) but zero credit at the entity level (boundary mismatch). Entity-level metrics better reflect real-world utility.
+    **개체 수준** 따지기는 개체의 테두리와 갈래가 모두 딱 맞아야 한다. 정밀도 = (옳게 미루어 본 개체) / (미루어 본 개체 모두). 재현율 = (옳게 미루어 본 개체) / (참 개체 모두). $F_1 = 2 \cdot \frac{P \cdot R}{P + R}$이다. 이는 토막 수준보다 깐깐하다. 참 개체가 "New York City"인데 "New York"으로 미루어 보면 토막 수준에서는 반쯤 점수를 받지만(토막 3개 가운데 2개가 맞다) 개체 수준에서는 0점이다(테두리가 어긋난다). 개체 수준의 자가 참 세상의 쓸모를 더 잘 비춘다.
 
 ---
 
@@ -175,8 +175,8 @@ BIO 이름표 방식을 설명하여라. 월 "Barack Obama visited New York City
 두 방향 LSTM은 양쪽 방향의 맥락을 어떻게 담아내는가? 자리 $t$에서의 숨은 상태 셈을 적어라.
 
 ??? success "연습문제 4 풀이"
-    A BiLSTM consists of a forward LSTM processing $x_1, \ldots, x_T$ and a backward LSTM processing $x_T, \ldots, x_1$:
+    두 방향 LSTM은 $x_1, \ldots, x_T$을 다루는 앞으로 가는 LSTM과 $x_T, \ldots, x_1$을 다루는 뒤로 가는 LSTM으로 이루어진다.
 
     $$\overrightarrow{h}_t = \text{LSTM}_{\text{fwd}}(x_t, \overrightarrow{h}_{t-1}), \quad \overleftarrow{h}_t = \text{LSTM}_{\text{bwd}}(x_t, \overleftarrow{h}_{t+1})$$
 
-    The final representation at position $t$ is the concatenation $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$, which captures both left context (through $\overrightarrow{h}_t$) and right context (through $\overleftarrow{h}_t$). This is critical for NER since entity recognition often depends on surrounding words in both directions.
+    자리 $t$의 마지막 나타냄은 이어 붙인 $h_t = [\overrightarrow{h}_t; \overleftarrow{h}_t]$이며, 왼쪽 앞뒤 흐름($\overrightarrow{h}_t$을 거쳐)과 오른쪽 앞뒤 흐름($\overleftarrow{h}_t$을 거쳐)을 모두 담는다. 개체명 알아내기에서는 둘레 낱말이 양쪽에서 걸리는 일이 잦으므로 이것이 종요롭다.
