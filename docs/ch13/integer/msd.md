@@ -4,7 +4,7 @@ LSD 기수 정렬은 최하위 자리에서 최상위 자리로 나아가며 안
 
 ## 알고리즘 훑어보기
 
-Given $n$ elements with at most $d$ digit positions in base $r$:
+밑 $r$에서 자릿수가 많아야 $d$인 원소 $n$개가 주어졌을 때
 
 1. 지금(남은 자리 가운데 최상위) 자리에 따라 배열을 양동이 $r$개로 **나눈다**.
 2. 원소가 둘 이상인 양동이마다 다음 자리로 옮겨 가며 **되돌이한다**.
@@ -62,7 +62,7 @@ $$
 문자열에서는 문자열 $s$의 자리 $i$의 값이 다음과 같다.
 
 - $i < \text{len}(s)$이면 $s[i]$
-- A sentinel value $-1$ (sorting before all real characters) if $i \ge \text{len}(s)$
+- $i \ge \text{len}(s)$이면 파수 값 $-1$(참 글자보다 앞에 놓인다)
 
 그래서 "cat"이 "cats"보다 앞선다(짧은 문자열의 파수병이 's'보다 앞선다).
 

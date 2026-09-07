@@ -4,7 +4,7 @@
 
 ## 알고리즘 훑어보기
 
-Counting sort operates in three phases:
+세기 줄 세우기는 세 마디로 돈다.
 
 1. **세기.** 입력 배열 $A[0 \dots n-1]$을 훑어 도수 배열 $C[0 \dots k]$을 만든다. 여기서 $C[j]$은 값이 $j$인 원소의 개수이다.
 2. **쌓기.** $C$을 앞부분 합 배열로 바꾸어 $C[j]$이 $j$ *이하*인 원소의 개수를 담게 한다. 이 걸음 뒤 $C[j]$은 출력에서 값 $j$을 담아야 할 마지막 첨자(1부터 세는)를 알려 준다.
@@ -12,7 +12,7 @@ Counting sort operates in three phases:
 
 ## 복잡도
 
-Let $n$ denote the number of elements and $k$ the range of values.
+$n$을 원소 수, $k$을 값의 범위라 하자.
 
 $$
 T(n, k) = \Theta(n + k), \qquad S(n, k) = \Theta(n + k)
@@ -24,14 +24,14 @@ $$
 
 ## 풀이 예제
 
-Consider the input array $A = [4, 2, 2, 8, 3, 3, 1]$ with $k = 8$.
+$k = 8$인 들임 배열 $A = [4, 2, 2, 8, 3, 3, 1]$을 보자.
 
 | Phase | State |
 |-------|-------|
 | Input | $[4, 2, 2, 8, 3, 3, 1]$ |
 | Count | $C = [0, 1, 2, 2, 1, 0, 0, 0, 1]$ |
 | Cumulate | $C = [0, 1, 3, 5, 6, 6, 6, 6, 7]$ |
-| Place (right-to-left) | Output: $[1, 2, 2, 3, 3, 4, 8]$ |
+| 놓기(오른쪽에서 왼쪽으로) | 내놓음: $[1, 2, 2, 3, 3, 4, 8]$ |
 
 쌓은 뒤 $C[3] = 5$은 값이 3 이하인 원소가 다섯 개라는 뜻이다. $A[5] = 3$을 만나면 첨자 $C[3] - 1 = 4$에 놓고 $C[3]$을 4로 줄여, 다음에 나오는 3이 첨자 3에 떨어지게 한다.
 
@@ -106,15 +106,15 @@ Input:  [4, 2, 2, 8, 3, 3, 1]
 Sorted: [1, 2, 2, 3, 3, 4, 8]
 ```
 
-## When to Use Counting Sort
+## 세기 줄 세우기를 쓸 때
 
-| Scenario | Recommendation |
+| 상황 | 권함 |
 |----------|---------------|
-| $k = O(n)$ | Ideal -- true $\Theta(n)$ performance |
-| $k \gg n$ | Avoid -- $\Theta(k)$ space and time waste |
-| Stability required | Preferred -- inherently stable |
-| Subroutine for radix sort | Standard choice |
-| Floating-point or string keys | Not applicable -- integer keys only |
+| $k = O(n)$ | 안성맞춤 — 참으로 $\Theta(n)$ 성능 |
+| $k \gg n$ | 피한다 — $\Theta(k)$의 공간과 시간을 버린다 |
+| 안정성이 필요할 때 | 알맞다 — 본디 안정하다 |
+| 기수 줄 세우기의 밑 함수 | 흔히 고르는 것 |
+| 뜨는 수나 글자열 열쇠 | 쓸 수 없다 — 정수 열쇠만 된다 |
 
 ## 참고 문헌
 

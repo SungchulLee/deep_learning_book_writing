@@ -4,7 +4,7 @@
 
 ## 바이토닉 수열
 
-A sequence $a_0, a_1, \dots, a_{n-1}$ is **bitonic** if there exists an index $k$
+이음 $a_0, a_1, \dots, a_{n-1}$이 **두 갈래**인 것은 다음을 채우는 자리 번호 $k$이 있을 때다
 이때 다음이 성립한다.
 
 $$
@@ -22,8 +22,8 @@ $$
 
 핵심 연산은 **바이토닉 병합**으로, 바이토닉 수열을 받아 정렬된 수열을 낸다. 길이가 $n$(2의 거듭제곱)인 바이토닉 수열이 주어지면 다음과 같이 한다.
 
-1. Compare elements at distance $n/2$: pair $(a_i, a_{i + n/2})$ for $i = 0, \dots, n/2 - 1$.
-2. For each pair, swap if the element at position $i$ is greater (for ascending order).
+1. 거리 $n/2$만큼 떨어진 원소를 견준다. 곧 $i = 0, \dots, n/2 - 1$에 대해 짝 $(a_i, a_{i + n/2})$을 본다.
+2. 짝마다 자리 $i$의 원소가 더 크면 맞바꾼다(오름차순일 때).
 3. 이 걸음 뒤에 두 반쪽이 저마다 바이토닉이 되고, 앞쪽 반의 모든 원소가 뒤쪽 반의 모든 원소보다 작거나 같아진다.
 4. 반쪽마다 바이토닉 병합을 되돌이로 쓴다.
 
@@ -33,11 +33,11 @@ $$
 
 바이토닉 정렬은 바이토닉 수열을 만들고 병합하기를 번갈아 하며 정렬된 수열을 쌓아 올린다.
 
-1. Start with $n$ individual elements (each trivially sorted).
-2. For each block size $s = 2, 4, 8, \dots, n$:
+1. 낱낱의 원소 $n$개에서 비롯한다(저마다 이미 줄 세워져 있다).
+2. 덩이 크기 $s = 2, 4, 8, \dots, n$마다
     - 크기 $s/2$의 이웃한 블록을 짝짓는다.
     - 한 블록은 오름차순으로, 다른 블록은 내림차순으로 정렬해 크기 $s$의 바이토닉 수열을 만든다.
-    - Apply bitonic merge to produce a sorted sequence of size $s$.
+    - 두 갈래 합치기를 걸어 크기 $s$의 줄 세운 이음을 만든다.
 
 ## 복잡도
 
@@ -51,11 +51,11 @@ $$
 
 이 알고리즘은 단계를 $\log_2 n$번 거치고 단계 $k$에는 견줌 회차가 $k$번 있어, 모두 $\frac{1}{2}\log_2 n \cdot (\log_2 n + 1)$번의 병렬 걸음이 든다.
 
-**Space:** $O(n)$ -- the sort is in-place (only swaps are needed).
+**공간:** $O(n)$ — 제자리에서 줄 세운다(맞바꿈만 있으면 된다).
 
 ## 풀이 예제
 
-Sort $A = [3, 7, 4, 8, 6, 2, 1, 5]$ using bitonic sort (ascending).
+두 갈래 줄 세우기로 $A = [3, 7, 4, 8, 6, 2, 1, 5]$을 오름차순으로 줄 세워라.
 
 **단계 1(크기 2 블록):** 쌍을 오름차순과 내림차순으로 번갈아 정렬한다.
 

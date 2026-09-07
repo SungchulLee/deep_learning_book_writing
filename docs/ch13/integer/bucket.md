@@ -8,12 +8,12 @@ $[0, 1)$에 고르게 흩어진 원소 $n$개가 주어졌을 때
 
 1. 빈 통 $n$개 $B[0], B[1], \dots, B[n-1]$을 **만든다**.
 2. **나눈다.** 원소 $x$마다 통 $B[\lfloor n \cdot x \rfloor]$에 넣는다.
-3. **Sort** each bucket individually (insertion sort works well since buckets are small).
-4. **Concatenate** all buckets in order to produce the sorted output.
+3. 통마다 따로 **줄 세운다**(통이 작으므로 끼워넣기 줄 세우기가 잘 듣는다).
+4. 모든 통을 차례로 **이어 붙여** 줄 세운 내놓음을 만든다.
 
 ## 복잡도
 
-### Expected time (uniform input)
+### 기대 시간(고른 들임)
 
 입력값 $n$개를 $[0, 1)$에서 서로 독립으로 고르게 뽑으면 양동이마다의 기대 원소 수는 1이다. 양동이 $i$의 원소 수를 $n_i$이라 하자. 모든 양동이를 끼워넣기 정렬로 정렬하는 기대 비용은 다음과 같다.
 
@@ -27,7 +27,7 @@ $$
 \text{기대 전체 비용} = \sum_{i=0}^{n-1} O(2 - 1/n) = O(n)
 $$
 
-Adding $\Theta(n)$ for distribution and concatenation:
+나누기와 이어 붙이기에 드는 $\Theta(n)$을 더하면
 
 $$
 T(n) = \Theta(n) \quad \text{(고른 입력에서의 기대값)}
@@ -43,13 +43,13 @@ $$
 S(n) = \Theta(n)
 $$
 
-The $n$ buckets collectively store $n$ elements plus the bucket structure overhead.
+통 $n$개가 다 합쳐 원소 $n$개와 통 짜임의 덤을 담는다.
 
 ## 풀이 예제
 
 양동이 $n = 10$개로 $A = [0.78, 0.17, 0.39, 0.26, 0.72, 0.94, 0.21, 0.12, 0.23, 0.68]$을 정렬해 보자.
 
-| Bucket | Elements | After sort |
+| 통 | 원소 | 줄 세운 뒤 |
 |--------|----------|------------|
 | $B[0]$ | -- | -- |
 | $B[1]$ | $0.17, 0.12$ | $0.12, 0.17$ |
@@ -61,9 +61,9 @@ The $n$ buckets collectively store $n$ elements plus the bucket structure overhe
 | $B[8]$ | -- | -- |
 | $B[9]$ | $0.94$ | $0.94$ |
 
-Concatenating: $[0.12, 0.17, 0.21, 0.23, 0.26, 0.39, 0.68, 0.72, 0.78, 0.94]$.
+이어 붙이면 $[0.12, 0.17, 0.21, 0.23, 0.26, 0.39, 0.68, 0.72, 0.78, 0.94]$이다.
 
-## Generalizing to Arbitrary Ranges
+## 아무 범위로 넓히기
 
 입력이 $[0, 1)$이 아니라 $[a, b)$에 있으면 원소 $x$마다 양동이 첨자 $\lfloor n \cdot (x - a) / (b - a) \rfloor$으로 옮기고, $x = b$이면 $n - 1$으로 묶는다.
 
@@ -154,15 +154,15 @@ Input:  [0.78, 0.17, 0.39, 0.26, 0.72, 0.94, 0.21, 0.12, 0.23, 0.68]
 Sorted: [0.12, 0.17, 0.21, 0.23, 0.26, 0.39, 0.68, 0.72, 0.78, 0.94]
 ```
 
-## When to Use Bucket Sort
+## 통 줄 세우기를 쓸 때
 
-| Scenario | Recommendation |
+| 상황 | 권함 |
 |----------|---------------|
-| Uniform or near-uniform distribution | Ideal -- expected $\Theta(n)$ |
-| Highly skewed distribution | Avoid -- many elements in few buckets |
-| Floating-point keys in known range | Natural fit |
-| Integer keys, small range | Counting sort is simpler |
-| Stability required | Stable if the per-bucket sort is stable |
+| 고르거나 고름에 가까운 분포 | 안성맞춤 — 기대 $\Theta(n)$ |
+| 크게 치우친 분포 | 피한다 — 적은 통에 원소가 몰린다 |
+| 범위를 아는 뜨는 수 열쇠 | 자연스레 들어맞는다 |
+| 정수 열쇠, 좁은 범위 | 세기 줄 세우기가 더 단순하다 |
+| 안정성이 필요할 때 | 통마다의 줄 세우기가 안정하면 안정하다 |
 
 ## 참고 문헌
 

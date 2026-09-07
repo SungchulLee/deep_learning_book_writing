@@ -16,14 +16,14 @@ $$
 
 원소 $n$개를 위한 정렬 망은 짝 $(n, S)$이며, $S$은 $0 \le i_k < j_k < n$인 비교기의 열 $\{(i_1, j_1), (i_2, j_2), \dots, (i_m, j_m)\}$이다.
 
-Two key metrics characterize a sorting network:
+줄 세우기 그물을 가르는 고갱이 자는 둘이다.
 
 | 지표 | 정의 |
 |--------|-----------|
 | **크기** | 비교기의 총 개수 $m$ |
 | **깊이** | 병렬 걸음의 수(서로 겹치지 않는 줄의 비교기는 한꺼번에 돌 수 있다) |
 
-Depth determines the parallel time complexity, while size determines the total work.
+깊이가 나란한 시간 복잡도를 정하고 크기가 온 일감을 정한다.
 
 ## 0-1 원리
 
@@ -60,7 +60,7 @@ Depth determines the parallel time complexity, while size determines the total w
 
 ### AKS 망(가장 좋은 깊이)
 
-Ajtai, Komlos, and Szemeredi proved the existence of sorting networks with:
+아이타이, 코믈로시, 세메레디는 다음을 지닌 줄 세우기 그물이 있음을 밝혔다.
 
 - **깊이:** $O(\log n)$
 - **크기:** $O(n \log n)$
@@ -69,7 +69,7 @@ Ajtai, Komlos, and Szemeredi proved the existence of sorting networks with:
 
 ## 아래 한계
 
-Any sorting network for $n$ elements must have:
+원소 $n$개를 다루는 어떤 줄 세우기 그물도 다음을 지녀야 한다.
 
 $$
 \text{depth} \ge \lceil \log_2 n \rceil

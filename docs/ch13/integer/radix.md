@@ -4,7 +4,7 @@
 
 ## 기수 정렬이 굴러가는 얼개
 
-Given $n$ integers, each with at most $d$ digits in base $r$:
+저마다 밑 $r$에서 자릿수가 많아야 $d$인 정수 $n$개가 주어졌을 때
 
 1. $i = 1$부터 $d$까지(최하위 자리에서 최상위 자리로) 다음을 한다. - **안정한** 정렬로 $i$번째 자리에 따라 배열을 정렬한다.
 
@@ -24,9 +24,9 @@ $$
 T = \Theta\!\left(\frac{\log k}{\log n} \cdot n\right)
 $$
 
-When $k = O(n^c)$ for a constant $c$, this simplifies to $\Theta(n)$.
+어떤 상수 $c$에 대해 $k = O(n^c)$이면 이는 $\Theta(n)$으로 간추려진다.
 
-**Space:** $\Theta(n + r)$ for the counting-sort auxiliary arrays.
+**공간:** 세기 줄 세우기의 도움 배열에 $\Theta(n + r)$이 든다.
 
 ## 풀이 예제
 

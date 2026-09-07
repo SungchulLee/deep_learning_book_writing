@@ -4,22 +4,22 @@
 
 ## 병렬성이 나오는 곳
 
-Quicksort has two potential parallelism sites:
+빠른 줄 세우기에서 나란히 할 수 있는 자리는 둘이다.
 
 1. **되돌이 부분 문제.** 나눈 뒤 축 양쪽의 부분 배열은 서로 독립이다. 그것들을 나란히 정렬하기는 쉽다.
 2. **나누는 걸음 자체.** 보통의 로무토나 호어 나눔은 배열을 차례대로 훑는다. 병렬 나눔은 그 훑기를 프로세서들에 나눈다.
 
 ## 소박한 병렬 빠른 정렬
 
-The simplest parallel quicksort spawns a new task for each recursive call:
+가장 단순한 나란한 빠른 줄 세우기는 되부름마다 새 일감을 낳는다.
 
-1. Choose a pivot and partition the array sequentially in $O(n)$.
-2. Spawn two parallel tasks for the left and right sub-arrays.
-3. Wait for both tasks to complete.
+1. 굴대를 고르고 배열을 차례로 $O(n)$에 가른다.
+2. 왼쪽과 오른쪽 아래 배열에 대해 나란한 일감 둘을 낳는다.
+3. 두 일감이 모두 마치기를 기다린다.
 
 ### 복잡도(소박한 판)
 
-Let $W(n)$ and $S(n)$ denote work and span (critical path length).
+$W(n)$과 $S(n)$을 일감과 뻗음(고비 경로 길이)이라 하자.
 
 $$
 W(n) = O(n \log n) \quad \text{(same as sequential)}
@@ -33,30 +33,30 @@ $$
 
 ## 병렬 나눔
 
-To reduce the span, we can parallelize the partition step using a **prefix sum**:
+뻗음을 줄이려면 **머리말 합**을 써서 가르는 걸음을 나란히 할 수 있다.
 
-1. Divide the array into $p$ blocks, one per processor.
-2. Each processor counts how many elements in its block are $\le$ pivot and $>$ pivot.
+1. 배열을 처리기마다 하나씩 덩이 $p$개로 나눈다.
+2. 처리기마다 제 덩이에서 굴대보다 $\le$인 원소와 $>$인 원소가 몇 개인지 센다.
 3. 이 세기들의 앞부분 합을 셈해 블록마다 원소가 놓일 마지막 자리를 정한다.
-4. Each processor moves its elements to their final positions.
+4. 처리기마다 제 원소를 마지막 자리로 옮긴다.
 
-**Partition span:** $O(n/p + \log p)$ with $p$ processors.
+**가르기 뻗음:** 처리기가 $p$개일 때 $O(n/p + \log p)$.
 
 ### 나아진 복잡도
 
-With parallel partition and $p = n / \log n$ processors:
+나란한 가르기와 처리기 $p = n / \log n$개를 쓰면
 
 $$
 W(n) = O(n \log n), \qquad S(n) = O(\log^2 n) \quad \text{expected}
 $$
 
-The span comes from $O(\log n)$ recursion levels, each with $O(\log n)$ partition span.
+뻗음은 되부름 켜 $O(\log n)$개에서 오며 켜마다 가르기 뻗음이 $O(\log n)$이다.
 
 ## 짐 고르게 나누기의 어려움
 
 축의 질이 짐의 균형을 정한다. 축이 나쁘면 한쪽 부분 배열에 원소 대부분이 몰려 프로세서가 놀게 된다.
 
-**Strategies for better pivots:**
+**더 나은 굴대를 고르는 꾀:**
 
 | 전략 | 설명 | 짐 |
 |----------|-------------|----------|
@@ -65,18 +65,18 @@ The span comes from $O(\log n)$ recursion levels, each with $O(\log n)$ partitio
 | 표본 뽑기 | 원소 $O(\sqrt{n})$개를 무작위로 뽑아 중앙값을 쓴다 | $O(\sqrt{n})$ |
 | 정확한 중앙값 | 중앙값의 중앙값을 쓴다 | $O(n)$ — 취지를 무너뜨린다 |
 
-In practice, random pivots provide expected $O(\log n)$ depth with high probability.
+참으로는 마구잡이 굴대가 높은 확률로 기대 깊이 $O(\log n)$을 준다.
 
 ## 표본 정렬(병렬로 일반화하기)
 
-For $p$ processors, **sample sort** generalizes quicksort:
+처리기가 $p$개일 때 **표본 줄 세우기**가 빠른 줄 세우기를 넓힌다.
 
-1. Each processor sorts a random sample of its local elements.
-2. Select $p - 1$ **splitters** from the combined samples (evenly spaced).
-3. Use the splitters to partition all elements into $p$ buckets.
-4. Each processor sorts its bucket locally.
+1. 처리기마다 제 원소에서 마구잡이 표본을 뽑아 줄 세운다.
+2. 모은 표본에서 **가름쇠** $p - 1$개를 고른다(고르게 떨어지도록).
+3. 가름쇠로 모든 원소를 통 $p$개로 가른다.
+4. 처리기마다 제 통을 그 자리에서 줄 세운다.
 
-Sample sort achieves near-perfect load balance with high probability.
+표본 줄 세우기는 높은 확률로 거의 완벽한 짐 고르기를 이룬다.
 
 $$
 W(n) = O(n \log n), \qquad S(n) = O\!\left(\frac{n}{p} \log \frac{n}{p}\right)
