@@ -118,10 +118,10 @@ for epoch in range(num_epochs):
     print(f"Epoch {epoch}, LR: {current_lr}")
 
 RECOMMENDATIONS:
-- Start with constant LR to establish baseline
-- Use StepLR for simple decay
-- Use ReduceLROnPlateau for adaptive adjustment
-- Use CosineAnnealing for cyclical training
+- 기준선을 잡으려면 고정 학습률로 시작하라
+- 단순한 감쇠에는 StepLR을 쓰라
+- 적응적 조정에는 ReduceLROnPlateau를 쓰라
+- 순환 학습에는 CosineAnnealing을 쓰라
 """)
 plt.show()
 

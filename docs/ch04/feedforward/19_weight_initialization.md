@@ -77,28 +77,28 @@ print("="*70)
 print("""
 XAVIER (GLOROT) INITIALIZATION:
   Formula: U(-√(6/(n_in + n_out)), √(6/(n_in + n_out)))
-  Use for: Sigmoid, Tanh activations
-  Goal: Maintain variance across layers
+  쓰는 곳: 시그모이드, tanh 활성화
+  목표: 층 사이에서 분산을 유지한다
 
 HE (KAIMING) INITIALIZATION:
   Formula: U(-√(6/n_in), √(6/n_in))
-  Use for: ReLU and variants
-  Goal: Account for ReLU's non-linearity
+  쓰는 곳: ReLU와 그 변형
+  목표: ReLU의 비선형성을 반영한다
 
-NORMAL INITIALIZATION:
+정규 초기화:
   Formula: N(0, 0.01)
-  Use: Rarely, can be too small or large
+  쓰임: 드물다. 너무 작거나 클 수 있다
 
 ZEROS:
   Never use for weights! (breaks symmetry)
-  OK for biases
+  편향에는 괜찮다
 
 RECOMMENDATIONS:
   ReLU networks → He initialization (default in PyTorch)
-  Sigmoid/Tanh → Xavier initialization
-  Biases → Zeros or small constant
+  시그모이드나 tanh → 자비에르 초기화
+  편향 → 0이나 작은 상수
   
-PyTorch default: Kaiming uniform for Linear layers
+PyTorch 기본값: 선형층에 카이밍 균등 초기화
 """)
 
 # 가중치 분포 시각화

@@ -281,37 +281,37 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-MULTI-TASK LEARNING:
-✓ Share feature extraction across tasks
-✓ Separate task-specific heads for predictions
-✓ Combine losses with weighted sum
+다중 과제 학습:
+✓ 과제 사이에서 특징 추출을 공유한다
+✓ 예측에는 과제별 머리를 따로 둔다
+✓ 손실을 가중합으로 합친다
 ✓ Can improve generalization (regularization effect)
 
 구조:
-  Input → Shared Layers → Split → Task Heads → Outputs
+  입력 → 공유층 → 갈라짐 → 과제 머리 → 출력
 
 ADVANTAGES:
 + Shared representations (transfer learning effect)
-+ Better sample efficiency
-+ Implicit regularization
-+ Single model deployment
++ 표본 효율이 낫다
++ 암묵적인 정칙화 효과
++ 모델 하나만 배포하면 된다
 
 CHALLENGES:
-- Balancing task weights
-- Tasks may conflict
-- More complex training
+- 과제 가중치의 균형 잡기
+- 과제끼리 충돌할 수 있다
+- 학습이 더 복잡하다
 
 APPLICATIONS:
-- Multi-label classification
-- Joint prediction tasks
-- Auxiliary task learning
-- Cross-domain transfer
+- 다중 레이블 분류
+- 공동 예측 과제
+- 보조 과제 학습
+- 분야 간 전이
 
 TIPS:
-1. Start with equal task weights, adjust if needed
-2. Monitor each task's performance separately
-3. Use task-specific learning rates if needed
-4. Consider task uncertainty weighting
+1. 과제 가중치를 똑같이 두고 시작하여 필요하면 조정하라
+2. 과제마다 성능을 따로 살피라
+3. 필요하면 과제별 학습률을 쓰라
+4. 과제 불확실성 가중치를 고려하라
 """)
 plt.show()
 

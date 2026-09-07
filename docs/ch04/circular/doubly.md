@@ -47,7 +47,7 @@ class CircularDLL:
         return self.size == 0
 
     def insert(self, data):
-        """Insert a new node into the ring.
+        """고리에 새 노드를 넣는다.
 
         고리가 비어 있으면 새 노드는 자기 자신을 가리킨다.
         그렇지 않으면 새 노드를 접근 노드 뒤에 넣는다.
@@ -64,7 +64,7 @@ class CircularDLL:
         return new_node
 
     def delete(self, node):
-        """Remove a node from the ring.
+        """고리에서 노드를 뺀다.
 
         노드가 그것 하나뿐이면 고리는 비게 된다.
         """
@@ -105,7 +105,7 @@ class CircularDLL:
         return result
 
     def search(self, target):
-        """Search for a node with the given data value.
+        """주어진 데이터 값을 지닌 노드를 찾는다.
 
         찾으면 노드를, 없으면 None을 돌려준다.
         """

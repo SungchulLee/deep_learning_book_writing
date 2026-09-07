@@ -107,7 +107,7 @@ def search_value(head, target):
 
 # === 위치로 탐색 ===
 def search_position(head, k):
-    """Return the node at zero-based index k, or raise IndexError.
+    """0부터 세는 인덱스 k의 노드를 돌려주거나 IndexError를 일으킨다.
 
     시간: O(k), 공간: O(1).
     """
@@ -123,7 +123,7 @@ def search_position(head, k):
 
 # === 가운데 노드 찾기 ===
 def find_middle(head):
-    """Return the middle node using the slow/fast pointer technique.
+    """느린 포인터와 빠른 포인터 기법으로 가운데 노드를 돌려준다.
 
     길이가 짝수이면 가운데 두 노드 중 뒤쪽을 돌려준다.
     시간: O(n), 공간: O(1).

@@ -66,43 +66,43 @@ print("="*70)
 print("""
 ReLU (Rectified Linear Unit)
   Formula: f(x) = max(0, x)
-  Pros: Simple, fast, works well
+  장점: 단순하고 빠르며 잘 작동한다
   Cons: Dead neurons (neurons that output 0 for all inputs)
-  Use: Default choice for hidden layers
+  쓰임: 은닉층의 기본 선택
 
 Sigmoid
   Formula: f(x) = 1 / (1 + e^(-x))
   Pros: Smooth, bounded [0,1]
-  Cons: Vanishing gradients, slow convergence
-  Use: Binary classification output, gates in LSTMs
+  단점: 기울기 소실, 느린 수렴
+  쓰임: 이진 분류 출력, LSTM의 게이트
 
 Tanh
   Formula: f(x) = (e^x - e^(-x)) / (e^x + e^(-x))
   Pros: Zero-centered, bounded [-1,1]
-  Cons: Vanishing gradients
-  Use: Sometimes in RNNs, better than sigmoid for hidden layers
+  단점: 기울기 소실
+  쓰임: 때때로 RNN에서, 은닉층에서는 시그모이드보다 낫다
 
 LeakyReLU
   Formula: f(x) = max(0.1x, x)
-  Pros: Fixes dead ReLU problem, small gradient when x < 0
-  Cons: Inconsistent benefits
-  Use: When facing dead ReLU problems
+  장점: 죽은 ReLU 문제를 고치며 x < 0에서도 작은 기울기가 있다
+  단점: 이득이 한결같지 않다
+  쓰임: 죽은 ReLU 문제를 만났을 때
 
 ELU (Exponential Linear Unit)
   Formula: f(x) = x if x>0 else α(e^x - 1)
-  Pros: Smooth, mean activations closer to zero
-  Cons: More expensive to compute
-  Use: When ReLU doesn't work well
+  장점: 매끄럽고 평균 활성값이 0에 더 가깝다
+  단점: 계산 비용이 더 크다
+  쓰임: ReLU가 잘 안 될 때
 
 Softplus
   Formula: f(x) = log(1 + e^x)
-  Pros: Smooth approximation of ReLU
-  Cons: More expensive
-  Use: Rarely in practice, theoretical interest
+  장점: ReLU를 매끄럽게 근사한다
+  단점: 비용이 더 크다
+  쓰임: 실무에서는 드물고 이론적 관심 대상이다
 
 RECOMMENDATIONS:
   - Hidden layers: ReLU (default), LeakyReLU if needed
-  - Binary output: Sigmoid
+  - 이진 출력: 시그모이드
   - Multi-class output: Softmax (via CrossEntropyLoss)
   - Regression output: None (linear)
 """)

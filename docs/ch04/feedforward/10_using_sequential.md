@@ -326,36 +326,36 @@ print("\n" + "=" * 80)
 print("KEY TAKEAWAYS")
 print("=" * 80)
 print("""
-1. nn.Sequential is perfect for simple feed-forward architectures
-   - Clean, readable code
-   - Quick prototyping
-   - Less boilerplate than custom nn.Module
+1. nn.Sequential은 단순한 순전파 구조에 안성맞춤이다
+   - 깔끔하고 읽기 쉬운 코드
+   - 빠른 시제품 제작
+   - 맞춤 nn.Module보다 군더더기가 적다
 
-2. Three ways to use Sequential:
-   - Simple: Just pass layers in order
-   - Named: Use tuples for better debugging
-   - Modular: Compose reusable blocks
+2. Sequential을 쓰는 세 가지 방법:
+   - 단순: 층을 순서대로 넘기기만 한다
+   - 이름 붙이기: 디버깅을 돕도록 튜플을 쓴다
+   - 모듈화: 다시 쓸 수 있는 블록을 조립한다
 
-3. Limitations of Sequential:
-   ✗ Can't handle multiple inputs/outputs
-   ✗ No custom forward logic
-   ✗ No conditional execution
-   → Use custom nn.Module for these cases
+3. Sequential의 한계:
+   ✗ 여러 입력이나 출력을 다룰 수 없다
+   ✗ 맞춤 순전파 논리를 넣을 수 없다
+   ✗ 조건부 실행이 안 된다
+   → 이런 경우에는 맞춤 nn.Module을 쓰라
 
-4. Sequential models are fully compatible with:
-   ✓ All PyTorch training APIs
-   ✓ Model saving/loading
-   ✓ Transfer learning
-   ✓ Model inspection tools
+4. Sequential 모델은 다음과 온전히 호환된다.
+   ✓ 모든 PyTorch 학습 API
+   ✓ 모델 저장과 불러오기
+   ✓ 전이 학습
+   ✓ 모델 점검 도구
 
-5. You can access, slice, and modify Sequential models easily
+5. Sequential 모델은 접근, 자르기, 고치기가 쉽다
    - Access by index: model[0]
    - Slice: model[:3]
-   - Iterate: for layer in model
+   - 순회: for layer in model
 
-WHEN TO USE:
-  - Use Sequential for simple stacks of layers
-  - Use custom Module for complex architectures
+언제 쓰는가:
+  - 층을 단순히 쌓을 때는 Sequential을 쓴다
+  - 복잡한 구조에는 맞춤 Module을 쓴다
 """)
 
 # ================================================================================
@@ -365,16 +365,16 @@ print("=" * 80)
 print("EXERCISES TO TRY")
 print("=" * 80)
 print("""
-1. Create a deeper model with 5-6 layers using Sequential
-2. Add batch normalization between layers
-3. Experiment with different dropout rates
+1. Sequential로 5~6층짜리 더 깊은 모델을 만들어 보라
+2. 층 사이에 배치 정규화를 넣어 보라
+3. 드롭아웃 비율을 달리하여 실험해 보라
 4. Build a "wide" network (more neurons per layer) vs "deep" (more layers)
-5. Create a function that generates Sequential models from a configuration list
-6. Extract intermediate features using slicing
+5. 설정 목록으로 Sequential 모델을 만들어 내는 함수를 짜 보라
+6. 자르기로 중간 특징을 뽑아 보라
 7. Try different activation functions (LeakyReLU, ELU, etc.)
-8. Build an ensemble of Sequential models
-9. Visualize the weights of the first layer
-10. Implement model pruning by removing layers
+8. Sequential 모델의 앙상블을 만들어 보라
+9. 첫 층의 가중치를 시각화해 보라
+10. 층을 없애는 방식으로 모델 가지치기를 구현해 보라
 """)
 
 

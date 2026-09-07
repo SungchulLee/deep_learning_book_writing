@@ -493,30 +493,30 @@ print("\n" + "=" * 80)
 print("KEY TAKEAWAYS")
 print("=" * 80)
 print(f"""
-1. Complete ML Pipeline:
+1. 완전한 기계학습 파이프라인:
    ✓ 자료 불러오기와 미리 다듬기
-   ✓ Model architecture design
-   ✓ Training loop with monitoring
-   ✓ Evaluation on held-out test set
-   ✓ Visualization of results
+   ✓ 모델 구조 설계
+   ✓ 감시를 곁들인 학습 루프
+   ✓ 따로 떼어 둔 시험 집합에서의 평가
+   ✓ 결과 시각화
 
 2. Achieved ~{overall_accuracy:.1f}% accuracy with simple 2-layer network!
-   - State-of-the-art CNNs achieve ~99.7%
-   - This baseline is quite respectable
+   - 최고 수준의 CNN은 약 99.7%에 이른다
+   - 이 기준선도 꽤 훌륭하다
 
-3. CrossEntropyLoss for multi-class classification
-   - Combines LogSoftmax + NLLLoss
-   - More numerically stable than separate operations
+3. 다중 클래스 분류에 쓰는 CrossEntropyLoss
+   - LogSoftmax와 NLLLoss를 합친다
+   - 따로 계산하는 것보다 수치적으로 안정적이다
 
-4. GPU acceleration makes training much faster
-   - Always move both model AND data to device
+4. GPU 가속은 학습을 훨씬 빠르게 한다
+   - 모델과 데이터를 모두 장치로 옮겨야 한다
    - Use .to(device) for tensors and models
 
-5. Training vs Evaluation mode:
+5. 학습 모드와 평가 모드:
    - model.train(): Enables dropout, batchnorm training
    - model.eval(): Disables them for inference
 
-NEXT: Level 2 will introduce more PyTorch features and better architectures!
+다음: 2단계에서는 PyTorch의 기능과 더 나은 구조를 다룬다!
 """)
 
 # ================================================================================
@@ -526,16 +526,16 @@ print("=" * 80)
 print("EXERCISES TO TRY")
 print("=" * 80)
 print("""
-1. Increase hidden_size to 256 or 512 - does accuracy improve?
-2. Add another hidden layer - create a 3-layer network
-3. Try different optimizers: SGD, RMSprop, AdaGrad
-4. Experiment with learning rates: 0.0001, 0.01, 0.1
+1. hidden_size를 256이나 512로 늘려 보라. 정확도가 나아지는가?
+2. 은닉층을 하나 더 넣어 3층 신경망을 만들어 보라
+3. SGD, RMSprop, AdaGrad 등 여러 최적화기를 써 보라
+4. 학습률 0.0001, 0.01, 0.1로 실험해 보라
 5. Train for more epochs (10-20) - watch for overfitting
-6. Implement early stopping based on validation loss
+6. 검증 손실을 기준으로 조기 종료를 구현해 보라
 7. Save the trained model: torch.save(model.state_dict(), 'model.pth')
-8. Add data augmentation: random rotations, shifts
-9. Visualize what the network learned: plot first layer weights
-10. Create a confusion matrix to see which digits are confused
+8. 무작위 회전과 이동 같은 데이터 증강을 더해 보라
+9. 첫 층의 가중치를 그려 신경망이 배운 것을 살펴보라
+10. 혼동 행렬을 만들어 어떤 숫자가 헷갈리는지 보라
 """)
 
 

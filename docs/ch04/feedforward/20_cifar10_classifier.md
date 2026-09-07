@@ -306,21 +306,21 @@ print(f"""
 ACHIEVED: {final_acc:.2f}% accuracy on CIFAR-10
 (State-of-the-art CNNs achieve ~99%)
 
-COMPLETE PIPELINE DEMONSTRATED:
-✓ Data augmentation for better generalization
-✓ Proper train/test split
-✓ Deep architecture with regularization
+보여 준 완전한 파이프라인:
+✓ 일반화를 높이는 데이터 증강
+✓ 알맞은 학습과 시험 분할
+✓ 정칙화를 곁들인 깊은 구조
 ✓ 배움 빠르기 짜기
 ✓ Model checkpointing (save best model)
 ✓ Comprehensive evaluation (per-class, confusion matrix)
-✓ Visualization of results
+✓ 결과 시각화
 
-PRODUCTION CONSIDERATIONS:
-- Always use validation set for hyperparameter tuning
-- Monitor multiple metrics, not just accuracy
-- Save checkpoints regularly
+실서비스에서 살필 점:
+- 초매개변수 조율에는 늘 검증 집합을 쓰라
+- 정확도만이 아니라 여러 지표를 살피라
+- 체크포인트를 규칙적으로 저장하라
 - Analyze errors (confusion matrix)
-- Test final model only once on test set
+- 최종 모델은 시험 집합에서 딱 한 번만 시험하라
 """)
 plt.show()
 

@@ -164,26 +164,26 @@ print("""
 1. Always call super().__init__() first in __init__
 2. Define layers as instance attributes (self.xxx)
 3. Implement forward() to define computation
-4. PyTorch automatically:
-   - Tracks parameters
-   - Builds computation graph
-   - Enables backpropagation
-5. Custom modules enable:
-   - Skip connections
-   - Multiple inputs/outputs
-   - Conditional logic
-   - Custom initialization
+4. PyTorch는 다음을 자동으로 한다.
+   - 매개변수를 추적한다
+   - 계산 그래프를 만든다
+   - 역전파를 가능하게 한다
+5. 맞춤 모듈로 다음이 가능하다.
+   - 건너뛰기 연결
+   - 여러 입력과 출력
+   - 조건부 논리
+   - 맞춤 초기화
 """)
 
 print("\n"+"="*70)
 print("EXERCISES")
 print("="*70)
 print("""
-1. Add dropout to BasicNet
-2. Create a ResNet-style block with skip connections
-3. Implement custom weight initialization schemes
-4. Build a network that uses different paths for different inputs
-5. Add layer normalization to the network
+1. BasicNet에 드롭아웃을 더해 보라
+2. 건너뛰기 연결을 갖춘 ResNet 방식 블록을 만들어 보라
+3. 맞춤 가중치 초기화 방식을 구현해 보라
+4. 입력에 따라 서로 다른 경로를 쓰는 신경망을 만들어 보라
+5. 신경망에 층 정규화를 더해 보라
 """)
 
 

@@ -50,20 +50,20 @@ print("=" * 70)
 print("Understanding Overfitting and Regularization")
 print("=" * 70)
 print("""
-What is Overfitting?
-  - Model learns training data TOO well
-  - Performs great on training set
+과적합이란 무엇인가?
+  - 모델이 학습 데이터를 지나치게 잘 외운다
+  - 학습 집합에서는 아주 잘한다
   - Performs poorly on unseen data (test set)
-  - Memorizes rather than generalizes
+  - 일반화하지 않고 암기한다
 
-How to Prevent Overfitting?
-  1. More training data
+과적합을 어떻게 막는가?
+  1. 학습 데이터를 더 모은다
   2. Simpler model (fewer parameters)
-  3. Regularization techniques:
+  3. 정칙화 기법:
      - Dropout
      - L2 정칙화 (가중치 감쇠)
-     - Data augmentation
-  4. Early stopping
+     - 데이터 증강
+  4. 조기 종료
 """)
 
 # ==============================================================================
@@ -390,45 +390,45 @@ print("\n" + "=" * 70)
 print("Key Takeaways")
 print("=" * 70)
 print("""
-1. Signs of Overfitting:
-   - Large gap between training and validation accuracy
-   - Training accuracy keeps improving, validation plateaus
-   - Model performs poorly on unseen data
+1. 과적합의 징후:
+   - 학습 정확도와 검증 정확도의 간격이 크다
+   - 학습 정확도는 계속 오르는데 검증은 정체된다
+   - 처음 보는 데이터에서 성능이 나쁘다
 
 2. Dropout (nn.Dropout):
-   - Randomly zeros neurons during training
+   - 학습 중 뉴런을 무작위로 0으로 만든다
    - dropout_rate: Probability of dropping (typical: 0.2-0.5)
    - Automatically disabled with model.eval()
-   - Prevents co-adaptation of neurons
+   - 뉴런들이 함께 적응하는 것을 막는다
 
 3. Weight Decay (L2 Regularization):
    - Adds penalty for large weights: Loss = Data_Loss + λ * Σ(weights²)
    - Set via optimizer: weight_decay=1e-4
-   - Encourages smaller weights
+   - 가중치를 작게 유지하도록 북돋운다
    - 두루 미침이 나아진다
 
-4. Validation Set:
-   - Essential for monitoring overfitting
-   - Used for hyperparameter tuning
-   - Not used for gradient updates
-   - Separate from test set
+4. 검증 집합:
+   - 과적합을 살피는 데 꼭 필요하다
+   - 초매개변수 조율에 쓴다
+   - 기울기 갱신에는 쓰지 않는다
+   - 시험 집합과 따로 둔다
 
 5. Other regularization techniques (not covered here):
-   - Data augmentation
-   - Batch normalization
+   - 데이터 증강
+   - 배치 정규화
    - 조기 종료
    - L1 regularization
 
-6. Best Practices:
-   - Always use validation set
-   - Monitor train-val gap
-   - Start with light regularization, increase if needed
-   - Use dropout after ReLU, not before
+6. 모범 사례:
+   - 늘 검증 집합을 쓰라
+   - 학습과 검증의 간격을 살피라
+   - 가벼운 정칙화로 시작하여 필요하면 늘리라
+   - 드롭아웃은 ReLU 앞이 아니라 뒤에 두라
 
 다음 단계:
-- Tutorial 08: Batch Normalization
-- Tutorial 09: Learning Rate Scheduling
-- Tutorial 10: Advanced Architectures
+- 튜토리얼 08: 배치 정규화
+- 튜토리얼 09: 학습률 스케줄링
+- 튜토리얼 10: 고급 구조
 """)
 
 print("\nTraining completed successfully! ✓")

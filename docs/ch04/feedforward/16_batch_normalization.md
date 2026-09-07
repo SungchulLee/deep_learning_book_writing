@@ -74,36 +74,36 @@ print("\n" + "="*70)
 print("HOW BATCH NORMALIZATION WORKS")
 print("="*70)
 print("""
-For each mini-batch:
-1. Compute mean and variance of layer inputs
+미니배치마다:
+1. 층 입력의 평균과 분산을 계산한다
 2. Normalize: x_norm = (x - mean) / sqrt(var + ε)
 3. Scale and shift: y = γ * x_norm + β
-   where γ and β are learnable parameters
+   여기서 γ와 β는 학습되는 매개변수이다
 
 좋은 점:
-✓ Reduces internal covariate shift
+✓ 내부 공변량 이동을 줄인다
 ✓ Allows higher learning rates (10x faster training)
-✓ Less sensitive to initialization
+✓ 초기화에 덜 민감하다
 ✓ Acts as regularization (slight noise from batch statistics)
-✓ Can sometimes replace dropout
+✓ 때로는 드롭아웃을 대신할 수 있다
 
 USAGE:
-- During training: Use batch statistics
-- During evaluation: Use running averages
+- 학습할 때: 배치 통계를 쓴다
+- 평가할 때: 이동 평균을 쓴다
 
 PLACEMENT:
-- Typically: Linear → BatchNorm → Activation
-- Alternative: Linear → Activation → BatchNorm
+- 보통: 선형 → 배치 정규화 → 활성화
+- 대안: 선형 → 활성화 → 배치 정규화
   (both work, first is more common)
 
 PARAMETERS:
-- Input: Number of features to normalize
+- 입력: 정규화할 특징의 수
 - For fully connected: num_features = output_dim
 - For conv layers: num_features = num_channels
 
-IMPORTANT NOTES:
+중요한 점:
 ⚠ Requires batch_size > 1 (needs multiple samples)
-⚠ Different behavior in train vs eval mode
+⚠ 학습 모드와 평가 모드에서 동작이 다르다
 ⚠ Remember to call model.train() and model.eval()!
 """)
 
@@ -116,8 +116,8 @@ BatchNorm2d: For conv layers (batch, channels, height, width)
 BatchNorm3d: For 3D data (batch, channels, depth, height, width)
 
 LayerNorm: Normalizes across features (used in Transformers)
-InstanceNorm: Normalizes each sample independently
-GroupNorm: Hybrid between Layer and Instance norm
+InstanceNorm: 표본마다 따로 정규화한다
+GroupNorm: 층 정규화와 인스턴스 정규화의 중간형
 """)
 
 # 배치 정규화의 효과 시각화

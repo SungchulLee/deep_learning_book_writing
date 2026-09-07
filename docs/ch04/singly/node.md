@@ -51,7 +51,7 @@
 
 # === 노드 클래스 ===
 class Node:
-    """A single node in a singly linked list.
+    """단일 연결 리스트의 노드 하나.
 
     속성:
         data: 이 노드에 담긴 값.

@@ -193,28 +193,28 @@ print("\n" + "="*80)
 print("KEY POINTS FOR REGRESSION")
 print("="*80)
 print("""
-REGRESSION SPECIFICS:
+회귀의 특징:
 ✓ Use MSELoss or L1Loss (not CrossEntropy!)
 ✓ Single output neuron (no activation function)
-✓ Normalize/standardize input features
-✓ Evaluate with RMSE, MAE, R² score
+✓ 입력 특징을 정규화하거나 표준화하라
+✓ RMSE, MAE, R² 점수로 평가하라
 
-LOSS FUNCTIONS:
-- MSELoss: Penalizes large errors more
-- L1Loss: More robust to outliers
-- SmoothL1Loss: Hybrid approach
+손실 함수:
+- MSELoss: 큰 오차에 더 큰 벌점을 준다
+- L1Loss: 이상치에 더 강건하다
+- SmoothL1Loss: 혼합형 접근
 
 METRICS:
-- MSE: Mean Squared Error
+- MSE: 평균 제곱 오차
 - RMSE: Root MSE (same units as target)
-- MAE: Mean Absolute Error
+- MAE: 평균 절대 오차
 - R²: Coefficient of determination (0-1)
 
 TIPS:
-- Always normalize features for regression
-- Check for outliers in data
-- Visualize predictions vs actual
-- Analyze residuals distribution
+- 회귀에서는 늘 특징을 정규화하라
+- 데이터에 이상치가 있는지 확인하라
+- 예측과 실제를 견주어 시각화하라
+- 잔차의 분포를 분석하라
 """)
 plt.show()
 

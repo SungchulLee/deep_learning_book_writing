@@ -82,7 +82,7 @@ print("\n" + "="*70)
 print("LOSS FUNCTION SELECTION GUIDE")
 print("="*70)
 print("""
-PROBLEM TYPE          | RECOMMENDED LOSS      | OUTPUT ACTIVATION
+문제 유형             | 권장 손실             | 출력 활성화
 ----------------------|----------------------|-------------------
 Regression            | MSELoss              | None (linear)
 Regression (outliers) | L1Loss / SmoothL1    | None
@@ -90,18 +90,18 @@ Binary Classification | BCEWithLogitsLoss    | None (logits)
 Multi-class           | CrossEntropyLoss     | None (logits)
 Multi-label           | BCEWithLogitsLoss    | None (logits)
 
-KEY POINTS:
-✓ Use *WithLogits versions - they're more stable
-✓ Don't apply activation before these losses
-✓ CrossEntropyLoss expects class indices, not one-hot
-✓ MSE good for regression, CrossEntropy for classification
-✓ L1 more robust to outliers than MSE
+핵심:
+✓ *WithLogits 판을 쓰라. 더 안정적이다
+✓ 이 손실 앞에 활성화를 걸지 마라
+✓ CrossEntropyLoss는 원-핫이 아니라 클래스 인덱스를 받는다
+✓ MSE는 회귀에, 교차 엔트로피는 분류에 알맞다
+✓ L1은 MSE보다 이상치에 강건하다
 
-COMMON MISTAKES:
-✗ Applying sigmoid before BCEWithLogitsLoss
-✗ Applying softmax before CrossEntropyLoss  
-✗ Using MSE for classification
-✗ Using CrossEntropy for regression
+흔한 실수:
+✗ BCEWithLogitsLoss 앞에 시그모이드를 걸기
+✗ CrossEntropyLoss 앞에 소프트맥스를 걸기
+✗ 분류에 MSE 쓰기
+✗ 회귀에 교차 엔트로피 쓰기
 """)
 
 # 손실의 거동 시각화

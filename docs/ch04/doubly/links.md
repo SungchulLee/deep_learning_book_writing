@@ -33,7 +33,7 @@ class Node:
 # === 리스트 만들기 ===
 
 def build_list(values):
-    """Build a doubly linked list from a Python list of values.
+    """파이썬 값 리스트로 이중 연결 리스트를 만든다.
 
     만들어진 이중 연결 리스트의 머리 노드를 돌려준다.
     """

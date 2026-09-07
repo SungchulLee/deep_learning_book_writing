@@ -390,7 +390,7 @@ def main():
        - Tied to InceptionV3 classifier
        - Can be fooled by adversarial strategies
     
-    6. Best Practices:
+    6. 모범 사례:
        - Use splits=10 for computing std dev
        - Report IS ± std
        - Always combine with other metrics (FID, precision/recall)

@@ -37,7 +37,7 @@ class Node:
 
 
 def build_circle(n):
-    """Build a circular singly linked list with nodes 0, 1, ..., n-1.
+    """노드 0, 1, ..., n-1로 이루어진 원형 단일 연결 리스트를 만든다.
 
     0번 사람의 노드를 돌려준다.
     """
@@ -53,7 +53,7 @@ def build_circle(n):
 # === 모의실험 방식 ===
 
 def josephus_simulation(n, k):
-    """Return the survivor's position using circular list simulation.
+    """원형 리스트 모의실험으로 생존자의 자리를 돌려준다.
 
     시간: O(n * k) -- n-1번의 제거마다 k 걸음이 필요하다.
     공간: 원형 연결 리스트를 위해 O(n).
@@ -81,7 +81,7 @@ def josephus_simulation(n, k):
 # === 점화식 방식 ===
 
 def josephus_recurrence(n, k):
-    """Return the survivor's position using the mathematical recurrence.
+    """수학적 점화식으로 생존자의 자리를 돌려준다.
 
     0부터 세는 위치에 대한 요세푸스 점화식:
         J(1, k) = 0

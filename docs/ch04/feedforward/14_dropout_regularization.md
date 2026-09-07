@@ -155,30 +155,30 @@ print("KEY TAKEAWAYS")
 print("="*70)
 print("""
 DROPOUT:
-  - Randomly drops neurons during training
-  - Prevents co-adaptation of features
-  - Acts as ensemble of many networks
-  - Typical rates: 0.2-0.5 for hidden layers
+  - 학습 중 뉴런을 무작위로 떨어뜨린다
+  - 특징들이 함께 적응하는 것을 막는다
+  - 여러 신경망의 앙상블처럼 작동한다
+  - 은닉층의 일반적인 비율: 0.2~0.5
   
 USAGE:
   model.train()  # 학습 중에는 드롭아웃 켜기
   model.eval()   # 평가 중에는 드롭아웃 끄기
   
-OTHER REGULARIZATION:
+그 밖의 정칙화:
   - L2 (weight_decay in optimizer): Penalizes large weights
-  - L1: Encourages sparsity
-  - Early stopping: Stop when validation loss increases
-  - Data augmentation: Artificially expand dataset
+  - L1: 희소성을 북돋운다
+  - 조기 종료: 검증 손실이 늘면 멈춘다
+  - 데이터 증강: 데이터셋을 인위적으로 늘린다
   
-WHEN TO USE:
-  ✓ Large models on small datasets
+언제 쓰는가:
+  ✓ 작은 데이터셋에 큰 모델을 쓸 때
   ✓ Model overfitting (train acc >> test acc)
-  ✓ Deep networks
+  ✓ 깊은 신경망
   
-DROPOUT RATES:
+드롭아웃 비율:
   - Input layer: 0.1-0.2 (lower)
   - Hidden layers: 0.3-0.5 (higher)
-  - Output layer: Never!
+  - 출력층: 절대 쓰지 마라!
 """)
 
 print("\nEXERCISES:")

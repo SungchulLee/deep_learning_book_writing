@@ -95,7 +95,7 @@ class Node:
 
 # === 플로이드 순환 탐지 ===
 def has_cycle(head):
-    """Detect whether a linked list contains a cycle.
+    """연결 리스트에 순환이 있는지 알아낸다.
 
     순환이 있으면 True, 없으면 False를 돌려준다.
     시간: O(n), 공간: O(1).
@@ -111,7 +111,7 @@ def has_cycle(head):
 
 
 def find_cycle_entry(head):
-    """Find the entry point of a cycle in a linked list.
+    """연결 리스트에서 순환이 시작되는 지점을 찾는다.
 
     순환이 시작되는 노드를, 순환이 없으면 None을 돌려준다.
     시간: O(n), 공간: O(1).

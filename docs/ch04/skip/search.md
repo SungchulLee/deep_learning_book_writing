@@ -131,7 +131,7 @@ class SkipList:
             update[i].forward[i] = new_node
 
     def search(self, key):
-        """Search for a key, returning the node if found.
+        """키를 찾아 있으면 그 노드를 돌려준다.
 
         알고리즘은 가장 높은 층에서 시작하여 아래로 내려가며,
         각 층에서 갈 수 있는 데까지 오른쪽으로 나아간다.

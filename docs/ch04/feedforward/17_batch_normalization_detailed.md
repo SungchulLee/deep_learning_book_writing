@@ -48,20 +48,20 @@ print("=" * 70)
 print("Understanding Batch Normalization")
 print("=" * 70)
 print("""
-What Problem Does BatchNorm Solve?
+배치 정규화는 어떤 문제를 푸는가?
 
-Internal Covariate Shift:
-  - As network trains, layer inputs change distribution
-  - Each layer must adapt to these changes
-  - Slows down training
-  - Requires careful weight initialization
-  - Sensitive to learning rate
+내부 공변량 이동:
+  - 학습이 진행되면 층 입력의 분포가 바뀐다
+  - 층마다 이 변화에 적응해야 한다
+  - 학습이 느려진다
+  - 가중치 초기화에 신경 써야 한다
+  - 학습률에 민감하다
 
-Batch Normalization Solution:
-  - Normalizes layer inputs for each mini-batch
+배치 정규화라는 해법:
+  - 미니배치마다 층 입력을 정규화한다
   - 안쪽 함께 바뀜의 옮겨감을 줄인다
   - 배움 빠르기를 더 크게 쓸 수 있다
-  - Reduces sensitivity to initialization
+  - 초기화에 대한 민감도를 낮춘다
   - Acts as regularization (like dropout)
 
 Formula (for each feature in batch):
@@ -407,50 +407,50 @@ print("\n" + "=" * 70)
 print("Key Takeaways")
 print("=" * 70)
 print("""
-1. What BatchNorm Does:
-   - Normalizes layer inputs per mini-batch
+1. 배치 정규화가 하는 일:
+   - 미니배치별로 층 입력을 정규화한다
    - Learns optimal scale (γ) and shift (β)
-   - Maintains running statistics for inference
+   - 추론을 위해 이동 통계를 유지한다
 
 2. Benefits:
    ✓ Faster convergence (can use higher learning rates)
-   ✓ Reduces sensitivity to initialization
+   ✓ 초기화에 대한 민감도를 낮춘다
    ✓ Acts as regularization (slight generalization improvement)
    ✓ More stable training (especially for deep networks)
 
-3. Where to Place BatchNorm:
-   - Typical: Linear -> BatchNorm -> Activation
-   - After linear layer, before activation
-   - Not needed in output layer
-   - Use BatchNorm1d for fully connected layers
-   - Use BatchNorm2d for convolutional layers
+3. 배치 정규화를 어디에 둘까:
+   - 보통: 선형 -> 배치 정규화 -> 활성화
+   - 선형층 뒤, 활성화 앞
+   - 출력층에는 필요 없다
+   - 완전 연결층에는 BatchNorm1d를 쓴다
+   - 합성곱층에는 BatchNorm2d를 쓴다
 
-4. Training vs Evaluation:
+4. 학습과 평가:
    - Training: Uses batch statistics (mean, var from current batch)
    - Evaluation: Uses running statistics (accumulated during training)
    - Always call model.train() and model.eval() appropriately!
 
-5. BatchNorm Variants:
-   - BatchNorm1d: For fully connected layers
-   - BatchNorm2d: For 2D convolutional layers
-   - BatchNorm3d: For 3D convolutional layers
+5. 배치 정규화의 변형:
+   - BatchNorm1d: 완전 연결층용
+   - BatchNorm2d: 2차원 합성곱층용
+   - BatchNorm3d: 3차원 합성곱층용
    - LayerNorm: Alternative (normalizes across features, not batch)
-   - GroupNorm: Works with small batch sizes
+   - GroupNorm: 배치 크기가 작아도 잘 작동한다
 
-6. When NOT to Use BatchNorm:
+6. 배치 정규화를 쓰지 말아야 할 때:
    - Very small batch sizes (statistics unreliable)
    - Recurrent networks (use LayerNorm instead)
-   - When batch independence is important
+   - 배치 사이의 독립성이 중요할 때
 
-7. Common Pitfalls:
+7. 흔한 함정:
    ✗ Forgetting to call model.eval() during inference
    ✗ Using batch size = 1 (statistics don't make sense)
-   ✗ Mixing up training and evaluation modes
+   ✗ 학습 모드와 평가 모드를 헷갈리기
 
 다음 단계:
-- Tutorial 09: Learning Rate Scheduling
-- Tutorial 10: Advanced Architectures
-- Tutorial 11: CIFAR-10 Challenge
+- 튜토리얼 09: 학습률 스케줄링
+- 튜토리얼 10: 고급 구조
+- 튜토리얼 11: CIFAR-10 도전
 """)
 
 print("\nTraining completed successfully! ✓")

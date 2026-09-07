@@ -243,46 +243,46 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-BUILDING DEEP NETWORKS:
+깊은 신경망 짓기:
 ✓ Use residual connections (skip connections)
-✓ Batch normalization after linear layers
+✓ 선형층 뒤의 배치 정규화
 ✓ Proper weight initialization (Kaiming for ReLU)
-✓ Gradient clipping to prevent explosion
+✓ 폭발을 막는 기울기 절단
 ✓ 배움 빠르기 짜기
 
-RESIDUAL CONNECTIONS:
+잔차 연결:
   H(x) = F(x) + x
   - Easier to optimize (gradients flow directly)
-  - Enable training of 100+ layer networks
-  - Used in ResNet, DenseNet, Transformers
+  - 100층이 넘는 신경망도 학습할 수 있게 한다
+  - ResNet, DenseNet, 트랜스포머에 쓴다
 
-TRAINING STABILITY:
-- Gradient clipping: Limit gradient magnitude
-- Batch normalization: Stabilize activations
-- Skip connections: Direct gradient flow
-- Proper initialization: Good starting point
+학습 안정성:
+- 기울기 절단: 기울기의 크기를 제한한다
+- 배치 정규화: 활성값을 안정시킨다
+- 건너뛰기 연결: 기울기가 곧장 흐르게 한다
+- 알맞은 초기화: 좋은 출발점
 
-DEPTH vs WIDTH:
-- Deeper: More hierarchical features
-- Wider: More capacity per layer
-- Trade-off depends on problem
+깊이 대 너비:
+- 더 깊게: 위계적인 특징이 늘어난다
+- 더 넓게: 층마다 수용력이 커진다
+- 절충점은 문제에 달렸다
 
-CHALLENGES WITH DEPTH:
-⚠ Vanishing/exploding gradients
+깊이가 주는 어려움:
+⚠ 기울기 소실과 폭발
 ⚠ Degradation (accuracy saturates)
-⚠ More memory and compute
-⚠ Longer training time
+⚠ 메모리와 계산이 더 든다
+⚠ 학습 시간이 길어진다
 
 SOLUTIONS:
-✓ Residual connections
-✓ Normalization layers
-✓ Careful initialization
-✓ Gradient clipping
-✓ Learning rate warmup
+✓ 잔차 연결
+✓ 정규화 층
+✓ 신중한 초기화
+✓ 기울기 절단
+✓ 학습률 워밍업
 
 CONGRATULATIONS!
-You've completed the full tutorial! 🎉
-You now know how to build production-ready neural networks!
+튜토리얼 전체를 마쳤다! 🎉
+이제 실서비스에 쓸 수 있는 신경망을 만들 줄 안다!
 """)
 plt.show()
 

@@ -48,7 +48,7 @@ class CircularSLL:
         return self.size == 0
 
     def insert_front(self, data):
-        """Insert a new node at the front of the list.
+        """리스트 맨 앞에 새 노드를 넣는다.
 
         새 노드가 tail.next(머리)가 된다.
         """
@@ -62,7 +62,7 @@ class CircularSLL:
         self.size += 1
 
     def insert_back(self, data):
-        """Insert a new node at the back of the list.
+        """리스트 맨 뒤에 새 노드를 넣는다.
 
         새 노드가 새 꼬리가 된다.
         """
@@ -83,7 +83,7 @@ class CircularSLL:
         return head.data
 
     def rotate(self):
-        """Advance the tail reference by one position.
+        """꼬리 참조를 한 자리 앞으로 옮긴다.
 
         이는 머리를 뒤로 옮기는 셈이어서 리스트를 한 칸 돌린다.
         """
@@ -104,7 +104,7 @@ class CircularSLL:
         return result
 
     def search(self, target):
-        """Search for a node containing the target value.
+        """목표 값을 담은 노드를 찾는다.
 
         찾으면 노드를, 없으면 None을 돌려준다.
         """

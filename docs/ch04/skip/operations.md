@@ -79,7 +79,7 @@ class SkipList:
         return None
 
     def insert(self, key):
-        """Insert a key into the skip list.
+        """건너뛰기 리스트에 키를 넣는다.
 
         새로 만든 노드를 돌려준다.
         """
@@ -115,7 +115,7 @@ class SkipList:
         return new_node
 
     def delete(self, key):
-        """Delete a key from the skip list.
+        """건너뛰기 리스트에서 키를 지운다.
 
         키를 찾아 지웠으면 True, 아니면 False를 돌려준다.
         """

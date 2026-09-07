@@ -50,7 +50,7 @@ import random
 # === 노드 정의 ===
 
 class SkipNode:
-    """A node in a skip list.
+    """건너뛰기 리스트의 노드.
 
     속성:
         key: 이 노드에 담긴 값.
@@ -69,7 +69,7 @@ class SkipNode:
 # === 층 생성 ===
 
 def random_level(max_level, p=0.5):
-    """Generate a random level using geometric distribution.
+    """기하 분포로 무작위 층을 만들어 낸다.
 
     0층 위의 각 층은 확률 p으로 독립적으로 더해진다.
     기대 층수는 1/(1-p)이며, p=0.5이면 2이다.

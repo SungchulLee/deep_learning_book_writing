@@ -119,7 +119,7 @@ def to_list(head):
 
 # === 반복적 뒤집기 ===
 def reverse_iterative(head):
-    """Reverse a linked list iteratively.
+    """연결 리스트를 반복 방식으로 뒤집는다.
 
     시간: O(n), 공간: O(1).
     """
@@ -135,7 +135,7 @@ def reverse_iterative(head):
 
 # === 재귀적 뒤집기 ===
 def reverse_recursive(head):
-    """Reverse a linked list recursively.
+    """연결 리스트를 재귀 방식으로 뒤집는다.
 
     시간: O(n), 공간: 재귀 스택 때문에 O(n).
     """
