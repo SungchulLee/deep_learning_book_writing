@@ -84,7 +84,15 @@ book_name/
 exclude_docs: |
   *_score.md
   *.v[0-9]*.md
+  # Real content pages that collide with the *_score.md pattern above.
+  !inception_score.md
+  !01_inception_score.md
 ```
+
+`*_score.md` has the same collision hazard: it also matches content pages such as
+`inception_score.md`, which drops them from the site silently (mkdocs logs this at
+INFO, so `--strict` still passes and the page 404s in production). Any new content
+page ending in `_score.md` needs a `!` negation line here.
 
 Commit after `update` — stage only `<name>.md` and `<name>_score.md`:
 ```bash
