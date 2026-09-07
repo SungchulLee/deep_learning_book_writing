@@ -81,7 +81,7 @@ def fft(a: list[complex], invert: bool = False) -> list[complex]:
     """차례의 빠른 푸리에 변환(또는 그 거꿀) 셈하기.
 
     인수:
-        a: Input sequence (length must be a power of 2).
+        a: 들임 이음(길이는 2의 거듭제곱이어야 한다).
         invert: True이면 거꿀 빠른 푸리에 변환을 셈한다.
 
     반환값:
@@ -116,7 +116,7 @@ def poly_multiply(a: list[float], b: list[float]) -> list[float]:
     """빠른 푸리에 변환으로 두 다항식 곱하기.
 
     인수:
-        a: Coefficients of first polynomial (a[i] = coefficient of x^i).
+        a: 첫째 다항식의 계수(a[i]는 x^i의 계수).
         b: 둘째 다항식의 계수.
 
     반환값:

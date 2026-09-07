@@ -182,7 +182,7 @@ class FeedforwardLM(nn.Module):
             x: (batch_size, context_size) 맥락 낱말 번호
             
         반환값:
-            (batch_size, vocab_size) logits
+            (batch_size, vocab_size) 로짓
         """
         # 묻힘: (batch, context_size) → (batch, context_size, embed_dim)
         embeds = self.embedding(x)
@@ -725,7 +725,7 @@ class TransformerLM(nn.Module):
             x: (batch, seq_len) 들임 토막
             
         반환값:
-            (batch, seq_len, vocab_size) logits
+            (batch, seq_len, vocab_size) 로짓
         """
         seq_len = x.size(1)
         

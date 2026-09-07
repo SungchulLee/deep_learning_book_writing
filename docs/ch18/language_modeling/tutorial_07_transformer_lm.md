@@ -103,7 +103,7 @@ class TransformerLanguageModel(nn.Module):
         인수:
             src: (batch, seq_len) 들임 토막
         반환값:
-            (batch, seq_len, vocab_size) logits
+            (batch, seq_len, vocab_size) 로짓
         """
         seq_len = src.size(1)
         

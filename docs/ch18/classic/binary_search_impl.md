@@ -145,7 +145,7 @@ class BinarySearchTreeNode:
 ```python
 def build_tree(elements):
     """
-    input : list of numbers
+    input : 수의 목록
     output : root 
     """
     

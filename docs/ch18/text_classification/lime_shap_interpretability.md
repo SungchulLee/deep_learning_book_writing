@@ -105,7 +105,7 @@ print("""
 
   # 풀이 보기
   print(exp.as_list())
-  # → [('declined', -0.42),    # pushes toward negative
+  # → [('declined', -0.42),    # 부정 쪽으로 민다
   #    ('missing', -0.31),     # 음성 쪽으로 민다
   #    ('revenue', 0.08),      # 살짝 양성(아리송함)
   #    ('consensus', -0.12),   # 음성 쪽으로 민다

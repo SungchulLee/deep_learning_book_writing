@@ -95,7 +95,7 @@ def max_crossing_subarray(arr, lo, mid, hi):
     반환값
     -------
     tuple
-        (left_index, right_index, max_sum)
+        (왼쪽 번호, 오른쪽 번호, 가장 큰 합)
     """
     # 가운데에서 왼쪽으로 뻗기
     left_sum = float('-inf')
@@ -136,7 +136,7 @@ def max_subarray_dc(arr, lo=None, hi=None):
     반환값
     -------
     tuple
-        (left_index, right_index, max_sum)
+        (왼쪽 번호, 오른쪽 번호, 가장 큰 합)
     """
     if lo is None:
         lo = 0

@@ -92,7 +92,7 @@ class NERDatasetBuilder:
             random_seed: 같은 결과를 얻기 위한 마구잡이 씨앗
             
         반환값:
-            (train_samples, test_samples) tuple
+            (익힘 표본, 시험 표본) 튜플
         """
         random.seed(random_seed)
         samples_copy = self.samples.copy()

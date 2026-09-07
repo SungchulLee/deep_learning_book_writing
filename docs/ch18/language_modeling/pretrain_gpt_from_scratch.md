@@ -228,7 +228,7 @@ print("""
     gradient_accumulation_steps:  1
     effective_batch_size:         12 * num_gpus
     learning_rate:                5e-4
-    lr_scheduler:                 cosine with warmup
+    lr_scheduler:                 데우기를 곁들인 코사인
     warmup_steps:                 2000
     max_train_steps:              150000
     weight_decay:                 0.1
