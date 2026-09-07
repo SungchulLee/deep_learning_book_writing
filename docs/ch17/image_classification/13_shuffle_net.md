@@ -112,9 +112,9 @@ ShuffleNet은 손전화에 펼치기 알맞은, 정확도와 효율의 좋은 �
 들임과 내놓음 채널이 같을 때 묶음이 $g$개인 묶음 누비기와 보통 누비기의 셈 값을 견주어라.
 
 ??? success "연습문제 3 풀이"
-    For $C_{\text{in}}$ input channels, $C_{\text{out}}$ output channels, kernel $K \times K$, and $g$ groups:
+    들임 채널 $C_{\text{in}}$개, 날임 채널 $C_{\text{out}}$개, 커널 $K \times K$, 무리 $g$개일 때
 
-    - Standard: $C_{\text{in}} \times C_{\text{out}} \times K^2$ parameters
-    - Group: $(C_{\text{in}}/g) \times (C_{\text{out}}/g) \times K^2 \times g = C_{\text{in}} \times C_{\text{out}} \times K^2 / g$ parameters
+    - 여느 합성곱: 매개변수 $C_{\text{in}} \times C_{\text{out}} \times K^2$개
+    - 무리 합성곱: 매개변수 $(C_{\text{in}}/g) \times (C_{\text{out}}/g) \times K^2 \times g = C_{\text{in}} \times C_{\text{out}} \times K^2 / g$개
 
     묶음 누비기는 매개변수를 $g$분의 1로 줄인다.

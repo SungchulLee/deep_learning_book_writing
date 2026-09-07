@@ -8,7 +8,7 @@
 
 1. **$G$ 위의 첫 깊이 우선 돌아보기.** 본디 그래프에서 깊이 우선 돌아보기를 하고 마침 시각이 줄어드는 차례로 꼭짓점을 적어 둔다(곧 꼭짓점의 돌아보기 부름이 끝날 때 그 꼭짓점을 쌓기에 올린다).
 
-2. **Transpose the graph.** Construct the transpose graph $G^T = (V, E^T)$ where every edge $(u, v) \in E$ is reversed to $(v, u) \in E^T$.
+2. **그래프를 뒤집는다.** 모든 변 $(u, v) \in E$을 $(v, u) \in E^T$으로 뒤집은 뒤집은 그래프 $G^T = (V, E^T)$을 짓는다.
 
 3. **Second DFS pass on $G^T$.** Process vertices in the order from step 1 (popping from the stack). Each DFS tree in this pass forms one strongly connected component.
 

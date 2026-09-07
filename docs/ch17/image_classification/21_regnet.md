@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
 ## 논의
 
-RegNet's design philosophy is to find simple parametrizations of the design space that produce good networks. The width of each stage follows a quantized linear function: $w_j = w_0 + w_a \cdot j$, quantized to the nearest multiple of a group width. This produces regular, predictable architectures.
+RegNet의 설계 철학은 좋은 그물을 내놓는 설계 공간의 단순한 매개변수화를 찾는 것이다. 단계마다 너비는 양자화한 선형 함수 $w_j = w_0 + w_a \cdot j$을 따르며 무리 너비의 가장 가까운 배수로 양자화한다. 그러면 반듯하고 미리 헤아릴 수 있는 구조가 나온다.
 
 마구잡이로 뽑은 그물 무리를 살펴 RegNet은 한결같이 좋은 모델을 낳는 꾸밈 원리를 가려낸다. 곧 너비는 단계마다 늘어나야 하고, 깊이는 알맞아야 하며, 병목 비를 갖춘 묶음 누비기가 정확도와 효율의 맞바꿈에서 가장 낫다.
 
@@ -74,7 +74,7 @@ RegNet's design philosophy is to find simple parametrizations of the design spac
 RegNet 너비의 양자화된 선형 매개변수 나타내기를 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    RegNet defines stage widths as $w_j = \text{quantize}(w_0 + w_a \cdot j, q)$ where $w_0$ is the initial width, $w_a$ is the slope, $j$ is the stage index, and $q$ is the quantization step (group width). This simple formula generates all stage widths from just three parameters, making the design space low-dimensional and easy to search.
+    RegNet은 단계 너비를 $w_j = \text{quantize}(w_0 + w_a \cdot j, q)$으로 매긴다. 여기서 $w_0$은 첫 너비, $w_a$은 기울기, $j$은 단계 번호, $q$은 양자화 걸음(무리 너비)이다. 이 단순한 식이 매개변수 셋만으로 모든 단계 너비를 만들어 내므로 설계 공간이 낮은 차원이 되고 찾기도 쉽다.
 
 ---
 

@@ -71,9 +71,9 @@ MobileNetV2의 뒤집은 잔차 덩이는 예로부터의 잔차 병목과 정�
     들임 채널 $C$개, 날임 채널 $C$개, 넓힘 비율 6, 공간 크기 $H \times W$일 때
 
     - 뒤집힌 잔차: 넓힘($C \times 6C$) + 깊이별($6C \times 9$) + 투영($6C \times C$) = $C \times 6C \times H \times W + 6C \times 9 \times H \times W + 6C \times C \times H \times W = (12C^2 + 54C) \times H \times W$
-    - Standard residual ($3 \times 3$): $2 \times C \times C \times 9 \times H \times W = 18C^2 \times H \times W$
+    - 여느 잔차($3 \times 3$): $2 \times C \times C \times 9 \times H \times W = 18C^2 \times H \times W$
 
-    For large $C$, inverted residuals are cheaper since $12C^2 < 18C^2$.
+    $C$이 크면 $12C^2 < 18C^2$이므로 뒤집힌 잔차가 더 값싸다.
 
 ---
 

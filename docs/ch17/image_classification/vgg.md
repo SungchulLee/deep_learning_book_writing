@@ -47,10 +47,10 @@ VGG의 한결같은 꾸밈 덕분에 여러 뒤이은 일(FCN, 더 빠른 R-CNN)
 ## 연습문제
 
 **연습문제 1.**
-Explain the key architectural contribution of VGGNet. Why did using $3 \times 3$ convolutions throughout represent a significant advance?
+VGGNet의 고갱이 구조 이바지를 밝혀라. 내내 $3 \times 3$ 합성곱만 쓴 것이 왜 큰 나아감이었는가?
 
 ??? success "연습문제 1 풀이"
-    VGGNet demonstrated that deep networks with exclusively $3 \times 3$ convolution filters can achieve superior performance compared to networks using larger filters. Two stacked $3 \times 3$ conv layers have the same effective receptive field as a single $5 \times 5$ layer, but with fewer parameters ($2 \times 3^2 C^2 = 18C^2$ vs. $25C^2$) and an additional nonlinearity between them, increasing the model's representational power. This principle of using small filters with greater depth became a cornerstone of subsequent CNN architectures.
+    VGGNet은 $3 \times 3$ 합성곱 거르개만 쓴 깊은 그물이 더 큰 거르개를 쓴 그물보다 나은 성능을 낼 수 있음을 보였다. $3 \times 3$ 합성곱 켜 둘을 쌓으면 $5 \times 5$ 켜 하나와 실효 수용 영역이 같으면서도 매개변수는 적고($2 \times 3^2 C^2 = 18C^2$ 대 $25C^2$) 사이에 비선형이 하나 더 들어가 모델의 표현력이 는다. 작은 거르개를 쓰되 더 깊게 쌓는다는 이 원칙은 뒤이은 CNN 구조의 주춧돌이 되었다.
 
 ---
 
@@ -58,7 +58,7 @@ Explain the key architectural contribution of VGGNet. Why did using $3 \times 3$
 VGG-16의 온전히 이은 층의 매개변수 개수를 셈하고, 이 층이 왜 매개변수 수를 좌우하는지 설명하여라.
 
 ??? success "연습문제 2 풀이"
-    The final conv layer produces $7 \times 7 \times 512 = 25{,}088$ features. The first FC layer maps this to 4096 units: $25{,}088 \times 4{,}096 = 102{,}760{,}448$ parameters. The second FC layer: $4{,}096 \times 4{,}096 = 16{,}777{,}216$. The classification layer: $4{,}096 \times 1{,}000 = 4{,}096{,}000$. Total FC parameters: $\approx 124M$ out of $\approx 138M$ total (about 90%). This is because fully connected layers connect every input to every output, while convolutional layers share weights spatially.
+    마지막 합성곱 켜는 특징 $7 \times 7 \times 512 = 25{,}088$개를 내놓는다. 첫 완전 연결 켜가 이를 4096 단위로 옮기며 매개변수는 $25{,}088 \times 4{,}096 = 102{,}760{,}448$개다. 둘째 완전 연결 켜는 $4{,}096 \times 4{,}096 = 16{,}777{,}216$개다. 분류 켜는 $4{,}096 \times 1{,}000 = 4{,}096{,}000$개다. 완전 연결 매개변수는 모두 $\approx 124M$개로, 전체 $\approx 138M$개 가운데 약 90%다. 완전 연결 켜는 모든 들임을 모든 날임에 잇지만 합성곱 켜는 공간에 걸쳐 가중치를 나누어 쓰기 때문이다.
 
 ---
 

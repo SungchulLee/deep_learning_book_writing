@@ -49,17 +49,17 @@ if __name__ == "__main__":
 
 ## 논의
 
-The key insight of Xception is that cross-channel correlations and spatial correlations can be mapped completely separately. A depthwise separable convolution first applies a per-channel spatial filter (depthwise) and then mixes channels with a $1 \times 1$ pointwise convolution. This is the "extreme" version of Inception, where each channel is its own group.
+Xception의 고갱이 눈썰미는 채널 사이의 상관과 공간 상관을 아주 따로 다룰 수 있다는 것이다. 깊이별 분리 합성곱은 먼저 채널마다 공간 거르개를 걸고(깊이별) 그다음 $1 \times 1$ 점별 합성곱으로 채널을 섞는다. 이는 채널마다 제 무리를 이루는 인셉션의 "끝까지 간" 갈래다.
 
 Xception은 얼개를 들머리 흐름, 가운데 흐름, 날머리 흐름으로 짠다. 가운데 흐름은 되풀이되는 덩이 8개로 이루어지며 덩이마다 갈라지는 누비기 3개와 잔차 이음이 있다. 이 단순하고 단원별로 나뉜 꾸밈은 들쭉날쭉한 인셉션 단원보다 짜기도 다듬기도 쉽다.
 
 ## 연습문제
 
 **연습문제 1.**
-Compare the parameter count of a standard $3 \times 3$ convolution vs a depthwise separable convolution for 256 input and 256 output channels.
+들임 채널 256개, 날임 채널 256개일 때 여느 $3 \times 3$ 합성곱과 깊이별 분리 합성곱의 매개변수 수를 견주어라.
 
 ??? success "연습문제 1 풀이"
-    Standard: $256 \times 256 \times 9 = 589{,}824$ parameters. Depthwise separable: $256 \times 9 + 256 \times 256 = 2{,}304 + 65{,}536 = 67{,}840$ parameters. The separable version has about $8.7\times$ fewer parameters.
+    여느 합성곱: 매개변수 $256 \times 256 \times 9 = 589{,}824$개. 깊이별 분리: $256 \times 9 + 256 \times 256 = 2{,}304 + 65{,}536 = 67{,}840$개. 분리한 쪽이 매개변수가 약 $8.7\times$ 적다.
 
 ---
 
@@ -67,7 +67,7 @@ Compare the parameter count of a standard $3 \times 3$ convolution vs a depthwis
 인셉션 방식의 갈라지는 누비기와 보통의 깊이별로 갈라지는 누비기의 차이를 설명하여라.
 
 ??? success "연습문제 2 풀이"
-    In standard depthwise separable convolutions, the pointwise ($1 \times 1$) convolution follows the depthwise convolution. In Inception, the cross-channel ($1 \times 1$) convolution comes first, followed by spatial convolutions. Xception uses the standard order (depthwise then pointwise) and shows it performs better.
+    여느 깊이별 분리 합성곱에서는 점별($1 \times 1$) 합성곱이 깊이별 합성곱 뒤에 온다. 인셉션에서는 채널 사이($1 \times 1$) 합성곱이 먼저 오고 공간 합성곱이 뒤따른다. Xception은 여느 차례(깊이별 다음 점별)를 쓰며 그편이 더 낫다고 보인다.
 
 ---
 

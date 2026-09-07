@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
 ## 논의
 
-Global Response Normalization (GRN) addresses feature collapse in self-supervised learning. It computes the $L^2$ norm across spatial dimensions for each channel, normalizes by the mean norm, and applies learnable scale and bias parameters. This encourages feature diversity by preventing all channels from learning similar representations.
+전역 반응 정규화(GRN)는 자기 지도 학습에서 일어나는 특징 붕괴를 다룬다. 채널마다 공간 차원에 걸쳐 $L^2$ 노름을 셈하고 평균 노름으로 정규화한 뒤 학습 가능한 스케일과 편향 매개변수를 건다. 그래서 모든 채널이 비슷한 표현을 배우는 것을 막고 특징의 다양함을 북돋운다.
 
 ConvNeXt V2는 예전에는 변환기만의 것으로 여겨지던 가린 자기부호기 미리 익히기를 누비기 그물도 누릴 수 있음을 보여 준다. GRN과 가린 그림 나타내기 미리 익히기가 어우러져 ConvNeXt V2는 모든 모델 크기에서 앞선 판을 앞선다.
 
@@ -75,7 +75,7 @@ ConvNeXt V2는 예전에는 변환기만의 것으로 여겨지던 가린 자기
 GRN이 무엇을 셈하는지 수학으로 밝히고, 왜 특징이 무너지는 것을 막는지 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    GRN computes: $\text{GRN}(X) = \gamma \cdot X \cdot \frac{\|X\|_2}{\text{mean}(\|X\|_2)} + \beta + X$, where norms are computed spatially for each channel. If a channel has a large spatial norm relative to others, it gets amplified; if small, it gets suppressed. This inter-channel competition prevents all channels from converging to the same representation during self-supervised pre-training.
+    GRN은 $\text{GRN}(X) = \gamma \cdot X \cdot \frac{\|X\|_2}{\text{mean}(\|X\|_2)} + \beta + X$을 셈하며, 노름은 채널마다 공간에 걸쳐 셈한다. 어떤 채널의 공간 노름이 다른 것보다 크면 키워지고 작으면 눌린다. 이 채널 사이 겨룸이 자기 지도 사전 학습에서 모든 채널이 같은 표현으로 모여드는 것을 막는다.
 
 ---
 

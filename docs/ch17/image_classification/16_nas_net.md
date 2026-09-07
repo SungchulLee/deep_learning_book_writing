@@ -59,4 +59,4 @@ NASNet의 보통 칸과 줄임 칸의 차이를 설명하여라.
 연산 5가지를 갖는 간추린 얼개 찾기 공간을 꾸미고, 다스림개가 거기서 얼개를 어떻게 뽑는지 설명하여라.
 
 ??? success "연습문제 3 풀이"
-    Operations: $\{3 \times 3$ conv, $5 \times 5$ conv, $3 \times 3$ depthwise, $3 \times 3$ max pool, skip connection$\}$. The controller RNN outputs a sequence of tokens specifying: (1) which previous layer to connect from, (2) which operation to apply. For a cell with 5 nodes, the controller makes $5 \times 2 \times 2 = 20$ decisions (2 inputs and 2 operations per node). The sampled architecture is trained, and the validation accuracy serves as the reward signal for REINFORCE.
+    연산: $\{3 \times 3$ 합성곱, $5 \times 5$ 합성곱, $3 \times 3$ 깊이별, $3 \times 3$ 최대 풀링, 지름길 연결$\}$. 제어기 RNN은 (1) 어느 앞선 켜에서 이을지, (2) 어떤 연산을 걸지를 밝히는 토큰 이음을 내놓는다. 마디가 5개인 셀에서는 제어기가 $5 \times 2 \times 2 = 20$ 번 판단한다(마디마다 들임 2개와 연산 2개). 뽑은 구조를 학습하고 검증 정확도가 REINFORCE의 보상 신호가 된다.

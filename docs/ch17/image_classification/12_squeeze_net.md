@@ -1,6 +1,6 @@
 # SqueezeNet
 
-SqueezeNet, introduced in the 2016 paper "SqueezeNet: AlexNet-level accuracy with 50x fewer parameters," achieves competitive accuracy with extremely few parameters (~1.2M) through its Fire module design. Fire modules use squeeze layers ($1 \times 1$ convolutions) to reduce channel counts before expanding with parallel $1 \times 1$ and $3 \times 3$ convolutions.
+SqueezeNet은 2016년 논문 "SqueezeNet: 매개변수 50배 적게 AlexNet 수준의 정확도"에서 나왔으며, 파이어 모듈 설계로 매개변수가 아주 적으면서도(~120만 개) 겨룰 만한 정확도를 이룬다. 파이어 모듈은 쥐어짜기 켜($1 \times 1$ 합성곱)로 채널 수를 줄인 뒤 $1 \times 1$과 $3 \times 3$ 합성곱을 나란히 걸어 넓힌다.
 
 ## 코드
 
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 
 ## 논의
 
-The Fire module is SqueezeNet's defining innovation. The squeeze layer reduces the number of channels to a small value (e.g., 16), then the expand layer applies both $1 \times 1$ and $3 \times 3$ convolutions in parallel, concatenating their outputs. This squeeze-and-expand pattern dramatically reduces parameters while maintaining representational capacity.
+파이어 모듈이 SqueezeNet을 SqueezeNet이게 하는 새로움이다. 쥐어짜기 켜가 채널 수를 작은 값(예: 16)으로 줄이고, 넓히기 켜가 $1 \times 1$과 $3 \times 3$ 합성곱을 나란히 걸어 그 날임을 이어 붙인다. 이 쥐어짜고 넓히는 무늬가 표현력을 지키면서 매개변수를 크게 줄인다.
 
 SqueezeNet은 얼개를 잘 꾸미면 매개변수를 50분의 1만 쓰고도 AlexNet 수준의 정확도를 낼 수 있음을 보여 준다. 깊은 눌러 담기 재주로 줄이면 모델이 0.5 MB 아래로 작아져 자원이 극도로 빠듯한 기기에도 펼칠 수 있다.
 
