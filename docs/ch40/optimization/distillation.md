@@ -1,90 +1,90 @@
-# Knowledge Distillation
-## Overview
+# 앎 옮기기
+## 두루 보기
 
-Knowledge distillation transfers knowledge from a large, high-capacity "teacher" model to a smaller, efficient "student" model. The student learns not just from hard labels but from the teacher's soft probability distributions, capturing richer information about class relationships and decision boundaries. This enables deployment of high-performance models in resource-constrained environments.
+앎 옮기기는 크고 많이 담는 "스승" 모형의 앎을 작고 잘 드는 "제자" 모형으로 옮긴다. 제자는 굳은 이름표만이 아니라 스승의 부드러운 낌새 분포에서 배우며, 갈래끼리의 사이와 판단의 금에 대한 더 넉넉한 소식을 담는다. 이로써 밑천이 넉넉지 않은 자리에도 됨됨이 좋은 모형을 내놓을 수 있다.
 
-## Motivation
+## 왜 하는가
 
-Large models achieve excellent accuracy but are expensive to deploy:
+큰 모형은 맞음이 뛰어나지만 내놓는 값이 비싸다.
 
-| Challenge | Impact |
+| 어려움 | 미침 |
 |-----------|--------|
-| High latency | Poor user experience, real-time constraints violated |
-| Large memory footprint | Cannot fit on edge devices, high DRAM costs |
-| High compute cost | Expensive inference at scale |
-| Energy consumption | Battery drain on mobile, data center costs |
+| 늦음이 큼 | 쓰는 이가 답답하고 제때 요건을 어긴다 |
+| 기억 자리가 큼 | 끝단 장치에 들어가지 않고 DRAM 값이 비싸다 |
+| 셈 값이 큼 | 크게 늘리면 미루어 봄이 비싸다 |
+| 힘을 많이 씀 | 손전화의 배터리가 닳고 자료 집의 값이 든다 |
 
-Knowledge distillation addresses this by training a small student model to mimic a large teacher model, achieving better accuracy than training the student from scratch.
+앎 옮기기는 작은 제자 모형이 큰 스승 모형을 흉내 내도록 익혀 이를 푼다. 제자를 처음부터 익히는 것보다 맞음이 낫다.
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                   KNOWLEDGE DISTILLATION                         │
+│                        앎 옮기기                                 │
 ├─────────────────────────────────────────────────────────────────┤
 │                                                                 │
 │  ┌───────────────┐         ┌───────────────┐                   │
-│  │    Teacher    │         │    Student    │                   │
-│  │  (Large CNN)  │         │ (Small CNN)   │                   │
+│  │     스승      │         │     제자      │                   │
+│  │  (큰 CNN)     │         │  (작은 CNN)   │                   │
 │  └───────┬───────┘         └───────┬───────┘                   │
 │          │                         │                            │
 │          ▼                         ▼                            │
 │    ┌───────────┐             ┌───────────┐                     │
-│    │  Soft     │             │  Soft     │                     │
-│    │ Targets   │────────────▶│ Targets   │  ← Distillation    │
-│    │ (logits)  │             │ (logits)  │    Loss             │
+│    │  부드러운 │             │  부드러운 │                     │
+│    │  과녁     │────────────▶│  과녁     │  ← 앎 옮기기       │
+│    │ (로짓)    │             │ (로짓)    │    잃음             │
 │    └───────────┘             └───────────┘                     │
 │                                    │                            │
 │                                    │                            │
 │                              ┌───────────┐                     │
-│                              │   Hard    │                     │
-│                              │  Targets  │  ← Classification   │
-│                              │ (labels)  │    Loss             │
+│                              │   굳은    │                     │
+│                              │   과녁    │  ← 가름             │
+│                              │ (이름표)  │    잃음             │
 │                              └───────────┘                     │
 │                                                                 │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Theoretical Foundation
+## 이론 밑바탕
 
-### Soft Targets and Dark Knowledge
+### 부드러운 과녁과 어둠 속의 앎
 
-The key insight of knowledge distillation is that a teacher's output probabilities contain more information than hard labels alone.
+앎 옮기기의 고갱이 깨침은 스승의 날임 낌새가 굳은 이름표만 있을 때보다 더 많은 소식을 담는다는 것이다.
 
-**Hard labels:**
+**굳은 이름표:**
 
 $$y = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0] \quad \text{(cat)}$$
 
-**Soft labels (teacher output):**
+**부드러운 이름표(스승의 날임):**
 
 $$p = [0.01, 0.02, 0.85, 0.05, 0.03, 0.01, 0.01, 0.01, 0.005, 0.005]$$
 
-The soft labels reveal that the teacher considers this image more similar to a dog (class 3) and tiger (class 4) than to a car or airplane—information completely absent from the hard label.
+부드러운 이름표는 스승이 이 그림을 자동차나 비행기보다 개(갈래 3)와 범(갈래 4)에 더 가깝다고 본다는 것을 알려 준다. 굳은 이름표에는 아예 없는 소식이다.
 
-Hinton et al. termed this additional information "dark knowledge"—the knowledge embedded in the relative probabilities of incorrect classes.
+힌턴 등은 이 덧붙은 소식을 "어둠 속의 앎"이라 불렀다. 틀린 갈래들의 견준 낌새에 담긴 앎이다.
 
-**The Problem with Hard Labels:**
+**굳은 이름표의 문제:**
 
-Hard labels (one-hot) lose critical information:
+굳은 이름표(원핫)은 종요로운 소식을 잃는다.
 
-- "Cat" with 99% confidence → [0, 0, 1, 0, 0]
-- "Cat" with 51% confidence → [0, 0, 1, 0, 0]
+- 자신함 99%의 "고양이" → [0, 0, 1, 0, 0]
+- 자신함 51%의 "고양이" → [0, 0, 1, 0, 0]
 
-Both produce the same training signal despite vastly different confidences.
+자신함이 크게 다른데도 익힘 신호는 똑같다.
 
-### Temperature Scaling
+### 온도 잣대 잡기
 
-To extract more information from soft labels, we increase the "temperature" of the softmax:
+부드러운 이름표에서 소식을 더 뽑아내려고 소프트맥스의 "온도"를 올린다.
 
 $$p_i(T) = \frac{\exp(z_i / T)}{\sum_j \exp(z_j / T)}$$
 
-where $z_i$ are the logits and $T$ is the temperature.
+여기서 $z_i$은 로짓이고 $T$은 온도다.
 
-**Effect of temperature:**
+**온도가 미치는 것:**
 
-- $T = 1$: Standard softmax (peaked distribution)
-- $T > 1$: Softer distribution, more information about class relationships
-- $T \to \infty$: Uniform distribution
+- $T = 1$: 여느 소프트맥스(뾰족한 분포)
+- $T > 1$: 더 부드러운 분포, 갈래끼리의 사이에 대한 소식이 더 많다
+- $T \to \infty$: 고른 분포
 
-At higher temperatures, the probability differences between classes become more pronounced, making the soft targets more informative for the student.
+온도가 높을수록 갈래끼리의 낌새 차이가 뚜렷해져 부드러운 과녁이 제자에게 더 많은 것을 알려 준다.
 
 ```python
 import torch
@@ -96,83 +96,83 @@ from typing import Tuple, Optional, Dict, List
 def softmax_with_temperature(logits: torch.Tensor, 
                              temperature: float = 1.0) -> torch.Tensor:
     """
-    Softmax with temperature scaling.
+    온도 잣대를 곁들인 소프트맥스.
     
-    Higher temperature (T > 1):
-    - Softer probability distribution
-    - More information about class relationships
+    온도가 높으면(T > 1):
+    - 낌새 분포가 더 부드럽다
+    - 갈래끼리의 사이에 대한 소식이 더 많다
     
-    Lower temperature (T < 1):
-    - Sharper distribution
-    - More confident predictions
+    온도가 낮으면(T < 1):
+    - 분포가 더 날카롭다
+    - 미루어 봄을 더 자신한다
     
-    T = 1: Standard softmax
+    T = 1: 여느 소프트맥스
     """
     return F.softmax(logits / temperature, dim=-1)
 
 
-# Example: Effect of temperature
+# 보기: 온도가 미치는 것
 logits = torch.tensor([5.0, 2.0, 0.5, 0.1, 0.1])
 
-print("Effect of Temperature on Softmax:")
+print("온도가 소프트맥스에 미치는 것:")
 print("-" * 50)
 for T in [0.5, 1.0, 2.0, 5.0, 10.0]:
     probs = softmax_with_temperature(logits, T)
     entropy = -(probs * probs.log()).sum()
-    print(f"T={T:>4}: {probs.numpy().round(3)}  (entropy: {entropy:.3f})")
+    print(f"T={T:>4}: {probs.numpy().round(3)}  (엔트로피: {entropy:.3f})")
 ```
 
-Output:
+날임:
 ```
-T= 0.5: [0.991 0.009 0.    0.    0.   ]  (entropy: 0.063)
-T= 1.0: [0.936 0.047 0.01  0.007 0.007]  (entropy: 0.317)
-T= 2.0: [0.757 0.17  0.039 0.017 0.017]  (entropy: 0.742)
-T= 5.0: [0.44  0.26  0.13  0.085 0.085]  (entropy: 1.386)
-T=10.0: [0.32  0.25  0.17  0.13  0.13 ]  (entropy: 1.531)
+T= 0.5: [0.991 0.009 0.    0.    0.   ]  (엔트로피: 0.063)
+T= 1.0: [0.936 0.047 0.01  0.007 0.007]  (엔트로피: 0.317)
+T= 2.0: [0.757 0.17  0.039 0.017 0.017]  (엔트로피: 0.742)
+T= 5.0: [0.44  0.26  0.13  0.085 0.085]  (엔트로피: 1.386)
+T=10.0: [0.32  0.25  0.17  0.13  0.13 ]  (엔트로피: 1.531)
 ```
 
-Higher temperature reveals relationships between classes by increasing entropy.
+온도가 높을수록 엔트로피가 커지며 갈래끼리의 사이가 드러난다.
 
-### Distillation Loss
+### 앎 옮기기 잃음
 
-The total distillation loss combines two components:
+온 앎 옮기기 잃음은 두 몫을 아우른다.
 
 $$\mathcal{L}_{\text{total}} = \alpha \cdot \mathcal{L}_{\text{hard}} + (1 - \alpha) \cdot \mathcal{L}_{\text{soft}}$$
 
-**Hard loss (standard cross-entropy with true labels):**
+**굳은 잃음(참 이름표와의 여느 엇갈린 엔트로피):**
 
 $$\mathcal{L}_{\text{hard}} = -\sum_i y_i \log(p_i^{\text{student}})$$
 
-**Soft loss (KL divergence with teacher):**
+**부드러운 잃음(스승과의 KL 갈림):**
 
 $$\mathcal{L}_{\text{soft}} = T^2 \cdot D_{\text{KL}}\left(p^{\text{teacher}}(T) \| p^{\text{student}}(T)\right)$$
 
 $$= T^2 \cdot \sum_i p_i^{\text{teacher}}(T) \log\frac{p_i^{\text{teacher}}(T)}{p_i^{\text{student}}(T)}$$
 
-The $T^2$ factor compensates for the gradient magnitude scaling with temperature.
+$T^2$ 값은 온도에 따라 기울기 크기가 바뀌는 것을 메운다.
 
-### Gradient Analysis
+### 기울기 살피기
 
-The gradient of the soft loss with respect to student logits $z_i^s$:
+제자의 로짓 $z_i^s$에 대한 부드러운 잃음의 기울기는
 
 $$\frac{\partial \mathcal{L}_{\text{soft}}}{\partial z_i^s} = \frac{1}{T}\left(p_i^s(T) - p_i^t(T)\right)$$
 
-At high temperature, this gradient encourages the student to match the teacher's entire output distribution, not just the argmax. The $T^2$ scaling in the loss ensures gradients maintain appropriate magnitude regardless of temperature choice.
+온도가 높으면 이 기울기는 제자가 가장 큰 값만이 아니라 스승의 온 날임 분포를 맞추도록 이끈다. 잃음의 $T^2$ 잣대는 온도를 어떻게 고르든 기울기의 크기가 알맞게 남도록 한다.
 
-## PyTorch Implementation
+## PyTorch으로 짜기
 
-### Basic Knowledge Distillation
+### 밑바탕 앎 옮기기
 
 ```python
 class DistillationLoss(nn.Module):
     """
-    Knowledge Distillation loss combining hard and soft targets.
+    굳은 과녁과 부드러운 과녁을 아우른 앎 옮기기 잃음.
     
     L_total = α * L_hard + (1-α) * L_soft
     
-    where:
-    - L_hard = CrossEntropy(student_output, true_labels)
-    - L_soft = T² * KL_div(student_soft, teacher_soft)
+    여기서:
+    - L_hard = CrossEntropy(제자 날임, 참 이름표)
+    - L_soft = T² * KL_div(제자 부드러움, 스승 부드러움)
     """
     
     def __init__(self,
@@ -180,8 +180,8 @@ class DistillationLoss(nn.Module):
                  alpha: float = 0.5):
         """
         Args:
-            temperature: Softmax temperature (higher = softer distribution)
-            alpha: Weight for hard loss (1-alpha for soft loss)
+            temperature: 소프트맥스 온도(높을수록 분포가 부드럽다)
+            alpha: 굳은 잃음의 짐(부드러운 잃음에는 1-alpha)
         """
         super().__init__()
         self.temperature = temperature
@@ -194,28 +194,28 @@ class DistillationLoss(nn.Module):
                 teacher_logits: torch.Tensor,
                 labels: torch.Tensor) -> Tuple[torch.Tensor, Dict[str, float]]:
         """
-        Compute distillation loss.
+        앎 옮기기 잃음을 셈한다.
         
         Args:
-            student_logits: Raw student outputs (B, num_classes)
-            teacher_logits: Raw teacher outputs (B, num_classes)
-            labels: True labels (B,)
+            student_logits: 제자의 날것 날임 (B, num_classes)
+            teacher_logits: 스승의 날것 날임 (B, num_classes)
+            labels: 참 이름표 (B,)
             
         Returns:
-            Total loss, dictionary with loss components
+            온 잃음과 잃음 몫을 담은 사전
         """
-        # Hard loss (student vs true labels)
+        # 굳은 잃음(제자 대 참 이름표)
         hard_loss = self.ce_loss(student_logits, labels)
         
-        # Soft loss (student vs teacher)
-        # Note: F.log_softmax for student, F.softmax for teacher
+        # 부드러운 잃음(제자 대 스승)
+        # 붙임말: 제자에는 F.log_softmax, 스승에는 F.softmax
         student_soft = F.log_softmax(student_logits / self.temperature, dim=1)
         teacher_soft = F.softmax(teacher_logits / self.temperature, dim=1)
         
         soft_loss = self.kl_loss(student_soft, teacher_soft)
         soft_loss = soft_loss * (self.temperature ** 2)
         
-        # Combined loss
+        # 아우른 잃음
         total_loss = self.alpha * hard_loss + (1 - self.alpha) * soft_loss
         
         return total_loss, {
@@ -235,27 +235,27 @@ def train_student_with_distillation(student: nn.Module,
                                     lr: float = 1e-3,
                                     device: str = 'cpu') -> nn.Module:
     """
-    Train student model using knowledge distillation.
+    앎 옮기기로 제자 모형을 익힌다.
     
     Args:
-        student: Student model to train
-        teacher: Pre-trained teacher model (frozen)
-        train_loader: Training data
-        test_loader: Test data
-        epochs: Training epochs
-        temperature: Distillation temperature
-        alpha: Hard loss weight
-        lr: Learning rate
-        device: Training device
+        student: 익힐 제자 모형
+        teacher: 미리 익힌 스승 모형(얼려 둔다)
+        train_loader: 익힘 자료
+        test_loader: 시험 자료
+        epochs: 익힘 판 수
+        temperature: 앎 옮기기 온도
+        alpha: 굳은 잃음의 짐
+        lr: 배움 비율
+        device: 익힐 장치
         
     Returns:
-        Trained student model
+        익힌 제자 모형
     """
     student = student.to(device)
     teacher = teacher.to(device)
-    teacher.eval()  # Freeze teacher
+    teacher.eval()  # 스승을 얼린다
     
-    # Ensure teacher parameters don't require gradients
+    # 스승의 매개변수에 기울기가 붙지 않게 한다
     for param in teacher.parameters():
         param.requires_grad = False
     
@@ -272,28 +272,28 @@ def train_student_with_distillation(student: nn.Module,
         for data, target in train_loader:
             data, target = data.to(device), target.to(device)
             
-            # Get teacher predictions (no gradient)
+            # 스승의 미루어 봄을 얻는다(기울기 없이)
             with torch.no_grad():
                 teacher_logits = teacher(data)
             
-            # Student forward pass
+            # 제자의 앞으로 걸음
             optimizer.zero_grad()
             student_logits = student(data)
             
-            # Distillation loss
+            # 앎 옮기기 잃음
             loss, loss_dict = criterion(student_logits, teacher_logits, target)
             
-            # Backward and optimize
+            # 되돌아가고 가장 좋게 한다
             loss.backward()
             optimizer.step()
             
-            # Accumulate losses
+            # 잃음을 쌓는다
             for key in epoch_losses:
                 epoch_losses[key] += loss_dict[f'{key}_loss']
         
         scheduler.step()
         
-        # Evaluate
+        # 따진다
         student.eval()
         correct = 0
         total = 0
@@ -311,21 +311,21 @@ def train_student_with_distillation(student: nn.Module,
             torch.save(student.state_dict(), 'best_student.pth')
         
         if (epoch + 1) % 5 == 0:
-            print(f"Epoch {epoch+1}/{epochs} - "
-                  f"Hard: {epoch_losses['hard']/len(train_loader):.4f}, "
-                  f"Soft: {epoch_losses['soft']/len(train_loader):.4f}, "
-                  f"Acc: {100*acc:.2f}%")
+            print(f"{epoch+1}/{epochs}판 - "
+                  f"굳은: {epoch_losses['hard']/len(train_loader):.4f}, "
+                  f"부드러운: {epoch_losses['soft']/len(train_loader):.4f}, "
+                  f"맞음: {100*acc:.2f}%")
     
-    # Load best model
+    # 가장 좋은 모형을 얹는다
     student.load_state_dict(torch.load('best_student.pth'))
     return student
 ```
 
-### Example: CNN Distillation
+### 보기: CNN 앎 옮기기
 
 ```python
 class TeacherCNN(nn.Module):
-    """Large teacher model."""
+    """큰 스승 모형."""
     
     def __init__(self, num_classes: int = 10):
         super().__init__()
@@ -357,7 +357,7 @@ class TeacherCNN(nn.Module):
 
 
 class StudentCNN(nn.Module):
-    """Small student model (6x fewer parameters)."""
+    """작은 제자 모형(매개변수가 6배 적다)."""
     
     def __init__(self, num_classes: int = 10):
         super().__init__()
@@ -381,7 +381,7 @@ class StudentCNN(nn.Module):
         return self.classifier(x)
 
 
-# Compare parameter counts
+# 매개변수 수를 견준다
 def compare_models():
     teacher = TeacherCNN()
     student = StudentCNN()
@@ -389,24 +389,24 @@ def compare_models():
     teacher_params = sum(p.numel() for p in teacher.parameters())
     student_params = sum(p.numel() for p in student.parameters())
     
-    print(f"Teacher parameters: {teacher_params:,}")
-    print(f"Student parameters: {student_params:,}")
-    print(f"Compression ratio: {teacher_params/student_params:.1f}x")
+    print(f"스승 매개변수: {teacher_params:,}")
+    print(f"제자 매개변수: {student_params:,}")
+    print(f"눌러 담은 견줌: {teacher_params/student_params:.1f}배")
 ```
 
-## Advanced Distillation Methods
+## 한발 더 나간 앎 옮기기 방법
 
-### Feature-Based Distillation (FitNets)
+### 결에 기댄 앎 옮기기(FitNets)
 
-Beyond output probabilities, we can distill intermediate feature representations, providing stronger supervision signal:
+날임 낌새를 넘어 가운데 결까지 옮길 수 있으며, 이는 더 센 이끔 신호가 된다.
 
 ```python
 class FeatureDistillationLoss(nn.Module):
     """
-    Feature-based distillation (FitNets / Attention Transfer).
+    결에 기댄 앎 옮기기(FitNets / 눈길 옮기기).
     
-    Matches intermediate representations between teacher and student,
-    providing stronger supervision signal than output-only distillation.
+    스승과 제자의 가운데 결을 맞추어
+    날임만 옮길 때보다 더 센 이끔 신호를 준다.
     """
     
     def __init__(self,
@@ -418,12 +418,12 @@ class FeatureDistillationLoss(nn.Module):
                  spatial_matching: bool = True):
         """
         Args:
-            teacher_channels: Number of channels in teacher feature map
-            student_channels: Number of channels in student feature map
-            temperature: Output distillation temperature
-            alpha: Hard loss weight
-            beta: Feature loss weight
-            spatial_matching: Whether to match spatial attention maps
+            teacher_channels: 스승 결 그림의 갈래 수
+            student_channels: 제자 결 그림의 갈래 수
+            temperature: 날임 앎 옮기기 온도
+            alpha: 굳은 잃음의 짐
+            beta: 결 잃음의 짐
+            spatial_matching: 자리 눈길 그림을 맞출지
         """
         super().__init__()
         self.temperature = temperature
@@ -431,7 +431,7 @@ class FeatureDistillationLoss(nn.Module):
         self.beta = beta
         self.spatial_matching = spatial_matching
         
-        # Projection layer to match dimensions
+        # 차수를 맞추는 비추기 켜
         if teacher_channels != student_channels:
             self.projector = nn.Conv2d(student_channels, teacher_channels, 1)
         else:
@@ -448,41 +448,41 @@ class FeatureDistillationLoss(nn.Module):
                 teacher_features: torch.Tensor,
                 labels: torch.Tensor) -> Tuple[torch.Tensor, Dict[str, float]]:
         """
-        Compute feature distillation loss.
+        결 앎 옮기기 잃음을 셈한다.
         
         Args:
-            student_logits: Student output logits (B, num_classes)
-            teacher_logits: Teacher output logits (B, num_classes)
-            student_features: Student intermediate features (B, C_s, H, W)
-            teacher_features: Teacher intermediate features (B, C_t, H, W)
-            labels: Ground truth labels (B,)
+            student_logits: 제자의 날임 로짓 (B, num_classes)
+            teacher_logits: 스승의 날임 로짓 (B, num_classes)
+            student_features: 제자의 가운데 결 (B, C_s, H, W)
+            teacher_features: 스승의 가운데 결 (B, C_t, H, W)
+            labels: 참 이름표 (B,)
             
         Returns:
-            Total loss, dictionary with loss components
+            온 잃음과 잃음 몫을 담은 사전
         """
-        # Hard loss
+        # 굳은 잃음
         hard_loss = self.ce_loss(student_logits, labels)
         
-        # Soft loss
+        # 부드러운 잃음
         soft_student = F.log_softmax(student_logits / self.temperature, dim=-1)
         soft_teacher = F.softmax(teacher_logits / self.temperature, dim=-1)
         soft_loss = self.kl_loss(soft_student, soft_teacher)
         
-        # Feature matching loss
+        # 결 맞추기 잃음
         student_proj = self.projector(student_features)
         
         if self.spatial_matching:
-            # Attention transfer: match spatial attention maps
+            # 눈길 옮기기: 자리 눈길 그림을 맞춘다
             student_attn = self._spatial_attention(student_proj)
             teacher_attn = self._spatial_attention(teacher_features)
             feature_loss = self.mse_loss(student_attn, teacher_attn)
         else:
-            # Direct feature matching (after normalization)
+            # 곧바로 결 맞추기(잣대를 맞춘 뒤)
             student_norm = F.normalize(student_proj.flatten(2), dim=2)
             teacher_norm = F.normalize(teacher_features.detach().flatten(2), dim=2)
             feature_loss = self.mse_loss(student_norm, teacher_norm)
         
-        # Combine losses
+        # 잃음을 아우른다
         total_loss = (
             self.alpha * hard_loss +
             (1 - self.alpha - self.beta) * self.temperature ** 2 * soft_loss +
@@ -498,13 +498,13 @@ class FeatureDistillationLoss(nn.Module):
     
     def _spatial_attention(self, features: torch.Tensor) -> torch.Tensor:
         """
-        Compute spatial attention map: sum of squared activations across channels.
+        자리 눈길 그림을 셈한다: 갈래에 걸친 살림 제곱의 합.
         
         Args:
-            features: Feature map (B, C, H, W)
+            features: 결 그림 (B, C, H, W)
             
         Returns:
-            Attention map (B, H, W), normalized
+            잣대 맞춘 눈길 그림 (B, H, W)
         """
         attention = (features ** 2).sum(dim=1)  # (B, H, W)
         attention = attention / (attention.sum(dim=(1, 2), keepdim=True) + 1e-8)
@@ -514,11 +514,11 @@ class FeatureDistillationLoss(nn.Module):
 def attention_transfer_loss(student_attention: torch.Tensor,
                            teacher_attention: torch.Tensor) -> torch.Tensor:
     """
-    Standalone attention transfer loss.
+    홀로 쓰는 눈길 옮기기 잃음.
     
-    Matches spatial attention maps (where the model "looks").
+    자리 눈길 그림(모형이 "보는" 자리)을 맞춘다.
     """
-    # Normalize attention maps
+    # 눈길 그림의 잣대를 맞춘다
     student_norm = F.normalize(
         student_attention.pow(2).mean(1).view(student_attention.size(0), -1), 
         dim=1
@@ -531,16 +531,16 @@ def attention_transfer_loss(student_attention: torch.Tensor,
     return (student_norm - teacher_norm).pow(2).mean()
 ```
 
-### Multi-Layer Distillation
+### 여러 켜 앎 옮기기
 
-Distillation from multiple intermediate layers provides richer supervision:
+가운데 켜 여럿에서 옮기면 이끔이 더 넉넉해진다.
 
 ```python
 class MultiLayerDistillation(nn.Module):
     """
-    Distillation from multiple intermediate layers.
+    가운데 켜 여럿에서 앎을 옮기기.
     
-    Provides richer supervision by matching features at multiple depths.
+    여러 깊이의 결을 맞추어 이끔을 더 넉넉하게 한다.
     """
     
     def __init__(self,
@@ -550,10 +550,10 @@ class MultiLayerDistillation(nn.Module):
                  beta: float = 0.1):
         """
         Args:
-            layer_configs: List of dicts with teacher/student layer names and weights
-            temperature: Output distillation temperature
-            alpha: Hard loss weight
-            beta: Total feature loss weight
+            layer_configs: 스승/제자 켜 이름과 짐을 담은 사전들의 목록
+            temperature: 날임 앎 옮기기 온도
+            alpha: 굳은 잃음의 짐
+            beta: 온 결 잃음의 짐
         """
         super().__init__()
         self.layer_configs = layer_configs
@@ -571,21 +571,21 @@ class MultiLayerDistillation(nn.Module):
                 teacher_features: Dict[str, torch.Tensor],
                 labels: torch.Tensor) -> Tuple[torch.Tensor, Dict[str, float]]:
         """
-        Compute multi-layer distillation loss.
+        여러 켜 앎 옮기기 잃음을 셈한다.
         """
         loss_dict = {}
         
-        # Hard loss
+        # 굳은 잃음
         hard_loss = self.ce_loss(student_logits, labels)
         loss_dict['hard_loss'] = hard_loss.item()
         
-        # Soft loss
+        # 부드러운 잃음
         soft_student = F.log_softmax(student_logits / self.temperature, dim=1)
         soft_teacher = F.softmax(teacher_logits / self.temperature, dim=1)
         soft_loss = self.kl_loss(soft_student, soft_teacher) * (self.temperature ** 2)
         loss_dict['soft_loss'] = soft_loss.item()
         
-        # Feature distillation at multiple layers
+        # 켜 여럿에서의 결 옮기기
         feature_loss = 0.0
         for config in self.layer_configs:
             t_name, s_name = config['t'], config['s']
@@ -595,7 +595,7 @@ class MultiLayerDistillation(nn.Module):
                 t_feat = teacher_features[t_name].detach()
                 s_feat = student_features[s_name]
                 
-                # Normalize and compute MSE
+                # 잣대를 맞추고 MSE을 셈한다
                 fl = F.mse_loss(
                     F.normalize(s_feat.flatten(1), dim=1),
                     F.normalize(t_feat.flatten(1), dim=1)
@@ -605,7 +605,7 @@ class MultiLayerDistillation(nn.Module):
         
         loss_dict['feature_total'] = feature_loss.item() if isinstance(feature_loss, torch.Tensor) else feature_loss
         
-        # Combine
+        # 아우른다
         output_loss = self.alpha * hard_loss + (1 - self.alpha) * soft_loss
         total_loss = output_loss + self.beta * feature_loss
         loss_dict['total_loss'] = total_loss.item()
@@ -613,19 +613,19 @@ class MultiLayerDistillation(nn.Module):
         return total_loss, loss_dict
 ```
 
-### Self-Distillation
+### 스스로 앎 옮기기
 
-The student and teacher share the same architecture—the model distills from itself:
+제자와 스승이 같은 얼개다. 모형이 제 스스로에게서 앎을 옮긴다.
 
 ```python
 class SelfDistillation(nn.Module):
     """
-    Self-distillation: model learns from its own earlier predictions.
+    스스로 앎 옮기기: 모형이 제 앞선 미루어 봄에서 배운다.
     
-    Variants:
-    1. Born-Again Networks: Train, then distill to same architecture
-    2. Deep Mutual Learning: Two networks teach each other
-    3. Label Smoothing as Distillation: Soft labels as implicit teacher
+    갈래:
+    1. 다시 난 그물: 익힌 뒤 같은 얼개로 옮긴다
+    2. 깊은 서로 배움: 그물 둘이 서로 가르친다
+    3. 앎 옮기기로서의 이름표 매끄럽게 하기: 부드러운 이름표가 넌지시 스승 노릇을 한다
     """
     
     def __init__(self,
@@ -637,14 +637,14 @@ class SelfDistillation(nn.Module):
         self.temperature = temperature
         self.alpha = alpha
         
-        # Store soft targets from previous epoch
+        # 앞 판의 부드러운 과녁을 담아 둔다
         self.soft_targets = {}
     
     def compute_soft_targets(self,
                             data_loader: torch.utils.data.DataLoader,
                             device: str = 'cpu'):
         """
-        Compute and store soft targets for all training samples.
+        익힘 보기 모두의 부드러운 과녁을 셈해 담는다.
         """
         self.model.eval()
         self.soft_targets = {}
@@ -665,17 +665,17 @@ class SelfDistillation(nn.Module):
                    indices: torch.Tensor,
                    optimizer: torch.optim.Optimizer) -> Dict[str, float]:
         """
-        Single training step with self-distillation.
+        스스로 앎 옮기기의 익힘 한 걸음.
         """
         self.model.train()
         
         optimizer.zero_grad()
         logits = self.model(data)
         
-        # Hard loss
+        # 굳은 잃음
         hard_loss = F.cross_entropy(logits, labels)
         
-        # Soft loss (from stored targets)
+        # 부드러운 잃음(담아 둔 과녁에서)
         if self.soft_targets:
             soft_targets = torch.stack([self.soft_targets[i.item()] for i in indices])
             soft_targets = soft_targets.to(data.device)
@@ -704,16 +704,16 @@ def self_distillation_training(model: nn.Module,
                                temperature: float = 4.0,
                                device: str = 'cpu') -> nn.Module:
     """
-    Self-distillation: model learns from its own past predictions.
+    스스로 앎 옮기기: 모형이 제 지난 미루어 봄에서 배운다.
     
-    After initial training, use model's own soft predictions
-    as additional supervision.
+    처음 익힘이 끝나면 모형 제 부드러운 미루어 봄을
+    덧붙은 이끔으로 쓴다.
     """
     model = model.to(device)
     optimizer = torch.optim.Adam(model.parameters())
     criterion = nn.CrossEntropyLoss()
     
-    past_predictions = {}  # Store predictions from previous epoch
+    past_predictions = {}  # 앞 판의 미루어 봄을 담아 둔다
     
     for epoch in range(epochs):
         model.train()
@@ -724,10 +724,10 @@ def self_distillation_training(model: nn.Module,
             optimizer.zero_grad()
             output = model(data)
             
-            # Standard loss
+            # 여느 잃음
             loss = criterion(output, target)
             
-            # Add self-distillation after warmup
+            # 몸풀기 뒤 스스로 앎 옮기기를 더한다
             if epoch >= distill_epochs_start and batch_idx in past_predictions:
                 soft_loss = F.kl_div(
                     F.log_softmax(output / temperature, dim=-1),
@@ -739,25 +739,25 @@ def self_distillation_training(model: nn.Module,
             loss.backward()
             optimizer.step()
             
-            # Store predictions for next epoch
+            # 다음 판을 위해 미루어 봄을 담는다
             past_predictions[batch_idx] = output.detach()
     
     return model
 ```
 
-### Multi-Teacher Distillation
+### 여러 스승 앎 옮기기
 
-Ensemble multiple teachers for richer knowledge:
+앎을 더 넉넉히 하려고 스승 여럿을 모둠으로 쓴다.
 
 $$p^{\text{ensemble}} = \frac{1}{K}\sum_{k=1}^{K} p^{\text{teacher}_k}$$
 
 ```python
 class MultiTeacherDistillation(nn.Module):
     """
-    Distillation from multiple teacher models.
+    스승 모형 여럿에서 앎을 옮기기.
     
-    Multiple teachers provide diverse perspectives, often improving
-    student generalization beyond what a single teacher achieves.
+    스승이 여럿이면 보는 눈이 여러 가지라 스승 하나일 때보다
+    제자의 두루 미침이 나아지는 일이 잦다.
     """
     
     def __init__(self,
@@ -766,9 +766,9 @@ class MultiTeacherDistillation(nn.Module):
                  temperature: float = 4.0):
         """
         Args:
-            teachers: List of teacher models
-            aggregation: 'mean', 'weighted', or 'max'
-            temperature: Distillation temperature
+            teachers: 스승 모형의 목록
+            aggregation: 'mean', 'weighted', 'max' 가운데 하나
+            temperature: 앎 옮기기 온도
         """
         super().__init__()
         self.teachers = nn.ModuleList(teachers)
@@ -781,7 +781,7 @@ class MultiTeacherDistillation(nn.Module):
     def get_teacher_soft_targets(self,
                                  data: torch.Tensor) -> torch.Tensor:
         """
-        Aggregate soft targets from all teachers.
+        스승 모두의 부드러운 과녁을 모은다.
         """
         soft_targets = []
         
@@ -802,20 +802,20 @@ class MultiTeacherDistillation(nn.Module):
         elif self.aggregation == 'max':
             return soft_targets.max(dim=0)[0]
         else:
-            raise ValueError(f"Unknown aggregation: {self.aggregation}")
+            raise ValueError(f"모르는 모으기: {self.aggregation}")
 ```
 
-### Online Distillation (Deep Mutual Learning)
+### 살아 있는 앎 옮기기(깊은 서로 배움)
 
-Train teacher and student simultaneously:
+스승과 제자를 한꺼번에 익힌다.
 
 ```python
 class OnlineDistillation(nn.Module):
     """
-    Deep Mutual Learning: networks teach each other during training.
+    깊은 서로 배움: 익히는 동안 그물끼리 서로 가르친다.
     
-    No pre-trained teacher required. Multiple networks learn collaboratively,
-    often outperforming traditional one-way distillation.
+    미리 익힌 스승이 있어야 하지 않다. 그물 여럿이 함께 배우며,
+    흔히 한쪽으로만 옮기는 여느 길보다 낫다.
     """
     
     def __init__(self,
@@ -829,7 +829,7 @@ class OnlineDistillation(nn.Module):
                 data: torch.Tensor,
                 labels: torch.Tensor) -> Tuple[List[torch.Tensor], Dict[str, float]]:
         """
-        Forward pass for all models with mutual learning.
+        서로 배우며 모형 모두의 앞으로 걸음.
         """
         logits_list = [model(data) for model in self.models]
         
@@ -837,10 +837,10 @@ class OnlineDistillation(nn.Module):
         loss_dict = {}
         
         for i, logits in enumerate(logits_list):
-            # Hard loss
+            # 굳은 잃음
             hard_loss = F.cross_entropy(logits, labels)
             
-            # Soft loss: learn from all other models
+            # 부드러운 잃음: 다른 모형 모두에게서 배운다
             soft_loss = 0.0
             student_soft = F.log_softmax(logits / self.temperature, dim=1)
             
@@ -858,15 +858,15 @@ class OnlineDistillation(nn.Module):
         return losses, loss_dict
 ```
 
-## Progressive Distillation
+## 차근차근 앎 옮기기
 
-Gradually distill through intermediate-sized models for very large compression ratios:
+아주 크게 눌러 담으려면 가운데 크기의 모형을 거쳐 차근차근 옮긴다.
 
 ```
-Large Teacher → Medium Model → Small Student
+큰 스승 → 가운데 모형 → 작은 제자
 ```
 
-Each step is easier than directly distilling to the smallest model.
+걸음마다가 가장 작은 모형으로 곧바로 옮기는 것보다 쉽다.
 
 ```python
 def progressive_distillation(teachers: List[nn.Module],
@@ -876,26 +876,26 @@ def progressive_distillation(teachers: List[nn.Module],
                             temperature: float = 4.0,
                             device: str = 'cpu') -> nn.Module:
     """
-    Progressive distillation through a chain of models.
+    모형 사슬을 거치는 차근차근 앎 옮기기.
     
     Args:
-        teachers: List of models from largest to smallest
-                  [large_teacher, medium_model, small_student]
-        train_loader: Training data
-        test_loader: Test data
-        epochs_per_stage: Training epochs for each distillation stage
-        temperature: Distillation temperature
-        device: Training device
+        teachers: 큰 것에서 작은 것 차례의 모형 목록
+                  [큰 스승, 가운데 모형, 작은 제자]
+        train_loader: 익힘 자료
+        test_loader: 시험 자료
+        epochs_per_stage: 옮기기 도막마다의 익힘 판 수
+        temperature: 앎 옮기기 온도
+        device: 익힐 장치
         
     Returns:
-        Final trained small student
+        끝으로 익힌 작은 제자
     """
     for i in range(len(teachers) - 1):
         teacher = teachers[i]
         student = teachers[i + 1]
         
         print(f"\n{'='*60}")
-        print(f"Stage {i+1}: Distilling model {i} → model {i+1}")
+        print(f"{i+1}도막: 모형 {i} → 모형 {i+1}으로 옮기는 중")
         print(f"{'='*60}")
         
         student = train_student_with_distillation(
@@ -911,47 +911,47 @@ def progressive_distillation(teachers: List[nn.Module],
     return teachers[-1]
 ```
 
-## Hyperparameter Selection
+## 하이퍼파라미터 고르기
 
-### Temperature Selection
+### 온도 고르기
 
-| Temperature | Effect | Best For |
+| 온도 | 미침 | 잘 맞는 자리 |
 |-------------|--------|----------|
-| 1-2 | Sharp distributions | Already confident teacher |
-| 3-5 | Moderate softness | General use (default: 4) |
-| 10-20 | Very soft | When class similarities matter, large architecture gaps |
-| >20 | Nearly uniform | Usually too soft |
+| 1~2 | 날카로운 분포 | 이미 자신하는 스승 |
+| 3~5 | 알맞은 부드러움 | 두루 쓰기(기본값: 4) |
+| 10~20 | 아주 부드러움 | 갈래끼리 닮음이 걸릴 때, 얼개 차이가 클 때 |
+| 20 넘음 | 거의 고름 | 흔히 너무 부드럽다 |
 
-### Alpha Selection
+### 알파 고르기
 
-| Alpha | Interpretation | When to Use |
+| 알파 | 풀이 | 쓸 때 |
 |-------|---------------|-------------|
-| 0.0 | Pure soft loss | Very confident, accurate teacher |
-| 0.3-0.5 | Balanced | General use (default) |
-| 0.7-0.9 | Mostly hard | Unreliable teacher or fine-tuning |
-| 1.0 | Pure hard loss | No distillation (baseline) |
+| 0.0 | 부드러운 잃음만 | 아주 자신하고 맞는 스승 |
+| 0.3~0.5 | 고르게 | 두루 쓰기(기본값) |
+| 0.7~0.9 | 거의 굳은 잃음 | 못 미더운 스승이나 곱게 맞추기 |
+| 1.0 | 굳은 잃음만 | 앎 옮기기 없음(밑금) |
 
-### When to Use Each Method
+### 어느 방법을 언제 쓸까
 
-| Scenario | Recommendation |
+| 형편 | 즐겨 쓸 길 |
 |----------|---------------|
-| Large accuracy gap teacher-student | Use higher temperature (8-20) |
-| Similar architectures | Use feature distillation |
-| Very small student | Use progressive distillation |
-| Limited training data | Distillation particularly helpful |
-| Ensemble teacher | Combine multiple teachers |
-| No pre-trained teacher | Use deep mutual learning |
+| 스승과 제자의 맞음 차이가 큼 | 온도를 높인다(8~20) |
+| 얼개가 비슷함 | 결 옮기기를 쓴다 |
+| 제자가 아주 작음 | 차근차근 옮기기를 쓴다 |
+| 익힘 자료가 적음 | 앎 옮기기가 크게 도움이 된다 |
+| 모둠 스승 | 스승 여럿을 아우른다 |
+| 미리 익힌 스승이 없음 | 깊은 서로 배움을 쓴다 |
 
-### Student Architecture Design
+### 제자 얼개 꾸미기
 
-The student should be small enough for deployment but large enough to capture the teacher's knowledge:
+제자는 내놓을 만큼 작되 스승의 앎을 담을 만큼 커야 한다.
 
-- **Too small**: Cannot learn complex decision boundaries
-- **Too large**: Diminishing returns, defeats compression purpose
+- **너무 작으면**: 얽힌 판단의 금을 배우지 못한다
+- **너무 크면**: 보람이 줄고 눌러 담는 뜻이 사라진다
 
-Rule of thumb: Start with 10-30% of teacher parameters, adjust based on accuracy requirements.
+어림 규칙: 스승 매개변수의 10~30%에서 비롯해 맞음 요건에 따라 손본다.
 
-### Finding Optimal Temperature
+### 가장 좋은 온도 찾기
 
 ```python
 def find_optimal_temperature(teacher: nn.Module,
@@ -962,15 +962,15 @@ def find_optimal_temperature(teacher: nn.Module,
                             quick_epochs: int = 10,
                             device: str = 'cpu') -> float:
     """
-    Find optimal distillation temperature via grid search.
+    격자 뒤지기로 가장 좋은 앎 옮기기 온도를 찾는다.
     """
     results = []
     
     for T in temperatures:
-        # Fresh student for each trial
+        # 해 볼 때마다 새 제자
         student = student_class()
         
-        # Quick distillation training
+        # 빠른 앎 옮기기 익힘
         trained = train_student_with_distillation(
             student=student,
             teacher=teacher,
@@ -981,17 +981,17 @@ def find_optimal_temperature(teacher: nn.Module,
             device=device
         )
         
-        # Evaluate
+        # 따진다
         accuracy = evaluate_accuracy(trained, val_loader, device)
         results.append((T, accuracy))
-        print(f"Temperature {T}: {accuracy*100:.2f}%")
+        print(f"온도 {T}: {accuracy*100:.2f}%")
     
     best_T = max(results, key=lambda x: x[1])[0]
-    print(f"\nOptimal temperature: {best_T}")
+    print(f"\n가장 좋은 온도: {best_T}")
     return best_T
 ```
 
-## Evaluation Metrics
+## 따지는 자
 
 ```python
 def evaluate_distillation(teacher: nn.Module,
@@ -1000,7 +1000,7 @@ def evaluate_distillation(teacher: nn.Module,
                           test_loader: torch.utils.data.DataLoader,
                           device: str = 'cpu') -> Dict[str, float]:
     """
-    Comprehensive evaluation of distillation effectiveness.
+    앎 옮기기가 얼마나 잘 듣는지 두루 따진다.
     """
     def get_accuracy(model):
         model.eval()
@@ -1039,7 +1039,7 @@ def evaluate_distillation_agreement(teacher: nn.Module,
                                    test_loader: torch.utils.data.DataLoader,
                                    device: str = 'cpu') -> Dict[str, float]:
     """
-    Evaluate how well student mimics teacher behavior.
+    제자가 스승의 결을 얼마나 잘 흉내 내는지 따진다.
     """
     teacher.eval()
     student.eval()
@@ -1072,25 +1072,25 @@ def evaluate_distillation_agreement(teacher: nn.Module,
     }
 ```
 
-## Summary
+## 간추림
 
-Knowledge distillation enables deployment of efficient models:
+앎 옮기기는 잘 드는 모형을 내놓을 수 있게 한다.
 
-1. **Core idea**: Train small student to mimic large teacher
-2. **Soft targets**: Preserve probability relationships via temperature
-3. **Loss function**: Combine hard labels and soft targets
-4. **Advanced methods**: Feature matching, attention transfer, self-distillation
-5. **Temperature**: Higher values for larger architecture gaps
+1. **고갱이 깨침**: 작은 제자가 큰 스승을 흉내 내도록 익힌다
+2. **부드러운 과녁**: 온도로 낌새의 사이를 지킨다
+3. **잃음 함수**: 굳은 이름표와 부드러운 과녁을 아우른다
+4. **한발 더 나간 방법**: 결 맞추기, 눈길 옮기기, 스스로 옮기기
+5. **온도**: 얼개 차이가 클수록 높인다
 
-Key recommendations:
+고갱이로 즐겨 쓸 길:
 
-- Start with temperature 4-8 and alpha 0.5
-- Use feature distillation for similar architectures
-- Validate that student matches teacher behavior
-- Consider progressive distillation for very small students
-- Use deep mutual learning when no pre-trained teacher is available
+- 온도 4~8, 알파 0.5에서 비롯한다
+- 얼개가 비슷하면 결 옮기기를 쓴다
+- 제자가 스승의 결을 맞추는지 따진다
+- 제자가 아주 작으면 차근차근 옮기기를 헤아린다
+- 미리 익힌 스승이 없으면 깊은 서로 배움을 쓴다
 
-## References
+## 살펴볼 거리
 
 1. Hinton, G., Vinyals, O., & Dean, J. "Distilling the Knowledge in a Neural Network." arXiv 2015.
 2. Romero, A., et al. "FitNets: Hints for Thin Deep Nets." ICLR 2015.
@@ -1099,34 +1099,34 @@ Key recommendations:
 5. Furlanello, T., et al. "Born-Again Neural Networks." ICML 2018.
 6. Gou, J., et al. "Knowledge Distillation: A Survey." IJCV 2021.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Describe the trade-offs between the optimization techniques discussed in this section in terms of accuracy loss, inference speedup, and implementation complexity.
+**익힘 1.**
+이 마디에서 다룬 다듬기 재주들을 맞음 잃음, 미루어 봄 빨라짐, 짜기의 번거로움으로 견주어 맞바꿈을 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Each technique has a different trade-off profile. Quantization (INT8) typically achieves 2--4x speedup with < 1% accuracy loss and moderate implementation effort (supported by frameworks). Pruning achieves variable speedup depending on sparsity pattern (structured pruning is more hardware-friendly) with 1--3% accuracy loss. Knowledge distillation maintains the original architecture's inference cost but uses a smaller student, achieving 2--10x compression with 1--5% accuracy loss. NAS finds optimal architectures but requires massive search compute (thousands of GPU-hours). For financial applications, the acceptable accuracy loss depends on the cost of errors. $\square$
-
----
-
-**Exercise 2.**
-Implement post-training quantization (INT8) for a simple feedforward network and measure the accuracy degradation and inference speedup on a benchmark dataset.
-
-??? success "Solution to Exercise 2"
-    Using PyTorch's quantization API: (1) train a float32 model to baseline accuracy; (2) apply `torch.quantization.quantize_dynamic` for dynamic quantization or calibrate with representative data for static quantization; (3) measure inference time (average over 1000 batches) and accuracy on test set. Typical results: 1.5--3x speedup on CPU, < 0.5% accuracy drop for dynamic quantization, < 0.2% for calibrated static quantization. The model size reduction is approximately 4x (FP32 to INT8). Key: static quantization requires a calibration dataset representative of deployment data. $\square$
+??? success "익힘 1 풀이"
+    재주마다 맞바꿈의 결이 다르다. 수 줄이기(INT8)은 흔히 2~4배 빨라지면서 맞음 잃음이 1% 미만이고, 틀이 받쳐 주므로 짜는 품이 가운데쯤이다. 쳐내기는 성김의 결에 따라 빨라짐이 들쭉날쭉하며(짜임새 있는 쳐내기가 쇠 붙임새에 더 맞다) 맞음 잃음은 1~3%이다. 앎 옮기기는 얼개 자체의 미루어 봄 값은 그대로 두되 더 작은 제자를 써서 2~10배로 눌러 담고 맞음 잃음은 1~5%이다. 신경 얼개 찾기는 가장 좋은 얼개를 찾아 주지만 찾는 데 엄청난 셈이 든다(GPU 수천 시간). 금융 쓰임에서는 받아들일 수 있는 맞음 잃음이 어긋남의 값에 매인다. $\square$
 
 ---
 
-**Exercise 3.**
-Design a production monitoring system for a deployed model that detects data drift, concept drift, and model degradation. Specify the metrics and alerting thresholds.
+**익힘 2.**
+단순한 앞먹임 그물에 익힘 뒤 수 줄이기(INT8)을 짜 넣고, 잣대 자료 꾸러미에서 맞음이 얼마나 떨어지고 미루어 봄이 얼마나 빨라지는지 재어라.
 
-??? success "Solution to Exercise 3"
-    Monitor three levels: (1) Data drift: track input feature distributions using KS test or PSI (Population Stability Index). Alert if PSI > 0.2 for any feature. (2) Concept drift: track prediction distribution shift and ground-truth label distribution (when available). Alert if prediction mean shifts by > 2 standard deviations from the baseline period. (3) Model degradation: track live accuracy/loss metrics with a rolling window. Alert if accuracy drops > 3% from baseline or latency exceeds SLA (e.g., p99 > 50ms). Implement dashboards with Grafana, store metrics in Prometheus, and send alerts via PagerDuty. $\square$
+??? success "익힘 2 풀이"
+    PyTorch의 수 줄이기 API을 쓴다. (1) float32 모형을 밑금 맞음까지 익힌다. (2) 움직이는 수 줄이기에는 `torch.quantization.quantize_dynamic`을 쓰고, 붙박인 수 줄이기에는 본보기 자료로 눈금을 맞춘다. (3) 미루어 보는 때(묶음 1000개의 평균)와 시험 꾸러미의 맞음을 잰다. 흔한 결과: CPU에서 1.5~3배 빨라지고, 움직이는 수 줄이기는 맞음이 0.5% 미만, 눈금 맞춘 붙박인 수 줄이기는 0.2% 미만 떨어진다. 모형 크기는 약 4배 줄어든다(FP32에서 INT8으로). 고갱이: 붙박인 수 줄이기에는 내놓을 자리의 자료를 잘 드러내는 눈금 맞추기 꾸러미가 있어야 한다. $\square$
 
 ---
 
-**Exercise 4.**
-Explain why latency requirements in financial trading systems are fundamentally different from web serving. How does this affect the deployment optimization strategy?
+**익힘 3.**
+내놓은 모형의 자료 옮겨감, 뜻 옮겨감, 됨됨이 떨어짐을 짚어내는 서비스 지켜보기 얼개를 꾸며라. 자와 알림 문턱을 밝혀라.
 
-??? success "Solution to Exercise 4"
-    Web serving tolerates 100--500ms latency with occasional spikes; trading systems require deterministic sub-millisecond latency (often < 100 microseconds for HFT). This changes the optimization strategy: (1) avoid garbage collection pauses (use C++ inference, not Python); (2) pre-allocate all memory (no dynamic allocation); (3) pin threads to cores (avoid context switches); (4) use FPGA or ASIC for the most latency-critical path; (5) quantization is essential but must not introduce non-deterministic rounding. Batch inference is not applicable (each decision is latency-critical). The deployment stack prioritizes worst-case latency (p99.9) over throughput. $\square$
+??? success "익힘 3 풀이"
+    세 켜를 지켜본다. (1) 자료 옮겨감: KS 시험이나 PSI(무리 든든함 지수)으로 들임 결의 분포를 좇는다. 어떤 결이든 PSI > 0.2이면 알린다. (2) 뜻 옮겨감: 미루어 봄 분포의 옮겨감과 (얻을 수 있으면) 참 이름표 분포를 좇는다. 미루어 봄의 평균이 밑금 동안에서 잣대 어긋남 2배 넘게 옮겨가면 알린다. (3) 모형 떨어짐: 굴러가는 창으로 살아 있는 맞음과 잃음을 좇는다. 맞음이 밑금보다 3% 넘게 떨어지거나 늦음이 약속을 넘으면(p99 > 50ms 따위) 알린다. Grafana으로 판을 만들고, Prometheus에 자를 담고, PagerDuty으로 알림을 보낸다. $\square$
+
+---
+
+**익힘 4.**
+금융 거래 얼개의 늦음 요건이 웹 서비스와 밑바탕부터 다른 까닭을 밝혀라. 이것이 내놓기 다듬기 꾀에 어떻게 걸리는가?
+
+??? success "익힘 4 풀이"
+    웹 서비스는 100~500ms의 늦음과 이따금의 치솟음을 받아 준다. 거래 얼개는 붙박이로 1밀리초 아래(고빈도 거래에서는 흔히 100마이크로초 미만)여야 한다. 그래서 다듬는 꾀가 달라진다. (1) 쓰레기 치우기의 멈춤을 없앤다(파이썬 대신 C++ 미루어 봄). (2) 기억을 미리 다 잡아 둔다(그때그때 잡지 않는다). (3) 실을 알맹이에 붙박는다(자리 바꿈을 없앤다). (4) 늦음이 가장 걸리는 길목에는 FPGA이나 ASIC을 쓴다. (5) 수 줄이기는 있어야 하되 붙박이지 않은 반올림을 들여서는 안 된다. 묶음 미루어 봄은 쓸 수 없다(판단 하나하나가 늦음에 걸린다). 내놓기 더미는 나름보다 가장 나쁜 자리의 늦음(p99.9)을 앞세운다. $\square$
