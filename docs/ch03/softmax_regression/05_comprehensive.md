@@ -208,7 +208,7 @@ class ModelFactory:
         Args:
             model_type: 'simple', 'medium', or 'deep'
             input_shape: Input tensor shape (C, H, W)
-            num_classes: Number of output classes
+            num_classes: 내놓음 갈래의 수
             **kwargs: Additional model parameters
         
         Returns:

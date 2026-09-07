@@ -9,15 +9,15 @@
 ```python
 """
 ==============================================================================
-02_multiclass_classification.py - Softmax and Multi-Class Problems
+02_multiclass_classification.py - 소프트맥스와 여러 갈래 문제
 ================================================================================
 
 배움 목표:
-- Extend logistic regression to multiple classes
-- Understand softmax activation
-- Use CrossEntropyLoss
-- Handle one-hot encoding
-- Evaluate multi-class models
+- 로지스틱 회귀를 여러 갈래로 넓힌다
+- 소프트맥스 살림을 이해한다
+- CrossEntropyLoss을 쓴다
+- 원핫 부호를 다룬다
+- 여러 갈래 모형을 따진다
 
 마치는 데 드는 때: 1시간 반쯤
 어려움: ⭐⭐⭐⭐☆ (앞선)
@@ -48,26 +48,26 @@ print("PART 1: UNDERSTANDING MULTI-CLASS CLASSIFICATION")
 print("="*80)
 
 print("""
-Binary Classification:
+둘 가름:
   2 classes: 0 or 1
-  Output: Single probability
-  Activation: Sigmoid
-  Loss: Binary Cross-Entropy (BCE)
+  내놓음: 확률 하나
+  살림: 시그모이드
+  잃음: 둘 엇갈린 엔트로피(BCE)
 
-Multi-Class Classification:
+여러 갈래 가름:
   K classes: 0, 1, 2, ..., K-1
-  Output: K probabilities (sum to 1)
-  Activation: Softmax
-  Loss: Cross-Entropy
+  내놓음: 확률 K개(합이 1이다)
+  살림: 소프트맥스
+  잃음: 엇갈린 엔트로피
 
-Softmax Function:
-  For K classes, softmax converts logits to probabilities:
+소프트맥스 함수:
+  갈래가 K개일 때 소프트맥스는 로짓을 확률로 바꾼다.
   
   P(class=k) = exp(logit_k) / sum(exp(logit_j) for all j)
   
   Properties:
-  ✓ All probabilities are positive
-  ✓ Sum of probabilities = 1
+  ✓ 확률이 모두 양수다
+  ✓ 확률의 합이 1이다
   ✓ Differentiable
 """)
 
@@ -145,11 +145,11 @@ print("="*80)
 
 class MultiClassLogisticRegression(nn.Module):
     """
-    Multi-class Logistic Regression (Softmax Regression)
+    여러 갈래 로지스틱 회귀(소프트맥스 회귀)
     
     Args:
         input_dim: 들임 특징의 수
-        num_classes: Number of output classes
+        num_classes: 내놓음 갈래의 수
     """
     
     def __init__(self, input_dim: int, num_classes: int):
@@ -160,15 +160,15 @@ class MultiClassLogisticRegression(nn.Module):
     
     def forward(self, x):
         """
-        Forward pass
+        앞으로 걸음
         
         Args:
-            x: Input tensor of shape (batch_size, input_dim)
+            x: 꼴이 (batch_size, input_dim)인 들임 텐서
             
         Returns:
-            logits: Raw scores of shape (batch_size, num_classes)
-                   NOTE: We return logits, not probabilities!
-                   CrossEntropyLoss applies softmax internally
+            logits: 꼴이 (batch_size, num_classes)인 날것 점수
+                   눈여겨볼 것: 확률이 아니라 로짓을 돌려준다!
+                   CrossEntropyLoss이 안에서 소프트맥스를 건다
         """
         logits = self.linear(x)  # Shape: (batch_size, num_classes)
         return logits
@@ -201,12 +201,12 @@ print("="*80)
 
 print("""
 CrossEntropyLoss:
-  - Combines LogSoftmax and NLLLoss
+  - LogSoftmax과 NLLLoss을 아우른다
   - Expects:
-    * Predictions: (batch_size, num_classes) - raw logits
-    * Targets: (batch_size,) - class indices (Long tensor)
-  - Automatically applies softmax
-  - More numerically stable than manual softmax + log
+    * 예측: (batch_size, num_classes) - 날것 로짓
+    * 과녁: (batch_size,) - 갈래 번호(Long 텐서)
+  - 소프트맥스를 절로 건다
+  - 손수 하는 소프트맥스 + 로그보다 수치가 든든하다
 """)
 
 # 준비
@@ -419,54 +419,54 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. MULTI-CLASS VS BINARY
-   Binary: 1 output → Sigmoid → BCE
-   Multi-class: K outputs → Softmax → CrossEntropy
+1. 여러 갈래와 둘 가름 견주기
+   둘 가름: 내놓음 1개 → 시그모이드 → BCE
+   여러 갈래: 내놓음 K개 → 소프트맥스 → 엇갈린 엔트로피
 
-2. IMPORTANT DIFFERENCES
-   ✓ Output layer: Linear(input_dim, num_classes)
-   ✓ Return logits (not probabilities)
-   ✓ Use CrossEntropyLoss
-   ✓ Targets are class indices (Long)
-   ✓ Predictions: argmax of logits
+2. 종요로운 다름
+   ✓ 내놓음 층: Linear(input_dim, num_classes)
+   ✓ 로짓을 돌려준다(확률이 아니다)
+   ✓ CrossEntropyLoss을 쓴다
+   ✓ 과녁은 갈래 번호다(Long)
+   ✓ 예측: 로짓의 argmax
 
 3. CROSSENTROPYLOSS
-   ✓ Combines softmax + log + NLL
-   ✓ More numerically stable
-   ✓ Expects logits as input
-   ✓ Expects class indices as targets
+   ✓ 소프트맥스 + 로그 + NLL을 아우른다
+   ✓ 수치가 더 든든하다
+   ✓ 들임으로 로짓을 바란다
+   ✓ 과녁으로 갈래 번호를 바란다
 
 4. EVALUATION
-   ✓ Per-class accuracy
-   ✓ Confusion matrix
-   ✓ Precision/Recall per class
-   ✓ F1-score per class
+   ✓ 갈래마다의 맞음
+   ✓ 헷갈림 행렬
+   ✓ 갈래마다의 정밀도/재현율
+   ✓ 갈래마다의 F1 점수
 
-5. WHEN TO USE
-   ✓ More than 2 classes
-   ✓ Mutually exclusive classes
-   ✓ Single-label classification
+5. 언제 쓸까
+   ✓ 갈래가 둘을 넘을 때
+   ✓ 갈래가 서로 겹치지 않을 때
+   ✓ 이름표가 하나뿐인 가름
 """)
 
 print("\n" + "="*80)
 print("EXERCISES")
 print("="*80)
 print("""
-1. EASY: Try with different number of classes (5, 10)
+1. 쉬움: 갈래 수를 바꾸어 보아라(5, 10)
 
-2. MEDIUM: Implement top-k accuracy:
-   - Check if true class is in top 2 or top 3 predictions
+2. 보통: 위 k개 맞음을 짜라.
+   - 참 갈래가 위 2개나 위 3개 예측에 드는지 살핀다
 
-3. MEDIUM: Add class weights to handle imbalance:
-   - Use class_weight parameter in CrossEntropyLoss
+3. 보통: 치우침을 다루도록 갈래 무게를 더하여라.
+   - CrossEntropyLoss의 class_weight 매개변수를 쓴다
 
-4. HARD: Implement one-vs-rest approach:
-   - Train K binary classifiers
-   - Compare with direct multi-class
+4. 어려움: 하나 대 나머지 길을 짜라.
+   - 둘 가름개 K개를 익힌다
+   - 곧바로 하는 여러 갈래 가름과 견준다
 
-5. HARD: Add label smoothing:
-   - Soft targets instead of hard 0/1
-   - Improves generalization
+5. 어려움: 레이블 스무딩을 더하여라.
+   - 딱딱한 0/1 대신 부드러운 과녁
+   - 두루 미침이 나아진다
 """)
 
 print("\n" + "="*80)

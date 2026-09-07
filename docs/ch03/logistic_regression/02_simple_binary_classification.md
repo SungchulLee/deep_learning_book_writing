@@ -9,24 +9,24 @@
 ```python
 """
 ================================================================================
-02_simple_binary_classification.py - Your First Logistic Regression Model
+02_simple_binary_classification.py - 첫 로지스틱 회귀 모형
 ================================================================================
 
 배움 목표:
-- Understand binary classification problems
-- Implement logistic regression from scratch using PyTorch
-- Learn the sigmoid function and its properties
-- Train a model using gradient descent
-- Evaluate model performance
+- 둘 가름 문제를 이해한다
+- PyTorch으로 로지스틱 회귀를 맨바닥부터 짠다
+- 시그모이드 함수와 그 결을 배운다
+- 기울기 내림으로 모형을 익힌다
+- 모형의 성능을 따진다
 
 PREREQUISITES:
-- Completed 01_introduction.py
-- Understanding of linear models (y = mx + b)
-- Basic probability concepts
+- 01_introduction.py을 마쳤을 것
+- 선형 모형(y = mx + b) 이해
+- 기본 확률 개념
 
-TIME TO COMPLETE: ~45 minutes
+마치는 데 드는 때: 45분쯤
 
-DIFFICULTY: ⭐⭐☆☆☆ (Easy)
+어려움: ⭐⭐☆☆☆ (쉬움)
 ================================================================================
 """
 
@@ -48,18 +48,18 @@ print("\n1.1: What is Binary Classification?")
 print("-" * 40)
 
 print("""
-Binary Classification: Predict one of two classes (0 or 1)
+둘 가름: 두 갈래(0 또는 1) 가운데 하나를 예측한다
 
 Examples:
-  - Email: Spam (1) or Not Spam (0)
-  - Medical: Disease (1) or Healthy (0)  
-  - Customer: Will Buy (1) or Won't Buy (0)
-  - Image: Cat (1) or Dog (0)
+  - 전자우편: 광고(1)인가 아닌가(0)
+  - 의료: 병(1)인가 건강(0)인가
+  - 손님: 살 것(1)인가 안 살 것(0)인가
+  - 그림: 고양이(1)인가 개(0)인가
 
-In this tutorial:
-  - We'll create synthetic data with 2 features (x1, x2)
-  - Each sample belongs to class 0 or class 1
-  - Goal: Learn to predict the class from features
+이 익힘에서는
+  - 특징 2개(x1, x2)를 지닌 인공 자료를 만든다
+  - 표본마다 갈래 0이나 갈래 1에 든다
+  - 목표: 특징에서 갈래를 예측하는 법을 배운다
 """)
 
 # ============================================================================
@@ -127,24 +127,24 @@ print("\n2.1: Model Architecture")
 print("-" * 40)
 
 print("""
-Logistic Regression Model:
+로지스틱 회귀 모형:
 
-Step 1: Linear Combination
+걸음 1: 선형 아우르기
     z = w1*x1 + w2*x2 + b
-    where w1, w2 are weights, b is bias
+    여기서 w1, w2은 무게이고 b은 치우침이다
 
-Step 2: Sigmoid Activation
-    probability = sigmoid(z) = 1 / (1 + e^(-z))
+걸음 2: 시그모이드 살림
+    확률 = sigmoid(z) = 1 / (1 + e^(-z))
     
-Properties of Sigmoid:
-    - Maps any value to range (0, 1)
-    - sigmoid(0) = 0.5 (decision boundary)
-    - sigmoid(large positive) ≈ 1
-    - sigmoid(large negative) ≈ 0
+시그모이드의 결:
+    - 어떤 값이든 (0, 1) 범위로 옮긴다
+    - sigmoid(0) = 0.5(가름 테두리)
+    - sigmoid(큰 양수) ≈ 1
+    - sigmoid(큰 음수) ≈ 0
     
-Step 3: Classification
-    If probability >= 0.5: predict class 1
-    If probability < 0.5: predict class 0
+걸음 3: 가름
+    확률 >= 0.5이면 갈래 1으로 예측한다
+    확률 < 0.5이면 갈래 0으로 예측한다
 """)
 
 # ============================================================================
@@ -155,13 +155,13 @@ print("-" * 40)
 
 class LogisticRegression(nn.Module):
     """
-    Simple Logistic Regression Model
+    단순한 로지스틱 회귀 모형
     
     Architecture:
-        Input (n_features) → Linear Layer → Sigmoid → Output (probability)
+        들임(n_features) → 선형 층 → 시그모이드 → 내놓음(확률)
     
     Parameters:
-        n_features (int): Number of input features
+        n_features (int): 들임 특징의 수
     """
     
     def __init__(self, n_features):
@@ -181,15 +181,15 @@ class LogisticRegression(nn.Module):
         그물을 지나는 앞으로 걸음
         
         Args:
-            x: Input tensor of shape (batch_size, n_features)
+            x: 꼴이 (batch_size, n_features)인 들임 텐서
             
         Returns:
-            probability: Output tensor of shape (batch_size, 1)
-                        Values in range (0, 1)
+            probability: 꼴이 (batch_size, 1)인 내놓음 텐서
+                        값은 (0, 1) 범위에 있다
         """
         # 1단계: 선형 변환
-        # x shape: (batch_size, n_features)
-        # output shape: (batch_size, 1)
+        # x 꼴: (batch_size, n_features)
+        # 내놓음 꼴: (batch_size, 1)
         z = self.linear(x)  # z = w*x + b
         
         # 2단계: 시그모이드 활성화 적용
@@ -219,24 +219,24 @@ print("\n3.1: Understanding the Loss Function")
 print("-" * 40)
 
 print("""
-Binary Cross-Entropy (BCE) Loss:
+둘 엇갈린 엔트로피(BCE) 잃음:
 
-For a single example:
-    If actual label y = 1:
-        loss = -log(predicted_probability)
-        → Model is punished if it predicts low probability for class 1
+보기 하나에 대해
+    참 이름표가 y = 1이면
+        잃음 = -log(예측 확률)
+        → 갈래 1의 확률을 낮게 예측하면 모형이 벌을 받는다
     
-    If actual label y = 0:
-        loss = -log(1 - predicted_probability)
-        → Model is punished if it predicts high probability for class 1
+    참 이름표가 y = 0이면
+        잃음 = -log(1 - 예측 확률)
+        → 갈래 1의 확률을 높게 예측하면 모형이 벌을 받는다
 
-Full formula:
-    loss = -[y*log(p) + (1-y)*log(1-p)]
+온 식:
+    잃음 = -[y*log(p) + (1-y)*log(1-p)]
 
 Properties:
-    - Always positive
-    - Smaller is better
-    - Heavily penalizes confident wrong predictions
+    - 늘 양수다
+    - 작을수록 좋다
+    - 자신 있게 틀린 예측을 크게 벌한다
 """)
 
 # 손실 함수를 만든다
@@ -253,14 +253,14 @@ print("\n3.2: Choosing an Optimizer")
 print("-" * 40)
 
 print("""
-Optimizer: Algorithm that updates model parameters (weights and biases)
+가장 좋게 하개: 모형 매개변수(무게와 치우침)를 고치는 알고리즘
 
 흔한 가장 좋게 하개:
-    - SGD (Stochastic Gradient Descent): Basic but reliable
-    - Adam: Adaptive learning rate, usually converges faster
-    - RMSprop: Good for RNNs
+    - SGD(확률 기울기 내림): 기본이지만 믿을 만하다
+    - Adam: 맞추어 가는 배움 빠르기. 대개 더 빨리 모여든다
+    - RMSprop: 되도는 신경망에 좋다
     
-We'll use SGD for simplicity and understanding.
+여기서는 단순하고 이해하기 쉽도록 SGD을 쓴다.
 """)
 
 learning_rate = 0.1  # How big each update step is
@@ -295,8 +295,8 @@ for epoch in range(num_epochs):
     # ====================
     
     # 1. 순전파: 예측을 계산한다
-    # X_train shape: (160, 2)
-    # predictions shape: (160, 1)
+    # X_train 꼴: (160, 2)
+    # predictions 꼴: (160, 1)
     predictions = model(X_train)  # Get model's predicted probabilities
     
     # 2. 손실 계산
@@ -485,26 +485,26 @@ print("KEY TAKEAWAYS")
 print("="*80)
 
 print("""
-1. LOGISTIC REGRESSION
-   - Linear model + Sigmoid activation
-   - Outputs probability between 0 and 1
-   - Threshold at 0.5 for binary classification
+1. 로지스틱 회귀
+   - 선형 모형 + 시그모이드 살림
+   - 0과 1 사이의 확률을 내놓는다
+   - 둘 가름에서는 0.5을 문턱으로 삼는다
 
-2. TRAINING PROCESS
-   - Forward pass: compute predictions
-   - Calculate loss: measure error
-   - Backward pass: compute gradients
-   - Update parameters: improve model
+2. 익힘 과정
+   - 앞으로 걸음: 예측을 셈한다
+   - 잃음 셈하기: 어긋남을 잰다
+   - 뒤로 걸음: 기울기를 셈한다
+   - 매개변수 고치기: 모형을 낫게 한다
 
-3. IMPORTANT CONCEPTS
-   - Always call optimizer.zero_grad() before backward()
-   - Use model.eval() during evaluation
-   - Use torch.no_grad() when not training
+3. 종요로운 개념
+   - backward() 앞에는 늘 optimizer.zero_grad()을 불러라
+   - 따질 때는 model.eval()을 써라
+   - 익히지 않을 때는 torch.no_grad()을 써라
 
 4. EVALUATION
-   - Train set: what model learned from
-   - Test set: how well it generalizes
-   - Accuracy: percentage of correct predictions
+   - 익힘 묶음: 모형이 배운 자료
+   - 시험 묶음: 두루 얼마나 잘 미치는지
+   - 맞음: 옳게 예측한 비율
 """)
 
 
@@ -513,16 +513,16 @@ print("EXERCISES")
 print("="*80)
 
 print("""
-1. EASY: Change learning_rate to 0.01 and 1.0
+1. 쉬움: learning_rate을 0.01과 1.0으로 바꾸어라
    - 모여듦에 어떤 영향을 주는가?
-   - Which learns faster?
+   - 어느 쪽이 더 빨리 배우는가?
 
-2. MEDIUM: Change num_epochs to 100 and 5000
-   - Does more training always help?
-   - Look for overfitting signs
+2. 보통: num_epochs을 100과 5000으로 바꾸어라
+   - 더 익히면 늘 나아지는가?
+   - 지나치게 맞춰진 낌새를 살펴라
 
-3. MEDIUM: Try different train/test splits
-   - Change test_size to 0.1 and 0.5
+3. 보통: 익힘/시험 나누기를 바꾸어 보아라
+   - test_size을 0.1과 0.5으로 바꾸어라
    - How does it affect results?
 
 4. HARD: Implement a function to predict new data:

@@ -63,7 +63,7 @@ class SoftmaxRegressionNumPy:
         
         Args:
             input_dim: 들임 특징의 수
-            num_classes: Number of output classes
+            num_classes: 내놓음 갈래의 수
             lr: Learning rate
             reg_lambda: L2 regularization parameter
         """

@@ -447,7 +447,7 @@ print("""
    - 익히는 동안 차츰 키운다
 
 5. 어려움: 묶음 크기마다 익힘 때를 견주어라
-   Use time.time() to measure
+   재려면 time.time()을 써라
 """)
 
 print("\n" + "="*80)

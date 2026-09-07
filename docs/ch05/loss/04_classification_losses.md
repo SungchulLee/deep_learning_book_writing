@@ -162,7 +162,7 @@ Instead of: Model → Sigmoid → BCE Loss
 Use:        Model → BCEWithLogitsLoss (combines both!)
 
 Benefits:
-  ✓ More numerically stable
+  ✓ 수치가 더 든든하다
   ✓ Faster computation
   ✓ Prevents gradient problems
 """)

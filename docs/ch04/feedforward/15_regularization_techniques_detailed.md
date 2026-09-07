@@ -405,7 +405,7 @@ print("""
    - Adds penalty for large weights: Loss = Data_Loss + λ * Σ(weights²)
    - Set via optimizer: weight_decay=1e-4
    - Encourages smaller weights
-   - Improves generalization
+   - 두루 미침이 나아진다
 
 4. Validation Set:
    - Essential for monitoring overfitting
