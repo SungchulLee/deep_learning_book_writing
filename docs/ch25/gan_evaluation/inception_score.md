@@ -1,21 +1,21 @@
-# Inception Score (IS)
-## Overview
+# 인셉션 점수(IS)
+## 훑어보기
 
-The Inception Score (IS) is one of the most widely used metrics for evaluating generative models, particularly Generative Adversarial Networks (GANs). Introduced by Salimans et al. (2016), IS provides a single scalar value that captures both the quality and diversity of generated images.
+인셉션 점수(IS)는 만들어 내는 모델, 그 가운데서도 맞겨루기 만들개 그물(GAN)을 따지는 데 가장 널리 쓰이는 자의 하나다. Salimans 외(2016)가 내놓았으며, 만들어 낸 그림의 품질과 다양함을 한꺼번에 담아내는 스칼라 값 하나를 준다.
 
 !!! info "배움 목표"
-    By the end of this section, you will be able to:
+    이 마당을 마치면 다음을 할 수 있다.
     
-    - Understand the mathematical foundation of Inception Score
-    - Implement IS computation from scratch in PyTorch
-    - Interpret IS values correctly and understand their limitations
-    - Apply IS in practical evaluation workflows
+    - 인셉션 점수의 수학 바탕을 이해한다
+    - PyTorch로 인셉션 점수 셈을 맨바닥부터 짠다
+    - 인셉션 점숫값을 올바로 읽고 그 한계를 안다
+    - 실제 따지기 흐름에 인셉션 점수를 쓴다
 
-## Mathematical Foundation
+## 수학 바탕
 
-### Core Formula
+### 고갱이 식
 
-The Inception Score is defined as:
+인셉션 점수는 다음과 같이 뜻매김한다.
 
 $$
 
@@ -23,18 +23,18 @@ $$
 
 $$
 
-where:
+여기서
 
-- $x$ is a generated image sampled from the generator distribution $p_g$
-- $p(y|x)$ is the conditional class distribution given image $x$ (from InceptionV3)
-- $p(y) = \mathbb{E}_{x}[p(y|x)]$ is the marginal class distribution
-- $D_{KL}$ is the Kullback-Leibler divergence
+- $x$는 만들개 분포 $p_g$에서 뽑은, 만들어 낸 그림이다
+- $p(y|x)$는 그림 $x$가 주어졌을 때의 조건 갈래 분포다(InceptionV3이 준다)
+- $p(y) = \mathbb{E}_{x}[p(y|x)]$는 가장자리 갈래 분포다
+- $D_{KL}$은 쿨백-라이블러 갈림이다
 
-### Intuition Behind the Components
+### 각 조각의 뜻
 
-**Conditional Distribution $p(y|x)$:**
+**조건 분포 $p(y|x)$:**
 
-This represents how confident the Inception classifier is about the image's class. A sharp, peaked distribution indicates the classifier is confident—suggesting the image contains a clear, recognizable object.
+이는 인셉션 가름개가 그림의 갈래를 얼마나 자신 있게 보는지를 나타낸다. 뾰족하게 솟은 분포는 가름개가 자신 있다는 뜻이며, 그림에 또렷이 알아볼 수 있는 물체가 있음을 넌지시 알려 준다.
 
 $$
 
@@ -42,11 +42,11 @@ p(y|x) = \text{softmax}(f_{\text{Inception}}(x))
 
 $$
 
-where $f_{\text{Inception}}(x)$ returns logits for 1000 ImageNet classes.
+여기서 $f_{\text{Inception}}(x)$는 ImageNet 갈래 1000개에 대한 로짓을 돌려준다.
 
-**Marginal Distribution $p(y)$:**
+**가장자리 분포 $p(y)$:**
 
-This is the average class distribution across all generated images:
+이는 만들어 낸 모든 그림에 걸친 갈래 분포의 평균이다.
 
 $$
 
@@ -54,11 +54,11 @@ p(y) = \frac{1}{N}\sum_{i=1}^{N} p(y|x_i)
 
 $$
 
-A uniform marginal distribution indicates the generator produces diverse images covering many classes.
+가장자리 분포가 고르면 만들개가 여러 갈래를 두루 덮는 다양한 그림을 내놓는다는 뜻이다.
 
-**KL Divergence:**
+**KL 갈림:**
 
-The KL divergence measures how much the conditional distribution differs from the marginal:
+KL 갈림은 조건 분포가 가장자리 분포와 얼마나 다른지를 잰다.
 
 $$
 
@@ -66,24 +66,24 @@ D_{KL}(p(y|x) \| p(y)) = \sum_{c=1}^{C} p(y=c|x) \log\frac{p(y=c|x)}{p(y=c)}
 
 $$
 
-### What IS Actually Measures
+### 인셉션 점수가 참으로 재는 것
 
-| Component | High Value Indicates | Low Value Indicates |
+| 조각 | 값이 크면 | 값이 작으면 |
 |-----------|---------------------|---------------------|
-| $p(y\|x)$ entropy | Uncertain predictions | Confident predictions (quality) |
-| $p(y)$ entropy | Diverse classes (diversity) | Mode collapse |
-| KL divergence | Both quality AND diversity | Poor quality OR low diversity |
+| $p(y\|x)$의 엔트로피 | 헤아림이 흐릿하다 | 헤아림이 자신 있다(품질) |
+| $p(y)$의 엔트로피 | 갈래가 다양하다(다양함) | 최빈값 무너짐 |
+| KL 갈림 | 품질과 다양함을 모두 갖춤 | 품질이 나쁘거나 다양함이 적음 |
 
-The IS captures both aspects simultaneously:
+인셉션 점수는 두 갈래를 한꺼번에 담아낸다.
 
-- **Quality**: Each image should produce a confident classification (low entropy in $p(y|x)$)
-- **Diversity**: Generated images should cover many classes (high entropy in $p(y)$)
+- **품질**: 그림마다 자신 있는 가름이 나와야 한다($p(y|x)$의 엔트로피가 낮다)
+- **다양함**: 만들어 낸 그림이 여러 갈래를 두루 덮어야 한다($p(y)$의 엔트로피가 높다)
 
-## Mathematical Derivation
+## 수학으로 이끌어 내기
 
-### Expanding the KL Divergence
+### KL 갈림 펼치기
 
-Starting from the definition:
+뜻매김에서 비롯한다.
 
 $$
 
@@ -95,11 +95,11 @@ D_{KL}(p(y|x) \| p(y)) &= \sum_{y} p(y|x) \log\frac{p(y|x)}{p(y)} \\
 
 $$
 
-where $H(y|x)$ is the conditional entropy.
+여기서 $H(y|x)$는 조건 엔트로피다.
 
-### Expected Value
+### 기댓값
 
-Taking the expectation over generated samples:
+만들어 낸 표본에 대해 기댓값을 취하면 다음과 같다.
 
 $$
 
@@ -107,9 +107,9 @@ $$
 
 $$
 
-The first term represents **average conditional entropy** (lower is better for quality), and the second term is the **marginal entropy** (higher is better for diversity).
+첫째 마디는 **평균 조건 엔트로피**(품질을 보려면 낮을수록 좋다)를 나타내고, 둘째 마디는 **가장자리 엔트로피**(다양함을 보려면 높을수록 좋다)다.
 
-### Final Score
+### 마지막 점수
 
 $$
 
@@ -117,11 +117,11 @@ $$
 
 $$
 
-This can be interpreted as the **effective number of classes** the generator can produce with confident predictions.
+이는 만들개가 자신 있는 헤아림으로 내놓을 수 있는 **실질 갈래 수**로 읽을 수 있다.
 
-## PyTorch Implementation
+## PyTorch 짜기
 
-### Complete Implementation from Scratch
+### 맨바닥부터 온전히 짜기
 
 ```python
 import torch
@@ -145,7 +145,7 @@ class InceptionScoreCalculator:
         """
         인셉션 점수 셈틀의 첫자리를 잡는다.
         
-        Args:
+        인자:
             device: 셈할 장치('cuda' 또는 'cpu')
         """
         self.device = device
@@ -158,7 +158,7 @@ class InceptionScoreCalculator:
         # 미리 익힌 InceptionV3을 불러온다
         self.inception_model = inception_v3(
             weights=Inception_V3_Weights.IMAGENET1K_V1,
-            transform_input=False  # We'll handle preprocessing ourselves
+            transform_input=False  # 미리 다듬기는 우리가 손수 한다
         )
         self.inception_model.eval()
         self.inception_model.to(self.device)
@@ -174,10 +174,10 @@ class InceptionScoreCalculator:
         - 크기가 299×299인 그림
         - ImageNet 평균과 표준편차로 잣대를 맞춘 그림
         
-        Args:
+        인자:
             images: [0, 1] 범위의 들임 그림 [B, C, H, W]
             
-        Returns:
+        돌려주는 값:
             인셉션에 바로 넣을 수 있게 다듬은 그림
         """
         # 필요하면 299×299로 크기를 바꾼다
@@ -208,12 +208,12 @@ class InceptionScoreCalculator:
         """
         그림 묶음에 대한 인셉션 헤아림을 얻는다.
         
-        Args:
+        인자:
             images: [0, 1] 범위의 만들어 낸 그림 [N, C, H, W]
             batch_size: 다룰 때 쓰는 묶음 크기
             
-        Returns:
-            Softmax probabilities [N, 1000]
+        돌려주는 값:
+            소프트맥스 확률 [N, 1000]
         """
         if self.inception_model is None:
             self._load_inception()
@@ -242,7 +242,7 @@ class InceptionScoreCalculator:
         """
         믿음 구간과 함께 인셉션 점수를 셈한다.
         
-        Algorithm:
+        차례:
         1. 그림마다 인셉션에서 p(y|x)을 얻는다
         2. 흩어짐을 셈하려고 자료를 `splits`개 무리로 나눈다
         3. 조각마다:
@@ -251,12 +251,12 @@ class InceptionScoreCalculator:
            c. KL을 평균 내고 지수를 취한다
         4. 조각들의 평균과 표준편차를 돌려준다
         
-        Args:
+        인자:
             images: [0, 1] 범위의 만들어 낸 그림 [N, C, H, W]
             splits: 표준편차를 셈할 때 나눌 조각의 수
             batch_size: 인셉션 미룸에 쓰는 묶음 크기
             
-        Returns:
+        돌려주는 값:
             (인셉션 점수 평균, 표준편차) 튜플
         """
         # 헤아림을 얻는다
@@ -273,7 +273,7 @@ class InceptionScoreCalculator:
             end = start + split_size if k < splits - 1 else n
             part = probs[start:end]
             
-            # Compute marginal: p(y) = (1/N) Σ p(y|x_i)
+            # 가장자리 분포를 셈한다: p(y) = (1/N) Σ p(y|x_i)
             p_y = np.mean(part, axis=0, keepdims=True)
             
             # 표본마다 KL 갈림을 셈한다
@@ -304,10 +304,10 @@ def compute_inception_score_step_by_step(probs: np.ndarray) -> dict:
     이 함수는 인셉션 점수 셈을 읽기 쉬운 걸음으로 나누어
     각 조각이 무엇을 재는지 알기 쉽게 한다.
     
-    Args:
+    인자:
         probs: 인셉션이 낸 갈래 확률 [N, C]
         
-    Returns:
+    돌려주는 값:
         중간 값과 마지막 인셉션 점수를 담은 사전
     """
     eps = 1e-16
@@ -327,7 +327,7 @@ def compute_inception_score_step_by_step(probs: np.ndarray) -> dict:
     h_conditional = np.mean(h_conditional_per_sample)
     
     # 걸음 4: KL 갈림을 셈한다
-    # KL(p(y|x) || p(y)) = H(y) - H(y|x) in expectation
+    # 기댓값으로 보면 KL(p(y|x) || p(y)) = H(y) - H(y|x)
     # 다만 정확함을 위해 곧바로 셈한다
     kl_per_sample = np.sum(probs * (np.log(probs) - np.log(p_y)), axis=1)
     mean_kl = np.mean(kl_per_sample)
@@ -336,8 +336,8 @@ def compute_inception_score_step_by_step(probs: np.ndarray) -> dict:
     inception_score = np.exp(mean_kl)
     
     # 덧붙이는 눈썰미
-    effective_classes = np.exp(h_marginal)  # Effective number of classes used
-    avg_confidence = np.exp(-h_conditional)  # Average prediction confidence
+    effective_classes = np.exp(h_marginal)  # 실제로 쓰인 갈래의 실질 수
+    avg_confidence = np.exp(-h_conditional)  # 헤아림의 평균 자신도
     
     return {
         'inception_score': inception_score,
@@ -350,7 +350,7 @@ def compute_inception_score_step_by_step(probs: np.ndarray) -> dict:
     }
 ```
 
-### Practical Usage Example
+### 실제로 쓰는 보기
 
 ```python
 import torch
@@ -362,7 +362,7 @@ def demonstrate_inception_score():
     품질이 다른 여러 상황에서 인셉션 점수 셈을 보인다.
     """
     n_samples = 1000
-    n_classes = 10  # Simplified for demonstration
+    n_classes = 10  # 보이기 위해 단출하게 줄였다
     
     print("=" * 70)
     print("Inception Score Demonstration")
@@ -374,9 +374,9 @@ def demonstrate_inception_score():
     
     probs_ideal = np.zeros((n_samples, n_classes))
     for i in range(n_samples):
-        class_idx = i % n_classes  # Uniform coverage
+        class_idx = i % n_classes  # 고르게 덮는다
         probs_ideal[i, class_idx] = 0.9
-        probs_ideal[i, :] += 0.01  # Small uniform noise
+        probs_ideal[i, :] += 0.01  # 작고 고른 잡음
     probs_ideal = probs_ideal / probs_ideal.sum(axis=1, keepdims=True)
     
     results_ideal = compute_inception_score_step_by_step(probs_ideal)
@@ -420,29 +420,29 @@ def demonstrate_inception_score():
 results = demonstrate_inception_score()
 ```
 
-## Interpreting IS Values
+## 인셉션 점숫값 읽기
 
-### Typical Ranges
+### 흔한 범위
 
-| IS Value | Quality Level | Interpretation |
+| 인셉션 점숫값 | 품질 수준 | 풀이 |
 |----------|---------------|----------------|
-| < 2.0 | Very Poor | Images unrecognizable or highly uncertain predictions |
-| 2.0 - 5.0 | Poor to Moderate | Some structure but limited quality or diversity |
-| 5.0 - 8.0 | Good | Clear images with reasonable diversity |
-| > 8.0 | Excellent | High-quality, diverse image generation |
-| ~11.2 | Real ImageNet | Benchmark from real ImageNet images |
+| 2.0 미만 | 매우 나쁨 | 그림을 알아볼 수 없거나 헤아림이 매우 흐릿하다 |
+| 2.0~5.0 | 나쁨에서 보통 | 짜임새는 있으나 품질이나 다양함이 모자라다 |
+| 5.0~8.0 | 좋음 | 또렷한 그림에 웬만한 다양함을 갖췄다 |
+| 8.0 초과 | 아주 좋음 | 품질 높고 다양한 그림을 만들어 낸다 |
+| 11.2쯤 | 참 ImageNet | 참 ImageNet 그림으로 잰 잣대 |
 
-### Theoretical Bounds
+### 이론상의 한계
 
-**Minimum IS = 1.0**: Achieved when $p(y|x) = p(y)$ for all $x$ (uniform predictions).
+**가장 작은 인셉션 점수 = 1.0**: 모든 $x$에서 $p(y|x) = p(y)$일 때다(헤아림이 고르다).
 
-**Maximum IS**: Theoretically bounded by the number of classes (1000 for ImageNet), achieved when each image is perfectly classified into a unique class.
+**가장 큰 인셉션 점수**: 이론상 갈래 수(ImageNet이면 1000)로 막히며, 그림마다 서로 다른 갈래로 나무랄 데 없이 갈릴 때 이른다.
 
-## Limitations and Pitfalls
+## 한계와 함정
 
-### 1. Cannot Detect Memorization
+### 1. 외워 버림을 알아채지 못한다
 
-IS cannot distinguish between a model that generates novel images and one that simply memorizes training data:
+인셉션 점수는 새 그림을 만들어 내는 모델과 익힘 자료를 그저 외운 모델을 가려내지 못한다.
 
 ```python
 def demonstrate_memorization_blindness():
@@ -456,7 +456,7 @@ def demonstrate_memorization_blindness():
     
     probs_memorized = np.zeros((n_total, 10))
     for i in range(n_total):
-        class_idx = i % n_unique  # Only 10 unique "images"
+        class_idx = i % n_unique  # 서로 다른 "그림"은 10장뿐이다
         probs_memorized[i, class_idx] = 0.95
         probs_memorized[i, :] += 0.005
     
@@ -467,25 +467,25 @@ def demonstrate_memorization_blindness():
     print("This is HIGH despite only 10 unique images!")
 ```
 
-### 2. Ignores Within-Class Diversity
+### 2. 갈래 안의 다양함을 놓친다
 
-IS only measures class-level diversity, not visual diversity within classes:
+인셉션 점수는 갈래 사이의 다양함만 잴 뿐 갈래 안의 눈에 보이는 다양함은 재지 않는다.
 
-- 1000 identical cat images → High IS (confident "cat" classification)
-- But zero visual diversity!
+- 똑같은 고양이 그림 1000장 → 높은 인셉션 점수("고양이"로 자신 있게 갈린다)
+- 그러나 눈에 보이는 다양함은 하나도 없다!
 
-### 3. Dataset Dependency
+### 3. 자료 묶음에 매여 있다
 
-IS is only meaningful for ImageNet-like natural images. It may fail for:
+인셉션 점수는 ImageNet 같은 자연 그림에서만 뜻이 있다. 다음에서는 어그러질 수 있다.
 
-- Medical images
-- Satellite imagery
-- Abstract art
-- Domain-specific images
+- 의료 그림
+- 인공위성 그림
+- 추상 미술
+- 특정 마당의 그림
 
-### 4. Can Be Gamed
+### 4. 주무를 수 있다
 
-Adversarial strategies can artificially inflate IS:
+맞겨루기 꾀로 인셉션 점수를 억지로 부풀릴 수 있다.
 
 ```python
 def demonstrate_gaming_is():
@@ -494,16 +494,16 @@ def demonstrate_gaming_is():
     """
     # 꾀: 갈래마다 그림을 꼭 하나씩만 만든다
     n_classes = 1000
-    probs_gamed = np.eye(n_classes)  # Perfect classification for each class
+    probs_gamed = np.eye(n_classes)  # 갈래마다 나무랄 데 없이 갈린다
     
     results = compute_inception_score_step_by_step(probs_gamed)
     print(f"Gamed IS: {results['inception_score']:.2f}")
     print("Maximum possible IS with only 1000 unique images!")
 ```
 
-## Best Practices
+## 가장 좋은 버릇
 
-### 1. Sample Size
+### 1. 표본 수
 
 ```python
 def analyze_sample_size_effect(generator, sample_sizes=[100, 500, 1000, 5000, 10000]):
@@ -526,13 +526,13 @@ def analyze_sample_size_effect(generator, sample_sizes=[100, 500, 1000, 5000, 10
     return results
 ```
 
-**Recommendations:**
+**권함:**
 
-- Minimum: 5,000 samples
-- Recommended: 10,000+ samples
-- Always report confidence intervals
+- 가장 적어도: 표본 5,000개
+- 권함: 표본 10,000개 이상
+- 늘 믿음 구간을 함께 알린다
 
-### 2. Splits for Variance Estimation
+### 2. 흩어짐을 어림하기 위한 조각 나누기
 
 ```python
 # 흔한 방식: 조각 10개
@@ -542,17 +542,17 @@ is_mean, is_std = calculator.calculate_inception_score(images, splits=10)
 print(f"IS = {is_mean:.2f} ± {is_std:.2f}")
 ```
 
-### 3. Combine with Other Metrics
+### 3. 다른 자와 함께 쓰기
 
-IS should never be used alone. Always combine with:
+인셉션 점수만 홀로 써서는 안 된다. 늘 다음과 함께 쓰라.
 
-- **FID**: Detects mode collapse better
-- **Precision/Recall**: Measures quality vs coverage tradeoff
-- **Visual inspection**: Human judgment remains essential
+- **FID**: 최빈값 무너짐을 더 잘 알아낸다
+- **정밀도·재현율**: 품질과 덮음의 절충을 잰다
+- **눈으로 살피기**: 사람의 판단은 여전히 꼭 있어야 한다
 
-## Connection to Information Theory
+## 정보 이론과의 이음
 
-The IS has a beautiful information-theoretic interpretation:
+인셉션 점수에는 아름다운 정보 이론의 풀이가 있다.
 
 $$
 
@@ -560,9 +560,9 @@ $$
 
 $$
 
-where $I(X; Y)$ is the mutual information between generated images $X$ and their predicted classes $Y$.
+여기서 $I(X; Y)$는 만들어 낸 그림 $X$와 그 헤아린 갈래 $Y$ 사이의 서로 정보다.
 
-**Mutual information decomposes as:**
+**서로 정보는 다음과 같이 갈린다.**
 
 $$
 
@@ -570,15 +570,15 @@ I(X; Y) = H(Y) - H(Y|X)
 
 $$
 
-- **$H(Y)$**: Entropy of class predictions (diversity)
-- **$H(Y|X)$**: Average uncertainty in predictions (quality)
+- **$H(Y)$**: 갈래 헤아림의 엔트로피(다양함)
+- **$H(Y|X)$**: 헤아림의 평균 흐릿함(품질)
 
-Higher mutual information means:
+서로 정보가 클수록 다음을 뜻한다.
 
-- The generated images carry more information about class labels
-- Both quality and diversity contribute positively
+- 만들어 낸 그림이 갈래 이름표에 대한 앎을 더 많이 담는다
+- 품질과 다양함이 모두 좋게 이바지한다
 
-## Summary
+## 간추림
 
 !!! success "고갱이 얻음"
     
@@ -588,11 +588,11 @@ Higher mutual information means:
     
     3. **Range**: 1.0 (minimum) to ~1000 (theoretical max), real ImageNet ≈ 11.2
     
-    4. **Limitations**: Cannot detect memorization, ignores within-class diversity, ImageNet-specific
+    4. **한계**: 외워 버림을 알아채지 못하고, 갈래 안의 다양함을 놓치며, ImageNet에 매여 있다
     
-    5. **Best Practice**: Use 10,000+ samples, 10 splits, combine with FID and visual inspection
+    5. **가장 좋은 버릇**: 표본 10,000개 이상, 조각 10개를 쓰고 FID와 눈으로 살피기를 함께 쓴다
 
-## References
+## 참고 문헌
 
 1. Salimans, T., et al. (2016). "Improved Techniques for Training GANs." *NeurIPS*.
 
@@ -603,35 +603,35 @@ Higher mutual information means:
 ## 익힘 문제
 
 **익힘 1.**
-Define the Frechet Inception Distance (FID) and explain why it is preferred over the Inception Score for evaluating GANs.
+프레셰 인셉션 거리(FID)를 뜻매김하고, GAN을 따질 때 인셉션 점수보다 이를 더 치는 까닭을 밝혀라.
 
 ??? success "익힘 1 풀이"
-    FID models the Inception-v3 feature distributions of real and generated images as multivariate Gaussians $\mathcal{N}(\mu_r, \Sigma_r)$ and $\mathcal{N}(\mu_g, \Sigma_g)$, then computes:
+    FID는 참 그림과 만들어 낸 그림의 Inception-v3 특징 분포를 다변량 가우스 $\mathcal{N}(\mu_r, \Sigma_r)$와 $\mathcal{N}(\mu_g, \Sigma_g)$로 보고 다음을 셈한다.
 
     $$\text{FID} = \|\mu_r - \mu_g\|^2 + \text{Tr}\left(\Sigma_r + \Sigma_g - 2(\Sigma_r \Sigma_g)^{1/2}\right)$$
 
-    FID is preferred because: (1) it compares generated images to real images (IS only evaluates generated images), (2) it detects mode collapse (different means/covariances), (3) it is more consistent with human judgment, and (4) lower FID correlates better with perceptual quality.
+    FID를 더 치는 까닭은 이렇다. (1) 만들어 낸 그림을 참 그림과 견준다(인셉션 점수는 만들어 낸 그림만 따진다). (2) 최빈값 무너짐을 알아낸다(평균과 공분산이 달라진다). (3) 사람의 판단과 더 잘 들어맞는다. (4) FID가 낮을수록 느낌의 좋음과 더 잘 맞아떨어진다.
 
 ---
 
 **익힘 2.**
-What are the limitations of the Inception Score? Can a model achieve a high IS while producing poor samples?
+인셉션 점수의 한계는 무엇인가? 나쁜 표본을 내놓으면서도 높은 인셉션 점수를 얻을 수 있는가?
 
 ??? success "익힘 2 풀이"
-    IS = $\exp(\mathbb{E}_x [D_{\text{KL}}(p(y|x) \| p(y))])$ where $p(y|x)$ is the Inception classifier's prediction for generated image $x$. Limitations: (1) only measures quality (sharp, classifiable) and diversity (spread across classes), not fidelity to the training data, (2) a model generating one perfect image per class scores high but ignores intra-class diversity, (3) sensitive to the Inception model's biases, (4) does not capture texture/style quality within classes. Yes, a model can achieve high IS by memorizing one representative image per ImageNet class.
+    인셉션 점수는 $\exp(\mathbb{E}_x [D_{\text{KL}}(p(y|x) \| p(y))])$이며 $p(y|x)$는 만들어 낸 그림 $x$에 대한 인셉션 가름개의 헤아림이다. 한계는 이렇다. (1) 품질(뾰족하고 가를 수 있음)과 다양함(갈래에 두루 퍼짐)만 잴 뿐 익힘 자료에 얼마나 충실한지는 재지 않는다. (2) 갈래마다 나무랄 데 없는 그림을 하나씩만 내놓아도 점수가 높지만 갈래 안의 다양함은 놓친다. (3) 인셉션 모델의 치우침에 흔들린다. (4) 갈래 안의 결과 결무늬 품질을 담아내지 못한다. 그렇다. ImageNet 갈래마다 대표 그림을 하나씩 외우기만 해도 높은 인셉션 점수를 얻을 수 있다.
 
 ---
 
 **익힘 3.**
-Explain how precision and recall metrics for generative models differ from their classification counterparts.
+만들어 내는 모델의 정밀도·재현율 자가 가름에서 쓰는 것과 어떻게 다른지 밝혀라.
 
 ??? success "익힘 3 풀이"
-    In the generative setting (Kynkaanniemi et al., 2019): **Precision** measures the fraction of generated samples that fall within the support of the real data distribution (quality/fidelity). **Recall** measures the fraction of real data that falls within the support of the generated distribution (diversity/coverage). High precision + low recall = mode collapse (few modes, but realistic). Low precision + high recall = poor quality but diverse. Unlike classification P/R which count discrete matches, generative P/R uses $k$-nearest-neighbor distances in feature space to estimate distribution support.
+    만들어 내기 자리에서는(Kynkaanniemi 외, 2019) 이렇다. **정밀도**는 만들어 낸 표본 가운데 참 자료 분포의 받침 안에 드는 몫을 잰다(품질, 곧 충실함). **재현율**은 참 자료 가운데 만들어 낸 분포의 받침 안에 드는 몫을 잰다(다양함, 곧 덮음). 정밀도가 높고 재현율이 낮으면 최빈값 무너짐이다(봉우리는 적지만 그럴듯하다). 정밀도가 낮고 재현율이 높으면 품질은 나쁘나 다양하다. 띄엄띄엄한 맞음을 세는 가름의 정밀도·재현율과 달리, 만들어 내기의 정밀도·재현율은 특징 자리에서 $k$번째 가장 가까운 이웃까지의 거리로 분포의 받침을 어림한다.
 
 ---
 
 **익힘 4.**
-Why should multiple evaluation metrics be used together when assessing generative models?
+만들어 내는 모델을 살필 때 왜 여러 따지기 자를 함께 써야 하는가?
 
 ??? success "익힘 4 풀이"
-    No single metric captures all aspects of generation quality. **FID** measures overall distributional similarity but conflates quality and diversity. **IS** captures quality and diversity but ignores fidelity to training data. **Precision/Recall** separates quality from diversity but depends on the choice of feature extractor and $k$. **Perceptual metrics** (LPIPS) measure image-level quality but not diversity. Using metrics together provides a complete picture: a model with low FID, high precision, and low recall has mode collapse; one with high recall but low precision generates diverse but low-quality samples. Human evaluation remains the gold standard for final assessment.
+    어느 자 하나도 만들어 내기 품질의 모든 면을 담아내지 못한다. **FID**는 분포가 두루 얼마나 닮았는지 재지만 품질과 다양함을 뒤섞는다. **인셉션 점수**는 품질과 다양함을 담아내지만 익힘 자료에 얼마나 충실한지는 놓친다. **정밀도·재현율**은 품질과 다양함을 갈라 보여 주지만 어떤 특징 뽑개와 $k$를 고르는지에 달렸다. **느낌의 자**(LPIPS)는 그림 하나하나의 품질은 재지만 다양함은 재지 않는다. 여러 자를 함께 쓰면 온 그림이 보인다. FID가 낮고 정밀도가 높으며 재현율이 낮은 모델은 최빈값이 무너진 것이고, 재현율은 높으나 정밀도가 낮은 모델은 다양하지만 품질이 낮은 표본을 내놓는다. 마지막 판단에서는 사람이 따지는 것이 여전히 으뜸 잣대다.

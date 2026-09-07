@@ -1,7 +1,7 @@
-# Inception Score (IS) for Diffusion Models
-The Inception Score evaluates generated image quality and diversity using a pre-trained Inception-v3 classifier. For the full mathematical derivation, implementation, and limitations analysis, see [IS in §25.6](../../ch25/gan_evaluation/inception_score.md). This page covers diffusion-specific usage.
+# 퍼짐 모형을 위한 인셉션 점수(IS)
+인셉션 점수는 미리 익힌 Inception-v3 가름개로 만들어 낸 그림의 품질과 다양함을 따진다. 온전한 수학 이끌어 냄, 짜기, 한계 살핌은 [25.6절의 인셉션 점수](../../ch25/gan_evaluation/inception_score.md)를 보라. 이 쪽은 퍼짐 모형에 남다른 쓰임을 다룬다.
 
-## Definition Recap
+## 뜻매김 되짚기
 
 $$
 
@@ -9,62 +9,62 @@ $$
 
 $$
 
-Higher IS indicates both confident class predictions (quality) and diverse class coverage (diversity). Scores range from 1 (worst) to theoretically 1000 (ImageNet classes).
+인셉션 점수가 높을수록 갈래 헤아림이 자신 있고(품질) 갈래를 두루 덮는다(다양함). 값은 1(가장 나쁨)부터 이론상 1000(ImageNet 갈래 수)까지다.
 
-## Role in Diffusion Model Evaluation
+## 퍼짐 모형 따지기에서의 몫
 
-IS is a **secondary metric** for diffusion models. FID is preferred as the primary benchmark because it directly compares against real data. IS is useful for:
+퍼짐 모형에서 인셉션 점수는 **곁들이 자**다. 참 자료와 곧바로 견주는 FID를 으뜸 잣대로 삼는다. 인셉션 점수는 다음에 쓸모 있다.
 
-- **Quick sanity checks** during training (cheaper than FID)
-- **Complementary signal** when FID alone is ambiguous
-- **Historical comparison** with earlier GAN results
+- 익히는 동안의 **빠른 성한지 살피기**(FID보다 값싸다)
+- FID만으로 흐릿할 때의 **곁들이 낌새**
+- 예전 GAN 결과와의 **지난 자취 견주기**
 
-### Typical Diffusion Model IS Values
+### 퍼짐 모형의 흔한 인셉션 점숫값
 
-| Model | IS (CIFAR-10) ↑ |
+| 모형 | 인셉션 점수 (CIFAR-10) ↑ |
 |-------|-----------------|
-| Real data | 11.24 |
+| 참 자료 | 11.24 |
 | DDPM | 9.46 |
 | ADM | ~10.9 |
-| BigGAN (GAN baseline) | 14.73 |
+| BigGAN (GAN 기준선) | 14.73 |
 
 !!! note "인셉션 점수는 참 자료를 넘어설 수 있다"
-    GANs sometimes achieve IS above real data because mode collapse concentrates predictions on fewer, more confident classes. This is why IS alone can be misleading — always pair with FID and [Precision/Recall](../../ch25/gan_evaluation/precision_recall.md).
+    GAN은 이따금 참 자료보다 높은 인셉션 점수를 얻는데, 최빈값 무너짐이 헤아림을 더 적고 더 자신 있는 갈래에 몰아 주기 때문이다. 그래서 인셉션 점수만으로는 그르칠 수 있으니 늘 FID와 [정밀도·재현율](../../ch25/gan_evaluation/precision_recall.md)을 함께 보라.
 
-## Guidance Scale Effect on IS
+## 이끎 세기가 인셉션 점수에 미치는 영향
 
-Like FID, IS is affected by classifier-free guidance:
+FID와 마찬가지로 인셉션 점수도 가름개 없는 이끎에 흔들린다.
 
-| Guidance scale $w$ | IS | FID |
+| 이끎 세기 $w$ | 인셉션 점수 | FID |
 |-------------------|-----|-----|
-| 1.0 | Lower | Higher |
-| 3.0–5.0 | Good | **Best** |
-| 10+ | **Highest** | Degraded |
+| 1.0 | 낮음 | 높음 |
+| 3.0~5.0 | 좋음 | **가장 좋음** |
+| 10 이상 | **가장 높음** | 나빠짐 |
 
-IS monotonically increases with guidance scale because stronger guidance produces more class-confident images. However, this comes at the cost of diversity, which IS partially misses. The FID-optimal guidance scale is typically lower than the IS-optimal one.
+이끎이 셀수록 갈래에 더 자신 있는 그림이 나오므로 인셉션 점수는 이끎 세기에 따라 한결같이 오른다. 그러나 그 대가로 다양함을 잃는데, 인셉션 점수는 이를 얼마간 놓친다. FID가 가장 좋아지는 이끎 세기는 대개 인셉션 점수가 가장 좋아지는 값보다 낮다.
 
-## Limitations for Diffusion Models
+## 퍼짐 모형에서의 한계
 
-IS has the same fundamental limitations as for GANs (see [§25.6](../../ch25/gan_evaluation/inception_score.md#limitations-and-pitfalls)), with additional diffusion-specific caveats:
+인셉션 점수는 GAN에서와 똑같은 바탕 한계를 지니며([25.6절](../../ch25/gan_evaluation/inception_score.md#limitations-and-pitfalls) 참고) 퍼짐 모형에는 다음이 더해진다.
 
-- **Text-conditioned models**: IS only measures ImageNet class diversity, not text–image alignment. Use CLIP Score for text-to-image evaluation.
-- **High-resolution generation**: IS was designed for ImageNet-scale images; it may not capture quality differences at 512×512+ resolutions.
-- **Unconditional vs conditional**: IS is more meaningful for class-conditional generation than for unconditional or text-conditional models.
+- **글월을 조건으로 삼는 모형**: 인셉션 점수는 ImageNet 갈래의 다양함만 잴 뿐 글월과 그림이 맞는지는 재지 않는다. 글월에서 그림을 만드는 일을 따질 때는 CLIP 점수를 쓰라.
+- **높은 해상도로 만들어 내기**: 인셉션 점수는 ImageNet 크기의 그림을 겨냥해 만들어졌으므로 512×512 이상에서는 품질 차이를 잡아내지 못할 수 있다.
+- **조건 없음과 조건 있음**: 인셉션 점수는 조건 없는 모형이나 글월 조건 모형보다 갈래를 조건으로 삼는 만들어 내기에서 더 뜻이 있다.
 
-## Recommended Evaluation Protocol
+## 권하는 따지기 절차
 
-For diffusion models, report IS as a supplement to FID:
+퍼짐 모형에서는 인셉션 점수를 FID에 곁들여 알린다.
 
 ```
-Evaluation Results:
-  FID-50K:          3.17  (primary metric)
-  IS (50K, 10 splits): 9.46 ± 0.11  (secondary metric)
-  CLIP Score:       28.5  (text-to-image only)
+따진 결과:
+  FID-50K:          3.17  (으뜸 자)
+  IS (50K, 조각 10개): 9.46 ± 0.11  (곁들이 자)
+  CLIP Score:       28.5  (글월에서 그림을 만들 때만)
 ```
 
-See the comprehensive IS treatment in [§25.6](../../ch25/gan_evaluation/inception_score.md) for implementation code, information-theoretic interpretation, and best practices.
+짜기 코드, 정보 이론으로 본 풀이, 가장 좋은 버릇은 [25.6절](../../ch25/gan_evaluation/inception_score.md)의 두루 갖춘 인셉션 점수 설명을 보라.
 
-## References
+## 참고 문헌
 
 1. Salimans, T., et al. (2016). "Improved Techniques for Training GANs." *NeurIPS*.
 2. Ho, J., Jain, A., & Abbeel, P. (2020). "Denoising Diffusion Probabilistic Models." *NeurIPS*.
@@ -86,24 +86,24 @@ See the comprehensive IS treatment in [§25.6](../../ch25/gan_evaluation/incepti
 ??? success "익힘 2 풀이"
     | 자 | 재는 것 | 참 자료가 드는가 | 최빈값 무너짐을 알아내는가 | 느낌의 좋음 |
     |--------|---------|-------------------|----------------------|-------------------|
-    | **FID** | Distributional similarity | Yes | Yes | Good |
-    | **IS** | Quality + diversity | No | Partially | Moderate |
-    | **Log-likelihood** | Density accuracy | Yes (test set) | Yes | Weak |
+    | **FID** | 분포가 닮음 | 그렇다 | 그렇다 | 좋음 |
+    | **IS** | 품질 + 다양함 | 아니다 | 얼마간 | 보통 |
+    | **로그 가능도** | 밀도의 정확함 | 그렇다(시험 묶음) | 그렇다 | 약함 |
 
-    FID is the most widely used because it correlates well with human judgment and captures both quality and diversity. IS only evaluates generated samples. Log-likelihood is theoretically principled but can disagree with perceptual quality. Best practice: report all three.
+    FID는 사람의 판단과 잘 들어맞고 품질과 다양함을 함께 잡아내므로 가장 널리 쓴다. 인셉션 점수는 만들어 낸 표본만 따진다. 로그 가능도는 이론이 튼튼하지만 느낌의 좋음과 어긋날 수 있다. 가장 좋은 버릇은 셋 다 알리는 것이다.
 
 ---
 
 **익힘 3.**
-What is the bits-per-dimension (BPD) metric? How is it computed for diffusion models?
+차원마다의 비트 수(BPD)는 어떤 자인가? 퍼짐 모형에서는 어떻게 셈하는가?
 
 ??? success "익힘 3 풀이"
-    BPD normalizes the negative log-likelihood by the data dimensionality and converts to bits: $\text{BPD} = -\frac{\log_2 p(x)}{d}$ where $d$ is the number of dimensions (e.g., $3 \times 32 \times 32 = 3072$ for CIFAR-10). For diffusion models, the log-likelihood is bounded by the ELBO: $\log p(x) \geq \text{ELBO} = -\sum_t L_t$ where $L_t$ are the KL divergence terms. Exact computation uses the probability flow ODE and the instantaneous change of variables formula. Lower BPD indicates a better model. State-of-the-art diffusion models achieve $\sim$2.5 BPD on CIFAR-10.
+    BPD는 음의 로그 가능도를 자료의 차원 수로 나누어 고르게 한 뒤 비트로 바꾼 값이다. $\text{BPD} = -\frac{\log_2 p(x)}{d}$이며 여기서 $d$는 차원의 수다(보기: CIFAR-10이면 $3 \times 32 \times 32 = 3072$). 퍼짐 모형에서 로그 가능도는 ELBO로 아래가 막힌다. $\log p(x) \geq \text{ELBO} = -\sum_t L_t$이고 $L_t$는 KL 갈림 마디다. 딱 맞게 셈하려면 확률 흐름 상미분 방정식과 순간 변수 바꿈 식을 쓴다. BPD가 낮을수록 좋은 모형이다. 가장 앞선 퍼짐 모형은 CIFAR-10에서 $\sim$2.5의 BPD를 이룬다.
 
 ---
 
 **익힘 4.**
-Why can a generative model with excellent FID still fail in production applications? What additional evaluations are needed?
+FID가 아주 좋은 만들개 모형도 참으로 굴릴 때는 왜 어그러질 수 있는가? 어떤 따지기를 더 해야 하는가?
 
 ??? success "익힘 4 풀이"
-    FID measures average distributional quality but misses: (1) **Tail behavior**: rare but important failure modes (artifacts, offensive content) are averaged out, (2) **Conditional fidelity**: FID is typically computed unconditionally; class-conditional or text-conditional FID may differ, (3) **Memorization**: a model that memorizes training data achieves low FID but is useless for generation, (4) **Diversity within conditions**: FID may be low even if the model generates the same image for similar prompts. Additional evaluations: precision/recall curves, per-class FID, memorization detection (nearest-neighbor distance to training set), human evaluation for quality and diversity, and application-specific metrics (e.g., text-image alignment for text-to-image models).
+    FID는 분포 품질의 평균을 재지만 다음을 놓친다. (1) **꼬리에서의 움직임**: 드물지만 종요로운 어그러짐(부스러기, 거슬리는 내용)이 평균에 묻힌다. (2) **조건에서의 충실함**: FID는 보통 조건 없이 셈하므로 갈래 조건이나 글월 조건에서의 FID는 다를 수 있다. (3) **외워 버림**: 익힘 자료를 외운 모형도 FID는 낮지만 만들어 내기에는 쓸모가 없다. (4) **조건 안에서의 다양함**: 비슷한 이끎말에 늘 같은 그림을 내놓아도 FID는 낮을 수 있다. 더 해야 할 따지기는 이렇다. 정밀도·재현율 굽이, 갈래마다의 FID, 외워 버림 알아내기(익힘 묶음까지의 가장 가까운 이웃 거리), 품질과 다양함에 대한 사람의 따지기, 그리고 일에 맞춘 자(보기: 글월에서 그림을 만드는 모형의 글월·그림 들어맞음).
