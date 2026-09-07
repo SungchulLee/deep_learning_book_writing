@@ -222,15 +222,169 @@ train_loader = DataLoader(
 
 한 장이 $28 \times 28 = 784$개 숫자로 펴진다는 사실만 있으면, 신경망 없이도 분류기를 만들 수 있다.
 
-1. 학습 데이터를 숫자별로 모아 **평균 이미지**를 만든다. 곧 $\bar{0}, \bar{1}, \ldots, \bar{9}$의 판(plate) 열 장을 얻는다.
-2. 새 이미지가 들어오면 이 열 장과 하나씩 견준다(유클리드 거리 따위).
+1. 학습 데이터를 숫자별로 모아 **평균 이미지**를 만든다. 곧 $\bar{x}_0, \bar{x}_1, \ldots, \bar{x}_9$의 판(template) 열 장을 얻는다.
+2. 새 이미지가 들어오면 이 열 장과 하나씩 견준다.
 3. 가장 가까운 판의 숫자로 답한다.
 
 ```
-새 이미지  ──▶  784차원 벡터  ──견주기──▶  0̄ 1̄ 2̄ … 9̄  ──▶  가장 가까운 것
+새 이미지  ──▶  784차원 벡터  ──견주기──▶  x̄₀ x̄₁ x̄₂ … x̄₉  ──▶  가장 가까운 것
 ```
 
-`0`과 `3`처럼 생김새가 뚜렷이 다른 숫자는 이것만으로도 꽤 갈린다. 학습이랄 것이 평균을 내는 일뿐이라 몇 초면 끝나고, 그래서 뒤에 나올 방법들이 넘어야 할 밑금(baseline) 노릇을 한다. 이 방식이 무너지는 곳(예를 들어 `4`와 `9`)을 먼저 확인해 두면, 합성곱 신경망이 정확히 무엇을 더 해 주는지가 또렷해진다.
+입력 이미지 $x$에 대한 예측은 다음과 같다.
+
+$$
+\hat{y} = \operatorname*{arg\,min}_{k \in \{0, \ldots, 9\}} \lVert x - \bar{x}_k \rVert^2
+$$
+
+여기서 $\bar{x}_k$은 숫자 $k$의 평균 이미지이다. 역전파도, 하이퍼파라미터 조정도 없다.
+
+```python
+"""
+가장 단순한 평균판 학습(template/prototype learning).
+
+숫자 0부터 9까지 저마다 그 라벨을 가진 학습 이미지를 모두 평균 낸 뒤,
+새 이미지를 가장 가까운 평균 이미지의 숫자로 분류한다.
+신경망 학습도 역전파도 필요 없다.
+"""
+
+import torch
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+import matplotlib.pyplot as plt
+
+# =============================================================================
+# 1절: MNIST 불러오기
+# =============================================================================
+
+transform = transforms.ToTensor()
+
+train_dataset = datasets.MNIST(
+    root="./data",
+    train=True,
+    download=True,
+    transform=transform
+)
+
+test_dataset = datasets.MNIST(
+    root="./data",
+    train=False,
+    download=True,
+    transform=transform
+)
+
+train_loader = DataLoader(train_dataset, batch_size=1024, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=1024, shuffle=False)
+
+# =============================================================================
+# 2절: 숫자마다 평균 이미지 구하기
+# =============================================================================
+
+# 28 x 28짜리 이미지 합 열 개
+digit_sums = torch.zeros(10, 28, 28)
+digit_counts = torch.zeros(10)
+
+for images, labels in train_loader:
+    images = images.squeeze(1)  # (batch, 1, 28, 28) -> (batch, 28, 28)
+
+    for digit in range(10):
+        mask = labels == digit
+        digit_sums[digit] += images[mask].sum(dim=0)
+        digit_counts[digit] += mask.sum()
+
+average_images = digit_sums / digit_counts[:, None, None]
+
+print(digit_counts)
+print(average_images.shape)  # torch.Size([10, 28, 28])
+
+# =============================================================================
+# 3절: 평균 이미지 열 장 보기
+# =============================================================================
+
+fig, axes = plt.subplots(2, 5, figsize=(10, 4))
+
+for digit, ax in enumerate(axes.flat):
+    ax.imshow(average_images[digit], cmap="gray")
+    ax.set_title(str(digit))
+    ax.axis("off")
+
+plt.tight_layout()
+plt.show()
+
+# =============================================================================
+# 4절: 가장 가까운 평균 이미지로 분류하기
+# =============================================================================
+
+def predict(images, templates):
+    """
+    images:    (batch, 1, 28, 28)
+    templates: (10, 28, 28)
+    """
+    images = images.squeeze(1)
+
+    # 결과 모양: (batch, 10)
+    distances = (
+        images[:, None, :, :] - templates[None, :, :, :]
+    ).square().sum(dim=(2, 3))
+
+    return distances.argmin(dim=1)
+
+# =============================================================================
+# 5절: 시험 집합으로 평가하기
+# =============================================================================
+
+correct = 0
+total = 0
+
+for images, labels in test_loader:
+    predictions = predict(images, average_images)
+
+    correct += (predictions == labels).sum().item()
+    total += labels.size(0)
+
+accuracy = correct / total
+
+print(f"Test accuracy: {accuracy:.2%}")
+```
+
+**출력:**
+
+```
+tensor([5923., 6742., 5958., 6131., 5842., 5421., 5918., 6265., 5851., 5949.])
+torch.Size([10, 28, 28])
+Test accuracy: 82.03%
+```
+
+거리 계산 한 줄이 이 방법의 전부이다.
+
+```python
+distances = (images[:, None, :, :] - templates[None, :, :, :]).square().sum(dim=(2, 3))
+```
+
+`images`를 $(B, 1, 28, 28)$로, `templates`를 $(1, 10, 28, 28)$로 브로드캐스팅하면 차가 $(B, 10, 28, 28)$이 되고, 화소 축 두 개를 더해 $(B, 10)$ 거리 행렬을 얻는다. 배치 전체와 판 열 장의 모든 짝을 반복문 없이 한 번에 처리한다.
+
+!!! note "밑금으로서의 82%"
+    **시험 정확도 82.03%.** 학습이랄 것이 평균을 내는 일뿐이고 몇 초면 끝나는데도 열 개 중 여덟 개를 맞힌다. 뒤에 나올 합성곱 신경망은 이 82%를 넘어야 값어치가 있는 것이며, 그래서 이 수치를 먼저 손에 쥐고 가는 편이 좋다.
+
+    실행 결과의 `digit_counts`를 보면 부류마다 5421장에서 6742장까지 차이가 난다. 앞서 "숫자마다 약 6000개"라고 한 것이 대략의 말이지 정확히 같은 수는 아님을 확인할 수 있다.
+
+전체 82%라는 수치는 부류마다 사정이 아주 다르다는 것을 감춘다. 시험 집합의 혼동 행렬을 보면 이렇다.
+
+| 숫자 | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 |
+|---|---|---|---|---|---|---|---|---|---|---|
+| 정확도 | 89.6% | **96.2%** | 75.7% | 80.6% | 82.6% | **68.6%** | 86.3% | 83.3% | 73.7% | 80.7% |
+
+가장 잦은 오답은 다음과 같다.
+
+| 참 → 예측 | 건수 | 참 → 예측 | 건수 |
+|---|---|---|---|
+| 5 → 3 | 118 | 2 → 1 | 71 |
+| 4 → 9 | 116 | 5 → 1 | 63 |
+| 9 → 4 | 83 | 7 → 1 | 59 |
+| 8 → 3 | 83 | 3 → 8 | 58 |
+
+`1`이 96.2%로 가장 잘 맞는 까닭은 획이 하나뿐이라 필체가 달라져도 평균에서 크게 벗어나지 않기 때문이다. 거꾸로 `5`는 68.6%로 가장 나쁘고, 오답의 대부분이 `3`으로 쏠린다. 두 숫자 모두 위쪽 가로획과 아래쪽 둥근 획을 공유해 평균끼리 닮았다. `4`와 `9`가 서로를 오가는 것(116건과 83건)도 같은 까닭이다.
+
+여기에 이 방법의 한계가 그대로 드러난다. 평균 이미지는 그 부류의 모든 필체를 한 장으로 뭉갠 것이라, 같은 숫자를 쓰는 방식이 여럿일 때(가로줄 있는 `7`과 없는 `7`) 어느 쪽과도 멀어진다. 또 화소를 자리 그대로 견주므로 숫자가 조금만 옆으로 밀리거나 기울어도 거리가 크게 늘어난다. 합성곱 신경망이 무엇을 더 해 주는지가 바로 이 두 지점이다.
 
 ## 연습문제
 
