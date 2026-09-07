@@ -68,7 +68,7 @@ factorial(4) = 24
 
 깊은 재귀가 스택 넘침을 일으킬 수 있는 이유가 이것이다. 프레임마다 메모리를 소비하는데 시스템 스택의 크기에는 고정된 한계가 있다.
 
-## Reference
+## 살펴볼 거리
 
 [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 
