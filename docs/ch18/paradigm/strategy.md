@@ -94,7 +94,7 @@ The **base case** is $T(n) = \Theta(1)$ for $n \le n_0$, where $n_0$ is a small 
 나누어 이기기 전략의 핵심 생각과 그 시간 복잡도를 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    Divide and Conquer Strategy applies the divide-and-conquer paradigm: split the problem into smaller subproblems, solve them recursively, and combine the results. The time complexity is determined by the recurrence relation governing the subproblem sizes and the combination cost. The Master Theorem or recursion tree analysis typically gives the closed-form complexity. $\square$
+    Divide and Conquer Strategy은 나누어 다스리기 틀을 쓴다. 문제를 더 작은 잔문제로 쪼개고, 되부르며 풀고, 그 결과를 아우른다. 때 복잡도는 잔문제의 크기와 아우르는 값을 다스리는 되돌이 식이 정한다. 흔히 으뜸 정리나 되부름 나무 살피기로 닫힌 꼴의 복잡도를 얻는다. $\square$
 
 ---
 
