@@ -354,9 +354,9 @@ $$
 
 **공분산 고르기**:
 
-- $\Sigma_t = 2 \times \text{Cov}(\{\theta_i^{(t-1)}\})$ (twice weighted sample covariance)
+- $\Sigma_t = 2 \times \text{Cov}(\{\theta_i^{(t-1)}\})$(무게 실은 표본 공분산의 두 배)
 - 가장 좋은 선형 오그라들기 어림자
-- Component-wise: $\Sigma_t = \text{diag}(\sigma_1^2, \ldots, \sigma_d^2)$
+- 성분마다: $\Sigma_t = \text{diag}(\sigma_1^2, \ldots, \sigma_d^2)$
 
 ### 가장 좋은 흔들기
 
@@ -448,13 +448,13 @@ epsilon_schedule = [2.0, 1.5, 1.0, 0.7, 0.5, 0.3, 0.2, 0.1]
 
 **알아서 맞추기**(권함):
 
-- Set each $\epsilon_t$ as a quantile (e.g., median) of current distances
+- $\epsilon_t$을 이제 거리의 분위수(예: 중앙값)로 둔다
 - 문제의 어려움에 저절로 맞춘다
 
 ### 멈추는 기준
 
-1. **Target tolerance reached**: $\epsilon_t \leq \epsilon_{target}$
-2. **Tolerance stagnation**: $\epsilon_t \approx \epsilon_{t-1}$
+1. **과녁 봐주는 값에 닿음**: $\epsilon_t \leq \epsilon_{target}$
+2. **봐주는 값이 멈춤**: $\epsilon_t \approx \epsilon_{t-1}$
 3. **최대 세대**: 안전 한도
 4. **셈 예산**: 최대 흉내내기 횟수
 

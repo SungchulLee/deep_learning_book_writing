@@ -19,7 +19,7 @@ DAG-SHORTEST-PATHS(G, w, s):
             RELAX(u, v, w)
 ```
 
-Each vertex is processed exactly once, and each edge is relaxed exactly once.
+꼭짓점마다 꼭 한 번 다루고 변마다 꼭 한 번 늦춘다.
 
 ## 올바름
 
@@ -45,7 +45,7 @@ Each vertex is processed exactly once, and each edge is relaxed exactly once.
 | 데이크스트라 | 아니오 | 아니오 | $O((V+E)\log V)$ |
 | 벨먼-포드 | 예 | 아니오 | $O(VE)$ |
 
-The DAG algorithm is the fastest but applies only to acyclic graphs.
+유향 비순환 그래프 알고리즘이 가장 빠르지만 비순환 그래프에만 쓸 수 있다.
 
 ## DAG에서 가장 긴 길
 
@@ -53,7 +53,7 @@ The DAG algorithm is the fastest but applies only to acyclic graphs.
 
 ## 풀이 예제
 
-Consider the DAG with vertices in topological order $\langle s, a, b, c, d, e \rangle$:
+꼭짓점이 위상 차례 $\langle s, a, b, c, d, e \rangle$인 유향 비순환 그래프를 보자.
 
 | 변 | 무게 |
 |---|---|
@@ -67,7 +67,7 @@ Consider the DAG with vertices in topological order $\langle s, a, b, c, d, e \r
 | $(c, e)$ | 1 |
 | $(d, e)$ | -2 |
 
-**Processing $s$:** Relax $(s, a)$: $d[a] = 5$.  Relax $(s, b)$: $d[b] = 3$.
+**$s$ 다루기:** $(s, a)$을 늦춘다: $d[a] = 5$.  $(s, b)$을 늦춘다: $d[b] = 3$.
 
 **$a$ 다루기:** $(a, b)$ 늦추기: $d[b] = \min(3, 5+2) = 3$(바뀜 없음). $(a, c)$ 늦추기: $d[c] = 11$.
 
@@ -75,9 +75,9 @@ Consider the DAG with vertices in topological order $\langle s, a, b, c, d, e \r
 
 **$c$ 다루기:** $(c, d)$ 늦추기: $d[d] = \min(7, 10-1) = 7$(바뀜 없음). $(c, e)$ 늦추기: $d[e] = 11$.
 
-**Processing $d$:** Relax $(d, e)$: $d[e] = \min(11, 7-2) = 5$.
+**$d$ 다루기:** $(d, e)$을 늦춘다: $d[e] = \min(11, 7-2) = 5$.
 
-**Final distances:** $d[s]=0, d[a]=5, d[b]=3, d[c]=10, d[d]=7, d[e]=5$.
+**마지막 거리:** $d[s]=0, d[a]=5, d[b]=3, d[c]=10, d[d]=7, d[e]=5$.
 
 ## 구현
 

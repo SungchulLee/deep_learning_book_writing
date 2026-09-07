@@ -24,9 +24,9 @@ $$
 
 다시 매긴 변을 모두 음이 아니게 하려고 존슨의 알고리즘은 $h(v) = \delta(s', v)$으로 놓는다. 여기서 $s'$은 무게 0인 변으로 기존 꼭짓점 모두에 이어진 새 꼭짓점이다:
 
-1. Add a new vertex $s'$ to the graph.
-2. Add edges $(s', v)$ with weight $0$ for all $v \in V$.
-3. Run Bellman-Ford from $s'$ to compute $h(v) = \delta(s', v)$.
+1. 그래프에 새 꼭짓점 $s'$을 더한다.
+2. 모든 $v \in V$에 대해 짐이 $0$인 변 $(s', v)$을 더한다.
+3. $s'$에서 벨먼-포드를 돌려 $h(v) = \delta(s', v)$을 셈한다.
 
 삼각 부등식에 따라 변 $(u, v)$마다 $\delta(s', v) \le \delta(s', u) + w(u, v)$이다. 옮겨 쓰면 다음과 같다:
 
@@ -34,7 +34,7 @@ $$
 \hat{w}(u, v) = w(u, v) + h(u) - h(v) = w(u, v) + \delta(s', u) - \delta(s', v) \ge 0
 $$
 
-If Bellman-Ford detects a negative cycle, the algorithm reports it and stops.
+벨먼-포드가 음수 순환을 알아내면 알고리즘은 이를 알리고 멈춘다.
 
 ## 알고리즘의 걸음
 

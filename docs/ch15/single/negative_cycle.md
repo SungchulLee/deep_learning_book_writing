@@ -55,7 +55,7 @@ $$
 
 ## 응용
 
-Negative cycles arise in several practical contexts:
+음수 순환은 여러 실제 자리에서 생긴다.
 
 - **환차익 거래:** 변의 무게가 $-\log(\text{환율})$인 외환 그래프에서 음의 고리는 이익을 내는 거래의 늘어놓음에 해당한다.
 - **밑천 최적화:** 일정 짜기나 길 정하기 문제에서 음의 고리는 짜임을 바꿔 전체 값을 줄일 수 있는 틈을 알릴 수 있다.
@@ -63,7 +63,7 @@ Negative cycles arise in several practical contexts:
 
 ## 풀이 예제
 
-Consider vertices $\{s, a, b, c\}$ with edges:
+변이 다음과 같은 꼭짓점 $\{s, a, b, c\}$을 보자.
 
 | 변 | 무게 |
 |---|---|
@@ -72,11 +72,11 @@ Consider vertices $\{s, a, b, c\}$ with edges:
 | $(b, c)$ | 3 |
 | $(c, a)$ | -5 |
 
-The cycle $a \to b \to c \to a$ has weight $(-2) + 3 + (-5) = -4 < 0$.
+순환 $a \to b \to c \to a$의 짐은 $(-2) + 3 + (-5) = -4 < 0$이다.
 
-**After 3 passes of Bellman-Ford** ($|V|-1 = 3$):
+**벨먼-포드를 3 번 훑은 뒤**($|V|-1 = 3$)
 
-- $d[s] = 0$, $d[a] = 4$, but the cycle keeps reducing $d[a]$.
+- $d[s] = 0$, $d[a] = 4$이지만 순환이 $d[a]$을 계속 줄인다.
 
 **훑기 4(알아내기 훑기):** 변 $(c, a)$이 $d[a] > d[c] + w(c, a)$을 만족하여 음의 고리를 확인해 준다.
 

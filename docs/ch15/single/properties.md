@@ -16,7 +16,7 @@ $\square$
 
 ## 최단 경로 무게
 
-Let $\delta(u, v)$ denote the **shortest-path weight** from $u$ to $v$:
+$\delta(u, v)$을 $u$에서 $v$까지의 **최단 경로 짐**이라 하자.
 
 $$
 \delta(u, v) =
@@ -40,7 +40,7 @@ $v$까지의 최단 경로는 $u$까지의 최단 경로에 곧바른 변 $(u, v
 
 ## 위 한계 성질
 
-After calling `INITIALIZE-SINGLE-SOURCE(G, s)`, for every vertex $v \in V$:
+`INITIALIZE-SINGLE-SOURCE(G, s)`을 부른 뒤 모든 꼭짓점 $v \in V$에 대해
 
 $$
 d[v] \ge \delta(s, v)
@@ -54,7 +54,7 @@ $$
 d[v] = d[u] + w(u, v) \ge \delta(s, u) + w(u, v) \ge \delta(s, v)
 $$
 
-where the last step follows from the triangle inequality. $\square$
+여기서 마지막 걸음은 삼각 부등식에서 따라 나온다. $\square$
 
 ## 길 없음 성질
 
@@ -69,10 +69,10 @@ $s \leadsto u \to v$이 최단 경로이고 변 $(u, v)$을 늦추기 전 어느
 ## 길 늦추기 성질
 
 !!! note "길 늦추기 성질"
-    Let $p = \langle v_0, v_1, \dots, v_k \rangle$ be a shortest path from
+    $p = \langle v_0, v_1, \dots, v_k \rangle$을 다음에서 비롯하는 최단 경로라 하자
     $s = v_0$에서 $v_k$까지. 변 $(v_0, v_1), (v_1, v_2), \dots, (v_{k-1}, v_k)$을 이 차례로 늦추면(사이에 다른 늦추기가 섞여도 된다) $d[v_k] = \delta(s, v_k)$이다.
 
-This property unifies the correctness of all three single-source algorithms:
+이 성질이 한 근원 알고리즘 셋의 옳음을 하나로 묶는다.
 
 - **벨먼-포드:** $i$번째 훑기 뒤에 변을 많아야 $i$개 쓰는 최단 경로가 모두 맞게 셈해진다. 최단 경로의 변이 많아야 $|V| - 1$개이므로 $|V| - 1$번 훑으면 넉넉하다.
 - **DAG 최단 경로:** 위상 차례가 $d[u]$이 $\delta(s, u)$에 이른 뒤에 변 $(u, v)$이 늦춰짐을 보장한다.

@@ -57,13 +57,13 @@ $$
 d[y] = \delta(s, y) \le \delta(s, u) \le d[u]
 $$
 
-But $u$ was chosen by `EXTRACT-MIN`, so $d[u] \le d[y]$.  Combining:
+그런데 $u$은 `EXTRACT-MIN`이 골랐으므로 $d[u] \le d[y]$이다.  아우르면
 
 $$
 d[u] \le d[y] = \delta(s, y) \le \delta(s, u) \le d[u]
 $$
 
-This forces $d[u] = \delta(s, u)$, contradicting our assumption. $\square$
+그러면 $d[u] = \delta(s, u)$이 되어 우리 가정과 어긋난다. $\square$
 
 ## 음이 아닌 무게가 왜 꼭 필요한가
 
@@ -74,7 +74,7 @@ This forces $d[u] = \delta(s, u)$, contradicting our assumption. $\square$
 
 ## 복잡도 분석
 
-The time complexity depends on the priority queue implementation:
+시간 복잡도는 우선순위 줄을 어떻게 짜느냐에 달렸다.
 
 | 우선순위 줄 | `EXTRACT-MIN` | `DECREASE-KEY` | 합계 |
 |---|---|---|---|

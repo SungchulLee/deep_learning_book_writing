@@ -50,12 +50,12 @@ $$
 \delta(s, v) > \delta(s, u) + w(u, v)
 $$
 
-which violates the triangle inequality. $\square$
+이는 삼각 부등식을 어긴다. $\square$
 
 ## 복잡도 분석
 
 - **시간:** $|V| - 1$번 훑을 때마다 변 $|E|$개를 모두 훑으므로 통틀어 $O(VE)$이다.
-- **Space:** $O(V)$ for the distance and predecessor arrays.
+- **공간:** 거리 배열과 앞선 꼭짓점 배열에 $O(V)$.
 
 $O(VE)$ 한계는 데이크스트라의 $O((V+E)\log V)$보다 나쁘지만, 벨먼-포드는 데이크스트라에 없는 힘인 음의 무게 다루기를 해낸다.
 

@@ -6,7 +6,7 @@
 
 늦추기를 하기 전에 꼭짓점마다 잠정 거리와 앞선 것 가리개를 받는다. 샘 꼭짓점은 거리 0으로, 나머지는 모두 무한대로 시작한다.
 
-For a graph $G = (V, E)$ with source $s$:
+근원이 $s$인 그래프 $G = (V, E)$에 대해
 
 $$
 d[v] =
@@ -51,7 +51,7 @@ $$
 
 $p = \langle v_0, v_1, \dots, v_k \rangle$이 $s = v_0$에서 $v_k$까지의 최단 경로이고 변 $(v_0, v_1), (v_1, v_2), \dots, (v_{k-1}, v_k)$을 이 차례로 늦추면(사이에 다른 늦추기가 섞여도 된다) $d[v_k] = \delta(s, v_k)$이다.
 
-This property is what makes each algorithm work:
+이 성질이 알고리즘마다 통하게 하는 까닭이다.
 
 | 알고리즘 | 늦추는 차례를 어떻게 보장하나 |
 |---|---|
@@ -61,7 +61,7 @@ This property is what makes each algorithm work:
 
 ## 삼각 부등식
 
-For any edge $(u, v) \in E$, the shortest-path distances satisfy:
+어떤 변 $(u, v) \in E$에 대해서도 최단 경로 거리는 다음을 채운다.
 
 $$
 \delta(s, v) \le \delta(s, u) + w(u, v)
@@ -71,7 +71,7 @@ $$
 
 ## 풀이 예제
 
-Consider a graph with four vertices and the following edges:
+꼭짓점 넷과 다음 변을 지닌 그래프를 보자.
 
 | 변 | 무게 |
 |---|---|

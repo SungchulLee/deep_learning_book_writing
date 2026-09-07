@@ -55,8 +55,8 @@ TRANSITIVE-CLOSURE(G):
 
 ## 복잡도
 
-- **Time:** $\Theta(V^3)$ — three nested loops over $n$ vertices.
-- **Space:** $\Theta(V^2)$ for the Boolean matrix.
+- **시간:** $\Theta(V^3)$ — 꼭짓점 $n$개에 대한 겹친 되돌이 셋.
+- **공간:** 참거짓 행렬에 $\Theta(V^2)$.
 
 점근 시간은 플로이드-워셜과 같지만 참거짓 연산이 부동소수점 산술보다 훨씬 싸다. 게다가 행렬을 비트 집합(항목마다 비트 하나)으로 담으면 공간이 32배나 64배 줄고 안쪽 되풀이에서 비트 단위 병렬성을 쓸 수 있다.
 
@@ -75,7 +75,7 @@ for k = 0 to n-1:
 
 ## 플로이드-워셜과의 이음
 
-Warshall's algorithm is a Boolean specialization of Floyd-Warshall:
+워셜 알고리즘은 플로이드-워셜을 참거짓에 맞춘 갈래다.
 
 | 연산 | 플로이드-워셜 | 워셜 |
 |---|---|---|
@@ -89,7 +89,7 @@ Warshall's algorithm is a Boolean specialization of Floyd-Warshall:
 
 ## 다른 길
 
-The transitive closure can also be computed by:
+이어짐 닫힘은 다음으로도 셈할 수 있다.
 
 - **꼭짓점마다 BFS/DFS:** $O(V(V + E))$ 시간. $E \ll V^2$인 성긴 그래프에 더 낫다.
 - **행렬 곱하기:** $A$이 이웃 행렬일 때 $A + A^2 + \cdots + A^{V-1}$을 셈한다. 되풀이 제곱을 쓰면 곱하기가 $O(V^3 \log V)$번 들지만, 빠른 행렬 곱하기를 쓰면 이론상 세제곱 아래 한계를 얻을 수 있다.
@@ -138,7 +138,7 @@ T^{(4)} = \begin{pmatrix}
 \end{pmatrix}
 $$
 
-Vertex 0 can reach all others, but no vertex can reach vertex 0 (except itself).
+꼭짓점 0은 다른 모든 꼭짓점에 닿을 수 있지만 (자기 자신 말고는) 어떤 꼭짓점도 꼭짓점 0에 닿을 수 없다.
 
 ## 구현
 
