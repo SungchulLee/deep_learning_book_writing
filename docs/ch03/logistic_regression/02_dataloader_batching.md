@@ -14,7 +14,7 @@
 
 배움 목표:
 - 작은 묶음 기울기 내림을 이해한다
-- 잘 드는 묶음 만들기에 PyTorch DataLoader을 쓴다
+- 잘 드는 묶음 만들기에 PyTorch DataLoader를 쓴다
 - Dataset과 DataLoader 갈래를 배운다
 - 섞기와 묶음 다루기를 익힌다
 - 더 큰 자료 묶음으로 넓힌다

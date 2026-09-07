@@ -54,7 +54,7 @@ print("=" * 80)
 class SoftmaxRegressionNumPy:
     """
     넘파이만으로 맨바닥부터 짠 소프트맥스 회귀.
-    PyTorch이 속에서 무엇을 하는지 이해하는 데 도움이 된다.
+    PyTorch가 속에서 무엇을 하는지 이해하는 데 도움이 된다.
     """
     
     def __init__(self, input_dim, num_classes, lr=0.01, reg_lambda=0.01):

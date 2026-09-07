@@ -153,7 +153,7 @@ def main():
     
     header("8. Best Practices")
     print("""
-    DataLoader을 잘 쓰는 버릇:
+    DataLoader를 잘 쓰는 버릇:
     
     1. 더 빨리 불러오려면 일꾼을 여럿 써라(num_workers > 0)
     2. GPU을 쓸 때는 pin_memory=True을 켜라

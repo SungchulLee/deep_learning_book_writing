@@ -89,7 +89,7 @@ print("="*80)
 
 print("""
 requires_grad=True인 텐서에 셈을 하면
-PyTorch이 셈 그래프를 세운다.
+PyTorch가 셈 그래프를 세운다.
 
     x (requires_grad=True)
     ↓
@@ -102,7 +102,7 @@ PyTorch이 셈 그래프를 세운다.
     y = 3*x² + 2x + 1 (마지막 내놓음)
 
 y.backward()을 부르면
-- PyTorch이 이 그래프를 거꾸로 훑는다
+- PyTorch가 이 그래프를 거꾸로 훑는다
 - 사슬 법칙을 절로 건다
 - x.grad에 기울기를 쌓는다
 """)
@@ -191,7 +191,7 @@ def compute_gradient(x, y_true, y_pred):
 ------------------------
 loss = torch.mean((y_pred - y) ** 2)
 loss.backward()  # 모든 기울기를 절로 셈한다!
-gradient = w.grad  # PyTorch이 대신 채워 준다
+gradient = w.grad  # PyTorch가 대신 채워 준다
 
 자동 미분의 이점:
 ✓ 손수 미적분할 것이 없다

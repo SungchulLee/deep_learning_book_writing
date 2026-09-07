@@ -12,7 +12,7 @@
 어려움: ⭐⭐⭐⭐ (앞선)
 
 DESCRIPTION:
-    PyTorch DataLoader을 쓰는 작은 묶음 기울기 내림.
+    PyTorch DataLoader를 쓰는 작은 묶음 기울기 내림.
     온 자료 묶음 대신 묶음으로 잘 들게 익힌다.
 
 다루는 것:
@@ -298,7 +298,7 @@ print("PART 6: EFFICIENT TRAINING LOOP TEMPLATE")
 print("=" * 70)
 
 print("""
-DataLoader을 쓰는 여느 PyTorch 익힘 되돌이:
+DataLoader를 쓰는 여느 PyTorch 익힘 되돌이:
 
 # 준비
 train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)

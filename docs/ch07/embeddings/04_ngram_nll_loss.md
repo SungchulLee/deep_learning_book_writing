@@ -275,7 +275,7 @@ def forward(self, x):
     
 loss = nn.CrossEntropyLoss()
 output = model(input)
-loss_value = loss(output, target)  # PyTorch이 속에서 소프트맥스를 건다
+loss_value = loss(output, target)  # PyTorch가 속에서 소프트맥스를 건다
 ```
 
 With NLLLoss:

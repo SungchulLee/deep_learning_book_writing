@@ -247,7 +247,7 @@ print("""
 
 4. 토치와 넘파이 견주기
    - torch.tensor와 np.array
-   - PyTorch은 GPU(CUDA)에서 돌 수 있다
+   - PyTorch는 GPU(CUDA)에서 돌 수 있다
    - PyTorch에는 붙박이 자동 미분이 있다
 """)
 

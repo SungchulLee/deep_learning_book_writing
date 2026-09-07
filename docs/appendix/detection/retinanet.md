@@ -88,7 +88,7 @@ if __name__ == "__main__":
 
 ## 논의
 
-이 짜보기는 갈래 2개(`FPN`, `RetinaNet`)를 매기고, 이들이 어울려 온전한 물체 알아내기 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch이 절로 미분하는 데 쓰는 셈 그림을 매긴다.
+이 짜보기는 갈래 2개(`FPN`, `RetinaNet`)를 매기고, 이들이 어울려 온전한 물체 알아내기 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
 잃음 셈은 모형의 날임을 다듬기의 목표와 잇는다. 알맞은 잃음 함수를 고르는 일은 몹시 종요롭다. 모형이 무엇을 다듬도록 배울지를 매기고, 배운 드러냄과 가름 테두리를 곧바로 빚어내기 때문이다.
 
@@ -130,4 +130,4 @@ if __name__ == "__main__":
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch이 매개변수를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = FPN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 매개변수를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = FPN(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.

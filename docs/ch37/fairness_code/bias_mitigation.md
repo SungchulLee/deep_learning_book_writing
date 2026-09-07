@@ -430,7 +430,7 @@ if __name__ == "__main__":
 
 ## 논의
 
-이 짜보기는 함께 어우러져 온전한 깊은 배움 얼개를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다. 클래스마다 따로 떨어진 조각을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch이 저절로 미분하는 데 쓰는 셈 그래프를 세운다.
+이 짜보기는 함께 어우러져 온전한 깊은 배움 얼개를 이루는 클래스 4개(`ReweighingMitigation`, `AdversarialDebiasing`, `FairRepresentationLearning`, `ThresholdOptimization`)를 세운다. 클래스마다 따로 떨어진 조각을 감싸므로 코드가 조각으로 나뉘고 넓히기 쉽다. `forward` 방법은 PyTorch가 저절로 미분하는 데 쓰는 셈 그래프를 세운다.
 
 익힘 돌기는 여느 PyTorch 결을 따른다. 앞으로 걸음으로 미루어 봄을 셈하고, 잃음을 셈하고, 되짚기로 기울기를 셈하고, 가장 좋게 하는 개로 매개변수를 고친다. 시대마다 자를 좇으면 모여 가는 결이 드러나고 덜 맞추기나 지나치게 맞추기 같은 탈을 짚어내기 좋다.
 
@@ -472,4 +472,4 @@ if __name__ == "__main__":
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서는 `for layer in self.layers: x = layer(x)`으로 돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch이 모든 매개변수를 가장 좋게 하기에 올린다. 시험은 이렇게 한다. `for n in [2, 4, 8]: model = ReweighingMitigation(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 방법에서는 `for layer in self.layers: x = layer(x)`으로 돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 가장 좋게 하기에 올린다. 시험은 이렇게 한다. `for n in [2, 4, 8]: model = ReweighingMitigation(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.

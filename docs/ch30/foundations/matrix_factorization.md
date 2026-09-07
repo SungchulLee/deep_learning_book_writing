@@ -245,7 +245,7 @@ class MF_bias(nn.Module):
     매김을 이렇게 예측한다: r_hat = p_u^T q_i + b_u + b_i
     
     유의: 온 자리 평균 mu은 치우침 항에 빨려 들어가거나
-    익히는 동안(PyTorch이 이를 담도록 b_u와 b_i를 맞춘다),
+    익히는 동안(PyTorch가 이를 담도록 b_u와 b_i를 맞춘다),
     붙박인 상수로 드러나게 더할 수 있다.
     """
     def __init__(self, num_users, num_items, emb_size=100):

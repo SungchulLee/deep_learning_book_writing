@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
 ## 논의
 
-이 짜보기는 갈래 3개(`Generator`, `Discriminator`, `GAN`)를 매기고, 이들이 어울려 온전한 만들개 모형 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch이 절로 미분하는 데 쓰는 셈 그림을 매긴다.
+이 짜보기는 갈래 3개(`Generator`, `Discriminator`, `GAN`)를 매기고, 이들이 어울려 온전한 만들개 모형 얼개를 이룬다. 갈래마다 남다른 몫을 담아 코드를 묶음으로 나누고 넓히기 쉽게 한다. `forward` 방법이 PyTorch가 절로 미분하는 데 쓰는 셈 그림을 매긴다.
 
 익힘 되돌이는 여느 PyTorch 무늬를 따른다. 앞으로 걸음으로 미루어 봄을 셈하고, 잃음을 셈하고, 뒤로 걸음으로 기울기를 셈하고, 다듬개로 매개변수를 고친다. 판마다 자를 좇으면 모여드는 결이 드러나고 덜 맞추기나 지나치게 맞추기 같은 탈을 짚어내는 데 도움이 된다.
 
@@ -180,4 +180,4 @@ if __name__ == "__main__":
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch이 매개변수를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = Generator(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.
+    `forward` 방법에서 `for layer in self.layers: x = layer(x)`으로 되돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 매개변수를 모두 다듬기에 올린다. `for n in [2, 4, 8]: model = Generator(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`으로 시험한다.

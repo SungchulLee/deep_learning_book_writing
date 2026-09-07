@@ -830,7 +830,7 @@ def fold_batchnorm(model: nn.Module) -> nn.Module:
     W' = W * γ/σ
     b' = γ(b-μ)/σ + β
     """
-    # PyTorch이 수 줄이기 동안 절로 해 준다
+    # PyTorch가 수 줄이기 동안 절로 해 준다
     torch.quantization.fuse_modules(
         model,
         # 녹여 붙일 결을 밝힌다

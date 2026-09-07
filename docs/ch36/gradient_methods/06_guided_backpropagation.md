@@ -173,4 +173,4 @@ if __name__ == "__main__":
     for i in range(num_layers):
         self.layers.append(YourBlock(dim, ...))
     ```
-    `forward` 방법에서는 `for layer in self.layers: x = layer(x)`으로 돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch이 모든 매개변수를 가장 좋게 하기에 올린다. 시험은 이렇게 한다. `for n in [2, 4, 8]: model = GuidedBackpropReLU(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.
+    `forward` 방법에서는 `for layer in self.layers: x = layer(x)`으로 돈다. 여느 파이썬 목록이 아니라 `nn.ModuleList`을 써야 PyTorch가 모든 매개변수를 가장 좋게 하기에 올린다. 시험은 이렇게 한다. `for n in [2, 4, 8]: model = GuidedBackpropReLU(num_layers=n); print(f'Layers={n}, params={sum(p.numel() for p in model.parameters()):,}')`.

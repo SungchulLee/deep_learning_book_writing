@@ -211,7 +211,7 @@ def get_true_class_probs(probs: torch.Tensor, labels: torch.Tensor) -> torch.Ten
     참 갈래의 예측 확률을 뽑아낸다.
 
     이는 (one_hot * probs).sum(dim=1)과 같다.
-    다만 gather을 쓰면 더 잘 든다.
+    다만 gather를 쓰면 더 잘 든다.
 
     Args:
         probs: 꼴이 (batch_size, num_classes)인 예측 확률
