@@ -1,74 +1,74 @@
-# Chapter 40: Model Deployment
+# 40장: 모형 내놓기
 
-This chapter covers the complete lifecycle of deploying deep learning models to production, from serialization and optimization through serving infrastructure, distributed computing, and MLOps practices. Efficient deployment is critical in quantitative finance where latency, throughput, and reliability directly impact trading performance and risk management. The chapter provides practical guidance for taking models from research notebooks to production systems.
+이 장은 깊은 배움 모형을 서비스에 내놓는 온 삶을 다룬다. 갈무리와 다듬기에서 서비스 바탕, 흩어 셈하기, MLOps 결에 이른다. 늦음, 나름, 미더움이 거래 됨됨이와 무릅씀 다루기에 곧바로 걸리는 계량 금융에서는 잘 드는 내놓기가 종요롭다. 이 장은 연구 공책의 모형을 서비스 얼개로 옮기는 손에 잡히는 길잡이를 준다.
 
 ---
 
-## Serialization
+## 갈무리하기
 
-Saving, loading, and exporting trained models for deployment across environments.
+익힌 모형을 여러 자리에 내놓으려고 담고, 부르고, 내보내기.
 
-- Model Saving -- PyTorch native saving mechanisms and cross-environment portability for production deployment
-- State Dict -- PyTorch's canonical parameter serialization for model saving, transfer learning, and debugging
-- TorchScript -- Creating serializable, Python-free models for C++, mobile, and embedded deployment
-- ONNX Export -- Open Neural Network Exchange format for cross-framework and cross-hardware model deployment
-- Checkpointing -- Saving complete training state for recovery, analysis, and model selection in long-running jobs
+- 모형 담기 -- PyTorch에 든 담기 얼개와 서비스에 내놓을 때의 자리를 넘나드는 옮김
+- 상태 사전 -- 모형 담기, 옮겨 배우기, 벌레잡기에 쓰는 PyTorch의 여느 매개변수 갈무리
+- TorchScript -- C++, 손전화, 박아 넣는 데에 내놓을 파이썬 없는 갈무리할 수 있는 모형 만들기
+- ONNX 내보내기 -- 틀과 쇠 붙임새를 넘나들며 모형을 내놓는 열린 신경 그물 주고받기 꼴
+- 되살림 자리 만들기 -- 오래 도는 일에서 되살리기, 살피기, 모형 고르기에 쓸 온전한 익힘 상태 담기
 
-## Optimization
+## 다듬기
 
-Compressing and accelerating models for efficient inference.
+잘 드는 미루어 봄을 위해 모형을 누르고 빠르게 하기.
 
-- [Quantization](optimization/quantization.md) -- Reducing numerical precision from FP32 to INT8/INT4 for smaller footprint and faster inference
-- Model Pruning -- Removing redundant parameters to create sparse models with reduced memory and compute
-- [Knowledge Distillation](optimization/distillation.md) -- Transferring knowledge from large teacher models to smaller, deployable student models
-- [Neural Architecture Search](optimization/nas.md) -- Automated architecture design optimizing for accuracy, latency, and model size
+- [수 줄이기](optimization/quantization.md) -- FP32에서 INT8/INT4으로 수의 촘촘함을 줄여 자리를 아끼고 미루어 봄을 빠르게 하기
+- 모형 쳐내기 -- 군더더기 매개변수를 없애 기억과 셈이 적은 성긴 모형 만들기
+- [앎 옮기기](optimization/distillation.md) -- 큰 스승 모형의 앎을 작고 내놓기 좋은 제자 모형으로 옮기기
+- [신경 얼개 찾기](optimization/nas.md) -- 맞음, 늦음, 모형 크기를 다듬는 저절로 하는 얼개 꾸미기
 
-## Inference Optimization
+## 미루어 봄 다듬기
 
-Maximizing throughput and minimizing latency during model inference.
+모형이 미루어 볼 때 나름을 가장 크게 하고 늦음을 가장 작게 하기.
 
-- CPU Optimization -- Thread configuration, operator fusion, and optimizations for CPU-only deployment scenarios
-- GPU Optimization with TensorRT -- NVIDIA TensorRT for kernel auto-tuning, precision optimization, and layer fusion
-- Batch Inference -- Processing multiple inputs simultaneously for maximum hardware utilization
-- Memory Management -- GPU and CPU memory optimization to prevent OOM errors and reduce latency
-- Streaming Inference -- Real-time processing of continuous data flows for live market data and trading signals
+- CPU 다듬기 -- CPU만 쓰는 자리를 위한 실 차림, 연산 녹이기, 그 밖의 다듬기
+- TensorRT으로 하는 GPU 다듬기 -- 낟알 저절로 맞추기, 촘촘함 다듬기, 켜 녹이기를 하는 NVIDIA TensorRT
+- 묶음 미루어 봄 -- 들임 여럿을 한꺼번에 다루어 쇠 붙임새를 가장 많이 쓰기
+- 기억 다루기 -- 기억 모자람 어긋남을 막고 늦음을 줄이는 GPU·CPU 기억 다듬기
+- 흐르는 미루어 봄 -- 살아 있는 저자 자료와 거래 신호를 위한 끊임없는 자료 흐름의 제때 다루기
 
-## Serving
+## 서비스에 올리기
 
-Deploying models as production services with scaling, versioning, and monitoring.
+크기 늘리기, 판 매기기, 지켜보기를 갖춘 서비스로 모형 내놓기.
 
-- REST API Serving -- Model serving frameworks with request batching, versioning, and horizontal scaling
-- gRPC Serving -- High-performance, low-latency model serving with Protocol Buffers and HTTP/2
-- TorchServe -- PyTorch's official serving framework with dynamic batching and multi-model management
-- NVIDIA Triton Inference Server -- Enterprise-grade multi-framework serving with GPU scheduling and model ensembles
-- BentoML -- Python-first framework for building production-ready AI services with containerization support
+- REST API 서비스 -- 요청 묶기, 판 매기기, 옆으로 크기 늘리기를 갖춘 모형 서비스 틀
+- gRPC 서비스 -- Protocol Buffers과 HTTP/2으로 하는 빠르고 늦음이 적은 모형 서비스
+- TorchServe -- 움직이는 묶기와 여러 모형 다루기를 갖춘 PyTorch의 정식 서비스 틀
+- NVIDIA Triton 미루어 봄 서비스개 -- GPU 차례 잡기와 모형 모둠을 갖춘 기업 품질의 여러 틀 서비스
+- BentoML -- 담개 받침을 갖추고 서비스 품질의 AI 서비스를 짓는 파이썬 앞세운 틀
 
-## Distributed Computing
+## 흩어 셈하기
 
-Scaling training and inference across multiple GPUs and nodes.
+여러 GPU과 마디에 걸쳐 익힘과 미루어 봄을 크게 늘리기.
 
-- Data Parallel -- Single-process multi-GPU training with PyTorch DataParallel
-- Distributed Data Parallel (DDP) -- Multi-process training with AllReduce communication scaling to hundreds of GPUs
-- Model Parallel -- Splitting large models across devices when they exceed single-GPU memory
-- Pipeline Parallel -- Overlapping micro-batch computation across GPUs for efficient multi-device training
-- Fully Sharded Data Parallel (FSDP) -- Sharding parameters, gradients, and optimizer states for memory-efficient distributed training
-- DeepSpeed -- Microsoft's ZeRO optimizer for training models with billions to trillions of parameters
+- 자료 나란히 -- PyTorch DataParallel으로 하는 한 흐름 여러 GPU 익힘
+- 흩은 자료 나란히(DDP) -- AllReduce 알림으로 GPU 수백 개까지 크게 늘리는 여러 흐름 익힘
+- 모형 나란히 -- 큰 모형이 GPU 하나의 기억을 넘을 때 장치에 걸쳐 쪼개기
+- 관 나란히 -- 잔 묶음의 셈을 GPU에 걸쳐 겹쳐 여러 장치 익힘을 잘 들게 하기
+- 온통 쪼갠 자료 나란히(FSDP) -- 매개변수, 기울기, 가장 좋게 하는 개의 상태를 쪼개 기억을 아끼는 흩은 익힘
+- DeepSpeed -- 매개변수가 수십억에서 수조인 모형을 익히는 마이크로소프트의 ZeRO 가장 좋게 하는 개
 
 ## MLOps
 
-Operational practices for managing the ML lifecycle in production.
+서비스에서 기계 배움의 삶을 다루는 일의 결.
 
-- Experiment Tracking -- Systematic recording of hyperparameters, metrics, and artifacts for reproducibility
-- Model Registry (MLflow) -- Managing model versions, staging, and promotion through deployment environments
-- CI/CD for Machine Learning -- Automated pipelines for testing, training, validating, and deploying model updates
-- Production Monitoring -- Tracking model performance, health, and data drift in real-world deployment
-- A/B Testing for Models -- Comparing model versions in production with statistical analysis of business metrics
+- 해 봄 좇기 -- 다시 해 볼 수 있게 하이퍼파라미터, 자, 산물을 짜임새 있게 적기
+- 모형 등록소(MLflow) -- 모형 판, 자리 옮김, 내놓기 자리로의 올림을 다루기
+- 기계 배움을 위한 CI/CD -- 모형 고침을 시험하고 익히고 따지고 내놓는 저절로 도는 흐름
+- 서비스 지켜보기 -- 참 자리에 내놓은 모형의 됨됨이, 몸 상태, 자료 옮겨감 좇기
+- 모형 A/B 시험 -- 서비스에서 모형 판을 견주며 살림 자를 통계로 살피기
 
-## Finance Applications
+## 금융에 쓰기
 
-Deployment patterns specific to quantitative finance systems.
+계량 금융 얼개에 남다른 내놓기 결.
 
-- Production Pipelines -- End-to-end ML pipelines handling market calendars, corporate actions, and regulatory requirements
-- Real-Time Systems -- Architecture patterns for deterministic-latency model inference in trading systems
-- Latency Requirements -- Latency budgets, measurement methodology, and optimization strategies for financial applications
-- Backtesting Infrastructure -- Validating model performance on historical data with proper handling of look-ahead and survivorship bias
+- 서비스 흐름 -- 저자 달력, 회사 처분, 규정 요건을 다루는 끝에서 끝까지의 기계 배움 흐름
+- 제때 얼개 -- 거래 얼개에서 늦음이 한결같은 모형 미루어 봄을 위한 얼개 결
+- 늦음 요건 -- 금융 쓰임의 늦음 예산, 재는 길, 다듬는 꾀
+- 되짚어 시험하기 바탕 -- 앞을 미리 보는 것과 살아남은 것만 보는 치우침을 제대로 다루며 지난 자료로 모형 됨됨이 따지기

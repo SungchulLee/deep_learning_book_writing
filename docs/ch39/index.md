@@ -1,92 +1,92 @@
-# Chapter 39: Model Uncertainty
+# 39장: 모형 아리송함
 
-This chapter provides a comprehensive treatment of uncertainty quantification in deep learning, covering the theoretical foundations of Bayesian inference, practical methods including MC Dropout and deep ensembles, calibration techniques, out-of-distribution detection, and evaluation frameworks. Understanding and measuring model uncertainty is critical for deploying neural networks in high-stakes domains such as quantitative finance, where overconfident predictions can lead to catastrophic losses.
+이 장은 깊은 배움에서 아리송함을 재는 일을 두루 다룬다. 베이즈 미루어 봄의 이론 밑바탕, MC 드롭아웃과 깊은 모둠 같은 참으로 쓰는 방법, 눈금 맞추기 재주, 밖 분포 알아내기, 그리고 따지는 틀을 아우른다. 모형의 아리송함을 알고 재는 일은 지나친 자신함이 큰 잃음으로 이어질 수 있는 계량 금융처럼 걸린 것이 큰 밭에 신경 그물을 내놓을 때 종요롭다.
 
 ---
 
-## Fundamentals
+## 밑바탕
 
-Theoretical foundations and taxonomy of uncertainty in deep learning.
+깊은 배움에서 아리송함의 이론 밑바탕과 갈래 나누기.
 
-- Introduction to Model Uncertainty -- The overconfidence problem in neural networks and why uncertainty quantification matters
-- Types of Uncertainty -- Taxonomy of parameter, structural, and distributional uncertainty sources
-- Epistemic vs Aleatoric Uncertainty -- Distinguishing model uncertainty (reducible) from data noise (irreducible)
-- Mathematical Framework -- Bayesian posterior predictive distribution and Monte Carlo approximation methods
-- Model Uncertainty Overview -- Module overview with learning objectives and prerequisites
+- 모형 아리송함 들머리 -- 신경 그물의 지나친 자신함 문제와 아리송함을 재는 일이 중요한 까닭
+- 아리송함의 갈래 -- 매개변수, 얼개, 분포에서 오는 아리송함의 갈래 나누기
+- 앎의 아리송함 대 타고난 아리송함 -- 모형의 아리송함(줄일 수 있음)과 자료의 잡음(줄일 수 없음) 가르기
+- 수학 틀 -- 베이즈 뒷분포 미루어 봄과 몬테카를로 어림 방법
+- 모형 아리송함 살펴보기 -- 배움 목표와 미리 알 것을 곁들인 꾸러미 살펴보기
 
-## MC Dropout
+## MC 드롭아웃
 
-Monte Carlo Dropout as approximate Bayesian inference for uncertainty estimation.
+아리송함을 어림하는 어림 베이즈 미루어 봄으로서의 몬테카를로 드롭아웃.
 
-- Monte Carlo Dropout -- Core method: keeping dropout active at inference for posterior predictive estimation
-- [Theoretical Foundation](mc_dropout/theory.md) -- Rigorous development of dropout as variational inference over neural network weights
-- Implementation Details -- Architecture patterns, inference procedures, and production considerations
-- [Sample Convergence](mc_dropout/convergence.md) -- Convergence analysis and guidelines for selecting the number of forward passes
-- [Dropout Rate Selection](mc_dropout/dropout_rate.md) -- Principled approaches to choosing dropout rates for uncertainty quality
+- 몬테카를로 드롭아웃 -- 고갱이 방법: 미루어 볼 때도 드롭아웃을 켜 두어 뒷분포 미루어 봄을 어림하기
+- [이론 밑바탕](mc_dropout/theory.md) -- 신경 그물 짐에 대한 변이 미루어 봄으로서의 드롭아웃을 엄밀히 펼치기
+- 짜기의 자세한 것 -- 얼개 결, 미루어 보는 절차, 서비스에서 헤아릴 것
+- [표본 모임](mc_dropout/convergence.md) -- 모여 가는 결 살피기와 앞으로 걸음 횟수 고르기 길잡이
+- [드롭아웃 비율 고르기](mc_dropout/dropout_rate.md) -- 아리송함의 됨됨이를 위해 드롭아웃 비율을 이치에 닿게 고르는 길
 
-## Deep Ensembles
+## 깊은 모둠
 
-Uncertainty estimation through training multiple independent networks.
+서로 남남인 그물을 여럿 익혀 아리송함 어림하기.
 
-- Deep Ensemble Fundamentals -- Why ensembles work: multiple loss landscape modes and the predictive distribution
-- Training Strategies -- Independent training with diverse initialization for effective ensemble members
-- Uncertainty Decomposition -- Separating epistemic and aleatoric components from ensemble predictions
-- Diversity Methods -- Random initialization, bootstrapping, and architecture diversity for ensemble quality
-- Efficient Ensembles -- BatchEnsemble and other techniques reducing compute while retaining uncertainty quality
+- 깊은 모둠 밑바탕 -- 모둠이 듣는 까닭: 잃음 터의 여러 봉우리와 미루어 보는 분포
+- 익힘 꾀 -- 첫값을 다르게 잡아 서로 남남으로 익혀 쓸모 있는 모둠 짓기
+- 아리송함 쪼개기 -- 모둠의 미루어 봄에서 앎의 아리송함과 타고난 아리송함 가르기
+- 다름 꾀 -- 아무렇게나 첫값 잡기, 부트스트랩, 얼개 다름으로 모둠의 됨됨이 높이기
+- 잘 드는 모둠 -- 아리송함의 됨됨이를 지키면서 셈을 줄이는 BatchEnsemble 등
 
-## Bayesian Methods
+## 베이즈 방법
 
-Principled Bayesian approaches to neural network uncertainty quantification.
+신경 그물의 아리송함을 재는 이치에 닿는 베이즈 길.
 
-- BNN Fundamentals -- Placing probability distributions over weights for principled uncertainty estimation
-- [Variational Bayesian Neural Networks](bayesian_methods/variational_bnn.md) -- Scalable approximate posterior inference via ELBO maximization
-- [MCMC Methods for BNNs](bayesian_methods/mcmc_bnn.md) -- Hamiltonian Monte Carlo and stochastic gradient variants as gold-standard inference
-- [Laplace Approximation](bayesian_methods/laplace.md) -- Post-hoc Gaussian approximation around trained weights for uncertainty without retraining
-- [SWAG](bayesian_methods/swag.md) -- Stochastic Weight Averaging Gaussian fitting a posterior from SGD trajectory statistics
-- [Posterior Inference](bayesian_methods/posterior.md) -- Central computational challenge of Bayesian neural networks and approximation methods
-- [Prior Distributions](bayesian_methods/priors.md) -- Principled approaches to specifying weight priors and their effect on uncertainty
-- Method Comparison -- Comprehensive comparison guide for selecting the right BNN method
-- [MC Dropout as Bayesian Inference](bayesian_methods/mc_dropout_connection.md) -- The formal connection between dropout regularization and approximate Bayesian inference
+- 베이즈 신경 그물 밑바탕 -- 짐에 낌새 분포를 얹어 이치에 닿게 아리송함 어림하기
+- [변이 베이즈 신경 그물](bayesian_methods/variational_bnn.md) -- ELBO을 가장 크게 해 크게 커지는 어림 뒷분포 미루어 봄
+- [베이즈 신경 그물의 MCMC 방법](bayesian_methods/mcmc_bnn.md) -- 으뜸 잣대가 되는 해밀턴 몬테카를로와 확률 기울기 갈래
+- [라플라스 어림](bayesian_methods/laplace.md) -- 다시 익히지 않고 익힌 짐 언저리를 가우스로 어림해 아리송함 얻기
+- [SWAG](bayesian_methods/swag.md) -- SGD 자취의 셈속으로 뒷분포를 맞추는 확률 짐 고르기 가우스
+- [뒷분포 미루어 봄](bayesian_methods/posterior.md) -- 베이즈 신경 그물의 고갱이 셈 어려움과 어림 방법
+- [앞선 분포](bayesian_methods/priors.md) -- 짐의 앞선 분포를 이치에 닿게 정하는 길과 그것이 아리송함에 미치는 힘
+- 방법 견주기 -- 알맞은 베이즈 신경 그물 방법을 고르는 두루 갖춘 길잡이
+- [베이즈 미루어 봄으로서의 MC 드롭아웃](bayesian_methods/mc_dropout_connection.md) -- 드롭아웃 정칙화와 어림 베이즈 미루어 봄의 갖춘 이어짐
 
-## Calibration
+## 눈금 맞추기
 
-Ensuring predicted probabilities reflect true outcome frequencies.
+미루어 본 낌새가 참 결과 잦기를 드러내게 하기.
 
-- Calibration Fundamentals -- Mathematical definition and importance of calibration in financial applications
-- Temperature Scaling -- Single-parameter post-hoc calibration that preserves model accuracy
-- Platt Scaling -- Logistic regression mapping from uncalibrated scores to calibrated probabilities
-- Isotonic Regression -- Non-parametric monotonic calibration for flexible probability mapping
-- Focal Loss -- Training-time calibration improvement by down-weighting well-classified examples
-- Calibration Metrics -- Expected Calibration Error (ECE) and related quantitative calibration measures
+- 눈금 맞추기 밑바탕 -- 눈금 맞음의 수학 뜻매김과 금융 쓰임에서의 중요함
+- 온도 잣대 잡기 -- 모형의 맞음을 지키는 매개변수 하나짜리 일 끝난 뒤 눈금 맞추기
+- 플랫 잣대 잡기 -- 눈금 맞지 않은 점수를 눈금 맞은 낌새로 옮기는 로지스틱 되돌이
+- 한 방향 되돌이 -- 낌새를 너그럽게 옮기는 매개변수 없는 한 방향 눈금 맞추기
+- 초점 잃음 -- 잘 가른 보기의 짐을 낮춰 익히는 동안 눈금 맞음을 낫게 하기
+- 눈금 맞음 자 -- 바라는 눈금 맞음 어긋남(ECE)과 그에 이어지는 수로 재는 자
 
-## Evaluation
+## 따지기
 
-Assessing the quality of uncertainty estimates.
+아리송함 어림의 됨됨이 따지기.
 
-- Proper Scoring Rules -- Log score, Brier score, and CRPS for evaluating probabilistic predictions
-- Reliability Diagrams -- Visualizing calibration by plotting observed frequency against predicted probability
-- Sharpness -- Measuring predictive distribution concentration while maintaining calibration
-- [Uncertainty Quantification](evaluation/uncertainty_quantification.md) -- Comprehensive framework for evaluating epistemic and aleatoric uncertainty estimates
-- Coverage Analysis -- Measuring whether prediction intervals achieve their nominal confidence levels
+- 갖춘 점수 규칙 -- 낌새 미루어 봄을 따지는 로그 점수, 브라이어 점수, CRPS
+- 미더움 그림 -- 본 잦기를 미루어 본 낌새에 대고 그려 눈금 맞음 보이기
+- 날카로움 -- 눈금 맞음을 지키면서 미루어 보는 분포가 얼마나 모였는지 재기
+- [아리송함 재기](evaluation/uncertainty_quantification.md) -- 앎의 아리송함과 타고난 아리송함 어림을 따지는 두루 갖춘 틀
+- 덮음 살피기 -- 미루어 봄 구간이 이름값대로의 믿음 켜를 이루는지 재기
 
-## Out-of-Distribution Detection
+## 밖 분포 알아내기
 
-Identifying inputs that differ significantly from the training distribution.
+익힘 분포와 크게 다른 들임 짚어내기.
 
-- OOD Detection Fundamentals -- Problem formulation, types of distribution shift, and detection scoring
-- Softmax Baseline (MSP) -- Maximum softmax probability as a simple but effective OOD detection baseline
-- ODIN -- Temperature scaling with input perturbation for improved OOD detection
-- Energy-Based Detection -- Log-sum-exp of logits as a theoretically motivated OOD score
-- Mahalanobis Distance -- Class-conditional Gaussian distance in feature space for OOD detection
-- OOD Detection Metrics -- AUROC, FPR@95TPR, and AUPR for evaluating detection performance
+- 밖 분포 알아내기 밑바탕 -- 문제 세우기, 분포 옮겨감의 갈래, 알아내기 점수 매기기
+- 소프트맥스 밑금(MSP) -- 단순하면서도 잘 듣는 밑금인 가장 큰 소프트맥스 낌새
+- ODIN -- 들임 흔들기를 곁들인 온도 잣대 잡기로 밖 분포 알아내기 낫게 하기
+- 에너지 바탕 알아내기 -- 이론에 뿌리내린 점수인 로짓의 로그 합 지수
+- 마할라노비스 거리 -- 결 밭에서 갈래에 매인 가우스 거리로 밖 분포 알아내기
+- 밖 분포 알아내기 자 -- 알아내는 됨됨이를 따지는 AUROC, FPR@95TPR, AUPR
 
-## Finance Applications
+## 금융에 쓰기
 
-Applying uncertainty quantification to quantitative finance decision-making.
+계량 금융의 판단에 아리송함 재기를 쓰기.
 
-- [Practical Applications](finance/practical_applications.md) -- Active learning, selective prediction, and uncertainty-driven decision systems
-- Portfolio Uncertainty -- Uncertainty-aware portfolio optimization with conservative allocation and Black-Litterman integration
-- Risk Estimation -- Uncertainty-aware Value-at-Risk and tail risk assessment
-- Regime Detection -- Using rising epistemic uncertainty as an early warning signal for regime changes
-- Model Confidence Scoring -- Selective trading based on uncertainty thresholds and confidence-based position sizing
-- Prediction Intervals -- Well-calibrated prediction intervals for financial time series incorporating model and market noise
+- [손에 잡히는 쓰임](finance/practical_applications.md) -- 살아 있는 배움, 골라 미루어 보기, 아리송함이 이끄는 판단 얼개
+- 밑천 꾸러미의 아리송함 -- 조심스러운 나눔과 블랙-리터만 아우르기를 곁들인 아리송함을 아는 밑천 꾸러미 다듬기
+- 무릅씀 어림 -- 아리송함을 아는 무릅씀 값과 꼬리 무릅씀 따지기
+- 판 알아내기 -- 앎의 아리송함이 오르는 것을 판이 바뀐다는 이른 알림으로 쓰기
+- 모형 자신함 점수 매기기 -- 아리송함 문턱에 따른 골라 거래하기와 자신함에 따른 자리 크기 잡기
+- 미루어 봄 구간 -- 모형과 저자 잡음을 아우른, 눈금 잘 맞은 금융 때 열의 미루어 봄 구간
