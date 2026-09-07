@@ -1,279 +1,279 @@
-# Prior Distributions on Neural Network Weights
-The **prior distribution** over neural network weights encodes our beliefs about plausible parameter values before observing data. In Bayesian neural networks, the choice of prior profoundly affects both the induced function space and the resulting uncertainty estimates. This chapter explores principled approaches to specifying priors that lead to well-behaved posterior inference.
+# 신경 그물 짐의 앞선 분포
+신경 그물 짐에 대한 **앞선 분포**은 자료를 보기 앞서 그럴듯한 매개변수 값에 대한 믿음을 담는다. 베이즈 신경 그물에서 앞선 분포를 어떻게 고르느냐는 이끌려 나오는 함수 밭과 아리송함 어림에 깊이 걸린다. 이 장은 뒷분포 미루어 봄이 잘 되도록 앞선 분포를 이치에 닿게 정하는 길을 살핀다.
 
 ---
 
-## Motivation: Why Priors Matter
+## 왜 하는가: 앞선 분포가 걸리는 까닭
 
-### The Role of Priors in BNNs
+### 베이즈 신경 그물에서 앞선 분포가 하는 몫
 
-In standard neural networks, weights are point estimates found by optimization:
+여느 신경 그물에서 짐은 가장 좋게 하여 찾은 점 어림이다.
 
 $$
 \hat{\theta} = \arg\max_\theta \log p(\mathcal{D} \mid \theta)
 $$
 
-In Bayesian neural networks, we maintain a distribution:
+베이즈 신경 그물에서는 분포를 지닌다.
 
 $$
 p(\theta \mid \mathcal{D}) \propto p(\mathcal{D} \mid \theta) \, p(\theta)
 $$
 
-The prior $p(\theta)$ determines:
+앞선 분포 $p(\theta)$은 다음을 정한다.
 
-1. **Regularization strength**: Constrains weight magnitudes
-2. **Function space properties**: Smoothness, periodicity, length scales
-3. **Epistemic uncertainty**: How uncertainty behaves away from data
-4. **Posterior geometry**: Affects inference tractability
+1. **정칙화의 셈**: 짐의 크기를 옭아맨다
+2. **함수 밭의 결**: 매끄러움, 되풀이, 길이 잣대
+3. **앎의 아리송함**: 자료에서 멀어질 때 아리송함이 어떻게 되는지
+4. **뒷분포의 꼴**: 미루어 봄을 다룰 수 있는지에 걸린다
 
-### Challenges Specific to Neural Networks
+### 신경 그물에서 남다른 어려움
 
-**High dimensionality**: Modern networks have millions of parameters
+**높은 차수**: 요즘 그물은 매개변수가 수백만 개다
 
-- Simple independent priors may not capture complex dependencies
-- Correlations between weights in same layer often important
+- 단순히 남남인 앞선 분포는 얽힌 매임을 담지 못할 수 있다
+- 같은 켜의 짐끼리 얽힘이 종요로운 일이 잦다
 
-**Non-identifiability**: Multiple weight configurations yield identical functions
+**가려낼 수 없음**: 짐의 차림이 달라도 같은 함수가 나온다
 
-- Permutation symmetry: Swapping hidden units
-- Scaling symmetry: Rescaling weights between layers
+- 자리 바꾸기 대칭: 숨은 낱자리를 맞바꿈
+- 잣대 대칭: 켜 사이에서 짐의 잣대를 다시 잡음
 
-**Overparameterization**: More parameters than data points
+**매개변수 넘침**: 자료보다 매개변수가 많음
 
-- Prior becomes dominant in posterior
-- Need priors that induce sensible function behavior
+- 뒷분포에서 앞선 분포가 크게 힘을 쓴다
+- 함수가 이치에 닿게 움직이도록 이끄는 앞선 분포가 있어야 한다
 
-### Weight Space vs Function Space
+### 짐 밭 대 함수 밭
 
-**Key insight**: We care about functions, not weights.
+**고갱이 깨침**: 우리가 마음 쓰는 것은 짐이 아니라 함수다.
 
 $$
 \text{Prior on weights } p(\theta) \implies \text{Prior on functions } p(f)
 $$
 
-A simple prior on weights can induce complex behavior in function space:
+짐에 얹은 단순한 앞선 분포도 함수 밭에서는 얽힌 움직임을 이끌 수 있다.
 
 $$
 f(x) = W_L \sigma(W_{L-1} \sigma(\cdots \sigma(W_1 x)))
 $$
 
-The challenge is to specify $p(\theta)$ such that $p(f)$ has desirable properties.
+$p(f)$이 바라는 결을 지니도록 $p(\theta)$을 정하는 것이 어려운 대목이다.
 
 ---
 
-## Standard Gaussian Priors
+## 여느 가우스 앞선 분포
 
-### Independent Gaussian Prior
+### 남남인 가우스 앞선 분포
 
-The most common choice is independent Gaussians:
+가장 흔히 고르는 것은 남남인 가우스다.
 
 $$
 \boxed{p(\theta) = \prod_{l=1}^L \prod_{i,j} \mathcal{N}(w_{ij}^{(l)} \mid 0, \sigma_l^2)}
 $$
 
-**Equivalently** in matrix form:
+행렬 꼴로 적으면 **같은 말이다**.
 
 $$
 p(W^{(l)}) = \mathcal{N}(\text{vec}(W^{(l)}) \mid 0, \sigma_l^2 I)
 $$
 
-### Connection to L2 Regularization
+### L2 정칙화와의 이어짐
 
-The MAP estimate with Gaussian prior equals L2-regularized MLE:
+가우스 앞선 분포를 쓴 MAP 어림은 L2으로 정칙화한 MLE과 같다.
 
 $$
 \hat{\theta}_{\text{MAP}} = \arg\max_\theta \left[ \log p(\mathcal{D} \mid \theta) - \frac{1}{2\sigma^2} \|\theta\|^2 \right]
 $$
 
-**Regularization strength**: $\lambda = 1/(2\sigma^2)$
+**정칙화의 셈**: $\lambda = 1/(2\sigma^2)$
 
-| Prior variance $\sigma^2$ | L2 penalty $\lambda$ | Effect |
+| 앞선 분포 흩어짐 $\sigma^2$ | L2 벌 $\lambda$ | 미침 |
 |---------------------------|---------------------|--------|
-| Large | Small | Weak regularization |
-| Small | Large | Strong regularization |
+| 큼 | 작음 | 여린 정칙화 |
+| 작음 | 큼 | 센 정칙화 |
 
-### Layer-wise Variance Scaling
+### 켜마다의 흩어짐 잣대
 
-Different layers may need different prior variances:
+켜마다 다른 앞선 분포 흩어짐이 있어야 할 수 있다.
 
 $$
 p(W^{(l)}) = \mathcal{N}(0, \sigma_l^2 I)
 $$
 
-**Common choices**:
+**흔히 고르는 것**:
 
-**1. Constant variance**:
+**1. 붙박인 흩어짐**:
 
 $$
 \sigma_l^2 = \sigma^2 \quad \forall l
 $$
 
-**2. Fan-in scaling** (Xavier/Glorot-like):
+**2. 들임 갈래 잣대**(자비에/글로로 결):
 
 $$
 \sigma_l^2 = \frac{1}{n_{l-1}}
 $$
 
-**3. Fan-out scaling**:
+**3. 날임 갈래 잣대**:
 
 $$
 \sigma_l^2 = \frac{1}{n_l}
 $$
 
-**4. Fan-average scaling**:
+**4. 갈래 평균 잣대**:
 
 $$
 \sigma_l^2 = \frac{2}{n_{l-1} + n_l}
 $$
 
-where $n_l$ is the width of layer $l$.
+여기서 $n_l$은 켜 $l$의 너비다.
 
-### Variance Scaling for Activation Functions
+### 살림 함수에 맞춘 흩어짐 잣대
 
-The prior variance should account for the activation function:
+앞선 분포의 흩어짐은 살림 함수를 헤아려야 한다.
 
-**ReLU activations**:
+**ReLU 살림**:
 
 $$
 \sigma_l^2 = \frac{2}{n_{l-1}}
 $$
 
-**Tanh/Sigmoid activations**:
+**Tanh/시그모이드 살림**:
 
 $$
 \sigma_l^2 = \frac{1}{n_{l-1}}
 $$
 
-**Rationale**: Maintain stable variance of activations across layers at initialization.
+**까닭**: 첫자리에서 켜에 걸쳐 살림의 흩어짐을 든든하게 지킨다.
 
 ---
 
-## Priors Inducing Function Space Properties
+## 함수 밭의 결을 이끄는 앞선 분포
 
-### The Neal (1996) Prior
+### 닐(1996)의 앞선 분포
 
-Neal showed that infinitely wide neural networks with specific priors converge to Gaussian processes.
+닐은 어떤 앞선 분포를 지닌 끝없이 너른 신경 그물이 가우스 흐름으로 모임을 밝혔다.
 
-**Setup**: Single hidden layer network with $H$ hidden units:
+**차림**: 숨은 낱자리가 $H$개인 숨은 켜 하나짜리 그물:
 
 $$
 f(x) = \sum_{h=1}^H v_h \, \sigma(w_h^\top x + b_h)
 $$
 
-**Prior**:
+**앞선 분포**:
 
 $$
 v_h \sim \mathcal{N}(0, \sigma_v^2/H), \quad w_h \sim \mathcal{N}(0, \sigma_w^2 I), \quad b_h \sim \mathcal{N}(0, \sigma_b^2)
 $$
 
-**Result**: As $H \to \infty$, $f(x) \to \mathcal{GP}(0, k(x, x'))$ where:
+**결과**: $H \to \infty$일 때 $f(x) \to \mathcal{GP}(0, k(x, x'))$이고 여기서
 
 $$
 k(x, x') = \sigma_v^2 \, \mathbb{E}_{w, b}[\sigma(w^\top x + b) \, \sigma(w^\top x' + b)]
 $$
 
-### Neural Network Gaussian Process (NNGP) Kernel
+### 신경 그물 가우스 흐름(NNGP) 알갱이
 
-For ReLU activation, the kernel has closed form:
+ReLU 살림에서는 알갱이가 닫힌 꼴을 지닌다.
 
 $$
 k(x, x') = \frac{\sigma_v^2}{\pi} \|x\| \|x'\| \left( \sin\phi + (\pi - \phi)\cos\phi \right)
 $$
 
-where $\phi = \cos^{-1}\left(\frac{x^\top x'}{\|x\| \|x'\|}\right)$.
+여기서 $\phi = \cos^{-1}\left(\frac{x^\top x'}{\|x\| \|x'\|}\right)$이다.
 
-**Implications**:
+**뜻하는 바**:
 
-- Prior on weights induces specific function smoothness
-- Deep networks induce compositional kernels
-- Provides principled initialization guidance
+- 짐의 앞선 분포가 함수의 매끄러움을 정한다
+- 깊은 그물은 겹쳐 쌓은 알갱이를 이끈다
+- 이치에 닿는 첫자리 잡기 길잡이를 준다
 
-### Depth and Prior Variance
+### 깊이와 앞선 분포의 흩어짐
 
-For deep networks, variance must be scaled carefully:
+깊은 그물에서는 흩어짐의 잣대를 조심스레 맞춰야 한다.
 
-**Without scaling**: Variance explodes or vanishes
+**잣대를 맞추지 않으면**: 흩어짐이 터지거나 사라진다
 
 $$
 \text{Var}[f(x)] \propto \prod_{l=1}^L \text{Var}[W^{(l)}]
 $$
 
-**With proper scaling**: Variance remains $O(1)$
+**잣대를 제대로 맞추면**: 흩어짐이 $O(1)$으로 남는다
 
 $$
 \sigma_l^2 = \frac{c}{n_{l-1}}
 $$
 
-where $c$ depends on the activation function.
+여기서 $c$은 살림 함수에 매인다.
 
 ---
 
-## Sparsity-Inducing Priors
+## 성김을 이끄는 앞선 분포
 
-### Motivation for Sparsity
+### 성기게 하는 까닭
 
-**Benefits of sparse networks**:
+**성긴 그물의 나은 점**:
 
-1. Reduced overfitting
-2. Improved interpretability
-3. Computational efficiency
-4. Better generalization
+1. 지나치게 맞추기가 준다
+2. 풀이하기가 나아진다
+3. 셈이 잘 든다
+4. 두루 미침이 나아진다
 
-### Laplace Prior (L1 Regularization)
+### 라플라스 앞선 분포(L1 정칙화)
 
 $$
 p(w) = \frac{\lambda}{2} \exp(-\lambda |w|)
 $$
 
-**Properties**:
+**결**:
 
-- Mode at zero (promotes exact sparsity in MAP)
-- Heavier tails than Gaussian
-- MAP equivalent to L1 regularization (Lasso)
+- 봉우리가 0에 있다(MAP에서 꼭 0이 되게 이끈다)
+- 가우스보다 꼬리가 두껍다
+- MAP은 L1 정칙화(라소)와 같다
 
-**Limitation**: Not conjugate, complicates inference.
+**한계**: 짝이 맞지 않아 미루어 봄이 얽힌다.
 
-### Spike-and-Slab Prior
+### 못과 널 앞선 분포
 
-A mixture of a point mass at zero and a continuous distribution:
+0에 놓인 점 무게와 이어지는 분포를 섞은 것이다.
 
 $$
 \boxed{p(w) = \pi \, \delta_0(w) + (1-\pi) \, \mathcal{N}(w \mid 0, \sigma^2)}
 $$
 
-**Parameters**:
+**매개변수**:
 
-- $\pi$: Prior probability of weight being exactly zero
-- $\sigma^2$: Variance of non-zero weights
+- $\pi$: 짐이 꼭 0일 앞선 낌새
+- $\sigma^2$: 0이 아닌 짐의 흩어짐
 
-**Inference**: Requires sampling the binary inclusion indicators.
+**미루어 봄**: 들고 남을 알리는 두 값 표시를 뽑아야 한다.
 
-### Continuous Relaxations
+### 이어지게 풀어 쓰기
 
-**Horseshoe prior**:
+**말굽 앞선 분포**:
 
 $$
 w \mid \lambda \sim \mathcal{N}(0, \lambda^2), \quad \lambda \sim \text{Half-Cauchy}(0, \tau)
 $$
 
-**Properties**:
+**결**:
 
-- Continuous (no point mass)
-- Heavy tails allow large weights
-- Strong shrinkage toward zero
-- Global-local structure: $\tau$ is global, $\lambda$ is local
+- 이어진다(점 무게가 없다)
+- 두꺼운 꼬리가 큰 짐을 받아 준다
+- 0 쪽으로 세게 오그린다
+- 두루와 그 자리의 얼개: $\tau$은 두루, $\lambda$은 그 자리
 
-**Regularized horseshoe**:
+**다독인 말굽**:
 
 $$
 w \mid \lambda, c \sim \mathcal{N}(0, \tilde{\lambda}^2), \quad \tilde{\lambda}^2 = \frac{c^2 \lambda^2}{c^2 + \lambda^2}
 $$
 
-Bounds the maximum variance at $c^2$.
+가장 큰 흩어짐을 $c^2$으로 마디 짓는다.
 
-### Automatic Relevance Determination (ARD)
+### 걸림새 절로 가려내기(ARD)
 
-Per-input or per-feature precision:
+들임마다 또는 결마다의 촘촘함:
 
 $$
 p(w_j \mid \alpha_j) = \mathcal{N}(w_j \mid 0, \alpha_j^{-1})
@@ -283,19 +283,19 @@ $$
 p(\alpha_j) = \text{Gamma}(\alpha_j \mid a_0, b_0)
 $$
 
-**Effect**: Features with large $\alpha_j$ are effectively pruned.
+**미침**: $\alpha_j$이 큰 결은 사실상 쳐내진다.
 
 ---
 
-## Hierarchical Priors
+## 층진 앞선 분포
 
-### Motivation
+### 왜 하는가
 
-**Problem**: Choosing prior hyperparameters (e.g., $\sigma^2$) is difficult.
+**문제**: 앞선 분포의 하이퍼파라미터($\sigma^2$ 따위)를 고르기가 어렵다.
 
-**Solution**: Place hyperpriors on the hyperparameters and let data inform them.
+**풀이**: 하이퍼파라미터에 다시 앞선 분포를 얹고 자료가 정하게 한다.
 
-### Two-Level Hierarchy
+### 두 층의 층짜임
 
 $$
 p(\theta \mid \sigma^2) = \mathcal{N}(\theta \mid 0, \sigma^2 I)
@@ -305,21 +305,21 @@ $$
 p(\sigma^2) = \text{Inv-Gamma}(\sigma^2 \mid \alpha_0, \beta_0)
 $$
 
-**Marginal prior** (after integrating out $\sigma^2$):
+**가장자리 앞선 분포**($\sigma^2$을 적분해 없앤 뒤):
 
 $$
 p(\theta) = \int p(\theta \mid \sigma^2) \, p(\sigma^2) \, d\sigma^2 = \text{Student-}t(\theta \mid 0, \frac{\beta_0}{\alpha_0}, 2\alpha_0)
 $$
 
-**Properties**:
+**결**:
 
-- Heavier tails than Gaussian
-- More robust to outliers
-- Data-adaptive regularization
+- 가우스보다 꼬리가 두껍다
+- 튀는 값에 더 든든하다
+- 자료에 맞추어 가는 정칙화
 
-### Layer-wise Hierarchical Prior
+### 켜마다의 층진 앞선 분포
 
-Different variance for each layer:
+켜마다 다른 흩어짐:
 
 $$
 p(W^{(l)} \mid \sigma_l^2) = \mathcal{N}(0, \sigma_l^2 I)
@@ -329,86 +329,86 @@ $$
 p(\sigma_l^2) = \text{Inv-Gamma}(\alpha_0, \beta_0)
 $$
 
-**Advantages**:
+**나은 점**:
 
-- Each layer learns appropriate regularization
-- Adapts to varying layer complexities
-- Reduces sensitivity to initialization
+- 켜마다 알맞은 정칙화를 배운다
+- 켜마다 다른 얽힘에 맞춘다
+- 첫자리 잡기에 덜 예민해진다
 
-### Group-wise Priors
+### 무리마다의 앞선 분포
 
-**Per-neuron variance**:
+**신경 낱자리마다의 흩어짐**:
 
 $$
 p(w_{:j}^{(l)} \mid \sigma_{lj}^2) = \mathcal{N}(0, \sigma_{lj}^2 I)
 $$
 
-**Per-filter variance** (for CNNs):
+**거르개마다의 흩어짐**(CNN에서):
 
 $$
 p(W_k^{(l)} \mid \sigma_{lk}^2) = \mathcal{N}(0, \sigma_{lk}^2 I)
 $$
 
-This enables automatic pruning of entire neurons or filters.
+이는 신경 낱자리나 거르개를 통째로 절로 쳐내게 한다.
 
 ---
 
-## Scale Mixtures and Heavy-Tailed Priors
+## 잣대 섞기와 꼬리 두꺼운 앞선 분포
 
-### Gaussian Scale Mixtures
+### 가우스 잣대 섞기
 
-Many useful priors can be written as:
+쓸모 있는 앞선 분포는 흔히 이렇게 적을 수 있다.
 
 $$
 p(w) = \int \mathcal{N}(w \mid 0, \sigma^2) \, p(\sigma^2) \, d\sigma^2
 $$
 
-| Mixing distribution $p(\sigma^2)$ | Resulting $p(w)$ |
+| 섞는 분포 $p(\sigma^2)$ | 나오는 $p(w)$ |
 |-----------------------------------|------------------|
-| Exponential | Laplace |
-| Inverse-Gamma | Student-$t$ |
-| Half-Cauchy on $\sigma$ | Horseshoe |
-| Bernoulli-scaled | Spike-and-slab |
+| 지수 | 라플라스 |
+| 거꿀 감마 | 스튜던트 $t$ |
+| $\sigma$의 반 코시 | 말굽 |
+| 베르누이 잣대 | 못과 널 |
 
-### Student-t Prior
+### 스튜던트 t 앞선 분포
 
 $$
 p(w) = \frac{\Gamma(\frac{\nu+1}{2})}{\Gamma(\frac{\nu}{2})\sqrt{\nu\pi\sigma^2}} \left(1 + \frac{w^2}{\nu\sigma^2}\right)^{-\frac{\nu+1}{2}}
 $$
 
-**Degrees of freedom** $\nu$ controls tail heaviness:
+**자유도** $\nu$이 꼬리의 두께를 다스린다.
 
-- $\nu = 1$: Cauchy (very heavy tails)
-- $\nu \to \infty$: Approaches Gaussian
-- $\nu = 3$-$7$: Good compromise
+- $\nu = 1$: 코시(꼬리가 아주 두껍다)
+- $\nu \to \infty$: 가우스에 다가간다
+- $\nu = 3$~$7$: 알맞은 절충
 
-**As scale mixture**:
+**잣대 섞기로 보면**:
 
 $$
 w \mid \tau \sim \mathcal{N}(0, \tau), \quad \tau \sim \text{Inv-Gamma}(\nu/2, \nu\sigma^2/2)
 $$
 
-### Benefits of Heavy Tails
+### 두꺼운 꼬리의 나은 점
 
-1. **Robustness**: Less sensitive to prior misspecification
-2. **Large weights**: Allows occasional large values when supported by data
-3. **Automatic relevance**: Heavy tails combined with peaked center enable soft sparsity
+1. **든든함**: 앞선 분포를 잘못 정해도 덜 흔들린다
+2. **큰 짐**: 자료가 받쳐 주면 이따금 큰 값을 받아 준다
+3. **절로 가려냄**: 두꺼운 꼬리와 뾰족한 가운데가 어울려 부드러운 성김을 이룬다
 
 ---
 
-## Correlated and Structured Priors
+## 얽힌 앞선 분포와 얼개를 지닌 앞선 분포
 
-### Beyond Independence
+### 남남임을 넘어
 
-Independent priors ignore structure:
+남남인 앞선 분포는 얼개를 놓친다.
 
-- Weights connecting to same unit may be related
-- Spatial structure in convolutional filters
-- Temporal structure in recurrent networks
+- 같은 낱자리에 이어지는 짐끼리 얽힐 수 있다
+- 엮음 거르개의 자리 얼개
+- 되돌이 그물의 때 얼개
 
-### Matrix-Variate Gaussian
+### 행렬 변수 가우스
 
-For weight matrix $W \in \mathbb{R}^{m \times n}$:
+짐 행렬 $W \in \mathbb{R}^{m \times n}$에서
 
 $$
 p(W) = \mathcal{MN}(W \mid M, U, V)
@@ -416,206 +416,206 @@ $$
 
 where:
 
-- $M$ is the mean matrix
-- $U \in \mathbb{R}^{m \times m}$ captures row correlations
-- $V \in \mathbb{R}^{n \times n}$ captures column correlations
+- $M$은 평균 행렬
+- $U \in \mathbb{R}^{m \times m}$은 줄끼리의 얽힘을 담는다
+- $V \in \mathbb{R}^{n \times n}$은 기둥끼리의 얽힘을 담는다
 
-**Equivalently**:
+**같은 말로**:
 
 $$
 \text{vec}(W) \sim \mathcal{N}(\text{vec}(M), V \otimes U)
 $$
 
-### Low-Rank Priors
+### 낮은 자리 앞선 분포
 
-Encourage weight matrices to be approximately low-rank:
+짐 행렬이 거의 낮은 자리가 되도록 이끈다.
 
 $$
 W = UV^\top + E
 $$
 
-where $U \in \mathbb{R}^{m \times r}$, $V \in \mathbb{R}^{n \times r}$, $r \ll \min(m,n)$.
+여기서 $U \in \mathbb{R}^{m \times r}$, $V \in \mathbb{R}^{n \times r}$, $r \ll \min(m,n)$이다.
 
-**Prior**:
+**앞선 분포**:
 
 $$
 p(U) = \mathcal{N}(0, I), \quad p(V) = \mathcal{N}(0, I), \quad p(E) = \mathcal{N}(0, \sigma_E^2 I)
 $$
 
-**Benefits**:
+**나은 점**:
 
-- Reduces effective parameter count
-- Encourages compression
-- May improve generalization
+- 참으로 쓰이는 매개변수 수를 줄인다
+- 눌러 담기를 이끈다
+- 두루 미침을 낫게 할 수 있다
 
-### Convolutional Structure
+### 엮음 얼개
 
-For convolutional layers, priors can respect spatial structure:
+엮음 켜에서는 앞선 분포가 자리 얼개를 지킬 수 있다.
 
-**Local smoothness**: Nearby filter weights should be similar
+**그 자리의 매끄러움**: 가까운 거르개 짐끼리 비슷해야 한다
 
 $$
 p(W) \propto \exp\left(-\frac{1}{2\sigma^2} \sum_{i,j} (w_{ij} - w_{i+1,j})^2 + (w_{ij} - w_{i,j+1})^2 \right)
 $$
 
-**Translation equivariance**: Already built into CNN architecture.
+**옮김에 따라 함께 움직임**: CNN 얼개에 이미 들어 있다.
 
 ---
 
-## Empirical and Data-Dependent Priors
+## 겪어 본 앞선 분포와 자료에 매인 앞선 분포
 
-### Empirical Bayes
+### 겪어 본 베이즈
 
-Use data to estimate prior hyperparameters:
+자료로 앞선 분포의 하이퍼파라미터를 어림한다.
 
 $$
 \hat{\eta} = \arg\max_\eta \log p(\mathcal{D} \mid \eta) = \arg\max_\eta \log \int p(\mathcal{D} \mid \theta) \, p(\theta \mid \eta) \, d\theta
 $$
 
-**Type II Maximum Likelihood**: Maximizes marginal likelihood.
+**둘째 갈래 가장 큰 그럴듯함**: 가장자리 그럴듯함을 가장 크게 한다.
 
-**Pros**:
+**좋은 점**:
 
-- Data-adaptive
-- Can improve posterior accuracy
+- 자료에 맞추어 간다
+- 뒷분포의 맞음을 높일 수 있다
 
-**Cons**:
+**아쉬운 점**:
 
-- Uses data twice (for prior and posterior)
-- May underestimate uncertainty
-- Computationally expensive
+- 자료를 두 번 쓴다(앞선 분포와 뒷분포에)
+- 아리송함을 낮게 볼 수 있다
+- 셈이 비싸다
 
-### Transfer Learning Priors
+### 옮겨 배우기 앞선 분포
 
-Use posteriors from related tasks as priors:
+가까운 일에서 얻은 뒷분포를 앞선 분포로 쓴다.
 
 $$
 p(\theta) \approx p(\theta \mid \mathcal{D}_{\text{source}})
 $$
 
-**Approaches**:
+**길**:
 
-**1. Mean-field approximation**:
+**1. 평균 마당 어림**:
 
 $$
 p(\theta) = \mathcal{N}(\theta \mid \mu_{\text{source}}, \sigma_{\text{source}}^2 I)
 $$
 
-**2. Mixture of pre-trained models**:
+**2. 미리 익힌 모형 섞기**:
 
 $$
 p(\theta) = \sum_{k} \pi_k \, p(\theta \mid \mathcal{D}_k)
 $$
 
-**3. Centered prior** (L2-SP):
+**3. 가운데 맞춘 앞선 분포**(L2-SP):
 
 $$
 p(\theta) = \mathcal{N}(\theta \mid \theta_{\text{pretrained}}, \sigma^2 I)
 $$
 
-### Functional Priors
+### 함수 앞선 분포
 
-Specify priors directly in function space:
+함수 밭에서 앞선 분포를 곧바로 정한다.
 
 $$
 p(f) = \mathcal{GP}(m(x), k(x, x'))
 $$
 
-Then find $p(\theta)$ that induces approximately this $p(f)$.
+그러고 나서 이 $p(f)$을 거의 이끌어 내는 $p(\theta)$을 찾는다.
 
-**Challenges**:
+**어려움**:
 
-- No closed-form relationship $p(\theta) \to p(f)$ for finite networks
-- Requires sampling-based approaches
-- Active research area
+- 마디 있는 그물에서는 $p(\theta) \to p(f)$의 닫힌 꼴이 없다
+- 표본 뽑기에 기댄 길이 있어야 한다
+- 한창인 연구 밭이다
 
 ---
 
-## Practical Considerations
+## 참으로 헤아릴 것
 
-### Choosing Prior Variances
+### 앞선 분포의 흩어짐 고르기
 
-**Rule of thumb**: Initialize such that:
+**어림 규칙**: 다음이 되도록 첫자리를 잡는다.
 
-- Pre-activations have variance $\approx 1$
-- Gradients have variance $\approx 1$
+- 살림 앞 값의 흩어짐이 $\approx 1$
+- 기울기의 흩어짐이 $\approx 1$
 
-**For fully connected layers**:
+**온통 이은 켜에서는**:
 
 $$
 \sigma_W^2 = \frac{2}{n_{\text{in}} + n_{\text{out}}}, \quad \sigma_b^2 = 0.01
 $$
 
-**For convolutional layers** with kernel size $k \times k$ and $c$ channels:
+알갱이 크기가 $k \times k$이고 갈래가 $c$개인 **엮음 켜에서는**:
 
 $$
 \sigma_W^2 = \frac{2}{k^2 \cdot c_{\text{in}}}
 $$
 
-### Bias Priors
+### 치우침의 앞선 분포
 
-**Common approaches**:
+**흔한 길**:
 
-**1. Zero-centered Gaussian**:
+**1. 0을 가운데로 삼는 가우스**:
 
 $$
 p(b) = \mathcal{N}(0, \sigma_b^2)
 $$
 
-Use small $\sigma_b^2$ (e.g., $0.01$-$0.1$).
+작은 $\sigma_b^2$을 쓴다($0.01$~$0.1$ 따위).
 
-**2. Fixed at zero**:
+**2. 0으로 붙박기**:
 
 $$
 p(b) = \delta_0(b)
 $$
 
-Reduces parameters; sometimes works well.
+매개변수가 준다. 때로는 잘 듣는다.
 
-**3. Data-dependent initialization**:
-Center biases based on data statistics.
+**3. 자료에 매인 첫자리 잡기**:
+자료의 자를 보고 치우침의 가운데를 잡는다.
 
-### Handling Different Layer Types
+### 켜의 갈래마다 다루기
 
-| Layer Type | Prior Consideration |
+| 켜 갈래 | 앞선 분포에서 헤아릴 것 |
 |------------|---------------------|
-| **Dense** | Standard Gaussian, fan-in/out scaling |
-| **Conv** | Per-filter or per-channel variance |
-| **BatchNorm** | Often fixed; scale/shift learnable |
-| **Embedding** | Per-embedding or tied variance |
-| **Attention** | Key-query-value may need different scales |
+| **빽빽한 켜** | 여느 가우스, 들임/날임 갈래 잣대 |
+| **엮음** | 거르개마다 또는 갈래마다의 흩어짐 |
+| **묶음 잣대 잡기** | 흔히 붙박이. 잣대/옮김은 배울 수 있다 |
+| **박아 넣기** | 박아 넣기마다 또는 묶인 흩어짐 |
+| **눈길** | 열쇠-물음-값에 다른 잣대가 있어야 할 수 있다 |
 
-### Prior Predictive Checks
+### 앞선 분포로 미리 살펴보기
 
-**Validate priors** by sampling and examining induced functions:
+뽑아 보고 이끌려 나온 함수를 살펴 **앞선 분포를 따진다**.
 
 ```python
-# Sample weights from prior
+# 앞선 분포에서 짐을 뽑는다
 theta_prior = sample_from_prior()
 
-# Generate predictions on test inputs
+# 시험 들임에 대해 미루어 본다
 f_prior = network(x_test, theta_prior)
 
-# Check: Are these reasonable functions?
+# 살핌: 이 함수들이 이치에 닿는가?
 ```
 
-**What to check**:
+**살펴볼 것**:
 
-- Output scale: Are predictions in reasonable range?
-- Smoothness: Are functions too wiggly or too flat?
-- Extrapolation: What happens far from training region?
+- 날임의 크기: 미루어 봄이 이치에 닿는 자리에 있는가?
+- 매끄러움: 함수가 너무 꿈틀대거나 너무 납작한가?
+- 밖으로 늘리기: 익힘 자리에서 멀어지면 어떻게 되는가?
 
 ---
 
-## Python Implementation
+## 파이썬으로 짜기
 
 ```python
 """
-Prior Distributions on Neural Network Weights
+신경 그물 짐의 앞선 분포
 
-This module provides implementations of various prior distributions
-for Bayesian neural networks, including standard Gaussians, sparsity-inducing
-priors, hierarchical priors, and utilities for prior predictive checking.
+이 묶음은 베이즈 신경 그물에 쓰는 여러 앞선 분포를 짜 놓았다.
+여느 가우스, 성김을 이끄는 앞선 분포, 층진 앞선 분포, 그리고 앞선 분포로
+미리 살펴보는 데 쓰는 잔손질 함수가 들어 있다.
 """
 
 import numpy as np
@@ -628,30 +628,30 @@ from abc import ABC, abstractmethod
 
 
 # =============================================================================
-# Base Prior Classes
+# 밑 앞선 분포 갈래
 # =============================================================================
 
 class Prior(ABC):
-    """Abstract base class for weight priors."""
+    """짐 앞선 분포의 뼈대 갈래."""
     
     @abstractmethod
     def log_prob(self, w: np.ndarray) -> float:
-        """Compute log probability of weights."""
+        """짐의 로그 낌새를 셈한다."""
         pass
     
     @abstractmethod
     def sample(self, shape: Tuple[int, ...]) -> np.ndarray:
-        """Sample weights from the prior."""
+        """앞선 분포에서 짐을 뽑는다."""
         pass
     
     def prob(self, w: np.ndarray) -> float:
-        """Compute probability (may underflow)."""
+        """낌새를 셈한다(밑으로 넘칠 수 있다)."""
         return np.exp(self.log_prob(w))
 
 
 class GaussianPrior(Prior):
     """
-    Isotropic Gaussian prior: w ~ N(0, sigma^2 I)
+    고루 퍼진 가우스 앞선 분포: w ~ N(0, sigma^2 I)
     """
     
     def __init__(self, sigma: float = 1.0, mean: float = 0.0):
@@ -659,16 +659,16 @@ class GaussianPrior(Prior):
         Parameters
         ----------
         sigma : float
-            Prior standard deviation
+            앞선 분포의 잣대 어긋남
         mean : float
-            Prior mean (default 0)
+            앞선 분포의 평균(기본값 0)
         """
         self.sigma = sigma
         self.mean = mean
         self.var = sigma ** 2
     
     def log_prob(self, w: np.ndarray) -> float:
-        """Compute log p(w)."""
+        """log p(w)을 셈한다."""
         w = np.asarray(w)
         n = w.size
         
@@ -678,7 +678,7 @@ class GaussianPrior(Prior):
         )
     
     def sample(self, shape: Tuple[int, ...]) -> np.ndarray:
-        """Sample from prior."""
+        """앞선 분포에서 뽑는다."""
         return np.random.normal(self.mean, self.sigma, shape)
     
     def __repr__(self):
@@ -687,9 +687,9 @@ class GaussianPrior(Prior):
 
 class LaplacePrior(Prior):
     """
-    Laplace prior: p(w) = (lambda/2) * exp(-lambda * |w|)
+    라플라스 앞선 분포: p(w) = (lambda/2) * exp(-lambda * |w|)
     
-    Equivalent to L1 regularization in MAP estimation.
+    MAP 어림에서 L1 정칙화와 같다.
     """
     
     def __init__(self, scale: float = 1.0):
@@ -697,20 +697,20 @@ class LaplacePrior(Prior):
         Parameters
         ----------
         scale : float
-            Scale parameter (1/lambda)
+            잣대 매개변수(1/lambda)
         """
         self.scale = scale
         self.rate = 1.0 / scale
     
     def log_prob(self, w: np.ndarray) -> float:
-        """Compute log p(w)."""
+        """log p(w)을 셈한다."""
         w = np.asarray(w)
         n = w.size
         
         return n * np.log(self.rate / 2) - self.rate * np.sum(np.abs(w))
     
     def sample(self, shape: Tuple[int, ...]) -> np.ndarray:
-        """Sample from prior."""
+        """앞선 분포에서 뽑는다."""
         return np.random.laplace(0, self.scale, shape)
     
     def __repr__(self):
@@ -719,9 +719,9 @@ class LaplacePrior(Prior):
 
 class StudentTPrior(Prior):
     """
-    Student-t prior with specified degrees of freedom.
+    자유도를 정해 주는 스튜던트 t 앞선 분포.
     
-    Heavier tails than Gaussian; robust to outliers.
+    가우스보다 꼬리가 두껍고 튀는 값에 든든하다.
     """
     
     def __init__(self, df: float = 3.0, scale: float = 1.0):
@@ -729,20 +729,20 @@ class StudentTPrior(Prior):
         Parameters
         ----------
         df : float
-            Degrees of freedom (nu)
+            자유도(nu)
         scale : float
-            Scale parameter
+            잣대 매개변수
         """
         self.df = df
         self.scale = scale
     
     def log_prob(self, w: np.ndarray) -> float:
-        """Compute log p(w)."""
+        """log p(w)을 셈한다."""
         w = np.asarray(w)
         return np.sum(stats.t.logpdf(w, df=self.df, scale=self.scale))
     
     def sample(self, shape: Tuple[int, ...]) -> np.ndarray:
-        """Sample from prior."""
+        """앞선 분포에서 뽑는다."""
         return stats.t.rvs(df=self.df, scale=self.scale, size=shape)
     
     def __repr__(self):
@@ -750,14 +750,14 @@ class StudentTPrior(Prior):
 
 
 # =============================================================================
-# Sparsity-Inducing Priors
+# 성김을 이끄는 앞선 분포
 # =============================================================================
 
 class SpikeAndSlabPrior(Prior):
     """
-    Spike-and-slab prior: p(w) = pi * delta_0 + (1-pi) * N(0, sigma^2)
+    못과 널 앞선 분포: p(w) = pi * delta_0 + (1-pi) * N(0, sigma^2)
     
-    For continuous relaxation suitable for gradient-based inference.
+    기울기에 기댄 미루어 봄에 맞게 이어지도록 풀어 쓴 것이다.
     """
     
     def __init__(
@@ -770,21 +770,21 @@ class SpikeAndSlabPrior(Prior):
         Parameters
         ----------
         pi : float
-            Prior probability of being in the spike (near zero)
+            못(0 언저리)에 들 앞선 낌새
         sigma_slab : float
-            Standard deviation of the slab component
+            널 몫의 잣대 어긋남
         sigma_spike : float
-            Standard deviation of the spike component (small)
+            못 몫의 잣대 어긋남(작다)
         """
         self.pi = pi
         self.sigma_slab = sigma_slab
         self.sigma_spike = sigma_spike
     
     def log_prob(self, w: np.ndarray) -> float:
-        """Compute log p(w) using log-sum-exp."""
+        """log-sum-exp으로 log p(w)을 셈한다."""
         w = np.asarray(w)
         
-        # Log probability under each component
+        # 몫마다의 로그 낌새
         log_spike = (
             np.log(self.pi)
             + stats.norm.logpdf(w, 0, self.sigma_spike)
@@ -794,17 +794,17 @@ class SpikeAndSlabPrior(Prior):
             + stats.norm.logpdf(w, 0, self.sigma_slab)
         )
         
-        # Log-sum-exp for numerical stability
+        # 셈이 든든하도록 log-sum-exp
         log_probs = np.logaddexp(log_spike, log_slab)
         
         return np.sum(log_probs)
     
     def sample(self, shape: Tuple[int, ...]) -> np.ndarray:
-        """Sample from prior."""
-        # Sample component indicators
+        """앞선 분포에서 뽑는다."""
+        # 어느 몫인지 표시를 뽑는다
         is_spike = np.random.random(shape) < self.pi
         
-        # Sample from appropriate component
+        # 알맞은 몫에서 뽑는다
         samples = np.where(
             is_spike,
             np.random.normal(0, self.sigma_spike, shape),
@@ -819,9 +819,9 @@ class SpikeAndSlabPrior(Prior):
 
 class HorseshoePrior(Prior):
     """
-    Horseshoe prior: w | lambda ~ N(0, lambda^2), lambda ~ Half-Cauchy(0, tau)
+    말굽 앞선 분포: w | lambda ~ N(0, lambda^2), lambda ~ Half-Cauchy(0, tau)
     
-    Strong shrinkage toward zero with heavy tails.
+    꼬리는 두껍고 0 쪽으로 세게 오그린다.
     """
     
     def __init__(self, tau: float = 1.0):
@@ -829,30 +829,30 @@ class HorseshoePrior(Prior):
         Parameters
         ----------
         tau : float
-            Global scale parameter
+            두루 쓰는 잣대 매개변수
         """
         self.tau = tau
     
     def log_prob(self, w: np.ndarray) -> float:
         """
-        Approximate log probability (marginalizing over lambda is intractable).
-        Uses the approximation: p(w) ≈ log(1 + 2*tau^2/w^2) for |w| >> 0
+        로그 낌새의 어림(lambda을 적분해 없애기는 다룰 수 없다).
+        어림을 쓴다: |w| >> 0에서 p(w) ≈ log(1 + 2*tau^2/w^2)
         """
         w = np.asarray(w)
-        # Avoid log(0) by adding small epsilon
+        # 작은 엡실론을 더해 log(0)을 막는다
         eps = 1e-10
         
-        # Approximation to marginal horseshoe density
+        # 가장자리 말굽 밀도의 어림
         log_prob = np.sum(np.log(np.log(1 + 2 * self.tau**2 / (w**2 + eps))))
         
         return log_prob
     
     def sample(self, shape: Tuple[int, ...]) -> np.ndarray:
-        """Sample from prior."""
-        # Sample local scales from half-Cauchy
+        """앞선 분포에서 뽑는다."""
+        # 반 코시에서 그 자리 잣대를 뽑는다
         lambdas = np.abs(stats.cauchy.rvs(size=shape)) * self.tau
         
-        # Sample weights
+        # 짐을 뽑는다
         return np.random.normal(0, lambdas)
     
     def __repr__(self):
@@ -860,17 +860,17 @@ class HorseshoePrior(Prior):
 
 
 # =============================================================================
-# Hierarchical Priors
+# 층진 앞선 분포
 # =============================================================================
 
 class HierarchicalGaussianPrior(Prior):
     """
-    Hierarchical Gaussian prior with Inverse-Gamma on variance.
+    흩어짐에 거꿀 감마를 얹은 층진 가우스 앞선 분포.
     
     w | sigma^2 ~ N(0, sigma^2)
     sigma^2 ~ Inv-Gamma(alpha, beta)
     
-    Marginalizes to Student-t.
+    적분해 없애면 스튜던트 t이 된다.
     """
     
     def __init__(self, alpha: float = 2.0, beta: float = 1.0):
@@ -878,26 +878,26 @@ class HierarchicalGaussianPrior(Prior):
         Parameters
         ----------
         alpha : float
-            Shape parameter of Inverse-Gamma
+            거꿀 감마의 꼴 매개변수
         beta : float
-            Scale parameter of Inverse-Gamma
+            거꿀 감마의 잣대 매개변수
         """
         self.alpha = alpha
         self.beta = beta
         
-        # Marginal is Student-t with df = 2*alpha
+        # 가장자리 분포는 자유도 2*alpha인 스튜던트 t
         self.marginal_df = 2 * alpha
         self.marginal_scale = np.sqrt(beta / alpha)
     
     def log_prob(self, w: np.ndarray) -> float:
-        """Compute log probability of marginal (Student-t)."""
+        """가장자리 분포(스튜던트 t)의 로그 낌새를 셈한다."""
         w = np.asarray(w)
         return np.sum(stats.t.logpdf(
             w, df=self.marginal_df, scale=self.marginal_scale
         ))
     
     def sample(self, shape: Tuple[int, ...]) -> np.ndarray:
-        """Sample from marginal (Student-t)."""
+        """가장자리 분포(스튜던트 t)에서 뽑는다."""
         return stats.t.rvs(
             df=self.marginal_df,
             scale=self.marginal_scale,
@@ -910,12 +910,12 @@ class HierarchicalGaussianPrior(Prior):
         return_variance: bool = False
     ) -> Union[np.ndarray, Tuple[np.ndarray, float]]:
         """
-        Sample hierarchically: first variance, then weights.
+        층지게 뽑는다: 먼저 흩어짐, 그다음 짐.
         """
-        # Sample variance from Inverse-Gamma
+        # 거꿀 감마에서 흩어짐을 뽑는다
         sigma_sq = stats.invgamma.rvs(self.alpha, scale=self.beta)
         
-        # Sample weights given variance
+        # 흩어짐이 주어졌을 때 짐을 뽑는다
         w = np.random.normal(0, np.sqrt(sigma_sq), shape)
         
         if return_variance:
@@ -928,7 +928,7 @@ class HierarchicalGaussianPrior(Prior):
 
 class LayerWisePrior:
     """
-    Different priors for different layers.
+    켜마다 다른 앞선 분포.
     """
     
     def __init__(self, layer_priors: Dict[str, Prior]):
@@ -936,12 +936,12 @@ class LayerWisePrior:
         Parameters
         ----------
         layer_priors : dict
-            Mapping from layer name to Prior object
+            켜 이름을 Prior 물체에 맞춘 사전
         """
         self.layer_priors = layer_priors
     
     def log_prob(self, weights: Dict[str, np.ndarray]) -> float:
-        """Compute total log probability across all layers."""
+        """켜 모두에 걸친 온 로그 낌새를 셈한다."""
         total = 0.0
         for name, w in weights.items():
             if name in self.layer_priors:
@@ -949,7 +949,7 @@ class LayerWisePrior:
         return total
     
     def sample(self, shapes: Dict[str, Tuple[int, ...]]) -> Dict[str, np.ndarray]:
-        """Sample weights for all layers."""
+        """켜 모두의 짐을 뽑는다."""
         return {
             name: self.layer_priors[name].sample(shape)
             for name, shape in shapes.items()
@@ -958,32 +958,32 @@ class LayerWisePrior:
 
 
 # =============================================================================
-# Variance Scaling Utilities
+# 흩어짐 잣대 잔손질
 # =============================================================================
 
 def compute_glorot_variance(fan_in: int, fan_out: int) -> float:
     """
-    Glorot/Xavier variance scaling.
+    글로로/자비에 흩어짐 잣대.
     
-    Maintains variance of activations across layers for tanh/sigmoid.
+    tanh/시그모이드에서 켜에 걸쳐 살림의 흩어짐을 지킨다.
     """
     return 2.0 / (fan_in + fan_out)
 
 
 def compute_he_variance(fan_in: int) -> float:
     """
-    He variance scaling.
+    허 흩어짐 잣대.
     
-    Maintains variance for ReLU activations.
+    ReLU 살림에서 흩어짐을 지킨다.
     """
     return 2.0 / fan_in
 
 
 def compute_lecun_variance(fan_in: int) -> float:
     """
-    LeCun variance scaling.
+    르쿤 흩어짐 잣대.
     
-    Maintains variance for SELU activations.
+    SELU 살림에서 흩어짐을 지킨다.
     """
     return 1.0 / fan_in
 
@@ -993,19 +993,19 @@ def create_scaled_gaussian_prior(
     scaling: str = 'glorot'
 ) -> LayerWisePrior:
     """
-    Create layer-wise Gaussian priors with proper variance scaling.
+    흩어짐 잣대를 제대로 맞춘 켜마다의 가우스 앞선 분포를 만든다.
     
     Parameters
     ----------
-    layer_shapes : list of tuples
-        (fan_in, fan_out) for each layer
+    layer_shapes : 짝들의 목록
+        켜마다의 (fan_in, fan_out)
     scaling : str
-        'glorot', 'he', or 'lecun'
+        'glorot', 'he', 'lecun' 가운데 하나
     
     Returns
     -------
     LayerWisePrior
-        Prior with layer-appropriate variances
+        켜에 맞는 흩어짐을 지닌 앞선 분포
     """
     priors = {}
     
@@ -1017,20 +1017,20 @@ def create_scaled_gaussian_prior(
         elif scaling == 'lecun':
             var = compute_lecun_variance(fan_in)
         else:
-            raise ValueError(f"Unknown scaling: {scaling}")
+            raise ValueError(f"모르는 잣대: {scaling}")
         
         priors[f'W{i}'] = GaussianPrior(sigma=np.sqrt(var))
-        priors[f'b{i}'] = GaussianPrior(sigma=0.1)  # Small bias prior
+        priors[f'b{i}'] = GaussianPrior(sigma=0.1)  # 작은 치우침 앞선 분포
     
     return LayerWisePrior(priors)
 
 
 # =============================================================================
-# Prior Predictive Sampling
+# 앞선 분포로 미리 뽑아 보기
 # =============================================================================
 
 class SimpleMLP:
-    """Simple MLP for prior predictive checking."""
+    """앞선 분포로 미리 살펴보는 데 쓰는 단순 MLP."""
     
     def __init__(
         self,
@@ -1041,14 +1041,14 @@ class SimpleMLP:
         Parameters
         ----------
         layer_sizes : list
-            [input_dim, hidden1, hidden2, ..., output_dim]
+            [들임 차수, 숨은 켜1, 숨은 켜2, ..., 날임 차수]
         activation : str
-            'relu', 'tanh', or 'sigmoid'
+            'relu', 'tanh', 'sigmoid' 가운데 하나
         """
         self.layer_sizes = layer_sizes
         self.activation = activation
         
-        # Define activation function
+        # 살림 함수를 매긴다
         if activation == 'relu':
             self.act_fn = lambda x: np.maximum(x, 0)
         elif activation == 'tanh':
@@ -1056,14 +1056,14 @@ class SimpleMLP:
         elif activation == 'sigmoid':
             self.act_fn = lambda x: 1 / (1 + np.exp(-np.clip(x, -500, 500)))
         else:
-            raise ValueError(f"Unknown activation: {activation}")
+            raise ValueError(f"모르는 살림 함수: {activation}")
     
     def forward(
         self,
         x: np.ndarray,
         weights: Dict[str, np.ndarray]
     ) -> np.ndarray:
-        """Forward pass with given weights."""
+        """주어진 짐으로 앞으로 걸음."""
         h = x
         n_layers = len(self.layer_sizes) - 1
         
@@ -1073,14 +1073,14 @@ class SimpleMLP:
             
             h = h @ W + b
             
-            # Apply activation (except last layer)
+            # 살림을 건다(마지막 켜는 뺀다)
             if i < n_layers - 1:
                 h = self.act_fn(h)
         
         return h
     
     def get_weight_shapes(self) -> Dict[str, Tuple[int, int]]:
-        """Get shapes of all weight matrices."""
+        """짐 행렬 모두의 꼴을 얻는다."""
         shapes = {}
         for i in range(len(self.layer_sizes) - 1):
             shapes[f'W{i}'] = (self.layer_sizes[i], self.layer_sizes[i + 1])
@@ -1095,36 +1095,36 @@ def prior_predictive_check(
     n_samples: int = 100
 ) -> np.ndarray:
     """
-    Sample functions from the prior predictive distribution.
+    앞선 분포로 미리 보는 분포에서 함수를 뽑는다.
     
     Parameters
     ----------
     model : SimpleMLP
-        Neural network architecture
-    prior : Prior or LayerWisePrior
-        Prior on weights
+        신경 그물 얼개
+    prior : Prior 또는 LayerWisePrior
+        짐의 앞선 분포
     x_test : ndarray
-        Test inputs
+        시험 들임
     n_samples : int
-        Number of function samples
+        뽑을 함수의 수
     
     Returns
     -------
-    ndarray of shape (n_samples, n_test_points, output_dim)
-        Function samples
+    (n_samples, n_test_points, output_dim) 꼴의 ndarray
+        뽑은 함수
     """
     shapes = model.get_weight_shapes()
     
     predictions = []
     
     for _ in range(n_samples):
-        # Sample weights from prior
+        # 앞선 분포에서 짐을 뽑는다
         if isinstance(prior, LayerWisePrior):
             weights = prior.sample(shapes)
         else:
             weights = {name: prior.sample(shape) for name, shape in shapes.items()}
         
-        # Forward pass
+        # 앞으로 걸음
         y = model.forward(x_test, weights)
         predictions.append(y)
     
@@ -1132,7 +1132,7 @@ def prior_predictive_check(
 
 
 # =============================================================================
-# Visualization Functions
+# 그리는 함수
 # =============================================================================
 
 def plot_prior_comparison(
@@ -1142,13 +1142,13 @@ def plot_prior_comparison(
     figsize: Tuple[float, float] = (12, 5)
 ):
     """
-    Compare different prior distributions.
+    여러 앞선 분포를 견준다.
     """
     fig, axes = plt.subplots(1, 2, figsize=figsize)
     
     x = np.linspace(x_range[0], x_range[1], n_points)
     
-    # PDF comparison
+    # 밀도 함수 견주기
     ax = axes[0]
     for name, prior in priors.items():
         if isinstance(prior, GaussianPrior):
@@ -1158,18 +1158,18 @@ def plot_prior_comparison(
         elif isinstance(prior, StudentTPrior):
             pdf = stats.t.pdf(x, prior.df, scale=prior.scale)
         else:
-            # Numerical approximation
+            # 수로 셈하는 어림
             pdf = np.array([prior.prob(np.array([xi])) for xi in x])
         
         ax.plot(x, pdf, label=name, linewidth=2)
     
-    ax.set_xlabel('Weight value')
-    ax.set_ylabel('Density')
-    ax.set_title('Prior Densities')
+    ax.set_xlabel('짐 값')
+    ax.set_ylabel('밀도')
+    ax.set_title('앞선 분포의 밀도')
     ax.legend()
     ax.set_ylim(0, None)
     
-    # Log-PDF comparison (to see tails)
+    # 로그 밀도 견주기(꼬리를 보려고)
     ax = axes[1]
     for name, prior in priors.items():
         if isinstance(prior, GaussianPrior):
@@ -1183,9 +1183,9 @@ def plot_prior_comparison(
         
         ax.plot(x, log_pdf, label=name, linewidth=2)
     
-    ax.set_xlabel('Weight value')
-    ax.set_ylabel('Log Density')
-    ax.set_title('Log Prior Densities (shows tail behavior)')
+    ax.set_xlabel('짐 값')
+    ax.set_ylabel('로그 밀도')
+    ax.set_title('앞선 분포의 로그 밀도(꼬리 결이 보인다)')
     ax.legend()
     
     plt.tight_layout()
@@ -1195,46 +1195,46 @@ def plot_prior_comparison(
 def plot_prior_predictive(
     predictions: np.ndarray,
     x_test: np.ndarray,
-    title: str = "Prior Predictive Distribution",
+    title: str = "앞선 분포로 미리 보는 분포",
     n_show: int = 20
 ):
     """
-    Visualize prior predictive samples.
+    앞선 분포로 미리 뽑은 것을 그린다.
     
     Parameters
     ----------
-    predictions : ndarray of shape (n_samples, n_points)
-        Function samples
+    predictions : (n_samples, n_points) 꼴의 ndarray
+        뽑은 함수
     x_test : ndarray
-        Test inputs (1D)
+        시험 들임(1차)
     title : str
-        Plot title
+        그림의 이름
     n_show : int
-        Number of samples to plot
+        그릴 표본의 수
     """
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     
-    # Sample functions
+    # 뽑은 함수
     ax = axes[0]
     for i in range(min(n_show, len(predictions))):
         ax.plot(x_test, predictions[i], alpha=0.3, color='blue')
     
     ax.set_xlabel('x')
     ax.set_ylabel('f(x)')
-    ax.set_title(f'{title}\n(showing {n_show} samples)')
+    ax.set_title(f'{title}\n(표본 {n_show}개를 보임)')
     
-    # Mean and uncertainty
+    # 평균과 아리송함
     ax = axes[1]
     mean = np.mean(predictions, axis=0)
     std = np.std(predictions, axis=0)
     
     ax.fill_between(x_test.flatten(), mean - 2*std, mean + 2*std,
                     alpha=0.3, label='±2σ')
-    ax.plot(x_test, mean, 'b-', linewidth=2, label='Mean')
+    ax.plot(x_test, mean, 'b-', linewidth=2, label='평균')
     
     ax.set_xlabel('x')
     ax.set_ylabel('f(x)')
-    ax.set_title('Prior Predictive Mean and Uncertainty')
+    ax.set_title('앞선 분포로 미리 본 평균과 아리송함')
     ax.legend()
     
     plt.tight_layout()
@@ -1244,54 +1244,54 @@ def plot_prior_predictive(
 def plot_sparsity_pattern(
     prior: Prior,
     n_samples: int = 10000,
-    title: str = "Sparsity Pattern"
+    title: str = "성김의 결"
 ):
     """
-    Visualize the sparsity-inducing property of a prior.
+    앞선 분포가 성김을 이끄는 결을 그린다.
     """
     samples = prior.sample((n_samples,))
     
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     
-    # Histogram
+    # 잦기 그림
     ax = axes[0]
     ax.hist(samples, bins=100, density=True, alpha=0.7, edgecolor='black')
-    ax.axvline(0, color='red', linestyle='--', label='Zero')
-    ax.set_xlabel('Weight value')
-    ax.set_ylabel('Density')
-    ax.set_title(f'{title}\nHistogram of samples')
+    ax.axvline(0, color='red', linestyle='--', label='0')
+    ax.set_xlabel('짐 값')
+    ax.set_ylabel('밀도')
+    ax.set_title(f'{title}\n표본의 잦기 그림')
     ax.legend()
     
-    # Fraction near zero
+    # 0 언저리의 몫
     ax = axes[1]
     thresholds = np.logspace(-3, 0, 50)
     fractions = [np.mean(np.abs(samples) < t) for t in thresholds]
     
     ax.semilogx(thresholds, fractions, 'b-', linewidth=2)
-    ax.set_xlabel('Threshold |w| < τ')
-    ax.set_ylabel('Fraction of weights')
-    ax.set_title('Cumulative near-zero fraction')
+    ax.set_xlabel('문턱 |w| < τ')
+    ax.set_ylabel('짐의 몫')
+    ax.set_title('0 언저리의 쌓인 몫')
     ax.axhline(0.5, color='gray', linestyle='--', alpha=0.5)
     ax.grid(True, alpha=0.3)
     
     plt.tight_layout()
     plt.show()
     
-    print(f"\nSparsity statistics for {prior}:")
-    print(f"  Fraction |w| < 0.01: {np.mean(np.abs(samples) < 0.01):.3f}")
-    print(f"  Fraction |w| < 0.1:  {np.mean(np.abs(samples) < 0.1):.3f}")
-    print(f"  Fraction |w| > 1.0:  {np.mean(np.abs(samples) > 1.0):.3f}")
+    print(f"\n{prior}의 성김 자:")
+    print(f"  |w| < 0.01의 몫: {np.mean(np.abs(samples) < 0.01):.3f}")
+    print(f"  |w| < 0.1의 몫:  {np.mean(np.abs(samples) < 0.1):.3f}")
+    print(f"  |w| > 1.0의 몫:  {np.mean(np.abs(samples) > 1.0):.3f}")
 
 
 # =============================================================================
-# Demo Functions
+# 보여 주는 함수
 # =============================================================================
 
 def demo_standard_priors():
-    """Compare standard prior distributions."""
+    """여느 앞선 분포를 견준다."""
     
     print("=" * 70)
-    print("STANDARD PRIOR DISTRIBUTIONS")
+    print("여느 앞선 분포")
     print("=" * 70)
     
     priors = {
@@ -1302,7 +1302,7 @@ def demo_standard_priors():
         'Student-t (ν=10)': StudentTPrior(df=10.0, scale=1.0),
     }
     
-    print("\nPrior summary:")
+    print("\n앞선 분포 간추림:")
     for name, prior in priors.items():
         samples = prior.sample((10000,))
         print(f"  {name:25s}: mean={np.mean(samples):+.3f}, "
@@ -1313,10 +1313,10 @@ def demo_standard_priors():
 
 
 def demo_sparsity_priors():
-    """Demonstrate sparsity-inducing priors."""
+    """성김을 이끄는 앞선 분포를 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("SPARSITY-INDUCING PRIORS")
+    print("성김을 이끄는 앞선 분포")
     print("=" * 70)
     
     priors = {
@@ -1326,8 +1326,8 @@ def demo_sparsity_priors():
         'Horseshoe': HorseshoePrior(tau=1.0),
     }
     
-    print("\nSparsity comparison (fraction near zero):")
-    print(f"{'Prior':<20} {'|w|<0.01':>10} {'|w|<0.1':>10} {'|w|>2':>10}")
+    print("\n성김 견주기(0 언저리의 몫):")
+    print(f"{'앞선 분포':<20} {'|w|<0.01':>10} {'|w|<0.1':>10} {'|w|>2':>10}")
     print("-" * 55)
     
     for name, prior in priors.items():
@@ -1340,46 +1340,46 @@ def demo_sparsity_priors():
 
 
 def demo_hierarchical_prior():
-    """Demonstrate hierarchical priors."""
+    """층진 앞선 분포를 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("HIERARCHICAL PRIORS")
+    print("층진 앞선 분포")
     print("=" * 70)
     
-    # Compare different alpha values
+    # 여러 alpha 값을 견준다
     alphas = [1.0, 2.0, 5.0, 10.0]
     
-    print("\nHierarchical Gaussian with Inv-Gamma(α, β=1) on variance:")
-    print(f"{'α':>5} {'Marginal df':>12} {'Sample std':>12} {'Kurtosis':>12}")
+    print("\n흩어짐에 Inv-Gamma(α, β=1)을 얹은 층진 가우스:")
+    print(f"{'α':>5} {'가장자리 자유도':>12} {'표본 잣대 어긋남':>12} {'뾰족함':>12}")
     print("-" * 45)
     
     for alpha in alphas:
         prior = HierarchicalGaussianPrior(alpha=alpha, beta=1.0)
         samples = prior.sample((10000,))
         
-        # Kurtosis (excess, Gaussian = 0)
+        # 뾰족함(넘침, 가우스 = 0)
         kurtosis = stats.kurtosis(samples)
         
         print(f"{alpha:>5.1f} {prior.marginal_df:>12.1f} "
               f"{np.std(samples):>12.3f} {kurtosis:>12.3f}")
     
-    print("\n*** Lower α → heavier tails (higher kurtosis)")
-    print("*** As α → ∞, marginal approaches Gaussian")
+    print("\n*** α이 낮을수록 → 꼬리가 두껍다(뾰족함이 크다)")
+    print("*** α → ∞이면 가장자리 분포가 가우스에 다가간다")
 
 
 def demo_variance_scaling():
-    """Demonstrate variance scaling for different architectures."""
+    """얼개마다의 흩어짐 잣대를 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("VARIANCE SCALING")
+    print("흩어짐 잣대")
     print("=" * 70)
     
-    # Example architecture
+    # 보기 얼개
     layer_sizes = [784, 256, 128, 10]
     
-    print(f"\nArchitecture: {layer_sizes}")
-    print("\nRecommended prior standard deviations:")
-    print(f"{'Layer':<10} {'Shape':<15} {'Glorot σ':>12} {'He σ':>12} {'LeCun σ':>12}")
+    print(f"\n얼개: {layer_sizes}")
+    print("\n즐겨 쓰는 앞선 분포 잣대 어긋남:")
+    print(f"{'켜':<10} {'꼴':<15} {'글로로 σ':>12} {'허 σ':>12} {'르쿤 σ':>12}")
     print("-" * 65)
     
     for i in range(len(layer_sizes) - 1):
@@ -1394,40 +1394,40 @@ def demo_variance_scaling():
         print(f"W{i:<8} {shape:<15} {np.sqrt(glorot_var):>12.4f} "
               f"{np.sqrt(he_var):>12.4f} {np.sqrt(lecun_var):>12.4f}")
     
-    print("\n*** Glorot: for tanh/sigmoid")
-    print("*** He: for ReLU")
-    print("*** LeCun: for SELU")
+    print("\n*** 글로로: tanh/시그모이드에")
+    print("*** 허: ReLU에")
+    print("*** 르쿤: SELU에")
 
 
 def demo_prior_predictive():
-    """Demonstrate prior predictive checking."""
+    """앞선 분포로 미리 살펴보기를 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("PRIOR PREDICTIVE CHECKING")
+    print("앞선 분포로 미리 살펴보기")
     print("=" * 70)
     
     np.random.seed(42)
     
-    # Create simple MLP
+    # 단순 MLP을 만든다
     model = SimpleMLP([1, 50, 50, 1], activation='tanh')
     
-    # Test inputs
+    # 시험 들임
     x_test = np.linspace(-3, 3, 200).reshape(-1, 1)
     
-    # Different priors
+    # 여러 앞선 분포
     prior_configs = {
-        'Wide Gaussian (σ=1)': GaussianPrior(sigma=1.0),
-        'Narrow Gaussian (σ=0.1)': GaussianPrior(sigma=0.1),
-        'He-scaled': None,  # Will use proper scaling
+        '너른 가우스 (σ=1)': GaussianPrior(sigma=1.0),
+        '좁은 가우스 (σ=0.1)': GaussianPrior(sigma=0.1),
+        '허 잣대': None,  # 알맞은 잣대를 쓴다
     }
     
-    print("\nPrior predictive statistics (over test points):")
-    print(f"{'Prior':<25} {'Output mean':>12} {'Output std':>12} {'Max |y|':>12}")
+    print("\n앞선 분포로 미리 본 자(시험 점에 걸쳐):")
+    print(f"{'앞선 분포':<25} {'날임 평균':>12} {'날임 잣대 어긋남':>12} {'가장 큰 |y|':>12}")
     print("-" * 65)
     
     for name, prior in prior_configs.items():
         if prior is None:
-            # He-scaled prior
+            # 허 잣대 앞선 분포
             shapes = [(1, 50), (50, 50), (50, 1)]
             prior = create_scaled_gaussian_prior(shapes, scaling='he')
         
@@ -1437,21 +1437,21 @@ def demo_prior_predictive():
         print(f"{name:<25} {np.mean(predictions):>12.3f} "
               f"{np.std(predictions):>12.3f} {np.max(np.abs(predictions)):>12.3f}")
     
-    print("\n*** Proper scaling keeps outputs in reasonable range")
-    print("*** Wide priors can lead to extreme function values")
+    print("\n*** 잣대를 제대로 맞추면 날임이 이치에 닿는 자리에 머문다")
+    print("*** 너른 앞선 분포는 함수 값을 아주 크게 만들 수 있다")
 
 
 def demo_l2_equivalence():
-    """Demonstrate Gaussian prior ↔ L2 regularization equivalence."""
+    """가우스 앞선 분포 ↔ L2 정칙화가 같음을 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("GAUSSIAN PRIOR ↔ L2 REGULARIZATION")
+    print("가우스 앞선 분포 ↔ L2 정칙화")
     print("=" * 70)
     
-    print("\nMAP estimation with Gaussian prior N(0, σ²) is equivalent to")
-    print("L2-regularized MLE with penalty λ = 1/(2σ²)")
+    print("\n가우스 앞선 분포 N(0, σ²)을 쓴 MAP 어림은")
+    print("벌 λ = 1/(2σ²)의 L2 정칙화 MLE과 같다")
     
-    print(f"\n{'σ²':>10} {'σ':>10} {'λ = 1/(2σ²)':>15} {'Interpretation':>25}")
+    print(f"\n{'σ²':>10} {'σ':>10} {'λ = 1/(2σ²)':>15} {'풀이':>25}")
     print("-" * 65)
     
     variances = [0.01, 0.1, 0.5, 1.0, 10.0, 100.0]
@@ -1461,15 +1461,15 @@ def demo_l2_equivalence():
         lam = 1 / (2 * var)
         
         if lam > 10:
-            interp = "Very strong regularization"
+            interp = "아주 센 정칙화"
         elif lam > 1:
-            interp = "Strong regularization"
+            interp = "센 정칙화"
         elif lam > 0.1:
-            interp = "Moderate regularization"
+            interp = "가운데 정칙화"
         elif lam > 0.01:
-            interp = "Weak regularization"
+            interp = "여린 정칙화"
         else:
-            interp = "Very weak regularization"
+            interp = "아주 여린 정칙화"
         
         print(f"{var:>10.2f} {sigma:>10.3f} {lam:>15.4f} {interp:>25}")
 
@@ -1485,62 +1485,62 @@ if __name__ == "__main__":
 
 ---
 
-## Summary
+## 간추림
 
-### Standard Priors
+### 여느 앞선 분포
 
-| Prior | Formula | MAP Equivalent | Properties |
+| 앞선 분포 | 식 | MAP과 같은 것 | 결 |
 |-------|---------|----------------|------------|
-| **Gaussian** | $\mathcal{N}(0, \sigma^2)$ | L2 regularization | Smooth, well-behaved |
-| **Laplace** | $\frac{\lambda}{2}e^{-\lambda\|w\|}$ | L1 regularization | Promotes sparsity |
-| **Student-$t$** | Heavy-tailed | Robust penalty | Allows outliers |
+| **가우스** | $\mathcal{N}(0, \sigma^2)$ | L2 정칙화 | 매끄럽고 얌전하다 |
+| **라플라스** | $\frac{\lambda}{2}e^{-\lambda\|w\|}$ | L1 정칙화 | 성김을 이끈다 |
+| **스튜던트 $t$** | 꼬리가 두껍다 | 든든한 벌 | 튀는 값을 받아 준다 |
 
-### Variance Scaling
+### 흩어짐 잣대
 
-| Method | Formula | Best For |
+| 방법 | 식 | 잘 맞는 자리 |
 |--------|---------|----------|
-| **Glorot/Xavier** | $\sigma^2 = \frac{2}{n_{\text{in}} + n_{\text{out}}}$ | Tanh, Sigmoid |
-| **He** | $\sigma^2 = \frac{2}{n_{\text{in}}}$ | ReLU |
-| **LeCun** | $\sigma^2 = \frac{1}{n_{\text{in}}}$ | SELU |
+| **글로로/자비에** | $\sigma^2 = \frac{2}{n_{\text{in}} + n_{\text{out}}}$ | Tanh, 시그모이드 |
+| **허** | $\sigma^2 = \frac{2}{n_{\text{in}}}$ | ReLU |
+| **르쿤** | $\sigma^2 = \frac{1}{n_{\text{in}}}$ | SELU |
 
-### Sparsity-Inducing Priors
+### 성김을 이끄는 앞선 분포
 
-| Prior | Key Feature | Use Case |
+| 앞선 분포 | 고갱이 결 | 쓸 자리 |
 |-------|-------------|----------|
-| **Spike-and-Slab** | Exact zeros | Feature selection |
-| **Horseshoe** | Heavy tails + shrinkage | Sparse signals |
-| **ARD** | Per-feature variance | Automatic pruning |
+| **못과 널** | 꼭 0이 됨 | 결 고르기 |
+| **말굽** | 두꺼운 꼬리 + 오그리기 | 성긴 신호 |
+| **ARD** | 결마다의 흩어짐 | 절로 쳐내기 |
 
-### Hierarchical Priors
+### 층진 앞선 분포
 
 $$
 p(w \mid \sigma^2) = \mathcal{N}(0, \sigma^2), \quad p(\sigma^2) = \text{Inv-Gamma}(\alpha, \beta)
 $$
 
-**Benefits**:
+**나은 점**:
 
-- Data-adaptive regularization
-- Heavier tails than Gaussian
-- Reduced sensitivity to hyperparameters
+- 자료에 맞추어 가는 정칙화
+- 가우스보다 꼬리가 두껍다
+- 하이퍼파라미터에 덜 예민하다
 
-### Key Design Principles
+### 고갱이 꾸밈 원칙
 
-1. **Scale appropriately**: Match variance to layer width
-2. **Consider function space**: Prior on weights induces prior on functions
-3. **Use hierarchical priors**: Let data inform regularization strength
-4. **Validate with prior predictive checks**: Sample and visualize before training
+1. **잣대를 알맞게**: 흩어짐을 켜 너비에 맞춘다
+2. **함수 밭을 헤아려라**: 짐의 앞선 분포가 함수의 앞선 분포를 이끈다
+3. **층진 앞선 분포를 써라**: 정칙화의 셈을 자료가 정하게 한다
+4. **앞선 분포로 미리 살펴 따져라**: 익히기 앞서 뽑아 보고 그려 본다
 
-### Connections to Other Chapters
+### 다른 장과의 이어짐
 
-| Topic | Chapter | Connection |
+| 이야기 | 장 | 이어짐 |
 |-------|---------|------------|
-| Posterior inference | Ch13: Posterior Inference | Prior affects posterior shape |
-| Uncertainty | Ch13: Uncertainty | Prior affects epistemic uncertainty |
-| MC Dropout | Ch13: MC Dropout | Implicitly defines prior |
-| Variational BNN | Ch13: Variational BNN | Prior in KL divergence |
-| Regularization | Ch6: Regularization | MAP ↔ penalized MLE |
+| 뒷분포 미루어 봄 | 13장: 뒷분포 미루어 봄 | 앞선 분포가 뒷분포의 꼴에 걸린다 |
+| 아리송함 | 13장: 아리송함 | 앞선 분포가 앎의 아리송함에 걸린다 |
+| MC 드롭아웃 | 13장: MC 드롭아웃 | 앞선 분포를 넌지시 매긴다 |
+| 변이 베이즈 신경 그물 | 13장: 변이 베이즈 신경 그물 | KL 갈림 속의 앞선 분포 |
+| 정칙화 | 6장: 정칙화 | MAP ↔ 벌을 준 MLE |
 
-### Key References
+### 고갱이 살펴볼 거리
 
 - Neal, R. M. (1996). *Bayesian Learning for Neural Networks*. Springer.
 - Blundell, C., et al. (2015). Weight uncertainty in neural networks. *ICML*.
@@ -1548,34 +1548,34 @@ $$
 - Fortuin, V. (2022). Priors in Bayesian deep learning: A review. *International Statistical Review*.
 - Wenzel, F., et al. (2020). How good is the Bayes posterior in deep neural networks really? *ICML*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+**익힘 1.**
+ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
 
-??? success "Solution to Exercise 1"
-    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
-
----
-
-**Exercise 2.**
-Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
-
-??? success "Solution to Exercise 2"
-    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+**익힘 2.**
+이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
 
-??? success "Solution to Exercise 3"
-    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+??? success "익힘 2 풀이"
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE이 낮다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+**익힘 3.**
+베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
-??? success "Solution to Exercise 4"
-    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$
+??? success "익힘 3 풀이"
+    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
+
+---
+
+**익힘 4.**
+이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
+
+??? success "익힘 4 풀이"
+    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$
