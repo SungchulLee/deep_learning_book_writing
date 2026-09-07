@@ -1,80 +1,80 @@
-# Web Crawling
+# 누리 기어 다니기
 
-A search engine begins with a **web crawler** -- a program that systematically discovers and downloads web pages by following hyperlinks. From an algorithmic perspective, the web is a directed graph where pages are vertices and hyperlinks are edges. Crawling is graph traversal at massive scale, with billions of vertices and constraints imposed by network latency, politeness policies, and storage limits.
+찾기 엔진은 **누리 기어 다니개**에서 시작한다. 이어 놓은 자리를 따라가며 누리 쪽을 짜임 있게 찾아 내려받는 프로그램이다. 알고리즘의 눈으로 보면 누리는 쪽이 꼭짓점이고 이음이 변인 유향 그래프다. 기어 다니기는 아주 큰 잣대의 그래프 훑기이며, 꼭짓점이 수십억 개인 데다 그물 늦음, 예의 방침, 곳간 위끝이라는 매임이 걸려 있다.
 
-## The Web Graph
+## 누리 그래프
 
-The web can be modeled as a directed graph $G = (V, E)$:
+누리는 유향 그래프 $G = (V, E)$으로 그릴 수 있다.
 
-- Each URL is a vertex $v \in V$.
-- A hyperlink from page $u$ to page $v$ is a directed edge $(u, v) \in E$.
+- 주소마다 꼭짓점 $v \in V$이다.
+- 쪽 $u$에서 쪽 $v$으로 가는 이음이 유향 변 $(u, v) \in E$이다.
 
-The web graph has specific structural properties:
+누리 그래프에는 남다른 얼개 성질이 있다.
 
-- **Power-law degree distribution**: A few pages have millions of inlinks; most pages have very few.
-- **Bow-tie structure**: A large strongly connected component (SCC) at the core, with pages that link in but not out (IN), pages linked to but not linking back (OUT), and disconnected tendrils.
+- **거듭제곱 법칙 차수 분포**: 몇몇 쪽은 들어오는 이음이 수백만 개이고 거의 모든 쪽은 아주 적다.
+- **나비넥타이 얼개**: 한가운데에 큰 세게 이어진 조각이 있고, 그리로 잇지만 나가지 않는 쪽(IN), 이음을 받지만 되돌려 잇지 않는 쪽(OUT), 그리고 떨어져 나온 덩굴손이 있다.
 
-## Crawl Strategy
+## 기어 다니기 꾀
 
-### BFS Crawling
+### 너비 먼저 기어 다니기
 
-Breadth-first search from a set of **seed URLs** discovers pages level by level:
+**씨앗 주소** 모임에서 너비 먼저 찾기를 하면 쪽을 켜마다 찾아 나간다.
 
-1. Initialize a queue (frontier) with seed URLs.
-2. Dequeue a URL, download the page, extract links.
-3. Enqueue newly discovered URLs (not already seen).
+1. 씨앗 주소로 큐(경계)에 첫 값을 매긴다.
+2. 주소를 빼내어 쪽을 내려받고 이음을 뽑아낸다.
+3. 새로 찾은 주소를 (이미 본 것이 아니면) 큐에 넣는다.
 
-BFS tends to discover high-quality pages first (pages close to well-known seeds).
+너비 먼저는 품질이 높은 쪽을 먼저 찾는 버릇이 있다(잘 알려진 씨앗에 가까운 쪽).
 
-### Priority-Based Crawling
+### 우선순위 바탕 기어 다니기
 
-Replace the FIFO queue with a priority queue. Assign priority based on:
+선입선출 큐를 우선순위 큐로 갈음한다. 다음에 바탕해 우선순위를 매긴다.
 
-- **PageRank estimate**: Crawl important pages first.
-- **Freshness**: Re-crawl pages that change frequently.
-- **Domain diversity**: Avoid over-crawling a single domain.
+- **페이지랭크 어림**: 대수로운 쪽을 먼저 기어 다닌다.
+- **싱싱함**: 자주 바뀌는 쪽을 다시 기어 다닌다.
+- **도메인 여러 갈래**: 한 도메인을 지나치게 기어 다니지 않는다.
 
-## URL Frontier
+## 주소 경계
 
-The URL frontier manages the queue of URLs to visit. At web scale, it must:
+주소 경계는 들를 주소의 큐를 다룬다. 누리 잣대에서는 다음이 있어야 한다.
 
-- **Dedup**: Use a Bloom filter or hash set to avoid revisiting URLs. With $n$ URLs and a Bloom filter of $m$ bits:
-
-$$
-P_{\text{false positive}} \approx \left(1 - e^{-kn/m}\right)^k
-$$
-
-- **Politeness**: Maintain per-domain queues with rate limiting (e.g., one request per second per domain).
-- **Persistence**: Store the frontier on disk since it may contain billions of URLs.
-
-## Politeness and robots.txt
-
-Crawlers must respect `robots.txt` directives and rate-limit requests to each domain. A common policy:
+- **겹침 없애기**: 주소를 다시 들르지 않도록 블룸 필터나 해시 집합을 쓴다. 주소가 $n$개이고 블룸 필터가 $m$비트이면 다음과 같다.
 
 $$
-\text{delay between requests to domain } d = \max(\text{robots\_delay}(d),\; \Delta_{\min})
+P_{\text{거짓 양성}} \approx \left(1 - e^{-kn/m}\right)^k
 $$
 
-where $\Delta_{\min}$ is the crawler's minimum politeness interval (typically 1--10 seconds).
+- **예의**: 도메인마다 큐를 두고 비율을 매어 둔다(보기로 도메인마다 초당 부름 하나).
+- **오래 지님**: 주소가 수십억 개일 수 있으므로 경계를 원반에 갈무리한다.
 
-## Implementation
+## 예의와 robots.txt
+
+기어 다니개는 `robots.txt` 지시를 따르고 도메인마다 부름 비율을 매어야 한다. 흔한 방침은 다음과 같다.
+
+$$
+\text{도메인 } d \text{에 부름 사이의 늦춤} = \max(\text{robots\_delay}(d),\; \Delta_{\min})
+$$
+
+여기서 $\Delta_{\min}$은 기어 다니개의 가장 짧은 예의 사이다(흔히 1~10초).
+
+## 구현
 
 ```python
 """
-Web Crawler -- BFS-based crawl simulation with URL deduplication.
+누리 기어 다니개 -- 주소 겹침 없애기를 곁들인 너비 먼저 기어 다니기 흉내.
 
-Simulates crawling a directed web graph starting from seed URLs,
-using BFS traversal and a visited set for deduplication.
+씨앗 주소에서 시작해 유향 누리 그래프를 너비 먼저로 훑으며
+들른 집합으로 겹침을 없애는 것을 흉내 낸다.
 """
 
 from __future__ import annotations
 from collections import deque
 
 
-# === Simulated Web ============================================================
+# === 흉내 낸 누리 ============================================================
 
 def build_web() -> dict[str, list[str]]:
-    """Create a small simulated web graph."""
+    """작은 흉내 누리 그래프를 만든다."""
     return {
         "seed.com": ["a.com", "b.com", "c.com"],
         "a.com": ["d.com", "e.com"],
@@ -87,12 +87,12 @@ def build_web() -> dict[str, list[str]]:
     }
 
 
-# === BFS Crawler ==============================================================
+# === 너비 먼저 기어 다니개 ====================================================
 
 def bfs_crawl(web: dict[str, list[str]],
               seeds: list[str],
               max_pages: int = 100) -> list[str]:
-    """Crawl using BFS from *seeds*. Returns pages in discovery order."""
+    """*seeds*에서 너비 먼저로 기어 다닌다. 찾은 차례대로 쪽을 돌려준다."""
     visited: set[str] = set()
     frontier: deque[str] = deque()
     crawl_order: list[str] = []
@@ -106,7 +106,7 @@ def bfs_crawl(web: dict[str, list[str]],
         url = frontier.popleft()
         crawl_order.append(url)
 
-        # Extract links from the page
+        # 쪽에서 이음을 뽑아낸다
         links = web.get(url, [])
         for link in links:
             if link not in visited:
@@ -116,12 +116,12 @@ def bfs_crawl(web: dict[str, list[str]],
     return crawl_order
 
 
-# === DFS Crawler ==============================================================
+# === 깊이 먼저 기어 다니개 ====================================================
 
 def dfs_crawl(web: dict[str, list[str]],
               seeds: list[str],
               max_pages: int = 100) -> list[str]:
-    """Crawl using DFS from *seeds*. Returns pages in discovery order."""
+    """*seeds*에서 깊이 먼저로 기어 다닌다. 찾은 차례대로 쪽을 돌려준다."""
     visited: set[str] = set()
     stack: list[str] = list(reversed(seeds))
     crawl_order: list[str] = []
@@ -142,7 +142,7 @@ def dfs_crawl(web: dict[str, list[str]],
     return crawl_order
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     web = build_web()
@@ -161,7 +161,7 @@ if __name__ == "__main__":
         print(f"  {i+1}. {url}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 Web graph: 8 pages
@@ -187,49 +187,49 @@ DFS crawl order (8 pages):
   8. c.com
 ```
 
-BFS discovers pages level by level (all direct links from seed first), which tends to find important pages early. DFS dives deep along one path before backtracking, which can discover deep content sooner but may miss breadth.
+너비 먼저는 쪽을 켜마다 찾으므로(씨앗에서 곧바로 이어진 것을 모두 먼저) 대수로운 쪽을 일찍 찾는 버릇이 있다. 깊이 먼저는 한 길을 깊이 파고든 뒤 되짚어 오므로 깊은 내용을 더 이르게 찾을 수 있으나 너비를 놓칠 수 있다.
 
-## Reference
+## 참고 문헌
 
 - Olston, C. and Najork, M. "Web Crawling." *Foundations and Trends in Information Retrieval*, 2010
 - Manning, C.D., Raghavan, P., and Schutze, H. *Introduction to Information Retrieval*. Cambridge University Press
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Model a web crawler as a graph traversal algorithm. Compare BFS and DFS crawling strategies in terms of page quality and resource usage.
+**연습문제 1.**
+누리 기어 다니개를 그래프 훑기 알고리즘으로 그려라. 너비 먼저와 깊이 먼저 기어 다니기 꾀를 쪽 품질과 자원 쓰임에서 견주어라.
 
-??? success "Solution to Exercise 1"
-    The web is a directed graph: pages are vertices, hyperlinks are edges. **BFS**: uses a FIFO queue of URLs. Discovers pages in order of link distance from seed pages. Tends to visit high-quality pages first (popular pages are linked early). Requires storing the entire frontier in memory (can be very large). **DFS**: uses a LIFO stack. Follows link chains deep before backtracking. May descend into low-quality or infinite-depth subgraphs (e.g., calendar pages with infinitely many dates). Uses less memory (stack depth is bounded by the maximum path length). In practice, crawlers use **priority-based BFS**: the frontier is a priority queue ordered by estimated page importance (e.g., PageRank estimate, domain authority). This combines BFS's breadth with quality-aware ordering. $\square$
-
----
-
-**Exercise 2.**
-A web crawler must respect robots.txt politeness rules, limiting requests to 1 per second per domain. Design a scheduling algorithm that maximizes throughput while respecting this constraint.
-
-??? success "Solution to Exercise 2"
-    Maintain a per-domain queue and a global priority queue of domains. Each domain queue holds pending URLs. The global queue orders domains by their "next allowed request time" (1 second after the last request to that domain). The crawler loop: (1) dequeue the domain with the earliest allowed time. (2) If the current time $\ge$ allowed time, fetch the next URL from that domain's queue. (3) Update the domain's allowed time to now + 1 second. (4) Re-insert the domain into the global queue (or remove it if its URL queue is empty). With $D$ active domains, this achieves throughput of $D$ pages/second (1 page/sec/domain $\times D$ domains in parallel). For $D = 10{,}000$ domains, throughput is 10,000 pages/second. The priority queue operations are $O(\log D)$ per fetch. The key insight: parallelism across domains compensates for the per-domain rate limit. $\square$
+??? success "연습문제 1 풀이"
+    누리는 유향 그래프다. 쪽이 꼭짓점이고 이음이 변이다. **너비 먼저**: 주소의 선입선출 큐를 쓴다. 씨앗 쪽에서의 이음 거리 차례로 쪽을 찾는다. 품질이 높은 쪽을 먼저 들르는 버릇이 있다(인기 있는 쪽이 일찍 이어진다). 온 경계를 기억에 지녀야 한다(아주 클 수 있다). **깊이 먼저**: 후입선출 스택을 쓴다. 이음 사슬을 깊이 따라간 뒤 되짚어 온다. 품질이 낮거나 깊이가 끝없는 밑그래프(보기로 날짜가 끝없이 이어지는 달력 쪽)로 내려갈 수 있다. 기억을 덜 쓴다(스택 깊이가 가장 긴 길 길이로 매인다). 실제로 기어 다니개는 **우선순위 바탕 너비 먼저**를 쓴다. 경계를 어림한 쪽 대수로움(보기로 페이지랭크 어림, 도메인 권위)으로 매긴 우선순위 큐로 둔다. 너비 먼저의 너비와 품질을 살피는 차례를 함께 얻는다. $\square$
 
 ---
 
-**Exercise 3.**
-Explain how a Bloom filter is used in web crawling to avoid revisiting URLs. What happens when the Bloom filter becomes too full?
+**연습문제 2.**
+누리 기어 다니개는 robots.txt의 예의 규칙을 따라 도메인마다 초당 부름 하나로 매어야 한다. 이 매임을 지키면서 처리량을 가장 크게 하는 짜기 알고리즘을 설계하여라.
 
-??? success "Solution to Exercise 3"
-    Before adding a discovered URL to the frontier, the crawler checks a Bloom filter. If the filter says "possibly present," the URL is skipped (already crawled or already in the frontier). If "definitely absent," the URL is added and the filter is updated. With $10^9$ URLs and a 1% false positive rate, the Bloom filter uses $\sim$1.2 GB -- far less than storing $10^9$ full URLs ($\sim$100 GB). When the filter becomes too full (false positive rate exceeds threshold): (1) the crawler may stop discovering new URLs (false positives reject legitimate new URLs). Mitigation: build a new, larger Bloom filter and repopulate it from the canonical URL database. (2) Alternatively, use a scalable Bloom filter that adds new filter segments when the capacity is exceeded, or use a partitioned Bloom filter with independent filters per domain. $\square$
-
----
-
-**Exercise 4.**
-A focused crawler aims to collect pages about "machine learning" rather than crawling the entire web. Describe how link priority and content relevance scoring guide the crawl.
-
-??? success "Solution to Exercise 4"
-    A focused crawler maintains a **relevance classifier** trained on seed pages. For each discovered page: (1) download and extract text. (2) Compute a relevance score (e.g., TF-IDF similarity to the "machine learning" topic model, or a trained classifier's confidence). (3) Extract outgoing links. For each link, estimate its relevance using: the parent page's relevance, the anchor text (if it contains "deep learning," "neural network," etc.), and the link's domain reputation. (4) Add links to the priority queue ordered by estimated relevance. The crawler preferentially follows links from relevant pages with relevant anchor text. This keeps the crawl focused: after a few hops from seed pages, most discovered pages are on-topic. The tradeoff: the crawler may miss relevant pages reachable only through irrelevant intermediaries (the "tunnel" problem). $\square$
+??? success "연습문제 2 풀이"
+    도메인마다 큐를 두고 도메인의 온 세상 우선순위 큐를 지닌다. 도메인 큐마다 아직 안 들른 주소를 담는다. 온 세상 큐는 도메인을 "다음에 부를 수 있는 때"(그 도메인에 마지막으로 부른 뒤 1초)로 매긴다. 기어 다니기 되돌이: (1) 부를 수 있는 때가 가장 이른 도메인을 빼낸다. (2) 지금 때가 부를 수 있는 때 이상이면 그 도메인 큐에서 다음 주소를 가져온다. (3) 그 도메인의 부를 수 있는 때를 지금 + 1초로 고친다. (4) 그 도메인을 온 세상 큐에 다시 넣는다(주소 큐가 비었으면 없앤다). 살아 있는 도메인이 $D$개면 초당 쪽 $D$개의 처리량을 이룬다(도메인마다 초당 1쪽 × 나란한 도메인 $D$개). $D = 10{,}000$이면 초당 1만 쪽이다. 우선순위 큐 연산은 가져오기마다 $O(\log D)$이다. 종요로운 눈길은 이렇다. 도메인을 가로지르는 나란함이 도메인마다의 비율 매임을 메워 준다. $\square$
 
 ---
 
-**Exercise 5.**
-Estimate the storage and bandwidth requirements for crawling 10 billion web pages with an average page size of 50 KB, refreshing the entire crawl every 30 days.
+**연습문제 3.**
+누리 기어 다니기에서 주소를 다시 들르지 않으려 블룸 필터를 쓰는 길을 풀어라. 블룸 필터가 너무 차면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 5"
-    **Storage**: $10^{10} \times 50 \text{ KB} = 5 \times 10^{11} \text{ KB} = 500$ TB raw. With compression (HTML compresses $\sim$5:1): $\sim$100 TB. Plus metadata (URLs, timestamps, HTTP headers): $\sim$10 TB. Total: $\sim$110 TB. **Bandwidth**: $500 \text{ TB} / 30 \text{ days} = 16.7 \text{ TB/day} = 193 \text{ GB/hour} = 430 \text{ Mbps}$ sustained. This is feasible with a cluster of machines, each with a 1 Gbps connection. **Pages per second**: $10^{10} / (30 \times 86400) \approx 3{,}858$ pages/sec. With 1-second politeness delays per domain and $\sim$100 million active domains, only a small fraction of domains are being accessed at any moment. The bottleneck is typically DNS resolution, network latency, and storage write throughput, not raw bandwidth. $\square$
+??? success "연습문제 3 풀이"
+    찾은 주소를 경계에 더하기 앞서 기어 다니개가 블룸 필터를 살핀다. 필터가 "있을 수 있음"이라 하면 그 주소를 건너뛴다(이미 기어 다녔거나 이미 경계에 있다). "틀림없이 없음"이면 주소를 더하고 필터를 고친다. 주소가 $10^9$개이고 거짓 양성률이 1%이면 블룸 필터가 약 1.2 GB를 쓰며, 이는 $10^9$개 온전한 주소를 갈무리하는 약 100 GB보다 훨씬 적다. 필터가 너무 차면(거짓 양성률이 문턱을 넘으면): (1) 기어 다니개가 새 주소를 더는 찾지 못할 수 있다(거짓 양성이 제대로 된 새 주소를 물리친다). 누그러뜨리기: 더 큰 블룸 필터를 새로 세우고 으뜸 주소 데이터베이스에서 다시 채운다. (2) 다른 길로, 용량을 넘으면 필터 토막을 더하는 늘어나는 블룸 필터를 쓰거나 도메인마다 서로 매이지 않은 필터를 두는 나눈 블룸 필터를 쓴다. $\square$
+
+---
+
+**연습문제 4.**
+겨눈 기어 다니개는 누리 전체가 아니라 "기계 배움"에 대한 쪽을 모으려 한다. 이음 우선순위와 내용 걸맞음 점수가 기어 다니기를 이끄는 길을 밝혀라.
+
+??? success "연습문제 4 풀이"
+    겨눈 기어 다니개는 씨앗 쪽으로 익힌 **걸맞음 가름개**를 지닌다. 찾은 쪽마다: (1) 내려받아 글월을 뽑아낸다. (2) 걸맞음 점수를 셈한다(보기로 "기계 배움" 주제 모형과의 TF-IDF 닮음, 또는 익힌 가름개의 믿음). (3) 나가는 이음을 뽑아낸다. 이음마다 그 걸맞음을 어림하는데, 어버이 쪽의 걸맞음, 닻 글월("깊은 배움", "신경망" 따위가 들었는지), 그 이음의 도메인 평판을 쓴다. (4) 어림한 걸맞음으로 매긴 우선순위 큐에 이음을 더한다. 기어 다니개는 걸맞은 쪽에서 걸맞은 닻 글월로 이어진 이음을 앞세워 따라간다. 그래서 기어 다니기가 겨눈 데를 벗어나지 않는다. 씨앗에서 몇 걸음만 가도 찾는 쪽의 거의 모두가 주제에 맞는다. 맞바꿈은 이렇다. 걸맞지 않은 사이 쪽으로만 다다를 수 있는 걸맞은 쪽을 놓칠 수 있다("굴" 문제). $\square$
+
+---
+
+**연습문제 5.**
+쪽 평균 크기가 50 KB인 누리 쪽 100억 개를 기어 다니며 30일마다 온 기어 다니기를 새로 하는 데 드는 곳간과 대역을 어림하여라.
+
+??? success "연습문제 5 풀이"
+    **곳간**: $10^{10} \times 50 \text{ KB} = 5 \times 10^{11} \text{ KB} = 500$ TB이 날 크기다. 옥죄면(HTML은 약 5:1로 옥죄인다) 약 100 TB이다. 여기에 딸림 정보(주소, 때 도장, HTTP 머리말)가 약 10 TB 더 든다. 온통 약 110 TB이다. **대역**: $500 \text{ TB} / 30 \text{일} = 16.7 \text{ TB/일} = 193 \text{ GB/시간} = 430 \text{ Mbps}$을 이어서 내야 한다. 저마다 1 Gbps로 이은 기계 떼로 넉넉히 될 만하다. **초당 쪽**: $10^{10} / (30 \times 86400) \approx 3{,}858$쪽/초. 도메인마다 1초 예의 늦춤을 두고 살아 있는 도메인이 약 1억 개이면, 어느 순간에도 도메인의 아주 적은 몫에만 닿는다. 목을 죄는 것은 날 대역이 아니라 흔히 이름 풀기, 그물 늦음, 곳간 적기 처리량이다. $\square$

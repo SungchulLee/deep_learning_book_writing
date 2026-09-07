@@ -1,124 +1,124 @@
-# PageRank
+# 페이지랭크
 
-Before PageRank, search engines ranked web pages primarily by keyword frequency, which was easily manipulated. Page and Brin (1998) observed that the **link structure** of the web encodes a collective judgment about page quality: a page linked to by many important pages is itself likely important. **PageRank** formalizes this intuition as the stationary distribution of a random walk on the web graph.
+페이지랭크가 나오기 앞서 찾기 엔진은 누리 쪽의 등수를 거의 낱말 잦기로만 매겼고, 그것은 쉽게 주물러졌다. 페이지와 브린(1998)은 누리의 **이음 얼개**가 쪽의 품질에 대한 뭇사람의 판단을 담고 있음을 알아보았다. 대수로운 쪽이 여럿 이어 준 쪽은 그 자신도 대수로울 낌새가 크다. **페이지랭크**는 이 직관을 누리 그래프 위 마구잡이 걸음의 멈춘 분포로 엄밀히 적는다.
 
-## Random Surfer Model
+## 마구잡이 누리꾼 모형
 
-Imagine a random surfer who starts at a random page and at each step:
+아무 쪽에서 시작해 걸음마다 다음처럼 하는 마구잡이 누리꾼을 그려 보자.
 
-- With probability $1 - d$, jumps to a uniformly random page (teleportation).
-- With probability $d$, follows a random outgoing link from the current page.
+- 낌새 $1 - d$으로 고르게 아무 쪽으로 뛴다(순간 옮김).
+- 낌새 $d$으로 지금 쪽에서 나가는 이음 가운데 하나를 아무렇게나 따라간다.
 
-The parameter $d \in (0, 1)$ is the **damping factor** (typically $d = 0.85$). Teleportation ensures the Markov chain is ergodic (irreducible and aperiodic), guaranteeing a unique stationary distribution.
+매개변수 $d \in (0, 1)$은 **눅임 인자**다(흔히 $d = 0.85$). 순간 옮김이 마르코프 사슬을 에르고드하게(줄일 수 없고 주기가 없게) 만들어 멈춘 분포가 하나뿐임을 보장한다.
 
-## Definition
+## 뜻매김
 
-The PageRank of page $i$ in a web graph with $n$ pages is:
+쪽이 $n$개인 누리 그래프에서 쪽 $i$의 페이지랭크는 다음과 같다.
 
 $$
 \text{PR}(i) = \frac{1 - d}{n} + d \sum_{j \in B(i)} \frac{\text{PR}(j)}{L(j)}
 $$
 
-where $B(i)$ is the set of pages linking to $i$, and $L(j)$ is the number of outgoing links from $j$.
+여기서 $B(i)$은 $i$으로 잇는 쪽의 모임이고 $L(j)$은 $j$에서 나가는 이음의 개수다.
 
-In matrix form, with transition matrix $M$ where $M_{ij} = 1/L(j)$ if $j$ links to $i$:
+$j$이 $i$으로 이으면 $M_{ij} = 1/L(j)$인 넘어감 행렬 $M$을 두고 행렬로 적으면 다음과 같다.
 
 $$
 \mathbf{r} = \frac{1 - d}{n} \mathbf{1} + d \, M \, \mathbf{r}
 $$
 
-The PageRank vector $\mathbf{r}$ is the eigenvector of the modified transition matrix corresponding to eigenvalue 1.
+페이지랭크 벡터 $\mathbf{r}$은 고친 넘어감 행렬에서 고윳값 1에 딸린 고유벡터다.
 
-## Power Iteration
+## 거듭제곱 되풀이
 
-PageRank is computed iteratively:
+페이지랭크는 되풀이해 셈한다.
 
-1. Initialize $\mathbf{r}^{(0)} = \frac{1}{n} \mathbf{1}$.
-2. Repeat: $\mathbf{r}^{(t+1)} = \frac{1-d}{n} \mathbf{1} + d \, M \, \mathbf{r}^{(t)}$.
-3. Stop when $\|\mathbf{r}^{(t+1)} - \mathbf{r}^{(t)}\|_1 < \epsilon$.
+1. $\mathbf{r}^{(0)} = \frac{1}{n} \mathbf{1}$으로 첫 값을 매긴다.
+2. 되풀이한다: $\mathbf{r}^{(t+1)} = \frac{1-d}{n} \mathbf{1} + d \, M \, \mathbf{r}^{(t)}$.
+3. $\|\mathbf{r}^{(t+1)} - \mathbf{r}^{(t)}\|_1 < \epsilon$이면 멈춘다.
 
-**Convergence rate**: The spectral gap of the transition matrix with damping is at least $1 - d$, so convergence is geometric:
+**모이는 빠르기**: 눅임을 둔 넘어감 행렬의 스펙트럼 틈이 적어도 $1 - d$이므로 기하로 모인다.
 
 $$
 \|\mathbf{r}^{(t)} - \mathbf{r}^*\|_1 \le d^t
 $$
 
-With $d = 0.85$, about 50 iterations suffice for convergence to $10^{-7}$.
+$d = 0.85$이면 $10^{-7}$까지 모이는 데 되풀이 50번쯤이면 넉넉하다.
 
-**Per-iteration cost**: $O(|E|)$ where $|E|$ is the number of edges (links).
+**되풀이마다 비용**: 이음(변)의 개수를 $|E|$이라 할 때 $O(|E|)$이다.
 
-## Dangling Nodes
+## 매달린 마디
 
-Pages with no outgoing links (dangling nodes) would absorb all probability mass. The standard fix redistributes their mass uniformly:
+나가는 이음이 없는 쪽(매달린 마디)은 온 낌새 무게를 빨아들인다. 여느 고침은 그 무게를 고르게 다시 나눈다.
 
 $$
-M'_{ij} = \begin{cases} 1/L(j) & \text{if } L(j) > 0 \\ 1/n & \text{if } L(j) = 0 \end{cases}
+M'_{ij} = \begin{cases} 1/L(j) & L(j) > 0 \text{일 때} \\ 1/n & L(j) = 0 \text{일 때} \end{cases}
 $$
 
-!!! tip "Personalized PageRank"
-    Replace the uniform teleportation vector $\frac{1}{n}\mathbf{1}$ with a personalized preference vector $\mathbf{v}$ to bias rankings toward topics of interest. This is the basis of recommendation systems and topic-specific search.
+!!! tip "맞춤 페이지랭크"
+    고른 순간 옮김 벡터 $\frac{1}{n}\mathbf{1}$을 맞춤 즐김 벡터 $\mathbf{v}$으로 갈음하면 관심 있는 주제 쪽으로 등수를 기울일 수 있다. 이것이 추천 시스템과 주제에 딸린 찾기의 바탕이다.
 
-## Implementation
+## 구현
 
 ```python
 """
-PageRank -- power iteration on a web graph.
+페이지랭크 -- 누리 그래프 위의 거듭제곱 되풀이.
 
-Computes the stationary distribution of the random surfer model
-using iterative matrix-vector multiplication with damping.
+눅임을 곁들인 행렬-벡터 곱을 되풀이해 마구잡이 누리꾼 모형의
+멈춘 분포를 셈한다.
 """
 
 from __future__ import annotations
 
 
-# === PageRank =================================================================
+# === 페이지랭크 ===============================================================
 
 def pagerank(graph: dict[int, list[int]], damping: float = 0.85,
              max_iter: int = 100, tol: float = 1e-8) -> dict[int, float]:
-    """Compute PageRank scores via power iteration.
+    """거듭제곱 되풀이로 페이지랭크 점수를 셈한다.
 
-    Parameters
+    매개변수
     ----------
-    graph : adjacency list (node -> list of outgoing neighbors)
-    damping : damping factor d
-    max_iter : maximum iterations
-    tol : convergence threshold (L1 norm)
+    graph : 이웃 목록(마디 -> 나가는 이웃의 목록)
+    damping : 눅임 인자 d
+    max_iter : 되풀이의 최대 횟수
+    tol : 모임 문턱(L1 노름)
 
-    Returns
+    돌려주는 값
     -------
-    Dictionary mapping each node to its PageRank score.
+    마디마다 그 페이지랭크 점수를 맞댄 사전.
     """
     nodes = sorted(graph.keys())
     n = len(nodes)
     node_idx = {node: i for i, node in enumerate(nodes)}
 
-    # Initialize uniform
+    # 고르게 첫 값을 매긴다
     pr = [1.0 / n] * n
 
-    # Precompute out-degrees
+    # 나가는 차수를 미리 셈한다
     out_degree = [len(graph.get(node, [])) for node in nodes]
 
     for iteration in range(max_iter):
         new_pr = [(1.0 - damping) / n] * n
 
-        # Collect dangling node mass
+        # 매달린 마디의 무게를 모은다
         dangling_mass = sum(pr[i] for i in range(n) if out_degree[i] == 0)
 
         for i, node in enumerate(nodes):
-            # Distribute dangling mass uniformly
+            # 매달린 무게를 고르게 나눈다
             new_pr[i] += damping * dangling_mass / n
 
-            # Add contributions from incoming links
-            # (iterate over all nodes, check if they link to node)
+            # 들어오는 이음의 이바지를 더한다
+            # (온 마디를 돌며 그 마디로 잇는지 살핀다)
 
-        # More efficient: iterate over edges
+        # 더 값싼 길: 변을 돌며 셈한다
         for j, source in enumerate(nodes):
             if out_degree[j] > 0:
                 share = damping * pr[j] / out_degree[j]
                 for target in graph[source]:
                     new_pr[node_idx[target]] += share
 
-        # Check convergence
+        # 모였는지 살핀다
         diff = sum(abs(new_pr[i] - pr[i]) for i in range(n))
         pr = new_pr
         if diff < tol:
@@ -127,10 +127,10 @@ def pagerank(graph: dict[int, list[int]], damping: float = 0.85,
     return {nodes[i]: pr[i] for i in range(n)}
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
-    # Small web graph
+    # 작은 누리 그래프
     web = {
         0: [1, 2],
         1: [2],
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     print(f"\nSum of scores: {total:.6f} (should be ~1.0)")
 ```
 
-**Output:**
+**출력:**
 
 ```
 PageRank scores (d=0.85):
@@ -160,49 +160,49 @@ PageRank scores (d=0.85):
 Sum of scores: 0.847547 (should be ~1.0)
 ```
 
-Page 2 has the highest PageRank because it receives links from three other pages. Page 3, which has outgoing links but no incoming ones (except from teleportation), has the lowest score. The scores sum close to 1.0, with the deficit accounted for by the teleportation probability to the dangling node.
+쪽 2가 다른 쪽 셋에서 이음을 받으므로 페이지랭크가 가장 높다. 나가는 이음은 있으나 (순간 옮김 말고는) 들어오는 이음이 없는 쪽 3이 점수가 가장 낮다. 점수의 합이 1.0에 가까우며, 모자란 몫은 매달린 마디로 가는 순간 옮김 낌새 때문이다.
 
-## Reference
+## 참고 문헌
 
 - Page, L., Brin, S., Motwani, R., and Winograd, T. "The PageRank Citation Ranking: Bringing Order to the Web." Stanford Technical Report, 1998
 - Langville, A.N. and Meyer, C.D. *Google's PageRank and Beyond*. Princeton University Press, 2006
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Compute the PageRank of a 4-page web with links: A->B, A->C, B->C, C->A, D->C. Use damping factor $d = 0.85$ and iterate until convergence (3 iterations).
+**연습문제 1.**
+이음이 A->B, A->C, B->C, C->A, D->C인 쪽 넷의 누리에서 페이지랭크를 셈하여라. 눅임 인자 $d = 0.85$으로 모일 때까지 되풀이하여라(3번).
 
-??? success "Solution to Exercise 1"
-    Initialize: $PR(A) = PR(B) = PR(C) = PR(D) = 0.25$. Iteration 1: $PR(A) = (1-0.85)/4 + 0.85 \times PR(C)/1 = 0.0375 + 0.85 \times 0.25 = 0.25$. $PR(B) = 0.0375 + 0.85 \times PR(A)/2 = 0.0375 + 0.85 \times 0.125 = 0.144$. $PR(C) = 0.0375 + 0.85 \times (PR(A)/2 + PR(B)/1 + PR(D)/1) = 0.0375 + 0.85 \times (0.125 + 0.25 + 0.25) = 0.0375 + 0.531 = 0.569$. $PR(D) = 0.0375 + 0$ (no incoming links) $= 0.0375$. After 3 iterations, values stabilize near: $PR(C) \approx 0.46$ (highest, receives 3 incoming links), $PR(A) \approx 0.28$ (linked from C), $PR(B) \approx 0.16$, $PR(D) \approx 0.04$ (no incoming links, only receives the $(1-d)/N$ baseline). $\square$
-
----
-
-**Exercise 2.**
-Explain the damping factor $d$ in the PageRank formula and what happens at the extremes $d = 0$ and $d = 1$.
-
-??? success "Solution to Exercise 2"
-    The PageRank formula is $PR(i) = (1-d)/N + d \sum_{j \to i} PR(j) / L(j)$ where $L(j)$ is the number of outgoing links from $j$, and $N$ is the total number of pages. At $d = 0$: $PR(i) = 1/N$ for all $i$. All pages have equal rank regardless of link structure. The random surfer never follows links. At $d = 1$: no random jumps. The surfer always follows links. PageRank becomes the stationary distribution of a pure random walk on the link graph. Problem: if the graph has absorbing components (dangling nodes with no outlinks, or closed cycles), the walk gets trapped and PageRank does not converge or is not unique. $d = 0.85$ (the standard value) balances: 85% of the time follow links (link structure matters), 15% teleport to a random page (ensures convergence and prevents rank sinks). $\square$
+??? success "연습문제 1 풀이"
+    첫 값: $PR(A) = PR(B) = PR(C) = PR(D) = 0.25$. 1번째 되풀이: $PR(A) = (1-0.85)/4 + 0.85 \times PR(C)/1 = 0.0375 + 0.85 \times 0.25 = 0.25$. $PR(B) = 0.0375 + 0.85 \times PR(A)/2 = 0.0375 + 0.85 \times 0.125 = 0.144$. $PR(C) = 0.0375 + 0.85 \times (PR(A)/2 + PR(B)/1 + PR(D)/1) = 0.0375 + 0.85 \times (0.125 + 0.25 + 0.25) = 0.0375 + 0.531 = 0.569$. $PR(D) = 0.0375 + 0$(들어오는 이음이 없다) $= 0.0375$. 3번 되풀이하면 값이 다음 언저리로 잦아든다. $PR(C) \approx 0.46$(가장 높다. 들어오는 이음이 셋), $PR(A) \approx 0.28$(C에서 이어진다), $PR(B) \approx 0.16$, $PR(D) \approx 0.04$(들어오는 이음이 없어 $(1-d)/N$ 밑값만 받는다). $\square$
 
 ---
 
-**Exercise 3.**
-Prove that the PageRank power iteration converges for any web graph when $0 < d < 1$.
+**연습문제 2.**
+페이지랭크 식의 눅임 인자 $d$을 풀고 끝점 $d = 0$과 $d = 1$에서 무슨 일이 생기는지 밝혀라.
 
-??? success "Solution to Exercise 3"
-    The PageRank equation can be written in matrix form: $\mathbf{r} = (1-d)/N \cdot \mathbf{1} + d \cdot M \mathbf{r}$ where $M$ is the column-stochastic transition matrix (with dangling nodes handled by redistributing their rank uniformly). The matrix $G = (1-d)/N \cdot \mathbf{1}\mathbf{1}^T + d \cdot M$ is the Google matrix. It is stochastic (columns sum to 1), irreducible (the $(1-d)$ teleportation connects all nodes), and aperiodic (self-loops via teleportation). By the Perron-Frobenius theorem, a stochastic, irreducible, aperiodic matrix has a unique stationary distribution, and power iteration converges to it. The convergence rate is governed by the second-largest eigenvalue, which is at most $d = 0.85$. Therefore, the error decreases by a factor of at least $0.85$ per iteration, and $\sim$50 iterations suffice for convergence to machine precision ($0.85^{50} \approx 10^{-4}$). $\square$
-
----
-
-**Exercise 4.**
-Dangling nodes (pages with no outgoing links) are problematic for PageRank. Explain why and describe how they are handled.
-
-??? success "Solution to Exercise 4"
-    A dangling node absorbs rank: it receives PageRank from incoming links but has no outgoing links to distribute it. In the matrix formulation, its column in $M$ is all zeros, making $M$ non-stochastic (column does not sum to 1). This causes the total rank to "leak" -- each iteration reduces the total PageRank. Solution: treat dangling nodes as if they link to all pages (uniform redistribution). Replace the zero column with $1/N$ in every entry. This makes $M$ stochastic. The adjusted formula becomes: for dangling node $j$, $PR(j)$'s rank is distributed uniformly to all $N$ pages. Equivalently: after each iteration, compute the total leaked rank from all dangling nodes and redistribute it uniformly. This is a rank-one correction to the matrix and does not change the $O(N)$ per-iteration cost. $\square$
+??? success "연습문제 2 풀이"
+    페이지랭크 식은 $PR(i) = (1-d)/N + d \sum_{j \to i} PR(j) / L(j)$이며 $L(j)$은 $j$에서 나가는 이음의 개수, $N$은 온 쪽 개수다. $d = 0$이면 모든 $i$에 대해 $PR(i) = 1/N$이다. 이음 얼개와 상관없이 온 쪽의 등수가 같다. 마구잡이 누리꾼이 이음을 결코 따라가지 않는다. $d = 1$이면 아무렇게나 뛰지 않는다. 누리꾼이 늘 이음만 따라간다. 페이지랭크가 이음 그래프 위 순수 마구잡이 걸음의 멈춘 분포가 된다. 걸림돌: 그래프에 빨아들이는 조각(나가는 이음이 없는 매달린 마디나 닫힌 돌림)이 있으면 걸음이 갇혀 페이지랭크가 모이지 않거나 하나로 정해지지 않는다. (여느 값인) $d = 0.85$은 저울을 맞춘다. 100번 가운데 85번은 이음을 따라가고(이음 얼개가 대수롭다) 15번은 아무 쪽으로 뛴다(모임을 지키고 등수가 고이는 것을 막는다). $\square$
 
 ---
 
-**Exercise 5.**
-PageRank can be manipulated by "link farms" (networks of pages linking to a target page to boost its rank). Describe how search engines detect and mitigate this manipulation.
+**연습문제 3.**
+$0 < d < 1$일 때 아무 누리 그래프에서든 페이지랭크의 거듭제곱 되풀이가 모임을 증명하여라.
 
-??? success "Solution to Exercise 5"
-    Detection: (1) **Graph analysis**: link farms create dense bipartite subgraphs (many pages in the farm linking to one target). Algorithms like TrustRank identify suspicious graph patterns by propagating trust from a small set of manually verified "seed" pages. Pages receiving high PageRank but low TrustRank are suspicious. (2) **Statistical anomalies**: link farms produce unnatural patterns: many links from new/low-quality domains, links without reciprocal edges, pages with no content but many outlinks. Machine learning classifiers detect these features. Mitigation: (1) **Discount or ignore** links from identified farm pages. (2) **TrustRank**: weight links from trusted pages more heavily than unknown pages. (3) **Penalties**: demote pages that receive links from known spam networks. (4) **Content-based signals**: reduce reliance on link-based ranking, incorporating content quality, user engagement, and other signals that are harder to manipulate. $\square$
+??? success "연습문제 3 풀이"
+    페이지랭크 식은 행렬로 $\mathbf{r} = (1-d)/N \cdot \mathbf{1} + d \cdot M \mathbf{r}$으로 적을 수 있다. 여기서 $M$은 (매달린 마디의 등수를 고르게 다시 나누어 다룬) 칸 확률 넘어감 행렬이다. 행렬 $G = (1-d)/N \cdot \mathbf{1}\mathbf{1}^T + d \cdot M$이 구글 행렬이다. 이 행렬은 확률 행렬이고(칸의 합이 1) 줄일 수 없으며($(1-d)$ 순간 옮김이 온 마디를 잇는다) 주기가 없다(순간 옮김으로 제 자신 고리가 생긴다). 페론-프로베니우스 정리에 따라 줄일 수 없고 주기가 없는 확률 행렬에는 멈춘 분포가 하나뿐이고 거듭제곱 되풀이가 그리로 모인다. 모이는 빠르기는 두 번째로 큰 고윳값이 다스리며 그 값은 많아야 $d = 0.85$이다. 따라서 되풀이마다 잘못이 적어도 $0.85$배로 줄고, 기계 자릿수까지 모이는 데 되풀이 50번쯤이면 넉넉하다($0.85^{50} \approx 10^{-4}$). $\square$
+
+---
+
+**연습문제 4.**
+매달린 마디(나가는 이음이 없는 쪽)는 페이지랭크에 골칫거리다. 그 까닭과 다루는 길을 밝혀라.
+
+??? success "연습문제 4 풀이"
+    매달린 마디는 등수를 빨아들인다. 들어오는 이음에서 페이지랭크를 받지만 나눠 줄 나가는 이음이 없다. 행렬로 적으면 $M$에서 그 칸이 온통 0이 되어 $M$이 확률 행렬이 아니게 된다(칸의 합이 1이 아니다). 그래서 온 등수가 "새어" 되풀이마다 온 페이지랭크가 줄어든다. 푸는 길: 매달린 마디가 온 쪽으로 잇는 것처럼 다룬다(고르게 다시 나누기). 0인 칸을 온 항목이 $1/N$인 것으로 갈음한다. 이러면 $M$이 확률 행렬이 된다. 고친 식에서는 매달린 마디 $j$의 $PR(j)$ 등수가 온 $N$개 쪽에 고르게 나뉜다. 같은 뜻으로, 되풀이마다 매달린 마디에서 새어 나온 온 등수를 셈해 고르게 다시 나눈다. 이는 행렬에 대한 등수 1 바로잡기이며 되풀이마다 드는 $O(N)$ 비용을 바꾸지 않는다. $\square$
+
+---
+
+**연습문제 5.**
+페이지랭크는 "이음 농장"(어떤 쪽의 등수를 올리려 그리로 잇는 쪽의 그물)으로 주무를 수 있다. 찾기 엔진이 이 주무름을 알아내고 누그러뜨리는 길을 밝혀라.
+
+??? success "연습문제 5 풀이"
+    알아내기: (1) **그래프 살피기**: 이음 농장은 빽빽한 두 쪽 그래프를 만든다(농장의 많은 쪽이 겨눈 쪽 하나로 잇는다). TrustRank 같은 알고리즘은 손으로 살핀 적은 "씨앗" 쪽에서 믿음을 퍼뜨려 수상한 그래프 결을 가려낸다. 페이지랭크는 높은데 TrustRank가 낮은 쪽이 수상하다. (2) **통계로 어긋난 것**: 이음 농장은 자연스럽지 않은 결을 낳는다. 새롭거나 품질이 낮은 도메인에서 오는 이음이 많고, 서로 주고받지 않는 이음이며, 내용은 없는데 나가는 이음만 많은 쪽이 그러하다. 기계 배움 가름개가 이런 특징을 잡아낸다. 누그러뜨리기: (1) 농장으로 가려낸 쪽에서 오는 이음을 **깎거나 눈여겨보지 않는다**. (2) **TrustRank**: 믿을 만한 쪽에서 오는 이음에 더 큰 무게를 준다. (3) **벌**: 알려진 쓰레기 그물에서 이음을 받는 쪽의 등수를 낮춘다. (4) **내용 바탕 신호**: 이음 바탕 등수 매기기에 덜 기대고, 주무르기 어려운 내용 품질과 쓰는 이의 반응 같은 신호를 함께 넣는다. $\square$

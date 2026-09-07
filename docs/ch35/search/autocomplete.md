@@ -1,26 +1,26 @@
-# Autocomplete with Tries
+# 트라이로 하는 자동 채우기
 
-Autocomplete is one of the most visible applications of the trie data structure. When a user types a prefix into a search box, the system must rapidly retrieve all stored strings (or the top-ranked ones) that begin with that prefix. A trie handles this naturally: navigate to the node corresponding to the prefix in $O(p)$ time, then collect all descendants. This section explains the algorithm, analyzes its complexity, and provides a complete implementation.
+자동 채우기는 트라이 자료 얼개가 가장 눈에 띄게 쓰이는 자리 가운데 하나다. 쓰는 이가 찾기 칸에 앞가지를 치면 시스템은 그 앞가지로 시작하는 온 글자열(또는 등수가 높은 것)을 빠르게 되찾아야 한다. 트라이는 이를 절로 다룬다. 앞가지에 맞는 마디까지 $O(p)$ 때에 가고 그 밑의 자손을 모두 모으면 된다. 이 절은 그 알고리즘을 풀고 복잡도를 살피며 온전한 구현을 준다.
 
-## Algorithm
+## 알고리즘
 
-Autocomplete via trie proceeds in three steps:
+트라이로 하는 자동 채우기는 세 걸음으로 나아간다.
 
-1. **Navigate to the prefix node**: Starting from the root, follow the path for each character of the prefix. If the path breaks, return an empty result.
-2. **Collect all completions**: From the prefix node, perform a DFS (or BFS) to enumerate every path that leads to a word-endpoint node.
-3. **Rank results** (optional): Sort completions by frequency, recency, or relevance score stored at each endpoint node.
+1. **앞가지 마디로 가기**: 뿌리에서 시작해 앞가지의 글자마다 길을 따라간다. 길이 끊기면 빈 열매를 돌려준다.
+2. **온 채움 모으기**: 앞가지 마디에서 깊이 먼저 훑기(또는 너비 먼저 훑기)로 낱말 끝점 마디에 이르는 온 길을 죽 늘어놓는다.
+3. **열매에 등수 매기기**(고를 수 있음): 끝점 마디에 갈무리한 잦기, 최근성, 걸맞음 점수로 채움을 매긴다.
 
-## Implementation
+## 구현
 
 ```python
-"""Autocomplete system using a trie data structure.
+"""트라이 자료 얼개를 쓰는 자동 채우기 시스템.
 
-Stores words with associated frequency counts and returns
-completions ranked by frequency.
+낱말을 잦기 셈과 함께 갈무리하고 잦기로 등수를 매긴 채움을
+돌려준다.
 """
 
 
-# === Trie Node and Autocomplete Trie ===
+# === 트라이 마디와 자동 채우기 트라이 ===
 class TrieNode:
     def __init__(self):
         self.children = {}
@@ -33,7 +33,7 @@ class AutocompleteTrie:
         self.root = TrieNode()
 
     def insert(self, word, freq=1):
-        """Insert a word with an associated frequency."""
+        """낱말을 그에 딸린 잦기와 함께 넣는다."""
         node = self.root
         for c in word:
             if c not in node.children:
@@ -43,7 +43,7 @@ class AutocompleteTrie:
         node.freq += freq
 
     def autocomplete(self, prefix, limit=5):
-        """Return up to `limit` completions for the given prefix, sorted by frequency."""
+        """주어진 앞가지에 대해 잦기로 매긴 채움을 `limit`개까지 돌려준다."""
         node = self.root
         for c in prefix:
             if c not in node.children:
@@ -61,7 +61,7 @@ class AutocompleteTrie:
             self._collect(child, path + c, results)
 
 
-# === Main ===
+# === 메인 ===
 if __name__ == "__main__":
     trie = AutocompleteTrie()
     for word, freq in [("apple", 50), ("app", 30), ("application", 20),
@@ -73,64 +73,64 @@ if __name__ == "__main__":
     print("Prefix 'xyz':", trie.autocomplete("xyz"))
 ```
 
-**Output:**
+**출력:**
 ```
 Prefix 'app': ['apple', 'app', 'application']
 Prefix 'ba': ['banana', 'ball', 'bat']
 Prefix 'xyz': []
 ```
 
-## Complexity
+## 복잡도
 
-| Phase | Time |
+| 마디 | 때 |
 |:---|:---:|
-| Navigate to prefix | $O(p)$ |
-| Collect all completions | $O(k)$ |
-| Sort by frequency | $O(k \log k)$ |
-| **Total** | $O(p + k \log k)$ |
+| 앞가지로 가기 | $O(p)$ |
+| 온 채움 모으기 | $O(k)$ |
+| 잦기로 매기기 | $O(k \log k)$ |
+| **온통** | $O(p + k \log k)$ |
 
-Here $p$ is the prefix length and $k$ is the total size of all matching words. In practice, $k$ is bounded by the vocabulary size, and the sort can be avoided entirely by maintaining a priority queue or precomputed top-$k$ list at each node.
+여기서 $p$은 앞가지 길이이고 $k$은 들어맞는 온 낱말의 크기다. 실제로 $k$은 낱말 모임 크기로 매이며, 마디마다 우선순위 큐나 미리 셈한 위 $k$개 목록을 지니면 매기기를 아예 없앨 수 있다.
 
-## References
+## 참고 문헌
 
 [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-A trie stores the words "cat", "car", "card", "care", "dog", "do". Draw the trie and trace the autocomplete query for prefix "car".
+**연습문제 1.**
+어떤 트라이가 낱말 "cat", "car", "card", "care", "dog", "do"을 갈무리한다. 그 트라이를 그리고 앞가지 "car"에 대한 자동 채우기 물음을 따라가라.
 
-??? success "Solution to Exercise 1"
-    Trie structure: root -> c -> a -> t($), r($) -> d($), e($); root -> d -> o($) -> g($). (where $ marks end of word). For prefix "car": navigate root -> c -> a -> r. From the "r" node, collect all descendants with end-of-word markers: "car" (r is marked), "card" (r -> d, marked), "care" (r -> e, marked). Result: ["car", "card", "care"]. The navigation takes $O(|prefix|) = O(3)$ steps, and collecting descendants takes $O(k)$ where $k$ is the number of results (here 3). $\square$
-
----
-
-**Exercise 2.**
-Analyze the time and space complexity of autocomplete using a trie with $n$ total characters across all stored strings. How does it compare to binary search on a sorted array?
-
-??? success "Solution to Exercise 2"
-    **Trie**: space $O(n \times |\Sigma|)$ where $|\Sigma|$ is the alphabet size (each node has up to $|\Sigma|$ child pointers). With hash maps at each node: $O(n)$ space. Autocomplete query for prefix $p$ with $k$ results: $O(|p| + k)$ time ($|p|$ to navigate, $k$ to collect results via DFS). **Sorted array + binary search**: space $O(n)$. Autocomplete: binary search for the first string $\ge p$ in $O(|p| \log m)$ where $m$ is the number of strings, then scan forward collecting $k$ results in $O(k \cdot |p|)$ for comparisons. Total: $O(|p| \log m + k \cdot |p|)$. The trie is faster for autocomplete by a factor of $\log m$ in the navigation phase and avoids repeated string comparisons. The sorted array uses less space and supports efficient rank queries. $\square$
+??? success "연습문제 1 풀이"
+    트라이 얼개: 뿌리 -> c -> a -> t($), r($) -> d($), e($); 뿌리 -> d -> o($) -> g($). ($은 낱말 끝을 뜻한다.) 앞가지 "car"에 대해 뿌리 -> c -> a -> r으로 간다. "r" 마디에서 낱말 끝 표시가 있는 자손을 모두 모은다. "car"(r에 표시가 있다), "card"(r -> d에 표시), "care"(r -> e에 표시)다. 열매: ["car", "card", "care"]. 길 따라가기가 $O(|앞가지|) = O(3)$ 걸음이고 자손 모으기가 $O(k)$이며 여기서 $k$은 열매 개수(여기서는 3)다. $\square$
 
 ---
 
-**Exercise 3.**
-Design an autocomplete system that returns the top-$k$ results by popularity. What augmentation does the trie need?
+**연습문제 2.**
+갈무리한 온 글자열의 글자가 모두 $n$개일 때 트라이로 하는 자동 채우기의 때와 자리 복잡도를 살펴라. 매긴 배열에 두 갈래 찾기를 하는 것과 견주면 어떠한가?
 
-??? success "Solution to Exercise 3"
-    Augment each trie node with a priority queue (min-heap) of the top-$k$ completions reachable from that node, along with their popularity scores. During trie construction: for each word inserted, propagate its score up to all ancestor nodes, maintaining only the top $k$ at each node. Autocomplete query: navigate to the prefix node in $O(|p|)$ and return the stored top-$k$ list in $O(k)$. Space overhead: $O(n \cdot k)$ where $n$ is the number of trie nodes. Update cost when a word's popularity changes: propagate from the word's leaf up to the root, updating each ancestor's top-$k$ heap in $O(k)$ per node, for $O(|w| \cdot k)$ total per update. This precomputation makes queries extremely fast at the cost of higher update cost and memory. $\square$
-
----
-
-**Exercise 4.**
-Explain how a ternary search tree (TST) reduces the space overhead of a trie while maintaining efficient prefix lookups.
-
-??? success "Solution to Exercise 4"
-    A standard trie node has $|\Sigma|$ child pointers (e.g., 26 for lowercase English), most of which are null in sparse tries. A ternary search tree replaces the $|\Sigma|$-way branch with a binary search tree at each level: each node stores one character and three pointers (less-than, equal, greater-than). Lookup at a node: if the query character equals the node's character, follow the "equal" pointer (advance to next character in the query). If less, follow "less-than" (same position in query, different character). If greater, follow "greater-than." Space: each stored character uses one node with 3 pointers (vs. one node with $|\Sigma|$ pointers in a trie). For sparse tries, the TST uses significantly less memory. Prefix lookup: $O(|p| + \log |\Sigma|)$ per character (the BST at each level costs $O(\log |\Sigma|)$). For $|\Sigma| = 26$: $\log 26 \approx 5$ extra comparisons per character, a modest overhead. $\square$
+??? success "연습문제 2 풀이"
+    **트라이**: 자리가 $O(n \times |\Sigma|)$이며 $|\Sigma|$은 글자 모임 크기다(마디마다 자식 손가락질을 $|\Sigma|$개까지 지닌다). 마디마다 해시 표를 쓰면 $O(n)$ 자리다. 앞가지 $p$에 대해 열매가 $k$개인 자동 채우기 물음은 $O(|p| + k)$ 때다($|p|$은 길 따라가기, $k$은 깊이 먼저 훑기로 열매 모으기). **매긴 배열 + 두 갈래 찾기**: 자리가 $O(n)$이다. 자동 채우기는 $p$ 이상인 첫 글자열을 $O(|p| \log m)$에 두 갈래로 찾고(여기서 $m$은 글자열 개수) 앞으로 훑으며 열매 $k$개를 모으는 데 견줌 비용으로 $O(k \cdot |p|)$이 든다. 온통 $O(|p| \log m + k \cdot |p|)$이다. 트라이는 길 따라가기 마디에서 $\log m$만큼 빠르고 글자열을 되풀이 견주는 일을 비껴간다. 매긴 배열은 자리를 덜 쓰고 등수 물음을 값싸게 받쳐 준다. $\square$
 
 ---
 
-**Exercise 5.**
-A search engine processes 10,000 autocomplete queries per second, each with a prefix of average length 5. The dictionary has 10 million words. Estimate the memory and compute requirements.
+**연습문제 3.**
+인기로 위 $k$개 열매를 돌려주는 자동 채우기 시스템을 설계하여라. 트라이에 어떤 덧붙임이 있어야 하는가?
 
-??? success "Solution to Exercise 5"
-    **Memory**: with 10 million words of average length 8 characters, total characters = $8 \times 10^7$. Trie nodes: roughly $5 \times 10^7$ (many words share prefixes). Each node: 1 byte (character) + 8 bytes (child pointer or hash map entry) + 1 byte (end flag) $\approx 10$ bytes. Total: $5 \times 10^8$ bytes $= 500$ MB. With top-10 precomputed results per node (8 bytes each): additional $5 \times 10^7 \times 80 = 4$ GB. A compressed trie (DAFSA/DAWG) can reduce the base structure to $\sim$100 MB. **Compute**: each query navigates 5 nodes + returns top-10 results $\approx 15$ memory accesses. At $\sim$10 ns per L3 cache hit: $150$ ns per query. For 10,000 qps: $1.5$ ms total CPU time per second -- trivially handled by one core. The bottleneck is memory bandwidth, not computation. $\square$
+??? success "연습문제 3 풀이"
+    트라이 마디마다 그 마디에서 다다를 수 있는 위 $k$개 채움과 인기 점수를 담은 우선순위 큐(가장 작은 더미)를 덧붙인다. 트라이를 세울 때 낱말을 넣을 때마다 그 점수를 온 조상 마디로 올려 보내며 마디마다 위 $k$개만 지킨다. 자동 채우기 물음은 앞가지 마디로 $O(|p|)$에 가서 갈무리한 위 $k$개 목록을 $O(k)$에 돌려준다. 자리 덧듦은 $O(n \cdot k)$이며 여기서 $n$은 트라이 마디 개수다. 낱말의 인기가 바뀔 때 고치는 비용은 그 낱말의 잎에서 뿌리까지 올라가며 조상마다 위 $k$개 더미를 $O(k)$에 고치므로 고침마다 온통 $O(|w| \cdot k)$이다. 이렇게 미리 셈해 두면 물음이 아주 빨라지지만 고치는 비용과 기억이 는다. $\square$
+
+---
+
+**연습문제 4.**
+삼진 찾기 나무(TST)가 앞가지 찾기의 값싼 됨됨이를 지키면서 트라이의 자리 덧듦을 줄이는 길을 풀어라.
+
+??? success "연습문제 4 풀이"
+    여느 트라이 마디는 자식 손가락질을 $|\Sigma|$개(보기로 영어 소문자 26개) 지니며, 성긴 트라이에서는 그 가운데 거의 모두가 널이다. 삼진 찾기 나무는 켜마다 $|\Sigma|$ 갈래 나뉨을 이진 찾기 나무로 갈음한다. 마디마다 글자 하나와 손가락질 셋(작음, 같음, 큼)을 갈무리한다. 마디에서 찾기: 물음 글자가 마디의 글자와 같으면 "같음" 손가락질을 따라간다(물음의 다음 글자로 나아간다). 작으면 "작음"을 따라간다(물음의 자리는 그대로, 글자만 다르다). 크면 "큼"을 따라간다. 자리: 갈무리한 글자마다 손가락질 셋을 지닌 마디 하나를 쓴다(트라이는 $|\Sigma|$개 손가락질을 지닌 마디 하나를 쓴다). 성긴 트라이에서 삼진 찾기 나무는 기억을 크게 아낀다. 앞가지 찾기: 글자마다 $O(|p| + \log |\Sigma|)$이다(켜마다 이진 찾기 나무에 $O(\log |\Sigma|)$이 든다). $|\Sigma| = 26$이면 글자마다 $\log 26 \approx 5$번을 더 견주는 알맞은 덧듦이다. $\square$
+
+---
+
+**연습문제 5.**
+어떤 찾기 엔진이 초당 자동 채우기 물음 1만 개를 다루며 앞가지 길이는 평균 5이다. 낱말 사전에는 낱말이 1000만 개 있다. 기억과 셈의 요구를 어림하여라.
+
+??? success "연습문제 5 풀이"
+    **기억**: 평균 길이 8글자인 낱말 1000만 개라면 온 글자가 $8 \times 10^7$개다. 트라이 마디는 대략 $5 \times 10^7$개다(많은 낱말이 앞가지를 함께 쓴다). 마디마다 글자 1바이트 + 자식 손가락질이나 해시 표 항목 8바이트 + 끝 깃발 1바이트로 약 10바이트다. 온통 $5 \times 10^8$바이트 $= 500$ MB이다. 마디마다 위 10개 열매를 미리 셈해 두면(하나에 8바이트) $5 \times 10^7 \times 80 = 4$ GB가 더 든다. 옥죈 트라이(DAFSA/DAWG)를 쓰면 바탕 얼개를 약 100 MB로 줄일 수 있다. **셈**: 물음마다 마디 5개를 지나고 위 10개 열매를 돌려주므로 기억에 약 15번 닿는다. L3 두름에 맞을 때 한 번에 약 10 ns이면 물음마다 $150$ ns이다. 초당 1만 물음이면 초당 CPU 때가 온통 $1.5$ ms로, 코어 하나가 아주 쉽게 다룬다. 목을 죄는 것은 셈이 아니라 기억 대역이다. $\square$
