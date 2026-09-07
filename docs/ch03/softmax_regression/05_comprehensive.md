@@ -9,19 +9,19 @@
 ```python
 """
 ===============================================================================
-LEVEL 5: Comprehensive Multi-Dataset Classification Project
+5단계: 여러 자료 묶음을 아우르는 가름 과제
 ===============================================================================
-Difficulty: Advanced
-Prerequisites: Level 1-4
+어려움: 앞섬
+미리 알아 둘 것: 1~4단계
 배움 목표:
-  - Work with multiple real datasets
-  - Build a flexible model factory
-  - Implement comprehensive experiment tracking
-  - Create reusable training pipelines
-  - Generate detailed performance reports
-  - Compare architectures systematically
+  - 참 자료 묶음 여럿을 다룬다
+  - 두루 쓸 수 있는 모형 공장을 짓는다
+  - 실험을 두루 좇는 얼개를 짠다
+  - 다시 쓸 수 있는 익힘 흐름을 만든다
+  - 자세한 성능 알림을 만든다
+  - 얼개를 짜임새 있게 견준다
 
-Time to complete: 90-120 minutes
+마치는 데 드는 때: 90~120분
 ===============================================================================
 """
 
@@ -55,18 +55,18 @@ print("=" * 80)
 
 class DatasetManager:
     """
-    Centralized dataset loading and preprocessing.
-    Supports multiple datasets with consistent interface.
+    자료 묶음 불러오기와 미리 다듬기를 한곳에 모은 것.
+    한결같은 창구로 여러 자료 묶음을 받쳐 준다.
     """
     
     def __init__(self, dataset_name, batch_size=128, val_split=0.1):
         """
-        Initialize dataset manager.
+        자료 묶음 살림꾼의 첫자리를 잡는다.
         
         Args:
-            dataset_name: 'mnist', 'fashion_mnist', or 'cifar10'
-            batch_size: Batch size for data loaders
-            val_split: Fraction of training data for validation
+            dataset_name: 'mnist', 'fashion_mnist', 'cifar10' 가운데 하나
+            batch_size: 자료 불러오개의 묶음 크기
+            val_split: 익힘 자료 가운데 다짐에 쓸 몫
         """
         self.dataset_name = dataset_name.lower()
         self.batch_size = batch_size
@@ -197,22 +197,22 @@ print("=" * 80)
 
 class ModelFactory:
     """
-    Factory for creating different model architectures.
+    여러 모형 얼개를 만드는 공장.
     """
     
     @staticmethod
     def create_model(model_type, input_shape, num_classes, **kwargs):
         """
-        Create a model based on type.
+        갈래에 따라 모형을 만든다.
         
         Args:
-            model_type: 'simple', 'medium', or 'deep'
-            input_shape: Input tensor shape (C, H, W)
+            model_type: 'simple', 'medium', 'deep' 가운데 하나
+            input_shape: 들임 텐서의 꼴 (C, H, W)
             num_classes: 내놓음 갈래의 수
-            **kwargs: Additional model parameters
+            **kwargs: 덧붙이는 모형 매개변수
         
         Returns:
-            PyTorch model
+            PyTorch 모형
         """
         if model_type == 'simple':
             return ModelFactory._simple_model(input_shape, num_classes, **kwargs)
@@ -345,21 +345,21 @@ print("=" * 80)
 
 class Trainer:
     """
-    Comprehensive training pipeline with experiment tracking.
+    실험 좇기를 곁들인 두루 갖춘 익힘 흐름.
     """
     
     def __init__(self, model, train_loader, val_loader, test_loader,
                  criterion, optimizer, device, experiment_name="experiment"):
         """
-        Initialize trainer.
+        익힘개의 첫자리를 잡는다.
         
         Args:
-            model: PyTorch model
-            train_loader, val_loader, test_loader: Data loaders
+            model: PyTorch 모형
+            train_loader, val_loader, test_loader: 자료 불러오개
             criterion: 잃음 함수
-            optimizer: Optimizer
-            device: Device to train on
-            experiment_name: Name for saving results
+            optimizer: 가장 좋게 하개
+            device: 익힐 장치
+            experiment_name: 결과를 갈무리할 이름
         """
         self.model = model.to(device)
         self.train_loader = train_loader
@@ -459,15 +459,15 @@ class Trainer:
     
     def train(self, num_epochs, scheduler=None, early_stopping_patience=None):
         """
-        Main training loop.
+        으뜸 익힘 되돌이.
         
         Args:
-            num_epochs: Number of epochs to train
-            scheduler: Learning rate scheduler (optional)
-            early_stopping_patience: Patience for early stopping (optional)
+            num_epochs: 익힐 판의 수
+            scheduler: 배움 빠르기 짜개(골라 씀)
+            early_stopping_patience: 일찍 멈추기의 참을성(골라 씀)
         
         Returns:
-            Dictionary with training results
+            익힘 결과를 담은 사전
         """
         print(f"\n{'='*80}")
         print(f"Training: {self.experiment_name}")
@@ -551,7 +551,7 @@ print("=" * 80)
 
 class ExperimentRunner:
     """
-    Run and compare multiple experiments.
+    여러 실험을 돌리고 견준다.
     """
     
     def __init__(self):
@@ -562,14 +562,14 @@ class ExperimentRunner:
     def run_experiment(self, dataset_name, model_type, num_epochs=20,
                       lr=0.001, use_scheduler=False):
         """
-        Run a single experiment.
+        실험 하나를 돌린다.
         
         Args:
-            dataset_name: Name of dataset
-            model_type: Type of model
-            num_epochs: Number of training epochs
+            dataset_name: 자료 묶음의 이름
+            model_type: 모형의 갈래
+            num_epochs: 익힘 판의 수
             lr: 배움 빠르기
-            use_scheduler: Whether to use LR scheduling
+            use_scheduler: 배움 빠르기 짜기를 쓸지 여부
         """
         experiment_name = f"{dataset_name}_{model_type}_lr{lr}"
         print(f"\n{'='*80}")
@@ -722,72 +722,72 @@ print("SUMMARY - What You Accomplished")
 print("=" * 80)
 
 print("""
-✅ Built a comprehensive dataset manager supporting multiple datasets
-✅ Created a model factory for different architectures
-✅ Implemented a full-featured training pipeline
-✅ Tracked experiments with detailed metrics
-✅ Compared multiple models and datasets systematically
-✅ Generated performance comparison reports
+✅ 여러 자료 묶음을 받쳐 주는 자료 묶음 살림꾼을 지었다
+✅ 여러 얼개를 위한 모형 공장을 만들었다
+✅ 온전히 갖춘 익힘 흐름을 짰다
+✅ 자세한 자로 실험을 좇았다
+✅ 여러 모형과 자료 묶음을 짜임새 있게 견주었다
+✅ 성능 견줌 알림을 만들었다
 
-Project Structure:
+과제 얼개:
 ------------------
 1. DatasetManager
-   - Unified interface for multiple datasets
-   - Automatic train/val/test splitting
-   - Configurable batch sizes and preprocessing
+   - 여러 자료 묶음을 위한 하나로 된 창구
+   - 익힘/다짐/시험 저절로 나누기
+   - 묶음 크기와 미리 다듬기를 맞출 수 있다
 
 2. ModelFactory
-   - Simple, Medium, Deep architectures
-   - Flexible parameter configuration
-   - Easy to extend with new models
+   - 단순, 보통, 깊은 얼개
+   - 매개변수를 두루 맞출 수 있다
+   - 새 모형으로 넓히기 쉽다
 
 3. Trainer
-   - Complete training loop
+   - 온전한 익힘 되돌이
    - 배움 빠르기 짜기
    - 일찍 멈추기
-   - Best model tracking
-   - Comprehensive history
+   - 가장 좋은 모형 좇기
+   - 두루 갖춘 자취
 
 4. ExperimentRunner
-   - Run multiple experiments
-   - Automatic comparison
-   - Report generation
-   - Results tracking
+   - 여러 실험 돌리기
+   - 저절로 견주기
+   - 알림 만들기
+   - 결과 좇기
 
 고갱이 배움:
 --------------
-• Modular design enables easy experimentation
-• Systematic comparison reveals best approaches
-• Experiment tracking is crucial for reproducibility
-• Different datasets need different architectures
-• Hyperparameters significantly impact performance
+• 조각으로 나눈 설계는 실험을 쉽게 한다
+• 짜임새 있는 견줌이 가장 좋은 길을 드러낸다
+• 실험 좇기는 다시 해내기에 매우 종요롭다
+• 자료 묶음이 다르면 얼개도 달라야 한다
+• 웃매개변수는 성능에 크게 미친다
 
-Professional Tips:
+익은 이의 조언:
 ------------------
-1. Always track experiments systematically
-2. Use validation set for model selection
-3. Report results on held-out test set
-4. Compare models fairly (same data, device, seeds)
-5. Document all hyperparameters and configurations
+1. 늘 실험을 짜임새 있게 좇아라
+2. 모형을 고를 때는 다짐 묶음을 써라
+3. 따로 떼어 둔 시험 묶음의 결과를 알려라
+4. 모형을 고르게 견주어라(같은 자료, 장치, 씨앗)
+5. 모든 웃매개변수와 맞춤을 적어 두어라
 
 다음 걸음:
 -----------
-→ Extend with more datasets (CIFAR-100, ImageNet, custom)
-→ Add convolutional architectures
-→ Implement more advanced techniques (mixup, cutout)
-→ Create visualizations and tensorboard logging
-→ Deploy best models for inference
+→ 자료 묶음을 더 넓힌다(CIFAR-100, ImageNet, 맞춤)
+→ 엮음 얼개를 더한다
+→ 더 앞선 솜씨를 짠다(믹스업, 컷아웃)
+→ 그림 보기와 텐서보드 적기를 만든다
+→ 가장 좋은 모형을 미룸에 올린다
 
-🎉 Congratulations! You've completed the entire tutorial series!
+🎉 잘했다! 익힘 갈래 모두를 마쳤다!
 
-You now have the skills to:
-• Understand softmax regression from theory to practice
-• Build and train deep learning classifiers
-• Apply advanced techniques and best practices
-• Run systematic experiments and comparisons
-• Create production-ready training pipelines
+이제 다음을 할 솜씨를 갖추었다.
+• 소프트맥스 회귀를 이론에서 실제까지 이해한다
+• 깊은 배움 가름개를 짓고 익힌다
+• 앞선 솜씨와 가장 좋은 버릇을 쓴다
+• 짜임새 있는 실험과 견줌을 돌린다
+• 참으로 굴릴 수 있는 익힘 흐름을 만든다
 
-Keep learning and experimenting! 🚀
+배우고 실험하기를 이어 가라! 🚀
 """)
 
 

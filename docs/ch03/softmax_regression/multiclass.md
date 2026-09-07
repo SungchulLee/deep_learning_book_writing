@@ -148,14 +148,14 @@ import torch.nn.functional as F
 # 방법 1: torch.nn.functional.one_hot 사용하기
 def create_one_hot(labels: torch.Tensor, num_classes: int) -> torch.Tensor:
     """
-    Convert class indices to one-hot encoded vectors.
+    갈래 번호를 원핫 벡터로 바꾼다.
 
     Args:
-        labels: Tensor of shape (batch_size,) with class indices [0, num_classes-1]
-        num_classes: Total number of classes K
+        labels: 갈래 번호 [0, num_classes-1]을 담은 꼴 (batch_size,)인 텐서
+        num_classes: 갈래의 온 수 K
 
     Returns:
-        One-hot tensor of shape (batch_size, num_classes)
+        꼴이 (batch_size, num_classes)인 원핫 텐서
     """
     return F.one_hot(labels, num_classes=num_classes).float()
 
@@ -182,10 +182,10 @@ tensor([[1., 0., 0.],
 ```python
 def one_hot_manual(labels: torch.Tensor, num_classes: int) -> torch.Tensor:
     """
-    Manual implementation of one-hot encoding for understanding.
+    이해를 돕고자 손수 짠 원핫 매김.
 
-    This creates a zero tensor and uses scatter_ to place 1s at the
-    appropriate positions.
+    영 텐서를 만들고 scatter_으로 알맞은 자리에 1을
+    놓는다.
     """
     batch_size = labels.size(0)
     one_hot = torch.zeros(batch_size, num_classes, device=labels.device)
@@ -208,17 +208,17 @@ print("Manual implementation matches F.one_hot!")
 ```python
 def get_true_class_probs(probs: torch.Tensor, labels: torch.Tensor) -> torch.Tensor:
     """
-    Extract predicted probabilities for the true classes.
+    참 갈래의 예측 확률을 뽑아낸다.
 
-    This is equivalent to: (one_hot * probs).sum(dim=1)
-    But more efficient using gather.
+    이는 (one_hot * probs).sum(dim=1)과 같다.
+    다만 gather을 쓰면 더 잘 든다.
 
     Args:
-        probs: Predicted probabilities of shape (batch_size, num_classes)
-        labels: True class indices of shape (batch_size,)
+        probs: 꼴이 (batch_size, num_classes)인 예측 확률
+        labels: 꼴이 (batch_size,)인 참 갈래 번호
 
     Returns:
-        Probabilities for true classes of shape (batch_size,)
+        꼴이 (batch_size,)인 참 갈래의 확률
     """
     # gather(dim, index)은 인덱스를 써서 dim을 따라 원소를 고른다
     return probs.gather(1, labels.unsqueeze(1)).squeeze(1)
@@ -277,7 +277,7 @@ labels_onehot = F.one_hot(labels_indices, num_classes=3).float()
 class LabelSmoothingLoss(nn.Module):
     """
     레이블 스무딩을 곁들인 엇갈린 엔트로피 잃음.
-    Requires one-hot encoded targets internally.
+    속으로는 원핫으로 매긴 과녁이 있어야 한다.
     """
     def __init__(self, num_classes: int, smoothing: float = 0.1):
         super().__init__()
@@ -308,14 +308,14 @@ import torch
 
 def sample_categorical(probs: torch.Tensor, num_samples: int = 1000) -> torch.Tensor:
     """
-    Sample from a categorical distribution.
+    범주 분포에서 표본을 뽑는다.
 
     Args:
-        probs: Probability vector of shape (num_classes,)
-        num_samples: Number of samples to draw
+        probs: 꼴이 (num_classes,)인 확률 벡터
+        num_samples: 뽑을 표본의 수
 
     Returns:
-        Tensor of sampled class indices
+        뽑은 갈래 번호를 담은 텐서
     """
     # torch.multinomial은 범주형 분포에서 표본을 뽑는다
     return torch.multinomial(probs, num_samples, replacement=True)

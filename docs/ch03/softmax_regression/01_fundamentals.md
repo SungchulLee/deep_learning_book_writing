@@ -60,7 +60,7 @@ def softmax_numpy(x):
         x (np.array): 로짓(날것 점수) 들임 배열
     
     Returns:
-        np.array: Probability distribution (sums to 1)
+        np.array: 확률 분포(더하면 1)
     
     눈여겨볼 것: 수치가 든든하도록 exp 앞에 최댓값을 뺀다.
           결과는 그대로이면서 넘침을 막는다.
@@ -338,19 +338,19 @@ print("""
 --------------------------------------------------
 # 틀린 방법:
 probs = torch.softmax(logits, dim=1)
-loss = criterion(probs, targets)  # Double softmax!
+loss = criterion(probs, targets)  # 소프트맥스를 두 번!
 
 # 옳은 방법:
-loss = criterion(logits, targets)  # CrossEntropyLoss applies softmax
+loss = criterion(logits, targets)  # CrossEntropyLoss이 소프트맥스를 건다
 
 
 ❌ 잘못 2: 원핫으로 바꾼 과녁을 쓰는 것
 --------------------------------------------------
 # 틀린 방법:
-targets = torch.tensor([[1, 0, 0], [0, 1, 0]])  # One-hot encoded
+targets = torch.tensor([[1, 0, 0], [0, 1, 0]])  # 원핫으로 매김
 
 # 옳은 방법:
-targets = torch.tensor([0, 1])  # Class indices
+targets = torch.tensor([0, 1])  # 갈래 번호
 
 
 ❌ 잘못 3: 텐서 꼴이 틀린 것

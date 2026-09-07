@@ -757,41 +757,41 @@ print("""
    - 익힘을 빠르게 한다
    - 정칙화 노릇을 한다
 
-2. Learning Rate Scheduling
-   - Step decay: Drop LR at intervals
-   - Exponential: Smooth continuous decay
-   - Cosine: Following cosine curve
+2. 배움 빠르기 짜기
+   - 계단 잦아들기: 사이를 두고 배움 빠르기를 떨어뜨린다
+   - 지수: 매끄럽게 이어지는 잦아들기
+   - 코사인: 코사인 굽이를 따른다
 
-3. Early Stopping
+3. 일찍 멈추기
    - 다짐 잃음을 지켜보아라
-   - Stop when no improvement
-   - Save best model
+   - 나아짐이 없으면 멈춘다
+   - 가장 좋은 모형을 갈무리한다
 
-4. Gradient Clipping
-   - Prevents exploding gradients
-   - Limits gradient magnitude
-   - Improves stability
+4. 기울기 자르기
+   - 기울기가 터지는 것을 막는다
+   - 기울기의 크기를 옭아맨다
+   - 든든함을 높인다
 
-5. Label Smoothing
-   - Soft targets instead of hard
+5. 레이블 스무딩
+   - 딱딱한 과녁 대신 부드러운 과녁
    - 지나친 자신을 막는다
-   - Better generalization
+   - 두루 미침이 더 낫다
 
-Best Practices:
+가장 좋은 버릇:
 --------------
-• Use batch normalization for deeper networks
-• Start with higher LR, schedule it down
-• Always use early stopping with validation set
-• Clip gradients for RNNs or unstable training
-• Consider label smoothing for better generalization
+• 더 깊은 그물에는 묶음 정규화를 쓴다
+• 배움 빠르기를 크게 비롯해 차츰 낮춘다
+• 다짐 묶음과 함께 늘 일찍 멈추기를 쓴다
+• 되도는 신경망이나 흔들리는 익힘에서는 기울기를 자른다
+• 두루 미침을 높이려면 레이블 스무딩을 살펴본다
 
 다음 걸음:
 -----------
-→ Level 5: Compare multiple datasets and architectures
-→ Experiment with different combinations of techniques
-→ Try on your own datasets
+→ 5단계: 여러 자료 묶음과 얼개를 견주기
+→ 여러 솜씨를 뒤섞어 실험해 보기
+→ 제 자료 묶음에 써 보기
 
-🎉 Congratulations! You've mastered advanced techniques!
+🎉 잘했다! 앞선 솜씨를 익혔다!
 """)
 
 

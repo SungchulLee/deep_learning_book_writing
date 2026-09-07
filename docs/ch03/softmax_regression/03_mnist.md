@@ -619,7 +619,7 @@ print(f"""
 ✅ 익힘/다짐/시험 나누기를 짰다
 ✅ 드롭아웃을 곁들인 더 깊은 신경망을 지었다
 ✅ 참 세상 자료 묶음으로 익혔다
-✅ Achieved {test_accuracy:.2%} accuracy on test set
+✅ 시험 묶음에서 맞음 {test_accuracy:.2%}을 얻었다
 ✅ 예측을 그림으로 보고 어긋남을 살폈다
 ✅ 헷갈림 행렬과 갈래마다의 자를 만들었다
 ✅ 익힌 모형을 갈무리하고 불러왔다
@@ -634,10 +634,10 @@ print(f"""
 
 성능 간추림:
 --------------------
-Training time: {training_time:.2f} seconds
-Final train accuracy: {history['train_acc'][-1]:.2%}
-Final validation accuracy: {history['val_acc'][-1]:.2%}
-Test accuracy: {test_accuracy:.2%}
+익힌 때: {training_time:.2f}초
+마지막 익힘 맞음: {history['train_acc'][-1]:.2%}
+마지막 다짐 맞음: {history['val_acc'][-1]:.2%}
+시험 맞음: {test_accuracy:.2%}
 
 다음 걸음:
 -----------
