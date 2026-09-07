@@ -1,157 +1,156 @@
-# Sorting Complexities
+# 줄 세우기 복잡도
 
-Sorting is the single most studied problem in algorithm design. Knowing the best, average,
-and worst-case complexity of each sorting algorithm, along with its stability and space
-requirements, lets you choose the right tool for every situation -- from small arrays
-where simplicity matters to massive datasets where asymptotic guarantees dominate.
+줄 세우기는 알고리즘 설계에서 가장 많이 파고든 문제다. 줄 세우기 알고리즘마다
+가장 좋을 때, 고를 때, 가장 나쁠 때의 복잡도와 더불어 한결같음과 자리 요구를
+알면 자리마다 알맞은 연장을 고를 수 있다. 단순함이 중요한 작은 배열에서부터
+큰 복잡도가 판치는 큰 자료까지 두루 그렇다.
 
-## Comparison-Based Sorts
+## 견줌 바탕 줄 세우기
 
-Comparison sorts determine order by pairwise element comparisons. The decision-tree
-lower bound proves that any comparison sort must use at least
+견줌 줄 세우기는 원소를 짝지어 견주어 차례를 정한다. 판단 나무 아래 울타리는
+어떤 견줌 줄 세우기든 가장 나쁠 때 적어도
 
 $$
 \Omega(n \log n)
 $$
 
-comparisons in the worst case.
+번 견주어야 함을 증명해 준다.
 
-| Algorithm | Best | Average | Worst | Space | Stable | Method |
+| 알고리즘 | 가장 좋을 때 | 고를 때 | 가장 나쁠 때 | 자리 | 한결같음 | 방법 |
 |---|---|---|---|---|---|---|
-| Bubble sort | $O(n)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | Yes | Exchanging |
-| Selection sort | $O(n^2)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | No | Selection |
-| Insertion sort | $O(n)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | Yes | Insertion |
-| Shell sort | $O(n \log n)$ | depends on gaps | $O(n^{3/2})$ | $O(1)$ | No | Insertion |
-| Merge sort | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n)$ | Yes | Merging |
-| Quick sort | $O(n \log n)$ | $O(n \log n)$ | $O(n^2)$ | $O(\log n)$ | No | Partitioning |
-| Heap sort | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(1)$ | No | Selection |
-| Timsort | $O(n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n)$ | Yes | Hybrid |
-| Introsort | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(\log n)$ | No | Hybrid |
+| 거품 줄 세우기 | $O(n)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | 예 | 맞바꾸기 |
+| 고르기 줄 세우기 | $O(n^2)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | 아니오 | 고르기 |
+| 끼워 넣기 줄 세우기 | $O(n)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | 예 | 끼워 넣기 |
+| 셸 줄 세우기 | $O(n \log n)$ | 사이 값에 달림 | $O(n^{3/2})$ | $O(1)$ | 아니오 | 끼워 넣기 |
+| 합치기 줄 세우기 | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n)$ | 예 | 합치기 |
+| 빠른 줄 세우기 | $O(n \log n)$ | $O(n \log n)$ | $O(n^2)$ | $O(\log n)$ | 아니오 | 가르기 |
+| 더미 줄 세우기 | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(1)$ | 아니오 | 고르기 |
+| 팀 줄 세우기 | $O(n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n)$ | 예 | 섞은 것 |
+| 인트로 줄 세우기 | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(\log n)$ | 아니오 | 섞은 것 |
 
-!!! tip "Why Quick Sort Dominates in Practice"
-    Despite its $O(n^2)$ worst case, randomized quick sort achieves $O(n \log n)$
-    expected time with small constants due to cache-friendly sequential access and
-    low overhead. Median-of-three pivot selection makes the worst case exceedingly
-    unlikely.
+!!! tip "빠른 줄 세우기가 참으로 판치는 까닭"
+    가장 나쁠 때 $O(n^2)$인데도, 아무렇게나 고른 빠른 줄 세우기는 캐시에 잘 맞는
+    차례대로 닿기와 적은 붙는 짐 덕에 붙박이 곱이 작은 $O(n \log n)$을 바랄 수
+    있다. 셋 가운데 가운뎃값으로 굴대를 고르면 가장 나쁠 때가 몹시 드물어진다.
 
-## Non-Comparison Sorts
+## 견주지 않는 줄 세우기
 
-These algorithms bypass the $\Omega(n \log n)$ lower bound by exploiting the structure
-of keys (integers, strings) rather than using pairwise comparisons.
+이 알고리즘들은 짝지어 견주는 대신 열쇠(옹근수, 글자열)의 얼개를 살려
+$\Omega(n \log n)$ 아래 울타리를 비껴간다.
 
-| Algorithm | Time | Space | Stable | Constraint |
+| 알고리즘 | 때 | 자리 | 한결같음 | 매임 |
 |---|---|---|---|---|
-| Counting sort | $O(n + k)$ | $O(n + k)$ | Yes | Keys in range $[0, k)$ |
-| Radix sort (LSD) | $O(d(n + k))$ | $O(n + k)$ | Yes | $d$ digits, base $k$ |
-| Radix sort (MSD) | $O(d(n + k))$ | $O(n + k)$ | Yes | Same as LSD |
-| Bucket sort | $O(n + k)$ expected | $O(n + k)$ | Yes | Uniform distribution |
+| 세기 줄 세우기 | $O(n + k)$ | $O(n + k)$ | 예 | 열쇠가 $[0, k)$에 있다 |
+| 자릿수 줄 세우기(LSD) | $O(d(n + k))$ | $O(n + k)$ | 예 | 자릿수 $d$개, 밑 $k$ |
+| 자릿수 줄 세우기(MSD) | $O(d(n + k))$ | $O(n + k)$ | 예 | LSD와 같다 |
+| 두레박 줄 세우기 | 어림 $O(n + k)$ | $O(n + k)$ | 예 | 고루 퍼져 있다 |
 
-Here $k$ is the range of digit values and $d$ is the number of digits. For $w$-bit
-integers sorted in base $n$, radix sort runs in $O(n \cdot w / \log n)$ time.
+여기서 $k$은 자릿값의 너비이고 $d$은 자릿수다. $w$비트 옹근수를 밑 $n$으로
+줄 세우면 자릿수 줄 세우기가 $O(n \cdot w / \log n)$ 때에 돈다.
 
-## The Lower Bound Argument
+## 아래 울타리 따짐
 
-Any comparison-based sorting algorithm corresponds to a binary decision tree. The tree
-must have at least $n!$ leaves (one per permutation). The minimum height of a binary
-tree with $n!$ leaves is:
+견줌 바탕 줄 세우기 알고리즘은 모두 두 갈래 판단 나무에 맞물린다. 그 나무에는
+잎이 적어도 $n!$개 있어야 한다(자리 바꿈마다 하나씩). 잎이 $n!$개인 두 갈래
+나무의 가장 낮은 높이는 이렇다.
 
 $$
 h \ge \lceil \log_2(n!) \rceil = \Theta(n \log n)
 $$
 
-The second equality follows from Stirling's approximation:
+둘째 등식은 스털링 어림에서 나온다.
 $\log_2(n!) = n \log_2 n - n \log_2 e + O(\log n)$.
 
-## Space Complexity Details
+## 자리 복잡도 자세히
 
-Sorting space complexity often determines which algorithm is feasible.
+줄 세우기의 자리 복잡도가 어느 알고리즘을 쓸 수 있는지 가를 때가 많다.
 
-| Algorithm | Auxiliary Space | In-place? | Notes |
+| 알고리즘 | 도움 자리 | 제자리인가? | 짚을 것 |
 |---|---|---|---|
-| Merge sort | $O(n)$ | No | Needs temporary array for merging |
-| Quick sort | $O(\log n)$ | Yes | Stack space for recursion |
-| Heap sort | $O(1)$ | Yes | Builds heap in-place |
-| Timsort | $O(n)$ | No | Needs merge buffer |
-| Radix sort | $O(n + k)$ | No | Needs output and count arrays |
-| Block merge sort | $O(1)$ | Yes | Stable, in-place, $O(n \log n)$ |
+| 합치기 줄 세우기 | $O(n)$ | 아니오 | 합치는 데 잠깐 쓸 배열이 있어야 한다 |
+| 빠른 줄 세우기 | $O(\log n)$ | 예 | 되돌이에 쓸 쌓개 자리 |
+| 더미 줄 세우기 | $O(1)$ | 예 | 제자리에서 더미를 세운다 |
+| 팀 줄 세우기 | $O(n)$ | 아니오 | 합치기 버퍼가 있어야 한다 |
+| 자릿수 줄 세우기 | $O(n + k)$ | 아니오 | 내놓기와 세기 배열이 있어야 한다 |
+| 덩이 합치기 줄 세우기 | $O(1)$ | 예 | 한결같고 제자리이며 $O(n \log n)$ |
 
-!!! warning "Quick Sort Stack Depth"
-    Naive quick sort can use $O(n)$ stack space on already-sorted input. Tail-call
-    optimization (recurring on the smaller partition) guarantees $O(\log n)$ space
-    even in the worst case for time.
+!!! warning "빠른 줄 세우기의 쌓개 깊이"
+    곧이곧대로 짠 빠른 줄 세우기는 이미 줄 세운 들임에서 쌓개 자리를 $O(n)$
+    쓸 수 있다. 꼬리 부름 다듬기(작은 쪽 나눔을 되돌이한다)를 하면 때가 가장
+    나쁠 때조차 자리가 $O(\log n)$으로 보장된다.
 
-## Adaptive Sorts
+## 맞춰 가는 줄 세우기
 
-Adaptive algorithms exploit existing order in the input. Timsort, used by Python and
-Java, detects pre-sorted runs and merges them efficiently.
+맞춰 가는 알고리즘은 들임에 이미 있는 차례를 살려 쓴다. 파이썬과 자바가 쓰는
+팀 줄 세우기는 미리 줄 선 토막을 찾아내 잘 들게 합친다.
 
-| Algorithm | Best (nearly sorted) | Worst | Adaptive? |
+| 알고리즘 | 가장 좋을 때(거의 줄 섬) | 가장 나쁠 때 | 맞춰 가는가? |
 |---|---|---|---|
-| Insertion sort | $O(n)$ | $O(n^2)$ | Yes -- inversions |
-| Timsort | $O(n)$ | $O(n \log n)$ | Yes -- natural runs |
-| Smooth sort | $O(n)$ | $O(n \log n)$ | Yes -- Leonardo heaps |
-| Shell sort | $O(n \log n)$ | $O(n^{3/2})$ | Partially |
+| 끼워 넣기 줄 세우기 | $O(n)$ | $O(n^2)$ | 예 -- 뒤바뀜 |
+| 팀 줄 세우기 | $O(n)$ | $O(n \log n)$ | 예 -- 절로 난 토막 |
+| 매끄러운 줄 세우기 | $O(n)$ | $O(n \log n)$ | 예 -- 레오나르도 더미 |
+| 셸 줄 세우기 | $O(n \log n)$ | $O(n^{3/2})$ | 얼마쯤 |
 
-## Practical Feasibility Guide
+## 참으로 쓸 수 있는지 길잡이
 
-| $n$ | $O(n^2)$ | $O(n \log n)$ | $O(n)$ (linear) |
+| $n$ | $O(n^2)$ | $O(n \log n)$ | $O(n)$(선형) |
 |---|---|---|---|
-| $10^3$ | fast | instant | instant |
-| $10^4$ | moderate | fast | fast |
-| $10^5$ | slow | fast | fast |
-| $10^6$ | infeasible | fast | fast |
-| $10^7$ | infeasible | moderate | fast |
-| $10^8$ | infeasible | slow | moderate |
+| $10^3$ | 빠름 | 곧바로 | 곧바로 |
+| $10^4$ | 어중간 | 빠름 | 빠름 |
+| $10^5$ | 느림 | 빠름 | 빠름 |
+| $10^6$ | 쓸 수 없음 | 빠름 | 빠름 |
+| $10^7$ | 쓸 수 없음 | 어중간 | 빠름 |
+| $10^8$ | 쓸 수 없음 | 느림 | 어중간 |
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Sedgewick, R. and Wayne, K. *Algorithms*. 4th ed. Addison-Wesley, 2011.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Prove that any comparison-based sorting algorithm requires $\Omega(n \log n)$ comparisons in the worst case.
+**익힘 1.**
+견줌 바탕 줄 세우기 알고리즘은 모두 가장 나쁠 때 $\Omega(n \log n)$번 견주어야 함을 증명하여라.
 
-??? success "Solution to Exercise 1"
-    A comparison-based sort can be modeled as a decision tree where each internal node is a comparison and each leaf is a permutation of the input. There are $n!$ possible permutations, so the tree must have at least $n!$ leaves. The height of a binary tree with $L$ leaves is at least $\lceil \log_2 L \rceil$. Therefore, worst-case comparisons $\ge \log_2(n!) = \sum_{i=1}^{n} \log_2 i \ge \int_1^n \log_2 x \, dx = n \log_2 n - n/\ln 2 = \Omega(n \log n)$. This means no comparison sort can beat $O(n \log n)$ in the worst case. Merge sort and heap sort achieve this bound. $\square$
-
----
-
-**Exercise 2.**
-Counting sort runs in $O(n + k)$ where $k$ is the range of values. Explain why it bypasses the $\Omega(n \log n)$ lower bound and when it is practical.
-
-??? success "Solution to Exercise 2"
-    Counting sort is not comparison-based: it uses the values themselves as array indices, counting occurrences and computing prefix sums. The $\Omega(n \log n)$ lower bound applies only to comparison-based sorts. Counting sort is practical when $k = O(n)$ (e.g., sorting $n$ integers in $[0, n]$, sorting characters). It becomes impractical when $k \gg n$ (e.g., sorting 1000 64-bit integers: $k = 2^{64}$, requiring an impossibly large count array). Radix sort extends counting sort to large keys by sorting digit-by-digit, achieving $O(d(n + b))$ where $d$ is the number of digits and $b$ is the base. $\square$
+??? success "익힘 1 풀이"
+    견줌 바탕 줄 세우기는 판단 나무로 본뜰 수 있다. 속마디마다 견줌 하나이고 잎마다 들임의 자리 바꿈 하나다. 있을 수 있는 자리 바꿈이 $n!$가지이므로 나무에 잎이 적어도 $n!$개 있어야 한다. 잎이 $L$개인 두 갈래 나무의 높이는 적어도 $\lceil \log_2 L \rceil$이다. 따라서 가장 나쁠 때의 견줌 $\ge \log_2(n!) = \sum_{i=1}^{n} \log_2 i \ge \int_1^n \log_2 x \, dx = n \log_2 n - n/\ln 2 = \Omega(n \log n)$이다. 곧 어떤 견줌 줄 세우기도 가장 나쁠 때 $O(n \log n)$을 이길 수 없다. 합치기 줄 세우기와 더미 줄 세우기가 이 울타리에 이른다. $\square$
 
 ---
 
-**Exercise 3.**
-Compare quicksort, mergesort, and heapsort in terms of average time, worst-case time, space, and stability.
+**익힘 2.**
+세기 줄 세우기는 $k$이 값의 너비일 때 $O(n + k)$에 돈다. 왜 $\Omega(n \log n)$ 아래 울타리를 비껴가는지, 언제 쓸 만한지 밝혀라.
 
-??? success "Solution to Exercise 3"
-    | Property | Quicksort | Mergesort | Heapsort |
+??? success "익힘 2 풀이"
+    세기 줄 세우기는 견줌 바탕이 아니다. 값 그 자체를 배열 번호로 써서 나온 횟수를 세고 앞가지 합을 셈한다. $\Omega(n \log n)$ 아래 울타리는 견줌 바탕 줄 세우기에만 걸린다. 세기 줄 세우기는 $k = O(n)$일 때 쓸 만하다(보기로 $[0, n]$의 옹근수 $n$개를 줄 세우기, 글자를 줄 세우기). $k \gg n$이면 쓸 수 없다(보기로 64비트 옹근수 1000개를 줄 세우면 $k = 2^{64}$이라 셈 배열이 감당할 수 없이 커진다). 자릿수 줄 세우기는 자릿수마다 줄 세워 세기 줄 세우기를 큰 열쇠로 넓히며, $d$이 자릿수이고 $b$이 밑일 때 $O(d(n + b))$을 이룬다. $\square$
+
+---
+
+**익힘 3.**
+고를 때의 때, 가장 나쁠 때의 때, 자리, 한결같음을 두고 빠른 줄 세우기, 합치기 줄 세우기, 더미 줄 세우기를 견주어라.
+
+??? success "익힘 3 풀이"
+    | 됨됨이 | 빠른 줄 세우기 | 합치기 줄 세우기 | 더미 줄 세우기 |
     |---|---|---|---|
-    | Average time | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ |
-    | Worst-case time | $O(n^2)$ | $O(n \log n)$ | $O(n \log n)$ |
-    | Space | $O(\log n)$ stack | $O(n)$ | $O(1)$ |
-    | Stable | No | Yes | No |
-    | Cache perf. | Excellent | Good | Poor |
+    | 고를 때의 때 | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ |
+    | 가장 나쁠 때의 때 | $O(n^2)$ | $O(n \log n)$ | $O(n \log n)$ |
+    | 자리 | 쌓개 $O(\log n)$ | $O(n)$ | $O(1)$ |
+    | 한결같음 | 아니오 | 예 | 아니오 |
+    | 캐시 빠르기 | 아주 좋음 | 좋음 | 나쁨 |
 
-    Quicksort is fastest in practice (best cache behavior, low constant factors) despite $O(n^2)$ worst case (mitigated by randomized pivot). Mergesort is used when stability is required (Python's Timsort, Java's Arrays.sort for objects). Heapsort is used when $O(1)$ extra space and guaranteed $O(n \log n)$ are both needed. $\square$
-
----
-
-**Exercise 4.**
-Timsort (Python's default sort) achieves $O(n)$ on nearly-sorted data. Explain how it exploits existing order (runs).
-
-??? success "Solution to Exercise 4"
-    Timsort identifies maximal ascending or descending runs in the input. Descending runs are reversed to become ascending. Short runs (below a minimum run length, typically 32--64) are extended using insertion sort, which is $O(k^2)$ but fast for small $k$ due to low overhead. The resulting sorted runs are merged using a modified merge sort with a merge policy that maintains a stack of runs and merges them when certain size invariants are violated. For nearly-sorted data: the entire input may be one or two runs, so Timsort performs $O(n)$ work (one scan + zero or one merge). For random data: $\sim n/\text{minrun}$ runs are created, each extended to minrun by insertion sort, then merged in $O(n \log(n/\text{minrun})) = O(n \log n)$. $\square$
+    빠른 줄 세우기는 가장 나쁠 때 $O(n^2)$인데도(아무렇게나 고른 굴대로 눅인다) 참으로는 가장 빠르다(캐시 결이 가장 좋고 붙박이 곱이 작다). 한결같음이 있어야 할 때는 합치기 줄 세우기를 쓴다(파이썬의 팀 줄 세우기, 자바의 물체용 Arrays.sort). 더미 줄 세우기는 $O(1)$의 더 드는 자리와 보장된 $O(n \log n)$이 함께 필요할 때 쓴다. $\square$
 
 ---
 
-**Exercise 5.**
-A financial system sorts 10 million trade records by timestamp every minute. Each batch is 99% already sorted (only a few new trades are out of order). Which sorting algorithm minimizes wall-clock time?
+**익힘 4.**
+팀 줄 세우기(파이썬의 맡긴 줄 세우기)는 거의 줄 선 자료에서 $O(n)$을 이룬다. 이미 있는 차례(토막)를 어떻게 살려 쓰는지 밝혀라.
 
-??? success "Solution to Exercise 5"
-    For nearly-sorted data with $k$ out-of-order elements: **Insertion sort** runs in $O(nk)$ -- for $k \ll n$, this is nearly $O(n)$. With 1% out of order ($k = 100{,}000$): $10^7 \times 10^5 = 10^{12}$ -- too slow. **Timsort** identifies the nearly-sorted structure and runs in $O(n + k \log k)$ -- detect the long sorted run, insertion-sort the few unsorted elements, merge. For this workload: $\sim 10^7 + 10^5 \times 17 \approx 1.2 \times 10^7$ operations ($\sim$0.1 seconds). **Merge the new trades**: maintain a sorted array, collect new trades separately, sort the new trades ($O(k \log k)$), and merge the two sorted lists ($O(n)$). Total: $O(n + k \log k) \approx O(n)$. This is the fastest approach for this specific workload pattern. $\square$
+??? success "익힘 4 풀이"
+    팀 줄 세우기는 들임에서 오르거나 내리는 가장 긴 토막을 찾는다. 내리는 토막은 뒤집어 오르게 한다. 짧은 토막(가장 짧은 토막 길이, 흔히 32~64 아래)은 끼워 넣기 줄 세우기로 늘리는데, 이는 $O(k^2)$이지만 $k$이 작으면 붙는 짐이 적어 빠르다. 그렇게 나온 줄 선 토막들을 고친 합치기 줄 세우기로 합친다. 합치기 방침이 토막의 쌓개를 지니다가 어떤 크기 불변 조건이 깨지면 합친다. 거의 줄 선 자료면 들임 전체가 토막 한둘이라 팀 줄 세우기가 $O(n)$의 품만 든다(한 번 훑고 합치기를 0~1번). 아무렇게나 놓인 자료면 토막이 $\sim n/\text{minrun}$개 생기고, 저마다 끼워 넣기 줄 세우기로 minrun까지 늘린 뒤 $O(n \log(n/\text{minrun})) = O(n \log n)$에 합친다. $\square$
+
+---
+
+**익힘 5.**
+어느 금융 얼개가 1분마다 거래 기록 1000만 건을 때 도장으로 줄 세운다. 묶음마다 99%은 이미 줄 서 있다(새 거래 몇 건만 차례가 어긋나 있다). 벽시계 때를 가장 짧게 하는 줄 세우기 알고리즘은 무엇인가?
+
+??? success "익힘 5 풀이"
+    차례가 어긋난 원소가 $k$개인 거의 줄 선 자료에서 **끼워 넣기 줄 세우기**는 $O(nk)$에 돈다. $k \ll n$이면 거의 $O(n)$이다. 1%이 어긋나면($k = 100{,}000$) $10^7 \times 10^5 = 10^{12}$이라 너무 느리다. **팀 줄 세우기**는 거의 줄 선 얼개를 알아채고 $O(n + k \log k)$에 돈다. 긴 줄 선 토막을 찾고, 어긋난 몇몇을 끼워 넣기로 줄 세우고, 합친다. 이 일감이면 $\sim 10^7 + 10^5 \times 17 \approx 1.2 \times 10^7$번의 연산($\sim$0.1초)이다. **새 거래만 합치기**: 줄 세운 배열을 지니고 새 거래를 따로 모아 줄 세운 뒤($O(k \log k)$) 줄 선 목록 둘을 합친다($O(n)$). 모두 $O(n + k \log k) \approx O(n)$이다. 이 일감 결에는 이것이 가장 빠르다. $\square$

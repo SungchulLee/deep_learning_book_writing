@@ -1,137 +1,136 @@
-# Search Algorithm Complexities
+# 찾기 알고리즘 복잡도
 
-Searching is the most fundamental operation in computing: given a collection of
-elements, find the one that matches a target. The complexity of a search algorithm
-depends on the structure of the data (sorted vs. unsorted, array vs. tree vs. graph)
-and whether we can exploit ordering to eliminate candidates in bulk.
+찾기는 셈틀에서 가장 밑바탕이 되는 연산이다. 원소 모둠이 주어졌을 때 겨눈 것과
+맞는 것을 찾는 일이다. 찾기 알고리즘의 복잡도는 자료의 얼개(줄 세웠는지 아닌지,
+배열인지 나무인지 그래프인지)와, 차례를 살려 후보를 한꺼번에 걷어낼 수 있는지에
+달렸다.
 
-## Array Search
+## 배열 찾기
 
-Linear search makes no assumptions about order, while binary search requires a sorted
-array and eliminates half the remaining candidates at each step.
+죽 훑는 찾기는 차례를 여기지 않는 데 견주어, 이진 찾기는 줄 세운 배열을 바라며
+걸음마다 남은 후보의 반을 걷어낸다.
 
-| Algorithm | Best | Average | Worst | Space | Requirement |
+| 알고리즘 | 가장 좋을 때 | 고를 때 | 가장 나쁠 때 | 자리 | 바라는 것 |
 |---|---|---|---|---|---|
-| Linear search | $O(1)$ | $O(n)$ | $O(n)$ | $O(1)$ | None |
-| Binary search | $O(1)$ | $O(\log n)$ | $O(\log n)$ | $O(1)$ | Sorted array |
-| Binary search (recursive) | $O(1)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | Sorted array |
-| Interpolation search | $O(1)$ | $O(\log \log n)$ | $O(n)$ | $O(1)$ | Sorted, uniform distribution |
-| Exponential search | $O(1)$ | $O(\log i)$ | $O(\log n)$ | $O(1)$ | Sorted array; $i$ = target position |
-| Ternary search | $O(1)$ | $O(\log_3 n)$ | $O(\log_3 n)$ | $O(1)$ | Unimodal function |
+| 죽 훑는 찾기 | $O(1)$ | $O(n)$ | $O(n)$ | $O(1)$ | 없음 |
+| 이진 찾기 | $O(1)$ | $O(\log n)$ | $O(\log n)$ | $O(1)$ | 줄 세운 배열 |
+| 이진 찾기(되돌이) | $O(1)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | 줄 세운 배열 |
+| 사이 잡는 찾기 | $O(1)$ | $O(\log \log n)$ | $O(n)$ | $O(1)$ | 줄 세우고 고루 퍼짐 |
+| 곱절 찾기 | $O(1)$ | $O(\log i)$ | $O(\log n)$ | $O(1)$ | 줄 세운 배열, $i$ = 겨눈 것의 자리 |
+| 세 갈래 찾기 | $O(1)$ | $O(\log_3 n)$ | $O(\log_3 n)$ | $O(1)$ | 봉우리가 하나인 함수 |
 
-!!! tip "Binary vs. Ternary Search"
-    Although ternary search divides the range into three parts, it performs
-    $2\log_3 n \approx 1.26 \log_2 n$ comparisons, which is worse than binary
-    search's $\log_2 n$. Ternary search is useful only for unimodal function
-    optimization, not for sorted array search.
+!!! tip "이진 찾기 대 세 갈래 찾기"
+    세 갈래 찾기는 너비를 셋으로 나누지만 견줌을
+    $2\log_3 n \approx 1.26 \log_2 n$번 하므로 이진 찾기의 $\log_2 n$보다
+    나쁘다. 세 갈래 찾기는 봉우리가 하나인 함수를 가장 좋게 하는 데만 쓸모
+    있고 줄 세운 배열 찾기에는 쓰지 않는다.
 
-## Why Binary Search is Optimal
+## 이진 찾기가 가장 좋은 까닭
 
-Any comparison-based search on a sorted array of $n$ elements requires at least
-$\lceil \log_2(n + 1) \rceil$ comparisons in the worst case. This follows from the
-decision tree model: a binary tree with $n + 1$ leaves (one for each gap between
-elements plus the two ends) must have height at least $\lceil \log_2(n + 1) \rceil$.
-Binary search achieves this lower bound.
+원소 $n$개짜리 줄 세운 배열에서 견줌 바탕 찾기는 가장 나쁠 때 적어도
+$\lceil \log_2(n + 1) \rceil$번 견주어야 한다. 이는 판단 나무 본뜨기에서 나온다.
+잎이 $n + 1$개인(원소 사이의 틈마다 하나에 양 끝 둘을 더한다) 두 갈래 나무의
+높이는 적어도 $\lceil \log_2(n + 1) \rceil$이다. 이진 찾기가 이 아래 울타리에
+이른다.
 
-## Tree-Based Search
+## 나무 바탕 찾기
 
-Search trees organize elements to support efficient lookup, insertion, and deletion.
-The complexity depends on the tree's balance guarantee.
+찾기 나무는 원소를 짜임새 있게 놓아 잘 드는 찾기, 넣기, 지우기를 받친다.
+복잡도는 나무의 고름 보장에 달렸다.
 
-| Data Structure | Search | Insert | Delete | Space |
+| 자료 얼개 | 찾기 | 넣기 | 지우기 | 자리 |
 |---|---|---|---|---|
-| BST (unbalanced) | $O(n)$ | $O(n)$ | $O(n)$ | $O(n)$ |
-| BST (random) | $O(\log n)$ expected | $O(\log n)$ expected | $O(\log n)$ expected | $O(n)$ |
-| AVL tree | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
-| Red-Black tree | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
-| B-tree (order $m$) | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | $O(n)$ |
-| Splay tree | $O(\log n)$ amort. | $O(\log n)$ amort. | $O(\log n)$ amort. | $O(n)$ |
-| Trie | $O(L)$ | $O(L)$ | $O(L)$ | $O(N \cdot \Sigma)$ |
+| 이진 찾기 나무(고르지 않음) | $O(n)$ | $O(n)$ | $O(n)$ | $O(n)$ |
+| 이진 찾기 나무(아무렇게나) | 어림 $O(\log n)$ | 어림 $O(\log n)$ | 어림 $O(\log n)$ | $O(n)$ |
+| AVL 나무 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
+| 붉은검은 나무 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
+| B 나무(차수 $m$) | $O(\log_m n)$ | $O(\log_m n)$ | $O(\log_m n)$ | $O(n)$ |
+| 펼침 나무 | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(\log n)$ | $O(n)$ |
+| 트라이 | $O(L)$ | $O(L)$ | $O(L)$ | $O(N \cdot \Sigma)$ |
 
-Here $L$ is the key length, $N$ is the number of stored keys, and $\Sigma$ is the
-alphabet size. Trie space can be reduced to $O(N \cdot L)$ with compressed (Patricia)
-tries.
+여기서 $L$은 열쇠 길이, $N$은 갈무리한 열쇠의 수, $\Sigma$은 낱자 모둠의
+크기다. 눌러 담은(퍼트리샤) 트라이를 쓰면 트라이 자리를 $O(N \cdot L)$으로
+줄일 수 있다.
 
-## Hash-Based Search
+## 해시 바탕 찾기
 
-Hash tables provide $O(1)$ expected-time search by mapping keys to array indices via a
-hash function.
+해시 표는 해시 함수로 열쇠를 배열 번호에 이어 주어 어림 $O(1)$ 때에 찾는다.
 
-| Method | Search (avg) | Search (worst) | Insert (avg) | Space |
+| 방법 | 찾기(고르게) | 찾기(가장 나쁠 때) | 넣기(고르게) | 자리 |
 |---|---|---|---|---|
-| Chaining | $O(1 + \alpha)$ | $O(n)$ | $O(1)$ | $O(n + m)$ |
-| Open addressing | $O\!\left(\frac{1}{1 - \alpha}\right)$ | $O(n)$ | $O\!\left(\frac{1}{1 - \alpha}\right)$ | $O(m)$ |
+| 사슬 잇기 | $O(1 + \alpha)$ | $O(n)$ | $O(1)$ | $O(n + m)$ |
+| 열린 주소 매기기 | $O\!\left(\frac{1}{1 - \alpha}\right)$ | $O(n)$ | $O\!\left(\frac{1}{1 - \alpha}\right)$ | $O(m)$ |
 
-Here $\alpha = n/m$ is the load factor, $n$ is the number of stored elements, and $m$
-is the table size. Performance degrades as $\alpha \to 1$ for open addressing.
+여기서 $\alpha = n/m$은 채움 비, $n$은 갈무리한 원소의 수, $m$은 표의 크기다.
+열린 주소 매기기는 $\alpha \to 1$이면 됨됨이가 무너진다.
 
-## Specialized Search
+## 남다른 찾기
 
-Some search problems require algorithms beyond simple comparison or hashing.
+어떤 찾기 문제는 단순한 견줌이나 해시를 넘는 알고리즘을 바란다.
 
-| Algorithm | Time | Space | Application |
+| 알고리즘 | 때 | 자리 | 쓰임 |
 |---|---|---|---|
-| KD-tree (construction) | $O(n \log n)$ | $O(n)$ | Multidimensional points |
-| KD-tree (nearest neighbor) | $O(\log n)$ avg, $O(n)$ worst | $O(\log n)$ | Nearest neighbor query |
-| KD-tree (range search) | $O(n^{1-1/d} + k)$ | $O(\log n)$ | $k$ results in $d$ dimensions |
-| A* search | $O(b^d)$ | $O(b^d)$ | Graph with admissible heuristic |
-| Bidirectional BFS | $O(b^{d/2})$ | $O(b^{d/2})$ | Unweighted shortest path |
+| KD 나무(세우기) | $O(n \log n)$ | $O(n)$ | 여러 차원의 점 |
+| KD 나무(가장 가까운 이웃) | 고르게 $O(\log n)$, 가장 나쁠 때 $O(n)$ | $O(\log n)$ | 가장 가까운 이웃 물음 |
+| KD 나무(너비 찾기) | $O(n^{1-1/d} + k)$ | $O(\log n)$ | $d$차원에서 열매 $k$개 |
+| A* 찾기 | $O(b^d)$ | $O(b^d)$ | 받아들일 만한 어림 함수가 있는 그래프 |
+| 양쪽 너비 먼저 훑기 | $O(b^{d/2})$ | $O(b^{d/2})$ | 짐 없는 가장 짧은 길 |
 
-!!! warning "KD-tree Degradation"
-    KD-trees degrade to $O(n)$ per query in high dimensions ($d > 20$). For
-    high-dimensional nearest-neighbor search, approximate methods like locality-sensitive
-    hashing (LSH) are preferred.
+!!! warning "KD 나무가 무너질 때"
+    KD 나무는 차원이 높으면($d > 20$) 물음마다 $O(n)$으로 무너진다. 높은
+    차원의 가장 가까운 이웃 찾기에는 지역성 예민 해시(LSH) 같은 어림 방법이
+    낫다.
 
-## Practical Input Size Guidelines
+## 참으로 쓸 수 있는 들임 크기 길잡이
 
-| $n$ | Linear $O(n)$ | Binary $O(\log n)$ | Hash $O(1)$ | BST $O(\log n)$ |
+| $n$ | 죽 훑기 $O(n)$ | 이진 $O(\log n)$ | 해시 $O(1)$ | 이진 찾기 나무 $O(\log n)$ |
 |---|---|---|---|---|
-| $10^3$ | fast | instant | instant | instant |
-| $10^6$ | fast | fast | fast | fast |
-| $10^9$ | slow | fast | fast | fast |
-| $10^{12}$ | infeasible | fast | fast | fast |
+| $10^3$ | 빠름 | 곧바로 | 곧바로 | 곧바로 |
+| $10^6$ | 빠름 | 빠름 | 빠름 | 빠름 |
+| $10^9$ | 느림 | 빠름 | 빠름 | 빠름 |
+| $10^{12}$ | 쓸 수 없음 | 빠름 | 빠름 | 빠름 |
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Knuth, D. *The Art of Computer Programming, Vol. 3: Sorting and Searching*. 2nd ed. Addison-Wesley, 1998.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare linear search $O(n)$, binary search $O(\log n)$, and hash lookup $O(1)$. What preprocessing does each require?
+**익힘 1.**
+죽 훑는 찾기 $O(n)$, 이진 찾기 $O(\log n)$, 해시 찾기 $O(1)$을 견주어라. 저마다 어떤 미리 다듬기가 있어야 하는가?
 
-??? success "Solution to Exercise 1"
-    **Linear search**: no preprocessing. Works on unsorted data. Scans each element sequentially. Best for small collections or one-time searches. **Binary search**: requires sorted data ($O(n \log n)$ preprocessing for sorting). Halves the search space at each step. Best for repeated searches on static sorted data. **Hash lookup**: requires building a hash table ($O(n)$ preprocessing). Provides $O(1)$ expected-time lookups. Best for repeated exact-match queries. Binary search is preferable over hashing when: (1) range queries are needed (find all elements in $[a, b]$); (2) the data is already sorted; (3) worst-case $O(\log n)$ is needed (hashing has $O(n)$ worst case). Hashing is preferable for point queries on large unsorted datasets. $\square$
-
----
-
-**Exercise 2.**
-Prove that any comparison-based search algorithm on a sorted array of $n$ elements requires $\Omega(\log n)$ comparisons in the worst case.
-
-??? success "Solution to Exercise 2"
-    A comparison-based algorithm can be modeled as a binary decision tree: each internal node represents a comparison with two outcomes (less/greater or equal/not equal). Each leaf represents a possible answer (one of $n$ elements or "not found": $n + 1$ outcomes). A binary tree with $L$ leaves has height $\ge \lceil \log_2 L \rceil$. With $L = n + 1$ leaves: height $\ge \lceil \log_2(n + 1) \rceil = \Omega(\log n)$. The worst-case number of comparisons equals the height of the decision tree, so any comparison-based search requires $\Omega(\log n)$ comparisons. Binary search achieves this bound with exactly $\lceil \log_2(n + 1) \rceil$ comparisons, making it optimal. $\square$
+??? success "익힘 1 풀이"
+    **죽 훑는 찾기**: 미리 다듬을 것이 없다. 줄 세우지 않은 자료에도 듣는다. 원소를 차례대로 훑는다. 모둠이 작거나 한 번만 찾을 때 가장 낫다. **이진 찾기**: 줄 세운 자료가 있어야 한다(줄 세우는 데 $O(n \log n)$의 미리 다듬기). 걸음마다 찾을 밭을 반으로 줄인다. 붙박인 줄 세운 자료에서 되풀이해 찾을 때 가장 낫다. **해시 찾기**: 해시 표를 세워야 한다($O(n)$ 미리 다듬기). 어림 $O(1)$ 찾기를 준다. 꼭 맞는 것을 되풀이해 물을 때 가장 낫다. 해시보다 이진 찾기가 나은 때는 (1) 너비 물음이 있을 때($[a, b]$에 든 원소를 모두 찾기), (2) 자료가 이미 줄 서 있을 때, (3) 가장 나쁠 때 $O(\log n)$이 있어야 할 때다(해시는 가장 나쁠 때 $O(n)$이다). 줄 세우지 않은 큰 자료의 점 물음에는 해시가 낫다. $\square$
 
 ---
 
-**Exercise 3.**
-Interpolation search achieves $O(\log \log n)$ expected time on uniformly distributed data. Explain the algorithm and why it degrades to $O(n)$ on adversarial data.
+**익힘 2.**
+원소 $n$개짜리 줄 세운 배열에서 견줌 바탕 찾기 알고리즘은 모두 가장 나쁠 때 $\Omega(\log n)$번 견주어야 함을 증명하여라.
 
-??? success "Solution to Exercise 3"
-    Interpolation search estimates the position of the target $x$ in sorted array $A[lo..hi]$ by linear interpolation: $\text{mid} = lo + \lfloor (x - A[lo]) / (A[hi] - A[lo]) \times (hi - lo) \rfloor$. For uniformly distributed data, this estimate is close to the true position, so each step reduces the search space by a square-root factor: $n \to \sqrt{n} \to n^{1/4} \to \ldots$, giving $O(\log \log n)$ steps. On adversarial data (e.g., $A = [1, 2, 3, \ldots, 999, 10^9]$ searching for 999): interpolation estimates mid $\approx 0$ (999 is tiny relative to $10^9$), so the algorithm scans nearly linearly from the start, taking $O(n)$ steps. The algorithm has no worst-case guarantee better than $O(n)$ because the interpolation can be arbitrarily misleading. $\square$
-
----
-
-**Exercise 4.**
-Describe exponential search and analyze its time complexity. When is it preferable to standard binary search?
-
-??? success "Solution to Exercise 4"
-    Exponential search finds the range containing the target, then binary searches within it. Steps: (1) Starting from position 1, double the index: 1, 2, 4, 8, 16, ... until $A[2^k] \ge x$ or $2^k > n$. (2) Binary search in the range $[2^{k-1}, \min(2^k, n)]$. Phase 1 takes $O(\log i)$ steps where $i$ is the target's position. Phase 2 takes $O(\log(2^k - 2^{k-1})) = O(k) = O(\log i)$. Total: $O(\log i)$. Exponential search is preferable when: (1) the target is near the beginning of a large array -- $O(\log i)$ is much better than binary search's $O(\log n)$; (2) the array size is unknown (infinite or streaming); (3) the data structure supports efficient sequential access but not random access (e.g., a linked list with skip pointers). $\square$
+??? success "익힘 2 풀이"
+    견줌 바탕 알고리즘은 두 갈래 판단 나무로 본뜰 수 있다. 속마디마다 두 갈래 결과(작다/크다 또는 같다/같지 않다)를 내는 견줌 하나다. 잎마다 있을 수 있는 답 하나다(원소 $n$개 가운데 하나이거나 "없음", 곧 결과가 $n + 1$가지). 잎이 $L$개인 두 갈래 나무의 높이는 $\ge \lceil \log_2 L \rceil$이다. $L = n + 1$이면 높이 $\ge \lceil \log_2(n + 1) \rceil = \Omega(\log n)$이다. 가장 나쁠 때의 견줌 횟수는 판단 나무의 높이와 같으므로 견줌 바탕 찾기는 모두 $\Omega(\log n)$번 견주어야 한다. 이진 찾기가 꼭 $\lceil \log_2(n + 1) \rceil$번으로 이 울타리에 이르니 가장 좋다. $\square$
 
 ---
 
-**Exercise 5.**
-A sorted array supports binary search in $O(\log n)$. If the array is modified (insertions/deletions), maintaining sorted order costs $O(n)$ per modification. Describe a data structure that supports both searches and modifications in $O(\log n)$.
+**익힘 3.**
+사이 잡는 찾기는 고루 퍼진 자료에서 어림 $O(\log \log n)$ 때를 이룬다. 그 알고리즘을 밝히고 겨누어 만든 자료에서 $O(n)$으로 무너지는 까닭을 밝혀라.
 
-??? success "Solution to Exercise 5"
-    A **balanced BST** (AVL tree, red-black tree) stores elements in sorted order with $O(\log n)$ search, insert, and delete. Alternatively, a **skip list** provides $O(\log n)$ expected time for all operations. For the specific case of an array that needs both binary search and insertions, an **order-statistic tree** (balanced BST augmented with subtree sizes) supports: find the $k$-th element in $O(\log n)$, insert in $O(\log n)$, delete in $O(\log n)$, and rank query (position of an element) in $O(\log n)$. This replaces the sorted array + binary search combination when modifications are frequent. The tradeoff: BSTs have higher constant factors than arrays (pointer overhead, cache misses) but avoid the $O(n)$ shift cost of array insertions. $\square$
+??? success "익힘 3 풀이"
+    사이 잡는 찾기는 줄 세운 배열 $A[lo..hi]$에서 겨눈 $x$의 자리를 선형 사이 잡기로 어림한다. $\text{mid} = lo + \lfloor (x - A[lo]) / (A[hi] - A[lo]) \times (hi - lo) \rfloor$. 고루 퍼진 자료에서는 이 어림이 참 자리에 가까워 걸음마다 찾을 밭이 제곱근만큼 줄어든다. $n \to \sqrt{n} \to n^{1/4} \to \ldots$이므로 $O(\log \log n)$걸음이다. 겨누어 만든 자료(보기로 $A = [1, 2, 3, \ldots, 999, 10^9]$에서 999를 찾을 때)에서는 사이 잡기가 mid $\approx 0$으로 어림하므로($10^9$에 견주면 999가 아주 작다) 알고리즘이 앞에서부터 거의 죽 훑어 $O(n)$걸음이 든다. 사이 잡기가 얼마든지 그르칠 수 있으므로 이 알고리즘은 $O(n)$보다 나은 가장 나쁠 때 보장이 없다. $\square$
+
+---
+
+**익힘 4.**
+곱절 찾기를 밝히고 때 복잡도를 따져라. 여느 이진 찾기보다 나은 때는 언제인가?
+
+??? success "익힘 4 풀이"
+    곱절 찾기는 겨눈 것이 든 너비를 먼저 찾고 그 안에서 이진 찾기를 한다. 걸음은 이렇다. (1) 자리 1에서 시작해 번호를 두 곱절씩 키운다. 1, 2, 4, 8, 16, ... $A[2^k] \ge x$이거나 $2^k > n$이 될 때까지. (2) 너비 $[2^{k-1}, \min(2^k, n)]$에서 이진 찾기를 한다. 첫 마디는 겨눈 것의 자리가 $i$일 때 $O(\log i)$걸음이다. 둘째 마디는 $O(\log(2^k - 2^{k-1})) = O(k) = O(\log i)$이다. 모두 $O(\log i)$이다. 곱절 찾기가 나은 때는 (1) 큰 배열의 앞쪽에 겨눈 것이 있을 때다. $O(\log i)$이 이진 찾기의 $O(\log n)$보다 훨씬 낫다. (2) 배열 크기를 모를 때다(끝없거나 흐르는 자료). (3) 자료 얼개가 아무 데나 닿기는 못 하고 차례대로 닿기만 잘 받칠 때다(보기로 건너뛰기 손가락질을 지닌 이음 목록). $\square$
+
+---
+
+**익힘 5.**
+줄 세운 배열은 $O(\log n)$에 이진 찾기를 받친다. 배열을 고치면(넣기/지우기) 차례를 지키는 데 고침마다 $O(n)$이 든다. 찾기와 고치기를 모두 $O(\log n)$에 받치는 자료 얼개를 밝혀라.
+
+??? success "익힘 5 풀이"
+    **고른 이진 찾기 나무**(AVL 나무, 붉은검은 나무)는 원소를 줄 세운 차례로 담으며 찾기, 넣기, 지우기가 $O(\log n)$이다. 아니면 **건너뛰기 목록**이 모든 연산을 어림 $O(\log n)$에 준다. 이진 찾기와 넣기가 함께 필요한 배열이라면 **차례 셈속 나무**(밑나무 크기를 덧붙인 고른 이진 찾기 나무)가 $k$번째 원소 찾기 $O(\log n)$, 넣기 $O(\log n)$, 지우기 $O(\log n)$, 등수 물음(원소의 자리) $O(\log n)$을 받친다. 고치기가 잦으면 이것이 줄 세운 배열 + 이진 찾기를 갈음한다. 맞바꿈은 이진 찾기 나무의 붙박이 곱이 배열보다 크다는 것이지만(손가락질 짐, 캐시 빗나감) 배열 넣기의 $O(n)$ 밀기 값을 피한다. $\square$
