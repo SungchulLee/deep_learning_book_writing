@@ -513,11 +513,11 @@ summary = f"""
 익힘 간추림
 
 Configuration:
-  - Model: {'Linear' if not config.hidden_sizes else f'MLP {config.hidden_sizes}'}
-  - Optimizer: Adam (lr={config.learning_rate}, weight_decay={config.weight_decay})
-  - Batch size: {config.batch_size}
-  - Epochs: {len(history['train_loss'])}
-  - Early stopping patience: {config.patience}
+  - 모형: {'Linear' if not config.hidden_sizes else f'MLP {config.hidden_sizes}'}
+  - 가장 좋게 하개: Adam (lr={config.learning_rate}, weight_decay={config.weight_decay})
+  - 묶음 크기: {config.batch_size}
+  - 판 수: {len(history['train_loss'])}
+  - 일찍 멈추기 참을성: {config.patience}
 
 마지막 자:
   Train - R²: {train_metrics['r2']:.4f}, MAE: ${train_metrics['mae']*100:.2f}k, RMSE: ${train_metrics['rmse']*100:.2f}k
@@ -525,9 +525,9 @@ Configuration:
   Test  - R²: {test_metrics['r2']:.4f}, MAE: ${test_metrics['mae']*100:.2f}k, RMSE: ${test_metrics['rmse']*100:.2f}k
 
 Observations:
-  - {"No significant overfitting" if abs(train_metrics['r2'] - test_metrics['r2']) < 0.05 else "Some overfitting detected"}
-  - Best validation loss: {best_checkpoint['val_loss']:.6f}
-  - Model saved to: {config.checkpoint_dir}/best_model.pth
+  - {"이렇다 할 지나친 맞춰짐 없음" if abs(train_metrics['r2'] - test_metrics['r2']) < 0.05 else "지나친 맞춰짐이 얼마간 보임"}
+  - 가장 좋은 다짐 잃음: {best_checkpoint['val_loss']:.6f}
+  - 모형을 갈무리한 곳: {config.checkpoint_dir}/best_model.pth
 """
 ax7.text(0.1, 0.9, summary, transform=ax7.transAxes,
          fontsize=10, verticalalignment='top', fontfamily='monospace',

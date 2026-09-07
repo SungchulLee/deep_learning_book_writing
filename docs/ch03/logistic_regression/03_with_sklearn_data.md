@@ -322,16 +322,16 @@ summary = f"""
 {'='*40}
 
 자료 묶음: 위스콘신 유방암
-Samples: {len(X)} total
-  - Training: {len(X_train)}
-  - Test: {len(X_test)}
+표본: 모두 {len(X)}개
+  - 익힘: {len(X_train)}
+  - 시험: {len(X_test)}
 
 Features: {n_features}
 
 Training:
-  - Epochs: {num_epochs}
-  - Final Loss: {history['loss'][-1]:.4f}
-  - Final Train Acc: {history['accuracy'][-1]:.4f}
+  - 판 수: {num_epochs}
+  - 마지막 잃음: {history['loss'][-1]:.4f}
+  - 마지막 익힘 맞음: {history['accuracy'][-1]:.4f}
 
 시험 성능:
   - Accuracy: {accuracy:.4f}
