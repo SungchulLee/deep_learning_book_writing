@@ -1,65 +1,65 @@
-# Projected Gradient Descent (PGD) Attack
-## Introduction
+# 되비춘 기울기 내림(PGD) 치기
+## 들머리
 
-**Projected Gradient Descent (PGD)** extends FGSM to a multi-step iterative attack, making it significantly more powerful. Introduced by Madry et al. (2018), PGD is considered the de facto standard for evaluating adversarial robustness and is the foundation of robust adversarial training.
+**되비춘 기울기 내림(PGD)**은 FGSM을 여러 걸음 되돌이 치기로 넓혀 훨씬 세게 만든다. 매드리 등(2018)이 내놓았으며, 맞섬에 든든함을 따지는 사실상의 잣대로 여겨지고 든든한 맞서며 익히기의 밑바탕이 된다.
 
-## Mathematical Foundation
+## 수학 밑바탕
 
-### From FGSM to Iterative Attacks
+### FGSM에서 되돌이 치기로
 
-FGSM takes a single large step in the gradient direction. This is suboptimal because:
+FGSM은 기울기 방향으로 큰 걸음을 한 번 밟는다. 이는 다음 까닭에 가장 좋지 않다.
 
-1. The linear approximation degrades far from $\mathbf{x}$
-2. A single step may overshoot or undershoot the optimum
-3. The loss landscape is non-convex
+1. $\mathbf{x}$에서 멀어지면 선형 어림이 나빠진다
+2. 한 걸음이면 가장 좋은 자리를 지나치거나 못 미칠 수 있다
+3. 잃음의 터는 볼록하지 않다
 
-PGD addresses these issues by taking **multiple small steps**, re-computing gradients at each iteration.
+PGD은 **작은 걸음을 여러 번** 밟고 되돌 때마다 기울기를 다시 셈해 이를 푼다.
 
-### PGD Formulation
+### PGD 꼴
 
-PGD solves the constrained optimization problem:
+PGD은 옭아맨 가장 좋게 하기 문제
 
 $$
 \max_{\|\boldsymbol{\delta}\|_p \leq \varepsilon} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y)
 $$
 
-using projected gradient ascent. The iterative update is:
+를 되비춘 기울기 오름으로 푼다. 되돌 때마다의 고침은
 
 $$
 \mathbf{x}^{(t+1)} = \Pi_{\mathbf{x} + \mathcal{S}}\left( \mathbf{x}^{(t)} + \alpha \cdot \text{sign}(\nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}^{(t)}), y)) \right)
 $$
 
-where:
+여기서
 
-- $\Pi_{\mathbf{x} + \mathcal{S}}$ projects back onto the $\varepsilon$-ball around $\mathbf{x}$
-- $\alpha$ is the step size
-- $\mathcal{S} = \{\boldsymbol{\delta} : \|\boldsymbol{\delta}\|_p \leq \varepsilon\}$ is the allowed perturbation set
+- $\Pi_{\mathbf{x} + \mathcal{S}}$은 $\mathbf{x}$ 둘레 $\varepsilon$ 공으로 되비춘다
+- $\alpha$은 걸음 크기
+- $\mathcal{S} = \{\boldsymbol{\delta} : \|\boldsymbol{\delta}\|_p \leq \varepsilon\}$은 받아 주는 흔듦의 모임
 
-### Algorithm
+### 알고리즘
 
-**Algorithm: PGD Attack**
+**알고리즘: PGD 치기**
 
-**Input:** Clean example $\mathbf{x}$, label $y$, model $f_\theta$, epsilon $\varepsilon$, step size $\alpha$, iterations $T$
+**들임:** 맑은 보기 $\mathbf{x}$, 이름표 $y$, 모형 $f_\theta$, 엡실론 $\varepsilon$, 걸음 크기 $\alpha$, 되돌이 $T$
 
-**Output:** Adversarial example $\mathbf{x}_{\text{adv}}$
+**날임:** 맞서는 보기 $\mathbf{x}_{\text{adv}}$
 
-1. **Initialize:** $\mathbf{x}^{(0)} = \mathbf{x} + \mathbf{u}$ where $\mathbf{u} \sim \text{Uniform}[-\varepsilon, \varepsilon]^d$
-2. **For** $t = 0, 1, \ldots, T-1$:
-   - Compute gradient: $\mathbf{g} = \nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}^{(t)}), y)$
-   - Update: $\tilde{\mathbf{x}}^{(t+1)} = \mathbf{x}^{(t)} + \alpha \cdot \text{sign}(\mathbf{g})$
-   - Project: $\mathbf{x}^{(t+1)} = \Pi_{\varepsilon}(\tilde{\mathbf{x}}^{(t+1)}, \mathbf{x})$
-   - Clip to valid range: $\mathbf{x}^{(t+1)} = \text{clip}(\mathbf{x}^{(t+1)}, 0, 1)$
-3. **Return:** $\mathbf{x}_{\text{adv}} = \mathbf{x}^{(T)}$
+1. **첫자리:** $\mathbf{u} \sim \text{Uniform}[-\varepsilon, \varepsilon]^d$일 때 $\mathbf{x}^{(0)} = \mathbf{x} + \mathbf{u}$
+2. $t = 0, 1, \ldots, T-1$**마다**:
+   - 기울기를 셈한다: $\mathbf{g} = \nabla_\mathbf{x} \mathcal{L}(f_\theta(\mathbf{x}^{(t)}), y)$
+   - 고친다: $\tilde{\mathbf{x}}^{(t+1)} = \mathbf{x}^{(t)} + \alpha \cdot \text{sign}(\mathbf{g})$
+   - 되비춘다: $\mathbf{x}^{(t+1)} = \Pi_{\varepsilon}(\tilde{\mathbf{x}}^{(t+1)}, \mathbf{x})$
+   - 옳은 자리로 잘라 낸다: $\mathbf{x}^{(t+1)} = \text{clip}(\mathbf{x}^{(t+1)}, 0, 1)$
+3. **돌려준다:** $\mathbf{x}_{\text{adv}} = \mathbf{x}^{(T)}$
 
-### Projection Operators
+### 되비추는 셈
 
-**$\ell_\infty$ Projection:**
+**$\ell_\infty$ 되비추기:**
 
 $$
 \Pi_\varepsilon^{\infty}(\tilde{\mathbf{x}}, \mathbf{x})_i = \text{clip}(\tilde{x}_i, x_i - \varepsilon, x_i + \varepsilon)
 $$
 
-**$\ell_2$ Projection:**
+**$\ell_2$ 되비추기:**
 
 $$
 \Pi_\varepsilon^{2}(\tilde{\mathbf{x}}, \mathbf{x}) = 
@@ -69,15 +69,15 @@ $$
 \end{cases}
 $$
 
-### Step Size Selection
+### 걸음 크기 고르기
 
-| Strategy | Formula | Notes |
+| 꾀 | 식 | 붙임말 |
 |----------|---------|-------|
-| **Linear** | $\alpha = \varepsilon / T$ | Conservative |
-| **Scaled linear** | $\alpha = 2\varepsilon / T$ | Standard (Madry et al.) |
-| **Aggressive** | $\alpha = 2.5\varepsilon / T$ | Faster convergence |
+| **곧게** | $\alpha = \varepsilon / T$ | 조심스럽다 |
+| **잣대 잡은 곧게** | $\alpha = 2\varepsilon / T$ | 여느 값(매드리 등) |
+| **세게** | $\alpha = 2.5\varepsilon / T$ | 더 빨리 모인다 |
 
-## PyTorch Implementation
+## PyTorch으로 짜기
 
 ```python
 import torch
@@ -87,22 +87,22 @@ from typing import Optional, Literal, Dict
 
 class PGD:
     """
-    Projected Gradient Descent (PGD) Attack.
+    되비춘 기울기 내림(PGD) 치기.
     
     Parameters
     ----------
     model : nn.Module
-        Neural network to attack
+        칠 신경 그물
     epsilon : float
-        Maximum perturbation magnitude
+        가장 큰 흔듦의 크기
     alpha : float
-        Step size per iteration
+        되돌 때마다의 걸음 크기
     num_iter : int
-        Number of PGD iterations
+        PGD 되돌이 횟수
     norm : str
-        Norm constraint ('linf' or 'l2')
+        노름 옭아맴('linf' 또는 'l2')
     random_init : bool
-        Whether to use random initialization
+        첫자리를 아무렇게나 잡을지
     """
     
     def __init__(
@@ -132,7 +132,7 @@ class PGD:
         self.model.to(self.device)
     
     def _project(self, x_adv: torch.Tensor, x: torch.Tensor) -> torch.Tensor:
-        """Project onto epsilon-ball."""
+        """엡실론 공으로 되비춘다."""
         delta = x_adv - x
         
         if self.norm == 'linf':
@@ -152,11 +152,11 @@ class PGD:
         targeted: bool = False,
         target_labels: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        """Generate adversarial examples using PGD."""
+        """PGD으로 맞서는 보기를 만든다."""
         x = x.to(self.device)
         y = y.to(self.device)
         
-        # Initialize
+        # 첫자리를 잡는다
         if self.random_init:
             if self.norm == 'linf':
                 delta = torch.empty_like(x).uniform_(-self.epsilon, self.epsilon)
@@ -168,7 +168,7 @@ class PGD:
         else:
             x_adv = x.clone()
         
-        # PGD iterations
+        # PGD 되돌이
         for _ in range(self.num_iter):
             x_adv.requires_grad_(True)
             logits = self.model(x_adv)
@@ -182,7 +182,7 @@ class PGD:
             loss.backward()
             grad = x_adv.grad.data
             
-            # Gradient step
+            # 기울기 한 걸음
             if self.norm == 'linf':
                 x_adv = x_adv.detach() + self.alpha * torch.sign(grad)
             else:
@@ -194,7 +194,7 @@ class PGD:
         return x_adv.detach()
     
     def evaluate(self, x: torch.Tensor, y: torch.Tensor, x_adv: torch.Tensor) -> Dict[str, float]:
-        """Evaluate attack effectiveness."""
+        """치기가 얼마나 잘 먹히는지 따진다."""
         with torch.no_grad():
             clean_acc = (self.model(x.to(self.device)).argmax(1) == y.to(self.device)).float().mean()
             robust_acc = (self.model(x_adv.to(self.device)).argmax(1) == y.to(self.device)).float().mean()
@@ -209,80 +209,80 @@ class PGD:
         }
 ```
 
-## Comparison: FGSM vs PGD
+## 견주기: FGSM과 PGD
 
-| Aspect | FGSM | PGD |
+| 결 | FGSM | PGD |
 |--------|------|-----|
-| Steps | 1 | $T$ (10-100) |
-| Initialization | None | Random |
-| Strength | Weak | Strong |
-| Speed | Fast | $T \times$ slower |
+| 걸음 | 1 | $T$(10~100) |
+| 첫자리 | 없음 | 아무렇게나 |
+| 세기 | 여림 | 셈 |
+| 빠르기 | 빠름 | $T$배 느림 |
 
-**Typical Results (CIFAR-10, ε=8/255):**
+**흔한 결과(CIFAR-10, ε=8/255):**
 
-| Method | Success Rate |
+| 방법 | 먹힌 비율 |
 |--------|--------------|
-| FGSM | ~65% |
-| PGD-10 | ~85% |
-| PGD-40 | ~92% |
+| FGSM | 약 65% |
+| PGD-10 | 약 85% |
+| PGD-40 | 약 92% |
 
-## Variants
+## 갈래
 
-### Momentum Iterative FGSM (MI-FGSM)
+### 밀어 나감 되돌이 FGSM(MI-FGSM)
 
 $$
 \mathbf{g}^{(t)} = \mu \cdot \mathbf{g}^{(t-1)} + \frac{\nabla_\mathbf{x} \mathcal{L}}{\|\nabla_\mathbf{x} \mathcal{L}\|_1}
 $$
 
-Improves transferability by accumulating gradient momentum.
+기울기의 밀어 나감을 쌓아 옮아감을 낫게 한다.
 
-### Auto-PGD (APGD)
+### 오토-PGD(APGD)
 
-Adapts step size based on loss improvement—key component of AutoAttack.
+잃음이 나아지는 정도에 따라 걸음 크기를 맞춘다. 오토어택의 고갱이 몫이다.
 
-## Connection to Adversarial Training
+## 맞서며 익히기와의 이어짐
 
-PGD is the standard attack for robust training:
+PGD은 든든하게 익히는 데 쓰는 여느 치기다.
 
 $$
 \min_\theta \mathbb{E}_{(\mathbf{x},y)}\left[\max_{\|\boldsymbol{\delta}\|_\infty \leq \varepsilon} \mathcal{L}(f_\theta(\mathbf{x} + \boldsymbol{\delta}), y)\right]
 $$
 
-The inner max is approximated by PGD.
+안쪽의 가장 크게 하기를 PGD으로 어림한다.
 
-## References
+## 살펴볼 거리
 
 1. Madry, A., et al. (2018). "Towards Deep Learning Models Resistant to Adversarial Attacks." ICLR.
 2. Dong, Y., et al. (2018). "Boosting Adversarial Attacks with Momentum." CVPR.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
