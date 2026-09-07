@@ -1,130 +1,130 @@
-# 35.1.2 State Representations
-## Learning Objectives
+# 35.1.2 상태 나타내기
+## 배움 목표
 
-- Design effective state representations for financial RL agents
-- Understand which features carry predictive signal
-- Implement feature normalization and preprocessing for RL
-- Handle multi-asset, multi-timeframe state spaces
+- 금융 힘 북돋우는 배움 부림꾼을 위한 잘 듣는 상태 나타내기를 설계한다
+- 어떤 특징이 미리 보는 신호를 지니는지 이해한다
+- 힘 북돋우는 배움을 위한 특징 고르게 하기와 미리 다듬기를 만든다
+- 여러 자산, 여러 때 잣대의 상태 공간을 다룬다
 
-## Introduction
+## 들머리
 
-The state representation is arguably the most critical design decision in a financial RL system. It determines what information the agent can observe and, consequently, what patterns it can learn. Unlike game environments where the full state is often observable, financial markets are partially observable—the agent sees a noisy projection of a vastly more complex underlying system.
+상태 나타내기는 금융 힘 북돋우는 배움 시스템에서 아마도 가장 종요로운 설계 결정이다. 부림꾼이 무엇을 볼 수 있는지, 따라서 어떤 결을 배울 수 있는지를 정하기 때문이다. 온 상태가 흔히 드러나는 놀이 둘레와 달리 금융 저자는 조각만 보인다. 부림꾼은 훨씬 얽힌 밑바탕 얼개의 잡음 섞인 그림자를 볼 뿐이다.
 
-## Categories of State Features
+## 상태 특징의 갈래
 
-### 1. Price-Based Features
+### 1. 값 바탕 특징
 
-Raw prices are non-stationary and should be transformed into stationary features:
+날 값은 흐름이 바뀌므로 흐름이 바뀌지 않는 특징으로 옮겨야 한다.
 
-| Feature | Formula | Interpretation |
+| 특징 | 식 | 풀이 |
 |---------|---------|---------------|
-| Log returns | $r_t = \ln(p_t / p_{t-1})$ | Percentage price change |
-| Normalized price | $(p_t - \mu_{w}) / \sigma_{w}$ | Z-scored over window $w$ |
-| Return momentum | $\sum_{i=0}^{k-1} r_{t-i}$ | Cumulative return over $k$ periods |
-| Realized volatility | $\sqrt{\sum_{i=0}^{k-1} r_{t-i}^2}$ | Price variability |
+| 로그 돌아옴 | $r_t = \ln(p_t / p_{t-1})$ | 값의 백분율 바뀜 |
+| 고르게 한 값 | $(p_t - \mu_{w}) / \sigma_{w}$ | 창 $w$에 대한 Z 점수 |
+| 돌아옴 밀기 | $\sum_{i=0}^{k-1} r_{t-i}$ | $k$ 마디에 걸친 쌓인 돌아옴 |
+| 거둔 흔들림 | $\sqrt{\sum_{i=0}^{k-1} r_{t-i}^2}$ | 값이 들쭉날쭉한 정도 |
 
-### 2. Technical Indicators
+### 2. 재주 지표
 
-Computed from price and volume data:
+값과 거래량 자료에서 셈한다.
 
-| Indicator | Window | Signal |
+| 지표 | 창 | 신호 |
 |-----------|--------|--------|
-| RSI (Relative Strength Index) | 14 | Overbought/oversold |
-| MACD | 12/26/9 | Trend direction and momentum |
-| Bollinger Band position | 20 | Mean reversion signal |
-| ATR (Average True Range) | 14 | Volatility measure |
-| OBV (On-Balance Volume) | — | Volume-price trend |
+| RSI(서로 견준 힘 지표) | 14 | 지나치게 사거나 팔림 |
+| MACD | 12/26/9 | 흐름의 쪽과 밀기 |
+| 볼린저 띠 자리 | 20 | 평균으로 돌아옴 신호 |
+| ATR(평균 참 너비) | 14 | 흔들림 재기 |
+| OBV(저울 맞춘 거래량) | -- | 거래량과 값의 흐름 |
 
-### 3. Portfolio State
+### 3. 밑천 상태
 
-The agent must know its current positions:
+부림꾼은 제 지금 자리를 알아야 한다.
 
-- Current portfolio weights $w_t \in \mathbb{R}^N$
-- Unrealized P&L per position
-- Time since last trade per asset
-- Available capital / buying power
-- Current leverage ratio
+- 지금 밑천 무게 $w_t \in \mathbb{R}^N$
+- 자리마다 아직 거두지 않은 손익
+- 자산마다 마지막 거래 뒤 흐른 때
+- 쓸 수 있는 밑천 / 살 힘
+- 지금 지렛대 비
 
-### 4. Market Microstructure (for high-frequency)
+### 4. 저자 잔결(높은 잦기 거래에서)
 
-- Bid-ask spread
-- Order book imbalance
-- Trade flow imbalance
-- Quote arrival rate
+- 사고파는 값 사이
+- 주문 장부의 기울어짐
+- 거래 흐름의 기울어짐
+- 값 부르기가 오는 비율
 
-### 5. Cross-Asset Features
+### 5. 자산을 가로지르는 특징
 
-- Correlation matrix (rolling window)
-- Sector/industry exposures
-- Market regime indicators (VIX level, yield curve slope)
+- 서로 얽힘 행렬(굴러가는 창)
+- 갈래/업종 노출
+- 저자 판 지표(VIX 수준, 이자율 굽이의 기울기)
 
-## State Space Design
+## 상태 공간 설계
 
-### Flat Vector Representation
+### 납작한 벡터로 나타내기
 
-The simplest approach concatenates all features into a single vector:
+가장 쉬운 길은 온 특징을 벡터 하나로 잇는 것이다.
 
-$$s_t = [f_t^{\text{price}}, f_t^{\text{tech}}, f_t^{\text{portfolio}}, f_t^{\text{market}}] \in \mathbb{R}^D$$
+$$s_t = [f_t^{\text{값}}, f_t^{\text{재주}}, f_t^{\text{밑천}}, f_t^{\text{저자}}] \in \mathbb{R}^D$$
 
-This works well with MLP-based policies but doesn't capture temporal structure.
+여러 켜 퍼셉트론 방침에 잘 듣지만 때 짜임을 담지 못한다.
 
-### Temporal Tensor Representation
+### 때 텐서로 나타내기
 
-For sequence models (LSTM, Transformer), organize features as a 2D tensor:
+열 모형(LSTM, 트랜스포머)에서는 특징을 2차원 텐서로 짠다.
 
 $$S_t = \begin{bmatrix} f_{t-L+1}^{(1)} & \cdots & f_{t-L+1}^{(F)} \\ \vdots & \ddots & \vdots \\ f_t^{(1)} & \cdots & f_t^{(F)} \end{bmatrix} \in \mathbb{R}^{L \times F}$$
 
-where $L$ is the lookback window and $F$ is the number of features.
+여기서 $L$은 되돌아보는 창이고 $F$은 특징의 개수다.
 
-### Multi-Channel Representation
+### 여러 갈래로 나타내기
 
-For CNN-based policies, stack different feature types as channels:
+겹칩 그물 방침에서는 특징 갈래를 켜로 쌓는다.
 
 $$S_t \in \mathbb{R}^{C \times L \times N}$$
 
-where $C$ = feature channels, $L$ = lookback, $N$ = number of assets.
+여기서 $C$은 특징 켜, $L$은 되돌아보는 길이, $N$은 자산 개수다.
 
-## Normalization Strategies
+## 고르게 하기 꾀
 
-Normalization is critical for RL training stability:
+힘 북돋우는 배움 익힘이 든든하려면 고르게 하기가 종요롭다.
 
-### Rolling Z-Score
+### 굴러가는 Z 점수
 
 $$\hat{f}_t = \frac{f_t - \mu_t^{(w)}}{\sigma_t^{(w)} + \epsilon}$$
 
-where $\mu_t^{(w)}$ and $\sigma_t^{(w)}$ are rolling mean and standard deviation over window $w$.
+여기서 $\mu_t^{(w)}$과 $\sigma_t^{(w)}$은 창 $w$에 대한 굴러가는 평균과 표준편차다.
 
-### Rank Normalization
+### 등수 고르게 하기
 
-Transform features to uniform $[0, 1]$ using their rank within the cross-section:
+가로지르는 단면 안에서의 등수로 특징을 $[0, 1]$에 고르게 옮긴다.
 
 $$\hat{f}_{t,i} = \frac{\text{rank}(f_{t,i})}{N}$$
 
-This is robust to outliers and preserves relative ordering.
+동떨어진 값에 굳세고 서로 간 차례를 지킨다.
 
-### Adaptive Normalization
+### 맞춰 가는 고르게 하기
 
-Maintain exponential moving statistics:
+지수 이동 통계를 지닌다.
 
 $$\mu_t = \alpha f_t + (1 - \alpha) \mu_{t-1}$$
 
 $$\sigma_t^2 = \alpha (f_t - \mu_t)^2 + (1 - \alpha) \sigma_{t-1}^2$$
 
-## Handling Missing Data
+## 빠진 자료 다루기
 
-Financial data often has missing values (holidays, halts, delistings):
+금융 자료에는 빠진 값이 흔하다(쉬는 날, 거래 멈춤, 상장 폐지).
 
-1. **Forward fill**: Carry last known value (most common for prices)
-2. **Masking**: Include a binary mask indicating data availability
-3. **Imputation**: Use cross-sectional or model-based imputation
-4. **Sentinel values**: Use a special value (e.g., 0) with an indicator feature
+1. **앞 값 채우기**: 마지막으로 아는 값을 이어 쓴다(값에 가장 흔하다)
+2. **가리기**: 자료가 있는지를 알리는 두 값 가리개를 함께 넣는다
+3. **메우기**: 가로지르는 단면이나 모형으로 메운다
+4. **파수 값**: 남다른 값(보기로 0)을 알림 특징과 함께 쓴다
 
-## Implementation Considerations
+## 만들 때 살필 것
 
-### Observation Space Definition
+### 봄 공간 정하기
 
 ```python
-# Flat observation
+# 납작한 봄
 observation_space = spaces.Box(
     low=-np.inf,
     high=np.inf,
@@ -132,86 +132,86 @@ observation_space = spaces.Box(
     dtype=np.float32
 )
 
-# Temporal observation with Dict space
+# Dict 공간으로 나타낸 때 봄
 observation_space = spaces.Dict({
     'market': spaces.Box(-np.inf, np.inf, (lookback, num_assets, num_features)),
     'portfolio': spaces.Box(-1, 1, (num_assets,)),
-    'account': spaces.Box(-np.inf, np.inf, (3,)),  # cash, equity, leverage
+    'account': spaces.Box(-np.inf, np.inf, (3,)),  # 남은 돈, 자기 밑천, 지렛대
 })
 ```
 
-### Feature Computation Pipeline
+### 특징 셈하는 흐름
 
 ```python
 def _get_obs(self):
     window = self.data_feeder.get_window()
-    
-    # Price features
+
+    # 값 특징
     returns = np.diff(np.log(window['prices']), axis=0)
     volatility = returns.std(axis=0)
     momentum = returns.sum(axis=0)
-    
-    # Technical indicators
+
+    # 재주 지표
     rsi = self._compute_rsi(window['prices'])
-    
-    # Portfolio state
+
+    # 밑천 상태
     weights = self.portfolio.get_weights()
-    
-    # Normalize
+
+    # 고르게 하기
     market_features = self._normalize(
         np.column_stack([returns[-1], volatility, momentum, rsi])
     )
-    
+
     return {
         'market': market_features.astype(np.float32),
         'portfolio': weights.astype(np.float32),
     }
 ```
 
-## Common Pitfalls
+## 흔히 빠지는 함정
 
-1. **Look-ahead bias**: Never include future information in the state. Even centering/scaling must use only past data.
-2. **Non-stationarity**: Raw prices, volumes, or dollar values as features cause training instability.
-3. **Feature explosion**: Too many features increase sample complexity. Start minimal and add features based on ablation studies.
-4. **Ignoring portfolio state**: The agent must know its current positions to make informed decisions.
+1. **앞날 엿보기 치우침**: 앞날 알림을 상태에 결코 넣지 말라. 가운데 맞추기와 잣대 맞추기조차 지난 자료만 써야 한다.
+2. **흐름 바뀜**: 날 값, 거래량, 돈 액수를 그대로 특징으로 쓰면 익힘이 들쭉날쭉해진다.
+3. **특징 터짐**: 특징이 너무 많으면 필요한 뽑기가 는다. 적게 시작해 하나씩 빼 보며 더하라.
+4. **밑천 상태 빠뜨리기**: 부림꾼이 제 지금 자리를 알아야 제대로 판단할 수 있다.
 
-## Summary
+## 요약
 
-Effective state representations combine price-derived features (returns, volatility, momentum), technical indicators, portfolio state, and optionally market microstructure data. All features must be normalized using only historically available information to prevent look-ahead bias. The choice between flat, temporal, and multi-channel representations depends on the policy architecture.
+잘 듣는 상태 나타내기는 값에서 얻은 특징(돌아옴, 흔들림, 밀기), 재주 지표, 밑천 상태, 그리고 때에 따라 저자 잔결 자료를 엮는다. 앞날 엿보기 치우침을 막으려면 온 특징을 그때까지 손에 쥘 수 있었던 알림만으로 고르게 해야 한다. 납작한 것, 때 텐서, 여러 갈래 가운데 무엇을 고를지는 방침 얼개에 달렸다.
 
-## References
+## 참고 문헌
 
 - Gu, S., Kelly, B., & Xiu, D. (2020). Empirical Asset Pricing via Machine Learning. Review of Financial Studies
 - Kolm, P., & Ritter, G. (2019). Modern Perspectives on Reinforcement Learning in Finance
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Design a Gymnasium-compatible environment for the financial problem described in this section. Specify the observation space, action space, reward function, and episode termination conditions.
+**연습문제 1.**
+이 절에서 밝힌 금융 문제를 위해 Gymnasium과 어울리는 둘레를 설계하여라. 봄 공간, 움직임 공간, 보상 함수, 에피소드 끝내기 조건을 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Observation space: a vector containing recent returns, current position, portfolio value, and relevant market features (e.g., volatility, volume). Action space: depends on the problem (discrete for buy/hold/sell, continuous for position sizing). Reward: risk-adjusted return per step (e.g., log return minus penalty for risk). Episode terminates after a fixed horizon (e.g., one trading year) or if portfolio value drops below a threshold (margin call). The environment must handle transaction costs, slippage, and market impact realistically. $\square$
-
----
-
-**Exercise 2.**
-Analyze the reward shaping trade-offs for this financial RL problem. Compare at least three candidate reward functions and discuss which properties of the optimal policy each preserves.
-
-??? success "Solution to Exercise 2"
-    Candidate rewards: (1) raw PnL -- simple but high variance and delayed; (2) Sharpe-based differential reward $D_t = \frac{\Delta A_t B_{t-1} - \frac{1}{2}\Delta B_t A_{t-1}}{(B_{t-1} - A_{t-1}^2)^{3/2}}$ -- directly optimizes the Sharpe ratio but complex; (3) log return with drawdown penalty $r_t = \log(V_t/V_{t-1}) - \lambda \max(0, DD_t - \tau)$ -- balances return with risk control. The potential-based shaping theorem guarantees that adding $\gamma\Phi(s') - \Phi(s)$ preserves the optimal policy. The Sharpe-based reward changes the optimization objective (may alter optimal policy), while pure PnL preserves it but learns slowly. $\square$
+??? success "연습문제 1 풀이"
+    봄 공간: 최근 돌아옴, 지금 자리, 밑천 값, 걸맞은 저자 특징(보기로 흔들림, 거래량)을 담은 벡터. 움직임 공간: 문제에 달렸다(사기/쥐기/팔기라면 따로 떨어진 것, 자리 크기 잡기라면 이어진 것). 보상: 걸음마다 무릅씀을 맞춘 돌아옴(보기로 로그 돌아옴에서 무릅씀 벌을 뺀 것). 에피소드는 붙박인 눈길(보기로 거래 한 해)이 지나거나 밑천 값이 문턱 아래로 떨어지면(증거금 부름) 끝난다. 둘레는 거래 비용, 미끄러짐, 저자 흔듦을 참에 가깝게 다루어야 한다. $\square$
 
 ---
 
-**Exercise 3.**
-Discuss the non-stationarity challenge specific to this financial application. Propose a concrete strategy for adapting the RL agent to regime changes.
+**연습문제 2.**
+이 금융 힘 북돋우는 배움 문제에서 보상 다듬기의 맞바꿈을 살펴라. 후보 보상 함수를 적어도 셋 견주고, 저마다 가장 좋은 방침의 어떤 성질을 지키는지 따져라.
 
-??? success "Solution to Exercise 3"
-    Financial markets exhibit regime changes (bull/bear, high/low volatility) that violate the MDP stationarity assumption. A concrete adaptation strategy: (1) include a regime indicator as part of the state (e.g., HMM-estimated regime probabilities); (2) use a meta-learning approach where the agent maintains multiple policies and selects based on detected regime; (3) implement continual learning with an expanding replay buffer weighted toward recent experience (exponential decay weights). The agent should also monitor its own performance and reduce position sizes when out-of-distribution inputs are detected. $\square$
+??? success "연습문제 2 풀이"
+    후보 보상: (1) 날 손익 -- 쉽지만 흩어짐이 크고 늦게 온다. (2) 샤프 바탕 미분 보상 $D_t = \frac{\Delta A_t B_{t-1} - \frac{1}{2}\Delta B_t A_{t-1}}{(B_{t-1} - A_{t-1}^2)^{3/2}}$ -- 샤프 비를 곧바로 가장 좋게 하지만 얽혔다. (3) 내림폭 벌을 곁들인 로그 돌아옴 $r_t = \log(V_t/V_{t-1}) - \lambda \max(0, DD_t - \tau)$ -- 돌아옴과 무릅씀 다스리기의 저울을 맞춘다. 퍼텐셜에 바탕을 둔 다듬기 정리는 $\gamma\Phi(s') - \Phi(s)$을 더해도 가장 좋은 방침이 지켜짐을 보장한다. 샤프 바탕 보상은 가장 좋게 하는 목표 자체를 바꾸므로(가장 좋은 방침이 달라질 수 있다) 그렇지 않고, 날 손익은 방침을 지키지만 더디게 배운다. $\square$
 
 ---
 
-**Exercise 4.**
-Compare the backtesting results one would expect from this RL approach versus a simple heuristic baseline. What statistical tests should be used to determine if the RL agent genuinely outperforms?
+**연습문제 3.**
+이 금융 쓰임새에 딸린 흐름 바뀜 어려움을 따져라. 부림꾼을 판 바뀜에 맞춰 가게 하는 또렷한 꾀를 내놓아라.
 
-??? success "Solution to Exercise 4"
-    Baselines: buy-and-hold, equal-weight, or momentum strategy. The RL agent should be evaluated on walk-forward out-of-sample periods (never on training data). Statistical tests: (1) paired t-test on daily returns for mean difference; (2) bootstrap confidence interval on the Sharpe ratio difference; (3) multiple hypothesis testing correction (e.g., Bonferroni or Holm) if comparing multiple strategies. A common pitfall is p-hacking through hyperparameter tuning on the test set. The evaluation must use a hold-out period that was never used for any model selection. Report both statistical significance and economic significance (transaction costs, capacity). $\square$
+??? success "연습문제 3 풀이"
+    금융 저자에는 판 바뀜(오름장/내림장, 높은/낮은 흔들림)이 있어 마르코프 결정 과정의 흐름이 바뀌지 않는다는 여김을 깨뜨린다. 또렷한 맞춰 감 꾀는 이렇다. (1) 판 알림을 상태의 한 몫으로 넣는다(보기로 숨은 마르코프 모형으로 어림한 판 낌새). (2) 부림꾼이 방침 여럿을 지니고 알아낸 판에 따라 고르는 메타 배움 길을 쓴다. (3) 최근 겪음에 무게를 더 준(지수로 삭이는 무게) 넓혀 가는 되돌려 보기 버퍼로 이어 가는 배움을 만든다. 부림꾼은 제 됨됨이도 지켜보다가 분포 밖 들임이 드러나면 자리 크기를 줄여야 한다. $\square$
+
+---
+
+**연습문제 4.**
+이 힘 북돋우는 배움 길과 쉬운 어림 잣대에서 나올 되짚어 시험 열매를 견주어라. 부림꾼이 참으로 앞서는지 가리려면 어떤 통계 검정을 써야 하는가?
+
+??? success "연습문제 4 풀이"
+    잣대: 사서 쥐기, 고르게 나누기, 밀기 꾀. 부림꾼은 (익힘 자료에서는 결코 하지 않고) 앞으로 걸어가며 뽑기 밖 구간에서 따져야 한다. 통계 검정: (1) 하루 돌아옴에 대한 짝 지은 t 검정으로 평균 차이를 본다. (2) 샤프 비 차이에 대한 부트스트랩 믿음 구간을 얻는다. (3) 여러 꾀를 견준다면 여러 가설 검정 바로잡기(보기로 본페로니나 홀름)를 매긴다. 흔히 빠지는 함정은 시험 자료에서 매개변수를 벼려 p값을 후려치는 일이다. 따지기는 어떤 모형 고르기에도 쓰이지 않은 남겨 둔 구간을 써야 한다. 통계로 뜻있음과 살림살이로 뜻있음(거래 비용, 담을 수 있는 크기)을 함께 알려야 한다. $\square$

@@ -1,145 +1,145 @@
-# 35.1.3 Action Spaces
-## Learning Objectives
+# 35.1.3 움직임 공간
+## 배움 목표
 
-- Design appropriate action spaces for financial RL agents
-- Compare discrete vs. continuous action formulations
-- Implement portfolio weight actions with constraints
-- Handle action masking and feasibility constraints
+- 금융 힘 북돋우는 배움 부림꾼에 알맞은 움직임 공간을 설계한다
+- 따로 떨어진 움직임과 이어진 움직임의 꼴을 견준다
+- 매임을 곁들인 밑천 무게 움직임을 만든다
+- 움직임 가리기와 될 수 있음 매임을 다룬다
 
-## Introduction
+## 들머리
 
-The action space defines what decisions the RL agent can make at each time step. In finance, actions typically represent trading decisions: how much of each asset to buy or sell. The choice between discrete and continuous action spaces has significant implications for algorithm selection, training stability, and the expressiveness of the learned policy.
+움직임 공간은 부림꾼이 때 걸음마다 어떤 결정을 내릴 수 있는지를 정한다. 금융에서 움직임은 흔히 거래 결정, 곧 자산마다 얼마나 사고팔지를 나타낸다. 따로 떨어진 움직임 공간과 이어진 움직임 공간 가운데 무엇을 고르느냐가 알고리즘 고름, 익힘의 든든함, 배운 방침이 나타낼 수 있는 너비에 크게 미친다.
 
-## Action Space Formulations
+## 움직임 공간 세우기
 
-### 1. Discrete Actions
+### 1. 따로 떨어진 움직임
 
-Map trading decisions to a finite set of choices:
+거래 결정을 마침한 고름 모임으로 맞댄다.
 
-**Simple Buy/Sell/Hold (per asset)**:
+**쉬운 사기/쥐기/팔기(자산마다)**:
 
-$$a_t \in \{\text{buy}, \text{hold}, \text{sell}\}^N$$
+$$a_t \in \{\text{사기}, \text{쥐기}, \text{팔기}\}^N$$
 
-For $N$ assets, the combinatorial action space has $3^N$ elements, which grows exponentially.
+자산이 $N$개면 어우름 움직임 공간에 원소가 $3^N$개이며 지수로 자란다.
 
-**Discretized Allocation**:
+**따로 떼어 놓은 나누기**:
 
-$$a_t \in \{0, 0.1, 0.2, \ldots, 1.0\}^N \quad \text{subject to} \quad \sum_i a_{t,i} = 1$$
+$$a_t \in \{0, 0.1, 0.2, \ldots, 1.0\}^N \quad \text{단} \quad \sum_i a_{t,i} = 1$$
 
-**Advantages**: Works with DQN-family algorithms; clear exploration via ε-greedy.
-**Disadvantages**: Exponential scaling with assets; cannot express fine-grained allocations.
+**이로움**: DQN 갈래 알고리즘에 쓸 수 있고 엡실론-욕심쟁이로 살펴보기가 또렷하다.
+**나쁜 점**: 자산 수에 따라 지수로 자라고 잘게 나눈 나누기를 나타낼 수 없다.
 
-### 2. Continuous Actions
+### 2. 이어진 움직임
 
-Represent target portfolio weights directly:
+겨눈 밑천 무게를 곧바로 나타낸다.
 
-$$a_t \in [0, 1]^N \quad \text{(long-only)}, \quad a_t \in [-1, 1]^N \quad \text{(long-short)}$$
+$$a_t \in [0, 1]^N \quad \text{(사기만)}, \quad a_t \in [-1, 1]^N \quad \text{(사고팔기)}$$
 
-The raw network output is transformed to satisfy constraints:
+그물이 내놓는 날값을 매임에 맞도록 옮긴다.
 
-**Softmax normalization** (long-only, fully invested):
+**소프트맥스 고르게 하기**(사기만, 온통 넣음):
 
 $$w_i = \frac{e^{a_i}}{\sum_j e^{a_j}}$$
 
-**Simplex projection** (long-only with cash):
+**단체로 던지기**(남은 돈을 둔 사기만):
 
 $$w = \text{proj}_{\Delta}(a), \quad \Delta = \{w : w_i \geq 0, \sum_i w_i \leq 1\}$$
 
-**Tanh with rescaling** (long-short):
+**tanh와 다시 잣대기**(사고팔기):
 
 $$w_i = \frac{\tanh(a_i)}{\sum_j |\tanh(a_j)|} \cdot L_{\max}$$
 
-where $L_{\max}$ is maximum gross leverage.
+여기서 $L_{\max}$은 가장 큰 온 지렛대다.
 
-**Advantages**: Fine-grained control; works with PPO, SAC, TD3.
-**Disadvantages**: Exploration is harder; constraint satisfaction requires careful design.
+**이로움**: 잘게 다스릴 수 있고 PPO, SAC, TD3에 쓸 수 있다.
+**나쁜 점**: 살펴보기가 더 어렵고 매임을 채우려면 꼼꼼한 설계가 있어야 한다.
 
-### 3. Hybrid Actions
+### 3. 섞음 움직임
 
-Combine discrete and continuous components:
+따로 떨어진 조각과 이어진 조각을 엮는다.
 
-- **Discrete**: Which assets to trade (attention/selection)
-- **Continuous**: How much to allocate to selected assets
+- **따로 떨어진 것**: 어느 자산을 거래할지(눈길 두기/고르기)
+- **이어진 것**: 고른 자산에 얼마를 나눌지
 
-This is useful when the universe is large but only a few positions change at each step.
+거래할 자산의 온 모임이 크지만 걸음마다 몇 자리만 바뀔 때 쓸모 있다.
 
-## Constraint Handling
+## 매임 다루기
 
-### Portfolio Constraints
+### 밑천 매임
 
-Financial portfolios typically have constraints that must be enforced:
+금융 밑천에는 흔히 반드시 지켜야 할 매임이 있다.
 
-| Constraint | Mathematical Form | Enforcement |
+| 매임 | 수식 꼴 | 지키는 길 |
 |-----------|-------------------|-------------|
-| Fully invested | $\sum_i w_i = 1$ | Softmax normalization |
-| Long-only | $w_i \geq 0$ | Clamp + renormalize |
-| Max position | $w_i \leq w_{\max}$ | Clamp + redistribute |
-| Max leverage | $\sum_i |w_i| \leq L$ | Scale if exceeded |
-| Sector limits | $\sum_{i \in S_k} w_i \leq c_k$ | Iterative projection |
-| Min trade size | $|\Delta w_i| \geq \delta$ or $0$ | Threshold + snap to zero |
+| 온통 넣음 | $\sum_i w_i = 1$ | 소프트맥스 고르게 하기 |
+| 사기만 | $w_i \geq 0$ | 잘라 내고 다시 고르게 하기 |
+| 자리 위끝 | $w_i \leq w_{\max}$ | 잘라 내고 다시 나누기 |
+| 지렛대 위끝 | $\sum_i |w_i| \leq L$ | 넘으면 잣대 줄이기 |
+| 갈래 위끝 | $\sum_{i \in S_k} w_i \leq c_k$ | 되풀이 던지기 |
+| 가장 작은 거래 크기 | $|\Delta w_i| \geq \delta$ 또는 $0$ | 문턱 두고 0으로 붙이기 |
 
-### Action Transformation Pipeline
+### 움직임 옮기는 흐름
 
 ```python
 def transform_action(self, raw_action):
-    """Transform raw network output to valid portfolio weights."""
-    
-    # Step 1: Apply activation
+    """그물이 내놓은 날값을 옳은 밑천 무게로 옮긴다."""
+
+    # 1걸음: 활성 함수 매기기
     if self.long_only:
         weights = torch.softmax(raw_action, dim=-1)
     else:
         weights = torch.tanh(raw_action)
-    
-    # Step 2: Enforce position limits
+
+    # 2걸음: 자리 위끝 지키기
     weights = torch.clamp(weights, -self.max_position, self.max_position)
-    
-    # Step 3: Enforce leverage constraint
+
+    # 3걸음: 지렛대 매임 지키기
     gross_leverage = weights.abs().sum()
     if gross_leverage > self.max_leverage:
         weights = weights * (self.max_leverage / gross_leverage)
-    
-    # Step 4: Compute trades (difference from current)
+
+    # 4걸음: 거래량 셈하기(지금 자리와의 차이)
     trades = weights - self.current_weights
-    
-    # Step 5: Enforce minimum trade size
+
+    # 5걸음: 가장 작은 거래 크기 지키기
     small_trades = trades.abs() < self.min_trade
     trades[small_trades] = 0.0
     weights = self.current_weights + trades
-    
+
     return weights
 ```
 
-## Action Representations Compared
+## 움직임 나타내기 견주기
 
-### Target Weights vs. Trade Deltas
+### 겨눈 무게와 거래 차이
 
-**Target weights**: $a_t = w_t^{\text{target}}$
+**겨눈 무게**: $a_t = w_t^{\text{겨눔}}$
 
-- Agent outputs desired portfolio composition
-- Environment computes required trades
-- Simpler for the agent; stateless action interpretation
+- 부림꾼이 바라는 밑천 짜임을 내놓는다
+- 둘레가 필요한 거래를 셈한다
+- 부림꾼에게 더 쉽고, 움직임을 상태 없이 풀이할 수 있다
 
-**Trade deltas**: $a_t = \Delta w_t = w_t^{\text{target}} - w_{t-1}$
+**거래 차이**: $a_t = \Delta w_t = w_t^{\text{겨눔}} - w_{t-1}$
 
-- Agent outputs changes to current portfolio
-- More natural for transaction cost awareness
-- Requires knowing current position (state-dependent interpretation)
+- 부림꾼이 지금 밑천에서의 바뀜을 내놓는다
+- 거래 비용을 살피기에 더 자연스럽다
+- 지금 자리를 알아야 한다(상태에 딸린 풀이)
 
-### Order-Based Actions
+### 주문 바탕 움직임
 
-For execution-level RL:
+벌이기 켜의 힘 북돋우는 배움에서는 다음과 같다.
 
-$$a_t = (\text{side}, \text{quantity}, \text{price}, \text{order\_type})$$
+$$a_t = (\text{쪽}, \text{수량}, \text{값}, \text{주문\_갈래})$$
 
-- **Side**: Buy or sell
-- **Quantity**: Number of shares/contracts
-- **Price**: Limit price or market order flag
-- **Order type**: Market, limit, stop-loss, etc.
+- **쪽**: 사기 또는 팔기
+- **수량**: 주식/계약의 개수
+- **값**: 지정가 또는 저자가 깃발
+- **주문 갈래**: 저자가, 지정가, 손절 따위
 
-## Implementation
+## 구현
 
 ```python
-# Continuous action space for N assets (long-only with cash)
+# 자산 N개를 위한 이어진 움직임 공간(남은 돈을 둔 사기만)
 action_space = spaces.Box(
     low=0.0,
     high=1.0,
@@ -147,77 +147,77 @@ action_space = spaces.Box(
     dtype=np.float32
 )
 
-# Discrete action space (3 actions per asset, factored)
+# 따로 떨어진 움직임 공간(자산마다 움직임 3개, 인수로 나눔)
 action_space = spaces.MultiDiscrete([3] * num_assets)
 
-# Hybrid: select K assets, then allocate
+# 섞음: 자산 K개를 고른 뒤 나누기
 action_space = spaces.Dict({
     'selection': spaces.MultiBinary(num_assets),
     'allocation': spaces.Box(0, 1, (num_assets,))
 })
 ```
 
-## Action Masking
+## 움직임 가리기
 
-Some actions may be infeasible at certain states:
+어떤 상태에서는 벌일 수 없는 움직임이 있다.
 
-- Cannot sell an asset not currently held (if short selling is prohibited)
-- Cannot buy if no cash is available
-- Cannot trade a halted stock
+- 지니고 있지 않은 자산을 팔 수 없다(공매도가 막혀 있으면)
+- 남은 돈이 없으면 살 수 없다
+- 거래가 멈춘 주식은 거래할 수 없다
 
 ```python
 def get_action_mask(self):
     mask = np.ones(self.action_space.n, dtype=bool)
-    
-    # Cannot buy without cash
+
+    # 남은 돈이 없으면 살 수 없다
     if self.portfolio.cash <= 0:
         mask[self.BUY_ACTIONS] = False
-    
-    # Cannot sell without position
+
+    # 자리가 없으면 팔 수 없다
     for i, pos in enumerate(self.portfolio.positions):
         if pos <= 0:
             mask[self.SELL_ACTIONS[i]] = False
-    
+
     return mask
 ```
 
-## Summary
+## 요약
 
-Action space design involves trade-offs between expressiveness, scalability, and training complexity. Continuous actions with softmax or simplex projection are most common for portfolio allocation, while discrete actions suit execution-level decisions. Constraint handling through action transformation pipelines ensures feasibility without modifying the RL algorithm.
+움직임 공간 설계에는 나타낼 수 있는 너비, 늘어남, 익힘 품 사이의 맞바꿈이 걸려 있다. 밑천 나누기에는 소프트맥스나 단체로 던지기를 쓰는 이어진 움직임이 가장 흔하고, 벌이기 켜 결정에는 따로 떨어진 움직임이 알맞다. 움직임 옮기는 흐름으로 매임을 다루면 힘 북돋우는 배움 알고리즘을 고치지 않고도 될 수 있음을 지킬 수 있다.
 
-## References
+## 참고 문헌
 
 - Lillicrap, T. P., et al. (2016). Continuous control with deep reinforcement learning (DDPG)
 - Ye, Y., et al. (2020). Reinforcement-Learning based Portfolio Management with Augmented Asset Movement Prediction States
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Design a Gymnasium-compatible environment for the financial problem described in this section. Specify the observation space, action space, reward function, and episode termination conditions.
+**연습문제 1.**
+이 절에서 밝힌 금융 문제를 위해 Gymnasium과 어울리는 둘레를 설계하여라. 봄 공간, 움직임 공간, 보상 함수, 에피소드 끝내기 조건을 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Observation space: a vector containing recent returns, current position, portfolio value, and relevant market features (e.g., volatility, volume). Action space: depends on the problem (discrete for buy/hold/sell, continuous for position sizing). Reward: risk-adjusted return per step (e.g., log return minus penalty for risk). Episode terminates after a fixed horizon (e.g., one trading year) or if portfolio value drops below a threshold (margin call). The environment must handle transaction costs, slippage, and market impact realistically. $\square$
-
----
-
-**Exercise 2.**
-Analyze the reward shaping trade-offs for this financial RL problem. Compare at least three candidate reward functions and discuss which properties of the optimal policy each preserves.
-
-??? success "Solution to Exercise 2"
-    Candidate rewards: (1) raw PnL -- simple but high variance and delayed; (2) Sharpe-based differential reward $D_t = \frac{\Delta A_t B_{t-1} - \frac{1}{2}\Delta B_t A_{t-1}}{(B_{t-1} - A_{t-1}^2)^{3/2}}$ -- directly optimizes the Sharpe ratio but complex; (3) log return with drawdown penalty $r_t = \log(V_t/V_{t-1}) - \lambda \max(0, DD_t - \tau)$ -- balances return with risk control. The potential-based shaping theorem guarantees that adding $\gamma\Phi(s') - \Phi(s)$ preserves the optimal policy. The Sharpe-based reward changes the optimization objective (may alter optimal policy), while pure PnL preserves it but learns slowly. $\square$
+??? success "연습문제 1 풀이"
+    봄 공간: 최근 돌아옴, 지금 자리, 밑천 값, 걸맞은 저자 특징(보기로 흔들림, 거래량)을 담은 벡터. 움직임 공간: 문제에 달렸다(사기/쥐기/팔기라면 따로 떨어진 것, 자리 크기 잡기라면 이어진 것). 보상: 걸음마다 무릅씀을 맞춘 돌아옴(보기로 로그 돌아옴에서 무릅씀 벌을 뺀 것). 에피소드는 붙박인 눈길(보기로 거래 한 해)이 지나거나 밑천 값이 문턱 아래로 떨어지면(증거금 부름) 끝난다. 둘레는 거래 비용, 미끄러짐, 저자 흔듦을 참에 가깝게 다루어야 한다. $\square$
 
 ---
 
-**Exercise 3.**
-Discuss the non-stationarity challenge specific to this financial application. Propose a concrete strategy for adapting the RL agent to regime changes.
+**연습문제 2.**
+이 금융 힘 북돋우는 배움 문제에서 보상 다듬기의 맞바꿈을 살펴라. 후보 보상 함수를 적어도 셋 견주고, 저마다 가장 좋은 방침의 어떤 성질을 지키는지 따져라.
 
-??? success "Solution to Exercise 3"
-    Financial markets exhibit regime changes (bull/bear, high/low volatility) that violate the MDP stationarity assumption. A concrete adaptation strategy: (1) include a regime indicator as part of the state (e.g., HMM-estimated regime probabilities); (2) use a meta-learning approach where the agent maintains multiple policies and selects based on detected regime; (3) implement continual learning with an expanding replay buffer weighted toward recent experience (exponential decay weights). The agent should also monitor its own performance and reduce position sizes when out-of-distribution inputs are detected. $\square$
+??? success "연습문제 2 풀이"
+    후보 보상: (1) 날 손익 -- 쉽지만 흩어짐이 크고 늦게 온다. (2) 샤프 바탕 미분 보상 $D_t = \frac{\Delta A_t B_{t-1} - \frac{1}{2}\Delta B_t A_{t-1}}{(B_{t-1} - A_{t-1}^2)^{3/2}}$ -- 샤프 비를 곧바로 가장 좋게 하지만 얽혔다. (3) 내림폭 벌을 곁들인 로그 돌아옴 $r_t = \log(V_t/V_{t-1}) - \lambda \max(0, DD_t - \tau)$ -- 돌아옴과 무릅씀 다스리기의 저울을 맞춘다. 퍼텐셜에 바탕을 둔 다듬기 정리는 $\gamma\Phi(s') - \Phi(s)$을 더해도 가장 좋은 방침이 지켜짐을 보장한다. 샤프 바탕 보상은 가장 좋게 하는 목표 자체를 바꾸므로(가장 좋은 방침이 달라질 수 있다) 그렇지 않고, 날 손익은 방침을 지키지만 더디게 배운다. $\square$
 
 ---
 
-**Exercise 4.**
-Compare the backtesting results one would expect from this RL approach versus a simple heuristic baseline. What statistical tests should be used to determine if the RL agent genuinely outperforms?
+**연습문제 3.**
+이 금융 쓰임새에 딸린 흐름 바뀜 어려움을 따져라. 부림꾼을 판 바뀜에 맞춰 가게 하는 또렷한 꾀를 내놓아라.
 
-??? success "Solution to Exercise 4"
-    Baselines: buy-and-hold, equal-weight, or momentum strategy. The RL agent should be evaluated on walk-forward out-of-sample periods (never on training data). Statistical tests: (1) paired t-test on daily returns for mean difference; (2) bootstrap confidence interval on the Sharpe ratio difference; (3) multiple hypothesis testing correction (e.g., Bonferroni or Holm) if comparing multiple strategies. A common pitfall is p-hacking through hyperparameter tuning on the test set. The evaluation must use a hold-out period that was never used for any model selection. Report both statistical significance and economic significance (transaction costs, capacity). $\square$
+??? success "연습문제 3 풀이"
+    금융 저자에는 판 바뀜(오름장/내림장, 높은/낮은 흔들림)이 있어 마르코프 결정 과정의 흐름이 바뀌지 않는다는 여김을 깨뜨린다. 또렷한 맞춰 감 꾀는 이렇다. (1) 판 알림을 상태의 한 몫으로 넣는다(보기로 숨은 마르코프 모형으로 어림한 판 낌새). (2) 부림꾼이 방침 여럿을 지니고 알아낸 판에 따라 고르는 메타 배움 길을 쓴다. (3) 최근 겪음에 무게를 더 준(지수로 삭이는 무게) 넓혀 가는 되돌려 보기 버퍼로 이어 가는 배움을 만든다. 부림꾼은 제 됨됨이도 지켜보다가 분포 밖 들임이 드러나면 자리 크기를 줄여야 한다. $\square$
+
+---
+
+**연습문제 4.**
+이 힘 북돋우는 배움 길과 쉬운 어림 잣대에서 나올 되짚어 시험 열매를 견주어라. 부림꾼이 참으로 앞서는지 가리려면 어떤 통계 검정을 써야 하는가?
+
+??? success "연습문제 4 풀이"
+    잣대: 사서 쥐기, 고르게 나누기, 밀기 꾀. 부림꾼은 (익힘 자료에서는 결코 하지 않고) 앞으로 걸어가며 뽑기 밖 구간에서 따져야 한다. 통계 검정: (1) 하루 돌아옴에 대한 짝 지은 t 검정으로 평균 차이를 본다. (2) 샤프 비 차이에 대한 부트스트랩 믿음 구간을 얻는다. (3) 여러 꾀를 견준다면 여러 가설 검정 바로잡기(보기로 본페로니나 홀름)를 매긴다. 흔히 빠지는 함정은 시험 자료에서 매개변수를 벼려 p값을 후려치는 일이다. 따지기는 어떤 모형 고르기에도 쓰이지 않은 남겨 둔 구간을 써야 한다. 통계로 뜻있음과 살림살이로 뜻있음(거래 비용, 담을 수 있는 크기)을 함께 알려야 한다. $\square$

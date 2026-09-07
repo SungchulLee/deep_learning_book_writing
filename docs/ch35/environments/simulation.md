@@ -1,156 +1,156 @@
-# 35.1.5 Market Simulation
-## Learning Objectives
+# 35.1.5 저자 흉내내기
+## 배움 목표
 
-- Build realistic market simulators for RL training
-- Model transaction costs, slippage, and market impact
-- Implement order execution with realistic fill assumptions
-- Generate synthetic market data for environment augmentation
+- 힘 북돋우는 배움 익힘을 위한 참에 가까운 저자 흉내내개를 세운다
+- 거래 비용, 미끄러짐, 저자 흔듦을 그린다
+- 참에 가까운 채워짐 여김으로 주문 벌이기를 만든다
+- 둘레를 늘리려 가짜 저자 자료를 지어낸다
 
-## Introduction
+## 들머리
 
-The market simulator determines how the agent's actions translate into actual portfolio changes. A naive simulator that fills all orders at the closing price creates unrealistic expectations. Realistic simulation must account for transaction costs, slippage, partial fills, and market impact—especially for strategies that trade significant volume relative to available liquidity.
+저자 흉내내개는 부림꾼의 움직임이 실제 밑천 바뀜으로 어떻게 옮겨지는지를 정한다. 온 주문을 마감값에 채워 주는 막무가내 흉내내개는 참되지 않은 바람을 심는다. 참에 가까운 흉내내기는 거래 비용, 미끄러짐, 조각만 채워짐, 저자 흔듦을 셈에 넣어야 한다. 손에 쥘 수 있는 유동성에 견주어 크게 거래하는 꾀라면 더욱 그렇다.
 
-## Order Execution Models
+## 주문 벌이기 모형
 
-### 1. Simple Fill Model
+### 1. 쉬운 채워짐 모형
 
-All orders execute at the next period's opening price (or closing price):
+온 주문이 다음 마디의 시작값(또는 마감값)에 벌어진다.
 
-$$\text{fill\_price}_i = p_{t+1}^{\text{open}} \cdot (1 + \text{slippage}_i)$$
+$$\text{채워진\_값}_i = p_{t+1}^{\text{시작}} \cdot (1 + \text{미끄러짐}_i)$$
 
-where slippage is a random or deterministic spread penalty.
+여기서 미끄러짐은 아무 값이거나 붙박인 사이 벌 값이다.
 
-### 2. VWAP Execution Model
+### 2. VWAP 벌이기 모형
 
-For orders executed over a period, approximate fill price using volume-weighted average price:
+한 마디에 걸쳐 벌이는 주문은 거래량으로 무게를 준 평균값으로 채워진 값을 어림한다.
 
-$$\text{fill\_price}_i = \text{VWAP}_{[t, t+\Delta t]} + \text{market\_impact}_i$$
+$$\text{채워진\_값}_i = \text{VWAP}_{[t, t+\Delta t]} + \text{저자\_흔듦}_i$$
 
-### 3. Limit Order Book Simulation
+### 3. 지정가 주문 장부 흉내내기
 
-For high-frequency strategies, simulate the limit order book:
+높은 잦기 꾀에서는 지정가 주문 장부를 흉내 낸다.
 
-- Model bid/ask spread dynamics
-- Queue position for limit orders
-- Market impact from consuming liquidity
+- 사고파는 값 사이의 움직임을 그린다
+- 지정가 주문의 줄서기 자리를 다룬다
+- 유동성을 먹어 치우며 생기는 저자 흔듦을 다룬다
 
-## Transaction Cost Models
+## 거래 비용 모형
 
-### Proportional Costs
+### 견주는 비용
 
 $$\text{TC}_t = c \cdot \sum_i |q_{t,i}| \cdot p_{t,i}$$
 
-where $c$ is the cost rate (typically 5-20 basis points for equities), $q_{t,i}$ is trade quantity.
+여기서 $c$은 비용 비율이고(주식에서 흔히 5~20 베이시스 포인트) $q_{t,i}$은 거래 수량이다.
 
-### Spread-Based Costs
+### 사이 바탕 비용
 
-$$\text{TC}_t = \frac{1}{2} \sum_i |q_{t,i}| \cdot \text{spread}_{t,i}$$
+$$\text{TC}_t = \frac{1}{2} \sum_i |q_{t,i}| \cdot \text{사이}_{t,i}$$
 
-The half-spread model: buying at the ask, selling at the bid.
+반 사이 모형이다. 파는 값에 사고 사는 값에 판다.
 
-### Tiered Commission Model
+### 켜 있는 수수료 모형
 
 ```python
 def compute_commission(self, trade_value):
     if trade_value < 10_000:
-        return max(1.0, trade_value * 0.005)  # \$1 min, 50 bps
+        return max(1.0, trade_value * 0.005)  # 가장 적게 \$1, 50 베이시스 포인트
     elif trade_value < 100_000:
-        return trade_value * 0.001              # 10 bps
+        return trade_value * 0.001              # 10 베이시스 포인트
     else:
-        return trade_value * 0.0005             # 5 bps
+        return trade_value * 0.0005             # 5 베이시스 포인트
 ```
 
-## Market Impact Models
+## 저자 흔듦 모형
 
-### Linear Impact
+### 곧은 흔듦
 
 $$\Delta p = \lambda \cdot \frac{q}{V}$$
 
-where $q$ is order quantity, $V$ is average daily volume, and $\lambda$ is the impact coefficient.
+여기서 $q$은 주문 수량, $V$은 하루 평균 거래량, $\lambda$은 흔듦 계수다.
 
-### Square-Root Impact (Almgren-Chriss)
+### 제곱근 흔듦(올름그렌-크리스)
 
 $$\Delta p = \sigma \cdot \eta \cdot \text{sgn}(q) \cdot \sqrt{\frac{|q|}{V}}$$
 
-where $\sigma$ is volatility and $\eta$ is a calibrated parameter. This model better captures the concave relationship between trade size and impact.
+여기서 $\sigma$은 흔들림이고 $\eta$은 맞춘 매개변수다. 이 모형은 거래 크기와 흔듦 사이의 오목한 얽힘을 더 잘 담는다.
 
-### Temporary vs. Permanent Impact
+### 잠깐 가는 흔듦과 오래가는 흔듦
 
-- **Temporary impact**: Price reverts after the trade; cost is paid only by the trader
-- **Permanent impact**: Price moves permanently; affects all subsequent valuations
+- **잠깐 가는 흔듦**: 거래 뒤 값이 되돌아온다. 비용을 거래한 이만 치른다
+- **오래가는 흔듦**: 값이 아주 옮겨 간다. 뒤이은 모든 값 매김에 미친다
 
-$$p_{t+1} = p_t + \underbrace{\gamma \cdot \frac{q}{V}}_{\text{permanent}} + \underbrace{\eta \cdot \text{sgn}(q) \cdot \sqrt{\frac{|q|}{V}}}_{\text{temporary}} + \epsilon_t$$
+$$p_{t+1} = p_t + \underbrace{\gamma \cdot \frac{q}{V}}_{\text{오래감}} + \underbrace{\eta \cdot \text{sgn}(q) \cdot \sqrt{\frac{|q|}{V}}}_{\text{잠깐 감}} + \epsilon_t$$
 
-## Slippage Modeling
+## 미끄러짐 그리기
 
-Slippage captures the difference between expected and actual fill price:
+미끄러짐은 바라던 값과 실제로 채워진 값의 차이를 담는다.
 
-### Deterministic Slippage
+### 붙박인 미끄러짐
 
-$$\text{slippage} = \text{sign}(q) \cdot s$$
+$$\text{미끄러짐} = \text{sign}(q) \cdot s$$
 
-where $s$ is a fixed slippage amount (e.g., 1 basis point).
+여기서 $s$은 붙박인 미끄러짐 양이다(보기로 1 베이시스 포인트).
 
-### Stochastic Slippage
+### 확률 미끄러짐
 
-$$\text{slippage} \sim \mathcal{N}(\mu_s, \sigma_s^2)$$
+$$\text{미끄러짐} \sim \mathcal{N}(\mu_s, \sigma_s^2)$$
 
-Calibrate $\mu_s$ and $\sigma_s$ from historical execution data.
+$\mu_s$과 $\sigma_s$은 지난 벌이기 자료로 맞춘다.
 
-### Volume-Dependent Slippage
+### 거래량에 딸린 미끄러짐
 
-$$\text{slippage} = s_0 + s_1 \cdot \frac{|q|}{V_t}$$
+$$\text{미끄러짐} = s_0 + s_1 \cdot \frac{|q|}{V_t}$$
 
-Larger orders relative to volume incur more slippage.
+거래량에 견주어 주문이 클수록 더 미끄러진다.
 
-## Synthetic Data Generation
+## 가짜 자료 지어내기
 
-Training on limited historical data causes overfitting. Synthetic data augmentation helps:
+지난 자료가 적으면 지나치게 맞추게 된다. 가짜 자료로 늘리면 도움이 된다.
 
-### Bootstrap Resampling
+### 부트스트랩 다시 뽑기
 
-Resample historical returns with replacement to create new price paths:
+지난 돌아옴을 되넣어 다시 뽑아 새 값 자취를 만든다.
 
-$$R_t^{\text{synthetic}} = R_{\pi(t)}^{\text{historical}}$$
+$$R_t^{\text{가짜}} = R_{\pi(t)}^{\text{지난}}$$
 
-where $\pi$ is a random permutation (block bootstrap preserves autocorrelation).
+여기서 $\pi$은 아무 자리바꿈이다(덩이 부트스트랩은 스스로 얽힘을 지킨다).
 
-### Generative Models
+### 지어내는 모형
 
-Use trained generative models to produce realistic synthetic data:
+익힌 지어내는 모형으로 참에 가까운 가짜 자료를 만든다.
 
-- **GARCH models**: Capture volatility clustering
-- **Regime-switching models**: Capture market regime dynamics
-- **GANs/VAEs**: Learn complex distributional features
+- **GARCH 모형**: 흔들림 뭉침을 담는다
+- **판 바꿈 모형**: 저자 판의 움직임을 담는다
+- **GAN/VAE**: 얽힌 분포 특징을 배운다
 
-### Noise Injection
+### 잡음 넣기
 
-Add calibrated noise to historical data:
+지난 자료에 맞춘 잡음을 더한다.
 
-$$p_t^{\text{aug}} = p_t \cdot e^{\epsilon_t}, \quad \epsilon_t \sim \mathcal{N}(0, \sigma_{\text{aug}}^2)$$
+$$p_t^{\text{늘림}} = p_t \cdot e^{\epsilon_t}, \quad \epsilon_t \sim \mathcal{N}(0, \sigma_{\text{늘림}}^2)$$
 
-## Domain Randomization
+## 마당 마구잡이로 바꾸기
 
-Vary environment parameters during training to improve robustness:
+굳셈을 높이려 익히는 동안 둘레 매개변수를 바꾼다.
 
 ```python
 def randomize_params(self):
-    """Randomize environment parameters for each episode."""
+    """에피소드마다 둘레 매개변수를 아무렇게나 바꾼다."""
     self.transaction_cost = np.random.uniform(0.0005, 0.002)
     self.slippage_mean = np.random.uniform(0.0, 0.001)
     self.market_impact_coeff = np.random.uniform(0.05, 0.2)
     self.initial_capital *= np.random.uniform(0.8, 1.2)
 ```
 
-## Multi-Asset Correlation
+## 여러 자산의 서로 얽힘
 
-For multi-asset environments, properly model cross-asset dynamics:
+여러 자산 둘레에서는 자산을 가로지르는 움직임을 제대로 그려야 한다.
 
-- **Historical correlation**: Use rolling correlation matrices
-- **Copula models**: Capture non-linear dependencies
-- **Factor models**: Decompose returns into common factors and idiosyncratic components
+- **지난 서로 얽힘**: 굴러가는 서로 얽힘 행렬을 쓴다
+- **코퓰러 모형**: 곧지 않은 매임을 담는다
+- **인자 모형**: 돌아옴을 공통 인자와 남다른 조각으로 나눈다
 
-## Implementation: Market Simulator Class
+## 구현: 저자 흉내내개 갈래
 
 ```python
 class MarketSimulator:
@@ -159,81 +159,65 @@ class MarketSimulator:
         self.slippage_std = config.get('slippage_std', 0.0005)
         self.impact_coeff = config.get('impact_coeff', 0.1)
         self.volume_data = config.get('volume')
-    
+
     def execute(self, target_weights, portfolio, current_prices):
         current_weights = portfolio.get_weights()
         trades = target_weights - current_weights
-        
-        # Compute fill prices with slippage and impact
+
+        # 미끄러짐과 저자 흔듦을 넣어 채워진 값을 셈한다
         fill_prices = self._compute_fill_prices(
             current_prices, trades, portfolio.total_value
         )
-        
-        # Compute transaction costs
+
+        # 거래 비용을 셈한다
         trade_values = np.abs(trades) * portfolio.total_value
         costs = self._compute_costs(trade_values)
-        
+
         return {
             'fill_prices': fill_prices,
             'costs': costs,
             'trades': trades,
         }
-    
+
     def _compute_fill_prices(self, prices, trades, portfolio_value):
-        # Slippage
+        # 미끄러짐
         slippage = np.random.normal(0, self.slippage_std, len(prices))
-        
-        # Market impact (square-root model)
+
+        # 저자 흔듦(제곱근 모형)
         if self.volume_data is not None:
             participation = np.abs(trades) * portfolio_value / (prices * self.volume_data)
             impact = self.impact_coeff * np.sign(trades) * np.sqrt(participation)
         else:
             impact = 0
-        
+
         fill_prices = prices * (1 + np.sign(trades) * slippage + impact)
         return fill_prices
-    
+
     def _compute_costs(self, trade_values):
         return self.cost_rate * trade_values.sum()
 ```
 
-## Summary
+## 요약
 
-Realistic market simulation is essential for training RL agents that transfer to live trading. Key elements include appropriate transaction cost models, market impact estimation (especially the square-root model), stochastic slippage, and synthetic data generation for training robustness. Domain randomization over simulation parameters builds policies that are robust to real-world variability.
+살아 있는 거래로 옮겨 갈 수 있는 부림꾼을 익히려면 참에 가까운 저자 흉내내기가 꼭 있어야 한다. 종요로운 것은 알맞은 거래 비용 모형, 저자 흔듦 어림(그 가운데에서도 제곱근 모형), 확률 미끄러짐, 익힘의 굳셈을 위한 가짜 자료 지어내기다. 흉내내기 매개변수를 마당 마구잡이로 바꾸면 참 세상의 들쭉날쭉함에 굳센 방침을 얻는다.
 
-## References
+## 참고 문헌
 
 - Almgren, R., & Chriss, N. (2001). Optimal Execution of Portfolio Transactions. Journal of Risk
 - Cartea, Á., Jaimungal, S., & Penalva, J. (2015). Algorithmic and High-Frequency Trading
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Design a Gymnasium-compatible environment for the financial problem described in this section. Specify the observation space, action space, reward function, and episode termination conditions.
+**연습문제 1.**
+이 절에서 밝힌 금융 문제를 위해 Gymnasium과 어울리는 둘레를 설계하여라. 봄 공간, 움직임 공간, 보상 함수, 에피소드 끝내기 조건을 밝혀라.
 
-??? success "Solution to Exercise 1"
-    Observation space: a vector containing recent returns, current position, portfolio value, and relevant market features (e.g., volatility, volume). Action space: depends on the problem (discrete for buy/hold/sell, continuous for position sizing). Reward: risk-adjusted return per step (e.g., log return minus penalty for risk). Episode terminates after a fixed horizon (e.g., one trading year) or if portfolio value drops below a threshold (margin call). The environment must handle transaction costs, slippage, and market impact realistically. $\square$
-
----
-
-**Exercise 2.**
-Analyze the reward shaping trade-offs for this financial RL problem. Compare at least three candidate reward functions and discuss which properties of the optimal policy each preserves.
-
-??? success "Solution to Exercise 2"
-    Candidate rewards: (1) raw PnL -- simple but high variance and delayed; (2) Sharpe-based differential reward $D_t = \frac{\Delta A_t B_{t-1} - \frac{1}{2}\Delta B_t A_{t-1}}{(B_{t-1} - A_{t-1}^2)^{3/2}}$ -- directly optimizes the Sharpe ratio but complex; (3) log return with drawdown penalty $r_t = \log(V_t/V_{t-1}) - \lambda \max(0, DD_t - \tau)$ -- balances return with risk control. The potential-based shaping theorem guarantees that adding $\gamma\Phi(s') - \Phi(s)$ preserves the optimal policy. The Sharpe-based reward changes the optimization objective (may alter optimal policy), while pure PnL preserves it but learns slowly. $\square$
+??? success "연습문제 1 풀이"
+    봄 공간: 최근 돌아옴, 지금 자리, 밑천 값, 걸맞은 저자 특징(보기로 흔들림, 거래량)을 담은 벡터. 움직임 공간: 문제에 달렸다(사기/쥐기/팔기라면 따로 떨어진 것, 자리 크기 잡기라면 이어진 것). 보상: 걸음마다 무릅씀을 맞춘 돌아옴(보기로 로그 돌아옴에서 무릅씀 벌을 뺀 것). 에피소드는 붙박인 눈길(보기로 거래 한 해)이 지나거나 밑천 값이 문턱 아래로 떨어지면(증거금 부름) 끝난다. 둘레는 거래 비용, 미끄러짐, 저자 흔듦을 참에 가깝게 다루어야 한다. $\square$
 
 ---
 
-**Exercise 3.**
-Discuss the non-stationarity challenge specific to this financial application. Propose a concrete strategy for adapting the RL agent to regime changes.
+**연습문제 2.**
+이 금융 힘 북돋우는 배움 문제에서 보상 다듬기의 맞바꿈을 살펴라. 후보 보상 함수를 적어도 셋 견주고, 저마다 가장 좋은 방침의 어떤 성질을 지키는지 따져라.
 
-??? success "Solution to Exercise 3"
-    Financial markets exhibit regime changes (bull/bear, high/low volatility) that violate the MDP stationarity assumption. A concrete adaptation strategy: (1) include a regime indicator as part of the state (e.g., HMM-estimated regime probabilities); (2) use a meta-learning approach where the agent maintains multiple policies and selects based on detected regime; (3) implement continual learning with an expanding replay buffer weighted toward recent experience (exponential decay weights). The agent should also monitor its own performance and reduce position sizes when out-of-distribution inputs are detected. $\square$
-
----
-
-**Exercise 4.**
-Compare the backtesting results one would expect from this RL approach versus a simple heuristic baseline. What statistical tests should be used to determine if the RL agent genuinely outperforms?
-
-??? success "Solution to Exercise 4"
-    Baselines: buy-and-hold, equal-weight, or momentum strategy. The RL agent should be evaluated on walk-forward out-of-sample periods (never on training data). Statistical tests: (1) paired t-test on daily returns for mean difference; (2) bootstrap confidence interval on the Sharpe ratio difference; (3) multiple hypothesis testing correction (e.g., Bonferroni or Holm) if comparing multiple strategies. A common pitfall is p-hacking through hyperparameter tuning on the test set. The evaluation must use a hold-out period that was never used for any model selection. Report both statistical significance and economic significance (transaction costs, capacity). $\square$
+??? success "연습문제 2 풀이"
+    후보 보상: (1) 날 손익 -- 쉽지만 흩어짐이 크고 늦게 온다. (2) 샤프 바탕 미분 보상 $D_t = \frac{\Delta A_t B_{t-1} - \frac{1}{2}\Delta B_t A_{t-1}}{(B_{t-1} - A_{t-1}^2)^{3/2}}$ -- 샤프 비를 곧바로 가장 좋게 하지만 얽혔다. (3) 내림폭 벌을 곁들인 로그 돌아옴 $r_t = \log(V_t/V_{t-1}) - \lambda \max(0, DD_t - \tau)$ -- 돌아옴과 무릅씀 다스리기의 저울을 맞춘다. 퍼텐셜에 바탕을 둔 다듬기 정리는 $\gamma\Phi(s') - \Phi(s)$을 더해도 가장 좋은 방침이 지켜짐을 보장한다. 샤프 바탕 보상은 가장 좋게 하는 목표 자체를 바꾸므로(가장 좋은 방침이 달라질 수 있다) 그렇지 않고, 날 손익은 방침을 지키지만 더디게 배운다. $\square$
