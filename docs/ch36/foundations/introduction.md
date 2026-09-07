@@ -1,91 +1,91 @@
-# Introduction to Model Interpretability
-## Overview
+# 모형 풀이하기 들머리
+## 살펴보기
 
-As deep learning models become increasingly deployed in high-stakes domains—quantitative finance, healthcare, autonomous systems—understanding *why* models make specific predictions becomes as important as the predictions themselves. Model interpretability addresses the fundamental question: **What patterns has the model learned, and how does it arrive at its decisions?**
+깊은 배움 모형이 계량 금융, 의료, 스스로 도는 얼개처럼 걸린 것이 큰 밭에 갈수록 널리 놓이면서, 모형이 *왜* 그런 미루어 봄을 내놓았는지 아는 일이 미루어 봄 그 자체만큼 중요해졌다. 모형 풀이하기는 밑바탕이 되는 물음에 답한다. **모형이 어떤 결을 배웠으며, 어떻게 그 판단에 이르는가?**
 
-## The Black Box Problem
+## 검은 상자 문제
 
-Deep neural networks achieve remarkable performance but operate as "black boxes"—their internal decision-making processes are opaque. This opacity creates several critical challenges.
+깊은 신경 그물은 놀라운 됨됨이를 이루지만 "검은 상자"로 돈다. 안에서 판단하는 흐름이 훤히 보이지 않는다. 이 어두움이 종요로운 어려움을 여럿 낳는다.
 
-### Regulatory Compliance
+### 규정 따르기
 
-Financial regulations increasingly require model explainability. The European Union's GDPR establishes a "right to explanation" for automated decisions. The Federal Reserve's SR 11-7 guidance requires model risk management, including understanding model limitations. Basel III/IV frameworks demand transparency in risk models.
+금융 규정은 갈수록 모형을 풀이할 것을 바란다. 유럽 연합의 GDPR은 저절로 내려지는 판단에 대해 "풀이받을 권리"를 세웠다. 미국 연방 준비 제도의 SR 11-7 지침은 모형의 한계를 아는 일을 아우르는 모형 무릅씀 다루기를 바란다. 바젤 III/IV 틀은 무릅씀 모형이 훤히 보일 것을 바란다.
 
-### Trust and Adoption
+### 믿음과 받아들임
 
-Quantitative analysts and portfolio managers are reluctant to deploy models they cannot understand. A model that predicts market movements but cannot articulate *why* faces significant adoption barriers. Interpretability builds confidence in model decisions and facilitates the critical human oversight required in financial decision-making.
+계량 분석가와 밑천 꾸러미 다루는 이는 알아들을 수 없는 모형을 내놓기를 꺼린다. 저자가 어디로 움직일지 미루어 보되 *왜* 그런지 말하지 못하는 모형은 받아들여지기가 몹시 어렵다. 풀이하기는 모형의 판단에 대한 믿음을 쌓고, 금융 판단에 꼭 있어야 하는 사람의 살핌을 돕는다.
 
-### Debugging and Improvement
+### 벌레잡기와 나아지기
 
-Understanding model failures requires insight into what features drive predictions. When a trading model underperforms, interpretability reveals whether the model learned spurious correlations (e.g., correlating with calendar effects rather than fundamental factors) rather than causal relationships, then suggests future directions for improvement.
+모형이 왜 무너지는지 알려면 어떤 결이 미루어 봄을 이끄는지 들여다보아야 한다. 거래 모형이 시원찮을 때, 풀이하기는 그 모형이 인과 관계가 아니라 헛된 얽힘(보기로 밑바탕 인자가 아니라 달력 결과 얽힌 것)을 배웠는지를 드러내고, 앞으로 나아갈 길도 일러 준다.
 
-### Bias Detection
+### 치우침 알아내기
 
-Models can inadvertently learn discriminatory patterns from training data. In credit scoring, this could mean learning to discriminate based on protected characteristics. Interpretability methods help identify and mitigate such biases before deployment.
+모형은 익힘 자료에서 뜻하지 않게 차별하는 결을 배울 수 있다. 신용 점수 매기기에서는 지켜야 할 됨됨이를 바탕으로 차별하기를 배우는 일이 될 수 있다. 풀이 방법은 내놓기에 앞서 그런 치우침을 짚어내고 눅이는 데 도움을 준다.
 
-## Interpretability vs Explainability
+## 풀이할 수 있음과 풀이해 줄 수 있음
 
-While often used interchangeably, these terms have subtle but important distinctions:
+이 둘을 섞어 쓰기 쉬우나, 잔 듯하면서도 중요한 차이가 있다.
 
-| Term | Definition | Examples |
-|------|------------|----------|
-| **Interpretability** | The degree to which a human can understand the cause of a decision | Linear regression coefficients, decision tree paths |
-| **Explainability** | The degree to which internal mechanics can be understood via post-hoc analysis | SHAP values for neural networks, Grad-CAM heatmaps |
+| 말 | 뜻매김 | 보기 |
+|------|------------|------|
+| **풀이할 수 있음** | 사람이 판단의 까닭을 알아들을 수 있는 만큼 | 선형 되돌이의 계수, 판단 나무의 길 |
+| **풀이해 줄 수 있음** | 일이 끝난 뒤에 살펴 안쪽 얼개를 알아들을 수 있는 만큼 | 신경 그물의 SHAP 값, Grad-CAM 열 그림 |
 
-**Intrinsically interpretable models** (linear regression, decision trees, rule-based systems) have built-in transparency—their parameters directly correspond to human-understandable concepts.
+**본디부터 풀이되는 모형**(선형 되돌이, 판단 나무, 규칙 바탕 얼개)은 훤히 보이는 됨됨이를 타고났다. 그 매개변수가 사람이 알아들을 수 있는 개념에 그대로 이어진다.
 
-**Post-hoc explanation methods** provide explanations for any model, including complex neural networks. These methods extract explanations after training, treating the model as partially or fully opaque.
+**일 끝난 뒤 풀이 방법**은 까다로운 신경 그물을 아울러 어떤 모형에도 풀이를 준다. 이 방법들은 모형을 얼마쯤 또는 온통 어둡다고 여기고 익힌 뒤에 풀이를 뽑아낸다.
 
-## The Interpretability-Accuracy Trade-off
+## 풀이할 수 있음과 맞음의 맞바꿈
 
-A common assumption is that more interpretable models are less accurate. While this trade-off exists in some settings, it is not universal:
+풀이가 잘되는 모형일수록 덜 맞는다고 흔히 여긴다. 어떤 자리에서는 이 맞바꿈이 있지만 늘 그런 것은 아니다.
 
 $$
-\text{Complexity} \neq \text{Accuracy}
+\text{까다로움} \neq \text{맞음}
 $$
 
-Rudin (2019) argues that for many high-stakes applications, inherently interpretable models can match black-box performance while providing transparency. When deep learning is necessary, post-hoc explanation methods bridge the gap.
+루딘(2019)은 걸린 것이 큰 쓰임 여럿에서 본디부터 풀이되는 모형이 검은 상자의 됨됨이에 맞먹으면서도 훤히 보일 수 있다고 따진다. 깊은 배움이 꼭 있어야 하는 자리에서는 일 끝난 뒤 풀이 방법이 그 틈을 메운다.
 
-### When to Prioritize Interpretability
+### 풀이하기를 앞세울 때
 
-| Scenario | Recommendation |
+| 자리 | 이르는 말 |
 |----------|---------------|
-| Regulatory-mandated explanations | Prefer interpretable models or ensure robust post-hoc methods |
-| Safety-critical decisions | Combine multiple explanation methods with human review |
-| Research and debugging | Use gradient methods for quick insights |
-| Low-stakes predictions | Accuracy may take priority |
+| 규정이 풀이를 못 박을 때 | 풀이되는 모형을 고르거나 든든한 일 끝난 뒤 방법을 갖춘다 |
+| 목숨이 걸린 판단 | 풀이 방법을 여럿 아울러 쓰고 사람이 살핀다 |
+| 연구와 벌레잡기 | 기울기 방법으로 빠르게 들여다본다 |
+| 걸린 것이 작은 미루어 봄 | 맞음을 앞세워도 된다 |
 
-## Scope of Explanation
+## 풀이가 미치는 데
 
-Different stakeholders need different levels of explanation:
+자리마다 사람들이 바라는 풀이의 켜가 다르다.
 
-**Data Scientists and Engineers**: Need detailed, technical explanations to debug models, understand failure modes, and guide improvements. Methods like Integrated Gradients and attention analysis are appropriate.
+**자료 학자와 짓는 이**: 모형의 벌레를 잡고, 무너지는 결을 알고, 나아갈 길을 잡으려면 촘촘하고 기술에 밝은 풀이가 있어야 한다. 쌓은 기울기나 눈길 살피기가 알맞다.
 
-**Domain Experts (Analysts, Portfolio Managers)**: Need explanations in domain-relevant terms—factor exposures, feature contributions, and concept-level reasoning. SHAP values and concept-based methods are effective.
+**밭 밝은 이(분석가, 밑천 꾸러미 다루는 이)**: 그 밭의 말로 된 풀이가 있어야 한다. 인자 드러남, 결이 이바지한 몫, 개념 켜의 헤아림이다. SHAP 값과 개념 바탕 방법이 잘 듣는다.
 
-**Regulators and Auditors**: Need documented, reproducible, and quantitatively validated explanations. Require stability guarantees and audit trails.
+**규제하는 이와 감사하는 이**: 적바림되고, 다시 해 볼 수 있고, 수로 따져진 풀이가 있어야 한다. 든든함 보장과 감사 자취를 바란다.
 
-**End Users (Borrowers, Clients)**: Need simple, actionable explanations. "Your application was declined primarily because of X; improving Y would help."
+**끝에서 쓰는 이(빌리는 이, 손님)**: 단순하고 손에 잡히는 풀이가 있어야 한다. "귀하의 신청은 주로 X 때문에 물리쳤습니다. Y을 낫게 하면 도움이 됩니다."
 
-## Mathematical Notation
+## 수학 적기
 
-Throughout this chapter, we adopt the following notation:
+이 장에서는 다음과 같이 적는다.
 
-| Symbol | Meaning |
-|--------|---------|
-| $f: \mathbb{R}^d \to \mathbb{R}^C$ | Model mapping $d$-dimensional inputs to $C$ classes |
-| $f_c(\mathbf{x})$ | Class score for class $c$ (before softmax) |
-| $\mathbf{x} \in \mathbb{R}^d$ | Input features |
-| $\phi_i(\mathbf{x})$ | Attribution of feature $i$ for input $\mathbf{x}$ |
-| $\mathbf{x}^0$ | Baseline or reference input |
-| $A^k$ | Feature map $k$ at a convolutional layer |
-| $\alpha_{ij}$ | Attention weight from token $i$ to token $j$ |
+| 기호 | 뜻 |
+|--------|------|
+| $f: \mathbb{R}^d \to \mathbb{R}^C$ | $d$차원 들임을 $C$개 갈래로 옮기는 모형 |
+| $f_c(\mathbf{x})$ | 갈래 $c$의 점수(소프트맥스에 앞선 값) |
+| $\mathbf{x} \in \mathbb{R}^d$ | 들임 결 |
+| $\phi_i(\mathbf{x})$ | 들임 $\mathbf{x}$에서 결 $i$에 매긴 몫 |
+| $\mathbf{x}^0$ | 밑금이나 견줌 들임 |
+| $A^k$ | 겹치는 켜에서의 결 그림 $k$ |
+| $\alpha_{ij}$ | 낱말 $i$에서 낱말 $j$로 가는 눈길 짐 |
 
-## Summary
+## 간추림
 
-Model interpretability is essential for deploying deep learning responsibly. The choice of method depends on the model architecture, the audience, regulatory requirements, and the specific questions being asked. This chapter provides a comprehensive toolkit spanning gradient-based methods, attention analysis, model-agnostic attribution, concept-level explanations, and rigorous evaluation frameworks.
+모형 풀이하기는 깊은 배움을 책임 있게 내놓는 데 꼭 있어야 한다. 어떤 방법을 고를지는 모형의 얼개, 듣는 이, 규정이 바라는 것, 그리고 묻는 물음에 달렸다. 이 장은 기울기 바탕 방법, 눈길 살피기, 모형을 가리지 않는 몫 매기기, 개념 켜의 풀이, 그리고 엄밀히 따지는 틀에 이르는 두루 갖춘 연장을 담는다.
 
-## References
+## 살펴볼 거리
 
 1. Rudin, C. (2019). "Stop Explaining Black Box Machine Learning Models for High Stakes Decisions and Use Interpretable Models Instead." *Nature Machine Intelligence*.
 
@@ -97,34 +97,34 @@ Model interpretability is essential for deploying deep learning responsibly. The
 
 5. Adebayo, J., et al. (2018). "Sanity Checks for Saliency Maps." *NeurIPS*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Apply the interpretability method described in this section to a 2-layer neural network with ReLU activations classifying XOR inputs. Compute the explanation for the input $x = [1, 1]$.
+**익힘 1.**
+이 마디에서 밝힌 풀이 방법을, XOR 들임을 가르는 ReLU 살림의 두 켜 신경 그물에 걸어라. 들임 $x = [1, 1]$에 대한 풀이를 셈하여라.
 
-??? success "Solution to Exercise 1"
-    For a trained XOR network with weights $W_1, b_1, W_2, b_2$, the output is $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$. The explanation method produces attributions for each input feature. For $x = [1, 1]$ (class 0), both features contribute to the negative classification. The specific attribution values depend on the method: gradient-based methods compute $\partial f / \partial x_i$; perturbation-based methods measure output change when features are masked. The XOR problem demonstrates that linear explanation methods can mislead because the decision boundary is non-linear. $\square$
-
----
-
-**Exercise 2.**
-Prove or disprove that the explanation method in this section satisfies the completeness axiom: the sum of all feature attributions equals $f(x) - f(x_0)$ for some baseline $x_0$.
-
-??? success "Solution to Exercise 2"
-    The completeness axiom (also called efficiency in Shapley value theory) states that attributions sum to the difference between the model output at the input and at the baseline. Whether this method satisfies completeness depends on its formulation. Gradient methods do not satisfy completeness (gradients are local, not path-integrated). Integrated Gradients satisfies completeness by construction (fundamental theorem of calculus along the path). SHAP values satisfy efficiency by the Shapley axiom. Methods that violate completeness may over- or under-attribute, making the total attribution unreliable as a global explanation. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, b_1, W_2, b_2$인 익힌 XOR 그물에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 들임 결마다 몫을 내놓는다. $x = [1, 1]$(갈래 0)이면 두 결 모두 음수 가름에 이바지한다. 몫 값은 방법마다 다르다. 기울기 바탕 방법은 $\partial f / \partial x_i$을 셈하고, 흔들어 보는 방법은 결을 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
 
 ---
 
-**Exercise 3.**
-Design an experiment to evaluate the faithfulness of the explanations produced by this method. Use insertion and deletion curves to measure whether highlighted features are truly important to the model.
+**익힘 2.**
+이 마디의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 밑금 $x_0$에 대해 모든 결 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
 
-??? success "Solution to Exercise 3"
-    Protocol: (1) Compute feature attributions for each test image. (2) Deletion: progressively mask features in order of decreasing attribution, recording the model confidence drop. Faithful explanations cause rapid confidence decrease. (3) Insertion: progressively reveal features in order of decreasing attribution from a blank baseline, recording confidence increase. Faithful explanations cause rapid confidence increase. (4) Compute AUC for both curves. (5) Compare against random ordering (baseline) and other methods. A faithful method should have low deletion AUC and high insertion AUC. Repeat over 1000+ test samples for statistical reliability. $\square$
+??? success "익힘 2 풀이"
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 들임에서의 모형 내놓기와 밑금에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 기울기 방법은 온전함을 채우지 못한다(기울기는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). 쌓은 기울기는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this interpretability method could be applied to a financial model predicting credit default. What regulatory requirements must the explanations satisfy?
+**익힘 3.**
+이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 결이 참으로 모형에 중요한지를 넣기와 빼기 곡선으로 재어라.
 
-??? success "Solution to Exercise 4"
-    For credit models, regulations (ECOA, GDPR Article 22) require individualized explanations for adverse decisions. The method must produce: (1) the top factors contributing to the denial (adverse action reasons); (2) explanations that are consistent (similar applicants get similar explanations); (3) explanations that are actionable (the applicant understands what to change). The interpretability method from this section can identify feature importances, but must be validated for stability (small input changes should not drastically alter the explanation) and correctness (removing important features should change the prediction). Protected attributes must be handled carefully to avoid revealing proxy discrimination. $\square$
+??? success "익힘 3 풀이"
+    절차는 이렇다. (1) 시험 그림마다 결 몫을 셈한다. (2) 빼기: 몫이 큰 차례로 결을 하나씩 가리며 모형의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 밑금에서 시작해 몫이 큰 차례로 결을 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 셈한다. (5) 아무렇게나 매긴 차례(밑금)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+
+---
+
+**익힘 4.**
+이 풀이 방법을 신용 부도를 미루어 보는 금융 모형에 어떻게 걸 수 있는지 다루어라. 풀이가 채워야 할 규정 요건은 무엇인가?
+
+??? success "익힘 4 풀이"
+    신용 모형에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 마디의 풀이 방법으로 결의 중요함을 짚을 수 있으나, 든든함(들임이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 결을 없애면 미루어 봄이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 됨됨이는 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$

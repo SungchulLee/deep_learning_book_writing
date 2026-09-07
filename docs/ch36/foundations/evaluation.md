@@ -1,99 +1,99 @@
-# Evaluation of Interpretability Methods
-## Overview
+# 풀이 방법 따지기
+## 살펴보기
 
-How do we know if an explanation is "good"? Evaluating interpretability methods is challenging because we typically lack ground truth for what the correct explanation should be. This section introduces the key evaluation dimensions—faithfulness, stability, comprehensiveness, and human-grounded metrics—providing the conceptual foundation for the detailed evaluation methods in Section 35.7.
+어떤 풀이가 "좋은" 것인지 어떻게 알까? 풀이 방법을 따지는 일은 어렵다. 옳은 풀이가 무엇인지 알려 주는 참값이 흔히 없기 때문이다. 이 마디는 고갱이가 되는 따짐의 결, 곧 미더움, 든든함, 두루 갖춤, 사람에 뿌리내린 자를 들여와 35.7 마디의 촘촘한 따짐 방법에 앞선 개념 밑바탕을 놓는다.
 
-## Why Evaluation Matters
+## 따지기가 중요한 까닭
 
-Beautiful visualizations can be misleading. Adebayo et al. (2018) demonstrated that some popular saliency methods produce visually compelling heatmaps that are **independent of both the model's learned parameters and the training data**. This means the "explanations" could be generated for a random, untrained network and would look nearly identical—a devastating finding for methods that are supposed to reveal what the model has learned.
+아름다운 그림이 사람을 그르칠 수 있다. 아데바요 외(2018)는 널리 쓰이는 두드러짐 방법 가운데 몇몇이 **모형이 배운 매개변수와도, 익힘 자료와도 아무 상관없이** 보기에 그럴듯한 열 그림을 내놓는다는 것을 밝혔다. 곧 그 "풀이"를 아무렇게나 놓인 익히지 않은 그물에 대해 만들어도 거의 똑같아 보인다는 뜻이다. 모형이 무엇을 배웠는지 드러내야 할 방법에는 뼈아픈 열매다.
 
-This motivates rigorous, quantitative evaluation of every interpretability method before trusting its outputs.
+그래서 어떤 풀이 방법이든 그 내놓기를 믿기에 앞서 엄밀히 수로 따져 보아야 한다.
 
-## Evaluation Dimensions
+## 따짐의 결
 
-### Faithfulness
+### 미더움
 
-**Does the explanation accurately reflect the model's decision process?**
+**풀이가 모형의 판단 흐름을 옳게 드러내는가?**
 
-An explanation is faithful if removing (or inserting) features identified as important actually changes the model's prediction accordingly. Faithfulness is the most critical property—an unfaithful explanation is worse than no explanation at all.
+중요하다고 짚은 결을 없애거나(또는 넣어) 모형의 미루어 봄이 그에 맞게 바뀌면 그 풀이는 미덥다. 미더움은 가장 종요로운 됨됨이다. 미덥지 않은 풀이는 풀이가 아예 없는 것보다 나쁘다.
 
-Key metrics:
-
-$$
-\text{Faithfulness} \propto \text{Correlation}\left(\phi_i, \Delta f_{\text{when removing } i}\right)
-$$
-
-Methods: Insertion/deletion curves, ROAR (RemOve And Retrain), pixel flipping. See Section 35.7.1 for detailed implementations.
-
-### Stability (Robustness)
-
-**Do similar inputs produce similar explanations?**
-
-An explanation method is stable if small, semantically meaningless perturbations to the input do not dramatically change the explanation. Instability undermines trust: if adding imperceptible noise changes the explanation entirely, practitioners cannot rely on it.
+으뜸 자는 이렇다.
 
 $$
-\text{Stability} = 1 - \frac{\|E(\mathbf{x}) - E(\mathbf{x} + \boldsymbol{\epsilon})\|}{\|\boldsymbol{\epsilon}\|}
+\text{미더움} \propto \text{얽힘}\left(\phi_i, \Delta f_{i \text{을 없앨 때}}\right)
 $$
 
-Methods: Lipschitz estimation, sensitivity to noise, relative stability metrics. See [Section 35.7.2](../evaluation/stability.md).
+방법: 넣기/빼기 곡선, ROAR(없애고 다시 익히기), 그림점 뒤집기. 촘촘한 짜보기는 35.7.1 마디를 보라.
 
-### Comprehensiveness
+### 든든함
 
-**Does the explanation capture all important aspects of the decision?**
+**비슷한 들임이 비슷한 풀이를 내놓는가?**
 
-A comprehensive explanation identifies all the features that matter, not just a few. The complement of comprehensiveness is **sufficiency**—whether the identified features alone are sufficient to reproduce the prediction.
-
-$$
-\text{Comprehensiveness}(E) = f(\mathbf{x}) - f(\mathbf{x}_{\setminus E})
-$$
+들임을 뜻 없이 조금 흔들었을 때 풀이가 확 달라지지 않으면 그 풀이 방법은 든든하다. 든든하지 않으면 믿음이 무너진다. 알아채지도 못할 잡음을 더했을 뿐인데 풀이가 통째로 달라진다면 쓰는 이가 기댈 수 없다.
 
 $$
-\text{Sufficiency}(E) = f(\mathbf{x}) - f(\mathbf{x}_{E})
+\text{든든함} = 1 - \frac{\|E(\mathbf{x}) - E(\mathbf{x} + \boldsymbol{\epsilon})\|}{\|\boldsymbol{\epsilon}\|}
 $$
 
-where $\mathbf{x}_{\setminus E}$ removes features in explanation $E$ and $\mathbf{x}_E$ keeps only those features. See [Section 35.7.3](../evaluation/comprehensiveness.md).
+방법: 립시츠 어림, 잡음에 대한 예민함, 견준 든든함 자. [35.7.2 마디](../evaluation/stability.md)를 보라.
 
-### Human-Grounded Evaluation
+### 두루 갖춤
 
-**Do humans find the explanations useful and understandable?**
+**풀이가 판단의 중요한 결을 모두 담았는가?**
 
-Ultimately, interpretability exists for human benefit. Human evaluation measures whether explanations help people understand, predict, and appropriately trust model decisions.
+두루 갖춘 풀이는 몇몇이 아니라 중요한 결을 모두 짚는다. 두루 갖춤의 짝이 **넉넉함**, 곧 짚어 준 결만으로 그 미루어 봄을 되살릴 수 있는가다.
 
-Key paradigms: forward simulation (can users predict model output from the explanation?), trust calibration (do explanations improve human-AI team performance?), debugging (can users identify model flaws from explanations?). See Section 35.7.4.
+$$
+\text{두루 갖춤}(E) = f(\mathbf{x}) - f(\mathbf{x}_{\setminus E})
+$$
 
-## Sanity Checks
+$$
+\text{넉넉함}(E) = f(\mathbf{x}) - f(\mathbf{x}_{E})
+$$
 
-Before detailed quantitative evaluation, every explanation method should pass basic sanity checks:
+여기서 $\mathbf{x}_{\setminus E}$은 풀이 $E$에 든 결을 없앤 것이고 $\mathbf{x}_E$은 그 결만 남긴 것이다. [35.7.3 마디](../evaluation/comprehensiveness.md)를 보라.
 
-### Model Randomization Test
+### 사람에 뿌리내린 따짐
 
-Explanations should change meaningfully when model parameters are randomized. If $E(f, \mathbf{x}) \approx E(f_{\text{random}}, \mathbf{x})$, the method is not actually reflecting model behavior.
+**사람이 그 풀이를 쓸모 있고 알아듣기 쉽다고 여기는가?**
 
-### Data Randomization Test
+풀이하기는 끝내 사람을 위한 것이다. 사람이 하는 따짐은 풀이가 사람으로 하여금 모형의 판단을 알아듣고, 미리 그려 보고, 알맞게 믿게 하는지를 잰다.
 
-Explanations should differ between a model trained on real data and one trained on randomized labels. If not, the method captures input structure rather than model-specific patterns.
+으뜸 결: 앞으로 흉내내기(쓰는 이가 풀이만 보고 모형의 내놓기를 맞힐 수 있는가?), 믿음 맞추기(풀이가 사람-기계 짝의 됨됨이를 높이는가?), 벌레잡기(쓰는 이가 풀이로 모형의 흠을 짚어낼 수 있는가?). 35.7.4 마디를 보라.
 
-### Known-Pattern Test
+## 제정신인지 살피기
 
-For synthetic data with known ground-truth attribution (e.g., only features 1 and 3 are used), the method should correctly identify those features.
+촘촘히 수로 따지기에 앞서 풀이 방법마다 밑바탕 살핌을 지나야 한다.
 
-## Practical Evaluation Protocol
+### 모형 아무렇게나 놓기 시험
 
-A recommended evaluation protocol for any new interpretability application:
+모형의 매개변수를 아무렇게나 놓으면 풀이도 뜻있게 달라져야 한다. $E(f, \mathbf{x}) \approx E(f_{\text{아무렇게나}}, \mathbf{x})$이면 그 방법은 모형의 움직임을 드러내고 있지 않다.
 
-1. **Sanity checks**: Model and data randomization tests
-2. **Faithfulness**: Insertion/deletion curves on held-out data
-3. **Stability**: Sensitivity to noise and random seeds
-4. **Comprehensiveness**: Sufficiency and comprehensiveness scores
-5. **Cross-method comparison**: Compare multiple methods on the same inputs
-6. **Domain validation**: Have domain experts review explanations for plausibility
-7. **Human study** (if resources allow): Forward simulation or debugging tasks
+### 자료 아무렇게나 놓기 시험
 
-## Summary
+참 자료로 익힌 모형과 이름표를 아무렇게나 뒤섞어 익힌 모형에서 풀이가 달라져야 한다. 그렇지 않으면 그 방법은 모형에 매인 결이 아니라 들임의 얼개를 붙들고 있는 것이다.
 
-Rigorous evaluation is essential for trustworthy interpretability. No single metric captures all desirable properties, so a multi-faceted evaluation approach is recommended. The subsequent sections in 35.7 provide detailed implementations and guidance for each evaluation dimension.
+### 아는 결 시험
 
-## References
+참값 몫을 아는 지어낸 자료(보기로 결 1과 3만 쓰는 자료)에서 그 방법이 그 결을 옳게 짚어야 한다.
+
+## 참으로 쓰는 따짐 절차
+
+새로 풀이하기를 쓸 때 이르는 따짐 절차는 이렇다.
+
+1. **제정신인지 살피기**: 모형과 자료를 아무렇게나 놓는 시험
+2. **미더움**: 떼어 둔 자료에서 넣기/빼기 곡선
+3. **든든함**: 잡음과 아무렇게나 놓는 씨앗에 대한 예민함
+4. **두루 갖춤**: 넉넉함과 두루 갖춤 점수
+5. **방법끼리 견주기**: 같은 들임에 여러 방법을 걸어 견주기
+6. **밭에서 따지기**: 밭 밝은 이가 풀이가 그럴듯한지 살피게 하기
+7. **사람 연구**(밑천이 넉넉하면): 앞으로 흉내내기나 벌레잡기 일감
+
+## 간추림
+
+믿을 만한 풀이하기에는 엄밀한 따짐이 꼭 있어야 한다. 바라는 됨됨이를 자 하나로 다 담을 수 없으므로 여러 얼굴로 따지기를 권한다. 35.7의 뒤 마디들이 따짐의 결마다 촘촘한 짜보기와 길잡이를 준다.
+
+## 살펴볼 거리
 
 1. Adebayo, J., et al. (2018). "Sanity Checks for Saliency Maps." *NeurIPS*.
 
@@ -105,34 +105,34 @@ Rigorous evaluation is essential for trustworthy interpretability. No single met
 
 5. Zhou, J., et al. (2021). "Evaluating the Quality of Machine Learning Explanations: A Survey on Methods and Metrics." *Electronics*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Apply the interpretability method described in this section to a 2-layer neural network with ReLU activations classifying XOR inputs. Compute the explanation for the input $x = [1, 1]$.
+**익힘 1.**
+이 마디에서 밝힌 풀이 방법을, XOR 들임을 가르는 ReLU 살림의 두 켜 신경 그물에 걸어라. 들임 $x = [1, 1]$에 대한 풀이를 셈하여라.
 
-??? success "Solution to Exercise 1"
-    For a trained XOR network with weights $W_1, b_1, W_2, b_2$, the output is $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$. The explanation method produces attributions for each input feature. For $x = [1, 1]$ (class 0), both features contribute to the negative classification. The specific attribution values depend on the method: gradient-based methods compute $\partial f / \partial x_i$; perturbation-based methods measure output change when features are masked. The XOR problem demonstrates that linear explanation methods can mislead because the decision boundary is non-linear. $\square$
-
----
-
-**Exercise 2.**
-Prove or disprove that the explanation method in this section satisfies the completeness axiom: the sum of all feature attributions equals $f(x) - f(x_0)$ for some baseline $x_0$.
-
-??? success "Solution to Exercise 2"
-    The completeness axiom (also called efficiency in Shapley value theory) states that attributions sum to the difference between the model output at the input and at the baseline. Whether this method satisfies completeness depends on its formulation. Gradient methods do not satisfy completeness (gradients are local, not path-integrated). Integrated Gradients satisfies completeness by construction (fundamental theorem of calculus along the path). SHAP values satisfy efficiency by the Shapley axiom. Methods that violate completeness may over- or under-attribute, making the total attribution unreliable as a global explanation. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, b_1, W_2, b_2$인 익힌 XOR 그물에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 들임 결마다 몫을 내놓는다. $x = [1, 1]$(갈래 0)이면 두 결 모두 음수 가름에 이바지한다. 몫 값은 방법마다 다르다. 기울기 바탕 방법은 $\partial f / \partial x_i$을 셈하고, 흔들어 보는 방법은 결을 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
 
 ---
 
-**Exercise 3.**
-Design an experiment to evaluate the faithfulness of the explanations produced by this method. Use insertion and deletion curves to measure whether highlighted features are truly important to the model.
+**익힘 2.**
+이 마디의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 밑금 $x_0$에 대해 모든 결 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
 
-??? success "Solution to Exercise 3"
-    Protocol: (1) Compute feature attributions for each test image. (2) Deletion: progressively mask features in order of decreasing attribution, recording the model confidence drop. Faithful explanations cause rapid confidence decrease. (3) Insertion: progressively reveal features in order of decreasing attribution from a blank baseline, recording confidence increase. Faithful explanations cause rapid confidence increase. (4) Compute AUC for both curves. (5) Compare against random ordering (baseline) and other methods. A faithful method should have low deletion AUC and high insertion AUC. Repeat over 1000+ test samples for statistical reliability. $\square$
+??? success "익힘 2 풀이"
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 들임에서의 모형 내놓기와 밑금에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 기울기 방법은 온전함을 채우지 못한다(기울기는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). 쌓은 기울기는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this interpretability method could be applied to a financial model predicting credit default. What regulatory requirements must the explanations satisfy?
+**익힘 3.**
+이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 결이 참으로 모형에 중요한지를 넣기와 빼기 곡선으로 재어라.
 
-??? success "Solution to Exercise 4"
-    For credit models, regulations (ECOA, GDPR Article 22) require individualized explanations for adverse decisions. The method must produce: (1) the top factors contributing to the denial (adverse action reasons); (2) explanations that are consistent (similar applicants get similar explanations); (3) explanations that are actionable (the applicant understands what to change). The interpretability method from this section can identify feature importances, but must be validated for stability (small input changes should not drastically alter the explanation) and correctness (removing important features should change the prediction). Protected attributes must be handled carefully to avoid revealing proxy discrimination. $\square$
+??? success "익힘 3 풀이"
+    절차는 이렇다. (1) 시험 그림마다 결 몫을 셈한다. (2) 빼기: 몫이 큰 차례로 결을 하나씩 가리며 모형의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 밑금에서 시작해 몫이 큰 차례로 결을 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 셈한다. (5) 아무렇게나 매긴 차례(밑금)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+
+---
+
+**익힘 4.**
+이 풀이 방법을 신용 부도를 미루어 보는 금융 모형에 어떻게 걸 수 있는지 다루어라. 풀이가 채워야 할 규정 요건은 무엇인가?
+
+??? success "익힘 4 풀이"
+    신용 모형에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 마디의 풀이 방법으로 결의 중요함을 짚을 수 있으나, 든든함(들임이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 결을 없애면 미루어 봄이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 됨됨이는 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$

@@ -1,228 +1,228 @@
-# Taxonomy of Interpretability Methods
-## Overview
+# 풀이 방법의 갈래 나누기
+## 살펴보기
 
-The landscape of interpretability methods is vast and rapidly growing. A clear taxonomy helps practitioners select the right tool for their specific needs. This section classifies methods along three orthogonal dimensions: scope (local vs global), model access (agnostic vs specific), and explanation type (feature, example, or concept-based).
+풀이 방법의 밭은 넓고 빠르게 자란다. 갈래를 또렷이 나누면 저마다의 자리에 알맞은 연장을 고르기 쉽다. 이 마디는 서로 걸리지 않는 세 결로 방법을 나눈다. 미치는 데(그 자리 대 온 세상), 모형에 닿는 만큼(가리지 않음 대 맞춤), 풀이의 갈래(결, 보기, 개념 바탕)다.
 
-## Classification by Scope
+## 미치는 데로 나누기
 
-### Local Interpretability
+### 그 자리 풀이하기
 
-Local methods explain individual predictions. For a specific input $\mathbf{x}$, local methods answer: "Why did the model predict $f(\mathbf{x}) = \hat{y}$?"
+그 자리 방법은 낱낱의 미루어 봄을 풀이한다. 정해진 들임 $\mathbf{x}$에 대해 "모형이 왜 $f(\mathbf{x}) = \hat{y}$이라고 미루어 보았는가?"에 답한다.
 
-*Example*: "This loan application was rejected because the debt-to-income ratio exceeded 0.45 and the applicant has fewer than 2 years of credit history."
+*보기*: "이 대출 신청은 빚 대 벌이 비가 0.45을 넘고 신청자의 신용 자취가 2해에 못 미쳐 물리쳤습니다."
 
-Local methods produce explanations of the form:
+그 자리 방법은 다음 꼴의 풀이를 내놓는다.
 
 $$
 f(\mathbf{x}) \approx g(\mathbf{x}) = \phi_0 + \sum_{i=1}^{d} \phi_i(\mathbf{x})
 $$
 
-where $\phi_i(\mathbf{x})$ is the attribution of feature $i$ for this specific input.
+여기서 $\phi_i(\mathbf{x})$은 이 들임에서 결 $i$에 매긴 몫이다.
 
-**Key local methods**: LIME, SHAP values, Grad-CAM, Integrated Gradients, saliency maps, counterfactual explanations.
+**으뜸 그 자리 방법**: LIME, SHAP 값, Grad-CAM, 쌓은 기울기, 두드러짐 그림, 되돌려 세운 풀이.
 
-### Global Interpretability
+### 온 세상 풀이하기
 
-Global methods explain overall model behavior. They answer: "What general patterns has the model learned across the input space?"
+온 세상 방법은 모형이 두루 어떻게 움직이는지 풀이한다. "모형이 들임 밭 전체에서 어떤 결을 배웠는가?"에 답한다.
 
-*Example*: "The credit model primarily relies on payment history (35% importance), credit utilization (25%), and length of credit history (20%)."
+*보기*: "이 신용 모형은 주로 갚은 자취(중요함 35%), 신용 씀씀이(25%), 신용 자취의 길이(20%)에 기댄다."
 
-Global methods aggregate local explanations or directly analyze model structure:
+온 세상 방법은 그 자리 풀이를 한데 모으거나 모형의 얼개를 곧바로 살핀다.
 
 $$
 I_j = \mathbb{E}_{\mathbf{x}}[|\phi_j(\mathbf{x})|]
 $$
 
-**Key global methods**: Permutation importance, aggregated SHAP, TCAV, concept bottleneck models, partial dependence plots.
+**으뜸 온 세상 방법**: 뒤섞기 중요함, 한데 모은 SHAP, TCAV, 개념 목 모형, 얼마쯤 매인 그림.
 
-### Semi-Local Methods
+### 반쯤 그 자리 방법
 
-Some methods operate between local and global scope, explaining model behavior in a region of input space. Subgroup explanations and rule extraction methods fall in this category.
+그 자리와 온 세상 사이에서 들임 밭의 한 자리에 대해 모형의 움직임을 풀이하는 방법도 있다. 무리별 풀이와 규칙 뽑아내기가 여기에 든다.
 
-## Classification by Model Access
+## 모형에 닿는 만큼으로 나누기
 
-### Model-Agnostic Methods
+### 모형을 가리지 않는 방법
 
-Model-agnostic methods treat the model as a black box, using only input-output relationships. These methods work with any model architecture.
+모형을 가리지 않는 방법은 모형을 검은 상자로 여기고 들임과 내놓기의 얽힘만 쓴다. 어떤 얼개에도 듣는다.
 
-| Method | Mechanism | Complexity |
+| 방법 | 얼개 | 복잡도 |
 |--------|-----------|------------|
-| LIME | Local surrogate fitting | $O(N \cdot d)$ per sample |
-| Kernel SHAP | Weighted regression on coalitions | $O(2^d)$ exact, sampled in practice |
-| Permutation Importance | Feature shuffling | $O(N \cdot d)$ |
-| Partial Dependence | Marginal effect estimation | $O(N \cdot G)$ grid points |
-| Counterfactual Explanations | Optimization for minimal change | Varies |
+| LIME | 그 자리 대리 모형 맞추기 | 표본마다 $O(N \cdot d)$ |
+| 커널 SHAP | 뭉치에 대한 짐 실은 되돌이 | 정확히는 $O(2^d)$, 참으로는 뽑아 씀 |
+| 뒤섞기 중요함 | 결 뒤섞기 | $O(N \cdot d)$ |
+| 얼마쯤 매임 | 가장자리 미침 어림하기 | 격자점 $O(N \cdot G)$ |
+| 되돌려 세운 풀이 | 가장 작은 바뀜을 찾는 가장 좋게 하기 | 자리마다 다름 |
 
-**Advantages**: Universal applicability, no architecture assumptions, can compare across model types.
+**나은 점**: 어디에나 쓸 수 있고, 얼개를 여기지 않으며, 모형 갈래를 넘나들며 견줄 수 있다.
 
-**Limitations**: Computationally expensive (many model evaluations), may miss architecture-specific insights, sampling can introduce variance.
+**한계**: 셈이 비싸고(모형을 여러 번 돌려야 한다), 얼개마다의 속내를 놓칠 수 있으며, 뽑아 쓰기가 들쭉날쭉함을 들일 수 있다.
 
-### Model-Specific Methods
+### 모형에 맞춘 방법
 
-Model-specific methods exploit internal model structure for more precise and efficient explanations.
+모형에 맞춘 방법은 모형 안쪽 얼개를 살려 더 촘촘하고 잘 드는 풀이를 낸다.
 
-**For differentiable models (neural networks)**:
+**미분되는 모형(신경 그물)에는**:
 
-| Method | Exploits | Architecture |
+| 방법 | 살려 쓰는 것 | 얼개 |
 |--------|----------|-------------|
-| Vanilla Gradients | Backpropagation | Any differentiable model |
-| Grad-CAM | Feature map gradients | CNNs with spatial feature maps |
-| Integrated Gradients | Path integral of gradients | Any differentiable model |
-| SmoothGrad | Averaged gradients | Any differentiable model |
-| LRP | Layer-wise decomposition | Neural networks |
-| DeepLIFT | Reference-based activations | Neural networks |
+| 맨 기울기 | 되짚기 | 미분되는 아무 모형 |
+| Grad-CAM | 결 그림의 기울기 | 자리 결 그림을 지닌 CNN |
+| 쌓은 기울기 | 기울기의 길 적분 | 미분되는 아무 모형 |
+| SmoothGrad | 고르게 한 기울기 | 미분되는 아무 모형 |
+| LRP | 켜마다 쪼개기 | 신경 그물 |
+| DeepLIFT | 견줌 바탕 살아남 | 신경 그물 |
 
-**For attention-based models (transformers)**:
+**눈길 바탕 모형(변환기)에는**:
 
-| Method | Exploits | Architecture |
+| 방법 | 살려 쓰는 것 | 얼개 |
 |--------|----------|-------------|
-| Attention Visualization | Raw attention weights | Transformers |
-| Attention Rollout | Cumulative attention | Multi-layer transformers |
-| Attention Flow | Gradient-weighted attention | Transformers |
-| Probing Classifiers | Hidden representations | Any encoder |
+| 눈길 그림 그리기 | 날 눈길 짐 | 변환기 |
+| 눈길 굴리기 | 쌓은 눈길 | 여러 켜 변환기 |
+| 눈길 흐름 | 기울기 짐 실은 눈길 | 변환기 |
+| 더듬는 가름개 | 숨은 나타냄 | 아무 부호기 |
 
-**For tree-based models**:
+**나무 바탕 모형에는**:
 
-| Method | Exploits | Architecture |
+| 방법 | 살려 쓰는 것 | 얼개 |
 |--------|----------|-------------|
-| Tree SHAP | Tree structure | Decision trees, ensembles |
-| Feature Importance (Gini/gain) | Split statistics | Tree ensembles |
-| Decision Path | Path through tree | Single trees |
+| 나무 SHAP | 나무 얼개 | 판단 나무, 모둠 |
+| 결 중요함(지니/얻음) | 쪼갬 셈속 | 나무 모둠 |
+| 판단 길 | 나무를 지나는 길 | 나무 하나 |
 
-## Classification by Explanation Type
+## 풀이 갈래로 나누기
 
-### Feature Attribution
+### 결 몫 매기기
 
-Feature attribution assigns importance scores to input features. These methods answer: "How much did each feature contribute to this prediction?"
+결 몫 매기기는 들임 결마다 중요함 점수를 매긴다. "결마다 이 미루어 봄에 얼마나 이바지했는가?"에 답한다.
 
 $$
 f(\mathbf{x}) = \phi_0 + \sum_{i=1}^{d} \phi_i(\mathbf{x})
 $$
 
-This additive decomposition is the unifying framework for SHAP, Integrated Gradients, LRP, and DeepLIFT. The key distinction among methods is *how* they compute the attributions $\phi_i$.
+이 더해지는 쪼갬이 SHAP, 쌓은 기울기, LRP, DeepLIFT을 하나로 아우르는 틀이다. 방법마다의 고갱이 차이는 몫 $\phi_i$을 *어떻게* 셈하느냐에 있다.
 
-| Method | Attribution Mechanism | Completeness |
+| 방법 | 몫 매기는 얼개 | 온전함 |
 |--------|----------------------|-------------|
-| Vanilla Gradients | Local sensitivity $\partial f / \partial x_i$ | No |
-| Gradient × Input | Sensitivity × value $x_i \cdot \partial f / \partial x_i$ | No |
-| Integrated Gradients | Path integral from baseline | Yes |
-| SHAP | Marginal contributions over coalitions | Yes |
-| LRP | Backward relevance propagation | Yes |
-| DeepLIFT | Difference from reference | Yes |
+| 맨 기울기 | 그 자리 예민함 $\partial f / \partial x_i$ | 아니오 |
+| 기울기 × 들임 | 예민함 × 값 $x_i \cdot \partial f / \partial x_i$ | 아니오 |
+| 쌓은 기울기 | 밑금에서 오는 길 적분 | 예 |
+| SHAP | 뭉치에 대한 가장자리 이바지 | 예 |
+| LRP | 거꾸로 쓸모 퍼뜨리기 | 예 |
+| DeepLIFT | 견줌과의 차이 | 예 |
 
-### Example-Based Explanations
+### 보기 바탕 풀이
 
-Example-based methods explain predictions by referencing similar or influential training instances.
+보기 바탕 방법은 비슷하거나 크게 미친 익힘 자료를 들어 미루어 봄을 풀이한다.
 
-**Prototype-based explanations**: "This input is classified as class $c$ because it is most similar to prototype $p_c$."
+**본보기 바탕 풀이**: "이 들임은 본보기 $p_c$과 가장 비슷하므로 갈래 $c$으로 가른다."
 
-**Influential instances**: "This prediction was most affected by training examples $\{x_1, x_3, x_{42}\}$."
+**크게 미친 자료**: "이 미루어 봄에 익힘 보기 $\{x_1, x_3, x_{42}\}$이 가장 크게 미쳤다."
 
-**Counterfactual explanations**: "The prediction would change from 'reject' to 'approve' if the debt-to-income ratio were reduced from 0.45 to 0.35."
+**되돌려 세운 풀이**: "빚 대 벌이 비를 0.45에서 0.35로 낮추면 미루어 봄이 '물리침'에서 '받아들임'으로 바뀐다."
 
-### Concept-Based Explanations
+### 개념 바탕 풀이
 
-Concept-based methods explain in terms of human-understandable concepts rather than raw features.
+개념 바탕 방법은 날 결이 아니라 사람이 알아들을 수 있는 개념으로 풀이한다.
 
-**Concept Activation Vectors (CAVs)**: Learn a direction in activation space that corresponds to a human concept (e.g., "striped", "furry", "high volatility").
+**개념 살아남 벡터(CAV)**: 살아남 밭에서 사람의 개념(보기로 "줄무늬 있음", "털 있음", "많이 출렁임")에 맞물리는 쪽을 배운다.
 
-**Testing with CAVs (TCAV)**: Quantifies how sensitive a model's predictions are to a specific concept:
+**CAV로 따지기(TCAV)**: 모형의 미루어 봄이 어떤 개념에 얼마나 예민한지 수로 잰다.
 
 $$
 \text{TCAV}_{c,k,l} = \frac{|\{x \in X_c : \nabla h_l(x) \cdot v_l^k > 0\}|}{|X_c|}
 $$
 
-**Concept Bottleneck Models**: Force the network to first predict human-interpretable concepts, then use those concepts for the final prediction.
+**개념 목 모형**: 그물이 먼저 사람이 풀이할 수 있는 개념을 미루어 보게 하고, 그 개념으로 마지막 미루어 봄을 하게 한다.
 
-## Unified View
+## 하나로 아우른 봄
 
-Many seemingly different methods are connected through a unified framework. Lundberg and Lee (2017) showed that several methods are special cases of additive feature attribution:
+달라 보이는 방법 여럿이 하나의 틀로 이어진다. 룬드베리와 리(2017)는 여러 방법이 더해지는 결 몫 매기기의 특별한 자리임을 밝혔다.
 
 $$
 g(z') = \phi_0 + \sum_{i=1}^{M} \phi_i z'_i
 $$
 
-where $z' \in \{0, 1\}^M$ is a simplified binary representation of the input and $\phi_i$ are feature attributions. Different choices of the loss function, weighting kernel, and regularization recover LIME, SHAP, and other methods.
+여기서 $z' \in \{0, 1\}^M$은 들임을 단순하게 줄인 두 값 나타냄이고 $\phi_i$은 결 몫이다. 잃음 함수, 짐 주는 커널, 정칙화를 달리 고르면 LIME, SHAP을 비롯한 여러 방법이 나온다.
 
-| Method | Kernel $\pi_{x'}(z')$ | Loss $\mathcal{L}$ | Regularization $\Omega$ |
+| 방법 | 커널 $\pi_{x'}(z')$ | 잃음 $\mathcal{L}$ | 정칙화 $\Omega$ |
 |--------|----------------------|---------------------|------------------------|
-| LIME | $\exp(-D(x, z)^2 / \sigma^2)$ | Squared error | $L_1$ or feature count |
-| SHAP | $\frac{M-1}{\binom{M}{|z'|}|z'|(M-|z'|)}$ | Squared error | None (unique solution) |
-| Integrated Gradients | — | — | Path integral |
+| LIME | $\exp(-D(x, z)^2 / \sigma^2)$ | 제곱 어긋남 | $L_1$이나 결의 수 |
+| SHAP | $\frac{M-1}{\binom{M}{\lvert z' \rvert}\lvert z' \rvert(M-\lvert z' \rvert)}$ | 제곱 어긋남 | 없음(홑 풀이) |
+| 쌓은 기울기 | — | — | 길 적분 |
 
-## Method Selection Decision Tree
+## 방법 고르는 판단 나무
 
 ```
-Start
-├── Need to explain a specific prediction?
-│   ├── Yes → Local method
-│   │   ├── Model is differentiable?
-│   │   │   ├── Yes → Gradient-based (fast) or SHAP (rigorous)
-│   │   │   └── No → LIME or Kernel SHAP
-│   │   ├── Need theoretical guarantees?
-│   │   │   ├── Yes → SHAP or Integrated Gradients
-│   │   │   └── No → Grad-CAM (CNN) or vanilla gradients (quick)
-│   │   └── Regulatory requirement?
-│   │       ├── Yes → SHAP (documented properties)
-│   │       └── No → Any appropriate method
-│   └── No → Global method
-│       ├── Feature importance ranking?
-│       │   ├── Yes → Permutation importance or aggregated SHAP
-│       │   └── No → Partial dependence or concept methods
-│       └── Concept-level understanding?
-│           ├── Yes → TCAV, Concept Bottleneck
-│           └── No → Global surrogate or rule extraction
-└── Model architecture?
-    ├── CNN → Grad-CAM, feature visualization
-    ├── Transformer → Attention analysis, probing
-    ├── Tree ensemble → Tree SHAP
-    └── Any → LIME, Kernel SHAP
+시작
+├── 정해진 미루어 봄 하나를 풀이해야 하는가?
+│   ├── 예 → 그 자리 방법
+│   │   ├── 모형이 미분되는가?
+│   │   │   ├── 예 → 기울기 바탕(빠름)이나 SHAP(엄밀함)
+│   │   │   └── 아니오 → LIME이나 커널 SHAP
+│   │   ├── 이론 보장이 있어야 하는가?
+│   │   │   ├── 예 → SHAP이나 쌓은 기울기
+│   │   │   └── 아니오 → Grad-CAM(CNN)이나 맨 기울기(빠름)
+│   │   └── 규정이 바라는가?
+│   │       ├── 예 → SHAP(됨됨이가 적바림되어 있음)
+│   │       └── 아니오 → 알맞은 아무 방법
+│   └── 아니오 → 온 세상 방법
+│       ├── 결 중요함 차례를 매기는가?
+│       │   ├── 예 → 뒤섞기 중요함이나 한데 모은 SHAP
+│       │   └── 아니오 → 얼마쯤 매임이나 개념 방법
+│       └── 개념 켜로 알아야 하는가?
+│           ├── 예 → TCAV, 개념 목
+│           └── 아니오 → 온 세상 대리 모형이나 규칙 뽑아내기
+└── 모형 얼개는?
+    ├── CNN → Grad-CAM, 결 그림 그리기
+    ├── 변환기 → 눈길 살피기, 더듬기
+    ├── 나무 모둠 → 나무 SHAP
+    └── 아무거나 → LIME, 커널 SHAP
 ```
 
-## Summary
+## 간추림
 
-Understanding the taxonomy of interpretability methods is essential for selecting the right tool. The three key dimensions—scope, model access, and explanation type—provide a structured framework for navigating the growing landscape of methods. In practice, combining methods from different categories provides the most comprehensive understanding of model behavior.
+풀이 방법의 갈래를 알아야 알맞은 연장을 고를 수 있다. 세 고갱이 결, 곧 미치는 데, 모형에 닿는 만큼, 풀이의 갈래가 자라나는 방법의 밭을 헤쳐 갈 짜임새를 준다. 참으로는 서로 다른 갈래의 방법을 아울러 써야 모형의 움직임을 가장 두루 알 수 있다.
 
-## References
+## 살펴볼 거리
 
 1. Lundberg, S. M., & Lee, S. I. (2017). "A Unified Approach to Interpreting Model Predictions." *NeurIPS*.
 
 2. Ribeiro, M. T., Singh, S., & Guestrin, C. (2016). "Why Should I Trust You?: Explaining the Predictions of Any Classifier." *KDD*.
 
-3. Molnar, C. (2020). *Interpretable Machine Learning*. Chapter 5: Model-Agnostic Methods.
+3. Molnar, C. (2020). *Interpretable Machine Learning*. 5장: Model-Agnostic Methods.
 
 4. Guidotti, R., et al. (2018). "A Survey of Methods for Explaining Black Box Models." *ACM Computing Surveys*.
 
 5. Murdoch, W. J., et al. (2019). "Definitions, methods, and applications in interpretable machine learning." *PNAS*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Apply the interpretability method described in this section to a 2-layer neural network with ReLU activations classifying XOR inputs. Compute the explanation for the input $x = [1, 1]$.
+**익힘 1.**
+이 마디에서 밝힌 풀이 방법을, XOR 들임을 가르는 ReLU 살림의 두 켜 신경 그물에 걸어라. 들임 $x = [1, 1]$에 대한 풀이를 셈하여라.
 
-??? success "Solution to Exercise 1"
-    For a trained XOR network with weights $W_1, b_1, W_2, b_2$, the output is $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$. The explanation method produces attributions for each input feature. For $x = [1, 1]$ (class 0), both features contribute to the negative classification. The specific attribution values depend on the method: gradient-based methods compute $\partial f / \partial x_i$; perturbation-based methods measure output change when features are masked. The XOR problem demonstrates that linear explanation methods can mislead because the decision boundary is non-linear. $\square$
-
----
-
-**Exercise 2.**
-Prove or disprove that the explanation method in this section satisfies the completeness axiom: the sum of all feature attributions equals $f(x) - f(x_0)$ for some baseline $x_0$.
-
-??? success "Solution to Exercise 2"
-    The completeness axiom (also called efficiency in Shapley value theory) states that attributions sum to the difference between the model output at the input and at the baseline. Whether this method satisfies completeness depends on its formulation. Gradient methods do not satisfy completeness (gradients are local, not path-integrated). Integrated Gradients satisfies completeness by construction (fundamental theorem of calculus along the path). SHAP values satisfy efficiency by the Shapley axiom. Methods that violate completeness may over- or under-attribute, making the total attribution unreliable as a global explanation. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, b_1, W_2, b_2$인 익힌 XOR 그물에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 들임 결마다 몫을 내놓는다. $x = [1, 1]$(갈래 0)이면 두 결 모두 음수 가름에 이바지한다. 몫 값은 방법마다 다르다. 기울기 바탕 방법은 $\partial f / \partial x_i$을 셈하고, 흔들어 보는 방법은 결을 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
 
 ---
 
-**Exercise 3.**
-Design an experiment to evaluate the faithfulness of the explanations produced by this method. Use insertion and deletion curves to measure whether highlighted features are truly important to the model.
+**익힘 2.**
+이 마디의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 밑금 $x_0$에 대해 모든 결 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
 
-??? success "Solution to Exercise 3"
-    Protocol: (1) Compute feature attributions for each test image. (2) Deletion: progressively mask features in order of decreasing attribution, recording the model confidence drop. Faithful explanations cause rapid confidence decrease. (3) Insertion: progressively reveal features in order of decreasing attribution from a blank baseline, recording confidence increase. Faithful explanations cause rapid confidence increase. (4) Compute AUC for both curves. (5) Compare against random ordering (baseline) and other methods. A faithful method should have low deletion AUC and high insertion AUC. Repeat over 1000+ test samples for statistical reliability. $\square$
+??? success "익힘 2 풀이"
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 들임에서의 모형 내놓기와 밑금에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 기울기 방법은 온전함을 채우지 못한다(기울기는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). 쌓은 기울기는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this interpretability method could be applied to a financial model predicting credit default. What regulatory requirements must the explanations satisfy?
+**익힘 3.**
+이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 결이 참으로 모형에 중요한지를 넣기와 빼기 곡선으로 재어라.
 
-??? success "Solution to Exercise 4"
-    For credit models, regulations (ECOA, GDPR Article 22) require individualized explanations for adverse decisions. The method must produce: (1) the top factors contributing to the denial (adverse action reasons); (2) explanations that are consistent (similar applicants get similar explanations); (3) explanations that are actionable (the applicant understands what to change). The interpretability method from this section can identify feature importances, but must be validated for stability (small input changes should not drastically alter the explanation) and correctness (removing important features should change the prediction). Protected attributes must be handled carefully to avoid revealing proxy discrimination. $\square$
+??? success "익힘 3 풀이"
+    절차는 이렇다. (1) 시험 그림마다 결 몫을 셈한다. (2) 빼기: 몫이 큰 차례로 결을 하나씩 가리며 모형의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 밑금에서 시작해 몫이 큰 차례로 결을 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 셈한다. (5) 아무렇게나 매긴 차례(밑금)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+
+---
+
+**익힘 4.**
+이 풀이 방법을 신용 부도를 미루어 보는 금융 모형에 어떻게 걸 수 있는지 다루어라. 풀이가 채워야 할 규정 요건은 무엇인가?
+
+??? success "익힘 4 풀이"
+    신용 모형에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 마디의 풀이 방법으로 결의 중요함을 짚을 수 있으나, 든든함(들임이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 결을 없애면 미루어 봄이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 됨됨이는 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$

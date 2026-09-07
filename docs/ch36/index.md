@@ -1,85 +1,85 @@
-# Chapter 36: Model Interpretability
+# 36장: 모형 풀이하기
 
-This chapter provides a comprehensive treatment of interpretability methods for deep learning models, from foundational gradient-based techniques to advanced concept-level explanations. Understanding why models make specific predictions is essential for regulatory compliance, debugging, and building trust in high-stakes domains such as quantitative finance, healthcare, and autonomous systems. The chapter covers both post-hoc explanation methods and inherently interpretable architectures, with rigorous evaluation frameworks.
+이 장은 깊은 배움 모형을 풀이하는 방법을 밑바탕이 되는 기울기 바탕 재주에서 앞선 개념 켜의 풀이까지 두루 다룬다. 모형이 왜 그런 미루어 봄을 내놓았는지 아는 일은 규정을 따르는 데, 벌레를 잡는 데, 그리고 계량 금융·의료·스스로 도는 얼개처럼 걸린 것이 큰 밭에서 믿음을 쌓는 데 꼭 있어야 한다. 이 장은 일이 끝난 뒤에 풀이하는 방법과 그 자체로 풀이되는 얼개를 함께 다루며, 엄밀히 따지는 틀도 곁들인다.
 
 ---
 
-## Foundations
+## 밑바탕
 
-Core concepts and taxonomies for understanding the interpretability landscape.
+풀이하기의 밭을 알아보는 데 쓰는 고갱이 개념과 갈래 나누기.
 
-- [Introduction to Model Interpretability](foundations/introduction.md) -- The black box problem, regulatory drivers, and why interpretability matters
-- [Taxonomy of Interpretability Methods](foundations/taxonomy.md) -- Classification by scope (local/global), model access, and explanation type
-- [Evaluation of Interpretability Methods](foundations/evaluation.md) -- Faithfulness, stability, comprehensiveness, and human-grounded evaluation dimensions
+- [모형 풀이하기 들머리](foundations/introduction.md) -- 검은 상자 문제, 규정이 미는 힘, 풀이하기가 중요한 까닭
+- [풀이 방법의 갈래 나누기](foundations/taxonomy.md) -- 미치는 데(그 자리/온 세상), 모형에 닿는 만큼, 풀이의 갈래로 나누기
+- [풀이 방법 따지기](foundations/evaluation.md) -- 미더움, 든든함, 두루 갖춤, 사람에 뿌리내린 따짐의 여러 결
 
-## Gradient Methods
+## 기울기 방법
 
-Gradient-based visualization techniques that reveal which input features influence model predictions.
+들임의 어느 결이 모형의 미루어 봄을 흔드는지 드러내는 기울기 바탕 그림 그리기 재주.
 
-- Model Interpretability Overview -- Comprehensive toolkit overview for Grad-CAM and attention visualization
-- Saliency Maps Overview -- Module overview of gradient-based saliency map techniques
-- Quick Start Guide -- Getting started with saliency map implementations in 5 minutes
-- [Saliency Maps and Vanilla Gradients](gradient_methods/saliency_maps.md) -- Mathematical foundations of gradient-based saliency for neural network predictions
-- [Integrated Gradients](gradient_methods/integrated_gradients.md) -- Path-integrated attributions satisfying sensitivity and implementation invariance axioms
-- [Grad-CAM](gradient_methods/gradcam.md) -- Gradient-weighted class activation mapping for CNN visual explanations
-- [Grad-CAM++](gradient_methods/gradcam_plusplus.md) -- Improved localization for multiple object instances and small regions
-- [Guided Backpropagation](gradient_methods/guided_backprop.md) -- High-resolution saliency maps via modified ReLU gradient propagation
-- [SmoothGrad](gradient_methods/smoothgrad.md) -- Noise-based gradient averaging for sharper, cleaner saliency visualizations
+- 모형 풀이하기 살펴보기 -- Grad-CAM과 눈길 그림 그리기를 아우르는 연장 두루 살피기
+- 두드러짐 그림 살펴보기 -- 기울기 바탕 두드러짐 그림 재주 꾸러미 살펴보기
+- 빨리 시작하기 -- 5분 만에 두드러짐 그림 짜보기 시작하기
+- [두드러짐 그림과 맨 기울기](gradient_methods/saliency_maps.md) -- 신경 그물 미루어 봄에 대한 기울기 바탕 두드러짐의 수학 밑바탕
+- [쌓은 기울기](gradient_methods/integrated_gradients.md) -- 예민함과 짜기에 흔들리지 않음이라는 공리를 채우는 길 따라 쌓은 몫 매기기
+- [Grad-CAM](gradient_methods/gradcam.md) -- CNN 눈 풀이를 위한 기울기 짐 실은 갈래 살아남 그림
+- [Grad-CAM++](gradient_methods/gradcam_plusplus.md) -- 여러 물체와 작은 자리를 더 잘 짚어내는 나아진 것
+- [이끈 되짚기](gradient_methods/guided_backprop.md) -- ReLU 기울기 퍼뜨리기를 고쳐 얻는 높은 결 두드러짐 그림
+- [SmoothGrad](gradient_methods/smoothgrad.md) -- 잡음을 써서 기울기를 고르게 해 더 또렷하고 깨끗한 두드러짐 그림 얻기
 
-## Attention Visualization
+## 눈길 그림 그리기
 
-Techniques for understanding transformer attention patterns and information flow.
+변환기의 눈길 결과 소식 흐름을 알아보는 재주.
 
-- Attention Visualization Overview -- Module overview of attention visualization tools and techniques
-- Quick Start Guide -- Running attention visualization examples with pre-trained transformers
-- Attention Fundamentals -- Mathematical foundations of scaled dot-product and multi-head attention for visualization
-- Attention Rollout -- Cumulative attention computation across all layers for total input influence
-- Attention Flow -- Combining attention weights with gradients for accurate attribution
-- [Attention Pattern Analysis](attention_viz/pattern_analysis.md) -- Multi-head analysis, layer-wise progression, and cross-attention interpretation
+- 눈길 그림 그리기 살펴보기 -- 눈길 그림 그리기 연장과 재주 꾸러미 살펴보기
+- 빨리 시작하기 -- 미리 익힌 변환기로 눈길 그림 그리기 보기 돌리기
+- 눈길 밑바탕 -- 그림 그리기를 위한 잣대 잰 점곱 눈길과 여러 머리 눈길의 수학 밑바탕
+- 눈길 굴리기 -- 온 켜에 걸쳐 눈길을 쌓아 들임이 미치는 온 힘 셈하기
+- 눈길 흐름 -- 눈길 짐과 기울기를 아울러 몫을 옳게 매기기
+- [눈길 결 살피기](attention_viz/pattern_analysis.md) -- 여러 머리 살피기, 켜를 따라가는 흐름, 엇갈린 눈길 풀이하기
 
-## Feature Attribution
+## 결 몫 매기기
 
-Model-agnostic methods for attributing predictions to input features using game theory.
+놀이 이론으로 미루어 봄을 들임의 결에 돌리는, 모형을 가리지 않는 방법.
 
-- SHAP: SHapley Additive exPlanations -- Unified feature attribution based on Shapley values from cooperative game theory
-- LIME: Local Interpretable Model-agnostic Explanations -- Local surrogate models for explaining individual predictions of any black-box model
-- [Kernel SHAP](feature_attribution/kernel_shap.md) -- Approximating SHAP values via weighted linear regression
-- [Deep SHAP](feature_attribution/deep_shap.md) -- Combining DeepLIFT backpropagation with SHAP for efficient neural network attribution
-- [Tree SHAP](feature_attribution/tree_shap.md) -- Exact polynomial-time Shapley values for tree-based models
-- [Feature Interaction Effects](feature_attribution/interactions.md) -- SHAP interaction values for detecting non-linear feature dependencies
+- SHAP: 더해지는 섀플리 풀이 -- 함께 하는 놀이 이론의 섀플리 값에 바탕을 둔 하나로 아우른 결 몫 매기기
+- LIME: 그 자리에서 풀이되는 모형 가리지 않는 풀이 -- 어떤 검은 상자 모형이든 낱낱의 미루어 봄을 풀이하는 그 자리 대리 모형
+- [커널 SHAP](feature_attribution/kernel_shap.md) -- 짐 실은 선형 되돌이로 SHAP 값에 다가가기
+- [깊은 SHAP](feature_attribution/deep_shap.md) -- DeepLIFT 되짚기와 SHAP을 아울러 신경 그물의 몫을 잘 매기기
+- [나무 SHAP](feature_attribution/tree_shap.md) -- 나무 바탕 모형을 위한 다항식 때의 정확한 섀플리 값
+- [결 사이 서로 미침](feature_attribution/interactions.md) -- 선형이 아닌 결 사이 얽힘을 알아내는 SHAP 서로 미침 값
 
-## Concept Methods
+## 개념 방법
 
-Human-interpretable concept-level explanations beyond raw feature attributions.
+날 결 몫 매기기를 넘어 사람이 알아들을 수 있는 개념 켜의 풀이.
 
-- [Concept Activation Vectors (CAV)](concept_methods/cav.md) -- Testing whether neural networks have learned specific human-understandable concepts
-- [TCAV: Testing with Concept Activation Vectors](concept_methods/tcav.md) -- Quantitative statistical tests for concept importance in model predictions
-- [Concept Bottleneck Models](concept_methods/concept_bottleneck.md) -- Inherently interpretable architectures with explicit concept prediction layers
-- [Prototype Networks](concept_methods/prototypes.md) -- Example-based explanations via learned prototypical cases
+- [개념 살아남 벡터(CAV)](concept_methods/cav.md) -- 신경 그물이 사람이 알아들을 수 있는 개념을 배웠는지 따지기
+- [TCAV: 개념 살아남 벡터로 따지기](concept_methods/tcav.md) -- 모형의 미루어 봄에서 개념이 얼마나 중요한지 재는 통계 검정
+- [개념 목 모형](concept_methods/concept_bottleneck.md) -- 개념을 또렷이 미루어 보는 켜를 둔, 그 자체로 풀이되는 얼개
+- [본보기 그물](concept_methods/prototypes.md) -- 배운 본보기 자리로 하는 보기 바탕 풀이
 
-## Model-Specific Methods
+## 모형에 맞춘 방법
 
-Interpretability techniques tailored to specific neural network architectures.
+특정 신경 그물 얼개에 맞춘 풀이 재주.
 
-- [CNN Visualization and Decomposition](model_specific/cnn_visualization.md) -- Layer-wise Relevance Propagation and DeepLIFT for convolutional networks
-- [GNN Explanation Methods](model_specific/gnn_explanation.md) -- GNNExplainer, PGExplainer, and SubgraphX for graph neural networks
-- [Transformer Probing](model_specific/transformer_probing.md) -- Probing classifiers and BertViz for analyzing transformer hidden representations
-- [Feature Inversion](model_specific/feature_inversion.md) -- Reconstructing inputs from intermediate representations to reveal what the model sees
+- [CNN 그림 그리기와 쪼개기](model_specific/cnn_visualization.md) -- 겹친 그물을 위한 켜마다의 쓸모 퍼뜨리기와 DeepLIFT
+- [GNN 풀이 방법](model_specific/gnn_explanation.md) -- 그래프 신경 그물을 위한 GNNExplainer, PGExplainer, SubgraphX
+- [변환기 더듬기](model_specific/transformer_probing.md) -- 변환기의 숨은 나타냄을 살피는 더듬는 가름개와 BertViz
+- [결 되돌리기](model_specific/feature_inversion.md) -- 가운데 나타냄에서 들임을 되세워 모형이 무엇을 보는지 드러내기
 
-## Evaluation
+## 따지기
 
-Rigorous methods for assessing explanation quality and reliability.
+풀이의 됨됨이와 미더움을 엄밀히 재는 방법.
 
-- Faithfulness Evaluation -- Insertion/deletion curves measuring whether explanations reflect true model behavior
-- [Stability Evaluation](evaluation/stability.md) -- Relative input stability and max-sensitivity metrics for explanation robustness
-- [Comprehensiveness Evaluation](evaluation/comprehensiveness.md) -- Testing whether explanations capture all important features via sufficiency scores
-- Human-Centered Evaluation -- Forward simulation, trust calibration, and user study paradigms
+- 미더움 따지기 -- 풀이가 참 모형의 움직임을 드러내는지 재는 넣기/빼기 곡선
+- [든든함 따지기](evaluation/stability.md) -- 풀이가 얼마나 든든한지 재는 들임에 견준 든든함과 가장 큰 예민함
+- [두루 갖춤 따지기](evaluation/comprehensiveness.md) -- 넉넉함 점수로 풀이가 중요한 결을 모두 담았는지 따지기
+- 사람을 가운데 둔 따지기 -- 앞으로 흉내내기, 믿음 맞추기, 쓰는 이 연구 결
 
-## Finance Applications
+## 금융에 쓰기
 
-Applying interpretability methods to quantitative finance use cases.
+계량 금융의 자리에 풀이 방법을 쓰기.
 
-- Regulatory Compliance -- SR 11-7, GDPR Article 22, and implementation patterns for financial model explainability
-- Trading Signal Analysis -- Decomposing buy/sell signals by feature category for validation and surveillance
-- [Factor Attribution](finance/factor_attribution.md) -- SHAP-based decomposition of portfolio returns into systematic factor contributions
-- Credit Risk Explanation -- Adverse action reasons and regulatory-compliant explanations for credit decisions
+- 규정 따르기 -- SR 11-7, GDPR 22조, 그리고 금융 모형을 풀이하는 짜기 결
+- 거래 신호 살피기 -- 사고파는 신호를 결 갈래로 쪼개어 살피고 지켜보기
+- [인자 몫 매기기](finance/factor_attribution.md) -- 밑천 꾸러미의 돌아옴을 얼개에 매인 인자의 몫으로 쪼개는 SHAP 바탕 길
+- 신용 무릅씀 풀이 -- 신용 판단에 대한 불리한 처분 까닭과 규정에 맞는 풀이
