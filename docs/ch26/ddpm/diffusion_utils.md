@@ -21,26 +21,26 @@ import torch.nn as nn
 
 이 단원은 퍼짐 모델의 수학 엔진을 담는다.
 
-KEY COMPONENTS:
+고갱이 조각:
 ---------------
-1. NOISE SCHEDULES: Define how much noise to add at each timestep (β_t)
+1. 잡음 일정: 때 걸음마다 잡음을 얼마나 더할지 매긴다(β_t)
 2. 퍼짐 매개변수: 효율을 위해 미리 셈한 수학 상수
 3. 앞 퍼짐: 닫힌 꼴 공식으로 잡음 더하기
    x_t = √ᾱ_t · x_0 + √(1-ᾱ_t) · ε
-4. REVERSE DIFFUSION: Remove noise iteratively (generation)
+4. 뒤 퍼짐: 잡음을 거듭 걷어 낸다(만들기)
 5. 익히기 도구: 배우기 위한 손실 셈하기
 6. 그려 보기 연장: 퍼짐을 눈으로 이해하기
 
-MATHEMATICAL FOUNDATION:
+수학 바탕:
 ------------------------
-Forward process (data → noise):
+앞 과정(자료 → 잡음):
     q(x_t | x_{t-1}) = N(x_t; √(1-β_t)·x_{t-1}, β_t·I)
 
-Closed-form solution:
+닫힌 꼴 풀이:
     q(x_t | x_0) = N(x_t; √ᾱ_t·x_0, (1-ᾱ_t)·I)
-    where ᾱ_t = ∏_{i=1}^t (1-β_i)
+    여기서 ᾱ_t = ∏_{i=1}^t (1-β_i)
 
-Reverse process (noise → data):
+뒤 과정(잡음 → 자료):
     p_θ(x_{t-1} | x_t) = N(x_{t-1}; μ_θ(x_t,t), Σ_θ(x_t,t))
 
 모델은 잡음 ε_θ(x_t, t)을 헤아려 μ_θ을 배운다.
@@ -55,7 +55,7 @@ def linear_beta_schedule(timesteps: int, beta_start: float = 0.0001,
     """
     선형 잡음 차례표를 만든다.
     
-    β_t increases linearly: [0.0001, 0.0002, ..., 0.02]
+    β_t이 선형으로 늘어난다: [0.0001, 0.0002, ..., 0.02]
     
     좋은 점: 단순하고 직관적이며 이해하기 쉽다
     나쁜 점: 그림에는 가장 좋지 않고 끝에서 잡음을 너무 빨리 더한다
@@ -64,12 +64,12 @@ def linear_beta_schedule(timesteps: int, beta_start: float = 0.0001,
     요즘 방식: 그림에는 코사인 차례표가 낫다.
     
     인수:
-        timesteps: Total diffusion steps (T)
-        beta_start: Initial noise level (≈0.0001)
-        beta_end: Final noise level (≈0.02)
+        timesteps: 온 퍼짐 걸음 수(T)
+        beta_start: 처음 잡음 크기(≈0.0001)
+        beta_end: 마지막 잡음 크기(≈0.02)
     
     반환값:
-        betas: Tensor of shape (timesteps,)
+        betas: 꼴이 (timesteps,)인 텐서
     """
     return torch.linspace(beta_start, beta_end, timesteps)
 
@@ -84,16 +84,16 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> torch.Tensor:
     - 신호 대 잡음비를 더 잘 지킨다
     - 그림 만들어 내기 품질이 높다
     
-    MATHEMATICAL DEFINITION:
+    수학 뜻매김:
     ------------------------
     f(t) = cos((t/T + s)/(1 + s) · π/2)²
     ᾱ_t = f(t)/f(0)
     β_t = 1 - (ᾱ_t/ᾱ_{t-1})
     
     코사인은 ᾱ_t이 줄어드는 매끄러운 S자 곡선을 만든다.
-    Offset 's' prevents numerical instabilities at boundaries.
+    치우침 's'이 가장자리에서 수치가 흔들리는 것을 막는다.
     
-    BENEFITS:
+    좋은 점:
     ---------
     1. 매끄러운 옮아감: 걸음마다 비슷한 양의 잡음을 없앤다
     2. 더 나은 기울기: 때 걸음에 걸쳐 배움 신호가 고르다
@@ -101,11 +101,11 @@ def cosine_beta_schedule(timesteps: int, s: float = 0.008) -> torch.Tensor:
     4. 겪어 본 성공: 최고 수준의 모델이 이것을 쓴다
     
     참고: "Improved Denoising Diffusion Probabilistic Models"
-               (Nichol & Dhariwal, 2021)
+               (니콜 & 다리왈, 2021)
     
     인수:
         timesteps: 온 퍼짐 걸음
-        s: Small offset (0.008 default, prevents β_t ≈ 0 at start)
+        s: 작은 치우침(기본값 0.008. 처음에 β_t ≈ 0이 되는 것을 막는다)
     
     반환값:
         betas: 꼴 (timesteps,)인 텐서이며 매끄럽게 늘어난다
@@ -135,32 +135,32 @@ def get_diffusion_parameters(betas: torch.Tensor) -> dict:
     
     왜 미리 셈하는가?
     ---------------
-    Training requires these values repeatedly. Computing once is O(T),
+    익힐 때 이 값이 거듭 든다. 한 번만 셈하면 O(T)이고,
     되풀이마다 O(T) 대신 O(1) 찾아보기 → 엄청나게 빨라진다!
     
-    For T=1000, 10k iterations: 1000 computations + 10k lookups vs 10M computations
+    T=1000, 되돌이 1만 번이면 셈 1000번 + 찾아보기 1만 번 대 셈 1000만 번이다
     
-    DERIVED QUANTITIES:
+    이끌어 낸 값:
     -------------------
-    α_t = 1 - β_t                    (signal retention)
-    ᾱ_t = ∏_{i=1}^t α_i             (cumulative signal)
-    √ᾱ_t, √(1-ᾱ_t)                  (forward diffusion coefficients)
-    1/√α_t                           (reverse diffusion scaling)
-    σ_t² = β_t(1-ᾱ_{t-1})/(1-ᾱ_t)  (posterior variance)
+    α_t = 1 - β_t                    (남는 신호)
+    ᾱ_t = ∏_{i=1}^t α_i             (쌓은 신호)
+    √ᾱ_t, √(1-ᾱ_t)                  (앞 퍼짐 계수)
+    1/√α_t                           (뒤 퍼짐 잣대)
+    σ_t² = β_t(1-ᾱ_{t-1})/(1-ᾱ_t)  (사후 흩어짐)
     
     인수:
-        betas: β schedule, shape (T,)
+        betas: β 일정, 꼴 (T,)
     
     반환값:
-        Dictionary with all precomputed parameters:
-        - 'betas': β_t values
+        미리 셈한 매개변수를 모두 담은 사전:
+        - 'betas': β_t 값
         - 'alphas': α_t = 1 - β_t
-        - 'alphas_cumprod': ᾱ_t (cumulative product)
-        - 'alphas_cumprod_prev': ᾱ_{t-1} (shifted)
-        - 'sqrt_alphas_cumprod': √ᾱ_t (data coefficient)
-        - 'sqrt_one_minus_alphas_cumprod': √(1-ᾱ_t) (noise coefficient)
-        - 'sqrt_recip_alphas': 1/√α_t (reverse scaling)
-        - 'posterior_variance': σ_t² (reverse noise)
+        - 'alphas_cumprod': ᾱ_t (쌓은 곱)
+        - 'alphas_cumprod_prev': ᾱ_{t-1} (한 칸 옮김)
+        - 'sqrt_alphas_cumprod': √ᾱ_t (자료 계수)
+        - 'sqrt_one_minus_alphas_cumprod': √(1-ᾱ_t) (잡음 계수)
+        - 'sqrt_recip_alphas': 1/√α_t (뒤 잣대)
+        - 'posterior_variance': σ_t² (뒤 잡음)
     """
     # α_t = 1 - β_t(걸음마다 남는 신호)
     alphas = 1.0 - betas
@@ -201,17 +201,17 @@ def extract(tensor: torch.Tensor, t: torch.Tensor, x_shape: tuple) -> torch.Tens
     """
     1차원 텐서의 어깨수 t에서 값을 뽑고 퍼뜨리기에 맞게 꼴을 바꾼다.
     
-    THE PROBLEM:
+    문제:
     ------------
-    Batch has different timesteps: t = [15, 73, 42, ...]
+    묶음마다 때 걸음이 다르다: t = [15, 73, 42, ...]
     표본마다 다른 상수가 필요하다: √ᾱ_15, √ᾱ_73, √ᾱ_42, ...
     
-    SOLUTION:
+    풀이:
     ---------
-    1. Index: tensor[t] → get values for each sample
+    1. 자리 잡기: tensor[t] → 표본마다 값을 얻는다
     2. 꼴 바꾸기: 퍼뜨리기를 위해 (묶음,) → (묶음, 1, 1, ...)
     
-    BROADCASTING EXAMPLE:
+    펴 맞추기 보기:
     ---------------------
     x 꼴: (3, 2)          2차원 점 셋
     values: (3, 1)           꼴을 바꾼 뒤
@@ -221,12 +221,12 @@ def extract(tensor: torch.Tensor, t: torch.Tensor, x_shape: tuple) -> torch.Tens
      [x3, y3]]      [v3, 1]]       [v3·x3, v3·y3]]
     
     인수:
-        tensor: Source values, shape (T,)
-        t: Timestep indices, shape (batch_size,)
+        tensor: 밑 값, 꼴 (T,)
+        t: 때 걸음 번호, 꼴 (batch_size,)
         x_shape: 퍼뜨리기의 목표 자료 꼴
     
     반환값:
-        Extracted and reshaped values, shape (batch_size, 1, 1, ...)
+        뽑아서 꼴을 바꾼 값, 꼴 (batch_size, 1, 1, ...)
     """
     batch_size = t.shape[0]
     out = tensor.gather(-1, t)  # 어깨수에서 뽑는다
@@ -246,29 +246,29 @@ def forward_diffusion(x_0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor,
     """
     앞 퍼짐을 쓴다: 깨끗한 자료에 잡음을 더한다.
     
-    FORMULA:
+    식:
     --------
     x_t = √ᾱ_t · x_0 + √(1-ᾱ_t) · ε
     
     풀이:
     ---------------
-    Weighted sum of data and noise:
-    - t=0:   ᾱ_0=1    → x_0 = x_0 (no noise)
-    - t=50:  ᾱ_50≈0.6 → 60% data + 80% noise (magnitude)
-    - t=100: ᾱ_100≈0.3 → 30% data + 95% noise
+    자료와 잡음의 무게 실은 합:
+    - t=0:   ᾱ_0=1    → x_0 = x_0 (잡음 없음)
+    - t=50:  ᾱ_50≈0.6 → 자료 60% + 잡음 80%(크기 기준)
+    - t=100: ᾱ_100≈0.3 → 자료 30% + 잡음 95%
     - t→∞:   ᾱ_∞→0   → 순수 잡음
     
     왜 제곱근인가?
     -----------------
-    Variance preservation: √ᾱ_t² + √(1-ᾱ_t)² = 1
+    흩어짐 지킴: √ᾱ_t² + √(1-ᾱ_t)² = 1
     x_t의 흩어짐이 x_0과 같게 한다!
     
     인수:
-        x_0: Clean data, shape (batch_size, *data_dims)
-        t: Timesteps, shape (batch_size,)
+        x_0: 깨끗한 자료, 꼴 (batch_size, *data_dims)
+        t: 때 걸음, 꼴 (batch_size,)
         noise: 정규 잡음 ε ~ N(0,I)이며 x_0과 같은 꼴
-        sqrt_alphas_cumprod: Precomputed √ᾱ_t, shape (T,)
-        sqrt_one_minus_alphas_cumprod: Precomputed √(1-ᾱ_t), shape (T,)
+        sqrt_alphas_cumprod: 미리 셈한 √ᾱ_t, 꼴 (T,)
+        sqrt_one_minus_alphas_cumprod: 미리 셈한 √(1-ᾱ_t), 꼴 (T,)
     
     반환값:
         x_t: 때 걸음 t의 잡음 섞인 자료
@@ -288,36 +288,36 @@ def forward_diffusion(x_0: torch.Tensor, t: torch.Tensor, noise: torch.Tensor,
 def p_sample(model: nn.Module, x_t: torch.Tensor, t: int, t_tensor: torch.Tensor,
             diffusion_params: dict, device: str = 'cpu') -> torch.Tensor:
     """
-    Perform one reverse diffusion step: x_t → x_{t-1}.
+    뒤 퍼짐을 한 걸음 한다: x_t → x_{t-1}.
     
-    REVERSE FORMULA:
+    뒤 식:
     ----------------
     μ_θ(x_t,t) = 1/√α_t · (x_t - β_t/√(1-ᾱ_t)·ε_θ(x_t,t))
-    x_{t-1} = μ_θ + σ_t·z  (if t>0)
-    x_0 = μ_θ              (if t=0)
+    x_{t-1} = μ_θ + σ_t·z  (t>0이면)
+    x_0 = μ_θ              (t=0이면)
     
-    PROCESS:
+    과정:
     --------
-    1. Model predicts noise: ε_θ(x_t,t)
+    1. 모형이 잡음을 예측한다: ε_θ(x_t,t)
     2. 잡음 없앤 평균을 셈한다: μ_θ
-    3. Add small noise σ_t·z for diversity (except at t=0)
+    3. 여러 갈래가 나오도록 작은 잡음 σ_t·z을 더한다(t=0은 뺀다)
     
     왜 잡음을 없애면서 잡음을 더하는가?
     -------------------------------
     잡음이 없으면: 정해짐 → 봉우리 무너짐, 다양함 없음
     잡음이 있으면: 확률 → 풍부한 표본, 온전한 분포
-    Key: noise added < noise removed → net progress!
+    고갱이: 더한 잡음 < 걷어 낸 잡음 → 알짜로 나아간다!
     
     인수:
         model: 익힌 잡음 없애기 모델
         x_t: 때 걸음 t의 잡음 섞인 자료
-        t: Current timestep (integer)
-        t_tensor: Timestep as tensor, shape (batch_size,)
+        t: 이제 때 걸음(정수)
+        t_tensor: 텐서로 나타낸 때 걸음, 꼴 (batch_size,)
         diffusion_params: 미리 셈한 상수
-        device: 'cpu' or 'cuda'
+        device: 'cpu' 또는 'cuda'
     
     반환값:
-        x_{t-1}: Less noisy data at previous timestep
+        x_{t-1}: 앞선 때 걸음의, 잡음이 덜한 자료
     """
     # 모델로 잡음을 헤아린다
     predicted_noise = model(x_t, t_tensor)
@@ -357,19 +357,19 @@ def sample(model: nn.Module, shape: tuple, timesteps: int,
         ↓ ...
     x_0                    ← 마지막 깨끗한 표본
     
-    TRADE-OFFS:
+    맞바꿈:
     -----------
     걸음이 많으면(T이 큼): 품질이 높고 느리다
     걸음이 적으면(T이 작음): 빠르고 품질이 낮다
     
-    Common: T=100 (fast), T=1000 (standard), T=4000 (high quality)
+    흔한 값: T=100(빠름), T=1000(여느 값), T=4000(높은 좋음)
     
     인수:
-        model: Trained denoising model (in eval mode)
-        shape: Shape of samples, e.g., (32, 2) or (16, 3, 256, 256)
-        timesteps: Number of denoising steps (must match training!)
+        model: 익힌 잡음 걷개 모형(따짐 모드)
+        shape: 표본의 꼴. 보기로 (32, 2)이나 (16, 3, 256, 256)
+        timesteps: 잡음을 걷는 걸음 수(익힘과 맞아야 한다!)
         diffusion_params: 미리 셈한 상수
-        device: 'cpu' or 'cuda'
+        device: 'cpu' 또는 'cuda'
     
     반환값:
         꼴에 맞는 만든 표본
@@ -395,7 +395,7 @@ def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
     """
     퍼짐 모델의 익히기 손실을 셈한다.
     
-    DDPM TRAINING OBJECTIVE:
+    DDPM 익힘 목표:
     ------------------------
     L_simple = E_{t,x_0,ε}[||ε - ε_θ(x_t,t)||²]
     
@@ -405,21 +405,21 @@ def get_loss(model: nn.Module, x_0: torch.Tensor, t: torch.Tensor,
     ------------------
     - 잡음은 멈춰 있다: 모든 때 걸음에서 N(0,I)이다
     - t에 걸쳐 배움 목표가 고르다
-    - Highest quality samples (empirically)
+    - 겪어 보니 표본의 좋음이 가장 높다
     - 요즘 퍼짐 모델의 여느 방식이다
     
-    RANDOM TIMESTEP SAMPLING:
+    마구잡이 때 걸음 뽑기:
     -------------------------
-    Key trick: Sample t uniformly from [0,T-1] per batch
+    고갱이 솜씨: 묶음마다 [0,T-1]에서 t을 고르게 뽑는다
     → 모델이 모든 잡음 수준에서 잡음 없애는 법을 배운다
     → 특정 때 걸음에 지나치게 맞춰지는 것을 막는다
     
     인수:
         model: 익힐 잡음 없애기 모델
-        x_0: Batch of clean data, shape (batch_size, *data_dims)
-        t: Random timesteps, shape (batch_size,)
+        x_0: 깨끗한 자료의 묶음, 꼴 (batch_size, *data_dims)
+        t: 마구잡이 때 걸음, 꼴 (batch_size,)
         diffusion_params: 미리 셈한 상수
-        noise: Optional pre-generated noise (if None, generate here)
+        noise: 미리 만든 잡음(골라 쓴다. None이면 여기서 만든다)
     
     반환값:
         뒤먹임 퍼뜨리기를 위한 낱값 평균 제곱 어긋남 손실
@@ -512,16 +512,16 @@ class SinusoidalPositionEmbedding(nn.Module):
     
     왜 사인 꼴인가?
     ---------------
-    Better than scalar t:
+    홑값 t보다 나은 점:
     - 이어져 있다: 가까운 때 걸음은 박아 넣기가 비슷하다
     - 하나뿐이다: 때 걸음마다 다르다
     - 매끄럽다: 작은 Δt → 작은 Δ박아 넣기
     - 되풀이된다: 사인과 코사인으로 풍부한 나타냄
     
-    FORMULA (from Transformers):
+    식(변환기에서 가져옴):
     ----------------------------
-    PE(t, 2i) = sin(t/10000^(2i/d))      even indices
-    PE(t, 2i+1) = cos(t/10000^(2i/d))    odd indices
+    PE(t, 2i) = sin(t/10000^(2i/d))      짝수 번호
+    PE(t, 2i+1) = cos(t/10000^(2i/d))    홀수 번호
     
     차원마다 다른 잦기로 흔들린다.
     """
@@ -529,7 +529,7 @@ class SinusoidalPositionEmbedding(nn.Module):
     def __init__(self, dim: int):
         """
         인수:
-            dim: Embedding dimension (should be even)
+            dim: 묻힘 차원(짝수여야 한다)
                 흔히: 64, 128, 256
         """
         super().__init__()
@@ -540,10 +540,10 @@ class SinusoidalPositionEmbedding(nn.Module):
         때 걸음을 사인 꼴 박아 넣기로 바꾼다.
         
         인수:
-            time: Timesteps, shape (batch_size,)
+            time: 때 걸음, 꼴 (batch_size,)
         
         반환값:
-            Embeddings, shape (batch_size, dim)
+            묻힘, 꼴 (batch_size, dim)
         """
         device = time.device
         half_dim = self.dim // 2

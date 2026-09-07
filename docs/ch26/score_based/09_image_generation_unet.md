@@ -139,7 +139,7 @@ class SimpleUNet(nn.Module):
 
 print("U-Net architecture defined!")
 print("""
-KEY COMPONENTS:
+고갱이 조각:
 --------------
 1. 때 박아 넣기: 신경망에 잡음 수준을 알려 준다
 2. 건너뛰기 이음: 공간의 세부를 지킨다

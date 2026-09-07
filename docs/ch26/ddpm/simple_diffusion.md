@@ -30,12 +30,12 @@ from tqdm import tqdm
 퍼짐 모델이란 무엇인가?
 ===========================
 
-Diffusion models learn to generate data by reversing a gradual noising process:
+퍼짐 모형은 조금씩 잡음을 더하는 과정을 거꾸로 되돌려 자료를 만드는 법을 배운다.
 
-1. FORWARD PROCESS (Easy, no learning needed):
+1. 앞 과정(쉽다. 배울 것이 없다):
    실제 자료 → 차츰 잡음 더하기 → 순수 아무 잡음
    
-2. REVERSE PROCESS (Hard, requires training):
+2. 뒤 과정(어렵다. 익히기가 든다):
    아무 잡음 → 차츰 잡음 없애기 → 그럴듯한 자료
 
 핵심 통찰: 어떤 잡음 수준에서든 잡음 없애는 법을 배우면 순수 잡음에서 시작해
@@ -43,7 +43,7 @@ Diffusion models learn to generate data by reversing a gradual noising process:
 
 왜 2차원 장난감 자료인가?
 ================
-Before tackling high-dimensional images (256×256×3 = 196,608 dims), we use
+높은 차원의 그림(256×256×3 = 196,608 차원)을 다루기 앞에 다음을 쓴다
 또렷한 그림과 직관 쌓기를 위해 2차원 자료(x, y뿐)를 쓴다.
 """
 
@@ -52,51 +52,51 @@ Before tackling high-dimensional images (256×256×3 = 196,608 dims), we use
 # ============================================================================
 
 """
-THE FORWARD DIFFUSION EQUATION (Full Derivation)
+앞 퍼짐 식(온전한 이끌어 내기)
 =================================================
 
-ITERATIVE FORM (one step at a time):
-    x_t = √α_t · x_{t-1} + √β_t · ε_t,  where ε_t ~ N(0, I)
+되돌이 꼴(한 번에 한 걸음씩):
+    x_t = √α_t · x_{t-1} + √β_t · ε_t,  여기서 ε_t ~ N(0, I)
     
-    α_t = 1 - β_t (signal retention)
-    β_t = noise variance at step t
+    α_t = 1 - β_t (남는 신호)
+    β_t = 걸음 t에서의 잡음 흩어짐
 
-THE MAGIC: CLOSED-FORM (jump to any step directly!)
+마법: 닫힌 꼴(어느 걸음으로든 곧바로 건너뛴다!)
 ====================================================
 
-After t steps of recursion, all the noise terms combine into:
+되부름을 t 걸음 하고 나면 잡음 마디가 모두 아울러 다음이 된다.
 
     ╔══════════════════════════════════════════════════════════╗
-    ║  x_t = √ᾱ_t · x_0 + √(1 - ᾱ_t) · ε,  where ε ~ N(0, I)   ║
+    ║  x_t = √ᾱ_t · x_0 + √(1 - ᾱ_t) · ε,  여기서 ε ~ N(0, I)   ║
     ╚══════════════════════════════════════════════════════════╝
 
 여기서 각 기호는 다음과 같다.
-    ᾱ_t = ∏_{i=1}^t α_i  (cumulative product of all alphas)
+    ᾱ_t = ∏_{i=1}^t α_i  (모든 알파의 쌓은 곱)
 
-INTUITION:
+느낌으로 보면:
 ----------
-    √ᾱ_t: How much original signal remains (decreases as t increases)
-    √(1-ᾱ_t): How much noise is present (increases as t increases)
+    √ᾱ_t: 본디 신호가 얼마나 남았는가(t이 커지면 줄어든다)
+    √(1-ᾱ_t): 잡음이 얼마나 있는가(t이 커지면 늘어난다)
     
-    At t=0:   ᾱ_0 = 1    → x_0 = 1·x_0 + 0·ε = x_0 (no noise)
-    At t=100: ᾱ_100 ≈ 0.37 → x_100 = 0.6·x_0 + 0.8·ε (mostly noise)
-    At t=∞:   ᾱ_∞ → 0    → x_∞ ≈ 0·x_0 + 1·ε = ε (pure noise)
+    t=0에서:   ᾱ_0 = 1    → x_0 = 1·x_0 + 0·ε = x_0 (잡음 없음)
+    t=100에서: ᾱ_100 ≈ 0.37 → x_100 = 0.6·x_0 + 0.8·ε (거의 잡음)
+    t=∞에서:   ᾱ_∞ → 0    → x_∞ ≈ 0·x_0 + 1·ε = ε (순수한 잡음)
 
-WHY THIS IS AMAZING:
+이것이 놀라운 까닭:
 --------------------
 1. 효율: O(t) 대신 O(1) - 아무 때 걸음으로 곧바로 뛴다
 2. 나란한 익히기: 묶음마다 서로 매이지 않게 다른 때 걸음을 뽑는다
 3. 수학의 아름다움: 복잡한 되풀이가 단순한 무게 합으로 줄어든다
 
-QUICK REFERENCE:
+빠른 살펴보기:
 ----------------
-Symbol  | Meaning                              | Typical Range
+기호  | 뜻                              | 흔한 범위
 --------|--------------------------------------|---------------
-β_t     | Noise added at step t                | 0.0001 to 0.02
-α_t     | Signal retained (= 1 - β_t)          | 0.98 to 0.9999
-ᾱ_t     | Cumulative signal (= ∏ α_i)          | 1.0 → 0 (decay)
-√ᾱ_t    | Data coefficient in forward process  | 1.0 → 0
-√(1-ᾱ_t)| Noise coefficient in forward process | 0 → 1.0
+β_t     | 걸음 t에서 더한 잡음                | 0.0001 ~ 0.02
+α_t     | 남는 신호 (= 1 - β_t)          | 0.98 ~ 0.9999
+ᾱ_t     | 쌓은 신호 (= ∏ α_i)          | 1.0 → 0 (잦아듦)
+√ᾱ_t    | 앞 과정에서 자료의 계수  | 1.0 → 0
+√(1-ᾱ_t)| 앞 과정에서 잡음의 계수 | 0 → 1.0
 """
 
 # ============================================================================
@@ -107,21 +107,21 @@ Symbol  | Meaning                              | Typical Range
 밝힘: 뒤 퍼짐 평균 공식
 ======================================
 
-We want to prove:
+우리가 밝히려는 것:
 
     μ_θ(x_t, t) = 1/√α_t · (x_t - β_t/√(1-ᾱ_t) · ε_θ(x_t, t))
 
-This formula tells us how to compute the mean for denoising: x_t → x_{t-1}
+이 식은 잡음을 걷어 낼 때의 평균을 어떻게 셈하는지 알려 준다: x_t → x_{t-1}
 
 ============================================================================
-PART 1: THE TRUE POSTERIOR (If We Knew x_0)
+1부: 참 사후 분포(x_0을 안다면)
 ============================================================================
 
-By Bayes' rule, the true reverse distribution is:
+베이즈 규칙에 따라 참 뒤 분포는 다음과 같다.
 
     q(x_{t-1} | x_t, x_0) = q(x_t | x_{t-1}, x_0) · q(x_{t-1} | x_0) / q(x_t | x_0)
 
-By Markov property: q(x_t | x_{t-1}, x_0) = q(x_t | x_{t-1})
+마르코프 성질에 따라 q(x_t | x_{t-1}, x_0) = q(x_t | x_{t-1})
 
 So:
     q(x_{t-1} | x_t, x_0) ∝ q(x_t | x_{t-1}) · q(x_{t-1} | x_0)
@@ -132,91 +132,91 @@ So:
 걸음 1: 앞 퍼짐 식을 떠올린다
 ============================================================================
 
-From forward diffusion, we have:
+앞 퍼짐에서 다음을 얻는다.
 
-(A) One-step forward:
+(가) 한 걸음 앞으로:
     q(x_t | x_{t-1}) = N(x_t; √α_t · x_{t-1}, β_t · I)
     
-    Density:
+    밀도:
         p(x_t | x_{t-1}) ∝ exp(-1/(2β_t) ||x_t - √α_t · x_{t-1}||²)
 
-(B) Multi-step to x_t from x_0:
+(나) x_0에서 x_t까지 여러 걸음:
     q(x_t | x_0) = N(x_t; √ᾱ_t · x_0, (1-ᾱ_t) · I)
     
-    Density:
+    밀도:
         p(x_t | x_0) ∝ exp(-1/(2(1-ᾱ_t)) ||x_t - √ᾱ_t · x_0||²)
 
-(C) Multi-step to x_{t-1} from x_0:
+(다) x_0에서 x_{t-1}까지 여러 걸음:
     q(x_{t-1} | x_0) = N(x_{t-1}; √ᾱ_{t-1} · x_0, (1-ᾱ_{t-1}) · I)
     
-    Density:
+    밀도:
         p(x_{t-1} | x_0) ∝ exp(-1/(2(1-ᾱ_{t-1})) ||x_{t-1} - √ᾱ_{t-1} · x_0||²)
 
 ============================================================================
-STEP 2: Compute the Posterior q(x_{t-1} | x_t, x_0)
+걸음 2: 사후 분포 q(x_{t-1} | x_t, x_0)을 셈한다
 ============================================================================
 
-Combine the densities:
+밀도를 아우른다.
 
     q(x_{t-1} | x_t, x_0) ∝ q(x_t | x_{t-1}) · q(x_{t-1} | x_0)
 
     ∝ exp(-1/(2β_t) ||x_t - √α_t·x_{t-1}||²) 
       · exp(-1/(2(1-ᾱ_{t-1})) ||x_{t-1} - √ᾱ_{t-1}·x_0||²)
 
-Expand the quadratics:
+이차식을 펼친다.
 
     ||x_t - √α_t·x_{t-1}||² = ||x_t||² - 2√α_t·⟨x_t, x_{t-1}⟩ + α_t||x_{t-1}||²
 
     ||x_{t-1} - √ᾱ_{t-1}·x_0||² = ||x_{t-1}||² - 2√ᾱ_{t-1}·⟨x_{t-1}, x_0⟩ + ᾱ_{t-1}||x_0||²
 
-The exponent is quadratic in x_{t-1}:
+지수는 x_{t-1}에 대한 이차식이다.
 
     E(x_{t-1}) = A||x_{t-1}||² - 2⟨B, x_{t-1}⟩ + C
 
 여기서 각 기호는 다음과 같다.
     A = α_t/(2β_t) + 1/(2(1-ᾱ_{t-1}))
     B = √α_t·x_t/β_t + √ᾱ_{t-1}·x_0/(1-ᾱ_{t-1})
-    C = (constant terms not involving x_{t-1})
+    C = (x_{t-1}이 들어가지 않는 상수 마디)
 
-Complete the square:
+완전제곱으로 만든다.
     E(x_{t-1}) = A||x_{t-1} - B/A||² + (constant)
 
-So: q(x_{t-1} | x_t, x_0) = N(x_{t-1}; B/A, 1/(2A)·I)
+그러므로 q(x_{t-1} | x_t, x_0) = N(x_{t-1}; B/A, 1/(2A)·I)
 
-The mean is: μ̃_t(x_t, x_0) = B/A
+평균은 μ̃_t(x_t, x_0) = B/A이다
 
 ============================================================================
 걸음 3: 평균을 얻으려 B/A을 단순하게 한다
 ============================================================================
 
-COMPUTE A:
+A을 셈한다:
     A = α_t/(2β_t) + 1/(2(1-ᾱ_{t-1}))
     
     = [α_t(1-ᾱ_{t-1}) + β_t] / [2β_t(1-ᾱ_{t-1})]
 
-Simplify numerator:
+분자를 간추린다.
     α_t(1-ᾱ_{t-1}) + β_t = (1-β_t)(1-ᾱ_{t-1}) + β_t
                           = 1 - ᾱ_{t-1} - β_t + β_t·ᾱ_{t-1} + β_t
                           = 1 - ᾱ_{t-1} + β_t·ᾱ_{t-1}
 
-Note: ᾱ_t = ᾱ_{t-1}·α_t = ᾱ_{t-1}·(1-β_t)
+눈여겨볼 것: ᾱ_t = ᾱ_{t-1}·α_t = ᾱ_{t-1}·(1-β_t)
 
-So: 1 - ᾱ_{t-1} + β_t·ᾱ_{t-1} = 1 - ᾱ_{t-1}(1-β_t)
+그러므로 1 - ᾱ_{t-1} + β_t·ᾱ_{t-1} = 1 - ᾱ_{t-1}(1-β_t)
                                 = 1 - ᾱ_{t-1}·α_t
                                 = 1 - ᾱ_t
 
 따라서 다음이 성립한다.
     A = (1-ᾱ_t) / [2β_t(1-ᾱ_{t-1})]
 
-COMPUTE B:
+B을 셈한다:
     B = √α_t·x_t/β_t + √ᾱ_{t-1}·x_0/(1-ᾱ_{t-1})
 
-COMPUTE μ̃_t = B/A:
+μ̃_t = B/A을 셈한다:
     μ̃_t(x_t, x_0) = [√α_t·x_t/β_t + √ᾱ_{t-1}·x_0/(1-ᾱ_{t-1})] / [(1-ᾱ_t)/(2β_t(1-ᾱ_{t-1}))]
     
     = [√α_t·x_t/β_t + √ᾱ_{t-1}·x_0/(1-ᾱ_{t-1})] · [2β_t(1-ᾱ_{t-1})/(1-ᾱ_t)]
 
-Distribute:
+펼쳐 나눈다.
     = 2β_t(1-ᾱ_{t-1})/(1-ᾱ_t) · √α_t·x_t/β_t 
       + 2β_t(1-ᾱ_{t-1})/(1-ᾱ_t) · √ᾱ_{t-1}·x_0/(1-ᾱ_{t-1})
     
@@ -229,21 +229,21 @@ Distribute:
 이것이 (x_0을 안다면) 참 사후 평균이다.
 
 ============================================================================
-STEP 4: Estimate x_0 from x_t (THE KEY TRICK!)
+걸음 4: x_t에서 x_0을 어림한다(고갱이 솜씨!)
 ============================================================================
 
-THE PROBLEM: During generation, we don't know x_0!
+문제: 만들 때는 x_0을 모른다!
 
 풀이: 앞 퍼짐으로 x_0을 어림한다.
 
-From: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
+다음에서: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
 
-Solve for x_0:
+x_0에 대해 푼다.
     √ᾱ_t·x_0 = x_t - √(1-ᾱ_t)·ε
     
     x_0 = (x_t - √(1-ᾱ_t)·ε) / √ᾱ_t    ... (★)
 
-Use model's prediction ε_θ(x_t, t):
+모형의 예측 ε_θ(x_t, t)을 쓴다.
 
     x̂_0 = (x_t - √(1-ᾱ_t)·ε_θ(x_t,t)) / √ᾱ_t    ... (★★)
 
@@ -251,21 +251,21 @@ Use model's prediction ε_θ(x_t, t):
 걸음 5: 사후 평균에 x̂_0을 넣는다
 ============================================================================
 
-Replace x_0 with x̂_0 in:
+다음에서 x_0을 x̂_0으로 갈음한다.
     μ̃_t(x_t, x_0) = √ᾱ_{t-1}·β_t/(1-ᾱ_t)·x_0 + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)·x_t
 
-Becomes:
+그러면 다음이 된다.
     μ_θ(x_t,t) = √ᾱ_{t-1}·β_t/(1-ᾱ_t)·x̂_0 + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)·x_t
 
-Plug in x̂_0:
+x̂_0을 넣는다.
     μ_θ = √ᾱ_{t-1}·β_t/(1-ᾱ_t) · [(x_t - √(1-ᾱ_t)·ε_θ)/√ᾱ_t] 
           + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)·x_t
 
-Expand first term:
+첫 마디를 펼친다.
     = [√ᾱ_{t-1}/(√ᾱ_t)] · [β_t/(1-ᾱ_t)] · [x_t - √(1-ᾱ_t)·ε_θ]
     + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)·x_t
 
-Note: ᾱ_t = ᾱ_{t-1}·α_t, so √ᾱ_{t-1}/√ᾱ_t = 1/√α_t
+눈여겨볼 것: ᾱ_t = ᾱ_{t-1}·α_t이므로 √ᾱ_{t-1}/√ᾱ_t = 1/√α_t
 
     = [1/√α_t] · [β_t/(1-ᾱ_t)] · [x_t - √(1-ᾱ_t)·ε_θ]
     + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)·x_t
@@ -273,25 +273,25 @@ Note: ᾱ_t = ᾱ_{t-1}·α_t, so √ᾱ_{t-1}/√ᾱ_t = 1/√α_t
     = [β_t/((1-ᾱ_t)√α_t)]·x_t - [β_t/(√α_t·√(1-ᾱ_t))]·ε_θ
     + [√α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)]·x_t
 
-Combine x_t terms:
-    x_t coefficient = β_t/((1-ᾱ_t)√α_t) + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)
+x_t 마디를 아우른다.
+    x_t의 계수 = β_t/((1-ᾱ_t)√α_t) + √α_t·(1-ᾱ_{t-1})/(1-ᾱ_t)
                     = [1/((1-ᾱ_t)√α_t)] · [β_t + α_t(1-ᾱ_{t-1})]
 
-Key identity: 1 - ᾱ_t = 1 - α_t·ᾱ_{t-1} = (1-α_t) + α_t(1-ᾱ_{t-1})
+고갱이 항등식: 1 - ᾱ_t = 1 - α_t·ᾱ_{t-1} = (1-α_t) + α_t(1-ᾱ_{t-1})
                        = β_t + α_t(1-ᾱ_{t-1})
 
-So: x_t coefficient = [1/((1-ᾱ_t)√α_t)] · (1-ᾱ_t) = 1/√α_t
+그러므로 x_t의 계수 = [1/((1-ᾱ_t)√α_t)] · (1-ᾱ_t) = 1/√α_t
 
-Final result:
+마지막 결과:
     μ_θ(x_t,t) = x_t/√α_t - [β_t/(√α_t·√(1-ᾱ_t))]·ε_θ(x_t,t)
 
-Factor out 1/√α_t:
+1/√α_t을 밖으로 묶어 낸다.
 
     ╔═══════════════════════════════════════════════════════════╗
     ║  μ_θ(x_t,t) = 1/√α_t · (x_t - β_t/√(1-ᾱ_t)·ε_θ(x_t,t))    ║
     ╚═══════════════════════════════════════════════════════════╝
 
-✓✓✓ Q.E.D. ✓✓✓
+✓✓✓ 밝혔다 ✓✓✓
 
 이것이 뒤 퍼짐에 쓰는 공식이다!
 
@@ -303,12 +303,12 @@ Factor out 1/√α_t:
              └──┬──┘   └─────────┬─────────┘
               잣수    헤아린 잡음 없애기
 
-1. Model predicts noise: ε_θ(x_t,t)
+1. 모형이 잡음을 예측한다: ε_θ(x_t,t)
 2. 잡음의 잣수를 맞춘다: β_t/√(1-ᾱ_t)·ε_θ
-3. Remove from x_t: x_t - (scaled noise)
+3. x_t에서 뺀다: x_t - (잣대 잡은 잡음)
 4. 결과의 잣수를 다시 맞춘다: 1/√α_t을 곱한다
 
-Result: Our best estimate of x_{t-1}!
+결과: x_{t-1}에 대한 우리의 가장 좋은 어림!
 
 ============================================================================
 """
@@ -323,8 +323,8 @@ class Simple2DModel(nn.Module):
     
     구조:
     -------------
-    Input: [noisy_data (2D), timestep_embedding (64D)]
-    Output: predicted_noise (2D)
+    들임: [잡음 섞인 자료(2차원), 때 걸음 묻힘(64차원)]
+    내놓음: 예측한 잡음(2차원)
     
     모델이 배우는 것: ε_θ(x_t, t) ≈ ε
     
@@ -334,9 +334,9 @@ class Simple2DModel(nn.Module):
     2. 모든 때 걸음에서 목표가 한결같다
     3. 겪어 보니 표본 품질이 낫다
     
-    CONDITIONING ON TIME:
+    때를 조건으로 삼기:
     ---------------------
-    Different timesteps need different strategies:
+    때 걸음마다 다른 꾀가 든다.
     - 앞머리(t이 작음): 자료에 잡음이 거의 없다 → 작은 고침
     - 뒷머리(t이 큼): 자료에 잡음이 많다 → 과감한 잡음 없애기
     
@@ -370,11 +370,11 @@ class Simple2DModel(nn.Module):
         주어진 때 걸음에서 자료의 잡음을 헤아린다.
         
         인수:
-            x: Noisy 2D points, shape (batch_size, 2)
-            t: Timestep indices, shape (batch_size,)
+            x: 잡음 섞인 2차원 점, 꼴 (batch_size, 2)
+            t: 때 걸음 번호, 꼴 (batch_size,)
         
         반환값:
-            predicted_noise: shape (batch_size, 2)
+            예측한 잡음: 꼴 (batch_size, 2)
         """
         # 더 잘 배우도록 때 걸음을 [0, 1] 범위로 고르게 맞춘다
         t_normalized = t.float().unsqueeze(-1) / 1000.0
@@ -396,12 +396,12 @@ def generate_swiss_roll(n_samples: int = 1000) -> torch.Tensor:
     """
     2차원 스위스 롤 나선 자료 묶음을 만든다.
     
-    A spiral-shaped point cloud perfect for testing:
-    - Simple enough to visualize (2D)
-    - Complex enough to be interesting (non-linear)
+    시험하기에 딱 맞는 나선 꼴의 점 구름:
+    - 그림으로 보기에 넉넉히 단순하다(2차원)
+    - 흥미로울 만큼 넉넉히 복잡하다(비선형)
     - 모델이 굽은 다양체를 배울 수 있는지 시험한다
     
-    Math: x = θ·cos(θ), y = θ·sin(θ), θ ∈ [0, 4π]
+    수식: x = θ·cos(θ), y = θ·sin(θ), θ ∈ [0, 4π]
     """
     t = torch.linspace(0, 4 * np.pi, n_samples)
     x = t * torch.cos(t)
@@ -464,14 +464,14 @@ def train_2d_diffusion(data, timesteps=100, epochs=1000, batch_size=128):
     """
     어떤 때 걸음에서든 잡음을 헤아리도록 모델을 익힌다.
     
-    TRAINING OBJECTIVE:
+    익힘 목표:
     -------------------
-    For each iteration:
+    되돌이마다:
     1. 깨끗한 자료 x_0의 묶음을 뽑는다
     2. 아무 때 걸음 t을 뽑는다
-    3. Add noise: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
-    4. Predict noise: ε_pred = model(x_t, t)
-    5. Loss: MSE(ε_pred, ε)
+    3. 잡음을 더한다: x_t = √ᾱ_t·x_0 + √(1-ᾱ_t)·ε
+    4. 잡음을 예측한다: ε_pred = model(x_t, t)
+    5. 잃음: MSE(ε_pred, ε)
     6. 뒤먹임 퍼뜨리고 고친다
     
     모든 때 걸음에서 잡음 헤아리는 법을 배우면 모델은 은근히
@@ -536,44 +536,44 @@ def sample_2d(model, n_samples, timesteps, diffusion_params, device="cpu"):
     
     알고리즘:
     ----------
-    1. Start: x_T ~ N(0, I) [pure random noise]
-    2. For t = T, T-1, ..., 1:
+    1. 비롯함: x_T ~ N(0, I) [순수한 마구잡이 잡음]
+    2. t = T, T-1, ..., 1에 대해:
            ε_pred = model(x_t, t)                      # 잡음을 헤아린다
            μ_θ = 1/√α_t · (x_t - β_t/√(1-ᾱ_t)·ε_pred)  # 평균을 셈한다
            x_{t-1} = μ_θ + σ_t·z  (z ~ N(0,I))         # 작은 잡음을 더한다
-    3. End: x_0 [clean generated sample]
+    3. 끝: x_0 [깨끗하게 만들어진 표본]
     
-    THE REVERSE DIFFUSION FORMULA:
+    뒤 퍼짐 식:
     -------------------------------
         x_{t-1} = 1/√α_t · (x_t - β_t/√(1-ᾱ_t)·ε_θ(x_t,t)) + σ_t·z
-                  └─────────────── μ_θ(x_t,t) ───────────┘  └─noise─┘
+                  └─────────────── μ_θ(x_t,t) ───────────┘  └─잡음─┘
     
-    BREAKDOWN:
+    하나씩 보면:
     ----------
     1. ε_θ(x_t,t): 모델이 x_t의 잡음을 헤아린다
     2. β_t/√(1-ᾱ_t)·ε_θ: 없앨 잡음의 잣수를 맞춘 것
-    3. x_t - [noise]: Remove estimated noise
-    4. 1/√α_t · [...]: Rescale for proper variance
+    3. x_t - [잡음]: 어림한 잡음을 뺀다
+    4. 1/√α_t · [...]: 흩어짐이 알맞도록 잣대를 다시 잡는다
     5. σ_t·z: 다양함을 위해 다스린 작은 잡음을 더한다
     
     왜 잡음을 없애면서 잡음을 더하는가?
     ------------------------------
     - 없으면: 정해진 길, 다양함 없음, 봉우리 무너짐
     - 있으면: 확률 길, 다양한 표본, 온전한 분포
-    - Key: noise added < noise removed, so net progress toward clean data!
+    - 고갱이: 더한 잡음 < 걷어 낸 잡음이므로 알짜로는 깨끗한 자료 쪽으로 나아간다!
     
-    SPECIAL CASE:
+    남다른 자리:
     -------------
-    At t=0 (final step), NO noise added: x_0 = μ_θ(x_1, 0)
+    t=0(마지막 걸음)에서는 잡음을 더하지 않는다: x_0 = μ_θ(x_1, 0)
     이것이 마지막 깨끗한 만든 표본을 준다.
     
-    EXAMPLE (one step):
+    보기(한 걸음):
     -------------------
-    x_100 = [0.5, -0.3] (noisy)
-    ε_pred = [0.4, -0.2] (model's prediction)
-    μ_θ = [0.489, -0.295] (denoised mean)
-    z = [0.01, 0.02] (random noise)
-    x_99 = μ_θ + 0.05·z = [0.4905, -0.294] (slightly cleaner!)
+    x_100 = [0.5, -0.3] (잡음 섞임)
+    ε_pred = [0.4, -0.2] (모형의 예측)
+    μ_θ = [0.489, -0.295] (잡음을 걷어 낸 평균)
+    z = [0.01, 0.02] (마구잡이 잡음)
+    x_99 = μ_θ + 0.05·z = [0.4905, -0.294] (조금 더 깨끗해졌다!)
     """
     model.eval()
     
@@ -637,12 +637,12 @@ def main():
     """
     온전한 2차원 퍼짐 보여 주기.
     
-    PIPELINE:
+    흐름:
     ---------
-    1. Generate toy 2D dataset (Swiss roll)
-    2. Visualize forward diffusion (data → noise)
+    1. 장난감 2차원 자료 묶음을 만든다(스위스 롤)
+    2. 앞 퍼짐을 그림으로 본다(자료 → 잡음)
     3. 잡음을 헤아리도록 모델을 익힌다
-    4. Generate new samples (noise → data)
+    4. 새 표본을 만든다(잡음 → 자료)
     5. 본디 것과 만든 것을 견준다
     """
     print("=" * 50)

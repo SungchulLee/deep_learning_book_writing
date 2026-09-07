@@ -21,7 +21,7 @@ PREREQUISITES: 01_Bayesian_Inference (especially conjugate priors and MAP estima
 4. 2차원에서 점수 마당을 그려 본다
 5. 점수가 고르게 맞추는 상수를 피하는 까닭을 이해한다
 
-MATHEMATICAL FOUNDATION:
+수학 바탕:
 -----------------------
 Definition:
     The score function s(x) is the gradient of the log-probability:
@@ -76,7 +76,7 @@ For a probability distribution p(x), the score function is:
 
     s(x) = ∇_x log p(x) = (1/p(x)) * ∇_x p(x)
 
-INTUITION:
+느낌으로 보면:
 ---------
 - 점수는 확률이 더 높은 자리를 가리킨다
 - p(x)의 봉우리에서 점수는 0이다

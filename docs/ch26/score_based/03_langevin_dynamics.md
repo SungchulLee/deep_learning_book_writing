@@ -21,7 +21,7 @@
 4. 모임의 성질을 살핀다
 5. 퍼짐의 뒤 과정과의 이음을 이해한다
 
-MATHEMATICAL FOUNDATION:
+수학 바탕:
 -----------------------
 Langevin Dynamics (Langevin 1908, extended by many):
 
@@ -232,7 +232,7 @@ dx_t = ∇_x log p(x_t) dt + √2 dW_t
 
 여기서 W_t은 여느 브라운 움직임이다.
 
-INTUITION:
+느낌으로 보면:
 - 정해진 떠돎: ∇log p(x)이 확률 높은 쪽으로 끈다
 - 확률 퍼짐: √2 dW_t이 공간을 살핀다
 - Balance ensures convergence to p(x)

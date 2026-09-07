@@ -80,7 +80,7 @@ For each mini-batch:
 3. Scale and shift: y = γ * x_norm + β
    where γ and β are learnable parameters
 
-BENEFITS:
+좋은 점:
 ✓ Reduces internal covariate shift
 ✓ Allows higher learning rates (10x faster training)
 ✓ Less sensitive to initialization

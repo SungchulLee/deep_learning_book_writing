@@ -21,9 +21,9 @@ PREREQUISITES: Module 01 (Score Functions Basics)
 4. 잡음 없애는 점수 맞추기를 베이즈 잡음 없애기와 잇는다
 5. 장난감 자료의 기본 점수 맞추기를 짠다
 
-MATHEMATICAL FOUNDATION:
+수학 바탕:
 -----------------------
-THE PROBLEM:
+문제:
 Given dataset {x_i}_{i=1}^N ~ p_data(x), learn s(x) = ∇_x log p_data(x)
 
 Challenge: We don't know p_data(x)! Only have samples!

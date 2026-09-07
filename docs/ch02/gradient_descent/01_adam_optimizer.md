@@ -64,7 +64,7 @@ ALGORITHM:
 ----------
 Initialize: m₀ = 0, v₀ = 0, t = 0
 
-For each iteration:
+되돌이마다:
 1. t = t + 1
 2. g_t = ∇L(θ_{t-1})                    # Compute gradient
 3. m_t = β₁·m_{t-1} + (1-β₁)·g_t         # Update biased first moment
