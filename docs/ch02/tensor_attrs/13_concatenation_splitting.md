@@ -7,16 +7,16 @@
 ```python
 #!/usr/bin/env python3
 """
-Concatenation, stacking, and splitting operations.
+이어 붙이기, 쌓기, 나누기 셈.
 
 Covers:
-- torch.cat: concatenate along existing dimension
-- torch.stack: stack along new dimension
-- torch.split: split into chunks
-- torch.chunk: split into equal pieces
-- torch.unbind: unpack along dimension
-- torch.hstack, vstack, dstack helpers
-- Practical patterns for combining tensors
+- torch.cat: 있는 차원을 따라 이어 붙인다
+- torch.stack: 새 차원을 따라 쌓는다
+- torch.split: 덩이로 나눈다
+- torch.chunk: 같은 크기 조각으로 나눈다
+- torch.unbind: 차원을 따라 풀어 헤친다
+- torch.hstack, vstack, dstack 도우미
+- 텐서를 아우르는 손에 잡히는 무늬
 """
 
 import torch

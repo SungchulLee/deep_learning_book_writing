@@ -349,10 +349,10 @@ print("""
    - R² 점수에 어떤 영향을 주는가?
 
 4. 여러 가장 좋게 하개:
-   - Replace SGD with Adam: torch.optim.Adam(...)
-   - Compare convergence
+   - SGD을 Adam으로 갈음한다: torch.optim.Adam(...)
+   - 모여드는 모습을 견준다
 
-5. Save and load model:
+5. 모형 갈무리하고 불러오기:
    - torch.save(model.state_dict(), 'model.pth')
    - model.load_state_dict(torch.load('model.pth'))
 """)

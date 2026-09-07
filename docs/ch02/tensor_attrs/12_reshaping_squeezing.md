@@ -7,16 +7,16 @@
 ```python
 #!/usr/bin/env python3
 """
-Reshaping and dimension manipulation operations.
+꼴 바꾸기와 차원 다루기 셈.
 
 Covers:
-- reshape vs view vs contiguous
-- squeeze and unsqueeze
-- flatten and ravel
-- transpose and permute
-- movedim and swapdims
-- Adding and removing dimensions
-- Practical reshaping patterns
+- reshape, view, contiguous 견주기
+- squeeze과 unsqueeze
+- flatten과 ravel
+- transpose과 permute
+- movedim과 swapdims
+- 차원 더하기와 없애기
+- 손에 잡히는 꼴 바꾸기 무늬
 """
 
 import torch

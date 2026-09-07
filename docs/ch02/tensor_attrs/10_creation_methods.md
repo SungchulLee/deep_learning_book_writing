@@ -7,16 +7,16 @@
 ```python
 #!/usr/bin/env python3
 """
-Tensor creation and initialization methods.
+텐서 만들기와 첫자리 잡기 방법.
 
 Covers:
-- Basic constructors: torch.tensor, torch.as_tensor, torch.from_numpy
-- Constant tensors: zeros, ones, full, empty
-- Identity and diagonal: eye, diag
-- Random tensors: rand, randn, randint, randperm
-- Range tensors: arange, linspace, logspace
-- Like constructors: zeros_like, ones_like, etc.
-- Device and dtype specification
+- 기본 만들개: torch.tensor, torch.as_tensor, torch.from_numpy
+- 상수 텐서: zeros, ones, full, empty
+- 항등과 대각: eye, diag
+- 마구잡이 텐서: rand, randn, randint, randperm
+- 범위 텐서: arange, linspace, logspace
+- 꼴을 본뜨는 만들개: zeros_like, ones_like 따위
+- 기기와 자료 갈래 밝히기
 """
 
 import torch

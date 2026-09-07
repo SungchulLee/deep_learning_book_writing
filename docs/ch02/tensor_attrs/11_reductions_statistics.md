@@ -7,17 +7,17 @@
 ```python
 #!/usr/bin/env python3
 """
-Reduction operations and statistical functions.
+줄이는 셈과 통계 함수.
 
 Covers:
-- Basic reductions: sum, prod, mean, std, var
-- Min/max operations: min, max, argmin, argmax, aminmax
-- Dimension-wise reductions with dim parameter
-- keepdim for preserving dimensions
-- Quantiles and percentiles
-- Norms: norm, dist
-- Logical reductions: all, any
-- Counting operations: numel, count_nonzero
+- 기본 줄이기: sum, prod, mean, std, var
+- 최소/최대 셈: min, max, argmin, argmax, aminmax
+- dim 매개변수로 차원별 줄이기
+- 차원을 지키는 keepdim
+- 분위수와 백분위수
+- 노름: norm, dist
+- 논리 줄이기: all, any
+- 세기 셈: numel, count_nonzero
 """
 
 import torch
@@ -289,7 +289,7 @@ def main():
     # -------------------------------------------------------------------------
     header("Statistical summary function")
     def summarize(tensor, name="tensor"):
-        """Print statistical summary of a tensor."""
+        """텐서의 통계 간추림을 찍는다."""
         print(f"\n{name}:")
         print(f"  Shape: {tensor.shape}")
         print(f"  dtype: {tensor.dtype}")

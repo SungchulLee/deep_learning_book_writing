@@ -14,7 +14,7 @@ by automatically expanding them to compatible shapes without copying data.
 
 Key Concepts:
 - Broadcasting rules
-- Common broadcasting patterns
+- 흔한 펴 맞추기 무늬
 - When broadcasting fails
 - Memory efficiency
 - Broadcasting in neural networks

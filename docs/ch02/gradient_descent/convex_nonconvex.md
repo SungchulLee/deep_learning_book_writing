@@ -139,7 +139,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 def neural_loss(w1, w2, x=1, y=2):
-    """Loss for y = w2 * ReLU(w1 * x)"""
+    """y = w2 * ReLU(w1 * x)의 잃음"""
     hidden = np.maximum(0, w1 * x)  # ReLU
     pred = w2 * hidden
     return (pred - y) ** 2
@@ -295,7 +295,7 @@ import torch
 
 def check_convexity_numerical(f, x, epsilon=1e-3):
     """
-    Check local convexity via Hessian eigenvalues
+    헤세 고윳값으로 그 자리 볼록함을 살핀다
     """
     n = len(x)
     H = torch.zeros((n, n))

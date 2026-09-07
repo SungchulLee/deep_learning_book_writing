@@ -7,21 +7,21 @@
 ```python
 #!/usr/bin/env python3
 """
-PyTorch nn.Linear weight convention & equivalences.
+PyTorch nn.Linear의 무게 관례와 같은 꼴들.
 
-Key points:
-- nn.Linear(in_features, out_features) stores:
+고갱이:
+- nn.Linear(in_features, out_features)이 담는 것:
     weight.shape == (out_features, in_features)
-    bias.shape   == (out_features,)  (if bias=True)
-- Forward pass equals:
+    bias.shape   == (out_features,)  (bias=True이면)
+- 앞으로 걸음은 다음과 같다.
     out = F.linear(x, weight, bias) == x @ weight.T + bias
-  where x.shape == (batch, in_features), out.shape == (batch, out_features)
+  여기서 x.shape == (batch, in_features), out.shape == (batch, out_features)
 
 We verify:
-- Shapes and equality with/without bias
-- That weight.T is a view (no copy), and .contiguous() if needed
-- Autograd gradients shapes
-- "Row = one output neuron" intuition by slicing weight rows
+- 치우침이 있을 때와 없을 때의 꼴과 같음
+- weight.T은 보기일 뿐(베끼지 않는다)이며 필요하면 .contiguous()을 쓴다
+- 자동 미분 기울기의 꼴
+- 무게의 줄을 잘라 보며 "한 줄 = 내놓음 뉴런 하나"라는 느낌 잡기
 """
 
 import torch

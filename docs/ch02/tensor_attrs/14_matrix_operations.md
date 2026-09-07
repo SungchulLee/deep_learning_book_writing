@@ -7,16 +7,16 @@
 ```python
 #!/usr/bin/env python3
 """
-Matrix operations and linear algebra.
+행렬 셈과 선형대수.
 
 Covers:
-- Matrix multiplication: matmul (@), mm, bmm
-- Element-wise multiplication: mul (*)
-- Vector operations: dot, cross, outer
-- einsum for complex operations
-- Batch matrix operations
-- Linear algebra: inv, det, solve, eig
-- Matrix decompositions: SVD, QR, Cholesky
+- 행렬 곱: matmul (@), mm, bmm
+- 원소별 곱: mul (*)
+- 벡터 셈: dot, cross, outer
+- 복잡한 셈을 위한 einsum
+- 묶음 행렬 셈
+- 선형대수: inv, det, solve, eig
+- 행렬 쪼개기: SVD, QR, 촐레스키
 """
 
 import torch

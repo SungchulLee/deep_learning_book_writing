@@ -7,11 +7,11 @@
 ```python
 #!/usr/bin/env python3
 """
-Comparison, conditional operations, sorting, and selection.
+견주기, 조건 셈, 줄 세우기, 고르기.
 
 Covers:
-- Comparison operators: ==, !=, <, <=, >, >=
-- Logical operators: &, |, ~
+- 견주기 셈: ==, !=, <, <=, >, >=
+- 논리 셈: &, |, ~
 - torch.where for conditional selection
 - Clamping: clamp, clip
 - Sorting: sort, argsort

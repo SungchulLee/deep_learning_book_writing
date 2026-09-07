@@ -7,14 +7,14 @@
 ```python
 #!/usr/bin/env python3
 """
-Autograd-focused Tensor attributes and behaviors.
+자동 미분에 마음을 둔 텐서의 속성과 움직임.
 
 Covers:
 - requires_grad / is_leaf / grad_fn
-- .backward() on scalar vs non-scalar (VJP with gradient arg)
-- Gradient accumulation & clearing (p.grad.zero_ vs opt.zero_grad)
-- torch.no_grad() for safe parameter updates
-- retain_graph=True for multiple backward passes on same graph
+- 홑값과 홑값 아닌 것에 대한 .backward()(gradient 인자를 주는 벡터-야코비 곱)
+- 기울기 쌓기와 지우기(p.grad.zero_과 opt.zero_grad 견주기)
+- 안전하게 매개변수를 고치는 torch.no_grad()
+- 같은 그래프에서 여러 번 뒤로 걷기 위한 retain_graph=True
 """
 
 import torch

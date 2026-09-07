@@ -192,9 +192,9 @@ def find_critical_exponent(a_list, b_list, tol=1e-10):
 
     Parameters
     ----------
-    a_list : list of float
+    a_list : float의 목록
         부분문제 배수(각각 > 0).
-    b_list : list of float
+    b_list : float의 목록
         부분문제 크기 비(각각 (0, 1) 구간).
     tol : float
         수렴 허용 오차.

@@ -7,14 +7,14 @@
 ```python
 #!/usr/bin/env python3
 """
-In-place operations: efficiency and gotchas.
+제자리 셈: 잘 듦과 함정.
 
 Covers:
-- Naming convention: operations ending with underscore (_)
-- Performance benefits and memory sharing implications
-- Autograd restrictions with in-place ops
-- Common in-place operations: add_, mul_, clamp_, etc.
-- When to use and when to avoid in-place ops
+- 이름 관례: 밑줄(_)로 끝나는 셈
+- 성능의 이점과 기억 자리를 나눠 쓰는 데 따른 결과
+- 제자리 셈에 대한 자동 미분의 매임
+- 흔한 제자리 셈: add_, mul_, clamp_ 따위
+- 제자리 셈을 언제 쓰고 언제 피할까
 """
 
 import torch

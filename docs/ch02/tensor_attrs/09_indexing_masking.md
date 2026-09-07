@@ -7,16 +7,16 @@
 ```python
 #!/usr/bin/env python3
 """
-Advanced indexing, slicing, and masking operations.
+앞선 자리 잡기, 자르기, 가리기 셈.
 
 Covers:
-- Basic slicing vs advanced indexing
-- Boolean masking (conditional selection)
-- Integer array indexing (fancy indexing)
-- torch.where for conditional operations
+- 기본 자르기와 앞선 자리 잡기 견주기
+- 참거짓 가리기(조건에 따라 고르기)
+- 정수 배열로 자리 잡기(멋진 자리 잡기)
+- 조건 셈을 위한 torch.where
 - masked_fill, masked_select, masked_scatter
-- Ellipsis (...) for flexible indexing
-- Difference between views and copies
+- 너그러운 자리 잡기를 위한 줄임표(...)
+- 보기와 베낌의 다름
 """
 
 import torch

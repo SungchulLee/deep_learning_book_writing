@@ -152,7 +152,7 @@ Loss ↑
      └──────────────────────→ p_true
      0    0.25   0.5    1.0
 
-Key points:
+고갱이:
   p_true = 0.01: Loss ≈ 4.6
   p_true = 0.5:  Loss ≈ 0.69
   p_true = 0.9:  Loss ≈ 0.1

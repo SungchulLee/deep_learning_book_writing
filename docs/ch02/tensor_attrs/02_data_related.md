@@ -7,14 +7,14 @@
 ```python
 #!/usr/bin/env python3
 """
-Data-facing utilities on Tensors.
+텐서의 자료 쪽 잔손질 도구.
 
 Covers:
 - item(), tolist()
-- detach() and detach().clone()
-- .cpu().numpy() (and why detach/cpu matters)
-- .data caveat (bypasses autograd)
-- Basic conversion gotchas with CUDA
+- detach()과 detach().clone()
+- .cpu().numpy()(그리고 detach/cpu이 왜 종요로운가)
+- .data의 조심할 점(자동 미분을 건너뛴다)
+- CUDA에서 바꿀 때의 기본 함정
 """
 
 import torch

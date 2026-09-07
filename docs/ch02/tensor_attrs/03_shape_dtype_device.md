@@ -7,14 +7,14 @@
 ```python
 #!/usr/bin/env python3
 """
-Shape / dtype / device / layout attributes and helpers.
+꼴 / 자료 갈래 / 기기 / 자리 얼개 속성과 도우미.
 
 Covers:
 - shape / size() / ndim
 - dtype / device / requires_grad
 - layout
 - is_cuda / is_contiguous() / stride() / storage_offset()
-- transpose helpers: T / mT / H
+- 뒤집기 도우미: T / mT / H
 """
 
 import torch

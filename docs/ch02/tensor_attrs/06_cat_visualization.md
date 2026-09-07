@@ -6,7 +6,7 @@
 
 ```python
 #!/usr/bin/env python3
-"""Cat visualization."""
+"""이어 붙이기 그림."""
 # ========================================================
 # 03_tensor_attributes_and_methods_6_cat_visualization.py
 # ========================================================

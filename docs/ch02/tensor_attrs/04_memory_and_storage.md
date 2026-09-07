@@ -7,13 +7,13 @@
 ```python
 #!/usr/bin/env python3
 """
-Tensor memory layout & view/copy behavior.
+텐서의 기억 자리 얼개와 보기/베끼기 움직임.
 
 Covers:
-- transpose()/permute() views, stride changes, and .contiguous()
-- view() vs reshape() vs clone()
-- expand() vs repeat()
-- Simple gather()/scatter_() mini-demo (indexing-based movement)
+- transpose()/permute()의 보기, 걸음 바뀜, .contiguous()
+- view()와 reshape()과 clone() 견주기
+- expand()과 repeat() 견주기
+- 간단한 gather()/scatter_() 맛보기(자리 번호로 옮기기)
 """
 
 import torch

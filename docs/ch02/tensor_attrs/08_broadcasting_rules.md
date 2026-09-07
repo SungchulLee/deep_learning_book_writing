@@ -7,15 +7,15 @@
 ```python
 #!/usr/bin/env python3
 """
-Broadcasting rules: making tensors compatible for element-wise operations.
+펴 맞추기 규칙: 원소별 셈이 되도록 텐서를 맞춘다.
 
 Covers:
-- The three broadcasting rules
-- Common broadcasting patterns
-- Dimension alignment (trailing dimensions)
-- Size-1 dimension expansion
-- Visual examples with shapes
-- Common pitfalls and debugging
+- 펴 맞추기 규칙 셋
+- 흔한 펴 맞추기 무늬
+- 차원 맞추기(뒤쪽 차원부터)
+- 크기 1인 차원 늘리기
+- 꼴을 곁들인 눈으로 보는 보기
+- 흔한 함정과 탈 잡기
 """
 
 import torch
@@ -30,7 +30,7 @@ def header(title: str):
     print("=" * 80)
 
 def show_broadcast(a, b, op_name="+"):
-    """Helper to visualize broadcasting."""
+    """펴 맞추기를 그림으로 보이는 도우미."""
     result = a + b
     print(f"  {a.shape} {op_name} {b.shape} → {result.shape}")
     return result

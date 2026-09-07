@@ -474,7 +474,7 @@ def main():
    - Random initialization
    - K-means++ initialization
    - Multiple random restarts
-   - Compare convergence
+   - 모여드는 모습을 견준다
 
 4. CHALLENGING: Bayesian GMM
    - Add Dirichlet prior on mixture weights

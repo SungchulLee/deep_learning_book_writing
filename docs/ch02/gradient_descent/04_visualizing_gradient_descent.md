@@ -7,14 +7,14 @@
 ```python
 """
 ================================================================================
-Level 1 - Example 4: Visualizing Gradient Descent in Action
+1단계 - 보기 4: 움직이는 기울기 내림을 그림으로 보기
 ================================================================================
 
 배움 목표:
-- See gradient descent optimization visually
-- Understand loss landscapes
-- Observe effect of learning rate
-- Visualize convergence paths
+- 기울기 내림으로 가장 좋게 하는 모습을 눈으로 본다
+- 잃음 지형을 이해한다
+- 배움 빠르기가 미치는 영향을 살펴본다
+- 모여드는 길을 그림으로 본다
 
 어려움: ⭐ 첫걸음
 
@@ -71,7 +71,7 @@ print("PART 2: EFFECT OF LEARNING RATE")
 print("="*80)
 
 def run_gradient_descent(w_init, lr, n_steps):
-    """Run gradient descent and return trajectory"""
+    """기울기 내림을 돌리고 지나온 자취를 돌려준다"""
     w = w_init
     trajectory = [w]
     
@@ -146,7 +146,7 @@ X_data = torch.randn(50, 1) * 2
 y_data = 3 * X_data + 2 + torch.randn(50, 1) * 0.5
 
 def compute_loss_2d(w, b):
-    """Compute MSE loss for given w and b"""
+    """주어진 w과 b에 대해 MSE 잃음을 셈한다"""
     y_pred = w * X_data + b
     loss = torch.mean((y_pred - y_data) ** 2)
     return loss.item()
@@ -275,43 +275,43 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. LEARNING RATE is critical:
-   • Too small: slow convergence
-   • Too large: oscillation or divergence
-   • Just right: smooth, fast convergence
+1. 배움 빠르기가 종요롭다.
+   • 너무 작으면 더디게 모여든다
+   • 너무 크면 흔들리거나 퍼져 나간다
+   • 알맞으면 매끄럽고 빠르게 모여든다
 
-2. LOSS LANDSCAPES can be complex:
-   • 1D: simple parabolas
-   • 2D+: valleys, ridges, saddle points
-   • Deep networks: very high-dimensional!
+2. 잃음 지형은 복잡할 수 있다.
+   • 1차원: 단순한 포물선
+   • 2차원 넘게: 골짜기, 능선, 안장점
+   • 깊은 그물: 차원이 아주 높다!
 
-3. GRADIENT DESCENT follows the path of steepest descent:
-   • Always moves downhill
-   • May take many steps to reach bottom
-   • Path depends on starting point and learning rate
+3. 기울기 내림은 가장 가파르게 내려가는 길을 따른다.
+   • 늘 내리막으로 간다
+   • 바닥에 닿기까지 여러 걸음이 들 수 있다
+   • 길은 비롯한 자리와 배움 빠르기에 달렸다
 
-4. CONVERGENCE can be monitored:
-   • Loss should decrease over time
-   • Distance to optimum should decrease
-   • Parameters should stabilize
+4. 모여드는지 지켜볼 수 있다.
+   • 잃음이 때가 갈수록 줄어야 한다
+   • 가장 좋은 자리까지의 거리가 줄어야 한다
+   • 매개변수가 자리를 잡아야 한다
 
-5. VISUALIZATION helps understanding:
-   • See what gradient descent is doing
-   • Debug optimization problems
-   • Choose good hyperparameters
+5. 그림으로 보면 이해에 도움이 된다.
+   • 기울기 내림이 무엇을 하는지 본다
+   • 가장 좋게 하기의 탈을 잡는다
+   • 좋은 웃매개변수를 고른다
 """)
 
 print("="*80)
 print("CONGRATULATIONS!")
 print("="*80)
 print("""
-You've completed Level 1! You now understand:
-✓ How gradient descent works
-✓ PyTorch's automatic differentiation
-✓ Training neural networks
-✓ Visualizing optimization
+1단계를 마쳤다! 이제 다음을 이해한다.
+✓ 기울기 내림이 어떻게 도는가
+✓ PyTorch의 자동 미분
+✓ 신경망 익히기
+✓ 가장 좋게 하기를 그림으로 보기
 
-Ready for Level 2? Learn about mini-batches, momentum, and more!
+2단계로 갈 채비가 되었는가? 작은 묶음, 여세를 비롯해 더 배워 보자!
 """)
 print("="*80)
 
