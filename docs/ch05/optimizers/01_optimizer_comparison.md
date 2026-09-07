@@ -46,33 +46,33 @@ print("-" * 80)
 print("""
 STOCHASTIC GRADIENT DESCENT (SGD):
   • Simplest optimizer: param -= learning_rate × gradient
-  • Pros: Simple, works well with momentum
-  • Cons: Can be slow, sensitive to learning rate
-  • Best for: Well-understood problems, when you have time to tune
+  • 장점: 단순하며 모멘텀과 잘 어울린다
+  • 단점: 느릴 수 있고 학습률에 민감하다
+  • 알맞은 곳: 잘 알려진 문제, 조율할 시간이 있을 때
 
-SGD WITH MOMENTUM:
-  • Adds "velocity" to push through local minima
+모멘텀을 쓰는 SGD:
+  • "속도"를 더해 국소 최솟값을 뚫고 나간다
   • Accumulates gradients over time: v = momentum × v + gradient
   • 잡음 섞인 기울기를 매끄럽게 한다
-  • Best for: Deep networks, noisy gradients
+  • 알맞은 곳: 깊은 신경망, 잡음 섞인 기울기
 
 ADAM (Adaptive Moment Estimation):
   • 매개변수마다 배움 빠르기를 맞춘다
-  • Combines momentum + RMSprop
-  • Pros: Works well out-of-the-box, fast convergence
-  • Cons: Can generalize worse than SGD, higher memory usage
-  • Best for: Quick prototyping, most deep learning tasks
+  • 모멘텀과 RMSprop을 합친다
+  • 장점: 기본 설정으로도 잘 돌고 빠르게 수렴한다
+  • 단점: SGD보다 일반화가 나쁠 수 있고 메모리를 더 쓴다
+  • 알맞은 곳: 빠른 시제품 제작, 대부분의 딥러닝 과제
 
 ADAMW (Adam with Weight Decay):
-  • Adam with correct weight decay implementation
-  • Better generalization than Adam
-  • Fixes Adam's weight decay bug
-  • Best for: Transformers, modern architectures, when using weight decay
+  • 가중치 감쇠를 올바로 구현한 Adam
+  • Adam보다 일반화가 낫다
+  • Adam의 가중치 감쇠 결함을 고친다
+  • 알맞은 곳: 트랜스포머, 최신 구조, 가중치 감쇠를 쓸 때
 
 RMSPROP (Root Mean Square Propagation):
-  • Adapts learning rate using moving average of squared gradients
-  • Good for non-stationary problems
-  • Best for: RNNs, online learning
+  • 제곱 기울기의 이동평균으로 학습률을 조절한다
+  • 비정상 문제에 알맞다
+  • 알맞은 곳: RNN, 온라인 학습
 """)
 
 # ============================================================================
@@ -277,47 +277,47 @@ print("""
 1. SGD (STOCHASTIC GRADIENT DESCENT):
    Update: θ = θ - lr × ∇L
    
-   • Simplest algorithm
-   • Each step goes directly downhill
-   • Can oscillate in narrow valleys
-   • Very sensitive to learning rate choice
+   • 가장 단순한 알고리즘
+   • 매 단계가 곧장 내리막으로 간다
+   • 좁은 골짜기에서 진동할 수 있다
+   • 학습률 선택에 매우 민감하다
 
-2. SGD WITH MOMENTUM:
+2. 모멘텀을 쓰는 SGD:
    Velocity: v = β × v + ∇L
    Update: θ = θ - lr × v
    
    • Accumulates past gradients (β typically 0.9)
-   • Builds "momentum" to push through small bumps
+   • "관성"을 쌓아 작은 굴곡을 뚫고 나간다
    • 잡음 섞인 기울기를 매끄럽게 한다
-   • Can overshoot optimal values
+   • 최적값을 지나칠 수 있다
 
 3. RMSPROP:
    RMS: s = β × s + (1-β) × ∇L²
    Update: θ = θ - (lr / √s) × ∇L
    
-   • Adapts learning rate per parameter
-   • Divides by root mean square of gradients
-   • Prevents learning rate from becoming too small
-   • Good for non-stationary objectives
+   • 매개변수마다 학습률을 조절한다
+   • 기울기의 제곱평균제곱근으로 나눈다
+   • 학습률이 너무 작아지는 것을 막는다
+   • 비정상 목적함수에 알맞다
 
 4. ADAM (Adaptive Moment Estimation):
    Momentum: m = β₁ × m + (1-β₁) × ∇L
    Velocity: v = β₂ × v + (1-β₂) × ∇L²
    Update: θ = θ - lr × (m / √v)
    
-   • Combines momentum + RMSprop
+   • 모멘텀과 RMSprop을 합친다
    • 매개변수마다 배움 빠르기를 맞춘다
-   • Includes bias correction
+   • 편향 보정을 포함한다
    • Default β₁=0.9, β₂=0.999
-   • Most popular optimizer in deep learning
+   • 딥러닝에서 가장 널리 쓰는 최적화기
 
 5. ADAMW:
-   Same as Adam but with corrected weight decay:
+   Adam과 같으나 가중치 감쇠를 바로잡았다.
    Update: θ = θ - lr × (m / √v) - lr × λ × θ
    
-   • Fixes Adam's weight decay implementation
-   • Better regularization
-   • Preferred for transformers and large models
+   • Adam의 가중치 감쇠 구현을 고친다
+   • 정칙화가 더 낫다
+   • 트랜스포머와 큰 모델에 선호된다
 """)
 
 # ============================================================================
@@ -328,41 +328,41 @@ print("PRACTICAL GUIDELINES: Which Optimizer to Use?")
 print("-" * 80)
 
 print("""
-🎯 USE ADAM WHEN:
+🎯 Adam을 쓸 때:
    ✓ Starting a new project (good default)
-   ✓ Need fast convergence
-   ✓ Limited time for hyperparameter tuning
-   ✓ Working with RNNs or transformers
-   ✓ Example: Quick prototyping, research experiments
+   ✓ 빠른 수렴이 필요하다
+   ✓ 초매개변수를 조율할 시간이 적다
+   ✓ RNN이나 트랜스포머를 다룬다
+   ✓ 예: 빠른 시제품 제작, 연구 실험
 
-📊 USE SGD + MOMENTUM WHEN:
+📊 SGD + 모멘텀을 쓸 때:
    ✓ Final model training (often better generalization)
-   ✓ Have time to tune learning rate
+   ✓ 학습률을 조율할 시간이 있다
    ✓ Training CNNs (especially ResNet, VGG)
-   ✓ Want most stable long-term performance
-   ✓ Example: Production models, ImageNet training
+   ✓ 가장 안정적인 장기 성능을 원한다
+   ✓ 예: 실서비스 모델, ImageNet 학습
 
-🔬 USE ADAMW WHEN:
+🔬 AdamW를 쓸 때:
    ✓ Training transformers (BERT, GPT, etc.)
-   ✓ Using weight decay regularization
-   ✓ Need better generalization than Adam
-   ✓ Following modern best practices
-   ✓ Example: NLP models, large-scale training
+   ✓ 가중치 감쇠 정칙화를 쓴다
+   ✓ Adam보다 나은 일반화가 필요하다
+   ✓ 최신 모범 사례를 따른다
+   ✓ 예: 자연어 처리 모델, 대규모 학습
 
-⚡ USE RMSPROP WHEN:
+⚡ RMSprop을 쓸 때:
    ✓ Training RNNs (historically popular)
-   ✓ Non-stationary problems
-   ✓ Online learning scenarios
-   ✓ Example: Time series, online recommendations
+   ✓ 비정상 문제
+   ✓ 온라인 학습 상황
+   ✓ 예: 시계열, 온라인 추천
 
-LEARNING RATE RECOMMENDATIONS:
+학습률 권장값:
 • SGD: 0.01 - 0.1
-• SGD + Momentum: 0.01 - 0.1
+• SGD + 모멘텀: 0.01~0.1
 • Adam: 0.001 (1e-3)
 • AdamW: 0.0001 - 0.001 (1e-4 to 1e-3)
 • RMSprop: 0.001
 
-Always start with these defaults and adjust based on loss curves!
+언제나 이 기본값으로 시작하여 손실 곡선을 보며 조정하라!
 """)
 
 # ============================================================================
@@ -374,10 +374,10 @@ print("-" * 80)
 
 print("""
 LEARNING RATE (lr):
-  • Most important hyperparameter
-  • Too high: Training unstable, loss explodes
-  • Too low: Training too slow
-  • Use learning rate schedulers to adjust during training
+  • 가장 중요한 초매개변수
+  • 너무 크면: 학습이 불안정하고 손실이 폭발한다
+  • 너무 작으면: 학습이 너무 느리다
+  • 학습 중 조정하려면 학습률 스케줄러를 쓴다
 
 MOMENTUM (SGD):
   • Typical: 0.9 or 0.95
@@ -386,18 +386,18 @@ MOMENTUM (SGD):
 BETAS (Adam/AdamW):
   • β₁ (momentum): typically 0.9
   • β₂ (RMS): typically 0.999
-  • Rarely need to change these
+  • 이 값을 바꿀 일은 거의 없다
 
-WEIGHT DECAY:
-  • Regularization strength
+가중치 감쇠:
+  • 정칙화 세기
   • Typical: 0.0001 to 0.01
   • Higher = more regularization
-  • Use AdamW for correct implementation
+  • 올바른 구현을 원하면 AdamW를 쓴다
 
 EPSILON (Adam/RMSprop):
-  • Numerical stability constant
+  • 수치 안정을 위한 상수
   • Default: 1e-8
-  • Rarely need to change
+  • 바꿀 일이 거의 없다
 """)
 
 # ============================================================================
@@ -407,35 +407,35 @@ print("\n" + "=" * 80)
 print("KEY TAKEAWAYS")
 print("=" * 80)
 print("""
-1. Different optimizers make different trade-offs:
-   • Speed vs stability
-   • Ease of use vs final performance
-   • Memory efficiency
+1. 최적화기마다 서로 다른 절충을 한다.
+   • 속도 대 안정성
+   • 쓰기 쉬움 대 최종 성능
+   • 메모리 효율
 
-2. Adam/AdamW are great defaults:
-   • Fast convergence
-   • Work well out-of-the-box
-   • AdamW preferred for modern architectures
+2. Adam과 AdamW는 훌륭한 기본값이다.
+   • 빠른 수렴
+   • 기본 설정으로도 잘 돈다
+   • 최신 구조에는 AdamW가 선호된다
 
-3. SGD + Momentum often achieves best final performance:
-   • Requires more tuning
-   • Better generalization
-   • Preferred for production models
+3. SGD + 모멘텀이 최종 성능에서 가장 나을 때가 많다.
+   • 조율이 더 필요하다
+   • 일반화가 더 낫다
+   • 실서비스 모델에 선호된다
 
-4. Always monitor loss curves:
+4. 언제나 손실 곡선을 살펴라.
    • Smooth decrease = good
    • Oscillations = learning rate too high
    • Plateau = learning rate too low or converged
 
-5. No single "best" optimizer:
-   • Depends on problem, architecture, data
-   • Experiment and compare
-   • Use learning rate schedulers for better results
+5. 하나뿐인 "최고" 최적화기는 없다.
+   • 문제, 구조, 데이터에 달렸다
+   • 실험하고 견주어라
+   • 더 나은 결과를 얻으려면 학습률 스케줄러를 쓰라
 
 다음 단계:
-→ Experiment with different learning rates
-→ Learn about learning rate schedulers
-→ Try combining optimizers with regularization
+→ 학습률을 달리하여 실험해 보라
+→ 학습률 스케줄러를 배워 보라
+→ 최적화기와 정칙화를 함께 써 보라
 → Study advanced optimizers (RAdam, Lookahead, etc.)
 """)
 print("=" * 80)

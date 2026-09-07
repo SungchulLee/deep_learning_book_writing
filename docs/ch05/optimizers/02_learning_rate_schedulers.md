@@ -44,22 +44,22 @@ print("WHY LEARNING RATE SCHEDULING?")
 print("-" * 80)
 
 print("""
-The Problem with Fixed Learning Rates:
+고정 학습률의 문제:
   
-  BEGINNING OF TRAINING:
-  • Need large learning rate to make fast progress
-  • Escape saddle points
-  • Explore the loss landscape
+  학습 초기:
+  • 빠르게 나아가려면 큰 학습률이 필요하다
+  • 안장점에서 벗어난다
+  • 손실 지형을 탐색한다
   
-  END OF TRAINING:
-  • Large learning rate causes oscillation around optimum
-  • Can't fine-tune the solution
-  • May not converge to best solution
+  학습 말기:
+  • 학습률이 크면 최적점 둘레에서 진동한다
+  • 해를 정밀하게 다듬을 수 없다
+  • 가장 좋은 해로 수렴하지 못할 수 있다
   
-  THE SOLUTION:
-  Start with high learning rate → Gradually decrease → Fine-tune at end
+  해법:
+  큰 학습률로 시작 → 차츰 줄이기 → 끝에서 정밀 조정
   
-  This is called "Learning Rate Annealing" or "Learning Rate Decay"
+  이를 "학습률 어닐링" 또는 "학습률 감쇠"라 한다
 """)
 
 # ============================================================================
@@ -75,24 +75,24 @@ optimizer = optim.SGD(model.parameters(), lr=0.1)
 
 print("""
 1. STEP LR:
-   • Decreases LR by factor every N epochs
-   • Simple and predictable
-   • Example: lr × 0.1 every 30 epochs
+   • N 에폭마다 학습률을 일정 배수로 줄인다
+   • 단순하고 예측하기 쉽다
+   • 예: 30 에폭마다 lr × 0.1
 
 2. EXPONENTIAL LR:
-   • Decreases LR by constant factor each epoch
-   • Smooth exponential decay
-   • Example: lr × 0.95 each epoch
+   • 에폭마다 일정 배수로 학습률을 줄인다
+   • 매끄러운 지수 감쇠
+   • 예: 에폭마다 lr × 0.95
 
-3. COSINE ANNEALING:
-   • Follows cosine curve
-   • Smooth decrease with periodic restarts option
-   • Popular for deep networks
+3. 코사인 어닐링:
+   • 코사인 곡선을 따른다
+   • 매끄럽게 줄어들며 주기적 재시작을 고를 수 있다
+   • 깊은 신경망에서 널리 쓴다
 
-4. REDUCE LR ON PLATEAU:
-   • Decreases LR when metric stops improving
-   • Adaptive to training progress
-   • Example: Reduce by 0.1 if validation loss doesn't improve for 5 epochs
+4. 정체 시 학습률 감소:
+   • 지표가 더 나아지지 않으면 학습률을 줄인다
+   • 학습 진행에 맞추어 적응한다
+   • 예: 검증 손실이 5 에폭 동안 나아지지 않으면 0.1배로 줄인다
 """)
 
 # ============================================================================
@@ -287,7 +287,7 @@ print("PRACTICAL USAGE IN TRAINING LOOP")
 print("-" * 80)
 
 print("""
-BASIC TRAINING LOOP WITH SCHEDULER:
+스케줄러를 곁들인 기본 학습 루프:
 
 # 준비
 model = MyModel()
@@ -328,8 +328,8 @@ print("DECISION GUIDE: Which Scheduler to Use?")
 print("-" * 80)
 
 print("""
-📅 USE STEP LR WHEN:
-   ✓ You want simple, predictable scheduling
+📅 StepLR을 쓸 때:
+   ✓ 단순하고 예측 가능한 스케줄링을 원한다
    ✓ 정해진 에폭 수만큼 학습한다
    ✓ 전통적인 비전 과제에서 흔하다
    ✓ Example: StepLR(step_size=30, gamma=0.1) for 100 epochs

@@ -86,7 +86,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 class FocalLoss(nn.Module):
-    """Focal Loss for binary classification.
+    """이진 분류를 위한 초점 손실.
 
     참고: "Focal Loss for Dense Object Detection" (Lin 등, 2017)
     https://arxiv.org/abs/1708.02002
@@ -138,7 +138,7 @@ class FocalLoss(nn.Module):
 
 ```python
 class MultiClassFocalLoss(nn.Module):
-    """Focal Loss for multi-class classification.
+    """다중 클래스 분류를 위한 초점 손실.
 
     인수:
         alpha: 클래스별 가중치, 모양 (K,). None이면 클래스 가중을 하지 않는다.

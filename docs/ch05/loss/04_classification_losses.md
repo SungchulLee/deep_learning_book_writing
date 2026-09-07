@@ -289,13 +289,13 @@ print("-" * 80)
 
 print("""
 ╔═══════════════════╦════════════════════╦═════════════════════════╗
-║                   ║ BINARY             ║ MULTI-CLASS             ║
+║                   ║ 이진               ║ 다중 클래스             ║
 ╠═══════════════════╬════════════════════╬═════════════════════════╣
 ║ Classes           ║ 2 (e.g., Yes/No)   ║ 3+ (e.g., Cat/Dog/Bird) ║
 ║ Model Output      ║ 1 logit            ║ N logits (N = classes)  ║
-║ Activation        ║ Sigmoid            ║ Softmax                 ║
+║ 활성화            ║ 시그모이드         ║ 소프트맥스              ║
 ║ Output Range      ║ [0, 1]             ║ [0, 1] (sum to 1)       ║
-║ Loss Function     ║ BCEWithLogitsLoss  ║ CrossEntropyLoss        ║
+║ 손실 함수         ║ BCEWithLogitsLoss  ║ CrossEntropyLoss        ║
 ║ True Label Format ║ 0 or 1             ║ Class index (0 to N-1)  ║
 ╚═══════════════════╩════════════════════╩═════════════════════════╝
 """)
@@ -310,10 +310,10 @@ print("-" * 80)
 print("""
 ✓ DO:
   • 이진 분류에는 BCEWithLogitsLoss를 쓴다
-  • Use CrossEntropyLoss for multi-class classification
+  • 다중 클래스 분류에는 CrossEntropyLoss를 쓴다
   • Let loss functions handle activation (sigmoid/softmax) internally
-  • Use class indices for labels in CrossEntropyLoss
-  • Monitor loss during training to check convergence
+  • CrossEntropyLoss의 레이블에는 클래스 인덱스를 쓴다
+  • 수렴을 확인하려면 학습 중 손실을 살핀다
 
 ✗ DON'T:
   • Apply sigmoid before BCEWithLogitsLoss (it does it internally!)
@@ -321,7 +321,7 @@ print("""
   • Use BCELoss with raw logits (use BCEWithLogitsLoss instead)
   • One-hot encode labels for CrossEntropyLoss (use class indices)
 
-COMMON MODEL ARCHITECTURES:
+흔한 모델 구조:
   Binary:     [...layers...] → Linear(in_features, 1) → BCEWithLogitsLoss
   Multi-Class: [...layers...] → Linear(in_features, num_classes) → CrossEntropyLoss
 """)
@@ -333,32 +333,32 @@ print("\n" + "=" * 80)
 print("KEY TAKEAWAYS")
 print("=" * 80)
 print("""
-1. Classification predicts discrete categories, not continuous values
+1. 분류는 연속값이 아니라 이산 범주를 예측한다
 
 2. Binary Classification (2 classes):
-   • Use BCEWithLogitsLoss
+   • BCEWithLogitsLoss를 쓴다
    • Model outputs 1 value (logit)
-   • Sigmoid converts logit → probability
-   • Labels are 0 or 1
+   • 시그모이드가 로짓을 확률로 바꾼다
+   • 레이블은 0 또는 1이다
 
 3. Multi-Class Classification (3+ classes):
-   • Use CrossEntropyLoss
+   • CrossEntropyLoss를 쓴다
    • Model outputs N values (logits), one per class
-   • Softmax converts logits → probability distribution
+   • 소프트맥스가 로짓을 확률 분포로 바꾼다
    • Labels are class indices (0, 1, 2, ...)
 
-4. Both loss functions handle activation internally
-   • Don't manually apply sigmoid/softmax before loss!
-   • More numerically stable this way
+4. 두 손실 함수 모두 활성화를 안에서 처리한다
+   • 손실 앞에서 시그모이드나 소프트맥스를 직접 걸지 마라!
+   • 이렇게 하면 수치적으로 더 안정적이다
 
 5. For inference (making predictions):
-   • Binary: threshold at 0.5 after sigmoid
-   • Multi-class: take argmax after softmax
+   • 이진: 시그모이드 뒤 0.5를 기준으로 나눈다
+   • 다중 클래스: 소프트맥스 뒤 argmax를 취한다
 
 다음 단계:
-→ Build a simple image classifier
-→ Experiment with different numbers of classes
-→ Learn about class imbalance and weighted losses
+→ 간단한 이미지 분류기를 만들어 보라
+→ 클래스 수를 달리하여 실험해 보라
+→ 클래스 불균형과 가중 손실을 배워 보라
 """)
 print("=" * 80)
 

@@ -574,14 +574,14 @@ print("""
 
   수작업 레이블링에 견준 이점:
   ┌──────────────────────┬─────────────┬───────────────────┐
-  │ Metric               │ Manual      │ Weak Supervision  │
+  │ 지표                 │ 수작업      │ 약지도            │
   ├──────────────────────┼─────────────┼───────────────────┤
-  │ Labeling time        │ Days-weeks  │ Hours             │
+  │ 레이블링 시간        │ 며칠~몇 주  │ 몇 시간           │
   │ Cost per label       │ $0.50-$5.00 │ ~$0 (code only)   │
   │ Scalability          │ Linear      │ O(1) once written │
-  │ Adaptability         │ Re-label    │ Update LFs        │
-  │ Consistency          │ Variable    │ Deterministic     │
-  │ Domain knowledge     │ Lost        │ Encoded in code   │
+  │ 적응성               │ 재레이블링  │ 함수 갱신         │
+  │ 일관성               │ 들쭉날쭉    │ 결정적            │
+  │ 분야 지식            │ 사라짐      │ 코드에 담김       │
   └──────────────────────┴─────────────┴───────────────────┘
 """)
 

@@ -485,39 +485,39 @@ print("""
    ✓ 모형 매기기
    ✓ 손실 함수와 최적화기 설정
    ✓ 검증을 곁들인 학습 루프
-   ✓ Model saving and loading
+   ✓ 모델 저장과 불러오기
    ✓ Inference
 
-2. BEST PRACTICES DEMONSTRATED:
-   ✓ Use DataLoader for efficient batching
+2. 보여 준 모범 사례:
+   ✓ 효율적인 배치 처리를 위해 DataLoader를 쓴다
    ✓ Set model.train() / model.eval() appropriately
    ✓ Use torch.no_grad() for inference
-   ✓ Track metrics during training
-   ✓ Save checkpoints with metadata
-   ✓ Use learning rate scheduling
-   ✓ Add dropout for regularization
+   ✓ 학습 중 지표를 추적한다
+   ✓ 메타데이터와 함께 체크포인트를 저장한다
+   ✓ 학습률 스케줄링을 쓴다
+   ✓ 정칙화를 위해 드롭아웃을 더한다
 
-3. PRODUCTION CONSIDERATIONS:
+3. 실서비스에서 살필 점:
    ✓ 설정 다루기
    ✓ 되풀이할 수 있음(마구잡이 씨앗)
    ✓ Device handling (CPU/GPU)
-   ✓ Progress logging
+   ✓ 진행 상황 기록
    ✓ Error handling (not shown but important)
-   ✓ Version control for models
+   ✓ 모델 버전 관리
 
-4. OPTIMIZATION CHOICES:
+4. 최적화 선택:
    • SGD with momentum (reliable, well-tested)
    • CrossEntropyLoss (standard for classification)
    • StepLR scheduler (gradual learning rate decay)
    • Dropout (prevents overfitting)
 
 다음 단계:
-→ Experiment with different architectures
+→ 여러 구조로 실험해 보라
 → Try other optimizers (Adam, AdamW)
-→ Add data augmentation
-→ Implement early stopping
-→ Use tensorboard for visualization
-→ Try on your own datasets!
+→ 데이터 증강을 더해 보라
+→ 조기 종료를 구현해 보라
+→ 시각화에는 텐서보드를 쓰라
+→ 자신의 데이터셋에 써 보라!
 """)
 print("=" * 80)
 
