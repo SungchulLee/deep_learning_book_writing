@@ -1,6 +1,6 @@
 # ResNet
 
-ResNet (Deep Residual Learning) was introduced in the 2015 paper "Deep Residual Learning for Image Recognition" by He et al. The core idea is the residual connection, which allows the network to learn identity mappings by default, solving the vanishing gradient problem and enabling training of networks with hundreds of layers. ResNet-50, implemented here, uses bottleneck blocks with $1 \times 1$, $3 \times 3$, and $1 \times 1$ convolutions.
+ResNet(깊은 잔차 학습)은 허 카이밍 등이 2015년 글 "그림 인식을 위한 깊은 잔차 학습"에서 내놓았다. 고갱이 생각은 잔차 연결이며, 그물이 기본으로 항등 사상을 배우게 하여 기울기 소실 문제를 풀고 수백 켜짜리 그물도 학습할 수 있게 한다. 여기 짠 ResNet-50은 $1 \times 1$, $3 \times 3$, $1 \times 1$ 합성곱으로 이루어진 병목 블록을 쓴다.
 
 ## 코드
 

@@ -6,7 +6,7 @@
 
 $G = (V, E)$을 근원 $s$과 바닥 $t$을 갖는 흐름 그물이라 하자.
 
-**$s$-$t$ cut.** A partition $(S, T)$ of $V$ with $s \in S$ and $t \in T$.
+**$s$-$t$ 자름.** $s \in S$이고 $t \in T$인 $V$의 가름 $(S, T)$.
 
 **자름의 담이.** $S$에서 $T$으로 건너가는 변의 담이의 합:
 
@@ -33,7 +33,7 @@ $$
 
 첫 등식은 흐름 보존에서 따라 나온다. 곧 흐름의 값은 어느 자름을 건너는 알짜 흐름과도 같다. 부등식은 흐름 값마다 그 변의 담이 아래로 묶이므로 따라 나온다.
 
-This immediately implies $\max_f |f| \le \min_{(S,T)} c(S, T)$.
+이로부터 곧바로 $\max_f |f| \le \min_{(S,T)} c(S, T)$이 따라 나온다.
 
 ## 그 정리
 
@@ -45,18 +45,18 @@ This immediately implies $\max_f |f| \le \min_{(S,T)} c(S, T)$.
     3. $|f| = c(S, T)$인 $s$-$t$ 자름 $(S, T)$이 있다.
 
 ??? example "증명"
-    **(1) $\Rightarrow$ (2):** If an augmenting path existed in $G_f$, we could increase the flow, contradicting maximality.
+    **(1) $\Rightarrow$ (2):** $G_f$에 늘리는 길이 있었다면 흐름을 더 키울 수 있으니 가장 크다는 것과 어긋난다.
 
-    **(2) $\Rightarrow$ (3):** Define $S = \{v \in V : v \text{ is reachable from } s \text{ in } G_f\}$ and $T = V \setminus S$. Since there is no augmenting path, $t \notin S$, so $(S, T)$ is a valid $s$-$t$ cut. For every edge $(u, v)$ with $u \in S$ and $v \in T$, the residual capacity must be zero (otherwise $v$ would be reachable), so $f(u, v) = c(u, v)$. For every edge $(v, u)$ with $v \in T$ and $u \in S$, we must have $f(v, u) = 0$ (otherwise the reverse edge would make $v$ reachable). Therefore $|f| = f(S, T) = c(S, T)$.
+    **(2) $\Rightarrow$ (3):** $S = \{v \in V : v \text{ is reachable from } s \text{ in } G_f\}$이라 하고 $T = V \setminus S$이라 하자. 늘리는 길이 없으므로 $t \notin S$이고 $(S, T)$은 옳은 $s$-$t$ 자름이다. $u \in S$이고 $v \in T$인 이음 $(u, v)$마다 나머지 담는 힘이 0이어야 한다(안 그러면 $v$에 닿을 수 있다). 따라서 $f(u, v) = c(u, v)$이다. $v \in T$이고 $u \in S$인 이음 $(v, u)$마다 $f(v, u) = 0$이어야 한다(안 그러면 뒤집은 이음 때문에 $v$에 닿을 수 있다). 그러므로 $|f| = f(S, T) = c(S, T)$이다.
 
-    **(3) $\Rightarrow$ (1):** By weak duality, $|f| \le c(S', T')$ for every cut $(S', T')$. If $|f| = c(S, T)$ for some cut, then $f$ achieves the upper bound and must be maximum. $\square$
+    **(3) $\Rightarrow$ (1):** 여린 짝 성질에 따라 모든 자름 $(S', T')$에 대해 $|f| \le c(S', T')$이다. 어떤 자름에서 $|f| = c(S, T)$이면 $f$은 위 테두리에 닿았으므로 가장 클 수밖에 없다. $\square$
 
 ## 최소 자름 찾기
 
-After computing a maximum flow $f^*$ using any max-flow algorithm:
+어떤 가장 큰 흐름 알고리즘으로든 가장 큰 흐름 $f^*$을 셈한 뒤에
 
-1. Build the residual graph $G_{f^*}$.
-2. Run BFS/DFS from $s$ in $G_{f^*}$ to find all reachable vertices $S$.
+1. 나머지 그래프 $G_{f^*}$을 짓는다.
+2. $G_{f^*}$에서 $s$부터 너비 먼저 찾기나 깊이 먼저 찾기를 돌려 닿을 수 있는 꼭짓점 $S$을 모두 찾는다.
 3. Set $T = V \setminus S$.
 4. 본디 그래프에서 $S$에서 $T$으로 가는 변이 최소 자름을 이룬다.
 
@@ -197,7 +197,7 @@ Cut edges: (0, 2), capacity 2
 최대 흐름 최소 자름 정리를 또렷이 말하여라.
 
 ??? success "연습문제 1 풀이"
-    **Theorem**: In any flow network, the maximum value of an $s$-$t$ flow equals the minimum capacity of an $s$-$t$ cut. An $s$-$t$ cut $(S, T)$ partitions $V$ into $S \ni s$ and $T \ni t$ with capacity $c(S, T) = \sum_{u \in S, v \in T} c(u, v)$. The theorem establishes a strong duality between flows and cuts, connecting combinatorial optimization with linear programming duality. $\square$
+    **정리**: 어떤 흐름 그물에서도 $s$-$t$ 흐름의 가장 큰 값은 $s$-$t$ 자름의 가장 작은 담는 힘과 같다. $s$-$t$ 자름 $(S, T)$은 $V$을 $S \ni s$과 $T \ni t$으로 가르며 담는 힘은 $c(S, T) = \sum_{u \in S, v \in T} c(u, v)$이다. 이 정리는 흐름과 자름 사이의 센 짝 성질을 세워 짜맞춤 가장 좋게 하기와 선형 계획의 짝 성질을 잇는다. $\square$
 
 ---
 
@@ -205,7 +205,7 @@ Cut edges: (0, 2), capacity 2
 최대 흐름 풀이가 주어질 때 그에 딸린 최소 자름을 찾는 방법을 설명하여라.
 
 ??? success "연습문제 2 풀이"
-    After computing the max flow, build the residual graph. Run BFS/DFS from $s$ in the residual graph. Let $S$ be the set of reachable vertices and $T = V \setminus S$. The cut $(S, T)$ is a min-cut. Its capacity equals the max flow value. The min-cut edges are all edges $(u, v)$ with $u \in S$ and $v \in T$ in the original graph — these edges are fully saturated. This takes $O(V + E)$ after the max-flow computation. $\square$
+    가장 큰 흐름을 셈한 뒤 나머지 그래프를 짓는다. 나머지 그래프에서 $s$부터 너비 먼저 찾기나 깊이 먼저 찾기를 돌린다. 닿을 수 있는 꼭짓점 묶음을 $S$이라 하고 $T = V \setminus S$이라 하자. 자름 $(S, T)$이 가장 작은 자름이다. 그 담는 힘은 가장 큰 흐름 값과 같다. 가장 작은 자름의 이음은 본디 그래프에서 $u \in S$이고 $v \in T$인 이음 $(u, v)$ 모두이며, 이 이음들은 가득 차 있다. 가장 큰 흐름을 셈한 뒤 $O(V + E)$이 든다. $\square$
 
 ---
 
@@ -213,7 +213,7 @@ Cut edges: (0, 2), capacity 2
 어떤 흐름 값도 어떤 자름의 담이를 넘지 않음을 증명하여라.
 
 ??? success "연습문제 3 풀이"
-    Let $f$ be any flow and $(S, T)$ any cut. The flow value $|f| = \sum_{u \in S, v \in T} f(u,v) - \sum_{u \in T, v \in S} f(u,v)$ (net flow across the cut). Since $f(u,v) \leq c(u,v)$ and $f(u,v) \geq 0$: $|f| \leq \sum_{u \in S, v \in T} c(u,v) - 0 = c(S, T)$. This holds for any flow and any cut, so max flow $\leq$ min cut. The Max-Flow Min-Cut Theorem shows equality is achieved. $\square$
+    $f$을 아무 흐름, $(S, T)$을 아무 자름이라 하자. 흐름 값은 $|f| = \sum_{u \in S, v \in T} f(u,v) - \sum_{u \in T, v \in S} f(u,v)$이다(자름을 가로지르는 알짜 흐름). $f(u,v) \leq c(u,v)$이고 $f(u,v) \geq 0$이므로 $|f| \leq \sum_{u \in S, v \in T} c(u,v) - 0 = c(S, T)$이다. 어떤 흐름과 어떤 자름에도 이것이 이루어지므로 가장 큰 흐름 $\leq$ 가장 작은 자름이다. 가장 큰 흐름-가장 작은 자름 정리는 여기서 같음이 이루어짐을 보인다. $\square$
 
 ---
 
@@ -221,4 +221,4 @@ Cut edges: (0, 2), capacity 2
 그림 나누기에서 최소 자름의 쓰임새를 설명하여라.
 
 ??? success "연습문제 4 풀이"
-    Model an image as a graph: each pixel is a vertex. Add source $s$ (foreground) and sink $t$ (background). Edge weights between adjacent pixels reflect similarity (high weight = similar = expensive to cut). Edges from $s$ to pixels reflect foreground likelihood; edges from pixels to $t$ reflect background likelihood. The min-cut separates foreground from background, minimizing the total cost of cutting dissimilar pairs and misclassified pixels. This is used in interactive segmentation (GrabCut) and medical imaging. $\square$
+    그림을 그래프로 그린다. 낱그림점마다 꼭짓점 하나다. 샘 $s$(앞바탕)과 웅덩이 $t$(뒷바탕)을 더한다. 이웃한 낱그림점 사이의 이음 짐은 닮음을 나타낸다(짐이 크면 닮았고 자르는 값이 비싸다). $s$에서 낱그림점으로 가는 이음은 앞바탕일 그럴듯함을, 낱그림점에서 $t$으로 가는 이음은 뒷바탕일 그럴듯함을 나타낸다. 가장 작은 자름이 앞바탕과 뒷바탕을 갈라, 닮지 않은 짝을 자르는 값과 잘못 가른 낱그림점의 값을 합쳐 가장 작게 한다. 주고받는 나누기(GrabCut)나 의료 영상에 쓴다. $\square$

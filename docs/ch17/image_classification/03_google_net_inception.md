@@ -181,11 +181,11 @@ if __name__ == "__main__":
 
 ## 논의
 
-The Inception module is GoogLeNet's central design contribution. Instead of choosing a single filter size at each layer, Inception applies $1 \times 1$, $3 \times 3$, and $5 \times 5$ convolutions in parallel alongside $3 \times 3$ max pooling, then concatenates all outputs along the channel dimension. This lets the network learn which spatial scale is most informative at each layer without the designer having to commit to one. The $1 \times 1$ convolutions placed before the larger filters serve as dimensionality reduction bottlenecks, cutting the number of input channels and drastically reducing computational cost.
+인셉션 모듈은 GoogLeNet의 고갱이 설계 이바지다. 켜마다 거르개 크기를 하나만 고르는 대신, 인셉션은 $1 \times 1$, $3 \times 3$, $5 \times 5$ 합성곱과 $3 \times 3$ 최대 풀링을 나란히 걸고 그 날임을 채널 차원으로 이어 붙인다. 그래서 설계자가 하나를 골라 두지 않아도 그물이 켜마다 어떤 공간 잣대가 가장 알려 주는 바가 큰지 배운다. 더 큰 거르개 앞에 둔 $1 \times 1$ 합성곱은 차원을 줄이는 병목 노릇을 하여 들임 채널 수를 줄이고 셈 값을 크게 낮춘다.
 
 익히는 동안 가운데 층에 곁딸린 갈래 매개를 붙여 앞쪽 층에 더 가까이 기울기 신호를 넣어 주며, 22층 깊이 그물에 딸린 기울기 사라짐 문제를 이겨낸다. 이 갈래 매개는 미룸 때에 버린다. 큰 온전히 이은 층 대신 전체 평균 모으기를 쓴 것과 어우러져, GoogLeNet은 매개변수를 약 12분의 1만 쓰고도 AlexNet을 넘어서는 정확도를 내며, 얼개를 잘 꾸미는 것이 막무가내로 키우는 것보다 나을 수 있음을 보여 준다.
 
-The Inception philosophy -- exploring multi-scale features through parallel branches and reducing dimensionality with $1 \times 1$ convolutions -- became a lasting influence on subsequent architectures. Later Inception variants (v2, v3, v4) refined these ideas with factorized convolutions, label smoothing, and residual connections, but the core principle remains: let the network choose the right feature scale at every layer.
+나란한 가지로 여러 잣대의 특징을 살피고 $1 \times 1$ 합성곱으로 차원을 줄인다는 인셉션의 생각은 뒤이은 구조에 오래 영향을 미쳤다. 뒤의 인셉션 갈래(v2, v3, v4)는 나눈 합성곱, 레이블 스무딩, 잔차 연결로 이 생각을 다듬었지만 고갱이 원칙은 그대로다. 켜마다 알맞은 특징 잣대를 그물이 스스로 고르게 하라는 것이다.
 
 ## 연습문제
 
@@ -198,7 +198,7 @@ The Inception philosophy -- exploring multi-scale features through parallel bran
     - Branch 1 ($1 \times 1$): $192 \times 64 + 64 = 12{,}352$
     - Branch 2 ($1 \times 1$ then $3 \times 3$): $(192 \times 96 + 96) + (96 \times 128 \times 9 + 128) = 18{,}528 + 110{,}720 = 129{,}248$
     - Branch 3 ($1 \times 1$ then $5 \times 5$): $(192 \times 16 + 16) + (16 \times 32 \times 25 + 32) = 3{,}088 + 12{,}832 = 15{,}920$
-    - Branch 4 (pool then $1 \times 1$): $192 \times 32 + 32 = 6{,}176$
+    - 가지 4(풀링 뒤 $1 \times 1$): $192 \times 32 + 32 = 6{,}176$
 
     모두: $12{,}352 + 129{,}248 + 15{,}920 + 6{,}176 = 163{,}696$개의 매개변수.
 
@@ -226,7 +226,7 @@ The Inception philosophy -- exploring multi-scale features through parallel bran
 ---
 
 **연습문제 3.**
-Modify the `InceptionModule` to replace the $5 \times 5$ convolution with two stacked $3 \times 3$ convolutions (as done in Inception v2). Compare the parameter count of both versions.
+`InceptionModule`에서 $5 \times 5$ 합성곱을 $3 \times 3$ 합성곱 둘을 쌓은 것으로 갈음하도록 고쳐라(인셉션 v2가 그렇게 한다). 두 갈래의 매개변수 수를 견주어라.
 
 ??? success "연습문제 3 풀이"
     인셉션 단원의 3번 가지를 갈음하여라:
@@ -256,4 +256,4 @@ Modify the `InceptionModule` to replace the $5 \times 5$ convolution with two st
     - Original $5 \times 5$: $16 \times 32 \times 25 + 32 = 12{,}832$
     - Two $3 \times 3$: $(16 \times 32 \times 9 + 32) + (32 \times 32 \times 9 + 32) = 4{,}640 + 9{,}248 = 13{,}888$
 
-    The two stacked $3 \times 3$ convolutions have a similar parameter count but provide a larger effective receptive field with an additional non-linearity between them, which improves representational power.
+    쌓은 $3 \times 3$ 합성곱 둘은 매개변수 수가 비슷하지만 사이에 비선형이 하나 더 들어가면서 실효 수용 영역이 더 넓어져 표현력이 좋아진다.

@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
 ## 논의
 
-Compound scaling is EfficientNet's key contribution. Traditional approaches scale networks along a single dimension (deeper, wider, or higher resolution), but EfficientNet scales all three simultaneously using coefficients $\alpha$, $\beta$, and $\gamma$ raised to a shared exponent $\phi$: depth $= \alpha^\phi$, width $= \beta^\phi$, resolution $= \gamma^\phi$. A grid search finds optimal $\alpha$, $\beta$, $\gamma$ under a constraint $\alpha \cdot \beta^2 \cdot \gamma^2 \approx 2$, and then $\phi$ controls overall model size.
+복합 스케일링이 EfficientNet의 고갱이 이바지다. 여느 방법은 그물을 한 차원으로만 키우지만(더 깊게, 더 넓게, 또는 더 높은 해상도로) EfficientNet은 계수 $\alpha$, $\beta$, $\gamma$에 공통 지수 $\phi$을 올려 셋을 한꺼번에 키운다. 깊이 $= \alpha^\phi$, 너비 $= \beta^\phi$, 해상도 $= \gamma^\phi$이다. 격자 탐색으로 $\alpha \cdot \beta^2 \cdot \gamma^2 \approx 2$이라는 제약 아래 가장 좋은 $\alpha$, $\beta$, $\gamma$을 찾고, 그다음 $\phi$이 모델 전체 크기를 다스린다.
 
 MBConv 덩이는 깊이별로 갈라지는 누비기와 쥐어짜기-북돋우기 눈길을 아우른다. 부풀리기 단계가 채널을 늘리고, 깊이별 누비기가 매개변수를 거의 안 쓰고 자리 앎을 다루며, SE 단원이 채널의 중요함을 다시 매기고, 내리쬐기 단계가 내놓는 차원으로 다시 눌러 담는다. 들임과 내놓음의 꼴이 맞을 때 건너뛰는 이음을 쓴다.
 
@@ -156,28 +156,28 @@ EfficientNet은 원칙 있는 잣수 맞추기가 임시변통 꾸밈보다 정�
 ## 연습문제
 
 **연습문제 1.**
-Given the compound scaling rule with $\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$, and $\phi = 2$, compute the depth multiplier, width multiplier, and input resolution multiplier for an EfficientNet-B2-like model.
+$\alpha = 1.2$, $\beta = 1.1$, $\gamma = 1.15$, $\phi = 2$인 복합 스케일링 규칙이 주어졌을 때 EfficientNet-B2 꼴 모델의 깊이 곱값, 너비 곱값, 들임 해상도 곱값을 셈하여라.
 
 ??? success "연습문제 1 풀이"
 
-    - Depth multiplier: $\alpha^\phi = 1.2^2 = 1.44$
-    - Width multiplier: $\beta^\phi = 1.1^2 = 1.21$
-    - Resolution multiplier: $\gamma^\phi = 1.15^2 = 1.3225$
+    - 깊이 곱값: $\alpha^\phi = 1.2^2 = 1.44$
+    - 너비 곱값: $\beta^\phi = 1.1^2 = 1.21$
+    - 해상도 곱값: $\gamma^\phi = 1.15^2 = 1.3225$
 
-    If the base resolution is 224, the scaled resolution would be $224 \times 1.3225 \approx 296$, rounded to the nearest multiple of 8: $296$.
+    밑 해상도가 224이면 키운 해상도는 $224 \times 1.3225 \approx 296$이고 8의 배수로 반올림하면 $296$이다.
 
 ---
 
 **연습문제 2.**
-Compare the parameter reduction of depthwise separable convolutions versus standard convolutions for a layer with 128 input channels, 128 output channels, and a $3 \times 3$ kernel.
+들임 채널 128개, 날임 채널 128개, $3 \times 3$ 커널인 켜에서 깊이별 분리 합성곱과 여느 합성곱의 매개변수 줄임을 견주어라.
 
 ??? success "연습문제 2 풀이"
 
-    - Standard convolution: $128 \times 128 \times 3 \times 3 = 147{,}456$ parameters
-    - Depthwise separable: depthwise ($128 \times 3 \times 3 = 1{,}152$) + pointwise ($128 \times 128 \times 1 = 16{,}384$) = $17{,}536$ parameters
-    - Reduction factor: $147{,}456 / 17{,}536 \approx 8.4\times$
+    - 여느 합성곱: 매개변수 $128 \times 128 \times 3 \times 3 = 147{,}456$개
+    - 깊이별 분리: 깊이별($128 \times 3 \times 3 = 1{,}152$) + 점별($128 \times 128 \times 1 = 16{,}384$) = 매개변수 $17{,}536$개
+    - 줄임 배수: $147{,}456 / 17{,}536 \approx 8.4\times$
 
-    This is approximately $K^2 + 1/C_{\text{out}}$ savings, which for $K=3$ gives about $9\times$ theoretical reduction.
+    이는 대략 $K^2 + 1/C_{\text{out}}$만큼 아끼는 것이며 $K=3$이면 이론상 약 $9\times$ 줄어든다.
 
 ---
 
