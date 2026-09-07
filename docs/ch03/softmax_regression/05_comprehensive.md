@@ -356,7 +356,7 @@ class Trainer:
         Args:
             model: PyTorch model
             train_loader, val_loader, test_loader: Data loaders
-            criterion: Loss function
+            criterion: 잃음 함수
             optimizer: Optimizer
             device: Device to train on
             experiment_name: Name for saving results

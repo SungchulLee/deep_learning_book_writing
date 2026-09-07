@@ -46,24 +46,24 @@ print("=" * 80)
 
 식: softmax(x_i) = exp(x_i) / sum(exp(x_j) for all j)
 
-Why do we use it?
-- Converts raw scores to interpretable probabilities
-- Amplifies differences between scores (larger values get higher probabilities)
-- Essential for multi-class classification
+왜 쓰는가?
+- 날것 점수를 읽을 수 있는 확률로 바꾼다
+- 점수 사이의 차이를 키운다(큰 값일수록 확률이 높아진다)
+- 여러 갈래 가름에 꼭 필요하다
 """
 
 def softmax_numpy(x):
     """
-    Compute softmax values for a 1D array.
+    1차원 배열의 소프트맥스 값을 셈한다.
     
     Args:
-        x (np.array): Input array of logits (raw scores)
+        x (np.array): 로짓(날것 점수) 들임 배열
     
     Returns:
         np.array: Probability distribution (sums to 1)
     
-    Note: For numerical stability, we subtract the max value before exp.
-          This doesn't change the result but prevents overflow.
+    눈여겨볼 것: 수치가 든든하도록 exp 앞에 최댓값을 뺀다.
+          결과는 그대로이면서 넘침을 막는다.
     """
     # 수치적 안정성을 위해 최댓값을 뺀다 (exp에서 넘침을 막는다)
     x_shifted = x - np.max(x)
@@ -146,33 +146,33 @@ print("PART 3: Cross-Entropy Loss")
 print("=" * 80)
 
 """
-What is Cross-Entropy Loss?
+엇갈린 엔트로피 잃음이란 무엇인가?
 ----------------------------
-Cross-entropy measures how different your predicted probability distribution
-is from the true distribution. Lower loss = better predictions.
+엇갈린 엔트로피는 예측한 확률 분포가 참 분포와 얼마나 다른지 잰다.
+잃음이 작을수록 예측이 좋다.
 
-For a single sample with true class k:
-  Loss = -log(p_k)
+참 갈래가 k인 표본 하나에 대해
+  잃음 = -log(p_k)
   
-where p_k is the predicted probability for the true class.
+여기서 p_k은 참 갈래에 매긴 예측 확률이다.
 
-Why negative log?
-- If p_k = 1.0 (perfect prediction), loss = -log(1.0) = 0
-- If p_k = 0.5 (uncertain), loss = -log(0.5) = 0.69
-- If p_k = 0.1 (wrong), loss = -log(0.1) = 2.30
-- If p_k → 0 (very wrong), loss → infinity
+왜 음의 로그인가?
+- p_k = 1.0이면(완벽한 예측) 잃음 = -log(1.0) = 0
+- p_k = 0.5이면(아리송함) 잃음 = -log(0.5) = 0.69
+- p_k = 0.1이면(틀림) 잃음 = -log(0.1) = 2.30
+- p_k → 0이면(크게 틀림) 잃음 → 끝없이 커진다
 """
 
 def cross_entropy_numpy(true_class, predicted_probs):
     """
-    Compute cross-entropy loss for a single sample.
+    표본 하나의 엇갈린 엔트로피 잃음을 셈한다.
     
     Args:
-        true_class (int): Index of the true class (0, 1, 2, ...)
-        predicted_probs (np.array): Predicted probabilities for each class
+        true_class (int): 참 갈래의 번호(0, 1, 2, ...)
+        predicted_probs (np.array): 갈래마다의 예측 확률
     
     Returns:
-        float: Cross-entropy loss value
+        float: 엇갈린 엔트로피 잃음 값
     """
     # log(0)을 피하려고 작은 엡실론을 더한다
     eps = 1e-15
@@ -216,18 +216,18 @@ print("PART 4: PyTorch CrossEntropyLoss")
 print("=" * 80)
 
 """
-CRITICAL CONCEPT: PyTorch's CrossEntropyLoss
+종요로운 개념: PyTorch의 CrossEntropyLoss
 --------------------------------------------
-nn.CrossEntropyLoss combines:
-  1. Softmax (converts logits to probabilities)
-  2. Log (takes logarithm)
-  3. Negative Log Likelihood (computes loss)
+nn.CrossEntropyLoss은 다음을 아우른다.
+  1. 소프트맥스(로짓을 확률로 바꾼다)
+  2. 로그(로그를 취한다)
+  3. 음의 로그 가능도(잃음을 셈한다)
 
 INPUT:
-  - Predictions: raw logits (unnormalized scores), NOT probabilities
-  - Targets: class indices (0, 1, 2, ...), NOT one-hot vectors
+  - 예측: 날것 로짓(잣대 맞추지 않은 점수)이지 확률이 아니다
+  - 과녁: 갈래 번호(0, 1, 2, ...)이지 원핫 벡터가 아니다
 
-DO NOT apply softmax before CrossEntropyLoss - it does it internally!
+CrossEntropyLoss 앞에 소프트맥스를 걸지 마라. 안에서 절로 한다!
 """
 
 # 손실 함수를 만든다
@@ -295,34 +295,34 @@ print("PART 5: Complete Pipeline")
 print("=" * 80)
 
 print("""
-The Complete Softmax Regression Pipeline:
+온전한 소프트맥스 회귀 흐름:
 ------------------------------------------
 
-1. Model Output (Logits)
+1. 모형 내놓음(로짓)
    ↓
-   [2.5, 1.0, 0.3]  ← Raw, unnormalized scores
+   [2.5, 1.0, 0.3]  ← 날것, 잣대 맞추지 않은 점수
    
-2. Softmax (in CrossEntropyLoss)
+2. 소프트맥스(CrossEntropyLoss 안에서)
    ↓
-   [0.77, 0.17, 0.08]  ← Probabilities (sum to 1)
+   [0.77, 0.17, 0.08]  ← 확률(합이 1이다)
    
-3. Cross-Entropy Loss
+3. 엇갈린 엔트로피 잃음
    ↓
-   Compare with true class → Compute loss
+   참 갈래와 견준다 → 잃음을 셈한다
    
 4. Backpropagation
    ↓
-   Update model weights to reduce loss
+   잃음을 줄이도록 모형 무게를 고친다
 
-During TRAINING:
-  - Use CrossEntropyLoss (it handles softmax internally)
-  - Input: logits (raw scores)
-  - Target: class indices
+익힐 때는
+  - CrossEntropyLoss을 쓴다(안에서 소프트맥스를 다룬다)
+  - 들임: 로짓(날것 점수)
+  - 과녁: 갈래 번호
 
-During INFERENCE (making predictions):
-  - Get logits from model
-  - Apply softmax to get probabilities (optional)
-  - Use argmax to get predicted class
+미룸(예측)에서는
+  - 모형에서 로짓을 얻는다
+  - 확률이 필요하면 소프트맥스를 건다(골라 쓴다)
+  - argmax으로 예측 갈래를 얻는다
 """)
 
 
@@ -334,7 +334,7 @@ print("PART 6: Common Mistakes and Best Practices")
 print("=" * 80)
 
 print("""
-❌ MISTAKE 1: Applying softmax before CrossEntropyLoss
+❌ 잘못 1: CrossEntropyLoss 앞에 소프트맥스를 거는 것
 --------------------------------------------------
 # 틀린 방법:
 probs = torch.softmax(logits, dim=1)
@@ -344,7 +344,7 @@ loss = criterion(probs, targets)  # Double softmax!
 loss = criterion(logits, targets)  # CrossEntropyLoss applies softmax
 
 
-❌ MISTAKE 2: Using one-hot encoded targets
+❌ 잘못 2: 원핫으로 바꾼 과녁을 쓰는 것
 --------------------------------------------------
 # 틀린 방법:
 targets = torch.tensor([[1, 0, 0], [0, 1, 0]])  # One-hot encoded
@@ -353,20 +353,20 @@ targets = torch.tensor([[1, 0, 0], [0, 1, 0]])  # One-hot encoded
 targets = torch.tensor([0, 1])  # Class indices
 
 
-❌ MISTAKE 3: Wrong tensor shapes
+❌ 잘못 3: 텐서 꼴이 틀린 것
 --------------------------------------------------
 # 표본 10개, 클래스 5개의 배치에 대해:
-logits shape should be:  (10, 5)
-targets shape should be: (10,)  NOT (10, 1) or (10, 5)
+로짓의 꼴은 이래야 한다:  (10, 5)
+과녁의 꼴은 이래야 한다: (10,)이며 (10, 1)이나 (10, 5)가 아니다
 
 
-✅ BEST PRACTICES:
+✅ 좋은 버릇:
 --------------------------------------------------
-1. Return logits from your model (no softmax in forward())
-2. Use CrossEntropyLoss for training
-3. Apply softmax only at inference if you need probabilities
-4. Use class indices for targets, not one-hot vectors
-5. Check tensor shapes: logits (N, C), targets (N,)
+1. 모형은 로짓을 돌려준다(forward()에 소프트맥스를 두지 않는다)
+2. 익힘에는 CrossEntropyLoss을 쓴다
+3. 확률이 필요하면 미룸에서만 소프트맥스를 건다
+4. 과녁으로 원핫 벡터가 아니라 갈래 번호를 쓴다
+5. 텐서 꼴을 살핀다: 로짓 (N, C), 과녁 (N,)
 """)
 
 
@@ -378,17 +378,17 @@ print("PART 7: Quick Practice")
 print("=" * 80)
 
 print("""
-Try to predict the outcome:
+결과를 미리 짚어 보아라.
 ---------------------------
 Given:
-  - True class: 1
+  - 참 갈래: 1
   - Logits: [1.0, 5.0, 2.0]
 
 Questions:
-1. Which class will the model predict? (Hint: argmax)
-2. Will the loss be high or low? (Hint: is the prediction correct?)
+1. 모형은 어느 갈래를 예측하겠는가?(실마리: argmax)
+2. 잃음은 클까 작을까?(실마리: 예측이 맞는가?)
 
-Let's check:
+살펴보자.
 """)
 
 true_class_exercise = torch.tensor([1])
@@ -411,21 +411,21 @@ print("SUMMARY - What You Learned")
 print("=" * 80)
 
 print("""
-✅ Softmax converts logits into probabilities
-✅ Cross-entropy measures prediction quality
-✅ Lower loss = better predictions
-✅ PyTorch's CrossEntropyLoss:
-   - Takes logits as input (NOT probabilities)
-   - Takes class indices as targets (NOT one-hot)
-   - Combines softmax + log + NLL internally
+✅ 소프트맥스가 로짓을 확률로 바꾼다
+✅ 엇갈린 엔트로피가 예측의 좋음을 잰다
+✅ 잃음이 작을수록 예측이 좋다
+✅ PyTorch의 CrossEntropyLoss:
+   - 들임으로 로짓을 받는다(확률이 아니다)
+   - 과녁으로 갈래 번호를 받는다(원핫이 아니다)
+   - 안에서 소프트맥스 + 로그 + NLL을 아우른다
 
 다음 걸음:
 -----------
-→ Level 2: Build a simple neural network for classification
-→ Level 3: Train on real datasets (MNIST)
-→ Level 4: Advanced techniques and optimizations
+→ 2단계: 가름을 위한 단순한 신경망 짓기
+→ 3단계: 참 자료 묶음으로 익히기(MNIST)
+→ 4단계: 앞선 솜씨와 다듬기
 
-🎉 Congratulations! You've mastered the fundamentals!
+🎉 잘했다! 기초를 익혔다!
 """)
 
 

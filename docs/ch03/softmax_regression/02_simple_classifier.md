@@ -9,17 +9,17 @@
 ```python
 """
 ===============================================================================
-LEVEL 2: Building Your First Softmax Classifier
+2단계: 첫 소프트맥스 가름개 짓기
 ===============================================================================
-Difficulty: Beginner-Intermediate
-Prerequisites: Level 1, basic PyTorch
+어려움: 첫걸음~가운데
+미리 알아 둘 것: 1단계, 기본 PyTorch
 배움 목표:
-  - Build a simple neural network for multi-class classification
-  - Understand the training loop structure
+  - 여러 갈래 가름을 위한 단순한 신경망을 짓는다
+  - 익힘 되돌이의 짜임을 이해한다
   - 가름 테두리를 그림으로 본다
   - 모형의 성능을 따진다
 
-Time to complete: 30-45 minutes
+마치는 데 드는 때: 30~45분
 ===============================================================================
 """
 
@@ -49,15 +49,15 @@ print("=" * 80)
 
 def create_dataset(dataset_type='blobs', n_samples=1000):
     """
-    Create synthetic 2D datasets for classification.
+    가름을 위한 인공 2차원 자료 묶음을 만든다.
     
     Args:
-        dataset_type (str): 'blobs', 'moons', or 'circles'
-        n_samples (int): Number of samples to generate
+        dataset_type (str): 'blobs', 'moons', 'circles' 가운데 하나
+        n_samples (int): 만들 표본의 수
     
     Returns:
-        X (np.array): Features of shape (n_samples, 2)
-        y (np.array): Labels of shape (n_samples,)
+        X (np.array): 꼴이 (n_samples, 2)인 특징
+        y (np.array): 꼴이 (n_samples,)인 이름표
     """
     if dataset_type == 'blobs':
         # 잘 분리된 군집 (가장 쉽다)
@@ -133,30 +133,30 @@ print("=" * 80)
 
 class SoftmaxClassifier(nn.Module):
     """
-    Simple feedforward neural network for multi-class classification.
+    여러 갈래 가름을 위한 단순한 앞먹임 신경망.
     
     Architecture:
-        Input Layer (2 features)
+        들임 층(특징 2개)
           ↓
-        Hidden Layer (64 neurons) + ReLU
+        숨은 층(뉴런 64개) + ReLU
           ↓
-        Hidden Layer (32 neurons) + ReLU
+        숨은 층(뉴런 32개) + ReLU
           ↓
-        Output Layer (3 classes) → logits
+        내놓음 층(갈래 3개) → 로짓
     
-    Note: We don't apply softmax in forward() because CrossEntropyLoss
-          handles it internally for numerical stability.
+    눈여겨볼 것: 수치가 든든하도록 CrossEntropyLoss이 안에서 다루므로
+          forward()에서는 소프트맥스를 걸지 않는다.
     """
     
     def __init__(self, input_size=2, hidden_size1=64, hidden_size2=32, num_classes=3):
         """
-        Initialize the network layers.
+        그물의 층을 첫자리 잡는다.
         
         Args:
-            input_size (int): Number of input features
-            hidden_size1 (int): Number of neurons in first hidden layer
-            hidden_size2 (int): Number of neurons in second hidden layer
-            num_classes (int): Number of output classes
+            input_size (int): 들임 특징의 수
+            hidden_size1 (int): 첫 숨은 층의 뉴런 수
+            hidden_size2 (int): 둘째 숨은 층의 뉴런 수
+            num_classes (int): 내놓음 갈래의 수
         """
         super(SoftmaxClassifier, self).__init__()
         
@@ -169,13 +169,13 @@ class SoftmaxClassifier(nn.Module):
         
     def forward(self, x):
         """
-        Forward pass through the network.
+        그물을 지나는 앞으로 걸음.
         
         Args:
-            x (torch.Tensor): Input tensor of shape (batch_size, input_size)
+            x (torch.Tensor): 꼴이 (batch_size, input_size)인 들임 텐서
         
         Returns:
-            torch.Tensor: Logits of shape (batch_size, num_classes)
+            torch.Tensor: 꼴이 (batch_size, num_classes)인 로짓
         """
         out = self.fc1(x)      # Apply first linear transformation
         out = self.relu1(out)  # Apply ReLU activation
@@ -236,19 +236,19 @@ print("=" * 80)
 def train_model(model, X_train, y_train, X_test, y_test, 
                 criterion, optimizer, num_epochs=100, verbose=True):
     """
-    Train the model and track metrics.
+    모형을 익히고 자를 좇는다.
     
     Args:
-        model: PyTorch model to train
-        X_train, y_train: Training data
-        X_test, y_test: Test data
-        criterion: Loss function
-        optimizer: Optimization algorithm
-        num_epochs: Number of training iterations
-        verbose: Whether to print progress
+        model: 익힐 PyTorch 모형
+        X_train, y_train: 익힘 자료
+        X_test, y_test: 시험 자료
+        criterion: 잃음 함수
+        optimizer: 가장 좋게 하는 알고리즘
+        num_epochs: 익힘 되돌이 수
+        verbose: 나아가는 모습을 찍을지 여부
     
     Returns:
-        dict: Training history (losses and accuracies)
+        dict: 익힘 자취(잃음과 맞음)
     """
     # 학습 기록을 저장한다
     history = {
@@ -378,13 +378,13 @@ print("=" * 80)
 
 def plot_decision_boundaries(model, X, y, title="Decision Boundaries"):
     """
-    Visualize the decision boundaries learned by the model.
+    모형이 배운 가름 테두리를 그림으로 본다.
     
     Args:
-        model: Trained PyTorch model
-        X (np.array): Input features
-        y (np.array): True labels
-        title (str): Plot title
+        model: 익힌 PyTorch 모형
+        X (np.array): 들임 특징
+        y (np.array): 참 이름표
+        title (str): 그림 제목
     """
     # 격자를 만든다
     h = 0.02  # Step size in the mesh
@@ -430,15 +430,15 @@ print("=" * 80)
 
 def predict_with_probabilities(model, X_new):
     """
-    Make predictions and show probabilities for each class.
+    예측하고 갈래마다의 확률을 보인다.
     
     Args:
-        model: Trained model
-        X_new (torch.Tensor): New input samples
+        model: 익힌 모형
+        X_new (torch.Tensor): 새 들임 표본
     
     Returns:
-        predictions (torch.Tensor): Predicted class indices
-        probabilities (torch.Tensor): Probabilities for each class
+        predictions (torch.Tensor): 예측한 갈래 번호
+        probabilities (torch.Tensor): 갈래마다의 확률
     """
     model.eval()
     with torch.no_grad():
@@ -529,30 +529,30 @@ print("SUMMARY - What You Learned")
 print("=" * 80)
 
 print("""
-✅ Created synthetic datasets for classification
-✅ Built a multi-layer neural network with PyTorch
-✅ Implemented a complete training loop
-✅ Tracked training and test metrics
-✅ Visualized decision boundaries
-✅ Made predictions with probability estimates
-✅ Evaluated model performance with metrics
-✅ Saved and loaded trained models
+✅ 가름을 위한 인공 자료 묶음을 만들었다
+✅ PyTorch으로 여러 층 신경망을 지었다
+✅ 온전한 익힘 되돌이를 짰다
+✅ 익힘과 시험의 자를 좇았다
+✅ 가름 테두리를 그림으로 보았다
+✅ 확률 어림을 곁들여 예측했다
+✅ 자로 모형의 성능을 따졌다
+✅ 익힌 모형을 갈무리하고 불러왔다
 
-Key Training Loop Components:
+익힘 되돌이의 고갱이 조각:
 ------------------------------
-1. Forward pass: model(X) → logits
-2. Compute loss: criterion(logits, y)
-3. Clear gradients: optimizer.zero_grad()
-4. Backward pass: loss.backward()
-5. Update weights: optimizer.step()
+1. 앞으로 걸음: model(X) → 로짓
+2. 잃음 셈하기: criterion(logits, y)
+3. 기울기 지우기: optimizer.zero_grad()
+4. 뒤로 걸음: loss.backward()
+5. 무게 고치기: optimizer.step()
 
 다음 걸음:
 -----------
-→ Level 3: Train on real datasets (MNIST, Fashion-MNIST)
-→ Level 4: Implement from scratch (custom training)
-→ Level 5: Advanced techniques (regularization, data augmentation)
+→ 3단계: 참 자료 묶음으로 익히기(MNIST, 패션 MNIST)
+→ 4단계: 맨바닥부터 짜기(맞춤 익힘)
+→ 5단계: 앞선 솜씨(정칙화, 자료 불리기)
 
-🎉 Great job! You've built and trained your first classifier!
+🎉 잘했다! 첫 가름개를 짓고 익혔다!
 """)
 
 

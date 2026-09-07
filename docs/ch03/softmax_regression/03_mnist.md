@@ -9,16 +9,16 @@
 ```python
 """
 ===============================================================================
-LEVEL 3: Softmax Regression on MNIST Dataset
+3단계: MNIST 자료 묶음에서의 소프트맥스 회귀
 ===============================================================================
-Difficulty: Intermediate
-Prerequisites: Level 1 & 2, understanding of image data
+어려움: 가운데
+미리 알아 둘 것: 1·2단계, 그림 자료 이해
 배움 목표:
-  - Work with real-world image dataset (MNIST)
-  - Handle data loading and batching
+  - 참 세상 그림 자료 묶음(MNIST)을 다룬다
+  - 자료 불러오기와 묶음 만들기를 다룬다
   - 익힘/다짐/시험 나누기를 제대로 짠다
-  - Use data loaders and mini-batch training
-  - Visualize predictions on images
+  - 자료 불러오개와 작은 묶음 익히기를 쓴다
+  - 그림에 대한 예측을 그림으로 본다
 
 Time to complete: 45-60 minutes
 ===============================================================================
@@ -622,7 +622,7 @@ print(f"""
 ✅ Achieved {test_accuracy:.2%} accuracy on test set
 ✅ Visualized predictions and analyzed errors
 ✅ Generated confusion matrix and per-class metrics
-✅ Saved and loaded trained models
+✅ 익힌 모형을 갈무리하고 불러왔다
 
 고갱이 개념:
 -------------
