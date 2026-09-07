@@ -1,40 +1,40 @@
-# Attention Pattern Analysis
-## Introduction
+# 눈길 결 살피기
+## 들머리
 
-Beyond basic attention weight visualization, understanding **how attention patterns organize across heads, layers, and modalities** is essential for interpreting transformer models. This section consolidates multi-head analysis, layer-wise progression, cross-attention interpretation, visualization tooling, and the critical distinction between attention and attribution.
+눈길 짐을 그저 그리는 데서 나아가, **눈길 결이 머리와 켜와 갈래를 가로질러 어떻게 짜이는지** 아는 일이 변환기 모형을 풀이하는 데 꼭 있어야 한다. 이 마디는 여러 머리 살피기, 켜를 따라가는 흐름, 엇갈린 눈길 풀이하기, 그림 그리는 연장, 그리고 눈길과 몫 매기기의 종요로운 차이를 한데 모은다.
 
-## Multi-Head Attention Analysis
+## 여러 머리 눈길 살피기
 
-### Mathematical Background
+### 수학 뒷그림
 
-Multi-head attention computes $H$ separate attention distributions in parallel:
+여러 머리 눈길은 $H$개의 눈길 분포를 나란히 셈한다.
 
 $$
 \text{MultiHead}(Q, K, V) = \text{Concat}(\text{head}_1, \ldots, \text{head}_H) W^O
 $$
 
-where each head computes:
+여기서 머리마다 이렇게 셈한다.
 
 $$
 \text{head}_h = \text{Attention}(Q W_h^Q, K W_h^K, V W_h^V)
 $$
 
-Each head operates in a $d_k = d_{\text{model}} / H$ dimensional subspace, potentially specializing in different linguistic or structural patterns.
+머리마다 $d_k = d_{\text{model}} / H$ 차원의 밑밭에서 돌며, 서로 다른 말결이나 얼개 결에 맡은 몫이 갈릴 수 있다.
 
-### Head Specialization Patterns
+### 머리가 맡는 결
 
-Research has identified several recurring specialization patterns:
+연구로 되풀이해 나타나는 맡음새가 여럿 드러났다.
 
-| Pattern | Description | Typical Layer |
+| 결 | 밝힘 | 흔한 켜 |
 |---------|-------------|---------------|
-| **Positional** | Attend to adjacent tokens | Early layers |
-| **Syntactic** | Follow dependency structure | Middle layers |
-| **Delimiter** | Attend to separators ([SEP], punctuation) | Various |
-| **Rare token** | Focus on infrequent words | Middle layers |
-| **Semantic** | Attend to related concepts | Later layers |
-| **Broad/uniform** | Distribute attention evenly | Various |
+| **자리** | 이웃한 낱말을 본다 | 앞선 켜 |
+| **월 얼개** | 매인 얽힘을 따라간다 | 가운데 켜 |
+| **가름표** | 가르는 표([SEP], 문장 부호)를 본다 | 여러 켜 |
+| **드문 낱말** | 잦지 않은 낱말에 눈길을 둔다 | 가운데 켜 |
+| **뜻** | 뜻이 이어진 개념을 본다 | 뒤쪽 켜 |
+| **넓게/고루** | 눈길을 고루 흩는다 | 여러 켜 |
 
-### Multi-Head Visualization
+### 여러 머리 그리기
 
 ```python
 import torch
@@ -50,26 +50,26 @@ def visualize_all_heads(
     figsize: tuple = (20, 16)
 ) -> plt.Figure:
     """
-    Visualize attention patterns for all heads in a layer.
-    
+    한 켜의 모든 머리의 눈길 결을 그린다.
+
     Args:
-        attention_weights: [batch, num_heads, seq_len, seq_len]
-        tokens: List of token strings
-        layer: Layer index to visualize
-        figsize: Figure size
-        
+        attention_weights: [묶음, 머리 수, 열 길이, 열 길이]
+        tokens: 낱말 목록
+        layer: 그릴 켜 번호
+        figsize: 그림 크기
+
     Returns:
-        Matplotlib figure
+        Matplotlib 그림
     """
     attn = attention_weights[0].detach().cpu().numpy()
     num_heads = attn.shape[0]
-    
+
     ncols = 4
     nrows = (num_heads + ncols - 1) // ncols
-    
+
     fig, axes = plt.subplots(nrows, ncols, figsize=figsize)
     axes = axes.flatten()
-    
+
     for head_idx in range(num_heads):
         ax = axes[head_idx]
         sns.heatmap(
@@ -81,55 +81,55 @@ def visualize_all_heads(
             vmin=0, vmax=1,
             cbar=False
         )
-        ax.set_title(f'Head {head_idx}', fontsize=10)
+        ax.set_title(f'머리 {head_idx}', fontsize=10)
         ax.tick_params(labelsize=7)
-    
+
     for idx in range(num_heads, len(axes)):
         axes[idx].set_visible(False)
-    
-    fig.suptitle(f'Layer {layer} - All Attention Heads', fontsize=14)
+
+    fig.suptitle(f'켜 {layer} - 모든 눈길 머리', fontsize=14)
     plt.tight_layout()
     return fig
 ```
 
-### Head Diversity Analysis
+### 머리가 서로 얼마나 다른지 살피기
 
-Measuring how differently heads attend helps assess redundancy and specialization:
+머리마다 얼마나 다르게 보는지 재면 군더더기와 맡음새를 가늠할 수 있다.
 
 ```python
 def compute_head_diversity(
     attention_weights: torch.Tensor
 ) -> dict:
     """
-    Analyze diversity among attention heads.
-    
+    눈길 머리 사이의 다름을 살핀다.
+
     Args:
-        attention_weights: [batch, num_heads, seq_len, seq_len]
-        
+        attention_weights: [묶음, 머리 수, 열 길이, 열 길이]
+
     Returns:
-        Dictionary with diversity metrics
+        다름 자를 담은 사전
     """
     attn = attention_weights[0].detach().cpu()
     num_heads = attn.shape[0]
     seq_len = attn.shape[1]
-    
-    # Entropy per head
+
+    # 머리마다의 엔트로피
     entropies = []
     for h in range(num_heads):
         head_attn = attn[h]
         eps = 1e-10
         entropy = -(head_attn * torch.log(head_attn + eps)).sum(dim=-1).mean()
         entropies.append(entropy.item())
-    
-    # Pairwise cosine similarity between heads
+
+    # 머리끼리의 코사인 닮음
     flat_heads = attn.reshape(num_heads, -1)
     flat_normed = flat_heads / flat_heads.norm(dim=1, keepdim=True)
     similarity_matrix = (flat_normed @ flat_normed.T).numpy()
-    
-    # Average off-diagonal similarity
+
+    # 대각선 밖의 고른 닮음
     mask = ~np.eye(num_heads, dtype=bool)
     avg_similarity = similarity_matrix[mask].mean()
-    
+
     return {
         'entropies': entropies,
         'similarity_matrix': similarity_matrix,
@@ -138,9 +138,9 @@ def compute_head_diversity(
     }
 ```
 
-### Head Importance and Pruning
+### 머리의 중요함과 쳐내기
 
-Not all heads contribute equally. Importance can be estimated by measuring the effect of removing each head:
+머리마다 이바지가 같지 않다. 머리를 하나씩 없애 보고 그 미침을 재어 중요함을 어림할 수 있다.
 
 ```python
 def compute_head_importance(
@@ -151,51 +151,51 @@ def compute_head_importance(
     device: torch.device
 ) -> np.ndarray:
     """
-    Compute head importance via gradient-based scoring.
-    
-    Uses the method from Michel et al. (2019):
-    Importance = E[|grad(L) * attention|]
-    
+    기울기 바탕 점수로 머리의 중요함을 셈한다.
+
+    미셸 외(2019)의 방법을 쓴다:
+    중요함 = E[|grad(L) * 눈길|]
+
     Returns:
-        importance_matrix: [num_layers, num_heads]
+        importance_matrix: [켜 수, 머리 수]
     """
     importance = torch.zeros(num_layers, num_heads).to(device)
-    
+
     model.eval()
     for batch in data_loader:
         inputs = batch['input_ids'].to(device)
         labels = batch['labels'].to(device)
-        
+
         outputs = model(inputs, labels=labels, output_attentions=True)
         loss = outputs.loss
         attentions = outputs.attentions
-        
+
         for layer_idx, attn in enumerate(attentions):
             attn.retain_grad()
-            
+
         loss.backward()
-        
+
         for layer_idx, attn in enumerate(attentions):
             if attn.grad is not None:
                 head_importance = (attn * attn.grad).abs().sum(dim=(0, 2, 3))
                 importance[layer_idx] += head_importance
-    
+
     return importance.cpu().numpy()
 ```
 
-## Layer-wise Attention Patterns
+## 켜를 따라가는 눈길 결
 
-### Theoretical Background
+### 이론 뒷그림
 
-Attention patterns evolve systematically as information flows through transformer layers:
+소식이 변환기의 켜를 지나면서 눈길 결이 짜임새 있게 바뀐다.
 
-- **Early layers** (1-3): Capture local, syntactic relationships—adjacent token attention, positional patterns
-- **Middle layers** (4-8): Encode syntactic structure—dependency relations, coreference
-- **Later layers** (9-12): Build abstract, semantic features—topic attention, long-range dependencies
+- **앞선 켜**(1~3): 그 자리의 월 얼개 얽힘을 담는다. 이웃 낱말 눈길, 자리 결
+- **가운데 켜**(4~8): 월 얼개를 담는다. 매인 얽힘, 같은 것 가리키기
+- **뒤쪽 켜**(9~12): 추린 뜻 결을 쌓는다. 주제 눈길, 멀리 미치는 매임
 
-This progression parallels the hierarchical feature learning observed in CNNs.
+이 흐름은 CNN에서 보이는 켜 있는 결 배움과 나란하다.
 
-### Layer Comparison Implementation
+### 켜 견주기 짜보기
 
 ```python
 def compare_layers(
@@ -204,22 +204,22 @@ def compare_layers(
     layers_to_compare: list = None
 ) -> plt.Figure:
     """
-    Compare attention patterns across transformer layers.
-    
+    변환기 켜를 가로질러 눈길 결을 견준다.
+
     Args:
-        attention_weights_by_layer: List of [batch, heads, seq, seq] per layer
-        tokens: Token strings
-        layers_to_compare: Which layers to show
+        attention_weights_by_layer: 켜마다의 [묶음, 머리, 열, 열] 목록
+        tokens: 낱말 목록
+        layers_to_compare: 보일 켜
     """
     if layers_to_compare is None:
         n_layers = len(attention_weights_by_layer)
         layers_to_compare = [0, n_layers // 3, 2 * n_layers // 3, n_layers - 1]
-    
+
     fig, axes = plt.subplots(1, len(layers_to_compare), figsize=(5 * len(layers_to_compare), 5))
-    
+
     for idx, layer in enumerate(layers_to_compare):
         attn = attention_weights_by_layer[layer][0].mean(dim=0).detach().cpu().numpy()
-        
+
         sns.heatmap(
             attn,
             xticklabels=tokens,
@@ -229,56 +229,56 @@ def compare_layers(
             vmin=0,
             cbar=idx == len(layers_to_compare) - 1
         )
-        axes[idx].set_title(f'Layer {layer}')
-    
+        axes[idx].set_title(f'켜 {layer}')
+
     plt.tight_layout()
     return fig
 
 
 def compute_locality_score(attention_weights: torch.Tensor, window: int = 3) -> float:
     """
-    Measure how local vs global attention is.
-    
-    Locality = fraction of attention mass within ±window of diagonal.
+    눈길이 그 자리에 머무는지 멀리 미치는지 잰다.
+
+    그 자리 셈 = 대각선에서 ±창 안에 든 눈길 무게의 몫.
     """
     attn = attention_weights[0].mean(dim=0).detach().cpu().numpy()
     seq_len = attn.shape[0]
-    
+
     local_mass = 0.0
     total_mass = 0.0
-    
+
     for i in range(seq_len):
         for j in range(seq_len):
             total_mass += attn[i, j]
             if abs(i - j) <= window:
                 local_mass += attn[i, j]
-    
+
     return local_mass / total_mass if total_mass > 0 else 0.0
 ```
 
-### Key Findings
+### 고갱이 열매
 
-Research across multiple transformer architectures reveals consistent patterns:
+여러 변환기 얼개에 걸친 연구에서 한결같은 결이 드러난다.
 
-1. **Locality decreases with depth**: Early layers attend locally (~80% within window of 3), later layers attend globally (~40%)
-2. **Head pruning tolerance varies by layer**: Later layers are more robust to head removal
-3. **Residual connections matter**: Information bypasses attention through skip connections, meaning attention alone doesn't capture full information flow
+1. **깊어질수록 그 자리에 덜 머문다**: 앞선 켜는 그 자리를 보고(창 3 안에 ~80%), 뒤쪽 켜는 멀리 본다(~40%)
+2. **머리를 쳐내도 견디는 만큼이 켜마다 다르다**: 뒤쪽 켜가 머리를 없애도 더 든든하다
+3. **나머지 이음이 중요하다**: 소식이 건너뛰는 이음으로 눈길을 지나치므로, 눈길만으로는 온 소식 흐름을 담을 수 없다
 
-## Cross-Attention Interpretation
+## 엇갈린 눈길 풀이하기
 
-Cross-attention connects two different sequences, enabling information flow between encoder and decoder. Understanding cross-attention is essential for interpreting translation, summarization, and question-answering systems.
+엇갈린 눈길은 서로 다른 두 열을 이어 부호기와 푸는 개 사이에 소식이 흐르게 한다. 옮김, 간추리기, 물음 답하기 얼개를 풀이하려면 엇갈린 눈길을 알아야 한다.
 
-### Mathematical Foundation
+### 수학 밑바탕
 
-Given encoder representations $K^e, V^e$ and decoder query $Q^d$:
+부호기의 나타냄 $K^e, V^e$과 푸는 개의 물음 $Q^d$이 주어지면
 
 $$
 \text{CrossAttn}(Q^d, K^e, V^e) = \text{softmax}\left(\frac{Q^d (K^e)^\top}{\sqrt{d_k}}\right) V^e
 $$
 
-The attention weights form an alignment matrix $A \in \mathbb{R}^{T_d \times T_e}$, where $A_{ij}$ indicates how much decoder position $i$ attends to encoder position $j$.
+눈길 짐이 맞춤 행렬 $A \in \mathbb{R}^{T_d \times T_e}$을 이루며, $A_{ij}$은 푸는 개의 자리 $i$이 부호기의 자리 $j$을 얼마나 보는지 알린다.
 
-### Implementation
+### 짜보기
 
 ```python
 def visualize_cross_attention(
@@ -288,23 +288,23 @@ def visualize_cross_attention(
     head: int = None
 ) -> plt.Figure:
     """
-    Visualize encoder-decoder cross-attention.
-    
+    부호기-푸는 개의 엇갈린 눈길을 그린다.
+
     Args:
-        cross_attention: [batch, heads, target_len, source_len]
-        source_tokens: Encoder input tokens
-        target_tokens: Decoder output tokens
-        head: Specific head (None = average all heads)
+        cross_attention: [묶음, 머리, 받는 열 길이, 보내는 열 길이]
+        source_tokens: 부호기 들임 낱말
+        target_tokens: 푸는 개 내놓기 낱말
+        head: 정한 머리(None이면 모든 머리를 고르게 한다)
     """
     if head is not None:
         attn = cross_attention[0, head].detach().cpu().numpy()
-        title = f'Cross-Attention (Head {head})'
+        title = f'엇갈린 눈길 (머리 {head})'
     else:
         attn = cross_attention[0].mean(dim=0).detach().cpu().numpy()
-        title = 'Cross-Attention (Averaged)'
-    
+        title = '엇갈린 눈길 (고르게 함)'
+
     fig, ax = plt.subplots(figsize=(10, 8))
-    
+
     sns.heatmap(
         attn,
         xticklabels=source_tokens,
@@ -313,10 +313,10 @@ def visualize_cross_attention(
         cmap='Blues',
         vmin=0, vmax=1
     )
-    ax.set_xlabel('Source (Encoder)')
-    ax.set_ylabel('Target (Decoder)')
+    ax.set_xlabel('보내는 쪽 (부호기)')
+    ax.set_ylabel('받는 쪽 (푸는 개)')
     ax.set_title(title)
-    
+
     plt.tight_layout()
     return fig
 
@@ -327,25 +327,25 @@ def analyze_cross_attention_alignment(
     target_tokens: list
 ) -> dict:
     """
-    Analyze alignment quality from cross-attention.
-    
-    Returns metrics on alignment sharpness and coverage.
+    엇갈린 눈길에서 맞춤의 됨됨이를 살핀다.
+
+    맞춤이 얼마나 또렷하고 얼마나 덮는지를 자로 내놓는다.
     """
     attn = cross_attention[0].mean(dim=0).detach().cpu()
-    
-    # Alignment entropy (lower = sharper alignment)
+
+    # 맞춤 엔트로피(작을수록 맞춤이 또렷하다)
     eps = 1e-10
     entropy = -(attn * torch.log(attn + eps)).sum(dim=-1).mean().item()
-    
-    # Coverage: fraction of source tokens attended to above threshold
+
+    # 덮음: 문턱을 넘게 눈길을 받은 보내는 쪽 낱말의 몫
     max_attn_per_source = attn.max(dim=0)[0]
     coverage = (max_attn_per_source > 0.1).float().mean().item()
-    
-    # Monotonicity: how monotonic is the alignment
+
+    # 한 방향으로 감: 맞춤이 얼마나 한 방향인가
     argmax_positions = attn.argmax(dim=-1).float()
     diffs = argmax_positions[1:] - argmax_positions[:-1]
     monotonicity = (diffs >= 0).float().mean().item()
-    
+
     return {
         'alignment_entropy': entropy,
         'source_coverage': coverage,
@@ -353,19 +353,19 @@ def analyze_cross_attention_alignment(
     }
 ```
 
-## Visualization Tools: BertViz and Custom Solutions
+## 그림 그리는 연장: BertViz과 손수 만든 것
 
-### BertViz Overview
+### BertViz 살펴보기
 
-BertViz (Vig, 2019) provides three visualization modes:
+BertViz(빅, 2019)은 그리는 결 셋을 준다.
 
-| Mode | Shows | Use Case |
+| 결 | 보이는 것 | 쓰일 자리 |
 |------|-------|----------|
-| **Attention Head View** | Single head attention pattern | Analyzing specific head behavior |
-| **Model View** | All heads in all layers | Overview of attention distribution |
-| **Neuron View** | Query-key decomposition | Understanding what drives attention |
+| **눈길 머리 봄** | 머리 하나의 눈길 결 | 정한 머리의 움직임 살피기 |
+| **모형 봄** | 모든 켜의 모든 머리 | 눈길 퍼짐을 두루 보기 |
+| **신경 세포 봄** | 물음-열쇠 쪼갬 | 무엇이 눈길을 이끄는지 알기 |
 
-### Using BertViz
+### BertViz 쓰기
 
 ```python
 from bertviz import head_view, model_view
@@ -377,32 +377,32 @@ def interactive_attention_visualization(
     text_pair: str = None
 ):
     """
-    Create interactive BertViz visualization.
+    주고받는 BertViz 그림을 만든다.
     """
     tokenizer = AutoTokenizer.from_pretrained(model_name)
     model = AutoModel.from_pretrained(model_name, output_attentions=True)
-    
+
     inputs = tokenizer(
         text, text_pair,
         return_tensors='pt',
         padding=True,
         truncation=True
     )
-    
+
     with torch.no_grad():
         outputs = model(**inputs)
-    
+
     attention = outputs.attentions
     tokens = tokenizer.convert_ids_to_tokens(inputs['input_ids'][0])
-    
-    # Head view - detailed single-head analysis
+
+    # 머리 봄 - 머리 하나를 촘촘히 살핀다
     head_view(attention, tokens)
-    
-    # Model view - all heads, all layers
+
+    # 모형 봄 - 모든 머리, 모든 켜
     model_view(attention, tokens)
 ```
 
-### Building Custom Visualizations
+### 손수 그림 짓기
 
 ```python
 def create_attention_heatmap_grid(
@@ -413,10 +413,10 @@ def create_attention_heatmap_grid(
     figsize: tuple = (24, 20)
 ) -> plt.Figure:
     """
-    Create comprehensive layer × head attention grid.
+    켜 × 머리의 눈길 격자를 두루 만든다.
     """
     fig, axes = plt.subplots(num_layers, num_heads, figsize=figsize)
-    
+
     for layer_idx in range(num_layers):
         for head_idx in range(num_heads):
             attn = attention_by_layer[layer_idx][0, head_idx].detach().cpu().numpy()
@@ -424,13 +424,13 @@ def create_attention_heatmap_grid(
             ax.imshow(attn, cmap='Blues', vmin=0, vmax=1, aspect='auto')
             ax.set_xticks([])
             ax.set_yticks([])
-            
+
             if layer_idx == 0:
                 ax.set_title(f'H{head_idx}', fontsize=8)
             if head_idx == 0:
                 ax.set_ylabel(f'L{layer_idx}', fontsize=8)
-    
-    fig.suptitle('Attention Patterns: Layer (rows) × Head (columns)', fontsize=14)
+
+    fig.suptitle('눈길 결: 켜(가로줄) × 머리(세로줄)', fontsize=14)
     plt.tight_layout()
     return fig
 
@@ -442,17 +442,17 @@ def create_attention_flow_sankey(
     top_k: int = 5
 ):
     """
-    Create Sankey-style flow diagram showing where attention flows
-    from a specific token.
+    정한 낱말에서 눈길이 어디로 흐르는지 보이는
+    생키 결의 흐름 그림을 만든다.
     """
     attn = attention_weights[0].detach().cpu().numpy()
     num_heads = attn.shape[0]
-    
+
     flows = []
     for head_idx in range(num_heads):
         head_attn = attn[head_idx, source_idx]
         top_targets = np.argsort(head_attn)[::-1][:top_k]
-        
+
         for target_idx in top_targets:
             if head_attn[target_idx] > 0.05:
                 flows.append({
@@ -461,42 +461,42 @@ def create_attention_flow_sankey(
                     'target': tokens[target_idx],
                     'weight': head_attn[target_idx]
                 })
-    
+
     return flows
 ```
 
-## Attention vs Attribution: A Critical Distinction
+## 눈길 대 몫 매기기: 종요로운 가름
 
-### The Core Issue
+### 고갱이 문제
 
-A critical distinction in model interpretability is the difference between **attention weights** and **attribution scores**:
+모형 풀이하기에서 종요로운 가름은 **눈길 짐**과 **몫 점수**의 차이다.
 
-- **Attention** shows where a model "looks"—the distribution of weights over input tokens
-- **Attribution** reveals what actually influences the output—the causal contribution of each input
+- **눈길**은 모형이 어디를 "보는지" 보인다. 곧 들임 낱말에 걸친 짐의 퍼짐이다
+- **몫 매기기**는 무엇이 참으로 내놓기를 흔드는지, 곧 들임마다의 인과 이바지를 드러낸다
 
-These are **not the same thing**. Jain and Wallace (2019) demonstrated that attention weights often do not correlate with gradient-based attribution, and alternative attention distributions can produce identical predictions.
+이 둘은 **같은 것이 아니다**. 제인과 월리스(2019)는 눈길 짐이 기울기 바탕 몫과 얽히지 않을 때가 많으며, 눈길 분포를 달리해도 똑같은 미루어 봄이 나올 수 있음을 밝혔다.
 
-### Why Attention ≠ Explanation
+### 눈길 ≠ 풀이인 까닭
 
-Several factors weaken attention as an explanation method:
+눈길을 풀이 방법으로 삼기 어렵게 하는 몫이 여럿 있다.
 
-**Value transformation**: Attention weights determine which value vectors to combine, but the value vectors themselves undergo transformation. High attention to a token doesn't mean that token's information dominates the output:
+**값 바꿈**: 눈길 짐은 어느 값 벡터를 아우를지 정하지만, 값 벡터 자체도 바뀐다. 어떤 낱말에 눈길이 크다고 그 낱말의 소식이 내놓기를 판치는 것은 아니다.
 
 $$
 \text{output}_i = \sum_j \alpha_{ij} V_j W^V
 $$
 
-The contribution depends on both $\alpha_{ij}$ and the content of $V_j$.
+이바지는 $\alpha_{ij}$과 $V_j$의 속살에 함께 달렸다.
 
-**Residual connections**: Information bypasses attention through skip connections. The output representation includes both attended information and the original input, making attention weights an incomplete picture:
+**나머지 이음**: 소식이 건너뛰는 이음으로 눈길을 지나친다. 내놓기 나타냄에는 눈길이 모은 소식과 본디 들임이 함께 들어 있으므로 눈길 짐만으로는 그림이 온전하지 않다.
 
 $$
 \mathbf{h}_i^{(l+1)} = \mathbf{h}_i^{(l)} + \text{Attn}(\mathbf{h}^{(l)})
 $$
 
-**Multi-layer composition**: In multi-layer transformers, information from a given token may arrive at the output through many different attention paths. Single-layer attention cannot capture these indirect influences.
+**여러 켜 겹침**: 여러 켜 변환기에서는 한 낱말의 소식이 여러 눈길 길을 거쳐 내놓기에 이를 수 있다. 켜 하나의 눈길로는 이런 에두른 미침을 담을 수 없다.
 
-### Comparing Attention and Attribution
+### 눈길과 몫 매기기 견주기
 
 ```python
 def compare_attention_and_attribution(
@@ -507,38 +507,38 @@ def compare_attention_and_attribution(
     device: torch.device = None
 ) -> dict:
     """
-    Compare attention weights with gradient-based attribution.
+    눈길 짐과 기울기 바탕 몫을 견준다.
     """
     model.eval()
     input_ids = input_ids.to(device)
-    
-    # Get attention weights
+
+    # 눈길 짐을 얻는다
     with torch.no_grad():
         outputs = model(input_ids, output_attentions=True)
         attention = outputs.attentions[layer][0].mean(dim=0)
-    
-    # Get gradient-based attribution
+
+    # 기울기 바탕 몫을 얻는다
     embeddings = model.get_input_embeddings()(input_ids)
     embeddings.requires_grad_(True)
-    
+
     outputs = model(inputs_embeds=embeddings)
     logits = outputs.logits
     logits[0, target_class].backward()
-    
+
     gradient_attr = embeddings.grad.abs().sum(dim=-1)[0]
-    
-    # Attention from [CLS] token (common choice)
+
+    # [CLS] 낱말에서 뻗는 눈길(흔히 고른다)
     attn_scores = attention[0].detach().cpu().numpy()
     grad_scores = gradient_attr.detach().cpu().numpy()
-    
-    # Normalize
+
+    # 고르게 한다
     attn_scores = attn_scores / attn_scores.sum()
     grad_scores = grad_scores / grad_scores.sum()
-    
-    # Correlation
+
+    # 얽힘
     from scipy.stats import spearmanr
     correlation, p_value = spearmanr(attn_scores, grad_scores)
-    
+
     return {
         'attention_scores': attn_scores,
         'gradient_scores': grad_scores,
@@ -547,17 +547,17 @@ def compare_attention_and_attribution(
     }
 ```
 
-### When to Use Each
+### 어느 것을 언제 쓸까
 
-| Method | Best For | Limitations |
+| 방법 | 알맞은 자리 | 한계 |
 |--------|----------|------------|
-| **Attention weights** | Exploring model behavior, understanding architecture, hypothesis generation | Not faithful attribution, affected by value content |
-| **Attention rollout** | Tracking information flow across layers | Assumes attention ≈ information flow |
-| **Attention flow** | More faithful multi-layer attribution | Computationally expensive |
-| **Gradient attribution** | Faithful importance measurement | Misses attention-specific insights |
-| **Combined** | Most comprehensive understanding | More complex to interpret |
+| **눈길 짐** | 모형의 움직임 둘러보기, 얼개 알기, 가설 세우기 | 미더운 몫이 아니고 값 속살에 흔들린다 |
+| **눈길 굴리기** | 켜를 가로지르는 소식 흐름 좇기 | 눈길 ≈ 소식 흐름이라고 여긴다 |
+| **눈길 흐름** | 여러 켜에 걸쳐 더 미더운 몫 매기기 | 셈이 비싸다 |
+| **기울기 몫 매기기** | 미더운 중요함 재기 | 눈길만의 깨침을 놓친다 |
+| **아울러 쓰기** | 가장 두루 알기 | 풀이하기가 더 까다롭다 |
 
-## Complete Example
+## 온전한 보기
 
 ```python
 def comprehensive_attention_analysis(
@@ -567,60 +567,60 @@ def comprehensive_attention_analysis(
     device: torch.device
 ) -> dict:
     """
-    Comprehensive attention analysis combining multiple techniques.
+    여러 재주를 아우른 두루 갖춘 눈길 살피기.
     """
-    # Tokenize
+    # 낱말로 쪼갠다
     inputs = tokenizer(text, return_tensors='pt', padding=True)
     input_ids = inputs['input_ids'].to(device)
     tokens = tokenizer.convert_ids_to_tokens(input_ids[0])
-    
-    # Forward pass with attention
+
+    # 눈길을 곁들인 앞으로 걸음
     model.eval()
     with torch.no_grad():
         outputs = model(**{k: v.to(device) for k, v in inputs.items()},
                        output_attentions=True)
-    
+
     attentions = outputs.attentions
-    
+
     results = {
         'tokens': tokens,
         'num_layers': len(attentions),
         'num_heads': attentions[0].shape[1],
         'analyses': {}
     }
-    
-    # Per-layer analysis
+
+    # 켜마다 살핀다
     for layer_idx, attn in enumerate(attentions):
         diversity = compute_head_diversity(attn)
         locality = compute_locality_score(attn)
-        
+
         results['analyses'][f'layer_{layer_idx}'] = {
             'diversity_score': diversity['diversity_score'],
             'head_entropies': diversity['entropies'],
             'locality_score': locality
         }
-    
-    # Cross-layer locality progression
+
+    # 켜를 가로지르는 그 자리 머묾의 흐름
     localities = [
         results['analyses'][f'layer_{i}']['locality_score']
         for i in range(len(attentions))
     ]
     results['locality_progression'] = localities
-    
+
     return results
 ```
 
-## Summary
+## 간추림
 
-Attention pattern analysis provides rich insights into transformer behavior, but requires careful interpretation:
+눈길 결 살피기는 변환기의 움직임을 넉넉히 들여다보게 해 주지만 조심히 읽어야 한다.
 
-1. **Multi-head diversity** reveals specialization—heads that are too similar may be prunable
-2. **Layer-wise progression** shows hierarchical feature building from local to global patterns
-3. **Cross-attention alignment** is informative for encoder-decoder models
-4. **Attention ≠ attribution**: Always validate attention-based insights with gradient-based methods
-5. **Interactive tools** like BertViz are valuable for exploratory analysis but should be supplemented with quantitative metrics
+1. **여러 머리의 다름**이 맡음새를 드러낸다. 너무 비슷한 머리는 쳐낼 수 있다
+2. **켜를 따라가는 흐름**이 그 자리에서 온 세상으로 가는 켜 있는 결 쌓기를 보인다
+3. **엇갈린 눈길의 맞춤**은 부호기-푸는 개 모형에서 알려 주는 바가 많다
+4. **눈길 ≠ 몫 매기기**: 눈길로 얻은 깨침은 늘 기울기 바탕 방법으로 따져 보라
+5. BertViz 같은 **주고받는 연장**은 둘러보기에 값지지만 수로 재는 자를 곁들여야 한다
 
-## References
+## 살펴볼 거리
 
 1. Vig, J. (2019). "A Multiscale Visualization of Attention in the Transformer Model." *ACL Demo*.
 
@@ -636,34 +636,34 @@ Attention pattern analysis provides rich insights into transformer behavior, but
 
 7. Abnar, S., & Zuidema, W. (2020). "Quantifying Attention Flow in Transformers." *ACL*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Apply the interpretability method described in this section to a 2-layer neural network with ReLU activations classifying XOR inputs. Compute the explanation for the input $x = [1, 1]$.
+**익힘 1.**
+이 마디에서 밝힌 풀이 방법을, XOR 들임을 가르는 ReLU 살림의 두 켜 신경 그물에 걸어라. 들임 $x = [1, 1]$에 대한 풀이를 셈하여라.
 
-??? success "Solution to Exercise 1"
-    For a trained XOR network with weights $W_1, b_1, W_2, b_2$, the output is $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$. The explanation method produces attributions for each input feature. For $x = [1, 1]$ (class 0), both features contribute to the negative classification. The specific attribution values depend on the method: gradient-based methods compute $\partial f / \partial x_i$; perturbation-based methods measure output change when features are masked. The XOR problem demonstrates that linear explanation methods can mislead because the decision boundary is non-linear. $\square$
-
----
-
-**Exercise 2.**
-Prove or disprove that the explanation method in this section satisfies the completeness axiom: the sum of all feature attributions equals $f(x) - f(x_0)$ for some baseline $x_0$.
-
-??? success "Solution to Exercise 2"
-    The completeness axiom (also called efficiency in Shapley value theory) states that attributions sum to the difference between the model output at the input and at the baseline. Whether this method satisfies completeness depends on its formulation. Gradient methods do not satisfy completeness (gradients are local, not path-integrated). Integrated Gradients satisfies completeness by construction (fundamental theorem of calculus along the path). SHAP values satisfy efficiency by the Shapley axiom. Methods that violate completeness may over- or under-attribute, making the total attribution unreliable as a global explanation. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, b_1, W_2, b_2$인 익힌 XOR 그물에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 들임 결마다 몫을 내놓는다. $x = [1, 1]$(갈래 0)이면 두 결 모두 음수 가름에 이바지한다. 몫 값은 방법마다 다르다. 기울기 바탕 방법은 $\partial f / \partial x_i$을 셈하고, 흔들어 보는 방법은 결을 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
 
 ---
 
-**Exercise 3.**
-Design an experiment to evaluate the faithfulness of the explanations produced by this method. Use insertion and deletion curves to measure whether highlighted features are truly important to the model.
+**익힘 2.**
+이 마디의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 밑금 $x_0$에 대해 모든 결 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
 
-??? success "Solution to Exercise 3"
-    Protocol: (1) Compute feature attributions for each test image. (2) Deletion: progressively mask features in order of decreasing attribution, recording the model confidence drop. Faithful explanations cause rapid confidence decrease. (3) Insertion: progressively reveal features in order of decreasing attribution from a blank baseline, recording confidence increase. Faithful explanations cause rapid confidence increase. (4) Compute AUC for both curves. (5) Compare against random ordering (baseline) and other methods. A faithful method should have low deletion AUC and high insertion AUC. Repeat over 1000+ test samples for statistical reliability. $\square$
+??? success "익힘 2 풀이"
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 들임에서의 모형 내놓기와 밑금에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 기울기 방법은 온전함을 채우지 못한다(기울기는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). 쌓은 기울기는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this interpretability method could be applied to a financial model predicting credit default. What regulatory requirements must the explanations satisfy?
+**익힘 3.**
+이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 결이 참으로 모형에 중요한지를 넣기와 빼기 곡선으로 재어라.
 
-??? success "Solution to Exercise 4"
-    For credit models, regulations (ECOA, GDPR Article 22) require individualized explanations for adverse decisions. The method must produce: (1) the top factors contributing to the denial (adverse action reasons); (2) explanations that are consistent (similar applicants get similar explanations); (3) explanations that are actionable (the applicant understands what to change). The interpretability method from this section can identify feature importances, but must be validated for stability (small input changes should not drastically alter the explanation) and correctness (removing important features should change the prediction). Protected attributes must be handled carefully to avoid revealing proxy discrimination. $\square$
+??? success "익힘 3 풀이"
+    절차는 이렇다. (1) 시험 그림마다 결 몫을 셈한다. (2) 빼기: 몫이 큰 차례로 결을 하나씩 가리며 모형의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 밑금에서 시작해 몫이 큰 차례로 결을 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 셈한다. (5) 아무렇게나 매긴 차례(밑금)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+
+---
+
+**익힘 4.**
+이 풀이 방법을 신용 부도를 미루어 보는 금융 모형에 어떻게 걸 수 있는지 다루어라. 풀이가 채워야 할 규정 요건은 무엇인가?
+
+??? success "익힘 4 풀이"
+    신용 모형에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 마디의 풀이 방법으로 결의 중요함을 짚을 수 있으나, 든든함(들임이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 결을 없애면 미루어 봄이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 됨됨이는 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
