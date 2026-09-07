@@ -1,14 +1,14 @@
-# Low Signal-to-Noise Ratio
+# 낮은 신호 대 잡음 비
 
-Financial markets exhibit extremely low signal-to-noise ratios, with typical daily Sharpe ratios around 0.02-0.04. This means that genuine predictive signals are buried under massive noise, requiring specialized techniques such as ensemble methods, data augmentation, and careful statistical analysis to extract and verify any edge.
+금융 저자는 신호 대 잡음 비가 아주 낮아 하루 샤프 비가 흔히 0.02~0.04쯤이다. 참된 미리 보기 신호가 어마어마한 잡음에 파묻혀 있다는 뜻이며, 얼마간의 앞섬을 뽑아내어 살피려면 무리 짓기, 자료 늘리기, 꼼꼼한 통계 살피기 같은 남다른 재주가 있어야 한다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 35.5.3: Low Signal-to-Noise
+35.5.3장: 낮은 신호 대 잡음
 =====================================
-Techniques for extracting signal from noisy financial data.
+잡음 많은 금융 자료에서 신호를 뽑아내는 재주.
 """
 
 import numpy as np
@@ -18,7 +18,7 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
@@ -30,7 +30,7 @@ class SNRConfig:
 
 
 class SNRAnalyzer:
-    """Analyze and quantify signal-to-noise ratio."""
+    """신호 대 잡음 비를 살피고 잰다."""
 
     @staticmethod
     def compute_snr(returns: np.ndarray) -> Dict[str, float]:
@@ -48,7 +48,7 @@ class SNRAnalyzer:
 
 
 class EnsembleAgent:
-    """Ensemble of diverse agents for noise reduction."""
+    """잡음을 줄이려 여러 갈래 부림꾼을 무리 짓는다."""
 
     def __init__(self, state_dim: int, action_dim: int, num_agents: int = 5):
         self.agents = nn.ModuleList([
@@ -68,7 +68,7 @@ class EnsembleAgent:
 
 
 class DataAugmenter:
-    """Data augmentation for financial time series."""
+    """금융 때 열을 위한 자료 늘리기."""
 
     @staticmethod
     def add_noise(data: np.ndarray, noise_std: float = 0.001) -> np.ndarray:
@@ -88,16 +88,16 @@ class DataAugmenter:
 
 
 def demo_snr():
-    """Demonstrate SNR analysis and mitigation."""
+    """신호 대 잡음 살피기와 누그러뜨리기를 보인다."""
     print("=" * 70)
     print("Low Signal-to-Noise Ratio Analysis")
     print("=" * 70)
 
     np.random.seed(42)
-    # Realistic financial returns (low SNR)
+    # 참에 가까운 금융 돌아옴(낮은 신호 대 잡음)
     T = 1000
-    signal = 0.0003  # ~7.5% annual return
-    noise = 0.015    # ~24% annual vol
+    signal = 0.0003  # 해마다 약 7.5% 돌아옴
+    noise = 0.015    # 해마다 약 24% 흔들림
     returns = np.random.randn(T) * noise + signal
 
     analyzer = SNRAnalyzer()
@@ -107,7 +107,7 @@ def demo_snr():
     print(f"Annual Sharpe: {snr['annual_sharpe']:.4f}")
     print(f"Days needed for significance: {snr['required_days_for_significance']}")
 
-    # Ensemble
+    # 무리 짓기
     print("\n--- Ensemble Agent ---")
     ensemble = EnsembleAgent(state_dim=10, action_dim=5, num_agents=5)
     state = torch.randn(1, 10)
@@ -116,7 +116,7 @@ def demo_snr():
     print(f"Ensemble std:  {result['std'][0].numpy()}")
     print(f"Disagreement:  {result['std'].mean().item():.4f}")
 
-    # Data augmentation
+    # 자료 늘리기
     print("\n--- Data Augmentation ---")
     aug = DataAugmenter()
     noisy = aug.add_noise(returns, 0.001)
@@ -132,61 +132,60 @@ if __name__ == "__main__":
     demo_snr()
 ```
 
-## Discussion
+## 논의
 
-SNR analysis quantifies the fundamental difficulty of financial prediction. With a daily SNR of 0.02 (corresponding to an annual Sharpe of approximately 0.3), a strategy needs thousands of independent observations to establish statistical significance. The required days formula $T = (z / \text{SNR})^2$ reveals that detecting a Sharpe of 0.5 at 95% confidence requires over 40 years of daily data -- far more than most practitioners have available.
+신호 대 잡음 살피기는 금융 미리 보기가 얼마나 어려운지를 수로 보인다. 하루 신호 대 잡음이 0.02(해마다 샤프 약 0.3에 맞선다)이면 통계로 뜻있음을 세우는 데 서로 매이지 않은 눈금이 수천 개 있어야 한다. 필요한 날수 식 $T = (z / \text{SNR})^2$은 95% 믿음에서 샤프 0.5을 알아내려면 하루 자료가 40년 넘게 있어야 함을 드러내는데, 이는 거의 모든 이가 손에 쥔 것보다 훨씬 많다.
 
-Ensemble agents reduce prediction variance by combining multiple diverse models. Each agent in the ensemble uses a different architecture or initialization, producing independent estimates. The ensemble mean has lower variance by a factor of $1/\sqrt{N}$ where $N$ is the ensemble size, effectively boosting the SNR of the combined prediction. The ensemble standard deviation also provides a natural uncertainty estimate that can be used for position sizing.
+무리 부림꾼은 여러 갈래 모형을 엮어 미리 보기의 흩어짐을 줄인다. 무리 안의 부림꾼마다 얼개나 첫 값이 달라 서로 매이지 않은 어림을 낸다. 무리 크기를 $N$이라 할 때 무리 평균의 흩어짐은 $1/\sqrt{N}$만큼 작아지므로 엮은 미리 보기의 신호 대 잡음이 실제로 오른다. 무리의 표준편차는 자리 크기를 잡는 데 쓸 수 있는 헤아릴 수 없음 어림도 절로 준다.
 
-Data augmentation for financial time series requires domain-specific techniques. Adding small Gaussian noise preserves the overall distribution while creating new training examples. Block bootstrap resampling generates synthetic paths that maintain short-term correlation structure. Time reversal creates a valid augmented return series (under the assumption of time-reversibility of log returns) that doubles the effective dataset size.
+금융 때 열의 자료 늘리기에는 이 마당에 맞는 재주가 있어야 한다. 작은 가우스 잡음을 더하면 온 분포를 지키면서 새 익힘 보기를 만든다. 덩이 부트스트랩 다시 뽑기는 짧은 때의 얽힘 짜임을 지키는 가짜 자취를 지어낸다. 때 뒤집기는 (로그 돌아옴이 때를 뒤집어도 같다고 여길 때) 옳은 늘린 돌아옴 열을 만들어 실제 자료 뭉치 크기를 곱절로 늘린다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Given a strategy with annual expected return of 8% and annual volatility of 25%, compute the daily SNR and the minimum number of trading days needed for statistical significance at 99% confidence.
+**연습문제 1.**
+해마다 어림 돌아옴이 8%이고 해마다 흔들림이 25%인 꾀에 대해 하루 신호 대 잡음과, 99% 믿음에서 통계로 뜻있으려면 있어야 하는 가장 적은 거래 날수를 셈하여라.
 
-??? success "Solution to Exercise 1"
-    Daily expected return: $\mu = 0.08/252 \approx 0.000317$. Daily volatility: $\sigma = 0.25/\sqrt{252} \approx 0.01575$.
+??? success "연습문제 1 풀이"
+    하루 어림 돌아옴: $\mu = 0.08/252 \approx 0.000317$. 하루 흔들림: $\sigma = 0.25/\sqrt{252} \approx 0.01575$.
 
-    Daily SNR: $\mu/\sigma \approx 0.0201$.
-    
-    For 99% confidence: $z = 2.576$.
-    
-    Minimum days: $T = (z/\text{SNR})^2 = (2.576/0.0201)^2 \approx 16,425$ days $\approx 65$ years.
-    
-    This illustrates the fundamental challenge: even a strategy with a reasonable 0.32 annual Sharpe ratio requires over 65 years of data to confirm significance at 99% confidence.
+    하루 신호 대 잡음: $\mu/\sigma \approx 0.0201$.
 
----
+    99% 믿음에서 $z = 2.576$이다.
 
+    가장 적은 날수: $T = (z/\text{SNR})^2 = (2.576/0.0201)^2 \approx 16{,}425$일 $\approx 65$년.
 
-**Exercise 2.**
-Explain why ensemble disagreement (the standard deviation across ensemble predictions) is a useful signal for position sizing in low-SNR environments.
-
-??? success "Solution to Exercise 2"
-    When ensemble agents disagree strongly (high standard deviation), the prediction is uncertain -- different models see different patterns in the noise. When they agree (low standard deviation), the signal is more likely to be genuine.
-
-    Position sizing proportional to inverse disagreement -- larger positions when the ensemble agrees, smaller when it disagrees -- effectively implements adaptive confidence weighting. In low-SNR environments, this filtering mechanism avoids taking large bets on noisy predictions while concentrating capital on high-confidence signals, improving the realized Sharpe ratio.
+    이것이 근본 어려움을 보여 준다. 해마다 샤프 0.32이라는 그럴듯한 꾀조차 99% 믿음에서 뜻있음을 굳히려면 자료가 65년 넘게 있어야 한다.
 
 ---
 
 
-**Exercise 3.**
-Implement a block bootstrap data augmentation function that generates synthetic return series preserving both the marginal distribution and autocorrelation structure of the original data.
+**연습문제 2.**
+무리의 엇갈림(무리 미리 보기 사이의 표준편차)이 신호 대 잡음이 낮은 자리에서 자리 크기를 잡는 데 쓸모 있는 신호인 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
+??? success "연습문제 2 풀이"
+    무리 부림꾼이 크게 엇갈리면(표준편차가 크면) 미리 보기가 헤아릴 수 없다. 모형마다 잡음 속에서 다른 결을 보고 있는 것이다. 뜻이 맞으면(표준편차가 작으면) 그 신호가 참일 낌새가 더 크다.
+
+    엇갈림의 거꾸로에 견주어 자리 크기를 잡으면(무리의 뜻이 맞으면 자리를 키우고 엇갈리면 줄이면) 사실상 믿음에 맞춰 무게를 주는 셈이 된다. 신호 대 잡음이 낮은 자리에서 이 거르기 장치는 잡음 많은 미리 보기에 크게 걸지 않으면서 믿음이 높은 신호에 밑천을 모아, 실제로 얻는 샤프 비를 높인다.
+
+---
+
+
+**연습문제 3.**
+처음 자료의 가장자리 분포와 스스로 얽힘 짜임을 함께 지키는 가짜 돌아옴 열을 지어내는 덩이 부트스트랩 자료 늘리기 함수를 만들어라.
+
+??? success "연습문제 3 풀이"
     ```python
     def block_bootstrap_augment(returns, n_synthetic=5, block_size=20):
         T = len(returns)
         synthetic_series = []
-        
+
         for _ in range(n_synthetic):
             n_blocks = T // block_size + 1
             block_starts = np.random.randint(0, T - block_size, n_blocks)
             blocks = [returns[s:s+block_size] for s in block_starts]
             synthetic = np.concatenate(blocks)[:T]
             synthetic_series.append(synthetic)
-        
+
         return synthetic_series
     ```
-    Block bootstrapping preserves within-block temporal dependencies (autocorrelation, volatility clustering) while randomizing the sequence of blocks. Block size should match the correlation timescale: too small destroys serial dependence, too large reduces the number of unique blocks and limits diversity of synthetic paths.
-
+    덩이 부트스트랩은 덩이 안의 때 매임(스스로 얽힘, 흔들림 뭉침)을 지키면서 덩이의 차례만 아무렇게나 섞는다. 덩이 크기는 얽힘의 때 잣대에 맞추어야 한다. 너무 작으면 잇단 매임이 무너지고, 너무 크면 서로 다른 덩이의 개수가 줄어 지어낸 자취의 여러 갈래가 좁아진다.
