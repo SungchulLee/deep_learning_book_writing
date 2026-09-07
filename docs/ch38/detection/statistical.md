@@ -1,33 +1,33 @@
-# Statistical Detection of Adversarial Examples
-## Introduction
+# 자로 맞서는 보기 알아내기
+## 들머리
 
-Rather than making models robust to adversarial perturbations, an alternative approach is to **detect** adversarial inputs before they reach the classifier. Statistical detection methods analyze properties of inputs and model internals to distinguish clean from adversarial examples.
+모형을 맞서는 흔듦에 든든하게 만드는 대신, 맞서는 들임이 가름개에 닿기 앞서 **짚어내는** 길도 있다. 자로 알아내는 방법은 들임과 모형 속의 결을 살펴 맑은 보기와 맞서는 보기를 가른다.
 
-## Detection Approaches
+## 알아내는 길
 
-### Feature Distribution Analysis
+### 결 분포 살피기
 
-Adversarial examples often produce **unusual activation patterns** in intermediate network layers. Detection methods compare the activation statistics of a test input against the distribution of clean data.
+맞서는 보기는 그물의 가운데 켜에서 **여느 것과 다른 살림 결**을 내는 일이 잦다. 알아내는 방법은 시험 들임의 살림 자를 맑은 자료의 분포와 견준다.
 
-**Mahalanobis Distance Detector** (Lee et al., 2018):
+**마할라노비스 거리 알아내개**(이 등, 2018):
 
-For each class $c$ and layer $\ell$, fit a Gaussian to clean activations:
+갈래 $c$과 켜 $\ell$마다 맑은 살림에 가우스를 맞춘다.
 
 $$
 (\boldsymbol{\mu}_c^\ell, \boldsymbol{\Sigma}^\ell) = \text{fit}(\{h^\ell(\mathbf{x}) : y = c\})
 $$
 
-The detection score combines Mahalanobis distances across layers:
+알아내기 점수는 켜에 걸친 마할라노비스 거리를 아우른다.
 
 $$
 M(\mathbf{x}) = \sum_\ell \max_c \left[ -(h^\ell(\mathbf{x}) - \boldsymbol{\mu}_c^\ell)^\top (\boldsymbol{\Sigma}^\ell)^{-1} (h^\ell(\mathbf{x}) - \boldsymbol{\mu}_c^\ell) \right]
 $$
 
-Adversarial examples tend to have higher Mahalanobis distances (lower scores).
+맞서는 보기는 마할라노비스 거리가 크고(점수가 낮고) 하는 쪽이다.
 
-### Prediction Consistency
+### 미루어 봄의 한결같음
 
-Check whether the model's predictions are **consistent** under input transformations that should not change the true class:
+참 갈래를 바꾸지 않아야 할 들임 바꿈 아래에서 모형의 미루어 봄이 **한결같은지** 살핀다.
 
 ```python
 import torch
@@ -36,11 +36,11 @@ from typing import Dict
 
 class ConsistencyDetector:
     """
-    Detect adversarial examples via prediction consistency
-    under random transformations.
+    아무 바꿈 아래 미루어 봄이 한결같은지로
+    맞서는 보기를 짚어낸다.
     
-    Clean inputs maintain consistent predictions under
-    small transformations; adversarial examples do not.
+    맑은 들임은 작은 바꿈 아래에서도 미루어 봄이 한결같고,
+    맞서는 보기는 그렇지 않다.
     """
     
     def __init__(
@@ -55,18 +55,18 @@ class ConsistencyDetector:
     
     def detect(self, x: torch.Tensor) -> Dict[str, torch.Tensor]:
         """
-        Detect adversarial examples.
+        맞서는 보기를 짚어낸다.
         
-        Returns consistency scores and binary detection decisions.
+        한결같음 점수와 참거짓 판단을 돌려준다.
         """
         device = next(self.model.parameters()).device
         x = x.to(device)
         
         with torch.no_grad():
-            # Original prediction
+            # 본디 미루어 봄
             base_pred = self.model(x).argmax(dim=1)
             
-            # Predictions under random noise
+            # 아무 잡음 아래의 미루어 봄
             consistent = torch.zeros(len(x), device=device)
             for _ in range(self.num_transforms):
                 noise = torch.randn_like(x) * self.noise_std
@@ -82,56 +82,56 @@ class ConsistencyDetector:
         }
 ```
 
-### Logit Analysis
+### 로짓 살피기
 
-Adversarial examples often produce logit distributions that differ from clean inputs:
+맞서는 보기는 맑은 들임과 다른 로짓 분포를 내는 일이 잦다.
 
-- **Higher entropy**: Less confident predictions (for some attacks)
-- **Unusual logit gaps**: Abnormal margins between top classes
-- **Different softmax distributions**: Detectable via statistical tests
+- **더 큰 엔트로피**: 덜 자신하는 미루어 봄(어떤 치기에서)
+- **여느 것과 다른 로짓 틈**: 으뜸 갈래끼리의 틈이 이상하다
+- **다른 소프트맥스 분포**: 통계 시험으로 짚어낼 수 있다
 
-## Limitations
+## 한계
 
-Statistical detectors face a fundamental challenge: they can themselves be attacked. An **adaptive adversary** who knows the detection mechanism can craft adversarial examples that also fool the detector. This creates an arms race that favors the attacker in the white-box setting.
+자로 알아내는 개에는 밑바탕 어려움이 있다. 그 자신이 치일 수 있다는 것이다. 알아내는 얼개를 아는 **맞추어 오는 겨루는 이**는 알아내개까지 속이는 맞서는 보기를 지을 수 있다. 이는 흰 상자 자리에서 치는 쪽에 이로운 무기 겨루기를 낳는다.
 
-## Summary
+## 간추림
 
-Statistical detection provides a complementary layer of defense, particularly effective against non-adaptive attacks. However, it should not be relied upon as the sole defense mechanism, especially against sophisticated adversaries.
+자로 알아내기는 막이를 채워 주는 한 켜이며, 맞추어 오지 않는 치기에 특히 잘 듣는다. 다만 이것 하나에만 기대서는 안 된다. 꾀 많은 겨루는 이 앞에서는 더욱 그렇다.
 
-## References
+## 살펴볼 거리
 
 1. Lee, K., et al. (2018). "A Simple Unified Framework for Detecting Out-of-Distribution Samples and Adversarial Attacks." NeurIPS.
 2. Ma, X., et al. (2018). "Characterizing Adversarial Subspaces Using Local Intrinsic Dimensionality." ICLR.
 3. Carlini, N., & Wagner, D. (2017). "Adversarial Examples Are Not Easily Detected: Bypassing Ten Detection Methods." ACM Workshop on AI Security.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$

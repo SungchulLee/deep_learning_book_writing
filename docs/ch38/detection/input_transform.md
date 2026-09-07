@@ -1,38 +1,38 @@
-# Input Transformation Defenses
-## Introduction
+# 들임 바꾸어 막기
+## 들머리
 
-**Input transformation defenses** preprocess inputs before classification to remove or reduce adversarial perturbations. These methods modify the input using techniques such as denoising, compression, or reconstruction, aiming to "purify" adversarial examples while preserving clean classification accuracy.
+**들임 바꾸어 막기**은 가르기에 앞서 들임을 미리 다뤄 맞서는 흔듦을 없애거나 줄인다. 잡음 지우기, 눌러 담기, 되살리기 같은 재주로 들임을 고쳐, 맑은 가름의 맞음은 지키면서 맞서는 보기를 "맑히려" 한다.
 
-## Common Transformations
+## 흔한 바꿈
 
-### JPEG Compression
+### JPEG 눌러 담기
 
-JPEG compression removes high-frequency components in the DCT domain, which often carry adversarial perturbations:
+JPEG 눌러 담기는 DCT 밭에서 높은 잦기 몫을 없애는데, 거기에 맞서는 흔듦이 실려 있는 일이 잦다.
 
 $$
 \mathbf{x}_{\text{clean}} \approx \text{JPEG}(\mathbf{x}_{\text{adv}}, q)
 $$
 
-where $q$ is the quality factor. Lower quality removes more perturbation but also more signal.
+여기서 $q$은 됨됨이 값이다. 됨됨이가 낮을수록 흔듦을 더 없애지만 신호도 더 잃는다.
 
-### Randomized Resizing and Padding
+### 아무렇게나 크기 바꾸고 덧대기
 
-Xie et al. (2018) proposed randomly resizing and padding inputs before classification. The randomness creates stochastic gradients that hinder gradient-based attacks:
+셰 등(2018)은 가르기에 앞서 들임의 크기를 아무렇게나 바꾸고 덧대자고 내놓았다. 그 아무렇게나임이 기울기를 흔들어 기울기 바탕의 치기를 가로막는다.
 
 ```python
 import torch
 import torch.nn.functional as F
 
 def random_resize_pad(x, target_size=32, resize_range=(28, 36)):
-    """Randomly resize and pad input for defense."""
+    """막으려고 들임을 아무렇게나 크기 바꾸고 덧댄다."""
     rnd_size = torch.randint(resize_range[0], resize_range[1], (1,)).item()
     
-    # Resize
+    # 크기를 바꾼다
     x_resized = F.interpolate(
         x, size=(rnd_size, rnd_size), mode='bilinear', align_corners=False
     )
     
-    # Random padding to reach target size
+    # 과녁 크기가 되도록 아무렇게나 덧댄다
     pad_top = torch.randint(0, target_size - rnd_size + 1, (1,)).item()
     pad_left = torch.randint(0, target_size - rnd_size + 1, (1,)).item()
     pad_bottom = target_size - rnd_size - pad_top
@@ -41,86 +41,86 @@ def random_resize_pad(x, target_size=32, resize_range=(28, 36)):
     return F.pad(x_resized, (pad_left, pad_right, pad_top, pad_bottom))
 ```
 
-### Denoising Autoencoders
+### 잡음 지우는 제 부호기
 
-Train a denoising autoencoder to reconstruct clean inputs from adversarial ones:
+맞서는 들임에서 맑은 들임을 되살리도록 잡음 지우는 제 부호기를 익힌다.
 
 $$
 \hat{\mathbf{x}} = D_\phi(\mathbf{x}_{\text{adv}}) \approx \mathbf{x}
 $$
 
-The denoiser is trained on pairs of (adversarial, clean) examples. The classifier then operates on the denoised input.
+잡음 지우개는 (맞섬, 맑음) 짝으로 익힌다. 그다음 가름개는 잡음을 지운 들임으로 움직인다.
 
-### Diffusion-Based Purification
+### 퍼짐에 기댄 맑히기
 
-Recent work uses **diffusion models** to purify adversarial examples by adding noise and then denoising:
+요즘 일은 **퍼짐 모형**으로 잡음을 더했다가 지워 맞서는 보기를 맑힌다.
 
-1. Add Gaussian noise: $\mathbf{x}_t = \sqrt{\bar{\alpha}_t}\mathbf{x}_{\text{adv}} + \sqrt{1-\bar{\alpha}_t}\boldsymbol{\epsilon}$
-2. Denoise using the diffusion model: $\hat{\mathbf{x}}_0 = \text{denoise}(\mathbf{x}_t, t)$
-3. Classify: $\hat{y} = f(\hat{\mathbf{x}}_0)$
+1. 가우스 잡음을 더한다: $\mathbf{x}_t = \sqrt{\bar{\alpha}_t}\mathbf{x}_{\text{adv}} + \sqrt{1-\bar{\alpha}_t}\boldsymbol{\epsilon}$
+2. 퍼짐 모형으로 잡음을 지운다: $\hat{\mathbf{x}}_0 = \text{denoise}(\mathbf{x}_t, t)$
+3. 가른다: $\hat{y} = f(\hat{\mathbf{x}}_0)$
 
-The noise injection disrupts adversarial structure, and the diffusion model reconstructs a clean approximation.
+잡음을 섞으면 맞서는 얼개가 무너지고, 퍼짐 모형이 맑은 것에 가깝게 되살린다.
 
-## Limitations
+## 한계
 
-### The Gradient Masking Problem
+### 기울기 가리기 문제
 
-Input transformation defenses often provide **gradient masking** rather than true robustness:
+들임 바꾸어 막기는 참 든든함이 아니라 **기울기 가리기**에 그치는 일이 잦다.
 
-- The transformation may be non-differentiable, preventing gradient-based attacks
-- However, the defense may still be vulnerable to:
-    - Backward Pass Differentiable Approximation (BPDA)
-    - Transfer attacks from models without the defense
-    - Expectation over Transformation (EOT) attacks
+- 바꿈이 미분할 수 없어 기울기 바탕의 치기를 막을 수 있다
+- 그러나 다음에는 여전히 무를 수 있다.
+    - 되돌아 걸음을 미분할 수 있게 어림하기(BPDA)
+    - 막이가 없는 모형에서 옮아가는 치기
+    - 바꿈에 걸친 바람(EOT) 치기
 
-### Accuracy Degradation
+### 맞음이 떨어짐
 
-Transformations that remove adversarial perturbations also degrade clean inputs, reducing clean accuracy. The trade-off between perturbation removal and information preservation is inherent.
+맞서는 흔듦을 없애는 바꿈은 맑은 들임도 망가뜨려 맑은 맞음을 떨어뜨린다. 흔듦을 없애는 일과 소식을 지키는 일 사이의 맞바꿈은 타고난 것이다.
 
-## Best Practices
+## 좋은 버릇
 
-1. **Always evaluate with adaptive attacks**: Use BPDA or EOT to attack through the transformation
-2. **Combine with other defenses**: Use transformations alongside adversarial training, not as a replacement
-3. **Monitor clean accuracy**: Ensure the transformation doesn't unacceptably degrade performance on clean inputs
+1. **늘 맞추어 오는 치기로 따져라**: BPDA이나 EOT으로 바꿈을 뚫고 쳐 본다
+2. **다른 막이와 아울러라**: 바꿈을 맞서며 익히기의 갈음이 아니라 곁들이로 쓴다
+3. **맑은 맞음을 지켜보라**: 바꿈이 맑은 들임의 됨됨이를 받아들일 수 없을 만큼 떨어뜨리지 않게 한다
 
-## Summary
+## 간추림
 
-Input transformation defenses are intuitive and easy to implement but suffer from the gradient masking problem. They are most effective as part of a multi-layered defense strategy and must always be evaluated against adaptive adversaries.
+들임 바꾸어 막기는 알기 쉽고 짜기도 쉽지만 기울기 가리기 문제를 안고 있다. 여러 켜 막이 꾀의 한 몫일 때 가장 잘 들며, 맞추어 오는 겨루는 이에 대해 늘 따져 봐야 한다.
 
-## References
+## 살펴볼 거리
 
 1. Xie, C., et al. (2018). "Mitigating Adversarial Effects Through Randomization." ICLR.
 2. Nie, W., et al. (2022). "Diffusion Models for Adversarial Purification." ICML.
 3. Athalye, A., Carlini, N., & Wagner, D. (2018). "Obfuscated Gradients Give a False Sense of Security: Circumventing Defenses to Adversarial Examples." ICML.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
