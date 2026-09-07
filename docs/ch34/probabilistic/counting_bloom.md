@@ -1,91 +1,91 @@
-# Counting Bloom Filters
+# 세는 블룸 필터
 
-A standard Bloom filter supports only insertion and membership queries -- deletion is impossible because clearing a bit might erase evidence of other elements. A **counting Bloom filter** replaces each bit with an integer counter, enabling deletion while preserving the space-efficient probabilistic membership test.
+여느 블룸 필터는 넣기와 소속 묻기만 받쳐 준다. 비트를 끄면 다른 원소의 자취가 지워질 수 있으므로 지우기가 될 수 없다. **세는 블룸 필터**는 비트마다 정수 세개로 갈음하여, 자리를 아끼는 확률 소속 시험을 지키면서 지우기를 이루게 한다.
 
-## Motivation
+## 밑뜻
 
-Consider a network router that uses a Bloom filter to cache routing decisions. When a route is withdrawn, the router must remove the entry. A standard Bloom filter cannot do this safely, but a counting Bloom filter can decrement counters instead of clearing bits, supporting dynamic sets where elements come and go.
+길잡이 판단을 갈무리하려고 블룸 필터를 쓰는 그물 길잡이를 여겨 보자. 길이 거두어지면 길잡이가 그 항목을 없애야 한다. 여느 블룸 필터로는 이를 안전하게 할 수 없지만, 세는 블룸 필터는 비트를 끄는 대신 세개를 내릴 수 있어 원소가 오가는 움직이는 모임을 받쳐 준다.
 
-## Structure
+## 얼개
 
-A counting Bloom filter consists of:
+세는 블룸 필터는 다음으로 이루어진다.
 
-- An array $C$ of $m$ counters, each initialized to zero.
-- A family of $k$ hash functions $h_1, \ldots, h_k$ mapping elements to $\{0, 1, \ldots, m-1\}$.
+- 처음에 모두 0인 세개 $m$개의 배열 $C$.
+- 원소를 $\{0, 1, \ldots, m-1\}$으로 맞대는 해시 함수 $k$개의 갈래 $h_1, \ldots, h_k$.
 
-## Operations
+## 연산
 
-**Insert($x$)**: Increment $C[h_i(x)]$ for all $i \in \{1, \ldots, k\}$.
+**넣기($x$)**: 모든 $i \in \{1, \ldots, k\}$에 대해 $C[h_i(x)]$을 올린다.
 
-**Delete($x$)**: Decrement $C[h_i(x)]$ for all $i \in \{1, \ldots, k\}$. Only delete elements known to have been inserted; deleting a non-member introduces **false negatives**.
+**지우기($x$)**: 모든 $i \in \{1, \ldots, k\}$에 대해 $C[h_i(x)]$을 내린다. 넣은 것이 틀림없는 원소만 지워야 한다. 속하지 않은 것을 지우면 **거짓 음성**이 들어온다.
 
-**Query($x$)**: Return `True` if $C[h_i(x)] > 0$ for all $i$; otherwise return `False`.
+**묻기($x$)**: 모든 $i$에 대해 $C[h_i(x)] > 0$이면 `True`을, 아니면 `False`을 돌려준다.
 
-## False Positive Analysis
+## 거짓 양성 살피기
 
-The false positive probability is the same as a standard Bloom filter:
+거짓 양성 낌새는 여느 블룸 필터와 같다.
 
 $$
-P_{\text{fp}} \approx \left(1 - e^{-kn/m}\right)^k
+P_{\text{거짓양성}} \approx \left(1 - e^{-kn/m}\right)^k
 $$
 
-where $n$ is the number of currently inserted elements. Deletions reduce $n$, which decreases the false positive rate -- a desirable property.
+여기서 $n$은 지금 들어 있는 원소의 개수다. 지우기가 $n$을 줄이므로 거짓 양성률이 낮아지는데, 이는 반가운 성질이다.
 
-## Counter Overflow
+## 세개 넘침
 
-Each counter must be wide enough to avoid overflow. With $k$ hash functions and $n$ elements, the expected count at any position is $kn/m$. The probability that a counter reaches value $c$ follows a Poisson tail:
+세개마다 넘치지 않을 만큼 넉넉해야 한다. 해시 함수가 $k$개이고 원소가 $n$개이면 아무 자리의 어림 셈이 $kn/m$이다. 세개가 값 $c$에 이를 낌새는 푸아송 꼬리를 따른다.
 
 $$
 \Pr[C_j \ge c] \le \frac{(kn/m)^c}{c!}
 $$
 
-In practice, 4-bit counters (max value 15) suffice for most applications, and overflow events are extremely rare when $m/n$ is properly sized.
+실제로는 4비트 세개(최댓값 15)면 거의 모든 쓰임새에 넉넉하고, $m/n$을 알맞게 잡으면 넘침이 매우 드물다.
 
-!!! warning "Counter underflow"
-    Never decrement a counter below zero. If an element is deleted without having been inserted, counters may go negative, introducing false negatives. Guard against this in implementation.
+!!! warning "세개가 밑으로 넘침"
+    세개를 0 아래로 내려서는 안 된다. 넣지 않은 원소를 지우면 세개가 아래로 내려가 거짓 음성이 들어올 수 있다. 만들 때 이를 막아야 한다.
 
-## Space Comparison
+## 자리 견주기
 
-| Structure | Space per Slot | Supports Delete |
+| 얼개 | 칸마다 자리 | 지우기를 받쳐 주는가 |
 |---|---|---|
-| Standard Bloom filter | 1 bit | No |
-| Counting Bloom filter (4-bit) | 4 bits | Yes |
-| Counting Bloom filter (8-bit) | 8 bits | Yes |
+| 여느 블룸 필터 | 1비트 | 아니오 |
+| 세는 블룸 필터(4비트) | 4비트 | 예 |
+| 세는 블룸 필터(8비트) | 8비트 | 예 |
 
-A 4-bit counting Bloom filter uses 4x the space of a standard Bloom filter -- still dramatically less than a hash table.
+4비트 세는 블룸 필터는 여느 블룸 필터의 4배 자리를 쓰지만, 그래도 해시 표보다는 놀랍도록 적다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Counting Bloom Filter -- probabilistic set with deletion support.
+세는 블룸 필터 -- 지우기를 받쳐 주는 확률 집합.
 
-Replaces the bit array of a standard Bloom filter with integer
-counters so that elements can be removed without affecting other members.
+여느 블룸 필터의 비트 배열을 정수 세개로 갈음하여, 다른
+원소를 건드리지 않고 원소를 없앨 수 있게 한다.
 """
 
 import hashlib
 import math
 
 
-# === Counting Bloom Filter ====================================================
+# === 세는 블룸 필터 ===========================================================
 
 class CountingBloomFilter:
-    """Bloom filter with counters supporting insert, delete, and query."""
+    """넣기, 지우기, 묻기를 받쳐 주는 세개를 둔 블룸 필터."""
 
     def __init__(self, expected_items: int, fp_rate: float = 0.01,
                  counter_bits: int = 4):
         self.n_expected = expected_items
         self.fp_rate = fp_rate
         self.max_count = (1 << counter_bits) - 1
-        # Optimal sizing
+        # 가장 좋은 크기 잡기
         self.m = max(1, int(-expected_items * math.log(fp_rate)
                             / (math.log(2) ** 2)))
         self.k = max(1, int((self.m / expected_items) * math.log(2)))
         self.counters = [0] * self.m
 
     def _hashes(self, item: str) -> list[int]:
-        """Compute k hash positions for *item*."""
+        """*item*의 해시 자리 k개를 셈한다."""
         positions = []
         for i in range(self.k):
             digest = hashlib.md5(f"{item}:{i}".encode()).hexdigest()
@@ -93,29 +93,29 @@ class CountingBloomFilter:
         return positions
 
     def add(self, item: str) -> None:
-        """Insert *item* by incrementing counters."""
+        """세개를 올려 *item*을 넣는다."""
         for pos in self._hashes(item):
             if self.counters[pos] < self.max_count:
                 self.counters[pos] += 1
 
     def remove(self, item: str) -> None:
-        """Remove *item* by decrementing counters (must have been inserted)."""
+        """세개를 내려 *item*을 없앤다(넣었던 것이어야 한다)."""
         for pos in self._hashes(item):
             if self.counters[pos] > 0:
                 self.counters[pos] -= 1
 
     def query(self, item: str) -> bool:
-        """Test whether *item* is possibly in the set."""
+        """*item*이 집합에 있을 수 있는지 시험한다."""
         return all(self.counters[pos] > 0 for pos in self._hashes(item))
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     cbf = CountingBloomFilter(expected_items=100, fp_rate=0.01)
     print(f"Filter: {cbf.m} counters, {cbf.k} hash functions")
 
-    # Insert items
+    # 항목을 넣는다
     for word in ["apple", "banana", "cherry"]:
         cbf.add(word)
 
@@ -123,14 +123,14 @@ if __name__ == "__main__":
     for word in ["apple", "banana", "cherry", "date"]:
         print(f"  {word}: {cbf.query(word)}")
 
-    # Delete banana
+    # banana를 지운다
     cbf.remove("banana")
     print("\nAfter deleting banana:")
     for word in ["apple", "banana", "cherry", "date"]:
         print(f"  {word}: {cbf.query(word)}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 Filter: 958 counters, 6 hash functions
@@ -148,71 +148,71 @@ After deleting banana:
   date: False
 ```
 
-After deletion, `banana` correctly reports `False`, while `apple` and `cherry` remain unaffected. This is the key advantage over a standard Bloom filter: elements can be removed without disturbing other members.
+지운 뒤 `banana`은 옳게 `False`을 돌려주고 `apple`과 `cherry`은 흔들리지 않는다. 이것이 여느 블룸 필터에 견준 종요로운 이로움이다. 다른 원소를 흐트러뜨리지 않고 원소를 없앨 수 있다.
 
-## Reference
+## 참고 문헌
 
 - Fan, L., Cao, P., Almeida, J., and Broder, A.Z. "Summary Cache: A Scalable Wide-Area Web Cache Sharing Protocol." *IEEE/ACM Trans. Networking*, 2000
 - Mitzenmacher, M. and Upfal, E. *Probability and Computing*. Cambridge University Press, 2005
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Explain why deletion is impossible in a standard Bloom filter and how counting Bloom filters solve this. What is the space overhead?
+**연습문제 1.**
+여느 블룸 필터에서 지우기가 될 수 없는 까닭과 세는 블룸 필터가 이를 푸는 길을 풀어라. 자리 덧듦은 얼마인가?
 
-??? success "Solution to Exercise 1"
-    In a standard Bloom filter, each bit position may be set by multiple elements. Clearing a bit during deletion would erase evidence of other elements that also hash to that position, potentially creating false negatives (which violate the Bloom filter guarantee). Counting Bloom filters replace each bit with an integer counter. Insert increments all $k$ counters; delete decrements all $k$ counters. A membership query checks whether all $k$ counters are $> 0$. Since counters are never set to negative values (assuming no bogus deletes), elements that were not deleted retain positive counts at all their positions. Space overhead: each counter needs $b$ bits instead of 1 bit. With 4-bit counters ($b = 4$, maximum count 15), the space is $4m$ bits instead of $m$ bits -- a 4x increase. The 4-bit choice is standard because the probability of a counter exceeding 15 is negligibly small for typical loads. $\square$
-
----
-
-**Exercise 2.**
-Derive the probability that a counter in a counting Bloom filter overflows (exceeds its maximum value) given $n$ elements, $m$ counters, $k$ hash functions, and counter width $b$ bits.
-
-??? success "Solution to Exercise 2"
-    Each insertion increments $k$ of the $m$ counters. The number of times a specific counter is incremented follows a Binomial distribution: $X \sim \text{Binomial}(nk, 1/m)$, since each of the $nk$ hash outputs independently hits this counter with probability $1/m$. The expected count is $\mu = nk/m$. The counter overflows if $X > 2^b - 1$. With $b = 4$, overflow occurs when $X > 15$. For $k = 7$ and $m/n = 10$ (optimal for 1% FPR): $\mu = 7/10 = 0.7$. Using a Poisson approximation: $P(X > 15) \approx \sum_{i=16}^{\infty} e^{-0.7} (0.7)^i / i! < 10^{-15}$. Over $m = 10^7$ counters, the expected number of overflows is $< 10^{-8}$, making overflow essentially impossible. $\square$
+??? success "연습문제 1 풀이"
+    여느 블룸 필터에서 비트 자리마다 여러 원소가 켜 놓았을 수 있다. 지우면서 비트를 끄면 같은 자리로 해시되는 다른 원소의 자취까지 지워져 (블룸 필터의 보장을 깨는) 거짓 음성이 생길 수 있다. 세는 블룸 필터는 비트마다 정수 세개로 갈음한다. 넣기는 $k$개 세개를 모두 올리고 지우기는 $k$개 세개를 모두 내린다. 소속 물음은 $k$개 세개가 모두 $> 0$인지 살핀다. (엉뚱한 지우기가 없다고 여기면) 세개가 결코 아래로 내려가지 않으므로, 지우지 않은 원소는 제 모든 자리에서 0보다 큰 셈을 지닌다. 자리 덧듦: 세개마다 1비트가 아니라 $b$비트가 든다. 4비트 세개($b = 4$, 최대 셈 15)이면 자리가 $m$비트가 아니라 $4m$비트이므로 4배로 는다. 흔한 짐에서 세개가 15를 넘을 낌새가 셈에 넣지 않아도 될 만큼 작아 4비트가 여느 고름이다. $\square$
 
 ---
 
-**Exercise 3.**
-What happens if an element is deleted from a counting Bloom filter that was never inserted? Describe the failure mode and propose a safeguard.
+**연습문제 2.**
+원소 $n$개, 세개 $m$개, 해시 함수 $k$개, 세개 너비 $b$비트가 주어질 때 세는 블룸 필터의 세개가 (최댓값을 넘어) 넘칠 낌새를 이끌어 내어라.
 
-??? success "Solution to Exercise 3"
-    Deleting a non-member decrements $k$ counters that may have been incremented by other elements. This reduces those counters, potentially to 0, which creates false negatives for the elements that originally incremented them. This is a correctness violation: the no-false-negatives guarantee is broken. Example: elements A and B both hash to counter $i$. Delete non-member C, which also hashes to counter $i$. Counter $i$ decreases; if it reaches 0, both A and B produce false negatives. Safeguard: before deleting, query the filter to verify the element is (probably) present. If the query returns "not present," skip the deletion. This prevents most bogus deletes but is not foolproof (a false positive could cause an incorrect delete of a non-member). For guaranteed correctness, maintain a separate exact set alongside the counting Bloom filter. $\square$
-
----
-
-**Exercise 4.**
-Compare counting Bloom filters with cuckoo filters in terms of space efficiency, deletion support, and false positive rate. When is each preferable?
-
-??? success "Solution to Exercise 4"
-    **Counting Bloom filter**: 4x space of a standard Bloom filter (4-bit counters). Supports deletion. FPR depends on $m/n$ and $k$. For 1% FPR: $\sim$40 bits/element. **Cuckoo filter**: stores fingerprints in a cuckoo hash table. For 1% FPR with 8-bit fingerprints and 95% load factor: $\sim$8.5 bits/element. Supports deletion natively (remove the fingerprint). Counting Bloom filters are preferable when: (1) the system already uses Bloom filters and a drop-in replacement is needed; (2) the number of hash functions must be configurable. Cuckoo filters are preferable when: (1) space efficiency matters (4--5x more compact); (2) deletion is needed (inherent in the design, no counter overflow risk); (3) lookup performance matters (cuckoo filters check only 2 buckets vs. $k$ random positions for Bloom). $\square$
+??? success "연습문제 2 풀이"
+    넣을 때마다 $m$개 세개 가운데 $k$개를 올린다. 어떤 세개 하나가 올라가는 횟수는 이항 분포를 따른다. 곧 $X \sim \text{Binomial}(nk, 1/m)$이며, $nk$개의 해시 결과가 저마다 서로 매이지 않고 낌새 $1/m$으로 이 세개에 닿기 때문이다. 어림 셈은 $\mu = nk/m$이다. $X > 2^b - 1$이면 세개가 넘친다. $b = 4$이면 $X > 15$일 때 넘친다. $k = 7$이고 $m/n = 10$(거짓 양성률 1%에 가장 좋다)이면 $\mu = 7/10 = 0.7$이다. 푸아송 어림을 쓰면 $P(X > 15) \approx \sum_{i=16}^{\infty} e^{-0.7} (0.7)^i / i! < 10^{-15}$이다. 세개 $m = 10^7$개에 걸쳐 넘침의 어림 개수가 $< 10^{-8}$이므로 넘침은 사실상 있을 수 없다. $\square$
 
 ---
 
-**Exercise 5.**
-Implement a counting Bloom filter in pseudocode that supports insert, delete, and query operations. Include the counter overflow check.
+**연습문제 3.**
+넣은 적 없는 원소를 세는 블룸 필터에서 지우면 무슨 일이 생기는가? 어그러지는 결을 밝히고 막을 길을 내놓아라.
 
-??? success "Solution to Exercise 5"
+??? success "연습문제 3 풀이"
+    속하지 않은 것을 지우면 다른 원소가 올려 놓았을 수 있는 세개 $k$개를 내린다. 이 세개가 줄어 0에 이르면, 본디 그것을 올렸던 원소에 거짓 음성이 생긴다. 이는 옳음을 깨뜨리는 것으로, 거짓 음성이 없다는 보장이 무너진다. 보기: 원소 A와 B가 둘 다 세개 $i$으로 해시된다. 역시 세개 $i$으로 해시되는, 속하지 않은 C을 지운다. 세개 $i$이 줄고 0에 이르면 A와 B가 모두 거짓 음성을 낸다. 막을 길: 지우기 앞서 필터에 물어 그 원소가 (아마도) 있는지 살핀다. 물음이 "없음"을 돌려주면 지우기를 건너뛴다. 이로써 엉뚱한 지우기의 거의 모두를 막지만 빈틈이 없지는 않다(거짓 양성 때문에 속하지 않은 것을 그릇되게 지울 수 있다). 옳음을 보장하려면 세는 블룸 필터 곁에 딱 맞는 집합을 따로 지녀야 한다. $\square$
+
+---
+
+**연습문제 4.**
+세는 블룸 필터와 뻐꾸기 필터를 자리 아낌, 지우기 받침, 거짓 양성률에서 견주어라. 어느 쪽이 언제 나은가?
+
+??? success "연습문제 4 풀이"
+    **세는 블룸 필터**: 여느 블룸 필터의 4배 자리(4비트 세개)를 쓴다. 지우기를 받쳐 준다. 거짓 양성률은 $m/n$과 $k$에 달렸다. 거짓 양성률 1%에 원소마다 약 40비트다. **뻐꾸기 필터**: 뻐꾸기 해시 표에 손도장을 갈무리한다. 8비트 손도장과 채움률 95%로 거짓 양성률 1%를 이루면 원소마다 약 8.5비트다. (손도장을 없애어) 지우기를 본디부터 받쳐 준다. 세는 블룸 필터가 나은 때는 다음이다. (1) 시스템이 이미 블룸 필터를 쓰고 있어 그대로 갈아 끼울 것이 필요할 때. (2) 해시 함수 개수를 마음대로 잡아야 할 때. 뻐꾸기 필터가 나은 때는 다음이다. (1) 자리 아낌이 대수로울 때(4~5배 더 야무지다). (2) 지우기가 필요할 때(설계에 본디부터 들어 있고 세개 넘침 걱정이 없다). (3) 찾기 성능이 대수로울 때(뻐꾸기 필터는 두레박 2개만 살피지만 블룸은 아무 자리 $k$개를 살핀다). $\square$
+
+---
+
+**연습문제 5.**
+넣기, 지우기, 묻기 연산을 받쳐 주는 세는 블룸 필터를 의사코드로 만들어라. 세개 넘침 살피기를 넣어라.
+
+??? success "연습문제 5 풀이"
     ```
     class CountingBloomFilter:
         init(m, k):
-            counters = array of m integers, all 0
-            hash_functions = k independent hash functions
-    
+            counters = 모두 0인 정수 m개의 배열
+            hash_functions = 서로 매이지 않은 해시 함수 k개
+
         insert(x):
             for i in 1..k:
                 pos = hash_functions[i](x) % m
                 if counters[pos] < MAX_COUNT:
                     counters[pos] += 1
-    
+
         delete(x):
             if not query(x):
-                return  # safeguard against bogus deletes
+                return  # 엉뚱한 지우기를 막는다
             for i in 1..k:
                 pos = hash_functions[i](x) % m
                 if counters[pos] > 0:
                     counters[pos] -= 1
-    
+
         query(x):
             for i in 1..k:
                 pos = hash_functions[i](x) % m
@@ -220,4 +220,4 @@ Implement a counting Bloom filter in pseudocode that supports insert, delete, an
                     return False
             return True
     ```
-    The overflow check in `insert` caps counters at `MAX_COUNT` (e.g., 15 for 4-bit counters). The delete safeguard queries first and the `> 0` check prevents underflow. $\square$
+    `insert`의 넘침 살피기가 세개를 `MAX_COUNT`(보기로 4비트 세개에서 15)으로 막는다. 지우기의 막음은 먼저 묻는 것이고 `> 0` 살피기가 밑으로 넘침을 막는다. $\square$

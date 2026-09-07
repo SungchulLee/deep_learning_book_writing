@@ -1,89 +1,89 @@
-# Skip Lists
+# 건너뛰기 목록
 
-Balanced BSTs (AVL, red-black) guarantee $O(\log n)$ operations but require complex rebalancing logic. A **skip list** achieves the same expected bounds using randomization instead of structural invariants. Each element is promoted to higher "express lanes" with probability $p$ (typically $1/2$), creating a hierarchy of linked lists that enables binary-search-like traversal over a linked list.
+고른 이진 찾기 나무(AVL, 붉은-검은)는 $O(\log n)$ 연산을 보장하지만 얽힌 다시 고르기 논리가 있어야 한다. **건너뛰기 목록**은 얼개 불변량 대신 마구잡이를 써서 같은 어림 매임을 이룬다. 원소마다 낌새 $p$(흔히 $1/2$)으로 더 높은 "빠른 길"에 올려, 이음 목록 위에서 두 갈래 찾기 같은 훑기를 이루는 이음 목록의 켜를 만든다.
 
-## Structure
+## 얼개
 
-A skip list is a collection of sorted linked lists $L_0, L_1, \ldots, L_h$:
+건너뛰기 목록은 매긴 이음 목록 $L_0, L_1, \ldots, L_h$의 모임이다.
 
-- $L_0$ contains all $n$ elements.
-- Each element in $L_i$ is independently promoted to $L_{i+1}$ with probability $p$.
-- Sentinel nodes $-\infty$ and $+\infty$ appear at every level.
+- $L_0$은 원소 $n$개를 모두 담는다.
+- $L_i$의 원소마다 서로 매이지 않고 낌새 $p$으로 $L_{i+1}$에 올라간다.
+- 파수 마디 $-\infty$과 $+\infty$이 층마다 나타난다.
 
-The expected number of elements at level $i$ is $n p^i$, and the expected height is:
+층 $i$의 어림 원소 개수는 $n p^i$이고 어림 높이는 다음과 같다.
 
 $$
 E[h] = \log_{1/p} n = O(\log n)
 $$
 
-## Search
+## 찾기
 
-To search for key $k$, start at the topmost level and the leftmost sentinel:
+열쇠 $k$을 찾으려면 가장 위 층의 가장 왼쪽 파수에서 시작한다.
 
-1. Move right while the next element is less than $k$.
-2. When the next element is $\ge k$, drop down one level.
-3. Repeat until reaching level 0.
-4. If the element at level 0 equals $k$, return it; otherwise $k$ is absent.
+1. 다음 원소가 $k$보다 작으면 오른쪽으로 옮긴다.
+2. 다음 원소가 $\ge k$이면 한 층 내려간다.
+3. 층 0에 이를 때까지 되풀이한다.
+4. 층 0의 원소가 $k$과 같으면 그것을 돌려주고, 아니면 $k$은 없다.
 
-**Expected time**: At each level, we make at most $1/p$ comparisons on average before dropping down. With $O(\log n)$ levels:
-
-$$
-E[T_{\text{search}}] = O\!\left(\frac{\log n}{p}\right) = O(\log n) \text{ for constant } p
-$$
-
-## Insert
-
-To insert key $k$:
-
-1. Search for $k$'s position, recording the predecessors at each level.
-2. Determine the new node's height by flipping coins: $\ell = 0$; while a coin flip is heads (probability $p$), increment $\ell$.
-3. Insert the node into levels $0$ through $\ell$, splicing it after the recorded predecessors.
+**어림 때**: 층마다 내려가기 앞서 어림잡아 많아야 $1/p$번 견준다. 층이 $O(\log n)$개이므로 다음과 같다.
 
 $$
-E[T_{\text{insert}}] = O(\log n), \quad E[S_{\text{insert}}] = O\!\left(\frac{1}{1-p}\right) = O(1)
+E[T_{\text{찾기}}] = O\!\left(\frac{\log n}{p}\right) = O(\log n) \quad (p \text{이 상수일 때})
 $$
 
-## Delete
+## 넣기
 
-To delete key $k$:
+열쇠 $k$을 넣으려면:
 
-1. Search for $k$, recording predecessors at each level.
-2. Remove $k$ from every level where it appears by adjusting pointers.
-3. If the topmost non-empty level decreased, reduce the height.
-
-$$
-E[T_{\text{delete}}] = O(\log n)
-$$
-
-## Expected Space
-
-Each element has expected height $1/(1-p)$, so the total expected space is:
+1. $k$의 자리를 찾으며 층마다 앞 마디를 적어 둔다.
+2. 동전을 던져 새 마디의 높이를 정한다. $\ell = 0$으로 두고, 동전이 앞면이면(낌새 $p$) $\ell$을 올린다.
+3. 적어 둔 앞 마디 뒤에 끼워 넣어 마디를 층 $0$부터 $\ell$까지에 넣는다.
 
 $$
-E[S] = \frac{n}{1-p} = O(n) \text{ for constant } p
+E[T_{\text{넣기}}] = O(\log n), \quad E[S_{\text{넣기}}] = O\!\left(\frac{1}{1-p}\right) = O(1)
 $$
 
-With $p = 1/2$, the expected space is $2n$ pointers.
+## 지우기
 
-## Complexity Summary
+열쇠 $k$을 지우려면:
 
-| Operation | Expected Time | Worst Case |
+1. $k$을 찾으며 층마다 앞 마디를 적어 둔다.
+2. 손가락질을 다잡아 $k$이 나타나는 층마다 그것을 없앤다.
+3. 비지 않은 가장 위 층이 낮아졌으면 높이를 줄인다.
+
+$$
+E[T_{\text{지우기}}] = O(\log n)
+$$
+
+## 어림 자리
+
+원소마다 어림 높이가 $1/(1-p)$이므로 온 어림 자리는 다음과 같다.
+
+$$
+E[S] = \frac{n}{1-p} = O(n) \quad (p \text{이 상수일 때})
+$$
+
+$p = 1/2$이면 어림 자리가 손가락질 $2n$개다.
+
+## 복잡도 간추림
+
+| 연산 | 어림 때 | 가장 나쁠 때 |
 |---|---|---|
-| Search | $O(\log n)$ | $O(n)$ |
-| Insert | $O(\log n)$ | $O(n)$ |
-| Delete | $O(\log n)$ | $O(n)$ |
-| Space | $O(n)$ | $O(n \log n)$ |
+| 찾기 | $O(\log n)$ | $O(n)$ |
+| 넣기 | $O(\log n)$ | $O(n)$ |
+| 지우기 | $O(\log n)$ | $O(n)$ |
+| 자리 | $O(n)$ | $O(n \log n)$ |
 
-The worst case (all elements promoted to the maximum level) occurs with negligibly small probability.
+가장 나쁜 경우(모든 원소가 가장 높은 층까지 올라감)는 셈에 넣지 않아도 될 만큼 작은 낌새로 생긴다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Skip List -- randomized sorted data structure.
+건너뛰기 목록 -- 마구잡이 매긴 자료 얼개.
 
-Achieves O(log n) expected time for search, insert, and delete
-using probabilistic promotion instead of rebalancing.
+다시 고르기 대신 확률로 올려, 찾기, 넣기, 지우기에 어림
+O(log n) 때를 이룬다.
 """
 
 from __future__ import annotations
@@ -91,20 +91,20 @@ import random
 import math
 
 
-# === Skip List Node ===========================================================
+# === 건너뛰기 목록 마디 =======================================================
 
 class SkipNode:
-    """Node with forward pointers at multiple levels."""
+    """여러 층에 앞 손가락질을 지닌 마디."""
 
     def __init__(self, key: float, level: int):
         self.key = key
         self.forward: list[SkipNode | None] = [None] * (level + 1)
 
 
-# === Skip List ================================================================
+# === 건너뛰기 목록 ============================================================
 
 class SkipList:
-    """Sorted probabilistic data structure with O(log n) expected operations."""
+    """어림 O(log n) 연산을 주는 매긴 확률 자료 얼개."""
 
     def __init__(self, max_level: int = 16, p: float = 0.5):
         self.max_level = max_level
@@ -114,14 +114,14 @@ class SkipList:
         self.size = 0
 
     def _random_level(self) -> int:
-        """Generate a random level by coin flipping."""
+        """동전을 던져 아무 층을 짓는다."""
         lvl = 0
         while random.random() < self.p and lvl < self.max_level:
             lvl += 1
         return lvl
 
     def search(self, key: float) -> bool:
-        """Return True if *key* is in the skip list."""
+        """*key*이 건너뛰기 목록에 있으면 True을 돌려준다."""
         current = self.header
         for i in range(self.level, -1, -1):
             while current.forward[i] and current.forward[i].key < key:
@@ -130,7 +130,7 @@ class SkipList:
         return current is not None and current.key == key
 
     def insert(self, key: float) -> None:
-        """Insert *key* into the skip list."""
+        """*key*을 건너뛰기 목록에 넣는다."""
         update = [None] * (self.max_level + 1)
         current = self.header
         for i in range(self.level, -1, -1):
@@ -140,7 +140,7 @@ class SkipList:
 
         current = current.forward[0]
         if current and current.key == key:
-            return  # duplicate
+            return  # 겹침
 
         new_level = self._random_level()
         if new_level > self.level:
@@ -155,7 +155,7 @@ class SkipList:
         self.size += 1
 
     def to_list(self) -> list[float]:
-        """Return all elements in sorted order."""
+        """모든 원소를 매긴 차례대로 돌려준다."""
         result = []
         current = self.header.forward[0]
         while current:
@@ -164,7 +164,7 @@ class SkipList:
         return result
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     random.seed(42)
@@ -178,7 +178,7 @@ if __name__ == "__main__":
     print(f"Search 15: {sl.search(15)}")
 ```
 
-**Output:**
+**출력:**
 
 ```
 Elements: [3, 6, 7, 9, 12, 17, 19, 21, 25, 26]
@@ -187,58 +187,58 @@ Search 19: True
 Search 15: False
 ```
 
-The elements are maintained in sorted order across the multi-level structure, and search correctly distinguishes present from absent keys.
+여러 층 얼개에 걸쳐 원소가 매긴 차례대로 지켜지고, 찾기가 있는 열쇠와 없는 열쇠를 옳게 가른다.
 
-## Reference
+## 참고 문헌
 
 - Pugh, W. "Skip Lists: A Probabilistic Alternative to Balanced Trees." *CACM*, 1990
 - [Advanced Data Structures (Brass)](https://www.cambridge.org/core/books/advanced-data-structures/D56E2269D7CEE969A3B8105D3541F601)
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Describe the search algorithm in a skip list. How does the multi-level structure provide $O(\log n)$ expected search time?
+**연습문제 1.**
+건너뛰기 목록의 찾기 알고리즘을 밝혀라. 여러 층 얼개는 어떻게 어림 $O(\log n)$ 찾기 때를 주는가?
 
-??? success "Solution to Exercise 1"
-    Search for key $k$: start at the top-left corner (highest level, head sentinel). At each level, move right along the linked list while the next node's key is less than $k$. When the next key is $\ge k$ (or the list ends), drop down one level. Repeat until reaching level 0. If the node to the right at level 0 has key $= k$, return it; otherwise, $k$ is absent. The multi-level structure acts like a binary search: at each level, roughly half the elements are skipped (since each element is promoted with probability $1/2$). The expected number of comparisons at each level is $O(1)$ (on average, 2 comparisons before dropping down). With $O(\log n)$ levels, total expected comparisons are $O(\log n)$. $\square$
-
----
-
-**Exercise 2.**
-Analyze the expected space usage of a skip list with $n$ elements and promotion probability $p = 1/2$. What is the expected number of total pointers across all levels?
-
-??? success "Solution to Exercise 2"
-    Each element at level 0 has one pointer. An element promoted to level $j$ has $j + 1$ pointers (one per level from 0 to $j$). The probability of being at level $j$ or higher is $(1/2)^j$. Expected total pointers for one element: $\sum_{j=0}^{\infty} (1/2)^j = 2$. Over $n$ elements: expected total pointers = $2n$. This means a skip list uses roughly twice the space of a simple linked list, and each additional level adds approximately $n/2^j$ pointers. The space is $O(n)$ in expectation with a small constant. In the worst case (all elements promoted to every level), space is $O(n \log n)$, but this event has exponentially small probability. $\square$
+??? success "연습문제 1 풀이"
+    열쇠 $k$ 찾기: 왼쪽 위 모서리(가장 높은 층, 머리 파수)에서 시작한다. 층마다 다음 마디의 열쇠가 $k$보다 작은 동안 이음 목록을 따라 오른쪽으로 옮긴다. 다음 열쇠가 $\ge k$이면(또는 목록이 끝나면) 한 층 내려간다. 층 0에 이를 때까지 되풀이한다. 층 0에서 오른쪽 마디의 열쇠가 $k$과 같으면 그것을 돌려주고, 아니면 $k$은 없다. 여러 층 얼개는 두 갈래 찾기처럼 움직인다. (원소마다 낌새 $1/2$으로 올라가므로) 층마다 대략 원소의 절반을 건너뛴다. 층마다 어림 견줌 횟수는 $O(1)$이다(어림잡아 내려가기 앞서 2번 견준다). 층이 $O(\log n)$개이므로 온 어림 견줌은 $O(\log n)$이다. $\square$
 
 ---
 
-**Exercise 3.**
-Compare skip lists with AVL trees and red-black trees in terms of: expected/worst-case time, space, implementation complexity, and cache performance.
+**연습문제 2.**
+원소가 $n$개이고 올릴 낌새가 $p = 1/2$인 건너뛰기 목록의 어림 자리 쓰임을 살펴라. 온 층에 걸친 어림 손가락질 개수는 얼마인가?
 
-??? success "Solution to Exercise 3"
-    | Property | Skip List | AVL Tree | Red-Black Tree |
+??? success "연습문제 2 풀이"
+    층 0의 원소마다 손가락질이 하나다. 층 $j$까지 올라간 원소는 손가락질이 $j + 1$개다(층 0부터 $j$까지 하나씩). 층 $j$ 이상에 있을 낌새는 $(1/2)^j$이다. 원소 하나의 어림 온 손가락질은 $\sum_{j=0}^{\infty} (1/2)^j = 2$이다. 원소 $n$개에 걸쳐 어림 온 손가락질은 $2n$이다. 이는 건너뛰기 목록이 그냥 이음 목록의 대략 두 배 자리를 쓰고, 층이 하나 늘 때마다 손가락질이 대략 $n/2^j$개 더 든다는 뜻이다. 자리는 어림잡아 작은 상수와 함께 $O(n)$이다. 가장 나쁠 때(모든 원소가 온 층에 올라감) 자리는 $O(n \log n)$이지만 이 일이 생길 낌새는 지수로 작다. $\square$
+
+---
+
+**연습문제 3.**
+건너뛰기 목록을 AVL 나무, 붉은-검은 나무와 어림/가장 나쁠 때 때, 자리, 만들기 품, 캐시 성능에서 견주어라.
+
+??? success "연습문제 3 풀이"
+    | 성질 | 건너뛰기 목록 | AVL 나무 | 붉은-검은 나무 |
     |---|---|---|---|
-    | Search (expected) | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ |
-    | Search (worst) | $O(n)$ (rare) | $O(\log n)$ | $O(\log n)$ |
-    | Insert/Delete | $O(\log n)$ exp. | $O(\log n)$ | $O(\log n)$ |
-    | Space | $O(n)$ expected | $O(n)$ | $O(n)$ |
-    | Implementation | Simple | Moderate | Complex |
-    | Cache perf. | Poor (pointers) | Moderate | Moderate |
+    | 찾기(어림) | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ |
+    | 찾기(가장 나쁠 때) | $O(n)$ (드묾) | $O(\log n)$ | $O(\log n)$ |
+    | 넣기/지우기 | 어림 $O(\log n)$ | $O(\log n)$ | $O(\log n)$ |
+    | 자리 | 어림 $O(n)$ | $O(n)$ | $O(n)$ |
+    | 만들기 | 쉬움 | 어중간 | 얽힘 |
+    | 캐시 성능 | 나쁨(손가락질) | 어중간 | 어중간 |
 
-    Skip lists win on implementation simplicity (no rotations, no color/balance maintenance). AVL/RB trees win on worst-case guarantees and cache performance (nodes are contiguous if allocated together). Skip lists are preferred for concurrent implementations (no global rebalancing). $\square$
-
----
-
-**Exercise 4.**
-Prove that the expected height of a skip list with $n$ elements and promotion probability $p$ is $O(\log_{1/p} n)$.
-
-??? success "Solution to Exercise 4"
-    The height is the maximum level of any element. Element $i$ reaches level $\ge j$ with probability $p^j$. By a union bound, $P(\text{height} \ge j) \le n \cdot p^j$. Setting $n \cdot p^j \le 1$ gives $j \ge \log_{1/p} n$. More precisely, $P(\text{height} \ge c \log_{1/p} n) \le n \cdot p^{c \log_{1/p} n} = n \cdot n^{-c} = n^{1-c}$. For $c = 2$, the probability of height exceeding $2 \log_{1/p} n$ is $\le 1/n$. Therefore, the expected height is $O(\log_{1/p} n)$. For $p = 1/2$: $O(\log_2 n)$. For $p = 1/4$: $O(\log_4 n) = O(\log_2 n / 2)$, half as many levels but more traversal per level. $\square$
+    건너뛰기 목록은 만들기가 쉬운 데서 이긴다(돌리기도, 빛깔/고름 지키기도 없다). AVL과 붉은-검은 나무는 가장 나쁠 때의 보장과 (마디를 함께 마련하면 이어져 있으므로) 캐시 성능에서 이긴다. 한꺼번에 쓰도록 만들 때에는 (온 세상을 다시 고르는 일이 없으므로) 건너뛰기 목록을 즐겨 쓴다. $\square$
 
 ---
 
-**Exercise 5.**
-Design a skip list that supports an order-statistic operation: find the $k$-th smallest element in $O(\log n)$ expected time. What augmentation is needed?
+**연습문제 4.**
+원소가 $n$개이고 올릴 낌새가 $p$인 건너뛰기 목록의 어림 높이가 $O(\log_{1/p} n)$임을 증명하여라.
 
-??? success "Solution to Exercise 5"
-    Augment each forward pointer with a **span**: the number of elements it skips over (including the destination node). At level 0, every span is 1. At higher levels, spans are the sum of the spans of the lower-level pointers they skip over. To find the $k$-th element: start at the top-left. At each level, if the span of the next pointer is $\le k$, subtract the span from $k$ and move right. Otherwise, drop down. When $k = 0$ (or we are at the target), the current node is the answer. This is $O(\log n)$ expected time (same as search). Insert/delete must update spans along the insertion/deletion path: subtract 1 from bypassed pointers above the insertion level, add 1 to the new node's pointers. This augmentation is used in Redis's sorted sets (`ZRANGEBYSCORE` and `ZRANK` commands). $\square$
+??? success "연습문제 4 풀이"
+    높이는 아무 원소의 가장 높은 층이다. 원소 $i$이 층 $\ge j$에 이를 낌새는 $p^j$이다. 합집합 매임으로 $P(\text{높이} \ge j) \le n \cdot p^j$이다. $n \cdot p^j \le 1$으로 두면 $j \ge \log_{1/p} n$을 얻는다. 더 또렷이 $P(\text{높이} \ge c \log_{1/p} n) \le n \cdot p^{c \log_{1/p} n} = n \cdot n^{-c} = n^{1-c}$이다. $c = 2$이면 높이가 $2 \log_{1/p} n$을 넘을 낌새가 $\le 1/n$이다. 따라서 어림 높이는 $O(\log_{1/p} n)$이다. $p = 1/2$이면 $O(\log_2 n)$이다. $p = 1/4$이면 $O(\log_4 n) = O(\log_2 n / 2)$으로 층이 절반이지만 층마다 더 많이 훑는다. $\square$
+
+---
+
+**연습문제 5.**
+차례 통계 연산, 곧 $k$번째로 작은 원소를 어림 $O(\log n)$ 때에 찾기를 받쳐 주는 건너뛰기 목록을 설계하여라. 어떤 덧붙임이 있어야 하는가?
+
+??? success "연습문제 5 풀이"
+    앞 손가락질마다 그것이 건너뛰는 원소의 개수(다다르는 마디를 넣는다)인 **너비**를 덧붙인다. 층 0에서는 너비가 모두 1이다. 더 높은 층에서 너비는 그것이 건너뛰는 아래 층 손가락질들의 너비 합이다. $k$번째 원소를 찾으려면 왼쪽 위에서 시작한다. 층마다 다음 손가락질의 너비가 $\le k$이면 $k$에서 그 너비를 빼고 오른쪽으로 옮긴다. 아니면 아래로 내려간다. $k = 0$이면(또는 겨눈 자리에 이르면) 지금 마디가 답이다. 이는 어림 $O(\log n)$ 때다(찾기와 같다). 넣기와 지우기는 넣거나 지우는 길을 따라 너비를 고쳐야 한다. 넣는 층 위에서 건너뛰는 손가락질의 너비에서 1을 빼고 새 마디의 손가락질에 1을 더한다. 이 덧붙임은 Redis의 매긴 집합(`ZRANGEBYSCORE`과 `ZRANK` 명령)에 쓰인다. $\square$
