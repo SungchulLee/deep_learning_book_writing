@@ -1,78 +1,78 @@
-# Lock-Free Queue
+# 잠금 없는 큐
 
-Queues are fundamental building blocks in concurrent systems -- message passing, task scheduling, and producer-consumer patterns all rely on shared queues. A standard queue with a global lock serializes all operations, becoming a bottleneck under high contention. A **lock-free queue** uses atomic compare-and-swap (CAS) operations instead of locks, guaranteeing that at least one thread makes progress at all times, even when other threads are delayed or preempted.
+큐는 한꺼번에 도는 시스템의 밑돌이다. 쪽지 건네기, 일 짜기, 만드는 이와 쓰는 이 결이 모두 함께 쓰는 큐에 기댄다. 온통 하나뿐인 잠금을 쓰는 여느 큐는 모든 연산을 한 줄로 늘어세워 다툼이 심할 때 목을 죈다. **잠금 없는 큐**는 잠금 대신 원자적인 견주어 바꾸기(CAS)를 써서, 다른 실이 늦춰지거나 밀려나도 적어도 한 실은 늘 앞으로 나아감을 보장한다.
 
-## Michael-Scott Queue
+## 마이클-스콧 큐
 
-The most widely used lock-free queue is the **Michael-Scott queue** (1996), which uses a singly-linked list with atomic head and tail pointers.
+가장 널리 쓰이는 잠금 없는 큐는 **마이클-스콧 큐**(1996)로, 원자적인 머리와 꼬리 손가락질을 둔 한 겹 이음 목록을 쓴다.
 
-### Structure
+### 얼개
 
-- A sentinel (dummy) node separates the head from the tail.
-- **Head** points to the sentinel node; the next element to dequeue is `head.next`.
-- **Tail** points to the last node (or a node close to the last).
-- All pointer updates use CAS: `CAS(addr, expected, new)` atomically writes `new` to `addr` only if its current value equals `expected`.
+- 파수(허수아비) 마디가 머리와 꼬리를 갈라놓는다.
+- **머리**는 파수 마디를 가리킨다. 다음에 빼낼 원소는 `head.next`이다.
+- **꼬리**는 마지막 마디(또는 마지막에 가까운 마디)를 가리킨다.
+- 모든 손가락질 고침이 CAS를 쓴다. `CAS(addr, expected, new)`은 `addr`의 지금 값이 `expected`과 같을 때에만 `new`을 원자적으로 적는다.
 
-### Enqueue
+### 넣기
 
-1. Create a new node with the value to enqueue.
-2. Read `tail` and `tail.next`.
-3. If `tail.next` is null, attempt `CAS(tail.next, null, new_node)`.
-    - On success, swing `tail` forward with `CAS(tail, old_tail, new_node)`.
-    - On failure, retry from step 2.
-4. If `tail.next` is not null (another thread already appended), help by swinging `tail` forward, then retry.
+1. 넣을 값을 담은 새 마디를 만든다.
+2. `tail`과 `tail.next`을 읽는다.
+3. `tail.next`이 널이면 `CAS(tail.next, null, new_node)`을 꾀한다.
+    - 이루면 `CAS(tail, old_tail, new_node)`으로 `tail`을 앞으로 돌린다.
+    - 어그러지면 2번부터 다시 꾀한다.
+4. `tail.next`이 널이 아니면(다른 실이 이미 붙였으면) `tail`을 앞으로 돌려 거들고 다시 꾀한다.
 
-### Dequeue
+### 빼기
 
-1. Read `head`, `tail`, and `head.next`.
-2. If `head.next` is null, the queue is empty.
-3. Attempt `CAS(head, old_head, head.next)`.
-    - On success, return the value from the old `head.next`.
-    - On failure, retry from step 1.
+1. `head`, `tail`, `head.next`을 읽는다.
+2. `head.next`이 널이면 큐가 비었다.
+3. `CAS(head, old_head, head.next)`을 꾀한다.
+    - 이루면 옛 `head.next`의 값을 돌려준다.
+    - 어그러지면 1번부터 다시 꾀한다.
 
-## Simulation
+## 흉내 내기
 
-Since Python lacks hardware CAS, we simulate the lock-free queue logic with a threading lock, focusing on the algorithm structure and correctness.
+파이썬에는 기계 CAS가 없으므로 잠금 없는 큐의 논리를 실 잠금으로 흉내 내며 알고리즘 얼개와 옳음에 눈을 둔다.
 
 ```python
 """
-Lock-free queue simulation (Michael-Scott queue).
+잠금 없는 큐 흉내 내기(마이클-스콧 큐).
 
-Simulates the CAS-based enqueue/dequeue algorithm. In a real
-implementation, CAS would be a hardware atomic instruction.
+CAS에 바탕을 둔 넣기/빼기 알고리즘을 흉내 낸다. 참으로
+만들 때 CAS는 기계의 원자적인 명령이다.
 """
 
 import threading
 
 # ===================================================================
-# Lock-Free Queue (Simulated)
+# 잠금 없는 큐 (흉내 냄)
 # ===================================================================
 
 class Node:
-    """Queue node."""
+    """큐 마디."""
     def __init__(self, value=None):
         self.value = value
         self.next = None
 
 
 class LockFreeQueue:
-    """Michael-Scott lock-free queue (simulated with locks).
+    """마이클-스콧 잠금 없는 큐(잠금으로 흉내 냄).
 
-    The algorithm structure follows the CAS-based design.
-    Python's GIL and an explicit lock simulate atomic CAS.
+    알고리즘 얼개는 CAS에 바탕을 둔 설계를 따른다.
+    파이썬의 GIL과 드러낸 잠금이 원자적인 CAS를 흉내 낸다.
     """
 
     def __init__(self):
-        sentinel = Node()  # dummy node
+        sentinel = Node()  # 허수아비 마디
         self.head = sentinel
         self.tail = sentinel
-        self._lock = threading.Lock()  # simulates CAS
+        self._lock = threading.Lock()  # CAS를 흉내 낸다
 
     def enqueue(self, value):
-        """Add value to the back of the queue.
+        """값을 큐 뒤에 더한다.
 
-        Args:
-            value: item to enqueue
+        인수:
+            value: 넣을 항목
         """
         new_node = Node(value)
         with self._lock:
@@ -80,10 +80,10 @@ class LockFreeQueue:
             self.tail = new_node
 
     def dequeue(self):
-        """Remove and return the front item.
+        """앞 항목을 빼내어 돌려준다.
 
-        Returns:
-            Value from the front, or None if empty
+        돌려주는 값:
+            앞에 있던 값, 비었으면 None
         """
         with self._lock:
             if self.head.next is None:
@@ -93,17 +93,17 @@ class LockFreeQueue:
             return value
 
     def is_empty(self):
-        """Check if queue is empty."""
+        """큐가 비었는지 살핀다."""
         return self.head.next is None
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
     queue = LockFreeQueue()
 
-    # Single-threaded test
+    # 실 하나로 시험
     for x in [10, 20, 30, 40]:
         queue.enqueue(x)
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
     while not queue.is_empty():
         print(f"  {queue.dequeue()}")
 
-    # Multi-threaded producer-consumer
+    # 실 여럿으로 만드는 이와 쓰는 이
     queue = LockFreeQueue()
     produced = []
     consumed = []
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     print(f"  All consumed: {sorted(consumed) == list(range(1, 11))}")
 ```
 
-**Output:**
+**출력:**
 ```
 Single-threaded dequeue:
   10
@@ -161,77 +161,77 @@ Producer-consumer test:
   All consumed: True
 ```
 
-## Progress Guarantees
+## 나아감 보장
 
-| Guarantee | Definition |
+| 보장 | 뜻 |
 |---|---|
-| **Lock-free** | At least one thread completes its operation in a finite number of steps, regardless of other threads' progress |
-| **Wait-free** | Every thread completes its operation in a bounded number of steps |
-| **Obstruction-free** | A thread completes its operation in a finite number of steps if executed in isolation |
+| **잠금 없음** | 다른 실의 나아감과 상관없이 적어도 한 실이 마침한 걸음 수 안에 제 연산을 마친다 |
+| **기다림 없음** | 모든 실이 매인 걸음 수 안에 제 연산을 마친다 |
+| **막힘 없음** | 홀로 돌린다면 실이 마침한 걸음 수 안에 제 연산을 마친다 |
 
-The Michael-Scott queue is **lock-free**: if one thread is delayed mid-operation, other threads can still make progress. It is not wait-free because a single thread may retry its CAS indefinitely under high contention.
+마이클-스콧 큐는 **잠금 없는** 것이다. 한 실이 연산 도중에 늦춰져도 다른 실은 앞으로 나아갈 수 있다. 다툼이 심할 때 한 실이 CAS를 끝없이 다시 꾀할 수 있으므로 기다림 없는 것은 아니다.
 
-## Complexity
+## 복잡도
 
-| Operation | Time (amortized) |
+| 연산 | 때(나눠 갚음) |
 |---|---|
-| `enqueue` | $O(1)$ expected |
-| `dequeue` | $O(1)$ expected |
+| `enqueue` | 어림 $O(1)$ |
+| `dequeue` | 어림 $O(1)$ |
 
-Under high contention, CAS retries add overhead, but the expected number of retries is constant when contention is bounded.
+다툼이 심하면 다시 꾀하는 CAS가 덧듦을 더하지만, 다툼이 매여 있으면 다시 꾀하는 어림 횟수는 상수다.
 
-## ABA Problem
+## ABA 문제
 
-A subtle correctness issue with CAS-based data structures:
+CAS에 바탕을 둔 자료 얼개의 미묘한 옳음 문제다.
 
-1. Thread A reads value `X` from a pointer.
-2. Thread B changes the pointer from `X` to `Y` to `X` (same bit pattern, different allocation).
-3. Thread A's CAS succeeds because it sees `X`, but the underlying object has changed.
+1. 실 A가 손가락질에서 값 `X`을 읽는다.
+2. 실 B가 손가락질을 `X`에서 `Y`으로, 다시 `X`으로 바꾼다(비트 무늬는 같지만 마련한 자리는 다르다).
+3. 실 A의 CAS가 `X`을 보았으므로 이루어지지만 그 밑의 것은 바뀌었다.
 
-!!! warning "Preventing ABA"
-    Common solutions include tagged pointers (append a version counter to each pointer) and hazard pointers (prevent memory reclamation while a thread holds a reference). Java's `AtomicStampedReference` implements tagged pointers.
+!!! warning "ABA 막기"
+    흔히 쓰는 길로는 표를 단 손가락질(손가락질마다 판 세개를 붙인다)과 위험 손가락질(어떤 실이 가리키고 있는 동안 기억을 거둬들이지 못하게 막는다)이 있다. 자바의 `AtomicStampedReference`은 표를 단 손가락질을 만든 것이다.
 
-## Reference
+## 참고 문헌
 
 - Michael, M. M. and Scott, M. L. (1996). "Simple, fast, and practical non-blocking and blocking concurrent queue algorithms." *PODC*.
-- Herlihy, M. and Shavit, N. *The Art of Multiprocessor Programming*, Chapter 10.
+- Herlihy, M. and Shavit, N. *The Art of Multiprocessor Programming*, 10장.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Describe the Michael-Scott lock-free queue algorithm. How do `enqueue` and `dequeue` use CAS to maintain correctness without locks?
+**연습문제 1.**
+마이클-스콧 잠금 없는 큐 알고리즘을 밝혀라. `enqueue`와 `dequeue`은 잠금 없이 옳음을 지키려고 CAS를 어떻게 쓰는가?
 
-??? success "Solution to Exercise 1"
-    The Michael-Scott queue uses a singly-linked list with `head` and `tail` atomic pointers and a sentinel node. **Enqueue**: allocate a new node, then CAS `tail->next` from null to the new node. If successful, CAS `tail` forward to the new node (a "helping" step any thread can perform). If the first CAS fails, another thread enqueued first; retry. **Dequeue**: read `head->next` (the first real node). If null, the queue is empty. Otherwise, CAS `head` from the sentinel to `head->next`, extracting the value from the old `head->next`. If CAS fails, another thread dequeued first; retry. The sentinel node ensures `head` and `tail` never become null, simplifying edge cases. Lock-freedom is guaranteed because at least one CAS succeeds in every contention cycle. $\square$
-
----
-
-**Exercise 2.**
-Explain why the Michael-Scott queue needs a "helping" mechanism where an enqueuing thread may advance the `tail` pointer on behalf of another thread. What goes wrong without it?
-
-??? success "Solution to Exercise 2"
-    Enqueue is a two-step operation: (1) CAS `tail->next` to the new node, (2) CAS `tail` to the new node. Between steps 1 and 2, the enqueueing thread might be preempted. If no other thread helps advance `tail`, the tail pointer lags behind the actual last node. Subsequent enqueue attempts read `tail->next` and find it non-null (pointing to the node from step 1), but `tail` has not advanced. Without helping, these threads would spin indefinitely waiting for `tail->next` to be null. The helping mechanism resolves this: when a thread observes `tail->next != null`, it CAS-advances `tail` to `tail->next` before retrying its own enqueue. This ensures progress -- even if the original thread is delayed, `tail` eventually catches up. Without helping, the queue is not lock-free because a preempted thread can block all others. $\square$
+??? success "연습문제 1 풀이"
+    마이클-스콧 큐는 원자적인 `head`, `tail` 손가락질과 파수 마디를 둔 한 겹 이음 목록을 쓴다. **넣기**: 새 마디를 마련한 뒤 `tail->next`을 널에서 새 마디로 CAS 한다. 이루면 `tail`을 새 마디로 앞당겨 CAS 한다(어느 실이든 벌일 수 있는 "거들기" 걸음이다). 첫 CAS가 어그러지면 다른 실이 먼저 넣은 것이니 다시 꾀한다. **빼기**: `head->next`(첫 참 마디)을 읽는다. 널이면 큐가 비었다. 아니면 `head`을 파수에서 `head->next`으로 CAS 하고 옛 `head->next`에서 값을 뽑는다. CAS가 어그러지면 다른 실이 먼저 빼낸 것이니 다시 꾀한다. 파수 마디는 `head`과 `tail`이 결코 널이 되지 않게 하여 가장자리 경우를 쉽게 만든다. 다툼이 벌어지는 판마다 적어도 하나의 CAS가 이루어지므로 잠금 없음이 보장된다. $\square$
 
 ---
 
-**Exercise 3.**
-Analyze the memory management challenge in a lock-free queue. Why can't nodes be freed immediately after dequeue, and how do hazard pointers address this?
+**연습문제 2.**
+마이클-스콧 큐에서 넣는 실이 다른 실을 대신해 `tail` 손가락질을 앞당기는 "거들기" 장치가 왜 있어야 하는지 풀어라. 그것이 없으면 무엇이 어그러지는가?
 
-??? success "Solution to Exercise 3"
-    After a dequeue CAS succeeds, the old head node appears free to the dequeuing thread. However, other threads may still be reading this node (e.g., they read `head` before the CAS but haven't yet completed their operation). Freeing the node immediately causes use-after-free errors. Hazard pointers solve this: each thread publishes (in a thread-local array) the pointers it is currently accessing. Before freeing a node, a thread checks all hazard pointers; if any thread lists the node, freeing is deferred. Periodically, deferred nodes are re-checked and freed when no longer hazard-protected. This guarantees that no thread accesses freed memory while bounding the number of deferred nodes to $O(T^2)$ where $T$ is the thread count. $\square$
-
----
-
-**Exercise 4.**
-Compare the throughput of a lock-free queue versus a lock-based queue under low contention (2 threads) and high contention (64 threads). What causes the crossover point?
-
-??? success "Solution to Exercise 4"
-    Under low contention (2 threads), CAS operations rarely fail, so the lock-free queue performs similarly to a lock-based queue (or slightly better due to avoiding the overhead of lock acquisition/release). Under high contention (64 threads), the lock-based queue serializes all operations, with throughput bounded by $1/(\text{lock acquisition time})$. The lock-free queue avoids serialization but suffers from CAS retries: with 64 threads, most CAS attempts fail, and each retry wastes a cache-line transfer. The crossover occurs around 8--16 threads, where lock-free throughput stalls due to CAS contention on `head` and `tail` (both are single cache lines bouncing between cores). Beyond this, techniques like combining (flat combining or elimination) outperform both approaches by batching operations. $\square$
+??? success "연습문제 2 풀이"
+    넣기는 두 걸음짜리 연산이다. (1) `tail->next`을 새 마디로 CAS 한다. (2) `tail`을 새 마디로 CAS 한다. 1번과 2번 사이에서 넣던 실이 밀려날 수 있다. 다른 실이 `tail` 앞당기기를 거들지 않으면 꼬리 손가락질이 참 마지막 마디보다 뒤처진다. 뒤이어 넣으려는 실은 `tail->next`을 읽어 (1번에서 만든 마디를 가리키는) 널이 아닌 값을 보지만 `tail`은 앞당겨지지 않았다. 거들기가 없으면 이 실들은 `tail->next`이 널이 되기를 기다리며 끝없이 헛돈다. 거들기 장치가 이를 푼다. 어떤 실이 `tail->next != null`을 보면 제 넣기를 다시 꾀하기 앞서 `tail`을 `tail->next`으로 CAS 하여 앞당긴다. 이로써 나아감이 지켜진다. 처음 실이 늦춰져도 `tail`이 끝내 따라잡는다. 거들기가 없으면 밀려난 실 하나가 다른 모두를 막을 수 있으므로 큐가 잠금 없는 것이 아니다. $\square$
 
 ---
 
-**Exercise 5.**
-Design a bounded lock-free multi-producer multi-consumer (MPMC) queue using a circular buffer. Explain how to handle the full and empty conditions atomically.
+**연습문제 3.**
+잠금 없는 큐의 기억 다루기 어려움을 살펴라. 빼낸 뒤 마디를 곧바로 놓아줄 수 없는 까닭은 무엇이고 위험 손가락질은 이를 어떻게 다루는가?
 
-??? success "Solution to Exercise 5"
-    Use a power-of-2 sized array `buf[N]` with atomic `head` and `tail` indices. Each slot has an atomic `sequence` field initialized to its index. **Enqueue**: read `tail`, compute `pos = tail % N`, read `seq = buf[pos].sequence`. If `seq == tail`, CAS `tail` to `tail + 1`; if successful, write data and set `buf[pos].sequence = tail + 1`. If `seq < tail`, the queue is full (return failure). If `seq > tail`, another thread advanced `tail`; reload and retry. **Dequeue**: analogous with `head`. Read `head`, check `buf[pos].sequence == head + 1` (data available). CAS `head` forward, read data, set `buf[pos].sequence = head + N` (mark slot as reusable). The sequence field serves as a per-slot state indicator, enabling full/empty detection without comparing `head` and `tail` (which would require atomic operations on two separate variables). $\square$
+??? success "연습문제 3 풀이"
+    빼기 CAS가 이루어진 뒤 옛 머리 마디는 빼낸 실이 보기에 놓아주어도 될 듯하다. 그러나 다른 실이 아직 그 마디를 읽고 있을 수 있다(보기로 CAS에 앞서 `head`을 읽었으나 제 연산을 아직 마치지 않은 실이 있다). 마디를 곧바로 놓아주면 놓아준 뒤 쓰기 잘못이 생긴다. 위험 손가락질이 이를 푼다. 실마다 지금 닿고 있는 손가락질을 (실에 딸린 배열에) 내건다. 마디를 놓아주기 앞서 실은 모든 위험 손가락질을 살핀다. 어떤 실이라도 그 마디를 걸어 두었으면 놓아주기를 미룬다. 미룬 마디는 이따금 다시 살펴 더는 위험 손가락질로 지켜지지 않을 때 놓아준다. 이로써 어떤 실도 놓아준 기억에 닿지 않음이 보장되고, 미룬 마디의 수는 실 개수를 $T$이라 할 때 $O(T^2)$으로 매인다. $\square$
+
+---
+
+**연습문제 4.**
+다툼이 적을 때(실 2개)와 심할 때(실 64개) 잠금 없는 큐와 잠금을 쓰는 큐의 처리량을 견주어라. 뒤집히는 자리는 무엇 때문에 생기는가?
+
+??? success "연습문제 4 풀이"
+    다툼이 적으면(실 2개) CAS가 거의 어그러지지 않으므로 잠금 없는 큐가 잠금을 쓰는 큐와 비슷하게(또는 잠금을 얻고 놓는 덧듦을 비껴가므로 조금 낫게) 돈다. 다툼이 심하면(실 64개) 잠금을 쓰는 큐는 모든 연산을 한 줄로 늘어세우고 처리량이 $1/(\text{잠금 얻는 때})$으로 매인다. 잠금 없는 큐는 한 줄로 늘어섬을 비껴가지만 다시 꾀하는 CAS로 앓는다. 실이 64개면 CAS 꾀함의 거의 모두가 어그러지고 다시 꾀할 때마다 캐시 줄 옮김을 버린다. 뒤집히는 자리는 실 8~16개 언저리에 생기는데, `head`과 `tail`(둘 다 코어 사이를 튀어 다니는 하나뿐인 캐시 줄이다)에 대한 CAS 다툼 때문에 잠금 없는 처리량이 멈춰 서기 때문이다. 그 너머에서는 연산을 뭉치는 재주(납작 뭉치기나 지워 없애기)가 두 길 모두를 앞선다. $\square$
+
+---
+
+**연습문제 5.**
+돌림 버퍼로 매인 크기의, 여럿이 만들고 여럿이 쓰는(MPMC) 잠금 없는 큐를 설계하여라. 꽉 참과 빔을 원자적으로 다루는 길을 풀어라.
+
+??? success "연습문제 5 풀이"
+    크기가 2의 거듭제곱인 배열 `buf[N]`과 원자적인 `head`, `tail` 번호를 쓴다. 자리마다 제 번호로 처음 값을 매긴 원자적인 `sequence` 밭을 둔다. **넣기**: `tail`을 읽고 `pos = tail % N`을 셈한 뒤 `seq = buf[pos].sequence`을 읽는다. `seq == tail`이면 `tail`을 `tail + 1`로 CAS 한다. 이루면 자료를 적고 `buf[pos].sequence = tail + 1`으로 둔다. `seq < tail`이면 큐가 꽉 찬 것이다(어그러짐을 돌려준다). `seq > tail`이면 다른 실이 `tail`을 앞당긴 것이니 다시 읽고 다시 꾀한다. **빼기**: `head`으로 똑같이 한다. `head`을 읽고 `buf[pos].sequence == head + 1`인지(자료가 있는지) 살핀다. `head`을 앞으로 CAS 하고 자료를 읽은 뒤 `buf[pos].sequence = head + N`으로 두어(자리를 다시 쓸 수 있다고 표시한다) 마친다. `sequence` 밭이 자리마다의 상태 알림이 되어, (따로 있는 변수 둘에 원자적인 연산을 벌여야 하는) `head`과 `tail` 견주기 없이도 꽉 참과 빔을 알아낼 수 있게 한다. $\square$

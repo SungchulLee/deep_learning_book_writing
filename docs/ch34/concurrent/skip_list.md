@@ -1,62 +1,62 @@
-# Concurrent Skip List
+# 한꺼번에 쓰는 건너뛰기 목록
 
-Balanced BSTs (AVL, red-black) are difficult to make concurrent because rotations during rebalancing affect multiple nodes, requiring complex locking protocols. **Skip lists** offer a compelling alternative: their probabilistic structure requires no rotations, and insertions and deletions affect only local nodes. This makes skip lists naturally suited for concurrent access, and a lock-free concurrent skip list achieves $O(\log n)$ expected time for all operations without global synchronization.
+고른 이진 찾기 나무(AVL, 붉은-검은)는 다시 고르는 동안 벌이는 돌리기가 여러 마디에 걸치므로 얽힌 잠금 규약이 있어야 하고, 그래서 한꺼번에 쓰게 만들기가 어렵다. **건너뛰기 목록**은 솔깃한 다른 길을 준다. 마구잡이 얼개라 돌리기가 없고, 넣기와 지우기가 가까운 마디에만 미친다. 그래서 건너뛰기 목록은 한꺼번에 닿기에 절로 알맞으며, 잠금 없는 한꺼번에 쓰는 건너뛰기 목록은 온 세상 발맞추기 없이 모든 연산에 어림 $O(\log n)$ 때를 이룬다.
 
-## Skip List Review
+## 건너뛰기 목록 되짚기
 
-A skip list is a layered linked list where each element is promoted to higher levels with probability $p$ (typically $1/2$). Searching starts at the top level and drops down when the next pointer overshoots. This gives $O(\log n)$ expected search, insertion, and deletion time.
+건너뛰기 목록은 원소마다 낌새 $p$(흔히 $1/2$)으로 더 높은 층에 올려 놓는 켜진 이음 목록이다. 찾기는 가장 위 층에서 시작해 다음 손가락질이 지나칠 때 아래로 내려간다. 이로써 어림 $O(\log n)$의 찾기, 넣기, 지우기 때를 얻는다.
 
-The expected number of levels is $O(\log n)$, and each element has $O(1)$ expected pointers.
+층의 어림 개수는 $O(\log n)$이고 원소마다 어림 $O(1)$개의 손가락질을 지닌다.
 
-## Why Skip Lists for Concurrency
+## 한꺼번에 쓰기에 건너뛰기 목록이 알맞은 까닭
 
-- **No rotations**: Unlike balanced BSTs, skip list operations modify only local pointers. No global restructuring is needed.
-- **Decoupled levels**: An insertion at level $k$ does not affect levels $k+1$ or higher (after linking). This enables fine-grained or lock-free synchronization.
-- **Independent coin flips**: The level of a new node is determined randomly, independent of the current structure.
+- **돌리기가 없음**: 고른 이진 찾기 나무와 달리 건너뛰기 목록 연산은 가까운 손가락질만 고친다. 온 세상 얼개를 다시 짤 까닭이 없다.
+- **층이 서로 풀려 있음**: 층 $k$에서 넣기는 (이은 뒤에는) 층 $k+1$ 위쪽에 미치지 않는다. 그래서 잘게 나눈 잠금이나 잠금 없는 발맞추기를 쓸 수 있다.
+- **홀로 던지는 동전**: 새 마디의 층은 지금 얼개와 매이지 않고 아무렇게나 정해진다.
 
-## Concurrent Operations
+## 한꺼번에 벌이는 연산
 
-### Lock-Based (Fine-Grained)
+### 잠금을 쓰는 길(잘게 나눔)
 
-Lock only the nodes being modified. For an insertion between nodes $A$ and $B$ at some level:
+고치는 마디만 잠근다. 어느 층에서 마디 $A$와 $B$ 사이에 넣는다면:
 
-1. Lock $A$ at that level.
-2. Lock $B$ at that level (to prevent concurrent insertions in the same gap).
-3. Insert the new node between $A$ and $B$.
-4. Unlock $B$, then $A$.
-5. Repeat at each level where the new node appears.
+1. 그 층에서 $A$을 잠근다.
+2. 그 층에서 $B$을 잠근다(같은 틈에 한꺼번에 넣기를 막으려고).
+3. $A$와 $B$ 사이에 새 마디를 넣는다.
+4. $B$을 풀고 이어서 $A$을 푼다.
+5. 새 마디가 나타나는 층마다 되풀이한다.
 
-This allows concurrent insertions and deletions at different positions.
+이로써 서로 다른 자리에서 한꺼번에 넣고 지울 수 있다.
 
-### Lock-Free (CAS-Based)
+### 잠금 없는 길(CAS를 씀)
 
-The lock-free approach marks nodes for deletion before physically unlinking them:
+잠금 없는 길은 마디를 실제로 떼어 내기 앞서 지움 표시를 한다.
 
-1. **Logical deletion**: Set a mark bit on the node's next pointer using CAS.
-2. **Physical deletion**: Subsequent traversals skip marked nodes and CAS them out of the list.
-3. **Insertion**: Link the new node at the bottom level first, then at higher levels.
+1. **뜻으로 지우기**: CAS로 마디의 다음 손가락질에 표시 비트를 켠다.
+2. **참으로 지우기**: 뒤이어 훑는 이들이 표시된 마디를 건너뛰고 CAS로 목록에서 떼어 낸다.
+3. **넣기**: 새 마디를 맨 아래 층에 먼저 잇고 그다음 더 높은 층에 잇는다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Concurrent skip list with fine-grained locking.
+잘게 나눈 잠금을 쓰는 한꺼번에 쓰는 건너뛰기 목록.
 
-Uses per-node locks to allow concurrent operations at
-different positions in the skip list.
+마디마다 잠금을 두어 건너뛰기 목록의 서로 다른 자리에서
+한꺼번에 연산을 벌일 수 있게 한다.
 """
 
 import random
 import threading
 
 # ===================================================================
-# Concurrent Skip List
+# 한꺼번에 쓰는 건너뛰기 목록
 # ===================================================================
 
 MAX_LEVEL = 16
 
 class SkipNode:
-    """Skip list node with per-level next pointers and a lock."""
+    """층마다 다음 손가락질과 잠금을 지닌 건너뛰기 목록 마디."""
 
     def __init__(self, key, value, level):
         self.key = key
@@ -67,11 +67,11 @@ class SkipNode:
 
 
 class ConcurrentSkipList:
-    """Skip list with fine-grained locking.
+    """잘게 나눈 잠금을 쓰는 건너뛰기 목록.
 
-    Args:
-        max_level: maximum number of levels
-        p: probability of promotion to next level
+    인수:
+        max_level: 층의 최대 개수
+        p: 다음 층으로 올릴 낌새
     """
 
     def __init__(self, max_level=MAX_LEVEL, p=0.5):
@@ -82,20 +82,20 @@ class ConcurrentSkipList:
         self._lock = threading.Lock()
 
     def _random_level(self):
-        """Generate a random level for a new node."""
+        """새 마디의 층을 아무렇게나 짓는다."""
         lvl = 0
         while random.random() < self.p and lvl < self.max_level:
             lvl += 1
         return lvl
 
     def search(self, key):
-        """Search for key in the skip list.
+        """건너뛰기 목록에서 열쇠를 찾는다.
 
-        Args:
-            key: key to search for
+        인수:
+            key: 찾을 열쇠
 
-        Returns:
-            Value if found, None otherwise
+        돌려주는 값:
+            찾으면 값, 아니면 None
         """
         current = self.header
         for i in range(self.level, -1, -1):
@@ -108,11 +108,11 @@ class ConcurrentSkipList:
         return None
 
     def insert(self, key, value):
-        """Thread-safe insertion.
+        """실에 안전한 넣기.
 
-        Args:
-            key: key to insert
-            value: associated value
+        인수:
+            key: 넣을 열쇠
+            value: 매어 둘 값
         """
         update = [None] * (self.max_level + 1)
         current = self.header
@@ -146,7 +146,7 @@ class ConcurrentSkipList:
                     update[i].next[i] = new_node
 
     def to_list(self):
-        """Return all key-value pairs in sorted order."""
+        """모든 열쇠-값 짝을 매긴 차례대로 돌려준다."""
         result = []
         current = self.header.next[0]
         while current is not None:
@@ -155,14 +155,14 @@ class ConcurrentSkipList:
         return result
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
     random.seed(42)
     sl = ConcurrentSkipList()
 
-    # Single-threaded correctness
+    # 실 하나로 옳음 살피기
     for key in [3, 6, 1, 9, 2, 7, 4, 8, 5]:
         sl.insert(key, key * 10)
 
@@ -170,7 +170,7 @@ if __name__ == "__main__":
     print(f"search(5) = {sl.search(5)}")
     print(f"search(10) = {sl.search(10)}")
 
-    # Multi-threaded insertion
+    # 실 여럿으로 넣기
     sl2 = ConcurrentSkipList()
     barrier = threading.Barrier(4)
 
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     print(f"All present: {len(items) == 100}")
 ```
 
-**Output:**
+**출력:**
 ```
 Skip list contents: [(1, 10), (2, 20), (3, 30), (4, 40), (5, 50), (6, 60), (7, 70), (8, 80), (9, 90)]
 search(5) = 50
@@ -203,69 +203,69 @@ Sorted correctly: True
 All present: True
 ```
 
-## Complexity
+## 복잡도
 
-| Operation | Expected Time |
+| 연산 | 어림 때 |
 |---|---|
-| Search | $O(\log n)$ |
-| Insert | $O(\log n)$ |
-| Delete | $O(\log n)$ |
-| Space | $O(n)$ expected |
+| 찾기 | $O(\log n)$ |
+| 넣기 | $O(\log n)$ |
+| 지우기 | $O(\log n)$ |
+| 자리 | 어림 $O(n)$ |
 
-## Comparison with Concurrent Trees
+## 한꺼번에 쓰는 나무와 견주기
 
-| Property | Concurrent skip list | Concurrent red-black tree |
+| 성질 | 한꺼번에 쓰는 건너뛰기 목록 | 한꺼번에 쓰는 붉은-검은 나무 |
 |---|---|---|
-| Rotations | None | Required, complicates locking |
-| Lock granularity | Per-node, per-level | Per-node + rotation neighbors |
-| Lock-free possible | Yes (well-studied) | Difficult |
-| Cache behavior | Pointer-chasing | Better with node packing |
-| Practical use | Java ConcurrentSkipListMap | Less common for concurrent |
+| 돌리기 | 없음 | 있어야 하고 잠금을 얽히게 함 |
+| 잠금 잘기 | 마디마다, 층마다 | 마디마다 + 돌리기 이웃 |
+| 잠금 없이 될까 | 예(잘 살펴진 것) | 어려움 |
+| 캐시 거동 | 손가락질 좇기 | 마디를 채워 넣으면 더 좋음 |
+| 실제 쓰임 | 자바 ConcurrentSkipListMap | 한꺼번에 쓰기에는 덜 흔함 |
 
-!!! note "Java ConcurrentSkipListMap"
-    Java's standard library chose a lock-free skip list (ConcurrentSkipListMap) over a concurrent tree for its sorted concurrent map, specifically because skip lists are easier to make lock-free.
+!!! note "자바 ConcurrentSkipListMap"
+    자바의 여느 서고는 매긴 차례를 지니는 한꺼번에 쓰는 표로 한꺼번에 쓰는 나무 대신 잠금 없는 건너뛰기 목록(ConcurrentSkipListMap)을 골랐다. 바로 건너뛰기 목록이 잠금 없이 만들기 쉽기 때문이다.
 
-## Reference
+## 참고 문헌
 
 - Pugh, W. (1990). "Concurrent maintenance of skip lists." *TR CS-2222, University of Maryland*.
 - Herlihy, M. et al. (2006). "A provably correct scalable concurrent skip list." *OPODIS*.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Explain why skip lists are more amenable to concurrent access than balanced BSTs. What structural property makes the difference?
+**연습문제 1.**
+건너뛰기 목록이 고른 이진 찾기 나무보다 한꺼번에 닿기에 알맞은 까닭을 풀어라. 어떤 얼개 성질이 이 다름을 낳는가?
 
-??? success "Solution to Exercise 1"
-    Balanced BSTs (AVL, red-black) require rotations during insertions and deletions to maintain balance. A single rotation modifies the parent, child, and grandchild pointers -- three nodes that may be spread across the tree. Concurrent access to these nodes requires locking a variable-size region of the tree, and the locking order is hard to predict (rotations may propagate upward). Skip lists avoid this entirely: their balance is probabilistic (random level assignment at insertion), requiring no structural adjustments after insertion or deletion. An insertion affects only the immediate predecessor at each level, and these predecessors can be locked independently (fine-grained locking) or updated via CAS (lock-free). The locality of modifications -- each operation touches $O(\log n)$ adjacent nodes in a predictable order -- makes skip lists naturally suited for fine-grained and lock-free concurrency. $\square$
-
----
-
-**Exercise 2.**
-Describe the lock-free skip list insertion algorithm. How does it handle the case where a concurrent deletion removes a predecessor node during insertion?
-
-??? success "Solution to Exercise 2"
-    Lock-free insertion: (1) search from the top level, recording the predecessor and successor at each level. (2) Allocate a new node with a randomly chosen height. (3) Starting from level 0 (bottom), CAS the predecessor's `next` pointer from the successor to the new node. If CAS fails (predecessor changed), re-search at that level and retry. (4) Repeat for each higher level. For concurrent deletion: deleted nodes are first logically marked (a flag in the `next` pointer) before being physically unlinked. During insertion, if a search encounters a marked (logically deleted) predecessor, the inserting thread helps unlink it (physically removes the marked node) and retries the search. This "helping" mechanism ensures progress and prevents inserting into a chain that includes deleted nodes. $\square$
+??? success "연습문제 1 풀이"
+    고른 이진 찾기 나무(AVL, 붉은-검은)는 고름을 지키려고 넣고 지우는 동안 돌리기를 벌여야 한다. 돌리기 한 번이 어버이, 자식, 손자의 손가락질을 고치는데, 이 마디 셋은 나무 곳곳에 흩어져 있을 수 있다. 이 마디들에 한꺼번에 닿으려면 나무의 크기가 들쭉날쭉한 구역을 잠가야 하고 잠그는 차례를 미리 알기 어렵다(돌리기가 위로 번질 수 있다). 건너뛰기 목록은 이를 아예 비껴간다. 그 고름은 마구잡이(넣을 때 층을 아무렇게나 매김)에 기대므로 넣고 지운 뒤 얼개를 다잡을 까닭이 없다. 넣기는 층마다 바로 앞 마디에만 미치고, 이 앞 마디들은 저마다 홀로 잠그거나(잘게 나눈 잠금) CAS로 고칠 수 있다(잠금 없음). 연산마다 미리 알 수 있는 차례로 이웃한 마디 $O(\log n)$개만 건드리는 이 고침의 지역성이 건너뛰기 목록을 잘게 나눈 잠금과 잠금 없는 한꺼번에 쓰기에 절로 알맞게 만든다. $\square$
 
 ---
 
-**Exercise 3.**
-Analyze the expected time complexity of a concurrent skip list search operation. Does contention from concurrent writes affect the asymptotic search time?
+**연습문제 2.**
+잠금 없는 건너뛰기 목록 넣기 알고리즘을 밝혀라. 넣는 동안 한꺼번에 벌어진 지우기가 앞 마디를 없애는 경우를 어떻게 다루는가?
 
-??? success "Solution to Exercise 3"
-    A sequential skip list search takes $O(\log n)$ expected time: at each level, it traverses an expected $O(1)$ nodes before dropping down, and there are $O(\log n)$ levels. In a concurrent setting, search is read-only and does not modify any pointers, so it does not perform any CAS operations. Multiple searches proceed in parallel without interference. Concurrent writes (insertions/deletions) may modify the list structure during a search, but the search remains correct because: (1) atomically published new nodes are visible and safe to traverse, (2) deleted nodes are logically marked before unlinking, and a search encountering a marked node simply skips to the next. The expected number of nodes traversed per level remains $O(1)$ because writes change at most a constant number of pointers per level. Therefore, the asymptotic expected search time is $O(\log n)$, unaffected by concurrent writes. $\square$
-
----
-
-**Exercise 4.**
-Java's `ConcurrentSkipListMap` is used as a concurrent sorted map. Compare its performance characteristics with a `ConcurrentHashMap` for different access patterns: point lookups, range queries, and ordered iteration.
-
-??? success "Solution to Exercise 4"
-    **Point lookups**: `ConcurrentHashMap` provides $O(1)$ expected time (hash + bucket access), while `ConcurrentSkipListMap` provides $O(\log n)$. For pure point lookups, the hash map is 3--10x faster. **Range queries** (find all keys in $[a, b]$): `ConcurrentSkipListMap` supports this in $O(\log n + k)$ where $k$ is the number of keys in the range, by searching for $a$ and traversing the bottom-level linked list. `ConcurrentHashMap` has no efficient range query -- it requires scanning all buckets in $O(n)$. **Ordered iteration**: `ConcurrentSkipListMap` provides keys in sorted order by traversing the bottom-level list. `ConcurrentHashMap` provides no ordering guarantees. Recommendation: use `ConcurrentHashMap` for unordered key-value stores; use `ConcurrentSkipListMap` when sorted order, range queries, or operations like `ceilingKey`/`floorKey` are needed. $\square$
+??? success "연습문제 2 풀이"
+    잠금 없는 넣기: (1) 가장 위 층부터 찾으며 층마다 앞 마디와 뒤 마디를 적어 둔다. (2) 아무렇게나 고른 높이로 새 마디를 마련한다. (3) 층 0(맨 아래)부터 앞 마디의 `next` 손가락질을 뒤 마디에서 새 마디로 CAS 한다. CAS가 어그러지면(앞 마디가 바뀌었으면) 그 층에서 다시 찾고 다시 꾀한다. (4) 더 높은 층마다 되풀이한다. 한꺼번에 벌어지는 지우기에 대해서는, 지운 마디를 실제로 떼어 내기 앞서 (`next` 손가락질의 깃발로) 뜻으로 먼저 표시한다. 넣는 동안 찾기가 표시된(뜻으로 지워진) 앞 마디를 만나면 넣는 실이 그것을 떼어 내도록 거들고(표시된 마디를 참으로 없앤다) 다시 찾는다. 이 "거들기" 장치가 나아감을 지키고 지운 마디가 든 사슬에 넣는 일을 막는다. $\square$
 
 ---
 
-**Exercise 5.**
-Prove that a skip list with $n$ elements and promotion probability $p = 1/2$ has expected height $O(\log n)$ and expected total space $O(n)$.
+**연습문제 3.**
+한꺼번에 쓰는 건너뛰기 목록 찾기 연산의 어림 때 복잡도를 살펴라. 한꺼번에 벌어지는 적기의 다툼이 점근 찾기 때에 미치는가?
 
-??? success "Solution to Exercise 5"
-    **Height**: a node is promoted to level $k$ with probability $(1/2)^k$. The maximum level of any node is the height. The probability that at least one node reaches level $c \log_2 n$ is at most $n \cdot (1/2)^{c \log_2 n} = n \cdot n^{-c} = n^{1-c}$. For $c = 2$, this is $1/n$, so with high probability the height is at most $2 \log_2 n = O(\log n)$. **Space**: each node at level 0 is promoted to level 1 with probability $1/2$, to level 2 with probability $1/4$, etc. The expected number of pointers for one node is $\sum_{k=0}^{\infty} (1/2)^k = 2$. Over $n$ nodes, the expected total number of pointers is $2n = O(n)$. $\square$
+??? success "연습문제 3 풀이"
+    차례로 벌이는 건너뛰기 목록 찾기는 어림 $O(\log n)$ 때가 든다. 층마다 아래로 내려가기 앞서 어림 $O(1)$개의 마디를 지나고 층이 $O(\log n)$개이기 때문이다. 한꺼번에 쓰는 자리에서 찾기는 읽기뿐이며 어떤 손가락질도 고치지 않으므로 CAS를 하나도 벌이지 않는다. 여러 찾기가 서로를 방해하지 않고 나란히 나아간다. 한꺼번에 벌어지는 적기(넣기/지우기)가 찾는 동안 목록 얼개를 고칠 수 있으나 찾기는 여전히 옳다. 그 까닭은 이렇다. (1) 원자적으로 펴낸 새 마디는 드러나 있고 안전하게 지날 수 있다. (2) 지운 마디는 떼어 내기 앞서 뜻으로 표시되며, 표시된 마디를 만난 찾기는 그저 다음으로 건너뛴다. 적기가 층마다 많아야 상수 개의 손가락질을 바꾸므로 층마다 지나는 마디의 어림 개수는 $O(1)$으로 남는다. 따라서 점근 어림 찾기 때는 $O(\log n)$이며 한꺼번에 벌어지는 적기에 흔들리지 않는다. $\square$
+
+---
+
+**연습문제 4.**
+자바의 `ConcurrentSkipListMap`은 매긴 차례를 지니는 한꺼번에 쓰는 표로 쓰인다. 낱점 찾기, 범위 물음, 차례대로 훑기라는 서로 다른 닿기 결에서 `ConcurrentHashMap`과 그 성능 결을 견주어라.
+
+??? success "연습문제 4 풀이"
+    **낱점 찾기**: `ConcurrentHashMap`은 어림 $O(1)$ 때를 주고(해시하고 두레박에 닿는다) `ConcurrentSkipListMap`은 $O(\log n)$을 준다. 오로지 낱점만 찾는다면 해시 표가 3~10배 빠르다. **범위 물음**($[a, b]$ 안의 온 열쇠 찾기): `ConcurrentSkipListMap`은 $a$을 찾은 뒤 맨 아래 층 이음 목록을 지나며 $O(\log n + k)$에 이를 받쳐 준다. 여기서 $k$은 범위 안 열쇠의 개수다. `ConcurrentHashMap`에는 좋은 범위 물음이 없어 온 두레박을 $O(n)$에 훑어야 한다. **차례대로 훑기**: `ConcurrentSkipListMap`은 맨 아래 층 목록을 지나 매긴 차례대로 열쇠를 준다. `ConcurrentHashMap`은 차례를 하나도 보장하지 않는다. 권함: 차례 없는 열쇠-값 곳간에는 `ConcurrentHashMap`을 쓰고, 매긴 차례나 범위 물음, `ceilingKey`/`floorKey` 같은 연산이 필요하면 `ConcurrentSkipListMap`을 쓴다. $\square$
+
+---
+
+**연습문제 5.**
+원소가 $n$개이고 올릴 낌새가 $p = 1/2$인 건너뛰기 목록의 어림 높이가 $O(\log n)$이고 어림 온 자리가 $O(n)$임을 증명하여라.
+
+??? success "연습문제 5 풀이"
+    **높이**: 마디가 층 $k$까지 올라갈 낌새는 $(1/2)^k$이다. 아무 마디의 가장 높은 층이 곧 높이다. 적어도 한 마디가 층 $c \log_2 n$에 이를 낌새는 많아야 $n \cdot (1/2)^{c \log_2 n} = n \cdot n^{-c} = n^{1-c}$이다. $c = 2$이면 이는 $1/n$이므로 높은 낌새로 높이가 많아야 $2 \log_2 n = O(\log n)$이다. **자리**: 층 0의 마디마다 낌새 $1/2$으로 층 1에, 낌새 $1/4$으로 층 2에 오르며 그렇게 이어진다. 마디 하나의 어림 손가락질 개수는 $\sum_{k=0}^{\infty} (1/2)^k = 2$이다. 마디 $n$개에 걸쳐 어림 온 손가락질 개수는 $2n = O(n)$이다. $\square$

@@ -1,51 +1,50 @@
-# Lock-Free Stack
+# 잠금 없는 스택
 
-A concurrent stack must support `push` and `pop` operations from multiple threads without corruption. The simplest correct approach wraps operations in a mutex, but this serializes all access. The **Treiber stack** (1986) is the classic lock-free stack: it uses a singly-linked list with an atomic `top` pointer, and all modifications go through compare-and-swap (CAS). The result is a non-blocking stack where at least one thread always makes progress.
+한꺼번에 쓰는 스택은 실 여럿이 벌이는 `push`와 `pop`을 망가짐 없이 받쳐 주어야 한다. 가장 쉬운 옳은 길은 연산을 뮤텍스로 감싸는 것이지만, 이러면 모든 닿기가 한 줄로 늘어선다. **트라이버 스택**(1986)은 잠금 없는 스택의 본보기다. 원자적인 `top` 손가락질을 둔 한 겹 이음 목록을 쓰고 모든 고침이 견주어 바꾸기(CAS)를 거친다. 그 열매는 적어도 한 실이 늘 앞으로 나아가는, 막히지 않는 스택이다.
 
-## Treiber Stack Algorithm
+## 트라이버 스택 알고리즘
 
-### Structure
+### 얼개
 
-The stack is a singly-linked list where each node points to the node below it. A single shared pointer `top` references the current stack top.
+스택은 마디마다 그 아래 마디를 가리키는 한 겹 이음 목록이다. 함께 쓰는 손가락질 `top` 하나가 지금 스택 꼭대기를 가리킨다.
 
 ### Push
 
-1. Create a new node with the value to push.
-2. Set `new_node.next = top`.
-3. Attempt `CAS(top, old_top, new_node)`.
-    - On success, the push is complete.
-    - On failure (another thread modified `top`), go to step 2 and retry.
+1. 넣을 값을 담은 새 마디를 만든다.
+2. `new_node.next = top`으로 둔다.
+3. `CAS(top, old_top, new_node)`을 꾀한다.
+    - 이루면 넣기가 끝난다.
+    - 어그러지면(다른 실이 `top`을 고쳤으면) 2번으로 가서 다시 꾀한다.
 
 ### Pop
 
-1. Read `old_top = top`.
-2. If `old_top` is null, the stack is empty.
-3. Read `new_top = old_top.next`.
-4. Attempt `CAS(top, old_top, new_top)`.
-    - On success, return `old_top.value`.
-    - On failure, go to step 1 and retry.
+1. `old_top = top`을 읽는다.
+2. `old_top`이 널이면 스택이 비었다.
+3. `new_top = old_top.next`을 읽는다.
+4. `CAS(top, old_top, new_top)`을 꾀한다.
+    - 이루면 `old_top.value`을 돌려준다.
+    - 어그러지면 1번으로 가서 다시 꾀한다.
 
-Both operations are $O(1)$ in the uncontended case. Under contention, the expected number of CAS retries is bounded.
+다투지 않는 경우 두 연산 모두 $O(1)$이다. 다툼이 있을 때에도 CAS를 다시 꾀하는 어림 횟수는 매여 있다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Lock-free stack (Treiber stack) simulation.
+잠금 없는 스택(트라이버 스택) 흉내 내기.
 
-Uses a singly-linked list with a simulated CAS on the top
-pointer. In production, CAS would be a hardware atomic
-instruction.
+꼭대기 손가락질에 흉내 낸 CAS를 쓰는 한 겹 이음 목록을 쓴다.
+실제 서비스에서 CAS는 기계의 원자적인 명령이다.
 """
 
 import threading
 
 # ===================================================================
-# Treiber Stack (Simulated Lock-Free)
+# 트라이버 스택 (잠금 없음을 흉내 냄)
 # ===================================================================
 
 class StackNode:
-    """Stack node in singly-linked list."""
+    """한 겹 이음 목록의 스택 마디."""
 
     def __init__(self, value, next_node=None):
         self.value = value
@@ -53,22 +52,22 @@ class StackNode:
 
 
 class TreiberStack:
-    """Lock-free stack using simulated CAS.
+    """흉내 낸 CAS를 쓰는 잠금 없는 스택.
 
-    The algorithm follows the Treiber stack design.
-    Python's GIL + explicit lock simulates atomic CAS.
+    알고리즘은 트라이버 스택 설계를 따른다.
+    파이썬의 GIL과 드러낸 잠금이 원자적인 CAS를 흉내 낸다.
     """
 
     def __init__(self):
         self.top = None
-        self._lock = threading.Lock()  # simulates CAS
+        self._lock = threading.Lock()  # CAS를 흉내 낸다
         self._size = 0
 
     def push(self, value):
-        """Push value onto the stack.
+        """값을 스택에 넣는다.
 
-        Args:
-            value: item to push
+        인수:
+            value: 넣을 항목
         """
         new_node = StackNode(value)
         with self._lock:
@@ -77,10 +76,10 @@ class TreiberStack:
             self._size += 1
 
     def pop(self):
-        """Pop and return the top value.
+        """꼭대기 값을 빼내어 돌려준다.
 
-        Returns:
-            Top value, or None if empty
+        돌려주는 값:
+            꼭대기 값, 비었으면 None
         """
         with self._lock:
             if self.top is None:
@@ -91,27 +90,27 @@ class TreiberStack:
             return value
 
     def peek(self):
-        """Return the top value without removing it."""
+        """빼내지 않고 꼭대기 값을 돌려준다."""
         if self.top is None:
             return None
         return self.top.value
 
     def is_empty(self):
-        """Check if stack is empty."""
+        """스택이 비었는지 살핀다."""
         return self.top is None
 
     def size(self):
-        """Return current stack size."""
+        """지금 스택 크기를 돌려준다."""
         return self._size
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
     stack = TreiberStack()
 
-    # Single-threaded test
+    # 실 하나로 시험
     for x in [10, 20, 30, 40]:
         stack.push(x)
 
@@ -119,7 +118,7 @@ if __name__ == "__main__":
     while not stack.is_empty():
         print(f"  pop: {stack.pop()}")
 
-    # Multi-threaded push/pop
+    # 실 여럿으로 넣고 빼기
     stack = TreiberStack()
     pushed = []
     popped = []
@@ -163,7 +162,7 @@ if __name__ == "__main__":
     print(f"  All accounted for: {all_items == list(range(1, 11))}")
 ```
 
-**Output:**
+**출력:**
 ```
 Single-threaded (push 10,20,30,40 then pop all):
   pop: 40
@@ -178,79 +177,79 @@ Multi-threaded test:
   All accounted for: True
 ```
 
-## Progress Guarantee
+## 나아감 보장
 
-The Treiber stack is **lock-free**: if any thread is suspended mid-operation, other threads can still complete their pushes and pops. This is stronger than a mutex-based stack, where a thread holding the lock can block all others indefinitely.
+트라이버 스택은 **잠금 없는** 것이다. 어떤 실이 연산 도중에 멈추어도 다른 실은 저마다의 넣기와 빼기를 마칠 수 있다. 이는 잠금을 쥔 실이 다른 모든 실을 끝없이 막을 수 있는 뮤텍스 스택보다 힘센 성질이다.
 
-However, it is not **wait-free**: a single thread may retry its CAS arbitrarily many times if other threads keep succeeding first. In practice, under moderate contention, the retry count is very small.
+그러나 **기다림 없는** 것은 아니다. 다른 실이 계속 먼저 이루면 어떤 실 하나는 CAS를 아무리 여러 번이라도 다시 꾀할 수 있다. 실제로 다툼이 어중간하면 다시 꾀하는 횟수는 아주 작다.
 
-## ABA Problem
+## ABA 문제
 
-The Treiber stack is susceptible to the ABA problem:
+트라이버 스택은 ABA 문제에 걸리기 쉽다.
 
-1. Thread A reads `top = X`, prepares to CAS `top` from `X` to `X.next`.
-2. Thread B pops `X`, pops `Y`, pushes `X` back (same node, different stack state).
-3. Thread A's CAS succeeds (sees `X`), but `X.next` now points to the wrong node.
+1. 실 A가 `top = X`을 읽고 `top`을 `X`에서 `X.next`으로 CAS 할 채비를 한다.
+2. 실 B가 `X`을 빼내고 `Y`을 빼낸 뒤 `X`을 다시 넣는다(같은 마디이지만 스택 상태는 다르다).
+3. 실 A의 CAS가 (`X`을 보고) 이루어지지만 `X.next`은 이제 엉뚱한 마디를 가리킨다.
 
-!!! warning "Solutions to ABA"
+!!! warning "ABA를 푸는 길"
 
-    - **Tagged pointers**: Pair each pointer with a version counter. CAS checks both pointer and counter.
-    - **Hazard pointers**: Prevent memory reclamation while any thread holds a reference.
-    - **Epoch-based reclamation**: Delay freeing nodes until all threads have passed through a quiescent state.
+    - **표를 단 손가락질**: 손가락질마다 판 세개를 짝지운다. CAS가 손가락질과 세개를 함께 살핀다.
+    - **위험 손가락질**: 어떤 실이든 가리키고 있는 동안에는 기억을 거둬들이지 못하게 막는다.
+    - **시대에 바탕을 둔 거둬들이기**: 모든 실이 잠잠한 상태를 지날 때까지 마디 놓아주기를 미룬다.
 
-## Elimination Stack
+## 지워 없애는 스택
 
-Under high contention, a **back-off** or **elimination** optimization can help. Threads that fail a CAS attempt to directly exchange values (one pusher and one popper cancel each other out without touching the shared stack). This converts contention into throughput.
+다툼이 심할 때에는 **물러서기**나 **지워 없애기** 다듬기가 도움이 된다. CAS가 어그러진 실들이 값을 바로 주고받는다(넣는 실 하나와 빼는 실 하나가 함께 쓰는 스택을 건드리지 않고 서로를 지운다). 이로써 다툼이 처리량으로 바뀐다.
 
-## Complexity
+## 복잡도
 
-| Operation | Expected Time |
+| 연산 | 어림 때 |
 |---|---|
-| `push` | $O(1)$ amortized |
-| `pop` | $O(1)$ amortized |
-| Space | $O(n)$ |
+| `push` | $O(1)$ 나눠 갚음 |
+| `pop` | $O(1)$ 나눠 갚음 |
+| 자리 | $O(n)$ |
 
-## Reference
+## 참고 문헌
 
 - Treiber, R. K. (1986). "Systems programming: Coping with parallelism." *IBM Research Report RJ 5118*.
-- Herlihy, M. and Shavit, N. *The Art of Multiprocessor Programming*, Chapter 11.
+- Herlihy, M. and Shavit, N. *The Art of Multiprocessor Programming*, 11장.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Describe the Treiber stack's `push` and `pop` operations using CAS. Why is the stack lock-free but not wait-free?
+**연습문제 1.**
+CAS를 써서 트라이버 스택의 `push`와 `pop`을 밝혀라. 이 스택이 잠금 없는 것이면서 기다림 없는 것은 아닌 까닭은 무엇인가?
 
-??? success "Solution to Exercise 1"
-    **Push**: allocate a new node, set `node.next = top`. CAS `top` from the current value to the new node. If CAS fails (another thread modified `top`), reload `top`, update `node.next`, and retry. **Pop**: read `top`. If null, stack is empty. Otherwise, read `top.next`. CAS `top` from `top` to `top.next`. If CAS fails, retry. On success, return the value from the old `top`. The stack is lock-free because at least one thread's CAS succeeds in every contention round -- the thread whose CAS fails knows another thread succeeded, guaranteeing system-wide progress. It is not wait-free because an individual thread's CAS can fail unboundedly many times if other threads keep succeeding: in theory, one thread could starve while others continuously push and pop. Wait-freedom would require every thread to complete in a bounded number of steps. $\square$
-
----
-
-**Exercise 2.**
-Explain the ABA problem in the context of the Treiber stack and show a concrete scenario where it causes incorrect behavior.
-
-??? success "Solution to Exercise 2"
-    Scenario: stack contains $[A \to B \to C]$ (top = A). Thread 1 begins `pop`: reads `top = A`, `next = B`. Thread 1 is preempted. Thread 2 pops A (top becomes B), pops B (top becomes C), pushes A back (top = A, with `A.next = C`). Thread 1 resumes: CAS `top` from A to B succeeds (top is A). Now `top = B`, but B was already freed/popped -- it's a dangling pointer. The stack is corrupted. The CAS succeeded because the pointer value was the same (A), but the stack structure changed underneath. Solutions: (1) use double-width CAS with a version counter (each CAS increments the counter, so the A-with-counter-1 differs from A-with-counter-3); (2) use hazard pointers to prevent A's memory from being reused; (3) use epoch-based reclamation. $\square$
+??? success "연습문제 1 풀이"
+    **Push**: 새 마디를 마련하고 `node.next = top`으로 둔다. `top`을 지금 값에서 새 마디로 CAS 한다. CAS가 어그러지면(다른 실이 `top`을 고쳤으면) `top`을 다시 읽고 `node.next`을 고친 뒤 다시 꾀한다. **Pop**: `top`을 읽는다. 널이면 스택이 비었다. 아니면 `top.next`을 읽는다. `top`을 `top`에서 `top.next`으로 CAS 한다. CAS가 어그러지면 다시 꾀한다. 이루면 옛 `top`의 값을 돌려준다. 이 스택이 잠금 없는 까닭은 다툼이 벌어지는 판마다 적어도 한 실의 CAS가 이루어지기 때문이다. CAS가 어그러진 실은 다른 실이 이루었음을 알므로 온 시스템의 나아감이 보장된다. 기다림 없는 것이 아닌 까닭은 다른 실이 계속 이루면 낱낱의 실의 CAS가 매임 없이 여러 번 어그러질 수 있기 때문이다. 이치상 한 실이 굶주리는 동안 다른 실들이 끊임없이 넣고 뺄 수 있다. 기다림 없으려면 모든 실이 매인 걸음 수 안에 마쳐야 한다. $\square$
 
 ---
 
-**Exercise 3.**
-An elimination back-off stack combines a Treiber stack with an elimination array. Describe how it achieves higher throughput under contention.
+**연습문제 2.**
+트라이버 스택에서 ABA 문제를 풀고, 그것이 그른 거동을 낳는 또렷한 자리를 보여라.
 
-??? success "Solution to Exercise 3"
-    Under high contention, CAS retries on the Treiber stack's `top` pointer become the bottleneck because all threads compete for a single cache line. An elimination back-off stack adds an auxiliary array where threads can pair up: a `push` and a `pop` that collide in the array can exchange their values directly without touching the shared stack. On CAS failure, a thread picks a random slot in the elimination array and advertises its operation (push with value, or pop requesting value). If a complementary thread arrives at the same slot within a timeout, they exchange and both complete. If no match is found, the thread retries on the main stack. This scales throughput because paired operations bypass the contention point entirely. Under low contention, the elimination array is rarely used, and the Treiber stack handles operations directly. $\square$
-
----
-
-**Exercise 4.**
-Prove that the Treiber stack is linearizable: every concurrent execution is equivalent to some sequential execution where each push and pop takes effect at its successful CAS.
-
-??? success "Solution to Exercise 4"
-    Assign each operation a linearization point: the successful CAS instruction. For `push`, the linearization point is the CAS that swings `top` from old to the new node. For `pop`, it is the CAS that swings `top` from the current node to `top.next`. For an empty-stack `pop` (returning null), the linearization point is the read of `top == null`. Since CAS is an atomic instruction, the linearization points are totally ordered by their hardware execution times. In this ordering: after a push's CAS, the pushed element is on top of the stack; after a pop's CAS, the top element is removed. Any concurrent execution can be replayed by ordering operations at their linearization points, producing a valid sequential stack execution. This holds because the CAS atomically verifies and updates the stack state, ensuring no intermediate state is visible. $\square$
+??? success "연습문제 2 풀이"
+    자리: 스택이 $[A \to B \to C]$을 담는다(top = A). 실 1이 `pop`을 시작해 `top = A`, `next = B`을 읽는다. 실 1이 밀려난다. 실 2가 A을 빼내고(top이 B가 된다) B을 빼낸 뒤(top이 C가 된다) A을 다시 넣는다(top = A이고 `A.next = C`이다). 실 1이 다시 돌아 `top`을 A에서 B로 CAS 하고 이룬다(top이 A이므로). 이제 `top = B`이지만 B는 이미 놓아주어졌거나 빼내진 허공 손가락질이다. 스택이 망가졌다. 손가락질 값이 같았기에(A) CAS가 이루어졌으나 그 밑의 스택 얼개는 바뀌었다. 푸는 길은 이렇다. (1) 판 세개를 곁들인 곱절 너비 CAS를 쓴다(CAS마다 세개를 올리므로 세개가 1인 A와 3인 A가 다르다). (2) 위험 손가락질로 A의 기억이 다시 쓰이지 못하게 막는다. (3) 시대에 바탕을 둔 거둬들이기를 쓴다. $\square$
 
 ---
 
-**Exercise 5.**
-Compare the Treiber stack with a lock-based stack in terms of: (a) correctness guarantees, (b) performance under no contention, (c) performance under high contention, and (d) implementation complexity.
+**연습문제 3.**
+지워 없애며 물러서는 스택은 트라이버 스택과 지워 없애기 배열을 엮는다. 다툼이 있을 때 어떻게 더 높은 처리량을 이루는지 밝혀라.
 
-??? success "Solution to Exercise 5"
-    (a) **Correctness**: both are linearizable. The lock-based stack is deadlock-free (with a single lock) and starvation-free (with a fair lock). The Treiber stack is lock-free (guaranteed system-wide progress) but not starvation-free for individual threads. (b) **No contention**: the lock-based stack incurs lock acquisition/release overhead ($\sim$20 ns for an uncontended mutex). The Treiber stack performs one CAS ($\sim$10 ns). The Treiber stack is slightly faster. (c) **High contention**: the lock-based stack serializes all operations at the lock, with throughput bounded by $\sim$1 / (lock cost + operation cost). The Treiber stack also serializes at the CAS point, with similar throughput, but CAS retries waste additional CPU cycles. Neither scales well; the elimination back-off stack is needed. (d) **Complexity**: the lock-based stack is trivial (wrap operations in `lock`/`unlock`). The Treiber stack requires careful memory reclamation (hazard pointers or epoch-based) to avoid ABA and use-after-free, significantly increasing complexity. $\square$
+??? success "연습문제 3 풀이"
+    다툼이 심하면 모든 실이 캐시 줄 하나를 두고 겨루므로 트라이버 스택의 `top` 손가락질에 대한 CAS 다시 꾀하기가 목을 죈다. 지워 없애며 물러서는 스택은 실들이 짝을 지을 수 있는 곁 배열을 더한다. 배열에서 부딪친 `push`와 `pop`은 함께 쓰는 스택을 건드리지 않고 값을 곧바로 주고받을 수 있다. CAS가 어그러지면 실은 지워 없애기 배열에서 아무 자리를 골라 제 연산을(값을 지닌 넣기이거나 값을 바라는 빼기이거나) 내건다. 짝이 되는 실이 정한 때 안에 같은 자리에 오면 둘이 주고받고 함께 마친다. 짝을 찾지 못하면 그 실은 으뜸 스택에서 다시 꾀한다. 짝지은 연산이 다툼 자리를 아예 비껴가므로 처리량이 늘어난다. 다툼이 적을 때에는 지워 없애기 배열이 거의 쓰이지 않고 트라이버 스택이 연산을 곧바로 다룬다. $\square$
+
+---
+
+**연습문제 4.**
+트라이버 스택이 줄 세울 수 있음을 증명하여라. 곧 한꺼번에 도는 모든 실행이, 넣기와 빼기가 저마다 CAS를 이룬 자리에서 효험을 내는 어떤 차례 실행과 같음을 보여라.
+
+??? success "연습문제 4 풀이"
+    연산마다 줄 세우는 자리를 매긴다. 곧 이루어진 CAS 명령이다. `push`에서 줄 세우는 자리는 `top`을 옛것에서 새 마디로 돌리는 CAS다. `pop`에서는 `top`을 지금 마디에서 `top.next`으로 돌리는 CAS다. 빈 스택에서 (널을 돌려주는) `pop`에서는 `top == null`을 읽는 자리다. CAS가 원자적인 명령이므로 줄 세우는 자리들은 기계가 실행한 때로 온전히 차례가 매겨진다. 이 차례에서 넣기의 CAS 뒤에는 넣은 원소가 스택 꼭대기에 있고, 빼기의 CAS 뒤에는 꼭대기 원소가 없어진다. 한꺼번에 도는 어떤 실행이든 연산을 그 줄 세우는 자리에 따라 늘어놓아 되돌려 볼 수 있고, 이는 옳은 차례 스택 실행을 낳는다. CAS가 스택 상태를 원자적으로 살피고 고쳐 중간 상태가 드러나지 않게 하므로 이것이 성립한다. $\square$
+
+---
+
+**연습문제 5.**
+트라이버 스택과 잠금을 쓰는 스택을 (가) 옳음 보장, (나) 다툼이 없을 때의 성능, (다) 다툼이 심할 때의 성능, (라) 만들기 품에서 견주어라.
+
+??? success "연습문제 5 풀이"
+    (가) **옳음**: 둘 다 줄 세울 수 있다. 잠금을 쓰는 스택은 (잠금이 하나이면) 맞물려 멈추지 않고 (공평한 잠금이면) 굶주리지 않는다. 트라이버 스택은 잠금 없지만(온 시스템의 나아감이 보장된다) 낱낱의 실이 굶주리지 않음은 보장되지 않는다. (나) **다툼 없음**: 잠금을 쓰는 스택은 잠금을 얻고 놓는 덧듦이 있다(다투지 않는 뮤텍스에서 약 20 ns). 트라이버 스택은 CAS 한 번을 벌인다(약 10 ns). 트라이버 스택이 조금 빠르다. (다) **다툼 심함**: 잠금을 쓰는 스택은 모든 연산을 잠금에서 한 줄로 늘어세우며 처리량이 약 1 / (잠금 비용 + 연산 비용)으로 매인다. 트라이버 스택도 CAS 자리에서 한 줄로 늘어서므로 처리량이 비슷하지만, 다시 꾀하는 CAS가 CPU 걸음을 더 버린다. 둘 다 잘 늘어나지 않으므로 지워 없애며 물러서는 스택이 있어야 한다. (라) **품**: 잠금을 쓰는 스택은 아주 쉽다(연산을 `lock`/`unlock`으로 감싼다). 트라이버 스택은 ABA와 놓아준 뒤 쓰기를 막으려 꼼꼼한 기억 거둬들이기(위험 손가락질이나 시대에 바탕을 둔 것)가 있어야 하므로 품이 크게 는다. $\square$

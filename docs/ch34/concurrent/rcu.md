@@ -1,43 +1,43 @@
-# Read-Copy-Update
+# 읽고 베끼고 고치기
 
-Many concurrent data structures are read far more often than they are written. In these read-dominated workloads, paying synchronization overhead on every read operation wastes performance. **Read-Copy-Update (RCU)** eliminates read-side synchronization entirely: readers access shared data without locks, memory barriers, or atomic instructions. Writers create a modified copy of the data and atomically swap the pointer, then wait for all pre-existing readers to finish before reclaiming the old version.
+한꺼번에 쓰는 자료 얼개 가운데에는 적는 일보다 읽는 일이 훨씬 잦은 것이 많다. 이렇게 읽기가 판치는 일감에서 읽을 때마다 발맞추기 덧듦을 물면 성능을 버리게 된다. **읽고 베끼고 고치기**(RCU)는 읽는 쪽의 발맞추기를 아예 없앤다. 읽는 이는 잠금도, 기억 울짱도, 원자적인 명령도 없이 함께 쓰는 자료에 닿는다. 적는 이는 자료를 고친 벌을 만들어 손가락질을 원자적으로 바꿔 끼운 뒤, 앞서 있던 읽는 이가 모두 마치기를 기다렸다가 옛 판을 거둬들인다.
 
-## Core Principles
+## 한가운데 이치
 
-RCU rests on three mechanisms:
+RCU는 장치 셋에 기댄다.
 
-1. **Publish-subscribe**: Writers atomically publish a new version of the data structure by updating a shared pointer. Readers subscribe by loading this pointer.
-2. **Grace period**: After publishing a new version, the writer waits until all readers that might still reference the old version have completed. This waiting period is the *grace period*.
-3. **Reclamation**: After the grace period ends, the old version can be safely freed because no reader holds a reference to it.
+1. **펴내고 받아 보기**: 적는 이는 함께 쓰는 손가락질을 고쳐 자료 얼개의 새 판을 원자적으로 펴낸다. 읽는 이는 이 손가락질을 실어 받아 본다.
+2. **말미**: 새 판을 펴낸 뒤 적는 이는 옛 판을 아직 가리키고 있을 만한 읽는 이가 모두 마칠 때까지 기다린다. 이 기다림이 *말미*다.
+3. **거둬들이기**: 말미가 끝나면 어떤 읽는 이도 옛 판을 가리키지 않으므로 안전하게 놓아줄 수 있다.
 
-## How It Works
+## 어떻게 도는가
 
-### Read Side
+### 읽는 쪽
 
-A reader enters an **RCU read-side critical section**, reads the shared pointer, uses the data, and exits the critical section. No locks are acquired. The critical section simply marks the reader as "active" so that writers know not to reclaim data yet.
+읽는 이는 **RCU 읽기 쪽 고비 구역**에 들어가 함께 쓰는 손가락질을 읽고 자료를 쓴 뒤 고비 구역을 나온다. 잠금을 하나도 얻지 않는다. 고비 구역은 그저 읽는 이를 "돌고 있음"이라 표시하여 적는 이가 아직 자료를 거둬들이면 안 됨을 알게 한다.
 
-### Write Side
+### 적는 쪽
 
-A writer performs four steps:
+적는 이는 걸음 넷을 밟는다.
 
-1. **Read** the current pointer to the data structure.
-2. **Copy** the data and apply modifications to the copy.
-3. **Publish** the copy by atomically replacing the shared pointer.
-4. **Synchronize**: Call a grace-period mechanism to wait until all pre-existing readers have exited their critical sections.
-5. **Reclaim** the old copy.
+1. 자료 얼개를 가리키는 지금 손가락질을 **읽는다**.
+2. 자료를 **베끼고** 그 벌에 고침을 매긴다.
+3. 함께 쓰는 손가락질을 원자적으로 갈음하여 그 벌을 **펴낸다**.
+4. **발맞춘다**: 말미 장치를 불러 앞서 있던 읽는 이가 모두 제 고비 구역을 나올 때까지 기다린다.
+5. 옛 벌을 **거둬들인다**.
 
-!!! warning "Readers see old or new, never partial"
-    Because the pointer swap is atomic, a reader always sees either the complete old version or the complete new version -- never a partially modified state. This provides a consistency guarantee without locks.
+!!! warning "읽는 이는 옛것이나 새것을 볼 뿐 반쪽을 보지 않는다"
+    손가락질 바꿔 끼우기가 원자적이므로 읽는 이는 늘 온전한 옛 판이나 온전한 새 판 가운데 하나를 보며, 반쯤 고쳐진 상태는 결코 보지 않는다. 이로써 잠금 없이 한결같음이 보장된다.
 
-## Implementation
+## 구현
 
 ```python
 """
-Read-Copy-Update (RCU) simulation.
+읽고 베끼고 고치기(RCU) 흉내 내기.
 
-Simulates RCU with a shared immutable data snapshot. Writers
-create new snapshots; readers access the current snapshot
-without locking. A grace period ensures safe reclamation.
+함께 쓰는, 바뀌지 않는 자료 찰나본으로 RCU를 흉내 낸다.
+적는 이는 새 찰나본을 만들고, 읽는 이는 잠금 없이 지금
+찰나본에 닿는다. 말미가 안전한 거둬들이기를 지킨다.
 """
 
 import threading
@@ -45,17 +45,17 @@ import time
 import copy
 
 # ===================================================================
-# RCU Simulation
+# RCU 흉내 내기
 # ===================================================================
 
 class RCUProtected:
-    """RCU-protected shared data.
+    """RCU로 지키는, 함께 쓰는 자료.
 
-    Readers access data lock-free. Writers create copies,
-    modify them, and atomically swap the reference.
+    읽는 이는 잠금 없이 자료에 닿는다. 적는 이는 벌을 만들어
+    고친 뒤 가리킴을 원자적으로 바꿔 끼운다.
 
-    Args:
-        initial_data: initial value of the shared data
+    인수:
+        initial_data: 함께 쓰는 자료의 처음 값
     """
 
     def __init__(self, initial_data):
@@ -66,42 +66,42 @@ class RCUProtected:
         self._versions_reclaimed = 0
 
     def read(self):
-        """Begin an RCU read-side critical section.
+        """RCU 읽기 쪽 고비 구역을 시작한다.
 
-        Returns:
-            Reference to current data snapshot (immutable view)
+        돌려주는 값:
+            지금 자료 찰나본에 대한 가리킴(바꿀 수 없는 봄)
         """
         with self._reader_lock:
             self._reader_count += 1
         return self._data
 
     def read_done(self):
-        """Exit an RCU read-side critical section."""
+        """RCU 읽기 쪽 고비 구역을 나온다."""
         with self._reader_lock:
             self._reader_count -= 1
 
     def update(self, modify_fn):
-        """Perform an RCU update.
+        """RCU 고침을 벌인다.
 
-        Args:
-            modify_fn: function that takes old data, returns new data
+        인수:
+            modify_fn: 옛 자료를 받아 새 자료를 돌려주는 함수
 
-        Returns:
-            The new data version
+        돌려주는 값:
+            새 자료 판
         """
         with self._write_lock:
             old_data = self._data
             new_data = modify_fn(copy.deepcopy(old_data))
-            # Publish (atomic pointer swap)
+            # 펴내기(원자적인 손가락질 바꿔 끼우기)
             self._data = new_data
-            # Grace period: wait for readers of old version
+            # 말미: 옛 판을 읽는 이들을 기다린다
             self._synchronize()
-            # Reclaim old version (in Python, garbage collector handles this)
+            # 옛 판 거둬들이기(파이썬에서는 쓰레기 거두개가 맡는다)
             self._versions_reclaimed += 1
             return new_data
 
     def _synchronize(self):
-        """Wait until all pre-existing readers have finished."""
+        """앞서 있던 읽는 이가 모두 마칠 때까지 기다린다."""
         while True:
             with self._reader_lock:
                 if self._reader_count == 0:
@@ -109,7 +109,7 @@ class RCUProtected:
             time.sleep(0.001)
 
 # ===================================================================
-# Main
+# 메인
 # ===================================================================
 
 if __name__ == "__main__":
@@ -118,12 +118,12 @@ if __name__ == "__main__":
 
     print("RCU simulation:")
 
-    # Reader: access without locking
+    # 읽는 이: 잠금 없이 닿는다
     snapshot = rcu.read()
     print(f"  Reader sees: {snapshot}")
     rcu.read_done()
 
-    # Writer: create new version
+    # 적는 이: 새 판을 만든다
     def add_user(data):
         data["users"].append("Charlie")
         data["count"] += 1
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     new_data = rcu.update(add_user)
     print(f"  After update: {new_data}")
 
-    # Multiple readers during an update
+    # 고치는 동안 읽는 이 여럿
     results = []
     barrier = threading.Barrier(3)
 
@@ -140,7 +140,7 @@ if __name__ == "__main__":
         barrier.wait()
         snap = rcu.read()
         results.append((reader_id, len(snap["users"])))
-        time.sleep(0.01)  # simulate work
+        time.sleep(0.01)  # 일을 흉내 낸다
         rcu.read_done()
 
     def writer():
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     print(f"  Versions reclaimed: {rcu._versions_reclaimed}")
 ```
 
-**Output:**
+**출력:**
 ```
 RCU simulation:
   Reader sees: {'users': ['Alice', 'Bob'], 'count': 2}
@@ -178,71 +178,71 @@ RCU simulation:
   Versions reclaimed: 2
 ```
 
-## Complexity
+## 복잡도
 
-| Operation | Cost |
+| 연산 | 비용 |
 |---|---|
-| Read-side entry/exit | $O(1)$, no synchronization |
-| Write (copy + publish) | $O(n)$ for data of size $n$ |
-| Grace period (synchronize) | $O(1)$ amortized with quiescent-state tracking |
+| 읽기 쪽 들고 남 | $O(1)$, 발맞추기 없음 |
+| 적기(베끼고 펴내기) | 크기 $n$인 자료에 $O(n)$ |
+| 말미(발맞추기) | 잠잠한 상태 좇기를 쓰면 $O(1)$ 나눠 갚음 |
 
-## Trade-offs
+## 맞바꿈
 
-| Property | RCU | Reader-Writer Lock |
+| 성질 | RCU | 읽는 이-적는 이 잠금 |
 |---|---|---|
-| Read overhead | Zero (no lock, no barrier) | Acquire/release shared lock |
-| Write overhead | Copy data + grace period | Acquire exclusive lock |
-| Best for | Read-dominated workloads | Balanced read-write |
-| Memory | Extra copy during update | No extra copy |
-| Staleness | Readers may see old version briefly | All see same version |
+| 읽기 덧듦 | 없음(잠금도 울짱도 없음) | 함께 쓰는 잠금을 얻고 놓음 |
+| 적기 덧듦 | 자료 베끼기 + 말미 | 홀로 쓰는 잠금을 얻음 |
+| 알맞은 곳 | 읽기가 판치는 일감 | 읽기와 적기가 고른 일감 |
+| 기억 | 고치는 동안 벌이 하나 더 든다 | 더 드는 벌이 없다 |
+| 낡음 | 읽는 이가 잠깐 옛 판을 볼 수 있다 | 모두 같은 판을 본다 |
 
-## Applications
+## 쓰임새
 
-- **Linux kernel**: RCU is used extensively for routing tables, file system caches, and module lists. The kernel's RCU implementation handles millions of read operations per second.
-- **Concurrent data structures**: RCU-protected linked lists, hash tables, and trees enable lock-free reads.
-- **Configuration updates**: Application config can be updated via RCU: readers always see a consistent snapshot.
+- **리눅스 낟알**: 길잡이 표, 파일 시스템 캐시, 꾸러미 목록에 RCU가 두루 쓰인다. 낟알의 RCU는 초당 수백만 번의 읽기를 다룬다.
+- **한꺼번에 쓰는 자료 얼개**: RCU로 지키는 이음 목록, 해시 표, 나무가 잠금 없는 읽기를 이루게 한다.
+- **얼개 고치기**: 응용 설정을 RCU로 고칠 수 있다. 읽는 이는 늘 한결같은 찰나본을 본다.
 
-## Reference
+## 참고 문헌
 
 - McKenney, P. E. (2004). "Exploiting Deferred Destruction: An Analysis of Read-Copy-Update Techniques in Operating System Kernels." *PhD Thesis, OGI*.
 - McKenney, P. E. and Slingwine, J. D. (1998). "Read-Copy Update: Using Execution History to Solve Concurrency Problems." *PDCS*.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Explain the three phases of an RCU update: copy, update, and reclaim. What guarantees correctness during the transition?
+**연습문제 1.**
+RCU 고침의 세 마디인 베끼기, 고치기, 거둬들이기를 풀어라. 넘어가는 동안 옳음을 지켜 주는 것은 무엇인가?
 
-??? success "Solution to Exercise 1"
-    (1) **Copy**: the writer creates a copy of the data structure (or the relevant node) and applies the modification to the copy. The original remains intact and readable. (2) **Update**: the writer atomically swaps the pointer from the old version to the new version (e.g., using `rcu_assign_pointer`). After the swap, new readers see the updated version, while pre-existing readers may still reference the old version. (3) **Reclaim**: the writer calls `synchronize_rcu()` (or registers a callback via `call_rcu`), which waits until all pre-existing readers have completed their read-side critical sections (a "grace period"). Only then is the old version freed. Correctness is guaranteed because no reader ever sees a partially updated structure: they see either the complete old version or the complete new version. $\square$
-
----
-
-**Exercise 2.**
-Describe what a "grace period" is in RCU and how the Linux kernel determines when a grace period has elapsed.
-
-??? success "Solution to Exercise 2"
-    A grace period is the interval after a pointer swap during which some readers may still hold references to the old data. It ends when every thread that was in a read-side critical section at the time of the swap has exited that critical section. In the Linux kernel (non-preemptible RCU), a read-side critical section is any code between `rcu_read_lock()` and `rcu_read_unlock()`, which simply disable/enable preemption. A grace period is detected when every CPU has performed a context switch (or been in an idle/user-space state) at least once since the update -- this guarantees no CPU is still executing an old critical section. The kernel tracks this using per-CPU counters. For preemptible RCU (PREEMPT_RCU), explicit reader tracking is used instead. $\square$
+??? success "연습문제 1 풀이"
+    (1) **베끼기**: 적는 이가 자료 얼개(또는 걸맞은 마디)의 벌을 만들어 그 벌에 고침을 매긴다. 처음 것은 그대로 남아 읽을 수 있다. (2) **고치기**: 적는 이가 손가락질을 옛 판에서 새 판으로 원자적으로 바꿔 끼운다(보기로 `rcu_assign_pointer`을 쓴다). 바꾼 뒤 새 읽는 이는 고친 판을 보고, 앞서 있던 읽는 이는 아직 옛 판을 가리킬 수 있다. (3) **거둬들이기**: 적는 이가 `synchronize_rcu()`을 부르거나 (`call_rcu`으로) 되부름을 걸어 두어, 앞서 있던 읽는 이가 모두 읽기 쪽 고비 구역을 마칠 때까지("말미") 기다린다. 그런 뒤에야 옛 판을 놓아준다. 어떤 읽는 이도 반쯤 고쳐진 얼개를 보지 않고 온전한 옛 판이나 온전한 새 판을 보므로 옳음이 보장된다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that RCU's read-side overhead is zero in a non-preemptible kernel. What changes in a preemptible kernel?
+**연습문제 2.**
+RCU에서 "말미"가 무엇인지 밝히고, 리눅스 낟알이 말미가 지났음을 어떻게 알아내는지 풀어라.
 
-??? success "Solution to Exercise 3"
-    In a non-preemptible kernel, `rcu_read_lock()` and `rcu_read_unlock()` are no-ops (or compile to nothing). The guarantee is that a reader on a given CPU cannot be preempted during a read-side critical section, so any context switch implies the reader has exited. Since the operations are literally empty, the read-side overhead is zero: no memory barriers, no atomic instructions, no cache-line bouncing. In a preemptible kernel, readers can be preempted mid-critical-section, so `rcu_read_lock()` must increment a per-CPU (or per-task) counter, and `rcu_read_unlock()` must decrement it. These are fast (no cross-CPU synchronization) but not zero: they involve a local memory access and prevent the compiler from reordering across the boundary. The overhead is a few nanoseconds per pair, compared to zero in the non-preemptible case. $\square$
-
----
-
-**Exercise 4.**
-RCU is optimal for read-mostly workloads. Estimate the read/write ratio threshold above which RCU outperforms a reader-writer lock, assuming typical lock acquisition costs.
-
-??? success "Solution to Exercise 4"
-    A reader-writer lock (`rwlock`) costs roughly 20--50 ns per read-lock/unlock pair on modern x86 hardware (due to atomic operations on the shared lock word, causing cache-line bouncing). RCU read-side costs 0 ns (non-preemptible) or $\sim$5 ns (preemptible). RCU write-side costs much more: pointer swap ($\sim$10 ns) plus `synchronize_rcu()` waiting for a grace period ($\sim$10--100 ms, though amortizable). Let $R$ be reads/sec and $W$ be writes/sec. Total time with rwlock: $(R + W) \times 30$ ns. Total time with RCU: $R \times 0$ ns $+ W \times$ (10 ns + grace period cost). RCU wins when $R \times 30 > W \times$ grace_period_cost, i.e., $R/W > \text{grace\_period\_cost} / 30$ ns. For a grace period of 10 ms: $R/W > 3 \times 10^5$. For `call_rcu` with batching, the effective cost per write drops, making the threshold $R/W \gtrsim 100$--$1000$. $\square$
+??? success "연습문제 2 풀이"
+    말미는 손가락질을 바꿔 끼운 뒤 어떤 읽는 이가 아직 옛 자료를 가리키고 있을 수 있는 사이다. 바꿔 끼우던 때에 읽기 쪽 고비 구역에 있던 모든 실이 그 구역을 나오면 말미가 끝난다. 리눅스 낟알(밀려나지 않는 RCU)에서 읽기 쪽 고비 구역은 `rcu_read_lock()`과 `rcu_read_unlock()` 사이의 코드이며, 이 둘은 그저 밀려남을 끄고 켠다. 고침 뒤 모든 CPU가 적어도 한 번 흐름 바꿈을 벌였거나(또는 놀거나 쓰는 이 자리에 있었으면) 말미가 지났음을 알아채는데, 이는 어떤 CPU도 옛 고비 구역을 아직 돌리고 있지 않음을 보장한다. 낟알은 CPU마다 두는 세개로 이를 좇는다. 밀려날 수 있는 RCU(PREEMPT_RCU)에서는 그 대신 읽는 이를 드러내 좇는다. $\square$
 
 ---
 
-**Exercise 5.**
-Design an RCU-protected linked list that supports concurrent reads, insertions, and deletions. Describe the writer protocol for deleting a node.
+**연습문제 3.**
+밀려나지 않는 낟알에서 RCU의 읽기 쪽 덧듦이 없음을 증명하여라. 밀려날 수 있는 낟알에서는 무엇이 달라지는가?
 
-??? success "Solution to Exercise 5"
-    The list is a singly-linked list with a head pointer. **Readers**: `rcu_read_lock()`, traverse the list following `next` pointers (using `rcu_dereference()` for proper memory ordering), `rcu_read_unlock()`. No locks needed. **Insertion**: allocate a new node, set its `next` to the current successor, then atomically update the predecessor's `next` pointer using `rcu_assign_pointer()`. Readers either see the old list (without the new node) or the new list (with it) -- both are consistent. **Deletion protocol**: (1) atomically update the predecessor's `next` to skip the target node (`rcu_assign_pointer(prev->next, target->next)`). (2) Call `synchronize_rcu()` or `call_rcu()` to defer freeing the target node until all pre-existing readers have finished. Between steps 1 and 2, the target node is unlinked but may still be accessed by readers who obtained a pointer to it before the unlink. The grace period ensures these readers finish before the memory is freed. $\square$
+??? success "연습문제 3 풀이"
+    밀려나지 않는 낟알에서 `rcu_read_lock()`과 `rcu_read_unlock()`은 아무 일도 하지 않는다(또는 아무것으로도 엮이지 않는다). 어떤 CPU의 읽는 이가 읽기 쪽 고비 구역 동안 밀려날 수 없으므로 흐름 바꿈이 있었다면 그 읽는 이가 나온 것임이 보장된다. 이 연산이 말 그대로 비어 있으므로 읽기 쪽 덧듦이 없다. 기억 울짱도, 원자적인 명령도, 캐시 줄 튀어 다님도 없다. 밀려날 수 있는 낟알에서는 읽는 이가 고비 구역 도중에 밀려날 수 있으므로 `rcu_read_lock()`이 CPU별(또는 일별) 세개를 올리고 `rcu_read_unlock()`이 그것을 내려야 한다. 이는 (CPU를 넘나드는 발맞추기가 없어) 빠르지만 없는 것은 아니다. 제 자리 기억에 닿고 엮개가 그 테두리를 넘어 차례를 바꾸지 못하게 막는다. 밀려나지 않는 경우의 없음에 견주어 짝마다 몇 나노초가 든다. $\square$
+
+---
+
+**연습문제 4.**
+RCU는 읽기가 거의 전부인 일감에 가장 좋다. 흔한 잠금 얻기 비용을 여길 때 RCU가 읽는 이-적는 이 잠금을 앞서는 읽기/적기 비의 문턱을 어림하여라.
+
+??? success "연습문제 4 풀이"
+    읽는 이-적는 이 잠금(`rwlock`)은 요즘 x86 기계에서 읽기 잠금을 얻고 놓는 짝마다 대략 20~50 ns가 든다(함께 쓰는 잠금 낱말에 원자적인 연산을 벌여 캐시 줄이 튀어 다니기 때문이다). RCU의 읽기 쪽은 (밀려나지 않으면) 0 ns이거나 (밀려날 수 있으면) 약 5 ns가 든다. RCU의 적기 쪽은 훨씬 비싸다. 손가락질 바꿔 끼우기(약 10 ns)에 말미를 기다리는 `synchronize_rcu()`(약 10~100 ms, 다만 나눠 갚을 수 있다)이 더해진다. 초당 읽기를 $R$, 초당 적기를 $W$이라 하자. rwlock의 온 때는 $(R + W) \times 30$ ns이다. RCU의 온 때는 $R \times 0$ ns $+ W \times$ (10 ns + 말미 비용)이다. RCU가 이기는 조건은 $R \times 30 > W \times$ 말미_비용, 곧 $R/W > \text{말미\_비용} / 30$ ns이다. 말미가 10 ms이면 $R/W > 3 \times 10^5$이다. 묶어 처리하는 `call_rcu`을 쓰면 적기마다의 실제 비용이 떨어져 문턱이 $R/W \gtrsim 100$~$1000$이 된다. $\square$
+
+---
+
+**연습문제 5.**
+한꺼번에 읽기, 넣기, 지우기를 받쳐 주는, RCU로 지키는 이음 목록을 설계하여라. 마디를 지울 때 적는 이가 따르는 규약을 밝혀라.
+
+??? success "연습문제 5 풀이"
+    이 줄은 머리 손가락질을 둔 한 겹 이음 목록이다. **읽는 이**: `rcu_read_lock()`을 부르고 (알맞은 기억 차례를 얻으려 `rcu_dereference()`을 쓰며) `next` 손가락질을 따라 줄을 훑은 뒤 `rcu_read_unlock()`을 부른다. 잠금이 필요 없다. **넣기**: 새 마디를 마련해 그 `next`을 지금 뒤따르는 마디로 둔 다음, `rcu_assign_pointer()`으로 앞 마디의 `next` 손가락질을 원자적으로 고친다. 읽는 이는 (새 마디가 없는) 옛 줄이나 (그것이 있는) 새 줄 가운데 하나를 보며 둘 다 한결같다. **지우기 규약**: (1) 앞 마디의 `next`을 원자적으로 고쳐 겨눈 마디를 건너뛴다(`rcu_assign_pointer(prev->next, target->next)`). (2) `synchronize_rcu()`이나 `call_rcu()`을 불러, 앞서 있던 읽는 이가 모두 마칠 때까지 겨눈 마디 놓아주기를 미룬다. 1번과 2번 사이에서 겨눈 마디는 줄에서 떨어져 나왔지만, 떨어지기 앞서 그것을 가리킨 읽는 이가 아직 닿고 있을 수 있다. 말미가 기억을 놓아주기 전에 그 읽는 이들이 마치도록 지켜 준다. $\square$
