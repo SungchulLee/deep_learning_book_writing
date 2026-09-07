@@ -69,7 +69,7 @@ def factorial_recursive(n):
 # === 눈에 보이는 스택을 쓰는 반복적 계승 ===================================
 
 def factorial_stack_simulation(n):
-    """Compute n! by simulating the call stack explicitly.
+    """호출 스택을 명시적으로 흉내 내어 n!을 계산한다.
 
     '호출'마다 프레임을 쌓고, '반환'마다 프레임을 빼며 결과를
     부른 쪽에 넘긴다.
@@ -97,7 +97,7 @@ def factorial_stack_simulation(n):
 # === 상호 재귀 흉내 내기 ==============================================
 
 def simulate_even_odd(n):
-    """Simulate mutually recursive is_even/is_odd using an explicit stack.
+    """명시적 스택으로 서로 재귀하는 is_even/is_odd를 흉내 낸다.
 
     is_even(n) = is_odd(n-1), is_odd(n) = is_even(n-1)
     is_even(0) = True, is_odd(0) = False

@@ -46,7 +46,7 @@ class Stack:
 # === 응용 1: 문자열 뒤집기 ==========================================
 
 def reverse_string(text):
-    """Reverse a string using a stack.
+    """스택으로 문자열을 뒤집는다.
 
     문자를 모두 넣었다가 모두 빼면 후입선출 순서가 뒤집힌 문자열을 만든다.
     시간: O(n), 공간: O(n).
@@ -64,7 +64,7 @@ def reverse_string(text):
 # === 응용 2: 되돌리기 장치 ===========================================
 
 def simulate_undo(actions):
-    """Simulate an undo mechanism using a stack.
+    """스택으로 되돌리기 기능을 흉내 낸다.
 
     동작을 하나씩 넣는다. 되돌리기는 가장 최근 동작을 뺀다.
     되돌린 동작을 시간 역순의 목록으로 돌려준다.
@@ -85,7 +85,7 @@ def simulate_undo(actions):
 # === 응용 3: 깊이 우선 탐색 =======================================
 
 def dfs_iterative(graph, start):
-    """Iterative depth-first search using an explicit stack.
+    """명시적 스택을 쓰는 반복 방식 깊이 우선 탐색.
 
     재귀적 깊이 우선 탐색의 암묵적인 호출 스택을 사용자가 관리하는 스택으로
     바꾸어 후입선출 순회 순서를 눈에 보이게 한다.
@@ -111,7 +111,7 @@ def dfs_iterative(graph, start):
 # === 응용 4: 다음 큰 원소 =====================================
 
 def next_greater_element(arr):
-    """Find the next greater element for each position using a monotonic stack.
+    """단조 스택으로 각 위치의 다음 큰 원소를 찾는다.
 
     원소마다 다음 큰 원소는 그 오른쪽에서 처음으로 엄격히 더 큰 원소이다.
     스택을 써서 소박한 O(n^2) 대신 O(n) 시간에 해낸다.

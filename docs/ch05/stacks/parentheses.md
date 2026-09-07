@@ -58,7 +58,7 @@ CLOSERS = set(MATCHING.keys())
 
 
 def is_balanced(s):
-    """Check whether the brackets in string s are balanced.
+    """문자열 s의 괄호가 짝이 맞는지 확인한다.
 
     시간:  O(n) — 문자열을 한 번만 훑는다.
     공간: O(n) — 스택에 여는 괄호가 최대 n/2개 들어갈 수 있다.

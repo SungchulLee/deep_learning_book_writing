@@ -94,7 +94,7 @@ $$
 # === 정렬되지 않은 배열 우선순위 큐 ===
 
 class UnsortedArrayPQ:
-    """A min-priority queue backed by an unsorted dynamic array.
+    """정렬하지 않은 동적 배열로 뒷받침한 최소 우선순위 큐.
 
     insert:      상각 O(1) (덧붙이기)
     extract_min: O(n) (선형 훑기)

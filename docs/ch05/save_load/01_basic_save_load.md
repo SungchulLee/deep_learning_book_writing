@@ -465,44 +465,44 @@ print("""
 --------
 1. Use .state_dict() approach for saving models in production
 2. Always call model.eval() before inference
-3. Save checkpoints during training to prevent data loss
-4. Use meaningful file names with version/epoch info
-   Example: 'model_epoch50_acc0.95.pth'
-5. Save hyperparameters along with checkpoint
-6. Use map_location when loading to different devices
-7. Verify loaded model works before deleting old checkpoints
+3. 데이터 손실을 막으려면 학습 중에 체크포인트를 저장하라
+4. 버전과 에폭 정보를 담은 뜻 있는 파일 이름을 써라
+   예: 'model_epoch50_acc0.95.pth'
+5. 체크포인트와 함께 초매개변수를 저장하라
+6. 다른 장치로 불러올 때는 map_location을 써라
+7. 옛 체크포인트를 지우기 전에 불러온 모델이 도는지 확인하라
 
 ❌ DON'Ts:
 ----------
-1. Don't save entire model in production code
+1. 실서비스 코드에서 모델 전체를 저장하지 마라
 2. Don't forget to call model.eval() for inference
 3. Don't mix up train() and eval() modes
-4. Don't save temporary/cached tensors in checkpoint
-5. Don't assume same device when loading
-6. Don't ignore warnings about missing or unexpected keys
+4. 임시 텐서나 캐시 텐서를 체크포인트에 저장하지 마라
+5. 불러올 때 장치가 같다고 가정하지 마라
+6. 빠졌거나 예상 밖인 키에 대한 경고를 무시하지 마라
 
-🔍 Common Issues:
+🔍 흔한 문제:
 ----------------
-1. RuntimeError: state dict size mismatch
-   → Model architecture doesn't match saved state dict
+1. RuntimeError: 상태 사전 크기가 맞지 않음
+   → 모델 구조가 저장된 상태 사전과 맞지 않는다
    
-2. CUDA out of memory when loading
+2. 불러올 때 CUDA 메모리 부족
    → Use map_location='cpu' to load to CPU first
    
-3. Different behavior during inference vs training
+3. 추론할 때와 학습할 때 동작이 다르다
    → Forgot to call model.eval()
    
-4. Can't resume training properly
-   → Forgot to save/load optimizer state
+4. 학습을 제대로 이어 갈 수 없다
+   → 최적화기 상태를 저장하거나 불러오기를 잊었다
    
-5. Module prefix mismatch with DataParallel
-   → Need to handle 'module.' prefix in keys
+5. DataParallel의 모듈 접두사가 맞지 않음
+   → 키의 'module.' 접두사를 처리해야 한다
 
-📚 Additional Resources:
+📚 더 볼 자료:
 -----------------------
 - PyTorch Docs: https://pytorch.org/tutorials/beginner/saving_loading_models.html
-- Checkpoint Management: See advanced tutorials
-- Model Deployment: See ONNX and TorchScript tutorials
+- 체크포인트 관리: 고급 튜토리얼을 보라
+- 모델 배포: ONNX와 TorchScript 튜토리얼을 보라
 """)
 
 print("\n" + "=" * 60)

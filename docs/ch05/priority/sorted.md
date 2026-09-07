@@ -95,7 +95,7 @@ import bisect
 # === 정렬된 배열 우선순위 큐 ===
 
 class SortedArrayPQ:
-    """A min-priority queue backed by an array sorted in non-increasing order.
+    """비증가 순으로 정렬된 배열로 뒷받침한 최소 우선순위 큐.
 
     insert:      옮기기 때문에 O(n)
     extract_min: 마지막 원소를 없애므로 O(1)

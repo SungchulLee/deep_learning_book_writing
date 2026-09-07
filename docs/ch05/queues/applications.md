@@ -27,7 +27,7 @@ from collections import deque
 # === 응용 1: 생산자-소비자 모의실험 ==============================
 
 def producer_consumer(tasks, process_time):
-    """Simulate a producer-consumer buffer using a queue.
+    """큐로 생산자-소비자 버퍼를 흉내 낸다.
 
     생산자가 작업을 모두 넣은 뒤 소비자가 선입선출 차례로 처리하며,
     작업마다 `process_time` 단위가 걸린다.
@@ -51,7 +51,7 @@ def producer_consumer(tasks, process_time):
 # === 응용 2: 뜨거운 감자 제거 ====================================
 
 def hot_potato(players, num_passes):
-    """Simulate the hot potato game using a queue.
+    """큐로 폭탄 돌리기 놀이를 흉내 낸다.
 
     참가자들이 둥글게 선다. `num_passes`번 넘긴 뒤 감자를 든 사람이
     빠진다. 마지막까지 남은 사람이 이긴다.
@@ -83,7 +83,7 @@ class TreeNode:
 
 
 def level_order_traversal(root):
-    """Traverse a binary tree level by level using a queue.
+    """큐로 이진 트리를 층별로 순회한다.
 
     시간: O(n) — 각 마디가 정확히 한 번 들어가고 한 번 나온다.
     공간: O(w), 여기서 w는 나무의 최대 너비이다.

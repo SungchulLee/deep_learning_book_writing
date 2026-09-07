@@ -204,14 +204,14 @@ print("""
 SAVING:
 -------
 1. Always save model.module.state_dict() for DataParallel
-   - This removes the 'module.' prefix automatically
-   - Makes checkpoint portable
+   - 'module.' 접두사가 자동으로 없어진다
+   - 체크포인트를 옮겨 쓰기 좋게 만든다
 
-2. Save without wrapper-specific keys
-   - More flexible for loading
+2. 감싸개에만 있는 키 없이 저장한다
+   - 불러오기가 더 유연하다
 
-3. Include metadata about wrapping
-   - Helps reconstruct model correctly
+3. 감싸기에 대한 메타데이터를 담는다
+   - 모델을 올바로 다시 만드는 데 도움이 된다
 
 Example:
     if isinstance(model, nn.DataParallel):
@@ -227,15 +227,15 @@ Example:
 
 LOADING:
 --------
-1. Load into base model first
-   - Then wrap if needed
-   - More control over process
+1. 먼저 기본 모델에 불러온다
+   - 필요하면 그다음 감싼다
+   - 과정을 더 잘 다룰 수 있다
 
 2. Use strict=False for flexibility
-   - Handles missing/unexpected keys
+   - 빠졌거나 예상 밖인 키를 처리한다
 
-3. Remove 'module.' prefix if present
-   - Use helper function for cleaning
+3. 'module.' 접두사가 있으면 없앤다
+   - 정리에는 도우미 함수를 쓴다
 
 Example:
     model = SimpleModel()
@@ -247,23 +247,23 @@ Example:
         model = nn.DataParallel(model)
 
 
-COMMON ISSUES:
+흔한 문제:
 --------------
-1. RuntimeError: Missing keys / Unexpected keys
-   → Check for 'module.' prefix mismatch
+1. RuntimeError: 키가 빠졌거나 예상 밖의 키
+   → 'module.' 접두사가 맞는지 확인하라
    → Use remove_module_prefix() function
 
-2. Model saved with DataParallel, loading without
-   → State dict has 'module.' prefix
+2. DataParallel로 저장하고 없이 불러오기
+   → 상태 사전에 'module.' 접두사가 있다
    → Load with strict=False or clean prefix
 
-3. Model saved without DataParallel, loading with
-   → Need to add 'module.' prefix
-   → Or load into model.module
+3. DataParallel 없이 저장하고 함께 불러오기
+   → 'module.' 접두사를 붙여야 한다
+   → 또는 model.module에 불러온다
 
-4. Checkpoint won't load on different GPU count
-   → Save clean state dict without wrapper
-   → Reconstruct wrapper after loading
+4. GPU 개수가 다르면 체크포인트가 불러와지지 않음
+   → 감싸개 없는 깨끗한 상태 사전을 저장하라
+   → 불러온 뒤에 감싸개를 다시 만들라
 """)
 
 print("\n" + "=" * 70)

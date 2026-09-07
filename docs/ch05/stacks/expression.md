@@ -91,7 +91,7 @@ PRECEDENCE = {"+": 1, "-": 1, "*": 2, "/": 2}
 
 
 def evaluate_infix(expression):
-    """Evaluate an infix expression with operator precedence and parentheses.
+    """연산자 우선순위와 괄호를 갖춘 중위 식을 계산한다.
 
     스택 두 개를 쓴다. 하나는 피연산자용, 하나는 연산자용이다.
     +, -, *, /와 괄호를 다룬다.

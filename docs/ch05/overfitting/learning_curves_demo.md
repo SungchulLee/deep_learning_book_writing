@@ -301,22 +301,22 @@ if __name__ == "__main__":
     print("="*70)
     print("""
 1. HIGH BIAS (Underfitting):
-   • Both curves plateau at high error
-   • Small gap between training and validation
-   • More data won't help much
-   → Solution: Increase model complexity
+   • 두 곡선이 모두 높은 오차에서 평평해진다
+   • 학습과 검증 사이의 간격이 작다
+   • 데이터를 더 모아도 큰 도움이 안 된다
+   → 해법: 모델 복잡도를 높인다
 
 2. HIGH VARIANCE (Overfitting):
-   • Large gap between curves
-   • Training error is low, validation error is high
-   • More data can help
-   → Solution: Get more data or reduce complexity
+   • 두 곡선 사이의 간격이 크다
+   • 학습 오차는 낮고 검증 오차는 높다
+   • 데이터를 더 모으면 도움이 된다
+   → 해법: 데이터를 더 모으거나 복잡도를 낮춘다
 
-3. GOOD FIT:
-   • Both errors are low
-   • Small gap between curves
-   • Curves converge
-   → Model is working well!
+3. 알맞은 적합:
+   • 두 오차가 모두 낮다
+   • 두 곡선 사이의 간격이 작다
+   • 곡선이 한곳으로 모인다
+   → 모델이 잘 돌고 있다!
     """)
     print("="*70)```
 

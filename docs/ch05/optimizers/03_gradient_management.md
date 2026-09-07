@@ -41,26 +41,26 @@ print("GRADIENT PROBLEMS IN DEEP LEARNING")
 print("-" * 80)
 
 print("""
-TWO MAJOR GRADIENT PROBLEMS:
+기울기의 두 가지 큰 문제:
 
-1. GRADIENT EXPLOSION:
+1. 기울기 폭발:
    • Gradients become very large (>1000)
-   • Causes unstable training
-   • Weights update by huge amounts
-   • Loss becomes NaN or Inf
-   • Common in RNNs and very deep networks
+   • 학습이 불안정해진다
+   • 가중치가 엄청나게 크게 갱신된다
+   • 손실이 NaN이나 Inf가 된다
+   • RNN과 아주 깊은 신경망에서 흔하다
 
-2. GRADIENT VANISHING:
+2. 기울기 소실:
    • Gradients become very small (<0.001)
-   • Early layers don't learn
-   • Training is extremely slow
-   • Common in deep networks without proper activation/normalization
+   • 앞쪽 층이 학습하지 못한다
+   • 학습이 매우 느리다
+   • 활성화나 정규화가 알맞지 않은 깊은 신경망에서 흔하다
 
 SOLUTIONS:
    • Gradient clipping (for explosion)
    • Better architectures (ResNet, BatchNorm)
    • Better activations (ReLU instead of sigmoid)
-   • Careful initialization
+   • 신중한 초기화
 """)
 
 # ============================================================================
@@ -139,11 +139,11 @@ print("GRADIENT CLIPPING BY NORM")
 print("-" * 80)
 
 print("""
-GRADIENT CLIPPING BY NORM:
-  • Rescale gradients if their norm exceeds a threshold
+노름 기준 기울기 절단:
+  • 노름이 임계값을 넘으면 기울기의 크기를 다시 맞춘다
   • Formula: g_clipped = (max_norm / norm(g)) × g  if norm(g) > max_norm
-  • Preserves gradient direction
-  • Most common clipping method
+  • 기울기 방향을 보존한다
+  • 가장 흔한 절단 방법이다
   
 torch.nn.utils.clip_grad_norm_(parameters, max_norm)
 """)
@@ -203,10 +203,10 @@ print("GRADIENT CLIPPING BY VALUE")
 print("-" * 80)
 
 print("""
-GRADIENT CLIPPING BY VALUE:
+값 기준 기울기 절단:
   • Clip each gradient element to [-clip_value, clip_value]
-  • Simpler but can distort gradient direction
-  • Less common than clipping by norm
+  • 더 단순하지만 기울기 방향을 일그러뜨릴 수 있다
+  • 노름 기준 절단보다 덜 쓴다
   
 torch.nn.utils.clip_grad_value_(parameters, clip_value)
 """)
@@ -251,16 +251,16 @@ print("GRADIENT ACCUMULATION")
 print("-" * 80)
 
 print("""
-GRADIENT ACCUMULATION:
-  • Simulate large batch sizes with limited memory
-  • Accumulate gradients over multiple forward passes
-  • Update parameters after N accumulation steps
+기울기 누적:
+  • 적은 메모리로 큰 배치 크기를 흉내 낸다
+  • 여러 번의 순전파에 걸쳐 기울기를 쌓는다
+  • N번 쌓은 뒤 매개변수를 갱신한다
   • Effective batch size = batch_size × accumulation_steps
   
 쓰임새:
-  • GPU memory is limited
-  • Want to train with large effective batch sizes
-  • Training very large models
+  • GPU 메모리가 부족하다
+  • 유효 배치 크기를 크게 하여 학습하고 싶다
+  • 아주 큰 모델을 학습한다
 """)
 
 class SimpleModel(nn.Module):
@@ -393,45 +393,45 @@ print("-" * 80)
 print("""
 ✓ ALWAYS DO:
 
-1. MONITOR GRADIENTS:
-   • Log gradient norms during training
+1. 기울기를 살펴라:
+   • 학습 중 기울기 노름을 기록한다
    • Watch for explosion (>10) or vanishing (<0.0001)
-   • Use tensorboard or wandb for visualization
+   • 시각화에는 텐서보드나 wandb를 쓴다
 
-2. USE GRADIENT CLIPPING:
-   • Especially for RNNs and transformers
-   • Typical max_norm: 0.5 - 5.0
-   • Start with 1.0 and adjust
+2. 기울기 절단을 써라:
+   • 특히 RNN과 트랜스포머에서
+   • 흔한 max_norm 값: 0.5~5.0
+   • 1.0으로 시작하여 조정한다
 
-3. PROPER INITIALIZATION:
-   • Use Xavier/Kaiming initialization
-   • Avoid large initial weights
-   • PyTorch does this by default
+3. 알맞은 초기화:
+   • 자비에르나 카이밍 초기화를 쓴다
+   • 초기 가중치를 크게 두지 않는다
+   • PyTorch가 기본으로 이렇게 한다
 
-4. BATCH NORMALIZATION:
-   • Helps stabilize gradients
-   • Reduces need for aggressive clipping
+4. 배치 정규화:
+   • 기울기를 안정시키는 데 도움이 된다
+   • 과감한 절단의 필요를 줄인다
 
-5. APPROPRIATE LEARNING RATE:
-   • Too high → explosion
-   • Too low → vanishing
-   • Use learning rate schedulers
+5. 알맞은 학습률:
+   • 너무 크면 → 폭발
+   • 너무 작으면 → 소실
+   • 학습률 스케줄러를 쓴다
 
 ✗ AVOID:
 
-1. IGNORING GRADIENT PROBLEMS:
-   • If loss becomes NaN, investigate gradients
-   • Don't just restart training
+1. 기울기 문제를 무시하기:
+   • 손실이 NaN이 되면 기울기를 조사하라
+   • 그냥 학습을 다시 시작하지 마라
 
-2. VERY DEEP NETWORKS WITHOUT SKIP CONNECTIONS:
-   • Use ResNet-style architectures
-   • Add skip connections
+2. 건너뛰기 연결 없는 아주 깊은 신경망:
+   • ResNet 방식 구조를 쓴다
+   • 건너뛰기 연결을 더한다
 
-3. SIGMOID/TANH IN DEEP NETWORKS:
-   • Causes vanishing gradients
-   • Use ReLU or variants
+3. 깊은 신경망에서 시그모이드나 tanh 쓰기:
+   • 기울기 소실을 일으킨다
+   • ReLU나 그 변형을 쓴다
 
-4. ACCUMULATING GRADIENTS UNINTENTIONALLY:
+4. 뜻하지 않게 기울기가 쌓이기:
    • Always call optimizer.zero_grad()
    • Before loss.backward()
 """)
@@ -485,41 +485,41 @@ print("\n" + "=" * 80)
 print("KEY TAKEAWAYS")
 print("=" * 80)
 print("""
-1. GRADIENT PROBLEMS:
-   • Explosion: Gradients too large → unstable training
-   • Vanishing: Gradients too small → slow/no learning
+1. 기울기 문제:
+   • 폭발: 기울기가 너무 크다 → 불안정한 학습
+   • 소실: 기울기가 너무 작다 → 학습이 느리거나 멈춘다
 
-2. GRADIENT CLIPPING:
+2. 기울기 절단:
    • By norm: torch.nn.utils.clip_grad_norm_(params, max_norm)
-     → Preserves direction, most common
+     → 방향을 보존하며 가장 흔하다
    • By value: torch.nn.utils.clip_grad_value_(params, clip_value)
-     → Simpler but can distort direction
+     → 더 단순하지만 방향을 일그러뜨릴 수 있다
 
-3. GRADIENT ACCUMULATION:
-   • Simulate large batch sizes
-   • Accumulate over multiple forward passes
-   • Useful when GPU memory is limited
+3. 기울기 누적:
+   • 큰 배치 크기를 흉내 낸다
+   • 여러 번의 순전파에 걸쳐 쌓는다
+   • GPU 메모리가 부족할 때 쓸모 있다
 
 4. MONITORING:
-   • Always track gradient norms
-   • Warning signs: norm > 10 or norm < 0.0001
-   • Log and visualize during training
+   • 늘 기울기 노름을 추적하라
+   • 경고 신호: 노름이 10을 넘거나 0.0001보다 작다
+   • 학습 중에 기록하고 시각화하라
 
 5. IMPLEMENTATION:
    • Clip after backward(), before step()
    • Typical max_norm: 0.5 - 5.0 (start with 1.0)
-   • Combine with proper initialization and architecture
+   • 알맞은 초기화와 구조를 함께 쓰라
 
-6. WHEN TO USE CLIPPING:
-   • RNNs/LSTMs: Almost always
-   • Transformers: Very common
-   • CNNs: Sometimes, especially if very deep
-   • Simple networks: Rarely needed
+6. 언제 절단을 쓰는가:
+   • RNN과 LSTM: 거의 언제나
+   • 트랜스포머: 매우 흔하다
+   • CNN: 때때로, 특히 아주 깊을 때
+   • 단순한 신경망: 거의 필요 없다
 
 다음 단계:
-→ Add gradient monitoring to your training loops
-→ Experiment with different clipping thresholds
-→ Use gradient accumulation for larger effective batch sizes
+→ 학습 루프에 기울기 감시를 더하라
+→ 절단 임계값을 달리하여 실험해 보라
+→ 유효 배치 크기를 키우려면 기울기 누적을 쓰라
 → Study advanced techniques (gradient centralization, etc.)
 """)
 print("=" * 80)

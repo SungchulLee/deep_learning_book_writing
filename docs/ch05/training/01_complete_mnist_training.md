@@ -480,11 +480,11 @@ print("\n" + "=" * 80)
 print("KEY TAKEAWAYS")
 print("=" * 80)
 print("""
-1. COMPLETE PIPELINE:
+1. 완전한 파이프라인:
    ✓ 자료 불러오기와 미리 다듬기
    ✓ 모형 매기기
-   ✓ Loss function and optimizer setup
-   ✓ Training loop with validation
+   ✓ 손실 함수와 최적화기 설정
+   ✓ 검증을 곁들인 학습 루프
    ✓ Model saving and loading
    ✓ Inference
 

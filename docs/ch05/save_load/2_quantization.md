@@ -367,36 +367,36 @@ def quantization_best_practices():
     print("""
     === Quantization Best Practices ===
     
-    1. CHOOSE THE RIGHT METHOD:
-       - Dynamic: LSTMs, Transformers, quick deployment
-       - Static: CNNs, maximum performance
-       - QAT: When accuracy loss is unacceptable
+    1. 알맞은 방법을 골라라:
+       - 동적: LSTM, 트랜스포머, 빠른 배포
+       - 정적: CNN, 최고 성능
+       - 양자화 인지 학습: 정확도 손실을 받아들일 수 없을 때
     
     2. CALIBRATION (for static quantization):
-       - Use representative data
-       - 100-1000 samples typically sufficient
-       - Should cover input distribution
+       - 대표성 있는 데이터를 쓴다
+       - 보통 100~1000개 표본이면 넉넉하다
+       - 입력 분포를 고루 덮어야 한다
     
-    3. ACCURACY VALIDATION:
-       - Always validate on full test set
-       - Compare metrics, not just output values
-       - Acceptable accuracy drop: 1-2%
+    3. 정확도 검증:
+       - 늘 전체 시험 집합에서 검증하라
+       - 출력값만이 아니라 지표를 견주어라
+       - 받아들일 만한 정확도 하락: 1~2%
     
-    4. LAYER SELECTION:
-       - Not all layers benefit equally
-       - Linear/Conv layers: high benefit
-       - Attention layers: moderate benefit
-       - Embedding layers: usually skip
+    4. 층 고르기:
+       - 모든 층이 똑같이 이득을 보지는 않는다
+       - 선형층과 합성곱층: 이득이 크다
+       - 어텐션 층: 이득이 보통이다
+       - 임베딩 층: 보통 건너뛴다
     
-    5. DEPLOYMENT CONSIDERATIONS:
+    5. 배포할 때 살필 점:
        - Check hardware support (INT8, INT4)
-       - Verify runtime compatibility
-       - Benchmark on target device
+       - 런타임 호환성을 확인하라
+       - 대상 장치에서 성능을 재어 보라
     
-    6. COMMON ISSUES:
-       - Accuracy drop > 5%: Try QAT
-       - Activation outliers: Use per-channel quantization
-       - Saturation: Adjust quantization ranges
+    6. 흔한 문제:
+       - 정확도 하락이 5%를 넘으면: 양자화 인지 학습을 써 보라
+       - 활성화 이상치: 채널별 양자화를 쓰라
+       - 포화: 양자화 구간을 조정하라
     """)
 
 

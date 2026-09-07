@@ -330,32 +330,32 @@ print("-" * 80)
 print("""
 📅 USE STEP LR WHEN:
    ✓ You want simple, predictable scheduling
-   ✓ Training for fixed number of epochs
-   ✓ Common in traditional vision tasks
+   ✓ 정해진 에폭 수만큼 학습한다
+   ✓ 전통적인 비전 과제에서 흔하다
    ✓ Example: StepLR(step_size=30, gamma=0.1) for 100 epochs
    
-📉 USE EXPONENTIAL LR WHEN:
-   ✓ Want smooth, continuous decay
-   ✓ Training for many epochs
+📉 지수 학습률을 쓸 때:
+   ✓ 매끄럽고 연속적인 감쇠를 원한다
+   ✓ 많은 에폭 동안 학습한다
    ✓ Example: ExponentialLR(gamma=0.95)
    
-🌊 USE COSINE ANNEALING WHEN:
-   ✓ Training modern deep networks
-   ✓ Want smooth, gradual decrease
-   ✓ Popular for ImageNet, transformers
-   ✓ Can use CosineAnnealingWarmRestarts for periodic restarts
+🌊 코사인 어닐링을 쓸 때:
+   ✓ 최신 심층 신경망을 학습한다
+   ✓ 매끄럽고 점진적인 감소를 원한다
+   ✓ ImageNet과 트랜스포머에서 널리 쓴다
+   ✓ 주기적 재시작에는 CosineAnnealingWarmRestarts를 쓸 수 있다
    ✓ Example: CosineAnnealingLR(T_max=epochs, eta_min=1e-6)
    
-🎯 USE REDUCE LR ON PLATEAU WHEN:
-   ✓ Don't know optimal schedule in advance
-   ✓ Want adaptive behavior
-   ✓ Have validation metric to monitor
-   ✓ Training can be variable length
+🎯 ReduceLROnPlateau를 쓸 때:
+   ✓ 최적의 스케줄을 미리 알 수 없다
+   ✓ 적응적인 동작을 원한다
+   ✓ 살펴볼 검증 지표가 있다
+   ✓ 학습 길이가 달라질 수 있다
    ✓ Example: ReduceLROnPlateau(patience=10, factor=0.5)
 
-💡 PRO TIP:
-   For best results, combine schedulers with warm-up!
-   Start with low LR, increase to base LR, then decay
+💡 실전 요령:
+   가장 좋은 결과를 얻으려면 스케줄러에 워밍업을 곁들여라!
+   낮은 학습률로 시작하여 기준 학습률까지 올린 뒤 감쇠시킨다
 """)
 
 # ============================================================================
@@ -366,25 +366,25 @@ print("ADVANCED: Learning Rate Warmup")
 print("-" * 80)
 
 print("""
-WHAT IS WARMUP?
-  • Start with very low learning rate
-  • Gradually increase to base learning rate
-  • Then apply regular scheduling
+워밍업이란 무엇인가?
+  • 아주 낮은 학습률로 시작한다
+  • 기준 학습률까지 차츰 올린다
+  • 그다음 일반적인 스케줄링을 적용한다
   
-WHY USE WARMUP?
-  • Prevents unstable training at start
-  • Important for large batch sizes
-  • Critical for transformers
-  • Helps with batch normalization
+왜 워밍업을 쓰는가?
+  • 학습 초기의 불안정을 막는다
+  • 배치 크기가 클 때 중요하다
+  • 트랜스포머에서는 매우 중요하다
+  • 배치 정규화에 도움이 된다
 
-EXAMPLE: Warmup + Cosine Annealing
-  Epochs 1-10: Linear increase from 1e-6 to 1e-3
-  Epochs 11-100: Cosine annealing from 1e-3 to 1e-6
+예: 워밍업 + 코사인 어닐링
+  에폭 1~10: 1e-6에서 1e-3까지 선형 증가
+  에폭 11~100: 1e-3에서 1e-6까지 코사인 어닐링
   
-PyTorch doesn't have built-in warmup, but you can:
-  1. Use a custom scheduler
-  2. Manually adjust LR for first N epochs
-  3. Use transformers library's get_linear_schedule_with_warmup
+PyTorch에는 워밍업이 내장되어 있지 않지만 다음을 할 수 있다.
+  1. 맞춤 스케줄러를 쓴다
+  2. 처음 N 에폭 동안 학습률을 직접 조정한다
+  3. transformers 라이브러리의 get_linear_schedule_with_warmup을 쓴다
 """)
 
 # 간단한 워밍업 구현
@@ -418,36 +418,36 @@ print("\n" + "=" * 80)
 print("KEY TAKEAWAYS")
 print("=" * 80)
 print("""
-1. Learning rate scheduling improves training:
-   • Faster convergence
-   • Better final performance
+1. 학습률 스케줄링은 학습을 개선한다.
+   • 더 빠른 수렴
+   • 더 나은 최종 성능
    • 익힘이 더 든든하다
 
-2. Different schedulers for different needs:
-   • StepLR: Simple, predictable drops
-   • ExponentialLR: Smooth exponential decay
-   • CosineAnnealingLR: Popular for modern networks
-   • ReduceLROnPlateau: Adaptive based on metrics
+2. 필요에 따라 스케줄러를 달리 쓴다.
+   • StepLR: 단순하고 예측 가능한 감소
+   • ExponentialLR: 매끄러운 지수 감쇠
+   • CosineAnnealingLR: 최신 신경망에서 널리 쓴다
+   • ReduceLROnPlateau: 지표에 따라 적응한다
 
-3. General strategy:
+3. 일반적인 전략:
    • Start with high LR (explore)
    • Gradually decrease (fine-tune)
-   • Optionally use warmup at start
+   • 필요하면 처음에 워밍업을 쓴다
 
-4. Implementation is simple:
-   • Create scheduler after optimizer
+4. 구현은 단순하다.
+   • 최적화기를 만든 뒤 스케줄러를 만든다
    • Call scheduler.step() after each epoch
    • ReduceLROnPlateau needs metric: scheduler.step(val_loss)
 
-5. Monitor learning rate during training:
-   • Log it to see if schedule is working
-   • Adjust if training is unstable or too slow
+5. 학습 중에 학습률을 살핀다.
+   • 스케줄이 잘 도는지 보려면 기록하라
+   • 학습이 불안정하거나 너무 느리면 조정하라
 
 다음 단계:
-→ Try different schedulers on your problem
-→ Experiment with warmup strategies
-→ Learn about cyclical learning rates
-→ Combine with early stopping
+→ 문제에 여러 스케줄러를 써 보라
+→ 워밍업 전략을 실험해 보라
+→ 순환 학습률을 배워 보라
+→ 조기 종료와 함께 써 보라
 """)
 print("=" * 80)
 

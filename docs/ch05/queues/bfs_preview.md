@@ -47,7 +47,7 @@ from collections import deque
 # === 너비 우선 탐색 구현 =======================================================
 
 def bfs(graph, source):
-    """Breadth-first search from a source vertex.
+    """출발 정점에서 시작하는 너비 우선 탐색.
 
     반환값:
         visited_order: 너비 우선 탐색이 방문한 차례의 꼭짓점 목록.
@@ -89,7 +89,7 @@ def reconstruct_path(parent, target):
 # === 층을 기록하는 너비 우선 탐색 ==================================================
 
 def bfs_by_level(graph, source):
-    """BFS that explicitly tracks and prints each level.
+    """층을 하나하나 추적하여 출력하는 너비 우선 탐색.
 
     너비 우선 탐색을 최단 경로 계산에 쓸모 있게 만드는 층별 탐색
     양상을 보인다.

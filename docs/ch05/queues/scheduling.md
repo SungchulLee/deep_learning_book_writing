@@ -68,7 +68,7 @@ class Process:
 # === 선착순 스케줄링 ==========================================================
 
 def fcfs_schedule(processes):
-    """First-Come, First-Served scheduling.
+    """선착순 스케줄링.
 
     프로세스를 도착 시각 순으로 정렬하여 그 차례대로 처리한다.
     각 프로세스가 끝나야 다음 프로세스가 시작된다.
@@ -95,7 +95,7 @@ def fcfs_schedule(processes):
 # === 라운드 로빈 스케줄링 ===================================================
 
 def round_robin_schedule(processes, quantum):
-    """Round-Robin scheduling with a fixed time quantum.
+    """고정 시간 할당량을 쓰는 라운드 로빈 스케줄링.
 
     각 프로세스는 많아야 `quantum` 시간 단위만큼 돌다가 멈추어
     큐의 뒤로 간다.
