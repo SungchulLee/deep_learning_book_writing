@@ -103,7 +103,7 @@ for epoch in range(1000):
         print(f"Epoch {epoch}: Loss = {loss.item():.6f}")
 
 print("""
-ADVANTAGES OF SSM:
+SSM의 좋은 점:
 ✓ More efficient than explicit score matching (no Hessian)
 ✓ 피셔 벌어짐의 치우치지 않은 어림개
 ✓ 차원이 높아도 잘 듣는다
@@ -114,7 +114,7 @@ COMPARISON:
 - SSM: O(d*p) per sample, no noise needed (p=projections)
 - 드러난 점수 맞추기: 표본마다 O(d²), 쓸 수 없다
 
-WHEN TO USE SSM:
+언제 SSM을 쓰는가:
 - 잡음을 더하기 어렵거나 부자연스러울 때
 - When you want deterministic training (no noise sampling)
 - 어떤 이론상 보장이 필요할 때

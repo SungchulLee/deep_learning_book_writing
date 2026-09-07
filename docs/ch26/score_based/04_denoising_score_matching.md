@@ -17,7 +17,7 @@ FILE: 04_denoising_score_matching.py
     3. 잡음 알맹이 고르기를 이해한다
     4. 배운 모델에서 표본을 만든다
 
-MATHEMATICAL BACKGROUND:
+수학 바탕:
     잡음 없애는 점수 맞추기는 자료에 잡음을 더하고 잡음의 방향을 헤아리는 법을 배운다.
     
     Training: Minimize E_x E_ε[||s_θ(x + ε) + ε/σ²||²]

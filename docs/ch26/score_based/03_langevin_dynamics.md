@@ -33,13 +33,13 @@ x_{t+1} = x_t + ε * ∇_x log p(x_t) + √(2ε) * z_t
 
 where z_t ~ N(0, I)
 
-KEY INSIGHT:
+고갱이 눈썰미:
 - 떠돎 항: ε * ∇_x log p(x_t)이 확률 높은 쪽으로 옮긴다
 - 퍼짐 항: √(2ε) * z_t이 살펴보기 잡음을 더한다
 - Balances exploitation (gradient) with exploration (noise)
 - 목표 분포 p(x)으로 모인다!
 
-CONNECTION TO SCORE MATCHING:
+점수 맞추기와의 이음:
 Since s(x) = ∇_x log p(x), we can sample using learned scores!
 
 x_{t+1} = x_t + ε * s_θ(x_t) + √(2ε) * z_t
@@ -88,10 +88,10 @@ RECALL: METROPOLIS-HASTINGS (from Bayesian Inference)
 ----------------------------------------
 핵심 통찰: 기울기 앎을 쓴다!
 
-Instead of random walk:
+마구잡이 걸음 대신:
 x' = x_t + N(0, σ²)
 
-Use informed proposal:
+앎을 담은 제안을 쓴다.
 x' = x_t + ε * ∇log p(x_t) + N(0, 2ε)
 
 이점:
@@ -209,11 +209,11 @@ print("\n✓ Saved: 03_mh_vs_langevin.png")
 plt.close()
 
 print("""
-KEY OBSERVATIONS:
+고갱이 살핌:
 - 랑주뱅은 기울기 앎을 써서 더 효율 좋게 살핀다
 - 둘 다 목표 분포로 모인다
 - 랑주뱅은 복잡하고 봉우리 여럿인 분포를 더 잘 다룬다
-- Acceptance rate trade-off in M-H doesn't apply to Langevin
+- M-H의 받아들임 비율 절충은 랑주뱅에는 들어맞지 않는다
 """)
 
 # ============================================================================
@@ -224,7 +224,7 @@ print("SECTION 2: Theory of Langevin Dynamics")
 print("=" * 80)
 
 print("""
-CONTINUOUS-TIME LANGEVIN DYNAMICS:
+이어진 때의 랑주뱅 움직임:
 ---------------------------------
 Stochastic Differential Equation (SDE):
 
@@ -237,7 +237,7 @@ dx_t = ∇_x log p(x_t) dt + √2 dW_t
 - 확률 퍼짐: √2 dW_t이 공간을 살핀다
 - Balance ensures convergence to p(x)
 
-FOKKER-PLANCK EQUATION:
+포커-플랑크 방정식:
 ----------------------
 The distribution p_t(x) of x_t evolves as:
 
@@ -246,9 +246,9 @@ The distribution p_t(x) of x_t evolves as:
 
 At equilibrium (∂p_t/∂t = 0), we have p_t = p!
 
-DISCRETE-TIME VERSION:
+띄엄띄엄한 때의 꼴:
 --------------------
-Euler-Maruyama discretization:
+오일러-마루야마 띄엄띄엄하게 하기:
 
 x_{t+1} = x_t + ε ∇_x log p(x_t) + √(2ε) z_t
 
@@ -259,15 +259,15 @@ CONVERGENCE:
 - ε이 넉넉히 작으면 목표 분포로 모인다
 - Convergence rate depends on properties of p(x)
 
-PRACTICAL CONSIDERATIONS:
+실제로 살필 점:
 - Step size ε: Too large = instability, too small = slow convergence
 - Number of steps: More steps = better samples, but slower
 - Initialization: Can start from any distribution (e.g., N(0,I))
 
-CONNECTION TO SCORE MATCHING:
+점수 맞추기와의 이음:
 ----------------------------
 Since we learned s_θ(x) ≈ ∇log p(x) from data,
-we can sample via:
+다음으로 표본을 뽑을 수 있다.
 
 x_{t+1} = x_t + ε s_θ(x_t) + √(2ε) z_t
 
@@ -465,7 +465,7 @@ REVERSE PROCESS (Generation):
 x_T ← x_{T-1} ← ... ← x_1 ← x_0
 배운 점수로 차츰 잡음을 없앤다!
 
-REVERSE STEP:
+거꾸로 걸음:
 x_{t-1} = x_t + ε * s_θ(x_t, t) + √(2ε) * z_t
 
 여기서 s_θ(x_t, t)은 잡음 수준 t의 점수이다.
@@ -473,23 +473,23 @@ x_{t-1} = x_t + ε * s_θ(x_t, t) + √(2ε) * z_t
 이것이 바로 랑주뱅 움직임이다!
 다만 때에 따라 달라지는 점수를 쓸 뿐이다!
 
-ANNEALED LANGEVIN DYNAMICS:
+달군 랑주뱅 움직임:
 --------------------------
-Use sequence of noise levels: σ_1 > σ_2 > ... > σ_L
+잡음 층의 이음을 쓴다: σ_1 > σ_2 > ... > σ_L
 
-For each level i:
+층 i마다:
 1. Learn score s_θ(x, σ_i)
 2. 랑주뱅을 돌린다: x ← x + ε * s_θ(x, σ_i) + √(2ε) * z
 
 Start with high noise (easy to sample, imprecise)
 Gradually reduce noise (harder to sample, more precise)
 
-This is the foundation of:
+이것이 다음의 밑바탕이다.
 - Score-Based Generative Models (Song & Ermon, 2019)
 - Denoising Diffusion Probabilistic Models (Ho et al., 2020)
 - 요즘의 모든 퍼짐 모델이다!
 
-WHAT WE'VE LEARNED SO FAR:
+여태 배운 것:
 ------------------------
 ✓ 단원 01: 점수 함수란 무엇인가?
 ✓ 단원 02: 어떻게 배우는가(점수 맞추기)?
@@ -506,7 +506,7 @@ print("MODULE SUMMARY")
 print("=" * 80)
 
 print("""
-WHAT WE LEARNED:
+배운 것:
 ---------------
 1. Langevin dynamics = gradient-based MCMC sampling
 2. 점수 함수로 뽑기를 이끈다
@@ -514,21 +514,21 @@ WHAT WE LEARNED:
 4. 점수 맞추기로 배운 점수와 함께 통한다
 5. 퍼짐 모델 뽑기의 바탕이다!
 
-KEY FORMULAS:
+고갱이 식:
 ------------
-1. Continuous Langevin SDE:
+1. 이어진 랑주뱅 SDE:
    dx_t = ∇log p(x_t) dt + √2 dW_t
 
-2. Discrete Langevin MCMC:
+2. 띄엄띄엄한 랑주뱅 MCMC:
    x_{t+1} = x_t + ε * ∇log p(x_t) + √(2ε) * z_t
 
-3. Score-based sampling:
+3. 점수 바탕 뽑기:
    x_{t+1} = x_t + ε * s_θ(x_t) + √(2ε) * z_t
 
 4. Annealed Langevin (preview):
-   Use scores at multiple noise levels σ_1 > ... > σ_L
+   잡음 층 σ_1 > ... > σ_L에서 점수를 쓴다
 
-FILES GENERATED:
+만들어진 파일:
 ---------------
 1. 03_mh_vs_langevin.png - 메트로폴리스-헤이스팅스와의 견줌
 2. 03_langevin_sampling_results.png - 만들어 낸 표본
@@ -574,7 +574,7 @@ d) 퍼짐 모델에 어떤 뜻이 있는가?
 
 익힘 5: 식힘 차례표
 -----------------------------
-Implement annealed Langevin:
+달군 랑주뱅을 짜라.
 a) Define noise schedule σ_1 > σ_2 > ... > σ_L
 b) Train scores for each level (see Module 02)
 c) 큰 잡음에서 시작해 뽑는다
@@ -594,7 +594,7 @@ print("\n" + "=" * 80)
 print("NEXT: Multi-Scale Score Modeling")
 print("=" * 80)
 print("""
-We now have all the building blocks:
+이제 벽돌이 모두 갖추어졌다.
 ✓ Score functions (Module 01)
 ✓ Score matching to learn them (Module 02)
 ✓ Langevin dynamics to sample (Module 03)

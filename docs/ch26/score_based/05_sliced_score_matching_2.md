@@ -17,7 +17,7 @@ PREREQUISITES: 02_score_matching_theory.py, 04_denoising_score_matching.py
     3. 저민 점수 맞추기와 잡음 없애는 점수 맞추기의 효율을 견준다
     4. 방법 사이의 맞바꿈을 살핀다
 
-MATHEMATICAL BACKGROUND:
+수학 바탕:
     저민 점수 맞추기는 온전한 야코비 셈을 피하려 아무 쏘기를 쓴다.
     
     L_SSM = E_x E_v[v^T∇s_θ(x)v + 1/2||v^Ts_θ(x)||²]
@@ -40,7 +40,7 @@ def sliced_score_matching_loss(model, x, n_projections=1):
     """
     아무 쏘기로 저민 점수 맞추기 손실을 셈한다.
     
-    The key insight is that we only need directional derivatives:
+    고갱이 눈썰미는 방향 미분만 있으면 된다는 것이다.
     v^T∇s_θ(x)v은 야코비-벡터 곱으로 효율 좋게 셈할 수 있다.
     
     인수:

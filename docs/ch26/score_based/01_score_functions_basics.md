@@ -28,20 +28,20 @@ Definition:
     
     s(x) = ∇_x log p(x)
     
-Connection to Bayesian Inference:
-    In Bayesian inference, we learned:
+베이즈 미룸과의 이음:
+    베이즈 미룸에서 우리는 다음을 배웠다.
     p(θ|D) = p(D|θ)p(θ) / p(D)
     
     The denominator p(D) = ∫ p(D|θ)p(θ) dθ is intractable!
     
-    But the score of the posterior is:
+    그러나 뒷분포의 점수는 다음과 같다.
     ∇_θ log p(θ|D) = ∇_θ log[p(D|θ)p(θ)] - ∇_θ log p(D)
                     = ∇_θ log[p(D|θ)p(θ)]    (constant w.r.t. θ!)
     
-    The score DOESN'T need the normalization constant!
+    점수는 고르개 상수가 필요 없다!
 
-KEY INSIGHT:
-    Scores let us work with unnormalized distributions,
+고갱이 눈썰미:
+    점수를 쓰면 고르지 않은 분포를 그대로 다룰 수 있다,
     이것이 바로 베이즈 추론에 필요한 것이다!
 
 지은이: 이성철 @ 연세대학교
@@ -83,13 +83,13 @@ For a probability distribution p(x), the score function is:
 - The magnitude ||s(x)|| indicates how steeply probability changes
 - 점수에는 고르게 맞추는 상수가 필요 없다!
 
-CONNECTION TO BAYESIAN INFERENCE:
+베이즈 미룸과의 이음:
 --------------------------------
-Remember from Module 01_Bayesian_Inference:
+01_Bayesian_Inference 단원에서 배운 것을 떠올려라.
 - Posterior: p(θ|D) ∝ p(D|θ)p(θ)
 - We couldn't compute p(D) = ∫ p(D|θ)p(θ) dθ
 
-With scores:
+점수를 쓰면:
 - ∇_θ log p(θ|D) = ∇_θ log[p(D|θ)p(θ)]
 - ∫이 필요 없다! 점수는 고르게 맞추지 않은 분포에서도 통한다!
 """)
@@ -288,7 +288,7 @@ Given: Posterior p(θ|D) ∝ p(D|θ)p(θ)
 Want: Samples from p(θ|D)
 Problem: Can't compute normalizing constant p(D)!
 
-THE SCORE SOLUTION:
+점수 풀이:
 ------------------
 Key insight: ∇_θ log p(θ|D) = ∇_θ log[p(D|θ)p(θ)]
 
@@ -377,12 +377,12 @@ print("SECTION 5: Preview - Connection to Diffusion Models")
 print("=" * 80)
 
 print("""
-THE BIG PICTURE:
+큰 그림:
 ---------------
 
 1. BAYESIAN INFERENCE (Module 01_Bayesian_Inference):
    - p(θ|D) ∝ p(D|θ)p(θ)
-   - Can't compute normalizing constant
+   - 고르개 상수를 셈할 수 없다
    - 뽑기 방법이 필요하다
 
 2. SCORE FUNCTIONS (This module):
@@ -403,7 +403,7 @@ THE BIG PICTURE:
    - 뒤로: 배운 점수로 잡음을 없앤다
    - 뽑기로 만들어 낸다!
 
-KEY INSIGHT FOR DIFFUSION:
+퍼짐을 위한 고갱이 눈썰미:
 -------------------------
 Denoising noisy data = Bayesian posterior inference!
 
@@ -423,21 +423,21 @@ print("MODULE SUMMARY")
 print("=" * 80)
 
 print("""
-WHAT WE LEARNED:
+배운 것:
 ---------------
 1. Score function: s(x) = ∇_x log p(x)
 2. 점수는 확률 높은 자리를 가리킨다
-3. Scores don't need normalization constants
+3. 점수는 고르개 상수가 필요 없다
 4. 베이즈 사후 추론과의 이음
 5. 점수는 랑주뱅 움직임으로 뽑기를 가능하게 한다
 6. 퍼짐 모델의 바탕
 
-KEY FORMULAS:
+고갱이 식:
 ------------
-1. Score definition:
+1. 점수의 뜻매김:
    s(x) = ∇_x log p(x) = (1/p(x)) * ∇_x p(x)
 
-2. Gaussian score:
+2. 가우스 점수:
    For N(μ, σ²): s(x) = -(x-μ)/σ²
    For N(μ, Σ): s(x) = -Σ^(-1)(x-μ)
 
@@ -447,7 +447,7 @@ KEY FORMULAS:
 4. Langevin dynamics (preview):
    x_{t+1} = x_t + (ε/2)*s(x_t) + √ε*z_t
 
-FILES GENERATED:
+만들어진 파일:
 ---------------
 1. 01_score_1d_gaussian.png - 1차원 정규 분포의 점수
 2. 01_score_2d_gaussian_field.png - 2차원 점수 마당
@@ -461,21 +461,21 @@ print("=" * 80)
 print("""
 익힘 1: 닫힌 꼴 점수 셈하기
 ---------------------------------------
-Compute the score function for:
+다음의 점수 함수를 셈하여라.
 a) Exponential distribution: p(x) = λ exp(-λx) for x ≥ 0
 b) Laplace distribution: p(x) = (1/2b) exp(-|x-μ|/b)
 c) 정규 분포 둘 섞기
 
 익힘 2: 점수의 성질
 ---------------------------
-Prove that:
+다음을 밝혀라.
 a) 봉우리에서 점수는 0이다
 b) ∫ p(x) s(x) dx = 0 (mean of score is zero)
 c) 정규 분포에서 점수는 선형이다
 
 익힘 3: 짜기
 -------------------------
-Implement score computation for:
+다음의 점수 셈을 짜라.
 a) 정규 분포 셋의 2차원 섞기
 b) 점수 마당을 그려 본다
 c) 랑주뱅 움직임을 돌려 뽑는다
@@ -507,9 +507,9 @@ print("\n" + "=" * 80)
 print("NEXT MODULE: 02_score_matching_theory.py")
 print("=" * 80)
 print("""
-In the next module, we'll address the key question:
+다음 단원에서는 고갱이 물음을 다룬다.
 
-  "How do we learn score functions from data alone?"
+  "자료만으로 점수 함수를 어떻게 배우는가?"
 
 이것이 요즘 만들어 내는 모델의 바탕인 점수 맞추기로 이어진다!
 """)

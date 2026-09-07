@@ -17,8 +17,8 @@ FILE: 09_image_generation.py
     3. 미리 헤아리개-고치개 뽑기를 짠다
     4. 셈에서 살필 것을 이해한다
 
-MATHEMATICAL BACKGROUND:
-    For images, score networks typically use U-Net architecture:
+수학 바탕:
+    그림에서는 점수 그물이 흔히 U-Net 얼개를 쓴다.
     - 부호기: 줄이기 + 특징 뽑기
     - 풀개: 키우기 + 되짓기
     - 건너뛰기 이음: 공간의 앎을 지킨다

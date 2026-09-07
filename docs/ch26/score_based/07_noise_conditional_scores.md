@@ -39,7 +39,7 @@ print("="*80)
 print("""
 왜 잡음 수준이 여럿인가?
 -------------------------
-Problem with single σ:
+σ 하나만 쓸 때의 문제:
 - Small σ: Accurate near data, but hard to sample (score vanishes far from data)
 - σ이 크면: 어디서나 뽑기 쉽지만 정밀하지 않다
 
@@ -48,7 +48,7 @@ Problem with single σ:
 - Gradually decrease σ (refine to data distribution)
 - 이것이 식힘 랑주뱅 움직임이다
 
-CONNECTION TO DIFFUSION:
+퍼짐과의 이음:
 ----------------------
 Forward process: x_0 → x_1 → ... → x_T (add noise)
 Reverse process: x_T ← ... ← x_1 ← x_0 (denoise)
@@ -181,20 +181,20 @@ plt.close()
 print("✓ Saved: 07_annealed_langevin.png")
 
 print("""
-KEY INSIGHTS:
+고갱이 눈썰미:
 ------------
 1. 큰 잡음(σ_1)에서 시작한다: 표본이 온 공간을 덮는다
 2. 잡음을 차츰 줄인다: 표본이 자료 다양체로 모인다
 3. 잡음 수준마다 앞 수준을 다듬는다
 4. 이것이 바로 뒤 퍼짐 과정이다!
 
-NOISE SCHEDULE DESIGN:
+잡음 짜임 설계:
 ---------------------
 - Geometric progression: σ_i = σ_max * (σ_min/σ_max)^(i/L)
 - More levels = smoother transition, slower sampling
 - 맞추어 가는 걸음 크기: ε_i ∝ σ_i²
 
-CONNECTION TO DDPM:
+DDPM과의 이음:
 -----------------
 DDPM forward: x_t = √(ᾱ_t) x_0 + √(1-ᾱ_t) ε
 → 차례표에 따라 잡음을 더하는 것과 같다
@@ -202,7 +202,7 @@ DDPM forward: x_t = √(ᾱ_t) x_0 + √(1-ᾱ_t) ε
 DDPM reverse: Learn p(x_{t-1}|x_t) via score
 → 식힘 랑주뱅과 같다!
 
-We've now built the complete score-based framework!
+이제 온전한 점수 바탕 얼개를 지었다!
 Next: Continuous-time formulation (SDEs)
 """)
 

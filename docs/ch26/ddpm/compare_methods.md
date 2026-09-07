@@ -171,7 +171,7 @@ def main():
        - Deterministic (same seed = same image)
        - 품질은 비슷하면서 20배 빠르다!
     
-    3. When to use what:
+    3. 언제 무엇을 쓰는가:
        - DDPM: 확률 뽑기를 바랄 때
        - DDIM: 빠르기나 되풀이할 수 있음이 필요할 때
        - 둘 다 품질이 비슷하다!

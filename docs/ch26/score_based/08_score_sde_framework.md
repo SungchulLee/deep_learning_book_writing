@@ -18,7 +18,7 @@
 - 흩어짐 터짐과 흩어짐 지키기 확률 미분 방정식을 짠다
 - 띄엄띄엄한 DDPM을 이어진 확률 미분 방정식과 잇는다
 
-Key equation:
+고갱이 방정식:
 dx = f(x,t)dt + g(t)dw  (forward SDE)
 dx = [f(x,t) - g(t)²∇log p_t(x)]dt + g(t)dw̄  (reverse SDE)
 
@@ -36,7 +36,7 @@ print("MODULE 08: Score-Based SDE Framework")
 print("="*80)
 
 print("""
-CONTINUOUS-TIME FORMULATION:
+이어진 때의 꼴:
 --------------------------
 Instead of discrete steps t=0,1,2,...,T
 Use continuous time t ∈ [0, T]
@@ -55,7 +55,7 @@ dx = [f(x,t) - g(t)²∇log p_t(x)]dt + g(t)dw̄
 핵심: 점수 ∇log p_t(x)이 뒤 과정에 나타난다!
 This is learned by neural network: s_θ(x,t) ≈ ∇log p_t(x)
 
-TWO MAIN FORMULATIONS:
+두 가지 큰 꼴:
 ---------------------
 
 1. VARIANCE EXPLODING (VE):
@@ -188,13 +188,13 @@ def euler_maruyama_sampler(sde, score_fn, shape, n_steps=1000):
     return x, trajectory
 
 print("""
-PROBABILITY FLOW ODE:
+확률 흐름 ODE:
 --------------------
 뒤 확률 미분 방정식의 대안: 정해진 뽑기!
 
 dx = [f(x,t) - 0.5*g(t)²∇log p_t(x)]dt
 
-Same marginals as SDE, but:
+SDE와 가장자리 분포는 같으나 다음이 다르다.
 ✓ Deterministic (no randomness)
 ✓ Invertible (can encode/decode)
 ✓ Faster (larger steps possible)
@@ -205,17 +205,17 @@ Same marginals as SDE, but:
 - 뜻으로 고치기
 - 정확한 가능도 셈하기
 
-CONNECTION TO DDPM:
+DDPM과의 이음:
 ------------------
-DDPM discrete steps:
+DDPM의 띄엄띄엄한 걸음:
 x_{t-1} = √(α_t) [x_t - (1-α_t)/√(1-ᾱ_t) * ε_θ(x_t,t)] + σ_t z
 
-VP-SDE continuous limit:
+VP-SDE의 이어진 끝값:
 dx = [-0.5β(t)x - β(t)ε_θ(x,t)]dt + √β(t) dw
 
 They're equivalent! Score s(x,t) = -ε(x,t)/√(1-ᾱ_t)
 
-KEY ADVANTAGES OF SDE VIEW:
+SDE 관점의 고갱이 좋은 점:
 --------------------------
 ✓ Unified framework (VE, VP, sub-VP, etc.)
 ✓ Flexible samplers (SDE, ODE, predictor-corrector)
@@ -246,7 +246,7 @@ print(f"Sample std: {samples.std(dim=0)}")
 print("✓ VE-SDE sampling successful!")
 
 print("""
-SAMPLING STRATEGIES:
+뽑기 꾀:
 -------------------
 
 1. EULER-MARUYAMA (EM):
@@ -258,7 +258,7 @@ SAMPLING STRATEGIES:
    고치개: 랑주뱅 마르코프 사슬 몬테카를로 걸음
    품질이 낫고 느리다
 
-3. ODE SOLVERS:
+3. ODE 푸는개:
    확률 흐름 상미분 방정식을 쓴다
    Adaptive step size (RK45, DPM-Solver)
    더 빠르고 정해져 있다
@@ -268,7 +268,7 @@ SAMPLING STRATEGIES:
    Much faster (10-50 steps)
    품질의 맞바꿈
 
-CHOOSING SDE TYPE:
+SDE 갈래 고르기:
 -----------------
 - 흩어짐 터짐: 조건 없는 만들어 내기에 낫다
 - 흩어짐 지키기: 조건 있거나 이끈 만들어 내기에 낫다

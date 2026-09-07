@@ -17,10 +17,10 @@ FILE: 06_score_networks.py
     3. 고르게 맞추기와 깨움 고르기를 이해한다
     4. 점수 나타내기의 가장 좋은 방식을 배운다
 
-MATHEMATICAL BACKGROUND:
+수학 바탕:
     점수 신경망은 ∇log p(x)을 나타내는 벡터 마당을 내놓아야 한다.
     
-    Key design considerations:
+    설계에서 살필 고갱이:
     1. No final activation (outputs can be any real value)
     2. 흔히 잡음 수준 σ을 조건으로 삼는다
     3. 안정을 위해 립시츠 이어짐이어야 한다

@@ -17,17 +17,17 @@ FILE: 10_advanced_applications.py
     3. 점수로 역문제 푸는 법을 배운다
     4. 다스릴 수 있는 만들어 내기를 살핀다
 
-MATHEMATICAL BACKGROUND:
-    CONDITIONAL GENERATION:
+수학 바탕:
+    조건 있는 만들어 내기:
     Learn s_θ(x, y) = ∇log p(x|y) where y is a condition (e.g., class label).
     
-    CLASSIFIER GUIDANCE:
+    가름개 이끎:
     s(x|y) = s(x) + ∇log p(y|x)
     
     여기서 둘째 항이 바라는 갈래 쪽으로 이끈다.
     
     INPAINTING:
-    Given mask M and observed pixels x_obs, solve:
+    덮개 M과 본 화소 x_obs가 주어질 때 다음을 풀어라.
     argmax_x log p(x) s.t. x_M = x_obs
     
     뽑는 동안 쏘아서 할 수 있다.

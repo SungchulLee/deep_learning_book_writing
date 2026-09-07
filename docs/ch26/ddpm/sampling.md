@@ -157,7 +157,7 @@ class DDPMSampler:
         beta_start, beta_end : float
             잡음 차례표의 끝점.
         beta_schedule : str
-            Schedule type: 'linear' or 'cosine'.
+            짜임 갈래: 'linear' 또는 'cosine'.
         variance_type : str
             'fixed_lower' (β̃_t), 'fixed_upper' (β_t), or 'learned'.
         clip_denoised : bool
@@ -429,7 +429,7 @@ class DDPMSampler:
         """
         가름개 없는 이끌기로 뽑는다(Ho와 Salimans, 2022).
 
-        Combines conditional and unconditional predictions:
+        조건 있는 예측과 조건 없는 예측을 합친다.
             ε̃ = ε_θ(x_t, t, ∅) + s · (ε_θ(x_t, t, c) − ε_θ(x_t, t, ∅))
 
         매개변수
@@ -439,7 +439,7 @@ class DDPMSampler:
         condition : Tensor
             조건 신호(갈래 이름표, 글 박아 넣기 등).
         guidance_scale : float
-            Guidance strength s. Values > 1 sharpen the conditional distribution.
+            이끎 세기 s. 1보다 크면 조건 분포가 뾰족해진다.
         show_progress : bool
             나아감 막대를 보인다.
 
@@ -508,7 +508,7 @@ def visualize_trajectory(
 
     반환값
     -------
-    snapshots : list of dicts with keys 'timestep', 'x_t', 'x0_pred'.
+    snapshots : 'timestep', 'x_t', 'x0_pred' 열쇠를 지닌 사전의 목록.
     """
     if save_steps is None:
         save_steps = list(range(0, sampler.n_timesteps, sampler.n_timesteps // 10))

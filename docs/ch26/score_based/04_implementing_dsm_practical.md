@@ -19,7 +19,7 @@
 - 흔한 익히기 문제를 잡는다
 - 점수 신경망의 품질을 따진다
 
-Key formula:
+고갱이 식:
 L_DSM(θ) = 𝔼_x 𝔼_ε ||s_θ(x + σε) + ε/σ||²
 
 지은이: 이성철 @ 연세대학교
@@ -128,14 +128,14 @@ plt.close()
 print("✓ Saved: 04_dsm_practical.png")
 
 print("""
-KEY IMPLEMENTATION DETAILS:
+고갱이 짜기 자세히:
 1. 안정된 익히기를 위한 층 고르게 맞추기
 2. 규칙 세우기를 위한 무게 줄임을 갖춘 AdamW
 3. 터짐을 막는 기울기 자르기
 4. 코사인 식힘 배움 빠르기 차례표
 5. 효율을 위한 묶음 다루기
 
-DEBUGGING CHECKLIST:
+벌레잡이 살핌표:
 □ 손실이 꾸준히 줄어드는가?
 □ 점수가 자료 쪽을 가리키는가?
 □ Gradient norms reasonable (<10)?

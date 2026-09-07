@@ -18,15 +18,15 @@ FILE: 08_score_sde.py
     4. 확률 흐름 상미분 방정식을 이해한다
     5. 거꾸로 된 때의 확률 미분 방정식 뽑기를 짠다
 
-MATHEMATICAL BACKGROUND:
+수학 바탕:
     점수 바탕 확률 미분 방정식은 퍼짐을 이어진 때로 적어 준다.
     
-    FORWARD SDE:
+    앞으로 가는 SDE:
     dx = f(x, t)dt + g(t)dw
     
     여기서 w은 브라운 움직임이다.
     
-    REVERSE SDE:
+    거꾸로 가는 SDE:
     dx = [f(x, t) - g(t)²∇log p_t(x)]dt + g(t)dw̄
     
     우리가 배우는 것은 점수 ∇log p_t(x)이다!

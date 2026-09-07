@@ -36,7 +36,7 @@ class TimeConditionalScoreNetwork(nn.Module):
     """
     때와 잡음 조건을 갖춘 점수 신경망
     
-    For diffusion models, score depends on noise level t:
+    퍼짐 모델에서 점수는 잡음 층 t에 달렸다.
     s_θ(x, t) = ∇_x log p_t(x)
     """
     def __init__(self, data_dim=2, hidden_dim=128, time_embed_dim=32):
@@ -129,14 +129,14 @@ for epoch in range(1000):
         print(f"Epoch {epoch}: Loss = {loss.item():.6f}, σ = {sigma:.3f}")
 
 print("""
-KEY ARCHITECTURE CHOICES:
+고갱이 얼개 고르기:
 
-1. TIME CONDITIONING:
+1. 때 조건 주기:
    - 퍼짐 모델에 꼭 필요하다
    - Sinusoidal embedding (Transformer-style)
    - 또는 배울 수 있는 박아 넣기
 
-2. FOR 2D/TABULAR DATA:
+2. 2차원과 표 자료에서:
    - 층 고르게 맞추기를 갖춘 여러 층 신경망
    - SiLU와 GELU 깨움
    - 남은 이음이 도움이 된다
@@ -146,11 +146,11 @@ KEY ARCHITECTURE CHOICES:
    - 눈길 얼개
    - 무리 고르게 맞추기
 
-4. FOR SEQUENCES:
+4. 이음 자료에서:
    - 변환기 덩이
    - 필요하면 인과 가림막
 
-DESIGN PRINCIPLES:
+설계 원칙:
 ✓ Score is a VECTOR FIELD (same dim as input)
 ✓ 여러 잡음과 때 수준을 다루어야 한다
 ✓ 매끄럽고 얌전해야 한다

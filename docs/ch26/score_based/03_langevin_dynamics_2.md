@@ -17,7 +17,7 @@ PREREQUISITES: 01_score_functions_basics.py, 02_score_matching_theory.py
     3. 뽑기 자취를 그려 본다
     4. 걸음 크기와 잡음의 몫을 이해한다
 
-MATHEMATICAL BACKGROUND:
+수학 바탕:
     랑주뱅 움직임은 기울기를 써서 분포에서 뽑는 마르코프 사슬 몬테카를로 알고리즘이다.
     
     Update rule: x_{t+1} = x_t + ε/2 * ∇log p(x_t) + √ε * z_t

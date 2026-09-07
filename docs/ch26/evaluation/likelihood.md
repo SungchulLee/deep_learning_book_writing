@@ -688,7 +688,7 @@ demonstrate_perplexity()
 ```python
 def demonstrate_likelihood_sample_tradeoff():
     """
-    Demonstrate that high likelihood doesn't mean good samples.
+    가능도가 높다고 좋은 표본은 아님을 보인다.
     """
     print("=" * 70)
     print("Likelihood vs. Sample Quality Tradeoff")

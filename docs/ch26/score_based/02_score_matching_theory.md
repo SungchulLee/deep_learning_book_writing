@@ -15,7 +15,7 @@ PREREQUISITES: Module 01 (Score Functions Basics)
 
 학습 목표:
 -------------------
-1. Understand why we can't compute scores directly from data
+1. 왜 자료에서 곧바로 점수를 셈할 수 없는지 이해한다
 2. 드러난 점수 맞추기(ESM)의 목표를 배운다
 3. 잡음 없애는 점수 맞추기(DSM)를 이해한다 - 핵심 생각이다!
 4. 잡음 없애는 점수 맞추기를 베이즈 잡음 없애기와 잇는다
@@ -32,7 +32,7 @@ NAIVE APPROACH (doesn't work):
 Fit p_θ(x) to data, then compute s_θ(x) = ∇_x log p_θ(x)
 문제: p_θ(x)을 고르게 맞추어야 하는데 이는 다룰 수 없다!
 
-SCORE MATCHING SOLUTION:
+점수 맞추기 풀이:
 p_data(x) 없이 점수 s_θ(x)을 참 점수에 곧바로 맞춘다!
 
 핵심 통찰: 어느 분포도 몰라도 점수를 맞출 수 있다!
@@ -69,7 +69,7 @@ SCENARIO:
 Given: Dataset {x₁, x₂, ..., x_N} sampled from unknown p_data(x)
 Goal: Learn score function s(x) = ∇_x log p_data(x)
 
-WHY WE CAN'T COMPUTE SCORE DIRECTLY:
+왜 점수를 곧바로 셈할 수 없는가:
 -----------------------------------
 1. Don't have formula for p_data(x)
 2. 모델 p_θ(x)을 자료에 맞출 수 있다
@@ -89,7 +89,7 @@ where: Z_θ = ∫ exp(E_θ(x)) dx  ← INTRACTABLE!
 
 But we want: s_θ(x) = ∇_x log p_θ(x) = ∇_x E_θ(x)
 
-Good news: Score doesn't need Z_θ!
+반가운 소식: 점수는 Z_θ가 필요 없다!
 Bad news: Still can't train without knowing p_data(x)!
 
 풀이: 점수 맞추기!
@@ -103,9 +103,9 @@ print("SECTION 2: Explicit Score Matching (ESM)")
 print("=" * 80)
 
 print("""
-FISHER DIVERGENCE:
+피셔 갈림:
 -----------------
-Define distance between score functions:
+점수 함수 사이의 거리를 뜻매김한다.
 
 D_Fisher(p||q) = (1/2) 𝔼_{x~p} ||∇_x log p(x) - ∇_x log q(x)||²
 
@@ -120,7 +120,7 @@ Using integration by parts (Stein's identity):
 
 J_ESM(θ) = 𝔼_{x~p_data} [ tr(∇_x s_θ(x)) + (1/2)||s_θ(x)||² ] + const
 
-KEY INSIGHT:
+고갱이 눈썰미:
 - 목표에서 ∇_x log p_data(x)을 없앴다!
 - 필요한 것은 p_data의 표본과 s_θ의 미분뿐이다
 - tr(∇_x s_θ(x)) = sum of diagonal elements of Jacobian
@@ -214,7 +214,7 @@ print("SECTION 3: Denoising Score Matching (DSM) - The Key Idea!")
 print("=" * 80)
 
 print("""
-THE PROBLEM WITH ESM:
+ESM의 문제:
 -------------------
 tr(∇_x s_θ(x))을 셈하는 것은 비싸다(헤세가 필요하다).
 차원이 높으면(그림 등) 키울 수 없다.
@@ -231,7 +231,7 @@ PROCEDURE:
 OBJECTIVE:
 J_DSM(θ) = 𝔼_{x~p_data} 𝔼_{ε~N(0,I)} ||s_θ(x + σε) + ε/σ||²
 
-Why this works:
+왜 이것이 되는가:
 --------------
 The score of the noisy distribution q_σ(x̃|x) = N(x̃; x, σ²I) is:
 
@@ -240,7 +240,7 @@ The score of the noisy distribution q_σ(x̃|x) = N(x̃; x, σ²I) is:
 And the marginal noisy distribution q_σ(x̃) = ∫ q_σ(x̃|x)p_data(x)dx
 이것으로 어림할 수 있는 점수를 가진다!
 
-CONNECTION TO BAYESIAN INFERENCE:
+베이즈 미룸과의 이음:
 --------------------------------
 잡음 없애기가 곧 베이즈 사후 추론이다!
 
@@ -249,11 +249,11 @@ infer clean x via posterior: p(x|x̃)
 
 The score ∇_x log p(x|x̃) tells us how to denoise!
 
-This is exactly what diffusion models do:
+퍼짐 모델이 하는 일이 바로 이것이다.
 - Forward: Add noise (known)
 - Reverse: Denoise using learned score (learned)
 
-ADVANTAGES OF DSM:
+DSM의 좋은 점:
 -----------------
 ✓ 헤세를 셈할 필요가 없다
 ✓ 기울기 셈하기가 단순하다
@@ -379,15 +379,15 @@ comparison_table = """
 | Derivatives needed    | Second-order (Hessian)            | First-order only                 |
 | Computational cost    | O(d²) per sample                  | O(d) per sample                  |
 | Scalability           | Poor (high dimensions)            | Excellent                        |
-| Connection            | Fisher divergence                 | Bayesian denoising               |
+| 이음                  | 피셔 갈림                         | 베이즈 잡음 지우기               |
 | Practical use         | Rare (too expensive)              | Standard (all modern models)     |
-| Noise parameter       | Not needed                        | Requires σ choice                |
+| 잡음 매개변수         | 필요 없음                         | σ를 골라야 함                    |
 """
 
 print(comparison_table)
 
 print("""
-KEY TAKEAWAYS:
+고갱이 얻음:
 -------------
 1. 드러난 점수 맞추기는 이론으로 아름답지만 셈이 비싸다
 2. 잡음 없애는 점수 맞추기는 쓸모 있고 키울 수 있어 요즘 모든 모델이 쓴다
@@ -410,7 +410,7 @@ print("MODULE SUMMARY")
 print("=" * 80)
 
 print("""
-WHAT WE LEARNED:
+배운 것:
 ---------------
 1. 자료에서 곧바로 점수를 셈하는 것은 다룰 수 없다
 2. 드러난 점수 맞추기는 고르게 맞추기를 피하지만 헤세가 필요하다
@@ -418,18 +418,18 @@ WHAT WE LEARNED:
 4. DSM = learning to denoise = Bayesian inference!
 5. 잡음 없애는 점수 맞추기는 퍼짐 모델의 바탕이다
 
-KEY FORMULAS:
+고갱이 식:
 ------------
-1. ESM objective:
+1. ESM 목표:
    J_ESM = 𝔼[tr(∇_x s_θ(x)) + 0.5||s_θ(x)||²]
 
-2. DSM objective:
+2. DSM 목표:
    J_DSM = 𝔼_{x,ε} ||s_θ(x + σε) + ε/σ||²
 
-3. Denoising score:
+3. 잡음 지우기 점수:
    ∇_x log q_σ(x̃|x) = -(x̃ - x)/σ²
 
-FILES GENERATED:
+만들어진 파일:
 ---------------
 1. 02_dsm_swiss_roll.png - 스위스 롤 자료의 잡음 없애는 점수 맞추기
 
@@ -442,10 +442,10 @@ print("=" * 80)
 print("""
 익힘 1: 피셔 벌어짐에서 드러난 점수 맞추기 이끌어 내기
 -------------------------------------------
-Starting from:
+다음에서 비롯한다.
 D_Fisher(p||q) = (1/2)𝔼_{x~p}||∇log p(x) - ∇log q(x)||²
 
-Expand and use integration by parts to derive:
+펼친 뒤 부분 적분으로 다음을 이끌어 내어라.
 J_ESM = 𝔼[tr(∇s_θ) + 0.5||s_θ||²] + const
 
 익힘 2: 드러난 점수 맞추기 짜기
@@ -463,12 +463,12 @@ Interpret: denoising = computing posterior score!
 
 익힘 4: 잡음 수준 살피기
 -------------------------------
-Train DSM with different σ values:
+σ 값을 달리하며 DSM을 익혀라.
 a) Very small σ (σ=0.01)
 b) Medium σ (σ=0.1)
 c) Large σ (σ=1.0)
 
-How does choice of σ affect:
+σ를 고르는 것이 다음에 어떤 영향을 주는가?
 - 익히기가 안정된가?
 - 배운 점수의 품질은?
 - 뽑기의 움직임은?
@@ -476,7 +476,7 @@ How does choice of σ affect:
 익힘 5: 자기 부호기와의 이음
 -------------------------------------
 잡음 없애는 자기 부호기가 배우는 것: f(x̃) ≈ x
-Show that:
+다음을 보여라.
 a) 가장 좋은 잡음 없애기 함수는 점수와 이어진다
 b) Connection: ∇_{x̃} log p(x̃) ∝ f(x̃) - x̃
 c) 둘 다 짜서 견준다
@@ -494,7 +494,7 @@ print("\n" + "=" * 80)
 print("NEXT MODULE: 03_langevin_dynamics.py")
 print("=" * 80)
 print("""
-Now that we can learn scores from data,
+이제 자료에서 점수를 배울 수 있으니,
 이를 어떻게 써서 표본을 만드는가?
 
 답: 랑주뱅 움직임 - 점수를 쓴 마르코프 사슬 몬테카를로 뽑기!

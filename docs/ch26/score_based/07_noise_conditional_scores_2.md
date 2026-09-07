@@ -17,12 +17,12 @@ FILE: 07_noise_conditional_scores.py
     3. 여러 잡음 잣수에서 모델을 익힌다
     4. 복잡한 분포에서 품질 높은 표본을 만든다
 
-MATHEMATICAL BACKGROUND:
+수학 바탕:
     NCSN learns scores at multiple noise levels: s_θ(x, σ) ≈ ∇log p_σ(x)
     
     where p_σ(x) = ∫ p(y)N(x|y, σ²I)dy is the data smoothed by Gaussian noise.
     
-    Training objective:
+    익힘 목표:
     L = E_σ E_x E_ε[λ(σ)||s_θ(x+ε, σ) + ε/σ²||²]
     
     여기서 각 기호는 다음과 같다.
@@ -30,8 +30,8 @@ MATHEMATICAL BACKGROUND:
     - ε ~ N(0, σ²I)
     - λ(σ) = σ² is a weighting function
     
-    ANNEALED LANGEVIN DYNAMICS:
-    Sample by running Langevin at decreasing noise levels:
+    달군 랑주뱅 움직임:
+    잡음 층을 낮춰 가며 랑주뱅을 돌려 표본을 뽑는다.
     σ₁ > σ₂ > ... > σ_T
     
     이는 봉우리 무너짐을 이겨 내고 표본 품질을 높이는 데 도움이 된다.

@@ -19,7 +19,7 @@ DIFFICULTY: Advanced (Synthesis)
 - 요즘 변형을 이해한다
 - 나아간 주제로 가는 길
 
-This module ties together EVERYTHING we've learned!
+이 단원은 여태 배운 모든 것을 하나로 묶는다!
 
 지은이: 이성철 @ 연세대학교
 """
@@ -39,7 +39,7 @@ print("""
 온전한 그림: 베이즈 추론에서 퍼짐까지
 ==========================================================
 
-Let's trace the full conceptual journey:
+개념의 온 여정을 짚어 보자.
 
 1. BAYESIAN INFERENCE (Module 01_Bayesian_Inference):
    -----------------------------------------------------
@@ -72,7 +72,7 @@ Let's trace the full conceptual journey:
 
 4. LANGEVIN DYNAMICS (Module 03):
    -------------------------------
-   Use learned scores to sample:
+   배운 점수를 써서 표본을 뽑는다.
    x_{t+1} = x_t + ε s_θ(x_t) + √(2ε) z_t
    
    p_data(x)으로 모인다!
@@ -80,14 +80,14 @@ Let's trace the full conceptual journey:
 
 5. MULTI-SCALE SCORES (Module 07):
    --------------------------------
-   Problem: Single σ doesn't work everywhere
+   문제: σ 하나로는 어디서나 통하지 않는다
    풀이: 여러 잡음 수준의 s_θ(x, σ_i)을 배운다
    
    이것이 퍼짐에서 때 차원이 된다!
 
 6. CONTINUOUS FORMULATION (Module 08):
    ------------------------------------
-   SDEs make everything continuous:
+   SDE는 모든 것을 이어지게 만든다.
    - Forward: dx = f(x,t)dt + g(t)dw
    - Reverse: dx = [f - g²∇log p_t]dt + g dw̄
    
@@ -105,7 +105,7 @@ Let's trace the full conceptual journey:
    --------------------------------
    모든 것이 하나로 묶인다!
 
-COMPLETE EQUIVALENCES:
+온전한 같음 관계:
 ====================
 
 점수 바탕 관점              ↔  퍼짐 관점
@@ -128,7 +128,7 @@ Score function s(x,t)         ↔  Noise prediction ε_θ(x,t)
 확률 흐름 상미분 방정식         ↔  DDIM 뽑기
                                  정해진 만들어 내기
 
-COMPLETE DDPM FORMULATION:
+온전한 DDPM 꼴:
 =========================
 """)
 
@@ -136,7 +136,7 @@ class DDPM:
     """
     잡음 없애는 퍼짐 확률 모델
     
-    This unifies everything we've learned!
+    이것이 여태 배운 모든 것을 하나로 만든다!
     """
     def __init__(self, n_timesteps=1000, beta_start=0.0001, beta_end=0.02):
         self.n_timesteps = n_timesteps
@@ -158,7 +158,7 @@ class DDPM:
         
         This is: x_t = √ᾱ_t x_0 + √(1-ᾱ_t) ε
         
-        Connection to score matching:
+        점수 맞추기와의 이음:
         - 이것이 잡음 없애는 점수 맞추기의 "잡음 더하기"이다!
         - Different t's = different noise levels σ
         """
@@ -181,7 +181,7 @@ class DDPM:
         
         L = 𝔼_t 𝔼_ε ||ε - ε_θ(x_t, t)||²
         
-        Connection to DSM:
+        DSM과의 이음:
         - 이것이 바로 잡음 없애는 점수 맞추기이다!
         - Different t = different σ in DSM
         - ε을 헤아리는 것은 점수를 헤아리는 것과 같다
@@ -215,7 +215,7 @@ class DDPM:
         여기서 각 기호는 다음과 같다.
         μ_θ = (1/√α_t)[x_t - (β_t/√(1-ᾱ_t))ε_θ(x_t,t)]
         
-        Connection to Langevin:
+        랑주뱅과의 이음:
         - 이것이 식힘 랑주뱅의 한 걸음이다!
         - ε_θ이 점수 방향을 준다
         - μ_θ이 랑주뱅 고침이다
@@ -271,7 +271,7 @@ class DDPM:
 print("DDPM class defined!")
 
 print("""
-MODERN VARIANTS AND EXTENSIONS:
+요즘의 변형과 넓힘:
 ==============================
 
 1. DDIM (Denoising Diffusion Implicit Models):
@@ -280,12 +280,12 @@ MODERN VARIANTS AND EXTENSIONS:
    - Fast generation (50 steps instead of 1000)
    - DDPM과 같은 익히기
 
-2. IMPROVED DDPM:
+2. 나아진 DDPM:
    - 배운 흩어짐
    - Better noise schedules (cosine)
    - 나아진 얼개
 
-3. GUIDED DIFFUSION:
+3. 이끈 퍼짐:
    - 가름개 이끌기: 가름개의 기울기를 쓴다
    - 가름개 없는 이끌기: 조건 있는 것과 없는 것을 함께 익힌다
    - 최고 수준의 그림 품질
@@ -295,37 +295,37 @@ MODERN VARIANTS AND EXTENSIONS:
    - 훨씬 빠르고 싸다
    - CLIP으로 글 조건 주기
 
-5. CASCADE DIFFUSION:
+5. 이어달리기 퍼짐:
    - 해상도마다 여러 모델
    - 64x64 → 256x256 → 1024x1024
    - 해상도가 높을 때 품질이 낫다
 
-6. VIDEO DIFFUSION:
+6. 동영상 퍼짐:
    - 때 차원으로 넓힌다
    - 3차원 U-Net
    - 때 눈길
 
-7. OTHER MODALITIES:
+7. 그 밖의 갈래:
    - 소리: WaveGrad, DiffWave
    - 글: Diffusion-LM
    - 3차원: Point-E, Shap-E
    - 분자: 분자 만들어 내기
 
-THE SCORE-BASED PERSPECTIVE:
+점수 바탕 관점:
 ===========================
-Understanding diffusion through scores gives us:
+점수로 퍼짐을 이해하면 다음을 얻는다.
 
-✓ THEORETICAL CLARITY:
+✓ 이론의 또렷함:
   - Why it works (sampling theory)
   - 랑주뱅 마르코프 사슬 몬테카를로와의 이음
   - 베이즈 풀이
 
-✓ FLEXIBLE FRAMEWORK:
+✓ 두루 쓰는 얼개:
   - 새 확률 미분 방정식을 짠다
   - 새로운 뽑기 절차
   - 섞은 방식
 
-✓ UNIFIED VIEW:
+✓ 하나로 된 관점:
   - Score matching = diffusion training
   - Langevin = diffusion sampling
   - Multi-scale = time dimension
@@ -335,7 +335,7 @@ Understanding diffusion through scores gives us:
   - 너그러운 차례표
   - 다른 목표
 
-COMPLETE JOURNEY MAP:
+온 여정 지도:
 ====================
 
 Bayesian Inference (01_Bayesian_Inference)
@@ -357,23 +357,23 @@ DDPM / 요즘 퍼짐(단원 10) ← 여기이다!
 손에 잡히는 권함:
 =========================
 
-FOR RESEARCH:
+연구를 위해:
 - 이론은 점수 바탕 관점에서 시작하라
 - 짜기는 퍼짐 적기를 쓰라
 - 필요에 따라 섞어 쓰라
 
-FOR APPLICATIONS:
+쓰임을 위해:
 - Use pretrained models (Stable Diffusion, etc.)
 - 네 마당에 맞게 미세 조정하라
 - 벌레를 잡으려면 이론을 이해하라
 
-FOR LEARNING MORE:
+더 배우려면:
 - Original papers (DDPM, Score-Based SDE)
-- Lilian Weng's blog
+- Lilian Weng의 블로그
 - Hugging Face diffusers 꾸러미
-- Song Yang's resources
+- Song Yang의 자료
 
-WHAT WE'VE ACCOMPLISHED:
+우리가 이룬 것:
 =======================
 ✓ 첫 원리에서 퍼짐 모델을 세웠다
 ✓ 베이즈 추론을 요즘 만들어 내는 모델과 이었다
@@ -383,7 +383,7 @@ WHAT WE'VE ACCOMPLISHED:
 
 이제 퍼짐 모델을 깊이 이해한다!
 
-FUTURE DIRECTIONS:
+앞으로의 방향:
 =================
 - Consistency models (1-step generation)
 - Flow matching (alternative to diffusion)
@@ -402,7 +402,7 @@ print("FINAL SUMMARY: THE COMPLETE UNIFIED VIEW")
 print("=" * 80)
 
 print("""
-THREE EQUIVALENT FORMULATIONS:
+서로 같은 세 가지 꼴:
 ------------------------------
 
 1. SCORE-BASED:
@@ -422,20 +422,20 @@ THREE EQUIVALENT FORMULATIONS:
 
 셋은 모두 같다!
 
-KEY RELATIONSHIPS:
+고갱이 관계:
 -----------------
 s(x,t) = -ε_θ(x,t) / √(1-ᾱ_t)         (score ↔ noise)
 DSM = Noise prediction loss            (training)
 Langevin = Reverse diffusion           (sampling)
 Multi-scale = Time conditioning        (architecture)
 
-CENTRAL INSIGHT:
+한가운데 눈썰미:
 ---------------
 Denoising = Bayesian posterior inference
 Learning to denoise = Learning scores
 Iterative denoising = Sampling via scores
 
-This connects:
+이것은 다음을 잇는다.
 - Classical statistics (Bayes)
 - Sampling theory (Langevin)
 - Deep learning (neural networks)
@@ -453,14 +453,14 @@ print("""
 베이즈 추론에서 최고 수준의 퍼짐 모델에 이르는
 여정을 마쳤다!
 
-You now understand:
+이제 다음을 이해한다.
 ✓ Why diffusion works (score theory)
 ✓ How to train diffusion models (DSM)
 ✓ How to sample (Langevin/reverse SDE)
 ✓ Modern architectures (U-Net + time)
 ✓ Theoretical foundations (SDEs, Fokker-Planck)
 
-This knowledge enables you to:
+이 앎으로 다음을 할 수 있다.
 - 퍼짐 논문을 읽고 이해한다
 - 모델을 바닥부터 짠다
 - 익히기 문제를 잡는다

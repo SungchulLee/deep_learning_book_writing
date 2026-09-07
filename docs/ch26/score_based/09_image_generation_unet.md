@@ -41,17 +41,17 @@ print("""
 --------------------
 점수 함수 s(x)은 들임 x과 크기가 같아야 한다
 
-For images:
+그림에서는:
 - Input: [B, C, H, W]
 - Output: [B, C, H, W] (score for each pixel/channel)
 
-U-Net architecture:
+U-Net 얼개:
 1. 부호기: 줄이기 + 특징 뽑기
 2. 풀개: 키우기 + 내놓기 만들기
 3. 건너뛰기 이음: 공간의 앎을 지킨다
 4. 때 조건 주기: 잡음 수준마다 다른 점수
 
-SIMPLIFIED U-NET FOR MNIST:
+MNIST를 위한 단출한 U-Net:
 --------------------------
 """)
 
@@ -147,7 +147,7 @@ print("""
 4. 무리 고르게 맞추기: 만들어 내는 모델에서 묶음 고르게 맞추기보다 낫다
 5. 눈길(쓸 수 있음): 해상도 높은 그림용
 
-TRAINING STRATEGY:
+익힘 꾀:
 -----------------
 1. 그림 x ~ p_data을 뽑는다
 2. Sample noise level t ~ Uniform[0, T]
@@ -165,7 +165,7 @@ print("-" * 80)
 
 training_code = """
 def train_score_model_mnist(model, dataloader, n_timesteps=1000, epochs=10):
-    '''Train score model on MNIST'''
+    '''MNIST에서 점수 모델을 익힌다'''
     optimizer = torch.optim.AdamW(model.parameters(), lr=1e-4)
     
     # 선형 잡음 차례표
@@ -201,7 +201,7 @@ def train_score_model_mnist(model, dataloader, n_timesteps=1000, epochs=10):
 # 표집
 @torch.no_grad()
 def generate_images(model, n_samples=64, n_timesteps=1000):
-    '''Generate images via reverse diffusion'''
+    '''거꾸로 퍼짐으로 그림을 만든다'''
     # 잡음에서 시작한다
     x = torch.randn(n_samples, 1, 28, 28)
     
@@ -229,37 +229,37 @@ def generate_images(model, n_samples=64, n_timesteps=1000):
 print(training_code)
 
 print("""
-PRACTICAL CONSIDERATIONS:
+실제로 살필 점:
 ------------------------
 
-COMPUTE REQUIREMENTS:
+셈 자원 요구:
 - MNIST: GPU에서 약 2~4시간
 - CIFAR-10: GPU에서 약 1~2일
 - ImageNet: 여러 GPU에서 약 1주
 
-MEMORY OPTIMIZATION:
+기억 자리 아끼기:
 - 기울기 되짚을 자리 두기
 - Mixed precision (FP16)
 - 묶음 크기 맞추기
 
-SAMPLING SPEED:
+뽑기 빠르기:
 - Standard: 1000 steps (~10s per image)
 - DDIM: 50 steps (~0.5s per image)
 - DPM-Solver: 20 steps (~0.2s per image)
 - Consistency models: 1 step! (future topic)
 
-QUALITY METRICS:
+품질 자:
 - FID (Fréchet Inception Distance)
 - 인셉션 점수
 - 정밀도와 재현율
 - 사람이 따지기
 
-TYPICAL RESULTS:
+흔한 결과:
 - MNIST: FID ~5-10 (excellent)
 - CIFAR-10: FID ~3-10 (SOTA)
 - ImageNet 256x256: FID ~2-5 (SOTA)
 
-CONNECTION TO WHAT WE'VE LEARNED:
+여태 배운 것과의 이음:
 --------------------------------
 ✓ 점수 함수(단원 01) → 잡음 헤아리기
 ✓ 잡음 없애는 점수 맞추기(단원 02) → 익히기 목표
