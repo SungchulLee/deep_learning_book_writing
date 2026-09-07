@@ -1,24 +1,24 @@
 # 카라추바 곱셈
 
-Multiplying two $n$-digit numbers using the grade-school algorithm requires $O(n^2)$ single-digit multiplications. In 1960, Anatoly Karatsuba discovered that a clever algebraic rearrangement reduces the number of recursive multiplications from four to three, yielding an $O(n^{\log_2 3}) \approx O(n^{1.585})$ algorithm. This was the first multiplication algorithm to break the $O(n^2)$ barrier and remains one of the most elegant examples of divide and conquer.
+$n$자리 수 둘을 학교에서 배운 방식으로 곱하면 한 자리 곱하기가 $O(n^2)$ 번 든다. 1960년 아나톨리 카라추바는 슬기롭게 식을 다시 짜면 되부르는 곱하기가 넷에서 셋으로 줄어 $O(n^{\log_2 3}) \approx O(n^{1.585})$ 알고리즘이 됨을 찾아냈다. $O(n^2)$의 벽을 처음으로 깬 곱하기 알고리즘이며 나누어 다스리기의 가장 멋진 보기 가운데 하나로 남아 있다.
 
 ## 초등학교 곱셈법
 
-To multiply two $n$-digit numbers $x$ and $y$, the standard method computes every pair of digits and sums the partial products. This requires $n^2$ single-digit multiplications and $O(n)$ additions per partial product, giving $O(n^2)$ total work.
+$n$자리 수 $x$과 $y$을 곱할 때 여느 방법은 자리마다 짝을 지어 셈하고 그 조각 곱을 더한다. 한 자리 곱하기가 $n^2$ 번, 조각 곱마다 더하기가 $O(n)$ 번 들어 온 일감은 $O(n^2)$이다.
 
 ## 카라추바의 눈썰미
 
-Split each $n$-digit number into two halves of $n/2$ digits. Let $m = \lfloor n/2 \rfloor$, and write
+$n$자리 수를 저마다 $n/2$자리씩 반으로 쪼갠다. $m = \lfloor n/2 \rfloor$이라 하고 다음과 같이 쓴다.
 
 $$
 x = x_1 \cdot 10^m + x_0, \qquad y = y_1 \cdot 10^m + y_0
 $$
 
-where $x_1, x_0, y_1, y_0$ are at most $\lceil n/2 \rceil$-digit numbers.
+여기서 $x_1, x_0, y_1, y_0$은 많아야 $\lceil n/2 \rceil$자리 수다.
 
 ### 막무가내 쪼개기
 
-The product $x \cdot y$ expands as
+곱 $x \cdot y$을 펼치면 다음과 같다.
 
 $$
 x \cdot y = x_1 y_1 \cdot 10^{2m} + (x_1 y_0 + x_0 y_1) \cdot 10^m + x_0 y_0
@@ -30,7 +30,7 @@ $$
 T(n) = 4T\!\left(\frac{n}{2}\right) + O(n)
 $$
 
-which solves to $T(n) = O(n^2)$ -- no improvement over grade school.
+이는 $T(n) = O(n^2)$으로 풀리니 학교에서 배운 방식보다 나을 것이 없다.
 
 ### 핵심 재주
 
@@ -52,7 +52,7 @@ $$
 p_3 = (x_1 + x_0)(y_1 + y_0) = x_1 y_1 + x_1 y_0 + x_0 y_1 + x_0 y_0 = p_1 + (x_1 y_0 + x_0 y_1) + p_2
 $$
 
-Rearranging gives $x_1 y_0 + x_0 y_1 = p_3 - p_1 - p_2$. $\square$
+다시 정리하면 $x_1 y_0 + x_0 y_1 = p_3 - p_1 - p_2$을 얻는다. $\square$
 
 따라서 온전한 곱은 다음과 같다
 
@@ -141,7 +141,7 @@ $$
 \log_b a = \log_2 3 \approx 1.585
 $$
 
-Since $f(n) = O(n) = O(n^{\log_2 3 - \epsilon})$ for $\epsilon \approx 0.585$, this is case 1:
+$\epsilon \approx 0.585$에 대해 $f(n) = O(n) = O(n^{\log_2 3 - \epsilon})$이므로 첫째 갈래다.
 
 $$
 T(n) = \Theta(n^{\log_2 3}) \approx \Theta(n^{1.585})
@@ -224,7 +224,7 @@ Karatsuba multiplication reduces the number of recursive multiplications from fo
 카라추바 곱셈의 되돌이 관계식을 쓰고 마스터 정리로 풀어라.
 
 ??? success "연습문제 2 풀이"
-    The recurrence depends on the specific algorithm's division strategy (number of subproblems $a$, size reduction factor $b$, and combination cost $f(n)$). Apply the Master Theorem: compare $f(n)$ with $n^{\log_b a}$ to determine which case applies. If $f(n) = \Theta(n^{\log_b a})$ (case 2), $T(n) = \Theta(n^{\log_b a} \log n)$. $\square$
+    되돌이 식은 그 알고리즘이 어떻게 나누는지에 달려 있다(잔문제의 수 $a$, 크기를 줄이는 값 $b$, 아우르는 값 $f(n)$). 으뜸 정리를 쓴다. $f(n)$을 $n^{\log_b a}$과 견주어 어느 갈래인지 가린다. $f(n) = \Theta(n^{\log_b a})$이면(둘째 갈래) $T(n) = \Theta(n^{\log_b a} \log n)$이다. $\square$
 
 ---
 
@@ -232,7 +232,7 @@ Karatsuba multiplication reduces the number of recursive multiplications from fo
 카라추바 곱셈이 막무가내 방식보다 나은 장면을 설명하여라. 얼마나 빨라지는지 수로 나타내어라.
 
 ??? success "연습문제 3 풀이"
-    The brute-force approach typically runs in $O(n^2)$ or worse. The divide-and-conquer approach achieves a lower complexity by reducing redundant computation through recursive decomposition. For input size $n = 10^6$, the difference between $O(n^2) = 10^{12}$ and $O(n \log n) = 2 \times 10^7$ operations is a factor of $50{,}000$. $\square$
+    막무가내로 하는 길은 흔히 $O(n^2)$ 이상이 든다. 나누어 다스리는 길은 되부르며 쪼개어 군더더기 셈을 줄이므로 복잡도가 더 낮다. 들임 크기가 $n = 10^6$이면 $O(n^2) = 10^{12}$과 $O(n \log n) = 2 \times 10^7$의 차이는 $50{,}000$ 곱절이다. $\square$
 
 ---
 
@@ -240,4 +240,4 @@ Karatsuba multiplication reduces the number of recursive multiplications from fo
 카라추바 곱셈의 바탕 경우는 무엇인가? 그것이 알고리즘 전체의 옳음에 어떤 영향을 주는가?
 
 ??? success "연습문제 4 풀이"
-    Base cases handle inputs too small to subdivide further (typically $n \leq 1$ or $n \leq 2$). They must return correct results directly. Without proper base cases, the recursion never terminates. Choosing a larger base case (e.g., $n \leq 10$) and switching to a simpler algorithm can improve practical performance by reducing recursion overhead while maintaining the same asymptotic complexity. $\square$
+    밑 자리는 더 나눌 수 없을 만큼 작은 들임을 다룬다(흔히 $n \leq 1$이나 $n \leq 2$). 이때는 옳은 결과를 곧바로 돌려주어야 한다. 밑 자리가 제대로 없으면 되부름이 끝나지 않는다. 밑 자리를 더 크게 잡고($n \leq 10$ 따위) 더 단순한 알고리즘으로 갈아타면 같은 점근 복잡도를 지키면서 되부름 덤을 줄여 참으로 더 빠르게 할 수 있다. $\square$

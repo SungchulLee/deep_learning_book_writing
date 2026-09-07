@@ -4,19 +4,19 @@
 
 ## 문제 서술
 
-Given a continuous function $f: [a, b] \to \mathbb{R}$ with $f(a) \cdot f(b) < 0$ (i.e., $f$ has opposite signs at the endpoints), find a value $c \in [a, b]$ such that $f(c) = 0$.
+$f(a) \cdot f(b) < 0$인(곧 두 끝에서 $f$의 부호가 서로 다른) 이어진 함수 $f: [a, b] \to \mathbb{R}$이 주어졌을 때 $f(c) = 0$인 값 $c \in [a, b]$을 찾아라.
 
-The existence of such a root is guaranteed by the **Intermediate Value Theorem**: if $f$ is continuous on $[a, b]$ and $f(a) \cdot f(b) < 0$, then there exists at least one $c \in (a, b)$ with $f(c) = 0$.
+그런 뿌리가 있음은 **가운뎃값 정리**가 보장한다. $f$이 $[a, b]$에서 이어져 있고 $f(a) \cdot f(b) < 0$이면 $f(c) = 0$인 $c \in (a, b)$이 적어도 하나 있다.
 
 ## 알고리즘
 
 단계마다 반씩 자르기 방법은 가운뎃점 $m = (a + b) / 2$을 셈하고 $f(m)$을 값매김한다:
 
 - $f(m) = 0$이면 $m$이 뿌리이다.
-- If $f(a) \cdot f(m) < 0$, the root lies in $[a, m]$, so set $b = m$.
-- If $f(m) \cdot f(b) < 0$, the root lies in $[m, b]$, so set $a = m$.
+- $f(a) \cdot f(m) < 0$이면 뿌리는 $[a, m]$ 안에 있으므로 $b = m$으로 둔다.
+- $f(m) \cdot f(b) < 0$이면 뿌리는 $[m, b]$ 안에 있으므로 $a = m$으로 둔다.
 
-The process repeats until the interval width $b - a$ falls below a specified tolerance $\epsilon$.
+구간의 너비 $b - a$이 미리 정한 봐주는 값 $\epsilon$보다 작아질 때까지 이를 되풀이한다.
 
 ### 파이썬 구현
 
@@ -85,11 +85,11 @@ $$
 |m_k - c^*| \le \frac{b_0 - a_0}{2^{k+1}}
 $$
 
-where $c^*$ is the true root.
+여기서 $c^*$은 참 뿌리다.
 
 ### 너그러움에 이르는 바퀴 수
 
-To achieve $|m_k - c^*| < \epsilon$, we need
+$|m_k - c^*| < \epsilon$을 이루려면 다음이 든다.
 
 $$
 \frac{b_0 - a_0}{2^{k+1}} < \epsilon
@@ -116,7 +116,7 @@ $$
 
 ## 풀이 예제
 
-Find a root of $f(x) = x^3 - x - 2$ on $[1, 2]$.
+$[1, 2]$에서 $f(x) = x^3 - x - 2$의 뿌리를 찾아라.
 
 $f(1) = 1 - 1 - 2 = -2 < 0$이고 $f(2) = 8 - 2 - 2 = 4 > 0$이므로 $[1, 2]$에 뿌리가 있다.
 
@@ -128,9 +128,9 @@ $f(1) = 1 - 1 - 2 = -2 < 0$이고 $f(2) = 8 - 2 - 2 = 4 > 0$이므로 $[1, 2]$�
 | 4 | 1.500 | 1.625 | 1.5625 | $0.252$ | $f(a) \cdot f(m) < 0$, set $b = 1.5625$ |
 | 5 | 1.500 | 1.5625 | 1.5313 | $0.059$ | $f(a) \cdot f(m) < 0$, set $b = 1.5313$ |
 
-After 5 iterations, the root is bracketed in $[1.500, 1.531]$, an interval of width $0.031$, consistent with $1.0 / 2^5 = 0.03125$.
+다섯 번 돌고 나면 뿌리가 $[1.500, 1.531]$ 안에 갇히는데, 너비가 $0.031$인 구간이며 $1.0 / 2^5 = 0.03125$과 어긋나지 않는다.
 
-The exact root is $c^* \approx 1.5214$, and the approximation after 5 iterations is $m_5 \approx 1.5156$, with error $\approx 0.006$.
+딱 맞는 뿌리는 $c^* \approx 1.5214$이고 다섯 번 돈 뒤의 어림은 $m_5 \approx 1.5156$으로 어긋남은 $\approx 0.006$이다.
 
 ## 이분 찾기와의 이음
 
@@ -141,7 +141,7 @@ The exact root is $c^* \approx 1.5214$, and the approximation after 5 iterations
 | 자리 | 띄엄띄엄한 정렬 배열 | 이어진 구간 |
 | 조건 | 찾는 값과의 견줌 | 함숫값의 부호 |
 | 쪼개기 | 가운뎃점 번호 | 구간의 가운뎃점 |
-| Convergence | Exact in $O(\log n)$ steps | Approximate: error halves each step |
+| 모여듦 | $O(\log n)$ 걸음에 딱 맞게 | 어림: 걸음마다 어긋남이 반으로 준다 |
 | 보장 | 찾는 값이 있으면 옳다 | $f$이 이어져 있고 부호가 바뀌면 모인다 |
 
 두 알고리즘 모두 단조성을 써먹어 단계마다 찾을 자리를 반으로 줄인다. [틀 쪽](binary_search_template.md)의 이분 찾기 틀은 반씩 자르기의 띄엄띄엄한 판으로 볼 수 있다.
@@ -149,12 +149,12 @@ The exact root is $c^* \approx 1.5214$, and the approximation after 5 iterations
 ## 한계
 
 - **뿌리 하나만 찾는다**: $[a, b]$에서 $f$의 뿌리가 여럿이면 반씩 자르기는 하나만 찾는다.
-- **Requires sign change**: if $f$ touches zero without crossing (e.g., $f(x) = x^2$ at $x = 0$), bisection cannot detect the root.
+- **부호가 바뀌어야 한다**: $f$이 0을 가로지르지 않고 닿기만 하면($x = 0$에서의 $f(x) = x^2$ 따위) 반 자르기로는 뿌리를 알아낼 수 없다.
 - **한 줄로 모임**: 높은 정밀도를 얻으려면 바퀴를 많이 돌아야 한다. 실전에서는 좋은 첫 구간을 잡는 데 쓰고 그 뒤 뉴턴 같은 더 빠른 방법으로 다듬는 경우가 많다.
 
 ## 요약
 
-The bisection method applies the divide-and-conquer strategy to continuous root finding. By repeatedly halving an interval where a sign change occurs, it converges to a root at a rate of one bit of accuracy per iteration. The method requires $\lceil \log_2((b-a)/\epsilon) \rceil$ iterations to achieve tolerance $\epsilon$ and is guaranteed to converge for any continuous function satisfying the sign-change condition.
+반 자르기 방법은 나누어 다스리기 꾀를 이어진 함수의 뿌리 찾기에 쓴다. 부호가 바뀌는 구간을 거듭 반으로 자르며 되돌이마다 1비트씩 더 맞게 뿌리에 모여든다. 봐주는 값 $\epsilon$을 이루려면 $\lceil \log_2((b-a)/\epsilon) \rceil$ 번 돌아야 하고, 부호 바뀜 조건을 채우는 이어진 함수라면 반드시 모여든다.
 
 ## 참고 문헌
 
@@ -167,7 +167,7 @@ The bisection method applies the divide-and-conquer strategy to continuous root 
 반씩 자르기 방법의 핵심 생각과 그 시간 복잡도를 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    Bisection Method applies the divide-and-conquer paradigm: split the problem into smaller subproblems, solve them recursively, and combine the results. The time complexity is determined by the recurrence relation governing the subproblem sizes and the combination cost. The Master Theorem or recursion tree analysis typically gives the closed-form complexity. $\square$
+    반 자르기 방법은 나누어 다스리기 틀을 쓴다. 문제를 더 작은 잔문제로 쪼개고, 되부르며 풀고, 그 결과를 아우른다. 때 복잡도는 잔문제의 크기와 아우르는 값을 다스리는 되돌이 식이 정한다. 흔히 으뜸 정리나 되부름 나무 살피기로 닫힌 꼴의 복잡도를 얻는다. $\square$
 
 ---
 
@@ -175,7 +175,7 @@ The bisection method applies the divide-and-conquer strategy to continuous root 
 반씩 자르기 방법의 되돌이 관계식을 쓰고 마스터 정리로 풀어라.
 
 ??? success "연습문제 2 풀이"
-    The recurrence depends on the specific algorithm's division strategy (number of subproblems $a$, size reduction factor $b$, and combination cost $f(n)$). Apply the Master Theorem: compare $f(n)$ with $n^{\log_b a}$ to determine which case applies. If $f(n) = \Theta(n^{\log_b a})$ (case 2), $T(n) = \Theta(n^{\log_b a} \log n)$. $\square$
+    되돌이 식은 그 알고리즘이 어떻게 나누는지에 달려 있다(잔문제의 수 $a$, 크기를 줄이는 값 $b$, 아우르는 값 $f(n)$). 으뜸 정리를 쓴다. $f(n)$을 $n^{\log_b a}$과 견주어 어느 갈래인지 가린다. $f(n) = \Theta(n^{\log_b a})$이면(둘째 갈래) $T(n) = \Theta(n^{\log_b a} \log n)$이다. $\square$
 
 ---
 
@@ -183,7 +183,7 @@ The bisection method applies the divide-and-conquer strategy to continuous root 
 반씩 자르기 방법이 막무가내 방식보다 나은 장면을 설명하여라. 얼마나 빨라지는지 수로 나타내어라.
 
 ??? success "연습문제 3 풀이"
-    The brute-force approach typically runs in $O(n^2)$ or worse. The divide-and-conquer approach achieves a lower complexity by reducing redundant computation through recursive decomposition. For input size $n = 10^6$, the difference between $O(n^2) = 10^{12}$ and $O(n \log n) = 2 \times 10^7$ operations is a factor of $50{,}000$. $\square$
+    막무가내로 하는 길은 흔히 $O(n^2)$ 이상이 든다. 나누어 다스리는 길은 되부르며 쪼개어 군더더기 셈을 줄이므로 복잡도가 더 낮다. 들임 크기가 $n = 10^6$이면 $O(n^2) = 10^{12}$과 $O(n \log n) = 2 \times 10^7$의 차이는 $50{,}000$ 곱절이다. $\square$
 
 ---
 
@@ -191,4 +191,4 @@ The bisection method applies the divide-and-conquer strategy to continuous root 
 반씩 자르기 방법의 바탕 경우는 무엇인가? 그것이 알고리즘 전체의 옳음에 어떤 영향을 주는가?
 
 ??? success "연습문제 4 풀이"
-    Base cases handle inputs too small to subdivide further (typically $n \leq 1$ or $n \leq 2$). They must return correct results directly. Without proper base cases, the recursion never terminates. Choosing a larger base case (e.g., $n \leq 10$) and switching to a simpler algorithm can improve practical performance by reducing recursion overhead while maintaining the same asymptotic complexity. $\square$
+    밑 자리는 더 나눌 수 없을 만큼 작은 들임을 다룬다(흔히 $n \leq 1$이나 $n \leq 2$). 이때는 옳은 결과를 곧바로 돌려주어야 한다. 밑 자리가 제대로 없으면 되부름이 끝나지 않는다. 밑 자리를 더 크게 잡고($n \leq 10$ 따위) 더 단순한 알고리즘으로 갈아타면 같은 점근 복잡도를 지키면서 되부름 덤을 줄여 참으로 더 빠르게 할 수 있다. $\square$

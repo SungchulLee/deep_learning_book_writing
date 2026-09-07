@@ -1,18 +1,18 @@
 # 이분 찾기
 
-Searching for a specific value in an unsorted array requires examining every element, taking $O(n)$ time in the worst case. When the array is **sorted**, however, we can exploit the ordering to eliminate half of the remaining elements at each step. This idea -- binary search -- is one of the simplest and most powerful applications of the divide-and-conquer paradigm, reducing the search time from $O(n)$ to $O(\log n)$.
+줄 세우지 않은 배열에서 어떤 값을 찾으려면 원소를 모두 살펴야 하므로 가장 나쁠 때 $O(n)$ 때가 든다. 그러나 배열이 **줄 세워져** 있으면 그 차례를 써서 걸음마다 남은 원소의 반을 없앨 수 있다. 이 깨침이 바로 이분 찾기이며, 나누어 다스리기 틀을 가장 단순하고 힘세게 쓴 보기의 하나로 찾는 때를 $O(n)$에서 $O(\log n)$으로 줄인다.
 
 ## 문제 서술
 
-Given a sorted array $A[0 \,..\, n-1]$ in non-decreasing order and a target value $x$, determine whether $x$ is present in $A$. If so, return an index $i$ such that $A[i] = x$; otherwise, indicate that $x$ is absent.
+줄어들지 않는 차례로 줄 세운 배열 $A[0 \,..\, n-1]$과 과녁 값 $x$이 주어졌을 때 $x$이 $A$ 안에 있는지 가려라. 있으면 $A[i] = x$인 자리 번호 $i$을 돌려주고, 없으면 $x$이 없다고 알려라.
 
 ## 알고리즘
 
-Binary search maintains two pointers, $l$ (left) and $r$ (right), that bound the subarray where $x$ could reside. At each step, it computes the midpoint $m = \lfloor (l + r) / 2 \rfloor$ and compares $A[m]$ with $x$:
+이분 찾기는 $x$이 있을 만한 잔배열을 옭아매는 가리개 둘, $l$(왼쪽)과 $r$(오른쪽)을 지닌다. 걸음마다 가운데 자리 $m = \lfloor (l + r) / 2 \rfloor$을 셈하고 $A[m]$을 $x$과 견준다.
 
 - $A[m] = x$이면 찾기가 성공한다.
-- If $A[m] < x$, then $x$ can only be in $A[m+1 \,..\, r]$, so set $l = m + 1$.
-- If $A[m] > x$, then $x$ can only be in $A[l \,..\, m-1]$, so set $r = m - 1$.
+- $A[m] < x$이면 $x$은 $A[m+1 \,..\, r]$에만 있을 수 있으므로 $l = m + 1$으로 둔다.
+- $A[m] > x$이면 $x$은 $A[l \,..\, m-1]$에만 있을 수 있으므로 $r = m - 1$으로 둔다.
 
 $l > r$이면 찾을 자리가 비었다는 뜻이고 $x$이 배열에 없으므로 찾기가 끝난다.
 
@@ -73,23 +73,23 @@ def binary_search(arr, target):
 
 **되풀이 불변량**으로 옳음을 증명한다.
 
-**Loop invariant.** At the start of each iteration of the `while` loop, if $x$ is in $A$, then $x \in A[l \,..\, r]$.
+**되돌이 안 바뀜.** `while` 되돌이가 돌 때마다 그 첫머리에서, $x$이 $A$ 안에 있다면 $x \in A[l \,..\, r]$이다.
 
-**Initialization.** Before the first iteration, $l = 0$ and $r = n - 1$, so the invariant holds trivially: if $x$ is in $A$, it is in $A[0 \,..\, n-1]$.
+**첫자리.** 첫 되돌이 앞에서는 $l = 0$, $r = n - 1$이므로 안 바뀜이 저절로 이루어진다. $x$이 $A$ 안에 있다면 $A[0 \,..\, n-1]$ 안에 있다.
 
-**Maintenance.** Suppose the invariant holds at the start of an iteration. We compute $m = \lfloor (l + r) / 2 \rfloor$.
+**지킴.** 어떤 되돌이의 첫머리에서 안 바뀜이 이루어진다고 하자. $m = \lfloor (l + r) / 2 \rfloor$을 셈한다.
 
 - $A[m] = x$이면 $m$을 돌려주며, 이는 옳다.
-- If $A[m] < x$, then because $A$ is sorted, $x \notin A[l \,..\, m]$. Setting $l = m + 1$ preserves the invariant.
-- If $A[m] > x$, then $x \notin A[m \,..\, r]$. Setting $r = m - 1$ preserves the invariant.
+- $A[m] < x$이면 $A$이 줄 세워져 있으므로 $x \notin A[l \,..\, m]$이다. $l = m + 1$으로 두면 안 바뀜이 지켜진다.
+- $A[m] > x$이면 $x \notin A[m \,..\, r]$이다. $r = m - 1$으로 두면 안 바뀜이 지켜진다.
 
-**Termination.** The loop terminates when $l > r$. By the invariant, if $x$ were in $A$, it would be in $A[l \,..\, r]$. But $l > r$ means this subarray is empty, so $x \notin A$. Returning `NOT-FOUND` is correct. $\square$
+**끝남.** 되돌이는 $l > r$일 때 끝난다. 안 바뀜에 따라 $x$이 $A$ 안에 있었다면 $A[l \,..\, r]$ 안에 있어야 한다. 그런데 $l > r$이면 이 잔배열이 비어 있으므로 $x \notin A$이다. 따라서 `NOT-FOUND`을 돌려주는 것이 옳다. $\square$
 
 ## 복잡도 분석
 
 ### 시간 복잡도
 
-Each iteration halves the search space. After $k$ iterations, the remaining search space has size at most $\lfloor n / 2^k \rfloor$. The loop terminates when this size drops to zero, which happens when $2^k > n$, i.e., after $k = \lfloor \log_2 n \rfloor + 1$ iterations.
+되돌이마다 찾을 자리가 반으로 준다. $k$ 번 돌고 나면 남은 찾을 자리의 크기는 많아야 $\lfloor n / 2^k \rfloor$이다. 이 크기가 0이 되면 되돌이가 끝나는데, 이는 $2^k > n$일 때, 곧 $k = \lfloor \log_2 n \rfloor + 1$ 번 돈 뒤다.
 
 바퀴마다 $O(1)$의 품(견줌 한 번, 가운뎃점 셈 한 번, 가리개 고침 한 번)이 드므로 전체 시간은 다음과 같다
 
@@ -103,7 +103,7 @@ $$
 T(n) = T\!\left(\frac{n}{2}\right) + O(1)
 $$
 
-By the Master Theorem (case 2, with $a = 1$, $b = 2$, $\log_b a = 0$, and $f(n) = O(1) = O(n^0)$):
+으뜸 정리(둘째 갈래, $a = 1$, $b = 2$, $\log_b a = 0$, $f(n) = O(1) = O(n^0)$)에 따라
 
 $$
 T(n) = O(\log n)
@@ -111,11 +111,11 @@ $$
 
 ### 공간 복잡도
 
-The iterative implementation uses $O(1)$ auxiliary space. The recursive version (covered on the [Binary Search - Recursive](binary_search_recursive.md) page) uses $O(\log n)$ stack space.
+되돌이로 짠 것은 덧붙은 자리를 $O(1)$만큼 쓴다. 되부름으로 짠 것([되부르는 이분 찾기](binary_search_recursive.md) 쪽에서 다룬다)은 쌓개 자리를 $O(\log n)$만큼 쓴다.
 
 ### 아래 한계
 
-Any comparison-based search algorithm on a sorted array must make at least $\lceil \log_2(n + 1) \rceil$ comparisons in the worst case, because each comparison yields at most one bit of information, and there are $n + 1$ possible outcomes (found at one of $n$ positions, or not found). Binary search matches this lower bound and is therefore **optimal** among comparison-based search algorithms.
+줄 세운 배열에서 견줌을 바탕으로 찾는 어떤 알고리즘도 가장 나쁠 때 적어도 $\lceil \log_2(n + 1) \rceil$ 번 견주어야 한다. 견줌 한 번이 주는 소식은 많아야 1비트이고, 나올 수 있는 결과는 $n + 1$ 가지($n$ 자리 가운데 하나에서 찾거나 못 찾거나)이기 때문이다. 이분 찾기는 이 아래 테두리에 딱 맞으므로 견줌 바탕 찾기 알고리즘 가운데 **가장 좋다**.
 
 ## 풀이 예제
 
@@ -127,7 +127,7 @@ $n = 10$인 정렬된 배열 $A = [2, 5, 8, 12, 16, 23, 38, 56, 72, 91]$에서 $
 | 2 | 5 | 9 | 7 | 56 | $56 > 23$, $r = 6$으로 |
 | 3 | 5 | 6 | 5 | 23 | $23 = 23$, $5$을 돌려줌 |
 
-The search finds $x = 23$ at index 5 in 3 iterations, consistent with $\lfloor \log_2 10 \rfloor + 1 = 4$ maximum iterations.
+찾기는 세 번 돌아 자리 번호 5에서 $x = 23$을 찾는데, 이는 가장 많아야 $\lfloor \log_2 10 \rfloor + 1 = 4$ 번 돈다는 것과 어긋나지 않는다.
 
 ## 나누어 이기기 관점
 
@@ -137,11 +137,11 @@ The search finds $x = 23$ at index 5 in 3 iterations, consistent with $\lfloor \
 - **이기기**: 작은 문제 정확히 하나(왼쪽 반이나 오른쪽 반)에 되돌이한다.
 - **아우르기**: 할 일이 없다. 곧 작은 문제의 답이 본디 문제의 답이다.
 
-Because only one subproblem is solved at each level ($a = 1$), the total work is proportional to the depth of the recursion, which is $O(\log n)$.
+켜마다 잔문제를 하나만 풀므로($a = 1$) 온 일감은 되부름의 깊이에 비례하고, 그 깊이는 $O(\log n)$이다.
 
 ## 요약
 
-Binary search exploits the sorted order of an array to halve the search space at each step, achieving $O(\log n)$ time complexity. Its correctness follows from a simple loop invariant, and its efficiency matches the information-theoretic lower bound for comparison-based search.
+이분 찾기는 배열이 줄 세워진 차례를 써서 걸음마다 찾을 자리를 반으로 줄이며 $O(\log n)$ 때 복잡도를 이룬다. 옳음은 단순한 되돌이 안 바뀜에서 따라 나오고, 잘 듦은 견줌 바탕 찾기의 소식 이론 아래 테두리에 딱 맞는다.
 
 ## 참고 문헌
 
@@ -153,15 +153,15 @@ Binary search exploits the sorted order of an array to halve the search space at
 정렬된 배열 $[2, 5, 8, 12, 16, 23, 38, 56, 72, 91]$에서 23을 찾는 이분 찾기를 좇아라. 견줌은 몇 번 필요한가?
 
 ??? success "연습문제 1 풀이"
-    Low=0, high=9, mid=4 (value 16 < 23). Low=5, high=9, mid=7 (value 56 > 23). Low=5, high=6, mid=5 (value 23 = 23). Found at index 5 in 3 comparisons. Binary search halves the search space each time, so at most $\lceil \log_2 10 \rceil = 4$ comparisons are needed for 10 elements. $\square$
+    low=0, high=9, mid=4(값 16 < 23). low=5, high=9, mid=7(값 56 > 23). low=5, high=6, mid=5(값 23 = 23). 견줌 세 번 만에 자리 번호 5에서 찾았다. 이분 찾기는 찾을 자리를 매번 반으로 줄이므로 원소 10개에는 많아야 $\lceil \log_2 10 \rceil = 4$ 번 견주면 된다. $\square$
 
 ---
 
 **연습문제 2.**
-Prove that binary search on a sorted array of $n$ elements runs in $O(\log n)$ time.
+원소가 $n$개인 줄 세운 배열에서 이분 찾기가 $O(\log n)$ 때에 도는 것을 밝혀라.
 
 ??? success "연습문제 2 풀이"
-    At each step, the search range $[\text{low}, \text{high}]$ is halved. Starting with $n$ elements, after $k$ steps the range has at most $n/2^k$ elements. The algorithm terminates when the range is empty or the target is found. The range becomes empty when $n/2^k < 1$, i.e., $k > \log_2 n$. Therefore at most $\lceil \log_2 n \rceil + 1$ iterations are needed: $O(\log n)$. $\square$
+    걸음마다 찾을 구간 $[\text{low}, \text{high}]$이 반으로 준다. 원소 $n$개에서 비롯하면 $k$ 걸음 뒤 구간에는 많아야 $n/2^k$개가 남는다. 알고리즘은 구간이 비거나 과녁을 찾으면 끝난다. 구간이 비는 때는 $n/2^k < 1$, 곧 $k > \log_2 n$일 때다. 그러므로 많아야 $\lceil \log_2 n \rceil + 1$ 번 돌면 되니 $O(\log n)$이다. $\square$
 
 ---
 
@@ -190,7 +190,7 @@ Prove that binary search on a sorted array of $n$ elements runs in $O(\log n)$ t
 ---
 
 **연습문제 4.**
-Prove that binary search is optimal: no comparison-based search on a sorted array can do better than $\Omega(\log n)$ in the worst case.
+이분 찾기가 가장 좋음을 밝혀라. 곧 줄 세운 배열에서 견줌을 바탕으로 찾는 어떤 방법도 가장 나쁠 때 $\Omega(\log n)$보다 나을 수 없음을 보여라.
 
 ??? success "연습문제 4 풀이"
-    Any comparison-based algorithm can be modeled as a binary decision tree. Each internal node represents a comparison with two outcomes. To distinguish among $n$ possible positions, the tree must have at least $n$ leaves. A binary tree with $n$ leaves has height at least $\lceil \log_2 n \rceil$. The worst case follows the longest root-to-leaf path, requiring at least $\lceil \log_2 n \rceil$ comparisons. Therefore $\Omega(\log n)$ comparisons are necessary. $\square$
+    견줌 바탕 알고리즘은 모두 이진 판단 나무로 그릴 수 있다. 안쪽 마디마다 결과가 둘인 견줌 하나를 나타낸다. 있을 수 있는 자리 $n$개를 가려내려면 나무에 잎이 적어도 $n$개 있어야 한다. 잎이 $n$개인 이진 나무의 높이는 적어도 $\lceil \log_2 n \rceil$이다. 가장 나쁠 때는 뿌리에서 잎까지 가장 긴 길을 따르므로 적어도 $\lceil \log_2 n \rceil$ 번 견주어야 한다. 그러므로 $\Omega(\log n)$ 번의 견줌이 든다. $\square$

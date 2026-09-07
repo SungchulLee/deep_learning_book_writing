@@ -159,15 +159,15 @@ peak(np_array_2d)
 1차원 배열의 봉우리 찾기 문제를 정의하고 봉우리가 늘 있는 까닭을 밝혀라.
 
 ??? success "연습문제 1 풀이"
-    A peak in a 1D array $A[0..n-1]$ is an element $A[i]$ such that $A[i] \geq A[i-1]$ and $A[i] \geq A[i+1]$ (with boundary conditions $A[-1] = A[n] = -\infty$). A peak always exists because: consider the global maximum element. It is at least as large as both its neighbors, so it is a peak. More formally, any finite array has a maximum, and the maximum satisfies the peak condition.
+    1차원 배열 $A[0..n-1]$에서 봉우리란 $A[i] \geq A[i-1]$이고 $A[i] \geq A[i+1]$인 원소 $A[i]$을 말한다(가장자리 조건은 $A[-1] = A[n] = -\infty$). 봉우리는 늘 있다. 온 배열에서 가장 큰 원소를 보면 두 이웃보다 작지 않으므로 봉우리다. 좀 더 엄밀히 말하면, 마디 있는 배열에는 반드시 가장 큰 값이 있고 그 값이 봉우리 조건을 채운다.
 
 ---
 
 **연습문제 2.**
-Explain how binary search finds a peak in $O(\log n)$ time. Why is the midpoint comparison sufficient to decide which half contains a peak?
+이분 찾기가 어떻게 $O(\log n)$ 때에 봉우리를 찾는지 밝혀라. 가운데 자리를 견주는 것만으로 어느 쪽 반에 봉우리가 있는지 정할 수 있는 까닭은 무엇인가?
 
 ??? success "연습문제 2 풀이"
-    Compare $A[\text{mid}]$ with its neighbors. If $A[\text{mid}] < A[\text{mid}+1]$, the right half (including $\text{mid}+1$) must contain a peak: either $A[\text{mid}+1]$ is a peak, or values keep increasing until they must eventually decrease (at the boundary), creating a peak. Similarly, if $A[\text{mid}] < A[\text{mid}-1]$, the left half contains a peak. If neither neighbor is larger, $A[\text{mid}]$ itself is a peak. Each comparison halves the search space, giving $O(\log n)$ time.
+    $A[\text{mid}]$을 그 이웃과 견준다. $A[\text{mid}] < A[\text{mid}+1]$이면 오른쪽 반($\text{mid}+1$을 넣어)에 봉우리가 반드시 있다. $A[\text{mid}+1]$이 봉우리이거나, 값이 계속 오르다가 마침내 가장자리에서 내려가면서 봉우리를 이루기 때문이다. 마찬가지로 $A[\text{mid}] < A[\text{mid}-1]$이면 왼쪽 반에 봉우리가 있다. 두 이웃이 모두 크지 않으면 $A[\text{mid}]$ 자신이 봉우리다. 견줌마다 찾을 자리가 반으로 주므로 $O(\log n)$ 때가 든다.
 
 ---
 
@@ -175,7 +175,7 @@ Explain how binary search finds a peak in $O(\log n)$ time. Why is the midpoint 
 봉우리 찾기 알고리즘을 2차원으로 넓혀라. 나누어 이기기 방식의 시간 복잡도는 무엇인가?
 
 ??? success "연습문제 3 풀이"
-    For an $n \times m$ matrix, find the maximum in the middle column ($O(n)$ time), then compare with horizontal neighbors. If a neighbor is larger, recurse on that half of the columns. Finding the column max ensures we move toward a 2D peak. Recurrence: $T(n, m) = T(n, m/2) + O(n)$, giving $O(n \log m)$. Alternatively, alternating between row and column searches gives $O(n + m)$ or $O(\max(n,m))$ depending on the strategy.
+    $n \times m$ 행렬에서는 가운데 열의 가장 큰 값을 찾고($O(n)$ 때) 좌우 이웃과 견준다. 이웃이 더 크면 그쪽 절반의 열에서 되부른다. 열의 가장 큰 값을 잡으면 2차원 봉우리 쪽으로 나아감이 보장된다. 되돌이 식은 $T(n, m) = T(n, m/2) + O(n)$이므로 $O(n \log m)$이다. 아니면 행 찾기와 열 찾기를 번갈아 하면 꾀에 따라 $O(n + m)$이나 $O(\max(n,m))$이 된다.
 
 ---
 
@@ -200,4 +200,4 @@ Explain how binary search finds a peak in $O(\log n)$ time. Why is the midpoint 
     assert find_peak([1, 2, 3, 4, 5]) == 4  # 오른쪽 테두리의 봉우리
     assert find_peak([1, 2, 2, 2, 1]) in [1, 2, 3]  # 평평한 곳
     ```
-    The algorithm correctly handles boundary peaks by the boundary condition $A[-1] = A[n] = -\infty$.
+    가장자리 조건 $A[-1] = A[n] = -\infty$ 덕에 알고리즘은 가장자리 봉우리도 옳게 다룬다.

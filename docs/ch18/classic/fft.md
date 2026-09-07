@@ -1,10 +1,10 @@
 # 빠른 푸리에 변환
 
-Multiplying two polynomials of degree $n$ takes $O(n^2)$ using the standard coefficient-by-coefficient approach. The **Fast Fourier Transform** (FFT) reduces this to $O(n \log n)$ by exploiting the algebraic structure of the **roots of unity**. The core idea is to evaluate both polynomials at $n$ special points, multiply pointwise in $O(n)$ time, then interpolate back to coefficient form, with each transformation taking $O(n \log n)$.
+차수가 $n$인 두 다항식을 여느 방식으로 계수마다 곱하면 $O(n^2)$이 든다. **빠른 푸리에 옮김**(FFT)은 **1의 거듭제곱근**이 지닌 대수 얼개를 써서 이를 $O(n \log n)$으로 줄인다. 고갱이 깨침은 두 다항식을 남다른 점 $n$개에서 값매김하고, $O(n)$ 때에 점마다 곱한 뒤, 다시 계수 꼴로 되돌리는 것이며, 옮김마다 $O(n \log n)$이 든다.
 
 ## 띄엄띄엄 푸리에 변환
 
-Given a sequence $a = (a_0, a_1, \dots, a_{n-1})$, the **Discrete Fourier Transform** (DFT) evaluates the polynomial $A(x) = \sum_{k=0}^{n-1} a_k x^k$ at the $n$-th roots of unity $\omega_n^0, \omega_n^1, \dots, \omega_n^{n-1}$, where:
+이음 $a = (a_0, a_1, \dots, a_{n-1})$이 주어졌을 때 **따로 떨어진 푸리에 옮김**(DFT)은 다항식 $A(x) = \sum_{k=0}^{n-1} a_k x^k$을 1의 $n$제곱근 $\omega_n^0, \omega_n^1, \dots, \omega_n^{n-1}$에서 값매김한다. 여기서
 
 $$
 \omega_n = e^{2\pi i / n}
@@ -16,7 +16,7 @@ $$
 \hat{a}_j = A(\omega_n^j) = \sum_{k=0}^{n-1} a_k \, \omega_n^{jk} \quad \text{for } j = 0, 1, \dots, n-1
 $$
 
-Computing all $n$ values naively takes $O(n^2)$. The FFT computes the same result in $O(n \log n)$.
+값 $n$개를 손쉽게 셈하면 $O(n^2)$이 든다. FFT은 같은 결과를 $O(n \log n)$에 셈한다.
 
 ## 쿨리-투키 알고리즘
 
@@ -28,7 +28,7 @@ $$
 
 where $A_{\text{even}}(y) = a_0 + a_2 y + a_4 y^2 + \cdots$ and $A_{\text{odd}}(y) = a_1 + a_3 y + a_5 y^2 + \cdots$.
 
-Evaluating $A$ at all $n$-th roots of unity reduces to evaluating $A_{\text{even}}$ and $A_{\text{odd}}$ at the $(n/2)$-th roots of unity, because $(\omega_n^j)^2 = \omega_{n/2}^j$.
+$(\omega_n^j)^2 = \omega_{n/2}^j$이므로, $A$을 1의 $n$제곱근 모두에서 값매김하는 일은 $A_{\text{even}}$과 $A_{\text{odd}}$을 1의 $(n/2)$제곱근에서 값매김하는 일로 줄어든다.
 
 **나비 연산**이 반 크기의 두 결과를 아우른다:
 
@@ -40,7 +40,7 @@ $$
 A(\omega_n^{j + n/2}) = A_{\text{even}}(\omega_{n/2}^j) - \omega_n^j \cdot A_{\text{odd}}(\omega_{n/2}^j)
 $$
 
-This gives the recurrence $T(n) = 2T(n/2) + O(n) = O(n \log n)$.
+그러면 되돌이 식 $T(n) = 2T(n/2) + O(n) = O(n \log n)$을 얻는다.
 
 ## 거꿀 빠른 푸리에 변환
 
@@ -50,7 +50,7 @@ $$
 a_k = \frac{1}{n} \sum_{j=0}^{n-1} \hat{a}_j \, \omega_n^{-jk}
 $$
 
-This has the same structure as the forward DFT but with $\omega_n^{-1}$ instead of $\omega_n$ and a $1/n$ scaling factor. The same FFT algorithm computes the inverse with these two modifications.
+이는 앞으로 가는 DFT과 얼개가 같되 $\omega_n$ 대신 $\omega_n^{-1}$을 쓰고 $1/n$을 곱한다. 이 두 가지만 고치면 같은 FFT 알고리즘으로 거꾸로 옮김도 셈할 수 있다.
 
 ## 빠른 푸리에 변환으로 하는 다항식 곱셈
 
@@ -58,7 +58,7 @@ This has the same structure as the forward DFT but with $\omega_n^{-1}$ instead 
 
 1. 계수를 길이 $2n$(2의 거듭제곱)까지 덧댄다.
 2. Compute $\hat{A} = \text{FFT}(a)$ and $\hat{B} = \text{FFT}(b)$.
-3. Multiply pointwise: $\hat{C}_j = \hat{A}_j \cdot \hat{B}_j$.
+3. 점마다 곱한다: $\hat{C}_j = \hat{A}_j \cdot \hat{B}_j$.
 4. Compute $c = \text{IFFT}(\hat{C})$.
 
 Total time: $O(n \log n)$.
@@ -162,7 +162,7 @@ Expected: [4, 13, 22, 15]
 Match: True
 ```
 
-The FFT-based multiplication correctly computes $(1 + 2x + 3x^2)(4 + 5x) = 4 + 13x + 22x^2 + 15x^3$.
+FFT 바탕 곱하기는 $(1 + 2x + 3x^2)(4 + 5x) = 4 + 13x + 22x^2 + 15x^3$을 옳게 셈한다.
 
 ## 복잡도
 
@@ -171,7 +171,7 @@ The FFT-based multiplication correctly computes $(1 + 2x + 3x^2)(4 + 5x) = 4 + 1
 | Time   | $O(n \log n)$ |
 | 공간 | $O(n)$ |
 
-The recursive FFT makes two calls of size $n/2$ and does $O(n)$ work at each level, giving $O(n \log n)$ total. An iterative (bottom-up) version avoids recursion overhead.
+되부르는 FFT은 크기 $n/2$인 부름을 둘 하고 켜마다 $O(n)$ 일감을 하므로 모두 $O(n \log n)$이다. 되돌이로(아래에서 위로) 짜면 되부름 덤을 피할 수 있다.
 
 ## 응용
 
@@ -191,7 +191,7 @@ The recursive FFT makes two calls of size $n/2$ and does $O(n)$ work at each lev
 빠른 푸리에 변환의 핵심 생각과 그 시간 복잡도를 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    Fast Fourier Transform applies the divide-and-conquer paradigm: split the problem into smaller subproblems, solve them recursively, and combine the results. The time complexity is determined by the recurrence relation governing the subproblem sizes and the combination cost. The Master Theorem or recursion tree analysis typically gives the closed-form complexity. $\square$
+    빠른 푸리에 옮김은 나누어 다스리기 틀을 쓴다. 문제를 더 작은 잔문제로 쪼개고, 되부르며 풀고, 그 결과를 아우른다. 때 복잡도는 잔문제의 크기와 아우르는 값을 다스리는 되돌이 식이 정한다. 흔히 으뜸 정리나 되부름 나무 살피기로 닫힌 꼴의 복잡도를 얻는다. $\square$
 
 ---
 
@@ -199,7 +199,7 @@ The recursive FFT makes two calls of size $n/2$ and does $O(n)$ work at each lev
 빠른 푸리에 변환의 되돌이 관계식을 쓰고 마스터 정리로 풀어라.
 
 ??? success "연습문제 2 풀이"
-    The recurrence depends on the specific algorithm's division strategy (number of subproblems $a$, size reduction factor $b$, and combination cost $f(n)$). Apply the Master Theorem: compare $f(n)$ with $n^{\log_b a}$ to determine which case applies. If $f(n) = \Theta(n^{\log_b a})$ (case 2), $T(n) = \Theta(n^{\log_b a} \log n)$. $\square$
+    되돌이 식은 그 알고리즘이 어떻게 나누는지에 달려 있다(잔문제의 수 $a$, 크기를 줄이는 값 $b$, 아우르는 값 $f(n)$). 으뜸 정리를 쓴다. $f(n)$을 $n^{\log_b a}$과 견주어 어느 갈래인지 가린다. $f(n) = \Theta(n^{\log_b a})$이면(둘째 갈래) $T(n) = \Theta(n^{\log_b a} \log n)$이다. $\square$
 
 ---
 
@@ -207,7 +207,7 @@ The recursive FFT makes two calls of size $n/2$ and does $O(n)$ work at each lev
 빠른 푸리에 변환이 막무가내 방식보다 나은 장면을 설명하여라. 얼마나 빨라지는지 수로 나타내어라.
 
 ??? success "연습문제 3 풀이"
-    The brute-force approach typically runs in $O(n^2)$ or worse. The divide-and-conquer approach achieves a lower complexity by reducing redundant computation through recursive decomposition. For input size $n = 10^6$, the difference between $O(n^2) = 10^{12}$ and $O(n \log n) = 2 \times 10^7$ operations is a factor of $50{,}000$. $\square$
+    막무가내로 하는 길은 흔히 $O(n^2)$ 이상이 든다. 나누어 다스리는 길은 되부르며 쪼개어 군더더기 셈을 줄이므로 복잡도가 더 낮다. 들임 크기가 $n = 10^6$이면 $O(n^2) = 10^{12}$과 $O(n \log n) = 2 \times 10^7$의 차이는 $50{,}000$ 곱절이다. $\square$
 
 ---
 
@@ -215,4 +215,4 @@ The recursive FFT makes two calls of size $n/2$ and does $O(n)$ work at each lev
 빠른 푸리에 변환의 바탕 경우는 무엇인가? 그것이 알고리즘 전체의 옳음에 어떤 영향을 주는가?
 
 ??? success "연습문제 4 풀이"
-    Base cases handle inputs too small to subdivide further (typically $n \leq 1$ or $n \leq 2$). They must return correct results directly. Without proper base cases, the recursion never terminates. Choosing a larger base case (e.g., $n \leq 10$) and switching to a simpler algorithm can improve practical performance by reducing recursion overhead while maintaining the same asymptotic complexity. $\square$
+    밑 자리는 더 나눌 수 없을 만큼 작은 들임을 다룬다(흔히 $n \leq 1$이나 $n \leq 2$). 이때는 옳은 결과를 곧바로 돌려주어야 한다. 밑 자리가 제대로 없으면 되부름이 끝나지 않는다. 밑 자리를 더 크게 잡고($n \leq 10$ 따위) 더 단순한 알고리즘으로 갈아타면 같은 점근 복잡도를 지키면서 되부름 덤을 줄여 참으로 더 빠르게 할 수 있다. $\square$

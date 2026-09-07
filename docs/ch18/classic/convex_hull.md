@@ -4,7 +4,7 @@
 
 ## 정의
 
-The **convex hull** of a point set $P \subset \mathbb{R}^2$ is the smallest convex set containing $P$. A set $S$ is convex if for every pair of points $a, b \in S$, the line segment $\overline{ab}$ lies entirely within $S$. The boundary of the convex hull is a convex polygon whose vertices are a subset of $P$.
+점 묶음 $P \subset \mathbb{R}^2$의 **볼록 껍질**은 $P$을 담는 가장 작은 볼록 묶음이다. 묶음 $S$이 볼록하다는 것은 어떤 두 점 $a, b \in S$에 대해서도 선분 $\overline{ab}$이 온통 $S$ 안에 있다는 뜻이다. 볼록 껍질의 테두리는 꼭짓점이 $P$의 부분 묶음인 볼록 다각형이다.
 
 ## 벡터곱 시험
 
@@ -14,26 +14,26 @@ $$
 \text{cross}(O, A, B) = (A_x - O_x)(B_y - O_y) - (A_y - O_y)(B_x - O_x)
 $$
 
-This quantity equals the signed area of the parallelogram spanned by vectors $\overrightarrow{OA}$ and $\overrightarrow{OB}$:
+이 값은 벡터 $\overrightarrow{OA}$과 $\overrightarrow{OB}$이 펼치는 평행사변형의 부호 붙은 넓이와 같다.
 
-- **Positive**: $O \to A \to B$ makes a left (counterclockwise) turn.
-- **Negative**: $O \to A \to B$ makes a right (clockwise) turn.
+- **양수**: $O \to A \to B$이 왼쪽(반시계) 방향으로 꺾인다.
+- **음수**: $O \to A \to B$이 오른쪽(시계) 방향으로 꺾인다.
 - **0**: 세 점이 한 줄에 있다.
 
 ## 나누어 이기기 알고리즘
 
 고전 나누어 이기기 방식은 네 단계로 나아간다.
 
-**Step 1 -- Sort.** Sort all $n$ points by $x$-coordinate, breaking ties by $y$-coordinate. This takes $O(n \log n)$ time and needs to be done only once.
+**걸음 1 -- 줄 세우기.** 점 $n$개를 $x$ 자리 값으로 줄 세우고 같으면 $y$ 자리 값으로 가른다. $O(n \log n)$ 때가 들며 한 번만 하면 된다.
 
-**Step 2 -- Divide.** Split the sorted array at the median into a left half $P_L$ (indices $1$ to $\lfloor n/2 \rfloor$) and a right half $P_R$ (indices $\lfloor n/2 \rfloor + 1$ to $n$).
+**걸음 2 -- 나누기.** 줄 세운 배열을 가운뎃값에서 왼쪽 반 $P_L$(자리 번호 $1$부터 $\lfloor n/2 \rfloor$까지)과 오른쪽 반 $P_R$(자리 번호 $\lfloor n/2 \rfloor + 1$부터 $n$까지)으로 쪼갠다.
 
 **3단계 — 이기기.** 볼록 껍질 $H_L$과 $H_R$을 되돌이로 셈한다. 바탕 경우는 점이 하나, 둘, 셋인 모음이며 그 껍질은 아무것도 아니다.
 
 **4단계 — 어울리기.** 두 껍질 사이의 **위 접선**과 **아래 접선**을 찾아 $H_L$과 $H_R$을 껍질 하나로 아우른다. 접선을 찾는 절차는 다음과 같다:
 
 1. $H_L$의 가장 오른쪽 점 $p$과 $H_R$의 가장 왼쪽 점 $q$에서 시작한다.
-2. **Upper tangent**: While the line $\overline{pq}$ is not tangent to both hulls, repeatedly move $p$ counterclockwise around $H_L$ (as long as the cross product shows a left turn with the next vertex) and move $q$ clockwise around $H_R$ (as long as the cross product shows a right turn with the next vertex).
+2. **위쪽 맞닿는 금**: 금 $\overline{pq}$이 두 껍질에 모두 맞닿을 때까지, $p$을 $H_L$ 둘레로 반시계 방향으로(엇곱이 다음 꼭짓점과 왼쪽 꺾임을 보이는 동안) 옮기고 $q$을 $H_R$ 둘레로 시계 방향으로(엇곱이 다음 꼭짓점과 오른쪽 꺾임을 보이는 동안) 옮기기를 되풀이한다.
 3. **아래 접선**: 대칭인 절차를 써서 $p$은 시계 방향으로, $q$은 반시계 방향으로 옮긴다.
 4. $H_L$의 아래 접점부터 위 접점까지의 테두리 토막을 잇고, 이어서 $H_R$의 위 접점부터 아래 접점까지의 테두리 토막을 잇는다.
 
@@ -45,7 +45,7 @@ $$
 
 ## 앤드루의 단조 사슬
 
-Andrew's monotone chain achieves the same $O(n \log n)$ bound through a simpler implementation. Rather than recursively merging two hulls, it builds the **upper hull** and **lower hull** independently by scanning sorted points from left to right (lower hull) and right to left (upper hull). Each scan maintains a stack and uses the cross product test to discard points that would create a non-convex turn. The two half-hulls are then concatenated to form the complete hull.
+앤드루의 한 방향 사슬은 더 단순하게 짜면서 같은 $O(n \log n)$ 테두리를 이룬다. 두 껍질을 되부르며 합치는 대신, 줄 세운 점을 왼쪽에서 오른쪽으로 훑어 **아래 껍질**을, 오른쪽에서 왼쪽으로 훑어 **위 껍질**을 따로 짓는다. 훑을 때마다 쌓개를 지니며 엇곱 시험으로 볼록하지 않은 꺾임을 만드는 점을 버린다. 그다음 두 반 껍질을 이어 붙여 온전한 껍질을 만든다.
 
 이 방식은 나누어 이기기 전략과 가까이 이어져 있다. 곧 정렬 단계를 함께 쓰고, 반쪽 껍질을 세우는 일이 나누어 이기기의 어울리기가 위아래 테두리를 세우는 방식을 그대로 본뜬다. 단조 사슬은 시간 복잡도는 그대로면서 되돌이 어울리기의 잔손질을 피하므로 실전에서 대개 더 낫게 여긴다.
 
@@ -162,13 +162,13 @@ All points inside hull: True
 | Time   | $O(n \log n)$ |
 | 공간 | $O(n)$ |
 
-The sorting step dominates at $O(n \log n)$. The hull construction itself runs in $O(n)$ amortized time: each point enters the stack exactly once and is popped at most once, so the total number of push and pop operations across the entire scan is at most $2n$.
+줄 세우는 걸음이 $O(n \log n)$으로 가장 크다. 껍질을 짓는 일 자체는 고르게 나눈 때로 $O(n)$이다. 점마다 쌓개에 꼭 한 번 들어가고 많아야 한 번 빠지므로, 온 훑기에서 넣고 빼는 셈은 모두 많아야 $2n$ 번이다.
 
 ## 아래 한계
 
-Having established an $O(n \log n)$ algorithm, a natural question is whether any comparison-based algorithm can do better. The answer is no.
+$O(n \log n)$ 알고리즘을 세웠으니, 견줌 바탕 알고리즘이 이보다 나을 수 있는지 묻는 것이 자연스럽다. 답은 아니다.
 
-Computing the convex hull requires $\Omega(n \log n)$ time in the comparison model. The proof uses a reduction from sorting. Given $n$ numbers $x_1, \dots, x_n$, map each to the point $(x_i, x_i^2)$ on the parabola $y = x^2$. Because a parabola is strictly convex, every mapped point is a vertex of the hull, and the hull visits them in sorted order of $x$. Any convex hull algorithm therefore sorts $n$ numbers, which requires $\Omega(n \log n)$ comparisons.
+견줌 모형에서 볼록 껍질을 셈하려면 $\Omega(n \log n)$ 때가 든다. 밝히기는 줄 세우기로 되돌리는 길을 쓴다. 수 $n$개 $x_1, \dots, x_n$이 주어지면 저마다 포물선 $y = x^2$ 위의 점 $(x_i, x_i^2)$으로 옮긴다. 포물선은 반드시 볼록하므로 옮긴 점은 모두 껍질의 꼭짓점이 되고, 껍질은 이들을 $x$의 줄 세운 차례로 지난다. 그러므로 어떤 볼록 껍질 알고리즘도 수 $n$개를 줄 세우는 셈이며, 이는 $\Omega(n \log n)$ 번의 견줌을 든다.
 
 ## 참고 문헌
 
@@ -182,7 +182,7 @@ Computing the convex hull requires $\Omega(n \log n)$ time in the comparison mod
 나누어 이기기로 얻는 볼록 껍질의 핵심 생각과 그 시간 복잡도를 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    Convex Hull via Divide and Conquer applies the divide-and-conquer paradigm: split the problem into smaller subproblems, solve them recursively, and combine the results. The time complexity is determined by the recurrence relation governing the subproblem sizes and the combination cost. The Master Theorem or recursion tree analysis typically gives the closed-form complexity. $\square$
+    나누어 다스리는 볼록 껍질은 나누어 다스리기 틀을 쓴다. 문제를 더 작은 잔문제로 쪼개고, 되부르며 풀고, 그 결과를 아우른다. 때 복잡도는 잔문제의 크기와 아우르는 값을 다스리는 되돌이 식이 정한다. 흔히 으뜸 정리나 되부름 나무 살피기로 닫힌 꼴의 복잡도를 얻는다. $\square$
 
 ---
 
@@ -190,7 +190,7 @@ Computing the convex hull requires $\Omega(n \log n)$ time in the comparison mod
 나누어 이기기로 얻는 볼록 껍질의 되돌이 관계식을 쓰고 마스터 정리로 풀어라.
 
 ??? success "연습문제 2 풀이"
-    The recurrence depends on the specific algorithm's division strategy (number of subproblems $a$, size reduction factor $b$, and combination cost $f(n)$). Apply the Master Theorem: compare $f(n)$ with $n^{\log_b a}$ to determine which case applies. If $f(n) = \Theta(n^{\log_b a})$ (case 2), $T(n) = \Theta(n^{\log_b a} \log n)$. $\square$
+    되돌이 식은 그 알고리즘이 어떻게 나누는지에 달려 있다(잔문제의 수 $a$, 크기를 줄이는 값 $b$, 아우르는 값 $f(n)$). 으뜸 정리를 쓴다. $f(n)$을 $n^{\log_b a}$과 견주어 어느 갈래인지 가린다. $f(n) = \Theta(n^{\log_b a})$이면(둘째 갈래) $T(n) = \Theta(n^{\log_b a} \log n)$이다. $\square$
 
 ---
 
@@ -198,7 +198,7 @@ Computing the convex hull requires $\Omega(n \log n)$ time in the comparison mod
 나누어 이기기로 얻는 볼록 껍질이 막무가내 방식보다 나은 장면을 설명하여라. 얼마나 빨라지는지 수로 나타내어라.
 
 ??? success "연습문제 3 풀이"
-    The brute-force approach typically runs in $O(n^2)$ or worse. The divide-and-conquer approach achieves a lower complexity by reducing redundant computation through recursive decomposition. For input size $n = 10^6$, the difference between $O(n^2) = 10^{12}$ and $O(n \log n) = 2 \times 10^7$ operations is a factor of $50{,}000$. $\square$
+    막무가내로 하는 길은 흔히 $O(n^2)$ 이상이 든다. 나누어 다스리는 길은 되부르며 쪼개어 군더더기 셈을 줄이므로 복잡도가 더 낮다. 들임 크기가 $n = 10^6$이면 $O(n^2) = 10^{12}$과 $O(n \log n) = 2 \times 10^7$의 차이는 $50{,}000$ 곱절이다. $\square$
 
 ---
 
@@ -206,4 +206,4 @@ Computing the convex hull requires $\Omega(n \log n)$ time in the comparison mod
 나누어 이기기로 얻는 볼록 껍질의 바탕 경우는 무엇인가? 그것이 알고리즘 전체의 옳음에 어떤 영향을 주는가?
 
 ??? success "연습문제 4 풀이"
-    Base cases handle inputs too small to subdivide further (typically $n \leq 1$ or $n \leq 2$). They must return correct results directly. Without proper base cases, the recursion never terminates. Choosing a larger base case (e.g., $n \leq 10$) and switching to a simpler algorithm can improve practical performance by reducing recursion overhead while maintaining the same asymptotic complexity. $\square$
+    밑 자리는 더 나눌 수 없을 만큼 작은 들임을 다룬다(흔히 $n \leq 1$이나 $n \leq 2$). 이때는 옳은 결과를 곧바로 돌려주어야 한다. 밑 자리가 제대로 없으면 되부름이 끝나지 않는다. 밑 자리를 더 크게 잡고($n \leq 10$ 따위) 더 단순한 알고리즘으로 갈아타면 같은 점근 복잡도를 지키면서 되부름 덤을 줄여 참으로 더 빠르게 할 수 있다. $\square$

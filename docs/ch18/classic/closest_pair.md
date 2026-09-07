@@ -1,10 +1,10 @@
 # 가장 가까운 점 짝
 
-Given $n$ points in the plane, finding the pair with the smallest Euclidean distance by brute force requires checking all $\binom{n}{2}$ pairs in $O(n^2)$ time. A divide-and-conquer approach achieves $O(n \log n)$, matching the lower bound for comparison-based algorithms. The key challenge lies in the **combine step**, where a clever geometric argument limits the number of cross-boundary pairs to examine.
+판 위에 점 $n$개가 있을 때 유클리드 거리가 가장 짧은 짝을 막무가내로 찾으려면 $\binom{n}{2}$ 짝을 모두 살펴야 하므로 $O(n^2)$ 때가 든다. 나누어 다스리는 길은 $O(n \log n)$을 이루는데, 이는 견줌 바탕 알고리즘의 아래 테두리에 딱 맞는다. 고갱이 어려움은 **아우르는 걸음**에 있으며, 여기서 슬기로운 기하 따짐이 금을 가로지르는 짝의 수를 옭아맨다.
 
 ## 문제 서술
 
-Given a set $P = \{p_1, p_2, \dots, p_n\}$ of points in $\mathbb{R}^2$, find:
+$\mathbb{R}^2$ 안의 점 묶음 $P = \{p_1, p_2, \dots, p_n\}$이 주어졌을 때 다음을 찾아라.
 
 $$
 \min_{i \ne j} d(p_i, p_j) = \min_{i \ne j} \sqrt{(x_i - x_j)^2 + (y_i - y_j)^2}
@@ -16,24 +16,24 @@ $$
 
 **2단계: 나누기.** 가운뎃 $x$-자리표에서 $P$을 두 반쪽 $P_L$과 $P_R$으로 쪼갠다.
 
-**Step 3: Conquer.** Recursively find the closest pair in $P_L$ (distance $\delta_L$) and in $P_R$ (distance $\delta_R$). Let $\delta = \min(\delta_L, \delta_R)$.
+**걸음 3: 다스리기.** $P_L$ 안의 가장 가까운 짝(거리 $\delta_L$)과 $P_R$ 안의 가장 가까운 짝(거리 $\delta_R$)을 되부르며 찾는다. $\delta = \min(\delta_L, \delta_R)$이라 하자.
 
-**Step 4: Combine.** Check whether any pair with one point in $P_L$ and the other in $P_R$ has distance less than $\delta$. This is where the algorithm's efficiency depends on a geometric insight.
+**걸음 4: 아우르기.** 한 점은 $P_L$에, 다른 점은 $P_R$에 있는 짝 가운데 거리가 $\delta$보다 짧은 것이 있는지 살핀다. 알고리즘이 잘 드는지가 여기서 기하 깨침에 달려 있다.
 
 ## 띠 논증
 
-Only points within distance $\delta$ of the dividing line can form a closer pair. Define the **strip**:
+가르는 금에서 거리 $\delta$ 안에 있는 점만 더 가까운 짝을 이룰 수 있다. **띠**를 다음과 같이 매긴다.
 
 $$
 S = \{p \in P : |p.x - x_{\text{mid}}| < \delta\}
 $$
 
-Sort the points in $S$ by $y$-coordinate. For each point $p$ in $S$, compare it only to points within $\delta$ in the $y$-direction.
+$S$ 안의 점을 $y$ 자리 값으로 줄 세운다. $S$ 안의 점 $p$마다 $y$ 방향으로 $\delta$ 안에 있는 점과만 견준다.
 
 !!! note "성김 보조정리"
-    For any point $p$ in the strip, at most **7** other points in $S$ lie within a $\delta \times 2\delta$ rectangle centered at $p$. Therefore, the inner loop examines at most 7 candidates per point.
+    띠 안의 어떤 점 $p$에 대해서도, $p$을 가운데 둔 $\delta \times 2\delta$ 네모 안에 있는 $S$의 다른 점은 많아야 **7개**다. 그러므로 안쪽 되돌이는 점마다 많아야 7개만 살핀다.
 
-The proof uses a packing argument: a $\delta \times 2\delta$ rectangle can be divided into eight $(\delta/2) \times (\delta/2)$ sub-squares. Each sub-square contains at most one point (since any two points in the same half have distance at least $\delta$), so at most $8 - 1 = 7$ other points exist in the rectangle.
+밝히기는 채우기 따짐을 쓴다. $\delta \times 2\delta$ 네모는 $(\delta/2) \times (\delta/2)$ 잔네모 여덟 개로 나눌 수 있다. 잔네모마다 점이 많아야 하나 들어 있으므로(같은 쪽의 두 점은 거리가 적어도 $\delta$이기 때문이다) 네모 안의 다른 점은 많아야 $8 - 1 = 7$개다.
 
 곧 아우르기 단계는 $O(|S|)$ 시간(띠 크기에 한 줄로 비례)이 들며 전체 되돌이 관계식은 다음과 같다:
 
@@ -139,7 +139,7 @@ Closest pair distance: 1.4142
 Brute force distance: 1.4142
 ```
 
-The closest pair is $(2, 3)$ and $(3, 4)$ with distance $\sqrt{2} \approx 1.4142$. Both the divide-and-conquer and brute-force approaches find the same answer.
+가장 가까운 짝은 $(2, 3)$과 $(3, 4)$이고 거리는 $\sqrt{2} \approx 1.4142$이다. 나누어 다스리는 길과 막무가내로 하는 길이 같은 답을 낸다.
 
 ## 복잡도
 
@@ -148,7 +148,7 @@ The closest pair is $(2, 3)$ and $(3, 4)$ with distance $\sqrt{2} \approx 1.4142
 | Time   | $O(n \log n)$ |
 | 공간 | $O(n)$ |
 
-The initial sort takes $O(n \log n)$. The recurrence $T(n) = 2T(n/2) + O(n)$ solves to $O(n \log n)$ by the master theorem.
+처음 줄 세우기에 $O(n \log n)$이 든다. 되돌이 식 $T(n) = 2T(n/2) + O(n)$은 으뜸 정리에 따라 $O(n \log n)$으로 풀린다.
 
 ## 참고 문헌
 
@@ -161,7 +161,7 @@ The initial sort takes $O(n \log n)$. The recurrence $T(n) = 2T(n/2) + O(n)$ sol
 가장 가까운 점 짝의 핵심 생각과 그 시간 복잡도를 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    Closest Pair of Points applies the divide-and-conquer paradigm: split the problem into smaller subproblems, solve them recursively, and combine the results. The time complexity is determined by the recurrence relation governing the subproblem sizes and the combination cost. The Master Theorem or recursion tree analysis typically gives the closed-form complexity. $\square$
+    가장 가까운 점 짝 찾기는 나누어 다스리기 틀을 쓴다. 문제를 더 작은 잔문제로 쪼개고, 되부르며 풀고, 그 결과를 아우른다. 때 복잡도는 잔문제의 크기와 아우르는 값을 다스리는 되돌이 식이 정한다. 흔히 으뜸 정리나 되부름 나무 살피기로 닫힌 꼴의 복잡도를 얻는다. $\square$
 
 ---
 
@@ -169,7 +169,7 @@ The initial sort takes $O(n \log n)$. The recurrence $T(n) = 2T(n/2) + O(n)$ sol
 가장 가까운 점 짝의 되돌이 관계식을 쓰고 마스터 정리로 풀어라.
 
 ??? success "연습문제 2 풀이"
-    The recurrence depends on the specific algorithm's division strategy (number of subproblems $a$, size reduction factor $b$, and combination cost $f(n)$). Apply the Master Theorem: compare $f(n)$ with $n^{\log_b a}$ to determine which case applies. If $f(n) = \Theta(n^{\log_b a})$ (case 2), $T(n) = \Theta(n^{\log_b a} \log n)$. $\square$
+    되돌이 식은 그 알고리즘이 어떻게 나누는지에 달려 있다(잔문제의 수 $a$, 크기를 줄이는 값 $b$, 아우르는 값 $f(n)$). 으뜸 정리를 쓴다. $f(n)$을 $n^{\log_b a}$과 견주어 어느 갈래인지 가린다. $f(n) = \Theta(n^{\log_b a})$이면(둘째 갈래) $T(n) = \Theta(n^{\log_b a} \log n)$이다. $\square$
 
 ---
 
@@ -177,7 +177,7 @@ The initial sort takes $O(n \log n)$. The recurrence $T(n) = 2T(n/2) + O(n)$ sol
 가장 가까운 점 짝이 막무가내 방식보다 나은 장면을 설명하여라. 얼마나 빨라지는지 수로 나타내어라.
 
 ??? success "연습문제 3 풀이"
-    The brute-force approach typically runs in $O(n^2)$ or worse. The divide-and-conquer approach achieves a lower complexity by reducing redundant computation through recursive decomposition. For input size $n = 10^6$, the difference between $O(n^2) = 10^{12}$ and $O(n \log n) = 2 \times 10^7$ operations is a factor of $50{,}000$. $\square$
+    막무가내로 하는 길은 흔히 $O(n^2)$ 이상이 든다. 나누어 다스리는 길은 되부르며 쪼개어 군더더기 셈을 줄이므로 복잡도가 더 낮다. 들임 크기가 $n = 10^6$이면 $O(n^2) = 10^{12}$과 $O(n \log n) = 2 \times 10^7$의 차이는 $50{,}000$ 곱절이다. $\square$
 
 ---
 
@@ -185,4 +185,4 @@ The initial sort takes $O(n \log n)$. The recurrence $T(n) = 2T(n/2) + O(n)$ sol
 가장 가까운 점 짝의 바탕 경우는 무엇인가? 그것이 알고리즘 전체의 옳음에 어떤 영향을 주는가?
 
 ??? success "연습문제 4 풀이"
-    Base cases handle inputs too small to subdivide further (typically $n \leq 1$ or $n \leq 2$). They must return correct results directly. Without proper base cases, the recursion never terminates. Choosing a larger base case (e.g., $n \leq 10$) and switching to a simpler algorithm can improve practical performance by reducing recursion overhead while maintaining the same asymptotic complexity. $\square$
+    밑 자리는 더 나눌 수 없을 만큼 작은 들임을 다룬다(흔히 $n \leq 1$이나 $n \leq 2$). 이때는 옳은 결과를 곧바로 돌려주어야 한다. 밑 자리가 제대로 없으면 되부름이 끝나지 않는다. 밑 자리를 더 크게 잡고($n \leq 10$ 따위) 더 단순한 알고리즘으로 갈아타면 같은 점근 복잡도를 지키면서 되부름 덤을 줄여 참으로 더 빠르게 할 수 있다. $\square$

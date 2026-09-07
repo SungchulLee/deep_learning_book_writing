@@ -70,15 +70,15 @@ def binary_search_recursive(arr, target, left=None, right=None):
 
 찾을 자리의 크기 $s = r - l + 1$에 대한 강한 귀납법으로 옳음을 증명한다.
 
-**Base case** ($s \le 0$). When $l > r$, the search space is empty. If $x$ were in $A[l \,..\, r]$, this subarray would be non-empty, so returning `NOT-FOUND` is correct.
+**밑 자리**($s \le 0$). $l > r$이면 찾을 자리가 비어 있다. $x$이 $A[l \,..\, r]$ 안에 있었다면 이 잔배열이 비어 있지 않았을 터이므로 `NOT-FOUND`을 돌려주는 것이 옳다.
 
-**Inductive step.** Assume the algorithm is correct for all search spaces of size less than $s$. Consider a call with search space of size $s = r - l + 1 > 0$. Compute $m = \lfloor (l + r) / 2 \rfloor$.
+**미루어 나아가는 걸음.** 크기가 $s$보다 작은 모든 찾을 자리에 대해 알고리즘이 옳다고 하자. 찾을 자리의 크기가 $s = r - l + 1 > 0$인 부름을 보자. $m = \lfloor (l + r) / 2 \rfloor$을 셈한다.
 
 - $A[m] = x$이면 $m$을 돌려주는 것이 옳다.
-- If $A[m] < x$: because $A$ is sorted, $x \notin A[l \,..\, m]$. The recursive call on $A[m+1 \,..\, r]$ has search space of size $r - m \le s - 1 < s$. By the inductive hypothesis, this call returns the correct answer.
-- If $A[m] > x$: symmetrically, the recursive call on $A[l \,..\, m-1]$ has search space of size $m - l \le s - 1 < s$, and is correct by the inductive hypothesis.
+- $A[m] < x$이면 $A$이 줄 세워져 있으므로 $x \notin A[l \,..\, m]$이다. $A[m+1 \,..\, r]$에 대한 되부름의 찾을 자리 크기는 $r - m \le s - 1 < s$이다. 미루어 세운 가정에 따라 이 부름은 옳은 답을 돌려준다.
+- $A[m] > x$이면 대칭으로, $A[l \,..\, m-1]$에 대한 되부름의 찾을 자리 크기는 $m - l \le s - 1 < s$이고 미루어 세운 가정에 따라 옳다.
 
-In all cases, the algorithm returns the correct result. $\square$
+어느 자리에서나 알고리즘은 옳은 결과를 돌려준다. $\square$
 
 ## 복잡도 분석
 
@@ -90,7 +90,7 @@ $$
 T(n) = T\!\left(\frac{n}{2}\right) + O(1)
 $$
 
-with base case $T(0) = O(1)$. By the Master Theorem ($a = 1$, $b = 2$, $f(n) = O(1) = O(n^0)$, case 2):
+밑 자리는 $T(0) = O(1)$이다. 으뜸 정리($a = 1$, $b = 2$, $f(n) = O(1) = O(n^0)$, 둘째 갈래)에 따라
 
 $$
 T(n) = O(\log n)
@@ -100,26 +100,26 @@ $$
 
 ### 공간 복잡도
 
-Each recursive call adds a frame to the call stack. Because the recursion depth is $O(\log n)$ (the search space halves at each call), the space complexity is
+되부름마다 부름 쌓개에 틀이 하나씩 쌓인다. 되부름의 깊이가 $O(\log n)$이므로(부름마다 찾을 자리가 반으로 준다) 자리 복잡도는 다음과 같다.
 
 $$
 S(n) = O(\log n)
 $$
 
-This is the key difference from the iterative version, which uses $O(1)$ auxiliary space. In practice, the $O(\log n)$ stack depth is small (e.g., $\log_2 10^9 \approx 30$ frames), so the overhead is rarely a concern.
+이것이 덧붙은 자리를 $O(1)$만큼만 쓰는 되돌이 갈래와의 고갱이 다름이다. 참으로는 $O(\log n)$의 쌓개 깊이가 작아서($\log_2 10^9 \approx 30$ 틀 따위) 덤이 걸리는 일은 드물다.
 
 !!! note "꼬리 부름 다듬기"
-    The recursive call is in **tail position** -- it is the last operation before the function returns. Languages that support tail call optimization (TCO), such as Scheme or certain C compilers with optimization flags, can transform the recursion into a loop, eliminating the stack overhead entirely. Python does not support TCO, so the $O(\log n)$ stack usage applies.
+    되부름이 **꼬리 자리**에 있다. 곧 함수가 돌아가기 앞의 마지막 셈이다. 스킴이나 다듬기 깃발을 켠 어떤 C 엮개처럼 꼬리 부름 다듬기(TCO)를 받치는 말은 이 되부름을 되돌이로 바꾸어 쌓개 덤을 아주 없앨 수 있다. 파이썬은 TCO을 받치지 않으므로 $O(\log n)$의 쌓개가 그대로 든다.
 
 ## 견줌: 되풀이와 되돌이
 
 | 성질 | 되풀이 | 되돌이 |
 |---|---|---|
-| Time complexity | $O(\log n)$ | $O(\log n)$ |
-| Space complexity | $O(1)$ | $O(\log n)$ |
+| 때 복잡도 | $O(\log n)$ | $O(\log n)$ |
+| 자리 복잡도 | $O(1)$ | $O(\log n)$ |
 | 나누어 이기기 짜임 | 숨어 있음 | 드러남 |
 | 꼬리 부름 가능 | 해당 없음 | 가능 |
-| Stack overflow risk | None | Theoretical (depth $\approx 30$ for $n = 10^9$) |
+| 쌓개 넘침 걱정 | 없음 | 이론상 있음($n = 10^9$일 때 깊이 $\approx 30$) |
 
 두 판 모두 옳고 시간 복잡도가 같다. 실전 코드에서는 공간을 $O(1)$만 쓰는 되풀이 판을 대개 더 낫게 여긴다. 되돌이 판은 나누어 이기기 짜임을 이해하는 데 값지며 더 복잡한 되돌이 알고리즘의 틀이 된다.
 
@@ -137,7 +137,7 @@ $A = [3, 7, 12, 19, 25, 31, 42]$($n = 7$)에서 $x = 12$을 찾는다:
 
 ## 요약
 
-Recursive binary search makes the divide-and-conquer structure explicit: each call divides the search space in half, recurses on one half, and returns the result directly. It has the same $O(\log n)$ time complexity as the iterative version but uses $O(\log n)$ stack space. The correctness proof proceeds by strong induction on the search space size.
+되부르는 이분 찾기는 나누어 다스리기 얼개를 드러내 놓고 보인다. 부름마다 찾을 자리를 반으로 나누고 한쪽에서 되부른 뒤 그 결과를 그대로 돌려준다. 때 복잡도는 되돌이 갈래와 같은 $O(\log n)$이지만 쌓개 자리를 $O(\log n)$만큼 쓴다. 옳음 밝히기는 찾을 자리의 크기에 대한 센 미루어 나아가기로 이루어진다.
 
 ## 참고 문헌
 
@@ -149,15 +149,15 @@ Recursive binary search makes the divide-and-conquer structure explicit: each ca
 되돌이 이분 찾기의 되돌이 관계식을 쓰고 풀어라.
 
 ??? success "연습문제 1 풀이"
-    $T(n) = T(n/2) + O(1)$ with base case $T(1) = O(1)$. By the Master Theorem (case 2 with $a=1, b=2, k=0$): $T(n) = O(\log n)$. Alternatively, unroll: $T(n) = T(n/2) + c = T(n/4) + 2c = \cdots = T(1) + c\log_2 n = O(\log n)$. $\square$
+    $T(n) = T(n/2) + O(1)$이고 밑 자리는 $T(1) = O(1)$이다. 으뜸 정리(둘째 갈래, $a=1, b=2, k=0$)에 따라 $T(n) = O(\log n)$이다. 아니면 풀어 써도 된다. $T(n) = T(n/2) + c = T(n/4) + 2c = \cdots = T(1) + c\log_2 n = O(\log n)$. $\square$
 
 ---
 
 **연습문제 2.**
-What is the maximum recursion depth for recursive binary search on an array of $10^6$ elements?
+원소가 $10^6$개인 배열에서 되부르는 이분 찾기의 가장 깊은 되부름 깊이는 얼마인가?
 
 ??? success "연습문제 2 풀이"
-    Recursion depth $= \lceil \log_2(10^6) \rceil = \lceil 19.93 \rceil = 20$. This is well within Python's default recursion limit of 1000. Even for $10^9$ elements, the depth is only $\lceil \log_2(10^9) \rceil = 30$. Recursive binary search is safe from stack overflow for any practical input size. $\square$
+    되부름 깊이는 $= \lceil \log_2(10^6) \rceil = \lceil 19.93 \rceil = 20$이다. 파이썬의 기본 되부름 한도 1000에 한참 못 미친다. 원소가 $10^9$개라도 깊이는 $\lceil \log_2(10^9) \rceil = 30$뿐이다. 되부르는 이분 찾기는 참으로 쓰는 어떤 크기의 들임에서도 쌓개 넘침 걱정이 없다. $\square$
 
 ---
 
@@ -165,7 +165,7 @@ What is the maximum recursion depth for recursive binary search on an array of $
 공간 복잡도와 실전 성능으로 되풀이 이분 찾기와 되돌이 이분 찾기를 견주어라.
 
 ??? success "연습문제 3 풀이"
-    **Iterative**: $O(1)$ extra space (only loop variables). No function call overhead. **Recursive**: $O(\log n)$ stack space for recursion frames. Each frame adds function call overhead (parameter passing, return address). In practice, iterative is slightly faster due to avoiding call overhead. Both are $O(\log n)$ time. Iterative is generally preferred in production code; recursive is clearer for teaching. $\square$
+    **되돌이**: 덧붙은 자리가 $O(1)$이다(되돌이 변수뿐). 함수를 부르는 덤도 없다. **되부름**: 되부름 틀에 쌓개 자리를 $O(\log n)$만큼 쓴다. 틀마다 함수를 부르는 덤(매개변수 넘기기, 돌아갈 자리)이 든다. 참으로는 부르는 덤이 없어 되돌이가 조금 더 빠르다. 둘 다 때는 $O(\log n)$이다. 참으로 굴리는 코드에서는 흔히 되돌이를 쓰고, 가르칠 때는 되부름이 더 또렷하다. $\square$
 
 ---
 

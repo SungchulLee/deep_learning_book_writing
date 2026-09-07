@@ -6,13 +6,13 @@
 
 ## 넓힌 문제
 
-Suppose we have a search space $\{0, 1, \ldots, n-1\}$ and a boolean predicate $\text{condition}(m)$ that is **monotone**: there exists a threshold $k$ such that
+찾을 자리 $\{0, 1, \ldots, n-1\}$과, **한 방향으로만 바뀌는** 참거짓 잣대 $\text{condition}(m)$이 있다고 하자. 곧 다음을 채우는 문턱 $k$이 있다.
 
 $$
 \text{condition}(m) = \begin{cases} \text{false} & \text{if } m < k \\ \text{true} & \text{if } m \ge k \end{cases}
 $$
 
-The goal is to find the smallest $m$ for which $\text{condition}(m)$ is true. This is the **leftmost true** problem.
+목표는 $\text{condition}(m)$이 참이 되는 가장 작은 $m$을 찾는 것이다. 이를 **맨 왼쪽 참** 문제라 한다.
 
 ## 틀
 
@@ -58,22 +58,22 @@ def binary_search_template(lo, hi, condition):
 
 ## 옳음의 증명
 
-**Loop invariant.** At the start of each iteration, the answer (the smallest $m$ with $\text{condition}(m)$ true) lies in $[\text{lo}, \text{hi}]$.
+**되돌이 안 바뀜.** 되돌이가 돌 때마다 그 첫머리에서 답($\text{condition}(m)$이 참인 가장 작은 $m$)은 $[\text{lo}, \text{hi}]$ 안에 있다.
 
 **첫자리매김.** 처음 범위가 찾을 자리 전체를 덮으므로 불변량이 성립한다.
 
-**Maintenance.** Let $\text{mid} = \lfloor (\text{lo} + \text{hi}) / 2 \rfloor$.
+**지킴.** $\text{mid} = \lfloor (\text{lo} + \text{hi}) / 2 \rfloor$이라 하자.
 
-- If $\text{condition}(\text{mid})$ is true, then the answer is at most $\text{mid}$, so setting $\text{hi} = \text{mid}$ preserves the invariant.
-- If $\text{condition}(\text{mid})$ is false, then the answer is at least $\text{mid} + 1$, so setting $\text{lo} = \text{mid} + 1$ preserves the invariant.
+- $\text{condition}(\text{mid})$이 참이면 답은 많아야 $\text{mid}$이므로 $\text{hi} = \text{mid}$으로 두면 안 바뀜이 지켜진다.
+- $\text{condition}(\text{mid})$이 거짓이면 답은 적어도 $\text{mid} + 1$이므로 $\text{lo} = \text{mid} + 1$으로 두면 안 바뀜이 지켜진다.
 
-**Termination.** The quantity $\text{hi} - \text{lo}$ is a non-negative integer that strictly decreases at each iteration (because $\text{mid} < \text{hi}$ when $\text{lo} < \text{hi}$). When $\text{lo} = \text{hi}$, the loop terminates, and the invariant guarantees `lo` is the answer. $\square$
+**끝남.** $\text{hi} - \text{lo}$은 음이 아닌 정수이며 되돌이마다 반드시 줄어든다($\text{lo} < \text{hi}$이면 $\text{mid} < \text{hi}$이기 때문이다). $\text{lo} = \text{hi}$이 되면 되돌이가 끝나고, 안 바뀜에 따라 `lo`이 답임이 보장된다. $\square$
 
-**Time complexity.** The search space halves at each iteration, so the template performs $O(\log(\text{hi} - \text{lo}))$ iterations. If each call to `condition` takes $O(C)$ time, the total is $O(C \log(\text{hi} - \text{lo}))$.
+**때 복잡도.** 되돌이마다 찾을 자리가 반으로 주므로 이 틀은 $O(\log(\text{hi} - \text{lo}))$ 번 돈다. `condition`을 한 번 부르는 데 $O(C)$ 때가 들면 모두 $O(C \log(\text{hi} - \text{lo}))$이다.
 
 ## 가장 오른쪽 거짓 변종
 
-To find the **largest** $m$ for which $\text{condition}(m)$ is false, use a mirror template:
+$\text{condition}(m)$이 거짓인 **가장 큰** $m$을 찾으려면 거울처럼 뒤집은 틀을 쓴다.
 
 ```python
 def binary_search_rightmost_false(lo, hi, condition):
@@ -110,7 +110,7 @@ def search_insert(nums, target):
 
 ### 정수 제곱근
 
-Find the largest integer $k$ such that $k^2 \le x$.
+$k^2 \le x$인 가장 큰 정수 $k$을 찾아라.
 
 ```python
 def integer_sqrt(x):
@@ -162,7 +162,7 @@ def ship_within_days(weights, days):
 문제가 다음 성질을 가질 때면 언제나 이 틀을 쓸 수 있다:
 
 1. **단조 술어**: 찾을 자리 전체에서 조건이 거짓에서 참으로 정확히 한 번 바뀐다.
-2. **Bounded search space**: the range $[\text{lo}, \text{hi}]$ is known in advance.
+2. **마디 지어진 찾을 자리**: 구간 $[\text{lo}, \text{hi}]$을 미리 안다.
 3. **효율적인 값매김**: `condition(mid)`을 살피는 데 다항 시간이 든다.
 
 !!! tip "이분 찾기 문제 알아보기"
@@ -170,7 +170,7 @@ def ship_within_days(weights, days):
 
 ## 요약
 
-The generalized binary search template reduces all binary search variants to a single pattern: define a monotone predicate, set the search bounds, and let the template find the transition point. The correctness proof relies on a loop invariant showing that the answer always lies within the current bounds, and termination follows from the strictly decreasing search space. The template runs in $O(\log n)$ iterations, each calling the predicate once.
+두루 쓰는 이분 찾기 틀은 이분 찾기의 온갖 갈래를 한 무늬로 줄인다. 한 방향으로만 바뀌는 잣대를 매기고, 찾을 테두리를 잡은 뒤, 틀이 넘어가는 자리를 찾게 하면 된다. 옳음 밝히기는 답이 늘 이제의 테두리 안에 있음을 보이는 되돌이 안 바뀜에 기대고, 끝남은 찾을 자리가 반드시 줄어드는 데서 따라 나온다. 이 틀은 $O(\log n)$ 번 돌며 그때마다 잣대를 한 번 부른다.
 
 ## 참고 문헌
 
@@ -182,7 +182,7 @@ The generalized binary search template reduces all binary search variants to a s
 이분 찾기 틀의 핵심 생각과 그 시간 복잡도를 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    Binary Search Template applies the divide-and-conquer paradigm: split the problem into smaller subproblems, solve them recursively, and combine the results. The time complexity is determined by the recurrence relation governing the subproblem sizes and the combination cost. The Master Theorem or recursion tree analysis typically gives the closed-form complexity. $\square$
+    이분 찾기 틀은 나누어 다스리기 틀을 쓴다. 문제를 더 작은 잔문제로 쪼개고, 되부르며 풀고, 그 결과를 아우른다. 때 복잡도는 잔문제의 크기와 아우르는 값을 다스리는 되돌이 식이 정한다. 흔히 으뜸 정리나 되부름 나무 살피기로 닫힌 꼴의 복잡도를 얻는다. $\square$
 
 ---
 
@@ -190,7 +190,7 @@ The generalized binary search template reduces all binary search variants to a s
 이분 찾기 틀의 되돌이 관계식을 쓰고 마스터 정리로 풀어라.
 
 ??? success "연습문제 2 풀이"
-    The recurrence depends on the specific algorithm's division strategy (number of subproblems $a$, size reduction factor $b$, and combination cost $f(n)$). Apply the Master Theorem: compare $f(n)$ with $n^{\log_b a}$ to determine which case applies. If $f(n) = \Theta(n^{\log_b a})$ (case 2), $T(n) = \Theta(n^{\log_b a} \log n)$. $\square$
+    되돌이 식은 그 알고리즘이 어떻게 나누는지에 달려 있다(잔문제의 수 $a$, 크기를 줄이는 값 $b$, 아우르는 값 $f(n)$). 으뜸 정리를 쓴다. $f(n)$을 $n^{\log_b a}$과 견주어 어느 갈래인지 가린다. $f(n) = \Theta(n^{\log_b a})$이면(둘째 갈래) $T(n) = \Theta(n^{\log_b a} \log n)$이다. $\square$
 
 ---
 
@@ -198,7 +198,7 @@ The generalized binary search template reduces all binary search variants to a s
 이분 찾기 틀이 막무가내 방식보다 나은 장면을 설명하여라. 얼마나 빨라지는지 수로 나타내어라.
 
 ??? success "연습문제 3 풀이"
-    The brute-force approach typically runs in $O(n^2)$ or worse. The divide-and-conquer approach achieves a lower complexity by reducing redundant computation through recursive decomposition. For input size $n = 10^6$, the difference between $O(n^2) = 10^{12}$ and $O(n \log n) = 2 \times 10^7$ operations is a factor of $50{,}000$. $\square$
+    막무가내로 하는 길은 흔히 $O(n^2)$ 이상이 든다. 나누어 다스리는 길은 되부르며 쪼개어 군더더기 셈을 줄이므로 복잡도가 더 낮다. 들임 크기가 $n = 10^6$이면 $O(n^2) = 10^{12}$과 $O(n \log n) = 2 \times 10^7$의 차이는 $50{,}000$ 곱절이다. $\square$
 
 ---
 
@@ -206,4 +206,4 @@ The generalized binary search template reduces all binary search variants to a s
 이분 찾기 틀의 바탕 경우는 무엇인가? 그것이 알고리즘 전체의 옳음에 어떤 영향을 주는가?
 
 ??? success "연습문제 4 풀이"
-    Base cases handle inputs too small to subdivide further (typically $n \leq 1$ or $n \leq 2$). They must return correct results directly. Without proper base cases, the recursion never terminates. Choosing a larger base case (e.g., $n \leq 10$) and switching to a simpler algorithm can improve practical performance by reducing recursion overhead while maintaining the same asymptotic complexity. $\square$
+    밑 자리는 더 나눌 수 없을 만큼 작은 들임을 다룬다(흔히 $n \leq 1$이나 $n \leq 2$). 이때는 옳은 결과를 곧바로 돌려주어야 한다. 밑 자리가 제대로 없으면 되부름이 끝나지 않는다. 밑 자리를 더 크게 잡고($n \leq 10$ 따위) 더 단순한 알고리즘으로 갈아타면 같은 점근 복잡도를 지키면서 되부름 덤을 줄여 참으로 더 빠르게 할 수 있다. $\square$
