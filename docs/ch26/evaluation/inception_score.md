@@ -28,7 +28,7 @@ IS is a **secondary metric** for diffusion models. FID is preferred as the prima
 | ADM | ~10.9 |
 | BigGAN (GAN baseline) | 14.73 |
 
-!!! note "IS Can Exceed Real Data"
+!!! note "인셉션 점수는 참 자료를 넘어설 수 있다"
     GANs sometimes achieve IS above real data because mode collapse concentrates predictions on fewer, more confident classes. This is why IS alone can be misleading — always pair with FID and [Precision/Recall](../../ch25/gan_evaluation/precision_recall.md).
 
 ## Guidance Scale Effect on IS

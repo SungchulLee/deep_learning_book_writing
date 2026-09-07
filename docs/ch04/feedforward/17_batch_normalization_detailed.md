@@ -404,7 +404,7 @@ print("Comparison saved as '08_batchnorm_comparison.png'")
 # 핵심 정리:
 # ==============================================================================
 print("\n" + "=" * 70)
-print("Key Takeaways")
+print("핵심 정리")
 print("=" * 70)
 print("""
 1. 배치 정규화가 하는 일:

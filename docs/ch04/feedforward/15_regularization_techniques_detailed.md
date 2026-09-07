@@ -387,7 +387,7 @@ print("Comparison saved as '07_regularization_comparison.png'")
 # 핵심 정리:
 # ==============================================================================
 print("\n" + "=" * 70)
-print("Key Takeaways")
+print("핵심 정리")
 print("=" * 70)
 print("""
 1. 과적합의 징후:

@@ -3,7 +3,7 @@
 
 The Inception Score (IS) is one of the most widely used metrics for evaluating generative models, particularly Generative Adversarial Networks (GANs). Introduced by Salimans et al. (2016), IS provides a single scalar value that captures both the quality and diversity of generated images.
 
-!!! info "Learning Objectives"
+!!! info "배움 목표"
     By the end of this section, you will be able to:
     
     - Understand the mathematical foundation of Inception Score
@@ -580,7 +580,7 @@ Higher mutual information means:
 
 ## Summary
 
-!!! success "Key Takeaways"
+!!! success "고갱이 얻음"
     
     1. **IS Formula**: $\text{IS} = \exp(\mathbb{E}[D_{KL}(p(y|x) \| p(y))])$
     
