@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Why gradient scaling matters."""
+"""기울기 잣대 잡기가 왜 종요로운가."""
 import torch
 import torch.nn as nn
 

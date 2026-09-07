@@ -379,7 +379,7 @@ print(f"Jacobian:\n{J}")
 import torch
 
 def compute_jacobian_via_vjp(f, x):
-    """Build Jacobian row by row using reverse-mode VJPs."""
+    """거꾸로 방식 벡터-야코비 곱으로 야코비를 한 줄씩 짓는다."""
     y = f(x.detach().requires_grad_(True))
     m, n = y.numel(), x.numel()
     J = torch.zeros(m, n)

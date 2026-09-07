@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Freeze and unfreeze parameters."""
+"""매개변수를 얼리고 녹이기."""
 # freeze_unfreeze_demo.py
 import torch
 import torch.nn as nn
@@ -17,15 +17,15 @@ import torch.nn.functional as F
 
 def freeze_layer0(model: nn.Sequential):
     """
-    Freeze the first Linear layer (index 0) inside a Sequential.
-    We match param names that start with '0.' → '0.weight', '0.bias'.
+    Sequential 안의 첫 선형 층(번호 0)을 얼린다.
+    '0.'으로 비롯하는 매개변수 이름을 고른다 → '0.weight', '0.bias'.
     """
     for name, p in model.named_parameters():
         if name.startswith("0."):
             p.requires_grad_(False)
 
 def unfreeze_all(model: nn.Module):
-    """Make every parameter trainable again."""
+    """모든 매개변수를 다시 익힐 수 있게 한다."""
     for p in model.parameters():
         p.requires_grad_(True)
 

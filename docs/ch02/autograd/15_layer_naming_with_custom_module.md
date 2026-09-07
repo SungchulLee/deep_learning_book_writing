@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Layer naming with custom module."""
+"""맞춤 단원으로 층에 이름 붙이기."""
 import torch
 import torch.nn as nn
 import torch.nn.functional as F

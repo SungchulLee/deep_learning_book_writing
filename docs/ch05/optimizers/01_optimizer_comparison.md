@@ -53,11 +53,11 @@ STOCHASTIC GRADIENT DESCENT (SGD):
 SGD WITH MOMENTUM:
   • Adds "velocity" to push through local minima
   • Accumulates gradients over time: v = momentum × v + gradient
-  • Smooths out noisy gradients
+  • 잡음 섞인 기울기를 매끄럽게 한다
   • Best for: Deep networks, noisy gradients
 
 ADAM (Adaptive Moment Estimation):
-  • Adapts learning rate for each parameter
+  • 매개변수마다 배움 빠르기를 맞춘다
   • Combines momentum + RMSprop
   • Pros: Works well out-of-the-box, fast convergence
   • Cons: Can generalize worse than SGD, higher memory usage
@@ -288,7 +288,7 @@ print("""
    
    • Accumulates past gradients (β typically 0.9)
    • Builds "momentum" to push through small bumps
-   • Smooths out noisy gradients
+   • 잡음 섞인 기울기를 매끄럽게 한다
    • Can overshoot optimal values
 
 3. RMSPROP:
@@ -306,7 +306,7 @@ print("""
    Update: θ = θ - lr × (m / √v)
    
    • Combines momentum + RMSprop
-   • Adapts learning rate for each parameter
+   • 매개변수마다 배움 빠르기를 맞춘다
    • Includes bias correction
    • Default β₁=0.9, β₂=0.999
    • Most popular optimizer in deep learning

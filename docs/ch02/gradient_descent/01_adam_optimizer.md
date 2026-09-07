@@ -7,23 +7,23 @@
 ```python
 """
 ================================================================================
-Level 3 - Example 1: Adam Optimizer - Adaptive Moment Estimation
+3단계 - 보기 1: Adam 가장 좋게 하개 - 맞추어 가는 적률 어림
 ================================================================================
 
 배움 목표:
-- Understand adaptive learning rate methods
-- Implement Adam optimizer from scratch
-- Compare Adam with SGD and SGD+Momentum
-- Learn when to use Adam vs other optimizers
+- 맞추어 가는 배움 빠르기 방법을 이해한다
+- Adam 가장 좋게 하개를 맨바닥부터 짠다
+- Adam을 SGD, SGD+여세와 견준다
+- Adam을 언제 쓰고 언제 다른 것을 쓸지 배운다
 
-DIFFICULTY: ⭐⭐⭐ Advanced
+어려움: ⭐⭐⭐ 앞선 수준
 
-TIME: 40-50 minutes
+걸리는 때: 40~50분
 
 PREREQUISITES:
-- Completed Level 1 and Level 2
-- Understanding of momentum
-- Comfortable with gradient descent variants
+- 1단계와 2단계를 마쳤을 것
+- 여세를 이해하고 있을 것
+- 기울기 내림의 여러 갈래에 익숙할 것
 
 ================================================================================
 """
@@ -45,20 +45,20 @@ print("PART 1: WHAT IS ADAM?")
 print("="*80)
 
 print("""
-ADAM (Adaptive Moment Estimation) combines:
-1. Momentum (moving average of gradients)
-2. RMSprop (adaptive learning rates per parameter)
-3. Bias correction (accounts for initialization)
+Adam(맞추어 가는 적률 어림)은 다음을 아우른다.
+1. 여세(기울기의 움직이는 평균)
+2. RMSprop(매개변수마다 맞추어 가는 배움 빠르기)
+3. 치우침 바로잡기(첫자리 잡기를 헤아린다)
 
-KEY INNOVATIONS:
+고갱이 새로움:
 ----------------
-• Maintains two moving averages:
-  - m_t: First moment (mean) of gradients
-  - v_t: Second moment (variance) of gradients
+• 움직이는 평균 둘을 지닌다.
+  - m_t: 기울기의 첫째 적률(평균)
+  - v_t: 기울기의 둘째 적률(흩어짐)
 
-• Adapts learning rate for each parameter
-• Works well with default hyperparameters
-• Most popular optimizer in deep learning!
+• 매개변수마다 배움 빠르기를 맞춘다
+• 기본 웃매개변수로도 잘 듣는다
+• 깊은 배움에서 가장 널리 쓰는 가장 좋게 하개다!
 
 ALGORITHM:
 ----------
@@ -66,18 +66,18 @@ Initialize: m₀ = 0, v₀ = 0, t = 0
 
 되돌이마다:
 1. t = t + 1
-2. g_t = ∇L(θ_{t-1})                    # Compute gradient
-3. m_t = β₁·m_{t-1} + (1-β₁)·g_t         # Update biased first moment
-4. v_t = β₂·v_{t-1} + (1-β₂)·g_t²        # Update biased second moment
-5. m̂_t = m_t / (1 - β₁ᵗ)                 # Bias correction
-6. v̂_t = v_t / (1 - β₂ᵗ)                 # Bias correction
-7. θ_t = θ_{t-1} - α·m̂_t / (√v̂_t + ε)  # Parameter update
+2. g_t = ∇L(θ_{t-1})                    # 기울기를 셈한다
+3. m_t = β₁·m_{t-1} + (1-β₁)·g_t         # 치우친 첫째 적률을 고친다
+4. v_t = β₂·v_{t-1} + (1-β₂)·g_t²        # 치우친 둘째 적률을 고친다
+5. m̂_t = m_t / (1 - β₁ᵗ)                 # 치우침 바로잡기
+6. v̂_t = v_t / (1 - β₂ᵗ)                 # 치우침 바로잡기
+7. θ_t = θ_{t-1} - α·m̂_t / (√v̂_t + ε)  # 매개변수 고치기
 
-Default hyperparameters:
-- α (learning rate): 0.001
+기본 웃매개변수:
+- α(배움 빠르기): 0.001
 - β₁ (momentum): 0.9
 - β₂ (RMSprop): 0.999
-- ε (numerical stability): 1e-8
+- ε(수치 든든함): 1e-8
 """)
 
 # ============================================================================
@@ -108,7 +108,7 @@ print("This is non-linear - we'll use a neural network!")
 
 class NeuralNetwork(nn.Module):
     """
-    Multi-layer neural network for non-linear regression
+    비선형 회귀를 위한 여러 층 신경망
     Architecture: 1 → 20 → 20 → 1
     """
     def __init__(self, input_size=1, hidden_size=20, output_size=1):
@@ -132,7 +132,7 @@ class NeuralNetwork(nn.Module):
 # ============================================================================
 
 def train_model(model, optimizer, criterion, X, y, n_epochs=500):
-    """Train model and return loss history"""
+    """모형을 익히고 잃음의 자취를 돌려준다"""
     loss_history = []
     
     for epoch in range(n_epochs):
@@ -309,42 +309,42 @@ print("PART 8: WHY ADAM WORKS SO WELL")
 print("="*80)
 
 print("""
-ADAM'S KEY ADVANTAGES:
+Adam의 고갱이 이점:
 ----------------------
 
-1. ADAPTIVE LEARNING RATES
-   • Different learning rate for each parameter
-   • Automatically scales based on gradient history
-   • Parameters with large/small gradients get appropriate updates
+1. 맞추어 가는 배움 빠르기
+   • 매개변수마다 배움 빠르기가 다르다
+   • 기울기의 자취를 바탕으로 절로 잣대를 잡는다
+   • 기울기가 크거나 작은 매개변수도 알맞게 고쳐진다
 
-2. MOMENTUM BENEFITS
-   • Smooths out noisy gradients
-   • Accelerates in consistent directions
-   • Reduces oscillations
+2. 여세의 좋은 점
+   • 잡음 섞인 기울기를 매끄럽게 한다
+   • 한결같은 방향으로 빨라진다
+   • 흔들림을 줄인다
 
-3. BIAS CORRECTION
-   • Accounts for initialization bias (m₀=0, v₀=0)
-   • Particularly important in early training
-   • Makes default hyperparameters more robust
+3. 치우침 바로잡기
+   • 첫자리 잡기의 치우침을 헤아린다(m₀=0, v₀=0)
+   • 익힘 이른 판에 특히 종요롭다
+   • 기본 웃매개변수를 더 든든하게 만든다
 
-4. ROBUST TO HYPERPARAMETERS
-   • Default values (α=0.001, β₁=0.9, β₂=0.999) work well
-   • Less sensitive to learning rate choice
-   • Good across different problems
+4. 웃매개변수에 든든하다
+   • 기본값(α=0.001, β₁=0.9, β₂=0.999)이 잘 듣는다
+   • 배움 빠르기를 어떻게 고르든 덜 흔들린다
+   • 여러 문제에 두루 좋다
 
-WHEN ADAM EXCELS:
+Adam이 빛나는 때:
 -----------------
-✓ Deep neural networks
-✓ Sparse gradients (NLP, RL)
-✓ Non-stationary objectives
-✓ Noisy gradients
-✓ When you want "set it and forget it" performance
+✓ 깊은 신경망
+✓ 성긴 기울기(자연어 처리, 북돋움 배움)
+✓ 흐름이 바뀌는 목표
+✓ 잡음 섞인 기울기
+✓ "한 번 맞춰 놓고 잊는" 성능을 바랄 때
 
-WHEN TO USE ALTERNATIVES:
+다른 것을 쓸 때:
 --------------------------
-• SGD+Momentum: Better generalization on vision tasks
-• Batch GD: Small datasets with convex problems
-• RMSprop: RNNs and online learning
+• SGD+여세: 보기 일에서 두루 미침이 더 낫다
+• 묶음 기울기 내림: 볼록 문제의 작은 자료 묶음
+• RMSprop: 되도는 신경망과 온라인 배움
 • AdaGrad: Sparse features
 """)
 
@@ -400,7 +400,7 @@ print("="*80)
 print("""
 1. ADAM is the most popular optimizer
    • Combines momentum and adaptive learning rates
-   • Works well with default hyperparameters
+   • 기본 웃매개변수로도 잘 듣는다
    • Good first choice for most problems
 
 2. ADAM converges faster than SGD
@@ -411,7 +411,7 @@ print("""
 3. MOMENTUM matters
    • Even SGD+Momentum significantly outperforms vanilla SGD
    • Accelerates convergence
-   • Reduces oscillations
+   • 흔들림을 줄인다
 
 4. LEARNING RATE is still important
    • Adam uses smaller lr (0.001) vs SGD (0.01)

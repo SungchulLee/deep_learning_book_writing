@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Training loop with grad accumulation."""
+"""기울기를 쌓는 익힘 되돌이."""
 import torch
 import torch.nn as nn
 

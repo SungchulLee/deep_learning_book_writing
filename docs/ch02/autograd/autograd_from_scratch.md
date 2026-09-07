@@ -5,10 +5,10 @@
 ## 코드
 
 ```python
-"""Autograd from scratch."""
+"""맨바닥부터 짜는 자동 미분."""
 # ---
-# title: "Automatic Differentiation from Scratch"
-# description: "Building a minimal autograd engine in Python — computation graphs,
+# title: "맨바닥부터 짜는 자동 미분"
+# description: "파이썬으로 가장 단출한 자동 미분 엔진 짓기 — 셈 그래프,
 #               역전파, 경사 누적, PyTorch와의 비교"
 # ---
 #
@@ -41,20 +41,20 @@ print("=" * 60)
 
 
 def ensure_number(num):
-    """Wrap raw Python numbers into NumberWithGrad."""
+    """날 파이썬 수를 NumberWithGrad으로 감싼다."""
     if isinstance(num, NumberWithGrad):
         return num
     return NumberWithGrad(num)
 
 
 class NumberWithGrad:
-    """A scalar value that tracks its computation graph for autodiff.
+    """자동 미분을 위해 제 셈 그래프를 좇는 홑값.
 
-    Each instance stores:
-      - num:         the scalar value
-      - grad:        accumulated gradient (filled by .backward())
-      - depends_on:  list of parent NumberWithGrad objects
-      - creation_op: string tag identifying the operation that created this node
+    인스턴스마다 다음을 담는다.
+      - num:         홑값
+      - grad:        쌓인 기울기(.backward()이 채운다)
+      - depends_on:  어버이 NumberWithGrad 객체의 목록
+      - creation_op: 이 마디를 만든 셈을 가리키는 글자열 표
     """
 
     def __init__(
@@ -125,10 +125,10 @@ class NumberWithGrad:
     # ── 역전파 ───────────────────────────────────────────────────────
 
     def backward(self, backward_grad: Optional[float] = None) -> None:
-        """Recursively propagate gradients through the computation graph.
+        """셈 그래프를 따라 기울기를 되부르며 퍼뜨린다.
 
-        Uses the chain rule:  dL/dx = dL/dy * dy/dx
-        where y is this node's value and x is a parent's value.
+        사슬 법칙을 쓴다:  dL/dx = dL/dy * dy/dx
+        여기서 y은 이 마디의 값이고 x은 어버이의 값이다.
         """
         if backward_grad is None:
             # 역전파의 뿌리 — 출력의 자기 자신에 대한 경사는 1이다
@@ -244,7 +244,7 @@ def ensure_tensor(t):
 
 
 class TensorWithGrad:
-    """Tensor-level autodiff supporting matmul, element-wise ops, and sum."""
+    """행렬 곱, 원소별 셈, 합을 받치는 텐서 수준 자동 미분."""
 
     def __init__(self, data, depends_on=None, creation_op=""):
         self.data = np.asarray(data, dtype=np.float64)
@@ -267,7 +267,7 @@ class TensorWithGrad:
         )
 
     def __mul__(self, other):
-        """Element-wise multiplication."""
+        """원소별 곱하기."""
         other = ensure_tensor(other)
         return TensorWithGrad(
             self.data * other.data,
@@ -276,7 +276,7 @@ class TensorWithGrad:
         )
 
     def matmul(self, other):
-        """Matrix multiplication: self @ other."""
+        """행렬 곱하기: self @ other."""
         other = ensure_tensor(other)
         return TensorWithGrad(
             self.data @ other.data,
@@ -285,7 +285,7 @@ class TensorWithGrad:
         )
 
     def sum(self):
-        """Reduce to scalar."""
+        """홑값으로 줄인다."""
         return TensorWithGrad(
             np.array(self.data.sum()),
             depends_on=[self],
@@ -293,7 +293,7 @@ class TensorWithGrad:
         )
 
     def relu(self):
-        """ReLU activation."""
+        """ReLU 살림."""
         return TensorWithGrad(
             np.maximum(self.data, 0),
             depends_on=[self],
@@ -301,7 +301,7 @@ class TensorWithGrad:
         )
 
     def sigmoid(self):
-        """Sigmoid activation."""
+        """시그모이드 살림."""
         s = 1.0 / (1.0 + np.exp(-self.data))
         return TensorWithGrad(s, depends_on=[self], creation_op="sigmoid")
 

@@ -5,7 +5,7 @@
 ## 코드
 
 ```python
-"""Layer naming with ordereddict."""
+"""OrderedDict으로 층에 이름 붙이기."""
 from collections import OrderedDict
 import torch
 import torch.nn as nn
@@ -17,8 +17,8 @@ import torch.nn.functional as F
 
 def freeze_encoder(model: nn.Sequential):
     """
-    Freeze the 'encoder' Linear layer (named explicitly in Sequential).
-    Matches 'encoder.weight' / 'encoder.bias'.
+    Sequential에서 이름을 드러내 놓고 붙인 'encoder' 선형 층을 얼린다.
+    'encoder.weight'과 'encoder.bias'이 걸린다.
     """
     for name, p in model.named_parameters():
         if name.startswith("encoder."):
