@@ -1,131 +1,131 @@
-# Integrated Gradients
-## Introduction
+# 쌓은 기울기
+## 들머리
 
-**Integrated Gradients (IG)** is a principled attribution method that addresses fundamental limitations of vanilla gradient-based approaches. Unlike simple gradients that provide local sensitivity, Integrated Gradients computes attributions by **accumulating gradients along a path from a baseline to the input**.
+**쌓은 기울기(IG)**는 맨 기울기 바탕 길이 지닌 밑바탕 걸림돌을 다루는, 이치에 닿는 몫 매기기 방법이다. 그 자리의 예민함만 주는 단순한 기울기와 달리, 쌓은 기울기는 **밑금에서 들임으로 가는 길을 따라 기울기를 쌓아** 몫을 셈한다.
 
-The method was introduced by Sundararajan, Taly, and Yan (2017) with the explicit goal of creating an attribution method that satisfies **sensitivity** and **implementation invariance**—two properties that vanilla gradients fail to satisfy. It is notable for being the only widely-used method that satisfies several desirable theoretical axioms simultaneously.
+순다라라잔, 탈리, 얀(2017)이 **예민함**과 **짜기에 흔들리지 않음**을 채우는 몫 매기기 방법을 만들겠다는 또렷한 뜻으로 들여왔다. 이 둘은 맨 기울기가 채우지 못하는 됨됨이다. 바라는 이론 공리 여럿을 한꺼번에 채우는, 널리 쓰이는 하나뿐인 방법으로 이름이 높다.
 
-## Motivation
+## 왜 있어야 하는가
 
-### Problems with Vanilla Gradients
+### 맨 기울기의 탈
 
-Consider a simple ReLU network: $f(x) = \max(0, x - 1)$
+단순한 ReLU 그물 $f(x) = \max(0, x - 1)$을 생각하자.
 
-- For $x = 2$: $f(2) = 1$, $\nabla f(2) = 1$ (gradient exists)
-- For $x = 0$: $f(0) = 0$, $\nabla f(0) = 0$ (gradient is zero)
+- $x = 2$이면 $f(2) = 1$, $\nabla f(2) = 1$(기울기가 있다)
+- $x = 0$이면 $f(0) = 0$, $\nabla f(0) = 0$(기울기가 0이다)
 
-Now consider the attribution question: **"Why is $f(2) = 1$?"**
+이제 몫 매기기 물음을 던지자. **"왜 $f(2) = 1$인가?"**
 
-The vanilla gradient says $x$ has importance 1. But what if we used a baseline of $x' = 0$?
+맨 기울기는 $x$의 중요함이 1이라 한다. 그런데 밑금을 $x' = 0$으로 잡으면 어떨까?
 
-The difference $f(2) - f(0) = 1 - 0 = 1$ should be fully attributed to the input, yet the gradient alone doesn't capture the full contribution—it only measures **local sensitivity** at the input point.
+차이 $f(2) - f(0) = 1 - 0 = 1$은 온전히 들임에 돌려야 하는데, 기울기만으로는 온 이바지를 담지 못한다. 기울기는 그 들임 자리에서의 **그 자리 예민함**만 잴 뿐이다.
 
-**More critically:** For $x = 0.5$ (just below the threshold), we have $f(0.5) = 0$ and $\nabla f(0.5) = 0$. The gradient claims this input has zero importance, even though the input value directly determines whether the output is zero!
+**더 종요롭게는**: $x = 0.5$(문턱 바로 아래)이면 $f(0.5) = 0$이고 $\nabla f(0.5) = 0$이다. 들임 값이 내놓기가 0인지 아닌지를 곧바로 가르는데도 기울기는 이 들임의 중요함이 0이라고 우긴다!
 
-### The Saturation Problem
+### 잦아듦 문제
 
-Neural networks with ReLU, sigmoid, or tanh activations have regions where gradients are zero or nearly zero (saturation). In these regions:
+ReLU, 시그모이드, tanh 살림을 쓰는 신경 그물에는 기울기가 0이거나 0에 가까운 자리(잦아듦)가 있다. 그런 자리에서는
 
-- Vanilla gradients claim features have zero importance
-- Yet these features clearly affect the output
+- 맨 기울기가 그 결의 중요함이 0이라고 한다
+- 그런데도 그 결이 내놓기를 또렷이 흔든다
 
-### The Path Integration Solution
+### 길 따라 쌓아 푸는 길
 
-Integrated Gradients solves this by integrating gradients along the **entire path** from baseline to input:
-
-$$
-\text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{\alpha=0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
-$$
-
-This accumulates all gradient information along the interpolation path, capturing contributions even through saturated regions.
-
-## Mathematical Foundation
-
-### The Path Integral Formulation
-
-For an input $\mathbf{x} \in \mathbb{R}^n$, a baseline $\mathbf{x}' \in \mathbb{R}^n$, and a model $f: \mathbb{R}^n \rightarrow \mathbb{R}$, the Integrated Gradients attribution for feature $i$ is:
+쌓은 기울기는 밑금에서 들임까지의 **온 길**을 따라 기울기를 적분해 이를 푼다.
 
 $$
 \text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{\alpha=0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
 $$
 
-where:
+사이 잡는 길을 따라 기울기 소식을 모두 쌓으므로 잦아든 자리를 지나면서도 이바지를 담아낸다.
 
-- $\mathbf{x}'$ is the baseline (reference point, often zeros or a blurred image)
-- $\alpha \in [0, 1]$ parameterizes the straight-line path from $\mathbf{x}'$ to $\mathbf{x}$
-- $\frac{\partial f}{\partial x_i}$ is the gradient with respect to the $i$-th input feature
-- $(x_i - x'_i)$ scales the integrated gradient by how far feature $i$ traveled
+## 수학 밑바탕
 
-### Path Parameterization
+### 길 적분 세움새
 
-The path from baseline to input is:
+들임 $\mathbf{x} \in \mathbb{R}^n$, 밑금 $\mathbf{x}' \in \mathbb{R}^n$, 모형 $f: \mathbb{R}^n \rightarrow \mathbb{R}$에 대해 결 $i$의 쌓은 기울기 몫은 이렇다.
+
+$$
+\text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{\alpha=0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
+$$
+
+여기서
+
+- $\mathbf{x}'$은 밑금(견줌 자리, 흔히 0이나 흐린 그림)
+- $\alpha \in [0, 1]$은 $\mathbf{x}'$에서 $\mathbf{x}$으로 가는 곧은 길을 매긴다
+- $\frac{\partial f}{\partial x_i}$은 $i$번째 들임 결에 대한 기울기
+- $(x_i - x'_i)$은 결 $i$이 얼마나 멀리 갔는지로 쌓은 기울기의 잣대를 잡는다
+
+### 길 매기기
+
+밑금에서 들임으로 가는 길은 이렇다.
 
 $$
 \gamma(\alpha) = \mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'), \quad \alpha \in [0, 1]
 $$
 
-- At $\alpha = 0$: $\gamma(0) = \mathbf{x}'$ (baseline)
-- At $\alpha = 1$: $\gamma(1) = \mathbf{x}$ (input)
+- $\alpha = 0$이면 $\gamma(0) = \mathbf{x}'$(밑금)
+- $\alpha = 1$이면 $\gamma(1) = \mathbf{x}$(들임)
 
-At each point along this path, we compute gradients. The integral accumulates these gradients, weighted by how far each feature travels from baseline to input.
+이 길 위의 자리마다 기울기를 셈한다. 적분이 이 기울기들을 쌓되, 결마다 밑금에서 들임까지 간 만큼으로 짐을 싣는다.
 
-### Riemann Sum Approximation
+### 리만 합 어림
 
-In practice, the integral is approximated using a Riemann sum with $m$ steps:
+참으로는 걸음 $m$개의 리만 합으로 적분을 어림한다.
 
 $$
 \text{IG}_i(\mathbf{x}) \approx (x_i - x'_i) \times \frac{1}{m} \sum_{k=1}^{m} \frac{\partial f\left(\mathbf{x}' + \frac{k}{m}(\mathbf{x} - \mathbf{x}')\right)}{\partial x_i}
 $$
 
-This requires $m$ forward-backward passes through the network (though these can be batched for efficiency).
+그물을 앞으로-되짚기로 $m$번 지나야 한다(다만 묶음으로 묶어 잘 들게 할 수 있다).
 
-## Axiomatic Properties
+## 공리로 본 됨됨이
 
-Integrated Gradients satisfies fundamental axioms that Sundararajan et al. argue any attribution method should satisfy. **It is the unique method satisfying both sensitivity and implementation invariance** (among path-based methods with the straight-line path).
+쌓은 기울기는 순다라라잔 외가 어떤 몫 매기기 방법이든 채워야 한다고 따지는 밑바탕 공리를 채운다. **예민함과 짜기에 흔들리지 않음을 함께 채우는 하나뿐인 방법이다**(곧은 길을 쓰는 길 바탕 방법 가운데).
 
-### Axiom 1: Sensitivity
+### 공리 1: 예민함
 
-**Statement:** If the input and baseline differ in exactly one feature and the model outputs differ, then that feature must receive non-zero attribution.
+**말하면**: 들임과 밑금이 결 하나에서만 다르고 모형의 내놓기가 다르면, 그 결은 0이 아닌 몫을 받아야 한다.
 
-**Formally:** If $f(\mathbf{x}) \neq f(\mathbf{x}')$ and $x_i \neq x'_i$ while $x_j = x'_j$ for all $j \neq i$, then $\text{IG}_i(\mathbf{x}) \neq 0$.
+**엄밀히**: $f(\mathbf{x}) \neq f(\mathbf{x}')$이고 $x_i \neq x'_i$이며 $j \neq i$마다 $x_j = x'_j$이면 $\text{IG}_i(\mathbf{x}) \neq 0$이다.
 
-**Why vanilla gradients fail:** Consider $f(x) = \text{ReLU}(x - 1)$ with $x = 2$ and $x' = 0$. If we evaluate at $x = 0.5$, the gradient is zero (below threshold), yet $x$ clearly matters for the output.
+**맨 기울기가 왜 어기는가**: $x = 2$, $x' = 0$인 $f(x) = \text{ReLU}(x - 1)$을 보자. $x = 0.5$에서 따지면 (문턱 아래이므로) 기울기가 0이지만, $x$은 내놓기에 또렷이 걸린다.
 
-**Why IG satisfies this:** By integrating along the path, we capture the gradient at points where it *is* non-zero, even if it's zero at the endpoints.
+**IG은 왜 채우는가**: 길을 따라 적분하므로 끝점에서 0이더라도 기울기가 0이 *아닌* 자리를 담아낸다.
 
-### Axiom 2: Implementation Invariance
+### 공리 2: 짜기에 흔들리지 않음
 
-**Statement:** Two networks that produce identical outputs for all inputs should have identical attributions, regardless of internal architecture.
+**말하면**: 모든 들임에 같은 내놓기를 내는 두 그물은 안쪽 얼개가 어떻든 같은 몫을 받아야 한다.
 
-**Formally:** If $f(\mathbf{x}) = g(\mathbf{x})$ for all $\mathbf{x}$, then $\text{IG}^f_i(\mathbf{x}) = \text{IG}^g_i(\mathbf{x})$.
+**엄밀히**: 모든 $\mathbf{x}$에 대해 $f(\mathbf{x}) = g(\mathbf{x})$이면 $\text{IG}^f_i(\mathbf{x}) = \text{IG}^g_i(\mathbf{x})$이다.
 
-**Why this matters:** Different implementations (e.g., using $\sigma(x)$ vs. $1 - \sigma(-x)$ for sigmoid) should not change attributions since the function is mathematically identical.
+**왜 중요한가**: 시그모이드를 $\sigma(x)$으로 짜든 $1 - \sigma(-x)$으로 짜든 함수가 수학으로 같으므로 몫이 달라져서는 안 된다.
 
-**Why DeepLIFT violates this:** DeepLIFT propagates contributions through the computational graph, so different graph structures (even for identical functions) can produce different attributions.
+**DeepLIFT은 왜 어기는가**: DeepLIFT은 셈 그래프를 따라 이바지를 퍼뜨리므로, 함수가 같아도 그래프 얼개가 다르면 다른 몫이 나올 수 있다.
 
-### Derived Property: Completeness
+### 따라 나오는 됨됨이: 온전함
 
-An important consequence of the definition is the **Completeness** (or **Efficiency**) property:
+뜻매김에서 따라 나오는 중요한 결과가 **온전함**(또는 **효율**) 됨됨이다.
 
 $$
 \sum_{i=1}^{n} \text{IG}_i(\mathbf{x}) = f(\mathbf{x}) - f(\mathbf{x}')
 $$
 
-The attributions **exactly account for** the difference between the model's output on the input versus the baseline. No importance is "lost" or artificially created.
+몫이 들임에서의 모형 내놓기와 밑금에서의 내놓기의 차이를 **꼭 맞게 갈라 담는다**. 중요함이 "새거나" 없던 것이 생기지 않는다.
 
-**Proof:**
+**증명:**
 
-Using the fundamental theorem of calculus and chain rule:
+미적분의 밑정리와 사슬 규칙을 쓰면
 
 $$
 \sum_i \text{IG}_i = \sum_i (x_i - x'_i) \int_0^1 \frac{\partial f}{\partial x_i} d\alpha = \int_0^1 \nabla f \cdot (\mathbf{x} - \mathbf{x}') \, d\alpha = \int_0^1 \frac{d}{d\alpha} f(\gamma(\alpha)) \, d\alpha = f(\mathbf{x}) - f(\mathbf{x}')
 $$
 
-This property is extremely valuable for interpretability—it means attributions have a **concrete meaning**: they partition the prediction difference.
+이 됨됨이는 풀이하기에 아주 값지다. 몫이 **손에 잡히는 뜻**을 지닌다는 말이니, 미루어 봄의 차이를 나누어 담는 것이다.
 
-## PyTorch Implementation
+## PyTorch 짜보기
 
-### Functional Implementation
+### 함수로 짜기
 
 ```python
 import torch
@@ -142,60 +142,60 @@ def compute_integrated_gradients(
     steps: int = 50
 ) -> torch.Tensor:
     """
-    Compute Integrated Gradients attribution.
-    
+    쌓은 기울기 몫을 셈한다.
+
     Args:
-        model: Neural network in eval mode
-        image_tensor: Input image [1, C, H, W]
-        target_class: Target class index
-        device: Computation device
-        baseline_type: Type of baseline ('zeros', 'blur', 'random', 'mean')
-        steps: Number of interpolation steps (more = more accurate)
-        
+        model: 따지는 결로 놓인 신경 그물
+        image_tensor: 들임 그림 [1, C, H, W]
+        target_class: 겨눈 갈래 번호
+        device: 셈하는 장치
+        baseline_type: 밑금의 갈래('zeros', 'blur', 'random', 'mean')
+        steps: 사이를 잡는 걸음 수(많을수록 더 맞다)
+
     Returns:
-        Attribution map [1, H, W]
+        몫 그림 [1, H, W]
     """
     model.eval()
     image_tensor = image_tensor.to(device)
-    
-    # Create baseline
+
+    # 밑금을 만든다
     baseline = create_baseline(image_tensor, baseline_type, device)
-    
-    # Difference between input and baseline
+
+    # 들임과 밑금의 차이
     delta = image_tensor - baseline  # (x - x')
-    
-    # Accumulate gradients along path
+
+    # 길을 따라 기울기를 쌓는다
     accumulated_gradients = torch.zeros_like(image_tensor)
-    
+
     for step in range(1, steps + 1):
-        # Interpolation coefficient: α = k/m
+        # 사이 잡는 계수: α = k/m
         alpha = step / steps
-        
-        # Interpolated input: x' + α(x - x')
+
+        # 사이 들임: x' + α(x - x')
         interpolated = baseline + alpha * delta
         interpolated = interpolated.clone().detach().requires_grad_(True)
-        
-        # Forward pass
+
+        # 앞으로 걸음
         output = model(interpolated)
         target_score = output[0, target_class]
-        
-        # Backward pass
+
+        # 되짚기 걸음
         model.zero_grad()
         target_score.backward()
-        
-        # Accumulate: ∂f/∂x at this interpolation point
+
+        # 쌓는다: 이 사이 자리에서의 ∂f/∂x
         accumulated_gradients += interpolated.grad
-    
-    # Average gradients (Riemann sum approximation)
+
+    # 기울기를 고르게 한다(리만 합 어림)
     avg_gradients = accumulated_gradients / steps  # (1/m) Σ_k ∇f
-    
-    # Scale by input difference: (x - x') * avg_gradients
+
+    # 들임 차이로 잣대를 잡는다: (x - x') * avg_gradients
     integrated_grads = delta * avg_gradients
-    
-    # Aggregate across channels (take absolute value for visualization)
+
+    # 통로를 가로질러 모은다(그리려고 절댓값을 잡는다)
     attribution = torch.abs(integrated_grads)
     saliency = attribution.max(dim=1)[0]  # [1, H, W]
-    
+
     return saliency
 
 
@@ -205,63 +205,63 @@ def create_baseline(
     device: torch.device
 ) -> torch.Tensor:
     """
-    Create baseline for Integrated Gradients.
-    
+    쌓은 기울기에 쓸 밑금을 만든다.
+
     Args:
-        image_tensor: Input image
-        baseline_type: 'zeros', 'blur', 'random', or 'mean'
-        device: Computation device
-        
+        image_tensor: 들임 그림
+        baseline_type: 'zeros', 'blur', 'random', 'mean' 가운데 하나
+        device: 셈하는 장치
+
     Returns:
-        Baseline tensor with same shape as input
+        들임과 꼴이 같은 밑금 텐서
     """
     if baseline_type == 'zeros':
-        # Black image (most common choice for images)
+        # 검은 그림(그림에 가장 흔히 고른다)
         baseline = torch.zeros_like(image_tensor)
-        
+
     elif baseline_type == 'blur':
-        # Heavily blurred version of input (preserves low-frequency structure)
+        # 들임을 세게 흐리게 한 것(낮은 잦기 얼개를 남긴다)
         from torchvision.transforms.functional import gaussian_blur
         baseline = gaussian_blur(image_tensor, kernel_size=51, sigma=20)
-        
+
     elif baseline_type == 'random':
-        # Random noise (uniform in [0, 0.1])
+        # 아무렇게나 만든 잡음([0, 0.1]에 고루)
         baseline = torch.rand_like(image_tensor) * 0.1
-        
+
     elif baseline_type == 'mean':
-        # Dataset mean (for ImageNet-normalized images)
+        # 자료의 평균(ImageNet으로 고르게 한 그림에 쓴다)
         mean = torch.tensor([0.485, 0.456, 0.406], device=device)
         mean = mean.view(1, 3, 1, 1).expand_as(image_tensor)
         baseline = mean
-        
+
     elif baseline_type == 'max_entropy':
-        # Maximum entropy baseline (gray for images)
+        # 엔트로피가 가장 큰 밑금(그림이면 잿빛)
         baseline = torch.ones_like(image_tensor) * 0.5
-        
+
     else:
-        raise ValueError(f"Unknown baseline type: {baseline_type}")
-    
+        raise ValueError(f"모르는 밑금 갈래: {baseline_type}")
+
     return baseline.to(device)
 ```
 
-### Class-Based Implementation
+### 클래스로 짜기
 
 ```python
 class IntegratedGradients:
     """
-    Integrated Gradients attribution method.
-    
-    Reference: Sundararajan et al., "Axiomatic Attribution for 
+    쌓은 기울기 몫 매기기 방법.
+
+    살펴볼 거리: Sundararajan et al., "Axiomatic Attribution for 
     Deep Networks" (ICML 2017)
     """
-    
+
     def __init__(self, model: nn.Module):
         """
         Args:
-            model: PyTorch model
+            model: PyTorch 모형
         """
         self.model = model
-    
+
     def attribute(
         self,
         input_tensor: torch.Tensor,
@@ -271,68 +271,68 @@ class IntegratedGradients:
         return_convergence_delta: bool = False
     ) -> torch.Tensor:
         """
-        Compute Integrated Gradients attributions.
-        
+        쌓은 기울기 몫을 셈한다.
+
         Args:
-            input_tensor: Input tensor of shape (1, *input_dims)
-            baseline: Baseline tensor of same shape. If None, uses zeros.
-            target_class: Target class for attribution. If None, uses argmax.
-            n_steps: Number of integration steps (higher = more accurate)
-            return_convergence_delta: If True, also return approximation error
-            
+            input_tensor: (1, *들임 차원) 꼴 들임 텐서
+            baseline: 꼴이 같은 밑금 텐서. None이면 0을 쓴다.
+            target_class: 몫을 매길 겨눈 갈래. None이면 argmax을 쓴다.
+            n_steps: 적분 걸음 수(많을수록 더 맞다)
+            return_convergence_delta: True이면 어림 어긋남도 내놓는다
+
         Returns:
-            Attribution tensor of same shape as input
+            들임과 꼴이 같은 몫 텐서
         """
         self.model.eval()
         device = input_tensor.device
-        
-        # Default baseline: zeros (black image for images)
+
+        # 맡긴 밑금: 0(그림이면 검은 그림)
         if baseline is None:
             baseline = torch.zeros_like(input_tensor)
-        
-        # Determine target class
+
+        # 겨눈 갈래를 정한다
         if target_class is None:
             with torch.no_grad():
                 output = self.model(input_tensor)
                 target_class = output.argmax(dim=1).item()
-        
-        # Compute difference
+
+        # 차이를 셈한다
         diff = input_tensor - baseline
-        
-        # Generate interpolation steps: α_k = k/m for k = 1, ..., m
+
+        # 사이 걸음을 만든다: k = 1, ..., m에 대해 α_k = k/m
         scaled_inputs = [
             baseline + (float(i) / n_steps) * diff 
             for i in range(1, n_steps + 1)
         ]
-        
-        # Stack all interpolated inputs for batched computation
+
+        # 묶음으로 셈하려고 사이 들임을 모두 쌓는다
         scaled_inputs = torch.cat(scaled_inputs, dim=0)
         scaled_inputs.requires_grad_(True)
-        
-        # Forward pass for all steps at once (batched)
+
+        # 모든 걸음을 한꺼번에 앞으로 보낸다(묶음)
         outputs = self.model(scaled_inputs)
-        
-        # Extract target class scores
+
+        # 겨눈 갈래 점수를 뽑는다
         target_scores = outputs[:, target_class]
-        
-        # Backward pass
+
+        # 되짚기 걸음
         self.model.zero_grad()
-        
-        # Compute gradients
+
+        # 기울기를 셈한다
         grads = torch.autograd.grad(
             outputs=target_scores.sum(),
             inputs=scaled_inputs,
             create_graph=False
         )[0]
-        
-        # Average gradients across steps
+
+        # 걸음에 걸쳐 기울기를 고르게 한다
         avg_grads = grads.mean(dim=0, keepdim=True)
-        
-        # Integrated Gradients = (input - baseline) * avg_gradients
+
+        # 쌓은 기울기 = (들임 - 밑금) * 고른 기울기
         attributions = diff * avg_grads
-        
+
         if return_convergence_delta:
-            # Check completeness: sum of attributions ≈ f(x) - f(x')
+            # 온전함을 살핀다: 몫의 합 ≈ f(x) - f(x')
             with torch.no_grad():
                 f_x = self.model(input_tensor)[0, target_class]
                 f_baseline = self.model(baseline)[0, target_class]
@@ -340,9 +340,9 @@ class IntegratedGradients:
                 actual_sum = attributions.sum()
                 delta = (expected_diff - actual_sum).abs().item()
             return attributions, delta
-        
+
         return attributions
-    
+
     def attribute_with_noise(
         self,
         input_tensor: torch.Tensor,
@@ -353,19 +353,19 @@ class IntegratedGradients:
         noise_level: float = 0.1
     ) -> torch.Tensor:
         """
-        Compute noise-robust Integrated Gradients (Expected Gradients).
-        
-        Averages IG over multiple noisy baselines for more stable attributions.
-        This is related to SHAP's expected gradients formulation.
+        잡음에 든든한 쌓은 기울기(기댓값 기울기)를 셈한다.
+
+        잡음 섞은 밑금 여럿에 걸쳐 IG을 고르게 해 더 든든한 몫을 낸다.
+        이는 SHAP의 기댓값 기울기 세움새와 이어진다.
         """
         attributions = torch.zeros_like(input_tensor)
-        
+
         for _ in range(n_samples):
             if baseline is None:
                 noisy_baseline = noise_level * torch.randn_like(input_tensor)
             else:
                 noisy_baseline = baseline + noise_level * torch.randn_like(baseline)
-            
+
             attr = self.attribute(
                 input_tensor, 
                 noisy_baseline, 
@@ -373,13 +373,13 @@ class IntegratedGradients:
                 n_steps
             )
             attributions += attr
-        
+
         return attributions / n_samples
 ```
 
-### Optimized Batched Implementation
+### 묶음으로 다듬은 짜보기
 
-For efficiency, process multiple interpolation steps in a single batch:
+잘 들게 하려고 사이 걸음 여럿을 한 묶음으로 다룬다.
 
 ```python
 def compute_integrated_gradients_batched(
@@ -392,70 +392,70 @@ def compute_integrated_gradients_batched(
     batch_size: int = 10
 ) -> torch.Tensor:
     """
-    Batch-optimized Integrated Gradients computation.
-    
-    Processes multiple interpolation steps per batch for efficiency.
-    Reduces GPU memory usage compared to processing all steps at once.
+    묶음으로 다듬은 쌓은 기울기 셈.
+
+    묶음마다 사이 걸음 여럿을 다루어 잘 들게 한다.
+    모든 걸음을 한꺼번에 다루는 것보다 GPU 기억을 덜 쓴다.
     """
     model.eval()
     image_tensor = image_tensor.to(device)
     baseline = create_baseline(image_tensor, baseline_type, device)
     delta = image_tensor - baseline
-    
+
     accumulated_gradients = torch.zeros_like(image_tensor)
-    
-    # Create alpha values: [1/m, 2/m, ..., 1]
+
+    # 알파 값을 만든다: [1/m, 2/m, ..., 1]
     alphas = torch.linspace(1/steps, 1, steps, device=device)
-    
-    # Process in batches
+
+    # 묶음으로 다룬다
     for i in range(0, steps, batch_size):
         batch_alphas = alphas[i:i+batch_size]
         current_batch_size = len(batch_alphas)
-        
-        # Create batch of interpolated inputs
-        # Shape: [batch_size, C, H, W]
+
+        # 사이 들임의 묶음을 만든다
+        # 꼴: [batch_size, C, H, W]
         batch_alphas = batch_alphas.view(-1, 1, 1, 1)
         interpolated_batch = baseline + batch_alphas * delta
         interpolated_batch.requires_grad_(True)
-        
-        # Forward pass for batch
+
+        # 묶음을 앞으로 보낸다
         outputs = model(interpolated_batch)  # [batch_size, num_classes]
-        
-        # Sum target scores (for gradient computation)
+
+        # 기울기를 셈하려고 겨눈 점수를 더한다
         target_scores = outputs[:, target_class].sum()
-        
-        # Backward pass
+
+        # 되짚기 걸음
         model.zero_grad()
         target_scores.backward()
-        
-        # Accumulate gradients (sum over batch)
+
+        # 기울기를 쌓는다(묶음 축으로 더한다)
         accumulated_gradients += interpolated_batch.grad.sum(dim=0, keepdim=True)
-    
-    # Average and scale
+
+    # 고르게 하고 잣대를 잡는다
     avg_gradients = accumulated_gradients / steps
     integrated_grads = delta * avg_gradients
-    
-    # Aggregate across channels
+
+    # 통로를 가로질러 모은다
     saliency = torch.abs(integrated_grads).max(dim=1)[0]
-    
+
     return saliency
 ```
 
-## Baseline Selection
+## 밑금 고르기
 
-The choice of baseline significantly affects attributions. The baseline represents a "neutral" or "absence of information" input.
+밑금을 어떻게 고르느냐가 몫을 크게 가른다. 밑금은 "치우친 데 없는" 또는 "소식이 없는" 들임을 나타낸다.
 
-### Common Baseline Choices
+### 흔히 고르는 밑금
 
-| Baseline | Description | Best For |
+| 밑금 | 밝힘 | 알맞은 자리 |
 |----------|-------------|----------|
-| **Zeros (Black)** | All-zero tensor | Images (most common) |
-| **Blur** | Heavily blurred input | Preserving structure |
-| **Random** | Uniform random noise | Ensemble averaging |
-| **Mean** | Dataset mean values | Normalized inputs |
-| **Max Entropy** | 0.5 (gray for images) | Maximum uncertainty |
+| **0(검정)** | 온통 0인 텐서 | 그림(가장 흔하다) |
+| **흐림** | 세게 흐리게 한 들임 | 얼개를 남길 때 |
+| **아무렇게나** | 고른 아무 잡음 | 모둠으로 고르게 할 때 |
+| **평균** | 자료의 평균값 | 고르게 한 들임 |
+| **엔트로피 가장 큼** | 0.5(그림이면 잿빛) | 아리송함이 가장 클 때 |
 
-### Baseline Comparison
+### 밑금 견주기
 
 ```python
 def compare_baselines(
@@ -465,55 +465,55 @@ def compare_baselines(
     device: torch.device,
     baselines: list = ['zeros', 'blur', 'random', 'mean']
 ):
-    """Compare Integrated Gradients with different baselines."""
+    """밑금을 달리한 쌓은 기울기를 견준다."""
     import matplotlib.pyplot as plt
-    
+
     fig, axes = plt.subplots(2, len(baselines) + 1, figsize=(4 * (len(baselines) + 1), 8))
-    
-    # Original image
+
+    # 본디 그림
     image_np = denormalize_image(image_tensor)
     axes[0, 0].imshow(image_np)
-    axes[0, 0].set_title('Original')
+    axes[0, 0].set_title('본디')
     axes[0, 0].axis('off')
     axes[1, 0].axis('off')
-    
+
     for idx, baseline_type in enumerate(baselines):
-        # Compute IG
+        # IG을 셈한다
         attr = compute_integrated_gradients(
             model, image_tensor, target_class, device,
             baseline_type=baseline_type, steps=50
         )
         attr_np = attr.squeeze().cpu().numpy()
-        
-        # Show baseline
+
+        # 밑금을 보인다
         baseline = create_baseline(image_tensor, baseline_type, device)
         baseline_np = denormalize_image(baseline)
         axes[0, idx + 1].imshow(baseline_np)
-        axes[0, idx + 1].set_title(f'{baseline_type.capitalize()} Baseline')
+        axes[0, idx + 1].set_title(f'{baseline_type.capitalize()} 밑금')
         axes[0, idx + 1].axis('off')
-        
-        # Show attribution
+
+        # 몫을 보인다
         axes[1, idx + 1].imshow(attr_np, cmap='hot')
-        axes[1, idx + 1].set_title('Attribution')
+        axes[1, idx + 1].set_title('몫')
         axes[1, idx + 1].axis('off')
-    
+
     plt.tight_layout()
     return fig
 ```
 
-### Domain-Specific Baseline Guidelines
+### 밭마다의 밑금 길잡이
 
-| Domain | Recommended Baseline | Rationale |
+| 밭 | 권하는 밑금 | 까닭 |
 |--------|---------------------|-----------|
-| Images (RGB) | Zeros (black) | Absence of visual information |
-| Text (embeddings) | Padding token embedding | Neutral token |
-| Tabular | Training set mean | Average feature values |
-| Time series | Zeros or historical mean | Baseline activity level |
-| Audio | Silence (zeros) | Absence of sound |
+| 그림(RGB) | 0(검정) | 눈에 보이는 소식이 없음 |
+| 글(쏘아 넣기) | 채움 낱말의 쏘아 넣기 | 치우친 데 없는 낱말 |
+| 표 자료 | 익힘 자료의 평균 | 고른 결 값 |
+| 때 열 | 0이나 지난날의 평균 | 밑금 움직임 켜 |
+| 소리 | 고요(0) | 소리가 없음 |
 
-## Verifying Completeness
+## 온전함 살피기
 
-A critical quality check for IG is verifying the completeness property:
+IG의 됨됨이를 살피는 종요로운 길은 온전함을 따져 보는 것이다.
 
 ```python
 def verify_completeness(
@@ -525,32 +525,32 @@ def verify_completeness(
     steps: int = 50
 ) -> dict:
     """
-    Verify that IG attributions sum to f(x) - f(x').
-    
+    IG 몫의 합이 f(x) - f(x')이 되는지 살핀다.
+
     Returns:
-        Dictionary with completeness verification results
+        온전함 살핌 열매를 담은 사전
     """
     model.eval()
     image_tensor = image_tensor.to(device)
     baseline = create_baseline(image_tensor, baseline_type, device)
-    
-    # Compute model outputs
+
+    # 모형 내놓기를 셈한다
     with torch.no_grad():
         output_input = model(image_tensor)[0, target_class].item()
         output_baseline = model(baseline)[0, target_class].item()
-    
+
     output_difference = output_input - output_baseline
-    
-    # Compute IG (keep channel dimension for sum)
+
+    # IG을 셈한다(더하려고 통로 축을 남긴다)
     ig = IntegratedGradients(model)
     attributions = ig.attribute(image_tensor, baseline, target_class, steps)
-    
+
     attribution_sum = attributions.sum().item()
-    
-    # Calculate error
+
+    # 어긋남을 셈한다
     absolute_error = abs(attribution_sum - output_difference)
     relative_error = absolute_error / (abs(output_difference) + 1e-8)
-    
+
     return {
         'f(x)': output_input,
         'f(x\')': output_baseline,
@@ -558,13 +558,13 @@ def verify_completeness(
         'sum(IG)': attribution_sum,
         'absolute_error': absolute_error,
         'relative_error': relative_error,
-        'completeness_satisfied': relative_error < 0.05  # 5% tolerance
+        'completeness_satisfied': relative_error < 0.05  # 5% 너그러움
     }
 ```
 
-## Number of Steps Analysis
+## 걸음 수 살피기
 
-The number of integration steps controls approximation accuracy:
+적분 걸음의 수가 어림의 맞음을 가른다.
 
 ```python
 def analyze_steps_convergence(
@@ -574,43 +574,43 @@ def analyze_steps_convergence(
     device: torch.device,
     step_counts: list = [5, 10, 20, 50, 100, 200, 500]
 ):
-    """Analyze how attributions converge with more steps."""
+    """걸음이 늘수록 몫이 어떻게 모이는지 살핀다."""
     import matplotlib.pyplot as plt
-    
+
     errors = []
-    
+
     for steps in step_counts:
         result = verify_completeness(
             model, image_tensor, target_class, device, steps=steps
         )
         errors.append(result['relative_error'])
-        print(f"Steps: {steps:4d}, Relative Error: {result['relative_error']:.6f}")
-    
-    # Plot convergence
+        print(f"걸음: {steps:4d}, 견준 어긋남: {result['relative_error']:.6f}")
+
+    # 모여 가는 모습을 그린다
     plt.figure(figsize=(10, 6))
     plt.plot(step_counts, errors, 'bo-', linewidth=2, markersize=8)
-    plt.xlabel('Number of Steps', fontsize=12)
-    plt.ylabel('Relative Completeness Error', fontsize=12)
-    plt.title('Integrated Gradients Convergence', fontsize=14)
+    plt.xlabel('걸음 수', fontsize=12)
+    plt.ylabel('견준 온전함 어긋남', fontsize=12)
+    plt.title('쌓은 기울기가 모여 가는 모습', fontsize=14)
     plt.yscale('log')
     plt.grid(True, alpha=0.3)
     plt.show()
-    
+
     return dict(zip(step_counts, errors))
 ```
 
-### Recommendations
+### 이르는 말
 
-| Steps | Use Case | Typical Error |
+| 걸음 | 쓰일 자리 | 흔한 어긋남 |
 |-------|----------|---------------|
-| 20-30 | Quick exploration, debugging | ~5-10% |
-| 50 | Standard usage, good accuracy | ~1-5% |
-| 100-200 | Publication, rigorous analysis | <1% |
-| 300+ | When completeness error is high | <0.5% |
+| 20~30 | 빠르게 둘러보기, 벌레잡기 | ~5~10% |
+| 50 | 여느 쓰임, 넉넉한 맞음 | ~1~5% |
+| 100~200 | 논문, 엄밀한 살핌 | 1% 아래 |
+| 300 넘음 | 온전함 어긋남이 클 때 | 0.5% 아래 |
 
-## Visualization
+## 그림으로 보이기
 
-### Standard Visualization
+### 여느 그림 그리기
 
 ```python
 import numpy as np
@@ -619,54 +619,54 @@ import matplotlib.pyplot as plt
 def visualize_integrated_gradients(
     image: np.ndarray,
     attribution: np.ndarray,
-    title: str = "Integrated Gradients"
+    title: str = "쌓은 기울기"
 ):
     """
-    Visualize Integrated Gradients attribution.
-    
+    쌓은 기울기 몫을 그린다.
+
     Args:
-        image: Original image [H, W, 3] in [0, 1]
-        attribution: Attribution map [H, W]
-        title: Plot title
+        image: [0, 1] 너비의 본디 그림 [H, W, 3]
+        attribution: 몫 그림 [H, W]
+        title: 그림 이름
     """
     fig, axes = plt.subplots(1, 4, figsize=(16, 4))
-    
-    # Original image
+
+    # 본디 그림
     axes[0].imshow(image)
-    axes[0].set_title('Original')
+    axes[0].set_title('본디')
     axes[0].axis('off')
-    
-    # Signed attribution (diverging colormap)
+
+    # 부호 있는 몫(갈라지는 빛깔 그림)
     vmax = np.abs(attribution).max()
     im = axes[1].imshow(attribution, cmap='seismic', vmin=-vmax, vmax=vmax)
-    axes[1].set_title('Signed Attribution')
+    axes[1].set_title('부호 있는 몫')
     axes[1].axis('off')
     plt.colorbar(im, ax=axes[1], fraction=0.046)
-    
-    # Absolute attribution
+
+    # 절댓값 몫
     axes[2].imshow(np.abs(attribution), cmap='hot')
-    axes[2].set_title('Absolute Attribution')
+    axes[2].set_title('절댓값 몫')
     axes[2].axis('off')
-    
-    # Overlay
+
+    # 겹쳐 보이기
     overlay = image.copy()
     mask = np.abs(attribution)
     mask = (mask - mask.min()) / (mask.max() - mask.min() + 1e-8)
-    
+
     axes[3].imshow(image)
     axes[3].imshow(mask, cmap='jet', alpha=0.5)
-    axes[3].set_title('Overlay')
+    axes[3].set_title('겹쳐 보이기')
     axes[3].axis('off')
-    
+
     plt.suptitle(title, fontsize=14)
     plt.tight_layout()
-    
+
     return fig
 ```
 
-## Applications in Finance
+## 금융에 쓰기
 
-### Feature Attribution for Tabular Data
+### 표 자료의 결 몫 매기기
 
 ```python
 def ig_for_tabular(
@@ -678,59 +678,59 @@ def ig_for_tabular(
     device: torch.device = None
 ):
     """
-    Apply Integrated Gradients to tabular financial data.
-    
+    표로 된 금융 자료에 쌓은 기울기를 건다.
+
     Args:
-        model: Credit risk or return prediction model
-        features: Input features tensor [1, n_features]
-        feature_names: List of feature names
-        target_class: Target class (for classification)
-        baseline_type: 'zero' or 'mean'
-        
+        model: 신용 무릅씀이나 돌아옴을 미루어 보는 모형
+        features: 들임 결 텐서 [1, n_features]
+        feature_names: 결 이름 목록
+        target_class: 겨눈 갈래(가름일 때)
+        baseline_type: 'zero'나 'mean'
+
     Returns:
-        Attribution values for each feature
+        결마다의 몫 값
     """
     if device is None:
         device = features.device
-        
+
     ig = IntegratedGradients(model)
-    
-    # Baseline
+
+    # 밑금
     if baseline_type == 'zero':
         baseline = torch.zeros_like(features)
     else:
-        # Use training set mean (should be passed in practice)
+        # 익힘 자료의 평균을 쓴다(참으로는 넘겨받아야 한다)
         baseline = features.mean(dim=0, keepdim=True)
-    
-    # Compute attributions
+
+    # 몫을 셈한다
     attributions = ig.attribute(features, baseline, target_class, n_steps=100)
-    
-    # Extract values
+
+    # 값을 뽑는다
     attr_values = attributions.squeeze().cpu().numpy()
-    
-    # Sort by absolute attribution
+
+    # 몫의 절댓값으로 줄 세운다
     sorted_idx = np.argsort(np.abs(attr_values))[::-1]
-    
-    print("Feature Attributions (sorted by |attribution|):")
+
+    print("결 몫 매기기(|몫|으로 줄 세움):")
     print("-" * 50)
     for i in sorted_idx[:15]:
         print(f"{feature_names[i]:30s}: {attr_values[i]:+.4f}")
-    
+
     return attr_values, feature_names
 
 
-# Example: Credit risk model
+# 보기: 신용 무릅씀 모형
 feature_names = [
     'credit_score', 'debt_to_income', 'loan_amount', 
     'employment_years', 'num_credit_lines', 'payment_history',
     'total_debt', 'income', 'age', 'months_since_delinquent'
 ]
 
-# For a credit default prediction model:
+# 신용 부도를 미루어 보는 모형이면:
 # attributions, names = ig_for_tabular(credit_model, applicant_features, feature_names)
 ```
 
-### Time Series Attribution
+### 때 열 몫 매기기
 
 ```python
 def ig_for_time_series(
@@ -741,162 +741,162 @@ def ig_for_time_series(
     n_steps: int = 100
 ):
     """
-    Apply Integrated Gradients to financial time series.
-    
+    금융 때 열에 쌓은 기울기를 건다.
+
     Args:
-        model: Sequence model (LSTM, Transformer, etc.)
-        sequence: Input sequence (batch, seq_len, features) or (batch, seq_len)
-        baseline: Baseline sequence (default: zeros)
-        target_class: Target class for classification models
-        
+        model: 열 모형(LSTM, 변환기 등)
+        sequence: 들임 열 (묶음, 열 길이, 결)이나 (묶음, 열 길이)
+        baseline: 밑금 열(맡긴 값: 0)
+        target_class: 가름 모형의 겨눈 갈래
+
     Returns:
-        Temporal attribution showing which time steps matter
+        어느 때 걸음이 중요한지 보이는 때 몫
     """
     import matplotlib.pyplot as plt
-    
+
     ig = IntegratedGradients(model)
-    
-    # Default baseline: zeros
+
+    # 맡긴 밑금: 0
     if baseline is None:
         baseline = torch.zeros_like(sequence)
-    
-    # Compute attributions
+
+    # 몫을 셈한다
     attributions = ig.attribute(sequence, baseline, target_class, n_steps=n_steps)
-    
-    # Sum across features if multiple features per timestep
+
+    # 때 걸음마다 결이 여럿이면 결 축으로 더한다
     if attributions.dim() == 3:
         temporal_attr = attributions.abs().sum(dim=-1).squeeze()
     else:
         temporal_attr = attributions.abs().squeeze()
-    
-    # Visualize
+
+    # 그림으로 보인다
     temporal_attr_np = temporal_attr.cpu().numpy()
-    
+
     plt.figure(figsize=(14, 4))
     plt.bar(range(len(temporal_attr_np)), temporal_attr_np, color='steelblue')
-    plt.xlabel('Time Step (oldest → most recent)', fontsize=12)
-    plt.ylabel('Attribution', fontsize=12)
-    plt.title('Temporal Attribution: Which time steps influence the prediction?', fontsize=14)
+    plt.xlabel('때 걸음 (가장 오래됨 → 가장 최근)', fontsize=12)
+    plt.ylabel('몫', fontsize=12)
+    plt.title('때 몫 매기기: 어느 때 걸음이 미루어 봄을 흔드는가?', fontsize=14)
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
     plt.show()
-    
+
     return temporal_attr_np
 ```
 
-## Comparison with Other Methods
+## 다른 방법과 견주기
 
-### Theoretical Comparison
+### 이론에서 견주기
 
-| Method | Completeness | Sensitivity | Impl. Invariance | Computation |
+| 방법 | 온전함 | 예민함 | 짜기에 흔들리지 않음 | 셈 |
 |--------|:------------:|:-----------:|:----------------:|:-----------:|
-| Vanilla Gradient | ✗ | ✗ | ✓ | Fast |
-| Gradient × Input | ✗ | ✗ | ✓ | Fast |
-| Integrated Gradients | ✓ | ✓ | ✓ | Moderate |
-| DeepLIFT | ✓ | ✓ | ✗ | Fast |
-| SHAP (exact) | ✓ | ✓ | ✓ | Slow |
-| LRP | ✓ | Partial | ✗ | Moderate |
+| 맨 기울기 | ✗ | ✗ | ✓ | 빠름 |
+| 기울기 × 들임 | ✗ | ✗ | ✓ | 빠름 |
+| 쌓은 기울기 | ✓ | ✓ | ✓ | 가운데 |
+| DeepLIFT | ✓ | ✓ | ✗ | 빠름 |
+| SHAP(정확) | ✓ | ✓ | ✓ | 느림 |
+| LRP | ✓ | 얼마쯤 | ✗ | 가운데 |
 
-### Practical Comparison
+### 참으로 쓸 때 견주기
 
-| Aspect | Vanilla Gradient | Integrated Gradients |
+| 결 | 맨 기울기 | 쌓은 기울기 |
 |--------|-----------------|---------------------|
-| Computation | Single forward-backward | Multiple (m steps) |
-| Sensitivity axiom | ❌ Violated | ✅ Satisfied |
-| Completeness | ❌ No guarantee | ✅ Exact (up to approx.) |
-| Saturation handling | ❌ Poor | ✅ Good |
-| Interpretation | Local sensitivity | Path-accumulated contribution |
-| Baseline required | No | Yes |
+| 셈 | 앞으로-되짚기 한 번 | 여러 번(걸음 m번) |
+| 예민함 공리 | ❌ 어김 | ✅ 채움 |
+| 온전함 | ❌ 보장 없음 | ✅ 꼭 맞음(어림 안에서) |
+| 잦아듦 다루기 | ❌ 나쁨 | ✅ 좋음 |
+| 읽는 법 | 그 자리 예민함 | 길 따라 쌓은 이바지 |
+| 밑금이 있어야 함 | 아니오 | 예 |
 
-### Combining with Other Methods
+### 다른 방법과 아우르기
 
-**IG + SmoothGrad:** Average IG over noisy inputs for smoother visualizations
+**IG + SmoothGrad:** 잡음 섞은 들임에 걸쳐 IG을 고르게 해 더 매끄러운 그림을 얻는다
 ```python
-# Smooth Integrated Gradients
+# 매끄럽게 한 쌓은 기울기
 smooth_ig = ig.attribute_with_noise(input_tensor, n_samples=10, noise_level=0.1)
 ```
 
-**IG + Grad-CAM:** Use IG for pixel-level detail, Grad-CAM for regional understanding
+**IG + Grad-CAM:** 그림점 낱의 잔 무늬에는 IG을, 자리 낱으로 알아보는 데는 Grad-CAM을 쓴다
 
-## Limitations
+## 한계
 
-### 1. Baseline Dependence
+### 1. 밑금에 매임
 
-Attributions depend on baseline choice. Different baselines can produce meaningfully different attributions for the same input-output pair.
+몫이 밑금을 어떻게 고르느냐에 달렸다. 같은 들임-내놓기 짝이라도 밑금이 다르면 뜻있게 다른 몫이 나올 수 있다.
 
-**Mitigation:**
+**눅이는 길:**
 
-- Use multiple baselines and average (Expected Gradients / SHAP)
-- Use domain-appropriate baselines
-- Report baseline choice in publications
+- 밑금을 여럿 써서 고르게 한다(기댓값 기울기 / SHAP)
+- 그 밭에 알맞은 밑금을 쓴다
+- 논문에 고른 밑금을 적는다
 
-### 2. Computational Cost
+### 2. 셈 값
 
-Requires $m$ forward-backward passes (typically 50-200), much slower than vanilla gradients.
+앞으로-되짚기를 $m$번(흔히 50~200) 해야 하므로 맨 기울기보다 훨씬 느리다.
 
-**Mitigation:**
+**눅이는 길:**
 
-- Use batched computation
-- Start with fewer steps for exploration
-- Use early stopping based on convergence
+- 묶음으로 셈한다
+- 둘러볼 때는 걸음을 적게 잡는다
+- 모여 가는 결을 보고 일찍 멈춘다
 
-### 3. Path Choice
+### 3. 길 고르기
 
-The straight-line path is a specific choice. Other paths could also satisfy the axioms:
+곧은 길은 하나의 고름일 뿐이다. 다른 길도 공리를 채울 수 있다.
 
 $$
 \gamma: [0, 1] \rightarrow \mathbb{R}^n, \quad \gamma(0) = \mathbf{x}', \gamma(1) = \mathbf{x}
 $$
 
-**Note:** Straight line is the most natural, commonly used, and uniquely satisfies a symmetry preservation property.
+**짚을 것:** 곧은 길이 가장 자연스럽고 널리 쓰이며, 맞섬을 지키는 됨됨이를 홀로 채운다.
 
-### 4. Local Linearity Assumption
+### 4. 그 자리에서 선형이라는 여김
 
-IG works best when the model is approximately linear in each local region. Highly nonlinear regions may produce counterintuitive attributions.
+IG은 모형이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 선형이 아닌 자리에서는 얄궂은 몫이 나올 수 있다.
 
-## Practical Recommendations
+## 참으로 쓸 때 이르는 말
 
-1. **Start with zero baseline** for images; it's simple and usually works well
+1. 그림에는 **0 밑금에서 시작한다**. 단순하고 대개 잘 듣는다
 
-2. **Use 50 steps** for standard analysis; increase to 100+ for rigorous work
+2. 여느 살핌에는 **걸음 50**을 쓰고, 엄밀한 일에는 100 넘게 올린다
 
-3. **Verify completeness** to ensure numerical accuracy (error <5%)
+3. 셈이 맞는지 보려면 **온전함을 살핀다**(어긋남 5% 아래)
 
-4. **Compare with Grad-CAM** for complementary insights (IG for pixel-level, Grad-CAM for regional)
+4. 서로 채워 주는 눈으로 **Grad-CAM과 견준다**(IG은 그림점 낱, Grad-CAM은 자리 낱)
 
-5. **Consider batched computation** for efficiency with large images or many explanations
+5. 그림이 크거나 풀이를 많이 해야 하면 **묶음 셈을 헤아린다**
 
-6. **Average over baselines** when baseline choice is uncertain (Expected Gradients)
+6. 밑금이 아리송하면 **밑금에 걸쳐 고르게 한다**(기댓값 기울기)
 
-7. **Report your baseline and step count** for reproducibility
+7. 다시 해 볼 수 있도록 **밑금과 걸음 수를 적는다**
 
-## Summary
+## 간추림
 
-Integrated Gradients provides **principled, axiomatically-grounded attributions** by integrating gradients along a path from baseline to input.
+쌓은 기울기는 밑금에서 들임으로 가는 길을 따라 기울기를 적분해 **이치에 닿고 공리에 뿌리내린 몫 매기기**를 준다.
 
-### Key Equation
+### 고갱이 식
 
 $$
 \text{IG}_i(\mathbf{x}) = (x_i - x'_i) \times \int_{0}^{1} \frac{\partial f(\mathbf{x}' + \alpha(\mathbf{x} - \mathbf{x}'))}{\partial x_i} \, d\alpha
 $$
 
-### Key Properties
+### 고갱이 됨됨이
 
-| Property | Description |
+| 됨됨이 | 밝힘 |
 |----------|-------------|
-| **Sensitivity** | Non-zero attribution for features that affect output |
-| **Implementation Invariance** | Same function → same attributions |
-| **Completeness** | $\sum_i \text{IG}_i = f(\mathbf{x}) - f(\mathbf{x}')$ |
+| **예민함** | 내놓기를 흔드는 결에 0이 아닌 몫을 준다 |
+| **짜기에 흔들리지 않음** | 함수가 같으면 몫도 같다 |
+| **온전함** | $\sum_i \text{IG}_i = f(\mathbf{x}) - f(\mathbf{x}')$ |
 
-### Best Used For
+### 알맞은 자리
 
-- Rigorous, theoretically-grounded attribution
-- Cases where vanilla gradients fail (saturation, ReLU networks)
-- When the completeness property is important
-- Regulatory or audit contexts requiring principled explanations
-- Comparing attributions across different models fairly
+- 엄밀하고 이론에 뿌리내린 몫 매기기
+- 맨 기울기가 무너지는 자리(잦아듦, ReLU 그물)
+- 온전함 됨됨이가 중요할 때
+- 이치에 닿는 풀이를 바라는 규정이나 감사 자리
+- 서로 다른 모형의 몫을 고르게 견줄 때
 
-## References
+## 살펴볼 거리
 
 1. Sundararajan, M., Taly, A., & Yan, Q. (2017). "Axiomatic Attribution for Deep Networks." *ICML 2017*.
 
@@ -908,34 +908,34 @@ $$
 
 5. Erion, G., et al. (2021). "Improving Performance of Deep Learning Models with Axiomatic Attribution Priors and Expected Gradients." *Nature Machine Intelligence*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Apply the interpretability method described in this section to a 2-layer neural network with ReLU activations classifying XOR inputs. Compute the explanation for the input $x = [1, 1]$.
+**익힘 1.**
+이 마디에서 밝힌 풀이 방법을, XOR 들임을 가르는 ReLU 살림의 두 켜 신경 그물에 걸어라. 들임 $x = [1, 1]$에 대한 풀이를 셈하여라.
 
-??? success "Solution to Exercise 1"
-    For a trained XOR network with weights $W_1, b_1, W_2, b_2$, the output is $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$. The explanation method produces attributions for each input feature. For $x = [1, 1]$ (class 0), both features contribute to the negative classification. The specific attribution values depend on the method: gradient-based methods compute $\partial f / \partial x_i$; perturbation-based methods measure output change when features are masked. The XOR problem demonstrates that linear explanation methods can mislead because the decision boundary is non-linear. $\square$
-
----
-
-**Exercise 2.**
-Prove or disprove that the explanation method in this section satisfies the completeness axiom: the sum of all feature attributions equals $f(x) - f(x_0)$ for some baseline $x_0$.
-
-??? success "Solution to Exercise 2"
-    The completeness axiom (also called efficiency in Shapley value theory) states that attributions sum to the difference between the model output at the input and at the baseline. Whether this method satisfies completeness depends on its formulation. Gradient methods do not satisfy completeness (gradients are local, not path-integrated). Integrated Gradients satisfies completeness by construction (fundamental theorem of calculus along the path). SHAP values satisfy efficiency by the Shapley axiom. Methods that violate completeness may over- or under-attribute, making the total attribution unreliable as a global explanation. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, b_1, W_2, b_2$인 익힌 XOR 그물에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 들임 결마다 몫을 내놓는다. $x = [1, 1]$(갈래 0)이면 두 결 모두 음수 가름에 이바지한다. 몫 값은 방법마다 다르다. 기울기 바탕 방법은 $\partial f / \partial x_i$을 셈하고, 흔들어 보는 방법은 결을 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
 
 ---
 
-**Exercise 3.**
-Design an experiment to evaluate the faithfulness of the explanations produced by this method. Use insertion and deletion curves to measure whether highlighted features are truly important to the model.
+**익힘 2.**
+이 마디의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 밑금 $x_0$에 대해 모든 결 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
 
-??? success "Solution to Exercise 3"
-    Protocol: (1) Compute feature attributions for each test image. (2) Deletion: progressively mask features in order of decreasing attribution, recording the model confidence drop. Faithful explanations cause rapid confidence decrease. (3) Insertion: progressively reveal features in order of decreasing attribution from a blank baseline, recording confidence increase. Faithful explanations cause rapid confidence increase. (4) Compute AUC for both curves. (5) Compare against random ordering (baseline) and other methods. A faithful method should have low deletion AUC and high insertion AUC. Repeat over 1000+ test samples for statistical reliability. $\square$
+??? success "익힘 2 풀이"
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 들임에서의 모형 내놓기와 밑금에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 기울기 방법은 온전함을 채우지 못한다(기울기는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). 쌓은 기울기는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this interpretability method could be applied to a financial model predicting credit default. What regulatory requirements must the explanations satisfy?
+**익힘 3.**
+이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 결이 참으로 모형에 중요한지를 넣기와 빼기 곡선으로 재어라.
 
-??? success "Solution to Exercise 4"
-    For credit models, regulations (ECOA, GDPR Article 22) require individualized explanations for adverse decisions. The method must produce: (1) the top factors contributing to the denial (adverse action reasons); (2) explanations that are consistent (similar applicants get similar explanations); (3) explanations that are actionable (the applicant understands what to change). The interpretability method from this section can identify feature importances, but must be validated for stability (small input changes should not drastically alter the explanation) and correctness (removing important features should change the prediction). Protected attributes must be handled carefully to avoid revealing proxy discrimination. $\square$
+??? success "익힘 3 풀이"
+    절차는 이렇다. (1) 시험 그림마다 결 몫을 셈한다. (2) 빼기: 몫이 큰 차례로 결을 하나씩 가리며 모형의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 밑금에서 시작해 몫이 큰 차례로 결을 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 셈한다. (5) 아무렇게나 매긴 차례(밑금)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+
+---
+
+**익힘 4.**
+이 풀이 방법을 신용 부도를 미루어 보는 금융 모형에 어떻게 걸 수 있는지 다루어라. 풀이가 채워야 할 규정 요건은 무엇인가?
+
+??? success "익힘 4 풀이"
+    신용 모형에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 마디의 풀이 방법으로 결의 중요함을 짚을 수 있으나, 든든함(들임이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 결을 없애면 미루어 봄이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 됨됨이는 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
