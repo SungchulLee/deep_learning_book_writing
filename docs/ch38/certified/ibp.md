@@ -1,27 +1,27 @@
-# Interval Bound Propagation (IBP)
-## Introduction
+# 사이 테두리 퍼뜨리기(IBP)
+## 들머리
 
-**Interval Bound Propagation (IBP)** (Gowal et al., 2019) provides certified $\ell_\infty$ robustness by propagating interval bounds through the network. Unlike randomized smoothing (which certifies $\ell_2$ robustness), IBP directly certifies that no $\ell_\infty$ perturbation within the budget can change the prediction.
+**사이 테두리 퍼뜨리기(IBP)**(고왈 등, 2019)은 그물을 지나며 사이 테두리를 퍼뜨려 $\ell_\infty$ 든든함을 밝힌다. $\ell_2$ 든든함을 밝히는 아무렇게나 매끄럽게 하기와 달리, IBP은 예산 안의 어떤 $\ell_\infty$ 흔듦도 미루어 봄을 바꿀 수 없음을 곧바로 밝힌다.
 
-## Mathematical Foundation
+## 수학 밑바탕
 
-### Core Idea
+### 고갱이 깨침
 
-Given an input $\mathbf{x}$ and perturbation budget $\varepsilon$, the input lies in the interval:
+들임 $\mathbf{x}$과 흔듦 예산 $\varepsilon$이 있을 때 들임은 다음 사이에 놓인다.
 
 $$
 \mathbf{x} \in [\mathbf{x} - \varepsilon, \mathbf{x} + \varepsilon] = [\underline{\mathbf{x}}_0, \overline{\mathbf{x}}_0]
 $$
 
-IBP propagates these bounds through each layer of the network to obtain bounds on the final logits:
+IBP은 이 테두리를 그물의 켜마다 퍼뜨려 마지막 로짓의 테두리를 얻는다.
 
 $$
 [\underline{\mathbf{z}}_L, \overline{\mathbf{z}}_L] = \text{IBP}(f_\theta, [\underline{\mathbf{x}}_0, \overline{\mathbf{x}}_0])
 $$
 
-### Propagation Through Linear Layers
+### 선형 켜를 지나 퍼뜨리기
 
-For a linear layer $\mathbf{z} = \mathbf{W}\mathbf{x} + \mathbf{b}$ with input bounds $[\underline{\mathbf{x}}, \overline{\mathbf{x}}]$:
+들임 테두리가 $[\underline{\mathbf{x}}, \overline{\mathbf{x}}]$인 선형 켜 $\mathbf{z} = \mathbf{W}\mathbf{x} + \mathbf{b}$에서
 
 $$
 \begin{aligned}
@@ -34,9 +34,9 @@ $$
 \overline{z}_j = \sum_i [W_{ji}]_+ \overline{x}_i + [W_{ji}]_- \underline{x}_i + b_j
 $$
 
-where $[a]_+ = \max(a, 0)$ and $[a]_- = \min(a, 0)$.
+여기서 $[a]_+ = \max(a, 0)$이고 $[a]_- = \min(a, 0)$이다.
 
-In matrix form:
+행렬 꼴로 적으면
 
 $$
 \begin{aligned}
@@ -45,23 +45,23 @@ $$
 \end{aligned}
 $$
 
-### Propagation Through ReLU
+### ReLU을 지나 퍼뜨리기
 
-For ReLU activation $z = \max(0, x)$ with bounds $[\underline{x}, \overline{x}]$:
+테두리가 $[\underline{x}, \overline{x}]$인 ReLU 살림 $z = \max(0, x)$에서
 
 $$
 \underline{z} = \max(0, \underline{x}), \quad \overline{z} = \max(0, \overline{x})
 $$
 
-### Certification Condition
+### 밝히는 조건
 
-A prediction is certified robust if the lower bound of the true class logit exceeds the upper bound of all other classes:
+참 갈래 로짓의 아래끝이 다른 갈래 모두의 위끝을 넘으면 그 미루어 봄은 든든하다고 밝혀진다.
 
 $$
 \underline{z}_y > \max_{k \neq y} \overline{z}_k \implies \text{certified robust}
 $$
 
-## PyTorch Implementation
+## PyTorch으로 짜기
 
 ```python
 import torch
@@ -70,10 +70,10 @@ from typing import Tuple, Dict, Optional
 
 class IBPBounds:
     """
-    Interval Bound Propagation for certified Linf robustness.
+    밝혀 낸 Linf 든든함을 위한 사이 테두리 퍼뜨리기.
     
-    Propagates interval bounds through a feedforward network
-    to certify predictions.
+    앞먹임 그물을 지나며 사이 테두리를 퍼뜨려
+    미루어 봄을 밝힌다.
     """
     
     @staticmethod
@@ -82,7 +82,7 @@ class IBPBounds:
         lb: torch.Tensor,
         ub: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Propagate bounds through a linear layer."""
+        """선형 켜를 지나 테두리를 퍼뜨린다."""
         W = layer.weight
         b = layer.bias if layer.bias is not None else 0
         
@@ -98,7 +98,7 @@ class IBPBounds:
     def propagate_relu(
         lb: torch.Tensor, ub: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Propagate bounds through ReLU."""
+        """ReLU을 지나 테두리를 퍼뜨린다."""
         return torch.clamp(lb, min=0), torch.clamp(ub, min=0)
     
     @staticmethod
@@ -107,7 +107,7 @@ class IBPBounds:
         lb: torch.Tensor,
         ub: torch.Tensor
     ) -> Tuple[torch.Tensor, torch.Tensor]:
-        """Propagate bounds through Conv2d."""
+        """Conv2d을 지나 테두리를 퍼뜨린다."""
         W = layer.weight
         b = layer.bias
         
@@ -133,30 +133,30 @@ def certify_ibp(
     epsilon: float
 ) -> Dict[str, float]:
     """
-    Certify predictions using IBP.
+    IBP으로 미루어 봄을 밝힌다.
     
     Parameters
     ----------
     model : nn.Sequential
-        Network with alternating Linear/Conv2d and ReLU layers
+        선형/Conv2d 켜와 ReLU 켜가 번갈아 오는 그물
     x : torch.Tensor
-        Input batch
+        들임 묶음
     y : torch.Tensor
-        True labels
+        참 이름표
     epsilon : float
-        Linf perturbation budget
+        Linf 흔듦 예산
     
     Returns
     -------
-    results : dict with certified_accuracy and clean_accuracy
+    results : certified_accuracy과 clean_accuracy을 담은 사전
     """
     ibp = IBPBounds()
     
-    # Initial bounds
+    # 처음 테두리
     lb = torch.clamp(x - epsilon, 0, 1)
     ub = torch.clamp(x + epsilon, 0, 1)
     
-    # Propagate through layers
+    # 켜를 지나 퍼뜨린다
     for layer in model:
         if isinstance(layer, nn.Linear):
             lb, ub = ibp.propagate_linear(layer, lb, ub)
@@ -168,18 +168,18 @@ def certify_ibp(
             lb = lb.flatten(1)
             ub = ub.flatten(1)
     
-    # Check certification
-    # Certified if: lower_bound[y] > upper_bound[k] for all k ≠ y
-    true_lb = lb.gather(1, y.view(-1, 1))  # Lower bound of true class
+    # 밝혀졌는지 살핀다
+    # 밝혀짐: 모든 k ≠ y에 대해 lower_bound[y] > upper_bound[k]
+    true_lb = lb.gather(1, y.view(-1, 1))  # 참 갈래의 아래끝
     
-    # Set true class upper bound to -inf for comparison
+    # 견주려고 참 갈래의 위끝을 -inf으로 둔다
     ub_others = ub.clone()
     ub_others.scatter_(1, y.view(-1, 1), float('-inf'))
     max_other_ub = ub_others.max(dim=1)[0]
     
     certified = (true_lb.squeeze() > max_other_ub)
     
-    # Clean accuracy
+    # 맑은 맞음
     with torch.no_grad():
         clean_pred = model(x).argmax(dim=1)
         clean_correct = (clean_pred == y)
@@ -191,70 +191,70 @@ def certify_ibp(
     }
 ```
 
-## IBP Training
+## IBP으로 익히기
 
-To improve certified accuracy, models can be trained with IBP-based loss:
+밝혀 낸 맞음을 올리려면 IBP에 기댄 잃음으로 모형을 익힐 수 있다.
 
 $$
 \mathcal{L}_{\text{IBP}} = \text{CE}(\underline{\mathbf{z}}_y - \max_{k \neq y} \overline{\mathbf{z}}_k, \mathbf{1})
 $$
 
-This encourages the network to maintain separation between the true class lower bound and other class upper bounds.
+이는 그물이 참 갈래의 아래끝과 다른 갈래의 위끝 사이를 벌려 두도록 이끈다.
 
-### Warm-Up Schedule
+### 몸풀기 짜임
 
-IBP training requires careful scheduling: start with standard training and gradually increase the weight of the IBP loss (and $\varepsilon$) to avoid training instability.
+IBP 익힘에는 조심스러운 짜임이 있어야 한다. 여느 익힘에서 비롯해 IBP 잃음의 짐(그리고 $\varepsilon$)을 차츰 올려 익힘이 흔들리지 않게 한다.
 
-## Limitations
+## 한계
 
-- **Loose bounds**: IBP bounds become increasingly loose with network depth, limiting certification to small networks
-- **Small $\varepsilon$**: Practical for small perturbation budgets; bounds explode for large $\varepsilon$
-- **Architecture constraints**: Works best with simple feedforward networks; harder for complex architectures
+- **헐거운 테두리**: 그물이 깊을수록 IBP 테두리가 헐거워져 작은 그물에서만 밝힐 수 있다
+- **작은 $\varepsilon$**: 흔듦 예산이 작을 때 쓸 만하다. $\varepsilon$이 크면 테두리가 터진다
+- **얼개 옭아맴**: 단순한 앞먹임 그물에 가장 잘 듣고 얽힌 얼개에는 어렵다
 
-## Comparison with Randomized Smoothing
+## 아무렇게나 매끄럽게 하기와 견주기
 
-| Aspect | IBP | Randomized Smoothing |
+| 결 | IBP | 아무렇게나 매끄럽게 하기 |
 |--------|-----|---------------------|
-| Certified norm | $\ell_\infty$ | $\ell_2$ |
-| Guarantee type | Deterministic | Probabilistic |
-| Bound tightness | Loose for deep nets | Independent of depth |
-| Scalability | Small networks | Any architecture |
-| Training cost | Moderate | Low (noise augmentation) |
+| 밝히는 노름 | $\ell_\infty$ | $\ell_2$ |
+| 다짐의 갈래 | 붙박인 것 | 낌새의 것 |
+| 테두리의 촘촘함 | 깊은 그물에서 헐겁다 | 깊이와 상관없다 |
+| 크게 늘리기 | 작은 그물 | 어떤 얼개든 |
+| 익힘 값 | 가운데 | 낮음(잡음 불리기) |
 
-## References
+## 살펴볼 거리
 
 1. Gowal, S., et al. (2019). "Scalable Verified Training for Provably Robust Image Classification." ICCV.
 2. Mirman, M., Gehr, T., & Vechev, M. (2018). "Differentiable Abstract Interpretation for Provably Robust Neural Networks." ICML.
 3. Wong, E., & Kolter, J. Z. (2018). "Provable Defenses Against Adversarial Examples via the Convex Outer Adversarial Polytope." ICML.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
