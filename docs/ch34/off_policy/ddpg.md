@@ -1,133 +1,133 @@
-# 34.4.1 Deep Deterministic Policy Gradient (DDPG)
-## Introduction
+# 34.4.1 깊은 붙박이 방침 기울기(DDPG)
+## 들머리
 
-DDPG (Lillicrap et al., 2016) extends DQN to continuous action spaces by combining a deterministic policy gradient with an off-policy actor-critic framework. It maintains a deterministic actor $\mu_\theta(s)$ and a Q-function critic $Q_\phi(s,a)$, using experience replay and target networks for stable off-policy learning.
+DDPG(릴리크랩 외, 2016)는 붙박이 방침 기울기와 벗어난 방침 행위자-비평가 틀을 엮어 DQN을 이어진 움직임 공간으로 넓힌다. 붙박이 행위자 $\mu_\theta(s)$과 Q 함수 비평가 $Q_\phi(s,a)$을 지니며, 든든한 벗어난 방침 배움을 위해 겪음 되돌려 보기와 과녁 그물을 쓴다.
 
-## Key Idea
+## 종요로운 생각
 
-Unlike stochastic policies that output distributions, DDPG's actor outputs a single deterministic action:
+분포를 내놓는 확률 방침과 달리 DDPG의 행위자는 붙박인 움직임 하나를 내놓는다.
 
 $$a = \mu_\theta(s)$$
 
-The deterministic policy gradient (Silver et al., 2014):
+붙박이 방침 기울기(실버 외, 2014)는 다음과 같다.
 
 $$\nabla_\theta J(\theta) = \mathbb{E}_{s \sim \mathcal{D}}\left[\nabla_a Q_\phi(s, a)\big|_{a=\mu_\theta(s)} \cdot \nabla_\theta \mu_\theta(s)\right]$$
 
-The gradient flows through the Q-function into the actor, requiring no sampling over actions.
+기울기가 Q 함수를 거쳐 행위자로 흐르므로 움직임에 대해 뽑을 까닭이 없다.
 
-## Algorithm
+## 알고리즘
 
-### Components
+### 조각
 
-1. **Actor** $\mu_\theta(s)$: Deterministic policy network
-2. **Critic** $Q_\phi(s, a)$: Action-value function
-3. **Target actor** $\mu_{\theta'}$: Slowly-updated copy of actor
-4. **Target critic** $Q_{\phi'}$: Slowly-updated copy of critic
-5. **Replay buffer** $\mathcal{D}$: Stores transition tuples $(s, a, r, s', d)$
+1. **행위자** $\mu_\theta(s)$: 붙박이 방침 그물
+2. **비평가** $Q_\phi(s, a)$: 움직임 값 함수
+3. **과녁 행위자** $\mu_{\theta'}$: 더디게 고치는 행위자의 벌
+4. **과녁 비평가** $Q_{\phi'}$: 더디게 고치는 비평가의 벌
+5. **되돌려 보기 버퍼** $\mathcal{D}$: 넘어감 세 짝 $(s, a, r, s', d)$을 갈무리한다
 
-### Update Rules
+### 고침 규칙
 
-**Critic update** (minimize TD error):
+**비평가 고침**(때 차이 잘못을 가장 작게 하기):
 
 $$L(\phi) = \mathbb{E}_{(s,a,r,s',d) \sim \mathcal{D}}\left[\left(Q_\phi(s,a) - y\right)^2\right]$$
 
 $$y = r + \gamma (1-d) Q_{\phi'}(s', \mu_{\theta'}(s'))$$
 
-**Actor update** (maximize Q):
+**행위자 고침**(Q를 가장 크게 하기):
 
 $$\nabla_\theta J = \mathbb{E}_{s \sim \mathcal{D}}\left[\nabla_a Q_\phi(s,a)\big|_{a=\mu_\theta(s)} \nabla_\theta \mu_\theta(s)\right]$$
 
-**Target updates** (Polyak averaging):
+**과녁 고침**(폴리악 고르게 하기):
 
 $$\theta' \leftarrow \tau \theta + (1-\tau) \theta'$$
 
 $$\phi' \leftarrow \tau \phi + (1-\tau) \phi'$$
 
-where $\tau = 0.005$ (soft update coefficient).
+여기서 $\tau = 0.005$(부드러운 고침 계수)이다.
 
-### Exploration
+### 살펴보기
 
-Since the policy is deterministic, exploration requires adding noise:
+방침이 붙박여 있으므로 살펴보려면 잡음을 더해야 한다.
 
 $$a = \mu_\theta(s) + \mathcal{N}(0, \sigma)$$
 
-Common noise processes:
+흔한 잡음 흐름은 다음과 같다.
 
-- **Gaussian**: $\epsilon \sim \mathcal{N}(0, \sigma^2 I)$ — simple and effective
-- **Ornstein-Uhlenbeck**: Temporally correlated noise for smoother exploration
+- **가우스**: $\epsilon \sim \mathcal{N}(0, \sigma^2 I)$ -- 쉽고 잘 듣는다
+- **오른슈타인-울렌벡**: 더 매끄러운 살펴보기를 위해 때로 서로 얽힌 잡음
 
-## DDPG Pseudocode
+## DDPG 의사코드
 
 ```
-Initialize actor μ_θ, critic Q_φ, target networks θ' ← θ, φ' ← φ
-Initialize replay buffer D
+행위자 μ_θ, 비평가 Q_φ, 과녁 그물 θ' ← θ, φ' ← φ에 첫 값을 매긴다
+되돌려 보기 버퍼 D에 첫 값을 매긴다
 
-For each timestep:
-    Select action: a = μ_θ(s) + ε, ε ~ N(0, σ)
-    Execute a, observe r, s'
-    Store (s, a, r, s', done) in D
-    
-    Sample minibatch from D
-    Compute target: y = r + γ(1-d)Q_{φ'}(s', μ_{θ'}(s'))
-    Update critic: minimize (Q_φ(s,a) - y)²
-    Update actor: maximize Q_φ(s, μ_θ(s))
-    Soft update targets: θ' ← τθ + (1-τ)θ', φ' ← τφ + (1-τ)φ'
+때 걸음마다:
+    움직임을 고른다: a = μ_θ(s) + ε, ε ~ N(0, σ)
+    a를 벌이고 r, s'을 본다
+    (s, a, r, s', done)을 D에 갈무리한다
+
+    D에서 작은 묶음을 뽑는다
+    과녁을 셈한다: y = r + γ(1-d)Q_{φ'}(s', μ_{θ'}(s'))
+    비평가를 고친다: (Q_φ(s,a) - y)²을 가장 작게 한다
+    행위자를 고친다: Q_φ(s, μ_θ(s))을 가장 크게 한다
+    과녁을 부드럽게 고친다: θ' ← τθ + (1-τ)θ', φ' ← τφ + (1-τ)φ'
 ```
 
-## Known Issues
+## 알려진 걸림돌
 
-DDPG suffers from several problems that motivated TD3 and SAC:
+DDPG는 TD3과 SAC를 불러낸 여러 문제로 앓는다.
 
-1. **Q-value overestimation**: The critic tends to overestimate Q-values, causing the actor to exploit errors
-2. **Brittleness**: Sensitive to hyperparameters, especially learning rates
-3. **Exploration**: Gaussian noise may be insufficient for complex environments
-4. **Value divergence**: The interplay of function approximation, bootstrapping, and off-policy learning can cause instability
+1. **Q 값 지나친 어림**: 비평가가 Q 값을 지나치게 높이 어림하는 버릇이 있어 행위자가 그 잘못을 파고든다
+2. **부서지기 쉬움**: 매개변수, 그 가운데에서도 배움률에 예민하다
+3. **살펴보기**: 얽힌 둘레에서는 가우스 잡음이 모자랄 수 있다
+4. **값 흩어짐**: 함수 어림, 부트스트랩, 벗어난 방침 배움이 맞물려 들쭉날쭉해질 수 있다
 
-## Hyperparameters
+## 매개변수
 
-| Parameter | Typical Value | Description |
+| 매개변수 | 흔한 값 | 뜻 |
 |-----------|--------------|-------------|
-| Actor LR | $1 \times 10^{-4}$ | Actor learning rate |
-| Critic LR | $1 \times 10^{-3}$ | Critic learning rate |
-| $\tau$ | 0.005 | Soft update coefficient |
-| $\gamma$ | 0.99 | Discount factor |
-| Buffer size | $10^6$ | Replay buffer capacity |
-| Batch size | 256 | Minibatch size |
-| Noise $\sigma$ | 0.1 | Exploration noise std |
-| Warmup steps | 25000 | Random actions before training |
+| 행위자 배움률 | $1 \times 10^{-4}$ | 행위자의 배움률 |
+| 비평가 배움률 | $1 \times 10^{-3}$ | 비평가의 배움률 |
+| $\tau$ | 0.005 | 부드러운 고침 계수 |
+| $\gamma$ | 0.99 | 깎기 인자 |
+| 버퍼 크기 | $10^6$ | 되돌려 보기 버퍼 용량 |
+| 묶음 크기 | 256 | 작은 묶음 크기 |
+| 잡음 $\sigma$ | 0.1 | 살펴보기 잡음의 표준편차 |
+| 데우는 걸음 | 25000 | 익히기 앞서 벌이는 아무 움직임 |
 
-## Summary
+## 요약
 
-DDPG pioneered continuous-action deep RL by combining deterministic policy gradients with DQN-style stabilization techniques. While effective, its brittleness and overestimation issues led to improved variants: TD3 addresses overestimation, and SAC replaces the deterministic policy with a maximum entropy framework.
+DDPG는 붙박이 방침 기울기와 DQN 꼴 든든하게 하기 재주를 엮어 이어진 움직임 깊은 힘 북돋우는 배움의 길을 텄다. 잘 듣기는 하나 부서지기 쉽고 지나치게 어림하는 걸림돌 때문에 나아진 갈래가 나왔다. TD3은 지나친 어림을 다루고 SAC는 붙박이 방침을 가장 큰 엔트로피 틀로 갈음한다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$

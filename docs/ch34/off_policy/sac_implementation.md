@@ -1,15 +1,15 @@
-# SAC Implementation
+# SAC 구현
 
-Soft Actor-Critic (SAC) is the leading off-policy algorithm for continuous control, combining maximum entropy reinforcement learning with actor-critic architecture. SAC maximizes both expected return and policy entropy, encouraging exploration while maintaining stable training through twin Q-networks, a squashed Gaussian policy with reparameterized sampling, and automatic temperature tuning. This production-quality implementation demonstrates all core SAC components on the Pendulum environment and compares automatic versus fixed entropy temperature.
+부드러운 행위자-비평가(SAC)는 이어진 다스리기에서 앞서가는 벗어난 방침 알고리즘으로, 가장 큰 엔트로피 힘 북돋우는 배움과 행위자-비평가 얼개를 엮는다. SAC은 어림 돌아옴과 방침 엔트로피를 함께 가장 크게 하여, 쌍둥이 Q 그물과 다시 매개변수 매기기로 뽑는 눌러 담은 가우스 방침, 저절로 벼리는 온도로 든든한 익힘을 지키면서 살펴보기를 북돋운다. 서비스 품질의 이 구현은 SAC의 한가운데 조각을 모두 Pendulum 둘레에서 보이고, 저절로 벼리는 엔트로피 온도와 붙박인 온도를 견준다.
 
-## Code
+## 코드
 
 ```python
 """
-Chapter 34.4.4: SAC Complete Implementation
+34.4.4장: SAC 온전한 구현
 =============================================
-Production-quality SAC with automatic temperature tuning,
-squashed Gaussian policy, and twin critics.
+저절로 벼리는 온도, 눌러 담은 가우스 방침, 쌍둥이 비평가를
+갖춘 서비스 품질의 SAC.
 """
 
 import torch
@@ -22,7 +22,7 @@ import gymnasium as gym
 from collections import deque
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 
@@ -54,11 +54,11 @@ class ReplayBuffer:
 
 
 # ---------------------------------------------------------------------------
-# Networks
+# 그물
 # ---------------------------------------------------------------------------
 
 class SquashedGaussianActor(nn.Module):
-    """SAC stochastic actor with squashed Gaussian policy."""
+    """눌러 담은 가우스 방침을 쓰는 SAC 확률 행위자."""
     
     def __init__(self, obs_dim, act_dim, hidden=256, max_action=1.0):
         super().__init__()
@@ -78,19 +78,19 @@ class SquashedGaussianActor(nn.Module):
     
     def sample(self, obs):
         """
-        Sample action with reparameterization and compute log-prob.
+        다시 매개변수 매기기로 움직임을 뽑고 로그 낌새를 셈한다.
         
-        Returns: action, log_prob, mean_action
+        돌려주는 값: 움직임, 로그 낌새, 평균 움직임
         """
         mu, log_std = self.forward(obs)
         std = log_std.exp()
         dist = Normal(mu, std)
         
-        # Reparameterized sample
+        # 다시 매개변수 매긴 뽑기
         u = dist.rsample()
         action = torch.tanh(u) * self.max_action
         
-        # Log probability with tanh correction
+        # tanh 바로잡기를 곁들인 로그 낌새
         # log π(a|s) = log N(u; μ, σ) - Σ log(1 - tanh²(u))
         log_prob = dist.log_prob(u)
         log_prob -= torch.log(1 - (action / self.max_action).pow(2) + EPS)
@@ -102,7 +102,7 @@ class SquashedGaussianActor(nn.Module):
 
 
 class TwinQCritic(nn.Module):
-    """Twin Q-networks for SAC."""
+    """SAC를 위한 쌍둥이 Q 그물."""
     
     def __init__(self, obs_dim, act_dim, hidden=256):
         super().__init__()
@@ -123,35 +123,35 @@ class TwinQCritic(nn.Module):
 
 
 # ---------------------------------------------------------------------------
-# SAC Agent
+# SAC 부림꾼
 # ---------------------------------------------------------------------------
 
 class SAC:
     """
-    Soft Actor-Critic with automatic entropy tuning.
+    저절로 벼리는 엔트로피를 갖춘 부드러운 행위자-비평가.
     
-    Parameters
+    매개변수
     ----------
     env : gym.Env
-        Continuous action environment.
+        이어진 움직임 둘레.
     lr : float
-        Learning rate for all networks.
+        온 그물의 배움률.
     gamma : float
-        Discount factor.
+        깎기 인자.
     tau : float
-        Soft target update coefficient.
+        부드러운 과녁 고침 계수.
     alpha_lr : float
-        Temperature learning rate.
+        온도의 배움률.
     init_alpha : float
-        Initial temperature value.
+        온도의 첫 값.
     buffer_size : int
-        Replay buffer size.
+        되돌려 보기 버퍼 크기.
     batch_size : int
-        Training minibatch size.
+        익힘 작은 묶음 크기.
     warmup_steps : int
-        Random exploration steps before training.
+        익히기 앞서 벌이는 아무 살펴보기 걸음.
     auto_alpha : bool
-        Whether to automatically tune temperature.
+        온도를 저절로 벼릴지 여부.
     """
     
     def __init__(
@@ -179,19 +179,19 @@ class SAC:
         act_dim = env.action_space.shape[0]
         max_action = float(env.action_space.high[0])
         
-        # Actor
+        # 행위자
         self.actor = SquashedGaussianActor(obs_dim, act_dim, hidden_dim, max_action)
         self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=lr)
         
-        # Twin Critics
+        # 쌍둥이 비평가
         self.critic = TwinQCritic(obs_dim, act_dim, hidden_dim)
         self.critic_target = TwinQCritic(obs_dim, act_dim, hidden_dim)
         self.critic_target.load_state_dict(self.critic.state_dict())
         self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=lr)
         
-        # Temperature (alpha)
+        # 온도(alpha)
         if auto_alpha:
-            self.target_entropy = -act_dim  # Heuristic: -dim(A)
+            self.target_entropy = -act_dim  # 어림 규칙: -dim(A)
             self.log_alpha = torch.tensor(np.log(init_alpha), requires_grad=True)
             self.alpha_optimizer = optim.Adam([self.log_alpha], lr=alpha_lr)
             self.alpha = self.log_alpha.exp().item()
@@ -218,7 +218,7 @@ class SAC:
         
         s, a, r, s2, d = self.buffer.sample(self.batch_size)
         
-        # === Critic Update ===
+        # === 비평가 고침 ===
         with torch.no_grad():
             next_a, next_log_prob, _ = self.actor.sample(s2)
             target_q1, target_q2 = self.critic_target(s2, next_a)
@@ -232,7 +232,7 @@ class SAC:
         critic_loss.backward()
         self.critic_optimizer.step()
         
-        # === Actor Update ===
+        # === 행위자 고침 ===
         new_a, log_prob, _ = self.actor.sample(s)
         q1_new, q2_new = self.critic(s, new_a)
         q_new = torch.min(q1_new, q2_new)
@@ -243,7 +243,7 @@ class SAC:
         actor_loss.backward()
         self.actor_optimizer.step()
         
-        # === Temperature Update ===
+        # === 온도 고침 ===
         alpha_loss = 0.0
         if self.auto_alpha:
             alpha_loss = -(self.log_alpha.exp() * (log_prob.detach() + self.target_entropy)).mean()
@@ -255,7 +255,7 @@ class SAC:
             self.alpha = self.log_alpha.exp().item()
             alpha_loss = alpha_loss.item()
         
-        # Soft update targets
+        # 과녁을 부드럽게 고친다
         self._soft_update()
         
         return {
@@ -320,7 +320,7 @@ class SAC:
 
 
 # ---------------------------------------------------------------------------
-# Demo
+# 보여 주기
 # ---------------------------------------------------------------------------
 
 def demo_sac():
@@ -345,7 +345,7 @@ def demo_sac():
 
 
 def demo_sac_alpha_comparison():
-    """Compare auto vs fixed temperature."""
+    """저절로 벼리는 온도와 붙박인 온도를 견준다."""
     print("\n" + "=" * 60)
     print("SAC: Auto vs Fixed Temperature")
     print("=" * 60)
@@ -364,34 +364,34 @@ def demo_sac_alpha_comparison():
 if __name__ == "__main__":
     demo_sac()```
 
-## Discussion
+## 논의
 
-The implementation centers on the `ReplayBuffer`, `SquashedGaussianActor`, `TwinQCritic` classes, which encapsulate the core logic of sac complete implementation. The code follows a modular design that separates the algorithmic components from the demonstration and evaluation logic.
+이 구현은 SAC 온전한 구현의 한가운데 논리를 담은 `ReplayBuffer`, `SquashedGaussianActor`, `TwinQCritic` 클래스를 축으로 삼는다. 코드는 알고리즘 조각을 보여 주기와 따지기 논리에서 갈라놓는 조각 설계를 따른다.
 
-The demonstration functions show the practical application of these components on standard reinforcement learning benchmarks. By examining the output, one can observe how the algorithm's performance varies with different hyperparameter choices and problem configurations.
+보여 주기 함수는 이 조각들을 여느 힘 북돋우는 배움 잣대에 실제로 써 보인다. 그 출력을 살피면 매개변수 고름과 문제 얼개에 따라 알고리즘의 됨됨이가 어떻게 달라지는지 볼 수 있다.
 
-From a practical standpoint, this implementation prioritizes clarity over raw performance. Production systems would typically incorporate additional optimizations such as batched computation, GPU acceleration, and more sophisticated hyperparameter tuning. Nevertheless, the core algorithmic ideas demonstrated here transfer directly to large-scale applications.
+쓰임의 눈으로 보면 이 구현은 날 성능보다 또렷함을 앞세운다. 서비스 시스템은 묶음 셈하기, GPU 빠르게 하기, 더 야무진 매개변수 벼리기 같은 다듬기를 더 넣는 것이 보통이다. 그렇더라도 여기서 보인 한가운데 알고리즘 생각은 큰 잣대의 쓰임새에 그대로 옮겨 간다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Run the demonstration code and record the key output metrics. Modify one hyperparameter (such as the learning rate, hidden dimension, or number of layers) and describe how the results change.
+**연습문제 1.**
+보여 주기 코드를 돌리고 종요로운 출력 재기를 적어라. 매개변수 하나(배움률, 숨은 차원, 켜 개수 따위)를 고쳐 열매가 어떻게 달라지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    After running the demo, systematically vary the chosen hyperparameter while keeping others fixed. For example, doubling the hidden dimension typically improves representational capacity but increases computation time. The learning rate has a non-monotonic effect: too small leads to slow convergence, while too large causes instability. Document the specific numbers for at least three different values of the chosen hyperparameter.
-
----
-
-**Exercise 2.**
-Explain the role of the key architectural choices in the implementation. Why are specific activation functions, normalization strategies, or loss functions used? What would happen if you substituted alternatives?
-
-??? success "Solution to Exercise 2"
-    The architectural choices reflect established best practices in off-policy methods. For instance, ReLU activations provide non-linearity while avoiding vanishing gradients for positive inputs. The loss function is chosen to match the task type (cross-entropy for classification, MSE for regression). Substituting alternatives (e.g., sigmoid activations, L1 loss) would change the optimization landscape and potentially degrade performance, though some substitutions may be beneficial in specific scenarios.
+??? success "연습문제 1 풀이"
+    보여 주기를 돌린 뒤 다른 것을 붙박아 두고 고른 매개변수만 짜임 있게 바꾼다. 보기로 숨은 차원을 곱절로 늘리면 나타내는 그릇이 커지지만 셈하는 때가 는다. 배움률은 한결같지 않은 결과를 낳는다. 너무 작으면 더디게 모이고 너무 크면 들쭉날쭉해진다. 고른 매개변수의 서로 다른 값 적어도 셋에 대해 또렷한 수를 적어 두라.
 
 ---
 
-**Exercise 3.**
-Extend the implementation to handle a more challenging scenario: either a larger dataset, a different problem variant, or an additional feature. Describe your modification and evaluate its impact on performance.
+**연습문제 2.**
+이 구현에서 종요로운 얼개 고름이 맡은 몫을 풀어라. 왜 그런 활성 함수, 고르게 하기 꾀, 손실 함수를 쓰는가? 다른 것으로 바꾸면 무슨 일이 생기는가?
 
-??? success "Solution to Exercise 3"
-    One natural extension is to add regularization (dropout, weight decay) or a more sophisticated architecture (additional layers, skip connections). Implement the chosen extension, train on the same data, and compare metrics before and after. The extension should demonstrate understanding of both the original algorithm and the modification's theoretical motivation.
+??? success "연습문제 2 풀이"
+    이 얼개 고름은 벗어난 방침 방법에서 자리 잡은 좋은 버릇을 비춘다. 보기로 ReLU 활성은 곧지 않음을 주면서 0보다 큰 들임에서 기울기가 사라지는 것을 막는다. 손실 함수는 일감 갈래에 맞추어 고른다(갈래 나누기에는 사귐 엔트로피, 되돌이에는 평균 제곱 잘못). 다른 것으로 바꾸면(보기로 시그모이드 활성, L1 손실) 가장 좋게 하기 지형이 바뀌어 됨됨이가 나빠질 수 있으나, 어떤 자리에서는 바꾸는 것이 이로울 수도 있다.
+
+---
+
+**연습문제 3.**
+이 구현을 더 만만치 않은 자리로 넓혀라. 더 큰 자료 뭉치, 다른 문제 갈래, 덧붙인 기능 가운데 하나를 고르라. 고친 바를 밝히고 됨됨이에 미친 바를 따져라.
+
+??? success "연습문제 3 풀이"
+    절로 떠오르는 넓히기 하나는 정칙화(드롭아웃, 무게 삭임)나 더 야무진 얼개(켜 더하기, 건너뛰는 이음)를 더하는 것이다. 고른 넓히기를 만들고 같은 자료로 익힌 뒤 앞뒤의 재기를 견주어라. 이 넓히기는 처음 알고리즘과 고친 바의 이치 밑뜻을 모두 아는 것을 보여야 한다.

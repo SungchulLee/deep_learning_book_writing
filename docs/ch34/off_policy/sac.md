@@ -1,114 +1,114 @@
-# 34.4.3 Soft Actor-Critic (SAC)
-## Introduction
+# 34.4.3 부드러운 행위자-비평가(SAC)
+## 들머리
 
-SAC (Haarnoja et al., 2018) combines off-policy actor-critic learning with maximum entropy reinforcement learning. By augmenting the reward with an entropy bonus, SAC encourages exploration while learning near-optimal policies. The stochastic policy, automatic temperature tuning, and twin critics make SAC one of the most robust and sample-efficient continuous control algorithms.
+SAC(하르노야 외, 2018)은 벗어난 방침 행위자-비평가 배움과 가장 큰 엔트로피 힘 북돋우는 배움을 엮는다. 보상에 엔트로피 덤을 더해, 거의 가장 좋은 방침을 배우면서도 살펴보기를 북돋운다. 확률 방침, 저절로 벼리는 온도, 쌍둥이 비평가 덕분에 SAC은 가장 굳세고 뽑기를 아끼는 이어진 다스리기 알고리즘 가운데 하나다.
 
-## Maximum Entropy Objective
+## 가장 큰 엔트로피 목표
 
-SAC maximizes the entropy-augmented return:
+SAC은 엔트로피를 더한 돌아옴을 가장 크게 한다.
 
 $$J(\pi) = \sum_{t=0}^{T} \mathbb{E}_{(s_t, a_t) \sim \rho_\pi}\left[r(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot|s_t))\right]$$
 
-where $\alpha > 0$ is the temperature parameter controlling the exploration-exploitation trade-off.
+여기서 $\alpha > 0$은 살펴보기와 써먹기의 맞바꿈을 다스리는 온도 매개변수다.
 
-The optimal policy under this objective is:
+이 목표 아래에서 가장 좋은 방침은 다음과 같다.
 
 $$\pi^*(a|s) \propto \exp\left(\frac{1}{\alpha} Q^*(s, a)\right)$$
 
-## Algorithm Components
+## 알고리즘 조각
 
-### 1. Stochastic Policy (Squashed Gaussian)
+### 1. 확률 방침(눌러 담은 가우스)
 
-Unlike DDPG/TD3's deterministic policies, SAC uses a stochastic policy parameterized as a squashed Gaussian:
+DDPG/TD3의 붙박이 방침과 달리 SAC은 눌러 담은 가우스로 매개변수를 나타낸 확률 방침을 쓴다.
 
 $$a = \tanh(\mu_\theta(s) + \sigma_\theta(s) \odot \epsilon), \quad \epsilon \sim \mathcal{N}(0, I)$$
 
-The reparameterization trick enables gradient flow through the sampling.
+다시 매개변수 매기기 재주로 뽑기를 거쳐 기울기가 흐르게 한다.
 
-### 2. Twin Q-Functions
+### 2. 쌍둥이 Q 함수
 
-SAC uses two Q-networks (like TD3) to mitigate overestimation:
+SAC은 (TD3처럼) Q 그물 둘을 써서 지나친 어림을 누그러뜨린다.
 
-$$Q_\text{target} = r + \gamma(1-d)\left(\min_{i=1,2} Q_{\phi'_i}(s', a') - \alpha \log \pi_\theta(a'|s')\right)$$
+$$Q_\text{과녁} = r + \gamma(1-d)\left(\min_{i=1,2} Q_{\phi'_i}(s', a') - \alpha \log \pi_\theta(a'|s')\right)$$
 
-### 3. Automatic Temperature Tuning
+### 3. 저절로 벼리는 온도
 
-SAC automatically adjusts $\alpha$ to maintain a target entropy $\bar{\mathcal{H}}$:
+SAC은 겨눈 엔트로피 $\bar{\mathcal{H}}$을 지키도록 $\alpha$을 저절로 맞춘다.
 
 $$\alpha^* = \arg\min_\alpha \mathbb{E}_{a \sim \pi}\left[-\alpha \log \pi(a|s) - \alpha \bar{\mathcal{H}}\right]$$
 
-Target entropy is typically set to $\bar{\mathcal{H}} = -\dim(\mathcal{A})$ (negative action dimension).
+겨눈 엔트로피는 흔히 $\bar{\mathcal{H}} = -\dim(\mathcal{A})$(움직임 차원의 음수)으로 둔다.
 
-## SAC Update Rules
+## SAC 고침 규칙
 
-**Q-function update**:
+**Q 함수 고침**:
 
 $$L(\phi_i) = \mathbb{E}\left[\left(Q_{\phi_i}(s,a) - y\right)^2\right]$$
 
 $$y = r + \gamma(1-d)\left(\min_j Q_{\phi'_j}(s', \tilde{a}') - \alpha \log \pi_\theta(\tilde{a}'|s')\right)$$
 
-**Policy update**:
+**방침 고침**:
 
 $$L(\theta) = \mathbb{E}_{s \sim \mathcal{D}}\left[\alpha \log \pi_\theta(\tilde{a}|s) - \min_i Q_{\phi_i}(s, \tilde{a})\right]$$
 
-where $\tilde{a}$ is sampled via reparameterization.
+여기서 $\tilde{a}$은 다시 매개변수 매기기로 뽑는다.
 
-**Temperature update**:
+**온도 고침**:
 
 $$L(\alpha) = \mathbb{E}_{a \sim \pi}\left[-\alpha(\log \pi_\theta(a|s) + \bar{\mathcal{H}})\right]$$
 
-## SAC Advantages
+## SAC의 이로움
 
-- **Robust exploration**: Entropy maximization prevents premature convergence
-- **Sample efficient**: Off-policy with replay buffer
-- **Automatic tuning**: Temperature adapts to the task
-- **Stable**: Twin critics + soft updates + stochastic policy
-- **No noise tuning**: Exploration emerges from the maximum entropy objective
+- **굳센 살펴보기**: 엔트로피를 크게 하여 너무 일찍 모이는 것을 막는다
+- **뽑기를 아낌**: 되돌려 보기 버퍼를 쓰는 벗어난 방침이다
+- **저절로 벼림**: 온도가 일감에 맞춰 간다
+- **든든함**: 쌍둥이 비평가 + 부드러운 고침 + 확률 방침
+- **잡음 벼리기가 없음**: 살펴보기가 가장 큰 엔트로피 목표에서 절로 우러난다
 
-## Hyperparameters
+## 매개변수
 
-| Parameter | Default | Description |
+| 매개변수 | 기본값 | 뜻 |
 |-----------|---------|-------------|
-| Actor/Critic LR | $3 \times 10^{-4}$ | Learning rates |
-| $\alpha$ LR | $3 \times 10^{-4}$ | Temperature learning rate |
-| $\gamma$ | 0.99 | Discount factor |
-| $\tau$ | 0.005 | Soft update coefficient |
-| Target entropy | $-\dim(\mathcal{A})$ | Entropy target |
-| Buffer size | $10^6$ | Replay capacity |
-| Batch size | 256 | Minibatch size |
+| 행위자/비평가 배움률 | $3 \times 10^{-4}$ | 배움률 |
+| $\alpha$ 배움률 | $3 \times 10^{-4}$ | 온도의 배움률 |
+| $\gamma$ | 0.99 | 깎기 인자 |
+| $\tau$ | 0.005 | 부드러운 고침 계수 |
+| 겨눈 엔트로피 | $-\dim(\mathcal{A})$ | 엔트로피 과녁 |
+| 버퍼 크기 | $10^6$ | 되돌려 보기 용량 |
+| 묶음 크기 | 256 | 작은 묶음 크기 |
 
-## Summary
+## 요약
 
-SAC achieves state-of-the-art sample efficiency for continuous control by unifying maximum entropy RL with off-policy actor-critic learning. The combination of stochastic policy, automatic temperature tuning, and twin critics creates a robust algorithm that requires minimal hyperparameter tuning.
+SAC은 가장 큰 엔트로피 힘 북돋우는 배움과 벗어난 방침 행위자-비평가 배움을 하나로 아울러 이어진 다스리기에서 가장 앞선 뽑기 효율을 이룬다. 확률 방침, 저절로 벼리는 온도, 쌍둥이 비평가의 어우름이 매개변수를 거의 벼리지 않아도 되는 굳센 알고리즘을 만든다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$
