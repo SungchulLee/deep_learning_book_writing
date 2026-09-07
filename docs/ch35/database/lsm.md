@@ -1,103 +1,103 @@
-# LSM Trees
+# LSM 나무
 
-B-tree indexes optimize for read-heavy workloads by keeping data sorted on disk, but every update requires a random write to the page containing the affected key.  For write-heavy workloads -- time-series databases, logging systems, message queues -- these random writes become a bottleneck.  **Log-Structured Merge Trees (LSM trees)** trade read performance for write performance by converting random writes into sequential writes, achieving dramatically higher write throughput.  LSM trees power modern storage engines including LevelDB, RocksDB, Cassandra, and HBase.
+B 나무 색인은 자료를 원반에 매긴 채로 지녀 읽기가 많은 일감에 알맞지만, 고칠 때마다 그 열쇠를 담은 쪽에 아무 적기를 해야 한다. 때 열 데이터베이스, 기록 시스템, 쪽지 큐처럼 적기가 많은 일감에서는 이 아무 적기가 목을 죈다. **기록 얼개 아우름 나무**(LSM 나무)는 아무 적기를 잇단 적기로 바꾸어 읽기 됨됨이를 값으로 치르고 적기 됨됨이를 얻으며, 적기 처리량을 크게 높인다. LSM 나무는 LevelDB, RocksDB, 카산드라, HBase 같은 요즘 곳간 엔진을 떠받친다.
 
-## Core Architecture
+## 한가운데 얼개
 
-An LSM tree organizes data into multiple **levels**, each an order of magnitude larger than the previous:
+LSM 나무는 자료를 여러 **켜**로 짜며 켜마다 앞 켜보다 한 자릿수 크다.
 
-1. **Memtable (Level 0 in memory)**: An in-memory balanced tree (red-black tree or skip list) that absorbs all incoming writes.
-2. **SSTables (Level 1, 2, ..., $L$ on disk)**: Sorted String Tables -- immutable, sorted files on disk.
+1. **기억 표(기억 속 0켜)**: 들어오는 온 적기를 빨아들이는 기억 안 고른 나무(붉은-검은 나무나 건너뛰기 목록).
+2. **SSTable(원반의 1, 2, …, $L$켜)**: 매긴 글자열 표. 바뀌지 않고 매겨진 원반 파일이다.
 
-### Write Path
+### 적는 길
 
-1. Write the key-value pair to a **write-ahead log (WAL)** for crash recovery.
-2. Insert into the in-memory **memtable**.
-3. When the memtable reaches its size threshold $M$, flush it to disk as a new SSTable at Level 1.
+1. 무너짐에서 되살리려 열쇠-값 짝을 **미리 적는 기록(WAL)**에 적는다.
+2. 기억 안 **기억 표**에 넣는다.
+3. 기억 표가 크기 문턱 $M$에 이르면 1켜의 새 SSTable으로 원반에 흘려보낸다.
 
-All writes go to memory first, so write latency is $O(\log M)$ -- a red-black tree insertion.  The flush to disk is a single sequential write.
+온 적기가 기억으로 먼저 가므로 적기 늦음이 $O(\log M)$이다(붉은-검은 나무 넣기). 원반으로 흘려보내기는 잇단 적기 한 번이다.
 
-### Read Path
+### 읽는 길
 
-To read key $k$:
+열쇠 $k$을 읽으려면:
 
-1. Check the memtable.
-2. Check each level's SSTables, from newest to oldest.
-3. Return the first match found (most recent version).
+1. 기억 표를 살핀다.
+2. 켜마다 SSTable을 새것부터 옛것까지 살핀다.
+3. 처음 들어맞은 것(가장 최근 판)을 돌려준다.
 
-Without optimization, a read might check $O(L)$ SSTables, where $L$ is the number of levels.  **Bloom filters** attached to each SSTable quickly eliminate SSTables that definitely do not contain $k$, reducing most reads to 1--2 disk accesses.
+다듬지 않으면 읽기가 SSTable을 $O(L)$개 살필 수 있다($L$은 켜 개수). SSTable마다 붙은 **블룸 필터**가 $k$을 틀림없이 담지 않은 SSTable을 빠르게 걸러 내어, 거의 모든 읽기를 원반에 1~2번 닿는 것으로 줄인다.
 
-## Compaction
+## 뭉치기
 
-As SSTables accumulate, they must be merged to bound read amplification and reclaim space from deleted/overwritten keys.  Compaction merges multiple SSTables into fewer, larger ones.
+SSTable이 쌓이면 읽기 부풀림을 매어 두고 지우거나 덮어쓴 열쇠의 자리를 되찾으려 아울러야 한다. 뭉치기는 SSTable 여럿을 더 적고 큰 것으로 아우른다.
 
-### Size-Tiered Compaction
+### 크기 켜 뭉치기
 
-- Group SSTables of similar size together.
-- When a level accumulates $T$ SSTables, merge them all into one SSTable at the next level.
-- Simple but can cause temporary space amplification (up to 2x).
+- 크기가 비슷한 SSTable을 한데 묶는다.
+- 어느 켜에 SSTable이 $T$개 쌓이면 그것을 모두 다음 켜의 SSTable 하나로 아우른다.
+- 쉽지만 자리 부풀림이 잠깐 커질 수 있다(2배까지).
 
-### Leveled Compaction
+### 켜 뭉치기
 
-- Each level $i$ has a size limit: $|L_i| \leq T^i \cdot |L_1|$ where $T$ is the size ratio.
-- When Level $i$ exceeds its limit, pick one SSTable and merge it into Level $i + 1$.
-- Provides bounded space amplification at the cost of higher write amplification.
+- 켜 $i$마다 크기 위끝이 있다. $|L_i| \leq T^i \cdot |L_1|$이며 $T$은 크기 비다.
+- 켜 $i$이 위끝을 넘으면 SSTable 하나를 골라 켜 $i + 1$으로 아우른다.
+- 적기 부풀림이 커지는 값으로 자리 부풀림을 매어 둔다.
 
-## Amplification Analysis
+## 부풀림 살피기
 
-LSM tree performance is characterized by three amplification factors:
+LSM 나무의 됨됨이는 부풀림 인자 셋으로 드러난다.
 
-| Factor | Definition | Size-tiered | Leveled |
+| 인자 | 뜻매김 | 크기 켜 | 켜 |
 |--------|-----------|-------------|---------|
-| Write amplification | Bytes written to disk / bytes written by user | $O(T \cdot L)$ | $O(T \cdot L)$ |
-| Read amplification | Disk reads per user read | $O(T \cdot L)$ | $O(L)$ |
-| Space amplification | Total disk usage / logical data size | $O(T)$ | $O(1 + 1/T)$ |
+| 적기 부풀림 | 원반에 적은 바이트 / 쓰는 이가 적은 바이트 | $O(T \cdot L)$ | $O(T \cdot L)$ |
+| 읽기 부풀림 | 읽기마다 원반 읽기 횟수 | $O(T \cdot L)$ | $O(L)$ |
+| 자리 부풀림 | 온 원반 쓰임 / 뜻으로 본 자료 크기 | $O(T)$ | $O(1 + 1/T)$ |
 
-With $T = 10$ (typical), $L = \log_T(n/M) \approx 3\text{--}5$ levels, and $n$ total keys:
+(흔한 값인) $T = 10$이고 $L = \log_T(n/M) \approx 3$~$5$켜이며 온 열쇠가 $n$개일 때:
 
-- **Write amplification**: each byte is rewritten roughly $T \cdot L \approx 30\text{--}50$ times across its lifetime.
-- **Read amplification (leveled)**: at most $L$ SSTables checked, often just 1--2 with Bloom filters.
+- **적기 부풀림**: 바이트마다 그 삶 동안 대략 $T \cdot L \approx 30$~$50$번 되적힌다.
+- **읽기 부풀림(켜 뭉치기)**: 많아야 SSTable $L$개를 살피며, 블룸 필터를 쓰면 흔히 1~2개뿐이다.
 
-## B-Tree vs LSM Tree
+## B 나무와 LSM 나무
 
-| Property | B-Tree | LSM Tree |
+| 성질 | B 나무 | LSM 나무 |
 |----------|--------|----------|
-| Write pattern | Random | Sequential |
-| Write throughput | Moderate | High |
-| Read latency | Low (1 seek) | Moderate ($O(L)$ seeks) |
-| Range scans | Efficient (sorted leaves) | Efficient (sorted SSTables) |
-| Space amplification | Low | Low (leveled) to moderate (size-tiered) |
-| Write amplification | Moderate | Higher |
+| 적기 결 | 아무 데나 | 잇달아 |
+| 적기 처리량 | 어중간 | 높음 |
+| 읽기 늦음 | 낮음(자리 옮김 1번) | 어중간($O(L)$번) |
+| 범위 훑기 | 값쌈(매긴 잎) | 값쌈(매긴 SSTable) |
+| 자리 부풀림 | 낮음 | 낮음(켜)에서 어중간(크기 켜) |
+| 적기 부풀림 | 어중간 | 더 큼 |
 
-!!! tip "Rule of thumb"
-    Use B-trees when reads dominate, LSM trees when writes dominate.  Many modern systems offer both: PostgreSQL uses B-trees, while RocksDB (used as a storage backend by CockroachDB) uses LSM trees.
+!!! tip "엄지 규칙"
+    읽기가 판치면 B 나무를, 적기가 판치면 LSM 나무를 쓰라. 요즘 여러 시스템이 둘 다 준다. PostgreSQL은 B 나무를 쓰고, (CockroachDB가 곳간 뒷단으로 쓰는) RocksDB는 LSM 나무를 쓴다.
 
-## Bloom Filters for Read Optimization
+## 읽기를 다듬는 블룸 필터
 
-Each SSTable maintains a Bloom filter -- a space-efficient probabilistic data structure that answers "is key $k$ possibly in this SSTable?" with no false negatives but a tunable false positive rate $\epsilon$.
+SSTable마다 블룸 필터를 지닌다. 자리를 아끼는 확률 자료 얼개로, "열쇠 $k$이 이 SSTable에 있을 수 있는가?"에 거짓 음성 없이 답하며 거짓 양성률 $\epsilon$을 벼릴 수 있다.
 
-With $m$ bits per key, the false positive rate is approximately
+열쇠마다 $m$비트를 쓰면 거짓 양성률이 대략 다음과 같다.
 
 $$
 \epsilon \approx \left(1 - e^{-km/n}\right)^k
 $$
 
-where $k$ is the number of hash functions and $n$ is the number of keys.  Setting $k = (m/n) \ln 2$ minimizes $\epsilon$.  At 10 bits per key, $\epsilon \approx 1\%$, meaning only 1% of unnecessary disk reads occur.
+여기서 $k$은 해시 함수 개수이고 $n$은 열쇠 개수다. $k = (m/n) \ln 2$으로 두면 $\epsilon$이 가장 작아진다. 열쇠마다 10비트이면 $\epsilon \approx 1\%$이므로 쓸데없는 원반 읽기가 1%만 생긴다.
 
-## Implementation
+## 구현
 
 ```python
 """
-LSM Tree -- simplified in-memory simulation.
+LSM 나무 -- 기억 안에서 쉽게 흉내 내기.
 
-Demonstrates the core LSM write path (memtable + flush to SSTables)
-and read path (check memtable, then SSTables newest-to-oldest).
+LSM의 한가운데 적는 길(기억 표 + SSTable으로 흘려보내기)과 읽는
+길(기억 표를 보고 SSTable을 새것부터 옛것까지 보기)을 보인다.
 """
 
-# === SSTable (immutable sorted file) ==========================================
+# === SSTable (바뀌지 않는 매긴 파일) ==========================================
 
 class SSTable:
-    """An immutable sorted string table."""
+    """바뀌지 않는 매긴 글자열 표."""
 
     def __init__(self, data: dict[str, str]):
         self.data = dict(sorted(data.items()))
@@ -109,24 +109,24 @@ class SSTable:
         return len(self.data)
 
 
-# === LSM Tree =================================================================
+# === LSM 나무 =================================================================
 
 class LSMTree:
-    """A simplified LSM tree with memtable and SSTable levels."""
+    """기억 표와 SSTable 켜를 지닌 쉬운 LSM 나무."""
 
     def __init__(self, memtable_limit: int = 4):
         self.memtable_limit = memtable_limit
         self.memtable: dict[str, str] = {}
-        self.sstables: list[SSTable] = []  # newest first
+        self.sstables: list[SSTable] = []  # 새것이 앞
 
     def put(self, key: str, value: str) -> None:
-        """Write a key-value pair."""
+        """열쇠-값 짝을 적는다."""
         self.memtable[key] = value
         if len(self.memtable) >= self.memtable_limit:
             self._flush()
 
     def get(self, key: str) -> str | None:
-        """Read a key, checking memtable then SSTables."""
+        """기억 표를 보고 이어서 SSTable을 보며 열쇠를 읽는다."""
         if key in self.memtable:
             return self.memtable[key]
         for sst in self.sstables:
@@ -136,22 +136,22 @@ class LSMTree:
         return None
 
     def _flush(self) -> None:
-        """Flush memtable to a new SSTable."""
+        """기억 표를 새 SSTable으로 흘려보낸다."""
         sst = SSTable(self.memtable)
-        self.sstables.insert(0, sst)  # newest first
+        self.sstables.insert(0, sst)  # 새것이 앞
         self.memtable = {}
 
     def delete(self, key: str) -> None:
-        """Delete by inserting a tombstone."""
+        """무덤 표시를 넣어 지운다."""
         self.put(key, "__TOMBSTONE__")
 
 
-# === Main =====================================================================
+# === 메인 =====================================================================
 
 if __name__ == "__main__":
     lsm = LSMTree(memtable_limit=3)
 
-    # Write some data
+    # 자료를 얼마쯤 적는다
     writes = [("a", "1"), ("b", "2"), ("c", "3"),
               ("d", "4"), ("e", "5"), ("a", "updated")]
     for k, v in writes:
@@ -159,13 +159,13 @@ if __name__ == "__main__":
         print(f"PUT({k}, {v}) -> memtable={dict(lsm.memtable)}, "
               f"sstables={len(lsm.sstables)}")
 
-    # Read data
+    # 자료를 읽는다
     for key in ["a", "b", "d", "z"]:
         val = lsm.get(key)
         print(f"GET({key}) = {val}")
 ```
 
-**Output:**
+**출력:**
 ```
 PUT(a, 1) -> memtable={'a': '1'}, sstables=0
 PUT(b, 2) -> memtable={'a': '1', 'b': '2'}, sstables=0
@@ -179,47 +179,47 @@ GET(d) = 4
 GET(z) = None
 ```
 
-## Reference
+## 참고 문헌
 
 - [The Log-Structured Merge-Tree (O'Neil et al., 1996)](https://www.cs.umb.edu/~poneil/lsmtree.pdf)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Describe the write path in an LSM tree: from the client's insert to the data reaching the lowest level on disk.
+**연습문제 1.**
+LSM 나무의 적는 길을 밝혀라. 손이 넣기를 하고서 자료가 원반의 가장 낮은 켜에 이르기까지를 적어라.
 
-??? success "Solution to Exercise 1"
-    (1) The insert is written to a write-ahead log (WAL) for durability. (2) The key-value pair is added to the in-memory **memtable** (typically a balanced BST or skip list). (3) When the memtable exceeds a size threshold, it is frozen (becomes immutable) and a new empty memtable is created. (4) The frozen memtable is flushed to disk as a sorted SSTable (Sorted String Table) at **level 0**. (5) When level 0 accumulates too many SSTables, **compaction** merges overlapping SSTables into larger, non-overlapping SSTables at level 1. (6) When level 1 exceeds its size limit, its SSTables are merged into level 2, and so on. Each level is typically 10x larger than the previous. Data eventually reaches the lowest level after multiple compaction rounds. All disk writes are sequential (append or bulk-write new SSTables), which is the key to LSM's write performance. $\square$
-
----
-
-**Exercise 2.**
-Explain read amplification, write amplification, and space amplification in LSM trees. How does the leveled compaction strategy affect each?
-
-??? success "Solution to Exercise 2"
-    **Read amplification**: the number of SSTables checked per read. In the worst case, a key might not exist and the reader checks one SSTable per level plus Bloom filters. With $L$ levels: up to $L$ reads (reduced by Bloom filters to $\approx 1$--$2$ actual I/Os). **Write amplification**: the total bytes written to disk per byte of user data. Each compaction rewrites data. With a size ratio of 10 between levels and $L$ levels, data is rewritten $\sim 10$ times per level, giving write amplification $\approx 10 \times L$ (e.g., $\approx 30$--$50$ for typical configurations). **Space amplification**: the ratio of total disk space used to the logical data size. During compaction, old and new SSTables coexist temporarily. Leveled compaction keeps space amplification near 1.1x (each level has non-overlapping SSTables). Size-tiered compaction can have $2$x space amplification during major compaction but has lower write amplification. $\square$
+??? success "연습문제 1 풀이"
+    (1) 넣기를 오래감을 위해 미리 적는 기록(WAL)에 적는다. (2) 열쇠-값 짝을 기억 안 **기억 표**(흔히 고른 이진 찾기 나무나 건너뛰기 목록)에 더한다. (3) 기억 표가 크기 문턱을 넘으면 얼려(바뀌지 않게 하고) 빈 기억 표를 새로 만든다. (4) 언 기억 표를 **0켜**의 매긴 SSTable(매긴 글자열 표)으로 원반에 흘려보낸다. (5) 0켜에 SSTable이 너무 많이 쌓이면 **뭉치기**가 겹치는 SSTable을 아울러 1켜의 더 크고 겹치지 않는 SSTable으로 만든다. (6) 1켜가 크기 위끝을 넘으면 그 SSTable을 2켜로 아우르며 그렇게 이어진다. 켜마다 흔히 앞 켜의 10배다. 자료가 뭉치기를 여러 판 거쳐 끝내 가장 낮은 켜에 이른다. 온 원반 적기가 잇달아 있으며(덧붙이거나 새 SSTable을 통째로 적는다) 이것이 LSM의 적기 됨됨이를 낳는 열쇠다. $\square$
 
 ---
 
-**Exercise 3.**
-A Bloom filter is attached to each SSTable. With a false positive rate of $1\%$ and 5 levels, what is the expected number of unnecessary disk reads per point query?
+**연습문제 2.**
+LSM 나무의 읽기 부풀림, 적기 부풀림, 자리 부풀림을 풀어라. 켜 뭉치기 꾀는 저마다에 어떻게 미치는가?
 
-??? success "Solution to Exercise 3"
-    For a point query on a key that exists: the Bloom filter at the correct SSTable always returns true (no false negatives). Bloom filters at other SSTables return false positive with probability $0.01$. Expected unnecessary reads: $(5 - 1) \times 0.01 = 0.04$. For a key that does not exist: all 5 Bloom filters are checked. Expected false positives: $5 \times 0.01 = 0.05$ unnecessary reads. With optimized per-level Bloom filter sizing (higher accuracy for deeper levels, which are larger), this can be reduced further. In practice, point queries on existing keys require $\approx 1.04$ disk reads, making LSM trees competitive with B-trees for read-heavy workloads when Bloom filters are well-tuned. $\square$
-
----
-
-**Exercise 4.**
-Compare leveled compaction and size-tiered compaction. Which is better for write-heavy workloads and which for read-heavy workloads?
-
-??? success "Solution to Exercise 4"
-    **Size-tiered compaction**: SSTables at each level are not required to be non-overlapping. When enough similar-sized SSTables accumulate, they are merged into one larger SSTable. Write amplification is lower ($\approx L$ vs. $10L$ for leveled) because data is merged less frequently. Read amplification is higher because multiple overlapping SSTables per level must be checked. Space amplification can be $2$x during compaction. Better for write-heavy workloads (e.g., time-series ingestion). **Leveled compaction**: each level has non-overlapping SSTables. Compaction picks one SSTable from level $i$ and merges it with overlapping SSTables in level $i+1$. Read amplification is lower (one SSTable per level to check). Write amplification is higher. Space amplification is lower ($\sim$1.1x). Better for read-heavy and balanced workloads. $\square$
+??? success "연습문제 2 풀이"
+    **읽기 부풀림**: 읽기마다 살피는 SSTable 개수. 가장 나쁠 때에는 열쇠가 없어 켜마다 SSTable 하나씩과 블룸 필터를 살핀다. 켜가 $L$개면 읽기가 $L$번까지다(블룸 필터로 실제 들고남이 약 1~2번으로 준다). **적기 부풀림**: 쓰는 이의 자료 바이트마다 원반에 적히는 온 바이트. 뭉칠 때마다 자료를 되적는다. 켜 사이 크기 비가 10이고 켜가 $L$개면 켜마다 자료가 약 10번 되적히므로 적기 부풀림이 약 $10 \times L$이다(흔한 얼개에서 약 $30$~$50$). **자리 부풀림**: 쓰는 온 원반 자리와 뜻으로 본 자료 크기의 비. 뭉치는 동안 옛 SSTable과 새 SSTable이 잠깐 함께 있다. 켜 뭉치기는 자리 부풀림을 1.1배 언저리로 지킨다(켜마다 SSTable이 겹치지 않는다). 크기 켜 뭉치기는 큰 뭉치기 동안 자리 부풀림이 2배가 될 수 있으나 적기 부풀림이 더 작다. $\square$
 
 ---
 
-**Exercise 5.**
-RocksDB supports a feature called "prefix Bloom filters." Explain how this differs from a standard Bloom filter and why it is useful for scan queries with a known key prefix.
+**연습문제 3.**
+SSTable마다 블룸 필터가 붙어 있다. 거짓 양성률이 $1\%$이고 켜가 5개일 때 낱점 물음마다 쓸데없는 원반 읽기의 어림 횟수는 얼마인가?
 
-??? success "Solution to Exercise 5"
-    A standard Bloom filter tests membership of exact keys. A prefix Bloom filter hashes only a prefix of the key (e.g., the first 8 bytes) and tests whether any key with that prefix exists in the SSTable. For a scan query like "find all keys starting with 'user:123:'," the prefix Bloom filter can quickly determine whether an SSTable contains any relevant keys. If the filter returns negative, the entire SSTable is skipped. Without prefix Bloom filters, the reader would need to check the SSTable's min/max key range (which is coarse) or perform a seek (which requires reading index blocks). Prefix Bloom filters provide fine-grained filtering for scan queries at the cost of higher false positive rates (multiple keys share a prefix) and inability to skip within a prefix. They are especially useful in key-value stores where keys are hierarchically structured (e.g., `tenant:table:row:column`). $\square$
+??? success "연습문제 3 풀이"
+    있는 열쇠에 대한 낱점 물음: 옳은 SSTable의 블룸 필터는 늘 참을 돌려준다(거짓 음성이 없다). 다른 SSTable의 블룸 필터는 낌새 $0.01$으로 거짓 양성을 낸다. 쓸데없는 읽기의 어림 횟수: $(5 - 1) \times 0.01 = 0.04$. 없는 열쇠에 대해서는 블룸 필터 5개를 모두 살핀다. 어림 거짓 양성: $5 \times 0.01 = 0.05$번의 쓸데없는 읽기다. 켜마다 블룸 필터 크기를 다듬으면(더 크고 깊은 켜에 더 높은 맞음) 이를 더 줄일 수 있다. 실제로 있는 열쇠에 대한 낱점 물음은 원반 읽기가 약 $1.04$번이므로, 블룸 필터를 잘 벼리면 LSM 나무가 읽기 많은 일감에서도 B 나무에 뒤지지 않는다. $\square$
+
+---
+
+**연습문제 4.**
+켜 뭉치기와 크기 켜 뭉치기를 견주어라. 적기가 많은 일감과 읽기가 많은 일감에는 각각 어느 쪽이 나은가?
+
+??? success "연습문제 4 풀이"
+    **크기 켜 뭉치기**: 켜마다 SSTable이 겹치지 않아야 할 까닭이 없다. 크기가 비슷한 SSTable이 넉넉히 쌓이면 그것을 더 큰 SSTable 하나로 아우른다. 자료를 덜 자주 아우르므로 적기 부풀림이 더 작다(켜 뭉치기의 $10L$에 견주어 약 $L$). 켜마다 겹치는 SSTable 여럿을 살펴야 하므로 읽기 부풀림이 더 크다. 뭉치는 동안 자리 부풀림이 2배가 될 수 있다. 적기가 많은 일감(보기로 때 열 받아들이기)에 낫다. **켜 뭉치기**: 켜마다 SSTable이 겹치지 않는다. 뭉치기는 켜 $i$에서 SSTable 하나를 골라 켜 $i+1$의 겹치는 SSTable과 아우른다. 읽기 부풀림이 더 작다(켜마다 SSTable 하나만 살핀다). 적기 부풀림이 더 크다. 자리 부풀림이 더 작다(약 1.1배). 읽기가 많거나 고른 일감에 낫다. $\square$
+
+---
+
+**연습문제 5.**
+RocksDB에는 "앞가지 블룸 필터"라는 기능이 있다. 여느 블룸 필터와 어떻게 다르며, 열쇠 앞가지를 아는 훑기 물음에 왜 쓸모 있는지 풀어라.
+
+??? success "연습문제 5 풀이"
+    여느 블룸 필터는 딱 맞는 열쇠의 소속을 시험한다. 앞가지 블룸 필터는 열쇠의 앞가지만(보기로 앞 8바이트) 해시하여, 그 앞가지를 지닌 열쇠가 그 SSTable에 있는지를 시험한다. "'user:123:'으로 시작하는 온 열쇠 찾기" 같은 훑기 물음에서 앞가지 블룸 필터는 그 SSTable에 걸맞은 열쇠가 있는지를 빠르게 가려낸다. 필터가 아니라고 하면 그 SSTable을 통째로 건너뛴다. 앞가지 블룸 필터가 없으면 읽는 이가 그 SSTable의 가장 작은/큰 열쇠 범위를(거친 잣대다) 살피거나 자리 옮김을 해야 한다(색인 덩이를 읽어야 한다). 앞가지 블룸 필터는 훑기 물음에 잘게 거르기를 주지만 거짓 양성률이 더 높고(여러 열쇠가 앞가지를 함께 나눈다) 한 앞가지 안에서는 건너뛸 수 없다. 열쇠가 켜 있게 짜인 열쇠-값 곳간(보기로 `tenant:table:row:column`)에서 남달리 쓸모 있다. $\square$

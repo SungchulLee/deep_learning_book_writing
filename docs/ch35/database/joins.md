@@ -1,172 +1,172 @@
-# Join Algorithms
+# 맞이음 알고리즘
 
-Relational databases normalize data across multiple tables, so answering most queries requires **joining** tables by matching rows on a shared key. Think of it as solving a matching problem: given two lists, find all pairs that agree on some attribute. A brute-force comparison of every pair costs $O(|R| \cdot |S|)$, but smarter algorithms exploit sorting or hashing to bring the cost down to near-linear in the number of disk pages. The choice of join algorithm is one of the most consequential decisions a query optimizer makes.
+관계형 데이터베이스는 자료를 여러 표에 나누어 담으므로, 웬만한 물음에 답하려면 함께 쓰는 열쇠로 행을 맞추어 표를 **맞이어야(join)** 한다. 두 목록이 주어졌을 때 어떤 속성에서 서로 맞는 짝을 모두 찾는 짝짓기 문제로 보면 된다. 모든 짝을 마구잡이로 견주면 $O(\lvert R \rvert \cdot \lvert S \rvert)$이 드나, 더 똑똑한 알고리즘은 줄 세우기나 해시를 써서 비용을 원반 쪽 수에 거의 비례하도록 낮춘다. 어떤 맞이음 알고리즘을 고르느냐는 물음 다듬이가 내리는 가장 무거운 판가름 가운데 하나다.
 
-This page covers the three fundamental join algorithms: nested-loop join, sort-merge join, and hash join.
+이 쪽에서는 밑바탕이 되는 맞이음 알고리즘 셋, 곧 겹돌기 맞이음, 줄 세워 합치기 맞이음, 해시 맞이음을 다룬다.
 
-## Setup and Notation
+## 차림과 적기
 
-Consider joining two relations $R$ (outer) and $S$ (inner) on column $a$:
+두 표 $R$(바깥)과 $S$(안)을 칸 $a$에서 맞이음을 생각하자.
 
-- $|R|$, $|S|$: number of tuples.
-- $b_R$, $b_S$: number of disk pages occupied by each relation.
-- $M$: number of available memory pages (buffer pool size).
-- $B$: page size (tuples per page).
+- $\lvert R \rvert$, $\lvert S \rvert$: 행의 수.
+- $b_R$, $b_S$: 표마다 차지하는 원반 쪽의 수.
+- $M$: 쓸 수 있는 기억 쪽의 수(버퍼 못의 크기).
+- $B$: 쪽 크기(쪽마다 담는 행의 수).
 
-The **I/O cost** measures the number of disk page reads and writes, which dominates query execution time in practice.
+**들고남 비용**은 원반 쪽을 읽고 쓴 횟수를 재며, 이것이 참으로 물음을 치르는 때를 판친다.
 
-## Nested-Loop Join
+## 겹돌기 맞이음
 
-The simplest approach: for each tuple in $R$, scan all of $S$ looking for matches.
+가장 단순한 길이다. $R$의 행마다 $S$을 통째로 훑어 맞는 것을 찾는다.
 
-### Tuple-at-a-Time
+### 행 하나씩
 
 ```
-for each tuple r in R:
-    for each tuple s in S:
-        if r.a == s.a:
-            output (r, s)
+R의 행 r마다:
+    S의 행 s마다:
+        r.a == s.a이면:
+            (r, s)을 내놓는다
 ```
 
-**I/O cost:**
+**들고남 비용:**
 
 $$
-b_R + |R| \cdot b_S
+b_R + \lvert R \rvert \cdot b_S
 $$
 
-Each $R$ tuple triggers a full scan of $S$. For $b_R = 1{,}000$ and $b_S = 500$ with $B = 100$ tuples per page, this is $1{,}000 + 100{,}000 \times 500 = 50{,}001{,}000$ I/Os.
+$R$의 행마다 $S$을 통째로 훑는다. $b_R = 1{,}000$, $b_S = 500$이고 쪽마다 행이 $B = 100$개면 $1{,}000 + 100{,}000 \times 500 = 50{,}001{,}000$번 들고난다.
 
-### Block Nested-Loop Join
+### 덩이 겹돌기 맞이음
 
-Read $R$ in blocks of $M - 2$ pages (reserving one page for $S$ input and one for output):
+$R$을 $M - 2$쪽짜리 덩이로 읽는다($S$ 들임에 한 쪽, 내놓기에 한 쪽을 남겨 둔다).
 
 ```
-for each block B_r of R (M - 2 pages):
-    for each page p_s of S:
-        for each tuple r in B_r and s in p_s:
-            if r.a == s.a:
-                output (r, s)
+R의 덩이 B_r마다($M - 2$쪽):
+    S의 쪽 p_s마다:
+        B_r의 행 r과 p_s의 행 s마다:
+            r.a == s.a이면:
+                (r, s)을 내놓는다
 ```
 
-**I/O cost:**
+**들고남 비용:**
 
 $$
 b_R + \left\lceil \frac{b_R}{M - 2} \right\rceil \cdot b_S
 $$
 
-With enough memory to hold all of $R$ (i.e., $M \geq b_R + 2$), the cost drops to $b_R + b_S$ -- a single scan of each relation.
+$R$을 통째로 담을 만큼 기억이 넉넉하면($M \geq b_R + 2$) 비용이 $b_R + b_S$까지 떨어진다. 곧 표마다 한 번씩만 훑는다.
 
-### Index Nested-Loop Join
+### 색인 겹돌기 맞이음
 
-When an index exists on $S.a$, replace the inner scan with an index lookup:
+$S.a$에 색인이 있으면 안쪽 훑기를 색인 찾기로 갈음한다.
 
 ```
-for each tuple r in R:
-    use index on S.a to find matching tuples in S
-    for each match s:
-        output (r, s)
+R의 행 r마다:
+    S.a의 색인으로 S에서 맞는 행을 찾는다
+    맞는 행 s마다:
+        (r, s)을 내놓는다
 ```
 
-**I/O cost:**
+**들고남 비용:**
 
 $$
-b_R + |R| \cdot c
+b_R + \lvert R \rvert \cdot c
 $$
 
-where $c$ is the cost of one index lookup (typically $O(\log |S|)$ for a B-tree or $O(1)$ for a hash index). This is often the fastest option when an index already exists.
+여기서 $c$은 색인 찾기 한 번의 비용이다(B 나무면 흔히 $O(\log \lvert S \rvert)$, 해시 색인이면 $O(1)$). 색인이 이미 있으면 이 길이 가장 빠를 때가 많다.
 
-## Sort-Merge Join
+## 줄 세워 합치기 맞이음
 
-If both relations are sorted on the join column, matching rows can be found in a single linear scan.
+두 표가 맞이음 칸에서 줄 세워져 있으면, 한 번 죽 훑는 것만으로 맞는 행을 찾는다.
 
-### Algorithm
+### 알고리즘
 
-1. **Sort phase**: Sort $R$ and $S$ on column $a$ using external merge sort.
-2. **Merge phase**: Scan both sorted relations simultaneously, advancing pointers to find matching keys.
+1. **줄 세우기 단계**: 바깥 합치기 줄 세우기로 $R$과 $S$을 칸 $a$에서 줄 세운다.
+2. **합치기 단계**: 줄 세운 두 표를 나란히 훑으며 손가락질을 밀어 맞는 열쇠를 찾는다.
 
-**I/O cost (with external merge sort):**
+**들고남 비용(바깥 합치기 줄 세우기를 쓸 때):**
 
 $$
-\underbrace{2 \, b_R \left\lceil \log_{M-1}\!\left\lceil \frac{b_R}{M} \right\rceil \right\rceil + b_R}_{\text{sort } R} \;+\; \underbrace{2 \, b_S \left\lceil \log_{M-1}\!\left\lceil \frac{b_S}{M} \right\rceil \right\rceil + b_S}_{\text{sort } S} \;+\; \underbrace{b_R + b_S}_{\text{merge}}
+\underbrace{2 \, b_R \left\lceil \log_{M-1}\!\left\lceil \frac{b_R}{M} \right\rceil \right\rceil + b_R}_{R \text{ 줄 세우기}} \;+\; \underbrace{2 \, b_S \left\lceil \log_{M-1}\!\left\lceil \frac{b_S}{M} \right\rceil \right\rceil + b_S}_{S \text{ 줄 세우기}} \;+\; \underbrace{b_R + b_S}_{\text{합치기}}
 $$
 
-Each sort pass reads and writes every page once (hence the factor of 2 per pass), and the final merge reads each page once more. For already-sorted inputs (common when an index exists), the cost is simply $b_R + b_S$.
+줄 세우기 훑음마다 모든 쪽을 한 번 읽고 한 번 쓰며(그래서 훑음마다 2가 붙는다), 마지막 합치기가 쪽마다 한 번 더 읽는다. 들임이 이미 줄 세워져 있으면(색인이 있을 때 흔하다) 비용이 그저 $b_R + b_S$이다.
 
-!!! tip "When sort-merge wins"
-    Sort-merge join is particularly effective when (1) both inputs are already sorted via an index, (2) the query requires sorted output (`ORDER BY`), or (3) the join involves inequality conditions ($<$, $\leq$) rather than equality.
+!!! tip "줄 세워 합치기가 이길 때"
+    줄 세워 합치기 맞이음은 (1) 두 들임이 색인 덕에 이미 줄 세워져 있을 때, (2) 물음이 줄 세운 내놓기를 바랄 때(`ORDER BY`), (3) 맞이음이 같음이 아니라 크기 견줌($<$, $\leq$)을 쓸 때 크게 이롭다.
 
-## Hash Join
+## 해시 맞이음
 
-Hash join partitions both relations by the join key's hash value, then probes matching partitions.
+해시 맞이음은 맞이음 열쇠의 해시값으로 두 표를 나눈 다음, 맞물리는 나눔끼리 더듬는다.
 
-### Algorithm
+### 알고리즘
 
-1. **Build (partition) phase**: Hash each tuple of both $R$ and $S$ into $h$ partitions using hash function $h_1$. Each partition is written to disk.
-2. **Probe (match) phase**: For each partition $i$, load $R_i$ into an in-memory hash table (using a second hash function $h_2 \neq h_1$) and probe with each tuple from $S_i$.
+1. **쌓기(나누기) 단계**: 해시 함수 $h_1$로 $R$과 $S$의 행을 저마다 $h$개의 나눔에 넣는다. 나눔마다 원반에 쓴다.
+2. **더듬기(맞추기) 단계**: 나눔 $i$마다 $R_i$을 기억 안 해시 표에 올리고($h_1$과 다른 둘째 해시 함수 $h_2$을 쓴다) $S_i$의 행으로 더듬는다.
 
-**I/O cost:**
+**들고남 비용:**
 
 $$
 3 \, (b_R + b_S)
 $$
 
-The factor of 3 comes from three I/O passes over the data:
+3이 붙는 까닭은 자료 위를 세 번 오가기 때문이다.
 
-1. **Read** both $R$ and $S$ during partitioning: $b_R + b_S$ reads.
-2. **Write** all partitions to disk: $b_R + b_S$ writes.
-3. **Read** all partitions back during probing: $b_R + b_S$ reads.
+1. 나누는 동안 $R$과 $S$을 **읽는다**: $b_R + b_S$번 읽기.
+2. 모든 나눔을 원반에 **쓴다**: $b_R + b_S$번 쓰기.
+3. 더듬는 동안 모든 나눔을 되**읽는다**: $b_R + b_S$번 읽기.
 
-This assumes each partition of the build relation fits in memory.
+이는 쌓기 쪽 표의 나눔마다 기억에 담긴다고 여긴 셈이다.
 
-### Memory Requirement
+### 기억 요구
 
-The build relation must partition into at most $M - 1$ buckets, each fitting in memory:
+쌓기 표는 많아야 $M - 1$개의 두레박으로 나뉘고 두레박마다 기억에 담겨야 한다.
 
 $$
-h \leq M - 1 \quad \text{and} \quad \frac{b_R}{h} \leq M - 2
+h \leq M - 1 \quad \text{그리고} \quad \frac{b_R}{h} \leq M - 2
 $$
 
-This gives the requirement $b_R \leq (M - 1)(M - 2) \approx M^2$, meaning hash join works well when the smaller relation is at most $M^2$ pages.
+여기서 $b_R \leq (M - 1)(M - 2) \approx M^2$이 나오므로, 작은 쪽 표가 많아야 $M^2$쪽일 때 해시 맞이음이 잘 듣는다.
 
-!!! warning "Partition overflow"
-    If a partition exceeds memory (e.g., due to skewed key distributions), **recursive partitioning** applies a different hash function to split the oversized partition further. This adds extra I/O passes for the affected partitions.
+!!! warning "나눔 넘침"
+    열쇠가 한쪽으로 쏠려 나눔 하나가 기억을 넘으면, **되돌이 나누기**로 다른 해시 함수를 걸어 그 큰 나눔을 더 잘게 쪼갠다. 그 나눔에는 들고남 오감이 더 붙는다.
 
-## Comparison
+## 견주기
 
-| Algorithm | I/O Cost | Memory Needed | Best When |
+| 알고리즘 | 들고남 비용 | 바라는 기억 | 알맞을 때 |
 |-----------|----------|---------------|-----------|
-| Block nested-loop | $b_R + \lceil b_R/(M{-}2) \rceil \cdot b_S$ | $M \geq 3$ | Small $R$ fits in memory |
-| Index nested-loop | $b_R + |R| \cdot c$ | Minimal | Index exists on inner relation |
-| Sort-merge | $O(b_R \log b_R + b_S \log b_S)$ | $O(\sqrt{b})$ | Inputs pre-sorted or sorted output needed |
-| Hash join | $3(b_R + b_S)$ | $O(\sqrt{b_R})$ | Large unsorted inputs, equality joins |
+| 덩이 겹돌기 | $b_R + \lceil b_R/(M{-}2) \rceil \cdot b_S$ | $M \geq 3$ | 작은 $R$이 기억에 담길 때 |
+| 색인 겹돌기 | $b_R + \lvert R \rvert \cdot c$ | 아주 적게 | 안쪽 표에 색인이 있을 때 |
+| 줄 세워 합치기 | $O(b_R \log b_R + b_S \log b_S)$ | $O(\sqrt{b})$ | 들임이 미리 줄 세워졌거나 줄 세운 내놓기가 있어야 할 때 |
+| 해시 맞이음 | $3(b_R + b_S)$ | $O(\sqrt{b_R})$ | 줄 세우지 않은 큰 들임에 같음 맞이음일 때 |
 
-??? example "Choosing the right algorithm"
-    **Scenario 1**: Both tables have B-tree indexes on the join column, and the query includes `ORDER BY`. Use **sort-merge join** -- the inputs are already sorted, and the output order is free.
+??? example "알맞은 알고리즘 고르기"
+    **자리 1**: 두 표 모두 맞이음 칸에 B 나무 색인이 있고 물음에 `ORDER BY`이 있다. **줄 세워 합치기 맞이음**을 쓴다. 들임이 이미 줄 세워져 있고 내놓기 차례가 거저 나온다.
 
-    **Scenario 2**: One table has 100 pages, the other has 1,000,000, and memory holds 200 pages. The small table fits entirely in memory, so **block nested-loop join** costs just $100 + 1{,}000{,}000 = 1{,}000{,}100$ I/Os.
+    **자리 2**: 한 표는 100쪽, 다른 표는 1,000,000쪽이고 기억은 200쪽이다. 작은 표가 통째로 기억에 담기므로 **덩이 겹돌기 맞이음**이 $100 + 1{,}000{,}000 = 1{,}000{,}100$번 들고남이면 끝난다.
 
-    **Scenario 3**: Two large unsorted tables with an equality join and no useful indexes. **Hash join** at $3(b_R + b_S)$ is typically the fastest choice.
+    **자리 3**: 줄 세우지 않은 큰 표 둘에 같음 맞이음이고 쓸 만한 색인이 없다. $3(b_R + b_S)$인 **해시 맞이음**이 흔히 가장 빠르다.
 
-## Implementation
+## 짜보기
 
 ```python
 """
-Join Algorithms -- nested-loop, sort-merge, and hash join demonstrations.
+맞이음 알고리즘 -- 겹돌기, 줄 세워 합치기, 해시 맞이음 보이기.
 
-Compares the three fundamental join strategies on small in-memory
-tables to illustrate their mechanics.
+밑바탕이 되는 맞이음 셈법 셋을 작은 기억 안 표에서 견주어
+그 속내를 드러낸다.
 """
 
-# === Sample Data ==============================================================
+# === 보기 자료 ==============================================================
 
 R = [("a", 1), ("b", 2), ("c", 3), ("d", 4), ("a", 5)]
 S = [("a", 10), ("c", 30), ("a", 20), ("e", 50)]
 
 
-# === Nested-Loop Join =========================================================
+# === 겹돌기 맞이음 =========================================================
 
 def nested_loop_join(r_table, s_table, r_col=0, s_col=0):
-    """Simple nested-loop join on specified columns."""
+    """정한 칸에서 하는 단순한 겹돌기 맞이음."""
     result = []
     for r in r_table:
         for s in s_table:
@@ -175,13 +175,13 @@ def nested_loop_join(r_table, s_table, r_col=0, s_col=0):
     return result
 
 
-# === Sort-Merge Join ==========================================================
+# === 줄 세워 합치기 맞이음 ==================================================
 
 def sort_merge_join(r_table, s_table, r_col=0, s_col=0):
-    """Sort-merge join on specified columns.
+    """정한 칸에서 하는 줄 세워 합치기 맞이음.
 
-    Sorts both tables, then performs a linear merge to find all
-    matching pairs, correctly handling duplicate keys.
+    두 표를 줄 세운 다음 죽 훑으며 맞는 짝을 모두 찾는다.
+    겹치는 열쇠도 올바로 다룬다.
     """
     r_sorted = sorted(r_table, key=lambda x: x[r_col])
     s_sorted = sorted(s_table, key=lambda x: x[s_col])
@@ -194,7 +194,7 @@ def sort_merge_join(r_table, s_table, r_col=0, s_col=0):
         elif r_sorted[i][r_col] > s_sorted[j][s_col]:
             j += 1
         else:
-            # Collect all matches for this key
+            # 이 열쇠에 맞는 것을 모두 거둔다
             key = r_sorted[i][r_col]
             r_group = []
             while i < len(r_sorted) and r_sorted[i][r_col] == key:
@@ -210,21 +210,21 @@ def sort_merge_join(r_table, s_table, r_col=0, s_col=0):
     return result
 
 
-# === Hash Join ================================================================
+# === 해시 맞이음 ============================================================
 
 def hash_join(r_table, s_table, r_col=0, s_col=0):
-    """Hash join: build hash table on R, probe with S.
+    """해시 맞이음: R로 해시 표를 쌓고 S로 더듬는다.
 
-    Build phase indexes the smaller relation (R) by join key.
-    Probe phase scans the larger relation (S) and looks up matches.
+    쌓기 단계에서 작은 쪽 표(R)를 맞이음 열쇠로 갈무리하고,
+    더듬기 단계에서 큰 쪽 표(S)를 훑으며 맞는 것을 찾는다.
     """
-    # Build phase
+    # 쌓기 단계
     hash_table: dict[str, list] = {}
     for r in r_table:
         key = r[r_col]
         hash_table.setdefault(key, []).append(r)
 
-    # Probe phase
+    # 더듬기 단계
     result = []
     for s in s_table:
         key = s[s_col]
@@ -234,65 +234,65 @@ def hash_join(r_table, s_table, r_col=0, s_col=0):
     return result
 
 
-# === Main =====================================================================
+# === 메인 ===================================================================
 
 if __name__ == "__main__":
     print("R:", R)
     print("S:", S)
     print()
 
-    for name, fn in [("Nested-Loop", nested_loop_join),
-                     ("Sort-Merge", sort_merge_join),
-                     ("Hash Join", hash_join)]:
+    for name, fn in [("겹돌기", nested_loop_join),
+                     ("줄 세워 합치기", sort_merge_join),
+                     ("해시 맞이음", hash_join)]:
         results = fn(R, S)
-        print(f"{name} ({len(results)} matches):")
+        print(f"{name} (맞는 짝 {len(results)}개):")
         for r, s in results:
             print(f"  {r} <-> {s}")
         print()
 ```
 
-## Reference
+## 살펴볼 거리
 
 - [Database System Concepts (Silberschatz, Korth, Sudarshan)](https://www.db-book.com/)
 - [Designing Data-Intensive Applications (Kleppmann)](https://dataintensive.net/)
-- Ramakrishnan, R. & Gehrke, J. *Database Management Systems*, Chapter 14
+- Ramakrishnan, R. & Gehrke, J. *Database Management Systems*, 14장
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare nested-loop join, sort-merge join, and hash join in terms of I/O cost for joining relations $R$ (1000 pages) and $S$ (500 pages) with a buffer of 52 pages.
+**익힘 1.**
+버퍼가 52쪽일 때 표 $R$(1000쪽)과 $S$(500쪽)을 맞이으며 겹돌기 맞이음, 줄 세워 합치기 맞이음, 해시 맞이음의 들고남 비용을 견주어라.
 
-??? success "Solution to Exercise 1"
-    **Nested-loop join** (page-oriented, $R$ outer): $|R| + |R| \times |S| = 1000 + 1000 \times 500 = 501{,}000$ I/Os. With block nested loop using 50 buffer pages for $R$: $1000 + \lceil 1000/50 \rceil \times 500 = 1000 + 20 \times 500 = 11{,}000$ I/Os. **Sort-merge join**: sort $R$: $2 \times 1000 \times \lceil \log_{51}(1000/52) \rceil \approx 2 \times 1000 \times 2 = 4000$ I/Os. Sort $S$: $\approx 2000$ I/Os. Merge: $1000 + 500 = 1500$. Total: $\approx 7500$ I/Os. **Hash join**: partition phase: read and write both relations $= 2 \times (1000 + 500) = 3000$ I/Os. Probe phase: read both $= 1500$ I/Os. Total: $4500$ I/Os. Hash join wins for equi-joins; sort-merge wins when the output must be sorted. $\square$
-
----
-
-**Exercise 2.**
-Explain why hash join requires that at least one partition of the smaller relation fits in memory. What happens if this condition is violated?
-
-??? success "Solution to Exercise 2"
-    In the probe phase of hash join, each partition of the smaller relation $S$ is loaded entirely into a hash table in memory. Tuples from the corresponding partition of $R$ are then streamed through, probing the hash table. If a partition of $S$ exceeds available memory, the hash table cannot be built, and the probe fails. When this occurs (called a **partition overflow**), the overflowing partition must be recursively partitioned using a different hash function and joined in sub-partitions. This adds extra I/O passes. The condition is $|S| / p \le M$ where $p$ is the number of partitions and $M$ is the buffer size, giving $p \ge |S|/M$. Since we need $p \le M$ (one buffer page per partition during partitioning), the requirement is $|S| \le M^2$. This is called the "square root rule." $\square$
+??? success "익힘 1 풀이"
+    **겹돌기 맞이음**(쪽 낱으로, $R$이 바깥): $\lvert R \rvert + \lvert R \rvert \times \lvert S \rvert = 1000 + 1000 \times 500 = 501{,}000$번. $R$에 버퍼 50쪽을 쓰는 덩이 겹돌기면 $1000 + \lceil 1000/50 \rceil \times 500 = 1000 + 20 \times 500 = 11{,}000$번. **줄 세워 합치기 맞이음**: $R$ 줄 세우기 $2 \times 1000 \times \lceil \log_{51}(1000/52) \rceil \approx 2 \times 1000 \times 2 = 4000$번. $S$ 줄 세우기 $\approx 2000$번. 합치기 $1000 + 500 = 1500$번. 모두 $\approx 7500$번. **해시 맞이음**: 나누기 단계에서 두 표를 읽고 쓰니 $2 \times (1000 + 500) = 3000$번, 더듬기 단계에서 둘을 읽으니 $1500$번, 모두 $4500$번. 같음 맞이음이면 해시 맞이음이 이기고, 내놓기를 줄 세워야 하면 줄 세워 합치기가 이긴다. $\square$
 
 ---
 
-**Exercise 3.**
-A query joins three tables: $A \bowtie B \bowtie C$. The optimizer considers two join orders: $(A \bowtie B) \bowtie C$ and $A \bowtie (B \bowtie C)$. Explain why the order matters and how the optimizer estimates intermediate result sizes.
+**익힘 2.**
+해시 맞이음이 작은 쪽 표의 나눔 하나가 기억에 담기기를 바라는 까닭을 밝혀라. 이 조건이 깨지면 어찌 되는가?
 
-??? success "Solution to Exercise 3"
-    The join order determines the size of intermediate results, which affects I/O cost. If $|A \bowtie B|$ is small, joining it with $C$ is cheap. If $|A \bowtie B|$ is large, the second join is expensive. The optimizer estimates intermediate sizes using statistics: selectivity $= 1 / \max(V(A, \text{col}), V(B, \text{col}))$ where $V(R, c)$ is the number of distinct values of column $c$ in $R$. Estimated size: $|A \bowtie B| = |A| \times |B| \times \text{selectivity}$. The optimizer evaluates all feasible orderings (for $n$ tables, there are $C_{n-1}$ Catalan number orderings), estimates the cost of each using the size estimates and the chosen join algorithm's cost formula, and selects the cheapest plan. Dynamic programming (the Selinger algorithm) efficiently searches this space in $O(2^n)$ for $n$ tables. $\square$
-
----
-
-**Exercise 4.**
-Describe the grace hash join algorithm and explain how it differs from simple (in-memory) hash join.
-
-??? success "Solution to Exercise 4"
-    Simple hash join builds a hash table for the entire smaller relation in memory, then probes with the larger relation. It requires the smaller relation to fit in memory. Grace hash join handles larger-than-memory relations in two phases: (1) **Partition phase**: hash both $R$ and $S$ into $p$ partitions using the same hash function. Each partition is written to disk. (2) **Probe phase**: for each partition $i$, load $S_i$ into a hash table and stream $R_i$ through it. Since each partition is $1/p$-th of the original, it fits in memory if $p$ is large enough. Total I/O: $3(|R| + |S|)$ -- read both for partitioning, write partitions, read partitions for probing. This is higher than in-memory hash join ($|R| + |S|$) but enables joining relations that far exceed memory. $\square$
+??? success "익힘 2 풀이"
+    해시 맞이음의 더듬기 단계에서는 작은 표 $S$의 나눔마다 통째로 기억 속 해시 표로 올린다. 그러고 나서 $R$의 맞물리는 나눔의 행을 흘려보내며 해시 표를 더듬는다. $S$의 나눔이 쓸 수 있는 기억을 넘으면 해시 표를 쌓을 수 없어 더듬기가 무너진다. 이를 **나눔 넘침**이라 하며, 넘친 나눔은 다른 해시 함수로 되돌이 나누기를 해서 잔 나눔끼리 맞이어야 한다. 들고남 오감이 더 붙는다. 조건은 $\lvert S \rvert / p \le M$이고 여기서 $p$은 나눔의 수, $M$은 버퍼 크기이므로 $p \ge \lvert S \rvert/M$이다. 나누는 동안 나눔마다 버퍼 한 쪽이 있어야 하니 $p \le M$이고, 따라서 $\lvert S \rvert \le M^2$이 나온다. 이를 "제곱근 법칙"이라 부른다. $\square$
 
 ---
 
-**Exercise 5.**
-In a distributed database, a join between tables on different nodes requires data transfer. Compare broadcast join and shuffle (repartition) join, and explain when each is preferred.
+**익힘 3.**
+어떤 물음이 표 셋을 맞이음한다: $A \bowtie B \bowtie C$. 다듬이가 맞이음 차례 둘, 곧 $(A \bowtie B) \bowtie C$과 $A \bowtie (B \bowtie C)$을 저울질한다. 차례가 왜 중요한지, 다듬이가 사이 결과의 크기를 어떻게 어림하는지 밝혀라.
 
-??? success "Solution to Exercise 5"
-    **Broadcast join**: send the entire smaller table to every node. Each node joins its local partition of the larger table with the complete smaller table. Network cost: $|S| \times N$ where $N$ is the number of nodes. No repartitioning of the larger table. **Shuffle join**: repartition both tables on the join key so that matching rows end up on the same node. Network cost: $|R| + |S|$ (each row sent to one node). Broadcast is preferred when $|S|$ is small (the broadcast cost $|S| \times N < |R| + |S|$, i.e., $|S| < |R| / (N - 1)$). Shuffle is preferred when both tables are large. Example: with $N = 10$, $|R| = 10$ GB, $|S| = 100$ MB: broadcast costs $100 \text{ MB} \times 10 = 1$ GB; shuffle costs $10.1$ GB. Broadcast wins by 10x. With $|S| = 5$ GB: broadcast costs 50 GB; shuffle costs 15 GB. Shuffle wins. $\square$
+??? success "익힘 3 풀이"
+    맞이음 차례가 사이 결과의 크기를 가르고, 그 크기가 들고남 비용을 가른다. $\lvert A \bowtie B \rvert$이 작으면 그것을 $C$과 맞이음이 싸다. $\lvert A \bowtie B \rvert$이 크면 둘째 맞이음이 비싸다. 다듬이는 셈속으로 사이 크기를 어림한다. 고르기 몫 $= 1 / \max(V(A, \text{칸}), V(B, \text{칸}))$이고 $V(R, c)$은 $R$에서 칸 $c$의 서로 다른 값의 수다. 어림 크기는 $\lvert A \bowtie B \rvert = \lvert A \rvert \times \lvert B \rvert \times \text{고르기 몫}$이다. 다듬이는 될 만한 차례를 모두($n$개 표면 카탈란 수 $C_{n-1}$가지) 저울질하고, 크기 어림과 고른 맞이음 알고리즘의 비용 꼴로 저마다의 비용을 어림한 뒤 가장 싼 꾀를 고른다. 갈피 다지기(셀린저 알고리즘)로 이 밭을 표 $n$개에 $O(2^n)$으로 훑는다. $\square$
+
+---
+
+**익힘 4.**
+그레이스 해시 맞이음 알고리즘을 밝히고, 단순한(기억 안) 해시 맞이음과 무엇이 다른지 밝혀라.
+
+??? success "익힘 4 풀이"
+    단순한 해시 맞이음은 작은 쪽 표를 통째로 기억에 해시 표로 쌓고 큰 표로 더듬는다. 작은 표가 기억에 담겨야만 쓸 수 있다. 그레이스 해시 맞이음은 기억보다 큰 표를 두 단계로 다룬다. (1) **나누기 단계**: 같은 해시 함수로 $R$과 $S$을 저마다 나눔 $p$개로 흩는다. 나눔마다 원반에 쓴다. (2) **더듬기 단계**: 나눔 $i$마다 $S_i$을 해시 표로 올리고 $R_i$을 흘려보낸다. 나눔마다 원래 크기의 $1/p$이므로 $p$이 넉넉히 크면 기억에 담긴다. 온 들고남은 $3(\lvert R \rvert + \lvert S \rvert)$이다. 나누려고 둘을 읽고, 나눔을 쓰고, 더듬으려고 나눔을 되읽는다. 기억 안 해시 맞이음($\lvert R \rvert + \lvert S \rvert$)보다 높지만 기억을 크게 넘는 표도 맞이을 수 있다. $\square$
+
+---
+
+**익힘 5.**
+흩은 데이터베이스에서 서로 다른 마디에 놓인 표를 맞이으려면 자료를 옮겨야 한다. 뿌리기 맞이음과 섞기(되나누기) 맞이음을 견주고 저마다 언제 알맞은지 밝혀라.
+
+??? success "익힘 5 풀이"
+    **뿌리기 맞이음**: 작은 쪽 표를 통째로 모든 마디에 보낸다. 마디마다 제 몫의 큰 표를 온전한 작은 표와 맞이음한다. 그물 비용은 $\lvert S \rvert \times N$이고 $N$은 마디의 수다. 큰 표는 되나누지 않는다. **섞기 맞이음**: 맞물리는 행이 같은 마디에 놓이도록 두 표를 맞이음 열쇠로 되나눈다. 그물 비용은 $\lvert R \rvert + \lvert S \rvert$이다(행마다 한 마디로 간다). $\lvert S \rvert$이 작으면 뿌리기가 낫다(뿌리기 비용 $\lvert S \rvert \times N < \lvert R \rvert + \lvert S \rvert$, 곧 $\lvert S \rvert < \lvert R \rvert / (N - 1)$). 두 표가 다 크면 섞기가 낫다. 보기로 $N = 10$, $\lvert R \rvert = 10$ GB, $\lvert S \rvert = 100$ MB면 뿌리기가 $100 \text{ MB} \times 10 = 1$ GB, 섞기가 $10.1$ GB이므로 뿌리기가 열 곱절 낫다. $\lvert S \rvert = 5$ GB면 뿌리기가 50 GB, 섞기가 15 GB이므로 섞기가 낫다. $\square$
