@@ -1,156 +1,152 @@
-# DP Problem Complexities
+# 갈피 다지기 문제 복잡도
 
-Dynamic programming transforms exponential brute-force searches into polynomial-time
-algorithms by storing solutions to overlapping subproblems. Understanding the time and
-space complexity of each classic DP pattern helps you choose the right formulation and
-predict whether a solution will fit within contest or interview time limits.
+갈피 다지기는 겹치는 작은 문제의 답을 갈무리해, 곱절꼴 마구잡이 찾기를 다항식 때의
+알고리즘으로 바꾼다. 이름난 갈피 다지기 결마다 때와 자리 복잡도를 알면 알맞은
+세움새를 고를 수 있고, 겨루기나 면담의 때 한도 안에 드는지 미리 그려 볼 수 있다.
 
-## One-Dimensional DP
+## 1차원 갈피 다지기
 
-These problems define a single state variable, typically an index $i$ into an array or
-a remaining quantity.
+이 문제들은 상태 변수를 하나만 둔다. 흔히 배열의 번호 $i$이거나 남은 양이다.
 
-| Problem | State | Recurrence | Time | Space |
+| 문제 | 상태 | 되돌이 식 | 때 | 자리 |
 |---|---|---|---|---|
-| Fibonacci | $F(i)$ | $F(i) = F(i-1) + F(i-2)$ | $O(n)$ | $O(1)$ |
-| Climbing Stairs | $dp[i]$ | $dp[i] = dp[i-1] + dp[i-2]$ | $O(n)$ | $O(1)$ |
-| House Robber | $dp[i]$ | $dp[i] = \max(dp[i-1],\; dp[i-2] + a_i)$ | $O(n)$ | $O(1)$ |
-| Coin Change | $dp[a]$ for amount $a$ | $dp[a] = \min_{c \in C}(dp[a - c]) + 1$ | $O(n \cdot W)$ | $O(W)$ |
-| Word Break | $dp[i]$ | $dp[i] = \bigvee_{j < i} (dp[j] \wedge s[j:i] \in D)$ | $O(n^2 \cdot L)$ | $O(n)$ |
-| Maximum Subarray | $dp[i]$ | $dp[i] = \max(a_i,\; dp[i-1] + a_i)$ | $O(n)$ | $O(1)$ |
-| Longest Increasing Subseq. | $dp[i]$ | $dp[i] = \max_{j < i,\; a_j < a_i}(dp[j]) + 1$ | $O(n^2)$ | $O(n)$ |
-| LIS (binary search) | tails array | patience sorting | $O(n \log n)$ | $O(n)$ |
+| 피보나치 | $F(i)$ | $F(i) = F(i-1) + F(i-2)$ | $O(n)$ | $O(1)$ |
+| 계단 오르기 | $dp[i]$ | $dp[i] = dp[i-1] + dp[i-2]$ | $O(n)$ | $O(1)$ |
+| 집 털기 | $dp[i]$ | $dp[i] = \max(dp[i-1],\; dp[i-2] + a_i)$ | $O(n)$ | $O(1)$ |
+| 동전 바꾸기 | 금액 $a$의 $dp[a]$ | $dp[a] = \min_{c \in C}(dp[a - c]) + 1$ | $O(n \cdot W)$ | $O(W)$ |
+| 낱말 가르기 | $dp[i]$ | $dp[i] = \bigvee_{j < i} (dp[j] \wedge s[j:i] \in D)$ | $O(n^2 \cdot L)$ | $O(n)$ |
+| 가장 큰 부분 배열 | $dp[i]$ | $dp[i] = \max(a_i,\; dp[i-1] + a_i)$ | $O(n)$ | $O(1)$ |
+| 가장 긴 늘어나는 부분 열 | $dp[i]$ | $dp[i] = \max_{j < i,\; a_j < a_i}(dp[j]) + 1$ | $O(n^2)$ | $O(n)$ |
+| 가장 긴 늘어나는 부분 열(이진 찾기) | 꼬리 배열 | 인내 줄 세우기 | $O(n \log n)$ | $O(n)$ |
 
-Here $n$ is the input size, $W$ is the target amount, $C$ is the coin set, $L$ is
-maximum word length, and $D$ is the dictionary.
+여기서 $n$은 들임 크기, $W$은 겨눈 금액, $C$은 동전 모임, $L$은 가장 긴 낱말
+길이, $D$은 사전이다.
 
-## Two-Dimensional DP
+## 2차원 갈피 다지기
 
-Two state variables arise when the problem involves pairs of indices, a grid, or two
-sequences.
+문제가 번호 짝, 격자, 열 둘을 다루면 상태 변수가 둘이 된다.
 
-| Problem | State | Time | Space | Space (optimized) |
+| 문제 | 상태 | 때 | 자리 | 자리(다듬음) |
 |---|---|---|---|---|
-| Longest Common Subsequence | $dp[i][j]$ | $O(mn)$ | $O(mn)$ | $O(\min(m,n))$ |
-| Edit Distance | $dp[i][j]$ | $O(mn)$ | $O(mn)$ | $O(\min(m,n))$ |
-| 0/1 Knapsack | $dp[i][w]$ | $O(nW)$ | $O(nW)$ | $O(W)$ |
-| Grid Unique Paths | $dp[i][j]$ | $O(mn)$ | $O(mn)$ | $O(n)$ |
-| Palindrome Subsequence | $dp[i][j]$ | $O(n^2)$ | $O(n^2)$ | $O(n)$ |
-| Matrix Chain Multiplication | $dp[i][j]$ | $O(n^3)$ | $O(n^2)$ | $O(n^2)$ |
-| Rod Cutting | $dp[i]$ | $O(n^2)$ | $O(n)$ | $O(n)$ |
+| 가장 긴 함께 있는 부분 열 | $dp[i][j]$ | $O(mn)$ | $O(mn)$ | $O(\min(m,n))$ |
+| 고침 거리 | $dp[i][j]$ | $O(mn)$ | $O(mn)$ | $O(\min(m,n))$ |
+| 0/1 배낭 | $dp[i][w]$ | $O(nW)$ | $O(nW)$ | $O(W)$ |
+| 격자의 남다른 길 | $dp[i][j]$ | $O(mn)$ | $O(mn)$ | $O(n)$ |
+| 앞뒤 같은 부분 열 | $dp[i][j]$ | $O(n^2)$ | $O(n^2)$ | $O(n)$ |
+| 행렬 사슬 곱하기 | $dp[i][j]$ | $O(n^3)$ | $O(n^2)$ | $O(n^2)$ |
+| 막대 자르기 | $dp[i]$ | $O(n^2)$ | $O(n)$ | $O(n)$ |
 
-For two-sequence problems, $m$ and $n$ are the respective sequence lengths. For the
-knapsack, $W$ is the capacity. Matrix chain multiplication requires $O(n^3)$ because
-each subproblem $(i, j)$ iterates over $O(n)$ split points.
+열 둘을 다루는 문제에서 $m$과 $n$은 저마다의 열 길이다. 배낭에서 $W$은 담는
+크기다. 행렬 사슬 곱하기는 작은 문제 $(i, j)$마다 쪼개는 자리 $O(n)$곳을 훑으므로
+$O(n^3)$이 든다.
 
-## Why Space Optimization Works
+## 자리 다듬기가 듣는 까닭
 
-Many 2D DP tables can be compressed to one or two rows because each cell depends only
-on the current and previous rows. Consider the edit distance recurrence:
+2차원 갈피 다지기 표는 칸마다 지금과 앞 가로줄에만 매이므로 한두 줄로 눌러 담을
+수 있을 때가 많다. 고침 거리의 되돌이 식을 보자.
 
 $$
 dp[i][j] = \min\bigl(dp[i-1][j] + 1,\; dp[i][j-1] + 1,\; dp[i-1][j-1] + \delta\bigr)
 $$
 
-where $\delta = 0$ if $s_1[i] = s_2[j]$ and $\delta = 1$ otherwise. Since row $i$
-depends only on row $i-1$, we need just two rows of length $\min(m, n) + 1$, reducing
-space from $O(mn)$ to $O(\min(m, n))$.
+여기서 $s_1[i] = s_2[j]$이면 $\delta = 0$, 아니면 $\delta = 1$이다. 가로줄 $i$이
+가로줄 $i-1$에만 매이므로 길이 $\min(m, n) + 1$인 가로줄 두 개면 되고, 자리가
+$O(mn)$에서 $O(\min(m, n))$으로 준다.
 
-## Advanced DP Patterns
+## 앞선 갈피 다지기 결
 
-| Pattern | Typical Time | Typical Space | Example Problems |
+| 결 | 흔한 때 | 흔한 자리 | 보기 문제 |
 |---|---|---|---|
-| Bitmask DP | $O(2^n \cdot n)$ | $O(2^n)$ | TSP, Hamiltonian path |
-| Digit DP | $O(d \cdot s \cdot 2)$ | $O(d \cdot s)$ | Count numbers with property |
-| Interval DP | $O(n^3)$ | $O(n^2)$ | Optimal BST, balloon burst |
-| Tree DP | $O(n)$ | $O(n)$ | Max independent set on tree |
-| DP on DAGs | $O(V + E)$ | $O(V)$ | Shortest path in DAG |
-| Knuth optimization | $O(n^2)$ | $O(n^2)$ | Optimal BST (from $O(n^3)$) |
+| 비트 가리개 갈피 다지기 | $O(2^n \cdot n)$ | $O(2^n)$ | 떠도는 장수 문제, 해밀턴 길 |
+| 자릿수 갈피 다지기 | $O(d \cdot s \cdot 2)$ | $O(d \cdot s)$ | 어떤 됨됨이를 지닌 수 세기 |
+| 사이 갈피 다지기 | $O(n^3)$ | $O(n^2)$ | 가장 좋은 이진 찾기 나무, 풍선 터뜨리기 |
+| 나무 갈피 다지기 | $O(n)$ | $O(n)$ | 나무에서 가장 큰 홀로 선 모임 |
+| 맴돌이 없는 그래프의 갈피 다지기 | $O(V + E)$ | $O(V)$ | 맴돌이 없는 그래프의 가장 짧은 길 |
+| 크누스 다듬기 | $O(n^2)$ | $O(n^2)$ | 가장 좋은 이진 찾기 나무($O(n^3)$에서) |
 
-Here $d$ is the number of digits, $s$ is the number of states per digit position,
-$V$ is the vertex count, and $E$ is the edge count.
+여기서 $d$은 자릿수, $s$은 자릿자리마다의 상태 수, $V$은 마디의 수, $E$은 변의
+수다.
 
-!!! tip "Bitmask DP Feasibility"
-    Bitmask DP is practical only when $n \le 20$ because $2^{20} \approx 10^6$.
-    For $n = 25$, the state space exceeds $3 \times 10^7$, which is marginal under
-    typical time limits.
+!!! tip "비트 가리개 갈피 다지기를 쓸 수 있는가"
+    $2^{20} \approx 10^6$이므로 비트 가리개 갈피 다지기는 $n \le 20$일 때만
+    쓸 만하다. $n = 25$이면 상태 밭이 $3 \times 10^7$을 넘어 흔한 때 한도에서
+    아슬아슬하다.
 
-## Pseudo-polynomial vs Polynomial
+## 유사 다항식 대 다항식
 
-Some DP algorithms run in time proportional to the numeric value of the input rather
-than the input size in bits. These are called **pseudo-polynomial**.
+어떤 갈피 다지기 알고리즘은 들임의 비트 크기가 아니라 들임의 수 값에 비례하는
+때에 돈다. 이를 **유사 다항식**이라 한다.
 
-| Algorithm | Time | Polynomial? | Why |
+| 알고리즘 | 때 | 다항식인가? | 까닭 |
 |---|---|---|---|
-| 0/1 Knapsack | $O(nW)$ | Pseudo-polynomial | $W$ is a value, not a count |
-| Coin Change | $O(nW)$ | Pseudo-polynomial | Same reason |
-| Subset Sum | $O(nS)$ | Pseudo-polynomial | $S$ is target sum |
-| LCS | $O(mn)$ | Polynomial | $m, n$ are input lengths |
-| Matrix Chain | $O(n^3)$ | Polynomial | $n$ is number of matrices |
+| 0/1 배낭 | $O(nW)$ | 유사 다항식 | $W$은 개수가 아니라 값이다 |
+| 동전 바꾸기 | $O(nW)$ | 유사 다항식 | 같은 까닭 |
+| 부분 모임 합 | $O(nS)$ | 유사 다항식 | $S$은 겨눈 합이다 |
+| 가장 긴 함께 있는 부분 열 | $O(mn)$ | 다항식 | $m, n$은 들임 길이다 |
+| 행렬 사슬 | $O(n^3)$ | 다항식 | $n$은 행렬의 수다 |
 
-The distinction matters for NP-hardness: the knapsack problem is NP-hard, yet the DP
-solution is efficient when $W$ is small relative to $n$.
+이 가름은 NP 어려움에서 값지다. 배낭 문제는 NP 어려움이지만, $W$이 $n$에 견주어
+작으면 갈피 다지기 풀이가 잘 든다.
 
-## Complexity Derivation Example
+## 복잡도 이끌어 내는 보기
 
-Consider the 0/1 Knapsack. Let $n$ items have weights $w_1, \ldots, w_n$ and values
-$v_1, \ldots, v_n$. The recurrence is:
+0/1 배낭을 보자. 물건 $n$개의 무게가 $w_1, \ldots, w_n$이고 값어치가
+$v_1, \ldots, v_n$이라 하자. 되돌이 식은 이렇다.
 
 $$
 dp[i][w] = \max\bigl(dp[i-1][w],\; dp[i-1][w - w_i] + v_i\bigr)
 $$
 
-- **States**: $n \times (W + 1)$ entries in the table.
-- **Transition**: Each state requires $O(1)$ work (a single comparison).
-- **Total time**: $O(nW)$.
-- **Space**: $O(nW)$ for the full table, or $O(W)$ if only the previous row is kept.
+- **상태**: 표에 $n \times (W + 1)$개의 항목.
+- **옮김**: 상태마다 $O(1)$의 품(견줌 한 번).
+- **온 때**: $O(nW)$.
+- **자리**: 온 표에 $O(nW)$, 앞 가로줄만 지니면 $O(W)$.
 
-!!! warning "Common Pitfall"
-    Forgetting to handle the base case $dp[0][w] = 0$ for all $w$ leads to
-    incorrect results. Always initialize the boundary of the DP table before
-    filling interior cells.
+!!! warning "흔한 함정"
+    모든 $w$에 대해 $dp[0][w] = 0$이라는 밑자리를 다루지 않으면 열매가 틀린다.
+    안쪽 칸을 채우기에 앞서 갈피 다지기 표의 금 언저리를 늘 첫자리 잡아라.
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Kleinberg, J. and Tardos, E. *Algorithm Design*. Pearson, 2005.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare the time and space complexities of the 0/1 knapsack problem and the unbounded knapsack problem. Why does the unbounded version have a simpler recurrence?
+**익힘 1.**
+0/1 배낭 문제와 끝없는 배낭 문제의 때와 자리 복잡도를 견주어라. 끝없는 쪽의 되돌이 식이 더 단순한 까닭은 무엇인가?
 
-??? success "Solution to Exercise 1"
-    **0/1 knapsack**: each item can be used at most once. State: $dp[i][w]$ = max value using items $1 \ldots i$ with capacity $w$. Time: $O(nW)$ where $n$ is the number of items and $W$ is the capacity. Space: $O(nW)$, reducible to $O(W)$ with rolling array. **Unbounded knapsack**: each item can be used unlimited times. State: $dp[w]$ = max value with capacity $w$ (no item dimension needed). Time: $O(nW)$. Space: $O(W)$. The unbounded version is simpler because the decision at capacity $w$ does not depend on which items were previously used -- we can always consider every item again. This eliminates the item dimension from the state, reducing the recurrence to $dp[w] = \max_i(dp[w - w_i] + v_i)$. $\square$
-
----
-
-**Exercise 2.**
-The longest common subsequence (LCS) of two strings of lengths $m$ and $n$ can be computed in $O(mn)$ time and $O(mn)$ space. Describe how to reduce the space to $O(\min(m, n))$ while maintaining $O(mn)$ time.
-
-??? success "Solution to Exercise 2"
-    The standard DP table is $dp[i][j]$ where $dp[i][j]$ depends only on $dp[i-1][j]$, $dp[i][j-1]$, and $dp[i-1][j-1]$. Since row $i$ depends only on row $i-1$, we need only two rows at a time: the current row and the previous row. Keep two 1D arrays of size $\min(m, n) + 1$ (iterate over the longer string in the outer loop). At each step, compute the current row from the previous row, then swap. Space: $O(\min(m, n))$. This gives only the LCS length, not the actual subsequence. To reconstruct the LCS in reduced space, use Hirschberg's algorithm: divide the problem in half along the longer dimension, find the midpoint of the LCS using two forward/backward passes with $O(\min(m,n))$ space each, and recurse. Total time remains $O(mn)$; space is $O(\min(m,n))$. $\square$
+??? success "익힘 1 풀이"
+    **0/1 배낭**: 물건마다 많아야 한 번 쓴다. 상태: $dp[i][w]$ = 담는 크기 $w$에서 물건 $1 \ldots i$을 써 얻는 가장 큰 값어치. 때: 물건이 $n$개이고 담는 크기가 $W$일 때 $O(nW)$. 자리: $O(nW)$, 굴러가는 배열로 $O(W)$까지 줄인다. **끝없는 배낭**: 물건마다 얼마든지 쓸 수 있다. 상태: $dp[w]$ = 담는 크기 $w$에서의 가장 큰 값어치(물건 축이 없어도 된다). 때: $O(nW)$. 자리: $O(W)$. 끝없는 쪽이 단순한 까닭은 담는 크기 $w$에서의 판단이 앞서 어떤 물건을 썼는지에 매이지 않기 때문이다. 늘 모든 물건을 다시 헤아릴 수 있다. 그래서 상태에서 물건 축이 사라지고 되돌이 식이 $dp[w] = \max_i(dp[w - w_i] + v_i)$으로 줄어든다. $\square$
 
 ---
 
-**Exercise 3.**
-Explain why the edit distance DP has $O(mn)$ time complexity and describe when this is too slow in practice.
+**익힘 2.**
+길이 $m$과 $n$인 글자열 둘의 가장 긴 함께 있는 부분 열은 $O(mn)$ 때와 $O(mn)$ 자리에 셈할 수 있다. 때를 $O(mn)$으로 지키면서 자리를 $O(\min(m, n))$으로 줄이는 길을 밝혀라.
 
-??? success "Solution to Exercise 3"
-    Edit distance between strings of length $m$ and $n$ fills an $(m+1) \times (n+1)$ table, with each cell computed in $O(1)$ from three neighbors. Total: $O(mn)$. This is too slow when both strings are long: for DNA sequences with $m = n = 10^6$, the DP requires $10^{12}$ operations ($\sim$hours). Alternatives for such cases: (1) banded DP -- if the edit distance is known to be small ($d \ll m$), only compute cells within distance $d$ of the diagonal, giving $O(md)$ time. (2) Approximate algorithms -- locality-sensitive hashing for approximate nearest neighbor in edit distance space. (3) For exact computation on very long strings, four-Russians speedup achieves $O(mn / \log^2 n)$. $\square$
-
----
-
-**Exercise 4.**
-The matrix chain multiplication problem has $O(n^3)$ time and $O(n^2)$ space. Derive these complexities from the recurrence $dp[i][j] = \min_{i \le k < j} (dp[i][k] + dp[k+1][j] + p_{i-1} p_k p_j)$.
-
-??? success "Solution to Exercise 4"
-    The state space has $O(n^2)$ entries: all pairs $(i, j)$ with $1 \le i \le j \le n$, giving $\binom{n}{2} + n = O(n^2)$ entries. Each entry $dp[i][j]$ requires trying $O(j - i)$ split points $k$, each costing $O(1)$. The total work is $\sum_{i=1}^{n} \sum_{j=i}^{n} (j - i) = \sum_{l=0}^{n-1} l(n - l) = O(n^3)$ (where $l = j - i$ is the chain length). Space: the DP table has $O(n^2)$ entries, each storing one value. Therefore, time is $O(n^3)$ and space is $O(n^2)$. Knuth's optimization (the optimal split point $k^*[i][j]$ is monotone) reduces the time to $O(n^2)$ for this specific problem. $\square$
+??? success "익힘 2 풀이"
+    여느 갈피 다지기 표는 $dp[i][j]$이며 $dp[i][j]$은 $dp[i-1][j]$, $dp[i][j-1]$, $dp[i-1][j-1]$에만 매인다. 가로줄 $i$이 가로줄 $i-1$에만 매이므로 한 번에 두 줄만 있으면 된다. 지금 줄과 앞 줄이다. 크기 $\min(m, n) + 1$인 1차원 배열 둘을 지닌다(긴 글자열을 바깥 돌기에 둔다). 걸음마다 앞 줄로 지금 줄을 셈하고 맞바꾼다. 자리는 $O(\min(m, n))$이다. 이러면 길이만 나오고 부분 열 자체는 나오지 않는다. 줄인 자리에서 부분 열을 되세우려면 히르슈베르크 알고리즘을 쓴다. 긴 축을 따라 문제를 반으로 가르고, 저마다 $O(\min(m,n))$ 자리를 쓰는 앞/뒤 훑기 둘로 부분 열의 가운데 점을 찾은 뒤 되돌이한다. 온 때는 $O(mn)$으로 남고 자리는 $O(\min(m,n))$이다. $\square$
 
 ---
 
-**Exercise 5.**
-Describe the tradeoff between top-down (memoized) and bottom-up (tabulation) DP. When does each approach outperform the other?
+**익힘 3.**
+고침 거리 갈피 다지기의 때 복잡도가 $O(mn)$인 까닭을 밝히고, 참으로는 언제 이것이 너무 느린지 밝혀라.
 
-??? success "Solution to Exercise 5"
-    **Top-down (memoization)**: recursion with caching. Only computes states that are actually needed. Overhead: function call stack and hash map lookups. **Bottom-up (tabulation)**: iterates through all states in dependency order. Computes all states, even those not needed for the answer. Overhead: none (simple loops and array access). Top-down wins when: (1) the state space is sparse -- many states are unreachable, so memoization avoids computing them (e.g., knapsack with large $W$ but few feasible weight combinations); (2) the dependency order is complex and hard to determine statically. Bottom-up wins when: (1) most states are visited -- the overhead of recursion and hash lookups is wasted; (2) cache locality matters -- sequential array access is faster than random memoization table access; (3) the state space is dense and small. In practice, bottom-up is preferred for standard DP problems (knapsack, LCS, edit distance); top-down is preferred for problems with irregular state spaces (game tree search, sparse DP). $\square$
+??? success "익힘 3 풀이"
+    길이 $m$과 $n$인 글자열의 고침 거리는 $(m+1) \times (n+1)$ 표를 채우며, 칸마다 이웃 셋에서 $O(1)$에 셈한다. 모두 $O(mn)$이다. 두 글자열이 모두 길면 너무 느리다. $m = n = 10^6$인 DNA 열이면 갈피 다지기에 $10^{12}$번의 연산이 들어 몇 시간이 걸린다. 그런 자리의 다른 길: (1) 띠 갈피 다지기 -- 고침 거리가 작다고 알려져 있으면($d \ll m$) 대각선에서 거리 $d$ 안의 칸만 셈해 $O(md)$이 된다. (2) 어림 알고리즘 -- 고침 거리 밭에서 가장 가까운 이웃을 어림하는 지역성 예민 해시. (3) 아주 긴 글자열의 꼭 맞는 셈에는 네 러시아인 빠르게 하기가 $O(mn / \log^2 n)$을 이룬다. $\square$
+
+---
+
+**익힘 4.**
+행렬 사슬 곱하기 문제는 때 $O(n^3)$, 자리 $O(n^2)$이다. 되돌이 식 $dp[i][j] = \min_{i \le k < j} (dp[i][k] + dp[k+1][j] + p_{i-1} p_k p_j)$에서 이 복잡도를 이끌어 내어라.
+
+??? success "익힘 4 풀이"
+    상태 밭에는 항목이 $O(n^2)$개 있다. $1 \le i \le j \le n$인 짝 $(i, j)$ 모두이므로 $\binom{n}{2} + n = O(n^2)$개다. 항목 $dp[i][j]$마다 쪼개는 자리 $k$을 $O(j - i)$곳 해 보아야 하고 저마다 $O(1)$이 든다. 온 품은 $\sum_{i=1}^{n} \sum_{j=i}^{n} (j - i) = \sum_{l=0}^{n-1} l(n - l) = O(n^3)$이다(여기서 $l = j - i$은 사슬 길이다). 자리: 갈피 다지기 표에 항목이 $O(n^2)$개 있고 저마다 값 하나를 담는다. 따라서 때는 $O(n^3)$, 자리는 $O(n^2)$이다. 크누스 다듬기(가장 좋은 쪼갬 자리 $k^*[i][j]$이 한 방향으로 간다)를 쓰면 이 문제의 때가 $O(n^2)$으로 준다. $\square$
+
+---
+
+**익힘 5.**
+위에서 아래로(갈무리하는) 갈피 다지기와 아래에서 위로(표 채우는) 갈피 다지기의 맞바꿈을 밝혀라. 저마다 언제 더 나은가?
+
+??? success "익힘 5 풀이"
+    **위에서 아래로(갈무리)**: 갈무리를 곁들인 되돌이다. 참으로 필요한 상태만 셈한다. 붙는 짐: 함수 부름 쌓개와 해시 짝지음 찾기. **아래에서 위로(표 채우기)**: 매임 차례대로 모든 상태를 훑는다. 답에 필요 없는 상태까지 모두 셈한다. 붙는 짐: 없다(단순한 돌기와 배열 닿기). 위에서 아래로가 이길 때는 (1) 상태 밭이 성길 때다. 닿을 수 없는 상태가 많으면 갈무리가 그것들을 셈하지 않는다(보기로 $W$이 크지만 될 만한 무게 어우름이 적은 배낭). (2) 매임 차례가 까다로워 미리 정하기 어려울 때. 아래에서 위로가 이길 때는 (1) 거의 모든 상태를 들를 때다. 되돌이와 해시 찾기의 짐이 헛되다. (2) 캐시 지역성이 중요할 때다. 차례대로 배열에 닿는 것이 갈무리 표에 아무렇게나 닿는 것보다 빠르다. (3) 상태 밭이 빽빽하고 작을 때. 참으로는 여느 갈피 다지기 문제(배낭, 가장 긴 함께 있는 부분 열, 고침 거리)에는 아래에서 위로를, 상태 밭이 고르지 않은 문제(놀이 나무 찾기, 성긴 갈피 다지기)에는 위에서 아래로를 즐겨 쓴다. $\square$

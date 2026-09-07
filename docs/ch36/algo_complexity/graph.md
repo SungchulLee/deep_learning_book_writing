@@ -1,147 +1,145 @@
-# Graph Algorithm Complexities
+# 그래프 알고리즘 복잡도
 
-Graphs model relationships between entities, and the complexity of graph algorithms
-depends heavily on the representation (adjacency list vs. matrix) and the structure of
-the graph (sparse vs. dense, weighted vs. unweighted). This page collects the time and
-space bounds for every major graph algorithm, so you can quickly estimate feasibility
-for a given input size.
+그래프는 것들 사이의 얽힘을 본뜨며, 그래프 알고리즘의 복잡도는 나타냄(이웃
+목록인지 행렬인지)과 그래프의 얼개(성긴지 빽빽한지, 짐이 있는지 없는지)에 크게
+달렸다. 이 쪽은 으뜸 그래프 알고리즘마다 때와 자리 울타리를 모아, 주어진 들임
+크기에서 쓸 수 있는지 빠르게 가늠하게 해 준다.
 
-## Traversal Algorithms
+## 훑기 알고리즘
 
-Traversals visit every vertex and edge exactly once, making them the foundation for
-many higher-level algorithms.
+훑기는 마디와 변마다 꼭 한 번씩 들르므로 높은 켜의 알고리즘 여럿의 밑바탕이 된다.
 
-| Algorithm | Time | Space | Notes |
+| 알고리즘 | 때 | 자리 | 짚을 것 |
 |---|---|---|---|
-| BFS | $O(V + E)$ | $O(V)$ | Queue-based; finds shortest path in unweighted graphs |
-| DFS | $O(V + E)$ | $O(V)$ | Stack/recursion; basis for topological sort, SCC |
-| IDDFS | $O(b^d)$ | $O(d)$ | Combines BFS optimality with DFS space; $b$ = branching factor, $d$ = depth |
+| 너비 먼저 훑기 | $O(V + E)$ | $O(V)$ | 줄 바탕. 짐 없는 그래프에서 가장 짧은 길을 찾는다 |
+| 깊이 먼저 훑기 | $O(V + E)$ | $O(V)$ | 쌓개/되돌이. 갈래 세우기와 세게 이어진 조각의 밑바탕 |
+| 깊이를 늘려 가는 훑기 | $O(b^d)$ | $O(d)$ | 너비 먼저의 가장 좋음과 깊이 먼저의 자리를 아우른다. $b$ = 갈래 수, $d$ = 깊이 |
 
-Here $V$ is the number of vertices and $E$ is the number of edges. Both BFS and DFS
-assume an adjacency list representation. With an adjacency matrix, time becomes $O(V^2)$.
+여기서 $V$은 마디의 수, $E$은 변의 수다. 너비 먼저와 깊이 먼저 모두 이웃 목록
+나타냄을 여긴다. 이웃 행렬을 쓰면 때가 $O(V^2)$이 된다.
 
-## Shortest Path Algorithms
+## 가장 짧은 길 알고리즘
 
-Different algorithms apply depending on edge weight constraints.
+변의 짐에 걸린 매임에 따라 알맞은 알고리즘이 다르다.
 
-| Algorithm | Time | Space | Constraints |
+| 알고리즘 | 때 | 자리 | 매임 |
 |---|---|---|---|
-| BFS | $O(V + E)$ | $O(V)$ | Unweighted edges |
-| Dijkstra (binary heap) | $O((V + E) \log V)$ | $O(V)$ | Non-negative weights |
-| Dijkstra (Fibonacci heap) | $O(V \log V + E)$ | $O(V)$ | Non-negative weights |
-| Bellman-Ford | $O(VE)$ | $O(V)$ | Handles negative weights |
-| SPFA | $O(VE)$ worst, $O(E)$ avg | $O(V)$ | Bellman-Ford variant |
-| DAG relaxation | $O(V + E)$ | $O(V)$ | DAG only (topological order) |
-| Floyd-Warshall | $O(V^3)$ | $O(V^2)$ | All-pairs; handles negative weights |
-| Johnson's | $O(V^2 \log V + VE)$ | $O(V^2)$ | All-pairs; sparse graphs |
+| 너비 먼저 훑기 | $O(V + E)$ | $O(V)$ | 짐 없는 변 |
+| 데이크스트라(두 갈래 더미) | $O((V + E) \log V)$ | $O(V)$ | 짐이 음수가 아님 |
+| 데이크스트라(피보나치 더미) | $O(V \log V + E)$ | $O(V)$ | 짐이 음수가 아님 |
+| 벨먼-포드 | $O(VE)$ | $O(V)$ | 음수 짐을 다룬다 |
+| SPFA | 가장 나쁠 때 $O(VE)$, 고르게 $O(E)$ | $O(V)$ | 벨먼-포드의 갈래 |
+| 방향 있고 맴돌이 없는 그래프 늦추기 | $O(V + E)$ | $O(V)$ | 맴돌이 없는 그래프만(갈래 차례) |
+| 플로이드-워셜 | $O(V^3)$ | $O(V^2)$ | 모든 짝. 음수 짐을 다룬다 |
+| 존슨 | $O(V^2 \log V + VE)$ | $O(V^2)$ | 모든 짝. 성긴 그래프 |
 
-!!! tip "Choosing the Right Algorithm"
-    For sparse graphs ($E \approx V$), Dijkstra with a binary heap runs in
-    $O(V \log V)$. For dense graphs ($E \approx V^2$), Floyd-Warshall's $O(V^3)$
-    may be simpler to implement with comparable performance.
+!!! tip "알맞은 알고리즘 고르기"
+    성긴 그래프($E \approx V$)에서는 두 갈래 더미를 쓴 데이크스트라가
+    $O(V \log V)$에 돈다. 빽빽한 그래프($E \approx V^2$)에서는 플로이드-워셜의
+    $O(V^3)$이 짜기 더 단순하면서도 빠르기가 맞먹을 수 있다.
 
-## 최소 뻗은 나무
+## 가장 작은 뻗는 나무
 
-MST algorithms find the least-weight subset of edges that connects all vertices in an
-undirected, connected, weighted graph.
+가장 작은 뻗는 나무 알고리즘은 방향 없고 이어지고 짐 있는 그래프에서 모든 마디를
+잇는 짐이 가장 작은 변 모임을 찾는다.
 
-| Algorithm | Time | Space | Notes |
+| 알고리즘 | 때 | 자리 | 짚을 것 |
 |---|---|---|---|
-| Kruskal's | $O(E \log E)$ | $O(V)$ | Sort edges, use Union-Find |
-| Prim's (binary heap) | $O((V + E) \log V)$ | $O(V)$ | Better for dense graphs |
-| Prim's (Fibonacci heap) | $O(E + V \log V)$ | $O(V)$ | Theoretically optimal |
-| Boruvka's | $O(E \log V)$ | $O(V)$ | Parallelizable |
+| 크러스컬 | $O(E \log E)$ | $O(V)$ | 변을 줄 세우고 모으고 찾기를 쓴다 |
+| 프림(두 갈래 더미) | $O((V + E) \log V)$ | $O(V)$ | 빽빽한 그래프에 낫다 |
+| 프림(피보나치 더미) | $O(E + V \log V)$ | $O(V)$ | 이론으로 가장 좋다 |
+| 보루프카 | $O(E \log V)$ | $O(V)$ | 나란히 돌릴 수 있다 |
 
-Kruskal's algorithm is dominated by the sort step. The Union-Find operations (with
-path compression and union by rank) run in amortized $O(\alpha(n))$ per operation,
-where $\alpha$ is the inverse Ackermann function.
+크러스컬 알고리즘은 줄 세우기 마디가 판친다. 모으고 찾기 연산은 (길 눌러 담기와
+등수로 모으기를 쓰면) 연산마다 고르게 나눈 $O(\alpha(n))$에 도는데, $\alpha$은
+거꾸로 아커만 함수다.
 
-## Topological Sort and SCC
+## 갈래 세우기와 세게 이어진 조각
 
-These algorithms apply to directed graphs and rely on DFS as a subroutine.
+이 알고리즘들은 방향 있는 그래프에 쓰며 깊이 먼저 훑기를 밑 절차로 쓴다.
 
-| Algorithm | Time | Space | Purpose |
+| 알고리즘 | 때 | 자리 | 쓰임 |
 |---|---|---|---|
-| Topological sort (DFS) | $O(V + E)$ | $O(V)$ | Linear ordering of DAG |
-| Kahn's algorithm | $O(V + E)$ | $O(V)$ | BFS-based topological sort |
-| Kosaraju's SCC | $O(V + E)$ | $O(V)$ | Two DFS passes |
-| Tarjan's SCC | $O(V + E)$ | $O(V)$ | Single DFS pass |
+| 갈래 세우기(깊이 먼저) | $O(V + E)$ | $O(V)$ | 맴돌이 없는 그래프를 줄로 늘어놓기 |
+| 칸 알고리즘 | $O(V + E)$ | $O(V)$ | 너비 먼저 바탕 갈래 세우기 |
+| 코사라주 세게 이어진 조각 | $O(V + E)$ | $O(V)$ | 깊이 먼저를 두 번 |
+| 타잔 세게 이어진 조각 | $O(V + E)$ | $O(V)$ | 깊이 먼저를 한 번 |
 
-## Network Flow
+## 그물 흐름
 
-Flow algorithms find maximum flow or minimum cost flow in directed networks.
+흐름 알고리즘은 방향 있는 그물에서 가장 큰 흐름이나 값이 가장 작은 흐름을 찾는다.
 
-| Algorithm | Time | Space | Notes |
+| 알고리즘 | 때 | 자리 | 짚을 것 |
 |---|---|---|---|
-| Ford-Fulkerson (DFS) | $O(E \cdot f^*)$ | $O(V + E)$ | $f^*$ = max flow value |
-| Edmonds-Karp (BFS) | $O(VE^2)$ | $O(V + E)$ | Polynomial bound |
-| Dinic's | $O(V^2 E)$ | $O(V + E)$ | $O(E\sqrt{V})$ for unit-capacity |
-| Push-Relabel | $O(V^2 E)$ | $O(V + E)$ | Often faster in practice |
-| Hungarian | $O(V^3)$ | $O(V^2)$ | Bipartite matching |
+| 포드-펄커슨(깊이 먼저) | $O(E \cdot f^*)$ | $O(V + E)$ | $f^*$ = 가장 큰 흐름 값 |
+| 에드먼즈-카프(너비 먼저) | $O(VE^2)$ | $O(V + E)$ | 다항식 울타리 |
+| 디닉 | $O(V^2 E)$ | $O(V + E)$ | 담는 크기가 1이면 $O(E\sqrt{V})$ |
+| 밀고 다시 이름표 붙이기 | $O(V^2 E)$ | $O(V + E)$ | 참으로는 더 빠를 때가 많다 |
+| 헝가리 | $O(V^3)$ | $O(V^2)$ | 두 쪽 짝짓기 |
 
-!!! warning "Ford-Fulkerson Pitfall"
-    Ford-Fulkerson with DFS may not terminate on irrational capacities and can be
-    exponentially slow on integer capacities. Always prefer Edmonds-Karp or Dinic's
-    for reliable polynomial-time behavior.
+!!! warning "포드-펄커슨의 함정"
+    깊이 먼저를 쓰는 포드-펄커슨은 담는 크기가 무리수면 끝나지 않을 수 있고
+    옹근수여도 곱절꼴로 느려질 수 있다. 다항식 때를 믿을 수 있게 얻으려면 늘
+    에드먼즈-카프나 디닉을 고르라.
 
-## Complexity by Graph Density
+## 그래프의 빽빽함에 따른 복잡도
 
-The relationship between $V$ and $E$ determines which algorithms are practical.
+$V$과 $E$의 얽힘이 어느 알고리즘을 쓸 수 있는지 가른다.
 
-- **Sparse graphs** ($E = O(V)$): Adjacency list is essential. Dijkstra with a
-  heap gives $O(V \log V)$. Bellman-Ford gives $O(V^2)$.
-- **Dense graphs** ($E = O(V^2)$): Adjacency matrix is viable. Floyd-Warshall's
-  $O(V^3)$ competes with running Dijkstra from each vertex, which gives
-  $O(V^3 \log V)$ with a binary heap or $O(V^3)$ with a Fibonacci heap.
+- **성긴 그래프**($E = O(V)$): 이웃 목록이 꼭 있어야 한다. 더미를 쓴 데이크스트라가
+  $O(V \log V)$이다. 벨먼-포드는 $O(V^2)$이다.
+- **빽빽한 그래프**($E = O(V^2)$): 이웃 행렬을 쓸 만하다. 플로이드-워셜의
+  $O(V^3)$은 마디마다 데이크스트라를 돌리는 것과 겨루는데, 그쪽은 두 갈래 더미로
+  $O(V^3 \log V)$, 피보나치 더미로 $O(V^3)$이다.
 
-| Input size $V$ | Max $E$ (dense) | BFS/DFS | Dijkstra (heap) | Floyd-Warshall |
+| 들임 크기 $V$ | 가장 큰 $E$(빽빽함) | 너비/깊이 먼저 | 데이크스트라(더미) | 플로이드-워셜 |
 |---|---|---|---|---|
-| $10^3$ | $10^6$ | fast | fast | fast |
-| $10^4$ | $10^8$ | fast | moderate | slow |
-| $10^5$ | $10^{10}$ | moderate | moderate | infeasible |
-| $10^6$ | $10^{12}$ | moderate | slow | infeasible |
+| $10^3$ | $10^6$ | 빠름 | 빠름 | 빠름 |
+| $10^4$ | $10^8$ | 빠름 | 어중간 | 느림 |
+| $10^5$ | $10^{10}$ | 어중간 | 어중간 | 쓸 수 없음 |
+| $10^6$ | $10^{12}$ | 어중간 | 느림 | 쓸 수 없음 |
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Sedgewick, R. and Wayne, K. *Algorithms*. 4th ed. Addison-Wesley, 2011.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare the time complexities of BFS, DFS, Dijkstra, and Bellman-Ford for a graph with $V$ vertices and $E$ edges. When is each algorithm the appropriate choice?
+**익힘 1.**
+마디가 $V$개이고 변이 $E$개인 그래프에서 너비 먼저 훑기, 깊이 먼저 훑기, 데이크스트라, 벨먼-포드의 때 복잡도를 견주어라. 저마다 언제 알맞은가?
 
-??? success "Solution to Exercise 1"
-    BFS: $O(V + E)$. Use for unweighted shortest paths. DFS: $O(V + E)$. Use for connectivity, topological sort, cycle detection. Dijkstra: $O((V + E) \log V)$ with a binary heap, $O(V^2)$ with an array. Use for non-negative weighted shortest paths. Bellman-Ford: $O(VE)$. Use when negative edge weights exist (but no negative cycles). For dense graphs ($E \approx V^2$): Dijkstra with array is $O(V^2)$, matching BFS asymptotically but with higher constants. Bellman-Ford becomes $O(V^3)$. For sparse graphs ($E \approx V$): Dijkstra with heap is $O(V \log V)$, much faster than Bellman-Ford's $O(V^2)$. $\square$
-
----
-
-**Exercise 2.**
-Explain why Dijkstra's algorithm fails with negative edge weights. Give a concrete 3-node example.
-
-??? success "Solution to Exercise 2"
-    Dijkstra greedily finalizes the shortest distance to each node: once a node is extracted from the priority queue, its distance is never updated. With negative edges, a finalized distance can be wrong. Example: nodes A, B, C. Edges: A->B (weight 1), A->C (weight 5), B->C (weight -10). Dijkstra from A: extract A (dist 0), update B=1, C=5. Extract B (dist 1), update C = min(5, 1 + (-10)) = -9. Extract C (dist -9). In this case Dijkstra happens to work because C is extracted after B. But change to: A->B (weight 5), A->C (weight 2), C->B (weight -4). Extract A, update B=5, C=2. Extract C (dist 2), update B = min(5, 2-4) = -2. Extract B (dist -2). Correct! However, with A->B(1), B->C(2), A->C(10), C->B(-8): extract A, update B=1, C=10. Extract B(1), update C=3. Extract C(3). But C->B has weight -8, giving B = 3-8 = -5 < 1. B was already finalized at 1, so Dijkstra misses the better path. $\square$
+??? success "익힘 1 풀이"
+    너비 먼저 훑기: $O(V + E)$. 짐 없는 가장 짧은 길에 쓴다. 깊이 먼저 훑기: $O(V + E)$. 이어짐, 갈래 세우기, 맴돌이 찾기에 쓴다. 데이크스트라: 두 갈래 더미로 $O((V + E) \log V)$, 배열로 $O(V^2)$. 짐이 음수가 아닌 가장 짧은 길에 쓴다. 벨먼-포드: $O(VE)$. 음수 짐이 있을 때 쓴다(음수 맴돌이는 없어야 한다). 빽빽한 그래프($E \approx V^2$)에서는 배열을 쓴 데이크스트라가 $O(V^2)$으로 너비 먼저와 큰 복잡도가 같으나 붙박이 곱이 크다. 벨먼-포드는 $O(V^3)$이 된다. 성긴 그래프($E \approx V$)에서는 더미를 쓴 데이크스트라가 $O(V \log V)$으로 벨먼-포드의 $O(V^2)$보다 훨씬 빠르다. $\square$
 
 ---
 
-**Exercise 3.**
-The Floyd-Warshall algorithm computes all-pairs shortest paths in $O(V^3)$. Compare this with running Dijkstra from every vertex on a sparse graph ($E = O(V)$).
+**익힘 2.**
+데이크스트라 알고리즘이 음수 변 짐에서 무너지는 까닭을 밝혀라. 마디 셋짜리 손에 잡히는 보기를 들어라.
 
-??? success "Solution to Exercise 3"
-    Floyd-Warshall: always $O(V^3)$ regardless of graph density. Dijkstra from every vertex: $V \times O((V + E) \log V)$. For sparse graphs ($E = O(V)$): $V \times O(V \log V) = O(V^2 \log V)$, which is faster than $O(V^3)$ by a factor of $V / \log V$. For dense graphs ($E = O(V^2)$): $V \times O(V^2) = O(V^3)$, matching Floyd-Warshall. Floyd-Warshall is preferable when: (1) the graph has negative edges (Dijkstra requires non-negative); (2) the graph is dense; (3) simplicity of implementation matters (Floyd-Warshall is 5 lines of code). Repeated Dijkstra is preferable for sparse graphs with non-negative weights. Johnson's algorithm handles negative edges with sparse graphs in $O(V^2 \log V + VE)$ by reweighting edges. $\square$
-
----
-
-**Exercise 4.**
-A minimum spanning tree can be found using Kruskal's ($O(E \log E)$) or Prim's ($O(E \log V)$ with a heap). For which graph densities is each faster?
-
-??? success "Solution to Exercise 4"
-    Kruskal's: sort all edges ($O(E \log E)$) then process them with union-find ($O(E \alpha(V))$). Total: $O(E \log E) = O(E \log V)$ since $E \le V^2$. Prim's with a binary heap: $O((V + E) \log V)$. Prim's with a Fibonacci heap: $O(E + V \log V)$. For sparse graphs ($E = O(V)$): Kruskal = $O(V \log V)$, Prim (binary heap) = $O(V \log V)$, Prim (Fibonacci) = $O(V \log V)$. All equivalent. For dense graphs ($E = O(V^2)$): Kruskal = $O(V^2 \log V)$, Prim (binary heap) = $O(V^2 \log V)$, Prim (Fibonacci) = $O(V^2)$. Prim with Fibonacci heap wins on dense graphs. In practice, Kruskal is preferred for sparse graphs (simpler, good cache behavior with sorted edge list) and Prim with a heap for dense graphs. $\square$
+??? success "익힘 2 풀이"
+    데이크스트라는 마디마다 가장 짧은 거리를 욕심껏 못 박는다. 마디가 앞선 줄에서 한 번 빠지면 그 거리는 다시 고쳐지지 않는다. 음수 변이 있으면 못 박은 거리가 틀릴 수 있다. 보기: 마디 A, B, C. 변: A->B(짐 1), A->C(짐 5), B->C(짐 -10). A에서 데이크스트라를 돌리면 A(거리 0)를 빼고 B=1, C=5로 고친다. B(거리 1)를 빼고 C = min(5, 1 + (-10)) = -9로 고친다. C(거리 -9)를 뺀다. 이 자리에서는 C가 B 뒤에 빠지므로 마침 잘 돈다. 그런데 A->B(짐 5), A->C(짐 2), C->B(짐 -4)으로 바꾸면 A를 빼고 B=5, C=2로 고친다. C(거리 2)를 빼고 B = min(5, 2-4) = -2로 고친다. B(거리 -2)를 뺀다. 옳다! 그러나 A->B(1), B->C(2), A->C(10), C->B(-8)이면 A를 빼고 B=1, C=10으로 고친다. B(1)를 빼고 C=3으로 고친다. C(3)를 뺀다. 그런데 C->B의 짐이 -8이므로 B = 3-8 = -5 < 1이다. B은 이미 1로 못 박혔으므로 데이크스트라가 더 나은 길을 놓친다. $\square$
 
 ---
 
-**Exercise 5.**
-Topological sort runs in $O(V + E)$. Prove this and explain why it is optimal.
+**익힘 3.**
+플로이드-워셜 알고리즘은 모든 짝의 가장 짧은 길을 $O(V^3)$에 셈한다. 성긴 그래프($E = O(V)$)에서 마디마다 데이크스트라를 돌리는 것과 견주어라.
 
-??? success "Solution to Exercise 5"
-    Kahn's algorithm: (1) compute in-degrees of all vertices: $O(V + E)$ (scan all edges). (2) Enqueue all vertices with in-degree 0: $O(V)$. (3) While queue is non-empty: dequeue vertex $u$ ($O(1)$), output $u$, decrement in-degree of each neighbor ($O(\text{out-degree}(u))$). Total work in step 3: each vertex dequeued once ($O(V)$) and each edge processed once ($O(E)$). Total: $O(V + E)$. Optimality: any algorithm must examine every vertex (to output it) and every edge (to determine ordering constraints). This requires $\Omega(V + E)$ time. Therefore, $O(V + E)$ is optimal. $\square$
+??? success "익힘 3 풀이"
+    플로이드-워셜: 그래프가 얼마나 빽빽하든 늘 $O(V^3)$이다. 마디마다 데이크스트라: $V \times O((V + E) \log V)$이다. 성긴 그래프($E = O(V)$)면 $V \times O(V \log V) = O(V^2 \log V)$으로 $O(V^3)$보다 $V / \log V$곱절 빠르다. 빽빽한 그래프($E = O(V^2)$)면 $V \times O(V^2) = O(V^3)$으로 플로이드-워셜과 같다. 플로이드-워셜이 나은 때는 (1) 그래프에 음수 변이 있을 때(데이크스트라는 음수가 아니어야 한다), (2) 그래프가 빽빽할 때, (3) 짜기가 단순해야 할 때다(플로이드-워셜은 다섯 줄이다). 짐이 음수가 아닌 성긴 그래프에는 데이크스트라를 되풀이하는 쪽이 낫다. 존슨 알고리즘은 변의 짐을 다시 매겨 성긴 그래프의 음수 변을 $O(V^2 \log V + VE)$에 다룬다. $\square$
+
+---
+
+**익힘 4.**
+가장 작은 뻗는 나무는 크러스컬($O(E \log E)$)이나 프림(더미로 $O(E \log V)$)으로 찾을 수 있다. 그래프가 얼마나 빽빽할 때 저마다 빠른가?
+
+??? success "익힘 4 풀이"
+    크러스컬: 온 변을 줄 세우고($O(E \log E)$) 모으고 찾기로 다룬다($O(E \alpha(V))$). $E \le V^2$이므로 모두 $O(E \log E) = O(E \log V)$이다. 두 갈래 더미를 쓴 프림: $O((V + E) \log V)$. 피보나치 더미를 쓴 프림: $O(E + V \log V)$. 성긴 그래프($E = O(V)$)면 크러스컬 = $O(V \log V)$, 프림(두 갈래 더미) = $O(V \log V)$, 프림(피보나치) = $O(V \log V)$으로 모두 같다. 빽빽한 그래프($E = O(V^2)$)면 크러스컬 = $O(V^2 \log V)$, 프림(두 갈래 더미) = $O(V^2 \log V)$, 프림(피보나치) = $O(V^2)$이다. 빽빽한 그래프에서는 피보나치 더미를 쓴 프림이 이긴다. 참으로는 성긴 그래프에 크러스컬을(더 단순하고 줄 세운 변 목록이 캐시에 잘 맞는다), 빽빽한 그래프에 더미를 쓴 프림을 즐겨 쓴다. $\square$
+
+---
+
+**익힘 5.**
+갈래 세우기는 $O(V + E)$에 돈다. 이를 증명하고 왜 가장 좋은지 밝혀라.
+
+??? success "익힘 5 풀이"
+    칸 알고리즘: (1) 온 마디의 들어오는 차수를 셈한다. $O(V + E)$(온 변을 훑는다). (2) 들어오는 차수가 0인 마디를 모두 줄에 넣는다. $O(V)$. (3) 줄이 빌 때까지: 마디 $u$을 빼고($O(1)$) $u$을 내놓은 뒤 이웃마다 들어오는 차수를 하나씩 줄인다($O(\text{나가는 차수}(u))$). 걸음 3의 온 품은 마디마다 한 번 빠지고($O(V)$) 변마다 한 번 다뤄지므로($O(E)$) 모두 $O(V + E)$이다. 가장 좋음: 어떤 알고리즘이든 마디마다 들러야 하고(내놓으려고) 변마다 살펴야 한다(차례 매임을 가리려고). 그래서 $\Omega(V + E)$ 때가 든다. 따라서 $O(V + E)$이 가장 좋다. $\square$
