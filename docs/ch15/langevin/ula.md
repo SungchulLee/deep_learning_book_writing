@@ -121,7 +121,7 @@ class SGLD:
 def sgld_sample(model, dataloader, n_samples=100, burnin=1000,
                 thin=10, lr=1e-4):
     """
-    SGLD으로 신경망의 뒤확률 표본 모으기.
+    SGLD로 신경망의 뒤확률 표본 모으기.
     """
     optimizer = SGLD(model.parameters(), lr=lr, lr_decay=1e-5)
     
@@ -160,16 +160,16 @@ def sgld_sample(model, dataloader, n_samples=100, burnin=1000,
 
 ---
 
-## ULA/SGLD을 언제 쓰나
+## ULA/SGLD를 언제 쓰나
 
-**다음일 때 SGLD을 써라:**
+**다음일 때 SGLD를 써라:**
 
 - 자료 묶음이 아주 크다(관측이 수백만 개)
 - 어림 뒤확률로 넉넉하다
 - SGD 기반 가르치기 흐름에 녹여 넣는다
 - 단순함과 최소한의 맞추기가 필요하다
 
-**다음일 때는 MALA/HMC이 낫다:**
+**다음일 때는 MALA/HMC가 낫다:**
 
 - 정확한 뒤확률 표본이 필요하다
 - 자료 묶음이 작거나 보통이다

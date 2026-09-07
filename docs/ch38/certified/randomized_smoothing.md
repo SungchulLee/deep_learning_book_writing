@@ -72,7 +72,7 @@ $$
 
 이로써 낌새 $\geq 1 - \alpha$으로 밝혀 낸 반지름을 얻는다.
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ```python
 import torch

@@ -37,7 +37,7 @@ $$
 
 JPEG은 DCT 밭에서 높은 잦기 몫을 버리므로 맞서는 흔듦을 절로 많이 없앤다.
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ```python
 import torch

@@ -186,7 +186,7 @@ class VAE(nn.Module):
     변분 자동부호기.
     
     부호기(추론 망)와 풀개(낳는 모형)를 어우르며
-    ELBO을 가장 크게 하여 함께 익힌다.
+    ELBO를 가장 크게 하여 함께 익힌다.
     """
     
     def __init__(self, input_dim: int, hidden_dims: list, latent_dim: int):
@@ -278,7 +278,7 @@ def train_vae(model: VAE, train_loader: DataLoader,
               n_epochs: int = 100, lr: float = 1e-3,
               beta: float = 1.0, verbose: bool = True) -> Dict:
     """
-    ELBO을 가장 크게 하여 VAE 익히기.
+    ELBO를 가장 크게 하여 VAE 익히기.
     """
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     

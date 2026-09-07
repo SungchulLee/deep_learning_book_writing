@@ -133,7 +133,7 @@ def circumradius(a, b, c):
 def is_delaunay(triangles, points):
     """삼각 나누기가 들로네 성질을 채우는지 살핀다.
 
-    어떤 삼각형의 둘레 동그라미 안에도 점이 없으면 True을 돌려준다.
+    어떤 삼각형의 둘레 동그라미 안에도 점이 없으면 True를 돌려준다.
     """
     for tri in triangles:
         a, b, c = [points[i] for i in tri]

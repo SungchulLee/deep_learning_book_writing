@@ -274,7 +274,7 @@ class UNetCond(nn.Module):
         return self.out_conv(self.out_act(self.out_norm(h)))
 
 # ==========================================
-# 5) 조건 주기 + CFG을 갖춘 DDPM 알맹이
+# 5) 조건 주기 + CFG를 갖춘 DDPM 알맹이
 # ==========================================
 class DDPMCond(nn.Module):
     def __init__(self, model, timesteps=T):

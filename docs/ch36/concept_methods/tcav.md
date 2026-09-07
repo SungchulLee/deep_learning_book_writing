@@ -1,7 +1,7 @@
 # TCAV: 개념 살아남 벡터로 따지기
 ## 들머리
 
-**CAV으로 따지기(TCAV)**는 개념 살아남 벡터를 넓혀, 어떤 개념이 모형의 미루어 봄에 얼마나 중요한지를 수와 통계로 따진다. CAV이 살아남 밭에서 개념의 쪽을 세우는 데 견주어, TCAV은 **어떤 갈래의 들임 가운데 몇 몫이 그 개념에 양수로 흔들리는지**를 잰다.
+**CAV로 따지기(TCAV)**는 개념 살아남 벡터를 넓혀, 어떤 개념이 모형의 미루어 봄에 얼마나 중요한지를 수와 통계로 따진다. CAV가 살아남 밭에서 개념의 쪽을 세우는 데 견주어, TCAV은 **어떤 갈래의 들임 가운데 몇 몫이 그 개념에 양수로 흔들리는지**를 잰다.
 
 ## 수학 밑바탕
 
@@ -19,9 +19,9 @@ TCAV 점수가 0.8이면 갈래 $c$ 들임의 80%이 개념 $k$에 양수로 흔
 
 ### 통계로 따지기
 
-뜻있음을 따지려고 TCAV은 아무렇게나 만든 CAV을 영 가설로 쓴다.
+뜻있음을 따지려고 TCAV은 아무렇게나 만든 CAV를 영 가설로 쓴다.
 
-1. 아무 개념(아무렇게나 고른 그림 모둠)으로 CAV을 여럿 익힌다
+1. 아무 개념(아무렇게나 고른 그림 모둠)으로 CAV를 여럿 익힌다
 2. 아무 CAV마다 TCAV 점수를 셈한다
 3. 참 개념의 TCAV 점수가 아무 것과 뜻있게 다른지 따진다
 
@@ -81,14 +81,14 @@ class TCAV:
             target_class: 따질 갈래
             alpha: 뜻있음 문턱
         """
-        # 개념 CAV을 익힌다
+        # 개념 CAV를 익힌다
         random_neg = random_example_sets[0]
         concept_cav = self.cav_module.train_cav(concept_examples, random_neg)
         concept_score = self.compute_tcav_score(
             class_inputs, concept_cav, target_class
         )
 
-        # 영 가설에 쓸 아무 CAV을 익힌다
+        # 영 가설에 쓸 아무 CAV를 익힌다
         random_scores = []
         for i in range(0, len(random_example_sets) - 1, 2):
             random_cav = self.cav_module.train_cav(

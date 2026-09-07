@@ -69,7 +69,7 @@ import torch.nn as nn
 if __name__ == "__main__":
     model = nn.Linear(10, 1)
 
-    # nesterov=True으로 두어 네스테로프 모멘텀 켜기
+    # nesterov=True로 두어 네스테로프 모멘텀 켜기
     optimizer = torch.optim.SGD(
         model.parameters(),
         lr=0.01,

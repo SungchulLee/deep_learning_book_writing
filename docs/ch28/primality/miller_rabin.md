@@ -28,7 +28,7 @@ import random
 
 # === 밀러-라빈 살피기 ===
 def miller_rabin(n: int, k: int = 20) -> bool:
-    """n이 아마 소수이면 True을, 반드시 합성수이면 False을 돌려준다."""
+    """n이 아마 소수이면 True를, 반드시 합성수이면 False을 돌려준다."""
     if n < 2:
         return False
     if n in (2, 3):

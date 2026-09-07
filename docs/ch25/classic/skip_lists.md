@@ -138,7 +138,7 @@ class SkipList:
     def delete(self, key):
         """건너뛰기 목록에서 열쇠를 지운다.
 
-        열쇠를 찾아 지웠으면 True을 돌려준다.
+        열쇠를 찾아 지웠으면 True를 돌려준다.
         """
         update = [None] * (self.max_level + 1)
         current = self.header

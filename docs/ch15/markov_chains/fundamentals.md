@@ -152,7 +152,7 @@ from typing import List, Optional, Union, Dict, Tuple
 
 class MarkovChain:
     """
-    PyTorch으로 구현한 띄엄띄엄한 시간 마르코프 사슬.
+    PyTorch로 구현한 띄엄띄엄한 시간 마르코프 사슬.
 
     마르코프 성질은 다음을 말한다:
     P(X_{n+1} = j | X_n = i, X_{n-1}, ..., X_0) = P(X_{n+1} = j | X_n = i)
@@ -528,7 +528,7 @@ def plot_distribution_evolution(
 
 ## 이것이 MCMC에 왜 중요한가
 
-여기서 세운 옮김 행렬 얼개가 MCMC을 곧바로 가능하게 한다:
+여기서 세운 옮김 행렬 얼개가 MCMC를 곧바로 가능하게 한다:
 
 | 마르코프 사슬 개념 | MCMC에서의 쓰임 |
 |---------------------|------------------|

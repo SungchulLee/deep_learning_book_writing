@@ -9,13 +9,13 @@
 52단원: 프레셰 인셉션 거리(FID)
 ==========================================
 
-가장 널리 쓰이는 잣대 가운데 하나인 FID을 두루 갖추어 짠다
+가장 널리 쓰이는 잣대 가운데 하나인 FID를 두루 갖추어 짠다
 만들어 내는 모델을 따지는 데 쓴다.
 
 학습 목표:
 -------------------
 1. FID의 수학 바탕을 이해한다
-2. FID을 바닥부터 짠다
+2. FID를 바닥부터 짠다
 3. 특징 뽑기에 미리 익힌 InceptionV3을 쓴다
 4. FID 점수를 제대로 풀이한다
 
@@ -48,7 +48,7 @@ class FIDCalculator:
     
     수학적 바탕:
     -----------------------
-    FID은 여러 변수 정규 분포 둘 사이의 거리를 잰다.
+    FID는 여러 변수 정규 분포 둘 사이의 거리를 잰다.
     
     참 분포: X_real ~ N(μ_r, Σ_r)
     만들어 낸 분포: X_gen ~ N(μ_g, Σ_g)
@@ -61,7 +61,7 @@ class FIDCalculator:
        정규 분포의 가장 좋은 나르기 거리
     2. 정규 분포에는 닫힌 꼴 풀이가 있다
     3. 평균과 함께 흩어짐의 차이에 모두 민감하다
-    4. FID이 낮을수록 두 분포가 더 닮았다
+    4. FID가 낮을수록 두 분포가 더 닮았다
     
     왜 인셉션 특징인가?
     ----------------------
@@ -185,7 +185,7 @@ class FIDCalculator:
     def calculate_fid(real_features: np.ndarray,
                      generated_features: np.ndarray) -> float:
         """
-        실제 특징과 만든 특징으로 FID을 셈한다.
+        실제 특징과 만든 특징으로 FID를 셈한다.
         
         온전한 물길:
         -----------------
@@ -205,7 +205,7 @@ class FIDCalculator:
         --------------------
         - 가장 적어도: 표본 2048개(= 특징 차원)
         - 권함: 안정된 어림을 위해 표본 10,000개 이상
-        - 표본이 많을수록 FID이 미덥다
+        - 표본이 많을수록 FID가 미덥다
         """
         print(f"Computing FID with {len(real_features)} real and "
               f"{len(generated_features)} generated samples...")
@@ -287,7 +287,7 @@ def demonstrate_fid_computation():
     print("Fréchet Inception Distance (FID) Demonstration")
     print("=" * 70)
     
-    # 상황 1: 똑같은 분포(FID이 ~0이어야 한다)
+    # 상황 1: 똑같은 분포(FID가 ~0이어야 한다)
     print("\nScenario 1: Identical Distributions")
     print("-" * 70)
     
@@ -375,7 +375,7 @@ def demonstrate_fid_with_features():
     # 실제 분포: N(0, I)
     real_features = np.random.randn(n_samples, feature_dim)
     
-    # 만든 분포 1: 똑같다(FID이 낮아야 한다)
+    # 만든 분포 1: 똑같다(FID가 낮아야 한다)
     gen1_features = np.random.randn(n_samples, feature_dim)
     
     # 만든 분포 2: 평균이 옮겨졌다
@@ -384,7 +384,7 @@ def demonstrate_fid_with_features():
     # 만든 분포 3: 흩어짐이 줄었다(봉우리 무너짐 표시)
     gen3_features = np.random.randn(n_samples, feature_dim) * 0.5
     
-    # FID을 셈한다
+    # FID를 셈한다
     print("\n" + "-" * 70)
     print("FID Comparison:")
     print("-" * 70)
@@ -426,7 +426,7 @@ def main():
     1. FID 뜻매김:
        - 실제 분포와 만든 분포 사이의 거리를 잰다
        - 특징 공간에서 정규 분포를 가정한다
-       - FID이 낮을수록 만들어 내는 품질이 좋다
+       - FID가 낮을수록 만들어 내는 품질이 좋다
     
     2. 수학의 몫:
        - 평균 차이: ||μ_r - μ_g||²

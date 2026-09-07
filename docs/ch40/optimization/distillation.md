@@ -159,7 +159,7 @@ $$\frac{\partial \mathcal{L}_{\text{soft}}}{\partial z_i^s} = \frac{1}{T}\left(p
 
 온도가 높으면 이 기울기는 제자가 가장 큰 값만이 아니라 스승의 온 날임 분포를 맞추도록 이끈다. 잃음의 $T^2$ 잣대는 온도를 어떻게 고르든 기울기의 크기가 알맞게 남도록 한다.
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ### 밑바탕 앎 옮기기
 

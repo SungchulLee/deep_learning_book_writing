@@ -39,7 +39,7 @@
 신경 그물의 아리송함을 재는 이치에 닿는 베이즈 길.
 
 - 베이즈 신경 그물 밑바탕 -- 짐에 낌새 분포를 얹어 이치에 닿게 아리송함 어림하기
-- [변이 베이즈 신경 그물](bayesian_methods/variational_bnn.md) -- ELBO을 가장 크게 해 크게 커지는 어림 뒷분포 미루어 봄
+- [변이 베이즈 신경 그물](bayesian_methods/variational_bnn.md) -- ELBO를 가장 크게 해 크게 커지는 어림 뒷분포 미루어 봄
 - [베이즈 신경 그물의 MCMC 방법](bayesian_methods/mcmc_bnn.md) -- 으뜸 잣대가 되는 해밀턴 몬테카를로와 확률 기울기 갈래
 - [라플라스 어림](bayesian_methods/laplace.md) -- 다시 익히지 않고 익힌 짐 언저리를 가우스로 어림해 아리송함 얻기
 - [SWAG](bayesian_methods/swag.md) -- SGD 자취의 셈속으로 뒷분포를 맞추는 확률 짐 고르기 가우스

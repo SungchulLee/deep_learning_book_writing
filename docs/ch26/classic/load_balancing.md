@@ -157,7 +157,7 @@ if __name__ == "__main__":
 | 가장 긴 일 먼저 | $4/3 - 1/(3m)$ | $O(n \log n)$ |
 | PTAS(호크바움-시모이스) | $1 + \epsilon$ | $O(n \cdot (n/\epsilon)^{O(m)})$ |
 
-$m$이 붙박이면 다항식 시간 어림 얼개가 있지만(Hochbaum과 Shmoys, 1987), $m$이 바뀌면 문제가 강하게 NP-어려움이므로 P = NP이 아니라면 FPTAS은 있을 수 없다.
+$m$이 붙박이면 다항식 시간 어림 얼개가 있지만(Hochbaum과 Shmoys, 1987), $m$이 바뀌면 문제가 강하게 NP-어려움이므로 P = NP가 아니라면 FPTAS은 있을 수 없다.
 
 ## 참고 문헌
 

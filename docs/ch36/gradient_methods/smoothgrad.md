@@ -363,7 +363,7 @@ def smooth_integrated_gradients(
         noise = torch.randn_like(image_tensor) * stdev
         noisy_input = image_tensor + noise
 
-        # 잡음 섞은 들임에 IG을 셈한다
+        # 잡음 섞은 들임에 IG를 셈한다
         ig_attr = compute_integrated_gradients(
             model, noisy_input, target_class, device,
             steps=n_ig_steps

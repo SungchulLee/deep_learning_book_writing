@@ -94,7 +94,7 @@ $$
      - 가장 좋은 맞서는 보기를 좇는다(먹히는 것 가운데 $\|\boldsymbol{\delta}\|_2$이 가장 작은 것)
 3. 가장 좋은 맞서는 보기를 돌려준다
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ```python
 import torch

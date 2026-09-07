@@ -77,7 +77,7 @@ $\ell_1$ 공으로 되비추려면 줄 세우기에 기댄 알고리즘이 있�
 ```python
 def project_l1(v: torch.Tensor, radius: float) -> torch.Tensor:
     """
-    벡터 v을 주어진 반지름의 L1 공으로 되비춘다.
+    벡터 v를 주어진 반지름의 L1 공으로 되비춘다.
     두치 등(2008)의 알고리즘을 쓴다.
     """
     if torch.norm(v, p=1) <= radius:
@@ -139,7 +139,7 @@ $$
 
 이 부등식으로 노름 사이에서 흔듦 예산을 옮길 수 있다. 다만 차수가 높으면 그 옮김이 헐거워진다.
 
-## PyTorch으로 짜기: 하나로 모은 되비추기
+## PyTorch로 짜기: 하나로 모은 되비추기
 
 ```python
 import torch

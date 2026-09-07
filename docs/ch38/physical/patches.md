@@ -41,7 +41,7 @@ $$
 
 바꿈에는 돌림, 크기 바꿈, 밝기 바꿈, 비스듬히 틀기가 든다.
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ```python
 import torch

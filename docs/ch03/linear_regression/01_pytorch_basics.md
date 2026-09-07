@@ -19,7 +19,7 @@ DESCRIPTION:
 다루는 것:
     - 여러 방식으로 텐서 만들기
     - 텐서 셈과 펴 맞추기
-    - autograd으로 하는 자동 미분
+    - autograd로 하는 자동 미분
     - 기울기 셈하기
     - requires_grad 이해하기
 
@@ -30,7 +30,7 @@ PREREQUISITES:
 배움 목표:
     - PyTorch 텐서를 만들고 다룬다
     - 텐서 셈을 이해한다
-    - autograd으로 기울기를 절로 셈한다
+    - autograd로 기울기를 절로 셈한다
     - 셈 그래프를 이해한다
 
 걸리는 때: 15분쯤

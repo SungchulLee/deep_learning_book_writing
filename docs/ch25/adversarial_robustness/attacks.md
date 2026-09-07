@@ -1176,7 +1176,7 @@ def most_confusing_target(model, images, true_labels):
     """모델이 둘째로 자신 있어 하는 갈래를 고른다."""
     with torch.no_grad():
         logits = model(images)
-        # 참 갈래 로짓을 -inf으로 둔다
+        # 참 갈래 로짓을 -inf로 둔다
         logits.scatter_(1, true_labels.view(-1, 1), -float('inf'))
         return logits.argmax(dim=1)
 ```

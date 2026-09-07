@@ -52,7 +52,7 @@ $$
 \mathcal{L}(\theta) = \mathbb{E}_{q_\theta(\omega)}[\log p(\mathcal{D} | \omega)] - \text{KL}(q_\theta(\omega) \| p(\omega))
 $$
 
-$\text{KL} \geq 0$이므로 $\log p(\mathcal{D}) \geq \mathcal{L}(\theta)$이다. ELBO을 가장 크게 하는 일은 참 뒷분포에 대한 KL 갈림을 가장 작게 하는 일과 같다.
+$\text{KL} \geq 0$이므로 $\log p(\mathcal{D}) \geq \mathcal{L}(\theta)$이다. ELBO를 가장 크게 하는 일은 참 뒷분포에 대한 KL 갈림을 가장 작게 하는 일과 같다.
 
 ### ELBO 쪼개기
 
@@ -123,7 +123,7 @@ $$
 \mathcal{L}_{\text{dropout}}(\theta) = \frac{1}{N} \sum_{i=1}^{N} \mathbb{E}_{\mathbf{z}} \left[ \mathcal{L}(f_{\mathbf{z}}(\mathbf{x}_i; \theta), \mathbf{y}_i) \right] + \lambda \sum_{\ell=1}^{L} \|\mathbf{M}_\ell\|_F^2
 $$
 
-을 가장 작게 하는 일은 어떤 앞선 분포를 지닌 ELBO을 가장 크게 하는 일과 같다.
+을 가장 작게 하는 일은 어떤 앞선 분포를 지닌 ELBO를 가장 크게 하는 일과 같다.
 
 **증명 얼거리**:
 
@@ -147,7 +147,7 @@ $$
 
 (정확한 꼴에는 베르누이의 엔트로피가 들지만 $\theta$에 대해서는 붙박이다.)
 
-4. **모으기**: ELBO은 이렇게 된다.
+4. **모으기**: ELBO는 이렇게 된다.
 
 $$
 \mathcal{L}(\theta) = -\frac{1}{2\sigma^2} \mathbb{E}_{q_\theta} \left[ \sum_i \|\mathbf{y}_i - f(\mathbf{x}_i; \omega)\|^2 \right] - \frac{1}{2\sigma_p^2} \sum_\ell \|\mathbf{M}_\ell\|_F^2
@@ -324,7 +324,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
 
 ??? success "익힘 2 풀이"
-    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE이 낮다. $\square$
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
 
 ---
 

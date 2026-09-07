@@ -150,7 +150,7 @@ def selectivity_equality(n_distinct: int) -> float:
         n_distinct: 그 속성의 서로 다른 값의 수.
 
     Returns:
-        A = v을 채우는 행의 어림 비율.
+        A = v를 채우는 행의 어림 비율.
     """
     if n_distinct <= 0:
         return 1.0

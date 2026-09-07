@@ -16,7 +16,7 @@ class Graph:
  
     def addEdge(self, u, v, w):
         """
-        u에서 v으로 무게 w인 방향 변 더하기
+        u에서 v로 무게 w인 방향 변 더하기
         u : 시작 꼭짓점
         v : 끝 꼭짓점
         w : 무게, 음수일 수 있다
@@ -69,14 +69,14 @@ class Graph:
 def main():
     g = Graph(5) # 꼭짓점 수가 5
     
-    g.addEdge(0, 1, 1) # u에서 v으로 무게 w인 변 몇 개 더하기
-    g.addEdge(0, 2, 4) # u에서 v으로 무게 w인 변 몇 개 더하기
-    g.addEdge(1, 2, 3) # u에서 v으로 무게 w인 변 몇 개 더하기
-    g.addEdge(1, 3, 2) # u에서 v으로 무게 w인 변 몇 개 더하기
-    g.addEdge(1, 4, 2) # u에서 v으로 무게 w인 변 몇 개 더하기
-    g.addEdge(3, 2, 5) # u에서 v으로 무게 w인 변 몇 개 더하기
-    g.addEdge(3, 1, 1) # u에서 v으로 무게 w인 변 몇 개 더하기
-    g.addEdge(4, 3, 3) # u에서 v으로 무게 w인 변 몇 개 더하기
+    g.addEdge(0, 1, 1) # u에서 v로 무게 w인 변 몇 개 더하기
+    g.addEdge(0, 2, 4) # u에서 v로 무게 w인 변 몇 개 더하기
+    g.addEdge(1, 2, 3) # u에서 v로 무게 w인 변 몇 개 더하기
+    g.addEdge(1, 3, 2) # u에서 v로 무게 w인 변 몇 개 더하기
+    g.addEdge(1, 4, 2) # u에서 v로 무게 w인 변 몇 개 더하기
+    g.addEdge(3, 2, 5) # u에서 v로 무게 w인 변 몇 개 더하기
+    g.addEdge(3, 1, 1) # u에서 v로 무게 w인 변 몇 개 더하기
+    g.addEdge(4, 3, 3) # u에서 v로 무게 w인 변 몇 개 더하기
 
     g.runDijkstra(0) # src 0으로 데이크스트라 돌리기
     

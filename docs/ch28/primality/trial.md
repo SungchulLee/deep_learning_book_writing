@@ -30,7 +30,7 @@ import math
 
 # === 시험 나눗셈 소수 판정 ===
 def is_prime(n: int) -> bool:
-    """시험 나눗셈으로 n이 소수이면 True을 돌려준다."""
+    """시험 나눗셈으로 n이 소수이면 True를 돌려준다."""
     if n < 2:
         return False
     if n < 4:

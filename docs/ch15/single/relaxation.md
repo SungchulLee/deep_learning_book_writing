@@ -139,7 +139,7 @@ def relax(u, v, weight: float, dist: dict, pred: dict) -> bool:
     u을 지나는 길이 v의 거리 어림값을 낫게 하면
     dist[v]과 pred[v]을 새로 고친다.
 
-    어림값이 나아졌으면 True을, 아니면 False을 돌려준다.
+    어림값이 나아졌으면 True를, 아니면 False을 돌려준다.
     """
     if dist[u] + weight < dist[v]:
         dist[v] = dist[u] + weight

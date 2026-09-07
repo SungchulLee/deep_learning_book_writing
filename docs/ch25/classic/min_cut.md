@@ -115,7 +115,7 @@ def contract(adj, u, v):
     # 제 고리를 없앤다
     adj[u] = [x for x in adj[u] if x != u]
 
-    # v을 없앤다
+    # v를 없앤다
     del adj[v]
 
 

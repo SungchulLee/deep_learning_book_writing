@@ -97,7 +97,7 @@ $$
 
 ## 수학적 틀
 
-### KL 벌어짐에서 ELBO으로
+### KL 벌어짐에서 ELBO로
 
 KL 벌어짐의 정의에서 시작한다:
 
@@ -137,18 +137,18 @@ $$
 \log p(\mathcal{D}) \geq \text{ELBO}(q)
 $$
 
-그래서 이를 **증거 아래 경계(ELBO)**라 부른다. ELBO은 다음과 같이 정한다:
+그래서 이를 **증거 아래 경계(ELBO)**라 부른다. ELBO는 다음과 같이 정한다:
 
 $$
 \text{ELBO}(q) = \mathbb{E}_q[\log p(\mathcal{D}, \theta)] - \mathbb{E}_q[\log q(\theta)]
 $$
 
 !!! success "핵심 통찰"
-    다음이 성립하므로 **ELBO을 가장 크게 하는 것은 KL 벌어짐을 가장 작게 하는 것과 같다**:
+    다음이 성립하므로 **ELBO를 가장 크게 하는 것은 KL 벌어짐을 가장 작게 하는 것과 같다**:
     
     $$\max_q \text{ELBO}(q) \Leftrightarrow \min_q \text{KL}(q \| p)$$
     
-    그리고 결정적으로 **ELBO은 $p(\mathcal{D})$을 모르고도 셈할 수 있다**!
+    그리고 결정적으로 **ELBO는 $p(\mathcal{D})$을 모르고도 셈할 수 있다**!
 
 ## 앞 KL 벌어짐과 뒤 KL 벌어짐
 
@@ -277,7 +277,7 @@ class SimpleVI:
             optimizer.zero_grad()
             
             elbo = self.compute_elbo(data)
-            loss = -elbo  # ELBO의 음수를 가장 작게 = ELBO을 가장 크게
+            loss = -elbo  # ELBO의 음수를 가장 작게 = ELBO를 가장 크게
             
             loss.backward()
             optimizer.step()
@@ -420,7 +420,7 @@ def visualize_vi_results(vi, data, history):
 
 ## 변분 추론과 다른 추론 방법
 
-### MCMC과 견주기
+### MCMC와 견주기
 
 | 살필 점 | 변분 추론 | MCMC |
 |--------|----------------------|------|
@@ -442,7 +442,7 @@ def visualize_vi_results(vi, data, history):
 - 모형에 숨은 변수가 많을 때
 - 복잡한 모형으로 규모를 키워야 할 때
 
-**다음일 때 MCMC을 고르라:**
+**다음일 때 MCMC를 고르라:**
 
 - 불확실함을 정확히 재는 것이 결정적일 때
 - 자료 묶음이 작거나 보통이다
@@ -456,8 +456,8 @@ def visualize_vi_results(vi, data, history):
 1. **규모 키우기**: 큰 자료에 확률 최적화와 함께 쓸 수 있다
 2. **빠르기**: 많은 문제에서 MCMC보다 훨씬 빠르다
 3. **정해짐**: 어림에 표집 잡음이 없다
-4. **모형 견주기**: ELBO이 로그 증거의 아래 경계를 준다
-5. **모임 지켜보기**: ELBO이 또렷한 최적화 과녁을 준다
+4. **모형 견주기**: ELBO가 로그 증거의 아래 경계를 준다
+5. **모임 지켜보기**: ELBO가 또렷한 최적화 과녁을 준다
 
 ### 변분 추론의 한계
 
@@ -483,7 +483,7 @@ $$
 
 - $\log p(\mathcal{D}) = \text{ELBO}(q) + \text{KL}(q \| p)$
 - $\max_q \text{ELBO}(q) \Leftrightarrow \min_q \text{KL}(q \| p)$
-- ELBO은 $p(\mathcal{D})$을 모르고도 셈할 수 있다
+- ELBO는 $p(\mathcal{D})$을 모르고도 셈할 수 있다
 
 ## 참고 문헌
 
@@ -505,7 +505,7 @@ $$
 
 ### 연습 2: 베르누이 모형의 ELBO
 
-다음과 같은 베타-베르누이 모형의 ELBO을 이끌어 내어라:
+다음과 같은 베타-베르누이 모형의 ELBO를 이끌어 내어라:
 
 - 앞확률: $\theta \sim \text{Beta}(\alpha_0, \beta_0)$
 - 가능도: $x_i | \theta \sim \text{Bernoulli}(\theta)$

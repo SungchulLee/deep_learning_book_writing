@@ -75,7 +75,7 @@ $$
 
 지나침 매개변수 $\eta > 0$(흔히 0.02)은 흔듦이 금 위에 딱 걸치지 않고 넘어가도록 한다.
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ```python
 import torch

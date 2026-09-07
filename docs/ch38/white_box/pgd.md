@@ -77,7 +77,7 @@ $$
 | **잣대 잡은 곧게** | $\alpha = 2\varepsilon / T$ | 여느 값(매드리 등) |
 | **세게** | $\alpha = 2.5\varepsilon / T$ | 더 빨리 모인다 |
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ```python
 import torch

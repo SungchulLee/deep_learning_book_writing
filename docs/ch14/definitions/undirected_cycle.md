@@ -141,7 +141,7 @@ def has_cycle_union_find(n, edges):
     합치기-찾기로 고리를 알아낸다.
 
     이미 같은 덩이에 있는 꼭짓점 둘을 잇는 변이 하나라도 있으면
-    True을 되돌린다.
+    True를 되돌린다.
     """
     uf = UnionFind(n)
     for u, v in edges:

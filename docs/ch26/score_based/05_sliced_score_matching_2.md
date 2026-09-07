@@ -41,7 +41,7 @@ def sliced_score_matching_loss(model, x, n_projections=1):
     아무 쏘기로 저민 점수 맞추기 손실을 셈한다.
     
     고갱이 눈썰미는 방향 미분만 있으면 된다는 것이다.
-    v^T∇s_θ(x)v은 야코비-벡터 곱으로 효율 좋게 셈할 수 있다.
+    v^T∇s_θ(x)v는 야코비-벡터 곱으로 효율 좋게 셈할 수 있다.
     
     인수:
         model: 점수 신경망
@@ -66,7 +66,7 @@ def sliced_score_matching_loss(model, x, n_projections=1):
         # v^T s_θ(x)을 셈한다(안쪽 곱)
         score_v = torch.sum(score * v, dim=1, keepdim=True)
         
-        # 자동 미분으로 ∇(v^T s_θ(x)) · v을 셈한다
+        # 자동 미분으로 ∇(v^T s_θ(x)) · v를 셈한다
         # 이는 v^T ∇s_θ(x) v과 같다
         grad_score_v = torch.autograd.grad(
             outputs=score_v,

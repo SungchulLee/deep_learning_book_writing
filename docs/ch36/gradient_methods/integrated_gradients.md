@@ -91,7 +91,7 @@ $$
 
 **맨 기울기가 왜 어기는가**: $x = 2$, $x' = 0$인 $f(x) = \text{ReLU}(x - 1)$을 보자. $x = 0.5$에서 따지면 (문턱 아래이므로) 기울기가 0이지만, $x$은 내놓기에 또렷이 걸린다.
 
-**IG은 왜 채우는가**: 길을 따라 적분하므로 끝점에서 0이더라도 기울기가 0이 *아닌* 자리를 담아낸다.
+**IG는 왜 채우는가**: 길을 따라 적분하므로 끝점에서 0이더라도 기울기가 0이 *아닌* 자리를 담아낸다.
 
 ### 공리 2: 짜기에 흔들리지 않음
 
@@ -355,7 +355,7 @@ class IntegratedGradients:
         """
         잡음에 든든한 쌓은 기울기(기댓값 기울기)를 셈한다.
 
-        잡음 섞은 밑금 여럿에 걸쳐 IG을 고르게 해 더 든든한 몫을 낸다.
+        잡음 섞은 밑금 여럿에 걸쳐 IG를 고르게 해 더 든든한 몫을 낸다.
         이는 SHAP의 기댓값 기울기 세움새와 이어진다.
         """
         attributions = torch.zeros_like(input_tensor)
@@ -478,7 +478,7 @@ def compare_baselines(
     axes[1, 0].axis('off')
 
     for idx, baseline_type in enumerate(baselines):
-        # IG을 셈한다
+        # IG를 셈한다
         attr = compute_integrated_gradients(
             model, image_tensor, target_class, device,
             baseline_type=baseline_type, steps=50
@@ -541,7 +541,7 @@ def verify_completeness(
 
     output_difference = output_input - output_baseline
 
-    # IG을 셈한다(더하려고 통로 축을 남긴다)
+    # IG를 셈한다(더하려고 통로 축을 남긴다)
     ig = IntegratedGradients(model)
     attributions = ig.attribute(image_tensor, baseline, target_class, steps)
 
@@ -810,13 +810,13 @@ def ig_for_time_series(
 
 ### 다른 방법과 아우르기
 
-**IG + SmoothGrad:** 잡음 섞은 들임에 걸쳐 IG을 고르게 해 더 매끄러운 그림을 얻는다
+**IG + SmoothGrad:** 잡음 섞은 들임에 걸쳐 IG를 고르게 해 더 매끄러운 그림을 얻는다
 ```python
 # 매끄럽게 한 쌓은 기울기
 smooth_ig = ig.attribute_with_noise(input_tensor, n_samples=10, noise_level=0.1)
 ```
 
-**IG + Grad-CAM:** 그림점 낱의 잔 무늬에는 IG을, 자리 낱으로 알아보는 데는 Grad-CAM을 쓴다
+**IG + Grad-CAM:** 그림점 낱의 잔 무늬에는 IG를, 자리 낱으로 알아보는 데는 Grad-CAM을 쓴다
 
 ## 한계
 
@@ -852,7 +852,7 @@ $$
 
 ### 4. 그 자리에서 선형이라는 여김
 
-IG은 모형이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 선형이 아닌 자리에서는 얄궂은 몫이 나올 수 있다.
+IG는 모형이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 선형이 아닌 자리에서는 얄궂은 몫이 나올 수 있다.
 
 ## 참으로 쓸 때 이르는 말
 
@@ -862,7 +862,7 @@ IG은 모형이 자리마다 거의 선형일 때 가장 잘 듣는다. 몹시 �
 
 3. 셈이 맞는지 보려면 **온전함을 살핀다**(어긋남 5% 아래)
 
-4. 서로 채워 주는 눈으로 **Grad-CAM과 견준다**(IG은 그림점 낱, Grad-CAM은 자리 낱)
+4. 서로 채워 주는 눈으로 **Grad-CAM과 견준다**(IG는 그림점 낱, Grad-CAM은 자리 낱)
 
 5. 그림이 크거나 풀이를 많이 해야 하면 **묶음 셈을 헤아린다**
 

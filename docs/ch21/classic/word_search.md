@@ -41,7 +41,7 @@
 # === 낱말 찾기 ===
 
 def word_search(board: list[list[str]], word: str) -> bool:
-    """격자에 낱말이 있으면 True을 돌려준다.
+    """격자에 낱말이 있으면 True를 돌려준다.
 
     인수:
         board: 글자 m x n 격자.

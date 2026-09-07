@@ -585,7 +585,7 @@ $$
 
 ### 경계를 팽팽하게 만들기
 
-E 걸음은 결정적인 일을 한다. 곧 지금의 매개변수 값 $\theta^{(t)}$에서 ELBO을 **팽팽하게** 만든다.
+E 걸음은 결정적인 일을 한다. 곧 지금의 매개변수 값 $\theta^{(t)}$에서 ELBO를 **팽팽하게** 만든다.
 
 근본 쪼갬을 떠올리자:
 
@@ -605,13 +605,13 @@ $$
 \mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \ell(\theta^{(t)})
 $$
 
-**$\theta^{(t)}$에서 ELBO이 로그 가능도와 같아진다**. 곧 경계가 팽팽하다.
+**$\theta^{(t)}$에서 ELBO가 로그 가능도와 같아진다**. 곧 경계가 팽팽하다.
 
 ### 팽팽함이 왜 중요한가
 
 지금 점에서 경계를 팽팽하게 하면 다음이 보장된다:
 
-1. ELBO이 나아지면 로그 가능도도 나아진다
+1. ELBO가 나아지면 로그 가능도도 나아진다
 2. 경계가 헐거워서 어설픈 점에 갇히는 일이 없다
 3. M 걸음 최적화의 또렷한 출발점을 얻는다
 
@@ -621,7 +621,7 @@ $$
 
 ### Q 함수
 
-M 걸음은 $q$을 $q^{(t+1)}$으로 붙박아 둔 채 $\theta$에 대해 ELBO을 가장 크게 한다. $q^{(t+1)} = p(\mathbf{Z} | \mathbf{X}, \theta^{(t)})$이므로 ELBO은 다음이 된다:
+M 걸음은 $q$을 $q^{(t+1)}$으로 붙박아 둔 채 $\theta$에 대해 ELBO를 가장 크게 한다. $q^{(t+1)} = p(\mathbf{Z} | \mathbf{X}, \theta^{(t)})$이므로 ELBO는 다음이 된다:
 
 $$
 \mathcal{L}(q^{(t+1)}, \theta) = \mathbb{E}_{p(\mathbf{Z} | \mathbf{X}, \theta^{(t)})}[\log p(\mathbf{X}, \mathbf{Z} | \theta)] + H[q^{(t+1)}]
@@ -723,13 +723,13 @@ $$
 \ell(\theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \ell(\theta^{(t)})
 $$
 
-**걸음 1 — ELBO은 아래 경계이다**:
+**걸음 1 — ELBO는 아래 경계이다**:
 
 $$
 \ell(\theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)})
 $$
 
-ELBO이 아무 $q$과 아무 $\theta$에 대해서도 **늘** 로그 가능도의 아래 경계이므로 이것이 성립한다:
+ELBO가 아무 $q$과 아무 $\theta$에 대해서도 **늘** 로그 가능도의 아래 경계이므로 이것이 성립한다:
 
 $$
 \ell(\theta) = \mathcal{L}(q, \theta) + D_{\mathrm{KL}}(q \| p(\mathbf{Z}|\mathbf{X}, \theta)) \geq \mathcal{L}(q, \theta)
@@ -737,7 +737,7 @@ $$
 
 $D_{\mathrm{KL}} \geq 0$이기 때문이다.
 
-**걸음 2 — M 걸음이 ELBO을 낫게 한다**:
+**걸음 2 — M 걸음이 ELBO를 낫게 한다**:
 
 $$
 \mathcal{L}(q^{(t+1)}, \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t)})
@@ -832,13 +832,13 @@ $$
 
 ### 좌표 오르기가 왜 되나
 
-걸음마다 ELBO이 커지거나 그대로이다:
+걸음마다 ELBO가 커지거나 그대로이다:
 
 $$
 \mathcal{L}(q^{(t)}, \theta^{(t)}) \leq \mathcal{L}(q^{(t+1)}, \theta^{(t)}) \leq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)})
 $$
 
-ELBO이 로그 가능도를 아래에서 받치고 E 걸음이 경계를 팽팽하게 하므로 ELBO이 나아지면 $\ell(\theta)$도 나아진다.
+ELBO가 로그 가능도를 아래에서 받치고 E 걸음이 경계를 팽팽하게 하므로 ELBO가 나아지면 $\ell(\theta)$도 나아진다.
 
 ### E 걸음의 범함수 최적화
 
@@ -895,7 +895,7 @@ $$
 
    $$q^{(t+1)}(\mathbf{Z}) = p(\mathbf{Z} | \mathbf{X}, \theta^{(t)})$$
 
-2. 이러면 $\theta^{(t)}$에서 ELBO이 팽팽해진다:
+2. 이러면 $\theta^{(t)}$에서 ELBO가 팽팽해진다:
 
    $$\mathcal{L}(q^{(t+1)}, \theta^{(t)}) = \ell(\theta^{(t)})$$
 

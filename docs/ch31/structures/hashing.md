@@ -135,7 +135,7 @@ class ExtendibleHashTable:
         return self._hash(key) & ((1 << self.global_depth) - 1)
 
     def lookup(self, key: int) -> bool:
-        """열쇠를 찾는다. 찾으면 True을 돌려준다."""
+        """열쇠를 찾는다. 찾으면 True를 돌려준다."""
         idx = self._dir_index(key)
         self.io_count += 1  # 통 읽기 = 들고남 1번
         return key in self.directory[idx]

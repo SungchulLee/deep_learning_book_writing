@@ -58,7 +58,7 @@ def compute_log_likelihood(data: torch.Tensor, mu: torch.Tensor, sigma: torch.Te
 
 
 def analytical_mle(data: torch.Tensor):
-    """MLE을 해석적으로 계산한다"""
+    """MLE를 해석적으로 계산한다"""
     mu_mle = torch.mean(data)
     sigma_mle = torch.std(data, unbiased=False)  # MLE uses biased estimator
     return mu_mle.item(), sigma_mle.item()

@@ -236,7 +236,7 @@ print("""
    - torch.tensor(), torch.zeros(), torch.randn() 따위로 만든다
 
 2. 자동 미분(autograd)
-   - 셈을 좇으려면 requires_grad=True을 둔다
+   - 셈을 좇으려면 requires_grad=True를 둔다
    - .backward()을 불러 모든 기울기를 셈한다
    - 기울기는 .grad 속성에 담긴다
 

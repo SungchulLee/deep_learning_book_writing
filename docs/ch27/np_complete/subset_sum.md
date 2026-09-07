@@ -59,7 +59,7 @@ Space: O(t)
 
 # === 부분 모임 합 짜 넣기 ===
 def subset_sum(nums: list[int], target: int) -> bool:
-    """nums의 어떤 부분 모임의 합이 target이면 True을 돌려준다."""
+    """nums의 어떤 부분 모임의 합이 target이면 True를 돌려준다."""
     dp = [False] * (target + 1)
     dp[0] = True
     for num in nums:

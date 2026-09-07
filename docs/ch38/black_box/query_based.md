@@ -41,7 +41,7 @@ $$
 
 여기서 $\mathbf{u}_i \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$은 아무 가우스 방향이다. 들임 차수와 상관없이 물음이 $n$번(흔히 $n = 50\text{-}200$)이면 된다.
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ```python
 import torch

@@ -102,7 +102,7 @@ $$
 
 ### 밑바탕
 
-MCMC은 머문 분포가 뒷분포가 되는 마르코프 사슬을 짓는다.
+MCMC는 머문 분포가 뒷분포가 되는 마르코프 사슬을 짓는다.
 
 $$
 \theta^{(t+1)} \sim T(\theta^{(t+1)} \mid \theta^{(t)})
@@ -133,7 +133,7 @@ $$
 
 ### 해밀턴 몬테카를로(HMC)
 
-HMC은 기울기 소식을 써서 앎에 바탕한 내놓기를 한다.
+HMC는 기울기 소식을 써서 앎에 바탕한 내놓기를 한다.
 
 **덧댄 얼개**: 밀어 나감 $\rho$을 들여 해밀턴 값을 매긴다.
 
@@ -177,7 +177,7 @@ $$
 
 ### 왜 하는가
 
-온 묶음 기울기는 비싸다. 확률 기울기 MCMC은 잔 묶음 기울기를 쓴다.
+온 묶음 기울기는 비싸다. 확률 기울기 MCMC는 잔 묶음 기울기를 쓴다.
 
 $$
 \nabla_\theta \log p(\theta \mid \mathcal{D}) \approx \nabla_\theta \log p(\theta) + \frac{N}{|B|} \sum_{i \in B} \nabla_\theta \log p(y_i \mid x_i, \theta)
@@ -371,7 +371,7 @@ $$
 \log p(\mathcal{D}) = \mathcal{L}(\phi) + \text{KL}(q_\phi \| p(\theta \mid \mathcal{D})) \geq \mathcal{L}(\phi)
 $$
 
-ELBO을 가장 크게 하는 일은 뒷분포에 대한 KL을 가장 작게 하는 일과 같다.
+ELBO를 가장 크게 하는 일은 뒷분포에 대한 KL을 가장 작게 하는 일과 같다.
 
 ### 평균 마당 변이 미루어 봄
 
@@ -530,7 +530,7 @@ $$
 
 ### 미루어 봄 방법 고르기
 
-**SGLD을 쓸 때**:
+**SGLD를 쓸 때**:
 
 - 이론에 뿌리내린 표본이 있어야 할 때
 - 오래 익힐 수 있을 때
@@ -1147,7 +1147,7 @@ class MeanFieldVI(BayesianInference):
         N: int
     ) -> Tuple[float, np.ndarray, np.ndarray]:
         """
-        ELBO과 기울기를 셈한다.
+        ELBO와 기울기를 셈한다.
         
         Returns
         -------
@@ -1228,7 +1228,7 @@ class MeanFieldVI(BayesianInference):
         self.elbo_history = []
         
         for t in range(self.n_iterations):
-            # ELBO과 기울기를 셈한다
+            # ELBO와 기울기를 셈한다
             elbo, grad_mu, grad_log_sigma = self._elbo(X, y, N)
             
             # 고친다
@@ -1539,7 +1539,7 @@ def demo_sgld():
     
     network = SimpleNN([1, 10, 1], activation='tanh')
     
-    print(f"\n매개변수 {network.n_params()}개로 SGLD을 돌리는 중...")
+    print(f"\n매개변수 {network.n_params()}개로 SGLD를 돌리는 중...")
     
     sgld = SGLD(
         network,
@@ -1706,7 +1706,7 @@ ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서
 이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
 
 ??? success "익힘 2 풀이"
-    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE이 낮다. $\square$
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE가 낮다. $\square$
 
 ---
 

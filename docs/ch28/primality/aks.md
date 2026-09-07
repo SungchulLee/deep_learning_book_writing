@@ -153,7 +153,7 @@ def poly_pow_mod(base: list[int], exp: int, r: int, n: int) -> list[int]:
 
 # === AKS 시험 ===
 def aks(n: int) -> bool:
-    """n이 소수이면 True을 돌려준다(AKS 알고리즘)."""
+    """n이 소수이면 True를 돌려준다(AKS 알고리즘)."""
     if n <= 1:
         return False
     if n <= 3:
@@ -222,7 +222,7 @@ if __name__ == "__main__":
 
 AKS 결과는 소수 시험의 복잡도를 매듭지었다:
 
-- **AKS 이전:** PRIMES은 (밀러-라빈으로) 여 NP과 BPP에 든다고 알려졌지만
+- **AKS 이전:** PRIMES은 (밀러-라빈으로) 여 NP와 BPP에 든다고 알려졌지만
   P에 든다고는 알려지지 않았다.
 - **AKS 이후(2002):** 조건 없이 PRIMES $\in$ P이다.
 

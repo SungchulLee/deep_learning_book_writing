@@ -325,7 +325,7 @@ print("KEY TAKEAWAYS")
 print("="*80)
 print("""
 1. 자동 미분은 손수 하는 기울기 셈을 없앤다
-   - 매개변수에 requires_grad=True을 둔다
+   - 매개변수에 requires_grad=True를 둔다
    - 셈을 거쳐 셈 그래프를 세운다
    - .backward()을 불러 모든 기울기를 셈한다
 
@@ -339,7 +339,7 @@ print("""
    - 기억 자리와 셈을 아낀다
 
 4. 잎 텐서가 기울기를 담는다
-   - requires_grad=True으로 만든 텐서만 그렇다
+   - requires_grad=True로 만든 텐서만 그렇다
    - 가운데 텐서는 기본으로 기울기를 담지 않는다
 
 5. 셈 그래프는 그때그때 세워진다

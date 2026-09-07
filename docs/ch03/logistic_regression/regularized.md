@@ -730,7 +730,7 @@ $\lambda > 0$일 때 정칙화된 헤세 행렬 $\mathbf{H}_{\text{ridge}} = \ma
 ---
 
 **연습문제 3.**
-완전히 분리 가능한 데이터에서도 L2 정칙화된 로지스틱 회귀에는 언제나 유한한 MLE이 존재함을 증명하라.
+완전히 분리 가능한 데이터에서도 L2 정칙화된 로지스틱 회귀에는 언제나 유한한 MLE가 존재함을 증명하라.
 
 ??? success "연습문제 3 풀이"
     정칙화된 목적 함수는 $\mathcal{L}(\boldsymbol{\beta}) = -\ell(\boldsymbol{\beta}) + \frac{\lambda}{2}\|\boldsymbol{\beta}\|^2$이다.

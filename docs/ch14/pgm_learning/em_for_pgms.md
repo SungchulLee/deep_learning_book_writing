@@ -53,7 +53,7 @@ EM은 로그 가능도(변분 EM에서는 ELBO)가 한결같이 커짐을 보장
 숨은 변수를 가진 그래프 모형의 EM 알고리즘에서 E-걸음이 왜 숨은 변수의 뒤확률 분포에 대해 기댓값을 셈하는지 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    EM 알고리즘은 ELBO $\mathcal{L}(q, \theta) = \mathbb{E}_q[\log p(\mathbf{X}, \mathbf{Z} \mid \theta)] + H[q]$을 최대로 만든다. E-걸음에서 $q(\mathbf{Z}) = p(\mathbf{Z} \mid \mathbf{X}, \theta^{(t)})$으로 두면 ELBO이 빈틈없어진다(틈 = 0). 그러면 기대 완전 자료 로그 가능도 $\mathbb{E}_{p(Z|X,\theta^{(t)})}[\log p(X, Z \mid \theta)]$이 M-걸음에서 최대로 만드는 양이 된다. 뒤확률을 쓰면 숨은 변수의 모든 있을 수 있는 꼴을 저마다의 확률로 무게 주어 헤아리게 된다.
+    EM 알고리즘은 ELBO $\mathcal{L}(q, \theta) = \mathbb{E}_q[\log p(\mathbf{X}, \mathbf{Z} \mid \theta)] + H[q]$을 최대로 만든다. E-걸음에서 $q(\mathbf{Z}) = p(\mathbf{Z} \mid \mathbf{X}, \theta^{(t)})$으로 두면 ELBO가 빈틈없어진다(틈 = 0). 그러면 기대 완전 자료 로그 가능도 $\mathbb{E}_{p(Z|X,\theta^{(t)})}[\log p(X, Z \mid \theta)]$이 M-걸음에서 최대로 만드는 양이 된다. 뒤확률을 쓰면 숨은 변수의 모든 있을 수 있는 꼴을 저마다의 확률로 무게 주어 헤아리게 된다.
 
 ---
 

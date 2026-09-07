@@ -61,7 +61,7 @@ $$
 \underline{z}_y > \max_{k \neq y} \overline{z}_k \implies \text{certified robust}
 $$
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ```python
 import torch
@@ -172,7 +172,7 @@ def certify_ibp(
     # 밝혀짐: 모든 k ≠ y에 대해 lower_bound[y] > upper_bound[k]
     true_lb = lb.gather(1, y.view(-1, 1))  # 참 갈래의 아래끝
     
-    # 견주려고 참 갈래의 위끝을 -inf으로 둔다
+    # 견주려고 참 갈래의 위끝을 -inf로 둔다
     ub_others = ub.clone()
     ub_others.scatter_(1, y.view(-1, 1), float('-inf'))
     max_other_ub = ub_others.max(dim=1)[0]

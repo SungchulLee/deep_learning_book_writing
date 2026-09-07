@@ -7,7 +7,7 @@
 
 - [바탕](markov_chains/fundamentals.md) — 핵심 정의, 마르코프 성질, 옮김 행렬, 여러 걸음 동역학
 - [멈춘 분포](markov_chains/stationary.md) — 긴 눈으로 본 평형 분포와, 마르코프 사슬 이론을 MCMC에 잇는 그 중심 몫
-- [에르고드성](markov_chains/ergodicity.md) — 상태 갈래 나누기, 쪼갤 수 없음, 주기 없음, 되돌아옴, 그리고 MCMC이 맞음을 보장하는 모임
+- [에르고드성](markov_chains/ergodicity.md) — 상태 갈래 나누기, 쪼갤 수 없음, 주기 없음, 되돌아옴, 그리고 MCMC가 맞음을 보장하는 모임
 - [숨은 마르코프 모형](markov_chains/hmm.md) — 관측 모형을 갖춘 숨은 마르코프 사슬로, 사슬 이론과 통계 추론을 잇는다
 
 ## 몬테카를로 방법
@@ -35,7 +35,7 @@
 - [바탕](mcmc/simulated_annealing/fundamentals.md) — 볼츠만 분포를 써서 온 세상 최적화를 하는 멈추지 않는 메트로폴리스-헤이스팅스
 - [온도 일정](mcmc/simulated_annealing/schedules.md) — 살펴보기와 써먹기의 주고받음을 다스리는 식힘 일정 짜기
 - [하나로 꿰는 개념으로서의 온도](mcmc/simulated_annealing/temperature_unifying.md) — MCMC의 온도와 소프트맥스, 퍼짐 모형, 강화 학습 사이의 이음
-- [멈추지 않는 MCMC으로 본 SA](mcmc/simulated_annealing/sa_as_mcmc.md) — 과녁 분포가 바뀌는, 시간에 따라 달라지는 메트로폴리스-헤이스팅스로 흉내 담금질 이해하기
+- [멈추지 않는 MCMC로 본 SA](mcmc/simulated_annealing/sa_as_mcmc.md) — 과녁 분포가 바뀌는, 시간에 따라 달라지는 메트로폴리스-헤이스팅스로 흉내 담금질 이해하기
 - [모임 이론](mcmc/simulated_annealing/convergence.md) — SA이 언제 왜 온 세상 최적점을 찾는지의 수학 이론, 에너지 벽, 그리고 실전에서의 뜻
 - [EM을 위한 정해진 담금질](mcmc/simulated_annealing/annealed_em.md) — 가능도 최적화에서 국소 최적점을 벗어나려고 EM 알고리즘에 온도 쓰기
 
@@ -45,7 +45,7 @@
 - [해밀턴 동역학](mcmc/hmc/hamiltonian_dynamics.md) — 라그랑주 역학에서 해밀턴 역학까지의 물리 바탕, 심플렉틱 짜임, 보존 법칙
 - [위상 공간](mcmc/hmc/phase_space.md) — 정해진 동역학을 가능하게 하는, 자리와 운동량 변수의 넓힌 상태 공간
 - [HMC 알고리즘](mcmc/hmc/algorithm.md) — 운동량 덧붙이기, 개구리뜀 적분, 메트로폴리스 바로잡기를 갖춘 온전한 알고리즘
-- [개구리뜀 적분기](mcmc/hmc/leapfrog_integrator.md) — HMC을 위해 부피와 시간 뒤집힘을 지키는 심플렉틱 수치 적분기
+- [개구리뜀 적분기](mcmc/hmc/leapfrog_integrator.md) — HMC를 위해 부피와 시간 뒤집힘을 지키는 심플렉틱 수치 적분기
 - [질량 행렬](mcmc/hmc/mass_matrix.md) — 운동량이 속도로 어떻게 옮겨지는지 맞추기, 기하로 풀이하기와 어림 전략과 함께
 - [기하로 풀이하기](mcmc/hmc/geometric_interpretation.md) — 미분 기하, 정보 기하, 물리적 직관으로 HMC 이해하기
 
@@ -65,7 +65,7 @@
 
 ## MCMC 방법의 견줌
 
-- [훑어보기](mcmc_comparison/overview.md) — MH, 깁스, 랑주뱅, HMC을 두루 견주고 실전에서 방법 고르는 길잡이
+- [훑어보기](mcmc_comparison/overview.md) — MH, 깁스, 랑주뱅, HMC를 두루 견주고 실전에서 방법 고르는 길잡이
 - [이론으로 견주기](mcmc_comparison/theoretical.md) — 모임 속도, 스펙트럼 분석, 가장 좋은 눈금 잡기 이론을 아우르는 엄밀한 견줌
 - [차원에 따른 눈금](mcmc_comparison/scaling.md) — 차원이 커질 때 MCMC 방법마다 어떻게 굴러가는지와 효율을 지키는 전략
 - [실전에서 방법 고르기](mcmc_comparison/method_selection.md) — 미분 가능함, 차원, 얽힘 짜임, 셈 예산에 기댄 결정 얼개

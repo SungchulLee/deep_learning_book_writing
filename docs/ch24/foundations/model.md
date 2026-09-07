@@ -64,7 +64,7 @@ class CharRNN(nn.Module):
         self.embedding = nn.Embedding(vocab_size, embedding_dim)
         
         # 긴 짧은 기억: 박아 넣기의 차례를 다룬다
-        # batch_first=True은 들임 꼴이 [묶음, 차례, 특징]이라는 뜻이다
+        # batch_first=True는 들임 꼴이 [묶음, 차례, 특징]이라는 뜻이다
         self.lstm = nn.LSTM(
             embedding_dim, 
             hidden_dim, 

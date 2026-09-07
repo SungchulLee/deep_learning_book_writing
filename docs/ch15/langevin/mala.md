@@ -93,7 +93,7 @@ class MALA:
         self.step_size = step_size
     
     def _grad_log_prob(self, theta):
-        """autograd으로 ∇log π̃(θ) 셈하기."""
+        """autograd로 ∇log π̃(θ) 셈하기."""
         theta = theta.detach().requires_grad_(True)
         lp = self.log_prob(theta)
         lp.backward()

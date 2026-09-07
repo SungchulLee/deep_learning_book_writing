@@ -23,7 +23,7 @@ $$\mathbf{x}^* = \arg\max_{\mathbf{x}} \text{Var}[p(y|\mathbf{x}, \mathcal{D})]$
 
 $$\mathbf{x}^* = \arg\max_{\mathbf{x}} I(y; \mathbf{w}|\mathbf{x}, \mathcal{D}) = H(y|\mathbf{x}) - \mathbb{E}_{\mathbf{w}}[H(y|\mathbf{x}, \mathbf{w})]$$
 
-### PyTorch으로 짜기
+### PyTorch로 짜기
 
 ```python
 import torch

@@ -21,7 +21,7 @@
 
 ## 기울기의 어려움
 
-ELBO을 가장 크게 하고자 한다:
+ELBO를 가장 크게 하고자 한다:
 
 $$
 \text{ELBO}(q_\phi) = \mathbb{E}_{q_\phi(\theta)}[\log p(\mathcal{D}, \theta) - \log q_\phi(\theta)]

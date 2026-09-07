@@ -1,18 +1,18 @@
 # 최대가능도 추정
 ## 들어가며
 
-최대가능도 추정(MLE)은 통계학과 기계 학습에서 매개변수를 추정하는 가장 기본적인 방법 중 하나이다. 통계 모델과 관측 데이터가 주어졌을 때, MLE은 우리가 실제로 관측한 데이터가 나올 확률을 최대로 만드는 매개변수 값을 찾는다.
+최대가능도 추정(MLE)은 통계학과 기계 학습에서 매개변수를 추정하는 가장 기본적인 방법 중 하나이다. 통계 모델과 관측 데이터가 주어졌을 때, MLE는 우리가 실제로 관측한 데이터가 나올 확률을 최대로 만드는 매개변수 값을 찾는다.
 
-!!! note "딥러닝에서 MLE이 중요한 이유"
-    딥러닝의 거의 모든 손실 함수를 MLE의 원리에서 유도할 수 있으므로 MLE을 이해하는 것이 필수적이다. 교차 엔트로피 손실, 평균제곱오차를 비롯한 여러 목적 함수는 서로 다른 확률적 가정 아래의 음의 로그가능도일 뿐이다.
+!!! note "딥러닝에서 MLE가 중요한 이유"
+    딥러닝의 거의 모든 손실 함수를 MLE의 원리에서 유도할 수 있으므로 MLE를 이해하는 것이 필수적이다. 교차 엔트로피 손실, 평균제곱오차를 비롯한 여러 목적 함수는 서로 다른 확률적 가정 아래의 음의 로그가능도일 뿐이다.
 
 ## 핵심 착상
 
 ### 직관적인 이해
 
-동전을 100번 던져 앞면이 70번 나왔다고 하자. 앞면이 나올 확률로 가장 그럴듯한 추정값은 무엇인가? 직관적으로 0.70이라고 답할 것이다. MLE은 바로 이 직관을 수학적으로 정식화한 것이다.
+동전을 100번 던져 앞면이 70번 나왔다고 하자. 앞면이 나올 확률로 가장 그럴듯한 추정값은 무엇인가? 직관적으로 0.70이라고 답할 것이다. MLE는 바로 이 직관을 수학적으로 정식화한 것이다.
 
-MLE은 이렇게 묻는다. **"내 관측이 주어졌을 때, 어떤 매개변수 값이 이 관측을 가장 그럴듯하게 만들었을까?"**
+MLE는 이렇게 묻는다. **"내 관측이 주어졌을 때, 어떤 매개변수 값이 이 관측을 가장 그럴듯하게 만들었을까?"**
 
 ### 형식적 정의
 
@@ -57,7 +57,7 @@ $$
 
 ### MLE 찾기
 
-가능도 함수가 미분 가능하면 다음 과정으로 MLE을 찾는다.
+가능도 함수가 미분 가능하면 다음 과정으로 MLE를 찾는다.
 
 1. 로그가능도를 $\theta$에 대해 **미분한다**
 2. **0으로 둔다**: $\frac{\partial \ell}{\partial \theta} = 0$ (**점수 방정식**)
@@ -80,7 +80,7 @@ $$
 
 ## 풀이 예제: 베르누이 분포
 
-가장 단순한 경우, 즉 베르누이 분포의 성공 확률 $p$을 추정하는 문제에서 MLE을 유도해 보자.
+가장 단순한 경우, 즉 베르누이 분포의 성공 확률 $p$을 추정하는 문제에서 MLE를 유도해 보자.
 
 **설정**: 모델은 $X \sim \text{Bernoulli}(p)$, 데이터는 각 $x_i \in \{0, 1\}$인 $\mathbf{X} = \{x_1, \ldots, x_n\}$, 매개변수는 $p \in [0, 1]$이다.
 
@@ -110,7 +110,7 @@ $$
 \boxed{\hat{p}_{\text{MLE}} = \frac{k}{n} = \frac{\sum_{i=1}^{n} x_i}{n}}
 $$
 
-MLE은 그저 표본 비율이다. 직관이 말해 주는 바로 그것이다.
+MLE는 그저 표본 비율이다. 직관이 말해 주는 바로 그것이다.
 
 **5단계 — 최댓값 확인.** 이계도함수 $\frac{d^2\ell}{dp^2} = -\frac{k}{p^2} - \frac{n-k}{(1-p)^2} < 0$이므로 최댓값임이 확인된다.
 
@@ -161,7 +161,7 @@ $$
 $$
 
 !!! warning "편향된 분산 추정량"
-    분산의 MLE은 **편향되어 있다**. $\mathbb{E}[\hat{\sigma}^2] = \frac{n-1}{n}\sigma^2 < \sigma^2$이다. 불편 추정량은 분모에 $n-1$을 쓴다. 다만 MLE은 일치성을 가지므로 $n \to \infty$일 때 편향이 사라진다.
+    분산의 MLE는 **편향되어 있다**. $\mathbb{E}[\hat{\sigma}^2] = \frac{n-1}{n}\sigma^2 < \sigma^2$이다. 불편 추정량은 분모에 $n-1$을 쓴다. 다만 MLE는 일치성을 가지므로 $n \to \infty$일 때 편향이 사라진다.
 
 **지수분포** $X \sim \text{Exponential}(\lambda)$ — 확률밀도함수가 $p(x|\lambda) = \lambda e^{-\lambda x}$일 때 다음과 같다.
 
@@ -176,7 +176,7 @@ $$
 $$
 
 !!! note "정칙이 아닌 MLE"
-    균등분포는 받침이 매개변수에 의존하므로 "정칙이 아닌" 경우이다. MLE은 존재하지만 통상적인 정칙 조건을 만족하지 않는다(예: 피셔 정보가 표준적인 방식으로는 잘 정의되지 않는다).
+    균등분포는 받침이 매개변수에 의존하므로 "정칙이 아닌" 경우이다. MLE는 존재하지만 통상적인 정칙 조건을 만족하지 않는다(예: 피셔 정보가 표준적인 방식으로는 잘 정의되지 않는다).
 
 **감마분포** $X \sim \text{Gamma}(\alpha, \beta)$ — 두 매개변수 모두에 대한 닫힌 형태의 해는 없다. $\alpha$이 주어졌을 때 $\beta$은 $\hat{\beta} = \alpha / \bar{x}$이다. $\alpha$은 수치적으로 푼다.
 
@@ -208,7 +208,7 @@ $$
 
 ### 되풀이되는 형태 알아보기
 
-MLE 유도에서 되풀이되는 형태에 주목하라. 위치 매개변수에는 표본평균이 자주 나타나고, MLE은 충분통계량을 통해서만 데이터에 의존하며, 확률 벡터의 제약은 라그랑주 승수로 다루고, 비율 매개변수의 MLE은 흔히 $1/\bar{x}$의 꼴을 갖는다.
+MLE 유도에서 되풀이되는 형태에 주목하라. 위치 매개변수에는 표본평균이 자주 나타나고, MLE는 충분통계량을 통해서만 데이터에 의존하며, 확률 벡터의 제약은 라그랑주 승수로 다루고, 비율 매개변수의 MLE는 흔히 $1/\bar{x}$의 꼴을 갖는다.
 
 ## 피셔 정보
 
@@ -283,7 +283,7 @@ $$
 \boxed{\text{Var}(\hat{\theta}) \geq \frac{1}{I(\theta)}}
 $$
 
-이 하한은 **효율 추정량**이 달성하며, MLE은 점근적으로 효율적이다.
+이 하한은 **효율 추정량**이 달성하며, MLE는 점근적으로 효율적이다.
 
 i.i.d. 표본이 $n$개이면 하한은 $\text{Var}(\hat{\theta}) \geq 1/(nI(\theta))$이 된다.
 
@@ -293,15 +293,15 @@ i.i.d. 표본이 $n$개이면 하한은 $\text{Var}(\hat{\theta}) \geq 1/(nI(\th
 
 ## MLE의 점근적 성질
 
-정칙 조건 아래에서 MLE은 표본 크기가 커질수록 놀라운 성질을 갖는다. 이 성질들이 MLE이 통계적 추정의 일꾼인 이유와, 신경망 학습이 큰 데이터셋에서 잘 작동하는 이유를 설명해 준다.
+정칙 조건 아래에서 MLE는 표본 크기가 커질수록 놀라운 성질을 갖는다. 이 성질들이 MLE가 통계적 추정의 일꾼인 이유와, 신경망 학습이 큰 데이터셋에서 잘 작동하는 이유를 설명해 준다.
 
 !!! abstract "핵심 점근적 성질"
     정칙 조건 아래에서 $n \to \infty$일 때 다음이 성립한다.
     
     1. **일치성**: $\hat{\theta}_n \xrightarrow{p} \theta_0$
     2. **점근 정규성**: $\sqrt{n}(\hat{\theta}_n - \theta_0) \xrightarrow{d} \mathcal{N}(0, I(\theta_0)^{-1})$
-    3. **효율성**: MLE은 점근적으로 크라메르–라오 하한을 달성한다
-    4. **불변성**: $g(\theta)$의 MLE은 $g(\hat{\theta})$이다
+    3. **효율성**: MLE는 점근적으로 크라메르–라오 하한을 달성한다
+    4. **불변성**: $g(\theta)$의 MLE는 $g(\hat{\theta})$이다
 
 ### 정칙 조건
 
@@ -346,7 +346,7 @@ $$
 
 ### 효율성
 
-일치성과 점근 정규성을 갖는 모든 추정량 중에서 MLE은 **점근 분산이 가장 작다**.
+일치성과 점근 정규성을 갖는 모든 추정량 중에서 MLE는 **점근 분산이 가장 작다**.
 
 $$
 \text{Avar}(\hat{\theta}_{\text{MLE}}) = \frac{1}{I(\theta_0)} \leq \text{Avar}(\hat{\theta}_{\text{other}})
@@ -356,7 +356,7 @@ $$
 
 ### 불변성
 
-$\hat{\theta}$이 $\theta$의 MLE이면 임의의 함수 $g$에 대해 $\widehat{g(\theta)} = g(\hat{\theta})$이다. 예를 들어 $\mu$의 MLE이 $\bar{x}$이면 $e^\mu$의 MLE은 $e^{\bar{x}}$이다.
+$\hat{\theta}$이 $\theta$의 MLE이면 임의의 함수 $g$에 대해 $\widehat{g(\theta)} = g(\hat{\theta})$이다. 예를 들어 $\mu$의 MLE가 $\bar{x}$이면 $e^\mu$의 MLE는 $e^{\bar{x}}$이다.
 
 !!! warning "불변성에서 오는 편향"
     불변성은 편리하지만, $\hat{\theta}$이 불편이더라도 $g(\hat{\theta})$은 편향될 수 있다. 예를 들어 $\hat{\sigma}^2 = \frac{1}{n}\sum(x_i - \bar{x})^2$은 MLE인데도 편향되어 있다.
@@ -377,7 +377,7 @@ $$
 
 ## 딥러닝과의 관계
 
-MLE과 딥러닝 손실 함수의 관계는 근본적이다.
+MLE와 딥러닝 손실 함수의 관계는 근본적이다.
 
 $$
 \text{Loss}(\theta) = -\ell(\theta | \mathbf{X}) = -\log L(\theta | \mathbf{X})
@@ -402,7 +402,7 @@ $$
 
 ## PyTorch 구현
 
-### 해석적 MLE과 경사 기반 MLE
+### 해석적 MLE와 경사 기반 MLE
 
 ```python
 import torch
@@ -425,7 +425,7 @@ def compute_log_likelihood(data: torch.Tensor, p: torch.Tensor) -> torch.Tensor:
     return torch.sum(data * torch.log(p) + (1 - data) * torch.log(1 - p))
 
 def analytical_mle(data: torch.Tensor) -> float:
-    """MLE을 해석적으로 계산한다: p̂ = k/n"""
+    """MLE를 해석적으로 계산한다: p̂ = k/n"""
     return data.mean().item()
 
 def gradient_based_mle(data: torch.Tensor, 
@@ -589,7 +589,7 @@ def verify_cramer_rao(true_p: float = 0.3, n: int = 100, n_simulations: int = 10
 def demonstrate_consistency(true_theta: float = 0.7, 
                            sample_sizes: list = None,
                            n_simulations: int = 1000):
-    """n이 커질수록 MLE이 참값 주위로 모여드는 것을 보여준다."""
+    """n이 커질수록 MLE가 참값 주위로 모여드는 것을 보여준다."""
     if sample_sizes is None:
         sample_sizes = [10, 50, 100, 500, 1000, 5000]
     
@@ -693,7 +693,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 ## 연습문제
 
 **연습문제 1.**
-관측 $n$개 중 성공이 $k$번일 때 베르누이 분포의 매개변수 $p$에 대한 MLE을 유도하라.
+관측 $n$개 중 성공이 $k$번일 때 베르누이 분포의 매개변수 $p$에 대한 MLE를 유도하라.
 
 ??? success "연습문제 1 풀이"
     가능도는 $L(p) = \prod_{i=1}^n p^{x_i}(1-p)^{1-x_i} = p^k(1-p)^{n-k}$이다.
@@ -725,7 +725,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 ---
 
 **연습문제 3.**
-라플라스 분포 $p(x|\mu, b) = \frac{1}{2b}e^{-|x-\mu|/b}$에서 $\mu$의 MLE이 표본 중앙값임을 보여라.
+라플라스 분포 $p(x|\mu, b) = \frac{1}{2b}e^{-|x-\mu|/b}$에서 $\mu$의 MLE가 표본 중앙값임을 보여라.
 
 ??? success "연습문제 3 풀이"
     로그가능도는 $\ell(\mu) = -n\log(2b) - \frac{1}{b}\sum_{i=1}^n |x_i - \mu|$이다.
@@ -737,7 +737,7 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 ---
 
 **연습문제 4.**
-베르누이 분포의 피셔 정보를 유도하고, MLE이 크라메르–라오 하한을 달성함을 확인하라.
+베르누이 분포의 피셔 정보를 유도하고, MLE가 크라메르–라오 하한을 달성함을 확인하라.
 
 ??? success "연습문제 4 풀이"
     점수 함수: $s(p) = \frac{x}{p} - \frac{1-x}{1-p}$.
@@ -746,4 +746,4 @@ def plot_likelihood_analysis(data: torch.Tensor, true_p: float):
 
     i.i.d. 관측 $n$개에 대한 크라메르–라오 하한은 $\text{Var}(\hat{p}) \geq \frac{1}{nI(p)} = \frac{p(1-p)}{n}$이다.
 
-    MLE $\hat{p} = \bar{x}$의 분산은 $\text{Var}(\hat{p}) = p(1-p)/n$으로 하한을 정확히 달성한다. 따라서 MLE은 효율적이다. $\square$
+    MLE $\hat{p} = \bar{x}$의 분산은 $\text{Var}(\hat{p}) = p(1-p)/n$으로 하한을 정확히 달성한다. 따라서 MLE는 효율적이다. $\square$

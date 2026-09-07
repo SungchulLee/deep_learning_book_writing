@@ -121,7 +121,7 @@ class SkipList:
         return lvl
 
     def search(self, key: float) -> bool:
-        """*key*이 건너뛰기 목록에 있으면 True을 돌려준다."""
+        """*key*이 건너뛰기 목록에 있으면 True를 돌려준다."""
         current = self.header
         for i in range(self.level, -1, -1):
             while current.forward[i] and current.forward[i].key < key:

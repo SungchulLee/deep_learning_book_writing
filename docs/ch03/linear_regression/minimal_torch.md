@@ -9,7 +9,7 @@
 가장 단출한 PyTorch 선형 회귀 — 자동 미분
 ==============================================
 
-날 텐서에 requires_grad=True을 두고 loss.backward()으로 기울기를 절로
+날 텐서에 requires_grad=True를 두고 loss.backward()으로 기울기를 절로
 셈한다.  nn.Module도 가장 좋게 하개 객체도 쓰지 않는다.
 
 Demonstrates:

@@ -12,7 +12,7 @@
 파일 1: 탄성 가중치 다지기(EWC)
 
 이 스크립트는 가장 큰 영향을 끼친 이어 배우기 방법에 드는
-탄성 가중치 다지기를 구현한다. EWC은 중요한 매개변수가 크게 바뀌지 않도록 지켜
+탄성 가중치 다지기를 구현한다. EWC는 중요한 매개변수가 크게 바뀌지 않도록 지켜
 파국적 잊음을 막는다.
 
 학습 목표:
@@ -406,7 +406,7 @@ class EWCLearner:
                        test_loaders: List[DataLoader],
                        epochs_per_task: int = 5):
         """
-        EWC을 쓰는 이어 배우기의 주 되돌이.
+        EWC를 쓰는 이어 배우기의 주 되돌이.
         
         과제마다의 절차:
         1. EWC 벌주기를 곁들여 익힌다
@@ -599,7 +599,7 @@ def visualize_ewc_results(ewc_metrics: dict, num_tasks: int):
 
 
 def main():
-    """EWC을 보여 주는 주 함수."""
+    """EWC를 보여 주는 주 함수."""
     print("=" * 70)
     print("ELASTIC WEIGHT CONSOLIDATION (EWC)")
     print("=" * 70)

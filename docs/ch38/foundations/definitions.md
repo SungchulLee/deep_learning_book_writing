@@ -93,7 +93,7 @@ $$
 
 여기서 $R_i$은 보기 $i$에서 밝혀 낸 든든함의 반지름이다. 이는 참 든든한 맞음의 **아래끝**이다.
 
-## PyTorch으로 짜기: 치기 밑 갈래
+## PyTorch로 짜기: 치기 밑 갈래
 
 ```python
 import torch
@@ -205,7 +205,7 @@ class AdversarialAttack(ABC):
     
     @staticmethod
     def _project_l1(v: torch.Tensor, radius: float) -> torch.Tensor:
-        """벡터 v을 주어진 반지름의 L1 공으로 되비춘다."""
+        """벡터 v를 주어진 반지름의 L1 공으로 되비춘다."""
         if torch.norm(v, p=1) <= radius:
             return v
         u = torch.abs(v)

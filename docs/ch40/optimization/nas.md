@@ -257,7 +257,7 @@ from typing import Tuple, Dict, List
 def svd_decomposition(weight: torch.Tensor, 
                       rank: int) -> Tuple[torch.Tensor, torch.Tensor]:
     """
-    잘라 낸 SVD으로 짐 행렬을 쪼갠다.
+    잘라 낸 SVD로 짐 행렬을 쪼갠다.
     
     Args:
         weight: 쪼갤 짐 행렬 (m x n)
@@ -266,7 +266,7 @@ def svd_decomposition(weight: torch.Tensor,
     Returns:
         U, V: weight ≈ U @ V.T이 되는 쪼갠 행렬
     """
-    # SVD을 한다
+    # SVD를 한다
     U, S, Vh = torch.linalg.svd(weight, full_matrices=False)
     
     # 과녁 자리로 잘라 낸다
@@ -345,7 +345,7 @@ class FactorizedLinear(nn.Module):
         """
         이미 있는 선형 켜에서 쪼갠 켜를 만든다.
         
-        SVD으로 가장 좋은 쪼갬을 찾는다.
+        SVD로 가장 좋은 쪼갬을 찾는다.
         """
         W = linear_layer.weight.data
         b = linear_layer.bias.data if linear_layer.bias is not None else None
@@ -376,7 +376,7 @@ class FactorizedLinear(nn.Module):
 def svd_decompose_linear(layer: nn.Linear,
                          rank: int) -> Tuple[nn.Linear, nn.Linear]:
     """
-    잘라 낸 SVD으로 선형 켜를 쪼갠다.
+    잘라 낸 SVD로 선형 켜를 쪼갠다.
     
     W ≈ U_k * Σ_k * V_k^T = A * B
     
@@ -535,7 +535,7 @@ def decompose_conv_channel(conv: nn.Conv2d,
     # (C_out, C_in * k_h * k_w) 꼴로 바꾼다
     W_mat = W.view(conv.out_channels, -1)
     
-    # SVD을 건다
+    # SVD를 건다
     U, S, Vh = torch.linalg.svd(W_mat, full_matrices=False)
     
     # 잘라 낸다
@@ -1066,7 +1066,7 @@ NAS은 다른 눌러 담기 재주와 하나의 흐름으로 아우를 때 가�
 - 걸음 사이의 곱게 맞추기: 도막마다 맞음을 되찾는다
 - 수 줄이기를 마지막에: 다듬어진 짐 분포의 덕을 본다
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ### 온전한 눌러 담기 흐름
 
@@ -1371,7 +1371,7 @@ class CompressionPipeline:
         return model
     
     def _svd_factorize_linear(self, layer: nn.Linear, rank: int) -> Tuple[nn.Linear, nn.Linear]:
-        """SVD으로 선형 켜를 쪼갠다."""
+        """SVD로 선형 켜를 쪼갠다."""
         W = layer.weight.data
         U, S, Vh = torch.linalg.svd(W, full_matrices=False)
         

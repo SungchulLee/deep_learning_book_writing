@@ -1,5 +1,5 @@
 # 증거 아래 경계(ELBO)
-증거 아래 경계는 변분 추론, EM 알고리즘, VAE 익힘의 한가운데 있는 양이다. 다룰 수 없는 로그 주변 가능도를 아래에서 받치는, 다룰 수 있는 최적화 목표를 주며, 참 가능도와의 틈은 KL 벌어짐으로 또렷이 특징지어진다. 이 절에서는 서로 보완하는 세 가지 이끌어 내기를 보이고, 틈과 팽팽함의 조건을 살피며, 핵심이 되는 다른 표현들을 펼치고, ELBO을 EM 알고리즘과 변분 자동부호기에 이어 준다.
+증거 아래 경계는 변분 추론, EM 알고리즘, VAE 익힘의 한가운데 있는 양이다. 다룰 수 없는 로그 주변 가능도를 아래에서 받치는, 다룰 수 있는 최적화 목표를 주며, 참 가능도와의 틈은 KL 벌어짐으로 또렷이 특징지어진다. 이 절에서는 서로 보완하는 세 가지 이끌어 내기를 보이고, 틈과 팽팽함의 조건을 살피며, 핵심이 되는 다른 표현들을 펼치고, ELBO를 EM 알고리즘과 변분 자동부호기에 이어 준다.
 
 ## 문제: 다룰 수 없는 주변 가능도
 
@@ -7,7 +7,7 @@
 
 $$p(\mathbf{X} | \theta) = \int p(\mathbf{X}, \mathbf{Z} | \theta) \, d\mathbf{Z}$$
 
-신경망 풀개나 복잡한 가능도 함수에서는 이 적분을 다룰 수 없다. 곧 닫힌 꼴로 값을 매길 수도, 효율적으로 어림할 수도 없다. ELBO은 최적화할 *수 있는* 아래 경계를 준다.
+신경망 풀개나 복잡한 가능도 함수에서는 이 적분을 다룰 수 없다. 곧 닫힌 꼴로 값을 매길 수도, 효율적으로 어림할 수도 없다. ELBO는 최적화할 *수 있는* 아래 경계를 준다.
 
 ## 이끌어 내기 1: 옌센 부등식
 
@@ -52,7 +52,7 @@ $$D_{\text{KL}}\!\bigl(q(\mathbf{Z}) \,\|\, p(\mathbf{Z} | \mathbf{X}, \theta)\b
 
 $$D_{\text{KL}} = \mathbb{E}_{q}[\log q(\mathbf{Z})] - \mathbb{E}_{q}[\log p(\mathbf{X}, \mathbf{Z} | \theta)] + \log p(\mathbf{X} | \theta)$$
 
-정리하고 ELBO을 알아보면:
+정리하고 ELBO를 알아보면:
 
 $$\boxed{\log p(\mathbf{X} | \theta) = \mathcal{L}(q, \theta) + D_{\text{KL}}\!\bigl(q(\mathbf{Z}) \,\|\, p(\mathbf{Z} | \mathbf{X}, \theta)\bigr)}$$
 
@@ -64,7 +64,7 @@ $D_{\text{KL}} \geq 0$이므로 $\log p(\mathbf{X} | \theta) \geq \mathcal{L}(q,
 
 $$p(\mathbf{X} | \theta) = \mathbb{E}_{q}\!\left[\frac{p(\mathbf{X}, \mathbf{Z} | \theta)}{q(\mathbf{Z})}\right]$$
 
-ELBO은 옌센 부등식으로 얻은 이 기댓값의 아래 경계의 로그이다. 이 눈은 표본 여럿으로 경계를 팽팽하게 하는 **중요도 무게 자동부호기(IWAE)** 목표로 이어진다.
+ELBO는 옌센 부등식으로 얻은 이 기댓값의 아래 경계의 로그이다. 이 눈은 표본 여럿으로 경계를 팽팽하게 하는 **중요도 무게 자동부호기(IWAE)** 목표로 이어진다.
 
 ## 근본 항등식
 
@@ -72,11 +72,11 @@ ELBO은 옌센 부등식으로 얻은 이 기댓값의 아래 경계의 로그�
 
 $$\log p(\mathbf{X} | \theta) = \mathcal{L}(q, \theta) + D_{\text{KL}}\!\bigl(q(\mathbf{Z}) \,\|\, p(\mathbf{Z} | \mathbf{X}, \theta)\bigr)$$
 
-이 항등식에서 곧바로 셋이 따라 나온다. 첫째, $D_{\text{KL}} \geq 0$이므로 ELBO은 늘 로그 증거의 아래 경계이다. 둘째, 참 로그 가능도와 ELBO 사이의 틈은 정확히 $q$에서 참 뒤확률까지의 KL 벌어짐이다. 셋째, $q$에 대해 ELBO을 가장 크게 하는 것은 $D_{\text{KL}}(q \| p_{\text{posterior}})$을 가장 작게 하는 것과 같고, 이것이 변분 추론의 목표이다.
+이 항등식에서 곧바로 셋이 따라 나온다. 첫째, $D_{\text{KL}} \geq 0$이므로 ELBO는 늘 로그 증거의 아래 경계이다. 둘째, 참 로그 가능도와 ELBO 사이의 틈은 정확히 $q$에서 참 뒤확률까지의 KL 벌어짐이다. 셋째, $q$에 대해 ELBO를 가장 크게 하는 것은 $D_{\text{KL}}(q \| p_{\text{posterior}})$을 가장 작게 하는 것과 같고, 이것이 변분 추론의 목표이다.
 
 ## 다른 표현들
 
-ELBO은 여러 같은 뜻의 꼴로 다시 쓸 수 있으며 저마다 다른 통찰을 준다.
+ELBO는 여러 같은 뜻의 꼴로 다시 쓸 수 있으며 저마다 다른 통찰을 준다.
 
 ### 결합 꼴
 
@@ -100,7 +100,7 @@ $$\mathcal{L}(q, \theta) = \mathbb{E}_{q}[\log p(\mathbf{X} | \mathbf{Z}, \theta
 
 ### 자유 에너지의 음수
 
-물리 문헌에서 ELBO은 **변분 자유 에너지**의 음수이다. 곧 $\mathcal{F}(q) = -\mathcal{L}(q, \theta)$이다. 자유 에너지를 가장 작게 하는 것은 ELBO을 가장 크게 하는 것과 같다.
+물리 문헌에서 ELBO는 **변분 자유 에너지**의 음수이다. 곧 $\mathcal{F}(q) = -\mathcal{L}(q, \theta)$이다. 자유 에너지를 가장 작게 하는 것은 ELBO를 가장 크게 하는 것과 같다.
 
 ## 틈 살피기
 
@@ -136,7 +136,7 @@ $$\log p(\mathbf{X} | \theta^{(t+1)}) \geq \mathcal{L}(q^{(t+1)}, \theta^{(t+1)}
 
 ### 기하로 풀이하기: 접하는 아래 경계
 
-$q$을 $\theta^{(t)}$에서의 뒤확률로 두면 ELBO은 $\theta^{(t)}$에서 로그 가능도 곡선에 닿고 다른 곳에서는 그 아래에 있다. M 걸음은 이 아래 경계의 봉우리로 옮겨 간다. 이는 **아래 받치고 최대화하기(MM)**의 한 보기이다.
+$q$을 $\theta^{(t)}$에서의 뒤확률로 두면 ELBO는 $\theta^{(t)}$에서 로그 가능도 곡선에 닿고 다른 곳에서는 그 아래에 있다. M 걸음은 이 아래 경계의 봉우리로 옮겨 간다. 이는 **아래 받치고 최대화하기(MM)**의 한 보기이다.
 
 ### EM, 변분 추론, VAE의 견줌
 
@@ -149,7 +149,7 @@ $q$을 $\theta^{(t)}$에서의 뒤확률로 두면 ELBO은 $\theta^{(t)}$에서 
 
 ## VAE과의 이음
 
-VAE에서는 부호기 $q_\phi(\mathbf{Z} | \mathbf{X})$와 풀개 $p_\theta(\mathbf{X} | \mathbf{Z})$을 되살림 + 벌주기 꼴의 ELBO을 가장 크게 하여 함께 익힌다:
+VAE에서는 부호기 $q_\phi(\mathbf{Z} | \mathbf{X})$와 풀개 $p_\theta(\mathbf{X} | \mathbf{Z})$을 되살림 + 벌주기 꼴의 ELBO를 가장 크게 하여 함께 익힌다:
 
 $$\mathcal{L}_{\text{VAE}} = \mathbb{E}_{q_\phi(z|x)}[\log p_\theta(x|z)] - D_{\text{KL}}(q_\phi(z|x) \| p(z))$$
 
@@ -183,7 +183,7 @@ $$\mathbb{E}_q[\log p(\theta)] = -\frac{1}{2}\log(2\pi\sigma_0^2) - \frac{1}{2\s
 
 $$H[q] = \frac{1}{2}\log(2\pi e \, s^2)$$
 
-ELBO은 이 세 항의 합이며 손으로 풀거나 $(m, s)$에 대한 기울기 오르기로 최적화할 수 있다.
+ELBO는 이 세 항의 합이며 손으로 풀거나 $(m, s)$에 대한 기울기 오르기로 최적화할 수 있다.
 
 ## PyTorch 구현
 
@@ -252,7 +252,7 @@ def optimize_elbo(data: torch.Tensor, elbo_computer: GaussianELBO,
 
 ## 모형 고르기 잣대로서의 ELBO
 
-최적화한 ELBO $\mathcal{L}(q^*, \theta^*)$은 로그 모형 증거 $\log p(\mathcal{D} | \mathcal{M})$을 어림하며, 이는 모형을 견주는 표준 베이즈 양이다. BIC이나 AIC과 달리 ELBO은 점 어림값이 아니라 ($q$으로 어림한) 온전한 뒤확률을 쓰므로 모형의 복잡함에 더 풍성한 벌을 준다.
+최적화한 ELBO $\mathcal{L}(q^*, \theta^*)$은 로그 모형 증거 $\log p(\mathcal{D} | \mathcal{M})$을 어림하며, 이는 모형을 견주는 표준 베이즈 양이다. BIC이나 AIC와 달리 ELBO는 점 어림값이 아니라 ($q$으로 어림한) 온전한 뒤확률을 쓰므로 모형의 복잡함에 더 풍성한 벌을 준다.
 
 ## 요약
 
@@ -260,7 +260,7 @@ def optimize_elbo(data: torch.Tensor, elbo_computer: GaussianELBO,
 |------------|-------------|
 | 옌센 부등식 | $\log \mathbb{E}[Y] \geq \mathbb{E}[\log Y]$, $Y$이 상수일 때 등호 |
 | KL 쪼개기 | $\log p(\mathbf{X}) = \mathcal{L} + D_{\text{KL}}(q \| p_{\text{post}})$ |
-| 중요도 표집 | ELBO이 로그 중요도 무게 기댓값을 아래에서 받친다 |
+| 중요도 표집 | ELBO가 로그 중요도 무게 기댓값을 아래에서 받친다 |
 
 | 표현 | 식 | 통찰 |
 |-------------|------------|---------|
@@ -283,11 +283,11 @@ def optimize_elbo(data: torch.Tensor, elbo_computer: GaussianELBO,
 
 ### 연습 2: 베타-이항의 ELBO
 
-앞확률이 $\theta \sim \text{Beta}(\alpha_0, \beta_0)$, 가능도가 $x | \theta \sim \text{Binomial}(n, \theta)$, 변분 집안이 $q(\theta) = \text{Beta}(\alpha, \beta)$일 때의 ELBO을 이끌어 내어라.
+앞확률이 $\theta \sim \text{Beta}(\alpha_0, \beta_0)$, 가능도가 $x | \theta \sim \text{Binomial}(n, \theta)$, 변분 집안이 $q(\theta) = \text{Beta}(\alpha, \beta)$일 때의 ELBO를 이끌어 내어라.
 
 ### 연습 3: 수치로 본 팽팽함
 
-풀어 본 보기의 가우스 모형에서 $q$을 정확한 뒤확률로 두면 ELBO이 로그 증거와 같아짐을 수치로 확인하여라.
+풀어 본 보기의 가우스 모형에서 $q$을 정확한 뒤확률로 두면 ELBO가 로그 증거와 같아짐을 수치로 확인하여라.
 
 ### 연습 4: EM과 VAE
 

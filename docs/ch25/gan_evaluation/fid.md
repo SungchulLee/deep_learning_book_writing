@@ -1,16 +1,16 @@
 # 프레셰 인셉션 거리(FID)
 ## 개요
 
-프레셰 인셉션 거리(FID)는 만들어 내는 모델을, 특히 그림 만들기를 따지는 데 가장 널리 쓰이는 잣대이다. Heusel 외(2017)가 내놓은 FID은 미리 익힌 인셉션 신경망의 특징 공간에서 만든 그림의 분포와 실제 그림의 분포 사이 거리를 잰다.
+프레셰 인셉션 거리(FID)는 만들어 내는 모델을, 특히 그림 만들기를 따지는 데 가장 널리 쓰이는 잣대이다. Heusel 외(2017)가 내놓은 FID는 미리 익힌 인셉션 신경망의 특징 공간에서 만든 그림의 분포와 실제 그림의 분포 사이 거리를 잰다.
 
 !!! info "배움 목표"
     이 절을 마치면 다음을 할 수 있게 된다.
     
     - FID의 수학 바탕을 이끌어 내고 이해한다
     - 수치를 제대로 다루며 FID 셈하기를 바닥부터 짠다
-    - FID이 화소 공간 대신 인셉션 특징을 쓰는 까닭을 이해한다
-    - FID이 인셉션 점수보다 나은 점과 남은 한계를 안다
-    - 연구와 실제 자리에서 FID을 제대로 쓴다
+    - FID가 화소 공간 대신 인셉션 특징을 쓰는 까닭을 이해한다
+    - FID가 인셉션 점수보다 나은 점과 남은 한계를 안다
+    - 연구와 실제 자리에서 FID를 제대로 쓴다
 
 ## 수학적 바탕
 
@@ -54,13 +54,13 @@ $$
 
 ### 가장 좋은 나르기와의 이음
 
-FID은 정규 분포의 2-바서슈타인 거리의 제곱이다.
+FID는 정규 분포의 2-바서슈타인 거리의 제곱이다.
 
 $$
 W_2^2(\mathcal{N}(\mu_1, \Sigma_1), \mathcal{N}(\mu_2, \Sigma_2)) = \text{FID}
 $$
 
-곧 FID은 한 분포를 다른 분포로 바꾸는 가장 작은 "비용"을 재며, 비용은 유클리드 거리의 제곱이다.
+곧 FID는 한 분포를 다른 분포로 바꾸는 가장 작은 "비용"을 재며, 비용은 유클리드 거리의 제곱이다.
 
 ## 수학으로 이끌어 내기
 
@@ -121,7 +121,7 @@ $$
 
 ### Pool3 층(2048차원)
 
-FID은 마지막 가르기 앞의 온마당 평균 모으기 층의 내놓기를 쓴다.
+FID는 마지막 가르기 앞의 온마당 평균 모으기 층의 내놓기를 쓴다.
 
 ```
 InceptionV3 얼개:
@@ -132,7 +132,7 @@ InceptionV3 얼개:
 ├─────────────┤
 │  Mixed_7c   │ 8×8×2048
 ├─────────────┤
-│  평균 모으기 │ 2048 ← FID이 이것을 쓴다!
+│  평균 모으기 │ 2048 ← FID가 이것을 쓴다!
 ├─────────────┤
 │    FC       │ 1000 (classes)
 └─────────────┘
@@ -156,10 +156,10 @@ class FIDCalculator:
     """
     두루 갖춘 프레셰 인셉션 거리 셈개.
     
-    FID은 미리 익힌 인셉션 신경망의 특징 공간에서
+    FID는 미리 익힌 인셉션 신경망의 특징 공간에서
     실제 그림 분포와 만든 그림 분포 사이의 거리를 잰다.
     
-    FID이 낮을수록 품질이 좋고 분포가 더 비슷하다.
+    FID가 낮을수록 품질이 좋고 분포가 더 비슷하다.
     
     속성:
         device: 셈할 장치
@@ -360,7 +360,7 @@ class FIDCalculator:
                      generated_images: torch.Tensor,
                      batch_size: int = 64) -> float:
         """
-        실제 그림과 만든 그림 사이의 FID을 셈한다.
+        실제 그림과 만든 그림 사이의 FID를 셈한다.
         
         온전한 물길:
         1. 실제 그림에서 인셉션 특징을 뽑는다
@@ -398,7 +398,7 @@ class FIDCalculator:
                                       generated_images: torch.Tensor,
                                       batch_size: int = 64) -> float:
         """
-        미리 셈한 실제 자료 통계로 FID을 셈한다.
+        미리 셈한 실제 자료 통계로 FID를 셈한다.
         
         같은 실제 자료 묶음에 여러 만들개를 견줄 때
         이 편이 더 효율이 좋다.
@@ -425,7 +425,7 @@ def save_reference_statistics(real_images: torch.Tensor,
     견줄 자료 묶음의 통계를 미리 셈해 갈무리한다.
     
     그러면 익히는 동안 실제 자료 통계를 다시 셈하지 않고
-    효율 좋게 FID을 셈할 수 있다.
+    효율 좋게 FID를 셈할 수 있다.
     
     인수:
         real_images: 참 그림 [N, C, H, W]
@@ -550,7 +550,7 @@ demonstrate_fid_computation()
 
 ### FID에 영향을 주는 것
 
-1. **표본 크기**: 표본이 많을수록 → FID이 더 안정된다
+1. **표본 크기**: 표본이 많을수록 → FID가 더 안정된다
 2. **그림 해상도**: 해상도가 다르면 미리 다듬기도 달라야 할 수 있다
 3. **빛깔 공간**: RGB이냐 회색이냐가 특징에 영향을 준다
 4. **자르기**: 맞겨루기 만들개의 자르기는 다양함을 품질과 맞바꾼다
@@ -559,7 +559,7 @@ demonstrate_fid_computation()
 
 ### 가장 낮은 조건
 
-FID은 함께 흩어짐을 믿을 만하게 어림하려면 넉넉한 표본이 필요하다.
+FID는 함께 흩어짐을 믿을 만하게 어림하려면 넉넉한 표본이 필요하다.
 
 ```python
 def analyze_fid_sample_size():
@@ -612,7 +612,7 @@ def bootstrap_fid(real_features: np.ndarray,
                   n_bootstrap: int = 1000,
                   sample_size: Optional[int] = None) -> Tuple[float, float, float]:
     """
-    부트스트랩 믿음 구간과 함께 FID을 셈한다.
+    부트스트랩 믿음 구간과 함께 FID를 셈한다.
     
     인수:
         real_features: 참 자료의 특징 [N, D]
@@ -653,7 +653,7 @@ def bootstrap_fid(real_features: np.ndarray,
     return fid_mean, lower, upper
 ```
 
-## FID과 인셉션 점수 견주기
+## FID와 인셉션 점수 견주기
 
 | 갈래 | FID | 인셉션 점수 |
 |--------|-----|-----|
@@ -674,7 +674,7 @@ def bootstrap_fid(real_features: np.ndarray,
 
 ### 1. 정규 분포 가정
 
-FID은 특징이 정규 분포를 따른다고 본다. 이는 다음에서 어긋날 수 있다.
+FID는 특징이 정규 분포를 따른다고 본다. 이는 다음에서 어긋날 수 있다.
 
 - 봉우리가 아주 많은 특징 공간
 - 작은 표본 크기
@@ -682,15 +682,15 @@ FID은 특징이 정규 분포를 따른다고 본다. 이는 다음에서 어�
 
 ### 2. 인셉션의 치우침
 
-FID은 InceptionV3이 배운 나타냄에 매여 있다.
+FID는 InceptionV3이 배운 나타냄에 매여 있다.
 
 ```python
 def demonstrate_inception_bias():
     """
-    FID이 특징 뽑개를 무엇으로 고르느냐에 달렸음을 보인다.
+    FID가 특징 뽑개를 무엇으로 고르느냐에 달렸음을 보인다.
     """
-    # InceptionV3, VGG, CLIP으로 FID을 재면 값이 달라진다
-    # "옳은" FID은 뜻의 닮음을 무엇으로 보느냐에 달렸다
+    # InceptionV3, VGG, CLIP으로 FID를 재면 값이 달라진다
+    # "옳은" FID는 뜻의 닮음을 무엇으로 보느냐에 달렸다
     print("Different feature extractors give different FIDs:")
     print("- InceptionV3: Standard choice, trained on ImageNet")
     print("- CLIP: Better for text-to-image evaluation")
@@ -699,7 +699,7 @@ def demonstrate_inception_bias():
 
 ### 3. 미리 다듬기에 민감함
 
-미리 다듬기가 한결같지 않으면 FID이 틀린다.
+미리 다듬기가 한결같지 않으면 FID가 틀린다.
 
 ```python
 # 나쁨: 한결같지 않은 미리 다듬기
@@ -712,9 +712,9 @@ def consistent_preprocess(images):
                         mode='bilinear', align_corners=False)
 ```
 
-### 4. FID이 모든 것을 알아내지는 못한다
+### 4. FID가 모든 것을 알아내지는 못한다
 
-FID이 놓칠 수 있는 것:
+FID가 놓칠 수 있는 것:
 
 - 미묘한 흠(흐림, 잡음 결)
 - 외우기(익히기 자료 베끼기)
@@ -751,7 +751,7 @@ for epoch in range(epochs):
     # 표본 만들기
     fake_images = generator.sample(10000)
     
-    # FID을 효율 좋게 셈한다
+    # FID를 효율 좋게 셈한다
     fid = calculator.calculate_fid_from_statistics(
         mu_real, sigma_real, fake_images
     )
@@ -762,7 +762,7 @@ for epoch in range(epochs):
 
 ```python
 def report_fid(fid: float, n_real: int, n_gen: int):
-    """맥락과 함께 FID을 제대로 알린다."""
+    """맥락과 함께 FID를 제대로 알린다."""
     print(f"FID: {fid:.2f}")
     print(f"  Real samples: {n_real:,}")
     print(f"  Generated samples: {n_gen:,}")
@@ -776,7 +776,7 @@ def report_fid(fid: float, n_real: int, n_gen: int):
     
     1. **FID 공식**: $\text{FID} = \|\mu_r - \mu_g\|^2 + \text{Tr}(\Sigma_r + \Sigma_g - 2(\Sigma_r\Sigma_g)^{1/2})$
     
-    2. **풀이**: FID이 낮을수록 실제 자료 분포와 더 비슷하다
+    2. **풀이**: FID가 낮을수록 실제 자료 분포와 더 비슷하다
     
     3. **흔한 값**: 뛰어남(<5), 좋음(5-20), 보통(20-50), 나쁨(>100)
     
@@ -800,11 +800,11 @@ def report_fid(fid: float, n_real: int, n_gen: int):
 프레셰 인셉션 거리(FID)를 뜻매김하고 맞겨루기 만들개를 따질 때 인셉션 점수보다 이를 더 낫게 여기는 까닭을 설명하라.
 
 ??? success "연습문제 1 풀이"
-    FID은 실제 그림과 만든 그림의 Inception-v3 특징 분포를 여러 변수 정규 분포 $\mathcal{N}(\mu_r, \Sigma_r)$과 $\mathcal{N}(\mu_g, \Sigma_g)$으로 나타낸 뒤 다음을 셈한다.
+    FID는 실제 그림과 만든 그림의 Inception-v3 특징 분포를 여러 변수 정규 분포 $\mathcal{N}(\mu_r, \Sigma_r)$과 $\mathcal{N}(\mu_g, \Sigma_g)$으로 나타낸 뒤 다음을 셈한다.
 
     $$\text{FID} = \|\mu_r - \mu_g\|^2 + \text{Tr}\left(\Sigma_r + \Sigma_g - 2(\Sigma_r \Sigma_g)^{1/2}\right)$$
 
-    FID을 더 낫게 여기는 까닭은 이렇다. (1) 만든 그림을 실제 그림과 견준다(인셉션 점수는 만든 그림만 따진다). (2) 봉우리 무너짐을 알아낸다(평균과 함께 흩어짐이 달라진다). (3) 사람의 판단과 더 잘 맞는다. (4) FID이 낮을수록 느낌의 품질과 더 잘 이어진다.
+    FID를 더 낫게 여기는 까닭은 이렇다. (1) 만든 그림을 실제 그림과 견준다(인셉션 점수는 만든 그림만 따진다). (2) 봉우리 무너짐을 알아낸다(평균과 함께 흩어짐이 달라진다). (3) 사람의 판단과 더 잘 맞는다. (4) FID가 낮을수록 느낌의 품질과 더 잘 이어진다.
 
 ---
 
@@ -828,4 +828,4 @@ def report_fid(fid: float, n_real: int, n_gen: int):
 만들어 내는 모델을 따질 때 여러 잣대를 함께 써야 하는 까닭은 무엇인가?
 
 ??? success "연습문제 4 풀이"
-    어느 잣대 하나도 만들어 내기 품질의 모든 면을 담지 못한다. **FID**은 전체 분포의 닮음을 재지만 품질과 다양함을 뒤섞는다. **인셉션 점수**는 품질과 다양함을 담지만 익히기 자료에 대한 충실함은 무시한다. **정밀도/재현율**은 품질과 다양함을 갈라내지만 특징 뽑개와 $k$을 어떻게 고르느냐에 매인다. **느낌 잣대**(LPIPS)는 그림 수준 품질을 재지만 다양함은 재지 않는다. 잣대를 함께 쓰면 온전한 그림이 보인다. 곧 FID이 낮고 정밀도가 높으며 재현율이 낮은 모델은 봉우리가 무너진 것이고, 재현율이 높고 정밀도가 낮은 모델은 다양하지만 품질 낮은 표본을 낸다. 마지막 판단에는 사람이 따지는 것이 여전히 으뜸 기준이다.
+    어느 잣대 하나도 만들어 내기 품질의 모든 면을 담지 못한다. **FID**은 전체 분포의 닮음을 재지만 품질과 다양함을 뒤섞는다. **인셉션 점수**는 품질과 다양함을 담지만 익히기 자료에 대한 충실함은 무시한다. **정밀도/재현율**은 품질과 다양함을 갈라내지만 특징 뽑개와 $k$을 어떻게 고르느냐에 매인다. **느낌 잣대**(LPIPS)는 그림 수준 품질을 재지만 다양함은 재지 않는다. 잣대를 함께 쓰면 온전한 그림이 보인다. 곧 FID가 낮고 정밀도가 높으며 재현율이 낮은 모델은 봉우리가 무너진 것이고, 재현율이 높고 정밀도가 낮은 모델은 다양하지만 품질 낮은 표본을 낸다. 마지막 판단에는 사람이 따지는 것이 여전히 으뜸 기준이다.

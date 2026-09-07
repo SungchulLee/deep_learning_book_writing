@@ -54,7 +54,7 @@ $$
 4. **두 쪽 갈라 찾기**: 금으로 되비춘다
 5. 걸음 크기를 줄여 가며 되풀이한다
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ```python
 import torch

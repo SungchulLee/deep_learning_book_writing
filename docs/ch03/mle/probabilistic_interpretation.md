@@ -58,7 +58,7 @@ $$
 \text{Minimizing Cross-Entropy} \equiv \text{Minimizing KL Divergence}
 $$
 
-### MLE은 KL 발산을 최소화한다
+### MLE는 KL 발산을 최소화한다
 
 MLE의 목적 함수는 다음과 같다.
 
@@ -72,7 +72,7 @@ $$
 D_{\text{KL}}(p_{\text{data}} \| p_\theta) = \mathbb{E}_{p_{\text{data}}}\left[\log \frac{p_{\text{data}}}{p_\theta}\right]
 $$
 
-이는 MLE에 대한 깊은 정당화를 제공한다. MLE은 KL의 의미에서 참 데이터 분포에 가장 가까운 모델 분포를 찾는다.
+이는 MLE에 대한 깊은 정당화를 제공한다. MLE는 KL의 의미에서 참 데이터 분포에 가장 가까운 모델 분포를 찾는다.
 
 ## 사전분포로서의 정칙화: MAP 추정
 
@@ -84,7 +84,7 @@ $$
 \hat{\theta}_{\text{MAP}} = \arg\max_\theta \, p(\theta | \text{data}) = \arg\max_\theta \left[\log p(\text{data} | \theta) + \log p(\theta)\right]
 $$
 
-첫째 항은 로그가능도(데이터 적합)이고 둘째 항은 로그 사전분포(정칙화)이다. MAP 추정은 빈도주의 MLE과 베이즈 추론을 잇는 다리이다.
+첫째 항은 로그가능도(데이터 적합)이고 둘째 항은 로그 사전분포(정칙화)이다. MAP 추정은 빈도주의 MLE와 베이즈 추론을 잇는 다리이다.
 
 ### L2 정칙화 = 가우스 사전분포
 
@@ -378,5 +378,5 @@ def loss_function_comparison():
         mse = ((w - w_true)**2).mean()
         print(f"{name}: MSE={mse:.4f}, Sparsity={sparsity:.2%}")
     # MAP-L1이 희소성 양상을 가장 잘 되찾는다. MAP-L2는 모든 계수를 줄이고,
-    # MLE은 p > n에서 과적합한다.
+    # MLE는 p > n에서 과적합한다.
     ```

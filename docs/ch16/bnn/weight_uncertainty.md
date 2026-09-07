@@ -94,7 +94,7 @@ $$
 q_\phi(\theta) \approx p(\theta \mid \mathcal{D})
 $$
 
-ELBO을 가장 크게 하여 최적화한다([19장: ELBO](../variational_inference/elbo.md) 참고).
+ELBO를 가장 크게 하여 최적화한다([19장: ELBO](../variational_inference/elbo.md) 참고).
 
 ### 라플라스 어림
 
@@ -148,7 +148,7 @@ $$
 | **앞확률 고르기** | 정보의 많음과 셈으로 다룰 수 있음을 저울질해야 한다 |
 | **흩어짐 크기 맞추기** | 익힘의 안정에 결정적이다. 허나 글로로 첫값 잡기를 쓴다 |
 | **성김 앞확률** | 망을 줄이는 데 편자와 못과 판을 쓴다 |
-| **MCMC** | 정확하지만 비싸다. SGLD이 규모를 키울 수 있는 어림을 준다 |
+| **MCMC** | 정확하지만 비싸다. SGLD가 규모를 키울 수 있는 어림을 준다 |
 | **변분** | 빠르고 규모를 키울 수 있다. 불확실함을 낮춰 잡을 수 있다 |
 | **몬테카를로 떨구기** | 가장 단순한 실전 방법이다. 어림의 질에 한계가 있다 |
 
@@ -175,7 +175,7 @@ $$
 ELBO 목표에 대한, 되짚음으로 하는 베이즈의 기울기 어림꼴을 이끌어 내어라.
 
 ??? success "연습문제 2 풀이"
-    ELBO은 $\mathcal{L}(\theta) = \mathbb{E}_{q_\theta(w)}[\log p(\mathcal{D}|w)] - D_{\text{KL}}(q_\theta(w) \| p(w))$이다. $w = \mu + \sigma \odot \epsilon$, $\epsilon \sim \mathcal{N}(0, I)$인 매개변수 바꾸기 재주를 쓰면:
+    ELBO는 $\mathcal{L}(\theta) = \mathbb{E}_{q_\theta(w)}[\log p(\mathcal{D}|w)] - D_{\text{KL}}(q_\theta(w) \| p(w))$이다. $w = \mu + \sigma \odot \epsilon$, $\epsilon \sim \mathcal{N}(0, I)$인 매개변수 바꾸기 재주를 쓰면:
 
     $$\nabla_\theta \mathcal{L} = \nabla_\theta \left[ \log p(\mathcal{D}|w) + \log p(w) - \log q_\theta(w) \right]_{w = \mu + \sigma \odot \epsilon}$$
 

@@ -86,7 +86,7 @@ $$x_q = \text{round}\left(\frac{x}{s}\right), \quad s = \frac{\max(|x_{\min}|, |
 **어긋난 수 줄이기**($z \neq 0$):
 위의 온전한 식을 쓴다. 한쪽으로 쏠린 분포(ReLU 뒤의 살림에서 흔하다)에서 수 줄이기 자리를 더 잘 쓴다.
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ### 밑바탕 수 줄이기 셈
 

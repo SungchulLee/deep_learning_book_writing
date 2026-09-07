@@ -99,7 +99,7 @@ $$
 
 기울기를 길이 1로 맞춘 뒤 $\varepsilon$으로 잣대를 잡는다.
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ### 온전한 FGSM 갈래
 

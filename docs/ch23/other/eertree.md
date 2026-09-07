@@ -77,7 +77,7 @@ class Eertree:
         return v
 
     def add_char(self, c: str) -> bool:
-        """글자를 더하고 새 뒤집어도 같은 글이 생겼으면 True을 돌려준다."""
+        """글자를 더하고 새 뒤집어도 같은 글이 생겼으면 True를 돌려준다."""
         self.s.append(ord(c))
         cur = self._get_link(self.last)
 

@@ -70,7 +70,7 @@ $$
 
 여기서 $W$은 흔히 가우스 알갱이다.
 
-## PyTorch으로 짜기
+## PyTorch로 짜기
 
 ```python
 import torch

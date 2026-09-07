@@ -49,7 +49,7 @@ $\mathbf{u}$을 뽑고 $f$을 셈해 $\mathbf{x} | \theta$을 표집할 수 있�
 
 ## 표준 방법이 왜 무너지나
 
-### MCMC은 가능도 값 매기기가 필요하다
+### MCMC는 가능도 값 매기기가 필요하다
 
 메트로폴리스-헤이스팅스는 다음을 셈해야 한다:
 
@@ -444,7 +444,7 @@ def calibrate_epsilon(simulator, prior, summary_fn, y_obs, n_pilot=1000):
 
 ### 걸음 4: ABC 돌리기
 
-물리치기 표집에서 시작하고 필요하면 MCMC이나 SMC으로 옮겨라.
+물리치기 표집에서 시작하고 필요하면 MCMC이나 SMC로 옮겨라.
 
 ### 걸음 5: 결과 확인하기
 

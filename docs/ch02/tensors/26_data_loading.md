@@ -156,12 +156,12 @@ def main():
     DataLoader를 잘 쓰는 버릇:
     
     1. 더 빨리 불러오려면 일꾼을 여럿 써라(num_workers > 0)
-    2. GPU을 쓸 때는 pin_memory=True을 켜라
+    2. GPU을 쓸 때는 pin_memory=True를 켜라
     3. 익힘 자료를 섞어라(shuffle=True)
     4. 다짐/시험 자료는 섞지 마라
     5. 알맞은 묶음 크기를 써라(2의 거듭제곱이 잘 듣는 일이 잦다)
-    6. persistent_workers=True으로 자료를 미리 가져와라
-    7. 묶음 크기가 종요로우면 drop_last=True을 써라
+    6. persistent_workers=True로 자료를 미리 가져와라
+    7. 묶음 크기가 종요로우면 drop_last=True를 써라
     8. 맞춤 자료 묶음에서는 __getitem__을 잘 들게 짜라
     9. 될 수 있으면 미리 다듬은 자료를 갈무리해 두어라
     10. 자료 불러오는 때와 익히는 때를 견주어 살펴라

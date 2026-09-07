@@ -22,11 +22,11 @@ DESCRIPTION:
     - torch.no_grad() 자리
 
 PREREQUISITES:
-    - 익힘 01(autograd을 곁들인 PyTorch 기초)
+    - 익힘 01(autograd를 곁들인 PyTorch 기초)
     - 익힘 03(손수 하는 PyTorch 기울기)
 
 배움 목표:
-    - 기울기 셈에 autograd을 쓴다
+    - 기울기 셈에 autograd를 쓴다
     - 언제 기울기를 0으로 만들지 이해한다
     - 잘 들도록 no_grad() 자리를 쓴다
     - 손수 셈하는 코드와 견준다
@@ -322,7 +322,7 @@ print("""
 고갱이 배움:
 
 1. 자동 미분 기초:
-   - 매개변수에 requires_grad=True을 둔다
+   - 매개변수에 requires_grad=True를 둔다
    - PyTorch가 셈 그래프를 절로 세운다
    - .backward()을 불러 모든 기울기를 셈한다
 

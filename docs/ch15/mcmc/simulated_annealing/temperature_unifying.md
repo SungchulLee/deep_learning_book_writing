@@ -37,7 +37,7 @@ $$
 
 ### 온도가 붙박인 표집
 
-표준 MCMC은 $\pi(x) \propto \exp(-E(x))$에서 표집하며, 이는 넌지시 $T = 1$인 경우이다:
+표준 MCMC는 $\pi(x) \propto \exp(-E(x))$에서 표집하며, 이는 넌지시 $T = 1$인 경우이다:
 
 $$
 \pi_T(x) = \frac{1}{Z_T} \exp\left(-\frac{E(x)}{T}\right) = \frac{1}{Z_T} \pi(x)^{1/T}

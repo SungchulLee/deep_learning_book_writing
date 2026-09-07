@@ -427,7 +427,7 @@ import numpy as np
 
 def leapfrog(x, v, epsilon, L, grad_U, M_inv=None):
     """
-    HMC을 위한 개구리뜀 적분기.
+    HMC를 위한 개구리뜀 적분기.
     
     인수:
         x: 첫 자리 (d,)
