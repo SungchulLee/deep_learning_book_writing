@@ -1,62 +1,62 @@
-# Score-Based Attacks
-## Introduction
+# 점수 바탕 치기
+## 들머리
 
-**Score-based attacks** exploit access to the model's output probability distribution $p(y|\mathbf{x})$ or logits to construct adversarial examples without gradient access. These attacks occupy a middle ground between white-box (full gradient access) and decision-based (hard labels only) methods, offering significantly better query efficiency than decision-based approaches.
+**점수 바탕 치기**은 모형의 날임 낌새 분포 $p(y|\mathbf{x})$이나 로짓을 볼 수 있음을 써서 기울기 없이 맞서는 보기를 짓는다. 흰 상자(기울기를 온전히 봄)와 판단 바탕(굳은 이름표만) 사이의 가운데 자리이며, 판단 바탕보다 물음이 훨씬 잘 든다.
 
-## Mathematical Framework
+## 수학 틀
 
-### Gradient Estimation with Scores
+### 점수로 기울기 어림하기
 
-Given access to the loss function evaluated via model scores, the gradient can be estimated using various sampling strategies.
+모형 점수로 잃음 함수를 잴 수 있으면 여러 뽑기 꾀로 기울기를 어림할 수 있다.
 
-**Coordinate-wise estimation:**
+**자리마다 어림하기:**
 
 $$
 \hat{g}_i = \frac{\mathcal{L}(f(\mathbf{x} + h\mathbf{e}_i)) - \mathcal{L}(f(\mathbf{x} - h\mathbf{e}_i))}{2h}
 $$
 
-This requires $2d$ queries for a complete gradient estimate in $d$ dimensions.
+차수가 $d$이면 온전한 기울기 어림에 물음이 $2d$번 든다.
 
-**Random direction estimation:**
+**아무 방향으로 어림하기:**
 
 $$
 \hat{\nabla} \mathcal{L} \approx \frac{d}{n\sigma} \sum_{i=1}^n \left[\mathcal{L}(f(\mathbf{x} + \sigma \mathbf{u}_i)) - \mathcal{L}(f(\mathbf{x}))\right] \mathbf{u}_i
 $$
 
-with $\mathbf{u}_i$ drawn from the unit sphere. This requires only $n$ queries regardless of dimension.
+여기서 $\mathbf{u}_i$은 낱 공에서 뽑는다. 차수와 상관없이 물음이 $n$번이면 된다.
 
-### Bandit Optimization with Priors
+### 앞선 앎을 곁들인 밴딧 다듬기
 
-Ilyas et al. (2019) improved query efficiency by incorporating **data-dependent priors** into gradient estimation. The key insight is that adversarial perturbations often have spatial structure (nearby pixels tend to be perturbed similarly).
+일리아스 등(2019)은 기울기 어림에 **자료에 매인 앞선 앎**을 넣어 물음이 더 잘 들게 했다. 고갱이 깨침은 맞서는 흔듦에 자리 얼개가 있다는 것이다(가까운 낱그림점끼리 비슷하게 흔들린다).
 
-The gradient estimate uses a time-dependent prior $\mathbf{p}^{(t)}$:
+기울기 어림은 때에 매인 앞선 앎 $\mathbf{p}^{(t)}$을 쓴다.
 
 $$
 \hat{\nabla} \mathcal{L} \approx \frac{1}{\sigma}\left[\mathcal{L}(f(\mathbf{x} + \sigma \mathbf{q})) - \mathcal{L}(f(\mathbf{x}))\right] \mathbf{q}
 $$
 
-where $\mathbf{q} = \beta \mathbf{p}^{(t)} + (1-\beta)\mathbf{u}$ blends the prior with a random direction, and the prior is updated based on successful attack directions.
+여기서 $\mathbf{q} = \beta \mathbf{p}^{(t)} + (1-\beta)\mathbf{u}$은 앞선 앎과 아무 방향을 섞은 것이고, 앞선 앎은 먹힌 치기의 방향을 보고 고친다.
 
-## Square Attack
+## 네모 치기
 
-**Square Attack** (Andriushchenko et al., 2020) is a score-based black-box attack that avoids gradient estimation entirely, using a **random search** strategy with localized square-shaped updates.
+**네모 치기**(안드리우셴코 등, 2020)은 기울기 어림을 아예 쓰지 않고, 그 자리에 몰린 네모 꼴 고침으로 **아무 뒤지기** 꾀를 쓰는 점수 바탕 검은 상자 치기다.
 
-### Algorithm
+### 알고리즘
 
-At each iteration:
+되돌 때마다
 
-1. Select a random square region of the input
-2. Sample a perturbation for that region
-3. Accept the update only if it increases the loss
+1. 들임에서 네모 자리를 아무렇게나 고른다
+2. 그 자리의 흔듦을 뽑는다
+3. 잃음이 커질 때만 그 고침을 받는다
 
-The square size starts large and decreases over iterations, implementing a coarse-to-fine search strategy.
+네모의 크기는 크게 비롯해 되돌수록 줄어, 거친 데서 고운 데로 뒤지는 꾀가 된다.
 
-### Key Properties
+### 고갱이 결
 
-- **No gradient estimation**: Avoids the overhead of sampling-based gradient methods
-- **Highly query-efficient**: Often requires only 1,000-5,000 queries
-- **Localized updates**: Exploits spatial structure of images
-- **Component of AutoAttack**: Serves as the black-box component
+- **기울기 어림이 없다**: 뽑기에 기댄 기울기 방법의 덤 값을 비껴간다
+- **물음이 아주 잘 든다**: 흔히 물음 1,000~5,000번이면 된다
+- **그 자리에 몰린 고침**: 그림의 자리 얼개를 쓴다
+- **오토어택의 한 몫**: 검은 상자 몫을 맡는다
 
 ```python
 import torch
@@ -65,21 +65,21 @@ from typing import Optional, Dict
 
 class SimpleSquareAttack:
     """
-    Simplified Square Attack for score-based black-box setting.
+    점수 바탕 검은 상자 자리를 위한 줄여 적은 네모 치기.
     
-    Uses random square-shaped perturbations with accept/reject
-    based on loss improvement.
+    아무 네모 꼴 흔듦을 쓰고 잃음이 나아지는지에 따라
+    받거나 물린다.
     
     Parameters
     ----------
     model : nn.Module
-        Target model
+        과녁 모형
     epsilon : float
-        Linf perturbation budget
+        Linf 흔듦 예산
     max_queries : int
-        Maximum number of queries
+        가장 많은 물음 수
     p_init : float
-        Initial fraction of image to perturb
+        처음에 흔들 그림의 몫
     """
     
     def __init__(
@@ -98,10 +98,10 @@ class SimpleSquareAttack:
         self.model.eval()
     
     def _get_loss(self, x: torch.Tensor, y: torch.Tensor) -> torch.Tensor:
-        """Compute margin loss (negative of correct class logit margin)."""
+        """틈 잃음을 셈한다(옳은 갈래 로짓 틈의 음수)."""
         with torch.no_grad():
             logits = self.model(x.to(self.device))
-            # Margin loss: max other logit - true logit
+            # 틈 잃음: 가장 큰 다른 로짓 - 참 로짓
             true_logit = logits.gather(1, y.view(-1, 1)).squeeze()
             mask = torch.ones_like(logits).scatter_(1, y.view(-1, 1), 0)
             max_other = (logits * mask - (1 - mask) * 1e9).max(dim=1)[0]
@@ -113,12 +113,12 @@ class SimpleSquareAttack:
         y: torch.Tensor,
         **kwargs
     ) -> torch.Tensor:
-        """Generate adversarial examples via random square search."""
+        """아무 네모 뒤지기로 맞서는 보기를 만든다."""
         x = x.to(self.device)
         y = y.to(self.device)
         N, C, H, W = x.shape
         
-        # Initialize with random Linf perturbation
+        # 아무 Linf 흔듦으로 첫자리를 잡는다
         x_adv = x + torch.empty_like(x).uniform_(-self.epsilon, self.epsilon)
         x_adv = torch.clamp(x_adv, 0, 1)
         
@@ -126,18 +126,18 @@ class SimpleSquareAttack:
         queries = torch.ones(N, device=self.device)
         
         for i in range(self.max_queries):
-            # Adaptive square size: decreases over iterations
+            # 맞추어 가는 네모 크기: 되돌수록 줄어든다
             p = self.p_init * (1 - i / self.max_queries)
             s = max(int(round(p * min(H, W))), 1)
             
-            # Random square location
+            # 네모의 아무 자리
             r = torch.randint(0, H - s + 1, (N,))
             c_pos = torch.randint(0, W - s + 1, (N,))
             
-            # Propose update: random values in square region
+            # 고침을 내놓는다: 네모 자리의 아무 값
             x_new = x_adv.clone()
             for b in range(N):
-                # Random perturbation for the square
+                # 네모의 아무 흔듦
                 patch = torch.empty(C, s, s, device=self.device).uniform_(
                     -self.epsilon, self.epsilon
                 )
@@ -145,11 +145,11 @@ class SimpleSquareAttack:
                     x[b, :, r[b]:r[b]+s, c_pos[b]:c_pos[b]+s] + patch
             
             x_new = torch.clamp(x_new, 0, 1)
-            # Ensure Linf constraint
+            # Linf 옭아맴을 지킨다
             delta = torch.clamp(x_new - x, -self.epsilon, self.epsilon)
             x_new = torch.clamp(x + delta, 0, 1)
             
-            # Accept if loss improves
+            # 잃음이 나아지면 받는다
             new_loss = self._get_loss(x_new, y)
             improved = new_loss > best_loss
             x_adv[improved] = x_new[improved]
@@ -159,53 +159,53 @@ class SimpleSquareAttack:
         return x_adv.detach()
 ```
 
-## Comparison of Score-Based Methods
+## 점수 바탕 방법 견주기
 
-| Method | Queries/Example | Requires Probabilities | Key Advantage |
+| 방법 | 보기마다의 물음 | 낌새가 있어야 함 | 고갱이 나은 점 |
 |--------|----------------|----------------------|---------------|
-| NES | 5,000-20,000 | Yes | Full gradient estimate |
-| Bandits | 2,000-10,000 | Yes | Prior-guided efficiency |
-| Square Attack | 1,000-5,000 | Yes (or logits) | No gradient estimation |
-| SimBA | 1,000-10,000 | Yes | Simple random search |
+| NES | 5,000~20,000 | 그렇다 | 온전한 기울기 어림 |
+| 밴딧 | 2,000~10,000 | 그렇다 | 앞선 앎이 이끄는 잘 듦 |
+| 네모 치기 | 1,000~5,000 | 그렇다(또는 로짓) | 기울기 어림이 없음 |
+| SimBA | 1,000~10,000 | 그렇다 | 단순한 아무 뒤지기 |
 
-## Summary
+## 간추림
 
-Score-based attacks leverage model output probabilities to construct adversarial examples without gradient access. Square Attack represents the state-of-the-art in query efficiency, while NES and bandit methods provide more principled gradient estimation. For financial applications where query budgets are limited by API rate limits, Square Attack's efficiency makes it the preferred choice.
+점수 바탕 치기는 모형의 날임 낌새를 써서 기울기 없이 맞서는 보기를 짓는다. 물음이 잘 드는 데서는 네모 치기가 가장 앞서고, NES과 밴딧은 더 이치에 닿는 기울기 어림을 준다. API의 잦기 마디로 물음 예산이 좁은 금융 쓰임에서는 네모 치기의 잘 듦 덕에 이를 즐겨 쓴다.
 
-## References
+## 살펴볼 거리
 
 1. Andriushchenko, M., et al. (2020). "Square Attack: A Query-Efficient Black-Box Adversarial Attack via Random Search." ECCV.
 2. Ilyas, A., Engstrom, L., & Madry, A. (2019). "Prior Convictions: Black-Box Adversarial Attacks with Bandits and Priors." ICLR.
 3. Guo, C., et al. (2019). "Simple Black-Box Adversarial Attacks." ICML.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$

@@ -1,35 +1,35 @@
-# Transfer Attacks
-## Introduction
+# 옮아가는 치기
+## 들머리
 
-**Transfer attacks** exploit a fundamental property of adversarial examples: perturbations crafted against one model (the **surrogate**) often transfer to fool a different model (the **target**). This enables **zero-query** black-box attacks—the adversary never needs to interact with the target model directly.
+**옮아가는 치기**은 맞서는 보기의 밑바탕 결을 쓴다. 한 모형(**대신 쓰는 모형**)을 겨냥해 지은 흔듦이 다른 모형(**과녁**)까지 속이는 일이 잦다는 것이다. 이로써 **물음이 없는** 검은 상자 치기가 이루어진다. 겨루는 이는 과녁 모형과 곧바로 마주할 일이 없다.
 
-## Transferability Phenomenon
+## 옮아감이라는 일
 
-### Why Do Adversarial Examples Transfer?
+### 맞서는 보기는 왜 옮아가는가
 
-Several factors explain cross-model transferability:
+모형을 넘나드는 옮아감은 몇 가지로 밝혀진다.
 
-1. **Shared feature representations**: Models trained on similar data learn similar features, so adversarial perturbations that disrupt these features transfer across models
-2. **Similar decision boundaries**: Models with similar architectures and training procedures develop similar decision boundaries
-3. **Non-robust features are universal**: The non-robust features exploited by adversarial attacks are shared across model families
+1. **나눠 가진 결**: 비슷한 자료로 익힌 모형은 비슷한 결을 배우므로, 그 결을 흔드는 맞서는 흔듦은 모형을 넘나들며 옮아간다
+2. **비슷한 판단의 금**: 얼개와 익힘 절차가 비슷한 모형은 비슷한 판단의 금을 지닌다
+3. **든든하지 않은 결은 두루 있다**: 맞서는 치기가 쓰는 든든하지 않은 결은 모형 무리를 넘어 나눠 가진다
 
-### Formal Setup
+### 꼴로 적기
 
-Given a surrogate model $f_s$ with full white-box access and a target model $f_t$ with no access:
+온전히 들여다볼 수 있는 대신 쓰는 모형 $f_s$과 볼 수 없는 과녁 모형 $f_t$이 있을 때
 
 $$
 \boldsymbol{\delta}^* = \text{WhiteBoxAttack}(f_s, \mathbf{x}, y) \implies f_t(\mathbf{x} + \boldsymbol{\delta}^*) \neq y \text{ (with non-trivial probability)}
 $$
 
-Transfer rates vary widely depending on the relationship between surrogate and target models.
+옮아가는 비율은 대신 쓰는 모형과 과녁 모형의 사이에 따라 크게 달라진다.
 
-## Improving Transferability
+## 옮아감을 낫게 하기
 
-### Momentum Iterative FGSM (MI-FGSM)
+### 밀어 나감 되돌이 FGSM(MI-FGSM)
 
-Dong et al. (2018) showed that adding **momentum** to iterative attacks significantly improves transferability. Standard PGD can overfit to the surrogate model's specific loss landscape; momentum stabilizes the attack direction.
+동 등(2018)은 되돌이 치기에 **밀어 나감**을 더하면 옮아감이 크게 나아짐을 보였다. 여느 PGD은 대신 쓰는 모형의 잃음 터에 지나치게 맞춰질 수 있는데, 밀어 나감이 치기의 방향을 든든하게 해 준다.
 
-The MI-FGSM update rule:
+MI-FGSM의 고치는 규칙은
 
 $$
 \begin{aligned}
@@ -38,39 +38,39 @@ $$
 \end{aligned}
 $$
 
-where $\mu$ is the momentum decay factor (typically 1.0).
+여기서 $\mu$은 밀어 나감이 줄어드는 값이다(흔히 1.0).
 
-### Ensemble Attacks
+### 모둠 치기
 
-Attacking an ensemble of surrogate models improves transfer rates:
+대신 쓰는 모형을 모둠으로 치면 옮아가는 비율이 나아진다.
 
 $$
 \mathcal{L}_{\text{ensemble}} = \sum_{k=1}^K w_k \cdot \mathcal{L}(f_k(\mathbf{x} + \boldsymbol{\delta}), y)
 $$
 
-where $w_k$ are ensemble weights. Perturbations that fool multiple surrogates are more likely to transfer to an unseen target.
+여기서 $w_k$은 모둠의 짐이다. 대신 쓰는 모형 여럿을 속이는 흔듦은 본 적 없는 과녁에도 옮아갈 낌새가 크다.
 
-### Input Diversity (DI-FGSM)
+### 들임 다양하게 하기(DI-FGSM)
 
-Xie et al. (2019) proposed applying random transformations to the input during attack generation:
+셰 등(2019)은 치기를 만드는 동안 들임에 아무 바꿈을 걸자고 내놓았다.
 
 $$
 \nabla_\mathbf{x} \mathcal{L}(f_s(T(\mathbf{x}^{(t)})), y)
 $$
 
-where $T$ applies random resizing and padding. This prevents the attack from overfitting to specific input patterns.
+여기서 $T$은 아무렇게나 크기를 바꾸고 덧대는 일을 한다. 이는 치기가 남다른 들임 결에 지나치게 맞춰지는 것을 막는다.
 
-### Translation-Invariant Attack (TI-FGSM)
+### 옮겨도 그대로인 치기(TI-FGSM)
 
-Convolving the gradient with a kernel makes the perturbation translation-invariant:
+기울기를 알갱이와 엮으면 흔듦이 옮겨도 그대로가 된다.
 
 $$
 \mathbf{g}^{(t)} = W * \nabla_\mathbf{x} \mathcal{L}(f_s(\mathbf{x}^{(t)}), y)
 $$
 
-where $W$ is typically a Gaussian kernel.
+여기서 $W$은 흔히 가우스 알갱이다.
 
-## PyTorch Implementation
+## PyTorch으로 짜기
 
 ```python
 import torch
@@ -80,25 +80,25 @@ from typing import Optional, List, Dict
 
 class TransferAttack:
     """
-    Transfer-based black-box attack using momentum and ensemble.
+    밀어 나감과 모둠을 쓰는 옮아감 바탕의 검은 상자 치기.
     
-    Generates adversarial examples against surrogate model(s)
-    that transfer to an unknown target model.
+    대신 쓰는 모형을 겨냥해 맞서는 보기를 만들어
+    모르는 과녁 모형으로 옮아가게 한다.
     
     Parameters
     ----------
     surrogate_models : list[nn.Module]
-        One or more surrogate models
+        대신 쓰는 모형 하나 이상
     epsilon : float
-        Perturbation budget
+        흔듦 예산
     alpha : float
-        Step size
+        걸음 크기
     num_iter : int
-        Number of attack iterations
+        치기 되돌이 횟수
     momentum : float
-        Momentum decay factor (0 = no momentum)
+        밀어 나감이 줄어드는 값(0 = 밀어 나감 없음)
     input_diversity : bool
-        Whether to use input diversity augmentation
+        들임 다양하게 하기를 쓸지
     """
     
     def __init__(
@@ -126,7 +126,7 @@ class TransferAttack:
     def _input_diversity_transform(
         self, x: torch.Tensor, p: float = 0.5
     ) -> torch.Tensor:
-        """Apply random resizing and padding for input diversity."""
+        """들임을 다양하게 하려고 아무렇게나 크기를 바꾸고 덧댄다."""
         if not self.input_diversity or torch.rand(1).item() > p:
             return x
         
@@ -157,7 +157,7 @@ class TransferAttack:
         targeted: bool = False,
         target_labels: Optional[torch.Tensor] = None
     ) -> torch.Tensor:
-        """Generate transferable adversarial examples."""
+        """옮아가는 맞서는 보기를 만든다."""
         x = x.to(self.device)
         y = y.to(self.device)
         
@@ -167,7 +167,7 @@ class TransferAttack:
         for t in range(self.num_iter):
             x_adv.requires_grad_(True)
             
-            # Ensemble loss over surrogate models
+            # 대신 쓰는 모형에 걸친 모둠 잃음
             total_loss = 0
             for model in self.surrogates:
                 x_input = self._input_diversity_transform(x_adv)
@@ -180,92 +180,92 @@ class TransferAttack:
                 
                 total_loss += loss / len(self.surrogates)
             
-            # Compute gradient
+            # 기울기를 셈한다
             for model in self.surrogates:
                 model.zero_grad()
             total_loss.backward()
             grad = x_adv.grad.data
             
-            # Normalize gradient (L1 normalization)
+            # 기울기의 잣대를 맞춘다(L1으로)
             grad_norm = grad / (grad.abs().mean(dim=[1, 2, 3], keepdim=True) + 1e-8)
             
-            # Apply momentum
+            # 밀어 나감을 건다
             g_momentum = self.momentum * g_momentum + grad_norm
             
-            # Update
+            # 고친다
             x_adv = x_adv.detach() + self.alpha * g_momentum.sign()
             
-            # Project
+            # 되비춘다
             delta = torch.clamp(x_adv - x, -self.epsilon, self.epsilon)
             x_adv = torch.clamp(x + delta, 0, 1)
         
         return x_adv.detach()
 ```
 
-## Transfer Rate Analysis
+## 옮아가는 비율 살피기
 
-### Factors Affecting Transfer
+### 옮아감에 걸리는 것
 
-| Factor | Effect on Transfer Rate | Explanation |
+| 걸리는 것 | 옮아가는 비율에 미침 | 풀이 |
 |--------|------------------------|-------------|
-| Architecture similarity | Higher similarity → higher transfer | Similar architectures learn similar features |
-| Training data overlap | More overlap → higher transfer | Shared data induces shared representations |
-| Momentum | Significantly improves | Avoids surrogate-specific overfitting |
-| Ensemble surrogates | Improves substantially | Cross-model features are more universal |
-| Input diversity | Moderate improvement | Reduces input-specific overfitting |
-| Iterations | Diminishing returns | More iterations overfit to surrogate |
+| 얼개가 닮음 | 닮을수록 → 더 잘 옮아감 | 닮은 얼개는 닮은 결을 배운다 |
+| 익힘 자료가 겹침 | 많이 겹칠수록 → 더 잘 옮아감 | 나눠 쓴 자료가 나눠 가진 결을 낳는다 |
+| 밀어 나감 | 크게 나아짐 | 대신 쓰는 모형에 지나치게 맞춰지는 것을 비껴간다 |
+| 모둠 대신 모형 | 꽤 나아짐 | 모형을 넘나드는 결이 더 두루 쓰인다 |
+| 들임 다양하게 하기 | 웬만큼 나아짐 | 들임에 매인 지나친 맞춤을 줄인다 |
+| 되돌이 | 보람이 줄어듦 | 되돌이가 많으면 대신 쓰는 모형에 지나치게 맞춰진다 |
 
-### Typical Transfer Rates (CIFAR-10, epsilon = 8/255)
+### 흔한 옮아가는 비율(CIFAR-10, epsilon = 8/255)
 
-| Surrogate → Target | FGSM | MI-FGSM-20 | Ensemble MI-FGSM |
+| 대신 모형 → 과녁 | FGSM | MI-FGSM-20 | 모둠 MI-FGSM |
 |---------------------|------|-----------|-------------------|
-| ResNet-18 → VGG-16 | ~30% | ~50% | ~65% |
-| ResNet-18 → DenseNet | ~35% | ~55% | ~70% |
-| ResNet-18 → ResNet-50 | ~45% | ~65% | ~75% |
+| ResNet-18 → VGG-16 | 약 30% | 약 50% | 약 65% |
+| ResNet-18 → DenseNet | 약 35% | 약 55% | 약 70% |
+| ResNet-18 → ResNet-50 | 약 45% | 약 65% | 약 75% |
 
-## Financial Applications
+## 금융에 쓰기
 
-Transfer attacks are particularly relevant in financial settings where:
+옮아가는 치기는 다음과 같은 금융 자리에서 더욱 걸린다.
 
-- An adversary may know the general type of model used (e.g., gradient boosting for credit scoring) but not the exact parameters
-- Public models trained on similar data can serve as surrogates
-- Regulatory requirements often specify model classes, enabling gray-box knowledge
+- 겨루는 이가 쓰인 모형의 갈래는 알아도(미쁨 점수에 기울기 북돋우기 따위) 정확한 매개변수는 모를 때
+- 비슷한 자료로 익힌 열린 모형을 대신 쓸 수 있을 때
+- 규정이 모형 갈래를 못 박아 잿빛 상자의 앎이 생길 때
 
-## References
+## 살펴볼 거리
 
 1. Dong, Y., et al. (2018). "Boosting Adversarial Attacks with Momentum." CVPR.
 2. Xie, C., et al. (2019). "Improving Transferability of Adversarial Examples with Input Diversity." CVPR.
 3. Tramèr, F., et al. (2018). "Ensemble Adversarial Training: Attacks and Defenses." ICLR.
 4. Papernot, N., McDaniel, P., & Goodfellow, I. (2016). "Transferability in Machine Learning: from Phenomena to Black-Box Attacks using Adversarial Samples." arXiv.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$

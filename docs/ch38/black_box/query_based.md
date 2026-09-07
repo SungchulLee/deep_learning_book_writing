@@ -1,47 +1,47 @@
-# Query-Based Attacks
-## Introduction
+# 물음 바탕 치기
+## 들머리
 
-**Query-based black-box attacks** generate adversarial examples by iteratively querying the target model and using the responses to guide the perturbation search. Unlike transfer attacks (zero-query), these methods directly interact with the target model but require no knowledge of its internals. The key challenge is achieving high attack success rates within a limited **query budget**.
+**물음 바탕 검은 상자 치기**은 과녁 모형에 거듭 묻고 그 되받음으로 흔듦 찾기를 이끌어 맞서는 보기를 만든다. 물음이 없는 옮아가는 치기와 달리 과녁 모형과 곧바로 마주하지만 그 속은 알 필요가 없다. 마디 지어진 **물음 예산** 안에서 치기가 잘 먹히게 하는 것이 어려운 대목이다.
 
-## Attack Taxonomy
+## 치기의 갈래
 
-Query-based attacks are categorized by the information available from each query:
+물음 바탕 치기는 물음마다 얻는 소식에 따라 갈린다.
 
-| Type | Information per Query | Query Efficiency | Attack Strength |
+| 갈래 | 물음마다의 소식 | 물음이 잘 듦 | 치기의 세기 |
 |------|----------------------|------------------|-----------------|
-| **Score-based** | Full probability vector $p(y|\mathbf{x})$ | High | Strong |
-| **Decision-based** | Hard label only $\hat{y} = \arg\max_y p(y|\mathbf{x})$ | Low | Moderate |
-| **Top-$k$ based** | Top $k$ classes and scores | Medium | Strong |
+| **점수 바탕** | 온 낌새 벡터 $p(y|\mathbf{x})$ | 높음 | 셈 |
+| **판단 바탕** | 굳은 이름표만 $\hat{y} = \arg\max_y p(y|\mathbf{x})$ | 낮음 | 가운데 |
+| **위 $k$개 바탕** | 위 $k$개 갈래와 점수 | 가운데 | 셈 |
 
-## Gradient Estimation via Finite Differences
+## 마디 있는 차로 기울기 어림하기
 
-The core idea of score-based attacks is to **estimate gradients** using only function evaluations. Given access to the loss $\mathcal{L}(f(\mathbf{x}), y)$, we can estimate partial derivatives:
+점수 바탕 치기의 고갱이는 함수 값만으로 **기울기를 어림하는** 것이다. 잃음 $\mathcal{L}(f(\mathbf{x}), y)$을 볼 수 있으면 쪽미분을 어림할 수 있다.
 
-**Forward differences:**
+**앞으로 차:**
 
 $$
 \frac{\partial \mathcal{L}}{\partial x_i} \approx \frac{\mathcal{L}(f(\mathbf{x} + h\mathbf{e}_i), y) - \mathcal{L}(f(\mathbf{x}), y)}{h}
 $$
 
-**Central differences (more accurate):**
+**가운데 차(더 맞다):**
 
 $$
 \frac{\partial \mathcal{L}}{\partial x_i} \approx \frac{\mathcal{L}(f(\mathbf{x} + h\mathbf{e}_i), y) - \mathcal{L}(f(\mathbf{x} - h\mathbf{e}_i), y)}{2h}
 $$
 
-**Cost:** $O(d)$ queries per gradient estimate for $d$-dimensional input. For images with $d \approx 3 \times 32 \times 32 = 3{,}072$ (CIFAR-10), this is expensive but feasible.
+**값:** 차수가 $d$인 들임에서 기울기 어림마다 $O(d)$번 물어야 한다. $d \approx 3 \times 32 \times 32 = 3{,}072$인 그림(CIFAR-10)에서는 비싸지만 할 만하다.
 
-### Random Direction Estimation (NES)
+### 아무 방향으로 어림하기(NES)
 
-Natural Evolution Strategies (NES) estimate gradients more efficiently using random directions:
+타고난 진화 꾀(NES)은 아무 방향을 써서 기울기를 더 잘 어림한다.
 
 $$
 \nabla_\mathbf{x} \mathcal{L} \approx \frac{1}{n\sigma} \sum_{i=1}^n \mathcal{L}(f(\mathbf{x} + \sigma \mathbf{u}_i), y) \cdot \mathbf{u}_i
 $$
 
-where $\mathbf{u}_i \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$ are random Gaussian directions. This requires only $n$ queries (typically $n = 50\text{-}200$) regardless of input dimension.
+여기서 $\mathbf{u}_i \sim \mathcal{N}(\mathbf{0}, \mathbf{I})$은 아무 가우스 방향이다. 들임 차수와 상관없이 물음이 $n$번(흔히 $n = 50\text{-}200$)이면 된다.
 
-## PyTorch Implementation
+## PyTorch으로 짜기
 
 ```python
 import torch
@@ -51,25 +51,25 @@ from typing import Optional, Dict
 
 class NESAttack:
     """
-    Natural Evolution Strategies (NES) based black-box attack.
+    타고난 진화 꾀(NES)에 기댄 검은 상자 치기.
     
-    Estimates gradients using random direction sampling,
-    then performs PGD-style updates.
+    아무 방향을 뽑아 기울기를 어림한 뒤
+    PGD 결로 고친다.
     
     Parameters
     ----------
     model : nn.Module
-        Target model (treated as black-box query oracle)
+        과녁 모형(검은 상자 물음 판수로 다룬다)
     epsilon : float
-        Perturbation budget (Linf)
+        흔듦 예산(Linf)
     num_samples : int
-        Number of random directions per gradient estimate
+        기울기 어림마다의 아무 방향 수
     sigma : float
-        Sampling standard deviation for NES
+        NES에서 뽑을 때의 잣대 어긋남
     step_size : float
-        Attack step size
+        치기의 걸음 크기
     max_queries : int
-        Maximum total queries allowed
+        받아 주는 온 물음의 가장 많은 수
     """
     
     def __init__(
@@ -95,7 +95,7 @@ class NESAttack:
         self.total_queries = 0
     
     def _query(self, x: torch.Tensor) -> torch.Tensor:
-        """Query model and return logits (simulates API call)."""
+        """모형에 묻고 로짓을 돌려준다(API 부름을 흉내 낸다)."""
         self.total_queries += x.shape[0]
         with torch.no_grad():
             return self.model(x.to(self.device))
@@ -104,29 +104,29 @@ class NESAttack:
         self, x: torch.Tensor, y: torch.Tensor
     ) -> torch.Tensor:
         """
-        Estimate gradient using NES with antithetic sampling.
+        맞짝으로 뽑는 NES으로 기울기를 어림한다.
         
-        Uses pairs (u, -u) for variance reduction.
+        흩어짐을 줄이려 (u, -u) 짝을 쓴다.
         """
         batch_size = x.shape[0]
         grad_estimate = torch.zeros_like(x)
         
         for _ in range(self.num_samples // 2):
-            # Random direction
+            # 아무 방향
             u = torch.randn_like(x)
             
-            # Forward and backward queries
+            # 앞뒤로 묻는다
             x_plus = x + self.sigma * u
             x_minus = x - self.sigma * u
             
             logits_plus = self._query(x_plus)
             logits_minus = self._query(x_minus)
             
-            # Loss difference
+            # 잃음의 차
             loss_plus = F.cross_entropy(logits_plus, y, reduction='none')
             loss_minus = F.cross_entropy(logits_minus, y, reduction='none')
             
-            # NES gradient estimate (antithetic)
+            # NES 기울기 어림(맞짝)
             diff = (loss_plus - loss_minus).view(-1, 1, 1, 1)
             grad_estimate += diff * u
         
@@ -139,7 +139,7 @@ class NESAttack:
         y: torch.Tensor,
         **kwargs
     ) -> torch.Tensor:
-        """Generate adversarial examples using NES-PGD."""
+        """NES-PGD으로 맞서는 보기를 만든다."""
         x = x.to(self.device)
         y = y.to(self.device)
         self.total_queries = 0
@@ -152,7 +152,7 @@ class NESAttack:
             if self.total_queries >= self.max_queries:
                 break
             
-            # Check which examples still need attacking
+            # 아직 쳐야 할 보기를 살핀다
             with torch.no_grad():
                 pred = self.model(x_adv).argmax(dim=1)
                 still_correct = (pred == y)
@@ -160,13 +160,13 @@ class NESAttack:
             if not still_correct.any():
                 break
             
-            # Estimate gradient
+            # 기울기를 어림한다
             grad = self._estimate_gradient(x_adv, y)
             
-            # PGD-style update
+            # PGD 결의 고침
             x_adv = x_adv + self.step_size * grad.sign()
             
-            # Project
+            # 되비춘다
             delta = torch.clamp(x_adv - x, -self.epsilon, self.epsilon)
             x_adv = torch.clamp(x + delta, 0, 1)
         
@@ -178,7 +178,7 @@ class NESAttack:
         y: torch.Tensor,
         x_adv: torch.Tensor
     ) -> Dict[str, float]:
-        """Evaluate attack with query count."""
+        """물음 수와 함께 치기를 따진다."""
         with torch.no_grad():
             clean_pred = self.model(x.to(self.device)).argmax(1)
             adv_pred = self.model(x_adv.to(self.device)).argmax(1)
@@ -193,68 +193,68 @@ class NESAttack:
         }
 ```
 
-## Query Efficiency Comparison
+## 물음이 잘 드는 정도 견주기
 
-| Method | Queries per Example | Success Rate | Gradient Access |
+| 방법 | 보기마다의 물음 수 | 먹힌 비율 | 기울기 얻기 |
 |--------|---------------------|--------------|-----------------|
-| Coordinate-wise FD | $O(d)$ per iteration | High | Full estimate |
-| NES (100 samples) | ~100 per iteration | High | Approximate |
-| Bandits (prior) | ~50 per iteration | High | Data-dependent |
-| Square Attack | ~1 per iteration | Moderate-High | None |
+| 자리마다의 마디 있는 차 | 되돌 때마다 $O(d)$ | 높음 | 온전한 어림 |
+| NES(표본 100개) | 되돌 때마다 약 100 | 높음 | 어림 |
+| 밴딧(앞선 앎) | 되돌 때마다 약 50 | 높음 | 자료에 매임 |
+| 네모 치기 | 되돌 때마다 약 1 | 가운데~높음 | 없음 |
 
-## Practical Considerations
+## 참으로 헤아릴 것
 
-### Query Budget in Financial Settings
+### 금융 자리의 물음 예산
 
-Financial APIs typically impose rate limits. Realistic query budgets for financial models:
+금융 API은 흔히 부르는 잦기를 마디 짓는다. 금융 모형의 그럴듯한 물음 예산은 이렇다.
 
-| Setting | Typical Budget | Rationale |
+| 자리 | 흔한 예산 | 까닭 |
 |---------|---------------|-----------|
-| Public credit API | 100-1000 queries | Rate-limited endpoints |
-| Trading signal API | 10-100 queries | Real-time latency constraints |
-| Internal model audit | 10,000+ queries | Controlled evaluation |
+| 열린 미쁨 API | 물음 100~1000 | 잦기가 마디 지어진 끝자리 |
+| 거래 신호 API | 물음 10~100 | 제때 늦음 요건 |
+| 안쪽 모형 살피기 | 물음 10,000 넘음 | 다스려진 따짐 |
 
-### Defenses Against Query Attacks
+### 물음 치기를 막기
 
-- **Query detection**: Monitor for suspicious patterns of similar inputs
-- **Rate limiting**: Restrict the number of queries per user/session
-- **Output perturbation**: Add noise to model outputs to hinder gradient estimation
-- **Stateful detection**: Track query sequences and flag anomalous access patterns
+- **물음 알아내기**: 비슷한 들임의 수상한 결을 지켜본다
+- **잦기 마디 짓기**: 쓰는 이나 한 판마다 물음 수를 옭아맨다
+- **날임 흔들기**: 기울기 어림을 막으려 모형 날임에 잡음을 더한다
+- **상태를 지닌 알아내기**: 물음의 이음을 좇고 튀는 결에 표시한다
 
-## References
+## 살펴볼 거리
 
 1. Ilyas, A., et al. (2018). "Black-Box Adversarial Attacks with Limited Queries and Information." ICML.
 2. Ilyas, A., Engstrom, L., & Madry, A. (2019). "Prior Convictions: Black-Box Adversarial Attacks with Bandits and Priors." ICLR.
 3. Andriushchenko, M., et al. (2020). "Square Attack: A Query-Efficient Black-Box Adversarial Attack via Random Search." ECCV.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a linear classifier $f(x) = w^T x + b$, compute the minimal $\ell_\infty$ perturbation needed to change the predicted class. Relate this to the robustness of neural networks.
+**익힘 1.**
+선형 가름개 $f(x) = w^T x + b$에서 미루어 본 갈래를 바꾸는 데 드는 가장 작은 $\ell_\infty$ 흔듦을 셈하여라. 이것이 신경 그물의 든든함과 어떻게 이어지는지 밝혀라.
 
-??? success "Solution to Exercise 1"
-    For a linear classifier, the distance to the decision boundary under $\ell_\infty$ norm is $\frac{|w^T x + b|}{\|w\|_1}$. The minimal perturbation is $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$. For neural networks, the local linear approximation $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$ explains why FGSM (which uses the sign of the gradient) is effective. The vulnerability of high-dimensional models comes from the fact that $\|w\|_1$ grows with dimension while $|w^T x + b|$ does not necessarily, making the robustness margin shrink. $\square$
-
----
-
-**Exercise 2.**
-Implement the attack or defense described in this section for a ResNet-18 model on CIFAR-10. Report clean accuracy and robust accuracy under PGD-20 attack with $\epsilon = 8/255$.
-
-??? success "Solution to Exercise 2"
-    A standard ResNet-18 achieves $\sim$93% clean accuracy but $\sim$0% robust accuracy under PGD-20 ($\epsilon = 8/255$, step size $2/255$). After applying the method from this section, typical results depend on the specific technique: adversarial training achieves $\sim$83% clean / $\sim$50% robust; certified defenses achieve lower but provable bounds. The accuracy-robustness trade-off is fundamental: improving robustness typically costs 5--15% clean accuracy. Report results averaged over 3 random seeds with standard errors. $\square$
+??? success "익힘 1 풀이"
+    선형 가름개에서 $\ell_\infty$ 노름으로 잰 판단의 금까지의 거리는 $\frac{|w^T x + b|}{\|w\|_1}$이다. 가장 작은 흔듦은 $\delta^* = \frac{|w^T x + b|}{\|w\|_1} \cdot \text{sign}(w)$이다. 신경 그물에서는 그 자리의 선형 어림 $f(x + \delta) \approx f(x) + \nabla_x f \cdot \delta$이 FGSM(기울기의 부호를 쓴다)이 왜 잘 듣는지를 밝혀 준다. 차수가 높은 모형이 무른 까닭은 $\|w\|_1$은 차수와 함께 커지는데 $|w^T x + b|$은 꼭 그렇지 않아 든든함의 여유가 줄어들기 때문이다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that no defense can simultaneously achieve high accuracy on clean data and high robustness against $\ell_\infty$ perturbations without increasing model capacity, under the assumption that the data distribution has overlapping class-conditional supports within the perturbation ball.
+**익힘 2.**
+이 마디에서 다룬 치기나 막이를 CIFAR-10의 ResNet-18 모형에 짜 넣어라. $\epsilon = 8/255$의 PGD-20 치기 아래에서 맑은 맞음과 든든한 맞음을 알려라.
 
-??? success "Solution to Exercise 3"
-    If two classes have support overlap within distance $\epsilon$ (i.e., $\exists x_1 \in \text{class 1}, x_2 \in \text{class 2}$ with $\|x_1 - x_2\|_\infty \leq 2\epsilon$), then any classifier robust at both $x_1$ and $x_2$ must misclassify at least one of them (the perturbation balls overlap). This is the fundamental accuracy-robustness trade-off: the fraction of overlapping support determines the unavoidable accuracy loss. For natural image distributions, significant overlap exists at $\epsilon = 8/255$, explaining the observed 10--15% accuracy drop. Increased model capacity (wider networks) can better approximate the complex robust decision boundary, partially mitigating the trade-off. $\square$
+??? success "익힘 2 풀이"
+    여느 ResNet-18은 맑은 맞음이 $\sim$93%이지만 PGD-20($\epsilon = 8/255$, 걸음 크기 $2/255$) 아래의 든든한 맞음은 $\sim$0%이다. 이 마디의 방법을 걸면 결과는 재주에 따라 다르다. 맞서며 익히기는 맑은 맞음 $\sim$83%에 든든한 맞음 $\sim$50%이고, 밝혀 낸 막이는 더 낮지만 증명할 수 있는 테두리를 준다. 맞음과 든든함의 맞바꿈은 밑바탕부터 있는 것이라, 든든함을 높이면 맑은 맞음이 흔히 5~15% 든다. 아무렇게나 하는 씨앗 3개의 평균과 잣대 어긋남으로 알려라. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how adversarial robustness concerns manifest in a financial machine learning system (e.g., fraud detection or trading signal generation). How does the threat model differ from computer vision?
+**익힘 3.**
+흔듦 공 안에서 갈래별 자료의 밑자리가 서로 겹친다고 볼 때, 모형이 담는 힘을 키우지 않고서는 어떤 막이도 맑은 자료의 높은 맞음과 $\ell_\infty$ 흔듦에 대한 높은 든든함을 함께 이룰 수 없음을 증명하여라.
 
-??? success "Solution to Exercise 4"
-    In finance, adversaries are strategic agents (fraudsters, market manipulators) who actively adapt to detection systems. Key differences from vision: (1) the perturbation space is constrained by what is economically feasible (a fraudster cannot change their entire transaction history); (2) attacks are sequential and adaptive (the adversary observes the system's response and adjusts); (3) the cost of false positives and false negatives is asymmetric (blocking a legitimate transaction vs. missing fraud); (4) $\ell_p$ norms are not meaningful -- domain-specific perturbation models are needed. Defenses must be robust to adaptive adversaries, which rules out many detection-based approaches that can be evaded once the detection criterion is known. $\square$
+??? success "익힘 3 풀이"
+    두 갈래의 밑자리가 거리 $\epsilon$ 안에서 겹치면(곧 $\|x_1 - x_2\|_\infty \leq 2\epsilon$인 $x_1 \in \text{갈래 1}, x_2 \in \text{갈래 2}$이 있으면), $x_1$과 $x_2$ 둘 다에서 든든한 가름개는 적어도 하나를 틀리게 가를 수밖에 없다(흔듦 공이 겹치기 때문이다). 이것이 맞음과 든든함의 밑바탕 맞바꿈이다. 겹치는 밑자리의 몫이 피할 수 없는 맞음 잃음을 정한다. 여느 그림 분포에서는 $\epsilon = 8/255$에서 겹침이 꽤 있어, 살펴본 10~15%의 맞음 떨어짐을 밝혀 준다. 모형이 담는 힘을 키우면(더 너른 그물) 얽힌 든든한 판단의 금을 더 잘 그려 맞바꿈을 얼마쯤 눅일 수 있다. $\square$
+
+---
+
+**익힘 4.**
+금융 기계 배움 얼개(속임수 알아내기나 거래 신호 만들기 따위)에서 맞섬의 든든함이 어떻게 드러나는지 다루어라. 으름 얼개가 보기 다룸과 어떻게 다른가?
+
+??? success "익힘 4 풀이"
+    금융에서 겨루는 이는 알아내는 얼개에 맞추어 스스로 움직이는 꾀 많은 무리(속임수꾼, 저자 흔드는 이)다. 보기 다룸과 다른 고갱이는 이렇다. (1) 흔들 수 있는 밭이 돈으로 될 만한 것에 옭매인다(속임수꾼이 제 거래 자취를 통째로 바꿀 수는 없다). (2) 치기가 잇따르며 맞추어 간다(겨루는 이가 얼개의 되받음을 보고 손본다). (3) 헛 맞음과 놓침의 값이 서로 어긋난다(옳은 거래를 막는 것과 속임수를 놓치는 것). (4) $\ell_p$ 노름은 뜻이 없고 밭에 맞는 흔듦 모형이 있어야 한다. 막이는 맞추어 오는 겨루는 이에게도 든든해야 하므로, 알아내는 잣대가 알려지면 비껴갈 수 있는 알아내기 바탕의 길은 많이 걸러진다. $\square$
