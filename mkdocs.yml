@@ -2210,31 +2210,31 @@ nav:
         - 비트 다루기: ch33/implementation/bits.md
         - 틀 서고: ch33/implementation/templates.md
         - 마구 시험하기: ch33/implementation/stress.md
-    - 34 System Design Data Structures:
-      - Chapter Overview: ch34/index.md
-      - 34.1 Cache Structures:
-        - Least Recently Used Cache: ch34/cache/lru.md
-        - Least Frequently Used Cache: ch34/cache/lfu.md
-        - Adaptive Replacement Cache: ch34/cache/arc.md
-        - Time-To-Live Expiry: ch34/cache/ttl.md
-      - 34.2 Concurrent Data Structures:
-        - Lock-Free Stack: ch34/concurrent/stack.md
-        - Lock-Free Queue: ch34/concurrent/queue.md
-        - Concurrent Hash Map: ch34/concurrent/hash_map.md
-        - Read-Copy-Update: ch34/concurrent/rcu.md
-        - Skip List (Concurrent): ch34/concurrent/skip_list.md
-      - 34.3 Persistent Data Structures:
-        - Fat Nodes: ch34/persistent/fat_nodes.md
-        - Path Copying: ch34/persistent/path_copying.md
-        - Persistent Arrays: ch34/persistent/arrays.md
-        - Persistent Binary Search Trees: ch34/persistent/bst.md
-        - Functional Data Structures: ch34/persistent/functional.md
-      - 34.4 Probabilistic Structures:
-        - Bloom Filters: ch34/probabilistic/bloom.md
-        - Counting Bloom Filters: ch34/probabilistic/counting_bloom.md
-        - Cuckoo Filters: ch34/probabilistic/cuckoo.md
-        - Skip Lists: ch34/probabilistic/skip.md
-        - Treaps: ch34/probabilistic/treap.md
+    - 34 시스템 설계 자료 얼개:
+      - 장 살펴보기: ch34/index.md
+      - 34.1 캐시 얼개:
+        - 가장 오래 안 쓴 캐시: ch34/cache/lru.md
+        - 가장 드물게 쓴 캐시: ch34/cache/lfu.md
+        - 맞춰 가는 갈아 끼우기 캐시: ch34/cache/arc.md
+        - 살날 다함: ch34/cache/ttl.md
+      - 34.2 한꺼번에 쓰는 자료 얼개:
+        - 잠금 없는 스택: ch34/concurrent/stack.md
+        - 잠금 없는 큐: ch34/concurrent/queue.md
+        - 한꺼번에 쓰는 해시 표: ch34/concurrent/hash_map.md
+        - 읽고 베끼고 고치기: ch34/concurrent/rcu.md
+        - 한꺼번에 쓰는 건너뛰기 목록: ch34/concurrent/skip_list.md
+      - 34.3 영속 자료 얼개:
+        - 살진 마디: ch34/persistent/fat_nodes.md
+        - 길 베끼기: ch34/persistent/path_copying.md
+        - 영속 배열: ch34/persistent/arrays.md
+        - 영속 이진 찾기 나무: ch34/persistent/bst.md
+        - 함수형 자료 얼개: ch34/persistent/functional.md
+      - 34.4 확률 얼개:
+        - 블룸 필터: ch34/probabilistic/bloom.md
+        - 세는 블룸 필터: ch34/probabilistic/counting_bloom.md
+        - 뻐꾸기 필터: ch34/probabilistic/cuckoo.md
+        - 건너뛰기 목록: ch34/probabilistic/skip.md
+        - 트립: ch34/probabilistic/treap.md
     - 32 힘 북돋우는 배움의 바탕:
       - 장 살펴보기: ch32/index.md
       - 32.1 들머리:
@@ -2294,55 +2294,55 @@ nav:
         - 저자 만들기 코드: ch33/finance/market_making.md
         - 조각난 거래: ch33/finance/discrete_trading.md
         - 조각난 거래 코드: ch33/finance/discrete_trading.md
-    - 34 Policy-Based Deep Reinforcement Learning:
-      - Chapter Overview: ch34/index.md
-      - 34.1 Policy Gradient Foundations:
-        - Policy Parameterization Code: ch34/foundations/parameterization.md
-        - Policy Gradient Theorem Code: ch34/foundations/pg_theorem.md
-        - REINFORCE Code: ch34/foundations/reinforce.md
-        - Baseline Methods Code: ch34/foundations/baselines.md
-      - 34.2 Actor-Critic:
-        - Actor-Critic Fundamentals: ch34/actor_critic/fundamentals.md
-        - Actor-Critic Fundamentals Code: ch34/actor_critic/fundamentals.md
-        - A2C Code: ch34/actor_critic/a2c.md
-        - A3C Code: ch34/actor_critic/a3c.md
-        - Generalized Advantage Estimation: ch34/actor_critic/gae.md
-        - Generalized Advantage Estimation Code: ch34/actor_critic/gae.md
-      - 34.3 Trust Region Methods:
-        - Trust Region Policy Optimization: ch34/trust_region/trpo.md
-        - Trust Region Policy Optimization Code: ch34/trust_region/trpo.md
-        - Natural Policy Gradient Code: ch34/trust_region/npg.md
-        - Proximal Policy Optimization Code: ch34/trust_region/ppo.md
-        - Proximal Policy Optimization Implementation: ch34/trust_region/ppo_implementation.md
-        - Proximal Policy Optimization Implementation Code: ch34/trust_region/ppo_implementation.md
-      - 34.4 Off-Policy Actor-Critic:
-        - Deep Deterministic Policy Gradient: ch34/off_policy/ddpg.md
-        - Deep Deterministic Policy Gradient Code: ch34/off_policy/ddpg.md
-        - TD3: ch34/off_policy/td3.md
-        - TD3 Code: ch34/off_policy/td3.md
-        - Soft Actor-Critic: ch34/off_policy/sac.md
-        - Soft Actor-Critic Code: ch34/off_policy/sac.md
-        - Soft Actor-Critic Implementation Code: ch34/off_policy/sac_implementation.md
-      - 34.5 Advanced Topics:
-        - Maximum Entropy Reinforcement Learning: ch34/advanced/max_entropy.md
-        - Maximum Entropy Reinforcement Learning Code: ch34/advanced/max_entropy.md
-        - Hierarchical Reinforcement Learning Code: ch34/advanced/hierarchical.md
-        - Multi-Agent Reinforcement Learning: ch34/advanced/multi_agent.md
-        - Multi-Agent Reinforcement Learning Code: ch34/advanced/multi_agent.md
-        - Model-Based Reinforcement Learning: ch34/advanced/model_based.md
-        - Model-Based Reinforcement Learning Code: ch34/advanced/model_based.md
-      - 34.6 Practical Considerations:
-        - Reward Shaping Code: ch34/practical/reward_shaping.md
-        - Action Spaces Code: ch34/practical/action_spaces.md
-        - Observation Normalization Code: ch34/practical/normalization.md
-        - Debugging Reinforcement Learning Code: ch34/practical/debugging.md
-      - 34.7 Finance Applications:
-        - Portfolio Optimization: ch34/finance/portfolio.md
-        - Portfolio Optimization Code: ch34/finance/portfolio.md
-        - Continuous Trading: ch34/finance/continuous_trading.md
-        - Continuous Trading Code: ch34/finance/continuous_trading.md
-        - Risk-Sensitive Reinforcement Learning: ch34/finance/risk_sensitive.md
-        - Risk-Sensitive Reinforcement Learning Code: ch34/finance/risk_sensitive.md
+    - 34 방침 바탕 깊은 힘 북돋우는 배움:
+      - 장 살펴보기: ch34/index.md
+      - 34.1 방침 기울기 바탕:
+        - 방침 매개변수 나타내기 코드: ch34/foundations/parameterization.md
+        - 방침 기울기 정리 코드: ch34/foundations/pg_theorem.md
+        - REINFORCE 코드: ch34/foundations/reinforce.md
+        - 밑금 방법 코드: ch34/foundations/baselines.md
+      - 34.2 행위자-비평가:
+        - 행위자-비평가 바탕: ch34/actor_critic/fundamentals.md
+        - 행위자-비평가 바탕 코드: ch34/actor_critic/fundamentals.md
+        - A2C 코드: ch34/actor_critic/a2c.md
+        - A3C 코드: ch34/actor_critic/a3c.md
+        - 넓힌 이점 어림: ch34/actor_critic/gae.md
+        - 넓힌 이점 어림 코드: ch34/actor_critic/gae.md
+      - 34.3 믿음 구역 방법:
+        - 믿음 구역 방침 가장 좋게 하기: ch34/trust_region/trpo.md
+        - 믿음 구역 방침 가장 좋게 하기 코드: ch34/trust_region/trpo.md
+        - 자연 방침 기울기 코드: ch34/trust_region/npg.md
+        - 가까운 곳 방침 가장 좋게 하기 코드: ch34/trust_region/ppo.md
+        - 가까운 곳 방침 가장 좋게 하기 구현: ch34/trust_region/ppo_implementation.md
+        - 가까운 곳 방침 가장 좋게 하기 구현 코드: ch34/trust_region/ppo_implementation.md
+      - 34.4 벗어난 방침 행위자-비평가:
+        - 깊은 붙박이 방침 기울기: ch34/off_policy/ddpg.md
+        - 깊은 붙박이 방침 기울기 코드: ch34/off_policy/ddpg.md
+        - 쌍둥이 늦춘 DDPG: ch34/off_policy/td3.md
+        - 쌍둥이 늦춘 DDPG 코드: ch34/off_policy/td3.md
+        - 부드러운 행위자-비평가: ch34/off_policy/sac.md
+        - 부드러운 행위자-비평가 코드: ch34/off_policy/sac.md
+        - 부드러운 행위자-비평가 구현 코드: ch34/off_policy/sac_implementation.md
+      - 34.5 높은 주제:
+        - 가장 큰 엔트로피 힘 북돋우는 배움: ch34/advanced/max_entropy.md
+        - 가장 큰 엔트로피 힘 북돋우는 배움 코드: ch34/advanced/max_entropy.md
+        - 켜 있는 힘 북돋우는 배움 코드: ch34/advanced/hierarchical.md
+        - 여러 부림꾼 힘 북돋우는 배움: ch34/advanced/multi_agent.md
+        - 여러 부림꾼 힘 북돋우는 배움 코드: ch34/advanced/multi_agent.md
+        - 모형 바탕 힘 북돋우는 배움: ch34/advanced/model_based.md
+        - 모형 바탕 힘 북돋우는 배움 코드: ch34/advanced/model_based.md
+      - 34.6 실제로 살필 것:
+        - 보상 다듬기 코드: ch34/practical/reward_shaping.md
+        - 움직임 공간 코드: ch34/practical/action_spaces.md
+        - 봄 고르게 하기 코드: ch34/practical/normalization.md
+        - 힘 북돋우는 배움 벌레잡기 코드: ch34/practical/debugging.md
+      - 34.7 금융 쓰임새:
+        - 밑천 나누기 가장 좋게 하기: ch34/finance/portfolio.md
+        - 밑천 나누기 가장 좋게 하기 코드: ch34/finance/portfolio.md
+        - 이어진 거래: ch34/finance/continuous_trading.md
+        - 이어진 거래 코드: ch34/finance/continuous_trading.md
+        - 무릅씀에 예민한 힘 북돋우는 배움: ch34/finance/risk_sensitive.md
+        - 무릅씀에 예민한 힘 북돋우는 배움 코드: ch34/finance/risk_sensitive.md
     - 35 Reinforcement Learning for Quant Finance:
       - Chapter Overview: ch35/index.md
       - 35.1 Database Systems:
