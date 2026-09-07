@@ -9,18 +9,18 @@
 ==============================================================================
 09_mini_batch_training.py
 ==============================================================================
-DIFFICULTY: ⭐⭐⭐⭐ (Advanced)
+어려움: ⭐⭐⭐⭐ (앞선)
 
 DESCRIPTION:
-    Mini-batch gradient descent using PyTorch DataLoader.
-    Efficient training with batches instead of full dataset.
+    PyTorch DataLoader을 쓰는 작은 묶음 기울기 내림.
+    온 자료 묶음 대신 묶음으로 잘 들게 익힌다.
 
 다루는 것:
-    - Dataset and DataLoader classes
-    - Mini-batch gradient descent
-    - Batch size effects
-    - Shuffling and sampling
-    - Training efficiency
+    - Dataset과 DataLoader 갈래
+    - 작은 묶음 기울기 내림
+    - 묶음 크기가 미치는 영향
+    - 섞기와 뽑기
+    - 익힘이 잘 듦
 
 PREREQUISITES:
     - 익힘 05(nn.Module)
@@ -77,8 +77,8 @@ class RegressionDataset(Dataset):
     def __init__(self, X, y):
         """
         Args:
-            X: Feature tensor
-            y: Target tensor
+            X: 특징 텐서
+            y: 과녁 텐서
         """
         self.X = X
         self.y = y
@@ -89,13 +89,13 @@ class RegressionDataset(Dataset):
     
     def __getitem__(self, idx):
         """
-        Return a single sample
+        표본 하나를 돌려준다
         
         Args:
-            idx: Sample index
+            idx: 표본 번호
         
         Returns:
-            tuple: (features, target)
+            튜플: (특징, 과녁)
         """
         return self.X[idx], self.y[idx]
 
@@ -254,31 +254,31 @@ ax.grid(True, alpha=0.3, axis='y')
 # 그림 4: 요약 문구
 ax = axes[1, 1]
 summary_text = """
-BATCH SIZE EFFECTS:
+묶음 크기가 미치는 영향:
 
-Small Batches (32, 128):
-✓ Faster iteration
-✓ More gradient updates
-✓ Noisier gradients
-✓ Better generalization
-✗ Less computational efficiency
+작은 묶음(32, 128):
+✓ 되돌이가 빠르다
+✓ 기울기 고침이 더 잦다
+✓ 기울기에 잡음이 더 많다
+✓ 두루 더 잘 미친다
+✗ 셈이 덜 잘 든다
 
-Medium Batches (512):
-✓ Good balance
-✓ Stable training
+가운데 묶음(512):
+✓ 고루 좋다
+✓ 익힘이 든든하다
 ✓ Efficient
 
-Full Batch (GD):
-✓ Most stable gradients
+온 묶음(기울기 내림):
+✓ 기울기가 가장 든든하다
 ✓ Deterministic
-✗ Slow updates
-✗ Memory intensive
-✗ May overfit
+✗ 고치기가 더디다
+✗ 기억 자리를 많이 쓴다
+✗ 지나치게 맞춰질 수 있다
 
 Recommendation:
-- Start with 32-256
-- Increase if memory allows
-- Monitor validation loss
+- 32~256에서 비롯하라
+- 기억 자리가 넉넉하면 키워라
+- 다짐 잃음을 지켜보아라
 """
 ax.text(0.1, 0.95, summary_text, transform=ax.transAxes,
         fontsize=9, verticalalignment='top', fontfamily='monospace',
@@ -298,7 +298,7 @@ print("PART 6: EFFICIENT TRAINING LOOP TEMPLATE")
 print("=" * 70)
 
 print("""
-STANDARD PYTORCH TRAINING LOOP WITH DATALOADER:
+DataLoader을 쓰는 여느 PyTorch 익힘 되돌이:
 
 # 준비
 train_loader = DataLoader(train_dataset, batch_size=128, shuffle=True)
@@ -308,7 +308,7 @@ optimizer = torch.optim.Adam(model.parameters())
 
 # 학습 루프
 for epoch in range(n_epochs):
-    model.train()  # Set to training mode
+    model.train()  # 익힘 결로 둔다
     
     for batch_X, batch_y in train_loader:
         # 순전파
@@ -325,43 +325,43 @@ for epoch in range(n_epochs):
     with torch.no_grad():
         val_loss = evaluate(model, val_loader)
 
-Key Points:
-1. DataLoader handles batching and shuffling
-2. Each epoch iterates through all batches
-3. One epoch = one pass through entire dataset
-4. Gradients computed per batch, not entire dataset
+고갱이:
+1. DataLoader이 묶음 만들기와 섞기를 다룬다
+2. 판마다 모든 묶음을 훑는다
+3. 한 판 = 온 자료 묶음을 한 번 훑기
+4. 기울기는 온 자료가 아니라 묶음마다 셈한다
 """)
 
 print("\n" + "=" * 70)
 print("SUMMARY")
 print("=" * 70)
 print("""
-Mini-Batch Training:
+작은 묶음 익히기:
 
-1. DATASET CLASS:
-   - Holds data (X, y)
-   - Implements __len__ and __getitem__
-   - Can add data augmentation, transforms
+1. Dataset 갈래:
+   - 자료(X, y)를 지닌다
+   - __len__과 __getitem__을 짠다
+   - 자료 불리기와 바꾸기를 더할 수 있다
 
 2. DATALOADER:
-   - Batches data automatically
-   - Shuffles each epoch
-   - Parallel data loading (num_workers)
-   - Handles last incomplete batch
+   - 자료를 절로 묶는다
+   - 판마다 섞는다
+   - 나란히 자료 불러오기(num_workers)
+   - 마지막의 모자란 묶음을 다룬다
 
-3. BATCH SIZE TRADE-OFFS:
-   - Smaller: Noisy but fast
-   - Larger: Stable but slow
-   - Sweet spot: 32-512
-   - Powers of 2 recommended
+3. 묶음 크기의 맞바꿈:
+   - 작으면 잡음이 많지만 빠르다
+   - 크면 든든하지만 느리다
+   - 알맞은 자리: 32~512
+   - 2의 거듭제곱을 권한다
 
 4. BENEFITS:
-   ✓ Memory efficient (don't load all data)
-   ✓ Faster convergence (more updates)
-   ✓ Better generalization
-   ✓ Enables GPU parallelization
+   ✓ 기억 자리를 아낀다(자료를 모두 올리지 않는다)
+   ✓ 더 빨리 모여든다(고침이 잦다)
+   ✓ 두루 더 잘 미친다
+   ✓ GPU의 나란한 셈을 쓸 수 있다
 
-Next: Tutorial 10 - Complete production pipeline!
+다음: 익힘 10 - 온전한 실전 흐름!
 """)
 
 

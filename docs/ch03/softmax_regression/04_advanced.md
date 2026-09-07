@@ -17,7 +17,7 @@ Learning Goals:
   - Implement softmax regression from scratch (numpy)
   - Advanced regularization techniques (L2, dropout, batch normalization)
   - Learning rate scheduling
-  - Early stopping
+  - 일찍 멈추기
   - Gradient clipping
   - Custom loss functions and metrics
 
@@ -763,7 +763,7 @@ Advanced Techniques Summary:
    - Cosine: Following cosine curve
 
 3. Early Stopping
-   - Monitor validation loss
+   - 다짐 잃음을 지켜보아라
    - Stop when no improvement
    - Save best model
 

@@ -321,7 +321,7 @@ def train_one_epoch(model, train_loader, criterion, optimizer, device):
         avg_loss: Average loss for the epoch
         accuracy: Training accuracy
     """
-    model.train()  # Set to training mode
+    model.train()  # 익힘 결로 둔다
     running_loss = 0.0
     correct = 0
     total = 0

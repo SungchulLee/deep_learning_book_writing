@@ -744,7 +744,7 @@ Project Structure:
 3. Trainer
    - Complete training loop
    - Learning rate scheduling
-   - Early stopping
+   - 일찍 멈추기
    - Best model tracking
    - Comprehensive history
 

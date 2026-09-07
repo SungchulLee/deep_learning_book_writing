@@ -9,22 +9,22 @@
 ==============================================================================
 08_regularization.py
 ==============================================================================
-DIFFICULTY: ⭐⭐⭐⭐ (Advanced)
+어려움: ⭐⭐⭐⭐ (앞선)
 
 DESCRIPTION:
-    L1 and L2 regularization to prevent overfitting.
-    Ridge and Lasso regression with PyTorch.
+    지나치게 맞춰짐을 막는 L1과 L2 정칙화.
+    PyTorch으로 하는 능선 회귀와 라쏘 회귀.
 
 다루는 것:
-    - L1 (Lasso) and L2 (Ridge) regularization
-    - Weight decay in optimizers
-    - Feature selection with L1
-    - Regularization parameter tuning
+    - L1(라쏘)과 L2(능선) 정칙화
+    - 가장 좋게 하개의 무게 줄이기
+    - L1으로 하는 특징 고르기
+    - 정칙화 매개변수 손보기
 
 PREREQUISITES:
-    - Tutorial 07 (Polynomial regression)
+    - 익힘 07(다항 회귀)
 
-TIME: ~30 minutes
+걸리는 때: 30분쯤
 ==============================================================================
 """
 
@@ -100,13 +100,13 @@ print("PART 3: L2 REGULARIZATION (RIDGE)")
 print("=" * 70)
 
 print("""
-L2 Regularization (Ridge):
-  Loss = MSE + λ * Σ(w²)
+L2 정칙화(능선):
+  잃음 = MSE + λ * Σ(w²)
   
-  - Penalizes large weights
-  - Weights shrink towards zero
-  - All features kept (no selection)
-  - Implemented via 'weight_decay' in optimizer
+  - 큰 무게에 벌을 준다
+  - 무게가 0 쪽으로 오그라든다
+  - 특징을 모두 남긴다(고르지 않는다)
+  - 가장 좋게 하개의 'weight_decay'으로 짠다
 """)
 
 # 여러 L2 벌점으로 학습한다
@@ -138,13 +138,13 @@ print("PART 4: L1 REGULARIZATION (LASSO)")
 print("=" * 70)
 
 print("""
-L1 Regularization (Lasso):
-  Loss = MSE + λ * Σ(|w|)
+L1 정칙화(라쏘):
+  잃음 = MSE + λ * Σ(|w|)
   
-  - Penalizes absolute values of weights
-  - Drives some weights exactly to zero
-  - Performs feature selection
-  - Must be implemented manually in PyTorch
+  - 무게의 절댓값에 벌을 준다
+  - 어떤 무게는 딱 0으로 만든다
+  - 특징을 골라 준다
+  - PyTorch에서는 손수 짜야 한다
 """)
 
 def train_with_l1(lambda_l1, n_epochs=500):
@@ -265,28 +265,28 @@ print("\n" + "=" * 70)
 print("SUMMARY")
 print("=" * 70)
 print("""
-REGULARIZATION SUMMARY:
+정칙화 간추림:
 
-L2 Regularization (Ridge):
-✓ Shrinks all weights towards zero
-✓ Keeps all features
-✓ Easy to implement (weight_decay in optimizer)
-✓ Good for correlated features
-✗ Doesn't perform feature selection
+L2 정칙화(능선):
+✓ 모든 무게를 0 쪽으로 오그린다
+✓ 특징을 모두 남긴다
+✓ 짜기 쉽다(가장 좋게 하개의 weight_decay)
+✓ 서로 얽힌 특징에 좋다
+✗ 특징을 골라 주지 않는다
 
-L1 Regularization (Lasso):
-✓ Drives some weights exactly to zero
-✓ Automatic feature selection
-✓ Sparse models (fewer active features)
-✗ Requires manual implementation
-✗ Unstable with correlated features
+L1 정칙화(라쏘):
+✓ 어떤 무게는 딱 0으로 만든다
+✓ 특징을 절로 골라 준다
+✓ 성긴 모형(살아 있는 특징이 적다)
+✗ 손수 짜야 한다
+✗ 서로 얽힌 특징에서는 흔들린다
 
-When to use:
-- L2: When all features might be important
-- L1: When you want feature selection
-- Both (Elastic Net): Combines advantages
+언제 쓸까:
+- L2: 모든 특징이 종요로울 수 있을 때
+- L1: 특징을 골라내고 싶을 때
+- 둘 다(엘라스틱넷): 이점을 아우른다
 
-Implementation in PyTorch:
+PyTorch에서 짜기:
   # L2: 내장 기능
   optimizer = torch.optim.SGD(params, lr=0.01, weight_decay=0.01)
   
@@ -294,7 +294,7 @@ Implementation in PyTorch:
   l1_loss = lambda_l1 * torch.sum(torch.abs(model.weight))
   total_loss = mse_loss + l1_loss
 
-Next: Tutorial 09 - Mini-batch training with DataLoader!
+다음: 익힘 09 - DataLoader으로 하는 작은 묶음 익히기!
 """)
 
 

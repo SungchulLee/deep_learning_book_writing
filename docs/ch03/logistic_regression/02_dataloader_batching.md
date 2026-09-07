@@ -64,7 +64,7 @@ Batch Size = 1 (SGD):
 
 Batch Size = ALL (Full Batch GD):
   ✓ Stable gradients
-  ✗ Memory intensive
+  ✗ 기억 자리를 많이 쓴다
   ✗ 자료가 크면 느리다
 
 Batch Size = 32-256 (Mini-Batch):

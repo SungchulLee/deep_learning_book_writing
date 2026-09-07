@@ -207,22 +207,22 @@ print("""
   ✅ 딱 알맞다
   - 참 함수의 차수와 맞는다
   - 자료에 잘 맞는다
-  - Generalizes well
+  - 두루 잘 미친다
   
 Degree 5:
-  ⚠️ STARTING TO OVERFIT
-  - More flexible than needed
-  - Fits noise in training data
-  - May not generalize well
+  ⚠️ 지나치게 맞춰지기 비롯한다
+  - 필요한 것보다 너그럽다
+  - 익힘 자료의 잡음까지 맞춘다
+  - 두루 잘 미치지 못할 수 있다
 
 Degree 10:
-  ❌ SEVERE OVERFITTING
-  - Extremely flexible
-  - Fits training data too closely
-  - Wiggly, unrealistic predictions
-  - Poor generalization
+  ❌ 크게 지나치게 맞춰졌다
+  - 지나치게 너그럽다
+  - 익힘 자료에 너무 바짝 맞춘다
+  - 구불구불하고 참되지 않은 예측
+  - 두루 미침이 나쁘다
   
-KEY INSIGHT: Choose model complexity to match problem complexity!
+고갱이 눈썰미: 문제의 복잡도에 맞추어 모형 복잡도를 골라라!
 """)
 
 # ============================================================================
@@ -260,30 +260,30 @@ print("\n" + "=" * 70)
 print("SUMMARY")
 print("=" * 70)
 print("""
-Polynomial Regression Key Points:
+다항 회귀의 고갱이:
 
-1. Feature Engineering:
-   - Transform X into [1, X, X², X³, ...]
-   - Still linear in parameters (it's still linear regression!)
-   - Can fit non-linear relationships
+1. 특징 만들기:
+   - X을 [1, X, X², X³, ...]으로 바꾼다
+   - 매개변수에 대해서는 여전히 선형이다(여전히 선형 회귀다!)
+   - 비선형 관계에도 맞출 수 있다
 
-2. Model Complexity:
-   - Higher degree = more flexible
-   - Too simple = underfitting (high bias)
-   - Too complex = overfitting (high variance)
+2. 모형 복잡도:
+   - 차수가 높을수록 너그럽다
+   - 너무 단순하면 덜 맞춰진다(치우침이 크다)
+   - 너무 복잡하면 지나치게 맞춰진다(흩어짐이 크다)
 
-3. Choosing Degree:
-   - Use domain knowledge
-   - Use validation set
-   - Try different degrees and compare
+3. 차수 고르기:
+   - 그 분야의 앎을 쓴다
+   - 다짐 묶음을 쓴다
+   - 여러 차수를 써 보고 견준다
 
-4. Overfitting Prevention (next tutorial):
+4. 지나치게 맞춰짐 막기(다음 익힘):
    - Regularization (L1, L2)
-   - More training data
+   - 익힘 자료를 더 모은다
    - Cross-validation
-   - Early stopping
+   - 일찍 멈추기
 
-Next: Tutorial 08 - Regularization!
+다음: 익힘 08 - 정칙화!
 """)
 
 

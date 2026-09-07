@@ -122,7 +122,7 @@ class CSVDataset(Dataset):
             idx (int): Index of sample to retrieve
             
         Returns:
-            tuple: (features, target)
+            튜플: (특징, 과녁)
         """
         # 특징과 목표를 얻는다
         features = torch.FloatTensor(self.X[idx])

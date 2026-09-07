@@ -9,18 +9,18 @@
 ==============================================================================
 10_complete_pipeline.py
 ==============================================================================
-DIFFICULTY: ⭐⭐⭐⭐⭐ (Advanced)
+어려움: ⭐⭐⭐⭐⭐ (앞선)
 
 DESCRIPTION:
-    Complete production-ready training pipeline with all best practices.
-    Includes train/val/test split, early stopping, model checkpointing,
-    logging, and comprehensive evaluation.
+    좋은 버릇을 모두 담아 참으로 굴릴 수 있는 온전한 익힘 흐름.
+    익힘/다짐/시험 나누기, 일찍 멈추기, 모형 되짚음 저장,
+    적바림, 두루 갖춘 따짐을 담는다.
 
 다루는 것:
-    - Complete training pipeline
-    - Train/validation/test splits
-    - Early stopping
-    - Model checkpointing
+    - 온전한 익힘 흐름
+    - 익힘/다짐/시험 나누기
+    - 일찍 멈추기
+    - 모형 되짚음 저장
     - Learning rate scheduling
     - Comprehensive evaluation
     - Reproducibility
