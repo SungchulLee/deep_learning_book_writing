@@ -1,111 +1,112 @@
-# 34.5.4 Model-Based Reinforcement Learning
-## Introduction
+# 34.5.4 모형 바탕 힘 북돋우는 배움
 
-Model-based RL learns a dynamics model $\hat{P}(s'|s,a)$ of the environment and uses it to improve sample efficiency. By planning or generating synthetic data through the learned model, agents can learn effective policies with far fewer real environment interactions.
+## 들머리
 
-## Approaches
+모형 바탕 힘 북돋우는 배움은 둘레의 움직임 모형 $\hat{P}(s'|s,a)$을 배워 뽑기 효율을 높인다. 배운 모형으로 짜거나 가짜 자료를 지어내면 부림꾼이 참 둘레와 훨씬 적게 주고받으면서도 잘 듣는 방침을 배울 수 있다.
 
-### Dyna-Style Methods
-Interleave real environment interaction with model-based rollouts:
+## 여러 길
 
-1. Interact with real environment, store transitions
-2. Train dynamics model on real data
-3. Generate synthetic transitions from the model
-4. Train policy on both real and synthetic data
+### 다이나 꼴 방법
+참 둘레와 주고받기와 모형 바탕 굴림을 번갈아 한다.
 
-### Model Predictive Control (MPC)
-Use the learned model for online planning:
+1. 참 둘레와 주고받으며 넘어감을 갈무리한다
+2. 참 자료로 움직임 모형을 익힌다
+3. 모형에서 가짜 넘어감을 지어낸다
+4. 참 자료와 가짜 자료로 방침을 익힌다
 
-1. At each state, simulate multiple action sequences through the model
-2. Select the action sequence with highest predicted return
-3. Execute the first action, re-plan at next step
+### 모형 미리 보는 다스리기(MPC)
+배운 모형으로 잇달아 짠다.
 
-### Analytic Gradients
-Differentiate through the learned model to compute policy gradients:
+1. 상태마다 여러 움직임 열을 모형으로 흉내 낸다
+2. 미리 본 돌아옴이 가장 높은 움직임 열을 고른다
+3. 첫 움직임을 벌이고 다음 걸음에서 다시 짠다
+
+### 풀어낸 기울기
+배운 모형을 거쳐 미분하여 방침 기울기를 셈한다.
 
 $$\nabla_\theta J \approx \nabla_\theta \sum_t \hat{r}(s_t, \pi_\theta(s_t))$$
 
-where trajectories are unrolled through the differentiable model.
+여기서 자취는 미분할 수 있는 모형을 거쳐 펼친다.
 
-## Key Algorithms
+## 종요로운 알고리즘
 
-### MBPO (Model-Based Policy Optimization)
-Janner et al., 2019:
+### MBPO(모형 바탕 방침 가장 좋게 하기)
+재너 외, 2019:
 
-- Train an ensemble of dynamics models for uncertainty estimation
-- Generate short model rollouts from real data start states
-- Train SAC on a mix of real and model data
-- Short rollout horizons mitigate model error compounding
+- 헤아릴 수 없음을 어림하려 움직임 모형 무리를 익힌다
+- 참 자료의 시작 상태에서 짧은 모형 굴림을 지어낸다
+- 참 자료와 모형 자료를 섞어 SAC를 익힌다
+- 굴림 눈길이 짧으면 모형 잘못이 쌓이는 것이 누그러진다
 
 ### Dreamer
-Hafner et al., 2020:
+하프너 외, 2020:
 
-- Learn a world model in latent space
-- Train actor-critic entirely in imagination (latent rollouts)
-- Achieve strong performance from pixels with minimal real data
+- 숨은 공간에서 세상 모형을 배운다
+- 온전히 그려 보기(숨은 굴림) 안에서 행위자-비평가를 익힌다
+- 참 자료를 아주 적게 쓰고도 그림점에서 좋은 됨됨이를 이룬다
 
-### PETS (Probabilistic Ensemble Trajectory Sampling)
-- Ensemble of neural network models
-- CEM-based planning through ensemble predictions
-- Uncertainty quantification via ensemble disagreement
+### PETS(확률 무리 자취 뽑기)
+- 신경망 모형의 무리
+- 무리 미리 보기를 거친 CEM 바탕 짜기
+- 무리의 엇갈림으로 헤아릴 수 없음 재기
 
-## Model Architecture
+## 모형 얼개
 
-Dynamics models predict $(\hat{s}', \hat{r}) = f_\psi(s, a)$:
+움직임 모형은 $(\hat{s}', \hat{r}) = f_\psi(s, a)$을 미리 본다.
 
-- **Deterministic**: Direct prediction of next state
-- **Probabilistic**: Output Gaussian parameters $(\mu, \sigma)$
-- **Ensemble**: $K$ models for uncertainty estimation
-- **Latent space**: Learn compact representations for planning
+- **붙박인 것**: 다음 상태를 곧바로 미리 본다
+- **확률인 것**: 가우스 매개변수 $(\mu, \sigma)$을 내놓는다
+- **무리**: 헤아릴 수 없음을 어림하려 모형 $K$개를 쓴다
+- **숨은 공간**: 짜기를 위해 야무진 나타내기를 배운다
 
-## Challenges
+## 어려움
 
-1. **Model error compounding**: Small per-step errors accumulate over long horizons
-2. **Distribution shift**: Model trained on data from old policies
-3. **Computational cost**: Planning through the model is expensive
-4. **Exploration**: Models may be inaccurate in unexplored regions
+1. **모형 잘못 쌓임**: 걸음마다의 작은 잘못이 긴 눈길에 걸쳐 쌓인다
+2. **분포 옮겨감**: 모형이 옛 방침의 자료로 익혀져 있다
+3. **셈하는 비용**: 모형을 거쳐 짜는 일이 비싸다
+4. **살펴보기**: 살펴보지 않은 자리에서는 모형이 맞지 않을 수 있다
 
-## Finance Applications
+## 금융 쓰임새
 
-Model-based RL is particularly appealing for finance:
+모형 바탕 힘 북돋우는 배움은 금융에 남달리 솔깃하다.
 
-- **Sample efficiency**: Real market data is limited and expensive
-- **Market simulators**: Models can generate realistic market scenarios
-- **Risk assessment**: Model uncertainty provides risk estimates
-- **Regime changes**: Models can adapt to changing market dynamics
+- **뽑기 효율**: 참 저자 자료는 모자라고 비싸다
+- **저자 흉내내개**: 모형이 그럴듯한 저자 자리를 지어낼 수 있다
+- **무릅씀 따지기**: 모형의 헤아릴 수 없음이 무릅씀 어림을 준다
+- **판 바뀜**: 모형이 바뀌는 저자 움직임에 맞춰 갈 수 있다
 
-## Summary
+## 요약
 
-Model-based RL dramatically improves sample efficiency by leveraging learned dynamics models. The key challenge is managing model errors, addressed through ensembles, short rollout horizons, and mixing real and model data. For finance applications where data is scarce, model-based approaches offer compelling advantages.
+모형 바탕 힘 북돋우는 배움은 배운 움직임 모형을 살려 뽑기 효율을 크게 높인다. 종요로운 어려움은 모형 잘못을 다스리는 것이며, 무리와 짧은 굴림 눈길, 참 자료와 모형 자료 섞기로 다룬다. 자료가 모자란 금융 쓰임새에서 모형 바탕 길은 솔깃한 이로움을 준다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$

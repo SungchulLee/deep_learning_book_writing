@@ -1,118 +1,119 @@
-# 34.5.1 Maximum Entropy Reinforcement Learning
-## Introduction
+# 34.5.1 가장 큰 엔트로피 힘 북돋우는 배움
 
-Maximum entropy RL augments the standard RL objective with an entropy bonus, encouraging agents to act as randomly as possible while still achieving high reward. This framework provides a principled approach to exploration, robustness, and multi-modal behavior, forming the theoretical foundation for SAC and other entropy-regularized methods.
+## 들머리
 
-## Framework
+가장 큰 엔트로피 힘 북돋우는 배움은 여느 목표에 엔트로피 덤을 더해, 부림꾼이 높은 보상을 얻으면서도 될 수 있는 한 아무렇게나 움직이도록 북돋운다. 이 틀은 살펴보기, 굳셈, 여러 봉우리 거동에 이치 있는 길을 주며 SAC를 비롯한 엔트로피 정칙화 방법의 이치 바탕이 된다.
 
-### Entropy-Augmented Objective
+## 틀
+
+### 엔트로피를 더한 목표
 
 $$J(\pi) = \sum_{t=0}^{T} \mathbb{E}\left[r(s_t, a_t) + \alpha \mathcal{H}(\pi(\cdot|s_t))\right]$$
 
-where $\mathcal{H}(\pi(\cdot|s)) = -\mathbb{E}_{a \sim \pi}[\log \pi(a|s)]$ is the policy entropy and $\alpha > 0$ is the temperature parameter.
+여기서 $\mathcal{H}(\pi(\cdot|s)) = -\mathbb{E}_{a \sim \pi}[\log \pi(a|s)]$은 방침 엔트로피이고 $\alpha > 0$은 온도 매개변수다.
 
-### Soft Bellman Equations
+### 부드러운 벨만 식
 
-The soft value functions satisfy modified Bellman equations:
+부드러운 값 함수는 고친 벨만 식을 채운다.
 
-**Soft Q-function**:
+**부드러운 Q 함수**:
 
-$$Q_\text{soft}(s, a) = r(s, a) + \gamma \mathbb{E}_{s'}\left[V_\text{soft}(s')\right]$$
+$$Q_\text{부드러운}(s, a) = r(s, a) + \gamma \mathbb{E}_{s'}\left[V_\text{부드러운}(s')\right]$$
 
-**Soft value function**:
+**부드러운 값 함수**:
 
-$$V_\text{soft}(s) = \mathbb{E}_{a \sim \pi}\left[Q_\text{soft}(s, a) - \alpha \log \pi(a|s)\right]$$
+$$V_\text{부드러운}(s) = \mathbb{E}_{a \sim \pi}\left[Q_\text{부드러운}(s, a) - \alpha \log \pi(a|s)\right]$$
 
-Equivalently: $V_\text{soft}(s) = \alpha \log \sum_a \exp\left(\frac{1}{\alpha}Q_\text{soft}(s,a)\right)$ (soft max).
+이와 같은 뜻으로 $V_\text{부드러운}(s) = \alpha \log \sum_a \exp\left(\frac{1}{\alpha}Q_\text{부드러운}(s,a)\right)$이다(부드러운 최댓값).
 
-### Optimal Policy
+### 가장 좋은 방침
 
-The optimal maximum entropy policy is a Boltzmann distribution:
+가장 좋은 가장 큰 엔트로피 방침은 볼츠만 분포다.
 
-$$\pi^*(a|s) = \frac{\exp(Q_\text{soft}^*(s,a) / \alpha)}{Z(s)}$$
+$$\pi^*(a|s) = \frac{\exp(Q_\text{부드러운}^*(s,a) / \alpha)}{Z(s)}$$
 
-where $Z(s) = \sum_a \exp(Q_\text{soft}^*(s,a) / \alpha)$ is the partition function.
+여기서 $Z(s) = \sum_a \exp(Q_\text{부드러운}^*(s,a) / \alpha)$은 나눔 함수다.
 
-## Benefits of Maximum Entropy
+## 가장 큰 엔트로피의 이로움
 
-### 1. Improved Exploration
-The entropy bonus prevents premature convergence to deterministic policies, ensuring continued exploration of the state space.
+### 1. 나아진 살펴보기
+엔트로피 덤은 붙박인 방침으로 너무 일찍 모이는 것을 막아 상태 공간을 계속 살펴보게 한다.
 
-### 2. Robustness
-By maintaining stochastic policies, maximum entropy agents are more robust to perturbations in the environment dynamics and reward function.
+### 2. 굳셈
+확률 방침을 지니므로 가장 큰 엔트로피 부림꾼은 둘레 움직임과 보상 함수의 흔들림에 더 굳세다.
 
-### 3. Multi-Modal Behavior
-When multiple strategies achieve similar reward, the entropy bonus encourages maintaining all strategies rather than collapsing to one.
+### 3. 여러 봉우리 거동
+여러 꾀가 비슷한 보상을 이룰 때 엔트로피 덤은 하나로 무너지지 않고 온 꾀를 지니도록 북돋운다.
 
-### 4. Connection to Inference
-Maximum entropy RL has deep connections to probabilistic inference, enabling variational approaches to policy optimization.
+### 4. 추론과의 이음
+가장 큰 엔트로피 힘 북돋우는 배움은 확률 추론과 깊이 이어져 있어, 방침 가장 좋게 하기에 변분 길을 쓸 수 있게 한다.
 
-## Temperature Parameter alpha
+## 온도 매개변수 alpha
 
-The temperature controls the exploration-exploitation trade-off:
+온도는 살펴보기와 써먹기의 맞바꿈을 다스린다.
 
-- $\alpha \to 0$: Standard (reward-maximizing) RL
-- $\alpha \to \infty$: Uniform random policy
-- Intermediate $\alpha$: Balanced exploration with reward optimization
+- $\alpha \to 0$: 여느(보상을 가장 크게 하는) 힘 북돋우는 배움
+- $\alpha \to \infty$: 고른 마구잡이 방침
+- 그 사이 $\alpha$: 살펴보기와 보상 가장 좋게 하기의 저울이 맞음
 
-### Automatic Tuning
+### 저절로 벼리기
 
-The constrained formulation finds $\alpha^*$:
+매인 꼴이 $\alpha^*$을 찾는다.
 
-$$\alpha^* = \arg\min_{\alpha > 0} \mathbb{E}_\pi\left[-\alpha \log \pi(a|s)\right] \text{ s.t. } \mathcal{H}(\pi) \geq \bar{\mathcal{H}}$$
+$$\alpha^* = \arg\min_{\alpha > 0} \mathbb{E}_\pi\left[-\alpha \log \pi(a|s)\right] \text{ 단 } \mathcal{H}(\pi) \geq \bar{\mathcal{H}}$$
 
-This dual formulation automatically adjusts $\alpha$ to maintain target entropy $\bar{\mathcal{H}}$.
+이 쌍대 꼴은 겨눈 엔트로피 $\bar{\mathcal{H}}$을 지키도록 $\alpha$을 저절로 맞춘다.
 
-## Soft Policy Iteration
+## 부드러운 방침 되풀이
 
-Maximum entropy RL can be solved via soft policy iteration:
+가장 큰 엔트로피 힘 북돋우는 배움은 부드러운 방침 되풀이로 풀 수 있다.
 
-1. **Soft Policy Evaluation**: Compute $Q_\text{soft}^\pi$ via repeated application of the soft Bellman operator
-2. **Soft Policy Improvement**: Update policy toward the soft-optimal distribution
+1. **부드러운 방침 따지기**: 부드러운 벨만 연산자를 되풀이 매겨 $Q_\text{부드러운}^\pi$을 셈한다
+2. **부드러운 방침 좋게 하기**: 방침을 부드러운 뜻의 가장 좋은 분포로 고친다
 
-Convergence is guaranteed to the optimal maximum entropy policy.
+가장 좋은 가장 큰 엔트로피 방침으로 모임이 보장된다.
 
-## Applications Beyond SAC
+## SAC 너머의 쓰임새
 
-Maximum entropy concepts appear in several contexts:
+가장 큰 엔트로피 생각은 여러 자리에 나타난다.
 
-- **Exploration bonuses**: Adding entropy-like terms to encourage diverse behavior
-- **Inverse RL**: Maximum entropy IRL for learning reward functions from demonstrations
-- **Skill discovery**: Entropy maximization over skill distributions (DIAYN)
-- **Robust control**: Entropy regularization provides robustness margins
+- **살펴보기 덤**: 여러 갈래 거동을 북돋우려 엔트로피 같은 마디를 더한다
+- **거꾸로 힘 북돋우는 배움**: 보여 준 것에서 보상 함수를 배우는 가장 큰 엔트로피 IRL
+- **재주 찾기**: 재주 분포에 대한 엔트로피 크게 하기(DIAYN)
+- **굳센 다스리기**: 엔트로피 정칙화가 굳셈의 여유를 준다
 
-## Summary
+## 요약
 
-Maximum entropy RL provides a principled framework for balancing reward maximization with exploration through entropy regularization. The soft Bellman equations and Boltzmann optimal policy form the theoretical basis for SAC and related algorithms, offering improved robustness and multi-modal behavior compared to standard RL.
+가장 큰 엔트로피 힘 북돋우는 배움은 엔트로피 정칙화로 보상 크게 하기와 살펴보기의 저울을 맞추는 이치 있는 틀을 준다. 부드러운 벨만 식과 볼츠만 가장 좋은 방침이 SAC와 그 언저리 알고리즘의 이치 바탕을 이루며, 여느 힘 북돋우는 배움보다 나은 굳셈과 여러 봉우리 거동을 준다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$

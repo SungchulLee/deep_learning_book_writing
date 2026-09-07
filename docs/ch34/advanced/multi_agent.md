@@ -1,94 +1,95 @@
-# 34.5.3 Multi-Agent Reinforcement Learning
-## Introduction
+# 34.5.3 여러 부림꾼 힘 북돋우는 배움
 
-Multi-Agent RL (MARL) extends single-agent policy optimization to settings with multiple interacting agents. In finance, this models competitive markets, cooperative portfolio management, and adversarial scenarios like market making against informed traders.
+## 들머리
 
-## Problem Formulation
+여러 부림꾼 힘 북돋우는 배움(MARL)은 부림꾼 하나의 방침 가장 좋게 하기를 여럿이 서로 주고받는 자리로 넓힌다. 금융에서는 겨루는 저자, 함께하는 밑천 다루기, 그리고 아는 이를 상대로 하는 저자 만들기 같은 맞서는 자리를 이 틀로 그린다.
 
-A **Markov Game** (Stochastic Game) extends the MDP to $N$ agents:
+## 문제 세우기
 
-- **State**: $s \in \mathcal{S}$ (global or partially observed)
-- **Actions**: $a = (a_1, \ldots, a_N)$, joint action of all agents
-- **Transitions**: $P(s'|s, a_1, \ldots, a_N)$
-- **Rewards**: $r_i(s, a_1, \ldots, a_N)$ per agent $i$
+**마르코프 놀이**(확률 놀이)는 마르코프 결정 과정을 부림꾼 $N$개로 넓힌다.
 
-## Paradigms
+- **상태**: $s \in \mathcal{S}$(온 세상이거나 조각만 보이는 것)
+- **움직임**: $a = (a_1, \ldots, a_N)$, 온 부림꾼의 함께하는 움직임
+- **넘어감**: $P(s'|s, a_1, \ldots, a_N)$
+- **보상**: 부림꾼 $i$마다 $r_i(s, a_1, \ldots, a_N)$
 
-### Independent Learning
-Each agent learns independently, treating other agents as part of the environment. Simple but suffers from non-stationarity as all agents change simultaneously.
+## 틀거리
 
-### Centralized Training, Decentralized Execution (CTDE)
-During training, agents share information (observations, actions). During execution, each agent acts based only on its local observations. This is the dominant paradigm.
+### 홀로 배우기
+부림꾼마다 홀로 배우며 다른 부림꾼을 둘레의 한 몫으로 여긴다. 쉽지만 모든 부림꾼이 한꺼번에 바뀌므로 흐름 바뀜으로 앓는다.
 
-### Fully Centralized
-A single policy controls all agents. Scales poorly with agent count but provides optimal coordination.
+### 가운데 모아 익히고 흩어 부리기(CTDE)
+익히는 동안 부림꾼이 알림(봄, 움직임)을 함께 쓴다. 부릴 때에는 부림꾼마다 제 언저리 봄만으로 움직인다. 이것이 판치는 틀거리다.
 
-## Key Algorithms
+### 온전히 가운데 모으기
+방침 하나가 온 부림꾼을 다스린다. 부림꾼 수가 늘면 잘 늘어나지 않지만 가장 좋은 발맞춤을 준다.
 
-### MADDPG (Multi-Agent DDPG)
-Extends DDPG to multi-agent settings with centralized critics:
+## 종요로운 알고리즘
 
-- Each agent $i$ has actor $\mu_{\theta_i}(o_i)$ and critic $Q_{\phi_i}(s, a_1, \ldots, a_N)$
-- Critics see all agents' observations and actions (centralized)
-- Actors only see local observations (decentralized)
+### MADDPG(여러 부림꾼 DDPG)
+가운데 모은 비평가를 두어 DDPG를 여러 부림꾼 자리로 넓힌다.
 
-### MAPPO (Multi-Agent PPO)
-Applies PPO independently to each agent with a shared or agent-specific value function that conditions on global state. Surprisingly competitive with more complex methods.
+- 부림꾼 $i$마다 행위자 $\mu_{\theta_i}(o_i)$과 비평가 $Q_{\phi_i}(s, a_1, \ldots, a_N)$을 지닌다
+- 비평가는 온 부림꾼의 봄과 움직임을 본다(가운데 모음)
+- 행위자는 제 언저리 봄만 본다(흩어 놓음)
+
+### MAPPO(여러 부림꾼 PPO)
+온 세상 상태에 매인, 함께 쓰거나 부림꾼마다 따로 둔 값 함수와 함께 PPO를 부림꾼마다 홀로 매긴다. 더 얽힌 방법에 놀랍도록 뒤지지 않는다.
 
 ### QMIX
-For cooperative tasks, decomposes the joint Q-function into agent-specific utilities:
+함께하는 일감에서 함께하는 Q 함수를 부림꾼마다의 쓸모로 나눈다.
 
-$$Q_\text{tot}(s, \mathbf{a}) = f(Q_1(o_1, a_1), \ldots, Q_N(o_N, a_N); s)$$
+$$Q_\text{온}(s, \mathbf{a}) = f(Q_1(o_1, a_1), \ldots, Q_N(o_N, a_N); s)$$
 
-where $f$ is a monotonic mixing function ensuring consistent greedy action selection.
+여기서 $f$은 한결같이 늘어나는 섞음 함수로, 욕심쟁이 움직임 고르기가 어긋나지 않게 한다.
 
-## Challenges
+## 어려움
 
-1. **Non-stationarity**: Each agent's environment changes as others learn
-2. **Credit assignment**: Attributing team reward to individual agents
-3. **Scalability**: Joint action space grows exponentially with agents
-4. **Partial observability**: Agents typically have limited views
-5. **Equilibrium selection**: Multiple Nash equilibria may exist
+1. **흐름 바뀜**: 다른 부림꾼이 배우므로 부림꾼마다 제 둘레가 바뀐다
+2. **몫 매기기**: 무리 보상을 부림꾼 저마다에게 나누어 매기기
+3. **늘어남**: 함께하는 움직임 공간이 부림꾼 수에 따라 지수로 커진다
+4. **조각만 보임**: 부림꾼이 흔히 좁은 눈길만 지닌다
+5. **고른 자리 고르기**: 내시 고른 자리가 여럿일 수 있다
 
-## Finance Applications
+## 금융 쓰임새
 
-- **Market simulation**: Multiple trading agents creating realistic order flow
-- **Multi-asset management**: Cooperative agents managing portfolio sectors
-- **Adversarial trading**: Market makers vs. informed traders
-- **Auction mechanisms**: Bidding strategies in financial markets
+- **저자 흉내내기**: 거래 부림꾼 여럿이 그럴듯한 주문 흐름을 만든다
+- **여러 자산 다루기**: 함께하는 부림꾼이 밑천의 갈래를 나누어 맡는다
+- **맞서는 거래**: 저자 만드는 이와 아는 거래꾼의 맞섬
+- **경매 장치**: 금융 저자에서의 값 부르기 꾀
 
-## Summary
+## 요약
 
-MARL extends policy-based methods to multi-agent settings, with CTDE being the dominant paradigm. Applications in finance leverage both cooperative (portfolio management) and competitive (market making) formulations.
+MARL은 방침 바탕 방법을 여러 부림꾼 자리로 넓히며 CTDE가 판치는 틀거리다. 금융 쓰임새는 함께하는 꼴(밑천 다루기)과 겨루는 꼴(저자 만들기)을 모두 살린다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$
