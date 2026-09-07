@@ -9,22 +9,22 @@
 ==============================================================================
 07_polynomial_regression.py
 ==============================================================================
-DIFFICULTY: ⭐⭐⭐ (Intermediate-Advanced)
+어려움: ⭐⭐⭐ (가운데~앞선)
 
 DESCRIPTION:
-    Polynomial regression to fit non-linear relationships.
-    Demonstrates feature engineering and overfitting.
+    비선형 관계에 맞추는 다항 회귀.
+    특징 만들기와 지나치게 맞춰짐을 보인다.
 
 다루는 것:
-    - Polynomial feature expansion
-    - Overfitting vs underfitting
-    - Model complexity trade-offs
-    - Feature engineering
+    - 다항 특징 넓히기
+    - 지나치게 맞춰짐과 덜 맞춰짐 견주기
+    - 모형 복잡도의 맞바꿈
+    - 특징 만들기
 
 PREREQUISITES:
-    - Tutorial 06 (Multivariate regression)
+    - 익힘 06(다변량 회귀)
 
-TIME: ~25 minutes
+걸리는 때: 25분쯤
 ==============================================================================
 """
 
@@ -65,9 +65,9 @@ print("=" * 70)
 
 def create_polynomial_features(X, degree):
     """
-    Create polynomial features up to specified degree
+    밝힌 차수까지 다항 특징을 만든다
     
-    For X and degree=3:
+    X과 degree=3이면
         Returns: [1, X, X², X³]
     """
     X = X.reshape(-1, 1)
@@ -81,11 +81,11 @@ X_tensor = torch.FloatTensor(X).reshape(-1, 1)
 y_tensor = torch.FloatTensor(y).reshape(-1, 1)
 
 print("""
-Polynomial Features:
-- Degree 1 (Linear): [1, X]
-- Degree 2 (Quadratic): [1, X, X²]
-- Degree 3 (Cubic): [1, X, X², X³]
-- Higher degrees: More complex curves
+다항 특징:
+- 차수 1(선형): [1, X]
+- 차수 2(이차): [1, X, X²]
+- 차수 3(삼차): [1, X, X², X³]
+- 더 높은 차수: 더 복잡한 굽이
 """)
 
 # ============================================================================
@@ -190,23 +190,23 @@ print("PART 5: ANALYSIS")
 print("=" * 70)
 
 print("""
-MODEL COMPLEXITY ANALYSIS:
+모형 복잡도 살피기:
 
-Degree 1 (Linear):
+차수 1(선형):
   ❌ UNDERFITTING
-  - Too simple to capture the cubic relationship
-  - High training error
-  - High test error (if we had test data)
+  - 너무 단순해서 삼차 관계를 담지 못한다
+  - 익힘 어긋남이 크다
+  - 시험 어긋남도 크다(시험 자료가 있다면)
 
-Degree 2 (Quadratic):
-  ⚠️ STILL UNDERFITTING
-  - Better than linear but not enough
-  - Can't capture cubic term
+차수 2(이차):
+  ⚠️ 여전히 덜 맞춰졌다
+  - 선형보다는 낫지만 아직 모자라다
+  - 삼차 마디를 담지 못한다
   
-Degree 3 (Cubic):
-  ✅ JUST RIGHT
-  - Matches the true function degree
-  - Good fit to data
+차수 3(삼차):
+  ✅ 딱 알맞다
+  - 참 함수의 차수와 맞는다
+  - 자료에 잘 맞는다
   - Generalizes well
   
 Degree 5:

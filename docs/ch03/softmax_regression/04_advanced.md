@@ -62,7 +62,7 @@ class SoftmaxRegressionNumPy:
         Initialize the softmax regression model.
         
         Args:
-            input_dim: Number of input features
+            input_dim: 들임 특징의 수
             num_classes: Number of output classes
             lr: Learning rate
             reg_lambda: L2 regularization parameter

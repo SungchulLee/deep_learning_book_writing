@@ -23,9 +23,9 @@ DESCRIPTION:
     - Training efficiency
 
 PREREQUISITES:
-    - Tutorial 05 (nn.Module)
+    - 익힘 05(nn.Module)
 
-TIME: ~25 minutes
+걸리는 때: 25분쯤
 ==============================================================================
 """
 

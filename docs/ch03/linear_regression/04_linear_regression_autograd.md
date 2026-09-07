@@ -281,23 +281,23 @@ axes[1, 0].grid(True, alpha=0.3)
 
 # 그림 4: 비교 표
 comparison_text = f"""
-AUTOGRAD VS MANUAL GRADIENTS
+자동 미분과 손수 하는 기울기 견주기
 
-Code Complexity:
-  Manual:   5+ lines for gradient formulas
-  Autograd: 1 line (loss.backward())
+코드 복잡도:
+  손수:   기울기 식에 5줄 넘게 든다
+  자동 미분: 한 줄이면 된다(loss.backward())
 
 Flexibility:
-  Manual:   Hard to extend
-  Autograd: Works for any function
+  손수:   넓히기 어렵다
+  자동 미분: 어떤 함수에도 통한다
 
 Errors:
-  Manual:   Easy to make mistakes
-  Autograd: Automatic, no mistakes
+  손수:   실수하기 쉽다
+  자동 미분: 절로 되니 실수가 없다
 
 Performance:
-  Manual:   Similar
-  Autograd: Highly optimized
+  손수:   비슷하다
+  자동 미분: 아주 잘 다듬어져 있다
 
 Results:
   Final w: {w.item():.4f} (Error: {abs(w.item()-TRUE_W):.4f})
@@ -321,19 +321,19 @@ print("=" * 70)
 print("""
 고갱이 배움:
 
-1. AUTOGRAD BASICS:
+1. 자동 미분 기초:
    - 매개변수에 requires_grad=True을 둔다
-   - PyTorch builds computational graph automatically
+   - PyTorch이 셈 그래프를 절로 세운다
    - .backward()을 불러 모든 기울기를 셈한다
 
-2. TRAINING LOOP STRUCTURE:
+2. 익힘 되돌이의 짜임:
    for epoch in range(n_epochs):
        # 순전파
        y_pred = model(X, w, b)
        loss = loss_function(y, y_pred)
        
        # 역전파
-       loss.backward()  # ← Computes gradients automatically
+       loss.backward()  # ← 기울기를 절로 셈한다
        
        # 매개변수 갱신
        with torch.no_grad():
@@ -344,22 +344,22 @@ print("""
        w.grad.zero_()
        b.grad.zero_()
 
-3. IMPORTANT POINTS:
-   ✓ Always zero gradients before backward()
+3. 종요로운 점:
+   ✓ backward() 앞에는 늘 기울기를 0으로 만들어라
    ✓ 매개변수를 고칠 때는 torch.no_grad()을 써라
-   ✓ Gradients accumulate by default
-   ✓ Same results as manual computation
+   ✓ 기울기는 기본으로 쌓인다
+   ✓ 손수 셈한 것과 결과가 같다
 
 4. ADVANTAGES:
-   ✓ No manual gradient formulas
-   ✓ Less error-prone
-   ✓ Works for any differentiable function
-   ✓ Scales to complex models
+   ✓ 손수 쓰는 기울기 식이 없다
+   ✓ 실수가 적다
+   ✓ 미분할 수 있는 어떤 함수에도 통한다
+   ✓ 복잡한 모형에도 잘 늘어난다
 
 다음 걸음:
-- Tutorial 05: Use nn.Module for cleaner code
-- Tutorial 06: Multiple input features
-- Tutorial 07: Polynomial regression
+- 익힘 05: 코드를 깔끔하게 하는 nn.Module 쓰기
+- 익힘 06: 여러 들임 특징
+- 익힘 07: 다항 회귀
 """)
 
 

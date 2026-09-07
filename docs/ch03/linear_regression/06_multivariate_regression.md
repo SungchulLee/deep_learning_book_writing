@@ -9,23 +9,23 @@
 ==============================================================================
 06_multivariate_regression.py
 ==============================================================================
-DIFFICULTY: ⭐⭐⭐ (Intermediate)
+어려움: ⭐⭐⭐ (가운데)
 
 DESCRIPTION:
-    Linear regression with multiple input features (multivariate).
-    Uses California housing dataset for real-world example.
+    들임 특징이 여럿인 선형 회귀(다변량).
+    참 세상 보기로 캘리포니아 집값 자료 묶음을 쓴다.
 
 다루는 것:
-    - Multiple input features
-    - Real-world dataset
-    - Feature scaling/normalization
-    - Train/test split
-    - Model evaluation metrics
+    - 여러 들임 특징
+    - 참 세상 자료 묶음
+    - 특징 잣대 잡기/정규화
+    - 익힘/시험 나누기
+    - 모형 따짐 자
 
 PREREQUISITES:
-    - Tutorial 05 (nn.Module)
+    - 익힘 05(nn.Module)
 
-TIME: ~25 minutes
+걸리는 때: 25분쯤
 ==============================================================================
 """
 
@@ -255,28 +255,28 @@ print("\n" + "=" * 70)
 print("SUMMARY")
 print("=" * 70)
 print("""
-Key Points for Multivariate Regression:
+다변량 회귀의 고갱이:
 
-1. Multiple Features: y = w₁x₁ + w₂x₂ + ... + wₙxₙ + b
+1. 여러 특징: y = w₁x₁ + w₂x₂ + ... + wₙxₙ + b
 
-2. Feature Scaling is Critical:
-   - Features on different scales can cause training issues
+2. 특징 잣대 잡기가 종요롭다.
+   - 잣대가 다른 특징은 익힘에 탈을 낼 수 있다
    - StandardScaler: (x - mean) / std
-   - Always fit on training data only!
+   - 늘 익힘 자료에만 맞춰라!
 
-3. Train/Test Split:
-   - Evaluate on unseen data
-   - Prevents overfitting assessment
+3. 익힘/시험 나누기:
+   - 본 적 없는 자료로 따진다
+   - 지나치게 맞춰졌는지 가늠할 수 있다
 
-4. Adam Optimizer:
-   - Often works better than SGD for multivariate
-   - Adaptive learning rates per parameter
+4. Adam 가장 좋게 하개:
+   - 다변량에서는 SGD보다 잘 듣는 일이 잦다
+   - 매개변수마다 맞추어 가는 배움 빠르기
 
-5. Evaluation Metrics:
-   - R²: Proportion of variance explained (1.0 is perfect)
-   - MAE: Mean Absolute Error (interpretable)
+5. 따짐 자:
+   - R²: 설명된 흩어짐의 몫(1.0이면 완벽하다)
+   - MAE: 평균 절대 어긋남(뜻을 읽기 쉽다)
 
-Next: Tutorial 07 - Polynomial Regression!
+다음: 익힘 07 - 다항 회귀!
 """)
 
 

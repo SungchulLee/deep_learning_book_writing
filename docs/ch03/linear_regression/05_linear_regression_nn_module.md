@@ -12,23 +12,23 @@
 어려움: ⭐⭐ (가운데)
 
 DESCRIPTION:
-    Linear regression using PyTorch's nn.Module and nn.Linear.
-    This is the "proper" PyTorch way to build models.
+    PyTorch의 nn.Module과 nn.Linear을 쓰는 선형 회귀.
+    이것이 PyTorch에서 모형을 짓는 "제대로 된" 길이다.
 
 다루는 것:
-    - nn.Module class for models
-    - nn.Linear layer
-    - Optimizers (torch.optim.SGD)
-    - Cleaner, more scalable code
+    - 모형을 위한 nn.Module 갈래
+    - nn.Linear 층
+    - 가장 좋게 하개(torch.optim.SGD)
+    - 더 깔끔하고 잘 늘어나는 코드
 
 PREREQUISITES:
-    - Tutorial 04 (Autograd)
+    - 익힘 04(자동 미분)
 
 배움 목표:
-    - Create custom models with nn.Module
-    - Use built-in layers (nn.Linear)
-    - Use optimizers for parameter updates
-    - Follow PyTorch best practices
+    - nn.Module으로 맞춤 모형을 만든다
+    - 붙박이 층(nn.Linear)을 쓴다
+    - 매개변수 고치기에 가장 좋게 하개를 쓴다
+    - PyTorch의 좋은 버릇을 따른다
 
 걸리는 때: 20분쯤
 ==============================================================================
@@ -71,19 +71,19 @@ print("=" * 70)
 
 class LinearRegressionModel(nn.Module):
     """
-    Linear Regression Model using nn.Module
+    nn.Module을 쓰는 선형 회귀 모형
     
-    This is the standard way to define models in PyTorch.
-    All models should inherit from nn.Module.
+    이것이 PyTorch에서 모형을 매기는 여느 길이다.
+    모든 모형은 nn.Module을 물려받아야 한다.
     """
     
     def __init__(self, input_dim=1, output_dim=1):
         """
-        Initialize the model
+        모형의 첫자리를 잡는다
         
         Args:
-            input_dim: Number of input features
-            output_dim: Number of output features
+            input_dim: 들임 특징의 수
+            output_dim: 내놓음 특징의 수
         """
         # 언제나 부모 생성자를 먼저 호출한다
         super(LinearRegressionModel, self).__init__()
@@ -96,13 +96,13 @@ class LinearRegressionModel(nn.Module):
         
     def forward(self, x):
         """
-        Forward pass: define how data flows through the model
+        앞으로 걸음: 자료가 모형을 어떻게 흐르는지 매긴다
         
         Args:
-            x: Input tensor
+            x: 들임 텐서
         
         Returns:
-            Output predictions
+            내놓는 예측
         """
         return self.linear(x)
 
@@ -133,11 +133,11 @@ print(f"Optimizer: {optimizer}")
 print(f"Learning rate: {learning_rate}")
 
 print("""
-Key advantages of using an Optimizer:
-1. Automatically updates all model parameters
-2. No need for manual parameter updates
-3. Easy to switch optimizers (SGD, Adam, RMSprop, etc.)
-4. Handles gradient zeroing with optimizer.zero_grad()
+가장 좋게 하개를 쓰는 고갱이 이점:
+1. 모형의 매개변수를 모두 절로 고친다
+2. 손수 매개변수를 고칠 일이 없다
+3. 가장 좋게 하개를 갈아 끼우기 쉽다(SGD, Adam, RMSprop 따위)
+4. optimizer.zero_grad()으로 기울기 0으로 만들기를 다룬다
 """)
 
 # ============================================================================
@@ -196,11 +196,11 @@ print("PART 5: MODEL EVALUATION MODE")
 print("=" * 70)
 
 print("""
-Models have two modes:
-1. Training mode (model.train()): Default, enables dropout, batch norm, etc.
-2. Evaluation mode (model.eval()): Disables dropout, batch norm, etc.
+모형에는 두 결이 있다.
+1. 익힘 결(model.train()): 기본이며 드롭아웃, 묶음 정규화 따위를 켠다
+2. 따짐 결(model.eval()): 드롭아웃, 묶음 정규화 따위를 끈다
 
-For linear regression, this doesn't matter, but it's good practice!
+선형 회귀에서는 걸리지 않지만 좋은 버릇이다!
 """)
 
 # 모델을 평가 모드로 바꾼다
@@ -284,30 +284,30 @@ axes[1, 0].grid(True, alpha=0.3)
 
 # 코드 비교
 comparison = """
-TRAINING LOOP EVOLUTION:
+익힘 되돌이가 나아온 길:
 
-Tutorial 02 (NumPy):
-  - Manual gradient formulas
-  - Manual parameter updates
-  - ~40 lines of code
+익힘 02(넘파이):
+  - 손수 쓰는 기울기 식
+  - 손수 하는 매개변수 고치기
+  - 코드 40줄쯤
 
-Tutorial 03 (PyTorch Manual):
-  - Tensor operations
-  - Manual gradients
-  - Manual updates
+익힘 03(손수 하는 PyTorch):
+  - 텐서 셈
+  - 손수 하는 기울기
+  - 손수 하는 고치기
 
-Tutorial 04 (Autograd):
+익힘 04(자동 미분):
   - loss.backward()
-  - Manual updates
+  - 손수 하는 고치기
   - grad.zero_()
 
-Tutorial 05 (nn.Module):
+익힘 05(nn.Module):
   - model(X)
   - optimizer.zero_grad()
   - loss.backward()
   - optimizer.step()
   
-Much cleaner and more maintainable!
+훨씬 깔끔하고 손보기 좋다!
 """
 axes[1, 1].text(0.05, 0.95, comparison, transform=axes[1, 1].transAxes,
                 fontsize=9, verticalalignment='top', fontfamily='monospace')
@@ -322,7 +322,7 @@ print("\n" + "=" * 70)
 print("SUMMARY")
 print("=" * 70)
 print("""
-Standard PyTorch Training Loop:
+여느 PyTorch 익힘 되돌이:
 
 model = MyModel()
 criterion = nn.MSELoss()
@@ -338,20 +338,20 @@ for epoch in range(n_epochs):
     loss.backward()
     optimizer.step()
 
-Key Components:
-1. nn.Module: Base class for all models
-2. nn.Linear: Built-in linear layer
-3. optimizer: Handles parameter updates
-4. criterion: Loss function
+고갱이 조각:
+1. nn.Module: 모든 모형의 밑 갈래
+2. nn.Linear: 붙박이 선형 층
+3. optimizer: 매개변수 고치기를 다룬다
+4. criterion: 잃음 함수
 
 Advantages:
-✓ Clean, readable code
-✓ Easy to extend to complex models
-✓ Automatic parameter management
-✓ Easy to save/load models
-✓ GPU support (just add .to('cuda'))
+✓ 깔끔하고 읽기 좋은 코드
+✓ 복잡한 모형으로 넓히기 쉽다
+✓ 매개변수를 절로 다룬다
+✓ 모형을 갈무리하고 불러오기 쉽다
+✓ GPU을 받친다(.to('cuda')만 더하면 된다)
 
-Next: Tutorial 06 - Multiple input features!
+다음: 익힘 06 - 여러 들임 특징!
 """)
 
 

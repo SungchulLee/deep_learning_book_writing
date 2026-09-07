@@ -148,7 +148,7 @@ class MultiClassLogisticRegression(nn.Module):
     Multi-class Logistic Regression (Softmax Regression)
     
     Args:
-        input_dim: Number of input features
+        input_dim: 들임 특징의 수
         num_classes: Number of output classes
     """
     
