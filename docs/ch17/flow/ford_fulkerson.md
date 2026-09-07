@@ -72,7 +72,7 @@ With integer capacities, the Ford-Fulkerson method terminates in at most $|f^*|$
 
 ## 풀이 예제
 
-Consider a network with vertices $\{s, a, b, t\}$:
+꼭짓점이 $\{s, a, b, t\}$인 그물을 보자.
 
 | 변 | 담이 |
 |------|----------|

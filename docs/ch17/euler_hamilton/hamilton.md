@@ -6,7 +6,7 @@
 
 **해밀턴 경로.** 꼭짓점마다 정확히 한 번씩 들르는 $G = (V, E)$의 단순 경로.
 
-**Hamiltonian cycle.** A simple cycle that visits every vertex exactly once and returns to the starting vertex. Equivalently, a Hamiltonian path from $v$ to $w$ where $(w, v) \in E$.
+**해밀턴 돌이.** 꼭짓점마다 꼭 한 번씩 들르고 처음 꼭짓점으로 돌아오는 단순 돌이. 같은 말로, $(w, v) \in E$일 때 $v$에서 $w$으로 가는 해밀턴 길이다.
 
 **해밀턴 그래프.** 해밀턴 순환이 있는 그래프.
 
@@ -23,12 +23,12 @@
 해밀턴성에 대한 간단한 필요충분조건은 알려져 있지 않지만, 고전적인 정리 몇이 충분조건을 준다.
 
 !!! note "디랙 정리(1952)"
-    If $G$ is a simple graph on $n \ge 3$ vertices and every vertex satisfies $\deg(v) \ge n/2$, then $G$ is Hamiltonian.
+    $G$이 꼭짓점 $n \ge 3$개인 단순 그래프이고 꼭짓점마다 $\deg(v) \ge n/2$을 채우면 $G$은 해밀턴 그래프다.
 
 !!! note "오레 정리(1960)"
-    If $G$ is a simple graph on $n \ge 3$ vertices and for every pair of non-adjacent vertices $u, v$ we have $\deg(u) + \deg(v) \ge n$, then $G$ is Hamiltonian.
+    $G$이 꼭짓점 $n \ge 3$개인 단순 그래프이고 이웃하지 않은 꼭짓점 짝 $u, v$마다 $\deg(u) + \deg(v) \ge n$이면 $G$은 해밀턴 그래프다.
 
-Ore's theorem generalizes Dirac's theorem: if every vertex has degree at least $n/2$, then any pair of vertices satisfies $\deg(u) + \deg(v) \ge n$.
+오레 정리는 디랙 정리를 넓힌 것이다. 꼭짓점마다 자릿수가 적어도 $n/2$이면 어떤 꼭짓점 짝도 $\deg(u) + \deg(v) \ge n$을 채운다.
 
 ## 복잡도
 
@@ -38,7 +38,7 @@ Ore's theorem generalizes Dirac's theorem: if every vertex has degree at least $
 - 두 쪽 그래프.
 - 격자 그래프.
 
-The best known exact algorithms run in $O^*(2^n)$ time using dynamic programming over subsets (the Held-Karp algorithm), improving on the $O(n!)$ naive approach.
+이제까지 알려진 가장 좋은 딱 맞는 알고리즘은 부분 묶음에 대한 갈피 다지기(헬드-카프 알고리즘)로 $O^*(2^n)$ 때에 돌며, 손쉬운 $O(n!)$ 길보다 낫다.
 
 ## 되돌아가기 알고리즘
 
@@ -124,11 +124,11 @@ Path graph cycle: None
 Petersen graph cycle: None
 ```
 
-The complete graph $K_4$ satisfies Dirac's condition ($\deg(v) = 3 \ge 4/2$) and indeed has a Hamiltonian cycle. The path graph on 4 vertices has no cycle at all. The Petersen graph famously has Hamiltonian paths but no Hamiltonian cycle.
+온 그래프 $K_4$은 디랙 조건을 채우고($\deg(v) = 3 \ge 4/2$) 참으로 해밀턴 돌이를 지닌다. 꼭짓점 4개짜리 길 그래프에는 돌이가 아예 없다. 페테르센 그래프는 해밀턴 길은 있으나 해밀턴 돌이는 없는 것으로 이름났다.
 
 ## 동적 계획 방식
 
-The Held-Karp algorithm uses bitmask DP to find a Hamiltonian path in $O(n^2 \cdot 2^n)$ time and $O(n \cdot 2^n)$ space. Define:
+헬드-카프 알고리즘은 비트 가림 갈피 다지기로 해밀턴 길을 $O(n^2 \cdot 2^n)$ 때와 $O(n \cdot 2^n)$ 자리에 찾는다. 다음과 같이 매긴다.
 
 $$
 \text{dp}[S][v] = \text{True if there is a path visiting exactly the vertices in } S \text{ and ending at } v
@@ -140,7 +140,7 @@ $$
 \text{dp}[S][v] = \bigvee_{u \in S \setminus \{v\},\; (u,v) \in E} \text{dp}[S \setminus \{v\}][u]
 $$
 
-A Hamiltonian cycle exists if $\text{dp}[\{0, 1, \dots, n{-}1\}][v] = \text{True}$ for some $v$ adjacent to the starting vertex.
+비롯하는 꼭짓점과 이웃한 어떤 $v$에 대해 $\text{dp}[\{0, 1, \dots, n{-}1\}][v] = \text{True}$이면 해밀턴 돌이가 있다.
 
 ## 참고 문헌
 
@@ -154,7 +154,7 @@ A Hamiltonian cycle exists if $\text{dp}[\{0, 1, \dots, n{-}1\}][v] = \text{True
 오일러 회로를 살피는 것은 다항 시간인데 해밀턴 순환이 있는지 정하는 것은 왜 NP-완전인지 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    Eulerian circuits have a simple characterization (all even degrees + connectivity) that can be checked in $O(V + E)$. No such simple characterization exists for Hamiltonian cycles. The Hamiltonian cycle problem is NP-complete (proven by reduction from 3-SAT or Vertex Cover). This means no polynomial-time algorithm is known, and all known approaches require exponential time in the worst case (e.g., $O(n! \cdot n)$ brute force, $O(2^n \cdot n^2)$ dynamic programming). $\square$
+    오일러 돌이에는 단순한 가름 조건(자릿수가 모두 짝수 + 이어져 있음)이 있어 $O(V + E)$에 살펴볼 수 있다. 해밀턴 돌이에는 그런 단순한 가름 조건이 없다. 해밀턴 돌이 문제는 NP 완전이다(3-SAT이나 꼭짓점 덮개로 되돌려 밝혔다). 곧 다항식 때 알고리즘이 알려져 있지 않고, 알려진 길은 모두 가장 나쁠 때 지수 때가 든다($O(n! \cdot n)$ 막무가내, $O(2^n \cdot n^2)$ 갈피 다지기 따위). $\square$
 
 ---
 
@@ -162,15 +162,15 @@ A Hamiltonian cycle exists if $\text{dp}[\{0, 1, \dots, n{-}1\}][v] = \text{True
 디랙 정리를 말하고 그것으로 $K_6$에 해밀턴 순환이 있는지 정하여라.
 
 ??? success "연습문제 2 풀이"
-    **Dirac's theorem**: If $G$ is a simple graph on $n \geq 3$ vertices where every vertex has degree $\geq n/2$, then $G$ has a Hamiltonian cycle. In $K_6$, every vertex has degree 5. Since $5 \geq 6/2 = 3$, Dirac's condition is satisfied, and $K_6$ has a Hamiltonian cycle. (In fact, $K_n$ has a Hamiltonian cycle for all $n \geq 3$.) $\square$
+    **디랙 정리**: $G$이 꼭짓점 $n \geq 3$개인 단순 그래프이고 꼭짓점마다 자릿수가 $\geq n/2$이면 $G$에는 해밀턴 돌이가 있다. $K_6$에서는 꼭짓점마다 자릿수가 5다. $5 \geq 6/2 = 3$이므로 디랙 조건이 채워지고 $K_6$에는 해밀턴 돌이가 있다. (참으로 $K_n$에는 모든 $n \geq 3$에 대해 해밀턴 돌이가 있다.) $\square$
 
 ---
 
 **연습문제 3.**
-Describe the $O(2^n \cdot n^2)$ dynamic programming algorithm for the Hamiltonian cycle problem.
+해밀턴 돌이 문제를 푸는 $O(2^n \cdot n^2)$ 갈피 다지기 알고리즘을 밝혀라.
 
 ??? success "연습문제 3 풀이"
-    Use bitmask DP. Let $dp[S][v]$ = True if there is a path visiting exactly the vertices in set $S$ and ending at vertex $v$. Base: $dp[\{0\}][0] = \text{True}$ (start at vertex 0). Transition: $dp[S \cup \{v\}][v] = \text{True}$ if $dp[S][u] = \text{True}$ and $(u, v)$ is an edge, for some $u \in S$. Answer: $dp[\{0,\ldots,n-1\}][v] \land (v, 0) \in E$ for some $v$. There are $2^n$ subsets, $n$ choices for $v$, and $n$ choices for $u$, giving $O(2^n \cdot n^2)$. $\square$
+    비트 가림 갈피 다지기를 쓴다. 묶음 $S$의 꼭짓점만 꼭 들르고 꼭짓점 $v$에서 끝나는 길이 있으면 $dp[S][v]$ = True이라 하자. 밑 자리: $dp[\{0\}][0] = \text{True}$(꼭짓점 0에서 비롯한다). 넘어감: 어떤 $u \in S$에 대해 $dp[S][u] = \text{True}$이고 $(u, v)$이 이음이면 $dp[S \cup \{v\}][v] = \text{True}$이다. 답: 어떤 $v$에 대해 $dp[\{0,\ldots,n-1\}][v] \land (v, 0) \in E$이다. 부분 묶음이 $2^n$개, $v$의 고름이 $n$가지, $u$의 고름이 $n$가지이므로 $O(2^n \cdot n^2)$이다. $\square$
 
 ---
 
@@ -178,4 +178,4 @@ Describe the $O(2^n \cdot n^2)$ dynamic programming algorithm for the Hamiltonia
 떠돌이 장사꾼 문제(TSP)는 무게가 가장 작은 해밀턴 순환을 묻는다. 이것은 해밀턴 순환 문제와 어떻게 이어지는가?
 
 ??? success "연습문제 4 풀이"
-    TSP is an optimization version: find a Hamiltonian cycle of minimum total weight. The decision version of TSP ("is there a Hamiltonian cycle of weight $\leq k$?") is NP-complete. If we could solve TSP in polynomial time, we could solve the Hamiltonian cycle problem by checking if the minimum TSP tour has finite weight in a graph with edge weight 1 for existing edges and $\infty$ for non-edges. TSP is at least as hard as the Hamiltonian cycle problem. $\square$
+    떠돌이 장사꾼 문제는 가장 좋게 하기 갈래다. 곧 짐의 합이 가장 작은 해밀턴 돌이를 찾는다. 이 문제의 판단 갈래("짐이 $\leq k$인 해밀턴 돌이가 있는가?")는 NP 완전이다. 떠돌이 장사꾼 문제를 다항식 때에 풀 수 있다면, 있는 이음의 짐을 1, 없는 이음의 짐을 $\infty$으로 둔 그래프에서 가장 작은 순회의 짐이 마디 있는지 살펴 해밀턴 돌이 문제를 풀 수 있다. 그러므로 떠돌이 장사꾼 문제는 적어도 해밀턴 돌이 문제만큼 어렵다. $\square$

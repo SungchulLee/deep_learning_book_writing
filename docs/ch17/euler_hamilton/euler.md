@@ -23,15 +23,15 @@
 ??? example "회로인 경우의 증명 얼개"
     **필요함.** 오일러 회로가 있으면 걸음이 어떤 변으로 꼭짓점에 들어갈 때마다 다른 변으로 나와야 한다. 따라서 꼭짓점마다 들어가고 나온 횟수가 같으므로 그 차수는 짝수이다.
 
-    **Sufficiency.** Start at any vertex and follow unused edges until returning to the start (this must happen since every vertex has even degree). If some edges remain unused, there exists a vertex $v$ on the current walk that is incident to an unused edge (by connectivity). Start a new walk from $v$ using only unused edges, splice it into the first walk, and repeat until all edges are covered. $\square$
+    **넉넉함.** 아무 꼭짓점에서 비롯해 아직 쓰지 않은 이음을 따라가다 처음 자리로 돌아온다(꼭짓점마다 자릿수가 짝수이므로 반드시 그렇게 된다). 아직 쓰지 않은 이음이 남았다면 이제 걸음 위에 그런 이음이 닿은 꼭짓점 $v$이 있다(이어져 있기 때문이다). $v$에서 쓰지 않은 이음만으로 새 걸음을 비롯해 첫 걸음에 끼워 넣고, 이음을 모두 덮을 때까지 되풀이한다. $\square$
 
 ### 방향 그래프
 
 !!! note "오일러 정리(방향)"
     $G = (V, E)$을 차수가 0이 아닌 꼭짓점이 모두 같은 강한 이음 조각에 드는 방향 그래프라 하자. 그러면:
 
-    - $G$ has an **Eulerian circuit** if and only if $\text{in-deg}(v) = \text{out-deg}(v)$ for every vertex $v$.
-    - $G$ has an **Eulerian path** if and only if there is exactly one vertex with $\text{out-deg} - \text{in-deg} = 1$ (the start) and one vertex with $\text{in-deg} - \text{out-deg} = 1$ (the end), with all other vertices balanced.
+    - $G$에 **오일러 돌이**가 있는 것은 모든 꼭짓점 $v$에 대해 $\text{in-deg}(v) = \text{out-deg}(v)$인 것과 같은 뜻이다.
+    - $G$에 **오일러 길**이 있는 것은 $\text{out-deg} - \text{in-deg} = 1$인 꼭짓점이 꼭 하나(비롯하는 곳)이고 $\text{in-deg} - \text{out-deg} = 1$인 꼭짓점이 꼭 하나(끝나는 곳)이며 나머지 꼭짓점은 모두 고르게 맞는 것과 같은 뜻이다.
 
 ## 있는지 살피기
 
@@ -145,7 +145,7 @@ none
 방향 없는 그래프에서 오일러 회로와 오일러 경로가 있을 필요충분조건을 말하여라.
 
 ??? success "연습문제 1 풀이"
-    **Eulerian circuit** (visits every edge exactly once and returns to start): The graph must be connected (ignoring isolated vertices) and every vertex must have even degree. **Eulerian path** (visits every edge exactly once, different start and end): The graph must be connected and have exactly 0 or 2 vertices of odd degree. If 0 odd-degree vertices, an Eulerian circuit exists (which is also a path). If 2 odd-degree vertices, the path starts at one and ends at the other. $\square$
+    **오일러 돌이**(이음마다 꼭 한 번씩 지나 처음 자리로 돌아온다): 그래프가 이어져 있어야 하고(홀로 떨어진 꼭짓점은 셈에서 뺀다) 꼭짓점마다 자릿수가 짝수여야 한다. **오일러 길**(이음마다 꼭 한 번씩 지나되 비롯하는 곳과 끝나는 곳이 다르다): 그래프가 이어져 있고 자릿수가 홀수인 꼭짓점이 꼭 0개이거나 2개여야 한다. 홀수 자릿수 꼭짓점이 0개면 오일러 돌이가 있다(이는 길이기도 하다). 2개면 길은 한쪽에서 비롯해 다른 쪽에서 끝난다. $\square$
 
 ---
 
@@ -153,7 +153,7 @@ none
 이어진 그래프의 꼭짓점마다 차수가 짝수이면 그 그래프에 오일러 회로가 있음을 증명하여라.
 
 ??? success "연습문제 2 풀이"
-    Start a walk from any vertex. At each step, traverse an unused edge. Since every vertex has even degree, whenever we enter a vertex, there is always an unused edge to leave (the entering edge uses one of the even number of edges). The walk must return to the start (we cannot get stuck elsewhere). If the walk misses some edges, they form a subgraph where every vertex still has even degree. Start a new walk from a vertex shared with the main walk and splice it in. Repeat until all edges are covered. $\square$
+    아무 꼭짓점에서 걸음을 비롯한다. 걸음마다 아직 쓰지 않은 이음을 지난다. 꼭짓점마다 자릿수가 짝수이므로 어떤 꼭짓점에 들어가면 나갈 이음이 늘 남아 있다(들어온 이음이 짝수 개 가운데 하나를 쓴다). 그러므로 걸음은 반드시 처음 자리로 돌아온다(다른 데서 막힐 수 없다). 걸음이 빠뜨린 이음이 있다면 그 이음들은 꼭짓점마다 자릿수가 여전히 짝수인 잔그래프를 이룬다. 큰 걸음과 함께 지니는 꼭짓점에서 새 걸음을 비롯해 끼워 넣는다. 이음을 모두 덮을 때까지 되풀이한다. $\square$
 
 ---
 
@@ -161,12 +161,12 @@ none
 그 조건을 방향 그래프로 넓혀라. 방향 그래프에 오일러 회로가 있는 때는 언제인가?
 
 ??? success "연습문제 3 풀이"
-    A directed graph has an **Eulerian circuit** if and only if: (1) the graph is strongly connected (ignoring isolated vertices), and (2) every vertex has equal in-degree and out-degree ($\deg^-(v) = \deg^+(v)$ for all $v$). For an **Eulerian path**: at most one vertex has $\deg^+(v) - \deg^-(v) = 1$ (start) and at most one has $\deg^-(v) - \deg^+(v) = 1$ (end), with all others balanced, and the underlying graph is weakly connected. $\square$
+    방향 있는 그래프에 **오일러 돌이**가 있는 것은 다음과 같은 뜻이다. (1) 그래프가 세게 이어져 있고(홀로 떨어진 꼭짓점은 셈에서 뺀다), (2) 꼭짓점마다 들어오는 자릿수와 나가는 자릿수가 같다(모든 $v$에 대해 $\deg^-(v) = \deg^+(v)$). **오일러 길**은 이렇다. $\deg^+(v) - \deg^-(v) = 1$인 꼭짓점이 많아야 하나(비롯하는 곳), $\deg^-(v) - \deg^+(v) = 1$인 꼭짓점이 많아야 하나(끝나는 곳)이고 나머지는 모두 고르게 맞으며, 바탕 그래프가 여리게 이어져 있다. $\square$
 
 ---
 
 **연습문제 4.**
-A graph has 7 vertices and the following degrees: $\{4, 4, 4, 2, 2, 2, 2\}$. Does it have an Eulerian circuit? An Eulerian path?
+어떤 그래프에 꼭짓점이 7개 있고 자릿수가 $\{4, 4, 4, 2, 2, 2, 2\}$이다. 이 그래프에 오일러 돌이가 있는가? 오일러 길은 있는가?
 
 ??? success "연습문제 4 풀이"
-    All degrees are even, so if the graph is connected, it has an Eulerian circuit (and hence also an Eulerian path). The sum of degrees is $4+4+4+2+2+2+2 = 20$, giving 10 edges. If the graph is connected (which is possible with these degrees), an Eulerian circuit exists. Without connectivity information, we cannot be certain — the graph might be disconnected with separate even-degree components. $\square$
+    자릿수가 모두 짝수이므로 그래프가 이어져 있다면 오일러 돌이가 있다(따라서 오일러 길도 있다). 자릿수의 합이 $4+4+4+2+2+2+2 = 20$이니 이음은 10개다. 그래프가 이어져 있다면(이 자릿수로도 그럴 수 있다) 오일러 돌이가 있다. 이어져 있는지 모르면 잘라 말할 수 없다. 자릿수가 모두 짝수인 덩이 여럿으로 끊어져 있을 수도 있다. $\square$

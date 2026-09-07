@@ -1,6 +1,6 @@
 # 에드먼즈-카프 알고리즘
 
-The Ford-Fulkerson method leaves the choice of augmenting path unspecified, which can lead to poor performance or even non-termination with irrational capacities. The Edmonds-Karp algorithm resolves this by always choosing the **shortest augmenting path** (fewest edges) via BFS. This simple rule guarantees termination in $O(VE)$ augmentations and yields an overall $O(VE^2)$ time complexity.
+포드-풀커슨 방법은 늘리는 길을 어떻게 고를지 정하지 않아서 느려지거나 담는 힘이 무리수일 때는 끝나지 않을 수도 있다. 에드먼즈-카프 알고리즘은 늘 너비 먼저 찾기로 **가장 짧은 늘리는 길**(이음이 가장 적은 길)을 골라 이를 다룬다. 이 단순한 규칙 덕에 늘리기가 $O(VE)$ 번 안에 끝남이 보장되고 온 때 복잡도가 $O(VE^2)$이 된다.
 
 ## 포드-풀커슨에서 에드먼즈-카프로
 
@@ -25,9 +25,9 @@ EDMONDS-KARP(G, s, t):
 
 ## 최단 경로 거리의 단조성
 
-The crucial property underlying the $O(VE^2)$ bound is that shortest-path distances in the residual graph never decrease.
+$O(VE^2)$ 테두리를 받치는 종요로운 결은 나머지 그래프에서 가장 짧은 길의 거리가 결코 줄지 않는다는 것이다.
 
-**Lemma.** Let $\delta_f(s, v)$ denote the shortest-path distance from $s$ to $v$ in residual graph $G_f$. After augmenting along a shortest path, for every vertex $v \in V$:
+**보임 정리.** $\delta_f(s, v)$을 나머지 그래프 $G_f$에서 $s$부터 $v$까지 가장 짧은 길의 거리라 하자. 가장 짧은 길을 따라 늘린 뒤 모든 꼭짓점 $v \in V$에 대해 다음이 이루어진다.
 
 $$
 \delta_{f'}(s, v) \geq \delta_f(s, v)
@@ -35,11 +35,11 @@ $$
 
 여기서 $f'$은 늘린 뒤의 흐름이다.
 
-*Proof sketch.* Suppose for contradiction that $\delta_{f'}(s, v) < \delta_f(s, v)$ for some vertex $v$. Pick $v$ with the smallest $\delta_{f'}(s, v)$ among all such vertices. Let $u$ be the predecessor of $v$ on a shortest path from $s$ to $v$ in $G_{f'}$. Then $\delta_{f'}(s, v) = \delta_{f'}(s, u) + 1$.
+*밝히기 얼개.* 어긋남을 보이려고 어떤 꼭짓점 $v$에 대해 $\delta_{f'}(s, v) < \delta_f(s, v)$이라 하자. 그런 꼭짓점 가운데 $\delta_{f'}(s, v)$이 가장 작은 $v$을 고른다. $G_{f'}$에서 $s$부터 $v$까지 가장 짧은 길에서 $v$의 바로 앞 꼭짓점을 $u$이라 하자. 그러면 $\delta_{f'}(s, v) = \delta_{f'}(s, u) + 1$이다.
 
-By our choice of $v$, we have $\delta_{f'}(s, u) \geq \delta_f(s, u)$. Edge $(u, v)$ must exist in $G_{f'}$. If $(u, v)$ also exists in $G_f$, then $\delta_f(s, v) \leq \delta_f(s, u) + 1 \leq \delta_{f'}(s, u) + 1 = \delta_{f'}(s, v)$, contradicting our assumption.
+$v$을 그렇게 골랐으므로 $\delta_{f'}(s, u) \geq \delta_f(s, u)$이다. 이음 $(u, v)$은 $G_{f'}$에 반드시 있다. $(u, v)$이 $G_f$에도 있다면 $\delta_f(s, v) \leq \delta_f(s, u) + 1 \leq \delta_{f'}(s, u) + 1 = \delta_{f'}(s, v)$이 되어 가정과 어긋난다.
 
-If $(u, v)$ does not exist in $G_f$, it was created by augmenting along $(v, u)$. Since augmentation uses a shortest path, $(v, u)$ lies on a shortest $s$-$t$ path in $G_f$, so $\delta_f(s, u) = \delta_f(s, v) + 1$. Then $\delta_{f'}(s, v) = \delta_{f'}(s, u) + 1 \geq \delta_f(s, u) + 1 = \delta_f(s, v) + 2$, again contradicting $\delta_{f'}(s, v) < \delta_f(s, v)$. $\square$
+$(u, v)$이 $G_f$에 없다면 $(v, u)$을 따라 늘리면서 생긴 것이다. 늘릴 때는 가장 짧은 길을 쓰므로 $(v, u)$은 $G_f$의 가장 짧은 $s$-$t$ 길 위에 있고 따라서 $\delta_f(s, u) = \delta_f(s, v) + 1$이다. 그러면 $\delta_{f'}(s, v) = \delta_{f'}(s, u) + 1 \geq \delta_f(s, u) + 1 = \delta_f(s, v) + 2$이 되어 다시 $\delta_{f'}(s, v) < \delta_f(s, v)$과 어긋난다. $\square$
 
 ## 늘림 횟수의 한계
 
@@ -47,23 +47,23 @@ If $(u, v)$ does not exist in $G_f$, it was created by augmenting along $(v, u)$
 
 *증명 얼개.* 남은 그래프의 변 $(u, v)$이 늘림 경로에서 남은 담이가 가장 작으면(곧 꽉 차게 되면) 그 변을 그 경로 위의 **결정적인** 변이라 하자. 늘림마다 적어도 변 하나가 꽉 찬다.
 
-When edge $(u, v)$ is critical, $\delta_f(s, v) = \delta_f(s, u) + 1$. For $(u, v)$ to appear again in the residual graph, flow must be pushed along $(v, u)$ in some later augmentation. At that point, $\delta_{f'}(s, u) = \delta_{f'}(s, v) + 1$. By the monotonicity lemma:
+이음 $(u, v)$이 고비 이음일 때 $\delta_f(s, v) = \delta_f(s, u) + 1$이다. $(u, v)$이 나머지 그래프에 다시 나타나려면 나중에 늘릴 때 $(v, u)$을 따라 흐름을 밀어 넣어야 한다. 그때 $\delta_{f'}(s, u) = \delta_{f'}(s, v) + 1$이다. 한 방향으로만 바뀜 보임 정리에 따라
 
 $$
 \delta_{f'}(s, u) = \delta_{f'}(s, v) + 1 \geq \delta_f(s, v) + 1 = \delta_f(s, u) + 2
 $$
 
-So $\delta_{f'}(s, u)$ increases by at least 2 between consecutive times $(u, v)$ is critical. Since distances are bounded by $|V| - 1$, each edge can be critical at most $O(V)$ times. With $O(E)$ edges, there are at most $O(VE)$ total augmentations. $\square$
+그러므로 $(u, v)$이 잇달아 고비 이음이 되는 사이에 $\delta_{f'}(s, u)$이 적어도 2 는다. 거리는 $|V| - 1$으로 마디 지어지므로 이음마다 많아야 $O(V)$ 번 고비 이음이 된다. 이음이 $O(E)$개이므로 늘리기는 모두 많아야 $O(VE)$ 번이다. $\square$
 
 ## 전체 복잡도
 
-**Theorem.** The Edmonds-Karp algorithm runs in $O(VE^2)$ time.
+**정리.** 에드먼즈-카프 알고리즘은 $O(VE^2)$ 때에 돈다.
 
-*Proof.* Each augmentation requires a BFS taking $O(E)$ time (since $E \geq V - 1$ in a connected graph). With $O(VE)$ augmentations, the total is $O(VE) \cdot O(E) = O(VE^2)$. $\square$
+*밝히기.* 늘릴 때마다 $O(E)$ 때가 드는 너비 먼저 찾기가 든다(이어진 그래프에서는 $E \geq V - 1$이기 때문이다). 늘리기가 $O(VE)$ 번이므로 모두 $O(VE) \cdot O(E) = O(VE^2)$이다. $\square$
 
 ## 풀이 예제
 
-Consider a network with vertices $\{s, a, b, t\}$:
+꼭짓점이 $\{s, a, b, t\}$인 그물을 보자.
 
 | 변 | 담이 |
 |------|----------|
@@ -73,13 +73,13 @@ Consider a network with vertices $\{s, a, b, t\}$:
 | $(a, t)$ | 3 |
 | $(b, t)$ | 5 |
 
-**Iteration 1.** BFS from $s$ finds shortest path $s \to a \to t$ (2 edges). Bottleneck capacity: $\min(4, 3) = 3$. Push flow 3.
+**되돌이 1.** $s$부터 너비 먼저 찾기를 돌리면 가장 짧은 길 $s \to a \to t$(이음 2개)을 찾는다. 목이 되는 담는 힘은 $\min(4, 3) = 3$이다. 흐름 3을 밀어 넣는다.
 
 남은 그래프 고침: $(s, a)$의 남은 담이는 1, $(a, t)$은 꽉 참, 거꿀 변 $(a, s)$과 $(t, a)$이 담이 3으로 생긴다.
 
-**Iteration 2.** BFS finds $s \to b \to t$ (2 edges). Bottleneck: $\min(3, 5) = 3$. Push flow 3.
+**되돌이 2.** 너비 먼저 찾기가 $s \to b \to t$(이음 2개)을 찾는다. 목은 $\min(3, 5) = 3$이다. 흐름 3을 밀어 넣는다.
 
-**Iteration 3.** BFS finds $s \to a \to b \to t$ (3 edges). Bottleneck: $\min(1, 2, 2) = 1$. Push flow 1.
+**되돌이 3.** 너비 먼저 찾기가 $s \to a \to b \to t$(이음 3개)을 찾는다. 목은 $\min(1, 2, 2) = 1$이다. 흐름 1을 밀어 넣는다.
 
 **4번째 바퀴.** 너비 우선 돌아보기가 $s$에서 $t$에 닿지 못한다. 알고리즘이 최대 흐름 = 7로 끝난다.
 
@@ -183,7 +183,7 @@ if __name__ == "__main__":
 ```
 
 !!! tip "에드먼즈-카프를 쓸 때"
-    Edmonds-Karp is a good default choice when you need a straightforward max-flow implementation. Its $O(VE^2)$ bound is polynomial and the code is simple (just BFS). For better performance on dense graphs, consider Dinic's algorithm with its $O(V^2E)$ bound.
+    가장 큰 흐름을 간단히 짜야 할 때는 에드먼즈-카프가 좋은 기본 고름이다. $O(VE^2)$ 테두리가 다항식이고 코드도 단순하다(너비 먼저 찾기만 있으면 된다). 빽빽한 그래프에서 더 빠르게 하려면 $O(V^2E)$ 테두리를 지닌 디닉 알고리즘을 살펴보아라.
 
 ## 참고 문헌
 
@@ -196,7 +196,7 @@ if __name__ == "__main__":
 에드먼즈-카프는 포드-풀커슨을 어떻게 낫게 하는가? 어떤 찾기 전략을 쓰는가?
 
 ??? success "연습문제 1 풀이"
-    Edmonds-Karp uses BFS (instead of arbitrary path search) to find the shortest augmenting path in the residual graph. This guarantees that the shortest path length never decreases between iterations and increases after at most $O(E)$ augmentations at the same distance. Total augmentations: $O(VE)$. Each BFS takes $O(E)$. Total: $O(VE^2)$, which is polynomial — unlike Ford-Fulkerson's $O(Ef^*)$ that depends on the flow value. $\square$
+    에드먼즈-카프는 아무 길이나 찾는 대신 너비 먼저 찾기로 나머지 그래프의 가장 짧은 늘리는 길을 찾는다. 그래서 가장 짧은 길의 길이가 되돌이 사이에 결코 줄지 않고, 같은 거리에서 많아야 $O(E)$ 번 늘린 뒤에는 늘어남이 보장된다. 늘리기는 모두 $O(VE)$ 번이다. 너비 먼저 찾기마다 $O(E)$이 든다. 모두 $O(VE^2)$이며 다항식이다. 흐름 값에 매인 포드-풀커슨의 $O(Ef^*)$과는 다르다. $\square$
 
 ---
 
@@ -204,7 +204,7 @@ if __name__ == "__main__":
 에드먼즈-카프에서 최단 늘림 경로의 길이가 결코 줄지 않음을 증명하여라.
 
 ??? success "연습문제 2 풀이"
-    After augmenting along a shortest $s$-$t$ path $P$, some edges in $P$ are saturated (removed from residual) and their reverse edges are added. The reverse edges can only appear in longer paths (they go backward). Any new $s$-$t$ path in the residual graph either uses only original residual edges (same or longer) or uses a reverse edge (longer by at least 2). Therefore the shortest path length is non-decreasing. $\square$
+    가장 짧은 $s$-$t$ 길 $P$을 따라 늘린 뒤에는 $P$의 어떤 이음이 가득 차고(나머지에서 지워지고) 그 뒤집은 이음이 더해진다. 뒤집은 이음은 더 긴 길에만 나타날 수 있다(거꾸로 가기 때문이다). 나머지 그래프의 새 $s$-$t$ 길은 본디 나머지 이음만 쓰거나(같거나 더 길다) 뒤집은 이음을 쓴다(적어도 2만큼 더 길다). 그러므로 가장 짧은 길의 길이는 줄지 않는다. $\square$
 
 ---
 

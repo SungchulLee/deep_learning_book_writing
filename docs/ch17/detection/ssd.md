@@ -102,7 +102,7 @@ $$s_k = s_{min} + \frac{s_{max} - s_{min}}{m - 1}(k - 1), \quad k \in [1, m]$$
 
 where $s_{min} = 0.2$ and $s_{max} = 0.9$.
 
-**Aspect Ratios**: ${1, 2, 3, 1/2, 1/3}$ plus an additional box with scale $\sqrt{s_k \cdot s_{k+1}}$.
+**가로세로 견줌**: ${1, 2, 3, 1/2, 1/3}$에 잣대가 $\sqrt{s_k \cdot s_{k+1}}$인 상자 하나를 더한다.
 
 ```python
 class DefaultBoxGenerator:

@@ -650,7 +650,7 @@ def modern_yolo_loss(
 
 ## 실전에서 YOLO 쓰기
 
-### Ultralytics YOLOv8
+### 울트라리틱스 YOLOv8
 
 ```python
 from ultralytics import YOLO

@@ -1,16 +1,16 @@
 # 디닉 알고리즘
 
-While the Edmonds-Karp algorithm improves Ford-Fulkerson by always choosing shortest augmenting paths, it still sends flow along only one path per iteration. Dinic's algorithm (also spelled Dinitz) pushes this idea further: it builds a **level graph** capturing all shortest paths from source to sink, then sends as much flow as possible through that structure in a single phase. This yields a worst-case complexity of $O(V^2 E)$, and the algorithm performs especially well on unit-capacity networks where it runs in $O(E\sqrt{V})$ time.
+에드먼즈-카프 알고리즘은 늘 가장 짧은 늘리는 길을 골라 포드-풀커슨을 낫게 하지만, 여전히 되돌이마다 길 하나로만 흐름을 보낸다. 디닉 알고리즘(디니츠라고도 적는다)은 이 깨침을 더 밀고 간다. 샘에서 웅덩이로 가는 가장 짧은 길을 모두 담은 **켜 그래프**를 짓고, 그 얼개를 거쳐 한 판에 될 수 있는 대로 많은 흐름을 보낸다. 그래서 가장 나쁠 때 복잡도가 $O(V^2 E)$이며, 담는 힘이 모두 1인 그물에서는 $O(E\sqrt{V})$ 때에 돌아 특히 잘 듣는다.
 
 ## 켜 그래프
 
 **켜 그래프**(또는 **층 그래프**)는 근원에서의 거리에 따라 남은 그래프를 켜로 갈라 놓는다.
 
-Given a flow network $G = (V, E)$ with source $s$ and sink $t$, and the current residual graph $G_f$, define the **level** of each vertex $v$ as $\text{level}(v) = d(s, v)$, the shortest-path distance (in number of edges) from $s$ to $v$ in $G_f$.
+샘 $s$과 웅덩이 $t$을 지닌 흐름 그물 $G = (V, E)$과 이제의 나머지 그래프 $G_f$이 주어졌을 때, 꼭짓점 $v$의 **켜**를 $\text{level}(v) = d(s, v)$으로 매긴다. 이는 $G_f$에서 $s$에서 $v$까지 가장 짧은 길의 거리(이음 수)다.
 
-The level graph $G_L = (V_L, E_L)$ contains only edges $(u, v)$ from $G_f$ that satisfy $\text{level}(v) = \text{level}(u) + 1$. In other words, $G_L$ keeps only those residual edges that move strictly one level closer to the sink.
+켜 그래프 $G_L = (V_L, E_L)$은 $G_f$의 이음 가운데 $\text{level}(v) = \text{level}(u) + 1$을 채우는 $(u, v)$만 담는다. 달리 말하면 $G_L$은 웅덩이 쪽으로 꼭 한 켜만큼 다가가는 나머지 이음만 남긴다.
 
-**Construction via BFS.** Run BFS from $s$ in $G_f$, recording the level of each reachable vertex. Then filter edges: keep $(u, v) \in G_f$ only if $\text{level}(v) = \text{level}(u) + 1$ and $v$ is reachable. This takes $O(V + E)$ time.
+**너비 먼저 찾기로 짓기.** $G_f$에서 $s$부터 너비 먼저 찾기를 돌리며 닿을 수 있는 꼭짓점마다 켜를 적는다. 그다음 이음을 거른다. $\text{level}(v) = \text{level}(u) + 1$이고 $v$에 닿을 수 있을 때만 $(u, v) \in G_f$을 남긴다. $O(V + E)$ 때가 든다.
 
 너비 우선 돌아보기로 $t$에 닿지 못하면 늘림 경로가 없으므로 알고리즘이 끝난다. 지금 흐름이 최대이다.
 
@@ -44,32 +44,32 @@ DINIC(G, s, t):
 
 ## 복잡도 분석
 
-**Lemma (distance increase).** Let $d_f(s, t)$ denote the shortest-path distance from $s$ to $t$ in $G_f$. After adding a blocking flow to the level graph, $d_{f'}(s, t) > d_f(s, t)$.
+**보임 정리(거리가 늚).** $d_f(s, t)$을 $G_f$에서 $s$부터 $t$까지 가장 짧은 길의 거리라 하자. 켜 그래프에 막는 흐름을 더한 뒤에는 $d_{f'}(s, t) > d_f(s, t)$이다.
 
-*Proof sketch.* The blocking flow saturates at least one edge on every shortest path. When the residual graph is updated, any new augmenting path must use at least one edge that goes "backward" (from a higher level to a lower level). Such backward edges force the new shortest path to be strictly longer than the previous one. $\square$
+*밝히기 얼개.* 막는 흐름은 가장 짧은 길마다 적어도 이음 하나를 가득 채운다. 나머지 그래프를 고치면 새 늘리는 길은 반드시 "거꾸로" 가는 이음(높은 켜에서 낮은 켜로)을 적어도 하나 써야 한다. 그런 거꾸로 가는 이음 때문에 새 가장 짧은 길은 앞선 것보다 반드시 길어진다. $\square$
 
-**Theorem.** Dinic's algorithm runs in $O(V^2 E)$ time.
+**정리.** 디닉 알고리즘은 $O(V^2 E)$ 때에 돈다.
 
 *증명.* 단계는 많아야 $O(V)$개이다(단계마다 거리가 적어도 1 늘고 $|V| - 1$ 아래로 묶이기 때문이다). 각 단계는 다음으로 이루어진다:
 
 - 너비 우선 돌아보기로 켜 그래프 세우기: $O(E)$
 - 막는 흐름 찾기: $O(VE)$
 
-The total time is $O(V) \cdot O(VE) = O(V^2 E)$. $\square$
+온 때는 $O(V) \cdot O(VE) = O(V^2 E)$이다. $\square$
 
 ## 담이가 1인 그물
 
-On networks where every edge has capacity 1, Dinic's algorithm achieves $O(E\sqrt{V})$ time.
+이음마다 담는 힘이 1인 그물에서 디닉 알고리즘은 $O(E\sqrt{V})$ 때를 이룬다.
 
-The key observation is that in a unit-capacity network, each blocking flow phase takes $O(E)$ time (each augmenting path saturates an edge, removing it, so the total work across all paths in one phase is $O(E)$). Furthermore, after $\sqrt{V}$ phases, the maximum remaining augmentable flow is at most $\sqrt{V}$ (by a counting argument on the level structure). The remaining flow can be found in at most $\sqrt{V}$ additional phases, each costing $O(E)$.
+고갱이 살핌은 이렇다. 담는 힘이 모두 1인 그물에서는 막는 흐름 판마다 $O(E)$ 때가 든다(늘리는 길마다 이음 하나를 가득 채워 지우므로 한 판의 모든 길에 드는 온 일감이 $O(E)$이다). 게다가 $\sqrt{V}$ 판을 지나면 아직 늘릴 수 있는 흐름이 많아야 $\sqrt{V}$이다(켜 얼개에 대한 세기 따짐으로 알 수 있다). 남은 흐름은 많아야 $\sqrt{V}$ 판을 더 돌면 찾을 수 있고 판마다 $O(E)$이 든다.
 
 Total: $O(\sqrt{V}) \cdot O(E) = O(E\sqrt{V})$.
 
-This makes Dinic's algorithm the method of choice for bipartite matching, where the underlying network is unit-capacity and $O(E\sqrt{V})$ matches the best known bound for maximum bipartite matching.
+그래서 두 쪽 짝짓기에는 디닉 알고리즘을 고른다. 바탕 그물의 담는 힘이 모두 1이고 $O(E\sqrt{V})$이 가장 큰 두 쪽 짝짓기에서 알려진 가장 좋은 테두리와 같기 때문이다.
 
 ## 풀이 예제
 
-Consider a network with vertices $\{s, a, b, c, t\}$ and edges:
+꼭짓점이 $\{s, a, b, c, t\}$이고 이음이 다음과 같은 그물을 보자.
 
 | 변 | 담이 |
 |------|----------|
@@ -81,13 +81,13 @@ Consider a network with vertices $\{s, a, b, c, t\}$ and edges:
 | $(c, t)$ | 14 |
 | $(a, t)$ | 4 |
 
-**Phase 1.** BFS from $s$ gives levels: $\text{level}(s) = 0$, $\text{level}(a) = 1$, $\text{level}(b) = 1$, $\text{level}(c) = 2$, $\text{level}(t) = 2$. The level graph keeps edges $(s,a)$, $(s,b)$, $(a,c)$, $(a,t)$, $(b,c)$, $(c,t)$ (edge $(a,b)$ is excluded since both are at level 1).
+**판 1.** $s$부터 너비 먼저 찾기를 돌리면 켜는 $\text{level}(s) = 0$, $\text{level}(a) = 1$, $\text{level}(b) = 1$, $\text{level}(c) = 2$, $\text{level}(t) = 2$이다. 켜 그래프는 이음 $(s,a)$, $(s,b)$, $(a,c)$, $(a,t)$, $(b,c)$, $(c,t)$을 남긴다(이음 $(a,b)$은 둘 다 켜 1이라 빠진다).
 
 막는 흐름은 $G_L$의 모든 $s$-$t$ 경로가 막힐 때까지 경로를 찾아 흐름을 흘려 보낸다. 보기로:
 
-- Path $s \to a \to t$: push 4 (saturates $(a,t)$)
-- Path $s \to a \to c \to t$: push 6 (saturates remaining capacity on $(a,c)$ after considering available flow)
-- Path $s \to b \to c \to t$: push 4 (limited by remaining capacity on $(c,t)$)
+- 길 $s \to a \to t$: 4을 밀어 넣는다($(a,t)$이 가득 찬다)
+- 길 $s \to a \to c \to t$: 6을 밀어 넣는다(쓸 수 있는 흐름을 헤아린 뒤 $(a,c)$의 남은 담는 힘이 가득 찬다)
+- 길 $s \to b \to c \to t$: 4을 밀어 넣는다($(c,t)$의 남은 담는 힘에 매인다)
 
 1단계 뒤 전체 흐름: 14.
 
@@ -224,11 +224,11 @@ if __name__ == "__main__":
 | 성질 | 에드먼즈-카프 | 디닉 |
 |----------|-------------|---------|
 | 경로 전략 | 최단 경로 하나 | 모든 최단 경로(막는 흐름) |
-| Time complexity | $O(VE^2)$ | $O(V^2 E)$ |
-| Unit-capacity networks | $O(E \cdot \min(E^{1/2}, V^{2/3}))$ | $O(E\sqrt{V})$ |
+| 때 복잡도 | $O(VE^2)$ | $O(V^2 E)$ |
+| 담는 힘이 1인 그물 | $O(E \cdot \min(E^{1/2}, V^{2/3}))$ | $O(E\sqrt{V})$ |
 | 짜기 | 더 단순하다(너비 우선만) | 더 손이 간다(너비 우선 + 깊이 우선) |
 
-Dinic's algorithm dominates Edmonds-Karp when $V < E$, which is the common case in dense networks. For sparse graphs where $E = O(V)$, both yield $O(V^3)$.
+$V < E$이면 디닉 알고리즘이 에드먼즈-카프보다 낫고, 빽빽한 그물에서는 흔히 그렇다. $E = O(V)$인 성긴 그래프에서는 둘 다 $O(V^3)$이다.
 
 ## 참고 문헌
 
@@ -241,7 +241,7 @@ Dinic's algorithm dominates Edmonds-Karp when $V < E$, which is the common case 
 디닉 알고리즘을 설명하고 담이가 1인 그물에서 왜 에드먼즈-카프보다 빠른지 설명하여라.
 
 ??? success "연습문제 1 풀이"
-    Dinic's algorithm builds a level graph using BFS, then finds blocking flows using DFS. A blocking flow saturates at least one edge on every $s$-$t$ path in the level graph. After each blocking flow, the shortest $s$-$t$ path length increases by at least 1, so at most $O(V)$ phases are needed. Each phase takes $O(VE)$ for general graphs, giving $O(V^2 E)$ total. For unit-capacity networks, each phase takes $O(E)$ and there are $O(\sqrt{E})$ phases, giving $O(E\sqrt{E}) = O(E^{1.5})$, faster than Edmonds-Karp's $O(VE^2)$. $\square$
+    디닉 알고리즘은 너비 먼저 찾기로 켜 그래프를 짓고 깊이 먼저 찾기로 막는 흐름을 찾는다. 막는 흐름은 켜 그래프의 $s$-$t$ 길마다 적어도 이음 하나를 가득 채운다. 막는 흐름을 한 번 더할 때마다 가장 짧은 $s$-$t$ 길의 길이가 적어도 1 늘므로 판은 많아야 $O(V)$개면 된다. 여느 그래프에서는 판마다 $O(VE)$이 들어 모두 $O(V^2 E)$이다. 담는 힘이 1인 그물에서는 판마다 $O(E)$이 들고 판이 $O(\sqrt{E})$개이므로 $O(E\sqrt{E}) = O(E^{1.5})$이며, 에드먼즈-카프의 $O(VE^2)$보다 빠르다. $\square$
 
 ---
 
@@ -249,7 +249,7 @@ Dinic's algorithm dominates Edmonds-Karp when $V < E$, which is the common case 
 막는 흐름이란 무엇인가? 최대 흐름과 어떻게 다른가?
 
 ??? success "연습문제 2 풀이"
-    A **blocking flow** saturates at least one edge on every path from $s$ to $t$ in the level graph, meaning no more flow can be pushed along shortest paths. A **maximum flow** has no augmenting path at all (in the full residual graph, not just the level graph). A blocking flow may not be maximum because augmenting paths of greater length may still exist. Dinic's algorithm finds the maximum flow by iterating: each blocking flow eliminates shortest paths, and the overall process converges when no $s$-$t$ path remains. $\square$
+    **막는 흐름**은 켜 그래프에서 $s$부터 $t$까지 가는 길마다 적어도 이음 하나를 가득 채우므로, 가장 짧은 길로는 더 이상 흐름을 밀어 넣을 수 없다는 뜻이다. **가장 큰 흐름**에는 늘리는 길이 아예 없다(켜 그래프뿐 아니라 온 나머지 그래프에서도 없다). 막는 흐름이 가장 큰 흐름은 아닐 수 있다. 더 긴 늘리는 길이 아직 있을 수 있기 때문이다. 디닉 알고리즘은 이를 되풀이해 가장 큰 흐름을 찾는다. 막는 흐름마다 가장 짧은 길을 없애고, $s$-$t$ 길이 남지 않으면 모든 흐름이 모여든다. $\square$
 
 ---
 
@@ -257,7 +257,7 @@ Dinic's algorithm dominates Edmonds-Karp when $V < E$, which is the common case 
 디닉 알고리즘이 많아야 $V - 1$단계 뒤에 끝남을 증명하여라.
 
 ??? success "연습문제 3 풀이"
-    Each phase computes a blocking flow in the level graph. After a blocking flow, the shortest $s$-$t$ path in the residual graph is strictly longer than before (every shortest path in the current level graph has been blocked). The shortest path length starts at $\geq 1$ and can be at most $V - 1$ (a simple path visits at most $V$ vertices). After $V - 1$ phases, the shortest path would need $\geq V$ edges, which is impossible for simple paths. Therefore no augmenting path exists, and the algorithm terminates with the maximum flow. $\square$
+    판마다 켜 그래프에서 막는 흐름을 셈한다. 막는 흐름 뒤에는 나머지 그래프의 가장 짧은 $s$-$t$ 길이 앞보다 반드시 길어진다(이제 켜 그래프의 가장 짧은 길이 모두 막혔기 때문이다). 가장 짧은 길의 길이는 $\geq 1$에서 비롯해 많아야 $V - 1$이다(단순한 길은 꼭짓점을 많아야 $V$개 들른다). $V - 1$ 판을 지나면 가장 짧은 길에 이음이 $\geq V$개 들어야 하는데 단순한 길로는 그럴 수 없다. 그러므로 늘리는 길이 없고 알고리즘은 가장 큰 흐름을 지닌 채 끝난다. $\square$
 
 ---
 
@@ -267,8 +267,8 @@ Dinic's algorithm dominates Edmonds-Karp when $V < E$, which is the common case 
 ??? success "연습문제 4 풀이"
     | 알고리즘 | 시간 복잡도 | 비고 |
     |---|---|---|
-    | Ford-Fulkerson | $O(E \cdot f^*)$ | $f^*$ = max flow value; may not terminate with irrational capacities |
-    | Edmonds-Karp | $O(VE^2)$ | BFS for shortest augmenting path; always terminates |
-    | Dinic | $O(V^2 E)$ | Level graph + blocking flow; $O(E\sqrt{V})$ for unit capacity |
+    | 포드-풀커슨 | $O(E \cdot f^*)$ | $f^*$ = 가장 큰 흐름 값. 담는 힘이 무리수면 끝나지 않을 수 있다 |
+    | 에드먼즈-카프 | $O(VE^2)$ | 가장 짧은 늘리는 길을 너비 먼저 찾기로 찾는다. 늘 끝난다 |
+    | 디닉 | $O(V^2 E)$ | 켜 그래프 + 막는 흐름. 담는 힘이 1이면 $O(E\sqrt{V})$ |
 
-    Dinic is fastest for most practical cases, especially sparse graphs and unit-capacity networks. $\square$
+    참으로 쓰는 자리에서는 디닉이 대체로 가장 빠르며, 성긴 그래프와 담는 힘이 1인 그물에서 특히 그렇다. $\square$

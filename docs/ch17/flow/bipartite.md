@@ -4,9 +4,9 @@
 
 ## 정의
 
-**Bipartite graph.** A graph $G = (L \cup R, E)$ whose vertices partition into two disjoint sets $L$ and $R$ such that every edge connects a vertex in $L$ to a vertex in $R$.
+**두 쪽 그래프.** 꼭짓점이 서로 겹치지 않는 두 묶음 $L$과 $R$으로 갈리고 이음마다 $L$의 꼭짓점과 $R$의 꼭짓점을 잇는 그래프 $G = (L \cup R, E)$.
 
-**Matching.** A subset $M \subseteq E$ such that no two edges in $M$ share an endpoint. A vertex is *matched* if it is an endpoint of some edge in $M$; otherwise it is *free* (or *unmatched*).
+**짝짓기.** $M$ 안의 어떤 두 이음도 끝점을 함께 지니지 않는 부분 묶음 $M \subseteq E$. 어떤 꼭짓점이 $M$의 어떤 이음의 끝점이면 *짝지어졌다*고 하고, 아니면 *자유롭다*(또는 *짝이 없다*)고 한다.
 
 **최대 짝짓기.** 변의 개수가 가능한 한 가장 많은 짝짓기.
 
@@ -16,11 +16,11 @@
 
 최대 두 쪽 짝짓기 문제는 특별히 세운 그물에서의 최대 흐름으로 줄어든다:
 
-1. Add a **source** $s$ with edges $(s, \ell)$ of capacity $1$ for every $\ell \in L$.
-2. Add a **sink** $t$ with edges $(r, t)$ of capacity $1$ for every $r \in R$.
-3. For each original edge $(\ell, r) \in E$, add an edge of capacity $1$.
+1. **샘** $s$을 더하고 모든 $\ell \in L$에 대해 담는 힘이 $1$인 이음 $(s, \ell)$을 둔다.
+2. **웅덩이** $t$을 더하고 모든 $r \in R$에 대해 담는 힘이 $1$인 이음 $(r, t)$을 둔다.
+3. 본디 이음 $(\ell, r) \in E$마다 담는 힘이 $1$인 이음을 더한다.
 
-A maximum integer flow in this network corresponds to a maximum matching: each unit of flow through an edge $(\ell, r)$ indicates that $\ell$ is matched to $r$. Since all capacities are $1$ and the graph is bipartite, the max flow is always integral.
+이 그물에서 가장 큰 정수 흐름은 가장 큰 짝짓기에 맞물린다. 이음 $(\ell, r)$을 지나는 흐름 한 단위는 $\ell$이 $r$과 짝지어졌다는 뜻이다. 담는 힘이 모두 $1$이고 그래프가 두 쪽이므로 가장 큰 흐름은 늘 정수다.
 
 $$
 |M^*| = \max\text{-flow}(s, t)
@@ -130,16 +130,16 @@ Maximum matching size: 3
 
 | 알고리즘 | 시간 |
 |-----------|:----:|
-| Augmenting path DFS (above) | $O(V \cdot E)$ |
-| Hopcroft-Karp | $O(E \sqrt{V})$ |
-| Max flow reduction (Ford-Fulkerson) | $O(V \cdot E)$ |
+| 늘리는 길 깊이 먼저 찾기(위) | $O(V \cdot E)$ |
+| 홉크로프트-카프 | $O(E \sqrt{V})$ |
+| 가장 큰 흐름으로 되돌리기(포드-풀커슨) | $O(V \cdot E)$ |
 
 단순한 깊이 우선 돌아보기 방식은 늘림 경로 찾기를 $O(V)$번 하며 한 번에 $O(E)$ 시간이 든다. 홉크로프트-카프 알고리즘은 너비 우선 돌아보기 단계를 써서 늘림 경로 여럿을 한꺼번에 찾아 이를 낫게 한다.
 
 ## 홀 정리
 
 !!! note "홀의 혼인 정리"
-    A bipartite graph $G = (L \cup R, E)$ has a matching that covers every vertex in $L$ if and only if for every subset $S \subseteq L$:
+    두 쪽 그래프 $G = (L \cup R, E)$에 $L$의 꼭짓점을 모두 덮는 짝짓기가 있는 것은 모든 부분 묶음 $S \subseteq L$에 대해 다음이 이루어지는 것과 같은 뜻이다.
 
     $$
     |N(S)| \ge |S|
@@ -147,7 +147,7 @@ Maximum matching size: 3
 
     여기서 $N(S)$은 $R$에 있는 $S$의 이웃 모음을 나타낸다.
 
-This theorem provides a necessary and sufficient condition for the existence of a perfect matching on the $L$ side, though checking it directly requires examining all $2^{|L|}$ subsets.
+이 정리는 $L$ 쪽의 온전한 짝짓기가 있기 위한 꼭 필요하고도 넉넉한 조건을 준다. 다만 곧바로 살피려면 부분 묶음 $2^{|L|}$개를 모두 봐야 한다.
 
 ## 참고 문헌
 
@@ -160,7 +160,7 @@ This theorem provides a necessary and sufficient condition for the existence of 
 두 쪽 짝짓기를 최대 흐름 문제로 줄이는 방법을 보여라. 근원, 바닥, 담이는 무엇인가?
 
 ??? success "연습문제 1 풀이"
-    Given bipartite graph $(L, R, E)$: add source $s$ with edges of capacity 1 to all vertices in $L$. Add sink $t$ with edges of capacity 1 from all vertices in $R$. Set capacity 1 for all original edges $(u, v)$ where $u \in L, v \in R$. The max flow from $s$ to $t$ equals the maximum matching size. Each unit of flow through an $L$-to-$R$ edge represents a matched pair. The capacity constraints ensure each vertex is matched at most once. $\square$
+    두 쪽 그래프 $(L, R, E)$이 주어지면 샘 $s$을 더하고 $L$의 모든 꼭짓점으로 담는 힘 1인 이음을 둔다. 웅덩이 $t$을 더하고 $R$의 모든 꼭짓점에서 담는 힘 1인 이음을 둔다. $u \in L, v \in R$인 본디 이음 $(u, v)$의 담는 힘을 모두 1로 둔다. $s$에서 $t$으로 가는 가장 큰 흐름이 가장 큰 짝짓기의 크기와 같다. $L$에서 $R$로 가는 이음을 지나는 흐름 한 단위가 짝지은 한 쌍을 나타낸다. 담는 힘의 매임 덕에 꼭짓점마다 많아야 한 번 짝지어진다. $\square$
 
 ---
 
@@ -168,7 +168,7 @@ This theorem provides a necessary and sufficient condition for the existence of 
 두 쪽 그래프에 대한 홀 정리(혼인 정리)를 말하여라.
 
 ??? success "연습문제 2 풀이"
-    **Hall's theorem**: A bipartite graph $(L, R, E)$ has a matching that saturates all vertices in $L$ if and only if for every subset $S \subseteq L$, $|N(S)| \geq |S|$, where $N(S)$ is the set of neighbors of $S$ in $R$. In other words, every subset of $L$ has at least as many neighbors as its own size. This is a necessary and sufficient condition for a perfect matching on the $L$ side. $\square$
+    **홀 정리**: 두 쪽 그래프 $(L, R, E)$에 $L$의 꼭짓점을 모두 채우는 짝짓기가 있는 것은 모든 부분 묶음 $S \subseteq L$에 대해 $|N(S)| \geq |S|$인 것과 같은 뜻이다. 여기서 $N(S)$은 $R$ 안에 있는 $S$의 이웃 묶음이다. 달리 말하면 $L$의 어떤 부분 묶음도 제 크기만큼은 이웃을 지닌다는 뜻이다. 이는 $L$ 쪽의 온전한 짝짓기가 있기 위한 꼭 필요하고도 넉넉한 조건이다. $\square$
 
 ---
 
@@ -176,7 +176,7 @@ This theorem provides a necessary and sufficient condition for the existence of 
 홉크로프트-카프로 최대 두 쪽 짝짓기를 찾을 때 시간 복잡도는 무엇인가? 흐름 바탕 방식과 견주면 어떠한가?
 
 ??? success "연습문제 3 풀이"
-    Hopcroft-Karp runs in $O(E\sqrt{V})$ time. The flow-based approach using Edmonds-Karp gives $O(VE)$ for bipartite matching (since max flow $\leq V/2$, and each augmenting path takes $O(E)$). Hopcroft-Karp is faster because it finds multiple augmenting paths simultaneously using BFS phases, with $O(\sqrt{V})$ phases each processing $O(E)$ edges. For dense bipartite graphs, both are $O(V^{2.5})$, but Hopcroft-Karp has better constants. $\square$
+    홉크로프트-카프는 $O(E\sqrt{V})$ 때에 돈다. 에드먼즈-카프를 쓰는 흐름 바탕 길은 두 쪽 짝짓기에 $O(VE)$이 든다(가장 큰 흐름이 $\leq V/2$이고 늘리는 길마다 $O(E)$이 들기 때문이다). 홉크로프트-카프가 더 빠른 까닭은 너비 먼저 찾기 판을 써서 늘리는 길 여럿을 한꺼번에 찾기 때문이며, 판이 $O(\sqrt{V})$개이고 판마다 이음 $O(E)$개를 다룬다. 빽빽한 두 쪽 그래프에서는 둘 다 $O(V^{2.5})$이지만 홉크로프트-카프의 상수가 더 낫다. $\square$
 
 ---
 
@@ -184,4 +184,4 @@ This theorem provides a necessary and sufficient condition for the existence of 
 두 쪽 짝짓기의 실제 쓰임새를 하나 들고 그것을 두 쪽 그래프로 나타내어라.
 
 ??? success "연습문제 4 풀이"
-    **Job assignment**: $n$ workers and $m$ jobs, where worker $i$ can perform job $j$ if they have the required skills. Model as bipartite graph: $L$ = workers, $R$ = jobs, edge $(i, j)$ if worker $i$ can do job $j$. Maximum matching assigns as many workers to jobs as possible, each worker to one job and each job to one worker. This is used in scheduling, resource allocation, and organ donation matching. $\square$
+    **일 맡기기**: 일꾼 $n$명과 일 $m$개가 있고, 일꾼 $i$은 갖춘 솜씨가 맞으면 일 $j$을 할 수 있다. 두 쪽 그래프로 그린다. $L$ = 일꾼, $R$ = 일이고, 일꾼 $i$이 일 $j$을 할 수 있으면 이음 $(i, j)$을 둔다. 가장 큰 짝짓기는 일꾼을 일에 될 수 있는 대로 많이 맡기되 일꾼마다 일 하나, 일마다 일꾼 하나로 맡긴다. 차례 잡기, 밑천 나누기, 장기 기증 짝짓기에 쓰인다. $\square$

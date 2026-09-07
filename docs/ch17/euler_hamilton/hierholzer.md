@@ -158,7 +158,7 @@ Distinct edge traversals: 5
 방향 그래프에서는 히어홀처 알고리즘을 다음과 같이 고쳐 쓴다:
 
 - 방향 이웃 목록(나가는 변만)을 쓴다.
-- An Eulerian circuit exists when $\text{in-deg}(v) = \text{out-deg}(v)$ for all vertices and the graph is strongly connected.
+- 모든 꼭짓점에서 $\text{in-deg}(v) = \text{out-deg}(v)$이고 그래프가 세게 이어져 있으면 오일러 돌이가 있다.
 - 나가는 변을 따라가며 쓸 때마다 없앤다.
 
 시간 복잡도는 그대로 $O(V + E)$이다.
@@ -174,7 +174,7 @@ Distinct edge traversals: 5
 오일러 회로를 찾는 히어홀처 알고리즘을 설명하여라. 그 시간 복잡도는 무엇인가?
 
 ??? success "연습문제 1 풀이"
-    (1) Start from any vertex, follow edges (removing them) until returning to the start. This forms an initial circuit. (2) If unused edges remain, find a vertex $v$ on the circuit with unused edges. Start a new sub-circuit from $v$ using unused edges. (3) Splice the sub-circuit into the main circuit at $v$. (4) Repeat until all edges are used. Time: $O(V + E)$ since each edge is traversed exactly once and splicing is efficient with a linked list. $\square$
+    (1) 아무 꼭짓점에서 비롯해 이음을 따라가며(지나온 이음은 지운다) 처음 자리로 돌아온다. 이것이 첫 돌이다. (2) 쓰지 않은 이음이 남았다면 그런 이음을 지닌 꼭짓점 $v$을 돌이 위에서 찾는다. $v$에서 쓰지 않은 이음으로 새 잔돌이를 비롯한다. (3) 잔돌이를 $v$ 자리에서 큰 돌이에 끼워 넣는다. (4) 이음을 모두 쓸 때까지 되풀이한다. 때는 $O(V + E)$이다. 이음마다 꼭 한 번씩 지나고 이음 목록을 쓰면 끼워 넣기가 잘 들기 때문이다. $\square$
 
 ---
 
@@ -182,7 +182,7 @@ Distinct edge traversals: 5
 히어홀처 알고리즘은 왜 작은 회로를 늘 이어 붙일 수 있음을 보장하는가? 왜 늘 끝나는가?
 
 ??? success "연습문제 2 풀이"
-    If unused edges remain, some vertex on the current circuit has unused edges (because the graph is connected and all degrees are even — unused edges form a connected subgraph through the circuit). Starting a sub-circuit from this vertex will return to it (all remaining degrees are even). Splicing extends the circuit without repeating edges. The algorithm terminates because each step uses at least one edge, and there are finitely many edges. $\square$
+    쓰지 않은 이음이 남았다면 이제 돌이 위의 어떤 꼭짓점이 그런 이음을 지닌다(그래프가 이어져 있고 자릿수가 모두 짝수이므로, 쓰지 않은 이음이 돌이를 거쳐 이어진 잔그래프를 이룬다). 이 꼭짓점에서 잔돌이를 비롯하면 그 자리로 되돌아온다(남은 자릿수가 모두 짝수이기 때문이다). 끼워 넣으면 이음을 되풀이하지 않고 돌이가 길어진다. 걸음마다 이음을 적어도 하나 쓰고 이음은 마디 있게 많으므로 알고리즘은 끝난다. $\square$
 
 ---
 
@@ -205,7 +205,7 @@ Distinct edge traversals: 5
         return circuit[::-1]
     ```
 
-    The stack tracks the current path. When a vertex has no remaining edges, it is added to the circuit. This naturally handles the splicing step. Using adjacency lists with efficient removal (e.g., sets or deques), the total time is $O(V + E)$. $\square$
+    쌓개가 이제 길을 좇는다. 어떤 꼭짓점에 남은 이음이 없으면 그 꼭짓점을 돌이에 넣는다. 이러면 끼워 넣는 걸음이 저절로 다루어진다. 빼기가 잘 드는 이웃 목록(묶음이나 두 끝 줄 따위)을 쓰면 온 때는 $O(V + E)$이다. $\square$
 
 ---
 
@@ -213,4 +213,4 @@ Distinct edge traversals: 5
 차수가 홀수인 꼭짓점이 정확히 둘일 때 오일러 경로(회로가 아닌 것)를 찾도록 히어홀처 알고리즘을 어떻게 고치는가?
 
 ??? success "연습문제 4 풀이"
-    Add a temporary edge between the two odd-degree vertices. Now all degrees are even, so an Eulerian circuit exists. Run Hierholzer's algorithm to find the circuit. Remove the temporary edge from the result — this breaks the circuit into a path starting at one odd-degree vertex and ending at the other. Alternatively, start the algorithm from one of the odd-degree vertices; it will naturally end at the other. $\square$
+    자릿수가 홀수인 두 꼭짓점 사이에 잠깐 쓸 이음을 더한다. 이제 자릿수가 모두 짝수이므로 오일러 돌이가 있다. 히어홀처 알고리즘을 돌려 돌이를 찾는다. 결과에서 잠깐 쓴 이음을 지우면 돌이가 끊어져 한쪽 홀수 꼭짓점에서 비롯해 다른 쪽에서 끝나는 길이 된다. 아니면 홀수 자릿수 꼭짓점 가운데 하나에서 알고리즘을 비롯해도 되는데, 그러면 저절로 다른 쪽에서 끝난다. $\square$
