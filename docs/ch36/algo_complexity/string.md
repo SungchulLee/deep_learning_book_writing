@@ -1,154 +1,150 @@
-# String Algorithm Complexities
+# 글자열 알고리즘 복잡도
 
-Strings introduce challenges that general sequences do not: pattern matching must
-handle overlapping occurrences, suffix structures must represent exponentially many
-substrings in linear space, and edit operations define a rich metric space.
-This page summarizes the time and space complexity of every major string algorithm.
+글자열은 여느 열에는 없는 어려움을 들여온다. 결 맞추기는 겹쳐 나오는 것을 다뤄야
+하고, 뒷가지 얼개는 곱절꼴로 많은 부분 글자열을 선형 자리에 나타내야 하며,
+고침 연산은 넉넉한 잣대 밭을 이룬다.
+이 쪽은 으뜸 글자열 알고리즘마다 때와 자리 복잡도를 간추린다.
 
-## Single-Pattern Matching
+## 결 하나 맞추기
 
-Given a text of length $n$ and a pattern of length $m$, find all occurrences of the
-pattern in the text.
+길이 $n$인 글월과 길이 $m$인 결이 주어졌을 때 글월에서 그 결이 나오는 자리를 모두 찾는다.
 
-| Algorithm | Preprocessing | Search | Total | Space |
+| 알고리즘 | 미리 다듬기 | 찾기 | 모두 | 자리 |
 |---|---|---|---|---|
-| Naive | $O(1)$ | $O(nm)$ | $O(nm)$ | $O(1)$ |
+| 곧이곧대로 | $O(1)$ | $O(nm)$ | $O(nm)$ | $O(1)$ |
 | KMP | $O(m)$ | $O(n)$ | $O(n + m)$ | $O(m)$ |
-| Boyer-Moore | $O(m + \Sigma)$ | $O(n/m)$ best, $O(nm)$ worst | $O(n + m + \Sigma)$ | $O(m + \Sigma)$ |
-| Rabin-Karp | $O(m)$ | $O(n)$ expected, $O(nm)$ worst | $O(n + m)$ expected | $O(1)$ |
-| Z-algorithm | $O(n + m)$ | included | $O(n + m)$ | $O(n + m)$ |
+| 보이어-무어 | $O(m + \Sigma)$ | 가장 좋을 때 $O(n/m)$, 가장 나쁠 때 $O(nm)$ | $O(n + m + \Sigma)$ | $O(m + \Sigma)$ |
+| 라빈-카프 | $O(m)$ | 어림 $O(n)$, 가장 나쁠 때 $O(nm)$ | 어림 $O(n + m)$ | $O(1)$ |
+| Z 알고리즘 | $O(n + m)$ | 안에 든다 | $O(n + m)$ | $O(n + m)$ |
 
-Here $\Sigma$ is the alphabet size. KMP and the Z-algorithm achieve $O(n + m)$
-worst-case time by using a failure function or Z-array to avoid re-scanning matched
-characters.
+여기서 $\Sigma$은 낱자 모둠의 크기다. KMP과 Z 알고리즘은 어긋남 함수나 Z 배열로
+이미 맞은 글자를 다시 훑지 않아 가장 나쁠 때 $O(n + m)$을 이룬다.
 
-!!! tip "Boyer-Moore in Practice"
-    Boyer-Moore's best case of $O(n/m)$ occurs when mismatches happen at the end
-    of the pattern, allowing large shifts. For natural-language text with a large
-    alphabet, Boyer-Moore is often the fastest algorithm in practice despite its
-    $O(nm)$ worst case.
+!!! tip "보이어-무어를 참으로 쓸 때"
+    보이어-무어의 가장 좋은 $O(n/m)$은 결의 끝에서 어긋날 때 나오는데, 그러면
+    크게 건너뛸 수 있다. 낱자 모둠이 큰 자연스러운 글월에서는 가장 나쁠 때
+    $O(nm)$인데도 보이어-무어가 참으로 가장 빠를 때가 많다.
 
-## Multiple-Pattern Matching
+## 결 여럿 맞추기
 
-Search for $k$ patterns simultaneously in a text of length $n$.
+길이 $n$인 글월에서 결 $k$개를 한꺼번에 찾는다.
 
-| Algorithm | Preprocessing | Search | Total | Space |
+| 알고리즘 | 미리 다듬기 | 찾기 | 모두 | 자리 |
 |---|---|---|---|---|
-| Aho-Corasick | $O(M)$ | $O(n + z)$ | $O(M + n + z)$ | $O(M \cdot \Sigma)$ |
-| Rabin-Karp (multi) | $O(M)$ | $O(n \cdot k)$ expected | $O(M + nk)$ | $O(k)$ |
+| 아호-코라식 | $O(M)$ | $O(n + z)$ | $O(M + n + z)$ | $O(M \cdot \Sigma)$ |
+| 라빈-카프(여럿) | $O(M)$ | 어림 $O(n \cdot k)$ | $O(M + nk)$ | $O(k)$ |
 
-Here $M = \sum m_i$ is the total pattern length and $z$ is the number of matches.
-Aho-Corasick builds a trie with failure links, giving $O(n + z)$ search time
-regardless of the number of patterns.
+여기서 $M = \sum m_i$은 온 결 길이이고 $z$은 맞은 횟수다. 아호-코라식은 어긋남
+이음을 곁들인 트라이를 세워, 결의 수와 상관없이 찾기 때를 $O(n + z)$으로 만든다.
 
-## Suffix Structures
+## 뒷가지 얼개
 
-Suffix arrays and suffix trees represent all suffixes of a string, enabling powerful
-substring queries.
+뒷가지 배열과 뒷가지 나무는 글자열의 온 뒷가지를 나타내어 힘센 부분 글자열 물음을
+받친다.
 
-| Structure | Construction | Space | Pattern Search | LCP Query |
+| 얼개 | 세우기 | 자리 | 결 찾기 | 가장 긴 함께 있는 앞가지 물음 |
 |---|---|---|---|---|
-| Suffix array | $O(n \log n)$ or $O(n)$ | $O(n)$ | $O(m \log n)$ | $O(1)$ with LCP array |
-| Suffix array + LCP | $O(n)$ (Kasai) | $O(n)$ | $O(m + \log n)$ | $O(1)$ |
-| Suffix tree | $O(n)$ (Ukkonen) | $O(n \cdot \Sigma)$ | $O(m)$ | $O(1)$ |
-| Suffix automaton | $O(n)$ | $O(n)$ | $O(m)$ | via parent links |
+| 뒷가지 배열 | $O(n \log n)$이나 $O(n)$ | $O(n)$ | $O(m \log n)$ | LCP 배열이 있으면 $O(1)$ |
+| 뒷가지 배열 + LCP | $O(n)$(가사이) | $O(n)$ | $O(m + \log n)$ | $O(1)$ |
+| 뒷가지 나무 | $O(n)$(우코넨) | $O(n \cdot \Sigma)$ | $O(m)$ | $O(1)$ |
+| 뒷가지 자동자 | $O(n)$ | $O(n)$ | $O(m)$ | 어버이 이음으로 |
 
-!!! warning "Suffix Tree Space"
-    While suffix trees provide $O(m)$ pattern search, they use $O(n \cdot \Sigma)$
-    space in practice (large constant factors). Suffix arrays with LCP arrays are
-    preferred when space is tight, at the cost of slightly slower queries.
+!!! warning "뒷가지 나무의 자리"
+    뒷가지 나무는 $O(m)$ 결 찾기를 주지만 참으로는 $O(n \cdot \Sigma)$의 자리를
+    쓴다(붙박이 곱이 크다). 자리가 빠듯하면 물음이 조금 느려지는 값을 치르고
+    LCP 배열을 곁들인 뒷가지 배열을 쓰는 쪽이 낫다.
 
-## String Distance and Comparison
+## 글자열 거리와 견주기
 
-| Algorithm | Time | Space | Problem |
+| 알고리즘 | 때 | 자리 | 문제 |
 |---|---|---|---|
-| Edit distance (Levenshtein) | $O(mn)$ | $O(mn)$ or $O(\min(m,n))$ | Minimum edits to transform one string into another |
-| LCS (longest common subseq.) | $O(mn)$ | $O(\min(m,n))$ | Longest common subsequence |
-| LCS (longest common substr.) | $O(mn)$ | $O(mn)$ | Longest common substring |
-| LCS via suffix array | $O(n + m)$ | $O(n + m)$ | Concatenate with separator |
-| Hamming distance | $O(n)$ | $O(1)$ | Count positions that differ |
+| 고침 거리(레벤슈타인) | $O(mn)$ | $O(mn)$이나 $O(\min(m,n))$ | 한 글자열을 다른 것으로 바꾸는 가장 적은 고침 |
+| 가장 긴 함께 있는 부분 열 | $O(mn)$ | $O(\min(m,n))$ | 가장 긴 함께 있는 부분 열 |
+| 가장 긴 함께 있는 부분 글자열 | $O(mn)$ | $O(mn)$ | 가장 긴 함께 있는 부분 글자열 |
+| 뒷가지 배열로 하는 것 | $O(n + m)$ | $O(n + m)$ | 가름표를 넣고 이어 붙인다 |
+| 해밍 거리 | $O(n)$ | $O(1)$ | 다른 자리의 수를 센다 |
 
-The edit distance recurrence is:
+고침 거리의 되돌이 식은 이렇다.
 
 $$
 dp[i][j] = \min\bigl(dp[i-1][j] + 1,\; dp[i][j-1] + 1,\; dp[i-1][j-1] + \delta_{ij}\bigr)
 $$
 
-where $\delta_{ij} = 0$ if $s_1[i] = s_2[j]$ and $\delta_{ij} = 1$ otherwise.
+여기서 $s_1[i] = s_2[j]$이면 $\delta_{ij} = 0$, 아니면 $\delta_{ij} = 1$이다.
 
-## Palindrome Algorithms
+## 앞뒤 같은 글자열 알고리즘
 
-| Algorithm | Time | Space | Purpose |
+| 알고리즘 | 때 | 자리 | 쓰임 |
 |---|---|---|---|
-| Manacher's | $O(n)$ | $O(n)$ | Find all maximal palindromic substrings |
-| Eertree (palindromic tree) | $O(n)$ | $O(n)$ | Count distinct palindromic substrings |
-| DP palindrome check | $O(n^2)$ | $O(n^2)$ | All palindromic substrings |
-| Longest palindromic subseq. | $O(n^2)$ | $O(n^2)$ or $O(n)$ | DP on the string |
+| 매내커 | $O(n)$ | $O(n)$ | 가장 긴 앞뒤 같은 부분 글자열을 모두 찾는다 |
+| 이어트리(앞뒤 같은 나무) | $O(n)$ | $O(n)$ | 서로 다른 앞뒤 같은 부분 글자열을 센다 |
+| 갈피 다지기로 앞뒤 같은지 살피기 | $O(n^2)$ | $O(n^2)$ | 앞뒤 같은 부분 글자열 모두 |
+| 가장 긴 앞뒤 같은 부분 열 | $O(n^2)$ | $O(n^2)$이나 $O(n)$ | 글자열에 대한 갈피 다지기 |
 
-## Hashing for Strings
+## 글자열 해시
 
-Rolling hash functions enable $O(1)$ per-position hash computation after $O(m)$
-preprocessing.
+굴러가는 해시 함수는 $O(m)$의 미리 다듬기 뒤에 자리마다 $O(1)$에 해시를 셈하게
+해 준다.
 
-| Method | Hash Time | Collision Probability | Space |
+| 방법 | 해시 때 | 부딪힐 낌새 | 자리 |
 |---|---|---|---|
-| Polynomial rolling hash | $O(1)$ per shift | $O(m/p)$ per comparison | $O(1)$ |
-| Double hashing | $O(1)$ per shift | $O(m/p^2)$ per comparison | $O(1)$ |
-| Prefix hash array | $O(1)$ per substring | $O(1/p)$ per comparison | $O(n)$ |
+| 다항식 굴러가는 해시 | 옮길 때마다 $O(1)$ | 견줌마다 $O(m/p)$ | $O(1)$ |
+| 겹 해시 | 옮길 때마다 $O(1)$ | 견줌마다 $O(m/p^2)$ | $O(1)$ |
+| 앞가지 해시 배열 | 부분 글자열마다 $O(1)$ | 견줌마다 $O(1/p)$ | $O(n)$ |
 
-Here $p$ is the modulus. Using two independent hash functions (double hashing) reduces
-the false-positive rate quadratically.
+여기서 $p$은 나눔 수다. 서로 매이지 않은 해시 함수 둘을 쓰면(겹 해시) 거짓 맞음
+비율이 제곱으로 준다.
 
-## Practical Feasibility
+## 참으로 쓸 수 있는지
 
-| $n$ | Naive $O(nm)$ | KMP $O(n)$ | Suffix array $O(n \log n)$ | Suffix tree $O(n)$ |
+| $n$ | 곧이곧대로 $O(nm)$ | KMP $O(n)$ | 뒷가지 배열 $O(n \log n)$ | 뒷가지 나무 $O(n)$ |
 |---|---|---|---|---|
-| $10^4$ | fast | instant | instant | instant |
-| $10^5$ | moderate | fast | fast | fast |
-| $10^6$ | slow | fast | fast | moderate (space) |
-| $10^7$ | infeasible | moderate | moderate | slow (space) |
+| $10^4$ | 빠름 | 곧바로 | 곧바로 | 곧바로 |
+| $10^5$ | 어중간 | 빠름 | 빠름 | 빠름 |
+| $10^6$ | 느림 | 빠름 | 빠름 | 어중간(자리) |
+| $10^7$ | 쓸 수 없음 | 어중간 | 어중간 | 느림(자리) |
 
-## Reference
+## 살펴볼 거리
 
 - [Introduction to Algorithms (CLRS)](https://mitpress.mit.edu/books/introduction-algorithms-fourth-edition)
 - Gusfield, D. *Algorithms on Strings, Trees, and Sequences*. Cambridge University Press, 1997.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Compare the time complexities of brute-force string matching, KMP, and Rabin-Karp for a pattern of length $m$ in a text of length $n$.
+**익힘 1.**
+길이 $n$인 글월에서 길이 $m$인 결을 찾을 때 마구잡이 맞추기, KMP, 라빈-카프의 때 복잡도를 견주어라.
 
-??? success "Solution to Exercise 1"
-    **Brute force**: $O(nm)$ worst case (try every alignment, compare up to $m$ characters). **KMP**: $O(n + m)$ worst case ($O(m)$ to build the failure function, $O(n)$ to scan the text). Never backtracks in the text. **Rabin-Karp**: $O(n + m)$ expected time using rolling hashes. Worst case: $O(nm)$ if all hash values collide (every position is a false positive requiring character-by-character verification). KMP is preferred for guaranteed linear time. Rabin-Karp is preferred for multiple pattern matching (hash each pattern, use a hash set for $O(1)$ lookup). $\square$
-
----
-
-**Exercise 2.**
-Building a suffix array takes $O(n \log n)$ or $O(n)$ time. Once built, how fast can we find all occurrences of a pattern of length $m$? Compare with a suffix tree.
-
-??? success "Solution to Exercise 2"
-    **Suffix array**: binary search for the pattern's position in the sorted suffix array. Each comparison takes $O(m)$ (compare $m$ characters). Total: $O(m \log n)$. With an LCP array, this can be improved to $O(m + \log n)$. Finding all $k$ occurrences: $O(m \log n + k)$. **Suffix tree**: traverse from the root following the pattern's characters. Each character match takes $O(1)$ (with edge labels). Total: $O(m)$ to find the locus node, then $O(k)$ to enumerate all leaves below it. Total: $O(m + k)$. Suffix trees are faster for pattern matching but use 10--20x more memory than suffix arrays. Suffix arrays with LCP arrays are the practical choice for large texts. $\square$
+??? success "익힘 1 풀이"
+    **마구잡이**: 가장 나쁠 때 $O(nm)$이다(자리마다 맞추어 보며 많아야 글자 $m$개를 견준다). **KMP**: 가장 나쁠 때 $O(n + m)$이다(어긋남 함수를 세우는 데 $O(m)$, 글월을 훑는 데 $O(n)$). 글월에서 되돌아가는 일이 없다. **라빈-카프**: 굴러가는 해시로 어림 $O(n + m)$이다. 가장 나쁠 때는 해시 값이 모두 부딪히면 $O(nm)$이다(자리마다 거짓 맞음이라 글자마다 살펴야 한다). 선형 때를 보장하려면 KMP이 낫다. 결이 여럿이면 라빈-카프가 낫다(결마다 해시하고 해시 모임으로 $O(1)$에 찾는다). $\square$
 
 ---
 
-**Exercise 3.**
-The longest common substring of two strings of lengths $m$ and $n$ can be found in $O(mn)$ via DP or $O((m+n) \log(m+n))$ via suffix arrays. Describe both approaches.
+**익힘 2.**
+뒷가지 배열을 세우는 데 $O(n \log n)$이나 $O(n)$이 든다. 세우고 나면 길이 $m$인 결이 나오는 자리를 모두 얼마나 빨리 찾는가? 뒷가지 나무와 견주어라.
 
-??? success "Solution to Exercise 3"
-    **DP approach**: build a table $dp[i][j]$ where $dp[i][j]$ is the length of the longest common suffix ending at positions $i$ and $j$. If $s_1[i] = s_2[j]$, then $dp[i][j] = dp[i-1][j-1] + 1$; else $dp[i][j] = 0$. The answer is $\max(dp[i][j])$. Time: $O(mn)$, space $O(\min(m,n))$ with rolling array. **Suffix array approach**: concatenate the two strings with a separator: $s_1 \# s_2$. Build a suffix array and LCP array in $O((m+n) \log(m+n))$ or $O(m+n)$. The longest common substring is the maximum LCP value between adjacent suffixes that belong to different strings. Scan the LCP array in $O(m+n)$. Total: $O((m+n) \log(m+n))$ or $O(m+n)$ with linear suffix array construction. $\square$
-
----
-
-**Exercise 4.**
-Aho-Corasick matches multiple patterns simultaneously in $O(n + m + z)$ time, where $z$ is the number of matches. Explain why this is faster than running KMP for each pattern separately.
-
-??? success "Solution to Exercise 4"
-    With $k$ patterns of total length $m$, running KMP separately costs $O(k \cdot n + m)$: each pattern requires a full scan of the text. For $k = 1000$ and $n = 10^6$, this is $10^9$ operations. Aho-Corasick builds a trie of all patterns ($O(m)$), augmented with failure links similar to KMP's failure function. The text is scanned once ($O(n)$), following trie transitions and failure links. At each position, all matching patterns are reported. Total: $O(n + m + z)$. The key savings: the text is scanned only once regardless of $k$. For the example above: $O(10^6 + m + z)$, which is $1000\times$ faster than separate KMP runs. Aho-Corasick is used in intrusion detection systems, antivirus scanners, and search engines for multi-pattern matching. $\square$
+??? success "익힘 2 풀이"
+    **뒷가지 배열**: 줄 세운 뒷가지 배열에서 결의 자리를 이진 찾기로 찾는다. 견줌마다 $O(m)$이 든다(글자 $m$개를 견준다). 모두 $O(m \log n)$이다. LCP 배열이 있으면 $O(m + \log n)$으로 낫게 할 수 있다. 나오는 자리 $k$곳을 모두 찾으면 $O(m \log n + k)$다. **뒷가지 나무**: 뿌리에서 결의 글자를 따라간다. 글자마다 맞추는 데 $O(1)$이 든다(변 이름표를 쓴다). 자리 마디를 찾는 데 $O(m)$, 그 아래 잎을 모두 늘어놓는 데 $O(k)$이므로 모두 $O(m + k)$다. 결 맞추기는 뒷가지 나무가 빠르나 기억을 뒷가지 배열보다 10~20곱절 쓴다. 큰 글월에는 LCP 배열을 곁들인 뒷가지 배열이 참으로 쓸 만한 고름이다. $\square$
 
 ---
 
-**Exercise 5.**
-Explain why the Z-algorithm and KMP achieve the same $O(n + m)$ complexity for single-pattern matching but use different auxiliary arrays. What is the relationship between the Z-array and KMP's failure function?
+**익힘 3.**
+길이 $m$과 $n$인 글자열 둘의 가장 긴 함께 있는 부분 글자열은 갈피 다지기로 $O(mn)$에, 뒷가지 배열로 $O((m+n) \log(m+n))$에 찾을 수 있다. 두 길을 밝혀라.
 
-??? success "Solution to Exercise 5"
-    Both KMP and the Z-algorithm preprocess the pattern (or the concatenation $P \# T$) in linear time. **KMP's failure function** $\pi[i]$: the length of the longest proper prefix of $P[0..i]$ that is also a suffix. It enables skipping redundant comparisons by shifting the pattern. **Z-array** $Z[i]$: the length of the longest substring starting at $i$ that matches a prefix of the string. It directly identifies matches (if $Z[i] \ge m$, a match starts at $i - m - 1$ in the text). The two are related: $\pi$ and $Z$ encode the same information about the string's self-overlap structure, but in dual form. Given $Z$, one can compute $\pi$ in $O(n)$ and vice versa. KMP processes the text left-to-right with a state machine; the Z-algorithm processes the concatenation with a window-based approach. Both make exactly $O(n + m)$ character comparisons. $\square$
+??? success "익힘 3 풀이"
+    **갈피 다지기 길**: $dp[i][j]$을 자리 $i$과 $j$에서 끝나는 가장 긴 함께 있는 뒷가지의 길이라 하고 표를 세운다. $s_1[i] = s_2[j]$이면 $dp[i][j] = dp[i-1][j-1] + 1$, 아니면 $dp[i][j] = 0$이다. 답은 $\max(dp[i][j])$다. 때는 $O(mn)$, 자리는 굴러가는 배열로 $O(\min(m,n))$이다. **뒷가지 배열 길**: 두 글자열을 가름표로 이어 붙인다. $s_1 \# s_2$. 뒷가지 배열과 LCP 배열을 $O((m+n) \log(m+n))$이나 $O(m+n)$에 세운다. 가장 긴 함께 있는 부분 글자열은 서로 다른 글자열에 딸린 이웃한 뒷가지 사이의 가장 큰 LCP 값이다. LCP 배열을 $O(m+n)$에 훑는다. 모두 $O((m+n) \log(m+n))$이고 뒷가지 배열을 선형으로 세우면 $O(m+n)$이다. $\square$
+
+---
+
+**익힘 4.**
+아호-코라식은 $z$이 맞은 횟수일 때 결 여럿을 한꺼번에 $O(n + m + z)$ 때에 맞춘다. 결마다 KMP을 따로 돌리는 것보다 빠른 까닭을 밝혀라.
+
+??? success "익힘 4 풀이"
+    온 길이가 $m$인 결 $k$개에 KMP을 따로 돌리면 $O(k \cdot n + m)$이 든다. 결마다 글월을 통째로 훑어야 하기 때문이다. $k = 1000$이고 $n = 10^6$이면 $10^9$번의 연산이다. 아호-코라식은 온 결의 트라이를 세우고($O(m)$) KMP의 어긋남 함수와 비슷한 어긋남 이음을 덧붙인다. 글월은 한 번만 훑으며($O(n)$) 트라이 옮김과 어긋남 이음을 따라간다. 자리마다 맞은 결을 모두 알린다. 모두 $O(n + m + z)$이다. 고갱이 아낌은 $k$과 상관없이 글월을 한 번만 훑는다는 것이다. 위 보기에서는 $O(10^6 + m + z)$이니 KMP을 따로 돌리는 것보다 $1000$곱절 빠르다. 아호-코라식은 침입 알아채기 얼개, 바이러스 살피개, 찾기 엔진의 결 여럿 맞추기에 쓰인다. $\square$
+
+---
+
+**익힘 5.**
+Z 알고리즘과 KMP이 결 하나 맞추기에서 같은 $O(n + m)$ 복잡도를 이루면서도 다른 도움 배열을 쓰는 까닭을 밝혀라. Z 배열과 KMP의 어긋남 함수는 어떻게 이어지는가?
+
+??? success "익힘 5 풀이"
+    KMP과 Z 알고리즘 모두 결(또는 이어 붙인 $P \# T$)을 선형 때에 미리 다듬는다. **KMP의 어긋남 함수** $\pi[i]$: $P[0..i]$의 앞가지이면서 뒷가지이기도 한 가장 긴 것의 길이다. 결을 옮겨 군더더기 견줌을 건너뛰게 해 준다. **Z 배열** $Z[i]$: $i$에서 시작하며 글자열의 앞가지와 맞는 가장 긴 부분 글자열의 길이다. 맞은 자리를 곧바로 짚어 준다($Z[i] \ge m$이면 글월의 $i - m - 1$에서 맞음이 시작된다). 둘은 이어져 있다. $\pi$과 $Z$은 글자열이 저와 겹치는 얼개에 대한 같은 소식을 짝을 이루는 꼴로 담는다. $Z$이 있으면 $\pi$을 $O(n)$에 셈할 수 있고 그 반대도 된다. KMP은 상태 기계로 글월을 왼쪽에서 오른쪽으로 다루고, Z 알고리즘은 이어 붙인 것을 창 바탕으로 다룬다. 둘 다 꼭 $O(n + m)$번 글자를 견준다. $\square$

@@ -1,107 +1,107 @@
-# Comparison Tables
+# 견줌 표
 
-Choosing the right algorithm or data structure requires comparing time and space complexity across alternatives. This page collects side-by-side comparisons for the major algorithm families covered throughout the book, providing a quick reference for selecting the best tool for a given problem.
+알맞은 알고리즘이나 자료 얼개를 고르려면 여러 갈음의 때와 자리 복잡도를 견주어야 한다. 이 쪽은 이 책에서 다룬 으뜸 알고리즘 집안을 나란히 놓고 견주어, 주어진 문제에 가장 나은 연장을 고를 때 쓸 빠른 길잡이를 준다.
 
-## Sorting Algorithms
+## 줄 세우기 알고리즘
 
-All bounds refer to sorting $n$ elements. "Stable" means equal elements preserve their original relative order.
+모든 울타리는 원소 $n$개를 줄 세울 때의 값이다. "한결같음"은 같은 원소가 본디 서로의 차례를 지킨다는 뜻이다.
 
-| Algorithm | Best | Average | Worst | Space | Stable |
+| 알고리즘 | 가장 좋을 때 | 고를 때 | 가장 나쁠 때 | 자리 | 한결같음 |
 |---|---|---|---|---|---|
-| Insertion sort | $O(n)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | Yes |
-| Selection sort | $O(n^2)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | No |
-| Bubble sort | $O(n)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | Yes |
-| Shell sort | $O(n \log n)$ | depends on gap | $O(n^{3/2})$ | $O(1)$ | No |
-| Merge sort | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n)$ | Yes |
-| Quick sort | $O(n \log n)$ | $O(n \log n)$ | $O(n^2)$ | $O(\log n)$ | No |
-| Heap sort | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(1)$ | No |
-| Counting sort | $O(n + k)$ | $O(n + k)$ | $O(n + k)$ | $O(k)$ | Yes |
-| Radix sort | $O(d(n + k))$ | $O(d(n + k))$ | $O(d(n + k))$ | $O(n + k)$ | Yes |
-| Timsort | $O(n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n)$ | Yes |
+| 끼워 넣기 줄 세우기 | $O(n)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | 예 |
+| 고르기 줄 세우기 | $O(n^2)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | 아니오 |
+| 거품 줄 세우기 | $O(n)$ | $O(n^2)$ | $O(n^2)$ | $O(1)$ | 예 |
+| 셸 줄 세우기 | $O(n \log n)$ | 사이 값에 달림 | $O(n^{3/2})$ | $O(1)$ | 아니오 |
+| 합치기 줄 세우기 | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n)$ | 예 |
+| 빠른 줄 세우기 | $O(n \log n)$ | $O(n \log n)$ | $O(n^2)$ | $O(\log n)$ | 아니오 |
+| 더미 줄 세우기 | $O(n \log n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(1)$ | 아니오 |
+| 세기 줄 세우기 | $O(n + k)$ | $O(n + k)$ | $O(n + k)$ | $O(k)$ | 예 |
+| 자릿수 줄 세우기 | $O(d(n + k))$ | $O(d(n + k))$ | $O(d(n + k))$ | $O(n + k)$ | 예 |
+| 팀 줄 세우기 | $O(n)$ | $O(n \log n)$ | $O(n \log n)$ | $O(n)$ | 예 |
 
-The comparison-based lower bound is $\Omega(n \log n)$. Non-comparison sorts (counting, radix) bypass this bound by exploiting key structure.
+견줌 바탕의 아래 울타리는 $\Omega(n \log n)$이다. 견주지 않는 줄 세우기(세기, 자릿수)는 열쇠의 얼개를 살려 이 울타리를 비껴간다.
 
-## Data Structures
+## 자료 얼개
 
-Average-case complexity for basic operations on $n$ elements.
+원소 $n$개에 대한 밑바탕 연산의 고를 때 복잡도다.
 
-| Structure | Search | Insert | Delete | Space |
+| 얼개 | 찾기 | 넣기 | 지우기 | 자리 |
 |---|---|---|---|---|
-| Array (unsorted) | $O(n)$ | $O(1)$ amort. | $O(n)$ | $O(n)$ |
-| Array (sorted) | $O(\log n)$ | $O(n)$ | $O(n)$ | $O(n)$ |
-| Linked list | $O(n)$ | $O(1)$ | $O(1)$* | $O(n)$ |
-| Hash table | $O(1)$ exp. | $O(1)$ exp. | $O(1)$ exp. | $O(n)$ |
-| BST (balanced) | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
-| Red-black tree | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
-| B-tree | $O(\log_B n)$ | $O(\log_B n)$ | $O(\log_B n)$ | $O(n)$ |
-| Skip list | $O(\log n)$ exp. | $O(\log n)$ exp. | $O(\log n)$ exp. | $O(n)$ exp. |
+| 배열(줄 세우지 않음) | $O(n)$ | 고르게 나눈 $O(1)$ | $O(n)$ | $O(n)$ |
+| 배열(줄 세움) | $O(\log n)$ | $O(n)$ | $O(n)$ | $O(n)$ |
+| 이음 목록 | $O(n)$ | $O(1)$ | $O(1)$* | $O(n)$ |
+| 해시 표 | 어림 $O(1)$ | 어림 $O(1)$ | 어림 $O(1)$ | $O(n)$ |
+| 이진 찾기 나무(고름) | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
+| 붉은검은 나무 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
+| B 나무 | $O(\log_B n)$ | $O(\log_B n)$ | $O(\log_B n)$ | $O(n)$ |
+| 건너뛰기 목록 | 어림 $O(\log n)$ | 어림 $O(\log n)$ | 어림 $O(\log n)$ | 어림 $O(n)$ |
 
-\* $O(1)$ deletion assumes a pointer to the node is given.
+\* $O(1)$ 지우기는 마디를 가리키는 손가락질이 주어졌다고 여긴 것이다.
 
-## Graph Algorithms
+## 그래프 알고리즘
 
-For a graph with $|V|$ vertices and $|E|$ edges.
+마디가 $|V|$개이고 변이 $|E|$개인 그래프에 대한 값이다.
 
-| Algorithm | Problem | Time | Space |
+| 알고리즘 | 문제 | 때 | 자리 |
 |---|---|---|---|
-| BFS | Traversal / shortest (unweighted) | $O(|V| + |E|)$ | $O(|V|)$ |
-| DFS | Traversal / topological sort | $O(|V| + |E|)$ | $O(|V|)$ |
-| Dijkstra (binary heap) | SSSP (non-negative) | $O((|V| + |E|) \log |V|)$ | $O(|V|)$ |
-| Bellman-Ford | SSSP (general) | $O(|V| \cdot |E|)$ | $O(|V|)$ |
-| Floyd-Warshall | APSP | $O(|V|^3)$ | $O(|V|^2)$ |
-| Johnson's | APSP (sparse) | $O(|V| \cdot |E| + |V|^2 \log |V|)$ | $O(|V|^2)$ |
-| Kruskal | MST | $O(|E| \log |E|)$ | $O(|V|)$ |
-| Prim (binary heap) | MST | $O((|V| + |E|) \log |V|)$ | $O(|V|)$ |
-| Tarjan | SCC | $O(|V| + |E|)$ | $O(|V|)$ |
-| Ford-Fulkerson (Edmonds-Karp) | Max flow | $O(|V| \cdot |E|^2)$ | $O(|V|^2)$ |
+| 너비 먼저 훑기 | 훑기 / 가장 짧은 길(짐 없음) | $O(\lvert V \rvert + \lvert E \rvert)$ | $O(\lvert V \rvert)$ |
+| 깊이 먼저 훑기 | 훑기 / 갈래 세우기 | $O(\lvert V \rvert + \lvert E \rvert)$ | $O(\lvert V \rvert)$ |
+| 데이크스트라(두 갈래 더미) | 한 곳에서 뻗는 가장 짧은 길(음수 아님) | $O((\lvert V \rvert + \lvert E \rvert) \log \lvert V \rvert)$ | $O(\lvert V \rvert)$ |
+| 벨먼-포드 | 한 곳에서 뻗는 가장 짧은 길(두루) | $O(\lvert V \rvert \cdot \lvert E \rvert)$ | $O(\lvert V \rvert)$ |
+| 플로이드-워셜 | 모든 짝의 가장 짧은 길 | $O(\lvert V \rvert^3)$ | $O(\lvert V \rvert^2)$ |
+| 존슨 | 모든 짝의 가장 짧은 길(성김) | $O(\lvert V \rvert \cdot \lvert E \rvert + \lvert V \rvert^2 \log \lvert V \rvert)$ | $O(\lvert V \rvert^2)$ |
+| 크러스컬 | 가장 작은 뻗는 나무 | $O(\lvert E \rvert \log \lvert E \rvert)$ | $O(\lvert V \rvert)$ |
+| 프림(두 갈래 더미) | 가장 작은 뻗는 나무 | $O((\lvert V \rvert + \lvert E \rvert) \log \lvert V \rvert)$ | $O(\lvert V \rvert)$ |
+| 타잔 | 세게 이어진 조각 | $O(\lvert V \rvert + \lvert E \rvert)$ | $O(\lvert V \rvert)$ |
+| 포드-펄커슨(에드먼즈-카프) | 가장 큰 흐름 | $O(\lvert V \rvert \cdot \lvert E \rvert^2)$ | $O(\lvert V \rvert^2)$ |
 
-## Heap Variants
+## 더미 갈래
 
-| Heap Type | Insert | Extract-Min | Decrease-Key | Merge | Space |
+| 더미 갈래 | 넣기 | 가장 작은 것 빼기 | 열쇠 낮추기 | 합치기 | 자리 |
 |---|---|---|---|---|---|
-| Binary heap | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
-| d-ary heap | $O(\log_d n)$ | $O(d \log_d n)$ | $O(\log_d n)$ | $O(n)$ | $O(n)$ |
-| Binomial heap | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
-| Fibonacci heap | $O(1)$ amort. | $O(\log n)$ amort. | $O(1)$ amort. | $O(1)$ | $O(n)$ |
-| Pairing heap | $O(1)$ | $O(\log n)$ amort. | $O(\log n)$ amort. | $O(1)$ | $O(n)$ |
+| 두 갈래 더미 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ | $O(n)$ |
+| d 갈래 더미 | $O(\log_d n)$ | $O(d \log_d n)$ | $O(\log_d n)$ | $O(n)$ | $O(n)$ |
+| 이항 더미 | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(\log n)$ | $O(n)$ |
+| 피보나치 더미 | 고르게 나눈 $O(1)$ | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(1)$ | $O(1)$ | $O(n)$ |
+| 짝짓기 더미 | $O(1)$ | 고르게 나눈 $O(\log n)$ | 고르게 나눈 $O(\log n)$ | $O(1)$ | $O(n)$ |
 
-## String Algorithms
+## 글자열 알고리즘
 
-For a pattern of length $m$ and text of length $n$.
+길이 $m$인 결과 길이 $n$인 글월에 대한 값이다.
 
-| Algorithm | Preprocessing | Search | Space |
+| 알고리즘 | 미리 다듬기 | 찾기 | 자리 |
 |---|---|---|---|
-| Naive | $O(1)$ | $O(nm)$ | $O(1)$ |
+| 곧이곧대로 | $O(1)$ | $O(nm)$ | $O(1)$ |
 | KMP | $O(m)$ | $O(n)$ | $O(m)$ |
-| Boyer-Moore | $O(m + |\Sigma|)$ | $O(n/m)$ best, $O(nm)$ worst | $O(m + |\Sigma|)$ |
-| Rabin-Karp | $O(m)$ | $O(n)$ expected | $O(1)$ |
-| Aho-Corasick ($k$ patterns) | $O(\sum m_i)$ | $O(n + z)$ | $O(\sum m_i)$ |
-| Suffix array | $O(n)$ | $O(m \log n)$ | $O(n)$ |
-| Suffix tree | $O(n)$ | $O(m)$ | $O(n)$ |
+| 보이어-무어 | $O(m + \lvert \Sigma \rvert)$ | 가장 좋을 때 $O(n/m)$, 가장 나쁠 때 $O(nm)$ | $O(m + \lvert \Sigma \rvert)$ |
+| 라빈-카프 | $O(m)$ | 어림 $O(n)$ | $O(1)$ |
+| 아호-코라식(결 $k$개) | $O(\sum m_i)$ | $O(n + z)$ | $O(\sum m_i)$ |
+| 뒷가지 배열 | $O(n)$ | $O(m \log n)$ | $O(n)$ |
+| 뒷가지 나무 | $O(n)$ | $O(m)$ | $O(n)$ |
 
-Here $|\Sigma|$ is the alphabet size and $z$ is the number of matches.
+여기서 $\lvert \Sigma \rvert$은 낱자 모둠의 크기이고 $z$은 맞은 횟수다.
 
-## How to Choose
+## 고르는 길
 
-When selecting an algorithm or data structure, consider:
+알고리즘이나 자료 얼개를 고를 때 다음을 헤아려라.
 
-1. **Input size**: Asymptotic complexity matters for large $n$; constants dominate for small $n$.
-2. **Operation mix**: A hash table beats a BST if you never need ordered traversal.
-3. **Worst case vs. expected**: Randomized algorithms (quicksort, skip lists, treaps) have excellent expected performance but occasionally bad worst cases.
-4. **Space constraints**: In-place algorithms ($O(1)$ extra space) are preferred when memory is limited.
-5. **Stability**: Required when the relative order of equal elements has meaning.
+1. **들임 크기**: $n$이 크면 큰 복잡도가 중요하고, 작으면 붙박이 곱이 판친다.
+2. **연산의 섞임**: 차례대로 돌 일이 없다면 해시 표가 이진 찾기 나무를 이긴다.
+3. **가장 나쁠 때 대 바랄 때**: 아무렇게나 하는 알고리즘(빠른 줄 세우기, 건너뛰기 목록, 트립)은 바랄 때의 됨됨이가 아주 좋으나 이따금 가장 나쁠 때가 나쁘다.
+4. **자리 매임**: 기억이 빠듯하면 제자리 알고리즘(더 드는 자리가 $O(1)$)이 낫다.
+5. **한결같음**: 같은 원소의 서로의 차례에 뜻이 있으면 있어야 한다.
 
-!!! tip "Practical rule of thumb"
-    For $n < 50$, insertion sort often outperforms asymptotically faster algorithms due to low overhead and cache efficiency. For $n > 10^6$, always use an $O(n \log n)$ sort or better.
+!!! tip "참으로 쓰는 어림 규칙"
+    $n < 50$이면 붙는 짐이 적고 캐시에 잘 맞아 끼워 넣기 줄 세우기가 큰 복잡도가 나은 알고리즘을 앞설 때가 많다. $n > 10^6$이면 늘 $O(n \log n)$이나 그보다 나은 줄 세우기를 쓰라.
 
-## Implementation
+## 짜보기
 
 ```python
 """
-Algorithm Complexity Comparison -- empirical timing of sorting algorithms.
+알고리즘 복잡도 견주기 -- 줄 세우기 알고리즘의 때를 재어 본다.
 
-Times several sorting algorithms on random arrays of increasing size
-to verify their asymptotic behavior in practice.
+크기를 키운 아무 배열에 줄 세우기 알고리즘 여럿의 때를 재어
+참으로 큰 복잡도대로 도는지 살핀다.
 """
 
 import random
@@ -109,10 +109,10 @@ import time
 from typing import Callable
 
 
-# === Sorting Algorithms =======================================================
+# === 줄 세우기 알고리즘 =====================================================
 
 def insertion_sort(arr: list[int]) -> list[int]:
-    """Sort using insertion sort. O(n^2)."""
+    """끼워 넣기 줄 세우기. O(n^2)."""
     a = arr[:]
     for i in range(1, len(a)):
         key = a[i]
@@ -125,7 +125,7 @@ def insertion_sort(arr: list[int]) -> list[int]:
 
 
 def merge_sort(arr: list[int]) -> list[int]:
-    """Sort using merge sort. O(n log n)."""
+    """합치기 줄 세우기. O(n log n)."""
     if len(arr) <= 1:
         return arr[:]
     mid = len(arr) // 2
@@ -144,26 +144,26 @@ def merge_sort(arr: list[int]) -> list[int]:
 
 
 def python_sort(arr: list[int]) -> list[int]:
-    """Sort using Python's built-in Timsort. O(n log n)."""
+    """파이썬에 들어 있는 팀 줄 세우기. O(n log n)."""
     return sorted(arr)
 
 
-# === Benchmark ================================================================
+# === 때 재기 ================================================================
 
 def benchmark(func: Callable, arr: list[int]) -> float:
-    """Return the time in milliseconds to sort *arr* with *func*."""
+    """*func*으로 *arr*을 줄 세우는 데 걸린 밀리초를 내놓는다."""
     start = time.perf_counter()
     func(arr)
     return (time.perf_counter() - start) * 1000
 
 
-# === Main =====================================================================
+# === 메인 ===================================================================
 
 if __name__ == "__main__":
     random.seed(42)
     sizes = [100, 500, 1000, 5000]
 
-    print(f"{'n':>6}  {'Insertion':>12}  {'Merge':>12}  {'Timsort':>12}")
+    print(f"{'n':>6}  {'끼워 넣기':>12}  {'합치기':>12}  {'팀':>12}")
     print(f"{'':>6}  {'(ms)':>12}  {'(ms)':>12}  {'(ms)':>12}")
     print("-" * 50)
 
@@ -175,10 +175,10 @@ if __name__ == "__main__":
         print(f"{n:>6}  {t_ins:>12.3f}  {t_merge:>12.3f}  {t_tim:>12.3f}")
 ```
 
-**Output:**
+**내놓기:**
 
 ```
-     n     Insertion         Merge       Timsort
+     n      끼워 넣기         합치기            팀
                (ms)          (ms)          (ms)
 --------------------------------------------------
    100         0.287         0.120         0.005
@@ -187,49 +187,49 @@ if __name__ == "__main__":
   5000       645.231         9.120         0.391
 ```
 
-The empirical timings confirm the theoretical analysis: insertion sort's quadratic growth is visible (roughly 25x slowdown for 5x more data), merge sort grows nearly linearly in this range, and Python's built-in Timsort is fastest due to its optimized C implementation and adaptive behavior.
+재어 본 때가 이론 살핌과 맞는다. 끼워 넣기 줄 세우기의 제곱꼴 자람이 눈에 띄고(자료가 5곱절이면 25곱절쯤 느려진다), 합치기 줄 세우기는 이 너비에서 거의 선형으로 자라며, 파이썬에 들어 있는 팀 줄 세우기는 잘 다듬은 C 짜보기와 맞춰 가는 결 덕에 가장 빠르다.
 
-## Reference
+## 살펴볼 거리
 
 - Cormen, T.H., Leiserson, C.E., Rivest, R.L., and Stein, C. *Introduction to Algorithms*. MIT Press
 - Sedgewick, R. and Wayne, K. *Algorithms*. Addison-Wesley
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Given $n = 10^6$ elements and a 1-second time limit, determine which complexities are feasible: $O(n)$, $O(n \log n)$, $O(n \sqrt{n})$, $O(n^2)$.
+**익힘 1.**
+원소가 $n = 10^6$개이고 때 한도가 1초일 때 어느 복잡도를 쓸 수 있는지 가려라. $O(n)$, $O(n \log n)$, $O(n \sqrt{n})$, $O(n^2)$.
 
-??? success "Solution to Exercise 1"
-    At $\sim 10^8$ operations/second in C++: $O(n) = 10^6$ operations (feasible). $O(n \log n) = 10^6 \times 20 = 2 \times 10^7$ (feasible). $O(n \sqrt{n}) = 10^6 \times 10^3 = 10^9$ (borderline, may TLE). $O(n^2) = 10^{12}$ (infeasible, 10,000x over budget). Conclusion: $O(n \log n)$ is the practical ceiling for $n = 10^6$, with $O(n \sqrt{n})$ possible only with small constants and fast I/O. $\square$
-
----
-
-**Exercise 2.**
-A problem can be solved with either a sorting-based $O(n \log n)$ algorithm or a hash-based $O(n)$ expected-time algorithm. Discuss when each is preferable considering constant factors, worst cases, and memory.
-
-??? success "Solution to Exercise 2"
-    The hash-based approach has better asymptotic time but: (1) hash table operations have higher constant factors (hashing, collision resolution, cache misses from random access) -- typically 5--10x slower per operation than array access. For $n < 10^5$, sorting may be faster despite the $\log n$ factor. (2) Hash tables have $O(n)$ worst case if hash collisions are adversarial. Sorting is always $O(n \log n)$ worst case. (3) Hash tables use $O(n)$ extra memory with a constant factor of 2--3x. Sorting can be done in-place ($O(1)$ extra). Sorting is preferable when: deterministic worst-case behavior is needed, memory is tight, or the sorted output is useful for subsequent operations (e.g., binary search, merge). Hashing is preferable when average-case performance matters and $n$ is large. $\square$
+??? success "익힘 1 풀이"
+    C++에서 초마다 $\sim 10^8$번 연산한다고 하면 $O(n) = 10^6$번(쓸 수 있다). $O(n \log n) = 10^6 \times 20 = 2 \times 10^7$(쓸 수 있다). $O(n \sqrt{n}) = 10^6 \times 10^3 = 10^9$(아슬아슬하고 때를 넘길 수 있다). $O(n^2) = 10^{12}$(쓸 수 없다. 예산의 1만 곱절). 맺음: $n = 10^6$에서는 $O(n \log n)$이 참으로 쓸 수 있는 천장이고, $O(n \sqrt{n})$은 붙박이 곱이 작고 들고남이 빠를 때만 된다. $\square$
 
 ---
 
-**Exercise 3.**
-Rank the following algorithm complexities from fastest to slowest for $n = 10^4$: $O(2^n)$, $O(n!)$, $O(n^3)$, $O(n \log n)$, $O(n^2)$, $O(\log n)$, $O(1)$, $O(n)$. Compute approximate operation counts for each.
+**익힘 2.**
+어떤 문제를 줄 세우기 바탕 $O(n \log n)$ 알고리즘으로도, 해시 바탕 어림 $O(n)$ 알고리즘으로도 풀 수 있다. 붙박이 곱, 가장 나쁠 때, 기억을 헤아려 저마다 언제 나은지 다루어라.
 
-??? success "Solution to Exercise 3"
-    For $n = 10^4$: $O(1) = 1$. $O(\log n) = \log_2(10^4) \approx 13$. $O(n) = 10^4$. $O(n \log n) = 10^4 \times 13 = 1.3 \times 10^5$. $O(n^2) = 10^8$. $O(n^3) = 10^{12}$. $O(2^n) = 2^{10000} \approx 10^{3010}$. $O(n!) = (10^4)! \approx 10^{35659}$. Ranked: $O(1) < O(\log n) < O(n) < O(n \log n) < O(n^2) < O(n^3) < O(2^n) < O(n!)$. Only the first five are computationally feasible. $O(n^3)$ requires $\sim 10^{12}$ operations ($\sim 10{,}000$ seconds) -- infeasible in typical time limits. $\square$
-
----
-
-**Exercise 4.**
-Explain the difference between amortized $O(1)$ and worst-case $O(1)$. Give a data structure example where the distinction matters practically.
-
-??? success "Solution to Exercise 4"
-    **Worst-case $O(1)$**: every single operation completes in constant time, guaranteed. Example: array access by index is always $O(1)$. **Amortized $O(1)$**: the average cost per operation over a sequence of $n$ operations is $O(1)$, but individual operations may cost $O(n)$. Example: `std::vector::push_back` in C++ -- most pushes are $O(1)$, but when the vector is full, it resizes (doubling capacity), copying all $n$ elements in $O(n)$. Over $n$ pushes, total cost is $O(n)$, so amortized cost is $O(1)$. The distinction matters in real-time systems: a latency-sensitive financial trading system cannot tolerate occasional $O(n)$ spikes from vector resizing. It must use pre-allocated arrays or ring buffers with worst-case $O(1)$ operations. For general-purpose applications, amortized $O(1)$ is sufficient. $\square$
+??? success "익힘 2 풀이"
+    해시 바탕 길은 큰 복잡도가 낫지만 이렇다. (1) 해시 표 연산은 붙박이 곱이 크다(해시 셈, 부딪힘 풀기, 아무 데나 닿기에서 오는 캐시 빗나감). 흔히 연산마다 배열 닿기보다 5~10곱절 느리다. $n < 10^5$이면 $\log n$ 몫이 있어도 줄 세우기가 빠를 수 있다. (2) 해시 부딪힘이 겨누어 만들어지면 해시 표는 가장 나쁠 때 $O(n)$이다. 줄 세우기는 늘 가장 나쁠 때 $O(n \log n)$이다. (3) 해시 표는 더 드는 기억이 $O(n)$이고 붙박이 곱이 2~3곱절이다. 줄 세우기는 제자리에서 할 수 있다(더 드는 자리 $O(1)$). 줄 세우기가 나은 때는 붙박인 가장 나쁠 때의 결이 있어야 할 때, 기억이 빠듯할 때, 또는 줄 세운 내놓기가 뒤이은 연산(보기로 이진 찾기, 합치기)에 쓸모 있을 때다. 해시는 고를 때의 됨됨이가 중요하고 $n$이 클 때 낫다. $\square$
 
 ---
 
-**Exercise 5.**
-A problem requires $O(n \log n)$ preprocessing and then answers $q$ queries in $O(\log n)$ each. Compare the total time with an alternative that answers each query in $O(n)$ with no preprocessing. For what values of $q$ is the preprocessing approach faster?
+**익힘 3.**
+$n = 10^4$일 때 다음 복잡도를 빠른 것부터 느린 것까지 줄 세워라. $O(2^n)$, $O(n!)$, $O(n^3)$, $O(n \log n)$, $O(n^2)$, $O(\log n)$, $O(1)$, $O(n)$. 저마다 어림 연산 횟수도 셈하여라.
 
-??? success "Solution to Exercise 5"
-    With preprocessing: total time $= O(n \log n + q \log n)$. Without preprocessing: total time $= O(qn)$. The preprocessing approach is faster when $n \log n + q \log n < qn$, i.e., $n \log n < q(n - \log n) \approx qn$ for large $n$. This gives $q > \log n$. For $n = 10^6$: $\log_2 n \approx 20$. If $q > 20$, preprocessing wins. If $q = 1$ (single query), the naive approach ($O(n)$) is faster than $O(n \log n)$ preprocessing. In practice, the crossover point is even lower because the preprocessing constant is larger. The key insight: amortize fixed setup cost over many queries. $\square$
+??? success "익힘 3 풀이"
+    $n = 10^4$이면 $O(1) = 1$. $O(\log n) = \log_2(10^4) \approx 13$. $O(n) = 10^4$. $O(n \log n) = 10^4 \times 13 = 1.3 \times 10^5$. $O(n^2) = 10^8$. $O(n^3) = 10^{12}$. $O(2^n) = 2^{10000} \approx 10^{3010}$. $O(n!) = (10^4)! \approx 10^{35659}$. 차례를 매기면 $O(1) < O(\log n) < O(n) < O(n \log n) < O(n^2) < O(n^3) < O(2^n) < O(n!)$이다. 앞의 다섯만 셈으로 쓸 수 있다. $O(n^3)$은 $\sim 10^{12}$번($\sim 10{,}000$초)이라 흔한 때 한도에서 쓸 수 없다. $\square$
+
+---
+
+**익힘 4.**
+고르게 나눈 $O(1)$과 가장 나쁠 때 $O(1)$의 차이를 밝혀라. 이 가름이 참으로 값진 자료 얼개 보기를 들어라.
+
+??? success "익힘 4 풀이"
+    **가장 나쁠 때 $O(1)$**: 연산 하나하나가 붙박인 때에 끝나는 것이 보장된다. 보기로 번호로 하는 배열 닿기는 늘 $O(1)$이다. **고르게 나눈 $O(1)$**: 연산 $n$번에 걸친 연산마다의 고른 값이 $O(1)$이지만 낱낱의 연산은 $O(n)$이 들 수 있다. 보기로 C++의 `std::vector::push_back`은 거의 모두 $O(1)$이나, 벡터가 꽉 차면 크기를 늘리며(담는 크기를 두 곱절로) 원소 $n$개를 $O(n)$에 베낀다. 밀어 넣기 $n$번의 온 값이 $O(n)$이므로 고르게 나눈 값은 $O(1)$이다. 이 가름은 제때 얼개에서 값지다. 늦음에 예민한 금융 거래 얼개는 벡터 크기 늘리기에서 오는 이따금의 $O(n)$ 치솟음을 견딜 수 없다. 미리 자리를 잡아 둔 배열이나 가장 나쁠 때도 $O(1)$인 고리 버퍼를 써야 한다. 두루 쓰는 쓰임에는 고르게 나눈 $O(1)$으로 넉넉하다. $\square$
+
+---
+
+**익힘 5.**
+어떤 문제가 $O(n \log n)$의 미리 다듬기를 하고 나서 물음 $q$개에 저마다 $O(\log n)$에 답한다. 미리 다듬지 않고 물음마다 $O(n)$에 답하는 갈음과 온 때를 견주어라. $q$이 얼마일 때 미리 다듬는 쪽이 빠른가?
+
+??? success "익힘 5 풀이"
+    미리 다듬으면 온 때가 $O(n \log n + q \log n)$이다. 미리 다듬지 않으면 $O(qn)$이다. 미리 다듬는 쪽이 빠른 조건은 $n \log n + q \log n < qn$, 곧 큰 $n$에서 $n \log n < q(n - \log n) \approx qn$이다. 여기서 $q > \log n$이 나온다. $n = 10^6$이면 $\log_2 n \approx 20$이므로 $q > 20$이면 미리 다듬는 쪽이 이긴다. $q = 1$(물음 하나)이면 곧이곧대로 하는 $O(n)$이 $O(n \log n)$ 미리 다듬기보다 빠르다. 참으로는 미리 다듬기의 붙박이 곱이 크므로 갈리는 자리가 더 낮다. 고갱이 깨침: 붙박인 차림 값을 많은 물음에 고르게 나눈다는 것이다. $\square$
