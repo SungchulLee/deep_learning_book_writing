@@ -1,111 +1,111 @@
-# 34.7.3 Risk-Sensitive Reinforcement Learning
-## Introduction
+# 34.7.3 무릅씀에 예민한 힘 북돋우는 배움
+## 들머리
 
-Standard RL maximizes expected cumulative reward, ignoring the distribution of outcomes. In finance, risk management is paramount—a strategy with high expected return but catastrophic tail risk is unacceptable. Risk-sensitive RL incorporates risk measures directly into the optimization objective.
+여느 힘 북돋우는 배움은 쌓인 보상의 기댓값을 가장 크게 하며 열매의 분포는 눈여겨보지 않는다. 금융에서는 무릅씀 다루기가 으뜸이다. 기댓값 돌아옴이 높아도 꼬리 무릅씀이 끔찍한 꾀는 받아들일 수 없다. 무릅씀에 예민한 힘 북돋우는 배움은 무릅씀 재기를 가장 좋게 하기 목표에 곧바로 넣는다.
 
-## Risk Measures
+## 무릅씀 재기
 
-### Variance-Penalized Return
+### 흩어짐에 벌준 돌아옴
 
 $$J(\pi) = \mathbb{E}[R] - \lambda \text{Var}(R)$$
 
-Simple but penalizes upside variance equally with downside variance.
+쉽지만 위쪽 흩어짐과 아래쪽 흩어짐에 똑같이 벌을 준다.
 
-### Conditional Value at Risk (CVaR)
+### 조건부 무릅씀 값(CVaR)
 
 $$\text{CVaR}_\alpha = \mathbb{E}[R | R \leq \text{VaR}_\alpha]$$
 
-Expected loss in the worst $\alpha$% of scenarios. More appropriate for tail risk management.
+가장 나쁜 $\alpha$% 자리에서의 어림 손실이다. 꼬리 무릅씀 다루기에 더 알맞다.
 
-### Sharpe Ratio Objective
+### 샤프 비 목표
 
 $$J(\pi) = \frac{\mathbb{E}[R] - R_f}{\sqrt{\text{Var}(R)}}$$
 
-Risk-adjusted return that balances mean and variance.
+평균과 흩어짐의 저울을 맞추는, 무릅씀을 맞춘 돌아옴이다.
 
-### Maximum Drawdown Constraint
+### 가장 큰 내림폭 매임
 
 $$\text{MDD} = \max_t \left(\max_{s \leq t} V_s - V_t\right) / \max_{s \leq t} V_s$$
 
-Constraining MDD limits the worst peak-to-trough decline.
+MDD를 매어 두면 꼭대기에서 골까지의 가장 나쁜 내림을 막는다.
 
-## Approaches to Risk-Sensitive RL
+## 무릅씀에 예민한 힘 북돋우는 배움의 길
 
-### 1. Reward Modification
-Incorporate risk into the reward function:
+### 1. 보상 고치기
+무릅씀을 보상 함수에 넣는다.
 
-$$r_t^{\text{risk}} = r_t - \lambda \cdot \text{risk\_measure}(s_t, a_t)$$
+$$r_t^{\text{무릅씀}} = r_t - \lambda \cdot \text{무릅씀\_재기}(s_t, a_t)$$
 
-Simple but changes the MDP semantics.
+쉽지만 마르코프 결정 과정의 뜻이 바뀐다.
 
-### 2. Distributional RL
-Learn the full return distribution $Z^\pi(s, a)$ instead of just $Q^\pi(s, a)$:
+### 2. 분포 힘 북돋우는 배움
+$Q^\pi(s, a)$만이 아니라 온 돌아옴 분포 $Z^\pi(s, a)$을 배운다.
 
-- Quantile regression DQN (QR-DQN)
-- Implicit quantile networks (IQN)
-- Use the learned distribution to compute risk measures
+- 분위수 되돌이 DQN(QR-DQN)
+- 감춘 분위수 그물(IQN)
+- 배운 분포로 무릅씀 재기를 셈한다
 
-### 3. Constrained MDPs
-Optimize return subject to risk constraints:
+### 3. 매인 마르코프 결정 과정
+무릅씀 매임 아래에서 돌아옴을 가장 좋게 한다.
 
-$$\max_\pi \mathbb{E}[R] \quad \text{s.t.} \quad \text{CVaR}_\alpha(R) \geq \tau$$
+$$\max_\pi \mathbb{E}[R] \quad \text{단} \quad \text{CVaR}_\alpha(R) \geq \tau$$
 
-Solved via Lagrangian relaxation with adaptive multipliers.
+맞춰 가는 곱수를 쓰는 라그랑주 느슨히 하기로 푼다.
 
-### 4. Mean-Variance Policy Gradient
-Direct optimization of Sharpe-like objectives using modified policy gradients:
+### 4. 평균-흩어짐 방침 기울기
+고친 방침 기울기로 샤프 같은 목표를 곧바로 가장 좋게 한다.
 
-$$\nabla_\theta J_\text{MV} = \nabla_\theta \mathbb{E}[R] - \lambda \nabla_\theta \text{Var}(R)$$
+$$\nabla_\theta J_\text{평균흩어짐} = \nabla_\theta \mathbb{E}[R] - \lambda \nabla_\theta \text{Var}(R)$$
 
-Requires careful estimation of the variance gradient.
+흩어짐 기울기를 꼼꼼히 어림해야 한다.
 
-## Practical Implementation
+## 실제로 만들기
 
-### CVaR Optimization via Sorting
-1. Collect batch of episode returns
-2. Sort returns in ascending order
-3. Take the bottom $\alpha$% as the CVaR sample
-4. Optimize policy to improve these worst-case returns
+### 매겨서 하는 CVaR 가장 좋게 하기
+1. 에피소드 돌아옴의 묶음을 모은다
+2. 돌아옴을 오름차순으로 매긴다
+3. 아래 $\alpha$%을 CVaR 뽑기로 삼는다
+4. 이 가장 나쁜 돌아옴을 낫게 하도록 방침을 가장 좋게 한다
 
-### Lagrangian Approach for Constraints
+### 매임을 위한 라그랑주 길
 ```
-For each iteration:
-    Update policy to maximize: L(π, λ) = E[R] - λ(CVaR_constraint - CVaR(π))
-    Update λ: λ ← max(0, λ + α_λ(CVaR_constraint - CVaR(π)))
+되풀이마다:
+    L(π, λ) = E[R] - λ(CVaR_매임 - CVaR(π))을 가장 크게 하도록 방침을 고친다
+    λ를 고친다: λ ← max(0, λ + α_λ(CVaR_매임 - CVaR(π)))
 ```
 
-## Summary
+## 요약
 
-Risk-sensitive RL is essential for financial applications where tail risk management is as important as return maximization. CVaR-based objectives, distributional RL, and constrained MDPs provide principled frameworks for incorporating risk awareness into policy optimization.
+무릅씀에 예민한 힘 북돋우는 배움은 꼬리 무릅씀 다루기가 돌아옴 크게 하기만큼 대수로운 금융 쓰임새에 꼭 있어야 한다. CVaR 바탕 목표, 분포 힘 북돋우는 배움, 매인 마르코프 결정 과정이 무릅씀 살핌을 방침 가장 좋게 하기에 넣는 이치 있는 틀을 준다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$

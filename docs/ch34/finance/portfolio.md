@@ -1,107 +1,107 @@
-# 34.7.1 Portfolio Optimization with Policy-Based RL
-## Introduction
+# 34.7.1 방침 바탕 힘 북돋우는 배움으로 하는 밑천 나누기 가장 좋게 하기
+## 들머리
 
-Portfolio optimization using policy-based deep RL frames asset allocation as a sequential decision problem. The agent learns to dynamically rebalance a portfolio across multiple assets, maximizing risk-adjusted returns while accounting for transaction costs and market constraints.
+방침 바탕 깊은 힘 북돋우는 배움으로 하는 밑천 나누기 가장 좋게 하기는 자산 나누기를 잇단 결정 문제로 세운다. 부림꾼은 거래 비용과 저자 매임을 셈에 넣으면서 무릅씀을 맞춘 돌아옴을 가장 크게 하도록, 여러 자산에 걸친 밑천을 움직이며 다시 맞추는 법을 배운다.
 
-## MDP Formulation
+## 마르코프 결정 과정 세우기
 
-### State Space
-The observation at time $t$ includes:
+### 상태 공간
+때 $t$의 봄은 다음을 담는다.
 
-- **Price features**: Returns, moving averages, volatility for each asset
-- **Portfolio state**: Current asset weights $w_t$
-- **Market features**: VIX, interest rates, sector indicators
-- **Account features**: Cash balance, unrealized P&L
+- **값 특징**: 자산마다의 돌아옴, 흐르는 평균, 흔들림
+- **밑천 상태**: 지금 자산 무게 $w_t$
+- **저자 특징**: VIX, 이자율, 갈래 지표
+- **셈틀 특징**: 남은 돈, 아직 거두지 않은 손익
 
-$$s_t = (\text{price\_features}_t, w_t, \text{market\_features}_t, \text{account}_t)$$
+$$s_t = (\text{값\_특징}_t, w_t, \text{저자\_특징}_t, \text{셈틀}_t)$$
 
-### Action Space
-The action represents target portfolio weights:
+### 움직임 공간
+움직임은 겨눈 밑천 무게를 나타낸다.
 
-$$a_t = (w_1^{\text{target}}, \ldots, w_N^{\text{target}})$$
+$$a_t = (w_1^{\text{겨눔}}, \ldots, w_N^{\text{겨눔}})$$
 
-With constraints: $\sum_i w_i = 1$ (fully invested), $w_i \geq 0$ (long-only) or relaxed for long-short.
+매임은 $\sum_i w_i = 1$(온통 넣음)이고 $w_i \geq 0$(사기만 함)이거나, 사고팔기를 함께 하려면 이를 풀어 준다.
 
-### Reward Function
-Risk-adjusted return minus transaction costs:
+### 보상 함수
+무릅씀을 맞춘 돌아옴에서 거래 비용을 뺀 것이다.
 
-$$r_t = \underbrace{w_t^\top R_t}_{\text{portfolio return}} - \underbrace{\lambda_\text{tc} \sum_i |w_{i,t} - w_{i,t-1}| c_i}_{\text{transaction costs}} - \underbrace{\lambda_\text{risk} \cdot \text{risk}(w_t, R_t)}_{\text{risk penalty}}$$
+$$r_t = \underbrace{w_t^\top R_t}_{\text{밑천 돌아옴}} - \underbrace{\lambda_\text{거래} \sum_i |w_{i,t} - w_{i,t-1}| c_i}_{\text{거래 비용}} - \underbrace{\lambda_\text{무릅씀} \cdot \text{무릅씀}(w_t, R_t)}_{\text{무릅씀 벌}}$$
 
-Common risk measures: variance, maximum drawdown, CVaR.
+흔한 무릅씀 재기: 흩어짐, 가장 큰 내림폭, CVaR.
 
-## Policy Architecture
+## 방침 얼개
 
-### Portfolio Policy Network
+### 밑천 방침 그물
 ```
-Observation → Feature Extraction → Hidden Layers → Softmax → Portfolio Weights
+봄 → 특징 뽑기 → 숨은 켜 → 소프트맥스 → 밑천 무게
 ```
 
-The softmax output naturally satisfies the simplex constraint ($\sum w_i = 1, w_i \geq 0$).
+소프트맥스 내보내기는 단체 매임($\sum w_i = 1, w_i \geq 0$)을 절로 채운다.
 
-### Temperature-Scaled Softmax
+### 온도로 잣댄 소프트맥스
 
 $$w_i = \frac{\exp(h_i / \tau)}{\sum_j \exp(h_j / \tau)}$$
 
-Lower temperature → more concentrated portfolios; higher temperature → more diversified.
+온도가 낮으면 밑천이 더 몰리고, 높으면 더 널리 흩어진다.
 
-## Training Considerations
+## 익힐 때 살필 것
 
-### Transaction Cost Modeling
-Realistic costs include:
+### 거래 비용 그리기
+참에 가까운 비용은 다음을 담는다.
 
-- Proportional costs (bid-ask spread, commissions)
-- Market impact (price movement from large trades)
-- Slippage (execution price differs from decision price)
+- 견주는 비용(사고파는 값 사이, 수수료)
+- 저자 흔듦(큰 거래가 값을 움직임)
+- 미끄러짐(벌인 값이 결정한 값과 다름)
 
-### Turnover Regularization
-Penalize excessive trading to encourage stable portfolios:
+### 갈아 끼움 정칙화
+든든한 밑천을 북돋우려 지나친 거래에 벌을 준다.
 
-$$L_\text{turnover} = \lambda \sum_t \|w_t - w_{t-1}\|_1$$
+$$L_\text{갈아 끼움} = \lambda \sum_t \|w_t - w_{t-1}\|_1$$
 
-### Multi-Period Optimization
-The RL agent naturally optimizes over multiple periods, considering how today's actions affect future opportunities—a key advantage over single-period mean-variance optimization.
+### 여러 마디 가장 좋게 하기
+힘 북돋우는 배움 부림꾼은 오늘의 움직임이 앞날의 기회에 어떻게 미치는지 살피며 여러 마디에 걸쳐 절로 가장 좋게 한다. 이는 한 마디 평균-흩어짐 가장 좋게 하기에 견준 종요로운 이로움이다.
 
-## Comparison with Classical Methods
+## 옛 방법과 견주기
 
-| Method | Multi-period | Transaction costs | Non-linear constraints | Adaptivity |
+| 방법 | 여러 마디 | 거래 비용 | 곧지 않은 매임 | 맞춰 감 |
 |--------|-------------|-------------------|----------------------|------------|
-| Mean-Variance | No | Difficult | Limited | No |
-| Black-Litterman | No | Difficult | Limited | Partial |
-| Risk Parity | No | No | Limited | No |
-| Policy-Based RL | Yes | Natural | Any | Yes |
+| 평균-흩어짐 | 아니오 | 어려움 | 좁음 | 아니오 |
+| 블랙-리터만 | 아니오 | 어려움 | 좁음 | 조금 |
+| 무릅씀 고루 나누기 | 아니오 | 아니오 | 좁음 | 아니오 |
+| 방침 바탕 힘 북돋우는 배움 | 예 | 절로 | 아무것이나 | 예 |
 
-## Summary
+## 요약
 
-Policy-based RL enables dynamic portfolio optimization that naturally incorporates transaction costs, adapts to changing market conditions, and handles complex constraints. The key challenges are realistic simulation, avoiding overfitting to historical data, and ensuring robustness to regime changes.
+방침 바탕 힘 북돋우는 배움은 거래 비용을 절로 담고, 바뀌는 저자 자리에 맞춰 가며, 얽힌 매임을 다루는 움직이는 밑천 나누기 가장 좋게 하기를 이루게 한다. 종요로운 어려움은 참에 가까운 흉내내기, 지난 자료에 지나치게 맞추지 않기, 판 바뀜에 굳세게 하기다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$

@@ -1,91 +1,91 @@
-# 34.7.2 Continuous Trading with Policy-Based RL
-## Introduction
+# 34.7.2 방침 바탕 힘 북돋우는 배움으로 하는 이어진 거래
+## 들머리
 
-Continuous trading applies policy-based RL to real-time execution decisions: position sizing, order timing, and order type selection. Unlike portfolio optimization which operates at daily frequency, continuous trading operates at intraday or tick-level timescales.
+이어진 거래는 방침 바탕 힘 북돋우는 배움을 실시간 벌이기 결정, 곧 자리 크기 잡기, 주문 때 고르기, 주문 갈래 고르기에 쓴다. 하루 잣대로 도는 밑천 나누기 가장 좋게 하기와 달리, 이어진 거래는 하루 안이나 틱 잣대로 돈다.
 
-## MDP Formulation
+## 마르코프 결정 과정 세우기
 
-### State Space
-- **Market microstructure**: Bid-ask spread, order book depth, recent trades
-- **Technical indicators**: Price momentum, volume profile, volatility
-- **Position state**: Current position, unrealized P&L, time in position
-- **Execution state**: Remaining quantity to trade, time until deadline
+### 상태 공간
+- **저자 잔결**: 사고파는 값 사이, 주문 장부 깊이, 최근 거래
+- **재주 지표**: 값 밀기, 거래량 결, 흔들림
+- **자리 상태**: 지금 자리, 아직 거두지 않은 손익, 자리를 지닌 때
+- **벌이기 상태**: 남은 거래 양, 마감까지 남은 때
 
-### Action Space
-Continuous actions for position management:
+### 움직임 공간
+자리를 다루는 이어진 움직임이다.
 
-- **Position size**: $a \in [-1, 1]$ (short to long, as fraction of max position)
-- **Order type**: Market/limit (discrete), limit price offset (continuous)
-- **Execution speed**: Aggressive/passive trade scheduling
+- **자리 크기**: $a \in [-1, 1]$(팔기에서 사기까지, 가장 큰 자리에 대한 조각)
+- **주문 갈래**: 저자가/지정가(따로 떨어진 것), 지정가 어긋남(이어진 것)
+- **벌이는 빠르기**: 사나운/느긋한 거래 짜기
 
-### Reward
+### 보상
 
-$$r_t = \text{realized P\&L}_t + \Delta\text{unrealized P\&L}_t - \text{costs}_t$$
+$$r_t = \text{거둔 손익}_t + \Delta\text{아직 거두지 않은 손익}_t - \text{비용}_t$$
 
-## Trading-Specific Challenges
+## 거래에 딸린 어려움
 
-1. **Non-stationarity**: Market dynamics change across regimes
-2. **Partial observability**: Order flow and other participants' intentions are hidden
-3. **High-frequency noise**: Tick data is extremely noisy
-4. **Execution costs**: Slippage and market impact are state-dependent
-5. **Risk constraints**: Hard limits on position size and drawdown
+1. **흐름 바뀜**: 판이 바뀌면 저자 움직임이 달라진다
+2. **조각만 보임**: 주문 흐름과 다른 이들의 속셈은 숨어 있다
+3. **높은 잦기 잡음**: 틱 자료는 잡음이 아주 심하다
+4. **벌이는 비용**: 미끄러짐과 저자 흔듦이 상태에 딸려 있다
+5. **무릅씀 매임**: 자리 크기와 내림폭에 굳은 매임이 있다
 
-## Policy Architecture for Trading
+## 거래를 위한 방침 얼개
 
-### Feature Processing
-Time-series features processed via:
+### 특징 다루기
+때 열 특징은 다음으로 다룬다.
 
-- LSTM/GRU for sequential dependencies
-- Temporal convolutions for multi-scale patterns
-- Attention mechanisms for relevant historical events
+- 잇단 매임을 위한 LSTM/GRU
+- 여러 잣대 결을 위한 때 겹칩
+- 걸맞은 지난 사건을 위한 눈길 장치
 
-### Action Output
-For continuous position management:
+### 움직임 내보내기
+이어진 자리 다루기는 다음과 같다.
 ```
-Features → LSTM → Hidden → Tanh → Position target ∈ [-1, 1]
+특징 → LSTM → 숨은 켜 → Tanh → 겨눈 자리 ∈ [-1, 1]
 ```
 
-## Training with Market Simulators
+## 저자 흉내내개로 익히기
 
-Realistic training requires:
+참에 가까운 익힘에는 다음이 있어야 한다.
 
-- Order book simulation with realistic queue dynamics
-- Market impact models (temporary and permanent)
-- Latency modeling (decision-to-execution delay)
-- Fee structures (maker/taker, exchange fees)
+- 참에 가까운 줄서기 움직임을 지닌 주문 장부 흉내내기
+- 저자 흔듦 모형(잠깐 가는 것과 오래가는 것)
+- 늦음 그리기(결정에서 벌이기까지의 늦음)
+- 삯 얼개(주문을 거는 쪽/받는 쪽, 거래소 삯)
 
-## Summary
+## 요약
 
-Continuous trading with policy-based RL enables adaptive execution strategies that respond to real-time market conditions. The main challenges are realistic simulation, handling non-stationarity, and managing execution costs.
+방침 바탕 힘 북돋우는 배움으로 하는 이어진 거래는 실시간 저자 자리에 맞춰 움직이는 벌이기 꾀를 이루게 한다. 으뜸 어려움은 참에 가까운 흉내내기, 흐름 바뀜 다루기, 벌이는 비용 다루기다.
 
-## Exercises
+## 연습문제
 
-**Exercise 1.**
-Derive the policy gradient for the method described in this section. Clearly state which terms require estimation and which can be computed exactly.
+**연습문제 1.**
+이 절에서 밝힌 방법의 방침 기울기를 이끌어 내어라. 어느 마디가 어림해야 하는 것이고 어느 마디가 딱 맞게 셈할 수 있는 것인지 또렷이 밝혀라.
 
-??? success "Solution to Exercise 1"
-    The policy gradient takes the form $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ where $\hat{A}_t$ is the advantage estimate. The log-probability gradient $\nabla_\theta \log \pi_\theta$ can be computed exactly via automatic differentiation. The advantage $\hat{A}_t$ must be estimated from sampled trajectories, introducing variance. The expectation is approximated by averaging over a batch of trajectories. Variance reduction via baselines preserves unbiasedness while reducing the estimation noise. $\square$
-
----
-
-**Exercise 2.**
-Compare the sample efficiency of this method with a value-based approach (e.g., DQN) on a continuous control task. Explain the theoretical reasons for any observed differences.
-
-??? success "Solution to Exercise 2"
-    Policy-based methods are generally less sample-efficient than value-based methods because they use on-policy data (each trajectory is used once). DQN reuses data via experience replay, achieving better sample efficiency. However, policy methods handle continuous actions naturally (no argmax over action space needed), converge to stochastic policies when optimal, and provide monotonic improvement guarantees under trust regions. Off-policy actor-critic methods (DDPG, SAC) bridge this gap by combining policy optimization with experience replay. $\square$
+??? success "연습문제 1 풀이"
+    방침 기울기는 $\nabla_\theta J(\theta) = \mathbb{E}_{\tau \sim \pi_\theta}[\sum_t \nabla_\theta \log \pi_\theta(a_t | s_t) \cdot \hat{A}_t]$ 꼴이며 여기서 $\hat{A}_t$은 이점 어림이다. 로그 낌새 기울기 $\nabla_\theta \log \pi_\theta$은 저절로 미분으로 딱 맞게 셈할 수 있다. 이점 $\hat{A}_t$은 뽑은 자취에서 어림해야 하므로 흩어짐이 들어온다. 기댓값은 자취 묶음에 걸쳐 고르게 하여 어림한다. 밑금으로 흩어짐을 줄이면 치우치지 않음을 지키면서 어림 잡음을 줄인다. $\square$
 
 ---
 
-**Exercise 3.**
-Implement this method for a simple continuous control task (e.g., Pendulum-v1). Report hyperparameter sensitivity with respect to the learning rate and the key method-specific parameter.
+**연습문제 2.**
+이어진 다스리기 일감에서 이 방법의 뽑기 효율을 값 바탕 길(보기로 DQN)과 견주어라. 보이는 다름의 이치 까닭을 풀어라.
 
-??? success "Solution to Exercise 3"
-    For Pendulum-v1 with a Gaussian policy, typical performance: learning rate $3 \times 10^{-4}$ achieves convergence in $\sim$500 episodes; $10^{-3}$ causes oscillation; $10^{-5}$ converges too slowly. The method-specific parameter (e.g., clipping range for PPO, KL constraint for TRPO) controls the trade-off between update aggressiveness and stability. Too aggressive leads to performance collapse; too conservative wastes samples. The optimal operating point balances these, typically found via grid search over a small range. $\square$
+??? success "연습문제 2 풀이"
+    방침 바탕 방법은 방침 안 자료를 쓰므로(자취마다 한 번씩 쓴다) 값 바탕 방법보다 뽑기 효율이 대체로 낮다. DQN은 겪음 되돌려 보기로 자료를 되써서 더 나은 뽑기 효율을 이룬다. 그러나 방침 방법은 이어진 움직임을 절로 다루고(움직임 공간에 대한 argmax가 필요 없다), 가장 좋은 것이 확률 방침일 때 그리로 모이며, 믿음 구역 아래에서 한결같은 나아짐을 보장한다. 벗어난 방침 행위자-비평가 방법(DDPG, SAC)은 방침 가장 좋게 하기와 겪음 되돌려 보기를 엮어 이 사이를 메운다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this method could be applied to portfolio optimization where the action space is a simplex (portfolio weights summing to 1) and the reward is risk-adjusted return.
+**연습문제 3.**
+쉬운 이어진 다스리기 일감(보기로 Pendulum-v1)에 이 방법을 만들어라. 배움률과 이 방법에 딸린 종요로운 매개변수에 대해 얼마나 예민한지 알려라.
 
-??? success "Solution to Exercise 4"
-    The action space is the $(n-1)$-dimensional simplex $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$. The policy can use a Dirichlet distribution or softmax-transformed Gaussian. The reward is the Sharpe ratio or differential Sharpe ratio of the resulting portfolio. Challenges include: high-dimensional action space (many assets), transaction costs penalizing frequent rebalancing, and non-stationarity of market returns. The method from this section addresses these through its specific mechanism for stable policy updates. $\square$
+??? success "연습문제 3 풀이"
+    가우스 방침을 쓰는 Pendulum-v1에서 흔한 됨됨이는 이렇다. 배움률 $3 \times 10^{-4}$이면 약 500 에피소드에 모이고, $10^{-3}$이면 흔들리며, $10^{-5}$이면 너무 더디게 모인다. 이 방법에 딸린 매개변수(보기로 PPO의 자르는 너비, TRPO의 쿨백-라이블러 매임)는 고침의 사나움과 든든함 사이의 맞바꿈을 다스린다. 너무 사나우면 됨됨이가 무너지고 너무 조심스러우면 뽑기를 버린다. 가장 좋은 자리는 이 둘의 저울을 맞추는 곳이며 흔히 좁은 너비에서 격자 찾기로 얻는다. $\square$
+
+---
+
+**연습문제 4.**
+움직임 공간이 단체(합이 1인 밑천 무게)이고 보상이 무릅씀을 맞춘 돌아옴인 밑천 나누기 가장 좋게 하기에 이 방법을 어떻게 쓸 수 있을지 따져라.
+
+??? success "연습문제 4 풀이"
+    움직임 공간은 $(n-1)$차원 단체 $\Delta^{n-1} = \{w \in \mathbb{R}^n : w_i \geq 0, \sum_i w_i = 1\}$이다. 방침은 디리클레 분포나 소프트맥스로 바꾼 가우스를 쓸 수 있다. 보상은 그 밑천 나누기의 샤프 비나 미분 샤프 비다. 어려움에는 높은 차원의 움직임 공간(자산이 많다), 잦은 다시 맞추기에 벌을 주는 거래 비용, 저자 돌아옴의 흐름 바뀜이 있다. 이 절의 방법은 든든하게 방침을 고치는 제 장치로 이를 다룬다. $\square$
