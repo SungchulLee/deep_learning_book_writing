@@ -69,8 +69,8 @@ $3/2$ 비율은 빡빡하다. 꼭짓점 $n$개와 무게 1인 모서리를 지�
 | 걸음 | 알고리즘 | 시간 |
 |------|-----------|------|
 | 최소 뻗음 나무 | 프림 / 크러스컬 | $O(n^2 \log n)$ |
-| Odd vertices | Degree scan | $O(n)$ |
-| Matching | Edmonds' blossom | $O(n^3)$ |
+| 홀수 꼭짓점 | 차수 훑기 | $O(n)$ |
+| 짝짓기 | 에드먼즈 꽃봉오리 | $O(n^3)$ |
 | 오일러 나들이 | 히어홀처 | $O(n)$ |
 | 건너뛰기 | 훑어보기 | $O(n)$ |
 
@@ -120,7 +120,7 @@ $3/2$ 비율은 빡빡하다. 꼭짓점 $n$개와 무게 1인 모서리를 지�
 ## 연습문제
 
 **연습문제 1.**
-Describe the approximation algorithm for Christofides Algorithm for Metric TSP and state its approximation guarantee.
+Christofides Algorithm for Metric TSP의 어림 알고리즘을 밝히고 그 어림 보장을 적어라.
 
 ??? success "연습문제 1 풀이"
     이 알고리즘은 다항식 시간에 돌며 가장 좋은 값의 밝힐 수 있는 갑절 안에 드는 풀이를 낸다. 어림 비율은 알고리즘이 내놓은 것을 가장 좋은 값의 아래 한계(가장 작게 하기)나 위 한계(가장 크게 하기), 곧 선형 계획 느슨하게 하기 값이나 조합 한계, 문제의 짜임 성질과 이어 밝힌다. $\square$
@@ -128,7 +128,7 @@ Describe the approximation algorithm for Christofides Algorithm for Metric TSP a
 ---
 
 **연습문제 2.**
-What lower bound technique is used to prove the approximation ratio for Christofides Algorithm for Metric TSP?
+Christofides Algorithm for Metric TSP의 어림 비를 밝히는 데 어떤 아래 테두리 기법을 쓰는가?
 
 ??? success "연습문제 2 풀이"
     밝힘은 흔히 알고리즘의 풀이를 느슨하게 한 한계(선형 계획 느슨하게 하기, 분수 풀이, 조합 아래 한계)와 견준다. 가장 작게 하기에서는 $ALG \leq \rho \cdot LP^* \leq \rho \cdot OPT$이다. 가장 크게 하기에서는 $ALG \geq OPT / \rho$이다. 아래 한계는 효율 좋게 셈할 수 있고 쓸모 있는 비율을 줄 만큼 빡빡해야 한다. $\square$
@@ -136,7 +136,7 @@ What lower bound technique is used to prove the approximation ratio for Christof
 ---
 
 **연습문제 3.**
-Can the approximation ratio for Christofides Algorithm for Metric TSP be improved? What are the known hardness results?
+Christofides Algorithm for Metric TSP의 어림 비를 더 낫게 할 수 있는가? 알려진 어려움 결과는 무엇인가?
 
 ??? success "연습문제 3 풀이"
     어림 비율이 얼마나 빡빡한지는 복잡도 이론의 가정(P $\neq$ NP, 하나뿐인 놀이 추측 등)에 달렸다. 어떤 문제에서는 단순한 욕심쟁이나 반올림 알고리즘이 여느 가정 아래 이미 가장 좋다. 다른 문제에서는 가장 좋은 알고리즘과 가장 센 어려움 결과 사이에 틈이 있어 아직 풀리지 않은 연구 문제로 남아 있다. $\square$
@@ -144,7 +144,7 @@ Can the approximation ratio for Christofides Algorithm for Metric TSP be improve
 ---
 
 **연습문제 4.**
-Apply Christofides Algorithm for Metric TSP to a concrete instance and verify the approximation ratio holds.
+Christofides Algorithm for Metric TSP을 손에 잡히는 사례에 걸어 어림 비가 이루어지는지 따져라.
 
 ??? success "연습문제 4 풀이"
     작은 보기(예컨대 꼭짓점이나 물건 5~6개)를 고른다. 어림 알고리즘을 한 걸음씩 돌린다. 알고리즘이 내놓은 것을 (작은 보기에서 막무가내로 찾은) 가장 좋은 풀이와 견준다. 비율 $ALG/OPT$(또는 $OPT/ALG$)이 밝힌 한계 안에 드는지 확인한다. 그러면 구체적인 보기에서 이론이 굳어진다. $\square$

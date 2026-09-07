@@ -1,5 +1,5 @@
 # 퍼짐 모델의 프레셰 인셉션 거리(FID)
-FID is the standard metric for evaluating diffusion model sample quality. For the full mathematical derivation, implementation, and best practices, see [FID in §24.6](../../ch25/gan_evaluation/fid.md). This page focuses on diffusion-specific considerations.
+FID은 퍼짐 모형 표본의 좋음을 따지는 여느 자다. 온전한 수학 이끌어 내기와 짜보기, 좋은 버릇은 [24.6절의 FID](../../ch25/gan_evaluation/fid.md)을 보아라. 이 쪽은 퍼짐 모형에만 걸리는 대목에 마음을 둔다.
 
 ## 뜻매김 다시 보기
 
@@ -57,27 +57,27 @@ FID이 낮을수록 만든 표본이 Inception-v3 특징 공간에서 실제 자
 !!! warning "미리 다듬기가 중요하다"
     크기 바꾸기의 사이 메우기나 고르게 맞추기가 조금만 달라도 FID이 몇 점 움직일 수 있다. 견주는 기준과 늘 같은 미리 다듬기 물길을 쓰라. `torch-fidelity`과 `clean-fid` 꾸러미가 한결같음을 지키는 데 도움이 된다.
 
-## State-of-the-Art Benchmarks
+## 가장 앞선 잣대 재기
 
-| Model | CIFAR-10 FID ↓ | ImageNet 256×256 FID ↓ |
+| 모형 | CIFAR-10 FID ↓ | 이미지넷 256×256 FID ↓ |
 |-------|----------------|------------------------|
 | DDPM (Ho et al., 2020) | 3.17 | — |
-| ADM (Dhariwal & Nichol, 2021) | — | 10.94 |
-| ADM + classifier guidance | — | 4.59 |
-| ADM + classifier-free guidance | — | 3.94 |
+| ADM(다리왈 & 니콜, 2021) | — | 10.94 |
+| ADM + 분류기 이끎 | — | 4.59 |
+| ADM + 분류기 없는 이끎 | — | 3.94 |
 | LDM / Stable Diffusion | — | ~3.60 |
-| DiT-XL/2 (Peebles & Xie, 2023) | — | 2.27 |
-| Consistency Models (Song et al., 2023) | 2.93 | 3.55 |
+| DiT-XL/2(피블스 & 셰, 2023) | — | 2.27 |
+| 한결같음 모형(쑹 외, 2023) | 2.93 | 3.55 |
 
-## When FID Falls Short for Diffusion
+## 퍼짐 모형에서 FID이 모자랄 때
 
-FID captures overall distributional similarity but may not reflect:
+FID은 분포가 얼마나 닮았는지는 담지만 다음은 비추지 못할 수 있다.
 
-- **Text-image alignment** in conditional generation → use CLIP Score instead
-- **Fine-grained perceptual quality** → complement with human evaluation
-- **Likelihood fit** → use [BPD/NLL](likelihood.md) for models with tractable ELBO
+- 조건 붙은 만들기에서의 **글월-그림 맞음** → 대신 CLIP 점수를 쓴다
+- **잘게 본 느낌의 좋음** → 사람이 따지는 것으로 채운다
+- **가능도가 맞는 정도** → 다룰 수 있는 ELBO을 지닌 모형에는 [BPD/NLL](likelihood.md)을 쓴다
 
-A complete diffusion model evaluation should report FID alongside complementary metrics. See the comprehensive FID treatment in [§24.6](../../ch25/gan_evaluation/fid.md) for implementation details, sample size analysis, and bootstrap confidence intervals.
+퍼짐 모형을 온전히 따지려면 FID과 함께 서로 채워 주는 자도 밝혀야 한다. 짜보기의 속내, 표본 크기 살피기, 부트스트랩 믿음 구간은 [24.6절](../../ch25/gan_evaluation/fid.md)의 두루 갖춘 FID 다룸을 보아라.
 
 ## 참고 문헌
 
@@ -89,18 +89,18 @@ A complete diffusion model evaluation should report FID alongside complementary 
 ## 연습문제
 
 **연습문제 1.**
-Explain why log-likelihood is a useful metric for evaluating diffusion models. What are its limitations?
+로그 가능도가 퍼짐 모형을 따지는 데 쓸모 있는 자인 까닭을 밝혀라. 그 한계는 무엇인가?
 
 ??? success "연습문제 1 풀이"
-    Log-likelihood measures how well the model assigns probability to held-out test data: $\mathcal{L} = \frac{1}{N}\sum_i \log p_\theta(x_i)$. It is useful because: (1) it is a proper scoring rule (maximized by the true distribution), (2) it provides a single number for model comparison, (3) it penalizes both poor sample quality and mode collapse. **Limitations**: (1) models with high likelihood can produce poor samples (e.g., mixtures that assign mass to unrealistic regions), (2) exact computation is often intractable for diffusion models (requires the ELBO or expensive ODE-based evaluation), (3) it does not directly measure perceptual quality.
+    로그 가능도는 남겨 둔 시험 자료에 모형이 확률을 얼마나 잘 매기는지 잰다. $\mathcal{L} = \frac{1}{N}\sum_i \log p_\theta(x_i)$이다. 쓸모 있는 까닭은 이렇다. (1) 올바른 점수 규칙이다(참 분포에서 가장 커진다). (2) 모형을 견줄 수 있는 수 하나를 준다. (3) 표본이 나쁜 것과 최빈값 무너짐을 모두 벌한다. **한계**는 이렇다. (1) 가능도가 높아도 표본이 나쁠 수 있다(참되지 않은 자리에 무게를 두는 섞음 따위). (2) 퍼짐 모형에서는 딱 맞게 셈하기가 흔히 어렵다(ELBO이나 값비싼 상미분 방정식 따짐이 든다). (3) 느낌의 좋음을 곧바로 재지는 않는다.
 
 ---
 
 **연습문제 2.**
-Compare FID, Inception Score, and log-likelihood as evaluation metrics for generative models.
+만들개 모형을 따지는 자로서 FID, 인셉션 점수, 로그 가능도를 견주어라.
 
 ??? success "연습문제 2 풀이"
-    | Metric | Measures | Requires Real Data | Detects Mode Collapse | Perceptual Quality |
+    | 자 | 재는 것 | 참 자료가 드는가 | 최빈값 무너짐을 알아내는가 | 느낌의 좋음 |
     |--------|---------|-------------------|----------------------|-------------------|
     | **FID** | 분포의 닮음 | 그렇다 | 그렇다 | 좋음 |
     | **인셉션 점수** | 품질 + 다양함 | 아니다 | 일부 | 보통 |

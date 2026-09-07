@@ -1,7 +1,7 @@
 # DDPM 뽑기
 ## 개요
 
-Sampling from a trained DDPM generates data by iteratively denoising pure Gaussian noise through the learned reverse process. Starting from $x_T \sim \mathcal{N}(0, I)$, each step applies the model's noise prediction $\epsilon_\theta(x_t, t)$ to compute a less noisy version $x_{t-1}$, progressively recovering structure until a clean sample $x_0$ emerges after $T$ steps. This section derives the reverse sampling equations from the posterior, details the two standard variance parameterizations, presents a complete PyTorch implementation with classifier and classifier-free guidance, and analyzes the computational cost that motivates the accelerated sampling methods of [DDIM](../ddim/fundamentals.md).
+익힌 DDPM에서 뽑기는 배운 뒤 과정을 거쳐 순수한 가우스 잡음을 거듭 걷어 내며 자료를 만든다. $x_T \sim \mathcal{N}(0, I)$에서 비롯해 걸음마다 모형의 잡음 예측 $\epsilon_\theta(x_t, t)$을 써서 잡음이 덜한 $x_{t-1}$을 셈하고, $T$ 걸음 뒤 깨끗한 표본 $x_0$이 나올 때까지 짜임을 차츰 되살린다. 이 마디는 사후 분포에서 뒤 뽑기 식을 이끌어 내고, 흔히 쓰는 흩어짐 매개변수화 둘을 짚고, 분류기 이끎과 분류기 없는 이끎을 갖춘 온전한 PyTorch 짜보기를 보이며, [DDIM](../ddim/fundamentals.md)의 빠른 뽑기 방법이 나오게 된 셈 값을 살핀다.
 
 ---
 
@@ -581,11 +581,11 @@ def visualize_trajectory(
 | 빠르게 하는 방법 | 필요한 걸음 | 품질 | 마디 |
 |--------------------|---------------|---------|---------|
 | **DDPM**(바탕) | 1000 | 가장 좋음 | 이 쪽 |
-| **DDIM** | 50–100 | Near-DDPM | [DDIM Fundamentals](../ddim/fundamentals.md) |
-| **DDIM (deterministic)** | 20–50 | Good | Deterministic Sampling |
-| **Probability Flow ODE** | 20–100 | Good | Probability Flow |
-| **Progressive Distillation** | 4–8 | Good | Architecture-dependent |
-| **Consistency Models** | 1–2 | Moderate | Single-step generation |
+| **DDIM** | 50–100 | DDPM에 가깝다 | [DDIM 기초](../ddim/fundamentals.md) |
+| **DDIM(정해진 대로)** | 20–50 | 좋다 | 정해진 대로 뽑기 |
+| **확률 흐름 상미분 방정식** | 20–100 | 좋다 | 확률 흐름 |
+| **차근차근 앎 옮기기** | 4–8 | 좋다 | 얼개에 따라 다르다 |
+| **한결같음 모형** | 1–2 | 어지간하다 | 한 걸음 만들기 |
 
 ---
 
@@ -658,7 +658,7 @@ DDPM 뽑기는 돈살림 자료 만들어 내기로 자연스럽게 넓혀진다
 
 5. **가름개 이끌기**는 바깥 가름개의 기울기로 점수를 고친다. **가름개 없는 이끌기**는 조건 있는 헤아림과 없는 헤아림 사이를 메워 따로 가름개를 두지 않는다.
 
-6. **The 1000-step requirement is the primary limitation**, motivating [DDIM](../ddim/fundamentals.md) and other accelerated sampling methods.
+6. **1000 걸음이 든다는 것이 가장 큰 한계**이며, 그래서 [DDIM](../ddim/fundamentals.md)을 비롯한 빠른 뽑기 방법이 나왔다.
 
 ---
 
@@ -690,6 +690,6 @@ $\hat{x}_0$ 자르기를 하거나 하지 않고 표본을 만들어라. 두 자
 
 ### 익힘 5: 뽑기 살림
 
-If your application requires generating 10,000 samples with a 100M-parameter U-Net at 256×256, estimate the total GPU-hours needed for DDPM ($T = 1000$) vs DDIM ($T = 50$). At \$2/GPU-hour, what is the cost difference?
+매개변수 1억 개짜리 U-넷으로 256×256 표본 10,000개를 만들어야 한다면 DDPM($T = 1000$)과 DDIM($T = 50$)에 드는 온 GPU 시간을 어림하여라. GPU 시간당 \$2이라면 값 차이는 얼마인가?
 
 ---

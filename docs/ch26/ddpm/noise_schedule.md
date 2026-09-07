@@ -1,24 +1,24 @@
-# Noise Schedules
-The **noise schedule** $\{\beta_t\}_{t=1}^T$ controls how quickly noise is added during the forward diffusion process. This seemingly simple choice has profound effects on model performance and generation quality.
+# 잡음 일정
+**잡음 일정** $\{\beta_t\}_{t=1}^T$은 앞 퍼짐 과정에서 잡음을 얼마나 빨리 더할지 다스린다. 사소해 보이는 이 고름이 모형의 성능과 만들어 내는 좋음에 깊이 영향을 준다.
 
-## Why Noise Schedules Matter
+## 잡음 일정이 왜 종요로운가
 
-The schedule determines:
+이 일정이 다음을 정한다.
 
-1. **Information flow**: How quickly data structure is destroyed
-2. **Training dynamics**: Which timesteps contribute most to learning
-3. **Sample quality**: How well the model can recover fine details
-4. **Sampling efficiency**: Trade-offs in accelerated sampling methods
+1. **소식 흐름**: 자료의 짜임이 얼마나 빨리 무너지는가
+2. **익힘 움직임**: 어떤 때 걸음이 배움에 가장 많이 이바지하는가
+3. **표본의 좋음**: 모형이 잔 결을 얼마나 잘 되살리는가
+4. **뽑기의 잘 듦**: 빠르게 뽑는 방법에서의 맞바꿈
 
-## Key Schedule Parameters
+## 고갱이 일정 매개변수
 
-Given $\beta_t$, we derive:
+$\beta_t$이 주어지면 다음을 이끌어 낸다.
 
 $$
 \alpha_t = 1 - \beta_t, \quad \bar{\alpha}_t = \prod_{s=1}^{t} \alpha_s
 $$
 
-The signal-to-noise ratio at time $t$:
+때 $t$에서의 신호 대 잡음 비는 다음과 같다.
 
 $$
 \text{SNR}(t) = \frac{\bar{\alpha}_t}{1 - \bar{\alpha}_t}

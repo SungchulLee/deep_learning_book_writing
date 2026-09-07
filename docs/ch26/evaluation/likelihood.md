@@ -813,18 +813,18 @@ demonstrate_likelihood_sample_tradeoff()
 ## 연습문제
 
 **연습문제 1.**
-Explain why log-likelihood is a useful metric for evaluating diffusion models. What are its limitations?
+로그 가능도가 퍼짐 모형을 따지는 데 쓸모 있는 자인 까닭을 밝혀라. 그 한계는 무엇인가?
 
 ??? success "연습문제 1 풀이"
-    Log-likelihood measures how well the model assigns probability to held-out test data: $\mathcal{L} = \frac{1}{N}\sum_i \log p_\theta(x_i)$. It is useful because: (1) it is a proper scoring rule (maximized by the true distribution), (2) it provides a single number for model comparison, (3) it penalizes both poor sample quality and mode collapse. **Limitations**: (1) models with high likelihood can produce poor samples (e.g., mixtures that assign mass to unrealistic regions), (2) exact computation is often intractable for diffusion models (requires the ELBO or expensive ODE-based evaluation), (3) it does not directly measure perceptual quality.
+    로그 가능도는 남겨 둔 시험 자료에 모형이 확률을 얼마나 잘 매기는지 잰다. $\mathcal{L} = \frac{1}{N}\sum_i \log p_\theta(x_i)$이다. 쓸모 있는 까닭은 이렇다. (1) 올바른 점수 규칙이다(참 분포에서 가장 커진다). (2) 모형을 견줄 수 있는 수 하나를 준다. (3) 표본이 나쁜 것과 최빈값 무너짐을 모두 벌한다. **한계**는 이렇다. (1) 가능도가 높아도 표본이 나쁠 수 있다(참되지 않은 자리에 무게를 두는 섞음 따위). (2) 퍼짐 모형에서는 딱 맞게 셈하기가 흔히 어렵다(ELBO이나 값비싼 상미분 방정식 따짐이 든다). (3) 느낌의 좋음을 곧바로 재지는 않는다.
 
 ---
 
 **연습문제 2.**
-Compare FID, Inception Score, and log-likelihood as evaluation metrics for generative models.
+만들개 모형을 따지는 자로서 FID, 인셉션 점수, 로그 가능도를 견주어라.
 
 ??? success "연습문제 2 풀이"
-    | Metric | Measures | Requires Real Data | Detects Mode Collapse | Perceptual Quality |
+    | 자 | 재는 것 | 참 자료가 드는가 | 최빈값 무너짐을 알아내는가 | 느낌의 좋음 |
     |--------|---------|-------------------|----------------------|-------------------|
     | **FID** | 분포의 닮음 | 그렇다 | 그렇다 | 좋음 |
     | **인셉션 점수** | 품질 + 다양함 | 아니다 | 일부 | 보통 |

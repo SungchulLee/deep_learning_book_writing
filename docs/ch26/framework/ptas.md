@@ -37,30 +37,30 @@ $$
 - **APX:** 어떤 붙박인 비율의 상수 갑절 어림을 받아들인다.
 - **NPO:** 모든 NP 가장 좋게 하기 문제의 갈래이다.
 
-| Class | Example Problems |
+| 갈래 | 보기 문제 |
 |-------|-----------------|
-| FPTAS | Knapsack, Scheduling on identical machines |
-| PTAS (not FPTAS) | Euclidean TSP, Bin Packing |
-| APX (not PTAS) | MAX-3SAT, Vertex Cover, Metric TSP |
-| NPO (not APX) | Clique, Chromatic Number |
+| FPTAS | 배낭, 같은 기계에서의 일정 잡기 |
+| PTAS(FPTAS은 아님) | 유클리드 떠돌이 장사꾼, 상자 채우기 |
+| APX(PTAS은 아님) | MAX-3SAT, 꼭짓점 덮개, 거리 떠돌이 장사꾼 |
+| NPO(APX은 아님) | 덩어리, 색칠 수 |
 
-## FPTAS for Knapsack
+## 배낭을 위한 FPTAS
 
-The 0/1 Knapsack problem is NP-hard, yet it admits an FPTAS via a **scaling and rounding** technique applied to the exact dynamic programming solution.
+0/1 배낭 문제는 NP-어려움이지만, 딱 맞는 갈피 다지기 풀이에 **잣대 잡고 반올림하는** 기법을 걸면 FPTAS을 얻을 수 있다.
 
 ### 준비
 
-Given $n$ items with values $v_1, \ldots, v_n$ and weights $w_1, \ldots, w_n$, and a capacity $W$, maximize $\sum_{i \in S} v_i$ subject to $\sum_{i \in S} w_i \leq W$.
+값이 $v_1, \ldots, v_n$이고 무게가 $w_1, \ldots, w_n$인 물건 $n$개와 담는 힘 $W$이 주어졌을 때 $\sum_{i \in S} w_i \leq W$을 지키며 $\sum_{i \in S} v_i$을 가장 크게 하여라.
 
-The exact DP runs in $O(n \cdot V)$ time where $V = \sum_i v_i$ --- pseudo-polynomial, not polynomial in the input size.
+딱 맞는 갈피 다지기는 $V = \sum_i v_i$일 때 $O(n \cdot V)$ 시간에 돈다. 이는 유사 다항식이며 들임 크기에 대한 다항식은 아니다.
 
-### Scaling Strategy
+### 잣대 잡기 꾀
 
-The idea is to round down the values to reduce $V$ while controlling the error.
+생각은 어긋남을 다스리면서 값을 내림하여 $V$을 줄이는 것이다.
 
 1. Let $v_{\max} = \max_i v_i$.
-2. Set the scaling factor $K = \frac{\epsilon \cdot v_{\max}}{n}$.
-3. Define scaled values $\hat{v}_i = \lfloor v_i / K \rfloor$ for each item $i$.
+2. 잣대 값을 $K = \frac{\epsilon \cdot v_{\max}}{n}$으로 둔다.
+3. 물건 $i$마다 잣대 잡은 값 $\hat{v}_i = \lfloor v_i / K \rfloor$을 매긴다.
 4. 잣수를 맞춘 보기 $(\hat{v}_1, \ldots, \hat{v}_n, w_1, \ldots, w_n, W)$에 정확한 동적 짜기를 돌린다.
 5. 찾은 풀이를 돌려준다.
 
