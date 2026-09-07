@@ -88,7 +88,7 @@ where $g$ is the greedy choice and $\mathcal{P}'$ is the subproblem remaining af
 욕심쟁이 고름 성질에서 욕심쟁이 고름이 무엇인지 가려내고 왜 가장 좋은 풀이로 이어지는지 밝혀라.
 
 ??? success "연습문제 1 풀이"
-    The greedy choice selects the locally optimal option at each step. For Greedy Choice Property, this choice satisfies the greedy choice property: there exists an optimal solution that includes this greedy selection. Combined with optimal substructure (the remaining subproblem after the greedy choice is also optimally solvable by the same strategy), the greedy algorithm produces a globally optimal solution. $\square$
+    욕심쟁이 고름은 걸음마다 그 자리에서 가장 좋은 것을 고른다. Greedy Choice Property에서는 이 고름이 욕심쟁이 고름 성질을 채운다. 곧 이 욕심쟁이 고름을 담은 가장 좋은 풀이가 있다. 여기에 가장 좋은 아래 짜임(욕심쟁이 고름 뒤 남은 아래 문제도 같은 전략으로 가장 좋게 풀린다)을 더하면 욕심쟁이 알고리즘이 두루 가장 좋은 풀이를 내놓는다. $\square$
 
 ---
 
@@ -96,7 +96,7 @@ where $g$ is the greedy choice and $\mathcal{P}'$ is the subproblem remaining af
 욕심쟁이 고름 성질이 가장 좋은 아래 짜임을 갖는지 증명하거나 반증하여라.
 
 ??? success "연습문제 2 풀이"
-    Optimal substructure means that an optimal solution to the problem contains optimal solutions to its subproblems. For Greedy Choice Property, after making the greedy choice, the remaining problem is a smaller instance of the same type. If the subproblem solution were not optimal, we could improve the overall solution by replacing it — contradicting overall optimality. Therefore optimal substructure holds. $\square$
+    가장 좋은 아래 짜임이란 문제의 가장 좋은 풀이가 그 아래 문제의 가장 좋은 풀이를 담는다는 뜻이다. Greedy Choice Property에서는 욕심쟁이 고름을 하고 나면 남은 문제가 같은 갈래의 더 작은 사례가 된다. 아래 문제의 풀이가 가장 좋지 않다면 그것을 갈음해 온 풀이를 더 낫게 할 수 있는데, 이는 온 풀이가 가장 좋다는 것과 어긋난다. 그러므로 가장 좋은 아래 짜임이 이루어진다. $\square$
 
 ---
 
@@ -104,7 +104,7 @@ where $g$ is the greedy choice and $\mathcal{P}'$ is the subproblem remaining af
 욕심쟁이 고름 성질의 시간 복잡도는 무엇인가? 가장 값비싼 단계를 가려내어라.
 
 ??? success "연습문제 3 풀이"
-    The time complexity depends on the sorting step (if required) and the greedy selection loop. Sorting typically dominates at $O(n \log n)$. The greedy loop processes each element once in $O(n)$. Total: $O(n \log n)$. If the input is pre-sorted, the algorithm runs in $O(n)$. $\square$
+    시간 복잡도는 (필요하다면) 줄 세우는 걸음과 욕심쟁이 고름 되돌이에 달렸다. 흔히 줄 세우기가 $O(n \log n)$으로 가장 크다. 욕심쟁이 되돌이는 원소마다 한 번씩 다루어 $O(n)$이다. 모두 $O(n \log n)$이다. 들임이 미리 줄 세워져 있으면 알고리즘은 $O(n)$에 돈다. $\square$
 
 ---
 
@@ -112,4 +112,4 @@ where $g$ is the greedy choice and $\mathcal{P}'$ is the subproblem remaining af
 (욕심쟁이 고름 성질에서 쓴 것이 아닌) 다른 욕심쟁이 전략은 가장 좋은 풀이를 내지 못함을 보이는 반례를 들어라.
 
 ??? success "연습문제 4 풀이"
-    Consider an alternative greedy criterion that does not align with the problem's structure. This alternative may select an element that blocks better future choices. The counterexample demonstrates that the wrong greedy criterion can produce a suboptimal result, highlighting why the specific greedy choice property must be proven for each problem. $\square$
+    문제의 짜임과 맞지 않는 다른 욕심쟁이 잣대를 생각해 보자. 이 잣대는 뒤에 더 좋은 고름을 막는 원소를 고를 수 있다. 어긋나는 보기는 잘못된 욕심쟁이 잣대가 가장 좋지 않은 결과를 낼 수 있음을 보이며, 문제마다 그에 맞는 욕심쟁이 고름 성질을 반드시 증명해야 하는 까닭을 드러낸다. $\square$
