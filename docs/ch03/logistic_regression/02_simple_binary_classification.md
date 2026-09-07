@@ -514,7 +514,7 @@ print("="*80)
 
 print("""
 1. EASY: Change learning_rate to 0.01 and 1.0
-   - How does it affect convergence?
+   - 모여듦에 어떤 영향을 주는가?
    - Which learns faster?
 
 2. MEDIUM: Change num_epochs to 100 and 5000

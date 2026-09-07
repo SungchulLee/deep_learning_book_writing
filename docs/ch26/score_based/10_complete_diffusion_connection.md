@@ -354,7 +354,7 @@ U-Net + Training (Module 09)
     ↓ (Equivalent formulation)
 DDPM / 요즘 퍼짐(단원 10) ← 여기이다!
 
-PRACTICAL RECOMMENDATIONS:
+손에 잡히는 권함:
 =========================
 
 FOR RESEARCH:

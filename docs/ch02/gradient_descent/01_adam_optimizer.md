@@ -345,7 +345,7 @@ Adam이 빛나는 때:
 • SGD+여세: 보기 일에서 두루 미침이 더 낫다
 • 묶음 기울기 내림: 볼록 문제의 작은 자료 묶음
 • RMSprop: 되도는 신경망과 온라인 배움
-• AdaGrad: Sparse features
+• AdaGrad: 성긴 특징
 """)
 
 # ============================================================================
@@ -356,39 +356,39 @@ print("PART 9: ADAM HYPERPARAMETERS")
 print("="*80)
 
 print("""
-ADAM HYPERPARAMETERS:
+Adam 웃매개변수:
 ---------------------
 
-1. LEARNING RATE (α)
+1. 배움 빠르기(α)
    • Default: 0.001
-   • Typical range: 0.0001 to 0.01
-   • Start with 0.001, adjust if needed
-   • Can use learning rate scheduling
+   • 흔한 범위: 0.0001 ~ 0.01
+   • 0.001에서 비롯하고 필요하면 손본다
+   • 배움 빠르기 짜기를 쓸 수 있다
 
-2. BETA_1 (β₁) - First moment decay
+2. BETA_1(β₁) - 첫째 적률 잦아듦
    • Default: 0.9
-   • Controls momentum
-   • Higher = more smoothing
-   • Rarely needs tuning
+   • 여세를 다스린다
+   • 클수록 더 매끄러워진다
+   • 손볼 일이 드물다
 
-3. BETA_2 (β₂) - Second moment decay
+3. BETA_2(β₂) - 둘째 적률 잦아듦
    • Default: 0.999
-   • Controls adaptive learning rate
-   • Higher = more stable
-   • For sparse gradients, try 0.99
+   • 맞추어 가는 배움 빠르기를 다스린다
+   • 클수록 더 든든하다
+   • 기울기가 성기면 0.99을 써 보아라
 
-4. EPSILON (ε) - Numerical stability
+4. EPSILON(ε) - 수치 든든함
    • Default: 1e-8
-   • Prevents division by zero
-   • Usually don't need to change
+   • 0으로 나누는 것을 막는다
+   • 대개 바꿀 일이 없다
 
-TUNING TIPS:
+손보기 요령:
 ------------
-1. Start with defaults - they work 80% of the time
-2. If training unstable: reduce learning rate
-3. If training too slow: increase learning rate
-4. For sparse problems: reduce β₂ to 0.99
-5. For very noisy gradients: increase β₁ to 0.95
+1. 기본값에서 비롯하라. 열에 여덟은 잘 듣는다
+2. 익힘이 흔들리면 배움 빠르기를 줄여라
+3. 익힘이 너무 더디면 배움 빠르기를 키워라
+4. 성긴 문제에서는 β₂을 0.99으로 줄여라
+5. 기울기가 아주 잡음 섞이면 β₁을 0.95으로 키워라
 """)
 
 # ============================================================================
@@ -398,56 +398,56 @@ print("\n" + "="*80)
 print("KEY TAKEAWAYS")
 print("="*80)
 print("""
-1. ADAM is the most popular optimizer
-   • Combines momentum and adaptive learning rates
+1. Adam이 가장 널리 쓰이는 가장 좋게 하개다
+   • 여세와 맞추어 가는 배움 빠르기를 아우른다
    • 기본 웃매개변수로도 잘 듣는다
-   • Good first choice for most problems
+   • 웬만한 문제에 첫 고름으로 좋다
 
-2. ADAM converges faster than SGD
-   • Especially beneficial for deep networks
-   • Handles different gradient magnitudes well
-   • More stable training
+2. Adam이 SGD보다 빨리 모여든다
+   • 깊은 그물에 특히 이롭다
+   • 기울기 크기가 제각각이어도 잘 다룬다
+   • 익힘이 더 든든하다
 
-3. MOMENTUM matters
-   • Even SGD+Momentum significantly outperforms vanilla SGD
-   • Accelerates convergence
+3. 여세가 종요롭다
+   • SGD+여세만으로도 맨 SGD보다 크게 낫다
+   • 모여듦을 빠르게 한다
    • 흔들림을 줄인다
 
-4. LEARNING RATE is still important
-   • Adam uses smaller lr (0.001) vs SGD (0.01)
-   • Still the most important hyperparameter
-   • Use learning rate scheduling for best results
+4. 배움 빠르기는 여전히 종요롭다
+   • Adam은 SGD(0.01)보다 작은 배움 빠르기(0.001)를 쓴다
+   • 여전히 가장 종요로운 웃매개변수다
+   • 가장 좋은 결과를 얻으려면 배움 빠르기 짜기를 써라
 
-5. CHOOSE optimizer based on task
-   • Adam: Default choice, works well everywhere
-   • SGD+Momentum: Computer vision, when generalization matters
-   • RMSprop: Recurrent networks
-   • AdaGrad: Sparse features
+5. 일에 맞추어 가장 좋게 하개를 골라라
+   • Adam: 기본 고름이며 어디서나 잘 듣는다
+   • SGD+여세: 셈틀 보기, 두루 미침이 종요로울 때
+   • RMSprop: 되도는 그물
+   • AdaGrad: 성긴 특징
 
-6. UNDERSTAND the math
-   • First moment (m): Average gradient (momentum)
-   • Second moment (v): Average squared gradient (scaling)
-   • Bias correction: Fixes initialization issues
+6. 수식을 이해하라
+   • 첫째 적률(m): 기울기의 평균(여세)
+   • 둘째 적률(v): 기울기 제곱의 평균(잣대)
+   • 치우침 바로잡기: 첫자리 잡기의 탈을 고친다
 """)
 
 print("="*80)
 print("EXPERIMENTS TO TRY")
 print("="*80)
 print("""
-1. Different learning rates:
-   - Try Adam with lr=0.01, 0.0001
-   - How does it affect convergence?
+1. 여러 배움 빠르기:
+   - Adam을 lr=0.01, 0.0001으로 써 보아라
+   - 모여듦에 어떤 영향을 주는가?
 
-2. Different network architectures:
-   - Deeper networks (3-4 layers)
-   - Wider networks (50-100 hidden units)
-   - Which optimizer works better?
+2. 여러 그물 얼개:
+   - 더 깊은 그물(3~4층)
+   - 더 넓은 그물(숨은 단위 50~100개)
+   - 어느 가장 좋게 하개가 더 잘 듣는가?
 
-3. Other Adam variants:
-   - AdamW: torch.optim.AdamW (weight decay)
+3. Adam의 다른 갈래:
+   - AdamW: torch.optim.AdamW(무게 줄이기)
    - AMSGrad: torch.optim.Adam(..., amsgrad=True)
 
-4. Learning rate scheduling:
+4. 배움 빠르기 짜기:
    - torch.optim.lr_scheduler.StepLR
    - torch.optim.lr_scheduler.ReduceLROnPlateau
 """)

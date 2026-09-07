@@ -421,7 +421,7 @@ print("""
 1. Learning rate scheduling improves training:
    • Faster convergence
    • Better final performance
-   • More stable training
+   • 익힘이 더 든든하다
 
 2. Different schedulers for different needs:
    • StepLR: Simple, predictable drops

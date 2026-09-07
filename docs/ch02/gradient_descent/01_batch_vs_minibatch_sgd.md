@@ -7,22 +7,22 @@
 ```python
 """
 ================================================================================
-Level 2 - Example 1: Batch, Mini-batch, and Stochastic Gradient Descent
+2단계 - 보기 1: 묶음, 작은 묶음, 확률 기울기 내림
 ================================================================================
 
 배움 목표:
-- Understand different variants of gradient descent
-- Compare batch GD, mini-batch GD, and SGD
-- Learn about DataLoader and batching in PyTorch
-- Understand trade-offs between variants
+- 기울기 내림의 여러 갈래를 이해한다
+- 묶음 기울기 내림, 작은 묶음 기울기 내림, SGD을 견준다
+- PyTorch의 DataLoader과 묶음 만들기를 배운다
+- 갈래 사이의 맞바꿈을 이해한다
 
-DIFFICULTY: ⭐⭐ Intermediate
+어려움: ⭐⭐ 가운데 수준
 
-TIME: 35-45 minutes
+걸리는 때: 35~45분
 
 PREREQUISITES:
-- Completed Level 1 examples
-- Understanding of basic gradient descent
+- 1단계 보기를 마쳤을 것
+- 기본 기울기 내림을 이해하고 있을 것
 
 ================================================================================
 """
@@ -46,23 +46,23 @@ print("PART 1: WHAT ARE THE VARIANTS?")
 print("="*80)
 
 print("""
-GRADIENT DESCENT VARIANTS:
+기울기 내림의 여러 갈래:
 --------------------------
 
-1. BATCH GRADIENT DESCENT (Batch GD)
-   - Uses ALL training data in each iteration
-   - Computes gradient over entire dataset
-   - Most accurate gradient, but slow for large datasets
+1. 묶음 기울기 내림(묶음 GD)
+   - 되돌이마다 익힘 자료를 모두 쓴다
+   - 온 자료 묶음에 대해 기울기를 셈한다
+   - 기울기가 가장 맞지만 자료가 크면 느리다
    
    Pseudocode:
    for epoch in epochs:
        gradient = compute_gradient(all_data)
        parameters -= lr * gradient
 
-2. STOCHASTIC GRADIENT DESCENT (SGD)
-   - Uses ONE random sample per iteration
-   - Much faster per iteration
-   - Noisy gradients, but can escape local minima
+2. 확률 기울기 내림(SGD)
+   - 되돌이마다 마구잡이 표본 하나를 쓴다
+   - 되돌이마다 훨씬 빠르다
+   - 기울기가 잡음 섞이지만 그 자리 골짜기를 벗어날 수 있다
    
    Pseudocode:
    for epoch in epochs:
@@ -70,10 +70,10 @@ GRADIENT DESCENT VARIANTS:
            gradient = compute_gradient(sample)
            parameters -= lr * gradient
 
-3. MINI-BATCH GRADIENT DESCENT (Mini-batch GD)
-   - Uses SMALL BATCHES of data
-   - Balance between Batch GD and SGD
-   - Most common in practice (e.g., batch_size=32, 64, 128)
+3. 작은 묶음 기울기 내림(작은 묶음 GD)
+   - 자료를 작은 묶음으로 나누어 쓴다
+   - 묶음 GD과 SGD 사이의 고른 자리
+   - 참으로 가장 흔하다(보기: batch_size=32, 64, 128)
    
    Pseudocode:
    for epoch in epochs:
@@ -120,7 +120,7 @@ class SimpleLinearModel(nn.Module):
 # ============================================================================
 
 def train_batch_gd(X, y, n_epochs, lr):
-    """Batch Gradient Descent - Use all data at once"""
+    """묶음 기울기 내림 - 자료를 한꺼번에 모두 쓴다"""
     model = SimpleLinearModel()
     criterion = nn.MSELoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
@@ -144,7 +144,7 @@ def train_batch_gd(X, y, n_epochs, lr):
 
 
 def train_sgd(X, y, n_epochs, lr):
-    """Stochastic Gradient Descent - One sample at a time"""
+    """확률 기울기 내림 - 한 번에 표본 하나"""
     model = SimpleLinearModel()
     criterion = nn.MSELoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
@@ -180,7 +180,7 @@ def train_sgd(X, y, n_epochs, lr):
 
 
 def train_minibatch_gd(X, y, n_epochs, lr, batch_size):
-    """Mini-batch Gradient Descent - Use small batches"""
+    """작은 묶음 기울기 내림 - 작은 묶음을 쓴다"""
     model = SimpleLinearModel()
     criterion = nn.MSELoss()
     optimizer = torch.optim.SGD(model.parameters(), lr=lr)
@@ -330,33 +330,33 @@ print("KEY TAKEAWAYS")
 print("="*80)
 print("""
 1. BATCH GD:
-   ✓ Most stable, smooth convergence
-   ✗ Slow for large datasets
-   ✗ High memory usage
-   ✗ Can get stuck in local minima
+   ✓ 가장 든든하고 매끄럽게 모여든다
+   ✗ 자료가 크면 느리다
+   ✗ 기억 자리를 많이 쓴다
+   ✗ 그 자리 골짜기에 갇힐 수 있다
    
 2. STOCHASTIC GD:
-   ✓ Fast per-epoch training
-   ✓ Can escape shallow local minima
-   ✗ Noisy gradients, erratic convergence
-   ✗ May not reach exact minimum
+   ✓ 판마다 익힘이 빠르다
+   ✓ 얕은 그 자리 골짜기를 벗어날 수 있다
+   ✗ 기울기가 잡음 섞이고 모여듦이 들쭉날쭉하다
+   ✗ 딱 맞는 골짜기에 닿지 못할 수 있다
    
-3. MINI-BATCH GD: (BEST OF BOTH WORLDS!)
-   ✓ Good balance of speed and stability
-   ✓ Can leverage GPU parallelization
-   ✓ Generalizes well
-   → Most commonly used in practice!
+3. 작은 묶음 GD: (둘의 좋은 점을 다 가진다!)
+   ✓ 빠르기와 든든함이 고루 좋다
+   ✓ GPU의 나란한 셈을 쓸 수 있다
+   ✓ 두루 잘 미친다
+   → 참으로 가장 흔히 쓴다!
 
-BATCH SIZE SELECTION:
-- Too small (e.g., 1-8): Noisy, slow to converge
-- Too large (e.g., >512): Memory issues, poor generalization
-- Sweet spot: 16, 32, 64, 128 (power of 2 for GPU efficiency)
+묶음 크기 고르기:
+- 너무 작으면(보기: 1~8) 잡음이 많고 더디게 모여든다
+- 너무 크면(보기: 512 넘게) 기억 자리 탈이 생기고 두루 미침이 나빠진다
+- 알맞은 자리: 16, 32, 64, 128(GPU이 잘 들도록 2의 거듭제곱)
 
-PRACTICAL RECOMMENDATIONS:
-• Use mini-batch GD with batch_size=32 or 64 as default
-• Increase batch size if you have memory and need speed
-• Decrease batch size if overfitting or for better generalization
-• Try different batch sizes - it's a hyperparameter!
+손에 잡히는 권함:
+• 기본으로 batch_size=32이나 64인 작은 묶음 GD을 써라
+• 기억 자리가 넉넉하고 빠르기가 필요하면 묶음 크기를 키워라
+• 지나치게 맞춰지거나 두루 미침을 높이려면 묶음 크기를 줄여라
+• 여러 묶음 크기를 써 보아라. 이것도 웃매개변수다!
 """)
 
 print("="*80)
@@ -364,7 +364,7 @@ print("EXPERIMENTS TO TRY")
 print("="*80)
 print("""
 1. Different batch sizes: 8, 16, 64, 128, 256
-   - How does it affect convergence?
+   - 모여듦에 어떤 영향을 주는가?
    - What about training time?
 
 2. Larger dataset (10,000 samples)

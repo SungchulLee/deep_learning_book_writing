@@ -336,7 +336,7 @@ print("\n" + "="*80)
 print("EXPERIMENTS TO TRY")
 print("="*80)
 print("""
-1. Different learning rates:
+1. 여러 배움 빠르기:
    - Try lr = 0.001, 0.1, 0.5
    - Observe convergence speed and stability
 
