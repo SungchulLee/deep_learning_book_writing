@@ -1,169 +1,169 @@
-# Uncertainty Quantification in Neural Networks
-**Uncertainty quantification** addresses a critical limitation of standard neural networks: they produce point predictions without any measure of confidence. Bayesian neural networks provide a principled framework for quantifying both what the model doesn't know about the data (aleatoric uncertainty) and what the model doesn't know about itself (epistemic uncertainty).
+# 신경 그물의 아리송함 재기
+**아리송함 재기**은 여느 신경 그물의 종요로운 한계를 다룬다. 여느 그물은 자신함을 재는 자 없이 점 미루어 봄만 낸다. 베이즈 신경 그물은 모형이 자료에 대해 모르는 것(타고난 아리송함)과 제 스스로에 대해 모르는 것(앎의 아리송함)을 함께 재는 이치에 닿는 틀을 준다.
 
 ---
 
-## Motivation: Why Uncertainty Matters
+## 왜 하는가: 아리송함이 걸리는 까닭
 
-### The Overconfidence Problem
+### 지나친 자신함 문제
 
-Standard neural networks trained with maximum likelihood produce point estimates:
+가장 큰 그럴듯함으로 익힌 여느 신경 그물은 점 어림을 낸다.
 
 $$
 \hat{y} = f_{\hat{\theta}}(x)
 $$
 
-**Critical issues**:
+**종요로운 문제**:
 
-1. **No confidence measure**: The network outputs a single prediction with no indication of reliability
+1. **자신함을 재는 자가 없음**: 그물은 미더움을 알리는 것 없이 미루어 봄 하나만 낸다
 
-2. **Overconfident extrapolation**: Networks often make confident predictions far from training data
+2. **지나치게 자신하는 밖으로 늘리기**: 그물은 익힘 자료에서 멀리서도 자신하는 미루어 봄을 하는 일이 잦다
 
-3. **Silent failures**: When inputs are out-of-distribution, the model fails without warning
+3. **말없는 어그러짐**: 들임이 밖 분포일 때 모형은 알림 없이 어그러진다
 
-4. **Miscalibrated probabilities**: Softmax outputs don't reflect true predictive uncertainty
+4. **눈금 어긋난 낌새**: 소프트맥스 날임은 참 미루어 봄의 아리송함을 드러내지 못한다
 
-### Real-World Consequences
+### 참 세상에서의 뒤끝
 
-**Medical diagnosis**: A model predicts "95% probability of benign tumor" — but is this because:
+**병 살피기**: 모형이 "착한 혹일 낌새 95%"라고 미루어 본다. 그런데 이는 다음 가운데 무엇 때문인가?
 
-- The model has seen many similar cases (low uncertainty)?
-- The model is extrapolating wildly (high uncertainty)?
+- 모형이 비슷한 자리를 많이 보았기 때문인가(아리송함이 작다)?
+- 모형이 마구 밖으로 늘리고 있기 때문인가(아리송함이 크다)?
 
-**Autonomous driving**: A perception system must know when it's uncertain to trigger human intervention.
+**스스로 몰기**: 알아보는 얼개는 사람이 끼어들도록 언제 아리송한지 알아야 한다.
 
-**Scientific discovery**: Uncertainty guides where to collect more data (active learning).
+**앎을 찾아내기**: 아리송함은 자료를 어디서 더 모을지 이끈다(살아 있는 배움).
 
-### What Bayesian Methods Provide
+### 베이즈 방법이 주는 것
 
-The Bayesian approach maintains a **posterior distribution** over model parameters:
+베이즈의 길은 모형 매개변수에 대한 **뒷분포**을 지닌다.
 
 $$
 p(\theta \mid \mathcal{D}) = \frac{p(\mathcal{D} \mid \theta) \, p(\theta)}{p(\mathcal{D})}
 $$
 
-This enables:
+이는 다음을 이룬다.
 
-1. **Predictive distributions** instead of point predictions
-2. **Decomposition** into aleatoric and epistemic components
-3. **Principled propagation** of uncertainty through the model
-4. **Automatic calibration** under model assumptions
+1. 점 미루어 봄 대신 **미루어 보는 분포**
+2. 타고난 몫과 앎의 몫으로 **쪼개기**
+3. 모형을 지나는 아리송함의 **이치에 닿는 퍼짐**
+4. 모형 가정 아래서의 **절로 눈금 맞음**
 
 ---
 
-## Types of Uncertainty
+## 아리송함의 갈래
 
-### Taxonomy Overview
+### 갈래 나누기 두루 보기
 
 $$
 \boxed{\text{Total Uncertainty} = \text{Aleatoric Uncertainty} + \text{Epistemic Uncertainty}}
 $$
 
-| Type | Also Called | Source | Reducible? |
+| 갈래 | 다른 이름 | 밑동 | 줄일 수 있나? |
 |------|-------------|--------|------------|
-| **Aleatoric** | Data uncertainty | Inherent noise in observations | No |
-| **Epistemic** | Model uncertainty | Limited data, model ignorance | Yes (with more data) |
+| **타고난** | 자료의 아리송함 | 살핌에 타고난 잡음 | 아니다 |
+| **앎의** | 모형의 아리송함 | 자료가 적음, 모형이 모름 | 그렇다(자료를 더 모으면) |
 
-### Aleatoric Uncertainty
+### 타고난 아리송함
 
-**Definition**: Uncertainty inherent in the data-generating process that cannot be reduced by collecting more data.
+**뜻매김**: 자료를 낳는 흐름에 타고난 아리송함으로, 자료를 더 모아도 줄지 않는다.
 
-**Sources**:
+**밑동**:
 
-- Measurement noise
-- Stochastic processes
-- Incomplete observations (hidden variables)
-- Class overlap in classification
+- 재기의 잡음
+- 확률 흐름
+- 온전하지 않은 살핌(숨은 변수)
+- 가름에서 갈래가 겹침
 
-**Mathematical formulation** (regression):
+**수학 꼴**(되돌이):
 
 $$
 y = f(x) + \epsilon, \quad \epsilon \sim \mathcal{N}(0, \sigma^2(x))
 $$
 
-The noise variance $\sigma^2(x)$ can be:
+잡음 흩어짐 $\sigma^2(x)$은 다음일 수 있다.
 
-- **Homoscedastic**: Constant across input space
-- **Heteroscedastic**: Varies with input $x$
+- **고른 흩어짐**: 들임 밭 어디서나 붙박이
+- **다른 흩어짐**: 들임 $x$에 따라 달라짐
 
-**Example**: Predicting stock prices
+**보기**: 주식 값 미루어 보기
 
-- Even with perfect knowledge of all relevant factors, prices have inherent randomness
-- More data won't eliminate this fundamental unpredictability
+- 걸린 것을 모두 온전히 알아도 값에는 타고난 아무렇게나임이 있다
+- 자료를 더 모아도 이 밑바탕의 못 미루어 봄은 없어지지 않는다
 
-### Epistemic Uncertainty
+### 앎의 아리송함
 
-**Definition**: Uncertainty arising from limited knowledge about the model, which can be reduced by collecting more data.
+**뜻매김**: 모형에 대한 앎이 모자라 생기는 아리송함으로, 자료를 더 모으면 줄일 수 있다.
 
-**Sources**:
+**밑동**:
 
-- Limited training data
-- Model misspecification
-- Parameter uncertainty
-- Out-of-distribution inputs
+- 익힘 자료가 적음
+- 모형을 잘못 정함
+- 매개변수의 아리송함
+- 밖 분포 들임
 
-**Mathematical formulation**:
+**수학 꼴**:
 
-Epistemic uncertainty is captured by the posterior distribution $p(\theta \mid \mathcal{D})$:
+앎의 아리송함은 뒷분포 $p(\theta \mid \mathcal{D})$이 담는다.
 
-- Narrow posterior → Low epistemic uncertainty (confident about parameters)
-- Wide posterior → High epistemic uncertainty (uncertain about parameters)
+- 좁은 뒷분포 → 앎의 아리송함이 작다(매개변수를 자신한다)
+- 너른 뒷분포 → 앎의 아리송함이 크다(매개변수가 아리송하다)
 
-**Example**: Predicting house prices in a new neighborhood
+**보기**: 새 동네의 집값 미루어 보기
 
-- With few observations, we're uncertain about the price-feature relationship
-- More data from this neighborhood would reduce our uncertainty
+- 살핌이 적으면 값과 결의 사이가 아리송하다
+- 이 동네의 자료를 더 모으면 아리송함이 준다
 
-### Homoscedastic vs Heteroscedastic Noise
+### 고른 흩어짐 대 다른 흩어짐
 
-**Homoscedastic** (constant noise):
+**고른 흩어짐**(붙박인 잡음):
 
 $$
 p(y \mid x, \theta) = \mathcal{N}(y \mid f_\theta(x), \sigma^2)
 $$
 
-- Single noise parameter $\sigma^2$ for all inputs
-- Simpler to model
-- Often unrealistic
+- 모든 들임에 잡음 매개변수 $\sigma^2$ 하나
+- 모형으로 만들기가 더 쉽다
+- 참 자리와 맞지 않는 일이 잦다
 
-**Heteroscedastic** (input-dependent noise):
+**다른 흩어짐**(들임에 매인 잡음):
 
 $$
 p(y \mid x, \theta) = \mathcal{N}(y \mid f_\theta(x), \sigma^2_\theta(x))
 $$
 
-- Network predicts both mean and variance
-- More flexible and realistic
-- Requires careful training
+- 그물이 평균과 흩어짐을 함께 미루어 본다
+- 더 너그럽고 참 자리에 가깝다
+- 조심스러운 익힘이 있어야 한다
 
 ---
 
-## The Predictive Distribution
+## 미루어 보는 분포
 
-### Definition
+### 뜻매김
 
-The **posterior predictive distribution** integrates over parameter uncertainty:
+**뒷분포로 미루어 보는 분포**은 매개변수의 아리송함에 걸쳐 적분한다.
 
 $$
 \boxed{p(y^* \mid x^*, \mathcal{D}) = \int p(y^* \mid x^*, \theta) \, p(\theta \mid \mathcal{D}) \, d\theta}
 $$
 
-where:
+여기서
 
-- $x^*$ is the test input
-- $y^*$ is the predicted output
-- $p(y^* \mid x^*, \theta)$ is the likelihood (model prediction given parameters)
-- $p(\theta \mid \mathcal{D})$ is the posterior over parameters
+- $x^*$은 시험 들임
+- $y^*$은 미루어 본 날임
+- $p(y^* \mid x^*, \theta)$은 그럴듯함(매개변수가 주어졌을 때의 모형 미루어 봄)
+- $p(\theta \mid \mathcal{D})$은 매개변수의 뒷분포
 
-### Monte Carlo Approximation
+### 몬테카를로 어림
 
-Since the integral is intractable, approximate using samples $\{\theta^{(s)}\}_{s=1}^S$ from the posterior:
+적분을 다룰 수 없으므로 뒷분포에서 뽑은 표본 $\{\theta^{(s)}\}_{s=1}^S$으로 어림한다.
 
 $$
 p(y^* \mid x^*, \mathcal{D}) \approx \frac{1}{S} \sum_{s=1}^S p(y^* \mid x^*, \theta^{(s)})
 $$
 
-**For regression** (Gaussian likelihood):
+**되돌이에서는**(가우스 그럴듯함):
 
 $$
 \hat{\mu}(x^*) = \frac{1}{S} \sum_{s=1}^S f_{\theta^{(s)}}(x^*)
@@ -173,97 +173,97 @@ $$
 \hat{\sigma}^2(x^*) = \frac{1}{S} \sum_{s=1}^S \left[ f_{\theta^{(s)}}(x^*) - \hat{\mu}(x^*) \right]^2 + \frac{1}{S} \sum_{s=1}^S \sigma^2_{\theta^{(s)}}(x^*)
 $$
 
-**For classification**:
+**가름에서는**:
 
 $$
 p(y^* = c \mid x^*, \mathcal{D}) \approx \frac{1}{S} \sum_{s=1}^S \text{softmax}(f_{\theta^{(s)}}(x^*))_c
 $$
 
-### Predictive Mean and Variance
+### 미루어 본 평균과 흩어짐
 
-For regression with heteroscedastic noise, the predictive distribution has:
+다른 흩어짐 잡음을 지닌 되돌이에서 미루어 보는 분포는 다음을 지닌다.
 
-**Predictive mean**:
+**미루어 본 평균**:
 
 $$
 \mathbb{E}[y^* \mid x^*, \mathcal{D}] = \mathbb{E}_{\theta \mid \mathcal{D}}[\mu_\theta(x^*)]
 $$
 
-**Predictive variance** (law of total variance):
+**미루어 본 흩어짐**(온 흩어짐 법칙):
 
 $$
 \text{Var}[y^* \mid x^*, \mathcal{D}] = \underbrace{\mathbb{E}_{\theta \mid \mathcal{D}}[\sigma^2_\theta(x^*)]}_{\text{Aleatoric}} + \underbrace{\text{Var}_{\theta \mid \mathcal{D}}[\mu_\theta(x^*)]}_{\text{Epistemic}}
 $$
 
-This decomposition is fundamental for understanding the sources of uncertainty.
+이 쪼갬은 아리송함의 밑동을 알아보는 데 밑바탕이 된다.
 
 ---
 
-## Uncertainty Decomposition
+## 아리송함 쪼개기
 
-### Law of Total Variance
+### 온 흩어짐 법칙
 
-The decomposition follows from the **law of total variance**:
+이 쪼갬은 **온 흩어짐 법칙**에서 나온다.
 
 $$
 \text{Var}[Y] = \mathbb{E}[\text{Var}[Y \mid X]] + \text{Var}[\mathbb{E}[Y \mid X]]
 $$
 
-Applied to our setting with $Y = y^*$ and $X = \theta$:
+$Y = y^*$, $X = \theta$으로 두고 우리 자리에 쓰면
 
 $$
 \text{Var}[y^* \mid x^*, \mathcal{D}] = \mathbb{E}_\theta[\text{Var}[y^* \mid x^*, \theta]] + \text{Var}_\theta[\mathbb{E}[y^* \mid x^*, \theta]]
 $$
 
-### Aleatoric Uncertainty
+### 타고난 아리송함
 
 $$
 \boxed{\text{Aleatoric}(x^*) = \mathbb{E}_{\theta \mid \mathcal{D}}[\sigma^2_\theta(x^*)]}
 $$
 
-**Interpretation**: Expected observation noise, averaged over parameter uncertainty
+**풀이**: 매개변수의 아리송함에 걸쳐 고르게 한, 바라는 살핌 잡음
 
-**Estimation**:
+**어림**:
 
 $$
 \widehat{\text{Aleatoric}}(x^*) = \frac{1}{S} \sum_{s=1}^S \sigma^2_{\theta^{(s)}}(x^*)
 $$
 
-**Properties**:
+**결**:
 
-- Irreducible: doesn't decrease with more data
-- Data-dependent: varies across input space
-- Captures inherent noise in the problem
+- 줄일 수 없다: 자료를 더 모아도 줄지 않는다
+- 자료에 매인다: 들임 밭에 따라 달라진다
+- 문제에 타고난 잡음을 담는다
 
-### Epistemic Uncertainty
+### 앎의 아리송함
 
 $$
 \boxed{\text{Epistemic}(x^*) = \text{Var}_{\theta \mid \mathcal{D}}[\mu_\theta(x^*)]}
 $$
 
-**Interpretation**: Variance in predictions due to parameter uncertainty
+**풀이**: 매개변수의 아리송함에서 오는 미루어 봄의 흩어짐
 
-**Estimation**:
+**어림**:
 
 $$
 \widehat{\text{Epistemic}}(x^*) = \frac{1}{S} \sum_{s=1}^S \left[\mu_{\theta^{(s)}}(x^*) - \bar{\mu}(x^*)\right]^2
 $$
 
-where $\bar{\mu}(x^*) = \frac{1}{S} \sum_s \mu_{\theta^{(s)}}(x^*)$.
+여기서 $\bar{\mu}(x^*) = \frac{1}{S} \sum_s \mu_{\theta^{(s)}}(x^*)$이다.
 
-**Properties**:
+**결**:
 
-- Reducible: decreases with more data
-- High in regions far from training data
-- Captures model ignorance
+- 줄일 수 있다: 자료를 더 모으면 준다
+- 익힘 자료에서 먼 자리에서 크다
+- 모형이 모름을 담는다
 
-### Total Predictive Uncertainty
+### 온 미루어 봄 아리송함
 
 $$
 \boxed{\text{Total}(x^*) = \text{Aleatoric}(x^*) + \text{Epistemic}(x^*)}
 $$
 
-**Estimation**:
+**어림**:
 
 $$
 \widehat{\text{Total}}(x^*) = \frac{1}{S} \sum_{s=1}^S \sigma^2_{\theta^{(s)}}(x^*) + \frac{1}{S} \sum_{s=1}^S \left[\mu_{\theta^{(s)}}(x^*) - \bar{\mu}(x^*)\right]^2
@@ -271,58 +271,58 @@ $$
 
 ---
 
-## Uncertainty in Classification
+## 가름에서의 아리송함
 
-### Predictive Entropy
+### 미루어 본 엔트로피
 
-For classification, the predictive distribution is categorical:
+가름에서 미루어 보는 분포는 갈래 분포다.
 
 $$
 p(y^* = c \mid x^*, \mathcal{D}) = \bar{p}_c = \frac{1}{S} \sum_{s=1}^S p(y^* = c \mid x^*, \theta^{(s)})
 $$
 
-**Total uncertainty** via entropy:
+엔트로피로 재는 **온 아리송함**:
 
 $$
 \boxed{\mathbb{H}[y^* \mid x^*, \mathcal{D}] = -\sum_{c=1}^C \bar{p}_c \log \bar{p}_c}
 $$
 
-### Mutual Information Decomposition
+### 서로 나눈 소식으로 쪼개기
 
-The total entropy decomposes into:
+온 엔트로피는 이렇게 쪼개진다.
 
 $$
 \underbrace{\mathbb{H}[y^* \mid x^*, \mathcal{D}]}_{\text{Total}} = \underbrace{\mathbb{I}[y^*; \theta \mid x^*, \mathcal{D}]}_{\text{Epistemic (MI)}} + \underbrace{\mathbb{E}_{\theta \mid \mathcal{D}}[\mathbb{H}[y^* \mid x^*, \theta]]}_{\text{Aleatoric}}
 $$
 
-**Aleatoric uncertainty** (expected entropy):
+**타고난 아리송함**(바라는 엔트로피):
 
 $$
 \text{Aleatoric}(x^*) = \mathbb{E}_{\theta \mid \mathcal{D}}[\mathbb{H}[y^* \mid x^*, \theta]] = -\frac{1}{S} \sum_{s=1}^S \sum_{c=1}^C p_{c,s} \log p_{c,s}
 $$
 
-where $p_{c,s} = p(y^* = c \mid x^*, \theta^{(s)})$.
+여기서 $p_{c,s} = p(y^* = c \mid x^*, \theta^{(s)})$이다.
 
-**Epistemic uncertainty** (mutual information):
+**앎의 아리송함**(서로 나눈 소식):
 
 $$
 \text{Epistemic}(x^*) = \mathbb{H}[y^* \mid x^*, \mathcal{D}] - \mathbb{E}_{\theta \mid \mathcal{D}}[\mathbb{H}[y^* \mid x^*, \theta]]
 $$
 
-### BALD: Bayesian Active Learning by Disagreement
+### BALD: 어긋남으로 하는 베이즈 살아 있는 배움
 
-The mutual information (epistemic uncertainty) is used in **BALD** for active learning:
+서로 나눈 소식(앎의 아리송함)은 살아 있는 배움의 **BALD**에 쓰인다.
 
 $$
 \text{BALD}(x^*) = \mathbb{I}[y^*; \theta \mid x^*, \mathcal{D}] = \mathbb{H}[\bar{p}] - \frac{1}{S} \sum_{s=1}^S \mathbb{H}[p_s]
 $$
 
-**Interpretation**: 
+**풀이**:
 
-- High when different parameter samples disagree
-- Points with high BALD are informative for learning
+- 매개변수 표본끼리 어긋날 때 크다
+- BALD이 큰 점은 배우는 데 알려 주는 바가 크다
 
-**Selection criterion**:
+**고르는 잣대**:
 
 $$
 x^*_{\text{next}} = \arg\max_{x \in \mathcal{X}_{\text{pool}}} \text{BALD}(x)
@@ -330,158 +330,158 @@ $$
 
 ---
 
-## Calibration and Reliability
+## 눈금 맞음과 미더움
 
-### What is Calibration?
+### 눈금 맞음이란
 
-A model is **well-calibrated** if predicted probabilities match empirical frequencies:
+미루어 본 낌새가 겪은 잦기와 들어맞으면 모형은 **눈금이 잘 맞는다**.
 
 $$
 P(y = 1 \mid p(y = 1 \mid x) = q) = q \quad \forall q \in [0, 1]
 $$
 
-**Example**: Among all predictions with 80% confidence, 80% should be correct.
+**보기**: 자신함 80%인 미루어 봄 가운데 80%이 맞아야 한다.
 
-### Expected Calibration Error (ECE)
+### 바라는 눈금 맞음 어긋남(ECE)
 
-Partition predictions into $M$ bins by confidence:
+미루어 봄을 자신함에 따라 통 $M$개로 나눈다.
 
 $$
 \text{ECE} = \sum_{m=1}^M \frac{|B_m|}{n} \left| \text{acc}(B_m) - \text{conf}(B_m) \right|
 $$
 
-where:
+여기서
 
-- $B_m$ is the set of samples in bin $m$
-- $\text{acc}(B_m)$ is the accuracy in bin $m$
-- $\text{conf}(B_m)$ is the average confidence in bin $m$
+- $B_m$은 통 $m$에 든 보기의 모임
+- $\text{acc}(B_m)$은 통 $m$의 맞음
+- $\text{conf}(B_m)$은 통 $m$의 평균 자신함
 
-### Reliability Diagrams
+### 미더움 그림
 
-Plot accuracy vs. confidence for each bin:
+통마다 맞음을 자신함에 대고 그린다.
 
-- **Perfect calibration**: Points on the diagonal
-- **Overconfident**: Points below the diagonal
-- **Underconfident**: Points above the diagonal
+- **온전한 눈금 맞음**: 점이 대각선 위에 있다
+- **지나친 자신함**: 점이 대각선 아래에 있다
+- **머뭇거림**: 점이 대각선 위쪽에 있다
 
-### Neural Network Miscalibration
+### 신경 그물의 눈금 어긋남
 
-Modern neural networks are typically **overconfident**:
+요즘 신경 그물은 흔히 **지나치게 자신한다**.
 
-**Causes**:
+**까닭**:
 
-1. **Cross-entropy training** encourages confident predictions
-2. **ReLU activations** produce unbounded logits
-3. **Batch normalization** changes calibration
-4. **Model capacity** exceeds data complexity
+1. **엇갈린 엔트로피 익힘**이 자신하는 미루어 봄을 이끈다
+2. **ReLU 살림**은 마디 없는 로짓을 낸다
+3. **묶음 잣대 잡기**가 눈금 맞음을 바꾼다
+4. **모형이 담는 힘**이 자료의 얽힘을 넘어선다
 
-**Bayesian solution**: Marginalizing over parameters naturally improves calibration.
+**베이즈 풀이**: 매개변수에 걸쳐 적분하면 눈금 맞음이 절로 나아진다.
 
 ---
 
-## Out-of-Distribution Detection
+## 밖 분포 알아내기
 
-### The OOD Problem
+### 밖 분포 문제
 
-Standard neural networks cannot reliably detect inputs from outside the training distribution:
+여느 신경 그물은 익힘 분포 밖에서 온 들임을 미덥게 짚어내지 못한다.
 
 $$
 x_{\text{OOD}} \notin \text{support}(p_{\text{train}}(x))
 $$
 
-**Desired behavior**: High uncertainty on OOD inputs
+**바라는 움직임**: 밖 분포 들임에서 아리송함이 크다
 
-### Using Uncertainty for OOD Detection
+### 밖 분포 알아내기에 아리송함 쓰기
 
-**Epistemic uncertainty** should be high for OOD inputs because the model has never seen similar data.
+모형이 비슷한 자료를 본 적이 없으므로 밖 분포 들임에서는 **앎의 아리송함**이 커야 한다.
 
-**Detection score**:
+**알아내기 점수**:
 
 $$
 s(x) = \text{Epistemic}(x) \quad \text{or} \quad s(x) = \text{Total}(x)
 $$
 
-**Decision rule**:
+**판단 규칙**:
 
 $$
 \text{OOD if } s(x) > \tau
 $$
 
-### Evaluation Metrics
+### 따지는 자
 
-**AUROC**: Area under ROC curve for OOD detection
+**AUROC**: 밖 분포 알아내기의 ROC 굽이 아래 넓이
 
-- In-distribution samples: negative class
-- OOD samples: positive class
+- 분포 안 보기: 아닌 갈래
+- 밖 분포 보기: 맞는 갈래
 
-**AUPRC**: Area under precision-recall curve
+**AUPRC**: 촘촘함-되불러옴 굽이 아래 넓이
 
-**FPR@95**: False positive rate when true positive rate is 95%
+**FPR@95**: 참 맞음 비율이 95%일 때의 헛 맞음 비율
 
-### Challenges
+### 어려움
 
-1. **Overconfident extrapolation**: ReLU networks can be confident far from data
-2. **Feature collapse**: Deep networks may map OOD inputs to in-distribution features
-3. **Distributional shift**: Gradual shifts harder to detect than clear OOD
+1. **지나치게 자신하는 밖으로 늘리기**: ReLU 그물은 자료에서 멀리서도 자신할 수 있다
+2. **결 주저앉음**: 깊은 그물이 밖 분포 들임을 분포 안의 결로 옮길 수 있다
+3. **분포 옮겨감**: 차츰 옮겨가는 것은 뚜렷한 밖 분포보다 짚어내기 어렵다
 
 ---
 
-## Heteroscedastic Neural Networks
+## 다른 흩어짐 신경 그물
 
-### Architecture
+### 얼개
 
-A heteroscedastic network predicts both mean and variance:
+다른 흩어짐 그물은 평균과 흩어짐을 함께 미루어 본다.
 
 $$
 f_\theta(x) = [\mu_\theta(x), \log \sigma^2_\theta(x)]
 $$
 
-**Why log variance?**
+**왜 로그 흩어짐인가?**
 
-- Ensures $\sigma^2 > 0$
-- Numerically stable
-- Easier optimization
+- $\sigma^2 > 0$을 지킨다
+- 셈이 든든하다
+- 가장 좋게 하기가 쉽다
 
-### Training Objective
+### 익힘 목표
 
-**Negative log-likelihood** for Gaussian observations:
+가우스 살핌의 **음수 로그 그럴듯함**:
 
 $$
 \mathcal{L}(\theta) = \frac{1}{N} \sum_{i=1}^N \left[ \frac{(y_i - \mu_\theta(x_i))^2}{2\sigma^2_\theta(x_i)} + \frac{1}{2}\log \sigma^2_\theta(x_i) \right]
 $$
 
-**Interpretation**:
+**풀이**:
 
-- First term: Prediction error weighted by inverse variance
-- Second term: Regularizes variance (prevents infinite variance)
+- 첫째 항: 흩어짐의 거꿀로 짐을 준 미루어 봄 어긋남
+- 둘째 항: 흩어짐을 다독인다(끝없는 흩어짐을 막는다)
 
-### Practical Considerations
+### 참으로 헤아릴 것
 
-**Training stability**:
+**익힘의 든든함**:
 
-- Initialize variance predictions conservatively
-- Use separate learning rates for mean and variance heads
-- Clip variance to prevent numerical issues
+- 흩어짐 미루어 봄의 첫자리를 조심스레 잡는다
+- 평균 머리와 흩어짐 머리에 다른 배움 비율을 쓴다
+- 셈 문제를 막으려 흩어짐을 자른다
 
-**Architecture choices**:
+**얼개 고르기**:
 
-- Shared backbone with two output heads
-- Separate networks (more flexible but more parameters)
-- Variance can depend on features or just input
+- 등뼈를 나누어 쓰고 날임 머리는 둘
+- 따로 떨어진 그물(더 너그러우나 매개변수가 많다)
+- 흩어짐은 결에 매일 수도, 들임에만 매일 수도 있다
 
 ---
 
-## Python Implementation
+## 파이썬으로 짜기
 
 ```python
 """
-Uncertainty Quantification in Neural Networks
+신경 그물의 아리송함 재기
 
-This module provides implementations for:
-- Aleatoric and epistemic uncertainty estimation
-- Heteroscedastic neural networks
-- Calibration metrics and reliability diagrams
-- Out-of-distribution detection
+이 묶음은 다음을 짜 놓았다:
+- 타고난 아리송함과 앎의 아리송함 어림
+- 다른 흩어짐 신경 그물
+- 눈금 맞음 자와 미더움 그림
+- 밖 분포 알아내기
 """
 
 import numpy as np
@@ -494,7 +494,7 @@ import warnings
 
 
 # =============================================================================
-# Uncertainty Estimation
+# 아리송함 어림
 # =============================================================================
 
 def predictive_uncertainty_regression(
@@ -502,42 +502,42 @@ def predictive_uncertainty_regression(
     variances: Optional[np.ndarray] = None
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Compute uncertainty decomposition for regression.
+    되돌이의 아리송함 쪼갬을 셈한다.
     
     Parameters
     ----------
-    predictions : ndarray of shape (n_samples, n_points)
-        Mean predictions from each posterior sample
-    variances : ndarray of shape (n_samples, n_points), optional
-        Predicted variances (aleatoric) from each sample.
-        If None, assumes homoscedastic with variance=0.
+    predictions : (n_samples, n_points) 꼴의 ndarray
+        뒷분포 표본마다의 평균 미루어 봄
+    variances : (n_samples, n_points) 꼴의 ndarray, 골라 씀
+        표본마다 미루어 본 흩어짐(타고난 것).
+        None이면 흩어짐 0의 고른 흩어짐으로 본다.
     
     Returns
     -------
-    mean : ndarray of shape (n_points,)
-        Predictive mean
-    total_var : ndarray of shape (n_points,)
-        Total predictive variance
-    aleatoric : ndarray of shape (n_points,)
-        Aleatoric (data) uncertainty
-    epistemic : ndarray of shape (n_points,)
-        Epistemic (model) uncertainty
+    mean : (n_points,) 꼴의 ndarray
+        미루어 본 평균
+    total_var : (n_points,) 꼴의 ndarray
+        온 미루어 봄 흩어짐
+    aleatoric : (n_points,) 꼴의 ndarray
+        타고난(자료의) 아리송함
+    epistemic : (n_points,) 꼴의 ndarray
+        앎의(모형의) 아리송함
     """
     n_samples, n_points = predictions.shape
     
-    # Predictive mean
+    # 미루어 본 평균
     mean = np.mean(predictions, axis=0)
     
-    # Epistemic: variance of the means
+    # 앎의: 평균들의 흩어짐
     epistemic = np.var(predictions, axis=0)
     
-    # Aleatoric: mean of the variances
+    # 타고난: 흩어짐들의 평균
     if variances is not None:
         aleatoric = np.mean(variances, axis=0)
     else:
         aleatoric = np.zeros(n_points)
     
-    # Total variance
+    # 온 흩어짐
     total_var = epistemic + aleatoric
     
     return mean, total_var, aleatoric, epistemic
@@ -547,69 +547,69 @@ def predictive_uncertainty_classification(
     logits: np.ndarray
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
-    Compute uncertainty decomposition for classification.
+    가름의 아리송함 쪼갬을 셈한다.
     
     Parameters
     ----------
-    logits : ndarray of shape (n_samples, n_points, n_classes)
-        Logits from each posterior sample
+    logits : (n_samples, n_points, n_classes) 꼴의 ndarray
+        뒷분포 표본마다의 로짓
     
     Returns
     -------
-    mean_probs : ndarray of shape (n_points, n_classes)
-        Mean predicted probabilities
-    total_entropy : ndarray of shape (n_points,)
-        Total predictive entropy
-    aleatoric : ndarray of shape (n_points,)
-        Aleatoric uncertainty (expected entropy)
-    epistemic : ndarray of shape (n_points,)
-        Epistemic uncertainty (mutual information)
+    mean_probs : (n_points, n_classes) 꼴의 ndarray
+        평균 미루어 본 낌새
+    total_entropy : (n_points,) 꼴의 ndarray
+        온 미루어 봄 엔트로피
+    aleatoric : (n_points,) 꼴의 ndarray
+        타고난 아리송함(바라는 엔트로피)
+    epistemic : (n_points,) 꼴의 ndarray
+        앎의 아리송함(서로 나눈 소식)
     """
     n_samples, n_points, n_classes = logits.shape
     
-    # Convert to probabilities
+    # 낌새로 옮긴다
     probs = softmax(logits, axis=2)  # (n_samples, n_points, n_classes)
     
-    # Mean probabilities
+    # 평균 낌새
     mean_probs = np.mean(probs, axis=0)  # (n_points, n_classes)
     
-    # Total entropy: H[E[p]]
+    # 온 엔트로피: H[E[p]]
     total_entropy = -np.sum(mean_probs * np.log(mean_probs + 1e-10), axis=1)
     
-    # Expected entropy: E[H[p]] (aleatoric)
+    # 바라는 엔트로피: E[H[p]](타고난 것)
     sample_entropies = -np.sum(probs * np.log(probs + 1e-10), axis=2)
     aleatoric = np.mean(sample_entropies, axis=0)
     
-    # Mutual information (epistemic)
+    # 서로 나눈 소식(앎의 것)
     epistemic = total_entropy - aleatoric
     
     return mean_probs, total_entropy, aleatoric, epistemic
 
 
 def entropy(probs: np.ndarray, axis: int = -1) -> np.ndarray:
-    """Compute entropy of probability distribution."""
+    """낌새 분포의 엔트로피를 셈한다."""
     return -np.sum(probs * np.log(probs + 1e-10), axis=axis)
 
 
 def mutual_information(logits: np.ndarray) -> np.ndarray:
     """
-    Compute mutual information I[y; theta | x, D] for BALD.
+    BALD에 쓸 서로 나눈 소식 I[y; theta | x, D]을 셈한다.
     
     Parameters
     ----------
-    logits : ndarray of shape (n_samples, n_points, n_classes)
+    logits : (n_samples, n_points, n_classes) 꼴의 ndarray
     
     Returns
     -------
-    mi : ndarray of shape (n_points,)
-        Mutual information for each point
+    mi : (n_points,) 꼴의 ndarray
+        점마다의 서로 나눈 소식
     """
     _, _, _, mi = predictive_uncertainty_classification(logits)
     return mi
 
 
 # =============================================================================
-# Calibration Metrics
+# 눈금 맞음 자
 # =============================================================================
 
 def reliability_diagram_data(
@@ -618,33 +618,33 @@ def reliability_diagram_data(
     n_bins: int = 10
 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
-    Compute data for reliability diagram.
+    미더움 그림에 쓸 자료를 셈한다.
     
     Parameters
     ----------
-    y_true : ndarray of shape (n_samples,)
-        True labels (0 or 1 for binary, class indices for multiclass)
-    y_prob : ndarray of shape (n_samples,) or (n_samples, n_classes)
-        Predicted probabilities
+    y_true : (n_samples,) 꼴의 ndarray
+        참 이름표(둘 가름이면 0이나 1, 여러 갈래면 갈래 손가락질)
+    y_prob : (n_samples,) 또는 (n_samples, n_classes) 꼴의 ndarray
+        미루어 본 낌새
     n_bins : int
-        Number of bins
+        통의 수
     
     Returns
     -------
     bin_centers : ndarray
-        Center of each bin
+        통마다의 가운데
     bin_accs : ndarray
-        Accuracy in each bin
+        통마다의 맞음
     bin_confs : ndarray
-        Mean confidence in each bin
+        통마다의 평균 자신함
     """
     if y_prob.ndim == 1:
-        # Binary classification
+        # 둘 가름
         confidences = y_prob
         predictions = (y_prob > 0.5).astype(int)
         accuracies = (predictions == y_true).astype(float)
     else:
-        # Multiclass: use maximum probability
+        # 여러 갈래: 가장 큰 낌새를 쓴다
         confidences = np.max(y_prob, axis=1)
         predictions = np.argmax(y_prob, axis=1)
         accuracies = (predictions == y_true).astype(float)
@@ -673,21 +673,21 @@ def expected_calibration_error(
     n_bins: int = 10
 ) -> float:
     """
-    Compute Expected Calibration Error (ECE).
+    바라는 눈금 맞음 어긋남(ECE)을 셈한다.
     
     Parameters
     ----------
     y_true : ndarray
-        True labels
+        참 이름표
     y_prob : ndarray
-        Predicted probabilities
+        미루어 본 낌새
     n_bins : int
-        Number of bins
+        통의 수
     
     Returns
     -------
     float
-        ECE value
+        ECE 값
     """
     if y_prob.ndim == 1:
         confidences = y_prob
@@ -719,7 +719,7 @@ def maximum_calibration_error(
     n_bins: int = 10
 ) -> float:
     """
-    Compute Maximum Calibration Error (MCE).
+    가장 큰 눈금 맞음 어긋남(MCE)을 셈한다.
     """
     _, bin_accs, bin_confs = reliability_diagram_data(y_true, y_prob, n_bins)
     
@@ -732,22 +732,22 @@ def maximum_calibration_error(
 
 def brier_score(y_true: np.ndarray, y_prob: np.ndarray) -> float:
     """
-    Compute Brier score for probabilistic predictions.
+    낌새 미루어 봄의 브라이어 점수를 셈한다.
     
-    Lower is better. Range: [0, 1] for binary classification.
+    작을수록 좋다. 둘 가름에서는 [0, 1] 자리.
     """
     if y_prob.ndim == 1:
-        # Binary
+        # 둘 가름
         return np.mean((y_prob - y_true) ** 2)
     else:
-        # Multiclass: one-hot encode true labels
+        # 여러 갈래: 참 이름표를 원핫으로 적는다
         n_classes = y_prob.shape[1]
         y_true_onehot = np.eye(n_classes)[y_true]
         return np.mean(np.sum((y_prob - y_true_onehot) ** 2, axis=1))
 
 
 # =============================================================================
-# Out-of-Distribution Detection
+# 밖 분포 알아내기
 # =============================================================================
 
 def ood_detection_metrics(
@@ -755,25 +755,25 @@ def ood_detection_metrics(
     out_scores: np.ndarray
 ) -> Dict[str, float]:
     """
-    Compute OOD detection metrics.
+    밖 분포 알아내기의 자를 셈한다.
     
-    Higher uncertainty scores should indicate OOD samples.
+    아리송함 점수가 클수록 밖 분포 보기여야 한다.
     
     Parameters
     ----------
     in_scores : ndarray
-        Uncertainty scores for in-distribution samples
+        분포 안 보기의 아리송함 점수
     out_scores : ndarray
-        Uncertainty scores for OOD samples
+        밖 분포 보기의 아리송함 점수
     
     Returns
     -------
     dict
-        Dictionary with AUROC, AUPRC, FPR@95
+        AUROC, AUPRC, FPR@95을 담은 사전
     """
     from sklearn.metrics import roc_auc_score, average_precision_score, roc_curve
     
-    # Labels: 0 for in-distribution, 1 for OOD
+    # 이름표: 분포 안이면 0, 밖 분포면 1
     y_true = np.concatenate([np.zeros(len(in_scores)), np.ones(len(out_scores))])
     y_score = np.concatenate([in_scores, out_scores])
     
@@ -783,7 +783,7 @@ def ood_detection_metrics(
     # AUPRC
     auprc = average_precision_score(y_true, y_score)
     
-    # FPR@95: False positive rate when true positive rate is 95%
+    # FPR@95: 참 맞음 비율이 95%일 때의 헛 맞음 비율
     fpr, tpr, thresholds = roc_curve(y_true, y_score)
     idx = np.argmin(np.abs(tpr - 0.95))
     fpr_at_95 = fpr[idx]
@@ -797,9 +797,9 @@ def ood_detection_metrics(
 
 def max_softmax_probability(logits: np.ndarray) -> np.ndarray:
     """
-    Baseline OOD detector: negative max softmax probability.
+    밑금 밖 분포 알아내개: 음수 가장 큰 소프트맥스 낌새.
     
-    Higher value = more uncertain = more likely OOD.
+    값이 클수록 더 아리송하고 밖 분포일 낌새가 크다.
     """
     probs = softmax(logits, axis=-1)
     return -np.max(probs, axis=-1)
@@ -807,28 +807,28 @@ def max_softmax_probability(logits: np.ndarray) -> np.ndarray:
 
 def predictive_entropy_score(logits: np.ndarray) -> np.ndarray:
     """
-    OOD detector: predictive entropy.
+    밖 분포 알아내개: 미루어 본 엔트로피.
     
-    For ensemble/Bayesian: logits shape (n_samples, n_points, n_classes)
+    모둠/베이즈에서: 로짓의 꼴은 (n_samples, n_points, n_classes)
     """
     if logits.ndim == 3:
-        # Bayesian: average probabilities then compute entropy
+        # 베이즈: 낌새를 고르게 한 뒤 엔트로피를 셈한다
         probs = softmax(logits, axis=2)
         mean_probs = np.mean(probs, axis=0)
         return entropy(mean_probs, axis=1)
     else:
-        # Single model
+        # 모형 하나
         probs = softmax(logits, axis=1)
         return entropy(probs, axis=1)
 
 
 # =============================================================================
-# Heteroscedastic Networks
+# 다른 흩어짐 그물
 # =============================================================================
 
 class HeteroscedasticLoss:
     """
-    Heteroscedastic Gaussian negative log-likelihood loss.
+    다른 흩어짐 가우스 음수 로그 그럴듯함 잃음.
     
     Loss = (y - mu)^2 / (2 * sigma^2) + 0.5 * log(sigma^2)
     """
@@ -840,21 +840,21 @@ class HeteroscedasticLoss:
         log_var: np.ndarray
     ) -> float:
         """
-        Compute loss.
+        잃음을 셈한다.
         
         Parameters
         ----------
         y_true : ndarray
-            True values
+            참값
         mu : ndarray
-            Predicted means
+            미루어 본 평균
         log_var : ndarray
-            Predicted log variances
+            미루어 본 로그 흩어짐
         
         Returns
         -------
         float
-            Mean loss
+            평균 잃음
         """
         var = np.exp(log_var)
         loss = 0.5 * ((y_true - mu) ** 2 / var + log_var)
@@ -867,14 +867,14 @@ class HeteroscedasticLoss:
         log_var: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Compute gradients.
+        기울기를 셈한다.
         
         Returns
         -------
         grad_mu : ndarray
-            Gradient w.r.t. predicted mean
+            미루어 본 평균에 대한 기울기
         grad_log_var : ndarray
-            Gradient w.r.t. predicted log variance
+            미루어 본 로그 흩어짐에 대한 기울기
         """
         var = np.exp(log_var)
         residual = y_true - mu
@@ -887,11 +887,11 @@ class HeteroscedasticLoss:
 
 class SimpleHeteroscedasticNetwork:
     """
-    Simple heteroscedastic neural network for demonstration.
+    보여 주기용 단순 다른 흩어짐 신경 그물.
     
-    Uses a shared backbone with two output heads:
-    - Mean head: predicts E[y|x]
-    - Log-variance head: predicts log Var[y|x]
+    등뼈를 나누어 쓰고 날임 머리는 둘이다:
+    - 평균 머리: E[y|x]을 미루어 본다
+    - 로그 흩어짐 머리: log Var[y|x]을 미루어 본다
     """
     
     def __init__(
@@ -901,27 +901,27 @@ class SimpleHeteroscedasticNetwork:
         init_log_var: float = 0.0
     ):
         """
-        Initialize network.
+        그물의 첫자리를 잡는다.
         
         Parameters
         ----------
         input_dim : int
-            Input dimension
+            들임 차수
         hidden_dims : list
-            Hidden layer sizes
+            숨은 켜의 크기
         init_log_var : float
-            Initial log variance (conservative start)
+            첫 로그 흩어짐(조심스러운 비롯함)
         """
         self.input_dim = input_dim
         self.hidden_dims = hidden_dims
         self.init_log_var = init_log_var
         
-        # Initialize weights (simplified)
+        # 짐의 첫자리를 잡는다(줄여 적음)
         self.weights = self._initialize_weights()
         self.loss_fn = HeteroscedasticLoss()
     
     def _initialize_weights(self) -> Dict:
-        """Xavier initialization."""
+        """자비에 첫자리 잡기."""
         weights = {}
         
         dims = [self.input_dim] + self.hidden_dims
@@ -931,14 +931,14 @@ class SimpleHeteroscedasticNetwork:
             weights[f'W{i}'] = np.random.randn(dims[i], dims[i + 1]) * scale
             weights[f'b{i}'] = np.zeros(dims[i + 1])
         
-        # Output heads
+        # 날임 머리
         last_dim = dims[-1]
         
-        # Mean head
+        # 평균 머리
         weights['W_mu'] = np.random.randn(last_dim, 1) * np.sqrt(2.0 / last_dim)
         weights['b_mu'] = np.zeros(1)
         
-        # Log variance head (initialized conservatively)
+        # 로그 흩어짐 머리(조심스레 첫자리를 잡는다)
         weights['W_logvar'] = np.random.randn(last_dim, 1) * 0.01
         weights['b_logvar'] = np.full(1, self.init_log_var)
         
@@ -946,23 +946,23 @@ class SimpleHeteroscedasticNetwork:
     
     def forward(self, X: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Forward pass.
+        앞으로 걸음.
         
         Returns
         -------
         mu : ndarray
-            Predicted means
+            미루어 본 평균
         log_var : ndarray
-            Predicted log variances
+            미루어 본 로그 흩어짐
         """
         h = X
         
-        # Hidden layers
+        # 숨은 켜
         for i in range(len(self.hidden_dims)):
             h = h @ self.weights[f'W{i}'] + self.weights[f'b{i}']
             h = np.maximum(h, 0)  # ReLU
         
-        # Output heads
+        # 날임 머리
         mu = h @ self.weights['W_mu'] + self.weights['b_mu']
         log_var = h @ self.weights['W_logvar'] + self.weights['b_logvar']
         
@@ -974,14 +974,14 @@ class SimpleHeteroscedasticNetwork:
         return_std: bool = True
     ) -> Tuple[np.ndarray, Optional[np.ndarray]]:
         """
-        Make predictions with uncertainty.
+        아리송함을 곁들여 미루어 본다.
         
         Returns
         -------
         mu : ndarray
-            Predicted means
-        std : ndarray (if return_std=True)
-            Predicted standard deviations (aleatoric only)
+            미루어 본 평균
+        std : ndarray(return_std=True이면)
+            미루어 본 잣대 어긋남(타고난 것만)
         """
         mu, log_var = self.forward(X)
         
@@ -992,7 +992,7 @@ class SimpleHeteroscedasticNetwork:
 
 
 # =============================================================================
-# Visualization Functions
+# 그리는 함수
 # =============================================================================
 
 def plot_uncertainty_decomposition(
@@ -1003,10 +1003,10 @@ def plot_uncertainty_decomposition(
     y_true: Optional[np.ndarray] = None,
     x_train: Optional[np.ndarray] = None,
     y_train: Optional[np.ndarray] = None,
-    title: str = "Uncertainty Decomposition"
+    title: str = "아리송함 쪼개기"
 ):
     """
-    Plot predictive uncertainty with decomposition.
+    미루어 봄의 아리송함을 쪼개어 그린다.
     """
     fig, axes = plt.subplots(1, 3, figsize=(15, 4))
     
@@ -1014,43 +1014,43 @@ def plot_uncertainty_decomposition(
     aleatoric_std = np.sqrt(aleatoric)
     epistemic_std = np.sqrt(epistemic)
     
-    # Total uncertainty
+    # 온 아리송함
     ax = axes[0]
     ax.fill_between(x, mean - 2*total, mean + 2*total, 
-                    alpha=0.3, label='Total ±2σ')
-    ax.plot(x, mean, 'b-', label='Mean prediction')
+                    alpha=0.3, label='온 ±2σ')
+    ax.plot(x, mean, 'b-', label='평균 미루어 봄')
     if y_true is not None:
-        ax.plot(x, y_true, 'k--', label='True function')
+        ax.plot(x, y_true, 'k--', label='참 함수')
     if x_train is not None:
-        ax.scatter(x_train, y_train, c='red', s=20, zorder=5, label='Training data')
+        ax.scatter(x_train, y_train, c='red', s=20, zorder=5, label='익힘 자료')
     ax.set_xlabel('x')
     ax.set_ylabel('y')
-    ax.set_title('Total Uncertainty')
+    ax.set_title('온 아리송함')
     ax.legend()
     
-    # Aleatoric
+    # 타고난 것
     ax = axes[1]
     ax.fill_between(x, mean - 2*aleatoric_std, mean + 2*aleatoric_std,
-                    alpha=0.3, color='orange', label='Aleatoric ±2σ')
+                    alpha=0.3, color='orange', label='타고난 ±2σ')
     ax.plot(x, mean, 'b-')
     if y_true is not None:
         ax.plot(x, y_true, 'k--')
     if x_train is not None:
         ax.scatter(x_train, y_train, c='red', s=20, zorder=5)
     ax.set_xlabel('x')
-    ax.set_title('Aleatoric Uncertainty')
+    ax.set_title('타고난 아리송함')
     
-    # Epistemic
+    # 앎의 것
     ax = axes[2]
     ax.fill_between(x, mean - 2*epistemic_std, mean + 2*epistemic_std,
-                    alpha=0.3, color='green', label='Epistemic ±2σ')
+                    alpha=0.3, color='green', label='앎의 ±2σ')
     ax.plot(x, mean, 'b-')
     if y_true is not None:
         ax.plot(x, y_true, 'k--')
     if x_train is not None:
         ax.scatter(x_train, y_train, c='red', s=20, zorder=5)
     ax.set_xlabel('x')
-    ax.set_title('Epistemic Uncertainty')
+    ax.set_title('앎의 아리송함')
     
     plt.suptitle(title)
     plt.tight_layout()
@@ -1061,31 +1061,31 @@ def plot_reliability_diagram(
     y_true: np.ndarray,
     y_prob: np.ndarray,
     n_bins: int = 10,
-    title: str = "Reliability Diagram"
+    title: str = "미더움 그림"
 ):
     """
-    Plot reliability diagram with calibration metrics.
+    눈금 맞음 자를 곁들여 미더움 그림을 그린다.
     """
     bin_centers, bin_accs, bin_confs = reliability_diagram_data(y_true, y_prob, n_bins)
     ece = expected_calibration_error(y_true, y_prob, n_bins)
     
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     
-    # Reliability diagram
+    # 미더움 그림
     ax = axes[0]
     valid = ~np.isnan(bin_accs)
     
     ax.bar(bin_centers[valid], bin_accs[valid], width=0.08, alpha=0.7, 
-           edgecolor='black', label='Accuracy')
-    ax.plot([0, 1], [0, 1], 'k--', label='Perfect calibration')
-    ax.set_xlabel('Confidence')
-    ax.set_ylabel('Accuracy')
+           edgecolor='black', label='맞음')
+    ax.plot([0, 1], [0, 1], 'k--', label='온전한 눈금 맞음')
+    ax.set_xlabel('자신함')
+    ax.set_ylabel('맞음')
     ax.set_xlim(0, 1)
     ax.set_ylim(0, 1)
     ax.set_title(f'{title}\nECE = {ece:.4f}')
     ax.legend()
     
-    # Confidence histogram
+    # 자신함 잦기 그림
     ax = axes[1]
     if y_prob.ndim == 1:
         confidences = y_prob
@@ -1093,9 +1093,9 @@ def plot_reliability_diagram(
         confidences = np.max(y_prob, axis=1)
     
     ax.hist(confidences, bins=n_bins, range=(0, 1), alpha=0.7, edgecolor='black')
-    ax.set_xlabel('Confidence')
-    ax.set_ylabel('Count')
-    ax.set_title('Confidence Distribution')
+    ax.set_xlabel('자신함')
+    ax.set_ylabel('셈')
+    ax.set_title('자신함의 분포')
     
     plt.tight_layout()
     plt.show()
@@ -1104,29 +1104,29 @@ def plot_reliability_diagram(
 def plot_ood_detection(
     in_scores: np.ndarray,
     out_scores: np.ndarray,
-    title: str = "OOD Detection"
+    title: str = "밖 분포 알아내기"
 ):
     """
-    Visualize OOD detection performance.
+    밖 분포 알아내기의 됨됨이를 그린다.
     """
     try:
         metrics = ood_detection_metrics(in_scores, out_scores)
     except ImportError:
-        print("sklearn required for ROC metrics")
+        print("ROC 자에는 sklearn이 있어야 한다")
         metrics = {}
     
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
     
-    # Score distributions
+    # 점수의 분포
     ax = axes[0]
-    ax.hist(in_scores, bins=50, alpha=0.7, label='In-distribution', density=True)
-    ax.hist(out_scores, bins=50, alpha=0.7, label='OOD', density=True)
-    ax.set_xlabel('Uncertainty Score')
-    ax.set_ylabel('Density')
-    ax.set_title('Score Distributions')
+    ax.hist(in_scores, bins=50, alpha=0.7, label='분포 안', density=True)
+    ax.hist(out_scores, bins=50, alpha=0.7, label='밖 분포', density=True)
+    ax.set_xlabel('아리송함 점수')
+    ax.set_ylabel('밀도')
+    ax.set_title('점수의 분포')
     ax.legend()
     
-    # ROC curve
+    # ROC 굽이
     ax = axes[1]
     if metrics:
         from sklearn.metrics import roc_curve
@@ -1136,96 +1136,96 @@ def plot_ood_detection(
         
         ax.plot(fpr, tpr, 'b-', linewidth=2, 
                 label=f'AUROC = {metrics["auroc"]:.3f}')
-        ax.plot([0, 1], [0, 1], 'k--', label='Random')
-        ax.set_xlabel('False Positive Rate')
-        ax.set_ylabel('True Positive Rate')
-        ax.set_title('ROC Curve')
+        ax.plot([0, 1], [0, 1], 'k--', label='아무렇게나')
+        ax.set_xlabel('헛 맞음 비율')
+        ax.set_ylabel('참 맞음 비율')
+        ax.set_title('ROC 굽이')
         ax.legend()
     else:
-        ax.text(0.5, 0.5, 'sklearn required', ha='center', va='center')
+        ax.text(0.5, 0.5, 'sklearn이 있어야 한다', ha='center', va='center')
     
     plt.suptitle(title)
     plt.tight_layout()
     plt.show()
     
     if metrics:
-        print(f"\nOOD Detection Metrics:")
+        print(f"\n밖 분포 알아내기 자:")
         print(f"  AUROC: {metrics['auroc']:.4f}")
         print(f"  AUPRC: {metrics['auprc']:.4f}")
         print(f"  FPR@95: {metrics['fpr_at_95']:.4f}")
 
 
 # =============================================================================
-# Demo Functions
+# 보여 주는 함수
 # =============================================================================
 
 def demo_uncertainty_decomposition():
-    """Demonstrate uncertainty decomposition in regression."""
+    """되돌이에서 아리송함 쪼개기를 보여 준다."""
     
     print("=" * 70)
-    print("UNCERTAINTY DECOMPOSITION: REGRESSION")
+    print("아리송함 쪼개기: 되돌이")
     print("=" * 70)
     
     np.random.seed(42)
     
-    # Generate heteroscedastic data
+    # 다른 흩어짐 자료를 만든다
     n_train = 20
     x_train = np.sort(np.random.uniform(-3, 3, n_train))
-    noise_std = 0.1 + 0.2 * np.abs(x_train)  # Heteroscedastic noise
+    noise_std = 0.1 + 0.2 * np.abs(x_train)  # 다른 흩어짐 잡음
     y_train = np.sin(x_train) + np.random.normal(0, noise_std)
     
-    # Test points
+    # 시험 점
     x_test = np.linspace(-5, 5, 200)
     y_true = np.sin(x_test)
     
-    # Simulate ensemble predictions (simplified BNN approximation)
+    # 모둠 미루어 봄을 흉내 낸다(BNN 어림을 줄여 적음)
     n_samples = 100
     predictions = np.zeros((n_samples, len(x_test)))
     variances = np.zeros((n_samples, len(x_test)))
     
     for s in range(n_samples):
-        # Perturbed parameters (simulating posterior samples)
+        # 흔든 매개변수(뒷분포 표본을 흉내 냄)
         a = 1.0 + np.random.normal(0, 0.1)
         b = np.random.normal(0, 0.2)
         
         predictions[s] = a * np.sin(x_test + b)
         
-        # Predicted aleatoric variance
+        # 미루어 본 타고난 흩어짐
         variances[s] = (0.1 + 0.2 * np.abs(x_test)) ** 2
     
-    # Compute decomposition
+    # 쪼갬을 셈한다
     mean, total, aleatoric, epistemic = predictive_uncertainty_regression(
         predictions, variances
     )
     
-    print(f"\nTraining points: {n_train}")
-    print(f"Ensemble samples: {n_samples}")
+    print(f"\n익힘 점: {n_train}")
+    print(f"모둠 표본: {n_samples}")
     
-    print("\n--- Uncertainty Summary ---")
-    print(f"Mean aleatoric (data region):  {np.mean(aleatoric[50:150]):.4f}")
-    print(f"Mean epistemic (data region):  {np.mean(epistemic[50:150]):.4f}")
-    print(f"Mean epistemic (extrapolation): {np.mean(epistemic[:30]):.4f}")
+    print("\n--- 아리송함 간추림 ---")
+    print(f"평균 타고난 것(자료 자리):  {np.mean(aleatoric[50:150]):.4f}")
+    print(f"평균 앎의 것(자료 자리):  {np.mean(epistemic[50:150]):.4f}")
+    print(f"평균 앎의 것(밖으로 늘림): {np.mean(epistemic[:30]):.4f}")
     
-    print("\n*** Epistemic uncertainty is high outside training data")
-    print("*** Aleatoric uncertainty reflects inherent noise pattern")
+    print("\n*** 앎의 아리송함은 익힘 자료 밖에서 크다")
+    print("*** 타고난 아리송함은 타고난 잡음의 결을 드러낸다")
     
     return x_test, mean, aleatoric, epistemic
 
 
 def demo_classification_uncertainty():
-    """Demonstrate uncertainty in classification."""
+    """가름에서의 아리송함을 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("UNCERTAINTY DECOMPOSITION: CLASSIFICATION")
+    print("아리송함 쪼개기: 가름")
     print("=" * 70)
     
     np.random.seed(42)
     
-    n_samples = 50  # Ensemble members
+    n_samples = 50  # 모둠 갈래
     n_points = 4
     n_classes = 3
     
-    # Simulate different scenarios
+    # 여러 형편을 흉내 낸다
     scenarios = {
         'confident_correct': np.tile([5.0, 0.0, 0.0], (n_samples, 1)),
         'confident_wrong': np.tile([0.0, 5.0, 0.0], (n_samples, 1)),
@@ -1233,12 +1233,12 @@ def demo_classification_uncertainty():
         'high_epistemic': np.random.randn(n_samples, n_classes) * 2
     }
     
-    print("\n--- Scenario Analysis ---")
-    print(f"{'Scenario':<20} {'Total H':>10} {'Aleatoric':>10} {'Epistemic':>10}")
+    print("\n--- 형편 살피기 ---")
+    print(f"{'형편':<20} {'온 H':>10} {'타고난':>10} {'앎의':>10}")
     print("-" * 55)
     
     for name, logits in scenarios.items():
-        # Reshape for function
+        # 함수에 맞게 꼴을 바꾼다
         logits_shaped = logits.reshape(n_samples, 1, n_classes)
         
         mean_probs, total, aleatoric, epistemic = predictive_uncertainty_classification(
@@ -1247,28 +1247,28 @@ def demo_classification_uncertainty():
         
         print(f"{name:<20} {total[0]:>10.4f} {aleatoric[0]:>10.4f} {epistemic[0]:>10.4f}")
     
-    print("\n*** Confident predictions have low total uncertainty")
-    print("*** High aleatoric = inherent class overlap")
-    print("*** High epistemic = model disagreement (ensemble variance)")
+    print("\n*** 자신하는 미루어 봄은 온 아리송함이 작다")
+    print("*** 타고난 것이 크다 = 갈래가 타고나게 겹친다")
+    print("*** 앎의 것이 크다 = 모형끼리 어긋난다(모둠의 흩어짐)")
 
 
 def demo_calibration():
-    """Demonstrate calibration metrics and reliability diagrams."""
+    """눈금 맞음 자와 미더움 그림을 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("CALIBRATION ANALYSIS")
+    print("눈금 맞음 살피기")
     print("=" * 70)
     
     np.random.seed(42)
     n = 1000
     
-    # Generate well-calibrated predictions
+    # 눈금이 잘 맞은 미루어 봄을 만든다
     true_probs = np.random.uniform(0, 1, n)
     y_true_calibrated = (np.random.uniform(0, 1, n) < true_probs).astype(int)
     y_prob_calibrated = true_probs + np.random.normal(0, 0.05, n)
     y_prob_calibrated = np.clip(y_prob_calibrated, 0.01, 0.99)
     
-    # Generate overconfident predictions
+    # 지나치게 자신하는 미루어 봄을 만든다
     y_prob_overconfident = np.where(
         y_prob_calibrated > 0.5,
         0.5 + (y_prob_calibrated - 0.5) * 1.5,
@@ -1276,112 +1276,112 @@ def demo_calibration():
     )
     y_prob_overconfident = np.clip(y_prob_overconfident, 0.01, 0.99)
     
-    # Compute metrics
+    # 자를 셈한다
     ece_calib = expected_calibration_error(y_true_calibrated, y_prob_calibrated)
     ece_over = expected_calibration_error(y_true_calibrated, y_prob_overconfident)
     
     brier_calib = brier_score(y_true_calibrated, y_prob_calibrated)
     brier_over = brier_score(y_true_calibrated, y_prob_overconfident)
     
-    print("\n--- Calibration Metrics ---")
-    print(f"{'Model':<20} {'ECE':>10} {'Brier':>10}")
+    print("\n--- 눈금 맞음 자 ---")
+    print(f"{'모형':<20} {'ECE':>10} {'브라이어':>10}")
     print("-" * 45)
-    print(f"{'Well-calibrated':<20} {ece_calib:>10.4f} {brier_calib:>10.4f}")
-    print(f"{'Overconfident':<20} {ece_over:>10.4f} {brier_over:>10.4f}")
+    print(f"{'눈금 잘 맞음':<20} {ece_calib:>10.4f} {brier_calib:>10.4f}")
+    print(f"{'지나친 자신함':<20} {ece_over:>10.4f} {brier_over:>10.4f}")
     
-    print("\n*** Lower ECE = better calibration")
-    print("*** Lower Brier score = better probabilistic predictions")
+    print("\n*** ECE이 작을수록 눈금이 잘 맞는다")
+    print("*** 브라이어 점수가 작을수록 낌새 미루어 봄이 좋다")
 
 
 def demo_ood_detection():
-    """Demonstrate out-of-distribution detection."""
+    """밖 분포 알아내기를 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("OUT-OF-DISTRIBUTION DETECTION")
+    print("밖 분포 알아내기")
     print("=" * 70)
     
     np.random.seed(42)
     
-    n_samples = 50  # Ensemble members
+    n_samples = 50  # 모둠 갈래
     n_in = 500
     n_out = 500
     n_classes = 10
     
-    # In-distribution: confident predictions
+    # 분포 안: 자신하는 미루어 봄
     logits_in = np.random.randn(n_samples, n_in, n_classes)
-    # Make confident by scaling and adding class-specific bias
+    # 잣대를 키우고 갈래마다 치우침을 더해 자신하게 만든다
     confident_class = np.random.randint(0, n_classes, n_in)
     for i in range(n_in):
         logits_in[:, i, confident_class[i]] += 3.0
     
-    # OOD: uncertain predictions (ensemble disagrees)
+    # 밖 분포: 아리송한 미루어 봄(모둠이 어긋난다)
     logits_out = np.random.randn(n_samples, n_out, n_classes) * 0.5
     
-    # Compute epistemic uncertainty (mutual information)
+    # 앎의 아리송함을 셈한다(서로 나눈 소식)
     _, _, _, epistemic_in = predictive_uncertainty_classification(logits_in)
     _, _, _, epistemic_out = predictive_uncertainty_classification(logits_out)
     
-    print("\n--- Uncertainty Statistics ---")
-    print(f"In-distribution epistemic:  mean={np.mean(epistemic_in):.4f}, "
+    print("\n--- 아리송함 자 ---")
+    print(f"분포 안 앎의 것:  평균={np.mean(epistemic_in):.4f}, "
           f"std={np.std(epistemic_in):.4f}")
-    print(f"OOD epistemic:              mean={np.mean(epistemic_out):.4f}, "
+    print(f"밖 분포 앎의 것:              평균={np.mean(epistemic_out):.4f}, "
           f"std={np.std(epistemic_out):.4f}")
     
-    # Compute detection metrics
+    # 알아내기 자를 셈한다
     try:
         metrics = ood_detection_metrics(epistemic_in, epistemic_out)
-        print("\n--- Detection Performance (using epistemic uncertainty) ---")
+        print("\n--- 알아내기 됨됨이(앎의 아리송함으로) ---")
         print(f"AUROC: {metrics['auroc']:.4f}")
         print(f"AUPRC: {metrics['auprc']:.4f}")
         print(f"FPR@95: {metrics['fpr_at_95']:.4f}")
     except ImportError:
-        print("\n(sklearn required for detailed metrics)")
+        print("\n(자세한 자에는 sklearn이 있어야 한다)")
     
-    print("\n*** Higher epistemic uncertainty indicates OOD samples")
-    print("*** Bayesian methods naturally provide OOD detection capability")
+    print("\n*** 앎의 아리송함이 클수록 밖 분포 보기임을 뜻한다")
+    print("*** 베이즈 방법은 밖 분포 알아내는 힘을 절로 준다")
 
 
 def demo_heteroscedastic_loss():
-    """Demonstrate heteroscedastic loss computation."""
+    """다른 흩어짐 잃음 셈하기를 보여 준다."""
     
     print("\n" + "=" * 70)
-    print("HETEROSCEDASTIC GAUSSIAN LOSS")
+    print("다른 흩어짐 가우스 잃음")
     print("=" * 70)
     
     np.random.seed(42)
     
     loss_fn = HeteroscedasticLoss()
     
-    # Scenario 1: Good predictions with correct uncertainty
+    # 형편 1: 좋은 미루어 봄에 맞는 아리송함
     y_true = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
     mu_good = np.array([1.1, 1.9, 3.1, 3.9, 5.1])
     log_var_good = np.log(np.array([0.1, 0.1, 0.1, 0.1, 0.1]))
     
     loss_good = loss_fn(y_true, mu_good, log_var_good)
     
-    # Scenario 2: Good predictions with overestimated uncertainty
+    # 형편 2: 좋은 미루어 봄에 지나치게 큰 아리송함
     log_var_overest = np.log(np.array([1.0, 1.0, 1.0, 1.0, 1.0]))
     loss_overest = loss_fn(y_true, mu_good, log_var_overest)
     
-    # Scenario 3: Bad predictions with underestimated uncertainty
+    # 형편 3: 나쁜 미루어 봄에 지나치게 작은 아리송함
     mu_bad = np.array([2.0, 3.0, 4.0, 5.0, 6.0])
     log_var_underest = np.log(np.array([0.01, 0.01, 0.01, 0.01, 0.01]))
     loss_underest = loss_fn(y_true, mu_bad, log_var_underest)
     
-    # Scenario 4: Bad predictions with high uncertainty (honest about errors)
+    # 형편 4: 나쁜 미루어 봄에 큰 아리송함(어긋남을 솔직히 밝힘)
     log_var_honest = np.log(np.array([2.0, 2.0, 2.0, 2.0, 2.0]))
     loss_honest = loss_fn(y_true, mu_bad, log_var_honest)
     
-    print("\n--- Loss Comparison ---")
-    print(f"{'Scenario':<45} {'Loss':>10}")
+    print("\n--- 잃음 견주기 ---")
+    print(f"{'형편':<45} {'잃음':>10}")
     print("-" * 60)
-    print(f"{'Good predictions, correct uncertainty':<45} {loss_good:>10.4f}")
-    print(f"{'Good predictions, overestimated uncertainty':<45} {loss_overest:>10.4f}")
-    print(f"{'Bad predictions, underestimated uncertainty':<45} {loss_underest:>10.4f}")
-    print(f"{'Bad predictions, honest high uncertainty':<45} {loss_honest:>10.4f}")
+    print(f"{'좋은 미루어 봄, 맞는 아리송함':<45} {loss_good:>10.4f}")
+    print(f"{'좋은 미루어 봄, 지나치게 큰 아리송함':<45} {loss_overest:>10.4f}")
+    print(f"{'나쁜 미루어 봄, 지나치게 작은 아리송함':<45} {loss_underest:>10.4f}")
+    print(f"{'나쁜 미루어 봄, 솔직한 큰 아리송함':<45} {loss_honest:>10.4f}")
     
-    print("\n*** Loss penalizes both prediction errors AND miscalibrated uncertainty")
-    print("*** Underestimating uncertainty on wrong predictions is heavily penalized")
+    print("\n*** 잃음은 미루어 봄의 어긋남과 눈금 어긋난 아리송함을 함께 벌한다")
+    print("*** 틀린 미루어 봄에서 아리송함을 낮게 보면 크게 벌한다")
 
 
 if __name__ == "__main__":
@@ -1394,67 +1394,67 @@ if __name__ == "__main__":
 
 ---
 
-## Summary
+## 간추림
 
-### Types of Uncertainty
+### 아리송함의 갈래
 
-| Type | Definition | Source | Reducible? |
+| 갈래 | 뜻매김 | 밑동 | 줄일 수 있나? |
 |------|------------|--------|------------|
-| **Aleatoric** | Inherent data noise | Measurement, stochasticity | No |
-| **Epistemic** | Model ignorance | Limited data, parameters | Yes |
-| **Total** | Aleatoric + Epistemic | Both sources combined | Partially |
+| **타고난** | 자료에 타고난 잡음 | 재기, 확률성 | 아니다 |
+| **앎의** | 모형이 모름 | 자료가 적음, 매개변수 | 그렇다 |
+| **온** | 타고난 + 앎의 | 두 밑동을 아우름 | 얼마쯤 |
 
-### Mathematical Decomposition
+### 수학으로 쪼개기
 
-**Regression** (law of total variance):
+**되돌이**(온 흩어짐 법칙):
 
 $$
 \text{Var}[y^* \mid x^*, \mathcal{D}] = \underbrace{\mathbb{E}_\theta[\sigma^2_\theta(x^*)]}_{\text{Aleatoric}} + \underbrace{\text{Var}_\theta[\mu_\theta(x^*)]}_{\text{Epistemic}}
 $$
 
-**Classification** (mutual information):
+**가름**(서로 나눈 소식):
 
 $$
 \underbrace{\mathbb{H}[\bar{p}]}_{\text{Total}} = \underbrace{\mathbb{I}[y; \theta]}_{\text{Epistemic}} + \underbrace{\mathbb{E}_\theta[\mathbb{H}[p_\theta]]}_{\text{Aleatoric}}
 $$
 
-### Estimation from Posterior Samples
+### 뒷분포 표본에서 어림하기
 
-| Quantity | Formula |
+| 값 | 식 |
 |----------|---------|
-| Predictive mean | $\hat{\mu} = \frac{1}{S}\sum_s \mu_{\theta^{(s)}}$ |
-| Epistemic | $\frac{1}{S}\sum_s (\mu_{\theta^{(s)}} - \hat{\mu})^2$ |
-| Aleatoric | $\frac{1}{S}\sum_s \sigma^2_{\theta^{(s)}}$ |
-| Total | Epistemic + Aleatoric |
+| 미루어 본 평균 | $\hat{\mu} = \frac{1}{S}\sum_s \mu_{\theta^{(s)}}$ |
+| 앎의 것 | $\frac{1}{S}\sum_s (\mu_{\theta^{(s)}} - \hat{\mu})^2$ |
+| 타고난 것 | $\frac{1}{S}\sum_s \sigma^2_{\theta^{(s)}}$ |
+| 온 것 | 앎의 것 + 타고난 것 |
 
-### Calibration Metrics
+### 눈금 맞음 자
 
-| Metric | Formula | Interpretation |
+| 자 | 식 | 풀이 |
 |--------|---------|----------------|
-| **ECE** | $\sum_m \frac{|B_m|}{n}\|acc_m - conf_m\|$ | Expected calibration error |
-| **MCE** | $\max_m \|acc_m - conf_m\|$ | Worst-case calibration |
-| **Brier** | $\frac{1}{n}\sum_i (p_i - y_i)^2$ | Probabilistic accuracy |
+| **ECE** | $\sum_m \frac{|B_m|}{n}\|acc_m - conf_m\|$ | 바라는 눈금 맞음 어긋남 |
+| **MCE** | $\max_m \|acc_m - conf_m\|$ | 가장 나쁜 자리의 눈금 맞음 |
+| **브라이어** | $\frac{1}{n}\sum_i (p_i - y_i)^2$ | 낌새의 맞음 |
 
-### Applications
+### 쓸 자리
 
-| Application | Key Uncertainty | Usage |
+| 쓰임 | 고갱이 아리송함 | 쓰는 길 |
 |-------------|-----------------|-------|
-| **Active Learning** | Epistemic (MI/BALD) | Select informative points |
-| **OOD Detection** | Epistemic | Flag unfamiliar inputs |
-| **Risk Assessment** | Total | Decision confidence |
-| **Model Debugging** | Both | Identify failure modes |
+| **살아 있는 배움** | 앎의 것(서로 나눈 소식/BALD) | 알려 주는 바가 큰 점 고르기 |
+| **밖 분포 알아내기** | 앎의 것 | 낯선 들임에 표시하기 |
+| **무릅씀 따지기** | 온 것 | 판단의 자신함 |
+| **모형 벌레잡기** | 둘 다 | 어그러지는 결 짚어내기 |
 
-### Connections to Other Chapters
+### 다른 장과의 이어짐
 
-| Topic | Chapter | Connection |
+| 이야기 | 장 | 이어짐 |
 |-------|---------|------------|
-| Prior specification | Ch13: Prior on Weights | Affects epistemic uncertainty |
-| Posterior inference | Ch13: Posterior Inference | Source of parameter samples |
-| MC Dropout | Ch13: MC Dropout | Approximate epistemic uncertainty |
-| Variational BNN | Ch13: Variational BNN | Scalable uncertainty estimation |
-| Model comparison | Ch13: Information Criteria | Uncertainty in model selection |
+| 앞선 분포 정하기 | 13장: 짐의 앞선 분포 | 앎의 아리송함에 걸린다 |
+| 뒷분포 미루어 봄 | 13장: 뒷분포 미루어 봄 | 매개변수 표본의 밑동 |
+| MC 드롭아웃 | 13장: MC 드롭아웃 | 앎의 아리송함의 어림 |
+| 변이 베이즈 신경 그물 | 13장: 변이 베이즈 신경 그물 | 크게 늘릴 수 있는 아리송함 어림 |
+| 모형 견주기 | 13장: 소식 잣대 | 모형 고르기의 아리송함 |
 
-### Key References
+### 고갱이 살펴볼 거리
 
 - Kendall, A., & Gal, Y. (2017). What uncertainties do we need in Bayesian deep learning for computer vision? *NeurIPS*.
 - Gal, Y., & Ghahramani, Z. (2016). Dropout as a Bayesian approximation: Representing model uncertainty in deep learning. *ICML*.
@@ -1462,34 +1462,34 @@ $$
 - Lakshminarayanan, B., et al. (2017). Simple and scalable predictive uncertainty estimation using deep ensembles. *NeurIPS*.
 - Houlsby, N., et al. (2011). Bayesian active learning for classification and preference learning. *arXiv*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-For a two-layer neural network with ReLU activations and Gaussian weight priors, derive the form of the approximate posterior under the method described in this section.
+**익힘 1.**
+ReLU 살림과 가우스 짐 앞선 분포를 지닌 두 켜 신경 그물에서, 이 마디에서 밝힌 방법에 따른 어림 뒷분포의 꼴을 이끌어 내어라.
 
-??? success "Solution to Exercise 1"
-    With weights $W_1, W_2$ and Gaussian prior $p(W) = \mathcal{N}(0, \sigma_p^2 I)$, the posterior $p(W | D) \propto p(D | W) p(W)$ is intractable. The approximation method from this section produces a tractable form: for variational inference, each weight has an independent Gaussian posterior $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$; for Laplace approximation, the posterior is a single Gaussian centered at the MAP estimate with covariance equal to the inverse Hessian; for MC Dropout, the posterior is implicitly defined by the dropout mask distribution. Each approximation captures different aspects of the true posterior's shape. $\square$
-
----
-
-**Exercise 2.**
-Design an experiment to compare the calibration of uncertainty estimates from this method against MC Dropout and deep ensembles. Specify the metrics and visualization.
-
-??? success "Solution to Exercise 2"
-    Metrics: (1) Expected Calibration Error (ECE) with 15 bins; (2) Brier score; (3) negative log-likelihood (NLL); (4) AUROC for OOD detection. Visualization: reliability diagrams plotting observed frequency vs. predicted confidence for each method. Protocol: train all methods on CIFAR-10 (in-distribution), evaluate calibration on CIFAR-10 test set, and OOD detection on SVHN. Use temperature scaling as a post-hoc baseline. Report means and standard errors over 5 random seeds. A well-calibrated method has points close to the diagonal in the reliability diagram and low ECE. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, W_2$이고 가우스 앞선 분포가 $p(W) = \mathcal{N}(0, \sigma_p^2 I)$일 때 뒷분포 $p(W | D) \propto p(D | W) p(W)$은 다룰 수 없다. 이 마디의 어림 방법은 다룰 수 있는 꼴을 낸다. 변이 미루어 봄이면 짐마다 서로 남남인 가우스 뒷분포 $q(w_{ij}) = \mathcal{N}(\mu_{ij}, \sigma_{ij}^2)$을 지니고, 라플라스 어림이면 뒷분포가 MAP 어림을 가운데로 삼고 함께 바뀜이 헤세 행렬의 거꿀인 가우스 하나이며, MC 드롭아웃이면 뒷분포가 드롭아웃 가리개 분포로 넌지시 세워진다. 어림마다 참 뒷분포 모습의 서로 다른 결을 담는다. $\square$
 
 ---
 
-**Exercise 3.**
-Prove that the predictive variance from a Bayesian neural network decomposes into epistemic and aleatoric components. Show how each component behaves as the training set size $N \to \infty$.
+**익힘 2.**
+이 방법에서 얻은 아리송함 어림의 눈금 맞음을 MC 드롭아웃, 깊은 모둠과 견주는 시험을 꾸며라. 쓸 자와 그림을 밝혀라.
 
-??? success "Solution to Exercise 3"
-    The predictive variance decomposes via the law of total variance: $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{aleatoric}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{epistemic}}$. The aleatoric component captures irreducible noise in the data-generating process and remains constant as $N \to \infty$. The epistemic component reflects parameter uncertainty, which decreases as $O(1/N)$ because the posterior concentrates around the true parameters. In the limit, only aleatoric uncertainty remains. This decomposition is crucial for deciding when to collect more data (high epistemic) vs. accepting inherent noise (high aleatoric). $\square$
+??? success "익힘 2 풀이"
+    자: (1) 통 15개의 바라는 눈금 맞음 어긋남(ECE), (2) 브라이어 점수, (3) 음수 로그 그럴듯함(NLL), (4) 밖 분포 알아내기의 AUROC. 그림: 방법마다 본 잦기를 미루어 본 자신함에 대고 그린 미더움 그림. 절차: 모든 방법을 CIFAR-10(분포 안)에서 익히고, CIFAR-10 시험 자료에서 눈금 맞음을, SVHN에서 밖 분포 알아내기를 따진다. 온도 잣대 잡기를 일 끝난 뒤 밑금으로 쓴다. 아무렇게나 하는 씨앗 5개에 걸친 평균과 잣대 어긋남을 알린다. 눈금이 잘 맞은 방법은 미더움 그림에서 점이 대각선에 가깝고 ECE이 낮다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how the uncertainty quantification method from this section could be used for position sizing in a trading system. Propose a concrete decision rule.
+**익힘 3.**
+베이즈 신경 그물의 미루어 봄 흩어짐이 앎의 아리송함과 타고난 아리송함으로 쪼개짐을 증명하여라. 익힘 자료 크기 $N \to \infty$일 때 두 몫이 어떻게 되는지 보여라.
 
-??? success "Solution to Exercise 4"
-    Decision rule: the position size is inversely proportional to the epistemic uncertainty. Let $\hat{y}$ be the predicted return and $\sigma_e^2$ be the epistemic variance. The position is $w = \frac{\hat{y}}{\lambda \sigma_e^2}$ where $\lambda$ is a risk aversion parameter. When epistemic uncertainty is high (novel market conditions), positions are reduced; when low (familiar regimes), the system trades with higher conviction. Additionally, set a maximum epistemic uncertainty threshold above which no trade is placed (abstention). This framework naturally implements a Kelly-criterion-like sizing scaled by model confidence. Backtest with walk-forward validation to calibrate $\lambda$. $\square$
+??? success "익힘 3 풀이"
+    미루어 봄 흩어짐은 온 흩어짐 법칙으로 쪼개진다. $\text{Var}[y | x, D] = \underbrace{\mathbb{E}_{p(\theta|D)}[\text{Var}[y | x, \theta]]}_{\text{타고난}} + \underbrace{\text{Var}_{p(\theta|D)}[\mathbb{E}[y | x, \theta]]}_{\text{앎의}}$. 타고난 몫은 자료를 낳는 흐름의 줄일 수 없는 잡음을 담으며 $N \to \infty$이어도 그대로다. 앎의 몫은 매개변수의 아리송함을 드러내며 뒷분포가 참 매개변수 언저리로 모이므로 $O(1/N)$으로 준다. 끝에 가면 타고난 아리송함만 남는다. 이 쪼갬은 자료를 더 모아야 할 때(앎의 아리송함이 클 때)와 타고난 잡음을 받아들여야 할 때(타고난 아리송함이 클 때)를 가르는 데 종요롭다. $\square$
+
+---
+
+**익힘 4.**
+이 마디의 아리송함 재기 방법을 거래 얼개의 자리 크기 잡기에 어떻게 쓸 수 있는지 다루어라. 손에 잡히는 판단 규칙을 내놓아라.
+
+??? success "익힘 4 풀이"
+    판단 규칙: 자리 크기를 앎의 아리송함에 반비례하게 잡는다. $\hat{y}$을 미루어 본 돌아옴, $\sigma_e^2$을 앎의 흩어짐이라 하자. 자리는 $w = \frac{\hat{y}}{\lambda \sigma_e^2}$이고 $\lambda$은 무릅씀 꺼림 값이다. 앎의 아리송함이 크면(낯선 저자 형편) 자리를 줄이고, 작으면(익숙한 판) 더 굳게 거래한다. 여기에 더해 그 위로는 거래하지 않는 앎의 아리송함 위끝을 두어 삼갈 수 있다. 이 틀은 모형의 자신함으로 잣대를 잡은 켈리 잣대 결의 크기 잡기를 절로 이룬다. 앞으로 걸어가며 살피기로 되짚어 시험해 $\lambda$의 눈금을 맞춘다. $\square$
