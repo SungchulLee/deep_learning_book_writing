@@ -143,10 +143,10 @@ if __name__ == "__main__":
 
 ## 연습문제
 
-**Exercise 1.**
+**익힘 1.**
 `w`와 `b`에 `requires_grad=True`를 붙여 직접 계산하던 경사를 `loss.backward()`로 대체하라. 결과가 동일한지 확인하라.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     ```python
     import torch
     from torch.utils.data import TensorDataset, DataLoader
@@ -178,18 +178,18 @@ if __name__ == "__main__":
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 경사를 직접 계산하는 학습 루프에서 경사를 0으로 만드는 것을 잊으면 어떻게 되는가? 경사 초기화를 주석 처리하여 흉내 내 보고 학습된 매개변수에 미치는 영향을 관찰하라.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     초기화하지 않으면 이전 배치의 경사가 지워지지 않는다. 다만 경사 변수 `grad_w`와 `grad_b`는 반복마다 다시 계산되는 (누적되는 `.grad` 속성이 아니라 지역 변수인) 값이므로, 직접 계산하는 이 루프는 이 문제의 영향을 받지 않는다. 그러나 `.grad` 속성을 쓰는 autograd에서는 0으로 만드는 것을 잊으면 경사가 배치에 걸쳐 누적되어 실효 경사가 배치마다 커지고 매개변수가 빠르게 발산한다.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 모든 텐서를 `device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')`로 옮겨 GPU를 지원하게 하고, 큰 데이터셋(표본 100000개, 특징 100개)에서 속도 향상을 측정하라.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     import torch, time
     from torch.utils.data import TensorDataset, DataLoader

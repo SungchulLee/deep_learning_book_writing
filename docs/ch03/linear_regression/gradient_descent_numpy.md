@@ -181,10 +181,10 @@ if __name__ == "__main__":
 
 ## 연습문제
 
-**Exercise 1.**
+**익힘 1.**
 운동량 기반 경사 하강법을 구현하라. $\beta = 0.9$로 두고 $v \leftarrow \beta v + g$, $\theta \leftarrow \theta - \alpha v$이다. 보통의 경사 하강법과 수렴 속도를 비교하라.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     ```python
     import numpy as np
     from sklearn.datasets import make_regression
@@ -208,18 +208,18 @@ if __name__ == "__main__":
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 수학적으로는 같은 결과를 내는데도 정규 방정식을 풀 때 `np.linalg.inv(A) @ b`보다 `np.linalg.solve(A, b)`를 선호하는 이유를 설명하라.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     `np.linalg.solve`는 역행렬을 명시적으로 계산하지 않고 LU 분해나 촐레스키 분해로 연립방정식을 직접 푼다. 역행렬을 계산하는 것은 더 느리고(역행렬에 $O(d^3)$, 곱셈에 $O(d^2)$) 수치적으로도 덜 안정적이다. 특히 $X^TX$의 조건수가 나쁠 때 역행렬이 반올림 오차를 증폭시키기 때문이다. `solve`는 분해된 형태를 직접 다루어 이런 증폭을 피하고, 더 짧은 시간에 더 정확한 해를 낸다.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 배치 크기 1, 16, 64, 300(전체 배치)으로 미니배치 경사 하강법을 실행하라. 네 손실 곡선을 같은 축에 그리고 잡음과 수렴 사이의 절충을 논하라.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     import numpy as np
     from sklearn.datasets import make_regression

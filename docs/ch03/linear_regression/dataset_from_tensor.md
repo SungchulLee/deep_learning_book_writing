@@ -186,18 +186,18 @@ if __name__ == "__main__":
 
 ## 연습문제
 
-**Exercise 1.**
+**익힘 1.**
 기본 `'mean'` 축약 대신 `nn.MSELoss(reduction='sum')`을 쓰도록 스크립트를 수정하라. 학습을 안정적으로 유지하려면 학습률을 어떻게 바꿔야 하는가?
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     `reduction='sum'`을 쓰면 손실이 배치 크기에 비례하므로 경사가 배치 크기만큼 커진다. 이를 보정하려면 학습률을 배치 크기로 나누어야 한다. 예를 들어 `'mean'`에서 `lr=0.01`이 잘 동작했다면, 배치 크기 32인 `'sum'`에서는 `lr=0.01/32`(약 0.0003)가 필요하다. 반대로 `'sum'` 축약에서 원래 학습률을 그대로 쓰면 최적화기가 너무 큰 걸음을 내디뎌 발산한다.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 학습 루프에 검증 분할을 추가하라. 80%는 학습에, 20%는 검증에 쓴다. 매 에폭마다 학습 MSE와 검증 MSE를 모두 출력하라.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -231,10 +231,10 @@ if __name__ == "__main__":
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 입력 특징을 10개 쓰도록 모델을 확장하고, 학습된 가중치가 참된 가중치로 수렴하는지 확인하라. 나란히 비교하여 출력하라.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     import torch
     import torch.nn as nn

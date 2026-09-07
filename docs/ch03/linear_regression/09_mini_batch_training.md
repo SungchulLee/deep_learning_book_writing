@@ -379,10 +379,10 @@ DataLoader를 쓰는 안쪽 학습 루프는 전체 데이터셋이 아니라 �
 
 ## 연습문제
 
-**Exercise 1.**
+**익힘 1.**
 두 텐서에서 데이터를 읽어 `(features, target)` 튜플을 반환하는 사용자 정의 `Dataset` 클래스를 구현하라. 한 에폭을 순회하며 배치 모양을 출력하여 `DataLoader`와 잘 동작하는지 확인하라.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     ```python
     import torch
     from torch.utils.data import Dataset, DataLoader
@@ -407,18 +407,18 @@ DataLoader를 쓰는 안쪽 학습 루프는 전체 데이터셋이 아니라 �
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 학습 데이터는 매 에폭마다 뒤섞어야 하지만 시험 데이터는 그럴 필요가 없는 이유를 설명하라.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     학습 데이터를 매 에폭마다 뒤섞으면 (예를 들어 표본이 클래스 이름순으로 정렬되어 있을 때) 모델이 표본의 순서에서 허위 패턴을 배우지 않게 된다. 또한 최적화기가 순환에 갇히는 것을 막는 데도 도움이 된다. 반면 시험 데이터는 매개변수를 갱신하는 데가 아니라 평가에만 쓰이므로 뒤섞을 필요가 없고, 매번 예측 순서가 바뀌어 디버깅이 어려워질 수도 있다.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 같은 모델 구조를 배치 크기 1, 32, 128, 그리고 전체 데이터셋(10000)으로 학습시켜라. 손실 곡선을 그리고 각각의 에폭당 실제 소요 시간을 측정하라. 관찰한 절충을 논하라.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     import torch, time
     import torch.nn as nn

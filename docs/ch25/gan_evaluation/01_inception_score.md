@@ -2,7 +2,7 @@
 
 This module implements module 52: inception score (is), an important component in deep generative modeling. Understanding this implementation provides insight into the architectural patterns and training procedures used in modern generative models. The code demonstrates practical techniques that are widely adopted in research and production systems.
 
-## Code
+## 코드
 
 ```python
 """
@@ -39,7 +39,7 @@ from typing import Tuple
 import warnings
 
 # ========================================================================
-# Main
+# 메인
 # ========================================================================
 
 torch.manual_seed(42)
@@ -403,7 +403,7 @@ def main():
 if __name__ == "__main__":
     main()```
 
-## Discussion
+## 논의
 
 The implementation follows established best practices for module 52: inception score (is). The code is organized with clear separation between model definition, training logic, and utility functions. Key design decisions include the choice of activation functions, normalization strategies, and optimization hyperparameters, all of which significantly impact training stability and output quality.
 
@@ -411,26 +411,26 @@ The architecture demonstrates several important patterns common to deep generati
 
 Practitioners should pay attention to the hyperparameter choices and training procedures, as these often require careful tuning for new datasets or problem domains. The modular design of the code facilitates experimentation with alternative architectures, loss functions, and training strategies.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 Trace through the forward pass of the main model in this module with a concrete input tensor. Document the shape transformations at each layer and verify the output dimensions match expectations.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     Starting from the input tensor, follow each layer's transformation. For convolutional layers, apply the formula $H_{out} = \lfloor(H_{in} + 2p - k) / s\rfloor + 1$ for spatial dimensions. For linear layers, track the feature dimension changes. Document each intermediate shape and verify the final output matches the expected target dimensions for the specific task (image generation, classification, etc.).
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 Identify the key hyperparameters in this implementation (learning rate, batch size, architecture choices). Design an experiment to measure the sensitivity of training to each hyperparameter by varying one at a time while holding others fixed.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     The key hyperparameters include learning rate (typically $10^{-4}$ to $10^{-3}$), batch size (64-256), number of layers/channels, and activation functions. For each hyperparameter, train the model with 3-5 different values and track a relevant metric (loss, sample quality, convergence speed). Plot the results to identify which hyperparameters have the largest impact. Learning rate and architecture depth typically show the strongest effects, while batch size has moderate impact within reasonable ranges.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Extend this implementation with a new feature: add gradient clipping, learning rate scheduling, or an alternative loss function. Compare the training dynamics before and after your modification.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     For gradient clipping, add `torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)` before `optimizer.step()`. For learning rate scheduling, use `torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=n_epochs)` and call `scheduler.step()` each epoch. Compare training loss curves, convergence speed, and final model quality. Gradient clipping typically prevents training spikes, while cosine annealing can improve final performance by allowing finer optimization in later epochs.

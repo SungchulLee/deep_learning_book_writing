@@ -214,18 +214,18 @@ NumPy 정규 방정식, scikit-learn, PyTorch 경사 하강법이라는 세 추�
 
 ## 연습문제
 
-**Exercise 1.**
+**익힘 1.**
 WMT를 기술주(예: AAPL이나 NVDA)로 바꾸어 추정된 베타를 월마트의 것과 비교하라. 어느 주식의 베타가 더 높으며 그 이유는 무엇인가?
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     NVDA 같은 기술주는 매출이 경기 순환과 투자 심리에 더 민감하므로 보통 베타가 1.0을 크게 웃돈다(흔히 1.5-2.0). 월마트(WMT)는 필수소비재 수요가 비교적 안정적이라 베타가 0.4-0.6 정도이다. 기술주의 높은 베타는 더 큰 체계적 위험을 반영한다. 이들은 시장의 움직임을 양쪽 방향으로 증폭시킨다.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 OLS 회귀 이론의 표준오차 공식을 사용하여 베타 추정치에 대한 95% 신뢰구간을 계산하라.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     ```python
     import numpy as np
     
@@ -252,10 +252,10 @@ OLS 회귀 이론의 표준오차 공식을 사용하여 베타 추정치에 대
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 이동 알파를 이동 베타와 나란히 그려라. 알파가 계속 양수인가, 음수인가, 아니면 0 주위에서 오르내리는가? 이는 WMT의 위험 조정 성과에 대해 무엇을 뜻하는가?
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     import numpy as np
     

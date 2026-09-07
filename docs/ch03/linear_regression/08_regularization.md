@@ -312,18 +312,18 @@ L1과 L2 중 무엇을 고를지는 문제의 구조에 달려 있다. 모든 �
 
 ## 연습문제
 
-**Exercise 1.**
+**익힘 1.**
 L2 정칙화로 $\lambda \in \{0, 0.001, 0.01, 0.1, 1.0\}$인 모델들을 학습시키고, 각각에 대해 학습된 가중치 크기의 분포를 그려라. $\lambda$를 키우면 가중치 분포는 어떻게 달라지는가?
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     $\lambda$가 커지면 가중치의 크기가 고르게 줄어든다. $\lambda = 0$이면 가중치에 제약이 없어 커질 수 있다. $\lambda = 1.0$이면 가중치가 0 쪽으로 크게 줄어든다. 정칙화가 강해질수록 분포가 0 주변으로 좁아진다. 각 $\lambda$에 대해 가중치 절댓값의 막대그래프를 그려 시각화할 수 있다.
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 L1과 L2 벌점을 결합하여 엘라스틱 넷 정칙화를 구현하라. $L = \text{MSE} + \alpha \sum |w_i| + \beta \sum w_i^2$. 모델을 학습시키고 0에 가까운 가중치의 개수를 순수 L1 및 순수 L2와 비교하라.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -355,10 +355,10 @@ L1과 L2 벌점을 결합하여 엘라스틱 넷 정칙화를 구현하라. $L =
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 20개 중 5개만 유용한 특징을 가진 데이터셋에서 $\lambda = 0.1$인 L1 정칙화로 학습한 가중치를 막대그래프로 그리고, 0이 아닌 가중치가 처음 5개 특징에 대응하는지 확인하라.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     import torch, numpy as np
     import torch.nn as nn

@@ -584,10 +584,10 @@ if __name__ == "__main__":
 
 ## 연습문제
 
-**Exercise 1.**
+**익힘 1.**
 선형 모델을 2층 MLP로 바꾸도록 `Config` 클래스에 `hidden_sizes=[64, 32]` 설정을 추가하라. California Housing 데이터셋에서 선형 모델과 MLP의 시험 $R^2$을 비교하라.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     ```python
     # Config 클래스에서 다음과 같이 설정한다:
     # hidden_sizes = [64, 32]
@@ -599,18 +599,18 @@ if __name__ == "__main__":
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 `ReduceLROnPlateau`의 목적을 설명하고, 고정된 학습률보다 크게 이득이 되는 상황을 서술하라.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     ReduceLROnPlateau은 어떤 지표(보통 검증 손실)를 지켜보다가 지정한 에폭 수(인내) 동안 개선이 없으면 학습률에 어떤 인수(예: 0.5)를 곱해 줄인다. 이는 처음 학습률이 경사가 큰 초기 단계에는 알맞지만 최적점 근처에서 미세 조정하기에는 너무 클 때 도움이 된다. 스케줄러가 없으면 모델이 최솟값 주위를 진동한다. 스케줄러가 있으면 낮아진 학습률 덕분에 최적화기가 더 나은 해에 자리 잡는다. 구체적인 상황은 손실이 여러 규모에서 여러 번 정체되는 복잡한 데이터셋에서 모델을 학습시키는 경우이다.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 4개의 겹으로 학습하고 남은 겹으로 검증하는 과정을 5개 겹 전체에 대해 돌리도록 파이프라인을 수정하여 5겹 교차 검증을 구현하라. 겹들에 걸친 시험 $R^2$의 평균과 표준편차를 보고하라.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     import numpy as np
     from sklearn.model_selection import KFold

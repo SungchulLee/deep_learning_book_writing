@@ -165,10 +165,10 @@ if __name__ == "__main__":
 
 ## 연습문제
 
-**Exercise 1.**
+**익힘 1.**
 출력을 2개 대신 5개 예측하도록 모델을 수정하라. 가중치 행렬의 모양이 $(5, 3)$이고 출력별 $R^2$ 점수가 모두 1.0에 가까운지 확인하라.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     ```python
     import torch
     import torch.nn as nn
@@ -198,18 +198,18 @@ if __name__ == "__main__":
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 `nn.Linear`가 가중치를 $(q, p)$로 저장하는 것과 $W$가 $(p, q)$인 수학적 관례 $Y = XW + b$의 차이를 설명하라. PyTorch는 이를 어떻게 해결하는가?
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     PyTorch는 가중치 행렬을 `(out_features, in_features)` = $(q, p)$로 저장하는데, 이는 수학적 관례의 전치이다. 순전파는 `x @ weight.T + bias`를 계산하며, 이는 $W = \text{weight}^T$가 $(p, q)$일 때 $XW + b$와 같다. 이런 저장 방식에서는 가중치 행렬의 각 행이 출력 뉴런 하나의 가중치를 나타내므로 가중치 초기화와 점검에 편리하다. `nn.Linear`가 전치를 내부에서 처리하므로 사용자가 이를 신경 쓸 일은 대개 없다.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 L2 정칙화(`weight_decay=0.01`)로 다중 출력 모델을 학습시키고 학습된 가중치의 크기를 정칙화하지 않은 버전과 비교하라. 정칙화가 모든 출력에 똑같이 영향을 주는가?
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     import torch
     import torch.nn as nn

@@ -377,10 +377,10 @@ if __name__ == "__main__":
 
 ## 연습문제
 
-**Exercise 1.**
+**익힘 1.**
 autograd가 앞 튜토리얼의 직접 계산 공식과 같은 경사를 내는지 확인하라. 동일한 데이터와 매개변수를 만들고 autograd로 순전파와 역전파를 한 번 수행한 뒤, 직접 계산한 경사와 비교하라.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     ```python
     import torch
     torch.manual_seed(42)
@@ -407,10 +407,10 @@ autograd가 앞 튜토리얼의 직접 계산 공식과 같은 경사를 내는�
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 초기화하지 않고 `.backward()`를 두 번 호출하여 경사 누적을 보여라. 경사가 개별 경사 두 개의 합임을 보여라.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     ```python
     import torch
     x = torch.tensor([3.0], requires_grad=True)
@@ -432,10 +432,10 @@ autograd가 앞 튜토리얼의 직접 계산 공식과 같은 경사를 내는�
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 매개변수를 직접 갱신하는 대신 `torch.optim.SGD`를 쓰도록 학습 루프를 수정하라. 최종 학습된 매개변수를 비교하여 일치함을 확인하라.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     import torch
     torch.manual_seed(42)

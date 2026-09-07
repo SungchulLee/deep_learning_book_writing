@@ -300,10 +300,10 @@ PyTorch를 단순한 GPU 가속 배열 라이브러리가 아니라 딥러닝 �
 
 ## 연습문제
 
-**Exercise 1.**
+**익힘 1.**
 `float32`로 텐서 $x = [1, 2, 3, 4, 5]$를 만들어라. 원소별로 $y = x^3 + 2x$를 계산한 뒤 autograd로 각 원소에서의 경사 $\frac{dy}{dx}$를 계산하라. 결과를 해석적 도함수 $3x^2 + 2$와 대조하여 확인하라.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     ```python
     x = torch.tensor([1.0, 2.0, 3.0, 4.0, 5.0], requires_grad=True)
     y = (x ** 3 + 2 * x).sum()  # sum to get a scalar for backward
@@ -315,18 +315,18 @@ PyTorch를 단순한 GPU 가속 배열 라이브러리가 아니라 딥러닝 �
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 경사 하강법의 매개변수 갱신 단계에서 `torch.no_grad()`를 쓰는 이유와, 그것을 빠뜨리면 어떤 문제가 생기는지 설명하라.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     매개변수 갱신 `x -= lr * x.grad`는 `requires_grad=True`인 텐서에 대한 제자리 산술 연산이다. `torch.no_grad()`가 없으면 PyTorch가 이 뺄셈을 계산 그래프에 기록하려 하는데, 그래프에 속한 잎 변수를 제자리에서 수정하는 것은 (이전에 계산한 경사를 무효화하므로) 허용되지 않아 오류가 난다. 갱신을 `torch.no_grad()`로 감싸면 PyTorch가 이를 그래프 밖의 평범한 수치 연산으로 취급한다. 갱신 규칙은 우리가 미분하려는 함수의 일부가 아니므로 이것이 올바른 의미이다.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 원점에서 시작하여 경사 하강법으로 $f(x_1, x_2) = (x_1 - 2)^2 + (x_2 + 1)^2$의 최솟값을 찾아라. 궤적을 출력하고 $(2, -1)$로 수렴함을 확인하라.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     x = torch.tensor([0.0, 0.0], requires_grad=True)
     lr = 0.1

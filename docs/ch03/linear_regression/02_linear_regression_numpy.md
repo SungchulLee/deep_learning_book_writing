@@ -123,10 +123,10 @@ if __name__ == "__main__":
 
 ## 연습문제
 
-**Exercise 1.**
+**익힘 1.**
 학습률 $\alpha \in \{0.001, 0.01, 0.1\}$ 각각에 대해 200 에폭 동안 학습 루프를 실행하라. 손실 곡선을 같은 축에 그리고, 발산하지 않으면서 가장 빠르게 수렴하는 학습률을 찾아라.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     ```python
     import numpy as np
     import matplotlib.pyplot as plt
@@ -159,10 +159,10 @@ if __name__ == "__main__":
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 연쇄 법칙을 사용하여 MSE 손실 $L = \frac{1}{n}\sum_{i=1}^n (y_i - (wx_i + b))^2$에 대한 경사 $\frac{\partial L}{\partial w}$를 단계별로 유도하라.
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     $L = \frac{1}{n}\sum_{i=1}^n (y_i - wx_i - b)^2$이라 하자. $e_i = y_i - wx_i - b$로 두면 $L = \frac{1}{n}\sum e_i^2$이다.
 
     연쇄 법칙에 의해 다음과 같다.
@@ -181,10 +181,10 @@ if __name__ == "__main__":
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 학습 동안 $(w, b)$의 궤적을 추적하여 손실 곡면의 등고선 위에 2차원 경로로 겹쳐 그리도록 코드를 수정하라. $(w, b)$ 값의 격자에서 손실을 계산하는 데 `np.meshgrid`를 사용하라.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     ```python
     import numpy as np
     import matplotlib.pyplot as plt

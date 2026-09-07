@@ -600,12 +600,12 @@ Higher mutual information means:
 
 3. Borji, A. (2019). "Pros and Cons of GAN Evaluation Measures." *Computer Vision and Image Understanding*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
+**익힘 1.**
 Define the Frechet Inception Distance (FID) and explain why it is preferred over the Inception Score for evaluating GANs.
 
-??? success "Solution to Exercise 1"
+??? success "익힘 1 풀이"
     FID models the Inception-v3 feature distributions of real and generated images as multivariate Gaussians $\mathcal{N}(\mu_r, \Sigma_r)$ and $\mathcal{N}(\mu_g, \Sigma_g)$, then computes:
 
     $$\text{FID} = \|\mu_r - \mu_g\|^2 + \text{Tr}\left(\Sigma_r + \Sigma_g - 2(\Sigma_r \Sigma_g)^{1/2}\right)$$
@@ -614,24 +614,24 @@ Define the Frechet Inception Distance (FID) and explain why it is preferred over
 
 ---
 
-**Exercise 2.**
+**익힘 2.**
 What are the limitations of the Inception Score? Can a model achieve a high IS while producing poor samples?
 
-??? success "Solution to Exercise 2"
+??? success "익힘 2 풀이"
     IS = $\exp(\mathbb{E}_x [D_{\text{KL}}(p(y|x) \| p(y))])$ where $p(y|x)$ is the Inception classifier's prediction for generated image $x$. Limitations: (1) only measures quality (sharp, classifiable) and diversity (spread across classes), not fidelity to the training data, (2) a model generating one perfect image per class scores high but ignores intra-class diversity, (3) sensitive to the Inception model's biases, (4) does not capture texture/style quality within classes. Yes, a model can achieve high IS by memorizing one representative image per ImageNet class.
 
 ---
 
-**Exercise 3.**
+**익힘 3.**
 Explain how precision and recall metrics for generative models differ from their classification counterparts.
 
-??? success "Solution to Exercise 3"
+??? success "익힘 3 풀이"
     In the generative setting (Kynkaanniemi et al., 2019): **Precision** measures the fraction of generated samples that fall within the support of the real data distribution (quality/fidelity). **Recall** measures the fraction of real data that falls within the support of the generated distribution (diversity/coverage). High precision + low recall = mode collapse (few modes, but realistic). Low precision + high recall = poor quality but diverse. Unlike classification P/R which count discrete matches, generative P/R uses $k$-nearest-neighbor distances in feature space to estimate distribution support.
 
 ---
 
-**Exercise 4.**
+**익힘 4.**
 Why should multiple evaluation metrics be used together when assessing generative models?
 
-??? success "Solution to Exercise 4"
+??? success "익힘 4 풀이"
     No single metric captures all aspects of generation quality. **FID** measures overall distributional similarity but conflates quality and diversity. **IS** captures quality and diversity but ignores fidelity to training data. **Precision/Recall** separates quality from diversity but depends on the choice of feature extractor and $k$. **Perceptual metrics** (LPIPS) measure image-level quality but not diversity. Using metrics together provides a complete picture: a model with low FID, high precision, and low recall has mode collapse; one with high recall but low precision generates diverse but low-quality samples. Human evaluation remains the gold standard for final assessment.
