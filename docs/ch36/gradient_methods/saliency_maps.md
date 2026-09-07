@@ -1,68 +1,68 @@
-# Saliency Maps and Vanilla Gradients
-## Introduction
+# 두드러짐 그림과 맨 기울기
+## 들머리
 
-**Saliency maps** are visualization techniques that reveal which parts of an input are most important for a neural network's prediction. At their core, saliency methods answer a fundamental question: *"Which input features does the model rely on to make this decision?"*
+**두드러짐 그림**은 신경 그물의 미루어 봄에 들임의 어느 데가 가장 중요한지 드러내는 그림 그리기 재주다. 뿌리를 보면 두드러짐 방법은 밑바탕이 되는 물음에 답한다. *"모형은 이 판단을 내리는 데 어떤 들임 결에 기대는가?"*
 
-The simplest and most foundational approach uses **vanilla gradients**—computing the gradient of the model's output with respect to its input. The fundamental idea is straightforward: **if changing a pixel value significantly changes the prediction, that pixel is important.**
+가장 단순하고 가장 밑바탕이 되는 길은 **맨 기울기**를 쓰는 것이다. 곧 모형의 내놓기를 들임으로 미분한다. 밑바탕 생각은 곧다. **어떤 그림점 값을 바꾸었을 때 미루어 봄이 크게 달라지면 그 그림점이 중요하다.**
 
-This chapter introduces the mathematical foundations, implementation details, and practical considerations for gradient-based saliency methods. While simple and intuitive, understanding vanilla gradients is essential as they form the conceptual foundation for more sophisticated interpretability methods.
+이 장은 기울기 바탕 두드러짐 방법의 수학 밑바탕, 짜기의 자세한 것, 그리고 참으로 쓸 때 헤아릴 것을 들여온다. 단순하고 손에 잡히지만, 맨 기울기를 아는 일은 더 촘촘한 풀이 방법의 개념 밑바탕이 되므로 꼭 있어야 한다.
 
-## Mathematical Foundation
+## 수학 밑바탕
 
-### Definition
+### 뜻매김
 
-Given a classification function $f: \mathbb{R}^{n} \rightarrow \mathbb{R}^{C}$ (mapping $n$-dimensional inputs to $C$ class scores), the saliency map for class $c$ and input $\mathbf{x}$ is:
+가름 함수 $f: \mathbb{R}^{n} \rightarrow \mathbb{R}^{C}$($n$차원 들임을 $C$개 갈래 점수로 옮긴다)가 주어졌을 때, 갈래 $c$과 들임 $\mathbf{x}$에 대한 두드러짐 그림은 이렇다.
 
 $$
 S_c(\mathbf{x}) = \left| \frac{\partial f_c(\mathbf{x})}{\partial \mathbf{x}} \right|
 $$
 
-where $|\cdot|$ denotes element-wise absolute value.
+여기서 $|\cdot|$은 원소마다의 절댓값이다.
 
-### The Gradient as Sensitivity Measure
+### 예민함을 재는 자로서의 기울기
 
-The gradient $\frac{\partial f_c}{\partial x_i}$ measures the **sensitivity** of class score $f_c$ to infinitesimal changes in input feature $x_i$:
+기울기 $\frac{\partial f_c}{\partial x_i}$은 들임 결 $x_i$을 아주 조금 바꿀 때 갈래 점수 $f_c$이 얼마나 흔들리는지, 곧 **예민함**을 잰다.
 
-- **Large gradient magnitude** → Small changes to this feature significantly affect the prediction
-- **Small gradient magnitude** → This feature has little local influence on the prediction
-- **Positive gradient** → Increasing this feature increases the class score
-- **Negative gradient** → Increasing this feature decreases the class score
+- **기울기 크기가 크다** → 이 결을 조금만 바꿔도 미루어 봄이 크게 달라진다
+- **기울기 크기가 작다** → 이 결은 그 자리에서 미루어 봄에 거의 미치지 않는다
+- **기울기가 양수** → 이 결을 올리면 갈래 점수가 오른다
+- **기울기가 음수** → 이 결을 올리면 갈래 점수가 내린다
 
-### Interpretation via Taylor Expansion
+### 테일러 펼침으로 읽기
 
-The gradient-based saliency has a natural interpretation through first-order Taylor expansion. For a small perturbation $\boldsymbol{\epsilon}$:
+기울기 바탕 두드러짐은 일차 테일러 펼침으로 자연스레 읽을 수 있다. 작은 흔듦 $\boldsymbol{\epsilon}$에 대해
 
 $$
 f_c(\mathbf{x} + \boldsymbol{\epsilon}) \approx f_c(\mathbf{x}) + \boldsymbol{\epsilon}^\top \nabla_{\mathbf{x}} f_c(\mathbf{x})
 $$
 
-This reveals that:
+여기서 다음이 드러난다.
 
-1. **High gradient magnitude** at pixel $i$ means small changes to $x_i$ cause large changes in $y_c$
-2. **The gradient direction** indicates whether increasing the pixel value increases or decreases the class score
-3. **The absolute gradient** captures sensitivity regardless of direction
-4. The gradient tells us which **direction of perturbation** maximally changes the output
+1. 그림점 $i$에서 **기울기 크기가 크다**는 것은 $x_i$을 조금 바꿀 때 $y_c$이 크게 달라진다는 뜻이다
+2. **기울기의 방향**은 그림점 값을 올릴 때 갈래 점수가 오르는지 내리는지를 알린다
+3. **절댓값 기울기**는 방향과 상관없이 예민함을 담는다
+4. 기울기는 내놓기를 가장 크게 바꾸는 **흔듦의 방향**을 알려 준다
 
-### Multi-Channel Aggregation
+### 여러 통로 모으기
 
-For RGB images with shape $(3, H, W)$, we compute gradients with respect to all channels and aggregate:
+꼴이 $(3, H, W)$인 RGB 그림이면 모든 통로에 대해 기울기를 셈하고 모은다.
 
 $$
 \mathbf{G} = \frac{\partial y_c}{\partial \mathbf{x}} \in \mathbb{R}^{3 \times H \times W}
 $$
 
-Common aggregation strategies include:
+흔히 쓰는 모으기 꾀는 이렇다.
 
-| Method | Formula | Characteristics |
+| 방법 | 꼴 | 결 |
 |--------|---------|-----------------|
-| **Maximum** | $S_{i,j} = \max_{k \in \{R,G,B\}} \|G_{k,i,j}\|$ | Highlights pixels important in any channel |
-| **Mean** | $S_{i,j} = \frac{1}{3} \sum_{k} \|G_{k,i,j}\|$ | Averages importance across channels |
-| **L2 Norm** | $S_{i,j} = \sqrt{\sum_{k} G_{k,i,j}^2}$ | Euclidean magnitude of gradient vector |
-| **Sum** | $S_{i,j} = \sum_{k} \|G_{k,i,j}\|$ | Total absolute sensitivity |
+| **가장 큼** | $S_{i,j} = \max_{k \in \{R,G,B\}} \|G_{k,i,j}\|$ | 어느 통로에서든 중요한 그림점을 짚는다 |
+| **평균** | $S_{i,j} = \frac{1}{3} \sum_{k} \|G_{k,i,j}\|$ | 통로에 걸쳐 중요함을 고르게 한다 |
+| **L2 크기** | $S_{i,j} = \sqrt{\sum_{k} G_{k,i,j}^2}$ | 기울기 벡터의 유클리드 크기 |
+| **합** | $S_{i,j} = \sum_{k} \|G_{k,i,j}\|$ | 절댓값 예민함의 온 합 |
 
-## PyTorch Implementation
+## PyTorch 짜보기
 
-### Basic Vanilla Gradient Saliency
+### 기본 맨 기울기 두드러짐
 
 ```python
 import torch
@@ -77,42 +77,42 @@ def compute_saliency_map(
     device: torch.device = None
 ) -> np.ndarray:
     """
-    Compute vanilla gradient saliency map.
-    
+    맨 기울기 두드러짐 그림을 셈한다.
+
     Args:
-        model: Neural network model in eval mode
-        input_tensor: Input tensor of shape (1, C, H, W)
-        target_class: Target class index (uses predicted class if None)
-        device: Computation device
-        
+        model: 따지는 결로 놓인 신경 그물 모형
+        input_tensor: (1, C, H, W) 꼴 들임 텐서
+        target_class: 겨눈 갈래 번호(None이면 미루어 본 갈래를 쓴다)
+        device: 셈하는 장치
+
     Returns:
-        Saliency map as numpy array of shape (H, W)
+        (H, W) 꼴 numpy 배열 두드러짐 그림
     """
     if device is None:
         device = next(model.parameters()).device
-    
-    # Enable gradient computation for input
+
+    # 들임에 기울기 셈을 켠다
     input_tensor = input_tensor.clone().to(device).requires_grad_(True)
-    
-    # Forward pass
+
+    # 앞으로 걸음
     model.eval()
     output = model(input_tensor)
-    
-    # Determine target class
+
+    # 겨눈 갈래를 정한다
     if target_class is None:
         target_class = output.argmax(dim=1).item()
-    
-    # Backward pass: compute ∂y_c/∂x
+
+    # 되짚기 걸음: ∂y_c/∂x을 셈한다
     model.zero_grad()
     output[0, target_class].backward()
-    
-    # Get gradient with respect to input
+
+    # 들임에 대한 기울기를 집는다
     saliency = input_tensor.grad.data.abs()
-    
-    # Take maximum across color channels
+
+    # 빛깔 통로를 가로질러 가장 큰 것을 잡는다
     saliency, _ = saliency.max(dim=1)
     saliency = saliency.squeeze().cpu().numpy()
-    
+
     return saliency
 
 
@@ -123,44 +123,44 @@ def compute_vanilla_gradient_saliency(
     device: torch.device
 ) -> torch.Tensor:
     """
-    Compute vanilla gradient saliency map (returns tensor).
-    
+    맨 기울기 두드러짐 그림을 셈한다(텐서를 내놓는다).
+
     Args:
-        model: Pretrained neural network in eval mode
-        image_tensor: Input image [1, 3, H, W]
-        target_class: Class index to compute saliency for
-        device: Computation device (CPU/GPU)
-        
+        model: 따지는 결로 놓인 미리 익힌 신경 그물
+        image_tensor: 들임 그림 [1, 3, H, W]
+        target_class: 두드러짐을 셈할 갈래 번호
+        device: 셈하는 장치(CPU/GPU)
+
     Returns:
-        Saliency map tensor [1, H, W]
+        두드러짐 그림 텐서 [1, H, W]
     """
     model.eval()
     image_tensor = image_tensor.to(device)
-    
-    # Ensure gradients can flow to input
+
+    # 기울기가 들임까지 흐르게 한다
     if image_tensor.grad is not None:
         image_tensor.grad.zero_()
-    
-    # Forward pass
+
+    # 앞으로 걸음
     output = model(image_tensor)  # [1, num_classes]
-    
-    # Select target class score
+
+    # 겨눈 갈래 점수를 고른다
     target_score = output[0, target_class]
-    
-    # Backward pass
+
+    # 되짚기 걸음
     target_score.backward()
-    
-    # Get gradients and take absolute value
+
+    # 기울기를 집고 절댓값을 잡는다
     gradients = image_tensor.grad  # [1, 3, H, W]
     abs_gradients = torch.abs(gradients)
-    
-    # Aggregate across color channels (max pooling)
+
+    # 빛깔 통로를 가로질러 모은다(가장 큰 것 고르기)
     saliency = torch.max(abs_gradients, dim=1)[0]  # [1, H, W]
-    
+
     return saliency
 ```
 
-### Signed Saliency (Positive and Negative Influences)
+### 부호 있는 두드러짐(양수와 음수 이바지)
 
 ```python
 def compute_signed_saliency(
@@ -169,42 +169,42 @@ def compute_signed_saliency(
     target_class: int = None
 ) -> tuple:
     """
-    Compute signed saliency showing positive and negative influences.
-    
+    양수와 음수 이바지를 보이는 부호 있는 두드러짐을 셈한다.
+
     Returns:
-        positive_saliency: Features that INCREASE class score when increased
-        negative_saliency: Features that DECREASE class score when increased
+        positive_saliency: 올리면 갈래 점수를 올리는 결
+        negative_saliency: 올리면 갈래 점수를 내리는 결
     """
     input_tensor = input_tensor.clone().requires_grad_(True)
-    
+
     model.eval()
     output = model(input_tensor)
-    
+
     if target_class is None:
         target_class = output.argmax(dim=1).item()
-    
+
     model.zero_grad()
     output[0, target_class].backward()
-    
+
     gradient = input_tensor.grad.data
-    
-    # Separate positive and negative gradients
+
+    # 양수 기울기와 음수 기울기를 가른다
     positive = gradient.clamp(min=0)
     negative = gradient.clamp(max=0).abs()
-    
-    # Max across channels
+
+    # 통로를 가로질러 가장 큰 것
     positive_saliency = positive.max(dim=1)[0].squeeze().cpu().numpy()
     negative_saliency = negative.max(dim=1)[0].squeeze().cpu().numpy()
-    
+
     return positive_saliency, negative_saliency
 ```
 
-### Gradient × Input
+### 기울기 × 들임
 
-Multiplying gradients by input values can sharpen the attribution by highlighting features that both **exist** and are **important**:
+기울기에 들임 값을 곱하면 **있으면서** **중요한** 결을 짚어 몫 매기기를 또렷하게 할 수 있다.
 
 $$
-\text{Gradient} \times \text{Input} = \mathbf{x} \odot \frac{\partial f_c}{\partial \mathbf{x}}
+\text{기울기} \times \text{들임} = \mathbf{x} \odot \frac{\partial f_c}{\partial \mathbf{x}}
 $$
 
 ```python
@@ -214,32 +214,32 @@ def gradient_times_input(
     target_class: int = None
 ) -> np.ndarray:
     """
-    Compute Gradient × Input saliency.
-    
-    This method weights the gradient by the input value,
-    showing which features both exist and are important.
+    기울기 × 들임 두드러짐을 셈한다.
+
+    기울기에 들임 값으로 짐을 실어, 있으면서 중요한 결이
+    무엇인지 보인다.
     """
     input_tensor = input_tensor.clone().requires_grad_(True)
-    
+
     model.eval()
     output = model(input_tensor)
-    
+
     if target_class is None:
         target_class = output.argmax(dim=1).item()
-    
+
     model.zero_grad()
     output[0, target_class].backward()
-    
-    # Gradient × Input
+
+    # 기울기 × 들임
     grad_input = input_tensor.grad.data * input_tensor.data
-    
-    # Take absolute value and max across channels
+
+    # 절댓값을 잡고 통로를 가로질러 가장 큰 것
     saliency = grad_input.abs().max(dim=1)[0].squeeze().cpu().numpy()
-    
+
     return saliency
 ```
 
-### All Aggregation Variants
+### 모으기 갈래 모두
 
 ```python
 def compute_all_aggregations(
@@ -248,17 +248,17 @@ def compute_all_aggregations(
     target_class: int,
     device: torch.device
 ) -> dict:
-    """Compare different gradient aggregation methods."""
+    """기울기 모으기 방법을 견준다."""
     model.eval()
     input_tensor = input_tensor.clone().to(device).requires_grad_(True)
-    
+
     output = model(input_tensor)
     model.zero_grad()
     output[0, target_class].backward()
-    
+
     gradients = input_tensor.grad
     abs_gradients = torch.abs(gradients)
-    
+
     return {
         'max': torch.max(abs_gradients, dim=1)[0].squeeze().cpu().numpy(),
         'mean': torch.mean(abs_gradients, dim=1).squeeze().cpu().numpy(),
@@ -269,7 +269,7 @@ def compute_all_aggregations(
     }
 ```
 
-## Complete Working Example
+## 온전히 도는 보기
 
 ```python
 import torch
@@ -277,15 +277,15 @@ from torchvision import models, transforms
 from PIL import Image
 import numpy as np
 
-# Setup
+# 차림
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Load pretrained model
+# 미리 익힌 모형을 부른다
 model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
 model = model.to(device)
 model.eval()
 
-# Preprocessing transform (ImageNet normalization)
+# 미리 다듬기(ImageNet으로 고르게 하기)
 preprocess = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.ToTensor(),
@@ -295,107 +295,107 @@ preprocess = transforms.Compose([
     )
 ])
 
-# Load and preprocess image
+# 그림을 부르고 미리 다듬는다
 image = Image.open('dog.jpg').convert('RGB')
 image_tensor = preprocess(image).unsqueeze(0)  # [1, 3, 224, 224]
 image_tensor.requires_grad = True
 
-# Get model prediction
+# 모형의 미루어 봄을 얻는다
 with torch.no_grad():
     output = model(image_tensor.to(device))
     pred_class = output.argmax(dim=1).item()
     confidence = torch.softmax(output, dim=1)[0, pred_class].item()
 
-print(f"Predicted class: {pred_class}, Confidence: {confidence:.2%}")
+print(f"미루어 본 갈래: {pred_class}, 자신함: {confidence:.2%}")
 
-# Compute different saliency maps
+# 여러 두드러짐 그림을 셈한다
 saliency = compute_saliency_map(model, image_tensor, pred_class, device)
 pos_saliency, neg_saliency = compute_signed_saliency(model, image_tensor, pred_class)
 grad_input = gradient_times_input(model, image_tensor, pred_class)
 
-# Prepare original image for visualization
+# 그리려고 본디 그림을 채비한다
 original = np.array(image.resize((224, 224))) / 255.0
 
-print(f"Saliency shape: {saliency.shape}")
-print(f"Value range: [{saliency.min():.6f}, {saliency.max():.6f}]")
+print(f"두드러짐 꼴: {saliency.shape}")
+print(f"값 너비: [{saliency.min():.6f}, {saliency.max():.6f}]")
 ```
 
-## Visualization
+## 그림으로 보이기
 
-### Proper Normalization
+### 제대로 고르게 하기
 
-For meaningful visualization, saliency maps should be normalized to $[0, 1]$:
+뜻있게 그리려면 두드러짐 그림을 $[0, 1]$으로 고르게 해야 한다.
 
 ```python
 def normalize_saliency(saliency: np.ndarray) -> np.ndarray:
     """
-    Normalize saliency map to [0, 1] for visualization.
+    그리려고 두드러짐 그림을 [0, 1]으로 고르게 한다.
     """
     if isinstance(saliency, torch.Tensor):
         saliency = saliency.detach().cpu().numpy()
-    
+
     if saliency.ndim == 3:
         saliency = saliency.squeeze(0)
-    
+
     s_min, s_max = saliency.min(), saliency.max()
-    
+
     if s_max - s_min > 1e-10:
         saliency = (saliency - s_min) / (s_max - s_min)
     else:
         saliency = np.zeros_like(saliency)
-    
+
     return saliency
 ```
 
-### Standard Visualization
+### 여느 그림 그리기
 
 ```python
 def visualize_saliency(
     original_image: np.ndarray,
     saliency_map: np.ndarray,
-    title: str = "Saliency Map"
+    title: str = "두드러짐 그림"
 ) -> plt.Figure:
     """
-    Visualize saliency map alongside original image.
-    
+    본디 그림과 나란히 두드러짐 그림을 그린다.
+
     Args:
-        original_image: Original image (H, W, 3) in [0, 1]
-        saliency_map: Saliency values (H, W)
-        title: Plot title
-        
+        original_image: [0, 1] 너비의 본디 그림 (H, W, 3)
+        saliency_map: 두드러짐 값 (H, W)
+        title: 그림 이름
+
     Returns:
-        Matplotlib figure
+        Matplotlib 그림
     """
     fig, axes = plt.subplots(1, 3, figsize=(15, 5))
-    
-    # Original image
+
+    # 본디 그림
     axes[0].imshow(original_image)
-    axes[0].set_title('Original Image')
+    axes[0].set_title('본디 그림')
     axes[0].axis('off')
-    
-    # Saliency map
+
+    # 두드러짐 그림
     saliency_norm = normalize_saliency(saliency_map)
     im = axes[1].imshow(saliency_norm, cmap='hot')
     axes[1].set_title(title)
     axes[1].axis('off')
     plt.colorbar(im, ax=axes[1], fraction=0.046)
-    
-    # Overlay
+
+    # 겹쳐 보이기
     if original_image.ndim == 3:
         gray_img = np.mean(original_image, axis=2)
     else:
         gray_img = original_image
-    
+
     axes[2].imshow(gray_img, cmap='gray')
     axes[2].imshow(saliency_norm, cmap='jet', alpha=0.5)
-    axes[2].set_title('Overlay')
+    axes[2].set_title('겹쳐 보이기')
     axes[2].axis('off')
-    
+
     plt.tight_layout()
     return fig
 ```
 
-### Signed Saliency Visualization
+### 부호 있는 두드러짐 그리기
 
 ```python
 def visualize_signed_saliency(
@@ -404,41 +404,41 @@ def visualize_signed_saliency(
     negative_saliency: np.ndarray
 ) -> plt.Figure:
     """
-    Visualize positive and negative saliency separately.
-    
-    - Red: Features that INCREASE class score when increased
-    - Blue: Features that DECREASE class score when increased
+    양수 두드러짐과 음수 두드러짐을 따로 그린다.
+
+    - 빨강: 올리면 갈래 점수를 올리는 결
+    - 파랑: 올리면 갈래 점수를 내리는 결
     """
     fig, axes = plt.subplots(1, 4, figsize=(20, 5))
-    
+
     axes[0].imshow(original_image)
-    axes[0].set_title('Original')
+    axes[0].set_title('본디')
     axes[0].axis('off')
-    
+
     axes[1].imshow(positive_saliency, cmap='Reds')
-    axes[1].set_title('Positive (increases score)')
+    axes[1].set_title('양수 (점수를 올림)')
     axes[1].axis('off')
-    
+
     axes[2].imshow(negative_saliency, cmap='Blues')
-    axes[2].set_title('Negative (decreases score)')
+    axes[2].set_title('음수 (점수를 내림)')
     axes[2].axis('off')
-    
-    # Combined view: red = positive, blue = negative
+
+    # 아우른 봄: 빨강 = 양수, 파랑 = 음수
     combined = np.zeros((*positive_saliency.shape, 3))
     combined[:, :, 0] = positive_saliency / (positive_saliency.max() + 1e-8)
     combined[:, :, 2] = negative_saliency / (negative_saliency.max() + 1e-8)
-    
+
     axes[3].imshow(combined)
-    axes[3].set_title('Combined (Red+, Blue-)')
+    axes[3].set_title('아우름 (빨강+, 파랑-)')
     axes[3].axis('off')
-    
+
     plt.tight_layout()
     return fig
 ```
 
-### Comparing Multiple Classes
+### 여러 갈래 견주기
 
-A key insight is that saliency maps are **class-specific**. Different target classes can highlight different image regions:
+고갱이 깨침은 두드러짐 그림이 **갈래마다 다르다**는 것이다. 겨눈 갈래가 다르면 그림의 다른 자리를 짚을 수 있다.
 
 ```python
 def compare_class_saliencies(
@@ -449,28 +449,28 @@ def compare_class_saliencies(
     device: torch.device = None
 ) -> dict:
     """
-    Compute and compare saliency maps for multiple target classes.
-    
-    Demonstrates that different classes highlight different regions.
+    여러 겨눈 갈래의 두드러짐 그림을 셈해 견준다.
+
+    갈래가 다르면 다른 자리를 짚는다는 것을 보인다.
     """
     if device is None:
         device = next(model.parameters()).device
-    
+
     saliencies = {}
-    
+
     for i, class_idx in enumerate(class_indices):
-        # Create fresh tensor for each backward pass
+        # 되짚기마다 새 텐서를 만든다
         img_copy = image_tensor.clone().detach().requires_grad_(True)
-        
+
         saliency = compute_saliency_map(model, img_copy, class_idx, device)
-        
-        name = class_names[i] if class_names else f"Class {class_idx}"
+
+        name = class_names[i] if class_names else f"갈래 {class_idx}"
         saliencies[name] = saliency
-    
+
     return saliencies
 
 
-# Example: Compare top-3 predicted classes
+# 보기: 앞선 3개 미루어 본 갈래를 견준다
 with torch.no_grad():
     output = model(image_tensor.to(device))
     top_classes = output[0].topk(3).indices.tolist()
@@ -478,15 +478,15 @@ with torch.no_grad():
 saliencies = compare_class_saliencies(model, image_tensor, top_classes, device=device)
 ```
 
-## Statistical Analysis
+## 셈속으로 살피기
 
-Understanding the distribution of saliency values provides diagnostic insights:
+두드러짐 값의 퍼짐을 알면 진단에 도움이 된다.
 
 ```python
 def analyze_saliency_statistics(saliency: np.ndarray) -> dict:
-    """Compute comprehensive statistics about saliency distribution."""
+    """두드러짐 퍼짐에 대한 셈속을 두루 셈한다."""
     s = saliency.flatten()
-    
+
     stats = {
         'min': s.min(),
         'max': s.max(),
@@ -497,108 +497,108 @@ def analyze_saliency_statistics(saliency: np.ndarray) -> dict:
         'p90': np.percentile(s, 90),
         'p95': np.percentile(s, 95),
         'p99': np.percentile(s, 99),
-        'sparsity': (s < s.mean()).mean(),  # Fraction below mean
+        'sparsity': (s < s.mean()).mean(),  # 평균 아래인 몫
         'max_mean_ratio': s.max() / (s.mean() + 1e-8)
     }
-    
+
     return stats
 ```
 
-**Interpretation Guidelines:**
+**읽는 길잡이:**
 
-| Metric | Interpretation |
+| 자 | 읽는 법 |
 |--------|----------------|
-| High sparsity (>80%) | Few pixels dominate, possibly meaningful localization |
-| Low max/mean ratio | Diffuse importance, model uses global information |
-| High variance | Strong localization with background suppression |
-| High p99/p95 gap | Few extreme outliers, check for artifacts |
+| 성김이 큼(80% 넘음) | 몇몇 그림점이 판친다. 자리를 뜻있게 짚었을 낌새 |
+| 가장 큼/평균 비가 작음 | 중요함이 퍼져 있고 모형이 온 세상 소식을 쓴다 |
+| 흩어짐이 큼 | 자리를 세게 짚고 바탕을 누른다 |
+| p99/p95 사이가 큼 | 끝자락 값이 몇 개 있다. 자국이 아닌지 살펴라 |
 
-## Limitations and Challenges
+## 한계와 어려움
 
-### 1. Visual Noise
+### 1. 눈에 띄는 잡음
 
-Vanilla gradient saliency maps are notoriously **noisy**. This occurs because:
+맨 기울기 두드러짐 그림은 **잡음이 많기로** 이름났다. 까닭은 이렇다.
 
-1. **High-frequency sensitivity**: Neural networks have high Lipschitz constants, making gradients sensitive to small input variations
-2. **Saturation**: ReLU activations create discontinuities in the gradient landscape
-3. **Lack of smoothness**: The gradient captures local sensitivity, not global importance
+1. **높은 잦기에 예민함**: 신경 그물은 립시츠 상수가 커서 들임이 조금만 달라져도 기울기가 흔들린다
+2. **잦아듦**: ReLU 살림이 기울기 터에 끊긴 데를 만든다
+3. **매끄럽지 않음**: 기울기는 그 자리의 예민함을 담을 뿐 온 세상 중요함을 담지 않는다
 
 ```python
 def demonstrate_noise():
-    """Show that saliency maps can be noisy even for random inputs."""
+    """아무 들임에도 두드러짐 그림에 잡음이 낄 수 있음을 보인다."""
     model = models.resnet50(weights=models.ResNet50_Weights.IMAGENET1K_V2)
     model.eval()
-    
-    # Random input
+
+    # 아무 들임
     input_tensor = torch.randn(1, 3, 224, 224)
-    
+
     saliency = compute_saliency_map(model, input_tensor)
-    
-    # Saliency often appears scattered even for random inputs
-    print(f"Non-zero pixels: {(saliency > 0.01 * saliency.max()).sum()}")
-    print(f"This indicates noise in gradient-based saliency")
+
+    # 아무 들임에도 두드러짐이 흩어져 보이는 일이 잦다
+    print(f"0이 아닌 그림점: {(saliency > 0.01 * saliency.max()).sum()}")
+    print(f"이는 기울기 바탕 두드러짐에 잡음이 있음을 알린다")
 ```
 
-### 2. Gradient Saturation
+### 2. 기울기 잦아듦
 
-For saturating nonlinearities (sigmoid, tanh) or with ReLU networks:
+잦아드는 비선형(시그모이드, tanh)이나 ReLU 그물에서는
 
 $$
 \frac{\partial \text{ReLU}(x)}{\partial x} = \begin{cases} 1 & x > 0 \\ 0 & x \leq 0 \end{cases}
 $$
 
-When activations are in the "dead" region, gradients become zero regardless of input importance. For highly confident predictions, softmax gradients also become very small.
+살아남이 "죽은" 자리에 있으면 들임이 아무리 중요해도 기울기가 0이 된다. 자신함이 아주 큰 미루어 봄에서는 소프트맥스 기울기도 아주 작아진다.
 
-**Solution:** Use raw logits (pre-softmax scores) instead of post-softmax probabilities for computing gradients.
+**푸는 길:** 기울기를 셈할 때 소프트맥스 뒤의 낌새가 아니라 날 로짓(소프트맥스 앞의 점수)을 쓴다.
 
-### 3. Lack of Class Discrimination
+### 3. 갈래를 잘 가려내지 못함
 
-While gradients are computed with respect to a specific class, vanilla saliency often highlights similar regions for different classes:
+기울기를 정한 갈래에 대해 셈하는데도, 맨 두드러짐은 갈래가 달라도 비슷한 자리를 짚는 일이 잦다.
 
 ```python
 def class_discrimination_test(model, input_tensor, device):
-    """Compare saliency maps for different classes."""
+    """갈래마다의 두드러짐 그림을 견준다."""
     with torch.no_grad():
         output = model(input_tensor.to(device))
         _, top_classes = output.topk(5)
-    
+
     saliencies = {}
     for cls in top_classes[0]:
         saliencies[cls.item()] = compute_saliency_map(
             model, input_tensor, cls.item(), device
         )
-    
-    # Often, saliencies for different classes look quite similar
-    # because early layer gradients are shared across all classes
+
+    # 앞선 켜의 기울기를 모든 갈래가 함께 쓰므로
+    # 갈래마다의 두드러짐이 꽤 비슷해 보일 때가 많다
     return saliencies
 ```
 
-### 4. Sensitivity to Input Perturbations
+### 4. 들임 흔듦에 예민함
 
-Small input perturbations can significantly change saliency maps:
+들임을 조금만 흔들어도 두드러짐 그림이 크게 달라질 수 있다.
 
 ```python
 def sensitivity_test(model, input_tensor, device, noise_scale=0.01):
-    """Test sensitivity of saliency to input noise."""
+    """두드러짐이 들임 잡음에 얼마나 예민한지 시험한다."""
     saliency_original = compute_saliency_map(model, input_tensor, device=device)
-    
-    # Add small noise
+
+    # 작은 잡음을 더한다
     noisy_input = input_tensor + noise_scale * torch.randn_like(input_tensor)
     saliency_noisy = compute_saliency_map(model, noisy_input, device=device)
-    
-    # Compute difference
+
+    # 차이를 셈한다
     diff = np.abs(saliency_original - saliency_noisy)
-    
-    print(f"Mean absolute difference: {diff.mean():.4f}")
-    print(f"Max difference: {diff.max():.4f}")
-    print(f"Correlation: {np.corrcoef(saliency_original.flatten(), saliency_noisy.flatten())[0,1]:.4f}")
-    
+
+    print(f"고른 절댓값 차이: {diff.mean():.4f}")
+    print(f"가장 큰 차이: {diff.max():.4f}")
+    print(f"얽힘: {np.corrcoef(saliency_original.flatten(), saliency_noisy.flatten())[0,1]:.4f}")
+
     return diff
 ```
 
-## SmoothGrad: Noise Reduction
+## SmoothGrad: 잡음 줄이기
 
-SmoothGrad addresses the noise problem by averaging gradients over noisy copies of the input:
+SmoothGrad은 들임에 잡음을 섞은 것들에 걸쳐 기울기를 고르게 해 잡음 문제를 다룬다.
 
 $$
 \hat{S}_c(\mathbf{x}) = \frac{1}{N} \sum_{i=1}^{N} \left| \frac{\partial f_c(\mathbf{x} + \mathcal{N}(0, \sigma^2))}{\partial \mathbf{x}} \right|
@@ -614,62 +614,62 @@ def smoothgrad(
     device: torch.device = None
 ) -> np.ndarray:
     """
-    Compute SmoothGrad saliency map.
-    
+    SmoothGrad 두드러짐 그림을 셈한다.
+
     Args:
-        model: Neural network
-        input_tensor: Input tensor
-        target_class: Target class
-        n_samples: Number of noisy samples
-        noise_level: Standard deviation of noise (as fraction of input range)
-        device: Computation device
-        
+        model: 신경 그물
+        input_tensor: 들임 텐서
+        target_class: 겨눈 갈래
+        n_samples: 잡음 표본의 수
+        noise_level: 잡음의 잣대 벗어남(들임 너비에 대한 몫)
+        device: 셈하는 장치
+
     Returns:
-        Smoothed saliency map
+        매끄럽게 한 두드러짐 그림
     """
     if device is None:
         device = next(model.parameters()).device
-    
+
     model.eval()
     input_tensor = input_tensor.to(device)
-    
+
     if target_class is None:
         with torch.no_grad():
             output = model(input_tensor)
             target_class = output.argmax(dim=1).item()
-    
-    # Compute input statistics for noise scaling
+
+    # 잡음 잣대를 잡으려고 들임 셈속을 셈한다
     stdev = noise_level * (input_tensor.max() - input_tensor.min())
-    
+
     accumulated_grad = torch.zeros_like(input_tensor)
-    
+
     for _ in range(n_samples):
-        # Add Gaussian noise
+        # 가우스 잡음을 더한다
         noise = torch.randn_like(input_tensor) * stdev
         noisy_input = (input_tensor + noise).requires_grad_(True)
-        
-        # Forward and backward
+
+        # 앞으로와 되짚기
         output = model(noisy_input)
         model.zero_grad()
         output[0, target_class].backward()
-        
-        # Accumulate gradients
+
+        # 기울기를 쌓는다
         accumulated_grad += noisy_input.grad.data.abs()
-    
-    # Average
+
+    # 고르게 한다
     smoothed_grad = accumulated_grad / n_samples
-    
-    # Max across channels
+
+    # 통로를 가로질러 가장 큰 것
     saliency = smoothed_grad.max(dim=1)[0].squeeze().cpu().numpy()
-    
+
     return saliency
 ```
 
-## Applications in Finance
+## 금융에 쓰기
 
-### Time Series Saliency
+### 때 열 두드러짐
 
-For sequential financial data, saliency reveals which time steps matter:
+차례로 놓인 금융 자료에서는 두드러짐이 어느 때 걸음이 중요한지 드러낸다.
 
 ```python
 def time_series_saliency(
@@ -678,44 +678,44 @@ def time_series_saliency(
     target_class: int = None
 ) -> np.ndarray:
     """
-    Compute saliency for time series predictions.
-    
-    Shows which historical time points most influence the prediction.
-    
+    때 열 미루어 봄의 두드러짐을 셈한다.
+
+    지난 어느 때 자리가 미루어 봄에 가장 크게 미치는지 보인다.
+
     Args:
-        model: Sequence model (LSTM, Transformer, etc.)
-        sequence: Input sequence [1, seq_len, features] or [1, seq_len]
-        target_class: Target class for classification models
-        
+        model: 열 모형(LSTM, 변환기 등)
+        sequence: 들임 열 [1, 열 길이, 결]이나 [1, 열 길이]
+        target_class: 가름 모형의 겨눈 갈래
+
     Returns:
-        Saliency over time dimension
+        때 축에 걸친 두드러짐
     """
     sequence = sequence.clone().requires_grad_(True)
-    
+
     model.eval()
     output = model(sequence)
-    
+
     if target_class is not None:
         output = output[0, target_class]
     else:
         output = output.squeeze()
-    
+
     model.zero_grad()
     output.backward()
-    
-    # Saliency over time dimension
+
+    # 때 축에 걸친 두드러짐
     saliency = sequence.grad.abs().squeeze().cpu().numpy()
-    
-    # If multiple features, aggregate
+
+    # 결이 여럿이면 모은다
     if saliency.ndim == 2:
-        saliency = saliency.sum(axis=1)  # Sum across features
-    
+        saliency = saliency.sum(axis=1)  # 결 축으로 더한다
+
     return saliency
 ```
 
-### Tabular Feature Importance
+### 표 자료의 결 중요함
 
-For tabular financial data (credit risk, trading signals, etc.):
+표로 된 금융 자료(신용 무릅씀, 거래 신호 등)에는
 
 ```python
 def tabular_saliency(
@@ -725,113 +725,113 @@ def tabular_saliency(
     target_class: int = None
 ) -> np.ndarray:
     """
-    Compute and visualize feature importance via gradients.
-    
+    기울기로 결 중요함을 셈하고 그린다.
+
     Args:
-        model: Classification or regression model
-        features: Feature tensor [1, n_features]
-        feature_names: List of feature names
-        target_class: Target class (for classification)
-        
+        model: 가름이나 되돌이 모형
+        features: 결 텐서 [1, n_features]
+        feature_names: 결 이름 목록
+        target_class: 겨눈 갈래(가름일 때)
+
     Returns:
-        Importance scores for each feature
+        결마다의 중요함 점수
     """
     features = features.clone().requires_grad_(True)
-    
+
     model.eval()
     output = model(features)
-    
+
     if target_class is not None:
         output = output[0, target_class]
     else:
         output = output.squeeze()
-    
+
     model.zero_grad()
     output.backward()
-    
+
     importance = features.grad.abs().squeeze().cpu().numpy()
-    
-    # Sort by importance
+
+    # 중요함으로 줄 세운다
     sorted_idx = np.argsort(importance)[::-1]
-    
-    print("Feature Importance (by gradient magnitude):")
+
+    print("결 중요함(기울기 크기로):")
     print("-" * 50)
     for i in sorted_idx[:10]:
         print(f"{feature_names[i]:30s}: {importance[i]:.6f}")
-    
+
     return importance
 ```
 
-## Relationship to Other Methods
+## 다른 방법과의 이어짐
 
-Vanilla gradients serve as the foundation for more sophisticated methods:
+맨 기울기는 더 촘촘한 방법의 밑바탕이 된다.
 
-| Method | Modification | Addresses |
+| 방법 | 고침 | 다루는 것 |
 |--------|--------------|-----------|
-| **Gradient × Input** | Multiply by input values | Sharpens features |
-| **SmoothGrad** | Average over noisy samples | Reduces noise |
-| **Integrated Gradients** | Integrate along path from baseline | Satisfies axioms |
-| **Guided Backpropagation** | Modify ReLU backward pass | Cleaner visuals |
-| **Grad-CAM** | Use feature map gradients | Class discrimination |
+| **기울기 × 들임** | 들임 값을 곱한다 | 결을 또렷하게 한다 |
+| **SmoothGrad** | 잡음 표본에 걸쳐 고르게 한다 | 잡음을 줄인다 |
+| **쌓은 기울기** | 밑금에서 오는 길을 따라 적분한다 | 공리를 채운다 |
+| **이끈 되짚기** | ReLU 되짚기 걸음을 고친다 | 그림이 깨끗해진다 |
+| **Grad-CAM** | 결 그림의 기울기를 쓴다 | 갈래를 가려낸다 |
 
-### Comparison Table
+### 견줌 표
 
-| Method | Pros | Cons |
+| 방법 | 나은 점 | 못한 점 |
 |--------|------|------|
-| Vanilla Gradient | Simple, fast, foundational | Noisy, low discriminability |
-| Gradient × Input | Sharper features | Still noisy |
-| SmoothGrad | Reduced noise | Computationally expensive |
-| Grad-CAM | Clean, class-discriminative | Lower resolution |
-| Integrated Gradients | Theoretical guarantees | Slow, baseline-dependent |
+| 맨 기울기 | 단순하고 빠르며 밑바탕이 된다 | 잡음이 많고 갈래를 잘 못 가려낸다 |
+| 기울기 × 들임 | 결이 더 또렷하다 | 여전히 잡음이 많다 |
+| SmoothGrad | 잡음이 준다 | 셈이 비싸다 |
+| Grad-CAM | 깨끗하고 갈래를 가려낸다 | 결이 성기다 |
+| 쌓은 기울기 | 이론 보장이 있다 | 느리고 밑금에 매인다 |
 
-## Practical Recommendations
+## 참으로 쓸 때 이르는 말
 
-### When to Use Vanilla Gradients
+### 맨 기울기를 쓸 때
 
-**Suitable for:**
+**알맞은 자리:**
 
-- Quick debugging and sanity checks
-- Understanding gradient flow
-- Baseline comparisons with other methods
-- Educational purposes
-- Initial exploration
+- 빠른 벌레잡기와 제정신인지 살피기
+- 기울기 흐름 알아보기
+- 다른 방법과 견줄 밑금
+- 가르치기 몫
+- 처음 둘러보기
 
-**Not recommended for:**
+**권하지 않는 자리:**
 
-- Publication-quality visualizations (too noisy)
-- Production explainability (use smoother methods)
-- High-stakes decisions (combine with other evidence)
-- Class-discriminative explanations (use Grad-CAM)
+- 논문에 실을 그림(잡음이 너무 많다)
+- 서비스에서의 풀이하기(더 매끄러운 방법을 쓰라)
+- 걸린 것이 큰 판단(다른 증거와 아울러 쓰라)
+- 갈래를 가려내는 풀이(Grad-CAM을 쓰라)
 
-### Implementation Checklist
+### 짜기 살핌 목록
 
-1. ✅ **Model in eval mode**: `model.eval()` ensures deterministic behavior
-2. ✅ **Enable gradients on input**: `image_tensor.requires_grad = True`
-3. ✅ **Clear existing gradients**: `model.zero_grad()` before backward
-4. ✅ **Use appropriate class**: Predicted class or class of interest
-5. ✅ **Use logits, not softmax**: Avoid gradient saturation
-6. ✅ **Normalize for visualization**: Scale to $[0, 1]$
-7. ✅ **Clone tensors**: Fresh tensor for each backward pass when comparing
+1. ✅ **모형을 따지는 결로**: `model.eval()`으로 한결같이 돌게 한다
+2. ✅ **들임에 기울기를 켠다**: `image_tensor.requires_grad = True`
+3. ✅ **남은 기울기를 지운다**: 되짚기 앞에 `model.zero_grad()`
+4. ✅ **알맞은 갈래를 쓴다**: 미루어 본 갈래나 눈여겨보는 갈래
+5. ✅ **소프트맥스가 아니라 로짓을 쓴다**: 기울기 잦아듦을 피한다
+6. ✅ **그리려고 고르게 한다**: $[0, 1]$으로 잣대를 잡는다
+7. ✅ **텐서를 베낀다**: 견줄 때는 되짚기마다 새 텐서를 쓴다
 
-## Summary
+## 간추림
 
-Vanilla gradient saliency provides the conceptual foundation for understanding gradient-based interpretability methods. While simple and intuitive, its practical utility is limited by visual noise and lack of class discrimination. Subsequent methods build upon this foundation to produce cleaner, more meaningful attributions.
+맨 기울기 두드러짐은 기울기 바탕 풀이 방법을 알아 가는 개념 밑바탕을 준다. 단순하고 손에 잡히지만, 눈에 띄는 잡음과 갈래를 가려내지 못하는 탓에 참으로 쓸모는 좁다. 뒤따르는 방법들이 이 밑바탕 위에서 더 깨끗하고 뜻있는 몫 매기기를 낸다.
 
-### Key Equations
+### 고갱이 식
 
-**Basic Saliency:**
+**기본 두드러짐:**
 
 $$
 S(\mathbf{x}) = \left| \frac{\partial f_c(\mathbf{x})}{\partial \mathbf{x}} \right|
 $$
 
-**Aggregated Saliency (for multi-channel inputs):**
+**모은 두드러짐(여러 통로 들임):**
 
 $$
-S_{i,j} = \max_{k} |G_{k,i,j}| \quad \text{or} \quad \sqrt{\sum_k G_{k,i,j}^2}
+S_{i,j} = \max_{k} |G_{k,i,j}| \quad \text{또는} \quad \sqrt{\sum_k G_{k,i,j}^2}
 $$
 
-**Gradient × Input:**
+**기울기 × 들임:**
 
 $$
 S(\mathbf{x}) = \left| \mathbf{x} \odot \frac{\partial f_c(\mathbf{x})}{\partial \mathbf{x}} \right|
@@ -843,15 +843,15 @@ $$
 \hat{S}(\mathbf{x}) = \frac{1}{N} \sum_{i=1}^{N} \left| \frac{\partial f_c(\mathbf{x} + \epsilon_i)}{\partial \mathbf{x}} \right|, \quad \epsilon_i \sim \mathcal{N}(0, \sigma^2)
 $$
 
-### Key Takeaways
+### 고갱이
 
-1. **Gradients measure local sensitivity**, not global importance
-2. **Noise is inherent** due to network non-smoothness
-3. **Class discrimination is limited** because early layers are shared
-4. **Multiple aggregation methods** are possible; max is most common
-5. **Foundation for advanced methods** like Integrated Gradients, SmoothGrad
+1. **기울기는 그 자리의 예민함을 잰다**. 온 세상 중요함이 아니다
+2. 그물이 매끄럽지 않으므로 **잡음이 따라붙는다**
+3. 앞선 켜를 함께 쓰므로 **갈래를 가려내는 힘이 약하다**
+4. **모으는 길이 여럿** 있고 가장 큰 것 고르기가 가장 흔하다
+5. 쌓은 기울기, SmoothGrad 같은 **앞선 방법의 밑바탕이 된다**
 
-## References
+## 살펴볼 거리
 
 1. Simonyan, K., Vedaldi, A., & Zisserman, A. (2014). "Deep Inside Convolutional Networks: Visualising Image Classification Models and Saliency Maps." *ICLR Workshop*.
 
@@ -863,34 +863,34 @@ $$
 
 5. Baehrens, D., Schroeter, T., Harmeling, S., Kawanabe, M., Hansen, K., & Müller, K. R. (2010). "How to Explain Individual Classification Decisions." *Journal of Machine Learning Research*.
 
-## Exercises
+## 익힘 문제
 
-**Exercise 1.**
-Apply the interpretability method described in this section to a 2-layer neural network with ReLU activations classifying XOR inputs. Compute the explanation for the input $x = [1, 1]$.
+**익힘 1.**
+이 마디에서 밝힌 풀이 방법을, XOR 들임을 가르는 ReLU 살림의 두 켜 신경 그물에 걸어라. 들임 $x = [1, 1]$에 대한 풀이를 셈하여라.
 
-??? success "Solution to Exercise 1"
-    For a trained XOR network with weights $W_1, b_1, W_2, b_2$, the output is $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$. The explanation method produces attributions for each input feature. For $x = [1, 1]$ (class 0), both features contribute to the negative classification. The specific attribution values depend on the method: gradient-based methods compute $\partial f / \partial x_i$; perturbation-based methods measure output change when features are masked. The XOR problem demonstrates that linear explanation methods can mislead because the decision boundary is non-linear. $\square$
-
----
-
-**Exercise 2.**
-Prove or disprove that the explanation method in this section satisfies the completeness axiom: the sum of all feature attributions equals $f(x) - f(x_0)$ for some baseline $x_0$.
-
-??? success "Solution to Exercise 2"
-    The completeness axiom (also called efficiency in Shapley value theory) states that attributions sum to the difference between the model output at the input and at the baseline. Whether this method satisfies completeness depends on its formulation. Gradient methods do not satisfy completeness (gradients are local, not path-integrated). Integrated Gradients satisfies completeness by construction (fundamental theorem of calculus along the path). SHAP values satisfy efficiency by the Shapley axiom. Methods that violate completeness may over- or under-attribute, making the total attribution unreliable as a global explanation. $\square$
+??? success "익힘 1 풀이"
+    짐이 $W_1, b_1, W_2, b_2$인 익힌 XOR 그물에서 내놓기는 $f(x) = W_2 \cdot \text{ReLU}(W_1 x + b_1) + b_2$이다. 풀이 방법은 들임 결마다 몫을 내놓는다. $x = [1, 1]$(갈래 0)이면 두 결 모두 음수 가름에 이바지한다. 몫 값은 방법마다 다르다. 기울기 바탕 방법은 $\partial f / \partial x_i$을 셈하고, 흔들어 보는 방법은 결을 가렸을 때 내놓기가 얼마나 바뀌는지 잰다. XOR 문제는 판단 금이 선형이 아니므로 선형 풀이 방법이 그르칠 수 있음을 보여 준다. $\square$
 
 ---
 
-**Exercise 3.**
-Design an experiment to evaluate the faithfulness of the explanations produced by this method. Use insertion and deletion curves to measure whether highlighted features are truly important to the model.
+**익힘 2.**
+이 마디의 풀이 방법이 온전함 공리를 채우는지, 곧 어떤 밑금 $x_0$에 대해 모든 결 몫의 합이 $f(x) - f(x_0)$과 같은지 증명하거나 뒤집어라.
 
-??? success "Solution to Exercise 3"
-    Protocol: (1) Compute feature attributions for each test image. (2) Deletion: progressively mask features in order of decreasing attribution, recording the model confidence drop. Faithful explanations cause rapid confidence decrease. (3) Insertion: progressively reveal features in order of decreasing attribution from a blank baseline, recording confidence increase. Faithful explanations cause rapid confidence increase. (4) Compute AUC for both curves. (5) Compare against random ordering (baseline) and other methods. A faithful method should have low deletion AUC and high insertion AUC. Repeat over 1000+ test samples for statistical reliability. $\square$
+??? success "익힘 2 풀이"
+    온전함 공리(섀플리 값 이론에서는 효율이라고도 한다)는 몫의 합이 들임에서의 모형 내놓기와 밑금에서의 내놓기의 차이와 같다는 것이다. 이 방법이 온전함을 채우는지는 그 세움새에 달렸다. 기울기 방법은 온전함을 채우지 못한다(기울기는 그 자리의 것이고 길을 따라 쌓은 것이 아니다). 쌓은 기울기는 세움새 자체로 온전함을 채운다(길을 따라 미적분의 밑정리를 쓴다). SHAP 값은 섀플리 공리로 효율을 채운다. 온전함을 어기는 방법은 몫을 너무 많거나 적게 매길 수 있어, 온 몫을 온 세상 풀이로 믿기 어렵게 만든다. $\square$
 
 ---
 
-**Exercise 4.**
-Discuss how this interpretability method could be applied to a financial model predicting credit default. What regulatory requirements must the explanations satisfy?
+**익힘 3.**
+이 방법이 내놓는 풀이가 얼마나 미더운지 따지는 시험을 꾸며라. 짚어 준 결이 참으로 모형에 중요한지를 넣기와 빼기 곡선으로 재어라.
 
-??? success "Solution to Exercise 4"
-    For credit models, regulations (ECOA, GDPR Article 22) require individualized explanations for adverse decisions. The method must produce: (1) the top factors contributing to the denial (adverse action reasons); (2) explanations that are consistent (similar applicants get similar explanations); (3) explanations that are actionable (the applicant understands what to change). The interpretability method from this section can identify feature importances, but must be validated for stability (small input changes should not drastically alter the explanation) and correctness (removing important features should change the prediction). Protected attributes must be handled carefully to avoid revealing proxy discrimination. $\square$
+??? success "익힘 3 풀이"
+    절차는 이렇다. (1) 시험 그림마다 결 몫을 셈한다. (2) 빼기: 몫이 큰 차례로 결을 하나씩 가리며 모형의 자신함이 떨어지는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 떨어진다. (3) 넣기: 빈 밑금에서 시작해 몫이 큰 차례로 결을 하나씩 드러내며 자신함이 오르는 모습을 적는다. 미더운 풀이면 자신함이 빠르게 오른다. (4) 두 곡선의 아래 넓이를 셈한다. (5) 아무렇게나 매긴 차례(밑금)와 다른 방법에 견준다. 미더운 방법이면 빼기 넓이가 작고 넣기 넓이가 커야 한다. 통계로 미더우려면 시험 표본 1000개 넘게 되풀이한다. $\square$
+
+---
+
+**익힘 4.**
+이 풀이 방법을 신용 부도를 미루어 보는 금융 모형에 어떻게 걸 수 있는지 다루어라. 풀이가 채워야 할 규정 요건은 무엇인가?
+
+??? success "익힘 4 풀이"
+    신용 모형에는 규정(ECOA, GDPR 22조)이 불리한 판단마다 그 사람에게 맞춘 풀이를 바란다. 방법은 다음을 내놓아야 한다. (1) 물리침에 가장 크게 이바지한 인자(불리한 처분 까닭). (2) 한결같은 풀이(비슷한 신청자는 비슷한 풀이를 받는다). (3) 손에 잡히는 풀이(신청자가 무엇을 바꾸어야 하는지 안다). 이 마디의 풀이 방법으로 결의 중요함을 짚을 수 있으나, 든든함(들임이 조금 바뀌었다고 풀이가 확 달라지면 안 된다)과 옳음(중요한 결을 없애면 미루어 봄이 바뀌어야 한다)을 따져 보아야 한다. 지켜야 할 됨됨이는 대리 차별이 드러나지 않도록 조심히 다루어야 한다. $\square$
